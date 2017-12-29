@@ -1,0 +1,15 @@
+obj-y+=convolution.o
+obj-y+=softmax.o
+obj-y+=pooling.o
+obj-y+=input_op.o
+obj-y+=fully_connected.o
+obj-y+=relu.o
+obj-y+=const_op.o
+obj-y+=split.o
+obj-y+=concat.o
+obj-y+=dropout.o
+obj-y+=accuracy.o
+obj-y+=batch_norm.o
+obj-y+=scale.o
+obj-y+=lrn.o
+obj-y+=fused_operator.o

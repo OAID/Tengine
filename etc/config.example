@@ -1,0 +1,15 @@
+# Setting of multithread
+mt.mode = 0
+
+# Name of executor engine
+exec.engine = default
+
+# Name and init program of necessary plugins
+plugin.operator.so = ./build/operator/liboperator.so
+plugin.operator.init = tengine_plugin_init
+
+plugin.serializer.so = ./build/serializer/libserializer.so
+plugin.serializer.init = tengine_plugin_init
+
+plugin.executor.so = ./build/executor/libexecutor.so
+plugin.executor.init = tengine_plugin_init
