@@ -1,6 +1,6 @@
 obj-y+=simple_executor.o
-obj-$(CONFIG_EVENT_EXECUTOR)+=event.o
-obj-$(CONFIG_EVENT_EXECUTOR)+=event_executor.o
+#obj-$(CONFIG_EVENT_EXECUTOR)+=event.o
+#obj-$(CONFIG_EVENT_EXECUTOR)+=event_executor.o
 
 simple_executor_CXXFLAGS+=-O2
 

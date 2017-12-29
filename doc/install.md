@@ -18,7 +18,11 @@ To get started, clone the latest TEngine repository. <br>
 
 By default, `CONFIG_ARCH_ARM64` option is valid, and `CONFIG_CAFFE_REF`, `CAFFE_ROOT`, `CONFIG_EVENT_EXECUTOR` are commented in `makefile.config`. If your target is arm arch, and you don't want to use caffe's operators and event executor, you can directly build TEngine by `make` without doing any change to `makefile.config`. Otherwise, please edit `makefile.config` according to your specific requirements.
 
-### 1.3 Prepare caffe (Optional)
+### 1.3 Install protobuf
+
+        sudo apt install libprotobuf-dev
+
+### 1.4 Prepare caffe (Optional)
 
 If you want to use caffe's operators in TEngine, to verify the operator developped on TEngine, please build [Caffe](https://github.com/BVLC/caffe) or [CaffeOnACL](https://github.com/OAID/CaffeOnACL) in advance and set the path of caffe to `CAFFE_ROOT` in `makefile.config`.<br>
 For example:
