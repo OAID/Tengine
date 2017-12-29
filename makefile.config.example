@@ -1,0 +1,29 @@
+#-------------------------------------------------------------------------------
+#  Template configuration for compiling
+#
+#  First copy makefile.config.example to makefile.config (assume you are on the 
+#  root directory). 
+#
+#  $ cp makefile.config.example makefile.config
+#
+#  Next modify makefile.config, and then compile by
+#
+#  $ make
+#
+#  or build in parallel with 8 threads
+#
+#  $ make -j8
+#-------------------------------------------------------------------------------
+
+# Set the target arch 
+CONFIG_ARCH_ARM64=y
+
+#uncomment to build the reference operators wrapped on Caffe
+#CONFIG_CAFFE_REF=y
+
+# Set the path of caffe used for compile and link,
+# if caffe's operator calculation is enabled.
+# CAFFE_ROOT = /home/firefly/caffe
+
+#uncomment this to build the event executor
+#CONFIG_EVENT_EXECUTOR=y
