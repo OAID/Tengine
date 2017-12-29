@@ -1,0 +1,9 @@
+.*.swp
+*.so
+*.exe
+tests/data/
+build/
+*.log
+*.pb.cc
+*.pb.h
+makefile.config
