@@ -18,9 +18,14 @@ To get started, clone the latest TEngine repository. <br>
 
 By default, `CONFIG_ARCH_ARM64` option is valid, and `CONFIG_CAFFE_REF`, `CAFFE_ROOT`, `CONFIG_EVENT_EXECUTOR` are commented in `makefile.config`. If your target is arm arch, and you don't want to use caffe's operators and event executor, you can directly build TEngine by `make` without doing any change to `makefile.config`. Otherwise, please edit `makefile.config` according to your specific requirements.
 
-### 1.3 Install protobuf
+### 1.3 Install Depency Libraries
 
-        sudo apt install libprotobuf-dev
+In order to load caffe model directly, protobuf library has to been installed.
+
+While Opencv library is required for sample applications to process images 
+    
+    sudo apt install libprotobuf-dev
+    sudo apt install libopencv-dev
 
 ### 1.4 Prepare caffe (Optional)
 

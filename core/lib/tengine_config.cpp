@@ -27,7 +27,7 @@ namespace TEngine {
 
 using ConfManager = Attribute;
 
-const std::string TEngineConfig::version("0.1");
+const std::string TEngineConfig::version("0.1.2");
 
 bool TEngineConfig::tengine_mt_mode = true;
 char TEngineConfig::delim_ch = '=';

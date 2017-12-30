@@ -42,12 +42,17 @@ bool Run(Node * node, ExecEngine * engine)
 {
     Tensor * input_tensor=node->GetInputTensor(0);
     Tensor * output_tensor=node->GetOutputTensor(0);
+    Concat * concat_op=dynamic_cast<Concat *>(node->GetOp());
+    ConcatParam*  param=concat_op->GetParam();
+
 
     const std::vector<int>& dims=input_tensor->GetShape().GetDim();
 
-    int n;
+    int n=1;
+    int axis=param->axis;
 
-    n=dims[0];
+    for(int i=0;i<axis;i++)
+       n=n*dims[i];
 
     if(n!=1)
     {
