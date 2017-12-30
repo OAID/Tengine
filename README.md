@@ -44,7 +44,11 @@ Tengine can be extended to support new serialization format, by building new ser
 
 ## Release History
 
-### version 0.1.0 - 2018/01
+### version 0.1.2 - 2017/12/30
+
+Update documents, as well a few fixes.
+
+### version 0.1.0 - 2017/12/29
 
 Initial release of single A72 support
 
