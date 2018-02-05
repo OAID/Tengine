@@ -611,6 +611,7 @@ bool ConvFast::Run(Node * node, ExecEngine * engine)
          im2col(input_g, col, input_chan, input_w, input_h, kernel_x, kernel_y, stride_x, stride_y, pad_x, pad_y, output_x, output_y, output_chan, 0,  output_xy);
 
          float * kernel_g = kernel_interleaved + g * (kernel_size * ((output_chan + 3) & -4));
+         float * biases_g = biases + g * output_chan;
          float * output_g = output + g * output_xy * output_chan;
 
          if(relu_fused)
@@ -620,10 +621,10 @@ bool ConvFast::Run(Node * node, ExecEngine * engine)
                 int col_start = col_i;
                 int col_end   = col_i + col_cnt_l2;
                 col_end       = col_end > output_xy ? output_xy : col_end;
-                sgemm4x16_relu_fused(col,kernel_g,biases,have_biases,output_g,kernel_size,col_start,col_end,0,output_chan&-16,output_xy);
+                sgemm4x16_relu_fused(col,kernel_g,biases_g,have_biases,output_g,kernel_size,col_start,col_end,0,output_chan&-16,output_xy);
 
                 if(output_chan&0xf)
-                    sgemm4x4_relu_fused(col,kernel_g,biases,have_biases,output_g,kernel_size,col_start,col_end,output_chan&-16,output_chan,output_xy);
+                    sgemm4x4_relu_fused(col,kernel_g,biases_g,have_biases,output_g,kernel_size,col_start,col_end,output_chan&-16,output_chan,output_xy);
              }
          }
          else
@@ -634,9 +635,9 @@ bool ConvFast::Run(Node * node, ExecEngine * engine)
                 int col_start = col_i;
                 int col_end   = col_i + col_cnt_l2;
                 col_end       = col_end > output_xy ? output_xy : col_end;
-                sgemm4x16(col,kernel_g,biases,have_biases,output_g,kernel_size,col_start,col_end,0,output_chan&-16,output_xy);
+                sgemm4x16(col,kernel_g,biases_g,have_biases,output_g,kernel_size,col_start,col_end,0,output_chan&-16,output_xy);
                 if(output_chan&0xf)
-                   sgemm4x4(col,kernel_g,biases,have_biases,output_g,kernel_size,col_start,col_end,output_chan&-16,output_chan,output_xy);
+                   sgemm4x4(col,kernel_g,biases_g,have_biases,output_g,kernel_size,col_start,col_end,output_chan&-16,output_chan,output_xy);
              }
          }
      }
