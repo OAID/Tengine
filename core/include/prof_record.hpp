@@ -39,11 +39,17 @@ struct ProfRecord {
    virtual bool Start(int idx, void * ident)=0;
    virtual bool Stop(int idx)=0;
    virtual void Dump(int method=PROF_DUMP_DECREASE) =0;
+   virtual void Reset(void)=0;
 
    virtual ~ProfRecord() {};
 };
 
-using prof_parser_t=std::function<void(void*)>;
+/* 
+   void * -- ident 
+   int -- repeat_count
+   unsigned long -- used time
+*/ 
+using prof_parser_t=std::function<void(void*,int,unsigned long)>;
 
 struct ProfTime: public ProfRecord {
     struct TimeRecord {
@@ -56,6 +62,9 @@ struct ProfTime: public ProfRecord {
          void *       ident;
 
          TimeRecord(){
+            Reset();
+         }
+         void Reset(){
             count=0;
             start_time=end_time=max_time=total_used_time=0;
             min_time=~1UL;
@@ -72,6 +81,7 @@ struct ProfTime: public ProfRecord {
     bool Start(int idx, void * ident) override;
     bool Stop(int idx) override;
     void Dump(int method=PROF_DUMP_DECREASE) override;
+    void Reset(void) override;
     const TimeRecord * GetRecord(int idx) const;
     int GetRecordNum(void) const;
 

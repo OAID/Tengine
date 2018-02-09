@@ -25,10 +25,11 @@
 #define __TENSOR_MEM_HPP__
 
 #include <memory>
+#include <functional>
 
 namespace TEngine {
 
-using  mem_release_t=void(*)(void *);
+using  mem_release_t=std::function<void(void *)>;
 
 class Tensor;
 
@@ -81,12 +82,10 @@ using TensorMemPtr=std::shared_ptr<TensorMem> ;
 bool  get_tensor_memptr(const Tensor *, TensorMemPtr&);
 void set_tensor_mem(Tensor * , const TensorMemPtr& );
 
-extern "C" {
 
 void * get_tensor_mem(const Tensor * );
-bool  set_tensor_mem(Tensor *, void * ,int ,void (*)(void*));
+bool  set_tensor_mem(Tensor *, void * ,int ,mem_release_t);
 void  free_tensor_mem(Tensor *);
-}
 
 
 } //namespace TensorMem

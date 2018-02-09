@@ -27,7 +27,7 @@
 #include <algorithm>
 
 #include "logger.hpp"
-#include "executor.hpp"
+#include "node_ops.hpp"
 #include "tensor_mem.hpp"
 #include "graph.hpp"
 #include "operator/concat.hpp"
@@ -38,7 +38,9 @@ namespace TEngine {
 
 namespace ConcatImpl {
 
-bool Run(Node * node, ExecEngine * engine)
+struct ConcatOps: public NodeOps {
+	
+bool Run(Node * node)
 {
     Tensor * input_tensor=node->GetInputTensor(0);
     Tensor * output_tensor=node->GetOutputTensor(0);
@@ -79,13 +81,18 @@ bool Run(Node * node, ExecEngine * engine)
     return true;
 }
 
+};
+
 } //namespace ConcatImpl
+
+using namespace ConcatImpl;
 
 void RegisterConcatNodeExec(void)
 {
-    NodeExec concat_exec={nullptr,nullptr,ConcatImpl::Run,nullptr};
+   NodeOps * ops=new ConcatOps();
 
-    RegisterNodeExec("Concat",concat_exec);
+   NodeOpsRegistryManager::RegisterOPImplementor("arm64",
+            "Concat",ops);
 }
 
 

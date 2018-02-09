@@ -11,4 +11,8 @@ onnx.pb_CXXFLAGS=-I.
 onnx_serializer_CXXFLAGS=-I.
 PROTOC=protoc
 MV=mv
+RM=rm
+
+clean::
+	@$(RM) -f ../include/onnx.pb.h onnx.pb.cc
 

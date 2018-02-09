@@ -25,9 +25,10 @@
 #include <functional>
 #include <cstring>
 #include <algorithm>
+#include <complex>
 
 #include "logger.hpp"
-#include "executor.hpp"
+#include "node_ops.hpp"
 #include "tensor_mem.hpp"
 #include "graph.hpp"
 
@@ -35,7 +36,9 @@ namespace TEngine {
 
 namespace SoftmaxImpl {
 
-bool Run(Node * node, ExecEngine * engine)
+struct SoftmaxOps : public NodeOps {
+
+bool Run(Node * node)
 {
     //currently, only working on channel NCHW or NW
     Tensor * input_tensor=node->GetInputTensor(0);
@@ -72,7 +75,7 @@ bool Run(Node * node, ExecEngine * engine)
     {
          /* get max */
         int img_base=i*c*channel_size;
-        std::memcpy(max_array,input+img_base,channel_size);
+        std::memcpy(max_array,input+img_base,channel_size*sizeof(float));
 
         for(int j=1;j<c;j++)
         {
@@ -123,13 +126,18 @@ bool Run(Node * node, ExecEngine * engine)
     return true;
 }
 
+};
+
 } //namespace SoftmaxImpl
+
+using namespace SoftmaxImpl;
 
 void RegisterSoftmaxNodeExec(void)
 {
-    NodeExec softmax_exec={nullptr,nullptr,SoftmaxImpl::Run,nullptr};
-
-    RegisterNodeExec("SoftMax",softmax_exec);
+   SoftmaxOps * ops=new SoftmaxOps();
+            
+   NodeOpsRegistryManager::RegisterOPImplementor("arm64",
+                "SoftMax",ops);
 }
 
 

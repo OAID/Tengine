@@ -27,13 +27,15 @@
 
 
 #include "share_lib_parser.hpp"
-#include "executor.hpp"
 #include "tensor_mem.hpp"
 #include "graph_executor.hpp"
 #include "graph.hpp"
 #include "operator/batch_norm.hpp"
 #include "prof_utils.hpp"
 #include "debug_utils.hpp"
+#include "node_ops.hpp"
+#include "test_soc_info.hpp"
+
 using namespace TEngine;
 void init_tensor_data(float * addr, int number, int fixed_val)
 {
@@ -197,8 +199,7 @@ Node *  create_batch_norm_node(int n,int c,int h,int w)
 
 namespace TEngine {
 
-extern bool  caffe_run_batch_norm(Node *node, ExecEngine * engine);
-void RegisterBatchNormNodeExec(void);
+extern bool  caffe_run_batch_norm(Node *node);
 }
 
 void test_batch_norm(int rep)
@@ -208,7 +209,7 @@ void test_batch_norm(int rep)
     unsigned long start=get_cur_time();
 
     for(int i=0;i<rep;i++)
-         caffe_run_batch_norm(node,nullptr);
+         caffe_run_batch_norm(node);
 
     unsigned long end=get_cur_time();
 
@@ -222,7 +223,7 @@ void test_new_operator(int input_n,int input_c,int input_h,int input_w)
 {
     // caffe
     Node * node0=create_batch_norm_node(input_n,input_c,input_h,input_w);
-    caffe_run_batch_norm(node0,nullptr);
+    caffe_run_batch_norm(node0);
 
     Tensor * tensor=node0->GetOutputTensor(0);
     TShape * shape=&tensor->GetShape();
@@ -233,12 +234,18 @@ void test_new_operator(int input_n,int input_c,int input_h,int input_w)
     std::cout<<"]\n";
 
 // node1
-     Node * node1=create_batch_norm_node(input_n,input_c,input_h,input_w);
-    if(!PrerunNode(node1,nullptr))
+    Node * node1=create_batch_norm_node(input_n,input_c,input_h,input_w);
+
+    SocInfo * soc_info=TestGetSocInfo();
+    NodeOps * bn_ops=NodeOpsRegistryManager::FindNodeOps(soc_info,node1);
+
+    bn_ops->SetHelper(std::malloc,std::free,nullptr);
+
+    if(!bn_ops->Prerun(node1))
     {
        std::cout<<"Prerun failed\n";
     }
-    if(!RunNode(node1,nullptr))
+    if(!bn_ops->Run(node1))
     {
        std::cout<<"Run failed\n";
     }
@@ -257,7 +264,7 @@ void test_new_operator(int input_n,int input_c,int input_h,int input_w)
     for(int i=0;i<60;i++)
     {
       gettimeofday(&t0, NULL);
-      RunNode(node1,nullptr);
+      bn_ops->Run(node1);
       gettimeofday(&t1, NULL);
       float mytime=(float)((t1.tv_sec * 1000000 + t1.tv_usec) - (t0.tv_sec * 1000000 + t0.tv_usec)) / 1000;
       // std::cout<<"time is "<<mytime<<"\n";
@@ -265,10 +272,12 @@ void test_new_operator(int input_n,int input_c,int input_h,int input_w)
     }
      std::cout<<"avg time is "<<sum/50.<<std::endl;   
 
-    if(!PostrunNode(node1,nullptr))
+    if(!bn_ops->Postrun(node1))
     {
        std::cout<<"Postrun failed\n";
     }
+
+    bn_ops->Release();
 
 }
 
@@ -303,6 +312,8 @@ int main(int argc, char * argv[])
     sys_init();
   
     test_batch_norm(rep);
+
+    test_new_operator(1,64,112,112);
 
     test_new_operator(1,64,112,112);
 

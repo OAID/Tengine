@@ -23,23 +23,21 @@
  */
 #include <iostream>
 #include <functional>
+#include<stdlib.h>
 
+#include "node_ops.hpp"
 #include "graph.hpp"
 #include "operator/pooling.hpp"
-#include "executor.hpp"
 #include "tensor_mem.hpp"
-#include"pooling_kernel.h"
-#include<stdlib.h>
+#include "pooling_kernel.h"
+
 namespace TEngine {
 
+namespace PoolingImpl {
 
-static bool PoolingPrerun(Node * node, ExecEngine *)
-{
-   return true;
-}
-
-
-bool PoolingRun(Node * node, ExecEngine *)
+struct PoolingOps : public NodeOps {
+	
+bool Run(Node * node)
 {
     // operator, param
     Pooling * pooling_op=dynamic_cast<Pooling*>(node->GetOp());
@@ -266,7 +264,7 @@ bool PoolingRun(Node * node, ExecEngine *)
         }
         else
         {
-
+            
             for(int n=0;n<in_dim[0];n++)
             {
                 n_skip=n*in_chw;
@@ -278,16 +276,19 @@ bool PoolingRun(Node * node, ExecEngine *)
                     
                     for(int ph=0;ph<out_dim[2];ph++)
                     {
-                        int h_start = ph * param_->strides[0] - param_->pads[0];
-                        int h_end=  std::min(h_start + param_->kernel_shape[0], in_dim[2]);
-                        h_start = std::max(h_start,0);
-
                         for(int pw=0;pw<out_dim[3];pw++)
                         {
+                            int h_start = ph * param_->strides[0] - param_->pads[0];
+                            int h_end=  std::min(h_start + param_->kernel_shape[0], in_dim[2]+param_->pads[0]);
                             int w_start = pw * param_->strides[1] - param_->pads[1];
-                            int w_end= std::min(w_start + param_->kernel_shape[1], in_dim[3]);
-                            w_start = std::max(w_start,0);
+                            int w_end = std::min(w_start + param_->kernel_shape[1], in_dim[3]+param_->pads[1]);
                             int pool_size=(h_end-h_start)*(w_end-w_start);
+                           
+                            h_start = std::max(h_start, 0);
+                            w_start = std::max(w_start, 0);
+                            h_end = std::min(h_end, in_dim[2]);
+                            w_end = std::min(w_end, in_dim[3]);
+                                         
                             const int out_index = oc_skip + ph * out_dim[3] + pw;
                             output_data[out_index] = 0.f;
                             for(int h=h_start;h<h_end;h++)
@@ -309,19 +310,18 @@ bool PoolingRun(Node * node, ExecEngine *)
 
    return true;
 }
+};
 
+}// namespace PoolingImpl
 
-static bool PoolingPostrun(Node * node, ExecEngine *)
-{
-   return true;
-}
-
-
+using namespace PoolingImpl;
 
 void RegisterPoolingNodeExec(void)
 {
-    NodeExec pool_exec={nullptr,PoolingPrerun,PoolingRun,PoolingPostrun};
-    RegisterNodeExec("Pooling",pool_exec);
+   PoolingOps * ops=new PoolingOps();
+
+   NodeOpsRegistryManager::RegisterOPImplementor("arm64",
+                          "Pooling",ops);
 }
 
 

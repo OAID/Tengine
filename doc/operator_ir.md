@@ -5,11 +5,14 @@ This documentation describes the operator definitions.
 * [ConstOp](#constop)
 * [Convolution](#convolution)
 * [Dropout](#dropout)
+* [Eltwise](#eltwise)
 * [Fully_connected](#fully_connected)
 * [Input_op](#input_op)
 * [Pooling](#pooling)
-* [Relu](#relu)
+* [PReLu](#prelu)
+* [ReLu](#relu)
 * [Scale](#scale)
+* [Slice](#slice)
 * [Softmax](#softmax)
 
 
@@ -108,13 +111,27 @@ It computes the output of convolution of an input tensor and filter kernel.
     
 ## Dropout
 
-Drouout operator for inference phase is Y=X.
+Dropout operator for inference phase is Y=X.
 
 **Inputs**:
 * `input`: float32
 
 **Outputs**:
 * `output`: float32
+
+## Eltwise
+Compute elementwise operations, such as max or sum, along multiple input tensors.
+
+**Inputs**:
+* `input1`: float32
+* `input2`: float32
+
+**Outputs**:
+* `output`: float32
+
+**Parameters**:
+* `type`: enum (MAX, SUM)
+ 
 
 ## Fully_connected
 
@@ -193,7 +210,18 @@ Pooling takes input tensor and applies pooling according to the kernel sizes, st
 
     pads zero for each axis (x1_begin, x2_begin...x1_end, x2_end,...). In case of input  of shape NCHW, the pads is (pad_top,pad_left,pad_bottom,pad_right)
     
-## Relu
+## PReLu
+ReLu(Parameterized Rectified Linear Unit) takes one input data (Tensor) and produces one output data (Tensor) throught `yi=max(0,xi)+slope_i*min(0,xi)` with slopes for negative parts.
+
+**Inputs**:
+* `input`: float32
+* `slope`: float32
+
+**Outputs**:
+* `output`: float32
+    
+
+## ReLu
 Relu takes one input data (Tensor) and produces one output data (Tensor) where the rectified linear function, y = max(0, x), is applied to the tensor elementwise.
 
 **Inputs**:
@@ -224,6 +252,23 @@ Scale operator computes the output as scaling the input Y=gamma*X+(bias).
 * `bias_term`: int
 
     default set to 0
+
+## Slice
+Slice op takes an input and slices it along either the num or channel dimension, outputting multiple sliced tensors. 
+
+**Inputs**:
+* `input`: float32
+
+**Outputs**:
+* `output1`: float32
+* `output2`: float32
+
+**Parameters**:
+* `axis`: int 
+    
+    which axis to slice along, default is set to 1 (Channel).
+    
+
 
 ## Softmax
 Softmax computes the softmax normalized values. The output tensor has the same shape of the input shape.

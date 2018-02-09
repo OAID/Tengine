@@ -27,7 +27,7 @@
 
 #include "logger.hpp"
 #include "operator/fused_operator.hpp"
-#include "executor.hpp"
+#include "node_ops.hpp"
 #include "tensor_mem.hpp"
 #include "graph.hpp"
 
@@ -37,7 +37,10 @@ namespace TEngine {
 namespace FusedBNScaleDemo {
 
 
-bool Run(Node * node, ExecEngine * engine)
+struct FusedBNScaleOps: public NodeOps 
+{
+
+bool Run(Node * node)
 {
     const Tensor * input_tensor=node->GetInputTensor(0);
     Tensor * output_tensor=node->GetOutputTensor(0);
@@ -96,16 +99,19 @@ bool Run(Node * node, ExecEngine * engine)
 
 }
 
-
+};
 
 
 } //namespace FusedBNScaleDemo
 
+using namespace FusedBNScaleDemo;
+
 void RegisterFusedDemoNodeExec(void)
 {
-    NodeExec fused_exec={nullptr,nullptr,FusedBNScaleDemo::Run,nullptr};
+    FusedBNScaleOps * ops=new FusedBNScaleOps();
 
-    RegisterNodeExec( FusedBNScaleReLu::class_name,fused_exec);
+    NodeOpsRegistryManager::RegisterOPImplementor(REF_REGISTRY_NAME,
+               FusedBNScaleReLu::class_name,ops);
 
 }
 

@@ -25,9 +25,10 @@
 #include <functional>
 #include <cstring>
 #include <algorithm>
+#include <cmath>
 
 #include "logger.hpp"
-#include "executor.hpp"
+#include "node_ops.hpp"
 #include "tensor_mem.hpp"
 #include "graph.hpp"
 #include "operator/lrn.hpp"
@@ -36,7 +37,9 @@ namespace TEngine {
 
 namespace LRNImpl {
 
-bool Run(Node * node, ExecEngine * engine)
+struct LRNOps: public NodeOps {
+
+bool Run(Node * node)
 {
     Tensor * input_tensor=node->GetInputTensor(0);
     Tensor * output_tensor=node->GetOutputTensor(0);
@@ -120,13 +123,18 @@ bool Run(Node * node, ExecEngine * engine)
     return true;
 }
 
+}; 
+
 } //namespace LRNImpl
+
+using namespace LRNImpl;
 
 void RegisterLRNNodeExec(void)
 {
-    NodeExec lrn_exec={nullptr,nullptr,LRNImpl::Run,nullptr};
+   LRNOps * ops=new LRNOps();
 
-    RegisterNodeExec("LRN",lrn_exec);
+   NodeOpsRegistryManager::RegisterOPImplementor("arm64",
+                  "LRN",ops);
 }
 
 

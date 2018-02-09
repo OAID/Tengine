@@ -1,9 +1,10 @@
-# **TEngine  Performance Report**  
+# **Tengine  Performance Report**  
 
 ## **Revision Record**
 |    Date    | Rev |Change Description|Author
 | ---------- | --- |---|---|
 | 2017-12-29 |  0.1 |Initial version|FeyaHan
+| 2018-01-06 |  0.2 |Add multi CPU performance|HaoLuo
 
 
 ---
@@ -22,9 +23,9 @@
 
 
 ## **Test Environment**
-- TEngine : v0.1  
-- Hardware SoC : Rockchip RK3399.  
-- CPU : 
+- Tengine : v0.3
+- Broad : ROCK960
+- CPU : Rockchip RK3399. 
 
     *   Dual-core Cortex-A72 up to 2.0GHz (real frequency is 1.8GHz); 
 
@@ -38,30 +39,35 @@
 
 ## **Test Steps**
 
-### Step1. **install tengine**
+### Step1. **install Tengine**
 
-For more information about the build of TEngine, please refer to the documentation of [install](install.md) 
+For more information about the build of Tengine, please refer to the documentation of [install](install.md) 
 
 ### Step2. **lock the cpu frequency at maximum**
 ```bash
 > sudo su #switch to root user
-> cat  /sys/devices/system/cpu/cpufreq/policy4/scaling_available_governors #check which available policy, note that policy4 is for A72 on RK3399 and policy0 is for A53
+> cat  /sys/devices/system/cpu/cpufreq/policy4/scaling_available_governors   #check which available policy, note that policy4 is for A72 on RK3399 and policy0 is for A53
 conservative ondemand userspace powersave interactive performance
 > echo performance > /sys/devices/system/cpu/cpufreq/policy4/scaling_governor #set performance policy
-> cat /sys/devices/system/cpu/cpufreq/policy4/cpuinfo_cur_freq #check cpu frenquency
+> cat /sys/devices/system/cpu/cpufreq/policy4/cpuinfo_cur_freq     #check cpu frequency
 1800000
 ```
 
 ### Step3: **test benchmark squeezenetv1.1 and mobilenet**
 
-```shell
-> taskset -a 0x10 ./build/tests/bin/bench_sqz -r10  
-> taskset -a 0x10 ./build/tests/bin/bench_mobilenet -r10 
+Set the default device for our test program in **etc/config**.
+
+```bash
+>./bench_sqz -r90 
+>./bench_mobilenet -r90 
 ```
 
-* "taskset -a 0x10" :  We use this to bind our test program to single ARM A72 core, since RK3399 has 4 A53 (0-3) and 2 A72 (4-5).
+* "cpu.rk3399.a72.all" :  Set default devices to all ARM A72 core, since RK3399 has 4 A53 (0-3) and 2 A72 (4-5).
+* "cpu.rk3399.a53.all" :  Set default devices to all ARM A53 core, since RK3399 has 4 A53 (0-3) and 2 A72 (4-5).
+* "cpu.rk3399.a72.0"    :  Set default devices to 1st ARM A72 core, since RK3399 has 4 A53 (0-3) and 2 A72 (4-5).
+* "cpu.rk3399.a53.2"    :  Set default devices to 3th ARM A53 core, since RK3399 has 4 A53 (0-3) and 2 A72 (4-5).
 
-* r10 :  We run the test program for 10 times.  
+* r90 :  We run the test program for 100 times, increase 10 times interiorly.  
 
 * 'bench\_sqz', 'bench\_mobilenet' : Specify the neural network we were testing.
 
@@ -72,25 +78,29 @@ conservative ondemand userspace powersave interactive performance
 
 The data in the tables below are in micro second **us**. 
 
-For looking the profile of each layer, we need set an enviroment variable:
+For looking the profile of each layer, we need set an environment variable:
 ```bash
 > export PROF_TIME=1
 ``` 
-We run 10 times per test case.
+We run 100 times per test case.
 
 #### **Mobilenet**
 | Mobilenet  | TPI |Pooling|Fused.BNScaleRelu|Convolution|
 | ---------- | --- |---|---|---|
-| TimeElapse | 122856 |380 | 8569| 114249|
-| Percentage | 100%|0.03%| 6.97%| 92.99%|
+| TimeElapse/Percentage (1*A72) | 119560 |38(0.03%)  | 8467(7.08%)   | 111054(92.89%) |
+| TimeElapse/Percentage (2*A72) | 74918  |38(0.05%)  | 7693(10.27%)  | 67186(89.68%)  |
+| TimeElapse/Percentage (1*A53) | 339526 |145(0.04%) | 26444(7.79%)  | 312937(92.17%) |
+| TimeElapse/Percentage (4*A53) | 136144 |123(0.09%) | 25895(19.02%) | 110126(80.89%) |
 ||
 
 
 #### **Squeezenet**
 | Squeezenet | TPI |SoftMax |Convolution |Pooling |Concat|
 | ---------- | --- |---  |---         |---      | ---  |
-| TimeElapse | 90677 |69 | 85371|2643|2973|
-| Percentage | 100% |0.08% | 93.76%|2.90%|3.27%|  
+| TimeElapse/Percentage (1*A72) | 88646  |72(0.08%)  | 83314 (93.99%) |2519(2.84%) |2739(3.09%) |
+| TimeElapse/Percentage (2*A72) | 53782  |68(0.13%)  | 48670 (90.49%) |2384(4.43%) |2658(4.94%) |
+| TimeElapse/Percentage (1*A53) | 231366 |174(0.08%) | 220992(95.52%) |5243(2.27%) |4957(2.14%) |
+| TimeElapse/Percentage (4*A53) | 89040  |165(0.19%) | 78945 (88.66%) |5110(5.74%) |4818(5.41%) |
 ||
 
 All items in the tables are:  

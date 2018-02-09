@@ -26,7 +26,7 @@
 #include <cstring>
 
 #include "logger.hpp"
-#include "executor.hpp"
+#include "node_ops.hpp"
 #include "tensor_mem.hpp"
 #include "graph.hpp"
 
@@ -34,7 +34,9 @@ namespace TEngine {
 
 namespace DropImpl {
 
-bool OnBind(Node * node, ExecEngine * engine)
+struct DropoutOps : public NodeOps {
+
+bool OnBind(Node * node)
 {
     //set the inplace feature
     inplace_t io_map;
@@ -46,19 +48,24 @@ bool OnBind(Node * node, ExecEngine * engine)
     return true;
 }
 
-bool Run(Node * node, ExecEngine * engine)
+bool Run(Node * node)
 {
     //Nothing needs to do for inference
     return true;
 }
 
+};
+
 } //namespace DropImpl
+
+using namespace DropImpl;
 
 void RegisterDropoutNodeExec(void)
 {
-    NodeExec dropout_exec={DropImpl::OnBind,nullptr,DropImpl::Run,nullptr};
+   DropoutOps * ops=new DropoutOps();
 
-    RegisterNodeExec("Dropout",dropout_exec);
+   NodeOpsRegistryManager::RegisterOPImplementor("arm64",
+                              "Dropout",ops);
 }
 
 

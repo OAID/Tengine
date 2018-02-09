@@ -9,7 +9,10 @@ caffe.pb.cc: caffe.proto
 
 PROTOC=protoc
 MV=mv
+RM=rm
 
 caffe.pb_CXXFLAGS=-I. 
 caffe_serializer_CXXFLAGS+=-I.
 
+clean::
+	@$(RM) -f ../include/caffe.pb.h caffe.pb.cc

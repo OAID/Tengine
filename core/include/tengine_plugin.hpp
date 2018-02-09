@@ -26,12 +26,18 @@
 
 #include <string>
 #include <vector>
+#include <unordered_map>
+#include <map>
 
 #include "attribute.hpp"
 #include "logger.hpp"
 #include "share_lib_parser.hpp"
 
 namespace TEngine {
+
+using module_init_func_t=void(*)(void);
+using module_release_func_t=void(*)(void);
+
 /*
  In a config file, we use the following format to set the fullname and the
  init program name of a plugin:  (XXX is the short name of the plugin)
@@ -48,6 +54,9 @@ struct TEnginePlugin
 
     using InitManager = Attribute;
     static InitManager *GetInitManager(void);
+
+    using PrioManager=std::map<int,std::string>;
+    static PrioManager * GetPrioManager(void);
 
     using HandlerManager = Attribute;
     static HandlerManager *GetHandlerManager(void);
@@ -79,6 +88,18 @@ struct TEnginePlugin
     // Dump all the plugin information as the following format:
     // short name : full name : init program name
     static void DumpPlugin(void);
+
+    static std::unordered_map<int,module_init_func_t> * GetInitTable(void);
+    static std::unordered_map<int,module_release_func_t> * GetReleaseTable(void);
+
+    //Register Initialization functions that should be executed after all plugins are loaded
+    //Priority: the lower one is higher priority
+    static void RegisterModuleInit(int priority, module_init_func_t init_func);
+
+    //Note: Release is executed on reverse priority
+    static void RegisterModuleRelease(int priority, module_release_func_t rel_func);
+    static void InitModule(void);
+    static void ReleaseModule(void);
 
 private:
     TEnginePlugin()=default;

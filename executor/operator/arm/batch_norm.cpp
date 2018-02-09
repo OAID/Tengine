@@ -27,7 +27,7 @@
 #include <algorithm>
 
 #include "logger.hpp"
-#include "executor.hpp"
+#include "node_ops.hpp"
 #include "tensor_mem.hpp"
 #include "graph.hpp"
 #include "operator/batch_norm.hpp"
@@ -36,7 +36,9 @@ namespace TEngine {
 
 namespace BatchNormImpl {
 
-bool OnBind(Node * node, ExecEngine * engine)
+struct BNOps: public NodeOps {
+	
+bool OnBind(Node * node)
 {
     //set the inplace feature
     inplace_t io_map;
@@ -49,7 +51,7 @@ bool OnBind(Node * node, ExecEngine * engine)
 }
 
 
-bool Prerun(Node * node, ExecEngine * engine)
+bool Prerun(Node * node)
 {
     const Tensor * input_tensor=node->GetInputTensor(0);
     const TShape&  shape=input_tensor->GetShape();
@@ -68,17 +70,14 @@ bool Prerun(Node * node, ExecEngine * engine)
     BatchNorm * bn_op=dynamic_cast<BatchNorm *>(node->GetOp());
     BatchNormParam * param=bn_op->GetParam();
 
-    if(param->caffe_flavor)
-    {
-        float rescale_factor;
-        float eps=param->eps;
+    float rescale_factor;
+    float eps=param->eps;
 
-        rescale_factor=param->rescale_factor?1/param->rescale_factor:0;
-        for(int c=0;c<channel_num;c++)
-        {
-           scale_var_inv[c]=1.f/std::sqrt(var[c]*rescale_factor + eps);
-           scale_mean[c]=-mean[c]*rescale_factor*scale_var_inv[c];
-        }
+    rescale_factor=param->rescale_factor?1/param->rescale_factor:0;
+    for(int c=0;c<channel_num;c++)
+    {
+       scale_var_inv[c]=1.f/std::sqrt(var[c]*rescale_factor + eps);
+       scale_mean[c]=-mean[c]*rescale_factor*scale_var_inv[c];
     }
 
     node->SetAttr("scale_mean",scale_mean);
@@ -87,11 +86,10 @@ bool Prerun(Node * node, ExecEngine * engine)
     return true;
 }
 
-bool Run(Node * node, ExecEngine * engine)
+bool Run(Node * node)
 {
     const Tensor * input_tensor=node->GetInputTensor(0);
     Tensor * output_tensor=node->GetOutputTensor(0);
-
 
     const TShape&  shape=input_tensor->GetShape();
     const std::vector<int> dims=shape.GetDim();
@@ -104,14 +102,11 @@ bool Run(Node * node, ExecEngine * engine)
     BatchNorm * bn_op=dynamic_cast<BatchNorm *>(node->GetOp());
     BatchNormParam * param=bn_op->GetParam();
 
-
     const float * input=(const float *)get_tensor_mem(input_tensor);
     float * output=(float *)get_tensor_mem(output_tensor);
 
     if(param->caffe_flavor)
     {
-        
-
         float * scale_mean=any_cast<float *>(node->GetAttr("scale_mean"));
         float * scale_var_inv=any_cast<float *>(node->GetAttr("scale_var_inv"));
         
@@ -144,17 +139,63 @@ bool Run(Node * node, ExecEngine * engine)
                 }
             }
         }
-
     }
     else
     {
-        LOG_ERROR()<<"TODO: support not caffe_flavor\n";
+        float * scale_mean=any_cast<float *>(node->GetAttr("scale_mean"));
+        float * scale_var_inv=any_cast<float *>(node->GetAttr("scale_var_inv"));
+
+        const Tensor * gamma_tensor=node->GetInputTensor(1);
+        const Tensor * beta_tensor=node->GetInputTensor(2);
+        const float * gamma=(const float *)get_tensor_mem(gamma_tensor);
+        const float * beta=(const float *)get_tensor_mem(beta_tensor);
+
+        for(int i=0; i < batch_number; i++)
+        {
+            for(int c=0; c < channel_num; c++)
+            {
+                float s_mean = scale_mean[c];
+                float s_var = scale_var_inv[c];
+                float s_gamma = gamma[c];
+                float s_beta = beta[c];
+
+                float s_val1 = s_beta + s_gamma * s_mean;
+                float s_val2 = s_gamma * s_var;
+
+                float32x4_t _mean = vdupq_n_f32(s_mean);
+                float32x4_t _var = vdupq_n_f32(s_var);
+                float32x4_t _gamma = vdupq_n_f32(s_gamma);
+                float32x4_t _beta = vdupq_n_f32(s_beta);
+
+                float32x4_t val1 = vmlaq_f32(_beta,_gamma,_mean);
+                float32x4_t val2 = vmulq_f32(_gamma, _var);
+
+                int offset = i*img_size + c*channel_size;
+                const float* input_ptr = input + offset;
+                float* output_ptr = output + offset;
+
+                for(int l=0; l < channel_size-3; l+=4)
+                {
+                    float32x4_t _input = vld1q_f32(input_ptr);
+                    // output = val1 + _input * val2
+                    vst1q_f32(output_ptr,vmlaq_f32(val1,_input,val2));
+                    input_ptr += 4;
+                    output_ptr += 4;
+                }
+                for(int l=channel_size&~3; l < channel_size; l++)
+                {
+                    *output_ptr = (*input_ptr ) * s_val2 + s_val1;
+                    input_ptr ++;
+                    output_ptr ++;
+                }
+            }
+        }
     }
 
     return true;
 }
 
-bool Postrun(Node * node, ExecEngine * engine)
+bool Postrun(Node * node)
 {
     float * scale_mean=any_cast<float *>(node->GetAttr("scale_mean"));
     float * scale_var=any_cast<float *>(node->GetAttr("scale_var_inv"));
@@ -165,17 +206,18 @@ bool Postrun(Node * node, ExecEngine * engine)
     return true;
 }
 
+};
 
 } //namespace BatchNormImpl
 
+using namespace  BatchNormImpl;
+
 void RegisterBatchNormNodeExec(void)
 {
-    NodeExec bn_exec={BatchNormImpl::OnBind,
-                      BatchNormImpl::Prerun,
-                      BatchNormImpl::Run,
-                      BatchNormImpl::Postrun};
+    BNOps * ops=new BNOps();
 
-    RegisterNodeExec(BatchNormName,bn_exec);
+    NodeOpsRegistryManager::RegisterOPImplementor("arm64",
+                    BatchNormName,ops);
 }
 
 

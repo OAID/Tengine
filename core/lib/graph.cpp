@@ -25,6 +25,7 @@
 #include <vector>
 #include <string>
 #include <queue>
+#include <set>
 
 #include "static_graph.hpp"
 #include "graph.hpp"
@@ -320,7 +321,9 @@ bool Graph::RemoveTensor(Tensor * tensor)
    /* release the tensor*/
 
    auto ir=tensor_map_.find(tensor->GetName());
-   tensor_map_.erase(ir);
+
+   if(ir!=tensor_map_.end())
+       tensor_map_.erase(ir);
 
    /* if it is my tensor */
    if(RemoveTensorOwner(tensor))
@@ -429,7 +432,6 @@ void Graph::SanitizeGraph(void)
     std::vector<int> access_flag(node_number,0);
 
     /* make sure the node index is correct first */
-
    for(int i=0;i<node_number;i++)
        seq_nodes[i]->SetNodeIndex(i);
 
@@ -580,6 +582,10 @@ void Graph::ForwardBFS(Graph * graph, std::vector<Node *>& starts, graph_visit_t
 {
      int node_number=graph->seq_nodes.size();
      std::vector<int> visited(node_number,0);
+     std::set<Node *> in_graph;
+
+     for(int i=0;i<node_number;i++)
+      in_graph.insert(graph->seq_nodes[i]);
 
      std::queue<Node *> visit_queue;
 
@@ -608,7 +614,8 @@ void Graph::ForwardBFS(Graph * graph, std::vector<Node *>& starts, graph_visit_t
              { 
                   Node * child=tensor->consumer[k]->owner;
 
-                  if(!visited[child->GetNodeIndex()] 
+                  if(in_graph.count(child) &&
+                     !visited[child->GetNodeIndex()] 
                        && AllInputVisited(graph,child,visited))
                   {
                       visit_queue.push(child);
@@ -630,8 +637,13 @@ void Graph::BackwardBFS(Graph * graph, std::vector<Node *>& starts, graph_visit_
 {
      int node_number=graph->seq_nodes.size();
      std::vector<int> visited(node_number,0);
-
      std::queue<Node *> visit_queue;
+
+     std::set<Node *> in_graph;
+
+     for(int i=0;i<node_number;i++)
+      in_graph.insert(graph->seq_nodes[i]);
+
 
      /* inital the visit list */
      for(unsigned int i=0;i<starts.size();i++)
@@ -656,7 +668,8 @@ void Graph::BackwardBFS(Graph * graph, std::vector<Node *>& starts, graph_visit_
              Tensor * tensor=port->tensor;
              Node * parent=tensor->producer->owner;
 
-             if(!visited[parent->GetNodeIndex()] 
+             if(in_graph.count(parent)  &&
+                 !visited[parent->GetNodeIndex()] 
                  && AllChildVisited(graph,parent,visited))
              {
                   visit_queue.push(parent);

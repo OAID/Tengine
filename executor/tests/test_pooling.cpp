@@ -27,7 +27,6 @@
 #include <unistd.h>
 #include<omp.h>
 #include "share_lib_parser.hpp"
-#include "executor.hpp"
 #include "tensor_mem.hpp"
 #include "graph_executor.hpp"
 #include "graph.hpp"
@@ -35,6 +34,10 @@
 #include "operator/pooling.hpp"
 #include "prof_utils.hpp"
 #include "debug_utils.hpp"
+#include "node_ops.hpp"
+#include "test_soc_info.hpp"
+
+
 #include<sys/time.h>
 using namespace TEngine;
 
@@ -144,42 +147,44 @@ Node *  create_pooling_node(
 
 namespace TEngine {
 
-extern bool  caffe_run_pooling(Node *node, ExecEngine * engine);
-extern bool PoolingRun(Node* node, ExecEngine * engine);
-void RegisterPoolingNodeExec(void);
+extern bool  caffe_run_pooling(Node *node);
 }
 
 
 void test_new_operator(int rep,int input_n,int input_c,int input_h,int input_w,
     int ksize,int stride,PoolArg type=kPoolMax,int pad=0,int global=0)
 {
+
+
     // caffe
     Node * node0=create_pooling_node(input_n,input_c,input_h,input_w,ksize,stride,type,pad,global);
-    caffe_run_pooling(node0,nullptr);
-    if(!PrerunNode(node0,nullptr))
-    {
-       std::cout<<"Prerun failed\n";
-    }
+    caffe_run_pooling(node0);
+
     Tensor * tensor=node0->GetOutputTensor(0);
     TShape * shape=&tensor->GetShape();
 
     float *  data0=(float *)get_tensor_mem(tensor);
-    std::cout<<"caffe output [";
-     for(int i=0;i<9;i++)std::cout<< data0[i]<<",";
-    std::cout<<"]\n";
+    // std::cout<<"caffe output [";
+    //  for(int i=0;i<25;i++)std::cout<< data0[i]<<",";
+    // std::cout<<"]\n";
 
     // pooling_run
     Node * node1=create_pooling_node(input_n,input_c,input_h,input_w,ksize,stride,type,pad,global);
-    PoolingRun(node1,nullptr);
-    if(!RunNode(node1,nullptr))
+
+    SocInfo * soc_info=TestGetSocInfo();
+    NodeOps * pooling_ops=NodeOpsRegistryManager::FindNodeOps(soc_info,node1);
+
+    pooling_ops->SetHelper(std::malloc,std::free,nullptr);
+
+    if(!pooling_ops->Run(node1))
     {
        std::cout<<"Run failed\n";
     }
     Tensor * otensor=node1->GetOutputTensor(0);
      float *  data_out=(float *)get_tensor_mem(otensor);
-    std::cout<<"\nmy output [";
-    for(int i=0;i<9;i++)std::cout<< data_out[i]<<",";
-    std::cout<<"]\n";
+    // std::cout<<"\nmy output [";
+    // for(int i=0;i<25;i++)std::cout<< data_out[i]<<",";
+    // std::cout<<"]\n";
 
     /* compare date */
     CalcMaxError(data_out,data0,shape->GetSize());
@@ -190,7 +195,7 @@ void test_new_operator(int rep,int input_n,int input_c,int input_h,int input_w,
     for(int i=0;i<30;i++)
     {
       gettimeofday(&t0, NULL);
-      PoolingRun(node1,nullptr);
+      pooling_ops->Run(node1);
       gettimeofday(&t1, NULL);
       float mytime=(float)((t1.tv_sec * 1000000 + t1.tv_usec) - (t0.tv_sec * 1000000 + t0.tv_usec)) / 1000;
       // std::cout<<"time is "<<mytime<<"\n";
@@ -198,11 +203,7 @@ void test_new_operator(int rep,int input_n,int input_c,int input_h,int input_w,
     }
      std::cout<<"avg time is "<<sum/20.<<std::endl;   
 
-    if(!PostrunNode(node1,nullptr))
-    {
-       std::cout<<"Postrun failed\n";
-    }
-
+    pooling_ops->Release();
 }
 
 
@@ -235,12 +236,11 @@ int main(int argc, char * argv[])
     }
 
     sys_init();
-    RegisterPoolingNodeExec();
  
     // "divide exactly" means (input_h - ksize_h )= n * stride_h
     // ------------------------------------------------------------
-
-    test_new_operator(rep,1,64,113,113,3,2);
+    //                    n,c ,h, w, ksize,stride,Mehtod,pad,global
+    test_new_operator(rep,1,64,35,35,3,1,kPoolMax,2);
 
     // global
     // test_new_operator(rep,1,1000,16,16,3,2,kPoolMax,0,1);

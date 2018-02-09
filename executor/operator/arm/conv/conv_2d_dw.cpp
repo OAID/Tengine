@@ -26,13 +26,12 @@
 #include <cstdlib>
 
 #include "logger.hpp"
-#include "executor.hpp"
+#include "conv_selector.hpp"
 #include "tensor_mem.hpp"
 
 #include "graph.hpp"
 #include "operator/convolution.hpp"
-
-#include "conv_implementor.hpp"
+#include "soc_runner.hpp"
 
 
 namespace TEngine {
@@ -42,30 +41,92 @@ namespace conv_2d_dw {
 const char * conv_name="CONV_DW";
 const int default_prio=10;
 
-class Conv2dDepth : public ConvImplementor {
-public:
- bool Prerun(Node * node, ExecEngine * engine);
- bool Run(Node * node, ExecEngine * engine);
- bool Postrun(Node * node, ExecEngine * engine);
- bool Support(ConvParam * param, Tensor * input_tensor, Tensor * weight_tensor);
-
- Conv2dDepth() { name=conv_name;}
-
-};
-
-
-
-bool Conv2dDepth::Prerun(Node * node, ExecEngine * engine)
-{
-   return true;
-}
 
 extern "C" void dw_k3s1p1(float * data, int h, int w, float * kernel, float * output);
 extern "C" void dw_k3s2p1(float * data, int h, int w, float * kernel, float * output);
 extern "C" void dw_k3s1p1_relu_fused(float * data, int h, int w, float * kernel, float * output);
 extern "C" void dw_k3s2p1_relu_fused(float * data, int h, int w, float * kernel, float * output);
 
-bool Conv2dDepth::Run(Node * node, ExecEngine * engine)
+
+struct  dw_param {
+   float * input_buf;
+   int input_h;
+   int input_w;
+   float * output_buf;
+   int output_h;
+   int output_w;
+   float * weight_buf;
+   int   channel_num;
+   int stride;
+
+};
+
+struct  Conv2dDepth : public MTNodeOps {
+
+     bool Run(Node * node);
+
+     bool relu_fused;
+     int  cpu_number;
+     
+     std::vector<CPUInfo> cpu_info;
+     std::vector<int> cpu_list;
+
+     void DirectConv(float * input_buf, int input_h, int input_w, float * output_buf, 
+                             int output_h, int output_w, float * weight_buf, int channel_num, int stride);
+
+     bool Aider(int cpu, int seq, void * data);
+
+
+};
+
+bool Conv2dDepth::Aider(int cpu, int seq, void * data)
+{
+    dw_param * param=(dw_param *)data;
+
+    DirectConv(param->input_buf,param->input_h,param->input_w,
+               param->output_buf,param->output_h,param->output_w,
+               param->weight_buf,param->channel_num,param->stride);
+
+    IncDone(1);
+
+
+    return true;
+}
+
+void Conv2dDepth::DirectConv(float * input_buf, int input_h, int input_w, float * output_buf, 
+                              int output_h, int output_w, float * weight_buf, int channel_num, int stride)
+{
+    int channel_size=input_h*input_w;
+
+    for(int i=0;i<channel_num;i++)
+    {
+       if(stride==1)
+       {
+            if(relu_fused)
+                dw_k3s1p1_relu_fused(input_buf,input_h,input_w,weight_buf,output_buf);
+            else
+                dw_k3s1p1(input_buf,input_h,input_w,weight_buf,output_buf);
+
+            input_buf+=channel_size;
+            output_buf+=channel_size;
+            weight_buf+=9;
+
+       }
+       else if(stride ==2)
+       {
+            if(relu_fused)
+                dw_k3s2p1_relu_fused(input_buf,input_h,input_w,weight_buf,output_buf);
+            else
+                dw_k3s2p1(input_buf,input_h,input_w,weight_buf,output_buf);
+
+            input_buf+=channel_size;
+            output_buf+=output_h*output_w;
+            weight_buf+=9;
+       }
+    }
+}
+
+bool Conv2dDepth::Run(Node * node)
 {
    Tensor * input_tensor=node->GetInputTensor(0);
    Convolution * conv_op=dynamic_cast<Convolution *>(node->GetOp());
@@ -110,85 +171,108 @@ bool Conv2dDepth::Run(Node * node, ExecEngine * engine)
        return false;
    }
 
-   bool relu_fused=false;
-
-   if(node->ExistAttr("Fused.ReLu"))
-        relu_fused=true;
-
 
    for(int i=0;i<output_n;i++)
    { 
-      if(stride_h==1)
-      {
-       //processed per channel
-       int channel_size=input_h*input_w;
+      if(cpu_number==1)
+          DirectConv(input_buf,input_h,input_w,output_buf,output_h,output_w,weight_buf,input_c,stride_h);
+      else
+      {  
+         //partition into 4 tasks
+         std::vector<sub_op_task> task_list;
+         std::vector<dw_param> param_list;
 
-       for(int i=0;i<input_c;i++)
-       {
-            if(relu_fused)
-                dw_k3s1p1_relu_fused(input_buf,input_h,input_w,weight_buf,output_buf);
-            else
-                dw_k3s1p1(input_buf,input_h,input_w,weight_buf,output_buf);
+         auto f=std::bind(&Conv2dDepth::Aider,this,std::placeholders::_1,std::placeholders::_2,
+                                          std::placeholders::_3);
+                             
+         task_list.resize(2);
+         param_list.resize(2);
 
-            input_buf+=channel_size;
-            output_buf+=channel_size;
-            weight_buf+=9;
-       }
-     }
-     else if(stride_h==2)
-     {
-       int channel_size=input_h*input_w;
+         int step=input_c/2;
+         int channel_size=input_h*input_w;
 
-       for(int i=0;i<input_c;i++)
-       {
-            if(relu_fused)
-                dw_k3s2p1_relu_fused(input_buf,input_h,input_w,weight_buf,output_buf);
-            else
-                dw_k3s2p1(input_buf,input_h,input_w,weight_buf,output_buf);
-            input_buf+=channel_size;
-            output_buf+=output_h*output_w;
-            weight_buf+=9;
-       }
-     }
+         for(int i=0;i<2;i++)
+         {
+            dw_param * param=&param_list[i];
+            sub_op_task * task=&task_list[i];
+
+             task->exec_func=f;
+             task->seq=i;
+             task->data=param;
+
+             param->input_buf=input_buf;
+             param->input_h=input_h;
+             param->input_w=input_w;
+             param->output_buf=output_buf;
+             param->output_h=output_h;
+             param->output_w=output_w;
+             param->weight_buf=weight_buf;
+             param->channel_num=step;
+             param->stride=stride_h;
+
+
+             input_buf+=channel_size*step;
+             if(stride_h==1)
+                output_buf+=channel_size*step;
+             else 
+                output_buf+=output_h*output_w*step;
+             weight_buf+=9*step;
+         }
+
+           //the last left ones
+           param_list[1].channel_num=input_c-step;
+         
+           IncRequest(2);
+
+           task_dispatch(task_list,-1);
+
+           WaitDone();
+      }
      
-     return true;
    }
 
    return true;
 }
 
-bool Conv2dDepth::Postrun(Node * node, ExecEngine * engine)
+NodeOps * SelectFunc(SocInfo * soc_info, Node * node)
 {
-   return true;
-}
+     Operator * op=node->GetOp();
 
-bool Conv2dDepth::Support(ConvParam * param, Tensor * input_tensor, Tensor * weight_tensor)
-{
+     Convolution * conv_op=dynamic_cast<Convolution *>(op);
 
-   const TShape& input_shape=input_tensor->GetShape();
+     ConvParam * param=conv_op->GetParam();
 
-   int  input_c=input_shape.GetC();
+     const TShape& input_shape=node->GetInputTensor(0)->GetShape();
 
-   if(param->group>1 && input_c==param->group)
-      return true;
-   else
-      return false;
+     int  input_c=input_shape.GetC();
+     
+     if(param->group==1 || input_c!=param->group)
+          return nullptr;
+     
+
+     Conv2dDepth * ops=new Conv2dDepth();
+
+     if(node->ExistAttr("Fused.ReLu"))
+         ops->relu_fused=true;
+     else
+         ops->relu_fused=false;
+
+     ops->cpu_list=soc_info->cpu_list; 
+     ops->cpu_info=soc_info->cpu_info; 
+     ops->cpu_number=ops->cpu_list.size();
+	 
+     ops->need_free=true;
+
+     return ops;
 }
 
 } //namespace conv_2d_dw
 
 void RegisterConv2dDepth(void)
 {
-    conv_2d_dw::Conv2dDepth * conv=new conv_2d_dw::Conv2dDepth();
+     PrioSelector * selector=conv_selector::GetSelector("arm64");
 
-    char * prio=std::getenv(conv_2d_dw::conv_name);
-
-    if(prio)
-        conv->priority=strtoul(prio,NULL,10);
-    else
-        conv->priority=conv_2d_dw::default_prio;
-
-    ConvImplementorManager::Register(conv);
+     selector->Register(conv_2d_dw::default_prio,conv_2d_dw::SelectFunc);
 }
 
 } //namespace TEngine

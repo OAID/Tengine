@@ -86,6 +86,7 @@ public:
                   Unlock();
                   return true;
               }
+              ir++;
           }
 
           Unlock();

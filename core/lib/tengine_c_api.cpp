@@ -302,8 +302,20 @@ int init_tengine_library(void)
     get_default_user_context();
     get_default_workspace();
 
+    TEnginePlugin::InitModule();
+
     TEngineUnlock(init_mutex);
     return 0;
+}
+
+void release_tengine_library(void)
+{
+    TEnginePlugin::ReleaseModule();
+}
+
+const char * get_tengine_version(void)
+{
+    return TEngineConfig::version.c_str();
 }
 
 int request_tengine_version(const char * version)
@@ -669,23 +681,44 @@ int  prerun_graph(graph_t graph)
 	return -1;
 }
 
+int  infer_shape(graph_t graph)
+{
+    GraphExecutor * executor=static_cast<GraphExecutor *>(graph);
+
+    if(!executor->InferShape())
+        return -1;
+
+    return 0;
+}
+
 int  run_graph(graph_t graph, int block)
 {
+	GraphExecutor * executor=reinterpret_cast<GraphExecutor *>(graph);
 
+        if(GetSyncRunMode())
+	    return executor->SyncRun();
+        else
+	    return executor->Run(block);
+}
+
+
+void dump_graph(graph_t graph)
+{
 	GraphExecutor * executor=static_cast<GraphExecutor *>(graph);
-
-	return executor->Run(block);
+	Graph* g=executor->GetGraph();
+	g->DumpGraph();
 }
 
 int wait_graph(graph_t graph, int try_wait)
 {
-	TO_BE_IMPLEMENTED;
-	return 0;
+	GraphExecutor * executor=reinterpret_cast<GraphExecutor *>(graph);
+
+	return executor->WaitGraph(try_wait);
 }
 
 int  postrun_graph(graph_t  graph)
 {
-	GraphExecutor * executor=static_cast<GraphExecutor *>(graph);
+	GraphExecutor * executor=reinterpret_cast<GraphExecutor *>(graph);
 
         executor->Postrun();
 

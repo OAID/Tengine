@@ -74,7 +74,6 @@ $(libsubdir_list) $(binsubdir_list):
 
 clean: $(libsubdir_list) $(binsubdir_list)
 	@rm -rf $(PLUGIN_SO) $(BIN_EXES)
-	@echo "Clean done"
 
 
 .PHONY:  build clean default install  $(libsubdir_list) $(binsubdir_list)
@@ -85,15 +84,15 @@ $(BUILD_DIR)/%: $(BUILD_DIR)/%.o
 	$(LD) $< $(COMMON_OBJS) -o $@ $(LIBS) $(SO_LIBS) $(LDFLAGS)
 
 
-LIBS+=-lprotobuf -ldl 
+LIBS+=-lprotobuf -ldl -lpthread
 
 SO_LIBS+=-Wl,-rpath,./build/operator:./build/serializer:./build/executor:./build/core
 SO_LIBS+=-L ../build/executor -lexecutor -L../build/operator -loperator  -L ../build/serializer -lserializer
-SO_LIBS+=-L ../build/core -ltengine -lopenblas
+SO_LIBS+=-L ../build/core -ltengine
 
 ifeq ($(CONFIG_CAFFE_REF),y)
     CAFFE_LIBS+=-Wl,-rpath,$(CAFFE_ROOT)/build/lib -L$(CAFFE_ROOT)/build/lib -lcaffe
-    CAFFE_LIBS+= -lprotobuf -lboost_system -lglog
+    CAFFE_LIBS+= -lprotobuf -lboost_system -lglog -lopenblas
     PLUGIN_LDFLAGS+=$(CAFFE_LIBS)
 endif
 

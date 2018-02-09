@@ -96,8 +96,16 @@ public:
    bool Prerun(void);
 
    bool Run(int block);
+   bool SyncRun(void);
+
+   int  WaitGraph(int try_wait);
 
    bool Postrun(void);
+
+   void SetExecPolicy(const std::string& p) { exec_policy_=p;}
+   void SetExecPriority(int priority)  { exec_priority_=priority;}
+   const std::string& GetExecPolicy(void) { return exec_policy_;}
+   int   GetExecPriority(void) { return exec_priority_;}
 
 protected:
    void ReleaseGraph(void);
@@ -107,6 +115,8 @@ private:
 
    std::string graph_name_;
    std::string model_name_;
+   std::string exec_policy_;
+   int exec_priority_;
 
    RuntimeWorkspace * ws_;
    Graph * graph_;

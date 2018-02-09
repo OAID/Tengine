@@ -57,7 +57,7 @@ concat_loop_start:
 less_64:
 
     cbz x9, all_done
-    subs x9,x9,1
+    subs x9,x9,4
 
     ldr s0,[x1],#4
     str s0,[x0],#4

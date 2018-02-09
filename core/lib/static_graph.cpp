@@ -22,6 +22,8 @@
  * Author: haitao@openailab.com
  */
 #include <iostream>
+#include <functional>
+#include <algorithm>
 
 #include "static_graph.hpp"
 #include "static_graph_interface.hpp"
@@ -245,6 +247,8 @@ bool CheckGraphIntegraityByEdge(StaticGraph *graph)
 
     }
 
+    /* sort the output node list in ascending order of index */
+    std::sort(graph->output_node_list.begin(), graph->output_node_list.end(), std::less<int>());
 
     return true;
 }

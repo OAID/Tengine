@@ -37,7 +37,7 @@
 
 const char * text_file="./tests/data/sqz.prototxt";
 const char * model_file="./tests/data/squeezenet_v1.1.caffemodel";
-const char * image_file="./cat.jpg";
+const char * image_file="./tests/data/cat.jpg";
 const char * mean_file="./tests/data/imagenet_mean.binaryproto";
 const char * label_file="./tests/data/synset_words.txt";
 const char * model_name="squeezenet";

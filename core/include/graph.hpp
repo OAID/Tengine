@@ -74,6 +74,7 @@ public:
 
 
     void SetName(const std::string& n) {name_=n;};
+    const std::string& GetName(void) const {return name_;}
 
     void DumpGraph(void);
 

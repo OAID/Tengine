@@ -33,181 +33,273 @@ using ConfManager = Attribute;
 
 NameManager * TEnginePlugin::GetNameManager(void)
 {
-    static NameManager instance;
+	static NameManager instance;
 
-    return &instance;
+	return &instance;
+}
+
+TEnginePlugin::PrioManager * TEnginePlugin::GetPrioManager(void)
+{
+        static PrioManager instance;
+        return &instance;
 }
 
 InitManager * TEnginePlugin::GetInitManager(void)
 {
-    static InitManager instance;
+	static InitManager instance;
 
-    return &instance;
+	return &instance;
 }
 
 HandlerManager * TEnginePlugin::GetHandlerManager(void)
 {
-    static HandlerManager instance;
+	static HandlerManager instance;
 
-    return &instance;
+	return &instance;
 }
 
 void TEnginePlugin::SetPluginManager(void)
 {
-    ConfManager *cm = TEngineConfig::GetConfManager();
-				std::vector<std::string> keys;
-    std::string value;
+	ConfManager *cm = TEngineConfig::GetConfManager();
+	std::vector<std::string> keys;
+	std::string value;
 
-    // Get the list of keys
-    keys = cm->ListAttr();
-    for(unsigned int i=0; i < keys.size(); i++)
-    {
-        value = "";
-        if(!TEngineConfig::Get<std::string>(keys.at(i), value))
-            continue;
-        // Set the plugin manager
-        SetPlugin(keys.at(i), value);
-				}
+	// Get the list of keys
+	keys = cm->ListAttr();
+	for(unsigned int i=0; i < keys.size(); i++)
+	{
+		value = "";
+		if(!TEngineConfig::Get<std::string>(keys.at(i), value))
+			continue;
+		// Set the plugin manager
+		SetPlugin(keys.at(i), value);
+	}
 }
 
 void TEnginePlugin::SetPlugin(const std::string& key, const std::string& value)
 {
-    NameManager *nm = GetNameManager();
-    InitManager *im = GetInitManager();
-				std::vector<std::string> subkey;
+	NameManager *nm= GetNameManager();
+	InitManager *im= GetInitManager();
+        PrioManager *pm= GetPrioManager();
 
-    subkey = TEngineConfig::ParseKey(key);
-    if(subkey.size() > 2 && subkey.at(0) == "plugin")
-    {
-        if(subkey.at(2) == "so")
-        {
-            nm->SetAttr(subkey.at(1), value);
-        }
-        else if(subkey.at(2) == "init")
-        {
-            im->SetAttr(subkey.at(1), value);
-        }
-    }
+	std::vector<std::string> subkey;
+
+	subkey = TEngineConfig::ParseKey(key);
+	if(subkey.size() > 2 && subkey.at(0) == "plugin")
+	{
+		if(subkey.at(2) == "so")
+		{
+			nm->SetAttr(subkey.at(1), value);
+		}
+		else if(subkey.at(2) == "init")
+		{
+			im->SetAttr(subkey.at(1), value);
+		}
+                else if(subkey.at(2) =="prio")
+                {
+                   int prio=strtoul(value.c_str(),NULL,10);
+                   (*pm)[prio]=subkey.at(1);
+                }
+                
+	}
 }
 
 bool TEnginePlugin::LoadAll(void)
 {
-    NameManager *nm = GetNameManager();
-				std::vector<std::string> names;
-				bool ret = true;
+	NameManager *nm = GetNameManager();
+	std::vector<std::string> names;
+	names = nm->ListAttr();
 
-    names = nm->ListAttr();
-    for(unsigned int i=0; i < names.size(); i++)
-    {
-        if(!LoadPlugin(names.at(i)))
-            ret = false;
-        if(!InitPlugin(names.at(i)))
-            ret = false;
-				}
-				return ret;
+        PrioManager *pm= GetPrioManager();
+
+        auto ir=pm->begin();
+        
+        while(ir!=pm->end())
+        {
+            const std::string& key=ir->second;
+
+	    if(!LoadPlugin(key))
+			return  false;
+
+	    if(!InitPlugin(key))
+			return false;
+
+             ir++;
+	}
+
+	return true;
 }
 
 bool TEnginePlugin::LoadPlugin(const std::string& name)
 {
-    HandlerManager *hm = GetHandlerManager();
+	HandlerManager *hm = GetHandlerManager();
 
-    std::string fullname;
-				ShareLibParser *p = new ShareLibParser();
+	std::string fullname;
+	ShareLibParser *p = new ShareLibParser();
 
-    if(!GetFullName(name, fullname))
-        return false;
+	if(!GetFullName(name, fullname))
+		return false;
 
-    if(!fullname.size() || p->Load(fullname) < 0)
-    {
-        LOG_ERROR()<<"Failed in loading the plugin!\n";
-        return false;
-    }
+	if(!fullname.size() || p->Load(fullname) < 0)
+	{
+		LOG_ERROR()<<"Failed in loading the plugin!\n";
+		return false;
+	}
 
-    hm->SetAttr(name, p);
-    LOG_INFO()<<"Successfully load plugin : "<<fullname<<"\n";
-				return true;
+	hm->SetAttr(name, p);
+	LOG_INFO()<<"Successfully load plugin : "<<fullname<<"\n";
+	return true;
 }
 
 bool TEnginePlugin::InitPlugin(const std::string& name)
 {
-    std::string initname;
-				ShareLibParser p;
+	std::string initname;
+	ShareLibParser p;
 
-    if(!GetInitName(name, initname))
-        return false;
+	if(!GetInitName(name, initname))
+		return false;
 
-    if(!initname.size() || !GetHandler(name, p))
-        return false;
+	if(!initname.size() || !GetHandler(name, p))
+		return false;
 
-    p.ExcecuteFunc<int()>(initname);
-				return true;
+	p.ExcecuteFunc<int()>(initname);
+	return true;
 }
 
 bool TEnginePlugin::GetFullName(const std::string& name, std::string& fullname)
 {
-    NameManager *nm = GetNameManager();
-    if(!nm->ExistAttr(name))
-    {
-        LOG_ERROR()<<"The plugin is not set in the config file!\n";
-        return false;
-    }
+	NameManager *nm = GetNameManager();
+	if(!nm->ExistAttr(name))
+	{
+		LOG_ERROR()<<"The plugin is not set in the config file!\n";
+		return false;
+	}
 
-    nm->GetAttr<std::string>(name, &fullname);
+	nm->GetAttr<std::string>(name, &fullname);
 
-    if(!fullname.size())
-    {
-        LOG_ERROR()<<"The fullname of the plugin is not set in the config file!\n";
-        return false;
-    }
-    return true;
+	if(!fullname.size())
+	{
+		LOG_ERROR()<<"The fullname of the plugin is not set in the config file!\n";
+		return false;
+	}
+	return true;
 }
 
 bool TEnginePlugin::GetInitName(const std::string& name, std::string& initname)
 {
-    InitManager *im = GetInitManager();
-    if(!im->ExistAttr(name))
-    {
-        LOG_ERROR()<<"The plugin is not set in the config file!\n";
-        return false;
-    }
+	InitManager *im = GetInitManager();
+	if(!im->ExistAttr(name))
+	{
+		LOG_ERROR()<<"The plugin is not set in the config file!\n";
+		return false;
+	}
 
-    im->GetAttr<std::string>(name, &initname);
+	im->GetAttr<std::string>(name, &initname);
 
-    if(!initname.size())
-    {
-        LOG_ERROR()<<"The initname of the plugin is not set in the config file!\n";
-        return false;
-    }
-    return true;
+	if(!initname.size())
+	{
+		LOG_ERROR()<<"The initname of the plugin is not set in the config file!\n";
+		return false;
+	}
+	return true;
 }
-    
+
 bool TEnginePlugin::GetHandler(const std::string& name, ShareLibParser& handler)
 {
-    HandlerManager *hm = GetHandlerManager();
-    if(!hm->ExistAttr(name))
-    {
-        LOG_ERROR()<<"The handler is not got yet!\n";
-        return false;
-    }
+	HandlerManager *hm = GetHandlerManager();
+	if(!hm->ExistAttr(name))
+	{
+		LOG_ERROR()<<"The handler is not got yet!\n";
+		return false;
+	}
 
-    handler = *any_cast<ShareLibParser *>(hm->GetAttr(name));
-    return true;
+	handler = *any_cast<ShareLibParser *>(hm->GetAttr(name));
+	return true;
 }
 
 void TEnginePlugin::DumpPlugin(void)
 {
-    NameManager *nm = GetNameManager();
-    InitManager *im = GetInitManager();
-				std::vector<std::string> names;
+	NameManager *nm = GetNameManager();
+	InitManager *im = GetInitManager();
+	std::vector<std::string> names;
 
-    names = nm->ListAttr();
-    for(unsigned int i=0; i < names.size(); i++)
-    {
-        std::string fullname, initname;
-        nm->GetAttr(names.at(i), &fullname);
-        im->GetAttr(names.at(i), &initname);
-        std::cout<<names.at(i)<<" : "<<fullname<<" : "<<initname<<std::endl;
-				}
+	names = nm->ListAttr();
+	for(unsigned int i=0; i < names.size(); i++)
+	{
+		std::string fullname, initname;
+		nm->GetAttr(names.at(i), &fullname);
+		im->GetAttr(names.at(i), &initname);
+		std::cout<<names.at(i)<<" : "<<fullname<<" : "<<initname<<std::endl;
+	}
 }
+
+std::unordered_map<int,module_init_func_t> * TEnginePlugin::GetInitTable(void)
+{
+	static std::unordered_map<int, module_init_func_t> instance;
+
+	return &instance;
+}
+
+void TEnginePlugin::RegisterModuleInit(int priority, module_init_func_t init_func)
+{
+	std::unordered_map<int, module_init_func_t> * p_table=GetInitTable();
+
+	(*p_table)[priority]=init_func;
+
+}
+
+std::unordered_map<int,module_release_func_t> * TEnginePlugin::GetReleaseTable(void)
+{
+	static std::unordered_map<int, module_release_func_t> instance;
+
+	return &instance;
+}
+
+void TEnginePlugin::RegisterModuleRelease(int priority, module_release_func_t rel_func)
+{
+	std::unordered_map<int, module_release_func_t> * p_table=GetReleaseTable();
+
+	(*p_table)[priority]=rel_func;
+}
+
+void TEnginePlugin::InitModule(void)
+{
+	std::unordered_map<int, module_init_func_t> * p_table=GetInitTable();
+	auto ir=p_table->begin();
+	auto end=p_table->end();
+
+	while(ir!=end)
+	{
+		module_init_func_t func=ir->second;
+		func();
+		ir++;
+	}
+}
+
+void TEnginePlugin::ReleaseModule(void)
+{
+        std::unordered_map<int, module_release_func_t> * p_table=GetReleaseTable();
+        auto ir=p_table->begin();
+        auto end=p_table->end();
+
+        std::vector<module_release_func_t> func_list;
+        
+        while(ir!=end)
+        {
+             func_list.push_back(ir->second);
+             ir++;
+        }
+
+        auto r_start=func_list.rbegin();
+        auto r_end=func_list.rend();
+
+        while(r_start!=r_end)
+        {
+             (*r_start)();
+             r_start++;
+        }
+        
+}
+
 
 } //end of namespace TEngine

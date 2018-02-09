@@ -66,7 +66,6 @@ install:
 
 clean: $(libsubdir_list) $(binsubdir_list)
 	@rm -rf $(PLUGIN_SO) $(BIN_EXES)
-	@echo "Clean done"
 
 
 .PHONY:  build clean default install  test $(libsubdir_list) $(binsubdir_list)

@@ -26,6 +26,7 @@
 #include "operator/input_op.hpp"
 #include "operator/pooling.hpp"
 #include "operator/softmax.hpp"
+#include "operator/prelu.hpp"
 
 
 using namespace TEngine;
@@ -94,7 +95,9 @@ int main(void)
 
    std::cout<<"DataLayout: "<<input_op->GetLayout()<<std::endl;
 
-   
-
+   //prelu
+   PReLU * prelu_op=dynamic_cast<PReLU*>(CREATE_OPERATOR("PReLU"));
+   std::cout<<prelu_op->GetDoc()<<std::endl;
+   std::cout<<"PReLU INPUT NUMBER: "<<prelu_op->GetInputNum()<<std::endl;
   return 0;
 }

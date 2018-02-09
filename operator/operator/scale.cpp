@@ -29,7 +29,7 @@ namespace TEngine {
 
 void Scale::SetSchema(void)
 {
-    Input({"input:float32"})
+    Input({"input:float32","gamma:float32","bias:float32"})
    .Output({"output:float32"})
    .SetAttr("axis",1)
    .SetAttr("num_axes",1)

@@ -232,5 +232,7 @@ std::printf("\ttotal elapsed time <%ldns>\n", tm.elapsed_nano());
 
    std::cout<<"ALL TEST DONE\n";
 
+   release_tengine_library();
+
    return 0;
 }
