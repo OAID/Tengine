@@ -26,8 +26,9 @@
 #include "share_lib_parser.hpp"
 #include "caffe_serializer.hpp"
 
-const char * model_file="./tests/data/squeezenet_v1.1.caffemodel";
-
+// const char * model_file="./tests/data/squeezenet_v1.1.caffemodel";
+const char * model_file="./tests/data/mtcnn_mdl/det1.caffemodel";
+// TODO:"cannot find load function for operator: HDF5Data"
 
 using namespace TEngine;
 

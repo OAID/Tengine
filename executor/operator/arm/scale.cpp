@@ -27,7 +27,7 @@
 #include <algorithm>
 
 #include "logger.hpp"
-#include "executor.hpp"
+#include "node_ops.hpp"
 #include "tensor_mem.hpp"
 #include "graph.hpp"
 #include "operator/scale.hpp"
@@ -37,7 +37,12 @@ namespace TEngine {
 
 namespace ScaleImpl {
 
-bool OnBind(Node * node, ExecEngine * engine)
+extern "C" void scale_neon(float * input, float * gamma, int channel,  int channel_size,float * output);
+extern "C" void scale_neon_bias(float * input, float * gamma, int channel, int channel_size,float * output, float * bias);
+
+struct ScaleOps: public NodeOps {
+	
+bool OnBind(Node * node)
 {
     //set the inplace feature
     inplace_t io_map;
@@ -49,10 +54,8 @@ bool OnBind(Node * node, ExecEngine * engine)
     return true;
 }
 
-extern "C" void scale_neon(float * input, float * gamma, int channel,  int channel_size,float * output);
-extern "C" void scale_neon_bias(float * input, float * gamma, int channel, int channel_size,float * output, float * bias);
 
-bool Run(Node * node, ExecEngine * engine)
+bool Run(Node * node)
 {
     const Tensor * input_tensor=node->GetInputTensor(0);
     Tensor * output_tensor=node->GetOutputTensor(0);
@@ -95,14 +98,18 @@ bool Run(Node * node, ExecEngine * engine)
 
     return true;
 }
+};
 
 } //namespace ScaleImpl
 
+using namespace ScaleImpl;
+
 void RegisterScaleNodeExec(void)
 {
-    NodeExec scale_exec={ScaleImpl::OnBind,nullptr,ScaleImpl::Run,nullptr};
+    ScaleOps * ops=new ScaleOps();
 
-    RegisterNodeExec("Scale",scale_exec);
+    NodeOpsRegistryManager::RegisterOPImplementor("arm64",
+                "Scale",ops);
 }
 
 

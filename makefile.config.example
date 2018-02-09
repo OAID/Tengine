@@ -25,5 +25,3 @@ CONFIG_ARCH_ARM64=y
 # if caffe's operator calculation is enabled.
 # CAFFE_ROOT = /home/firefly/caffe
 
-#uncomment this to build the event executor
-#CONFIG_EVENT_EXECUTOR=y

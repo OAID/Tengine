@@ -8,14 +8,19 @@ MAKEBUILD?=$(shell pwd)/makefile.build
 
 export CC CXX CFLAGS  LD LDFLAGS CXXFLAGS COMMON_CFLAGS
 
-INC_DIR+=-I$(shell pwd)/../core/include 
-INC_DIR+=-I$(shell pwd)/../include -I$(shell pwd)/../operator/include 
-INC_DIR+=-I$(shell pwd)/../serializer/include
 INC_DIR+=-I$(shell pwd)/include 
+INC_DIR+=-I$(shell pwd)/../include 
+INC_DIR+=-I$(shell pwd)/../core/include 
+INC_DIR+=-I$(shell pwd)/../operator/include 
+INC_DIR+=-I$(shell pwd)/../serializer/include
+INC_DIR+=-I$(shell pwd)/../driver/include
+INC_DIR+=-I$(shell pwd)/../executor/include
 
 CXXFLAGS+=
 
-COMMON_CFLAGS+= -Wall -g -I$(shell pwd)/include -fPIC  $(INC_DIR)
+OPENCV_CFLAGS=$(shell pkg-config --cflags opencv)
+
+COMMON_CFLAGS+= -Wall -g -I$(shell pwd)/include -fPIC  $(INC_DIR) $(OPENCV_CFLAGS)
 
 libsubdir_list=./lib 
 
@@ -64,7 +69,6 @@ $(libsubdir_list) $(binsubdir_list):
 
 clean: $(libsubdir_list) $(binsubdir_list)
 	@rm -rf $(PLUGIN_SO) $(BIN_EXES)
-	@echo "Clean done"
 
 
 .PHONY:  build clean default test install  $(libsubdir_list) $(binsubdir_list)
@@ -78,8 +82,9 @@ $(BUILD_DIR)/%: $(BUILD_DIR)/%.o  $(TEST_LIB)
 OPENCV_LIB=$(shell pkg-config --libs opencv)
 
 LIBS+=-lprotobuf -ldl -lpthread -rdynamic
-SO_LIBS+=-L ../build/operator -L ../build/serializer -Wl,-rpath,./build/operator:./build/serializer:./build/executor
-SO_LIBS+=-L ../build/executor -lexecutor -lserializer -loperator
+SO_LIBS+=-L ../build/operator -L ../build/serializer -L ../build/executor -L ../build/driver
+SO_LIBS+=-Wl,-rpath,./build/operator:./build/serializer:./build/executor:./build/driver
+SO_LIBS+=-ldriver -lexecutor -lserializer -loperator
 SO_LIBS+=$(OPENCV_LIB)
 
 

@@ -336,6 +336,8 @@ static bool LoadOnnxPooling(StaticGraph * graph, StaticNode * node, const onnx::
           {
               param.kernel_h=attr.ints(0);
               param.kernel_w=attr.ints(1);
+
+
           }
           else if(attr.name()=="strides")
           {
@@ -350,6 +352,20 @@ static bool LoadOnnxPooling(StaticGraph * graph, StaticNode * node, const onnx::
       }
 
     }
+
+     param.kernel_shape.resize(2);
+     param.kernel_shape[0]=param.kernel_h;
+     param.kernel_shape[1]=param.kernel_w;
+
+     param.pads.resize(4);
+     param.pads[0]=param.pad_h;
+     param.pads[1]=param.pad_w;
+     param.pads[2]=param.pad_h;
+     param.pads[3]=param.pad_w;
+
+     param.strides.resize(2);
+     param.strides[0]=param.stride_h;
+     param.strides[1]=param.stride_w;
 
     
      StaticOp * op=CreateStaticOp(graph,"Pooling");

@@ -24,25 +24,36 @@
 #include <iostream>
 #include <functional>
 #include "logger.hpp"
-#include "simple_executor.hpp"
+#include "cpu_engine.hpp"
+#include "generic_engine.hpp"
+#include "simple_engine.hpp"
 #include "graph_optimizer.hpp"
+#include "tengine_plugin.hpp"
+#include "device_driver.hpp"
+
 
 
 using namespace TEngine;
  
 namespace TEngine {
 
-#ifdef CONFIG_EVENT_EXECUTOR
-    extern void tengine_init_event_executor(void);
-#endif
+    extern void RegisterDefaultSoc(void);
+    extern void NodeOpsRegistryManagerInit(void);
 
 #ifdef CONFIG_CAFFE_REF
     extern void RegisterCaffeExecutors(void);
     extern void RegisterFusedDemoNodeExec(void);
 #endif
+    extern void RegisterDemoOps(void);
 
 #ifdef CONFIG_ARCH_ARM64
-    extern void RegisterConvolutionNodeExec(void);
+    namespace conv_selector {
+    extern bool RegisterConvSelector(const std::string& registry_name);
+    }
+
+
+    extern void RegisterConv2dDepth(void);
+    extern void RegisterConv2dFast(void);
     extern void RegisterFullyConnectedNodeExec(void);
     extern void RegisterReLuNodeExec(void);
     extern void RegisterDropoutNodeExec(void);
@@ -53,7 +64,16 @@ namespace TEngine {
     extern void RegisterBatchNormNodeExec(void);
     extern void RegisterPoolingNodeExec(void);
     extern void RegisterFusedBNScaleReluNodeExec(void);
+    extern void RegisterEltwiseNodeExec(void);
+    extern void RegisterSliceNodeExec(void);
+    extern void RegisterPReLUNodeExec(void);
+    extern void RegisterNormalizeNodeExec(void);
 #endif
+
+    
+
+    void DevAllocatorManagerInit(void);
+    void DevSchedulerManagerInit(void);
 
 
 };
@@ -64,17 +84,21 @@ int tengine_plugin_init(void);
 
 int tengine_plugin_init(void)
 {
+    RegisterDefaultSoc();
+    NodeOpsRegistryManagerInit();
+
+    RegisterDemoOps();
+
 #ifdef CONFIG_CAFFE_REF
-    std::cout<<"EXECUTOR PLUGIN INITED\n";
+    std::cout<<"Register reference's operators\n";
     RegisterCaffeExecutors();
     RegisterFusedDemoNodeExec();
 #endif
 
 #ifdef CONFIG_ARCH_ARM64
-#ifdef CONFIG_CAFFE_REF
-    std::cout<<"Replace Caffe's operators ...\n";
-#endif
-    RegisterConvolutionNodeExec();
+    std::cout<<"Register  arm64's operators ...\n";
+
+    conv_selector::RegisterConvSelector("arm64");
     RegisterFullyConnectedNodeExec();
     RegisterReLuNodeExec();
     RegisterDropoutNodeExec();
@@ -84,17 +108,39 @@ int tengine_plugin_init(void)
     RegisterScaleNodeExec();
     RegisterBatchNormNodeExec();
     RegisterPoolingNodeExec();
+    RegisterConv2dFast();
+    RegisterConv2dDepth();
+
     RegisterFusedBNScaleReluNodeExec();
+    RegisterPReLUNodeExec();
+    RegisterEltwiseNodeExec();
+    RegisterSliceNodeExec();
+    RegisterNormalizeNodeExec();
 
 #endif
-    ExecEngine * p_engine=new SimpleExec();
-    ExecEngineManager::SafeAdd("default",ExecEnginePtr(p_engine));
 
-#ifdef CONFIG_EVENT_EXECUTOR
-    tengine_init_event_executor();
-#endif
+
+    DevAllocatorManagerInit();
+    DevSchedulerManagerInit();
+    
+    ExecEngine * p_engine=new CPUEngine();
+    ExecEngineManager::SafeAdd(p_engine->GetName(),ExecEnginePtr(p_engine));
+
+    GenericEngine * p_generic=new GenericEngine();
+    p_generic->SetScheduler("Simple");
+
+    ExecEngineManager::SafeAdd(p_generic->GetName(),ExecEnginePtr(p_generic));
+
+    SimpleEngine * p_simple=new SimpleEngine();
+    ExecEngineManager::SafeAdd(p_simple->GetName(),ExecEnginePtr(p_simple));
+
 
     GraphOptimizerManager::Init();
+
+    TEnginePlugin::RegisterModuleInit(1,DriverManager::ProbeDevice);
+    TEnginePlugin::RegisterModuleRelease(1,DriverManager::ReleaseDevice);
+
+    std::cout<<"EXECUTOR PLUGIN INITED\n";
 
     return 0;
 }

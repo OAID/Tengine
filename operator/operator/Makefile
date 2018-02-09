@@ -13,3 +13,9 @@ obj-y+=batch_norm.o
 obj-y+=scale.o
 obj-y+=lrn.o
 obj-y+=fused_operator.o
+obj-y+=prelu.o
+obj-y+=eltwise.o
+obj-y+=slice.o
+obj-y+=demo_op.o
+obj-y+=normalize.o
+

@@ -7,3 +7,4 @@ build/
 *.pb.cc
 *.pb.h
 makefile.config
+etc/config

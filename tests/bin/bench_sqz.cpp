@@ -185,6 +185,7 @@ int main(int argc, char * argv[])
    for(int i=0;i<10;i++)
       run_graph(graph,1); //warm up
 
+
    printf("REPEAT COUNT= %d\n",repeat_count);
 
    unsigned long start_time=get_cur_time();
@@ -220,11 +221,6 @@ int main(int argc, char * argv[])
  
    postrun_graph(graph);  
 
-   ProfRecord * prof=ProfRecordManager::Get("simple");
-
-   if(prof)
-      prof->Dump(1);
-
    put_graph_tensor(input_tensor);
    put_graph_tensor(output_tensor);
 
@@ -233,6 +229,8 @@ int main(int argc, char * argv[])
 
 
    std::cout<<"ALL TEST DONE\n";
+
+   release_tengine_library();
 
    return 0;
 }

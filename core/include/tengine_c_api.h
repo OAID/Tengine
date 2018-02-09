@@ -162,7 +162,7 @@ int set_input_shape(graph_t graph, int dims[], int dim_number);
 
 
 /*!
-* @brief initialize the library, should not be called only once
+* @brief initialize the library, should be called only once
 * 
 * @return 0 success, or -1 fail
 */
@@ -170,7 +170,23 @@ int set_input_shape(graph_t graph, int dims[], int dim_number);
 int init_tengine_library(void);
 
 /*!
-* @brief check if the library supports the verson: major/minor
+* @brief release the library, should be called only once
+* 
+*/
+
+void release_tengine_library(void);
+
+/*!
+* @brief get the version of the tengine 
+*
+* @return const char * of version string
+*/
+
+const char * get_tengine_version(void);
+
+
+/*!
+* @brief check if the library supports the verson: major.minor.bugfix
 *
 * @param version a c string less than 64 bytes
 * @return 1 support 0 not support
@@ -490,11 +506,18 @@ const char * get_tensor_name(tensor_t tensor);
 /*!
 * @brief initialize resource for graph execution
 *  
-* @param graph graph handlea
+* @param graph graph handle
 * @return 0 success or -1 fail
 */
 int  prerun_graph(graph_t graph);
 
+/*!
+* @brief infer shape for graph
+*  
+* @param graph graph handle
+* @return 0 success or -1 fail
+*/
+int  infer_shape(graph_t graph);
 
 /*!
 * @brief execute graph 
@@ -511,9 +534,8 @@ int  run_graph(graph_t graph, int block);
 *
 * @param graph the graph handle
 * @param try_wait if set, just check status and return 
-* @return  0 graph is done and no error detected
-*          1 if try_wait is set, try again
-*          -1 graph is done and some error detected
+* @return  1 graph is done 
+*          0 try again
 */
 int  wait_graph(graph_t graph, int try_wait);
 
@@ -790,6 +812,9 @@ int       del_graph_config(graph_t graph, const char * name);
 */
 void set_log_level(int level);
 
+
+
+void dump_graph(graph_t graph);
 
 #ifdef __cplusplus
 }

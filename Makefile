@@ -8,11 +8,17 @@ TOP_DIR=$(shell pwd)
 
 export INSTALL_DIR MAKEBUILD TOP_DIR
 
-LIB_SUB_DIRS=core serializer operator  executor
+LIB_SUB_DIRS=core serializer operator executor wrapper
+LIB_SUB_DIRS+=driver
 APP_SUB_DIRS=tests
 
 ifeq ($(CONFIG_ARCH_ARM64),y)
     export CONFIG_ARCH_ARM64
+
+ifeq ($(CONFIG_EVENT_EXECUTOR),y)
+    export CONFIG_EVENT_EXECUTOR
+    APP_SUB_DIRS+=devices
+endif
 
 else
    CONFIG_CAFFE_REF=y

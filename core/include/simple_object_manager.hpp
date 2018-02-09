@@ -56,6 +56,19 @@ public:
         return (*manager)[name];
     }
 
+    static bool Get(const std::string& name, T& val)
+    {
+        auto manager=GetInstance();
+
+        if(manager->count(name))
+        {
+           val=manager->at(name);
+           return true;
+        }
+        
+        return false;
+    }
+
     static bool Add(const std::string& name, const T& data)
     {
         auto manager=GetInstance();

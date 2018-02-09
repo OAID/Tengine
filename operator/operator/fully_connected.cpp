@@ -45,10 +45,10 @@ bool FullyConnected::InferShape(const std::vector<TEngine::TShape>& ishape, std:
 
      TShape shape;
 
-     std::vector<int> dim={m,n};
+     std::vector<int> dim={m,n,1,1};
 
      shape.SetDim(dim);
-     shape.SetDataLayout("NW");
+     shape.SetDataLayout("NCHW");
 
      oshape[0]=shape;
  
@@ -77,7 +77,7 @@ void FullyConnected::SetSchema(void)
 {
     Input({"input:float32","weight:float32","bias:float32"})
     .Output({"output:float32"})
-    .SetLayout("HW")
+    .SetLayout("NCHW")
     .SetAttr("num_output",10)
     .SetDoc(R"DOC(Fully Connected Operator)DOC");
 }

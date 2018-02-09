@@ -31,19 +31,23 @@
 #include "generic_factory.hpp"
 
 #define EXEC_STATUS_CREATED 0
-#define EXEC_STATUS_INITED  1
-#define EXEC_STATUS_RUN     2
-#define EXEC_STATUS_DONE    3
-#define EXEC_STATUS_BAD     4
+#define EXEC_STATUS_INITED   1
+#define EXEC_STATUS_WAIT      2
+#define EXEC_STATUS_READY    3
+#define EXEC_STATUS_RUN        4
+#define EXEC_STATUS_DONE      5
+#define EXEC_STATUS_BAD        6
+#define EXEC_STATUS_INVALID 7
 
 namespace TEngine {
 
 class GraphExecutor;
 class Tensor;
+struct ExecEngine;
 
 using exec_status_t=any;
 using exec_event_t=any;
-using exec_cb_t=std::function<void(GraphExecutor *, exec_status_t)>;
+using exec_cb_t=std::function<void(GraphExecutor *, ExecEngine *, int event, int status)>;
 using exec_handle_t=any *;
 
 struct ExecEngine 
@@ -56,7 +60,8 @@ struct ExecEngine
     virtual bool   Prerun(exec_handle_t)=0;
 
     virtual bool Run(exec_handle_t,exec_event_t&)=0;
-    virtual void Wait(exec_handle_t,exec_event_t&)=0;
+    virtual bool SyncRun(exec_handle_t)=0;
+    virtual int  Wait(exec_handle_t,exec_event_t&,int try_wait=0)=0;
     virtual bool SetCallback(exec_handle_t, exec_event_t&, int event, exec_cb_t)=0;
 
     virtual bool Postrun(exec_handle_t)=0;
@@ -71,6 +76,10 @@ struct ExecEngine
     virtual bool RemoveGraphExecutor(exec_handle_t)=0;
    
     virtual ~ExecEngine(){}
+	
+    const std::string& GetName() { return name;}
+    std::string name;
+	
 };
 
 using ExecEnginePtr=std::shared_ptr<ExecEngine>;

@@ -73,7 +73,7 @@ $(BUILT_IN_OBJ): $(real_built_in_objs) | $(subdir-y)
 	@if [ "$(real_built_in_objs)" != " " ]; then echo $(BUILT_IN_LD) -r -o $@ $(real_built_in_objs); \
                $(BUILT_IN_LD) -r -o $@ $(real_built_in_objs); fi
 
-clean:  $(subdir-y)
+clean::  $(subdir-y)
 	@rm -rf $(curdir_objs) $(BUILT_IN_OBJ) $(curdir_deps) $(curdir_bin_objs) $(curdir_so_objs) $(final_asm_srcs)
 		
 

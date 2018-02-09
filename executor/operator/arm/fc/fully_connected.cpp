@@ -27,7 +27,7 @@
 
 #include "logger.hpp"
 #include "operator/fully_connected.hpp"
-#include "executor.hpp"
+#include "node_ops.hpp"
 #include "tensor_mem.hpp"
 
 #include "graph.hpp"
@@ -40,6 +40,8 @@ extern "C" void sgemv_1x8(float * biases,
                       long kernel_size);
 
 namespace TEngine {
+
+namespace FCImpl {
 
 template <typename Dtype>
 void interleave2_kernel(const Dtype * kernel , const Dtype * kernel_interleaved, int kernel_chan ,int kernel_size){
@@ -100,7 +102,9 @@ void sgemv1x8(const Dtype * input , Dtype * weight_interleaved, Dtype * biases, 
 
 }
 
-bool PrerunFullyConnected(Node * node, ExecEngine * engine)
+struct FCOps: public NodeOps {
+
+bool Prerun(Node * node)
 {
 
       Tensor * tensor;
@@ -119,7 +123,7 @@ bool PrerunFullyConnected(Node * node, ExecEngine * engine)
       return true;
 }
 
-bool RunFullyConnected(Node * node, ExecEngine * engine)
+bool Run(Node * node)
 {
       Tensor * tensor;
 
@@ -166,7 +170,7 @@ bool RunFullyConnected(Node * node, ExecEngine * engine)
       return true;
 }
 
-bool PostrunFullyConnected(Node * node, ExecEngine * engine)
+bool Postrun(Node * node)
 {
 
        float * mem=any_cast<float *>(node->GetAttr("weight_interleaved"));
@@ -175,13 +179,19 @@ bool PostrunFullyConnected(Node * node, ExecEngine * engine)
        return true;  
 }
 
+};
 
+
+} //namespace FCImpl
+
+using namespace FCImpl;
 
 void RegisterFullyConnectedNodeExec(void)
 {
-    NodeExec fc_exec={nullptr,PrerunFullyConnected,RunFullyConnected,PostrunFullyConnected};
+    FCOps * ops=new FCOps();
 
-    RegisterNodeExec("FullyConnected",fc_exec);
+    NodeOpsRegistryManager::RegisterOPImplementor("arm64",
+                  "FullyConnected",ops);
 }
 
 

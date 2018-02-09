@@ -139,12 +139,36 @@ public:
        return false;  
     }
 
+    static bool  SafeRemoveOnly(const std::string& name)
+    {
+       auto manager=SimpleObjectManager<M,T>::GetInstance();
+
+       manager->Lock();
+
+       auto ir=(*manager).begin();
+       auto end=(*manager).end();
+
+       while(ir!=end)
+       {
+           if(ir->first == name)
+           {
+               manager->erase(ir);
+               manager->Unlock();
+               return true;
+           }
+
+           ir++;
+       }
+
+       manager->Unlock();
+       return false;
+
+    }
 
     ~SimpleObjectManagerWithLock() 
     {
     }
 
-private:
 
    void Lock(void)
    {
@@ -156,6 +180,7 @@ private:
        TEngineUnlock(my_mutex);
    }
 
+private:
    std::mutex my_mutex;
     
 };

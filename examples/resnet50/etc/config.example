@@ -1,0 +1,31 @@
+# Setting of multithread
+mt.mode = 1
+
+# Name of executor engine
+exec.engine =generic    #go through executor--> device ---> HW/ backend ops impls.
+#exec.engine =simple     #bypass executor, talk with device directly
+#exec.engine =cpu_engine  #bypass device also, talk with backend ops impls.
+
+exec.sync_run=false
+
+# Name and init program of necessary plugins
+plugin.operator.so = ../../build/operator/liboperator.so
+plugin.operator.init = tengine_plugin_init
+plugin.operator.prio=1
+
+plugin.serializer.so = ../../build/serializer/libserializer.so
+plugin.serializer.init = tengine_plugin_init
+plugin.serializer.prio=2
+
+plugin.executor.so = ../../build/executor/libexecutor.so
+plugin.executor.init = tengine_plugin_init
+plugin.executor.prio=3
+
+plugin.driver.so = ../../build/driver/libdriver.so
+plugin.driver.init = tengine_plugin_init
+plugin.driver.prio=4
+
+driver.probe.0=RK3399
+device.default= cpu.rk3399.a72.all
+
+

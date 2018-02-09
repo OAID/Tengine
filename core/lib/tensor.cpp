@@ -48,6 +48,12 @@ unsigned int Tensor::GetTotalSize(void) const
     return elem_size*elem_num;
 }
 
+Node * Tensor::GetConsumerNode(int idx)
+{
+    NodePort * port=consumer[idx];
+    return port->owner;   
+}
+
 static std::string MapTypeToString(TensorType type)
 {
    if(type == kVarTensor)

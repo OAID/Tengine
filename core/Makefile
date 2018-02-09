@@ -74,7 +74,6 @@ $(binsubdir_list) $(libsubdir_list):
 
 clean: $(libsubdir_list) $(binsubdir_list)
 	@rm -rf $(TENGINE_SO) $(TENGINE_LIB) $(BIN_EXES)
-	@echo "Clean done"
 
 install:
 	@mkdir -p $(INSTALL_DIR)/lib $(INSTALL_DIR)/include

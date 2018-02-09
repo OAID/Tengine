@@ -27,7 +27,7 @@ namespace TEngine {
 
 using ConfManager = Attribute;
 
-const std::string TEngineConfig::version("0.1.2");
+const std::string TEngineConfig::version("0.3.0");
 
 bool TEngineConfig::tengine_mt_mode = true;
 char TEngineConfig::delim_ch = '=';
@@ -138,6 +138,28 @@ std::vector<std::string> TEngineConfig::ParseKey(const std::string& key)
         result.push_back(subkey);
 
    	return result;
+}
+
+bool GetSyncRunMode(void)
+{
+    static bool sync_run_mode=false;
+    static bool inited=false;
+
+    if(inited)
+        return sync_run_mode;
+
+    inited=true;
+
+    std::string value;
+
+    if(TEngineConfig::Get("exec.sync_run",value))
+    {
+        if(value=="true" || value=="TRUE")
+            sync_run_mode=true;
+    }
+
+    return sync_run_mode;
+
 }
 
 } //end of namespace TEngine

@@ -20,6 +20,7 @@
 /*
  * Copyright (c) 2017, Open AI Lab
  * Author: haitao@openailab.com
+ * Author: chunyinglv@openailab.com
  */
 #include <iostream>
 #include <functional>
@@ -42,6 +43,9 @@
 #include "operator/scale_param.hpp"
 #include "operator/lrn_param.hpp"
 #include "operator/softmax_param.hpp"
+#include "operator/eltwise_param.hpp"
+#include "operator/slice_param.hpp"
+#include "operator/normalize_param.hpp"
 
 
 namespace TEngine {
@@ -51,50 +55,130 @@ using blob_load_t=std::function<bool(StaticGraph *, StaticNode * , const caffe::
 
 std::unordered_map<std::string,blob_load_t> blob_load_map;
 
+// Check if NetParameter uses old style V0LayerParameter
+static bool NetNeedsV0ToV1Upgrade(const caffe::NetParameter& caffe_net)
+{
+    for(int i = 0; i < caffe_net.layers_size(); ++i)
+    {
+        if(caffe_net.layers(i).has_layer())
+            return true;
+    }
+    return false;
+}
+
+// Check if NetParameter uses old style V1LayerParameter
+static bool NetNeedsV1ToV2Upgrade(const caffe::NetParameter& caffe_net)
+{
+    return (caffe_net.layers_size() > 0);
+}
+
+// Check if NetParameter uses old style input fields
+static bool NetNeedsInputUpgrade(const caffe::NetParameter& caffe_net)
+{
+    return (caffe_net.input_size() > 0);
+}
+
+// Check if NetParameter uses old style data transformation fields
+static bool NetNeedsDataUpgrade(const caffe::NetParameter& caffe_net)
+{
+    for(int i = 0; i < caffe_net.layers_size(); ++i)
+    {
+        if(caffe_net.layers(i).type() == caffe::V1LayerParameter_LayerType_DATA)
+        {
+            caffe::DataParameter layer_param = caffe_net.layers(i).data_param();
+            if(layer_param.has_scale()     ||
+               layer_param.has_mean_file() ||
+               layer_param.has_crop_size() ||
+               layer_param.has_mirror())
+                return true;
+        }
+        if(caffe_net.layers(i).type() == caffe::V1LayerParameter_LayerType_IMAGE_DATA)
+        {
+            caffe::ImageDataParameter layer_param = caffe_net.layers(i).image_data_param();
+            if(layer_param.has_scale()     ||
+               layer_param.has_mean_file() ||
+               layer_param.has_crop_size() ||
+               layer_param.has_mirror())
+                return true;
+        }
+        if(caffe_net.layers(i).type() == caffe::V1LayerParameter_LayerType_WINDOW_DATA)
+        {
+            caffe::WindowDataParameter layer_param = caffe_net.layers(i).window_data_param();
+            if(layer_param.has_scale()     ||
+               layer_param.has_mean_file() ||
+               layer_param.has_crop_size() ||
+               layer_param.has_mirror())
+                return true;
+        }
+    }
+    return false;
+}
+
+static bool NetNeedsUpgrade(const char * fname, const caffe::NetParameter& caffe_net)
+{
+    if(NetNeedsV0ToV1Upgrade(caffe_net) ||
+       NetNeedsV1ToV2Upgrade(caffe_net) ||
+       NetNeedsInputUpgrade(caffe_net)  ||
+       NetNeedsDataUpgrade(caffe_net))
+    {
+        LOG_ERROR() << "The input file specified is using deprecated params: "
+                    << fname << "\n";
+        LOG_ERROR() << "Please upgrade the input file by using caffe tools(upgrade_net_proto_binary/upgrade_net_proto_binary).\n";
+        return true;
+    }
+    return false;
+}
+
 bool CaffeSingle::LoadBinaryFile(const char * fname, caffe::NetParameter& caffe_net)
 {
-   std::ifstream is(fname, std::ios::in|std::ios::binary);
+    std::ifstream is(fname, std::ios::in|std::ios::binary);
 
-   if(!is.is_open())
-   {
-       LOG_ERROR()<<"cannot open file: "<<fname<<"\n";
-       return false;
-   }
+    if(!is.is_open())
+    {
+        LOG_ERROR()<<"cannot open file: "<<fname<<"\n";
+        return false;
+    }
 
-   google::protobuf::io::IstreamInputStream input_stream(&is);
-   google::protobuf::io::CodedInputStream coded_input(&input_stream);
+    google::protobuf::io::IstreamInputStream input_stream(&is);
+    google::protobuf::io::CodedInputStream coded_input(&input_stream);
 
-   coded_input.SetTotalBytesLimit(512<<20, 64<<20);
+    coded_input.SetTotalBytesLimit(512<<20, 256<<20);
 
-   bool ret=caffe_net.ParseFromCodedStream(&coded_input);
+    bool ret=caffe_net.ParseFromCodedStream(&coded_input);
 
-   is.close();
+    is.close();
 
-   if(!ret)
-       LOG_ERROR()<<"parse file: "<<fname<<" failed\n";
+    if(!ret)
+        LOG_ERROR()<<"parse file: "<<fname<<" failed\n";
 
-   return ret;
+    if(NetNeedsUpgrade(fname, caffe_net))
+        return false;
+
+    return ret;
 }
 
 bool CaffeSingle::LoadTextFile(const char * fname, caffe::NetParameter& caffe_net)
 {
-      std::ifstream is(fname, std::ios::in);
+    std::ifstream is(fname, std::ios::in);
 
-      if(!is.is_open())
-      {
-          LOG_ERROR()<<"cannot open file: "<<fname<<"\n";
-          return false;
-      }
+    if(!is.is_open())
+    {
+        LOG_ERROR()<<"cannot open file: "<<fname<<"\n";
+        return false;
+    }
 
-     google::protobuf::io::IstreamInputStream input_stream(&is);
-     bool ret= google::protobuf::TextFormat::Parse(&input_stream,&caffe_net);
+    google::protobuf::io::IstreamInputStream input_stream(&is);
+    bool ret= google::protobuf::TextFormat::Parse(&input_stream,&caffe_net);
 
-     is.close();
+    is.close();
 
-     if(!ret)
-          LOG_ERROR()<<"parse file: "<<fname<<" failed\n";
+    if(!ret)
+        LOG_ERROR()<<"parse file: "<<fname<<" failed\n";
 
-     return ret;
+    if(NetNeedsUpgrade(fname, caffe_net))
+        return false;
+
+    return ret;
 }
 
 bool CaffeSingle::LoadModel(const std::vector<std::string>& file_list, StaticGraph * graph)
@@ -207,16 +291,16 @@ bool CaffeBuddy::LoadModel(const std::vector<std::string>& file_list, StaticGrap
         return false;
      }
 
-
+    
      caffe::NetParameter train_net;
 
      if(!LoadBinaryFile(file_list[1].c_str(), train_net))
             return false;
-
+    
      SetGraphSource(graph,file_list[1]);
      SetGraphSourceFormat(graph,"caffe");
      SetGraphConstTensorFile(graph,file_list[1]);
-
+     
      return LoadGraph(test_net,train_net,graph);
  
 }
@@ -242,7 +326,7 @@ bool CaffeBuddy::LoadGraph(caffe::NetParameter& test_net, caffe::NetParameter& t
 
         train_name_map[layer_param.name()]=&layer_param;
      }
-
+    
      layer_number=test_net.layer_size();
      int n;
 
@@ -250,7 +334,7 @@ bool CaffeBuddy::LoadGraph(caffe::NetParameter& test_net, caffe::NetParameter& t
      {
         const caffe::LayerParameter& layer_param=test_net.layer(n);
         const std::string& caffe_op_name=layer_param.type();
-
+        
         if(!FindOpLoadMethod(caffe_op_name))
         {
                LOG_ERROR()<<"cannot find load function for operator: "<<caffe_op_name<<"\n";
@@ -292,9 +376,6 @@ bool CaffeBuddy::LoadGraph(caffe::NetParameter& test_net, caffe::NetParameter& t
 
      return true;
 }
-
-
-
 
 static void LoadCaffeBlob(StaticGraph * graph, StaticNode * node, const std::vector<std::string>& name_list, 
                           const std::vector<std::string>& layout_list,
@@ -464,8 +545,22 @@ static bool LoadScaleBlob(StaticGraph * graph, StaticNode* node, const caffe::La
     
     return true;
 }
-
-
+static bool LoadPReLuBlob(StaticGraph * graph, StaticNode* node, const caffe::LayerParameter& layer_param)
+{
+    std::vector<std::string> name_list={"slope"};
+    std::vector<std::string> layout_list={"W"};
+    LoadCaffeBlob(graph, node,name_list,layout_list,layer_param);
+    
+    return true;
+}
+static bool LoadNormalizeBlob(StaticGraph * graph, StaticNode* node, const caffe::LayerParameter& layer_param)
+{
+    std::vector<std::string> name_list={"scale"};
+    std::vector<std::string> layout_list={"W"};
+    LoadCaffeBlob(graph, node,name_list,layout_list,layer_param);
+    
+    return true;
+}
 static bool LoadConvolutionBlob(StaticGraph * graph, StaticNode* node, const caffe::LayerParameter& layer_param)
 {
      std::vector<std::string> name_list={"weight","bias"};
@@ -521,7 +616,44 @@ static bool  LoadCaffeSoftMax(StaticGraph * graph, StaticNode * node, const caff
 
     SetNodeOp(node,op);
 
-    AddGraphOutputNode(graph,node);
+    return true;
+}
+static bool  LoadCaffeNormalize(StaticGraph * graph, StaticNode * node, const caffe::LayerParameter& layer_param)
+{
+
+    const caffe::NormalizeParameter& normalize_param=layer_param.norm_param();
+
+    NormalizeParam param=any_cast<NormalizeParam>(OpManager::GetOpDefParam("Normalize"));
+
+    param.across_spatial=normalize_param.across_spatial();
+    param.channel_shared=normalize_param.channel_shared();
+
+
+    StaticOp * op=CreateStaticOp(graph,"Normalize");
+
+    SetOperatorParam(op,param);
+
+    SetNodeOp(node,op);
+
+    return true;
+}
+
+static bool  LoadCaffeSlice(StaticGraph * graph, StaticNode * node, const caffe::LayerParameter& layer_param)
+{
+    const caffe::SliceParameter& slice_param=layer_param.slice_param();
+
+    SliceParam param=any_cast<SliceParam>(OpManager::GetOpDefParam("Slice"));
+
+    if(slice_param.has_axis())
+        param.axis=slice_param.axis();
+    else
+        param.axis=1;
+
+    StaticOp * op=CreateStaticOp(graph,"Slice");
+
+    SetOperatorParam(op,param);
+
+    SetNodeOp(node,op);
 
     return true;
 }
@@ -566,6 +698,37 @@ static bool  LoadCaffeConcat(StaticGraph * graph, StaticNode * node, const caffe
     return true;
 }
 
+static EltType ConvertCaffeEltwise(caffe::EltwiseParameter_EltwiseOp method)
+{
+      if(method == caffe::EltwiseParameter_EltwiseOp_PROD)
+           return ELT_PROD; 
+      else  if (method == caffe::EltwiseParameter_EltwiseOp_MAX)
+          return ELT_MAX;
+ 
+      /* for others, return SUM */
+  
+       return ELT_SUM;
+}
+
+static bool LoadCaffeEltwise(StaticGraph * graph, StaticNode * node, const caffe::LayerParameter& layer_param)
+{
+    
+    const caffe::EltwiseParameter& eltwise_param=layer_param.eltwise_param();
+    EltwiseParam  param=any_cast<EltwiseParam>(OpManager::GetOpDefParam("Eltwise"));
+    //defalt: SUM
+    param.type=ELT_SUM;
+    if(eltwise_param.has_operation())
+        param.type=ConvertCaffeEltwise(eltwise_param.operation());
+
+    param.caffe_flavor=1;
+
+    StaticOp * op=CreateStaticOp(graph,"Eltwise");
+    SetOperatorParam(op,param);
+    SetNodeOp(node,op);
+
+    return true;
+}
+
 static bool  LoadCaffeDropout(StaticGraph * graph, StaticNode * node, const caffe::LayerParameter& layer_param)
 {
     StaticOp * op=CreateStaticOp(graph,"Dropout");
@@ -588,23 +751,38 @@ static bool  LoadCaffeAccuracy(StaticGraph * graph, StaticNode * node, const caf
 
 static bool LoadCaffeConvolution(StaticGraph * graph, StaticNode * node, const caffe::LayerParameter& layer_param)
 {
-	 
      const caffe::ConvolutionParameter& conv_param=layer_param.convolution_param();
 
      ConvParam  param=any_cast<ConvParam>(OpManager::GetOpDefParam("Convolution"));
 
+     if(conv_param.has_kernel_h() && conv_param.has_kernel_w())
+     {
+        param.kernel_h=conv_param.kernel_h();
+        param.kernel_w=conv_param.kernel_w();
+     }
+     else
+     {
+        param.kernel_h=conv_param.kernel_size(0);
+        param.kernel_w=conv_param.kernel_size(0);
+     }
 
-     param.kernel_h=conv_param.kernel_size(0);
-     param.kernel_w=conv_param.kernel_size(0);
-
-     if(conv_param.stride_size())
+    if(conv_param.has_stride_h() && conv_param.has_stride_w())
+    {
+        param.stride_h=conv_param.stride_h();
+        param.stride_w=conv_param.stride_w();
+    }
+    else if(conv_param.stride_size())
      {
         param.stride_h=conv_param.stride(0);
         param.stride_w=conv_param.stride(0);
      }
 
-
-     if(conv_param.pad_size())
+    if(conv_param.has_pad_h() && conv_param.has_pad_w())
+    {
+        param.pad_h=conv_param.pad_h();
+        param.pad_w=conv_param.pad_w();
+    }
+    else if(conv_param.pad_size())
      {
         param.pad_h=conv_param.pad(0);
         param.pad_w=conv_param.pad(0);
@@ -653,34 +831,52 @@ static bool LoadCaffePooling(StaticGraph * graph, StaticNode * node, const caffe
     PoolParam  param=any_cast<PoolParam>(OpManager::GetOpDefParam("Pooling"));
 
     param.alg=ConvertCaffePool(pool_param.pool());
-    param.kernel_h=pool_param.kernel_size();
-    param.kernel_w=pool_param.kernel_size();
-    param.global=pool_param.global_pooling();
-
+    if(pool_param.has_kernel_size())
+    {
+        param.kernel_h=pool_param.kernel_size();
+        param.kernel_w=pool_param.kernel_size();
+    }
+    else if(pool_param.has_kernel_h() && pool_param.has_kernel_w())
+    {
+        param.kernel_h=pool_param.kernel_h();
+        param.kernel_w=pool_param.kernel_w();
+    }
     param.kernel_shape.resize(2);
     param.kernel_shape[0]=param.kernel_h;
     param.kernel_shape[1]=param.kernel_w;
+
+    param.global=pool_param.global_pooling();
 
     if(pool_param.has_pad())
     { 
         param.pad_h=pool_param.pad();
         param.pad_w=pool_param.pad();
-        param.pads.resize(4);
-        param.pads[0]=param.pad_h;
-        param.pads[1]=param.pad_w;
-        param.pads[2]=param.pad_h;
-        param.pads[3]=param.pad_w;
     }
+    else if(pool_param.has_pad_h() && pool_param.has_pad_w())
+    {
+        param.pad_h=pool_param.pad_h();
+        param.pad_w=pool_param.pad_w();
+    }
+    param.pads.resize(4);
+    param.pads[0]=param.pad_h;
+    param.pads[1]=param.pad_w;
+    param.pads[2]=param.pad_h;
+    param.pads[3]=param.pad_w;
+    
 
     if(pool_param.has_stride())
     {
         param.stride_h=pool_param.stride();
         param.stride_w=pool_param.stride();
-
-        param.strides.resize(2);
-        param.strides[0]=param.stride_h;
-        param.strides[1]=param.stride_w;
     }
+    else if(pool_param.has_stride_h() && pool_param.has_stride_w())
+    {
+        param.stride_h=pool_param.stride_h();
+        param.stride_w=pool_param.stride_w();
+    }
+    param.strides.resize(2);
+    param.strides[0]=param.stride_h;
+    param.strides[1]=param.stride_w;
 
     param.caffe_flavor=1;
 
@@ -697,9 +893,7 @@ static bool LoadCaffePooling(StaticGraph * graph, StaticNode * node, const caffe
 
 static bool LoadCaffeInnerProduct(StaticGraph * graph, StaticNode * node, const caffe::LayerParameter& layer_param)
 {
-	
     const caffe::InnerProductParameter & ip_param=layer_param.inner_product_param();
-	
 
     FCParam  param=any_cast<FCParam>(OpManager::GetOpDefParam("FullyConnected"));
     param.num_output=ip_param.num_output();
@@ -777,6 +971,19 @@ static bool LoadCaffeScale(StaticGraph * graph, StaticNode * node, const caffe::
     return true;
 }
 
+static bool LoadCaffePReLu(StaticGraph * graph, StaticNode * node, const caffe::LayerParameter& layer_param)
+{
+    StaticOp * op=CreateStaticOp(graph,"PReLU");
+
+    SetNodeOp(node,op);
+
+    if(layer_param.blobs_size())
+    {
+         LoadPReLuBlob(graph,node,layer_param);
+    } 
+
+    return true;
+}
 static bool LoadCaffeLRN(StaticGraph * graph, StaticNode * node, const caffe::LayerParameter& layer_param)
 {
     LRNParam param=any_cast<LRNParam>(OpManager::GetOpDefParam("LRN"));
@@ -813,9 +1020,13 @@ bool CaffeSerializerRegisterOpLoader(void)
     p_caffe->RegisterOpLoadMethod("Input",op_load_t(LoadCaffeInputOp));
     p_caffe->RegisterOpLoadMethod("Convolution",op_load_t(LoadCaffeConvolution));
     p_caffe->RegisterOpLoadMethod("Pooling",op_load_t(LoadCaffePooling));
+    p_caffe->RegisterOpLoadMethod("Eltwise",op_load_t(LoadCaffeEltwise));
     p_caffe->RegisterOpLoadMethod("Softmax",op_load_t(LoadCaffeSoftMax));
+    p_caffe->RegisterOpLoadMethod("Slice",op_load_t(LoadCaffeSlice));
+    p_caffe->RegisterOpLoadMethod("Normalize",op_load_t(LoadCaffeNormalize));
     p_caffe->RegisterOpLoadMethod("SoftmaxWithLoss",op_load_t(LoadCaffeSoftMax));
     p_caffe->RegisterOpLoadMethod("ReLU",op_load_t(LoadCaffeReLu));
+    p_caffe->RegisterOpLoadMethod("PReLU",op_load_t(LoadCaffePReLu));
     p_caffe->RegisterOpLoadMethod("InnerProduct",op_load_t(LoadCaffeInnerProduct));
     p_caffe->RegisterOpLoadMethod("Split",op_load_t(LoadCaffeSplit));
     p_caffe->RegisterOpLoadMethod("Concat",op_load_t(LoadCaffeConcat));
@@ -835,9 +1046,13 @@ bool CaffeSerializerRegisterOpLoader(void)
     p_buddy->RegisterOpLoadMethod("Input",op_load_t(LoadCaffeInputOp));
     p_buddy->RegisterOpLoadMethod("Convolution",op_load_t(LoadCaffeConvolution));
     p_buddy->RegisterOpLoadMethod("Pooling",op_load_t(LoadCaffePooling));
+    p_buddy->RegisterOpLoadMethod("Eltwise",op_load_t(LoadCaffeEltwise));
     p_buddy->RegisterOpLoadMethod("Softmax",op_load_t(LoadCaffeSoftMax));
+    p_buddy->RegisterOpLoadMethod("Normalize",op_load_t(LoadCaffeNormalize));
+    p_buddy->RegisterOpLoadMethod("Slice",op_load_t(LoadCaffeSlice));
     p_buddy->RegisterOpLoadMethod("SoftmaxWithLoss",op_load_t(LoadCaffeSoftMax));
     p_buddy->RegisterOpLoadMethod("ReLU",op_load_t(LoadCaffeReLu));
+    p_buddy->RegisterOpLoadMethod("PReLU",op_load_t(LoadCaffePReLu));
     p_buddy->RegisterOpLoadMethod("InnerProduct",op_load_t(LoadCaffeInnerProduct));
     p_buddy->RegisterOpLoadMethod("Split",op_load_t(LoadCaffeSplit));
     p_buddy->RegisterOpLoadMethod("Concat",op_load_t(LoadCaffeConcat));
@@ -851,6 +1066,8 @@ bool CaffeSerializerRegisterOpLoader(void)
     blob_load_map["InnerProduct"]=LoadFullyConnectedBlob;
     blob_load_map["BatchNorm"]=LoadBatchNormBlob;
     blob_load_map["Scale"]=LoadScaleBlob;
+    blob_load_map["PReLU"]=LoadPReLuBlob;
+    blob_load_map["Normalize"]=LoadNormalizeBlob;
 
     return true;
 }

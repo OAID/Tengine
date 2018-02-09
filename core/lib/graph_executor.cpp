@@ -48,7 +48,8 @@ bool GraphExecutor::CreateGraph(const std::string& graph_name, const std::string
    graph_name_=graph_name;
    model_name_=model_name;
 
-   std::string exec_engine_name="default";
+
+   std::string exec_engine_name;
 
    TEngineConfig::Get("exec.engine",exec_engine_name);
 
@@ -335,15 +336,26 @@ bool GraphExecutor::Postrun(void)
 }
 
 
+int  GraphExecutor::WaitGraph(int try_wait)
+{
+    return exec_engine_->Wait(exec_handle_,exec_event_, try_wait);
+}
+
+bool GraphExecutor::SyncRun(void)
+{
+    return exec_engine_->SyncRun(exec_handle_);
+}
+
 bool GraphExecutor::Run(int block)
 {
-    if(!exec_engine_->Run(exec_handle_,exec_event_))
-        return false;
 
-    exec_engine_->Wait(exec_handle_,exec_event_);
+  if(!exec_engine_->Run(exec_handle_,exec_event_))
+        return false;
  
+   if(block)
+       exec_engine_->Wait(exec_handle_,exec_event_,0);
+
     return true;
-       
 }
 
 void GraphExecutor::ReleaseGraph(void)

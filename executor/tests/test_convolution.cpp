@@ -27,13 +27,15 @@
 
 
 #include "share_lib_parser.hpp"
-#include "executor.hpp"
 #include "tensor_mem.hpp"
 #include "graph_executor.hpp"
 #include "graph.hpp"
 #include "operator/convolution.hpp"
 #include "prof_utils.hpp"
 #include "debug_utils.hpp"
+#include "node_ops.hpp"
+#include "test_soc_info.hpp"
+#include "test_device.hpp"
 
 using namespace TEngine;
 
@@ -59,6 +61,7 @@ int input_h=7;
 int input_w=7;
 int input_n=1;
 int kernel_h=1;
+int kernel_w=1;
 int stride_h=1;
 int pad_h=0;
 int output_channel=32;
@@ -72,7 +75,7 @@ Node *  create_convolution_node(void)
     ConvParam*  param=conv_op->GetParam();
 
     param->kernel_h=kernel_h;
-    param->kernel_w=kernel_h;
+    param->kernel_w=kernel_w;
     param->stride_h=stride_h;
     param->stride_w=stride_h;
     param->pad_h=pad_h;
@@ -196,8 +199,7 @@ Node *  create_convolution_node(void)
 
 namespace TEngine {
 
-extern bool  caffe_run_convolution(Node *node, ExecEngine * engine, int rep, unsigned long * time);
-extern void RegisterConvolutionNodeExec(void);
+extern bool  caffe_run_convolution(Node *node, int rep, unsigned long * time);
 
 }
 
@@ -207,7 +209,7 @@ void test_convolution(int rep)
 
     unsigned long time=0;
 
-    caffe_run_convolution(node,nullptr,rep,&time);
+    caffe_run_convolution(node,rep,&time);
 
 
     std::cout<<"***** reference performance ********\n";
@@ -226,18 +228,45 @@ void test_new_operator(int rep)
     Node * node1=create_convolution_node();
 
       
-    caffe_run_convolution(node0,nullptr,0,nullptr);
+    caffe_run_convolution(node0,0,nullptr);
 
-    if(!PrerunNode(node1,nullptr))
+    SocInfo * soc_info=TestGetSocInfo();
+
+    TestDevice * device=new TestDevice();
+
+
+    device->soc_info=*soc_info;
+
+     std::vector<int> cpu_list={4,5};
+
+     device->soc_info.SetWorkingCPU(cpu_list,4);
+
+     device->LaunchAider();
+
+     device->BindMaster();
+
+    NodeOps * conv_ops=NodeOpsRegistryManager::FindNodeOps(&device->soc_info,node1);
+
+    std::cout<<"HERE: "<<__FILE__<<":"<<__LINE__<<"\n";
+
+    auto f=std::bind(&TestDevice::TaskDispatch,device,std::placeholders::_1,
+                 std::placeholders::_2);
+
+    conv_ops->SetHelper(std::malloc,std::free,f);
+
+    std::cout<<"HERE: "<<__FILE__<<":"<<__LINE__<<"\n";
+    if(!conv_ops->Prerun(node1))
     {
        std::cout<<"Prerun failed\n";
     }
 
-    if(!RunNode(node1,nullptr))
+    std::cout<<"HERE: "<<__FILE__<<":"<<__LINE__<<"\n";
+    if(!conv_ops->Run(node1))
     {
        std::cout<<"Run failed\n";
     }
 
+    std::cout<<"HERE: "<<__FILE__<<":"<<__LINE__<<"\n";
     /* compare data */
 
     Tensor * tensor=node0->GetOutputTensor(0);
@@ -272,7 +301,7 @@ void test_new_operator(int rep)
     unsigned long start=get_cur_time();
 
     for(int i=0;i<rep;i++)
-         RunNode(node1,nullptr);
+         conv_ops->Run(node1);
 
     unsigned long end=get_cur_time();
 
@@ -284,11 +313,14 @@ void test_new_operator(int rep)
     std::printf("converted to im2col performance rate: %.2f Mops\n", im2col_fops*rep/(end-start));
    
 
-    if(!PostrunNode(node1,nullptr))
+    if(!conv_ops->Postrun(node1))
     {
        std::cout<<"Postrun failed\n";
     }
 
+    conv_ops->Release();
+
+    
 }
 
 
@@ -348,14 +380,11 @@ int main(int argc, char * argv[])
 
     sys_init();
  
-    RegisterConvolutionNodeExec();
- 
-
     test_new_operator(rep);
 
     test_convolution(rep);
 
-
+    std::cout<<"ALL TESTS DONE\n";
 
     return 0;
 

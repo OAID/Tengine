@@ -28,9 +28,10 @@
 #include "graph.hpp"
 #include "graph_executor.hpp"
 
-const char * text_file="./tests/data/sqz.prototxt";
-const char * model_file="./tests/data/squeezenet_v1.1.caffemodel";
-
+// const char * text_file="./tests/data/sqz.prototxt";
+// const char * model_file="./tests/data/squeezenet_v1.1.caffemodel";
+const char * text_file="./tests/data/mtcnn_mdl/det1.prototxt";
+const char * model_file="./tests/data/mtcnn_mdl/det1.caffemodel";
 
 using namespace TEngine;
 
@@ -87,7 +88,7 @@ int main(void)
 
        return 1;
    }
-
+    std::cout<<"create graph from static graph: "<<graph->name<<"success\n";
 
    Graph * runtime_graph=executor.GetGraph();
 
@@ -97,7 +98,7 @@ int main(void)
 
    Tensor * tensor=executor.FindTensor(tensor_name);
 
-   std::vector<int> dim={1,3,227,227};
+   std::vector<int> dim={1,3,12,12};
 
    TShape& shape=tensor->GetShape();
 

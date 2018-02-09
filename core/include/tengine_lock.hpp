@@ -30,7 +30,7 @@
 
 namespace TEngine {
 
-#ifdef TENINGE_MT_SUPPORT
+#ifdef TENGINE_MT_SUPPORT
 
 static inline void TEngineLock(std::mutex& mutex)
 {

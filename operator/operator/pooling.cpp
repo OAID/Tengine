@@ -84,7 +84,7 @@ float Pooling::GetFops(const std::vector<TShape>& inputs, const std::vector<TSha
 
 void Pooling::SetSchema(void)
 {
-    Input({"weight:float32"})
+    Input({"input:float32"})
     .Output({"output:float32"})
     .SetLayout("NCHW")
     .SetAttr("method","max")

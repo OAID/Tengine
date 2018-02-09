@@ -11,7 +11,12 @@ obj-y+=batch_norm.o
 obj-y+=pooling.o
 obj-y+=scale_neon.o
 obj-y+=concat_neon.o
+obj-y+=eltwise.o
+obj-y+=slice.o
+obj-y+=normalize.o
 
-CXXFLAGS+=-I./include -O3 -funroll-loops
+obj-y+=prelu.o
+CXXFLAGS+=-I./include 
+CXXFLAGS+=-O3 -funroll-loops
 
 pooling_CXXFLAGS+=-Wno-strict-aliasing
