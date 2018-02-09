@@ -33,6 +33,7 @@
 #include <caffe/layers/scale_layer.hpp>
 #include <caffe/layers/batch_norm_layer.hpp>
 #include <caffe/layers/lrn_layer.hpp>
+#include <caffe/layers/prelu_layer.hpp>
 
 #include "graph.hpp"
 #include "operator/convolution.hpp"
@@ -48,8 +49,9 @@
 #include "operator/batch_norm.hpp"
 #include "operator/scale.hpp"
 #include "operator/lrn.hpp"
+#include "operator/prelu.hpp"
 
-#include "executor.hpp"
+#include "node_ops.hpp"
 #include "tensor_mem.hpp"
 #include "prof_utils.hpp"
 
@@ -146,7 +148,7 @@ struct WrapConv: public ConvolutionLayer<Dtype> {
 };
 
 
-bool  caffe_run_convolution(Node *node, ExecEngine * engine, int rep, unsigned long * time)
+bool  caffe_run_convolution(Node *node, int rep, unsigned long * time)
 {
      LayerParameter layer_param;
      ConvolutionParameter* caffe_param =layer_param.mutable_convolution_param();
@@ -156,10 +158,12 @@ bool  caffe_run_convolution(Node *node, ExecEngine * engine, int rep, unsigned l
      Convolution * conv_op=dynamic_cast<Convolution *>(node->GetOp());
 
      ConvParam * p_param=conv_op->GetParam();
-
      caffe_param->add_kernel_size(p_param->kernel_h);
+     caffe_param->add_kernel_size(p_param->kernel_w);
      caffe_param->add_stride(p_param->stride_h);
+     caffe_param->add_stride(p_param->stride_w);
      caffe_param->add_pad(p_param->pad_h);
+     caffe_param->add_pad(p_param->pad_w);
      caffe_param->set_num_output(p_param->output_channel);
      caffe_param->set_bias_term((node->GetInputNum()>2));
      caffe_param->set_group(p_param->group);
@@ -242,9 +246,9 @@ bool  caffe_run_convolution(Node *node, ExecEngine * engine, int rep, unsigned l
      return true;
 }
 
-bool  caffe_run_convolution(Node *node, ExecEngine * engine)
+bool  caffe_run_convolution(Node *node)
 {
-   return caffe_run_convolution(node,engine,0,nullptr);
+   return caffe_run_convolution(node,0,nullptr);
 }
 static PoolingParameter_PoolMethod MapPool(PoolArg arg)
 {
@@ -276,7 +280,7 @@ struct WrapPoolingLayer: public PoolingLayer<Dtype> {
 
 };
 
-bool  caffe_run_pooling(Node *node, ExecEngine * engine)
+bool  caffe_run_pooling(Node *node)
 {
     LayerParameter layer_param;
     PoolingParameter* caffe_param = layer_param.mutable_pooling_param();
@@ -289,8 +293,10 @@ bool  caffe_run_pooling(Node *node, ExecEngine * engine)
     caffe_param->set_kernel_w(p_param->kernel_shape[1]);
     //caffe_param->set_kernel_size(p_param->kernel_shape[0]);
     caffe_param->set_pool(MapPool(p_param->alg));
-    caffe_param->set_pad(p_param->pads[0]); 
-    caffe_param->set_stride(p_param->strides[0]); 
+    caffe_param->set_pad_h(p_param->pads[0]); 
+    caffe_param->set_pad_w(p_param->pads[1]); 
+    caffe_param->set_stride_h(p_param->strides[0]); 
+    caffe_param->set_stride_w(p_param->strides[1]); 
     // origin param 
     // caffe_param->set_kernel_size(p_param->kernel_h);
     // caffe_param->set_pool(MapPool(p_param->alg));
@@ -335,7 +341,7 @@ struct WrapReLULayer: public ReLULayer<Dtype> {
 
 };
 
-bool caffe_run_relu(Node * node, ExecEngine * engine)
+bool caffe_run_relu(Node * node)
 {
     LayerParameter layer_param;
     Blob<float> input, output;
@@ -361,6 +367,59 @@ bool caffe_run_relu(Node * node, ExecEngine * engine)
 
     return true;
 }
+// add prelu
+
+template <typename Dtype>
+struct WrapPReLULayer: public PReLULayer<Dtype> {
+
+ WrapPReLULayer(const LayerParameter& param): PReLULayer<Dtype>(param) {}
+ 
+ void Init(const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top)
+  {
+        PReLULayer<Dtype>::LayerSetUp(bottom,top);
+        PReLULayer<Dtype>::Reshape(bottom,top);
+  }
+ void Forward(const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top)
+   {    PReLULayer<Dtype>::Forward_cpu(bottom,top); }
+
+};
+
+bool caffe_run_prelu(Node * node)
+{
+ 
+    LayerParameter layer_param;
+  
+    WrapPReLULayer<float> caffe_layer(layer_param);
+
+    Blob<float> input, output;
+     std::vector<Blob<float>*> bottom,top;
+     bottom.push_back(&input);
+     top.push_back(&output);
+
+    //input
+    Tensor * tensor=node->GetInputTensor(0);
+    ReshapeBlob(input,tensor);
+    CopyBlobFromTensor(tensor,&input);
+    
+    caffe_layer.Init(bottom,top);
+  
+    std::vector<boost::shared_ptr<Blob<float> > > blob_vector=caffe_layer.blobs();
+     /* weight */
+    boost::shared_ptr<Blob<float> > blob_ptr=blob_vector[0];
+    tensor=node->GetInputTensor(1);
+    ReshapeBlob(*blob_ptr, tensor);
+    CopyBlobFromTensor(tensor,blob_ptr.get());
+    // forward
+    caffe_layer.Forward(bottom,top);
+   //output
+    tensor=node->GetOutputTensor(0);
+    ReshapeBlob(output,tensor);
+    CopyBlobToTensor(tensor,&output);  
+
+    return true;
+}
+
+// end prelu
 
 template <typename Dtype>
 struct WrapSoftmaxLayer: public SoftmaxLayer<Dtype> {
@@ -378,7 +437,7 @@ struct WrapSoftmaxLayer: public SoftmaxLayer<Dtype> {
 
 };
 
-bool caffe_run_softmax(Node * node, ExecEngine * engine)
+bool caffe_run_softmax(Node * node)
 {
     LayerParameter layer_param;
     Blob<float> input, output;
@@ -424,7 +483,7 @@ struct WrapIP: public InnerProductLayer<Dtype>{
 
 };
 
-bool caffe_run_fully_connected(Node * node, ExecEngine * engine, int rep, unsigned long * time)
+bool caffe_run_fully_connected(Node * node, int rep, unsigned long * time)
 {
     LayerParameter layer_param;
     InnerProductParameter * caffe_param=layer_param.mutable_inner_product_param();
@@ -492,6 +551,10 @@ bool caffe_run_fully_connected(Node * node, ExecEngine * engine, int rep, unsign
 
     tensor=node->GetOutputTensor(0);
 
+    /* Caffe use 2D blobs in InnerProductLayer, and tensor is 4D,
+       so ReshapeBlob is required before CopyBlobToTensor */
+    ReshapeBlob(output, tensor);
+
     CopyBlobToTensor(tensor,&output);
 
     return true;
@@ -499,12 +562,12 @@ bool caffe_run_fully_connected(Node * node, ExecEngine * engine, int rep, unsign
 
 }
 
-bool caffe_run_fully_connected(Node * node, ExecEngine * engine)
+bool caffe_run_fully_connected(Node * node)
 {
-    return caffe_run_fully_connected(node,engine,0,nullptr);
+    return caffe_run_fully_connected(node,0,nullptr);
 }
 
-bool caffe_run_split(Node * node, ExecEngine * engine)
+bool caffe_run_split(Node * node)
 {
      Tensor * tensor=node->GetInputTensor(0);
      int mem_size=tensor->GetTotalSize();
@@ -521,7 +584,7 @@ bool caffe_run_split(Node * node, ExecEngine * engine)
      return true;
 }
 
-bool caffe_run_concat(Node * node, ExecEngine * engine)
+bool caffe_run_concat(Node * node)
 {
      Tensor * out_tensor=node->GetOutputTensor(0);
      char * out_addr=(char *)get_tensor_mem(out_tensor);
@@ -544,7 +607,7 @@ bool caffe_run_concat(Node * node, ExecEngine * engine)
 }
 
 
-bool caffe_run_dropout(Node * node, ExecEngine * engine)
+bool caffe_run_dropout(Node * node)
 {
      Tensor * in_tensor=node->GetInputTensor(0);
      Tensor * out_tensor=node->GetOutputTensor(0);
@@ -579,7 +642,7 @@ struct WrapBatchNorm: public BatchNormLayer<Dtype> {
 
 };
 
-bool caffe_run_batch_norm(Node * node, ExecEngine * engine)
+bool caffe_run_batch_norm(Node * node)
 {
      LayerParameter layer_param;
      BatchNormParameter * caffe_param=layer_param.mutable_batch_norm_param();
@@ -658,7 +721,7 @@ struct WrapScale: public ScaleLayer<Dtype> {
 };
 
 
-bool caffe_run_scale(Node * node, ExecEngine * engine)
+bool caffe_run_scale(Node * node)
 {
      LayerParameter layer_param;
      ScaleParameter * caffe_param=layer_param.mutable_scale_param();
@@ -730,7 +793,7 @@ struct WrapLRN: public LRNLayer<Dtype> {
   }
 };
 
-bool caffe_run_lrn(Node * node, ExecEngine * engine)
+bool caffe_run_lrn(Node * node)
 {
      LayerParameter layer_param;
      caffe::LRNParameter * caffe_param=layer_param.mutable_lrn_param();
@@ -777,14 +840,29 @@ bool caffe_run_lrn(Node * node, ExecEngine * engine)
      return true;
 }
 
-void RegisterNodeRun(const std::string& name, bool(*func)(Node *, ExecEngine *))
+struct CaffeNodeOps: public NodeOps {
+
+using node_exec_t =bool(*)(Node *);
+	  
+bool Run(Node * node) override 
 {
-     NodeExec node_exec;
+      return ops_func(node);	  
+}
 
-     node_exec.run=func;
+   node_exec_t ops_func;
+};
 
-     RegisterNodeExec(name,node_exec);
+void RegisterNodeRun(const std::string& name, bool(*func)(Node *))
+
+{
+    CaffeNodeOps * caffe_ops=new CaffeNodeOps();
+
+      caffe_ops->ops_func=func;
+
+      NodeOpsRegistryManager::RegisterOPImplementor(REF_REGISTRY_NAME,
+               name,caffe_ops);
 } 
+
 
 void RegisterCaffeExecutors(void)
 {
@@ -799,6 +877,7 @@ void RegisterCaffeExecutors(void)
     RegisterNodeRun(BatchNormName,caffe_run_batch_norm);
     RegisterNodeRun("Scale",caffe_run_scale);
     RegisterNodeRun("LRN",caffe_run_lrn);
+    RegisterNodeRun("PReLU",caffe_run_prelu);
 }
 
 } //namespace TEngine

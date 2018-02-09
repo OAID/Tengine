@@ -27,13 +27,15 @@
 #include <cstring>
 
 #include "share_lib_parser.hpp"
-#include "executor.hpp"
 #include "tensor_mem.hpp"
 #include "graph_executor.hpp"
 #include "graph.hpp"
 #include "operator/fully_connected.hpp"
 #include "prof_utils.hpp"
 #include "debug_utils.hpp"
+#include "node_ops.hpp"
+#include "test_soc_info.hpp"
+
 
 using namespace TEngine;
 
@@ -62,9 +64,9 @@ Node *  create_fc_node(void)
     /* calculate shapes */
 
 #if 1
-    param->num_output=256;
-    int input_n=256;
-    int input_c=256;
+    param->num_output=2;
+    int input_n=1;
+    int input_c=128;
 #else
     param->num_output=12544;
     int input_n=32;
@@ -162,7 +164,7 @@ Node *  create_fc_node(void)
          
     shape=&tensor->GetShape();
 
-    shape->SetDataLayout("NW");
+    shape->SetDataLayout("NCHW");
     shape->SetDim(output_dims);
 
     node->SetOutputPort(0,tensor);
@@ -178,8 +180,7 @@ Node *  create_fc_node(void)
 
 namespace TEngine {
 
-extern bool  caffe_run_fully_connected(Node *node, ExecEngine * engine,int rep, unsigned long * time);
-void RegisterFullyConnectedNodeExec(void);
+extern bool  caffe_run_fully_connected(Node *node,int rep, unsigned long * time);
 
 }
 
@@ -189,7 +190,7 @@ void test_fully_connected(int rep)
 
     unsigned long time;
 
-    caffe_run_fully_connected(node,nullptr,rep,&time);
+    caffe_run_fully_connected(node,rep,&time);
 
 
     std::cout<<"rep="<<rep<<" used time: "<<time<<"us \n";
@@ -205,14 +206,20 @@ void test_new_operator(int rep)
 
       
 
-    caffe_run_fully_connected(node0,nullptr,0,nullptr);
+    caffe_run_fully_connected(node0,0,nullptr);
 
-    if(!PrerunNode(node1,nullptr))
+    SocInfo * soc_info=TestGetSocInfo();
+    NodeOps * fc_ops=NodeOpsRegistryManager::FindNodeOps(soc_info,node1);
+
+    fc_ops->SetHelper(std::malloc,std::free,nullptr);
+
+
+    if(!fc_ops->Prerun(node1))
     {
        std::cout<<"Prerun failed\n";
     }
 
-    if(!RunNode(node1,nullptr))
+    if(!fc_ops->Run(node1))
     {
        std::cout<<"Run failed\n";
     }
@@ -249,7 +256,7 @@ void test_new_operator(int rep)
     unsigned long start=get_cur_time();
 
     for(int i=0;i<rep;i++)
-         RunNode(node1,nullptr);
+         fc_ops->Run(node1);
 
     unsigned long end=get_cur_time();
 
@@ -261,11 +268,12 @@ void test_new_operator(int rep)
    
 
 
-    if(!PrerunNode(node1,nullptr))
+    if(!fc_ops->Postrun(node1))
     {
        std::cout<<"Postrun failed\n";
     }
 
+    fc_ops->Release();
 }
 
 
@@ -301,8 +309,6 @@ int main(int argc, char * argv[])
 
     sys_init();
 
-    RegisterFullyConnectedNodeExec();
-  
     test_fully_connected(rep);
 
     test_new_operator(rep);

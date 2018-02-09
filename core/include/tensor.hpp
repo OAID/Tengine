@@ -103,6 +103,8 @@ public:
         NodePort * producer;
         std::vector<NodePort *> consumer;
 
+        Node * GetConsumerNode(int idx);
+
         void * GetMemAddr(void) const
         {
            if(!ExistAttr("mem_addr"))

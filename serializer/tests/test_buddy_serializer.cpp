@@ -26,9 +26,10 @@
 #include "share_lib_parser.hpp"
 #include "caffe_serializer.hpp"
 
-const char * text_file="./tests/data/sqz.prototxt";
-const char * model_file="./tests/data/squeezenet_v1.1.caffemodel";
-
+// const char * text_file="./tests/data/sqz.prototxt";
+// const char * model_file="./tests/data/squeezenet_v1.1.caffemodel";
+const char * text_file="./tests/data/mtcnn_mdl/det1.prototxt";
+const char * model_file="./tests/data/mtcnn_mdl/det1.caffemodel";
 
 using namespace TEngine;
 

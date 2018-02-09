@@ -32,7 +32,7 @@
 #include "parameter.hpp"
 #include "logger.hpp"
 
-#define TENINGE_MT_SUPPORT
+#define TENGINE_MT_SUPPORT
 
 namespace TEngine {
 
@@ -52,7 +52,7 @@ struct TEngineConfig
                                                  const char commt_ch = '#');
 
     // Get the value corresponding to the key
-    template<typename T>static bool Get(const std::string& key, T& value);
+    template<typename T>static bool Get(const std::string& key, T& value, bool show_warning=false);
 
     // Set the key and the value
     template<typename T>static bool Set(const std::string& key, const T& value, 
@@ -79,12 +79,14 @@ private:
 }; // end of struct TEngineConfig
 
 template <typename T> 
-bool TEngineConfig::Get(const std::string& key, T& value)
+bool TEngineConfig::Get(const std::string& key, T& value, bool show_warning)
 {
     ConfManager *manager = GetConfManager();
     if(!manager->ExistAttr(key))
     {
-        LOG_ERROR()<<"The key is not existed in the config file!\n";
+        if(show_warning)
+            LOG_ERROR()<<"The key is not existed in the config file!\n";
+
         return false;
     }
 
@@ -117,7 +119,7 @@ bool TEngineConfig::Set(const std::string& key, const T& value, const bool creat
     return true;
 }
 
-#ifdef TENINGE_MT_SUPPORT
+#ifdef TENGINE_MT_SUPPORT
 static inline bool GetTEngineMTMode(void)
 {
     return TEngineConfig::tengine_mt_mode;
@@ -128,6 +130,9 @@ static inline bool GetTEngineMTMode(void)
     return false;
 }
 #endif
+
+/* if the graph should be run in sync mode ? */
+bool GetSyncRunMode(void);
 
 } //end of namespace TEngine
 

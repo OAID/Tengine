@@ -1,9 +1,9 @@
-# TEngine Serializer Develop Guide
+# Tengine Serializer Develop Guide
 
 ## 1. Overview
-This document defines the APIs and requirements to develop a serializer module for TEngine. 
+This document defines the APIs and requirements to develop a serializer module for Tengine. 
 Each serializer module works on one specific model format only, such ONNX/Caffe/Caffe2/Mxnet. 
-The serializer module loads the whole model file stored in disk, and creates a TEngine in-memory IR, which is StaticGraph. The serializer module also can store the StaticGraph into disk in the specific format. However, current version of this document describes the loading process, which is more important than the storing process.
+The serializer module loads the whole model file stored in disk, and creates a Tengine in-memory IR, which is StaticGraph. The serializer module also can store the StaticGraph into disk in the specific format. However, current version of this document describes the loading process, which is more important than the storing process.
 The serializer module can be built as a dynamic library and can be loaded on the fly.
 
 The seciont 2, class serializer, introduces interfaces that the developer should implemented.
@@ -64,7 +64,7 @@ SerializerManager::SafeAdd("onnx",SerializerPtr(onnx_serializer));
 ```
 
 ## 4. Static Graph API
-The static graph is TEngine in-memory IR and it is opaque to serializer module developer. 
+The static graph is Tengine in-memory IR and it is opaque to serializer module developer. 
 Four components are defined as the forward declaration and are manipulated through the static graph AI.
 ```c++
 struct StaticGraph;
@@ -150,4 +150,4 @@ Here are the major external header files necessary to develop a serializer modul
 
 ## 6. Example code
 
-Refers to TEngine code repository: [serializer/caffe/caffe_serializer.cpp](../serializer/caffe/caffe_serializer.cpp) and [serializer/onnx/onnx_serializer.cpp](../serializer/onnx/onnx_serializer.cpp)
+Refers to Tengine code repository: [serializer/caffe/caffe_serializer.cpp](../serializer/caffe/caffe_serializer.cpp) and [serializer/onnx/onnx_serializer.cpp](../serializer/onnx/onnx_serializer.cpp)

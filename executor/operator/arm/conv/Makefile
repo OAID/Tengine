@@ -1,4 +1,4 @@
-obj-y+=conv_interface.o
+obj-y+=conv_selector.o
 obj-y+=conv_2d_dw.o
 obj-y+=conv_2d_fast.o
 obj-y+=sgemm_4x16_interleave.o

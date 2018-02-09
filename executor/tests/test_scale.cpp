@@ -27,13 +27,15 @@
 
 
 #include "share_lib_parser.hpp"
-#include "executor.hpp"
 #include "tensor_mem.hpp"
 #include "graph_executor.hpp"
 #include "graph.hpp"
 #include "operator/scale.hpp"
 #include "prof_utils.hpp"
 #include "debug_utils.hpp"
+#include "node_ops.hpp"
+#include "test_soc_info.hpp"
+
 
 using namespace TEngine;
 void init_tensor_data(float * addr, int number, int fixed_val)
@@ -166,8 +168,7 @@ Node *  create_scale_node(int n,int c,int h,int w)
 
 namespace TEngine {
 
-extern bool  caffe_run_scale(Node *node, ExecEngine * engine);
-void RegisterScaleNodeExec(void);
+extern bool  caffe_run_scale(Node *node);
 }
 
 
@@ -175,7 +176,7 @@ void test_new_operator(int input_n,int input_c,int input_h,int input_w)
 {
     // caffe
     Node * node0=create_scale_node(input_n,input_c,input_h,input_w);
-    caffe_run_scale(node0,nullptr);
+    caffe_run_scale(node0);
 
     Tensor * tensor=node0->GetOutputTensor(0);
     TShape * shape=&tensor->GetShape();
@@ -187,7 +188,12 @@ void test_new_operator(int input_n,int input_c,int input_h,int input_w)
 
 // node1
      Node * node1=create_scale_node(input_n,input_c,input_h,input_w);
-    if(!RunNode(node1,nullptr))
+    SocInfo * soc_info=TestGetSocInfo();
+    NodeOps * scale_ops=NodeOpsRegistryManager::FindNodeOps(soc_info,node1);
+
+    scale_ops->SetHelper(std::malloc,std::free,nullptr);
+
+    if(!scale_ops->Run(node1))
     {
        std::cout<<"Run failed\n";
     }
@@ -218,7 +224,7 @@ void test_new_operator(int input_n,int input_c,int input_h,int input_w)
     for(int i=0;i<60;i++)
     {
       gettimeofday(&t0, NULL);
-      RunNode(node1,nullptr);
+      scale_ops->Run(node1);
       gettimeofday(&t1, NULL);
       float mytime=(float)((t1.tv_sec * 1000000 + t1.tv_usec) - (t0.tv_sec * 1000000 + t0.tv_usec)) / 1000;
       // std::cout<<"time is "<<mytime<<"\n";
@@ -226,7 +232,7 @@ void test_new_operator(int input_n,int input_c,int input_h,int input_w)
     }
      std::cout<<"avg time is "<<sum/50.<<std::endl;   
 
-
+   scale_ops->Release();
 }
 
 

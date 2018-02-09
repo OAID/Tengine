@@ -26,13 +26,14 @@
 #include <cstdlib>
 
 #include "logger.hpp"
-#include "executor.hpp"
+#include "node_ops.hpp"
+#include "soc_runner.hpp"
+#include "conv_selector.hpp"
 #include "tensor_mem.hpp"
 
 #include "graph.hpp"
 #include "operator/convolution.hpp"
 
-#include "conv_implementor.hpp"
 
 extern "C" void sgemm_4x16_interleave(bool have_biases, float * biases, float * input, float * kernel, float * output, long kernel_size);
 extern "C" void sgemm_4x4_interleave (bool have_biases, float * biases, float * input, float * kernel, float * output, long kernel_size);
@@ -47,23 +48,13 @@ namespace conv_fast {
 const char *  conv_name="CONV_FAST";
 const int  default_prio=1000;
 
-class ConvFast : public ConvImplementor {
-public:
-   bool Prerun(Node * node, ExecEngine * engine);
-   bool Run(Node * node, ExecEngine * engine);
-   bool Postrun(Node * node, ExecEngine * engine);
-   bool Support(ConvParam * param, Tensor * input_tensor, Tensor * weight_tensor);
-
-   ConvFast() { name=conv_name;}
-};
-
    void im2col(float * im , float * col, int input_chan ,int input_x, int input_y, int kernel_x, int kernel_y, int stride_x, int stride_y, int pad_x, int pad_y, int output_x, int output_y, int output_chan, int col_start, int col_end) {
 
   int kernel_size= kernel_x * kernel_y * input_chan;
   int kernel_xy = kernel_x * kernel_y;
   int input_xy = input_x * input_y;
   float *cur_col = col + col_start * kernel_size;
-  bool is_1x1  = (kernel_x == 1) && (kernel_y == 1);
+  bool is_1x1  = (kernel_x == 1) && (kernel_y == 1) && (stride_x == 1) && (stride_y == 1 );
   bool is_3x3  = (kernel_x == 3) && (kernel_y == 3);
   int col_i, col_j, kch, ky, kx, i, j;
 
@@ -307,7 +298,8 @@ void interleave_kernel(float * kernel , float * kernel_interleaved, int kernel_c
 
 
 
-static void sgemm4x16(float * col, float * kernel, float * biases, bool bias_term, float * output, int kernel_size, int col_start, int col_end , int kernel_start, int kernel_end, int output_xy) {
+static void sgemm4x16(float * col, float * kernel, float * biases, bool bias_term, float * output, int kernel_size, int col_start, int col_end , int kernel_start, int kernel_end, int output_xy,bool relu_fused, int cpu_type) 
+{
 
   float initial[64],result[64];
   int col_line, kernel_num;
@@ -322,7 +314,11 @@ static void sgemm4x16(float * col, float * kernel, float * biases, bool bias_ter
 
     for(col_line = (col_start & -4); col_line < (col_end & -4); col_line += 4){
       cur_col    =(float*)(col    + col_line   * kernel_size);
-      sgemm_4x16_interleave(bias_term, initial,cur_col,cur_kernel,result,kernel_size);
+      if(relu_fused)
+          sgemm_4x16_interleave_relu_fused(bias_term, initial,cur_col,cur_kernel,result,kernel_size);
+      else
+          sgemm_4x16_interleave(bias_term, initial,cur_col,cur_kernel,result,kernel_size);
+
       for(i = 0 ; i < 16 ; i ++){
         *(output + (kernel_num + i) * output_xy + col_line)     = result[(i<<2)];
         *(output + (kernel_num + i) * output_xy + col_line + 1) = result[(i<<2)+1];
@@ -332,7 +328,12 @@ static void sgemm4x16(float * col, float * kernel, float * biases, bool bias_ter
     }
     if(col_end & 0x3){
       cur_col    =(float*)(col    + col_line   * kernel_size);
-      sgemm_4x16_interleave(bias_term, initial,cur_col,cur_kernel,result,kernel_size);
+
+      if(relu_fused)
+          sgemm_4x16_interleave_relu_fused(bias_term, initial,cur_col,cur_kernel,result,kernel_size);
+      else
+          sgemm_4x16_interleave(bias_term, initial,cur_col,cur_kernel,result,kernel_size);
+
       for(i = 0 ; i < 16 ; i ++)
         for(j = 0; j < (col_end & 0x3) ; j++)
           *(output + (kernel_num + i) * output_xy + col_line + j) = result[(i<<2)+j];
@@ -342,7 +343,8 @@ static void sgemm4x16(float * col, float * kernel, float * biases, bool bias_ter
   return;
 }
 
-static void sgemm4x4(float * col, float * kernel, float * biases, bool bias_term, float * output, int kernel_size, int col_start, int col_end , int kernel_start, int kernel_end, int output_xy) {
+static void sgemm4x4(float * col, float * kernel, float * biases, bool bias_term, float * output, int kernel_size, int col_start, int col_end , int kernel_start, int kernel_end, int output_xy, bool relu_fused, int cpu_type) 
+{
 
   float initial[16],result[16];
   int col_line, kernel_num;
@@ -356,7 +358,12 @@ static void sgemm4x4(float * col, float * kernel, float * biases, bool bias_term
     cur_kernel =(float*)(kernel + kernel_num * kernel_size);
     for(col_line = (col_start & -4); col_line < (col_end & -4); col_line += 4){
       cur_col    =(float*)(col + col_line * kernel_size);
-      sgemm_4x4_interleave(bias_term, initial,cur_col,cur_kernel,result,kernel_size);
+
+      if(relu_fused)
+         sgemm_4x4_interleave_relu_fused(bias_term, initial,cur_col,cur_kernel,result,kernel_size);
+      else
+         sgemm_4x4_interleave(bias_term, initial,cur_col,cur_kernel,result,kernel_size);
+
       for(i = 0 ; i < 4 ; i ++){
         *(output + (kernel_num + i) * output_xy + col_line)   = result[(i<<2)+0];
         *(output + (kernel_num + i) * output_xy + col_line+1) = result[(i<<2)+1];
@@ -366,7 +373,10 @@ static void sgemm4x4(float * col, float * kernel, float * biases, bool bias_term
     }
     if(col_end & 0x3){
       cur_col  =(float*)(col + col_line   * kernel_size);
-      sgemm_4x4_interleave(bias_term, initial,cur_col,cur_kernel,result,kernel_size);
+      if(relu_fused)
+         sgemm_4x4_interleave_relu_fused(bias_term, initial,cur_col,cur_kernel,result,kernel_size);
+      else
+         sgemm_4x4_interleave(bias_term, initial,cur_col,cur_kernel,result,kernel_size);
       for(i = 0 ; i < 4 ; i ++){
         for(j = 0; j <(col_end & 0x3) ; j++)
           *(output + (kernel_num + i) * output_xy + col_line+j) = result[(i<<2)+j];
@@ -380,7 +390,12 @@ static void sgemm4x4(float * col, float * kernel, float * biases, bool bias_term
     cur_kernel =(float*)(kernel + kernel_num * kernel_size);
     for(col_line = (col_start & -4); col_line < (col_end & -4); col_line += 4){
       cur_col    =(float*)(col + col_line * kernel_size);
-      sgemm_4x4_interleave(bias_term, initial,cur_col,cur_kernel,result,kernel_size);
+
+      if(relu_fused)
+         sgemm_4x4_interleave_relu_fused(bias_term, initial,cur_col,cur_kernel,result,kernel_size);
+      else 
+         sgemm_4x4_interleave(bias_term, initial,cur_col,cur_kernel,result,kernel_size);
+
       for(i = 0 ; i < (kernel_end & 0x3) ; i ++){
         *(output + (kernel_num + i ) * output_xy + col_line)   = result[(i<<2)+0];
         *(output + (kernel_num + i ) * output_xy + col_line+1) = result[(i<<2)+1];
@@ -390,7 +405,11 @@ static void sgemm4x4(float * col, float * kernel, float * biases, bool bias_term
     }
     if(col_end & 0x3){
       cur_col  =(float*)(col + col_line   * kernel_size);
-      sgemm_4x4_interleave(bias_term, initial,cur_col,cur_kernel,result,kernel_size);
+      if(relu_fused)
+          sgemm_4x4_interleave_relu_fused(bias_term, initial,cur_col,cur_kernel,result,kernel_size);
+      else
+          sgemm_4x4_interleave(bias_term, initial,cur_col,cur_kernel,result,kernel_size);
+
       for(i = 0 ; i < (kernel_end & 0x3) ; i ++){
         for(j = 0; j < (col_end & 0x3) ; j++)
           *(output + (kernel_num + i) * output_xy + col_line+j) = result[(i<<2)+j];
@@ -401,107 +420,102 @@ static void sgemm4x4(float * col, float * kernel, float * biases, bool bias_term
 }
 
 
-/*** fused version */
+#define TYPE_A53 0
+#define TYPE_A72 1
+
+struct im2col_param {
+    float * im;
+    float * col;
+    int input_chan;
+    int input_x;
+    int input_y;
+    int kernel_x;
+    int kernel_y;
+    int stride_x;
+    int stride_y;
+    int pad_x;
+    int pad_y;
+    int output_x;
+    int output_y;
+    int output_chan;
+    int col_start;
+    int col_end;
+};
+
+struct sgemm_param {
+    float * col;
+    float * kernel;
+    float * biases;
+    bool bias_term;
+    float * output;
+    int kernel_size;
+    int col_start;
+    int col_end;
+    int kernel_start;
+    int kernel_end;
+    int output_xy;
+};
+
+struct ConvFast: public MTNodeOps {
+
+    bool Prerun(Node * node);
+    bool Run(Node * node);
+    bool Postrun(Node * node);
+
+    bool float_mode;
+
+    bool im2col_aider(int cpu, int seq, void * data /* im2col_param * param */);
+    bool sgemm_aider(int cpu,int seq,  void * data /* sgemm_param * param*/);
+
+    std::vector<CPUInfo> cpu_info;
+    std::vector<int> cpu_list;
+
+    int relu_fused;
+    int l2_slice;
+    int cpu_number;
+
+};
 
 
-static void sgemm4x16_relu_fused(float * col, float * kernel, float * biases, bool bias_term, float * output, int kernel_size, int col_start, int col_end , int kernel_start, int kernel_end, int output_xy) {
+bool ConvFast::im2col_aider(int cpu, int seq, void * data)
+{
+    im2col_param * param=(im2col_param *)(data);
+    im2col(param->im, param->col, param->input_chan, param->input_x, param->input_y, 
+           param->kernel_x, param->kernel_y, param->stride_x, param->stride_y, 
+           param->pad_x, param->pad_y, param->output_x, param->output_y, 
+           param->output_chan, param->col_start, param->col_end);
 
-  float initial[64],result[64];
-  int col_line, kernel_num;
-  int i,j;
-  float * cur_col, * cur_kernel;
+    IncDone(1);
 
-  for(kernel_num = (kernel_start & -16); kernel_num < (kernel_end & -16); kernel_num +=16){
-    if(bias_term)
-       for( i = 0 ; i < 64 ; i++ )
-         initial[i] = *(biases + kernel_num + (i >> 2));
-    cur_kernel =(float*)(kernel + kernel_num * kernel_size);
-
-    for(col_line = (col_start & -4); col_line < (col_end & -4); col_line += 4){
-      cur_col    =(float*)(col    + col_line   * kernel_size);
-      sgemm_4x16_interleave_relu_fused(bias_term, initial,cur_col,cur_kernel,result,kernel_size);
-      for(i = 0 ; i < 16 ; i ++){
-        *(output + (kernel_num + i) * output_xy + col_line)     = result[(i<<2)];
-        *(output + (kernel_num + i) * output_xy + col_line + 1) = result[(i<<2)+1];
-        *(output + (kernel_num + i) * output_xy + col_line + 2) = result[(i<<2)+2];
-        *(output + (kernel_num + i) * output_xy + col_line + 3) = result[(i<<2)+3];
-      }
-    }
-    if(col_end & 0x3){
-      cur_col    =(float*)(col    + col_line   * kernel_size);
-      sgemm_4x16_interleave_relu_fused(bias_term, initial,cur_col,cur_kernel,result,kernel_size);
-      for(i = 0 ; i < 16 ; i ++)
-        for(j = 0; j < (col_end & 0x3) ; j++)
-          *(output + (kernel_num + i) * output_xy + col_line + j) = result[(i<<2)+j];
-    }
-  }
-
-  return;
+    return true;
 }
 
 
-static void sgemm4x4_relu_fused(float * col, float * kernel, float * biases, bool bias_term, float * output, int kernel_size, int col_start, int col_end , int kernel_start, int kernel_end, int output_xy) {
+bool ConvFast::sgemm_aider(int cpu, int seq, void *data)  
+{
+     const CPUInfo& cpu_if=cpu_info[cpu];
+     int cpu_type=-1;
+     sgemm_param * param=(sgemm_param *)(data);
 
-  float initial[16],result[16];
-  int col_line, kernel_num;
-  int i,j;
-  float * cur_col, * cur_kernel;
+     if(cpu_if.cpu_type=="A53")
+         cpu_type=TYPE_A53;
+     else if(cpu_if.cpu_type=="A72")
+         cpu_type=TYPE_A72;
 
-  for(kernel_num = kernel_start & -4 ; kernel_num < (kernel_end & -4); kernel_num +=4){
-    if(bias_term)
-       for( i = 0 ; i < 16 ; i++ )
-         initial[i] = *(biases + kernel_num + (i >> 2));
-    cur_kernel =(float*)(kernel + kernel_num * kernel_size);
-    for(col_line = (col_start & -4); col_line < (col_end & -4); col_line += 4){
-      cur_col    =(float*)(col + col_line * kernel_size);
-      sgemm_4x4_interleave_relu_fused(bias_term, initial,cur_col,cur_kernel,result,kernel_size);
-      for(i = 0 ; i < 4 ; i ++){
-        *(output + (kernel_num + i) * output_xy + col_line)   = result[(i<<2)+0];
-        *(output + (kernel_num + i) * output_xy + col_line+1) = result[(i<<2)+1];
-        *(output + (kernel_num + i) * output_xy + col_line+2) = result[(i<<2)+2];
-        *(output + (kernel_num + i) * output_xy + col_line+3) = result[(i<<2)+3];
-      }
-    }
-    if(col_end & 0x3){
-      cur_col  =(float*)(col + col_line   * kernel_size);
-      sgemm_4x4_interleave_relu_fused(bias_term, initial,cur_col,cur_kernel,result,kernel_size);
-      for(i = 0 ; i < 4 ; i ++){
-        for(j = 0; j <(col_end & 0x3) ; j++)
-          *(output + (kernel_num + i) * output_xy + col_line+j) = result[(i<<2)+j];
-      }
-    }
-  }
-  if(kernel_end & 0x3){
-    if(bias_term)
-       for( i = 0 ; i < ((kernel_end & 0x3)<<2) ; i++ )
-         initial[i] = *(biases + kernel_num + (i >> 2));
-    cur_kernel =(float*)(kernel + kernel_num * kernel_size);
-    for(col_line = (col_start & -4); col_line < (col_end & -4); col_line += 4){
-      cur_col    =(float*)(col + col_line * kernel_size);
-      sgemm_4x4_interleave_relu_fused(bias_term, initial,cur_col,cur_kernel,result,kernel_size);
-      for(i = 0 ; i < (kernel_end & 0x3) ; i ++){
-        *(output + (kernel_num + i ) * output_xy + col_line)   = result[(i<<2)+0];
-        *(output + (kernel_num + i ) * output_xy + col_line+1) = result[(i<<2)+1];
-        *(output + (kernel_num + i ) * output_xy + col_line+2) = result[(i<<2)+2];
-        *(output + (kernel_num + i ) * output_xy + col_line+3) = result[(i<<2)+3];
-      }
-    }
-    if(col_end & 0x3){
-      cur_col  =(float*)(col + col_line   * kernel_size);
-      sgemm_4x4_interleave_relu_fused(bias_term, initial,cur_col,cur_kernel,result,kernel_size);
-      for(i = 0 ; i < (kernel_end & 0x3) ; i ++){
-        for(j = 0; j < (col_end & 0x3) ; j++)
-          *(output + (kernel_num + i) * output_xy + col_line+j) = result[(i<<2)+j];
-      }
-    }
-  }
-  return;
+     sgemm4x16(param->col,param->kernel,param->biases,param->bias_term,
+               param->output,param->kernel_size,param->col_start,param->col_end,
+               param->kernel_start,param->kernel_end,param->output_xy,
+               relu_fused, cpu_type);
+
+
+    IncDone(1);
+
+    return true;
 }
 
 
 
-
-bool ConvFast::Prerun(Node * node, ExecEngine * engine)
+bool ConvFast::Prerun(Node * node)
 {
    Convolution * conv_op=dynamic_cast<Convolution *>(node->GetOp());
    ConvParam*  param=conv_op->GetParam();
@@ -522,7 +536,7 @@ bool ConvFast::Prerun(Node * node, ExecEngine * engine)
    int kernel_size = input_chan * param->kernel_h * param->kernel_w;
    int output_xy   = output_x*output_y;
 
-   float * col_buf = (float*)std::malloc(sizeof(float) * (kernel_size * ((output_xy + 3) & -4)));
+   float * col_buf = (float*)mem_alloc(sizeof(float) * (kernel_size * ((output_xy + 3) & -4)));
 
    (*node)["col_buf"]=col_buf;
   
@@ -532,7 +546,7 @@ bool ConvFast::Prerun(Node * node, ExecEngine * engine)
    int kernel_interleaved_size_g = kernel_size * ((output_chan + 3) & -4);
    int kernel_size_g             = kernel_size *   output_chan;
    float * kernel_org         = (float *)get_tensor_mem(kernel_tensor);
-   float * kernel_interleaved = (float *)malloc(sizeof(float)*(kernel_interleaved_size_g * group));
+   float * kernel_interleaved = (float *)mem_alloc(sizeof(float)*(kernel_interleaved_size_g * group));
 
    for (int g = 0; g < group; ++g)
    {
@@ -546,7 +560,7 @@ bool ConvFast::Prerun(Node * node, ExecEngine * engine)
    return true;
 }
 
-bool ConvFast::Run(Node * node, ExecEngine * engine)
+bool ConvFast::Run(Node * node)
 {
    /* input */
    Tensor * input_tensor=node->GetInputTensor(0);
@@ -594,10 +608,6 @@ bool ConvFast::Run(Node * node, ExecEngine * engine)
    int col_cnt_l2     = L2_CACHE_SIZE / 4 / 4 / kernel_size_l1 * 7 / 8;
        col_cnt_l2     = col_cnt_l2 > 4 ? (col_cnt_l2 & -4) : 4;
 
-   bool relu_fused=false;
-
-   if(node->ExistAttr("Fused.ReLu"))
-          relu_fused=true;
 
    /* one image per time */
    for(int i = 0; i < output_n ; i ++)
@@ -608,76 +618,172 @@ bool ConvFast::Run(Node * node, ExecEngine * engine)
      for(int g = 0; g < group; g++ )
      {
          float * input_g = input + g * input_size;
-         im2col(input_g, col, input_chan, input_w, input_h, kernel_x, kernel_y, stride_x, stride_y, pad_x, pad_y, output_x, output_y, output_chan, 0,  output_xy);
 
-         float * kernel_g = kernel_interleaved + g * (kernel_size * ((output_chan + 3) & -4));
-         float * biases_g = biases + g * output_chan;
-         float * output_g = output + g * output_xy * output_chan;
-
-         if(relu_fused)
-         {
-             for(int col_i = 0; col_i < output_xy; col_i += col_cnt_l2)
-             {
-                int col_start = col_i;
-                int col_end   = col_i + col_cnt_l2;
-                col_end       = col_end > output_xy ? output_xy : col_end;
-                sgemm4x16_relu_fused(col,kernel_g,biases_g,have_biases,output_g,kernel_size,col_start,col_end,0,output_chan&-16,output_xy);
-
-                if(output_chan&0xf)
-                    sgemm4x4_relu_fused(col,kernel_g,biases_g,have_biases,output_g,kernel_size,col_start,col_end,output_chan&-16,output_chan,output_xy);
-             }
-         }
+         if(cpu_number==1)
+            im2col(input_g, col, input_chan, input_w, input_h, kernel_x, kernel_y, stride_x, stride_y, pad_x, pad_y, output_x, output_y, output_chan, 0,  output_xy);
          else
          {
-             // for input block of L2 cache size
-             for(int col_i = 0; col_i < output_xy; col_i += col_cnt_l2)
+             std::vector<sub_op_task> task_list;
+             std::vector<im2col_param> param_list;
+ 
+             task_list.resize(cpu_number);
+             param_list.resize(cpu_number);
+ 
+             auto f=std::bind(&ConvFast::im2col_aider,this,std::placeholders::_1,
+                                std::placeholders::_2,std::placeholders::_3);
+
+             int steps=(output_xy/cpu_number)&(~0x3);
+
+             for(int i=0;i<cpu_number;i++)
              {
+                 im2col_param * param=&param_list[i];   
+                 sub_op_task * task=&task_list[i];
+
+                 task->exec_func=f;
+                 task->seq=i;
+                 task->data=param;
+
+                 param->im=input_g;
+                 param->col=col;
+                 param->input_chan=input_chan;
+                 param->input_x=input_w;
+                 param->input_y=input_h;
+                 param->kernel_x=kernel_x;
+                 param->kernel_y=kernel_y;
+                 param->stride_x=stride_x;
+                 param->stride_y=stride_y;
+                 param->pad_x=pad_x;
+                 param->pad_y=pad_y;
+                 param->output_x=output_x;
+                 param->output_y=output_y;
+                 param->output_chan=output_chan;
+                 param->col_start=i*steps;
+                 param->col_end=param->col_start+steps;
+             }
+
+             param_list[cpu_number-1].col_end=output_xy;
+
+             IncRequest(cpu_number);
+
+             task_dispatch(task_list,-1);
+             WaitDone();
+         }
+
+         float * kernel_g = kernel_interleaved + g * (kernel_size * ((output_chan + 3) & -4));
+         float * output_g = output + g * output_xy * output_chan;
+         float * bias_g=biases+g*output_chan;
+
+          // for input block of L2 cache size
+          for(int col_i = 0; col_i < output_xy; col_i += col_cnt_l2)
+          {
                 int col_start = col_i;
                 int col_end   = col_i + col_cnt_l2;
                 col_end       = col_end > output_xy ? output_xy : col_end;
-                sgemm4x16(col,kernel_g,biases_g,have_biases,output_g,kernel_size,col_start,col_end,0,output_chan&-16,output_xy);
-                if(output_chan&0xf)
-                   sgemm4x4(col,kernel_g,biases_g,have_biases,output_g,kernel_size,col_start,col_end,output_chan&-16,output_chan,output_xy);
-             }
-         }
+
+                if(cpu_number==1)
+                {
+                    sgemm4x16(col,kernel_g,bias_g,have_biases,output_g,kernel_size,col_start,col_end,0,output_chan&-16,
+                                 output_xy,relu_fused,TYPE_A72);
+                    if(output_chan&0xf)
+                        sgemm4x4(col,kernel_g,bias_g,have_biases,output_g,kernel_size,col_start,col_end,output_chan&-16,
+                                         output_chan,output_xy,relu_fused,TYPE_A72);
+
+                }
+                else
+                {
+                    int chan_16_num=output_chan/16;
+                    
+                    std::vector<sub_op_task> task_list;
+                    std::vector<sgemm_param> param_list;
+ 
+                    task_list.resize(chan_16_num);
+                    param_list.resize(chan_16_num);
+
+                    auto f=std::bind(&ConvFast::sgemm_aider,this,std::placeholders::_1,
+                                               std::placeholders::_2,std::placeholders::_3);
+                    for(int i=0;i<chan_16_num;i++)
+                    {
+                        sgemm_param * param=&param_list[i];
+                        sub_op_task * task=&task_list[i];
+                        task->exec_func=f;
+                        task->seq=i;
+                        task->data=param;
+
+                        param->col=col;
+                        param->kernel=kernel_g;
+                        param->biases=bias_g;
+                        param->bias_term=have_biases;
+                        param->output=output_g;
+                        param->kernel_size=kernel_size;
+                        param->col_start=col_start;
+                        param->col_end=col_end;
+                        param->kernel_start=i*16;
+                        param->kernel_end=param->kernel_start+16;
+                        param->output_xy=output_xy;
+                        
+                    }
+
+                    IncRequest(chan_16_num);
+
+
+                    task_dispatch(task_list,-1);
+                    
+                    
+                    if(output_chan&0xf)
+                        sgemm4x4(col,kernel_g,bias_g,have_biases,output_g,kernel_size,col_start,col_end,output_chan&-16,output_chan,output_xy,
+                                  relu_fused, TYPE_A72);
+                    
+                    WaitDone();
+                }
+          }
      }
    }
 
    return true;
 }
 
-bool ConvFast::Postrun(Node * node, ExecEngine * engine)
+bool ConvFast::Postrun(Node * node)
 {
    float * addr;
 
    addr=any_cast<float *>(node->GetAttr("col_buf"));
-   std::free(addr);
+   mem_free(addr);
 
    addr=any_cast<float *>(node->GetAttr("kernel_interleaved"));
-   std::free(addr);
+   mem_free(addr);
 
    return true;
 }
 
-bool ConvFast::Support(ConvParam * param, Tensor * input_tensor, Tensor * weight_tensor)
+NodeOps * SelectFunc(SocInfo * soc_info, Node * node)
 {
-    return GetDefaultEngine(conv_name);
+     ConvFast * ops=new ConvFast();
+
+     ops->need_free=true;
+
+     ops->cpu_list=soc_info->cpu_list; 
+     ops->cpu_info=soc_info->cpu_info; 
+     ops->cpu_number=ops->cpu_list.size();
+
+     //ops->cpu_number=1;
+
+     if(node->ExistAttr("Fused.ReLu"))
+          ops->relu_fused=true;
+     else
+          ops->relu_fused=false;
+
+     return ops;
 }
+
 
 } //conv_fast
 
-void RegisterConvFast(void)
+void RegisterConv2dFast(void)
 {
-    conv_fast::ConvFast * conv=new conv_fast::ConvFast();
+      PrioSelector * selector=conv_selector::GetSelector("arm64");
 
-    char * prio=std::getenv(conv_fast::conv_name);
-
-    if(prio)
-        conv->priority=strtoul(prio,NULL,10);
-    else
-        conv->priority=conv_fast::default_prio;
-
-    ConvImplementorManager::Register(conv);
+      selector->Register(conv_fast::default_prio,conv_fast::SelectFunc);
+   
 }
 
 } //namespace TEngine

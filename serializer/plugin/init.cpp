@@ -26,12 +26,14 @@
 
 #include "caffe_serializer.hpp"
 #include "onnx_serializer.hpp"
+#include "mxnet_serializer.hpp"
 #include "logger.hpp"
 
 namespace TEngine {
 
 extern bool OnnxSerializerRegisterOpLoader();
 extern bool CaffeSerializerRegisterOpLoader();
+extern bool MxnetSerializerRegisterOpLoader();
 
 }
 
@@ -51,20 +53,24 @@ int tengine_plugin_init(void)
     factory->RegisterInterface<OnnxSerializer>("onnx");
     factory->RegisterInterface<CaffeSingle>("caffe_single");
     factory->RegisterInterface<CaffeBuddy>("caffe_buddy");
+    factory->RegisterInterface<MxnetSerializer>("mxnet");
 
     //create the serializer object by factory...
     auto onnx_serializer=factory->Create("onnx");
     auto caffe_single=factory->Create("caffe_single");
     auto caffe_buddy=factory->Create("caffe_buddy");
+    auto mxnet_serializer=factory->Create("mxnet");
 
     //add into object store
     SerializerManager::SafeAdd("onnx",SerializerPtr(onnx_serializer));
     SerializerManager::SafeAdd("caffe_single",SerializerPtr(caffe_single));
     SerializerManager::SafeAdd("caffe",SerializerPtr(caffe_buddy));
+    SerializerManager::SafeAdd("mxnet",SerializerPtr(mxnet_serializer));
 
     //add the operator loader
     OnnxSerializerRegisterOpLoader();
     CaffeSerializerRegisterOpLoader();
+    MxnetSerializerRegisterOpLoader();
 
     std::cout<<"SERIALIZER PLUGIN INITED\n";   
 

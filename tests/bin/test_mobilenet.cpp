@@ -210,5 +210,8 @@ int main(int argc, char * argv[])
 
 
    std::cout<<"ALL TEST DONE\n";
+
+   release_tengine_library();
+
    return 0;
 }

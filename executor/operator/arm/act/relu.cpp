@@ -26,15 +26,19 @@
 #include <cstring>
 
 #include "logger.hpp"
-#include "executor.hpp"
+#include "node_ops.hpp"
 #include "tensor_mem.hpp"
 #include "graph.hpp"
 
 namespace TEngine {
 
 namespace ReLuImpl {
+	
+extern "C" void relu_neon(float * ,int );
 
-bool OnBind(Node * node, ExecEngine * engine)
+struct ReLuOps: public NodeOps {
+	
+bool OnBind(Node * node) override
 {
     //set the inplace feature
     inplace_t io_map;
@@ -46,9 +50,9 @@ bool OnBind(Node * node, ExecEngine * engine)
     return true;
 }
 
-extern "C" void relu_neon(float * ,int );
 
-bool Run(Node * node, ExecEngine * engine)
+
+bool Run(Node * node ) override
 {
     //input tensor and output tensor is the same
     Tensor * input_tensor=node->GetInputTensor(0);
@@ -59,14 +63,19 @@ bool Run(Node * node, ExecEngine * engine)
     relu_neon(data,elem_num);
     return true;
 }
+};
 
 } //namespace ReLuImpl
 
+using namespace ReLuImpl;
+
 void RegisterReLuNodeExec(void)
 {
-    NodeExec relu_exec={ReLuImpl::OnBind,nullptr,ReLuImpl::Run,nullptr};
+   ReLuOps * ops=new ReLuOps();
 
-    RegisterNodeExec("ReLu",relu_exec);
+   NodeOpsRegistryManager::RegisterOPImplementor("arm64",
+               "ReLu",ops);               
+  
 }
 
 

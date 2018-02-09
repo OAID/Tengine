@@ -68,6 +68,19 @@ void GraphOptimizerManager::Init(void)
    Add(opt->name,opt);
 }
 
+static bool NodeInGraph(Node * node, Graph * graph)
+{
+    int number=graph->seq_nodes.size();
+
+    for(int i=0;i<number;i++)
+    {
+       if(node==graph->seq_nodes[i])
+           return true;
+    }
+    
+    return false;
+}
+
 /* the graph optimizer: conv_relu */
 static bool GraphFuseConvReLu(Graph * graph,GraphOptimizer * opt)
 {
@@ -91,6 +104,11 @@ static bool GraphFuseConvReLu(Graph * graph,GraphOptimizer * opt)
 
          if(op->GetName()!="Convolution")
              continue;
+
+         //check if node in seq_nodes
+
+         if(!NodeInGraph(conv_node,graph))
+              continue;
 
          Subgraph * sub= new Subgraph("conv_relu");
 
@@ -259,6 +277,9 @@ static bool GraphFuseBNScaleReLu(Graph * graph,GraphOptimizer * opt)
 
          if(op->GetName()!="BatchNormalization")
                continue;
+
+         if(!NodeInGraph(scale_node,graph) || !NodeInGraph(bn_node,graph))
+              continue;
 
          /* create a subgraph to represent the chain */
 

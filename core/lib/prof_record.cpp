@@ -58,13 +58,24 @@ bool ProfTime::Stop(int idx)
 
    if(used_time>r.max_time)
       r.max_time=used_time;
-   else if(used_time< r.min_time)
+   if(used_time< r.min_time)
       r.min_time=used_time;
 
    r.total_used_time+=used_time;
    r.count++;  
 
    return true;
+}
+
+void ProfTime::Reset(void)
+{
+    int num=record.size();
+
+    for(int i=0;i<num;i++)
+    {
+        TimeRecord& tr=record[i];
+        tr.Reset();
+    }
 }
 
 void ProfTime::Dump(int method)
@@ -109,7 +120,7 @@ void ProfTime::Dump(int method)
                       100.0*r.total_used_time/accum_time,
                       r.count,r.total_used_time/r.count,r.min_time,r.max_time);
 
-        parser(r.ident);
+        parser(r.ident,r.count,r.total_used_time);
         std::cout<<"\n";
 
    }

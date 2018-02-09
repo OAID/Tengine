@@ -27,7 +27,7 @@
 
 #include "logger.hpp"
 #include "operator/fused_operator.hpp"
-#include "executor.hpp"
+#include "node_ops.hpp"
 #include "tensor_mem.hpp"
 #include "graph.hpp"
 
@@ -38,8 +38,10 @@ namespace TEngine {
 
 namespace FusedBNScaleReluImpl {
 
+struct FusedOps: public NodeOps {
 
-bool OnBind(Node * node, ExecEngine * engine)
+
+bool OnBind(Node * node)
 {
     inplace_t io_map;
    
@@ -51,7 +53,7 @@ bool OnBind(Node * node, ExecEngine * engine)
 }
 
 
-bool Run(Node * node, ExecEngine * engine)
+bool Run(Node * node)
 {
     const Tensor * input_tensor=node->GetInputTensor(0);
     Tensor * output_tensor=node->GetOutputTensor(0);
@@ -80,14 +82,15 @@ bool Run(Node * node, ExecEngine * engine)
 
     for(int i=0;i<batch_number;i++)
     {
-#if 1
 
         bn_scale_relu_neon(input,gamma,beta,mean,var,channel_num,channel_size,output);
 
         input+=channel_size*channel_num;
         output+=channel_size*channel_num;
 
-#else
+/*
+       the c code of assembly code
+
         for(int c=0;c<channel_num;c++)
         {
            float s_mean=mean[c];
@@ -112,7 +115,7 @@ bool Run(Node * node, ExecEngine * engine)
            output+=channel_size;
         }
 
-#endif
+*/
     }
     
 
@@ -120,17 +123,20 @@ bool Run(Node * node, ExecEngine * engine)
 
 }
 
+};
 
 
+} //namespace FusedBNScaleReluImpl
 
-} //namespace 
+using namespace FusedBNScaleReluImpl;
 
 void RegisterFusedBNScaleReluNodeExec(void)
 {
-    NodeExec fused_exec={FusedBNScaleReluImpl::OnBind,nullptr,FusedBNScaleReluImpl::Run,nullptr};
+   FusedOps * ops=new FusedOps();
 
-    RegisterNodeExec( FusedBNScaleReLu::class_name,fused_exec);
-
+   NodeOpsRegistryManager::RegisterOPImplementor("arm64",
+                FusedBNScaleReLu::class_name,ops);               
+  
 }
 
 } //namespace TEngine

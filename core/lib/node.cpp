@@ -36,7 +36,7 @@ namespace TEngine {
 
 void Node::DumpNode(void)
 {
-    LOG_INFO()<<"\nNode: "<<name_<<" OP: "<<GetOp()->GetName()<<std::endl;
+    LOG_INFO()<<"\nNode: "<<name_<<" OP: "<<GetOp()->GetName()<<" idx: "<<GetNodeIndex()<<std::endl;
     LOG_INFO()<<"\tInput: "<<inputs_.size()<<" Output: "<<outputs_.size()<<std::endl;
 
     LOG_INFO()<<"\tInput Tensors:"<<std::endl;
@@ -92,17 +92,20 @@ Node * Node::GetParentNode(int idx)
 }
 
 
+/* in-correct implement, should not be used */
 int Node::GetChildNum(void)
 {
    return GetOutputNum();
 }
 
+
+/* in-correct implement, should not be used */
 Node * Node::GetChildNode(int idx)
 {
     NodePort * port=outputs_[idx].get();
     Tensor * tensor=port->tensor;
 
-    return tensor->producer->owner;
+    return tensor->consumer[0]->owner;
 }
 
 float Node::GetFops(void)

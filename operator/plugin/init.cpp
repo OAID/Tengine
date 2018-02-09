@@ -40,6 +40,11 @@
 #include "operator/scale.hpp"
 #include "operator/lrn.hpp"
 #include "operator/fused_operator.hpp"
+#include "operator/prelu.hpp"
+#include "operator/eltwise.hpp"
+#include "operator/slice.hpp"
+#include "operator/demo_op.hpp"
+#include "operator/normalize.hpp"
 
 extern "C" {
 
@@ -65,6 +70,11 @@ int tengine_plugin_init(void)
     RegisterOp<Scale>("Scale");
     RegisterOp<LRN>("LRN");
     RegisterOp<FusedBNScaleReLu>(FusedBNScaleReLu::class_name);
+    RegisterOp<PReLU>("PReLU");
+    RegisterOp<Eltwise>("Eltwise");
+    RegisterOp<Slice>("Slice");
+    RegisterOp<DemoOp>("DemoOp");
+    RegisterOp<Normalize>("Normalize");
 
     std::cout<<"OPERATOR PLUGIN INITED\n";
     return 0;
