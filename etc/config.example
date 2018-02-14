@@ -25,8 +25,11 @@ plugin.driver.so = ./build/driver/libdriver.so
 plugin.driver.init = tengine_plugin_init
 plugin.driver.prio=4
 
-driver.probe.0=RK3399
-device.default= cpu.rk3399.a72.all
+driver.probe.0=APQ8096
+device.default= cpu.apq8096.kryo.all
+
+#driver.probe.0=RK3399
+#device.default= cpu.rk3399.a72.all
 #device.default= cpu.rk3399.a53.all
 #device.default= cpu.rk3399.a72.0
 #device.default= cpu.rk3399.a53.2

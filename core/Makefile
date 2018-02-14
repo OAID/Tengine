@@ -1,21 +1,20 @@
-CC=gcc  -std=gnu99
-CXX=g++ -std=c++11
-LD=g++
-
+CC=${CROSS_COMPILE}gcc  -std=gnu99 ${SYSROOT_FLAGS}
+CXX=${CROSS_COMPILE}g++ -std=c++11 ${SYSROOT_FLAGS}
+LD=${CROSS_COMPILE}g++ ${SYSROOT_FLAGS}
 
 BUILD_DIR?=$(shell pwd)/build
 INSTALL_DIR?=$(shell pwd)/install
 MAKEBUILD?=$(shell pwd)/makefile.build
 
-export CC CXX CFLAGS  LD LDFLAGS CXXFLAGS COMMON_CFLAGS
+export CC CXX CFLAGS LD LDFLAGS CXXFLAGS COMMON_CFLAGS SYSROOT
 
 INC_DIR+=-I$(shell pwd)/../include -I$(shell pwd)/include -I$(shell pwd)/include  
 #INC_DIR+=-I$(shell pwd)/../operator/include
 
 
-CXXFLAGS+=
+CXXFLAGS+= 
 
-COMMON_CFLAGS+= -Wall -g -I$(shell pwd)/include -fPIC  $(INC_DIR) 
+COMMON_CFLAGS+= -Wall -g -I$(shell pwd)/include -fPIC  $(INC_DIR)
 
 libsubdir_list=lib
 
@@ -54,7 +53,7 @@ $(BIN_OBJS): $(binsubdir_list)
 
 build: default install
 
-LDFLAGS+=-rdynamic
+LDFLAGS+=-rdynamic ${SYSROOT_FLAGS}
 
 #$(TENGINE_OBJS): $(libsubdir_list)
 #$(BIN_OBJS):$(binsubdir_list)
