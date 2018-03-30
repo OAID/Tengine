@@ -39,16 +39,6 @@ struct NamedData {
 	static map_t& GetMap(void)
 	{
                 static map_t internal_map;
-                static int initalized=0;
-
-                if(!initalized)
-                {
-                    initalized=1;
-
-                    InitPredefinedData();
-                }
-
-
 		return internal_map;
 	}
 
