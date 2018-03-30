@@ -45,6 +45,7 @@ public:
   GraphExecutor() {
        graph_=nullptr;
        exec_handle_=nullptr;
+	   exec_priority_=100;
   }
 
   ~GraphExecutor() { 
