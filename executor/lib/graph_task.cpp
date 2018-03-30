@@ -200,24 +200,27 @@ bool GraphTask::Run(exec_event_t& event)
 	active_sub_task_count_=0;
 	task_done_=false;
 	
+    WaitEvent * p_event=new WaitEvent();
+	wait_event_=p_event;
+    p_event->wait_count=0;
+
 	//let all input tasks run
 	for(auto e: sub_task_list_)
 	{
-	    if(e->is_input_task &&  !e->saved_input_wait_count_ 
+	    if(!e->saved_input_wait_count_ 
 			&& !RunSubgraphTask(e))
 	    {
 	         XLOG_ERROR()<<"failed to run task on dev executor: "
 			 	            <<e->dev_executor->GetName()<<"\n";
 		  status_=EXEC_STATUS_BAD;
-	         return false;
+		  delete p_event;
+		  wait_event_=nullptr;
+
+	       return false;
 	    }
 	}
 
-        WaitEvent * p_event=new WaitEvent();
-
-        p_event->wait_count=0;
 	event=p_event;
-	wait_event_=p_event;
 	 
 	return true;
 }
@@ -232,7 +235,8 @@ bool GraphTask::SetCallback(exec_event_t& e, int event, exec_cb_t cb)
 int GraphTask::Wait(exec_event_t& event, int try_wait)
 {
         WaitEvent * p_event=any_cast<WaitEvent *>(event);
-		
+
+	   {	
         std::unique_lock<std::mutex> lock(p_event->mutex);
 
         if(try_wait&& !task_done_)
@@ -246,14 +250,14 @@ int GraphTask::Wait(exec_event_t& event, int try_wait)
         if(!task_done_)
 	     p_event->cond.wait(lock,[this]{return task_done_;});
 
+              lock.unlock();
+	   }
+
        if(p_event->wait_count.fetch_sub(1)==1)
        	{
        	      delete p_event;
+			  wait_event_=nullptr;
        	}
-        else
-        {
-              lock.unlock();
-        }
 	
 	return 1;
 }
