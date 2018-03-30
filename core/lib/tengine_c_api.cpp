@@ -36,6 +36,8 @@
 
 #include "tengine_c_api.h"
 #include "share_lib_parser.hpp"
+#include "data_type.hpp"
+#include "data_layout.hpp"
 
 using namespace TEngine;
 
@@ -284,6 +286,9 @@ int init_tengine_library(void)
     }
       
     initialized=1;
+
+	NamedData<DataType>::InitPredefinedData();
+	NamedData<DataLayout>::InitPredefinedData();
 
     // Load the config file
     if(!TEngineConfig::Load("./etc/config"))
