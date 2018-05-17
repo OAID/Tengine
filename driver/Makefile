@@ -15,7 +15,7 @@ INC_DIR+=-I$(shell pwd)/../core/include
 INC_DIR+=-I$(shell pwd)/../operator/include 
 INC_DIR+=-I$(shell pwd)/../executor/include 
 
-MODULE_DIR=rk3399  plugin
+MODULE_DIR=rk3399 hikey960 plugin 
 MODULE_NAME=libdriver.so
 
 CXXFLAGS+=
