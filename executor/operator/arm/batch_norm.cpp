@@ -25,6 +25,7 @@
 #include <functional>
 #include <cstring>
 #include <algorithm>
+#include <cmath>
 
 #include "logger.hpp"
 #include "node_ops.hpp"
