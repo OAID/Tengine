@@ -1,14 +1,14 @@
 include makefile.config
 
 ifdef SYSROOT
-SYSROOT_FLAGS:=--sysroot=${SYSROOT} -L/usr/lib/aarch64-linux-gnu -L/usr/lib/aarch64-linux-gnu/blas
-SYSROOT_RPATH:=:/usr/lib/aarch64-linux-gnu/blas:/usr/lib/aarch64-linux-gnu/lapack
+   SYSROOT_FLAGS:=--sysroot=${SYSROOT} -L/usr/lib/aarch64-linux-gnu -L/usr/lib/aarch64-linux-gnu/blas
+   SYSROOT_RPATH:=:/usr/lib/aarch64-linux-gnu/blas:/usr/lib/aarch64-linux-gnu/lapack
 else
-SYSROOT_FLAGS:=
-SYSROOT_RPATH:=
+   SYSROOT_FLAGS:=
+   SYSROOT_RPATH:=
 endif
 
-export CROSS_COMPILE SYSROOT_FLAGS SYSROOT_RPATH
+export CROSS_COMPILE SYSROOT SYSROOT_FLAGS SYSROOT_RPATH
 
 MAKEBUILD=$(shell pwd)/scripts/makefile.build
 
@@ -58,7 +58,7 @@ install: $(SUB_DIRS)
 
 $(APP_SUB_DIRS): $(LIB_SUB_DIRS)
 
-$(SUB_DIRS):
+$(SUB_DIRS): ${SYSROOT}
 	@$(MAKE) -C $@  BUILD_DIR=$(BUILD_DIR)/$@ $(MAKECMDGOALS)
 
 distclean:
