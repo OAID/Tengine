@@ -6,7 +6,7 @@ BUILD_DIR?=$(shell pwd)/build
 INSTALL_DIR?=$(shell pwd)/install
 MAKEBUILD?=$(shell pwd)/makefile.build
 
-export CC CXX CFLAGS LD LDFLAGS CXXFLAGS COMMON_CFLAGS SYSROOT
+export CC CXX CFLAGS LD LDFLAGS CXXFLAGS COMMON_CFLAGS
 
 INC_DIR+=-I$(shell pwd)/../include -I$(shell pwd)/include -I$(shell pwd)/include  
 #INC_DIR+=-I$(shell pwd)/../operator/include
