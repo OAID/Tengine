@@ -5,8 +5,10 @@ export CFLAGS CXXFLAGS ASFLAGS
 
 REALNAME=$(abspath $(firstword $(MAKEFILE_LIST)))
 
+CC:=${CROSS_COMPILE}gcc -std=gnu99 ${SYSROOT_FLAGS}
+CXX:=${CROSS_COMPILE}g++ -std=c++11 ${SYSROOT_FLAGS}
 
-BUILT_IN_LD?=ld
+BUILT_IN_LD?=${CROSS_COMPILE}ld
 
 ifeq ($(BUILD_DIR),)
     $(error "please set BUILD_DIR")

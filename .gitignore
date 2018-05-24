@@ -8,3 +8,4 @@ build/
 *.pb.h
 makefile.config
 etc/config
+sysroot/debian-buster

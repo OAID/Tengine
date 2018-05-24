@@ -1,6 +1,6 @@
-CC=gcc  -std=gnu99
-CXX=g++ -std=c++11
-LD=g++
+CC=${CROSS_COMPILE}gcc  -std=gnu99 ${SYSROOT_FLAGS}
+CXX=${CROSS_COMPILE}g++ -std=c++11 ${SYSROOT_FLAGS}
+LD=${CROSS_COMPILE}g++ ${SYSROOT_FLAGS}
 
 
 BUILD_DIR?=$(shell pwd)/build
@@ -19,7 +19,6 @@ MODULE_NAME=liboperator.so
 CXXFLAGS+=
 
 COMMON_CFLAGS+= -Wall -g -I$(shell pwd)/include -fPIC  $(INC_DIR)
-
 libsubdir_list=$(MODULE_DIR)
 
 PLUGIN_OBJS =$(addprefix $(BUILD_DIR)/, $(foreach f,$(libsubdir_list),$(f)/built-in.o))

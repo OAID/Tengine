@@ -1,13 +1,13 @@
-CC=gcc  -std=gnu99
-CXX=g++ -std=c++11
-LD=g++
+CC=${CROSS_COMPILE}gcc  -std=gnu99 ${SYSROOT_FLAGS}
+CXX=${CROSS_COMPILE}g++ -std=c++11 ${SYSROOT_FLAGS}
+LD=${CROSS_COMPILE}g++ ${SYSROOT_FLAGS}
 
 
 BUILD_DIR?=$(shell pwd)/build
 INSTALL_DIR?=$(shell pwd)/install
 MAKEBUILD?=$(shell pwd)/makefile.build
 
-export CC CXX CFLAGS  LD LDFLAGS CXXFLAGS COMMON_CFLAGS
+export CC CXX CFLAGS LD LDFLAGS CXXFLAGS COMMON_CFLAGS
 
 INC_DIR+=-I$(shell pwd)/include 
 INC_DIR+=-I$(shell pwd)/../include 
@@ -15,12 +15,12 @@ INC_DIR+=-I$(shell pwd)/../core/include
 INC_DIR+=-I$(shell pwd)/../operator/include 
 INC_DIR+=-I$(shell pwd)/../executor/include 
 
-MODULE_DIR=rk3399 hikey960 plugin 
+MODULE_DIR=rk3399 hikey960 apq8096 plugin 
 MODULE_NAME=libdriver.so
 
 CXXFLAGS+=
 
-COMMON_CFLAGS+= -Wall -g -fPIC  $(INC_DIR) 
+COMMON_CFLAGS+= -Wall -g -fPIC  $(INC_DIR)
 ifeq ($(CONFIG_CAFFE_REF),y)
     COMMON_CFLAGS+= -DCONFIG_CAFFE_REF=1
 endif

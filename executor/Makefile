@@ -1,6 +1,6 @@
-CC=gcc  -std=gnu99
-CXX=g++ -std=c++11
-LD=g++
+CC=${CROSS_COMPILE}gcc  -std=gnu99 ${SYSROOT_FLAGS}
+CXX=${CROSS_COMPILE}g++ -std=c++11 ${SYSROOT_FLAGS}
+LD=${CROSS_COMPILE}g++ ${SYSROOT_FLAGS}
 
 
 BUILD_DIR?=$(shell pwd)/build
@@ -18,7 +18,7 @@ MODULE_NAME=libexecutor.so
 
 CXXFLAGS+=
 
-COMMON_CFLAGS+= -Wall -g -fPIC  $(INC_DIR) 
+COMMON_CFLAGS+= -Wall -g -fPIC  $(INC_DIR)
 ifeq ($(CONFIG_CAFFE_REF),y)
     COMMON_CFLAGS+= -DCONFIG_CAFFE_REF=1
 endif
