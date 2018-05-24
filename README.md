@@ -66,7 +66,7 @@ Caffe Wrapper examples: squeezenet/mobilenet/mtcnn
 MXNet model load examples: squeezenet/mobilenet
 
 
-### version 0.2.0 - 2017/1/24
+### version 0.2.0 - 2018/1/24
 
 Support new operator: Eltwise, PReLU, Slice
 
