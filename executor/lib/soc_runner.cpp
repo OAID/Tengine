@@ -445,10 +445,10 @@ void  RegisterDefaultSoc(void)
 	for(int i=0;i<soc_info.cpu_number;i++)
 	{
 		cpu_info.cpu_id=i;
-		cpu_info.cpu_type="A72";
+		cpu_info.cpu_type="A53";
 		cpu_info.cpu_arch="arm64";
 		cpu_info.l1_size=32*1024;
-		cpu_info.l2_slice=512*1024;
+		cpu_info.l2_slice=256*1024;
 
 		soc_info.cpu_info.push_back(cpu_info);
 		soc_info.cpu_list.push_back(i);
