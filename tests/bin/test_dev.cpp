@@ -90,11 +90,11 @@ void assign_dev_executor(graph_t graph)
             continue;
 
         if(op->GetName()=="ReLu")
-            node->SetAttr("dev_id",std::string("cpu.rk3399.a53.all"));
-        else if(op->GetName()=="Convolution")
-            node->SetAttr("dev_id",std::string("cpu.rk3399.a72.all"));
+            node->SetAttr("dev_id",std::string("cpu.apq8096.c1.all"));
+        if(op->GetName()=="Convolution")
+            node->SetAttr("dev_id",std::string("cpu.apq8096.c0.all"));
         else
-            node->SetAttr("dev_id",std::string("cpu.rk3399.cpu.all"));
+            node->SetAttr("dev_id",std::string("cpu.apq8096.kyro.all"));
     }
     
 }
