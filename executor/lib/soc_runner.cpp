@@ -456,11 +456,11 @@ void  RegisterDefaultSoc(void)
 
 	RegisterPredefinedSoc(soc_info.soc_name,soc_info);
 
-  soc_info.cpu_number=4;
+	soc_info.cpu_number=4;
 	soc_info.soc_name="APQ8096";
 	soc_info.master_cpu=0;
 
-  for(int i=0;i<soc_info.cpu_number;i++)
+	for(int i=0;i<soc_info.cpu_number;i++)
 	{
 		cpu_info.cpu_id=i;
 		cpu_info.cpu_type="A72";
@@ -472,7 +472,7 @@ void  RegisterDefaultSoc(void)
 		soc_info.cpu_list.push_back(i);
 	}
 
-  RegisterPredefinedSoc(soc_info.soc_name,soc_info);
+	RegisterPredefinedSoc(soc_info.soc_name,soc_info);
 
 	soc_info.cpu_number=8;
 	soc_info.soc_name="HIKEY960";
