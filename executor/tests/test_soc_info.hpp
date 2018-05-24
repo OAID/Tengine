@@ -38,9 +38,9 @@ SocInfo *  TestGetSocInfo(void)
 
          inited=true;
 
-	soc_info.cpu_number=6;
+	soc_info.cpu_number=8;
 	soc_info.master_cpu=4;
-	soc_info.soc_name="RK3399";
+	soc_info.soc_name="HIKEY960";
 
 	CPUInfo cpu_info;
 
@@ -56,10 +56,10 @@ SocInfo *  TestGetSocInfo(void)
                 soc_info.cpu_list.push_back(i);
 	}
 
-	for(int i=4;i<6;i++)
+	for(int i=4;i<8;i++)
 	{
 		cpu_info.cpu_id=i;
-		cpu_info.cpu_type="A72";
+		cpu_info.cpu_type="A73";
 		cpu_info.cpu_arch="arm64";
 		cpu_info.l1_size=32*1024;
 		cpu_info.l2_slice=512*1024;

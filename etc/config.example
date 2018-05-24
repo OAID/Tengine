@@ -32,4 +32,5 @@ device.default= cpu.rk3399.a72.all
 #device.default= cpu.rk3399.a53.2
 #device.default= cpu.rk3399.cpu.all
 
-
+#driver.probe.0=APQ8096
+#device.default= cpu.apq8096.kryo.all

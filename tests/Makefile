@@ -1,5 +1,5 @@
-CXX=g++ -std=c++11
-LD=g++
+CXX=${CROSS_COMPILE}g++ -std=c++11 ${SYSROOT_FLAGS}
+LD=${CROSS_COMPILE}g++ ${SYSROOT_FLAGS}
 
 
 BUILD_DIR?=$(shell pwd)/build
@@ -83,11 +83,7 @@ OPENCV_LIB=$(shell pkg-config --libs opencv)
 
 LIBS+=-lprotobuf -ldl -lpthread -rdynamic
 SO_LIBS+=-L ../build/operator -L ../build/serializer -L ../build/executor -L ../build/driver
-SO_LIBS+=-Wl,-rpath,./build/operator:./build/serializer:./build/executor:./build/driver
+SO_LIBS+=-Wl,-rpath,./build/operator:./build/serializer:./build/executor:./build/driver${SYSROOT_RPATH}
 SO_LIBS+=-ldriver -lexecutor -lserializer -loperator
 SO_LIBS+=$(OPENCV_LIB)
-
-
-
-
 

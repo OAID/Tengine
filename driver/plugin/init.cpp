@@ -29,6 +29,8 @@
 #include "rk3399_executor.hpp"
 #include "hikey960_driver.hpp"
 #include "hikey960_executor.hpp"
+#include "apq8096_driver.hpp"
+#include "apq8096_executor.hpp"
 
 extern "C" {
     int tengine_plugin_init(void);
@@ -41,8 +43,10 @@ int tengine_plugin_init(void)
 
     RK3399Driver * rk3399=new RK3399Driver();
     HIKEY960Driver * hikey960=new HIKEY960Driver();
+    APQ8096Driver * apq8096=new APQ8096Driver();
     DriverManager::RegisterDriver(rk3399->GetName(),rk3399);
     DriverManager::RegisterDriver(hikey960->GetName(),hikey960);
+    DriverManager::RegisterDriver(apq8096->GetName(),apq8096);
 
     //Executor Factory registration
     auto dev_executor_factory=DevExecutorFactory::GetFactory();
@@ -62,7 +66,15 @@ int tengine_plugin_init(void)
          dev_executor_factory->
                 RegisterInterface<HIKEY960Executor,const dev_id_t&>(hikey960->GetDevIDbyIdx(i));
     }
-   
+
+    //for each dev_id in driver apq8096, regiser one executor 
+    n=apq8096->GetDevIDTableSize();
+    
+    for(int i=0;i<n;i++) {
+         dev_executor_factory->
+                RegisterInterface<APQ8096Executor,const dev_id_t&>(apq8096->GetDevIDbyIdx(i));
+    }
+    
     std::cout<<"DEV ENGINE PLUGIN INITED\n";
 
     return 0;
