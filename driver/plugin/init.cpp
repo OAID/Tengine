@@ -73,7 +73,8 @@ int tengine_plugin_init(void)
     for(int i=0;i<n;i++) {
          dev_executor_factory->
                 RegisterInterface<APQ8096Executor,const dev_id_t&>(apq8096->GetDevIDbyIdx(i));
-
+    }
+    
     std::cout<<"DEV ENGINE PLUGIN INITED\n";
 
     return 0;
