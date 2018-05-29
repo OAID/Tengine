@@ -9,3 +9,4 @@ build/
 makefile.config
 etc/config
 sysroot/debian-buster
+install

@@ -4,7 +4,7 @@ bootstrap=Debian
 aptsources=Debian
 
 [Debian]
-packages=libopencv-dev libprotobuf-dev libblas3 liblapack3
+packages=libopencv-dev libprotobuf-dev libblas3 liblapack3 libboost-thread-dev libgoogle-glog-dev
 source=http://ftp.debian.org/debian
 keyring=debian-archive-keyring
 suite=buster
