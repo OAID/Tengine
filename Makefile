@@ -1,3 +1,7 @@
+TOP_DIR=$(shell pwd)
+
+export TOP_DIR
+
 include makefile.config
 
 ifdef SYSROOT
@@ -14,9 +18,8 @@ MAKEBUILD=$(shell pwd)/scripts/makefile.build
 
 BUILD_DIR=$(shell pwd)/build
 INSTALL_DIR=$(shell pwd)/install
-TOP_DIR=$(shell pwd)
 
-export INSTALL_DIR MAKEBUILD TOP_DIR
+export INSTALL_DIR MAKEBUILD
 
 LIB_SUB_DIRS=core serializer operator executor wrapper
 LIB_SUB_DIRS+=driver
