@@ -2,16 +2,18 @@
 
 This document explains how to add a new operator into Tengine. 
 - You should first add your **operator schema** in [operator](../operator) 
-- then add your **operator implementation for execution** in [executor](../executor).
+- then add your **operator implementation for execution** in [executor](../executor/operator).
+    * executor/operator/arm64 (use AArch64 Instruction Set)
+    * executor/operator/common (pure C++/ use openblas)
 
 
 ## Operator Schema
 The operator schema will provide those information:
-- Operator name: the name represents the operation will be taken on the input tensors.
-- Input/Output tensor description: the place holder name, the data type, data layout(optional).
-- Operator parameter definition and the default values, if any.
-- Document to describe what the operator will do and requirements on input/output.
-- InferShape to calculate the shape of output tensors according the shape of input tensors.
+- `Operator name`: the name represents the operation will be taken on the input tensors.
+- `Input/Output tensor` description: the place holder name, the data type, data layout(optional).
+-` Operator parameter` definition and the default values, if any.
+- `Document` to describe what the operator will do and requirements on input/output.
+- `InferShape` to calculate the shape of output tensors according the shape of input tensors.
 
 
 ### 1. Operator with no Parameter
@@ -47,7 +49,7 @@ public:
 Please refer to: [operator/include/operator/relu.hpp](../operator/include/operator/relu.hpp) and [operator/operator/relu.cpp](../operator/operator/relu.cpp) for more information.
 
 ### 2. Operator with Parameter
-First, a separate parameter definition file should be created. In order to faciliate the parameter parsing, it is suggested to define the parameter structure following the example below:
+First, a separate parameter definition file should be created. In order to facilitate the parameter parsing, it is suggested to define the parameter structure following the example below:
 ```c++
 struct ConvParam {
 
@@ -180,8 +182,8 @@ in plugin initial file to register Scale operator.
 
 ### **Step4: add implementation in executor**
 
-* [executor/operator/arm/scale.cpp](../executor/operator/arm/scale.cpp)
-* [executor/operator/arm/Makefile](../executor/operator/arm/Makefile)
+* [executor/operator/common/scale.cpp](../executor/operator/common/scale.cpp)
+* [executor/operator/common/Makefile](../executor/operator/common/Makefile)
 
 The implementation is usually under the `Run` function and then `RegisterScaleNodeExec`:
 ```c++
@@ -201,7 +203,7 @@ void RegisterScaleNodeExec(void)
 {
     ScaleOps * ops=new ScaleOps();
 
-    NodeOpsRegistryManager::RegisterOPImplementor("arm64",
+    NodeOpsRegistryManager::RegisterOPImplementor("common",
                 "Scale",ops);
 }
 ```
@@ -212,7 +214,8 @@ remember to add `obj-y+=scale.o` in Makefile
 
 Add 
 ```c++
-  RegisterScaleNodeExec();
+    extern void RegisterScale_NodeExec(void);
+    RegisterScale_NodeExec();
 ```
 in plugin initial file.
 
@@ -220,3 +223,30 @@ in plugin initial file.
 If you want to test your operator implementation, you can add test file. Remember to add `test_scale.o` in Makefile.
 * [executor/tests/test_scale.cpp](../executor/tests/test_scale.cpp)
 * [executor/tests/Makefile](../executor/tests/Makefile)
+
+
+## Dynamic shape for Operator
+Tengine also support dynamic shape for operator. Examples are `RPN` (in faster_rcnn) and `detection_output`(in SSD). The following will explain how to implement this method.
+
+1. you should tell the network from which operator, the shape will be computed dynamically. You should add 
+    ```
+        SetOperatorDynamicShape(op);
+    ```
+    in your loadcaffe function, for example, in `LoadCaffeDetectionOutput()` and `LoadCaffeRPN()` in [serializer/caffe/caffe_serializer.cpp](../serializer/caffe/caffe_serializer.cpp) .
+
+2. add DynamicProcess and do infer-shape in Run function, ref see [executor/operator/common/rpn.cpp](../executor/operator/common/rpn.cpp)
+ ```
+    bool Run(Node *node)
+    {
+
+
+        // compute num_box
+
+        Tensor *output_tensor = node->GetOutputTensor(0);
+        TShape &out_shape = output_tensor->GetShape();
+        std::vector<int> outdim={1,num_box,4,1};
+        out_shape.SetDim(outdim);
+
+        // allocate out_mem
+    }
+```

@@ -27,6 +27,26 @@
 
 namespace TEngine {
 
+/*
+
+The TensorFlow Convolution example gives an overview about the difference between SAME and VALID :
+
+For the SAME padding, the output height and width are computed as:
+
+out_height = ceil(float(in_height) / float(strides[1]))
+
+out_width = ceil(float(in_width) / float(strides[2]))
+
+And
+
+For the VALID padding, the output height and width are computed as:
+
+out_height = ceil(float(in_height - filter_height + 1) / float(strides1))
+
+out_width = ceil(float(in_width - filter_width + 1) / float(strides[2]))
+
+*/
+
 
 bool Convolution::InferShape(const std::vector<TShape>& ishape, 
                              std::vector<TShape>& oshape)
@@ -61,9 +81,68 @@ bool Convolution::InferShape(const std::vector<TShape>& ishape,
             return false;
         }
 
-        int output_h=(input_h-param_.kernel_h+2*param_.pad_h)/param_.stride_h+1;
-        int output_w=(input_w-param_.kernel_w+2*param_.pad_w)/param_.stride_w+1;
-       
+
+        if(param_.pads.size()==0)
+        {
+           //not onnx format
+           param_.pads.resize(4);
+
+           if(param_.pad_h>=0)
+           {
+               param_.pads[0]=param_.pad_h;
+               param_.pads[2]=param_.pad_h;
+           }
+           else
+           {
+               int n=(input_h-1)/param_.stride_h+1;
+               int total_len=(n-1)*param_.stride_h+param_.kernel_h;
+               int pad_num=total_len-input_h;
+
+               if(param_.pad_h==-1) //TF or SAME_UPPER in ONNX
+               {
+                   param_.pads[0]=pad_num/2;
+                   param_.pads[2]=pad_num-pad_num/2;
+               }
+               else
+               {
+                   //SAME_LOWER in ONNX
+                   param_.pads[0]=pad_num-pad_num/2;
+                   param_.pads[2]=pad_num/2;
+               }
+           }
+
+           if(param_.pad_w>=0)
+           {
+               param_.pads[1]=param_.pad_w;
+               param_.pads[3]=param_.pad_w;
+           }
+           else 
+           {
+               int n=(input_w-1)/param_.stride_w+1;
+               int total_len=(n-1)*param_.stride_w+param_.kernel_w;
+               int pad_num=total_len-input_w;
+
+               if(param_.pad_w==-1) //TF or SAME_UPPER in ONNX
+               {
+                   param_.pads[1]=pad_num/2;
+                   param_.pads[3]=pad_num-pad_num/2;
+               }
+               else
+               {
+                   //SAME_LOWER in ONNX
+                   param_.pads[1]=pad_num-pad_num/2;
+                   param_.pads[3]=pad_num/2;
+               }
+           }
+
+        }
+
+        int dilation_h=param_.dilation_h;
+        int dilation_w=param_.dilation_w;
+
+        int output_h=(input_h-dilation_h *(param_.kernel_h-1)-1+param_.pads[0]+param_.pads[2])/param_.stride_h+1;
+        int output_w=(input_w-dilation_w*(param_.kernel_w-1)-1+param_.pads[1]+param_.pads[3])/param_.stride_w+1;
+
         std::vector<int> dim={input_n,output_c,output_h,output_w};
         TShape result;
 
@@ -82,7 +161,13 @@ float Convolution::GetFops(const std::vector<TShape>& inputs, const std::vector<
       int per_input_c=input_dims[1]/param_.group;
 
 
-     float ops=per_input_c*param_.kernel_h*param_.kernel_w*outputs[0].GetSize()*2;
+     float ops=1.0f*per_input_c*param_.kernel_h*param_.kernel_w*outputs[0].GetSize()*2;
+
+     if(ops<0)
+     {
+          std::cout<<"input_c: "<<per_input_c<<" kernel_h: "<<param_.kernel_h<<" kernel_w: "<<param_.kernel_w;
+          std::cout<<"output: "<<outputs[0].GetSize()<<"\n";
+     }
 
      return ops;
 }

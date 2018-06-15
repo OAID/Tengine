@@ -79,7 +79,7 @@ public:
               return RealListClassAttr();
         }
 
-	bool ExistAttr(const std::string& name) const
+	bool ExistAttr(const std::string& name) const override
 	{
 		if(dict_map_.count(name))
 			return true;
@@ -114,7 +114,7 @@ public:
 		return dict_map_[name];
 	}
 
-	std::vector<std::string> ListAttr(void) const
+	std::vector<std::string> ListAttr(void) const override
 	{
 		std::unordered_map<std::string, any>::const_iterator begin;
 		std::vector<std::string>  result;
@@ -152,7 +152,7 @@ private:
 
 
 #define REGISTER_CLASS_ATTR_OPS(parent) \
-        bool RealExistClassAttr(const std::string& name) const\
+        bool RealExistClassAttr(const std::string& name) const \
         {\
                 if(ClassAttr()->ExistAttr(name))\
                          return true;\
@@ -162,7 +162,7 @@ private:
 						\
                 return false;\
         }\
-        any& RealGetClassAttr(const std::string& name) \
+        any& RealGetClassAttr(const std::string& name)  \
         {\
                 if(ClassAttr()->ExistAttr(name))\
                      return ClassAttr()->GetAttr(name);\
@@ -170,7 +170,7 @@ private:
                 return parent::RealGetClassAttr(name);\
         }\
 							\
-        const any& RealGetClassAttr(const std::string& name) const\
+        const any& RealGetClassAttr(const std::string& name) const \
         {\
                 if(ClassAttr()->ExistAttr(name))\
                      return ClassAttr()->GetAttr(name);\
@@ -205,11 +205,11 @@ private:
             static Attribute class_attr;\
             return &class_attr;\
         }\
-        virtual bool ExistClassAttr(const std::string& name)\
+        virtual bool ExistClassAttr(const std::string& name) \
         { return RealExistClassAttr(name);}\
         virtual any& GetClassAttr(const std::string& name)\
         { return RealGetClassAttr(name);}\
-        virtual std::vector<std::string> ListClassAttr(void)\
+        virtual std::vector<std::string> ListClassAttr(void) \
         {  return RealListClassAttr(); }
          
         

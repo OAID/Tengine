@@ -56,8 +56,8 @@ bool GenericDevExecutor::GetQueueReference(GenericDevExecutor::QueueType queue_t
 
 void GenericDevExecutor::InsertQueue(GenericDevExecutor::QueueType queue_type, SubgraphTask * task)
 {
-      std::mutex * p_mutex;
-      task_queue_t * p_queue;
+      std::mutex * p_mutex=nullptr;
+      task_queue_t * p_queue=nullptr;
 
       if(!GetQueueReference(queue_type,p_mutex,p_queue))
 	  	return;
@@ -83,8 +83,8 @@ void GenericDevExecutor::InsertQueue(GenericDevExecutor::QueueType queue_type, S
 }
 bool GenericDevExecutor::RemoveQueue(QueueType queue_type, SubgraphTask * task)
 {
-      std::mutex * p_mutex;
-      task_queue_t * p_queue;
+      std::mutex * p_mutex=nullptr;
+      task_queue_t * p_queue=nullptr;
 
       if(!GetQueueReference(queue_type,p_mutex,p_queue))
 	  	return false;
@@ -112,8 +112,8 @@ bool GenericDevExecutor::RemoveQueue(QueueType queue_type, SubgraphTask * task)
 }
 SubgraphTask * GenericDevExecutor::PopQueue(QueueType queue_type)
 {
-      std::mutex * p_mutex;
-      task_queue_t * p_queue;
+      std::mutex * p_mutex=nullptr;
+      task_queue_t * p_queue=nullptr;
 
       if(!GetQueueReference(queue_type,p_mutex,p_queue))
 	  	return nullptr;
@@ -201,18 +201,52 @@ int  GenericDevExecutor::GetWaitTaskNum(void)
 	
 }
 
+bool GenericDevExecutor::OptimizeGraph(SubgraphTask * task)
+{
+     if(task->graph_optimized)
+           return true;
+
+     if(task->graph_handle==nullptr)
+         task->graph_handle=DevCreateGraphHandle(task->sub_graph);
+
+     if(task->graph_handle==nullptr)
+         return false;
+
+     task->graph_optimized=DevOptimizeGraph(task->graph_handle);
+
+     return task->graph_optimized;
+}
+
+Subgraph * GenericDevExecutor::GetOptimizedGraph(SubgraphTask * task)
+{
+    if(!task->graph_optimized)
+         return nullptr;
+
+    return DevGetOptimizedGraph(task->graph_handle);
+}
+
 bool GenericDevExecutor::PrerunTask(SubgraphTask * task)
 {
 
        if(DevGetStatus()!=kDevNormal)
 	   	return false;
-	   
-       task->graph_handle=DevCreateGraphHandle(task->sub_graph);
-	if(task->graph_handle==nullptr)
-	      return false;
-	  
-       if(!DevOptimzeGraph(task->graph_handle) ||
-	     !DevPrerun(task->graph_handle))
+	 
+       if(task->graph_handle==nullptr)  
+            task->graph_handle=DevCreateGraphHandle(task->sub_graph);
+
+       if(task->graph_handle==nullptr || !OptimizeGraph(task))
+           return false;
+
+       unsigned int mem_size;
+
+       if(DevGetMemorySize(task->graph_handle,mem_size))
+       {
+          void * mem_addr=std::malloc(mem_size);
+
+           DevSetMemory(task->graph_handle,mem_addr);
+       } 
+
+       if(!DevPrerun(task->graph_handle))
 	     return false;
 
        task->SetStatus(EXEC_STATUS_WAIT);
@@ -250,15 +284,22 @@ bool GenericDevExecutor::SyncRunTask(SubgraphTask * task)
 
 bool GenericDevExecutor::RunTask(SubgraphTask * task)
 {
-         //return true: accepted running
-         //return false: try again
+       //return true: accepted running
+       //return false: try again
 
-        task->Lock();
+       if(DevGetStatus()!=kDevNormal)
+       {
+	    task->SetStatus(EXEC_STATUS_READY);
+	    InsertQueue(task);
+            return false;
+       }
 
-         bool ret=false;
+       if(SupportNonblockRun())
+       {
 
-	 if(DevGetStatus()==kDevNormal)
-	   	ret=DevRun(task->graph_handle);
+         task->Lock(); //protect with OnSubgraphDone()
+
+         bool ret=DevRun(task->graph_handle);
 
          if(ret)
 	       task->SetStatus(EXEC_STATUS_RUN);
@@ -269,7 +310,25 @@ bool GenericDevExecutor::RunTask(SubgraphTask * task)
 
         task->Unlock();
 		  
-	return true;
+	return ret;
+      }
+      else
+      {
+         task->Lock();  //protect with Postrun() 
+
+         bool ret=DevSyncRun(task->graph_handle);
+         
+         task->SetStatus(EXEC_STATUS_WAIT);
+
+         InsertQueue(kWaitQueue,task);
+
+         task->OnTaskDone(ret);
+
+         task->Unlock();
+
+         return ret;
+
+      }
 }
 
 
@@ -278,6 +337,8 @@ bool GenericDevExecutor::PostrunTask(SubgraphTask * task)
 {
         if(task->graph_handle==nullptr)
 			return false;
+
+        task->Lock();
 	
 	DevPostrun(task->graph_handle);	
 	DevReleaseGraphHandle(task->graph_handle);
@@ -285,6 +346,8 @@ bool GenericDevExecutor::PostrunTask(SubgraphTask * task)
 	task->graph_handle=nullptr;
 
 	RemoveQueue(task);
+
+        task->Unlock();
 
         return true;
 }
@@ -327,6 +390,8 @@ void  GenericDevExecutor::OnSubgraphDone(Subgraph * sub_graph, bool exec_success
 	   
           task->OnTaskDone(exec_success);
 }
+
+
 
 } //namespace TEngine
 

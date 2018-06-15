@@ -40,7 +40,7 @@ public:
      FullyConnected(const FullyConnected&)=default;
      virtual ~FullyConnected(){};
 
-     bool InferShape(const std::vector<TEngine::TShape>&, std::vector<TEngine::TShape>&);
+     bool InferShape(const std::vector<TEngine::TShape>&, std::vector<TEngine::TShape>&) override;
      float GetFops(const std::vector<TShape>& inputs, const std::vector<TShape>& outputs) override;
 
      void SetSchema(void) override;

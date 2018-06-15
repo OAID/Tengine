@@ -25,6 +25,7 @@
 #include <iostream>
 #include <functional>
 #include <unordered_map>
+#include "compiler.hpp"
 
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
@@ -46,17 +47,29 @@
 #include "operator/eltwise_param.hpp"
 #include "operator/slice_param.hpp"
 #include "operator/normalize_param.hpp"
+#include "operator/permute_param.hpp"
+#include "operator/flatten_param.hpp"
+#include "operator/priorbox_param.hpp"
+#include "operator/reshape_param.hpp"
+#include "operator/detection_output_param.hpp"
+#include "operator/rpn_param.hpp"
+#include "operator/roi_pooling_param.hpp"
+#include "operator/relu_param.hpp"
+#include "operator/reorg_param.hpp"
+#include "operator/region_param.hpp"
+#include "operator/deconv_param.hpp"
+#include "operator/resize_param.hpp"
 
 
 namespace TEngine {
 
-using op_load_t=std::function<bool(StaticGraph *, StaticNode * ,const caffe::LayerParameter&)>;
-using blob_load_t=std::function<bool(StaticGraph *, StaticNode * , const caffe::LayerParameter&)>;
+using op_load_t=std::function<bool(StaticGraph *, StaticNode * ,const te_caffe::LayerParameter&)>;
+using blob_load_t=std::function<bool(StaticGraph *, StaticNode * , const te_caffe::LayerParameter&)>;
 
 std::unordered_map<std::string,blob_load_t> blob_load_map;
 
 // Check if NetParameter uses old style V0LayerParameter
-static bool NetNeedsV0ToV1Upgrade(const caffe::NetParameter& caffe_net)
+static bool NetNeedsV0ToV1Upgrade(const te_caffe::NetParameter& caffe_net)
 {
     for(int i = 0; i < caffe_net.layers_size(); ++i)
     {
@@ -67,43 +80,43 @@ static bool NetNeedsV0ToV1Upgrade(const caffe::NetParameter& caffe_net)
 }
 
 // Check if NetParameter uses old style V1LayerParameter
-static bool NetNeedsV1ToV2Upgrade(const caffe::NetParameter& caffe_net)
+static bool NetNeedsV1ToV2Upgrade(const te_caffe::NetParameter& caffe_net)
 {
     return (caffe_net.layers_size() > 0);
 }
 
 // Check if NetParameter uses old style input fields
-static bool NetNeedsInputUpgrade(const caffe::NetParameter& caffe_net)
+static bool NetNeedsInputUpgrade(const te_caffe::NetParameter& caffe_net)
 {
     return (caffe_net.input_size() > 0);
 }
 
 // Check if NetParameter uses old style data transformation fields
-static bool NetNeedsDataUpgrade(const caffe::NetParameter& caffe_net)
+static bool NetNeedsDataUpgrade(const te_caffe::NetParameter& caffe_net)
 {
     for(int i = 0; i < caffe_net.layers_size(); ++i)
     {
-        if(caffe_net.layers(i).type() == caffe::V1LayerParameter_LayerType_DATA)
+        if(caffe_net.layers(i).type() == te_caffe::V1LayerParameter_LayerType_DATA)
         {
-            caffe::DataParameter layer_param = caffe_net.layers(i).data_param();
+            te_caffe::DataParameter layer_param = caffe_net.layers(i).data_param();
             if(layer_param.has_scale()     ||
                layer_param.has_mean_file() ||
                layer_param.has_crop_size() ||
                layer_param.has_mirror())
                 return true;
         }
-        if(caffe_net.layers(i).type() == caffe::V1LayerParameter_LayerType_IMAGE_DATA)
+        if(caffe_net.layers(i).type() == te_caffe::V1LayerParameter_LayerType_IMAGE_DATA)
         {
-            caffe::ImageDataParameter layer_param = caffe_net.layers(i).image_data_param();
+            te_caffe::ImageDataParameter layer_param = caffe_net.layers(i).image_data_param();
             if(layer_param.has_scale()     ||
                layer_param.has_mean_file() ||
                layer_param.has_crop_size() ||
                layer_param.has_mirror())
                 return true;
         }
-        if(caffe_net.layers(i).type() == caffe::V1LayerParameter_LayerType_WINDOW_DATA)
+        if(caffe_net.layers(i).type() == te_caffe::V1LayerParameter_LayerType_WINDOW_DATA)
         {
-            caffe::WindowDataParameter layer_param = caffe_net.layers(i).window_data_param();
+            te_caffe::WindowDataParameter layer_param = caffe_net.layers(i).window_data_param();
             if(layer_param.has_scale()     ||
                layer_param.has_mean_file() ||
                layer_param.has_crop_size() ||
@@ -114,7 +127,7 @@ static bool NetNeedsDataUpgrade(const caffe::NetParameter& caffe_net)
     return false;
 }
 
-static bool NetNeedsUpgrade(const char * fname, const caffe::NetParameter& caffe_net)
+static bool NetNeedsUpgrade(const char * fname, const te_caffe::NetParameter& caffe_net)
 {
     if(NetNeedsV0ToV1Upgrade(caffe_net) ||
        NetNeedsV1ToV2Upgrade(caffe_net) ||
@@ -123,13 +136,13 @@ static bool NetNeedsUpgrade(const char * fname, const caffe::NetParameter& caffe
     {
         LOG_ERROR() << "The input file specified is using deprecated params: "
                     << fname << "\n";
-        LOG_ERROR() << "Please upgrade the input file by using caffe tools(upgrade_net_proto_binary/upgrade_net_proto_binary).\n";
+        LOG_ERROR() << "Please upgrade the input file by using caffe tools(upgrade_net_proto_text/upgrade_net_proto_binary).\n";
         return true;
     }
     return false;
 }
 
-bool CaffeSingle::LoadBinaryFile(const char * fname, caffe::NetParameter& caffe_net)
+bool CaffeSingle::LoadBinaryFile(const char * fname, te_caffe::NetParameter& caffe_net)
 {
     std::ifstream is(fname, std::ios::in|std::ios::binary);
 
@@ -141,8 +154,8 @@ bool CaffeSingle::LoadBinaryFile(const char * fname, caffe::NetParameter& caffe_
 
     google::protobuf::io::IstreamInputStream input_stream(&is);
     google::protobuf::io::CodedInputStream coded_input(&input_stream);
-
-    coded_input.SetTotalBytesLimit(512<<20, 256<<20);
+    // SetTotalBytesLimit(max_limit, warning_threshold)
+    coded_input.SetTotalBytesLimit(1024<<20, 512<<20);
 
     bool ret=caffe_net.ParseFromCodedStream(&coded_input);
 
@@ -157,7 +170,7 @@ bool CaffeSingle::LoadBinaryFile(const char * fname, caffe::NetParameter& caffe_
     return ret;
 }
 
-bool CaffeSingle::LoadTextFile(const char * fname, caffe::NetParameter& caffe_net)
+bool CaffeSingle::LoadTextFile(const char * fname, te_caffe::NetParameter& caffe_net)
 {
     std::ifstream is(fname, std::ios::in);
 
@@ -183,7 +196,7 @@ bool CaffeSingle::LoadTextFile(const char * fname, caffe::NetParameter& caffe_ne
 
 bool CaffeSingle::LoadModel(const std::vector<std::string>& file_list, StaticGraph * graph)
 {
-    caffe::NetParameter caffe_net;
+    te_caffe::NetParameter caffe_net;
 
     if(file_list.size()!=GetFileNum())
           return false;
@@ -200,7 +213,7 @@ bool CaffeSingle::LoadModel(const std::vector<std::string>& file_list, StaticGra
 
 }
 
-bool CaffeSingle::LoadNode(StaticGraph * graph, StaticNode * node,const caffe::LayerParameter& layer_param, name_map_t& tensor_name_map)
+bool CaffeSingle::LoadNode(StaticGraph * graph, StaticNode * node,const te_caffe::LayerParameter& layer_param, name_map_t& tensor_name_map)
 {
      for(int i=0;i<layer_param.bottom_size();i++)
      {
@@ -240,7 +253,7 @@ bool CaffeSingle::LoadNode(StaticGraph * graph, StaticNode * node,const caffe::L
 }
 
 
-bool CaffeSingle::LoadGraph(caffe::NetParameter& caffe_net, StaticGraph * graph)
+bool CaffeSingle::LoadGraph(te_caffe::NetParameter& caffe_net, StaticGraph * graph)
 {
      SetGraphIdentity(graph, "caffe",caffe_net.name(),"0");
 
@@ -251,7 +264,7 @@ bool CaffeSingle::LoadGraph(caffe::NetParameter& caffe_net, StaticGraph * graph)
 
      for(i=0;i<layer_num;i++)
      {
-          const caffe::LayerParameter& layer_param=caffe_net.layer(i);
+          const te_caffe::LayerParameter& layer_param=caffe_net.layer(i);
           const std::string& caffe_op_name=layer_param.type();
 
           if(!FindOpLoadMethod(caffe_op_name))
@@ -283,7 +296,7 @@ bool CaffeBuddy::LoadModel(const std::vector<std::string>& file_list, StaticGrap
     if(file_list.size()!=GetFileNum())
          return false;
 
-     caffe::NetParameter test_net;
+     te_caffe::NetParameter test_net;
 
      if(!LoadTextFile(file_list[0].c_str(),test_net))
      {
@@ -292,7 +305,7 @@ bool CaffeBuddy::LoadModel(const std::vector<std::string>& file_list, StaticGrap
      }
 
     
-     caffe::NetParameter train_net;
+     te_caffe::NetParameter train_net;
 
      if(!LoadBinaryFile(file_list[1].c_str(), train_net))
             return false;
@@ -305,14 +318,14 @@ bool CaffeBuddy::LoadModel(const std::vector<std::string>& file_list, StaticGrap
  
 }
 
-bool CaffeBuddy::LoadGraph(caffe::NetParameter& test_net, caffe::NetParameter& train_net,StaticGraph * graph)
+bool CaffeBuddy::LoadGraph(te_caffe::NetParameter& test_net, te_caffe::NetParameter& train_net,StaticGraph * graph)
 {
      name_map_t tensor_name_map;
 
      SetGraphIdentity(graph, "caffe",test_net.name(),"0");
 
      /* create the layer name map of the train_net */
-     std::unordered_map<std::string, const caffe::LayerParameter *> train_name_map;
+     std::unordered_map<std::string, const te_caffe::LayerParameter *> train_name_map;
 
      int layer_number;
 
@@ -322,7 +335,7 @@ bool CaffeBuddy::LoadGraph(caffe::NetParameter& test_net, caffe::NetParameter& t
 
      for(i=0;i<layer_number;i++)
      {
-        const caffe::LayerParameter& layer_param=train_net.layer(i);
+        const te_caffe::LayerParameter& layer_param=train_net.layer(i);
 
         train_name_map[layer_param.name()]=&layer_param;
      }
@@ -332,7 +345,7 @@ bool CaffeBuddy::LoadGraph(caffe::NetParameter& test_net, caffe::NetParameter& t
 
      for(n=0;n<layer_number;n++)
      {
-        const caffe::LayerParameter& layer_param=test_net.layer(n);
+        const te_caffe::LayerParameter& layer_param=test_net.layer(n);
         const std::string& caffe_op_name=layer_param.type();
         
         if(!FindOpLoadMethod(caffe_op_name))
@@ -354,7 +367,7 @@ bool CaffeBuddy::LoadGraph(caffe::NetParameter& test_net, caffe::NetParameter& t
          /*Load pre-trained parameters*/
         if(train_name_map.count(layer_param.name()))
         {
-            const caffe::LayerParameter * p_train;
+            const te_caffe::LayerParameter * p_train;
 
             p_train=train_name_map[layer_param.name()];
 
@@ -379,7 +392,7 @@ bool CaffeBuddy::LoadGraph(caffe::NetParameter& test_net, caffe::NetParameter& t
 
 static void LoadCaffeBlob(StaticGraph * graph, StaticNode * node, const std::vector<std::string>& name_list, 
                           const std::vector<std::string>& layout_list,
-                          const caffe::LayerParameter& layer_param)
+                          const te_caffe::LayerParameter& layer_param)
 
 {
     unsigned int blob_num=layer_param.blobs_size();
@@ -395,7 +408,7 @@ static void LoadCaffeBlob(StaticGraph * graph, StaticNode * node, const std::vec
 
        /* load tensor data*/
 
-       const caffe::BlobProto& blob=layer_param.blobs(i);
+       const te_caffe::BlobProto& blob=layer_param.blobs(i);
 
        std::vector<int> dims;
 
@@ -432,7 +445,7 @@ static void LoadCaffeBlob(StaticGraph * graph, StaticNode * node, const std::vec
 
        SetTensorSize(tensor,mem_size);
 
-       float * ptr=(float *)std::malloc(mem_size);
+       float * ptr=(float *)std::malloc(mem_size+128);
 
        for(int i=0;i<blob.data_size();i++)
               ptr[i]=blob.data(i);
@@ -493,10 +506,10 @@ static void CreatePresetNode(StaticGraph * graph, StaticNode * node, const char 
      AddNodeInputTensor(node,tensor);
 }
 
-static bool LoadBatchNormBlob(StaticGraph * graph, StaticNode* node, const caffe::LayerParameter& layer_param)
+static bool LoadBatchNormBlob(StaticGraph * graph, StaticNode* node, const te_caffe::LayerParameter& layer_param)
 {
 
-    const caffe::BlobProto& rescale_blob=layer_param.blobs(2);
+    const te_caffe::BlobProto& rescale_blob=layer_param.blobs(2);
 
     StaticOp * op=GetNodeOp(node);
 
@@ -510,7 +523,7 @@ static bool LoadBatchNormBlob(StaticGraph * graph, StaticNode* node, const caffe
 
     /* get the dim, i.e., channel size */
 
-    const caffe::BlobProto& mean_blob=layer_param.blobs(0);
+    const te_caffe::BlobProto& mean_blob=layer_param.blobs(0);
 
     std::vector<int> dims;
     dims.push_back(mean_blob.shape().dim(0));
@@ -526,7 +539,7 @@ static bool LoadBatchNormBlob(StaticGraph * graph, StaticNode* node, const caffe
     return true;
 }
 
-static bool LoadFullyConnectedBlob(StaticGraph * graph, StaticNode* node, const caffe::LayerParameter& layer_param)
+static bool LoadFullyConnectedBlob(StaticGraph * graph, StaticNode* node, const te_caffe::LayerParameter& layer_param)
 {
     std::vector<std::string> name_list={"weight","bias"};
     std::vector<std::string> layout_list={"HW","W"};
@@ -536,7 +549,7 @@ static bool LoadFullyConnectedBlob(StaticGraph * graph, StaticNode* node, const 
     return true;
 }
 
-static bool LoadScaleBlob(StaticGraph * graph, StaticNode* node, const caffe::LayerParameter& layer_param)
+static bool LoadScaleBlob(StaticGraph * graph, StaticNode* node, const te_caffe::LayerParameter& layer_param)
 {
     std::vector<std::string> name_list={"gamma","beta"};
     std::vector<std::string> layout_list={"CHW","W"};
@@ -545,7 +558,7 @@ static bool LoadScaleBlob(StaticGraph * graph, StaticNode* node, const caffe::La
     
     return true;
 }
-static bool LoadPReLuBlob(StaticGraph * graph, StaticNode* node, const caffe::LayerParameter& layer_param)
+static bool LoadPReLuBlob(StaticGraph * graph, StaticNode* node, const te_caffe::LayerParameter& layer_param)
 {
     std::vector<std::string> name_list={"slope"};
     std::vector<std::string> layout_list={"W"};
@@ -553,7 +566,7 @@ static bool LoadPReLuBlob(StaticGraph * graph, StaticNode* node, const caffe::La
     
     return true;
 }
-static bool LoadNormalizeBlob(StaticGraph * graph, StaticNode* node, const caffe::LayerParameter& layer_param)
+static bool LoadNormalizeBlob(StaticGraph * graph, StaticNode* node, const te_caffe::LayerParameter& layer_param)
 {
     std::vector<std::string> name_list={"scale"};
     std::vector<std::string> layout_list={"W"};
@@ -561,28 +574,36 @@ static bool LoadNormalizeBlob(StaticGraph * graph, StaticNode* node, const caffe
     
     return true;
 }
-static bool LoadConvolutionBlob(StaticGraph * graph, StaticNode* node, const caffe::LayerParameter& layer_param)
+static bool LoadConvolutionBlob(StaticGraph * graph, StaticNode* node, const te_caffe::LayerParameter& layer_param)
 {
-     std::vector<std::string> name_list={"weight","bias"};
+      std::vector<std::string> name_list={"weight","bias"};
      std::vector<std::string> layout_list={"NCHW","W"};
 
      LoadCaffeBlob(graph, node,name_list,layout_list,layer_param);
 
      return true;
 }
+static bool LoadDeconvolutionBlob(StaticGraph * graph, StaticNode* node, const te_caffe::LayerParameter& layer_param)
+{
+    std::vector<std::string> name_list={"weight","bias"};
+     std::vector<std::string> layout_list={"NCHW","C"};
 
-static bool  LoadCaffeInputOp(StaticGraph * graph, StaticNode * node, const caffe::LayerParameter& layer_param)
+     LoadCaffeBlob(graph, node,name_list,layout_list,layer_param);
+
+     return true;
+}
+static bool  LoadCaffeInputOp(StaticGraph * graph, StaticNode * node, const te_caffe::LayerParameter& layer_param)
 {
     StaticOp * op=CreateStaticOp(graph,"InputOp");
 
     SetNodeOp(node,op);
 
-    const caffe::InputParameter& input_param=layer_param.input_param();
+    const te_caffe::InputParameter& input_param=layer_param.input_param();
 
     if(input_param.shape_size())
     {
        std::vector<int> dim;
-       const caffe::BlobShape& blob_shape=input_param.shape(0);
+       const te_caffe::BlobShape& blob_shape=input_param.shape(0);
 
        for(int i=0;i<blob_shape.dim_size();i++)
        {
@@ -599,18 +620,18 @@ static bool  LoadCaffeInputOp(StaticGraph * graph, StaticNode * node, const caff
     return true;     
 }
 
-static bool  LoadCaffeSoftMax(StaticGraph * graph, StaticNode * node, const caffe::LayerParameter& layer_param)
+static bool  LoadCaffeSoftmax(StaticGraph * graph, StaticNode * node, const te_caffe::LayerParameter& layer_param)
 {
-    const caffe::SoftmaxParameter& softmax_param=layer_param.softmax_param();
+    const te_caffe::SoftmaxParameter& softmax_param=layer_param.softmax_param();
 
-    SoftmaxParam param=any_cast<SoftmaxParam>(OpManager::GetOpDefParam("SoftMax"));
+    SoftmaxParam param=any_cast<SoftmaxParam>(OpManager::GetOpDefParam("Softmax"));
 
     if(softmax_param.has_axis())
         param.axis=softmax_param.axis();
     else
         param.axis=1;
 
-    StaticOp * op=CreateStaticOp(graph,"SoftMax");
+    StaticOp * op=CreateStaticOp(graph,"Softmax");
 
     SetOperatorParam(op,param);
 
@@ -618,10 +639,55 @@ static bool  LoadCaffeSoftMax(StaticGraph * graph, StaticNode * node, const caff
 
     return true;
 }
-static bool  LoadCaffeNormalize(StaticGraph * graph, StaticNode * node, const caffe::LayerParameter& layer_param)
+
+static bool  LoadCaffeReorg(StaticGraph * graph, StaticNode * node, const te_caffe::LayerParameter& layer_param)
+{
+    const te_caffe::ReorgParameter& caffe_param=layer_param.reorg_param();
+
+    ReorgParam param=any_cast<ReorgParam>(OpManager::GetOpDefParam("Reorg"));
+
+    param.stride = caffe_param.stride();
+
+    StaticOp * op=CreateStaticOp(graph,"Reorg");
+
+    SetOperatorParam(op,param);
+
+    SetNodeOp(node,op);
+
+    return true;
+}
+static bool  LoadCaffeRegion(StaticGraph * graph, StaticNode * node, const te_caffe::LayerParameter& layer_param)
+{
+    const te_caffe::RegionParameter& caffe_param=layer_param.region_param();
+
+    RegionParam param=any_cast<RegionParam>(OpManager::GetOpDefParam("Region"));
+
+    param.num_classes = caffe_param.num_classes();
+    param.num_box = caffe_param.num_box();
+    param.side = caffe_param.side();
+    param.coords = caffe_param.coords();
+    param.confidence_threshold = caffe_param.confidence_threshold();
+    param.nms_threshold = caffe_param.nms_threshold();
+
+    for (int i = 0; i <(int) caffe_param.biases_size(); ++i)
+    {
+        param.biases.push_back(caffe_param.biases(i)); 
+    }
+
+    StaticOp * op=CreateStaticOp(graph,"Region");
+
+    SetOperatorParam(op,param);
+
+    SetNodeOp(node,op);
+
+    return true;
+}
+
+
+static bool  LoadCaffeNormalize(StaticGraph * graph, StaticNode * node, const te_caffe::LayerParameter& layer_param)
 {
 
-    const caffe::NormalizeParameter& normalize_param=layer_param.norm_param();
+    const te_caffe::NormalizeParameter& normalize_param=layer_param.norm_param();
 
     NormalizeParam param=any_cast<NormalizeParam>(OpManager::GetOpDefParam("Normalize"));
 
@@ -638,9 +704,9 @@ static bool  LoadCaffeNormalize(StaticGraph * graph, StaticNode * node, const ca
     return true;
 }
 
-static bool  LoadCaffeSlice(StaticGraph * graph, StaticNode * node, const caffe::LayerParameter& layer_param)
+static bool  LoadCaffeSlice(StaticGraph * graph, StaticNode * node, const te_caffe::LayerParameter& layer_param)
 {
-    const caffe::SliceParameter& slice_param=layer_param.slice_param();
+    const te_caffe::SliceParameter& slice_param=layer_param.slice_param();
 
     SliceParam param=any_cast<SliceParam>(OpManager::GetOpDefParam("Slice"));
 
@@ -658,16 +724,26 @@ static bool  LoadCaffeSlice(StaticGraph * graph, StaticNode * node, const caffe:
     return true;
 }
 
-static bool  LoadCaffeReLu(StaticGraph * graph, StaticNode * node, const caffe::LayerParameter& layer_param)
+static bool  LoadCaffeReLu(StaticGraph * graph, StaticNode * node, const te_caffe::LayerParameter& layer_param)
 {
+    ReLuParam  param=any_cast<ReLuParam>(OpManager::GetOpDefParam("ReLu"));
+
+    const te_caffe::ReLUParameter& caffe_param=layer_param.relu_param();
+
+    if(caffe_param.has_negative_slope())
+        param.negative_slope=static_cast<float>(caffe_param.negative_slope());
+    else
+        param.negative_slope=0.f;
+
     StaticOp * op=CreateStaticOp(graph,"ReLu");
+    SetOperatorParam(op,param);
 
     SetNodeOp(node,op);
 
     return true;
 }
 
-static bool  LoadCaffeSplit(StaticGraph * graph, StaticNode * node, const caffe::LayerParameter& layer_param)
+static bool  LoadCaffeSplit(StaticGraph * graph, StaticNode * node, const te_caffe::LayerParameter& layer_param)
 {
     
 
@@ -678,11 +754,11 @@ static bool  LoadCaffeSplit(StaticGraph * graph, StaticNode * node, const caffe:
     return true;
 }
 
-static bool  LoadCaffeConcat(StaticGraph * graph, StaticNode * node, const caffe::LayerParameter& layer_param)
+static bool  LoadCaffeConcat(StaticGraph * graph, StaticNode * node, const te_caffe::LayerParameter& layer_param)
 {
     ConcatParam  param=any_cast<ConcatParam>(OpManager::GetOpDefParam("Concat"));
 
-    const caffe::ConcatParameter& concat_param=layer_param.concat_param();
+    const te_caffe::ConcatParameter& concat_param=layer_param.concat_param();
 
     if(concat_param.has_concat_dim())
         param.axis=static_cast<int>(concat_param.concat_dim());
@@ -697,12 +773,226 @@ static bool  LoadCaffeConcat(StaticGraph * graph, StaticNode * node, const caffe
 
     return true;
 }
-
-static EltType ConvertCaffeEltwise(caffe::EltwiseParameter_EltwiseOp method)
+static bool  LoadCaffePermute(StaticGraph * graph, StaticNode * node, const te_caffe::LayerParameter& layer_param)
 {
-      if(method == caffe::EltwiseParameter_EltwiseOp_PROD)
+    PermuteParam  param=any_cast<PermuteParam>(OpManager::GetOpDefParam("Permute"));
+
+    const te_caffe::PermuteParameter& permute_param=layer_param.permute_param();
+
+    param.order0= permute_param.order(0);
+    param.order1= permute_param.order(1);
+    param.order2= permute_param.order(2);
+    param.order3= permute_param.order(3);
+
+    StaticOp * op=CreateStaticOp(graph,"Permute");
+
+    SetOperatorParam(op,param);
+
+    SetNodeOp(node,op);
+
+    return true;
+}
+static bool  LoadCaffeFlatten(StaticGraph * graph, StaticNode * node, const te_caffe::LayerParameter& layer_param)
+{
+    FlattenParam  param=any_cast<FlattenParam>(OpManager::GetOpDefParam("Flatten"));
+
+    const te_caffe::FlattenParameter& flatten_param=layer_param.flatten_param();
+
+    param.axis= flatten_param.axis();
+
+    StaticOp * op=CreateStaticOp(graph,"Flatten");
+
+    SetOperatorParam(op,param);
+
+    SetNodeOp(node,op);
+
+    return true;
+}
+static bool  LoadCaffePriorBox(StaticGraph * graph, StaticNode * node, const te_caffe::LayerParameter& layer_param)
+{
+    PriorBoxParam  param=any_cast<PriorBoxParam>(OpManager::GetOpDefParam("PriorBox"));
+
+    const te_caffe::PriorBoxParameter& caffe_param=layer_param.prior_box_param();
+    // offset
+    param.offset = caffe_param.offset();
+    // img_size
+    if (caffe_param.has_img_h() && caffe_param.has_img_w())
+    {
+        param.img_h = caffe_param.img_h();
+        param.img_w = caffe_param.img_w();
+    }
+    else if (caffe_param.has_img_size())
+    {
+        param.img_h = caffe_param.img_size();
+        param.img_w = caffe_param.img_size();
+    }
+    else
+    {
+        param.img_h = 0;
+        param.img_w = 0;
+    }
+    // step
+    if (caffe_param.has_step_h() && caffe_param.has_step_w())
+    {
+        param.step_h = caffe_param.step_h();
+        param.step_w = caffe_param.step_w();
+    }
+    else if (caffe_param.has_step())
+    {
+        param.step_h = caffe_param.step();
+        param.step_w = caffe_param.step();
+    }
+    else
+    {
+        param.step_h = 0;
+        param.step_w = 0;
+    }
+
+    // min_size, max_size
+    for (int i = 0; i < caffe_param.min_size_size(); ++i) 
+    {
+         param.min_size.push_back(caffe_param.min_size(i));
+    }
+    for (int i = 0; i < caffe_param.max_size_size(); ++i) 
+    {
+         param.max_size.push_back(caffe_param.max_size(i));
+    }
+
+    // variance
+    for (int i = 0; i < caffe_param.variance_size(); ++i) 
+    {
+        param.variance.push_back(caffe_param.variance(i));
+    }
+    // clip
+    param.clip = caffe_param.clip();
+    // flip
+    param.flip = caffe_param.flip();
+    // aspect_ratio
+    for (int i = 0; i < caffe_param.aspect_ratio_size(); ++i) 
+    {
+        param.aspect_ratio.push_back(caffe_param.aspect_ratio(i));
+    }
+
+  
+   
+
+    StaticOp * op=CreateStaticOp(graph,"PriorBox");
+
+    SetOperatorParam(op,param);
+
+    SetNodeOp(node,op);
+
+    return true;
+}
+static bool  LoadCaffeBilinearResize(StaticGraph * graph, StaticNode * node, const te_caffe::LayerParameter& layer_param)
+{
+    ResizeParam  param=any_cast<ResizeParam>(OpManager::GetOpDefParam("BilinearResize"));
+
+    const te_caffe::BilinearResizeParameter& caffe_param=layer_param.bilinear_resize_param();
+    // 
+    param.scale_y  = caffe_param.out_height_scale();
+    param.scale_x  = caffe_param.out_width_scale();
+   
+    StaticOp * op=CreateStaticOp(graph,"BilinearResize");
+
+    SetOperatorParam(op,param);
+
+    SetNodeOp(node,op);
+
+    return true;
+}
+static bool  LoadCaffeROIPooling(StaticGraph * graph, StaticNode * node, const te_caffe::LayerParameter& layer_param)
+{
+    ROIPoolingParam  param=any_cast<ROIPoolingParam>(OpManager::GetOpDefParam("ROIPooling"));
+
+    const te_caffe::ROIPoolingParameter& caffe_param=layer_param.roi_pooling_param();
+    // 
+    param.pooled_h  = caffe_param.pooled_h();
+    param.pooled_w  = caffe_param.pooled_w();
+    param.spatial_scale  = caffe_param.spatial_scale();
+   
+    StaticOp * op=CreateStaticOp(graph,"ROIPooling");
+
+    SetOperatorParam(op,param);
+
+    SetNodeOp(node,op);
+
+    return true;
+}
+static bool  LoadCaffeRPN(StaticGraph * graph, StaticNode * node, const te_caffe::LayerParameter& layer_param)
+{
+    RPNParam  param=any_cast<RPNParam>(OpManager::GetOpDefParam("RPN"));
+
+    const te_caffe::RPNParameter& caffe_param=layer_param.rpn_param();
+    // 
+    param.feat_stride  = caffe_param.feat_stride();
+    param.basesize  = caffe_param.basesize();
+    param.min_size  = caffe_param.boxminsize();
+    param.per_nms_topn  = caffe_param.per_nms_topn();
+    param.post_nms_topn  = caffe_param.post_nms_topn();
+    param.nms_thresh  = caffe_param.nms_thresh();
+
+    for (int i = 0; i < caffe_param.scale_size(); ++i) 
+    {
+        param.anchor_scales.push_back(caffe_param.scale(i));
+    }
+    for (int i = 0; i < caffe_param.ratio_size(); ++i) 
+    {
+        param.ratios.push_back(caffe_param.ratio(i));
+    }
+   
+    StaticOp * op=CreateStaticOp(graph,"RPN");
+
+    SetOperatorParam(op,param);
+    SetOperatorDynamicShape(op);
+    SetNodeOp(node,op);
+
+    return true;
+}
+static bool  LoadCaffeDetectionOutput(StaticGraph * graph, StaticNode * node, const te_caffe::LayerParameter& layer_param)
+{
+    DetectionOutputParam  param=any_cast<DetectionOutputParam>(OpManager::GetOpDefParam("DetectionOutput"));
+
+    const te_caffe::DetectionOutputParameter& caffe_param=layer_param.detection_output_param();
+    
+    param.num_classes=caffe_param.num_classes();
+    param.confidence_threshold=caffe_param.confidence_threshold();
+    param.keep_top_k=caffe_param.keep_top_k();
+    param.nms_threshold= caffe_param.nms_param().nms_threshold();
+    if (caffe_param.nms_param().has_top_k())
+    {
+        param.nms_top_k = caffe_param.nms_param().top_k();
+    }
+    StaticOp * op=CreateStaticOp(graph,"DetectionOutput");
+    SetOperatorParam(op,param);
+    SetOperatorDynamicShape(op);
+    SetNodeOp(node,op);
+
+    return true;
+
+}
+static bool  LoadCaffeReshape(StaticGraph * graph, StaticNode * node, const te_caffe::LayerParameter& layer_param)
+{
+    ReshapeParam  param=any_cast<ReshapeParam>(OpManager::GetOpDefParam("Reshape"));
+
+    const te_caffe::ReshapeParameter& caffe_param=layer_param.reshape_param();
+    //dims
+    for (int i = 0; i < caffe_param.shape().dim_size(); ++i) 
+    {
+         param.dims.push_back(caffe_param.shape().dim(i));
+    }
+   
+    StaticOp * op=CreateStaticOp(graph,"Reshape");
+    SetOperatorParam(op,param);
+    SetNodeOp(node,op);
+
+    return true;
+}
+static EltType ConvertCaffeEltwise(te_caffe::EltwiseParameter_EltwiseOp method)
+{
+      if(method == te_caffe::EltwiseParameter_EltwiseOp_PROD)
            return ELT_PROD; 
-      else  if (method == caffe::EltwiseParameter_EltwiseOp_MAX)
+      else  if (method == te_caffe::EltwiseParameter_EltwiseOp_MAX)
           return ELT_MAX;
  
       /* for others, return SUM */
@@ -710,10 +1000,10 @@ static EltType ConvertCaffeEltwise(caffe::EltwiseParameter_EltwiseOp method)
        return ELT_SUM;
 }
 
-static bool LoadCaffeEltwise(StaticGraph * graph, StaticNode * node, const caffe::LayerParameter& layer_param)
+static bool LoadCaffeEltwise(StaticGraph * graph, StaticNode * node, const te_caffe::LayerParameter& layer_param)
 {
     
-    const caffe::EltwiseParameter& eltwise_param=layer_param.eltwise_param();
+    const te_caffe::EltwiseParameter& eltwise_param=layer_param.eltwise_param();
     EltwiseParam  param=any_cast<EltwiseParam>(OpManager::GetOpDefParam("Eltwise"));
     //defalt: SUM
     param.type=ELT_SUM;
@@ -729,7 +1019,7 @@ static bool LoadCaffeEltwise(StaticGraph * graph, StaticNode * node, const caffe
     return true;
 }
 
-static bool  LoadCaffeDropout(StaticGraph * graph, StaticNode * node, const caffe::LayerParameter& layer_param)
+static bool  LoadCaffeDropout(StaticGraph * graph, StaticNode * node, const te_caffe::LayerParameter& layer_param)
 {
     StaticOp * op=CreateStaticOp(graph,"Dropout");
 
@@ -738,7 +1028,7 @@ static bool  LoadCaffeDropout(StaticGraph * graph, StaticNode * node, const caff
     return true;
 }
 
-static bool  LoadCaffeAccuracy(StaticGraph * graph, StaticNode * node, const caffe::LayerParameter& layer_param)
+static bool  LoadCaffeAccuracy(StaticGraph * graph, StaticNode * node, const te_caffe::LayerParameter& layer_param)
 {
     StaticOp * op=CreateStaticOp(graph,"Accuracy");
 
@@ -749,9 +1039,9 @@ static bool  LoadCaffeAccuracy(StaticGraph * graph, StaticNode * node, const caf
     return true;
 }
 
-static bool LoadCaffeConvolution(StaticGraph * graph, StaticNode * node, const caffe::LayerParameter& layer_param)
+static bool LoadCaffeConvolution(StaticGraph * graph, StaticNode * node, const te_caffe::LayerParameter& layer_param)
 {
-     const caffe::ConvolutionParameter& conv_param=layer_param.convolution_param();
+     const te_caffe::ConvolutionParameter& conv_param=layer_param.convolution_param();
 
      ConvParam  param=any_cast<ConvParam>(OpManager::GetOpDefParam("Convolution"));
 
@@ -793,8 +1083,14 @@ static bool LoadCaffeConvolution(StaticGraph * graph, StaticNode * node, const c
      if(conv_param.has_group())
          param.group=conv_param.group();
 
+     if(conv_param.dilation_size())
+     {
+         param.dilation_h=conv_param.dilation(0);
+         param.dilation_w=conv_param.dilation(0);
+     }
 
      StaticOp * op=CreateStaticOp(graph,"Convolution");
+
 
      SetOperatorParam(op,param);
 
@@ -811,11 +1107,43 @@ static bool LoadCaffeConvolution(StaticGraph * graph, StaticNode * node, const c
      return true;
 }
 
-static PoolArg ConvertCaffePool(caffe::PoolingParameter_PoolMethod method)
+static bool LoadCaffeDeconvolution(StaticGraph * graph, StaticNode * node, const te_caffe::LayerParameter& layer_param)
 {
-      if(method == caffe::PoolingParameter_PoolMethod_AVE)
+     const te_caffe::ConvolutionParameter& conv_param=layer_param.convolution_param();
+
+     DeconvParam  param=any_cast<DeconvParam>(OpManager::GetOpDefParam("Deconvolution"));
+
+     param.kernel_size=conv_param.kernel_size(0);
+     param.stride=conv_param.stride(0);
+     param.pad=conv_param.pad(0);
+     param.num_output=conv_param.num_output();
+
+     if(conv_param.dilation_size())
+     {
+         param.dilation=conv_param.dilation(0);
+     }
+
+     StaticOp * op=CreateStaticOp(graph,"Deconvolution");
+
+     SetOperatorParam(op,param);
+
+     SetNodeOp(node,op);
+
+     /* create new Node and tensor for pre-trained weights */
+
+     std::vector<std::string> name_list={"weight","bias"};
+     std::vector<std::string> layout_list={"NCHW","C"};
+
+     LoadCaffeBlob(graph, node,name_list,layout_list,layer_param);
+
+     return true;
+}
+
+static PoolArg ConvertCaffePool(te_caffe::PoolingParameter_PoolMethod method)
+{
+      if(method == te_caffe::PoolingParameter_PoolMethod_AVE)
            return kPoolAvg; 
-      else  if (method == caffe::PoolingParameter_PoolMethod_STOCHASTIC)
+      else  if (method == te_caffe::PoolingParameter_PoolMethod_STOCHASTIC)
           return kPoolRand;
  
       /* for others, return MAX */
@@ -823,10 +1151,10 @@ static PoolArg ConvertCaffePool(caffe::PoolingParameter_PoolMethod method)
        return kPoolMax;
 }
 
-static bool LoadCaffePooling(StaticGraph * graph, StaticNode * node, const caffe::LayerParameter& layer_param)
+static bool LoadCaffePooling(StaticGraph * graph, StaticNode * node, const te_caffe::LayerParameter& layer_param)
 {
    
-    const caffe::PoolingParameter& pool_param=layer_param.pooling_param();
+    const te_caffe::PoolingParameter& pool_param=layer_param.pooling_param();
 
     PoolParam  param=any_cast<PoolParam>(OpManager::GetOpDefParam("Pooling"));
 
@@ -882,6 +1210,7 @@ static bool LoadCaffePooling(StaticGraph * graph, StaticNode * node, const caffe
 
     StaticOp * op=CreateStaticOp(graph,"Pooling");
 
+    //SetOperatorDynamicShape(op);
     SetOperatorParam(op,param);
 
     SetNodeOp(node,op);
@@ -891,9 +1220,9 @@ static bool LoadCaffePooling(StaticGraph * graph, StaticNode * node, const caffe
 }
 
 
-static bool LoadCaffeInnerProduct(StaticGraph * graph, StaticNode * node, const caffe::LayerParameter& layer_param)
+static bool LoadCaffeInnerProduct(StaticGraph * graph, StaticNode * node, const te_caffe::LayerParameter& layer_param)
 {
-    const caffe::InnerProductParameter & ip_param=layer_param.inner_product_param();
+    const te_caffe::InnerProductParameter & ip_param=layer_param.inner_product_param();
 
     FCParam  param=any_cast<FCParam>(OpManager::GetOpDefParam("FullyConnected"));
     param.num_output=ip_param.num_output();
@@ -915,11 +1244,11 @@ static bool LoadCaffeInnerProduct(StaticGraph * graph, StaticNode * node, const 
 
 }
 
-static bool LoadCaffeBatchNorm(StaticGraph * graph, StaticNode * node, const caffe::LayerParameter& layer_param)
+static bool LoadCaffeBatchNorm(StaticGraph * graph, StaticNode * node, const te_caffe::LayerParameter& layer_param)
 {
     BatchNormParam param=any_cast<BatchNormParam>(OpManager::GetOpDefParam("BatchNormalization"));
 
-    const caffe::BatchNormParameter& bn_param=layer_param.batch_norm_param();
+    const te_caffe::BatchNormParameter& bn_param=layer_param.batch_norm_param();
 
     param.eps=bn_param.eps();
     param.caffe_flavor=1;
@@ -941,11 +1270,11 @@ static bool LoadCaffeBatchNorm(StaticGraph * graph, StaticNode * node, const caf
 }
 
 
-static bool LoadCaffeScale(StaticGraph * graph, StaticNode * node, const caffe::LayerParameter& layer_param)
+static bool LoadCaffeScale(StaticGraph * graph, StaticNode * node, const te_caffe::LayerParameter& layer_param)
 {
     ScaleParam param=any_cast<ScaleParam>(OpManager::GetOpDefParam("Scale"));
 
-    const caffe::ScaleParameter& scale_param=layer_param.scale_param();
+    const te_caffe::ScaleParameter& scale_param=layer_param.scale_param();
 
     if(scale_param.has_axis())
          param.axis=scale_param.axis();
@@ -971,7 +1300,7 @@ static bool LoadCaffeScale(StaticGraph * graph, StaticNode * node, const caffe::
     return true;
 }
 
-static bool LoadCaffePReLu(StaticGraph * graph, StaticNode * node, const caffe::LayerParameter& layer_param)
+static bool LoadCaffePReLu(StaticGraph * graph, StaticNode * node, const te_caffe::LayerParameter& layer_param)
 {
     StaticOp * op=CreateStaticOp(graph,"PReLU");
 
@@ -984,12 +1313,12 @@ static bool LoadCaffePReLu(StaticGraph * graph, StaticNode * node, const caffe::
 
     return true;
 }
-static bool LoadCaffeLRN(StaticGraph * graph, StaticNode * node, const caffe::LayerParameter& layer_param)
+static bool LoadCaffeLRN(StaticGraph * graph, StaticNode * node, const te_caffe::LayerParameter& layer_param)
 {
     LRNParam param=any_cast<LRNParam>(OpManager::GetOpDefParam("LRN"));
-    const ::caffe::LRNParameter& caffe_param=layer_param.lrn_param();
+    const ::te_caffe::LRNParameter& caffe_param=layer_param.lrn_param();
 
-    if(caffe_param.norm_region() == caffe::LRNParameter_NormRegion_WITHIN_CHANNEL)
+    if(caffe_param.norm_region() == te_caffe::LRNParameter_NormRegion_WITHIN_CHANNEL)
         param.norm_region=LRN_WITHIN_CHANNEL;
     else
         param.norm_region=LRN_ACROSS_CHANNELS;
@@ -1019,12 +1348,13 @@ bool CaffeSerializerRegisterOpLoader(void)
     p_caffe->RegisterOpLoadMethod("Data",op_load_t(LoadCaffeInputOp));
     p_caffe->RegisterOpLoadMethod("Input",op_load_t(LoadCaffeInputOp));
     p_caffe->RegisterOpLoadMethod("Convolution",op_load_t(LoadCaffeConvolution));
+    p_caffe->RegisterOpLoadMethod("Deconvolution",op_load_t(LoadCaffeDeconvolution));
     p_caffe->RegisterOpLoadMethod("Pooling",op_load_t(LoadCaffePooling));
     p_caffe->RegisterOpLoadMethod("Eltwise",op_load_t(LoadCaffeEltwise));
-    p_caffe->RegisterOpLoadMethod("Softmax",op_load_t(LoadCaffeSoftMax));
+    p_caffe->RegisterOpLoadMethod("Softmax",op_load_t(LoadCaffeSoftmax));
     p_caffe->RegisterOpLoadMethod("Slice",op_load_t(LoadCaffeSlice));
     p_caffe->RegisterOpLoadMethod("Normalize",op_load_t(LoadCaffeNormalize));
-    p_caffe->RegisterOpLoadMethod("SoftmaxWithLoss",op_load_t(LoadCaffeSoftMax));
+    p_caffe->RegisterOpLoadMethod("SoftmaxWithLoss",op_load_t(LoadCaffeSoftmax));
     p_caffe->RegisterOpLoadMethod("ReLU",op_load_t(LoadCaffeReLu));
     p_caffe->RegisterOpLoadMethod("PReLU",op_load_t(LoadCaffePReLu));
     p_caffe->RegisterOpLoadMethod("InnerProduct",op_load_t(LoadCaffeInnerProduct));
@@ -1035,6 +1365,16 @@ bool CaffeSerializerRegisterOpLoader(void)
     p_caffe->RegisterOpLoadMethod("BatchNorm",op_load_t(LoadCaffeBatchNorm));
     p_caffe->RegisterOpLoadMethod("Scale",op_load_t(LoadCaffeScale));
     p_caffe->RegisterOpLoadMethod("LRN",op_load_t(LoadCaffeLRN));
+    p_caffe->RegisterOpLoadMethod("Permute",op_load_t(LoadCaffePermute));
+    p_caffe->RegisterOpLoadMethod("Flatten",op_load_t(LoadCaffeFlatten));
+    p_caffe->RegisterOpLoadMethod("PriorBox",op_load_t(LoadCaffePriorBox));
+    p_caffe->RegisterOpLoadMethod("Reshape",op_load_t(LoadCaffeReshape));
+    p_caffe->RegisterOpLoadMethod("DetectionOutput",op_load_t(LoadCaffeDetectionOutput));
+    p_caffe->RegisterOpLoadMethod("RPN",op_load_t(LoadCaffeRPN));
+    p_caffe->RegisterOpLoadMethod("ROIPooling",op_load_t(LoadCaffeROIPooling));
+    p_caffe->RegisterOpLoadMethod("Reorg",op_load_t(LoadCaffeReorg));
+    p_caffe->RegisterOpLoadMethod("Region",op_load_t(LoadCaffeRegion));
+    p_caffe->RegisterOpLoadMethod("BilinearResize",op_load_t(LoadCaffeBilinearResize));
 
 
     if(!SerializerManager::SafeGet("caffe",serializer))
@@ -1045,12 +1385,13 @@ bool CaffeSerializerRegisterOpLoader(void)
     p_buddy->RegisterOpLoadMethod("Data",op_load_t(LoadCaffeInputOp));
     p_buddy->RegisterOpLoadMethod("Input",op_load_t(LoadCaffeInputOp));
     p_buddy->RegisterOpLoadMethod("Convolution",op_load_t(LoadCaffeConvolution));
+    p_buddy->RegisterOpLoadMethod("Deconvolution",op_load_t(LoadCaffeDeconvolution));
     p_buddy->RegisterOpLoadMethod("Pooling",op_load_t(LoadCaffePooling));
     p_buddy->RegisterOpLoadMethod("Eltwise",op_load_t(LoadCaffeEltwise));
-    p_buddy->RegisterOpLoadMethod("Softmax",op_load_t(LoadCaffeSoftMax));
+    p_buddy->RegisterOpLoadMethod("Softmax",op_load_t(LoadCaffeSoftmax));
     p_buddy->RegisterOpLoadMethod("Normalize",op_load_t(LoadCaffeNormalize));
     p_buddy->RegisterOpLoadMethod("Slice",op_load_t(LoadCaffeSlice));
-    p_buddy->RegisterOpLoadMethod("SoftmaxWithLoss",op_load_t(LoadCaffeSoftMax));
+    p_buddy->RegisterOpLoadMethod("SoftmaxWithLoss",op_load_t(LoadCaffeSoftmax));
     p_buddy->RegisterOpLoadMethod("ReLU",op_load_t(LoadCaffeReLu));
     p_buddy->RegisterOpLoadMethod("PReLU",op_load_t(LoadCaffePReLu));
     p_buddy->RegisterOpLoadMethod("InnerProduct",op_load_t(LoadCaffeInnerProduct));
@@ -1061,8 +1402,19 @@ bool CaffeSerializerRegisterOpLoader(void)
     p_buddy->RegisterOpLoadMethod("BatchNorm",op_load_t(LoadCaffeBatchNorm));
     p_buddy->RegisterOpLoadMethod("Scale",op_load_t(LoadCaffeScale));
     p_buddy->RegisterOpLoadMethod("LRN",op_load_t(LoadCaffeLRN));
+    p_buddy->RegisterOpLoadMethod("Permute",op_load_t(LoadCaffePermute));
+    p_buddy->RegisterOpLoadMethod("Flatten",op_load_t(LoadCaffeFlatten));
+    p_buddy->RegisterOpLoadMethod("PriorBox",op_load_t(LoadCaffePriorBox));
+    p_buddy->RegisterOpLoadMethod("Reshape",op_load_t(LoadCaffeReshape));
+    p_buddy->RegisterOpLoadMethod("DetectionOutput",op_load_t(LoadCaffeDetectionOutput));
+    p_buddy->RegisterOpLoadMethod("RPN",op_load_t(LoadCaffeRPN));
+    p_buddy->RegisterOpLoadMethod("ROIPooling",op_load_t(LoadCaffeROIPooling));
+    p_buddy->RegisterOpLoadMethod("Reorg",op_load_t(LoadCaffeReorg));
+    p_buddy->RegisterOpLoadMethod("Region",op_load_t(LoadCaffeRegion));
+    p_buddy->RegisterOpLoadMethod("BilinearResize",op_load_t(LoadCaffeBilinearResize));
 
     blob_load_map["Convolution"]=LoadConvolutionBlob;
+    blob_load_map["Deconvolution"]=LoadDeconvolutionBlob;
     blob_load_map["InnerProduct"]=LoadFullyConnectedBlob;
     blob_load_map["BatchNorm"]=LoadBatchNormBlob;
     blob_load_map["Scale"]=LoadScaleBlob;

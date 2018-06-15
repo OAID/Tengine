@@ -1,4 +1,9 @@
-.PHONY debian-buster: debian-buster/.done
+ubuntu:
+	multistrap -a arm64 -d ubuntu_rootfs -f config.ubuntu
 
-debian-buster/.done:
-	multistrap -a arm64 -d debian-buster -f config 
+debian:
+	multistrap -a arm64 -d debian_rootfs -f config.debian
+
+.PHONY: ubuntu_rootfs debian_rootfs
+
+

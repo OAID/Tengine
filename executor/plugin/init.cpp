@@ -24,124 +24,163 @@
 #include <iostream>
 #include <functional>
 #include "logger.hpp"
-#include "cpu_engine.hpp"
 #include "generic_engine.hpp"
 #include "simple_engine.hpp"
 #include "graph_optimizer.hpp"
 #include "tengine_plugin.hpp"
 #include "device_driver.hpp"
 
-
-
 using namespace TEngine;
- 
+
 namespace TEngine {
 
-    extern void RegisterDefaultSoc(void);
     extern void NodeOpsRegistryManagerInit(void);
 
-#ifdef CONFIG_CAFFE_REF
-    extern void RegisterCaffeExecutors(void);
-    extern void RegisterFusedDemoNodeExec(void);
-#endif
-    extern void RegisterDemoOps(void);
-
-#ifdef CONFIG_ARCH_ARM64
-    namespace conv_selector {
-    extern bool RegisterConvSelector(const std::string& registry_name);
-    }
-
-
-    extern void RegisterConv2dDepth(void);
-    extern void RegisterConv2dFast(void);
-    extern void RegisterFullyConnectedNodeExec(void);
-    extern void RegisterReLuNodeExec(void);
+    extern void RegisterConcatNodeExec(void);
     extern void RegisterDropoutNodeExec(void);
     extern void RegisterSoftmaxNodeExec(void);
-    extern void RegisterConcatNodeExec(void);
-    extern void RegisterLRNNodeExec(void);
-    extern void RegisterScaleNodeExec(void);
-    extern void RegisterBatchNormNodeExec(void);
-    extern void RegisterPoolingNodeExec(void);
-    extern void RegisterFusedBNScaleReluNodeExec(void);
+    extern void RegisterLRN_NodeExec(void);
     extern void RegisterEltwiseNodeExec(void);
     extern void RegisterSliceNodeExec(void);
     extern void RegisterPReLUNodeExec(void);
     extern void RegisterNormalizeNodeExec(void);
+    extern void RegisterPermuteNodeExec(void);
+    extern void RegisterFlattenNodeExec(void);
+    extern void RegisterPriorBoxNodeExec(void);
+    extern void RegisterReshapeNodeExec(void);
+    extern void RegisterDetectionOutputNodeExec(void);
+    extern void RegisterRegionNodeExec(void);
+    extern void RegisterReorgNodeExec(void);
+    extern void RegisterRPNNodeExec(void);
+    extern void RegisterROIPoolingNodeExec(void);
+    extern void RegisterReLu6NodeExec(void);
+    extern void RegisterReLuNodeExec(void);
+    extern void RegisterBilinearResizeNodeExec(void);
+#ifdef CONFIG_ARCH_BLAS
+    extern void RegisterConvBlasNodeExec(void);
+    extern void RegisterDeconvBlasNodeExec(void);
+    extern void RegisterFcBlasNodeExec(void);
+#endif
+    extern void RegisterPooling_NodeExec(void);
+    extern void RegisterBatchNorm_NodeExec(void);
+    extern void RegisterScale_NodeExec(void);
+
+    extern void RegisterCommonFusedBNScaleReluNodeExec(void);
+#ifdef CONFIG_CAFFE_REF
+    extern void RegisterCaffeExecutors(void);
+#endif
+    extern void RegisterDemoOps(void);
+
+#if CONFIG_ARCH_ARM64==1 || CONFIG_ARCH_ARM32==1
+    extern void RegisterConv2dFast(void);
+    extern void RegisterConv2dDepth(void);
+    extern void RegisterFullyConnectedFast(void);
+    extern void RegisterPoolingNodeExec(void);
+    extern void RegisterBatchNormNodeExec(void);
+    extern void RegisterScaleNodeExec(void);
+    extern void RegisterDeconvNodeExec(void);
+    extern void RegisterLRNNodeExec(void);
+    
 #endif
 
-    
+#ifdef CONFIG_ARCH_ARM64
+    extern void RegisterFusedBNScaleReluNodeExec(void);
+
+#endif
+
+#ifdef CONFIG_ACL_GPU
+    extern void RegisterConv2dOpencl(void);
+#endif
 
     void DevAllocatorManagerInit(void);
     void DevSchedulerManagerInit(void);
 
-
 };
 
 extern "C" {
-int tengine_plugin_init(void);
+    int executor_plugin_init(void);
 }
 
-int tengine_plugin_init(void)
+int executor_plugin_init(void)
 {
-    RegisterDefaultSoc();
     NodeOpsRegistryManagerInit();
 
+#ifndef ANDROID
     RegisterDemoOps();
-
-#ifdef CONFIG_CAFFE_REF
-    std::cout<<"Register reference's operators\n";
-    RegisterCaffeExecutors();
-    RegisterFusedDemoNodeExec();
 #endif
 
-#ifdef CONFIG_ARCH_ARM64
-    std::cout<<"Register  arm64's operators ...\n";
-
-    conv_selector::RegisterConvSelector("arm64");
-    RegisterFullyConnectedNodeExec();
-    RegisterReLuNodeExec();
+    RegisterConcatNodeExec();
     RegisterDropoutNodeExec();
     RegisterSoftmaxNodeExec();
-    RegisterConcatNodeExec();
-    RegisterLRNNodeExec();
-    RegisterScaleNodeExec();
-    RegisterBatchNormNodeExec();
-    RegisterPoolingNodeExec();
-    RegisterConv2dFast();
-    RegisterConv2dDepth();
-
-    RegisterFusedBNScaleReluNodeExec();
+    RegisterLRN_NodeExec();
+    //RegisterLRNNodeExec();
     RegisterPReLUNodeExec();
     RegisterEltwiseNodeExec();
     RegisterSliceNodeExec();
     RegisterNormalizeNodeExec();
+    RegisterPermuteNodeExec();
+    RegisterFlattenNodeExec();
+    RegisterPriorBoxNodeExec();
+    RegisterReshapeNodeExec();
+    RegisterDetectionOutputNodeExec();
+    RegisterRegionNodeExec();
+    RegisterReorgNodeExec();
+    RegisterRPNNodeExec();
+    RegisterROIPoolingNodeExec();
+    RegisterReLu6NodeExec();
+    RegisterReLuNodeExec();
+    RegisterBilinearResizeNodeExec();
+#ifdef CONFIG_ARCH_BLAS
+    RegisterConvBlasNodeExec();
+    RegisterDeconvBlasNodeExec();
+    RegisterFcBlasNodeExec();
+#endif
+    RegisterPooling_NodeExec();
+    RegisterBatchNorm_NodeExec();
+    RegisterScale_NodeExec();
 
+    RegisterCommonFusedBNScaleReluNodeExec();
+
+#ifdef CONFIG_CAFFE_REF
+    std::cout<<"Register reference's operators\n";
+    RegisterCaffeExecutors();
 #endif
 
+
+#if CONFIG_ARCH_ARM64 || CONFIG_ARCH_ARM32
+    RegisterConv2dFast();
+    RegisterConv2dDepth();
+    RegisterFullyConnectedFast();
+    RegisterPoolingNodeExec();
+    RegisterBatchNormNodeExec();
+    RegisterScaleNodeExec();
+    RegisterLRNNodeExec();
+#endif
+
+#ifdef CONFIG_ARCH_ARM64
+    RegisterFusedBNScaleReluNodeExec();
+
+#ifdef CONFIG_ACL_GPU
+    RegisterConv2dOpencl();
+#endif
+
+#endif
 
     DevAllocatorManagerInit();
     DevSchedulerManagerInit();
     
-    ExecEngine * p_engine=new CPUEngine();
-    ExecEngineManager::SafeAdd(p_engine->GetName(),ExecEnginePtr(p_engine));
-
     GenericEngine * p_generic=new GenericEngine();
     p_generic->SetScheduler("Simple");
 
     ExecEngineManager::SafeAdd(p_generic->GetName(),ExecEnginePtr(p_generic));
 
-    SimpleEngine * p_simple=new SimpleEngine();
-    ExecEngineManager::SafeAdd(p_simple->GetName(),ExecEnginePtr(p_simple));
-
+	SimpleEngine * p_simple=new SimpleEngine();
+	ExecEngineManager::SafeAdd(p_simple->GetName(),ExecEnginePtr(p_simple));
 
     GraphOptimizerManager::Init();
 
     TEnginePlugin::RegisterModuleInit(1,DriverManager::ProbeDevice);
     TEnginePlugin::RegisterModuleRelease(1,DriverManager::ReleaseDevice);
 
-    std::cout<<"EXECUTOR PLUGIN INITED\n";
-
     return 0;
 }
-

@@ -26,6 +26,7 @@
 
 #include "data_type.hpp"
 #include "tensor.hpp"
+#include "static_graph.hpp"
 
 namespace TEngine {
 
@@ -73,6 +74,27 @@ void  Tensor::DumpTensor(std::ostream& os) const
     shape_.DumpShape(os);
 }
 
+
+void Tensor::FreeMem(void)
+{
+    if(!ExistAttr("mem_addr"))
+        return;
+
+    void * mem=any_cast<void *>(GetAttr("mem_addr"));
+    std::free(mem);
+
+    RemoveAttr("mem_addr");
+
+   if(static_tensor_)
+   {
+       static_tensor_->mem_addr=nullptr;
+   }
+}
+
+void Tensor::BindStaticTensor(StaticConstTensor * static_tensor)
+{
+    static_tensor_=static_tensor;
+}
 
 
 } //namespace TEngine

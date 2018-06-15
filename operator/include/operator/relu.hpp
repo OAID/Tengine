@@ -25,10 +25,11 @@
 #define __RELU_HPP__
 
 #include "operator.hpp"
+#include "relu_param.hpp"
 
 namespace TEngine {
 
-class ReLu: public OperatorNoParam<ReLu> {
+class ReLu: public OperatorWithParam<ReLu,ReLuParam> {
 
 public:
 
@@ -36,7 +37,7 @@ public:
       ReLu(const ReLu& src)=default;
       virtual ~ReLu() {};
 
-      float GetFops(const std::vector<TShape>& inputs, const std::vector<TShape>& outputs);
+      float GetFops(const std::vector<TShape>& inputs, const std::vector<TShape>& outputs) override;
  
       void SetSchema(void) override;
 

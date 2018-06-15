@@ -59,7 +59,7 @@ public:
     SimpleEngine(void);
    ~SimpleEngine(void);
    
-    exec_handle_t AddGraphExecutor(GraphExecutor *graph_executor);
+    exec_handle_t AddGraphExecutor(GraphExecutor *graph_executor) override;
     void * GetTensorBuffer(Tensor *, exec_handle_t h=nullptr) override;
     bool SetTensorBuffer(Tensor *, void *, int, exec_handle_t h=nullptr) override;
     bool   Prerun(exec_handle_t) override;
@@ -82,6 +82,8 @@ public:
     std::string    GetErrorStr(exec_handle_t) override;
     bool RemoveGraphExecutor(exec_handle_t) override;
 
+    Graph * GetOptimizedGraph(exec_handle_t) override;
+    bool OptimizeGraph(exec_handle_t) override;
 
     void OnGraphDone(Graph * graph, bool exec_success);
     

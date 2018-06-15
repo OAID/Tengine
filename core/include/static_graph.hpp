@@ -104,8 +104,10 @@ struct StaticConstTensor: public StaticTensor {
 
 struct StaticOp {
     std::string name;
+    bool        dynamic_shape;
     any         param;
     Attribute   attrs;
+    StaticOp() { dynamic_shape=false;}
 };
 
 

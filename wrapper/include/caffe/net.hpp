@@ -69,6 +69,7 @@ public:
 protected:
     string model_name_;  // model name
     vector<string> file_list_;  // model file list
+    bool prerun_already_;
 
     graph_t graph_;  // pointer of graph executor
 

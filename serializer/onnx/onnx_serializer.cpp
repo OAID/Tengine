@@ -26,6 +26,7 @@
 #include "operator/pool_param.hpp"
 #include "operator/concat_param.hpp"
 #include "operator/softmax_param.hpp"
+#include "operator/relu_param.hpp"
 
 #include "type_name.hpp"
 
@@ -304,8 +305,11 @@ static bool LoadOnnxConvolutionOp(StaticGraph * graph, StaticNode * node, const 
 
 static bool LoadOnnxRelu(StaticGraph * graph, StaticNode * node, const onnx::NodeProto& onnx_node)
 {
-    StaticOp * op=CreateStaticOp(graph,"ReLu");
+    ReLuParam  param=any_cast<ReLuParam>(OpManager::GetOpDefParam("ReLu"));
+    param.negative_slope=0.f;
 
+    StaticOp * op=CreateStaticOp(graph,"ReLu");
+    SetOperatorParam(op,param);
     SetNodeOp(node,op);
 
     return true;
@@ -405,11 +409,11 @@ static bool LoadOnnxDropout(StaticGraph * graph, StaticNode * node, const onnx::
 
 }
 
-static bool LoadOnnxSoftMax(StaticGraph * graph, StaticNode * node,const onnx::NodeProto& onnx_node)
+static bool LoadOnnxSoftmax(StaticGraph * graph, StaticNode * node,const onnx::NodeProto& onnx_node)
 {
-    StaticOp * op=CreateStaticOp(graph,"SoftMax");
+    StaticOp * op=CreateStaticOp(graph,"Softmax");
 
-    SoftmaxParam param=any_cast<SoftmaxParam>(OpManager::GetOpDefParam("SoftMax"));
+    SoftmaxParam param=any_cast<SoftmaxParam>(OpManager::GetOpDefParam("Softmax"));
 
     param.axis=1;
 
@@ -440,7 +444,7 @@ bool OnnxSerializerRegisterOpLoader(void)
     p_onnx->RegisterOpLoadMethod("GlobalAveragePool",op_load_t(LoadOnnxPooling));
     p_onnx->RegisterOpLoadMethod("Concat",op_load_t(LoadOnnxConcat));
     p_onnx->RegisterOpLoadMethod("Dropout",op_load_t(LoadOnnxDropout));
-    p_onnx->RegisterOpLoadMethod("Softmax",op_load_t(LoadOnnxSoftMax));
+    p_onnx->RegisterOpLoadMethod("Softmax",op_load_t(LoadOnnxSoftmax));
 
     return true;
 }

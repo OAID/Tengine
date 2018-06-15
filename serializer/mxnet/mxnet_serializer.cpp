@@ -32,6 +32,7 @@
 #include "operator/concat_param.hpp"
 #include "operator/softmax_param.hpp"
 #include "operator/batch_norm_param.hpp"
+#include "operator/relu_param.hpp"
 
 //#define DEBUG
 
@@ -613,11 +614,11 @@ bool MxnetSerializer::LoadGraph(StaticGraph * graph, const std::vector<MxnetNode
     return true;
 }
 
-static bool LoadMxnetSoftMax(StaticGraph * graph, StaticNode * node, const MxnetNode& mxnet_node)
+static bool LoadMxnetSoftmax(StaticGraph * graph, StaticNode * node, const MxnetNode& mxnet_node)
 {
-    StaticOp * op=CreateStaticOp(graph,"SoftMax");
+    StaticOp * op=CreateStaticOp(graph,"Softmax");
 
-    SoftmaxParam param = any_cast<SoftmaxParam>(OpManager::GetOpDefParam("SoftMax"));
+    SoftmaxParam param = any_cast<SoftmaxParam>(OpManager::GetOpDefParam("Softmax"));
 
     SetOperatorParam(op,param);
 
@@ -828,8 +829,11 @@ static bool LoadMxnetDropout(StaticGraph * graph, StaticNode * node, const Mxnet
 
 static bool LoadMxnetRelu(StaticGraph * graph, StaticNode * node, const MxnetNode& mxnet_node)
 {
-    StaticOp * op = CreateStaticOp(graph, "ReLu");
+    ReLuParam  param=any_cast<ReLuParam>(OpManager::GetOpDefParam("ReLu"));
+    param.negative_slope=0.f;
 
+    StaticOp * op = CreateStaticOp(graph, "ReLu");
+    SetOperatorParam(op,param);
     SetNodeOp(node, op);
 
     return true;
@@ -846,7 +850,7 @@ bool MxnetSerializerRegisterOpLoader(void)
 
     p_mxnet->RegisterOpLoadMethod("Convolution",op_load_t(LoadMxnetConvolution));
     p_mxnet->RegisterOpLoadMethod("Pooling",op_load_t(LoadMxnetPooling));
-    p_mxnet->RegisterOpLoadMethod("SoftmaxOutput",op_load_t(LoadMxnetSoftMax));
+    p_mxnet->RegisterOpLoadMethod("SoftmaxOutput",op_load_t(LoadMxnetSoftmax));
     p_mxnet->RegisterOpLoadMethod("Concat",op_load_t(LoadMxnetConcat));
     p_mxnet->RegisterOpLoadMethod("BatchNorm",op_load_t(LoadMxnetBatchNorm));
     p_mxnet->RegisterOpLoadMethod("Dropout",op_load_t(LoadMxnetDropout));

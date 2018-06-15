@@ -38,7 +38,7 @@ public:
 
     void SetSchema(void) override;
 
-    bool InferShape(const std::vector<TEngine::TShape>&, std::vector<TEngine::TShape>&);
+    bool InferShape(const std::vector<TEngine::TShape>&, std::vector<TEngine::TShape>&) override;
 
 
 };

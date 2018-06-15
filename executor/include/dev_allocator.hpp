@@ -37,7 +37,7 @@ class GenericEngine;
 class GraphExecutor;
 class Graph;
 class GraphTask;
-class DevExecutor;
+struct DevExecutor;
 
 struct DevAllocator {
 
@@ -45,6 +45,9 @@ struct DevAllocator {
   virtual const std::string& GetName(void)=0;
   virtual ~DevAllocator() {};
   std::string name;
+
+  void SameGraph(TEngine::Graph*, TEngine::DevExecutor*, std::vector<TEngine::Graph*>&);
+  void PartitionGraph(TEngine::GenericEngine*, TEngine::GraphExecutor*, TEngine::Graph*, std::vector<TEngine::Graph*>&);
 };
 
 

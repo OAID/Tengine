@@ -24,55 +24,100 @@
 #include <iostream>
 #include <functional>
 
+#include "serializer.hpp"
+
+#ifdef CONFIG_CAFFE_SERIALIZER
 #include "caffe_serializer.hpp"
+#endif
+
+#ifdef CONFIG_ONNX_SERIALIZER
 #include "onnx_serializer.hpp"
+#endif
+
+#ifdef CONFIG_MXNET_SERIALIZER
 #include "mxnet_serializer.hpp"
+#endif
+
+#ifdef CONFIG_TF_SUPPORT
+#include "tf_serializer.hpp"
+#endif
+
 #include "logger.hpp"
 
 namespace TEngine {
 
+#ifdef CONFIG_ONNX_SERIALIZER
 extern bool OnnxSerializerRegisterOpLoader();
+#endif
+
+#ifdef CONFIG_CAFFE_SERIALIZER
 extern bool CaffeSerializerRegisterOpLoader();
+#endif
+
+#ifdef CONFIG_MXNET_SERIALIZER
 extern bool MxnetSerializerRegisterOpLoader();
+#endif
+
+#ifdef CONFIG_TF_SUPPORT
+extern bool TFSerializerRegisterOpLoader();
+#endif
 
 }
 
+
 extern "C" {
 
-   int tengine_plugin_init(void);
+   int serializer_plugin_init(void);
 }
 
 using namespace TEngine;
 
-int tengine_plugin_init(void)
+int serializer_plugin_init(void)
 {
     //Register into factory
 
     auto factory=SerializerFactory::GetFactory();
 
+#ifdef CONFIG_ONNX_SERIALIZER
     factory->RegisterInterface<OnnxSerializer>("onnx");
+    auto onnx_serializer=factory->Create("onnx");
+
+    SerializerManager::SafeAdd("onnx",SerializerPtr(onnx_serializer));
+    OnnxSerializerRegisterOpLoader();
+#endif
+
+#ifdef CONFIG_CAFFE_SERIALIZER
     factory->RegisterInterface<CaffeSingle>("caffe_single");
     factory->RegisterInterface<CaffeBuddy>("caffe_buddy");
-    factory->RegisterInterface<MxnetSerializer>("mxnet");
 
-    //create the serializer object by factory...
-    auto onnx_serializer=factory->Create("onnx");
     auto caffe_single=factory->Create("caffe_single");
     auto caffe_buddy=factory->Create("caffe_buddy");
-    auto mxnet_serializer=factory->Create("mxnet");
 
-    //add into object store
-    SerializerManager::SafeAdd("onnx",SerializerPtr(onnx_serializer));
     SerializerManager::SafeAdd("caffe_single",SerializerPtr(caffe_single));
     SerializerManager::SafeAdd("caffe",SerializerPtr(caffe_buddy));
+
+    CaffeSerializerRegisterOpLoader();
+#endif
+
+#ifdef CONFIG_MXNET_SERIALIZER
+    factory->RegisterInterface<MxnetSerializer>("mxnet");
+    auto mxnet_serializer=factory->Create("mxnet");
+
     SerializerManager::SafeAdd("mxnet",SerializerPtr(mxnet_serializer));
 
-    //add the operator loader
-    OnnxSerializerRegisterOpLoader();
-    CaffeSerializerRegisterOpLoader();
     MxnetSerializerRegisterOpLoader();
+#endif
 
-    std::cout<<"SERIALIZER PLUGIN INITED\n";   
+#ifdef CONFIG_TF_SUPPORT
+    factory->RegisterInterface<TFSerializer>("tensorflow");
+    auto tf_serializer=factory->Create("tensorflow");
+
+    SerializerManager::SafeAdd("tensorflow",SerializerPtr(tf_serializer));
+
+    TFSerializerRegisterOpLoader();
+#endif
+
+    //std::cout<<"SERIALIZER PLUGIN INITED\n";   
 
     return 0;
 }

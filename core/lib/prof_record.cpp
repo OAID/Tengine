@@ -23,6 +23,7 @@
  */
 #include <iostream>
 #include <algorithm>
+#include <cstdio>
 
 #include "prof_record.hpp"
 #include "prof_utils.hpp"
@@ -116,9 +117,11 @@ void ProfTime::Dump(int method)
         forward_count=r.count;
 
         std::printf("%3d: total used time [%lu:%2.2f%%] us(count: %d avg %lu min %lu max %lu)\n\t",
-                     i,r.total_used_time,
+                     i,(unsigned long)r.total_used_time,
                       100.0*r.total_used_time/accum_time,
-                      r.count,r.total_used_time/r.count,r.min_time,r.max_time);
+                      r.count,(unsigned long)(r.total_used_time/r.count),
+					    (unsigned long)r.min_time,
+						(unsigned long)r.max_time);
 
         parser(r.ident,r.count,r.total_used_time);
         std::cout<<"\n";
@@ -130,7 +133,8 @@ void ProfTime::Dump(int method)
        
 
       std::printf("\ntotal accumulated time: %lu us. roughly [%lu] us per run\n",
-                   accum_time,accum_time/forward_count);
+                   (unsigned long)accum_time,
+				   (unsigned long)(accum_time/forward_count));
    }
 
 

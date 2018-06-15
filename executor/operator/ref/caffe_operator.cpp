@@ -23,6 +23,7 @@
  */
 #include <iostream>
 #include <functional>
+#include <cmath>
 
 #include <caffe/caffe.hpp>
 #include <caffe/layers/conv_layer.hpp>
@@ -34,6 +35,7 @@
 #include <caffe/layers/batch_norm_layer.hpp>
 #include <caffe/layers/lrn_layer.hpp>
 #include <caffe/layers/prelu_layer.hpp>
+#include <caffe/layers/deconv_layer.hpp>
 
 #include "graph.hpp"
 #include "operator/convolution.hpp"
@@ -50,6 +52,8 @@
 #include "operator/scale.hpp"
 #include "operator/lrn.hpp"
 #include "operator/prelu.hpp"
+#include "operator/eltwise.hpp"
+#include "operator/deconvolution.hpp"
 
 #include "node_ops.hpp"
 #include "tensor_mem.hpp"
@@ -162,8 +166,19 @@ bool  caffe_run_convolution(Node *node, int rep, unsigned long * time)
      caffe_param->add_kernel_size(p_param->kernel_w);
      caffe_param->add_stride(p_param->stride_h);
      caffe_param->add_stride(p_param->stride_w);
-     caffe_param->add_pad(p_param->pad_h);
-     caffe_param->add_pad(p_param->pad_w);
+     caffe_param->add_dilation(p_param->dilation_h);
+     caffe_param->add_dilation(p_param->dilation_w);
+
+     if(p_param->pad_h<0)
+        caffe_param->add_pad(p_param->pads[2]);
+     else
+        caffe_param->add_pad(p_param->pad_h);
+
+     if(p_param->pad_w<0)
+        caffe_param->add_pad(p_param->pads[3]);
+     else
+        caffe_param->add_pad(p_param->pad_w);
+
      caffe_param->set_num_output(p_param->output_channel);
      caffe_param->set_bias_term((node->GetInputNum()>2));
      caffe_param->set_group(p_param->group);
@@ -383,7 +398,96 @@ struct WrapPReLULayer: public PReLULayer<Dtype> {
    {    PReLULayer<Dtype>::Forward_cpu(bottom,top); }
 
 };
+// add deconv
+template <typename Dtype>
+struct WrapDeconvLayer: public DeconvolutionLayer<Dtype> 
+{
 
+ WrapDeconvLayer(const LayerParameter& param): DeconvolutionLayer<Dtype>(param) {}
+ 
+ void Init(const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top)
+  {
+        DeconvolutionLayer<Dtype>::LayerSetUp(bottom,top);
+        DeconvolutionLayer<Dtype>::Reshape(bottom,top);
+  }
+ void Forward(const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top)
+   {    DeconvolutionLayer<Dtype>::Forward_cpu(bottom,top); }
+
+};
+bool caffe_run_deconv(Node * node,int rep, unsigned long * time)
+{
+    LayerParameter layer_param;
+     ConvolutionParameter* caffe_param =layer_param.mutable_convolution_param();
+
+     layer_param.set_name(node->GetName()+".te");
+
+     Deconvolution * deconv_op=dynamic_cast<Deconvolution *>(node->GetOp());
+
+     DeconvParam * p_param=deconv_op->GetParam();
+     caffe_param->add_kernel_size(p_param->kernel_size);
+     caffe_param->add_kernel_size(p_param->kernel_size);
+     caffe_param->add_stride(p_param->stride);
+     caffe_param->add_stride(p_param->stride);
+     caffe_param->add_pad(p_param->pad);
+     caffe_param->set_num_output(p_param->num_output);
+     caffe_param->set_bias_term((node->GetInputNum()>2));
+     caffe_param->add_dilation(p_param->dilation);
+     caffe_param->add_dilation(p_param->dilation);
+  
+    WrapDeconvLayer<float> caffe_layer(layer_param);
+    //input
+    Blob<float> input, output;
+    std::vector<Blob<float>*> bottom,top;
+
+    Tensor * tensor=node->GetInputTensor(0);
+    ReshapeBlob(input,tensor);
+    CopyBlobFromTensor(tensor,&input);
+
+    bottom.push_back(&input);
+    top.push_back(&output);
+      caffe_layer.Init(bottom,top);
+     /* weight */
+
+     std::vector<boost::shared_ptr<Blob<float> > > blob_vector=caffe_layer.blobs();
+     boost::shared_ptr<Blob<float> > blob_ptr=blob_vector[0];
+     tensor=node->GetInputTensor(1);
+     ReshapeBlob(*blob_ptr, tensor);
+     CopyBlobFromTensor(tensor,blob_ptr.get());
+
+     /* bias */
+     if( blob_vector.size()>1)
+     {
+         blob_ptr=blob_vector[1];
+
+         tensor=node->GetInputTensor(2);
+         ReshapeBlob(*blob_ptr, tensor);
+         CopyBlobFromTensor(tensor,blob_ptr.get());
+     }
+
+      if(rep)
+      {
+          unsigned long start=get_cur_time();
+
+          for(int i=0;i<rep;i++)
+             caffe_layer.Forward(bottom,top);
+
+          unsigned long end=get_cur_time();
+
+          (*time)=end-start;
+      }
+      else
+          caffe_layer.Forward(bottom,top);
+          
+
+     Tensor * output_tensor=node->GetOutputTensor(0);
+     ReshapeBlob(output, output_tensor);
+     CopyBlobToTensor(output_tensor,&output); 
+     return true;
+}
+bool  caffe_run_deconv(Node *node)
+{
+   return caffe_run_deconv(node,0,nullptr);
+}
 bool caffe_run_prelu(Node * node)
 {
  
@@ -840,6 +944,80 @@ bool caffe_run_lrn(Node * node)
      return true;
 }
 
+bool caffe_run_eltwise(Node * node)
+{
+    //input
+    Tensor * input_tensor0=node->GetInputTensor(0);
+    const TShape& ishape=input_tensor0->GetShape();
+    int input_count4=ishape.GetSize();
+    void * input0=get_tensor_mem(input_tensor0);
+
+    Tensor * input_tensor1=nullptr;
+    void* input1=nullptr;
+
+    if(node->GetInputNum()>1)
+    {
+       input_tensor1=node->GetInputTensor(1);
+       input1=get_tensor_mem(input_tensor1);
+    }
+
+    // this version only support for input_num=2
+   // int input_number=node->GetInputNum();
+
+    // output
+    Tensor * output_tensor=node->GetOutputTensor(0);
+    void * output=get_tensor_mem(output_tensor);
+    float* out_ptr=(float*)output;
+    float* in0=(float*)input0;
+    float* in1=(float*)input1;
+    Eltwise * eltwise_op=dynamic_cast<Eltwise *>(node->GetOp());
+    EltwiseParam*  param=eltwise_op->GetParam();
+
+    switch (param->type)
+    {
+    case ELT_SUM_SCALAR:
+        for (int i = 0; i < input_count4; ++i)
+        {
+            *out_ptr++ = (*in0++)+in1[0];
+        }
+        break;
+    case ELT_SUM:
+        for (int i = 0; i < input_count4; ++i)
+        {
+            *out_ptr++ = (*in0++)+(*in1++);
+        }
+        break;
+    case ELT_SUB:
+        for (int i = 0; i < input_count4; ++i)
+        {
+            *out_ptr++ = (*in0++)-(*in1++);
+        }
+        break;
+    case ELT_MAX:
+        for (int i = 0; i < input_count4; ++i)
+        {
+            *out_ptr++ =std::max (in0[i],in1[i]);
+        }
+        break;
+    case ELT_PROD:
+        for (int i = 0; i < input_count4; ++i)
+        {
+            *out_ptr++ =in0[i]*in1[i];
+        }
+        break;
+    case ELT_RSQRT:
+        for (int i = 0; i < input_count4; ++i)
+        {
+            *out_ptr++ =1/std::sqrt(in0[i]);
+        }
+        break;
+    default:
+        return false;
+    }
+    return true;
+
+}
+
 struct CaffeNodeOps: public NodeOps {
 
 using node_exec_t =bool(*)(Node *);
@@ -869,7 +1047,7 @@ void RegisterCaffeExecutors(void)
     RegisterNodeRun("Convolution",caffe_run_convolution);
     RegisterNodeRun("Pooling",caffe_run_pooling);
     RegisterNodeRun("ReLu",caffe_run_relu);
-    RegisterNodeRun("SoftMax",caffe_run_softmax);
+    RegisterNodeRun("Softmax",caffe_run_softmax);
     RegisterNodeRun("FullyConnected",caffe_run_fully_connected);
     RegisterNodeRun("Split",caffe_run_split);
     RegisterNodeRun("Concat",caffe_run_concat);
@@ -878,6 +1056,8 @@ void RegisterCaffeExecutors(void)
     RegisterNodeRun("Scale",caffe_run_scale);
     RegisterNodeRun("LRN",caffe_run_lrn);
     RegisterNodeRun("PReLU",caffe_run_prelu);
+    RegisterNodeRun("Eltwise",caffe_run_eltwise);
+    RegisterNodeRun("Deconvolution",caffe_run_deconv);
 }
 
 } //namespace TEngine

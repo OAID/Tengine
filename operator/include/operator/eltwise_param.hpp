@@ -29,8 +29,14 @@
 
 enum EltType {
     ELT_PROD,
+    ELT_PROD_SCALAR,
     ELT_SUM,
-    ELT_MAX
+    ELT_SUM_SCALAR,
+    ELT_SUB,
+    ELT_SUB_SCALAR,
+    ELT_MAX,
+    ELT_RSQRT,
+    ELT_LAST
 };
 
 

@@ -26,6 +26,10 @@
 #include <chrono>
 #include <iomanip>
 
+#include "compiler.hpp"
+#include "compiler.hpp"
+#include "compiler.hpp"
+#include "compiler.hpp"
 #include "logger.hpp"
 
 using namespace std::chrono;
@@ -90,7 +94,7 @@ std::ostream& StdioLogger::Log(LogLevel level)
       null_stream_.str("");
       return null_stream_;
    }
-
+#if 0
    if(option_.log_date)
    {
       auto t=system_clock::to_time_t(system_clock::now());
@@ -98,6 +102,7 @@ std::ostream& StdioLogger::Log(LogLevel level)
       log_stream_<<std::put_time(std::localtime(&t),"%Y-%m-%d %X ");
 
    }
+#endif
 
    if(option_.log_level)
    {

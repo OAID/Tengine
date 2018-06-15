@@ -5,10 +5,8 @@ export CFLAGS CXXFLAGS ASFLAGS
 
 REALNAME=$(abspath $(firstword $(MAKEFILE_LIST)))
 
-CC:=${CROSS_COMPILE}gcc -std=gnu99 ${SYSROOT_FLAGS}
-CXX:=${CROSS_COMPILE}g++ -std=c++11 ${SYSROOT_FLAGS}
 
-BUILT_IN_LD?=${CROSS_COMPILE}ld
+BUILT_IN_LD?=ld
 
 ifeq ($(BUILD_DIR),)
     $(error "please set BUILD_DIR")
@@ -44,12 +42,14 @@ real_asm_srcs=$(wildcard $(asm_srcs))
 final_asm_srcs=$(patsubst %.S,%.s,$(addprefix $(BUILD_DIR)/, $(real_asm_srcs)))
 
 ifneq ($(real_asm_srcs),)
-$(final_asm_srcs):$(real_asm_srcs)
+$(final_asm_srcs):$(BUILD_DIR)/%.s:%.S
 endif
 
+prebuilt_objs=$(prebuilt-obj-y)
 
-real_subdir_built_in=$(foreach f, $(subdir_objs), $(wildcard $(f)) )
-real_built_in_objs=$(real_subdir_built_in) $(curdir_objs)
+#real_subdir_built_in=$(foreach f, $(subdir_objs), $(wildcard $(f)) )
+real_subdir_built_in=$(subdir_objs)
+real_built_in_objs=$(real_subdir_built_in) $(curdir_objs) $(prebuilt_objs)
 
 #add BUILD_DIR PREFIX
 curdir_objs:=$(addprefix $(BUILD_DIR)/, $(cur_objs))
@@ -71,9 +71,18 @@ default_build_target: $(subdir-y) $(BUILT_IN_OBJ)  $(curdir_bin_objs) $(curdir_s
 $(subdir-y):
 	@$(MAKE) -C $@ -f $(REALNAME) $(MAKECMDGOALS) BUILD_DIR=$(BUILD_DIR)/$@
 
-$(BUILT_IN_OBJ): $(real_built_in_objs) | $(subdir-y)
-	@if [ "$(real_built_in_objs)" != " " ]; then echo $(BUILT_IN_LD) -r -o $@ $(real_built_in_objs); \
-               $(BUILT_IN_LD) -r -o $@ $(real_built_in_objs); fi
+ifneq ($(strip $(real_built_in_objs)),)
+
+ifneq ($(subdir_objs),)
+    $(subdir_objs): $(subdir-y)
+endif
+
+$(BUILT_IN_OBJ): $(real_built_in_objs) 
+	@echo $(BUILT_IN_LD) -r -o $@  $(real_built_in_objs); \
+               $(BUILT_IN_LD) -r -o $@ $(real_built_in_objs);
+else
+$(BUILT_IN_OBJ):
+endif
 
 clean::  $(subdir-y)
 	@rm -rf $(curdir_objs) $(BUILT_IN_OBJ) $(curdir_deps) $(curdir_bin_objs) $(curdir_so_objs) $(final_asm_srcs)
@@ -83,7 +92,7 @@ build: default
 
 test: default
 
-.PHONY: $(PHONY)  all default clean default_build_target build
+.PHONY: $(PHONY)  all default clean default_build_target build install
 
 # building rules 
 
@@ -133,7 +142,6 @@ $(BUILD_DIR)/.%.o.d: %.S
 	@mkdir -p $(@D);\
 	$(CC)  -MP -MM $(REAL_CFLAGS) $($(*F)_CFLAGS) $< >/dev/null| \
 	sed -e 's@$(*F)\.o[ :]@$(@D)/$(*F)\.o $@ : @g' > $@; \
-	if [ ! -s $@ ]; then rm $@; fi
 
  
 

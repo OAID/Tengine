@@ -37,7 +37,7 @@ public:
      LRN(const LRN& src)=default;
      virtual ~LRN(){}
 
-     bool InferShape(const std::vector<TEngine::TShape>&, std::vector<TEngine::TShape>&);
+     bool InferShape(const std::vector<TEngine::TShape>&, std::vector<TEngine::TShape>&) override;
 
      void SetSchema(void) override;
 

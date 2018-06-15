@@ -34,6 +34,8 @@
 #include <condition_variable>
 #include <mutex>
 
+#include "cpu_info.hpp"
+
 
 namespace TEngine {
 
@@ -41,7 +43,6 @@ namespace TEngine {
 #define ATTR_INPLACE "inplace"
 
 
-class SocInfo;
 class Node;
 struct NodeOps;
 struct sub_op_task;
@@ -50,11 +51,12 @@ using inplace_t=std::unordered_map<int,int>;
 
 using task_exec_t=std::function<bool(int cpu, int seq, void * data)>;
 using task_dispatch_t=std::function<bool(std::vector<sub_op_task>& tasks, int cpu)>;
+using wait_done_t=std::function<void(void)>;
 
 using mem_alloc_t=std::function<void *(int size)>;
 using mem_free_t= std::function<void (void *)>;
-using select_node_ops_t=std::function<NodeOps *(SocInfo *, Node *)>;
-using node_ops_create_t=std::function<NodeOps*(SocInfo *, Node *)>;
+using select_node_ops_t=std::function<NodeOps *(const CPUInfo *, Node *)>;
+using node_ops_create_t=std::function<NodeOps*(const CPUInfo *, Node *)>;
 
 struct sub_op_task {
    task_exec_t exec_func;
@@ -62,27 +64,15 @@ struct sub_op_task {
    void * data;
 };
 
-class TaskSync{
-
-public:
-   void WaitDone(void);
-   void IncRequest(unsigned int);
-   void IncDone(unsigned int);
-
-private:
-   std::atomic<uint64_t> request;
-   std::atomic<uint64_t> done;
-   std::mutex   wait_mutex;
-   std::condition_variable cv;  
-
-};
-
 struct NodeOps {
     virtual bool OnBind(Node *){return true;}
     virtual bool Prerun(Node *){return true;}
     virtual bool Postrun(Node *){return true;}
     virtual bool Run(Node *)=0;
+    virtual bool GetMemorySize(Node *, unsigned int & mem_sie) {return false;}
 
+    /* note: the mem_addr will be released by caller */
+    virtual void SetMemoryAddr(Node *, void * mem_addr) {}
 
     NodeOps(void)
     {
@@ -92,80 +82,43 @@ struct NodeOps {
     /* for delete this usage: https://isocpp.org/wiki/faq/freestore-mgmt#delete-this */
     void Release(void) { if (need_free) delete this;}
 	
-    void SetHelper(mem_alloc_t alloc, mem_free_t free, task_dispatch_t disp) 
+    void SetHelper(mem_alloc_t alloc, mem_free_t free, task_dispatch_t disp, wait_done_t wait) 
     {
          mem_alloc=alloc;
          mem_free=free;
          task_dispatch=disp;
+         wait_done=wait;
     }
-	
 
+    void SetCPUInfo(const CPUInfo * cpu) { cpu_info=cpu;}
+	
     virtual ~NodeOps(){}
 
     bool        need_free;
     mem_alloc_t mem_alloc;
     mem_free_t mem_free;
     task_dispatch_t task_dispatch;
+    wait_done_t  wait_done;
+
+    const CPUInfo * cpu_info;
 };
 
 
-struct MTNodeOps: public NodeOps {
+using MTNodeOps=NodeOps;
 
-    MTNodeOps(void) { need_free=true; sync=new TaskSync();}
- 
-    void WaitDone(void) { sync->WaitDone(); }
-    void IncRequest(unsigned int num) {sync->IncRequest(num);}
-    void IncDone(unsigned int num) { sync->IncDone(num);}
-
-     virtual ~MTNodeOps(){ if(sync) delete sync;}
-
-    TaskSync * sync;
-
-};
 
 struct NodeOpsSelector {
 
-   virtual NodeOps * Select(SocInfo * soc_info,Node * node)=0;
+   virtual NodeOps * Select(const CPUInfo * cpu_info,Node * node)=0;
    virtual ~NodeOpsSelector(){};
 
    std::string op_name;
 };
 
 
-struct SimpleSelector : public NodeOpsSelector
-{
-
-    SimpleSelector(NodeOps * ops){ node_ops=ops; creator=nullptr;}
-    SimpleSelector(node_ops_create_t func){ creator=func; node_ops=nullptr;}
-
-    NodeOps * Select(SocInfo * soc_info,Node * node)
-    {
-
-       if(node_ops)
-       	{
-       	       node_ops->need_free=false;
-	   	return node_ops;
-       	}
-       else
-       	{
-              NodeOps * new_ops=creator(soc_info,node);
-	      new_ops->need_free=true;
-              return  new_ops;
-       }
-    }
-
-    NodeOps* node_ops;
-    node_ops_create_t creator;
-	
-
-    ~SimpleSelector(void) { if(node_ops) delete node_ops;}
-};
-
-
-
 struct PrioSelector: public NodeOpsSelector
 {
-   NodeOps * Select(SocInfo * soc_info,Node * node)
+   NodeOps * Select(const CPUInfo * cpu_info,Node * node)
    {
         auto begin=prio_list.begin();
         auto end=prio_list.end();
@@ -174,7 +127,7 @@ struct PrioSelector: public NodeOpsSelector
         {
             auto match_func=ir->second;
 
-            auto ops=match_func(soc_info,node);
+            auto ops=match_func(cpu_info,node);
 
             if(ops)
               return ops;
@@ -197,10 +150,10 @@ struct NodeOpsRegistry {
 
     NodeOpsRegistry(const std::string& name) { reg_name=name;}
 
-    NodeOps * FindNodeOps(SocInfo *,Node *);
-    bool RegiserSimpleNodeOps(const std::string& op_name, NodeOps * ops);
+    NodeOps * FindNodeOps(const CPUInfo *,Node *);
 
     NodeOpsSelector * FindSelector(const std::string& name);
+
     bool RegisterSelector(NodeOpsSelector * selector);
 
     std::unordered_map<std::string,NodeOpsSelectorPtr> registry;
@@ -210,22 +163,30 @@ struct NodeOpsRegistry {
 
 #define REF_REGISTRY_NAME "reference"
 
+
 class NodeOpsRegistryManager {
 
 public:
 
-   static NodeOps * FindNodeOps(SocInfo *,Node *);
+   using NodeOpsPtr=std::shared_ptr<NodeOps>;
+
+   static void  RecordNodeOpsptr(NodeOps * ops);
+
+   static NodeOps * RealFindNodeOps(const CPUInfo *,Node *);
+   static NodeOps * FindNodeOps(const CPUInfo *,Node *);
+   static NodeOps * FindNodeOps(const std::string& registry_name, const CPUInfo *,Node *);
 
    static NodeOpsRegistryManager * GetInstance(void);
 
    static void AddRegistry(const std::string& name, NodeOpsRegistry * reg);
    static NodeOpsRegistry * FindRegistry(const std::string& name); 
 
-   static bool RegisterOPSelector(const std::string& registry_name, NodeOpsSelector * selector);
-   static bool RegisterOPImplementor(const std::string& registry_name, 
-                                     const std::string& op_name, NodeOps * ops);
+   static bool RegisterOPImplementor(const std::string& registry_name, const std::string& op_name, NodeOps * ops);
+   static bool RegisterOPImplementor(const std::string& registry_name, const std::string& op_name, select_node_ops_t selec_func, int priority);
+
 
    std::unordered_map<std::string, NodeOpsRegistry *>  registry_list;
+   std::vector<NodeOpsPtr>  ops_list;
 
 };
 

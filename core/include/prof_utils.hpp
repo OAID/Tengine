@@ -28,7 +28,7 @@
 
 namespace TEngine {
 
-#if 0
+#if 1
 static inline unsigned long get_cur_time(void)
 {
    struct timespec tm;

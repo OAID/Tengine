@@ -53,15 +53,59 @@ bool Pooling::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector
     int output_h;
     int output_w;
 
-    if(param_.caffe_flavor)
+    if(param_.pad_h>=0)
     {
-        output_h=std::ceil(((float)(input_h-param_.kernel_shape[0]+2*param_.pads[0]))/param_.strides[0])+1;
-        output_w=std::ceil(((float)(input_w-param_.kernel_shape[1]+2*param_.pads[1]))/param_.strides[1])+1;
+       if(param_.caffe_flavor)
+           output_h=std::ceil(((float)(input_h-param_.kernel_shape[0]+2*param_.pads[0]))/param_.strides[0])+1;
+       else
+           output_h=(input_h-param_.kernel_shape[0]+2*param_.pads[0])/param_.strides[0]+1;
+
     }
     else
     {
-        output_h=(input_h-param_.kernel_shape[0]+2*param_.pads[0])/param_.strides[0]+1;
-        output_w=(input_w-param_.kernel_shape[1]+2*param_.pads[1])/param_.strides[1]+1;
+        int n=(input_h-1)/param_.strides[0]+1;
+        int total_len=(n-1)*param_.strides[0]+param_.kernel_shape[0];
+        int pad_num=total_len-input_h;
+
+        if(param_.pad_h==-1)
+        {
+            param_.pads[0]=pad_num/2;
+            param_.pads[2]=pad_num-pad_num/2;
+        }
+        else
+        {
+            param_.pads[0]=pad_num/2;
+            param_.pads[2]=pad_num-pad_num/2;
+        }
+
+        output_h=(input_h-param_.kernel_shape[0]+param_.pads[0]+param_.pads[2])/param_.strides[0]+1;
+    }
+
+    if(param_.pad_w>=0)
+    {
+       if(param_.caffe_flavor)
+           output_w=std::ceil(((float)(input_w-param_.kernel_shape[1]+2*param_.pads[1]))/param_.strides[1])+1;
+       else
+           output_w=(input_w-param_.kernel_shape[1]+2*param_.pads[1])/param_.strides[1]+1;
+    }
+    else
+    {
+        int n=(input_w-1)/param_.strides[1]+1;
+        int total_len=(n-1)*param_.strides[1]+param_.kernel_shape[1];
+        int pad_num=total_len-input_w;
+
+        if(param_.pad_w==-1)
+        {
+            param_.pads[1]=pad_num/2;
+            param_.pads[3]=pad_num-pad_num/2;
+        }
+        else
+        {
+            param_.pads[1]=pad_num/2;
+            param_.pads[3]=pad_num-pad_num/2;
+        }
+
+        output_w=(input_w-param_.kernel_shape[1]+param_.pads[1]+param_.pads[3])/param_.strides[1]+1;
     }
 
     std::vector<int> dim={input_shape.GetN(),input_shape.GetC(),output_h,output_w};

@@ -1,4 +1,5 @@
 .*.swp
+*.o
 *.so
 *.exe
 tests/data/
@@ -8,5 +9,10 @@ build/
 *.pb.h
 makefile.config
 etc/config
-sysroot/debian-buster
-install
+install/
+models/
+*.tgz
+protobuf/
+OpenBLAS/
+protobuf_lib/
+sysroot/

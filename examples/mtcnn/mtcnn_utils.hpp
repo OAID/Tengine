@@ -30,7 +30,6 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "tengine_c_api.h"
-#include "tengine_config.hpp"
 
 #define NMS_UNION 1
 #define NMS_MIN  2
@@ -68,7 +67,7 @@ struct face_box
 	float px1;
 	float py1;
 
-	face_landmark landmark;  
+	face_landmark landmark;
 };
 
 void  cal_scale_list(int height, int width, int minsize,std::vector<scale_window>& list);

@@ -44,7 +44,8 @@ public:
 		kRunQueue
 	};
 	 
- 
+        bool OptimizeGraph(SubgraphTask * task) override;
+        Subgraph * GetOptimizedGraph(SubgraphTask * task) override;
 	
        	bool PrerunTask(SubgraphTask * task) override;
 	bool SchedTask(SubgraphTask * task) override;
@@ -74,23 +75,55 @@ public:
 	     return DevGetPerf(graph,policy,perf);
 	}
 	
-	float GetFops(Subgraph * graph) override
+	float GetFops(Subgraph * graph, int policy) override
 	{
-	      return DevGetFops(graph);
+	      return DevGetFops(graph, policy);
 	}
+
+        int GetPolicyPriority(int policy) override
+        {
+             return DevGetPolicyPriority(policy);
+        }
+
+        bool SetDevConfig(const char * config_name, const void * val, int size) override
+        {
+            return DevSetConfig(config_name,val,size);
+        }
+
+        bool GetDevConfig(const char * config_name, void * buffer, int size) override
+        {
+            return DevGetConfig(config_name,buffer,size);
+        }
+
+        bool DelDevConfig(const char * config_name) override
+        {
+            return DevDelConfig(config_name);
+        }
+  
+        bool GetProposal(Subgraph * graph, int policy) override
+        {
+            return DevGetProposal(graph,policy);
+        }
 
 	bool Start(void) override { return DevStart();}
    	bool Stop(void) override {  return DevStop(); }
 
        	void SetName(const std::string& name) override {name_=name;}
+
 	
 	virtual void DevGetWorkload(DevWorkload& load) =0;	
 	virtual bool DevGetPerf(Subgraph * graph,int policy,GraphPerf& perf)=0;
-	virtual float DevGetFops(Subgraph * graph) =0; 
+	virtual float DevGetFops(Subgraph * graph,int policy) =0; 
+	virtual int  DevGetPolicyPriority(int policy) =0; 
+	virtual bool  DevGetProposal(Subgraph * graph,int policy) =0; 
+
+        virtual bool DevSetConfig(const char * config_name, const void * buffer, int size)=0;
+        virtual bool DevGetConfig(const char * config_name, void * buffer, int size)=0;
+        virtual bool DevDelConfig(const char * config_name)=0;
 	
 
 	virtual void * DevCreateGraphHandle(Subgraph * graph)=0;
-	virtual bool DevOptimzeGraph(void * graph_handle)=0;
+	virtual bool DevOptimizeGraph(void * graph_handle)=0;
 	virtual bool DevPrerun(void * graph_handle)=0;
 	virtual bool DevRun(void * graph_handle)=0;
 	virtual bool DevSyncRun(void * graph_handle)=0;
@@ -101,6 +134,10 @@ public:
 	virtual const dev_type_t & DevGetType(void)=0;
         virtual bool DevStart(void)=0;
 	virtual bool DevStop(void)=0;
+        virtual Subgraph * DevGetOptimizedGraph(void * graph_handle) { return nullptr;}
+
+        virtual bool DevGetMemorySize(void * graph_handle,unsigned int& mem_size){return false;}
+        virtual void DevSetMemory(void * graph_handle, void * mem_addr){};
 	
 	virtual ~GenericDevExecutor() {}
 
