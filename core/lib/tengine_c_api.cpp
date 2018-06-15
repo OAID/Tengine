@@ -21,8 +21,15 @@
  * Copyright (c) 2017, Open AI Lab
  * Author: haitao@openailab.com
  */
-#include <iostream>
 #include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <string.h>
+
+#include <iostream>
 #include <string>
 
 #include "tengine_config.hpp"
@@ -38,6 +45,7 @@
 #include "share_lib_parser.hpp"
 #include "data_type.hpp"
 #include "data_layout.hpp"
+#include "cpu_device.h"
 
 using namespace TEngine;
 
@@ -185,8 +193,8 @@ void destroy_graph(graph_t graph)
 	const char * model_name=get_model_name(graph);
 
 	remove_model(model_name);
-
 	destroy_runtime_graph(graph);
+    release_tengine_library();
 }
 
 int get_output_size(graph_t graph)
@@ -269,6 +277,52 @@ static workspace_t get_default_workspace(void)
 
 /*** Level 1 API implementation */
 
+void __attribute__((constructor)) first_init(void)
+{
+	NamedData<DataLayout>::InitPredefinedData();
+	NamedData<DataType>::InitPredefinedData();
+}
+
+
+extern "C" {
+void operator_plugin_init(void);
+void serializer_plugin_init(void);
+void executor_plugin_init(void);
+void driver_plugin_init(void);
+
+}
+
+static void InitAllPlugin(void)
+{
+   operator_plugin_init();
+   serializer_plugin_init();
+   executor_plugin_init();
+   driver_plugin_init();
+}
+
+static void set_cpu_list(const char * cpu_list_str)
+{
+	char * copy_str=strdup(cpu_list_str);
+
+	std::vector<int> cpu_list;
+
+	char * p=strtok(copy_str,",");
+
+	while(p)
+	{
+	    int cpu_id=strtoul(p,NULL,10);
+	    cpu_list.push_back(cpu_id);
+	    p=strtok(NULL,",");
+	}
+
+	int * int_buf=cpu_list.data();
+
+	set_working_cpu(int_buf,cpu_list.size());
+
+	free(copy_str);
+
+}
+
 int init_tengine_library(void)
 {
     static int initialized=0;
@@ -287,27 +341,29 @@ int init_tengine_library(void)
       
     initialized=1;
 
-	NamedData<DataType>::InitPredefinedData();
-	NamedData<DataLayout>::InitPredefinedData();
-
-    // Load the config file
-    if(!TEngineConfig::Load("./etc/config"))
-        return -1;
-    TEnginePlugin::SetPluginManager();
-
-    // TEngineConfig::DumpConfig();  // for debug
-    // TEnginePlugin::DumpPlugin();  // for debug
+    TEngineConfig::Set("exec.engine","generic",true);
     
     //create the default user context
     get_default_user_context();
 
-    TEnginePlugin::LoadAll();
+    InitAllPlugin();
 
     //create the default context and workspace
     get_default_user_context();
     get_default_workspace();
 
     TEnginePlugin::InitModule();
+
+
+	//set the default online cpu according to env var
+    const char * cpu_list_str=std::getenv("TENGINE_CPU_LIST");
+
+	if(cpu_list_str)
+	{
+		std::cout<<"ENV SET: ["<<cpu_list_str<<"]\n";
+		set_cpu_list(cpu_list_str);
+	}
+	
 
     TEngineUnlock(init_mutex);
     return 0;
@@ -542,6 +598,38 @@ tensor_t  get_graph_tensor(graph_t graph, const char * tensor_name)
         return h;
 }
 
+tensor_t  get_graph_input_tensor(graph_t graph, int input_node_idx, int tensor_idx)
+{
+    int node_number = get_input_node_number(graph);
+    if(!node_number || input_node_idx >= node_number)
+        return nullptr;
+
+    const char * node_name = get_input_node_name(graph, input_node_idx);
+    int tensor_number = get_node_output_number(graph, node_name);
+    if(!tensor_number || tensor_idx >= tensor_number)
+        return nullptr;
+
+    const char * tensor_name = get_node_output_tensor(graph, node_name, tensor_idx);
+    tensor_t tensor = get_graph_tensor(graph, tensor_name);
+    return tensor;
+}
+
+tensor_t  get_graph_output_tensor(graph_t graph, int output_node_idx, int tensor_idx)
+{
+    int node_number = get_output_node_number(graph);
+    if(!node_number || output_node_idx >= node_number)
+        return nullptr;
+
+    const char * node_name = get_output_node_name(graph, output_node_idx);
+    int tensor_number = get_node_output_number(graph, node_name);
+    if(!tensor_number || tensor_idx >= tensor_number)
+        return nullptr;
+
+    const char * tensor_name = get_node_output_tensor(graph, node_name, tensor_idx);
+    tensor_t tensor = get_graph_tensor(graph, tensor_name);
+    return tensor;
+}
+
 int  check_tensor_valid(tensor_t tensor)
 {
 	tensor_handle * t=static_cast<tensor_handle *>(tensor);
@@ -673,6 +761,14 @@ const char * get_tensor_name(tensor_t tensor)
         return real_tensor->GetName().c_str();
 }
 
+void * get_graph_node(graph_t graph, const char * node_name)
+{
+	GraphExecutor * executor=static_cast<GraphExecutor *>(graph);
+
+	return executor->FindNode(node_name);
+}
+	
+
 int  prerun_graph(graph_t graph)
 {
 	GraphExecutor * executor=static_cast<GraphExecutor *>(graph);
@@ -710,8 +806,19 @@ int  run_graph(graph_t graph, int block)
 void dump_graph(graph_t graph)
 {
 	GraphExecutor * executor=static_cast<GraphExecutor *>(graph);
-	Graph* g=executor->GetGraph();
-	g->DumpGraph();
+
+        /* first: try to dump optimized graph */
+	Graph* g=executor->GetOptimizedGraph();
+
+        if(g)
+        {
+          g->DumpGraph();
+          return;
+        }
+
+        /* get the origin graph */
+        g=executor->GetGraph();
+        g->DumpGraph();
 }
 
 int wait_graph(graph_t graph, int try_wait)
@@ -922,5 +1029,142 @@ int  del_graph_config(graph_t graph, const char * name)
 void set_log_level(int level)
 {
    SET_LOG_LEVEL((LogLevel)level);
+}
+
+static std::string tengine_conf_file;
+
+void set_config_file(const char * conf_file)
+{
+     tengine_conf_file=conf_file;
+}
+
+
+const char * get_config_file(void)
+{
+
+   if(!tengine_conf_file.empty())
+          return tengine_conf_file.c_str();
+
+
+    const char * env_key="TENGINE_CONFIG_FILE";
+
+    const char * conf_env=std::getenv(env_key);
+
+    if(conf_env)
+        return conf_env;
+
+    std::fstream test_fs;
+
+     /* check if /etc/tengine/config or /usr/local/etc/tengine/config exists */
+    const char * conf_basename="config";
+
+    std::string std_etc_conf("/etc/tengine/");
+
+    std_etc_conf=std_etc_conf+conf_basename;    
+
+    test_fs.open(std_etc_conf);
+
+    if(test_fs.is_open())    
+    {
+        test_fs.close();
+        tengine_conf_file=std_etc_conf;
+        return tengine_conf_file.c_str();
+    }
+
+    std::string usr_etc_conf("/usr/local/etc/tengine/"); 
+
+    usr_etc_conf=usr_etc_conf+conf_basename;
+   
+    test_fs.open(usr_etc_conf);
+
+    if(test_fs.is_open())    
+    {    
+        test_fs.close();
+        tengine_conf_file=usr_etc_conf;
+        return tengine_conf_file.c_str();
+    }
+
+#ifndef PATH_MAX
+    /* check current directory */
+    #define PATH_MAX 1024
+#endif
+
+    char file_path[PATH_MAX+128];
+
+    if(getcwd(file_path,PATH_MAX))
+    {
+        sprintf(file_path+strlen(file_path),"/etc/tengine/config");
+
+        test_fs.open(file_path);
+
+        if(test_fs.is_open())    
+        {    
+             test_fs.close();
+             tengine_conf_file=file_path;
+             return tengine_conf_file.c_str();
+        }
+
+        if(getcwd(file_path,PATH_MAX)==NULL)
+            return nullptr;
+
+        sprintf(file_path+strlen(file_path),"/etc/config");
+ 
+        test_fs.open(file_path);
+
+        if(test_fs.is_open())    
+        {    
+             test_fs.close();
+             tengine_conf_file=file_path;
+             return tengine_conf_file.c_str();
+        }
+    }
+
+    /* check the relative path of executable */
+
+    /* get the abs path of executable first */
+
+    int n=readlink("/proc/self/exe",file_path,PATH_MAX);
+
+    if(n==PATH_MAX)
+        n=PATH_MAX-1;
+
+    file_path[n]=0x0;
+
+    char * p=strrchr(file_path,'/');
+    p[1]=0;
+
+    sprintf(file_path+strlen(file_path),"../etc/tengine/config");
+
+    test_fs.open(file_path);
+
+    if(test_fs.is_open())    
+    {    
+         test_fs.close();
+         tengine_conf_file=file_path;
+         return tengine_conf_file.c_str();
+    }
+
+    n=readlink("/proc/self/exe",file_path,PATH_MAX);
+
+    if(n==PATH_MAX)
+        n=PATH_MAX-1;
+
+    file_path[n]=0x0;
+
+    p=strrchr(file_path,'/');
+    p[1]=0;
+
+    sprintf(file_path+strlen(file_path),"../etc/config");
+
+    test_fs.open(file_path);
+
+    if(test_fs.is_open())    
+    {    
+         test_fs.close();
+         tengine_conf_file=file_path;
+         return tengine_conf_file.c_str();
+    }   
+ 
+    return nullptr;  
 }
 

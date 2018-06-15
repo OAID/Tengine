@@ -4,30 +4,48 @@
 
 This is mtcnn implementation with [Tengine](https://github.com/OAID/Tengine).
 
-## Build
-1. install [Tengine](https://github.com/OAID/Tengine)
-2. install opencv
-    ```
-    sudo apt-get install libopencv-dev
-    ```
-3. config
-    ```
-    cp etc/config.example etc/config
-    ```
-    set your Tengine build path in `etc/config`
-    ```
-    plugin.operator.so = ~/tengine/build/operator/liboperator.so
-    plugin.serializer.so = ~/tengine/build/serializer/libserializer.so
-    plugin.executor.so = ~/tengine/build/executor/libexecutor.so
-    plugin.driver.so = ~/tengine/build/driver/libdriver.so
+## Download required models
+Download the models from [Tengine model zoo](https://pan.baidu.com/s/1LXZ8vOdyOo50IXS0CUPp8g) (psw: 57vb)
+
+Store these files into `${Tengine_ROOT}/models/`
+- det1.caffemodel
+- det1.prototxt
+- det2.caffemodel
+- det2.prototxt
+- det3.caffemodel
+- det3.prototxt
+
+## Build examples
+```
+cd  ${Tengine_ROOT}
+make install
+cd  ${Tengine_ROOT}/examples/mtcnn
+cmake .
+make
+```
+
+## Run
+
+1. run mtcnn by default
+	```
+	cd ${Tengine_ROOT}/examples/mtcnn/
+    ./MTCNN
     ```
 
-4. cmake & make
+2. run mtcnn with other models and image
     ```
-    cd ~/tengine/examples/mtcnn
-    cmake .
-    make
+    cd ${Tengine_ROOT}/examples/mtcnn/
+	./MTCNN  <test.jpg>  <model_dir>  [save_result.jpg]
     ```
+    - `model_dir` is the path of your mtcnn models. Under this path, there are 3 models:
+        ```
+        ├── det1.caffemodel
+        ├── det1.prototxt
+        ├── det2.caffemodel
+        ├── det2.prototxt
+        ├── det3.caffemodel
+        ├── det3.prototxt
+        ```
 
 
 ## Detect Parameters
@@ -56,21 +74,8 @@ There are several parameters for mtcnn face detection. You can set these paramet
 
     the nms threshold of Onet of mtcnn, range in [0,1]  
 
-## Test
-- test an image:
 
-    ```
-    [usage]: ./MTCNN  <test.jpg>  <model_dir>  [save_result.jpg]
-    ```
-- `model_dir` is the path of your mtcnn models. Under this path, there are 3 models:
-    ```
-    ├── det1.caffemodel
-    ├── det1.prototxt
-    ├── det2.caffemodel
-    ├── det2.prototxt
-    ├── det3.caffemodel
-    ├── det3.prototxt
-    ```
+
 
 ## Benchmark
 - test on RK3399 single core A72@1.8GHz
@@ -88,5 +93,6 @@ There are several parameters for mtcnn face detection. You can set these paramet
 Kaipeng Zhang, Zhanpeng Zhang, Zhifeng Li, Yu Qiao, "Joint Face Detection and Alignment using Multi-task Cascaded Convolutional Networks", IEEE Signal Processing Letter
 
 https://github.com/kpzhang93/MTCNN_face_detection_alignment
+
 
 

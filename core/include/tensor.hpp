@@ -35,7 +35,8 @@
 namespace TEngine {
 
 class Node;
-class NodePort;
+struct NodePort;
+struct StaticConstTensor;
 
 class Tensor : public BaseObject {
 
@@ -44,12 +45,15 @@ public:
         {
              name_=name;
              data_type_="float32";
+             static_tensor_=nullptr;
         }
 
 	virtual ~Tensor()
         {
 
-            if(type_==kConstTensor && ExistAttr("free_mem"))
+            if(type_==kConstTensor 
+               && ExistAttr("free_mem")
+               && ExistAttr("mem_addr"))
             {
                void * mem=any_cast<void *>(GetAttr("mem_addr"));
                std::free(mem);
@@ -105,6 +109,14 @@ public:
 
         Node * GetConsumerNode(int idx);
 
+        /* note: as tensor.hpp is defined in representation level,
+                so that the memory allocated is only valid for const tensor
+                to hold the trained parameters
+           please use get_tensor_mem()/set_tensor_mem() to get/set tensor memory
+               in operator run functioins
+
+        */
+
         void * GetMemAddr(void) const
         {
            if(!ExistAttr("mem_addr"))
@@ -118,11 +130,15 @@ public:
             (*this)["mem_addr"]=addr;
         }
 
+        void FreeMem(void);
+        void BindStaticTensor(StaticConstTensor *);
+
 protected:
         TensorType   type_;
         std::string  name_;
 	std::string  data_type_;
 	TShape       shape_;
+        StaticConstTensor * static_tensor_;
 
        
 

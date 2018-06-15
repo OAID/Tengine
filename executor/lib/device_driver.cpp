@@ -27,6 +27,7 @@
 #include "logger.hpp"
 #include "device_driver.hpp"
 #include "dev_executor.hpp"
+#include "tengine_c_api.h"
 
 
 namespace TEngine {
@@ -99,6 +100,10 @@ Device * DriverManager::GetDevice(const dev_id_t& dev_id)
 
 bool DriverManager::LoadDevice(Driver * driver,Device * device)
 {
+
+	if(driver->GetDeviceStatus(device) == kDevNormal)
+		return true;
+
 	const dev_id_t & dev_id=device->GetDeviceID();
 
 	DevExecutor * dev_executor=DevExecutorFactory::GetFactory()->Create(dev_id,dev_id);
@@ -193,36 +198,31 @@ bool DriverManager::UnloadDevice(Driver * driver)
 	return true;	
 }
 
-void DriverManager::ProbeDevice(void)
+int DriverManager::ProbeDevice(void)
 {
+    auto manager=GetInstance();
+    auto ir=manager->begin();
+    auto ir_end=manager->end();
 
-   /* Load pre-assigned device  */
-   int count=0;
-   std::string prefix="driver.probe.";
 
-   while(true)
-   {
-        std::string key_name=prefix+std::to_string(count);
-        std::string driver_name;
+    while(ir!=ir_end)
+	{
+        Driver * driver=ir->second;
 
-        if(!TEngineConfig::Get(key_name,driver_name))
-             break;
-
-        count++;
-
-        Driver * driver=GetDriver(driver_name);
-
-        if(driver)
+        if(driver->AutoProbe())
         {
              LoadDevice(driver);
              int dev_num=driver->GetDeviceNum();
 
-             LOG_INFO()<<"Driver: "<<driver_name<<" probed "<<dev_num<<" devices\n";
+             LOG_INFO()<<"Driver: "<<driver->GetName()<<" probed "<<dev_num<<" devices\n";
         }
+		ir++;
    }
+
+   return 0;
 }
 
-void DriverManager::ReleaseDevice(void)
+int DriverManager::ReleaseDevice(void)
 {
     //loop over all registered driver, and unload the device the driver probed
     auto manager=GetInstance();
@@ -239,7 +239,159 @@ void DriverManager::ReleaseDevice(void)
          ir++;    
     }
 
+    return 0;
+
+}
+
+bool DriverManager::HasDefaultDevice(void)
+{
+     auto manager=GetInstance();
+
+	 return !(manager->default_dev==nullptr);
+}
+
+Device *DriverManager::GetDefaultDevice(void)
+{
+     auto manager=GetInstance();
+
+     std::string dummy_name;
+
+     if(GetDefaultDeviceName(dummy_name))
+         return manager->default_dev;
+
+     return nullptr;
+}
+
+bool DriverManager::GetDefaultDeviceName(std::string& dev_name)
+{
+     auto manager=GetInstance();
+
+     if(manager->default_dev)
+     {
+          dev_name=manager->default_dev->GetName();
+          return true;
+     }
+
+    /**** call the registered probe_default_device *****/
+
+    if(manager->probe_default)
+    {
+       manager->probe_default();
+
+       if(manager->default_dev)
+       {
+          dev_name=manager->default_dev->GetName();
+          return true;
+       }
+
+    }
+
+    return false; 
+}
+
+void DriverManager::SetProbeDefault(probe_default_t probe)
+{
+     auto manager=GetInstance();
+
+     manager->probe_default=probe;
+}
+
+bool DriverManager::SetDefaultDevice(const std::string& dev_name)
+{
+     Device * dev=GetDevice(dev_name);
+
+     if(dev==nullptr)
+         return false;
+
+     
+     auto manager=GetInstance();
+
+     manager->default_dev=dev;
+
+     return true;
+}
+
+void DriverManager::SetDefaultDevice(Device * device)
+{
+     auto manager=GetInstance();
+
+     manager->default_dev=device;
+     
+}
+
+} //namespace TEngine
+
+using namespace TEngine;
+
+int load_device(const char * driver_name, const char * dev_name)
+{
+
+    Driver * driver=DriverManager::GetDriver(driver_name);
+
+    if(driver==nullptr) return -1;
+
+    if(dev_name)
+    {
+       Device * dev=DriverManager::GetDevice(dev_name);
+
+       if(dev==nullptr)
+       {
+           driver->ProbeDevice(dev_name);
+           dev=DriverManager::GetDevice(dev_name);
+
+           if(dev==nullptr)
+              return -1;
+       }
+
+       /* load special device */
+       if(DriverManager::LoadDevice(driver,dev))
+           return 0;
+    }
+    else
+    {
+       if(DriverManager::LoadDevice(driver))
+           return 0;
+    }
+
+    return -1;
+
+    
 }
 
 
-} //namespace TEngine
+int unload_device(const char * driver_name, const char * dev_name)
+{
+     Driver * driver=DriverManager::GetDriver(driver_name);
+
+     if(driver==nullptr) return -1;
+
+     if(dev_name)
+     {
+          Device * dev=DriverManager::GetDevice(dev_name);
+
+          if(dev==nullptr) return -1;
+
+          if(DriverManager::UnloadDevice(driver,dev))
+                return 0;
+        
+     }
+     else
+     {
+        if(DriverManager::UnloadDevice(driver))
+            return 0;
+     }
+
+     return -1;
+}
+
+
+int set_default_device(const char * device)
+{
+
+    if(DriverManager::GetDevice(device)==nullptr)
+		  return -1;
+
+	DriverManager::SetDefaultDevice(device);
+				    
+	return 0;
+}

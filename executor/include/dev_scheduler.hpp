@@ -35,7 +35,7 @@
 namespace TEngine {
 
 class SubgraphTask;
-class DevExecutor;
+struct DevExecutor;
 class GenericEngine;
 
 

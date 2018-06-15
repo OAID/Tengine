@@ -29,7 +29,7 @@
 #include <fstream>
 #include <functional>
 
-#include "caffe.pb.h"
+#include "te_caffe.pb.h"
 
 #include "serializer.hpp"
 #include "static_graph_interface.hpp"
@@ -60,11 +60,11 @@ public:
 
 protected:
 
-      bool LoadBinaryFile(const char * fname, caffe::NetParameter& caffe_net);
-      bool LoadTextFile(const char * fname, caffe::NetParameter& caffe_net);
+      bool LoadBinaryFile(const char * fname, te_caffe::NetParameter& caffe_net);
+      bool LoadTextFile(const char * fname, te_caffe::NetParameter& caffe_net);
 
-      virtual bool LoadGraph(caffe::NetParameter& model, StaticGraph * graph);
-      bool LoadNode(StaticGraph * graph, StaticNode * ,const caffe::LayerParameter&, name_map_t&);
+      virtual bool LoadGraph(te_caffe::NetParameter& model, StaticGraph * graph);
+      bool LoadNode(StaticGraph * graph, StaticNode * ,const te_caffe::LayerParameter&, name_map_t&);
 
 
 };
@@ -82,7 +82,7 @@ public:
 
       bool LoadModel(const std::vector<std::string>& file_list, StaticGraph * static_graph) override;
 protected:
-      bool LoadGraph(caffe::NetParameter& test_net, caffe::NetParameter& train_net, StaticGraph * graph);
+      bool LoadGraph(te_caffe::NetParameter& test_net, te_caffe::NetParameter& train_net, StaticGraph * graph);
 
 
 };

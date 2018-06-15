@@ -237,6 +237,18 @@ bool GenericEngine::SetCallback(exec_handle_t h , exec_event_t& e, int event, ex
     return graph_task->SetCallback(e,event,cb);
 }
 
+bool GenericEngine::OptimizeGraph(exec_handle_t h)
+{
+    return true;
+}
+
+Graph * GenericEngine::GetOptimizedGraph(exec_handle_t h)
+{
+    GraphTask * graph_task=any_cast<GraphTask * >(*h);
+ 
+    return graph_task->GetOptimizedGraph();
+}
+
 bool GenericEngine::SetScheduler(const std::string& sched_name)
 {
       DevSchedulerPtr  ptr;
@@ -245,5 +257,6 @@ bool GenericEngine::SetScheduler(const std::string& sched_name)
       scheduler_=ptr.get();
       return true;
 }
+
 
 } //namespace TEngine

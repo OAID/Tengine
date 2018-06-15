@@ -32,12 +32,13 @@
 #include "generic_factory.hpp"
 #include "tensor_shape.hpp"
 #include "static_graph.hpp"
+#include "quant_op.hpp"
 
 namespace TEngine {
 
 
 class Node;
-class StaticOp;
+struct StaticOp;
 
 class Operator: public BaseObject {
 
@@ -46,6 +47,8 @@ public:
     using io_str_t=std::pair<std::string,std::string >;
     using infer_shape_t=std::function<bool(const std::vector<TShape>&,std::vector<TShape>&)>;
 
+    //bool IsDynamicShape(void) { return dynamic_shape_;}
+    void SetDynamicShape(bool val) { dynamic_shape_=val;}
 
     virtual Operator * Clone(void) =0;
  
@@ -142,9 +145,12 @@ public:
 
      virtual ~Operator() {};
 
+     quant_op quant_args;
+
 protected:
 
 	std::string name_;
+        bool dynamic_shape_;
 	std::vector<io_str_t> inputs_;
    	std::vector<io_str_t> outputs_;
    	std::string    layout_;
@@ -227,20 +233,20 @@ public:
 
   }
 
-  virtual void ParseParam(P& param, Operator * op)
+  virtual void ParseParam(P& param, Operator * op) 
   {
        P::Parse(param,op);
   }
 
 
-  bool ParamFromStaticOp(StaticOp * s_op) 
+  bool ParamFromStaticOp(StaticOp * s_op)  override
   {
      param_=any_cast<P>(s_op->param);
      
      return true;
   }
 
-  any GetDefParam(void)  
+  any GetDefParam(void)  override
   {
      P param;
 

@@ -26,6 +26,7 @@
 #include "data_layout.hpp"
 #include "tensor_shape.hpp"
 #include "logger.hpp"
+#include "compiler.hpp"
 
 namespace TEngine {
 

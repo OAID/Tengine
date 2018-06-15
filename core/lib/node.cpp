@@ -36,7 +36,13 @@ namespace TEngine {
 
 void Node::DumpNode(void)
 {
-    LOG_INFO()<<"\nNode: "<<name_<<" OP: "<<GetOp()->GetName()<<" idx: "<<GetNodeIndex()<<std::endl;
+    LOG_INFO()<<"\nidx: "<<GetNodeIndex()<<" Node: "<<name_<<" OP: "<<GetOp()->GetName();
+    
+    if(dynamic_shape_)
+           LOG_INFO()<<" Dynamic";
+
+    LOG_INFO()<<"\n";
+
     LOG_INFO()<<"\tInput: "<<inputs_.size()<<" Output: "<<outputs_.size()<<std::endl;
 
     LOG_INFO()<<"\tInput Tensors:"<<std::endl;
@@ -128,6 +134,19 @@ float Node::GetFops(void)
 
    return op_->GetFops(inputs,outputs);
     
+}
+
+void Node::MergeAttr(Node * orig)
+{
+	auto ir=orig->dict_map_.begin();
+	const auto end=orig->dict_map_.end();
+
+	while(ir!=end)
+	{
+	   dict_map_[ir->first].swap(orig->dict_map_[ir->first]);
+	   ir++;
+    }
+
 }
 
 

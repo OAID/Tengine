@@ -24,43 +24,9 @@
 #include "logger.hpp"
 #include "graph.hpp"
 #include "node_ops.hpp"
-#include "soc_runner.hpp"
-#include "arm64_registry.hpp"
-
+#include "cpu_driver.hpp"
 
 namespace TEngine {
-
-void TaskSync::WaitDone(void)
-{
-    std::unique_lock<std::mutex> lock(wait_mutex);
-
-    if(done!=request)
-         cv.wait(lock,[this]{return done==request;});
- 
-    lock.unlock(); 
-}
-
-
-void TaskSync::IncRequest(unsigned int number)
-{
-    request+=number;
-}
-
-
-void TaskSync::IncDone(unsigned int number)
-{
-    uint64_t prev_val=done.fetch_add(number);
-
-    if(prev_val+number==request)
-    {
-        std::unique_lock<std::mutex> lock(wait_mutex);
-
-        cv.notify_all();
-
-        lock.unlock();
-    }
-
-}
 
 
 /**** NodeOpsRegistryManager ********/
@@ -72,61 +38,111 @@ NodeOpsRegistryManager * NodeOpsRegistryManager::GetInstance(void)
     return &instance;
 }
 
-NodeOps * NodeOpsRegistryManager::FindNodeOps(SocInfo * soc_info, Node * node)
+NodeOps * NodeOpsRegistryManager::FindNodeOps(const std::string& registry_name, const CPUInfo * cpu_info, Node * node)
+{
+    NodeOpsRegistry * registry=FindRegistry(registry_name);
+
+    if(!registry)
+         return nullptr;
+
+
+    NodeOps * ops=registry->FindNodeOps(cpu_info,node);
+
+    if(!ops) return nullptr;
+
+    ops->SetCPUInfo(cpu_info);
+
+    return ops;
+}
+
+NodeOps * NodeOpsRegistryManager::FindNodeOps(const CPUInfo * cpu_info, Node * node)
+{
+
+    const char * target_registry=std::getenv("OPS_REGISTRY");
+    const char * target_op=std::getenv("OP_NAME");
+    NodeOps * ops;
+	bool target_search=false;
+
+    if(target_registry)
+	{
+		target_search=true;
+
+		if(target_op)
+		{
+			 Operator * op=node->GetOp();
+
+			 if(op->GetName()==target_op)
+				 target_search=true;
+			 else
+				 target_search=false;
+		}
+    }
+		
+	if(target_search)
+	{
+		  ops=FindNodeOps(target_registry,cpu_info,node);
+
+         if(!ops) return nullptr;
+
+         ops->SetCPUInfo(cpu_info);
+
+		 return ops;
+    }
+
+    ops=RealFindNodeOps(cpu_info,node);
+
+    if(!ops) return nullptr;
+
+    ops->SetCPUInfo(cpu_info);
+
+    return ops;
+}
+
+NodeOps * NodeOpsRegistryManager::RealFindNodeOps(const CPUInfo * cpu_info, Node * node)
 {
     NodeOps * ops;
 
-    //search soc specific
-    NodeOpsRegistry * soc_registry=FindRegistry(soc_info->soc_name);
-
-    if(soc_registry)
+    if(cpu_info!=nullptr)
     {
-        ops=soc_registry->FindNodeOps(soc_info,node);
-
-        if(ops) 
-           return ops;
-    }
-
-    //search cpu_type
+       //search cpu_type
+       int master_cpu=cpu_info->GetMasterCPU();
    
-    const std::string& cpu_type=soc_info->cpu_info[soc_info->master_cpu].cpu_type;
+       const std::string& cpu_model=cpu_info->GetCPUModelString(master_cpu);
 
-    NodeOpsRegistry * type_registry=FindRegistry(cpu_type);
+       ops=FindNodeOps(cpu_model,cpu_info,node);
 
-    if(type_registry)
-    {
-        ops=type_registry->FindNodeOps(soc_info,node);
+       if(ops) return ops;
 
-        if(ops) 
-           return ops;
+       //search arch
+        std::string cpu_arch;
+		
+		int int_arch=cpu_info->GetCPUArch(master_cpu);
+
+		if(int_arch==ARCH_ARM_V8)
+	    {
+			 cpu_arch="arm64";
+		}
+		else if(int_arch==ARCH_ARM_V7)
+		{
+			 cpu_arch="arm32";
+		}
+
+        ops=FindNodeOps(cpu_arch,cpu_info,node);
+
+        if(ops) return ops;
     }
 
-    //search arch
+    //search common
 
-    const std::string& cpu_arch=soc_info->cpu_info[soc_info->master_cpu].cpu_arch;
+    ops=FindNodeOps("common",cpu_info,node);
 
-    NodeOpsRegistry * arch_registry=FindRegistry(cpu_arch);
-
-    if(arch_registry)
-    {
-        ops=arch_registry->FindNodeOps(soc_info,node);
-
-        if(ops) 
-           return ops;
-    }
+    if(ops) return ops;
 
     //the final search: reference
-    NodeOpsRegistry * ref_registry=FindRegistry("reference");
 
-    if(ref_registry)
-    {
-        ops=ref_registry->FindNodeOps(soc_info,node);
+    ops=FindNodeOps(REF_REGISTRY_NAME,cpu_info,node);
 
-        if(ops) 
-           return ops;
-    }
-
-    return nullptr;
+    return ops;
 }
 
 void NodeOpsRegistryManager::AddRegistry(const std::string& name, NodeOpsRegistry * reg)
@@ -147,46 +163,61 @@ NodeOpsRegistry * NodeOpsRegistryManager::FindRegistry(const std::string& name)
    return manager->registry_list[name];
 }
 
-bool NodeOpsRegistryManager::RegisterOPSelector(const std::string& registry_name, 
-                                         NodeOpsSelector * selector)
+
+static NodeOps * simple_select_function(NodeOps * ops,const CPUInfo * info, Node * node)
 {
-    auto registry=FindRegistry(registry_name);
+    return ops;
+}
 
-    if(registry==nullptr)
-          return false;
+void  NodeOpsRegistryManager::RecordNodeOpsptr(NodeOps * ops)
+{
 
-    return registry->RegisterSelector(selector);
+      auto manager=GetInstance();
+
+      manager->ops_list.emplace_back(ops);
 }
 
 bool NodeOpsRegistryManager::RegisterOPImplementor(const std::string& registry_name, 
                                        const std::string& op_name, NodeOps * ops)
 {
+     auto f=std::bind(simple_select_function,ops,std::placeholders::_1, std::placeholders::_2);
+
+     RecordNodeOpsptr(ops);
+    
+     return RegisterOPImplementor(registry_name,op_name,f,1000);
+
+}
+
+bool NodeOpsRegistryManager::RegisterOPImplementor(const std::string& registry_name, const std::string& op_name, select_node_ops_t select_func, int priority)
+{
+	 //TODO: Add Lock to protect find and register registry
+
     auto registry=FindRegistry(registry_name);
 
     if(registry==nullptr)
-          return false;
+	{
+          registry=new NodeOpsRegistry(registry_name);
+		  NodeOpsRegistryManager::AddRegistry(registry->reg_name,registry);
+	}
 
-    return registry->RegiserSimpleNodeOps(op_name,ops);
+    PrioSelector * prio_selector=dynamic_cast<PrioSelector*>(registry->FindSelector(op_name));
+
+   if(prio_selector==nullptr)
+   {
+        prio_selector=new PrioSelector();
+        prio_selector->op_name=op_name;
+
+        registry->RegisterSelector(prio_selector);
+   }
+
+   prio_selector->Register(priority,select_func);
+
+   return true;
 }
 
 
-bool NodeOpsRegistry::RegiserSimpleNodeOps(const std::string& op_name, NodeOps * ops)
-{
-   SimpleSelector * p_selector=new SimpleSelector(ops);
 
-   p_selector->op_name=op_name;
-   p_selector->node_ops=ops;
-
-   if(RegisterSelector(p_selector))
-      return true;
-
-   delete p_selector;
-
-   return false;
-}
-
-
-NodeOps * NodeOpsRegistry::FindNodeOps(SocInfo *soc_info,Node * node)
+NodeOps * NodeOpsRegistry::FindNodeOps(const CPUInfo *cpu_info,Node * node)
 {
    Operator * op=node->GetOp();
    const std::string& op_name=op->GetName();
@@ -196,7 +227,7 @@ NodeOps * NodeOpsRegistry::FindNodeOps(SocInfo *soc_info,Node * node)
 
    NodeOpsSelector* selector=registry[op_name].get();
 
-   return selector->Select(soc_info,node);
+   return selector->Select(cpu_info,node);
 }
 
 NodeOpsSelector *  NodeOpsRegistry::FindSelector(const std::string& name)
@@ -234,17 +265,22 @@ namespace ref_ops {
 
 }
 
+namespace common_ops {
+
+   static NodeOpsRegistry  common_ops_registry("common");
+
+   NodeOpsRegistry * GetRegistry(void)
+   {
+         return &common_ops_registry;
+   }
+
+}
+
 void NodeOpsRegistryManagerInit(void)
 {
     NodeOpsRegistry * registry;
 
-    registry=arm64_ops::GetRegistry();
-    NodeOpsRegistryManager::AddRegistry(registry->reg_name,registry);
-
-    registry=a72_ops::GetRegistry();
-    NodeOpsRegistryManager::AddRegistry(registry->reg_name,registry);
-
-    registry=a53_ops::GetRegistry();
+    registry=common_ops::GetRegistry();
     NodeOpsRegistryManager::AddRegistry(registry->reg_name,registry);
 
     registry=ref_ops::GetRegistry();

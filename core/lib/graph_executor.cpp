@@ -44,10 +44,8 @@ bool GraphExecutor::CreateGraph(const std::string& graph_name, const std::string
    if(graph==nullptr)
        return false;
 
-   graph_=graph;
    graph_name_=graph_name;
    model_name_=model_name;
-
 
    std::string exec_engine_name;
 
@@ -60,6 +58,8 @@ bool GraphExecutor::CreateGraph(const std::string& graph_name, const std::string
       return false;
    }
 
+   graph_=graph;
+
    exec_handle_=exec_engine_->AddGraphExecutor(this);
 
    if(exec_handle_==nullptr)
@@ -71,6 +71,31 @@ bool GraphExecutor::CreateGraph(const std::string& graph_name, const std::string
 
    return true; 
   
+}
+
+bool GraphExecutor::AttachGraph(Graph * graph)
+{
+    graph_name_=graph->GetName();
+    model_name_="none model";
+
+    std::string exec_engine_name;
+
+    TEngineConfig::Get("exec.engine",exec_engine_name);
+
+    if(!ExecEngineManager::SafeGet(exec_engine_name,exec_engine_))
+    {
+       LOG_ERROR()<<"No executor engine registered with name: "<<exec_engine_name<<"\n";
+       return false;
+    }
+
+    graph_=graph;
+    graph_attached_=true;
+
+    exec_handle_=exec_engine_->AddGraphExecutor(this);
+
+    if(exec_handle_==nullptr) return false;
+
+    return true;
 }
 
 int GraphExecutor::GetGraphInputNodeNum(void)
@@ -88,7 +113,7 @@ const std::string&  GraphExecutor::GetGraphInputNodeName(int idx)
 
 int GraphExecutor::GetNodeInputNum(const std::string& node_name)
 {
-    Node * node=graph_->FindNode(node_name);
+    Node * node=FindNode(node_name);
 
     if(node==nullptr)
           return -1;
@@ -98,7 +123,7 @@ int GraphExecutor::GetNodeInputNum(const std::string& node_name)
 
 const std::string&  GraphExecutor::GetNodeInputTensor(const std::string& node_name, int idx)
 {
-    Node * node=graph_->FindNode(node_name);
+    Node * node=FindNode(node_name);
 
     const Tensor * tensor=node->GetInputTensor(idx);
 
@@ -108,12 +133,27 @@ const std::string&  GraphExecutor::GetNodeInputTensor(const std::string& node_na
 
 int GraphExecutor::GetGraphOutputNodeNum(void)
 {
+    Graph * optimized_graph=GetOptimizedGraph();
+
+	if(optimized_graph)
+         return optimized_graph->output_nodes.size();
+
     return graph_->output_nodes.size();
 }
 
 const std::string&  GraphExecutor::GetGraphOutputNodeName(int idx)
 {
-    std::vector<Node *>& outputs=graph_->output_nodes;
+    Graph * optimized_graph=GetOptimizedGraph();
+
+	Graph * cur_graph;
+
+	if(optimized_graph)
+		 cur_graph=optimized_graph;
+	else
+		 cur_graph=graph_;
+
+
+    std::vector<Node *>& outputs=cur_graph->output_nodes;
     Node * node=outputs[idx];
 
     return node->GetName();
@@ -121,7 +161,7 @@ const std::string&  GraphExecutor::GetGraphOutputNodeName(int idx)
 
 int GraphExecutor::GetNodeOutputNum(const std::string& node_name)
 {
-    Node * node=graph_->FindNode(node_name);
+    Node * node=FindNode(node_name);
 
     if(node==nullptr)
           return -1;
@@ -131,7 +171,7 @@ int GraphExecutor::GetNodeOutputNum(const std::string& node_name)
 
 const std::string&  GraphExecutor::GetNodeOutputTensor(const std::string& node_name, int idx)
 {
-    Node * node=graph_->FindNode(node_name);
+    Node * node=FindNode(node_name);
 
     const Tensor * tensor=node->GetOutputTensor(idx);
 
@@ -162,11 +202,41 @@ bool GraphExecutor::SetGraphOutputNode(const std::vector<std::string>& node_name
             return false;
      }
 
+     graph_->StripGraph();
+
      return true;
+}
+
+Node  * GraphExecutor::FindNode(const std::string& name)
+{
+     Graph * optimized_graph=GetOptimizedGraph();
+
+     if(optimized_graph)
+     {
+          Node * node=optimized_graph->FindNode(name);
+          if(node)
+            return node;
+     }
+
+     return graph_->FindNode(name);
 }
 
 Tensor * GraphExecutor::FindTensor(const std::string& name)
 {
+     //try to search in optmized graph first
+
+     Graph * optimized_graph=GetOptimizedGraph();
+
+     if(optimized_graph)
+     {
+         Tensor * tensor;
+
+         tensor=optimized_graph->FindTensor(name);
+         
+         if(tensor) 
+              return tensor;    
+     }
+
      return graph_->FindTensor(name);
 }
 
@@ -186,13 +256,25 @@ bool GraphExecutor::InferShape(void)
          if(op->GetName()=="Const" || op->GetName()=="Input")
                  continue;
 
+         if(node->IsDynamicShape())
+               continue;
+
           bool skip=false;
+          unsigned int j;
 
-          for(unsigned int i=0;i<node->GetInputNum();i++)
+          for(j=0;j<node->GetInputNum();j++)
           {
-             TShape& shape=node->GetInputTensor(i)->GetShape();
+             TShape& shape=node->GetInputTensor(j)->GetShape();
 
-             if(shape.GetSize()<=0)
+             if(shape.GetSize()==0)
+             {
+                 XLOG_ERROR()<<"infer shape failed on node: "<<node->GetName()
+                        <<" due to input: "<<node->GetInputTensor(j)->GetName()
+                        <<" size is zero\n";
+                 return false;
+             }
+
+             if(shape.GetSize()<0)
              {
                  skip=true;
                  break;
@@ -201,9 +283,10 @@ bool GraphExecutor::InferShape(void)
 
         if(skip==true)
         {
-            std::cout<<"skip node: "<<node->GetName()<<" due to input not ready\n";
-
-             continue;
+             XLOG_ERROR()<<"infer shape failed on node: "<<node->GetName()
+                           <<" due to input: "<<node->GetInputTensor(j)->GetName()
+                           <<" not ready\n";
+             return false;
         }
 
        std::vector<TShape> inputs;
@@ -221,7 +304,8 @@ bool GraphExecutor::InferShape(void)
 
        if(!op->InferShape(inputs,outputs))
        {
-            std::cout<<"Infer Shaped failed"<<std::endl;
+            std::cout<<"infer shaped for node: "<<node->GetName()
+                     <<" op: "<<op->GetName()<<" failed\n"; 
             return false;
        }
 
@@ -366,6 +450,14 @@ void GraphExecutor::ReleaseGraph(void)
 void GraphExecutor::ReleaseExecHandle(void)
 {
     exec_engine_->RemoveGraphExecutor(exec_handle_);
+}
+
+Graph *  GraphExecutor::GetOptimizedGraph(void)
+{
+     if(exec_handle_==nullptr || exec_engine_ == nullptr)
+          return nullptr;
+
+      return exec_engine_->GetOptimizedGraph(exec_handle_);
 }
 
 

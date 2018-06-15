@@ -25,7 +25,6 @@
 #include <vector>
 #include <thread>
 
-#include "soc_runner.hpp"
 #include "logger.hpp"
 #include "graph.hpp"
 #include "node_ops.hpp"
@@ -79,7 +78,7 @@ public:
    {
         std::vector<sub_op_task> task_list;
 
-        for(unsigned int i=0;i<cpu_map.size()*2;i++)
+        for(int i=0;i<cpu_info->GetCPUNumber()*2;i++)
         {
            sub_op_task task;
            task.exec_func=std::move(std::bind(&DemoOps::IntAider,this,std::placeholders::_1,
@@ -90,11 +89,9 @@ public:
            task_list.push_back(task);
         }
 
-        IncRequest(task_list.size());
-
         task_dispatch(task_list,-1);
 
-        WaitDone();     
+        wait_done();     
 
         return true;
    }
@@ -104,7 +101,7 @@ public:
    {
         std::vector<sub_op_task> task_list;
 
-        for(unsigned int i=0;i<cpu_map.size()*2;i++)
+        for(int i=0;i<cpu_info->GetCPUNumber()*2;i++)
         {
            sub_op_task task;
            task.exec_func=std::bind(&DemoOps::FloatAider,this,std::placeholders::_1,
@@ -115,11 +112,9 @@ public:
            task_list.push_back(task);
         }
 
-        IncRequest(task_list.size());
-
         task_dispatch(task_list,-1);
 
-        WaitDone();     
+        wait_done();     
 
         return true;
    }
@@ -127,27 +122,25 @@ public:
 
    bool IntAider(int cpu, int seq, void * data)
    {
-      const std::string& cpu_type=cpu_map[cpu];
+      int cpu_model=cpu_info->GetCPUModel(cpu);
 
-      if(cpu_type=="A53")
+      if(cpu_model==CPU_A72)
            A53IntAider(cpu, seq,data);
       else
            A72IntAider(cpu, seq,data);     
 
-      IncDone(1);
       return true;
    }
 
    bool FloatAider(int cpu, int seq, void * data)
    {
-      const std::string& cpu_type=cpu_map[cpu];
+      int cpu_model=cpu_info->GetCPUModel(cpu);
 
-      if(cpu_type=="A53")
+      if(cpu_model==CPU_A53)
            A53FloatAider(cpu, seq,data);
       else
            A72FloatAider(cpu, seq,data);     
 
-      IncDone(1);
       return true;
    }
 
@@ -223,9 +216,7 @@ public:
    bool Run (Node * node) override
    {
 
-        const std::string& master_type=cpu_map[master_cpu];
-
-        std::cout<<"Run launched on : "<<master_type<<"\n";
+        std::cout<<"Run launched on : "<<cpu_info->GetCPUModelString(cpu_info->GetMasterCPU())<<"\n";
 
 
    	if(float_mode)
@@ -255,8 +246,6 @@ public:
 
    DemoOps() {float_mode=true; mt_mode=false;}
  
-   int master_cpu;  
-   std::vector<std::string> cpu_map;
    bool float_mode;
    bool mt_mode;
    
@@ -264,19 +253,15 @@ public:
 
 
 
-struct DemoSelector: public NodeOpsSelector {
 
-DemoSelector(void) { op_name="DemoOp"; }
-
-NodeOps * Select(SocInfo * info, Node * node)
+NodeOps * SelectFunc(const CPUInfo * info, Node * node)
 {
      DemoOps * ops=new DemoOps();
 
-
-           if(info->cpu_list.size()>1)
-              ops->mt_mode=true;
-           else
-              ops->mt_mode=false;
+     if(info->GetCPUNumber()>1)
+         ops->mt_mode=true;
+     else
+         ops->mt_mode=false;
 
      Tensor * input_tensor=node->GetInputTensor(0);
      
@@ -289,22 +274,9 @@ NodeOps * Select(SocInfo * info, Node * node)
            ops->float_mode=false;
      }
 
-    ops->cpu_map.resize(info->cpu_info.size());
-
-    for(unsigned int i=0;i<info->cpu_list.size();i++)
-    {
-        int cpu_id=info->cpu_list[i];
-
-        const CPUInfo& cpu=info->cpu_info[cpu_id];
-
-        ops->cpu_map[cpu_id]=cpu.cpu_type;
-    }
-
-    ops->master_cpu=info->master_cpu;
 
     return ops;
 }
-};
 
 
 } //namespace demo_ops
@@ -313,10 +285,7 @@ using namespace demo_ops;
 
 void RegisterDemoOps(void)
 {
-   //register selector 
-   DemoSelector * demo_selector=new  DemoSelector();
-   NodeOpsRegistryManager::RegisterOPSelector(REF_REGISTRY_NAME,demo_selector);
-
+   NodeOpsRegistryManager::RegisterOPImplementor(REF_REGISTRY_NAME,"DemoOp",demo_ops::SelectFunc,1000);
 }
 
 

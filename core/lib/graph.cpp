@@ -147,8 +147,17 @@ bool Graph::CreateNodeFromStatic(Node * node, const StaticGraph * static_graph, 
       }
 
 
-      /* TODO: copy attrs set in static_op */
       op->ParamFromStaticOp(static_op);
+      op->SetDynamicShape(static_op->dynamic_shape);
+      node->SetDynamicShape(static_op->dynamic_shape);
+
+      /* copy attrs in static_op  */
+      std::vector<std::string> attr_name=static_op->attrs.ListAttr();
+
+      for(unsigned int i=0;i<attr_name.size();i++)
+      {
+          op->SetAttr(attr_name[i],static_op->attrs[attr_name[i]]);
+      }
 
       node->SetOp(op);
 
@@ -176,6 +185,7 @@ bool Graph::CreateNodeFromStatic(Node * node, const StaticGraph * static_graph, 
                  (*tensor)["mem_addr"]=const_tensor->mem_addr;
                  (*tensor)["file_offset"]=const_tensor->file_offset;
                  (*tensor)["file_size"]=const_tensor->file_size;
+                 tensor->BindStaticTensor(const_tensor);
              }
 
              tensor_map_[tensor->GetName()]=tensor;
@@ -280,6 +290,9 @@ bool Graph::RealCreateFromStatic(const StaticGraphPtr& static_graph)
     /* re-order the seq_nodes_, removing un-used node, according to node dependency*/
 
     SanitizeGraph();
+
+    /* populate dynamic_shape nodes */
+    PopulateDynamicShape();
 
     return true;
 }
@@ -423,6 +436,104 @@ bool Graph::RemoveNode(Node * node)
    return true;
 }
 
+void Graph::PopulateDynamicShape(void)
+{
+ /* assume all the input nodes  of a node are before the node in seq_nodes array */
+
+    int node_number=seq_nodes.size();
+
+    for(int i=0;i<node_number;i++)
+    {
+        Node * node=seq_nodes[i];
+
+        bool dynamic_shape=node->IsDynamicShape();
+
+        if(dynamic_shape)
+        {
+            for(unsigned int n=0;n<node->GetOutputNum();n++)
+            {
+                NodePort * port=node->GetOutputPort(n);
+                Tensor *   tensor=port->tensor;
+
+                for(unsigned int k=0;k<tensor->consumer.size();k++)
+                {
+                    NodePort * in_port=tensor->consumer[k];
+                    Node * child=in_port->owner;
+                    child->SetDynamicShape(dynamic_shape);
+                }
+            }
+        }
+    }
+}
+
+
+void Graph::StripGraph(void)
+{
+    int node_number=seq_nodes.size();
+
+    std::vector<Node *> new_seq;
+    std::vector<int> access_flag(node_number,0);
+     
+    /* make sure the node index is correct first */
+   for(int i=0;i<node_number;i++)
+       seq_nodes[i]->SetNodeIndex(i);
+
+    BFSVisit(this,output_nodes,graph_visit_t([&](Graph * graph, Node * node) {
+            access_flag[node->GetNodeIndex()]=1; 
+    }),true,false);
+
+    /* assume all the nodes in seq_nodes are in order,
+       so that we just simply collect them one by one  */
+
+    for(int i=0;i<node_number;i++)
+    {
+        if(access_flag[i])
+        {
+             new_seq.push_back(seq_nodes[i]);
+        }
+    }
+
+    for(unsigned int i=0;i<input_nodes.size();i++)
+    {
+         int input_index=input_nodes[i]->GetNodeIndex();
+
+         if(!access_flag[input_index])
+         {
+             access_flag[input_index]=1;
+             new_seq.insert(new_seq.begin(),input_nodes[i]);
+
+         }
+    }
+
+    auto ir=seq_nodes.begin();
+
+    //removing node that can not be visited
+    for(int i=0;i<node_number;i++)
+    {
+        if(access_flag[i])
+        {
+           ir++;
+           continue;
+        }
+
+         Node * node=(*ir);
+         ir=seq_nodes.erase(ir);
+
+         if(!RemoveNode(node))
+             break;
+    }
+
+    seq_nodes=new_seq;
+
+    for(unsigned int i=0;i<seq_nodes.size();i++)
+    {
+         Node * node=seq_nodes[i];
+
+        node->SetNodeIndex(i);
+    }
+
+    HandleNoChildTensor();
+}
 
 void Graph::SanitizeGraph(void)
 {
@@ -441,7 +552,6 @@ void Graph::SanitizeGraph(void)
             access_flag[node->GetNodeIndex()]=1; 
     }));
 
-    auto ir=seq_nodes.begin();
 
     for(unsigned int i=0;i<input_nodes.size();i++)
     {
@@ -455,6 +565,8 @@ void Graph::SanitizeGraph(void)
          }
     }
 
+    auto ir=seq_nodes.begin();
+
     //removing node that can not be visited
     for(int i=0;i<node_number;i++)
     {
@@ -465,8 +577,6 @@ void Graph::SanitizeGraph(void)
         }
 
          Node * node=(*ir);
-
-        
 
          ir=seq_nodes.erase(ir);
 
@@ -482,7 +592,6 @@ void Graph::SanitizeGraph(void)
 
         node->SetNodeIndex(i);
     }
-
 
     RemoveNoChildTensor();
 }
@@ -507,6 +616,29 @@ bool Graph::IsInputNode(Node * node)
    }
 
    return false;
+}
+
+void Graph::HandleNoChildTensor(void)
+{
+   auto tensor_ir=tensor_map_.begin();
+
+    while(tensor_ir!=tensor_map_.end())
+    {
+         Tensor * tensor=tensor_ir->second;
+
+          if(!tensor->consumer.size())
+          {
+               Node * node=tensor->producer->owner;
+
+               if(!IsOutputNode(node))
+               {
+                  output_nodes.push_back(node);
+               }
+               
+          }
+
+          tensor_ir++;
+    }
 }
 
 void Graph::RemoveNoChildTensor(void)
@@ -570,15 +702,15 @@ static bool AllInputVisited(Graph * graph, Node * node, std::vector<int>& visite
       return true;
 }
 
-void Graph::BFSVisit(Graph * graph, std::vector<Node *>& starts,Graph::graph_visit_t func, bool backward)
+void Graph::BFSVisit(Graph * graph, std::vector<Node *>& starts,Graph::graph_visit_t func, bool backward,bool input_ready)
 {
     if(backward)
-          BackwardBFS(graph,starts,func);
+          BackwardBFS(graph,starts,func,input_ready);
     else
-          ForwardBFS(graph,starts,func);
+          ForwardBFS(graph,starts,func,input_ready);
 }
 
-void Graph::ForwardBFS(Graph * graph, std::vector<Node *>& starts, graph_visit_t func)
+void Graph::ForwardBFS(Graph * graph, std::vector<Node *>& starts, graph_visit_t func,bool input_ready)
 {
      int node_number=graph->seq_nodes.size();
      std::vector<int> visited(node_number,0);
@@ -616,7 +748,7 @@ void Graph::ForwardBFS(Graph * graph, std::vector<Node *>& starts, graph_visit_t
 
                   if(in_graph.count(child) &&
                      !visited[child->GetNodeIndex()] 
-                       && AllInputVisited(graph,child,visited))
+                       && (!input_ready || AllInputVisited(graph,child,visited)))
                   {
                       visit_queue.push(child);
                       visited[child->GetNodeIndex()]=1;
@@ -633,7 +765,7 @@ void Graph::ForwardBFS(Graph * graph, std::vector<Node *>& starts, graph_visit_t
 }
 
 
-void Graph::BackwardBFS(Graph * graph, std::vector<Node *>& starts, graph_visit_t func )
+void Graph::BackwardBFS(Graph * graph, std::vector<Node *>& starts, graph_visit_t func,bool input_ready )
 {
      int node_number=graph->seq_nodes.size();
      std::vector<int> visited(node_number,0);
@@ -670,7 +802,7 @@ void Graph::BackwardBFS(Graph * graph, std::vector<Node *>& starts, graph_visit_
 
              if(in_graph.count(parent)  &&
                  !visited[parent->GetNodeIndex()] 
-                 && AllChildVisited(graph,parent,visited))
+                 && (!input_ready || AllChildVisited(graph,parent,visited)))
              {
                   visit_queue.push(parent);
                   visited[parent->GetNodeIndex()]=1;
@@ -727,7 +859,7 @@ Tensor * Graph::GetInputTensor(const std::string& name)
 {
     for(unsigned int i=0;i<input_nodes.size();i++)
     {
-        Node  * node=input_nodes[i];
+       Node  * node=input_nodes[i];
 
        for(unsigned int j=0;j<node->GetInputNum();j++)
        {
@@ -870,6 +1002,19 @@ bool Graph::Replace(Subgraph * orig_sub, Subgraph * new_sub)
 
               if(tensor->consumer.size()==0)
                    graph_output_node=true;
+			  else
+			  {
+				  for(unsigned int i=0;i<tensor->consumer.size();i++)
+			      {
+					  NodePort * np=tensor->consumer[i];
+
+					  if(!NodeInGraph(np->owner))
+					  {
+						   graph_output_node=true;
+						   break;
+					  }
+				  }
+			  }
            }
 
            if(node->GetInputNum()==0 )
@@ -879,6 +1024,24 @@ bool Graph::Replace(Subgraph * orig_sub, Subgraph * new_sub)
               if(op->GetName()!="Const")
                   graph_input_node=true;
            }
+		   else
+		   {
+			   for(unsigned int i=0;i<node->GetInputNum();i++)
+			   {
+				    Tensor * input_tensor=node->GetInputTensor(i);
+
+					if(input_tensor->GetType()!=kVarTensor)
+						continue;
+
+					NodePort * np=input_tensor->producer;
+
+					if(!NodeInGraph(np->owner))
+					{
+						   graph_input_node=true;
+						   break;
+					}
+			   }
+		   }
 
            if(graph_input_node)
                 input_nodes.push_back(node);
@@ -898,6 +1061,36 @@ bool Graph::Replace(Subgraph * orig_sub, Subgraph * new_sub)
     SanitizeGraph();
 
     return true;
+}
+
+bool  Graph::NodeInGraph(Node *node)
+{
+	 for(unsigned int i=0;i<seq_nodes.size();i++)
+	 {
+		 if(node==seq_nodes[i])
+			  return true;
+     }
+
+	 return false;
+}
+
+void Graph::AddTensorMap(const std::string& tensor_name, Tensor * tensor)
+{
+      tensor_map_[tensor_name]=tensor;
+}
+
+Graph * Graph::GetViewCopy(void)
+{
+    Graph * copy_graph=new Graph(name_);
+
+    copy_graph->seq_nodes=seq_nodes;
+    copy_graph->input_nodes=input_nodes;
+    copy_graph->output_nodes=output_nodes;
+    copy_graph->tensor_map_=tensor_map_;
+
+
+    return copy_graph;
+
 }
 
 } //namespace TEngine

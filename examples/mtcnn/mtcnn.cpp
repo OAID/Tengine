@@ -42,7 +42,6 @@ int mtcnn::load_3model(const std::string& model_dir)
 {
 	std::string proto_name,mdl_name;
 	const char * proto_name_ ,*mdl_name_;
-	const char * input_node_name="input";
 
 	// Pnet
 	proto_name=model_dir+"/det1.prototxt";
@@ -53,7 +52,6 @@ int mtcnn::load_3model(const std::string& model_dir)
         return 1; 
     std::cout<<"load PNet model done!\n";
     PNet_graph=create_runtime_graph("PNet_graph",PNet_model_name,NULL);
-    set_graph_input_node(PNet_graph,&input_node_name,1); 
 
 	//Rnet
 	proto_name=model_dir+"/det2.prototxt";
@@ -64,7 +62,6 @@ int mtcnn::load_3model(const std::string& model_dir)
         return 1; 
     std::cout<<"load RNet model done!\n";
     RNet_graph=create_runtime_graph("RNet_graph",RNet_model_name,NULL);
-    set_graph_input_node(RNet_graph,&input_node_name,1); 
 
 	//Onet
 	proto_name=model_dir+"/det3.prototxt";
@@ -75,7 +72,6 @@ int mtcnn::load_3model(const std::string& model_dir)
         return 1; 
     std::cout<<"load ONet model done!\n";
     ONet_graph=create_runtime_graph("ONet_graph",ONet_model_name,NULL);
-    set_graph_input_node(ONet_graph,&input_node_name,1); 
 
 	return 0;
 }

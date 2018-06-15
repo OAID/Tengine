@@ -40,6 +40,7 @@ GraphTask::GraphTask(GraphExecutor * graph_executor)
      exec_policy_=graph_executor->GetExecPolicy();
      exec_priority_=graph_executor->GetExecPriority();
      dev_engine_=nullptr;
+     optimized_graph_=nullptr;
      status_=EXEC_STATUS_CREATED;
 }
 
@@ -89,6 +90,127 @@ bool GraphTask::RunSubgraphTask(SubgraphTask * sub_task)
 
 	return scheduler->SchedTask(dev_engine_,sub_task->dev_executor,sub_task);
 }
+
+bool GraphTask::OptimizeGraph(void)
+{
+      bool ret=false;
+
+      for(auto e: sub_task_list_)
+      {
+         DevExecutor * dev_executor=e->dev_executor;
+
+         ret=dev_executor->OptimizeGraph(e);
+
+         if(!ret)
+            break;
+      }
+
+      return ret;
+}
+
+Graph * GraphTask::MergeSubgraph(Graph * origin_graph, const std::vector<Subgraph *>& sub_list)
+{
+      std::string graph_name=origin_graph->GetName()+".optimized";
+
+      Graph * graph=new Graph(graph_name);
+      int subgraph_number=sub_list.size();
+
+      /* first: search the graph input nodes and graph output nodes
+          and collect all nodes and tensors */
+
+      graph->input_nodes=origin_graph->input_nodes;
+
+      for(int i=0;i<subgraph_number;i++)
+      {
+          Subgraph * sub=sub_list[i];
+
+          graph->seq_nodes.insert(graph->seq_nodes.end(),
+                sub->seq_nodes.begin(),sub->seq_nodes.end());
+
+          for(unsigned int k=0;k<sub->output_nodes.size();k++)
+          {
+              Node * node=sub->output_nodes[k];
+              
+              unsigned int l;
+
+              for(l=0;l<node->GetOutputNum();l++)
+              {
+                  Tensor * tensor=node->GetOutputTensor(l);
+
+                  if(tensor->consumer.size()==0)
+                      break;
+              }
+
+              if(l<node->GetOutputNum())
+                  graph->output_nodes.push_back(node);
+          }
+
+      }
+      
+
+     /*second: setup the tensor map */
+
+     for(unsigned int i=0;i<graph->seq_nodes.size();i++)
+     {
+         Node * node=graph->seq_nodes[i];
+         node->SetNodeIndex(i);
+
+         for(unsigned int l=0;l<node->GetOutputNum();l++)
+         {
+              Tensor * tensor=node->GetOutputTensor(l);
+              graph->AddTensorMap(tensor->GetName(),tensor);
+         }
+
+     }
+
+     /*third: get the output nodes order*/
+
+     if(graph->output_nodes.size()>1)
+     {
+         graph->output_nodes=origin_graph->output_nodes;
+     }
+
+     /* last reorder the nodes */
+
+     graph->SanitizeGraph();
+
+     return graph;
+
+}
+
+Graph * GraphTask::GetOptimizedGraph(void)
+{
+    
+     std::vector<Subgraph *> sub_list;
+
+     for(auto e: sub_task_list_)
+     {
+         if(!e->graph_optimized)
+         {
+             sub_list.push_back(e->sub_graph);
+             continue;
+         }
+
+         DevExecutor * dev_executor=e->dev_executor;
+
+         Subgraph * sub_graph=dev_executor->GetOptimizedGraph(e);
+
+         sub_list.push_back(sub_graph);
+     }
+
+     if(sub_list.empty())
+     {
+        return nullptr;
+     }
+
+     if(optimized_graph_)
+        delete optimized_graph_;
+
+     optimized_graph_=MergeSubgraph(graph_,sub_list);
+
+     return optimized_graph_;
+}
+
 
 bool GraphTask::Prerun(void)
 {
@@ -200,9 +322,9 @@ bool GraphTask::Run(exec_event_t& event)
 	active_sub_task_count_=0;
 	task_done_=false;
 	
-    WaitEvent * p_event=new WaitEvent();
+        WaitEvent * p_event=new WaitEvent();
+        p_event->wait_count=0;
 	wait_event_=p_event;
-    p_event->wait_count=0;
 
 	//let all input tasks run
 	for(auto e: sub_task_list_)
@@ -213,12 +335,19 @@ bool GraphTask::Run(exec_event_t& event)
 	         XLOG_ERROR()<<"failed to run task on dev executor: "
 			 	            <<e->dev_executor->GetName()<<"\n";
 		  status_=EXEC_STATUS_BAD;
-		  delete p_event;
-		  wait_event_=nullptr;
-
-	       return false;
+                  delete wait_event_;
+	         return false;
 	    }
 	}
+
+        if(active_sub_task_count_==0 && status_== EXEC_STATUS_RUN)
+        {
+             XLOG_ERROR()<<"No sub task launched!!\n";
+             
+             delete wait_event_;
+ 
+             return false;
+        }
 
 	event=p_event;
 	 
@@ -236,28 +365,26 @@ int GraphTask::Wait(exec_event_t& event, int try_wait)
 {
         WaitEvent * p_event=any_cast<WaitEvent *>(event);
 
-	   {	
-        std::unique_lock<std::mutex> lock(p_event->mutex);
+		{
+		
+           std::unique_lock<std::mutex> lock(p_event->mutex);
 
-        if(try_wait&& !task_done_)
-        {
+           if(try_wait&& !task_done_)
+           {
              lock.unlock();
              return 0;
-        }
+           }
 
-        p_event->wait_count++;
+           p_event->wait_count++;
 
-        if(!task_done_)
-	     p_event->cond.wait(lock,[this]{return task_done_;});
+           if(!task_done_)
+	           p_event->cond.wait(lock,[this]{return task_done_;});
 
-              lock.unlock();
+           lock.unlock();
 	   }
 
        if(p_event->wait_count.fetch_sub(1)==1)
-       	{
        	      delete p_event;
-			  wait_event_=nullptr;
-       	}
 	
 	return 1;
 }
@@ -373,7 +500,10 @@ SubgraphTask * SubgraphTask::GetSubgraphTask(Subgraph * sub_graph)
 SubgraphTask::SubgraphTask(Subgraph * sub)
 {
        sub_graph=sub;
-	SetSubgraphTask(sub,this);
+       graph_optimized=false;
+       graph_handle=nullptr;
+
+       SetSubgraphTask(sub,this);
 }
 
 void SubgraphTask::Init(GraphTask * graph_tsk)
@@ -387,19 +517,6 @@ void SubgraphTask::Init(GraphTask * graph_tsk)
     exec_policy= DevScheduler::MapPolicy(graph_executor->GetExecPolicy());
     exec_priority=graph_executor->GetExecPriority();
 
-    //check if it is a global input task
-    for(auto e: sub_graph->input_nodes)
-    {
-        for(auto m: graph->input_nodes)
-        {
-           if(e==m)
-           {
-              is_input_task=true;
-              break;
-           }
-        }
-        
-    }
 
     //check if it is a global output task
     for(auto e: sub_graph->output_nodes)

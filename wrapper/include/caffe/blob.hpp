@@ -24,15 +24,14 @@
 #ifndef __CAFFE_BLOB_HPP__
 #define __CAFFE_BLOB_HPP__
 
+#include <iostream>
 #include <vector>
 #include "caffe.pb.h"
 #include "tengine_c_api.h"
-#include "logger.hpp"
 
 #define Blob  Blob_wrap
 
 using namespace std;
-using namespace TEngine;
 
 namespace caffe {
 
@@ -74,7 +73,7 @@ public:
            start_axis > num_axes() ||
            end_axis > num_axes())
         {
-            LOG_ERROR()<<"parameter out of range\n";
+            std::cerr<<"parameter out of range\n";
             return 0;
         }
 
@@ -88,7 +87,7 @@ public:
     {
         if(axis_index < -num_axes() || axis_index >= num_axes())
         {
-            LOG_ERROR()<<"axis "<<axis_index<<" out of range for "<< num_axes()<<"\n";
+            std::cerr<<"axis "<<axis_index<<" out of range for "<< num_axes()<<"\n";
             return 0;
         }
 

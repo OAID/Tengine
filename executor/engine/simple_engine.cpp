@@ -292,6 +292,22 @@ int SimpleEngine::Wait(exec_handle_t h, exec_event_t& e, int try_wait)
     return 1;
 }
 
+Graph * SimpleEngine::GetOptimizedGraph(exec_handle_t h)
+{
+    if(backend_dev_==nullptr)
+       return nullptr;
+
+    ExecHandle * handle=any_cast<ExecHandle*>(*h);
+
+    return backend_dev_->GetOptimizedGraph(handle->graph_handle);
+}
+
+bool SimpleEngine::OptimizeGraph(exec_handle_t h)
+{
+    return false;
+}
+
+
 bool SimpleEngine::SetCallback(exec_handle_t h , exec_event_t& e, int event, exec_cb_t cb) 
 {
     return false;

@@ -57,7 +57,10 @@ public:
   ~GraphTask();
 
   void ReclaimSubgraphTask(void);
-  
+ 
+  bool OptimizeGraph(void);
+  Graph * GetOptimizedGraph(void);
+ 
   bool Prerun(void);
   bool Run(exec_event_t& e);
   bool SyncRun();
@@ -85,6 +88,8 @@ public:
 
   bool SetCallback(exec_event_t& e, int event, exec_cb_t cb);
 
+  static Graph * MergeSubgraph(Graph * origin_graph, const std::vector<Subgraph *>& sub_list);
+
 private:
   GraphExecutor * graph_executor_;
   Graph *   graph_;
@@ -98,6 +103,7 @@ private:
   bool     task_done_;
   int exec_priority_;
   std::string exec_policy_;
+  Graph * optimized_graph_;
 
 };
 
@@ -136,9 +142,9 @@ public:
    int exec_policy;
    int exec_priority;
 
-   bool is_input_task;
    bool is_output_task;
    bool attached;
+   bool graph_optimized;
 
    DevExecutor * dev_executor;
    	

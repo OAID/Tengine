@@ -18,4 +18,15 @@ obj-y+=eltwise.o
 obj-y+=slice.o
 obj-y+=demo_op.o
 obj-y+=normalize.o
-
+obj-y+=permute.o
+obj-y+=flatten.o
+obj-y+=priorbox.o
+obj-y+=reshape.o
+obj-y+=detection_output.o
+obj-y+=rpn.o
+obj-y+=roi_pooling.o
+obj-y+=reorg.o
+obj-y+=region.o
+obj-y+=relu6.o
+obj-y+=deconvolution.o
+obj-y+=resize.o

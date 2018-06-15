@@ -5,24 +5,22 @@
 | ---------- | --- |---|---|
 | 2017-12-29 |  0.1 |Initial version|FeyaHan
 | 2018-01-06 |  0.2 |Add multi CPU performance|HaoLuo
+| 2018-06-14 |  0.3 |Add ACL_GPU performance| Chunying
 
 
 ---
 
 ## **Catalog**
 
-
-#### [**Test Environment**](benchmark.md#test-environment-1)
-#### [**Test Steps**](benchmark.md#test-steps-1)
-#### [**Performance**](benchmark.md#performance-1)
-#### [**How we get the time cost**](benchmark.md#how-we-get-the-time-cost-1)
-
+#### [Test Environment](benchmark.md#test-environment-1)
+#### [Test](benchmark.md#test-1)
+#### [Performance](benchmark.md#performance-1)
 
 ---
 
 
 
-## **Test Environment**
+## Test Environment
 - Tengine : v0.3
 - Broad : ROCK960
 - CPU : Rockchip RK3399. 
@@ -37,114 +35,78 @@
 
 ---
 
-## **Test Steps**
+## Test 
 
-### Step1. **install Tengine**
+### Step1. install Tengine
 
-For more information about the build of Tengine, please refer to the documentation of [install](install.md) 
+    For more information about the build of Tengine, please refer to the documentation of [install](install.md) 
 
-### Step2. **lock the cpu frequency at maximum**
+### Step2. lock the cpu frequency at maximum
 ```bash
-> sudo su #switch to root user
-> cat  /sys/devices/system/cpu/cpufreq/policy4/scaling_available_governors   #check which available policy, note that policy4 is for A72 on RK3399 and policy0 is for A53
-conservative ondemand userspace powersave interactive performance
-> echo performance > /sys/devices/system/cpu/cpufreq/policy4/scaling_governor #set performance policy
-> cat /sys/devices/system/cpu/cpufreq/policy4/cpuinfo_cur_freq     #check cpu frequency
-1800000
+    #switch to root user
+    > sudo su 
+
+    #check which available policy, policy4 for A72, policy0 for A53
+    > cat  /sys/devices/system/cpu/cpufreq/policy4/scaling_available_governors  
+
+    #set performance policy
+    > echo performance > /sys/devices/system/cpu/cpufreq/policy4/scaling_governor 
+    
+    #check cpu frequency
+    > cat /sys/devices/system/cpu/cpufreq/policy4/cpuinfo_cur_freq
 ```
 
-### Step3: **test benchmark squeezenetv1.1 and mobilenet**
+### Step3: test bench_sqz, bench_mobilenet
 
-Set the default device for our test program in **etc/config**.
+* **get model**
 
-```bash
->./bench_sqz -r90 
->./bench_mobilenet -r90 
-```
+    You can get the models from [Tengine model zoo](https://pan.baidu.com/s/1LXZ8vOdyOo50IXS0CUPp8g),the pass word is `57vb`.
+    And then, put the "mobilenet.caffemodel" "mobilenet_deploy.prototxt" "squeezenet_v1.1.caffemodel" "sqz.prototxt" in `~/tengine/models`
 
-* "cpu.rk3399.a72.all" :  Set default devices to all ARM A72 core, since RK3399 has 4 A53 (0-3) and 2 A72 (4-5).
-* "cpu.rk3399.a53.all" :  Set default devices to all ARM A53 core, since RK3399 has 4 A53 (0-3) and 2 A72 (4-5).
-* "cpu.rk3399.a72.0"    :  Set default devices to 1st ARM A72 core, since RK3399 has 4 A53 (0-3) and 2 A72 (4-5).
-* "cpu.rk3399.a53.2"    :  Set default devices to 3th ARM A53 core, since RK3399 has 4 A53 (0-3) and 2 A72 (4-5).
+* **set device**
+    1. use ACL_GPU
 
-* r90 :  We run the test program for 100 times, increase 10 times interiorly.  
+        For how to build tengine with ACL_GPU, see [acl_driver.md](acl_driver.md).  
+        You can run the test as 
 
-* 'bench\_sqz', 'bench\_mobilenet' : Specify the neural network we were testing.
+        ```
+        ./build/tests/bin/bench_sqz -d acl_opencl
+        ./build/tests/bin/bench_mobilenet -d acl_opencl
+        ```
+    2. use CPU: single-core/multi-cores
 
+        To assign on different cpu core, there are two methods:
 
----
+        - `export TENGINE_CPU_LIST=0,1,2,3`
+        - `tests/bin/bench_sqz –p 0,1,2,3`
 
-## **Performance**
+        For rk3399, cpu(0-3) are A53, cpu(4-5) are A72. 
+        
+        - 1A72 `tests/bin/bench_sqz –p 4`
+        - 2A72 `tests/bin/bench_sqz –p 4,5`
+        - 1A53 `tests/bin/bench_sqz –p 0`
+        - 4A53 `tests/bin/bench_sqz –p 0,1,2,3`
 
-The data in the tables below are in micro second **us**. 
-
-For looking the profile of each layer, we need set an environment variable:
-```bash
-> export PROF_TIME=1
-``` 
-We run 100 times per test case.
-
-#### **Mobilenet**
-| Mobilenet  | TPI |Pooling|Fused.BNScaleRelu|Convolution|
-| ---------- | --- |---|---|---|
-| TimeElapse/Percentage (1*A72) | 119560 |38(0.03%)  | 8467(7.08%)   | 111054(92.89%) |
-| TimeElapse/Percentage (2*A72) | 74918  |38(0.05%)  | 7693(10.27%)  | 67186(89.68%)  |
-| TimeElapse/Percentage (1*A53) | 339526 |145(0.04%) | 26444(7.79%)  | 312937(92.17%) |
-| TimeElapse/Percentage (4*A53) | 136144 |123(0.09%) | 25895(19.02%) | 110126(80.89%) |
-||
+## Performance
 
 
-#### **Squeezenet**
-| Squeezenet | TPI |SoftMax |Convolution |Pooling |Concat|
-| ---------- | --- |---  |---         |---      | ---  |
-| TimeElapse/Percentage (1*A72) | 88646  |72(0.08%)  | 83314 (93.99%) |2519(2.84%) |2739(3.09%) |
-| TimeElapse/Percentage (2*A72) | 53782  |68(0.13%)  | 48670 (90.49%) |2384(4.43%) |2658(4.94%) |
-| TimeElapse/Percentage (1*A53) | 231366 |174(0.08%) | 220992(95.52%) |5243(2.27%) |4957(2.14%) |
-| TimeElapse/Percentage (4*A53) | 89040  |165(0.19%) | 78945 (88.66%) |5110(5.74%) |4818(5.41%) |
-||
-
-All items in the tables are:  
-* **TPI** : The average total time for per inference within the whole loops.  
-* **SoftMax** : The average SoftMax time consumption for per inference within the whole loops.  
-* **Convolution** : The average Convolution time consumption for per inference within the whole loops.  
-* **Pooling** : The average Pooling time consumption for per inference within the whole loops.  
-* **Dropout** : The average Dropout time consumption for per inference within the whole loops.  
-* **Concat** : The average Concat time consumption for per inference within the whole loops. 
-
-----
+|       | SqueezeNet(ms) |Mobilenet (ms) |
+| ---------- | ---|---|
+| rk3399(1*A72) | 91.2 |122.1  |
+| rk3399(2*A72) | 51.2  |65.4 |
+| rk3399(1*A53) | 232.5 |323.6 |
+| rk3399(4*A53) | 79.2  |96.3  |
+| ACL(GPU)| 61.4| 95.9|
 
 
-## **How we get the time cost**  
-#### **A simple principle**  
-We make preparations including: prepare input data,load model,create runtime graph,set input/output node,setup input/output buffer and prerun graph before we test the benchmark demo.  
-We mark the start time t0 and run the demo for loopsize(which was specified by user through terminal) times,finally,we mark the end time t1 and then we get the total time cost by totaltimecost = t1 - t0. Also,we get the average time cost per run by avgtimecost = totaltimecost/loopsize.  
-
+Notes:<br>
+(1) We run N=100 times per test case.<br>
+(2) We take the average time of N repeats.
+                  
 ---
 
 
-<br />
 
-We get the total time cost and the corresponding time spent on each operator within the process of executing the specified neural network   and also the percentage of the time cost for certain operator in the whole run.  
 
-Besides, we jump in to the process of executing the graph node sequence and dump node info such as node index,node name,operator name,input/output shape and Mfops for this node one by one.  
 
-* *total_time* :   
-We determine this by adding all the total used time for every single time record node across the graph node sequence.  
-
-* *time_cost for SoftMax/ReLu/Convolution/Pooling/Dropout/Concat* :  
-We determine this by adding individually all the record nodes which belong to the same operator across the graph sequence through loopsize run processes.  
-We dumped more information by ProfTime's Dump method which was called after we Postran the graph,and we got this :  
-
-* *accum_time* :  
-We determine this by adding all the time cost for every single node across the node graph sequence through loopsize run processes.  
-
-* *total_usedtime* :   
-We can determine how many times every certain node was executed across the node graph sequence through loopsize run processes and mark it as count,then we determine total_usedtime by adding all the time cost for one certain node.   
-
-* *avg_time* :   
-Clearly,now the average time cost for every single node within the graph node sequence through the all loop can be calculated by : avg_time = total_usedtime/count.  
-
-* *time_percentage* :   
-The percentage of one certain node's time cost in all nodes'.  
-time_percentage = 100.0*total_usedtime/accum_time.  
 

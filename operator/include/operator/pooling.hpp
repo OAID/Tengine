@@ -58,7 +58,7 @@ public:
 
      void SetSchema(void) override;
 
-     void ParseParam(PoolParam & param, Operator * op)
+     void ParseParam(PoolParam & param, Operator * op) override
      {
          PoolParam::Parse(param,op);
          MethodToAlg(param);

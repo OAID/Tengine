@@ -33,7 +33,7 @@ bool ReadProtoFromBinaryFile(const char* filename, Message* proto)
 
     if(!is.is_open())
     {
-        LOG_ERROR()<<"Cannot open file: "<<filename<<"\n";
+        std::cerr<<"Cannot open file: "<<filename<<"\n";
         return false;
     }
 

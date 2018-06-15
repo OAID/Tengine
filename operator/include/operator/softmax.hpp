@@ -28,13 +28,13 @@
 #include "softmax_param.hpp"
 namespace TEngine {
 
-class SoftMax: public OperatorWithParam<SoftMax, SoftmaxParam> {
+class Softmax: public OperatorWithParam<Softmax, SoftmaxParam> {
 
 public:
 
-      SoftMax() { name_="SoftMax";}
-      SoftMax(const SoftMax& src)=default;
-      virtual ~SoftMax() {};
+      Softmax() { name_="Softmax";}
+      Softmax(const Softmax& src)=default;
+      virtual ~Softmax() {};
 
       void SetSchema(void) override;
  

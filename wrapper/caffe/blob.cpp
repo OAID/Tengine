@@ -25,7 +25,7 @@
 #include "caffe/common.hpp"
 
 namespace caffe {
-
+
 template <typename Dtype>
 void Blob<Dtype>::Reshape(const int num, const int channels, const int height, const int width)
 {
@@ -41,14 +41,14 @@ template <typename Dtype>
 void Blob<Dtype>::Reshape(const vector<int>& shape)
 {
     int dim_size = shape.size();
-    int *dims = new int[dim_size];   
+    int *dims = new int[dim_size];
     shape_.resize(dim_size);
     count_ = 1;
 
     for(int i = 0; i < dim_size; ++i)
     {
         if(shape[i] < 0)
-            LOG_ERROR()<<"Shape number error\n";
+            std::cerr<<"Shape number error\n";
         else
         {
             shape_[i] = shape[i];
@@ -72,7 +72,7 @@ void Blob<Dtype>::Reshape(const vector<int>& shape)
         tensor_t tensor = get_graph_tensor(graph_, name_.c_str());
         if(tensor == nullptr)
         {
-            LOG_ERROR()<<"Get tensor failed\n";
+            std::cerr<<"Get tensor failed\n";
         }
         else
         {
@@ -80,12 +80,12 @@ void Blob<Dtype>::Reshape(const vector<int>& shape)
 
             if(set_tensor_buffer(tensor, data_, sizeof(Dtype)*count_))
             {
-                LOG_ERROR()<<"Create buffer for tensor failed\n";
+                std::cerr<<"Create buffer for tensor failed\n";
             }
         }
     }
 
-    delete dims;
+    delete[] dims;
 }
 
 template <typename Dtype>
@@ -93,7 +93,7 @@ const Dtype* Blob<Dtype>::cpu_data() const
 {
     if(!data_)
     {
-        LOG_ERROR()<<"Get blob cpu data failed\n";
+        std::cerr<<"Get blob cpu data failed\n";
         return nullptr;
     }
 
@@ -105,7 +105,7 @@ Dtype* Blob<Dtype>::mutable_cpu_data()
 {
     if(!data_)
     {
-        LOG_ERROR()<<"Get blob mutable cpu data failed\n";
+        std::cerr<<"Get blob mutable cpu data failed\n";
         return nullptr;
     }
     return static_cast<Dtype*>(data_);
@@ -116,7 +116,7 @@ void Blob<Dtype>::set_cpu_data(Dtype* data)
 {
     if(!data)
     {
-        LOG_ERROR()<<"Set blob cpu data failed\n";
+        std::cerr<<"Set blob cpu data failed\n";
     }
     data_ = (void *)data;
 }

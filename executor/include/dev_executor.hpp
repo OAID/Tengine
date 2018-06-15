@@ -42,12 +42,16 @@ struct DevExecutor {
     * @return true on success
     */
   
+
    virtual bool PrerunTask(SubgraphTask * task)=0;
    virtual bool SchedTask(SubgraphTask * task)=0;
    virtual bool SchedTask(void)=0;
    virtual bool PostrunTask(SubgraphTask * task)=0;
    virtual bool RunTask(SubgraphTask * task)=0;
    virtual bool SyncRunTask(SubgraphTask * task)=0;
+
+   virtual bool OptimizeGraph(SubgraphTask * task)=0;
+   virtual Subgraph * GetOptimizedGraph(SubgraphTask * task)=0;
 
    /*!
     * @brief Get current workload of the device executor 
@@ -82,7 +86,14 @@ struct DevExecutor {
     * @return the estimated fops rate for specific graph 
     */
  
-   virtual float GetFops(Subgraph * graph)=0; 
+   virtual float GetFops(Subgraph * graph, int policy)=0; 
+
+   virtual int GetPolicyPriority(int policy)=0;
+
+   virtual bool SetDevConfig(const char * config_name, const void * val, int size)=0;
+   virtual bool GetDevConfig(const char * config_name, void * buffer, int size)=0;
+   virtual bool DelDevConfig(const char * config_name)=0;
+   virtual bool GetProposal(Subgraph * graph, int policy)=0;
 
    /*
      * 
@@ -110,6 +121,15 @@ struct DevExecutor {
   virtual const dev_type_t & GetDevType()=0;
 
   virtual ~DevExecutor() {};
+
+  DevExecutor() { nonblock_run_=true;}
+
+  bool SupportNonblockRun(void) { return nonblock_run_; }
+  void DisableNonblockRun(void) { nonblock_run_=false; }
+
+private:
+  bool nonblock_run_;
+
 };
 
 
@@ -120,9 +140,10 @@ class DevExecutorManager : public SimpleObjectManagerWithLock<DevExecutorManager
  public:
  	static bool RegisterDevExecutor(DevExecutor * dev_executor);
 	static bool UnregisterDevExecutor(DevExecutor * dev_executor);
-       static bool GetDevExecutorByID(const dev_id_t& dev_id, DevExecutor * &dev_executor);
-       static bool GetDefaultDevExecutor(DevExecutor * &dev_executor);
+        static bool GetDevExecutorByID(const dev_id_t& dev_id, DevExecutor * &dev_executor);
+        static bool GetDefaultDevExecutor(DevExecutor * &dev_executor);
 	static bool GetDevExecutorByName(const std::string& dev_name, DevExecutor * &dev_executor);
+        static int  GetDevExecutorNum(void);
 
 	DevExecutor * default_executor;
 };

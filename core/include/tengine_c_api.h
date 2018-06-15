@@ -32,6 +32,7 @@ typedef void * user_context_t;
 typedef void * workspace_t;
 typedef void * graph_t;
 typedef void * tensor_t;
+typedef void * node_t;
 
 typedef int (*graph_callback_t)(graph_t ,int, void * arg);
 typedef int (*tensor_buf_cb_t)(void * buf, void * arg);
@@ -394,6 +395,26 @@ const char * get_node_output_tensor(graph_t graph, const char * node_name, int o
 tensor_t  get_graph_tensor(graph_t graph, const char * tensor_name);
 
 /*!
+* @brief get a tensor handle of one of graph input notes
+*
+* @param graph the graph handle
+* @param input_node_idx the input node index
+* @param tensor_idx the tensor index
+* @return the tensor handle
+*/
+tensor_t  get_graph_input_tensor(graph_t graph, int input_node_idx, int tensor_idx);
+
+/*!
+* @brief get a tensor handle of one of graph output notes
+*
+* @param graph the graph handle
+* @param output_node_idx the output node index
+* @param tensor_idx the tensor index
+* @return the tensor handle
+*/
+tensor_t  get_graph_output_tensor(graph_t graph, int output_node_idx, int tensor_idx);
+
+/*!
 * @brief check if a tensor handle is valid or not
 * 
 * @param tensor the tensor handle
@@ -502,6 +523,15 @@ void * get_tensor_buffer(tensor_t tensor);
 * @return a c string 
 */
 const char * get_tensor_name(tensor_t tensor);
+
+/*!
+* @brief  get the handle of node
+*
+* @param  graph the graph
+* @param  node_name the name of the node
+* @return the node handle
+*/
+node_t get_graph_node(graph_t graph, const char * node_name);
 
 /*!
 * @brief initialize resource for graph execution
@@ -813,8 +843,41 @@ int       del_graph_config(graph_t graph, const char * name);
 void set_log_level(int level);
 
 
-
 void dump_graph(graph_t graph);
+
+/* Level 4
+   
+   Interface for developer and debug
+*/
+
+void set_config_file(const char * conf_file);
+
+const char * get_config_file(void);
+
+/*!
+* @set the default device 
+* 
+* @param device the device name
+* @return 0 valid or -1 invalid
+*/
+
+int set_default_device(const char * device);
+
+/* for predefined device */
+int load_device(const char * driver_name, const char * dev_name);
+
+
+int unload_device(const char * driver_name, const char * dev_name);
+
+
+/* plugin */
+
+int load_tengine_plugin(const char * plugin_name, const char * fname, const char * init_func_name);
+int unload_tengine_plugin(const char * plugin_name, const char * rel_func_name);
+int get_tengine_plugin_number(void);
+const char * get_tengine_plugin_name(int idx);
+
+
 
 #ifdef __cplusplus
 }

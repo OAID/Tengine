@@ -2,30 +2,32 @@
 cmake_minimum_required (VERSION 2.8)
 project(MTCNN)
 
-set( TENGINE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../ )
-set( TENGINE_LIBS tengine executor serializer operator)
-set( MTCNN_SRCS mtcnn_utils.cpp mtcnn.cpp  test_mtcnn.cpp)
+set( INSTALL_DIR ${TENGINE_DIR}/install/ )
+set( TENGINE_LIBS tengine)
+if( ANDROID AND ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "armv7-a"))
+    set( PROTOBUF_LIB ${PROTOBUF_DIR}/arm32_lib/libprotobuf.so)
+endif()
+if( ANDROID AND ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "aarch64"))
+    set( PROTOBUF_LIB ${PROTOBUF_DIR}/arm64_lib/libprotobuf.so)
+endif()
 
-#flag
-set(CMAKE_CXX_FLAGS "-std=c++11 -O3 -Wall")
+set( MTCNN_SRCS mtcnn_utils.cpp mtcnn.cpp test_mtcnn.cpp ../common/common.cpp )
 
 #opencv
 find_package(OpenCV REQUIRED)
 
 #include
-include_directories(${TENGINE_DIR}/core/include 
-                    ${TENGINE_DIR}/operator/include 
-                    ${TENGINE_DIR}/serializer/include 
-                    ${TENGINE_DIR}/include)
+include_directories(${INSTALL_DIR}/include
+                    ${TENGINE_DIR}/examples/common)
 
 #lib
-link_directories(   ${TENGINE_DIR}/build/core 
-                    ${TENGINE_DIR}/build/executor 
-                    ${TENGINE_DIR}/build/serializer 
-                    ${TENGINE_DIR}/build/operator
-                    ${CMAKE_CURRENT_SOURCE_DIR})
+link_directories(${INSTALL_DIR}/lib)
+
 #exe
 add_executable(MTCNN ${MTCNN_SRCS})
-target_link_libraries(MTCNN ${TENGINE_LIBS} ${OpenCV_LIBS})
-
+if( ANDROID)
+  target_link_libraries(MTCNN ${TENGINE_LIBS} ${PROTOBUF_LIB} ${OpenCV_LIBS})
+else()
+  target_link_libraries(MTCNN ${TENGINE_LIBS} ${OpenCV_LIBS})
+endif()
 

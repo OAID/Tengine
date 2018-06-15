@@ -25,7 +25,8 @@
 #define __SHARE_LIB_PARSER_HPP__
 
 #include <cstddef>
-#include <stdlib.h>
+#include <cstdlib>
+#include <cstdio>
 #include <string>
 #include <dlfcn.h>
 #include <stdexcept>
@@ -74,7 +75,7 @@ namespace TEngine{
         }
 
         template <typename F, typename... Args>
-        typename std::result_of<std::function<F>(Args...)>::type ExcecuteFunc(const std::string& func_name, Args&&... args)
+        typename std::result_of<std::function<F>(Args...)>::type ExecuteFunc(const std::string& func_name, Args&&... args)
         {
                 auto f = GetFunction<F>(func_name);
                 return f(std::forward<Args>(args)...);

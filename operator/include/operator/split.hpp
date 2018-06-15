@@ -35,7 +35,7 @@ public:
     Split(const Split& src)=default;
     ~Split() { }
 
-    bool InferShape(const std::vector<TShape>& ishape, std::vector<TShape>& oshape);
+    bool InferShape(const std::vector<TShape>& ishape, std::vector<TShape>& oshape) override;
 
 
     void SetSchema(void) override;

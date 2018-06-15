@@ -36,7 +36,7 @@ public:
       PReLU(const PReLU& )=default;
       virtual ~PReLU() {};
 
-      float GetFops(const std::vector<TShape>& inputs, const std::vector<TShape>& outputs);
+      float GetFops(const std::vector<TShape>& inputs, const std::vector<TShape>& outputs) override;
  
       void SetSchema(void) override;
 };

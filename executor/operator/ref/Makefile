@@ -1,5 +1,4 @@
 obj-$(CONFIG_CAFFE_REF)+=caffe_operator.o
-obj-y+=fused_bn_scale_relu.o
 obj-y+=demo_operator.o
 
 CAFFE_INCS += -I$(CAFFE_ROOT)/include

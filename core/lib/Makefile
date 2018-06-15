@@ -19,5 +19,6 @@ obj-y+=tengine_plugin.o
 obj-y+=logger/
 
 #graph_executor_CXXFLAGS+=-I../../executor/include
+tengine_config_CXXFLAGS+=-DGIT_COMMIT_ID=$(GIT_COMMIT_ID)
 
 

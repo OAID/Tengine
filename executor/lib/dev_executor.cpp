@@ -26,6 +26,7 @@
 #include "dev_allocator.hpp"
 #include "dev_scheduler.hpp"
 #include "tengine_config.hpp"
+#include "device_driver.hpp"
 
 
 
@@ -74,7 +75,7 @@ bool DevExecutorManager::GetDefaultDevExecutor(DevExecutor * &dev_executor)
 {
       std::string default_dev_id;
 
-      if(!TEngineConfig::Get("device.default",default_dev_id))
+      if(!DriverManager::GetDefaultDeviceName(default_dev_id))
             return false;
 
       return GetDevExecutorByID(default_dev_id,dev_executor);
@@ -109,6 +110,18 @@ bool DevExecutorManager::GetDevExecutorByName(const std::string& dev_name, DevEx
 	
 }
 
+
+int  DevExecutorManager::GetDevExecutorNum(void)
+{
+     auto manager=GetInstance();
+     manager->Lock();
+
+     int number=manager->size();
+
+     manager->Unlock();
+
+     return number;
+}
 
 
 

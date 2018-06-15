@@ -48,7 +48,7 @@ public:
          else if(method =="prod")
             param.type=ELT_PROD;
      }
-      void ParseParam(EltwiseParam & param, Operator * op)
+      void ParseParam(EltwiseParam & param, Operator * op) override
      {
          EltwiseParam::Parse(param,op);
          MethodToType(param);
