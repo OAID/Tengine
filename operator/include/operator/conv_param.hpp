@@ -41,6 +41,7 @@ struct ConvParam {
    int  dilation_w;
    int  output_channel;
    int  group;
+   std::vector<int> pads;
 
 
    DECLARE_PARSER_STRUCTURE(ConvParam) {

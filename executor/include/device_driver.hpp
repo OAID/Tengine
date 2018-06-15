@@ -28,13 +28,20 @@
 #include <functional>
 #include <string>
 
+#include "compiler.hpp"
+
 #include "graph.hpp"
 
 namespace TEngine {
 
 class Device;
-class DevExecutor;
+struct DevExecutor;
 
+enum exec_policy_t {
+        kLatency,
+        kPower,
+        kBatch
+};
 
 enum dev_status_t {
 	kDevInvalid,
@@ -44,6 +51,24 @@ enum dev_status_t {
 	kDevRemoved
 };
 
+
+/* 
+  the returned dev proposal result for each node:
+  dev_name: which device sets the proposal
+  level: how is the device apt on the node
+         0 --- Not support
+         1 --- Just can work
+         2 --- I can do it pretty good
+         3 --- no one is best than me
+*/
+
+#define DEV_PROPOSAL_ATTR "dev_proposal"
+
+struct DevProposal
+{
+       std::string dev_name;
+       int level;  
+};
 
 struct DevWorkload {
       float past;    //workload percentage on last period
@@ -63,7 +88,7 @@ struct GraphPerf {
 using dev_type_t=std::string;
 using dev_id_t=std::string;
 using dev_graph_cb_t=std::function<void(Subgraph *, bool )>;
-using dev_node_cb_t=std::function<void(void *, bool)>;
+using dev_node_cb_t=std::function<void(Node*, bool)>;
 
 /*!
 * @brief Driver class defines the interface between device and device 
@@ -82,6 +107,9 @@ class Driver {
 public:
 	const std::string& GetName(void) {return name_;}
 	void SetName(const std::string& name) { name_=name;}
+	bool AutoProbe(void ) { return auto_probe_;}
+
+	Driver(void) { auto_probe_=true;}
 
         /*!
         * @brief detect the supported H/W in system.
@@ -292,6 +320,7 @@ public:
         * @return true, preturn with no error
         */
 
+    
 	virtual bool Prerun(Device * dev, void * graph_handle)=0;
 
         /*!
@@ -382,6 +411,69 @@ public:
 
 	virtual bool Postrun(Device * dev, void * graph_handle, Node  * node)=0;
 
+        /*!
+        * @brief Get the size of memory need to run the graph saved in graph_handle
+        *
+        * @param dev, the device
+        * @param graph_handle, the graph_handle
+        * @param mem_size, return the requested memory size
+        * 
+        * @return true, the value in mem_size is trustale
+        *         false, the device will allocate memory by itself
+        */
+
+        virtual bool GetRunMemorySize(Device * dev, void * graph_handle, unsigned int& mem_size) { return false;}
+
+        /*!
+        * @brief Set the memory address to run graph saved in graph_handle
+        *
+        * @param dev, the device
+        * @param graph_handle, the graph_handle
+        * @param mem_addr, the address of memory region
+        *
+        * @return none
+        */
+
+        virtual void SetRunMemory(Device * dev, void * graph_handle, void * mem_addr){};
+
+ 
+        /*!
+        * @brief Configure the device, referenced by config_name
+        *
+        * @param dev, the device
+        * @param config_name, the name of the config item
+        * @param val, pointer of the argument buffer
+        * @param size, the size of the arugment buffer
+        *
+        * @return true, config done successfully
+        */
+
+        virtual bool SetDevConfig(Device *dev, const char * config_name, const void * val, int size) { return false;}
+
+        /*!
+        * @brief Get the configure of the device, referenced by config_name
+        *
+        * @param dev, the device
+        * @param config_name, the name of the config item
+        * @param val, pointer of the argument buffer
+        * @param size, the size of the arugment buffer
+        *
+        * @return true, get config item successfully
+        */
+
+        virtual bool GetDevConfig(Device *dev, const char * config_name, void * val, int size) { return false;}
+
+        /*!
+        * @brief Delete the config item from the device
+        *
+        * @param dev, the device
+        * @param config_name, the name of the config_item
+        * 
+        * @return true, the deletion done successfully
+        */
+
+        virtual bool DelDevConfig(Device *dev, const char * config_name) { return false;}
+
         /* these interfaces are used by device allocator/scheduler */
 
         /*!
@@ -424,12 +516,41 @@ public:
         *        if the graph is nullptr, return the nominal fops of the device
         * @param dev, the device 
         * @param graph, the graph
+        * @param policy, the execution policy
         *
         * @return the float ops rate 
         */
 
-        virtual float GetFops(Device * dev, Subgraph * graph)=0; 
+        virtual float GetFops(Device * dev, Subgraph * graph, int policy)=0; 
 
+        /*!
+        * @brief Get the priority the device claimed for a policy
+        *
+        * @param dev, the device
+        * @param policy, the policy
+        *
+        * @return int, the priority
+        */
+
+        virtual int  GetPolicyPriority(Device * dev, int policy)=0;
+
+        /*!
+        * @brief Get the execution propsoal for subgraph on this dev with execution policy
+        *        the device should go throught the graph, and set or replace DEV_PROPOSAL_ATTR of a node 
+        *        only when its level is greater than presetted one
+        *
+        * @param dev, the device
+        * @param graph, the graph
+        * @param policy, the execution policy
+        *
+        * @return true, there is new proposal in graph
+        *         false, nothing is changed
+        */
+
+        virtual bool  GetProposal(Device * dev, Subgraph * graph, int policy)=0; 
+
+
+	virtual Subgraph * GetOptimizedGraph(Device * dev, void * graph_handle ) { return nullptr;}
 
 	virtual ~Driver() {}
 
@@ -438,6 +559,7 @@ public:
 protected:
 
 	std::string name_;
+	bool auto_probe_;
 
 
 };
@@ -476,6 +598,9 @@ public:
 	bool OptimizeGraph(void * graph_handle, Subgraph * graph) 
 	{ return driver_->OptimizeGraph(this,graph_handle,graph);}
 
+	Subgraph *  GetOptimizedGraph(void * graph_handle) 
+	{ return driver_->GetOptimizedGraph(this,graph_handle);}
+
 	void SetGraphDoneHook(void * graph_handle, dev_graph_cb_t func)
 	{ driver_->SetGraphDoneHook(this,graph_handle,func);}
 	void  SetNodeDoneHook(void * graph_handle, dev_node_cb_t func) 
@@ -492,12 +617,39 @@ public:
 	bool Postrun(void * graph_handle, Node * node) {return driver_->Postrun(this,graph_handle,node);}
 
 
+        bool GetRunMemorySize(void * graph_handle, unsigned int& mem_size) 
+        {   return driver_->GetRunMemorySize(this,graph_handle,mem_size); }
+
+        void SetRunMemory(void * graph_handle, void * mem_addr)
+        {   driver_->SetRunMemory(this,graph_handle,mem_addr);}
+
+        /*device config/query interface */
+     
+        bool SetDevConfig(const char * config_name,const void *val, int size)
+        {
+            return driver_->SetDevConfig(this,config_name,val,size);
+        }
+
+        bool GetDevConfig(const char * config_name, void * buf, int size)
+        {
+            return driver_->GetDevConfig(this,config_name,buf,size);
+        }
+
+        bool DelDevConfig(const char * config_name)
+        {
+            return driver_->DelDevConfig(this,config_name);
+        }
+
+
 	/* query/stats interface */
 	dev_status_t GetDeviceStatus(void) { return driver_->GetDeviceStatus(this);}
 
         void GetWorkload(DevWorkload& load) { driver_->GetWorkload(this,load);}
         bool GetPerf(Subgraph * graph,int policy,GraphPerf& perf) { return driver_->GetPerf(this,graph,policy,perf);};
-        float GetFops(Subgraph * graph)  { return driver_->GetFops(this,graph);} 
+        float GetFops(Subgraph * graph, int policy)  { return driver_->GetFops(this,graph, policy);} 
+        int  GetPolicyPriority(int policy) { return driver_->GetPolicyPriority(this,policy);}
+  
+        bool  GetProposal(Subgraph * graph, int policy){return driver_->GetProposal(this,graph,policy);}
 
 	virtual ~Device(){};
 protected:
@@ -509,11 +661,19 @@ protected:
 
 class DriverManager: public SimpleObjectManagerWithLock<DriverManager, Driver *>{
 public:
+        using probe_default_t=void(*)(void);
+
 	static bool RegisterDriver(const std::string& name, Driver * driver);
 	static bool UnregisterDriver(const std::string& name);
 	static bool UnregisterDriver(Driver * driver);
 	static Driver * GetDriver(const std::string& name);
         static Device * GetDevice(const dev_id_t& dev_id);
+
+        static Device * GetDefaultDevice(void);
+        static bool GetDefaultDeviceName(std::string& dev_name);
+        static bool SetDefaultDevice(const std::string& dev_name);
+        static void SetDefaultDevice(Device * device);
+		static bool HasDefaultDevice(void);
 
 
 	static bool LoadDevice(Driver * driver,Device * device);
@@ -522,10 +682,19 @@ public:
 	static bool UnloadDevice(Driver * driver);
 	static bool UnloadDevice(Driver * driver,Device * device);
 
-        static void ProbeDevice(void);
-        static void ReleaseDevice(void);
+        static int ProbeDevice(void);
+        static int ReleaseDevice(void);
+
+        static void SetProbeDefault(probe_default_t probe);
 
         Device * RealGetDevice(const dev_id_t& dev_id);
+
+        DriverManager() { default_dev=nullptr; probe_default=nullptr;}
+
+
+protected:
+        Device * default_dev;
+        probe_default_t probe_default;
 };
 
 

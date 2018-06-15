@@ -44,12 +44,13 @@ public:
 
   GraphExecutor() {
        graph_=nullptr;
+       graph_attached_=false;
        exec_handle_=nullptr;
 	   exec_priority_=100;
   }
 
   ~GraphExecutor() { 
-       if(graph_) 
+       if(graph_ && !graph_attached_) 
            ReleaseGraph();
        if(exec_handle_)
            ReleaseExecHandle();
@@ -57,7 +58,10 @@ public:
 
    bool CreateGraph(const std::string& graph_name, const std::string& model_name);
 
+   bool AttachGraph(Graph * graph_);
+
    Graph * GetGraph(void) { return graph_;}
+   Graph * GetOptimizedGraph(void); 
 
    RuntimeWorkspace * GetWorkspace(void) {  return ws_;}
 
@@ -80,6 +84,7 @@ public:
    const std::string&  GetNodeOutputTensor(const std::string& node_name, int idx);
 
    Tensor * FindTensor(const std::string& name);
+   Node * FindNode(const std::string& name);
 
    bool SetTensorBuffer(Tensor * tensor, void * buffer, int buffer_size);
    void *  GetTensorBuffer(Tensor * tensor);
@@ -121,6 +126,7 @@ private:
 
    RuntimeWorkspace * ws_;
    Graph * graph_;
+   bool   graph_attached_;
 
    ExecEnginePtr exec_engine_;
    exec_handle_t exec_handle_;

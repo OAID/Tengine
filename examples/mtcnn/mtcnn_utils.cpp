@@ -114,6 +114,7 @@ void generate_bounding_box(const float * confidence_data,
 void nms_boxes(std::vector<face_box>& input,
  float threshold, int type, std::vector<face_box>&output)
 {
+	output.clear();
 	std::sort(input.begin(),input.end(),
 			[](const face_box& a, const face_box&b) {
 			return a.score > b.score;  

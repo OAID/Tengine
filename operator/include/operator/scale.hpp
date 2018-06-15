@@ -22,7 +22,7 @@
  * Author: haitao@openailab.com
  */
 #ifndef __SCALE_HPP__
-#define __SCAEL_HPP__
+#define __SCALE_HPP__
 
 #include "operator.hpp"
 #include "operator/scale_param.hpp"

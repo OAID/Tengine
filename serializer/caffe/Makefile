@@ -1,18 +1,18 @@
 obj-y+=caffe_serializer.o
-obj-y+=caffe.pb.o
+obj-y+=te_caffe.pb.o
 
-caffe_serializer.o: caffe.pb.o
+caffe_serializer.o: te_caffe.pb.o
 
-caffe.pb.cc: caffe.proto
-	$(PROTOC) --cpp_out . caffe.proto
-	$(MV) caffe.pb.h ../include/
+te_caffe.pb.cc: te_caffe.proto
+	$(PROTOC) --cpp_out . te_caffe.proto
+	$(MV) te_caffe.pb.h ../include/
 
 PROTOC=protoc
 MV=mv
 RM=rm
 
-caffe.pb_CXXFLAGS=-I. 
+te_caffe.pb_CXXFLAGS=-I. 
 caffe_serializer_CXXFLAGS+=-I.
 
 clean::
-	@$(RM) -f ../include/caffe.pb.h caffe.pb.cc
+	@$(RM) -f ../include/te_caffe.pb.h te_caffe.pb.cc

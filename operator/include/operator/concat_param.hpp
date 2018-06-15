@@ -30,8 +30,6 @@
 
 namespace TEngine {
 
-class StaticOp;
-
 
 struct ConcatParam {
 

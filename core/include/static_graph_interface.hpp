@@ -79,6 +79,7 @@ StaticTensor * GetNodeOutputTensor(StaticGraph * graph, StaticNode * node, int i
 //StaticOp
 StaticOp* CreateStaticOp(StaticGraph * graph, const std::string& op_name);
 void SetOperatorParam(StaticOp*, any&& param);
+void SetOperatorDynamicShape(StaticOp*);
 void AddOperatorAttr(StaticOp*, const std::string& attr_name, any&& val);
 any& GetOperatorParam(StaticOp *);
 

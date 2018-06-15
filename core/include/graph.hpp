@@ -79,6 +79,8 @@ public:
     void DumpGraph(void);
 
     void SanitizeGraph(void);
+    void StripGraph(void);
+    void PopulateDynamicShape(void);
 
     bool RemoveTensor(Tensor * tensor);
     bool RemoveNode(Node * node);
@@ -95,11 +97,12 @@ public:
     std::vector<Node*> output_nodes; 
     std::vector<Node*> seq_nodes; 
 
-    static void BFSVisit(Graph * graph, std::vector<Node *>& starts, graph_visit_t func, bool backward=true);
-    static void BackwardBFS(Graph * graph, std::vector<Node *>& starts, graph_visit_t func );
-    static void ForwardBFS(Graph * graph, std::vector<Node *>& starts, graph_visit_t func);
+    static void BFSVisit(Graph * graph, std::vector<Node *>& starts, graph_visit_t func, bool backward=true, bool input_ready=true);
+    static void BackwardBFS(Graph * graph, std::vector<Node *>& starts, graph_visit_t func, bool input_ready );
+    static void ForwardBFS(Graph * graph, std::vector<Node *>& starts, graph_visit_t func,bool input_ready);
 
     void RemoveNoChildTensor(void);
+    void HandleNoChildTensor(void);
 
     bool IsOutputNode(Node * node);
     bool IsInputNode(Node * node);
@@ -113,6 +116,11 @@ public:
     Tensor * GetOutputTensor(const std::string& name);
 
     bool Replace(Subgraph * orig_sub, Subgraph * new_sb);
+
+    void AddTensorMap(const std::string& tensor_name, Tensor * tensor);
+    Graph * GetViewCopy(void);
+
+	bool NodeInGraph(Node *);
 
 protected:
 

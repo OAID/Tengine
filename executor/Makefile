@@ -1,24 +1,15 @@
-CC=${CROSS_COMPILE}gcc  -std=gnu99 ${SYSROOT_FLAGS}
-CXX=${CROSS_COMPILE}g++ -std=c++11 ${SYSROOT_FLAGS}
-LD=${CROSS_COMPILE}g++ ${SYSROOT_FLAGS}
-
-
-BUILD_DIR?=$(shell pwd)/build
-INSTALL_DIR?=$(shell pwd)/install
-MAKEBUILD?=$(shell pwd)/makefile.build
-
-export CC CXX CFLAGS  LD LDFLAGS CXXFLAGS COMMON_CFLAGS
+obj-y+=operator/
+obj-y+=lib/
+obj-y+=engine/
+obj-y+=plugin/
 
 INC_DIR+=-I$(shell pwd)/../core/include
 INC_DIR+=-I$(shell pwd)/../include -I$(shell pwd)/../operator/include 
 INC_DIR+=-I$(shell pwd)/include 
 
-MODULE_DIR=operator lib engine plugin
-MODULE_NAME=libexecutor.so
+COMMON_CFLAGS+=$(CONFIG_OPT_CFLAGS)
+COMMON_CFLAGS+= -Wall -g -fPIC  $(INC_DIR)  -Werror
 
-CXXFLAGS+=
-
-COMMON_CFLAGS+= -Wall -g -fPIC  $(INC_DIR)
 ifeq ($(CONFIG_CAFFE_REF),y)
     COMMON_CFLAGS+= -DCONFIG_CAFFE_REF=1
 endif
@@ -27,77 +18,17 @@ ifeq ($(CONFIG_ARCH_ARM64),y)
     COMMON_CFLAGS+= -DCONFIG_ARCH_ARM64=1
 endif
 
-libsubdir_list=$(MODULE_DIR)
+ifeq ($(CONFIG_ARCH_BLAS),y)
+    COMMON_CFLAGS+=-DCONFIG_ARCH_BLAS=1
+endif
 
-PLUGIN_OBJS =$(addprefix $(BUILD_DIR)/, $(foreach f,$(libsubdir_list),$(f)/built-in.o))
-
-PLUGIN_SO:=$(BUILD_DIR)/$(MODULE_NAME)
-
-
-binsubdir_list=./tests
-
--include ./tests/Makefile
-
-TESTDIR_OBJS:=$(addprefix $(BUILD_DIR)/tests/,$(bin-obj-y))
-bin-obj-y:=
-
-
-BIN_OBJS=$(TESTDIR_OBJS) $(BINDIR_OBJS)
-BIN_EXES=$(BIN_OBJS:.o=)
-
-
-default: $(libsubdir_list) $(PLUGIN_SO)
-
-TENGINE_SO=../build/core/libtengine.so
-
-test: $(binsubdir_list) $(BIN_EXES)
-
-$(PLUGIN_OBJS): $(libsubdir_list)
-$(BIN_OBJS): $(binsubdir_list)
-
-
-
-build: default install
+ifeq ($(CONFIG_ARCH_ARM32),y)
+    COMMON_CFLAGS+= -DCONFIG_ARCH_ARM32=1
+    CC+= -march=armv7-a -mfpu=neon
+    CXX+=-march=armv7-a -mfpu=neon
+endif
 
 
 install:
-	@mkdir -p $(INSTALL_DIR)/lib
-	@cp -f $(PLUGIN_SO) $(INSTALL_DIR)/lib
 
-$(PLUGIN_SO): $(PLUGIN_OBJS)
-	$(CC) -o $@ -shared $^ $(LIBS) $(PLUGIN_LDFLAGS)
-
-
-$(libsubdir_list) $(binsubdir_list):
-	@$(MAKE) -C $@ -f $(MAKEBUILD) BUILD_DIR=$(BUILD_DIR)/$@ $(MAKECMDGOALS)
-
-
-clean: $(libsubdir_list) $(binsubdir_list)
-	@rm -rf $(PLUGIN_SO) $(BIN_EXES)
-
-
-.PHONY:  build clean default install  $(libsubdir_list) $(binsubdir_list)
-
-
-$(BUILD_DIR)/%: $(BUILD_DIR)/%.o
-	@mkdir -p $(@D)
-	$(LD) $< $(COMMON_OBJS) -o $@ $(LIBS) $(SO_LIBS) $(LDFLAGS)
-
-
-LIBS+=-lprotobuf -ldl -lpthread
-
-SO_LIBS+=-Wl,-rpath,./build/operator:./build/serializer:./build/executor:./build/core
-SO_LIBS+=-L ../build/executor -lexecutor -L../build/operator -loperator  -L ../build/serializer -lserializer
-SO_LIBS+=-L ../build/core -ltengine
-
-ifeq ($(CONFIG_CAFFE_REF),y)
-    CAFFE_LIBS+=-Wl,-rpath,$(CAFFE_ROOT)/build/lib -L$(CAFFE_ROOT)/build/lib -lcaffe
-    CAFFE_LIBS+= -lprotobuf -lboost_system -lglog -lopenblas
-    PLUGIN_LDFLAGS+=$(CAFFE_LIBS)
-endif
-
-OPENCV_LDFLAGS=$(shell pkg-config --libs opencv)
-
-
-LDFLAGS+=$(OPENCV_LDFLAGS)
 

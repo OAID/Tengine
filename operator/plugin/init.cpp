@@ -36,6 +36,7 @@
 #include "operator/accuracy.hpp"
 #include "operator/dropout.hpp"
 #include "operator/relu.hpp"
+#include "operator/relu6.hpp"
 #include "operator/batch_norm.hpp"
 #include "operator/scale.hpp"
 #include "operator/lrn.hpp"
@@ -45,20 +46,30 @@
 #include "operator/slice.hpp"
 #include "operator/demo_op.hpp"
 #include "operator/normalize.hpp"
+#include "operator/permute.hpp"
+#include "operator/flatten.hpp"
+#include "operator/priorbox.hpp"
+#include "operator/reshape.hpp"
+#include "operator/detection_output.hpp"
+#include "operator/rpn.hpp"
+#include "operator/roi_pooling.hpp"
+#include "operator/reorg.hpp"
+#include "operator/region.hpp"
+#include "operator/deconvolution.hpp"
+#include "operator/resize.hpp"
 
 extern "C" {
-
-   int tengine_plugin_init(void);
+    int operator_plugin_init(void);
 }
 
 using namespace TEngine;
 
-int tengine_plugin_init(void)
+int operator_plugin_init(void)
 {
     RegisterOp<Convolution>("Convolution");
     RegisterOp<InputOp>("InputOp");
     RegisterOp<Pooling>("Pooling");
-    RegisterOp<SoftMax>("SoftMax");
+    RegisterOp<Softmax>("Softmax");
     RegisterOp<FullyConnected>("FullyConnected");
     RegisterOp<Accuracy>("Accuracy");
     RegisterOp<Concat>("Concat");
@@ -66,6 +77,7 @@ int tengine_plugin_init(void)
     RegisterOp<Split>("Split");
     RegisterOp<ConstOp>("Const");
     RegisterOp<ReLu>("ReLu");
+    RegisterOp<ReLu6>("ReLu6");
     RegisterOp<BatchNorm>(BatchNormName);
     RegisterOp<Scale>("Scale");
     RegisterOp<LRN>("LRN");
@@ -75,8 +87,20 @@ int tengine_plugin_init(void)
     RegisterOp<Slice>("Slice");
     RegisterOp<DemoOp>("DemoOp");
     RegisterOp<Normalize>("Normalize");
+    RegisterOp<Permute>("Permute");
+    RegisterOp<Flatten>("Flatten");
+    RegisterOp<PriorBox>("PriorBox");
+    RegisterOp<Reshape>("Reshape");
+    RegisterOp<DetectionOutput>("DetectionOutput");
+    RegisterOp<RPN>("RPN");
+    RegisterOp<ROIPooling>("ROIPooling");
+    RegisterOp<Reorg>("Reorg");
+    RegisterOp<Region>("Region");
+    RegisterOp<Deconvolution>("Deconvolution");
+    RegisterOp<BilinearResize>("BilinearResize");
 
-    std::cout<<"OPERATOR PLUGIN INITED\n";
+
+   // std::cout<<"OPERATOR PLUGIN INITED\n";
     return 0;
 }
 

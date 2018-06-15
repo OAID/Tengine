@@ -332,6 +332,11 @@ StaticOp* CreateStaticOp(StaticGraph * graph, const std::string& op_name)
       return op;
 }
 
+void SetOperatorDynamicShape(StaticOp* op)
+{
+     op->dynamic_shape=true;
+}
+
 void SetOperatorParam(StaticOp* op, any&& param)
 {
      op->param=std::move(param);

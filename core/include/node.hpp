@@ -50,7 +50,7 @@ public:
 
     ~Node() { }
 
-    Node(const std::string& name)  { name_=name; op_=nullptr;}
+    Node(const std::string& name)  { name_=name; op_=nullptr;dynamic_shape_=false;}
 
     Operator * GetOp(void) const {return op_.get();}
 
@@ -264,6 +264,8 @@ public:
         return false;
     }
 
+	void MergeAttr(Node * orig);
+
     std::vector<NodePortPtr>& GetAllInputs(void) { return inputs_;}
     std::vector<NodePortPtr>& GetAllOutputs(void) { return outputs_;}
      
@@ -276,6 +278,9 @@ public:
     void DumpNode(void);
 
     float GetFops(void);
+
+    bool IsDynamicShape(void) { return dynamic_shape_;}
+    bool SetDynamicShape(bool val) { dynamic_shape_=val; return true; }
 
     /* Deprecated, should not use in new code */
     int GetParentNum(void);
@@ -301,6 +306,7 @@ protected:
 
      std::string name_;
      int  index_; //index in seq node list of graph
+     bool dynamic_shape_;
 
      void* rep_id;
 };

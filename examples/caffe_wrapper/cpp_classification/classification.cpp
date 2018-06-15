@@ -213,8 +213,14 @@ void Classifier::Preprocess(const cv::Mat& img,
   else
     sample_resized.convertTo(sample_float, CV_32FC1);
 
+#ifdef MOBILE_NET
+  cv::Mat sample_normalized, sample_normalized1;
+  cv::subtract(sample_float, mean_, sample_normalized1);
+  cv::multiply(sample_normalized1, 0.017, sample_normalized);
+#else
   cv::Mat sample_normalized;
   cv::subtract(sample_float, mean_, sample_normalized);
+#endif
 
   /* This operation will write the separate BGR planes directly to the
    * input layer of the network because it is wrapped by the cv::Mat

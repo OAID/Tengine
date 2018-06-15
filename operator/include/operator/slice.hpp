@@ -35,7 +35,7 @@ public:
       Slice() { name_="Slice";}
       Slice(const Slice& src)=default;
       virtual ~Slice() {};
-      bool InferShape(const std::vector<TEngine::TShape>&, std::vector<TEngine::TShape>&);
+      bool InferShape(const std::vector<TEngine::TShape>&, std::vector<TEngine::TShape>&) override;
       void SetSchema(void) override;
  
 };

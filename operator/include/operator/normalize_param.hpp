@@ -28,7 +28,6 @@
 
 namespace TEngine {
 
-class StaticOp;
 
 struct NormalizeParam 
 {

@@ -23,6 +23,9 @@
  */
 
 #include <queue>
+#include <set>
+
+#include "compiler.hpp"
 
 #include "logger.hpp"
 #include "graph_executor.hpp"
@@ -37,72 +40,24 @@
 
 namespace TEngine {
 
-struct LatencyAllocator: public DevAllocator {
-
-   LatencyAllocator() { name="Latency";}
-
-   bool Allocate(GenericEngine * engine,GraphExecutor * graph_executor, Graph * graph, std::vector<Subgraph *>& sub_list) override;
-   const std::string& GetName(void) override { return  name;}
-
-};
-
-bool LatencyAllocator::Allocate(GenericEngine * engine,GraphExecutor * graph_executor, Graph * graph, std::vector<Subgraph *>& sub_list)
+void DevAllocator::SameGraph(Graph * graph,DevExecutor * dev_executor, std::vector<Subgraph *>& sub_list)
 {
-   return false;
+      Subgraph * sub_graph=new Subgraph(graph->GetName());
+
+      sub_graph->seq_nodes=graph->seq_nodes;
+      sub_graph->input_nodes=graph->input_nodes;
+      sub_graph->output_nodes=graph->output_nodes;
+
+
+     sub_graph->SetAttr("dev_executor",dev_executor);
+     sub_list.push_back(sub_graph);
+
 }
 
-struct ManualAllocator: public DevAllocator {
-
-   ManualAllocator(void) { name="Manual";}
-   bool Allocate(GenericEngine * engine, GraphExecutor * graph_executor,Graph * graph, std::vector<Subgraph *>& sub_list) override;
-   const std::string& GetName(void) override { return  name;}
-
-};
-
-
-bool ManualAllocator::Allocate(GenericEngine * engine,GraphExecutor * graph_executor, Graph * graph, std::vector<Subgraph *>& sub_list)
+void DevAllocator::PartitionGraph(GenericEngine * engine,GraphExecutor * graph_executor,
+           Graph * graph, std::vector<Subgraph *>& sub_list)
 {
-    //step 1: assign dev_executor for all  nodes
-
     int node_number=graph->seq_nodes.size();
-
-    for(int i=0;i<node_number;i++)
-    {
-        Node * node=graph->seq_nodes[i];
-        Operator * op=node->GetOp();
-        DevExecutor * dev_executor;
-
-        if(op->GetName()=="Input" || op->GetName()=="Const")
-            continue;
-
-        if(node->ExistAttr("dev_id"))
-        {
-              const std::string& dev_id=any_cast<std::string>(node->GetAttr("dev_id"));
-
-              if(DevExecutorManager::GetDevExecutorByID(dev_id,dev_executor))
-              {
-                   node->SetAttr("dev_executor",dev_executor);
-                   continue;
-              }
-	      else
-	      {
-	            LOG_ERROR()<<"cannot find dev exeuctor with name: "<<dev_id<<"\n";
-                    return false;				
-	      }
-        }
-
-        //not assigned using the default one
-        if(!DevExecutorManager::GetDefaultDevExecutor(dev_executor))
-        {
-            LOG_ERROR()<<"failed to assign dev executor for node: "<<node->GetName()<<"\n";
-            return false;
-        }
-
-        node->SetAttr("dev_executor",dev_executor);
-    }
-
-    
-    //step 2: partition graph into subgraph according to dev_executor allocation 
 
     std::vector<int> visited(node_number,0);
     std::queue<Node *> search_root_nodes;
@@ -158,6 +113,10 @@ bool ManualAllocator::Allocate(GenericEngine * engine,GraphExecutor * graph_exec
              //input or const node
              if(!parent_node->ExistAttr("dev_executor"))
              {
+
+                 if(visited[parent_node->GetNodeIndex()])
+                      continue;
+
                  sub_graph->seq_nodes.push_back(parent_node);
 
                  Operator * op=parent_node->GetOp();
@@ -246,12 +205,118 @@ bool ManualAllocator::Allocate(GenericEngine * engine,GraphExecutor * graph_exec
         sub_graph->SetAttr("dev_executor",dev_executor);
         sub_list.insert(sub_list.begin(),sub_graph);
     }
-    
+
     for(auto sub_graph: sub_list)
     {
         sub_graph->SanitizeGraph();
-        //sub_graph->DumpGraph();
+
+		const char * dump=std::getenv("DUMP_DEV_ALLOCATE");
+
+		if(dump && dump[0]=='1')
+             sub_graph->DumpGraph();
     }
+
+
+}
+
+struct LatencyAllocator: public DevAllocator {
+
+   LatencyAllocator() { name="Latency";}
+
+   bool Allocate(GenericEngine * engine,GraphExecutor * graph_executor, Graph * graph, std::vector<Subgraph *>& sub_list) override;
+   const std::string& GetName(void) override { return  name;}
+
+};
+
+bool LatencyAllocator::Allocate(GenericEngine * engine,GraphExecutor * graph_executor, Graph * graph, std::vector<Subgraph *>& sub_list)
+{
+   return false;
+}
+
+struct ManualAllocator: public DevAllocator {
+
+   ManualAllocator(void) { name="Manual";}
+   bool Allocate(GenericEngine * engine, GraphExecutor * graph_executor,Graph * graph, std::vector<Subgraph *>& sub_list) override;
+   const std::string& GetName(void) override { return  name;}
+
+};
+
+
+bool ManualAllocator::Allocate(GenericEngine * engine,GraphExecutor * graph_executor, Graph * graph, std::vector<Subgraph *>& sub_list)
+{
+    //step 1: assign dev_executor for all  nodes
+    std::set<DevExecutor *> exec_set;
+
+    int node_number=graph->seq_nodes.size();
+    DevExecutor * dev_executor=nullptr;
+
+    for(int i=0;i<node_number;i++)
+    {
+        Node * node=graph->seq_nodes[i];
+        Operator * op=node->GetOp();
+
+        if(op->GetName()=="Input" || op->GetName()=="Const")
+            continue;
+
+        if(node->ExistAttr("dev_id"))
+        {
+              const std::string& dev_id=any_cast<std::string>(node->GetAttr("dev_id"));
+
+              if(DevExecutorManager::GetDevExecutorByID(dev_id,dev_executor))
+              {
+                   node->SetAttr("dev_executor",dev_executor);
+                   exec_set.insert(dev_executor);
+                   continue;
+              }
+	      else
+	      {
+	            LOG_ERROR()<<"cannot find dev exeuctor: "<<dev_id
+                               <<" for node: "<<node->GetName()<<"\n";
+                    return false;				
+	      }
+        }
+
+        //not assigned using the default one
+        //first: to check if the graph default one
+
+        if(graph->ExistAttr("default_executor"))
+        {
+             const std::string& dev_id=any_cast<std::string>(graph->GetAttr("default_executor"));
+        
+             if(DevExecutorManager::GetDevExecutorByID(dev_id,dev_executor))
+              {
+                   node->SetAttr("dev_executor",dev_executor);
+                   exec_set.insert(dev_executor);
+                   continue;
+              }
+              else
+              {
+                    LOG_ERROR()<<"cannot find graph default dev exeuctor: "<<dev_id
+                               <<" for node: "<<node->GetName()<<"\n";
+                    return false;
+              }     
+                   
+        }
+       
+        //get  the  system default one
+        if(!DevExecutorManager::GetDefaultDevExecutor(dev_executor))
+        {
+                LOG_ERROR()<<"failed to assign dev executor for node: "<<node->GetName()<<"\n";
+                return false;
+        }
+       
+
+        node->SetAttr("dev_executor",dev_executor);
+        exec_set.insert(dev_executor);
+    }
+
+
+    //step 2: partition graph into subgraph according to dev_executor allocation 
+
+    if(exec_set.size()>1)
+        PartitionGraph(engine,graph_executor,graph,sub_list);
+    else
+        SameGraph(graph,dev_executor,sub_list);
 
     return true;
 }

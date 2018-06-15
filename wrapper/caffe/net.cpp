@@ -21,9 +21,9 @@
  * Copyright (c) 2018, Open AI Lab
  * Author: jingyou@openailab.com
  */
+#include <iostream>
 #include "caffe/net.hpp"
 #include "caffe/common.hpp"
-#include "logger.hpp"
 #include "prof_utils.hpp"
 
 using namespace TEngine;
@@ -38,6 +38,8 @@ Net<Dtype>::Net(const string& param_file, Phase phase,
 
     string text_file_name = param_file;
     file_list_.push_back(text_file_name);
+
+    prerun_already_ = false;
 }
 
 template <typename Dtype>
@@ -51,7 +53,7 @@ void Net<Dtype>::CopyTrainedLayersFrom(const string trained_filename)
     // Load model and create static graph
     if(load_model(model_name_.c_str(), "caffe", file_list_[0].c_str(), trained_filename.c_str()) < 0)
     {
-        LOG_ERROR()<<"Load model failed\n";
+        std::cerr<<"Load model failed\n";
         return;
     }
 
@@ -59,13 +61,13 @@ void Net<Dtype>::CopyTrainedLayersFrom(const string trained_filename)
     graph_ = create_runtime_graph("graph0", model_name_.c_str(), NULL);
     if(!check_graph_valid(graph_))
     {
-        LOG_ERROR()<<"Create graph0 failed\n";
+        std::cerr<<"Create graph0 failed\n";
         return;
     }
 
     if(infer_shape(graph_) < 0)
     {
-        LOG_ERROR()<<"Infer shape failed\n";
+        std::cerr<<"Infer shape failed\n";
         return;
     }
 
@@ -132,19 +134,15 @@ void Net<Dtype>::Set_output_blob()
 template <typename Dtype>
 void Net<Dtype>::Reshape()
 {
-    static graph_t graph_save = 0;
-
-    if(!graph_save || graph_save != graph_)
-    {
-        graph_save = graph_;
-    }
-    else
+    if(prerun_already_ == true)
     {
         postrun_graph(graph_);
     }
 
     if(prerun_graph(graph_) < 0)
-        LOG_ERROR()<<"Net reshape failed\n";
+        std::cerr<<"Net reshape failed\n";
+    else
+        prerun_already_ = true;
 
     for(unsigned int i=0; i < net_output_blobs_.size(); i++)
     {

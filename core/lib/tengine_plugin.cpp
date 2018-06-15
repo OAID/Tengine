@@ -21,8 +21,12 @@
  * Copyright (c) 2017, Open AI Lab
  * Author: jingyou@openailab.com
  */
+
+#include <memory>
+
 #include "tengine_plugin.hpp"
 #include "tengine_config.hpp"
+#include "tengine_c_api.h"
 
 namespace TEngine {
 
@@ -30,6 +34,7 @@ using NameManager = Attribute;
 using InitManager = Attribute;
 using HandlerManager = Attribute;
 using ConfManager = Attribute;
+using ShareLibParserPtr=std::shared_ptr<ShareLibParser>;
 
 NameManager * TEnginePlugin::GetNameManager(void)
 {
@@ -146,7 +151,7 @@ bool TEnginePlugin::LoadPlugin(const std::string& name)
 		return false;
 	}
 
-	hm->SetAttr(name, p);
+	hm->SetAttr(name, ShareLibParserPtr(p));
 	LOG_INFO()<<"Successfully load plugin : "<<fullname<<"\n";
 	return true;
 }
@@ -162,7 +167,7 @@ bool TEnginePlugin::InitPlugin(const std::string& name)
 	if(!initname.size() || !GetHandler(name, p))
 		return false;
 
-	p.ExcecuteFunc<int()>(initname);
+	p.ExecuteFunc<int()>(initname);
 	return true;
 }
 
@@ -213,7 +218,7 @@ bool TEnginePlugin::GetHandler(const std::string& name, ShareLibParser& handler)
 		return false;
 	}
 
-	handler = *any_cast<ShareLibParser *>(hm->GetAttr(name));
+	handler = *any_cast<ShareLibParserPtr>(hm->GetAttr(name)).get();
 	return true;
 }
 
@@ -303,3 +308,99 @@ void TEnginePlugin::ReleaseModule(void)
 
 
 } //end of namespace TEngine
+
+
+namespace TEngine {
+
+struct PluginInfo {
+    std::string plugin_name;
+    std::string fname;
+    ShareLibParserPtr handle;
+};
+
+}
+
+using namespace TEngine;
+
+using PluginInfoPtr=std::shared_ptr<PluginInfo>;
+
+using plugin_table_t=std::vector<PluginInfoPtr>;
+
+static plugin_table_t  g_plugin_table;
+
+int load_tengine_plugin(const char * plugin_name, const char * fname, const char * init_func_name)
+{
+    if(plugin_name==nullptr || fname ==nullptr)
+          return -1;
+
+    ShareLibParserPtr  handle(new ShareLibParser());
+
+    if(handle->Load(fname)<0)
+      return -1;
+
+    if(init_func_name)
+    {
+         if(handle->ExecuteFunc<int()>(init_func_name)<0)
+             return -1;
+    }
+
+    PluginInfo * p_info=new PluginInfo();
+
+    p_info->plugin_name=plugin_name;
+    p_info->fname=fname;
+    p_info->handle=handle;
+
+    g_plugin_table.emplace_back(p_info);
+
+    return 0;
+}
+
+int unload_tengine_plugin(const char * plugin_name, const char * rel_func_name)
+{
+    if(plugin_name==nullptr)
+         return -1;
+
+    auto ir=g_plugin_table.begin();
+    auto ir_end=g_plugin_table.end();
+
+    while(ir!=ir_end)
+    {
+        auto& ptr=*ir;
+
+        if(ptr->plugin_name==std::string(plugin_name))
+             break;
+    }
+
+    if(ir==ir_end)
+          return -1;
+
+    int ret=0;
+
+    if(rel_func_name)
+        ret=(*ir)->handle->ExecuteFunc<int()>(rel_func_name);
+
+ 
+    g_plugin_table.erase(ir);
+
+    return ret;    
+}
+
+int get_tengine_plugin_number(void)
+{
+    return g_plugin_table.size();
+}
+
+const char * get_tengine_plugin_name(int idx)
+{
+    int plugin_number=g_plugin_table.size();
+
+     if(idx>=plugin_number || idx<0)
+            return nullptr;
+
+     auto& ptr=g_plugin_table[idx];
+
+     return ptr->plugin_name.c_str();
+
+}
+
+

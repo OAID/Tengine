@@ -1,25 +1,25 @@
-CC=${CROSS_COMPILE}gcc  -std=gnu99 ${SYSROOT_FLAGS}
-CXX=${CROSS_COMPILE}g++ -std=c++11 ${SYSROOT_FLAGS}
-LD=${CROSS_COMPILE}g++ ${SYSROOT_FLAGS}
-
-
-
 BUILD_DIR?=$(shell pwd)/build
 INSTALL_DIR?=$(shell pwd)/install
 MAKEBUILD?=$(shell pwd)/makefile.build
 
-export CC CXX CFLAGS  LD LDFLAGS CXXFLAGS COMMON_CFLAGS
+export CC CXX CFLAGS LD LDFLAGS CXXFLAGS COMMON_CFLAGS
 
 INC_DIR+=-I$(shell pwd)/../core/include
-INC_DIR+=-I$(shell pwd)/../serializer/include
 INC_DIR+=-I$(shell pwd)/include
 
 MODULE_DIR=caffe
+ifeq ($(CONFIG_TF_SUPPORT),y)
+    MODULE_DIR+=tensorflow
+endif
+
 MODULE_NAME=libwrapper.so
 
 CXXFLAGS+=
 
-COMMON_CFLAGS+= -Wall -g -I$(shell pwd)/include -fPIC  $(INC_DIR)
+COMMON_CFLAGS+=$(CONFIG_OPT_CFLAGS)
+
+COMMON_CFLAGS+= -Wall -g -I$(shell pwd)/include -fPIC  $(INC_DIR) -Werror
+
 libsubdir_list=$(MODULE_DIR)
 
 PLUGIN_OBJS =$(addprefix $(BUILD_DIR)/, $(foreach f,$(libsubdir_list),$(f)/built-in.o))
@@ -37,6 +37,8 @@ build: default install
 install:
 	@mkdir -p $(INSTALL_DIR)/lib
 	@cp -f $(PLUGIN_SO) $(INSTALL_DIR)/lib
+	@mkdir -p $(INSTALL_DIR)/wrapper_include
+	@cp -rf $(shell pwd)/include/* $(INSTALL_DIR)/wrapper_include
 
 $(PLUGIN_SO): $(PLUGIN_OBJS)
 	$(CC) -o $@ -shared $^ $(LIBS) $(PLUGIN_LDFLAGS)
@@ -57,12 +59,10 @@ $(BUILD_DIR)/%: $(BUILD_DIR)/%.o
 	@mkdir -p $(@D)
 	$(LD) $(LDFLAGS) $< $(COMMON_OBJS) -o $@ $(LIBS) $(SO_LIBS)
 
-SO_LIBS=-L../build/core -L../build/wrapper -L../build/serializer
-SO_LIBS+=-Wl,-rpath,./build/core:./build/wrapper:./build/serializer
-SO_LIBS+=-ltengine -lwrapper -lserializer
+SO_LIBS=-L../build/core -L../build/wrapper 
+SO_LIBS+=-Wl,-rpath,./build/core:./build/wrapper
+SO_LIBS+=-ltengine -lwrapper 
 
-OPENCV_LIB=$(shell pkg-config --libs opencv)
 
-#LIBS+=-lprotobuf -lboost_thread -lglog -lopencv_core -lopencv_highgui -lopencv_imgproc -ldl
-LIBS+=-lprotobuf -lboost_thread -lglog $(OPENCV_LIB)
+LIBS+=-lprotobuf -lboost_thread -lglog
 

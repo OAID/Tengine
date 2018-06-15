@@ -4,42 +4,46 @@
 
 This is mtcnn implementation with the caffe wrapper of [Tengine](https://github.com/OAID/Tengine).
 
-## Build
-1. install [Tengine](https://github.com/OAID/Tengine)
-2. install opencv
-    ```
-    sudo apt-get install libopencv-dev
-    ```
-3. config
-    ```
-    cd ~/tengine/examples/caffe_wrapper/mtcnn
-    cp etc/config.example etc/config
-    ```
+## Download required models
+Download the required models from [Tengine model zoo](https://pan.baidu.com/s/1LXZ8vOdyOo50IXS0CUPp8g) (psw: 57vb)
 
-4. cmake & make
-    ```
-    cd ~/tengine/examples/caffe_wrapper/mtcnn
-    cmake .
-    make
-    ```
+- det1.caffemodel
+- det1.prototxt
+- det2.caffemodel
+- det2.prototxt
+- det3.caffemodel
+- det3.prototxt
+
+And store these files into `${Tengine_ROOT}/models/`
+
+## Build examples
+```
+cd  ${Tengine_ROOT}
+make install
+cd  ${Tengine_ROOT}/examples/caffe_wrapper/mtcnn
+cmake .
+make
+```
+
+## Set tengine config file
+
+export TENGINE_CONFIG_FILE=${Tengine_ROOT}/install/etc/tengine/config
 
 ## Test
+- go to the directory of the executive program
+
+    ```
+    cd ${Tengine_ROOT}/examples/caffe_wrapper/mtcnn
+    ```
 - test an image:
 
     ```
     [usage]: ./CAFFE_MTCNN  <test.jpg>  <model_dir>  [save_result.jpg]
     ```
-- `model_dir` is the path of your mtcnn models. Under this path, there are 3 models:
-    ```
-    ├── det1.caffemodel
-    ├── det1.prototxt
-    ├── det2.caffemodel
-    ├── det2.prototxt
-    ├── det3.caffemodel
-    ├── det3.prototxt
-    ```
+`model_dir` is the path of your mtcnn models.
 
 ## Reference
 Kaipeng Zhang, Zhanpeng Zhang, Zhifeng Li, Yu Qiao , " Joint Face Detection and Alignment using Multi-task Cascaded Convolutional Networks," IEEE Signal Processing Letter
 
 https://github.com/kpzhang93/MTCNN_face_detection_alignment
+

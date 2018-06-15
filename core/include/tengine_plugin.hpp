@@ -35,8 +35,8 @@
 
 namespace TEngine {
 
-using module_init_func_t=void(*)(void);
-using module_release_func_t=void(*)(void);
+using module_init_func_t=int(*)(void);
+using module_release_func_t=int(*)(void);
 
 /*
  In a config file, we use the following format to set the fullname and the

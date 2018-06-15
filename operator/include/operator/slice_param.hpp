@@ -30,9 +30,6 @@
 
 namespace TEngine {
 
-class StaticOp;
-
-
 struct SliceParam {
 
 int axis;

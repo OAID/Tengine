@@ -41,6 +41,7 @@
 
 namespace TEngine {
 
+class Graph;
 class GraphExecutor;
 class Tensor;
 struct ExecEngine;
@@ -74,6 +75,9 @@ struct ExecEngine
     virtual std::string    GetErrorStr(exec_handle_t)=0;
 
     virtual bool RemoveGraphExecutor(exec_handle_t)=0;
+
+    virtual Graph * GetOptimizedGraph(exec_handle_t) { return nullptr;}
+    virtual bool OptimizeGraph(exec_handle_t) { return false;}
    
     virtual ~ExecEngine(){}
 	
