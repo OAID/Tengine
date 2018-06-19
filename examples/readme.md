@@ -45,7 +45,7 @@ make -j4
 cd ~/tengine/examples
 vim android_build_armv7.sh or vim android_build_armv8.sh
 ```
-Set the correct NDK path ,Tengine path ,Opencv path and  protobuf path
+Set the correct NDK path ,Tengine path ,Opencv path and  protobuf path. if you want to run Tengine with OpenBlas, please add the correct blas path in android_build_armv7.sh or android_build_armv8.sh.eg: -DBLAS_DIR=/home/usr/openbla020_android
 ```
 mkdir build
 cd build
