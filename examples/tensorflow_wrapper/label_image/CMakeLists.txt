@@ -14,6 +14,9 @@ include_directories(${INSTALL_DIR}/wrapper_include
                     ${INSTALL_DIR}/include
                     ${TENGINE_DIR}/examples/common)
 
+
+set(CMAKE_CXX_FLAGS "-std=c++11 -O3 -Wall")
+
 #lib
 link_directories(${INSTALL_DIR}/lib)
 

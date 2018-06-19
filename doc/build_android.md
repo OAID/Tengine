@@ -1,6 +1,6 @@
 ## 1.Download Tengine poject
 ```
-git clone https://github.com/OAID/tengine/ 
+git clone https://github.com/OAID/tengine/
 ```
 ## 2.Download OpenCV protobuf OpenBLAS and Android ndk
     
@@ -19,7 +19,7 @@ tar -zxvf openblas020_android.tgz
 ```
 ## 4.Set the *NDK PATH*,*PROTOBUF_DIR*,*BLAS PATH* and *CONFIG_ARCH_TYPE*
 if you want to build android for armv7,set the CONFIG_ARCH_TYPE:**ARMv7**
-,otherwise ,set the CONFIG_ARCH_TYPE:**ARMv8**
+.otherwise,set the CONFIG_ARCH_TYPE:**ARMv8**
 ```
 vim  ~/tengine/android_config.txt
 ```
@@ -40,7 +40,9 @@ if you want to run tengine with openblas, remove the DCONFIG_ARCH_ARM64 or DCONF
 cd ~
 unzip opencv-3.4.0-android-sdk.zip
 ```
-### 6.2 Set the *TENGINE_DIR*, *OpenCV_DIR*, *PROTOBUF_DIR*
+### 6.2 Set the *TENGINE_DIR*, *OpenCV_DIR*, *PROTOBUF_DIR*.
+if you want to run Tengine with OpenBlas, please add the correct blas path in example/android_build_armv7.sh or example/android_build_armv8.sh.eg: -DBLAS_DIR=/home/usr/openbla020_android.
+
 ```
 cd ~/tengine/example
 vim android_build_armv7.sh or

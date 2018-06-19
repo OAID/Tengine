@@ -11,6 +11,14 @@ endif()
 if( ANDROID AND ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "aarch64"))
     set( PROTOBUF_LIB ${PROTOBUF_DIR}/arm64_lib/libprotobuf.so)
 endif()
+if( BLAS_DIR)
+    if( ANDROID AND ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "armv7-a"))
+         set( BLAS_LIB ${BLAS_DIR}/arm32/lib/libopenblas.so)
+    endif()
+    if( ANDROID AND ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "aarch64"))
+         set( BLAS_LIB ${BLAS_DIR}/arm64/lib/libopenblas.so)
+    endif()
+endif()
 
 set( CODE_SRCS yolov2.cpp ../common/common.cpp)
 set( BIN_EXE YOLOV2)
@@ -19,10 +27,10 @@ find_package(OpenCV REQUIRED)
 
 #include
 include_directories(${INSTALL_DIR}/include
-					${TENGINE_DIR}/include
-					${TENGINE_DIR}/core/include
-					${TENGINE_DIR}/operator/include
-                    ${TENGINE_DIR}/examples/common)
+		   ${TENGINE_DIR}/include
+		   ${TENGINE_DIR}/core/include
+		   ${TENGINE_DIR}/operator/include
+                   ${TENGINE_DIR}/examples/common)
 
 #lib
 link_directories( ${INSTALL_DIR}/lib )
@@ -30,7 +38,7 @@ link_directories( ${INSTALL_DIR}/lib )
 #exe
 add_executable(${BIN_EXE} ${CODE_SRCS})
 if( ANDROID)
-   target_link_libraries(${BIN_EXE} ${TENGINE_LIBS} ${PROTOBUF_LIB} ${OpenCV_LIBS})
+   target_link_libraries(${BIN_EXE} ${TENGINE_LIBS} ${PROTOBUF_LIB} ${OpenCV_LIBS} ${BLAS_LIB})
 else()
    target_link_libraries(${BIN_EXE} ${TENGINE_LIBS} ${OpenCV_LIBS})
 endif()
