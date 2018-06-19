@@ -8,7 +8,7 @@ set( TENGINE_LIBS wrapper tengine )
 set( CAFFE_MTCNN_SRCS test_caffe_mtcnn.cpp caffe_mtcnn.cpp caffe_mtcnn_utils.cpp )
 
 #flag
-#set(CMAKE_CXX_FLAGS "-std=c++11 -O3 -Wall")
+set(CMAKE_CXX_FLAGS "-std=c++11 -O3 -Wall")
 
 #opencv
 find_package(OpenCV REQUIRED)

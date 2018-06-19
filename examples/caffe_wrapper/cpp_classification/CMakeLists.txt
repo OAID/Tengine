@@ -13,6 +13,8 @@ add_definitions(-DCPU_ONLY)
 #opencv
 find_package(OpenCV REQUIRED)
 
+set(CMAKE_CXX_FLAGS "-std=c++11 -O3 -Wall")
+
 #include
 include_directories(${INSTALL_DIR}/wrapper_include
                     ${INSTALL_DIR}/include)
