@@ -30,7 +30,7 @@
 
 namespace TEngine {
 
-struct SoftmaxParam {
+struct SoftmaxParam: public NamedParam {
 
 int axis;
 

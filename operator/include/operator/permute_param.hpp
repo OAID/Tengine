@@ -30,7 +30,7 @@
 
 namespace TEngine {
 
-struct PermuteParam {
+struct PermuteParam : public NamedParam {
 
     int flag;
     int order0;

@@ -533,6 +533,52 @@ const char * get_tensor_name(tensor_t tensor);
 */
 node_t get_graph_node(graph_t graph, const char * node_name);
 
+
+/*!
+* @brief get the param value (int) of a node
+*
+* @param node, the target node
+* @param param_name, the name of the param to be retrieval
+* @param  param_val, pointer to the int val to be saved
+* 
+* @return 0, retrieval value successfully; 
+*        <0, failed; probably the name does not exist or the type mismatch
+*/
+
+int get_node_param_int(node_t node, const char * param_name, int * param_val);
+
+/*!
+* @brief get the param value (float) of a node
+*
+* @param node, the target node
+* @param param_name, the name of the param to be retrieval
+* @param  param_val, pointer to the float val to be saved
+* 
+* @return 0, retrieval value successfully; 
+*        <0, failed; probably the name does not exist or the type mismatch
+*/
+
+int get_node_param_float(node_t node, const char * param_name, float * param_val);
+
+/*!
+* @brief get the param value of a node, the data type is indicated by type_info
+*        this interface only works in c++, as type_info refers std::type_info
+*
+* @param node, the target node
+* @param param_name, the name of the param to be retrieval
+* @param type_info, pointer to the std::type_info of wanted type
+* @param param_val, pointer to the float val to be saved
+* 
+* @return 0, retrieval value successfully; 
+*        <0, failed; probably the name does not exist or the type mismatch
+*/
+
+int get_node_param_generic(node_t node, const char * param_name, const void * type_info, void * param_val);
+
+int set_node_param_int(node_t node, const char * param_name, const int * param_val);
+int set_node_param_float(node_t node, const char * param_name, const float * param_val);
+int set_node_param_generic(node_t node, const char * param_name, const void * type_info, const void * param_val);
+
 /*!
 * @brief initialize resource for graph execution
 *  

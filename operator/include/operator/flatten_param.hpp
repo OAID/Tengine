@@ -31,7 +31,7 @@
 namespace TEngine {
 
 
-struct FlattenParam {
+struct FlattenParam : public NamedParam {
 
     int axis;
     int end_axis;

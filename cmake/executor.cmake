@@ -1,13 +1,14 @@
 include_directories(executor/include executor/operator/include)
+
+FILE(GLOB_RECURSE COMMON_LIB_CPP_SRCS executor/engine/*.cpp executor/lib/*.cpp executor/plugin/*.cpp)
+FILE(GLOB COMMON_CPP_SRCS  executor/operator/common/*.cpp executor/operator/common/fused/*.cpp)
 if(CONFIG_ARCH_BLAS)
-   FILE(GLOB_RECURSE COMMON_LIB_CPP_SRCS executor/engine/*.cpp executor/lib/*.cpp executor/plugin/*.cpp executor/operator/common/*.cpp )
-else()
-   FILE(GLOB_RECURSE COMMON_LIB_CPP_SRCS executor/engine/*.cpp executor/lib/*.cpp executor/plugin/*.cpp)
-   FILE(GLOB COMMON_CPP_SRCS  executor/operator/common/*.cpp executor/operator/common/fused/*.cpp)
-   list(APPEND COMMON_LIB_CPP_SRCS ${COMMON_CPP_SRCS})
+    FILE(GLOB COMMON_BLAS_SRCS  executor/operator/common/blas/*.cpp)
+    list(APPEND COMMON_CPP_SRCS ${COMMON_BLAS_SRCS})
 endif()
 
 list(APPEND TENGINE_LIB_SRCS ${COMMON_LIB_CPP_SRCS})
+list(APPEND TENGINE_LIB_SRCS ${COMMON_CPP_SRCS})
 
 include_directories(driver/cpu)
 
@@ -24,13 +25,24 @@ endif()
 
 # Now, handle the .S file
 if(CONFIG_ARCH_ARM64)
-    FILE(GLOB_RECURSE ARCH_LIB_CPP_SRCS executor/operator/arm64/*.cpp)
+    FILE(GLOB_RECURSE ARCH64_LIB_CPP_SRCS executor/operator/arm64/*.cpp)
     include_directories(executor/operator/arm64/include)
 
-    FOREACH(file ${ARCH_LIB_CPP_SRCS})
-        list(APPEND TENGINE_LIB_SRCS ${file})
+    FOREACH(file ${ARCH64_LIB_CPP_SRCS})
+       set(ACL_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/executor/operator/arm64/conv/conv_2d_acl")
+       STRING(REGEX MATCH ${ACL_PREFIX} skip_file2 ${file})
+
+      if( NOT skip_file2)
+	      list(APPEND ARCH_LIB_CPP_SRCS ${file})
+      endif()
+
     endforeach()
 endif()
+
+
+list(APPEND TENGINE_LIB_SRCS ${ARCH_LIB_CPP_SRCS})
+
+# Now, handle the .S file
 
 if( CONFIG_ARCH_ARM64)
 

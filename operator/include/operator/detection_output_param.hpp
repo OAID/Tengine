@@ -31,7 +31,7 @@
 namespace TEngine {
 
 
-struct DetectionOutputParam {
+struct DetectionOutputParam: public NamedParam {
     
     int num_classes;
     int keep_top_k;

@@ -28,7 +28,7 @@ namespace TEngine {
 using ConfManager = Attribute;
 
 const std::string TEngineConfig::version("0.5.0");
-const char * TEngine_git_commit_id="@ ## GIT_COMMIT_ID ## @";
+const char * TEngine_git_commit_id="@" GIT_COMMIT_ID "@";
 
 bool TEngineConfig::tengine_mt_mode = true;
 char TEngineConfig::delim_ch = '=';
@@ -162,5 +162,42 @@ bool GetSyncRunMode(void)
     return sync_run_mode;
 
 }
+
+template<>
+bool ConvertSpecialAny<int>(int& entry, const std::type_info& info, any& data)
+{
+	if(info == typeid(double))
+	{
+		entry=any_cast<double>(data);
+		return true;
+	}
+
+	return false;
+}
+
+template<>
+bool ConvertSpecialAny<float>(float& entry, const std::type_info& info, any& data)
+{
+	if(info == typeid(double))
+	{
+		entry=any_cast<double>(data);
+		return true;
+	}
+
+	return false;
+}
+
+template<>
+bool ConvertSpecialAny<std::string>(std::string& entry, const std::type_info& info, any& data)
+{
+	if(info == typeid(const char *))
+	{
+		entry=any_cast<const char *>(data);
+		return true;
+	}
+
+	return false;
+}
+
 
 } //end of namespace TEngine

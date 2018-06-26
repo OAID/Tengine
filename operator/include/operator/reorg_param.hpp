@@ -30,7 +30,7 @@
 
 namespace TEngine {
 
-struct ReorgParam {
+struct ReorgParam : public NamedParam {
 
 int stride;
 

@@ -149,6 +149,30 @@ void Node::MergeAttr(Node * orig)
 
 }
 
+int NodeGetParamGeneric(void * node, const char * param_name, const void * type_info, void * param_val)
+{
+	Node * real_node=(Node *)node;
 
+	Operator *op=real_node->GetOp();
+
+	if(op->GetParamItem(param_name,(const std::type_info *)type_info,param_val))
+		return 0;
+	else
+		return -1;
+
+}
+
+int NodeSetParamGeneric(void * node, const char * param_name, const void * type_info, const void * param_val)
+{
+	Node * real_node=(Node *)node;
+
+	Operator *op=real_node->GetOp();
+
+	if(op->SetParamItem(param_name,(const std::type_info *)type_info,param_val))
+		return 0;
+	else
+		return -1;
+
+}
 
 } //namespace TEngine

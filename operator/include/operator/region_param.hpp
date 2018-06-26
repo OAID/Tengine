@@ -31,7 +31,7 @@
 namespace TEngine {
 
 
-struct RegionParam {
+struct RegionParam: public NamedParam {
 
 int num_classes;
 int side;
@@ -42,7 +42,9 @@ float nms_threshold;
 std::vector<float>biases;
 DECLARE_PARSER_STRUCTURE(RegionParam) 
 {
+   DECLARE_PARSER_ENTRY(num_box);
    DECLARE_PARSER_ENTRY(num_classes);
+   DECLARE_PARSER_ENTRY(biases);
 }
 
 };

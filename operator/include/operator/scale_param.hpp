@@ -29,7 +29,8 @@
 namespace TEngine {
 
 
-struct ScaleParam {
+struct ScaleParam :public NamedParam 
+{
    int   axis;
    int   num_axes;
    int   bias_term;

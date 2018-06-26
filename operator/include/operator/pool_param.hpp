@@ -36,7 +36,7 @@ enum PoolArg {
 
 namespace TEngine {
 
-struct PoolParam {
+struct PoolParam : public NamedParam {
 
     std::string method;
     PoolArg alg;

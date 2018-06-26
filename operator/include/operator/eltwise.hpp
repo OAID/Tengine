@@ -50,7 +50,7 @@ public:
      }
       void ParseParam(EltwiseParam & param, Operator * op) override
      {
-         EltwiseParam::Parse(param,op);
+         ParsePredefinedParam(param,op);
          MethodToType(param);
      }
       void SetSchema(void) override;
