@@ -31,7 +31,7 @@
 namespace TEngine {
 
 
-struct PriorBoxParam {
+struct PriorBoxParam : public NamedParam {
 
     std::vector<float> min_size;
     std::vector<float> max_size;

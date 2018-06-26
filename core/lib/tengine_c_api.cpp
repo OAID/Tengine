@@ -767,7 +767,49 @@ void * get_graph_node(graph_t graph, const char * node_name)
 
 	return executor->FindNode(node_name);
 }
+
+int get_node_param_int(node_t node, const char * param_name, int * param_val)
+{
+	return get_node_param_generic(node,param_name,&typeid(int),param_val);
+}
+
+int get_node_param_float(node_t node, const char * param_name, float * param_val)
+{
+	return get_node_param_generic(node,param_name,&typeid(float),param_val);
+}
+
+/* a temporary solution: 
+ * Define an intermidate function 
+ * NodeGetParamGeneric(): defined in node.cpp
+ *
+ */
+namespace TEngine {
+
+extern int NodeGetParamGeneric(void * node, const char * param_name, const void * type_info, void * param_val);
+extern int NodeSetParamGeneric(void * node, const char * param_name, const void * type_info, const void * param_val);
+
+}
+
+int get_node_param_generic(node_t node, const char * param_name, const void * type_info, void * param_val)
+{
+	return NodeGetParamGeneric(node,param_name,type_info,param_val);
+}
+
+int set_node_param_int(node_t node, const char * param_name, const int * param_val)
+{
+	return set_node_param_generic(node,param_name,&typeid(int),param_val);
+}
+
+int set_node_param_float(node_t node, const char * param_name, const float * param_val)
+{
+	return set_node_param_generic(node,param_name,&typeid(float),param_val);
+}
+
 	
+int set_node_param_generic(node_t node, const char * param_name, const void * type_info, const void * param_val)
+{
+	return NodeSetParamGeneric(node,param_name,type_info,param_val);
+}
 
 int  prerun_graph(graph_t graph)
 {

@@ -24,12 +24,14 @@
 #ifndef __CONVOLUTION_PARAM_HPP__
 #define __CONVOLUTION_PARAM_HPP__
 
+#include <vector>
+
 #include "parameter.hpp"
 
 namespace TEngine {
 
 
-struct ConvParam {
+struct ConvParam : public NamedParam {
 
    int  kernel_h;
    int  kernel_w;

@@ -30,7 +30,7 @@
 
 namespace TEngine {
 
-struct SliceParam {
+struct SliceParam: public  NamedParam {
 
 int axis;
 

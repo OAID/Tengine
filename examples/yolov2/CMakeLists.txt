@@ -22,6 +22,9 @@ endif()
 
 set( CODE_SRCS yolov2.cpp ../common/common.cpp)
 set( BIN_EXE YOLOV2)
+
+set(CMAKE_CXX_FLAGS "-std=c++11 -O3 -g -Wall")
+
 #opencv
 find_package(OpenCV REQUIRED)
 

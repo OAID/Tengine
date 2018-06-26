@@ -31,7 +31,7 @@
 namespace TEngine {
 
 
-struct ReLuParam {
+struct ReLuParam : public NamedParam {
 
 float negative_slope ;
 

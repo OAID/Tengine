@@ -36,6 +36,10 @@
 
 namespace TEngine {
 
+template <typename T>
+bool ConvertSpecialAny(T& entry, const std::type_info & info, any& data);
+
+
 struct TEngineConfig
 {
     static bool tengine_mt_mode;  // multithread mode

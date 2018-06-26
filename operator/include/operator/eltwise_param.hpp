@@ -42,7 +42,7 @@ enum EltType {
 
 namespace TEngine {
 
-struct EltwiseParam {
+struct EltwiseParam : public NamedParam {
 
     std::string method;
     EltType type;

@@ -16,3 +16,4 @@ protobuf/
 OpenBLAS/
 protobuf_lib/
 sysroot/
+android_config.txt

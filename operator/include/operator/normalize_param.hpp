@@ -29,7 +29,7 @@
 namespace TEngine {
 
 
-struct NormalizeParam 
+struct NormalizeParam : public NamedParam
 {
    int   across_spatial;
    int   channel_shared;

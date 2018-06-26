@@ -31,7 +31,7 @@
 namespace TEngine {
 
 
-struct ReshapeParam {
+struct ReshapeParam : public NamedParam {
 
     std::vector<int> dims;
     int axis;

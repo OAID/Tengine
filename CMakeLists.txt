@@ -34,6 +34,8 @@ execute_process( COMMAND git rev-parse HEAD
 STRING(STRIP ${git_commit_id} stripped_commit_id)
 set(GIT_COMMIT_ID -DGIT_COMMIT_ID="0x${stripped_commit_id}")
 
+message("GIT COMMIT ID: " 0x${stripped_commit_id})
+
 if (CONFIG_ARCH_ARM64)
    add_definitions(-DCONFIG_ARCH_ARM64=1)
 endif()

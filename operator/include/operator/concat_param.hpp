@@ -31,7 +31,7 @@
 namespace TEngine {
 
 
-struct ConcatParam {
+struct ConcatParam : public NamedParam {
 
 int axis;
 

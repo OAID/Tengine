@@ -30,7 +30,7 @@
 namespace TEngine {
 
 
-struct BatchNormParam {
+struct BatchNormParam : public NamedParam {
      float rescale_factor;
      float eps;
      int caffe_flavor;
