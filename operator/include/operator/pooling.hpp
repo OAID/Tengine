@@ -60,7 +60,7 @@ public:
 
      void ParseParam(PoolParam & param, Operator * op) override
      {
-         PoolParam::Parse(param,op);
+         ParsePredefinedParam(param,op);
          MethodToAlg(param);
          
          /* translate to onnx parameters */

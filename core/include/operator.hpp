@@ -56,6 +56,9 @@ public:
     virtual void ParseParam(void) {};
     virtual bool ParamFromStaticOp(StaticOp * s_op) {return true;}
 
+    virtual bool GetParamItem(const char * param_name, const std::type_info * type_info, void * val) { return false;}
+    virtual bool SetParamItem(const char * param_name, const std::type_info * type_info, const void * val) { return false;}
+
     virtual any GetDefParam(void)  
     {
         return any();
@@ -126,6 +129,7 @@ public:
           BaseObject::SetAttr(name,val);
           return *this;
      }
+
 
      const std::string& GetDoc(void) const { return doc_;}
 
@@ -233,9 +237,59 @@ public:
 
   }
 
+  /* a complicated one, now */
+  void ParsePredefinedParam(P& param, Operator * op)
+  {
+      auto map=param.GetItemMap();
+
+      auto ir=map.begin();
+      auto end=map.end();
+
+      while(ir!=end)
+      {
+	   if(!op->ExistAttr(ir->first))
+	   {
+		   ir++;
+		   continue;
+	   }
+
+	   const any& data=op->GetAttr(ir->first);
+
+	   if(param.SetItemFromAny(ir->first,data))
+	   {
+		  ir++;
+		  continue;
+	   }
+
+	   //type mismatch
+	   //possible reason:
+	   // 1. require float, while input is int
+	   // 2. require const char *, while input is std::string
+
+	   // otherwise, failed
+	   
+           const std::type_info & data_type=data.type();
+
+	   if(data_type==typeid(std::string))
+	   {
+	      const std::string& str=any_cast<std::string>(data);
+
+              param.SetItemVal(ir->first,&typeid(const char *),str.c_str());
+	   }
+	   else if(data_type==typeid(int))
+           {
+	       float f=(float)any_cast<int>(data);
+	       param.SetItemVal(ir->first,&typeid(float),&f);
+           }
+
+	   ir++;
+      }
+  }
+
+
   virtual void ParseParam(P& param, Operator * op) 
   {
-       P::Parse(param,op);
+	ParsePredefinedParam(param,op);
   }
 
 
@@ -253,6 +307,16 @@ public:
      ParseParam(param,this);
         
      return param;
+  }
+
+  bool GetParamItem(const char * param_name, const std::type_info * type_info, void * val) override
+  {
+	return param_.GetItemVal(param_name,type_info,val);
+  }
+
+  bool SetParamItem(const char * param_name, const std::type_info * type_info, const void * val) override
+  {
+	return param_.SetItemVal(param_name,type_info,val);
   }
 
 protected:

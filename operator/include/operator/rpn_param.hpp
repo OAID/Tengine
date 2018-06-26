@@ -46,7 +46,7 @@ struct Box
 namespace TEngine {
 
 
-struct RPNParam {
+struct RPNParam : public NamedParam {
 
     std::vector<float> ratios;
     std::vector<float> anchor_scales;

@@ -29,7 +29,7 @@
 namespace TEngine {
 
 
-struct DeconvParam {
+struct DeconvParam : public NamedParam {
 
    int  kernel_size;
    int  stride;

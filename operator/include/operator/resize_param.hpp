@@ -31,7 +31,7 @@ namespace TEngine {
 
 struct StaticOp;
 
-struct ResizeParam {
+struct ResizeParam : public NamedParam {
 
     float scale_x;
     float scale_y;

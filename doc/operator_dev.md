@@ -51,7 +51,7 @@ Please refer to: [operator/include/operator/relu.hpp](../operator/include/operat
 ### 2. Operator with Parameter
 First, a separate parameter definition file should be created. In order to facilitate the parameter parsing, it is suggested to define the parameter structure following the example below:
 ```c++
-struct ConvParam {
+struct ConvParam : public NamedParam {
 
    int  kernel_h;
    int  kernel_w;

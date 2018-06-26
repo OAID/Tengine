@@ -31,7 +31,7 @@ namespace TEngine {
 #define LRN_ACROSS_CHANNELS 0
 #define LRN_WITHIN_CHANNEL  1
 
-struct LRNParam {
+struct LRNParam : public NamedParam {
    int   local_size;
    float alpha;
    float beta;

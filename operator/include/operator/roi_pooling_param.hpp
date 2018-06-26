@@ -30,7 +30,7 @@
 namespace TEngine {
 
 
-struct ROIPoolingParam {
+struct ROIPoolingParam : public NamedParam {
 
     int pooled_h;
     int pooled_w;

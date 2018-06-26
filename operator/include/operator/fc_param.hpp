@@ -31,7 +31,7 @@
 namespace TEngine {
 
 
-struct FCParam
+struct FCParam : public NamedParam
 {
     int num_output;
 
