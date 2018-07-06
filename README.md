@@ -11,12 +11,12 @@ Tengine is composed of six modules: **core/operator/serializer/executor/driver/w
 - [**serializer**](serializer)  is to load the saved model. The serializer framework is extensible to support different format, including the customized one. caffe/onnx/Tensorflow and MXNet models can be loaded directly by Tengine.
 - [**executor**](executor)  implements the code to run graph and operators. Current version provides a highly optimized implementation for multi A72 cores.
 - [**driver**](driver)  is the adapter of real H/W and provides service to device executor by HAL API. It is possible for single driver to create multiple devices.
-- [**wrapper**](wrapper)  provides the wrapper of APIs for different frameworks. Both caffe API wrapper and Tensorflow API wrapper work now.
+- [**wrapper**](wrapper)  provides the wrapper of APIs for different frameworks. Both Caffe API wrapper and Tensorflow API wrapper work now.
 
 
-This version can load and run caffe/MXNet model of **mobilenet** and **squeezenet** directly.  For more details, please goto [**install**](doc/install.md).
+This version can load and run Caffe/MXNet model of **mobilenet** and **squeezenet** directly.  For more details, please goto [**install**](doc/install.md).
 
-`NOTE`: Old caffe model has to be upgraded using **upgrade_net_proto_binary/upgrade_net_proto_binary** from caffe's package.
+`NOTE`: Old Caffe model has to be upgraded using **upgrade_net_proto_binary/upgrade_net_proto_binary** from Caffe's package.
 
 ## Performance
 
@@ -42,6 +42,9 @@ For details to run benchmark, please visit [**benchmark**](doc/benchmark.md) pag
 ## Build and Install
 please refer to the [install](doc/install.md) page.
 
+## Tengine examples
+
+please visit **[exmaples](examples/readme.md)** for applications on classification/detection.
 
 ## Develop New Operator
 
@@ -54,6 +57,12 @@ Tengine can be extended to support new serialization format, by building new ser
 [How to build new serializer module](doc/serializer_dev.md)
 
 ## Release History
+
+### version 0.6.0 - 2018/7/02
+
+Support Tengine model file. protobuf is optional now.
+
+Please refer to [tengine_model exmaples](examples/tengine_model) 
 
 ### version 0.5.0 - 2018/6/15
 

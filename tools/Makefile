@@ -29,9 +29,6 @@ BIN_OBJS=$(TOOLSDIR_OBJS) $(BINDIR_OBJS)
 BIN_EXES=$(BIN_OBJS:.o=)
 
 
-TOOLS_LIB_OBJS=$(addprefix $(BUILD_DIR)/, $(foreach f,$(libsubdir_list),$(f)/built-in.o))
-TOOLS_LIB=$(BUILD_DIR)/libtools.a
-
 
 
 default: $(libsubdir_list) $(binsubdir_list) $(TEST_LIB) $(BIN_EXES)

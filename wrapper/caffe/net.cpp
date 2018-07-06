@@ -22,6 +22,8 @@
  * Author: jingyou@openailab.com
  */
 #include <iostream>
+#include <atomic>
+
 #include "caffe/net.hpp"
 #include "caffe/common.hpp"
 #include "prof_utils.hpp"
@@ -30,16 +32,39 @@ using namespace TEngine;
 
 namespace caffe {
 
+static 	std::atomic<uint32_t> tengine_init_count(0);
+
+
+static void InitTengine(void) 
+{
+    uint32_t prev=tengine_init_count.fetch_add(1);
+
+    if(!prev)    
+       init_tengine_library();
+}
+
+static void ReleaseTengine(void) 
+{ 
+    uint32_t prev=tengine_init_count.fetch_sub(1);
+
+    if(prev==1)
+       release_tengine_library();
+}
+
+
 template <typename Dtype>
 Net<Dtype>::Net(const string& param_file, Phase phase,
                 const int level, const vector<string>* stages)
 {
-    init_tengine_library();
+
+    InitTengine();
 
     string text_file_name = param_file;
     file_list_.push_back(text_file_name);
 
     prerun_already_ = false;
+
+
 }
 
 template <typename Dtype>
@@ -99,6 +124,8 @@ void Net<Dtype>::Set_input_blob()
             in_blob->set_graph(graph_);
             in_blob->Reshape(dims[0], dims[1], dims[2], dims[3]);
             net_input_blobs_.push_back(in_blob);
+
+	    put_graph_tensor(input_tensor);
         }
     }
 }
@@ -127,6 +154,8 @@ void Net<Dtype>::Set_output_blob()
             out_blob->set_graph(graph_);
             out_blob->Reshape(dims[0], dims[1], dims[2], dims[3]);
             net_output_blobs_.push_back(out_blob);
+
+	    put_graph_tensor(output_tensor);
         }
     }
 }
@@ -153,6 +182,8 @@ void Net<Dtype>::Reshape()
         int dims[4];
         get_tensor_shape(output_tensor, dims, 4);
         out_blob->Reshape(dims[0], dims[1], dims[2], dims[3]);
+
+	put_graph_tensor(output_tensor);
     }
 }
 
@@ -179,6 +210,13 @@ Net<Dtype>::~Net()
     postrun_graph(graph_);
     destroy_runtime_graph(graph_);
     remove_model(model_name_.c_str());
+
+    for(auto b: net_input_blobs_)
+	    delete b;
+    for(auto b: net_output_blobs_)
+	    delete b;
+
+    ReleaseTengine();
 }
 
 INSTANTIATE_CLASS(Net);

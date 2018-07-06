@@ -211,15 +211,14 @@ int load_model(const char * model_name, const char * file_format, const char * f
 
 
 /*!
-* @brief save the loaded model into files
+* @brief save the loaded model into file
 *
-* @param model_name model name refers to a loaded model
+* @param graph_t the runtime graph handle of the loaded model
 * @param file_format the format to be stored
-* @param fname_prefix the prefix to be appended for files
+* @param fname the file name
 * @return 0 success -1 fail
 */
-
-int save_model(const char * model_name, const char * file_format, const char * fname_prefix);
+int save_model(graph_t graph, const char * file_format, const char * fname, ...);
 
 /*!
 * @brief remove the loaded model 
@@ -532,6 +531,15 @@ const char * get_tensor_name(tensor_t tensor);
 * @return the node handle
 */
 node_t get_graph_node(graph_t graph, const char * node_name);
+
+/*!
+* @brief  free the handle of node
+*
+* @param  the node handle
+* @return none
+*/
+void put_graph_node(node_t node);
+
 
 
 /*!

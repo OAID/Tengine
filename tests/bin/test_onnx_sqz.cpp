@@ -162,6 +162,9 @@ int main(int argc, char * argv[])
        std::cout<<std::fixed << std::setprecision(4)<<result[idx]<<" - \"";
        std::cout<< labels[idx]<<"\"\n";
    }
+
+   put_graph_tensor(input_tensor);
+   put_graph_tensor(output_tensor);
  
    postrun_graph(graph);  
 

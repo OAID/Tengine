@@ -192,6 +192,9 @@ int main(int argc, char * argv[])
        std::cout<< labels[idx]<<"\"\n";
    }
  
+   put_graph_tensor(input_tensor);
+   put_graph_tensor(output_tensor);
+
    postrun_graph(graph);  
 
    destroy_runtime_graph(graph);

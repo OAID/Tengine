@@ -19,62 +19,23 @@
 
 /*
  * Copyright (c) 2018, Open AI Lab
- * Author: haitao@openailab.com
+ * Author: jingyou@openailab.com
  */
-#ifndef __CPU_RUNNER_HPP__
-#define __CPU_RUNNER_HPP__
+#ifndef __TM_GENERATE_H__
+#define __TM_GENERATE_H__
 
-#include <string>
-#include <vector>
-#include <functional>
+#include "tm_format.h"
 
-#include "node_ops.hpp"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-namespace TEngine {
+tm_uoffset_t WriteTmFileAlign1(void * const start_ptr, tm_uoffset_t *cur_pos,  const void *buf, const tm_size_t buf_size);
+tm_uoffset_t WriteTmFileAlign4(void * const start_ptr, tm_uoffset_t *cur_pos, const void *buf, const tm_size_t buf_size);
+tm_uoffset_t WriteTmObject(void * const start_ptr, tm_uoffset_t *cur_pos, const void *buf, const tm_size_t buf_size);
 
-class Graph;
-class CPUDevice;
-
-using Subgraph=Graph;
-
-class CPURunner {
-
-public:
-
-   bool Prerun(Subgraph * sub_graph);
-   bool Run(Subgraph * sub_graph) ; 
-   bool Postrun(Subgraph * sub_graph);
-   
-   bool OptimizeGraph(Subgraph * sub_graph);
-
-   void AttachCPUDevice(CPUDevice * cpu_dev);
-
- 
-   bool BindNodeOps(Subgraph * graph);
-   bool AllocateMem(Subgraph * graph);
-
-   bool FreeMem(Subgraph * graph);
-   bool UnbindNodeOps(Subgraph * graph);
-
-   CPURunner() { mem_alloc=malloc; mem_free=free; }
- 
-   ~CPURunner(){} 
-
-   mem_alloc_t mem_alloc;
-   mem_free_t mem_free;
-   CPUDevice * cpu_dev_;
-   const CPUInfo * cpu_info_;
-
-
-};
-
-
-
-
-
-
-
-} //namespace TEngine
-
+#ifdef __cplusplus
+}
+#endif
 
 #endif

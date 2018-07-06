@@ -39,7 +39,8 @@ template <typename Dtype>
 class Blob {
 
 public:
-    Blob() : count_(0), capacity_(0) {}
+    Blob() : data_(nullptr), count_(0), capacity_(0){}
+    ~Blob() { if(data_) free(data_); }
 
     void FromProto(const BlobProto& proto, bool reshape = true);
     void Reshape(const int num, const int channels, const int height, const int width);

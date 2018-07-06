@@ -38,8 +38,12 @@
 #include "mxnet_serializer.hpp"
 #endif
 
-#ifdef CONFIG_TF_SUPPORT
+#ifdef CONFIG_TF_SERIALIZER
 #include "tf_serializer.hpp"
+#endif
+
+#ifdef CONFIG_TENGINE_SERIALIZER
+#include "tm_serializer.hpp"
 #endif
 
 #include "logger.hpp"
@@ -58,8 +62,12 @@ extern bool CaffeSerializerRegisterOpLoader();
 extern bool MxnetSerializerRegisterOpLoader();
 #endif
 
-#ifdef CONFIG_TF_SUPPORT
+#ifdef CONFIG_TF_SERIALIZER
 extern bool TFSerializerRegisterOpLoader();
+#endif
+
+#ifdef CONFIG_TENGINE_SERIALIZER
+extern bool TmSerializerRegisterOpLoader();
 #endif
 
 }
@@ -108,13 +116,22 @@ int serializer_plugin_init(void)
     MxnetSerializerRegisterOpLoader();
 #endif
 
-#ifdef CONFIG_TF_SUPPORT
+#ifdef CONFIG_TF_SERIALIZER
     factory->RegisterInterface<TFSerializer>("tensorflow");
     auto tf_serializer=factory->Create("tensorflow");
 
     SerializerManager::SafeAdd("tensorflow",SerializerPtr(tf_serializer));
 
     TFSerializerRegisterOpLoader();
+#endif
+
+#ifdef CONFIG_TENGINE_SERIALIZER
+    factory->RegisterInterface<TmSerializer>("tengine");
+    auto tm_serializer=factory->Create("tengine");
+
+    SerializerManager::SafeAdd("tengine",SerializerPtr(tm_serializer));
+
+    TmSerializerRegisterOpLoader();
 #endif
 
     //std::cout<<"SERIALIZER PLUGIN INITED\n";   

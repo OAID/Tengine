@@ -70,47 +70,6 @@ const std::array<float32x4_t, 8> log_tab =
 
 struct LRNOps: public NodeOps {
 
-bool PostDynamicProcess(Node * node)
-{
-   if(node->ExistAttr("DynamicShapeRun"))
-   {
-       Tensor * output_tensor=node->GetOutputTensor(0);
-       free_tensor_mem(output_tensor);
-   }
-
-   return true;
-}
-
-bool DynamicProcess(Node * node)
-{
-    Tensor * input_tensor=node->GetInputTensor(0);
-    Tensor * output_tensor=node->GetOutputTensor(0);
-
-    const TShape& input_shape=input_tensor->GetShape();
-    TShape& output_shape=output_tensor->GetShape();
-
-    output_shape=input_shape;
-
-    //allocate memory
-
-    int total_size=output_tensor->GetTotalSize();
-    void * mem_addr=mem_alloc(total_size);
-    set_tensor_mem(output_tensor,mem_addr,total_size,mem_free);
-
-    //mark runned
-    (*node)["DynamicShapeRun"]=true;
-
-    return true;
-}
-
-bool Postrun(Node * node)
-{
-  if(!node->IsDynamicShape())
-        return true;
-
-   return PostDynamicProcess(node);
-}
-
 inline float32x4_t vfloorq_f32(float32x4_t val)
 {
     static const float32x4_t CONST_1 = vdupq_n_f32(1.f);
@@ -227,13 +186,6 @@ inline float32x4_t vpowq_f32(float32x4_t val, float32x4_t n)
 }
 bool Run(Node * node)
 {
-
-    if(node->IsDynamicShape())
-    {
-        PostDynamicProcess(node);
-        DynamicProcess(node);
-    }
-
     Tensor * input_tensor=node->GetInputTensor(0);
     Tensor * output_tensor=node->GetOutputTensor(0);
 

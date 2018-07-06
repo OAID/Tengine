@@ -33,6 +33,7 @@
 #include "static_graph_interface.hpp"
 #include "generic_factory.hpp"
 #include "safe_object_manager.hpp"
+#include "graph.hpp"
 
 
 namespace TEngine {
@@ -48,6 +49,7 @@ public:
 
         virtual unsigned int GetFileNum(void)=0;
         virtual bool LoadModel(const std::vector<std::string>& file_list, StaticGraph * static_graph)=0;
+        virtual bool SaveModel(const std::vector<std::string>& file_list, Graph *graph) { return false; }
 
         /* interface to load const tensor */
         virtual bool LoadConstTensor(const std::string& fname, StaticTensor * const_tensor)=0;

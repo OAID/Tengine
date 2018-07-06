@@ -206,7 +206,9 @@ int main(int argc, char * argv[])
    prerun_graph(graph);   
 
    printf("REPEAT COUNT= %d\n",repeat_count);
-
+   // warm up
+   for(int i=0;i<30;i++)
+		run_graph(graph,1);
    unsigned long start_time=get_cur_time();
 	
    for(int i=0;i<repeat_count;i++)
@@ -233,8 +235,11 @@ int main(int argc, char * argv[])
    float *data = (float *)get_tensor_buffer(output_tensor);
    PrintTopLabels(label_file, data);
    std::cout << "--------------------------------------\n";
-   postrun_graph(graph);  
 
+   put_graph_tensor(output_tensor);
+   put_graph_tensor(input_tensor);
+
+   postrun_graph(graph);  
    destroy_runtime_graph(graph);
    remove_model(model_name.c_str());
 	
