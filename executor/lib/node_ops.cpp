@@ -254,42 +254,19 @@ bool  NodeOpsRegistry::RegisterSelector(NodeOpsSelector * selector)
 
 /**** global init  function ****/
 
-namespace ref_ops {
-
-   static NodeOpsRegistry  ref_ops_registry(REF_REGISTRY_NAME);
-
-   NodeOpsRegistry * GetRegistry(void)
-   {
-         return &ref_ops_registry;
-   }
-
-}
-
-namespace common_ops {
-
-   static NodeOpsRegistry  common_ops_registry("common");
-
-   NodeOpsRegistry * GetRegistry(void)
-   {
-         return &common_ops_registry;
-   }
-
-}
 
 void NodeOpsRegistryManagerInit(void)
 {
-    NodeOpsRegistry * registry;
-
-    registry=common_ops::GetRegistry();
-    NodeOpsRegistryManager::AddRegistry(registry->reg_name,registry);
-
-    registry=ref_ops::GetRegistry();
-    NodeOpsRegistryManager::AddRegistry(registry->reg_name,registry);
 }
 
 /**** NodeOpsRegsitry ********/
 
 
+NodeOpsRegistryManager::~NodeOpsRegistryManager()
+{
+	for(auto e: registry_list)
+		delete e.second;
+}
 
 
 

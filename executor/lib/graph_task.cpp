@@ -476,6 +476,8 @@ void GraphTask::ReclaimSubgraphTask(void)
 
 GraphTask::~GraphTask(void)
 {
+   if(optimized_graph_)
+	   delete optimized_graph_;
      
 }
 

@@ -6,7 +6,11 @@ bin-obj-y+=test_onnx_sqz.o
 bin-obj-y+=vgg16.o
 bin-obj-y+=test_deploy.o
 
-ifeq ($(CONFIG_TF_SUPPORT),y)
+ifeq ($(CONFIG_TF_SERIALIZER),y)
 bin-obj-y+=test_tf_mobilenet.o
 bin-obj-y+=test_tf_inceptionv3.o
+endif
+
+ifeq ($(CONFIG_TENGINE_SERIALIZER),y)
+bin-obj-y+=test_tm.o
 endif

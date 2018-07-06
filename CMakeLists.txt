@@ -26,6 +26,7 @@ option(CONFIG_ARCH_BLAS  "build blas  version" OFF)
 option(CONFIG_CAFFE_SERIALIZER "caffe serializer" ON)
 option(CONFIG_ONNX_SERIALIZER "onnx serializer" OFF)
 option(CONFIG_TF_SERIALIZER "tensorflow serializer" OFF)
+option(CONFIG_TENGINE_SERIALIZER "tengine serializer" ON)
 
 execute_process( COMMAND git rev-parse HEAD 
                  OUTPUT_VARIABLE  git_commit_id)
@@ -48,6 +49,9 @@ if(CONFIG_CAFFE_SERIALIZER)
    add_definitions(-DCONFIG_CAFFE_SERIALIZER=1)
 endif()
 
+if(CONFIG_TENGINE_SERIALIZER)
+   add_definitions(-DCONFIG_TENGINE_SERIALIZER=1)
+endif()
 
 add_definitions(${GIT_COMMIT_ID})
 add_definitions(-Wno-unused-command-line-argument)
@@ -106,7 +110,7 @@ else()
     message(FATAL_ERROR "need to set the protobuf path")
 endif()
 
-if( CONFIG_CAFFE_SERIALIZER)
+if(CONFIG_CAFFE_SERIALIZER)
     ADD_DEPENDENCIES(tengine CAFFE_SERIALIZER_TARGET)
 endif()
 

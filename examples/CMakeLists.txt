@@ -38,6 +38,6 @@ add_subdirectory(mobilenet_ssd)
 if( NOT ANDROID)
    add_subdirectory(caffe_wrapper)
 endif()
-
+add_subdirectory(tengine_model)
 
 

@@ -73,18 +73,22 @@ ifeq ($(CONFIG_ACL_GPU),y)
     export ACL_ROOT
 endif
 
-ifeq ($(CONFIG_CAFFE_SUPPORT),y)
-    export CONFIG_CAFFE_SUPPORT
+ifeq ($(CONFIG_CAFFE_SERIALIZER),y)
+    export CONFIG_CAFFE_SERIALIZER
 endif
-ifeq ($(CONFIG_ONNX_SUPPORT),y)
-    export CONFIG_ONNX_SUPPORT
+ifeq ($(CONFIG_ONNX_SERIALIZER),y)
+    export CONFIG_ONNX_SERIALIZER
 endif
-ifeq ($(CONFIG_MXNET_SUPPORT),y)
-    export CONFIG_MXNET_SUPPORT
+ifeq ($(CONFIG_MXNET_SERIALIZER),y)
+    export CONFIG_MXNET_SERIALIZER
 endif
 
-ifeq ($(CONFIG_TF_SUPPORT),y)
-    export CONFIG_TF_SUPPORT
+ifeq ($(CONFIG_TF_SERIALIZER),y)
+    export CONFIG_TF_SERIALIZER
+endif
+
+ifeq ($(CONFIG_TENGINE_SERIALIZER),y)
+    export CONFIG_TENGINE_SERIALIZER
 endif
 
 SUB_DIRS=$(LIB_SUB_DIRS) $(APP_SUB_DIRS)
@@ -121,8 +125,12 @@ $(LIB_OBJS): $(LIB_SUB_DIRS)
 $(LIB_SO): $(LIB_OBJS)
 	$(CC) -o $@ -shared -Wl,-Bsymbolic -Wl,-Bsymbolic-functions $(LIB_OBJS) $(LIB_LDFLAGS)
 
-LIB_LDFLAGS+=-lpthread -lprotobuf -lopenblas -ldl
-	
+LIB_LDFLAGS+=-lpthread -lprotobuf -ldl
+
+ifeq ($(CONFIG_ARCH_BLAS),y)
+    LIB_LDFLAGS+=-lopenblas
+endif
+
 ifneq ($(MAKECMDGOALS),clean)
      $(APP_SUB_DIRS): $(LIB_SO)
 endif   

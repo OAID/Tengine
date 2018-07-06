@@ -66,13 +66,18 @@ struct sub_op_task {
 
 struct NodeOps {
     virtual bool OnBind(Node *){return true;}
+    virtual bool OnUnbind(Node *){return true;}
     virtual bool Prerun(Node *){return true;}
     virtual bool Postrun(Node *){return true;}
     virtual bool Run(Node *)=0;
-    virtual bool GetMemorySize(Node *, unsigned int & mem_sie) {return false;}
+    virtual bool GetSharedMemorySize(Node *, unsigned int & mem_size) {return false;}
+    virtual bool SetSharedMemoryAddr(Node *, void * mem_addr, int mem_size) {return false;}
+    virtual bool GetPrivateMemorySize(Node *, unsigned int & mem_size) {return false;}
+    virtual bool SetPrivateMemoryAddr(Node *, void * mem_addr,int mem_size) { return false;}
+
+    virtual bool DynPrerun(Node * ) { return true; } //used in dynamic cases: will be called before run
 
     /* note: the mem_addr will be released by caller */
-    virtual void SetMemoryAddr(Node *, void * mem_addr) {}
 
     NodeOps(void)
     {
@@ -169,6 +174,7 @@ class NodeOpsRegistryManager {
 public:
 
    using NodeOpsPtr=std::shared_ptr<NodeOps>;
+   ~NodeOpsRegistryManager();
 
    static void  RecordNodeOpsptr(NodeOps * ops);
 

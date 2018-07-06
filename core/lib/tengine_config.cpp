@@ -27,7 +27,7 @@ namespace TEngine {
 
 using ConfManager = Attribute;
 
-const std::string TEngineConfig::version("0.5.0");
+const std::string TEngineConfig::version("0.6.0");
 const char * TEngine_git_commit_id="@" GIT_COMMIT_ID "@";
 
 bool TEngineConfig::tengine_mt_mode = true;
