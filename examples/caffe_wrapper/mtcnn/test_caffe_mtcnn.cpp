@@ -79,5 +79,7 @@ int main(int argc, char * argv[])
     cv::imwrite(sv_name, frame);
     std::cout<<"total detected: "<<face_info.size()<<" faces. used "<<(end_time-start_time)<<" us"<<std::endl;
 
+    delete p_mtcnn;
+
     return 0;
 }

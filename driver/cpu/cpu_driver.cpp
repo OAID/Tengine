@@ -348,6 +348,8 @@ static void probe_func(void)
     cpu_dev->online_cpu_number=saved_number;
     
     free_probe_cpu_info(cpu_dev);
+
+    if(online_list) free(online_list);
 }
 
 namespace TEngine {

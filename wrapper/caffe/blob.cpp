@@ -82,7 +82,9 @@ void Blob<Dtype>::Reshape(const vector<int>& shape)
             {
                 std::cerr<<"Create buffer for tensor failed\n";
             }
+	    put_graph_tensor(tensor);
         }
+
     }
 
     delete[] dims;
@@ -144,10 +146,16 @@ void Blob<Dtype>::FromProto(const BlobProto& proto, bool reshape)
         }
         Reshape(shape);
     }
+    else
+    {
+	if(data_)
+	    free(data_);
 
-    // Copy data
-    Dtype * data = (Dtype *)malloc(sizeof(Dtype)*count_);
-    set_cpu_data(data);
+        data_ = malloc(sizeof(Dtype)*count_);
+    }
+
+    Dtype * data =(Dtype *)data_; 
+
     if(proto.double_data_size() > 0)
     {
         for(int i = 0; i < proto.double_data_size(); ++i)

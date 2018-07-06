@@ -292,6 +292,8 @@ bool CPURunner::Run(Subgraph * sub_graph)
 		if(!node->ExistAttr(ATTR_NODE_OPS))
 			continue;
 
+		NodeOps * node_ops=any_cast<NodeOps*>(node->GetAttr(ATTR_NODE_OPS));
+
                 /* dynamic shape process */
 
                 if(node->IsDynamicShape())
@@ -378,6 +380,9 @@ bool CPURunner::Run(Subgraph * sub_graph)
 
                      }
 
+		     /* call the DynPrerun() to prepare for run */
+		     node_ops->DynPrerun(node);
+
                 }
 
 #ifdef ENABLE_TIME_PROFILING
@@ -385,7 +390,6 @@ bool CPURunner::Run(Subgraph * sub_graph)
 			prof->Start(i,node);
 #endif
 
-		NodeOps * node_ops=any_cast<NodeOps*>(node->GetAttr(ATTR_NODE_OPS));
 
 		if(!node_ops->Run(node))
 		{
@@ -422,30 +426,14 @@ bool CPURunner::Postrun(Subgraph * sub_graph)
 		if(!node->ExistAttr(ATTR_NODE_OPS))
 			continue;
 
-	        for(unsigned int i=0;i<node->GetOutputNum();i++)
-		{
-		     Tensor * tensor=node->GetOutputTensor(i);
-		     free_tensor_mem(tensor);
-	        }
-
 		NodeOps * node_ops=any_cast<NodeOps *>(node->GetAttr(ATTR_NODE_OPS));
 
 		if(!node_ops->Postrun(node))
 		{
 			LOG_ERROR()<<"Postrun failed for node: "<<node->GetName()<<"\n";
 		}
-
-		node_ops->Release();
 	}
 
-
-
-	if(sub_graph->ExistAttr("shared_temp_memory"))
-	{
-		void * mem_addr=any_cast<void *>(sub_graph->GetAttr("shared_temp_memory"));
-
-	        mem_free(mem_addr);
-	}
 
 #ifdef ENABLE_TIME_PROFILING
 
@@ -516,15 +504,75 @@ bool CPURunner::Postrun(Subgraph * sub_graph)
 
 		prof->Dump(1);
 
+		delete prof;
+
+		sub_graph->RemoveAttr("PROF_TIME");
+
 	}
 #endif
 
-	MemPool * mem_pool=any_cast<MemPool *>(sub_graph->GetAttr("MemPool"));
-
-	delete mem_pool;
+	FreeMem(sub_graph);
+	UnbindNodeOps(sub_graph);
 
 	return true;
 }
+
+bool CPURunner::FreeMem(Subgraph * sub_graph)
+{
+	std::vector<Node *>& seq_nodes=sub_graph->seq_nodes;
+
+	for(unsigned int i=0; i<seq_nodes.size();i++)
+	{
+		Node * node=seq_nodes[i];
+
+	        for(unsigned int i=0;i<node->GetOutputNum();i++)
+		{
+		     Tensor * tensor=node->GetOutputTensor(i);
+		     free_tensor_mem(tensor);
+	        }
+	}
+
+	if(sub_graph->ExistAttr("shared_temp_memory"))
+	{
+		void * mem_addr=any_cast<void *>(sub_graph->GetAttr("shared_temp_memory"));
+
+	        mem_free(mem_addr);
+
+		sub_graph->RemoveAttr("shared_temp_memory");
+	}
+
+
+	MemPool * mem_pool=any_cast<MemPool *>(sub_graph->GetAttr("MemPool"));
+	delete mem_pool;
+
+	sub_graph->RemoveAttr("MemPool");
+
+	return true;
+}
+
+bool CPURunner::UnbindNodeOps(Subgraph * sub_graph)
+{
+	std::vector<Node *>& seq_nodes=sub_graph->seq_nodes;
+
+	for(unsigned int i=0; i<seq_nodes.size();i++)
+	{
+		Node * node=seq_nodes[i];
+
+		if(!node->ExistAttr(ATTR_NODE_OPS))
+			continue;
+
+		NodeOps * node_ops=any_cast<NodeOps *>(node->GetAttr(ATTR_NODE_OPS));
+
+		node_ops->OnUnbind(node);
+
+		node_ops->Release();
+
+		node->RemoveAttr(ATTR_NODE_OPS);
+	}
+
+	return true;
+}
+
 
 
 bool CPURunner::OptimizeGraph(Subgraph  * optimized_graph)
@@ -656,7 +704,7 @@ bool CPURunner::AllocateMem(Subgraph * sub_graph)
 		NodeOps * node_ops=any_cast<NodeOps *>(node->GetAttr(ATTR_NODE_OPS));
 		unsigned int mem_size;
 
-		if(node_ops->GetMemorySize(node,mem_size) 
+		if(node_ops->GetSharedMemorySize(node,mem_size) 
                     &&  mem_size>max_shared_mem_size)
                 {
                     max_shared_mem_size=mem_size;
@@ -679,8 +727,8 @@ bool CPURunner::AllocateMem(Subgraph * sub_graph)
 
                  unsigned int mem_size;
 
-		if(node_ops->GetMemorySize(node,mem_size))
-			node_ops->SetMemoryAddr(node,shared_memory);
+		if(node_ops->GetSharedMemorySize(node,mem_size))
+			node_ops->SetSharedMemoryAddr(node,shared_memory,mem_size);
               }
 
               std::cout<<"max shared memory: "<<max_shared_mem_size<<"\n";

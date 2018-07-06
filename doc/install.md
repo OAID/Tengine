@@ -59,9 +59,9 @@ To get started, git clone the latest Tengine repository.
 		
 		If you want to support mxnet, tensorflow, onnx serializer, you uncomment the options
 		```
-		#CONFIG_MXNET_SUPPORT=y
-		#CONFIG_ONNX_SUPPORT=y
-		# CONFIG_TF_SUPPORT=y
+		#CONFIG_MXNET_SERIALIZER=y
+		#CONFIG_ONNX_SERAILIZER=y
+		# CONFIG_TF_SERIALIZER=y
 		```
 ## 2. Build
 ```

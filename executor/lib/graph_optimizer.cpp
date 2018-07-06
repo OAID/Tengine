@@ -22,6 +22,7 @@
  * Author: haitao@openailab.com
  */
 #include <cmath>
+#include <cstring>
 
 #include "node.hpp"
 #include "graph.hpp"
@@ -43,7 +44,7 @@ static bool GraphFuseConvReLu(Graph *graph,GraphOptimizer *opt);
 static void AddConstNodeToSubGraph(Subgraph * graph,Tensor *tensor,Node*fused_node,int fused_port_index);
 
 
-static bool Weight_Bn(Subgraph * graph,Node *ConvNode,float *mean,float *var, float*gamma,float *beta,float eps,float rescale_factor)
+static bool Weight_Bn(Subgraph * graph,Node *ConvNode,float *mean,float *var, float*gamma,float *beta,float eps,float rescale_factor, Tensor * bias_tensor)
 {
 	Tensor * input_tensor=ConvNode->GetInputTensor(0);	
 	Convolution * conv_op=dynamic_cast<Convolution *>(ConvNode->GetOp());
@@ -64,10 +65,16 @@ static bool Weight_Bn(Subgraph * graph,Node *ConvNode,float *mean,float *var, fl
 
 	Tensor * kernel_tensor=ConvNode->GetInputTensor(1);
 	float * kernel_org		 = (float *)get_tensor_mem(kernel_tensor);
-		
-	
+
 	int channel_num = output_shape.GetC() ;
 	
+	float * kernel_new=(float *)(malloc(kernel_size*channel_num*sizeof(float)));
+
+	memcpy(kernel_new,kernel_org,sizeof(float)*kernel_size*channel_num);
+
+	kernel_tensor->SetMemAddr(kernel_new);
+	kernel_tensor->SetAttr("free_mem",1);
+
 	float * scale_mean=(float *)malloc(channel_num*sizeof(float));
 	float * scale_var_inv=(float *)malloc(channel_num*sizeof(float));
  
@@ -76,11 +83,47 @@ static bool Weight_Bn(Subgraph * graph,Node *ConvNode,float *mean,float *var, fl
 
      //fuse the bias;
      float *bias = NULL;
-     if( ConvNode->GetInputNum() > 2)
+	 std::string bias_name;
+     if( bias_tensor)
      {
-         bias=  (float *) get_tensor_mem(ConvNode->GetInputTensor(2)) ;
+         bias=(float *)get_tensor_mem(bias_tensor) ;
+		 bias_name=bias_tensor->GetName()+".bn";
      }
+	 else
+	 {
+		bias_name=ConvNode->GetName()+".bias.bn";
+	 }
+
+	 /* 
+	  *  create the bias node,,, ugly code..
+	  *
+	  */
+
+	 {
+	    Tensor * new_bias_tensor=new Tensor(bias_name);
+		std::vector<int> dims{1,channel_num,1,1};
+
+		 TShape bias_shape;
+		 bias_shape.SetDim(dims);
+
+		 new_bias_tensor->Reshape(bias_shape); 
+		 new_bias_tensor->SetType(kConstTensor);
+
+         void *bias_new = (void*)malloc(channel_num * sizeof(float));
+
+		 new_bias_tensor->SetMemAddr(bias_new);
+
+		 AddConstNodeToSubGraph(graph,new_bias_tensor,ConvNode,2);
+
+		 delete new_bias_tensor;
+
+		 //set the free flag
+		 new_bias_tensor=ConvNode->GetInputTensor(2);
+         new_bias_tensor->SetAttr("free_mem",1);
+	 }
+
 	 rescale_factor_tmp=rescale_factor_tmp?1/rescale_factor_tmp:0;
+
 	 if(NULL == bias)
 	 {
 		  for(int c=0;c<channel_num;c++)
@@ -97,6 +140,7 @@ static bool Weight_Bn(Subgraph * graph,Node *ConvNode,float *mean,float *var, fl
 			 scale_mean[c]=(bias[c]-mean[c]*rescale_factor_tmp)*scale_var_inv[c];
 		  }
 	 }
+
 	 if(NULL != gamma )
 	 {
 	    for(int c=0;c < channel_num;c++)
@@ -115,7 +159,7 @@ static bool Weight_Bn(Subgraph * graph,Node *ConvNode,float *mean,float *var, fl
 	
     for(int g = 0; g < group;g++)
     {
-        float *kernel = kernel_org + g * output_chan * kernel_size;
+        float *kernel = kernel_new + g * output_chan * kernel_size;
 		
         for(int o_c = 0; o_c < output_chan; o_c++)
         {
@@ -129,22 +173,6 @@ static bool Weight_Bn(Subgraph * graph,Node *ConvNode,float *mean,float *var, fl
 	    
     }
 
-    if(NULL == bias)
-	{
-	
-       Tensor *bias_tensor = new Tensor("bias_fused");
-	   std::vector<int> dims{1,channel_num,1,1};
-       
-	   TShape bias_shape;
-	   bias_shape.SetDim(dims);
-           bias_tensor->Reshape(bias_shape); 
-           bias_tensor->SetType(kConstTensor); 
-	   void *bias_new = (void*)malloc(channel_num * sizeof(float));
-	//   set_tensor_mem(bias_tensor,bias_new,channel_num * sizeof(float),std::free);
-	   
-           bias_tensor->SetMemAddr(bias_new);
-           AddConstNodeToSubGraph(graph,bias_tensor,ConvNode,2);
-	}
 
 	float *bias_tmp = (float*)get_tensor_mem(ConvNode->GetInputTensor(2));
 
@@ -165,8 +193,13 @@ static void AddConstNodeToSubGraph(Subgraph * graph,Tensor *tensor,Node*fused_no
 {
 
     Tensor * new_tensor =new Tensor(*tensor);
-	std::string new_tensor_name;
-    new_tensor_name=new_tensor->GetName()+".fused";
+
+	std::string new_tensor_name=new_tensor->GetName();
+	
+//   if(new_tensor_name.rfind(".fused")==std::string::npos)
+		   new_tensor_name+=".fused";
+    	 
+
 	new_tensor->SetName(new_tensor_name);
 	
 	Node* new_node=new Node(new_tensor->GetName());
@@ -182,6 +215,10 @@ static void AddConstNodeToSubGraph(Subgraph * graph,Tensor *tensor,Node*fused_no
 	graph->seq_nodes.push_back(new_node);
 	graph->SetNodeOwner(new_node);
 	graph->SetTensorOwner(new_tensor);
+
+	if(tensor->ExistAttr("free_mem"))
+			tensor->RemoveAttr("free_mem");
+
 
 	//return new_tensor;
 
@@ -247,7 +284,7 @@ static bool GraphFuseBNScale(Graph *graph,GraphOptimizer *opt)
 		Node * orig_output=orig->output_nodes[0];
 		Node * orig_input=orig->input_nodes[0];
 
-		std::string node_name=orig_input->GetName()+orig_output->GetName();
+		std::string node_name=orig_input->GetName()+"-"+orig_output->GetName();
 
 		/*create new Node node*/
 		Node * fused_node=new Node(node_name);
@@ -370,7 +407,7 @@ static bool GraphFuseConvBN(Graph *graph,GraphOptimizer *opt)
 		Node * orig_output=orig->output_nodes[0];
 		Node * orig_input=orig->input_nodes[0];
 
-		std::string node_name=orig_input->GetName()+orig_output->GetName();
+		std::string node_name=orig_input->GetName()+"-"+orig_output->GetName();
 
 		/*create new Node node*/
 		Node * fused_node=new Node(node_name);
@@ -405,13 +442,6 @@ static bool GraphFuseConvBN(Graph *graph,GraphOptimizer *opt)
 		Tensor * weight=orig_input->GetInputTensor(1);
 		AddConstNodeToSubGraph(&fused,weight,fused_node,1);
 		
-        bool has_bias=orig_input->GetInputNum()>2?true:false;
-        if(has_bias)
-        {
-             Tensor * orig_bias=orig_input->GetInputTensor(2);
-		     AddConstNodeToSubGraph(&fused,orig_bias,fused_node,2);
-        }
-
 		BatchNorm * bn_op=dynamic_cast<BatchNorm *>(orig_output->GetOp());
 		BatchNormParam * param_org =bn_op->GetParam();
 	
@@ -433,8 +463,15 @@ static bool GraphFuseConvBN(Graph *graph,GraphOptimizer *opt)
 			 gamma = (float *)get_tensor_mem(orig_gamma);
 			 beta  = (float *)get_tensor_mem(orig_beta);
 		}
+
+		Tensor * bias_tensor;
+
+		if(orig_input->GetInputNum()>2)
+			bias_tensor=orig_input->GetInputTensor(2);
+		else
+            bias_tensor=nullptr;
    
-        Weight_Bn(&fused,fused_node, mean, var, gamma, beta,param_org->eps, param_org->rescale_factor);
+        Weight_Bn(&fused,fused_node, mean, var, gamma, beta,param_org->eps, param_org->rescale_factor, bias_tensor);
 
         graph->Replace(orig,&fused);
 		
@@ -564,7 +601,7 @@ static bool GraphFuseConvReLu(Graph * graph,GraphOptimizer * opt)
          Node * orig_output=orig->output_nodes[0];
          Node * orig_input=orig->input_nodes[0];
 
-         std::string node_name=orig_input->GetName()+orig_output->GetName();
+         std::string node_name=orig_input->GetName()+"-"+orig_output->GetName();
 
          Node * fused_node=new Node(node_name);
          Operator * op=OpManager::CreateOp("Convolution");

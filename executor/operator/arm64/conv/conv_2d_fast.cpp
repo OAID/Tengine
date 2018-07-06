@@ -474,8 +474,8 @@ struct ConvFast: public MTNodeOps {
 	bool Prerun(Node * node) override;
 	bool Run(Node * node) override;
 	bool Postrun(Node * node) override;
-	bool GetMemorySize(Node *, unsigned int & mem_size) override;
-	void SetMemoryAddr(Node *, void * mem_addr) override;
+	bool GetSharedMemorySize(Node *, unsigned int & mem_size) override;
+	bool SetSharedMemoryAddr(Node *, void * mem_addr, int mem_size) override;
 
 	bool float_mode;
 	bool im2col_aider(int cpu, int seq, void * data /* im2col_param * param */);
@@ -906,7 +906,7 @@ bool ConvFast::RealPostrun(Node * node)
 	return true;
 }
 
-bool ConvFast::GetMemorySize(Node * node , unsigned int & mem_size)
+bool ConvFast::GetSharedMemorySize(Node * node , unsigned int & mem_size)
 {
 	Convolution * conv_op=dynamic_cast<Convolution *>(node->GetOp());
 	ConvParam*  param=conv_op->GetParam();
@@ -931,9 +931,10 @@ bool ConvFast::GetMemorySize(Node * node , unsigned int & mem_size)
 }
 
 
-void ConvFast::SetMemoryAddr(Node * node, void * mem_addr)
+bool ConvFast::SetSharedMemoryAddr(Node * node, void * mem_addr, int mem_size)
 {
 	(*node)["shared_col_buf"]=mem_addr;
+	return true;
 }
 
 NodeOps * SelectFunc(const CPUInfo * cpu_info, Node * node)
