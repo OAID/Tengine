@@ -58,7 +58,7 @@ Tengine can be extended to support new serialization format, by building new ser
 
 ## Communication && Tech Support
 * Github issues
-* **QQ group**: 829565581 (Questione: Tengine  Answer:openailab)
+* **QQ group**: 829565581 (Question:Tengine  Answer:openailab)
 * **Wechat group**: add account `gaojinwei01` as friend. Input your Github account name, and then you will be recognized and invited into the group
 
 ## Release History
