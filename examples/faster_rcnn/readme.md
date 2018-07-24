@@ -16,23 +16,22 @@ Store these files into `${Tengine_ROOT}/models/`
 ```
 cd  ${Tengine_ROOT}
 make install
-cd  ${Tengine_ROOT}/examples/faster_rcnn
-cmake .
-make 
 
 ```
+build as ${TENGINE_ROOT}/examples/readme.md
+
 
 ## Run
 
 1. run faster_rcnn by default
     ```
-    cd ${Tengine_ROOT}/examples/faster_rcnn
+    cd ${Tengine_ROOT}/examples/build/faster_rcnn
 	./FASTER_RCNN
     ```
 
 2. run faster_rcnn with other models and image
 	```
-    cd ${Tengine_ROOT}/examples/faster_rcnn
+    cd ${Tengine_ROOT}/examples/build/faster_rcnn
 	./FASTER_RCNN -p proto_file -m model_file -i image_file
     ```
 

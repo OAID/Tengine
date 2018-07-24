@@ -103,6 +103,7 @@ StaticNode*  GetTensorProducer(StaticGraph * graph, StaticTensor * tensor);
     
 StaticTensor* CreateStaticConstTensor(StaticGraph * grap, const std::string& name);
 void SetConstTensorBuffer(StaticTensor * tensor, void * addr);
+void * GetConstTensorBuffer(StaticTensor * tensor);
 void SetConstTensorFileLocation(StaticTensor * tensor, int offset, int file_size);
 
 

@@ -33,6 +33,8 @@
 #include "operator/softmax_param.hpp"
 #include "operator/batch_norm_param.hpp"
 #include "operator/relu_param.hpp"
+#include "operator/eltwise_param.hpp"
+#include "operator/fc_param.hpp"
 
 //#define DEBUG
 
@@ -117,6 +119,7 @@ bool MxnetSerializer::LoadTextFile(const char * fname, std::vector<MxnetNode>& n
     static const char end_node_block2[] = "}";
     static const char start_attr_block1[] = "\"attr\": {";
     static const char start_attr_block2[] = "\"param\": {";
+    static const char start_attr_block3[] = "\"attrs\": {";
     static const char end_attr_block[] = "},";
 
     std::ifstream is(fname, std::ios::in);
@@ -193,7 +196,7 @@ bool MxnetSerializer::LoadTextFile(const char * fname, std::vector<MxnetNode>& n
                 nest--;
                 continue;
             }
-            else if(line == start_attr_block1 || line == start_attr_block2)
+            else if(line == start_attr_block1 || line == start_attr_block2 || line == start_attr_block3)
             {
                 nest++;
                 continue;
@@ -219,7 +222,7 @@ bool MxnetSerializer::LoadTextFile(const char * fname, std::vector<MxnetNode>& n
                 {
                     ParseInputList(value, node.inputs);
                 }
-                else if(param == "attr" || param == "param")
+                else if(param == "attr" || param == "param" || param == "attrs")
                 {
                     if(value == "{}")
                     {
@@ -387,6 +390,10 @@ bool MxnetSerializer::LoadBinaryFile(const char * fname, std::vector<MxnetParam>
         std::cout<<"    Name: "<<paramlist.at(i).name<<std::endl;
         std::cout<<"    dim_size: "<<paramlist.at(i).dim_size<<std::endl;
         std::cout<<"    data_len: "<<paramlist.at(i).data_len<<std::endl;
+        std::cout<<"    raw_data: \n";
+        for(int j=0; j<paramlist.at(i).data_len; j++)
+            printf("%#x, ",paramlist.at(i).raw_data[j]);
+        printf("\n");
     }
 #endif
 
@@ -547,9 +554,16 @@ void MxnetSerializer::LoadNode(StaticGraph * graph, StaticNode * node, const Mxn
         StaticTensor * tensor = FindTensor(graph, input_node.name);
         if(input_node.op == "null")
         {
-            if(mxnet_node.op == "BatchNorm")
+            if(mxnet_node.op == "BatchNorm" || mxnet_node.op == "LeakyReLU")
             {
                 SetTensorDataLayout(tensor, "W");
+            }
+            else if(mxnet_node.op == "FullyConnected")
+            {
+                if(i == 1) //weight
+                    SetTensorDataLayout(tensor, "HW");
+                else if(i == 2) //bias
+                    SetTensorDataLayout(tensor, "W");
             }
             else
             {
@@ -839,6 +853,96 @@ static bool LoadMxnetRelu(StaticGraph * graph, StaticNode * node, const MxnetNod
     return true;
 }
 
+static bool LoadMxnetEltScalar(StaticGraph * graph, StaticNode * node, const MxnetNode& mxnet_node)
+{
+    EltwiseParam  param=any_cast<EltwiseParam>(OpManager::GetOpDefParam("Eltwise"));
+    if(mxnet_node.op == "_minus_scalar")
+        param.type=ELT_SUB_SCALAR;
+    else if(mxnet_node.op == "_mul_scalar")
+        param.type=ELT_PROD_SCALAR;
+    param.caffe_flavor=0;
+
+    StaticTensor *tensor = CreateStaticConstTensor(graph, mxnet_node.name+"_scalar");
+    std::vector<int> dims;
+    dims.push_back(1);
+    SetTensorDim(tensor, dims);
+    SetTensorDataType(tensor, "float32");
+    SetTensorDataLayout(tensor, "W");
+    SetTensorSize(tensor, sizeof(float));
+
+    float *mem_buf  = (float *)std::malloc(sizeof(float));
+    const_iterator cit = mxnet_node.attrs.find("scalar");
+    if(cit != mxnet_node.attrs.end())
+    {
+        std::istringstream ist(cit->second);
+        float val;
+        ist >> val;
+        *mem_buf = val;
+    }
+    SetConstTensorBuffer(tensor, mem_buf);
+    SetConstTensorFileLocation(tensor, -1, 0);
+
+    StaticOp * op = CreateStaticOp(graph, "Const");
+    StaticNode * new_node = CreateStaticNode(graph, GetTensorName(tensor));
+    SetNodeOp(new_node, op);
+    AddNodeOutputTensor(new_node, tensor);
+
+    AddNodeInputTensor(node, tensor);
+
+    op=CreateStaticOp(graph,"Eltwise");
+    SetOperatorParam(op,param);
+    SetNodeOp(node,op);
+
+    return true;
+}
+
+static bool LoadMxnetElemwiseAdd(StaticGraph * graph, StaticNode * node, const MxnetNode& mxnet_node)
+{
+    EltwiseParam  param=any_cast<EltwiseParam>(OpManager::GetOpDefParam("Eltwise"));
+    param.type=ELT_SUM;
+    param.caffe_flavor=0;
+
+    StaticOp * op=CreateStaticOp(graph,"Eltwise");
+    SetOperatorParam(op,param);
+    SetNodeOp(node,op);
+
+    return true;
+}
+
+static bool LoadMxnetLeakyReLU(StaticGraph * graph, StaticNode * node, const MxnetNode& mxnet_node)
+{
+    const_iterator cit = mxnet_node.attrs.find("act_type");
+    if(cit == mxnet_node.attrs.end() ||
+       cit->second != "prelu")
+    {
+        return false;
+    }
+
+    StaticOp * op=CreateStaticOp(graph,"PReLU");
+    SetNodeOp(node,op);
+
+    return true;
+}
+
+static bool LoadMxnetFullyConnected(StaticGraph * graph, StaticNode * node, const MxnetNode& mxnet_node)
+{
+    FCParam  param=any_cast<FCParam>(OpManager::GetOpDefParam("FullyConnected"));
+    const_iterator cit = mxnet_node.attrs.find("num_hidden");
+    if(cit != mxnet_node.attrs.end())
+    {
+        std::istringstream ist(cit->second);
+        int val;
+        ist >> val;
+        param.num_output = val;
+    }
+
+    StaticOp * op=CreateStaticOp(graph,"FullyConnected");
+    SetOperatorParam(op,param);
+    SetNodeOp(node,op);
+
+    return true;
+}
+
 bool MxnetSerializerRegisterOpLoader(void)
 {
     SerializerPtr serializer;
@@ -855,6 +959,12 @@ bool MxnetSerializerRegisterOpLoader(void)
     p_mxnet->RegisterOpLoadMethod("BatchNorm",op_load_t(LoadMxnetBatchNorm));
     p_mxnet->RegisterOpLoadMethod("Dropout",op_load_t(LoadMxnetDropout));
     p_mxnet->RegisterOpLoadMethod("Activation",op_load_t(LoadMxnetRelu));
+
+    p_mxnet->RegisterOpLoadMethod("_minus_scalar",op_load_t(LoadMxnetEltScalar));
+    p_mxnet->RegisterOpLoadMethod("_mul_scalar",op_load_t(LoadMxnetEltScalar));
+    p_mxnet->RegisterOpLoadMethod("elemwise_add",op_load_t(LoadMxnetElemwiseAdd));
+    p_mxnet->RegisterOpLoadMethod("LeakyReLU",op_load_t(LoadMxnetLeakyReLU));
+    p_mxnet->RegisterOpLoadMethod("FullyConnected",op_load_t(LoadMxnetFullyConnected));
 
     return true;
 }

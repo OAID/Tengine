@@ -35,16 +35,14 @@ Store the generated tengine model files into `${Tengine_ROOT}/models/`.
 ```
 cd  ${Tengine_ROOT}
 make install
-cd  ${Tengine_ROOT}/examples/tengine_model/classification
-cmake -DTENGINE_DIR=${Tengine_ROOT} .
-make
 ```
+build as ${TENGINE_ROOT}/examples/readme.md
 
 ## Test
 - go to the directory of the executive program
 
     ```
-    cd ${Tengine_ROOT}/examples/tengine_model/classification
+    cd ${Tengine_ROOT}/examples/build/tengine_model/classification
     ```
 - test an image:
 

@@ -7,10 +7,15 @@ export CC CXX CFLAGS LD LDFLAGS CXXFLAGS COMMON_CFLAGS
 INC_DIR+=-I$(shell pwd)/../core/include
 INC_DIR+=-I$(shell pwd)/include
 
-MODULE_DIR=caffe
-ifeq ($(CONFIG_TF_SUPPORT),y)
+ifdef($(CONFIG_TF_SERIALIZER),y)
     MODULE_DIR+=tensorflow
 endif
+
+
+ifdef($(CONFIG_CAFFE_SERIALIZER),y)
+    MODULE_DIR+=caffe
+endif
+
 
 MODULE_NAME=libwrapper.so
 
@@ -64,5 +69,5 @@ SO_LIBS+=-Wl,-rpath,./build/core:./build/wrapper
 SO_LIBS+=-ltengine -lwrapper 
 
 
-LIBS+=-lprotobuf -lboost_thread -lglog
+LIBS+=-lprotobuf  -lglog
 

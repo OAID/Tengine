@@ -17,22 +17,20 @@ Store these files into `${Tengine_ROOT}/models/`
 ```
 cd  ${Tengine_ROOT}
 make install
-cd  ${Tengine_ROOT}/examples/ssd
-cmake .
-make
 ```
+build as ${TENGINE_ROOT}/examples/readme.md
 
 ## Run
 
 1. run SSD by default
     ```
-    cd ${Tengine_ROOT}/examples/ssd
+    cd ${Tengine_ROOT}/examples/build/ssd
     ./SSD
     ```
 
 2. run ssd with other models and image
     ```
-    cd ${Tengine_ROOT}/examples/ssd
+    cd ${Tengine_ROOT}/examples/build/ssd
     ./SSD -p proto_file -m model_file -i image_file
     ```
 

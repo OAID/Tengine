@@ -884,16 +884,16 @@ static bool  LoadCaffePriorBox(StaticGraph * graph, StaticNode * node, const te_
 
     return true;
 }
-static bool  LoadCaffeBilinearResize(StaticGraph * graph, StaticNode * node, const te_caffe::LayerParameter& layer_param)
+static bool  LoadCaffeResize(StaticGraph * graph, StaticNode * node, const te_caffe::LayerParameter& layer_param)
 {
-    ResizeParam  param=any_cast<ResizeParam>(OpManager::GetOpDefParam("BilinearResize"));
+    ResizeParam  param=any_cast<ResizeParam>(OpManager::GetOpDefParam("Resize"));
 
-    const te_caffe::BilinearResizeParameter& caffe_param=layer_param.bilinear_resize_param();
+    const te_caffe::Resize1_Parameter& caffe_param=layer_param.resize1_param();
     // 
-    param.scale_y  = caffe_param.out_height_scale();
-    param.scale_x  = caffe_param.out_width_scale();
-   
-    StaticOp * op=CreateStaticOp(graph,"BilinearResize");
+    param.scale_h  = caffe_param.out_height_scale();
+    param.scale_w  = caffe_param.out_width_scale();
+    param.type = caffe_param.resize_type();
+    StaticOp * op=CreateStaticOp(graph,"Resize");
 
     SetOperatorParam(op,param);
 
@@ -1374,7 +1374,7 @@ bool CaffeSerializerRegisterOpLoader(void)
     p_caffe->RegisterOpLoadMethod("ROIPooling",op_load_t(LoadCaffeROIPooling));
     p_caffe->RegisterOpLoadMethod("Reorg",op_load_t(LoadCaffeReorg));
     p_caffe->RegisterOpLoadMethod("Region",op_load_t(LoadCaffeRegion));
-    p_caffe->RegisterOpLoadMethod("BilinearResize",op_load_t(LoadCaffeBilinearResize));
+    p_caffe->RegisterOpLoadMethod("Resize",op_load_t(LoadCaffeResize));
 
 
     if(!SerializerManager::SafeGet("caffe",serializer))
@@ -1411,7 +1411,7 @@ bool CaffeSerializerRegisterOpLoader(void)
     p_buddy->RegisterOpLoadMethod("ROIPooling",op_load_t(LoadCaffeROIPooling));
     p_buddy->RegisterOpLoadMethod("Reorg",op_load_t(LoadCaffeReorg));
     p_buddy->RegisterOpLoadMethod("Region",op_load_t(LoadCaffeRegion));
-    p_buddy->RegisterOpLoadMethod("BilinearResize",op_load_t(LoadCaffeBilinearResize));
+    p_buddy->RegisterOpLoadMethod("Resize",op_load_t(LoadCaffeResize));
 
     blob_load_map["Convolution"]=LoadConvolutionBlob;
     blob_load_map["Deconvolution"]=LoadDeconvolutionBlob;

@@ -97,7 +97,7 @@ int operator_plugin_init(void)
     RegisterOp<Reorg>("Reorg");
     RegisterOp<Region>("Region");
     RegisterOp<Deconvolution>("Deconvolution");
-    RegisterOp<BilinearResize>("BilinearResize");
+    RegisterOp<Resize>("Resize");
 
 
    // std::cout<<"OPERATOR PLUGIN INITED\n";

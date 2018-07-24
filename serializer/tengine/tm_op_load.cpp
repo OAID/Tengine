@@ -56,8 +56,8 @@ bool LoadTmResizeOp(StaticGraph *graph, StaticNode *node, void * const start_ptr
     ResizeParam param = any_cast<ResizeParam>(OpManager::GetOpDefParam(op_str));
     const TM_ResizeParam *tm_param = GetTmPtr<TM_ResizeParam>(start_ptr, tm_op->offset_t_param);
 
-    param.scale_x = tm_param->scale_x;
-    param.scale_y = tm_param->scale_y;
+    param.scale_w = tm_param->scale_x;
+    param.scale_h = tm_param->scale_y;
 
     StaticOp *op = CreateStaticOp(graph, op_str);
     SetOperatorParam(op, param);
