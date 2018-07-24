@@ -11,16 +11,14 @@ Download the caffe models from [Tengine model zoo](https://pan.baidu.com/s/1LXZ8
 ```
 cd  ${Tengine_ROOT}
 make install
-cd  ${Tengine_ROOT}/examples/tengine_model/convert
-cmake -DTENGINE_DIR=${Tengine_ROOT} .
-make
 ```
+build as ${TENGINE_ROOT}/examples/readme.md
 
 ## Convert
 - go to the directory of the executive program
 
     ```
-    cd ${Tengine_ROOT}/examples/tengine_model/convert
+    cd ${Tengine_ROOT}/examples/build/tengine_model/convert
     ```
 - usage:
 

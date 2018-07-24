@@ -64,12 +64,12 @@ clean: $(libsubdir_list) $(binsubdir_list)
 
 $(BUILD_DIR)/%: $(BUILD_DIR)/%.o  $(TOOLS_LIB)
 	@mkdir -p $(@D)
-	$(LD) $(LDFLAGS) $< $(COMMON_OBJS) -o $@ $(TENGINE_SO) $(LIBS) $(SO_LIBS)  -L../build
+	$(LD) $(LDFLAGS) $< $(COMMON_OBJS) -o $@ $(TENGINE_SO) $(LIBS) $(SO_LIBS)  -L$(shell pwd)/../build
 
 #ugly workaround for cross compiling on arm64 ubuntu rootfs
 OPENCV_LIB=$(shell pkg-config --libs-only-l --libs-only-L opencv) -Wl,-rpath=/usr/lib/aarch64-linux-gnu/mesa
 
-TENGINE_SO=-L../build -ltengine
+TENGINE_SO=-Wl,-rpath,$(shell pwd)/../build -ltengine
 LIBS+=-lprotobuf -ldl -lpthread -lresolv
 SO_LIBS+=$(OPENCV_LIB)
 

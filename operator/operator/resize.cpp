@@ -25,13 +25,13 @@
 
 
 namespace TEngine {
-bool BilinearResize::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEngine::TShape>& oshape)
+bool Resize::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEngine::TShape>& oshape)
 {
     const TShape& input=ishape[0];
     const std::vector<int>& in_dim=input.GetDim();
 
-    int out_h=(int)(in_dim[2]*param_.scale_y);
-    int out_w=(int)(in_dim[3]*param_.scale_x);
+    int out_h=(int)(in_dim[2]*param_.scale_h);
+    int out_w=(int)(in_dim[3]*param_.scale_w);
 
     TShape shape;
     
@@ -47,15 +47,15 @@ bool BilinearResize::InferShape(const std::vector<TEngine::TShape>& ishape, std:
 }
 
 
-void BilinearResize::SetSchema(void)
+void Resize::SetSchema(void)
 {
     Input({"input:float32"})
     .Output({"output:float32"})
     .SetLayout("NCHW")
-    .SetAttr("scale_y",1.f)
-    .SetAttr("scale_x",1.f)
+    .SetAttr("scale_h",1.f)
+    .SetAttr("scale_w",1.f)
 
-    .SetDoc(R"DOC(BilinearResize Layer)DOC");
+    .SetDoc(R"DOC(Resize Layer)DOC");
 
 }
 

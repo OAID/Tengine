@@ -18,17 +18,15 @@ Store these files into `${Tengine_ROOT}/models/`
 ```
 cd  ${Tengine_ROOT}
 make install
-cd  ${Tengine_ROOT}/examples/lighten_cnn
-cmake .
-make
 ```
+build as ${TENGINE_ROOT}/examples/readme.md
 
 ## Run
 
 1. run lighten_cnn by default
 
     ```
-    cd ${Tengine_ROOT}/examples/lighten_cnn
+    cd ${Tengine_ROOT}/examples/build/lighten_cnn
     ./LIGHTEN_CNN
     ```
 

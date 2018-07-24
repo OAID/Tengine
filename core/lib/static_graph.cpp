@@ -441,6 +441,12 @@ StaticTensor* CreateStaticConstTensor(StaticGraph * graph, const std::string& na
     return dynamic_cast<StaticTensor *>(tensor_ptr.get());
 }
 
+void * GetConstTensorBuffer(StaticTensor * tensor)
+{
+    StaticConstTensor * const_tensor=dynamic_cast<StaticConstTensor *>(tensor);
+    return const_tensor->mem_addr;
+}
+
 void SetConstTensorBuffer(StaticTensor * tensor, void * addr)
 {
     StaticConstTensor * const_tensor=dynamic_cast<StaticConstTensor *>(tensor);

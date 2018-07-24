@@ -26,7 +26,6 @@
 #ifndef __ACL_GRAPH_DEVICE_HPP__
 #define __ACL_GRAPH_DEVICE_HPP__
 
-
 #include "device_driver.hpp"
 #include "node_dev_driver.hpp"
 
@@ -37,60 +36,60 @@
 
 using namespace arm_compute;
 
-
 namespace TEngine {
 
 struct DevContext
 {
-	Device * dev;
-	Subgraph * sub_graph;
-	Subgraph * optimized_graph;
-	CLGraph * graph;
+    Device * dev;
+    Subgraph * sub_graph;
+    Subgraph * optimized_graph;
+    CLGraph * graph;
     dev_graph_cb_t graph_cb;
 };
+
 struct acl_task
 {
-	DevContext * context;
+    DevContext * context;
 };
 
 class ACLDevice : public Device{
-	
+
 public:
-	ACLDevice(const char * dev_name): Device(dev_name) {} 
-	~ACLDevice(){}
+    ACLDevice(const char * dev_name): Device(dev_name) {}
+    ~ACLDevice(){}
 
+    bool RealPrerun(DevContext * context);
+    bool RealRun(DevContext * context);
+    bool RealSyncRun(DevContext * context);
+    bool RealPostrun(DevContext * context);
+    bool RealOptimizeGraph(DevContext * context, Subgraph * graph);
 
-	bool RealPrerun(DevContext * context);
-	bool RealRun(DevContext * context);
-	bool RealSyncRun(DevContext * context);
-	bool RealPostrun(DevContext * context);
-	bool RealOptimizeGraph(DevContext * context, Subgraph * graph);
-	
-	void RunGraph(DevContext * context, dev_graph_cb_t graph_cb);
+    void RunGraph(DevContext * context, dev_graph_cb_t graph_cb);
 
-	void Process(const acl_task& task, int acl_id);
-	void Launch(void);
-	void WaitDone(void);
-	void Kill(void);
-	
-	void IncRequest(int req_number);
-	void IncDone(int done_number);
+    void Process(const acl_task& task, int acl_id);
+    void Launch(void);
+    void WaitDone(void);
+    void Kill(void);
 
-	void PushTask(std::vector<acl_task>& task_list);
+    void IncRequest(int req_number);
+    void IncDone(int done_number);
 
-	dev_status_t dev_status;
-	
+    void PushTask(std::vector<acl_task>& task_list);
+
+    dev_status_t dev_status;
+
 private:
-	WorkerThread<acl_task> * 	thread_;
-	std::mutex 					queue_lock_;
-	std::condition_variable 	queue_cv_;
-	std::queue<acl_task> 		task_queue_;
+    WorkerThread<acl_task> *    thread_;
+    std::mutex                  queue_lock_;
+    std::condition_variable     queue_cv_;
+    std::queue<acl_task>        task_queue_;
 
-	std::atomic<uint64_t> 		request_;
-    std::atomic<uint64_t> 		done_;
-	std::mutex  				wait_mutex_;
-    std::condition_variable 	wait_cv_;
+    std::atomic<uint64_t>       request_;
+    std::atomic<uint64_t>       done_;
+    std::mutex                  wait_mutex_;
+    std::condition_variable     wait_cv_;
 
+    DataType                    data_type_;
 };
 
 }

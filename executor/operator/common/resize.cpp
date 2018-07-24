@@ -35,9 +35,9 @@
 
 namespace TEngine {
 
-namespace BilinearResizeImpl {
+namespace ResizeImpl {
 
-struct BilinearResizeOps: public MTNodeOps {
+struct ResizeOps: public MTNodeOps {
 
 void bilinear_resize(float* inp,float*output,
     int h,int w,int c,
@@ -203,21 +203,48 @@ void bilinear_resize_2x2(float *input, float *out,
     }
 }
 
+void nearest_neighbor_resize(float *inp, float *out,
+                            int h, int w,int c_start, int c_end,
+                            float scale_x, float scale_y,
+                            int oh, int ow)
+{
+    float *output;
+    float *input;
+    int si,sj;
+    for (int k = c_start; k < c_end; k++)
+    {
+        input = inp+k*h*w;
+        output = out+k*oh*ow;
+        for(int i=0;i<oh;i++)
+        {
+            si = std::min((int)(i*scale_y), h-1);
+            for(int j=0;j<ow;j++)
+            {
+                sj=std::min((int)(j*scale_x),w-1);
+                output[i*ow+j]=input[si*w+sj];
+            }
+        }
+    }
+}
+
 struct resize_param{
 	float* input;
 	float* output;
 	int in_h;
 	int in_w;
-	int ch;
+	int c_start;
+	int c_end;
 	int out_h;
 	int out_w;
+    float scale_x;
+    float scale_y;
 };
 
 bool resize_aider(int cpu, int seq, void* data)
 {
 	resize_param* param = (resize_param*)(data);
-	bilinear_resize_2x2(param->input, param->output, param->in_h, param->in_w,
-			param->ch, param->out_h, param->out_w);
+	nearest_neighbor_resize(param->input, param->output, param->in_h, param->in_w,
+			param->c_start,param->c_end, param->scale_x,param->scale_y,param->out_h, param->out_w);
 	return true;
 }
 
@@ -226,74 +253,72 @@ bool Run(Node * node)
     Tensor * input_tensor=node->GetInputTensor(0);
     Tensor * output_tensor=node->GetOutputTensor(0);
     
-    BilinearResize * resize_op=dynamic_cast<BilinearResize*>(node->GetOp());
+    Resize * resize_op=dynamic_cast<Resize*>(node->GetOp());
     ResizeParam * param_=resize_op->GetParam();
 
     const TShape&  shape=input_tensor->GetShape();
     const std::vector<int> dims=shape.GetDim();
 
     int batch_number=dims[0];
-	int in_ch = dims[2]*dims[3];
+	
     int in_chw =dims[1]*dims[2]*dims[3];
 
     const TShape& shape1=output_tensor->GetShape();
     const std::vector<int> out_dims=shape1.GetDim();
-	int out_ch = out_dims[2]*out_dims[3];
+	
     int out_chw =out_dims[1]*out_dims[2]*out_dims[3];
 
 
     float * input=(float *)get_tensor_mem(input_tensor);
     float * output=(float *)get_tensor_mem(output_tensor);
-    float scale_x=1.f/param_->scale_x;
-    float scale_y=1.f/param_->scale_y;
+    float scale_x=1.f/param_->scale_w;
+    float scale_y=1.f/param_->scale_h;
     int cpu_number = cpu_info->GetCPUNumber();
-    if(param_->scale_x==2 && param_->scale_y ==2)
+   
+    if(param_->type==0)
     {
         for(int i=0;i<batch_number;i++)
         {
-
 			if(cpu_number == 1)
 			{
-				bilinear_resize_2x2(input,output,
-                            dims[2],dims[3],dims[1],
+				nearest_neighbor_resize(input,output,
+                            dims[2],dims[3],0,dims[1],scale_x,scale_y,
                             out_dims[2],out_dims[3]);
 				input+=in_chw;
 				output+=out_chw;
-			}else
+			}
+            else
 			{
-				std::vector<sub_op_task> task_list;
-				std::vector<resize_param> param_list;
+                std::vector<sub_op_task> task_list;
+                std::vector<resize_param> param_list;
+                int steps=dims[1]/cpu_number;
+                param_list.resize(cpu_number);
+                
+                auto f=std::bind(&ResizeOps::resize_aider,this,std::placeholders::_1,
+                                            std::placeholders::_2,std::placeholders::_3);
+                for(int i=0;i<cpu_number;i++)
+                {
+                    sub_op_task tmp_task;
+                    resize_param * param0=&param_list[task_list.size()];
+                    sub_op_task * task=&tmp_task;
+                    task->exec_func=f;
+                    task->seq=i;
+                    task->data=param0;
 
-				task_list.resize(cpu_number);
-				param_list.resize(cpu_number);
-
-				auto f = std::bind(&BilinearResizeOps::resize_aider,this,std::placeholders::_1,
-						std::placeholders::_2,std::placeholders::_3);
-
-				int steps = dims[1]/cpu_number;
-
-				for(int i =0;i<cpu_number;i++)
-				{
-					resize_param *param0 = &param_list[i];
-					sub_op_task* task = &task_list[i];
-
-					task->exec_func = f;
-					task->seq=i;
-					task->data=param0;
-
-					param0->input = input + i*in_ch*steps;
-					param0->output = output+ i* out_ch*steps;
-					param0->in_h = dims[2];
-					param0->in_w = dims[3];
-					param0->ch = steps;
-					param0->out_h = out_dims[2];
-					param0->out_w = out_dims[3];
-				}
-
-				param_list[cpu_number-1].ch = dims[1]-(cpu_number-1)*steps;
-
+                    param0->input = input;
+                    param0->output = output;
+                    param0->in_h = dims[2];
+                    param0->in_w = dims[3];
+                    param0->c_start = i*steps;
+                    param0->c_end= param0->c_start +steps;
+                    param0->out_h = out_dims[2];
+                    param0->out_w = out_dims[3];
+                    param0->scale_x=scale_x;
+                    param0->scale_y=scale_y;
+                    task_list.emplace_back(tmp_task);
+                }
 				task_dispatch(task_list,-1);
-                                wait_done();
+                wait_done();
 			}
         }
     } 
@@ -320,14 +345,14 @@ bool Run(Node * node)
 
 } //namespace ResizeImpl
 
-using namespace BilinearResizeImpl;
+using namespace ResizeImpl;
 
-void RegisterBilinearResizeNodeExec(void)
+void RegisterResizeNodeExec(void)
 {
-    BilinearResizeOps * ops=new BilinearResizeOps();
+    ResizeOps * ops=new ResizeOps();
 
     NodeOpsRegistryManager::RegisterOPImplementor("common",
-                "BilinearResize",ops);
+                "Resize",ops);
 }
 
 

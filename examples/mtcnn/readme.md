@@ -19,22 +19,20 @@ Store these files into `${Tengine_ROOT}/models/`
 ```
 cd  ${Tengine_ROOT}
 make install
-cd  ${Tengine_ROOT}/examples/mtcnn
-cmake .
-make
 ```
+build as ${TENGINE_ROOT}/examples/readme.md
 
 ## Run
 
 1. run mtcnn by default
 	```
-	cd ${Tengine_ROOT}/examples/mtcnn/
+	cd ${Tengine_ROOT}/examples/build/mtcnn/
     ./MTCNN
     ```
 
 2. run mtcnn with other models and image
     ```
-    cd ${Tengine_ROOT}/examples/mtcnn/
+    cd ${Tengine_ROOT}/examples/build/mtcnn/
 	./MTCNN  <test.jpg>  <model_dir>  [save_result.jpg]
     ```
     - `model_dir` is the path of your mtcnn models. Under this path, there are 3 models:

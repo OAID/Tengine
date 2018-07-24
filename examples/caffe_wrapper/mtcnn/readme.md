@@ -20,20 +20,14 @@ And store these files into `${Tengine_ROOT}/models/`
 ```
 cd  ${Tengine_ROOT}
 make install
-cd  ${Tengine_ROOT}/examples/caffe_wrapper/mtcnn
-cmake .
-make
 ```
-
-## Set tengine config file
-
-export TENGINE_CONFIG_FILE=${Tengine_ROOT}/install/etc/tengine/config
+build as ${TENGINE_ROOT}/examples/readme.md
 
 ## Test
 - go to the directory of the executive program
 
     ```
-    cd ${Tengine_ROOT}/examples/caffe_wrapper/mtcnn
+    cd ${Tengine_ROOT}/examples/build/caffe_wrapper/mtcnn
     ```
 - test an image:
 

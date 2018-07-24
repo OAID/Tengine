@@ -31,14 +31,14 @@
 
 namespace TEngine {
 
-class BilinearResize: public OperatorWithParam<BilinearResize, ResizeParam> {
+class Resize: public OperatorWithParam<Resize, ResizeParam> {
 
 public:
 
-     BilinearResize () { name_="BilinearResize"; }
-     BilinearResize(const BilinearResize& src)=default;
+     Resize () { name_="Resize"; }
+     Resize(const Resize& src)=default;
 
-     virtual ~BilinearResize() {}
+     virtual ~Resize() {}
      bool InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEngine::TShape>& oshape) override;
      void SetSchema(void) override;
 

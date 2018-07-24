@@ -33,15 +33,17 @@ struct StaticOp;
 
 struct ResizeParam : public NamedParam {
 
-    float scale_x;
-    float scale_y;
 
+    float scale_w;
+    float scale_h;
+    int type; // 0 for NEAREST_NEIGHBOR
+              // 1 for BILIEAR
+    
     DECLARE_PARSER_STRUCTURE(ResizeParam) 
     {
-       DECLARE_PARSER_ENTRY(scale_x);
-       DECLARE_PARSER_ENTRY(scale_y);
+       DECLARE_PARSER_ENTRY(scale_w);
+       DECLARE_PARSER_ENTRY(scale_h);
     };
-
 };
 
 

@@ -417,10 +417,10 @@ static tm_uoffset_t SaveTmReshapeOp(void * const start_ptr, tm_uoffset_t *cur_po
 
 static tm_uoffset_t SaveTmResizeOp(void * const start_ptr, tm_uoffset_t *cur_pos, Operator *op)
 {
-    ResizeParam *p = (dynamic_cast<BilinearResize *>(op))->GetParam();
+    ResizeParam *p = (dynamic_cast<Resize *>(op))->GetParam();
     TM_ResizeParam tm_param;
-    tm_param.scale_x = p->scale_x;
-    tm_param.scale_y = p->scale_y;
+    tm_param.scale_x = p->scale_w;
+    tm_param.scale_y = p->scale_h;
 
     TM_Operator tm_op;
     SetTmOperator(&tm_op, TM_OPTYPE_BILINEARRESIZE, NOT_SET,

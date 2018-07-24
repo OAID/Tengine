@@ -29,24 +29,22 @@ float thresh=0.24;
 ```
 cd  ${Tengine_ROOT}
 make install
-cd  ${Tengine_ROOT}/examples/yolov2
-cmake .
-make
 
 ```
+build as ${TENGINE_ROOT}/examples/readme.md
 
 ## Run
 
 
 1. run yolov2 by default
     ```
-    cd  ${Tengine_ROOT}/examples/yolov2
+    cd  ${Tengine_ROOT}/examples/build/yolov2
     ./YOLOV2
     ```
 
 2. run yolov2 with other models and image
     ```
-    cd  ${Tengine_ROOT}/examples/yolov2
+    cd  ${Tengine_ROOT}/examples/build/yolov2
     ./YOLOV2 -p proto_file -m model_file -i image_file
     ```
 

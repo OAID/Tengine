@@ -172,9 +172,10 @@ typedef struct
 
 typedef struct
 {
-    int32_t       tensor_id;
-    int32_t       buffer_id;
+    uint32_t      tensor_id;
+    uint32_t      buffer_id;
     tm_uoffset_t  offset_vd_dims;           /* offset of TM_Vector_dims <dims> */
+    tm_uoffset_t  offset_s_tname;           /* offset of string <tensor name> */
     uint8_t       type;
     uint8_t       data_type;
 } TM_Tensor;
@@ -188,7 +189,7 @@ typedef struct
 typedef struct
 {
     tm_size_t     size;                     /* string size */
-    uint8_t       offset_data;              /* offset of string data */
+    tm_uoffset_t  offset_data;              /* offset of string data */
 } TM_String;
 
 /* ------------------------ ------- Vectors --------------------------------- */

@@ -16,6 +16,8 @@ BUILT_IN_LD=$(CROSS_COMPILE)ld
 
 GIT_COMMIT_ID=$(shell git rev-parse HEAD)
 
+COMMON_CFLAGS+=-Wno-ignored-attributes -Werror
+
 export CC CXX CFLAGS BUILT_IN_LD LD LDFLAGS CXXFLAGS COMMON_CFLAGS 
 export GIT_COMMIT_ID
 
@@ -52,6 +54,7 @@ endif
 
 ifeq ($(CONFIG_ARCH_ARM32),y)
     export CONFIG_ARCH_ARM32
+	COMMON_CFLAGS+=-mfp16-format=ieee -mfpu=neon-fp16
 endif
 
 ifeq ($(CONFIG_ARCH_BLAS),y)

@@ -36,6 +36,7 @@ enum EltType {
     ELT_SUB_SCALAR,
     ELT_MAX,
     ELT_RSQRT,
+    ELT_MIN_SCALAR,
     ELT_LAST
 };
 

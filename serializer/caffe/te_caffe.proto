@@ -428,12 +428,13 @@ message LayerParameter {
   optional ReorgParameter reorg_param = 147;
   optional RegionParameter region_param = 205;
   optional SwishParameter swish_param = 148;
-  optional BilinearResizeParameter bilinear_resize_param = 2050;
+  optional Resize1_Parameter resize1_param = 2050;
 }
-message BilinearResizeParameter {
+message Resize1_Parameter {
   optional float out_height_scale = 1 [default = 1];
   optional float out_width_scale = 2 [default = 1];
-  optional bool is_pyramid_test = 3 [default = true];
+  optional uint32 resize_type = 3 [default = 0];
+  optional bool is_pyramid_test = 4 [default = true];
 }
 
 message SwishParameter {
