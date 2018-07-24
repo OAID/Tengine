@@ -161,7 +161,7 @@ int executor_plugin_init(void)
     RegisterFusedBNScaleReluNodeExec();
 
 #ifdef CONFIG_ACL_GPU
-    RegisterConv2dOpencl();
+//    RegisterConv2dOpencl();
 #endif
 
 #endif
