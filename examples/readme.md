@@ -31,13 +31,13 @@ Download the models from [Tengine model zoo](https://pan.baidu.com/s/1LXZ8vOdyOo
 #### 3.1 Linux
 ```
 cd ~/tengine/examples
-vim build_linux.sh
+vim linux_build.sh
 ```
 Set the correct Tengine path
 ```
 mkdir build
 cd build
-../build_linux.sh
+../linux_build.sh
 make -j4 
 ```
 #### 3.2 Android

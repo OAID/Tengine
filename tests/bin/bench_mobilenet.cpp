@@ -184,6 +184,8 @@ int main(int argc, char * argv[])
    /* run the graph */
    prerun_graph(graph);
 
+   run_graph(graph,1);
+
    //benchmark start here
    printf("REPEAT COUNT= %d\n",repeat_count);
 

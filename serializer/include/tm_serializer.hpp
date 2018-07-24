@@ -33,6 +33,8 @@ namespace TEngine {
 
 class TmSerializer : public Serializer {
 
+using name_map_t = std::unordered_map<std::string, unsigned int>;
+
 public:
     TmSerializer() { 
         name_="tm_loader";
@@ -56,10 +58,18 @@ protected:
     bool LoadTensor(StaticGraph *graph, const TM_Tensor *tm_tensor, const TM_Buffer *tm_buf);
     bool LoadGraph(StaticGraph *graph, const TM_Model *tm_model);
 
+    tm_uoffset_t SaveTmSubgraph(void * const start_ptr, tm_uoffset_t *cur_pos, Graph *graph);
+    tm_uoffset_t SaveTmNode(void * const start_ptr, tm_uoffset_t *cur_pos, Node *node, name_map_t& tensor_name_map);
+    tm_uoffset_t SaveTmTensor(void * const start_ptr, tm_uoffset_t *cur_pos, Tensor *tensor,
+                              unsigned int tensor_id, unsigned int buffer_id);
+
 private:
     int mmap_fd_;
     void *mmap_buf_;
     size_t mmap_buf_size_;
+
+    bool tm_no_data_;
+    bool tm_with_string_;
 
 };
 

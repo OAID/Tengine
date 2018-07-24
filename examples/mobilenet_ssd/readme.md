@@ -17,10 +17,8 @@ Store these files into `${Tengine_ROOT}/models/`
 ```
 cd  ${Tengine_ROOT}
 make install
-cd  ${Tengine_ROOT}/examples/mobilenet_ssd
-cmake .
-make
 ```
+build as ${TENGINE_ROOT}/examples/readme.md
 
 ## Run
 
@@ -28,6 +26,7 @@ make
     - models are in `tengien/models/MobileNetSSD_deploy.prototxt` and `tengien/models/MobileNetSSD_deploy.caffemodel`
     - test image is `tengine/tests/imasge/ssd_dog.jpg`
     ```
+    cd ${TENGINE_ROOT}/examples/build/mobilenet_ssd/
     ./MSSD
     ``````
 

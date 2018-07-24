@@ -14,7 +14,7 @@ INC_DIR+=-I$(shell pwd)/../executor/include
 CXXFLAGS+=
 
 COMMON_CFLAGS+=$(CONFIG_OPT_CFLAGS)
-COMMON_CFLAGS+= -Wall -g -fPIC  $(INC_DIR)  -Werror
+COMMON_CFLAGS+= -Wall -g -fPIC  $(INC_DIR) 
 
 ifeq ($(CONFIG_CAFFE_REF),y)
     COMMON_CFLAGS+= -DCONFIG_CAFFE_REF=1

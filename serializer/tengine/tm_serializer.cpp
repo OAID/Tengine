@@ -39,15 +39,23 @@
 
 namespace TEngine {
 
-using name_map_t = std::unordered_map<std::string, unsigned int>;
-
-static tm_uoffset_t SaveTmTensor(void * const start_ptr, tm_uoffset_t *cur_pos, Tensor *tensor,
-                                 unsigned int tensor_id, unsigned int buffer_id)
+tm_uoffset_t TmSerializer::SaveTmTensor(void * const start_ptr, tm_uoffset_t *cur_pos, Tensor *tensor,
+                                        unsigned int tensor_id, unsigned int buffer_id)
 {
     TM_Tensor tm_tensor;
     tm_tensor.tensor_id = tensor_id;
     tm_tensor.buffer_id = buffer_id;
     tm_tensor.type = tensor->GetType();
+    if(tm_with_string_)
+    {
+        std::string name = tensor->GetName();
+        TM_String tensor_name;
+        tensor_name.size = name.size();
+        tensor_name.offset_data = WriteTmFileAlign1(start_ptr, cur_pos, name.c_str(), tensor_name.size);
+        tm_tensor.offset_s_tname = WriteTmObject(start_ptr, cur_pos, &tensor_name, sizeof(TM_String));
+    }
+    else
+        tm_tensor.offset_s_tname = NOT_SET;
 
     const std::string& data_type = tensor->GetDatatype();
     if(data_type == "float32")
@@ -82,12 +90,21 @@ static tm_uoffset_t SaveTmTensor(void * const start_ptr, tm_uoffset_t *cur_pos, 
     return WriteTmObject(start_ptr, cur_pos, &tm_tensor, sizeof(TM_Tensor));
 }
 
-static tm_uoffset_t SaveTmNode(void * const start_ptr, tm_uoffset_t *cur_pos, Node *node, name_map_t& tensor_name_map)
+tm_uoffset_t TmSerializer::SaveTmNode(void * const start_ptr, tm_uoffset_t *cur_pos, Node *node, name_map_t& tensor_name_map)
 {
     TM_Node tm_node;
     tm_node.node_id = node->GetNodeIndex();
     tm_node.dynamic_shape = node->IsDynamicShape();
-    tm_node.offset_s_nname = NOT_SET;
+    if(tm_with_string_)
+    {
+        std::string name = node->GetName();
+        TM_String node_name;
+        node_name.size = name.size();
+        node_name.offset_data = WriteTmFileAlign1(start_ptr, cur_pos, name.c_str(), node_name.size);
+        tm_node.offset_s_nname = WriteTmObject(start_ptr, cur_pos, &node_name, sizeof(TM_String));
+    }
+    else
+        tm_node.offset_s_nname = NOT_SET;
 
     unsigned int input_num = node->GetInputNum();
     unsigned int output_num = node->GetOutputNum();
@@ -132,7 +149,7 @@ static tm_uoffset_t SaveTmNode(void * const start_ptr, tm_uoffset_t *cur_pos, No
     return WriteTmObject(start_ptr, cur_pos, &tm_node, sizeof(TM_Node));
 }
 
-static tm_uoffset_t SaveTmSubgraph(void * const start_ptr, tm_uoffset_t *cur_pos, Graph *graph)
+tm_uoffset_t TmSerializer::SaveTmSubgraph(void * const start_ptr, tm_uoffset_t *cur_pos, Graph *graph)
 {
     TM_Subgraph tm_subgraph;
     tm_subgraph.subgraph_id = 0;      /* subgraph_id starts from 0 */
@@ -191,7 +208,17 @@ static tm_uoffset_t SaveTmSubgraph(void * const start_ptr, tm_uoffset_t *cur_pos
     {
         TM_Buffer tm_buf;
         tm_buf.size = buf_sizes[i];
-        tm_buf.offset_data = WriteTmFileAlign1(start_ptr, cur_pos, reinterpret_cast<const uint8_t *>(buf_ptrs[i]), tm_buf.size);
+
+        if(tm_no_data_)
+        {
+            /* TM_FOR_BENCHMARK environment variable exists. Not write buf data into the tm file */
+            tm_buf.offset_data = NOT_SET;
+        }
+        else
+        {
+            /* TM_FOR_BENCHMARK environment variable does not exist */
+            tm_buf.offset_data = WriteTmFileAlign1(start_ptr, cur_pos, reinterpret_cast<const uint8_t *>(buf_ptrs[i]), tm_buf.size);
+        }
         v_buffers->offsets[i] = WriteTmObject(start_ptr, cur_pos, &tm_buf, sizeof(TM_Buffer));
     }
     /* Write the vector of buffers */
@@ -232,6 +259,21 @@ static tm_uoffset_t SaveTmSubgraph(void * const start_ptr, tm_uoffset_t *cur_pos
 
 bool TmSerializer::SaveModel(const std::vector<std::string>& file_list, Graph *graph)
 {
+    /* Get the environment variable TM_FOR_BENCHMARK */
+    char *env = std::getenv("TM_FOR_BENCHMARK");
+    if(env)
+        tm_no_data_ = true;
+    else
+        tm_no_data_ = false;
+
+    /* Get the environment variable TM_WITH_STRING */
+    env = std::getenv("TM_WITH_STRING");
+    if(env)
+        tm_with_string_ = true;
+    else
+        tm_with_string_ = false;
+
+    /* Check the file number */
     if(file_list.size() != GetFileNum())
         return false;
 
@@ -270,7 +312,18 @@ bool TmSerializer::SaveModel(const std::vector<std::string>& file_list, Graph *g
 
     /* Define the TM_Model object */
     TM_Model tm_model;
-    tm_model.offset_s_mname = NOT_SET;
+    if(tm_with_string_)
+    {
+        std::string fname = basename(const_cast<char *>(file_list[0].c_str()));
+        if(fname.rfind(".") != std::string::npos)
+            fname = fname.substr(0, fname.rfind("."));
+        TM_String model_name;
+        model_name.size = fname.size();
+        model_name.offset_data = WriteTmFileAlign1(start_ptr, &cur_pos, fname.c_str(), model_name.size);
+        tm_model.offset_s_mname = WriteTmObject(start_ptr, &cur_pos, &model_name, sizeof(TM_String));
+    }
+    else
+        tm_model.offset_s_mname = NOT_SET;
 
     /* Write the subgraphs */
     /* Only 1 subgraph is supported currently */
@@ -345,7 +398,14 @@ bool TmSerializer::LoadTensor(StaticGraph *graph, const TM_Tensor *tm_tensor, co
 {
     /* Set the tensor name */
     int idx = tm_tensor->tensor_id;
-    const std::string& tm_tensor_name = "tensor_" + std::to_string(idx);
+    std::string tm_tensor_name;
+    if(tm_tensor->offset_s_tname == NOT_SET)
+        tm_tensor_name = "tensor_" + std::to_string(idx);
+    else
+    {
+        const TM_String *tm_string = GetTmPtr<TM_String>(mmap_buf_, tm_tensor->offset_s_tname);
+        tm_tensor_name.assign(GetTmPtr<char>(mmap_buf_, tm_string->offset_data), tm_string->size);
+    }
 
     /* Create the static tensor */
     StaticTensor *tensor;
@@ -397,7 +457,11 @@ bool TmSerializer::LoadTensor(StaticGraph *graph, const TM_Tensor *tm_tensor, co
     {
         SetTensorSize(tensor, tm_buf->size);
         void *buf = malloc(tm_buf->size);
-        memcpy(buf, GetTmPtr<void>(mmap_buf_, tm_buf->offset_data), tm_buf->size);
+        if(tm_buf->offset_data != NOT_SET)
+        {
+            memcpy(buf, GetTmPtr<void>(mmap_buf_, tm_buf->offset_data), tm_buf->size);
+        }
+
         SetConstTensorBuffer(tensor, buf);
         SetConstTensorFileLocation(tensor, -1, 0);
     }
@@ -432,7 +496,14 @@ bool TmSerializer::LoadGraph(StaticGraph *graph, const TM_Model *tm_model)
     {
         const TM_Node *tm_node = GetTmPtr<TM_Node>(mmap_buf_, v_nodes->offsets[i]);
         int idx = tm_node->node_id;
-        const std::string& tm_node_name = "node_" + std::to_string(idx);
+        std::string tm_node_name;
+        if(tm_node->offset_s_nname == NOT_SET)
+            tm_node_name = "node_" + std::to_string(idx);
+        else
+        {
+            const TM_String *tm_string = GetTmPtr<TM_String>(mmap_buf_, tm_node->offset_s_nname);
+            tm_node_name.assign(GetTmPtr<char>(mmap_buf_, tm_string->offset_data), tm_string->size);
+        }
 
         const TM_Operator *tm_operator = GetTmPtr<TM_Operator>(mmap_buf_, tm_node->offset_t_operator);
         const std::string& tm_op_name = GetOpStr(tm_operator->operator_type);
@@ -523,7 +594,6 @@ bool TmSerializer::LoadModel(const std::vector<std::string>& file_list, StaticGr
     SetGraphSource(graph, file_list[0]);
     SetGraphSourceFormat(graph, "tengine");
     SetGraphConstTensorFile(graph, file_list[0]);
-    SetGraphIdentity(graph, "tengine", "tengine_model", "0");
 
     const TM_Header *tm_header = reinterpret_cast<const TM_Header *>(mmap_buf_);
     /* Check the version of tm file format */
@@ -536,6 +606,18 @@ bool TmSerializer::LoadModel(const std::vector<std::string>& file_list, StaticGr
     }
 
     const TM_Model *tm_model = GetTmPtr<TM_Model>(mmap_buf_, tm_header->offset_root);
+    if(tm_model->offset_s_mname == NOT_SET)
+    {
+        SetGraphIdentity(graph, "tengine", "tengine_model", "0");
+    }
+    else
+    {
+        std::string tm_model_name;
+        const TM_String *tm_string = GetTmPtr<TM_String>(mmap_buf_, tm_model->offset_s_mname);
+        tm_model_name.assign(GetTmPtr<char>(mmap_buf_, tm_string->offset_data), tm_string->size);
+        SetGraphIdentity(graph, "tengine", tm_model_name, "0");
+    }
+
     bool ret = LoadGraph(graph, tm_model);
 
     munmap(const_cast<void *>(mmap_buf_), mmap_buf_size_);

@@ -49,6 +49,10 @@ struct TFNode {
    std::vector<const tensorflow::NodeDef *> pb_defs;
    StaticNode * static_node;
    StaticTensor * static_tensor;
+   bool no_static_node;
+
+   TFNode() { no_static_node=false;}
+
 };
 
 struct TFGraph {
@@ -76,8 +80,16 @@ protected:
    bool ConstructGraph(tensorflow::GraphDef& tf_net, TFGraph& tf_graph);
    bool OptimizeGraph(TFGraph& tf_graph);
    bool GenerateStaticGraph(TFGraph& tf_graph, StaticGraph * graph);
+   void CleanupResizeNearestNeighbor(TFGraph& tf_graph);
+   void MergeReluMinimum(TFGraph & tf_graph);
 
-   bool MergeNode(TFNode * base_node, TFNode * child_node);
+   bool MergeChildNode(TFNode * base_node, TFNode * child_node);
+   bool MergeParentNode(TFNode * base_node, TFNode * parent_node);
+   void BNRecursiveInputMerge(TFNode * node);
+   void FuseComposedBN(TFNode * cur_node);
+   bool CheckComposedBNAdd(TFNode * node);
+
+
    void DisconnectNode(TFNode * node);
 
    void DumpTFGraph(TFGraph& tf_graph);

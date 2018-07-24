@@ -61,7 +61,7 @@ bool Run(Node * node)
        input1=get_tensor_mem(input_tensor1);
        input1_count4=input_tensor1->GetTotalSize()/4;
     }
-
+    
     // this version only support for input_num=2
     // int input_number=node->GetInputNum();
 
@@ -77,6 +77,7 @@ bool Run(Node * node)
     switch (param->type)
     {
     case ELT_SUB:
+        
         if (input_count4 == input1_count4)
         {
             for (int i = 0; i < input_count4; ++i)
@@ -95,7 +96,14 @@ bool Run(Node * node)
             return false;
         break;
     case ELT_SUM:
-        if (input_count4 == input1_count4)
+        if(input1_count4==1)
+        {
+            for (int i = 0; i < input_count4; ++i)
+            {
+                *out_ptr++ = (*in0++)+in1[0];
+            }
+        }
+        else if (input_count4 == input1_count4)
         {
             for (int i = 0; i < input_count4; ++i)
             {
@@ -119,7 +127,14 @@ bool Run(Node * node)
         }
         break;
     case ELT_PROD:
-        if (input_count4 == input1_count4)
+        if(input1_count4==1)
+        {
+            for (int i = 0; i < input_count4; ++i)
+            {
+                *out_ptr++ = (*in0++)*in1[0];
+            }
+        }
+        else if (input_count4 == input1_count4)
         {
             for (int i = 0; i < input_count4; ++i)
             {
@@ -142,10 +157,22 @@ bool Run(Node * node)
             *out_ptr++ =1/sqrt(in0[i]);
         }
         break;
-    case ELT_SUM_SCALAR:
+    case ELT_MIN_SCALAR:
         for (int i = 0; i < input_count4; ++i)
         {
-            *out_ptr++ = (*in0++)+in1[0];
+            *out_ptr++ = std::min((*in0++),in1[0]);
+        }
+        break;
+    case ELT_SUB_SCALAR:
+        for (int i = 0; i < input_count4; ++i)
+        {
+            *out_ptr++ = (*in0++)-in1[0];
+        }
+        break;
+    case ELT_PROD_SCALAR:
+        for (int i = 0; i < input_count4; ++i)
+        {
+            *out_ptr++ = (*in0++)*in1[0];
         }
         break;
      default:

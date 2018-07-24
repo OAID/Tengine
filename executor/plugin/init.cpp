@@ -55,7 +55,7 @@ namespace TEngine {
     extern void RegisterROIPoolingNodeExec(void);
     extern void RegisterReLu6NodeExec(void);
     extern void RegisterReLuNodeExec(void);
-    extern void RegisterBilinearResizeNodeExec(void);
+    extern void RegisterResizeNodeExec(void);
 #ifdef CONFIG_ARCH_BLAS
     extern void RegisterConvBlasNodeExec(void);
     extern void RegisterDeconvBlasNodeExec(void);
@@ -129,7 +129,7 @@ int executor_plugin_init(void)
     RegisterROIPoolingNodeExec();
     RegisterReLu6NodeExec();
     RegisterReLuNodeExec();
-    RegisterBilinearResizeNodeExec();
+    RegisterResizeNodeExec();
 #ifdef CONFIG_ARCH_BLAS
     RegisterConvBlasNodeExec();
     RegisterDeconvBlasNodeExec();
@@ -161,7 +161,7 @@ int executor_plugin_init(void)
     RegisterFusedBNScaleReluNodeExec();
 
 #ifdef CONFIG_ACL_GPU
-//    RegisterConv2dOpencl();
+    //RegisterConv2dOpencl();
 #endif
 
 #endif

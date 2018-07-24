@@ -43,6 +43,7 @@
 #include "operator/softmax_param.hpp"
 #include "operator/eltwise.hpp"
 #include "operator/relu_param.hpp"
+#include "operator/resize_param.hpp"
 
 namespace TEngine {
 
@@ -267,8 +268,166 @@ void TFSerializer::DisconnectNode(TFNode * cur_node)
     
 }
 
+bool TFSerializer::MergeParentNode(TFNode * base_node, TFNode * parent_node)
+{
+      /* remove the input for parent node */
 
-bool TFSerializer::MergeNode(TFNode * base_node, TFNode * child_node)
+      auto input_ir=base_node->inputs.begin();
+
+      while (input_ir!=base_node->inputs.end())
+      {
+	    if(*input_ir==parent_node)
+		  break;
+
+	    input_ir++;
+      }
+
+      base_node->inputs.erase(input_ir);
+
+      /* connect parent's input node and base node */
+
+      base_node->inputs.insert(base_node->inputs.end(),parent_node->inputs.begin(),parent_node->inputs.end());
+
+     for(auto node: parent_node->inputs)
+     {
+	  for(unsigned int i=0;i<node->outputs.size();i++)
+	  {
+	       if(node->outputs[i]==parent_node)
+		{
+			node->outputs[i]=base_node;
+			break;
+		}
+	  }
+     }
+
+     /* bridge parent's output*/
+
+     auto output_ir=parent_node->outputs.begin();
+
+     while(output_ir!= parent_node->outputs.end())
+     {
+	   TFNode * node=*output_ir;
+
+	   if(node!=base_node)
+	   {
+		  base_node->outputs.push_back(node);
+
+		  for(unsigned int i=0;i<node->inputs.size();i++)
+	          {
+			  if(node->inputs[i]==parent_node)
+			  {
+				  node->inputs[i]=base_node;
+				  break;
+			  }
+			  
+		  } 
+	   }
+
+	   output_ir++;
+     }
+
+     /* handle TF definitions */
+
+     base_node->pb_defs.insert(base_node->pb_defs.end(),parent_node->pb_defs.begin(),parent_node->pb_defs.end());
+
+     parent_node->inputs.clear();
+     parent_node->outputs.clear();
+
+     return true;
+}
+
+bool TFSerializer::CheckComposedBNAdd(TFNode * cur_node)
+{ 
+     if(cur_node->op != "Add") 
+	     return false;
+
+     TFNode * input0=cur_node->inputs[0];
+     TFNode * input1=cur_node->inputs[1];
+
+     if(input0->op!= "Mul" || input1->op != "Sub")
+	     return false;
+
+     /* further check: batchnorm/add_1 int name */
+     if(cur_node->name.find("batchnorm/add_1")!=std::string::npos)
+	     return true;
+
+     return false;
+}
+
+void TFSerializer::BNRecursiveInputMerge(TFNode * node)
+{
+     bool mul_1_node=false;
+
+     if(node->name.find("/batchnorm/mul")!=std::string::npos)
+     {
+         if(node->name.find("/batchnorm/mul_1")!=std::string::npos)
+         {
+	     mul_1_node=true;
+	  }else if(node->name.find("/batchnorm/mul_2")==std::string::npos)
+	  {
+	      
+	    //disconnect the connection between mul and mul2
+	    auto ir=node->outputs.begin();
+
+	    if((*ir)->name.find("/batchnorm/mul2")==std::string::npos)
+		    ir++;
+
+	    TFNode * mul2_node=*ir;
+
+	    node->outputs.erase(ir);
+
+	    ir=mul2_node->inputs.begin();
+
+	    if((*ir)->name.find("/batchnorm/mul")==std::string::npos)
+		    ir++;
+
+	    mul2_node->inputs.erase(ir);
+	  }
+     }
+
+     int orig_input_size=node->inputs.size();
+     std::vector<TFNode *> input_cpy=node->inputs;
+
+     for(int i=0; i<orig_input_size;i++)
+     {
+	
+	if(mul_1_node && i==0) 
+		continue;
+
+        TFNode * input_node=input_cpy[i];
+
+	if(input_node->op=="Const")
+		continue;
+
+	BNRecursiveInputMerge(input_node);
+	MergeParentNode(node,input_node);
+     }
+}
+
+
+void TFSerializer::FuseComposedBN(TFNode * cur_node)
+{
+     BNRecursiveInputMerge(cur_node);
+     cur_node->op="ComposedBN";
+
+     /* set new name */
+     auto pos=cur_node->name.find("batchnorm/add_1");
+     cur_node->name.replace(pos,strlen("batchnorm/add_1"),"bn.fused");
+
+     /* skip to create static node for add/y */
+
+     for(unsigned int i=0;i < cur_node->inputs.size();i++)
+     {
+	  TFNode * node=cur_node->inputs[i];
+
+	  if(node->name.find("/batchnorm/add/y")!=std::string::npos)
+		  node->no_static_node=true;
+     }
+
+
+}
+
+bool TFSerializer::MergeChildNode(TFNode * base_node, TFNode * child_node)
 {
      auto output_ir=base_node->outputs.begin();
 
@@ -282,7 +441,6 @@ bool TFSerializer::MergeNode(TFNode * base_node, TFNode * child_node)
      base_node->outputs.erase(output_ir);
      base_node->outputs.insert(base_node->outputs.end(),child_node->outputs.begin(),child_node->outputs.end());
  
-
      for(auto node: child_node->outputs)
      {
           for(unsigned int i=0;i<node->inputs.size();i++)
@@ -327,9 +485,71 @@ bool TFSerializer::MergeNode(TFNode * base_node, TFNode * child_node)
      return true;
 }
 
+void TFSerializer::CleanupResizeNearestNeighbor(TFGraph& tf_graph)
+{
+	auto ir=tf_graph.seq_nodes.begin();
+
+	while(ir!=tf_graph.seq_nodes.end())
+        {
+            TFNode * cur_node=*ir;
+
+	    if(cur_node->op=="ResizeNearestNeighbor")
+	    {
+		    TFNode * data_node=cur_node->inputs[0];
+		    TFNode * data_shape_node=nullptr;
+
+		    for(unsigned int i=0;i<data_node->outputs.size();i++)
+		    {
+			   data_shape_node=data_node->outputs[i];
+
+			  if(data_shape_node->op=="Shape")
+				  break;
+		    }
+
+		    DisconnectNode(data_shape_node);
+
+		    TFNode * mul_node=cur_node->inputs[1];
+		    TFNode * stride_slice=mul_node->inputs[0];
+
+		    DisconnectNode(stride_slice);
+		    DisconnectNode(mul_node);
+
+	    }
+
+	    ir++;
+
+	}
+}
+
+void TFSerializer::MergeReluMinimum(TFGraph & tf_graph)
+{
+	for(auto ir=tf_graph.seq_nodes.begin(); ir!=tf_graph.seq_nodes.end();ir++)
+	{
+            TFNode * cur_node=*ir;
+
+	    if(cur_node->inputs.size()==0)
+		    continue;
+
+	    TFNode * input0=cur_node->inputs[0];
+
+	    if(cur_node->op=="Minimum" && 
+		input0->op=="Relu")
+	     {
+
+		  TFNode * const_node=cur_node->inputs[1];
+
+		  DisconnectNode(const_node);
+
+		  MergeChildNode(input0,cur_node);
+
+		  input0->op="Relu6";
+		//  input0->op="Relu";
+	     }
+	}
+}
+
 bool TFSerializer::OptimizeGraph(TFGraph& tf_graph)
 {
-
     /* first clean up the predictions module of TF */
     auto ir=tf_graph.seq_nodes.begin();
 
@@ -373,7 +593,7 @@ bool TFSerializer::OptimizeGraph(TFGraph& tf_graph)
                    input_node=input_node0;   
                }
 
-               MergeNode(input_node,cur_node);
+               MergeChildNode(input_node,cur_node);
 
                ir=tf_graph.seq_nodes.erase(ir);
                delete cur_node;
@@ -411,119 +631,139 @@ bool TFSerializer::OptimizeGraph(TFGraph& tf_graph)
                    DisconnectNode(shape_node);
 
                TFNode * input_node=cur_node->inputs[0];
-               MergeNode(input_node,cur_node);
+               MergeChildNode(input_node,cur_node);
                ir=tf_graph.seq_nodes.erase(ir);
                delete cur_node;
                continue;
            }
         }
 
-        if(cur_node->op=="Identity")
-         {
-             TFNode * input_node=cur_node->inputs[0];
-             MergeNode(input_node,cur_node);
 
-             ir=tf_graph.seq_nodes.erase(ir);
-             delete cur_node;
-             continue;
-        }
-
-        if(cur_node->op=="ConcatV2")
+        if (cur_node->op == "Identity")
         {
-            TFNode * axis_node=nullptr;
+            TFNode *input_node = cur_node->inputs[0];
+            MergeChildNode(input_node, cur_node);
 
-            for(unsigned int i=0;i<cur_node->inputs.size();i++)
-            {
-                 TFNode * check_node=cur_node->inputs[i];
-
-                 if(check_node->op=="Const")
-                 {
-                      axis_node=check_node;
-                      break;
-                 }
-            }
-
-            if(axis_node)
-            {
-                 cur_node->pb_defs.push_back(axis_node->pb_defs[0]);
-
-                 //remove it from graph
-                 DisconnectNode(axis_node);
-
-                 auto axis_ir=tf_graph.seq_nodes.begin();
-
-                 while(*axis_ir!=axis_node) axis_ir++;
-
-                 ir=tf_graph.seq_nodes.erase(axis_ir);
-                 continue;
-
-            }
-
+            ir = tf_graph.seq_nodes.erase(ir);
+            delete cur_node;
+            continue;
         }
-       
+
+        if (cur_node->op == "ConcatV2")
+        {
+            TFNode *axis_node = nullptr;
+
+            for (unsigned int i = 0; i < cur_node->inputs.size(); i++)
+            {
+                TFNode *check_node = cur_node->inputs[i];
+
+                if (check_node->op == "Const")
+                {
+                    axis_node = check_node;
+                    break;
+                }
+            }
+
+            if (axis_node)
+            {
+                cur_node->pb_defs.push_back(axis_node->pb_defs[0]);
+
+                //remove it from graph
+                DisconnectNode(axis_node);
+
+                auto axis_ir = tf_graph.seq_nodes.begin();
+
+                while (*axis_ir != axis_node)
+                    axis_ir++;
+
+                ir = tf_graph.seq_nodes.erase(axis_ir);
+                continue;
+            }
+        }
+
         ir++;
     }
 
     /* merge biasadd and conv */
+    ir = tf_graph.seq_nodes.begin();
+
+    while (ir != tf_graph.seq_nodes.end())
+    {
+        TFNode *cur_node = *ir;
+
+        if (cur_node->op == "Conv2D" || cur_node->op == "DepthwiseConv2dNative")
+        {
+            TFNode *output_node = cur_node->outputs[0];
+
+            if (output_node->op == "BiasAdd")
+            {
+                MergeChildNode(cur_node, output_node);
+            }
+        }
+
+        ir++;
+    }
+
+
+    /* merge composed BatchNormal */
+
     ir=tf_graph.seq_nodes.begin();
 
     while(ir!=tf_graph.seq_nodes.end())
     {
         TFNode * cur_node=*ir;
 
-        if(cur_node->op=="Conv2D" || cur_node->op=="DepthwiseConv2dNative")
-         {
-             TFNode * output_node=cur_node->outputs[0];
+	if(CheckComposedBNAdd(cur_node))
+	    FuseComposedBN(cur_node);
+	ir++;
+    }
 
-              if(output_node->op=="BiasAdd")
-              {
-                  MergeNode(cur_node,output_node);
-              }
-           
-         }
+    /* cleanup ResizeNearestNeighbor */
+    CleanupResizeNearestNeighbor(tf_graph);
 
-         ir++;
-    }   
+    /* merge Minimum and Relu */
+
+    MergeReluMinimum(tf_graph);
+
 
     /* remove no input and output nodes */
 
-    ir=tf_graph.seq_nodes.begin();
+    ir = tf_graph.seq_nodes.begin();
 
-    while(ir!=tf_graph.seq_nodes.end())
+    while (ir != tf_graph.seq_nodes.end())
     {
-        TFNode * cur_node=*ir;
+        TFNode *cur_node = *ir;
 
-        if(cur_node->inputs.size()==0 &&
-           cur_node->outputs.size()==0)
+        if (cur_node->inputs.size() == 0 &&
+            cur_node->outputs.size() == 0)
         {
-             ir=tf_graph.seq_nodes.erase(ir);
-             delete cur_node;
+            ir = tf_graph.seq_nodes.erase(ir);
+            delete cur_node;
         }
         else
-             ir++;
+            ir++;
     }
 
     /* remove no input but not placeholder/const nodes */
-    ir=tf_graph.seq_nodes.begin();
+    ir = tf_graph.seq_nodes.begin();
 
-    while(ir!=tf_graph.seq_nodes.end())
+    while (ir != tf_graph.seq_nodes.end())
     {
-          TFNode * cur_node=*ir;
+        TFNode *cur_node = *ir;
 
-          if(cur_node->inputs.size()==0 &&
-             cur_node->op!="Const" &&
-             cur_node->op !="Placeholder")
-          {
-              DisconnectNode(cur_node);
-              tf_graph.seq_nodes.erase(ir);
-              delete cur_node;
+        if (cur_node->inputs.size() == 0 &&
+            cur_node->op != "Const" &&
+            cur_node->op != "Placeholder")
+        {
+            DisconnectNode(cur_node);
+            tf_graph.seq_nodes.erase(ir);
+            delete cur_node;
 
-              ir=tf_graph.seq_nodes.begin();  //restart
-          }    
-          else
-              ir++;
+            ir = tf_graph.seq_nodes.begin(); //restart
+        }
+        else
+            ir++;
     }
-        
 
     //DumpTFGraph(tf_graph);
     return true;
@@ -534,10 +774,23 @@ bool TFSerializer::GenerateStaticGraph(TFGraph& tf_graph, StaticGraph * graph)
     int node_number=tf_graph.seq_nodes.size();
     int i;
 
-
+    bool debug_graph=false;
+    const char * debug_env=std::getenv("DEBUG_G");
+    if((debug_env) && (debug_env[0]=='1'))
+    {
+        debug_graph=true;
+    }
     for(i=0;i< node_number;i++)
     {
-       TFNode * tf_node=tf_graph.seq_nodes[i];
+        TFNode * tf_node=tf_graph.seq_nodes[i];
+
+        if(debug_graph)
+        {
+            std::cout<<i<<"\t"<<tf_node->op<<"\t"<<tf_node->name<<"\n";
+        }
+
+       if(tf_node->no_static_node)
+		continue;
 
        if(tf_node->op=="Const")
        {
@@ -743,6 +996,36 @@ static void GetTensorContentAndDim(const tensorflow::TensorProto& tf_tensor, std
     }
         
 }
+
+static void * LoadConstParam(TFNode * tf_node)
+{
+    tensorflow::AttrValue value;
+
+    const tensorflow::NodeDef * node_def=tf_node->pb_defs[0];
+
+    if(GetAttrValue(node_def,"value",value))
+    {
+        const tensorflow::TensorProto& tf_tensor=value.tensor();
+
+
+        int mem_size=tf_tensor.tensor_content().size();
+
+        if(mem_size==0)
+            mem_size=sizeof(float);
+
+        void * mem_ptr=std::malloc(mem_size);
+
+        std::vector<int> dims;
+        std::string layout;
+
+        GetTensorContentAndDim(tf_tensor,dims,mem_ptr,layout);
+     
+        return mem_ptr;	
+    }
+
+    return nullptr;
+}
+
 
 static bool LoadConstTensor(TFNode * tf_node, StaticGraph * graph)
 {
@@ -1029,6 +1312,26 @@ static bool LoadRelu(TFNode * tf_node, TFGraph& tf_graph, StaticGraph * graph)
     return true;
 }
 
+static bool LoadResize(TFNode * tf_node, TFGraph& tf_graph, StaticGraph * graph)
+{
+    TFNode * input=tf_node->inputs[0];
+    StaticNode * node=tf_node->static_node;
+
+    AddNodeInputTensor(node,input->static_tensor);
+
+    ResizeParam  param=any_cast<ResizeParam>(OpManager::GetOpDefParam("Resize"));
+    param.scale_h  = 2;
+    param.scale_w  = 2;
+    param.type = 0;
+    StaticOp * op=CreateStaticOp(graph,"Resize");
+    SetOperatorParam(op,param);
+    SetNodeOp(node,op);
+
+    return true;
+}
+
+
+
 static bool LoadRelu6(TFNode * tf_node, TFGraph& tf_graph, StaticGraph * graph)
 {
     TFNode * input=tf_node->inputs[0];
@@ -1082,22 +1385,16 @@ static bool LoadConcat(TFNode * tf_node, TFGraph& tf_graph, StaticGraph * graph)
 
 static EltType MapEltwise(TFNode * tf_node, const std::string& elt_op)
 {
-     bool const_operand=false;
-
-     if(tf_node->inputs.size()==2)
-     {
-         if(tf_node->inputs[1]->op=="Const")
-            const_operand=true;
-     }
-
      if(elt_op=="Add")
-         return const_operand? ELT_SUM_SCALAR:ELT_SUM;
+         return ELT_SUM;
      else if(elt_op=="Mul")
-         return const_operand? ELT_PROD_SCALAR:ELT_PROD;
+         return ELT_PROD;
      else if(elt_op=="Sub")
-         return const_operand? ELT_SUB_SCALAR:ELT_SUB;
+         return ELT_SUB;
      else if(elt_op=="Rsqrt")
          return ELT_RSQRT;
+     else if(elt_op =="Minimum")
+         return ELT_MIN_SCALAR;
      else
          return ELT_LAST;
 }
@@ -1106,7 +1403,7 @@ static bool LoadEltwise(TFNode * tf_node, TFGraph& tf_graph, StaticGraph * graph
 {
 
     //sanity check
-    if(tf_node->op=="Add" || tf_node->op=="Mul" || tf_node->op=="Sub")
+    if(tf_node->op=="Add" || tf_node->op=="Mul" || tf_node->op=="Sub" || tf_node->op=="Minimum")
     {
         if(tf_node->inputs.size()!=2)
             return false; 
@@ -1143,6 +1440,43 @@ static bool LoadEltwise(TFNode * tf_node, TFGraph& tf_graph, StaticGraph * graph
     return true;
 }
 
+static bool LoadComposedBN(TFNode * tf_node, TFGraph& tf_graph, StaticGraph * graph)
+{
+
+    TFNode * input0=tf_node->inputs[0];
+    TFNode * gamma=tf_node->inputs[1];
+    TFNode * var=tf_node->inputs[2];
+    TFNode * add_y=tf_node->inputs[3];
+    TFNode * beta=tf_node->inputs[4];
+    TFNode * mean=tf_node->inputs[5];
+
+    StaticNode * node=tf_node->static_node;
+
+    AddNodeInputTensor(node,input0->static_tensor);
+    AddNodeInputTensor(node,gamma->static_tensor);   
+    AddNodeInputTensor(node,beta->static_tensor);   
+    AddNodeInputTensor(node,mean->static_tensor);   
+    AddNodeInputTensor(node,var->static_tensor);   
+
+    BatchNormParam param=any_cast<BatchNormParam>(OpManager::GetOpDefParam("BatchNormalization"));
+
+    /* add_y is epison in deed */
+
+    float * eps_ptr=(float *)LoadConstParam(add_y);
+
+    param.eps=eps_ptr[0];
+
+    free(eps_ptr);
+
+   // printf("eps=%.20f\n",param.eps);
+		    
+    StaticOp * op=CreateStaticOp(graph,"BatchNormalization");
+    SetOperatorParam(op,param);
+    SetNodeOp(node,op);
+
+    return true;
+}
+
 } //namespace tf_serializer
 
 using namespace tf_serializer;
@@ -1168,7 +1502,10 @@ bool TFSerializerRegisterOpLoader(void)
     p_tf->RegisterOpLoadMethod("Add",op_load_t(LoadEltwise));
     p_tf->RegisterOpLoadMethod("Sub",op_load_t(LoadEltwise));
     p_tf->RegisterOpLoadMethod("Mul",op_load_t(LoadEltwise));
+    p_tf->RegisterOpLoadMethod("Minimum",op_load_t(LoadEltwise));
     p_tf->RegisterOpLoadMethod("Rsqrt",op_load_t(LoadEltwise));
+    p_tf->RegisterOpLoadMethod("ResizeNearestNeighbor",op_load_t(LoadResize));
+    p_tf->RegisterOpLoadMethod("ComposedBN",op_load_t(LoadComposedBN));
 
     return true;
 }

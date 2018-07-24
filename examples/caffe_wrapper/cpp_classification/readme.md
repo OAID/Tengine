@@ -8,20 +8,14 @@ Compile caffe classification program with the caffe wrapper, and run it with [Te
 ```
 cd  ${Tengine_ROOT}
 make install
-cd  ${Tengine_ROOT}/examples/caffe_wrapper/cpp_classification
-cmake .
-make
 ```
-
-## Set tengine config file
-
-export TENGINE_CONFIG_FILE=${Tengine_ROOT}/install/etc/tengine/config
+build as ${TENGINE_ROOT}/examples/readme.md
 
 ## Test
 - go to the directory of the executive programs
 
     ```
-    cd ${Tengine_ROOT}/examples/caffe_wrapper/cpp_classification
+    cd ${Tengine_ROOT}/examples/build/caffe_wrapper/cpp_classification
     ```
 - test an image:
 

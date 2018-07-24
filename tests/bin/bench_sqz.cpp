@@ -205,6 +205,7 @@ int main(int argc, char * argv[])
    
    prerun_graph(graph);   
 
+   run_graph(graph,1);
    printf("REPEAT COUNT= %d\n",repeat_count);
    // warm up
    for(int i=0;i<30;i++)

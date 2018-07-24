@@ -32,6 +32,7 @@
 #include "operator/convolution.hpp"
 #include "operator/relu.hpp"
 #include "operator/scale.hpp"
+#include "operator/eltwise.hpp"
 
 #include "tensor_mem.hpp"
 
@@ -41,6 +42,8 @@ namespace TEngine {
 static bool GraphFuseBNScale(Graph *graph,GraphOptimizer *opt);
 static bool GraphFuseConvBN(Graph *graph,GraphOptimizer *opt);
 static bool GraphFuseConvReLu(Graph *graph,GraphOptimizer *opt);
+static bool GraphFuseConvReLu6(Graph *graph,GraphOptimizer *opt);
+static bool GraphFuseRelu6(Graph *graph,GraphOptimizer *opt);
 static void AddConstNodeToSubGraph(Subgraph * graph,Tensor *tensor,Node*fused_node,int fused_port_index);
 
 
@@ -347,6 +350,108 @@ static bool GraphFuseBNScale(Graph *graph,GraphOptimizer *opt)
 	
 }
 
+static bool GraphFuseRelu6(Graph *graph,GraphOptimizer *opt)
+{
+
+    int node_number=graph->seq_nodes.size();
+    std::vector<Subgraph *> orig_sub;
+
+    /*get all relu_minimum chain*/
+    for(int i=0;i<node_number;i++)
+    {
+        Node * min_node=graph->seq_nodes[i];
+        Operator * op=min_node->GetOp();
+		
+        if(op->GetName()!= "Eltwise")
+			continue;
+		
+
+ 		Eltwise * eltwise_op=dynamic_cast<Eltwise *>(op);
+    	EltwiseParam*  param=eltwise_op->GetParam();
+		if(param->type != ELT_MIN_SCALAR)
+			continue;   // todo:  verify 6 
+
+	     /*Check if it is a  relu + minimum*/
+         Tensor *input_tensor;
+		 Node *relu_node;
+
+		 input_tensor = min_node->GetInputTensor(0);
+		 relu_node = input_tensor->producer->owner;
+		 op= relu_node->GetOp();
+
+		 if(op->GetName() != "ReLu")
+		 	continue;
+		 
+		 /*Create a subgrah represent the chain*/
+		 Subgraph * sub= new Subgraph("relu6_chain");
+		 
+         sub->seq_nodes.push_back(relu_node);
+		 sub->seq_nodes.push_back(min_node);
+		 
+	     sub->input_nodes.push_back(relu_node);
+	     sub->output_nodes.push_back(min_node);
+
+		 /* add const node into seq nodes */
+     	 for(unsigned int i=1;i<relu_node->GetInputNum();i++)
+		 {
+			 Tensor * tensor=relu_node->GetInputTensor(i);
+			 sub->seq_nodes.push_back(tensor->producer->owner);
+		 }
+		 
+		 for(unsigned int i=1;i<min_node->GetInputNum();i++)
+		 {
+			 Tensor * tensor=min_node->GetInputTensor(i);
+			 sub->seq_nodes.push_back(tensor->producer->owner);
+		 }
+		 orig_sub.push_back(sub);
+	
+	}
+	
+    /*replace the nodes of the grah*/
+	for(unsigned int i=0;i<orig_sub.size();i++)
+	{
+       	Subgraph fused("fused");
+		Subgraph * orig=orig_sub[i];
+
+		Node * orig_output=orig->output_nodes[0];
+		Node * orig_input=orig->input_nodes[0];
+
+		std::string node_name=orig_input->GetName()+orig_output->GetName();
+
+		/*create new Node node*/
+		Node * fused_node=new Node(node_name);
+		Operator * new_bn_op=OpManager::CreateOp("ReLu6");
+
+		fused_node->SetDynamicShape(orig_input->IsDynamicShape());
+		fused_node->MergeAttr(orig_output);
+		fused_node->MergeAttr(orig_input);
+		fused_node->SetOp(new_bn_op);
+		
+		//1. Add the input tensor and ouput tensor to the fused node
+		
+	 	Tensor * output_tensor=orig_output->GetOutputTensor(0);
+	 	fused_node->AddOutputTensor(output_tensor);
+	 	Tensor * input_tensor=orig_input->GetInputTensor(0);
+	 	fused_node->AddInputTensor(input_tensor);
+
+		fused.seq_nodes.push_back(fused_node);
+		fused.input_nodes.push_back(fused_node);
+		fused.output_nodes.push_back(fused_node);
+		fused.SetNodeOwner(fused_node);
+		
+		//2. replace
+        graph->Replace(orig,&fused);
+		
+	}
+
+	/* release orig_sub */
+	for(unsigned int i=0;i<orig_sub.size();i++)
+	{
+		Subgraph * orig=orig_sub[i];
+		delete orig; 
+	}
+	return true;
+}
 
 static bool GraphFuseConvBN(Graph *graph,GraphOptimizer *opt)
 {
@@ -505,22 +610,29 @@ void GraphOptimizerManager::Init(void)
    //register a few predefined optimizer
 
    GraphOptimizer * opt= new GraphOptimizer();
-
    opt->name="BNScale";
    opt->optimizer=graph_opt_t(GraphFuseBNScale);
-
    Add(opt->name,opt);
 
    opt=new GraphOptimizer();
    opt->name="ConvBN";
    opt->optimizer=graph_opt_t(GraphFuseConvBN);
-
    Add(opt->name,opt);
 
    opt=new GraphOptimizer();
    opt->name="ConvReLu";
    opt->optimizer=graph_opt_t(GraphFuseConvReLu);
+   Add(opt->name,opt);
 
+   opt=new GraphOptimizer();
+   opt->name="ConvReLu6";
+   opt->optimizer=graph_opt_t(GraphFuseConvReLu6);
+   Add(opt->name,opt);
+
+
+   opt=new GraphOptimizer();
+   opt->name="Relu6";
+   opt->optimizer=graph_opt_t(GraphFuseRelu6);
    Add(opt->name,opt);
 
 }
@@ -539,11 +651,9 @@ static bool NodeInGraph(Node * node, Graph * graph)
 }
 
 /* the graph optimizer: conv_relu */
-static bool GraphFuseConvReLu(Graph * graph,GraphOptimizer * opt)
+static bool GraphFuseConvReLuCommon(Graph * graph,GraphOptimizer * opt, bool relu6)
 {
-
     int node_number=graph->seq_nodes.size();
-
     std::vector<Subgraph *> orig_sub;
 
     for(int i=0;i<node_number;i++)
@@ -551,12 +661,20 @@ static bool GraphFuseConvReLu(Graph * graph,GraphOptimizer * opt)
         Node * node=graph->seq_nodes[i];
         Operator * op=node->GetOp();
 
-        if(op->GetName()!="ReLu")
-            continue;
-        if(op->GetName()=="ReLu" && dynamic_cast<ReLu *>(op)->GetParam()->negative_slope !=0.f )
-        {
-            continue;
-        }
+	if(relu6)
+	{
+           if(op->GetName()!="ReLu6")
+		   continue;
+	}
+	else
+	{
+           if(op->GetName()!="ReLu")
+               continue;
+            if(op->GetName()=="ReLu" && dynamic_cast<ReLu *>(op)->GetParam()->negative_slope !=0.f )
+            {
+                continue;
+            }
+	}
 		Tensor * input_tensor=node->GetInputTensor(0);
 
 		Node * conv_node=input_tensor->producer->owner;
@@ -618,7 +736,10 @@ static bool GraphFuseConvReLu(Graph * graph,GraphOptimizer * opt)
          Convolution * orig_op=dynamic_cast<Convolution *>(orig_input->GetOp());
          ConvParam * orig_param=orig_op->GetParam();
 
-         fused_node->SetAttr("Fused.ReLu",true);
+	 if(relu6)
+             fused_node->SetAttr("Fused.ReLu6",true);
+	 else
+	     fused_node->SetAttr("Fused.ReLu",true);
 
          *fused_param=*orig_param;
 
@@ -658,6 +779,16 @@ static bool GraphFuseConvReLu(Graph * graph,GraphOptimizer * opt)
     }
 	
     return true;
+}
+
+static bool GraphFuseConvReLu(Graph * graph,GraphOptimizer * opt)
+{
+    return GraphFuseConvReLuCommon(graph,opt,false);
+}
+
+static bool GraphFuseConvReLu6(Graph * graph,GraphOptimizer * opt)
+{
+    return GraphFuseConvReLuCommon(graph,opt,true);
 }
 
 } //namespace TEngine

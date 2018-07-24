@@ -46,16 +46,14 @@ Store these files into `${Tengine_ROOT}/models/`
 ```
 cd  ${Tengine_ROOT}
 make install
-cd  ${Tengine_ROOT}/examples/imagenet_classification
-cmake .
-make
 ```
+build as ${TENGINE_ROOT}/examples/readme.md
 
 ## Test
 - go to the directory of the executive program
 
     ```
-    cd ${Tengine_ROOT}/examples/imagenet_classification
+    cd ${Tengine_ROOT}/examples/build/imagenet_classification
     ```
 - test an image:
 
