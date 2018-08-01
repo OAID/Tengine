@@ -7,12 +7,12 @@ export CC CXX CFLAGS LD LDFLAGS CXXFLAGS COMMON_CFLAGS
 INC_DIR+=-I$(shell pwd)/../core/include
 INC_DIR+=-I$(shell pwd)/include
 
-ifdef($(CONFIG_TF_SERIALIZER),y)
+ifeq ($(CONFIG_TF_SERIALIZER),y)
     MODULE_DIR+=tensorflow
 endif
 
 
-ifdef($(CONFIG_CAFFE_SERIALIZER),y)
+ifeq ($(CONFIG_CAFFE_SERIALIZER),y)
     MODULE_DIR+=caffe
 endif
 
