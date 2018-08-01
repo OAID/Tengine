@@ -5,6 +5,7 @@ bin-obj-y+=test_mxnet_mobilenet.o
 bin-obj-y+=test_onnx_sqz.o
 bin-obj-y+=vgg16.o
 bin-obj-y+=test_deploy.o
+bin-obj-y+=demo.o
 
 ifeq ($(CONFIG_TF_SERIALIZER),y)
 bin-obj-y+=test_tf_mobilenet.o
