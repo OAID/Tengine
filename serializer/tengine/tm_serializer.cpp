@@ -314,7 +314,9 @@ bool TmSerializer::SaveModel(const std::vector<std::string>& file_list, Graph *g
     TM_Model tm_model;
     if(tm_with_string_)
     {
-        std::string fname = basename(const_cast<char *>(file_list[0].c_str()));
+        std::string fname = file_list[0];
+        if(fname.rfind("/") != std::string::npos)
+            fname = fname.substr(fname.rfind("/")+1);
         if(fname.rfind(".") != std::string::npos)
             fname = fname.substr(0, fname.rfind("."));
         TM_String model_name;
