@@ -1125,7 +1125,7 @@ static bool LoadConv2D(TFNode * tf_node,TFGraph& tf_graph, StaticGraph * graph)
        param.stride_w=value.list().i(2);
    }
 
-   int in_channel=1,out_channel,kernel_h,kernel_w;
+   int in_channel=1,out_channel=1,kernel_h=0,kernel_w=0;
    int group=1;
    //Tensorflow has to get those information from weights
 
