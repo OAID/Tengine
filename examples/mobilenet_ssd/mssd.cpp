@@ -208,7 +208,7 @@ int main(int argc, char *argv[])
     tensor_t input_tensor = get_graph_input_tensor(graph, node_idx, tensor_idx);
     if(!check_tensor_valid(input_tensor))
     {
-        std::printf("Get input node failed : node_idx: %d, tensor_idx: %d\n",node_idx,tensor_idx);
+        printf("Get input node failed : node_idx: %d, tensor_idx: %d\n",node_idx,tensor_idx);
         return 1;
     }
 
