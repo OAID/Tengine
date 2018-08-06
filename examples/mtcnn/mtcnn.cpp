@@ -143,7 +143,7 @@ void mtcnn::run_RNet(const cv::Mat& img, std::vector<face_box>& pnet_boxes, std:
     
 	for(int i=0;i<batch;i++)
 	{
-		copy_one_patch(img,pnet_boxes[i],input_ptr,height,width);
+		copy_one_patch(img,pnet_boxes[i],input_ptr,width,height);
 		input_ptr+=img_size;
 	}
     
@@ -215,7 +215,7 @@ void mtcnn::run_ONet(const cv::Mat& img, std::vector<face_box>& rnet_boxes, std:
     set_tensor_buffer(input_tensor,input_ptr,in_mem);
 	for(int i=0;i<batch;i++)
 	{
-		copy_one_patch(img,rnet_boxes[i],input_ptr,height,width);
+		copy_one_patch(img,rnet_boxes[i],input_ptr,width,height);
 		input_ptr+=img_size;
 	}
     
