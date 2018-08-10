@@ -98,6 +98,7 @@ int main(int argc, char *argv[])
     std::cout << "--------------------------------------\n";
     std::cout << "repeat " << repeat_count << " times, avg time per run is " << avg_time / repeat_count << " ms\n";
     free(input_data);
+    put_graph_tensor(input_tensor);
     postrun_graph(graph);
     destroy_runtime_graph(graph);
 
