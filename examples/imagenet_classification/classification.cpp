@@ -213,6 +213,9 @@ bool run_tengine_library(const char *model_name,
     float *data = (float *)get_tensor_buffer(output_tensor);
     PrintTopLabels(label_file, data);
     std::cout << "--------------------------------------\n";
+	
+	put_graph_tensor(output_tensor);
+    put_graph_tensor(input_tensor);
 
     free(input_data);
     postrun_graph(graph);
