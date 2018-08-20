@@ -115,6 +115,9 @@ int mtcnn::run_PNet(const cv::Mat& img,
     std::vector<face_box> candidate_boxes;
     generate_bounding_box(prob_data,
 			reg_data, scale,conf_p_threshold_,feature_h,feature_w,candidate_boxes,true);
+			
+	put_graph_tensor(input_tensor);
+	put_graph_tensor(tensor);
 
 
     postrun_graph(PNet_graph); 
@@ -192,6 +195,8 @@ void mtcnn::run_RNet(const cv::Mat& img, std::vector<face_box>& pnet_boxes, std:
 		reg_data+=reg_page_size;
 	}
 
+	put_graph_tensor(input_tensor);
+    put_graph_tensor(tensor);
     postrun_graph(RNet_graph);  
    
     
@@ -270,6 +275,8 @@ void mtcnn::run_ONet(const cv::Mat& img, std::vector<face_box>& rnet_boxes, std:
 
 
 	}
+	put_graph_tensor(input_tensor);
+    put_graph_tensor(tensor);
     postrun_graph(ONet_graph); 
 }	
 
