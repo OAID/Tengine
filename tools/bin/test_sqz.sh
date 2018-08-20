@@ -7,7 +7,7 @@
                                 data \
                                 prob \
                                 227,227 \
-                                /home/rk/val/                       
+                                /home/firefly/val/                       
 
 
 

@@ -117,9 +117,11 @@ const char * get_model_name(graph_t graph)
     return executor->GetModelName().c_str();
 }
 
-int set_exec_device(graph_t graph, const char * device_name)
+int set_graph_device(graph_t graph, const char * device_name)
 {
-    TO_BE_IMPLEMENTED;
+    GraphExecutor *executor = static_cast<GraphExecutor*>(graph);
+	std::string device = device_name;
+	executor->GetGraph()->SetAttr("default_executor", device);
     return 0;
 }
 
@@ -772,6 +774,14 @@ void * get_graph_node(graph_t graph, const char * node_name)
     GraphExecutor * executor=static_cast<GraphExecutor *>(graph);
 
     return executor->FindNode(node_name);
+}
+
+int set_node_device(node_t node, const char * dev_name)
+{
+    Node* node_ = static_cast<Node*>(node);
+	std::string dev = dev_name;
+	node_->SetAttr("dev_id", dev);
+    return 0;
 }
 
 void put_graph_node(void * node)

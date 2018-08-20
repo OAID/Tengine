@@ -11,6 +11,7 @@ endif
 CC=$(CROSS_COMPILE)gcc -std=gnu99 $(SYSROOT_FLAGS)
 CXX=$(CROSS_COMPILE)g++ -std=c++11 $(SYSROOT_FLAGS)
 LD=$(CROSS_COMPILE)g++ $(SYSROOT_FLAGS) $(SYSROOT_LDFLAGS)
+AR=$(CROSS_COMPILE)ar
 
 BUILT_IN_LD=$(CROSS_COMPILE)ld
 
@@ -36,6 +37,7 @@ LIB_SUB_DIRS=core operator executor serializer driver
 
 
 LIB_SO=$(BUILD_DIR)/libtengine.so
+LIB_A=$(BUILD_DIR)/libtengine.a
 
 LIB_OBJS =$(addprefix $(BUILD_DIR)/, $(foreach f,$(LIB_SUB_DIRS),$(f)/built-in.o))
 
@@ -123,10 +125,23 @@ ifeq ($(CONFIG_CAFFE_REF),y)
 endif
 
 
-$(LIB_OBJS): $(LIB_SUB_DIRS)
+$(LIB_OBJS): $(LIB_SUB_DIRS);
 
 $(LIB_SO): $(LIB_OBJS)
 	$(CC) -o $@ -shared -Wl,-Bsymbolic -Wl,-Bsymbolic-functions $(LIB_OBJS) $(LIB_LDFLAGS)
+
+static: static_lib static_example
+
+static_lib:
+	@touch core/lib/compiler.cpp
+	@export STATIC_BUILD=y && $(MAKE)
+	$(AR) -crs $(LIB_A) $(LIB_OBJS)
+	@rm $(BUILD_DIR)/libtengine.so
+
+static_example: static_lib
+	$(LD) -o $(BUILD_DIR)/test_tm  $(BUILD_DIR)/tests/bin/test_tm.o $(LIBS) -ltengine \
+	      -ldl -lpthread  -static -L$(BUILD_DIR)
+	@echo ; echo static example: $(BUILD_DIR)/test_tm  created
 
 LIB_LDFLAGS+=-lpthread -lprotobuf -ldl
 
@@ -144,6 +159,10 @@ $(LIB_SUB_DIRS):
 $(APP_SUB_DIRS):
 	@$(MAKE) -C $@  BUILD_DIR=$(BUILD_DIR)/$@ $(MAKECMDGOALS)
 
+
+Makefile: makefile.config
+	@touch Makefile
+	@$(MAKE) clean
 
 distclean:
 	find . -name $(BUILD_DIR) | xargs rm -rf

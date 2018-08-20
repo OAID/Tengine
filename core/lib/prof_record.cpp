@@ -106,7 +106,7 @@ void ProfTime::Dump(int method)
         accum_time+=record[i].total_used_time;
   
    int forward_count=1;
-
+   int idx=0;
    for(unsigned int i=0;i<record.size();i++)
    {
         const TimeRecord& r=record[i];
@@ -116,14 +116,13 @@ void ProfTime::Dump(int method)
 
         forward_count=r.count;
 
-        std::printf("%3d: total used time [%lu:%2.2f%%] us(count: %d avg %lu min %lu max %lu)\n\t",
-                     i,(unsigned long)r.total_used_time,
+        std::printf("%3d [ %2.2f%% : %.3f ms ]",
+                     idx,
                       100.0*r.total_used_time/accum_time,
-                      r.count,(unsigned long)(r.total_used_time/r.count),
-					    (unsigned long)r.min_time,
-						(unsigned long)r.max_time);
+                      (float)((unsigned long)r.total_used_time/1000.f/r.count));
 
         parser(r.ident,r.count,r.total_used_time);
+        idx+=1;
         std::cout<<"\n";
 
    }

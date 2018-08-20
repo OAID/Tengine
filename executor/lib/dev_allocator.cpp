@@ -276,6 +276,13 @@ bool ManualAllocator::Allocate(GenericEngine * engine,GraphExecutor * graph_exec
 	      }
         }
 
+        //get  the  system default one
+        if(!DevExecutorManager::GetDefaultDevExecutor(dev_executor))
+        {
+                LOG_ERROR()<<"failed to assign dev executor for node: "<<node->GetName()<<"\n";
+                return false;
+        }
+       
         //not assigned using the default one
         //first: to check if the graph default one
 
@@ -296,13 +303,6 @@ bool ManualAllocator::Allocate(GenericEngine * engine,GraphExecutor * graph_exec
                     return false;
               }     
                    
-        }
-       
-        //get  the  system default one
-        if(!DevExecutorManager::GetDefaultDevExecutor(dev_executor))
-        {
-                LOG_ERROR()<<"failed to assign dev executor for node: "<<node->GetName()<<"\n";
-                return false;
         }
        
 
