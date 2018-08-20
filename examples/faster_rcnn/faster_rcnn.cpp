@@ -369,6 +369,9 @@ int main(int argc, char *argv[])
     for(int k=0;k<num_roi;k++) free(bbox_delt[k]);
     free(bbox_delt);
     free(input_data);
+	put_graph_tensor(input_tensor1);
+	put_graph_tensor(input_tensor2);
+	put_graph_tensor(tensor);
     draw_detections(image_file, save_name,all_boxes);
     postrun_graph(graph);
     destroy_runtime_graph(graph);
