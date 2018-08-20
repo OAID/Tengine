@@ -239,7 +239,8 @@ int main(int argc, char *argv[])
     float show_threshold=0.5;
     
     post_process_ssd(image_file,show_threshold, outdata, num,save_name);
-    
+
+	put_graph_tensor(input_tensor);    
     postrun_graph(graph);
     free(input_data);
     destroy_runtime_graph(graph);

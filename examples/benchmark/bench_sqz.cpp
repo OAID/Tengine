@@ -198,6 +198,7 @@ int main(int argc, char * argv[])
    float *data = (float *)get_tensor_buffer(output_tensor);
    PrintTopLabels(label_file, data);
    std::cout << "--------------------------------------\n";
+   put_graph_tensor(output_tensor);
    postrun_graph(graph);  
 
    destroy_runtime_graph(graph);

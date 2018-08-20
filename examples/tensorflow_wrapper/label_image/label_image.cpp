@@ -253,6 +253,7 @@ int main(int argc, char* argv[])
 
     // Do something interesting with the results we've generated
     cout << "---------- Prediction for " << image_file << " ----------" << endl;
+	free(input_data);
     int print_status = PrintTopLabels(output_values, label_file.c_str());
     if(print_status < 0)
     {
