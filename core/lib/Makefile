@@ -14,8 +14,13 @@ obj-y+=operator_manager.o
 obj-y+=debug_utils.o
 obj-y+=prof_record.o
 obj-y+=tengine_plugin.o
+obj-y+=compiler.o
 
 obj-y+=logger/
+
+flags-$(STATIC_BUILD)+=-DSTATIC_BUILD
+
+compiler_CXXFLAGS+=$(flags-y)
 
 #graph_executor_CXXFLAGS+=-I../../executor/include
 tengine_config_CXXFLAGS+=-DGIT_COMMIT_ID=\"$(GIT_COMMIT_ID)\"

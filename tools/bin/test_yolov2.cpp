@@ -29,16 +29,18 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "tengine_c_api.h"
-#include "common.hpp"
 #include "operator/region.hpp"
 #include "node.hpp"
 #include <sys/time.h>
-#include "common.hpp"
 
 #define DEF_PROTO "models/yolo-voc.prototxt"
 #define DEF_MODEL "models/yolo-voc.caffemodel"
 #define DEF_IMAGE "tests/images/ssd_dog.jpg"
 using namespace TEngine;
+
+#define REPEAT_COUNT 1000
+const char*image_list = "/home/firefly/my_tengine/tengine/tools/data/2007_test.txt";
+const std::string root_path = "/home/firefly/my_tengine/tengine/";
 
 struct Box
 {
@@ -226,22 +228,119 @@ void do_nms_sort(std::vector<Box> &boxes,
 	}
 	free(s);
 }
+struct GROUND_TRUTH  {
+	Box box;
+	int class_index;
+	bool b_find;
+};
 
-void draw_detections(std::string &image_file, std::string &save_name, int num, float thresh, std::vector<Box> &boxes,
-		float **probs, int classes)
+struct MAP 
 {
-	const char *class_names[] = {"background",
+   int tp_cnt;    // true positive
+   int fp_cnt;    // false positive
+   int tn_cnt;    // ture negitative
+   int fn_cnt;    // false negetive
+};
+
+const char *class_names[] = {"background",
+        "aeroplane", "bicycle", "bird", "boat",
+         "bottle", "bus", "car", "cat", "chair",
+        "cow", "diningtable", "dog", "horse",
+         "motorbike", "person", "pottedplant",
+         "sheep", "sofa", "train", "tvmonitor"};
+
+void LoadImageFile(std::vector<std::string> &result,const char *fname)
+{
+   
+    std::ifstream images(fname);
+  
+    std::string line;
+    while(std::getline(images,line))
+    {
+        result.push_back(line);
+    }
+}
+
+void string_replace(std::string &str,const std::string &srcstr,const std::string dststr)
+{
+   std::string::size_type pos =0;
+   std::string::size_type srclen= srcstr.size();
+   std::string::size_type dstlen= dststr.size();
+
+   while( (pos = str.find( srcstr,pos)) != std::string::npos)
+   {
+        str.replace(pos,srclen,dststr);
+        pos += dstlen;
+
+   }
+}
+
+
+GROUND_TRUTH * read_boxes(char *filename,int *n)
+{
+	FILE *file = fopen(filename,"r");
+	
+	float x,y,h,w;
+	int id = 0;
+	int count = 0;
+	int size = 64;
+	
+	GROUND_TRUTH * boxes = (GROUND_TRUTH*)calloc(size,sizeof(GROUND_TRUTH));
+	
+    while(fscanf(file,"%d %f %f %f %f", &id,&x,&y,&w,&h) == 5)
+	{
+		if(count == size)
+		{
+			size = size * 2;
+			boxes = (GROUND_TRUTH*)realloc(boxes,sizeof(GROUND_TRUTH));
+		}
+		boxes[count].class_index = id;
+		boxes[count].box.x = x;
+		boxes[count].box.y = y;
+		boxes[count].box.w = w;
+		boxes[count].box.h = h;
+		boxes[count].b_find = false;
+        count++;
+	}
+	fclose(file);
+	*n = count;
+	
+	return boxes;
+	
+	
+}
+/******************************************
+******   function_name: record_tp
+******   image_file   : The image file of the test images
+******   int num      : The detetion boxes num of the image
+******   float thresh : The probs thresh(0.24)
+******   std::vector<Box> &boxes : the detected boxes
+******   float **probs:  the score value;
+******   int class    :  21
+******   GROUND_TRUTH :  the ground truth boxes
+******   int ground_num:  the ground truth boxes num
+******   MAP* result_map:  the reult map
+  
+*/
+
+void record_tp(std::string &image_file,int num, float thresh, std::vector<Box> &boxes,float **probs, int classes,GROUND_TRUTH *ground_truth, int ground_num,MAP* result_map)
+{
+#if 0
+    	const char *class_names[] = {"background",
 		"aeroplane", "bicycle", "bird", "boat",
 		"bottle", "bus", "car", "cat", "chair",
 		"cow", "diningtable", "dog", "horse",
 		"motorbike", "person", "pottedplant",
 		"sheep", "sofa", "train", "tvmonitor"};
+#endif
 	cv::Mat img = cv::imread(image_file);
-	int img_h = img.size().height;
-	int img_w = img.size().width;
-	int line_width=img_w*0.005;
+
 	int i, j;
-	for (i = 0; i < num; ++i)
+	float iou_thresh = 0.5;
+	bool flag = false;
+ 	int count = 0;
+	
+	for (i = 0; i < num; ++i)  
 	{
 		int class_id = -1;
 		for (j = 0; j < classes; ++j)
@@ -251,71 +350,129 @@ void draw_detections(std::string &image_file, std::string &save_name, int num, f
 				if (class_id < 0)
 				{
 					class_id = j;
+ 				}
+				for( int g = 0; g < ground_num;g++)
+				{
+				   if(ground_truth[g].class_index == class_id && ground_truth[g].b_find == false)
+				   {
+					   if(box_iou(ground_truth[g].box,boxes[i]) > iou_thresh)
+                       {
+                           flag = true; 
+                           ground_truth[g].b_find = true;           
+						   count++;
+					   }				   
+				   }
 				}
-				printf("%s\t:%.0f%%\n", class_names[class_id + 1], probs[i][j] * 100);
-				Box b = boxes[i];
-				int left = (b.x - b.w / 2.) * img_w;
-				int right = (b.x + b.w / 2.) * img_w;
-				int top = (b.y - b.h / 2.) * img_h;
-				int bot = (b.y + b.h / 2.) * img_h;
-				if (left < 0)
-					left = 0;
-				if (right > img_w - 1)
-					right = img_w - 1;
-				if (top < 0)
-					top = 0;
-				if (bot > img_h - 1)
-					bot = img_h - 1;
-				printf("BOX:( %d , %d ),( %d , %d )\n",left,top,right,bot);
-				cv::rectangle(img, cv::Rect(left, top, (right - left), (bot - top)), cv::Scalar(0, 255, 255),line_width);
-				std::ostringstream score_str;
-				score_str << probs[i][j];
-				std::string label = std::string(class_names[class_id + 1]) + ": " + score_str.str();
-				int baseLine = 0;
-				cv::Size label_size = cv::getTextSize(label, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
-				cv::rectangle(img,
-						cv::Rect(cv::Point(left, top - label_size.height),
-							cv::Size(label_size.width, label_size.height + baseLine)),
-						cv::Scalar(0, 255, 255),
-						CV_FILLED);
-				cv::putText(img, label, cv::Point(left, top),
-						cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 0));
+				if(flag == true)
+				{
+                    std::cout<<"tp id :"<<class_id <<"\n";
+					flag = false;
+					result_map[class_id].tp_cnt++;
+				}
+				else
+				{
+                    std::cout<<"fp id :" << class_id<<"\n";
+					result_map[class_id].fp_cnt++;
+				}	
 			}
 		}
 	}
+	if(count != ground_num)
+	{
+		int class_id = -1;
+        for( int g = 0; g < ground_num;g++)
+		{
+			if( ground_truth[g].b_find == false)
+			{
+				class_id = ground_truth[g].class_index;
+                
+                std::cout<<"fn id :"<<class_id<<"\n";
 
-	cv::imwrite(save_name, img);
-	std::cout<<"======================================\n";
-	std::cout<<"[DETECTED IMAGE SAVED]:\t"<< save_name<<"\n";
-	std::cout<<"======================================\n";
+				result_map[class_id].fn_cnt++;
+			}
+		}
+	
+	}
+
 }
 
+void cal_recall_prob(MAP *map,int class_num)
+{
+    
+    for(int i = 0; i < class_num;i++)
+    {
+        float recall = 0;
+        float prob = 0;
+        
+        if(map[i].tp_cnt + map[i].fn_cnt == 0)
+        {
+             recall = 0;
+        }  
+        else
+        {
+             recall = (float)map[i].tp_cnt/(map[i].tp_cnt + map[i].fn_cnt);
+        }     
+
+        if(map[i].tp_cnt + map[i].fp_cnt == 0)
+        {
+             prob = 0;
+        }
+        else
+        {
+             prob  = (float)map[i].tp_cnt/(map[i].tp_cnt + map[i].fp_cnt);
+        }
+       printf("class  %16s : recall: %4f, precesion: %4f\n",class_names[i+1],recall,prob);
+
+      // std::cout<<"class:   "<<class_names[i+1]<<":"<<"  recall:   "<<recall<<"   ,precesion:   "<<prob<<"\n";
+
+    }
+
+
+}
 void preprocess_yolov2(std::string &image_file, float *input_data, int img_h, int img_w, int *raw_h, int *raw_w)
 {
-	cv::Mat img = cv::imread(image_file, -1);
-	if (img.empty())
+	cv::Mat img0 = cv::imread(image_file, -1);
+    
+    std::cout<<"image_file :" <<image_file<<"\n";
+
+
+	if (img0.empty())
 	{
 		std::cerr << "failed to read image file " << image_file << "\n";
 		return;
 	}
 
-	*raw_h = img.rows;
-	*raw_w = img.cols;
+	*raw_h = img0.rows;
+	*raw_w = img0.cols;
 
-	int new_w = img.cols;
-	int new_h = img.rows;
-	if (((float)img_w / img.cols) < ((float)img_h / img.rows))
+	int new_w = img0.cols;
+	int new_h = img0.rows;
+	if (((float)img_w / img0.cols) < ((float)img_h / img0.rows))
 	{
 		new_w = img_w;
-		new_h = (img.rows * img_w) / img.cols;
+		new_h = (img0.rows * img_w) / img0.cols;
 	}
 	else
 	{
 		new_h = img_h;
-		new_w = (img.cols * img_h) / img.rows;
+		new_w = (img0.cols * img_h) / img0.rows;
 	}
 
-	img.convertTo(img, CV_32FC3);
+       cv::Mat img;
+      if (img0.channels() == 4)
+     {   
+          cv::cvtColor(img0, img, cv::COLOR_BGRA2BGR);
+     }
+      else if (img0.channels() == 1)
+      {     
+            cv::cvtColor(img0, img, cv::COLOR_GRAY2BGR);
+      }
+      else
+     {
+           img=img0;
+     }
+
+	 img.convertTo(img, CV_32FC3);
 	img = img.mul(0.00392156862745098f);
 
 	std::vector<cv::Mat> channels;
@@ -324,8 +481,10 @@ void preprocess_yolov2(std::string &image_file, float *input_data, int img_h, in
 	channels[2] = channels[0];
 	channels[0] = temp;
 	cv::merge(channels, img);
-	cv::Mat resize_img;
-	cv::Mat dst_img;
+    
+    cv::Mat resize_img;
+    cv::Mat dst_img;
+
 	cv::resize(img, resize_img, cv::Size(new_w, new_h));
 
 	int delta_h = (img_h - new_h) * 0.5f;
@@ -348,37 +507,26 @@ void preprocess_yolov2(std::string &image_file, float *input_data, int img_h, in
 }
 
 
+
+
 int main(int argc, char **argv)
 {
-	const std::string root_path = get_root_path();
 	std::string proto_file;
 	std::string model_file;
 	std::string image_file;
-	std::string save_name="save.jpg";
-
+	
+	std::vector<std::string> images;
+	
+	LoadImageFile(images,image_list);
+	
 	// this thresh can be tuned for higher/lower confidence boxes
 	float thresh=0.24;
+    int class_num = 21; 
+    
+	MAP *global_map = (MAP*)malloc(sizeof(struct MAP) * class_num);
 
-	int res;
-	while( ( res=getopt(argc,argv,"p:m:i"))!= -1)
-	{
-		switch(res)
-		{
-			case 'p':
-				proto_file=optarg;
-				break;
-			case 'm':
-				model_file=optarg;
-				break;
-			case 'i':
-				image_file=optarg;
-				break;
-			default:
-				break;
-		}
-	}
-
-
+    memset(global_map,0,sizeof(MAP)*class_num);
+	
 	// init tengine
 	init_tengine_library();
 	if (request_tengine_version("0.1") < 0)
@@ -397,17 +545,14 @@ int main(int argc, char **argv)
 		model_file = root_path + DEF_MODEL;
 		std::cout<< "model file not specified,using "<<model_file<< " by default\n";
 	}
-	if(image_file.empty())
-	{
-		image_file = root_path + DEF_IMAGE;
-		std::cout<< "image file not specified,using "<<image_file<< " by default\n";
-	}
+
 	if (load_model(model_name, "caffe", proto_file.c_str(), model_file.c_str()) < 0)
 		return 1;
 	std::cout << "load model done!\n";
 
 	// create graph
 	graph_t graph = create_runtime_graph("graph", model_name, NULL);
+	prerun_graph(graph);
 
 	// input
 	int img_h = 416;
@@ -419,49 +564,25 @@ int main(int argc, char **argv)
 	tensor_t input_tensor = get_graph_input_tensor(graph, 0,0);
 	int dims[] = {1, 3, img_h, img_w};
 	set_tensor_shape(input_tensor, dims, 4);
-	set_tensor_buffer(input_tensor, input_data, 3 * img_h * img_w * 4);
-
-	// prerun
-	prerun_graph(graph);
-
-	// output
-	tensor_t output_tensor = get_graph_output_tensor(graph, 0,0); 
-	int out_dim[4] = {0};
-	get_tensor_shape(output_tensor, out_dim, 4);
-	
-	float * output = (float*)get_tensor_buffer(output_tensor);
-
-
-	int repeat_count = 1;
-	const char *repeat = std::getenv("REPEAT_COUNT");
-
-	if (repeat)
-		repeat_count = std::strtoul(repeat, NULL, 10);
-
-	struct timeval t0, t1;
-	float avg_time = 0.f;
-	for (int i = 0; i < repeat_count; i++)
+     
+	for(int i =0; i < REPEAT_COUNT;i++)
 	{
-		//image_file="ssd_horse.jpg";
-		//save_name="out/"+std::to_string(i)+".jpg";
-
-		preprocess_yolov2(image_file, input_data, img_h, img_w, &raw_h, &raw_w);
-
-		gettimeofday(&t0, NULL);
+		image_file = images[i];
+        std::cout<<"=================== " << i << " ========================\n";
+        
+        preprocess_yolov2(image_file, input_data, img_h, img_w, &raw_h, &raw_w);
 		
-		run_graph(graph, 1);
+     	set_tensor_buffer(input_tensor, input_data, 3 * img_h * img_w * 4);
 
-		gettimeofday(&t1, NULL);
-		float mytime = (float)((t1.tv_sec * 1000000 + t1.tv_usec) - (t0.tv_sec * 1000000 + t0.tv_usec)) / 1000;
-		avg_time += mytime;
+        run_graph(graph, 1);
+		
+		tensor_t tensor = get_graph_output_tensor(graph, 0,0); 
+		int out_dim[4] = {0};
+		get_tensor_shape(tensor, out_dim, 4);
+		float * output = (float*)get_tensor_buffer(tensor);
 
-	    node_t node = get_graph_node(graph, "region");
-#if 0	
-		RegionParam *param = dynamic_cast<Region *>(((Node *)node)->GetOp())->GetParam();
-		int num_box = param->num_box;
-		int num_class = param->num_classes;
-		std::vector<float> param_biases=parm->biases;
-#else	
+		node_t node = get_graph_node(graph, "region");
+		
 		int num_box=0;
 		int num_class=0;
 
@@ -470,7 +591,6 @@ int main(int argc, char **argv)
 			std::cerr<<"cannot get num box setting\n";
 			return 1;	   
 		}
-
 
 		if(get_node_param_int(node,"num_classes",&num_class)<0)
 		{
@@ -486,10 +606,6 @@ int main(int argc, char **argv)
 			return 1;	   
 		}
 
-
-#endif
-		// printf("num box: %d\n",num_box);
-		// printf("num class: %d\n",num_class);
 
 		int total = out_dim[2] * out_dim[3] * num_box;
 		//init box and probs
@@ -509,20 +625,40 @@ int main(int argc, char **argv)
 
 		float nms_thresh = 0.3;
 		do_nms_sort(boxes, probs, total, num_class, nms_thresh);
-		// if repeat_count=1, print output
-		if (repeat_count==1)
-			draw_detections(image_file, save_name, total, thresh, boxes, probs, num_class);
+		
+		
+		//char *ground_truth_file = "/home/firefly/VOCdevkit/VOC2007/labels/000001.txt";
+		
+        std::string src_sub = "JPEGImages";
+        std::string dst_sub ="labels";
+        std::string src_type = "jpg";
+        std::string dst_type = "txt";
+       
+      
+        std::string ground_truth_file = image_file;
 
-		for (int j = 0; j < total; ++j) free(probs[j]);
-		free(probs);
+        string_replace(ground_truth_file,src_sub,dst_sub);
+        string_replace(ground_truth_file,src_type,dst_type);
+        
+        int ground_num = 0;
+		GROUND_TRUTH *ground_truth = read_boxes((char*)ground_truth_file.c_str(),&ground_num);
+	
+        std::cout<<"ground num is :"<<ground_num<<"\n";
+
+		record_tp(image_file,total,thresh, boxes,probs, num_class,ground_truth,ground_num,global_map);
+		
+		free(ground_truth);
+        for(int j = 0; j < total;++j)
+        {
+            free(probs[j]);
+        }    
+        free(probs);
 	}
-	std::cout << "--------------------------------------\n";
-	std::cout << "repeat " << repeat_count << " times, avg time per run is " << avg_time / repeat_count << " ms\n";
 
-	// free
+    cal_recall_prob(global_map,20); 
+ 
+	free(global_map);
 	free(input_data);
-	put_graph_tensor(output_tensor);
-    	put_graph_tensor(input_tensor);
 	postrun_graph(graph);
 	destroy_runtime_graph(graph);
 	remove_model(model_name);

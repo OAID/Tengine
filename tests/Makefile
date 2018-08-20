@@ -42,7 +42,7 @@ default: $(binsubdir_list) $(BIN_EXES)
 test: $(BIN_EXES)
 
 
-$(BIN_OBJS): $(binsubdir_list)
+$(BIN_OBJS): $(binsubdir_list) ;
 
 
 build: default install
@@ -74,9 +74,9 @@ ifeq ($(CONFIG_CAFFE_REF),y)
     SO_LIBS+=$(CAFFE_LIBS)
 endif
 
-OPENCV_LIB=$(shell pkg-config --libs-only-l --libs-only-L opencv) -Wl,-rpath=/usr/lib/aarch64-linux-gnu/mesa
+OPENCV_LIB=$(shell pkg-config --libs-only-l --libs-only-L opencv) 
 
-LIBS+=-L ../build/ -ltengine
-SO_LIBS+=-lprotobuf -ldl -lpthread -lresolv
+LIBS+=-L ../build/ -ltengine -Wl,-allow-shlib-undefined
+SO_LIBS+=-lprotobuf -ldl -lpthread
 SO_LIBS+=-Wl,-rpath,./build/
 SO_LIBS+=$(OPENCV_LIB)

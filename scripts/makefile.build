@@ -74,7 +74,7 @@ $(subdir-y):
 ifneq ($(strip $(real_built_in_objs)),)
 
 ifneq ($(subdir_objs),)
-    $(subdir_objs): $(subdir-y)
+$(subdir_objs): $(subdir-y);
 endif
 
 $(BUILT_IN_OBJ): $(real_built_in_objs) 

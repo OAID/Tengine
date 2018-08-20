@@ -35,7 +35,7 @@
 #include "tengine_c_api.h"
 #include "tengine_config.hpp"
 
-#define RUN_TIME  100
+#define RUN_TIME  5000
 using namespace std;
 
 const char * image_file="./tools/data/images.txt";
@@ -61,13 +61,26 @@ static inline std::vector<int> Argmax(const std::vector<float>& v, int N) {
 using namespace TEngine;
 void get_input_data(std::string &image_file, float *input_data,int img_h, int img_w,float *mean,float *scale)
 {
-    cv::Mat img = cv::imread(image_file, -1);
-
-    if (img.empty())
+    cv::Mat sample = cv::imread(image_file, -1);
+    if (sample.empty())
     {
-        std::cerr << "failed to read image file " << image_file << "\n";
-        return;
+          std::cerr << "Failed to read image file " << image_file << ".\n";
+          return;
     }
+    cv::Mat img;
+    if (sample.channels() == 4)
+    {
+        cv::cvtColor(sample, img, cv::COLOR_BGRA2BGR);
+    }
+    else if (sample.channels() == 1)
+    {
+          cv::cvtColor(sample, img, cv::COLOR_GRAY2BGR);
+    }
+    else
+    {
+          img=sample;
+    }
+
     cv::resize(img, img, cv::Size(img_h, img_w));
     img.convertTo(img, CV_32FC3);
     float *img_data = (float *)img.data;

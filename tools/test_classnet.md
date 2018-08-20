@@ -7,7 +7,7 @@ Get the accuracy of the model on Tengine, and run it with [Tengine](https://gith
 ## RUN
 
 cd ~/tengine<br>
-./tools/bin/test_acc.sh
+./tools/bin/test_sqz.sh
 
 ## TEST
 
