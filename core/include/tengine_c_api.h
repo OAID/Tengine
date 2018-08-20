@@ -91,14 +91,14 @@ int check_graph_valid(graph_t graph);
 const char * get_graph_name(graph_t graph);
 
 /*!
-* @brief set the policy to bind the device with the graph
+* @brief bind the device with the graph
 * 
 * @param graph the graph handle
 * @param device_name the device name
 * @return 0 when set success or -1 if failed
 */
 
-int set_exec_device(graph_t graph, const char * device_name);
+int set_graph_device(graph_t graph, const char * device_name);
 
 /*!
 * @brief run the loaded graph with input data
@@ -531,6 +531,17 @@ const char * get_tensor_name(tensor_t tensor);
 * @return the node handle
 */
 node_t get_graph_node(graph_t graph, const char * node_name);
+
+/*!
+* @brief  set the device to  execution a node
+*
+* @param  the node handle
+* @param  dev_name the device name to run the node
+*
+* @return  0: bind ok
+*         <0: error 
+*/
+int  set_node_device(node_t node, const char * dev_name);
 
 /*!
 * @brief  free the handle of node

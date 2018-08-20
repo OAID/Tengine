@@ -19,3 +19,21 @@ std::string to_string<int> (int n)
 }
 
 #endif
+
+#ifdef STATIC_BUILD
+
+extern "C" void __pthread_cond_broadcast(void);
+extern "C" void __pthread_cond_destroy(void);
+extern "C" void __pthread_cond_signal(void);
+extern "C" void __pthread_cond_wait(void);
+
+void static_compiling_workaround(void)
+{
+	__pthread_cond_broadcast();
+	__pthread_cond_destroy();
+    __pthread_cond_signal();
+	__pthread_cond_wait();
+}
+
+
+#endif

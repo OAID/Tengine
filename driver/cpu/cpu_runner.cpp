@@ -29,7 +29,7 @@
 #include "prof_record.hpp"
 #include "graph_optimizer.hpp"
 #include "cpu_driver.hpp"
-
+#include "operator/convolution.hpp"
 namespace TEngine {
 
 #define ENABLE_TIME_PROFILING
@@ -203,7 +203,7 @@ struct MemPool {
 };
 
 
-
+bool debug_graph=false;
 
 bool CPURunner::Prerun(Subgraph  * sub_graph)
 {
@@ -235,24 +235,55 @@ bool CPURunner::Prerun(Subgraph  * sub_graph)
 static void parse_node(void * data, int repeat_count, uint64_t total_time)
 {
 	Node * node=(Node *)data;
+			Tensor * input_tensor=node->GetInputTensor(0);
+			Tensor * output_tensor=node->GetOutputTensor(0);
+			Operator * op=node->GetOp();
+			TShape& ishape=input_tensor->GetShape();
+			TShape& oshape=output_tensor->GetShape();
+			printf(" Node_idx:%3d",node->GetNodeIndex());
+			// float* outdata=(float *)get_tensor_mem(output_tensor);
+			// float* indata=(float *)get_tensor_mem(input_tensor);
+			// printf("\t%s\n",output_tensor->GetName().c_str());
 
-	std::printf("Node: %d %s ",node->GetNodeIndex(),node->GetName().c_str());
+			 printf("\t%10s\t%4d x%4d x%6d  -> %4d x%4d x%6d\t",
+					op->GetName().c_str(),
+					ishape.GetC(), ishape.GetH(), ishape.GetW(),
+					oshape.GetC(), oshape.GetH(), oshape.GetW());
+			 if(op->GetName()=="Convolution")
+			 {
+			 	Convolution * conv_op=dynamic_cast<Convolution *>(node->GetOp());
+			 	ConvParam*  param=conv_op->GetParam();
+			 	printf("%2d x %d / %d_p%d",param->kernel_h,param->kernel_w,param->stride_h,param->pads[0]);
+			 	// if(param->kernel_h==3 && param->stride_h==1)
+			 	// {
+			 	// 	printf(" [%d]",param->mth);
+			 	// }
+			 	// else
+			 	// {
+			 	// 	printf("    ");
+			 	// }
+			 	if(param->group!=1)
+			 	{
+			 		printf(" (%2d)",param->group);
+			 	}
+			 	else
+			 	{
+			 		printf("     ");
+			 	}
+			 }
+			 else
+			 {
+			 	printf("   x    /   _     ");
+			 }
+			 if(op->GetName()=="Convolution" || op->GetName()=="FullyConnected" || op->GetName()=="Deconvolution")
+			 {
+				std::printf(" Mfops: %.2f\tRate: %.0f",1.0f*node->GetFops()/1000000, 
+			      1.0f*node->GetFops()*repeat_count/total_time);
+			 }
+			 
+			 // printf("\t%s\n",output_tensor->GetName().c_str());
 
-	std::printf(" op: %s",node->GetOp()->GetName().c_str());
-
-	std::cout<<" input: ";
-	Tensor * input_tensor=node->GetInputTensor(0);
-	TShape& ishape=input_tensor->GetShape();
-	ishape.DumpShape(std::cout);
-
-	std::cout<<" output: ";
-
-	Tensor * output_tensor=node->GetOutputTensor(0);
-	TShape& oshape=output_tensor->GetShape();
-	oshape.DumpShape(std::cout);
-
-	std::printf(" Mfops: %.2f Rate: %.0f",1.0f*node->GetFops()/1000000, 
-			1.0f*node->GetFops()*repeat_count/total_time);
+	
 }
 
 #endif
@@ -385,6 +416,8 @@ bool CPURunner::Run(Subgraph * sub_graph)
 
                 }
 
+
+
 #ifdef ENABLE_TIME_PROFILING
 		if(do_prof)
 			prof->Start(i,node);
@@ -478,7 +511,7 @@ bool CPURunner::Postrun(Subgraph * sub_graph)
 			op_time+=p_record->total_used_time;
 
 			time_stats[op->GetName()] = op_time;
-			if (op->GetName() == "Convolution" || op->GetName() == "FullyConnected")
+			if (op->GetName() == "Convolution" || op->GetName() == "FullyConnected" || op->GetName()=="Deconvolution")
 			{
 				total_fops += node->GetFops();
 			}
@@ -501,8 +534,15 @@ bool CPURunner::Postrun(Subgraph * sub_graph)
 					ir->first.c_str(),(unsigned long)ir->second, 100.0f*ir->second/total_time);
 		}
 		std::printf("\n\n");
+		int method = 1;
+		const char * debug_env=std::getenv("DEBUG_G");
+		if((debug_env) && (debug_env[0]=='1'))
+		{
+			debug_graph=true;
+		}
+		if (debug_graph) method = 0;
 
-		prof->Dump(1);
+		prof->Dump(method);
 
 		delete prof;
 
@@ -731,7 +771,7 @@ bool CPURunner::AllocateMem(Subgraph * sub_graph)
 			node_ops->SetSharedMemoryAddr(node,shared_memory,mem_size);
               }
 
-              std::cout<<"max shared memory: "<<max_shared_mem_size<<"\n";
+             // std::cout<<"max shared memory: "<<max_shared_mem_size<<"\n";
 	}
 
 

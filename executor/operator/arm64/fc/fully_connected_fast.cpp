@@ -334,6 +334,8 @@ NodeOps * SelectFunc(const CPUInfo * cpu_info, Node * node)
 	else
 		ops->mt_disabled=true;
 
+	ops->need_free=true;
+
      return ops;
 }
 
