@@ -505,11 +505,13 @@ int main(int argc, char **argv)
 		// if repeat_count=1, print output
 		if (repeat_count==1)
 			draw_detections(image_file, save_name, total, thresh, boxes, probs, num_class);
+		for (int j = 0; j < total; ++j) free(probs[j]);
 		free(probs);
 	}
 	std::cout << "--------------------------------------\n";
 	std::cout << "repeat " << repeat_count << " times, avg time per run is " << avg_time / repeat_count << " ms\n";
 	free(input_data);
+    put_graph_tensor(input_tensor);
 	postrun_graph(graph);
 	destroy_runtime_graph(graph);
 	remove_model(model_name);

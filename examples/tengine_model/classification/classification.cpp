@@ -249,6 +249,8 @@ bool run_tengine_library(const char *model_name, const char *tm_file,
     std::cout << "--------------------------------------\n";
 
     free(input_data);
+	put_graph_tensor(output_tensor);
+    put_graph_tensor(input_tensor);
     postrun_graph(graph);
     destroy_runtime_graph(graph);
     remove_model(model_name);

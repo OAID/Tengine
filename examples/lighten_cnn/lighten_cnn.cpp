@@ -128,6 +128,9 @@ int main(int argc, char *argv[])
     std::string out_data_file=model_dir+"/eltwise_fc1_256";
     get_data(out1, size1, out_data_file.c_str());
     maxerr(data1, out1, size1);
+	
+	free(out1);
+	put_graph_tensor(mytensor1);
 
     postrun_graph(graph);
 
