@@ -4,13 +4,13 @@
 #CROSS_COMPILE=arm-linux-gnueabihf-
 SYSROOT:=$(shell pwd)/sysroot/ubuntu_rootfs
 
-ifneq ($(CROSS_COMPILE),"aarch64-linux-gnu-")
+ifeq ($(CROSS_COMPILE),"aarch64-linux-gnu-")
    SYSROOT_FLAGS:=--sysroot=$(SYSROOT) 
    SYSROOT_LDFLAGS:=-L/usr/lib/aarch64-linux-gnu -L/lib/aarch64-linux-gnu
    PKG_CONFIG_PATH:=$(SYSROOT)/usr/lib/aarch64-linux-gnu/pkgconfig
    export PKG_CONFIG_PATH
 endif
-ifneq ($(CROSS_COMPILE),"arm-linux-gnueabihf-")
+ifeq ($(CROSS_COMPILE),"arm-linux-gnueabihf-")
    SYSROOT_FLAGS:=--sysroot=$(SYSROOT)32 
    SYSROOT_LDFLAGS:=-L/usr/lib/arm-linux-gnueabihf -L/lib/arm-linux-gnueabihf
    PKG_CONFIG_PATH:=$(SYSROOT)/usr/lib/arm-linux-gnueabihf/pkgconfig
