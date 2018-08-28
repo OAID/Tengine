@@ -35,7 +35,7 @@
 #include "operator/relu_param.hpp"
 #include "operator/eltwise_param.hpp"
 #include "operator/fc_param.hpp"
-
+#include "operator/reshape_param.hpp"
 //#define DEBUG
 
 namespace TEngine {
@@ -943,6 +943,29 @@ static bool LoadMxnetFullyConnected(StaticGraph * graph, StaticNode * node, cons
     return true;
 }
 
+static bool LoadMxnetReshape(StaticGraph * graph, StaticNode * node, const MxnetNode& mxnet_node)
+{
+    ReshapeParam  param=any_cast<ReshapeParam>(OpManager::GetOpDefParam("Reshape"));
+
+    const_iterator cit;
+    std::vector<int> v1;
+
+    cit = mxnet_node.attrs.find("shape");
+    if(cit != mxnet_node.attrs.end())
+    {
+        ParseAttr(cit->second, v1);
+        for(unsigned int i=0; i < v1.size(); i++)
+        {
+            param.dims.push_back(v1.at(i));
+        }
+    }
+
+    StaticOp * op=CreateStaticOp(graph, "Reshape");
+    SetOperatorParam(op, param);
+    SetNodeOp(node, op);
+    return true;
+}
+
 bool MxnetSerializerRegisterOpLoader(void)
 {
     SerializerPtr serializer;
@@ -965,7 +988,8 @@ bool MxnetSerializerRegisterOpLoader(void)
     p_mxnet->RegisterOpLoadMethod("elemwise_add",op_load_t(LoadMxnetElemwiseAdd));
     p_mxnet->RegisterOpLoadMethod("LeakyReLU",op_load_t(LoadMxnetLeakyReLU));
     p_mxnet->RegisterOpLoadMethod("FullyConnected",op_load_t(LoadMxnetFullyConnected));
-
+    p_mxnet->RegisterOpLoadMethod("Reshape",op_load_t(LoadMxnetReshape));
+    
     return true;
 }
 
