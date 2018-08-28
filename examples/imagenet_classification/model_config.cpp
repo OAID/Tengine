@@ -10,6 +10,8 @@ const Model_Config model_list[] = {
       "sqz.prototxt", "squeezenet_v1.1.caffemodel", "synset_words.txt"},
     { "mobilenet"   ,  224,   224,   0.017,    {104.007, 116.669, 122.679},
       "mobilenet_deploy.prototxt", "mobilenet.caffemodel", "synset_words.txt"},
+    { "mobilenet_v2"   ,  224,   224,   0.017,    {104.007, 116.669, 122.679},
+      "mobilenet_v2_deploy.prototxt", "mobilenet_v2.caffemodel", "synset_words.txt"},
     { "resnet50"    ,  224,   224,   1.f,      {104.007, 116.669, 122.679},
       "resnet50.prototxt", "resnet50.caffemodel", "synset_words.txt"},
     { "alexnet"     ,  227,   227,   1.f,      {104.007, 116.669, 122.679},
