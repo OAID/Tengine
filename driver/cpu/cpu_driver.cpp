@@ -165,20 +165,21 @@ bool CPUDriver::OptimizeGraph(Device * dev, void * graph_handle)
 bool CPUDriver::Prerun(Device * dev, void * graph_handle)
 {
 	DevContext * context=reinterpret_cast<DevContext *>(graph_handle);
-	CPUDevice * cpu_info=context->dev;
+	CPUDevice * cpu_dev=context->dev;
 
-	return cpu_info->RealPrerun(context);
+       
+	return cpu_dev->RealPrerun(context);
 }
 
 bool CPUDriver::SyncRun(Device * dev, void * graph_handle)
 {
 	DevContext * context=reinterpret_cast<DevContext *>(graph_handle);
-	CPUDevice * cpu_info=context->dev;
+	CPUDevice * cpu_dev=context->dev;
 
-        return cpu_info->RealRun(context->optimized_graph);
+        return cpu_dev->RealRun(context->optimized_graph);
 }
 
-void CPUDriver::PushGraph(CPUDevice * cpu_info, DevContext * context)
+void CPUDriver::PushGraph(CPUDevice * cpu_dev, DevContext * context)
 {
 
         std::vector<cpu_task> task_list;
@@ -189,15 +190,15 @@ void CPUDriver::PushGraph(CPUDevice * cpu_info, DevContext * context)
 
         task_list.emplace_back(task);
 
-        cpu_info->PushMasterTask(task_list);
+        cpu_dev->PushMasterTask(task_list);
 }
 
 bool CPUDriver::Run(Device * dev, void * graph_handle)
 {
 	DevContext * context=reinterpret_cast<DevContext *>(graph_handle);
-	CPUDevice * cpu_info=context->dev;
+	CPUDevice * cpu_dev=context->dev;
 
-        PushGraph(cpu_info,context);
+        PushGraph(cpu_dev,context);
 
 	return true;
 }
@@ -205,9 +206,9 @@ bool CPUDriver::Run(Device * dev, void * graph_handle)
 bool CPUDriver::Postrun(Device * dev, void * graph_handle)
 {
 	DevContext * context=reinterpret_cast<DevContext *>(graph_handle);
-	CPUDevice * cpu_info=context->dev;
+	CPUDevice * cpu_dev=context->dev;
 
-	return cpu_info->RealPostrun(context);	
+	return cpu_dev->RealPostrun(context);	
 
 }
 
