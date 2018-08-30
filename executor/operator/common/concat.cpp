@@ -93,7 +93,7 @@ using namespace ConcatImpl;
 
 void RegisterConcatNodeExec(void)
 {
-   NodeOps * ops=new ConcatOps();
+   ConcatOps * ops=new ConcatOps();
 
    NodeOpsRegistryManager::RegisterOPImplementor("common",
             "Concat",ops);

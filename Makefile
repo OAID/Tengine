@@ -65,7 +65,7 @@ endif
 
 ifeq ($(CONFIG_ARCH_ARM32),y)
     export CONFIG_ARCH_ARM32
-	COMMON_CFLAGS+=-mfp16-format=ieee -mfpu=neon-fp16
+	COMMON_CFLAGS+=-march=armv7-a -mfpu=neon -mfp16-format=ieee -mfpu=neon-fp16
 endif
 
 ifeq ($(CONFIG_ARCH_BLAS),y)

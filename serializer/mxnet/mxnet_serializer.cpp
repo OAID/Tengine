@@ -36,6 +36,7 @@
 #include "operator/eltwise_param.hpp"
 #include "operator/fc_param.hpp"
 #include "operator/reshape_param.hpp"
+
 //#define DEBUG
 
 namespace TEngine {
@@ -963,6 +964,7 @@ static bool LoadMxnetReshape(StaticGraph * graph, StaticNode * node, const Mxnet
     StaticOp * op=CreateStaticOp(graph, "Reshape");
     SetOperatorParam(op, param);
     SetNodeOp(node, op);
+
     return true;
 }
 
@@ -988,8 +990,9 @@ bool MxnetSerializerRegisterOpLoader(void)
     p_mxnet->RegisterOpLoadMethod("elemwise_add",op_load_t(LoadMxnetElemwiseAdd));
     p_mxnet->RegisterOpLoadMethod("LeakyReLU",op_load_t(LoadMxnetLeakyReLU));
     p_mxnet->RegisterOpLoadMethod("FullyConnected",op_load_t(LoadMxnetFullyConnected));
+
     p_mxnet->RegisterOpLoadMethod("Reshape",op_load_t(LoadMxnetReshape));
-    
+
     return true;
 }
 
