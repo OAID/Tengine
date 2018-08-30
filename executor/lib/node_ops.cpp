@@ -164,28 +164,12 @@ NodeOpsRegistry * NodeOpsRegistryManager::FindRegistry(const std::string& name)
 }
 
 
-static NodeOps * simple_select_function(NodeOps * ops,const CPUInfo * info, Node * node)
-{
-    return ops;
-}
-
 void  NodeOpsRegistryManager::RecordNodeOpsptr(NodeOps * ops)
 {
 
       auto manager=GetInstance();
 
       manager->ops_list.emplace_back(ops);
-}
-
-bool NodeOpsRegistryManager::RegisterOPImplementor(const std::string& registry_name, 
-                                       const std::string& op_name, NodeOps * ops)
-{
-     auto f=std::bind(simple_select_function,ops,std::placeholders::_1, std::placeholders::_2);
-
-     RecordNodeOpsptr(ops);
-    
-     return RegisterOPImplementor(registry_name,op_name,f,1000);
-
 }
 
 bool NodeOpsRegistryManager::RegisterOPImplementor(const std::string& registry_name, const std::string& op_name, select_node_ops_t select_func, int priority)

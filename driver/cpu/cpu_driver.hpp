@@ -224,17 +224,29 @@ public:
 
        bool RealPrerun(DevContext * context)
        {
-           return backend_runner_.Prerun(context->optimized_graph);
+           prerun_lock_.lock();
+           bool ret=backend_runner_.Prerun(context->optimized_graph);
+	    prerun_lock_.unlock();
+
+	    return ret;
        }
 
        bool RealPostrun(DevContext * context)
        {
-           return backend_runner_.Postrun(context->optimized_graph);
+           postrun_lock_.lock();
+           bool ret=backend_runner_.Postrun(context->optimized_graph);
+	    postrun_lock_.unlock();
+
+	    return ret;
        }
 
        bool RealRun(Subgraph * graph)
        {
-           return backend_runner_.Run(graph);
+            run_lock_.lock();
+	     bool ret=backend_runner_.Run(graph);
+	     run_lock_.unlock();
+
+	     return ret;
        }
 
        bool RealOptimizeGraph(DevContext * context, Subgraph * graph)
@@ -269,7 +281,9 @@ private:
         std::mutex  wait_mutex_;
         std::condition_variable wait_cv_;
 
-
+	std::mutex prerun_lock_;
+	std::mutex postrun_lock_;
+	std::mutex run_lock_;
 };
 
 

@@ -187,7 +187,26 @@ public:
    static void AddRegistry(const std::string& name, NodeOpsRegistry * reg);
    static NodeOpsRegistry * FindRegistry(const std::string& name); 
 
-   static bool RegisterOPImplementor(const std::string& registry_name, const std::string& op_name, NodeOps * ops);
+    template <typename T>
+    static NodeOps * simple_select_function(T * ops,const CPUInfo * info, Node * node)
+   {
+        NodeOps * new_ops=new T(*ops);
+        new_ops->need_free=true;
+
+	return new_ops;
+   }
+
+   template <typename T>
+   static bool RegisterOPImplementor(const std::string& registry_name, const std::string& op_name, T * ops)
+   {
+         auto f=std::bind(simple_select_function<T>,ops,std::placeholders::_1, std::placeholders::_2);
+
+       RecordNodeOpsptr(ops);
+    
+       return RegisterOPImplementor(registry_name,op_name,f,1000);
+
+   }
+   
    static bool RegisterOPImplementor(const std::string& registry_name, const std::string& op_name, select_node_ops_t selec_func, int priority);
 
 
