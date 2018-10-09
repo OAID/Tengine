@@ -27,35 +27,27 @@
 
 namespace TEngine {
 
-
 template <>
-int DataType::Convert<int>(const std::string& str) const
-{
+int DataType::Convert<int>(const std::string& str) const {
+  int base = 10;
 
-    int base=10;
+  if (str.substr(0, 2) == std::string("0x")) base = 16;
 
-    if(str.substr(0,2)==std::string("0x"))
-          base=16;
-
-    return strtoul(str.c_str(),NULL,base);
+  return strtoul(str.c_str(), NULL, base);
 }
 
-
 template <>
-float DataType::Convert<float>(const std::string& str) const
-{
-    return strtof(str.c_str(),NULL);
+float DataType::Convert<float>(const std::string& str) const {
+  return strtof(str.c_str(), NULL);
 }
 
-
 template <>
-void NamedData<DataType>::InitPredefinedData()
-{
-    /* A few pre-defined data types */
-    static DataType float32("float32",4,true);
-    static DataType float16("float16",2);
-    static DataType int32("int",4);
-    static DataType int8("int8",1);
+void NamedData<DataType>::InitPredefinedData() {
+  /* A few pre-defined data types */
+  static DataType float32("float32", 4, true);
+  static DataType float16("float16", 2);
+  static DataType int32("int", 4);
+  static DataType int8("int8", 1);
 }
 
-} //namespace TEngine
+}  // namespace TEngine

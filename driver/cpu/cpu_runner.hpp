@@ -24,9 +24,9 @@
 #ifndef __CPU_RUNNER_HPP__
 #define __CPU_RUNNER_HPP__
 
+#include <functional>
 #include <string>
 #include <vector>
-#include <functional>
 
 #include "node_ops.hpp"
 
@@ -35,46 +35,37 @@ namespace TEngine {
 class Graph;
 class CPUDevice;
 
-using Subgraph=Graph;
+using Subgraph = Graph;
 
 class CPURunner {
+ public:
+  bool Prerun(Subgraph* sub_graph);
+  bool Run(Subgraph* sub_graph);
+  bool Postrun(Subgraph* sub_graph);
 
-public:
+  bool OptimizeGraph(Subgraph* sub_graph);
 
-   bool Prerun(Subgraph * sub_graph);
-   bool Run(Subgraph * sub_graph) ; 
-   bool Postrun(Subgraph * sub_graph);
-   
-   bool OptimizeGraph(Subgraph * sub_graph);
+  void AttachCPUDevice(CPUDevice* cpu_dev);
 
-   void AttachCPUDevice(CPUDevice * cpu_dev);
+  bool BindNodeOps(Subgraph* graph);
+  bool AllocateMem(Subgraph* graph);
 
- 
-   bool BindNodeOps(Subgraph * graph);
-   bool AllocateMem(Subgraph * graph);
+  bool FreeMem(Subgraph* graph);
+  bool UnbindNodeOps(Subgraph* graph);
 
-   bool FreeMem(Subgraph * graph);
-   bool UnbindNodeOps(Subgraph * graph);
+  CPURunner() {
+    mem_alloc = malloc;
+    mem_free = free;
+  }
 
-   CPURunner() { mem_alloc=malloc; mem_free=free; }
- 
-   ~CPURunner(){} 
+  ~CPURunner() {}
 
-   mem_alloc_t mem_alloc;
-   mem_free_t mem_free;
-   CPUDevice * cpu_dev_;
-   const CPUInfo * cpu_info_;
-
-
+  mem_alloc_t mem_alloc;
+  mem_free_t mem_free;
+  CPUDevice* cpu_dev_;
+  const CPUInfo* cpu_info_;
 };
 
-
-
-
-
-
-
-} //namespace TEngine
-
+}  // namespace TEngine
 
 #endif

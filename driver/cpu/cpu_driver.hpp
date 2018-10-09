@@ -24,343 +24,307 @@
 #ifndef __CPU_DRIVER_HPP__
 #define __CPU_DRIVER_HPP__
 
-#include <vector>
-#include <string>
 #include <atomic>
-#include <queue>
-#include <thread>
 #include <condition_variable>
+#include <queue>
+#include <string>
+#include <thread>
+#include <vector>
 
 #include "cpu_device.h"
 #include "cpu_info.hpp"
-#include "node_ops.hpp"
 #include "cpu_runner.hpp"
+#include "node_ops.hpp"
 
-#include "graph.hpp"
 #include "device_driver.hpp"
+#include "graph.hpp"
 #include "worker_thread.hpp"
 
 namespace TEngine {
-
 
 class CPUDevice;
 
 namespace cpu_driver {
 
-struct DevContext
-{
-    CPUDevice * dev;
-    Subgraph * sub_graph;
-    Subgraph * optimized_graph;
-    dev_graph_cb_t graph_cb;
+struct DevContext {
+  CPUDevice* dev;
+  Subgraph* sub_graph;
+  Subgraph* optimized_graph;
+  dev_graph_cb_t graph_cb;
 };
 
 struct cpu_task {
-      struct DevContext * context;
-
+  struct DevContext* context;
 };
 
-}
+}  // namespace cpu_driver
 
-using cpu_task=cpu_driver::cpu_task;
-using DevContext=cpu_driver::DevContext;
-
+using cpu_task = cpu_driver::cpu_task;
+using DevContext = cpu_driver::DevContext;
 
 class CPUDevice : public Device {
+ public:
+  CPUDevice(const char* dev_name, const struct cpu_info* dev_def)
+      : Device(dev_name), cpu_info_(dev_def) {
+    master_thread_ = nullptr;
+    done_ = 0;
+    request_ = 0;
 
-public:
-	CPUDevice(const char * dev_name, const struct cpu_info * dev_def): Device(dev_name), cpu_info_(dev_def)
-        {
-            master_thread_=nullptr;
-            done_=0;
-            request_=0;
-            
-            /* backend runner */
-            backend_runner_.AttachCPUDevice(this);
-        } 
+    /* backend runner */
+    backend_runner_.AttachCPUDevice(this);
+  }
 
-	virtual ~CPUDevice() 
-	{
+  virtual ~CPUDevice() {
+    if (master_thread_) delete master_thread_;
 
-           if(master_thread_)
-             delete master_thread_;
+    for (auto tr : aider_threads_) delete tr;
+  }
 
-           for(auto tr: aider_threads_)
-              delete tr;
-	}
+  const CPUInfo* GetCPUInfo(void) { return &cpu_info_; }
 
-        const CPUInfo * GetCPUInfo(void) { return &cpu_info_;}
+  void RunGraph(Subgraph* sub_graph, dev_graph_cb_t graph_cb) {
+    bool ret = RealRun(sub_graph);
 
+    if (graph_cb) graph_cb(sub_graph, ret);
+  }
 
-        void RunGraph(Subgraph * sub_graph, dev_graph_cb_t graph_cb)
-        {
-             bool ret=RealRun(sub_graph);
+  void MasterProcess(const cpu_task& task, int cpu_id) {
+    RunGraph(task.context->optimized_graph, task.context->graph_cb);
+  }
 
-	     if(graph_cb)
-         	graph_cb(sub_graph,ret);
-        }
+  void AiderProcess(const sub_op_task& task, int cpu_id) {
+    task.exec_func(cpu_id, task.seq, task.data);
+  }
 
-        void MasterProcess(const cpu_task& task, int cpu_id)
-        {
+  void LaunchMaster(void) {
+    auto f = std::bind(&CPUDevice::MasterProcess, this, std::placeholders::_1,
+                       std::placeholders::_2);
 
-             RunGraph(task.context->optimized_graph,task.context->graph_cb);
+    master_thread_ = new WorkerThread<cpu_task>(f, cpu_info_.master_cpu);
 
-        }
+    master_thread_->SetQueue(&master_task_queue_, &master_queue_lock_,
+                             &master_queue_cv_);
 
-        void AiderProcess(const sub_op_task& task, int cpu_id)
-        {
-             task.exec_func(cpu_id,task.seq,task.data);
-        }
+    master_thread_->LaunchWorker();
+  }
 
+  void LaunchAider(void) {
+    if (cpu_info_.GetCPUNumber() == 1) return;
 
-        void LaunchMaster(void)
-        {
-             auto f=std::bind(&CPUDevice::MasterProcess,this,std::placeholders::_1,std::placeholders::_2);
+    auto f = std::bind(&CPUDevice::AiderProcess, this, std::placeholders::_1,
+                       std::placeholders::_2);
 
-             master_thread_=new WorkerThread<cpu_task>(f,cpu_info_.master_cpu);
+    for (int i = 0; i < cpu_info_.GetCPUNumber(); i++) {
+      int cpu = cpu_info_.GetOnlineCPU(i);
 
-             master_thread_->SetQueue(&master_task_queue_,&master_queue_lock_,&master_queue_cv_);
+      WorkerThread<sub_op_task>* tr = new WorkerThread<sub_op_task>(f, cpu);
 
-             master_thread_->LaunchWorker();
+      tr->SetQueue(&aider_task_queue_, &aider_queue_lock_, &aider_queue_cv_);
 
-        }
+      auto inc_req =
+          std::bind(&CPUDevice::IncRequest, this, std::placeholders::_1);
+      auto inc_done =
+          std::bind(&CPUDevice::IncDone, this, std::placeholders::_1);
 
- 
-        void LaunchAider(void)
-        {
-            if(cpu_info_.GetCPUNumber()==1)
-                  return ;
+      tr->SetCount(inc_req, inc_done);
 
-             auto f=std::bind(&CPUDevice::AiderProcess,this,std::placeholders::_1,std::placeholders::_2);
+      aider_threads_.push_back(tr);
 
-            for(int i=0;i<cpu_info_.GetCPUNumber();i++)
-            {
-                int cpu=cpu_info_.GetOnlineCPU(i);
+      tr->LaunchWorker();
+    }
+  }
 
-                WorkerThread<sub_op_task> * tr=new WorkerThread<sub_op_task>(f,cpu);
+  void WaitDone(void) {
+    std::unique_lock<std::mutex> lock(wait_mutex_);
 
-                tr->SetQueue(&aider_task_queue_,&aider_queue_lock_,&aider_queue_cv_);
+    if (done_ != request_)
+      wait_cv_.wait(lock, [this] { return done_ == request_; });
 
+    lock.unlock();
+  }
 
-                auto inc_req=std::bind(&CPUDevice::IncRequest,this,std::placeholders::_1);
-                auto inc_done=std::bind(&CPUDevice::IncDone,this,std::placeholders::_1);
+  void IncRequest(int req_number) { request_ += req_number; }
 
-                tr->SetCount(inc_req,inc_done);
+  void IncDone(int done_number) {
+    uint64_t prev_val = done_.fetch_add(done_number);
 
-                aider_threads_.push_back(tr);
+    if (prev_val + done_number == request_) {
+      std::unique_lock<std::mutex> lock(wait_mutex_);
 
-                tr->LaunchWorker();
+      wait_cv_.notify_all();
 
-            }
-        }
+      lock.unlock();
+    }
+  }
 
+  bool PushAiderTask(std::vector<sub_op_task>& task_list, int cpu) {
+    auto tr = aider_threads_[0];
 
-        void WaitDone(void)
-        {
-             std::unique_lock<std::mutex> lock(wait_mutex_);
+    tr->PushTask(task_list);
 
-             if(done_!=request_)
-                   wait_cv_.wait(lock,[this]{return done_==request_;});
- 
-             lock.unlock(); 
+    return true;
+  }
 
-        }
+  void PushMasterTask(std::vector<cpu_task>& task_list) {
+    master_thread_->PushTask(task_list);
+  }
 
-        void IncRequest(int req_number)
-        {
-             request_+=req_number;
-        }
+  void KillMaster(void) {
+    if (master_thread_) {
+      delete master_thread_;
+      master_thread_ = nullptr;
+    }
+  }
 
-        void IncDone(int done_number)
-        {
-             uint64_t prev_val=done_.fetch_add(done_number);
+  void KillAider(void) {
+    if (aider_threads_.size() > 0) {
+      for (auto& tr : aider_threads_) delete tr;
 
-             if(prev_val+done_number== request_)
-             {
-                   std::unique_lock<std::mutex> lock(wait_mutex_);
+      aider_threads_.clear();
+    }
+  }
 
-                   wait_cv_.notify_all();
+  bool RealPrerun(DevContext* context) {
+    prerun_lock_.lock();
+    bool ret = backend_runner_.Prerun(context->optimized_graph);
+    prerun_lock_.unlock();
 
-                   lock.unlock();
+    return ret;
+  }
 
-             }
-        }
-      
-        bool PushAiderTask(std::vector<sub_op_task>& task_list,int cpu)
-        {
-            auto tr=aider_threads_[0];
+  bool RealPostrun(DevContext* context) {
+    postrun_lock_.lock();
+    bool ret = backend_runner_.Postrun(context->optimized_graph);
+    postrun_lock_.unlock();
 
-            tr->PushTask(task_list); 
+    return ret;
+  }
 
-            return true;
-        }
+  bool RealRun(Subgraph* graph) {
+    run_lock_.lock();
+    bool ret = backend_runner_.Run(graph);
+    run_lock_.unlock();
 
+    return ret;
+  }
 
-        void PushMasterTask(std::vector<cpu_task>& task_list)
-        {
-            master_thread_->PushTask(task_list);
-        }
+  bool RealOptimizeGraph(DevContext* context, Subgraph* graph) {
+    context->optimized_graph = graph;
 
-       void KillMaster(void)
-       {
-           if(master_thread_)
-           {
-              delete master_thread_;
-              master_thread_=nullptr;
-           }
-       }
+    return backend_runner_.OptimizeGraph(context->optimized_graph);
+  }
 
-       void KillAider(void)
-       {
+  dev_status_t dev_status;
 
-           if(aider_threads_.size()>0)
-           {
-               for(auto & tr: aider_threads_)
-                    delete tr;
+ private:
+  WorkerThread<cpu_task>* master_thread_;
+  std::vector<WorkerThread<sub_op_task>*> aider_threads_;
 
-                aider_threads_.clear(); 
-           }
-       }
+  std::mutex master_queue_lock_;
+  std::condition_variable master_queue_cv_;
+  std::queue<cpu_task> master_task_queue_;
 
-       bool RealPrerun(DevContext * context)
-       {
-           prerun_lock_.lock();
-           bool ret=backend_runner_.Prerun(context->optimized_graph);
-	    prerun_lock_.unlock();
+  std::mutex aider_queue_lock_;
+  std::condition_variable aider_queue_cv_;
+  std::queue<sub_op_task> aider_task_queue_;
 
-	    return ret;
-       }
+  CPUInfo cpu_info_;
+  CPURunner backend_runner_;
 
-       bool RealPostrun(DevContext * context)
-       {
-           postrun_lock_.lock();
-           bool ret=backend_runner_.Postrun(context->optimized_graph);
-	    postrun_lock_.unlock();
+  std::atomic<uint64_t> request_;
+  std::atomic<uint64_t> done_;
+  std::mutex wait_mutex_;
+  std::condition_variable wait_cv_;
 
-	    return ret;
-       }
-
-       bool RealRun(Subgraph * graph)
-       {
-            run_lock_.lock();
-	     bool ret=backend_runner_.Run(graph);
-	     run_lock_.unlock();
-
-	     return ret;
-       }
-
-       bool RealOptimizeGraph(DevContext * context, Subgraph * graph)
-       {
-           context->optimized_graph=graph;
-
-           return backend_runner_.OptimizeGraph(context->optimized_graph);
-
-       }
-
-       dev_status_t dev_status;
-
-private:
-
-        WorkerThread<cpu_task> * master_thread_;
-        std::vector<WorkerThread<sub_op_task> * > aider_threads_;
-
-	std::mutex master_queue_lock_;
-	std::condition_variable master_queue_cv_;
-	std::queue<cpu_task> master_task_queue_;
-       
-
-	std::mutex aider_queue_lock_;
-	std::condition_variable aider_queue_cv_;
-	std::queue<sub_op_task> aider_task_queue_;
-
-        CPUInfo cpu_info_;
-        CPURunner backend_runner_;
- 
-        std::atomic<uint64_t> request_;
-        std::atomic<uint64_t> done_;
-        std::mutex  wait_mutex_;
-        std::condition_variable wait_cv_;
-
-	std::mutex prerun_lock_;
-	std::mutex postrun_lock_;
-	std::mutex run_lock_;
+  std::mutex prerun_lock_;
+  std::mutex postrun_lock_;
+  std::mutex run_lock_;
 };
 
+class CPUDriver : public Driver {
+ public:
+  CPUDriver() {
+    SetName("CPU");
+    auto_probe_ = false;
+  }
 
+  bool InitializeDevice(Device* device) override;
+  bool ReleaseDevice(Device* device) override;
 
-class CPUDriver: public Driver {
-public:
+  bool StartDevice(Device* device) override;
+  bool StopDevice(Device* device) override;
 
-        CPUDriver() { SetName("CPU"); auto_probe_=false;}
+  dev_status_t GetDeviceStatus(Device* device) override;
 
-	bool InitializeDevice(Device * device) override;
-	bool ReleaseDevice(Device * device) override;
+  void* CreateGraphHandle(Device* dev, Subgraph* graph) override;
+  void* CreateGraphHandle(Device* dev) override;
+  bool ReleaseGraphHandle(Device* dev, void* graph_handle) override;
 
-	bool StartDevice(Device * device) override;
-	bool StopDevice(Device * device) override;
+  void SetGraphDoneHook(Device* dev, void* graph_handle,
+                        dev_graph_cb_t func) override;
+  void SetNodeDoneHook(Device* dev, void* node_handle,
+                       dev_node_cb_t func) override{};
 
-	dev_status_t GetDeviceStatus(Device * device) override;
+  bool OptimizeGraph(Device* dev, void* graph_handle, Subgraph* graph) override;
+  bool OptimizeGraph(Device* dev, void* graph_handle) override;
 
-	void * CreateGraphHandle(Device * dev,Subgraph * graph) override; 
-	void * CreateGraphHandle(Device * dev) override;
-	bool ReleaseGraphHandle(Device * dev, void * graph_handle) override;
+  Subgraph* GetOptimizedGraph(Device* dev, void* graph_handle) override;
 
-	void  SetGraphDoneHook(Device * dev, void * graph_handle, dev_graph_cb_t func) override;
-	void  SetNodeDoneHook(Device * dev, void * node_handle, dev_node_cb_t func) override {};
+  bool Prerun(Device* dev, void* graph_handle) override;
+  bool Run(Device* dev, void* graph_handle) override;
+  bool SyncRun(Device* dev, void* graph_handle) override;
+  bool Postrun(Device* dev, void* graph_handle) override;
 
-	bool OptimizeGraph(Device * dev, void * graph_handle, Subgraph * graph) override;
-	bool OptimizeGraph(Device * dev, void * graph_handle) override;
+  bool Prerun(Device* dev, void* node_handle, Node* node) override {
+    return false;
+  }
+  bool Run(Device* dev, void* node_handle, Node* node) override {
+    return false;
+  }
+  bool SyncRun(Device* dev, void* node_handle, Node* node) override {
+    return false;
+  }
+  bool Postrun(Device* dev, void* node_handle, Node* node) override {
+    return false;
+  }
 
-        Subgraph * GetOptimizedGraph(Device * dev, void * graph_handle) override;
+  void PushGraph(CPUDevice* cpu_info, DevContext* context);
 
-	bool Prerun(Device * dev, void * graph_handle) override;
-	bool Run(Device * dev, void * graph_handle) override;
-	bool SyncRun(Device * dev, void * graph_handle) override;
-	bool Postrun(Device * dev, void * graph_handle) override;
+  bool GetWorkload(Device* dev, DevWorkload& load) override { return false; }
+  bool GetPerf(Device* dev, Subgraph* graph, int policy,
+               GraphPerf& perf) override {
+    return false;
+  }
+  float GetFops(Device* dev, Subgraph* graph, int policy) override {
+    return false;
+  }
+  int GetPolicyPriority(Device* dev, int policy) override { return false; }
+  bool GetProposal(Device* dev, Subgraph* graph, int policy) override {
+    return false;
+  }
 
+  /*
+    Since there are some many different CPU, there is no predefined CPU inside
+    now. so, the probe function does not work. The new interface: AddDevice is
+    to insert a CPUDevice into drvier management system
+  */
 
-	bool Prerun(Device * dev, void * node_handle, Node * node) override {return false;}
-	bool Run(Device * dev, void * node_handle, Node * node) override {return false;}
-	bool SyncRun(Device * dev, void * node_handle, Node * node) override {return false;}
-	bool Postrun(Device * dev, void * node_handle, Node  * node) override {return false;}
+  void AddDevice(CPUDevice* new_device);  // a special interface for  CPU Device
 
-        void PushGraph(CPUDevice * cpu_info, DevContext * context);
+  int ProbeDevice(void) override { return 0; }
+  bool ProbeDevice(const dev_id_t& dev_id) override { return false; }
 
+  int DestroyDevice(void) override;
+  bool DestroyDevice(Device* device) override;
 
-       bool GetWorkload(Device * dev, DevWorkload& load) override {return false;}
-       bool GetPerf(Device * dev, Subgraph * graph,int policy,GraphPerf& perf) override {return false;}
-       float GetFops(Device * dev, Subgraph * graph, int policy) override { return false;}
-       int GetPolicyPriority(Device * dev, int policy) override  { return false;}
-       bool  GetProposal(Device * dev, Subgraph * graph, int policy) override { return false;}
+  int GetDeviceNum(void) override;
+  Device* GetDevice(int idx) override;
+  Device* GetDevice(const std::string& name) override;
 
-       /* 
-         Since there are some many different CPU, there is no predefined CPU inside now.
-         so, the probe function does not work.
-         The new interface: AddDevice is to insert a CPUDevice into drvier management system 
-       */
-
-       void AddDevice(CPUDevice * new_device);  //a special interface for  CPU Device
-
-       int ProbeDevice(void) override { return 0;}
-       bool ProbeDevice(const dev_id_t& dev_id) override { return false;}
-	
-       int DestroyDevice(void) override;
-       bool DestroyDevice(Device * device) override;
-       
-       int GetDeviceNum(void) override;
-       Device * GetDevice(int idx) override;
-       Device * GetDevice(const std::string& name) override;
-
-
-
-protected:
-
-      std::unordered_map<std::string, CPUDevice *> device_table_;	
-
-
+ protected:
+  std::unordered_map<std::string, CPUDevice*> device_table_;
 };
 
-
-} //namespace TEngine
+}  // namespace TEngine
 
 #endif

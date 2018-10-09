@@ -24,28 +24,22 @@
 #ifndef __FLATTEN_HPP__
 #define __FLATTEN_HPP__
 
-
-#include "operator.hpp"
 #include "flatten_param.hpp"
+#include "operator.hpp"
 
 namespace TEngine {
 
-class Flatten: public OperatorWithParam<Flatten, FlattenParam> {
+class Flatten : public OperatorWithParam<Flatten, FlattenParam> {
+ public:
+  Flatten() { name_ = "Flatten"; }
+  Flatten(const Flatten& src) = default;
 
-public:
-
-     Flatten () { name_="Flatten"; }
-     Flatten(const Flatten& src)=default;
-
-     virtual ~Flatten() {}
-     bool InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEngine::TShape>& oshape) override;
-     void SetSchema(void) override;
-
-
+  virtual ~Flatten() {}
+  bool InferShape(const std::vector<TEngine::TShape>& ishape,
+                  std::vector<TEngine::TShape>& oshape) override;
+  void SetSchema(void) override;
 };
 
-
-} //namespace TEngine
-
+}  // namespace TEngine
 
 #endif

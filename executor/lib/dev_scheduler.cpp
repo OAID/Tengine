@@ -24,135 +24,121 @@
 
 #include "tengine_lock.hpp"
 
-#include "logger.hpp"
-#include "dev_scheduler.hpp"
 #include "dev_executor.hpp"
+#include "dev_scheduler.hpp"
 #include "graph_task.hpp"
-
+#include "logger.hpp"
 
 namespace TEngine {
 
-int DevScheduler::MapPolicy(const std::string& policy)
-{
-   return 1;
-}
+int DevScheduler::MapPolicy(const std::string &policy) { return 1; }
 
-class SimpleScheduler: public DevScheduler {
+class SimpleScheduler : public DevScheduler {
+ public:
+  SimpleScheduler() { sched_name = "Simple"; }
 
-public:
-
-    SimpleScheduler() { sched_name="Simple";}
-
-    bool SyncRunTask(GenericEngine * engine, DevExecutor * dev, SubgraphTask * task) override;
-    bool SchedTask(GenericEngine * engine, DevExecutor * dev, SubgraphTask * task) override;
-    bool PrerunTask(GenericEngine *, DevExecutor * dev, SubgraphTask * task) override;
-    bool PostrunTask(GenericEngine *, DevExecutor * dev, SubgraphTask * task) override;
-    bool AbortTask(GenericEngine * engine, DevExecutor * dev, SubgraphTask * task) override;
-    bool SuspendTask(GenericEngine * engine, DevExecutor * dev, SubgraphTask * task) override;
-    bool ResumeTask(GenericEngine * engine, DevExecutor * dev, SubgraphTask * task) override;
+  bool SyncRunTask(GenericEngine *engine, DevExecutor *dev,
+                   SubgraphTask *task) override;
+  bool SchedTask(GenericEngine *engine, DevExecutor *dev,
+                 SubgraphTask *task) override;
+  bool PrerunTask(GenericEngine *, DevExecutor *dev,
+                  SubgraphTask *task) override;
+  bool PostrunTask(GenericEngine *, DevExecutor *dev,
+                   SubgraphTask *task) override;
+  bool AbortTask(GenericEngine *engine, DevExecutor *dev,
+                 SubgraphTask *task) override;
+  bool SuspendTask(GenericEngine *engine, DevExecutor *dev,
+                   SubgraphTask *task) override;
+  bool ResumeTask(GenericEngine *engine, DevExecutor *dev,
+                  SubgraphTask *task) override;
 };
 
-bool SimpleScheduler::SyncRunTask(GenericEngine * engine, DevExecutor * dev, SubgraphTask * task)
-{
-    return dev->SyncRunTask(task);
+bool SimpleScheduler::SyncRunTask(GenericEngine *engine, DevExecutor *dev,
+                                  SubgraphTask *task) {
+  return dev->SyncRunTask(task);
 }
 
-bool SimpleScheduler::SchedTask(GenericEngine * engine, DevExecutor * dev, SubgraphTask * task)
-{
-         return dev->SchedTask(task);
+bool SimpleScheduler::SchedTask(GenericEngine *engine, DevExecutor *dev,
+                                SubgraphTask *task) {
+  return dev->SchedTask(task);
 }
 
-bool SimpleScheduler::PrerunTask(GenericEngine *, DevExecutor * dev, SubgraphTask * task)
-{
-        return dev->PrerunTask(task);
+bool SimpleScheduler::PrerunTask(GenericEngine *, DevExecutor *dev,
+                                 SubgraphTask *task) {
+  return dev->PrerunTask(task);
 }
 
-bool SimpleScheduler::PostrunTask(GenericEngine *, DevExecutor * dev, SubgraphTask * task)
-{
-       dev->PostrunTask(task);
+bool SimpleScheduler::PostrunTask(GenericEngine *, DevExecutor *dev,
+                                  SubgraphTask *task) {
+  dev->PostrunTask(task);
 
-       return true;
+  return true;
 }
 
-bool SimpleScheduler::AbortTask(GenericEngine * engine, DevExecutor * dev, SubgraphTask * task)
-{
-       XLOG_ERROR()<<"NOT SUPPORT\n";
-      return false;
-
+bool SimpleScheduler::AbortTask(GenericEngine *engine, DevExecutor *dev,
+                                SubgraphTask *task) {
+  XLOG_ERROR() << "NOT SUPPORT\n";
+  return false;
 }
 
-bool SimpleScheduler::SuspendTask(GenericEngine * engine, DevExecutor * dev, SubgraphTask * task)
-{
-       XLOG_ERROR()<<"NOT SUPPORT\n";
-      return false;
+bool SimpleScheduler::SuspendTask(GenericEngine *engine, DevExecutor *dev,
+                                  SubgraphTask *task) {
+  XLOG_ERROR() << "NOT SUPPORT\n";
+  return false;
 }
 
-bool SimpleScheduler::ResumeTask(GenericEngine * engine, DevExecutor * dev, SubgraphTask * task)
-{
-      XLOG_ERROR()<<"NOT SUPPORT\n";
-      return false;
+bool SimpleScheduler::ResumeTask(GenericEngine *engine, DevExecutor *dev,
+                                 SubgraphTask *task) {
+  XLOG_ERROR() << "NOT SUPPORT\n";
+  return false;
 }
 
-void DevSchedulerManager::OnDevExecutorRegistered(DevExecutor * dev_executor)
-{
-	DevSchedulerManager * manager=GetInstance();
+void DevSchedulerManager::OnDevExecutorRegistered(DevExecutor *dev_executor) {
+  DevSchedulerManager *manager = GetInstance();
 
-	LockExecutorList();
+  LockExecutorList();
 
-	manager->executor_list.push_back(dev_executor);
+  manager->executor_list.push_back(dev_executor);
 
-	UnlockExecutorList();
-	
+  UnlockExecutorList();
 }
 
-void DevSchedulerManager::OnDevExecutorUnregistered(DevExecutor* dev_executor)
-{
-	DevSchedulerManager * manager=GetInstance();
+void DevSchedulerManager::OnDevExecutorUnregistered(DevExecutor *dev_executor) {
+  DevSchedulerManager *manager = GetInstance();
 
-	LockExecutorList();
+  LockExecutorList();
 
-	auto ir=manager->executor_list.begin();
-       auto end=manager->executor_list.end();
+  auto ir = manager->executor_list.begin();
+  auto end = manager->executor_list.end();
 
-	while(ir!=end)
-	{
-	   if(*ir==dev_executor)
-	   {
-	         manager->executor_list.erase(ir);
-		  break; 
-	   }
+  while (ir != end) {
+    if (*ir == dev_executor) {
+      manager->executor_list.erase(ir);
+      break;
+    }
 
-	   ir++;
-	}
-	
-	UnlockExecutorList();
+    ir++;
+  }
 
+  UnlockExecutorList();
 }
 
-void DevSchedulerManager::LockExecutorList(void)
-{
-     DevSchedulerManager * manager=GetInstance();
-    TEngineLock(manager->list_lock);
+void DevSchedulerManager::LockExecutorList(void) {
+  DevSchedulerManager *manager = GetInstance();
+  TEngineLock(manager->list_lock);
 }
 
-void DevSchedulerManager::UnlockExecutorList(void)
-{
-     DevSchedulerManager * manager=GetInstance();
-     TEngineUnlock(manager->list_lock);
+void DevSchedulerManager::UnlockExecutorList(void) {
+  DevSchedulerManager *manager = GetInstance();
+  TEngineUnlock(manager->list_lock);
 }
-	
-
-
-
 
 /* for init */
 
-void DevSchedulerManagerInit(void)
-{
-	SimpleScheduler * sched=new SimpleScheduler();
+void DevSchedulerManagerInit(void) {
+  SimpleScheduler *sched = new SimpleScheduler();
 
-	DevSchedulerManager::Add(sched->GetName(),DevSchedulerPtr(sched));
+  DevSchedulerManager::Add(sched->GetName(), DevSchedulerPtr(sched));
 }
 
-} //namespace TEngine
-
+}  // namespace TEngine

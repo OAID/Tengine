@@ -28,19 +28,14 @@
 #include "region_param.hpp"
 namespace TEngine {
 
-class Region: public OperatorWithParam<Region, RegionParam> {
-
-public:
-
-      Region() { name_="Region";}
-      Region(const Region& src)=default;
-      virtual ~Region() {};
-      void SetSchema(void) override;
- 
+class Region : public OperatorWithParam<Region, RegionParam> {
+ public:
+  Region() { name_ = "Region"; }
+  Region(const Region& src) = default;
+  virtual ~Region(){};
+  void SetSchema(void) override;
 };
 
-} //namespace TEngine
-
-
+}  // namespace TEngine
 
 #endif

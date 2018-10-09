@@ -24,27 +24,20 @@
 #ifndef __ROIPOOLING_PARAM_HPP__
 #define __ROIPOOLING_PARAM_HPP__
 
-
 #include "parameter.hpp"
 
 namespace TEngine {
 
-
 struct ROIPoolingParam : public NamedParam {
+  int pooled_h;
+  int pooled_w;
+  float spatial_scale;
 
-    int pooled_h;
-    int pooled_w;
-    float spatial_scale;
-
-    DECLARE_PARSER_STRUCTURE(ROIPoolingParam) 
-    {
-       DECLARE_PARSER_ENTRY(spatial_scale);
-    };
-
+  DECLARE_PARSER_STRUCTURE(ROIPoolingParam) {
+    DECLARE_PARSER_ENTRY(spatial_scale);
+  };
 };
 
-
-} //namespace TEngine
-
+}  // namespace TEngine
 
 #endif

@@ -29,126 +29,102 @@
 
 namespace TEngine {
 
-template <typename M, typename T> 
-class SimpleObjectManager: public std::unordered_map<std::string, T >  
-{
-public:
-    static M * GetInstance(void)
-    {
-        static M instance;
-        return &instance;
+template <typename M, typename T>
+class SimpleObjectManager : public std::unordered_map<std::string, T> {
+ public:
+  static M* GetInstance(void) {
+    static M instance;
+    return &instance;
+  }
+
+  static bool Find(const std::string& name) {
+    auto manager = GetInstance();
+
+    if (manager->count(name) == 0) return false;
+
+    return true;
+  }
+
+  static T& Get(const std::string& name) {
+    auto manager = GetInstance();
+
+    return (*manager)[name];
+  }
+
+  static bool Get(const std::string& name, T& val) {
+    auto manager = GetInstance();
+
+    if (manager->count(name)) {
+      val = manager->at(name);
+      return true;
     }
 
-    static bool Find(const std::string& name)
-    {
-        auto manager=GetInstance();
+    return false;
+  }
 
-        if(manager->count(name)==0)
-             return false;
+  static bool Add(const std::string& name, const T& data) {
+    auto manager = GetInstance();
 
-         return true;
-    }
+    if (manager->count(name)) return false;
 
-    static T& Get(const std::string& name)
-    {
-        auto manager=GetInstance();
+    (*manager)[name] = data;
 
-        return (*manager)[name];
-    }
+    return true;
+  }
 
-    static bool Get(const std::string& name, T& val)
-    {
-        auto manager=GetInstance();
+  static bool Replace(const std::string& name, const T& data) {
+    auto manager = GetInstance();
 
-        if(manager->count(name))
-        {
-           val=manager->at(name);
-           return true;
-        }
-        
-        return false;
-    }
+    if (manager->count(name) == 0) return false;
 
-    static bool Add(const std::string& name, const T& data)
-    {
-        auto manager=GetInstance();
+    T& old_data = (*manager)[name];
+    FreeObject(old_data);
 
-        if(manager->count(name))
-               return false;
+    (*manager)[name] = data;
 
-         (*manager)[name]=data;
+    return true;
+  }
 
+  static bool Remove(const std::string& name) {
+    auto manager = GetInstance();
+    auto ir = (*manager).begin();
+    auto end = (*manager).end();
+
+    while (ir != end) {
+      if (ir->first == name) {
+        FreeObject(ir->second);
+        manager->erase(ir);
         return true;
+      }
+
+      ir++;
     }
 
+    return false;
+  }
 
-    static bool Replace(const std::string& name, const T& data)
-    {
-        auto manager=GetInstance();
+  template <typename U>
+  static typename std::enable_if<std::is_pointer<U>::value, void>::type
+  FreeObject(U& obj) {
+    delete obj;
+  }
 
-        if(manager->count(name)==0)
-               return false;
-         
-        T& old_data=(*manager)[name];
-        FreeObject(old_data);
-        
-        (*manager)[name]=data;
+  template <typename U>
+  static typename std::enable_if<!std::is_pointer<U>::value, void>::type
+  FreeObject(U& obj) {}
 
-        return true;
+  virtual ~SimpleObjectManager() {
+    auto manager = GetInstance();
+    auto ir = (*manager).begin();
+    auto end = (*manager).end();
+
+    while (ir != end) {
+      FreeObject(ir->second);
+      ir++;
     }
-
-    static bool   Remove(const std::string& name)
-    {
-       auto manager=GetInstance();
-       auto ir=(*manager).begin();
-       auto end=(*manager).end();
-
-       while(ir!=end)
-       {
-           if(ir->first == name)
-           {
-               FreeObject(ir->second);
-               manager->erase(ir);
-               return true;
-           }
-
-           ir++;
-       }
-     
-       return false;  
-    }
-
-    template <typename U>
-    static typename std::enable_if<std::is_pointer<U>::value,void>::type 
-    FreeObject(U& obj)
-    {
-        delete obj;
-    }
-    
-    template <typename U>
-    static typename std::enable_if<!std::is_pointer<U>::value,void>::type 
-    FreeObject(U& obj)
-    {
-    }
-
-
-    virtual ~SimpleObjectManager() 
-    {
-       auto manager=GetInstance();
-       auto ir=(*manager).begin();
-       auto end=(*manager).end();
-
-       while(ir!=end)
-       {
-        FreeObject(ir->second);  
-        ir++;
-       }
-    }
+  }
 };
 
-
-
-
-} //namespace TEngine
+}  // namespace TEngine
 
 #endif

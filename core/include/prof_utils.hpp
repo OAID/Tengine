@@ -29,31 +29,26 @@
 namespace TEngine {
 
 #if 1
-static inline unsigned long get_cur_time(void)
-{
-   struct timespec tm;
+static inline unsigned long get_cur_time(void) {
+  struct timespec tm;
 
-   clock_gettime(CLOCK_MONOTONIC, &tm);
+  clock_gettime(CLOCK_MONOTONIC, &tm);
 
-   return (tm.tv_sec*1000000+tm.tv_nsec/1000);
+  return (tm.tv_sec * 1000000 + tm.tv_nsec / 1000);
 }
 #else
 
 #include <sys/time.h>
 
-static inline unsigned long get_cur_time(void)
-{
-   struct timeval tv;
+static inline unsigned long get_cur_time(void) {
+  struct timeval tv;
 
-   gettimeofday(&tv,NULL);
+  gettimeofday(&tv, NULL);
 
-   return (tv.tv_sec*1000000+tv.tv_usec);
+  return (tv.tv_sec * 1000000 + tv.tv_usec);
 }
 
 #endif
-
-
 }
-
 
 #endif

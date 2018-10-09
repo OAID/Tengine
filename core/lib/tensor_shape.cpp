@@ -23,83 +23,58 @@
  */
 #include <unordered_map>
 
-#include "data_layout.hpp"
-#include "tensor_shape.hpp"
-#include "logger.hpp"
 #include "compiler.hpp"
+#include "data_layout.hpp"
+#include "logger.hpp"
+#include "tensor_shape.hpp"
 
 namespace TEngine {
 
-void TShape::SetDim(const std::vector<int>& args, bool layout_check)
-{
-    if(layout_check)
-    {
-       const DataLayout * p_layout=DataLayout::GetLayout(layout_);
+void TShape::SetDim(const std::vector<int>& args, bool layout_check) {
+  if (layout_check) {
+    const DataLayout* p_layout = DataLayout::GetLayout(layout_);
 
-       if(args.size()!=p_layout->GetDimNum())
-       {
-           throw(std::runtime_error("shape dims mismatch"));
-       }
+    if (args.size() != p_layout->GetDimNum()) {
+      throw(std::runtime_error("shape dims mismatch"));
+    }
+  }
+
+  dim_ = args;
+}
+
+void TShape::DumpShape(std::ostream& os) const {
+  std::string result = "[";
+
+  if (dim_.size() > 0) {
+    unsigned i;
+
+    for (i = 0; i < dim_.size() - 1; i++) {
+      result += std::to_string(dim_[i]) + ",";
     }
 
-    dim_=args;
+    if (i == (dim_.size() - 1)) {
+      result += std::to_string(dim_[i]);
+    }
+  }
+
+  result += "]";
+  os << result;
 }
 
+#define GET_DIM(D)                                             \
+  const DataLayout* p_layout = DataLayout::GetLayout(layout_); \
+  int idx = p_layout->Get##D();                                \
+  if (idx < 0) return 1;                                       \
+  return dim_[idx]
 
-void TShape::DumpShape(std::ostream& os)  const
-{
-	std::string result="[";
+int TShape::GetN(void) const { GET_DIM(N); }
 
-	if(dim_.size()>0)
-	{
-		unsigned i;
+int TShape::GetC(void) const { GET_DIM(C); }
 
-		for(i=0;i<dim_.size()-1;i++)
-		{
-			result+=std::to_string(dim_[i])+",";
-		}
+int TShape::GetH(void) const { GET_DIM(H); }
 
-		if(i==(dim_.size()-1))
-		{
-			result+=std::to_string(dim_[i]);
-		}
-	}
+int TShape::GetW(void) const { GET_DIM(W); }
 
-	result+="]";
-	os <<result;
+int TShape::GetD(void) const { GET_DIM(D); }
 
-}
-
-#define GET_DIM(D) \
-       const DataLayout * p_layout=DataLayout::GetLayout(layout_);\
-      int idx=p_layout->Get##D ();\
-      if(idx<0) return 1;\
-      return dim_[idx]
-
-int TShape::GetN(void) const
-{
-    GET_DIM(N);
-}
-
-int TShape::GetC(void) const
-{
-    GET_DIM(C);
-}
-
-int TShape::GetH(void) const
-{
-    GET_DIM(H);
-}
-
-int TShape::GetW(void) const
-{
-    GET_DIM(W);
-}
-
-int TShape::GetD(void)  const
-{
-    GET_DIM(D);
-}
-
-
-} //namespace TEngine
+}  // namespace TEngine

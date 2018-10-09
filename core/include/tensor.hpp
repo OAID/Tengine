@@ -28,9 +28,9 @@
 #include <string>
 
 #include "base_object.hpp"
-#include "tensor_shape.hpp"
 #include "logger.hpp"
 #include "node.hpp"
+#include "tensor_shape.hpp"
 
 namespace TEngine {
 
@@ -39,116 +39,89 @@ struct NodePort;
 struct StaticConstTensor;
 
 class Tensor : public BaseObject {
+ public:
+  Tensor(const std::string& name) {
+    name_ = name;
+    data_type_ = "float32";
+    static_tensor_ = nullptr;
+  }
 
-public:
-	Tensor (const std::string& name)
-        {
-             name_=name;
-             data_type_="float32";
-             static_tensor_=nullptr;
-        }
+  virtual ~Tensor() {
+    if (type_ == kConstTensor && ExistAttr("free_mem") &&
+        ExistAttr("mem_addr")) {
+      void* mem = any_cast<void*>(GetAttr("mem_addr"));
+      std::free(mem);
+    }
+  }
 
-	virtual ~Tensor()
-        {
+  Tensor(const Tensor& other) = default;
+  Tensor& operator=(const Tensor& rhs) = default;
 
-            if(type_==kConstTensor 
-               && ExistAttr("free_mem")
-               && ExistAttr("mem_addr"))
-            {
-               void * mem=any_cast<void *>(GetAttr("mem_addr"));
-               std::free(mem);
-            }
-        }
+  const std::string& GetName(void) const { return name_; }
+  void SetName(const std::string& n) { name_ = n; }
 
-	Tensor(const Tensor& other)=default;
-	Tensor& operator=(const Tensor& rhs)=default;
+  const TShape& GetShape(void) const { return shape_; }
+  TShape& GetShape(void) { return shape_; }
 
-        const std::string& GetName(void) const { return name_;}
-        void SetName(const std::string& n) { name_=n;}
+  void Reshape(const TShape& shape);
 
-	const TShape&   GetShape(void)  const   { return shape_;}
-	TShape&   GetShape(void)    { return shape_;}
+  const std::string& GetDatatype(void) const { return data_type_; }
+  void SetDataType(const std::string& dtype_name) { data_type_ = dtype_name; }
 
-	void Reshape(const TShape& shape);
+  unsigned int GetTotalSize() const;
+  void DumpTensor(std::ostream& os) const;
 
+  TensorType GetType(void) const { return type_; }
+  void SetType(TensorType t) { type_ = t; }
 
-	const std::string& GetDatatype(void) const { return data_type_;}
-        void SetDataType(const std::string& dtype_name){ data_type_=dtype_name;}
+  void AddConsumer(NodePort* in_port) { consumer.push_back(in_port); }
 
-	unsigned int GetTotalSize() const;
-        void DumpTensor(std::ostream& os) const;
+  bool RemoveConsumer(NodePort* in_port) {
+    auto ir = consumer.begin();
 
+    while (ir != consumer.end()) {
+      if ((*ir) == in_port) {
+        consumer.erase(ir);
+        return true;
+      }
+      ir++;
+    }
 
-        TensorType GetType(void) const { return type_;}
-        void SetType(TensorType t) { type_=t;}
+    return false;
+  }
 
-        void AddConsumer(NodePort * in_port)
-        {
-             consumer.push_back(in_port);
-        }
+  NodePort* producer;
+  std::vector<NodePort*> consumer;
 
-        bool RemoveConsumer(NodePort * in_port)
-        {
-           auto ir=consumer.begin();
+  Node* GetConsumerNode(int idx);
 
-           while(ir!=consumer.end())
-           {
-               if((*ir)==in_port)
-               {
-                  consumer.erase(ir);
-                  return true;
-               }
-               ir++;
-           }
+  /* note: as tensor.hpp is defined in representation level,
+          so that the memory allocated is only valid for const tensor
+          to hold the trained parameters
+     please use get_tensor_mem()/set_tensor_mem() to get/set tensor memory
+         in operator run functioins
 
-           return false;
-        }
+  */
 
-        NodePort * producer;
-        std::vector<NodePort *> consumer;
+  void* GetMemAddr(void) const {
+    if (!ExistAttr("mem_addr")) return nullptr;
 
-        Node * GetConsumerNode(int idx);
+    return any_cast<void*>(GetAttr("mem_addr"));
+  }
 
-        /* note: as tensor.hpp is defined in representation level,
-                so that the memory allocated is only valid for const tensor
-                to hold the trained parameters
-           please use get_tensor_mem()/set_tensor_mem() to get/set tensor memory
-               in operator run functioins
+  void SetMemAddr(void* addr) { (*this)["mem_addr"] = addr; }
 
-        */
+  void FreeMem(void);
+  void BindStaticTensor(StaticConstTensor*);
 
-        void * GetMemAddr(void) const
-        {
-           if(!ExistAttr("mem_addr"))
-               return nullptr;
-           
-            return any_cast<void *>(GetAttr("mem_addr"));
-        }
-
-        void SetMemAddr(void * addr)
-        {
-            (*this)["mem_addr"]=addr;
-        }
-
-        void FreeMem(void);
-        void BindStaticTensor(StaticConstTensor *);
-
-protected:
-        TensorType   type_;
-        std::string  name_;
-	std::string  data_type_;
-	TShape       shape_;
-        StaticConstTensor * static_tensor_;
-
-       
-
+ protected:
+  TensorType type_;
+  std::string name_;
+  std::string data_type_;
+  TShape shape_;
+  StaticConstTensor* static_tensor_;
 };
 
-
-} //namesapce TEngine
-
-
+}  // namespace TEngine
 
 #endif
-
-

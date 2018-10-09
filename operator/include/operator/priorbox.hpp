@@ -24,28 +24,22 @@
 #ifndef __PRIORBOX_HPP__
 #define __PRIORBOX_HPP__
 
-
 #include "operator.hpp"
 #include "priorbox_param.hpp"
 
 namespace TEngine {
 
-class PriorBox: public OperatorWithParam<PriorBox, PriorBoxParam> {
+class PriorBox : public OperatorWithParam<PriorBox, PriorBoxParam> {
+ public:
+  PriorBox() { name_ = "PriorBox"; }
+  PriorBox(const PriorBox& src) = default;
 
-public:
-
-     PriorBox () { name_="PriorBox"; }
-     PriorBox(const PriorBox& src)=default;
-
-     virtual ~PriorBox() {}
-     bool InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEngine::TShape>& oshape) override;
-     void SetSchema(void) override;
-
-
+  virtual ~PriorBox() {}
+  bool InferShape(const std::vector<TEngine::TShape>& ishape,
+                  std::vector<TEngine::TShape>& oshape) override;
+  void SetSchema(void) override;
 };
 
-
-} //namespace TEngine
-
+}  // namespace TEngine
 
 #endif

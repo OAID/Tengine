@@ -25,66 +25,59 @@
 #ifndef __POOLING_HPP__
 #define __POOLING_HPP__
 
-
 #include "operator.hpp"
 #include "pool_param.hpp"
 
 namespace TEngine {
 
-class Pooling: public OperatorWithParam<Pooling, PoolParam> {
+class Pooling : public OperatorWithParam<Pooling, PoolParam> {
+ public:
+  Pooling() { name_ = "Pooling"; }
+  Pooling(const Pooling& src) = default;
 
-public:
+  virtual ~Pooling() {}
 
-     Pooling () { name_="Pooling"; }
-     Pooling(const Pooling& src)=default;
+  void MethodToAlg(PoolParam& param) {
+    std::string& method = param.method;
 
-     virtual ~Pooling() {}
+    /* default alg */
+    param.alg = kPoolMax;
 
-     void MethodToAlg(PoolParam& param)
-     {
-         std::string& method=param.method;
+    if (method == "avg")
+      param.alg = kPoolAvg;
+    else if (method == "rand")
+      param.alg = kPoolRand;
+  }
 
-         /* default alg */
-         param.alg=kPoolMax;
+  bool InferShape(const std::vector<TEngine::TShape>& ishape,
+                  std::vector<TEngine::TShape>& oshape) override;
+  float GetFops(const std::vector<TEngine::TShape>& ishape,
+                const std::vector<TEngine::TShape>& oshape) override;
 
-         if(method == "avg")
-             param.alg=kPoolAvg;
-         else if(method == "rand")
-             param.alg=kPoolRand;
-     }
+  void SetSchema(void) override;
 
-     bool InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEngine::TShape>& oshape) override;
-     float GetFops(const std::vector<TEngine::TShape>& ishape, const std::vector<TEngine::TShape>& oshape) override;
+  void ParseParam(PoolParam& param, Operator* op) override {
+    ParsePredefinedParam(param, op);
+    MethodToAlg(param);
 
-     void SetSchema(void) override;
+    /* translate to onnx parameters */
+    param.kernel_shape.resize(2);
 
-     void ParseParam(PoolParam & param, Operator * op) override
-     {
-         ParsePredefinedParam(param,op);
-         MethodToAlg(param);
-         
-         /* translate to onnx parameters */
-         param.kernel_shape.resize(2);
+    param.kernel_shape[0] = param.kernel_h;
+    param.kernel_shape[1] = param.kernel_w;
 
-         param.kernel_shape[0]=param.kernel_h;
-         param.kernel_shape[1]=param.kernel_w;
+    param.strides.resize(2);
+    param.strides[0] = param.stride_h;
+    param.strides[1] = param.stride_w;
 
-         param.strides.resize(2);
-         param.strides[0]=param.stride_h;
-         param.strides[1]=param.stride_w;
-
-         param.pads.resize(4);
-         param.pads[0]=param.pad_h;
-         param.pads[1]=param.pad_w;
-         param.pads[2]=param.pad_h;
-         param.pads[3]=param.pad_w;
-         
-     }
-
+    param.pads.resize(4);
+    param.pads[0] = param.pad_h;
+    param.pads[1] = param.pad_w;
+    param.pads[2] = param.pad_h;
+    param.pads[3] = param.pad_w;
+  }
 };
 
-
-} //namespace TEngine
-
+}  // namespace TEngine
 
 #endif

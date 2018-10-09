@@ -29,22 +29,19 @@
 
 namespace TEngine {
 
+class Deconvolution : public OperatorWithParam<Deconvolution, DeconvParam> {
+ public:
+  Deconvolution(void) { name_ = "Deconvolution"; }
+  Deconvolution(const Deconvolution&) = default;
 
-class Deconvolution: public  OperatorWithParam <Deconvolution,DeconvParam> {
+  void SetSchema(void) override;
 
-public:
-      Deconvolution(void) { name_="Deconvolution"; }
-      Deconvolution(const Deconvolution&) =default;
-
-      void SetSchema(void) override;
-    
-      bool InferShape(const std::vector<TEngine::TShape>&, std::vector<TEngine::TShape>&) override;
-      float GetFops(const std::vector<TEngine::TShape>&, const std::vector<TEngine::TShape>&) override;
-
+  bool InferShape(const std::vector<TEngine::TShape>&,
+                  std::vector<TEngine::TShape>&) override;
+  float GetFops(const std::vector<TEngine::TShape>&,
+                const std::vector<TEngine::TShape>&) override;
 };
 
-
-} //namespace TEngine
-
+}  // namespace TEngine
 
 #endif

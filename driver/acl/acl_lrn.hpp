@@ -28,14 +28,13 @@
 
 namespace TEngine {
 
-using ACLNodeOps=ACLDriver::ACLNodeOps;
+using ACLNodeOps = ACLDriver::ACLNodeOps;
 
-struct ACLLrnOps: public ACLNodeOps
-{
-      bool Prerun(Node * node);
-      bool Run(Node * node);
-      bool Postrun(Node * node);
+struct ACLLrnOps : public ACLNodeOps {
+  bool Prerun(Node* node);
+  bool Run(Node* node);
+  bool Postrun(Node* node);
 };
-} //namespace TEngine
+}  // namespace TEngine
 
 #endif

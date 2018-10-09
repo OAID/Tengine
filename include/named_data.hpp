@@ -25,55 +25,42 @@
 #define __NAMED_DATA_HPP__
 
 #include <iostream>
+#include <string>
 #include <unordered_map>
 #include <vector>
-#include <string>
 
 namespace TEngine {
 
 template <typename T>
 struct NamedData {
+  using map_t = std::unordered_map<std::string, T*>;
 
-        using map_t=std::unordered_map<std::string, T*>;
+  static map_t& GetMap(void) {
+    static map_t internal_map;
+    return internal_map;
+  }
 
-	static map_t& GetMap(void)
-	{
-                static map_t internal_map;
-		return internal_map;
-	}
+  static T* GetDefaultData(void) { return GetData("default"); }
 
-	static T * GetDefaultData(void)
-	{
-		return GetData("default");
-	}
+  static void SetDefaultData(T* data) { SetData("default", data); }
 
-	static void SetDefaultData( T * data)
-	{
-		SetData("default",data);
-	}
+  static T* GetData(const std::string& name) {
+    map_t& map = GetMap();
 
-	static  T * GetData( const std::string& name)
-	{
-		map_t& map=GetMap();
+    if (map.count(name) == 0) return nullptr;
 
-		if(map.count(name)==0)
-			return nullptr;
+    return map[name];
+  }
 
-		return map[name];
-	}
+  static void SetData(const std::string& name, T* data) {
+    map_t& map = GetMap();
 
-	static void SetData( const std::string& name,  T * data)
-	{
-		map_t&  map=GetMap();
+    map[name] = data;
+  }
 
-		map[name]=data;
-	}
-
-        static void InitPredefinedData();
-
-
+  static void InitPredefinedData();
 };
 
-} //namespace TEngine
+}  // namespace TEngine
 
 #endif

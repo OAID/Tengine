@@ -25,13 +25,11 @@
 
 namespace TEngine {
 
-void Accuracy::SetSchema(void)
-{
+void Accuracy::SetSchema(void) {
   Input({"input:float32"})
-  .Output({"output:float32"})
-  .SetLayout("W")
-  .SetDoc(R"DOC(Accuracy Operator)DOC");
+      .Output({"output:float32"})
+      .SetLayout("W")
+      .SetDoc(R"DOC(Accuracy Operator)DOC");
 }
 
-
-} //namespace TEngine
+}  // namespace TEngine

@@ -24,19 +24,19 @@
 #ifndef __DEBUG_UTILS_HPP__
 #define __DEBUG_UTILS_HPP__
 
-#include <string>
-#include <vector>
 #include <math.h>
 #include <iostream>
+#include <string>
+#include <vector>
 namespace TEngine {
 
+void DumpFloat(const char* fname, float* data, int number);
+std::string ReplaceChar(const std::string&, char from, char to);
 
-void DumpFloat(const char * fname, float *  data, int number);
-std::string  ReplaceChar(const std::string&, char from, char to);
+bool CompareFloatTensor(float* a, float* b, std::vector<int>& shape_dim,
+                        std::vector<int>& mismatch_dim);
+void CalcMaxError(float* pred, float* gt, int size);
 
-bool CompareFloatTensor(float * a, float * b, std::vector<int>& shape_dim,  std::vector<int>& mismatch_dim);
-void CalcMaxError(float*pred,float* gt,int size);
-
-} //namespace TEngine
+}  // namespace TEngine
 
 #endif

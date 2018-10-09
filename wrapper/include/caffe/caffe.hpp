@@ -29,10 +29,10 @@
 
 #include <boost/shared_ptr.hpp>
 
+#include "caffe.pb.h"
 #include "caffe/blob.hpp"
 #include "caffe/common.hpp"
-#include "caffe/net.hpp"
 #include "caffe/io.hpp"
-#include "caffe.pb.h"
+#include "caffe/net.hpp"
 
 #endif  // __CAFFE_CAFFE_HPP_

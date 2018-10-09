@@ -21,32 +21,30 @@
  * Copyright (c) 2018, Open AI Lab
  * Author: jingyou@openailab.com
  */
+#include "caffe/io.hpp"
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
-#include "caffe/io.hpp"
 
 namespace caffe {
 
-bool ReadProtoFromBinaryFile(const char* filename, Message* proto)
-{
-    std::ifstream is(filename, std::ios::in|std::ios::binary);
+bool ReadProtoFromBinaryFile(const char* filename, Message* proto) {
+  std::ifstream is(filename, std::ios::in | std::ios::binary);
 
-    if(!is.is_open())
-    {
-        std::cerr<<"Cannot open file: "<<filename<<"\n";
-        return false;
-    }
+  if (!is.is_open()) {
+    std::cerr << "Cannot open file: " << filename << "\n";
+    return false;
+  }
 
-    google::protobuf::io::IstreamInputStream input_stream(&is);
-    google::protobuf::io::CodedInputStream coded_input(&input_stream);
+  google::protobuf::io::IstreamInputStream input_stream(&is);
+  google::protobuf::io::CodedInputStream coded_input(&input_stream);
 
-    coded_input.SetTotalBytesLimit(512<<20, 64<<20);
+  coded_input.SetTotalBytesLimit(512 << 20, 64 << 20);
 
-    bool ret = proto->ParseFromCodedStream(&coded_input);
+  bool ret = proto->ParseFromCodedStream(&coded_input);
 
-    is.close();
+  is.close();
 
-    return ret;
+  return ret;
 }
 
 }  // namespace caffe

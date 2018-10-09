@@ -24,14 +24,14 @@
 #ifndef __GRAPH_HPP__
 #define __GRAPH_HPP__
 
-#include <vector>
-#include <string>
 #include <functional>
+#include <string>
+#include <vector>
 
 #include "base_object.hpp"
+#include "node.hpp"
 #include "operator.hpp"
 #include "tensor.hpp"
-#include "node.hpp"
 
 #include "static_graph.hpp"
 
@@ -39,107 +39,97 @@ namespace TEngine {
 
 class Graph;
 
-using Subgraph=Graph;
+using Subgraph = Graph;
 
-class Graph: public BaseObject {
+class Graph : public BaseObject {
+ public:
+  using graph_visit_t = std::function<void(Graph*, Node*)>;
 
-public:
+  Graph(const std::string& name) { name_ = name; }
 
-    using graph_visit_t=std::function<void(Graph *, Node *)>;
+  ~Graph() {
+    for (auto node : owned_nodes_) delete node;
+    for (auto e : owned_tensors_) delete e.second;
+  }
 
-    Graph(const std::string& name)
-    {
-        name_=name;
-    }
+  Node* FindNode(const std::string& node_name);
+  Tensor* FindTensor(const std::string& tensor_name);
 
-   ~Graph()
-    {
-       for(auto node: owned_nodes_)
-            delete node;
-       for(auto e: owned_tensors_)
-            delete e.second; 
-    }
+  void AddInputNode(Node* node) { input_nodes.push_back(node); }
+  void AddOutputNode(Node* node) { output_nodes.push_back(node); }
 
-    Node * FindNode(const std::string& node_name);
-    Tensor * FindTensor(const std::string& tensor_name);
+  bool AddInputNode(const std::string& node_name);
+  bool AddOutputNode(const std::string& node_name);
 
-    void AddInputNode(Node * node) { input_nodes.push_back(node);}
-    void AddOutputNode(Node * node) { output_nodes.push_back(node);}
+  void ResetInputNode(void) { input_nodes.clear(); }
+  void ResetOutputNode(void) { output_nodes.clear(); }
 
-    bool AddInputNode(const std::string& node_name);
-    bool AddOutputNode(const std::string& node_name);
+  void SetName(const std::string& n) { name_ = n; };
+  const std::string& GetName(void) const { return name_; }
 
-    void ResetInputNode(void) { input_nodes.clear(); }
-    void ResetOutputNode(void) { output_nodes.clear(); }
+  void DumpGraph(void);
 
+  void SanitizeGraph(void);
+  void StripGraph(void);
+  void PopulateDynamicShape(void);
 
-    void SetName(const std::string& n) {name_=n;};
-    const std::string& GetName(void) const {return name_;}
+  bool RemoveTensor(Tensor* tensor);
+  bool RemoveNode(Node* node);
 
-    void DumpGraph(void);
+  bool CreateNodeFromStatic(Node*, const StaticGraph*, const StaticNode*);
+  bool SetupConnection(Tensor*, const StaticGraph*, const StaticTensor*);
 
-    void SanitizeGraph(void);
-    void StripGraph(void);
-    void PopulateDynamicShape(void);
+  bool RealCreateFromStatic(const StaticGraphPtr&);
+  static Graph* CreateFromStatic(const StaticGraphPtr& static_graph);
 
-    bool RemoveTensor(Tensor * tensor);
-    bool RemoveNode(Node * node);
+  StaticGraphPtr& GetOrigGraph(void);
 
-    bool CreateNodeFromStatic(Node*, const StaticGraph*, const StaticNode*);
-    bool SetupConnection(Tensor*, const StaticGraph*, const StaticTensor*);    
+  std::vector<Node*> input_nodes;
+  std::vector<Node*> output_nodes;
+  std::vector<Node*> seq_nodes;
 
-    bool RealCreateFromStatic(const StaticGraphPtr&);
-    static  Graph * CreateFromStatic(const StaticGraphPtr& static_graph);
+  static void BFSVisit(Graph* graph, std::vector<Node*>& starts,
+                       graph_visit_t func, bool backward = true,
+                       bool input_ready = true);
+  static void BackwardBFS(Graph* graph, std::vector<Node*>& starts,
+                          graph_visit_t func, bool input_ready);
+  static void ForwardBFS(Graph* graph, std::vector<Node*>& starts,
+                         graph_visit_t func, bool input_ready);
 
-    StaticGraphPtr&  GetOrigGraph(void);
+  void RemoveNoChildTensor(void);
+  void HandleNoChildTensor(void);
 
-    std::vector<Node*> input_nodes; 
-    std::vector<Node*> output_nodes; 
-    std::vector<Node*> seq_nodes; 
+  bool IsOutputNode(Node* node);
+  bool IsInputNode(Node* node);
 
-    static void BFSVisit(Graph * graph, std::vector<Node *>& starts, graph_visit_t func, bool backward=true, bool input_ready=true);
-    static void BackwardBFS(Graph * graph, std::vector<Node *>& starts, graph_visit_t func, bool input_ready );
-    static void ForwardBFS(Graph * graph, std::vector<Node *>& starts, graph_visit_t func,bool input_ready);
+  void SetNodeOwner(Node* node);
+  void SetTensorOwner(Tensor* tensor);
+  bool RemoveNodeOwner(Node* node);
+  bool RemoveTensorOwner(Tensor* tensor);
 
-    void RemoveNoChildTensor(void);
-    void HandleNoChildTensor(void);
+  Tensor* GetInputTensor(const std::string& name);
+  Tensor* GetOutputTensor(const std::string& name);
 
-    bool IsOutputNode(Node * node);
-    bool IsInputNode(Node * node);
+  bool Replace(Subgraph* orig_sub, Subgraph* new_sb);
 
-    void SetNodeOwner(Node * node);
-    void SetTensorOwner(Tensor * tensor);
-    bool RemoveNodeOwner(Node * node);
-    bool RemoveTensorOwner(Tensor * tensor);
+  void AddTensorMap(const std::string& tensor_name, Tensor* tensor);
+  Graph* GetViewCopy(void);
 
-    Tensor * GetInputTensor(const std::string& name);
-    Tensor * GetOutputTensor(const std::string& name);
+  bool NodeInGraph(Node*);
 
-    bool Replace(Subgraph * orig_sub, Subgraph * new_sb);
+ protected:
+  std::string name_;
+  std::string type_;
 
-    void AddTensorMap(const std::string& tensor_name, Tensor * tensor);
-    Graph * GetViewCopy(void);
+  std::vector<Node*> owned_nodes_;
+  std::unordered_map<std::string, Tensor*> owned_tensors_;
 
-	bool NodeInGraph(Node *);
+  Attribute attrs_;
 
-protected:
-
-
-    std::string name_;
-    std::string type_;
-
-    std::vector<Node *> owned_nodes_;
-    std::unordered_map<std::string,Tensor *> owned_tensors_;
-
-    Attribute attrs_;
-  
-    std::unordered_map<std::string,Tensor *> tensor_map_;
-    StaticGraphPtr    orig_graph_;
-
+  std::unordered_map<std::string, Tensor*> tensor_map_;
+  StaticGraphPtr orig_graph_;
 };
 
-
-
-} //namespace TEngine
+}  // namespace TEngine
 
 #endif

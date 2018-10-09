@@ -26,20 +26,14 @@
 
 #include "parameter.hpp"
 
-
-
 namespace TEngine {
 
-struct SliceParam: public  NamedParam {
+struct SliceParam : public NamedParam {
+  int axis;
 
-int axis;
-
-DECLARE_PARSER_STRUCTURE(SliceParam) {
-   DECLARE_PARSER_ENTRY(axis);
-}
-
+  DECLARE_PARSER_STRUCTURE(SliceParam) { DECLARE_PARSER_ENTRY(axis); }
 };
 
-} //namespace TEngine
+}  // namespace TEngine
 
 #endif

@@ -24,41 +24,34 @@
 #ifndef __ELTWISE_HPP__
 #define __ELTWISE_HPP__
 
-#include "operator.hpp"
 #include "eltwise_param.hpp"
+#include "operator.hpp"
 namespace TEngine {
 
-class Eltwise: public OperatorWithParam<Eltwise, EltwiseParam> {
+class Eltwise : public OperatorWithParam<Eltwise, EltwiseParam> {
+ public:
+  Eltwise() { name_ = "Eltwise"; }
+  Eltwise(const Eltwise& src) = default;
+  virtual ~Eltwise(){};
 
-public:
+  void MethodToType(EltwiseParam& param) {
+    std::string& method = param.method;
 
-      Eltwise() { name_="Eltwise";}
-      Eltwise(const Eltwise& src)=default;
-      virtual ~Eltwise() {};
+    /* default eltwise_SUM */
+    param.type = ELT_SUM;
 
-     void MethodToType(EltwiseParam& param)
-     {
-         std::string& method=param.method;
-
-         /* default eltwise_SUM */
-         param.type=ELT_SUM;
-
-         if(method == "max")
-             param.type=ELT_MAX;
-         else if(method =="prod")
-            param.type=ELT_PROD;
-     }
-      void ParseParam(EltwiseParam & param, Operator * op) override
-     {
-         ParsePredefinedParam(param,op);
-         MethodToType(param);
-     }
-      void SetSchema(void) override;
- 
+    if (method == "max")
+      param.type = ELT_MAX;
+    else if (method == "prod")
+      param.type = ELT_PROD;
+  }
+  void ParseParam(EltwiseParam& param, Operator* op) override {
+    ParsePredefinedParam(param, op);
+    MethodToType(param);
+  }
+  void SetSchema(void) override;
 };
 
-} //namespace TEngine
-
-
+}  // namespace TEngine
 
 #endif

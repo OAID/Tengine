@@ -26,20 +26,18 @@
 namespace TEngine {
 
 template <>
-void NamedData<DataLayout>::InitPredefinedData()
-{
+void NamedData<DataLayout>::InitPredefinedData() {
+#define DUMMY_OBJECT(type) static type DUMMY_OBJECT_##type
+#define DUMMY_OBJECT_DEFAULT(type) static type DUMMY_OBJECT_##type(true)
 
-	#define DUMMY_OBJECT(type) static type DUMMY_OBJECT_## type
-	#define DUMMY_OBJECT_DEFAULT(type) static type DUMMY_OBJECT_## type(true)
-
-	DUMMY_OBJECT_DEFAULT(LayoutNCHW);
-	DUMMY_OBJECT(LayoutNCDHW);
-	DUMMY_OBJECT(LayoutNHWC);
-	DUMMY_OBJECT(LayoutNDHWC); 
-	DUMMY_OBJECT(LayoutNHW); 
-	DUMMY_OBJECT(LayoutNW); 
-	DUMMY_OBJECT(LayoutHW); 
-	DUMMY_OBJECT(LayoutW); 
+  DUMMY_OBJECT_DEFAULT(LayoutNCHW);
+  DUMMY_OBJECT(LayoutNCDHW);
+  DUMMY_OBJECT(LayoutNHWC);
+  DUMMY_OBJECT(LayoutNDHWC);
+  DUMMY_OBJECT(LayoutNHW);
+  DUMMY_OBJECT(LayoutNW);
+  DUMMY_OBJECT(LayoutHW);
+  DUMMY_OBJECT(LayoutW);
 }
 
-} //namespace TEngine;
+}  // namespace TEngine

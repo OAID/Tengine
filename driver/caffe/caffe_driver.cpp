@@ -26,162 +26,132 @@
 #include <chrono>
 #include <functional>
 
-#include "tensor_mem.hpp"
 #include "caffe_driver.hpp"
 #include "caffe_executor.hpp"
-#include "tengine_config.hpp"
-#include "node_ops.hpp"
 #include "logger.hpp"
+#include "node_ops.hpp"
+#include "tengine_config.hpp"
+#include "tensor_mem.hpp"
 
-
-#define CAFFE_NODE_DRIVER_NAME  "CaffeNode"
-#define CAFFE_NODE_DEV_ID       "sw.caffe.cpu.node"
+#define CAFFE_NODE_DRIVER_NAME "CaffeNode"
+#define CAFFE_NODE_DEV_ID "sw.caffe.cpu.node"
 
 namespace TEngine {
 
+CaffeNodeDriver::CaffeNodeDriver(void) {
+  SetName(CAFFE_NODE_DRIVER_NAME);
 
-CaffeNodeDriver::CaffeNodeDriver(void)
-{
-     SetName(CAFFE_NODE_DRIVER_NAME);
-
-     dev_id_.push_back(CAFFE_NODE_DEV_ID);
+  dev_id_.push_back(CAFFE_NODE_DEV_ID);
 }
 
-CaffeNodeDriver::~CaffeNodeDriver(void)
-{
+CaffeNodeDriver::~CaffeNodeDriver(void) {}
+
+bool CaffeNodeDriver::Prerun(Device *dev, void *node_handle, Node *node) {
+  int output_number = node->GetOutputNum();
+
+  for (int i = 0; i < output_number; i++) {
+    Tensor *otensor = node->GetOutputTensor(i);
+
+    if (!get_tensor_mem(otensor)) {
+      int mem_size = otensor->GetTotalSize();
+      void *addr = std::malloc(mem_size);
+
+      set_tensor_mem(otensor, addr, mem_size, std::free);
+    }
+  }
+
+  NodeOps *ops =
+      NodeOpsRegistryManager::FindNodeOps(REF_REGISTRY_NAME, NULL, node);
+
+  node->SetAttr("CaffeNodeOps", ops);
+
+  return true;
 }
 
-bool CaffeNodeDriver::Prerun(Device * dev, void * node_handle, Node * node)
-{
+bool CaffeNodeDriver::SyncRun(Device *dev, void *node_handle, Node *node) {
+  NodeOps *ops = any_cast<NodeOps *>(node->GetAttr("CaffeNodeOps"));
 
-       int output_number=node->GetOutputNum();
+  std::cout << "caffe run node: " << node->GetName() << "\n";
 
-       for(int i=0;i<output_number;i++)
-       {
-           Tensor * otensor = node->GetOutputTensor(i);
+  ops->Run(node);
 
-           if(!get_tensor_mem(otensor))
-           {
-	      int mem_size = otensor->GetTotalSize();
-	      void* addr = std::malloc(mem_size);
-
-	      set_tensor_mem(otensor,addr,mem_size,std::free);
-           }
-       }
-
-       NodeOps * ops=NodeOpsRegistryManager::FindNodeOps(REF_REGISTRY_NAME,NULL,node);
-
-       node->SetAttr("CaffeNodeOps",ops);
-
-       return true;
+  return true;
 }
 
-bool CaffeNodeDriver::SyncRun(Device * dev, void * node_handle, Node * node)
-{
-        NodeOps * ops=any_cast<NodeOps *>(node->GetAttr("CaffeNodeOps"));
+bool CaffeNodeDriver::Run(Device *dev, void *node_handle, Node *node) {
+  bool ret = SyncRun(dev, node_handle, node);
 
-       std::cout<<"caffe run node: "<<node->GetName()<<"\n";
+  DevContext *context = reinterpret_cast<DevContext *>(node_handle);
 
-       ops->Run(node);
+  if (context->node_cb) context->node_cb(node, ret);
 
-       return true;
+  return ret;
 }
 
-bool CaffeNodeDriver::Run(Device * dev, void * node_handle, Node * node) 
-{
-	bool ret=SyncRun(dev,node_handle,node);
+bool CaffeNodeDriver::Postrun(Device *dev, void *node_handle, Node *node) {
+  Tensor *otensor = node->GetOutputTensor(0);
+  free_tensor_mem(otensor);
 
-	DevContext * context=reinterpret_cast<DevContext *>(node_handle);
+  NodeOps *ops = any_cast<NodeOps *>(node->GetAttr("CaffeNodeOps"));
 
-	if(context->node_cb)
-		context->node_cb(node,ret);
+  ops->Release();
 
-	return ret; 
+  return true;
 }
 
-bool CaffeNodeDriver::Postrun(Device * dev, void * node_handle, Node  * node)
-{
-        Tensor * otensor=node->GetOutputTensor(0);
-	free_tensor_mem(otensor);
+bool CaffeNodeDriver::InitDev(NodeDevice *device) { return true; }
 
-        NodeOps * ops=any_cast<NodeOps *>(node->GetAttr("CaffeNodeOps"));
+bool CaffeNodeDriver::ProbeDevice(const dev_id_t &dev_id) {
+  CaffeNodeDevice *dev = new CaffeNodeDevice(dev_id);
 
-        ops->Release();
+  InitializeDevice(dev);
+  dev->SetName(dev_id);
 
-	return true;
+  dev_table_.push_back(dev);
+
+  return true;
 }
 
-bool CaffeNodeDriver::InitDev(NodeDevice * device)
-{
+bool CaffeNodeDriver::DestroyDevice(Device *device) {
+  CaffeNodeDevice *caffe_dev = dynamic_cast<CaffeNodeDevice *>(device);
 
-     return true;
+  if (caffe_dev->dev_status != kDevStopped) return false;
+
+  ReleaseDevice(caffe_dev);
+
+  auto ir = dev_table_.begin();
+
+  while ((*ir) != caffe_dev && ir != dev_table_.end()) {
+    ir++;
+  }
+
+  dev_table_.erase(ir);
+
+  delete caffe_dev;
+
+  return true;
 }
-
-bool CaffeNodeDriver::ProbeDevice(const dev_id_t& dev_id) 
-{
-    CaffeNodeDevice * dev=new CaffeNodeDevice(dev_id);
-
-    InitializeDevice(dev);
-    dev->SetName(dev_id);
-
-    dev_table_.push_back(dev);
-
-    return true;
-
-}
-
-
-bool CaffeNodeDriver::DestroyDevice(Device * device) 
-{
-	CaffeNodeDevice * caffe_dev=dynamic_cast<CaffeNodeDevice *>(device);
-
-	if(caffe_dev->dev_status!=kDevStopped)
-		return false;
-
-	ReleaseDevice(caffe_dev);
-
-        auto ir=dev_table_.begin();
-
-        while((*ir)!=caffe_dev && ir!=dev_table_.end())
-        {
-             ir++;
-        }
-
-        dev_table_.erase(ir);
-
-        delete caffe_dev;
-
-	return true;
-}
-
-
 
 //////////////////////////////////////////////
 
-void CaffeDriverInit(void)
-{
-    CaffeNodeDriver * caffe_node_driver=new CaffeNodeDriver();
+void CaffeDriverInit(void) {
+  CaffeNodeDriver *caffe_node_driver = new CaffeNodeDriver();
 
-    std::cout<<"Register Driver: "<<caffe_node_driver->GetName()<<"\n";
+  std::cout << "Register Driver: " << caffe_node_driver->GetName() << "\n";
 
-    DriverManager::RegisterDriver(caffe_node_driver->GetName(),caffe_node_driver);
+  DriverManager::RegisterDriver(caffe_node_driver->GetName(),
+                                caffe_node_driver);
 
-    auto dev_executor_factory=DevExecutorFactory::GetFactory();
+  auto dev_executor_factory = DevExecutorFactory::GetFactory();
 
-    int n=caffe_node_driver->GetDevIDTableSize();
+  int n = caffe_node_driver->GetDevIDTableSize();
 
-    for(int i=0;i<n;i++)
-        dev_executor_factory->RegisterInterface<CaffeNodeExecutor,const dev_id_t&>
-                (caffe_node_driver->GetDevIDByIdx(i));
+  for (int i = 0; i < n; i++)
+    dev_executor_factory
+        ->RegisterInterface<CaffeNodeExecutor, const dev_id_t &>(
+            caffe_node_driver->GetDevIDByIdx(i));
 
-    LOG_INFO()<<"Caffe Node Driver Initialized\n";
+  LOG_INFO() << "Caffe Node Driver Initialized\n";
 }
 
-
-
-
-
-
-
-} //namespace TEngine
-
+}  // namespace TEngine

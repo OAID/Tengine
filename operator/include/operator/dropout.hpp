@@ -28,17 +28,14 @@
 
 namespace TEngine {
 
-class Dropout: public OperatorNoParam<Dropout> {
+class Dropout : public OperatorNoParam<Dropout> {
+ public:
+  Dropout() { name_ = "Dropout"; }
+  Dropout(const Dropout& src) = default;
 
-public:
-    Dropout() { name_="Dropout";}
-    Dropout(const Dropout& src)=default;
-
-    void SetSchema(void) override;
-
+  void SetSchema(void) override;
 };
 
-
-}
+}  // namespace TEngine
 
 #endif

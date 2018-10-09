@@ -24,26 +24,22 @@
 #ifndef __CONCAT_HPP__
 #define __CONCAT_HPP__
 
-#include "operator.hpp"
 #include "concat_param.hpp"
-
+#include "operator.hpp"
 
 namespace TEngine {
 
-class Concat: public OperatorWithParam<Concat, ConcatParam> {
+class Concat : public OperatorWithParam<Concat, ConcatParam> {
+ public:
+  Concat() { name_ = "Concat"; }
+  Concat(const Concat& src) = default;
 
-public:
-    Concat() { name_="Concat";}
-    Concat(const Concat& src)=default;
+  void SetSchema(void) override;
 
-    void SetSchema(void) override;
-
-    bool InferShape(const std::vector<TEngine::TShape>&, std::vector<TEngine::TShape>&) override;
-
-
+  bool InferShape(const std::vector<TEngine::TShape>&,
+                  std::vector<TEngine::TShape>&) override;
 };
 
-
-}
+}  // namespace TEngine
 
 #endif

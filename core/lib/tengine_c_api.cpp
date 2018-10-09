@@ -24,10 +24,10 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #include <iostream>
 #include <string>
@@ -35,249 +35,222 @@
 #include "tengine_config.hpp"
 #include "tengine_plugin.hpp"
 
-#include "static_graph.hpp"
-#include "resource_container.hpp"
 #include "graph_executor.hpp"
+#include "resource_container.hpp"
+#include "static_graph.hpp"
 
 #include "serializer.hpp"
 
-#include "tengine_c_api.h"
-#include "share_lib_parser.hpp"
-#include "data_type.hpp"
-#include "data_layout.hpp"
 #include "cpu_device.h"
+#include "data_layout.hpp"
+#include "data_type.hpp"
+#include "share_lib_parser.hpp"
+#include "tengine_c_api.h"
 
 using namespace TEngine;
 
-struct tensor_handle
-{
-    GraphExecutor * executor;
-    Tensor * tensor;
+struct tensor_handle {
+  GraphExecutor *executor;
+  Tensor *tensor;
 };
 
 namespace TEngine {
-    extern void tengine_init_executor(void);
+extern void tengine_init_executor(void);
 }
 
-#define TO_BE_IMPLEMENTED XLOG_WARN()<<"TODO: "<<__FUNCTION__<<" to be implemented\n"
+#define TO_BE_IMPLEMENTED \
+  XLOG_WARN() << "TODO: " << __FUNCTION__ << " to be implemented\n"
 
-static int vload_model(const char * model_name, const char * file_format, const char * fname, va_list ap);
+static int vload_model(const char *model_name, const char *file_format,
+                       const char *fname, va_list ap);
 static workspace_t get_default_workspace(void);
 static user_context_t get_default_user_context();
 
-
 /*** Level 0 API implementation */
 
-graph_t create_graph(const char * graph_name, const char * format, const char * fname, ...)
-{
-    va_list argp;
-    graph_t graph;
-    int ret;
+graph_t create_graph(const char *graph_name, const char *format,
+                     const char *fname, ...) {
+  va_list argp;
+  graph_t graph;
+  int ret;
 
-    if(init_tengine_library()<0)
-        return nullptr;
+  if (init_tengine_library() < 0) return nullptr;
 
-    va_start(argp,fname);
+  va_start(argp, fname);
 
-    /*the model name is the same as graph name */
+  /*the model name is the same as graph name */
 
-    ret=vload_model(graph_name,format,fname,argp);
+  ret = vload_model(graph_name, format, fname, argp);
 
-    if(ret<0)
-        return nullptr;
+  if (ret < 0) return nullptr;
 
-    /* use the default workspace to execute the graph */
+  /* use the default workspace to execute the graph */
 
-    graph=create_runtime_graph(graph_name,graph_name,NULL);
+  graph = create_runtime_graph(graph_name, graph_name, NULL);
 
-    return graph; 
+  return graph;
 }
 
-int check_graph_valid(graph_t graph)
-{
-    GraphExecutor * executor=static_cast<GraphExecutor *>(graph);
+int check_graph_valid(graph_t graph) {
+  GraphExecutor *executor = static_cast<GraphExecutor *>(graph);
 
-    if(executor==nullptr)
-        return 0;
+  if (executor == nullptr) return 0;
 
-    return 1;
+  return 1;
 }
 
-const char * get_graph_name(graph_t graph)
-{
-    GraphExecutor * executor=static_cast<GraphExecutor *>(graph);
+const char *get_graph_name(graph_t graph) {
+  GraphExecutor *executor = static_cast<GraphExecutor *>(graph);
 
-    return executor->GetGraphName().c_str();
+  return executor->GetGraphName().c_str();
 }
 
-const char * get_model_name(graph_t graph)
-{
-    GraphExecutor * executor=static_cast<GraphExecutor *>(graph);
+const char *get_model_name(graph_t graph) {
+  GraphExecutor *executor = static_cast<GraphExecutor *>(graph);
 
-    return executor->GetModelName().c_str();
+  return executor->GetModelName().c_str();
 }
 
-int set_graph_device(graph_t graph, const char * device_name)
-{
-    GraphExecutor *executor = static_cast<GraphExecutor*>(graph);
-	std::string device = device_name;
-	executor->GetGraph()->SetAttr("default_executor", device);
-    return 0;
+int set_graph_device(graph_t graph, const char *device_name) {
+  GraphExecutor *executor = static_cast<GraphExecutor *>(graph);
+  std::string device = device_name;
+  executor->GetGraph()->SetAttr("default_executor", device);
+  return 0;
 }
 
-int run_inference(graph_t graph, void * input_data, int input_size)
-{
-    const char * tensor_name;
-    const char * node_name;
-    tensor_t tensor;
-    int ret;
+int run_inference(graph_t graph, void *input_data, int input_size) {
+  const char *tensor_name;
+  const char *node_name;
+  tensor_t tensor;
+  int ret;
 
-    /* should only one input node */
-    if(get_input_node_number(graph)!=1)
-        return -1;
+  /* should only one input node */
+  if (get_input_node_number(graph) != 1) return -1;
 
-    if(prerun_graph(graph)<0)
-    {
-        return -1;
-    }
+  if (prerun_graph(graph) < 0) {
+    return -1;
+  }
 
-    node_name=get_input_node_name(graph,0);
+  node_name = get_input_node_name(graph, 0);
 
-    tensor_name=get_node_output_tensor(graph,node_name,0);
+  tensor_name = get_node_output_tensor(graph, node_name, 0);
 
-    tensor=get_graph_tensor(graph,tensor_name); 
+  tensor = get_graph_tensor(graph, tensor_name);
 
-    if(set_tensor_data(tensor,input_data,input_size)<0)
-    {
-        put_graph_tensor(tensor);
-        return -1;
-    }
-
-    ret=run_graph(graph,1);
-
-
+  if (set_tensor_data(tensor, input_data, input_size) < 0) {
     put_graph_tensor(tensor);
+    return -1;
+  }
 
-    return ret;
+  ret = run_graph(graph, 1);
+
+  put_graph_tensor(tensor);
+
+  return ret;
 }
 
-int get_graph_output(graph_t graph, void * output_data, int output_size)
-{
-    const char * tensor_name;
-    const char * node_name;
-    tensor_t tensor;
+int get_graph_output(graph_t graph, void *output_data, int output_size) {
+  const char *tensor_name;
+  const char *node_name;
+  tensor_t tensor;
 
-    if(get_output_node_number(graph)!=1)
-        return -1;
+  if (get_output_node_number(graph) != 1) return -1;
 
-    node_name=get_output_node_name(graph,0);
+  node_name = get_output_node_name(graph, 0);
 
-    tensor_name=get_node_output_tensor(graph,node_name,0);
+  tensor_name = get_node_output_tensor(graph, node_name, 0);
 
-    tensor=get_graph_tensor(graph,tensor_name);
+  tensor = get_graph_tensor(graph, tensor_name);
 
-    int ret=get_tensor_data(tensor,output_data,output_size);
+  int ret = get_tensor_data(tensor, output_data, output_size);
 
-    put_graph_tensor(tensor);
+  put_graph_tensor(tensor);
 
-    return ret;
+  return ret;
 }
 
-void destroy_graph(graph_t graph)
-{
+void destroy_graph(graph_t graph) {
+  postrun_graph(graph);
 
-    postrun_graph(graph);
+  const char *model_name = get_model_name(graph);
 
-    const char * model_name=get_model_name(graph);
-
-    remove_model(model_name);
-    destroy_runtime_graph(graph);
-    release_tengine_library();
+  remove_model(model_name);
+  destroy_runtime_graph(graph);
+  release_tengine_library();
 }
 
-int get_output_size(graph_t graph)
-{
-    const char * tensor_name;
-    const char * node_name;
-    tensor_t tensor;
+int get_output_size(graph_t graph) {
+  const char *tensor_name;
+  const char *node_name;
+  tensor_t tensor;
 
-    if(get_output_node_number(graph)!=1)
-        return -1;
+  if (get_output_node_number(graph) != 1) return -1;
 
-    node_name=get_output_node_name(graph,0);
+  node_name = get_output_node_name(graph, 0);
 
-    tensor_name=get_node_output_tensor(graph,node_name,0);
+  tensor_name = get_node_output_tensor(graph, node_name, 0);
 
-    tensor=get_graph_tensor(graph,tensor_name);
+  tensor = get_graph_tensor(graph, tensor_name);
 
-    int ret=get_tensor_buffer_size(tensor);
+  int ret = get_tensor_buffer_size(tensor);
 
-    put_graph_tensor(tensor);
+  put_graph_tensor(tensor);
 
-    return ret;
+  return ret;
 }
 
-int set_input_shape(graph_t graph, int dims[], int dim_number)
-{
-    const char * tensor_name;
-    const char * node_name;
-    tensor_t tensor;
+int set_input_shape(graph_t graph, int dims[], int dim_number) {
+  const char *tensor_name;
+  const char *node_name;
+  tensor_t tensor;
 
-    /* should only one input node */
-    if(get_input_node_number(graph)!=1)
-        return -1;
+  /* should only one input node */
+  if (get_input_node_number(graph) != 1) return -1;
 
-    node_name=get_input_node_name(graph,0);
+  node_name = get_input_node_name(graph, 0);
 
-    tensor_name=get_node_output_tensor(graph,node_name,0);
+  tensor_name = get_node_output_tensor(graph, node_name, 0);
 
-    tensor=get_graph_tensor(graph,tensor_name); 
+  tensor = get_graph_tensor(graph, tensor_name);
 
-    int ret=set_tensor_shape(tensor,dims,dim_number);
+  int ret = set_tensor_shape(tensor, dims, dim_number);
 
-    put_graph_tensor(tensor);
+  put_graph_tensor(tensor);
 
-    return ret;
+  return ret;
 }
 
-static user_context_t get_default_user_context(void)
-{
-    static user_context_t def_user_context=nullptr;
+static user_context_t get_default_user_context(void) {
+  static user_context_t def_user_context = nullptr;
 
-    if(def_user_context==nullptr)
-    {
-        def_user_context=create_user_context("default");
-    }
+  if (def_user_context == nullptr) {
+    def_user_context = create_user_context("default");
+  }
 
-    return def_user_context;
+  return def_user_context;
 }
 
-static workspace_t create_default_workspace(void)
-{
-    user_context_t user_context=get_default_user_context();
+static workspace_t create_default_workspace(void) {
+  user_context_t user_context = get_default_user_context();
 
-    return create_workspace("default",user_context);
+  return create_workspace("default", user_context);
 }
 
-static workspace_t get_default_workspace(void)
-{
-    static workspace_t default_workspace=nullptr;
+static workspace_t get_default_workspace(void) {
+  static workspace_t default_workspace = nullptr;
 
-    if(default_workspace==nullptr)
-    {
-        default_workspace=create_default_workspace();
-    }
+  if (default_workspace == nullptr) {
+    default_workspace = create_default_workspace();
+  }
 
-    return default_workspace;
+  return default_workspace;
 }
-
 
 /*** Level 1 API implementation */
 
-void __attribute__((constructor)) first_init(void)
-{
-    NamedData<DataLayout>::InitPredefinedData();
-    NamedData<DataType>::InitPredefinedData();
+void __attribute__((constructor)) first_init(void) {
+  NamedData<DataLayout>::InitPredefinedData();
+  NamedData<DataType>::InitPredefinedData();
 }
 
 extern "C" {
@@ -285,942 +258,819 @@ void operator_plugin_init(void);
 void serializer_plugin_init(void);
 void executor_plugin_init(void);
 void driver_plugin_init(void);
-
 }
 
-static void InitAllPlugin(void)
-{
-    operator_plugin_init();
-    serializer_plugin_init();
-    executor_plugin_init();
-    driver_plugin_init();
+static void InitAllPlugin(void) {
+  operator_plugin_init();
+  serializer_plugin_init();
+  executor_plugin_init();
+  driver_plugin_init();
 }
 
-static void set_cpu_list(const char * cpu_list_str)
-{
-    char * copy_str=strdup(cpu_list_str);
+static void set_cpu_list(const char *cpu_list_str) {
+  char *copy_str = strdup(cpu_list_str);
 
-    std::vector<int> cpu_list;
+  std::vector<int> cpu_list;
 
-    char * p=strtok(copy_str,",");
+  char *p = strtok(copy_str, ",");
 
-    while(p)
-    {
-        int cpu_id=strtoul(p,NULL,10);
-        cpu_list.push_back(cpu_id);
-        p=strtok(NULL,",");
-    }
+  while (p) {
+    int cpu_id = strtoul(p, NULL, 10);
+    cpu_list.push_back(cpu_id);
+    p = strtok(NULL, ",");
+  }
 
-    int * int_buf=cpu_list.data();
+  int *int_buf = cpu_list.data();
 
-    set_working_cpu(int_buf,cpu_list.size());
+  set_working_cpu(int_buf, cpu_list.size());
 
-    free(copy_str);
-
+  free(copy_str);
 }
 
-int init_tengine_library(void)
-{
-    static int initialized=0;
-    static std::mutex init_mutex;
+int init_tengine_library(void) {
+  static int initialized = 0;
+  static std::mutex init_mutex;
 
-    if(initialized)
-        return 0;
+  if (initialized) return 0;
 
-    TEngineLock(init_mutex);
-    
-    if(initialized)
-    {
-        TEngineUnlock(init_mutex);
-        return 0;
-    }
-      
-    initialized=1;
+  TEngineLock(init_mutex);
 
-    TEngineConfig::Set("exec.engine","generic",true);
-    
-    //create the default user context
-    get_default_user_context();
-
-    InitAllPlugin();
-
-    //create the default context and workspace
-    get_default_user_context();
-    get_default_workspace();
-
-    TEnginePlugin::InitModule();
-
-    //set the default online cpu according to env var
-    const char * cpu_list_str=std::getenv("TENGINE_CPU_LIST");
-
-    if(cpu_list_str)
-    {
-        std::cout<<"ENV SET: ["<<cpu_list_str<<"]\n";
-        set_cpu_list(cpu_list_str);
-    }
-
+  if (initialized) {
     TEngineUnlock(init_mutex);
     return 0;
+  }
+
+  initialized = 1;
+
+  TEngineConfig::Set("exec.engine", "generic", true);
+
+  // create the default user context
+  get_default_user_context();
+
+  InitAllPlugin();
+
+  // create the default context and workspace
+  get_default_user_context();
+  get_default_workspace();
+
+  TEnginePlugin::InitModule();
+
+  // set the default online cpu according to env var
+  const char *cpu_list_str = std::getenv("TENGINE_CPU_LIST");
+
+  if (cpu_list_str) {
+    std::cout << "ENV SET: [" << cpu_list_str << "]\n";
+    set_cpu_list(cpu_list_str);
+  }
+
+  TEngineUnlock(init_mutex);
+  return 0;
 }
 
-void release_tengine_library(void)
-{
-    TEnginePlugin::ReleaseModule();
+void release_tengine_library(void) { TEnginePlugin::ReleaseModule(); }
+
+const char *get_tengine_version(void) { return TEngineConfig::version.c_str(); }
+
+int request_tengine_version(const char *version) {
+  // TODO: the real version compatibility check
+  //    TO_BE_IMPLEMENTED;
+  return 1;
 }
 
-const char * get_tengine_version(void)
-{
-    return TEngineConfig::version.c_str();
-}
+static int vload_model(const char *model_name, const char *file_format,
+                       const char *fname, va_list argp) {
+  SerializerPtr serializer;
 
-int request_tengine_version(const char * version)
-{
-    //TODO: the real version compatibility check
-    //    TO_BE_IMPLEMENTED;
-    return 1;
-}
+  if (!SerializerManager::SafeGet(file_format, serializer)) return -1;
 
-static int vload_model(const char * model_name, const char * file_format, const char * fname, va_list argp)
-{
-    SerializerPtr serializer;
+  int saved_file_number = serializer->GetFileNum();
 
-    if(!SerializerManager::SafeGet(file_format,serializer))
-        return -1;
+  std::vector<std::string> file_list;
 
-    int saved_file_number=serializer->GetFileNum();
+  file_list.push_back(fname);
 
-    std::vector<std::string> file_list;
+  for (int i = 1; i < saved_file_number; i++) {
+    const char *file = va_arg(argp, const char *);
+    file_list.emplace_back(file);
+  }
 
-    file_list.push_back(fname);
+  va_end(argp);
 
+  StaticGraph *static_graph = CreateStaticGraph(model_name);
 
-    for(int i=1;i<saved_file_number;i++)
-    {
-        const char * file=va_arg(argp,const char *);
-        file_list.emplace_back(file);
-    }
-
-    va_end(argp);
-
-    StaticGraph * static_graph=CreateStaticGraph(model_name);
-
-    if(!serializer->LoadModel(file_list,static_graph) ||
-       !CheckGraphIntegraity(static_graph))
-    {
-        delete static_graph;
-        return -1;
-    }
-         
-    if(StaticGraphManager::SafeAdd(std::string(model_name),StaticGraphPtr(static_graph)))
-        return 0;   
-
+  if (!serializer->LoadModel(file_list, static_graph) ||
+      !CheckGraphIntegraity(static_graph)) {
+    delete static_graph;
     return -1;
-}
+  }
 
-int load_model(const char * model_name, const char * file_format, const char * fname, ...)
-{
-    va_list argp;
-    va_start(argp,fname);
-
-    return vload_model(model_name,file_format,fname,argp);
-}
-
-int save_model(graph_t graph, const char * file_format, const char * fname, ...)
-{
-    /* Get the serializer according to file_format */
-    SerializerPtr serializer;
-    if(!SerializerManager::SafeGet(file_format, serializer))
-        return -1;
-
-    /* Create file list */
-    va_list argp;
-    va_start(argp,fname);
-
-    std::vector<std::string> file_list;
-    file_list.push_back(fname);
-
-    for(unsigned int i=1; i < serializer->GetFileNum(); i++)
-    {
-        const char *file = va_arg(argp, const char *);
-        file_list.emplace_back(file);
-    }
-    va_end(argp);
-
-    /* Get runtime graph pointer */
-    GraphExecutor *executor = static_cast<GraphExecutor *>(graph);
-    Graph *g = executor->GetGraph();
-
-    /* Save the graph to the files */
-    if(!serializer->SaveModel(file_list, g))
-        return -1;
-
+  if (StaticGraphManager::SafeAdd(std::string(model_name),
+                                  StaticGraphPtr(static_graph)))
     return 0;
+
+  return -1;
 }
 
-int remove_model(const char * model_name)
-{
-    if(!StaticGraphManager::Find(model_name))
-        return -1;
+int load_model(const char *model_name, const char *file_format,
+               const char *fname, ...) {
+  va_list argp;
+  va_start(argp, fname);
 
-    StaticGraphManager::Remove(model_name);
+  return vload_model(model_name, file_format, fname, argp);
+}
 
+int save_model(graph_t graph, const char *file_format, const char *fname, ...) {
+  /* Get the serializer according to file_format */
+  SerializerPtr serializer;
+  if (!SerializerManager::SafeGet(file_format, serializer)) return -1;
+
+  /* Create file list */
+  va_list argp;
+  va_start(argp, fname);
+
+  std::vector<std::string> file_list;
+  file_list.push_back(fname);
+
+  for (unsigned int i = 1; i < serializer->GetFileNum(); i++) {
+    const char *file = va_arg(argp, const char *);
+    file_list.emplace_back(file);
+  }
+  va_end(argp);
+
+  /* Get runtime graph pointer */
+  GraphExecutor *executor = static_cast<GraphExecutor *>(graph);
+  Graph *g = executor->GetGraph();
+
+  /* Save the graph to the files */
+  if (!serializer->SaveModel(file_list, g)) return -1;
+
+  return 0;
+}
+
+int remove_model(const char *model_name) {
+  if (!StaticGraphManager::Find(model_name)) return -1;
+
+  StaticGraphManager::Remove(model_name);
+
+  return 0;
+}
+
+int dump_model(const char *model_name) {
+  StaticGraphPtr graph_ptr;
+
+  if (StaticGraphManager::SafeGet(model_name, graph_ptr)) {
+    DumpStaticGraph(graph_ptr.get());
     return 0;
+  }
+
+  return -1;
 }
 
-int dump_model(const char * model_name)
-{
-    StaticGraphPtr  graph_ptr;
+graph_t create_runtime_graph(const char *graph_name, const char *model_name,
+                             workspace_t ws) {
+  if (ws == nullptr) ws = get_default_workspace();
 
-    if(StaticGraphManager::SafeGet(model_name,graph_ptr))
-    {
-        DumpStaticGraph(graph_ptr.get());
-        return 0;
-    }
+  RuntimeWorkspace *r_ws = static_cast<RuntimeWorkspace *>(ws);
 
-    return -1;
+  if (r_ws == nullptr) {
+    return nullptr;
+  }
+
+  return r_ws->CreateGraphExecutor(graph_name, model_name);
 }
 
-graph_t  create_runtime_graph(const char * graph_name, const char * model_name,workspace_t ws)
-{
-    if(ws==nullptr)
-        ws=get_default_workspace();
+int destroy_runtime_graph(graph_t graph) {
+  GraphExecutor *executor = static_cast<GraphExecutor *>(graph);
+  RuntimeWorkspace *r_ws = executor->GetWorkspace();
 
-    RuntimeWorkspace*  r_ws=static_cast<RuntimeWorkspace *>(ws);
+  if (r_ws->DestroyGraphExecutor(executor)) return 0;
 
-    if(r_ws==nullptr)
-    {
-        return nullptr;
-    }
-
-    return r_ws->CreateGraphExecutor(graph_name,model_name);
+  return -1;
 }
 
-int  destroy_runtime_graph(graph_t graph)
-{
-    GraphExecutor * executor=static_cast<GraphExecutor *>(graph);
-    RuntimeWorkspace * r_ws=executor->GetWorkspace();
+int set_graph_input_node(graph_t graph, const char *input_nodes[],
+                         int input_number) {
+  std::vector<std::string> inputs;
 
-    if(r_ws->DestroyGraphExecutor(executor))
-        return 0;
+  for (int i = 0; i < input_number; i++) inputs.push_back(input_nodes[i]);
 
-    return -1;
+  GraphExecutor *executor = static_cast<GraphExecutor *>(graph);
+
+  if (executor->SetGraphInputNode(inputs)) return 0;
+
+  return -1;
 }
 
-int  set_graph_input_node(graph_t graph, const char * input_nodes[], int input_number)
-{
-    std::vector<std::string> inputs;
+int set_graph_output_node(graph_t graph, const char *output_nodes[],
+                          int output_number) {
+  std::vector<std::string> outputs;
 
-    for(int i=0;i<input_number;i++)
-        inputs.push_back(input_nodes[i]);
+  for (int i = 0; i < output_number; i++) outputs.push_back(output_nodes[i]);
 
-    GraphExecutor * executor=static_cast<GraphExecutor *>(graph);
+  GraphExecutor *executor = static_cast<GraphExecutor *>(graph);
 
-    if(executor->SetGraphInputNode(inputs))
-        return 0;
+  if (executor->SetGraphOutputNode(outputs)) return 0;
 
-    return -1;
-
+  return -1;
 }
 
-int  set_graph_output_node(graph_t graph, const char * output_nodes[], int output_number)
-{
-    std::vector<std::string> outputs;
+int get_input_node_number(graph_t graph) {
+  GraphExecutor *executor = static_cast<GraphExecutor *>(graph);
 
-    for(int i=0;i<output_number;i++)
-        outputs.push_back(output_nodes[i]);
-
-    GraphExecutor * executor=static_cast<GraphExecutor *>(graph);
-
-    if(executor->SetGraphOutputNode(outputs))
-        return 0;
-
-    return -1;
+  return executor->GetGraphInputNodeNum();
 }
 
-int get_input_node_number(graph_t graph)
-{
-    GraphExecutor * executor=static_cast<GraphExecutor *>(graph);
+const char *get_input_node_name(graph_t graph, int idx) {
+  GraphExecutor *executor = static_cast<GraphExecutor *>(graph);
 
-    return executor->GetGraphInputNodeNum();
+  return executor->GetGraphInputNodeName(idx).c_str();
 }
 
-const char * get_input_node_name(graph_t graph, int idx)
-{
-    GraphExecutor * executor=static_cast<GraphExecutor *>(graph);
+int get_node_input_number(graph_t graph, const char *node_name) {
+  GraphExecutor *executor = static_cast<GraphExecutor *>(graph);
 
-    return executor->GetGraphInputNodeName(idx).c_str();
+  return executor->GetNodeInputNum(node_name);
 }
 
-int get_node_input_number(graph_t graph, const char * node_name)
-{
-    GraphExecutor * executor=static_cast<GraphExecutor *>(graph);
+const char *get_node_input_tensor(graph_t graph, const char *node_name,
+                                  int input_idx) {
+  GraphExecutor *executor = static_cast<GraphExecutor *>(graph);
 
-    return executor->GetNodeInputNum(node_name);
+  return executor->GetNodeInputTensor(node_name, input_idx).c_str();
 }
 
-const char * get_node_input_tensor(graph_t graph, const char * node_name, int input_idx)
-{
-    GraphExecutor * executor=static_cast<GraphExecutor *>(graph);
+int get_output_node_number(graph_t graph) {
+  GraphExecutor *executor = static_cast<GraphExecutor *>(graph);
 
-    return executor->GetNodeInputTensor(node_name,input_idx).c_str();
+  return executor->GetGraphOutputNodeNum();
 }
 
-int get_output_node_number(graph_t graph)
-{
-    GraphExecutor * executor=static_cast<GraphExecutor *>(graph);
+const char *get_output_node_name(graph_t graph, int idx) {
+  GraphExecutor *executor = static_cast<GraphExecutor *>(graph);
 
-    return executor->GetGraphOutputNodeNum();
+  return executor->GetGraphOutputNodeName(idx).c_str();
 }
 
-const char * get_output_node_name(graph_t graph, int idx)
-{
-    GraphExecutor * executor=static_cast<GraphExecutor *>(graph);
+int get_node_output_number(graph_t graph, const char *node_name) {
+  GraphExecutor *executor = static_cast<GraphExecutor *>(graph);
 
-    return executor->GetGraphOutputNodeName(idx).c_str();
+  return executor->GetNodeOutputNum(node_name);
 }
 
-int get_node_output_number(graph_t graph, const char * node_name)
-{
-    GraphExecutor * executor=static_cast<GraphExecutor *>(graph);
+const char *get_node_output_tensor(graph_t graph, const char *node_name,
+                                   int output_idx) {
+  GraphExecutor *executor = static_cast<GraphExecutor *>(graph);
 
-    return executor->GetNodeOutputNum(node_name);
+  return executor->GetNodeOutputTensor(node_name, output_idx).c_str();
 }
 
-const char * get_node_output_tensor(graph_t graph, const char * node_name, int output_idx)
-{
-    GraphExecutor * executor=static_cast<GraphExecutor *>(graph);
+tensor_t get_graph_tensor(graph_t graph, const char *tensor_name) {
+  GraphExecutor *executor = static_cast<GraphExecutor *>(graph);
 
-    return executor->GetNodeOutputTensor(node_name,output_idx).c_str();
+  Tensor *tensor = executor->FindTensor(tensor_name);
+
+  if (tensor == nullptr) return nullptr;
+
+  tensor_handle *h = new tensor_handle();
+
+  h->executor = executor;
+  h->tensor = tensor;
+
+  return h;
 }
 
-tensor_t  get_graph_tensor(graph_t graph, const char * tensor_name)
-{
-    GraphExecutor * executor=static_cast<GraphExecutor *>(graph);
+tensor_t get_graph_input_tensor(graph_t graph, int input_node_idx,
+                                int tensor_idx) {
+  int node_number = get_input_node_number(graph);
+  if (!node_number || input_node_idx >= node_number) return nullptr;
 
-    Tensor * tensor=executor->FindTensor(tensor_name);
+  const char *node_name = get_input_node_name(graph, input_node_idx);
+  int tensor_number = get_node_output_number(graph, node_name);
+  if (!tensor_number || tensor_idx >= tensor_number) return nullptr;
 
-    if(tensor==nullptr)
-        return nullptr;
-
-    tensor_handle * h=new tensor_handle();
-
-    h->executor=executor;
-    h->tensor=tensor;
-
-    return h;
+  const char *tensor_name =
+      get_node_output_tensor(graph, node_name, tensor_idx);
+  tensor_t tensor = get_graph_tensor(graph, tensor_name);
+  return tensor;
 }
 
-tensor_t  get_graph_input_tensor(graph_t graph, int input_node_idx, int tensor_idx)
-{
-    int node_number = get_input_node_number(graph);
-    if(!node_number || input_node_idx >= node_number)
-        return nullptr;
+tensor_t get_graph_output_tensor(graph_t graph, int output_node_idx,
+                                 int tensor_idx) {
+  int node_number = get_output_node_number(graph);
+  if (!node_number || output_node_idx >= node_number) return nullptr;
 
-    const char * node_name = get_input_node_name(graph, input_node_idx);
-    int tensor_number = get_node_output_number(graph, node_name);
-    if(!tensor_number || tensor_idx >= tensor_number)
-        return nullptr;
+  const char *node_name = get_output_node_name(graph, output_node_idx);
+  int tensor_number = get_node_output_number(graph, node_name);
+  if (!tensor_number || tensor_idx >= tensor_number) return nullptr;
 
-    const char * tensor_name = get_node_output_tensor(graph, node_name, tensor_idx);
-    tensor_t tensor = get_graph_tensor(graph, tensor_name);
-    return tensor;
+  const char *tensor_name =
+      get_node_output_tensor(graph, node_name, tensor_idx);
+  tensor_t tensor = get_graph_tensor(graph, tensor_name);
+  return tensor;
 }
 
-tensor_t  get_graph_output_tensor(graph_t graph, int output_node_idx, int tensor_idx)
-{
-    int node_number = get_output_node_number(graph);
-    if(!node_number || output_node_idx >= node_number)
-        return nullptr;
+int check_tensor_valid(tensor_t tensor) {
+  tensor_handle *t = static_cast<tensor_handle *>(tensor);
 
-    const char * node_name = get_output_node_name(graph, output_node_idx);
-    int tensor_number = get_node_output_number(graph, node_name);
-    if(!tensor_number || tensor_idx >= tensor_number)
-        return nullptr;
+  if (t == nullptr) return 0;
 
-    const char * tensor_name = get_node_output_tensor(graph, node_name, tensor_idx);
-    tensor_t tensor = get_graph_tensor(graph, tensor_name);
-    return tensor;
+  return 1;
 }
 
-int  check_tensor_valid(tensor_t tensor)
-{
-    tensor_handle * t=static_cast<tensor_handle *>(tensor);
-
-    if(t==nullptr)
-        return 0;
-
-    return 1;
+void put_graph_tensor(tensor_t tensor) {
+  tensor_handle *h = static_cast<tensor_handle *>(tensor);
+  delete h;
 }
 
-void  put_graph_tensor(tensor_t tensor)
-{
-    tensor_handle * h=static_cast<tensor_handle *>(tensor);
-    delete h;
+int set_tensor_shape(tensor_t tensor, int dims[], int dim_number) {
+  std::vector<int> dim;
+
+  for (int i = 0; i < dim_number; i++) dim.push_back(dims[i]);
+
+  tensor_handle *h = static_cast<tensor_handle *>(tensor);
+
+  Tensor *real_tensor = h->tensor;
+
+  TShape &shape = real_tensor->GetShape();
+
+  shape.SetDim(dim);
+
+  return 0;
 }
 
-int  set_tensor_shape(tensor_t tensor, int dims[], int dim_number)
-{
-    std::vector<int> dim;
+int get_tensor_shape(tensor_t tensor, int dims[], int dim_number) {
+  tensor_handle *h = static_cast<tensor_handle *>(tensor);
 
-    for(int i=0;i<dim_number;i++)
-        dim.push_back(dims[i]);
+  Tensor *real_tensor = h->tensor;
 
-    tensor_handle * h=static_cast<tensor_handle*>(tensor);
+  TShape &shape = real_tensor->GetShape();
 
-    Tensor * real_tensor=h->tensor;
+  std::vector<int> &dim = shape.GetDim();
 
-    TShape& shape=real_tensor->GetShape();
+  int dim_size = dim.size();
 
-    shape.SetDim(dim);
+  if (dim_size > dim_number) return -1;
 
-    return 0;
+  for (int i = 0; i < dim_size; i++) dims[i] = dim[i];
+
+  return dim_size;
 }
 
-int  get_tensor_shape(tensor_t tensor, int dims[], int dim_number)
-{
-    tensor_handle * h=static_cast<tensor_handle*>(tensor);
+int get_tensor_buffer_size(tensor_t tensor) {
+  tensor_handle *h = static_cast<tensor_handle *>(tensor);
 
-    Tensor * real_tensor=h->tensor;
+  Tensor *real_tensor = h->tensor;
 
-    TShape& shape=real_tensor->GetShape();
-
-    std::vector<int>& dim=shape.GetDim();
-
-    int dim_size=dim.size();
-
-    if(dim_size>dim_number)
-        return -1;
-
-    for(int i=0;i<dim_size;i++)
-        dims[i]=dim[i];
-
-    return dim_size;
+  return real_tensor->GetTotalSize();
 }
 
-int  get_tensor_buffer_size(tensor_t tensor)
-{
-    tensor_handle * h=static_cast<tensor_handle*>(tensor);
+int set_tensor_buffer_transfer(tensor_t tensor, void *buffer, int buffer_size,
+                               tensor_buf_cb_t cb, void *cb_arg) {
+  tensor_handle *h = static_cast<tensor_handle *>(tensor);
+  GraphExecutor *executor = h->executor;
 
-    Tensor * real_tensor=h->tensor;
+  /* TODO: pass the callback to below layers*/
+  if (executor->SetTensorBuffer(h->tensor, buffer, buffer_size)) return 0;
 
-    return real_tensor->GetTotalSize();
+  return -1;
 }
 
-int  set_tensor_buffer_transfer(tensor_t tensor, void * buffer, int buffer_size,tensor_buf_cb_t cb, void * cb_arg)
-{
-    tensor_handle * h=static_cast<tensor_handle*>(tensor);
-    GraphExecutor * executor=h->executor;
+int set_tensor_buffer(tensor_t tensor, void *buffer, int buffer_size) {
+  tensor_handle *h = static_cast<tensor_handle *>(tensor);
+  GraphExecutor *executor = h->executor;
 
-    /* TODO: pass the callback to below layers*/
-    if(executor->SetTensorBuffer(h->tensor,buffer,buffer_size))
-        return 0;
+  if (executor->SetTensorBuffer(h->tensor, buffer, buffer_size)) return 0;
 
-    return -1;
+  return -1;
 }
 
-int  set_tensor_buffer(tensor_t tensor, void * buffer, int buffer_size)
-{
-    tensor_handle * h=static_cast<tensor_handle*>(tensor);
-    GraphExecutor * executor=h->executor;
-         
-    if(executor->SetTensorBuffer(h->tensor,buffer,buffer_size))
-        return 0;
+int set_tensor_data(tensor_t tensor, const void *input_data, int data_size) {
+  tensor_handle *h = static_cast<tensor_handle *>(tensor);
+  GraphExecutor *executor = h->executor;
 
-    return -1;
+  if (executor->SetTensorData(h->tensor, input_data, data_size)) return 0;
+
+  return -1;
 }
 
-int  set_tensor_data(tensor_t tensor, const void * input_data, int data_size)
-{
-    tensor_handle * h=static_cast<tensor_handle*>(tensor);
-    GraphExecutor * executor=h->executor;
+int get_tensor_data(tensor_t tensor, void *output_data, int data_size) {
+  tensor_handle *h = static_cast<tensor_handle *>(tensor);
+  GraphExecutor *executor = h->executor;
 
-    if(executor->SetTensorData(h->tensor,input_data,data_size))
-        return 0;
+  if (executor->GetTensorData(h->tensor, output_data, data_size)) return 0;
 
-    return -1;
+  return -1;
 }
 
+void *get_tensor_buffer(tensor_t tensor) {
+  tensor_handle *h = static_cast<tensor_handle *>(tensor);
 
-int  get_tensor_data(tensor_t tensor, void * output_data, int data_size)
-{
-    tensor_handle * h=static_cast<tensor_handle*>(tensor);
-    GraphExecutor * executor=h->executor;
+  GraphExecutor *executor = h->executor;
 
-    if(executor->GetTensorData(h->tensor,output_data,data_size))
-        return 0;
-
-    return -1;
+  return executor->GetTensorBuffer(h->tensor);
 }
 
-void * get_tensor_buffer(tensor_t tensor)
-{
-    tensor_handle * h=static_cast<tensor_handle*>(tensor);
+const char *get_tensor_name(tensor_t tensor) {
+  tensor_handle *h = static_cast<tensor_handle *>(tensor);
+  Tensor *real_tensor = h->tensor;
 
-    GraphExecutor * executor=h->executor;
-
-    return executor->GetTensorBuffer(h->tensor);
+  return real_tensor->GetName().c_str();
 }
 
-const char * get_tensor_name(tensor_t tensor)
-{
-    tensor_handle * h=static_cast<tensor_handle*>(tensor);
-    Tensor *  real_tensor=h->tensor;
+void *get_graph_node(graph_t graph, const char *node_name) {
+  GraphExecutor *executor = static_cast<GraphExecutor *>(graph);
 
-    return real_tensor->GetName().c_str();
+  return executor->FindNode(node_name);
 }
 
-void * get_graph_node(graph_t graph, const char * node_name)
-{
-    GraphExecutor * executor=static_cast<GraphExecutor *>(graph);
-
-    return executor->FindNode(node_name);
+int set_node_device(node_t node, const char *dev_name) {
+  Node *node_ = static_cast<Node *>(node);
+  std::string dev = dev_name;
+  node_->SetAttr("dev_id", dev);
+  return 0;
 }
 
-int set_node_device(node_t node, const char * dev_name)
-{
-    Node* node_ = static_cast<Node*>(node);
-	std::string dev = dev_name;
-	node_->SetAttr("dev_id", dev);
-    return 0;
+void put_graph_node(void *node) {}
+
+int get_node_param_int(node_t node, const char *param_name, int *param_val) {
+  return get_node_param_generic(node, param_name, &typeid(int), param_val);
 }
 
-void put_graph_node(void * node)
-{
+int get_node_param_float(node_t node, const char *param_name,
+                         float *param_val) {
+  return get_node_param_generic(node, param_name, &typeid(float), param_val);
 }
 
-int get_node_param_int(node_t node, const char * param_name, int * param_val)
-{
-    return get_node_param_generic(node,param_name,&typeid(int),param_val);
-}
-
-int get_node_param_float(node_t node, const char * param_name, float * param_val)
-{
-    return get_node_param_generic(node,param_name,&typeid(float),param_val);
-}
-
-/* a temporary solution: 
- * Define an intermidate function 
+/* a temporary solution:
+ * Define an intermidate function
  * NodeGetParamGeneric(): defined in node.cpp
  *
  */
 namespace TEngine {
 
-extern int NodeGetParamGeneric(void * node, const char * param_name, const void * type_info, void * param_val);
-extern int NodeSetParamGeneric(void * node, const char * param_name, const void * type_info, const void * param_val);
+extern int NodeGetParamGeneric(void *node, const char *param_name,
+                               const void *type_info, void *param_val);
+extern int NodeSetParamGeneric(void *node, const char *param_name,
+                               const void *type_info, const void *param_val);
 
+}  // namespace TEngine
+
+int get_node_param_generic(node_t node, const char *param_name,
+                           const void *type_info, void *param_val) {
+  return NodeGetParamGeneric(node, param_name, type_info, param_val);
 }
 
-int get_node_param_generic(node_t node, const char * param_name, const void * type_info, void * param_val)
-{
-    return NodeGetParamGeneric(node,param_name,type_info,param_val);
+int set_node_param_int(node_t node, const char *param_name,
+                       const int *param_val) {
+  return set_node_param_generic(node, param_name, &typeid(int), param_val);
 }
 
-int set_node_param_int(node_t node, const char * param_name, const int * param_val)
-{
-    return set_node_param_generic(node,param_name,&typeid(int),param_val);
+int set_node_param_float(node_t node, const char *param_name,
+                         const float *param_val) {
+  return set_node_param_generic(node, param_name, &typeid(float), param_val);
 }
 
-int set_node_param_float(node_t node, const char * param_name, const float * param_val)
-{
-    return set_node_param_generic(node,param_name,&typeid(float),param_val);
+int set_node_param_generic(node_t node, const char *param_name,
+                           const void *type_info, const void *param_val) {
+  return NodeSetParamGeneric(node, param_name, type_info, param_val);
 }
 
-    
-int set_node_param_generic(node_t node, const char * param_name, const void * type_info, const void * param_val)
-{
-    return NodeSetParamGeneric(node,param_name,type_info,param_val);
+int prerun_graph(graph_t graph) {
+  GraphExecutor *executor = static_cast<GraphExecutor *>(graph);
+
+  if (!executor->InferShape()) return -1;
+
+  if (executor->Prerun()) return 0;
+
+  return -1;
 }
 
-int  prerun_graph(graph_t graph)
-{
-    GraphExecutor * executor=static_cast<GraphExecutor *>(graph);
+int infer_shape(graph_t graph) {
+  GraphExecutor *executor = static_cast<GraphExecutor *>(graph);
 
-    if(!executor->InferShape())
-        return -1;
+  if (!executor->InferShape()) return -1;
 
-    if(executor->Prerun())
-        return 0;
-
-    return -1;
+  return 0;
 }
 
-int  infer_shape(graph_t graph)
-{
-    GraphExecutor * executor=static_cast<GraphExecutor *>(graph);
+int run_graph(graph_t graph, int block) {
+  GraphExecutor *executor = reinterpret_cast<GraphExecutor *>(graph);
 
-    if(!executor->InferShape())
-        return -1;
-
-    return 0;
+  if (GetSyncRunMode())
+    return executor->SyncRun();
+  else
+    return executor->Run(block);
 }
 
-int  run_graph(graph_t graph, int block)
-{
-    GraphExecutor * executor=reinterpret_cast<GraphExecutor *>(graph);
+void dump_graph(graph_t graph) {
+  GraphExecutor *executor = static_cast<GraphExecutor *>(graph);
 
-    if(GetSyncRunMode())
-        return executor->SyncRun();
-    else
-        return executor->Run(block);
-}
+  /* first: try to dump optimized graph */
+  Graph *g = executor->GetOptimizedGraph();
 
-
-void dump_graph(graph_t graph)
-{
-    GraphExecutor * executor=static_cast<GraphExecutor *>(graph);
-
-    /* first: try to dump optimized graph */
-    Graph* g=executor->GetOptimizedGraph();
-
-    if(g)
-    {
-        g->DumpGraph();
-        return;
-    }
-
-    /* get the origin graph */
-    g=executor->GetGraph();
+  if (g) {
     g->DumpGraph();
+    return;
+  }
+
+  /* get the origin graph */
+  g = executor->GetGraph();
+  g->DumpGraph();
 }
 
-int wait_graph(graph_t graph, int try_wait)
-{
-    GraphExecutor * executor=reinterpret_cast<GraphExecutor *>(graph);
+int wait_graph(graph_t graph, int try_wait) {
+  GraphExecutor *executor = reinterpret_cast<GraphExecutor *>(graph);
 
-    return executor->WaitGraph(try_wait);
+  return executor->WaitGraph(try_wait);
 }
 
-int  postrun_graph(graph_t  graph)
-{
-    GraphExecutor * executor=reinterpret_cast<GraphExecutor *>(graph);
+int postrun_graph(graph_t graph) {
+  GraphExecutor *executor = reinterpret_cast<GraphExecutor *>(graph);
 
-    executor->Postrun();
+  executor->Postrun();
 
-    return 0;
+  return 0;
 }
 
-int  get_graph_exec_status(graph_t graph)
-{
-    TO_BE_IMPLEMENTED;
-    return 0;
+int get_graph_exec_status(graph_t graph) {
+  TO_BE_IMPLEMENTED;
+  return 0;
 }
 
-int  set_graph_event_hook(graph_t graph, int event, graph_callback_t cb_func, void * cb_arg)
-{
-    TO_BE_IMPLEMENTED;
-    return 0;
+int set_graph_event_hook(graph_t graph, int event, graph_callback_t cb_func,
+                         void *cb_arg) {
+  TO_BE_IMPLEMENTED;
+  return 0;
 }
 
-int get_engine_number(void)
-{
-    TO_BE_IMPLEMENTED;
-    return 0;
+int get_engine_number(void) {
+  TO_BE_IMPLEMENTED;
+  return 0;
 }
 
-const char * get_engine_name(int idx)
-{
-    TO_BE_IMPLEMENTED;
-    return 0;
+const char *get_engine_name(int idx) {
+  TO_BE_IMPLEMENTED;
+  return 0;
 }
 
-int set_device_mode(const char * device_name, int mode)
-{
-    TO_BE_IMPLEMENTED;
-    return 0;
+int set_device_mode(const char *device_name, int mode) {
+  TO_BE_IMPLEMENTED;
+  return 0;
 }
 
-int get_device_mode(const char * device_name)
-{
-    TO_BE_IMPLEMENTED;
-    return 0;
+int get_device_mode(const char *device_name) {
+  TO_BE_IMPLEMENTED;
+  return 0;
 }
 
-int get_device_config(const char * device_name, const char * config_name, void * val, int size)
-{
-    TO_BE_IMPLEMENTED;
-    return 0;
+int get_device_config(const char *device_name, const char *config_name,
+                      void *val, int size) {
+  TO_BE_IMPLEMENTED;
+  return 0;
 }
 
-int set_device_config(const char * device_name, const char * config_name, void * val, int size)
-{
-    TO_BE_IMPLEMENTED;
-    return 0;
+int set_device_config(const char *device_name, const char *config_name,
+                      void *val, int size) {
+  TO_BE_IMPLEMENTED;
+  return 0;
 }
 
-int del_device_config(const char * device_name, const char * config_name)
-{
-    TO_BE_IMPLEMENTED;
-    return 0;
+int del_device_config(const char *device_name, const char *config_name) {
+  TO_BE_IMPLEMENTED;
+  return 0;
 }
 
-user_context_t  create_user_context(const char * context_name)
-{
-    bool ret;
+user_context_t create_user_context(const char *context_name) {
+  bool ret;
 
-    UserContext * context=new UserContext(context_name);
+  UserContext *context = new UserContext(context_name);
 
-    ret=UserContextManager::SafeAdd(context_name,context);
+  ret = UserContextManager::SafeAdd(context_name, context);
 
-    if(ret)
-        return context;
+  if (ret) return context;
 
-    delete context;
+  delete context;
 
-    return nullptr;
+  return nullptr;
 }
 
-int check_user_context_valid(user_context_t context)
-{
-    UserContext * user_context=static_cast<UserContext *>(context);
+int check_user_context_valid(user_context_t context) {
+  UserContext *user_context = static_cast<UserContext *>(context);
 
-    if(user_context==nullptr)
-        return 0;
+  if (user_context == nullptr) return 0;
 
-    return 1;
+  return 1;
 }
 
-user_context_t  get_user_context(const char * context_name)
-{
-    UserContext * user_context;
+user_context_t get_user_context(const char *context_name) {
+  UserContext *user_context;
 
-    if(UserContextManager::SafeGet(context_name,user_context))
-        return user_context;
+  if (UserContextManager::SafeGet(context_name, user_context))
+    return user_context;
 
-    return nullptr;
+  return nullptr;
 }
 
-void destroy_user_context(user_context_t  context)
-{
-    UserContext * user_context=static_cast<UserContext *>(context);
+void destroy_user_context(user_context_t context) {
+  UserContext *user_context = static_cast<UserContext *>(context);
 
-    if(UserContextManager::SafeRemove(user_context->GetName()))
-        delete user_context;
-        
-    XLOG_ERROR()<<"BUG: not managed user context: "<<user_context->GetName()<<"\n";
+  if (UserContextManager::SafeRemove(user_context->GetName()))
+    delete user_context;
+
+  XLOG_ERROR() << "BUG: not managed user context: " << user_context->GetName()
+               << "\n";
 }
 
-int set_user_context_config(user_context_t  context, const char * name, void * val, int size)
-{
-    TO_BE_IMPLEMENTED;
-    return 0;
+int set_user_context_config(user_context_t context, const char *name, void *val,
+                            int size) {
+  TO_BE_IMPLEMENTED;
+  return 0;
 }
 
-int get_user_context_config(user_context_t  context, const char * name, void * val, int size)
-{
-    TO_BE_IMPLEMENTED;
-    return 0;
+int get_user_context_config(user_context_t context, const char *name, void *val,
+                            int size) {
+  TO_BE_IMPLEMENTED;
+  return 0;
 }
-int del_user_context_config(user_context_t  context, const char * name)
-{
-    TO_BE_IMPLEMENTED;
-    return 0;
-}
-
-workspace_t  create_workspace(const char * ws_name, user_context_t  context)
-{
-    UserContext *user_context=static_cast<UserContext *>(context);
-
-    return user_context->CreateWorkspace(ws_name);
+int del_user_context_config(user_context_t context, const char *name) {
+  TO_BE_IMPLEMENTED;
+  return 0;
 }
 
-int check_workspace_valid(workspace_t ws)
-{
-    RuntimeWorkspace * r_ws=static_cast<RuntimeWorkspace *> (ws);
+workspace_t create_workspace(const char *ws_name, user_context_t context) {
+  UserContext *user_context = static_cast<UserContext *>(context);
 
-    if(r_ws==nullptr)
-        return 0;
-    return 1;
+  return user_context->CreateWorkspace(ws_name);
 }
 
-workspace_t  get_workspace(const char * ws_name,user_context_t context)
-{
-    UserContext *user_context=static_cast<UserContext *>(context);
+int check_workspace_valid(workspace_t ws) {
+  RuntimeWorkspace *r_ws = static_cast<RuntimeWorkspace *>(ws);
 
-    return user_context->FindWorkspace(ws_name);
+  if (r_ws == nullptr) return 0;
+  return 1;
 }
 
-void destroy_workspace(workspace_t  ws)
-{
-    RuntimeWorkspace * r_ws=static_cast<RuntimeWorkspace *> (ws);
-    UserContext * user_context=r_ws->GetUserContext();
+workspace_t get_workspace(const char *ws_name, user_context_t context) {
+  UserContext *user_context = static_cast<UserContext *>(context);
 
-    user_context->DestroyWorkspace(r_ws);
+  return user_context->FindWorkspace(ws_name);
 }
 
-int set_workspace_config(workspace_t  ws, const char * config_name, void * config_val)
-{
-    TO_BE_IMPLEMENTED;
-    return 0;
+void destroy_workspace(workspace_t ws) {
+  RuntimeWorkspace *r_ws = static_cast<RuntimeWorkspace *>(ws);
+  UserContext *user_context = r_ws->GetUserContext();
+
+  user_context->DestroyWorkspace(r_ws);
 }
 
-int get_workspace_config(workspace_t  ws, const char * config_name, void * config_val)
-{
-    TO_BE_IMPLEMENTED;
-    return 0;
+int set_workspace_config(workspace_t ws, const char *config_name,
+                         void *config_val) {
+  TO_BE_IMPLEMENTED;
+  return 0;
 }
 
-int del_workspace_config(workspace_t  ws, const char * config_name)
-{
-    TO_BE_IMPLEMENTED;
-    return 0;
+int get_workspace_config(workspace_t ws, const char *config_name,
+                         void *config_val) {
+  TO_BE_IMPLEMENTED;
+  return 0;
 }
 
-int  set_graph_config(graph_t graph, const char * name, void * val, int size)
-{
-    TO_BE_IMPLEMENTED;
-    return 0;
+int del_workspace_config(workspace_t ws, const char *config_name) {
+  TO_BE_IMPLEMENTED;
+  return 0;
 }
 
-int  get_graph_config(graph_t graph, const char * name, void * val, int size)
-{
-    TO_BE_IMPLEMENTED;
-    return 0;
+int set_graph_config(graph_t graph, const char *name, void *val, int size) {
+  TO_BE_IMPLEMENTED;
+  return 0;
 }
 
-int  del_graph_config(graph_t graph, const char * name)
-{
-    TO_BE_IMPLEMENTED;
-    return 0;
+int get_graph_config(graph_t graph, const char *name, void *val, int size) {
+  TO_BE_IMPLEMENTED;
+  return 0;
 }
 
-void set_log_level(int level)
-{
-   SET_LOG_LEVEL((LogLevel)level);
+int del_graph_config(graph_t graph, const char *name) {
+  TO_BE_IMPLEMENTED;
+  return 0;
 }
+
+void set_log_level(int level) { SET_LOG_LEVEL((LogLevel)level); }
 
 static std::string tengine_conf_file;
 
-void set_config_file(const char * conf_file)
-{
-     tengine_conf_file=conf_file;
-}
+void set_config_file(const char *conf_file) { tengine_conf_file = conf_file; }
 
+const char *get_config_file(void) {
+  if (!tengine_conf_file.empty()) return tengine_conf_file.c_str();
 
-const char * get_config_file(void)
-{
+  const char *env_key = "TENGINE_CONFIG_FILE";
 
-    if(!tengine_conf_file.empty())
-        return tengine_conf_file.c_str();
+  const char *conf_env = std::getenv(env_key);
 
-    const char * env_key="TENGINE_CONFIG_FILE";
+  if (conf_env) return conf_env;
 
-    const char * conf_env=std::getenv(env_key);
+  std::fstream test_fs;
 
-    if(conf_env)
-        return conf_env;
+  /* check if /etc/tengine/config or /usr/local/etc/tengine/config exists */
+  const char *conf_basename = "config";
 
-    std::fstream test_fs;
+  std::string std_etc_conf("/etc/tengine/");
 
-     /* check if /etc/tengine/config or /usr/local/etc/tengine/config exists */
-    const char * conf_basename="config";
+  std_etc_conf = std_etc_conf + conf_basename;
 
-    std::string std_etc_conf("/etc/tengine/");
+  test_fs.open(std_etc_conf);
 
-    std_etc_conf=std_etc_conf+conf_basename;    
+  if (test_fs.is_open()) {
+    test_fs.close();
+    tengine_conf_file = std_etc_conf;
+    return tengine_conf_file.c_str();
+  }
 
-    test_fs.open(std_etc_conf);
+  std::string usr_etc_conf("/usr/local/etc/tengine/");
 
-    if(test_fs.is_open())    
-    {
-        test_fs.close();
-        tengine_conf_file=std_etc_conf;
-        return tengine_conf_file.c_str();
-    }
+  usr_etc_conf = usr_etc_conf + conf_basename;
 
-    std::string usr_etc_conf("/usr/local/etc/tengine/"); 
+  test_fs.open(usr_etc_conf);
 
-    usr_etc_conf=usr_etc_conf+conf_basename;
-   
-    test_fs.open(usr_etc_conf);
-
-    if(test_fs.is_open())    
-    {    
-        test_fs.close();
-        tengine_conf_file=usr_etc_conf;
-        return tengine_conf_file.c_str();
-    }
+  if (test_fs.is_open()) {
+    test_fs.close();
+    tengine_conf_file = usr_etc_conf;
+    return tengine_conf_file.c_str();
+  }
 
 #ifndef PATH_MAX
-    /* check current directory */
-    #define PATH_MAX 1024
+/* check current directory */
+#define PATH_MAX 1024
 #endif
 
-    char file_path[PATH_MAX+128];
+  char file_path[PATH_MAX + 128];
 
-    if(getcwd(file_path,PATH_MAX))
-    {
-        sprintf(file_path+strlen(file_path),"/etc/tengine/config");
-
-        test_fs.open(file_path);
-
-        if(test_fs.is_open())    
-        {    
-             test_fs.close();
-             tengine_conf_file=file_path;
-             return tengine_conf_file.c_str();
-        }
-
-        if(getcwd(file_path,PATH_MAX)==NULL)
-            return nullptr;
-
-        sprintf(file_path+strlen(file_path),"/etc/config");
- 
-        test_fs.open(file_path);
-
-        if(test_fs.is_open())    
-        {    
-             test_fs.close();
-             tengine_conf_file=file_path;
-             return tengine_conf_file.c_str();
-        }
-    }
-
-    /* check the relative path of executable */
-
-    /* get the abs path of executable first */
-
-    int n=readlink("/proc/self/exe",file_path,PATH_MAX);
-
-    if(n==PATH_MAX)
-        n=PATH_MAX-1;
-
-    file_path[n]=0x0;
-
-    char * p=strrchr(file_path,'/');
-    p[1]=0;
-
-    sprintf(file_path+strlen(file_path),"../etc/tengine/config");
+  if (getcwd(file_path, PATH_MAX)) {
+    sprintf(file_path + strlen(file_path), "/etc/tengine/config");
 
     test_fs.open(file_path);
 
-    if(test_fs.is_open())    
-    {    
-        test_fs.close();
-        tengine_conf_file=file_path;
-        return tengine_conf_file.c_str();
+    if (test_fs.is_open()) {
+      test_fs.close();
+      tengine_conf_file = file_path;
+      return tengine_conf_file.c_str();
     }
 
-    n=readlink("/proc/self/exe",file_path,PATH_MAX);
+    if (getcwd(file_path, PATH_MAX) == NULL) return nullptr;
 
-    if(n==PATH_MAX)
-        n=PATH_MAX-1;
-
-    file_path[n]=0x0;
-
-    p=strrchr(file_path,'/');
-    p[1]=0;
-
-    sprintf(file_path+strlen(file_path),"../etc/config");
+    sprintf(file_path + strlen(file_path), "/etc/config");
 
     test_fs.open(file_path);
 
-    if(test_fs.is_open())    
-    {    
-        test_fs.close();
-        tengine_conf_file=file_path;
-        return tengine_conf_file.c_str();
-    }   
- 
-    return nullptr;  
+    if (test_fs.is_open()) {
+      test_fs.close();
+      tengine_conf_file = file_path;
+      return tengine_conf_file.c_str();
+    }
+  }
+
+  /* check the relative path of executable */
+
+  /* get the abs path of executable first */
+
+  int n = readlink("/proc/self/exe", file_path, PATH_MAX);
+
+  if (n == PATH_MAX) n = PATH_MAX - 1;
+
+  file_path[n] = 0x0;
+
+  char *p = strrchr(file_path, '/');
+  p[1] = 0;
+
+  sprintf(file_path + strlen(file_path), "../etc/tengine/config");
+
+  test_fs.open(file_path);
+
+  if (test_fs.is_open()) {
+    test_fs.close();
+    tengine_conf_file = file_path;
+    return tengine_conf_file.c_str();
+  }
+
+  n = readlink("/proc/self/exe", file_path, PATH_MAX);
+
+  if (n == PATH_MAX) n = PATH_MAX - 1;
+
+  file_path[n] = 0x0;
+
+  p = strrchr(file_path, '/');
+  p[1] = 0;
+
+  sprintf(file_path + strlen(file_path), "../etc/config");
+
+  test_fs.open(file_path);
+
+  if (test_fs.is_open()) {
+    test_fs.close();
+    tengine_conf_file = file_path;
+    return tengine_conf_file.c_str();
+  }
+
+  return nullptr;
 }
-

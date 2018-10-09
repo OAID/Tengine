@@ -26,61 +26,52 @@
 
 namespace TEngine {
 
+bool FullyConnected::InferShape(const std::vector<TEngine::TShape>& ishape,
+                                std::vector<TEngine::TShape>& oshape) {
+  const TShape& input = ishape[0];
+  const TShape& weight = ishape[1];
 
-bool FullyConnected::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEngine::TShape>& oshape)
-{
-     const TShape& input=ishape[0];
-     const TShape& weight=ishape[1];
+  int m = input.GetN();
+  int input_k = input.GetW() * input.GetH() * input.GetC();
 
+  int n = weight.GetH();
+  int k = weight.GetW();
 
-     int m=input.GetN();
-     int input_k=input.GetW()*input.GetH()*input.GetC();
+  if (k != input_k) return false;
 
-     int n=weight.GetH();
-     int k=weight.GetW();
+  TShape shape;
 
+  std::vector<int> dim = {m, n, 1, 1};
 
-     if(k!=input_k)
-          return false;
+  shape.SetDim(dim);
+  shape.SetDataLayout("NCHW");
 
-     TShape shape;
+  oshape[0] = shape;
 
-     std::vector<int> dim={m,n,1,1};
-
-     shape.SetDim(dim);
-     shape.SetDataLayout("NCHW");
-
-     oshape[0]=shape;
- 
-     return true;    
-
+  return true;
 }
 
-float FullyConnected::GetFops(const std::vector<TShape>& inputs, const std::vector<TShape>& outputs)
-{
-     const TShape& input=inputs[0];
-     const TShape& weight=inputs[1];
+float FullyConnected::GetFops(const std::vector<TShape>& inputs,
+                              const std::vector<TShape>& outputs) {
+  const TShape& input = inputs[0];
+  const TShape& weight = inputs[1];
 
+  int m = input.GetN();
 
-     int m=input.GetN();
+  int n = weight.GetH();
+  int k = weight.GetW();
 
-     int n=weight.GetH();
-     int k=weight.GetW();
+  float fops = m * n * k * 2;
 
-     float fops=m*n*k*2;
-
-     return fops;
+  return fops;
 }
 
-
-void FullyConnected::SetSchema(void)
-{
-    Input({"input:float32","weight:float32","bias:float32"})
-    .Output({"output:float32"})
-    .SetLayout("NCHW")
-    .SetAttr("num_output",10)
-    .SetDoc(R"DOC(Fully Connected Operator)DOC");
+void FullyConnected::SetSchema(void) {
+  Input({"input:float32", "weight:float32", "bias:float32"})
+      .Output({"output:float32"})
+      .SetLayout("NCHW")
+      .SetAttr("num_output", 10)
+      .SetDoc(R"DOC(Fully Connected Operator)DOC");
 }
 
-
-} //namespace TEngine
+}  // namespace TEngine

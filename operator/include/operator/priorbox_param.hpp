@@ -24,40 +24,30 @@
 #ifndef __PRIORBOX_PARAM_HPP__
 #define __PRIORBOX_PARAM_HPP__
 
-
 #include "parameter.hpp"
-
 
 namespace TEngine {
 
-
 struct PriorBoxParam : public NamedParam {
+  std::vector<float> min_size;
+  std::vector<float> max_size;
+  std::vector<float> variance;
+  std::vector<float> aspect_ratio;
+  int flip;
+  int clip;
+  int img_size;
+  int img_h;
+  int img_w;
+  float step_w;
+  float step_h;
+  float offset;
 
-    std::vector<float> min_size;
-    std::vector<float> max_size;
-    std::vector<float> variance;
-    std::vector<float> aspect_ratio;
-    int flip;
-    int clip;
-    int img_size;
-    int img_h;
-    int img_w;
-    float step_w;
-    float step_h;
-    float offset;
+  int num_priors_;
+  int out_dim_;
 
-    int num_priors_;
-    int out_dim_;
-
-    DECLARE_PARSER_STRUCTURE(PriorBoxParam) 
-    {
-       DECLARE_PARSER_ENTRY(offset);
-    };
-
+  DECLARE_PARSER_STRUCTURE(PriorBoxParam) { DECLARE_PARSER_ENTRY(offset); };
 };
 
-
-} //namespace TEngine
-
+}  // namespace TEngine
 
 #endif

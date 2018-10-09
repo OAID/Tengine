@@ -21,85 +21,81 @@
  * Copyright (c) 2018, Open AI Lab
  * Author: jingyou@openailab.com
  */
-#include <iostream>
 #include <unistd.h>
+#include <iostream>
 #include "tengine_c_api.h"
 
-int main(int argc, char *argv[])
-{
-    std::string proto_file;
-    std::string model_file ;
-    std::string output_tmfile;
+int main(int argc, char *argv[]) {
+  std::string proto_file;
+  std::string model_file;
+  std::string output_tmfile;
 
-    int res;
-    while((res=getopt(argc,argv,"p:m:o:h")) != -1)
-    {
-        switch(res)
-        {
-            case 'p':
-                proto_file = optarg;
-                break;
-            case 'm':
-                model_file = optarg;
-                break;
-            case 'o':
-                output_tmfile = optarg;
-                break;
-            case 'h':
-                std::cout << "[Usage]: " << argv[0] << " [-h] [-p proto_file] [-m model_file] [-o output_tmfile]\n";
-                return 0;
-            default:
-                break;
-        }
+  int res;
+  while ((res = getopt(argc, argv, "p:m:o:h")) != -1) {
+    switch (res) {
+      case 'p':
+        proto_file = optarg;
+        break;
+      case 'm':
+        model_file = optarg;
+        break;
+      case 'o':
+        output_tmfile = optarg;
+        break;
+      case 'h':
+        std::cout
+            << "[Usage]: " << argv[0]
+            << " [-h] [-p proto_file] [-m model_file] [-o output_tmfile]\n";
+        return 0;
+      default:
+        break;
     }
+  }
 
-    if(proto_file.empty())
-    {
-        std::cout << "Please specify the -p option to indicate the input proto file.\n";
-        return -1;
-    }
-    if(model_file.empty())
-    {
-        std::cout << "Please specify the -m option to indicate the input model file.\n";
-        return -1;
-    }
-    if(output_tmfile.empty())
-    {
-        std::cout << "Please specify the -o option to indicate the output tengine model file.\n";
-        return -1;
-    }
+  if (proto_file.empty()) {
+    std::cout
+        << "Please specify the -p option to indicate the input proto file.\n";
+    return -1;
+  }
+  if (model_file.empty()) {
+    std::cout
+        << "Please specify the -m option to indicate the input model file.\n";
+    return -1;
+  }
+  if (output_tmfile.empty()) {
+    std::cout << "Please specify the -o option to indicate the output tengine "
+                 "model file.\n";
+    return -1;
+  }
 
-    // init tengine
-    init_tengine_library();
-    if(request_tengine_version("0.1") < 0)
-        return 1;
+  // init tengine
+  init_tengine_library();
+  if (request_tengine_version("0.1") < 0) return 1;
 
-    // load caffe model
-    std::string model_name = "temp_model";
-    if (load_model(model_name.c_str(), "caffe", proto_file.c_str(), model_file.c_str()) < 0)
-    {
-        std::cout << "Load caffe model failed.\n";
-        return -1;
-    }
+  // load caffe model
+  std::string model_name = "temp_model";
+  if (load_model(model_name.c_str(), "caffe", proto_file.c_str(),
+                 model_file.c_str()) < 0) {
+    std::cout << "Load caffe model failed.\n";
+    return -1;
+  }
 
-    // create runtime graph
-    graph_t graph = create_runtime_graph("graph", model_name.c_str(), NULL);
-    if (!check_graph_valid(graph))
-    {
-        std::cout << "Create graph0 failed.\n";
-        return -1;
-    }
+  // create runtime graph
+  graph_t graph = create_runtime_graph("graph", model_name.c_str(), NULL);
+  if (!check_graph_valid(graph)) {
+    std::cout << "Create graph0 failed.\n";
+    return -1;
+  }
 
-    // Save the tengine model file
-    if(save_model(graph, "tengine", output_tmfile.c_str()) == -1)
-    {
-        std::cout << "Create tengine model file failed.\n";
-        return -1;
-    }
-    std::cout << "Create tengine model file done: "<<output_tmfile<<"\n";
+  // Save the tengine model file
+  if (save_model(graph, "tengine", output_tmfile.c_str()) == -1) {
+    std::cout << "Create tengine model file failed.\n";
+    return -1;
+  }
+  std::cout << "Create tengine model file done: " << output_tmfile << "\n";
 
-    destroy_runtime_graph(graph);
-    remove_model(model_name.c_str());
-    release_tengine_library();
-    return 0;
+  destroy_runtime_graph(graph);
+  remove_model(model_name.c_str());
+  release_tengine_library();
+  return 0;
 }

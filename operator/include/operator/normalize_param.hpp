@@ -28,23 +28,16 @@
 
 namespace TEngine {
 
+struct NormalizeParam : public NamedParam {
+  int across_spatial;
+  int channel_shared;
 
-struct NormalizeParam : public NamedParam
-{
-   int   across_spatial;
-   int   channel_shared;
-   
-
-   DECLARE_PARSER_STRUCTURE(NormalizeParam) 
-   {
-       DECLARE_PARSER_ENTRY(across_spatial);
-       DECLARE_PARSER_ENTRY(channel_shared);
-      
-   };
- 
+  DECLARE_PARSER_STRUCTURE(NormalizeParam) {
+    DECLARE_PARSER_ENTRY(across_spatial);
+    DECLARE_PARSER_ENTRY(channel_shared);
+  };
 };
 
-
-} //namespace TEngine
+}  // namespace TEngine
 
 #endif

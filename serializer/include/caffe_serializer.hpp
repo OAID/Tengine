@@ -24,71 +24,66 @@
 #ifndef __CAFFE_SERIALIZER_HPP__
 #define __CAFFE_SERIALIZER_HPP__
 
-
-#include <iostream>
 #include <fstream>
 #include <functional>
+#include <iostream>
 
 #include "te_caffe.pb.h"
 
+#include "logger.hpp"
 #include "serializer.hpp"
 #include "static_graph_interface.hpp"
-#include "logger.hpp"
-
 
 namespace TEngine {
 
-class CaffeSingle: public Serializer {
+class CaffeSingle : public Serializer {
+ public:
+  using name_map_t = std::unordered_map<std::string, std::string>;
 
-public:
-      using name_map_t=std::unordered_map<std::string,std::string>;
+  CaffeSingle() {
+    name_ = "caffe_loader";
+    version_ = "0.1";
+    format_name_ = "caffe";
+  }
 
-      CaffeSingle() { 
-              name_="caffe_loader";
-              version_="0.1";
-              format_name_="caffe";
-      }
+  virtual ~CaffeSingle() {}
 
-      virtual ~CaffeSingle() {}
+  virtual unsigned int GetFileNum(void) override { return 1; }
 
-      virtual unsigned int GetFileNum(void) override { return 1; }
+  virtual bool LoadModel(const std::vector<std::string>& file_list,
+                         StaticGraph* static_graph) override;
 
-      virtual bool LoadModel(const std::vector<std::string>& file_list, StaticGraph * static_graph) override;
+  bool LoadConstTensor(const std::string& fname,
+                       StaticTensor* const_tensor) override {
+    return false;
+  }
+  bool LoadConstTensor(int fd, StaticTensor* const_tensor) override {
+    return false;
+  }
 
-      bool LoadConstTensor(const std::string& fname, StaticTensor * const_tensor) override {return false;}
-      bool LoadConstTensor(int fd, StaticTensor * const_tensor) override { return false;}
+ protected:
+  bool LoadBinaryFile(const char* fname, te_caffe::NetParameter& caffe_net);
+  bool LoadTextFile(const char* fname, te_caffe::NetParameter& caffe_net);
 
-protected:
-
-      bool LoadBinaryFile(const char * fname, te_caffe::NetParameter& caffe_net);
-      bool LoadTextFile(const char * fname, te_caffe::NetParameter& caffe_net);
-
-      virtual bool LoadGraph(te_caffe::NetParameter& model, StaticGraph * graph);
-      bool LoadNode(StaticGraph * graph, StaticNode * ,const te_caffe::LayerParameter&, name_map_t&);
-
-
+  virtual bool LoadGraph(te_caffe::NetParameter& model, StaticGraph* graph);
+  bool LoadNode(StaticGraph* graph, StaticNode*,
+                const te_caffe::LayerParameter&, name_map_t&);
 };
 
+class CaffeBuddy : public CaffeSingle {
+ public:
+  CaffeBuddy() { name_ = "caffe_buddy"; }
 
-class CaffeBuddy: public CaffeSingle  {
+  unsigned int GetFileNum(void) override { return 2; }
 
-public:
-      CaffeBuddy() {
-            name_="caffe_buddy";
-      }
+  bool LoadModel(const std::vector<std::string>& file_list,
+                 StaticGraph* static_graph) override;
 
-
-      unsigned int GetFileNum(void) override { return 2; }
-
-      bool LoadModel(const std::vector<std::string>& file_list, StaticGraph * static_graph) override;
-protected:
-      bool LoadGraph(te_caffe::NetParameter& test_net, te_caffe::NetParameter& train_net, StaticGraph * graph);
-
-
+ protected:
+  bool LoadGraph(te_caffe::NetParameter& test_net,
+                 te_caffe::NetParameter& train_net, StaticGraph* graph);
 };
 
-
-
-} //namespace TEngine
+}  // namespace TEngine
 
 #endif

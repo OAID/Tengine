@@ -24,28 +24,22 @@
 #ifndef __RESHAPE_HPP__
 #define __RESHAPE_HPP__
 
-
 #include "operator.hpp"
 #include "reshape_param.hpp"
 
 namespace TEngine {
 
-class Reshape: public OperatorWithParam<Reshape, ReshapeParam> {
+class Reshape : public OperatorWithParam<Reshape, ReshapeParam> {
+ public:
+  Reshape() { name_ = "Reshape"; }
+  Reshape(const Reshape& src) = default;
 
-public:
-
-     Reshape () { name_="Reshape"; }
-     Reshape(const Reshape& src)=default;
-
-     virtual ~Reshape() {}
-     bool InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEngine::TShape>& oshape) override;
-     void SetSchema(void) override;
-
-
+  virtual ~Reshape() {}
+  bool InferShape(const std::vector<TEngine::TShape>& ishape,
+                  std::vector<TEngine::TShape>& oshape) override;
+  void SetSchema(void) override;
 };
 
-
-} //namespace TEngine
-
+}  // namespace TEngine
 
 #endif

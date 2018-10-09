@@ -26,20 +26,19 @@
 
 namespace TEngine {
 
-float BatchNorm::GetFops(const std::vector<TShape>& inputs, const std::vector<TShape>& outputs)
-{
-    return outputs[0].GetSize()*2;
+float BatchNorm::GetFops(const std::vector<TShape>& inputs,
+                         const std::vector<TShape>& outputs) {
+  return outputs[0].GetSize() * 2;
 }
 
-void BatchNorm::SetSchema(void)
-{
-   Input({"input:float32","gmma:float32","beta:float32","mean:float32","var:float32"})
-   .Output({"output:float32"})
-   .SetAttr("eps",1e-5f)
-   .SetAttr("rescale_factor",1.0f)
-   .SetAttr("caffe_flavor",0)
-   .SetDoc(R"DOC(Batch Normalizatoin Layer)DOC");
+void BatchNorm::SetSchema(void) {
+  Input({"input:float32", "gmma:float32", "beta:float32", "mean:float32",
+         "var:float32"})
+      .Output({"output:float32"})
+      .SetAttr("eps", 1e-5f)
+      .SetAttr("rescale_factor", 1.0f)
+      .SetAttr("caffe_flavor", 0)
+      .SetDoc(R"DOC(Batch Normalizatoin Layer)DOC");
 }
 
-} //namespace TEngine
-
+}  // namespace TEngine

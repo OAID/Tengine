@@ -24,12 +24,12 @@
 #ifndef __CAFFE_IO_H__
 #define __CAFFE_IO_H__
 
-#include <iostream>
-#include <iomanip>
 #include <fstream>
+#include <iomanip>
+#include <iostream>
 #include "google/protobuf/message.h"
 
-#define ReadProtoFromBinaryFile  ReadProtoFromBinaryFile_wrap
+#define ReadProtoFromBinaryFile ReadProtoFromBinaryFile_wrap
 #define ReadProtoFromBinaryFileOrDie ReadProtoFromBinaryFileOrDie_wrap
 
 namespace caffe {
@@ -38,10 +38,9 @@ using ::google::protobuf::Message;
 
 bool ReadProtoFromBinaryFile(const char* filename, Message* proto);
 
-inline void ReadProtoFromBinaryFileOrDie(const char* filename, Message* proto)
-{
-    if(!ReadProtoFromBinaryFile(filename, proto))
-        std::cerr<<"Parse file: "<<filename<<" failed\n";
+inline void ReadProtoFromBinaryFileOrDie(const char* filename, Message* proto) {
+  if (!ReadProtoFromBinaryFile(filename, proto))
+    std::cerr << "Parse file: " << filename << " failed\n";
 }
 
 }  // namespace caffe

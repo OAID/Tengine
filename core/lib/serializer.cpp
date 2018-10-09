@@ -23,48 +23,40 @@
  */
 #include <string>
 
-#include "operator.hpp"
 #include "attribute.hpp"
-
+#include "operator.hpp"
 
 namespace TEngine {
 
 static Attribute op_method_load_map;
 static Attribute op_method_save_map;
 
-
-void RegisterOpLoadMethod(const std::string& op_name, const std::string& method_name, any func)
-{
-        std::string key=op_name+method_name;
-	op_method_load_map[key]=func;
+void RegisterOpLoadMethod(const std::string& op_name,
+                          const std::string& method_name, any func) {
+  std::string key = op_name + method_name;
+  op_method_load_map[key] = func;
 }
 
-void RegisterOpSaveMethod(const std::string& op_name, const std::string& method_name, any func)
-{
-        std::string key=op_name+method_name;
-	op_method_save_map[key]=func;
+void RegisterOpSaveMethod(const std::string& op_name,
+                          const std::string& method_name, any func) {
+  std::string key = op_name + method_name;
+  op_method_save_map[key] = func;
 }
 
-bool FindOpLoadMethod(const std::string& op_name, const std::string& method_name)
-{
-	std::string key=op_name+method_name;
+bool FindOpLoadMethod(const std::string& op_name,
+                      const std::string& method_name) {
+  std::string key = op_name + method_name;
 
-	if(op_method_load_map.ExistAttr(key))
-		return true;
+  if (op_method_load_map.ExistAttr(key)) return true;
 
-	return false;
+  return false;
 }
 
-any& GetOpLoadMethod(const std::string& op_name, const std::string& method_name)
-{
-	std::string key=op_name+method_name;
+any& GetOpLoadMethod(const std::string& op_name,
+                     const std::string& method_name) {
+  std::string key = op_name + method_name;
 
-	return op_method_load_map[key];
+  return op_method_load_map[key];
 }
 
-
-} //namespace TEngine
-
-
-
-
+}  // namespace TEngine

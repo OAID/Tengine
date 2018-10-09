@@ -21,61 +21,49 @@
  * Copyright (c) 2018, Open AI Lab
  * Author: chunyinglv@openailab.com
  */
-#include <iostream>
-#include <functional>
-#include <cstring>
 #include <algorithm>
+#include <cstring>
+#include <functional>
+#include <iostream>
 
+#include <math.h>
+#include "graph.hpp"
 #include "logger.hpp"
 #include "node_ops.hpp"
-#include "tensor_mem.hpp"
-#include "graph.hpp"
 #include "operator/flatten.hpp"
-#include<math.h>
+#include "tensor_mem.hpp"
 
 namespace TEngine {
 
-
 namespace FlattenImpl {
 
+struct FlattenOps : public NodeOps {
+  bool Run(Node *node) {
+    const Tensor *input_tensor = node->GetInputTensor(0);
+    Tensor *output_tensor = node->GetOutputTensor(0);
 
-struct FlattenOps: public NodeOps {
+    float *input = (float *)get_tensor_mem(input_tensor);
+    float *output = (float *)get_tensor_mem(output_tensor);
 
+    const TShape &shape = input_tensor->GetShape();
+    int size = shape.GetSize();
 
-
-bool Run(Node * node)
-{
-    const Tensor * input_tensor=node->GetInputTensor(0);
-    Tensor * output_tensor=node->GetOutputTensor(0);
- 
-    float * input=(float *)get_tensor_mem(input_tensor);
-    float * output=(float *)get_tensor_mem(output_tensor);
-    
-    const TShape&  shape=input_tensor->GetShape();
-    int size=shape.GetSize();
-
-    for(int i=0;i<size;i++)
-    {
-        output[i]=input[i];
+    for (int i = 0; i < size; i++) {
+      output[i] = input[i];
     }
 
-
     return true;
-}
-
+  }
 };
 
-} //namespace FlattenImpl
+}  // namespace FlattenImpl
 
 using namespace FlattenImpl;
 
-void RegisterFlattenNodeExec(void)
-{
-    FlattenOps * ops=new FlattenOps();
+void RegisterFlattenNodeExec(void) {
+  FlattenOps *ops = new FlattenOps();
 
-    NodeOpsRegistryManager::RegisterOPImplementor("common",
-                "Flatten",ops);
+  NodeOpsRegistryManager::RegisterOPImplementor("common", "Flatten", ops);
 }
 
-
-} //namespace TEngine
+}  // namespace TEngine

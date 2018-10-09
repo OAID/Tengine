@@ -24,24 +24,23 @@
 #ifndef __AUTO_REGISTER_HPP__
 #define __AUTO_REGISTER_HPP__
 
-#define UNIQ_DUMMY_NAME_WITH_LINE0(a,b) auto_dummy_##a##_##b
+#define UNIQ_DUMMY_NAME_WITH_LINE0(a, b) auto_dummy_##a##_##b
 
-#define UNIQ_DUMMY_NAME_WITH_LINE(a,b) UNIQ_DUMMY_NAME_WITH_LINE0(a,b)
+#define UNIQ_DUMMY_NAME_WITH_LINE(a, b) UNIQ_DUMMY_NAME_WITH_LINE0(a, b)
 
-#define UNIQ_DUMMY_NAME(name)  UNIQ_DUMMY_NAME_WITH_LINE(name,__LINE__)
-
+#define UNIQ_DUMMY_NAME(name) UNIQ_DUMMY_NAME_WITH_LINE(name, __LINE__)
 
 #define DUMMY_AUTO_FUNCTION(func, ...) \
-        DUMMY_AUTO_REGISTER(func,func, __VA_ARGS__)
+  DUMMY_AUTO_REGISTER(func, func, __VA_ARGS__)
 
-
-#define DUMMY_AUTO_REGISTER(name,func, ...) \
-        namespace {\
-           namespace UNIQ_DUMMY_NAME(name) { \
-               struct dummy {  dummy() { func(__VA_ARGS__); }};\
-               static dummy dummy_obj;\
-           }\
-       }
+#define DUMMY_AUTO_REGISTER(name, func, ...) \
+  namespace {                                \
+  namespace UNIQ_DUMMY_NAME(name) {          \
+    struct dummy {                           \
+      dummy() { func(__VA_ARGS__); }         \
+    };                                       \
+    static dummy dummy_obj;                  \
+  }                                          \
+  }
 
 #endif
-

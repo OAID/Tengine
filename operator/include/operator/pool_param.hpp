@@ -24,50 +24,42 @@
 #ifndef __POOLING_PARAM_HPP__
 #define __POOLING_PARAM_HPP__
 
-
 #include "parameter.hpp"
 
-enum PoolArg {
-  kPoolMax,
-  kPoolAvg,
-  kPoolRand
-};
-
+enum PoolArg { kPoolMax, kPoolAvg, kPoolRand };
 
 namespace TEngine {
 
 struct PoolParam : public NamedParam {
+  std::string method;
+  PoolArg alg;
+  int kernel_h;
+  int kernel_w;
+  int pad_h;
+  int pad_w;
+  int stride_h;
+  int stride_w;
+  int global;
+  int caffe_flavor;
+  std::vector<int>
+      kernel_shape;          ///> The size of the kernel along each axis (H, W).
+  std::vector<int> strides;  ///> stride along each axis (H, W).
+  std::vector<int>
+      pads;  ///> [x1_begin, x2_begin...x1_end, x2_end,...] for each axis.
 
-    std::string method;
-    PoolArg alg;
-    int kernel_h;
-    int kernel_w;
-    int pad_h;
-    int pad_w;
-    int stride_h;
-    int stride_w;
-    int global;
-    int caffe_flavor;
-    std::vector<int> kernel_shape;   ///> The size of the kernel along each axis (H, W).   
-    std::vector<int> strides;        ///> stride along each axis (H, W).     
-    std::vector<int> pads;       ///> [x1_begin, x2_begin...x1_end, x2_end,...] for each axis. 
-
-    DECLARE_PARSER_STRUCTURE(PoolParam) {
-       DECLARE_PARSER_ENTRY(method);
-       DECLARE_PARSER_ENTRY(kernel_h);
-       DECLARE_PARSER_ENTRY(kernel_w);
-       DECLARE_PARSER_ENTRY(stride_h);
-       DECLARE_PARSER_ENTRY(stride_w);
-       DECLARE_PARSER_ENTRY(pad_h);
-       DECLARE_PARSER_ENTRY(pad_w);
-       DECLARE_PARSER_ENTRY(global);
-       DECLARE_PARSER_ENTRY(caffe_flavor);
-    };
-
+  DECLARE_PARSER_STRUCTURE(PoolParam) {
+    DECLARE_PARSER_ENTRY(method);
+    DECLARE_PARSER_ENTRY(kernel_h);
+    DECLARE_PARSER_ENTRY(kernel_w);
+    DECLARE_PARSER_ENTRY(stride_h);
+    DECLARE_PARSER_ENTRY(stride_w);
+    DECLARE_PARSER_ENTRY(pad_h);
+    DECLARE_PARSER_ENTRY(pad_w);
+    DECLARE_PARSER_ENTRY(global);
+    DECLARE_PARSER_ENTRY(caffe_flavor);
+  };
 };
 
-
-} //namespace TEngine
-
+}  // namespace TEngine
 
 #endif

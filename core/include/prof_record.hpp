@@ -24,113 +24,95 @@
 #ifndef __PROF_RECORD_HPP__
 #define __PROF_RECORD_HPP__
 
-#include <vector>
-#include <unordered_map>
 #include <functional>
+#include <unordered_map>
+#include <vector>
 
 namespace TEngine {
 
 struct ProfRecord {
-
 #define PROF_DUMP_SEQ 0
 #define PROF_DUMP_DECREASE 1
 #define PROF_DUMP_INCREASE 2
-   
-   virtual bool Start(int idx, void * ident)=0;
-   virtual bool Stop(int idx)=0;
-   virtual void Dump(int method=PROF_DUMP_DECREASE) =0;
-   virtual void Reset(void)=0;
 
-   virtual ~ProfRecord() {};
+  virtual bool Start(int idx, void* ident) = 0;
+  virtual bool Stop(int idx) = 0;
+  virtual void Dump(int method = PROF_DUMP_DECREASE) = 0;
+  virtual void Reset(void) = 0;
+
+  virtual ~ProfRecord(){};
 };
 
-/* 
-   void * -- ident 
+/*
+   void * -- ident
    int -- repeat_count
    unsigned long -- used time
-*/ 
-using prof_parser_t=std::function<void(void*,int,unsigned long)>;
+*/
+using prof_parser_t = std::function<void(void*, int, unsigned long)>;
 
-struct ProfTime: public ProfRecord {
-    struct TimeRecord {
-         unsigned int count;
-         uint64_t     total_used_time;
-         uint64_t     start_time;
-         uint64_t     end_time;
-         uint64_t     min_time;
-         uint64_t     max_time;
-         void *       ident;
+struct ProfTime : public ProfRecord {
+  struct TimeRecord {
+    unsigned int count;
+    uint64_t total_used_time;
+    uint64_t start_time;
+    uint64_t end_time;
+    uint64_t min_time;
+    uint64_t max_time;
+    void* ident;
 
-         TimeRecord(){
-            Reset();
-         }
-         void Reset(){
-            count=0;
-            start_time=end_time=max_time=total_used_time=0;
-            min_time=~1UL;
-         }
-    };
-
-
-    ProfTime(int size, prof_parser_t func )
-    {
-          record.resize(size);
-          parser=func;
+    TimeRecord() { Reset(); }
+    void Reset() {
+      count = 0;
+      start_time = end_time = max_time = total_used_time = 0;
+      min_time = ~1UL;
     }
-   
-    bool Start(int idx, void * ident) override;
-    bool Stop(int idx) override;
-    void Dump(int method=PROF_DUMP_DECREASE) override;
-    void Reset(void) override;
-    const TimeRecord * GetRecord(int idx) const;
-    int GetRecordNum(void) const;
+  };
 
-    ~ProfTime(){}
+  ProfTime(int size, prof_parser_t func) {
+    record.resize(size);
+    parser = func;
+  }
 
+  bool Start(int idx, void* ident) override;
+  bool Stop(int idx) override;
+  void Dump(int method = PROF_DUMP_DECREASE) override;
+  void Reset(void) override;
+  const TimeRecord* GetRecord(int idx) const;
+  int GetRecordNum(void) const;
 
-prof_parser_t parser;
-std::vector<TimeRecord> record;
+  ~ProfTime() {}
 
+  prof_parser_t parser;
+  std::vector<TimeRecord> record;
 };
 
+class ProfRecordManager : public std::unordered_map<std::string, ProfRecord*> {
+ public:
+  static ProfRecordManager* GetInstance(void) {
+    static ProfRecordManager* ptr = new ProfRecordManager();
+    return ptr;
+  }
 
+  static ProfRecord* Create(const std::string& name, int size,
+                            prof_parser_t func) {
+    ProfTime* ptr = new ProfTime(size, func);
 
-class ProfRecordManager: public std::unordered_map<std::string, ProfRecord *> {
+    ProfRecordManager* manager = GetInstance();
 
-public:
+    (*manager)[name] = ptr;
 
-    static ProfRecordManager * GetInstance(void)
-    {
-          static ProfRecordManager * ptr=new ProfRecordManager();
-          return ptr;
-    }
+    return ptr;
+  }
 
-    static ProfRecord * Create(const std::string& name, int size, prof_parser_t func)
-    {
-         ProfTime * ptr=new ProfTime(size,func);
+  static ProfRecord* Get(const std::string& name) {
+    ProfRecordManager* manager = GetInstance();
 
-         ProfRecordManager * manager=GetInstance();
+    if (manager->count(name) == 0) return nullptr;
 
-         (*manager)[name]=ptr;
-
-         return ptr;
-    }
-
-    static ProfRecord * Get(const std::string& name)
-    {
-         ProfRecordManager * manager=GetInstance();
-
-         if(manager->count(name)==0)
-                 return nullptr;
-
-          return manager->at(name);
-    }
-
-
-
+    return manager->at(name);
+  }
 };
 
-} //namespace TEngine
-
+}  // namespace TEngine
 
 #endif

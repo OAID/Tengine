@@ -24,35 +24,31 @@
 #include "operator/reorg.hpp"
 
 namespace TEngine {
-bool Reorg::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEngine::TShape>& oshape)
-{
-  
-     const TShape& input=ishape[0];
-     int n=input.GetN();
-     int c=input.GetC();
-     int h=input.GetH();
-     int w=input.GetW();
+bool Reorg::InferShape(const std::vector<TEngine::TShape>& ishape,
+                       std::vector<TEngine::TShape>& oshape) {
+  const TShape& input = ishape[0];
+  int n = input.GetN();
+  int c = input.GetC();
+  int h = input.GetH();
+  int w = input.GetW();
 
-     TShape shape;
-     int stride=param_.stride;
-     std::vector<int> dim={n,c*(stride*stride),h/stride,w/stride};
+  TShape shape;
+  int stride = param_.stride;
+  std::vector<int> dim = {n, c * (stride * stride), h / stride, w / stride};
 
-     shape.SetDim(dim);
-     shape.SetDataLayout("NCHW");
+  shape.SetDim(dim);
+  shape.SetDataLayout("NCHW");
 
-     oshape[0]=shape;
-     return true;    
-
+  oshape[0] = shape;
+  return true;
 }
 
-void Reorg::SetSchema(void)
-{
+void Reorg::SetSchema(void) {
   Input({"input:float32"})
-  .Output({"output:float32"})
-  .SetLayout("NCHW")
-  .SetAttr("stride",1)
-  .SetDoc(R"DOC(Reorg Operator)DOC");
+      .Output({"output:float32"})
+      .SetLayout("NCHW")
+      .SetAttr("stride", 1)
+      .SetDoc(R"DOC(Reorg Operator)DOC");
 }
 
-
-} //namespace TEngine
+}  // namespace TEngine

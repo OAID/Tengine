@@ -21,73 +21,64 @@
  * Copyright (c) 2018, Open AI Lab
  * Author: chunyinglv@openailab.com
  */
-#include <iostream>
-#include <functional>
 #include <cstring>
+#include <functional>
+#include <iostream>
 
+#include "graph.hpp"
 #include "logger.hpp"
 #include "node_ops.hpp"
-#include "tensor_mem.hpp"
-#include "graph.hpp"
 #include "operator/relu.hpp"
+#include "tensor_mem.hpp"
 
 namespace TEngine {
 
 namespace ReLuImpl {
 
-struct ReLuOps: public NodeOps {
-
-bool OnBind(Node * node) override
-{
-    //set the inplace feature
+struct ReLuOps : public NodeOps {
+  bool OnBind(Node* node) override {
+    // set the inplace feature
     inplace_t io_map;
 
-    io_map[0]=0;
+    io_map[0] = 0;
 
-    node->SetAttr(ATTR_INPLACE,io_map);
+    node->SetAttr(ATTR_INPLACE, io_map);
 
     return true;
-}
+  }
 
-bool Run(Node * node ) override
-{
-    //input tensor and output tensor is the same
-    Tensor * input_tensor = node->GetInputTensor(0);
+  bool Run(Node* node) override {
+    // input tensor and output tensor is the same
+    Tensor* input_tensor = node->GetInputTensor(0);
     const TShape& shape = input_tensor->GetShape();
     int elem_num = shape.GetSize();
-    float * data = (float *)get_tensor_mem(input_tensor);
+    float* data = (float*)get_tensor_mem(input_tensor);
 
-    ReLu * relu_op=dynamic_cast<ReLu *>(node->GetOp());
-    ReLuParam*  param=relu_op->GetParam();
-    if(param->negative_slope==0)
-    {
-        for(int i=0; i < elem_num; i++)
-        {
-            if(data[i] < 0) data[i] = 0;
-        }
+    ReLu* relu_op = dynamic_cast<ReLu*>(node->GetOp());
+    ReLuParam* param = relu_op->GetParam();
+    if (param->negative_slope == 0) {
+      for (int i = 0; i < elem_num; i++) {
+        if (data[i] < 0) data[i] = 0;
+      }
+    } else {
+      for (int i = 0; i < elem_num; i++) {
+        data[i] = std::max(data[i], 0.f) +
+                  param->negative_slope * std::min(data[i], 0.f);
+      }
     }
-    else
-    {
-        for(int i=0;i<elem_num;i++)
-        {
-           data[i] = std::max(data[i], 0.f)+ param->negative_slope * std::min(data[i], 0.f);
-        }
-    }
-    
+
     return true;
-}
-
+  }
 };
 
-} //namespace ReLuImpl
+}  // namespace ReLuImpl
 
 using namespace ReLuImpl;
 
-void RegisterReLuNodeExec(void)
-{
-    ReLuOps * ops = new ReLuOps();
+void RegisterReLuNodeExec(void) {
+  ReLuOps* ops = new ReLuOps();
 
-    NodeOpsRegistryManager::RegisterOPImplementor("common", "ReLu", ops);
+  NodeOpsRegistryManager::RegisterOPImplementor("common", "ReLu", ops);
 }
 
-} //namespace TEngine
+}  // namespace TEngine

@@ -27,59 +27,56 @@
 
 #include "generic_dev_executor.hpp"
 
-
 namespace TEngine {
 
 class CPUDevice;
 
-class CPUExecutor: public GenericDevExecutor {
+class CPUExecutor : public GenericDevExecutor {
+ public:
+  CPUExecutor(const dev_id_t& dev_id) { dev_id_ = dev_id; }
 
-public:
+  void DevGetWorkload(DevWorkload& load) override;
+  bool DevGetPerf(Subgraph* graph, int policy, GraphPerf& perf) override;
+  float DevGetFops(Subgraph* graph, int policy) override;
+  int DevGetPolicyPriority(int policy) override;
+  bool DevGetProposal(Subgraph* graph, int policy) override;
 
-	CPUExecutor(const dev_id_t& dev_id) {dev_id_=dev_id;}
+  bool DevSetConfig(const char* config_name, const void* buffer,
+                    int size) override;
+  bool DevGetConfig(const char* config_name, void* buffer, int size) override;
+  bool DevDelConfig(const char* config_name) override;
 
-        void DevGetWorkload(DevWorkload& load) override;	
-	bool DevGetPerf(Subgraph * graph,int policy,GraphPerf& perf) override;
-	float DevGetFops(Subgraph * graph,int policy) override; 
-        int  DevGetPolicyPriority(int policy) override;
-        bool DevGetProposal(Subgraph * graph, int policy) override;
+  void* DevCreateGraphHandle(Subgraph* graph) override;
+  bool DevOptimizeGraph(void* graph_handle) override;
+  bool DevPrerun(void* graph_handle) override;
+  bool DevRun(void* graph_handle) override;
+  bool DevSyncRun(void* graph_handle) override;
+  bool DevPostrun(void* graph_handle) override;
+  bool DevReleaseGraphHandle(void* graph_handle) override;
+  bool DevStart(void) override;
+  bool DevStop(void) override;
 
-        bool DevSetConfig(const char * config_name, const void * buffer, int size) override;
-        bool DevGetConfig(const char * config_name, void * buffer, int size) override;
-        bool DevDelConfig(const char * config_name) override;
+  Subgraph* DevGetOptimizedGraph(void* graph_handle) override;
 
-	
-	void * DevCreateGraphHandle(Subgraph * graph) override;
-	bool DevOptimizeGraph(void * graph_handle) override;
-	bool DevPrerun(void * graph_handle) override;
-	bool DevRun(void * graph_handle) override;
-	bool DevSyncRun(void * graph_handle) override;
-	bool DevPostrun(void * graph_handle) override;
-	bool DevReleaseGraphHandle(void * graph_handle) override;
-	bool DevStart(void) override;
-	bool DevStop(void) override;
+  const dev_id_t& DevGetID(void) override;
+  const dev_type_t& DevGetType(void) override;
 
-        Subgraph * DevGetOptimizedGraph(void * graph_handle) override;
-	
-	const dev_id_t& DevGetID(void) override;
-	const dev_type_t & DevGetType(void) override;
-	
-    	dev_status_t DevGetStatus(void) override;
-		
-	bool Init(void) override;
-        bool Release(void) override;
+  dev_status_t DevGetStatus(void) override;
 
-       void UnbindDevice(void) override;
-       void BindDevice(Device * ) override;
-   
-	void SetDevice(CPUDevice * dev) {backend_dev_=dev;}
-	CPUDevice * GetDevice(void) {return backend_dev_;}
-protected:
-	CPUDevice * backend_dev_;
-	dev_id_t  dev_id_;
-	
+  bool Init(void) override;
+  bool Release(void) override;
+
+  void UnbindDevice(void) override;
+  void BindDevice(Device*) override;
+
+  void SetDevice(CPUDevice* dev) { backend_dev_ = dev; }
+  CPUDevice* GetDevice(void) { return backend_dev_; }
+
+ protected:
+  CPUDevice* backend_dev_;
+  dev_id_t dev_id_;
 };
 
-} //namespace TEngine
+}  // namespace TEngine
 
 #endif

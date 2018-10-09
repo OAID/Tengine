@@ -23,284 +23,250 @@
  */
 #include <unistd.h>
 
-#include <iostream> 
-#include <functional>
 #include <algorithm>
 #include <fstream>
+#include <functional>
 #include <iomanip>
-#include <vector>
+#include <iostream>
 #include <opencv2/opencv.hpp>
+#include <vector>
 
 #include "prof_utils.hpp"
 #include "tengine_c_api.h"
 #include "tengine_config.hpp"
 
-#define RUN_TIME  5000
+#define RUN_TIME 5000
 using namespace std;
 
-const char * image_file="./tools/data/images.txt";
-const char * label_file="./tools/data/label.txt";
+const char *image_file = "./tools/data/images.txt";
+const char *label_file = "./tools/data/label.txt";
 
-static inline bool PairCompare(const std::pair<float, int>& lhs,
-                        const std::pair<float, int>& rhs) {
+static inline bool PairCompare(const std::pair<float, int> &lhs,
+                               const std::pair<float, int> &rhs) {
   return lhs.first > rhs.first;
 }
 
-static inline std::vector<int> Argmax(const std::vector<float>& v, int N) {
+static inline std::vector<int> Argmax(const std::vector<float> &v, int N) {
   std::vector<std::pair<float, int> > pairs;
   for (size_t i = 0; i < v.size(); ++i)
     pairs.push_back(std::make_pair(v[i], i));
   std::partial_sort(pairs.begin(), pairs.begin() + N, pairs.end(), PairCompare);
 
   std::vector<int> result;
-  for (int i = 0; i < N; ++i)
-    result.push_back(pairs[i].second);
+  for (int i = 0; i < N; ++i) result.push_back(pairs[i].second);
   return result;
 }
 
 using namespace TEngine;
-void get_input_data(std::string &image_file, float *input_data,int img_h, int img_w,float *mean,float *scale)
-{
-    cv::Mat sample = cv::imread(image_file, -1);
-    if (sample.empty())
-    {
-          std::cerr << "Failed to read image file " << image_file << ".\n";
-          return;
-    }
-    cv::Mat img;
-    if (sample.channels() == 4)
-    {
-        cv::cvtColor(sample, img, cv::COLOR_BGRA2BGR);
-    }
-    else if (sample.channels() == 1)
-    {
-          cv::cvtColor(sample, img, cv::COLOR_GRAY2BGR);
-    }
-    else
-    {
-          img=sample;
-    }
+void get_input_data(std::string &image_file, float *input_data, int img_h,
+                    int img_w, float *mean, float *scale) {
+  cv::Mat sample = cv::imread(image_file, -1);
+  if (sample.empty()) {
+    std::cerr << "Failed to read image file " << image_file << ".\n";
+    return;
+  }
+  cv::Mat img;
+  if (sample.channels() == 4) {
+    cv::cvtColor(sample, img, cv::COLOR_BGRA2BGR);
+  } else if (sample.channels() == 1) {
+    cv::cvtColor(sample, img, cv::COLOR_GRAY2BGR);
+  } else {
+    img = sample;
+  }
 
-    cv::resize(img, img, cv::Size(img_h, img_w));
-    img.convertTo(img, CV_32FC3);
-    float *img_data = (float *)img.data;
-    int hw = img_h * img_w;
-    for (int h = 0; h < img_h; h++)
-    {
-        for (int w = 0; w < img_w; w++)
-        {
-            for (int c = 0; c < 3; c++)
-            {
-                input_data[c * hw + h * img_w + w] = *img_data - mean[c];
-                input_data[c * hw + h * img_w + w] =  input_data[c * hw + h * img_w + w] *scale[c];
-                img_data++;
-            }
-        }
+  cv::resize(img, img, cv::Size(img_h, img_w));
+  img.convertTo(img, CV_32FC3);
+  float *img_data = (float *)img.data;
+  int hw = img_h * img_w;
+  for (int h = 0; h < img_h; h++) {
+    for (int w = 0; w < img_w; w++) {
+      for (int c = 0; c < 3; c++) {
+        input_data[c * hw + h * img_w + w] = *img_data - mean[c];
+        input_data[c * hw + h * img_w + w] =
+            input_data[c * hw + h * img_w + w] * scale[c];
+        img_data++;
+      }
     }
+  }
 }
 
-
-void split(std::string& s,std::string delim,std::vector<std::string>* ret)  
-{  
-    size_t last = 0;  
-    size_t index = s.find_first_of(delim,last);  
-    while(index != string::npos)  
-    {  
-        ret->push_back(s.substr(last,index-last));  
-        last= index+1;  
-        index = s.find_first_of(delim,last);  
-    }  
-    if(index-last > 0)  
-    {  
-        ret->push_back(s.substr(last,index-last));  
-    }
-}  
-
-
-void LoadImageFile(std::vector<std::string>& result, const char * fname)
-{
-   std::ifstream images(fname);
-
-   std::string line;
-   while (std::getline(images, line))
-     result.push_back(line);
+void split(std::string &s, std::string delim, std::vector<std::string> *ret) {
+  size_t last = 0;
+  size_t index = s.find_first_of(delim, last);
+  while (index != string::npos) {
+    ret->push_back(s.substr(last, index - last));
+    last = index + 1;
+    index = s.find_first_of(delim, last);
+  }
+  if (index - last > 0) {
+    ret->push_back(s.substr(last, index - last));
+  }
 }
 
+void LoadImageFile(std::vector<std::string> &result, const char *fname) {
+  std::ifstream images(fname);
 
-void LoadLableFile(std::vector<int>& result, const char * fname)
-{
-   std::ifstream labels(fname);
- 
-    std::string line;
-    while (std::getline(labels, line))
-    {
-        int lable_index = atoi(line.c_str());
-        result.push_back(lable_index);
-    }
+  std::string line;
+  while (std::getline(images, line)) result.push_back(line);
 }
 
-   
-int main(int argc, char * argv[])
-{
-   const char * model_name="squeezenet";
+void LoadLableFile(std::vector<int> &result, const char *fname) {
+  std::ifstream labels(fname);
 
-   
-   //Load image file
-   std::vector<std::string> images;
-   LoadImageFile(images,image_file);
-   //Load Label file
-   std::vector<int> labels;
-   LoadLableFile(labels,label_file);
+  std::string line;
+  while (std::getline(labels, line)) {
+    int lable_index = atoi(line.c_str());
+    result.push_back(lable_index);
+  }
+}
 
-   /*
-    1. prototxt
-    2. mobile
-    3. mean
-    4. scale
-    5. input tensor
-    6. output tensor 
-    7. input weight and input height
-    8. image_path 
-   */
-   if(argc < 9)
-   {
-      std::cout<<"The params are not enough \n";
-   }
-  
-   std::string text_file  = argv[1];
-   std::string model_file = argv[2];
-   std::string mean_val   = argv[3];
-   std::string scale_val  = argv[4];
-   std::string input_tensor_name   = argv[5];
-   std::string output_tensor_name  = argv[6];
-   std::string image_wh            = argv[7];
-   std::string val_file_path       = argv[8];
+int main(int argc, char *argv[]) {
+  const char *model_name = "squeezenet";
 
-   float means[3];
-   float scales[3];
-   string delima = ",";
+  // Load image file
+  std::vector<std::string> images;
+  LoadImageFile(images, image_file);
+  // Load Label file
+  std::vector<int> labels;
+  LoadLableFile(labels, label_file);
 
-   std::vector<string> res0;
-   std::vector<string>res1;
-   std::vector<string>wh;
+  /*
+   1. prototxt
+   2. mobile
+   3. mean
+   4. scale
+   5. input tensor
+   6. output tensor
+   7. input weight and input height
+   8. image_path
+  */
+  if (argc < 9) {
+    std::cout << "The params are not enough \n";
+  }
 
-   split(mean_val,delima,&res0);
-   split(scale_val,delima,&res1);
-   split(image_wh,delima,&wh);
-   
+  std::string text_file = argv[1];
+  std::string model_file = argv[2];
+  std::string mean_val = argv[3];
+  std::string scale_val = argv[4];
+  std::string input_tensor_name = argv[5];
+  std::string output_tensor_name = argv[6];
+  std::string image_wh = argv[7];
+  std::string val_file_path = argv[8];
 
-   for(int i = 0;i < 3;i++)
-   {
-      means[i] = atof(res0[i].c_str());
-      scales[i] = atof(res1[i].c_str());
-   }
-    
-   int img_w=atoi(wh[0].c_str());
-   int img_h=atoi(wh[1].c_str());
-	 
-   int img_size = img_h * img_w * 3;
-   float *input_data = (float *)malloc(sizeof(float) * img_size);
-  
-   init_tengine_library();
+  float means[3];
+  float scales[3];
+  string delima = ",";
 
-   if(request_tengine_version("0.1")<0)
-       return 1;
+  std::vector<string> res0;
+  std::vector<string> res1;
+  std::vector<string> wh;
 
+  split(mean_val, delima, &res0);
+  split(scale_val, delima, &res1);
+  split(image_wh, delima, &wh);
 
-   if(load_model(model_name,"caffe",text_file.c_str(),model_file.c_str())<0)
-       return 1; 
+  for (int i = 0; i < 3; i++) {
+    means[i] = atof(res0[i].c_str());
+    scales[i] = atof(res1[i].c_str());
+  }
 
-   std::cout<<"Load model successfully\n";
-   graph_t graph=create_runtime_graph("graph0",model_name,NULL);
+  int img_w = atoi(wh[0].c_str());
+  int img_h = atoi(wh[1].c_str());
 
-   if(!check_graph_valid(graph))
-   {
-       std::cout<<"create graph0 failed\n";
-       return 1;
-   }
+  int img_size = img_h * img_w * 3;
+  float *input_data = (float *)malloc(sizeof(float) * img_size);
 
-  
-   tensor_t input_tensor=get_graph_tensor(graph,input_tensor_name.c_str());
+  init_tengine_library();
 
-   if(!check_tensor_valid(input_tensor))
-   {
-       std::printf("cannot find tensor: %s\n",input_tensor_name.c_str());
-       return -1;
-   }
+  if (request_tengine_version("0.1") < 0) return 1;
 
-   int dims[]={1,3,img_h,img_w};
+  if (load_model(model_name, "caffe", text_file.c_str(), model_file.c_str()) <
+      0)
+    return 1;
 
-   set_tensor_shape(input_tensor,dims,4);
+  std::cout << "Load model successfully\n";
+  graph_t graph = create_runtime_graph("graph0", model_name, NULL);
 
-   tensor_t output_tensor=get_graph_tensor(graph,output_tensor_name.c_str());
+  if (!check_graph_valid(graph)) {
+    std::cout << "create graph0 failed\n";
+    return 1;
+  }
+
+  tensor_t input_tensor = get_graph_tensor(graph, input_tensor_name.c_str());
+
+  if (!check_tensor_valid(input_tensor)) {
+    std::printf("cannot find tensor: %s\n", input_tensor_name.c_str());
+    return -1;
+  }
+
+  int dims[] = {1, 3, img_h, img_w};
+
+  set_tensor_shape(input_tensor, dims, 4);
+
+  tensor_t output_tensor = get_graph_tensor(graph, output_tensor_name.c_str());
 
   /* setup output buffer */
 
-   void * output_data=malloc(sizeof(float)*1000);
+  void *output_data = malloc(sizeof(float) * 1000);
 
-   if(set_tensor_buffer(output_tensor,output_data,4*1000))
-   {
-       std::printf("set buffer for tensor: %s failed\n",output_tensor_name.c_str());
-       return -1;
-   }
+  if (set_tensor_buffer(output_tensor, output_data, 4 * 1000)) {
+    std::printf("set buffer for tensor: %s failed\n",
+                output_tensor_name.c_str());
+    return -1;
+  }
 
-   prerun_graph(graph);
+  prerun_graph(graph);
 
-   int top1 = 0;
-   int top5 = 0;
-   
-   for(int i =0;i < RUN_TIME;i++)
-   {   
+  int top1 = 0;
+  int top5 = 0;
 
-       std::cout<<"---------------------- "<< i << " --------------------------------\n";
-       /* prepare input data */
-       std::string image_path = val_file_path + images[i];	   
-       get_input_data(image_path,input_data,img_h,img_w,means,scales);
+  for (int i = 0; i < RUN_TIME; i++) {
+    std::cout << "---------------------- " << i
+              << " --------------------------------\n";
+    /* prepare input data */
+    std::string image_path = val_file_path + images[i];
+    get_input_data(image_path, input_data, img_h, img_w, means, scales);
 
-       set_tensor_buffer(input_tensor,input_data,img_size * 4);
-       
-      run_graph(graph,1);
+    set_tensor_buffer(input_tensor, input_data, img_size * 4);
 
-       int count=get_tensor_buffer_size(output_tensor)/4;
-       float *  data=(float *)(output_data);
-       float * end=data+count;
+    run_graph(graph, 1);
 
-       std::vector<float> result(data, end);
-       std::vector<int> top_N=Argmax(result,5);
+    int count = get_tensor_buffer_size(output_tensor) / 4;
+    float *data = (float *)(output_data);
+    float *end = data + count;
 
-        int right_idx = labels[i];
-        if(right_idx == top_N[0])
-        {
-            top1++;
-        }
+    std::vector<float> result(data, end);
+    std::vector<int> top_N = Argmax(result, 5);
 
-        for(int j = 0;j < 5;j ++)
-        {
-            if(right_idx == top_N[j])
-            {
-               top5++;
-	       break;
-            }
-        }
-	   
-   }
-   
-   postrun_graph(graph);  
-    
-   printf("top1 : %f\n",(float)top1/RUN_TIME);
-   printf("top5 : %f\n",(float)top5/RUN_TIME);
+    int right_idx = labels[i];
+    if (right_idx == top_N[0]) {
+      top1++;
+    }
 
-   put_graph_tensor(input_tensor);
-   put_graph_tensor(output_tensor);
+    for (int j = 0; j < 5; j++) {
+      if (right_idx == top_N[j]) {
+        top5++;
+        break;
+      }
+    }
+  }
 
-   destroy_runtime_graph(graph);
-   remove_model(model_name);
+  postrun_graph(graph);
 
-   free(output_data);
-   free(input_data);
-   std::cout<<"ALL TEST DONE\n";
+  printf("top1 : %f\n", (float)top1 / RUN_TIME);
+  printf("top5 : %f\n", (float)top5 / RUN_TIME);
 
-   release_tengine_library();
+  put_graph_tensor(input_tensor);
+  put_graph_tensor(output_tensor);
 
-   return 0;
+  destroy_runtime_graph(graph);
+  remove_model(model_name);
+
+  free(output_data);
+  free(input_data);
+  std::cout << "ALL TEST DONE\n";
+
+  release_tengine_library();
+
+  return 0;
 }

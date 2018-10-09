@@ -24,32 +24,25 @@
 #ifndef __FULLY_CONNECTED_HPP__
 #define __FULLY_CONNECTED_HPP__
 
-
-#include "operator.hpp"
 #include "fc_param.hpp"
-
+#include "operator.hpp"
 
 namespace TEngine {
 
+class FullyConnected : public OperatorWithParam<FullyConnected, FCParam> {
+ public:
+  FullyConnected() { name_ = "FullyConnected"; }
+  FullyConnected(const FullyConnected&) = default;
+  virtual ~FullyConnected(){};
 
-class FullyConnected : public OperatorWithParam<FullyConnected,FCParam> {
+  bool InferShape(const std::vector<TEngine::TShape>&,
+                  std::vector<TEngine::TShape>&) override;
+  float GetFops(const std::vector<TShape>& inputs,
+                const std::vector<TShape>& outputs) override;
 
-public:
-
-     FullyConnected() {name_="FullyConnected";}
-     FullyConnected(const FullyConnected&)=default;
-     virtual ~FullyConnected(){};
-
-     bool InferShape(const std::vector<TEngine::TShape>&, std::vector<TEngine::TShape>&) override;
-     float GetFops(const std::vector<TShape>& inputs, const std::vector<TShape>& outputs) override;
-
-     void SetSchema(void) override;
-
+  void SetSchema(void) override;
 };
 
-
-
-} //namespace TEngine
-
+}  // namespace TEngine
 
 #endif

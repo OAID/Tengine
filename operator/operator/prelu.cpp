@@ -25,19 +25,16 @@
 
 namespace TEngine {
 
-float PReLU::GetFops(const std::vector<TShape>& inputs, const std::vector<TShape>& outputs)
-{
-     return inputs[0].GetSize(); //to check
+float PReLU::GetFops(const std::vector<TShape>& inputs,
+                     const std::vector<TShape>& outputs) {
+  return inputs[0].GetSize();  // to check
 }
 
-void PReLU::SetSchema(void)
-{
-  Input({"input:float32","slope:float32"})
-  .Output({"output:float32"})
-  .SetLayout("NCHW") //to check
-  .SetDoc(R"DOC(PreLu Operator)DOC");
+void PReLU::SetSchema(void) {
+  Input({"input:float32", "slope:float32"})
+      .Output({"output:float32"})
+      .SetLayout("NCHW")  // to check
+      .SetDoc(R"DOC(PreLu Operator)DOC");
 }
 
-
-
-} //namespace TEngine
+}  // namespace TEngine

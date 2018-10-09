@@ -28,21 +28,15 @@
 
 namespace TEngine {
 
+class Accuracy : public OperatorNoParam<Accuracy> {
+ public:
+  Accuracy() { name_ = "Accuracy"; }
+  Accuracy(const Accuracy&) = default;
+  virtual ~Accuracy() {}
 
-class Accuracy: public OperatorNoParam<Accuracy> {
-
-public:
-  
-   Accuracy() {name_="Accuracy"; }
-   Accuracy(const Accuracy&) =default;
-   virtual ~Accuracy(){}
-
-   void SetSchema(void) override;
-
+  void SetSchema(void) override;
 };
 
-
-}
-
+}  // namespace TEngine
 
 #endif

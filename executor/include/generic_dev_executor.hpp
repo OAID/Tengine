@@ -33,153 +33,125 @@
 
 namespace TEngine {
 
-class GenericDevExecutor: public  DevExecutor {
+class GenericDevExecutor : public DevExecutor {
+ public:
+  using task_queue_t = std::map<int, std::set<SubgraphTask*>>;
 
-public:
-	using   task_queue_t=std::map<int, std::set<SubgraphTask *>>;
+  enum QueueType { kWaitQueue, kReadyQueue, kRunQueue };
 
-	enum QueueType {
-		kWaitQueue,
-		kReadyQueue,
-		kRunQueue
-	};
-	 
-        bool OptimizeGraph(SubgraphTask * task) override;
-        Subgraph * GetOptimizedGraph(SubgraphTask * task) override;
-	
-       	bool PrerunTask(SubgraphTask * task) override;
-	bool SchedTask(SubgraphTask * task) override;
-	bool SchedTask(void) override;
-	bool RunTask(SubgraphTask * task) override;
-	bool SyncRunTask(SubgraphTask * task) override;
-	bool PostrunTask(SubgraphTask * task) override;
+  bool OptimizeGraph(SubgraphTask* task) override;
+  Subgraph* GetOptimizedGraph(SubgraphTask* task) override;
 
-	int  GetRunTaskNum(void) override; 
-	int  GetReadyTaskNum(void) override; 
-	int  GetWaitTaskNum(void) override; 
+  bool PrerunTask(SubgraphTask* task) override;
+  bool SchedTask(SubgraphTask* task) override;
+  bool SchedTask(void) override;
+  bool RunTask(SubgraphTask* task) override;
+  bool SyncRunTask(SubgraphTask* task) override;
+  bool PostrunTask(SubgraphTask* task) override;
 
-	void OnSubgraphDone(Subgraph * sub_graph, bool exec_success);
+  int GetRunTaskNum(void) override;
+  int GetReadyTaskNum(void) override;
+  int GetWaitTaskNum(void) override;
 
-	const std::string& GetName(void) override { return name_; } 
-	const dev_id_t & GetDevID(void) override { return DevGetID(); } 
-	const dev_type_t & GetDevType(void) override { return DevGetType();}
-	dev_status_t GetStatus(void) override { return DevGetStatus();}
+  void OnSubgraphDone(Subgraph* sub_graph, bool exec_success);
 
+  const std::string& GetName(void) override { return name_; }
+  const dev_id_t& GetDevID(void) override { return DevGetID(); }
+  const dev_type_t& GetDevType(void) override { return DevGetType(); }
+  dev_status_t GetStatus(void) override { return DevGetStatus(); }
 
-        void GetWorkload(DevWorkload& load)  override
-	{ 
-	     DevGetWorkload(load);
-	}	
-	bool GetPerf(Subgraph * graph,int policy,GraphPerf& perf) override
-	{
-	     return DevGetPerf(graph,policy,perf);
-	}
-	
-	float GetFops(Subgraph * graph, int policy) override
-	{
-	      return DevGetFops(graph, policy);
-	}
+  void GetWorkload(DevWorkload& load) override { DevGetWorkload(load); }
+  bool GetPerf(Subgraph* graph, int policy, GraphPerf& perf) override {
+    return DevGetPerf(graph, policy, perf);
+  }
 
-        int GetPolicyPriority(int policy) override
-        {
-             return DevGetPolicyPriority(policy);
-        }
+  float GetFops(Subgraph* graph, int policy) override {
+    return DevGetFops(graph, policy);
+  }
 
-        bool SetDevConfig(const char * config_name, const void * val, int size) override
-        {
-            return DevSetConfig(config_name,val,size);
-        }
+  int GetPolicyPriority(int policy) override {
+    return DevGetPolicyPriority(policy);
+  }
 
-        bool GetDevConfig(const char * config_name, void * buffer, int size) override
-        {
-            return DevGetConfig(config_name,buffer,size);
-        }
+  bool SetDevConfig(const char* config_name, const void* val,
+                    int size) override {
+    return DevSetConfig(config_name, val, size);
+  }
 
-        bool DelDevConfig(const char * config_name) override
-        {
-            return DevDelConfig(config_name);
-        }
-  
-        bool GetProposal(Subgraph * graph, int policy) override
-        {
-            return DevGetProposal(graph,policy);
-        }
+  bool GetDevConfig(const char* config_name, void* buffer, int size) override {
+    return DevGetConfig(config_name, buffer, size);
+  }
 
-	bool Start(void) override { return DevStart();}
-   	bool Stop(void) override {  return DevStop(); }
+  bool DelDevConfig(const char* config_name) override {
+    return DevDelConfig(config_name);
+  }
 
-       	void SetName(const std::string& name) override {name_=name;}
+  bool GetProposal(Subgraph* graph, int policy) override {
+    return DevGetProposal(graph, policy);
+  }
 
-	
-	virtual void DevGetWorkload(DevWorkload& load) =0;	
-	virtual bool DevGetPerf(Subgraph * graph,int policy,GraphPerf& perf)=0;
-	virtual float DevGetFops(Subgraph * graph,int policy) =0; 
-	virtual int  DevGetPolicyPriority(int policy) =0; 
-	virtual bool  DevGetProposal(Subgraph * graph,int policy) =0; 
+  bool Start(void) override { return DevStart(); }
+  bool Stop(void) override { return DevStop(); }
 
-        virtual bool DevSetConfig(const char * config_name, const void * buffer, int size)=0;
-        virtual bool DevGetConfig(const char * config_name, void * buffer, int size)=0;
-        virtual bool DevDelConfig(const char * config_name)=0;
-	
+  void SetName(const std::string& name) override { name_ = name; }
 
-	virtual void * DevCreateGraphHandle(Subgraph * graph)=0;
-	virtual bool DevOptimizeGraph(void * graph_handle)=0;
-	virtual bool DevPrerun(void * graph_handle)=0;
-	virtual bool DevRun(void * graph_handle)=0;
-	virtual bool DevSyncRun(void * graph_handle)=0;
-	virtual bool DevPostrun(void * graph_handle)=0;
-	virtual bool DevReleaseGraphHandle(void * graph_handle)=0;
-	virtual dev_status_t  DevGetStatus(void)=0;
-	virtual const dev_id_t& DevGetID(void)=0;
-	virtual const dev_type_t & DevGetType(void)=0;
-        virtual bool DevStart(void)=0;
-	virtual bool DevStop(void)=0;
-        virtual Subgraph * DevGetOptimizedGraph(void * graph_handle) { return nullptr;}
+  virtual void DevGetWorkload(DevWorkload& load) = 0;
+  virtual bool DevGetPerf(Subgraph* graph, int policy, GraphPerf& perf) = 0;
+  virtual float DevGetFops(Subgraph* graph, int policy) = 0;
+  virtual int DevGetPolicyPriority(int policy) = 0;
+  virtual bool DevGetProposal(Subgraph* graph, int policy) = 0;
 
-        virtual bool DevGetMemorySize(void * graph_handle,unsigned int& mem_size){return false;}
-        virtual void DevSetMemory(void * graph_handle, void * mem_addr){};
-	
-	virtual ~GenericDevExecutor() {}
+  virtual bool DevSetConfig(const char* config_name, const void* buffer,
+                            int size) = 0;
+  virtual bool DevGetConfig(const char* config_name, void* buffer,
+                            int size) = 0;
+  virtual bool DevDelConfig(const char* config_name) = 0;
 
-	void Lock(std::mutex & mutex)
-	{
-	        TEngineLock(mutex);
-	}
-	void Unlock(std::mutex& mutex)
-	{
-		TEngineUnlock(mutex);
-	}
+  virtual void* DevCreateGraphHandle(Subgraph* graph) = 0;
+  virtual bool DevOptimizeGraph(void* graph_handle) = 0;
+  virtual bool DevPrerun(void* graph_handle) = 0;
+  virtual bool DevRun(void* graph_handle) = 0;
+  virtual bool DevSyncRun(void* graph_handle) = 0;
+  virtual bool DevPostrun(void* graph_handle) = 0;
+  virtual bool DevReleaseGraphHandle(void* graph_handle) = 0;
+  virtual dev_status_t DevGetStatus(void) = 0;
+  virtual const dev_id_t& DevGetID(void) = 0;
+  virtual const dev_type_t& DevGetType(void) = 0;
+  virtual bool DevStart(void) = 0;
+  virtual bool DevStop(void) = 0;
+  virtual Subgraph* DevGetOptimizedGraph(void* graph_handle) { return nullptr; }
 
+  virtual bool DevGetMemorySize(void* graph_handle, unsigned int& mem_size) {
+    return false;
+  }
+  virtual void DevSetMemory(void* graph_handle, void* mem_addr){};
 
+  virtual ~GenericDevExecutor() {}
 
-protected:
+  void Lock(std::mutex& mutex) { TEngineLock(mutex); }
+  void Unlock(std::mutex& mutex) { TEngineUnlock(mutex); }
 
-	void InsertQueue(QueueType queue_type, SubgraphTask * task);
-	bool RemoveQueue(QueueType queue_type, SubgraphTask * task);
-	void InsertQueue(SubgraphTask * task);
-	bool RemoveQueue(SubgraphTask * task);
-	SubgraphTask * PopQueue(QueueType queue_type);
-       int   GetElementNumber(QueueType queue_type);
-	bool GetQueueReference(QueueType queue_type,  std::mutex *& p_mutex,
-						task_queue_t*& p_queue);
-	
-	std::mutex run_queue_lock_;
-	std::mutex ready_queue_lock_;
-	std::mutex wait_queue_lock_;
-	
-        task_queue_t wait_queue_;
-	task_queue_t  run_queue_;
-	task_queue_t  ready_queue_;
+ protected:
+  void InsertQueue(QueueType queue_type, SubgraphTask* task);
+  bool RemoveQueue(QueueType queue_type, SubgraphTask* task);
+  void InsertQueue(SubgraphTask* task);
+  bool RemoveQueue(SubgraphTask* task);
+  SubgraphTask* PopQueue(QueueType queue_type);
+  int GetElementNumber(QueueType queue_type);
+  bool GetQueueReference(QueueType queue_type, std::mutex*& p_mutex,
+                         task_queue_t*& p_queue);
 
-	std::string name_;
-	
+  std::mutex run_queue_lock_;
+  std::mutex ready_queue_lock_;
+  std::mutex wait_queue_lock_;
+
+  task_queue_t wait_queue_;
+  task_queue_t run_queue_;
+  task_queue_t ready_queue_;
+
+  std::string name_;
 };
 
-
-
-} //namespace TEngine
-
-
-
+}  // namespace TEngine
 
 #endif

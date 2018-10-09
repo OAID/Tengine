@@ -24,25 +24,16 @@
 #ifndef __FULLY_CONNECTED_PARAM_HPP__
 #define __FULLY_CONNECTED_PARAM_HPP__
 
-
 #include "parameter.hpp"
-
 
 namespace TEngine {
 
+struct FCParam : public NamedParam {
+  int num_output;
 
-struct FCParam : public NamedParam
-{
-    int num_output;
-
-    DECLARE_PARSER_STRUCTURE(FCParam) {
-        DECLARE_PARSER_ENTRY(num_output);
-    };
-
+  DECLARE_PARSER_STRUCTURE(FCParam) { DECLARE_PARSER_ENTRY(num_output); };
 };
 
-
-} //namespace TEngine
-
+}  // namespace TEngine
 
 #endif

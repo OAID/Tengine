@@ -23,14 +23,10 @@
  */
 #include "operator/input_op.hpp"
 
-
 namespace TEngine {
 
-void InputOp::SetSchema(void)
-{ 
-    SetLayout("NCHW")
-    .SetDoc(R"DOC(Input Data Operator)DOC");
+void InputOp::SetSchema(void) {
+  SetLayout("NCHW").SetDoc(R"DOC(Input Data Operator)DOC");
 }
 
-
-} //namespace TEngine
+}  // namespace TEngine

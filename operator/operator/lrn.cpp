@@ -21,29 +21,25 @@
  * Copyright (c) 2017, Open AI Lab
  * Author: haitao@openailab.com
  */
-#include "operator/lrn_param.hpp"
 #include "operator/lrn.hpp"
+#include "operator/lrn_param.hpp"
 
 namespace TEngine {
 
-bool LRN::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEngine::TShape>& oshape)
-{
-     oshape[0]=ishape[0];
-     return true;
+bool LRN::InferShape(const std::vector<TEngine::TShape>& ishape,
+                     std::vector<TEngine::TShape>& oshape) {
+  oshape[0] = ishape[0];
+  return true;
 }
 
-
-void LRN::SetSchema(void)
-{
-    Input({"input:float32"})
-    .Output({"output:float32"})
-    .SetAttr("local_size",5)
-    .SetAttr("alpha",1.0f)
-    .SetAttr("beta",0.75f)
-    .SetAttr("norm_region",0)
-    .SetAttr("k",1.0f);
+void LRN::SetSchema(void) {
+  Input({"input:float32"})
+      .Output({"output:float32"})
+      .SetAttr("local_size", 5)
+      .SetAttr("alpha", 1.0f)
+      .SetAttr("beta", 0.75f)
+      .SetAttr("norm_region", 0)
+      .SetAttr("k", 1.0f);
 }
 
-
-
-} //namespace TEngine
+}  // namespace TEngine

@@ -26,42 +26,34 @@
 #define __Caffe_DRIVER_HPP__
 
 #include <atomic>
-#include <thread>
-#include <queue>
 #include <condition_variable>
+#include <queue>
+#include <thread>
 
+#include "caffe_executor.hpp"
 #include "device_driver.hpp"
 #include "node_dev_driver.hpp"
-#include "caffe_executor.hpp"
 
 namespace TEngine {
 
-
-using CaffeNodeDevice=NodeDevice;
+using CaffeNodeDevice = NodeDevice;
 
 class CaffeNodeDriver : public NodeDriver {
-public:
-	
-	CaffeNodeDriver();
-        ~CaffeNodeDriver();
+ public:
+  CaffeNodeDriver();
+  ~CaffeNodeDriver();
 
-        bool Prerun(Device * dev, void * node_handle, Node * node);
-	bool Run(Device * dev, void * node_handle, Node * node);
-	bool SyncRun(Device * dev, void * node_handle, Node * node); 
-	bool Postrun(Device * dev, void * node_handle, Node  * node);
+  bool Prerun(Device* dev, void* node_handle, Node* node);
+  bool Run(Device* dev, void* node_handle, Node* node);
+  bool SyncRun(Device* dev, void* node_handle, Node* node);
+  bool Postrun(Device* dev, void* node_handle, Node* node);
 
-	
-	bool ProbeDevice(const dev_id_t& dev_id) override;
-	bool DestroyDevice(Device * device) override;
+  bool ProbeDevice(const dev_id_t& dev_id) override;
+  bool DestroyDevice(Device* device) override;
 
-        bool InitDev(NodeDevice * device) override;
-
+  bool InitDev(NodeDevice* device) override;
 };
 
-
-
-} //namespace TEngine
-
-
+}  // namespace TEngine
 
 #endif

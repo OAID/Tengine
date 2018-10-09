@@ -25,77 +25,62 @@
 #include <string>
 
 #include "data_type.hpp"
-#include "tensor.hpp"
 #include "static_graph.hpp"
+#include "tensor.hpp"
 
 namespace TEngine {
 
-void Tensor::Reshape(const TShape& shape)
-{
+void Tensor::Reshape(const TShape& shape) {
+  if (shape_ == shape) return;
 
-   if(shape_==shape)
-         return;
-
-   shape_=shape;
+  shape_ = shape;
 }
 
-unsigned int Tensor::GetTotalSize(void) const
-{
-    const DataType * dtype=DataType::GetType(data_type_);
+unsigned int Tensor::GetTotalSize(void) const {
+  const DataType* dtype = DataType::GetType(data_type_);
 
-    unsigned int elem_size=dtype->GetTypeSize();
-    unsigned int elem_num=shape_.GetSize();
+  unsigned int elem_size = dtype->GetTypeSize();
+  unsigned int elem_num = shape_.GetSize();
 
-    return elem_size*elem_num;
+  return elem_size * elem_num;
 }
 
-Node * Tensor::GetConsumerNode(int idx)
-{
-    NodePort * port=consumer[idx];
-    return port->owner;   
+Node* Tensor::GetConsumerNode(int idx) {
+  NodePort* port = consumer[idx];
+  return port->owner;
 }
 
-static std::string MapTypeToString(TensorType type)
-{
-   if(type == kVarTensor)
-       return "Var";
-   else if(type==kConstTensor)
-       return "Const";
-   else if(type == kInputTensor)
-       return "Input";
-   else
-       return "Unknown";
+static std::string MapTypeToString(TensorType type) {
+  if (type == kVarTensor)
+    return "Var";
+  else if (type == kConstTensor)
+    return "Const";
+  else if (type == kInputTensor)
+    return "Input";
+  else
+    return "Unknown";
 }
 
-
-void  Tensor::DumpTensor(std::ostream& os) const
-{
-    os<<name_<<" type: "<<MapTypeToString(type_)<<"  Shape: ";
-    shape_.DumpShape(os);
+void Tensor::DumpTensor(std::ostream& os) const {
+  os << name_ << " type: " << MapTypeToString(type_) << "  Shape: ";
+  shape_.DumpShape(os);
 }
 
+void Tensor::FreeMem(void) {
+  if (!ExistAttr("mem_addr")) return;
 
-void Tensor::FreeMem(void)
-{
-    if(!ExistAttr("mem_addr"))
-        return;
+  void* mem = any_cast<void*>(GetAttr("mem_addr"));
+  std::free(mem);
 
-    void * mem=any_cast<void *>(GetAttr("mem_addr"));
-    std::free(mem);
+  RemoveAttr("mem_addr");
 
-    RemoveAttr("mem_addr");
-
-   if(static_tensor_)
-   {
-       static_tensor_->mem_addr=nullptr;
-   }
+  if (static_tensor_) {
+    static_tensor_->mem_addr = nullptr;
+  }
 }
 
-void Tensor::BindStaticTensor(StaticConstTensor * static_tensor)
-{
-    static_tensor_=static_tensor;
+void Tensor::BindStaticTensor(StaticConstTensor* static_tensor) {
+  static_tensor_ = static_tensor;
 }
 
-
-} //namespace TEngine
-
+}  // namespace TEngine

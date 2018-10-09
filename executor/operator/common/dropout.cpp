@@ -21,52 +21,45 @@
  * Copyright (c) 2017, Open AI Lab
  * Author: haitao@openailab.com
  */
-#include <iostream>
-#include <functional>
 #include <cstring>
+#include <functional>
+#include <iostream>
 
+#include "graph.hpp"
 #include "logger.hpp"
 #include "node_ops.hpp"
 #include "tensor_mem.hpp"
-#include "graph.hpp"
 
 namespace TEngine {
 
 namespace DropImpl {
 
 struct DropoutOps : public NodeOps {
-
-bool OnBind(Node * node)
-{
-    //set the inplace feature
+  bool OnBind(Node* node) {
+    // set the inplace feature
     inplace_t io_map;
-   
-    io_map[0]=0;
 
-    node->SetAttr(ATTR_INPLACE,io_map);
+    io_map[0] = 0;
+
+    node->SetAttr(ATTR_INPLACE, io_map);
 
     return true;
-}
+  }
 
-bool Run(Node * node)
-{
-    //Nothing needs to do for inference
+  bool Run(Node* node) {
+    // Nothing needs to do for inference
     return true;
-}
-
+  }
 };
 
-} //namespace DropImpl
+}  // namespace DropImpl
 
 using namespace DropImpl;
 
-void RegisterDropoutNodeExec(void)
-{
-   DropoutOps * ops=new DropoutOps();
+void RegisterDropoutNodeExec(void) {
+  DropoutOps* ops = new DropoutOps();
 
-   NodeOpsRegistryManager::RegisterOPImplementor("common",
-                              "Dropout",ops);
+  NodeOpsRegistryManager::RegisterOPImplementor("common", "Dropout", ops);
 }
 
-
-} //namespace TEngine
+}  // namespace TEngine

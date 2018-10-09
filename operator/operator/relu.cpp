@@ -25,18 +25,17 @@
 
 namespace TEngine {
 
-float ReLu::GetFops(const std::vector<TShape>& inputs, const std::vector<TShape>& outputs)
-{
-     return inputs[0].GetSize();
+float ReLu::GetFops(const std::vector<TShape>& inputs,
+                    const std::vector<TShape>& outputs) {
+  return inputs[0].GetSize();
 }
 
-void ReLu::SetSchema(void)
-{
+void ReLu::SetSchema(void) {
   Input({"input:float32"})
-  .Output({"output:float32"})
-  .SetAttr("negative_slope",0.f)
-  .SetLayout("NCHW")
-  .SetDoc(R"DOC(ReLu Operator)DOC");
+      .Output({"output:float32"})
+      .SetAttr("negative_slope", 0.f)
+      .SetLayout("NCHW")
+      .SetDoc(R"DOC(ReLu Operator)DOC");
 }
 
-} //namespace TEngine
+}  // namespace TEngine

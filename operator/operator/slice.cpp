@@ -24,43 +24,36 @@
 #include "operator/slice.hpp"
 
 namespace TEngine {
-bool Slice::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEngine::TShape>& oshape)
-{
-    // only support for slice_axis=1
-     const TShape& input=ishape[0];
+bool Slice::InferShape(const std::vector<TEngine::TShape>& ishape,
+                       std::vector<TEngine::TShape>& oshape) {
+  // only support for slice_axis=1
+  const TShape& input = ishape[0];
 
+  int n = input.GetN();
+  int c = input.GetC();
+  int h = input.GetH();
+  int w = input.GetW();
 
+  if (c % 2 != 0) return false;
 
-     int n=input.GetN();
-     int c=input.GetC();
-     int h=input.GetH();
-     int w=input.GetW();
+  TShape shape;
 
+  std::vector<int> dim = {n, c / 2, h, w};
 
-     if(c%2!=0)
-          return false;
+  shape.SetDim(dim);
+  shape.SetDataLayout("NCHW");
 
-     TShape shape;
+  oshape[0] = shape;
+  oshape[1] = shape;
 
-     std::vector<int> dim={n,c/2,h,w};
-
-     shape.SetDim(dim);
-     shape.SetDataLayout("NCHW");
-
-     oshape[0]=shape;
-     oshape[1]=shape;
- 
-     return true;    
-
+  return true;
 }
-void Slice::SetSchema(void)
-{
+void Slice::SetSchema(void) {
   Input({"input:float32"})
-  .Output({"output:float32"})
-  .SetLayout("NCHW")
-  .SetAttr("axis",1)
-  .SetDoc(R"DOC(Slice Operator)DOC");
+      .Output({"output:float32"})
+      .SetLayout("NCHW")
+      .SetAttr("axis", 1)
+      .SetDoc(R"DOC(Slice Operator)DOC");
 }
 
-
-} //namespace TEngine
+}  // namespace TEngine

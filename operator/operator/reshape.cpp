@@ -23,56 +23,42 @@
  */
 #include "operator/reshape.hpp"
 
-
 namespace TEngine {
 
-bool Reshape::InferShape(const std::vector<TEngine::TShape>& ishape, 
-                               std::vector<TEngine::TShape>& oshape)
-{
-    const TShape& input=ishape[0];
-    const int size=input.GetSize();
-    const std::vector<int>& in_dim=input.GetDim();
-    std::vector<int> new_shape(4,1); 
-    int idx=-1;
-    int num_axis=param_.dims.size();
-    for(int i=0;i<num_axis;i++)
-    {
-        if(param_.dims[i]==0)
-        {
-            new_shape[i]=in_dim[i];
-        }
-        else if(param_.dims[i]==-1)
-        {
-            idx=i;
-        }
-        else
-        {
-             new_shape[i]=param_.dims[i];
-        }
+bool Reshape::InferShape(const std::vector<TEngine::TShape>& ishape,
+                         std::vector<TEngine::TShape>& oshape) {
+  const TShape& input = ishape[0];
+  const int size = input.GetSize();
+  const std::vector<int>& in_dim = input.GetDim();
+  std::vector<int> new_shape(4, 1);
+  int idx = -1;
+  int num_axis = param_.dims.size();
+  for (int i = 0; i < num_axis; i++) {
+    if (param_.dims[i] == 0) {
+      new_shape[i] = in_dim[i];
+    } else if (param_.dims[i] == -1) {
+      idx = i;
+    } else {
+      new_shape[i] = param_.dims[i];
     }
-    if(idx>=0)
-    {
-        int new_size=new_shape[0]*new_shape[1]*new_shape[2]*new_shape[3];
-        new_shape[idx]=size/new_size;
-    }
+  }
+  if (idx >= 0) {
+    int new_size = new_shape[0] * new_shape[1] * new_shape[2] * new_shape[3];
+    new_shape[idx] = size / new_size;
+  }
 
-
-    TShape shape;
-    shape.SetDim(new_shape);
-    shape.SetDataLayout("NCHW");
-    oshape[0]=shape;
-    return true;    
-
+  TShape shape;
+  shape.SetDim(new_shape);
+  shape.SetDataLayout("NCHW");
+  oshape[0] = shape;
+  return true;
 }
 
-
-void Reshape::SetSchema(void)
-{
-    Input({"input:float32"})
-    .Output({"output:float32"})
-    .SetLayout("NCHW")
-    .SetDoc(R"DOC(Reshape Layer)DOC");
+void Reshape::SetSchema(void) {
+  Input({"input:float32"})
+      .Output({"output:float32"})
+      .SetLayout("NCHW")
+      .SetDoc(R"DOC(Reshape Layer)DOC");
 }
 
-
-} //namespace TEngine
+}  // namespace TEngine

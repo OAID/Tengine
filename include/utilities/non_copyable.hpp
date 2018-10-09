@@ -22,12 +22,11 @@
  * Author: honggui@openailab.com
  */
 #pragma once
-namespace TEngine{
-    class NonCopyable
-    {
-    public:
-        NonCopyable() = default;   // available
-        NonCopyable(const NonCopyable&) = delete; //移除Copy构造函数
-        NonCopyable& operator = (const NonCopyable&) = delete; //移除Copy赋值
-    };
-}
+namespace TEngine {
+class NonCopyable {
+ public:
+  NonCopyable() = default;                              // available
+  NonCopyable(const NonCopyable&) = delete;             //移除Copy构造函数
+  NonCopyable& operator=(const NonCopyable&) = delete;  //移除Copy赋值
+};
+}  // namespace TEngine

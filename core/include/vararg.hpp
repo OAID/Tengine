@@ -24,7 +24,6 @@
 #ifndef __VARARG_HPP__
 #define __VARARG_HPP__
 
-
 /*provide utilities to print var args*/
 
 #include <iostream>
@@ -32,27 +31,24 @@
 
 #include "type_name.hpp"
 
-static inline void VarArgPrint(){}
+static inline void VarArgPrint() {}
 
-template<typename T, typename ... Args>
-void VarArgPrint(std::ostream& os, T first,Args...args)
-{
-     os<<first<<std::endl;
+template <typename T, typename... Args>
+void VarArgPrint(std::ostream& os, T first, Args... args) {
+  os << first << std::endl;
 
-     VarArgPrint(os,args...);
-}    
-
-
-template<int i>
-void ArgPrint(std::ostream& os) {}
-
-template<int i, typename T, typename ... Args>
-void ArgPrint(std::ostream& os, T first, Args ... args)
-{
-    os<<i<<": "<<TEngine::GetTypeName(typeid(first).name())<<" "<<first<<"\n";
-
-    ArgPrint<i+1,Args...>(os,args...);
+  VarArgPrint(os, args...);
 }
 
+template <int i>
+void ArgPrint(std::ostream& os) {}
+
+template <int i, typename T, typename... Args>
+void ArgPrint(std::ostream& os, T first, Args... args) {
+  os << i << ": " << TEngine::GetTypeName(typeid(first).name()) << " " << first
+     << "\n";
+
+  ArgPrint<i + 1, Args...>(os, args...);
+}
 
 #endif

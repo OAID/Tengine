@@ -21,121 +21,106 @@
  * Copyright (c) 2017, Open AI Lab
  * Author: haitao@openailab.com
  */
-#include <iostream>
-#include <functional>
-#include <cstring>
 #include <algorithm>
 #include <cmath>
+#include <cstring>
+#include <functional>
+#include <iostream>
 
+#include "graph.hpp"
 #include "logger.hpp"
 #include "node_ops.hpp"
-#include "tensor_mem.hpp"
-#include "graph.hpp"
 #include "operator/lrn.hpp"
+#include "tensor_mem.hpp"
 
-namespace TEngine
-{
+namespace TEngine {
 
-namespace LRNImpl
-{
+namespace LRNImpl {
 
-struct LRNOps : public NodeOps
-{
+struct LRNOps : public NodeOps {
+  bool Run(Node *node) {
+    Tensor *input_tensor = node->GetInputTensor(0);
+    Tensor *output_tensor = node->GetOutputTensor(0);
 
-    bool Run(Node *node)
-    {
-        Tensor *input_tensor = node->GetInputTensor(0);
-        Tensor *output_tensor = node->GetOutputTensor(0);
+    LRN *lrn_op = dynamic_cast<LRN *>(node->GetOp());
+    LRNParam *param = lrn_op->GetParam();
 
-        LRN *lrn_op = dynamic_cast<LRN *>(node->GetOp());
-        LRNParam *param = lrn_op->GetParam();
+    float *input = (float *)get_tensor_mem(input_tensor);
+    float *output = (float *)get_tensor_mem(output_tensor);
 
-        float *input = (float *)get_tensor_mem(input_tensor);
-        float *output = (float *)get_tensor_mem(output_tensor);
+    float *square = (float *)(std::malloc(input_tensor->GetTotalSize()));
 
-        float *square = (float *)(std::malloc(input_tensor->GetTotalSize()));
+    const TShape &shape = input_tensor->GetShape();
+    const std::vector<int> &dims = shape.GetDim();
 
-        const TShape &shape = input_tensor->GetShape();
-        const std::vector<int> &dims = shape.GetDim();
+    int n = dims[0];
+    int c = dims[1];
+    int h = dims[2];
+    int w = dims[3];
 
-        int n = dims[0];
-        int c = dims[1];
-        int h = dims[2];
-        int w = dims[3];
+    int img_size = c * h * w;
+    int channel_size = h * w;
+    float alpha = param->alpha;
+    float beta = param->beta;
+    float bias = param->k;
+    int local_size = param->local_size;
 
-        int img_size = c * h * w;
-        int channel_size = h * w;
-        float alpha = param->alpha;
-        float beta = param->beta;
-        float bias = param->k;
-        int local_size = param->local_size;
+    float *accum_square = (float *)(std::malloc(channel_size * sizeof(float)));
 
-        float *accum_square = (float *)(std::malloc(channel_size * sizeof(float)));
+    for (int i = 0; i < n; i++) {
+      /* get square value */
 
-        for (int i = 0; i < n; i++)
-        {
+      float *img_base = input + i * img_size;
 
-            /* get square value */
+      for (int j = 0; j < img_size; j++)
+        square[j] = img_base[j] * img_base[j] + bias;
 
-            float *img_base = input + i * img_size;
+      if (param->norm_region == LRN_ACROSS_CHANNELS) {
+        float alpha_over_size = alpha / local_size;
 
-            for (int j = 0; j < img_size; j++)
-                square[j] = img_base[j] * img_base[j] + bias;
+        for (int j = 0; j < c; j++) {
+          int c_start = j - local_size / 2;
+          int c_end = j + local_size / 2;
 
-            if (param->norm_region == LRN_ACROSS_CHANNELS)
-            {
-                float alpha_over_size = alpha / local_size;
+          std::memset(accum_square, 0x0, channel_size * sizeof(float));
 
-                for (int j = 0; j < c; j++)
-                {
-                    int c_start = j - local_size / 2;
-                    int c_end = j + local_size / 2;
+          for (int l = c_start; l <= c_end; l++) {
+            if (l < 0 || l >= c) continue;
 
-                    std::memset(accum_square, 0x0, channel_size * sizeof(float));
-
-                    for (int l = c_start; l <= c_end; l++)
-                    {
-                        if (l < 0 || l >= c)
-                            continue;
-
-                        for (int n = 0; n < channel_size; n++)
-                        {
-                            accum_square[n] += square[l * channel_size + n];
-                        }
-                    }
-
-                    /* get the output */
-
-                    for (int n = 0; n < channel_size; n++)
-                    {
-                        int offset = i * img_size + j * channel_size + n;
-                        output[offset] = input[offset] * std::pow(1.0f + alpha_over_size * accum_square[n], -beta);
-                    }
-                }
+            for (int n = 0; n < channel_size; n++) {
+              accum_square[n] += square[l * channel_size + n];
             }
-            else
-            {
-                std::cout << "LRN: IN CHANNEL, TO BE IMPLEMENTED\n";
-            }
+          }
+
+          /* get the output */
+
+          for (int n = 0; n < channel_size; n++) {
+            int offset = i * img_size + j * channel_size + n;
+            output[offset] =
+                input[offset] *
+                std::pow(1.0f + alpha_over_size * accum_square[n], -beta);
+          }
         }
-
-        std::free(square);
-        std::free(accum_square);
-
-        return true;
+      } else {
+        std::cout << "LRN: IN CHANNEL, TO BE IMPLEMENTED\n";
+      }
     }
+
+    std::free(square);
+    std::free(accum_square);
+
+    return true;
+  }
 };
 
-} //namespace LRNImpl
+}  // namespace LRNImpl
 
 using namespace LRNImpl;
 
-void RegisterLRN_NodeExec(void)
-{
-    LRNOps *ops = new LRNOps();
+void RegisterLRN_NodeExec(void) {
+  LRNOps *ops = new LRNOps();
 
-    NodeOpsRegistryManager::RegisterOPImplementor("common",
-                                                  "LRN", ops);
+  NodeOpsRegistryManager::RegisterOPImplementor("common", "LRN", ops);
 }
 
-} //namespace TEngine
+}  // namespace TEngine

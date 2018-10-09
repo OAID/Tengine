@@ -28,21 +28,18 @@
 
 namespace TEngine {
 
-class Split: public OperatorNoParam<Split> {
+class Split : public OperatorNoParam<Split> {
+ public:
+  Split() { name_ = "Split"; }
+  Split(const Split& src) = default;
+  ~Split() {}
 
-public:
-    Split() { name_="Split";}
-    Split(const Split& src)=default;
-    ~Split() { }
+  bool InferShape(const std::vector<TShape>& ishape,
+                  std::vector<TShape>& oshape) override;
 
-    bool InferShape(const std::vector<TShape>& ishape, std::vector<TShape>& oshape) override;
-
-
-    void SetSchema(void) override;
-
+  void SetSchema(void) override;
 };
 
-
-}
+}  // namespace TEngine
 
 #endif

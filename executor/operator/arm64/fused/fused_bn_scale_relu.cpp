@@ -21,199 +21,182 @@
  * Copyright (c) 2017, Open AI Lab
  * Author: haitao@openailab.com
  */
-#include <iostream>
-#include <functional>
 #include <cstring>
+#include <functional>
+#include <iostream>
 
-#include "logger.hpp"
-#include "operator/fused_operator.hpp"
-#include "node_ops.hpp"
-#include "tensor_mem.hpp"
 #include "graph.hpp"
+#include "logger.hpp"
+#include "node_ops.hpp"
+#include "operator/fused_operator.hpp"
+#include "tensor_mem.hpp"
 
-extern "C" void bn_scale_relu_neon(const float * input, float * gamma,float * beta,
-                     float * mean, float * var, int channel_number, int channel_size,float * output);
+extern "C" void bn_scale_relu_neon(const float *input, float *gamma,
+                                   float *beta, float *mean, float *var,
+                                   int channel_number, int channel_size,
+                                   float *output);
 
 namespace TEngine {
 
 namespace FusedBNScaleReluArm64 {
 
-struct FusedOps: public MTNodeOps {
+struct FusedOps : public MTNodeOps {
+  struct BNParam {
+    const float *input;
+    float *gamma;
+    float *beta;
+    float *mean;
+    float *var;
+    int channel_num;
+    int channel_size;
+    float *output;
+  };
 
-struct BNParam {
-   const float * input;
-   float * gamma;
-   float * beta;
-   float * mean;
-   float * var;
-   int    channel_num;
-   int    channel_size;
-   float * output;
-};
+  bool Aider(int cpu, int seq, void *data) {
+    BNParam *param = (BNParam *)(data);
 
-
-bool Aider(int cpu, int seq, void * data)
-{
-     BNParam * param=(BNParam *)(data);
-
-     bn_scale_relu_neon(param->input,param->gamma,param->beta,param->mean,
-                        param->var,param->channel_num,param->channel_size,param->output);
- 
-
-    return true;    
-}
-
-
-bool OnBind(Node * node)
-{
-    inplace_t io_map;
-   
-    io_map[0]=0;
-
-    node->SetAttr(ATTR_INPLACE,io_map);
+    bn_scale_relu_neon(param->input, param->gamma, param->beta, param->mean,
+                       param->var, param->channel_num, param->channel_size,
+                       param->output);
 
     return true;
-}
+  }
 
+  bool OnBind(Node *node) {
+    inplace_t io_map;
 
-bool Run(Node * node)
-{
-    const Tensor * input_tensor=node->GetInputTensor(0);
-    Tensor * output_tensor=node->GetOutputTensor(0);
+    io_map[0] = 0;
 
-    const TShape&  shape=input_tensor->GetShape();
+    node->SetAttr(ATTR_INPLACE, io_map);
 
-    const std::vector<int> dims=shape.GetDim();
+    return true;
+  }
 
-    int batch_number=dims[0];
-    int channel_num=dims[1];
-    int channel_size=dims[2]*dims[3];
+  bool Run(Node *node) {
+    const Tensor *input_tensor = node->GetInputTensor(0);
+    Tensor *output_tensor = node->GetOutputTensor(0);
 
-    Tensor * gamma_tensor=node->GetInputTensor(1);
-    Tensor * beta_tensor=node->GetInputTensor(2);
-    Tensor * mean_tensor=node->GetInputTensor(3);
-    Tensor * var_tensor=node->GetInputTensor(4);
+    const TShape &shape = input_tensor->GetShape();
 
+    const std::vector<int> dims = shape.GetDim();
 
-    float * gamma=(float *)get_tensor_mem(gamma_tensor);
-    float * beta=(float *)get_tensor_mem(beta_tensor);
-    float * mean=(float *)get_tensor_mem(mean_tensor);
-    float * var=(float *)get_tensor_mem(var_tensor);
+    int batch_number = dims[0];
+    int channel_num = dims[1];
+    int channel_size = dims[2] * dims[3];
 
-    const float * input=(const float *)get_tensor_mem(input_tensor);
-    float * output=(float *)get_tensor_mem(output_tensor);
+    Tensor *gamma_tensor = node->GetInputTensor(1);
+    Tensor *beta_tensor = node->GetInputTensor(2);
+    Tensor *mean_tensor = node->GetInputTensor(3);
+    Tensor *var_tensor = node->GetInputTensor(4);
 
-   int  cpu_number=cpu_info->GetCPUNumber();
+    float *gamma = (float *)get_tensor_mem(gamma_tensor);
+    float *beta = (float *)get_tensor_mem(beta_tensor);
+    float *mean = (float *)get_tensor_mem(mean_tensor);
+    float *var = (float *)get_tensor_mem(var_tensor);
 
-    for(int i=0;i<batch_number;i++)
-    {
+    const float *input = (const float *)get_tensor_mem(input_tensor);
+    float *output = (float *)get_tensor_mem(output_tensor);
 
-       if(cpu_number==1)
-       {
-           bn_scale_relu_neon(input,gamma,beta,mean,var,channel_num,channel_size,output);
-           input+=channel_size*channel_num;
-           output+=channel_size*channel_num;
-       }
-       else
-       {
-            std::vector<sub_op_task> task_list;
-            std::vector<BNParam> param_list;
+    int cpu_number = cpu_info->GetCPUNumber();
 
-            auto f=std::bind(&FusedOps::Aider,this,std::placeholders::_1,
-                                std::placeholders::_2,std::placeholders::_3);
+    for (int i = 0; i < batch_number; i++) {
+      if (cpu_number == 1) {
+        bn_scale_relu_neon(input, gamma, beta, mean, var, channel_num,
+                           channel_size, output);
+        input += channel_size * channel_num;
+        output += channel_size * channel_num;
+      } else {
+        std::vector<sub_op_task> task_list;
+        std::vector<BNParam> param_list;
 
-            int step=(channel_num+(cpu_number-1))/cpu_number;
+        auto f = std::bind(&FusedOps::Aider, this, std::placeholders::_1,
+                           std::placeholders::_2, std::placeholders::_3);
 
-            if(channel_num-(cpu_number-1)*step<=0)
-                  step=channel_num/cpu_number;
+        int step = (channel_num + (cpu_number - 1)) / cpu_number;
 
-            task_list.resize(cpu_number);
-            param_list.resize(cpu_number);
+        if (channel_num - (cpu_number - 1) * step <= 0)
+          step = channel_num / cpu_number;
 
-            for(int i=0;i<cpu_number;i++)
-            {
-                 BNParam * param=&param_list[i];   
-                 sub_op_task * task=&task_list[i];
+        task_list.resize(cpu_number);
+        param_list.resize(cpu_number);
 
-                 task->exec_func=f;
-                 task->seq=i;
-                 task->data=param;
+        for (int i = 0; i < cpu_number; i++) {
+          BNParam *param = &param_list[i];
+          sub_op_task *task = &task_list[i];
 
-                 param->input=input;
-                 param->gamma=gamma;
-                 param->beta=beta;
-                 param->mean=mean;
-                 param->var=var;
+          task->exec_func = f;
+          task->seq = i;
+          task->data = param;
 
-                 param->channel_num=step;
-                 param->channel_size=channel_size;
-                 param->output=output;
+          param->input = input;
+          param->gamma = gamma;
+          param->beta = beta;
+          param->mean = mean;
+          param->var = var;
 
-                 input+=channel_size*step;
-                 output+=channel_size*step;
+          param->channel_num = step;
+          param->channel_size = channel_size;
+          param->output = output;
 
-                 gamma+=step;
-                 beta+=step;
-                 mean+=step;
-                 var+=step;
-            }
+          input += channel_size * step;
+          output += channel_size * step;
 
-            param_list[cpu_number-1].channel_num=channel_num-(cpu_number-1)*step;
-
-            task_dispatch(task_list,-1);
-            wait_done();
-       }
-
-/*
-       the c code of assembly code
-
-        for(int c=0;c<channel_num;c++)
-        {
-           float s_mean=mean[c];
-           float s_var=var[c];
-           float s_gamma=gamma[c];
-           float s_beta=beta[c];
-
-           for(int l=0;l<channel_size;l++)
-           {
-              float data=input[l];
-              data=data*s_var+s_mean;
-
-              data=data*s_gamma+s_beta;
-
-              if(data<0.0)
-                  data=0;
-
-              output[l]=data;
-           }
-
-           input+=channel_size;
-           output+=channel_size;
+          gamma += step;
+          beta += step;
+          mean += step;
+          var += step;
         }
 
-*/
+        param_list[cpu_number - 1].channel_num =
+            channel_num - (cpu_number - 1) * step;
+
+        task_dispatch(task_list, -1);
+        wait_done();
+      }
+
+      /*
+             the c code of assembly code
+
+              for(int c=0;c<channel_num;c++)
+              {
+                 float s_mean=mean[c];
+                 float s_var=var[c];
+                 float s_gamma=gamma[c];
+                 float s_beta=beta[c];
+
+                 for(int l=0;l<channel_size;l++)
+                 {
+                    float data=input[l];
+                    data=data*s_var+s_mean;
+
+                    data=data*s_gamma+s_beta;
+
+                    if(data<0.0)
+                        data=0;
+
+                    output[l]=data;
+                 }
+
+                 input+=channel_size;
+                 output+=channel_size;
+              }
+
+      */
     }
-    
 
     return true;
-
-}
-
+  }
 };
 
-
-} //namespace FusedBNScaleReluArm64
+}  // namespace FusedBNScaleReluArm64
 
 using namespace FusedBNScaleReluArm64;
 
-void RegisterFusedBNScaleReluNodeExec(void)
-{
-   FusedOps * ops=new FusedOps();
+void RegisterFusedBNScaleReluNodeExec(void) {
+  FusedOps *ops = new FusedOps();
 
-   NodeOpsRegistryManager::RegisterOPImplementor("arm64",
-                FusedBNScaleReLu::class_name,ops);               
-  
+  NodeOpsRegistryManager::RegisterOPImplementor(
+      "arm64", FusedBNScaleReLu::class_name, ops);
 }
 
-} //namespace TEngine
-
+}  // namespace TEngine

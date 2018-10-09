@@ -27,148 +27,119 @@
 namespace caffe {
 
 template <typename Dtype>
-void Blob<Dtype>::Reshape(const int num, const int channels, const int height, const int width)
-{
-    vector<int> shape(4);
-    shape[0] = num;
-    shape[1] = channels;
-    shape[2] = height;
-    shape[3] = width;
+void Blob<Dtype>::Reshape(const int num, const int channels, const int height,
+                          const int width) {
+  vector<int> shape(4);
+  shape[0] = num;
+  shape[1] = channels;
+  shape[2] = height;
+  shape[3] = width;
+  Reshape(shape);
+}
+
+template <typename Dtype>
+void Blob<Dtype>::Reshape(const vector<int>& shape) {
+  int dim_size = shape.size();
+  int* dims = new int[dim_size];
+  shape_.resize(dim_size);
+  count_ = 1;
+
+  for (int i = 0; i < dim_size; ++i) {
+    if (shape[i] < 0)
+      std::cerr << "Shape number error\n";
+    else {
+      shape_[i] = shape[i];
+      dims[i] = shape[i];
+      count_ *= shape[i];
+    }
+  }
+
+  if (count_ > capacity_) {
+    if (!capacity_)
+      data_ = malloc(sizeof(Dtype) * count_);
+    else
+      data_ = realloc(data_, sizeof(Dtype) * count_);
+
+    capacity_ = count_;
+  }
+
+  if (!name_.empty()) {
+    tensor_t tensor = get_graph_tensor(graph_, name_.c_str());
+    if (tensor == nullptr) {
+      std::cerr << "Get tensor failed\n";
+    } else {
+      set_tensor_shape(tensor, dims, dim_size);
+
+      if (set_tensor_buffer(tensor, data_, sizeof(Dtype) * count_)) {
+        std::cerr << "Create buffer for tensor failed\n";
+      }
+      put_graph_tensor(tensor);
+    }
+  }
+
+  delete[] dims;
+}
+
+template <typename Dtype>
+const Dtype* Blob<Dtype>::cpu_data() const {
+  if (!data_) {
+    std::cerr << "Get blob cpu data failed\n";
+    return nullptr;
+  }
+
+  return (const Dtype*)data_;
+}
+
+template <typename Dtype>
+Dtype* Blob<Dtype>::mutable_cpu_data() {
+  if (!data_) {
+    std::cerr << "Get blob mutable cpu data failed\n";
+    return nullptr;
+  }
+  return static_cast<Dtype*>(data_);
+}
+
+template <typename Dtype>
+void Blob<Dtype>::set_cpu_data(Dtype* data) {
+  if (!data) {
+    std::cerr << "Set blob cpu data failed\n";
+  }
+  data_ = (void*)data;
+}
+
+template <typename Dtype>
+void Blob<Dtype>::FromProto(const BlobProto& proto, bool reshape) {
+  if (reshape) {
+    vector<int> shape;
+    if (proto.has_num() || proto.has_channels() || proto.has_height() ||
+        proto.has_width()) {
+      shape.resize(4);
+      shape[0] = proto.num();
+      shape[1] = proto.channels();
+      shape[2] = proto.height();
+      shape[3] = proto.width();
+    } else {
+      shape.resize(proto.shape().dim_size());
+      for (int i = 0; i < proto.shape().dim_size(); ++i)
+        shape[i] = proto.shape().dim(i);
+    }
     Reshape(shape);
-}
+  } else {
+    if (data_) free(data_);
 
-template <typename Dtype>
-void Blob<Dtype>::Reshape(const vector<int>& shape)
-{
-    int dim_size = shape.size();
-    int *dims = new int[dim_size];
-    shape_.resize(dim_size);
-    count_ = 1;
+    data_ = malloc(sizeof(Dtype) * count_);
+  }
 
-    for(int i = 0; i < dim_size; ++i)
-    {
-        if(shape[i] < 0)
-            std::cerr<<"Shape number error\n";
-        else
-        {
-            shape_[i] = shape[i];
-            dims[i] = shape[i];
-            count_ *= shape[i];
-        }
-    }
+  Dtype* data = (Dtype*)data_;
 
-    if (count_ > capacity_)
-    {
-        if(!capacity_)
-            data_ = malloc(sizeof(Dtype)*count_);
-        else
-            data_ = realloc(data_, sizeof(Dtype)*count_);
-
-        capacity_ = count_;
-    }
-
-    if(!name_.empty())
-    {
-        tensor_t tensor = get_graph_tensor(graph_, name_.c_str());
-        if(tensor == nullptr)
-        {
-            std::cerr<<"Get tensor failed\n";
-        }
-        else
-        {
-            set_tensor_shape(tensor, dims, dim_size);
-
-            if(set_tensor_buffer(tensor, data_, sizeof(Dtype)*count_))
-            {
-                std::cerr<<"Create buffer for tensor failed\n";
-            }
-	    put_graph_tensor(tensor);
-        }
-
-    }
-
-    delete[] dims;
-}
-
-template <typename Dtype>
-const Dtype* Blob<Dtype>::cpu_data() const
-{
-    if(!data_)
-    {
-        std::cerr<<"Get blob cpu data failed\n";
-        return nullptr;
-    }
-
-    return (const Dtype*)data_;
-}
-
-template <typename Dtype>
-Dtype* Blob<Dtype>::mutable_cpu_data()
-{
-    if(!data_)
-    {
-        std::cerr<<"Get blob mutable cpu data failed\n";
-        return nullptr;
-    }
-    return static_cast<Dtype*>(data_);
-}
-
-template <typename Dtype>
-void Blob<Dtype>::set_cpu_data(Dtype* data)
-{
-    if(!data)
-    {
-        std::cerr<<"Set blob cpu data failed\n";
-    }
-    data_ = (void *)data;
-}
-
-template <typename Dtype>
-void Blob<Dtype>::FromProto(const BlobProto& proto, bool reshape)
-{
-    if(reshape)
-    {
-        vector<int> shape;
-        if(proto.has_num() || proto.has_channels() ||
-           proto.has_height() || proto.has_width())
-        {
-            shape.resize(4);
-            shape[0] = proto.num();
-            shape[1] = proto.channels();
-            shape[2] = proto.height();
-            shape[3] = proto.width();
-        }
-        else
-        {
-            shape.resize(proto.shape().dim_size());
-            for(int i = 0; i < proto.shape().dim_size(); ++i)
-                shape[i] = proto.shape().dim(i);
-        }
-        Reshape(shape);
-    }
-    else
-    {
-	if(data_)
-	    free(data_);
-
-        data_ = malloc(sizeof(Dtype)*count_);
-    }
-
-    Dtype * data =(Dtype *)data_; 
-
-    if(proto.double_data_size() > 0)
-    {
-        for(int i = 0; i < proto.double_data_size(); ++i)
-            data[i] = proto.double_data(i);
-    }
-    else
-    {
-        for(int i = 0; i < proto.data_size(); ++i)
-            data[i] = proto.data(i);
-    }
+  if (proto.double_data_size() > 0) {
+    for (int i = 0; i < proto.double_data_size(); ++i)
+      data[i] = proto.double_data(i);
+  } else {
+    for (int i = 0; i < proto.data_size(); ++i) data[i] = proto.data(i);
+  }
 }
 
 INSTANTIATE_CLASS(Blob);
 
 }  // namespace caffe
-

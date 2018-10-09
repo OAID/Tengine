@@ -1,5 +1,3 @@
-obj-y+=caffe_driver.o
+obj - y += caffe_driver.o
 
-CXXFLAGS+=-I.
-
-
+               CXXFLAGS += -I.

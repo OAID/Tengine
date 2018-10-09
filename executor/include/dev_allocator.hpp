@@ -25,9 +25,9 @@
 #ifndef __DEV_ALLOCATOR_HPP__
 #define __DEV_ALLOCATOR_HPP__
 
+#include <mutex>
 #include <string>
 #include <vector>
-#include <mutex>
 
 #include "simple_object_manager.hpp"
 
@@ -40,34 +40,31 @@ class GraphTask;
 struct DevExecutor;
 
 struct DevAllocator {
-
-  virtual bool Allocate(GenericEngine * engine,GraphExecutor * graph_executor, Graph * graph, std::vector<Subgraph *>& sub_list)=0;
-  virtual const std::string& GetName(void)=0;
-  virtual ~DevAllocator() {};
+  virtual bool Allocate(GenericEngine* engine, GraphExecutor* graph_executor,
+                        Graph* graph, std::vector<Subgraph*>& sub_list) = 0;
+  virtual const std::string& GetName(void) = 0;
+  virtual ~DevAllocator(){};
   std::string name;
 
-  void SameGraph(TEngine::Graph*, TEngine::DevExecutor*, std::vector<TEngine::Graph*>&);
-  void PartitionGraph(TEngine::GenericEngine*, TEngine::GraphExecutor*, TEngine::Graph*, std::vector<TEngine::Graph*>&);
+  void SameGraph(TEngine::Graph*, TEngine::DevExecutor*,
+                 std::vector<TEngine::Graph*>&);
+  void PartitionGraph(TEngine::GenericEngine*, TEngine::GraphExecutor*,
+                      TEngine::Graph*, std::vector<TEngine::Graph*>&);
 };
 
+class DevAllocatorManager
+    : public SimpleObjectManager<DevAllocatorManager, DevAllocator*> {
+ public:
+  static void OnDevExecutorRegistered(DevExecutor* dev_executor);
+  static void OnDevExecutorUnregistered(DevExecutor* dev_executor);
 
-class DevAllocatorManager: public SimpleObjectManager<DevAllocatorManager,DevAllocator *>{
+  static void LockExecutorList(void);
+  static void UnlockExecutorList(void);
 
-public:
-	static void OnDevExecutorRegistered(DevExecutor * dev_executor);
-	static void OnDevExecutorUnregistered(DevExecutor* dev_executor);
-	
-	static void LockExecutorList(void);
-	static void UnlockExecutorList(void);
-	
-	std::mutex list_lock;
-	std::vector<DevExecutor *> executor_list;
-
+  std::mutex list_lock;
+  std::vector<DevExecutor*> executor_list;
 };
 
-
-
-} //namespace TEngine
-
+}  // namespace TEngine
 
 #endif

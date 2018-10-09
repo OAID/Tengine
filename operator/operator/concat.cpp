@@ -24,43 +24,37 @@
 #include "operator/concat.hpp"
 #include "static_graph.hpp"
 
-
 namespace TEngine {
 
-bool Concat::InferShape(const std::vector<TEngine::TShape>&ishape, std::vector<TEngine::TShape>& oshape)
-{
-     int axis=param_.axis;
+bool Concat::InferShape(const std::vector<TEngine::TShape>& ishape,
+                        std::vector<TEngine::TShape>& oshape) {
+  int axis = param_.axis;
 
-     TShape shape=ishape[0];
-     int  concat_shape=0;
-     std::vector<int> dim;
+  TShape shape = ishape[0];
+  int concat_shape = 0;
+  std::vector<int> dim;
 
-     for(unsigned int i=0;i<ishape.size();i++)
-     {
-         dim=ishape[i].GetDim();
+  for (unsigned int i = 0; i < ishape.size(); i++) {
+    dim = ishape[i].GetDim();
 
-         concat_shape+=dim[axis];
+    concat_shape += dim[axis];
+  }
 
-     }
+  dim[axis] = concat_shape;
 
-     dim[axis]=concat_shape;
+  shape.SetDim(dim);
 
-     shape.SetDim(dim);
+  oshape[0] = shape;
 
-     oshape[0]=shape;
-
-     return true;
-      
+  return true;
 }
 
-void Concat::SetSchema(void)
-{
+void Concat::SetSchema(void) {
   Input({"input:float32"})
-  .Output({"output:float32"})
-  .SetAttr("axis",1)
-  .SetLayout("NCHW")
-  .SetDoc(R"DOC(Concat Operator)DOC");
+      .Output({"output:float32"})
+      .SetAttr("axis", 1)
+      .SetLayout("NCHW")
+      .SetDoc(R"DOC(Concat Operator)DOC");
 }
 
-
-} //namespace TEngine
+}  // namespace TEngine

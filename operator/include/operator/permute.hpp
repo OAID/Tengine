@@ -24,28 +24,22 @@
 #ifndef __PERMUTE_HPP__
 #define __PERMUTE_HPP__
 
-
 #include "operator.hpp"
 #include "permute_param.hpp"
 
 namespace TEngine {
 
-class Permute: public OperatorWithParam<Permute, PermuteParam> {
+class Permute : public OperatorWithParam<Permute, PermuteParam> {
+ public:
+  Permute() { name_ = "Permute"; }
+  Permute(const Permute& src) = default;
 
-public:
-
-     Permute () { name_="Permute"; }
-     Permute(const Permute& src)=default;
-
-     virtual ~Permute() {}
-     bool InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEngine::TShape>& oshape) override;
-     void SetSchema(void) override;
-
-
+  virtual ~Permute() {}
+  bool InferShape(const std::vector<TEngine::TShape>& ishape,
+                  std::vector<TEngine::TShape>& oshape) override;
+  void SetSchema(void) override;
 };
 
-
-} //namespace TEngine
-
+}  // namespace TEngine
 
 #endif

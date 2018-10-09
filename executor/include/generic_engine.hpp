@@ -25,12 +25,12 @@
 #ifndef __GENERIC_ENGINE_HPP__
 #define __GENERIC_ENGINE_HPP__
 
-#include <unordered_map>
 #include <string>
+#include <unordered_map>
 
 #include "exec_engine.hpp"
-#include "tengine_lock.hpp"
 #include "graph_executor.hpp"
+#include "tengine_lock.hpp"
 
 namespace TEngine {
 
@@ -38,67 +38,54 @@ class DevExecutorManager;
 class GraphTask;
 struct DevScheduler;
 
+class GenericEngine : public ExecEngine {
+ public:
+  GenericEngine(void);
+  ~GenericEngine(void);
 
+  exec_handle_t AddGraphExecutor(GraphExecutor *graph_executor) override;
+  void *GetTensorBuffer(Tensor *, exec_handle_t h = nullptr) override;
+  bool SetTensorBuffer(Tensor *, void *, int,
+                       exec_handle_t h = nullptr) override;
+  bool Prerun(exec_handle_t) override;
 
-class GenericEngine: public ExecEngine {
+  bool Run(exec_handle_t, exec_event_t &) override;
+  bool SyncRun(exec_handle_t) override;
 
-public:
+  int Wait(exec_handle_t, exec_event_t &, int) override;
 
-    GenericEngine(void);
-   ~GenericEngine(void);
-   
-    exec_handle_t AddGraphExecutor(GraphExecutor *graph_executor) override;
-    void * GetTensorBuffer(Tensor *, exec_handle_t h=nullptr) override;
-    bool SetTensorBuffer(Tensor *, void *, int, exec_handle_t h=nullptr) override;
-    bool   Prerun(exec_handle_t) override;
+  bool SetCallback(exec_handle_t, exec_event_t &, int event,
+                   exec_cb_t) override;
 
-    bool Run(exec_handle_t,exec_event_t&) override;
-    bool SyncRun(exec_handle_t) override;
+  bool Postrun(exec_handle_t) override;
 
-    int Wait(exec_handle_t, exec_event_t&, int ) override; 
+  exec_status_t GetStatus(exec_handle_t) override;
 
-    bool SetCallback(exec_handle_t, exec_event_t&, int event, exec_cb_t) override; 
+  const std::string &GetStatusStr(const exec_status_t &) override;
 
-    bool Postrun(exec_handle_t) override;
+  int GetStatusCode(const exec_status_t &) override;
 
-    exec_status_t GetStatus(exec_handle_t) override;
+  std::string GetErrorStr(exec_handle_t) override;
+  bool RemoveGraphExecutor(exec_handle_t) override;
 
-    const std::string& GetStatusStr(const exec_status_t&) override; 
+  Graph *GetOptimizedGraph(exec_handle_t) override;
+  bool OptimizeGraph(exec_handle_t) override;
 
-    int GetStatusCode(const exec_status_t&) override;
+  DevScheduler *GetScheduler(void) { return scheduler_; }
+  bool SetScheduler(const std::string &sched_name);
 
-    std::string    GetErrorStr(exec_handle_t) override;
-    bool RemoveGraphExecutor(exec_handle_t) override;
+ private:
+  void Lock(void) { TEngineLock(my_mutex_); }
 
-    Graph * GetOptimizedGraph(exec_handle_t) override;
-    bool OptimizeGraph(exec_handle_t) override;
+  void Unlock(void) { TEngineUnlock(my_mutex_); }
 
-    DevScheduler * GetScheduler(void) { return scheduler_;}
-    bool SetScheduler(const std::string& sched_name);
+  std::mutex my_mutex_;
 
-    
-private:
+  std::unordered_map<GraphExecutor *, GraphTask *> graph_map_;
 
-    void Lock(void)
-    {
-       TEngineLock(my_mutex_);
-    }
-
-    void Unlock(void)
-    {
-       TEngineUnlock(my_mutex_);
-    }
-
-    std::mutex   my_mutex_;
-
-    std::unordered_map<GraphExecutor *, GraphTask*> graph_map_;      
-
-   DevScheduler * scheduler_;
-
+  DevScheduler *scheduler_;
 };
 
-
-} //namespace TEngine
-
+}  // namespace TEngine
 
 #endif

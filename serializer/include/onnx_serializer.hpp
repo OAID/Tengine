@@ -24,9 +24,9 @@
 #ifndef __ONNX_SERIALIER_HPP__
 #define __ONNX_SERIALIER_HPP__
 
-#include <iostream>
 #include <fstream>
 #include <functional>
+#include <iostream>
 #include <unordered_map>
 
 #include "serializer.hpp"
@@ -37,57 +37,49 @@
 
 namespace TEngine {
 
+class OnnxSerializer : public Serializer {
+ public:
+  OnnxSerializer() {
+    name_ = "onnx_loader";
+    format_name_ = "onnx";
+    version_ = "0.1";
+  }
 
-class OnnxSerializer: public Serializer {
+  virtual ~OnnxSerializer(){};
 
-public:
+  unsigned int GetFileNum(void) override { return 1; }
 
-      OnnxSerializer() 
-      {
-          name_="onnx_loader";
-          format_name_="onnx";
-          version_="0.1";
-      }
+  bool LoadModel(const std::vector<std::string>& file_list,
+                 StaticGraph* graph) override;
 
-      virtual ~OnnxSerializer(){};
+  bool LoadConstTensor(const std::string& fname,
+                       StaticTensor* const_tensor) override {
+    return false;
+  }
+  bool LoadConstTensor(int fd, StaticTensor* const_tensor) override {
+    return false;
+  }
 
-      unsigned int GetFileNum(void) override { return 1; }
+ protected:
+  bool LoadModelFile(const char* fname, onnx::ModelProto& model) {
+    std::fstream is(fname, std::ios::in | std::ios::binary);
 
-      bool LoadModel(const std::vector<std::string>& file_list, StaticGraph * graph) override;
+    bool result = model.ParseFromIstream(&is);
 
-      bool LoadConstTensor(const std::string& fname, StaticTensor * const_tensor) override {return false;}
-      bool LoadConstTensor(int fd, StaticTensor * const_tensor) override { return false;}
+    if (!result) {
+      LOG_ERROR() << "failed to load onnx file: " << fname << "\n";
+      return false;
+    }
 
+    return true;
+  }
 
-protected:
-      bool LoadModelFile(const char * fname, onnx::ModelProto& model)
-       {
-           std::fstream is(fname, std::ios::in | std::ios::binary);
-
-           bool result=model.ParseFromIstream(&is);
-
-           if(!result)
-           {
-               LOG_ERROR()<<"failed to load onnx file: "<<fname<<"\n";
-               return false;
-           }
-                
-           return true;
-       }
-
-       bool LoadGraph(onnx::ModelProto& model, StaticGraph * graph);
-       bool LoadConstTensor(StaticGraph * graph, const onnx::GraphProto& onnx_graph);
-       void CreateInputNode(StaticGraph * graph, const onnx::GraphProto& onnx_graph);
-       bool LoadNode(StaticGraph * graph, StaticNode * ,const onnx::NodeProto&);
-
-
-
-
-
+  bool LoadGraph(onnx::ModelProto& model, StaticGraph* graph);
+  bool LoadConstTensor(StaticGraph* graph, const onnx::GraphProto& onnx_graph);
+  void CreateInputNode(StaticGraph* graph, const onnx::GraphProto& onnx_graph);
+  bool LoadNode(StaticGraph* graph, StaticNode*, const onnx::NodeProto&);
 };
 
-
-} //namespace TEngine
-
+}  // namespace TEngine
 
 #endif

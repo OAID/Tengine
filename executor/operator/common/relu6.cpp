@@ -21,60 +21,54 @@
  * Copyright (c) 2018, Open AI Lab
  * Author: jingyou@openailab.com
  */
-#include <iostream>
-#include <functional>
 #include <cstring>
+#include <functional>
+#include <iostream>
 
+#include "graph.hpp"
 #include "logger.hpp"
 #include "node_ops.hpp"
 #include "tensor_mem.hpp"
-#include "graph.hpp"
 
 namespace TEngine {
 
 namespace ReLu6Impl {
 
-struct ReLu6Ops: public NodeOps {
-
-bool OnBind(Node * node) override
-{
-    //set the inplace feature
+struct ReLu6Ops : public NodeOps {
+  bool OnBind(Node* node) override {
+    // set the inplace feature
     inplace_t io_map;
 
-    io_map[0]=0;
+    io_map[0] = 0;
 
-    node->SetAttr(ATTR_INPLACE,io_map);
+    node->SetAttr(ATTR_INPLACE, io_map);
 
     return true;
-}
+  }
 
-bool Run(Node * node ) override
-{
-    //input tensor and output tensor is the same
-    Tensor * input_tensor = node->GetInputTensor(0);
+  bool Run(Node* node) override {
+    // input tensor and output tensor is the same
+    Tensor* input_tensor = node->GetInputTensor(0);
     const TShape& shape = input_tensor->GetShape();
     int elem_num = shape.GetSize();
-    float * data = (float *)get_tensor_mem(input_tensor);
+    float* data = (float*)get_tensor_mem(input_tensor);
 
-    for(int i=0; i < elem_num; i++)
-    {
-        if(data[i] < 0) data[i] = 0;
-        if(data[i] > 6) data[i] = 6;
+    for (int i = 0; i < elem_num; i++) {
+      if (data[i] < 0) data[i] = 0;
+      if (data[i] > 6) data[i] = 6;
     }
     return true;
-}
-
+  }
 };
 
-} //namespace ReLu6Impl
+}  // namespace ReLu6Impl
 
 using namespace ReLu6Impl;
 
-void RegisterReLu6NodeExec(void)
-{
-    ReLu6Ops * ops = new ReLu6Ops();
+void RegisterReLu6NodeExec(void) {
+  ReLu6Ops* ops = new ReLu6Ops();
 
-    NodeOpsRegistryManager::RegisterOPImplementor("common", "ReLu6", ops);
+  NodeOpsRegistryManager::RegisterOPImplementor("common", "ReLu6", ops);
 }
 
-} //namespace TEngine
+}  // namespace TEngine

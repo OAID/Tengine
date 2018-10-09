@@ -23,237 +23,216 @@
  */
 #include <unistd.h>
 
-#include <iostream> 
-#include <functional>
 #include <algorithm>
 #include <fstream>
+#include <functional>
 #include <iomanip>
+#include <iostream>
 
-#include "tengine_c_api.h"
 #include "common_util.hpp"
-#include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
+#include "tengine_c_api.h"
 
-const char * text_file="./models/mobilenet_deploy.prototxt";
-const char * model_file="./models/mobilenet.caffemodel";
-const char * image_file="./tests/images/cat.jpg";
-const char * label_file="./models/synset_words.txt";
+const char *text_file = "./models/mobilenet_deploy.prototxt";
+const char *model_file = "./models/mobilenet.caffemodel";
+const char *image_file = "./tests/images/cat.jpg";
+const char *label_file = "./models/synset_words.txt";
 
-const float channel_mean[3]={104.007, 116.669, 122.679};
+const float channel_mean[3] = {104.007, 116.669, 122.679};
 
 using namespace TEngine;
 
-int repeat_count=100;
+int repeat_count = 100;
 
-void LoadLabelFile(std::vector<std::string>& result, const char * fname)
-{
-   std::ifstream labels(fname);
+void LoadLabelFile(std::vector<std::string> &result, const char *fname) {
+  std::ifstream labels(fname);
 
-   std::string line;
-   while (std::getline(labels, line))
-      result.push_back(line);
+  std::string line;
+  while (std::getline(labels, line)) result.push_back(line);
 }
 
-void get_input_data(const char* image_file, float *input_data, int img_h, int img_w,const float* mean, float scale)
-{
+void get_input_data(const char *image_file, float *input_data, int img_h,
+                    int img_w, const float *mean, float scale) {
+  cv::Mat img = cv::imread(image_file, -1);
 
-   cv::Mat img = cv::imread(image_file, -1);
-   
-   if (img.empty())
-   {
-         std::cerr << "failed to read image file " << image_file << "\n";
-         return;
-   }
-   cv::resize(img, img, cv::Size(img_h, img_w));
-   img.convertTo(img, CV_32FC3);
-   float *img_data = (float *)img.data;
-   int hw = img_h * img_w;
-   for (int h = 0; h < img_h; h++)
-       for (int w = 0; w < img_w; w++)
-          for (int c = 0; c < 3; c++)
-          {
-              input_data[c * hw + h * img_w + w] = (*img_data - mean[c])*scale;
-              img_data++;
-          }
-}
-
-   
-int main(int argc, char * argv[])
-{
-  
-   std::string device = "";
-   std::string file_path = "";
-   char * cpu_list_str=nullptr;;
-
-   int res;
-
-   while((res=getopt(argc,argv,"p:d:f:r:"))!=-1)
-   {
-      switch(res)
-      {
-         case 'p': 
-	     cpu_list_str = optarg;
-	     break;
-
-	 case 'd':
-            device = optarg;
-            break;
-
-         case 'f':
-            file_path = optarg;
-            break;
-
-	case 'r':
-	    repeat_count=strtoul(optarg,NULL,10);
-	    break;
-
-         default:
-            break;
+  if (img.empty()) {
+    std::cerr << "failed to read image file " << image_file << "\n";
+    return;
+  }
+  cv::resize(img, img, cv::Size(img_h, img_w));
+  img.convertTo(img, CV_32FC3);
+  float *img_data = (float *)img.data;
+  int hw = img_h * img_w;
+  for (int h = 0; h < img_h; h++)
+    for (int w = 0; w < img_w; w++)
+      for (int c = 0; c < 3; c++) {
+        input_data[c * hw + h * img_w + w] = (*img_data - mean[c]) * scale;
+        img_data++;
       }
-   }
+}
 
-   const char * model_name="mobilenet";
-   int img_h=224;
-   int img_w=224;
-   
-   std::string sub_dir = "/repo.log";
+int main(int argc, char *argv[]) {
+  std::string device = "";
+  std::string file_path = "";
+  char *cpu_list_str = nullptr;
+  ;
 
-   std::string filename ="";
-   if("" != file_path) 
-   {
-        filename = file_path + sub_dir;
-   }
-   
-   /* prepare input data */
-   float  * input_data=(float*) malloc (sizeof(float) * img_h *img_w *3);
+  int res;
 
-   get_input_data( image_file, input_data, img_h, img_w, channel_mean,0.017);
+  while ((res = getopt(argc, argv, "p:d:f:r:")) != -1) {
+    switch (res) {
+      case 'p':
+        cpu_list_str = optarg;
+        break;
 
-   init_tengine_library();
+      case 'd':
+        device = optarg;
+        break;
 
-   if(request_tengine_version("0.1")<0)
-       return 1;
+      case 'f':
+        file_path = optarg;
+        break;
 
-   if(cpu_list_str)
-       set_cpu_list(cpu_list_str);
+      case 'r':
+        repeat_count = strtoul(optarg, NULL, 10);
+        break;
 
+      default:
+        break;
+    }
+  }
 
-   if(load_model(model_name,"caffe",text_file,model_file)<0)
-       return 1; 
+  const char *model_name = "mobilenet";
+  int img_h = 224;
+  int img_w = 224;
 
-   std::cout<<"Load model successfully\n";
+  std::string sub_dir = "/repo.log";
 
-   graph_t graph=create_runtime_graph("graph0",model_name,NULL);
+  std::string filename = "";
+  if ("" != file_path) {
+    filename = file_path + sub_dir;
+  }
 
-   if(!check_graph_valid(graph))
-   {
-       std::cout<<"Create graph0 failed\n";
-       return 1;
-   }
+  /* prepare input data */
+  float *input_data = (float *)malloc(sizeof(float) * img_h * img_w * 3);
 
-   /* get input tensor */
-   int node_idx = 0;
-   int tensor_idx = 0;
+  get_input_data(image_file, input_data, img_h, img_w, channel_mean, 0.017);
 
-   tensor_t input_tensor=get_graph_input_tensor(graph , node_idx , tensor_idx );
-   
-   if(!check_tensor_valid(input_tensor))
-   {
-       std::printf("Cannot find input tensor,node_idx: %d,tensor_idx: %d\n",node_idx,tensor_idx);
-       return -1;
-   }
+  init_tengine_library();
 
-   int dims[]={1,3,img_h,img_w};
+  if (request_tengine_version("0.1") < 0) return 1;
 
-   set_tensor_shape(input_tensor,dims,4);
+  if (cpu_list_str) set_cpu_list(cpu_list_str);
 
-   /* setup input buffer */
+  if (load_model(model_name, "caffe", text_file, model_file) < 0) return 1;
 
-   if(set_tensor_buffer(input_tensor,input_data,3*img_h*img_w*4)<0)
-   {
-       std::printf("Set buffer for tensor failed\n");
-	   return -1;
-   }
-  
-   if(device != "")
-   {
-   //  TEngineConfig::ConfManager * manager  =  TEngineConfig::GetConfManager();
-  	// manager->SetAttr("device.default",device);
-      set_default_device(device.c_str());
-   }
-   /* run the graph */
-   prerun_graph(graph);
+  std::cout << "Load model successfully\n";
 
-   run_graph(graph,1);
+  graph_t graph = create_runtime_graph("graph0", model_name, NULL);
 
-   //benchmark start here
-   printf("REPEAT COUNT= %d\n",repeat_count);
+  if (!check_graph_valid(graph)) {
+    std::cout << "Create graph0 failed\n";
+    return 1;
+  }
 
-   unsigned long start_time=get_cur_time();
+  /* get input tensor */
+  int node_idx = 0;
+  int tensor_idx = 0;
 
-   for(int i=0;i<repeat_count;i++)
-       run_graph(graph,1);
+  tensor_t input_tensor = get_graph_input_tensor(graph, node_idx, tensor_idx);
 
-   unsigned long end_time=get_cur_time();
+  if (!check_tensor_valid(input_tensor)) {
+    std::printf("Cannot find input tensor,node_idx: %d,tensor_idx: %d\n",
+                node_idx, tensor_idx);
+    return -1;
+  }
 
-   unsigned long off_time=end_time-start_time;
-   std::printf("Repeat [%d] time %.2f us per RUN. used %lu us\n",
-         repeat_count,1.0f*off_time/repeat_count,off_time);
-  
+  int dims[] = {1, 3, img_h, img_w};
 
-   if(filename != "")
-   {
-	   FILE * fp=fopen(filename.c_str(),"a");
-		  
-	   fprintf(fp,"device:%20s,  repeat_count:%5d,  per use_time:%10.2f,",device.c_str(),repeat_count,1.0f*off_time/repeat_count);
-	   fprintf(fp,"\n");
+  set_tensor_shape(input_tensor, dims, 4);
 
-	   fclose(fp);
-   }
+  /* setup input buffer */
 
-   /* get output tensor */
-   tensor_t output_tensor=get_graph_output_tensor(graph, node_idx, tensor_idx);
-   
-   if(!check_tensor_valid(output_tensor))
-   {
-	   std::printf("Cannot find output tensor , node_idx: %d,tensor_idx: %d\n",node_idx,tensor_idx);
-	   return -1;
-   }
-   
+  if (set_tensor_buffer(input_tensor, input_data, 3 * img_h * img_w * 4) < 0) {
+    std::printf("Set buffer for tensor failed\n");
+    return -1;
+  }
 
-   int count=get_tensor_buffer_size(output_tensor)/4;
+  if (device != "") {
+    //  TEngineConfig::ConfManager * manager  = TEngineConfig::GetConfManager();
+    // manager->SetAttr("device.default",device);
+    set_default_device(device.c_str());
+  }
+  /* run the graph */
+  prerun_graph(graph);
 
-   float *  data=(float *)(get_tensor_buffer(output_tensor));
-   float * end=data+count;
- 
-   std::vector<float> result(data, end);
+  run_graph(graph, 1);
 
-   std::vector<int> top_N=Argmax(result,5);
+  // benchmark start here
+  printf("REPEAT COUNT= %d\n", repeat_count);
 
-   std::vector<std::string> labels;
+  unsigned long start_time = get_cur_time();
 
-   LoadLabelFile(labels,label_file);
+  for (int i = 0; i < repeat_count; i++) run_graph(graph, 1);
 
-   for(unsigned int i=0;i<top_N.size();i++)
-   {
-       int idx=top_N[i];
+  unsigned long end_time = get_cur_time();
 
-       std::cout<<std::fixed << std::setprecision(4)<<result[idx]<<" - \"";
-       std::cout<< labels[idx]<<"\"\n";
-   }
- 
-   put_graph_tensor(input_tensor);
-   put_graph_tensor(output_tensor);
+  unsigned long off_time = end_time - start_time;
+  std::printf("Repeat [%d] time %.2f us per RUN. used %lu us\n", repeat_count,
+              1.0f * off_time / repeat_count, off_time);
 
-   postrun_graph(graph);  
+  if (filename != "") {
+    FILE *fp = fopen(filename.c_str(), "a");
 
-   destroy_runtime_graph(graph);
-   remove_model(model_name);
-	
-   free(input_data);
+    fprintf(fp, "device:%20s,  repeat_count:%5d,  per use_time:%10.2f,",
+            device.c_str(), repeat_count, 1.0f * off_time / repeat_count);
+    fprintf(fp, "\n");
 
-   std::cout<<"ALL TEST DONE\n";
+    fclose(fp);
+  }
 
-   release_tengine_library();
-   return 0;
+  /* get output tensor */
+  tensor_t output_tensor = get_graph_output_tensor(graph, node_idx, tensor_idx);
+
+  if (!check_tensor_valid(output_tensor)) {
+    std::printf("Cannot find output tensor , node_idx: %d,tensor_idx: %d\n",
+                node_idx, tensor_idx);
+    return -1;
+  }
+
+  int count = get_tensor_buffer_size(output_tensor) / 4;
+
+  float *data = (float *)(get_tensor_buffer(output_tensor));
+  float *end = data + count;
+
+  std::vector<float> result(data, end);
+
+  std::vector<int> top_N = Argmax(result, 5);
+
+  std::vector<std::string> labels;
+
+  LoadLabelFile(labels, label_file);
+
+  for (unsigned int i = 0; i < top_N.size(); i++) {
+    int idx = top_N[i];
+
+    std::cout << std::fixed << std::setprecision(4) << result[idx] << " - \"";
+    std::cout << labels[idx] << "\"\n";
+  }
+
+  put_graph_tensor(input_tensor);
+  put_graph_tensor(output_tensor);
+
+  postrun_graph(graph);
+
+  destroy_runtime_graph(graph);
+  remove_model(model_name);
+
+  free(input_data);
+
+  std::cout << "ALL TEST DONE\n";
+
+  release_tengine_library();
+  return 0;
 }

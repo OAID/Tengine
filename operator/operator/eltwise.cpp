@@ -22,24 +22,18 @@
  * Author: chunyinglv@openailab.com
  */
 #include "operator/eltwise.hpp"
-#include "static_graph.hpp"
 #include <cmath>
+#include "static_graph.hpp"
 
 namespace TEngine {
 
-
-
-
-
-void Eltwise::SetSchema(void)
-{
-    Input({"input:float32"})
-    .Output({"output:float32"})
-    .SetLayout("NCHW")
-    .SetAttr("method","sum")
-     .SetAttr("caffe_flavor",1)
-    .SetDoc(R"DOC(Eltwise Layer)DOC");
+void Eltwise::SetSchema(void) {
+  Input({"input:float32"})
+      .Output({"output:float32"})
+      .SetLayout("NCHW")
+      .SetAttr("method", "sum")
+      .SetAttr("caffe_flavor", 1)
+      .SetDoc(R"DOC(Eltwise Layer)DOC");
 }
 
-
-} //namespace TEngine
+}  // namespace TEngine

@@ -24,67 +24,74 @@
 #ifndef __MXNET_SERIALIZER_HPP__
 #define __MXNET_SERIALIZER_HPP__
 
-#include <iostream>
 #include <fstream>
-#include <sstream>
 #include <functional>
+#include <iostream>
 #include <map>
+#include <sstream>
 #include <vector>
 
+#include "logger.hpp"
 #include "serializer.hpp"
 #include "static_graph_interface.hpp"
-#include "logger.hpp"
 
 namespace TEngine {
 
 struct MxnetNode {
-    std::string op;
-    std::string name;
-    std::map<std::string, std::string> attrs;
-    std::vector<int> inputs;
+  std::string op;
+  std::string name;
+  std::map<std::string, std::string> attrs;
+  std::vector<int> inputs;
 };
 
 struct MxnetParam {
-    int dim_size;
-    int data_len;
-    std::string name;
-    std::vector<int> dims;
-    uint8_t *raw_data;
+  int dim_size;
+  int data_len;
+  std::string name;
+  std::vector<int> dims;
+  uint8_t* raw_data;
 };
 
-class MxnetSerializer: public Serializer {
+class MxnetSerializer : public Serializer {
+ public:
+  MxnetSerializer() {
+    name_ = "mxnet_loader";
+    version_ = "0.1";
+    format_name_ = "mxnet";
+  }
+  virtual ~MxnetSerializer() {}
 
-public:
-    MxnetSerializer() { 
-        name_="mxnet_loader";
-        version_="0.1";
-        format_name_="mxnet";
-    }
-    virtual ~MxnetSerializer() {}
+  unsigned int GetFileNum(void) override { return 2; }
 
-    unsigned int GetFileNum(void) override { return 2; }
+  bool LoadModel(const std::vector<std::string>& file_list,
+                 StaticGraph* graph) override;
 
-    bool LoadModel(const std::vector<std::string>& file_list, StaticGraph * graph) override;
+  bool LoadConstTensor(const std::string& fname,
+                       StaticTensor* const_tensor) override {
+    return false;
+  }
+  bool LoadConstTensor(int fd, StaticTensor* const_tensor) override {
+    return false;
+  }
 
-    bool LoadConstTensor(const std::string& fname, StaticTensor * const_tensor) override { return false; }
-    bool LoadConstTensor(int fd, StaticTensor * const_tensor) override { return false; }
+ protected:
+  bool LoadTextFile(const char* fname, std::vector<MxnetNode>& nodelist);
+  bool LoadBinaryFile(const char* fname, std::vector<MxnetParam>& paramlist);
 
-protected:
-    bool LoadTextFile(const char * fname, std::vector<MxnetNode>& nodelist);
-    bool LoadBinaryFile(const char * fname, std::vector<MxnetParam>& paramlist);
+  bool LoadGraph(StaticGraph* graph, const std::vector<MxnetNode>& nodelist,
+                 const std::vector<MxnetParam>& paramlist);
 
-    bool LoadGraph(StaticGraph * graph, const std::vector<MxnetNode>& nodelist, 
-                                        const std::vector<MxnetParam>& paramlist);
+  void LoadNode(StaticGraph* graph, StaticNode* node,
+                const MxnetNode& mxnet_node,
+                const std::vector<MxnetNode>& nodelist);
 
-    void LoadNode(StaticGraph * graph, StaticNode * node, const MxnetNode& mxnet_node,
-                  const std::vector<MxnetNode>& nodelist);
-
-    bool LoadConstTensor(StaticGraph * graph, const std::vector<MxnetParam>& paramlist);
-    void CreateInputNode(StaticGraph * graph, const std::vector<MxnetNode>& nodelist, 
-                                              const std::vector<MxnetParam>& paramlist);
-
+  bool LoadConstTensor(StaticGraph* graph,
+                       const std::vector<MxnetParam>& paramlist);
+  void CreateInputNode(StaticGraph* graph,
+                       const std::vector<MxnetNode>& nodelist,
+                       const std::vector<MxnetParam>& paramlist);
 };
 
-} //namespace TEngine
+}  // namespace TEngine
 
 #endif

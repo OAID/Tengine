@@ -24,10 +24,10 @@
 #ifndef __TENGINE_PLUGIN_HPP__
 #define __TENGINE_PLUGIN_HPP__
 
-#include <string>
-#include <vector>
-#include <unordered_map>
 #include <map>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 #include "attribute.hpp"
 #include "logger.hpp"
@@ -35,8 +35,8 @@
 
 namespace TEngine {
 
-using module_init_func_t=int(*)(void);
-using module_release_func_t=int(*)(void);
+using module_init_func_t = int (*)(void);
+using module_release_func_t = int (*)(void);
 
 /*
  In a config file, we use the following format to set the fullname and the
@@ -47,66 +47,66 @@ using module_release_func_t=int(*)(void);
      plugin.operator.so = ./build/operator/liboperator.so
      plugin.operator.init = tengine_plugin_init
 */
-struct TEnginePlugin
-{
-    using NameManager = Attribute;
-    static NameManager *GetNameManager(void);
+struct TEnginePlugin {
+  using NameManager = Attribute;
+  static NameManager* GetNameManager(void);
 
-    using InitManager = Attribute;
-    static InitManager *GetInitManager(void);
+  using InitManager = Attribute;
+  static InitManager* GetInitManager(void);
 
-    using PrioManager=std::map<int,std::string>;
-    static PrioManager * GetPrioManager(void);
+  using PrioManager = std::map<int, std::string>;
+  static PrioManager* GetPrioManager(void);
 
-    using HandlerManager = Attribute;
-    static HandlerManager *GetHandlerManager(void);
-    
-    // Set the PluginManager corresponding to the content of config file
-    static void SetPluginManager(void);
+  using HandlerManager = Attribute;
+  static HandlerManager* GetHandlerManager(void);
 
-    // Store a config key and a config value into the PluginManager
-    static void SetPlugin(const std::string& key, const std::string& value);
+  // Set the PluginManager corresponding to the content of config file
+  static void SetPluginManager(void);
 
-    // Load and initiate all the plugins
-    static bool LoadAll(void);
+  // Store a config key and a config value into the PluginManager
+  static void SetPlugin(const std::string& key, const std::string& value);
 
-    // Load a single plugin corresponding to the short name
-    static bool LoadPlugin(const std::string& name);
+  // Load and initiate all the plugins
+  static bool LoadAll(void);
 
-    // Init a single plugin corresponding to the short name
-    static bool InitPlugin(const std::string& name);
+  // Load a single plugin corresponding to the short name
+  static bool LoadPlugin(const std::string& name);
 
-    // Get the fullname of the plugin corresponding to the short name
-    static bool GetFullName(const std::string& name, std::string& fullname);
+  // Init a single plugin corresponding to the short name
+  static bool InitPlugin(const std::string& name);
 
-    // Get the init program name of the plugin corresponding to the short name
-    static bool GetInitName(const std::string& name, std::string& initname);
+  // Get the fullname of the plugin corresponding to the short name
+  static bool GetFullName(const std::string& name, std::string& fullname);
 
-    // Get the handler of the plugin corresponding to the short name
-    static bool GetHandler(const std::string& name, ShareLibParser& handler);
+  // Get the init program name of the plugin corresponding to the short name
+  static bool GetInitName(const std::string& name, std::string& initname);
 
-    // Dump all the plugin information as the following format:
-    // short name : full name : init program name
-    static void DumpPlugin(void);
+  // Get the handler of the plugin corresponding to the short name
+  static bool GetHandler(const std::string& name, ShareLibParser& handler);
 
-    static std::unordered_map<int,module_init_func_t> * GetInitTable(void);
-    static std::unordered_map<int,module_release_func_t> * GetReleaseTable(void);
+  // Dump all the plugin information as the following format:
+  // short name : full name : init program name
+  static void DumpPlugin(void);
 
-    //Register Initialization functions that should be executed after all plugins are loaded
-    //Priority: the lower one is higher priority
-    static void RegisterModuleInit(int priority, module_init_func_t init_func);
+  static std::unordered_map<int, module_init_func_t>* GetInitTable(void);
+  static std::unordered_map<int, module_release_func_t>* GetReleaseTable(void);
 
-    //Note: Release is executed on reverse priority
-    static void RegisterModuleRelease(int priority, module_release_func_t rel_func);
-    static void InitModule(void);
-    static void ReleaseModule(void);
+  // Register Initialization functions that should be executed after all plugins
+  // are loaded  Priority: the lower one is higher priority
+  static void RegisterModuleInit(int priority, module_init_func_t init_func);
 
-private:
-    TEnginePlugin()=default;
-    TEnginePlugin(const TEnginePlugin&)=delete;
-    TEnginePlugin(TEnginePlugin&&)=delete;
-}; // end of struct TEnginePlugin
+  // Note: Release is executed on reverse priority
+  static void RegisterModuleRelease(int priority,
+                                    module_release_func_t rel_func);
+  static void InitModule(void);
+  static void ReleaseModule(void);
 
-} //end of namespace TEngine
+ private:
+  TEnginePlugin() = default;
+  TEnginePlugin(const TEnginePlugin&) = delete;
+  TEnginePlugin(TEnginePlugin&&) = delete;
+};  // end of struct TEnginePlugin
+
+}  // end of namespace TEngine
 
 #endif

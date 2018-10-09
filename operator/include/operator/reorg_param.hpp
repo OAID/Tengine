@@ -26,21 +26,14 @@
 
 #include "parameter.hpp"
 
-
-
 namespace TEngine {
 
 struct ReorgParam : public NamedParam {
+  int stride;
 
-int stride;
-
-DECLARE_PARSER_STRUCTURE(ReorgParam) 
-{
-   DECLARE_PARSER_ENTRY(stride);
-}
-
+  DECLARE_PARSER_STRUCTURE(ReorgParam) { DECLARE_PARSER_ENTRY(stride); }
 };
 
-} //namespace TEngine
+}  // namespace TEngine
 
 #endif

@@ -21,14 +21,11 @@
  * Copyright (c) 2017, Open AI Lab
  * Author: haitao@openailab.com
  */
-#include <iostream>
-#include <sstream>
 #include <chrono>
 #include <iomanip>
+#include <iostream>
+#include <sstream>
 
-#include "compiler.hpp"
-#include "compiler.hpp"
-#include "compiler.hpp"
 #include "compiler.hpp"
 #include "logger.hpp"
 
@@ -36,64 +33,47 @@ using namespace std::chrono;
 
 namespace TEngine {
 
-class StdioLogger: public Logger {
+class StdioLogger : public Logger {
+ public:
+  StdioLogger() : log_stream_(std::cerr), null_stream_(std::ios_base::ate) {
+    cur_log_level_ = kInfo;
+  }
 
-public:
+  bool SetLogLevel(LogLevel level) {
+    cur_log_level_ = level;
+    return true;
+  }
 
-    StdioLogger(): log_stream_(std::cerr),null_stream_( std::ios_base::ate)
-    {
-        cur_log_level_=kInfo;
-    }
+  LogLevel GetLogLevel(void) { return cur_log_level_; }
 
-    bool SetLogLevel(LogLevel level)
-    {
-       cur_log_level_=level;
-       return true;
-    }
+  /*option part */
 
-    LogLevel GetLogLevel(void)
-    {
-       return cur_log_level_;
-    }
+  bool SetLogOption(const LogOption& opt) {
+    option_ = opt;
+    return true;
+  }
 
+  LogOption GetLogOption(void) { return option_; }
 
-    /*option part */
+  /*Log part */
 
-    bool SetLogOption(const LogOption& opt)
-    {
-        option_=opt;   
-        return true;
-    }
+  std::ostream& Log(LogLevel level);
 
-    LogOption GetLogOption(void)
-    {
-         return option_;
-    }
+  ~StdioLogger(){};
 
-    /*Log part */
-
-    std::ostream& Log(LogLevel level);
-
-    ~StdioLogger(){};
-
-private:
-
-    LogLevel  cur_log_level_;
-    LogOption option_;
-    std::ostream& log_stream_;
-    std::ostringstream  null_stream_;
-
+ private:
+  LogLevel cur_log_level_;
+  LogOption option_;
+  std::ostream& log_stream_;
+  std::ostringstream null_stream_;
 };
 
-
-std::ostream& StdioLogger::Log(LogLevel level)
-{
-   if(level< cur_log_level_)
-   {
-      //clear dummy buffer
-      null_stream_.str("");
-      return null_stream_;
-   }
+std::ostream& StdioLogger::Log(LogLevel level) {
+  if (level < cur_log_level_) {
+    // clear dummy buffer
+    null_stream_.str("");
+    return null_stream_;
+  }
 #if 0
    if(option_.log_date)
    {
@@ -104,69 +84,50 @@ std::ostream& StdioLogger::Log(LogLevel level)
    }
 #endif
 
-   if(option_.log_level)
-   {
-      log_stream_<<std::string(LogLevelStr(level))<<" ";
-   }
+  if (option_.log_level) {
+    log_stream_ << std::string(LogLevelStr(level)) << " ";
+  }
 
-   if(option_.prefix.size())
-   {
-       log_stream_<<option_.prefix;
-   }
+  if (option_.prefix.size()) {
+    log_stream_ << option_.prefix;
+  }
 
-   return log_stream_;
+  return log_stream_;
 }
 
+static Logger* real_logger;
 
-static Logger * real_logger;
+Logger* Logger::GetLogger(void) {
+  static int have_been_called = 0;
+  static StdioLogger default_logger;
 
-Logger * Logger::GetLogger(void)
-{
-    static int have_been_called=0;
-    static StdioLogger default_logger;
+  if (have_been_called) return real_logger;
 
-    if(have_been_called)
-         return real_logger;
+  /* the real init part */
 
-    /* the real init part */
+  have_been_called = 1;
 
-    have_been_called=1;
+  real_logger = &default_logger;
 
-    real_logger=&default_logger;
+  LogOption option;
 
-    LogOption option;
+  option.log_date = false;
+  option.log_level = false;
 
-    option.log_date=false;
-    option.log_level=false;
+  real_logger->SetLogOption(option);
 
-    real_logger->SetLogOption(option);
-
-    return real_logger;
+  return real_logger;
 }
 
+static const char* map_table[] = {"DEBUG", "INFO",  "WARN",
+                                  "ERROR", "ALERT", "FATAL"};
 
-static const char * map_table[]={
-    "DEBUG",
-    "INFO",
-    "WARN",
-    "ERROR",
-    "ALERT",
-    "FATAL"
-};
+const char* Logger::LogLevelStr(LogLevel level) { return map_table[level]; }
 
-const char *  Logger::LogLevelStr(LogLevel level)
-{
-    return map_table[level];
+void Logger::SetLogger(Logger* new_logger) {
+  Logger* logger = GetLogger();
+
+  if (new_logger != logger) real_logger = new_logger;
 }
 
-
-void Logger::SetLogger(Logger * new_logger)
-{
-    Logger * logger=GetLogger();
-
-   if(new_logger!=logger)
-       real_logger=new_logger;
-}
-
-} //namespace TEngine
- 
+}  // namespace TEngine

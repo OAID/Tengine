@@ -21,1044 +21,950 @@
  * Copyright (c) 2017, Open AI Lab
  * Author: haitao@openailab.com
  */
-#include <iostream>
-#include <functional>
 #include <cmath>
+#include <functional>
+#include <iostream>
 
 #include <caffe/caffe.hpp>
-#include <caffe/layers/conv_layer.hpp>
-#include <caffe/layers/pooling_layer.hpp>
-#include <caffe/layers/relu_layer.hpp>
-#include <caffe/layers/softmax_layer.hpp>
-#include <caffe/layers/inner_product_layer.hpp>
-#include <caffe/layers/scale_layer.hpp>
 #include <caffe/layers/batch_norm_layer.hpp>
-#include <caffe/layers/lrn_layer.hpp>
-#include <caffe/layers/prelu_layer.hpp>
+#include <caffe/layers/conv_layer.hpp>
 #include <caffe/layers/deconv_layer.hpp>
+#include <caffe/layers/inner_product_layer.hpp>
+#include <caffe/layers/lrn_layer.hpp>
+#include <caffe/layers/pooling_layer.hpp>
+#include <caffe/layers/prelu_layer.hpp>
+#include <caffe/layers/relu_layer.hpp>
+#include <caffe/layers/scale_layer.hpp>
+#include <caffe/layers/softmax_layer.hpp>
 
 #include "graph.hpp"
-#include "operator/convolution.hpp"
-#include "operator/input_op.hpp"
-#include "operator/pooling.hpp"
-#include "operator/softmax.hpp"
-#include "operator/fully_connected.hpp"
-#include "operator/relu.hpp"
-#include "operator/split.hpp"
-#include "operator/concat.hpp"
 #include "operator/accuracy.hpp"
-#include "operator/dropout.hpp"
 #include "operator/batch_norm.hpp"
-#include "operator/scale.hpp"
-#include "operator/lrn.hpp"
-#include "operator/prelu.hpp"
-#include "operator/eltwise.hpp"
+#include "operator/concat.hpp"
+#include "operator/convolution.hpp"
 #include "operator/deconvolution.hpp"
+#include "operator/dropout.hpp"
+#include "operator/eltwise.hpp"
+#include "operator/fully_connected.hpp"
+#include "operator/input_op.hpp"
+#include "operator/lrn.hpp"
+#include "operator/pooling.hpp"
+#include "operator/prelu.hpp"
+#include "operator/relu.hpp"
+#include "operator/scale.hpp"
+#include "operator/softmax.hpp"
+#include "operator/split.hpp"
 
 #include "node_ops.hpp"
-#include "tensor_mem.hpp"
 #include "prof_utils.hpp"
+#include "tensor_mem.hpp"
 
-
-/* this is an experimental file to use caffe's function to implement operator calculation */
+/* this is an experimental file to use caffe's function to implement operator
+ * calculation */
 
 using namespace caffe;
 
 namespace TEngine {
 
-static bool CheckShape(const Tensor * p_tensor, const Blob<float> * blob)
-{
-     const TShape& shape=p_tensor->GetShape();
+static bool CheckShape(const Tensor* p_tensor, const Blob<float>* blob) {
+  const TShape& shape = p_tensor->GetShape();
 
-     const std::vector<int>& dim0=shape.GetDim();
-     const std::vector<int>& dim1=blob->shape();
+  const std::vector<int>& dim0 = shape.GetDim();
+  const std::vector<int>& dim1 = blob->shape();
 
-     return (dim0==dim1);
+  return (dim0 == dim1);
 }
 
+static bool CopyBlobToTensor(Tensor* p_tensor, const Blob<float>* blob) {
+  // check shape
 
-static bool CopyBlobToTensor(Tensor * p_tensor, const Blob<float> * blob)
-{
-     //check shape 
+  if (!CheckShape(p_tensor, blob)) {
+    std::cerr << "copy data to blob failed due to shape mistach: tensor"
+              << p_tensor->GetName() << "\n";
+    return false;
+  }
 
-     if(!CheckShape(p_tensor,blob))
-     {
-          std::cerr<<"copy data to blob failed due to shape mistach: tensor"<<p_tensor->GetName()<<"\n";
-          return false;
-     }
+  const float* blob_data = blob->cpu_data();
+  int blob_size = blob->count();
+  int mem_size = 4 * blob_size;
 
-     const float * blob_data=blob->cpu_data();
-     int     blob_size=blob->count();
-     int    mem_size=4*blob_size;
+  void* addr = get_tensor_mem(p_tensor);
 
-     void * addr=get_tensor_mem(p_tensor);
+  if (addr == nullptr) {
+    addr = std::malloc(mem_size);
+    set_tensor_mem(p_tensor, addr, mem_size, std::free);
+  }
 
-     if(addr==nullptr)
-     {
-        addr=std::malloc(mem_size);
-        set_tensor_mem(p_tensor,addr,mem_size,std::free); 
-     }
+  std::memcpy(addr, blob_data, mem_size);
 
-     std::memcpy(addr,blob_data,mem_size);
-
-     return true;
+  return true;
 }
 
-static void ReshapeBlob(Blob<float>&blob, const Tensor * p_tensor)
-{
-     const TShape& shape=p_tensor->GetShape();
+static void ReshapeBlob(Blob<float>& blob, const Tensor* p_tensor) {
+  const TShape& shape = p_tensor->GetShape();
 
-     const std::vector<int>& dim0=shape.GetDim();
+  const std::vector<int>& dim0 = shape.GetDim();
 
-     blob.Reshape(dim0);
+  blob.Reshape(dim0);
 }
 
- 
-static bool CopyBlobFromTensor(const Tensor * p_tensor, Blob<float> * blob)
-{
-     if(!CheckShape(p_tensor,blob))
-          return false;
-    
-    
-     float * blob_data=blob->mutable_cpu_data();
-     int     blob_size=blob->count();
-     int     mem_size=blob_size*sizeof(float);
+static bool CopyBlobFromTensor(const Tensor* p_tensor, Blob<float>* blob) {
+  if (!CheckShape(p_tensor, blob)) return false;
 
-     void *  addr=get_tensor_mem(p_tensor);
+  float* blob_data = blob->mutable_cpu_data();
+  int blob_size = blob->count();
+  int mem_size = blob_size * sizeof(float);
 
-     std::memcpy(blob_data,addr,mem_size);
+  void* addr = get_tensor_mem(p_tensor);
 
-     return true;
+  std::memcpy(blob_data, addr, mem_size);
+
+  return true;
 }
-
 
 template <typename Dtype>
-struct WrapConv: public ConvolutionLayer<Dtype> {
+struct WrapConv : public ConvolutionLayer<Dtype> {
+  WrapConv(const LayerParameter& param) : ConvolutionLayer<Dtype>(param) {}
 
-  WrapConv(const LayerParameter& param) : ConvolutionLayer<Dtype> (param) {}
-
-  void Init(const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top)
-  {
-        ConvolutionLayer<Dtype>::LayerSetUp(bottom,top);
-        ConvolutionLayer<Dtype>::Reshape(bottom,top);
+  void Init(const vector<Blob<Dtype>*>& bottom,
+            const vector<Blob<Dtype>*>& top) {
+    ConvolutionLayer<Dtype>::LayerSetUp(bottom, top);
+    ConvolutionLayer<Dtype>::Reshape(bottom, top);
   }
 
-  void Forward(const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top)
-  {
-        ConvolutionLayer<Dtype>::Forward_cpu(bottom,top);
+  void Forward(const vector<Blob<Dtype>*>& bottom,
+               const vector<Blob<Dtype>*>& top) {
+    ConvolutionLayer<Dtype>::Forward_cpu(bottom, top);
   }
-
-
 };
 
+bool caffe_run_convolution(Node* node, int rep, unsigned long* time) {
+  LayerParameter layer_param;
+  ConvolutionParameter* caffe_param = layer_param.mutable_convolution_param();
 
-bool  caffe_run_convolution(Node *node, int rep, unsigned long * time)
-{
-     LayerParameter layer_param;
-     ConvolutionParameter* caffe_param =layer_param.mutable_convolution_param();
+  layer_param.set_name(node->GetName() + ".te");
 
-     layer_param.set_name(node->GetName()+".te");
+  Convolution* conv_op = dynamic_cast<Convolution*>(node->GetOp());
 
-     Convolution * conv_op=dynamic_cast<Convolution *>(node->GetOp());
+  ConvParam* p_param = conv_op->GetParam();
+  caffe_param->add_kernel_size(p_param->kernel_h);
+  caffe_param->add_kernel_size(p_param->kernel_w);
+  caffe_param->add_stride(p_param->stride_h);
+  caffe_param->add_stride(p_param->stride_w);
+  caffe_param->add_dilation(p_param->dilation_h);
+  caffe_param->add_dilation(p_param->dilation_w);
 
-     ConvParam * p_param=conv_op->GetParam();
-     caffe_param->add_kernel_size(p_param->kernel_h);
-     caffe_param->add_kernel_size(p_param->kernel_w);
-     caffe_param->add_stride(p_param->stride_h);
-     caffe_param->add_stride(p_param->stride_w);
-     caffe_param->add_dilation(p_param->dilation_h);
-     caffe_param->add_dilation(p_param->dilation_w);
+  if (p_param->pad_h < 0)
+    caffe_param->add_pad(p_param->pads[2]);
+  else
+    caffe_param->add_pad(p_param->pad_h);
 
-     if(p_param->pad_h<0)
-        caffe_param->add_pad(p_param->pads[2]);
-     else
-        caffe_param->add_pad(p_param->pad_h);
+  if (p_param->pad_w < 0)
+    caffe_param->add_pad(p_param->pads[3]);
+  else
+    caffe_param->add_pad(p_param->pad_w);
 
-     if(p_param->pad_w<0)
-        caffe_param->add_pad(p_param->pads[3]);
-     else
-        caffe_param->add_pad(p_param->pad_w);
+  caffe_param->set_num_output(p_param->output_channel);
+  caffe_param->set_bias_term((node->GetInputNum() > 2));
+  caffe_param->set_group(p_param->group);
 
-     caffe_param->set_num_output(p_param->output_channel);
-     caffe_param->set_bias_term((node->GetInputNum()>2));
-     caffe_param->set_group(p_param->group);
-     
-     
-     WrapConv<float> caffe_layer(layer_param);
+  WrapConv<float> caffe_layer(layer_param);
 
-     Blob<float> input,output;
+  Blob<float> input, output;
 
-     std::vector<Blob<float>*> bottom,top;
+  std::vector<Blob<float>*> bottom, top;
 
-     bottom.push_back(&input);
-     top.push_back(&output);
+  bottom.push_back(&input);
+  top.push_back(&output);
 
+  /* input */
+  const Tensor* tensor = node->GetInputTensor(0);
+  ReshapeBlob(input, tensor);
+  CopyBlobFromTensor(tensor, &input);
 
- 
-     /* input */    
-     const Tensor * tensor=node->GetInputTensor(0);
-     ReshapeBlob(input, tensor);
-     CopyBlobFromTensor(tensor,&input);
+  caffe_layer.Init(bottom, top);
 
-     caffe_layer.Init(bottom,top);
+  /* weight */
 
+  std::vector<boost::shared_ptr<Blob<float> > > blob_vector =
+      caffe_layer.blobs();
 
-     /* weight */
+  boost::shared_ptr<Blob<float> > blob_ptr = blob_vector[0];
 
-     std::vector<boost::shared_ptr<Blob<float> > > blob_vector=caffe_layer.blobs();
+  tensor = node->GetInputTensor(1);
+  ReshapeBlob(*blob_ptr, tensor);
+  CopyBlobFromTensor(tensor, blob_ptr.get());
 
-     boost::shared_ptr<Blob<float> > blob_ptr=blob_vector[0];
+  /* bias */
+  if (blob_vector.size() > 1) {
+    blob_ptr = blob_vector[1];
 
-     tensor=node->GetInputTensor(1);
-     ReshapeBlob(*blob_ptr, tensor);
-     CopyBlobFromTensor(tensor,blob_ptr.get());
+    tensor = node->GetInputTensor(2);
+    ReshapeBlob(*blob_ptr, tensor);
+    CopyBlobFromTensor(tensor, blob_ptr.get());
+  }
 
-     /* bias */
-     if( blob_vector.size()>1)
-     {
-         blob_ptr=blob_vector[1];
+  if (rep) {
+    unsigned long start = get_cur_time();
 
-         tensor=node->GetInputTensor(2);
-         ReshapeBlob(*blob_ptr, tensor);
-         CopyBlobFromTensor(tensor,blob_ptr.get());
-     }
+    for (int i = 0; i < rep; i++) caffe_layer.Forward(bottom, top);
 
-      if(rep)
-      {
-          unsigned long start=get_cur_time();
+    unsigned long end = get_cur_time();
 
-          for(int i=0;i<rep;i++)
-             caffe_layer.Forward(bottom,top);
+    (*time) = end - start;
+  } else
+    caffe_layer.Forward(bottom, top);
 
-          unsigned long end=get_cur_time();
+  Tensor* output_tensor = node->GetOutputTensor(0);
 
-          (*time)=end-start;
-      }
-      else
-          caffe_layer.Forward(bottom,top);
-          
+  CopyBlobToTensor(output_tensor, &output);
 
-     Tensor * output_tensor=node->GetOutputTensor(0);
+  /* if we needs to do relu fusion */
 
-     CopyBlobToTensor(output_tensor,&output);
+  if (node->ExistAttr("Fused.ReLu")) {
+    float* data = (float*)get_tensor_mem(output_tensor);
+    const TShape& shape = output_tensor->GetShape();
+    int number = shape.GetSize();
 
-     /* if we needs to do relu fusion */
-
-    if(node->ExistAttr("Fused.ReLu"))
-    {
-       float * data=(float *)get_tensor_mem(output_tensor);
-       const TShape & shape=output_tensor->GetShape();
-       int number=shape.GetSize();
-
-       for(int i=0;i<number;i++)
-       {
-            if(data[i]<0)
-                data[i]=0;
-       }
-       
+    for (int i = 0; i < number; i++) {
+      if (data[i] < 0) data[i] = 0;
     }
+  }
 
-     return true;
+  return true;
 }
 
-bool  caffe_run_convolution(Node *node)
-{
-   return caffe_run_convolution(node,0,nullptr);
+bool caffe_run_convolution(Node* node) {
+  return caffe_run_convolution(node, 0, nullptr);
 }
-static PoolingParameter_PoolMethod MapPool(PoolArg arg)
-{
- 
-    if(arg==kPoolAvg)
-         return PoolingParameter_PoolMethod_AVE;
+static PoolingParameter_PoolMethod MapPool(PoolArg arg) {
+  if (arg == kPoolAvg) return PoolingParameter_PoolMethod_AVE;
 
-    if(arg==kPoolRand)
-         return PoolingParameter_PoolMethod_STOCHASTIC;   
+  if (arg == kPoolRand) return PoolingParameter_PoolMethod_STOCHASTIC;
 
-    return PoolingParameter_PoolMethod_MAX;
+  return PoolingParameter_PoolMethod_MAX;
 }
 
 template <typename Dtype>
-struct WrapPoolingLayer: public PoolingLayer<Dtype> {
+struct WrapPoolingLayer : public PoolingLayer<Dtype> {
+  WrapPoolingLayer(const LayerParameter& param) : PoolingLayer<Dtype>(param){};
 
- WrapPoolingLayer(const LayerParameter& param): PoolingLayer<Dtype>(param) {};
+  void Init(const vector<Blob<Dtype>*>& bottom,
+            const vector<Blob<Dtype>*>& top) {
+    PoolingLayer<Dtype>::LayerSetUp(bottom, top);
+    PoolingLayer<Dtype>::Reshape(bottom, top);
+  }
 
- void Init(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top) 
-      { 
-           PoolingLayer<Dtype>::LayerSetUp(bottom,top);
-           PoolingLayer<Dtype>::Reshape(bottom,top);
-      }
-
-
- void Forward(const vector<Blob<Dtype>*>& bottom,
-      const vector<Blob<Dtype>*>& top) { PoolingLayer<Dtype>::Forward_cpu(bottom,top);}
-
+  void Forward(const vector<Blob<Dtype>*>& bottom,
+               const vector<Blob<Dtype>*>& top) {
+    PoolingLayer<Dtype>::Forward_cpu(bottom, top);
+  }
 };
 
-bool  caffe_run_pooling(Node *node)
-{
-    LayerParameter layer_param;
-    PoolingParameter* caffe_param = layer_param.mutable_pooling_param();
+bool caffe_run_pooling(Node* node) {
+  LayerParameter layer_param;
+  PoolingParameter* caffe_param = layer_param.mutable_pooling_param();
 
-    Pooling * pooling_op=dynamic_cast<Pooling*>(node->GetOp());
+  Pooling* pooling_op = dynamic_cast<Pooling*>(node->GetOp());
 
-    PoolParam * p_param=pooling_op->GetParam();
-    // ONNX param
-    caffe_param->set_kernel_h(p_param->kernel_shape[0]);
-    caffe_param->set_kernel_w(p_param->kernel_shape[1]);
-    //caffe_param->set_kernel_size(p_param->kernel_shape[0]);
-    caffe_param->set_pool(MapPool(p_param->alg));
-    caffe_param->set_pad_h(p_param->pads[0]); 
-    caffe_param->set_pad_w(p_param->pads[1]); 
-    caffe_param->set_stride_h(p_param->strides[0]); 
-    caffe_param->set_stride_w(p_param->strides[1]); 
-    // origin param 
-    // caffe_param->set_kernel_size(p_param->kernel_h);
-    // caffe_param->set_pool(MapPool(p_param->alg));
-    // caffe_param->set_pad(p_param->pad_h); 
-    // caffe_param->set_stride(p_param->stride_h); 
+  PoolParam* p_param = pooling_op->GetParam();
+  // ONNX param
+  caffe_param->set_kernel_h(p_param->kernel_shape[0]);
+  caffe_param->set_kernel_w(p_param->kernel_shape[1]);
+  // caffe_param->set_kernel_size(p_param->kernel_shape[0]);
+  caffe_param->set_pool(MapPool(p_param->alg));
+  caffe_param->set_pad_h(p_param->pads[0]);
+  caffe_param->set_pad_w(p_param->pads[1]);
+  caffe_param->set_stride_h(p_param->strides[0]);
+  caffe_param->set_stride_w(p_param->strides[1]);
+  // origin param
+  // caffe_param->set_kernel_size(p_param->kernel_h);
+  // caffe_param->set_pool(MapPool(p_param->alg));
+  // caffe_param->set_pad(p_param->pad_h);
+  // caffe_param->set_stride(p_param->stride_h);
 
+  Blob<float> input, output;
 
-   
-    Blob<float> input, output;
+  Tensor* tensor = node->GetInputTensor(0);
 
-    Tensor * tensor=node->GetInputTensor(0);
+  ReshapeBlob(input, tensor);
+  CopyBlobFromTensor(tensor, &input);
 
-    ReshapeBlob(input,tensor);
-    CopyBlobFromTensor(tensor,&input);
+  tensor = node->GetOutputTensor(0);
+  ReshapeBlob(output, tensor);
 
-    tensor=node->GetOutputTensor(0);
-    ReshapeBlob(output,tensor);
+  std::vector<Blob<float>*> bottom, top;
+  bottom.push_back(&input);
+  top.push_back(&output);
 
-    std::vector<Blob<float>*> bottom,top;
-    bottom.push_back(&input);
-    top.push_back(&output);
+  WrapPoolingLayer<float> caffe_layer(layer_param);
 
-    WrapPoolingLayer<float>  caffe_layer(layer_param);
+  caffe_layer.Init(bottom, top);
+  caffe_layer.Forward(bottom, top);
 
-    caffe_layer.Init(bottom,top);
-    caffe_layer.Forward(bottom,top);
+  CopyBlobToTensor(tensor, &output);
 
- 
-    CopyBlobToTensor(tensor,&output);  
-
-    return true;
-    
+  return true;
 }
 
 template <typename Dtype>
-struct WrapReLULayer: public ReLULayer<Dtype> {
+struct WrapReLULayer : public ReLULayer<Dtype> {
+  WrapReLULayer(const LayerParameter& param) : ReLULayer<Dtype>(param) {}
 
- WrapReLULayer(const LayerParameter& param): ReLULayer<Dtype>(param) {}
-
- void Forward(const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top)
-   {    ReLULayer<Dtype>::Forward_cpu(bottom,top); }
-
+  void Forward(const vector<Blob<Dtype>*>& bottom,
+               const vector<Blob<Dtype>*>& top) {
+    ReLULayer<Dtype>::Forward_cpu(bottom, top);
+  }
 };
 
-bool caffe_run_relu(Node * node)
-{
-    LayerParameter layer_param;
-    Blob<float> input, output;
+bool caffe_run_relu(Node* node) {
+  LayerParameter layer_param;
+  Blob<float> input, output;
 
-    Tensor * tensor=node->GetInputTensor(0);
+  Tensor* tensor = node->GetInputTensor(0);
 
-    ReshapeBlob(input,tensor);
-    CopyBlobFromTensor(tensor,&input);
-    
-    tensor=node->GetOutputTensor(0);
-    ReshapeBlob(output,tensor);
+  ReshapeBlob(input, tensor);
+  CopyBlobFromTensor(tensor, &input);
 
-    std::vector<Blob<float>*> bottom,top;
+  tensor = node->GetOutputTensor(0);
+  ReshapeBlob(output, tensor);
 
-    bottom.push_back(&input);
-    top.push_back(&output);
+  std::vector<Blob<float>*> bottom, top;
 
-    WrapReLULayer<float>  caffe_layer(layer_param);
+  bottom.push_back(&input);
+  top.push_back(&output);
 
-    caffe_layer.Forward(bottom,top);
+  WrapReLULayer<float> caffe_layer(layer_param);
 
-    CopyBlobToTensor(tensor,&output);  
+  caffe_layer.Forward(bottom, top);
 
-    return true;
+  CopyBlobToTensor(tensor, &output);
+
+  return true;
 }
 // add prelu
 
 template <typename Dtype>
-struct WrapPReLULayer: public PReLULayer<Dtype> {
+struct WrapPReLULayer : public PReLULayer<Dtype> {
+  WrapPReLULayer(const LayerParameter& param) : PReLULayer<Dtype>(param) {}
 
- WrapPReLULayer(const LayerParameter& param): PReLULayer<Dtype>(param) {}
- 
- void Init(const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top)
-  {
-        PReLULayer<Dtype>::LayerSetUp(bottom,top);
-        PReLULayer<Dtype>::Reshape(bottom,top);
+  void Init(const vector<Blob<Dtype>*>& bottom,
+            const vector<Blob<Dtype>*>& top) {
+    PReLULayer<Dtype>::LayerSetUp(bottom, top);
+    PReLULayer<Dtype>::Reshape(bottom, top);
   }
- void Forward(const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top)
-   {    PReLULayer<Dtype>::Forward_cpu(bottom,top); }
-
+  void Forward(const vector<Blob<Dtype>*>& bottom,
+               const vector<Blob<Dtype>*>& top) {
+    PReLULayer<Dtype>::Forward_cpu(bottom, top);
+  }
 };
 // add deconv
 template <typename Dtype>
-struct WrapDeconvLayer: public DeconvolutionLayer<Dtype> 
-{
+struct WrapDeconvLayer : public DeconvolutionLayer<Dtype> {
+  WrapDeconvLayer(const LayerParameter& param)
+      : DeconvolutionLayer<Dtype>(param) {}
 
- WrapDeconvLayer(const LayerParameter& param): DeconvolutionLayer<Dtype>(param) {}
- 
- void Init(const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top)
-  {
-        DeconvolutionLayer<Dtype>::LayerSetUp(bottom,top);
-        DeconvolutionLayer<Dtype>::Reshape(bottom,top);
+  void Init(const vector<Blob<Dtype>*>& bottom,
+            const vector<Blob<Dtype>*>& top) {
+    DeconvolutionLayer<Dtype>::LayerSetUp(bottom, top);
+    DeconvolutionLayer<Dtype>::Reshape(bottom, top);
   }
- void Forward(const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top)
-   {    DeconvolutionLayer<Dtype>::Forward_cpu(bottom,top); }
-
+  void Forward(const vector<Blob<Dtype>*>& bottom,
+               const vector<Blob<Dtype>*>& top) {
+    DeconvolutionLayer<Dtype>::Forward_cpu(bottom, top);
+  }
 };
-bool caffe_run_deconv(Node * node,int rep, unsigned long * time)
-{
-    LayerParameter layer_param;
-     ConvolutionParameter* caffe_param =layer_param.mutable_convolution_param();
+bool caffe_run_deconv(Node* node, int rep, unsigned long* time) {
+  LayerParameter layer_param;
+  ConvolutionParameter* caffe_param = layer_param.mutable_convolution_param();
 
-     layer_param.set_name(node->GetName()+".te");
+  layer_param.set_name(node->GetName() + ".te");
 
-     Deconvolution * deconv_op=dynamic_cast<Deconvolution *>(node->GetOp());
+  Deconvolution* deconv_op = dynamic_cast<Deconvolution*>(node->GetOp());
 
-     DeconvParam * p_param=deconv_op->GetParam();
-     caffe_param->add_kernel_size(p_param->kernel_size);
-     caffe_param->add_kernel_size(p_param->kernel_size);
-     caffe_param->add_stride(p_param->stride);
-     caffe_param->add_stride(p_param->stride);
-     caffe_param->add_pad(p_param->pad);
-     caffe_param->set_num_output(p_param->num_output);
-     caffe_param->set_bias_term((node->GetInputNum()>2));
-     caffe_param->add_dilation(p_param->dilation);
-     caffe_param->add_dilation(p_param->dilation);
-  
-    WrapDeconvLayer<float> caffe_layer(layer_param);
-    //input
-    Blob<float> input, output;
-    std::vector<Blob<float>*> bottom,top;
+  DeconvParam* p_param = deconv_op->GetParam();
+  caffe_param->add_kernel_size(p_param->kernel_size);
+  caffe_param->add_kernel_size(p_param->kernel_size);
+  caffe_param->add_stride(p_param->stride);
+  caffe_param->add_stride(p_param->stride);
+  caffe_param->add_pad(p_param->pad);
+  caffe_param->set_num_output(p_param->num_output);
+  caffe_param->set_bias_term((node->GetInputNum() > 2));
+  caffe_param->add_dilation(p_param->dilation);
+  caffe_param->add_dilation(p_param->dilation);
 
-    Tensor * tensor=node->GetInputTensor(0);
-    ReshapeBlob(input,tensor);
-    CopyBlobFromTensor(tensor,&input);
+  WrapDeconvLayer<float> caffe_layer(layer_param);
+  // input
+  Blob<float> input, output;
+  std::vector<Blob<float>*> bottom, top;
 
-    bottom.push_back(&input);
-    top.push_back(&output);
-      caffe_layer.Init(bottom,top);
-     /* weight */
+  Tensor* tensor = node->GetInputTensor(0);
+  ReshapeBlob(input, tensor);
+  CopyBlobFromTensor(tensor, &input);
 
-     std::vector<boost::shared_ptr<Blob<float> > > blob_vector=caffe_layer.blobs();
-     boost::shared_ptr<Blob<float> > blob_ptr=blob_vector[0];
-     tensor=node->GetInputTensor(1);
-     ReshapeBlob(*blob_ptr, tensor);
-     CopyBlobFromTensor(tensor,blob_ptr.get());
+  bottom.push_back(&input);
+  top.push_back(&output);
+  caffe_layer.Init(bottom, top);
+  /* weight */
 
-     /* bias */
-     if( blob_vector.size()>1)
-     {
-         blob_ptr=blob_vector[1];
+  std::vector<boost::shared_ptr<Blob<float> > > blob_vector =
+      caffe_layer.blobs();
+  boost::shared_ptr<Blob<float> > blob_ptr = blob_vector[0];
+  tensor = node->GetInputTensor(1);
+  ReshapeBlob(*blob_ptr, tensor);
+  CopyBlobFromTensor(tensor, blob_ptr.get());
 
-         tensor=node->GetInputTensor(2);
-         ReshapeBlob(*blob_ptr, tensor);
-         CopyBlobFromTensor(tensor,blob_ptr.get());
-     }
+  /* bias */
+  if (blob_vector.size() > 1) {
+    blob_ptr = blob_vector[1];
 
-      if(rep)
-      {
-          unsigned long start=get_cur_time();
-
-          for(int i=0;i<rep;i++)
-             caffe_layer.Forward(bottom,top);
-
-          unsigned long end=get_cur_time();
-
-          (*time)=end-start;
-      }
-      else
-          caffe_layer.Forward(bottom,top);
-          
-
-     Tensor * output_tensor=node->GetOutputTensor(0);
-     ReshapeBlob(output, output_tensor);
-     CopyBlobToTensor(output_tensor,&output); 
-     return true;
-}
-bool  caffe_run_deconv(Node *node)
-{
-   return caffe_run_deconv(node,0,nullptr);
-}
-bool caffe_run_prelu(Node * node)
-{
- 
-    LayerParameter layer_param;
-  
-    WrapPReLULayer<float> caffe_layer(layer_param);
-
-    Blob<float> input, output;
-     std::vector<Blob<float>*> bottom,top;
-     bottom.push_back(&input);
-     top.push_back(&output);
-
-    //input
-    Tensor * tensor=node->GetInputTensor(0);
-    ReshapeBlob(input,tensor);
-    CopyBlobFromTensor(tensor,&input);
-    
-    caffe_layer.Init(bottom,top);
-  
-    std::vector<boost::shared_ptr<Blob<float> > > blob_vector=caffe_layer.blobs();
-     /* weight */
-    boost::shared_ptr<Blob<float> > blob_ptr=blob_vector[0];
-    tensor=node->GetInputTensor(1);
+    tensor = node->GetInputTensor(2);
     ReshapeBlob(*blob_ptr, tensor);
-    CopyBlobFromTensor(tensor,blob_ptr.get());
-    // forward
-    caffe_layer.Forward(bottom,top);
-   //output
-    tensor=node->GetOutputTensor(0);
-    ReshapeBlob(output,tensor);
-    CopyBlobToTensor(tensor,&output);  
+    CopyBlobFromTensor(tensor, blob_ptr.get());
+  }
 
-    return true;
+  if (rep) {
+    unsigned long start = get_cur_time();
+
+    for (int i = 0; i < rep; i++) caffe_layer.Forward(bottom, top);
+
+    unsigned long end = get_cur_time();
+
+    (*time) = end - start;
+  } else
+    caffe_layer.Forward(bottom, top);
+
+  Tensor* output_tensor = node->GetOutputTensor(0);
+  ReshapeBlob(output, output_tensor);
+  CopyBlobToTensor(output_tensor, &output);
+  return true;
+}
+bool caffe_run_deconv(Node* node) { return caffe_run_deconv(node, 0, nullptr); }
+bool caffe_run_prelu(Node* node) {
+  LayerParameter layer_param;
+
+  WrapPReLULayer<float> caffe_layer(layer_param);
+
+  Blob<float> input, output;
+  std::vector<Blob<float>*> bottom, top;
+  bottom.push_back(&input);
+  top.push_back(&output);
+
+  // input
+  Tensor* tensor = node->GetInputTensor(0);
+  ReshapeBlob(input, tensor);
+  CopyBlobFromTensor(tensor, &input);
+
+  caffe_layer.Init(bottom, top);
+
+  std::vector<boost::shared_ptr<Blob<float> > > blob_vector =
+      caffe_layer.blobs();
+  /* weight */
+  boost::shared_ptr<Blob<float> > blob_ptr = blob_vector[0];
+  tensor = node->GetInputTensor(1);
+  ReshapeBlob(*blob_ptr, tensor);
+  CopyBlobFromTensor(tensor, blob_ptr.get());
+  // forward
+  caffe_layer.Forward(bottom, top);
+  // output
+  tensor = node->GetOutputTensor(0);
+  ReshapeBlob(output, tensor);
+  CopyBlobToTensor(tensor, &output);
+
+  return true;
 }
 
 // end prelu
 
 template <typename Dtype>
-struct WrapSoftmaxLayer: public SoftmaxLayer<Dtype> {
+struct WrapSoftmaxLayer : public SoftmaxLayer<Dtype> {
+  WrapSoftmaxLayer(const LayerParameter& param) : SoftmaxLayer<Dtype>(param) {}
 
- WrapSoftmaxLayer(const LayerParameter& param): SoftmaxLayer<Dtype>(param) {}
+  void Init(const vector<Blob<Dtype>*>& bottom,
+            const vector<Blob<Dtype>*>& top) {
+    SoftmaxLayer<Dtype>::LayerSetUp(bottom, top);
+    SoftmaxLayer<Dtype>::Reshape(bottom, top);
+  }
 
- void Init(const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top)
- {
-      SoftmaxLayer<Dtype>::LayerSetUp(bottom,top);
-      SoftmaxLayer<Dtype>::Reshape(bottom,top);
- }
-
- void Forward(const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top)
-   {    SoftmaxLayer<Dtype>::Forward_cpu(bottom,top); }
-
+  void Forward(const vector<Blob<Dtype>*>& bottom,
+               const vector<Blob<Dtype>*>& top) {
+    SoftmaxLayer<Dtype>::Forward_cpu(bottom, top);
+  }
 };
 
-bool caffe_run_softmax(Node * node)
-{
-    LayerParameter layer_param;
-    Blob<float> input, output;
+bool caffe_run_softmax(Node* node) {
+  LayerParameter layer_param;
+  Blob<float> input, output;
 
-    Tensor * tensor=node->GetInputTensor(0);
- 
-    ReshapeBlob(input,tensor);
-    CopyBlobFromTensor(tensor,&input);
+  Tensor* tensor = node->GetInputTensor(0);
 
-    tensor=node->GetOutputTensor(0);
-    ReshapeBlob(output,tensor);
+  ReshapeBlob(input, tensor);
+  CopyBlobFromTensor(tensor, &input);
 
-    std::vector<Blob<float>*> bottom,top;
+  tensor = node->GetOutputTensor(0);
+  ReshapeBlob(output, tensor);
 
-    bottom.push_back(&input);
-    top.push_back(&output);
+  std::vector<Blob<float>*> bottom, top;
 
-    WrapSoftmaxLayer<float>  caffe_layer(layer_param);
+  bottom.push_back(&input);
+  top.push_back(&output);
 
-    caffe_layer.Init(bottom,top);
-    caffe_layer.Forward(bottom,top);
+  WrapSoftmaxLayer<float> caffe_layer(layer_param);
 
-    CopyBlobToTensor(tensor,&output);
+  caffe_layer.Init(bottom, top);
+  caffe_layer.Forward(bottom, top);
 
-    return true;
+  CopyBlobToTensor(tensor, &output);
+
+  return true;
 }
 
 template <typename Dtype>
-struct WrapIP: public InnerProductLayer<Dtype>{
+struct WrapIP : public InnerProductLayer<Dtype> {
+  WrapIP(const LayerParameter& param) : InnerProductLayer<Dtype>(param){};
 
-   WrapIP(const LayerParameter& param): InnerProductLayer<Dtype>(param) {};
+  void Init(const vector<Blob<Dtype>*>& bottom,
+            const vector<Blob<Dtype>*>& top) {
+    InnerProductLayer<Dtype>::LayerSetUp(bottom, top);
+    InnerProductLayer<Dtype>::Reshape(bottom, top);
+  }
 
-   void Init(const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top) 
-    {
-          InnerProductLayer<Dtype>::LayerSetUp(bottom,top);
-          InnerProductLayer<Dtype>::Reshape(bottom,top);
-    }
-
-   void Forward(const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top)
-    {
-         InnerProductLayer<Dtype>::Forward_cpu(bottom,top);
-    }
-
+  void Forward(const vector<Blob<Dtype>*>& bottom,
+               const vector<Blob<Dtype>*>& top) {
+    InnerProductLayer<Dtype>::Forward_cpu(bottom, top);
+  }
 };
 
-bool caffe_run_fully_connected(Node * node, int rep, unsigned long * time)
-{
-    LayerParameter layer_param;
-    InnerProductParameter * caffe_param=layer_param.mutable_inner_product_param();
-    FullyConnected * fc_op=dynamic_cast<FullyConnected *>(node->GetOp());
+bool caffe_run_fully_connected(Node* node, int rep, unsigned long* time) {
+  LayerParameter layer_param;
+  InnerProductParameter* caffe_param =
+      layer_param.mutable_inner_product_param();
+  FullyConnected* fc_op = dynamic_cast<FullyConnected*>(node->GetOp());
 
-    FCParam * p_param=fc_op->GetParam();
+  FCParam* p_param = fc_op->GetParam();
 
-    caffe_param->set_num_output(p_param->num_output);
+  caffe_param->set_num_output(p_param->num_output);
 
-    caffe_param->set_bias_term((node->GetInputNum()>2));
+  caffe_param->set_bias_term((node->GetInputNum() > 2));
 
-    Blob<float> input,output;
-         
-    std::vector<Blob<float>*> bottom,top;
+  Blob<float> input, output;
 
-    bottom.push_back(&input);
-    top.push_back(&output);
+  std::vector<Blob<float>*> bottom, top;
 
-    /* prepare input */
+  bottom.push_back(&input);
+  top.push_back(&output);
 
-     Tensor * tensor=node->GetInputTensor(0);
-     ReshapeBlob(input, tensor);
-     CopyBlobFromTensor(tensor,&input);
+  /* prepare input */
 
+  Tensor* tensor = node->GetInputTensor(0);
+  ReshapeBlob(input, tensor);
+  CopyBlobFromTensor(tensor, &input);
 
-    WrapIP<float> caffe_layer(layer_param);
+  WrapIP<float> caffe_layer(layer_param);
 
-     caffe_layer.Init(bottom,top);
+  caffe_layer.Init(bottom, top);
 
+  /* weight */
 
-     /* weight */
+  std::vector<boost::shared_ptr<Blob<float> > > blob_vector =
+      caffe_layer.blobs();
 
-     std::vector<boost::shared_ptr<Blob<float> > > blob_vector=caffe_layer.blobs();
+  boost::shared_ptr<Blob<float> > blob_ptr = blob_vector[0];
 
-     boost::shared_ptr<Blob<float> > blob_ptr=blob_vector[0];
+  tensor = node->GetInputTensor(1);
+  ReshapeBlob(*blob_ptr, tensor);
+  CopyBlobFromTensor(tensor, blob_ptr.get());
 
-     tensor=node->GetInputTensor(1);
-     ReshapeBlob(*blob_ptr, tensor);
-     CopyBlobFromTensor(tensor,blob_ptr.get());
+  /* bias */
 
-     /* bias */
+  if (blob_vector.size() > 1) {
+    blob_ptr = blob_vector[1];
 
-     if( blob_vector.size()>1)
-     {
-         blob_ptr=blob_vector[1];
+    tensor = node->GetInputTensor(2);
+    ReshapeBlob(*blob_ptr, tensor);
+    CopyBlobFromTensor(tensor, blob_ptr.get());
+  }
 
-         tensor=node->GetInputTensor(2);
-         ReshapeBlob(*blob_ptr, tensor);
-         CopyBlobFromTensor(tensor,blob_ptr.get());
-     }
+  if (rep) {
+    unsigned long start = get_cur_time();
+    for (int i = 0; i < rep; i++) caffe_layer.Forward(bottom, top);
+    unsigned long end = get_cur_time();
 
-     if(rep)
-     {
-        unsigned long start=get_cur_time();
-        for(int i=0;i<rep;i++)
-           caffe_layer.Forward(bottom,top);
-        unsigned long end=get_cur_time();
+    (*time) = end - start;
+  } else {
+    caffe_layer.Forward(bottom, top);
+  }
 
-        (*time)=end-start;
-     }
-     else
-     {
-         caffe_layer.Forward(bottom,top);
-     }
+  tensor = node->GetOutputTensor(0);
 
-    tensor=node->GetOutputTensor(0);
+  /* Caffe use 2D blobs in InnerProductLayer, and tensor is 4D,
+     so ReshapeBlob is required before CopyBlobToTensor */
+  ReshapeBlob(output, tensor);
 
-    /* Caffe use 2D blobs in InnerProductLayer, and tensor is 4D,
-       so ReshapeBlob is required before CopyBlobToTensor */
-    ReshapeBlob(output, tensor);
+  CopyBlobToTensor(tensor, &output);
 
-    CopyBlobToTensor(tensor,&output);
-
-    return true;
-        
-
+  return true;
 }
 
-bool caffe_run_fully_connected(Node * node)
-{
-    return caffe_run_fully_connected(node,0,nullptr);
+bool caffe_run_fully_connected(Node* node) {
+  return caffe_run_fully_connected(node, 0, nullptr);
 }
 
-bool caffe_run_split(Node * node)
-{
-     Tensor * tensor=node->GetInputTensor(0);
-     int mem_size=tensor->GetTotalSize();
-     void * src_addr=get_tensor_mem(tensor);
+bool caffe_run_split(Node* node) {
+  Tensor* tensor = node->GetInputTensor(0);
+  int mem_size = tensor->GetTotalSize();
+  void* src_addr = get_tensor_mem(tensor);
 
-     for(unsigned int i=0;i<node->GetOutputNum();i++)
-     {
-          Tensor *out_tensor=node->GetOutputTensor(i);
-          void *  dst_addr=get_tensor_mem(out_tensor);
+  for (unsigned int i = 0; i < node->GetOutputNum(); i++) {
+    Tensor* out_tensor = node->GetOutputTensor(i);
+    void* dst_addr = get_tensor_mem(out_tensor);
 
-          std::memcpy(dst_addr,src_addr,mem_size);
-     }
+    std::memcpy(dst_addr, src_addr, mem_size);
+  }
 
-     return true;
+  return true;
 }
 
-bool caffe_run_concat(Node * node)
-{
-     Tensor * out_tensor=node->GetOutputTensor(0);
-     char * out_addr=(char *)get_tensor_mem(out_tensor);
+bool caffe_run_concat(Node* node) {
+  Tensor* out_tensor = node->GetOutputTensor(0);
+  char* out_addr = (char*)get_tensor_mem(out_tensor);
 
-     for(unsigned int i=0;i<node->GetInputNum();i++)
-     {
-          Tensor *in_tensor=node->GetInputTensor(i);
+  for (unsigned int i = 0; i < node->GetInputNum(); i++) {
+    Tensor* in_tensor = node->GetInputTensor(i);
 
-          void * in_addr=get_tensor_mem(in_tensor);
+    void* in_addr = get_tensor_mem(in_tensor);
 
-          int in_size=in_tensor->GetTotalSize();
+    int in_size = in_tensor->GetTotalSize();
 
-          std::memcpy(out_addr,in_addr,in_size);
+    std::memcpy(out_addr, in_addr, in_size);
 
-          out_addr+=in_size;
+    out_addr += in_size;
+  }
 
-     }
-
-     return true;
+  return true;
 }
 
+bool caffe_run_dropout(Node* node) {
+  Tensor* in_tensor = node->GetInputTensor(0);
+  Tensor* out_tensor = node->GetOutputTensor(0);
 
-bool caffe_run_dropout(Node * node)
-{
-     Tensor * in_tensor=node->GetInputTensor(0);
-     Tensor * out_tensor=node->GetOutputTensor(0);
+  void* in_addr = get_tensor_mem(in_tensor);
+  void* out_addr = get_tensor_mem(out_tensor);
 
-     void * in_addr=get_tensor_mem(in_tensor);
-     void * out_addr=get_tensor_mem(out_tensor);
+  int mem_size = in_tensor->GetTotalSize();
 
-     int mem_size=in_tensor->GetTotalSize();
+  std::memcpy(out_addr, in_addr, mem_size);
 
-     std::memcpy(out_addr,in_addr,mem_size);
-
-     return true;
-       
+  return true;
 }
 
 template <typename Dtype>
-struct WrapBatchNorm: public BatchNormLayer<Dtype> {
+struct WrapBatchNorm : public BatchNormLayer<Dtype> {
+  WrapBatchNorm(const LayerParameter& param) : BatchNormLayer<Dtype>(param) {}
 
-  WrapBatchNorm(const LayerParameter& param) : BatchNormLayer<Dtype> (param) {}
-
-  void Init(const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top)
-  {
-        BatchNormLayer<Dtype>::LayerSetUp(bottom,top);
-        BatchNormLayer<Dtype>::Reshape(bottom,top);
+  void Init(const vector<Blob<Dtype>*>& bottom,
+            const vector<Blob<Dtype>*>& top) {
+    BatchNormLayer<Dtype>::LayerSetUp(bottom, top);
+    BatchNormLayer<Dtype>::Reshape(bottom, top);
   }
 
-  void Forward(const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top)
-  {
-        BatchNormLayer<Dtype>::Forward_cpu(bottom,top);
+  void Forward(const vector<Blob<Dtype>*>& bottom,
+               const vector<Blob<Dtype>*>& top) {
+    BatchNormLayer<Dtype>::Forward_cpu(bottom, top);
   }
-
-
 };
 
-bool caffe_run_batch_norm(Node * node)
-{
-     LayerParameter layer_param;
-     BatchNormParameter * caffe_param=layer_param.mutable_batch_norm_param();
+bool caffe_run_batch_norm(Node* node) {
+  LayerParameter layer_param;
+  BatchNormParameter* caffe_param = layer_param.mutable_batch_norm_param();
 
-     layer_param.set_name(node->GetName()+".te");
+  layer_param.set_name(node->GetName() + ".te");
 
-     BatchNorm * bn_op=dynamic_cast<BatchNorm *>(node->GetOp());
+  BatchNorm* bn_op = dynamic_cast<BatchNorm*>(node->GetOp());
 
-     BatchNormParam * p_param=bn_op->GetParam();
+  BatchNormParam* p_param = bn_op->GetParam();
 
-     caffe_param->set_eps(p_param->eps);
-     caffe_param->set_use_global_stats(true);
+  caffe_param->set_eps(p_param->eps);
+  caffe_param->set_use_global_stats(true);
 
-     WrapBatchNorm<float> caffe_layer(layer_param);
+  WrapBatchNorm<float> caffe_layer(layer_param);
 
-     Blob<float> input,output;
+  Blob<float> input, output;
 
-     std::vector<Blob<float>*> bottom,top;
+  std::vector<Blob<float>*> bottom, top;
 
-     bottom.push_back(&input);
-     top.push_back(&output);
+  bottom.push_back(&input);
+  top.push_back(&output);
 
-     /*input */
+  /*input */
 
-     const Tensor * tensor=node->GetInputTensor(0);
-     ReshapeBlob(input, tensor);
-     CopyBlobFromTensor(tensor,&input);
+  const Tensor* tensor = node->GetInputTensor(0);
+  ReshapeBlob(input, tensor);
+  CopyBlobFromTensor(tensor, &input);
 
-     caffe_layer.Init(bottom,top);
+  caffe_layer.Init(bottom, top);
 
-     std::vector<boost::shared_ptr<Blob<float> > > blob_vector=caffe_layer.blobs();
+  std::vector<boost::shared_ptr<Blob<float> > > blob_vector =
+      caffe_layer.blobs();
 
-     /*means*/
-     boost::shared_ptr<Blob<float> > blob_ptr=blob_vector[0];
-     tensor=node->GetInputTensor(3);
-     ReshapeBlob(*blob_ptr, tensor);
-     CopyBlobFromTensor(tensor,blob_ptr.get());
+  /*means*/
+  boost::shared_ptr<Blob<float> > blob_ptr = blob_vector[0];
+  tensor = node->GetInputTensor(3);
+  ReshapeBlob(*blob_ptr, tensor);
+  CopyBlobFromTensor(tensor, blob_ptr.get());
 
-     /*vars*/
-     blob_ptr=blob_vector[1];
-     tensor=node->GetInputTensor(4);
-     ReshapeBlob(*blob_ptr, tensor);
-     CopyBlobFromTensor(tensor,blob_ptr.get());
+  /*vars*/
+  blob_ptr = blob_vector[1];
+  tensor = node->GetInputTensor(4);
+  ReshapeBlob(*blob_ptr, tensor);
+  CopyBlobFromTensor(tensor, blob_ptr.get());
 
-     /*rescale_factor*/
-     blob_ptr=blob_vector[2];
+  /*rescale_factor*/
+  blob_ptr = blob_vector[2];
 
-     float * blob_data=blob_ptr->mutable_cpu_data();
+  float* blob_data = blob_ptr->mutable_cpu_data();
 
-     blob_data[0]=p_param->rescale_factor;
-     
-     caffe_layer.Forward(bottom,top);
+  blob_data[0] = p_param->rescale_factor;
 
-     Tensor * output_tensor=node->GetOutputTensor(0);
+  caffe_layer.Forward(bottom, top);
 
-     CopyBlobToTensor(output_tensor,&output);
+  Tensor* output_tensor = node->GetOutputTensor(0);
 
-     return true;
+  CopyBlobToTensor(output_tensor, &output);
+
+  return true;
 }
 
 template <typename Dtype>
-struct WrapScale: public ScaleLayer<Dtype> {
+struct WrapScale : public ScaleLayer<Dtype> {
+  WrapScale(const LayerParameter& param) : ScaleLayer<Dtype>(param) {}
 
-  WrapScale(const LayerParameter& param) : ScaleLayer<Dtype> (param) {}
-
-  void Init(const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top)
-  {
-        ScaleLayer<Dtype>::LayerSetUp(bottom,top);
-        ScaleLayer<Dtype>::Reshape(bottom,top);
+  void Init(const vector<Blob<Dtype>*>& bottom,
+            const vector<Blob<Dtype>*>& top) {
+    ScaleLayer<Dtype>::LayerSetUp(bottom, top);
+    ScaleLayer<Dtype>::Reshape(bottom, top);
   }
 
-  void Forward(const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top)
-  {
-        ScaleLayer<Dtype>::Forward_cpu(bottom,top);
+  void Forward(const vector<Blob<Dtype>*>& bottom,
+               const vector<Blob<Dtype>*>& top) {
+    ScaleLayer<Dtype>::Forward_cpu(bottom, top);
   }
 };
 
+bool caffe_run_scale(Node* node) {
+  LayerParameter layer_param;
+  ScaleParameter* caffe_param = layer_param.mutable_scale_param();
 
-bool caffe_run_scale(Node * node)
-{
-     LayerParameter layer_param;
-     ScaleParameter * caffe_param=layer_param.mutable_scale_param();
+  layer_param.set_name(node->GetName() + ".te");
 
-     layer_param.set_name(node->GetName()+".te");
+  Scale* scale_op = dynamic_cast<Scale*>(node->GetOp());
 
-     Scale * scale_op=dynamic_cast<Scale *>(node->GetOp());
+  ScaleParam* p_param = scale_op->GetParam();
 
-     ScaleParam * p_param=scale_op->GetParam();
+  caffe_param->set_axis(p_param->axis);
+  caffe_param->set_num_axes(p_param->num_axes);
+  caffe_param->set_bias_term(p_param->bias_term);
 
-     caffe_param->set_axis(p_param->axis);
-     caffe_param->set_num_axes(p_param->num_axes);
-     caffe_param->set_bias_term(p_param->bias_term);
+  WrapScale<float> caffe_layer(layer_param);
 
-     WrapScale<float> caffe_layer(layer_param);
+  Blob<float> input, output;
 
-     Blob<float> input,output;
+  std::vector<Blob<float>*> bottom, top;
 
-     std::vector<Blob<float>*> bottom,top;
+  bottom.push_back(&input);
+  top.push_back(&output);
 
-     bottom.push_back(&input);
-     top.push_back(&output);
+  /* input */
+  const Tensor* tensor = node->GetInputTensor(0);
+  ReshapeBlob(input, tensor);
+  CopyBlobFromTensor(tensor, &input);
 
-     /* input */
-     const Tensor * tensor=node->GetInputTensor(0);
-     ReshapeBlob(input, tensor);
-     CopyBlobFromTensor(tensor,&input);
+  caffe_layer.Init(bottom, top);
 
-     caffe_layer.Init(bottom,top);
+  std::vector<boost::shared_ptr<Blob<float> > > blob_vector =
+      caffe_layer.blobs();
 
+  /* gamma */
+  boost::shared_ptr<Blob<float> > blob_ptr = blob_vector[0];
+  tensor = node->GetInputTensor(1);
+  ReshapeBlob(*blob_ptr, tensor);
+  CopyBlobFromTensor(tensor, blob_ptr.get());
 
-     std::vector<boost::shared_ptr<Blob<float> > > blob_vector=caffe_layer.blobs();
+  /* beta */
+  blob_ptr = blob_vector[1];
+  tensor = node->GetInputTensor(2);
+  ReshapeBlob(*blob_ptr, tensor);
+  CopyBlobFromTensor(tensor, blob_ptr.get());
 
-     /* gamma */
-     boost::shared_ptr<Blob<float> > blob_ptr=blob_vector[0];
-     tensor=node->GetInputTensor(1);
-     ReshapeBlob(*blob_ptr, tensor);
-     CopyBlobFromTensor(tensor,blob_ptr.get());
+  caffe_layer.Forward(bottom, top);
 
-     /* beta */
-     blob_ptr=blob_vector[1];
-     tensor=node->GetInputTensor(2);
-     ReshapeBlob(*blob_ptr, tensor);
-     CopyBlobFromTensor(tensor,blob_ptr.get());
+  Tensor* output_tensor = node->GetOutputTensor(0);
 
-     caffe_layer.Forward(bottom,top);
+  CopyBlobToTensor(output_tensor, &output);
 
-     Tensor * output_tensor=node->GetOutputTensor(0);
-
-     CopyBlobToTensor(output_tensor,&output);
-
-     return true;
+  return true;
 }
 
 template <typename Dtype>
-struct WrapLRN: public LRNLayer<Dtype> {
+struct WrapLRN : public LRNLayer<Dtype> {
+  WrapLRN(const LayerParameter& param) : LRNLayer<Dtype>(param) {}
 
-  WrapLRN(const LayerParameter& param) : LRNLayer<Dtype> (param) {}
-
-  void Init(const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top)
-  {
-        LRNLayer<Dtype>::LayerSetUp(bottom,top);
-        LRNLayer<Dtype>::Reshape(bottom,top);
+  void Init(const vector<Blob<Dtype>*>& bottom,
+            const vector<Blob<Dtype>*>& top) {
+    LRNLayer<Dtype>::LayerSetUp(bottom, top);
+    LRNLayer<Dtype>::Reshape(bottom, top);
   }
 
-  void Forward(const vector<Blob<Dtype>*>& bottom, const vector<Blob<Dtype>*>& top)
-  {
-        LRNLayer<Dtype>::Forward_cpu(bottom,top);
+  void Forward(const vector<Blob<Dtype>*>& bottom,
+               const vector<Blob<Dtype>*>& top) {
+    LRNLayer<Dtype>::Forward_cpu(bottom, top);
   }
 };
 
-bool caffe_run_lrn(Node * node)
-{
-     LayerParameter layer_param;
-     caffe::LRNParameter * caffe_param=layer_param.mutable_lrn_param();
+bool caffe_run_lrn(Node* node) {
+  LayerParameter layer_param;
+  caffe::LRNParameter* caffe_param = layer_param.mutable_lrn_param();
 
-     LRN * lrn_op=dynamic_cast<LRN *>(node->GetOp());
+  LRN* lrn_op = dynamic_cast<LRN*>(node->GetOp());
 
-     LRNParam * param=lrn_op->GetParam();
+  LRNParam* param = lrn_op->GetParam();
 
-     layer_param.set_name(node->GetName()+".te");
+  layer_param.set_name(node->GetName() + ".te");
 
-     caffe_param->set_local_size(param->local_size);
-     caffe_param->set_alpha(param->alpha);
-     caffe_param->set_beta(param->beta);
-     caffe_param->set_k(param->k);
+  caffe_param->set_local_size(param->local_size);
+  caffe_param->set_alpha(param->alpha);
+  caffe_param->set_beta(param->beta);
+  caffe_param->set_k(param->k);
 
-     if(param->norm_region ==  LRN_ACROSS_CHANNELS)
-         caffe_param->set_norm_region(caffe::LRNParameter_NormRegion_ACROSS_CHANNELS);
-     else
-         caffe_param->set_norm_region(caffe::LRNParameter_NormRegion_WITHIN_CHANNEL);
+  if (param->norm_region == LRN_ACROSS_CHANNELS)
+    caffe_param->set_norm_region(
+        caffe::LRNParameter_NormRegion_ACROSS_CHANNELS);
+  else
+    caffe_param->set_norm_region(caffe::LRNParameter_NormRegion_WITHIN_CHANNEL);
 
-     
-     WrapLRN<float> caffe_layer(layer_param);
+  WrapLRN<float> caffe_layer(layer_param);
 
-     Blob<float> input,output;
+  Blob<float> input, output;
 
-     std::vector<Blob<float>*> bottom,top;
+  std::vector<Blob<float>*> bottom, top;
 
-     bottom.push_back(&input);
-     top.push_back(&output);
+  bottom.push_back(&input);
+  top.push_back(&output);
 
-     /* input */
-     const Tensor * tensor=node->GetInputTensor(0);
-     ReshapeBlob(input, tensor);
-     CopyBlobFromTensor(tensor,&input);
+  /* input */
+  const Tensor* tensor = node->GetInputTensor(0);
+  ReshapeBlob(input, tensor);
+  CopyBlobFromTensor(tensor, &input);
 
-     caffe_layer.Init(bottom,top);
-   
-     caffe_layer.Forward(bottom,top);
+  caffe_layer.Init(bottom, top);
 
-     Tensor * output_tensor=node->GetOutputTensor(0);
+  caffe_layer.Forward(bottom, top);
 
-     CopyBlobToTensor(output_tensor,&output);
+  Tensor* output_tensor = node->GetOutputTensor(0);
 
-     return true;
+  CopyBlobToTensor(output_tensor, &output);
+
+  return true;
 }
 
-bool caffe_run_eltwise(Node * node)
-{
-    //input
-    Tensor * input_tensor0=node->GetInputTensor(0);
-    const TShape& ishape=input_tensor0->GetShape();
-    int input_count4=ishape.GetSize();
-    void * input0=get_tensor_mem(input_tensor0);
+bool caffe_run_eltwise(Node* node) {
+  // input
+  Tensor* input_tensor0 = node->GetInputTensor(0);
+  const TShape& ishape = input_tensor0->GetShape();
+  int input_count4 = ishape.GetSize();
+  void* input0 = get_tensor_mem(input_tensor0);
 
-    Tensor * input_tensor1=nullptr;
-    void* input1=nullptr;
+  Tensor* input_tensor1 = nullptr;
+  void* input1 = nullptr;
 
-    if(node->GetInputNum()>1)
-    {
-       input_tensor1=node->GetInputTensor(1);
-       input1=get_tensor_mem(input_tensor1);
-    }
+  if (node->GetInputNum() > 1) {
+    input_tensor1 = node->GetInputTensor(1);
+    input1 = get_tensor_mem(input_tensor1);
+  }
 
-    // this version only support for input_num=2
-   // int input_number=node->GetInputNum();
+  // this version only support for input_num=2
+  // int input_number=node->GetInputNum();
 
-    // output
-    Tensor * output_tensor=node->GetOutputTensor(0);
-    void * output=get_tensor_mem(output_tensor);
-    float* out_ptr=(float*)output;
-    float* in0=(float*)input0;
-    float* in1=(float*)input1;
-    Eltwise * eltwise_op=dynamic_cast<Eltwise *>(node->GetOp());
-    EltwiseParam*  param=eltwise_op->GetParam();
+  // output
+  Tensor* output_tensor = node->GetOutputTensor(0);
+  void* output = get_tensor_mem(output_tensor);
+  float* out_ptr = (float*)output;
+  float* in0 = (float*)input0;
+  float* in1 = (float*)input1;
+  Eltwise* eltwise_op = dynamic_cast<Eltwise*>(node->GetOp());
+  EltwiseParam* param = eltwise_op->GetParam();
 
-    switch (param->type)
-    {
+  switch (param->type) {
     case ELT_SUM_SCALAR:
-        for (int i = 0; i < input_count4; ++i)
-        {
-            *out_ptr++ = (*in0++)+in1[0];
-        }
-        break;
+      for (int i = 0; i < input_count4; ++i) {
+        *out_ptr++ = (*in0++) + in1[0];
+      }
+      break;
     case ELT_SUM:
-        for (int i = 0; i < input_count4; ++i)
-        {
-            *out_ptr++ = (*in0++)+(*in1++);
-        }
-        break;
+      for (int i = 0; i < input_count4; ++i) {
+        *out_ptr++ = (*in0++) + (*in1++);
+      }
+      break;
     case ELT_SUB:
-        for (int i = 0; i < input_count4; ++i)
-        {
-            *out_ptr++ = (*in0++)-(*in1++);
-        }
-        break;
+      for (int i = 0; i < input_count4; ++i) {
+        *out_ptr++ = (*in0++) - (*in1++);
+      }
+      break;
     case ELT_MAX:
-        for (int i = 0; i < input_count4; ++i)
-        {
-            *out_ptr++ =std::max (in0[i],in1[i]);
-        }
-        break;
+      for (int i = 0; i < input_count4; ++i) {
+        *out_ptr++ = std::max(in0[i], in1[i]);
+      }
+      break;
     case ELT_PROD:
-        for (int i = 0; i < input_count4; ++i)
-        {
-            *out_ptr++ =in0[i]*in1[i];
-        }
-        break;
+      for (int i = 0; i < input_count4; ++i) {
+        *out_ptr++ = in0[i] * in1[i];
+      }
+      break;
     case ELT_RSQRT:
-        for (int i = 0; i < input_count4; ++i)
-        {
-            *out_ptr++ =1/std::sqrt(in0[i]);
-        }
-        break;
+      for (int i = 0; i < input_count4; ++i) {
+        *out_ptr++ = 1 / std::sqrt(in0[i]);
+      }
+      break;
     default:
-        return false;
-    }
-    return true;
-
+      return false;
+  }
+  return true;
 }
 
-struct CaffeNodeOps: public NodeOps {
+struct CaffeNodeOps : public NodeOps {
+  using node_exec_t = bool (*)(Node*);
 
-using node_exec_t =bool(*)(Node *);
-	  
-bool Run(Node * node) override 
-{
-      return ops_func(node);	  
-}
+  bool Run(Node* node) override { return ops_func(node); }
 
-   node_exec_t ops_func;
+  node_exec_t ops_func;
 };
 
-void RegisterNodeRun(const std::string& name, bool(*func)(Node *))
+void RegisterNodeRun(const std::string& name, bool (*func)(Node*))
 
 {
-    CaffeNodeOps * caffe_ops=new CaffeNodeOps();
+  CaffeNodeOps* caffe_ops = new CaffeNodeOps();
 
-      caffe_ops->ops_func=func;
+  caffe_ops->ops_func = func;
 
-      NodeOpsRegistryManager::RegisterOPImplementor(REF_REGISTRY_NAME,
-               name,caffe_ops);
-} 
-
-
-void RegisterCaffeExecutors(void)
-{
-    RegisterNodeRun("Convolution",caffe_run_convolution);
-    RegisterNodeRun("Pooling",caffe_run_pooling);
-    RegisterNodeRun("ReLu",caffe_run_relu);
-    RegisterNodeRun("Softmax",caffe_run_softmax);
-    RegisterNodeRun("FullyConnected",caffe_run_fully_connected);
-    RegisterNodeRun("Split",caffe_run_split);
-    RegisterNodeRun("Concat",caffe_run_concat);
-    RegisterNodeRun("Dropout",caffe_run_dropout);
-    RegisterNodeRun(BatchNormName,caffe_run_batch_norm);
-    RegisterNodeRun("Scale",caffe_run_scale);
-    RegisterNodeRun("LRN",caffe_run_lrn);
-    RegisterNodeRun("PReLU",caffe_run_prelu);
-    RegisterNodeRun("Eltwise",caffe_run_eltwise);
-    RegisterNodeRun("Deconvolution",caffe_run_deconv);
+  NodeOpsRegistryManager::RegisterOPImplementor(REF_REGISTRY_NAME, name,
+                                                caffe_ops);
 }
 
-} //namespace TEngine
+void RegisterCaffeExecutors(void) {
+  RegisterNodeRun("Convolution", caffe_run_convolution);
+  RegisterNodeRun("Pooling", caffe_run_pooling);
+  RegisterNodeRun("ReLu", caffe_run_relu);
+  RegisterNodeRun("Softmax", caffe_run_softmax);
+  RegisterNodeRun("FullyConnected", caffe_run_fully_connected);
+  RegisterNodeRun("Split", caffe_run_split);
+  RegisterNodeRun("Concat", caffe_run_concat);
+  RegisterNodeRun("Dropout", caffe_run_dropout);
+  RegisterNodeRun(BatchNormName, caffe_run_batch_norm);
+  RegisterNodeRun("Scale", caffe_run_scale);
+  RegisterNodeRun("LRN", caffe_run_lrn);
+  RegisterNodeRun("PReLU", caffe_run_prelu);
+  RegisterNodeRun("Eltwise", caffe_run_eltwise);
+  RegisterNodeRun("Deconvolution", caffe_run_deconv);
+}
 
+}  // namespace TEngine

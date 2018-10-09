@@ -24,33 +24,26 @@
 #ifndef __PERMUTE_PARAM_HPP__
 #define __PERMUTE_PARAM_HPP__
 
-
 #include "parameter.hpp"
-
 
 namespace TEngine {
 
 struct PermuteParam : public NamedParam {
+  int flag;
+  int order0;
+  int order1;
+  int order2;
+  int order3;
 
-    int flag;
-    int order0;
-    int order1;
-    int order2;
-    int order3;
-
-    DECLARE_PARSER_STRUCTURE(PermuteParam) 
-    {
-       DECLARE_PARSER_ENTRY( flag);
-       DECLARE_PARSER_ENTRY( order0);
-       DECLARE_PARSER_ENTRY( order1);
-       DECLARE_PARSER_ENTRY( order2);
-       DECLARE_PARSER_ENTRY( order3);
-    };
-
+  DECLARE_PARSER_STRUCTURE(PermuteParam) {
+    DECLARE_PARSER_ENTRY(flag);
+    DECLARE_PARSER_ENTRY(order0);
+    DECLARE_PARSER_ENTRY(order1);
+    DECLARE_PARSER_ENTRY(order2);
+    DECLARE_PARSER_ENTRY(order3);
+  };
 };
 
-
-} //namespace TEngine
-
+}  // namespace TEngine
 
 #endif

@@ -28,23 +28,18 @@
 
 namespace TEngine {
 
+struct ScaleParam : public NamedParam {
+  int axis;
+  int num_axes;
+  int bias_term;
 
-struct ScaleParam :public NamedParam 
-{
-   int   axis;
-   int   num_axes;
-   int   bias_term;
-
-   DECLARE_PARSER_STRUCTURE(ScaleParam) {
-       DECLARE_PARSER_ENTRY(axis);
-       DECLARE_PARSER_ENTRY(num_axes);
-       DECLARE_PARSER_ENTRY(bias_term);
-   };
- 
+  DECLARE_PARSER_STRUCTURE(ScaleParam) {
+    DECLARE_PARSER_ENTRY(axis);
+    DECLARE_PARSER_ENTRY(num_axes);
+    DECLARE_PARSER_ENTRY(bias_term);
+  };
 };
 
-
-
-} //namespace TEngine
+}  // namespace TEngine
 
 #endif

@@ -32,27 +32,21 @@ namespace TEngine {
 
 #ifdef TENGINE_MT_SUPPORT
 
-static inline void TEngineLock(std::mutex& mutex)
-{
-   if(GetTEngineMTMode())
-        mutex.lock();
+static inline void TEngineLock(std::mutex& mutex) {
+  if (GetTEngineMTMode()) mutex.lock();
 }
 
-static inline void TEngineUnlock(std::mutex& mutex)
-{
-   if(GetTEngineMTMode())
-        mutex.unlock();
+static inline void TEngineUnlock(std::mutex& mutex) {
+  if (GetTEngineMTMode()) mutex.unlock();
 }
 
 #else
 
-static inline void TEngineLock(std::mutex& mutex) {};
+static inline void TEngineLock(std::mutex& mutex){};
 static inline void TEngineUnlock(std::mutex& mutex){};
 
 #endif
 
-
-} //namespace TEngine
-
+}  // namespace TEngine
 
 #endif

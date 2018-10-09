@@ -30,113 +30,92 @@
 #include "any.hpp"
 
 namespace TEngine {
-	class Attribute
-	{
-		using attribute_map_t = std::unordered_map<std::string, any>;
-		using value_t = attribute_map_t::value_type;
-		public:
+class Attribute {
+  using attribute_map_t = std::unordered_map<std::string, any>;
+  using value_t = attribute_map_t::value_type;
 
-			Attribute()=default;
-			Attribute(const Attribute&)=default;
+ public:
+  Attribute() = default;
+  Attribute(const Attribute&) = default;
 
-			Attribute(std::initializer_list<value_t> __l){
-				dict_map_ = __l;
-			}
+  Attribute(std::initializer_list<value_t> __l) { dict_map_ = __l; }
 
-			any&  operator[](const std::string& name) 
-			{
-                             if(ExistAttr(name))
-				return GetAttr(name);
-                                                          
-                              SetAttr(name,any());
+  any& operator[](const std::string& name) {
+    if (ExistAttr(name)) return GetAttr(name);
 
-                              return dict_map_.at(name);
-			}
+    SetAttr(name, any());
 
-                        virtual bool ExistAttr(const std::string& name) const
-                        {
-                              if(dict_map_.count(name))
-                                  return true;
-                              else
-                                  return false;
-                        }
+    return dict_map_.at(name);
+  }
 
-			template<typename T>
-			void GetAttr(const std::string& name, T* v, T default_v)
-			{
-				if (ExistAttr(name)){
-                    *v = any_cast<T>(GetAttr(name));
-				}
-				else{
-					*v = default_v;
-				}
-			}
+  virtual bool ExistAttr(const std::string& name) const {
+    if (dict_map_.count(name))
+      return true;
+    else
+      return false;
+  }
 
-			template<typename T>
-			void GetAttr(const std::string& name, T* v)
-			{
-				if (ExistAttr(name)){
-                    *v = any_cast<T>(GetAttr(name));
-				}
-			}
+  template <typename T>
+  void GetAttr(const std::string& name, T* v, T default_v) {
+    if (ExistAttr(name)) {
+      *v = any_cast<T>(GetAttr(name));
+    } else {
+      *v = default_v;
+    }
+  }
 
-                        
-                        virtual any& GetAttr(const std::string& name) 
-                        {
-                               static any dummy;
+  template <typename T>
+  void GetAttr(const std::string& name, T* v) {
+    if (ExistAttr(name)) {
+      *v = any_cast<T>(GetAttr(name));
+    }
+  }
 
-                               if(dict_map_.count(name))
-                                   return dict_map_.at(name);
+  virtual any& GetAttr(const std::string& name) {
+    static any dummy;
 
-                               return dummy;
-                        }
+    if (dict_map_.count(name)) return dict_map_.at(name);
 
-                        virtual const any& GetAttr(const std::string& name) const
-                        {
-                               static any dummy;
+    return dummy;
+  }
 
-                               if(dict_map_.count(name))
-                                   return dict_map_.at(name);
+  virtual const any& GetAttr(const std::string& name) const {
+    static any dummy;
 
-                               return dummy;
-                        }
+    if (dict_map_.count(name)) return dict_map_.at(name);
 
-			void SetAttr(const std::string& name, const any& val)
-			{
-				dict_map_[name]=val;
-			}
+    return dummy;
+  }
 
-			void RemoveAttr(const std::string& name)
-			{
-				if(dict_map_.count(name))
-					dict_map_.erase(name);
-			}
+  void SetAttr(const std::string& name, const any& val) {
+    dict_map_[name] = val;
+  }
 
-			virtual std::vector<std::string> ListAttr(void) const
-			{
-				std::vector<std::string>  result;
+  void RemoveAttr(const std::string& name) {
+    if (dict_map_.count(name)) dict_map_.erase(name);
+  }
 
-				std::unordered_map<std::string, any>::const_iterator begin=dict_map_.cbegin();
+  virtual std::vector<std::string> ListAttr(void) const {
+    std::vector<std::string> result;
 
-				while(begin!=dict_map_.cend())
-				{
-					result.push_back(begin->first);	
-					begin++;
-				}
+    std::unordered_map<std::string, any>::const_iterator begin =
+        dict_map_.cbegin();
 
-				return result;
-			}
+    while (begin != dict_map_.cend()) {
+      result.push_back(begin->first);
+      begin++;
+    }
 
-			virtual ~Attribute() {}
+    return result;
+  }
 
-		protected:
-			attribute_map_t dict_map_;
-	};
+  virtual ~Attribute() {}
 
+ protected:
+  attribute_map_t dict_map_;
+};
 
-#define INSERT_NEW_ATTRIBUTE(obj,name,val)  obj[name]=val
+#define INSERT_NEW_ATTRIBUTE(obj, name, val) obj[name] = val
 
-} //namespace TEngine
+}  // namespace TEngine
 #endif
-
-

@@ -25,26 +25,23 @@
 #define __LRN_HPP__
 
 #include "operator.hpp"
-#include "static_graph.hpp"
 #include "operator/lrn_param.hpp"
+#include "static_graph.hpp"
 
 namespace TEngine {
 
-class LRN : public OperatorWithParam<LRN,LRNParam> {
-public:
+class LRN : public OperatorWithParam<LRN, LRNParam> {
+ public:
+  LRN() { name_ = "LRN"; }
+  LRN(const LRN& src) = default;
+  virtual ~LRN() {}
 
-     LRN() {name_="LRN";}
-     LRN(const LRN& src)=default;
-     virtual ~LRN(){}
+  bool InferShape(const std::vector<TEngine::TShape>&,
+                  std::vector<TEngine::TShape>&) override;
 
-     bool InferShape(const std::vector<TEngine::TShape>&, std::vector<TEngine::TShape>&) override;
-
-     void SetSchema(void) override;
-
+  void SetSchema(void) override;
 };
 
-} //namespace TEngine
-
-
+}  // namespace TEngine
 
 #endif

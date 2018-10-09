@@ -24,24 +24,19 @@
 #ifndef __NORMALIZE_HPP__
 #define __NORMALIZE_HPP__
 
-#include "operator.hpp"
 #include "normalize_param.hpp"
+#include "operator.hpp"
 namespace TEngine {
 
-class Normalize: public OperatorWithParam<Normalize, NormalizeParam> {
+class Normalize : public OperatorWithParam<Normalize, NormalizeParam> {
+ public:
+  Normalize() { name_ = "Normalize"; }
+  Normalize(const Normalize& src) = default;
+  virtual ~Normalize(){};
 
-public:
-
-      Normalize() { name_="Normalize";}
-      Normalize(const Normalize& src)=default;
-      virtual ~Normalize() {};
-
-      void SetSchema(void) override;
- 
+  void SetSchema(void) override;
 };
 
-} //namespace TEngine
-
-
+}  // namespace TEngine
 
 #endif

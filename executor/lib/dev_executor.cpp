@@ -25,111 +25,87 @@
 #include "dev_executor.hpp"
 #include "dev_allocator.hpp"
 #include "dev_scheduler.hpp"
-#include "tengine_config.hpp"
 #include "device_driver.hpp"
-
-
+#include "tengine_config.hpp"
 
 namespace TEngine {
 
-bool DevExecutorManager::RegisterDevExecutor(DevExecutor * dev_executor)
-{
-	//add the new created dev_executor into executor manager
-        //one dev_id only could has one dev_executor at any time
-	if(!SafeAdd(dev_executor->GetDevID(),dev_executor))
-		return false;
+bool DevExecutorManager::RegisterDevExecutor(DevExecutor* dev_executor) {
+  // add the new created dev_executor into executor manager
+  // one dev_id only could has one dev_executor at any time
+  if (!SafeAdd(dev_executor->GetDevID(), dev_executor)) return false;
 
-	
-	//add the new created dev_executor to dev_allocator_manager
-       DevAllocatorManager::OnDevExecutorRegistered(dev_executor);
-         
+  // add the new created dev_executor to dev_allocator_manager
+  DevAllocatorManager::OnDevExecutorRegistered(dev_executor);
 
-	//add the new created dev_executor to  dev_scheduler_manager
-       DevSchedulerManager::OnDevExecutorRegistered(dev_executor);
+  // add the new created dev_executor to  dev_scheduler_manager
+  DevSchedulerManager::OnDevExecutorRegistered(dev_executor);
 
-	return true;
+  return true;
 }
 
-bool DevExecutorManager::UnregisterDevExecutor(DevExecutor * dev_executor)
-{
-      //remove the dev_executor from dev_scheduler_manager
-       DevSchedulerManager::OnDevExecutorUnregistered(dev_executor);
+bool DevExecutorManager::UnregisterDevExecutor(DevExecutor* dev_executor) {
+  // remove the dev_executor from dev_scheduler_manager
+  DevSchedulerManager::OnDevExecutorUnregistered(dev_executor);
 
-      //remove the dev_executor from dev_allocator_manager
+  // remove the dev_executor from dev_allocator_manager
 
-       DevAllocatorManager::OnDevExecutorUnregistered(dev_executor);
+  DevAllocatorManager::OnDevExecutorUnregistered(dev_executor);
 
-      //remove the dev_executor from executor_manager
-      if(SafeRemoveOnly(dev_executor->GetDevID()))
-	   return true;
+  // remove the dev_executor from executor_manager
+  if (SafeRemoveOnly(dev_executor->GetDevID())) return true;
 
-     return false;
+  return false;
 }
 
-bool DevExecutorManager::GetDevExecutorByID(const dev_id_t& dev_id, DevExecutor * &dev_executor)
-{
-	return SafeGet(dev_id,dev_executor);
+bool DevExecutorManager::GetDevExecutorByID(const dev_id_t& dev_id,
+                                            DevExecutor*& dev_executor) {
+  return SafeGet(dev_id, dev_executor);
 }
 
-bool DevExecutorManager::GetDefaultDevExecutor(DevExecutor * &dev_executor)
-{
-      std::string default_dev_id;
+bool DevExecutorManager::GetDefaultDevExecutor(DevExecutor*& dev_executor) {
+  std::string default_dev_id;
 
-      if(!DriverManager::GetDefaultDeviceName(default_dev_id))
-            return false;
+  if (!DriverManager::GetDefaultDeviceName(default_dev_id)) return false;
 
-      return GetDevExecutorByID(default_dev_id,dev_executor);
+  return GetDevExecutorByID(default_dev_id, dev_executor);
 }
 
-bool DevExecutorManager::GetDevExecutorByName(const std::string& dev_name, DevExecutor *& dev_executor)
-{
-     auto manager=GetInstance();
-     bool found=false;
+bool DevExecutorManager::GetDevExecutorByName(const std::string& dev_name,
+                                              DevExecutor*& dev_executor) {
+  auto manager = GetInstance();
+  bool found = false;
 
-      manager->Lock();
-       auto ir=(*manager).begin();
-       auto end=(*manager).end();
+  manager->Lock();
+  auto ir = (*manager).begin();
+  auto end = (*manager).end();
 
-       while(ir!=end)
-       {
-           auto dev=ir->second;
+  while (ir != end) {
+    auto dev = ir->second;
 
-           if(dev->GetName()==dev_name)
-           {
-                  found=true;
-		   dev_executor=dev;
-		   break;
-           }
+    if (dev->GetName() == dev_name) {
+      found = true;
+      dev_executor = dev;
+      break;
+    }
 
-           ir++;
-       }
+    ir++;
+  }
 
-      manager->Unlock();
+  manager->Unlock();
 
-      return found;
-	
+  return found;
 }
 
+int DevExecutorManager::GetDevExecutorNum(void) {
+  auto manager = GetInstance();
+  manager->Lock();
 
-int  DevExecutorManager::GetDevExecutorNum(void)
-{
-     auto manager=GetInstance();
-     manager->Lock();
+  int number = manager->size();
 
-     int number=manager->size();
+  manager->Unlock();
 
-     manager->Unlock();
-
-     return number;
+  return number;
 }
 
-
-
-
-
-
-
-
-
-
-} //namespace TEngine
+}  // namespace TEngine

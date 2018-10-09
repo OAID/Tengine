@@ -24,26 +24,16 @@
 #ifndef __RESHAPE_PARAM_HPP__
 #define __RESHAPE_PARAM_HPP__
 
-
 #include "parameter.hpp"
-
 
 namespace TEngine {
 
-
 struct ReshapeParam : public NamedParam {
-
-    std::vector<int> dims;
-    int axis;
-    DECLARE_PARSER_STRUCTURE(ReshapeParam) 
-    {
-       DECLARE_PARSER_ENTRY( axis);
-    };
-
+  std::vector<int> dims;
+  int axis;
+  DECLARE_PARSER_STRUCTURE(ReshapeParam) { DECLARE_PARSER_ENTRY(axis); };
 };
 
-
-} //namespace TEngine
-
+}  // namespace TEngine
 
 #endif

@@ -21,86 +21,83 @@
  * Copyright (c) 2017, Open AI Lab
  * Author: haitao@openailab.com
  */
-#include <iostream>
 #include <functional>
+#include <iostream>
 #include "logger.hpp"
 
-#include "operator/convolution.hpp"
-#include "operator/input_op.hpp"
-#include "operator/pooling.hpp"
-#include "operator/softmax.hpp"
-#include "operator/fully_connected.hpp"
-#include "operator/split.hpp"
+#include "operator/accuracy.hpp"
+#include "operator/batch_norm.hpp"
 #include "operator/concat.hpp"
 #include "operator/const_op.hpp"
-#include "operator/accuracy.hpp"
-#include "operator/dropout.hpp"
-#include "operator/relu.hpp"
-#include "operator/relu6.hpp"
-#include "operator/batch_norm.hpp"
-#include "operator/scale.hpp"
-#include "operator/lrn.hpp"
-#include "operator/fused_operator.hpp"
-#include "operator/prelu.hpp"
-#include "operator/eltwise.hpp"
-#include "operator/slice.hpp"
+#include "operator/convolution.hpp"
+#include "operator/deconvolution.hpp"
 #include "operator/demo_op.hpp"
+#include "operator/detection_output.hpp"
+#include "operator/dropout.hpp"
+#include "operator/eltwise.hpp"
+#include "operator/flatten.hpp"
+#include "operator/fully_connected.hpp"
+#include "operator/fused_operator.hpp"
+#include "operator/input_op.hpp"
+#include "operator/lrn.hpp"
 #include "operator/normalize.hpp"
 #include "operator/permute.hpp"
-#include "operator/flatten.hpp"
+#include "operator/pooling.hpp"
+#include "operator/prelu.hpp"
 #include "operator/priorbox.hpp"
-#include "operator/reshape.hpp"
-#include "operator/detection_output.hpp"
-#include "operator/rpn.hpp"
-#include "operator/roi_pooling.hpp"
-#include "operator/reorg.hpp"
 #include "operator/region.hpp"
-#include "operator/deconvolution.hpp"
+#include "operator/relu.hpp"
+#include "operator/relu6.hpp"
+#include "operator/reorg.hpp"
+#include "operator/reshape.hpp"
 #include "operator/resize.hpp"
+#include "operator/roi_pooling.hpp"
+#include "operator/rpn.hpp"
+#include "operator/scale.hpp"
+#include "operator/slice.hpp"
+#include "operator/softmax.hpp"
+#include "operator/split.hpp"
 
 extern "C" {
-    int operator_plugin_init(void);
+int operator_plugin_init(void);
 }
 
 using namespace TEngine;
 
-int operator_plugin_init(void)
-{
-    RegisterOp<Convolution>("Convolution");
-    RegisterOp<InputOp>("InputOp");
-    RegisterOp<Pooling>("Pooling");
-    RegisterOp<Softmax>("Softmax");
-    RegisterOp<FullyConnected>("FullyConnected");
-    RegisterOp<Accuracy>("Accuracy");
-    RegisterOp<Concat>("Concat");
-    RegisterOp<Dropout>("Dropout");
-    RegisterOp<Split>("Split");
-    RegisterOp<ConstOp>("Const");
-    RegisterOp<ReLu>("ReLu");
-    RegisterOp<ReLu6>("ReLu6");
-    RegisterOp<BatchNorm>(BatchNormName);
-    RegisterOp<Scale>("Scale");
-    RegisterOp<LRN>("LRN");
-    RegisterOp<FusedBNScaleReLu>(FusedBNScaleReLu::class_name);
-    RegisterOp<PReLU>("PReLU");
-    RegisterOp<Eltwise>("Eltwise");
-    RegisterOp<Slice>("Slice");
-    RegisterOp<DemoOp>("DemoOp");
-    RegisterOp<Normalize>("Normalize");
-    RegisterOp<Permute>("Permute");
-    RegisterOp<Flatten>("Flatten");
-    RegisterOp<PriorBox>("PriorBox");
-    RegisterOp<Reshape>("Reshape");
-    RegisterOp<DetectionOutput>("DetectionOutput");
-    RegisterOp<RPN>("RPN");
-    RegisterOp<ROIPooling>("ROIPooling");
-    RegisterOp<Reorg>("Reorg");
-    RegisterOp<Region>("Region");
-    RegisterOp<Deconvolution>("Deconvolution");
-    RegisterOp<Resize>("Resize");
+int operator_plugin_init(void) {
+  RegisterOp<Convolution>("Convolution");
+  RegisterOp<InputOp>("InputOp");
+  RegisterOp<Pooling>("Pooling");
+  RegisterOp<Softmax>("Softmax");
+  RegisterOp<FullyConnected>("FullyConnected");
+  RegisterOp<Accuracy>("Accuracy");
+  RegisterOp<Concat>("Concat");
+  RegisterOp<Dropout>("Dropout");
+  RegisterOp<Split>("Split");
+  RegisterOp<ConstOp>("Const");
+  RegisterOp<ReLu>("ReLu");
+  RegisterOp<ReLu6>("ReLu6");
+  RegisterOp<BatchNorm>(BatchNormName);
+  RegisterOp<Scale>("Scale");
+  RegisterOp<LRN>("LRN");
+  RegisterOp<FusedBNScaleReLu>(FusedBNScaleReLu::class_name);
+  RegisterOp<PReLU>("PReLU");
+  RegisterOp<Eltwise>("Eltwise");
+  RegisterOp<Slice>("Slice");
+  RegisterOp<DemoOp>("DemoOp");
+  RegisterOp<Normalize>("Normalize");
+  RegisterOp<Permute>("Permute");
+  RegisterOp<Flatten>("Flatten");
+  RegisterOp<PriorBox>("PriorBox");
+  RegisterOp<Reshape>("Reshape");
+  RegisterOp<DetectionOutput>("DetectionOutput");
+  RegisterOp<RPN>("RPN");
+  RegisterOp<ROIPooling>("ROIPooling");
+  RegisterOp<Reorg>("Reorg");
+  RegisterOp<Region>("Region");
+  RegisterOp<Deconvolution>("Deconvolution");
+  RegisterOp<Resize>("Resize");
 
-
-   // std::cout<<"OPERATOR PLUGIN INITED\n";
-    return 0;
+  // std::cout<<"OPERATOR PLUGIN INITED\n";
+  return 0;
 }
-

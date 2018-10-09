@@ -23,207 +23,190 @@
  */
 #include <unistd.h>
 
-#include <iostream> 
-#include <functional>
 #include <algorithm>
 #include <fstream>
+#include <functional>
 #include <iomanip>
+#include <iostream>
 #include <opencv2/opencv.hpp>
 
-#include "tengine_c_api.h"
 #include "common_util.hpp"
 #include "image_process.hpp"
+#include "tengine_c_api.h"
 #include "tengine_config.hpp"
 
 //#define MOBILE_NET
 
-const char * model_file="./models/inception_v3_2016_08_28_frozen.pb";
-const char * label_file="./models/imagenet_slim_labels.txt";
-const char * image_file="./tests/images/grace_hopper.jpg";
+const char* model_file = "./models/inception_v3_2016_08_28_frozen.pb";
+const char* label_file = "./models/imagenet_slim_labels.txt";
+const char* image_file = "./tests/images/grace_hopper.jpg";
 
-int img_h=299;
-int img_w=299;
-float input_mean=0;
-float input_std=255;
+int img_h = 299;
+int img_w = 299;
+float input_mean = 0;
+float input_std = 255;
 
 using namespace TEngine;
 
-void LoadLabelFile(std::vector<std::string>& result, const char * fname)
-{
-    std::ifstream labels(fname);
+void LoadLabelFile(std::vector<std::string>& result, const char* fname) {
+  std::ifstream labels(fname);
 
-    std::string line;
-    while (std::getline(labels, line))
-        result.push_back(line);
+  std::string line;
+  while (std::getline(labels, line)) result.push_back(line);
 }
 
-float * ReadImageFile(const std::string& image_file, cv::Mat& img, 
-                      const int input_height, const int input_width, 
-                      const float input_mean, const float input_std)
-{
-    // Read image
-    cv::Mat frame = cv::imread(image_file);
-    if(!frame.data)
-    {
-        std::cout<<"failed to read image file: "<<image_file<<std::endl;
-        return nullptr;
-    }
+float* ReadImageFile(const std::string& image_file, cv::Mat& img,
+                     const int input_height, const int input_width,
+                     const float input_mean, const float input_std) {
+  // Read image
+  cv::Mat frame = cv::imread(image_file);
+  if (!frame.data) {
+    std::cout << "failed to read image file: " << image_file << std::endl;
+    return nullptr;
+  }
 
-    // Convert BGR to RGB
-    cv::cvtColor(frame, frame, cv::COLOR_BGR2RGB);
+  // Convert BGR to RGB
+  cv::cvtColor(frame, frame, cv::COLOR_BGR2RGB);
 
-    // Resize the image
-    cv::Mat img_resized;
-    cv::Size input_geometry = cv::Size(input_width, input_height);
-    cv::resize(frame, img_resized, input_geometry);
+  // Resize the image
+  cv::Mat img_resized;
+  cv::Size input_geometry = cv::Size(input_width, input_height);
+  cv::resize(frame, img_resized, input_geometry);
 
-    // Convert to float 32, channel 3
-    img_resized.convertTo(img_resized, CV_32FC3);
+  // Convert to float 32, channel 3
+  img_resized.convertTo(img_resized, CV_32FC3);
 
-    img = (img_resized - input_mean) / input_std;
+  img = (img_resized - input_mean) / input_std;
 
-    std::vector<cv::Mat> input_channels;
-    float * input_data=(float*)std::malloc(input_height*input_width*3*4);
-    float * ptr=input_data;
+  std::vector<cv::Mat> input_channels;
+  float* input_data = (float*)std::malloc(input_height * input_width * 3 * 4);
+  float* ptr = input_data;
 
-    for(int i=0; i<3; ++i)
-    {
-        cv::Mat channel(input_height, input_width, CV_32FC1, ptr);
-        input_channels.push_back(channel);
-        ptr += input_height * input_width;
-    }
+  for (int i = 0; i < 3; ++i) {
+    cv::Mat channel(input_height, input_width, CV_32FC1, ptr);
+    input_channels.push_back(channel);
+    ptr += input_height * input_width;
+  }
 
-    cv::split(img, input_channels);
+  cv::split(img, input_channels);
 
-    return input_data;
+  return input_data;
 }
 
-int main(int argc, char * argv[])
-{
-    const char * model_name="inception_v3";
+int main(int argc, char* argv[]) {
+  const char* model_name = "inception_v3";
 
-    /* prepare input data */
-    cv::Mat img;
-    float  * input_data = ReadImageFile(image_file, img, img_h, img_w, input_mean, input_std);;
+  /* prepare input data */
+  cv::Mat img;
+  float* input_data =
+      ReadImageFile(image_file, img, img_h, img_w, input_mean, input_std);
+  ;
 
+  init_tengine_library();
 
-   init_tengine_library();
+  if (request_tengine_version("0.1") < 0) return 1;
 
-   if(request_tengine_version("0.1")<0)
-       return 1;
+  if (load_model(model_name, "tensorflow", model_file) < 0) return 1;
 
+  std::cout << "Load model successfully\n";
 
-   if(load_model(model_name,"tensorflow",model_file)<0)
-       return 1; 
+  // dump_model(model_name);
 
-   std::cout<<"Load model successfully\n";
+  graph_t graph = create_runtime_graph("graph0", model_name, NULL);
 
-   //dump_model(model_name);
+  if (!check_graph_valid(graph)) {
+    std::cout << "create graph0 failed\n";
+    return 1;
+  }
 
+  std::cout << "print runtime graph\n";
 
-   graph_t graph=create_runtime_graph("graph0",model_name,NULL);
+  // dump_graph(graph);
 
-   if(!check_graph_valid(graph))
-   {
-       std::cout<<"create graph0 failed\n";
-       return 1;
-   }
+  /* set input and output node*/
 
-   std::cout<<"print runtime graph\n";
+  int node_idx = 0;
+  int tensor_idx = 0;
+  tensor_t input_tensor = get_graph_input_tensor(graph, node_idx, tensor_idx);
 
-   //dump_graph(graph);
+  if (!check_tensor_valid(input_tensor)) {
+    std::printf("Cannot find input tensor,node_idx: %d,tensor_idx: %d \n",
+                node_idx, tensor_idx);
+    return -1;
+  }
 
+  int dims[] = {1, 3, img_h, img_w};
 
-   /* set input and output node*/
+  set_tensor_shape(input_tensor, dims, 4);
 
-   int node_idx=0;
-   int tensor_idx=0;
-   tensor_t input_tensor=get_graph_input_tensor(graph,node_idx,tensor_idx);
+  /* setup input buffer */
 
-   if(!check_tensor_valid(input_tensor))
-   {
-       std::printf("Cannot find input tensor,node_idx: %d,tensor_idx: %d \n",node_idx,tensor_idx);
-       return -1;
-   }
+  if (set_tensor_buffer(input_tensor, input_data, 3 * img_h * img_w * 4) < 0) {
+    std::printf("Set buffer for tensor failed\n");
+  }
 
-   int dims[]={1,3,img_h,img_w};
+  if (infer_shape(graph) < 0) {
+    dump_graph(graph);
+    std::cout << "infer shape failed\n";
+    return 2;
+  }
 
-   set_tensor_shape(input_tensor,dims,4);
+  // dump_graph(graph);
 
-   /* setup input buffer */
+  /* run the graph */
+  prerun_graph(graph);
 
-   if(set_tensor_buffer(input_tensor,input_data,3*img_h*img_w*4)<0)
-   {
-       std::printf("Set buffer for tensor failed\n");
-   }
+  run_graph(graph, 1);
 
-   if(infer_shape(graph)<0)
-   {
-       dump_graph(graph);
-       std::cout<<"infer shape failed\n";
-       return 2;
-   }
+  // const char * output_tensor_name="InceptionV3/Predictions/Softmax";
+  tensor_t output_tensor = get_graph_output_tensor(graph, node_idx, tensor_idx);
 
-   //dump_graph(graph);
+  int dim_size = get_tensor_shape(output_tensor, dims, 4);
 
+  if (dim_size < 0) {
+    printf("get output tensor shape failed\n");
+    return -1;
+  }
 
-   /* run the graph */
-   prerun_graph(graph);
+  printf("output tensor shape: [");
 
-   run_graph(graph,1);
+  for (int i = 0; i < dim_size; i++) printf("%d ", dims[i]);
 
-   //const char * output_tensor_name="InceptionV3/Predictions/Softmax";
-   tensor_t output_tensor=get_graph_output_tensor(graph,node_idx,tensor_idx);
-   
-   int dim_size=get_tensor_shape(output_tensor,dims,4);
+  printf("]\n");
 
-   if(dim_size<0)
-   {
-      printf("get output tensor shape failed\n");
-      return -1;
-   }
+  int count = get_tensor_buffer_size(output_tensor) / 4;
 
-   printf("output tensor shape: [");
-    
-   for(int i=0;i<dim_size;i++)
-      printf("%d ",dims[i]);
+  float* data = (float*)(get_tensor_buffer(output_tensor));
+  float* end = data + count;
 
-   printf("]\n");
+  std::vector<float> result(data, end);
 
-   int count=get_tensor_buffer_size(output_tensor)/4;
+  std::vector<int> top_N = Argmax(result, 5);
 
-   float *  data=(float *)(get_tensor_buffer(output_tensor));
-   float * end=data+count;
- 
-   std::vector<float> result(data, end);
+  std::vector<std::string> labels;
 
-   std::vector<int> top_N=Argmax(result,5);
+  LoadLabelFile(labels, label_file);
 
-   std::vector<std::string> labels;
+  for (unsigned int i = 0; i < top_N.size(); i++) {
+    int idx = top_N[i];
 
-   LoadLabelFile(labels,label_file);
+    std::cout << std::fixed << std::setprecision(4) << result[idx] << " - \"";
+    std::cout << labels[idx] << "\"\n";
+  }
 
-   for(unsigned int i=0;i<top_N.size();i++)
-   {
-       int idx=top_N[i];
+  put_graph_tensor(input_tensor);
+  put_graph_tensor(output_tensor);
 
-       std::cout<<std::fixed << std::setprecision(4)<<result[idx]<<" - \"";
-       std::cout<< labels[idx]<<"\"\n";
-   }
+  postrun_graph(graph);
 
-   put_graph_tensor(input_tensor);
-   put_graph_tensor(output_tensor);
+  free(input_data);
 
-   postrun_graph(graph);  
+  destroy_runtime_graph(graph);
+  remove_model(model_name);
 
-   free(input_data);
+  std::cout << "ALL TEST DONE\n";
 
-   destroy_runtime_graph(graph);
-   remove_model(model_name);
+  release_tengine_library();
 
-   std::cout<<"ALL TEST DONE\n";
-
-   release_tengine_library();
-
-   return 0;
+  return 0;
 }
