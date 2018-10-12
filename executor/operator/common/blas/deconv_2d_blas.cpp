@@ -66,7 +66,7 @@ struct DeconvBlasOps : public NodeOps
         float* out_ptr=output;
         for(int c = 0; c < c_out; ++c)
         {
-            int val=bias[c];
+            float val=bias[c];
             for(int i = 0; i < hw; ++i)
             {
                 *out_ptr += val;
