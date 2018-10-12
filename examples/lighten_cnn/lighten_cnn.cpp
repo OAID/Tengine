@@ -41,7 +41,7 @@ void get_data(void* buffer, int datasize, const char* fname)
     if (!data_fp) printf("data can not be open\n");
 
     size_t n=fread(buffer, sizeof(float), datasize, data_fp);
-    if(n<0)
+    if (n < datasize)
         printf("data read error\n");
 
     fclose(data_fp);
