@@ -200,15 +200,28 @@ int request_tengine_version(const char * version);
 * @brief load saved graph file into system, and represented by TEngine IR format
 * 
 * @param model_name the name assigned the loaded model
-* @param file_format the model file format: caffe/onnx/tensorflow/mxnet/tengine
+* @param model_format the model file format: caffe/onnx/tensorflow/mxnet/tengine
 * @param fname file name of the saved model
 * @return 0 success -1 fail
 * @note  the saved model may have multiple files
 *        please call remove_model() to release the loaded model
 */
 
-int load_model(const char * model_name, const char * file_format, const char * fname, ...);
+int load_model(const char * model_name, const char * model_format, const char * fname, ...);
 
+/*! 
+* @brief load saved graph saved in memory into system, and represented by TEngine IR format
+* 
+* @param model_name the name assigned the loaded model
+* @param model_format the model file format: caffe/onnx/tensorflow/mxnet/tengine
+* @param mem_addr  the first mem block addr 
+* @param mem_size  the first mem block size 
+* @return 0 success -1 fail
+* @note  the saved model may have multiple files
+*        please call remove_model() to release the loaded model
+*/
+
+int load_mem_model(const char * model_name, const char * model_format, void * mem_addr,int mem_size, ...);
 
 /*!
 * @brief save the loaded model into file
@@ -580,12 +593,25 @@ int get_node_param_int(node_t node, const char * param_name, int * param_val);
 int get_node_param_float(node_t node, const char * param_name, float * param_val);
 
 /*!
+* @brief get the param value (int) of a node
+*
+* @param node, the target node
+* @param param_name, the name of the param to be retrieval
+* @param  param_val, pointer to the pointer val to be saved
+* 
+* @return 0, retrieval value successfully; 
+*        <0, failed; the name does not exist 
+*/
+
+int get_node_param_pointer(node_t node, const char * param_name, void *  param_val);
+
+/*!
 * @brief get the param value of a node, the data type is indicated by type_info
 *        this interface only works in c++, as type_info refers std::type_info
 *
 * @param node, the target node
 * @param param_name, the name of the param to be retrieval
-* @param type_info, pointer to the std::type_info of wanted type
+* @param type_info, pointer to the std::type_info of wanted type, NULL to skip type check
 * @param param_val, pointer to the float val to be saved
 * 
 * @return 0, retrieval value successfully; 
@@ -596,6 +622,7 @@ int get_node_param_generic(node_t node, const char * param_name, const void * ty
 
 int set_node_param_int(node_t node, const char * param_name, const int * param_val);
 int set_node_param_float(node_t node, const char * param_name, const float * param_val);
+int set_node_param_pointer(node_t node, const char * param_name, const void* param_val);
 int set_node_param_generic(node_t node, const char * param_name, const void * type_info, const void * param_val);
 
 /*!

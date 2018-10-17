@@ -74,7 +74,7 @@ struct MemPool {
 			for(int i=0;i<block_number;i++)
 			{
 				MemBlock b;
-				b.addr=mem_alloc(block_size);
+				b.addr=mem_alloc(block_size+128);
 				b.size=block_size;
 				b.ref_count=0;
 				b.alloc_count=0;
@@ -89,7 +89,7 @@ struct MemPool {
 			for(int i=0;i<block_number;i++)
 			{
 				MemBlock b;
-				b.addr=mem_alloc(mem_block[0]);
+				b.addr=mem_alloc(mem_block[0]+128);
 				b.size=mem_block[0];
 				b.ref_count=0;
 				b.alloc_count=0;
@@ -100,7 +100,7 @@ struct MemPool {
 			for(int i=1;i<block_number;i++)
 			{
 				MemBlock b;
-				b.addr=mem_alloc(mem_block[i]);
+				b.addr=mem_alloc(mem_block[i]+128);
 				b.size=mem_block[i];
 				b.ref_count=0;
 
@@ -119,7 +119,6 @@ struct MemPool {
 
 			//printf("block [%d %p %d] allocated[%d]\n", 
 			//		i,addr,block_list[i].size,block_list[i].alloc_count);
-
 		}
 	}
 
@@ -326,8 +325,7 @@ bool CPURunner::Run(Subgraph * sub_graph)
 		NodeOps * node_ops=any_cast<NodeOps*>(node->GetAttr(ATTR_NODE_OPS));
 
                 /* dynamic shape process */
-
-                if(node->IsDynamicShape())
+                if(node->IsDynamicShape() || node->InputReshaped())
                 {
 
                     int output_number=node->GetOutputNum();
@@ -350,6 +348,9 @@ bool CPURunner::Run(Subgraph * sub_graph)
                     {
                         Tensor * tensor=node->GetInputTensor(i);
                         inputs.push_back(tensor->GetShape());
+
+			if(tensor->Reshaped())
+				tensor->UpdateReshapeCount();
                     }
 
                      std::vector<TShape> outputs(output_number);
@@ -366,9 +367,11 @@ bool CPURunner::Run(Subgraph * sub_graph)
                      for(int i=0;i<output_number;i++)
                      {
                          Tensor * tensor=node->GetOutputTensor(i);
-                         TShape& shape=tensor->GetShape();
+                         TShape shape=tensor->GetShape();
 
                          shape=outputs[i];
+
+			 tensor->Reshape(shape);
                      }
 
                      /* allocate output memory */
@@ -411,8 +414,8 @@ bool CPURunner::Run(Subgraph * sub_graph)
 
                      }
 
-		     /* call the DynPrerun() to prepare for run */
-		     node_ops->DynPrerun(node);
+		     /* call the Reshape() to prepare for run */
+		     node_ops->Reshape(node);
 
                 }
 

@@ -7,45 +7,100 @@
 
 #include "cpu_device.h"
 
+
 int get_cpu_number(void)
 {
-    int cpu_idx=0;
-    const char * prefix="/sys/devices/system/cpu";
-    char cpu_fname[256];
+	FILE* fp = fopen("/proc/cpuinfo", "rb");
+	int num = 0;
+	char buf[256];
 
-    while(1)
-    {
-        struct stat stat_buf;
+	if (fp==NULL)
+		return 1;
 
-        sprintf(cpu_fname,"%s/cpu%d",prefix,cpu_idx++);
+	while(fgets(buf,256,fp))
+	{
+		if (memcmp(buf, "processor", 9) == 0)
+			num++;
+	}
 
-        if(stat(cpu_fname,&stat_buf)<0)
-            break;
-    }
+	fclose(fp);
 
-	return cpu_idx-1;
+	if (num < 1)
+		num = 1;
+
+	return num;
 }
 
 #ifdef __ARM_ARCH
 
-
+#ifdef __ANDROID__
 int get_cpu_max_freq(int id)
 {
-    char cpu_fname[256];
+	char fname[256];
+	int max_freq= 100;
+	FILE* fp=NULL;
+
+	sprintf(fname, "/sys/devices/system/cpu/cpufreq/stats/cpu%d/time_in_state", id);
+
+	fp = fopen(fname, "rb");
+
+	if(!fp)
+	{
+		sprintf(fname, "/sys/devices/system/cpu/cpu%d/cpufreq/stats/time_in_state", id);
+		fp = fopen(fname, "rb");
+	}
+
+	if(fp)
+	{
+	   while (!feof(fp))
+	   {
+		  int freq;
+		  if(fscanf(fp, "%d %*d\n", &freq)!=1)
+		    	break;
+
+	      if (freq> max_freq)
+			  max_freq = freq;
+	   }
+
+	   fclose(fp);
+
+	   return max_freq;
+	}
+
+	sprintf(fname, "/sys/devices/system/cpu/cpu%d/cpufreq/cpuinfo_max_freq", id);
+	fp = fopen(fname, "rb");
+
+	if (fp)
+	{
+	    fscanf(fp, "%d", &max_freq);
+	    fclose(fp);
+	}
+
+	return max_freq;
+}
+
+#else
+int get_cpu_max_freq(int id)
+{
+	char cpu_fname[256];
 	FILE * fp;
 	int max_freq;
 
 	sprintf(cpu_fname,"/sys/devices/system/cpu/cpu%d/cpufreq/scaling_max_freq",id);
 
-    fp=fopen(cpu_fname,"r");
+	fp=fopen(cpu_fname,"r");
+
+	if(!fp)
+	    return 0;
 
 	if(fscanf(fp,"%d",&max_freq)<0)
 		return 0;
 
-    fclose(fp);
+	fclose(fp);
 
 	return max_freq;
 }
+#endif
 
 static char * get_target_line(FILE * fp, const char * target_prefix)
 {
@@ -54,7 +109,7 @@ static char * get_target_line(FILE * fp, const char * target_prefix)
 	while(fgets(line,256,fp))
 	{
 		if(!memcmp(line,target_prefix,strlen(target_prefix)))
-		      return line;
+			return line;
 	}
 
 	return nullptr;
@@ -62,159 +117,161 @@ static char * get_target_line(FILE * fp, const char * target_prefix)
 
 int get_cpu_model_arch(int id, struct cpu_cluster * cluster)
 {
-    char cpu_fname[256];
+	char cpu_fname[256];
 	FILE * fp;
 	char * line;
-    int cur_id=0;
+	int cur_id=0;
+
+	/* set the pre-set default info, in case of failure */
+
+	cluster->l1_size=32<<10;
+	cluster->l2_size=512<<10;
+
+#if __ARM_ARCH >= 8
+	cluster->cpu_arch=ARCH_ARM_V8;
+    cluster->cpu_model=CPU_A53;
+#else
+	cluster->cpu_arch=ARCH_ARM_V7;
+    cluster->cpu_model=CPU_A7;
+#endif
 
 	sprintf(cpu_fname,"/proc/cpuinfo");
 
-    fp=fopen(cpu_fname,"r");
+	fp=fopen(cpu_fname,"r");
 
-    //
-    while(get_target_line(fp,"processor"))
+	if(!fp)
+	   return 0;
+
+	while(get_target_line(fp,"processor"))
 	{
 		if(cur_id==id)
-		    break;
+			break;
 
-	     cur_id++;
+		cur_id++;
 	}
 
 
 	if(cur_id!=id)
 	{
-         fclose(fp);
-	     return -1;
+		fclose(fp);
+		return 0;
 	}
 
-	/*
-		processor       : 4
-		BogoMIPS        : 48.00
-		Features        : fp asimd evtstrm aes pmull sha1 sha2 crc32
-		CPU implementer : 0x41
-		CPU architecture: 8
-		CPU variant     : 0x0
-		CPU part        : 0xd08
-		CPU revision    : 2
-    */
+/*
+	processor       : 4
+	BogoMIPS        : 48.00
+	Features        : fp asimd evtstrm aes pmull sha1 sha2 crc32
+	CPU implementer : 0x41
+	CPU architecture: 8
+	CPU variant     : 0x0
+	CPU part        : 0xd08
+	CPU revision    : 2
+*/
 
+/*
+	line=get_target_line(fp,"CPU architecture");
 
-	 line=get_target_line(fp,"CPU architecture");
+	if(!line)
+	{
+		fclose(fp);
+		return 0;
+	}
 
 	char * p=line;
 
 	while(*p++!=':');
-   
-	//arch
 
+	//arch
 	int cpu_arch=strtoul(p,NULL,10);
 
 	if(cpu_arch==8)
 		cluster->cpu_arch=ARCH_ARM_V8;
 	else if(cpu_arch==7)
 		cluster->cpu_arch=ARCH_ARM_V7;
-	else 
-		cluster->cpu_arch=ARCH_GENERIC;
+*/
+	line=get_target_line(fp,"CPU part");
 
-	 line=get_target_line(fp,"CPU part");
+	if(!line)
+	{
+		fclose(fp);
+		return 0;
+	}
 
-	 p=line;
 
-	 while(*p++!=':');
+	char* p=line;
+
+	while(*p++!=':');
 
 	int cpu_part=strtoul(p,NULL,16);
 
-	cluster->l1_size=32<<10;
-	cluster->l2_size=512<<10;
-
-	cluster->cpu_model=-1;
-
-	switch(cpu_part)
+	if(cpu_part==0xd08 && cluster->cpu_arch == ARCH_ARM_V8)
 	{
-		case 0xd08:
 			cluster->cpu_model=CPU_A72;
+
 			cluster->l2_size=1024<<10;
-			break;
-		case 0xd03:
-			cluster->cpu_model=CPU_A53;
-			break;
-		case 0xc0d:
-                case 0xc0e:
+	}
+	if( (cpu_part==0xc0d || cpu_part == 0xc0e)
+				&& cluster->cpu_arch == ARCH_ARM_V7)
 			cluster->cpu_model=CPU_A17;
-			break;
-		case 0xc07:
-			cluster->cpu_model=CPU_A7;
-			break;
-	}
 
-	if(cluster->cpu_model<0)
-	{
-	   //best guess
-	   if(cpu_part<0xd00)
-		   cluster->cpu_model=CPU_A7;
-	   else
-		   cluster->cpu_model=CPU_A53;
-	}
+	fclose(fp);
 
-
-   fclose(fp);
-
-  return 0;
+	return 0;
 }
 
 struct cpu_info * probe_system_cpu(void)
 {
-    static struct cpu_info cpu_dev;
+	static struct cpu_info cpu_dev;
 
-    int cluster_idx=-1;
-	int last_max_freq=0;
-	int  top_max_freq=0;
+	int cluster_idx=-1;
+	int last_max_freq=-1;
+	int  top_max_freq=-1;
 
-    struct cpu_cluster * cpu_cluster=(struct cpu_cluster *)
-             malloc(sizeof(struct cpu_cluster)*4);  //suppose at most 4
+	struct cpu_cluster * cpu_cluster=(struct cpu_cluster *)
+		malloc(sizeof(struct cpu_cluster)*4);  //suppose at most 4
 
-    int cpu_number=get_cpu_number();
+	int cpu_number=get_cpu_number();
 
-    for(int i=0;i<cpu_number;i++)
-    {
-       int max_freq;
-       struct cpu_cluster * cluster;
+	for(int i=0;i<cpu_number;i++)
+	{
+		int max_freq=0;
+		struct cpu_cluster * cluster;
 
-	   max_freq=get_cpu_max_freq(i);
+		max_freq=get_cpu_max_freq(i);
 
-	   if(max_freq!=last_max_freq)
-	   {
-		   cluster_idx++;
-           cluster=cpu_cluster+cluster_idx;
-		   cluster->cpu_number=0;
-	   }
-	   else
-           cluster=cpu_cluster+cluster_idx;
+		if(max_freq!=last_max_freq)
+		{
+			cluster_idx++;
+			cluster=cpu_cluster+cluster_idx;
+			cluster->cpu_number=0;
+		}
+		else
+			cluster=cpu_cluster+cluster_idx;
 
-	   cluster->max_freq=max_freq;
-	   cluster->cpu_number++;
+		cluster->max_freq=max_freq;
+		cluster->cpu_number++;
 
-	   last_max_freq=max_freq;
+		last_max_freq=max_freq;
 
-	   if(top_max_freq<max_freq)
-		     top_max_freq=max_freq;
+		if(top_max_freq<max_freq)
+			top_max_freq=max_freq;
 
-       if(get_cpu_model_arch(i,cluster)<0)
-		   return NULL;
-    }
-	
+		if(get_cpu_model_arch(i,cluster)<0)
+			return NULL;
+	}
+
 	int start_cpu=0;
 
 	cpu_dev.cluster_number=cluster_idx+1;
-    cpu_dev.cluster=cpu_cluster;
+	cpu_dev.cluster=cpu_cluster;
 
 	//setup the online cpu according to top_max_freq
 	cpu_dev.online_cpu_list=(int *)malloc(sizeof(int)*cpu_number);
 	int online_cpu_number=0;
 
-    for(int i=0;i<cpu_dev.cluster_number;i++)
+	for(int i=0;i<cpu_dev.cluster_number;i++)
 	{
-        struct cpu_cluster * cluster=cpu_cluster+i;
+		struct cpu_cluster * cluster=cpu_cluster+i;
 
 		for(int j=0;j<cluster->cpu_number;j++)
 		{

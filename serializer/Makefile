@@ -26,6 +26,7 @@ ifeq ($(CONFIG_TENGINE_SERIALIZER),y)
     COMMON_CFLAGS+= -DCONFIG_TENGINE_SERIALIZER
 endif
 
+obj-y+=source/
 obj-y+=plugin/
 
 CXXFLAGS+=

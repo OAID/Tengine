@@ -60,20 +60,7 @@ public:
 
 
 protected:
-      bool LoadModelFile(const char * fname, onnx::ModelProto& model)
-       {
-           std::fstream is(fname, std::ios::in | std::ios::binary);
-
-           bool result=model.ParseFromIstream(&is);
-
-           if(!result)
-           {
-               LOG_ERROR()<<"failed to load onnx file: "<<fname<<"\n";
-               return false;
-           }
-                
-           return true;
-       }
+      bool LoadModelFile(const char * fname, onnx::ModelProto& model);
 
        bool LoadGraph(onnx::ModelProto& model, StaticGraph * graph);
        bool LoadConstTensor(StaticGraph * graph, const onnx::GraphProto& onnx_graph);

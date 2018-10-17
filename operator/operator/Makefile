@@ -30,3 +30,4 @@ obj-y+=region.o
 obj-y+=relu6.o
 obj-y+=deconvolution.o
 obj-y+=resize.o
+obj-y+=gemm.o

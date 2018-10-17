@@ -46,9 +46,11 @@ int main(int argc, char *argv[])
     // load model
     const char *model_name = "test";
     std::string mdl_name = argv[1];
-    if (load_model(model_name, "tengine", mdl_name.c_str(), mdl_name.c_str()) < 0)
+    if (load_model(model_name, "onnx", mdl_name.c_str(), mdl_name.c_str()) < 0)
         return 1;
     std::cout << "load model done!\n";
+
+
 
     // create graph
     graph_t graph = create_runtime_graph("graph", model_name, NULL);
@@ -57,6 +59,8 @@ int main(int argc, char *argv[])
         std::cout << "create graph0 failed\n";
         return 1;
     }
+
+
 
     // input
     int img_h = atoi(argv[2]);
@@ -69,6 +73,9 @@ int main(int argc, char *argv[])
 	tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     int dims[] = {1, 3, img_h, img_w};
     set_tensor_shape(input_tensor, dims, 4);
+
+	infer_shape(graph);
+
     prerun_graph(graph);
 
     int repeat_count = 1;

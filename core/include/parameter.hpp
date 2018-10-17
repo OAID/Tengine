@@ -51,7 +51,8 @@ struct NamedParam {
 
 		ItemInfo&  entry=item_map_.at(name);
 
-		if(*item_type!= *entry.type_info)
+		//skip type checking if type_info is nullptr
+		if(item_type && (*item_type!= *entry.type_info))
 		{	
 			//printf("requested: %s recorded:%s\n",item_type->name(),entry.type_info->name()); 
 			return nullptr;

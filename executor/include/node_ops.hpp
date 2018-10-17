@@ -75,7 +75,8 @@ struct NodeOps {
     virtual bool GetPrivateMemorySize(Node *, unsigned int & mem_size) {return false;}
     virtual bool SetPrivateMemoryAddr(Node *, void * mem_addr,int mem_size) { return false;}
 
-    virtual bool DynPrerun(Node * ) { return true; } //used in dynamic cases: will be called before run
+    virtual bool Reshape(Node * ) { return true; } //used in dynamic shape or reshped case: 
+                                                   //      will be called before run
 
     /* note: the mem_addr will be released by caller */
 
