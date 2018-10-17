@@ -22,4 +22,4 @@ link_directories(${INSTALL_DIR}/lib)
 
 #exe
 add_executable(CAFFE_MTCNN ${CAFFE_MTCNN_SRCS})
-target_link_libraries(CAFFE_MTCNN ${TENGINE_LIBS} ${OpenCV_LIBS})
+target_link_libraries(CAFFE_MTCNN ${TENGINE_LIBS} ${OpenCV_LIBS} boost_thread)

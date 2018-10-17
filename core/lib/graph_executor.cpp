@@ -264,12 +264,13 @@ bool GraphExecutor::InferShape(void)
 
           for(j=0;j<node->GetInputNum();j++)
           {
-             TShape& shape=node->GetInputTensor(j)->GetShape();
+			 Tensor * input=node->GetInputTensor(j);
+             TShape& shape=input->GetShape();
 
              if(shape.GetSize()==0)
              {
                  XLOG_ERROR()<<"infer shape failed on node: "<<node->GetName()
-                        <<" due to input: "<<node->GetInputTensor(j)->GetName()
+                        <<" due to input: "<<input->GetName()
                         <<" size is zero\n";
                  return false;
              }
@@ -279,6 +280,9 @@ bool GraphExecutor::InferShape(void)
                  skip=true;
                  break;
              }
+
+			 if(input->Reshaped())
+				  input->UpdateReshapeCount();
          }
 
         if(skip==true)

@@ -309,47 +309,55 @@ bool GraphTask::SyncRun(void)
 
 bool GraphTask::Run(exec_event_t& event)
 {
+	 wait_event_.mutex.lock();
+
         if(status_!=EXEC_STATUS_INITED &&
 	     status_!=EXEC_STATUS_READY)
         {
             XLOG_ERROR()<<"bad status: "<<dev_engine_->GetStatusStr(status_)<<"\n";
-	     return false;
+			wait_event_.mutex.unlock();
+	     	return false;
         }	
 
 	/* inital status */
-        status_=EXEC_STATUS_RUN;
+    status_=EXEC_STATUS_RUN;
+    wait_event_.mutex.unlock();
+
 	output_wait_count_=output_task_number_;  
 	active_sub_task_count_=0;
 	task_done_=false;
 	
-        WaitEvent * p_event=new WaitEvent();
-        p_event->wait_count=0;
-	wait_event_=p_event;
+    wait_event_.wait_count=0;
+	int task_launched=0;
 
 	//let all input tasks run
 	for(auto e: sub_task_list_)
 	{
-	    if(!e->saved_input_wait_count_ 
-			&& !RunSubgraphTask(e))
+	    if(!e->saved_input_wait_count_)
 	    {
-	         XLOG_ERROR()<<"failed to run task on dev executor: "
+	          if(RunSubgraphTask(e))
+	    		task_launched++;
+		      else
+	          {
+	               XLOG_ERROR()<<"failed to run task on dev executor: "
 			 	            <<e->dev_executor->GetName()<<"\n";
-		  status_=EXEC_STATUS_BAD;
-                  delete wait_event_;
-	         return false;
-	    }
+		       status_=EXEC_STATUS_BAD;
+		       break;
+	          }
+        }
 	}
 
-        if(active_sub_task_count_==0 && status_== EXEC_STATUS_RUN)
+        if(!task_launched)
         {
              XLOG_ERROR()<<"No sub task launched!!\n";
              
-             delete wait_event_;
- 
-             return false;
+	     status_=EXEC_STATUS_BAD;
         }
 
-	event=p_event;
+	if(status_==EXEC_STATUS_BAD)
+	     return false;
+
+	event=&wait_event_;
 	 
 	return true;
 }
@@ -365,41 +373,44 @@ int GraphTask::Wait(exec_event_t& event, int try_wait)
 {
         WaitEvent * p_event=any_cast<WaitEvent *>(event);
 
+		if(p_event!=&wait_event_)
 		{
-		
-           std::unique_lock<std::mutex> lock(p_event->mutex);
+		     XLOG_ERROR()<<"bad event pointer passed\n";
+			 return 0;
+		}
 
-           if(try_wait&& !task_done_)
-           {
+		
+        std::unique_lock<std::mutex> lock(p_event->mutex);
+
+        if(try_wait&& !task_done_)
+        {
              lock.unlock();
              return 0;
-           }
+        }
 
-           p_event->wait_count++;
+        p_event->wait_count++;
 
-           if(!task_done_)
-	           p_event->cond.wait(lock,[this]{return task_done_;});
+       if(!task_done_)
+	         p_event->cond.wait(lock,[this]{return task_done_;});
 
-           lock.unlock();
-	   }
+       lock.unlock();
 
-       if(p_event->wait_count.fetch_sub(1)==1)
-       	      delete p_event;
+       p_event->wait_count.fetch_sub(1);
 	
 	return 1;
 }
 
 void GraphTask::SignalGraphTaskDone(void)
 {
-       std::unique_lock<std::mutex> lock(wait_event_->mutex, std::defer_lock);
+       std::unique_lock<std::mutex> lock(wait_event_.mutex, std::defer_lock);
 
        lock.lock();
 	   
 	task_done_=true;
+	   
+	wait_event_.cond.notify_all();
 
        lock.unlock();
-	   
-	wait_event_->cond.notify_all();
       
 }
 
@@ -478,7 +489,6 @@ GraphTask::~GraphTask(void)
 {
    if(optimized_graph_)
 	   delete optimized_graph_;
-     
 }
 
 

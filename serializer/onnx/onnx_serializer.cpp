@@ -21,14 +21,26 @@
  * Copyright (c) 2017, Open AI Lab
  * Author: haitao@openailab.com
  */
+
+#include <google/protobuf/io/coded_stream.h>
+#include <google/protobuf/io/zero_copy_stream_impl.h>
+#include <google/protobuf/text_format.h>
+#include <google/protobuf/message.h>
+
 #include "operator_manager.hpp"
 #include "operator/conv_param.hpp"
 #include "operator/pool_param.hpp"
 #include "operator/concat_param.hpp"
 #include "operator/softmax_param.hpp"
 #include "operator/relu_param.hpp"
+#include "operator/batch_norm_param.hpp"
+#include "operator/flatten_param.hpp"
+#include "operator/eltwise_param.hpp"
+#include "operator/gemm_param.hpp"
+#include "operator/fc_param.hpp"
 
 #include "type_name.hpp"
+#include "compiler.hpp"
 
 #include "onnx_serializer.hpp"
 
@@ -55,6 +67,34 @@ bool OnnxSerializer::LoadModel(const std::vector<std::string>& file_list, Static
       SetGraphConstTensorFile(graph,file_list[0]);
 
       return LoadGraph(model,graph); 
+}
+
+bool OnnxSerializer::LoadModelFile(const char * fname, onnx::ModelProto& model)
+{
+    std::ifstream is(fname, std::ios::in|std::ios::binary);
+
+	if(!is.is_open())
+	{
+	    LOG_ERROR()<<"cannot open file: "<<fname<<"\n";
+	    return false;
+	}
+
+	google::protobuf::io::IstreamInputStream input_stream(&is);
+	google::protobuf::io::CodedInputStream coded_input(&input_stream);
+
+	coded_input.SetTotalBytesLimit(1024<<20, 512<<20);
+
+	bool ret=model.ParseFromCodedStream(&coded_input);
+
+    is.close();
+
+    if(!ret)
+	{
+	     LOG_ERROR()<<"onnx serializer: parse file: "<<fname<<" failed\n";
+		 return false;
+	}
+
+    return ret;
 }
 
 bool OnnxSerializer::LoadConstTensor(StaticGraph * graph, const onnx::GraphProto& onnx_graph)
@@ -127,9 +167,9 @@ void OnnxSerializer::CreateInputNode(StaticGraph * graph, const onnx::GraphProto
 
           const onnx::TypeProto& type=val.type();
 
-          const onnx::TypeProto::TensorTypeProto& tensor_type=type.tensor_type();
+          const onnx::TypeProto::Tensor& tensor_type=type.tensor_type();
 
-          const onnx::TypeProto::TensorShapeProto& shape=tensor_type.shape();
+          const onnx::TensorShapeProto& shape=tensor_type.shape();
 
           int has_shape=1;
 
@@ -137,7 +177,7 @@ void OnnxSerializer::CreateInputNode(StaticGraph * graph, const onnx::GraphProto
 
           for(int i=0;i<shape.dim_size();i++)
           {
-                const onnx::TypeProto::TensorShapeProto::Dimension& dim=shape.dim(i);
+                const onnx::TensorShapeProto::Dimension& dim=shape.dim(i);
 
                 if(dim.has_dim_param())
                 {
@@ -212,7 +252,7 @@ bool OnnxSerializer::LoadGraph(onnx::ModelProto& model, StaticGraph * graph)
 {
       const onnx::GraphProto& onnx_graph=model.graph();
 
-      SetGraphIdentity(graph, model.domain(),onnx_graph.name(),std::to_string(model.model_version()));
+      SetGraphIdentity(graph, model.domain(),onnx_graph.name(),std::to_string((int)model.model_version()));
 
       LoadConstTensor(graph,onnx_graph);
       CreateInputNode(graph,onnx_graph);
@@ -227,7 +267,7 @@ bool OnnxSerializer::LoadGraph(onnx::ModelProto& model, StaticGraph * graph)
            if(!FindOpLoadMethod(onnx_op_name))
            {
                LOG_ERROR()<<"cannot find load function for operator: "<<onnx_op_name<<"\n";
-               break;
+               continue;
            }
 
            StaticNode * node=CreateStaticNode(graph,onnx_node.output(0));
@@ -303,6 +343,36 @@ static bool LoadOnnxConvolutionOp(StaticGraph * graph, StaticNode * node, const 
      return true;
 }
 
+static bool LoadOnnxBN(StaticGraph * graph, StaticNode * node, const onnx::NodeProto& onnx_node)
+{
+
+	BatchNormParam param=any_cast<BatchNormParam>(OpManager::GetOpDefParam("BatchNormalization"));
+
+    //get espilon
+
+    for(int k=0;k<onnx_node.attribute_size();k++)
+    {
+		 const onnx::AttributeProto& attr=onnx_node.attribute(k);
+
+		 if(attr.name()=="epsilon")
+			 param.eps=attr.f();
+	}
+
+
+	for(int k=1;k<onnx_node.input_size();k++)
+	{
+		const std::string& input_name=onnx_node.input(k);
+		StaticTensor * tensor=FindTensor(graph,input_name);
+		SetTensorDataLayout(tensor,"W");
+    }
+
+	StaticOp * op=CreateStaticOp(graph,"BatchNormalization");
+	SetOperatorParam(op,param);
+	SetNodeOp(node,op);
+
+	return true;
+}
+
 static bool LoadOnnxRelu(StaticGraph * graph, StaticNode * node, const onnx::NodeProto& onnx_node)
 {
     ReLuParam  param=any_cast<ReLuParam>(OpManager::GetOpDefParam("ReLu"));
@@ -327,10 +397,14 @@ static bool LoadOnnxPooling(StaticGraph * graph, StaticNode * node, const onnx::
        param.global=1;
        param.alg=kPoolAvg;
     }
-    else if(onnx_op=="MaxPool")
+    else if(onnx_op=="MaxPool" || onnx_op=="AveragePool")
     {
        param.global=0;
-       param.alg=kPoolMax;
+
+	   if(onnx_op=="AveragePool")
+          param.alg=kPoolAvg;
+	   else
+          param.alg=kPoolMax;
 
        for(int k=0;k<onnx_node.attribute_size();k++)
        {
@@ -354,8 +428,13 @@ static bool LoadOnnxPooling(StaticGraph * graph, StaticNode * node, const onnx::
               param.pad_w=attr.ints(1);
           }
       }
-
     }
+	else
+	{
+		  LOG_ERROR()<<"UKNOWN POOLING: "<<onnx_op<<"\n";
+		  return false;
+	}
+
 
      param.kernel_shape.resize(2);
      param.kernel_shape[0]=param.kernel_h;
@@ -371,7 +450,6 @@ static bool LoadOnnxPooling(StaticGraph * graph, StaticNode * node, const onnx::
      param.strides[0]=param.stride_h;
      param.strides[1]=param.stride_w;
 
-    
      StaticOp * op=CreateStaticOp(graph,"Pooling");
 
      SetOperatorParam(op,param);
@@ -379,6 +457,114 @@ static bool LoadOnnxPooling(StaticGraph * graph, StaticNode * node, const onnx::
      SetNodeOp(node,op);
 
      return true;
+}
+
+static bool LoadOnnxFlatten(StaticGraph * graph, StaticNode * node, const onnx::NodeProto& onnx_node)
+{
+	FlattenParam param=any_cast<FlattenParam>(OpManager::GetOpDefParam("Flatten"));
+
+    const onnx::AttributeProto& attr=onnx_node.attribute(0);
+
+	param.axis=attr.i();
+
+	StaticOp * op=CreateStaticOp(graph,"Flatten");
+
+	SetOperatorParam(op,param);
+
+	SetNodeOp(node,op);
+
+	return true;
+}
+
+static bool LoadOnnxGemm(StaticGraph * graph, StaticNode * node, const onnx::NodeProto& onnx_node)
+{
+	 GemmParam param=any_cast<GemmParam>(OpManager::GetOpDefParam("Gemm"));
+
+     for(int k=0;k<onnx_node.attribute_size();k++)
+     {
+          const onnx::AttributeProto& attr=onnx_node.attribute(k);
+
+		  if(attr.name()=="alpha")
+			  param.alpha=attr.f();
+		  else if(attr.name()=="beta")
+			  param.beta=attr.f();
+		  else if(attr.name()=="transA")
+			  param.transA=attr.i();
+		  else if(attr.name()=="transB")
+			  param.transB=attr.i();
+	}
+
+	StaticTensor * weight_tensor=FindTensor(graph,onnx_node.input(1));
+
+	StaticTensor * bias_tensor=FindTensor(graph,onnx_node.input(2));
+
+	SetTensorDataLayout(weight_tensor,"HW");
+	SetTensorDataLayout(bias_tensor,"W");
+
+	if(param.transA)
+	{
+        StaticOp * op=CreateStaticOp(graph,"Gemm");
+
+        SetOperatorParam(op,param);
+
+        SetNodeOp(node,op);
+
+		return true;
+	}
+
+	//create fc instead
+	if(!param.transB)
+	{
+		//swap shape
+		int k=weight_tensor->dims[0];
+		int n=weight_tensor->dims[1];
+
+		weight_tensor->dims[0]=n;
+		weight_tensor->dims[1]=k;
+
+		float * tmp=(float *)malloc(k*n*sizeof(float));
+        float * data=(float *)GetConstTensorBuffer(weight_tensor);
+
+		for(int i=0;i<n;i++)
+			for(int j=0;j<k;j++)
+		{
+             tmp[i*k+j]=data[j*n+i];
+		}
+
+		memcpy(data,tmp,n*k*sizeof(float));
+
+		free(tmp);
+	}
+
+	if(param.alpha!=1)
+	{
+        float * data=(float *)GetConstTensorBuffer(weight_tensor);
+		int  tensor_size=weight_tensor->dims[0]*weight_tensor->dims[1];
+
+		for(int i=0;i<tensor_size;i++)
+			  data[i]*=param.alpha;
+	}
+
+	if(param.beta!=1)
+	{
+        float * data=(float *)GetConstTensorBuffer(bias_tensor);
+		int  tensor_size=weight_tensor->dims[0];
+
+		for(int i=0;i<tensor_size;i++)
+			  data[i]*=param.beta;
+	}
+
+    StaticOp * op=CreateStaticOp(graph,"FullyConnected");
+
+	FCParam fc_param=any_cast<FCParam>(OpManager::GetOpDefParam("FullyConnected"));
+
+    fc_param.num_output=weight_tensor->dims[0];
+
+    SetOperatorParam(op,fc_param);
+
+    SetNodeOp(node,op);
+
+    return true;
 }
 
 static bool LoadOnnxConcat(StaticGraph * graph, StaticNode * node, const onnx::NodeProto& onnx_node)
@@ -400,13 +586,26 @@ static bool LoadOnnxConcat(StaticGraph * graph, StaticNode * node, const onnx::N
 
 static bool LoadOnnxDropout(StaticGraph * graph, StaticNode * node, const onnx::NodeProto& onnx_node)
 {
-
     StaticOp * op=CreateStaticOp(graph,"Dropout");
 
     SetNodeOp(node,op);
 
     return true;
+}
 
+static bool LoadOnnxAdd(StaticGraph * graph, StaticNode * node, const onnx::NodeProto& onnx_node)
+{
+	EltwiseParam  param=any_cast<EltwiseParam>(OpManager::GetOpDefParam("Eltwise"));
+
+	param.type=ELT_SUM;
+
+    StaticOp * op=CreateStaticOp(graph,"Eltwise");
+
+    SetOperatorParam(op,param);
+
+    SetNodeOp(node,op);
+
+    return true;
 }
 
 static bool LoadOnnxSoftmax(StaticGraph * graph, StaticNode * node,const onnx::NodeProto& onnx_node)
@@ -442,9 +641,14 @@ bool OnnxSerializerRegisterOpLoader(void)
     p_onnx->RegisterOpLoadMethod("Relu",op_load_t(LoadOnnxRelu));
     p_onnx->RegisterOpLoadMethod("MaxPool",op_load_t(LoadOnnxPooling));
     p_onnx->RegisterOpLoadMethod("GlobalAveragePool",op_load_t(LoadOnnxPooling));
+    p_onnx->RegisterOpLoadMethod("AveragePool",op_load_t(LoadOnnxPooling));
     p_onnx->RegisterOpLoadMethod("Concat",op_load_t(LoadOnnxConcat));
     p_onnx->RegisterOpLoadMethod("Dropout",op_load_t(LoadOnnxDropout));
     p_onnx->RegisterOpLoadMethod("Softmax",op_load_t(LoadOnnxSoftmax));
+    p_onnx->RegisterOpLoadMethod("BatchNormalization",op_load_t(LoadOnnxBN));
+    p_onnx->RegisterOpLoadMethod("Add",op_load_t(LoadOnnxAdd));
+    p_onnx->RegisterOpLoadMethod("Flatten",op_load_t(LoadOnnxFlatten));
+    p_onnx->RegisterOpLoadMethod("Gemm",op_load_t(LoadOnnxGemm));
 
     return true;
 }

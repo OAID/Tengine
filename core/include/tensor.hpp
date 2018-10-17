@@ -26,11 +26,11 @@
 
 #include <iostream>
 #include <string>
+#include <atomic>
 
 #include "base_object.hpp"
 #include "tensor_shape.hpp"
 #include "logger.hpp"
-#include "node.hpp"
 
 namespace TEngine {
 
@@ -46,6 +46,7 @@ public:
              name_=name;
              data_type_="float32";
              static_tensor_=nullptr;
+			 reshaped_count_=0;
         }
 
 	virtual ~Tensor()
@@ -60,8 +61,15 @@ public:
             }
         }
 
-	Tensor(const Tensor& other)=default;
-	Tensor& operator=(const Tensor& rhs)=default;
+	Tensor(const Tensor& o):BaseObject (o),
+				            producer(o.producer),
+	                        consumer(o.consumer),
+	                       type_(o.type_),name_(o.name_),
+	                       data_type_(o.data_type_),shape_(o.shape_),
+			               static_tensor_(o.static_tensor_)
+							{};
+
+	Tensor& operator=(const Tensor& rhs)=delete;
 
         const std::string& GetName(void) const { return name_;}
         void SetName(const std::string& n) { name_=n;}
@@ -70,6 +78,10 @@ public:
 	TShape&   GetShape(void)    { return shape_;}
 
 	void Reshape(const TShape& shape);
+
+	/* used by consumer node to signal the input tensor that the reshape event has been taken */
+	void UpdateReshapeCount(void);
+	bool Reshaped(void) { return reshaped_count_>0; }
 
 
 	const std::string& GetDatatype(void) const { return data_type_;}
@@ -138,7 +150,10 @@ protected:
         std::string  name_;
 	std::string  data_type_;
 	TShape       shape_;
+
         StaticConstTensor * static_tensor_;
+
+	std::atomic<int> reshaped_count_;
 
        
 

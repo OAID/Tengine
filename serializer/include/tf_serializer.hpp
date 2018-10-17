@@ -50,6 +50,7 @@ struct TFNode {
    StaticNode * static_node;
    StaticTensor * static_tensor;
    bool no_static_node;
+   int BNAddType;
 
    TFNode() { no_static_node=false;}
 

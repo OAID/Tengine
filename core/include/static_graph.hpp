@@ -60,6 +60,9 @@ struct StaticGraph {
     std::vector<StaticNodePtr> node_list;
     std::vector<StaticTensorPtr> tensor_list;
     std::unordered_map<std::string,StaticTensorPtr> const_tensor_map;
+    std::vector<void *> mem_src;
+
+    ~StaticGraph(void);
 };
 
 

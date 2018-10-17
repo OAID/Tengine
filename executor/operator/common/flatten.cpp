@@ -41,10 +41,21 @@ namespace FlattenImpl {
 
 struct FlattenOps: public NodeOps {
 
-
-
-bool Run(Node * node)
+bool OnBind(Node * node) override
 {
+	 //set the inplace feature
+	 inplace_t io_map;
+
+	io_map[0]=0;
+
+	node->SetAttr(ATTR_INPLACE,io_map);
+
+     return true;
+}
+
+bool Run(Node * node) override
+{
+#if 0
     const Tensor * input_tensor=node->GetInputTensor(0);
     Tensor * output_tensor=node->GetOutputTensor(0);
  
@@ -58,7 +69,7 @@ bool Run(Node * node)
     {
         output[i]=input[i];
     }
-
+#endif
 
     return true;
 }

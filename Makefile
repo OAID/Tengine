@@ -4,16 +4,16 @@
 #CROSS_COMPILE=arm-linux-gnueabihf-
 SYSROOT:=$(shell pwd)/sysroot/ubuntu_rootfs
 
-ifeq ($(CROSS_COMPILE),"aarch64-linux-gnu-")
+ifeq ($(CROSS_COMPILE),aarch64-linux-gnu-)
    SYSROOT_FLAGS:=--sysroot=$(SYSROOT) 
    SYSROOT_LDFLAGS:=-L/usr/lib/aarch64-linux-gnu -L/lib/aarch64-linux-gnu
    PKG_CONFIG_PATH:=$(SYSROOT)/usr/lib/aarch64-linux-gnu/pkgconfig
    export PKG_CONFIG_PATH
 endif
-ifeq ($(CROSS_COMPILE),"arm-linux-gnueabihf-")
+ifeq ($(CROSS_COMPILE),arm-linux-gnueabihf-)
    SYSROOT_FLAGS:=--sysroot=$(SYSROOT)32 
    SYSROOT_LDFLAGS:=-L/usr/lib/arm-linux-gnueabihf -L/lib/arm-linux-gnueabihf
-   PKG_CONFIG_PATH:=$(SYSROOT)/usr/lib/arm-linux-gnueabihf/pkgconfig
+   PKG_CONFIG_PATH:=$(SYSROOT)32/usr/lib/arm-linux-gnueabihf/pkgconfig
    export PKG_CONFIG_PATH
 endif
 
@@ -26,7 +26,7 @@ BUILT_IN_LD=$(CROSS_COMPILE)ld
 
 GIT_COMMIT_ID=$(shell git rev-parse HEAD)
 
-COMMON_CFLAGS+=-Wno-ignored-attributes -Werror
+COMMON_CFLAGS+=-Wno-ignored-attributes -Werror -g
 
 export CC CXX CFLAGS BUILT_IN_LD LD LDFLAGS CXXFLAGS COMMON_CFLAGS 
 export GIT_COMMIT_ID
@@ -42,13 +42,13 @@ TOP_DIR=$(shell pwd)
 export INSTALL_DIR MAKEBUILD TOP_DIR
 
 
-LIB_SUB_DIRS=core operator executor serializer driver
+LIB_SUB_DIRS=core operator executor serializer driver model_src
 
 
 LIB_SO=$(BUILD_DIR)/libtengine.so
 LIB_A=$(BUILD_DIR)/libtengine.a
 
-LIB_OBJS =$(addprefix $(BUILD_DIR)/, $(foreach f,$(LIB_SUB_DIRS),$(f)/built-in.o))
+LIB_OBJS=$(addprefix $(BUILD_DIR)/, $(foreach f,$(LIB_SUB_DIRS),$(f)/built-in.o))
 
 APP_SUB_DIRS+=tools
 
@@ -136,8 +136,20 @@ endif
 
 $(LIB_OBJS): $(LIB_SUB_DIRS);
 
-$(LIB_SO): $(LIB_OBJS)
-	$(CC) -o $@ -shared -Wl,-Bsymbolic -Wl,-Bsymbolic-functions $(LIB_OBJS) $(LIB_LDFLAGS)
+#special handling for model_src
+
+MODEL_C_SRC=$(wildcard model_src/*.c model_src/*.cpp model_src/*.S)
+
+ifeq ($(MODEL_C_SRC),)
+    REAL_LIB_OBJS=$(filter-out %/model_src/built-in.o,$(LIB_OBJS))
+else
+    REAL_LIB_OBJS=$(LIB_OBJS)
+endif
+
+
+
+$(LIB_SO): $(REAL_LIB_OBJS) 
+	$(LD) -o $@ -shared -Wl,-Bsymbolic -Wl,-Bsymbolic-functions $(wildcard $(LIB_OBJS)) $(LIB_LDFLAGS)
 
 static: static_lib static_example
 

@@ -72,7 +72,7 @@ versions.pb.cc: versions.proto
 	$(MV) *.h ../include/
 
 clean::
-	rm *.pb.cc ../include/tensorflow/*.pb.h
+	rm -f *.pb.cc ../include/tensorflow/*.pb.h
 
 
 PROTOC=protoc

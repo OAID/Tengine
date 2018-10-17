@@ -464,14 +464,12 @@ struct conv1x1s1_param {
 	bool relu_fused;
 };
 
-static bool fixed_input_hw=true;
 
 struct ConvFast: public MTNodeOps {
 
-	bool RealPrerun(Node * node);
-	bool RealPostrun(Node * node);
 
 	bool Prerun(Node * node) override;
+	bool Reshape(Node * node) override;
 	bool Run(Node * node) override;
 	bool Postrun(Node * node) override;
 	bool GetSharedMemorySize(Node *, unsigned int & mem_size) override;
@@ -483,11 +481,7 @@ struct ConvFast: public MTNodeOps {
 	bool sgemm4x4_aider(int cpu, int seq, void * data /* sgemm_param * param */);
 
 	int relu_fused;
-
-	bool op_runned;
 	bool dynamic_shape;
-	bool DynamicProcess(Node * node);
-	bool PostDynamicProcess(Node * node);
 
 
 };
@@ -534,16 +528,8 @@ bool ConvFast::sgemm_aider(int cpu, int seq, void *data)
 }
 
 
+
 bool ConvFast::Prerun(Node * node)
-{
-	if(dynamic_shape)
-		return true;
-
-	return RealPrerun(node);
-}
-
-
-bool ConvFast::RealPrerun(Node * node)
 {
 	Convolution * conv_op=dynamic_cast<Convolution *>(node->GetOp());
 	ConvParam*  param=conv_op->GetParam();
@@ -552,8 +538,6 @@ bool ConvFast::RealPrerun(Node * node)
 	Tensor * output_tensor=node->GetOutputTensor(0);
 	TShape& output_shape=output_tensor->GetShape();
 	int output_chan = output_shape.GetC() / group;
-	int output_y    = output_shape.GetH();
-	int output_x    = output_shape.GetW();
 
 	/* pre-allocate col_buf */
 	Tensor * input_tensor=node->GetInputTensor(0);
@@ -561,18 +545,25 @@ bool ConvFast::RealPrerun(Node * node)
 
 	int input_chan  = input_shape.GetC() / group;
 	int kernel_size = input_chan * param->kernel_h * param->kernel_w;
-	int output_xy   = output_x*output_y;
 
-	if(node->ExistAttr("shared_col_buf"))
+	if(!dynamic_shape)
 	{
-		float * addr=(float *)any_cast<void *>(node->GetAttr("shared_col_buf"));
+	   if(node->ExistAttr("shared_col_buf"))
+	   {
+	 	   float * addr=(float *)any_cast<void *>(node->GetAttr("shared_col_buf"));
 
-		(*node)["col_buf"]=addr;
-	}
-	else
-	{
-		float * col_buf = (float*)mem_alloc(sizeof(float) * (kernel_size * ((output_xy + 3) & -4))+128);
-		(*node)["col_buf"]=col_buf;
+		   (*node)["col_buf"]=addr;
+	   }
+	   else
+	   {
+		   unsigned int  col_size;
+
+		   GetSharedMemorySize(node,col_size);
+
+		   float * col_buf = (float*)mem_alloc(col_size);
+		   (*node)["col_buf"]=col_buf;
+		   node->SetAttr("col_buf_allocated",col_size);
+	   }
 	}
 
 	/* packing kernel data */ 
@@ -612,28 +603,31 @@ bool ConvFast::RealPrerun(Node * node)
 	return true;
 }
 
-bool ConvFast::DynamicProcess(Node * node)
+bool ConvFast::Reshape(Node * node)
 {
+    unsigned int new_col_size;
 
-	if(!fixed_input_hw || !op_runned)
-		RealPrerun(node);
+    GetSharedMemorySize(node,new_col_size);
 
-	op_runned=true;
+    if(node->ExistAttr("col_buf_allocated"))
+    {
+         unsigned int col_size=any_cast<unsigned int>(node->GetAttr("col_buf_allocated"));
+         if(new_col_size==col_size)
+         return true;
 
+         float * addr=any_cast<float *>(node->GetAttr("col_buf"));
+         mem_free(addr);
+    }
 
-	return true;
+    float * col_buf = (float*)mem_alloc(new_col_size);
+    (*node)["col_buf"]=col_buf;
 
+    node->SetAttr("col_buf_allocated",new_col_size);
+    return true;
 }
-
 
 bool ConvFast::Run(Node * node)
 {
-	if(dynamic_shape)
-	{
-		PostDynamicProcess(node);
-		DynamicProcess(node);
-	}
-
 	/* input */
 	Tensor * input_tensor=node->GetInputTensor(0);
 
@@ -869,38 +863,29 @@ bool ConvFast::Run(Node * node)
 	return true;
 }
 
-bool ConvFast::PostDynamicProcess(Node * node)
-{
-	if(op_runned && !fixed_input_hw)
-		RealPostrun(node);
-
-	return true;
-}
-
 bool ConvFast::Postrun(Node * node)
 {
-	if(!dynamic_shape)
-		return RealPostrun(node);
 
+   if(node->ExistAttr("kernel_interleaved"))
+	{
+	    float * addr;
+	    addr=any_cast<float *>(node->GetAttr("kernel_interleaved"));
 
-	if(op_runned)
-		RealPostrun(node);
+	    mem_free(addr);
 
-	return true;    
-}
+	    node->RemoveAttr("kernel_interleaved");
+	}
 
-bool ConvFast::RealPostrun(Node * node)
-{
+    if(node->ExistAttr("col_buf"))
+	     node->RemoveAttr("col_buf");
 
-	float * addr;
-	addr=any_cast<float *>(node->GetAttr("kernel_interleaved"));
-	mem_free(addr);
+	if(node->ExistAttr("col_buf_allocated"))
+	{
+	    float * addr=any_cast<float *>(node->GetAttr("col_buf"));
+	    mem_free(addr);
 
-	if(node->ExistAttr("shared_col_buf"))
-		return true;
-
-	addr=any_cast<float *>(node->GetAttr("col_buf"));
-	mem_free(addr);
+	    node->RemoveAttr("col_buf_allocated");
+	}
 
 	relu_fused = false;
 	return true;
@@ -943,8 +928,6 @@ NodeOps * SelectFunc(const CPUInfo * cpu_info, Node * node)
 
 	ops->need_free=true;
 
-	ops->op_runned=false;
-
 	if(node->IsDynamicShape())
 		ops->dynamic_shape=true;
 	else
@@ -970,15 +953,6 @@ void RegisterConv2dFast(void)
 	NodeOpsRegistryManager::RegisterOPImplementor("arm64","Convolution",
 			conv_fast::SelectFunc,conv_fast::default_prio);
 
-	const char * fixed_hw=std::getenv("CONV_FIXED_HW");
-
-	if(fixed_hw)
-	{
-		if(fixed_hw[0]=='1')
-			conv_fast::fixed_input_hw=true;
-		else if (fixed_hw[0]=='0')
-			conv_fast::fixed_input_hw=false;
-	}
 
 }
 

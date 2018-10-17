@@ -27,6 +27,7 @@
 #include "data_type.hpp"
 #include "tensor.hpp"
 #include "static_graph.hpp"
+#include "node.hpp"
 
 namespace TEngine {
 
@@ -36,8 +37,22 @@ void Tensor::Reshape(const TShape& shape)
    if(shape_==shape)
          return;
 
+   reshaped_count_=consumer.size();
+
    shape_=shape;
 }
+
+void Tensor::UpdateReshapeCount(void)
+{
+    reshaped_count_--;
+
+    if(reshaped_count_<0)
+    {
+	    LOG_ERROR()<<"tensor: "<<name_<<" has bad reshaped_count: "
+		       <<(int) reshaped_count_<<"\n";
+    }
+}
+
 
 unsigned int Tensor::GetTotalSize(void) const
 {

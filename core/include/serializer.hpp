@@ -51,6 +51,12 @@ public:
         virtual bool LoadModel(const std::vector<std::string>& file_list, StaticGraph * static_graph)=0;
         virtual bool SaveModel(const std::vector<std::string>& file_list, Graph *graph) { return false; }
 
+	/* the memory stored in addr_list will be released by static graph */
+	virtual bool LoadModel(const std::vector<const void *>&addr_list, const std::vector<int>& size_list,
+			              StaticGraph * static_graph) { return false;}
+	virtual bool SaveModel(std::vector<void *>& addr_list, std::vector<int>& size_list, Graph * graph) 
+	                                                          {return false;}
+
         /* interface to load const tensor */
         virtual bool LoadConstTensor(const std::string& fname, StaticTensor * const_tensor)=0;
         virtual bool LoadConstTensor(int fd, StaticTensor * const_tensor)=0;
