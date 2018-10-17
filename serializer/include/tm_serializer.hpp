@@ -48,28 +48,31 @@ public:
 
     bool LoadModel(const std::vector<std::string>& file_list, StaticGraph *graph) override;
     bool SaveModel(const std::vector<std::string>& file_list, Graph *graph) override;
+    bool LoadModel(const std::vector<const void *>&addr_list, const std::vector<int>& size_list,
+			              StaticGraph * static_graph) override;
+    bool SaveModel(std::vector<void *>& addr_list, std::vector<int>& size_list, Graph * graph) override;
+
 
     bool LoadConstTensor(const std::string& fname, StaticTensor * const_tensor) override {return false; }
     bool LoadConstTensor(int fd, StaticTensor * const_tensor) override { return false; }
 
+    bool  LoadModelFromMem(void * mmap_buf, StaticGraph *graph);
+
+    bool IsSaveString(void);
+    bool IsSaveData(void);
+
 protected:
-    bool LoadBinaryFile(const char * tm_fname);
-    bool LoadNode(StaticGraph *graph, StaticNode *node, const TM_Node *tm_node);
-    bool LoadTensor(StaticGraph *graph, const TM_Tensor *tm_tensor, const TM_Buffer *tm_buf);
-    bool LoadGraph(StaticGraph *graph, const TM_Model *tm_model);
+    bool LoadBinaryFile(const char * tm_fname, int& fd, void * & buf,int& size);
+    bool LoadNode(StaticGraph *graph, StaticNode *node, const TM_Node *tm_node,void * mmap_buf);
+    bool LoadTensor(StaticGraph *graph, const TM_Tensor *tm_tensor, const TM_Buffer *tm_buf,void * mmap_buf);
+    bool LoadGraph(StaticGraph *graph, const TM_Model *tm_model,void * mmap_buf);
 
     tm_uoffset_t SaveTmSubgraph(void * const start_ptr, tm_uoffset_t *cur_pos, Graph *graph);
     tm_uoffset_t SaveTmNode(void * const start_ptr, tm_uoffset_t *cur_pos, Node *node, name_map_t& tensor_name_map);
     tm_uoffset_t SaveTmTensor(void * const start_ptr, tm_uoffset_t *cur_pos, Tensor *tensor,
                               unsigned int tensor_id, unsigned int buffer_id);
 
-private:
-    int mmap_fd_;
-    void *mmap_buf_;
-    size_t mmap_buf_size_;
 
-    bool tm_no_data_;
-    bool tm_with_string_;
 
 };
 

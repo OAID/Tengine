@@ -31,6 +31,11 @@
 
 namespace TEngine {
 
+StaticGraph::~StaticGraph(void)
+{
+    for(auto p: mem_src)
+		free(p);
+}
 
 StaticGraph * CreateStaticGraph(const std::string& name)
 {

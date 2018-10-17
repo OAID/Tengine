@@ -63,6 +63,46 @@ Tengine can be extended to support new serialization format, by building new ser
 
 ## Release History
 
+
+### version 0.7.2 - 2018/10/15
+
+Serializer:
+
+   tensorflow: support more models
+
+   ONNX:  update new onnx protobuf version and support more op
+
+
+### version 0.7.0 - 2018/9/15
+
+**New features**
+   
+Serializer: support saving model as c files
+
+ACL GPU:  add FP16 support
+
+NN: mobilenet v2 support in examples
+
+Accuray tools:  yolov2 accuracy test
+
+Build:
+
+       support cross-building arm32 library 
+
+       support building on raspberry pi 3b
+
+       automatically clean the build directory when makfile.config changed
+
+
+**Bug fix**
+
+   A few memory leakage issues in library and examples
+
+   A race condition issue between front thread  and the background working thread
+
+   Tensorflow serializer issue: fail to load inception_v3 model
+
+
 ### version 0.6.0 - 2018/7/02
 
 Support Tengine model file. protobuf is optional now.

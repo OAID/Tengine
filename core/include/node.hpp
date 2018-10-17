@@ -34,7 +34,6 @@
 namespace TEngine {
 
 class Node;
-class Tensor;
 
 struct NodePort {
     Node * owner;
@@ -281,6 +280,11 @@ public:
 
     bool IsDynamicShape(void) { return dynamic_shape_;}
     bool SetDynamicShape(bool val) { dynamic_shape_=val; return true; }
+
+    bool InputReshaped(void)  { 
+	                         Tensor * input=GetInputTensor(0);
+                                 return input->Reshaped(); 
+                              }
 
     /* Deprecated, should not use in new code */
     int GetParentNum(void);

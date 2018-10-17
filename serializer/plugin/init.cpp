@@ -44,6 +44,7 @@
 
 #ifdef CONFIG_TENGINE_SERIALIZER
 #include "tm_serializer.hpp"
+#include "src_tm_serializer.hpp"
 #endif
 
 #include "logger.hpp"
@@ -132,6 +133,14 @@ int serializer_plugin_init(void)
     SerializerManager::SafeAdd("tengine",SerializerPtr(tm_serializer));
 
     TmSerializerRegisterOpLoader();
+
+#define SrcTmName  "src_tm"
+
+    factory->RegisterInterface<SrcTmSerializer>(SrcTmName);
+    auto  src_tm_serializer=factory->Create(SrcTmName);
+
+    SerializerManager::SafeAdd(SrcTmName,SerializerPtr(src_tm_serializer));
+
 #endif
 
     //std::cout<<"SERIALIZER PLUGIN INITED\n";   

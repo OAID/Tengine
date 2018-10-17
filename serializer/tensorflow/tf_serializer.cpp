@@ -276,10 +276,10 @@ bool TFSerializer::MergeParentNode(TFNode * base_node, TFNode * parent_node)
 
       while (input_ir!=base_node->inputs.end())
       {
-	    if(*input_ir==parent_node)
-		  break;
+        if(*input_ir==parent_node)
+          break;
 
-	    input_ir++;
+        input_ir++;
       }
 
       base_node->inputs.erase(input_ir);
@@ -290,14 +290,14 @@ bool TFSerializer::MergeParentNode(TFNode * base_node, TFNode * parent_node)
 
      for(auto node: parent_node->inputs)
      {
-	  for(unsigned int i=0;i<node->outputs.size();i++)
-	  {
-	       if(node->outputs[i]==parent_node)
-		{
-			node->outputs[i]=base_node;
-			break;
-		}
-	  }
+      for(unsigned int i=0;i<node->outputs.size();i++)
+      {
+           if(node->outputs[i]==parent_node)
+        {
+            node->outputs[i]=base_node;
+            break;
+        }
+      }
      }
 
      /* bridge parent's output*/
@@ -306,24 +306,24 @@ bool TFSerializer::MergeParentNode(TFNode * base_node, TFNode * parent_node)
 
      while(output_ir!= parent_node->outputs.end())
      {
-	   TFNode * node=*output_ir;
+       TFNode * node=*output_ir;
 
-	   if(node!=base_node)
-	   {
-		  base_node->outputs.push_back(node);
+       if(node!=base_node)
+       {
+          base_node->outputs.push_back(node);
 
-		  for(unsigned int i=0;i<node->inputs.size();i++)
-	          {
-			  if(node->inputs[i]==parent_node)
-			  {
-				  node->inputs[i]=base_node;
-				  break;
-			  }
-			  
-		  } 
-	   }
+          for(unsigned int i=0;i<node->inputs.size();i++)
+              {
+              if(node->inputs[i]==parent_node)
+              {
+                  node->inputs[i]=base_node;
+                  break;
+              }
 
-	   output_ir++;
+          }
+       }
+
+       output_ir++;
      }
 
      /* handle TF definitions */
@@ -339,69 +339,111 @@ bool TFSerializer::MergeParentNode(TFNode * base_node, TFNode * parent_node)
 bool TFSerializer::CheckComposedBNAdd(TFNode * cur_node)
 { 
      if(cur_node->op != "Add") 
-	     return false;
+         return false;
 
      TFNode * input0=cur_node->inputs[0];
      TFNode * input1=cur_node->inputs[1];
 
      if(input0->op!= "Mul" || input1->op != "Sub")
-	     return false;
+         return false;
 
      /* further check: batchnorm/add_1 int name */
-     if(cur_node->name.find("batchnorm/add_1")!=std::string::npos)
-	     return true;
+     if(cur_node->name.find("batchnorm/add_1")!=std::string::npos){
+         if(input0->name.find("batchnorm/mul_1")!=std::string::npos
+                || input1->name.find("batchnorm/mul_1")!=std::string::npos)
+             cur_node->BNAddType = 1;
+         else
+             cur_node->BNAddType = 0;
+
+         return true;
+     }
 
      return false;
 }
 
-void TFSerializer::BNRecursiveInputMerge(TFNode * node)
+void TFSerializer::BNRecursiveInputMerge(TFNode *node)
 {
-     bool mul_1_node=false;
+    bool mul_1_node = false;
+    bool mul_node = false;
+    if (node->name.find("/batchnorm/mul") != std::string::npos)
+    {
+        if (node->BNAddType == 1)
+        {
+            if (node->name.find("/batchnorm/mul_1") != std::string::npos)
+            {
+                mul_1_node = true;
+            }
+            else if (node->name.find("/batchnorm/mul_2") == std::string::npos)
+            {
+                //disconnect the connection between mul and mul2
+                auto ir = node->outputs.begin();
 
-     if(node->name.find("/batchnorm/mul")!=std::string::npos)
-     {
-         if(node->name.find("/batchnorm/mul_1")!=std::string::npos)
-         {
-	     mul_1_node=true;
-	  }else if(node->name.find("/batchnorm/mul_2")==std::string::npos)
-	  {
-	      
-	    //disconnect the connection between mul and mul2
-	    auto ir=node->outputs.begin();
+                if ((*ir)->name.find("/batchnorm/mul2") == std::string::npos)
+                    ir++;
 
-	    if((*ir)->name.find("/batchnorm/mul2")==std::string::npos)
-		    ir++;
+                TFNode *mul2_node = *ir;
 
-	    TFNode * mul2_node=*ir;
+                node->outputs.erase(ir);
 
-	    node->outputs.erase(ir);
+                ir = mul2_node->inputs.begin();
 
-	    ir=mul2_node->inputs.begin();
+                if ((*ir)->name.find("/batchnorm/mul") == std::string::npos)
+                    ir++;
 
-	    if((*ir)->name.find("/batchnorm/mul")==std::string::npos)
-		    ir++;
+                mul2_node->inputs.erase(ir);
+            }
+        }
+        else
+        {
+            if (node->name.find("/batchnorm/mul_1") != std::string::npos)
+            {
+                //disconnect the connection between add_1 mul_1
+                auto ir = node->inputs.begin();
 
-	    mul2_node->inputs.erase(ir);
-	  }
-     }
+                if ((*ir)->name.find("/batchnorm/add_1") == std::string::npos)
+                    ir++;
 
-     int orig_input_size=node->inputs.size();
-     std::vector<TFNode *> input_cpy=node->inputs;
+                if ((*ir)->name.find("/batchnorm/add_1") != std::string::npos)
+                {
+                    TFNode *Rsqrt_node = *ir;
 
-     for(int i=0; i<orig_input_size;i++)
-     {
-	
-	if(mul_1_node && i==0) 
-		continue;
+                    node->inputs.erase(ir);
 
-        TFNode * input_node=input_cpy[i];
+                    ir = Rsqrt_node->outputs.begin();
 
-	if(input_node->op=="Const")
-		continue;
+                    if ((*ir)->name.find("/batchnorm/mul_1") == std::string::npos)
+                        ir++;
 
-	BNRecursiveInputMerge(input_node);
-	MergeParentNode(node,input_node);
-     }
+                    Rsqrt_node->outputs.erase(ir);
+                }
+            }
+            else
+            {
+                mul_node = true;
+                //printf("name:%s\n",node->name.c_str());
+            }
+        }
+    }
+
+    int orig_input_size = node->inputs.size();
+    std::vector<TFNode *> input_cpy = node->inputs;
+
+    for (int i = 0; i < orig_input_size; i++)
+    {
+
+        if (mul_node && i == 0)
+            continue;
+        if (mul_1_node && i == 0)
+            continue;
+
+        TFNode *input_node = input_cpy[i];
+        input_node->BNAddType = node->BNAddType;
+        if (input_node->op == "Const")
+            continue;
+
+        BNRecursiveInputMerge(input_node);
+        MergeParentNode(node, input_node);
+    }
 }
 
 
@@ -418,10 +460,10 @@ void TFSerializer::FuseComposedBN(TFNode * cur_node)
 
      for(unsigned int i=0;i < cur_node->inputs.size();i++)
      {
-	  TFNode * node=cur_node->inputs[i];
+      TFNode * node=cur_node->inputs[i];
 
-	  if(node->name.find("/batchnorm/add/y")!=std::string::npos)
-		  node->no_static_node=true;
+      if(node->name.find("/batchnorm/add/y")!=std::string::npos)
+          node->no_static_node=true;
      }
 
 
@@ -487,65 +529,65 @@ bool TFSerializer::MergeChildNode(TFNode * base_node, TFNode * child_node)
 
 void TFSerializer::CleanupResizeNearestNeighbor(TFGraph& tf_graph)
 {
-	auto ir=tf_graph.seq_nodes.begin();
+    auto ir=tf_graph.seq_nodes.begin();
 
-	while(ir!=tf_graph.seq_nodes.end())
+    while(ir!=tf_graph.seq_nodes.end())
         {
             TFNode * cur_node=*ir;
 
-	    if(cur_node->op=="ResizeNearestNeighbor")
-	    {
-		    TFNode * data_node=cur_node->inputs[0];
-		    TFNode * data_shape_node=nullptr;
+        if(cur_node->op=="ResizeNearestNeighbor")
+        {
+            TFNode * data_node=cur_node->inputs[0];
+            TFNode * data_shape_node=nullptr;
 
-		    for(unsigned int i=0;i<data_node->outputs.size();i++)
-		    {
-			   data_shape_node=data_node->outputs[i];
+            for(unsigned int i=0;i<data_node->outputs.size();i++)
+            {
+               data_shape_node=data_node->outputs[i];
 
-			  if(data_shape_node->op=="Shape")
-				  break;
-		    }
+              if(data_shape_node->op=="Shape")
+                  break;
+            }
 
-		    DisconnectNode(data_shape_node);
+            DisconnectNode(data_shape_node);
 
-		    TFNode * mul_node=cur_node->inputs[1];
-		    TFNode * stride_slice=mul_node->inputs[0];
+            TFNode * mul_node=cur_node->inputs[1];
+            TFNode * stride_slice=mul_node->inputs[0];
 
-		    DisconnectNode(stride_slice);
-		    DisconnectNode(mul_node);
+            DisconnectNode(stride_slice);
+            DisconnectNode(mul_node);
 
-	    }
+        }
 
-	    ir++;
+        ir++;
 
-	}
+    }
 }
 
 void TFSerializer::MergeReluMinimum(TFGraph & tf_graph)
 {
-	for(auto ir=tf_graph.seq_nodes.begin(); ir!=tf_graph.seq_nodes.end();ir++)
-	{
+    for(auto ir=tf_graph.seq_nodes.begin(); ir!=tf_graph.seq_nodes.end();ir++)
+    {
             TFNode * cur_node=*ir;
 
-	    if(cur_node->inputs.size()==0)
-		    continue;
+        if(cur_node->inputs.size()==0)
+            continue;
 
-	    TFNode * input0=cur_node->inputs[0];
+        TFNode * input0=cur_node->inputs[0];
 
-	    if(cur_node->op=="Minimum" && 
-		input0->op=="Relu")
-	     {
+        if(cur_node->op=="Minimum"
+            && input0->op=="Relu")
+         {
 
-		  TFNode * const_node=cur_node->inputs[1];
+          TFNode * const_node=cur_node->inputs[1];
 
-		  DisconnectNode(const_node);
+          DisconnectNode(const_node);
 
-		  MergeChildNode(input0,cur_node);
+          MergeChildNode(input0,cur_node);
 
-		  input0->op="Relu6";
-		//  input0->op="Relu";
-	     }
-	}
+          input0->op="Relu6";
+        //  input0->op="Relu";
+         }
+    }
 }
 
 bool TFSerializer::OptimizeGraph(TFGraph& tf_graph)
@@ -713,9 +755,9 @@ bool TFSerializer::OptimizeGraph(TFGraph& tf_graph)
     {
         TFNode * cur_node=*ir;
 
-	if(CheckComposedBNAdd(cur_node))
-	    FuseComposedBN(cur_node);
-	ir++;
+    if(CheckComposedBNAdd(cur_node))
+        FuseComposedBN(cur_node);
+    ir++;
     }
 
     /* cleanup ResizeNearestNeighbor */
@@ -790,7 +832,7 @@ bool TFSerializer::GenerateStaticGraph(TFGraph& tf_graph, StaticGraph * graph)
         }
 
        if(tf_node->no_static_node)
-		continue;
+        continue;
 
        if(tf_node->op=="Const")
        {
@@ -1020,7 +1062,7 @@ static void * LoadConstParam(TFNode * tf_node)
 
         GetTensorContentAndDim(tf_tensor,dims,mem_ptr,layout);
      
-        return mem_ptr;	
+        return mem_ptr;
     }
 
     return nullptr;
@@ -1440,22 +1482,68 @@ static bool LoadEltwise(TFNode * tf_node, TFGraph& tf_graph, StaticGraph * graph
     return true;
 }
 
+static void CreatePresetNode(StaticGraph * graph, StaticNode * node, const char * name, const char * layout,
+               std::vector<int>& dims, float val)
+{
+     std::string new_tensor_name = node->name;
+     auto pos=new_tensor_name.find("bn.fused");
+     new_tensor_name = new_tensor_name.replace(pos,strlen("bn.fused"),name);
+     StaticTensor * tensor=CreateStaticConstTensor(graph,new_tensor_name);
+     SetTensorDim(tensor,dims);
+     SetTensorDataType(tensor,"float32");
+     SetTensorDataLayout(tensor,layout);
+
+     int elem_size=1;
+
+     for(unsigned int i=0;i < dims.size();i++)
+     {
+         elem_size*=dims[i];
+     }
+
+     SetTensorSize(tensor,elem_size*sizeof(float));
+
+     float* ptr=(float *)std::malloc(elem_size*sizeof(float));
+
+     for(int i=0;i<elem_size;i++)
+         ptr[i]=val;
+
+     SetConstTensorBuffer(tensor,ptr);
+     SetConstTensorFileLocation(tensor,-1,0);
+
+     StaticNode * new_node=CreateStaticNode(graph,new_tensor_name);
+
+     StaticOp * const_op=CreateStaticOp(graph,"Const");
+
+     SetNodeOp(new_node,const_op);
+
+     AddNodeOutputTensor(new_node,tensor);
+
+     AddNodeInputTensor(node,tensor);
+}
+
 static bool LoadComposedBN(TFNode * tf_node, TFGraph& tf_graph, StaticGraph * graph)
 {
-
-    TFNode * input0=tf_node->inputs[0];
-    TFNode * gamma=tf_node->inputs[1];
-    TFNode * var=tf_node->inputs[2];
-    TFNode * add_y=tf_node->inputs[3];
-    TFNode * beta=tf_node->inputs[4];
-    TFNode * mean=tf_node->inputs[5];
-
+    int i = 0;
+    TFNode * input0=tf_node->inputs[i++];
     StaticNode * node=tf_node->static_node;
-
     AddNodeInputTensor(node,input0->static_tensor);
-    AddNodeInputTensor(node,gamma->static_tensor);   
-    AddNodeInputTensor(node,beta->static_tensor);   
-    AddNodeInputTensor(node,mean->static_tensor);   
+    //add gamma node
+    if (tf_node->BNAddType == 1)
+    {
+        TFNode * gamma=tf_node->inputs[i++];
+        AddNodeInputTensor(node,gamma->static_tensor);
+    }
+    else
+    {
+        std::vector<int> dims = tf_node->inputs[i]->static_tensor->dims;  // dims of var
+        CreatePresetNode(graph,node,"gamma","W",dims,1.0f);
+    }
+    TFNode * var=tf_node->inputs[i++];
+    TFNode * add_y=tf_node->inputs[i++];
+    TFNode * beta=tf_node->inputs[i++];
+    TFNode * mean=tf_node->inputs[i++];
+    AddNodeInputTensor(node,beta->static_tensor);
+    AddNodeInputTensor(node,mean->static_tensor);
     AddNodeInputTensor(node,var->static_tensor);   
 
     BatchNormParam param=any_cast<BatchNormParam>(OpManager::GetOpDefParam("BatchNormalization"));
@@ -1469,7 +1557,7 @@ static bool LoadComposedBN(TFNode * tf_node, TFGraph& tf_graph, StaticGraph * gr
     free(eps_ptr);
 
    // printf("eps=%.20f\n",param.eps);
-		    
+
     StaticOp * op=CreateStaticOp(graph,"BatchNormalization");
     SetOperatorParam(op,param);
     SetNodeOp(node,op);

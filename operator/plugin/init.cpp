@@ -57,6 +57,7 @@
 #include "operator/region.hpp"
 #include "operator/deconvolution.hpp"
 #include "operator/resize.hpp"
+#include "operator/gemm.hpp"
 
 extern "C" {
     int operator_plugin_init(void);
@@ -98,6 +99,7 @@ int operator_plugin_init(void)
     RegisterOp<Region>("Region");
     RegisterOp<Deconvolution>("Deconvolution");
     RegisterOp<Resize>("Resize");
+    RegisterOp<Gemm>("Gemm");
 
 
    // std::cout<<"OPERATOR PLUGIN INITED\n";

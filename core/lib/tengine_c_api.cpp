@@ -61,7 +61,11 @@ namespace TEngine {
 
 #define TO_BE_IMPLEMENTED XLOG_WARN()<<"TODO: "<<__FUNCTION__<<" to be implemented\n"
 
-static int vload_model(const char * model_name, const char * file_format, const char * fname, va_list ap);
+static int vload_file_model(const char * model_name, const char * model_format, const char * fname, va_list ap);
+static int vload_mem_model (const char * model_name, const char * model_format, const void * mem_addr,
+		            int mem_size,va_list ap);
+static int vload_model(const char * model_name, const char * model_format, const void * addr,int mem_size,va_list ap);
+
 static workspace_t get_default_workspace(void);
 static user_context_t get_default_user_context();
 
@@ -81,7 +85,7 @@ graph_t create_graph(const char * graph_name, const char * format, const char * 
 
     /*the model name is the same as graph name */
 
-    ret=vload_model(graph_name,format,fname,argp);
+    ret=vload_file_model(graph_name,format,fname,argp);
 
     if(ret<0)
         return nullptr;
@@ -380,49 +384,96 @@ int request_tengine_version(const char * version)
     return 1;
 }
 
-static int vload_model(const char * model_name, const char * file_format, const char * fname, va_list argp)
+static int vload_model(const char * model_name, const char * model_format, const void * addr,int mem_size, va_list argp)
 {
     SerializerPtr serializer;
 
-    if(!SerializerManager::SafeGet(file_format,serializer))
+    if(!SerializerManager::SafeGet(model_format,serializer))
         return -1;
-
-    int saved_file_number=serializer->GetFileNum();
-
-    std::vector<std::string> file_list;
-
-    file_list.push_back(fname);
-
-
-    for(int i=1;i<saved_file_number;i++)
-    {
-        const char * file=va_arg(argp,const char *);
-        file_list.emplace_back(file);
-    }
-
-    va_end(argp);
 
     StaticGraph * static_graph=CreateStaticGraph(model_name);
 
-    if(!serializer->LoadModel(file_list,static_graph) ||
-       !CheckGraphIntegraity(static_graph))
+    int saved_file_number=serializer->GetFileNum();
+
+    if(mem_size==0) //file mode
     {
-        delete static_graph;
-        return -1;
+
+    	std::vector<std::string> file_list;
+    	file_list.push_back((const char *)addr);
+
+    	for(int i=1;i<saved_file_number;i++)
+    	{
+        	const char * file=va_arg(argp,const char *);
+        	file_list.emplace_back(file);
+    	}
+
+       if(!serializer->LoadModel(file_list,static_graph) ||
+            !CheckGraphIntegraity(static_graph))
+       {
+            delete static_graph;
+            return -1;
+       }
     }
+    else
+    {
+        std::vector<const void * > addr_list;
+	std::vector<int > size_list;
+
+	addr_list.push_back(addr);
+	size_list.push_back(mem_size);
+
+
+	for(int i=1;i<saved_file_number;i++)
+	{
+		addr=va_arg(argp,const void *);
+		mem_size=va_arg(argp,int);
+		
+		addr_list.push_back(addr);
+		size_list.push_back(mem_size);
+	}
+
+       if(!serializer->LoadModel(addr_list,size_list,static_graph) ||
+            !CheckGraphIntegraity(static_graph))
+       {
+            delete static_graph;
+            return -1;
+       }
+    }
+
          
+    va_end(argp);
+
     if(StaticGraphManager::SafeAdd(std::string(model_name),StaticGraphPtr(static_graph)))
         return 0;   
 
     return -1;
 }
 
-int load_model(const char * model_name, const char * file_format, const char * fname, ...)
+int vload_file_model(const char * model_name, const char * model_format,const char * fname, va_list argp)
+{
+	return vload_model(model_name,model_format,fname,0,argp);
+}
+
+int vload_mem_model(const char * model_name, const char * model_format,const void * addr, int mem_size,va_list argp)
+{
+	return vload_model(model_name,model_format,addr,mem_size,argp);
+}
+
+int load_model(const char * model_name, const char * model_format, const char * fname, ...)
 {
     va_list argp;
     va_start(argp,fname);
 
-    return vload_model(model_name,file_format,fname,argp);
+    return vload_file_model(model_name,model_format,fname,argp);
+}
+
+int load_mem_model(const char * model_name, const char * model_format, void * mem_addr,int mem_size, ...)
+{
+    va_list argp;
+
+    va_start(argp,mem_size);
+
+    return vload_mem_model(model_name,model_format,mem_addr,mem_size,argp);
 }
 
 int save_model(graph_t graph, const char * file_format, const char * fname, ...)
@@ -669,9 +720,11 @@ int  set_tensor_shape(tensor_t tensor, int dims[], int dim_number)
 
     Tensor * real_tensor=h->tensor;
 
-    TShape& shape=real_tensor->GetShape();
+    TShape shape=real_tensor->GetShape();
 
     shape.SetDim(dim);
+
+    real_tensor->Reshape(shape);
 
     return 0;
 }
@@ -798,6 +851,11 @@ int get_node_param_float(node_t node, const char * param_name, float * param_val
     return get_node_param_generic(node,param_name,&typeid(float),param_val);
 }
 
+int get_node_param_float(node_t node, const char * param_name, void*  param_val)
+{
+    return get_node_param_generic(node,param_name,nullptr,param_val);
+}
+
 /* a temporary solution: 
  * Define an intermidate function 
  * NodeGetParamGeneric(): defined in node.cpp
@@ -823,6 +881,11 @@ int set_node_param_int(node_t node, const char * param_name, const int * param_v
 int set_node_param_float(node_t node, const char * param_name, const float * param_val)
 {
     return set_node_param_generic(node,param_name,&typeid(float),param_val);
+}
+
+int set_node_param_pointer(node_t node, const char * param_name, const void*  param_val)
+{
+    return set_node_param_generic(node,param_name,nullptr,param_val);
 }
 
     

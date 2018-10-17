@@ -14,4 +14,11 @@ endif
 
 ifeq ($(CONFIG_TENGINE_SERIALIZER),y)
 bin-obj-y+=test_tm.o
+bin-obj-y+=save_model_src.o
+bin-obj-y+=load_model_src.o
 endif
+
+ifeq ($(CONFIG_ONNX_SERIALIZER),y)
+bin-obj-y+=test_onnx.o
+endif
+

@@ -99,7 +99,7 @@ private:
   int output_task_number_;
   int status_;
   GenericEngine * dev_engine_;
-  WaitEvent * wait_event_;
+  WaitEvent  wait_event_;
   bool     task_done_;
   int exec_priority_;
   std::string exec_policy_;
