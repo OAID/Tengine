@@ -4,6 +4,7 @@
 *.exe
 tests/data/
 build/
+cmake-build-debug/
 *.log
 *.pb.cc
 *.pb.h
