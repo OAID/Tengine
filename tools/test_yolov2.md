@@ -2,12 +2,14 @@
 
 [![GitHub license](http://OAID.github.io/pics/apache_2.0.svg)](./LICENSE)
 
-## Download required models
-Download the models from [Tengine model zoo](https://pan.baidu.com/s/1LXZ8vOdyOo50IXS0CUPp8g) (psw: 57vb)
+## Download required models and test images
+Download 
 
-
-## prepare the test images
-Download voc_2007_test from [FTP](ftp://ftp.openailab.net/Tengine_models/voc_2007_test.tgz)
+* Tengine_models/yolov2/yolo-voc.prototxt
+* Tengine_models/yolov2/yolo-voc.caffemodel
+* Tengine_models/voc_2007_test.tgz
+  
+from [Tengine model zoo](https://pan.baidu.com/s/1LXZ8vOdyOo50IXS0CUPp8g) (psw: 57vb)
 
 ```
   tar -zxvf ./voc_2007_test.tgz
