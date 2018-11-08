@@ -52,7 +52,7 @@ struct DeconvBlasOps : public NodeOps
         const Tensor * input_tensor=node->GetInputTensor(0);
         const TShape&  shape=input_tensor->GetShape();
         const std::vector<int> dims=shape.GetDim();
-    
+
         int size=dims[2]*dims[3]* param_->kernel_size * param_->kernel_size * param_->num_output;
         float * buffer = (float*)std::malloc(sizeof(float)*size );
         memset(buffer,0,size*sizeof(float));
@@ -92,17 +92,21 @@ struct DeconvBlasOps : public NodeOps
 
     void col2im(float* data_col,float* data_im,
             int channels,  int height,  int width,
-            int ksize,  int stride, int pad, int dilation, int h_out,int w_out) 
+            int ksize,  int stride, int pad, int dilation, int h_out,int w_out)
     {
-        int c,h,w;
+        int c,h;
         float * out=data_col;
-        for (c = 0; c < channels; ++c) 
+        for (c = 0; c < channels; ++c)
         {
             for(int ki=0;ki<ksize;ki++)
             {
                 for(int kj=0;kj<ksize;kj++)
                 {
-                    for (h = 0; h < h_out; ++h) 
+                    const int im_col = kj * dilation - pad;
+                    const int w_low  = std::max(0,            - im_col  / stride + (       - im_col  % stride > 0));
+                    const int w_high = std::min(w_out, (width - im_col) / stride + ((width - im_col) % stride > 0));
+
+                    for (h = 0; h < h_out; ++h)
                     {
                         int im_row = ki*dilation + h * stride-pad;
                         if(im_row<0 || im_row>=height)
@@ -111,23 +115,22 @@ struct DeconvBlasOps : public NodeOps
                         }
                         else
                         {
-                            int w_offset = width*(im_row + height*c );
-                            for (w = 0; w < w_out; ++w) 
+                            float * dst = data_im + width * (im_row + height * c) + im_col + w_low * stride;
+                            const float * end = out + w_high;
+
+                            out += w_low;
+                            while (out < end)
                             {
-                                int im_col = kj*dilation + w * stride-pad;
-                                if(im_col>=0 && im_col<width)
-                                {
-                                    data_im[im_col+ w_offset ]+= *out;
-                                }
-                                out++;
+                                *dst += *(out++);
+                                dst += stride;
                             }
+                            out += w_out - w_high;
                         }
                     }
                 }
             }
         }
     }
-
 
     bool Run(Node *node) //
     {
@@ -185,15 +188,15 @@ struct DeconvBlasOps : public NodeOps
             float *inp = input + b*chw_in;
             float *out_ptr = output + b*chw_out;
 
-            cblas_sgemm(CblasRowMajor, CblasTrans, CblasNoTrans, 
+            cblas_sgemm(CblasRowMajor, CblasTrans, CblasNoTrans,
                             m, n, k, 1, weight, m, inp, n, 0, buffer, n);
 
-            col2im(buffer,out_ptr, c_out, h_out, w_out, 
+            col2im(buffer,out_ptr, c_out, h_out, w_out,
                  ksize, stride, pad,dilation,h_in,w_in);
 
             add_bias(out_ptr, bias, c_out, hw_out);
         }
-        
+
         return true;
     }
 
