@@ -31,19 +31,15 @@
 #include "tensor_mem.hpp"
 #include "graph.hpp"
 #include "operator/convolution.hpp"
-#include<math.h>
+#include <math.h>
 #include <cblas.h>
-
-
-
 
 namespace TEngine {
 
-namespace ConvolutionImpl 
+namespace ConvolutionImpl
 {
 
-
-struct ConvolutionOps: public NodeOps 
+struct ConvolutionOps: public NodeOps
 {
 
     void im2col(float *data_img, float *data_col,
@@ -52,27 +48,42 @@ struct ConvolutionOps: public NodeOps
                  int ksize_h, int ksize_w, int sh, int sw,
                  int ph, int pw, int dh, int dw)
     {
+        const int channels_col = ksize_h*ksize_w*inc;
 
-        int channels_col = ksize_h*ksize_w*inc;
-        for (int c = 0; c < channels_col; ++c) 
+        for (int c = 0; c < channels_col; ++c)
         {
-            int kw = c % ksize_w;
+            const int kw = c % ksize_w;
             int c_ = c / ksize_w;
-            int kh = c_ % ksize_h;
+            const int kh = c_ % ksize_h;
             c_ = c_ / ksize_h;
-		    for (int h = 0; h < outh; ++h)
-		    {
-			    for (int w = 0; w < outw; ++w)
-			    {
-                    int im_row = kh * dh + h * sh - ph;
-                    int im_col = kw * dw + w * sw - pw;
-				    int col_index = (c * outh + h) * outw + w;
-				    data_col[col_index] =
-				        (im_row >= 0 && im_col >= 0 && im_row < inh && im_col < inw)?
-				        data_img[im_col + inw*(im_row + inh*c_)] : 0;
-			    }
-		    }
-	    }
+            const int im_col = kw * dw - pw;
+            const int w_low  = std::max(0,         - im_col  / sw + (     - im_col  % sw > 0));
+            const int w_high = std::min(outw, (inw - im_col) / sw + ((inw - im_col) % sw > 0));
+
+            for (int h = 0; h < outh; ++h)
+            {
+                const int im_row = kh * dh + h * sh - ph;
+                float * out = data_col + (c * outh + h) * outw;
+                const float * end = out + w_high;
+
+                if (im_row >= 0 && im_row < inh)
+                {
+                    float * in = data_img + inw * (im_row + inh * c_) + im_col + (w_low - 1) * sw;
+
+                    memset(out, 0, w_low * sizeof(float));
+                    out += w_low;
+                    while (out < end)
+                    {
+                        in += sw;
+                        *(out++) = *in;
+                    }
+                    memset(out, 0, (outw - w_high) * sizeof(float));
+
+                } else {
+                    memset(out, 0, outw * sizeof(float));
+                }
+            }
+        }
     }
     void relu(float* data,int size)
     {
@@ -103,9 +114,9 @@ struct ConvolutionOps: public NodeOps
         const TShape&  shape=input_tensor->GetShape();
         const std::vector<int> in_dims=shape.GetDim();
 
-         Tensor * output_tensor=node->GetOutputTensor(0);
-         TShape&  shape1=output_tensor->GetShape();
-         std::vector<int> out_dims=shape1.GetDim();
+        Tensor * output_tensor=node->GetOutputTensor(0);
+        TShape&  shape1=output_tensor->GetShape();
+        std::vector<int> out_dims=shape1.GetDim();
 
         int size=param->kernel_h*param->kernel_w *in_dims[1]/param->group*out_dims[2]*out_dims[3];
         float * buffer = (float*)std::malloc(sizeof(float) * size);
@@ -156,11 +167,11 @@ struct ConvolutionOps: public NodeOps
         int outw= out_dims[3];
         int out_hw = outh * outw;
         int out_chw = out_hw * outc;
-        
+
         int ksize_h = param->kernel_h;
         int ksize_w = param->kernel_w;
-        int pad_w = param->pads[1];  
-        int pad_h = param->pads[0];  
+        int pad_w = param->pads[1];
+        int pad_h = param->pads[0];
 
         int stride_w    = param->stride_w;
         int stride_h    = param->stride_h;
@@ -174,7 +185,7 @@ struct ConvolutionOps: public NodeOps
         int m = outc_g;
         int k = ksize_h * ksize_w * inc_g;
         int n = outh * outw;
-        
+
         int in_chw_g = inh * inw * inc_g;
         int out_chw_g = outc_g * out_hw;
         int kernel_size_g = outc_g * ksize_h *ksize_w * inc_g;
@@ -189,7 +200,7 @@ struct ConvolutionOps: public NodeOps
                     <<outc<<" "<<outh<<" "<<outw<<"\t";
         }
 
-        
+
         for (int i = 0; i < batch_number; i++)
         {
             for(int g = 0; g < group; g++ )
@@ -199,12 +210,12 @@ struct ConvolutionOps: public NodeOps
                     outh, outw, outc_g,
                     ksize_h, ksize_w, stride_h, stride_w,
                     pad_h,pad_w,dilation_h,dilation_w);
-               
-                cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, 
-                            m, n, k, 1, kernel + g* kernel_size_g, k, buffer, n, 0, 
+
+                cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
+                            m, n, k, 1, kernel + g* kernel_size_g, k, buffer, n, 0,
                             output + i* out_chw+ g* out_chw_g, n);
             }
-        }        
+        }
         if(have_biases)
         {
             biases = (float *) get_tensor_mem(node->GetInputTensor(2));
