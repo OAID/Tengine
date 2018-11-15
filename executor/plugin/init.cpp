@@ -89,7 +89,7 @@ namespace TEngine {
 #endif
 
 #ifdef CONFIG_ACL_GPU
-    extern void RegisterConv2dOpencl(void);
+//    extern void RegisterConv2dOpencl(void);
 #endif
 
     void DevAllocatorManagerInit(void);

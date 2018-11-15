@@ -24,12 +24,14 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
+#include <functional>
 
 #include "graph_executor.hpp"
 #include "tengine_config.hpp"
 
 
 namespace TEngine {
+
 
 bool GraphExecutor::CreateGraph(const std::string& graph_name, const std::string& model_name)
 {
@@ -68,7 +70,34 @@ bool GraphExecutor::CreateGraph(const std::string& graph_name, const std::string
        return false;
    }
 
+   exec_attr_.model_format=graph->GetModelFormat();
 
+   //check kernel mode variable
+   const char * mode=std::getenv("KERNEL_MODE");
+
+   if(mode)
+   {
+	   int kernel_mode=strtoul(mode,NULL,10);
+
+	   LOG_INFO()<<"ENV Set kernel mode: ["<<kernel_mode<<"]\n";
+
+	   exec_attr_.kernel_mode=kernel_mode;
+   }
+   
+   //check low_mem_mode env var
+
+   const char * mem=std::getenv("LOW_MEM_MODE");
+
+   if(mem)
+   {
+       if(mem[0]=='0')
+           exec_attr_.low_mem_mode=false;
+       else
+           exec_attr_.low_mem_mode=true;
+
+   }
+   
+    
    return true; 
   
 }
@@ -463,6 +492,141 @@ Graph *  GraphExecutor::GetOptimizedGraph(void)
 
       return exec_engine_->GetOptimizedGraph(exec_handle_);
 }
+
+bool GraphExecutor::SetExecAttrEntry(const char * name, const void *val, int size)
+{
+      if(!strcmp("exec_policy",name))
+	  {
+	       exec_attr_.policy=(exec_policy_t)(*(int*)val);
+	  }else if(!strcmp("exec_priority",name))
+	  {
+		   exec_attr_.priority=*(int *)val;
+	  }
+	  else if(!strcmp("kernel_mode",name))
+	  {
+		  exec_attr_.kernel_mode=*(int *)val;
+	  }
+	  else if(!strcmp("low_mem_mode",name))
+	  {
+		   int n=*(int *)val;
+
+		   if(n)
+			    exec_attr_.low_mem_mode=true;
+		   else
+			   exec_attr_.low_mem_mode=false;
+	  }
+	  else if(!strcmp("fc_mt",name))
+	  {
+		  int n=*(int *)val;
+		  if(n)
+			  exec_attr_.fc_mt=true;
+		  else
+			  exec_attr_.fc_mt=false;
+	  }
+	  else if(!strcmp("pooling_mt",name))
+	  {
+		  int n=*(int *)val;
+		  if(n)
+			  exec_attr_.pooling_mt=true;
+		  else
+			  exec_attr_.pooling_mt=false;
+	  }
+	  else
+      {
+		  return false;
+	  }
+
+	  return true;
+}
+
+bool GraphExecutor::GetExecAttrEntry(const char * name, void * val, int size)
+{
+      if(!strcmp("exec_policy",name))
+	  {
+	       *(int *)val=exec_attr_.policy;
+	  }else if(!strcmp("exec_priority",name))
+	  {
+		   *(int *)val=exec_attr_.priority;
+	  }
+	  else if(!strcmp("kernel_mode",name))
+	  {
+		  *(int *)val=exec_attr_.kernel_mode;
+	  }
+	  else if(!strcmp("low_mem_mode",name))
+	  {
+		   if(exec_attr_.low_mem_mode)
+			   *(int *)val=1;
+		   else
+			   *(int *)val=0;
+	  }
+	  else if(!strcmp("fc_mt",name))
+	  {
+		   if(exec_attr_.fc_mt)
+			   *(int *)val=1;
+		   else
+			   *(int *)val=0;
+	  }
+	  else
+	  {
+		  return false;
+	  }
+
+	  return true;
+}
+
+bool GraphExecutor::BailoutSetAttr(const char * name, const void * val, int size)
+{
+	return exec_engine_->SetGraphAttr(exec_handle_,name,val,size); 
+}
+
+bool GraphExecutor::BailoutGetAttr(const char * name, void * val, int size)
+{
+	return exec_engine_->GetGraphAttr(exec_handle_,name,val,size);
+}
+
+
+void GraphExecutor::InitAttrIO(void)
+{
+	auto get_func=std::bind(&GraphExecutor::GetExecAttrEntry,this,
+			                 std::placeholders::_1,
+			                 std::placeholders::_2,
+							 std::placeholders::_3);
+
+
+	attr_io_.RegGetFunc("exec_policy",get_func);
+	attr_io_.RegGetFunc("exec_priority",get_func);
+	attr_io_.RegGetFunc("kernel_mode",get_func);
+	attr_io_.RegGetFunc("low_mem_mode",get_func);
+	attr_io_.RegGetFunc("fc_mt",get_func);
+	attr_io_.RegGetFunc("pooling_mt",get_func);
+
+	auto set_func=std::bind(&GraphExecutor::SetExecAttrEntry,this,
+			                  std::placeholders::_1,
+			                  std::placeholders::_2,
+							  std::placeholders::_3);
+
+	attr_io_.RegSetFunc("exec_policy",set_func);
+	attr_io_.RegSetFunc("exec_priority",set_func);
+	attr_io_.RegSetFunc("kernel_mode",set_func);
+	attr_io_.RegSetFunc("low_mem_mode",set_func);
+	attr_io_.RegSetFunc("fc_mt",set_func);
+	attr_io_.RegSetFunc("pooling_mt",set_func);
+
+	//bailout
+	auto set_func2=std::bind(&GraphExecutor::BailoutSetAttr,this,std::placeholders::_1,
+			                      std::placeholders::_2,std::placeholders::_3);
+
+	auto get_func2=std::bind(&GraphExecutor::BailoutGetAttr,this,std::placeholders::_1,
+			                      std::placeholders::_2,std::placeholders::_3);
+
+	attr_io_.RegSetFunc(nullptr,set_func2);
+
+
+	attr_io_.RegGetFunc(nullptr,get_func2);
+
+}
+
+
 
 
 

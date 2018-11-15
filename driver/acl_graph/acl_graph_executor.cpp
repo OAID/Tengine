@@ -29,9 +29,9 @@
 
 namespace TEngine {
 
-bool  ACLGraphExecutor::DevGetProposal(Subgraph * graph,int policy) 
+bool  ACLGraphExecutor::DevGetProposal(Subgraph * graph,int policy,bool static_assign) 
 {
-      return backend_dev_->GetProposal(graph,policy);
+      return backend_dev_->GetProposal(graph,policy, static_assign);
 }
 
 void ACLGraphExecutor::DevGetWorkload(DevWorkload& load)
@@ -68,6 +68,16 @@ bool ACLGraphExecutor::DevGetConfig(const char * config_name, void * buffer, int
 bool ACLGraphExecutor::DevDelConfig(const char * config_name)
 {
         return backend_dev_->DelDevConfig(config_name);
+}
+
+bool ACLGraphExecutor::DevSetGraphAttr(void * graph_handle, const char * name, const void * val, int size)
+{
+		return backend_dev_->SetGraphAttr(graph_handle,name,val,size);
+}
+
+bool ACLGraphExecutor::DevGetGraphAttr(void * graph_handle, const char * name, void * val, int size)
+{
+		return backend_dev_->GetGraphAttr(graph_handle,name,val,size);
 }
 
 

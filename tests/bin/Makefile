@@ -10,6 +10,7 @@ bin-obj-y+=demo.o
 ifeq ($(CONFIG_TF_SERIALIZER),y)
 bin-obj-y+=test_tf_mobilenet.o
 bin-obj-y+=test_tf_inceptionv3.o
+bin-obj-y+=test_tf.o
 endif
 
 ifeq ($(CONFIG_TENGINE_SERIALIZER),y)

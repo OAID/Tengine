@@ -286,21 +286,13 @@ public:
                                  return input->Reshaped(); 
                               }
 
-    /* Deprecated, should not use in new code */
+	/* 
+	   please note here the idx just for node,
+	   does not represent the tensor idx in in/out
+	*/
+
     int GetParentNum(void);
     Node * GetParentNode(int idx);
-
-    int GetChildNum(void);
-    Node * GetChildNode(int idx);  
-
-
-    inline void* GetRepID(){
-        return rep_id;
-    }
-
-    inline void SetRepID(void* id){
-        rep_id = id;
-    }
 
 
 protected:

@@ -4,9 +4,7 @@ MAKEBUILD?=$(shell pwd)/makefile.build
 
 export CC CXX CFLAGS  LD LDFLAGS CXXFLAGS COMMON_CFLAGS
 
-ifeq ($(CONFIG_TF_SUPPORT),y)
-    export CONFIG_TF_SUPPORT
-endif
+-include $(MAKEFILE_CONFIG)
 
 INC_DIR+=-I$(shell pwd)/include 
 INC_DIR+=-I$(shell pwd)/../include 

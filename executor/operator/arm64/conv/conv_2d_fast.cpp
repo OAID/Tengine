@@ -586,19 +586,13 @@ bool ConvFast::Prerun(Node * node)
 
 	(*node)["kernel_interleaved"] = kernel_interleaved;
 
-	bool free_kernel=false;
-	const char * free_kernel_str=std::getenv("FREE_CONV_KERNEL");
-
-	if(free_kernel_str && free_kernel_str[0]=='1')
-		free_kernel=true;
-
-	if(!node->IsDynamicShape() && free_kernel)
+    if(exec_attr->low_mem_mode)
 	{
-		printf("free convolution kernel: %s %d\n",kernel_tensor->GetName().c_str(), 
-				kernel_tensor->GetTotalSize());
-		kernel_tensor->FreeMem();
-	}
+	    printf("free convolution kernel: %s %d\n",kernel_tensor->GetName().c_str(), 
+					kernel_tensor->GetTotalSize());
 
+	    kernel_tensor->FreeMem();
+	}
 
 	return true;
 }

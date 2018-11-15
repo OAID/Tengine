@@ -1,0 +1,62 @@
+#ifndef __EXEC_ATTR_HPP__
+#define __EXEC_ATTR_HPP__
+
+namespace TEngine {
+
+enum exec_policy_t {
+	kExecLatency,
+	kExecLowPower
+};
+
+/* 
+   How to decide if an INT8 kernel should be used?
+   
+   when kernel_mode is EXEC_KERNEL_INT8 
+
+   How to decide if the output format of INT8 kernel? 
+   should it be float16 or float32 or int32 or int8?
+
+   just follow the the output_tensor data_type!
+*/	      
+  
+
+#define EXEC_KERNEL_FP32   0
+#define EXEC_KERNEL_FP16   1
+#define EXEC_KERNEL_INT8   2
+
+
+#define MODEL_FORMAT_UNKNOWN 	0
+#define MODEL_FORMAT_TENGINE 	1
+#define MODEL_FORMAT_CAFFE 		2
+#define MODEL_FORMAT_ONNX  		3
+#define MODEL_FORMAT_MXNET		4
+#define MODEL_FORMAT_TENSORFLOW	5
+#define MODEL_FORMAT_TFLITE     6
+
+
+struct ExecAttr {
+	exec_policy_t policy;
+	int           priority;
+	int           kernel_mode; 
+	int           model_format;
+	bool          low_mem_mode;
+	bool          fc_mt;      //fc should in multi-threaded?
+	bool          pooling_mt; //pooling should in multi-threaded?
+
+	ExecAttr(void)
+	{
+		policy=kExecLatency;
+		priority=100;
+		kernel_mode=EXEC_KERNEL_FP32;
+		low_mem_mode=false;
+		fc_mt=false;
+	    pooling_mt=false;
+		model_format=MODEL_FORMAT_TENGINE;
+	}
+};
+
+
+} //namespace TEngine
+
+
+#endif

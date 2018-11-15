@@ -91,6 +91,10 @@ bool TFSerializer::LoadModel(const std::vector<std::string>& file_list, StaticGr
        !LoadBinaryFile(file_list[0].c_str(), tf_net))
          return false;
 
+	SetGraphSource(graph,file_list[0]);
+	SetGraphSourceFormat(graph,"tensorflow");
+	SetGraphConstTensorFile(graph,file_list[0]);
+
     return LoadGraph(tf_net,graph); 
 }
 
@@ -923,14 +927,36 @@ static void CreateInputNode(TFNode * tf_node, StaticGraph * graph)
 
     if(GetAttrValue(tf_node->pb_defs[0],"shape",shape))
     {
+	    int dim_size=shape.shape().dim_size();
         std::vector<int> dim;
 
-        dim.resize(4);
 
-        dim[0]=shape.shape().dim(0).size();
-        dim[1]=shape.shape().dim(3).size();
-        dim[2]=shape.shape().dim(1).size();
-        dim[3]=shape.shape().dim(2).size();
+        if(dim_size==4)
+	    {
+			dim.resize(4);
+            dim[0]=shape.shape().dim(0).size();
+            dim[1]=shape.shape().dim(3).size();
+            dim[2]=shape.shape().dim(1).size();
+            dim[3]=shape.shape().dim(2).size();
+		}
+		else if(dim_size==3) /* NHC */
+		{
+			dim.resize(3);
+            dim[0]=shape.shape().dim(0).size();
+            dim[2]=shape.shape().dim(1).size();
+            dim[1]=shape.shape().dim(2).size();
+		}
+		else if(dim_size==2)
+	    {
+			dim.resize(2);
+			dim[0]=shape.shape().dim(0).size();
+			dim[1]=shape.shape().dim(1).size();
+		}
+		else if(dim_size==1)
+		{
+			dim.resize(1);
+			dim[0]=shape.shape().dim(0).size();
+		}
        
         SetTensorDim(tensor,dim);
     }
@@ -1025,7 +1051,11 @@ static void GetTensorContentAndDim(const tensorflow::TensorProto& tf_tensor, std
            GetScalarTensor(tf_tensor,dim,mem_ptr,layout);
            break;
       case 1:
-           Get1DimTensor(tf_tensor,dim,mem_ptr,layout);
+
+		   if(shape.dim(0).size()==1)
+              GetScalarTensor(tf_tensor,dim,mem_ptr,layout);
+		   else
+               Get1DimTensor(tf_tensor,dim,mem_ptr,layout);
            break;
       case 2:
            Get2DimTensor(tf_tensor,dim,mem_ptr,layout);

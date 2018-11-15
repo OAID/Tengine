@@ -76,6 +76,9 @@ public:
     DevScheduler * GetScheduler(void) { return scheduler_;}
     bool SetScheduler(const std::string& sched_name);
 
+    bool GetGraphAttr(exec_handle_t,const char *, void *, int) override;
+    bool SetGraphAttr(exec_handle_t,const char *, const void *, int) override;
+
     
 private:
 

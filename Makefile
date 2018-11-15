@@ -31,15 +31,16 @@ COMMON_CFLAGS+=-Wno-ignored-attributes -Werror -g
 export CC CXX CFLAGS BUILT_IN_LD LD LDFLAGS CXXFLAGS COMMON_CFLAGS 
 export GIT_COMMIT_ID
 
-include makefile.config
-
+MAKEFILE_CONFIG=$(shell pwd)/makefile.config
 MAKEBUILD=$(shell pwd)/scripts/makefile.build
+
+include $(MAKEFILE_CONFIG)
 
 BUILD_DIR?=$(shell pwd)/build
 INSTALL_DIR?=$(shell pwd)/install
 TOP_DIR=$(shell pwd)
 
-export INSTALL_DIR MAKEBUILD TOP_DIR
+export INSTALL_DIR MAKEBUILD TOP_DIR MAKEFILE_CONFIG
 
 
 LIB_SUB_DIRS=core operator executor serializer driver model_src
@@ -59,51 +60,11 @@ endif
 #APP_SUB_DIRS+=internal
 APP_SUB_DIRS+=tests
 
-ifeq ($(CONFIG_ARCH_ARM64),y)
-    export CONFIG_ARCH_ARM64
-endif
 
 ifeq ($(CONFIG_ARCH_ARM32),y)
-    export CONFIG_ARCH_ARM32
 	COMMON_CFLAGS+=-march=armv7-a -mfpu=neon -mfp16-format=ieee -mfpu=neon-fp16
 endif
 
-ifeq ($(CONFIG_ARCH_BLAS),y)
-    export CONFIG_ARCH_BLAS
-endif
-
-
-ifeq ($(CONFIG_CAFFE_REF),y)
-    export CONFIG_CAFFE_REF
-    export CAFFE_ROOT
-endif
-
-ifneq ($(CONFIG_OPT_CFLAGS),)
-    export CONFIG_OPT_CFLAGS
-endif
-
-ifeq ($(CONFIG_ACL_GPU),y)
-    export CONFIG_ACL_GPU
-    export ACL_ROOT
-endif
-
-ifeq ($(CONFIG_CAFFE_SERIALIZER),y)
-    export CONFIG_CAFFE_SERIALIZER
-endif
-ifeq ($(CONFIG_ONNX_SERIALIZER),y)
-    export CONFIG_ONNX_SERIALIZER
-endif
-ifeq ($(CONFIG_MXNET_SERIALIZER),y)
-    export CONFIG_MXNET_SERIALIZER
-endif
-
-ifeq ($(CONFIG_TF_SERIALIZER),y)
-    export CONFIG_TF_SERIALIZER
-endif
-
-ifeq ($(CONFIG_TENGINE_SERIALIZER),y)
-    export CONFIG_TENGINE_SERIALIZER
-endif
 
 SUB_DIRS=$(LIB_SUB_DIRS) $(APP_SUB_DIRS)
 
@@ -181,7 +142,7 @@ $(APP_SUB_DIRS):
 	@$(MAKE) -C $@  BUILD_DIR=$(BUILD_DIR)/$@ $(MAKECMDGOALS)
 
 
-Makefile: makefile.config
+Makefile: $(MAKEFILE_CONFIG)
 	@touch Makefile
 	@$(MAKE) clean
 

@@ -32,7 +32,6 @@
 #include "generic_factory.hpp"
 #include "tensor_shape.hpp"
 #include "static_graph.hpp"
-#include "quant_op.hpp"
 
 namespace TEngine {
 
@@ -149,7 +148,6 @@ public:
 
      virtual ~Operator() {};
 
-     quant_op quant_args;
 
 protected:
 

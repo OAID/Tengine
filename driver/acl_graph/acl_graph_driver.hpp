@@ -31,6 +31,7 @@
 #include <atomic>
 #include <cstdlib>
 #include <tuple>
+#include <set>
 
 #include "graph.hpp"
 #include "acl_graph_device.hpp"
@@ -43,7 +44,7 @@ class ACLGraph : public Driver {
 
 public:
 
-    ACLGraph() { SetName("ACLGraph");}
+    ACLGraph() { SetName("ACLGraph"); InitOpSet();}
 	~ACLGraph(){};
 
 	bool InitializeDevice(Device * device) override;
@@ -84,7 +85,9 @@ public:
     bool GetPerf(Device * dev, Subgraph * graph,int policy,GraphPerf& perf) override {return false;}
     float GetFops(Device * dev, Subgraph * graph, int policy) override { return false;}
     int GetPolicyPriority(Device * dev, int policy) override  { return false;}
-    bool  GetProposal(Device * dev, Subgraph * graph, int policy) override { return false;}
+    bool  GetProposal(Device * dev, Subgraph * graph, int policy, bool static_assign) override;
+    bool SetGraphAttr(Device * , void * , const char *, const void *, int) override;
+	bool GetGraphAttr(Device * , void * ,const char *, void *, int ) override;
 
    
 
@@ -100,9 +103,12 @@ public:
     Device * GetDevice(int idx) override;
     Device * GetDevice(const std::string& name) override;
 	
+	bool OpSupported(const std::string& op_name);
+
 protected:
-	
+	void InitOpSet(void);
 	std::unordered_map<std::string, ACLDevice *> device_table_;
+	std::set<std::string> op_set_;
 
 };
 

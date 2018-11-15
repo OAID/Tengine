@@ -50,3 +50,6 @@ CONFIG_TENGINE_SERIALIZER=y
 # Enable Wrappers
 # CONFIG_FRAMEWORK_WRAPPER=y
 
+# version postfix
+CONFIG_VERSION_POSTFIX=github
+

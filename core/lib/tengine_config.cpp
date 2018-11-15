@@ -27,7 +27,14 @@ namespace TEngine {
 
 using ConfManager = Attribute;
 
-const std::string TEngineConfig::version("0.7.2");
+#define TENGINE_VERSION "0.8.0"
+
+#ifdef CONFIG_VERSION_POSTFIX
+const std::string TEngineConfig::version(TENGINE_VERSION "-"  CONFIG_VERSION_POSTFIX);
+#else
+const std::string TEngineConfig::version(TENGINE_VERSION);
+#endif
+
 const char * TEngine_git_commit_id="@" GIT_COMMIT_ID "@";
 
 bool TEngineConfig::tengine_mt_mode = true;

@@ -67,6 +67,9 @@ struct ExecEngine
 
     virtual bool Postrun(exec_handle_t)=0;
 
+	virtual bool GetGraphAttr(exec_handle_t,const char *, void *, int)=0;
+	virtual bool SetGraphAttr(exec_handle_t,const char *, const void *, int)=0;
+
     virtual exec_status_t GetStatus(exec_handle_t)=0;
 
     virtual int GetStatusCode(const exec_status_t&)=0;

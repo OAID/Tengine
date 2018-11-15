@@ -56,10 +56,10 @@ public:
         ACLDriver();
         ~ACLDriver();
 
-	bool Prerun(Device * dev, void * node_handle, Node * node);
-	bool Run(Device * dev, void * node_handle, Node * node);
-	bool SyncRun(Device * dev, void * node_handle, Node * node); 
-	bool Postrun(Device * dev, void * node_handle, Node  * node);
+	bool Prerun(Device * dev, void * node_handle, Node * node)override;
+	bool Run(Device * dev, void * node_handle, Node * node)override;
+	bool SyncRun(Device * dev, void * node_handle, Node * node)override; 
+	bool Postrun(Device * dev, void * node_handle, Node  * node)override;
 
 	bool ProbeDevice(const dev_id_t& dev_id) override;
 	bool DestroyDevice(Device * device) override;

@@ -50,7 +50,6 @@ out_width = ceil(float(in_width - filter_width + 1) / float(strides[2]))
 
 bool Convolution::InferShape(const std::vector<TShape>& ishape, 
                              std::vector<TShape>& oshape)
-
 {
        if(ishape.size()<2)
               return false;
@@ -58,20 +57,19 @@ bool Convolution::InferShape(const std::vector<TShape>& ishape,
         const TShape& input_shape=ishape[0];
         const TShape& weight_shape=ishape[1];
 
-        if(input_shape.GetDataLayout() != layout_ ||
-           weight_shape.GetDataLayout() != layout_ )
-
+        if(input_shape.GetDim().size() != 4 ||
+           weight_shape.GetDim().size() != 4)
            return false;
 
-        int input_n=input_shape.GetN();
-        int input_c=input_shape.GetC();
-        int input_h=input_shape.GetH();
-        int input_w=input_shape.GetW();
+        int input_n=input_shape.Shape(0);
+        int input_c=input_shape.Shape(1);
+        int input_h=input_shape.Shape(2);
+        int input_w=input_shape.Shape(3);
 
-        int output_c=weight_shape.GetN();
-        int weight_c=weight_shape.GetC();
-        int weight_h=weight_shape.GetH();
-        int weight_w=weight_shape.GetW();
+        int output_c=weight_shape.Shape(0);
+        int weight_c=weight_shape.Shape(1);
+        int weight_h=weight_shape.Shape(2);
+        int weight_w=weight_shape.Shape(3);
 
         if((input_c!=weight_c*param_.group) ||
            (output_c!=param_.output_channel) ||

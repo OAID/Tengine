@@ -311,13 +311,15 @@ public:
 	bool OptimizeGraph(Device * dev, void * graph_handle, Subgraph * graph) override;
 	bool OptimizeGraph(Device * dev, void * graph_handle) override;
 
-        Subgraph * GetOptimizedGraph(Device * dev, void * graph_handle) override;
+    Subgraph * GetOptimizedGraph(Device * dev, void * graph_handle) override;
 
 	bool Prerun(Device * dev, void * graph_handle) override;
 	bool Run(Device * dev, void * graph_handle) override;
 	bool SyncRun(Device * dev, void * graph_handle) override;
 	bool Postrun(Device * dev, void * graph_handle) override;
 
+	bool SetGraphAttr(Device * , void * , const char *, const void *, int) override;
+	bool GetGraphAttr(Device * , void * ,const char *, void *, int ) override;
 
 	bool Prerun(Device * dev, void * node_handle, Node * node) override {return false;}
 	bool Run(Device * dev, void * node_handle, Node * node) override {return false;}
@@ -331,7 +333,7 @@ public:
        bool GetPerf(Device * dev, Subgraph * graph,int policy,GraphPerf& perf) override {return false;}
        float GetFops(Device * dev, Subgraph * graph, int policy) override { return false;}
        int GetPolicyPriority(Device * dev, int policy) override  { return false;}
-       bool  GetProposal(Device * dev, Subgraph * graph, int policy) override { return false;}
+       bool  GetProposal(Device * dev, Graph * graph, int policy, bool static_assign) override; 
 
        /* 
          Since there are some many different CPU, there is no predefined CPU inside now.
