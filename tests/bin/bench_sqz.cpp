@@ -111,7 +111,6 @@ int main(int argc, char * argv[])
    std::string file_path = "";
    char * cpu_list_str=nullptr;;
 
-
    int res;
 
    while((res=getopt(argc,argv,"p:d:f:r:"))!=-1)
@@ -135,8 +134,9 @@ int main(int argc, char * argv[])
       }
    }
 
-  std::string filename ="";
-   if("" != file_path)
+   std::string filename;
+
+   if( !file_path.empty())
    {
         filename = file_path + sub_dir;
    }
@@ -195,12 +195,10 @@ int main(int argc, char * argv[])
        std::printf("Set buffer for tensor failed\n");
 	   return -1;
    }
-   if("" != device)
-   {
-//      TEngineConfig::ConfManager * manager  =  TEngineConfig::GetConfManager();
-//      manager->SetAttr("device.default",device);    
-        set_default_device(device.c_str());
-   }
+
+   if(!device.empty())
+       set_graph_device(graph,device.c_str());
+
    /* run the graph */
    
    prerun_graph(graph);   
@@ -208,8 +206,6 @@ int main(int argc, char * argv[])
    run_graph(graph,1);
    printf("REPEAT COUNT= %d\n",repeat_count);
    // warm up
-   for(int i=0;i<30;i++)
-		run_graph(graph,1);
    unsigned long start_time=get_cur_time();
 	
    for(int i=0;i<repeat_count;i++)

@@ -46,6 +46,7 @@
 #include "data_type.hpp"
 #include "data_layout.hpp"
 #include "cpu_device.h"
+#include "dev_proposal.hpp"
 
 using namespace TEngine;
 
@@ -124,8 +125,14 @@ const char * get_model_name(graph_t graph)
 int set_graph_device(graph_t graph, const char * device_name)
 {
     GraphExecutor *executor = static_cast<GraphExecutor*>(graph);
-	std::string device = device_name;
-	executor->GetGraph()->SetAttr("default_executor", device);
+
+    DevProposal prop;
+
+    prop.dev_id=device_name;
+    prop.level=DEV_PROPOSAL_STATIC;
+
+    executor->GetGraph()->SetAttr(DEV_PROPOSAL_ATTR, prop);
+
     return 0;
 }
 
@@ -341,7 +348,6 @@ int init_tengine_library(void)
       
     initialized=1;
 
-    TEngineConfig::Set("exec.engine","generic",true);
     
     //create the default user context
     get_default_user_context();
@@ -352,14 +358,20 @@ int init_tengine_library(void)
     get_default_user_context();
     get_default_workspace();
 
-    TEnginePlugin::InitModule();
+    if(TEnginePlugin::InitModule()<0)
+	{
+        LOG_ERROR()<<"init module failed\n";
+		return -1;
+	}
+
+    TEngineConfig::Set("exec.engine","generic",true);
 
     //set the default online cpu according to env var
     const char * cpu_list_str=std::getenv("TENGINE_CPU_LIST");
 
     if(cpu_list_str)
     {
-        std::cout<<"ENV SET: ["<<cpu_list_str<<"]\n";
+		LOG_INFO()<<"ENV SET: ["<<cpu_list_str<<"]\n";
         set_cpu_list(cpu_list_str);
     }
 
@@ -831,9 +843,14 @@ void * get_graph_node(graph_t graph, const char * node_name)
 
 int set_node_device(node_t node, const char * dev_name)
 {
-    Node* node_ = static_cast<Node*>(node);
-	std::string dev = dev_name;
-	node_->SetAttr("dev_id", dev);
+    Node* real_node = static_cast<Node*>(node);
+
+    DevProposal prop;
+
+    prop.dev_id=dev_name;
+    prop.level=DEV_PROPOSAL_STATIC;
+
+    real_node->SetAttr(DEV_PROPOSAL_ATTR, prop);
     return 0;
 }
 
@@ -1130,14 +1147,16 @@ int del_workspace_config(workspace_t  ws, const char * config_name)
 
 int  set_graph_config(graph_t graph, const char * name, void * val, int size)
 {
-    TO_BE_IMPLEMENTED;
-    return 0;
+    GraphExecutor * executor=reinterpret_cast<GraphExecutor *>(graph);
+
+	return executor->SetGraphAttr(name,val,size);
 }
 
 int  get_graph_config(graph_t graph, const char * name, void * val, int size)
 {
-    TO_BE_IMPLEMENTED;
-    return 0;
+    GraphExecutor * executor=reinterpret_cast<GraphExecutor *>(graph);
+
+	return executor->GetGraphAttr(name,val,size);
 }
 
 int  del_graph_config(graph_t graph, const char * name)

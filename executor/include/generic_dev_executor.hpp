@@ -54,6 +54,14 @@ public:
 	bool SyncRunTask(SubgraphTask * task) override;
 	bool PostrunTask(SubgraphTask * task) override;
 
+	bool SetGraphAttr(SubgraphTask * task, const char *name, const void * val, int size ) override;
+	bool GetGraphAttr(SubgraphTask * task, const char * name, void * val, int size) override;
+
+        bool GetProposal(Graph * graph, int policy, bool static_assign) override
+        {
+             return DevGetProposal(graph,policy,static_assign);
+        }
+
 	int  GetRunTaskNum(void) override; 
 	int  GetReadyTaskNum(void) override; 
 	int  GetWaitTaskNum(void) override; 
@@ -66,29 +74,30 @@ public:
 	dev_status_t GetStatus(void) override { return DevGetStatus();}
 
 
-        void GetWorkload(DevWorkload& load)  override
+    void GetWorkload(DevWorkload& load)  override
 	{ 
-	     DevGetWorkload(load);
-	}	
+	    DevGetWorkload(load);
+	}
+
 	bool GetPerf(Subgraph * graph,int policy,GraphPerf& perf) override
 	{
-	     return DevGetPerf(graph,policy,perf);
+	    return DevGetPerf(graph,policy,perf);
 	}
 	
 	float GetFops(Subgraph * graph, int policy) override
 	{
-	      return DevGetFops(graph, policy);
+	    return DevGetFops(graph, policy);
 	}
 
-        int GetPolicyPriority(int policy) override
-        {
-             return DevGetPolicyPriority(policy);
-        }
+    int GetPolicyPriority(int policy) override
+    {
+        return DevGetPolicyPriority(policy);
+    }
 
-        bool SetDevConfig(const char * config_name, const void * val, int size) override
-        {
-            return DevSetConfig(config_name,val,size);
-        }
+    bool SetDevConfig(const char * config_name, const void * val, int size) override
+    {
+        return DevSetConfig(config_name,val,size);
+    }
 
         bool GetDevConfig(const char * config_name, void * buffer, int size) override
         {
@@ -100,10 +109,6 @@ public:
             return DevDelConfig(config_name);
         }
   
-        bool GetProposal(Subgraph * graph, int policy) override
-        {
-            return DevGetProposal(graph,policy);
-        }
 
 	bool Start(void) override { return DevStart();}
    	bool Stop(void) override {  return DevStop(); }
@@ -115,7 +120,7 @@ public:
 	virtual bool DevGetPerf(Subgraph * graph,int policy,GraphPerf& perf)=0;
 	virtual float DevGetFops(Subgraph * graph,int policy) =0; 
 	virtual int  DevGetPolicyPriority(int policy) =0; 
-	virtual bool  DevGetProposal(Subgraph * graph,int policy) =0; 
+        virtual bool DevGetProposal(Graph * graph, int policy, bool static_assign) { return true;}
 
         virtual bool DevSetConfig(const char * config_name, const void * buffer, int size)=0;
         virtual bool DevGetConfig(const char * config_name, void * buffer, int size)=0;
@@ -128,6 +133,8 @@ public:
 	virtual bool DevRun(void * graph_handle)=0;
 	virtual bool DevSyncRun(void * graph_handle)=0;
 	virtual bool DevPostrun(void * graph_handle)=0;
+    	virtual bool DevSetGraphAttr(void * graph_handle, const char * name, const void * val, int size)=0;
+    	virtual bool DevGetGraphAttr(void * graph_handle, const char * name, void * val, int size)=0;
 	virtual bool DevReleaseGraphHandle(void * graph_handle)=0;
 	virtual dev_status_t  DevGetStatus(void)=0;
 	virtual const dev_id_t& DevGetID(void)=0;
@@ -138,6 +145,8 @@ public:
 
         virtual bool DevGetMemorySize(void * graph_handle,unsigned int& mem_size){return false;}
         virtual void DevSetMemory(void * graph_handle, void * mem_addr){};
+
+
 	
 	virtual ~GenericDevExecutor() {}
 

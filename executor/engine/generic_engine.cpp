@@ -258,5 +258,25 @@ bool GenericEngine::SetScheduler(const std::string& sched_name)
       return true;
 }
 
+bool GenericEngine::GetGraphAttr(exec_handle_t h,const char *name, void * val, int size)
+{
+      if(h==nullptr)
+		  return false;
+
+       GraphTask * graph_task=any_cast<GraphTask *>(*h);
+
+	   return graph_task->GetAttr(name,val,size);
+}
+
+bool GenericEngine::SetGraphAttr(exec_handle_t h,const char * name, const void * val, int size)
+{
+      if(h==nullptr)
+		  return false;
+
+      GraphTask * graph_task=any_cast<GraphTask *>(*h);
+
+	  return graph_task->SetAttr(name,val,size);
+}
+
 
 } //namespace TEngine

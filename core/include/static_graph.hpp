@@ -89,6 +89,8 @@ struct StaticTensor {
     std::string   data_type;
     std::string   data_layout;
     int           type;
+	float         scale;
+	int           zero_point;
     NodeSynapse   producer;
     std::vector<NodeSynapse> consumer; 
     virtual ~StaticTensor(){}

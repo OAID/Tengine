@@ -27,7 +27,7 @@
 #include <algorithm>
 #include <cmath>
 #include <arm_neon.h>
-
+#include <array>
 
 #include "logger.hpp"
 #include "node_ops.hpp"

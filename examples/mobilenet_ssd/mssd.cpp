@@ -90,7 +90,7 @@ void post_process_ssd(std::string& image_file,float threshold,float* outdata,int
     int raw_w = img.size().width;
     std::vector<Box> boxes;
     int line_width=raw_w*0.005;
-    printf("detect ruesult num: %d \n",num);
+    printf("detect result num: %d \n",num);
     for (int i=0;i<num;i++)
     {
         if(outdata[1]>=threshold)
@@ -137,9 +137,10 @@ int main(int argc, char *argv[])
     std::string model_file;
     std::string image_file;
     std::string save_name="save.jpg";
+	const char * device=nullptr;
 
     int res;
-    while( ( res=getopt(argc,argv,"p:m:i:h"))!= -1)
+    while( ( res=getopt(argc,argv,"p:m:i:hd:"))!= -1)
     {
         switch(res)
         {
@@ -152,6 +153,9 @@ int main(int argc, char *argv[])
             case 'i':
                 image_file=optarg;
                 break;
+			case 'd':
+				device=optarg;
+				break;
             case 'h':
                 std::cout << "[Usage]: " << argv[0] << " [-h]\n"
                           << "   [-p proto_file] [-m model_file] [-i image_file]\n";
@@ -197,6 +201,13 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+	if(device!=nullptr)
+	{
+		set_graph_device(graph,device);
+	}
+
+	//dump_graph(graph);
+
     // input
     int img_h = 300;
     int img_w = 300;
@@ -221,6 +232,12 @@ int main(int argc, char *argv[])
 
     if (repeat)
         repeat_count = std::strtoul(repeat, NULL, 10);
+
+	//warm up
+    get_input_data_ssd(image_file, input_data, img_h,  img_w);
+    set_tensor_buffer(input_tensor, input_data, img_size * 4);
+    run_graph(graph, 1);
+
 
     struct timeval t0, t1;
     float total_time = 0.f;

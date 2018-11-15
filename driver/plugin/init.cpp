@@ -33,7 +33,7 @@ extern "C" {
 namespace TEngine {
 
 #ifdef CONFIG_ACL_GPU
-   extern void ACLDriverInit(void);
+   //extern void ACLDriverInit(void);
    extern void ACLGraphInit(void);
 #endif
 
@@ -50,7 +50,7 @@ using namespace TEngine;
 int driver_plugin_init(void)
 {
 #ifdef CONFIG_ACL_GPU
-    ACLDriverInit();
+   // ACLDriverInit();
     ACLGraphInit();
 #endif
 

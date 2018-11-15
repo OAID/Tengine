@@ -29,9 +29,9 @@
 
 namespace TEngine {
 
-bool  CPUExecutor::DevGetProposal(Subgraph * graph,int policy) 
+bool  CPUExecutor::DevGetProposal(Subgraph * graph,int policy,bool static_assign) 
 {
-      return backend_dev_->GetProposal(graph,policy);
+      return backend_dev_->GetProposal(graph,policy,static_assign);
 }
 
 void CPUExecutor::DevGetWorkload(DevWorkload& load)
@@ -91,6 +91,17 @@ bool CPUExecutor::DevPrerun(void * graph_handle)
 {
 	return backend_dev_->Prerun(graph_handle);
 }
+
+bool CPUExecutor::DevSetGraphAttr(void * graph_handle, const char * name, const void * val, int size)
+{
+	return backend_dev_->SetGraphAttr(graph_handle,name,val,size);
+}
+
+bool CPUExecutor::DevGetGraphAttr(void * graph_handle, const char * name, void * val, int size)
+{
+	return backend_dev_->GetGraphAttr(graph_handle,name,val,size);
+}
+
 
 bool CPUExecutor::DevRun(void * graph_handle)
 {

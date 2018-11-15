@@ -98,22 +98,6 @@ Node * Node::GetParentNode(int idx)
 }
 
 
-/* in-correct implement, should not be used */
-int Node::GetChildNum(void)
-{
-   return GetOutputNum();
-}
-
-
-/* in-correct implement, should not be used */
-Node * Node::GetChildNode(int idx)
-{
-    NodePort * port=outputs_[idx].get();
-    Tensor * tensor=port->tensor;
-
-    return tensor->consumer[0]->owner;
-}
-
 float Node::GetFops(void)
 {
     std::vector<TShape> inputs;

@@ -175,12 +175,9 @@ int main(int argc, char * argv[])
 	   return -1;
    }
   
-   if(device != "")
-   {
-   //  TEngineConfig::ConfManager * manager  =  TEngineConfig::GetConfManager();
-  	// manager->SetAttr("device.default",device);
-      set_default_device(device.c_str());
-   }
+   if(!device.empty())
+        set_graph_device(graph,device.c_str());
+
    /* run the graph */
    prerun_graph(graph);
 

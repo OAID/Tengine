@@ -55,7 +55,7 @@ static bool Weight_Bn(Subgraph * graph,Node *ConvNode,float *mean,float *var, fl
 	const TShape& input_shape=input_tensor->GetShape();
 
 	int  group	       = param->group;
-	int  input_chan    = input_shape.GetC() / group;
+	int  input_chan    = input_shape.Shape(1) / group;
 	
 	Tensor * output_tensor=ConvNode->GetOutputTensor(0);
     TShape& output_shape=output_tensor->GetShape();

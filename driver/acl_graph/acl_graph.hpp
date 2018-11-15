@@ -143,9 +143,6 @@ public:
 
     ~CLGraph()
     {
-        for(auto e: functions_map_)
-            delete e;
-        functions_map_.clear();
     }
 
     void Run(void)
@@ -171,31 +168,6 @@ public:
                 TensorInfo(TensorShape(dim_w[2],dim_w[3],dim_w[1],dim_w[0]),1,data_type_));
 
         tensors_map_[name]=otensor;
-
-#ifdef USE_CPU_CONVERT
-	       otensor->allocator()->allocate();
-
-#else
-
-		if(data_type_ == DataType::F32)
-		{
-			tensors_map_["start"] = otensor;
-			otensor->allocator()->allocate();
-			return true;
-		}
-#ifdef ACL_EXTENSTION
-		CLTensor *itensor = new CLTensor();
-        itensor->allocator()->init(
-                TensorInfo(TensorShape(dim_w[2],dim_w[3],dim_w[1],dim_w[0]),1,DataType::F32));
-        tensors_map_["start"]=itensor;
-		CLInputLayer * input = new CLInputLayer();
-		input->configure(itensor, otensor);
-        functions_map_.push_back(input);
-#else
-		printf("InputLayer unsupport F16\n");
-		return false;
-#endif
-#endif
 		
         return true;
     }
@@ -344,12 +316,15 @@ public:
         std::string name = out->GetName();
         CLTensor *otensor = new CLTensor();
         otensor->allocator()->init(
-                TensorInfo(TensorShape(dim[2],dim[3],dim[1],dim[0]), 1, data_type_));
+                TensorInfo(TensorShape(dim[3],dim[2],dim[1],dim[0]), 1, data_type_));
         tensors_map_[name]=otensor;
 
         CLDepthConcatenateLayer* concat = new CLDepthConcatenateLayer();
+
+		/* 18.05 only support depth/channel concat */
         concat->configure(inputs_vector,otensor);
         functions_map_.push_back(concat);
+
         return true;
     }
 

@@ -40,11 +40,13 @@ The data is collected on **1.8G A72** and on chip RK3399, by repeating calling t
 For details to run benchmark, please visit [**benchmark**](doc/benchmark.md) page.
 
 ## Build and Install
-please refer to the [install](doc/install.md) page.
+please refer to the [Linux build](doc/install.md) and [Android build](https://github.com/OAID/Tengine/blob/master/doc/build_android.md)
 
-## Tengine examples
+## Tengine examples and model zoo
 
-please visit **[exmaples](examples/readme.md)** for applications on classification/detection.
+please visit **[exmaples](examples/readme.md)** for applications on classification/detection and download models from [Tengine model zoo](https://pan.baidu.com/s/1LXZ8vOdyOo50IXS0CUPp8g) (psw: 57vb)
+
+
 
 ## Develop New Operator
 
@@ -63,8 +65,32 @@ Tengine can be extended to support new serialization format, by building new ser
 
 ## Release History
 
+## version 0.8.0 - 2018/11/15
 
-### version 0.7.2 - 2018/10/15
+**Support GPU/CPU Heterogeneous Computing**
+
+By calling set_graph_device(graph,"acl_opencl"), operators that GPU supports will be scheduled to GPU, while left operators will be scheduled on CPU automatically.
+    
+Here is the guide to run [a MSSD example](https://github.com/OAID/Tengine/blob/master/doc/gpu_cpu_mssd.md) with GPU FP16 
+    
+**Using c++_stl for Android build**
+
+
+As NDK toolchains will drop gun_stl finally, this version switches to c++_stl. 
+    
+Please download the pre-built libraries with c++_stl from [Tengine Android Build Libraries](https://pan.baidu.com/s/1RPHK_ji0LlL3ztjUa893Yg), the password is *ka6a*.
+    
+**Support ACL in Android**
+
+Update the cmake system to support ACL in Android build. please refer to [Android build guide ](https://github.com/OAID/Tengine/blob/master/doc/build_android.md)
+    
+**Bugfix**
+    
+The issue to load tengine model converted from MXNet
+    
+
+## version 0.7.2 - 2018/10/15
+
 
 Serializer:
 
@@ -73,7 +99,7 @@ Serializer:
    ONNX:  update new onnx protobuf version and support more op
 
 
-### version 0.7.0 - 2018/9/15
+## version 0.7.0 - 2018/9/15
 
 **New features**
    

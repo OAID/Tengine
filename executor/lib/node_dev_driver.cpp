@@ -184,9 +184,9 @@ int NodeDriver::GetPolicyPriority(Device * dev, int policy)
 	return 10000;
 }
 
-bool  NodeDriver::GetProposal(Device * dev, Subgraph * graph, int policy) 
+bool  NodeDriver::GetProposal(Device * dev, Graph * graph, int policy, bool static_assign) 
 {
-	return false;
+	return true;
 }
 
 

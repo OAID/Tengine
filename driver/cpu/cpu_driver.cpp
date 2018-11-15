@@ -212,6 +212,32 @@ bool CPUDriver::Postrun(Device * dev, void * graph_handle)
 
 }
 
+
+bool CPUDriver::SetGraphAttr(Device *  dev, void * graph_handle, const char * name, const void*val, int size)
+{
+	DevContext * context=reinterpret_cast<DevContext *>(graph_handle);
+
+	Subgraph *  graph=context->optimized_graph?context->optimized_graph:context->sub_graph;
+
+	LOG_ERROR()<<"try to set attr "<<name <<" for graph: "<<graph->GetName()
+		       <<" on dev: "<<dev->GetName()<<"\n";
+    return false;
+}
+
+bool CPUDriver::GetGraphAttr(Device * dev, void *graph_handle ,const char * name , void *val, int size )
+{
+	DevContext * context=reinterpret_cast<DevContext *>(graph_handle);
+
+	Subgraph *  graph=context->optimized_graph?context->optimized_graph:context->sub_graph;
+
+	LOG_ERROR()<<"try to get attr "<<name <<" for graph: "<<graph->GetName()
+		       <<" on dev: "<<dev->GetName()<<"\n";
+
+	return false;
+}
+
+
+
 int CPUDriver::DestroyDevice(void)
 {  
         int count=0;
@@ -286,6 +312,48 @@ void CPUDriver::AddDevice(CPUDevice * new_device)
 
       auto dev_executor_factory=DevExecutorFactory::GetFactory();
       dev_executor_factory->RegisterInterface<CPUExecutor,const dev_id_t&>(new_device->GetName());
+}
+
+bool CPUDriver::GetProposal(Device * dev, Graph * graph, int policy, bool static_assign)
+{
+      int fit_level=static_assign?DEV_PROPOSAL_STATIC:DEV_PROPOSAL_GOODAT;
+
+      int node_number=graph->seq_nodes.size();
+
+      for(int i=0;i<node_number;i++)
+      {
+          Node * node=graph->seq_nodes[i];
+          Operator * op=node->GetOp();
+
+          if(op->GetName()=="Input" || op->GetName()=="Const")
+               continue;
+
+          bool bind_to_me=false;
+
+          if(!node->ExistAttr(DEV_PROPOSAL_ATTR))
+          {
+              bind_to_me=true;     
+          }
+          else
+          {
+              const DevProposal& orig_prop=any_cast<DevProposal>(node->GetAttr(DEV_PROPOSAL_ATTR));
+
+              if(orig_prop.level<fit_level)
+                 bind_to_me=true;
+          }           
+
+          if(bind_to_me)
+          {
+               DevProposal prop;
+               prop.dev_id=dev->GetDeviceID();
+               prop.level=fit_level;
+
+			   node->SetAttr(DEV_PROPOSAL_ATTR,prop);
+          }
+           
+      }
+
+      return true;
 }
 
 

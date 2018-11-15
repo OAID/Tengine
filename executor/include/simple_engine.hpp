@@ -86,6 +86,9 @@ public:
     bool OptimizeGraph(exec_handle_t) override;
 
     void OnGraphDone(Graph * graph, bool exec_success);
+
+    bool SetGraphAttr(exec_handle_t,const char *, const void *, int) override { return false;}
+    bool GetGraphAttr(exec_handle_t,const char *, void *, int) override { return false;}
     
 private:
 
