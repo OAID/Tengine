@@ -3,7 +3,7 @@ cmake_minimum_required (VERSION 2.8)
 project(label_image)
 
 set( INSTALL_DIR ${TENGINE_DIR}/install/ )
-set( TENGINE_LIBS wrapper tengine )
+set( TENGINE_LIBS wrapper tengine boost_system boost_thread )
 set( CODE_SRC label_image.cpp ../../common/common.cpp )
 
 #opencv

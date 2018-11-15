@@ -38,41 +38,54 @@ class Node;
 struct NodePort;
 struct StaticConstTensor;
 
+struct QuantParam {
+	int zero_point;
+	float scale;
+	int   width;
+
+	QuantParam(){
+		zero_point=0;
+		scale=1;
+		width=32;
+	}
+};
+
 class Tensor : public BaseObject {
 
 public:
 	Tensor (const std::string& name)
-        {
-             name_=name;
-             data_type_="float32";
-             static_tensor_=nullptr;
-			 reshaped_count_=0;
-        }
+	{
+		name_=name;
+		data_type_="float32";
+		static_tensor_=nullptr;
+		reshaped_count_=0;
+	}
 
 	virtual ~Tensor()
-        {
+	{
 
-            if(type_==kConstTensor 
-               && ExistAttr("free_mem")
-               && ExistAttr("mem_addr"))
-            {
-               void * mem=any_cast<void *>(GetAttr("mem_addr"));
-               std::free(mem);
-            }
-        }
+		if(type_==kConstTensor 
+				&& ExistAttr("free_mem")
+				&& ExistAttr("mem_addr"))
+		{
+			void * mem=any_cast<void *>(GetAttr("mem_addr"));
+			std::free(mem);
+		}
+	}
 
 	Tensor(const Tensor& o):BaseObject (o),
-				            producer(o.producer),
-	                        consumer(o.consumer),
-	                       type_(o.type_),name_(o.name_),
-	                       data_type_(o.data_type_),shape_(o.shape_),
-			               static_tensor_(o.static_tensor_)
-							{};
+						producer(o.producer),
+						consumer(o.consumer),
+						quant_param_(o.quant_param_),
+						type_(o.type_),name_(o.name_),
+						data_type_(o.data_type_),shape_(o.shape_),
+						static_tensor_(o.static_tensor_)
+						{};
 
 	Tensor& operator=(const Tensor& rhs)=delete;
 
-        const std::string& GetName(void) const { return name_;}
-        void SetName(const std::string& n) { name_=n;}
+	const std::string& GetName(void) const { return name_;}
+	void SetName(const std::string& n) { name_=n;}
 
 	const TShape&   GetShape(void)  const   { return shape_;}
 	TShape&   GetShape(void)    { return shape_;}
@@ -85,78 +98,78 @@ public:
 
 
 	const std::string& GetDatatype(void) const { return data_type_;}
-        void SetDataType(const std::string& dtype_name){ data_type_=dtype_name;}
+	void SetDataType(const std::string& dtype_name){ data_type_=dtype_name;}
 
 	unsigned int GetTotalSize() const;
-        void DumpTensor(std::ostream& os) const;
+	void DumpTensor(std::ostream& os) const;
 
 
-        TensorType GetType(void) const { return type_;}
-        void SetType(TensorType t) { type_=t;}
+	TensorType GetType(void) const { return type_;}
+	void SetType(TensorType t) { type_=t;}
 
-        void AddConsumer(NodePort * in_port)
-        {
-             consumer.push_back(in_port);
-        }
+	void AddConsumer(NodePort * in_port)
+	{
+		consumer.push_back(in_port);
+	}
 
-        bool RemoveConsumer(NodePort * in_port)
-        {
-           auto ir=consumer.begin();
+	bool RemoveConsumer(NodePort * in_port)
+	{
+		auto ir=consumer.begin();
 
-           while(ir!=consumer.end())
-           {
-               if((*ir)==in_port)
-               {
-                  consumer.erase(ir);
-                  return true;
-               }
-               ir++;
-           }
+		while(ir!=consumer.end())
+		{
+			if((*ir)==in_port)
+			{
+				consumer.erase(ir);
+				return true;
+			}
+			ir++;
+		}
 
-           return false;
-        }
+		return false;
+	}
 
-        NodePort * producer;
-        std::vector<NodePort *> consumer;
+	NodePort * producer;
+	std::vector<NodePort *> consumer;
 
-        Node * GetConsumerNode(int idx);
+	Node * GetConsumerNode(int idx);
 
-        /* note: as tensor.hpp is defined in representation level,
-                so that the memory allocated is only valid for const tensor
-                to hold the trained parameters
-           please use get_tensor_mem()/set_tensor_mem() to get/set tensor memory
-               in operator run functioins
+	/* note: as tensor.hpp is defined in representation level,
+	   so that the memory allocated is only valid for const tensor
+	   to hold the trained parameters
+	   please use get_tensor_mem()/set_tensor_mem() to get/set tensor memory
+	   in operator run functioins
 
-        */
+	 */
 
-        void * GetMemAddr(void) const
-        {
-           if(!ExistAttr("mem_addr"))
-               return nullptr;
-           
-            return any_cast<void *>(GetAttr("mem_addr"));
-        }
+	void * GetMemAddr(void) const
+	{
+		if(!ExistAttr("mem_addr"))
+			return nullptr;
 
-        void SetMemAddr(void * addr)
-        {
-            (*this)["mem_addr"]=addr;
-        }
+		return any_cast<void *>(GetAttr("mem_addr"));
+	}
 
-        void FreeMem(void);
-        void BindStaticTensor(StaticConstTensor *);
+	void SetMemAddr(void * addr)
+	{
+		(*this)["mem_addr"]=addr;
+	}
 
-protected:
-        TensorType   type_;
-        std::string  name_;
+	void FreeMem(void);
+	void BindStaticTensor(StaticConstTensor *);
+
+	QuantParam * GetQuantParam(void) { return &quant_param_;}
+
+	protected:
+	QuantParam   quant_param_;
+	TensorType   type_;
+	std::string  name_;
 	std::string  data_type_;
 	TShape       shape_;
 
-        StaticConstTensor * static_tensor_;
+	StaticConstTensor * static_tensor_;
 
 	std::atomic<int> reshaped_count_;
-
-       
-
 };
 
 

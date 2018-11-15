@@ -104,7 +104,7 @@ public:
         virtual bool GetPerf(Device * dev, Subgraph * graph,int policy,GraphPerf& perf) override;
         virtual float GetFops(Device * dev, Subgraph * graph, int policy) override;
         virtual int GetPolicyPriority(Device * dev, int policy) override;
-        virtual bool  GetProposal(Device * dev, Subgraph * graph, int policy) override;
+        virtual bool  GetProposal(Device * dev, Graph * graph, int policy,bool static_assign) override;
 
 
 protected:

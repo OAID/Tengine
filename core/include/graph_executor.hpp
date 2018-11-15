@@ -27,16 +27,17 @@
 #include "static_graph.hpp"
 #include "graph.hpp"
 #include "exec_engine.hpp"
+#include "exec_attr.hpp"
+#include "attr_io.hpp"
 
 
 namespace TEngine {
 
 class RuntimeWorkspace;
+class GraphExecutor;
 
-using pass_func_t=std::function<bool(Graph *, const any& param)>;
-
-class GraphPassManager: public SimpleObjectManager<GraphPassManager, pass_func_t> {};
-
+using  get_graph_attr_func_t=std::function<bool(GraphExecutor *, const char * name, void * val, int size)>;
+using  set_graph_attr_func_t=std::function<bool(GraphExecutor *, const char * name, const void * val, int size)>;
 
 class GraphExecutor {
 
@@ -46,7 +47,7 @@ public:
        graph_=nullptr;
        graph_attached_=false;
        exec_handle_=nullptr;
-	   exec_priority_=100;
+	   InitAttrIO();
   }
 
   ~GraphExecutor() { 
@@ -108,10 +109,32 @@ public:
 
    bool Postrun(void);
 
-   void SetExecPolicy(const std::string& p) { exec_policy_=p;}
-   void SetExecPriority(int priority)  { exec_priority_=priority;}
-   const std::string& GetExecPolicy(void) { return exec_policy_;}
-   int   GetExecPriority(void) { return exec_priority_;}
+   ExecAttr * GetExecAttr(void) { return &exec_attr_;}
+
+   int SetGraphAttr(const char * name, const void * val, int size)
+   {
+       if(attr_io_.SetAttr(name,val,size))
+		   return 0;
+	   else
+		   return -1;
+   }
+
+   int GetGraphAttr(const char * name, void * val, int size)
+   {
+	   if(attr_io_.GetAttr(name,val,size))
+		   return 0;
+	   else
+		   return -1;
+   }
+
+   bool GetExecAttrEntry   (const char * name, void * val, int size);
+   bool SetExecAttrEntry(const char * name, const void *val, int size);
+
+   bool BailoutSetAttr(const char * name, const void * val, int size);
+   bool BailoutGetAttr(const char * name, void * val, int size);
+
+   void InitAttrIO(void);
+
 
 protected:
    void ReleaseGraph(void);
@@ -121,16 +144,19 @@ private:
 
    std::string graph_name_;
    std::string model_name_;
-   std::string exec_policy_;
-   int exec_priority_;
 
    RuntimeWorkspace * ws_;
    Graph * graph_;
    bool   graph_attached_;
 
+ 
+   ExecAttr  exec_attr_;
+
    ExecEnginePtr exec_engine_;
    exec_handle_t exec_handle_;
    exec_event_t  exec_event_;
+
+   AttrIO attr_io_;
 
 };
 

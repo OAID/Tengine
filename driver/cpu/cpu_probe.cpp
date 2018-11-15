@@ -227,10 +227,10 @@ struct cpu_info * probe_system_cpu(void)
 	int last_max_freq=-1;
 	int  top_max_freq=-1;
 
-	struct cpu_cluster * cpu_cluster=(struct cpu_cluster *)
-		malloc(sizeof(struct cpu_cluster)*4);  //suppose at most 4
-
 	int cpu_number=get_cpu_number();
+	struct cpu_cluster * cpu_cluster=(struct cpu_cluster *)
+		malloc(sizeof(struct cpu_cluster)*(cpu_number/4+1));
+
 
 	for(int i=0;i<cpu_number;i++)
 	{
@@ -307,7 +307,7 @@ struct cpu_info * probe_system_cpu(void)
 	int cpu_number=get_cpu_number();
 
 	struct cpu_cluster * cpu_cluster=(struct cpu_cluster *)
-		malloc(sizeof(struct cpu_cluster)*4);  //suppose at most 4
+		malloc(sizeof(struct cpu_cluster)*(cpu_number/4+1)); 
 
 	int cluster_number=0;
 

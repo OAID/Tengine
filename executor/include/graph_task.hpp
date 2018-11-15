@@ -31,6 +31,7 @@
 #include "dev_executor.hpp"
 #include "graph_executor.hpp"
 #include "tengine_lock.hpp"
+#include "exec_attr.hpp"
 
 
 namespace TEngine {
@@ -80,8 +81,6 @@ public:
   void SetEngine(GenericEngine * engine) {dev_engine_=engine;}
   GenericEngine * GetEngine(void);
 
-  int exec_policy;
-  int exec_priority;
 
   GraphExecutor * GetGraphExecutor(void) {return graph_executor_;}
   Graph * GetGraph(void) { return graph_;}
@@ -89,6 +88,11 @@ public:
   bool SetCallback(exec_event_t& e, int event, exec_cb_t cb);
 
   static Graph * MergeSubgraph(Graph * origin_graph, const std::vector<Subgraph *>& sub_list);
+
+  const ExecAttr * GetExecAttr(void) { return p_exec_attr_;}
+
+  bool  SetAttr(const char * name, const void * val, int size);
+  bool  GetAttr(const char * name, void * val, int size);
 
 private:
   GraphExecutor * graph_executor_;
@@ -101,9 +105,8 @@ private:
   GenericEngine * dev_engine_;
   WaitEvent  wait_event_;
   bool     task_done_;
-  int exec_priority_;
-  std::string exec_policy_;
   Graph * optimized_graph_;
+  ExecAttr * p_exec_attr_;
 
 };
 
@@ -139,7 +142,6 @@ public:
    int  GetStatus(void) const {return status_;}
    void SetStatus(int status) { status_=status;}
    
-   int exec_policy;
    int exec_priority;
 
    bool is_output_task;
@@ -152,6 +154,9 @@ public:
 
    void Lock(void) { TEngineLock(task_lock_);}
    void Unlock(void) {TEngineUnlock(task_lock_);}
+
+   bool SetAttr(const char * name, const void * val, int size);
+   bool GetAttr(const char * name, void * val, int size);
 
 private:
 

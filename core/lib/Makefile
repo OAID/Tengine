@@ -25,4 +25,6 @@ compiler_CXXFLAGS+=$(flags-y)
 #graph_executor_CXXFLAGS+=-I../../executor/include
 tengine_config_CXXFLAGS+=-DGIT_COMMIT_ID=\"$(GIT_COMMIT_ID)\"
 
-
+ifneq ($(CONFIG_VERSION_POSTFIX),)
+   tengine_config_CXXFLAGS+=-DCONFIG_VERSION_POSTFIX=\"$(CONFIG_VERSION_POSTFIX)\"
+endif

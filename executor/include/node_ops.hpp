@@ -35,12 +35,14 @@
 #include <mutex>
 
 #include "cpu_info.hpp"
+#include "exec_attr.hpp"
 
 
 namespace TEngine {
 
 #define ATTR_NODE_OPS "node_ops"
 #define ATTR_INPLACE "inplace"
+#define ATTR_EXEC_ATTR "exec_attr"
 
 
 class Node;
@@ -105,6 +107,7 @@ struct NodeOps {
     mem_free_t mem_free;
     task_dispatch_t task_dispatch;
     wait_done_t  wait_done;
+	const ExecAttr *   exec_attr;
 
     const CPUInfo * cpu_info;
 };

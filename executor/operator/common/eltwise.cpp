@@ -148,6 +148,14 @@ bool Run(Node * node)
                 *out_ptr++ =in0[i]*in1[i/input_hw];
             }
         }
+		else if(input_count4==1)
+		{
+            for (int i = 0; i < input1_count4; ++i)
+			{
+			    *out_ptr++ = (*in1++)*in0[0];
+			}
+
+		}
         else
             return false;
         break;

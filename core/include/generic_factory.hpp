@@ -61,10 +61,6 @@ public:
    {
          const std::string key=name+typeid(creator).name();
 
-          LOG_DEBUG()<<"Register: name "<<name<<"\n";
-
-          LOG_DEBUG()<<"Function: "<<GetTypeName(typeid(creator).name())<<"\n";
-
          if(RegisterCreator(key,any(creator),replace))
          {
              type_map_.emplace(name,GetTypeName(typeid(creator).name()));
@@ -166,10 +162,8 @@ public:
    T * Create(const std::string& name, Args&& ... args)
    {
 
-        using func_t=std::function<T*(Args...)>;
+        //using func_t=std::function<T*(Args...)>;
 
-        LOG_DEBUG()<<"Create Function: "<<GetTypeName(typeid(func_t).name())<<"\n";
-        
         return GenericFactory::Create<T,Args...>(name,std::forward<Args>(args) ...);
 
    }

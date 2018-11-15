@@ -42,12 +42,14 @@ public:
 	bool DevGetPerf(Subgraph * graph,int policy,GraphPerf& perf) override;
 	float DevGetFops(Subgraph * graph,int policy) override; 
         int  DevGetPolicyPriority(int policy) override;
-        bool DevGetProposal(Subgraph * graph, int policy) override;
+        bool DevGetProposal(Subgraph * graph, int policy,bool static_assign) override;
 
-        bool DevSetConfig(const char * config_name, const void * buffer, int size) override;
-        bool DevGetConfig(const char * config_name, void * buffer, int size) override;
-        bool DevDelConfig(const char * config_name) override;
+    bool DevSetConfig(const char * config_name, const void * buffer, int size) override;
+    bool DevGetConfig(const char * config_name, void * buffer, int size) override;
+    bool DevDelConfig(const char * config_name) override;
 
+    bool DevSetGraphAttr(void * graph_handle, const char * name, const void * val, int size) override;
+    bool DevGetGraphAttr(void * graph_handle, const char * name, void * val, int size) override;
 	
 	void * DevCreateGraphHandle(Subgraph * graph) override;
 	bool DevOptimizeGraph(void * graph_handle) override;

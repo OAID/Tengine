@@ -138,7 +138,6 @@ void sgemv1x2(const float * input , float * weight_interleaved, bool have_biases
 struct FCOps: public MTNodeOps {
 
 int cpu_type;
-int mt_disabled;
 
 using sgemv_func_t=std::function<void(const float *,float *,bool,
 		             const float*,const float*,int,int,int,int)>;
@@ -185,21 +184,13 @@ bool Prerun(Node * node)
  
       (*node)["weight_interleaved"] = weight_interleaved;
 
-      bool free_weight=false;
+	  if(exec_attr->low_mem_mode)
+	  {
+		  printf("Free fc weight: %s %d\n", tensor->GetName().c_str(),tensor->GetTotalSize());
 
-      const char * free_weight_str=std::getenv("FREE_FC_WEIGHT");
+		  tensor->FreeMem();
+	  }
 
-      if(free_weight_str && free_weight_str[0]=='1')
-         free_weight=true;
-
-      if(free_weight)
-      {
-          printf("Free fc weight: %s %d\n",
-               tensor->GetName().c_str(),
-               tensor->GetTotalSize());
-
-          tensor->FreeMem();
-      }
 
       return true;
 }
@@ -232,7 +223,7 @@ bool Run(Node * node)
 
       for(int n=0;n<batch;n++)
       {
-         if(cpu_number==1 || mt_disabled)
+         if(cpu_number==1 || !exec_attr->fc_mt)
          {
              if(M>=8)
                  sgemv1x8(input,weight_interleaved,have_biases,biases,output,K,0,M&-8,cpu_type);
@@ -326,13 +317,6 @@ NodeOps * SelectFunc(const CPUInfo * cpu_info, Node * node)
          ops->cpu_type=TYPE_A72;
     else
          ops->cpu_type=TYPE_A53;
-
-	const char * mt_enabled=std::getenv("FC_MT_ENABLED");
-
-	if(mt_enabled && mt_enabled[0]=='1')
-		ops->mt_disabled=false;
-	else
-		ops->mt_disabled=true;
 
 	ops->need_free=true;
 

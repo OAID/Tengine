@@ -50,6 +50,8 @@ struct DevExecutor {
    virtual bool RunTask(SubgraphTask * task)=0;
    virtual bool SyncRunTask(SubgraphTask * task)=0;
 
+   virtual bool GetGraphAttr(SubgraphTask * task, const char * name, void * val, int size)=0;
+   virtual bool SetGraphAttr(SubgraphTask * task, const char * name, const void * val, int size)=0;
    virtual bool OptimizeGraph(SubgraphTask * task)=0;
    virtual Subgraph * GetOptimizedGraph(SubgraphTask * task)=0;
 
@@ -93,7 +95,7 @@ struct DevExecutor {
    virtual bool SetDevConfig(const char * config_name, const void * val, int size)=0;
    virtual bool GetDevConfig(const char * config_name, void * buffer, int size)=0;
    virtual bool DelDevConfig(const char * config_name)=0;
-   virtual bool GetProposal(Subgraph * graph, int policy)=0;
+   virtual bool GetProposal(Graph * graph, int policy, bool static_assign)=0;
 
    /*
      * 
@@ -119,6 +121,7 @@ struct DevExecutor {
   virtual const std::string& GetName()=0;
   virtual const dev_id_t & GetDevID()=0;
   virtual const dev_type_t & GetDevType()=0;
+
 
   virtual ~DevExecutor() {};
 

@@ -30,6 +30,7 @@
 #include "graph_optimizer.hpp"
 #include "cpu_driver.hpp"
 #include "operator/convolution.hpp"
+
 namespace TEngine {
 
 #define ENABLE_TIME_PROFILING
@@ -62,14 +63,14 @@ struct MemPool {
 
 		bool max_block_policy=false;
 
-        const char * block_policy=std::getenv("MAX_BLOCK_POLICY");
+		const char * block_policy=std::getenv("MAX_BLOCK_POLICY");
 
-        if(block_policy && block_policy[0]=='1')
-             max_block_policy=true;
+		if(block_policy && block_policy[0]=='1')
+			max_block_policy=true;
 
 		if(max_block_policy)
 		{ 
-            int block_size=mem_block[block_number-1];
+			int block_size=mem_block[block_number-1];
 
 			for(int i=0;i<block_number;i++)
 			{
@@ -80,7 +81,7 @@ struct MemPool {
 				b.alloc_count=0;
 
 				block_list.push_back(b);
-            }
+			}
 		}
 		else
 		{    
@@ -234,55 +235,55 @@ bool CPURunner::Prerun(Subgraph  * sub_graph)
 static void parse_node(void * data, int repeat_count, uint64_t total_time)
 {
 	Node * node=(Node *)data;
-			Tensor * input_tensor=node->GetInputTensor(0);
-			Tensor * output_tensor=node->GetOutputTensor(0);
-			Operator * op=node->GetOp();
-			TShape& ishape=input_tensor->GetShape();
-			TShape& oshape=output_tensor->GetShape();
-			printf(" Node_idx:%3d",node->GetNodeIndex());
-			// float* outdata=(float *)get_tensor_mem(output_tensor);
-			// float* indata=(float *)get_tensor_mem(input_tensor);
-			// printf("\t%s\n",output_tensor->GetName().c_str());
+	Tensor * input_tensor=node->GetInputTensor(0);
+	Tensor * output_tensor=node->GetOutputTensor(0);
+	Operator * op=node->GetOp();
+	TShape& ishape=input_tensor->GetShape();
+	TShape& oshape=output_tensor->GetShape();
+	printf(" Node_idx:%3d",node->GetNodeIndex());
+	// float* outdata=(float *)get_tensor_mem(output_tensor);
+	// float* indata=(float *)get_tensor_mem(input_tensor);
+	// printf("\t%s\n",output_tensor->GetName().c_str());
 
-			 printf("\t%10s\t%4d x%4d x%6d  -> %4d x%4d x%6d\t",
-					op->GetName().c_str(),
-					ishape.GetC(), ishape.GetH(), ishape.GetW(),
-					oshape.GetC(), oshape.GetH(), oshape.GetW());
-			 if(op->GetName()=="Convolution")
-			 {
-			 	Convolution * conv_op=dynamic_cast<Convolution *>(node->GetOp());
-			 	ConvParam*  param=conv_op->GetParam();
-			 	printf("%2d x %d / %d_p%d",param->kernel_h,param->kernel_w,param->stride_h,param->pads[0]);
-			 	// if(param->kernel_h==3 && param->stride_h==1)
-			 	// {
-			 	// 	printf(" [%d]",param->mth);
-			 	// }
-			 	// else
-			 	// {
-			 	// 	printf("    ");
-			 	// }
-			 	if(param->group!=1)
-			 	{
-			 		printf(" (%2d)",param->group);
-			 	}
-			 	else
-			 	{
-			 		printf("     ");
-			 	}
-			 }
-			 else
-			 {
-			 	printf("   x    /   _     ");
-			 }
-			 if(op->GetName()=="Convolution" || op->GetName()=="FullyConnected" || op->GetName()=="Deconvolution")
-			 {
-				std::printf(" Mfops: %.2f\tRate: %.0f",1.0f*node->GetFops()/1000000, 
-			      1.0f*node->GetFops()*repeat_count/total_time);
-			 }
-			 
-			 // printf("\t%s\n",output_tensor->GetName().c_str());
+	printf("\t%10s\t%4d x%4d x%6d  -> %4d x%4d x%6d\t",
+			op->GetName().c_str(),
+			ishape.GetC(), ishape.GetH(), ishape.GetW(),
+			oshape.GetC(), oshape.GetH(), oshape.GetW());
+	if(op->GetName()=="Convolution")
+	{
+		Convolution * conv_op=dynamic_cast<Convolution *>(node->GetOp());
+		ConvParam*  param=conv_op->GetParam();
+		printf("%2d x %d / %d_p%d",param->kernel_h,param->kernel_w,param->stride_h,param->pads[0]);
+		// if(param->kernel_h==3 && param->stride_h==1)
+		// {
+		// 	printf(" [%d]",param->mth);
+		// }
+		// else
+		// {
+		// 	printf("    ");
+		// }
+		if(param->group!=1)
+		{
+			printf(" (%2d)",param->group);
+		}
+		else
+		{
+			printf("     ");
+		}
+	}
+	else
+	{
+		printf("   x    /   _     ");
+	}
+	if(op->GetName()=="Convolution" || op->GetName()=="FullyConnected" || op->GetName()=="Deconvolution")
+	{
+		std::printf(" Mfops: %.2f\tRate: %.0f",1.0f*node->GetFops()/1000000, 
+				1.0f*node->GetFops()*repeat_count/total_time);
+	}
 
-	
+	// printf("\t%s\n",output_tensor->GetName().c_str());
+
+
 }
 
 #endif
@@ -324,100 +325,99 @@ bool CPURunner::Run(Subgraph * sub_graph)
 
 		NodeOps * node_ops=any_cast<NodeOps*>(node->GetAttr(ATTR_NODE_OPS));
 
-                /* dynamic shape process */
-                if(node->IsDynamicShape() || node->InputReshaped())
-                {
+		/* dynamic shape process */
+		if(node->IsDynamicShape() || node->InputReshaped())
+		{
 
-                    int output_number=node->GetOutputNum();
+			int output_number=node->GetOutputNum();
 
-                    /* free output tensor first */
+			/* free output tensor first */
 
-                    for(int i=0;i<output_number;i++)
-		    {
-			Tensor * tensor=node->GetOutputTensor(i);
-			free_tensor_mem(tensor);
-		    }
+			for(int i=0;i<output_number;i++)
+			{
+				Tensor * tensor=node->GetOutputTensor(i);
+				free_tensor_mem(tensor);
+			}
 
-                    /* do infer shape */
+			/* do infer shape */
+			Operator * op=node->GetOp();
 
-                    Operator * op=node->GetOp();
+			std::vector<TShape> inputs;
 
-                    std::vector<TShape> inputs;
+			for(unsigned int i=0;i<node->GetInputNum();i++)
+			{
+				Tensor * tensor=node->GetInputTensor(i);
+				inputs.push_back(tensor->GetShape());
 
-                    for(unsigned int i=0;i<node->GetInputNum();i++)
-                    {
-                        Tensor * tensor=node->GetInputTensor(i);
-                        inputs.push_back(tensor->GetShape());
+				if(tensor->Reshaped())
+					tensor->UpdateReshapeCount();
+			}
 
-			if(tensor->Reshaped())
-				tensor->UpdateReshapeCount();
-                    }
+			std::vector<TShape> outputs(output_number);
 
-                     std::vector<TShape> outputs(output_number);
-                    
-                     if(!op->InferShape(inputs,outputs))
-                     {
-                           XLOG_ERROR()<<"infer shaped for node: "<<node->GetName()
-                                       <<" op: "<<op->GetName()<<" failed\n";
-                           ret=false;
-                           break;
-                     }
+			if(!op->InferShape(inputs,outputs))
+			{
+				XLOG_ERROR()<<"infer shaped for node: "<<node->GetName()
+					<<" op: "<<op->GetName()<<" failed\n";
+				ret=false;
+				break;
+			}
 
 
-                     for(int i=0;i<output_number;i++)
-                     {
-                         Tensor * tensor=node->GetOutputTensor(i);
-                         TShape shape=tensor->GetShape();
+			for(int i=0;i<output_number;i++)
+			{
+				Tensor * tensor=node->GetOutputTensor(i);
+				TShape shape=tensor->GetShape();
 
-                         shape=outputs[i];
+				shape=outputs[i];
 
-			 tensor->Reshape(shape);
-                     }
+				tensor->Reshape(shape);
+			}
 
-                     /* allocate output memory */
+			/* allocate output memory */
 
-                     for(int i=0;i<output_number;i++)
-                     {
-                           Tensor * tensor=node->GetOutputTensor(i);
+			for(int i=0;i<output_number;i++)
+			{
+				Tensor * tensor=node->GetOutputTensor(i);
 
-                           int input_idx=-1;
+				int input_idx=-1;
 
-			   if(node->ExistAttr(ATTR_INPLACE))
-			   {
-				const inplace_t & inplace=any_cast<inplace_t>(node->GetAttr("inplace"));
+				if(node->ExistAttr(ATTR_INPLACE))
+				{
+					const inplace_t & inplace=any_cast<inplace_t>(node->GetAttr("inplace"));
 
-				if(inplace.count(i))
-					input_idx=inplace.at(i);
-			   }
+					if(inplace.count(i))
+						input_idx=inplace.at(i);
+				}
 
-                           if(input_idx>=0)
-                           {
-                               Tensor * input_tensor=node->GetInputTensor(input_idx);
+				if(input_idx>=0)
+				{
+					Tensor * input_tensor=node->GetInputTensor(input_idx);
 
-				if(input_tensor->consumer.size()==1)
-                                {
-                                    void * tensor_addr=get_tensor_mem(input_tensor);
-				    int total_size=tensor->GetTotalSize();
+					if(input_tensor->consumer.size()==1)
+					{
+						void * tensor_addr=get_tensor_mem(input_tensor);
+						int total_size=tensor->GetTotalSize();
 
-				    set_tensor_mem(tensor,tensor_addr, total_size,nullptr);
+						set_tensor_mem(tensor,tensor_addr, total_size,nullptr);
 
-                                    continue;
-                                }
+						continue;
+					}
 
-                           }
+				}
 
-                           //non-inplace or cannot do in-place
-                           int total_size=tensor->GetTotalSize();
-                           void * tensor_addr=mem_alloc(total_size);
-                           
-                           set_tensor_mem(tensor,tensor_addr,total_size,mem_free); 
+				//non-inplace or cannot do in-place
+				int total_size=tensor->GetTotalSize();
+				void * tensor_addr=mem_alloc(total_size);
 
-                     }
+				set_tensor_mem(tensor,tensor_addr,total_size,mem_free); 
 
-		     /* call the Reshape() to prepare for run */
-		     node_ops->Reshape(node);
+			}
 
-                }
+			/* call the Reshape() to prepare for run */
+			node_ops->Reshape(node);
+
+		}
 
 
 
@@ -445,7 +445,7 @@ bool CPURunner::Run(Subgraph * sub_graph)
 #if 0
 
 	std::printf("master cpu: %d run subgraph: %s --  %s\n",cpu_info_->GetMasterCPU(),
-				sub_graph->GetName().c_str(),ret?"OK":"FAIL");
+			sub_graph->GetName().c_str(),ret?"OK":"FAIL");
 
 #endif
 	return ret;
@@ -568,18 +568,18 @@ bool CPURunner::FreeMem(Subgraph * sub_graph)
 	{
 		Node * node=seq_nodes[i];
 
-	        for(unsigned int i=0;i<node->GetOutputNum();i++)
+		for(unsigned int i=0;i<node->GetOutputNum();i++)
 		{
-		     Tensor * tensor=node->GetOutputTensor(i);
-		     free_tensor_mem(tensor);
-	        }
+			Tensor * tensor=node->GetOutputTensor(i);
+			free_tensor_mem(tensor);
+		}
 	}
 
 	if(sub_graph->ExistAttr("shared_temp_memory"))
 	{
 		void * mem_addr=any_cast<void *>(sub_graph->GetAttr("shared_temp_memory"));
 
-	        mem_free(mem_addr);
+		mem_free(mem_addr);
 
 		sub_graph->RemoveAttr("shared_temp_memory");
 	}
@@ -644,7 +644,7 @@ static void CalculateMemBlocks(std::vector<int>& mem_block, Subgraph * sub_graph
 		Node * node=seq_nodes[i];
 
 		//first, add output tensor into map
-		if(!node->IsDynamicShape())
+		if(!node->IsDynamicShape() && node->ExistAttr(ATTR_NODE_OPS))
 		{
 			for(unsigned int j=0;j<node->GetOutputNum();j++)
 			{
@@ -689,7 +689,8 @@ static void CalculateMemBlocks(std::vector<int>& mem_block, Subgraph * sub_graph
 	//suppose each output node only has one output tensor
 	if(active_num>(int)sub_graph->output_nodes.size())
 	{
-		XLOG_ERROR()<<"active num is: "<<active_num<<" output nodes: "
+		XLOG_ERROR()<<"graph: "<<sub_graph->GetName()
+			<<" active num is: "<<active_num<<" output nodes: "
 			<<sub_graph->output_nodes.size()<<"\n";
 	}
 
@@ -735,7 +736,7 @@ bool CPURunner::AllocateMem(Subgraph * sub_graph)
 	 */
 
 
-        unsigned int max_shared_mem_size=0;
+	unsigned int max_shared_mem_size=0;
 
 	for(unsigned int i=0;i<seq_nodes.size();i++)
 	{
@@ -748,33 +749,33 @@ bool CPURunner::AllocateMem(Subgraph * sub_graph)
 		unsigned int mem_size;
 
 		if(node_ops->GetSharedMemorySize(node,mem_size) 
-                    &&  mem_size>max_shared_mem_size)
-                {
-                    max_shared_mem_size=mem_size;
+				&&  mem_size>max_shared_mem_size)
+		{
+			max_shared_mem_size=mem_size;
 		}
 	}
 
 	if(max_shared_mem_size>0)
 	{
-	      void * shared_memory=mem_alloc(max_shared_mem_size+128);
-              sub_graph->SetAttr("shared_temp_memory",shared_memory);
+		void * shared_memory=mem_alloc(max_shared_mem_size+128);
+		sub_graph->SetAttr("shared_temp_memory",shared_memory);
 
-              for(unsigned int i=0;i<seq_nodes.size();i++)
-              {
-		Node * node=seq_nodes[i];
+		for(unsigned int i=0;i<seq_nodes.size();i++)
+		{
+			Node * node=seq_nodes[i];
 
-		if(!node->ExistAttr(ATTR_NODE_OPS))
-			continue;
+			if(!node->ExistAttr(ATTR_NODE_OPS))
+				continue;
 
-		NodeOps * node_ops=any_cast<NodeOps *>(node->GetAttr(ATTR_NODE_OPS));
+			NodeOps * node_ops=any_cast<NodeOps *>(node->GetAttr(ATTR_NODE_OPS));
 
-                 unsigned int mem_size;
+			unsigned int mem_size;
 
-		if(node_ops->GetSharedMemorySize(node,mem_size))
-			node_ops->SetSharedMemoryAddr(node,shared_memory,mem_size);
-              }
+			if(node_ops->GetSharedMemorySize(node,mem_size))
+				node_ops->SetSharedMemoryAddr(node,shared_memory,mem_size);
+		}
 
-             // std::cout<<"max shared memory: "<<max_shared_mem_size<<"\n";
+		// std::cout<<"max shared memory: "<<max_shared_mem_size<<"\n";
 	}
 
 
@@ -800,7 +801,7 @@ bool CPURunner::AllocateMem(Subgraph * sub_graph)
 	{
 		Node * node=seq_nodes[i];
 
-		if(node->IsDynamicShape())
+		if(node->IsDynamicShape() || !node->ExistAttr(ATTR_NODE_OPS))
 			continue;
 
 		for(unsigned int i=0;i<node->GetOutputNum();i++)
@@ -841,7 +842,7 @@ bool CPURunner::AllocateMem(Subgraph * sub_graph)
 				int total_size=tensor->GetTotalSize();
 				void * tensor_addr=mem_pool->Allocate(tensor,total_size);
 				set_tensor_mem(tensor,tensor_addr,total_size,nullptr);
-				
+
 			}
 		}
 		/* input tensor */
@@ -863,6 +864,8 @@ bool CPURunner::BindNodeOps(Subgraph * sub_graph)
 	std::vector<Node *>& seq_nodes=sub_graph->seq_nodes;
 	int node_size=seq_nodes.size();
 
+	const ExecAttr * exec_attr=any_cast<const ExecAttr *>(sub_graph->GetAttr("exec_attr"));
+
 	for(int i=0; i<node_size;i++)
 	{
 		Node * node=seq_nodes[i];
@@ -870,6 +873,8 @@ bool CPURunner::BindNodeOps(Subgraph * sub_graph)
 
 		if(op->GetName()=="Const" || op->GetName()=="Input")
 			continue;
+
+		node->SetAttr(ATTR_EXEC_ATTR,exec_attr);
 
 		NodeOps * node_ops=NodeOpsRegistryManager::FindNodeOps(cpu_info_,node);
 
@@ -880,14 +885,17 @@ bool CPURunner::BindNodeOps(Subgraph * sub_graph)
 			return false;
 		}
 
-                auto dispatch=std::bind(&CPUDevice::PushAiderTask,cpu_dev_,std::placeholders::_1,
-                                        std::placeholders::_2);
+		auto dispatch=std::bind(&CPUDevice::PushAiderTask,cpu_dev_,std::placeholders::_1,
+				std::placeholders::_2);
 
-                auto wait=std::bind(&CPUDevice::WaitDone,cpu_dev_);
+		auto wait=std::bind(&CPUDevice::WaitDone,cpu_dev_);
 
 		node_ops->SetHelper(mem_alloc,mem_free,dispatch,wait);
 
 		node->SetAttr(ATTR_NODE_OPS,node_ops);
+
+		node_ops->exec_attr=exec_attr;
+
 		node_ops->OnBind(node);
 	}
 
@@ -898,8 +906,8 @@ bool CPURunner::BindNodeOps(Subgraph * sub_graph)
 
 void CPURunner::AttachCPUDevice(CPUDevice * cpu_dev)
 {
-      cpu_dev_=cpu_dev;
-      cpu_info_=cpu_dev_->GetCPUInfo();
+	cpu_dev_=cpu_dev;
+	cpu_info_=cpu_dev_->GetCPUInfo();
 
 }
 

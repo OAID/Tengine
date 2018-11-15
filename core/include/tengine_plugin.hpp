@@ -98,7 +98,7 @@ struct TEnginePlugin
 
     //Note: Release is executed on reverse priority
     static void RegisterModuleRelease(int priority, module_release_func_t rel_func);
-    static void InitModule(void);
+    static int  InitModule(void);
     static void ReleaseModule(void);
 
 private:

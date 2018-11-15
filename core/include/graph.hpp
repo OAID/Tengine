@@ -122,6 +122,8 @@ public:
 
 	bool NodeInGraph(Node *);
 
+	int GetModelFormat(void) { return model_format;}
+
 protected:
 
 
@@ -130,6 +132,8 @@ protected:
 
     std::vector<Node *> owned_nodes_;
     std::unordered_map<std::string,Tensor *> owned_tensors_;
+
+	int  model_format;
 
     Attribute attrs_;
   

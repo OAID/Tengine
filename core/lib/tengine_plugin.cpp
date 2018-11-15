@@ -249,6 +249,12 @@ void TEnginePlugin::RegisterModuleInit(int priority, module_init_func_t init_fun
 {
 	std::unordered_map<int, module_init_func_t> * p_table=GetInitTable();
 
+	if(p_table->count(priority))
+	{	
+		LOG_WARN()<<"init priority "<<priority<<" has been registered already\n";
+		return ;
+	}
+
 	(*p_table)[priority]=init_func;
 
 }
@@ -267,7 +273,7 @@ void TEnginePlugin::RegisterModuleRelease(int priority, module_release_func_t re
 	(*p_table)[priority]=rel_func;
 }
 
-void TEnginePlugin::InitModule(void)
+int TEnginePlugin::InitModule(void)
 {
 	std::unordered_map<int, module_init_func_t> * p_table=GetInitTable();
 	auto ir=p_table->begin();
@@ -276,9 +282,14 @@ void TEnginePlugin::InitModule(void)
 	while(ir!=end)
 	{
 		module_init_func_t func=ir->second;
-		func();
+
+		if(func()<0)
+			return -1;
+
 		ir++;
 	}
+
+	return 0;
 }
 
 void TEnginePlugin::ReleaseModule(void)

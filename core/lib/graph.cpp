@@ -29,6 +29,7 @@
 
 #include "static_graph.hpp"
 #include "graph.hpp"
+#include "exec_attr.hpp"
 
 
 
@@ -178,6 +179,11 @@ bool Graph::CreateNodeFromStatic(Node * node, const StaticGraph * static_graph, 
              shape.SetDataLayout(static_tensor->data_layout);
              shape.SetDim(static_tensor->dims);
 
+			 QuantParam * quant_param=tensor->GetQuantParam();
+
+			 quant_param->scale=static_tensor->scale;
+			 quant_param->zero_point=static_tensor->zero_point;
+
              if(static_tensor->type==kConstTensor)
              {
                  StaticConstTensor * const_tensor=dynamic_cast<StaticConstTensor *>(static_tensor);
@@ -233,6 +239,32 @@ bool Graph::SetupConnection(Tensor * tensor, const StaticGraph * static_graph, c
      return true;
 }
 
+static int model_format_mapping(const std::string& fmt)
+{
+	if(fmt=="tengine")
+	{
+		return MODEL_FORMAT_TENGINE;
+	}
+	else if(fmt=="caffe")
+	{
+		return MODEL_FORMAT_CAFFE;
+	}else if(fmt=="onnx")
+	{
+		return MODEL_FORMAT_ONNX;
+	}else if(fmt=="mxnet")
+	{
+		return MODEL_FORMAT_MXNET;
+	}else if(fmt=="tensorflow")
+	{
+		return MODEL_FORMAT_TENSORFLOW;
+	}else if(fmt=="tflite")
+	{
+		return MODEL_FORMAT_TFLITE;
+	}else 
+	{
+		return MODEL_FORMAT_UNKNOWN;
+	}
+}
 
 bool Graph::RealCreateFromStatic(const StaticGraphPtr& static_graph)
 {
@@ -278,6 +310,10 @@ bool Graph::RealCreateFromStatic(const StaticGraphPtr& static_graph)
           int node_idx=static_graph->input_node_list[i];
           Node * node=FindNode(static_graph->node_list[node_idx].get()->name);
           input_nodes.push_back(node);
+
+          /* update the input node's tensor type */
+		  Tensor * tensor=node->GetOutputTensor(0);
+		  tensor->SetType(kInputTensor);
    }
 
    for(unsigned int i=0;i<static_graph->output_node_list.size();i++)
@@ -287,12 +323,18 @@ bool Graph::RealCreateFromStatic(const StaticGraphPtr& static_graph)
           output_nodes.push_back(node);
    }
 
+
+
     /* re-order the seq_nodes_, removing un-used node, according to node dependency*/
 
     SanitizeGraph();
 
     /* populate dynamic_shape nodes */
     PopulateDynamicShape();
+
+	/* save the model format */
+
+	model_format=model_format_mapping(static_graph->source_format);
 
     return true;
 }
@@ -669,7 +711,8 @@ void Graph::RemoveNoChildTensor(void)
 }
 
 
-static bool AllChildVisited(Graph * graph, Node * node, std::vector<int>& visited)
+static bool AllChildVisited(Graph * graph, Node * node, std::vector<int>& visited,
+		                        const std::set<Node *>& in_graph)
 {
       for(unsigned int i=0;i<node->GetOutputNum();i++)
       {
@@ -680,14 +723,15 @@ static bool AllChildVisited(Graph * graph, Node * node, std::vector<int>& visite
            {
                 NodePort * in_port=tensor->consumer[k];
                 Node * child=in_port->owner;
-               if(!visited[child->GetNodeIndex()])
+               if(in_graph.count(child) && !visited[child->GetNodeIndex()] )
                    return false;
           }
       }
       return true;
 }
 
-static bool AllInputVisited(Graph * graph, Node * node, std::vector<int>& visited)
+static bool AllInputVisited(Graph * graph, Node * node, std::vector<int>& visited, 
+		                        const std::set<Node *>& in_graph)
 {
       for(unsigned int i=0;i<node->GetInputNum();i++)
       {
@@ -696,7 +740,7 @@ static bool AllInputVisited(Graph * graph, Node * node, std::vector<int>& visite
            NodePort * out_port=tensor->producer;
            Node * parent=out_port->owner;
 
-            if(!visited[parent->GetNodeIndex()])
+            if(in_graph.count(parent) && !visited[parent->GetNodeIndex()])
                    return false;
       }
       return true;
@@ -725,9 +769,28 @@ void Graph::ForwardBFS(Graph * graph, std::vector<Node *>& starts, graph_visit_t
      for(unsigned int i=0;i<starts.size();i++)
      {
          Node * node=starts[i];
-         visit_queue.push(node);
-         visited[node->GetNodeIndex()]=1;
-         func(graph,node);
+
+		 bool pure_input_node=true;
+
+		 //only if all input tensors are out-side graph 
+
+		 for(int i=0;i<node->GetParentNum();i++)
+		 {
+             Node* pnode=node->GetParentNode(i);
+
+			 if(in_graph.count(pnode))
+			 {
+				   pure_input_node=false;
+				   break;
+			 }
+		 }
+
+		 if(pure_input_node)
+		 {
+            visit_queue.push(node);
+            visited[node->GetNodeIndex()]=1;
+            func(graph,node);
+		 }
      }
 
      while(visit_queue.size())
@@ -739,8 +802,7 @@ void Graph::ForwardBFS(Graph * graph, std::vector<Node *>& starts, graph_visit_t
 
          for(int i=0;i<output_num;i++)
          {
-             NodePort * port=node->GetOutputPortSeq(i);
-             Tensor * tensor=port->tensor;
+             Tensor * tensor=node->GetOutputTensorSeq(i);
 
              for(unsigned int k=0;k<tensor->consumer.size();k++)
              { 
@@ -748,7 +810,7 @@ void Graph::ForwardBFS(Graph * graph, std::vector<Node *>& starts, graph_visit_t
 
                   if(in_graph.count(child) &&
                      !visited[child->GetNodeIndex()] 
-                       && (!input_ready || AllInputVisited(graph,child,visited)))
+                       && (!input_ready || AllInputVisited(graph,child,visited,in_graph)))
                   {
                       visit_queue.push(child);
                       visited[child->GetNodeIndex()]=1;
@@ -781,9 +843,32 @@ void Graph::BackwardBFS(Graph * graph, std::vector<Node *>& starts, graph_visit_
      for(unsigned int i=0;i<starts.size();i++)
      {
          Node * node=starts[i];
-         visit_queue.push(node);
-         visited[node->GetNodeIndex()]=1;
-         func(graph,node); 
+		 bool pure_output_node=true;
+         int output_num=node->GetOutputNum();
+
+		 for(int i=0;i<output_num;i++)
+		 {
+			 Tensor * tensor=node->GetOutputTensorSeq(i);
+
+			 for(unsigned int k=0;k<tensor->consumer.size();k++)
+			 {
+                 Node * child=tensor->consumer[k]->owner;
+
+			     if(in_graph.count(child))
+				 {
+				     pure_output_node=false;
+					 break;
+				 }
+			 }
+
+		 }
+
+		 if(pure_output_node)
+		 {
+            visit_queue.push(node);
+            visited[node->GetNodeIndex()]=1;
+            func(graph,node); 
+		 }
      }
 
      while(visit_queue.size())
@@ -791,18 +876,15 @@ void Graph::BackwardBFS(Graph * graph, std::vector<Node *>& starts, graph_visit_
          Node * node=visit_queue.front();
          visit_queue.pop();
 
-
          int input_num=node->GetInputNum();
 
          for(int i=0;i<input_num;i++)
          {
-             NodePort * port=node->GetInputPort(i);
-             Tensor * tensor=port->tensor;
-             Node * parent=tensor->producer->owner;
+             Node * parent=node->GetParentNode(i);
 
              if(in_graph.count(parent)  &&
                  !visited[parent->GetNodeIndex()] 
-                 && (!input_ready || AllChildVisited(graph,parent,visited)))
+                 && (!input_ready || AllChildVisited(graph,parent,visited,in_graph)))
              {
                   visit_queue.push(parent);
                   visited[parent->GetNodeIndex()]=1;

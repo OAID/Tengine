@@ -392,6 +392,15 @@ void  GenericDevExecutor::OnSubgraphDone(Subgraph * sub_graph, bool exec_success
 }
 
 
+bool GenericDevExecutor::SetGraphAttr(SubgraphTask * task, const char *name, const void * val, int size) 
+{
+	return DevSetGraphAttr(task->graph_handle,name,val,size);
+}
+bool GenericDevExecutor::GetGraphAttr(SubgraphTask * task, const char * name, void * val, int size)
+{
+	return DevGetGraphAttr(task->graph_handle,name,val,size);
+}
+
 
 } //namespace TEngine
 

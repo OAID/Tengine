@@ -86,7 +86,7 @@ void get_input_data(const char *image_file, float *input_data, int img_h, int im
         return;
     }
     cv::Mat img;
-    if (sample.channels() == 4) 
+    if (sample.channels() == 4)
     {
         cv::cvtColor(sample, img, cv::COLOR_BGRA2BGR);
     }
@@ -98,7 +98,7 @@ void get_input_data(const char *image_file, float *input_data, int img_h, int im
     {
         img=sample;
     }
-    
+
     cv::resize(img, img, cv::Size(img_h, img_w));
     img.convertTo(img, CV_32FC3);
     float *img_data = (float *)img.data;
@@ -145,7 +145,6 @@ int sys_init(void)
 //    int cpu_list[]={4,5};
 //    set_online_cpu((struct cpu_info *)p_info,cpu_list,sizeof(cpu_list)/sizeof(int));
 //    create_cpu_device("rk3399",p_info);
-
     return 0;
 }
 
@@ -153,7 +152,7 @@ bool run_tengine_library(const char *model_name,
                          const char *proto_file, const char *model_file,
                          const char *label_file, const char *image_file,
                          int img_h, int img_w, const float* mean,  float scale,
-                         int repeat_count)
+                         int repeat_count,const std::string device)
 {
     // init tengine
    // init_tengine_library();
@@ -180,7 +179,10 @@ bool run_tengine_library(const char *model_name,
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     set_tensor_shape(input_tensor, dims, 4);
-
+   if(!device.empty())
+   {
+      set_graph_device(graph,device.c_str());
+   }
     // prerun
     prerun_graph(graph);
 
@@ -213,7 +215,7 @@ bool run_tengine_library(const char *model_name,
     float *data = (float *)get_tensor_buffer(output_tensor);
     PrintTopLabels(label_file, data);
     std::cout << "--------------------------------------\n";
-	
+
 	put_graph_tensor(output_tensor);
     put_graph_tensor(input_tensor);
 
@@ -262,6 +264,7 @@ int main(int argc, char *argv[])
     std::string model_file;
     std::string label_file;
     std::string image_file;
+    std::string device;
     std::vector<int> hw;
     std::vector<float> ms;
     int img_h = 0;
@@ -270,10 +273,13 @@ int main(int argc, char *argv[])
     float mean[3] = {-1, -1, -1};
 
     int res;
-    while((res=getopt(argc,argv,"n:p:m:l:i:g:s:w:r:h")) != -1)
+    while((res=getopt(argc,argv,"d:n:p:m:l:i:g:s:w:r:h")) != -1)
     {
         switch(res)
         {
+            case 'd':
+                device = optarg;
+                break;
             case 'n':
                 model_name = optarg;
                 break;
@@ -319,7 +325,7 @@ int main(int argc, char *argv[])
             case 'h':
                 std::cout << "[Usage]: " << argv[0] << " [-h]\n"
                           << "    [-n model_name] [-p proto_file] [-m model_file] [-l label_file] [-i image_file]\n"
-                          << "    [-g img_h,img_w] [-s scale] [-w mean[0],mean[1],mean[2]] [-r repeat_count]\n";
+                          << "    [-g img_h,img_w] [-s scale] [-w mean[0],mean[1],mean[2]] [-r repeat_count] [-d device_name]\n";
                 return 0;
             default:
                 break;
@@ -399,8 +405,9 @@ int main(int argc, char *argv[])
     if(run_tengine_library(model_name.c_str(),
                            proto_file.c_str(), model_file.c_str(),
                            label_file.c_str(), image_file.c_str(),
-                           img_h, img_w, mean, scale, repeat_count))
+                           img_h, img_w, mean, scale, repeat_count,device))
         std::cout << "ALL TEST DONE\n";
 
     return 0;
 }
+

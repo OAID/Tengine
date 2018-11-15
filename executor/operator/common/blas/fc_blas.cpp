@@ -39,53 +39,64 @@ namespace TEngine {
 namespace FCImpl 
 {
 
-struct FcBlasOps: public NodeOps 
-{
-
-    bool Run(Node *node)
+    struct FcBlasOps: public NodeOps 
     {
-        Tensor *input_tensor = node->GetInputTensor(0);
-        Tensor *output_tensor = node->GetOutputTensor(0);
-        Tensor *weight_tensor = node->GetInputTensor(1);
-        Tensor *bias_tensor = node->GetInputTensor(2);
 
-        float *input = (float *)get_tensor_mem(input_tensor);
-        float *output = (float *)get_tensor_mem(output_tensor);
-        float *weight = (float *)get_tensor_mem(weight_tensor);
-        float *bias = (float *)get_tensor_mem(bias_tensor);
+        bool Run(Node *node)
+        {
+            Tensor *input_tensor = node->GetInputTensor(0);
+            Tensor *output_tensor = node->GetOutputTensor(0);
+            Tensor *weight_tensor = node->GetInputTensor(1);
+            bool has_bias=node->GetInputNum()>2?true:false;
 
-        const TShape &shape = input_tensor->GetShape();
-        const std::vector<int> in_dims = shape.GetDim();
-        const TShape &shape1 = output_tensor->GetShape();
-        const std::vector<int> out_dims = shape1.GetDim();
+            float *input = (float *)get_tensor_mem(input_tensor);
+            float *output = (float *)get_tensor_mem(output_tensor);
+            float *weight = (float *)get_tensor_mem(weight_tensor);
 
-        int batch_number = in_dims[0];
-        int inc=in_dims[1];
-        int inh=in_dims[2];
-        int inw=in_dims[3];
-        int in_chw= inc*inh*inw;
+            Tensor *bias_tensor;
+            float *bias=nullptr;
 
-        int outc= out_dims[1];
-      
-        int m = batch_number;
-        int k = in_chw;
-        int n = outc;
-        cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasTrans, m, n, k, 1, 
+            if(has_bias)
+            {
+                bias_tensor= node->GetInputTensor(2);
+                bias= (float *)get_tensor_mem(bias_tensor);
+            }
+
+            const TShape &shape = input_tensor->GetShape();
+            const std::vector<int> in_dims = shape.GetDim();
+            const TShape &shape1 = output_tensor->GetShape();
+            const std::vector<int> out_dims = shape1.GetDim();
+
+            int batch_number = in_dims[0];
+            int inc=in_dims[1];
+            int inh=in_dims[2];
+            int inw=in_dims[3];
+            int in_chw= inc*inh*inw;
+
+            int outc= out_dims[1];
+
+            int m = batch_number;
+            int k = in_chw;
+            int n = outc;
+            cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasTrans, m, n, k, 1, 
                     input, k, weight, k, 0, output, n);
 
-        
-        for(int b =0; b<batch_number;b++)
-        {
-            float* out_ptr=output + b*outc;
-            for (int i = 0; i < outc; ++i)
+            if(has_bias)
             {
-                out_ptr[i] += bias[i];
-            }
-        }
-        return true;
-    }
 
-};
+                for(int b =0; b<batch_number;b++)
+                {
+                    float* out_ptr=output + b*outc;
+                    for (int i = 0; i < outc; ++i)
+                    {
+                        out_ptr[i] += bias[i];
+                    }
+                }
+            }
+            return true;
+        }
+
+    };
 
 } //namespace FCImpl
 
@@ -96,7 +107,7 @@ void RegisterFcBlasNodeExec(void)
     FcBlasOps *ops = new FcBlasOps();
 
     NodeOpsRegistryManager::RegisterOPImplementor("common",
-                                                  "FullyConnected", ops);
+            "FullyConnected", ops);
 }
 
 } //namespace TEngine

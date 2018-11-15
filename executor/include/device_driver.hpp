@@ -31,17 +31,12 @@
 #include "compiler.hpp"
 
 #include "graph.hpp"
+#include "dev_proposal.hpp"
 
 namespace TEngine {
 
 class Device;
 struct DevExecutor;
-
-enum exec_policy_t {
-        kLatency,
-        kPower,
-        kBatch
-};
 
 enum dev_status_t {
 	kDevInvalid,
@@ -52,23 +47,6 @@ enum dev_status_t {
 };
 
 
-/* 
-  the returned dev proposal result for each node:
-  dev_name: which device sets the proposal
-  level: how is the device apt on the node
-         0 --- Not support
-         1 --- Just can work
-         2 --- I can do it pretty good
-         3 --- no one is best than me
-*/
-
-#define DEV_PROPOSAL_ATTR "dev_proposal"
-
-struct DevProposal
-{
-       std::string dev_name;
-       int level;  
-};
 
 struct DevWorkload {
       float past;    //workload percentage on last period
@@ -474,6 +452,11 @@ public:
 
         virtual bool DelDevConfig(Device *dev, const char * config_name) { return false;}
 
+        virtual bool SetGraphAttr(Device *dev, void * graph_handle, const char * config_name, 
+									const void * val, int size) { return false;}
+        virtual bool GetGraphAttr(Device *dev, void * graph_handle, const char * config_name, 
+				                          void * val, int size) { return false;}
+
         /* these interfaces are used by device allocator/scheduler */
 
         /*!
@@ -547,7 +530,7 @@ public:
         *         false, nothing is changed
         */
 
-        virtual bool  GetProposal(Device * dev, Subgraph * graph, int policy)=0; 
+        virtual bool  GetProposal(Device * dev, Graph * graph, int policy, bool static_assign)=0; 
 
 
 	virtual Subgraph * GetOptimizedGraph(Device * dev, void * graph_handle ) { return nullptr;}
@@ -624,7 +607,6 @@ public:
         {   driver_->SetRunMemory(this,graph_handle,mem_addr);}
 
         /*device config/query interface */
-     
         bool SetDevConfig(const char * config_name,const void *val, int size)
         {
             return driver_->SetDevConfig(this,config_name,val,size);
@@ -640,6 +622,15 @@ public:
             return driver_->DelDevConfig(this,config_name);
         }
 
+        bool SetGraphAttr(void * graph_handle, const char * config_name,const void *val, int size)
+        {
+            return driver_->SetGraphAttr(this,graph_handle, config_name,val,size);
+        }
+
+        bool GetGraphAttr(void * graph_handle, const char * config_name, void * buf, int size)
+        {
+            return driver_->GetGraphAttr(this,graph_handle, config_name,buf,size);
+        }
 
 	/* query/stats interface */
 	dev_status_t GetDeviceStatus(void) { return driver_->GetDeviceStatus(this);}
@@ -649,7 +640,8 @@ public:
         float GetFops(Subgraph * graph, int policy)  { return driver_->GetFops(this,graph, policy);} 
         int  GetPolicyPriority(int policy) { return driver_->GetPolicyPriority(this,policy);}
   
-        bool  GetProposal(Subgraph * graph, int policy){return driver_->GetProposal(this,graph,policy);}
+        bool  GetProposal(Subgraph * graph, int policy, bool static_assign)
+                           {return driver_->GetProposal(this,graph,policy,static_assign);}
 
 	virtual ~Device(){};
 protected:
