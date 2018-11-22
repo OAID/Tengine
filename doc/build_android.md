@@ -1,3 +1,16 @@
+## 0.Use prebuilt Tengine android package
+If you want to use the prebuilt Tengine android package for arm64, please download the below file from [Tengine Android build](https://pan.baidu.com/s/1RPHK_ji0LlL3ztjUa893Yg) (password: *ka6a*), and unpack it.
+```
+  - Tengine_android_build_package_arm64.tgz
+```
+This package supports ACL GPU, Caffe serializer and Tensorflow serializer.
+
+`adb push` the package to the android device.
+
+And then run the test program **Classify** according to [8.2 Run](#8.2 Run).
+
+If you want to try building Tengine and example program by yourself, go ahead, the following steps will help you.
+
 ## 1.Download Tengine project
 ```
 git clone https://github.com/OAID/tengine/
