@@ -83,6 +83,7 @@ first_row_start:
 
    ins  v27.s[3],v31.s[0]   //pre_vector for input
 
+   cbz x1,single_line
    mov x10,x4      //L-1
    add x6,x10,x9   //L-0
 
@@ -629,11 +630,107 @@ last_left_load_done:
 last_row_done:
    ret
 
+single_line:
+   mov x10,x4
+   cbz x8,single_line_last_4
+  
+single_line_row_loop:
+   //load 4 input
+   ld1 {v12.4s},[x0],#16    
+   ld1r {v13.4s},[x0]
+   
+   ext v28.16b,v27.16b,v12.16b,12 //last_3, a00, a01, a02
+   ext v29.16b,v12.16b,v13.16b,4 //a01, a02, a03, a04
 
+   ins v27.s[3],v12.s[3]
 
+   dup v4.4s,v30.s[0]
+   fmla v4.4s,v28.4s,v25.s[0] //k10,
+   fmla v4.4s,v12.4s,v25.s[1] //k11,
+   fmla v4.4s,v29.4s,v25.s[2] //k12
+#ifdef CONV_RELU_FUSE
+   fmax v4.4s,v4.4s,v31.4s
+#endif
+  
+   st1 {v4.4s},[x10],#16
 
+   //next loop
+   subs x8,x8,1
+   b.ne single_line_row_loop 
 
+single_line_last_4:
+   //x8=x2-x7, and x7<=x2-1 and x7=4N and N is non-negative number, so left ones: 1-4
+   sub x8,x2,x7
+   cmp x8,4
+   blt single_line_less_4
 
+   ld1 {v12.4s},[x0],#16
+   ins v13.s[0],v31.s[0]
+   
+   ext v28.16b,v27.16b,v12.16b,12 //last_3, a00, a01, a02
+   ext v29.16b,v12.16b,v13.16b,4  //a01, a02, a03, a04
 
+ 
+   dup v4.4s,v30.s[0]
+   fmla v4.4s,v28.4s,v25.s[0] //k10,
+   fmla v4.4s,v12.4s,v25.s[1] //k11,
+   fmla v4.4s,v29.4s,v25.s[2] //k12
+#ifdef CONV_RELU_FUSE
+   fmax v4.4s,v4.4s,v31.4s
+#endif
 
+   st1 {v4.4s},[x10],#16
+   b single_line_done
 
+single_line_less_4:
+   cmp x8,1
+   bge single_line_1_2_3
+   b   single_line_done
+
+single_line_1_2_3:
+   dup v12.4s,v31.s[0]
+   dup v13.4s,v31.s[0]
+
+   ldr s28,[x0],#4
+   ins v12.s[0],v28.s[0]
+   sub x7,x8,1
+   cbz x7,single_line_left_load_done
+   
+   ldr s28,[x0],#4
+   ins v12.s[1],v28.s[0]
+   sub x7,x8,2
+
+   cbz x7,single_line_left_load_done
+   ldr s28,[x0],#4
+   ins v12.s[2],v28.s[0]
+
+single_line_left_load_done:
+   ext v28.16b,v27.16b,v12.16b,12 //last_3, a00, a01, a02
+   ext v29.16b,v12.16b,v13.16b,4  //a01, a02, a03, a04
+
+   dup v4.4s,v30.s[0]
+   fmla v4.4s,v28.4s,v25.s[0] //k10
+   fmla v4.4s,v12.4s,v25.s[1] //k11
+   fmla v4.4s,v29.4s,v25.s[2] //k12
+#ifdef CONV_RELU_FUSE
+   fmax v4.4s,v4.4s,v31.4s
+#endif
+
+   //save result
+   ins v28.s[0],v4.s[0]
+   str s28,[x10],#4
+
+   cmp x8,2
+   blt single_line_done 
+
+   ins v28.s[0],v4.s[1]
+   str s28,[x10],#4
+
+   cmp x8,3
+   blt single_line_done
+
+   ins v28.s[0],v4.s[2]
+   str s28,[x10]
+
+single_line_done: 
+   ret 
