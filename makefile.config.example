@@ -21,13 +21,6 @@ CONFIG_ARCH_ARM64=y
 # Enable Compiling Optimization
 CONFIG_OPT_CFLAGS = -O2
 
-# uncomment to build the reference operators wrapped on Caffe
-# CONFIG_CAFFE_REF=y
-
-# Set the path of caffe used for compile and link,
-# if caffe's operator calculation is enabled.
-# CAFFE_ROOT = /home/firefly/caffe
-
 # Enable GPU support by Arm Computing Library
 # CONFIG_ACL_GPU=y
 #

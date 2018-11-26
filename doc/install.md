@@ -20,11 +20,6 @@ To get started, git clone the latest Tengine repository.
 	```
 	sudo apt install libopencv-dev
 	```
-* [Caffe](https://github.com/BVLC/caffe) (Optional): use Caffe's operators for verifing your operator implementations in Tengine
-
-	Please see http://caffe.berkeleyvision.org/installation.html
-
-
 
 ### **1.3 Prepare config files**
 * copy config example file
@@ -39,11 +34,6 @@ To get started, git clone the latest Tengine repository.
 		
 		By default, `CONFIG_ARCH_ARM64` option is valid.
 
-	- if your want to use **Caffe**, set
-		```
-		CONFIG_CAFFE_REF=y
-		CAFFE_ROOT = /home/firefly/caffe (your caffe path)
-		```
 	- if you want to run using **Openblas**, you install `sudo apt-get install libopenblas-dev` and set
 		```
 		CONFIG_ARCH_BLAS=y

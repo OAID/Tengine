@@ -39,9 +39,8 @@
     ```
     export GPU_CONCAT=0           # disable gpu run concat,     avoid frequent data transfer between cpu and gpu
     export ACL_FP16=1             # enable gpu fp16
-    export TENGINE_CPU_LIST=0     # set to use 1A53 cpu
     export REPEAT_COUNT=50        # repeat count to run mssd,     get avg time
-    ./MSSD -d acl_opencl          # -d acl_opencl to use gpu
+    taskset 0x1 ./MSSD -d acl_opencl          # -d acl_opencl to use gpu, taskset 0x1 to bind CPU0(A53)
     ```
     It costs `150ms` to run mobilenetssd using `GPU + 1A53`
     ```
