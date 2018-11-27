@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
     // load model
     const char *model_name = "test";
     std::string mdl_name = argv[1];
-    if (load_model(model_name, "tengine", mdl_name.c_str(), mdl_name.c_str()) < 0)
+    if (load_model(model_name, "tengine", mdl_name.c_str()) < 0)
         return 1;
     std::cout << "load model done!\n";
 
