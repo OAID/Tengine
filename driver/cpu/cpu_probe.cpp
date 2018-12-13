@@ -31,6 +31,78 @@ int get_cpu_number(void)
 	return num;
 }
 
+bool get_cpu_physical_id(int*cpu_id_list, const int cpu_number)
+{
+	FILE* fp = fopen("/proc/cpuinfo", "rb");
+	char buf[256];
+
+	if (fp==NULL)
+		return false;
+
+	int cur_cpu = 0;
+	while(fgets(buf,256,fp))
+	{
+		if (memcmp(buf, "processor", 9) == 0)
+		{
+			char*p = buf;
+			while(*p++!=':');
+			int id = strtoul(p+1, NULL, 10);
+			cpu_id_list[cur_cpu++] = id;
+		}
+	}
+
+	fclose(fp);
+
+	if(cur_cpu != cpu_number)
+	    return false;
+
+	return true;
+}
+
+int get_cpu_cluster_id(int*cpu_cluster_id, const int cpu_number)
+{
+
+	FILE* fp = fopen("/proc/cpuinfo", "rb");
+	char buf[256];
+
+	if (fp==NULL)
+		return -1;
+
+	int cluster_id = 0;
+	int* known_part = (int*)malloc(sizeof(int)*cpu_number);
+
+	int cur_cpu = 0;
+	while(fgets(buf,256,fp))
+	{
+		if (memcmp(buf, "CPU part", 8) == 0)
+		{
+			char*p = buf;
+			while(*p++!=':');
+			int part = strtoul(p+1, NULL, 16);
+			int i = 0;
+			for(; i<cluster_id; i++){
+			    if(known_part[i]==part)
+				break;
+			 }
+			if(i == cluster_id){
+			    known_part[cluster_id] = part;
+			    cpu_cluster_id[cur_cpu++] = cluster_id;
+			    cluster_id += 1;
+			}else{
+			    cpu_cluster_id[cur_cpu++] = i;
+			}
+		}
+	}
+
+	fclose(fp);
+	free(known_part);
+
+	if(cur_cpu != cpu_number)
+	    return -1;
+
+	return cluster_id;
+}
+
 #ifdef __ARM_ARCH
 
 #ifdef __ANDROID__
@@ -223,49 +295,59 @@ struct cpu_info * probe_system_cpu(void)
 {
 	static struct cpu_info cpu_dev;
 
-	int cluster_idx=-1;
-	int last_max_freq=-1;
 	int  top_max_freq=-1;
 
 	int cpu_number=get_cpu_number();
+	int* cpu_cluster_id = (int*)malloc(sizeof(int)*cpu_number);
+	int* cpu_physical_id = (int*)malloc(sizeof(int)*cpu_number);
+
+	int cluster_cnt = 0;
+	if(!get_cpu_physical_id(cpu_physical_id, cpu_number)){
+	    free(cpu_cluster_id);
+	    free(cpu_physical_id);
+	    return NULL;
+	}
+	if((cluster_cnt=get_cpu_cluster_id(cpu_cluster_id, cpu_number)) == -1){
+	    free(cpu_cluster_id);
+	    free(cpu_physical_id);
+	    return NULL;
+	}
+	
 	struct cpu_cluster * cpu_cluster=(struct cpu_cluster *)
-		malloc(sizeof(struct cpu_cluster)*(cpu_number/4+1));
+		malloc(sizeof(struct cpu_cluster)*cluster_cnt);
+	for(int i=0; i<cluster_cnt; i++){
+	    cpu_cluster[i].cpu_number = 0;
+	}
 
 
 	for(int i=0;i<cpu_number;i++)
 	{
 		int max_freq=0;
-		struct cpu_cluster * cluster;
-
-		max_freq=get_cpu_max_freq(i);
-
-		if(max_freq!=last_max_freq)
-		{
-			cluster_idx++;
-			cluster=cpu_cluster+cluster_idx;
-			cluster->cpu_number=0;
-		}
-		else
-			cluster=cpu_cluster+cluster_idx;
+		int physical_cpu_id = cpu_physical_id[i];
+		max_freq=get_cpu_max_freq(physical_cpu_id);
+		struct cpu_cluster * cluster = cpu_cluster+(cpu_cluster_id[i]);
 
 		cluster->max_freq=max_freq;
+		cluster->hw_cpu_id[cluster->cpu_number] = physical_cpu_id;
 		cluster->cpu_number++;
-
-		last_max_freq=max_freq;
 
 		if(top_max_freq<max_freq)
 			top_max_freq=max_freq;
 
 		if(get_cpu_model_arch(i,cluster)<0)
-			return NULL;
+		{
+		    free(cpu_cluster_id);
+		    free(cpu_physical_id);
+		    return NULL;
+		}
 	}
+	free(cpu_cluster_id);
+	free(cpu_physical_id);
 
-	int start_cpu=0;
 
-	cpu_dev.cluster_number=cluster_idx+1;
+	cpu_dev.cluster_number=cluster_cnt;
 	cpu_dev.cluster=cpu_cluster;
 
-	//setup the online cpu according to top_max_freq
 	cpu_dev.online_cpu_list=(int *)malloc(sizeof(int)*cpu_number);
 	int online_cpu_number=0;
 
@@ -275,24 +357,18 @@ struct cpu_info * probe_system_cpu(void)
 
 		for(int j=0;j<cluster->cpu_number;j++)
 		{
-			cluster->hw_cpu_id[j]=start_cpu+j;
-
 			if(cluster->max_freq==top_max_freq)
 			{
 				cpu_dev.online_cpu_list[online_cpu_number++]=cluster->hw_cpu_id[j];
-
 			}
 		}
 
-		start_cpu+=cluster->cpu_number;
 	}
 
 	cpu_dev.cpu_name="arm.probed";
 	cpu_dev.board_name="generic.probed";
 
 	cpu_dev.online_cpu_number=online_cpu_number;
-
-
 
 	return &cpu_dev;
 }

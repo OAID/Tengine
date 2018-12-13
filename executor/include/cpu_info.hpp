@@ -13,17 +13,15 @@ struct CPUInfo {
 
 	struct cpu_cluster * find_cluster(int cpu_id) const
 	{
-		int start_idx=0;
-		struct cpu_cluster * p_cluster;
-
-		for(int i=0;i<dev.cluster_number;i++)
+	    	struct cpu_cluster * p_cluster;
+		for(int i=0; i<dev.cluster_number;i++)
 		{
-			p_cluster=&dev.cluster[i];
-
-			if(cpu_id>=start_idx && cpu_id<start_idx+p_cluster->cpu_number)
-				return p_cluster;
-
-			start_idx+=p_cluster->cpu_number;
+		    p_cluster = &dev.cluster[i];
+		    //iterate each cpu in this cluster.
+		    for(int j=0; j<p_cluster->cpu_number; j++){
+			if(cpu_id == p_cluster->hw_cpu_id[j])
+			    return p_cluster;
+		    }
 		}
 
 		return NULL;
