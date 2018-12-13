@@ -29,11 +29,15 @@ option(CONFIG_ONNX_SERIALIZER "onnx serializer" OFF)
 option(CONFIG_TF_SERIALIZER "tensorflow serializer" OFF)
 option(CONFIG_TENGINE_SERIALIZER "tengine serializer" ON)
 
-execute_process( COMMAND git rev-parse HEAD 
-                 OUTPUT_VARIABLE  git_commit_id)
+message("list dir ${CMAKE_CURRENT_LIST_DIR}/.git")
+if(EXISTS ${CMAKE_CURRENT_LIST_DIR}/.git)
+    execute_process( COMMAND git -C ${CMAKE_CURRENT_LIST_DIR} rev-parse HEAD
+      OUTPUT_VARIABLE  git_commit_id)
+    STRING(STRIP ${git_commit_id} stripped_commit_id)
+else()
+  set(stripped_commit_id "UNKNOWN")
+endif()
 
-
-STRING(STRIP ${git_commit_id} stripped_commit_id)
 set(GIT_COMMIT_ID -DGIT_COMMIT_ID="0x${stripped_commit_id}")
 
 message("GIT COMMIT ID: " 0x${stripped_commit_id})
