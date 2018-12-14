@@ -31,78 +31,6 @@ int get_cpu_number(void)
 	return num;
 }
 
-bool get_cpu_physical_id(int*cpu_id_list, const int cpu_number)
-{
-	FILE* fp = fopen("/proc/cpuinfo", "rb");
-	char buf[256];
-
-	if (fp==NULL)
-		return false;
-
-	int cur_cpu = 0;
-	while(fgets(buf,256,fp))
-	{
-		if (memcmp(buf, "processor", 9) == 0)
-		{
-			char*p = buf;
-			while(*p++!=':');
-			int id = strtoul(p+1, NULL, 10);
-			cpu_id_list[cur_cpu++] = id;
-		}
-	}
-
-	fclose(fp);
-
-	if(cur_cpu != cpu_number)
-	    return false;
-
-	return true;
-}
-
-int get_cpu_cluster_id(int*cpu_cluster_id, const int cpu_number)
-{
-
-	FILE* fp = fopen("/proc/cpuinfo", "rb");
-	char buf[256];
-
-	if (fp==NULL)
-		return -1;
-
-	int cluster_id = 0;
-	int* known_part = (int*)malloc(sizeof(int)*cpu_number);
-
-	int cur_cpu = 0;
-	while(fgets(buf,256,fp))
-	{
-		if (memcmp(buf, "CPU part", 8) == 0)
-		{
-			char*p = buf;
-			while(*p++!=':');
-			int part = strtoul(p+1, NULL, 16);
-			int i = 0;
-			for(; i<cluster_id; i++){
-			    if(known_part[i]==part)
-				break;
-			 }
-			if(i == cluster_id){
-			    known_part[cluster_id] = part;
-			    cpu_cluster_id[cur_cpu++] = cluster_id;
-			    cluster_id += 1;
-			}else{
-			    cpu_cluster_id[cur_cpu++] = i;
-			}
-		}
-	}
-
-	fclose(fp);
-	free(known_part);
-
-	if(cur_cpu != cpu_number)
-	    return -1;
-
-	return cluster_id;
-}
-
 #ifdef __ARM_ARCH
 
 #ifdef __ANDROID__
@@ -174,6 +102,125 @@ int get_cpu_max_freq(int id)
 }
 #endif
 
+bool get_cpu_physical_id(int*cpu_id_list, const int cpu_number)
+{
+	FILE* fp = fopen("/proc/cpuinfo", "rb");
+	char buf[256];
+
+	if (fp==NULL)
+		return false;
+
+	int cur_cpu = 0;
+	while(fgets(buf,256,fp))
+	{
+		if (memcmp(buf, "processor", 9) == 0)
+		{
+			char*p = buf;
+			while(*p++!=':');
+			int id = strtoul(p+1, NULL, 10);
+			cpu_id_list[cur_cpu++] = id;
+		}
+	}
+
+	fclose(fp);
+
+	if(cur_cpu != cpu_number)
+	    return false;
+
+	return true;
+}
+
+int get_cpu_cluster_id(int*cpu_cluster_id, const int* physical_cpu_id, const int cpu_number)
+{
+
+	FILE* fp = fopen("/proc/cpuinfo", "rb");
+	char buf[256];
+
+	if (fp==NULL)
+		return -1;
+
+	int group_id = 0;
+	int* known_part = (int*)malloc(sizeof(int)*cpu_number);
+	int* cpu_group_id = (int*)malloc(sizeof(int)*cpu_number);
+	// stage1: assign group id for each online cpu based on its CPU part field.
+	int cur_cpu = 0;
+	while(fgets(buf,256,fp))
+	{
+		if (memcmp(buf, "CPU part", 8) == 0)
+		{
+			char*p = buf;
+			while(*p++!=':');
+			int part = strtoul(p+1, NULL, 16);
+			int i = 0;
+			for(; i<group_id; i++){
+			    if(known_part[i]==part)
+				break;
+			 }
+			if(i == group_id){
+			    known_part[group_id] = part;
+			    cpu_group_id[cur_cpu++] = group_id;
+			    group_id += 1;
+			}else{
+			    cpu_group_id[cur_cpu++] = i;
+			}
+		}
+	}
+
+	fclose(fp);
+	free(known_part);
+	
+	if(cur_cpu != cpu_number)
+	{
+	    free(cpu_group_id);
+	    return -1;
+	}
+	
+	// stage2: set cluster id for cpus within a group based on its max_freq
+	int* known_max_freq = (int*)malloc(sizeof(int)*cpu_number);
+	int known_max_freq_cnt = 0;
+	int cluster_cnt = 0;
+	for(int i=0; i<group_id; i++)
+	{
+		cur_cpu = 0;
+		known_max_freq_cnt = 0;
+		while(cur_cpu<cpu_number)
+		{
+		    if(cpu_group_id[cur_cpu]!=i)
+		    {
+			cur_cpu += 1;
+			continue;
+		    }
+		    //get max_freq
+		    int max_freq = get_cpu_max_freq(physical_cpu_id[cur_cpu]);
+		    int j = 0;
+		    for(; j<known_max_freq_cnt; j++)
+		    {
+			if(known_max_freq[j]==max_freq)
+			    break;
+		    }
+		    if(j==known_max_freq_cnt)
+		    {
+			known_max_freq[known_max_freq_cnt] = max_freq;
+			cpu_cluster_id[cur_cpu] = cluster_cnt+known_max_freq_cnt;
+			known_max_freq_cnt += 1;
+		    }
+		    else
+		    {
+			cpu_cluster_id[cur_cpu] = cluster_cnt+j;
+		    }
+		    cur_cpu += 1;
+		}
+		cluster_cnt += known_max_freq_cnt;
+	}
+	free(cpu_group_id);
+	free(known_max_freq);
+
+	if(cur_cpu != cpu_number)
+	    return -1;
+
+	return cluster_cnt;
+}
+
 static char * get_target_line(FILE * fp, const char * target_prefix)
 {
 	static char line[256];
@@ -201,10 +248,10 @@ int get_cpu_model_arch(int id, struct cpu_cluster * cluster)
 
 #if __ARM_ARCH >= 8
 	cluster->cpu_arch=ARCH_ARM_V8;
-    cluster->cpu_model=CPU_A53;
+	cluster->cpu_model=CPU_A53;
 #else
 	cluster->cpu_arch=ARCH_ARM_V7;
-    cluster->cpu_model=CPU_A7;
+	cluster->cpu_model=CPU_A7;
 #endif
 
 	sprintf(cpu_fname,"/proc/cpuinfo");
@@ -302,12 +349,14 @@ struct cpu_info * probe_system_cpu(void)
 	int* cpu_physical_id = (int*)malloc(sizeof(int)*cpu_number);
 
 	int cluster_cnt = 0;
-	if(!get_cpu_physical_id(cpu_physical_id, cpu_number)){
+	if(!get_cpu_physical_id(cpu_physical_id, cpu_number))
+	{
 	    free(cpu_cluster_id);
 	    free(cpu_physical_id);
 	    return NULL;
 	}
-	if((cluster_cnt=get_cpu_cluster_id(cpu_cluster_id, cpu_number)) == -1){
+	if((cluster_cnt=get_cpu_cluster_id(cpu_cluster_id, cpu_physical_id, cpu_number)) == -1)
+	{
 	    free(cpu_cluster_id);
 	    free(cpu_physical_id);
 	    return NULL;
@@ -326,15 +375,15 @@ struct cpu_info * probe_system_cpu(void)
 		int physical_cpu_id = cpu_physical_id[i];
 		max_freq=get_cpu_max_freq(physical_cpu_id);
 		struct cpu_cluster * cluster = cpu_cluster+(cpu_cluster_id[i]);
-
+		
+		// All CPUs within a cluster share the same max_freq.
 		cluster->max_freq=max_freq;
-		cluster->hw_cpu_id[cluster->cpu_number] = physical_cpu_id;
-		cluster->cpu_number++;
+		cluster->hw_cpu_id[cluster->cpu_number++] = physical_cpu_id;
 
 		if(top_max_freq<max_freq)
 			top_max_freq=max_freq;
 
-		if(get_cpu_model_arch(i,cluster)<0)
+		if(get_cpu_model_arch(physical_cpu_id,cluster)<0)
 		{
 		    free(cpu_cluster_id);
 		    free(cpu_physical_id);
