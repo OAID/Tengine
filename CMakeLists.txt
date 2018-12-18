@@ -78,10 +78,11 @@ add_definitions(-fPIC)
 add_definitions(-g)
 add_definitions(-O3)
 add_definitions(-funroll-loops)
-add_definitions(-Wno-overloaded-virtual)
 add_definitions(-Wno-deprecated-register)
-add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-std=c++11>)
 
+set(CMAKE_CXX_STANDARD 11)
+set(CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-overloaded-virtual")
 
 include_directories(include)
 
