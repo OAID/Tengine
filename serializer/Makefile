@@ -21,6 +21,11 @@ ifeq ($(CONFIG_TF_SERIALIZER),y)
     obj-y+=tensorflow/
     COMMON_CFLAGS+= -DCONFIG_TF_SERIALIZER
 endif
+ifeq ($(CONFIG_TFLITE_SERIALIZER),y)
+    obj-y+=tf_lite/
+    INC_DIR+=-I$(shell pwd)/include/tf_lite
+    COMMON_CFLAGS+= -DCONFIG_TFLITE_SERIALIZER
+endif
 ifeq ($(CONFIG_TENGINE_SERIALIZER),y)
     obj-y+=tengine/
     COMMON_CFLAGS+= -DCONFIG_TENGINE_SERIALIZER

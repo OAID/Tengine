@@ -17,6 +17,9 @@ if(ANDROID)
 endif()
 #find_package(OpenCV REQUIRED)
 
+#for compatible
+add_definitions(-DCONFIG_LEGACY_API)
+
 add_definitions(-Wno-unused-command-line-argument)
 add_definitions(-Wall)
 add_definitions(-fPIC)
@@ -37,7 +40,8 @@ add_subdirectory(imagenet_classification)
 add_subdirectory(mobilenet_ssd)
 
 if( NOT ANDROID)
-   add_subdirectory(caffe_wrapper)
+   #add_subdirectory(caffe_wrapper)
+   #add_subdirectory(tensorflow_wrapper)
 endif()
 
 add_subdirectory(tengine_model)

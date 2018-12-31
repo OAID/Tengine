@@ -28,20 +28,19 @@
 #include "normalize_param.hpp"
 namespace TEngine {
 
-class Normalize: public OperatorWithParam<Normalize, NormalizeParam> {
-
+class Normalize : public OperatorWithParam<Normalize, NormalizeParam>
+{
 public:
+    Normalize()
+    {
+        name_ = "Normalize";
+    }
+    Normalize(const Normalize& src) = default;
+    virtual ~Normalize(){};
 
-      Normalize() { name_="Normalize";}
-      Normalize(const Normalize& src)=default;
-      virtual ~Normalize() {};
-
-      void SetSchema(void) override;
- 
+    void SetSchema(void) override;
 };
 
-} //namespace TEngine
-
-
+}    // namespace TEngine
 
 #endif

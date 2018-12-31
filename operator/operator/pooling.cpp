@@ -28,120 +28,134 @@
 
 namespace TEngine {
 
-bool Pooling::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEngine::TShape>& oshape)
+static int calc_output_size(int input, int kernel, int stride, int pad, int caffe)
 {
-    const TShape& input_shape=ishape[0];
-
-    int input_h=input_shape.GetH();
-    int input_w=input_shape.GetW();
-
-    if(param_.global)
+    int output = 1;
+    if(pad >= 0)
     {
-        param_.kernel_h=input_h;
-        param_.kernel_w=input_w;
-        param_.pad_h=0;
-        param_.pad_w=0;
-        param_.stride_h=1;
-        param_.stride_w=1;
-
-        param_.kernel_shape[0]=input_h;
-        param_.kernel_shape[1]=input_w;
-        param_.pads[0]=param_.pads[1]=param_.pads[2]=param_.pads[3]=0;
-        param_.strides[0]=param_.strides[1]=1;
+        if(caffe)
+        {
+            output = 1 + std::ceil((( float )(input - kernel + 2 * pad)) / stride);
+            if(pad > 0 && ((output - 1) * stride >= input + pad))
+                output--;
+        }
+        else
+            output = 1 + (input - kernel + 2 * pad) / stride;
     }
+    else
+    {
+        output = 1 + (input - 1) / stride;
+    }
+    return output;
+}
+
+static void calc_real_pads(int out, int in, int kernel, int stride, int pad, int* pad0, int* pad1)
+{
+    int total = (out - 1) * stride + kernel;
+    int pad_num = total - in;
+
+    if(pad_num < 0)
+        pad_num = 0;
+
+    /* for same */
+    if(pad < 0)
+    {
+        *pad0 = pad_num / 2;
+        *pad1 = pad_num - *pad0;
+    }
+    else
+    {
+        *pad0 = pad;
+        *pad1 = pad_num - *pad0;
+    }
+}
+
+bool Pooling::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEngine::TShape>& oshape, int layout)
+{
+    const TShape& input_shape = ishape[0];
+
+    int input_h = input_shape.GetH();
+    int input_w = input_shape.GetW();
+
+    if(param_.kernel_h == input_h && param_.kernel_w == input_w)
+        param_.global = 1;
 
     int output_h;
     int output_w;
 
-    if(param_.pad_h>=0)
+    if(param_.global)
     {
-       if(param_.caffe_flavor)
-           output_h=std::ceil(((float)(input_h-param_.kernel_shape[0]+2*param_.pads[0]))/param_.strides[0])+1;
-       else
-           output_h=(input_h-param_.kernel_shape[0]+2*param_.pads[0])/param_.strides[0]+1;
+        param_.pad_h = 0;
+        param_.pad_w = 0;
+        param_.stride_h = 1;
+        param_.stride_w = 1;
 
+        param_.kernel_shape[0] = input_h;
+        param_.kernel_shape[1] = input_w;
+        param_.pads[0] = param_.pads[1] = param_.pads[2] = param_.pads[3] = 0;
+        param_.strides[0] = param_.strides[1] = 1;
+
+        output_h = 1;
+        output_w = 1;
     }
     else
     {
-        int n=(input_h-1)/param_.strides[0]+1;
-        int total_len=(n-1)*param_.strides[0]+param_.kernel_shape[0];
-        int pad_num=total_len-input_h;
+        param_.kernel_shape[0] = param_.kernel_h;
+        param_.kernel_shape[1] = param_.kernel_w;
+        param_.strides[0] = param_.stride_h;
+        param_.strides[1] = param_.stride_w;
+        output_h =
+            calc_output_size(input_h, param_.kernel_shape[0], param_.stride_h, param_.pad_h, param_.caffe_flavor);
+        output_w =
+            calc_output_size(input_w, param_.kernel_shape[1], param_.stride_w, param_.pad_w, param_.caffe_flavor);
 
-        if(param_.pad_h==-1)
-        {
-            param_.pads[0]=pad_num/2;
-            param_.pads[2]=pad_num-pad_num/2;
-        }
-        else
-        {
-            param_.pads[0]=pad_num/2;
-            param_.pads[2]=pad_num-pad_num/2;
-        }
-
-        output_h=(input_h-param_.kernel_shape[0]+param_.pads[0]+param_.pads[2])/param_.strides[0]+1;
+        calc_real_pads(output_h, input_h, param_.kernel_shape[0], param_.stride_h, param_.pad_h, &param_.pads[0],
+                       &param_.pads[2]);
+        calc_real_pads(output_w, input_w, param_.kernel_shape[1], param_.stride_w, param_.pad_w, &param_.pads[1],
+                       &param_.pads[3]);
     }
-
-    if(param_.pad_w>=0)
-    {
-       if(param_.caffe_flavor)
-           output_w=std::ceil(((float)(input_w-param_.kernel_shape[1]+2*param_.pads[1]))/param_.strides[1])+1;
-       else
-           output_w=(input_w-param_.kernel_shape[1]+2*param_.pads[1])/param_.strides[1]+1;
-    }
-    else
-    {
-        int n=(input_w-1)/param_.strides[1]+1;
-        int total_len=(n-1)*param_.strides[1]+param_.kernel_shape[1];
-        int pad_num=total_len-input_w;
-
-        if(param_.pad_w==-1)
-        {
-            param_.pads[1]=pad_num/2;
-            param_.pads[3]=pad_num-pad_num/2;
-        }
-        else
-        {
-            param_.pads[1]=pad_num/2;
-            param_.pads[3]=pad_num-pad_num/2;
-        }
-
-        output_w=(input_w-param_.kernel_shape[1]+param_.pads[1]+param_.pads[3])/param_.strides[1]+1;
-    }
-
-    std::vector<int> dim={input_shape.GetN(),input_shape.GetC(),output_h,output_w};
 
     TShape shape;
-    shape.SetDim(dim);
-    shape.SetDataLayout("NCHW");
+    if(layout == TENGINE_LAYOUT_NCHW)
+    {
+        std::vector<int> dim = {input_shape.GetN(), input_shape.GetC(), output_h, output_w};
 
-    oshape[0]=shape;
+        shape.SetDim(dim);
+        shape.SetDataLayout("NCHW");
+    }
+    else
+    {
+        std::vector<int> dim = {input_shape.GetN(), output_h, output_w, input_shape.GetC()};
 
+        shape.SetDim(dim);
+        shape.SetDataLayout("NHWC");
+    }
+    oshape[0] = shape;
     return true;
 }
 
 float Pooling::GetFops(const std::vector<TShape>& inputs, const std::vector<TShape>& outputs)
 {
-    float patch_fops=param_.kernel_shape[0]*param_.kernel_shape[1];
+    float patch_fops = param_.kernel_shape[0] * param_.kernel_shape[1];
 
-    return (patch_fops*outputs[0].GetSize());
+    return (patch_fops * outputs[0].GetSize());
 }
 
 void Pooling::SetSchema(void)
 {
     Input({"input:float32"})
-    .Output({"output:float32"})
-    .SetLayout("NCHW")
-    .SetAttr("method","max")
-    .SetAttr("kernel_h",2)
-    .SetAttr("kernel_w",2)
-    .SetAttr("stride_h",1)
-    .SetAttr("stride_w",1)
-    .SetAttr("pad_h",0)
-    .SetAttr("pad_w",0)
-    .SetAttr("global",0)
-    .SetAttr("caffe_flavor",0)
-    .SetDoc(R"DOC(Pooling Layer)DOC");
+        .Output({"output:float32"})
+        .SetLayout("NCHW")
+        .SetAttr("alg", 0)
+        .SetAttr("kernel_h", 2)
+        .SetAttr("kernel_w", 2)
+        .SetAttr("stride_h", 1)
+        .SetAttr("stride_w", 1)
+        .SetAttr("pad_h", 0)
+        .SetAttr("pad_w", 0)
+        .SetAttr("global", 0)
+        .SetAttr("caffe_flavor", 0)
+        .SetDoc(R"DOC(Pooling Layer)DOC");
 }
 
-
-} //namespace TEngine
+}    // namespace TEngine

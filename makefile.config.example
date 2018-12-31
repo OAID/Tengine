@@ -21,14 +21,11 @@ CONFIG_ARCH_ARM64=y
 # Enable Compiling Optimization
 CONFIG_OPT_CFLAGS = -O2
 
+# Use BLAS as the operator implementation
+# CONFIG_ARCH_BLAS=y
+
 # Enable GPU support by Arm Computing Library
 # CONFIG_ACL_GPU=y
-#
-
-
-# Use BLAS as the operator implementation
-#
-# CONFIG_ARCH_BLAS=y
 
 # Set the path of ACL 
 # ACL_ROOT=/home/firefly/ComputeLibrary
@@ -45,4 +42,7 @@ CONFIG_TENGINE_SERIALIZER=y
 
 # version postfix
 CONFIG_VERSION_POSTFIX=github
+
+# support legacy API 
+CONFIG_LEGACY_API=y
 

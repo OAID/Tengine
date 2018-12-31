@@ -22,17 +22,19 @@
  * Author: jingyou@openailab.com
  */
 #include <iostream>
+#include <fstream>
 #include <unistd.h>
 #include "tengine_c_api.h"
+#include "common.hpp"
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     std::string proto_file;
-    std::string model_file ;
+    std::string model_file;
     std::string output_tmfile;
 
     int res;
-    while((res=getopt(argc,argv,"p:m:o:h")) != -1)
+    while((res = getopt(argc, argv, "p:m:o:h")) != -1)
     {
         switch(res)
         {
@@ -55,51 +57,48 @@ int main(int argc, char *argv[])
 
     if(proto_file.empty())
     {
-        std::cout << "Please specify the -p option to indicate the input proto file.\n";
+        std::cerr << "Please specify the -p option to indicate the input proto file.\n";
         return -1;
     }
     if(model_file.empty())
     {
-        std::cout << "Please specify the -m option to indicate the input model file.\n";
+        std::cerr << "Please specify the -m option to indicate the input model file.\n";
         return -1;
     }
     if(output_tmfile.empty())
     {
-        std::cout << "Please specify the -o option to indicate the output tengine model file.\n";
+        std::cerr << "Please specify the -o option to indicate the output tengine model file.\n";
         return -1;
     }
+
+    // check input files
+    if(!check_file_exist(proto_file) || !check_file_exist(model_file))
+        return -1;
 
     // init tengine
-    init_tengine_library();
-    if(request_tengine_version("0.1") < 0)
-        return 1;
+    init_tengine();
+    if(request_tengine_version("0.9") < 0)
+        return -1;
 
-    // load caffe model
-    std::string model_name = "temp_model";
-    if (load_model(model_name.c_str(), "caffe", proto_file.c_str(), model_file.c_str()) < 0)
+    // create graph
+    graph_t graph = create_graph(nullptr, "caffe", proto_file.c_str(), model_file.c_str());
+    if(graph == nullptr)
     {
-        std::cout << "Load caffe model failed.\n";
+        std::cerr << "Create graph failed.\n";
+        std::cerr << "errno: " << get_tengine_errno() << "\n";
         return -1;
     }
 
-    // create runtime graph
-    graph_t graph = create_runtime_graph("graph", model_name.c_str(), NULL);
-    if (!check_graph_valid(graph))
+    // save the tengine model file
+    if(save_graph(graph, "tengine", output_tmfile.c_str()) < 0)
     {
-        std::cout << "Create graph0 failed.\n";
+        std::cerr << "Create tengine model file failed.\n";
+        std::cerr << "errno: " << get_tengine_errno() << "\n";
         return -1;
     }
+    std::cout << "Create tengine model file done: " << output_tmfile << "\n";
 
-    // Save the tengine model file
-    if(save_model(graph, "tengine", output_tmfile.c_str()) == -1)
-    {
-        std::cout << "Create tengine model file failed.\n";
-        return -1;
-    }
-    std::cout << "Create tengine model file done: "<<output_tmfile<<"\n";
-
-    destroy_runtime_graph(graph);
-    remove_model(model_name.c_str());
-    release_tengine_library();
+    destroy_graph(graph);
+    release_tengine();
     return 0;
 }

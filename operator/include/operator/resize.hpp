@@ -24,29 +24,26 @@
 #ifndef __RESIZE_HPP__
 #define __RESIZE_HPP__
 
-
 #include "operator.hpp"
 #include "resize_param.hpp"
 
-
 namespace TEngine {
 
-class Resize: public OperatorWithParam<Resize, ResizeParam> {
-
+class Resize : public OperatorWithParam<Resize, ResizeParam>
+{
 public:
+    Resize()
+    {
+        name_ = "Resize";
+    }
+    Resize(const Resize& src) = default;
 
-     Resize () { name_="Resize"; }
-     Resize(const Resize& src)=default;
-
-     virtual ~Resize() {}
-     bool InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEngine::TShape>& oshape) override;
-     void SetSchema(void) override;
-
-
+    virtual ~Resize() {}
+    bool InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEngine::TShape>& oshape,
+                    int layout) override;
+    void SetSchema(void) override;
 };
 
-
-} //namespace TEngine
-
+}    // namespace TEngine
 
 #endif

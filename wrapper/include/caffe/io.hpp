@@ -29,7 +29,7 @@
 #include <fstream>
 #include "google/protobuf/message.h"
 
-#define ReadProtoFromBinaryFile  ReadProtoFromBinaryFile_wrap
+#define ReadProtoFromBinaryFile ReadProtoFromBinaryFile_wrap
 #define ReadProtoFromBinaryFileOrDie ReadProtoFromBinaryFileOrDie_wrap
 
 namespace caffe {
@@ -41,9 +41,9 @@ bool ReadProtoFromBinaryFile(const char* filename, Message* proto);
 inline void ReadProtoFromBinaryFileOrDie(const char* filename, Message* proto)
 {
     if(!ReadProtoFromBinaryFile(filename, proto))
-        std::cerr<<"Parse file: "<<filename<<" failed\n";
+        std::cerr << "Parse file: " << filename << " failed\n";
 }
 
-}  // namespace caffe
+}    // namespace caffe
 
-#endif  // __CAFFE_IO_H__
+#endif    // __CAFFE_IO_H__

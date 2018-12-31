@@ -25,24 +25,24 @@
 
 namespace TEngine {
 
-inline void SetTmOperator(TM_Operator *tm_op, const uint32_t op_type,
-                          const tm_uoffset_t offset1, const tm_uoffset_t offset2)
+inline void SetTmOperator(TM_Operator* tm_op, const uint32_t op_type, const tm_uoffset_t offset1,
+                          const tm_uoffset_t offset2)
 {
-    tm_op->operator_type    = op_type;
+    tm_op->operator_type = op_type;
     tm_op->offset_t_quantop = offset1;
-    tm_op->offset_t_param   = offset2;
+    tm_op->offset_t_param = offset2;
 }
 
-static tm_uoffset_t SaveTmAccuracyOp(void * const start_ptr, tm_uoffset_t *cur_pos, Operator *op)
+static tm_uoffset_t SaveTmAccuracyOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
 {
     TM_Operator tm_op;
     SetTmOperator(&tm_op, TM_OPTYPE_ACCURACY, NOT_SET, NOT_SET);
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM_Operator));
 }
 
-static tm_uoffset_t SaveTmBatchNormOp(void * const start_ptr, tm_uoffset_t *cur_pos, Operator *op)
+static tm_uoffset_t SaveTmBatchNormOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
 {
-    BatchNormParam *p = (dynamic_cast<BatchNorm *>(op))->GetParam();
+    BatchNormParam* p = (dynamic_cast<BatchNorm*>(op))->GetParam();
     TM_BatchNormParam tm_param;
     tm_param.rescale_factor = p->rescale_factor;
     tm_param.eps = p->eps;
@@ -54,9 +54,9 @@ static tm_uoffset_t SaveTmBatchNormOp(void * const start_ptr, tm_uoffset_t *cur_
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM_Operator));
 }
 
-static tm_uoffset_t SaveTmConcatOp(void * const start_ptr, tm_uoffset_t *cur_pos, Operator *op)
+static tm_uoffset_t SaveTmConcatOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
 {
-    ConcatParam *p = (dynamic_cast<Concat *>(op))->GetParam();
+    ConcatParam* p = (dynamic_cast<Concat*>(op))->GetParam();
     TM_ConcatParam tm_param;
     tm_param.axis = p->axis;
 
@@ -66,16 +66,16 @@ static tm_uoffset_t SaveTmConcatOp(void * const start_ptr, tm_uoffset_t *cur_pos
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM_Operator));
 }
 
-static tm_uoffset_t SaveTmConstOp(void * const start_ptr, tm_uoffset_t *cur_pos, Operator *op)
+static tm_uoffset_t SaveTmConstOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
 {
     TM_Operator tm_op;
     SetTmOperator(&tm_op, TM_OPTYPE_CONST, NOT_SET, NOT_SET);
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM_Operator));
 }
 
-static tm_uoffset_t SaveTmConvOp(void * const start_ptr, tm_uoffset_t *cur_pos, Operator *op)
+static tm_uoffset_t SaveTmConvOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
 {
-    ConvParam *p = (dynamic_cast<Convolution *>(op))->GetParam();
+    ConvParam* p = (dynamic_cast<Convolution*>(op))->GetParam();
     TM_ConvParam tm_param;
     tm_param.kernel_h = p->kernel_h;
     tm_param.kernel_w = p->kernel_w;
@@ -86,6 +86,7 @@ static tm_uoffset_t SaveTmConvOp(void * const start_ptr, tm_uoffset_t *cur_pos, 
     tm_param.dilation_h = p->dilation_h;
     tm_param.dilation_w = p->dilation_w;
     tm_param.output_channel = p->output_channel;
+    tm_param.activation = p->activation;
     tm_param.group = p->group;
     if(p->pads.size() == 4)
     {
@@ -108,9 +109,9 @@ static tm_uoffset_t SaveTmConvOp(void * const start_ptr, tm_uoffset_t *cur_pos, 
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM_Operator));
 }
 
-static tm_uoffset_t SaveTmDeconvOp(void * const start_ptr, tm_uoffset_t *cur_pos, Operator *op)
+static tm_uoffset_t SaveTmDeconvOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
 {
-    DeconvParam *p = (dynamic_cast<Deconvolution *>(op))->GetParam();
+    DeconvParam* p = (dynamic_cast<Deconvolution*>(op))->GetParam();
     TM_DeconvParam tm_param;
     tm_param.kernel_size = p->kernel_size;
     tm_param.stride = p->stride;
@@ -124,9 +125,9 @@ static tm_uoffset_t SaveTmDeconvOp(void * const start_ptr, tm_uoffset_t *cur_pos
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM_Operator));
 }
 
-static tm_uoffset_t SaveTmDetectionOutputOp(void * const start_ptr, tm_uoffset_t *cur_pos, Operator *op)
+static tm_uoffset_t SaveTmDetectionOutputOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
 {
-    DetectionOutputParam *p = (dynamic_cast<DetectionOutput *>(op))->GetParam();
+    DetectionOutputParam* p = (dynamic_cast<DetectionOutput*>(op))->GetParam();
     TM_DetectionOutputParam tm_param;
     tm_param.num_classes = p->num_classes;
     tm_param.keep_top_k = p->keep_top_k;
@@ -140,16 +141,16 @@ static tm_uoffset_t SaveTmDetectionOutputOp(void * const start_ptr, tm_uoffset_t
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM_Operator));
 }
 
-static tm_uoffset_t SaveTmDropoutOp(void * const start_ptr, tm_uoffset_t *cur_pos, Operator *op)
+static tm_uoffset_t SaveTmDropoutOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
 {
     TM_Operator tm_op;
     SetTmOperator(&tm_op, TM_OPTYPE_DROPOUT, NOT_SET, NOT_SET);
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM_Operator));
 }
 
-static tm_uoffset_t SaveTmEltwiseOp(void * const start_ptr, tm_uoffset_t *cur_pos, Operator *op)
+static tm_uoffset_t SaveTmEltwiseOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
 {
-    EltwiseParam *p = (dynamic_cast<Eltwise *>(op))->GetParam();
+    EltwiseParam* p = (dynamic_cast<Eltwise*>(op))->GetParam();
     TM_EltwiseParam tm_param;
     tm_param.type = p->type;
     tm_param.caffe_flavor = p->caffe_flavor;
@@ -160,9 +161,9 @@ static tm_uoffset_t SaveTmEltwiseOp(void * const start_ptr, tm_uoffset_t *cur_po
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM_Operator));
 }
 
-static tm_uoffset_t SaveTmFCOp(void * const start_ptr, tm_uoffset_t *cur_pos, Operator *op)
+static tm_uoffset_t SaveTmFCOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
 {
-    FCParam *p = (dynamic_cast<FullyConnected *>(op))->GetParam();
+    FCParam* p = (dynamic_cast<FullyConnected*>(op))->GetParam();
     TM_FCParam tm_param;
     tm_param.num_output = p->num_output;
 
@@ -172,9 +173,9 @@ static tm_uoffset_t SaveTmFCOp(void * const start_ptr, tm_uoffset_t *cur_pos, Op
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM_Operator));
 }
 
-static tm_uoffset_t SaveTmFlattenOp(void * const start_ptr, tm_uoffset_t *cur_pos, Operator *op)
+static tm_uoffset_t SaveTmFlattenOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
 {
-    FlattenParam *p = (dynamic_cast<Flatten *>(op))->GetParam();
+    FlattenParam* p = (dynamic_cast<Flatten*>(op))->GetParam();
     TM_FlattenParam tm_param;
     tm_param.axis = p->axis;
     tm_param.end_axis = p->end_axis;
@@ -185,16 +186,16 @@ static tm_uoffset_t SaveTmFlattenOp(void * const start_ptr, tm_uoffset_t *cur_po
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM_Operator));
 }
 
-static tm_uoffset_t SaveTmInputOp(void * const start_ptr, tm_uoffset_t *cur_pos, Operator *op)
+static tm_uoffset_t SaveTmInputOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
 {
     TM_Operator tm_op;
     SetTmOperator(&tm_op, TM_OPTYPE_INPUTOP, NOT_SET, NOT_SET);
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM_Operator));
 }
 
-static tm_uoffset_t SaveTmLRNOp(void * const start_ptr, tm_uoffset_t *cur_pos, Operator *op)
+static tm_uoffset_t SaveTmLRNOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
 {
-    LRNParam *p = (dynamic_cast<LRN *>(op))->GetParam();
+    LRNParam* p = (dynamic_cast<LRN*>(op))->GetParam();
     TM_LRNParam tm_param;
     tm_param.local_size = p->local_size;
     tm_param.alpha = p->alpha;
@@ -203,14 +204,13 @@ static tm_uoffset_t SaveTmLRNOp(void * const start_ptr, tm_uoffset_t *cur_pos, O
     tm_param.k = p->k;
 
     TM_Operator tm_op;
-    SetTmOperator(&tm_op, TM_OPTYPE_LRN, NOT_SET,
-                  WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM_LRNParam)));
+    SetTmOperator(&tm_op, TM_OPTYPE_LRN, NOT_SET, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM_LRNParam)));
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM_Operator));
 }
 
-static tm_uoffset_t SaveTmNormalizeOp(void * const start_ptr, tm_uoffset_t *cur_pos, Operator *op)
+static tm_uoffset_t SaveTmNormalizeOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
 {
-    NormalizeParam *p = (dynamic_cast<Normalize *>(op))->GetParam();
+    NormalizeParam* p = (dynamic_cast<Normalize*>(op))->GetParam();
     TM_NormalizeParam tm_param;
     tm_param.across_spatial = p->across_spatial;
     tm_param.channel_shared = p->channel_shared;
@@ -221,9 +221,9 @@ static tm_uoffset_t SaveTmNormalizeOp(void * const start_ptr, tm_uoffset_t *cur_
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM_Operator));
 }
 
-static tm_uoffset_t SaveTmPermuteOp(void * const start_ptr, tm_uoffset_t *cur_pos, Operator *op)
+static tm_uoffset_t SaveTmPermuteOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
 {
-    PermuteParam *p = (dynamic_cast<Permute *>(op))->GetParam();
+    PermuteParam* p = (dynamic_cast<Permute*>(op))->GetParam();
     TM_PermuteParam tm_param;
     tm_param.flag = p->flag;
     tm_param.order0 = p->order0;
@@ -237,9 +237,9 @@ static tm_uoffset_t SaveTmPermuteOp(void * const start_ptr, tm_uoffset_t *cur_po
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM_Operator));
 }
 
-static tm_uoffset_t SaveTmPoolOp(void * const start_ptr, tm_uoffset_t *cur_pos, Operator *op)
+static tm_uoffset_t SaveTmPoolOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
 {
-    PoolParam *p = (dynamic_cast<Pooling *>(op))->GetParam();
+    PoolParam* p = (dynamic_cast<Pooling*>(op))->GetParam();
     TM_PoolParam tm_param;
     tm_param.alg = p->alg;
     tm_param.kernel_h = p->kernel_h;
@@ -265,22 +265,22 @@ static tm_uoffset_t SaveTmPoolOp(void * const start_ptr, tm_uoffset_t *cur_pos, 
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM_Operator));
 }
 
-static tm_uoffset_t SaveTmPreluOp(void * const start_ptr, tm_uoffset_t *cur_pos, Operator *op)
+static tm_uoffset_t SaveTmPreluOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
 {
     TM_Operator tm_op;
     SetTmOperator(&tm_op, TM_OPTYPE_PRELU, NOT_SET, NOT_SET);
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM_Operator));
 }
 
-static tm_uoffset_t SaveTmPriorBoxOp(void * const start_ptr, tm_uoffset_t *cur_pos, Operator *op)
+static tm_uoffset_t SaveTmPriorBoxOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
 {
-    PriorBoxParam *p = (dynamic_cast<PriorBox *>(op))->GetParam();
+    PriorBoxParam* p = (dynamic_cast<PriorBox*>(op))->GetParam();
     TM_PriorBoxParam tm_param;
 
     size_t vector_size = sizeof(tm_size_t) + sizeof(float) * p->min_size.size();
-    TM_Vector_floats *v_minsizes = (TM_Vector_floats *)malloc(vector_size);
+    TM_Vector_floats* v_minsizes = ( TM_Vector_floats* )malloc(vector_size);
     v_minsizes->v_num = p->min_size.size();
-    for(unsigned int i=0; i < p->min_size.size(); i++)
+    for(unsigned int i = 0; i < p->min_size.size(); i++)
     {
         v_minsizes->data[i] = p->min_size[i];
     }
@@ -288,9 +288,9 @@ static tm_uoffset_t SaveTmPriorBoxOp(void * const start_ptr, tm_uoffset_t *cur_p
     free(v_minsizes);
 
     vector_size = sizeof(tm_size_t) + sizeof(float) * p->max_size.size();
-    TM_Vector_floats *v_maxsizes = (TM_Vector_floats *)malloc(vector_size);
+    TM_Vector_floats* v_maxsizes = ( TM_Vector_floats* )malloc(vector_size);
     v_maxsizes->v_num = p->max_size.size();
-    for(unsigned int i=0; i < p->max_size.size(); i++)
+    for(unsigned int i = 0; i < p->max_size.size(); i++)
     {
         v_maxsizes->data[i] = p->max_size[i];
     }
@@ -298,9 +298,9 @@ static tm_uoffset_t SaveTmPriorBoxOp(void * const start_ptr, tm_uoffset_t *cur_p
     free(v_maxsizes);
 
     vector_size = sizeof(tm_size_t) + sizeof(float) * p->variance.size();
-    TM_Vector_floats *v_variance = (TM_Vector_floats *)malloc(vector_size);
+    TM_Vector_floats* v_variance = ( TM_Vector_floats* )malloc(vector_size);
     v_variance->v_num = p->variance.size();
-    for(unsigned int i=0; i < p->variance.size(); i++)
+    for(unsigned int i = 0; i < p->variance.size(); i++)
     {
         v_variance->data[i] = p->variance[i];
     }
@@ -308,9 +308,9 @@ static tm_uoffset_t SaveTmPriorBoxOp(void * const start_ptr, tm_uoffset_t *cur_p
     free(v_variance);
 
     vector_size = sizeof(tm_size_t) + sizeof(float) * p->aspect_ratio.size();
-    TM_Vector_floats *v_ratios = (TM_Vector_floats *)malloc(vector_size);
+    TM_Vector_floats* v_ratios = ( TM_Vector_floats* )malloc(vector_size);
     v_ratios->v_num = p->aspect_ratio.size();
-    for(unsigned int i=0; i < p->aspect_ratio.size(); i++)
+    for(unsigned int i = 0; i < p->aspect_ratio.size(); i++)
     {
         v_ratios->data[i] = p->aspect_ratio[i];
     }
@@ -334,9 +334,9 @@ static tm_uoffset_t SaveTmPriorBoxOp(void * const start_ptr, tm_uoffset_t *cur_p
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM_Operator));
 }
 
-static tm_uoffset_t SaveTmRegionOp(void * const start_ptr, tm_uoffset_t *cur_pos, Operator *op)
+static tm_uoffset_t SaveTmRegionOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
 {
-    RegionParam *p = (dynamic_cast<Region *>(op))->GetParam();
+    RegionParam* p = (dynamic_cast<Region*>(op))->GetParam();
     TM_RegionParam tm_param;
     tm_param.num_classes = p->num_classes;
     tm_param.side = p->side;
@@ -346,9 +346,9 @@ static tm_uoffset_t SaveTmRegionOp(void * const start_ptr, tm_uoffset_t *cur_pos
     tm_param.nms_threshold = p->nms_threshold;
 
     size_t vector_size = sizeof(tm_size_t) + sizeof(float) * p->biases.size();
-    TM_Vector_floats *v_biases = (TM_Vector_floats *)malloc(vector_size);
+    TM_Vector_floats* v_biases = ( TM_Vector_floats* )malloc(vector_size);
     v_biases->v_num = p->biases.size();
-    for(unsigned int i=0; i < p->biases.size(); i++)
+    for(unsigned int i = 0; i < p->biases.size(); i++)
     {
         v_biases->data[i] = p->biases[i];
     }
@@ -361,28 +361,27 @@ static tm_uoffset_t SaveTmRegionOp(void * const start_ptr, tm_uoffset_t *cur_pos
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM_Operator));
 }
 
-static tm_uoffset_t SaveTmReLuOp(void * const start_ptr, tm_uoffset_t *cur_pos, Operator *op)
+static tm_uoffset_t SaveTmReLuOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
 {
-    ReLuParam *p = (dynamic_cast<ReLu *>(op))->GetParam();
+    ReLuParam* p = (dynamic_cast<ReLu*>(op))->GetParam();
     TM_ReLuParam tm_param;
     tm_param.negative_slope = p->negative_slope;
 
     TM_Operator tm_op;
-    SetTmOperator(&tm_op, TM_OPTYPE_RELU, NOT_SET,
-                  WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM_ReLuParam)));
+    SetTmOperator(&tm_op, TM_OPTYPE_RELU, NOT_SET, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM_ReLuParam)));
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM_Operator));
 }
 
-static tm_uoffset_t SaveTmRelu6Op(void * const start_ptr, tm_uoffset_t *cur_pos, Operator *op)
+static tm_uoffset_t SaveTmRelu6Op(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
 {
     TM_Operator tm_op;
     SetTmOperator(&tm_op, TM_OPTYPE_RELU6, NOT_SET, NOT_SET);
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM_Operator));
 }
 
-static tm_uoffset_t SaveTmReorgOp(void * const start_ptr, tm_uoffset_t *cur_pos, Operator *op)
+static tm_uoffset_t SaveTmReorgOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
 {
-    ReorgParam *p = (dynamic_cast<Reorg *>(op))->GetParam();
+    ReorgParam* p = (dynamic_cast<Reorg*>(op))->GetParam();
     TM_ReorgParam tm_param;
     tm_param.stride = p->stride;
 
@@ -392,21 +391,16 @@ static tm_uoffset_t SaveTmReorgOp(void * const start_ptr, tm_uoffset_t *cur_pos,
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM_Operator));
 }
 
-static tm_uoffset_t SaveTmReshapeOp(void * const start_ptr, tm_uoffset_t *cur_pos, Operator *op)
+static tm_uoffset_t SaveTmReshapeOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
 {
-    ReshapeParam *p = (dynamic_cast<Reshape *>(op))->GetParam();
+    ReshapeParam* p = (dynamic_cast<Reshape*>(op))->GetParam();
     TM_ReshapeParam tm_param;
 
-    size_t vector_size = sizeof(tm_size_t) + sizeof(int32_t) * p->dims.size();
-    TM_Vector_dims *v_dims = (TM_Vector_dims *)malloc(vector_size);
-    v_dims->v_num = p->dims.size();
-    for(unsigned int i=0; i < p->dims.size(); i++)
-    {
-        v_dims->dims[i] = p->dims[i];
-    }
-    tm_param.offset_vd_dims = WriteTmObject(start_ptr, cur_pos, v_dims, vector_size);
-    free(v_dims);
-
+    tm_param.dim_0 = p->dim_0;
+    tm_param.dim_1 = p->dim_1;
+    tm_param.dim_2 = p->dim_2;
+    tm_param.dim_3 = p->dim_3;
+    tm_param.dim_size = p->dim_size;
     tm_param.axis = p->axis;
 
     TM_Operator tm_op;
@@ -415,9 +409,9 @@ static tm_uoffset_t SaveTmReshapeOp(void * const start_ptr, tm_uoffset_t *cur_po
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM_Operator));
 }
 
-static tm_uoffset_t SaveTmResizeOp(void * const start_ptr, tm_uoffset_t *cur_pos, Operator *op)
+static tm_uoffset_t SaveTmResizeOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
 {
-    ResizeParam *p = (dynamic_cast<Resize *>(op))->GetParam();
+    ResizeParam* p = (dynamic_cast<Resize*>(op))->GetParam();
     TM_ResizeParam tm_param;
     tm_param.scale_x = p->scale_w;
     tm_param.scale_y = p->scale_h;
@@ -428,9 +422,9 @@ static tm_uoffset_t SaveTmResizeOp(void * const start_ptr, tm_uoffset_t *cur_pos
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM_Operator));
 }
 
-static tm_uoffset_t SaveTmROIPoolingOp(void * const start_ptr, tm_uoffset_t *cur_pos, Operator *op)
+static tm_uoffset_t SaveTmROIPoolingOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
 {
-    ROIPoolingParam *p = (dynamic_cast<ROIPooling *>(op))->GetParam();
+    ROIPoolingParam* p = (dynamic_cast<ROIPooling*>(op))->GetParam();
     TM_ROIPoolingParam tm_param;
     tm_param.pooled_h = p->pooled_h;
     tm_param.pooled_w = p->pooled_w;
@@ -442,15 +436,15 @@ static tm_uoffset_t SaveTmROIPoolingOp(void * const start_ptr, tm_uoffset_t *cur
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM_Operator));
 }
 
-static tm_uoffset_t SaveTmRPNOp(void * const start_ptr, tm_uoffset_t *cur_pos, Operator *op)
+static tm_uoffset_t SaveTmRPNOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
 {
-    RPNParam *p = (dynamic_cast<RPN *>(op))->GetParam();
+    RPNParam* p = (dynamic_cast<RPN*>(op))->GetParam();
     TM_RPNParam tm_param;
 
     size_t vector_size = sizeof(tm_size_t) + sizeof(float) * p->ratios.size();
-    TM_Vector_floats *v_ratios = (TM_Vector_floats *)malloc(vector_size);
+    TM_Vector_floats* v_ratios = ( TM_Vector_floats* )malloc(vector_size);
     v_ratios->v_num = p->ratios.size();
-    for(unsigned int i=0; i < p->ratios.size(); i++)
+    for(unsigned int i = 0; i < p->ratios.size(); i++)
     {
         v_ratios->data[i] = p->ratios[i];
     }
@@ -458,9 +452,9 @@ static tm_uoffset_t SaveTmRPNOp(void * const start_ptr, tm_uoffset_t *cur_pos, O
     free(v_ratios);
 
     vector_size = sizeof(tm_size_t) + sizeof(float) * p->anchor_scales.size();
-    TM_Vector_floats *v_scales = (TM_Vector_floats *)malloc(vector_size);
+    TM_Vector_floats* v_scales = ( TM_Vector_floats* )malloc(vector_size);
     v_scales->v_num = p->anchor_scales.size();
-    for(unsigned int i=0; i < p->anchor_scales.size(); i++)
+    for(unsigned int i = 0; i < p->anchor_scales.size(); i++)
     {
         v_scales->data[i] = p->anchor_scales[i];
     }
@@ -468,9 +462,9 @@ static tm_uoffset_t SaveTmRPNOp(void * const start_ptr, tm_uoffset_t *cur_pos, O
     free(v_scales);
 
     vector_size = sizeof(tm_size_t) + sizeof(float) * p->anchors_.size() * 4;
-    TM_Vector_anchors *v_anchors = (TM_Vector_anchors *)malloc(vector_size);
+    TM_Vector_anchors* v_anchors = ( TM_Vector_anchors* )malloc(vector_size);
     v_anchors->v_num = p->anchors_.size();
-    for(unsigned int i=0; i < p->anchors_.size(); i++)
+    for(unsigned int i = 0; i < p->anchors_.size(); i++)
     {
         v_anchors->data[i][0] = p->anchors_[i].x0;
         v_anchors->data[i][1] = p->anchors_[i].y0;
@@ -488,14 +482,13 @@ static tm_uoffset_t SaveTmRPNOp(void * const start_ptr, tm_uoffset_t *cur_pos, O
     tm_param.nms_thresh = p->nms_thresh;
 
     TM_Operator tm_op;
-    SetTmOperator(&tm_op, TM_OPTYPE_RPN, NOT_SET,
-                  WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM_RPNParam)));
+    SetTmOperator(&tm_op, TM_OPTYPE_RPN, NOT_SET, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM_RPNParam)));
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM_Operator));
 }
 
-static tm_uoffset_t SaveTmScaleOp(void * const start_ptr, tm_uoffset_t *cur_pos, Operator *op)
+static tm_uoffset_t SaveTmScaleOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
 {
-    ScaleParam *p = (dynamic_cast<Scale *>(op))->GetParam();
+    ScaleParam* p = (dynamic_cast<Scale*>(op))->GetParam();
     TM_ScaleParam tm_param;
     tm_param.axis = p->axis;
     tm_param.num_axes = p->num_axes;
@@ -507,9 +500,9 @@ static tm_uoffset_t SaveTmScaleOp(void * const start_ptr, tm_uoffset_t *cur_pos,
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM_Operator));
 }
 
-static tm_uoffset_t SaveTmSliceOp(void * const start_ptr, tm_uoffset_t *cur_pos, Operator *op)
+static tm_uoffset_t SaveTmSliceOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
 {
-    SliceParam *p = (dynamic_cast<Slice *>(op))->GetParam();
+    SliceParam* p = (dynamic_cast<Slice*>(op))->GetParam();
     TM_SliceParam tm_param;
     tm_param.axis = p->axis;
 
@@ -519,9 +512,9 @@ static tm_uoffset_t SaveTmSliceOp(void * const start_ptr, tm_uoffset_t *cur_pos,
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM_Operator));
 }
 
-static tm_uoffset_t SaveTmSoftmaxOp(void * const start_ptr, tm_uoffset_t *cur_pos, Operator *op)
+static tm_uoffset_t SaveTmSoftmaxOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
 {
-    SoftmaxParam *p = (dynamic_cast<Softmax *>(op))->GetParam();
+    SoftmaxParam* p = (dynamic_cast<Softmax*>(op))->GetParam();
     TM_SoftmaxParam tm_param;
     tm_param.axis = p->axis;
 
@@ -531,50 +524,80 @@ static tm_uoffset_t SaveTmSoftmaxOp(void * const start_ptr, tm_uoffset_t *cur_po
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM_Operator));
 }
 
-static tm_uoffset_t SaveTmSplitOp(void * const start_ptr, tm_uoffset_t *cur_pos, Operator *op)
+static tm_uoffset_t SaveTmSplitOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
 {
     TM_Operator tm_op;
     SetTmOperator(&tm_op, TM_OPTYPE_SPLIT, NOT_SET, NOT_SET);
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM_Operator));
 }
 
-tm_uoffset_t SaveTmOperator(void * const start_ptr, tm_uoffset_t *cur_pos, Operator *op)
+tm_uoffset_t SaveTmOperator(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
 {
     std::string op_str = op->GetName();
 
-    if(op_str == OP_STR_ACCURACY)           return SaveTmAccuracyOp(start_ptr, cur_pos, op);
-    if(op_str == OP_STR_BATCHNORMALIZATION) return SaveTmBatchNormOp(start_ptr, cur_pos, op);
-    if(op_str == OP_STR_BILINEARRESIZE)     return SaveTmResizeOp(start_ptr, cur_pos, op);
-    if(op_str == OP_STR_CONCAT)             return SaveTmConcatOp(start_ptr, cur_pos, op);
-    if(op_str == OP_STR_CONST)              return SaveTmConstOp(start_ptr, cur_pos, op);
-    if(op_str == OP_STR_CONVOLUTION)        return SaveTmConvOp(start_ptr, cur_pos, op);
-    if(op_str == OP_STR_DECONVOLUTION)      return SaveTmDeconvOp(start_ptr, cur_pos, op);
-    if(op_str == OP_STR_DETECTIONOUTPUT)    return SaveTmDetectionOutputOp(start_ptr, cur_pos, op);
-    if(op_str == OP_STR_DROPOUT)            return SaveTmDropoutOp(start_ptr, cur_pos, op);
-    if(op_str == OP_STR_ELTWISE)            return SaveTmEltwiseOp(start_ptr, cur_pos, op);
-    if(op_str == OP_STR_FLATTEN)            return SaveTmFlattenOp(start_ptr, cur_pos, op);
-    if(op_str == OP_STR_FULLYCONNECTED)     return SaveTmFCOp(start_ptr, cur_pos, op);
-    if(op_str == "Input")                   return SaveTmInputOp(start_ptr, cur_pos, op);
-    if(op_str == OP_STR_LRN)                return SaveTmLRNOp(start_ptr, cur_pos, op);
-    if(op_str == OP_STR_NORMALIZE)          return SaveTmNormalizeOp(start_ptr, cur_pos, op);
-    if(op_str == OP_STR_PERMUTE)            return SaveTmPermuteOp(start_ptr, cur_pos, op);
-    if(op_str == OP_STR_POOLING)            return SaveTmPoolOp(start_ptr, cur_pos, op);
-    if(op_str == OP_STR_PRELU)              return SaveTmPreluOp(start_ptr, cur_pos, op);
-    if(op_str == OP_STR_PRIORBOX)           return SaveTmPriorBoxOp(start_ptr, cur_pos, op);
-    if(op_str == OP_STR_REGION)             return SaveTmRegionOp(start_ptr, cur_pos, op);
-    if(op_str == OP_STR_RELU)               return SaveTmReLuOp(start_ptr, cur_pos, op);
-    if(op_str == OP_STR_RELU6)              return SaveTmRelu6Op(start_ptr, cur_pos, op);
-    if(op_str == OP_STR_REORG)              return SaveTmReorgOp(start_ptr, cur_pos, op);
-    if(op_str == OP_STR_RESHAPE)            return SaveTmReshapeOp(start_ptr, cur_pos, op);
-    if(op_str == OP_STR_ROIPOOLING)         return SaveTmROIPoolingOp(start_ptr, cur_pos, op);
-    if(op_str == OP_STR_RPN)                return SaveTmRPNOp(start_ptr, cur_pos, op);
-    if(op_str == OP_STR_SCALE)              return SaveTmScaleOp(start_ptr, cur_pos, op);
-    if(op_str == OP_STR_SLICE)              return SaveTmSliceOp(start_ptr, cur_pos, op);
-    if(op_str == OP_STR_SOFTMAX)            return SaveTmSoftmaxOp(start_ptr, cur_pos, op);
-    if(op_str == OP_STR_SPLIT)              return SaveTmSplitOp(start_ptr, cur_pos, op);
+    if(op_str == OP_STR_ACCURACY)
+        return SaveTmAccuracyOp(start_ptr, cur_pos, op);
+    if(op_str == OP_STR_BATCHNORMALIZATION)
+        return SaveTmBatchNormOp(start_ptr, cur_pos, op);
+    if(op_str == OP_STR_BILINEARRESIZE)
+        return SaveTmResizeOp(start_ptr, cur_pos, op);
+    if(op_str == OP_STR_CONCAT)
+        return SaveTmConcatOp(start_ptr, cur_pos, op);
+    if(op_str == OP_STR_CONST)
+        return SaveTmConstOp(start_ptr, cur_pos, op);
+    if(op_str == OP_STR_CONVOLUTION)
+        return SaveTmConvOp(start_ptr, cur_pos, op);
+    if(op_str == OP_STR_DECONVOLUTION)
+        return SaveTmDeconvOp(start_ptr, cur_pos, op);
+    if(op_str == OP_STR_DETECTIONOUTPUT)
+        return SaveTmDetectionOutputOp(start_ptr, cur_pos, op);
+    if(op_str == OP_STR_DROPOUT)
+        return SaveTmDropoutOp(start_ptr, cur_pos, op);
+    if(op_str == OP_STR_ELTWISE)
+        return SaveTmEltwiseOp(start_ptr, cur_pos, op);
+    if(op_str == OP_STR_FLATTEN)
+        return SaveTmFlattenOp(start_ptr, cur_pos, op);
+    if(op_str == OP_STR_FULLYCONNECTED)
+        return SaveTmFCOp(start_ptr, cur_pos, op);
+    if(op_str == "Input")
+        return SaveTmInputOp(start_ptr, cur_pos, op);
+    if(op_str == OP_STR_LRN)
+        return SaveTmLRNOp(start_ptr, cur_pos, op);
+    if(op_str == OP_STR_NORMALIZE)
+        return SaveTmNormalizeOp(start_ptr, cur_pos, op);
+    if(op_str == OP_STR_PERMUTE)
+        return SaveTmPermuteOp(start_ptr, cur_pos, op);
+    if(op_str == OP_STR_POOLING)
+        return SaveTmPoolOp(start_ptr, cur_pos, op);
+    if(op_str == OP_STR_PRELU)
+        return SaveTmPreluOp(start_ptr, cur_pos, op);
+    if(op_str == OP_STR_PRIORBOX)
+        return SaveTmPriorBoxOp(start_ptr, cur_pos, op);
+    if(op_str == OP_STR_REGION)
+        return SaveTmRegionOp(start_ptr, cur_pos, op);
+    if(op_str == OP_STR_RELU)
+        return SaveTmReLuOp(start_ptr, cur_pos, op);
+    if(op_str == OP_STR_RELU6)
+        return SaveTmRelu6Op(start_ptr, cur_pos, op);
+    if(op_str == OP_STR_REORG)
+        return SaveTmReorgOp(start_ptr, cur_pos, op);
+    if(op_str == OP_STR_RESHAPE)
+        return SaveTmReshapeOp(start_ptr, cur_pos, op);
+    if(op_str == OP_STR_ROIPOOLING)
+        return SaveTmROIPoolingOp(start_ptr, cur_pos, op);
+    if(op_str == OP_STR_RPN)
+        return SaveTmRPNOp(start_ptr, cur_pos, op);
+    if(op_str == OP_STR_SCALE)
+        return SaveTmScaleOp(start_ptr, cur_pos, op);
+    if(op_str == OP_STR_SLICE)
+        return SaveTmSliceOp(start_ptr, cur_pos, op);
+    if(op_str == OP_STR_SOFTMAX)
+        return SaveTmSoftmaxOp(start_ptr, cur_pos, op);
+    if(op_str == OP_STR_SPLIT)
+        return SaveTmSplitOp(start_ptr, cur_pos, op);
 
-    LOG_ERROR()<<"Operator "<<op->GetName()<<" not supported in tengine model yet\n";
+    LOG_ERROR() << "Operator " << op->GetName() << " not supported in tengine model yet\n";
     return 0;
 }
 
-}  //namespace TEngine
+}    // namespace TEngine

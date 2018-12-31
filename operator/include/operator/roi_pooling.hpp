@@ -24,29 +24,26 @@
 #ifndef __ROIPOOLING_HPP__
 #define __ROIPOOLING_HPP__
 
-
 #include "operator.hpp"
 #include "roi_pooling_param.hpp"
 
-
 namespace TEngine {
 
-class ROIPooling: public OperatorWithParam<ROIPooling, ROIPoolingParam> {
-
+class ROIPooling : public OperatorWithParam<ROIPooling, ROIPoolingParam>
+{
 public:
+    ROIPooling()
+    {
+        name_ = "ROIPooling";
+    }
+    ROIPooling(const ROIPooling& src) = default;
 
-     ROIPooling () { name_="ROIPooling"; }
-     ROIPooling(const ROIPooling& src)=default;
-
-     virtual ~ROIPooling() {}
-     bool InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEngine::TShape>& oshape) override;
-     void SetSchema(void) override;
-
-
+    virtual ~ROIPooling() {}
+    bool InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEngine::TShape>& oshape,
+                    int layout) override;
+    void SetSchema(void) override;
 };
 
-
-} //namespace TEngine
-
+}    // namespace TEngine
 
 #endif

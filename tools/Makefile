@@ -74,12 +74,3 @@ LIBS+=-lprotobuf -ldl -lpthread -lresolv
 SO_LIBS+=$(OPENCV_LIB)
 
 
-ifeq ($(CONFIG_CAFFE_REF),y)
-    CAFFE_LIBS+=-Wl,-rpath,$(CAFFE_ROOT)/build/lib -L$(CAFFE_ROOT)/build/lib -lcaffe
-    CAFFE_LIBS+= -lprotobuf -lboost_system -lglog
-    SO_LIBS+=$(CAFFE_LIBS)
-endif
-
-
-
-

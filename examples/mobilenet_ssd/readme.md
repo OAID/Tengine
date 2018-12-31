@@ -6,7 +6,7 @@ This is Mobilenet_SSD implementation with [Tengine](https://github.com/OAID/Teng
 
 
 ## Download required models
-Download the models from [Tengine model zoo](https://pan.baidu.com/s/1LXZ8vOdyOo50IXS0CUPp8g) (psw: 57vb)
+Download the models from [Tengine model zoo](https://pan.baidu.com/s/1LXZ8vOdyOo50IXS0CUPp8g) (psw: 57vb).
 
 Store these files into `${Tengine_ROOT}/models/`
 - MobileNetSSD_deploy.caffemodel
@@ -16,6 +16,7 @@ Store these files into `${Tengine_ROOT}/models/`
 ## Build examples
 ```
 cd  ${Tengine_ROOT}
+make
 make install
 ```
 build as ${TENGINE_ROOT}/examples/readme.md
@@ -23,20 +24,21 @@ build as ${TENGINE_ROOT}/examples/readme.md
 ## Run
 
 1. run MSSD by default
-    - models are in `tengien/models/MobileNetSSD_deploy.prototxt` and `tengien/models/MobileNetSSD_deploy.caffemodel`
-    - test image is `tengine/tests/imasge/ssd_dog.jpg`
+    - model files are `tengine/models/MobileNetSSD_deploy.prototxt` and `tengine/models/MobileNetSSD_deploy.caffemodel`
+    - test image is `tengine/tests/images/ssd_dog.jpg`
     ```
     cd ${TENGINE_ROOT}/examples/build/mobilenet_ssd/
     ./MSSD
     ``````
 
-2. run with your model_path and image_path
+2. run mssd with other models and image
     ```
-    [Usage]: ./build/examples/mobilenet_ssd/MSSD [-h]
-   [-p proto_file] [-m model_file] [-i image_file]
+    [Usage]: ./MSSD [-h]
+                    [-p proto_file] [-m model_file] [-i image_file]
 
     ./MSSD -p mssd.prototxt -m mssd.caffemodel -i img.jpg
     ```
 
 ## Reference
 https://github.com/chuanqi305/MobileNet-SSD
+

@@ -37,161 +37,142 @@
 
 namespace TEngine {
 
-
 class BaseFactory
 {
 public:
+    using creator_map_t = std::unordered_map<std::string, any>;
+    using creator_type_t = std::unordered_multimap<std::string, std::string>;    // saved the creator type info
 
-   using creator_map_t=std::unordered_map<std::string, any>;
-   using creator_type_t=std::unordered_multimap<std::string,std::string>; //saved the creator type info
-
-   /* only accept funtion call */
-   template <typename  func>
-   typename std::enable_if<std::is_function<typename std::remove_pointer<func>::type>::value,bool>::type
-   RegisterCreator(const std::string&name, func creator, bool replace=false)
-   {
-       using func_t=typename std::remove_reference<decltype(*creator)>::type;
-
-       return RegisterCreator(name,std::function<func_t>(creator),replace);
-
-   }
-
-   template <class T, typename ... Args>
-   bool RegisterCreator(const std::string&name, std::function<T *(Args ...)> creator, bool replace=false)
-   {
-         const std::string key=name+typeid(creator).name();
-
-         if(RegisterCreator(key,any(creator),replace))
-         {
-             type_map_.emplace(name,GetTypeName(typeid(creator).name()));
-             return true;
-         }
-         else
-         {
-             return false;
-         }
-   }
-
-    template <class T, typename ... Args>
-    T * Create(const std::string& name, Args&& ... args)
+    /* only accept funtion call */
+    template <typename func>
+    typename std::enable_if<std::is_function<typename std::remove_pointer<func>::type>::value, bool>::type
+    RegisterCreator(const std::string& name, func creator, bool replace = false)
     {
+        using func_t = typename std::remove_reference<decltype(*creator)>::type;
 
-         using func_t=std::function<T*(Args...)>;
+        return RegisterCreator(name, std::function<func_t>(creator), replace);
+    }
 
-         std::string key=name+typeid(func_t).name();
+    template <class T, typename... Args>
+    bool RegisterCreator(const std::string& name, std::function<T*(Args...)> creator, bool replace = false)
+    {
+        const std::string key = name + typeid(creator).name();
 
-         auto it=creator_map_.find(key);
+        if(RegisterCreator(key, any(creator), replace))
+        {
+            type_map_.emplace(name, GetTypeName(typeid(creator).name()));
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
 
-         if(it==creator_map_.end())
-          {
-                LOG_ERROR()<<"failed to find "<<name<< " with func type: "<<GetTypeName(typeid(func_t).name())<<"\n";
-                return nullptr;
-          }
+    template <class T, typename... Args> T* Create(const std::string& name, Args&&... args)
+    {
+        using func_t = std::function<T*(Args...)>;
 
-         func_t creator=any_cast<func_t>(it->second);
+        std::string key = name + typeid(func_t).name();
 
-         return creator(std::forward<Args>(args)...);
-   }
+        auto it = creator_map_.find(key);
 
-   std::vector<std::string> CreatorInfo(const std::string& name)
-   {
-         std::vector<std::string> result;
+        if(it == creator_map_.end())
+        {
+            LOG_ERROR() << "failed to find " << name << " with func type: " << GetTypeName(typeid(func_t).name())
+                        << "\n";
+            return nullptr;
+        }
 
-         auto range=type_map_.equal_range(name);
+        func_t creator = any_cast<func_t>(it->second);
 
-         for(auto ir=range.first;ir!=range.second;ir++)
-         {
-             result.emplace_back(ir->second);
-         }
+        return creator(std::forward<Args>(args)...);
+    }
 
-         return result;
-   }
+    std::vector<std::string> CreatorInfo(const std::string& name)
+    {
+        std::vector<std::string> result;
+
+        auto range = type_map_.equal_range(name);
+
+        for(auto ir = range.first; ir != range.second; ir++)
+        {
+            result.emplace_back(ir->second);
+        }
+
+        return result;
+    }
 
 protected:
-   bool RegisterCreator(const std::string& key, any creator, bool replace=false)
-   {
-       if(creator_map_.count(key) && !replace)
-       {
-           return false;
-       }
-        
-       creator_map_.emplace(key,creator);
+    bool RegisterCreator(const std::string& key, any creator, bool replace = false)
+    {
+        if(creator_map_.count(key) && !replace)
+        {
+            return false;
+        }
 
-       return true;
-   }
+        creator_map_.emplace(key, creator);
+
+        return true;
+    }
 
     creator_map_t creator_map_;
     creator_type_t type_map_;
-
 };
 
-
-class GenericFactory: public BaseFactory {
-
+class GenericFactory : public BaseFactory
+{
 public:
-
-    template <class T, typename ... Args>
-    bool RegisterConstructor(const std::string& name, bool replace=false)
+    template <class T, typename... Args> bool RegisterConstructor(const std::string& name, bool replace = false)
     {
-         std::function<T*(Args ...)> creator=[](Args...args){ return new T(std::forward<Args>(args)...); };
-         return RegisterCreator(name,creator,replace);
+        std::function<T*(Args...)> creator = [](Args... args) { return new T(std::forward<Args>(args)...); };
+        return RegisterCreator(name, creator, replace);
     }
 
-    template <class T, typename Derived, typename ... Args>
-    typename std::enable_if<std::is_base_of<T,Derived>::value, bool>::type
-    
-    RegisterInterface(const std::string&name, bool replace=false)
-    {
-        std::function<T*(Args ...)> creator=[](Args ... args)
-        {  return new Derived(std::forward<Args>(args)...); };
+    template <class T, typename Derived, typename... Args>
+    typename std::enable_if<std::is_base_of<T, Derived>::value, bool>::type
 
-        return  RegisterCreator(name,creator,replace);
+    RegisterInterface(const std::string& name, bool replace = false)
+    {
+        std::function<T*(Args...)> creator = [](Args... args) { return new Derived(std::forward<Args>(args)...); };
+
+        return RegisterCreator(name, creator, replace);
     }
-   
 };
-
 
 template <typename T>
 
-class SpecificFactory: public GenericFactory
+class SpecificFactory : public GenericFactory
 {
-
 public:
+    template <typename... Args> T* Create(const std::string& name, Args&&... args)
+    {
+        // using func_t=std::function<T*(Args...)>;
 
-   template<typename ... Args>
-   T * Create(const std::string& name, Args&& ... args)
-   {
+        return GenericFactory::Create<T, Args...>(name, std::forward<Args>(args)...);
+    }
 
-        //using func_t=std::function<T*(Args...)>;
+    template <typename... Args> bool RegisterConstructor(const std::string& name, bool replace = false)
+    {
+        return GenericFactory::RegisterConstructor<T, Args...>(name, replace);
+    }
 
-        return GenericFactory::Create<T,Args...>(name,std::forward<Args>(args) ...);
+    template <typename Derived, typename... Args>
+    typename std::enable_if<std::is_base_of<T, Derived>::value, bool>::type
 
-   }
-   
-  template <typename ... Args>
-  bool RegisterConstructor(const std::string& name, bool replace=false)
-  {
-        return GenericFactory::RegisterConstructor<T,Args...>(name,replace);
-  }
+    RegisterInterface(const std::string& name, bool replace = false)
+    {
+        return GenericFactory::RegisterInterface<T, Derived, Args...>(name, replace);
+    }
 
-  template <typename Derived, typename ... Args>
-  typename std::enable_if<std::is_base_of<T,Derived>::value, bool>::type
+    static SpecificFactory<T>* GetFactory()
+    {
+        static SpecificFactory<T> instance;
 
-  RegisterInterface(const std::string&name, bool replace=false)
-  {
-        return  GenericFactory::RegisterInterface<T,Derived,Args...>(name,replace);
-  }
-
-  static SpecificFactory<T> * GetFactory()
-  {
-       static SpecificFactory<T> instance;
-
-       return &instance;
-  }
-
+        return &instance;
+    }
 };
 
-
-} //namespace TEngine
+}    // namespace TEngine
 
 #endif

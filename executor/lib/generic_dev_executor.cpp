@@ -27,381 +27,369 @@
 
 namespace TEngine {
 
-
-bool GenericDevExecutor::GetQueueReference(GenericDevExecutor::QueueType queue_type, std::mutex *& p_mutex,
-      task_queue_t * & p_queue)
- {
-      bool ret=true;
-
-      if(queue_type==kWaitQueue)
-      {
-            p_mutex=&wait_queue_lock_;
-	    p_queue=&wait_queue_;
-      	}
-	else if (queue_type ==kReadyQueue)
-	{
-            p_mutex=&ready_queue_lock_;
-	    p_queue=&ready_queue_;
-
-	}
-	else if (queue_type == kRunQueue)
-	{
-            p_mutex=&run_queue_lock_;
-	    p_queue=&run_queue_;
-	}
-	else
-        	ret=false;
-	return ret;
- }
-
-void GenericDevExecutor::InsertQueue(GenericDevExecutor::QueueType queue_type, SubgraphTask * task)
+bool GenericDevExecutor::GetQueueReference(GenericDevExecutor::QueueType queue_type, std::mutex*& p_mutex,
+                                           task_queue_t*& p_queue)
 {
-      std::mutex * p_mutex=nullptr;
-      task_queue_t * p_queue=nullptr;
+    bool ret = true;
 
-      if(!GetQueueReference(queue_type,p_mutex,p_queue))
-	  	return;
-
-      Lock(*p_mutex);
-
-      //first one?
-
-     auto ir=p_queue->find(task->exec_priority);
-
-      if(ir==p_queue->end())
-      {
-           std::set<SubgraphTask *> set;
-	    set.insert(task);
-           (*p_queue)[task->exec_priority]=set;
-      }
-      else
-      {
-      	    ir->second.insert(task);
-      }
-
-      Unlock(*p_mutex);
+    if(queue_type == kWaitQueue)
+    {
+        p_mutex = &wait_queue_lock_;
+        p_queue = &wait_queue_;
+    }
+    else if(queue_type == kReadyQueue)
+    {
+        p_mutex = &ready_queue_lock_;
+        p_queue = &ready_queue_;
+    }
+    else if(queue_type == kRunQueue)
+    {
+        p_mutex = &run_queue_lock_;
+        p_queue = &run_queue_;
+    }
+    else
+        ret = false;
+    return ret;
 }
-bool GenericDevExecutor::RemoveQueue(QueueType queue_type, SubgraphTask * task)
+
+void GenericDevExecutor::InsertQueue(GenericDevExecutor::QueueType queue_type, SubgraphTask* task)
 {
-      std::mutex * p_mutex=nullptr;
-      task_queue_t * p_queue=nullptr;
+    std::mutex* p_mutex = nullptr;
+    task_queue_t* p_queue = nullptr;
 
-      if(!GetQueueReference(queue_type,p_mutex,p_queue))
-	  	return false;
-	  
-      Lock(*p_mutex);
+    if(!GetQueueReference(queue_type, p_mutex, p_queue))
+        return;
 
-      auto ir=p_queue->find(task->exec_priority);
+    Lock(*p_mutex);
 
-      if(ir==p_queue->end())
-      {
-            Unlock(*p_mutex);            
-            return false;
-      }
+    // first one?
 
-      bool ret;
-	
-      if(ir->second.erase(task))
-           ret=true;
-      else
-	    ret=false;
+    auto ir = p_queue->find(task->exec_priority);
 
-      Unlock(*p_mutex);
+    if(ir == p_queue->end())
+    {
+        std::set<SubgraphTask*> set;
+        set.insert(task);
+        (*p_queue)[task->exec_priority] = set;
+    }
+    else
+    {
+        ir->second.insert(task);
+    }
 
-      return ret;
+    Unlock(*p_mutex);
 }
-SubgraphTask * GenericDevExecutor::PopQueue(QueueType queue_type)
+bool GenericDevExecutor::RemoveQueue(QueueType queue_type, SubgraphTask* task)
 {
-      std::mutex * p_mutex=nullptr;
-      task_queue_t * p_queue=nullptr;
+    std::mutex* p_mutex = nullptr;
+    task_queue_t* p_queue = nullptr;
 
-      if(!GetQueueReference(queue_type,p_mutex,p_queue))
-	  	return nullptr;
+    if(!GetQueueReference(queue_type, p_mutex, p_queue))
+        return false;
 
-      Lock(*p_mutex);
+    Lock(*p_mutex);
 
-      auto ir=p_queue->begin();
+    auto ir = p_queue->find(task->exec_priority);
 
-      if(ir==p_queue->end())
-      {
-          Unlock(*p_mutex);
-          return nullptr;
-      }
+    if(ir == p_queue->end())
+    {
+        Unlock(*p_mutex);
+        return false;
+    }
 
-      auto set_ir=ir->second.begin();
+    bool ret;
 
-      SubgraphTask * task=*set_ir;
+    if(ir->second.erase(task))
+        ret = true;
+    else
+        ret = false;
 
-       ir->second.erase(set_ir);
+    Unlock(*p_mutex);
 
-	if(ir->second.empty())
-	{
-	     p_queue->erase(ir);
-	}
-	 
-	Unlock(*p_mutex);
-        return task;
+    return ret;
+}
+SubgraphTask* GenericDevExecutor::PopQueue(QueueType queue_type)
+{
+    std::mutex* p_mutex = nullptr;
+    task_queue_t* p_queue = nullptr;
+
+    if(!GetQueueReference(queue_type, p_mutex, p_queue))
+        return nullptr;
+
+    Lock(*p_mutex);
+
+    auto ir = p_queue->begin();
+
+    if(ir == p_queue->end())
+    {
+        Unlock(*p_mutex);
+        return nullptr;
+    }
+
+    auto set_ir = ir->second.begin();
+
+    SubgraphTask* task = *set_ir;
+
+    ir->second.erase(set_ir);
+
+    if(ir->second.empty())
+    {
+        p_queue->erase(ir);
+    }
+
+    Unlock(*p_mutex);
+    return task;
 }
 int GenericDevExecutor::GetElementNumber(QueueType queue_type)
 {
-     std::mutex * p_mutex;
-     task_queue_t * p_queue;
+    std::mutex* p_mutex;
+    task_queue_t* p_queue;
 
-     if(!GetQueueReference(queue_type,p_mutex,p_queue))
-	  return 0;
+    if(!GetQueueReference(queue_type, p_mutex, p_queue))
+        return 0;
 
-     Lock(*p_mutex);
+    Lock(*p_mutex);
 
-     int count=0;
+    int count = 0;
 
-     auto ir=p_queue->begin();
+    auto ir = p_queue->begin();
 
-     while (ir!=p_queue->end())
-     {
-     	   count+=ir->second.size();
-     }
+    while(ir != p_queue->end())
+    {
+        count += ir->second.size();
+    }
 
-     Unlock(*p_mutex);
+    Unlock(*p_mutex);
 
-      return count;
+    return count;
 }
-	   
-int  GenericDevExecutor::GetRunTaskNum(void) 
+
+int GenericDevExecutor::GetRunTaskNum(void)
 {
-	return GetElementNumber(kRunQueue);
+    return GetElementNumber(kRunQueue);
 }
-int  GenericDevExecutor::GetReadyTaskNum(void)
+int GenericDevExecutor::GetReadyTaskNum(void)
 {
-	return GetElementNumber(kReadyQueue);
+    return GetElementNumber(kReadyQueue);
 }
-int  GenericDevExecutor::GetWaitTaskNum(void)
+int GenericDevExecutor::GetWaitTaskNum(void)
 {
-	return GetElementNumber(kWaitQueue);
+    return GetElementNumber(kWaitQueue);
 }
 
- void GenericDevExecutor::InsertQueue(SubgraphTask * task) 
+void GenericDevExecutor::InsertQueue(SubgraphTask* task)
 {
-       int task_status=task->GetStatus();
-	QueueType queue_type=kWaitQueue;
-	
-        if(task_status==EXEC_STATUS_READY)
-        {
-                 queue_type=kReadyQueue;
-        }
-	 else if(task_status == EXEC_STATUS_WAIT)
-	 {
-	         queue_type=kWaitQueue;
-	 }
-	 else if(task_status == EXEC_STATUS_RUN)
-	 {
-	        queue_type=kRunQueue;
-	 }
+    int task_status = task->GetStatus();
+    QueueType queue_type = kWaitQueue;
 
-       InsertQueue(queue_type,task);
-	
+    if(task_status == EXEC_STATUS_READY)
+    {
+        queue_type = kReadyQueue;
+    }
+    else if(task_status == EXEC_STATUS_WAIT)
+    {
+        queue_type = kWaitQueue;
+    }
+    else if(task_status == EXEC_STATUS_RUN)
+    {
+        queue_type = kRunQueue;
+    }
+
+    InsertQueue(queue_type, task);
 }
 
-bool GenericDevExecutor::OptimizeGraph(SubgraphTask * task)
+bool GenericDevExecutor::OptimizeGraph(SubgraphTask* task)
 {
-     if(task->graph_optimized)
-           return true;
+    if(task->graph_optimized)
+        return true;
 
-     if(task->graph_handle==nullptr)
-         task->graph_handle=DevCreateGraphHandle(task->sub_graph);
+    if(task->graph_handle == nullptr)
+        task->graph_handle = DevCreateGraphHandle(task->sub_graph);
 
-     if(task->graph_handle==nullptr)
-         return false;
+    if(task->graph_handle == nullptr)
+        return false;
 
-     task->graph_optimized=DevOptimizeGraph(task->graph_handle);
+    task->graph_optimized = DevOptimizeGraph(task->graph_handle);
 
-     return task->graph_optimized;
+    return task->graph_optimized;
 }
 
-Subgraph * GenericDevExecutor::GetOptimizedGraph(SubgraphTask * task)
+Subgraph* GenericDevExecutor::GetOptimizedGraph(SubgraphTask* task)
 {
     if(!task->graph_optimized)
-         return nullptr;
+        return nullptr;
 
     return DevGetOptimizedGraph(task->graph_handle);
 }
 
-bool GenericDevExecutor::PrerunTask(SubgraphTask * task)
+bool GenericDevExecutor::PrerunTask(SubgraphTask* task)
 {
+    if(DevGetStatus() != kDevNormal)
+        return false;
 
-       if(DevGetStatus()!=kDevNormal)
-	   	return false;
-	 
-       if(task->graph_handle==nullptr)  
-            task->graph_handle=DevCreateGraphHandle(task->sub_graph);
+    if(task->graph_handle == nullptr)
+        task->graph_handle = DevCreateGraphHandle(task->sub_graph);
 
-       if(task->graph_handle==nullptr || !OptimizeGraph(task))
-           return false;
+    if(task->graph_handle == nullptr || !OptimizeGraph(task))
+        return false;
 
-       unsigned int mem_size;
+    unsigned int mem_size;
 
-       if(DevGetMemorySize(task->graph_handle,mem_size))
-       {
-          void * mem_addr=std::malloc(mem_size);
+    if(DevGetMemorySize(task->graph_handle, mem_size))
+    {
+        void* mem_addr = std::malloc(mem_size);
 
-           DevSetMemory(task->graph_handle,mem_addr);
-       } 
+        DevSetMemory(task->graph_handle, mem_addr);
+    }
 
-       if(!DevPrerun(task->graph_handle))
-	     return false;
+    if(!DevPrerun(task->graph_handle))
+        return false;
 
-       task->SetStatus(EXEC_STATUS_WAIT);
-	   
-	InsertQueue(kWaitQueue,task);
-	
-       return true;  
+    task->SetStatus(EXEC_STATUS_WAIT);
+
+    InsertQueue(kWaitQueue, task);
+
+    return true;
 }
 
-bool GenericDevExecutor::SchedTask(SubgraphTask * task)
+bool GenericDevExecutor::SchedTask(SubgraphTask* task)
 {
-         RemoveQueue(task);
-	 return RunTask(task);	  
+    RemoveQueue(task);
+    return RunTask(task);
 }
 
 bool GenericDevExecutor::SchedTask(void)
 {
-         SubgraphTask * task=PopQueue(kReadyQueue);
-		
-	 if(task)
-	        return RunTask(task);	  
-	 
-	 return false;
+    SubgraphTask* task = PopQueue(kReadyQueue);
+
+    if(task)
+        return RunTask(task);
+
+    return false;
 }
 
-bool GenericDevExecutor::SyncRunTask(SubgraphTask * task)
+bool GenericDevExecutor::SyncRunTask(SubgraphTask* task)
 {
-         bool ret=false;
+    bool ret = false;
 
-	 if(DevGetStatus()==kDevNormal)
-	   	ret=DevSyncRun(task->graph_handle);
+    if(DevGetStatus() == kDevNormal)
+        ret = DevSyncRun(task->graph_handle);
 
-         return ret;
+    return ret;
 }
 
-bool GenericDevExecutor::RunTask(SubgraphTask * task)
+bool GenericDevExecutor::RunTask(SubgraphTask* task)
 {
-       //return true: accepted running
-       //return false: try again
+    // return true: accepted running
+    // return false: try again
 
-       if(DevGetStatus()!=kDevNormal)
-       {
-	    task->SetStatus(EXEC_STATUS_READY);
-	    InsertQueue(task);
-            return false;
-       }
+    if(DevGetStatus() != kDevNormal)
+    {
+        task->SetStatus(EXEC_STATUS_READY);
+        InsertQueue(task);
+        return false;
+    }
 
-       if(SupportNonblockRun())
-       {
+    if(SupportNonblockRun())
+    {
+        task->Lock();    // protect with OnSubgraphDone()
 
-         task->Lock(); //protect with OnSubgraphDone()
+        bool ret = DevRun(task->graph_handle);
 
-         bool ret=DevRun(task->graph_handle);
+        if(ret)
+            task->SetStatus(EXEC_STATUS_RUN);
+        else
+            task->SetStatus(EXEC_STATUS_READY);
 
-         if(ret)
-	       task->SetStatus(EXEC_STATUS_RUN);
-	 else
-	       task->SetStatus(EXEC_STATUS_READY);
-	
-	InsertQueue(task);
-
-        task->Unlock();
-		  
-	return ret;
-      }
-      else
-      {
-         task->Lock();  //protect with Postrun() 
-
-         bool ret=DevSyncRun(task->graph_handle);
-         
-         task->SetStatus(EXEC_STATUS_WAIT);
-
-         InsertQueue(kWaitQueue,task);
-
-         task->OnTaskDone(ret);
-
-         task->Unlock();
-
-         return ret;
-
-      }
-}
-
-
-
-bool GenericDevExecutor::PostrunTask(SubgraphTask * task)
-{
-        if(task->graph_handle==nullptr)
-			return false;
-
-        task->Lock();
-	
-	DevPostrun(task->graph_handle);	
-	DevReleaseGraphHandle(task->graph_handle);
-
-	task->graph_handle=nullptr;
-
-	RemoveQueue(task);
+        InsertQueue(task);
 
         task->Unlock();
 
-        return true;
+        return ret;
+    }
+    else
+    {
+        task->Lock();    // protect with Postrun()
+
+        bool ret = DevSyncRun(task->graph_handle);
+
+        task->SetStatus(EXEC_STATUS_WAIT);
+
+        InsertQueue(kWaitQueue, task);
+
+        task->OnTaskDone(ret);
+
+        task->Unlock();
+
+        return ret;
+    }
 }
 
-bool GenericDevExecutor::RemoveQueue(SubgraphTask * task)
+bool GenericDevExecutor::PostrunTask(SubgraphTask* task)
 {
-       int task_status=task->GetStatus();
-	QueueType queue_type=kWaitQueue;
-	
-        if(task_status==EXEC_STATUS_READY)
-        {
-                 queue_type=kReadyQueue;
-        }
-	 else if(task_status == EXEC_STATUS_WAIT)
-	 {
-	         queue_type=kWaitQueue;
-	 }
-	 else if(task_status == EXEC_STATUS_RUN)
-	 {
-	        queue_type=kRunQueue;
-	 }
+    if(task->graph_handle == nullptr)
+        return false;
 
-        return RemoveQueue(queue_type,task);
+    task->Lock();
+
+    DevPostrun(task->graph_handle);
+    DevReleaseGraphHandle(task->graph_handle);
+
+    task->graph_handle = nullptr;
+
+    RemoveQueue(task);
+
+    task->Unlock();
+
+    return true;
 }
 
-void  GenericDevExecutor::OnSubgraphDone(Subgraph * sub_graph, bool exec_success)
+bool GenericDevExecutor::RemoveQueue(SubgraphTask* task)
 {
-        SubgraphTask * task=SubgraphTask::GetSubgraphTask(sub_graph);
+    int task_status = task->GetStatus();
+    QueueType queue_type = kWaitQueue;
 
-        //move the task from RUN QUEUE to WAIT QUEUE
-          task->Lock();  //as this is an callback function, to protect the ops in SchedTask()/RunTask()
+    if(task_status == EXEC_STATUS_READY)
+    {
+        queue_type = kReadyQueue;
+    }
+    else if(task_status == EXEC_STATUS_WAIT)
+    {
+        queue_type = kWaitQueue;
+    }
+    else if(task_status == EXEC_STATUS_RUN)
+    {
+        queue_type = kRunQueue;
+    }
 
-	  RemoveQueue(kRunQueue,task);
-
-          task->SetStatus(EXEC_STATUS_WAIT);
-
-	  InsertQueue(kWaitQueue,task);
-
-	  task->Unlock();
-	   
-          task->OnTaskDone(exec_success);
+    return RemoveQueue(queue_type, task);
 }
 
-
-bool GenericDevExecutor::SetGraphAttr(SubgraphTask * task, const char *name, const void * val, int size) 
+void GenericDevExecutor::OnSubgraphDone(Subgraph* sub_graph, bool exec_success)
 {
-	return DevSetGraphAttr(task->graph_handle,name,val,size);
+    SubgraphTask* task = SubgraphTask::GetSubgraphTask(sub_graph);
+
+    // move the task from RUN QUEUE to WAIT QUEUE
+    task->Lock();    // as this is an callback function, to protect the ops in SchedTask()/RunTask()
+
+    RemoveQueue(kRunQueue, task);
+
+    task->SetStatus(EXEC_STATUS_WAIT);
+
+    InsertQueue(kWaitQueue, task);
+
+    task->Unlock();
+
+    task->OnTaskDone(exec_success);
 }
-bool GenericDevExecutor::GetGraphAttr(SubgraphTask * task, const char * name, void * val, int size)
+
+bool GenericDevExecutor::SetGraphAttr(SubgraphTask* task, const char* name, const void* val, int size)
 {
-	return DevGetGraphAttr(task->graph_handle,name,val,size);
+    return DevSetGraphAttr(task->graph_handle, name, val, size);
+}
+bool GenericDevExecutor::GetGraphAttr(SubgraphTask* task, const char* name, void* val, int size)
+{
+    return DevGetGraphAttr(task->graph_handle, name, val, size);
 }
 
-
-} //namespace TEngine
-
-
+}    // namespace TEngine

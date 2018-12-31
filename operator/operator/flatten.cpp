@@ -23,42 +23,36 @@
  */
 #include "operator/flatten.hpp"
 
-
 namespace TEngine {
 
-bool Flatten::InferShape(const std::vector<TEngine::TShape>& ishape, 
-                               std::vector<TEngine::TShape>& oshape)
+bool Flatten::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEngine::TShape>& oshape, int layout)
 {
+    const TShape& input = ishape[0];
 
-     const TShape& input=ishape[0];
+    const std::vector<int>& in_dim = input.GetDim();
 
-    const std::vector<int>& in_dim=input.GetDim();
- 
-    int new_channel=1;
-     for(int i=param_.axis;i<=param_.end_axis;i++)
-     {
-         new_channel*=in_dim[i];
-     }
-     
+    int new_channel = 1;
+    for(int i = param_.axis; i <= param_.end_axis; i++)
+    {
+        new_channel *= in_dim[i];
+    }
+
     TShape shape;
-    std::vector<int> dim={in_dim[0],new_channel,1,1};
+    std::vector<int> dim = {in_dim[0], new_channel, 1, 1};
     shape.SetDim(dim);
     shape.SetDataLayout("NCHW");
-    oshape[0]=shape;
-    return true;    
-
+    oshape[0] = shape;
+    return true;
 }
-
 
 void Flatten::SetSchema(void)
 {
     Input({"input:float32"})
-    .Output({"output:float32"})
-    .SetLayout("NCHW")
-    .SetAttr("axis",1)
-    .SetAttr("end_axis",3)
-    .SetDoc(R"DOC(Flatten Layer)DOC");
+        .Output({"output:float32"})
+        .SetLayout("NCHW")
+        .SetAttr("axis", 1)
+        .SetAttr("end_axis", 3)
+        .SetDoc(R"DOC(Flatten Layer)DOC");
 }
 
-
-} //namespace TEngine
+}    // namespace TEngine

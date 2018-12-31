@@ -28,14 +28,17 @@
 
 namespace tensorflow {
 
-class Status {
-
+class Status
+{
 public:
     Status() {}
 
     Status(int code, std::string msg);
 
-    bool ok() const { return (state_ == NULL); }
+    bool ok() const
+    {
+        return (state_ == NULL);
+    }
 
     int code() const
     {
@@ -58,9 +61,8 @@ private:
     // OK status has a `NULL` state_.  Otherwise, `state_` points to
     // a `State` structure containing the error code and message(s)
     std::unique_ptr<State> state_;
-
 };
 
-}  // namespace tensorflow
+}    // namespace tensorflow
 
-#endif  // __TENSORFLOW_CORE_STATUS_H__
+#endif    // __TENSORFLOW_CORE_STATUS_H__

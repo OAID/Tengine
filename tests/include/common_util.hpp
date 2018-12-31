@@ -34,76 +34,75 @@
 
 namespace TEngine {
 
-static inline bool PairCompare(const std::pair<float, int>& lhs,
-                        const std::pair<float, int>& rhs) {
-  return lhs.first > rhs.first;
-}
-
-static inline std::vector<int> Argmax(const std::vector<float>& v, int N) {
-  std::vector<std::pair<float, int> > pairs;
-  for (size_t i = 0; i < v.size(); ++i)
-    pairs.push_back(std::make_pair(v[i], i));
-  std::partial_sort(pairs.begin(), pairs.begin() + N, pairs.end(), PairCompare);
-
-  std::vector<int> result;
-  for (int i = 0; i < N; ++i)
-    result.push_back(pairs[i].second);
-  return result;
-}
-
-
-static inline void DumpFloat(const char * fname, float *  data, int number)
+static inline bool PairCompare(const std::pair<float, int>& lhs, const std::pair<float, int>& rhs)
 {
-    FILE * fp=fopen(fname,"w");
+    return lhs.first > rhs.first;
+}
 
-    for(int i=0;i<number;i++)
+static inline std::vector<int> Argmax(const std::vector<float>& v, int N)
+{
+    std::vector<std::pair<float, int>> pairs;
+    for(size_t i = 0; i < v.size(); ++i)
+        pairs.push_back(std::make_pair(v[i], i));
+    std::partial_sort(pairs.begin(), pairs.begin() + N, pairs.end(), PairCompare);
+
+    std::vector<int> result;
+    for(int i = 0; i < N; ++i)
+        result.push_back(pairs[i].second);
+    return result;
+}
+
+static inline void DumpFloat(const char* fname, float* data, int number)
+{
+    FILE* fp = fopen(fname, "w");
+
+    for(int i = 0; i < number; i++)
     {
-       if(i%16==0)
-       {
-          fprintf(fp,"\n%d:",i);
-       }
-       fprintf(fp," %.5f",data[i]);
+        if(i % 16 == 0)
+        {
+            fprintf(fp, "\n%d:", i);
+        }
+        fprintf(fp, " %.5f", data[i]);
     }
 
-    fprintf(fp,"\n");
+    fprintf(fp, "\n");
 
     fclose(fp);
 }
 
 static inline unsigned long get_cur_time(void)
 {
-	 struct timespec tm;
+    struct timespec tm;
 
-	 clock_gettime(CLOCK_MONOTONIC, &tm);
+    clock_gettime(CLOCK_MONOTONIC, &tm);
 
-	 return (tm.tv_sec*1000000+tm.tv_nsec/1000);
+    return (tm.tv_sec * 1000000 + tm.tv_nsec / 1000);
 }
 
-static inline  std::vector<int> parse_cpu_list(char * cpu_list_str)
+static inline std::vector<int> parse_cpu_list(char* cpu_list_str)
 {
-	 std::vector<int> cpu_list;
+    std::vector<int> cpu_list;
 
-     char * p=strtok(cpu_list_str,",");
-     while(p)
-	 {
-		int cpu_id=strtoul(p,NULL,10);
-		cpu_list.push_back(cpu_id);
-		p=strtok(NULL,",");
+    char* p = strtok(cpu_list_str, ",");
+    while(p)
+    {
+        int cpu_id = strtoul(p, NULL, 10);
+        cpu_list.push_back(cpu_id);
+        p = strtok(NULL, ",");
     }
 
-	 return cpu_list;
+    return cpu_list;
 }
 
-static inline void set_cpu_list(char * cpu_list_str)
+static inline void set_cpu_list(char* cpu_list_str)
 {
-     std::vector<int> cpu_list=parse_cpu_list(cpu_list_str);
+    std::vector<int> cpu_list = parse_cpu_list(cpu_list_str);
 
-	 int * int_buf=cpu_list.data();
+    int* int_buf = cpu_list.data();
 
-	 set_working_cpu(int_buf,cpu_list.size());
+    set_working_cpu(int_buf, cpu_list.size());
 }
 
-
-} //namespace TEngine
+}    // namespace TEngine
 
 #endif

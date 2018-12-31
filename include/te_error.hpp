@@ -25,24 +25,39 @@
 #include <string>
 #include <stdexcept>
 
-namespace TEngine{
-    using error_code_t = std::string;
-    struct te_error_base:public std::runtime_error{
-        error_code_t error_code;
-        virtual error_code_t get_error_code(){return error_code;}
-        te_error_base(error_code_t e) : runtime_error("tengine error"), error_code(e){}
-    };
-    struct te_error_shared_function_not_found:public te_error_base{
-        using te_error_base::te_error_base;
-        const char* what()const throw()  override{return "Shared function not found";}
-    };
-    struct te_error_unable_to_load_library:public te_error_base{
-        using te_error_base::te_error_base;
-        const char* what()const throw()  override{return "Unable to load library";}
-    };
-    struct te_error_general:public te_error_base{
-        using te_error_base::te_error_base;
-        const char* what()const throw()  override{return error_code.c_str();}
-    };
-}
-
+namespace TEngine {
+using error_code_t = std::string;
+struct te_error_base : public std::runtime_error
+{
+    error_code_t error_code;
+    virtual error_code_t get_error_code()
+    {
+        return error_code;
+    }
+    te_error_base(error_code_t e) : runtime_error("tengine error"), error_code(e) {}
+};
+struct te_error_shared_function_not_found : public te_error_base
+{
+    using te_error_base::te_error_base;
+    const char* what() const throw() override
+    {
+        return "Shared function not found";
+    }
+};
+struct te_error_unable_to_load_library : public te_error_base
+{
+    using te_error_base::te_error_base;
+    const char* what() const throw() override
+    {
+        return "Unable to load library";
+    }
+};
+struct te_error_general : public te_error_base
+{
+    using te_error_base::te_error_base;
+    const char* what() const throw() override
+    {
+        return error_code.c_str();
+    }
+};
+}    // namespace TEngine

@@ -24,10 +24,10 @@
 #ifndef __ELTWISE_PARAM_HPP__
 #define __ELTWISE_PARAM_HPP__
 
-
 #include "parameter.hpp"
 
-enum EltType {
+enum EltType
+{
     ELT_PROD,
     ELT_PROD_SCALAR,
     ELT_SUM,
@@ -40,24 +40,21 @@ enum EltType {
     ELT_LAST
 };
 
-
 namespace TEngine {
 
-struct EltwiseParam : public NamedParam {
-
+struct EltwiseParam : public NamedParam
+{
     std::string method;
     EltType type;
     int caffe_flavor;
 
-    DECLARE_PARSER_STRUCTURE(EltwiseParam) {
-       DECLARE_PARSER_ENTRY(method);
-       DECLARE_PARSER_ENTRY(caffe_flavor);
+    DECLARE_PARSER_STRUCTURE(EltwiseParam)
+    {
+        DECLARE_PARSER_ENTRY(method);
+        DECLARE_PARSER_ENTRY(caffe_flavor);
     };
-
 };
 
-
-} //namespace TEngine
-
+}    // namespace TEngine
 
 #endif

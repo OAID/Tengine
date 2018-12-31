@@ -11,5 +11,6 @@ obj-y+=node_dev_driver.o
 obj-y+=node_ops.o
 obj-y+=tengine_test_api.o
 obj-y+=cpu_info.o
+obj-y+=custom_kernel.o
 
 COMMON_CFLAGS+=-I../../driver/cpu

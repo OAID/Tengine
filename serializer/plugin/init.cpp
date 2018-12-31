@@ -42,6 +42,10 @@
 #include "tf_serializer.hpp"
 #endif
 
+#ifdef CONFIG_TFLITE_SERIALIZER
+#include "tf_lite_serializer.hpp"
+#endif
+
 #ifdef CONFIG_TENGINE_SERIALIZER
 #include "tm_serializer.hpp"
 #include "src_tm_serializer.hpp"
@@ -67,31 +71,28 @@ extern bool MxnetSerializerRegisterOpLoader();
 extern bool TFSerializerRegisterOpLoader();
 #endif
 
+#ifdef CONFIG_TFLITE_SERIALIZER
+extern bool TFLiteSerializerRegisterOpLoader();
+#endif
+
 #ifdef CONFIG_TENGINE_SERIALIZER
 extern bool TmSerializerRegisterOpLoader();
 #endif
-
-}
-
-
-extern "C" {
-
-   int serializer_plugin_init(void);
-}
+}    // namespace TEngine
 
 using namespace TEngine;
 
 int serializer_plugin_init(void)
 {
-    //Register into factory
+    // Register into factory
 
-    auto factory=SerializerFactory::GetFactory();
+    auto factory = SerializerFactory::GetFactory();
 
 #ifdef CONFIG_ONNX_SERIALIZER
     factory->RegisterInterface<OnnxSerializer>("onnx");
-    auto onnx_serializer=factory->Create("onnx");
+    auto onnx_serializer = factory->Create("onnx");
 
-    SerializerManager::SafeAdd("onnx",SerializerPtr(onnx_serializer));
+    SerializerManager::SafeAdd("onnx", SerializerPtr(onnx_serializer));
     OnnxSerializerRegisterOpLoader();
 #endif
 
@@ -99,52 +100,60 @@ int serializer_plugin_init(void)
     factory->RegisterInterface<CaffeSingle>("caffe_single");
     factory->RegisterInterface<CaffeBuddy>("caffe_buddy");
 
-    auto caffe_single=factory->Create("caffe_single");
-    auto caffe_buddy=factory->Create("caffe_buddy");
+    auto caffe_single = factory->Create("caffe_single");
+    auto caffe_buddy = factory->Create("caffe_buddy");
 
-    SerializerManager::SafeAdd("caffe_single",SerializerPtr(caffe_single));
-    SerializerManager::SafeAdd("caffe",SerializerPtr(caffe_buddy));
+    SerializerManager::SafeAdd("caffe_single", SerializerPtr(caffe_single));
+    SerializerManager::SafeAdd("caffe", SerializerPtr(caffe_buddy));
 
     CaffeSerializerRegisterOpLoader();
 #endif
 
 #ifdef CONFIG_MXNET_SERIALIZER
     factory->RegisterInterface<MxnetSerializer>("mxnet");
-    auto mxnet_serializer=factory->Create("mxnet");
+    auto mxnet_serializer = factory->Create("mxnet");
 
-    SerializerManager::SafeAdd("mxnet",SerializerPtr(mxnet_serializer));
+    SerializerManager::SafeAdd("mxnet", SerializerPtr(mxnet_serializer));
 
     MxnetSerializerRegisterOpLoader();
 #endif
 
 #ifdef CONFIG_TF_SERIALIZER
     factory->RegisterInterface<TFSerializer>("tensorflow");
-    auto tf_serializer=factory->Create("tensorflow");
+    auto tf_serializer = factory->Create("tensorflow");
 
-    SerializerManager::SafeAdd("tensorflow",SerializerPtr(tf_serializer));
+    SerializerManager::SafeAdd("tensorflow", SerializerPtr(tf_serializer));
 
     TFSerializerRegisterOpLoader();
 #endif
 
+#ifdef CONFIG_TFLITE_SERIALIZER
+    factory->RegisterInterface<TFLiteSerializer>("tflite");
+    auto tf_lite_serializer = factory->Create("tflite");
+
+    SerializerManager::SafeAdd("tflite", SerializerPtr(tf_lite_serializer));
+
+    TFLiteSerializerRegisterOpLoader();
+#endif
+
 #ifdef CONFIG_TENGINE_SERIALIZER
     factory->RegisterInterface<TmSerializer>("tengine");
-    auto tm_serializer=factory->Create("tengine");
+    auto tm_serializer = factory->Create("tengine");
 
-    SerializerManager::SafeAdd("tengine",SerializerPtr(tm_serializer));
+    SerializerManager::SafeAdd("tengine", SerializerPtr(tm_serializer));
 
     TmSerializerRegisterOpLoader();
 
-#define SrcTmName  "src_tm"
+#define SrcTmName "src_tm"
 
     factory->RegisterInterface<SrcTmSerializer>(SrcTmName);
-    auto  src_tm_serializer=factory->Create(SrcTmName);
+    auto src_tm_serializer = factory->Create(SrcTmName);
 
-    SerializerManager::SafeAdd(SrcTmName,SerializerPtr(src_tm_serializer));
+    SerializerManager::SafeAdd(SrcTmName, SerializerPtr(src_tm_serializer));
 
 #endif
 
-    //std::cout<<"SERIALIZER PLUGIN INITED\n";   
+    // std::cout<<"SERIALIZER PLUGIN INITED\n";
 
     return 0;
 }
-

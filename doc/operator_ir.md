@@ -1,31 +1,34 @@
 # Operator Schemas
 This documentation describes the operator definitions.
-* [BatchNorm](#batchnorm)
-* [Concat](#concat)
-* [ConstOp](#constop)
-* [Convolution](#convolution)
-* [Deconvolution](#deconvolution)
-* [Detection_output](#detection_output)
-* [Dropout](#dropout)
-* [Eltwise](#eltwise)
-* [Flatten](#flatten)
-* [Fully_connected](#fully_connected)
-* [LRN](#lrn)
-* [Input_op](#input_op)
-* [Normalize](#normalize)
-* [Permute](#permute)
-* [Pooling](#pooling)
-* [Priorbox](#priorbox)
-* [PReLu](#prelu)
-* [Region](#region)
-* [Reorg](#reorg)
-* [ReLu](#relu)
-* [Reshape](#reshape)
-* [RoiPooling](#roi_pooling)
-* [RPN](#RPN)
-* [Scale](#scale)
-* [Slice](#slice)
-* [Softmax](#softmax)
+- [Operator Schemas](#operator-schemas)
+    - [BatchNorm](#batchnorm)
+    - [Concat](#concat)
+    - [ConstOp](#constop)
+    - [Convolution](#convolution)
+    - [Deconvolution](#deconvolution)
+    - [Detection_output](#detection_output)
+    - [Dropout](#dropout)
+    - [Eltwise](#eltwise)
+    - [Flatten](#flatten)
+    - [Fully_connected](#fully_connected)
+    - [Input_op](#input_op)
+    - [LRN](#lrn)
+    - [LSTM](#lstm)
+    - [Normalize](#normalize)
+    - [Permute](#permute)
+    - [Pooling](#pooling)
+    - [Priorbox](#priorbox)
+    - [PReLu](#prelu)
+    - [Region](#region)
+    - [Resize](#resize)
+    - [Reorg](#reorg)
+    - [Reshape](#reshape)
+    - [ReLu](#relu)
+    - [RPN](#rpn)
+    - [Roi_pooling](#roi_pooling)
+    - [Scale](#scale)
+    - [Slice](#slice)
+    - [Softmax](#softmax)
 
 
 ## BatchNorm
@@ -120,6 +123,7 @@ It computes the output of convolution of an input tensor and filter kernel.
 
     number of output channel (number of kernel)
 * `group`: int
+* `activation`: int
 
 ## Deconvolution
 
@@ -256,6 +260,30 @@ Local Response Normalization normalizes over local input regions.
 * `beta`: float
 * `k`: float
 
+## LSTM
+
+LSTM operator.
+
+**Inputs**:
+* `input`: float32
+* `kernel`: float32
+* `bias`: float32,(optional)
+* `init_c`: float32,(optional)
+* `init_h`: float32,(optional)
+
+**Outputs**:
+* `output`: float32
+
+**Parameters**:
+* `forget_bias`: float32
+* `has_peephole`: bool
+* `has_projection`: bool
+* `input_size`: int32
+* `hidden_size`: int32
+* `cell_size`: int32
+* `output_len`: int32
+
+
 ## Normalize
 
 Normalize operator normalizes the input alone channel axis with L2 normalization, used in SSD-detection network
@@ -363,6 +391,20 @@ Region operator is used in YOLO network. It is a post process for the network ou
 * `nms_threshold`: float32
 * `biases`: float32
 
+## Resize
+Resize layer used in several networks for upsampling. Current resize op supports two resize methods: bilinear_resize and nearest_neighbor_resize.
+
+**Inputs**:
+* `input`: float32
+
+**Outputs**:
+* `output`: float32
+
+**Parameters**:
+* `type`: 0 for NEAREST_NEIGHBOR, 1 for BILINEAR_RESIZE
+* `scale_w`: float32, `scale_w = out_w/in_w`
+* `scale_h`: float32, `scale_h = out_h/in_h`
+
 ## Reorg
 Reorg operator is used in YOLO network. It is a process for the network to re-organize the data according the stride.
 
@@ -385,7 +427,10 @@ The Reshape operator can be used to change the dimensions of its input, without 
 * `output`: float32
 
 **Parameters**:
-* `dims`: a list of int32
+* `dim_0`: int32
+* `dim_1`: int32
+* `dim_2`: int32
+* `dim_3`: int32
 
 ## ReLu
 Relu takes one input data (Tensor) and produces one output data (Tensor) where the rectified linear function, y = max(0, x), is applied to the tensor elementwise.

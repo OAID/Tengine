@@ -31,83 +31,76 @@
 #include "tensor_mem.hpp"
 #include "graph.hpp"
 #include "operator/permute.hpp"
-#include<math.h>
+#include <math.h>
 
 namespace TEngine {
 
-
 namespace PermuteImpl {
 
-
-struct PermuteOps: public NodeOps {
-
-
-void permute_hwc(float*input,float* output,int height,int width,int channel,int _wc,int _hw)
+struct PermuteOps : public NodeOps
 {
-    for(int h=0;h<height;h++)
+    void permute_hwc(float* input, float* output, int height, int width, int channel, int _wc, int _hw)
     {
-        float* output_ptr = output+h*_wc;
-
-        for (int w = 0; w < width; w++)
+        for(int h = 0; h < height; h++)
         {
-            for (int c = 0; c < channel; c++)
+            float* output_ptr = output + h * _wc;
+
+            for(int w = 0; w < width; w++)
             {
-                const float* input_ptr = input+c*_hw+h*width;
-                output_ptr[w*channel + c] = input_ptr[w];
+                for(int c = 0; c < channel; c++)
+                {
+                    const float* input_ptr = input + c * _hw + h * width;
+                    output_ptr[w * channel + c] = input_ptr[w];
+                }
             }
         }
     }
-}
 
-
-bool Run(Node * node)
-{
-    const Tensor * input_tensor=node->GetInputTensor(0);
-    Tensor * output_tensor=node->GetOutputTensor(0);
-   
-    Permute * permute_op=dynamic_cast<Permute*>(node->GetOp());
-    PermuteParam * param=permute_op->GetParam();
-
-    const TShape&  shape=input_tensor->GetShape();
-    const std::vector<int> dims=shape.GetDim();
-
-    int batch_number=dims[0];
-    int channel=dims[1];
-    int width=dims[3];
-    int height=dims[2];
-    int _wc=width*channel;
-    int _hw=width*height;
-    int _chw=channel*_hw;
-
-    float * input=(float *)get_tensor_mem(input_tensor);
-    float * output=(float *)get_tensor_mem(output_tensor);
-    // 0231 [bhwc]
-    if ((param->order0==0) &&(param->order1==2)&&(param->order2==3)&&(param->order3==1))
+    bool Run(Node* node)
     {
-        for(int b=0;b<batch_number;b++)
-        {
-            permute_hwc(input,output, height, width, channel,_wc,_hw);
-            input+=_chw;
-            output+=_chw;
-        }
-    }
-    // other case to be support 
-    return true;
-}
+        const Tensor* input_tensor = node->GetInputTensor(0);
+        Tensor* output_tensor = node->GetOutputTensor(0);
 
+        Permute* permute_op = dynamic_cast<Permute*>(node->GetOp());
+        PermuteParam* param = permute_op->GetParam();
+
+        const TShape& shape = input_tensor->GetShape();
+        const std::vector<int> dims = shape.GetDim();
+
+        int batch_number = dims[0];
+        int channel = dims[1];
+        int width = dims[3];
+        int height = dims[2];
+        int _wc = width * channel;
+        int _hw = width * height;
+        int _chw = channel * _hw;
+
+        float* input = ( float* )get_tensor_mem(input_tensor);
+        float* output = ( float* )get_tensor_mem(output_tensor);
+        // 0231 [bhwc]
+        if((param->order0 == 0) && (param->order1 == 2) && (param->order2 == 3) && (param->order3 == 1))
+        {
+            for(int b = 0; b < batch_number; b++)
+            {
+                permute_hwc(input, output, height, width, channel, _wc, _hw);
+                input += _chw;
+                output += _chw;
+            }
+        }
+        // other case to be support
+        return true;
+    }
 };
 
-} //namespace PermuteImpl
+}    // namespace PermuteImpl
 
 using namespace PermuteImpl;
 
 void RegisterPermuteNodeExec(void)
 {
-    PermuteOps * ops=new PermuteOps();
+    PermuteOps* ops = new PermuteOps();
 
-    NodeOpsRegistryManager::RegisterOPImplementor("common",
-                "Permute",ops);
+    NodeOpsRegistryManager::RegisterOPImplementor("common", "Permute", ops);
 }
 
-
-} //namespace TEngine
+}    // namespace TEngine

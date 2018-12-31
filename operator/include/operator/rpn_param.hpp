@@ -24,7 +24,6 @@
 #ifndef __RPN_PARAM_HPP__
 #define __RPN_PARAM_HPP__
 
-
 #include "parameter.hpp"
 
 struct Anchor
@@ -45,9 +44,8 @@ struct Box
 
 namespace TEngine {
 
-
-struct RPNParam : public NamedParam {
-
+struct RPNParam : public NamedParam
+{
     std::vector<float> ratios;
     std::vector<float> anchor_scales;
 
@@ -60,15 +58,12 @@ struct RPNParam : public NamedParam {
 
     std::vector<Anchor> anchors_;
 
-    DECLARE_PARSER_STRUCTURE(RPNParam) 
+    DECLARE_PARSER_STRUCTURE(RPNParam)
     {
-       DECLARE_PARSER_ENTRY(feat_stride);
+        DECLARE_PARSER_ENTRY(feat_stride);
     };
-
 };
 
-
-} //namespace TEngine
-
+}    // namespace TEngine
 
 #endif

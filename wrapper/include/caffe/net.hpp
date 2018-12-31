@@ -31,18 +31,16 @@
 #include "caffe.pb.h"
 #include "tengine_c_api.h"
 
-#define Net  Net_wrap
+#define Net Net_wrap
 
 using namespace std;
 
 namespace caffe {
 
-template <typename Dtype>
-class Net {
-
+template <typename Dtype> class Net
+{
 public:
-    explicit Net(const string& param_file, Phase phase,
-                 const int level = 0, const vector<string>* stages = NULL);
+    explicit Net(const string& param_file, Phase phase, const int level = 0, const vector<string>* stages = NULL);
     ~Net();
 
     void CopyTrainedLayersFrom(const string trained_filename);
@@ -54,33 +52,39 @@ public:
     void Reshape();
 
     // Input and output blob numbers
-    int num_inputs() const { return net_input_blobs_.size(); }
-    int num_outputs() const { return net_output_blobs_.size(); }
+    int num_inputs() const
+    {
+        return net_input_blobs_.size();
+    }
+    int num_outputs() const
+    {
+        return net_output_blobs_.size();
+    }
 
     // Get input and output blobs
-    const vector<Blob<Dtype>*>& input_blobs() const {
+    const vector<Blob<Dtype>*>& input_blobs() const
+    {
         return net_input_blobs_;
     }
 
-    const vector<Blob<Dtype>*>& output_blobs() const {
+    const vector<Blob<Dtype>*>& output_blobs() const
+    {
         return net_output_blobs_;
     }
 
 protected:
-    string model_name_;  // model name
-    vector<string> file_list_;  // model file list
+    vector<string> file_list_;    // model file list
     bool prerun_already_;
 
-    graph_t graph_;  // pointer of graph executor
+    graph_t graph_;    // pointer of graph executor
 
     vector<Blob<Dtype>*> net_input_blobs_;
     vector<Blob<Dtype>*> net_output_blobs_;
 
     void Set_input_blob();
     void Set_output_blob();
-
 };
 
-}  // namespace caffe
+}    // namespace caffe
 
-#endif  // __CAFFE_NET_HPP__
+#endif    // __CAFFE_NET_HPP__

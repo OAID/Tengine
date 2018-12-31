@@ -25,70 +25,80 @@
 #include <iomanip>
 #include <string>
 #include <vector>
+#include <sys/time.h>
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "tengine_c_api.h"
 #include "common.hpp"
 
 #ifndef MAX
-#define MAX(a,b) (((a) > (b)) ? (a) : (b))
+#define MAX(a, b) (((a) > (b)) ? (a) : (b))
 #endif
 
 void get_data(void* buffer, int datasize, const char* fname)
 {
     // read data
     FILE* data_fp = fopen(fname, "rb");
-    if (!data_fp) printf("data can not be open\n");
+    if(!data_fp)
+        printf("data can not be open\n");
 
-    size_t n=fread(buffer, sizeof(float), datasize, data_fp);
-    if((int)n<datasize)
+    size_t n = fread(buffer, sizeof(float), datasize, data_fp);
+    if(( int )n < datasize)
         printf("data read error\n");
 
     fclose(data_fp);
 }
 
-void maxerr(float*pred, float* gt, int size)
+void maxerr(float* pred, float* gt, int size)
 {
     float maxError = 0.f;
-    for (int i = 0; i<size; i++)
+    for(int i = 0; i < size; i++)
     {
-        maxError = MAX((float)fabs(gt[i] - *(pred+i)), maxError);
+        maxError = MAX(( float )fabs(gt[i] - *(pred + i)), maxError);
     }
     printf("====================================\n");
-    printf("maxError is %f\n",maxError);
+    printf("maxError is %f\n", maxError);
     printf("====================================\n");
 }
 
-int repeat_count=1;
+int repeat_count = 1;
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
+    int ret = -1;
     std::string model_dir = get_root_path() + "models";
 
-    if(argc==1)
+    if(argc == 1)
     {
-        std::cout<<"[Usage]: "<<argv[0]<<" <model_dir>\n";
+        std::cout << "[Usage]: " << argv[0] << " <model_dir>\n";
     }
 
-    if(argc >1 ) 
-        model_dir=argv[1];
+    if(argc > 1)
+        model_dir = argv[1];
 
     // init tengine
-    init_tengine_library();
-    if (request_tengine_version("0.1") < 0)
+    if(init_tengine() < 0)
+    {
+        std::cout << " init tengine failed\n";
         return 1;
+    }
+    if(request_tengine_version("0.9") != 1)
+    {
+        std::cout << " request tengine version failed\n";
+        return 1;
+    }
 
     // load model
-    const char *model_name = "lighten_cnn";
-    std::string proto_name_ = model_dir+"/LightenedCNN_B.prototxt";
-    std::string mdl_name_ = model_dir+"/LightenedCNN_B.caffemodel";
-    if (load_model(model_name, "caffe", proto_name_.c_str(), mdl_name_.c_str()) < 0)
+    std::string proto_name_ = model_dir + "/LightenedCNN_B.prototxt";
+    std::string mdl_name_ = model_dir + "/LightenedCNN_B.caffemodel";
+    if(!check_file_exist(proto_name_) or (!check_file_exist(mdl_name_)))
+    {
         return 1;
-    std::cout << "load model done!\n";
+    }
     // create graph
-    graph_t graph = create_runtime_graph("graph", model_name, NULL);
+    graph_t graph = create_graph(nullptr, "caffe", proto_name_.c_str(), mdl_name_.c_str());
 
-    if (!check_graph_valid(graph))
+    if(graph == nullptr)
     {
         std::cout << "create graph0 failed\n";
         return 1;
@@ -98,48 +108,83 @@ int main(int argc, char *argv[])
     // input
     int img_h = 128;
     int img_w = 128;
-    int img_size = img_h * img_w ;
-    float *input_data = (float *)malloc(sizeof(float) * img_size);
-    //for(int i=0;i<img_size;i++) input_data[i]=(1%128)/255.f;
+    int img_size = img_h * img_w;
+    float* input_data = ( float* )malloc(sizeof(float) * img_size);
+    // for(int i=0;i<img_size;i++) input_data[i]=(1%128)/255.f;
 
-    std::string input_fname=model_dir+"/data_16384";
+    std::string input_fname = model_dir + "/data_16384";
+    if(!check_file_exist(input_fname))
+    {
+        return 1;
+    }
+    get_data(input_data, img_size, input_fname.c_str());
 
-    get_data(input_data, img_size,input_fname.c_str());
-
-    tensor_t input_tensor = get_graph_input_tensor(graph, 0 ,0);
+    tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     int dims[] = {1, 1, img_h, img_w};
     set_tensor_shape(input_tensor, dims, 4);
-    if (set_tensor_buffer(input_tensor, input_data, img_size * 4) < 0)
+    if(set_tensor_buffer(input_tensor, input_data, img_size * 4) < 0)
     {
         std::printf("set buffer for input tensor failed\n");
         return -1;
     }
 
-    prerun_graph(graph);
-    run_graph(graph, 1);
+    ret = prerun_graph(graph);
+    if(ret != 0)
+    {
+        std::cout << "Prerun graph failed, errno: " << get_tengine_errno() << "\n";
+        return 1;
+    }
+
+    int repeat_count = 1;
+    const char* repeat = std::getenv("REPEAT_COUNT");
+    if(repeat)
+        repeat_count = std::strtoul(repeat, NULL, 10);
+
+    struct timeval t0, t1;
+    float total_time = 0.f;
+    for(int i = 0; i < repeat_count; i++)
+    {
+        gettimeofday(&t0, NULL);
+        ret = run_graph(graph, 1);
+        if(ret != 0)
+        {
+            std::cout << "Run graph failed, errno: " << get_tengine_errno() << "\n";
+            return 1;
+        }
+        gettimeofday(&t1, NULL);
+
+        float mytime = ( float )((t1.tv_sec * 1000000 + t1.tv_usec) - (t0.tv_sec * 1000000 + t0.tv_usec)) / 1000;
+        total_time += mytime;
+    }
+    std::cout << "--------------------------------------\n";
+    std::cout << "repeat " << repeat_count << " times, avg time per run is " << total_time / repeat_count << " ms\n";
 
     free(input_data);
 
     int size1 = 256;
     tensor_t mytensor1 = get_graph_tensor(graph, "eltwise_fc1");
-    float *data1 = (float *)get_tensor_buffer(mytensor1);
-    float *out1 = (float *)malloc(sizeof(float) * size1);
+    float* data1 = ( float* )get_tensor_buffer(mytensor1);
+    float* out1 = ( float* )malloc(sizeof(float) * size1);
 
-    std::string out_data_file=model_dir+"/eltwise_fc1_256";
+    std::string out_data_file = model_dir + "/eltwise_fc1_256";
+    if(!check_file_exist(out_data_file))
+    {
+        return 1;
+    }
     get_data(out1, size1, out_data_file.c_str());
     maxerr(data1, out1, size1);
-	
-	free(out1);
-	put_graph_tensor(mytensor1);
 
-    postrun_graph(graph);
+    free(out1);
+    release_graph_tensor(mytensor1);
+    ret = postrun_graph(graph);
+    if(ret != 0)
+    {
+        std::cout << "Postrun graph failed, errno: " << get_tengine_errno() << "\n";
+        return 1;
+    }
 
-    destroy_runtime_graph(graph);
-    remove_model(model_name);
+    destroy_graph(graph);
+    release_tengine();
 
     return 0;
 }
-
-
-   
-

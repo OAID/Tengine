@@ -26,20 +26,18 @@
 
 #include "parameter.hpp"
 
-
-
 namespace TEngine {
 
-struct SoftmaxParam: public NamedParam {
+struct SoftmaxParam : public NamedParam
+{
+    int axis;
 
-int axis;
-
-DECLARE_PARSER_STRUCTURE(SoftmaxParam) {
-   DECLARE_PARSER_ENTRY(axis);
-}
-
+    DECLARE_PARSER_STRUCTURE(SoftmaxParam)
+    {
+        DECLARE_PARSER_ENTRY(axis);
+    }
 };
 
-} //namespace TEngine
+}    // namespace TEngine
 
 #endif

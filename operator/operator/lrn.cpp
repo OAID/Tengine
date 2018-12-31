@@ -26,24 +26,15 @@
 
 namespace TEngine {
 
-bool LRN::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEngine::TShape>& oshape)
-{
-     oshape[0]=ishape[0];
-     return true;
-}
-
-
 void LRN::SetSchema(void)
 {
     Input({"input:float32"})
-    .Output({"output:float32"})
-    .SetAttr("local_size",5)
-    .SetAttr("alpha",1.0f)
-    .SetAttr("beta",0.75f)
-    .SetAttr("norm_region",0)
-    .SetAttr("k",1.0f);
+        .Output({"output:float32"})
+        .SetAttr("local_size", 5)
+        .SetAttr("alpha", 1.0f)
+        .SetAttr("beta", 0.75f)
+        .SetAttr("norm_region", 0)
+        .SetAttr("k", 1.0f);
 }
 
-
-
-} //namespace TEngine
+}    // namespace TEngine

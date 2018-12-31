@@ -27,3 +27,8 @@ target_link_libraries(label_image_inceptionv3 ${TENGINE_LIBS} ${OpenCV_LIBS})
 add_executable(label_image_mobilenet ${CODE_SRC})
 target_compile_definitions(label_image_mobilenet PUBLIC -DMOBILE_NET)
 target_link_libraries(label_image_mobilenet ${TENGINE_LIBS} ${OpenCV_LIBS})
+
+add_executable(label_image_resnet50 ${CODE_SRC})
+target_compile_definitions(label_image_resnet50 PUBLIC -DRESNET50)
+target_link_libraries(label_image_resnet50 ${TENGINE_LIBS} ${OpenCV_LIBS})
+

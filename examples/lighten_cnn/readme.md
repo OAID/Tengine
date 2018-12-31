@@ -5,7 +5,7 @@
 This is lighten_cnn implementation with [Tengine](https://github.com/OAID/Tengine).
 
 ## Download required models
-Download the required models and data files from [Tengine model zoo](https://pan.baidu.com/s/1LXZ8vOdyOo50IXS0CUPp8g) (psw: 57vb)
+Download the required models and data files from [Tengine model zoo](https://pan.baidu.com/s/1LXZ8vOdyOo50IXS0CUPp8g) (psw: 57vb).
 
 Store these files into `${Tengine_ROOT}/models/`
 - LightenedCNN_B.caffemodel
@@ -17,6 +17,7 @@ Store these files into `${Tengine_ROOT}/models/`
 ## Build examples
 ```
 cd  ${Tengine_ROOT}
+make
 make install
 ```
 build as ${TENGINE_ROOT}/examples/readme.md
@@ -24,6 +25,7 @@ build as ${TENGINE_ROOT}/examples/readme.md
 ## Run
 
 1. run lighten_cnn by default
+    - model dir is `tengine/models/`
 
     ```
     cd ${Tengine_ROOT}/examples/build/lighten_cnn
@@ -33,7 +35,7 @@ build as ${TENGINE_ROOT}/examples/readme.md
 2. run lighten_cnn with model dir specified
 
     ```
-    cd ${Tengine_ROOT}/examples/lighten_cnn
+    cd ${Tengine_ROOT}/examples/build/lighten_cnn
     ./LIGHTEN_CNN <model_dir>
     ```
     - `model_dir` is the path of your lighten_cnn models and data files. Under this path, there are 4 files:

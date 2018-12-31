@@ -1,199 +1,208 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * License); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * AS IS BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+/*
+ * Copyright (c) 2018, Open AI Lab
+ * Author: haitao@openailab.com
+ */
 
 #include "node_dev_driver.hpp"
 #include "node_dev_executor.hpp"
 
 namespace TEngine {
 
-NodeDriver::NodeDriver(void)
+NodeDriver::NodeDriver(void) {}
+
+bool NodeDriver::InitializeDevice(Device* device)
 {
+    NodeDevice* node_dev = dynamic_cast<NodeDevice*>(device);
+
+    if(!InitDev(node_dev))
+        return false;
+
+    node_dev->BindDriver(this);
+    node_dev->dev_status = kDevStopped;
+
+    return true;
 }
 
-bool NodeDriver::InitializeDevice(Device * device) 
+bool NodeDriver::ReleaseDevice(Device* device)
 {
-	NodeDevice * node_dev=dynamic_cast<NodeDevice *>(device);
+    NodeDevice* node_dev = dynamic_cast<NodeDevice*>(device);
 
-	if(!InitDev(node_dev))
-		return false;
+    StopDevice(node_dev);
 
-	node_dev->BindDriver(this);
-	node_dev->dev_status=kDevStopped;
+    node_dev->dev_status = kDevRemoved;
 
-	return true;
+    ReleaseDev(node_dev);
+
+    return true;
 }
 
-bool NodeDriver::ReleaseDevice(Device * device) 
+bool NodeDriver::StartDevice(Device* device)
 {
-	NodeDevice * node_dev=dynamic_cast<NodeDevice *>(device);
+    NodeDevice* node_dev = dynamic_cast<NodeDevice*>(device);
 
-	StopDevice(node_dev);
+    if(node_dev->dev_status == kDevInvalid || node_dev->dev_status == kDevRemoved)
+        return false;
 
-	node_dev->dev_status=kDevRemoved;
+    if(!StartDev(node_dev))
+        return false;
 
-	ReleaseDev(node_dev);
+    node_dev->dev_status = kDevNormal;
 
-	return true;
+    return true;
 }
 
-bool NodeDriver::StartDevice(Device * device) 
+bool NodeDriver::StopDevice(Device* device)
 {
-	NodeDevice * node_dev=dynamic_cast<NodeDevice *>(device);
+    NodeDevice* node_dev = dynamic_cast<NodeDevice*>(device);
 
-	if(node_dev->dev_status==kDevInvalid ||
-			node_dev->dev_status==kDevRemoved)
-		return false;
+    if(node_dev->dev_status == kDevStopped)
+        return true;
 
-        if(!StartDev(node_dev))
-               return false;
+    if(!StopDev(node_dev))
+        return false;
 
-	node_dev->dev_status = kDevNormal;
+    node_dev->dev_status = kDevStopped;
 
-	return true;
+    return true;
 }
 
-bool NodeDriver::StopDevice(Device * device) 
+dev_status_t NodeDriver::GetDeviceStatus(Device* device)
 {
-	NodeDevice * node_dev=dynamic_cast<NodeDevice *>(device);
+    NodeDevice* node_dev = dynamic_cast<NodeDevice*>(device);
 
-	if(node_dev->dev_status==kDevStopped)
-		return true;
-
-        if(!StopDev(node_dev))
-                return false;
-
-	node_dev->dev_status=kDevStopped;
-
-	return true;
+    return node_dev->dev_status;
 }
 
-dev_status_t NodeDriver::GetDeviceStatus(Device * device) 
+void* NodeDriver::CreateGraphHandle(Device* dev, Subgraph* graph)
 {
-	NodeDevice * node_dev=dynamic_cast<NodeDevice *>(device);
-
-	return node_dev->dev_status;
+    return nullptr;
 }
 
-void * NodeDriver::CreateGraphHandle(Device * dev,Subgraph * graph)  
+void* NodeDriver::CreateGraphHandle(Device* dev)
 {
-	return nullptr;
+    DevContext* context = new DevContext();
+    NodeDevice* node_device = dynamic_cast<NodeDevice*>(dev);
+
+    context->dev = node_device;
+    context->node_cb = nullptr;
+
+    return context;
 }
 
-void * NodeDriver::CreateGraphHandle(Device * dev)
+bool NodeDriver::ReleaseGraphHandle(Device* dev, void* graph_handle)
 {
-	DevContext * context = new DevContext();
-	NodeDevice * node_device = dynamic_cast<NodeDevice *>(dev);
-
-	context->dev=node_device;
-	context->node_cb=nullptr;
-
-	return context;
+    DevContext* context = reinterpret_cast<DevContext*>(graph_handle);
+    delete context;
+    return true;
 }
 
-bool NodeDriver::ReleaseGraphHandle(Device * dev, void * graph_handle)
+void NodeDriver::SetNodeDoneHook(Device* dev, void* node_handle, dev_node_cb_t func)
 {
-	DevContext * context = reinterpret_cast<DevContext*>(graph_handle);
-	delete context;
-	return true;
+    DevContext* context = reinterpret_cast<DevContext*>(node_handle);
+    context->node_cb = func;
 }
 
-void  NodeDriver::SetNodeDoneHook(Device * dev, void * node_handle, dev_node_cb_t func) 
+int NodeDriver::ProbeDevice(void)
 {
-	DevContext * context=reinterpret_cast<DevContext *>(node_handle);
-	context->node_cb=func;
+    for(auto id : dev_id_)
+    {
+        ProbeDevice(id);
+    }
+
+    return GetDeviceNum();
 }
 
-
-int NodeDriver::ProbeDevice(void) 
+int NodeDriver::DestroyDevice(void)
 {
+    int dev_num = GetDeviceNum();
+    int count = 0;
 
-	for(auto id: dev_id_)
-	{
-		ProbeDevice(id);     
-	}
+    for(int i = 0; i < dev_num; i++)
+    {
+        Device* dev = GetDevice(0);
 
-	return GetDeviceNum();
+        if(DestroyDevice(dev))
+            count++;
+        else
+            break;
+    }
+
+    return count;
 }
 
-int NodeDriver::DestroyDevice(void) 
+int NodeDriver::GetDeviceNum(void)
 {
-	int dev_num=GetDeviceNum();
-	int count=0;
-
-	for(int i=0;i<dev_num;i++)
-	{
-		Device * dev=GetDevice(0);
-
-		if(DestroyDevice(dev))
-			count++;
-		else
-			break;
-
-	}
-
-	return count;
+    return dev_table_.size();
 }
 
-int NodeDriver::GetDeviceNum(void) 
+Device* NodeDriver::GetDevice(int idx)
 {
-	return dev_table_.size();
+    if(( unsigned int )idx >= dev_table_.size())
+        return nullptr;
+
+    return dynamic_cast<Device*>(dev_table_[idx]);
 }
 
-Device * NodeDriver::GetDevice(int idx) 
+Device* NodeDriver::GetDevice(const std::string& name)
 {
-	if((unsigned int)idx>=dev_table_.size())
-		return nullptr;
+    int n = dev_table_.size();
+    int i;
 
-	return dynamic_cast<Device *>(dev_table_[idx]);
+    for(i = 0; i < n; i++)
+    {
+        NodeDevice* dev = dev_table_[i];
+        if(dev->GetName() == name)
+            break;
+    }
+
+    if(i == n)
+        return nullptr;
+
+    return dynamic_cast<Device*>(dev_table_[i]);
 }
 
-Device * NodeDriver::GetDevice(const std::string& name) 
+bool NodeDriver::GetWorkload(Device* dev, DevWorkload& load)
 {
-	int n=dev_table_.size();
-	int i;
-
-	for(i=0;i<n;i++)
-	{
-		NodeDevice * dev=dev_table_[i];
-		if(dev->GetName()==name)
-			break;
-	}
-
-	if(i==n)
-		return nullptr;
-
-	return dynamic_cast<Device *>(dev_table_[i]);
-
+    return false;
 }
 
-bool NodeDriver::GetWorkload(Device * dev, DevWorkload& load) 
+bool NodeDriver::GetPerf(Device* dev, Subgraph* graph, int policy, GraphPerf& perf)
 {
-	return false;
+    return false;
 }
 
-bool NodeDriver::GetPerf(Device * dev, Subgraph * graph,int policy,GraphPerf& perf)
+float NodeDriver::GetFops(Device* dev, Subgraph* graph, int policy)
 {
-	return false;
+    return 0.0f;
 }
 
-float NodeDriver::GetFops(Device * dev, Subgraph * graph, int policy) 
+int NodeDriver::GetPolicyPriority(Device* dev, int policy)
 {
-	return 0.0f;
+    return 10000;
 }
 
-int NodeDriver::GetPolicyPriority(Device * dev, int policy) 
+bool NodeDriver::GetProposal(Device* dev, Graph* graph, int policy, bool static_assign)
 {
-	return 10000;
+    return true;
 }
 
-bool  NodeDriver::GetProposal(Device * dev, Graph * graph, int policy, bool static_assign) 
-{
-	return true;
-}
-
-
-
-
-
-
-} //namespace TEngine
-
-
+}    // namespace TEngine

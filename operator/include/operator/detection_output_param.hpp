@@ -24,30 +24,24 @@
 #ifndef __DETECTION_OUTPUT_PARAM_HPP__
 #define __DETECTION_OUTPUT_PARAM_HPP__
 
-
 #include "parameter.hpp"
-
 
 namespace TEngine {
 
-
-struct DetectionOutputParam: public NamedParam {
-    
+struct DetectionOutputParam : public NamedParam
+{
     int num_classes;
     int keep_top_k;
     int nms_top_k;
     float confidence_threshold;
     float nms_threshold;
 
-    DECLARE_PARSER_STRUCTURE(DetectionOutputParam) 
+    DECLARE_PARSER_STRUCTURE(DetectionOutputParam)
     {
-       DECLARE_PARSER_ENTRY(num_classes);
+        DECLARE_PARSER_ENTRY(num_classes);
     };
-
 };
 
-
-} //namespace TEngine
-
+}    // namespace TEngine
 
 #endif

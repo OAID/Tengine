@@ -35,19 +35,19 @@ std::string get_root_path(void)
             if(p == std::string::npos)
                 return std::string("");
             else
-                return str.substr(0, p+8);
+                return str.substr(0, p + 8);
         }
     }
     return str.substr(0, p);
 }
 
 /*!
-* @brief Find the config file and set it to tengine
-* @note  Users can export TENGINE_CONFIG_FILE to set the the config file.
-*        If env TENGINE_CONFIG_FILE is not specified,
-*        search the config file in "Tengine_root/install/etc/tengine/config";
-*        if failed again, display error message and return false.
-*/
+ * @brief Find the config file and set it to tengine
+ * @note  Users can export TENGINE_CONFIG_FILE to set the the config file.
+ *        If env TENGINE_CONFIG_FILE is not specified,
+ *        search the config file in "Tengine_root/install/etc/tengine/config";
+ *        if failed again, display error message and return false.
+ */
 bool set_tengine_config()
 {
 #if 0  
@@ -88,18 +88,18 @@ bool set_tengine_config()
         return false;
     }
 #endif
-   return true;
+    return true;
 }
 
 /*!
-* @brief Find the model file or label file according to the file name
-* @param fname The model file name or label file name
-* @return The fullname of the file that founded
-* @note  Firstly, search the file in current directory;
-*        if failed, search the file in "Tengine_root/models/";
-*        if still failed, display error message and return empty string.
-*/
-std::string get_file(const char * fname)
+ * @brief Find the model file or label file according to the file name
+ * @param fname The model file name or label file name
+ * @return The fullname of the file that founded
+ * @note  Firstly, search the file in current directory;
+ *        if failed, search the file in "Tengine_root/models/";
+ *        if still failed, display error message and return empty string.
+ */
+std::string get_file(const char* fname)
 {
     std::fstream test_fs;
     std::string fn = fname;
@@ -127,4 +127,16 @@ std::string get_file(const char * fname)
             return std::string("");
         }
     }
+}
+
+bool check_file_exist(const std::string file_name)
+{
+    FILE* fp = fopen(file_name.c_str(), "r");
+    if(!fp)
+    {
+        std::cerr << "Input file not existed: " << file_name << "\n";
+        return false;
+    }
+    fclose(fp);
+    return true;
 }

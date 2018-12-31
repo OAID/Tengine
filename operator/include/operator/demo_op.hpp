@@ -28,17 +28,17 @@
 
 namespace TEngine {
 
-class DemoOp: public OperatorNoParam<DemoOp> {
-
+class DemoOp : public OperatorNoParam<DemoOp>
+{
 public:
-    DemoOp() { name_="DemoOp";}
-    DemoOp(const DemoOp& src)=default;
+    DemoOp()
+    {
+        name_ = "DemoOp";
+    }
+    DemoOp(const DemoOp& src) = default;
 
     void SetSchema(void) override;
-
 };
-
-
-}
+}    // namespace TEngine
 
 #endif

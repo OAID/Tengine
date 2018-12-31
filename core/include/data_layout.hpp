@@ -28,133 +28,251 @@
 
 namespace TEngine {
 
-struct  DataLayout: public NamedData<DataLayout> {
+struct DataLayout : public NamedData<DataLayout>
+{
+    DataLayout(const std::string& str, bool as_default = false)
+    {
+        layout_name = str;
 
-	DataLayout(const std::string& str, bool as_default=false)
-	{
-		layout_name=str;
+        SetData(layout_name, this);
 
-		SetData(layout_name,this);
+        if(as_default)
+            SetDefaultData(this);
+    }
 
-                if(as_default)
-                   SetDefaultData(this);
-	}
+    DataLayout(std::string&& str, bool as_default = false)
+    {
+        layout_name = std::move(str);
+        SetData(layout_name, this);
 
-	DataLayout(std::string&& str,bool as_default=false)
-	{
-		layout_name=std::move(str);
-		SetData(layout_name,this);
+        if(as_default)
+            SetDefaultData(this);
+    }
 
-                if(as_default)
-                   SetDefaultData(this);
-	}
+    static const DataLayout* GetLayout(const std::string& name)
+    {
+        return GetData(name);
+    }
 
-	static  const DataLayout * GetLayout( const std::string& name)
-	{
-		return GetData(name);
-	}
+    const std::string& GetName(void) const
+    {
+        return layout_name;
+    }
 
-	const std::string& GetName(void) const { return layout_name;}
+    virtual unsigned int GetDimNum() const
+    {
+        return 0;
+    }
+    virtual int GetH() const
+    {
+        return -1;
+    }
+    virtual int GetW() const
+    {
+        return -1;
+    }
+    virtual int GetC() const
+    {
+        return -1;
+    }
+    virtual int GetD() const
+    {
+        return -1;
+    }
+    virtual int GetN() const
+    {
+        return -1;
+    }
 
-        virtual unsigned int GetDimNum() const {return 0;}
-	virtual int GetH() const {return -1;} 
-	virtual int GetW() const {return -1;} 
-	virtual int GetC() const {return -1;} 
-	virtual int GetD() const {return -1;}
-	virtual int GetN() const {return -1;}
+    virtual ~DataLayout(){};
 
-	virtual ~DataLayout(){};
-
-	std::string layout_name;
+    std::string layout_name;
 };
 
+struct LayoutNCHW : public DataLayout
+{
+    LayoutNCHW(bool as_default = false) : DataLayout("NCHW", as_default){};
 
-struct LayoutNCHW: public DataLayout {
-
-	LayoutNCHW(bool as_default=false):DataLayout("NCHW",as_default){};
-
-	int GetN() const { return 0;}
-	int GetC() const { return 1;}
-	int GetH() const { return 2;}
-	int GetW() const { return 3;}
-        unsigned int GetDimNum() const { return 4;}
+    int GetN() const
+    {
+        return 0;
+    }
+    int GetC() const
+    {
+        return 1;
+    }
+    int GetH() const
+    {
+        return 2;
+    }
+    int GetW() const
+    {
+        return 3;
+    }
+    unsigned int GetDimNum() const
+    {
+        return 4;
+    }
 };
 
+struct LayoutNCDHW : public DataLayout
+{
+    LayoutNCDHW(bool as_default = false) : DataLayout("NCDHW", as_default){};
 
-struct LayoutNCDHW: public DataLayout {
-
-	LayoutNCDHW(bool as_default=false):DataLayout("NCDHW",as_default){};
-
-	int GetN() const { return 0;}
-	int GetC() const { return 1;}
-	int GetD() const { return 2;}
-	int GetH() const { return 3;}
-	int GetW() const { return 4;}
-        unsigned int GetDimNum() const { return 5;}
+    int GetN() const
+    {
+        return 0;
+    }
+    int GetC() const
+    {
+        return 1;
+    }
+    int GetD() const
+    {
+        return 2;
+    }
+    int GetH() const
+    {
+        return 3;
+    }
+    int GetW() const
+    {
+        return 4;
+    }
+    unsigned int GetDimNum() const
+    {
+        return 5;
+    }
 };
 
+struct LayoutNHWC : public DataLayout
+{
+    LayoutNHWC(bool as_default = false) : DataLayout("NHWC", as_default){};
 
-struct LayoutNHWC: public DataLayout {
-
-	LayoutNHWC(bool as_default=false):DataLayout("NHWC",as_default){};
-
-	int GetN() const { return 0;}
-	int GetH() const { return 1;}
-	int GetW() const { return 2;}
-	int GetC() const { return 3;}
-        unsigned int GetDimNum() const { return 4;}
+    int GetN() const
+    {
+        return 0;
+    }
+    int GetH() const
+    {
+        return 1;
+    }
+    int GetW() const
+    {
+        return 2;
+    }
+    int GetC() const
+    {
+        return 3;
+    }
+    unsigned int GetDimNum() const
+    {
+        return 4;
+    }
 };
 
+struct LayoutNDHWC : public DataLayout
+{
+    LayoutNDHWC(bool as_default = false) : DataLayout("NDHWC", as_default){};
 
-struct LayoutNDHWC: public DataLayout {
-
-        LayoutNDHWC(bool as_default=false):DataLayout("NDHWC",as_default){};
-
-        int GetN() const { return 0;}
-        int GetD() const { return 1;}
-        int GetH() const { return 2;}
-        int GetW() const { return 3;}
-        int GetC() const { return 4;}
-        unsigned int GetDimNum() const { return 5;}
+    int GetN() const
+    {
+        return 0;
+    }
+    int GetD() const
+    {
+        return 1;
+    }
+    int GetH() const
+    {
+        return 2;
+    }
+    int GetW() const
+    {
+        return 3;
+    }
+    int GetC() const
+    {
+        return 4;
+    }
+    unsigned int GetDimNum() const
+    {
+        return 5;
+    }
 };
 
+struct LayoutNHW : public DataLayout
+{
+    LayoutNHW(bool as_default = false) : DataLayout("NHW", as_default){};
 
-struct LayoutNHW: public DataLayout {
-
-	LayoutNHW(bool as_default=false):DataLayout("NHW",as_default){};
-
-	int GetN() const { return 0;}
-	int GetH() const { return 1;}
-	int GetW() const { return 2;}
-        unsigned int GetDimNum() const { return 3;}
+    int GetN() const
+    {
+        return 0;
+    }
+    int GetH() const
+    {
+        return 1;
+    }
+    int GetW() const
+    {
+        return 2;
+    }
+    unsigned int GetDimNum() const
+    {
+        return 3;
+    }
 };
 
-struct LayoutNW: public DataLayout {
+struct LayoutNW : public DataLayout
+{
+    LayoutNW(bool as_default = false) : DataLayout("NW", as_default){};
 
-	LayoutNW(bool as_default=false):DataLayout("NW",as_default){};
-
-	int GetN() const { return 0;}
-	int GetW() const { return 1;}
-        unsigned int GetDimNum() const { return 2;}
+    int GetN() const
+    {
+        return 0;
+    }
+    int GetW() const
+    {
+        return 1;
+    }
+    unsigned int GetDimNum() const
+    {
+        return 2;
+    }
 };
 
-struct LayoutHW: public DataLayout {
+struct LayoutHW : public DataLayout
+{
+    LayoutHW(bool as_default = false) : DataLayout("HW", as_default){};
 
-        LayoutHW(bool as_default=false):DataLayout("HW",as_default){};
-
-        int GetH() const { return 0;}
-        int GetW() const { return 1;}
-        unsigned int GetDimNum() const { return 2;}
+    int GetH() const
+    {
+        return 0;
+    }
+    int GetW() const
+    {
+        return 1;
+    }
+    unsigned int GetDimNum() const
+    {
+        return 2;
+    }
 };
 
-struct LayoutW: public DataLayout {
+struct LayoutW : public DataLayout
+{
+    LayoutW(bool as_default = false) : DataLayout("W", as_default){};
 
-	LayoutW(bool as_default=false):DataLayout("W",as_default){};
-
-	int GetW() const { return 0;}
-        unsigned int GetDimNum() const { return 1;}
+    int GetW() const
+    {
+        return 0;
+    }
+    unsigned int GetDimNum() const
+    {
+        return 1;
+    }
 };
 
-} //namespace TEngine
+}    // namespace TEngine
 
 #endif

@@ -58,10 +58,10 @@
 #include "operator/deconvolution.hpp"
 #include "operator/resize.hpp"
 #include "operator/gemm.hpp"
-
-extern "C" {
-    int operator_plugin_init(void);
-}
+#include "operator/generic.hpp"
+#include "operator/lstm.hpp"
+#include "operator/logistic.hpp"
+#include "operator/detection_postprocess.hpp"
 
 using namespace TEngine;
 
@@ -100,9 +100,11 @@ int operator_plugin_init(void)
     RegisterOp<Deconvolution>("Deconvolution");
     RegisterOp<Resize>("Resize");
     RegisterOp<Gemm>("Gemm");
+    RegisterOp<Generic>("Generic");
+    RegisterOp<LSTM>("LSTM");
+    RegisterOp<Logistic>("Logistic");
+    RegisterOp<DetectionPostProcess>("DetectionPostProcess");
 
-
-   // std::cout<<"OPERATOR PLUGIN INITED\n";
+    // std::cout<<"OPERATOR PLUGIN INITED\n";
     return 0;
 }
-

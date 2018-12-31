@@ -30,21 +30,19 @@
 
 namespace TEngine {
 
-class LRN : public OperatorWithParam<LRN,LRNParam> {
+class LRN : public OperatorWithParam<LRN, LRNParam>
+{
 public:
+    LRN()
+    {
+        name_ = "LRN";
+    }
+    LRN(const LRN& src) = default;
+    virtual ~LRN() {}
 
-     LRN() {name_="LRN";}
-     LRN(const LRN& src)=default;
-     virtual ~LRN(){}
-
-     bool InferShape(const std::vector<TEngine::TShape>&, std::vector<TEngine::TShape>&) override;
-
-     void SetSchema(void) override;
-
+    void SetSchema(void) override;
 };
 
-} //namespace TEngine
-
-
+}    // namespace TEngine
 
 #endif

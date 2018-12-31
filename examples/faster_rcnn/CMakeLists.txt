@@ -2,7 +2,7 @@
 cmake_minimum_required (VERSION 2.8)
 project(FASTER_RCNN)
 link_directories( ${PROTOBUF_DIR}/lib )
-
+add_definitions(-std=c++11)
 set( INSTALL_DIR ${TENGINE_DIR}/install )
 set( TENGINE_LIBS tengine)
 if( ANDROID AND ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "armv7-a"))

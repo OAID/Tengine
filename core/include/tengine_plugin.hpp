@@ -35,8 +35,8 @@
 
 namespace TEngine {
 
-using module_init_func_t=int(*)(void);
-using module_release_func_t=int(*)(void);
+using module_init_func_t = int (*)(void);
+using module_release_func_t = int (*)(void);
 
 /*
  In a config file, we use the following format to set the fullname and the
@@ -50,17 +50,17 @@ using module_release_func_t=int(*)(void);
 struct TEnginePlugin
 {
     using NameManager = Attribute;
-    static NameManager *GetNameManager(void);
+    static NameManager* GetNameManager(void);
 
     using InitManager = Attribute;
-    static InitManager *GetInitManager(void);
+    static InitManager* GetInitManager(void);
 
-    using PrioManager=std::map<int,std::string>;
-    static PrioManager * GetPrioManager(void);
+    using PrioManager = std::map<int, std::string>;
+    static PrioManager* GetPrioManager(void);
 
     using HandlerManager = Attribute;
-    static HandlerManager *GetHandlerManager(void);
-    
+    static HandlerManager* GetHandlerManager(void);
+
     // Set the PluginManager corresponding to the content of config file
     static void SetPluginManager(void);
 
@@ -89,24 +89,24 @@ struct TEnginePlugin
     // short name : full name : init program name
     static void DumpPlugin(void);
 
-    static std::unordered_map<int,module_init_func_t> * GetInitTable(void);
-    static std::unordered_map<int,module_release_func_t> * GetReleaseTable(void);
+    static std::unordered_map<int, module_init_func_t>* GetInitTable(void);
+    static std::unordered_map<int, module_release_func_t>* GetReleaseTable(void);
 
-    //Register Initialization functions that should be executed after all plugins are loaded
-    //Priority: the lower one is higher priority
+    // Register Initialization functions that should be executed after all plugins are loaded
+    // Priority: the lower one is higher priority
     static void RegisterModuleInit(int priority, module_init_func_t init_func);
 
-    //Note: Release is executed on reverse priority
+    // Note: Release is executed on reverse priority
     static void RegisterModuleRelease(int priority, module_release_func_t rel_func);
-    static int  InitModule(void);
+    static int InitModule(void);
     static void ReleaseModule(void);
 
 private:
-    TEnginePlugin()=default;
-    TEnginePlugin(const TEnginePlugin&)=delete;
-    TEnginePlugin(TEnginePlugin&&)=delete;
-}; // end of struct TEnginePlugin
+    TEnginePlugin() = default;
+    TEnginePlugin(const TEnginePlugin&) = delete;
+    TEnginePlugin(TEnginePlugin&&) = delete;
+};    // end of struct TEnginePlugin
 
-} //end of namespace TEngine
+}    // end of namespace TEngine
 
 #endif

@@ -3,57 +3,67 @@
 [![GitHub license](http://OAID.github.io/pics/apache_2.0.svg)](../LICENSE)
 
 
-[Tengine](https://github.com/OAID/Tengine) is already supported **ARM Comporte 
-Library (ACL)**. This version ,ACL Driver only can use OpenCL device.
+[Tengine](https://github.com/OAID/Tengine) has already supported the driver of ARM Compute 
+Library. This version, ACL Driver only can use OpenCL device.
 
 
-## 1.How to enable Tengine with ACL Driver
+## 1.How to use ACL Driver in Tengine
 
-### 1.1 build ACL
+### build ACL
 
-    ```
-    git clone https://github.com/ARM-software/ComputeLibrary.git    
-    git checkout v18.05
-    scons Werror=1 -j4 debug=0 asserts=1 neon=0 opencl=1 embed_kernels=1 os=linux arch=arm64-v8a
-    ```
+```
+git clone https://github.com/ARM-software/ComputeLibrary.git
+git checkout v18.05
+scons Werror=1 -j4 debug=0 asserts=1 neon=0 opencl=1 embed_kernels=1 os=linux arch=arm64-v8a
+```
 
+### build Tengine with ACL
 
-### 1.2 build Tengine with ACL
+To enable ACL driver support in Tengine, please uncomment `CONFIG_ACL_GPU` and `ACL_ROOT` in makefile.config.
 
-    Enable ACL_GPU support in Tegnine `makefile.config`.
+```
+# Enable GPU support by Arm Computing Library
+CONFIG_ACL_GPU=y
 
-    ```
-    CONFIG_ACL_GPU=y
-    ACL_ROOT=/home/firefly/ComputeLibrary
-    ``` 
-    if you already build tengine, remember to remove `rm -r build/driver` and then rebuild 
-    ```
-    make
-    ```
+# Set the path of ACL
+ACL_ROOT=/home/firefly/ComputeLibrary
+```
+
 
 ## 2.How to use ACL Driver    
 
-If you want to use ACL Driver to run a graph, you need to explicitly set default device by ACL Device. You can see how to explicitly set device in[tests/bin/bench_sqz.cpp](../tests/bin/bench_sqz.cpp).
+Normally, the ACL Driver is not the default driver for Tengine to run a graph.
+
+If you want to use ACL Driver to run a graph, please change the default device by using `set_graph_device()` in your application.
+
+Below is an example about using ACL Driver.
 
 ```
+Example:
+    ./build/tests/bin/bench_sqz -d acl_opencl
+```
+`acl_opencl` is the ACL device name.
+
+```
+tests/bin/bench_sqz.cpp:
+    std::string device;
     ...
-    while((res=getopt(argc,argv,"d:f:r:"))!=-1)
-    {  
-      switch(res)
-      {  
-         case 'd': 
-            device = optarg;
-            break;
+    while((res = getopt(argc, argv, "p:d:r:")) != -1)
+    {
+        switch(res)
+        {
+            ...
+            case 'd':
+                device = optarg;
+                break;
+            ...
+        }
+    }
     ...
-    if("" != device)
-        set_default_device( device.c_str());
+    if(!device.empty())
+        set_graph_device(graph, device.c_str());
     ...
 
 ```
-
-### Running: 
-
->> Example:  ./build/tests/bin/bench_sqz -d acl_opencl
-
-
+The whole source code, please refer to [tests/bin/bench_sqz.cpp](../tests/bin/bench_sqz.cpp).
 

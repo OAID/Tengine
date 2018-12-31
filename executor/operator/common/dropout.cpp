@@ -34,39 +34,36 @@ namespace TEngine {
 
 namespace DropImpl {
 
-struct DropoutOps : public NodeOps {
-
-bool OnBind(Node * node)
+struct DropoutOps : public NodeOps
 {
-    //set the inplace feature
-    inplace_t io_map;
-   
-    io_map[0]=0;
+    bool OnBind(Node* node)
+    {
+        // set the inplace feature
+        inplace_t io_map;
 
-    node->SetAttr(ATTR_INPLACE,io_map);
+        io_map[0] = 0;
 
-    return true;
-}
+        node->SetAttr(ATTR_INPLACE, io_map);
 
-bool Run(Node * node)
-{
-    //Nothing needs to do for inference
-    return true;
-}
+        return true;
+    }
 
+    bool Run(Node* node)
+    {
+        // Nothing needs to do for inference
+        return true;
+    }
 };
 
-} //namespace DropImpl
+}    // namespace DropImpl
 
 using namespace DropImpl;
 
 void RegisterDropoutNodeExec(void)
 {
-   DropoutOps * ops=new DropoutOps();
+    DropoutOps* ops = new DropoutOps();
 
-   NodeOpsRegistryManager::RegisterOPImplementor("common",
-                              "Dropout",ops);
+    NodeOpsRegistryManager::RegisterOPImplementor("common", "Dropout", ops);
 }
 
-
-} //namespace TEngine
+}    // namespace TEngine

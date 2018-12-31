@@ -27,12 +27,11 @@ namespace TEngine {
 
 void Softmax::SetSchema(void)
 {
-  Input({"input:float32"})
-  .Output({"output:float32"})
-  .SetLayout("NCHW")
-  .SetAttr("axis",1)
-  .SetDoc(R"DOC(Softmax Operator)DOC");
+    Input({"input:float32"})
+        .Output({"output:float32"})
+        .SetLayout("NCHW")
+        .SetAttr("axis", 1)
+        .SetDoc(R"DOC(Softmax Operator)DOC");
 }
 
-
-} //namespace TEngine
+}    // namespace TEngine

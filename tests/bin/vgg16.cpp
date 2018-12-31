@@ -23,7 +23,7 @@
  */
 #include <unistd.h>
 
-#include <iostream> 
+#include <iostream>
 #include <functional>
 #include <algorithm>
 #include <fstream>
@@ -35,152 +35,134 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
 
-const char * text_file="./models/vgg16.prototxt";
-const char * model_file="./models/vgg16.caffemodel";
-const char * image_file="./tests/images/bike.jpg";
-const char * label_file="./models/synset_words.txt";
+const char* text_file = "./models/vgg16.prototxt";
+const char* model_file = "./models/vgg16.caffemodel";
+const char* image_file = "./tests/images/bike.jpg";
+const char* label_file = "./models/synset_words.txt";
 
-const float channel_mean[3]={104.007, 116.669, 122.679};
+const float channel_mean[3] = {104.007, 116.669, 122.679};
 
 using namespace TEngine;
 
-int repeat =1;
+int repeat = 1;
 
-void LoadLabelFile(std::vector<std::string>& result, const char * fname)
+void LoadLabelFile(std::vector<std::string>& result, const char* fname)
 {
-   std::ifstream labels(fname);
+    std::ifstream labels(fname);
 
-   std::string line;
-   while (std::getline(labels, line))
-      result.push_back(line);
+    std::string line;
+    while(std::getline(labels, line))
+        result.push_back(line);
 }
 
-   
-int main(int argc, char * argv[])
+int main(int argc, char* argv[])
 {
+    int img_h = 224;
+    int img_w = 224;
 
-   const char * model_name="vgg16";
-   int img_h=224;
-   int img_w=224;
+    /* prepare input data */
+    float* input_data = ( float* )malloc(sizeof(float) * img_h * img_w * 3);
 
-   /* prepare input data */
-   float  * input_data=(float*) malloc (sizeof(float) * img_h *img_w *3);
+    init_tengine();
+    if(request_tengine_version("0.9") < 0)
+        return 1;
 
+    graph_t graph = create_graph(nullptr, "caffe", text_file, model_file);
+    if(graph == nullptr)
+    {
+        std::cout << "Create graph failed\n";
+        std::cout << "errno: " << get_tengine_errno() << "\n";
+        return 1;
+    }
 
-   init_tengine_library();
+    /* run the graph */
+    prerun_graph(graph);
 
-   if(request_tengine_version("0.1")<0)
-       return 1;
+    int node_idx = 0;
+    int tensor_idx = 0;
 
-
-   if(load_model(model_name,"caffe",text_file,model_file)<0)
-       return 1; 
-
-   std::cout<<"Load model successfully\n";
-
-   graph_t graph=create_runtime_graph("graph0",model_name,NULL);
-
-   if(!check_graph_valid(graph))
-   {
-       std::cout<<"Create graph0 failed\n";
-       return 1;
-   }
-
-   /* run the graph */
-   prerun_graph(graph);
-
-   int node_idx = 0;
-   int tensor_idx = 0;
-   
-   const char *repeat_count = std::getenv("REPEAT_COUNT");
-   if (repeat_count)
+    const char* repeat_count = std::getenv("REPEAT_COUNT");
+    if(repeat_count)
         repeat = std::strtoul(repeat_count, NULL, 10);
-        
-   for(int i = 0;i< repeat;i++)
-   {
-	   /* get input tensor */
-	   get_input_data( image_file, input_data, img_h, img_w, channel_mean ,1);
 
-	   tensor_t input_tensor=get_graph_input_tensor(graph , node_idx , tensor_idx );
-	   
-	   if(!check_tensor_valid(input_tensor))
-	   {
-		   std::printf("Cannot find input tensor,node_idx: %d,tensor_idx: %d\n",node_idx,tensor_idx);
-		   return -1;
-	   }
+    for(int i = 0; i < repeat; i++)
+    {
+        /* get input tensor */
+        get_input_data(image_file, input_data, img_h, img_w, channel_mean, 1);
 
-	   int dims[]={1,3,img_h,img_w};
+        tensor_t input_tensor = get_graph_input_tensor(graph, node_idx, tensor_idx);
 
-	   set_tensor_shape(input_tensor,dims,4);
+        if(input_tensor == nullptr)
+        {
+            std::printf("Cannot find input tensor,node_idx: %d,tensor_idx: %d\n", node_idx, tensor_idx);
+            return -1;
+        }
 
-	   /* setup input buffer */
+        int dims[] = {1, 3, img_h, img_w};
+        set_tensor_shape(input_tensor, dims, 4);
 
-	   if(set_tensor_buffer(input_tensor,input_data,3*img_h*img_w*4)<0)
-	   {
-		   std::printf("Set buffer for tensor failed\n");
-		   return -1;
-	   }
+        /* setup input buffer */
+        if(set_tensor_buffer(input_tensor, input_data, 3 * img_h * img_w * 4) < 0)
+        {
+            std::printf("Set buffer for tensor failed\n");
+            return -1;
+        }
 
-       run_graph(graph,1);
-   }
+        run_graph(graph, 1);
 
-   printf("repeat = %d\n",repeat);
+        release_graph_tensor(input_tensor);
+    }
 
-   /* get output tensor */
-   tensor_t output_tensor=get_graph_output_tensor(graph, node_idx, tensor_idx);
-   
-   if(!check_tensor_valid(output_tensor))
-   {
-	   std::printf("Cannot find output tensor , node_idx: %d,tensor_idx: %d\n",node_idx,tensor_idx);
-	   return -1;
-   }
-   int dims[4]={0};
-   int dim_size=get_tensor_shape(output_tensor,dims,4);
+    printf("repeat = %d\n", repeat);
 
-   if(dim_size<0)
-   {
-	  printf("Get output tensor shape failed\n");
-	  return -1;
-   }
+    /* get output tensor */
+    tensor_t output_tensor = get_graph_output_tensor(graph, node_idx, tensor_idx);
+    if(output_tensor == nullptr)
+    {
+        std::printf("Cannot find output tensor , node_idx: %d,tensor_idx: %d\n", node_idx, tensor_idx);
+        return -1;
+    }
+    int dims[4] = {0, 0, 0, 0};
+    int dim_size = get_tensor_shape(output_tensor, dims, 4);
+    if(dim_size < 0)
+    {
+        printf("Get output tensor shape failed\n");
+        return -1;
+    }
 
-   printf("output tensor shape: [");
-	
-   for(int i=0;i<dim_size;i++)
-	  printf("%d ",dims[i]);
+    printf("output tensor shape: [");
+    for(int i = 0; i < dim_size; i++)
+        printf("%d ", dims[i]);
+    printf("]\n");
 
-   printf("]\n");
+    int count = get_tensor_buffer_size(output_tensor) / 4;
 
+    float* data = ( float* )(get_tensor_buffer(output_tensor));
+    float* end = data + count;
 
-   int count=get_tensor_buffer_size(output_tensor)/4;
+    std::vector<float> result(data, end);
+    std::vector<int> top_N = Argmax(result, 5);
+    std::vector<std::string> labels;
 
-   float *  data=(float *)(get_tensor_buffer(output_tensor));
-   float * end=data+count;
- 
-   std::vector<float> result(data, end);
+    LoadLabelFile(labels, label_file);
 
-   std::vector<int> top_N=Argmax(result,5);
+    for(unsigned int i = 0; i < top_N.size(); i++)
+    {
+        int idx = top_N[i];
 
-   std::vector<std::string> labels;
+        std::cout << std::fixed << std::setprecision(4) << result[idx] << " - \"";
+        std::cout << labels[idx] << "\"\n";
+    }
 
-   LoadLabelFile(labels,label_file);
+    release_graph_tensor(output_tensor);
 
-   for(unsigned int i=0;i<top_N.size();i++)
-   {
-	   int idx=top_N[i];
+    free(input_data);
 
-	   std::cout<<std::fixed << std::setprecision(4)<<result[idx]<<" - \"";
-	   std::cout<< labels[idx]<<"\"\n";
-   }
+    postrun_graph(graph);
+    destroy_graph(graph);
+    release_tengine();
 
-   postrun_graph(graph);  
+    std::cout << "ALL TEST DONE\n";
 
-   destroy_runtime_graph(graph);
-   remove_model(model_name);
-	
-   free(input_data);
-
-   std::cout<<"ALL TEST DONE\n";
-
-   release_tengine_library();
-   return 0;
+    return 0;
 }

@@ -18,44 +18,83 @@
  */
 
 /*
- * Copyright (c) 2017, Open AI Lab
+ * Copyright (c) 2018, Open AI Lab
  * Author: haitao@openailab.com
  */
-#include <data_type.hpp>
 
-#include <cstdlib>
+#include <string.h>
+#include <iostream>
+
+#include "tengine_c_api.h"
+
+#include "data_type.hpp"
+#include "logger.hpp"
 
 namespace TEngine {
 
+namespace DataType {
 
-template <>
-int DataType::Convert<int>(const std::string& str) const
+struct TypeInfo
 {
+    int type;
+    int size;
+    const char* name;
+};
 
-    int base=10;
+static TypeInfo type_info[] = {{TENGINE_DT_FP32, 4, "float32"}, {TENGINE_DT_FP16, 2, "float16"},
+                               {TENGINE_DT_INT8, 1, "int8"},    {TENGINE_DT_UINT8, 1, "uint8"},
+                               {TENGINE_DT_INT32, 4, "int"},    {TENGINE_DT_INT16, 4, "int16"}};
 
-    if(str.substr(0,2)==std::string("0x"))
-          base=16;
+static TypeInfo* FindType(int data_type)
+{
+    for(unsigned int i = 0; i < sizeof(type_info) / sizeof(TypeInfo); i++)
+    {
+        TypeInfo* p_info = &type_info[i];
 
-    return strtoul(str.c_str(),NULL,base);
+        if(p_info->type == data_type)
+            return p_info;
+    }
+
+    return nullptr;
 }
 
-
-template <>
-float DataType::Convert<float>(const std::string& str) const
+int GetTypeSize(int data_type)
 {
-    return strtof(str.c_str(),NULL);
+    TypeInfo* p_info = FindType(data_type);
+
+    if(p_info)
+        return p_info->size;
+
+    XLOG_ERROR() << "Unknow data type: " << data_type << "\n";
+
+    return 0;
 }
 
-
-template <>
-void NamedData<DataType>::InitPredefinedData()
+const char* GetTypeName(int data_type)
 {
-    /* A few pre-defined data types */
-    static DataType float32("float32",4,true);
-    static DataType float16("float16",2);
-    static DataType int32("int",4);
-    static DataType int8("int8",1);
+    TypeInfo* p_info = FindType(data_type);
+
+    if(p_info)
+        return p_info->name;
+
+    XLOG_ERROR() << "Unknow data type: " << data_type << "\n";
+
+    return nullptr;
 }
 
-} //namespace TEngine
+int GetTypeID(const char* name)
+{
+    for(unsigned int i = 0; i < sizeof(type_info) / sizeof(TypeInfo); i++)
+    {
+        TypeInfo* p_info = &type_info[i];
+
+        if(!strcmp(p_info->name, name))
+            return i;
+    }
+
+    return -1;
+}
+
+}    // namespace DataType
+
+}    // namespace TEngine

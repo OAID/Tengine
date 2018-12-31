@@ -24,28 +24,22 @@
 #ifndef __FLATTEN_PARAM_HPP__
 #define __FLATTEN_PARAM_HPP__
 
-
 #include "parameter.hpp"
-
 
 namespace TEngine {
 
-
-struct FlattenParam : public NamedParam {
-
+struct FlattenParam : public NamedParam
+{
     int axis;
     int end_axis;
 
-    DECLARE_PARSER_STRUCTURE(FlattenParam) 
+    DECLARE_PARSER_STRUCTURE(FlattenParam)
     {
-       DECLARE_PARSER_ENTRY( axis);
-       DECLARE_PARSER_ENTRY( end_axis);
+        DECLARE_PARSER_ENTRY(axis);
+        DECLARE_PARSER_ENTRY(end_axis);
     };
-
 };
 
-
-} //namespace TEngine
-
+}    // namespace TEngine
 
 #endif

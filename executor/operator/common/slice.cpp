@@ -35,51 +35,47 @@ namespace TEngine {
 
 namespace SliceImpl {
 
-struct SliceOps: public NodeOps {
-	
-bool Run(Node * node)
+struct SliceOps : public NodeOps
 {
-    //currently, only working on channel C (slice_axis=1)
-    Tensor * input_tensor=node->GetInputTensor(0);
-    Tensor * output_tensor0=node->GetOutputTensor(0);
-    Tensor * output_tensor1=node->GetOutputTensor(1);
-
-    const std::vector<int>& dims=input_tensor->GetShape().GetDim();
-
-
-    int hw=dims[2]*dims[3];
-    int slice_size=dims[1]/2 *hw;
-    int size=dims[1]*hw;
-    float * input=(float *)get_tensor_mem(input_tensor);
-    float * output0=(float *)get_tensor_mem(output_tensor0);
-    float * output1=(float *)get_tensor_mem(output_tensor1);
-
-    for(int i=0;i<dims[0];i++)
+    bool Run(Node* node)
     {
-        float* in0=input+i*size;
-        float* in1=in0+slice_size;
-        for (int j=0; j<slice_size; j++)
+        // currently, only working on channel C (slice_axis=1)
+        Tensor* input_tensor = node->GetInputTensor(0);
+        Tensor* output_tensor0 = node->GetOutputTensor(0);
+        Tensor* output_tensor1 = node->GetOutputTensor(1);
+
+        const std::vector<int>& dims = input_tensor->GetShape().GetDim();
+
+        int hw = dims[2] * dims[3];
+        int slice_size = dims[1] / 2 * hw;
+        int size = dims[1] * hw;
+        float* input = ( float* )get_tensor_mem(input_tensor);
+        float* output0 = ( float* )get_tensor_mem(output_tensor0);
+        float* output1 = ( float* )get_tensor_mem(output_tensor1);
+
+        for(int i = 0; i < dims[0]; i++)
         {
-            output0[j] = in0[j];
-            output1[j] = in1[j];
+            float* in0 = input + i * size;
+            float* in1 = in0 + slice_size;
+            for(int j = 0; j < slice_size; j++)
+            {
+                output0[j] = in0[j];
+                output1[j] = in1[j];
+            }
         }
+        return true;
     }
-    return true;
-}
 };
 
-} //namespace SliceImpl
+}    // namespace SliceImpl
 
 using namespace SliceImpl;
 
 void RegisterSliceNodeExec(void)
 {
-   SliceOps * ops=new SliceOps();
+    SliceOps* ops = new SliceOps();
 
-   NodeOpsRegistryManager::RegisterOPImplementor("common",
-               "Slice",ops);
-
+    NodeOpsRegistryManager::RegisterOPImplementor("common", "Slice", ops);
 }
 
-
-} //namespace TEngine
+}    // namespace TEngine

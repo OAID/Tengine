@@ -24,28 +24,23 @@
 #ifndef __CONST_OPERATOR_HPP__
 #define __CONST_OPERATOR_HPP__
 
-
 #include "operator.hpp"
-
 
 namespace TEngine {
 
-class ConstOp: public OperatorNoParam<ConstOp> {
-
+class ConstOp : public OperatorNoParam<ConstOp>
+{
 public:
-       ConstOp() {name_="Const";}
-       ConstOp(const ConstOp& src)=default;
-       virtual ~ ConstOp() {};
+    ConstOp()
+    {
+        name_ = "Const";
+    }
+    ConstOp(const ConstOp& src) = default;
+    virtual ~ConstOp(){};
 
-       void SetSchema(void) override;
+    void SetSchema(void) override;
+};
 
-}; 
-
-
-
-} //namespace TEngine
-
-
-
+}    // namespace TEngine
 
 #endif

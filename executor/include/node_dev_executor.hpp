@@ -33,94 +33,81 @@ namespace TEngine {
 
 class NodeDevice;
 
-class NodeExecutor: public GenericDevExecutor {
-
+class NodeExecutor : public GenericDevExecutor
+{
 public:
+    struct NodeContext
+    {
+        void* dev_context;
+        Subgraph* sub_graph;
+        Subgraph* optimized_graph;
+    };
 
-	struct NodeContext
-	{
-		void * dev_context;
-		Subgraph * sub_graph;
-		Subgraph * optimized_graph;
-	};
+    struct NodeTask
+    {
+        void* dev_context;
+        Node* node;
+    };
 
-	struct NodeTask 
-	{
-		void * dev_context;
-		Node * node;
-	};
+    NodeExecutor(const dev_id_t& dev_id)
+    {
+        dev_id_ = dev_id;
+        worker_ = nullptr;
+        create_worker_ = true;
+    }
 
-	NodeExecutor(const dev_id_t& dev_id) {
-		dev_id_=dev_id;
-		worker_=nullptr;
-		create_worker_=true;
-	}
+    virtual ~NodeExecutor() {}
 
-	virtual ~NodeExecutor() {
+    void DevGetWorkload(DevWorkload& load) override;
+    bool DevGetPerf(Subgraph* graph, int policy, GraphPerf& perf) override;
+    float DevGetFops(Subgraph* graph, int policy) override;
+    int DevGetPolicyPriority(int policy) override;
+    bool DevGetProposal(Graph* graph, int policy, bool static_assign) override;
 
-	}
+    void* DevCreateGraphHandle(Subgraph* graph) override;
+    bool DevOptimizeGraph(void* graph_handle) override;
+    bool DevPrerun(void* graph_handle) override;
+    bool DevRun(void* graph_handle) override;
+    bool DevSyncRun(void* graph_handle) override;
+    bool DevPostrun(void* graph_handle) override;
+    bool DevSetGraphAttr(void*, const char*, const void*, int) override;
+    bool DevGetGraphAttr(void*, const char*, void*, int) override;
+    bool DevReleaseGraphHandle(void* graph_handle) override;
+    bool DevStart(void) override;
+    bool DevStop(void) override;
 
-	void DevGetWorkload(DevWorkload& load) override;	
-	bool DevGetPerf(Subgraph * graph,int policy,GraphPerf& perf) override;
-	float DevGetFops(Subgraph * graph,int policy) override; 
-	int  DevGetPolicyPriority(int policy) override;
-	bool DevGetProposal(Graph * graph, int policy, bool static_assign) override;
+    Subgraph* DevGetOptimizedGraph(void* graph_handle) override;
 
-	bool DevSetConfig(const char * config_name, const void * buffer, int size) override;
-	bool DevGetConfig(const char * config_name, void * buffer, int size) override;
-	bool DevDelConfig(const char * config_name) override;
+    const dev_id_t& DevGetID(void) override;
+    const dev_type_t& DevGetType(void) override;
 
+    dev_status_t DevGetStatus(void) override;
 
-	void * DevCreateGraphHandle(Subgraph * graph) override;
-	bool DevOptimizeGraph(void * graph_handle) override;
-	bool DevPrerun(void * graph_handle) override;
-	bool DevRun(void * graph_handle) override;  
-	bool DevSyncRun(void * graph_handle) override;
-	bool DevPostrun(void * graph_handle) override;
-	bool DevSetGraphAttr(void *, const char * , const void * , int ) override;
-	bool DevGetGraphAttr(void *, const char * , void * , int ) override;
-	bool DevReleaseGraphHandle(void * graph_handle) override;
-	bool DevStart(void) override;
-	bool DevStop(void) override;
+    virtual bool Init(void) override;
+    virtual bool Release(void) override;
 
-	Subgraph * DevGetOptimizedGraph(void * graph_handle) override;
+    void UnbindDevice(void) override;
+    void BindDevice(Device*) override;
 
-	const dev_id_t& DevGetID(void) override;
-	const dev_type_t & DevGetType(void) override;
+    void OnNodeDone(NodeContext* context, Node* node, bool exec_success);
 
-	dev_status_t DevGetStatus(void) override;
+    void ProcessTask(const NodeTask& task);
 
-	virtual bool Init(void) override;
-	virtual bool Release(void) override;
+    void DisableCreateWorker(void)
+    {
+        create_worker_ = false;
+    }
 
-	void UnbindDevice(void) override;
-	void BindDevice(Device * ) override;
-
-
-	void OnNodeDone(NodeContext * context, Node * node, bool exec_success);
-
-	void ProcessTask(const NodeTask& task);
-
-	void DisableCreateWorker(void) { create_worker_=false;}
-
-
-	protected:
-	NodeDevice * backend_dev_;      
-	bool create_worker_;
-	dev_id_t  dev_id_;
-	WorkerThread<NodeTask> * worker_;
-	std::queue<NodeTask> task_queue_;
-	std::mutex  worker_lock_;
-	std::condition_variable worker_cv_;
-
-
+protected:
+    NodeDevice* backend_dev_;
+    bool create_worker_;
+    dev_id_t dev_id_;
+    WorkerThread<NodeTask>* worker_;
+    std::queue<NodeTask> task_queue_;
+    std::mutex worker_lock_;
+    std::condition_variable worker_cv_;
 };
 
-
-
-
-} //namespace TEngine
-
-
+}    // namespace TEngine
 
 #endif

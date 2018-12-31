@@ -24,32 +24,25 @@
 #ifndef __INPUT_OPERATOR_HPP__
 #define __INPUT_OPERATOR_HPP__
 
-
 #include "operator.hpp"
-
 
 namespace TEngine {
 
-
-
-class InputOp: public OperatorNoParam<InputOp> {
-
+class InputOp : public OperatorNoParam<InputOp>
+{
 public:
-       InputOp() {name_="Input";}
+    InputOp()
+    {
+        name_ = "Input";
+    }
 
-       InputOp(const InputOp& src)=default;
+    InputOp(const InputOp& src) = default;
 
-       virtual ~ InputOp() {};
+    virtual ~InputOp(){};
 
-       void SetSchema(void) override;
+    void SetSchema(void) override;
+};
 
-}; 
-
-
-
-} //namespace TEngine
-
-
-
+}    // namespace TEngine
 
 #endif

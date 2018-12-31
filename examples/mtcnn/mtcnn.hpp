@@ -24,53 +24,55 @@
 #ifndef __MTCNN_HPP__
 #define __MTCNN_HPP__
 
-
-
 #include "mtcnn_utils.hpp"
+#include "common.hpp"
 
+class mtcnn
+{
+public:
+    int minsize_;
+    float conf_p_threshold_;
+    float conf_r_threshold_;
+    float conf_o_threshold_;
 
-class mtcnn {
-	public:
-	    int minsize_;
-    	float conf_p_threshold_;
-    	float conf_r_threshold_;
-    	float conf_o_threshold_;
-		
-		float nms_p_threshold_;
-		float nms_r_threshold_;
-		float nms_o_threshold_;
+    float nms_p_threshold_;
+    float nms_r_threshold_;
+    float nms_o_threshold_;
 
-		mtcnn(	int minsize=60,
-				float conf_p=0.6,float conf_r=0.7,float conf_o=0.8,
-				float nms_p=0.5,float nms_r=0.7,float nms_o=0.7);
-        ~mtcnn()
-		{
-			destroy_runtime_graph(PNet_graph);
-			destroy_runtime_graph(RNet_graph);
-			destroy_runtime_graph(ONet_graph);
-   			remove_model(PNet_model_name);
-   			remove_model(RNet_model_name);
-   			remove_model(ONet_model_name);
-		};
+    mtcnn(int minsize = 60, float conf_p = 0.6, float conf_r = 0.7, float conf_o = 0.8, float nms_p = 0.5,
+          float nms_r = 0.7, float nms_o = 0.7);
+    ~mtcnn()
+    {
+        if(postrun_graph(PNet_graph) != 0)
+        {
+            std::cout << "Postrun PNet graph failed, errno: " << get_tengine_errno() << "\n";
+        }
+        if(postrun_graph(RNet_graph) != 0)
+        {
+            std::cout << "Postrun RNet graph failed, errno: " << get_tengine_errno() << "\n";
+        }
+        if(postrun_graph(ONet_graph) != 0)
+        {
+            std::cout << "Postrun ONet graph failed, errno: " << get_tengine_errno() << "\n";
+        }
+        destroy_graph(PNet_graph);
+        destroy_graph(RNet_graph);
+        destroy_graph(ONet_graph);
+    };
 
-		int load_3model(const std::string& model_dir);
+    int load_3model(const std::string& model_dir);
 
-        void detect(cv::Mat& img,std::vector<face_box>& face_list);    
+    void detect(cv::Mat& img, std::vector<face_box>& face_list);
 
-	protected:
-		int run_PNet(const cv::Mat& img, scale_window& win, std::vector<face_box>& box_list);
-		void run_RNet(const cv::Mat& img, std::vector<face_box>& pnet_boxes, std::vector<face_box>& output_boxes);
-		void run_ONet(const cv::Mat& img, std::vector<face_box>& rnet_boxes, std::vector<face_box>& output_boxes);
-		
-    private:
-        const char * PNet_model_name="PNet";
-        const char * RNet_model_name="RNet";
-        const char * ONet_model_name="ONet";
-		graph_t PNet_graph;
-		graph_t RNet_graph;
-		graph_t ONet_graph;
+protected:
+    int run_PNet(const cv::Mat& img, scale_window& win, std::vector<face_box>& box_list);
+    int run_RNet(const cv::Mat& img, std::vector<face_box>& pnet_boxes, std::vector<face_box>& output_boxes);
+    int run_ONet(const cv::Mat& img, std::vector<face_box>& rnet_boxes, std::vector<face_box>& output_boxes);
+
+private:
+    graph_t PNet_graph;
+    graph_t RNet_graph;
+    graph_t ONet_graph;
 };
-
-
 
 #endif

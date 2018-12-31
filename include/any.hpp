@@ -48,6 +48,15 @@ public:
 
          message=std::string("Bad any cast:  Expected: ")+GetRealName(real.name());
          message+="   Real: "+GetRealName(expected.name());
+
+		 const char * str=getenv("HALT_ON_MISMATCH");
+
+		 if(str)
+		 {
+             std::cerr<<message<<"\n";
+			 std::cerr<<"halt due to env set...\n";
+		     while(1);
+		 }
     }
 
     const char* what() const noexcept override

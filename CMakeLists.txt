@@ -29,13 +29,13 @@ option(CONFIG_ONNX_SERIALIZER "onnx serializer" OFF)
 option(CONFIG_TF_SERIALIZER "tensorflow serializer" OFF)
 option(CONFIG_TENGINE_SERIALIZER "tengine serializer" ON)
 
-message("list dir ${CMAKE_CURRENT_LIST_DIR}/.git")
+#message("list dir ${CMAKE_CURRENT_LIST_DIR}/.git")
 if(EXISTS ${CMAKE_CURRENT_LIST_DIR}/.git)
-    execute_process( COMMAND git -C ${CMAKE_CURRENT_LIST_DIR} rev-parse HEAD
-      OUTPUT_VARIABLE  git_commit_id)
+    execute_process(COMMAND git -C ${CMAKE_CURRENT_LIST_DIR} rev-parse HEAD
+                    OUTPUT_VARIABLE git_commit_id)
     STRING(STRIP ${git_commit_id} stripped_commit_id)
 else()
-  set(stripped_commit_id "UNKNOWN")
+    set(stripped_commit_id "UNKNOWN")
 endif()
 
 set(GIT_COMMIT_ID -DGIT_COMMIT_ID="0x${stripped_commit_id}")
@@ -79,10 +79,11 @@ add_definitions(-g)
 add_definitions(-O3)
 add_definitions(-funroll-loops)
 add_definitions(-Wno-deprecated-register)
+add_definitions(-Wno-overloaded-virtual)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-overloaded-virtual")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-overloaded-virtual")
 
 include_directories(include)
 
@@ -174,4 +175,5 @@ install (TARGETS tengine  DESTINATION lib)
 install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/core/include/tengine_c_api.h DESTINATION include)
 install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/core/include/cpu_device.h DESTINATION include)
 install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/core/include/tengine_test_api.h DESTINATION include)
+install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/core/include/tengine_c_compat.h DESTINATION include)
 

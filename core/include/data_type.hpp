@@ -24,56 +24,15 @@
 #ifndef __DATA_TYPE_HPP__
 #define __DATA_TYPE_HPP__
 
-#include "named_data.hpp"
-
 namespace TEngine {
 
-struct  DataType: public NamedData<DataType> {
+namespace DataType {
+int GetTypeSize(int data_type);
+const char* GetTypeName(int data_type);
+int GetTypeID(const char* name);
 
-	DataType(const std::string& str, int size, bool as_default=false)
-	{
-		dtype_name=str;
-		dtype_size=size;
-		SetData(dtype_name,this);
+}    // namespace DataType
 
-                if(as_default)
-                   SetDefaultData(this);
-	}
-
-	DataType(std::string&& str,int size, bool as_default=false)
-	{
-		dtype_size=size;
-		dtype_name=std::move(str);
-		SetData(dtype_name,this);
-
-                if(as_default)
-                   SetDefaultData(this);
-	}
-
-	static  const DataType * GetType( const std::string& name)
-	{
-		return GetData(name);
-	}
-
-	const std::string& GetTypeName(void) const
-	{
-		return dtype_name;
-	}
-
-	int GetTypeSize(void) const
-	{
-		return dtype_size;
-	}
-
-	template <typename T>
-	T Convert(const std::string& str) const;
-
-
-	std::string dtype_name;
-	int dtype_size;
-};
-
-} //namespace TEngine
+}    // namespace TEngine
 
 #endif
-

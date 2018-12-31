@@ -24,29 +24,26 @@
 #ifndef __RPN_HPP__
 #define __RPN_HPP__
 
-
 #include "operator.hpp"
 #include "rpn_param.hpp"
 
-
 namespace TEngine {
 
-class RPN: public OperatorWithParam<RPN, RPNParam> {
-
+class RPN : public OperatorWithParam<RPN, RPNParam>
+{
 public:
+    RPN()
+    {
+        name_ = "RPN";
+    }
+    RPN(const RPN& src) = default;
 
-     RPN () { name_="RPN"; }
-     RPN(const RPN& src)=default;
-
-     virtual ~RPN() {}
-     bool InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEngine::TShape>& oshape) override;
-     void SetSchema(void) override;
-
-
+    virtual ~RPN() {}
+    bool InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEngine::TShape>& oshape,
+                    int layout) override;
+    void SetSchema(void) override;
 };
 
-
-} //namespace TEngine
-
+}    // namespace TEngine
 
 #endif

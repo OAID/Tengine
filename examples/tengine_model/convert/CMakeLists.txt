@@ -5,14 +5,15 @@ project(tm_convert)
 set( INSTALL_DIR ${TENGINE_DIR}/install/ )
 set( TENGINE_LIBS tengine)
 
-set( CODE_SRCS convert_caffe_to_tm.cpp )
+set( CODE_SRCS convert_caffe_to_tm.cpp ../../common/common.cpp)
 set( BIN_EXE convert_caffe_to_tm )
 
 #flag
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -O3 -Wall")
 
 #include
-include_directories(${INSTALL_DIR}/include)
+include_directories(${INSTALL_DIR}/include
+                    ${TENGINE_DIR}/examples/common)
 
 #lib
 link_directories(${INSTALL_DIR}/lib)

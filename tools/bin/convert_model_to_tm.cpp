@@ -26,18 +26,18 @@
 #include <unistd.h>
 #include "tengine_c_api.h"
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     std::string file_format;
     std::string proto_file;
-    std::string model_file ;
+    std::string model_file;
     std::string output_tmfile;
     bool proto_file_needed = false;
     bool model_file_needed = false;
-    int  input_file_number = 0;
+    int input_file_number = 0;
 
     int res;
-    while((res=getopt(argc,argv,"f:p:m:o:h")) != -1)
+    while((res = getopt(argc, argv, "f:p:m:o:h")) != -1)
     {
         switch(res)
         {
@@ -54,7 +54,8 @@ int main(int argc, char *argv[])
                 output_tmfile = optarg;
                 break;
             case 'h':
-                std::cout << "[Usage]: " << argv[0] << " [-h] [-f file_format] [-p proto_file] [-m model_file] [-o output_tmfile]\n";
+                std::cout << "[Usage]: " << argv[0]
+                          << " [-h] [-f file_format] [-p proto_file] [-m model_file] [-o output_tmfile]\n";
                 return 0;
             default:
                 break;
@@ -87,7 +88,7 @@ int main(int argc, char *argv[])
             return -1;
         }
     }
-              
+
     if(proto_file_needed)
     {
         if(proto_file.empty())
@@ -97,7 +98,7 @@ int main(int argc, char *argv[])
         }
         if(access(proto_file.c_str(), 0) == -1)
         {
-            std::cout << "Proto file does not exist: "<<proto_file<<"\n";
+            std::cout << "Proto file does not exist: " << proto_file << "\n";
             return -1;
         }
     }
@@ -111,7 +112,7 @@ int main(int argc, char *argv[])
         }
         if(access(model_file.c_str(), 0) == -1)
         {
-            std::cout << "Model file does not exist: "<<model_file<<"\n";
+            std::cout << "Model file does not exist: " << model_file << "\n";
             return -1;
         }
     }
@@ -126,47 +127,40 @@ int main(int argc, char *argv[])
         std::string output_dir = output_tmfile.substr(0, output_tmfile.rfind("/"));
         if(access(output_dir.c_str(), 0) == -1)
         {
-            std::cout << "The dir of output file does not exist: "<<output_dir<<"\n";
+            std::cout << "The dir of output file does not exist: " << output_dir << "\n";
             return -1;
         }
     }
 
     // init tengine
-    init_tengine_library();
-    if(request_tengine_version("0.1") < 0)
+    init_tengine();
+    if(request_tengine_version("0.9") < 0)
         return 1;
 
-    // load input model files
-    std::string model_name = "temp_model";
-    int ret = -1;
+    // create graph
+    graph_t graph = nullptr;
     if(input_file_number == 2)
-        ret = load_model(model_name.c_str(), file_format.c_str(), proto_file.c_str(), model_file.c_str());
+        graph = create_graph(nullptr, file_format.c_str(), proto_file.c_str(), model_file.c_str());
     else if(input_file_number == 1)
-        ret = load_model(model_name.c_str(), file_format.c_str(), model_file.c_str());
-    if(ret < 0)
-    {
-        std::cout << "Load model failed.\n";
-        return -1;
-    }
+        graph = create_graph(nullptr, file_format.c_str(), model_file.c_str());
 
-    // create runtime graph
-    graph_t graph = create_runtime_graph("graph0", model_name.c_str(), NULL);
-    if (!check_graph_valid(graph))
+    if(graph == nullptr)
     {
-        std::cout << "Create graph0 failed.\n";
+        std::cout << "Create graph failed\n";
+        std::cout << "errno: " << get_tengine_errno() << "\n";
         return -1;
     }
 
     // Save the tengine model file
-    if(save_model(graph, "tengine", output_tmfile.c_str()) == -1)
+    if(save_graph(graph, "tengine", output_tmfile.c_str()) == -1)
     {
         std::cout << "Create tengine model file failed.\n";
         return -1;
     }
-    std::cout << "Create tengine model file done: "<<output_tmfile<<"\n";
+    std::cout << "Create tengine model file done: " << output_tmfile << "\n";
 
-    destroy_runtime_graph(graph);
-    remove_model(model_name.c_str());
-    release_tengine_library();
+    destroy_graph(graph);
+    release_tengine();
+
     return 0;
 }

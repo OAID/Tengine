@@ -38,25 +38,24 @@ struct TF_Status
 struct TF_Tensor
 {
     int dtype;
-    const char *name;        // tensor name
+    const char* name;    // tensor name
     std::vector<int> shape;
-    void *data;
+    void* data;
     int count;
 };
 
 struct TF_Operation
 {
-    const char *node_name;   // node name
+    const char* node_name;    // node name
 };
 
 struct TF_Graph
 {
-    TF_Graph() : prerun_already(false), model_name(nullptr), graph_exe(nullptr) {};
+    TF_Graph() : prerun_already(false), graph_exe(nullptr){};
     ~TF_Graph();
 
     bool prerun_already;
-    const char *model_name;  // model name
-    graph_t graph_exe;   // pointer to Tengine graph executor
+    graph_t graph_exe;    // pointer to Tengine graph executor
 };
 
 struct TF_Session
@@ -66,12 +65,12 @@ struct TF_Session
 
 struct TF_ImportGraphDefOptions
 {
-    const char *prefix;
+    const char* prefix;
 };
 
 struct TF_SessionOptions
 {
-    const char *target;
+    const char* target;
 };
 
-#endif  // __TENSORFLOW_C_C_API_INTERNAL_H__
+#endif    // __TENSORFLOW_C_C_API_INTERNAL_H__

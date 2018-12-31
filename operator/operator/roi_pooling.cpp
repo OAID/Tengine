@@ -24,41 +24,34 @@
 #include "operator/roi_pooling.hpp"
 #include <math.h>
 
-
 namespace TEngine {
-bool ROIPooling::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEngine::TShape>& oshape)
+bool ROIPooling::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEngine::TShape>& oshape,
+                            int layout)
 {
-     const TShape& input=ishape[0];
-     
-     int c=input.GetC();
-    
+    const TShape& input = ishape[0];
 
+    int c = input.GetC();
 
-     TShape shape;
+    TShape shape;
     // to do : the first dimension should be num_roi
-     std::vector<int> dim={300,c,param_.pooled_h,param_.pooled_w};
+    std::vector<int> dim = {300, c, param_.pooled_h, param_.pooled_w};
 
-     shape.SetDim(dim);
-     shape.SetDataLayout("NCHW");
+    shape.SetDim(dim);
+    shape.SetDataLayout("NCHW");
 
-     oshape[0]=shape;
-    
- 
-     return true;    
+    oshape[0] = shape;
 
+    return true;
 }
-
 
 void ROIPooling::SetSchema(void)
 {
     Input({"input:float32"})
-    .Output({"output:float32"})
-    .SetLayout("NCHW")
-    .SetAttr("spatial_scale",1.f)
+        .Output({"output:float32"})
+        .SetLayout("NCHW")
+        .SetAttr("spatial_scale", 1.f)
 
-    .SetDoc(R"DOC(ROIPooling Layer)DOC");
-
+        .SetDoc(R"DOC(ROIPooling Layer)DOC");
 }
 
-
-} //namespace TEngine
+}    // namespace TEngine
