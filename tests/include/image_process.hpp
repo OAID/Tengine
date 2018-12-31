@@ -28,36 +28,29 @@
 #include <cstdlib>
 #include <cstdio>
 
-
-
 namespace TEngine {
 
-
-void get_input_data(const char* image_file, float *input_data, int img_h, int img_w,const float* mean, float scale)
+void get_input_data(const char* image_file, float* input_data, int img_h, int img_w, const float* mean, float scale)
 {
+    cv::Mat img = cv::imread(image_file, -1);
 
-   cv::Mat img = cv::imread(image_file, -1);
-
-   if (img.empty())
-   {
-         std::cerr << "failed to read image file " << image_file << "\n";
-         return;
-   }
-   cv::resize(img, img, cv::Size(img_h, img_w));
-   img.convertTo(img, CV_32FC3);
-   float *img_data = (float *)img.data;
-   int hw = img_h * img_w;
-   for (int h = 0; h < img_h; h++)
-       for (int w = 0; w < img_w; w++)
-          for (int c = 0; c < 3; c++)
-          {
-              input_data[c * hw + h * img_w + w] = (*img_data - mean[c])*scale;
-              img_data++;
-          }
+    if(img.empty())
+    {
+        std::cerr << "failed to read image file " << image_file << "\n";
+        return;
+    }
+    cv::resize(img, img, cv::Size(img_h, img_w));
+    img.convertTo(img, CV_32FC3);
+    float* img_data = ( float* )img.data;
+    int hw = img_h * img_w;
+    for(int h = 0; h < img_h; h++)
+        for(int w = 0; w < img_w; w++)
+            for(int c = 0; c < 3; c++)
+            {
+                input_data[c * hw + h * img_w + w] = (*img_data - mean[c]) * scale;
+                img_data++;
+            }
 }
-
-
-
-}
+}    // namespace TEngine
 
 #endif

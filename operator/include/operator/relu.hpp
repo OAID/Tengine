@@ -29,26 +29,21 @@
 
 namespace TEngine {
 
-class ReLu: public OperatorWithParam<ReLu,ReLuParam> {
-
+class ReLu : public OperatorWithParam<ReLu, ReLuParam>
+{
 public:
+    ReLu()
+    {
+        name_ = "ReLu";
+    }
+    ReLu(const ReLu& src) = default;
+    virtual ~ReLu(){};
 
-      ReLu() { name_="ReLu";}
-      ReLu(const ReLu& src)=default;
-      virtual ~ReLu() {};
+    float GetFops(const std::vector<TShape>& inputs, const std::vector<TShape>& outputs) override;
 
-      float GetFops(const std::vector<TShape>& inputs, const std::vector<TShape>& outputs) override;
- 
-      void SetSchema(void) override;
-
+    void SetSchema(void) override;
 };
 
-
-
-
-
-} //namespace TEngine
-
-
+}    // namespace TEngine
 
 #endif

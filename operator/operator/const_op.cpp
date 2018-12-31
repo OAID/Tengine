@@ -23,13 +23,11 @@
  */
 #include "operator/const_op.hpp"
 
-
 namespace TEngine {
 
 void ConstOp::SetSchema(void)
-{ 
+{
     SetDoc(R"DOC(Const Operator)DOC");
 }
 
-
-} //namespace TEngine
+}    // namespace TEngine

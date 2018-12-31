@@ -24,28 +24,26 @@
 #ifndef __DETECTION_OUTPUT_HPP__
 #define __DETECTION_OUTPUT_HPP__
 
-
 #include "operator.hpp"
 #include "detection_output_param.hpp"
 
 namespace TEngine {
 
-class DetectionOutput: public OperatorWithParam<DetectionOutput, DetectionOutputParam> {
-
+class DetectionOutput : public OperatorWithParam<DetectionOutput, DetectionOutputParam>
+{
 public:
+    DetectionOutput()
+    {
+        name_ = "DetectionOutput";
+    }
+    DetectionOutput(const DetectionOutput& src) = default;
 
-     DetectionOutput () { name_="DetectionOutput"; }
-     DetectionOutput(const DetectionOutput& src)=default;
-
-     virtual ~DetectionOutput() {}
-     bool InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEngine::TShape>& oshape) override;
-     void SetSchema(void) override;
-
-
+    virtual ~DetectionOutput() {}
+    bool InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEngine::TShape>& oshape,
+                    int layout) override;
+    void SetSchema(void) override;
 };
 
-
-} //namespace TEngine
-
+}    // namespace TEngine
 
 #endif

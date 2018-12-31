@@ -1,6 +1,4 @@
-driver-$(CONFIG_CAFFE_REF)+=caffe/
 driver-$(CONFIG_ACL_GPU)+=acl_graph/
-driver-$(CONFIG_ACL_GPU)+=acl/
 
 obj-y+=cpu/ plugin/  $(driver-y)
 
@@ -15,10 +13,6 @@ CXXFLAGS+=
 
 COMMON_CFLAGS+=$(CONFIG_OPT_CFLAGS)
 COMMON_CFLAGS+= -Wall -g -fPIC  $(INC_DIR) 
-
-ifeq ($(CONFIG_CAFFE_REF),y)
-    COMMON_CFLAGS+= -DCONFIG_CAFFE_REF=1
-endif
 
 ifeq ($(CONFIG_ARCH_ARM64),y)
     COMMON_CFLAGS+= -DCONFIG_ARCH_ARM64=1

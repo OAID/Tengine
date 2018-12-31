@@ -35,4 +35,4 @@
 #include "caffe/io.hpp"
 #include "caffe.pb.h"
 
-#endif  // __CAFFE_CAFFE_HPP_
+#endif    // __CAFFE_CAFFE_HPP_

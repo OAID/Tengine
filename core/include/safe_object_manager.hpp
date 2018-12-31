@@ -26,168 +26,171 @@
 
 #include <mutex>
 #include "tengine_config.hpp"
-#include "tengine_lock.hpp"
 
 #include "simple_object_manager.hpp"
 
 namespace TEngine {
 
-template <typename M, typename T> 
-class SimpleObjectManagerWithLock: public  SimpleObjectManager<M,T> 
+template <typename M, typename T> class SimpleObjectManagerWithLock : public SimpleObjectManager<M, T>
 {
 public:
     static bool SafeFind(const std::string& name)
     {
-        auto manager=SimpleObjectManager<M,T>::GetInstance();
+        auto manager = SimpleObjectManager<M, T>::GetInstance();
 
         manager->Lock();
 
-        bool ret=true;
+        bool ret = true;
 
-        if(manager->count(name)==0)
-             ret=false;
+        if(manager->count(name) == 0)
+            ret = false;
 
-         manager->Unlock();
+        manager->Unlock();
 
-         return ret;
+        return ret;
     }
 
     static bool SafeGet(const std::string& name, T& val)
     {
-        auto manager=SimpleObjectManager<M,T>::GetInstance();
-        bool ret=true;
+        auto manager = SimpleObjectManager<M, T>::GetInstance();
+        bool ret = true;
 
         manager->Lock();
 
         if(manager->count(name))
-           val=(*manager)[name];
+            val = (*manager)[name];
         else
-            ret=false;
+            ret = false;
 
         manager->Unlock();
 
-         return ret;
+        return ret;
     }
 
     static bool SafeAdd(const std::string& name, const T& data)
     {
-        auto manager=SimpleObjectManager<M,T>::GetInstance();
+        auto manager = SimpleObjectManager<M, T>::GetInstance();
 
         manager->Lock();
 
         if(manager->count(name))
         {
-             manager->Unlock();
-             return false;
+            manager->Unlock();
+            return false;
         }
 
-        (*manager)[name]=data;
+        (*manager)[name] = data;
 
         manager->Unlock();
 
         return true;
     }
-
 
     static bool SafeReplace(const std::string& name, const T& data)
     {
-        auto manager=SimpleObjectManager<M,T>::GetInstance();
+        auto manager = SimpleObjectManager<M, T>::GetInstance();
 
         manager->Lock();
 
-        if(manager->count(name)==0)
+        if(manager->count(name) == 0)
         {
-             manager->Unlock();
+            manager->Unlock();
 
-             return false;
+            return false;
         }
-         
-        T& old_data=(*manager)[name];
+
+        T& old_data = (*manager)[name];
         FreeObject(old_data);
-        
-        (*manager)[name]=data;
+
+        (*manager)[name] = data;
 
         manager->Unlock();
 
         return true;
     }
 
-    static bool  SafeRemove(const std::string& name)
+    static bool SafeRemove(const std::string& name)
     {
-       auto manager=SimpleObjectManager<M,T>::GetInstance();
+        auto manager = SimpleObjectManager<M, T>::GetInstance();
 
-       manager->Lock();
+        manager->Lock();
 
-       auto ir=(*manager).begin();
-       auto end=(*manager).end();
+        auto ir = (*manager).begin();
+        auto end = (*manager).end();
 
-       while(ir!=end)
-       {
-           if(ir->first == name)
-           {
-               SimpleObjectManager<M,T>::FreeObject(ir->second);
-               manager->erase(ir);
+        while(ir != end)
+        {
+            if(ir->first == name)
+            {
+                SimpleObjectManager<M, T>::FreeObject(ir->second);
+                manager->erase(ir);
 
-               manager->Unlock();
-               return true;
-           }
+                manager->Unlock();
+                return true;
+            }
 
-           ir++;
-       }
-     
-       manager->Unlock();
-       return false;  
+            ir++;
+        }
+
+        manager->Unlock();
+        return false;
     }
 
-    static bool  SafeRemoveOnly(const std::string& name)
+    static bool SafeRemoveOnly(const std::string& name)
     {
-       auto manager=SimpleObjectManager<M,T>::GetInstance();
+        auto manager = SimpleObjectManager<M, T>::GetInstance();
 
-       manager->Lock();
+        manager->Lock();
 
-       auto ir=(*manager).begin();
-       auto end=(*manager).end();
+        auto ir = (*manager).begin();
+        auto end = (*manager).end();
 
-       while(ir!=end)
-       {
-           if(ir->first == name)
-           {
-               manager->erase(ir);
-               manager->Unlock();
-               return true;
-           }
+        while(ir != end)
+        {
+            if(ir->first == name)
+            {
+                manager->erase(ir);
+                manager->Unlock();
+                return true;
+            }
 
-           ir++;
-       }
+            ir++;
+        }
 
-       manager->Unlock();
-       return false;
-
+        manager->Unlock();
+        return false;
     }
 
-    ~SimpleObjectManagerWithLock() 
+    static void Get(void)
     {
+        auto manager = SimpleObjectManager<M, T>::GetInstance();
+
+        manager->Lock();
     }
 
+    static void Put(void)
+    {
+        auto manager = SimpleObjectManager<M, T>::GetInstance();
 
-   void Lock(void)
-   {
-       TEngineLock(my_mutex);
-   }
+        manager->Unlock();
+    }
 
-   void Unlock(void)
-   {
-       TEngineUnlock(my_mutex);
-   }
+    ~SimpleObjectManagerWithLock() {}
+
+    void Lock(void)
+    {
+        my_mutex.lock();
+    }
+
+    void Unlock(void)
+    {
+        my_mutex.unlock();
+    }
 
 private:
-   std::mutex my_mutex;
-    
+    std::mutex my_mutex;
 };
 
-
-
-
-} //namespace TEngine
+}    // namespace TEngine
 
 #endif

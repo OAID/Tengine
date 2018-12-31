@@ -33,84 +33,74 @@ namespace TEngine {
 
 void Tensor::Reshape(const TShape& shape)
 {
+    if(shape_ == shape)
+        return;
 
-   if(shape_==shape)
-         return;
+    reshaped_count_ = consumer.size();
 
-   reshaped_count_=consumer.size();
-
-   shape_=shape;
+    shape_ = shape;
 }
 
 void Tensor::UpdateReshapeCount(void)
 {
     reshaped_count_--;
 
-    if(reshaped_count_<0)
+    if(reshaped_count_ < 0)
     {
-	    LOG_ERROR()<<"tensor: "<<name_<<" has bad reshaped_count: "
-		       <<(int) reshaped_count_<<"\n";
+        LOG_ERROR() << "tensor: " << name_ << " has bad reshaped_count: " << ( int )reshaped_count_ << "\n";
     }
 }
 
-
 unsigned int Tensor::GetTotalSize(void) const
 {
-    const DataType * dtype=DataType::GetType(data_type_);
+    unsigned int elem_size = DataType::GetTypeSize(data_type_);
+    unsigned int elem_num = shape_.GetSize();
 
-    unsigned int elem_size=dtype->GetTypeSize();
-    unsigned int elem_num=shape_.GetSize();
-
-    return elem_size*elem_num;
+    return elem_size * elem_num;
 }
 
-Node * Tensor::GetConsumerNode(int idx)
+Node* Tensor::GetConsumerNode(int idx)
 {
-    NodePort * port=consumer[idx];
-    return port->owner;   
+    NodePort* port = consumer[idx];
+    return port->owner;
 }
 
 static std::string MapTypeToString(TensorType type)
 {
-   if(type == kVarTensor)
-       return "Var";
-   else if(type==kConstTensor)
-       return "Const";
-   else if(type == kInputTensor)
-       return "Input";
-   else
-       return "Unknown";
+    if(type == kVarTensor)
+        return "Var";
+    else if(type == kConstTensor)
+        return "Const";
+    else if(type == kInputTensor)
+        return "Input";
+    else
+        return "Unknown";
 }
 
-
-void  Tensor::DumpTensor(std::ostream& os) const
+void Tensor::DumpTensor(std::ostream& os) const
 {
-    os<<name_<<" type: "<<MapTypeToString(type_)<<"  Shape: ";
+    os << name_ << " type: " << MapTypeToString(type_) << " datatype: " << DataType::GetTypeName(data_type_)
+       << " Shape: ";
     shape_.DumpShape(os);
 }
 
-
 void Tensor::FreeMem(void)
 {
-    if(!ExistAttr("mem_addr"))
-        return;
+    FreeTensor();
 
-    void * mem=any_cast<void *>(GetAttr("mem_addr"));
-    std::free(mem);
+    if(static_tensor_)
+    {
+        if(static_tensor_->mem_addr)
+            std::free(static_tensor_->mem_addr);
 
-    RemoveAttr("mem_addr");
-
-   if(static_tensor_)
-   {
-       static_tensor_->mem_addr=nullptr;
-   }
+        static_tensor_->mem_addr = nullptr;
+        static_tensor_ = nullptr;
+    }
 }
 
-void Tensor::BindStaticTensor(StaticConstTensor * static_tensor)
+void Tensor::BindStaticTensor(StaticConstTensor* static_tensor)
 {
-    static_tensor_=static_tensor;
+    static_tensor_ = static_tensor;
 }
 
-
-} //namespace TEngine
-
+}    // namespace TEngine

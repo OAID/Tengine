@@ -31,42 +31,41 @@
 
 using namespace caffe;
 
-class caffe_mtcnn {
+class caffe_mtcnn
+{
+public:
+    caffe_mtcnn()
+    {
+        min_size_ = 40;
+        pnet_threshold_ = 0.6;
+        rnet_threshold_ = 0.7;
+        onet_threshold_ = 0.8;
+        factor_ = 0.709;
+    }
 
-    public:
-        caffe_mtcnn()
-        {
-            min_size_=40;
-            pnet_threshold_=0.6;
-            rnet_threshold_=0.7;
-            onet_threshold_=0.9;
-            factor_=0.709;
-        }
+    int load_model(const std::string& model_dir);
 
-        int load_model(const std::string& model_dir);
+    void detect(cv::Mat& img, std::vector<face_box>& face_list);
 
-        void detect(cv::Mat& img, std::vector<face_box>& face_list);
+    ~caffe_mtcnn();
 
-        ~caffe_mtcnn();
+protected:
+    void copy_one_patch(const cv::Mat& img, face_box& input_box, float* data_to, int width, int height);
+    int run_PNet(const cv::Mat& img, scale_window& win, std::vector<face_box>& box_list);
+    void run_RNet(const cv::Mat& img, std::vector<face_box>& pnet_boxes, std::vector<face_box>& output_boxes);
+    void run_ONet(const cv::Mat& img, std::vector<face_box>& rnet_boxes, std::vector<face_box>& output_boxes);
 
-    protected:
-        void copy_one_patch(const cv::Mat& img, face_box&input_box, float * data_to, int width, int height);
-        int  run_PNet(const cv::Mat& img, scale_window& win, std::vector<face_box>& box_list);
-        void run_RNet(const cv::Mat& img, std::vector<face_box>& pnet_boxes, std::vector<face_box>& output_boxes);
-        void run_ONet(const cv::Mat& img, std::vector<face_box>& rnet_boxes, std::vector<face_box>& output_boxes);
+public:
+    int min_size_;
+    float pnet_threshold_;
+    float rnet_threshold_;
+    float onet_threshold_;
+    float factor_;
 
-    public:
-        int min_size_;
-        float pnet_threshold_;
-        float rnet_threshold_;
-        float onet_threshold_;
-        float factor_;
-
-    private:
-        Net<float> * PNet_;
-        Net<float> * RNet_;
-        Net<float> * ONet_;
-
+private:
+    Net<float>* PNet_;
+    Net<float>* RNet_;
+    Net<float>* ONet_;
 };
 
-#endif  // __CAFFE_MTCNN_HPP__
+#endif    // __CAFFE_MTCNN_HPP__

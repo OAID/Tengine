@@ -28,26 +28,21 @@
 
 namespace TEngine {
 
-class PReLU:  public OperatorNoParam<PReLU>{
-
+class PReLU : public OperatorNoParam<PReLU>
+{
 public:
+    PReLU()
+    {
+        name_ = "PReLU";
+    }
+    PReLU(const PReLU&) = default;
+    virtual ~PReLU(){};
 
-      PReLU() { name_="PReLU";}
-      PReLU(const PReLU& )=default;
-      virtual ~PReLU() {};
+    float GetFops(const std::vector<TShape>& inputs, const std::vector<TShape>& outputs) override;
 
-      float GetFops(const std::vector<TShape>& inputs, const std::vector<TShape>& outputs) override;
- 
-      void SetSchema(void) override;
+    void SetSchema(void) override;
 };
 
-
- 
-
-
-
-} //namespace TEngine
-
-
+}    // namespace TEngine
 
 #endif

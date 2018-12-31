@@ -2,7 +2,6 @@
 #second col: test script
 
 example tests/example.sh
-#test_quick_api tests/quick_api.sh
 imagenet_sqz tests/imagenet_sqz.sh
 imagenet_mobilenet tests/imagenet_mobilenet.sh
 imagenet_resnet50 tests/imagenet_resnet50.sh
@@ -14,7 +13,7 @@ imagenet_vgg16 tests/imagenet_vgg16.sh
 ssd tests/ssd.sh
 mssd tests/mssd.sh
 yolov2 tests/yolov2.sh
-faster_rcnn tests/faster_rcnn.sh
+#faster_rcnn tests/faster_rcnn.sh
 mtcnn tests/mtcnn.sh
 lighten_cnn tests/lighten_cnn.sh
 caffe_wrapper_sqz tests/caffe_wrapper_sqz.sh

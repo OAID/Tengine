@@ -31,12 +31,12 @@
 #include "generic_factory.hpp"
 
 #define EXEC_STATUS_CREATED 0
-#define EXEC_STATUS_INITED   1
-#define EXEC_STATUS_WAIT      2
-#define EXEC_STATUS_READY    3
-#define EXEC_STATUS_RUN        4
-#define EXEC_STATUS_DONE      5
-#define EXEC_STATUS_BAD        6
+#define EXEC_STATUS_INITED 1
+#define EXEC_STATUS_WAIT 2
+#define EXEC_STATUS_READY 3
+#define EXEC_STATUS_RUN 4
+#define EXEC_STATUS_DONE 5
+#define EXEC_STATUS_BAD 6
 #define EXEC_STATUS_INVALID 7
 
 namespace TEngine {
@@ -46,55 +46,65 @@ class GraphExecutor;
 class Tensor;
 struct ExecEngine;
 
-using exec_status_t=any;
-using exec_event_t=any;
-using exec_cb_t=std::function<void(GraphExecutor *, ExecEngine *, int event, int status)>;
-using exec_handle_t=any *;
+using exec_status_t = any;
+using exec_event_t = any;
+using exec_cb_t = std::function<void(GraphExecutor*, ExecEngine*, int event, int status)>;
+using exec_handle_t = any*;
 
-struct ExecEngine 
+struct ExecEngine
 {
     virtual void Test(void) {}
-    virtual exec_handle_t AddGraphExecutor(GraphExecutor *)=0;
+    virtual exec_handle_t AddGraphExecutor(GraphExecutor*) = 0;
 
-    virtual void * GetTensorBuffer(Tensor *,exec_handle_t=nullptr)=0;
-    virtual bool SetTensorBuffer(Tensor *, void *, int, exec_handle_t=nullptr)=0;
-    virtual bool   Prerun(exec_handle_t)=0;
+    virtual void* GetTensorBuffer(Tensor*, exec_handle_t = nullptr) = 0;
+    virtual bool SetTensorBuffer(Tensor*, void*, int, exec_handle_t = nullptr) = 0;
+    virtual bool Prerun(exec_handle_t) = 0;
 
-    virtual bool Run(exec_handle_t,exec_event_t&)=0;
-    virtual bool SyncRun(exec_handle_t)=0;
-    virtual int  Wait(exec_handle_t,exec_event_t&,int try_wait=0)=0;
-    virtual bool SetCallback(exec_handle_t, exec_event_t&, int event, exec_cb_t)=0;
+    virtual bool Run(exec_handle_t, exec_event_t&) = 0;
+    virtual bool SyncRun(exec_handle_t) = 0;
+    virtual int Wait(exec_handle_t, exec_event_t&, int try_wait = 0) = 0;
+    virtual bool SetCallback(exec_handle_t, exec_event_t&, int event, exec_cb_t) = 0;
 
-    virtual bool Postrun(exec_handle_t)=0;
+    virtual bool Postrun(exec_handle_t) = 0;
 
-	virtual bool GetGraphAttr(exec_handle_t,const char *, void *, int)=0;
-	virtual bool SetGraphAttr(exec_handle_t,const char *, const void *, int)=0;
+    virtual bool GetGraphAttr(exec_handle_t, const char*, void*, int) = 0;
+    virtual bool SetGraphAttr(exec_handle_t, const char*, const void*, int) = 0;
 
-    virtual exec_status_t GetStatus(exec_handle_t)=0;
+    virtual exec_status_t GetStatus(exec_handle_t) = 0;
+    virtual bool SetEventHook(exec_handle_t, int event, event_handler_t cb_func, void* cb_arg) = 0;
 
-    virtual int GetStatusCode(const exec_status_t&)=0;
-    virtual const std::string& GetStatusStr(const exec_status_t&)=0; 
+    virtual int GetStatusCode(const exec_status_t&) = 0;
+    virtual const std::string& GetStatusStr(const exec_status_t&) = 0;
 
-    virtual std::string    GetErrorStr(exec_handle_t)=0;
+    virtual std::string GetErrorStr(exec_handle_t) = 0;
 
-    virtual bool RemoveGraphExecutor(exec_handle_t)=0;
+    virtual bool RemoveGraphExecutor(exec_handle_t) = 0;
 
-    virtual Graph * GetOptimizedGraph(exec_handle_t) { return nullptr;}
-    virtual bool OptimizeGraph(exec_handle_t) { return false;}
-   
-    virtual ~ExecEngine(){}
-	
-    const std::string& GetName() { return name;}
+    virtual Graph* GetOptimizedGraph(exec_handle_t)
+    {
+        return nullptr;
+    }
+    virtual bool OptimizeGraph(exec_handle_t)
+    {
+        return false;
+    }
+
+    virtual ~ExecEngine() {}
+
+    const std::string& GetName()
+    {
+        return name;
+    }
     std::string name;
-	
 };
 
-using ExecEnginePtr=std::shared_ptr<ExecEngine>;
-using ExecEngFactory=SpecificFactory<ExecEngine>;
+using ExecEnginePtr = std::shared_ptr<ExecEngine>;
+using ExecEngFactory = SpecificFactory<ExecEngine>;
 
-class ExecEngineManager: public SimpleObjectManagerWithLock<ExecEngineManager,ExecEnginePtr> {};
+class ExecEngineManager : public SimpleObjectManagerWithLock<ExecEngineManager, ExecEnginePtr>
+{
+};
 
-} //namespace TEngine
-
+}    // namespace TEngine
 
 #endif

@@ -102,7 +102,6 @@ TF_Graph* TF_NewGraph()
 {
     TF_Graph* graph = new TF_Graph;
     graph->prerun_already = false;
-    graph->model_name = nullptr;
     graph->graph_exe = nullptr;
     return graph;
 }
@@ -112,11 +111,8 @@ void TF_DeleteGraph(TF_Graph* g)
     if(!g)
     {
         postrun_graph(g->graph_exe);
-        destroy_runtime_graph(g->graph_exe);
+        destroy_graph(g->graph_exe);
     }
-
-    if(!g->model_name)
-        remove_model(g->model_name);
 
     delete g;
 }
@@ -136,7 +132,7 @@ void TF_GraphImportGraphDef(TF_Graph* graph, const TF_Buffer* graph_def,
                             const TF_ImportGraphDefOptions* options,
                             TF_Status* status)
 {
-    init_tengine_library();
+    init_tengine();
 
     // store the content of TF_Buffer in a temporary file
     string temp_modfile =  "/tmp/tf_modfile_";
@@ -152,25 +148,14 @@ void TF_GraphImportGraphDef(TF_Graph* graph, const TF_Buffer* graph_def,
         fs.put(*((char *)graph_def->data + i));
     fs.close();
 
-    // Load model and create static graph
-    graph->model_name = temp_modfile.c_str();
-    if(load_model(temp_modfile.c_str(), "tensorflow", temp_modfile.c_str()) < 0)
+    // Create graph
+    graph->graph_exe = create_graph(nullptr, "tensorflow", temp_modfile.c_str());
+    if(graph->graph_exe == nullptr)
     {
-        status->status = Status(TF_INVALID_ARGUMENT, "Load model failed");
+        status->status = Status(TF_INVALID_ARGUMENT, "Create graph failed");
         return;
     }
 
-    //dump_model(temp_modfile.c_str());
-
-    // Create runtime graph
-    graph->graph_exe = create_runtime_graph("graph0", graph->model_name, NULL);
-    if(!check_graph_valid(graph->graph_exe))
-    {
-        status->status = Status(TF_INVALID_ARGUMENT, "Create graph0 failed");
-        return;
-    }
-
-    //dump_graph(graph);
 }
 
 TF_Graph::~TF_Graph()
@@ -240,8 +225,7 @@ void TF_SessionRun(TF_Session* session, const TF_Buffer* run_options,
     for(int i = 0; i < ninputs; ++i)
     {
         // set input tensor shape
-        const char * tensor_name = get_node_output_tensor(graph, input_node_name[i], 0);
-        tensor_t input_tensor = get_graph_tensor(graph, tensor_name);
+        tensor_t input_tensor = get_graph_input_tensor(graph,i,0);
 
         vector<int> shape = input_values[i]->shape;
         int dims[4];
@@ -257,36 +241,31 @@ void TF_SessionRun(TF_Session* session, const TF_Buffer* run_options,
             status->status = Status(TF_INVALID_ARGUMENT, "Set input tensor buffer failed");
             return;
         }
+
+        release_graph_tensor(input_tensor);
     }
 
     // prerun the graph
-    if(session->graph->prerun_already == true)
+    if(!session->graph->prerun_already)
     {
-        postrun_graph(graph);
+        if(prerun_graph(graph) < 0)
+        {
+            status->status = Status(TF_INTERNAL, "Graph prerun failed");
+            return;
+        }
+        else
+            session->graph->prerun_already = true;
     }
-    prerun_graph(graph);
-    session->graph->prerun_already = true;
 
     // set output tensor
     for(int i = 0; i < noutputs; ++i)
     {
-        // get output tensor shape
-        const char * tensor_name = get_node_output_tensor(graph, output_node_name[i], 0);
-        tensor_t output_tensor = get_graph_tensor(graph, tensor_name);
+        tensor_t output_tensor = get_graph_output_tensor(graph,i,0);
 
-        int dims[4];
-        get_tensor_shape(output_tensor, dims, 4);
-        int count = dims[0]*dims[1]*dims[2]*dims[3]*4;
-
-        // set output tensor buffer
-        void * output_data = malloc(count);
-        memset(output_data, 0x0, count);
-
-        if(set_tensor_buffer(output_tensor, output_data, count))
-        {
-            status->status = Status(TF_INVALID_ARGUMENT, "Set output tensor buffer failed");
-            return;
-        }
+        int dims[4] = {0, 0, 0, 0};
+        int num_dims = get_tensor_shape(output_tensor, dims, 4);
+        int count = get_tensor_buffer_size(output_tensor);
+        void *output_data = get_tensor_buffer(output_tensor);
 
         if(!output_values[i])
         {
@@ -295,10 +274,12 @@ void TF_SessionRun(TF_Session* session, const TF_Buffer* run_options,
             tf_dims[1] = dims[2];
             tf_dims[2] = dims[3];
             tf_dims[3] = dims[1];
-            output_values[i] = TF_NewTensor(TF_FLOAT, tf_dims, 4, output_data, count, nullptr, nullptr);
+            output_values[i] = TF_NewTensor(TF_FLOAT, tf_dims, num_dims, output_data, count, nullptr, nullptr);
         }
         else
             output_values[i]->data = output_data;
+
+        release_graph_tensor(output_tensor);
     }
 
     // run the graph

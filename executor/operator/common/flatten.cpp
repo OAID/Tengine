@@ -31,30 +31,28 @@
 #include "tensor_mem.hpp"
 #include "graph.hpp"
 #include "operator/flatten.hpp"
-#include<math.h>
+#include <math.h>
 
 namespace TEngine {
 
-
 namespace FlattenImpl {
 
-
-struct FlattenOps: public NodeOps {
-
-bool OnBind(Node * node) override
+struct FlattenOps : public NodeOps
 {
-	 //set the inplace feature
-	 inplace_t io_map;
+    bool OnBind(Node* node) override
+    {
+        // set the inplace feature
+        inplace_t io_map;
 
-	io_map[0]=0;
+        io_map[0] = 0;
 
-	node->SetAttr(ATTR_INPLACE,io_map);
+        node->SetAttr(ATTR_INPLACE, io_map);
 
-     return true;
-}
+        return true;
+    }
 
-bool Run(Node * node) override
-{
+    bool Run(Node* node) override
+    {
 #if 0
     const Tensor * input_tensor=node->GetInputTensor(0);
     Tensor * output_tensor=node->GetOutputTensor(0);
@@ -71,22 +69,19 @@ bool Run(Node * node) override
     }
 #endif
 
-    return true;
-}
-
+        return true;
+    }
 };
 
-} //namespace FlattenImpl
+}    // namespace FlattenImpl
 
 using namespace FlattenImpl;
 
 void RegisterFlattenNodeExec(void)
 {
-    FlattenOps * ops=new FlattenOps();
+    FlattenOps* ops = new FlattenOps();
 
-    NodeOpsRegistryManager::RegisterOPImplementor("common",
-                "Flatten",ops);
+    NodeOpsRegistryManager::RegisterOPImplementor("common", "Flatten", ops);
 }
 
-
-} //namespace TEngine
+}    // namespace TEngine

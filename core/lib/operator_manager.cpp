@@ -26,72 +26,68 @@
 #include "operator.hpp"
 #include "operator_manager.hpp"
 
-
 namespace TEngine {
 
 any OpManager::GetOpDefParam(const std::string& op_name)
 {
-	Operator * op;
+    Operator* op;
 
-        if(SafeGet(op_name,op))
-	   return op->GetDefParam();
-        else
-            return any();
+    if(SafeGet(op_name, op))
+        return op->GetDefParam();
+    else
+        return any();
 }
-
 
 bool OpManager::AddOpAttr(const std::string& op_name, const std::string& attr_name, const any& val)
 {
-	Operator * op;
+    Operator* op;
 
-        if(!SafeGet(op_name,op))
-           return false;
+    if(!SafeGet(op_name, op))
+        return false;
 
-	op->SetAttr(attr_name,val);
+    op->SetAttr(attr_name, val);
 
-	return true;
+    return true;
 }
 
 bool OpManager::RemoveOpAttr(const std::string& op_name, const std::string& attr_name)
 {
-	Operator * op;
+    Operator* op;
 
-        if(!SafeGet(op_name,op))
-           return false;
+    if(!SafeGet(op_name, op))
+        return false;
 
-	if(!op->ExistAttr(attr_name))
-		return false;
+    if(!op->ExistAttr(attr_name))
+        return false;
 
-	op->RemoveAttr(attr_name);
+    op->RemoveAttr(attr_name);
 
-	return true;
+    return true;
 }
 
-bool OpManager::GetOpAttr(const std::string& op_name,const std::string& attr_name, any& val)
+bool OpManager::GetOpAttr(const std::string& op_name, const std::string& attr_name, any& val)
 {
-	Operator * op;
+    Operator* op;
 
-        if(!SafeGet(op_name,op))
-           return false;
+    if(!SafeGet(op_name, op))
+        return false;
 
-	if(!op->ExistAttr(attr_name))
-		return false;
+    if(!op->ExistAttr(attr_name))
+        return false;
 
-	val=op->GetAttr(attr_name);
+    val = op->GetAttr(attr_name);
 
-	return true;
+    return true;
 }
 
-Operator * OpManager::CreateOp(const std::string& op_name)
+Operator* OpManager::CreateOp(const std::string& op_name)
 {
-	Operator * op;
+    Operator* op;
 
-        if(!SafeGet(op_name,op))
-           return nullptr;
+    if(!SafeGet(op_name, op))
+        return nullptr;
 
-        return op->Clone();
+    return op->Clone();
 }
 
-
-
-} //namespace TEngine
+}    // namespace TEngine

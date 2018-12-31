@@ -66,12 +66,6 @@ $(BUILD_DIR)/%: $(BUILD_DIR)/%.o
 	$(LD) $(LDFLAGS) $< $(COMMON_OBJS) -o $@  $(LIBS) $(SO_LIBS)
 
 
-ifeq ($(CONFIG_CAFFE_REF),y)
-    CAFFE_LIBS+=-Wl,-rpath,$(CAFFE_ROOT)/build/lib -L$(CAFFE_ROOT)/build/lib -lcaffe
-    CAFFE_LIBS+= -lprotobuf -lboost_system -lglog
-    SO_LIBS+=$(CAFFE_LIBS)
-endif
-
 OPENCV_LIB=$(shell pkg-config --libs-only-l --libs-only-L opencv) 
 
 LIBS+=-L ../build/ -ltengine -Wl,-allow-shlib-undefined

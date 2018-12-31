@@ -14,7 +14,7 @@ make install
 ```
 build as ${TENGINE_ROOT}/examples/readme.md
 
-## Convert
+## Run
 - go to the directory of the executive program
 
     ```
@@ -30,9 +30,9 @@ build as ${TENGINE_ROOT}/examples/readme.md
 
     ```
     ./convert_caffe_to_tm -p ~/tengine/models/sqz.prototxt -m ~/tengine/models/squeezenet_v1.1.caffemodel 
-                          -o ~/tengine/tengine_models/squeezenet.tmfile
+                          -o ~/tengine/models/squeezenet.tmfile
 
     ./convert_caffe_to_tm -p ~/tengine/models/mobilenet_deploy.prototxt -m ~/tengine/models/mobilenet.caffemodel 
-                          -o ~/tengine/tengine_models/mobilenet.tmfile
+                          -o ~/tengine/models/mobilenet.tmfile
     ```
 

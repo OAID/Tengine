@@ -28,20 +28,19 @@
 #include "slice_param.hpp"
 namespace TEngine {
 
-class Slice: public OperatorWithParam<Slice, SliceParam> {
-
+class Slice : public OperatorWithParam<Slice, SliceParam>
+{
 public:
-
-      Slice() { name_="Slice";}
-      Slice(const Slice& src)=default;
-      virtual ~Slice() {};
-      bool InferShape(const std::vector<TEngine::TShape>&, std::vector<TEngine::TShape>&) override;
-      void SetSchema(void) override;
- 
+    Slice()
+    {
+        name_ = "Slice";
+    }
+    Slice(const Slice& src) = default;
+    virtual ~Slice(){};
+    bool InferShape(const std::vector<TEngine::TShape>&, std::vector<TEngine::TShape>&, int) override;
+    void SetSchema(void) override;
 };
 
-} //namespace TEngine
-
-
+}    // namespace TEngine
 
 #endif

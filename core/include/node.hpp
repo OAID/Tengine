@@ -35,280 +35,314 @@ namespace TEngine {
 
 class Node;
 
-struct NodePort {
-    Node * owner;
+struct NodePort
+{
+    Node* owner;
     int port_index;
-    Tensor * tensor;
+    Tensor* tensor;
 };
 
-using NodePortPtr=std::shared_ptr<NodePort>;
+using NodePortPtr = std::shared_ptr<NodePort>;
 
-class Node : public BaseObject {
-
+class Node : public BaseObject
+{
 public:
+    ~Node() {}
 
-    ~Node() { }
-
-    Node(const std::string& name)  { name_=name; op_=nullptr;dynamic_shape_=false;}
-
-    Operator * GetOp(void) const {return op_.get();}
-
-    unsigned int GetInputNum(void)  const { return inputs_.size(); }
-    unsigned int GetOutputNum(void) const { return outputs_.size(); }
-
-    int GetNodeIndex(void) const { return index_;}
-    const std::string& GetName(void) const { return name_;}
-
-    Tensor * GetInputTensor(int idx) 
+    Node(const std::string& name)
     {
-         NodePort * ptr=GetNodePort(inputs_,idx);
+        name_ = name;
+        op_ = nullptr;
+        dynamic_shape_ = false;
+    }
 
-        if(ptr==nullptr)
+    Operator* GetOp(void) const
+    {
+        return op_.get();
+    }
+
+    unsigned int GetInputNum(void) const
+    {
+        return inputs_.size();
+    }
+    unsigned int GetOutputNum(void) const
+    {
+        return outputs_.size();
+    }
+
+    int GetNodeIndex(void) const
+    {
+        return index_;
+    }
+    const std::string& GetName(void) const
+    {
+        return name_;
+    }
+
+    Tensor* GetInputTensor(int idx)
+    {
+        NodePort* ptr = GetNodePort(inputs_, idx);
+
+        if(ptr == nullptr)
             return nullptr;
 
         return ptr->tensor;
     }
 
-    const Tensor * GetInputTensor(int idx) const 
-    { 
-        const NodePort * ptr=GetNodePort(inputs_,idx);
+    const Tensor* GetInputTensor(int idx) const
+    {
+        const NodePort* ptr = GetNodePort(inputs_, idx);
 
-        if(ptr==nullptr)
+        if(ptr == nullptr)
             return nullptr;
 
-        return ptr->tensor; 
+        return ptr->tensor;
     }
 
-    Tensor * GetOutputTensor(int idx) 
+    Tensor* GetOutputTensor(int idx)
     {
-        NodePort * ptr=GetNodePort(outputs_,idx);
+        NodePort* ptr = GetNodePort(outputs_, idx);
 
-        if(ptr==nullptr)
+        if(ptr == nullptr)
             return nullptr;
 
-        return ptr->tensor; 
+        return ptr->tensor;
     }
 
-    const Tensor * GetOutputTensor(int idx) const 
+    const Tensor* GetOutputTensor(int idx) const
     {
-        const NodePort * ptr=GetNodePort(outputs_,idx);
+        const NodePort* ptr = GetNodePort(outputs_, idx);
 
-        if(ptr==nullptr)
+        if(ptr == nullptr)
             return nullptr;
 
-        return ptr->tensor; 
+        return ptr->tensor;
     }
 
-    NodePort * GetInputPort (int idx)
+    NodePort* GetInputPort(int idx)
     {
-        NodePort * ptr=GetNodePort(inputs_,idx);
+        NodePort* ptr = GetNodePort(inputs_, idx);
 
-        if(ptr==nullptr)
+        if(ptr == nullptr)
             return nullptr;
 
         return ptr;
     }
-    const NodePort * GetInputPort (int idx) const
+    const NodePort* GetInputPort(int idx) const
     {
-        const NodePort * ptr=GetNodePort(inputs_,idx);
+        const NodePort* ptr = GetNodePort(inputs_, idx);
 
-        if(ptr==nullptr)
+        if(ptr == nullptr)
             return nullptr;
 
         return ptr;
     }
 
-    Tensor * GetInputTensorSeq(int idx)
+    Tensor* GetInputTensorSeq(int idx)
     {
         return GetInputPortSeq(idx)->tensor;
     }
 
-    NodePort * GetInputPortSeq (int idx)
+    NodePort* GetInputPortSeq(int idx)
     {
         return inputs_[idx].get();
     }
 
-    Tensor * GetOutputTensorSeq(int idx)
+    Tensor* GetOutputTensorSeq(int idx)
     {
         return GetOutputPortSeq(idx)->tensor;
     }
 
-    NodePort * GetOutputPortSeq (int idx)
+    NodePort* GetOutputPortSeq(int idx)
     {
         return outputs_[idx].get();
     }
 
-    const NodePort * GetOutputPort (int idx) const
+    const NodePort* GetOutputPort(int idx) const
     {
-        const NodePort * ptr=GetNodePort(outputs_,idx);
+        const NodePort* ptr = GetNodePort(outputs_, idx);
 
-        if(ptr==nullptr)
+        if(ptr == nullptr)
             return nullptr;
 
         return ptr;
     }
 
-    NodePort * GetOutputPort (int idx) 
+    NodePort* GetOutputPort(int idx)
     {
-        NodePort * ptr=GetNodePort(outputs_,idx);
+        NodePort* ptr = GetNodePort(outputs_, idx);
 
-        if(ptr==nullptr)
+        if(ptr == nullptr)
             return nullptr;
 
         return ptr;
     }
 
-    NodePort * GetNodePort(std::vector<NodePortPtr>& port_list, int idx)
+    NodePort* GetNodePort(std::vector<NodePortPtr>& port_list, int idx)
     {
-         auto ir=port_list.begin();
+        auto ir = port_list.begin();
 
-         while(ir!=port_list.end())
-         {
-             if((*ir)->port_index==idx)
-                  return (*ir).get();
-
-              ir++;
-         }
-
-         return nullptr;
-    }
-
-    const NodePort * GetNodePort(const std::vector<NodePortPtr>& port_list, int idx) const
-    {
-         auto ir=port_list.begin();
-
-         while(ir!=port_list.end())
-         {
-             if((*ir)->port_index==idx)
-                  return (*ir).get();
-              ir++;
-         }
-
-         return nullptr;
-    }
-
-    void AddInputTensor(Tensor * tensor) 
-    {
-       int idx=inputs_.size();
-
-       SetInputPort(idx,tensor);
-    }
-
-    void AddOutputTensor(Tensor * tensor) 
-    { 
-       int idx=outputs_.size();
-
-       SetOutputPort(idx,tensor);
-    }
-
-    void SetInputPort(unsigned int idx, Tensor * tensor) 
-    { 
-
-        SetNodePort(inputs_,idx,tensor);
-    }
-
-    void SetOutputPort(int idx, Tensor * tensor)
-    {
-        SetNodePort(outputs_,idx,tensor);
-    }
-
-    void SetNodePort(std::vector<NodePortPtr>& port_list, int idx, Tensor * tensor)
-    {
-        NodePort * port=new NodePort();
-
-        port->owner=this;
-        port->port_index=idx;
-        port->tensor=tensor;
-        auto ir=port_list.begin();
-
-        while(ir!=port_list.end())
+        while(ir != port_list.end())
         {
-            if((*ir)->port_index==idx)
-             {
-               (*ir).reset(port);
-               return;
-             }
-              ir++;
+            if((*ir)->port_index == idx)
+                return (*ir).get();
+
+            ir++;
         }
 
+        return nullptr;
+    }
+
+    const NodePort* GetNodePort(const std::vector<NodePortPtr>& port_list, int idx) const
+    {
+        auto ir = port_list.begin();
+
+        while(ir != port_list.end())
+        {
+            if((*ir)->port_index == idx)
+                return (*ir).get();
+            ir++;
+        }
+
+        return nullptr;
+    }
+
+    void AddInputTensor(Tensor* tensor)
+    {
+        int idx = inputs_.size();
+
+        SetInputPort(idx, tensor);
+    }
+
+    void AddOutputTensor(Tensor* tensor)
+    {
+        int idx = outputs_.size();
+
+        SetOutputPort(idx, tensor);
+    }
+
+    void SetInputPort(unsigned int idx, Tensor* tensor)
+    {
+        SetNodePort(inputs_, idx, tensor);
+    }
+
+    void SetOutputPort(int idx, Tensor* tensor)
+    {
+        SetNodePort(outputs_, idx, tensor);
+    }
+
+    void SetNodePort(std::vector<NodePortPtr>& port_list, int idx, Tensor* tensor)
+    {
+        NodePort* port = new NodePort();
+
+        port->owner = this;
+        port->port_index = idx;
+        port->tensor = tensor;
+        auto ir = port_list.begin();
+
+        while(ir != port_list.end())
+        {
+            if((*ir)->port_index == idx)
+            {
+                (*ir).reset(port);
+                return;
+            }
+            ir++;
+        }
 
         port_list.push_back(NodePortPtr(port));
-        
     }
 
     bool RemoveOutputPort(int idx)
     {
-        return RemoveNodePort(outputs_,idx);
+        return RemoveNodePort(outputs_, idx);
     }
 
     bool RemoveInputPort(int idx)
     {
-        return RemoveNodePort(inputs_,idx);
+        return RemoveNodePort(inputs_, idx);
     }
 
     bool RemoveNodePort(std::vector<NodePortPtr>& port_list, int idx)
     {
-        auto ir=port_list.begin();
-        
-        while(ir!=port_list.end())
+        auto ir = port_list.begin();
+
+        while(ir != port_list.end())
         {
-            if((*ir)->port_index==idx)
-             {
-               port_list.erase(ir);
-               return true;
-             }
-              ir++;
+            if((*ir)->port_index == idx)
+            {
+                port_list.erase(ir);
+                return true;
+            }
+            ir++;
         }
 
         return false;
     }
 
-	void MergeAttr(Node * orig);
+    void MergeAttr(Node* orig);
 
-    std::vector<NodePortPtr>& GetAllInputs(void) { return inputs_;}
-    std::vector<NodePortPtr>& GetAllOutputs(void) { return outputs_;}
-     
+    std::vector<NodePortPtr>& GetAllInputs(void)
+    {
+        return inputs_;
+    }
+    std::vector<NodePortPtr>& GetAllOutputs(void)
+    {
+        return outputs_;
+    }
 
-    void SetOp(Operator * op) {return op_.reset(op);}
+    void SetOp(Operator* op)
+    {
+        return op_.reset(op);
+    }
 
-    void SetNodeIndex(int idx)   {index_=idx;}
-    void SetName(const std::string& n) {name_=n;}
+    void SetNodeIndex(int idx)
+    {
+        index_ = idx;
+    }
+    void SetName(const std::string& n)
+    {
+        name_ = n;
+    }
 
     void DumpNode(void);
 
     float GetFops(void);
 
-    bool IsDynamicShape(void) { return dynamic_shape_;}
-    bool SetDynamicShape(bool val) { dynamic_shape_=val; return true; }
+    bool IsDynamicShape(void)
+    {
+        return dynamic_shape_;
+    }
+    bool SetDynamicShape(bool val)
+    {
+        dynamic_shape_ = val;
+        return true;
+    }
 
-    bool InputReshaped(void)  { 
-	                         Tensor * input=GetInputTensor(0);
-                                 return input->Reshaped(); 
-                              }
+    bool InputReshaped(void)
+    {
+        Tensor* input = GetInputTensor(0);
+        return input->Reshaped();
+    }
 
-	/* 
-	   please note here the idx just for node,
-	   does not represent the tensor idx in in/out
-	*/
+    /*
+       please note here the idx just for node,
+       does not represent the tensor idx in in/out
+    */
 
     int GetParentNum(void);
-    Node * GetParentNode(int idx);
-
+    Node* GetParentNode(int idx);
 
 protected:
-     OperatorPtr op_;
-     std::vector<NodePortPtr> inputs_;
-     std::vector<NodePortPtr> outputs_;
+    OperatorPtr op_;
+    std::vector<NodePortPtr> inputs_;
+    std::vector<NodePortPtr> outputs_;
 
-     std::string name_;
-     int  index_; //index in seq node list of graph
-     bool dynamic_shape_;
-
-     void* rep_id;
+    std::string name_;
+    int index_;    // index in seq node list of graph
+    bool dynamic_shape_;
 };
 
-
-
-} //namespace TEngine
+}    // namespace TEngine
 
 #endif

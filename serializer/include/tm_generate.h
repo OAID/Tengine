@@ -30,9 +30,9 @@
 extern "C" {
 #endif
 
-tm_uoffset_t WriteTmFileAlign1(void * const start_ptr, tm_uoffset_t *cur_pos,  const void *buf, const tm_size_t buf_size);
-tm_uoffset_t WriteTmFileAlign4(void * const start_ptr, tm_uoffset_t *cur_pos, const void *buf, const tm_size_t buf_size);
-tm_uoffset_t WriteTmObject(void * const start_ptr, tm_uoffset_t *cur_pos, const void *buf, const tm_size_t buf_size);
+tm_uoffset_t WriteTmFileAlign1(void* const start_ptr, tm_uoffset_t* cur_pos, const void* buf, const tm_size_t buf_size);
+tm_uoffset_t WriteTmFileAlign4(void* const start_ptr, tm_uoffset_t* cur_pos, const void* buf, const tm_size_t buf_size);
+tm_uoffset_t WriteTmObject(void* const start_ptr, tm_uoffset_t* cur_pos, const void* buf, const tm_size_t buf_size);
 
 #ifdef __cplusplus
 }

@@ -25,15 +25,13 @@
 
 namespace TEngine {
 
-
 void Region::SetSchema(void)
 {
-  Input({"input:float32"})
-  .Output({"output:float32"})
-  .SetLayout("NCHW")
-  .SetAttr("num_classes",1)
-  .SetDoc(R"DOC(Region Operator)DOC");
+    Input({"input:float32"})
+        .Output({"output:float32"})
+        .SetLayout("NCHW")
+        .SetAttr("num_classes", 1)
+        .SetDoc(R"DOC(Region Operator)DOC");
 }
 
-
-} //namespace TEngine
+}    // namespace TEngine

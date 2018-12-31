@@ -24,93 +24,99 @@
 #include <iostream>
 #include <functional>
 #include <stdlib.h>
+#include <math.h>
 
 #include "logger.hpp"
 #include "node_ops.hpp"
 #include "tensor_mem.hpp"
 #include "graph.hpp"
 #include "operator/scale.hpp"
-#include <math.h>
+#include "data_type.hpp"
 
-namespace TEngine
-{
+namespace TEngine {
 
-namespace ScaleImpl
+namespace ScaleImpl {
+
+template <typename data_type>
+void kernel_run(void* in_data, void* out_data, void* gamma_data, void* beta_data, const TShape shape)
 {
+    const std::vector<int> dims = shape.GetDim();
+    int batch_number = dims[0];
+    int channel_num = dims[1];
+    int channel_size = dims[2] * dims[3];
+    int img_size = channel_num * channel_size;
+
+    data_type* input = ( data_type* )in_data;
+    data_type* gamma = ( data_type* )gamma_data;
+    data_type* beta = ( data_type* )beta_data;
+    data_type* output = ( data_type* )out_data;
+
+    for(int i = 0; i < batch_number; i++)
+    {
+        for(int c = 0; c < channel_num; c++)
+        {
+            int offset = i * img_size + c * channel_size;
+            for(int l = 0; l < channel_size; l++)
+            {
+                if(beta != nullptr)
+                    output[offset + l] = input[offset + l] * gamma[c] + beta[c];
+                else
+                    output[offset + l] = input[offset + l] * gamma[c];
+            }
+        }
+    }
+}
 
 struct ScaleOps : public NodeOps
 {
-
-
-
-    bool Run(Node * node)
+    bool Run(Node* node)
     {
+        const Tensor* input_tensor = node->GetInputTensor(0);
+        const Tensor* gamma_tensor = node->GetInputTensor(1);
+        const Tensor* beta_tensor = node->GetInputTensor(2);
+        Tensor* output_tensor = node->GetOutputTensor(0);
+        const TShape& shape = input_tensor->GetShape();
 
-        const Tensor * input_tensor=node->GetInputTensor(0);
-        const Tensor * gamma_tensor=node->GetInputTensor(1);
-        const Tensor * beta_tensor=node->GetInputTensor(2);
-        Tensor * output_tensor=node->GetOutputTensor(0);
-        const TShape&  shape=input_tensor->GetShape();
-        const std::vector<int> dims=shape.GetDim();
+        int element_size = DataType::GetTypeSize(input_tensor->GetDataType());
 
-        int batch_number=dims[0];
-        int channel_num=dims[1];
-        int channel_size=dims[2]*dims[3];
-        int img_size=channel_num*channel_size;
+        void* input = get_tensor_mem(input_tensor);
+        void* gamma = get_tensor_mem(gamma_tensor);
+        void* output = get_tensor_mem(output_tensor);
+        void* beta = nullptr;
 
-
-        const float * input=(const float *)get_tensor_mem(input_tensor);
-        float * gamma=(float *)get_tensor_mem(gamma_tensor);
-        float * output=(float *)get_tensor_mem(output_tensor);
-
-        if(beta_tensor==nullptr)
+        if(beta_tensor != nullptr)
         {
-            for(int i=0;i<batch_number;i++)
-            {
-                for(int c=0;c<channel_num;c++)
-                {
-                    int offset=i*img_size+c*channel_size;
-                    for(int l=0;l<channel_size;l++)
-                    {
-                        output[offset+l]=input[offset+l]*gamma[c];
-                    }
-                }
-            }
+            beta = get_tensor_mem(beta_tensor);
         }
-        else
+
+        switch(element_size)
         {
-            float * beta=(float *)get_tensor_mem(beta_tensor); 
-            for(int i=0;i<batch_number;i++)
-            {
-                for(int c=0;c<channel_num;c++)
-                {
-                    int offset=i*img_size+c*channel_size;
-                    for(int l=0;l<channel_size;l++)
-                    {
-                        output[offset+l]=input[offset+l]*gamma[c]+beta[c];
-                    }
-                }
-            }
+            case 4:
+                kernel_run<float>(input, output, gamma, beta, shape);
+                break;
+#ifdef CONFIG_FLOAT16
+            case 2:
+                kernel_run<__fp16>(input, output, gamma, beta, shape);
+                break;
+#endif
+            case 1:
+                kernel_run<char>(input, output, gamma, beta, shape);
+                break;
         }
 
         return true;
     }
-
-
-
-
 };
 
-} //namespace ScaleImpl
+}    // namespace ScaleImpl
 
 using namespace ScaleImpl;
 
 void RegisterScale_NodeExec(void)
 {
-    ScaleOps *ops = new ScaleOps();
+    ScaleOps* ops = new ScaleOps();
 
-    NodeOpsRegistryManager::RegisterOPImplementor("common",
-                                                  "Scale", ops);
+    NodeOpsRegistryManager::RegisterOPImplementor("common", "Scale", ops);
 }
 
-} //namespace TEngine
+}    // namespace TEngine

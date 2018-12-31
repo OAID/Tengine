@@ -5,7 +5,7 @@
 This is mtcnn implementation with [Tengine](https://github.com/OAID/Tengine).
 
 ## Download required models
-Download the models from [Tengine model zoo](https://pan.baidu.com/s/1LXZ8vOdyOo50IXS0CUPp8g) (psw: 57vb)
+Download the models from [Tengine model zoo](https://pan.baidu.com/s/1LXZ8vOdyOo50IXS0CUPp8g) (psw: 57vb).
 
 Store these files into `${Tengine_ROOT}/models/`
 - det1.caffemodel
@@ -18,6 +18,7 @@ Store these files into `${Tengine_ROOT}/models/`
 ## Build examples
 ```
 cd  ${Tengine_ROOT}
+make
 make install
 ```
 build as ${TENGINE_ROOT}/examples/readme.md
@@ -25,6 +26,8 @@ build as ${TENGINE_ROOT}/examples/readme.md
 ## Run
 
 1. run mtcnn by default
+    - model dir is `tengine/models/`
+    - test image is `tengine/tests/images/mtcnn_face4.jpg`
 	```
 	cd ${Tengine_ROOT}/examples/build/mtcnn/
     ./MTCNN
@@ -49,30 +52,28 @@ build as ${TENGINE_ROOT}/examples/readme.md
 ## Detect Parameters
 There are several parameters for mtcnn face detection. You can set these parameters to improve your detection performance (accuracy or speed).
 
-- min_size: `int` (default: 60)
+- min_size: `int` (default: 40)
     
     the minimum size of face to be detected
 
-- conf_p_threshould: `float` (default: 0.6)
+- conf_p_threshold: `float` (default: 0.6)
 
     the confidence threshold of Pnet of mtcnn, range in [0,1]
-- conf_r_threshould: `float` (default: 0.7)
+- conf_r_threshold: `float` (default: 0.7)
 
     the confidence threshold of Rnet of mtcnn, range in [0,1]
-- conf_o_threshould: `float` (default: 0.8)
+- conf_o_threshold: `float` (default: 0.8)
 
     the confidence threshold of Onet of mtcnn, range in [0,1]
-- nms_p_threshould: `float` (default: 0.5)
+- nms_p_threshold: `float` (default: 0.5)
 
     the nms threshold of Pnet of mtcnn, range in [0,1]
-- nms_r_threshould: `float` (default: 0.7)
+- nms_r_threshold: `float` (default: 0.7)
 
     the nms threshold of Rnet of mtcnn, range in [0,1]
-- nms_o_threshould: `float` (default: 0.7)
+- nms_o_threshold: `float` (default: 0.7)
 
     the nms threshold of Onet of mtcnn, range in [0,1]  
-
-
 
 
 ## Benchmark
@@ -83,8 +84,8 @@ There are several parameters for mtcnn face detection. You can set these paramet
 
 |image|img_size|Tengine|Caffe(Openblas)|
 |-----|--------|-------|---------------|
-|4.jpg|474x316|87.2ms|148.9.5ms|
-|6.jpg|640x480|120.5ms|208.3ms|
+|4.jpg|474x316|117.6ms|204.7ms|
+|6.jpg|640x480|184.5ms|317.5ms|
 
 
 ## Reference

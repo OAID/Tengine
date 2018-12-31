@@ -38,7 +38,7 @@ make install
 ```
 build as ${TENGINE_ROOT}/examples/readme.md
 
-## Test
+## Run
 - go to the directory of the executive program
 
     ```

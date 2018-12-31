@@ -28,28 +28,24 @@
 
 namespace TEngine {
 
+struct DeconvParam : public NamedParam
+{
+    int kernel_size;
+    int stride;
+    int pad;
+    int num_output;
+    int dilation;
 
-struct DeconvParam : public NamedParam {
-
-   int  kernel_size;
-   int  stride;
-   int  pad;
-   int  num_output;
-   int  dilation;
-
-
-   DECLARE_PARSER_STRUCTURE(DeconvParam) 
-   {
-       DECLARE_PARSER_ENTRY(kernel_size);
-       DECLARE_PARSER_ENTRY(stride);
-       DECLARE_PARSER_ENTRY(pad);
-       DECLARE_PARSER_ENTRY(num_output);
-       DECLARE_PARSER_ENTRY(dilation);
-   };
-
+    DECLARE_PARSER_STRUCTURE(DeconvParam)
+    {
+        DECLARE_PARSER_ENTRY(kernel_size);
+        DECLARE_PARSER_ENTRY(stride);
+        DECLARE_PARSER_ENTRY(pad);
+        DECLARE_PARSER_ENTRY(num_output);
+        DECLARE_PARSER_ENTRY(dilation);
+    };
 };
 
-} //namespace TEngine
-
+}    // namespace TEngine
 
 #endif

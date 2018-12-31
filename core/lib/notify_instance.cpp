@@ -25,99 +25,94 @@
 
 namespace TEngine {
 
-static void ResetEventStats(NotifyBus::EventNode * node)
+static void ResetEventStats(NotifyBus::EventNode* node)
 {
-   node->sync_send_count=0;
-   node->send_count=0;
-   node->drop_count=0;
-   node->process_count=0;
-   node->send_fail_count=0;
-   node->active=0;
+    node->sync_send_count = 0;
+    node->send_count = 0;
+    node->drop_count = 0;
+    node->process_count = 0;
+    node->send_fail_count = 0;
+    node->active = 0;
 }
 
 NotifyBus::NotifyBus(const std::string& name, int max_event_type_num, int max_event_pending_num)
 {
-   bus_name_=name;
-   max_event_type_=max_event_type_num;
-   max_pending_num_=max_event_pending_num;
-   batch_budget_=128;
+    bus_name_ = name;
+    max_event_type_ = max_event_type_num;
+    max_pending_num_ = max_event_pending_num;
+    batch_budget_ = 128;
 
-   /* create the event node array */
-   event_array_=new EventNode[max_event_type_];
-  
-   for(int i=0;i<max_event_type_;i++)
-       event_array_[i].event=-1;
+    /* create the event node array */
+    event_array_ = new EventNode[max_event_type_];
 
-
+    for(int i = 0; i < max_event_type_; i++)
+        event_array_[i].event = -1;
 }
 
 NotifyBus::~NotifyBus(void)
 {
-   DropPendingEvent();
-   delete[] event_array_;
+    DropPendingEvent();
+    delete[] event_array_;
 }
 
-
-int  NotifyBus::CreateEvent(const std::string& name)
+int NotifyBus::CreateEvent(const std::string& name)
 {
-
-   if(name.size()==0)
+    if(name.size() == 0)
         return -1;
-   
-   LockNameMap();
 
-   if(name_map_.count(name))
-   {
-       UnLockNameMap();  
-       return -1;
-   }
+    LockNameMap();
 
-    int i=0;
+    if(name_map_.count(name))
+    {
+        UnLockNameMap();
+        return -1;
+    }
 
-    for(i=0;i<max_event_type_;i++)
-       if(event_array_[i].event<0)
+    int i = 0;
+
+    for(i = 0; i < max_event_type_; i++)
+        if(event_array_[i].event < 0)
             break;
 
-    if(i==max_event_type_)
+    if(i == max_event_type_)
     {
-       UnLockNameMap();
-       return -1;
+        UnLockNameMap();
+        return -1;
     }
 
     /* it is safe to work on the event, since no one should touch it */
-      
-    name_map_[name]=i;
-    event_array_[i].event=i;
-    event_array_[i].name=name;
+
+    name_map_[name] = i;
+    event_array_[i].event = i;
+    event_array_[i].name = name;
     ResetEventStats(&event_array_[i]);
 
-    UnLockNameMap();  
-    
+    UnLockNameMap();
+
     return i;
 }
 
-int NotifyBus::GetPendingCount(EventNode * node)
+int NotifyBus::GetPendingCount(EventNode* node)
 {
-    event_tree_t::iterator ir=node->event_tree.begin();
+    event_tree_t::iterator ir = node->event_tree.begin();
 
-    int count=0;
+    int count = 0;
 
-    while(ir!=node->event_tree.end())
+    while(ir != node->event_tree.end())
     {
-       count+=ir->second.size();
-       ir++;
+        count += ir->second.size();
+        ir++;
     }
 
     return count;
 }
 
-int NotifyBus::RealDropPendingEvent(EventNode * node)
+int NotifyBus::RealDropPendingEvent(EventNode* node)
 {
+    int count = GetPendingCount(node);
 
-    int count=GetPendingCount(node);
+    node->drop_count += count;
 
-    node->drop_count+=count;
-    
     node->event_tree.clear();
 
     return count;
@@ -125,143 +120,136 @@ int NotifyBus::RealDropPendingEvent(EventNode * node)
 
 bool NotifyBus::RemoveEvent(int event)
 {
-
     LockNameMap();
 
-    bool found=false;
+    bool found = false;
 
-    name_map_t::iterator ir=name_map_.begin();
+    name_map_t::iterator ir = name_map_.begin();
 
-    while(ir!=name_map_.end())
+    while(ir != name_map_.end())
     {
-         if(ir->second==event)
-         {
-            found=true;
+        if(ir->second == event)
+        {
+            found = true;
             break;
-         }
+        }
         ir++;
     }
-    
+
     if(!found)
     {
-       UnLockNameMap();
-       return false;
+        UnLockNameMap();
+        return false;
     }
 
-    name_map_.erase(ir);       
+    name_map_.erase(ir);
 
-
-    EventNode * node=GetNode(event);
+    EventNode* node = GetNode(event);
 
     RealDropPendingEvent(node);
 
     node->handle_list.clear();
-    node->event=-1;
-    node->name="unused";
+    node->event = -1;
+    node->name = "unused";
 
     PutNode(node);
 
     UnLockNameMap();
 
-
     return true;
-
 }
 
-bool NotifyBus::RemoveEvent(const std::string& name) 
+bool NotifyBus::RemoveEvent(const std::string& name)
 {
-   int event=EventNum(name);
+    int event = EventNum(name);
 
-   if(event<0)
+    if(event < 0)
         return false;
-    
-   return RemoveEvent(event);
+
+    return RemoveEvent(event);
 }
 
 std::string NotifyBus::EventName(int event)
 {
-   std::string result;
+    std::string result;
 
-   LockNameMap();
+    LockNameMap();
 
-   name_map_t::iterator ir=name_map_.begin();
+    name_map_t::iterator ir = name_map_.begin();
 
-   while (ir!=name_map_.end())
-   {
-         if(ir->second==event)
-         {
-             result=ir->first;
-             break;
-         }
-   }
+    while(ir != name_map_.end())
+    {
+        if(ir->second == event)
+        {
+            result = ir->first;
+            break;
+        }
+    }
 
-   UnLockNameMap();
+    UnLockNameMap();
 
-  return result;
+    return result;
 }
 
-int  NotifyBus::EventNum(const std::string& name)
+int NotifyBus::EventNum(const std::string& name)
 {
-   int id=-1;
+    int id = -1;
 
-   LockNameMap();
+    LockNameMap();
 
-   name_map_t::iterator ir=name_map_.find(name);
+    name_map_t::iterator ir = name_map_.find(name);
 
-   if(ir!=name_map_.end())
-        id=ir->second;
+    if(ir != name_map_.end())
+        id = ir->second;
 
-   UnLockNameMap();
+    UnLockNameMap();
 
-   return id;
+    return id;
 }
 
 std::string NotifyBus::BusName()
 {
-   return bus_name_;
+    return bus_name_;
 }
 
-int  NotifyBus::DropPendingEvent(int event)
+int NotifyBus::DropPendingEvent(int event)
 {
+    EventNode* node = GetNode(event);
 
-     EventNode * node=GetNode(event);
+    if(node == nullptr)
+        return 0;
 
-     if(node==nullptr)
-         return 0;
+    int count = RealDropPendingEvent(node);
 
-     int count=RealDropPendingEvent(node);
-
-     PutNode(node); 
-
-     return count;
-}
-
-int  NotifyBus::DropPendingEvent(void)
-{
-    int count=0;
-
-    for(int i=0;i<max_event_type_;i++)
-      count+=DropPendingEvent(i);
+    PutNode(node);
 
     return count;
 }
 
-bool NotifyBus::Send(int event,  EventData * data, int priority)
-{ 
+int NotifyBus::DropPendingEvent(void)
+{
+    int count = 0;
 
-    EventNode * node=GetNode(event);
+    for(int i = 0; i < max_event_type_; i++)
+        count += DropPendingEvent(i);
 
-    if(node==nullptr)
-         return false;
+    return count;
+}
 
+bool NotifyBus::Send(int event, EventData* data, int priority)
+{
+    EventNode* node = GetNode(event);
 
-    int count=GetPendingCount(node);
+    if(node == nullptr)
+        return false;
 
-    if(count>=max_pending_num_)
+    int count = GetPendingCount(node);
+
+    if(count >= max_pending_num_)
     {
-         node->send_fail_count++;
-         PutNode(node);
-         return false;
+        node->send_fail_count++;
+        PutNode(node);
+        return false;
     }
 
     node->event_tree[priority].emplace(*data);
@@ -270,14 +258,13 @@ bool NotifyBus::Send(int event,  EventData * data, int priority)
 
     if(!node->active)
     {
-       node->active=true;
+        node->active = true;
 
-       pending_queue_mutex.lock();
+        pending_queue_mutex.lock();
 
-       pending_queue.push(node);
+        pending_queue.push(node);
 
-       pending_queue_mutex.unlock();
-
+        pending_queue_mutex.unlock();
     }
 
     PutNode(node);
@@ -285,55 +272,52 @@ bool NotifyBus::Send(int event,  EventData * data, int priority)
     return true;
 }
 
-bool NotifyBus::Send(const std::string& event_name, EventData * data, int priority)
+bool NotifyBus::Send(const std::string& event_name, EventData* data, int priority)
 {
-   int event=EventNum(event_name);
+    int event = EventNum(event_name);
 
-    if(event<0)
-         return false;
+    if(event < 0)
+        return false;
 
-    return Send(event,data, priority);
+    return Send(event, data, priority);
 }
 
-bool NotifyBus::SyncSend(int event, EventData * data)
+bool NotifyBus::SyncSend(int event, EventData* data)
 {
+    EventNode* node = GetNode(event);
 
-    EventNode * node=GetNode(event);
-
-    if(node==nullptr)
+    if(node == nullptr)
     {
-         return false;
+        return false;
     }
 
-    HandleSingleEvent(node,data);
+    HandleSingleEvent(node, data);
 
     node->sync_send_count++;
 
     PutNode(node);
-       
+
     return true;
 }
 
-bool NotifyBus::SyncSend(const std::string& event_name, EventData * data)
+bool NotifyBus::SyncSend(const std::string& event_name, EventData* data)
 {
-    int event=EventNum(event_name);
+    int event = EventNum(event_name);
 
-    if(event<0)
-         return false;
+    if(event < 0)
+        return false;
 
-    return SyncSend(event,data);
-
+    return SyncSend(event, data);
 }
 
 bool NotifyBus::Book(int event, const EventHandle& handle)
 {
+    EventNode* node = GetNode(event);
 
-    EventNode * node=GetNode(event);
+    if(node == nullptr)
+        return false;
 
-    if(node==nullptr)
-         return false;
- 
-    node->handle_list.emplace_back(handle);   
+    node->handle_list.emplace_back(handle);
 
     PutNode(node);
 
@@ -342,202 +326,187 @@ bool NotifyBus::Book(int event, const EventHandle& handle)
 
 bool NotifyBus::Book(const std::string& event_name, const EventHandle& handle)
 {
-    int event=EventNum(event_name);
+    int event = EventNum(event_name);
 
-    if(event<0)
-         return false;
+    if(event < 0)
+        return false;
 
-    return Book(event,handle);
+    return Book(event, handle);
 }
 
-void NotifyBus::HandleSingleEvent(EventNode * node, EventData * data)
+void NotifyBus::HandleSingleEvent(EventNode* node, EventData* data)
 {
-
-     for(unsigned int i=0;i<node->handle_list.size();i++)
-     {
-          EventHandle& handle=node->handle_list[i];
-
-           /* if do not want other handler to process this event */
-           if(!handle.func(node->event,data,&handle.argument))
-                 break;
-     }   
-
-     node->process_count++;
-}
-
-int NotifyBus::RealHandlePendingEvent(EventNode * node)
-{
-     int count=0;
-
-     event_tree_t::iterator ir=node->event_tree.begin();
-
-     while(ir!=node->event_tree.end())
-     {
-          std::queue<EventData>&  event_queue=ir->second;
-
-          while(!event_queue.empty())
-          {
-             EventData  data=event_queue.front();
-
-             event_queue.pop();
-
-             HandleSingleEvent(node,&data);
-             count++;
-
-             batch_count_++;
-
-             if(batch_count_>batch_budget_)
-                 return count;
-          }
-
-
-          ir=node->event_tree.erase(ir);
-     }  
-
-     return count;
-}
-
-int NotifyBus::HandlePendingEvent(EventNode * node)
-{
-    int count=0;
-
-    while(node->event_tree.size())
+    for(unsigned int i = 0; i < node->handle_list.size(); i++)
     {
-       count+=RealHandlePendingEvent(node);
+        EventHandle& handle = node->handle_list[i];
 
-       if(batch_count_>=batch_budget_)
-            break;   
-       
-    } 
-    
+        /* if do not want other handler to process this event */
+        if(!handle.func(node->event, data, &handle.argument))
+            break;
+    }
+
+    node->process_count++;
+}
+
+int NotifyBus::RealHandlePendingEvent(EventNode* node)
+{
+    int count = 0;
+
+    event_tree_t::iterator ir = node->event_tree.begin();
+
+    while(ir != node->event_tree.end())
+    {
+        std::queue<EventData>& event_queue = ir->second;
+
+        while(!event_queue.empty())
+        {
+            EventData data = event_queue.front();
+
+            event_queue.pop();
+
+            HandleSingleEvent(node, &data);
+            count++;
+
+            batch_count_++;
+
+            if(batch_count_ > batch_budget_)
+                return count;
+        }
+
+        ir = node->event_tree.erase(ir);
+    }
+
     return count;
 }
 
+int NotifyBus::HandlePendingEvent(EventNode* node)
+{
+    int count = 0;
+
+    while(node->event_tree.size())
+    {
+        count += RealHandlePendingEvent(node);
+
+        if(batch_count_ >= batch_budget_)
+            break;
+    }
+
+    return count;
+}
 
 int NotifyBus::ProcessAllEvents(void)
 {
-     batch_count_=0;
+    batch_count_ = 0;
 
-     /* first, move Node from pending queue to active queue */
-     pending_queue_mutex.lock();
+    /* first, move Node from pending queue to active queue */
+    pending_queue_mutex.lock();
 
-     while(!pending_queue.empty())
-     {
-         EventNode * node=pending_queue.front();
-         active_queue.push(node);
-         pending_queue.pop();
-     }
+    while(!pending_queue.empty())
+    {
+        EventNode* node = pending_queue.front();
+        active_queue.push(node);
+        pending_queue.pop();
+    }
 
-     pending_queue_mutex.unlock();
+    pending_queue_mutex.unlock();
 
-     while(!active_queue.empty())
-     {
+    while(!active_queue.empty())
+    {
+        EventNode* node = active_queue.front();
 
-         EventNode * node=active_queue.front();
+        active_queue.pop();
 
-         active_queue.pop();
-
-         if(!GetNode(node))
+        if(!GetNode(node))
             continue;
 
-         HandlePendingEvent(node);
+        HandlePendingEvent(node);
 
-         if(node->event_tree.size())
-         {
-             active_queue.push(node);
-         }
-         else
-         {
-              node->active=false;
-         }
+        if(node->event_tree.size())
+        {
+            active_queue.push(node);
+        }
+        else
+        {
+            node->active = false;
+        }
 
-         PutNode(node);
+        PutNode(node);
 
-         if(batch_count_>=batch_budget_)
-            break;   
-     }
+        if(batch_count_ >= batch_budget_)
+            break;
+    }
 
-     return batch_count_;
-
+    return batch_count_;
 }
 
 void NotifyBus::SetBatchNum(int budget)
 {
-    batch_budget_=budget; 
+    batch_budget_ = budget;
 }
 
-int  NotifyBus::GetBatchNum(void)
+int NotifyBus::GetBatchNum(void)
 {
-   return batch_budget_;
+    return batch_budget_;
 }
-
 
 bool NotifyBus::GetStats(int event, EventStats& stats)
 {
-      EventNode * node=GetNode(event);
+    EventNode* node = GetNode(event);
 
-      if(node==nullptr)
-          return false;
+    if(node == nullptr)
+        return false;
 
-      stats.event=node->event;
-      stats.name=node->name;
-      stats.book_count=node->handle_list.size();
-      stats.pending_count=GetPendingCount(node);
-      stats.send_count=node->send_count;
-      stats.sync_send_count=node->sync_send_count;
-      stats.process_count=node->process_count;
-      stats.drop_count=node->drop_count;
-      stats.send_fail_count=node->send_fail_count;
+    stats.event = node->event;
+    stats.name = node->name;
+    stats.book_count = node->handle_list.size();
+    stats.pending_count = GetPendingCount(node);
+    stats.send_count = node->send_count;
+    stats.sync_send_count = node->sync_send_count;
+    stats.process_count = node->process_count;
+    stats.drop_count = node->drop_count;
+    stats.send_fail_count = node->send_fail_count;
 
-      PutNode(node);
+    PutNode(node);
 
-      return true;
+    return true;
 }
 
-
-
-void NotifyBus::LockNameMap() 
+void NotifyBus::LockNameMap()
 {
     name_map_mutex.lock();
 }
 
-void NotifyBus::UnLockNameMap() 
+void NotifyBus::UnLockNameMap()
 {
     name_map_mutex.unlock();
 }
 
-bool  NotifyBus::GetNode(NotifyBus::EventNode * node)
+bool NotifyBus::GetNode(NotifyBus::EventNode* node)
 {
-     node->event_mutex.lock();
+    node->event_mutex.lock();
     /* if it is a valid event node */
 
-    if(node->event>=0)
-          return true;
+    if(node->event >= 0)
+        return true;
 
-     node->event_mutex.unlock();
+    node->event_mutex.unlock();
 
-     return false;
-} 
+    return false;
+}
 
-NotifyBus::EventNode *  NotifyBus::GetNode(int event) 
+NotifyBus::EventNode* NotifyBus::GetNode(int event)
 {
-    EventNode * node=&event_array_[event];
+    EventNode* node = &event_array_[event];
 
     if(GetNode(node))
-         return node;
+        return node;
 
-     return nullptr;
+    return nullptr;
 }
 
-void NotifyBus::PutNode(EventNode * node) 
+void NotifyBus::PutNode(EventNode* node)
 {
-     node->event_mutex.unlock();
+    node->event_mutex.unlock();
 }
 
-
-
-
-
-} //namespace TEngine
-
-
+}    // namespace TEngine

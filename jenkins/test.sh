@@ -6,7 +6,7 @@ ROOT_DIR=$(cd "$LOCAL_DIR"/.. && pwd)
 
 if [ -z $TEST_CONFIG_FILE ]
 then
-    TEST_CONFIG_FILE=${LOCAL_DIR}/test_list.txt
+    TEST_CONFIG_FILE=${LOCAL_DIR}/core_test.list
 fi
 
 TEST_FRAMEWORK=$0

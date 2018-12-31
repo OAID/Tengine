@@ -26,77 +26,147 @@
 #ifndef __TF_SERIALIZER_HPP__
 #define __TF_SERIALIZER_HPP__
 
-#include <iostream>
-#include <functional>
-#include <unordered_map>
 #include <cstring>
-
+#include <functional>
+#include <iostream>
+#include <unordered_map>
+#include <set>
+#include <algorithm>
 
 #include "graph.pb.h"
-#include "static_graph_interface.hpp"
 #include "logger.hpp"
 #include "serializer.hpp"
-
+#include "static_graph_interface.hpp"
 
 namespace TEngine {
 
-struct TFNode {
-   int idx;
-   std::string name;
-   std::string op;
-   std::vector<TFNode *> inputs;
-   std::vector<TFNode *> outputs;
-   std::vector<const tensorflow::NodeDef *> pb_defs;
-   StaticNode * static_node;
-   StaticTensor * static_tensor;
-   bool no_static_node;
-   int BNAddType;
+struct TFNode
+{
+    int idx;
+    std::string name;
+    std::string op;
+    std::vector<TFNode*> inputs;
+    std::vector<TFNode*> outputs;
+    std::vector<const tensorflow::NodeDef*> pb_defs;
+    StaticNode* static_node;
+    StaticTensor* static_tensor;
+    bool no_static_node;
+    int BNAddType;
 
-   TFNode() { no_static_node=false;}
+    TFNode()
+    {
+        no_static_node = false;
+    }
 
+    virtual ~TFNode() {}
 };
 
-struct TFGraph {
-   std::vector<TFNode *> seq_nodes;
+struct LSTMNode : public TFNode
+{
+    float clip;
 
-   ~TFGraph() {
-     for(auto node: seq_nodes)
+    std::string direction;
+
+    /* optional inputs */
+    TFNode* kernel;
+    TFNode* bias;
+    TFNode* w_f_diag;
+    TFNode* w_i_diag;
+    TFNode* w_o_diag;
+    TFNode* projection;
+    TFNode* init_h;
+    TFNode* init_c;
+    TFNode* forget_bias;
+
+    std::set<TFNode*> rnn_graph;
+
+    LSTMNode()
+    {
+        kernel = nullptr;
+        bias = nullptr;
+        w_f_diag = nullptr;
+        w_i_diag = nullptr;
+        w_o_diag = nullptr;
+        projection = nullptr;
+        init_h = nullptr;
+        init_c = nullptr;
+        forget_bias = nullptr;
+    }
+
+    ~LSTMNode()
+    {
+        auto rnn_ir = rnn_graph.begin();
+        auto rnn_end = rnn_graph.end();
+
+        while(rnn_ir != rnn_end)
+        {
+            delete(*rnn_ir);
+            rnn_ir++;
+        }
+    }
+};
+
+struct TFGraph
+{
+    std::vector<TFNode*> seq_nodes;
+
+    ~TFGraph()
+    {
+        for(auto node : seq_nodes)
             delete node;
-   }
+    }
 };
 
-class TFSerializer: public Serializer {
+#define TF_RNN_LSTM 0
+#define TF_RNN_GRU 1
+#define TF_RNN_BASIC_LSTM 2
 
+class TFSerializer : public Serializer
+{
 public:
-   bool LoadModel(const std::vector<std::string>& file_list, StaticGraph * graph) override;
-   unsigned int GetFileNum(void) override { return 1;}
-   bool LoadConstTensor(const std::string& fname, StaticTensor * const_tensor) override { return false;}
-   bool LoadConstTensor(int fd, StaticTensor * const_tensor) override { return false;}
+    bool LoadModel(const std::vector<std::string>& file_list, StaticGraph* graph) override;
+    unsigned int GetFileNum(void) override
+    {
+        return 1;
+    }
+    bool LoadConstTensor(const std::string& fname, StaticTensor* const_tensor) override
+    {
+        return false;
+    }
+    bool LoadConstTensor(int fd, StaticTensor* const_tensor) override
+    {
+        return false;
+    }
 
 protected:
+    bool LoadGraph(tensorflow::GraphDef& tf_net, StaticGraph* graph);
+    bool LoadBinaryFile(const char* fname, tensorflow::GraphDef& tf_net);
+    bool LoadTextFile(const char* fname, tensorflow::GraphDef& tf_net);
+    bool ConstructGraph(tensorflow::GraphDef& tf_net, TFGraph& tf_graph);
+    bool OptimizeGraph(TFGraph& tf_graph);
+    bool GenerateStaticGraph(TFGraph& tf_graph, StaticGraph* graph);
+    void CleanupResizeNearestNeighbor(TFGraph& tf_graph);
+    void MergeReluMinimum(TFGraph& tf_graph);
 
-   bool LoadGraph(tensorflow::GraphDef& tf_net,StaticGraph * graph);
-   bool LoadBinaryFile(const char * fname, tensorflow::GraphDef& tf_net);
-   bool LoadTextFile(const char * fname, tensorflow::GraphDef& tf_net);
-   bool ConstructGraph(tensorflow::GraphDef& tf_net, TFGraph& tf_graph);
-   bool OptimizeGraph(TFGraph& tf_graph);
-   bool GenerateStaticGraph(TFGraph& tf_graph, StaticGraph * graph);
-   void CleanupResizeNearestNeighbor(TFGraph& tf_graph);
-   void MergeReluMinimum(TFGraph & tf_graph);
+    bool MergeChildNode(TFNode* base_node, TFNode* child_node);
+    bool MergeParentNode(TFNode* base_node, TFNode* parent_node);
+    void BNRecursiveInputMerge(TFNode* node);
+    void FuseComposedBN(TFNode* cur_node);
+    bool CheckComposedBNAdd(TFNode* node);
 
-   bool MergeChildNode(TFNode * base_node, TFNode * child_node);
-   bool MergeParentNode(TFNode * base_node, TFNode * parent_node);
-   void BNRecursiveInputMerge(TFNode * node);
-   void FuseComposedBN(TFNode * cur_node);
-   bool CheckComposedBNAdd(TFNode * node);
+    void DisconnectNode(TFNode* node);
 
+    void DumpTFGraph(TFGraph& tf_graph);
 
-   void DisconnectNode(TFNode * node);
+    bool OptimizeRNN(tensorflow::GraphDef& tf_net, TFGraph& tf_graph);
 
-   void DumpTFGraph(TFGraph& tf_graph);
+    int FindRNNScope(TFGraph& tf_graph, std::string& rnn_scope);
 
+    void StripRNNScope(TFGraph& tf_graph, std::string& rnn_scope, int rnn_type);
+
+    void ParseLSTMGraph(TFGraph& tf_graph, LSTMNode* lstm_node, std::set<TFNode*>& rnn_graph);
 };
 
-} //namespace TEngine
+}    // namespace TEngine
 
 #endif

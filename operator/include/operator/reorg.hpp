@@ -28,20 +28,19 @@
 #include "reorg_param.hpp"
 namespace TEngine {
 
-class Reorg: public OperatorWithParam<Reorg, ReorgParam> {
-
+class Reorg : public OperatorWithParam<Reorg, ReorgParam>
+{
 public:
-
-      Reorg() { name_="Reorg";}
-      Reorg(const Reorg& src)=default;
-      virtual ~Reorg() {};
-      bool InferShape(const std::vector<TEngine::TShape>&, std::vector<TEngine::TShape>&) override;
-      void SetSchema(void) override;
- 
+    Reorg()
+    {
+        name_ = "Reorg";
+    }
+    Reorg(const Reorg& src) = default;
+    virtual ~Reorg(){};
+    bool InferShape(const std::vector<TEngine::TShape>&, std::vector<TEngine::TShape>&, int layout) override;
+    void SetSchema(void) override;
 };
 
-} //namespace TEngine
-
-
+}    // namespace TEngine
 
 #endif

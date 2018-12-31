@@ -22,161 +22,134 @@
  * Author: haitao@openailab.com
  */
 
-
 #include "cpu_driver.hpp"
 #include "cpu_executor.hpp"
 
-
 namespace TEngine {
 
-bool  CPUExecutor::DevGetProposal(Subgraph * graph,int policy,bool static_assign) 
+bool CPUExecutor::DevGetProposal(Subgraph* graph, int policy, bool static_assign)
 {
-      return backend_dev_->GetProposal(graph,policy,static_assign);
+    return backend_dev_->GetProposal(graph, policy, static_assign);
 }
 
 void CPUExecutor::DevGetWorkload(DevWorkload& load)
 {
-         backend_dev_->GetWorkload(load);
+    backend_dev_->GetWorkload(load);
 }
 
-
-bool CPUExecutor::DevGetPerf(Subgraph * graph,int policy,GraphPerf& perf)
+bool CPUExecutor::DevGetPerf(Subgraph* graph, int policy, GraphPerf& perf)
 {
-	return backend_dev_->GetPerf(graph,policy,perf);
+    return backend_dev_->GetPerf(graph, policy, perf);
 }
 
-float CPUExecutor::DevGetFops(Subgraph * graph,int policy)
+float CPUExecutor::DevGetFops(Subgraph* graph, int policy)
 {
-	return backend_dev_->GetFops(graph,policy);
+    return backend_dev_->GetFops(graph, policy);
 }
 
 int CPUExecutor::DevGetPolicyPriority(int policy)
 {
-        return backend_dev_->GetPolicyPriority(policy);
+    return backend_dev_->GetPolicyPriority(policy);
 }
 
-bool CPUExecutor::DevSetConfig(const char * config_name, const void * buffer, int size)
+void* CPUExecutor::DevCreateGraphHandle(Subgraph* graph)
 {
-        return backend_dev_->SetDevConfig(config_name,buffer,size);
+    return backend_dev_->CreateGraphHandle(graph);
 }
 
-bool CPUExecutor::DevGetConfig(const char * config_name, void * buffer, int size)
+bool CPUExecutor::DevOptimizeGraph(void* graph_handle)
 {
-        return backend_dev_->GetDevConfig(config_name,buffer,size);
+    return backend_dev_->OptimizeGraph(graph_handle);
 }
 
-bool CPUExecutor::DevDelConfig(const char * config_name)
+Subgraph* CPUExecutor::DevGetOptimizedGraph(void* graph_handle)
 {
-        return backend_dev_->DelDevConfig(config_name);
+    return backend_dev_->GetOptimizedGraph(graph_handle);
 }
 
-
-void * CPUExecutor::DevCreateGraphHandle(Subgraph * graph)
+bool CPUExecutor::DevPrerun(void* graph_handle)
 {
-	return backend_dev_->CreateGraphHandle(graph);
-
+    return backend_dev_->Prerun(graph_handle);
 }
 
-bool CPUExecutor::DevOptimizeGraph(void * graph_handle)
+bool CPUExecutor::DevSetGraphAttr(void* graph_handle, const char* name, const void* val, int size)
 {
-	return backend_dev_->OptimizeGraph(graph_handle);
+    return backend_dev_->SetGraphAttr(graph_handle, name, val, size);
 }
 
-Subgraph *  CPUExecutor::DevGetOptimizedGraph(void * graph_handle)
+bool CPUExecutor::DevGetGraphAttr(void* graph_handle, const char* name, void* val, int size)
 {
-	return backend_dev_->GetOptimizedGraph(graph_handle);
+    return backend_dev_->GetGraphAttr(graph_handle, name, val, size);
 }
 
-bool CPUExecutor::DevPrerun(void * graph_handle)
+bool CPUExecutor::DevRun(void* graph_handle)
 {
-	return backend_dev_->Prerun(graph_handle);
+    auto f = std::bind(&CPUExecutor::OnSubgraphDone, this, std::placeholders::_1, std::placeholders::_2);
+
+    backend_dev_->SetGraphDoneHook(graph_handle, dev_graph_cb_t(f));
+
+    return backend_dev_->Run(graph_handle);
 }
 
-bool CPUExecutor::DevSetGraphAttr(void * graph_handle, const char * name, const void * val, int size)
+bool CPUExecutor::DevSyncRun(void* graph_handle)
 {
-	return backend_dev_->SetGraphAttr(graph_handle,name,val,size);
+    return backend_dev_->SyncRun(graph_handle);
 }
 
-bool CPUExecutor::DevGetGraphAttr(void * graph_handle, const char * name, void * val, int size)
+bool CPUExecutor::DevPostrun(void* graph_handle)
 {
-	return backend_dev_->GetGraphAttr(graph_handle,name,val,size);
+    return backend_dev_->Postrun(graph_handle);
 }
 
-
-bool CPUExecutor::DevRun(void * graph_handle)
+bool CPUExecutor::DevReleaseGraphHandle(void* graph_handle)
 {
-        auto f=std::bind(&CPUExecutor::OnSubgraphDone,this,std::placeholders::_1,
-				std::placeholders::_2);
-
-        backend_dev_->SetGraphDoneHook(graph_handle,dev_graph_cb_t(f));
-
-	return backend_dev_->Run(graph_handle);
+    return backend_dev_->ReleaseGraphHandle(graph_handle);
 }
-
-bool CPUExecutor::DevSyncRun(void * graph_handle)
-{
-	return backend_dev_->SyncRun(graph_handle);
-}
-
-bool CPUExecutor::DevPostrun(void * graph_handle)
-{
-	return backend_dev_->Postrun(graph_handle);
-}
-
-bool CPUExecutor::DevReleaseGraphHandle(void * graph_handle)
-{
-	return backend_dev_->ReleaseGraphHandle(graph_handle);
-}
-
 
 const dev_id_t& CPUExecutor::DevGetID(void)
 {
-	return backend_dev_->GetDeviceID();
+    return backend_dev_->GetDeviceID();
 }
 
-const dev_type_t & CPUExecutor::DevGetType(void)
+const dev_type_t& CPUExecutor::DevGetType(void)
 {
-	return backend_dev_->GetDeviceType();
+    return backend_dev_->GetDeviceType();
 }
 
 dev_status_t CPUExecutor::DevGetStatus(void)
 {
-	return backend_dev_->GetDeviceStatus();
+    return backend_dev_->GetDeviceStatus();
 }
 
 bool CPUExecutor::Init(void)
 {
-	return true;
+    return true;
 }
 
 bool CPUExecutor::Release(void)
 {
-	return true;
+    return true;
 }
 
-void  CPUExecutor::UnbindDevice(void)
+void CPUExecutor::UnbindDevice(void)
 {
-	backend_dev_=nullptr;
+    backend_dev_ = nullptr;
 }
 
-void CPUExecutor::BindDevice(Device *  device)
+void CPUExecutor::BindDevice(Device* device)
 {
-	CPUDevice * dev=dynamic_cast<CPUDevice *>(device);
-	backend_dev_=dev;
+    CPUDevice* dev = dynamic_cast<CPUDevice*>(device);
+    backend_dev_ = dev;
 }
 
-bool CPUExecutor::DevStart(void) 
+bool CPUExecutor::DevStart(void)
 {
-	return 	backend_dev_->Start();
+    return backend_dev_->Start();
 }
 
 bool CPUExecutor::DevStop(void)
 {
-	return  backend_dev_->Stop();
+    return backend_dev_->Stop();
 }
 
-
-} //namespace TEngine
-
-
-
+}    // namespace TEngine

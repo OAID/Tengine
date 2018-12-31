@@ -29,26 +29,20 @@
 
 namespace TEngine {
 
-
-class Scale: public OperatorWithParam<Scale,ScaleParam> {
-
+class Scale : public OperatorWithParam<Scale, ScaleParam>
+{
 public:
-
-    Scale() { name_="Scale"; }
-    Scale(const Scale&)= default;
+    Scale()
+    {
+        name_ = "Scale";
+    }
+    Scale(const Scale&) = default;
 
     ~Scale() {}
 
-
     void SetSchema(void) override;
-
 };
 
-
-
-
-} //namespace TEngine
-
-
+}    // namespace TEngine
 
 #endif

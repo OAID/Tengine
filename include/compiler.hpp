@@ -7,11 +7,9 @@
 
 namespace std {
 
-template <typename T>
-std::string to_string(T);
+template <typename T> std::string to_string(T);
 }
 
 #endif
-
 
 #endif

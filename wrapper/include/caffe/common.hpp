@@ -27,29 +27,35 @@
 #include <glog/logging.h>
 #include <iostream>
 
-#define Caffe  Caffe_wrap
+#define Caffe Caffe_wrap
 
 // Instantiate a class with float and double specifications.
-#define INSTANTIATE_CLASS(classname) \
-  char gInstantiationGuard##classname; \
-  template class classname<float>; \
-  template class classname<double>
+#define INSTANTIATE_CLASS(classname)     \
+    char gInstantiationGuard##classname; \
+    template class classname<float>;     \
+    template class classname<double>
 
 namespace caffe {
 
-class Caffe {
-
+class Caffe
+{
 public:
-    enum Brew { CPU, GPU };
+    enum Brew
+    {
+        CPU,
+        GPU
+    };
 
     static Caffe& Get();
-    static void set_mode(Brew mode) { Get().mode_ = mode; }
+    static void set_mode(Brew mode)
+    {
+        Get().mode_ = mode;
+    }
 
 protected:
     Brew mode_;
-
 };
 
-}  // namespace caffe
+}    // namespace caffe
 
-#endif  // __CAFFE_COMMON_HPP__
+#endif    // __CAFFE_COMMON_HPP__

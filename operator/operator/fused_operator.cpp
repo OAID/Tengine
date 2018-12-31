@@ -26,28 +26,21 @@
 
 namespace TEngine {
 
-
-
-
 const std::string FusedBNScaleReLu::class_name("Fused.BNScaleReLu");
 
 void FusedBNScaleReLu::SetSchema(void)
 {
-    Input({"input:float32","gmma:float32","beta:float32","mean:float32","var:float32"})
-   .Output({"output:float32"})
-   .SetAttr("eps",1e-5f)
-   .SetAttr("rescale_factor",1.0f)
-   .SetAttr("caffe_flavor",0)
-   .SetDoc(R"DOC(Fused Batch Normalizatoin/Scale/ReLu)DOC");
-
+    Input({"input:float32", "gmma:float32", "beta:float32", "mean:float32", "var:float32"})
+        .Output({"output:float32"})
+        .SetAttr("eps", 1e-5f)
+        .SetAttr("rescale_factor", 1.0f)
+        .SetAttr("caffe_flavor", 0)
+        .SetDoc(R"DOC(Fused Batch Normalizatoin/Scale/ReLu)DOC");
 }
 
 float FusedBNScaleReLu::GetFops(const std::vector<TShape>& inputs, const std::vector<TShape>& outputs)
 {
-    return outputs[0].GetSize()*5;
+    return outputs[0].GetSize() * 5;
 }
 
-
-
-
-} //namespace TEngine
+}    // namespace TEngine

@@ -27,29 +27,25 @@
 #include "operator/convolution.hpp"
 #include "operator.hpp"
 
-
 namespace TEngine {
 
-
-class FusedBNScaleReLu: public OperatorNoParam<FusedBNScaleReLu> {
-
+class FusedBNScaleReLu : public OperatorNoParam<FusedBNScaleReLu>
+{
 public:
-   FusedBNScaleReLu() {name_=class_name;}
-   FusedBNScaleReLu(const FusedBNScaleReLu&)=default;
-   virtual ~FusedBNScaleReLu() {};
+    FusedBNScaleReLu()
+    {
+        name_ = class_name;
+    }
+    FusedBNScaleReLu(const FusedBNScaleReLu&) = default;
+    virtual ~FusedBNScaleReLu(){};
 
-   void SetSchema(void) override;
+    void SetSchema(void) override;
 
-   float GetFops(const std::vector<TShape>& inputs, const std::vector<TShape>& outputs) override;
+    float GetFops(const std::vector<TShape>& inputs, const std::vector<TShape>& outputs) override;
 
-
-static const std::string class_name;
-
-
+    static const std::string class_name;
 };
 
-
-} //namespace TEngine
-
+}    // namespace TEngine
 
 #endif

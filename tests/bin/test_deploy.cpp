@@ -30,56 +30,59 @@
 
 using namespace TEngine;
 
-
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
-    if (argc < 4)
+    if(argc < 4)
     {
         std::cout << "[Usage]: " << argv[0] << " <proto> <caffemodel> <size> \n";
         return 0;
     }
 
-  
-
     // init tengine
-    init_tengine_library();
-    if (request_tengine_version("0.1") < 0)
-        return 1;
+    init_tengine();
+    if(request_tengine_version("0.9") < 0)
+        return -1;
 
-    // load model
-    const char *model_name = "test";
-    std::string proto_name_ =argv[1];
+    std::string proto_name_ = argv[1];
     std::string mdl_name_ = argv[2];
+#if 0
     if (load_model(model_name, "caffe", proto_name_.c_str(), mdl_name_.c_str()) < 0)
         return 1;
     std::cout << "load model done!\n";
-
+#endif
     // create graph
-    graph_t graph = create_runtime_graph("graph", model_name, NULL);
-    if (!check_graph_valid(graph))
+    graph_t graph = create_graph(NULL, "caffe", proto_name_.c_str(), mdl_name_.c_str());
+    if(graph == nullptr)
     {
         std::cout << "create graph0 failed\n";
-        return 1;
+        return -1;
     }
 
     // input
     int img_h = atoi(argv[3]);
     int img_w = img_h;
-    if (argc==5) img_w=atoi(argv[4]);
+    if(argc == 5)
+        img_w = atoi(argv[4]);
     int img_size = img_h * img_w * 3;
-    float *input_data = (float *)malloc(sizeof(float) * img_size);
-    for(int i=0;i<img_size;i++) input_data[i]=(i%123)*0.017;
-    
-    const char *input_tensor_name = "data";
+    float* input_data = ( float* )malloc(sizeof(float) * img_size);
+    for(int i = 0; i < img_size; i++)
+        input_data[i] = (i % 123) * 0.017;
+
+    const char* input_tensor_name = "data";
     tensor_t input_tensor = get_graph_tensor(graph, input_tensor_name);
     int dims[] = {1, 3, img_h, img_w};
     set_tensor_shape(input_tensor, dims, 4);
-    prerun_graph(graph);
+    int ret_prerun = prerun_graph(graph);
+    if(ret_prerun < 0)
+    {
+        std::printf("prerun failed\n");
+        return -1;
+    }
 
     int repeat_count = 1;
-    const char *repeat = std::getenv("REPEAT_COUNT");
+    const char* repeat = std::getenv("REPEAT_COUNT");
 
-    if (repeat)
+    if(repeat)
         repeat_count = std::strtoul(repeat, NULL, 10);
 
     struct timeval t0, t1;
@@ -88,23 +91,21 @@ int main(int argc, char *argv[])
 
     gettimeofday(&t0, NULL);
 
-    for (int i = 0; i < repeat_count; i++)
+    for(int i = 0; i < repeat_count; i++)
         run_graph(graph, 1);
 
     gettimeofday(&t1, NULL);
-    float mytime = (float)((t1.tv_sec * 1000000 + t1.tv_usec) - (t0.tv_sec * 1000000 + t0.tv_usec)) / 1000;
+    float mytime = ( float )((t1.tv_sec * 1000000 + t1.tv_usec) - (t0.tv_sec * 1000000 + t0.tv_usec)) / 1000;
     avg_time += mytime;
-    
+
     std::cout << "--------------------------------------\n";
     std::cout << "repeat " << repeat_count << " times, avg time per run is " << avg_time / repeat_count << " ms\n";
     free(input_data);
-    put_graph_tensor(input_tensor);
+    release_graph_tensor(input_tensor);
     postrun_graph(graph);
-    destroy_runtime_graph(graph);
-
-    remove_model(model_name);
+    destroy_graph(graph);
 
     std::cout << "ALL TEST DONE\n";
-
+    release_tengine();
     return 0;
 }

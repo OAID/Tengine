@@ -26,21 +26,18 @@
 
 #include "parameter.hpp"
 
-
-
 namespace TEngine {
 
+struct ReLuParam : public NamedParam
+{
+    float negative_slope;
 
-struct ReLuParam : public NamedParam {
-
-float negative_slope ;
-
-DECLARE_PARSER_STRUCTURE(ReLuParam) {
-   DECLARE_PARSER_ENTRY(negative_slope);
-}
-
+    DECLARE_PARSER_STRUCTURE(ReLuParam)
+    {
+        DECLARE_PARSER_ENTRY(negative_slope);
+    }
 };
 
-} //namespace TEngine
+}    // namespace TEngine
 
 #endif

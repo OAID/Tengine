@@ -32,193 +32,192 @@ using namespace TEngine;
 
 namespace caffe {
 
-static 	std::atomic<uint32_t> tengine_init_count(0);
+static std::atomic<uint32_t> tengine_init_count(0);
 
-
-static void InitTengine(void) 
+static void InitTengine(void)
 {
-    uint32_t prev=tengine_init_count.fetch_add(1);
+    uint32_t prev = tengine_init_count.fetch_add(1);
 
-    if(!prev)    
-       init_tengine_library();
+    if(!prev)
+        init_tengine();
 }
 
-static void ReleaseTengine(void) 
-{ 
-    uint32_t prev=tengine_init_count.fetch_sub(1);
+static void ReleaseTengine(void)
+{
+    uint32_t prev = tengine_init_count.fetch_sub(1);
 
-    if(prev==1)
-       release_tengine_library();
+    if(prev == 1)
+        release_tengine();
 }
-
 
 template <typename Dtype>
-Net<Dtype>::Net(const string& param_file, Phase phase,
-                const int level, const vector<string>* stages)
+Net<Dtype>::Net(const string& param_file, Phase phase, const int level, const vector<string>* stages)
 {
-
     InitTengine();
 
     string text_file_name = param_file;
     file_list_.push_back(text_file_name);
 
     prerun_already_ = false;
-
-
 }
 
-template <typename Dtype>
-void Net<Dtype>::CopyTrainedLayersFrom(const string trained_filename)
+template <typename Dtype> void Net<Dtype>::CopyTrainedLayersFrom(const string trained_filename)
 {
     string bin_file_name = trained_filename;
     file_list_.push_back(bin_file_name);
 
-    model_name_ = trained_filename;
-
-    // Load model and create static graph
-    if(load_model(model_name_.c_str(), "caffe", file_list_[0].c_str(), trained_filename.c_str()) < 0)
+    graph_ = create_graph(nullptr, "caffe", file_list_[0].c_str(), trained_filename.c_str());
+    if(graph_ == nullptr)
     {
-        std::cerr<<"Load model failed\n";
+        std::cerr << "Create graph failed\n";
+        std::cerr << "errno: " << get_tengine_errno() << "\n";
         return;
     }
 
-    // Create runtime graph
-    graph_ = create_runtime_graph("graph0", model_name_.c_str(), NULL);
-    if(!check_graph_valid(graph_))
+    if(!prerun_already_)
     {
-        std::cerr<<"Create graph0 failed\n";
-        return;
-    }
-
-    if(infer_shape(graph_) < 0)
-    {
-        std::cerr<<"Infer shape failed\n";
-        return;
+        if(prerun_graph(graph_) < 0)
+        {
+            std::cerr << "Prerun graph failed\n";
+            return;
+        }
+        else
+            prerun_already_ = true;
     }
 
     Set_input_blob();
     Set_output_blob();
 }
 
-template <typename Dtype>
-void Net<Dtype>::Set_input_blob()
+template <typename Dtype> void Net<Dtype>::Set_input_blob()
 {
-    int node_number = get_input_node_number(graph_);
+    int node_number = get_graph_input_node_number(graph_);
 
-    for(int i=0; i < node_number; i++)
+    for(int i = 0; i < node_number; i++)
     {
-        const char * node_name = get_input_node_name(graph_, i);
-        int tensor_number = get_node_output_number(graph_, node_name);
+        node_t node = get_graph_input_node(graph_, i);
 
-        for(int j=0; j < tensor_number; j++)
+        int tensor_number = get_node_output_number(node);
+
+        for(int j = 0; j < tensor_number; j++)
         {
-            const char * tensor_name = get_node_output_tensor(graph_, node_name, j);
-            tensor_t input_tensor = get_graph_tensor(graph_, tensor_name);
-            
+            tensor_t input_tensor = get_node_output_tensor(node, j);
+            const char* tensor_name = get_tensor_name(input_tensor);
+
             int dims[4];
-            get_tensor_shape(input_tensor, dims, 4);
-            
+            int dim_size = get_tensor_shape(input_tensor, dims, 4);
+            vector<int> shape;
+            for(int i = 0; i < dim_size; i++)
+                shape.push_back(dims[i]);
+
             // Set net input blob
-            Blob<Dtype> * in_blob = new Blob<Dtype>();
+            Blob<Dtype>* in_blob = new Blob<Dtype>();
             in_blob->set_name(tensor_name);
             in_blob->set_graph(graph_);
-            in_blob->Reshape(dims[0], dims[1], dims[2], dims[3]);
+            in_blob->Reshape(shape);
             net_input_blobs_.push_back(in_blob);
 
-	    put_graph_tensor(input_tensor);
+            release_graph_tensor(input_tensor);
         }
+
+        release_graph_node(node);
     }
 }
 
-template <typename Dtype>
-void Net<Dtype>::Set_output_blob()
+template <typename Dtype> void Net<Dtype>::Set_output_blob()
 {
-    int node_number = get_output_node_number(graph_);
+    int node_number = get_graph_output_node_number(graph_);
 
-    for(int i=0; i < node_number; i++)
+    for(int i = 0; i < node_number; i++)
     {
-        const char * node_name = get_output_node_name(graph_, i);
-        int tensor_number = get_node_output_number(graph_, node_name);
+        node_t node = get_graph_output_node(graph_, i);
+        int tensor_number = get_node_output_number(node);
 
-        for(int j=0; j < tensor_number; j++)
+        for(int j = 0; j < tensor_number; j++)
         {
-            const char * tensor_name = get_node_output_tensor(graph_, node_name, j);
-            tensor_t output_tensor = get_graph_tensor(graph_, tensor_name);
-            
+            tensor_t output_tensor = get_node_output_tensor(node, j);
+            const char* tensor_name = get_tensor_name(output_tensor);
+
             int dims[4];
-            get_tensor_shape(output_tensor, dims, 4);
-            
+            int dim_size = get_tensor_shape(output_tensor, dims, 4);
+            vector<int> shape;
+            for(int i = 0; i < dim_size; i++)
+                shape.push_back(dims[i]);
+
             // Set net output blob
-            Blob<Dtype> * out_blob = new Blob<Dtype>();
+            Blob<Dtype>* out_blob = new Blob<Dtype>();
             out_blob->set_name(tensor_name);
             out_blob->set_graph(graph_);
-            out_blob->Reshape(dims[0], dims[1], dims[2], dims[3]);
+            out_blob->Reshape(shape);
             net_output_blobs_.push_back(out_blob);
 
-	    put_graph_tensor(output_tensor);
+            release_graph_tensor(output_tensor);
         }
+
+        release_graph_node(node);
     }
 }
 
-template <typename Dtype>
-void Net<Dtype>::Reshape()
+template <typename Dtype> void Net<Dtype>::Reshape()
 {
-    if(prerun_already_ == true)
+    // NOTHING NEEDS TO DO
+}
+
+template <typename Dtype> const vector<Blob<Dtype>*>& Net<Dtype>::Forward(Dtype* loss)
+{
+    // set the shape and buffer of the input tensors
+    for(unsigned int i = 0; i < net_input_blobs_.size(); i++)
     {
-        postrun_graph(graph_);
+        Blob<Dtype>* in_blob = net_input_blobs_[i];
+        const char* tensor_name = in_blob->get_name().c_str();
+        tensor_t input_tensor = get_graph_tensor(graph_, tensor_name);
+
+        int dim_size = in_blob->num_axes();
+        int dims[4];
+
+        for(int i = 0; i < dim_size; i++)
+            dims[i] = in_blob->dim(i);
+
+        set_tensor_shape(input_tensor, dims, dim_size);
+        set_tensor_buffer(input_tensor, in_blob->mutable_cpu_data(), get_tensor_buffer_size(input_tensor));
+
+        release_graph_tensor(input_tensor);
     }
 
-    if(prerun_graph(graph_) < 0)
-        std::cerr<<"Net reshape failed\n";
-    else
-        prerun_already_ = true;
+    run_graph(graph_, 1);
 
-    for(unsigned int i=0; i < net_output_blobs_.size(); i++)
+    // set the shape and buffer of the output blobs
+    for(unsigned int i = 0; i < net_output_blobs_.size(); i++)
     {
-        Blob<Dtype> * out_blob = net_output_blobs_[i];
-        const char * tensor_name = out_blob->get_name().c_str();
+        Blob<Dtype>* out_blob = net_output_blobs_[i];
+        const char* tensor_name = out_blob->get_name().c_str();
         tensor_t output_tensor = get_graph_tensor(graph_, tensor_name);
 
         int dims[4];
-        get_tensor_shape(output_tensor, dims, 4);
-        out_blob->Reshape(dims[0], dims[1], dims[2], dims[3]);
+        int dim_size = get_tensor_shape(output_tensor, dims, 4);
 
-	put_graph_tensor(output_tensor);
+        out_blob->set_shape(dims, dim_size);
+        out_blob->set_cpu_data(( Dtype* )get_tensor_buffer(output_tensor));
+
+        release_graph_tensor(output_tensor);
     }
-}
-
-template <typename Dtype>
-const vector<Blob<Dtype>*>& Net<Dtype>::Forward(Dtype* loss)
-{
-    //int repeat_count=100;
-    //unsigned long start_time = get_cur_time();
-
-    //for(int i=0; i < repeat_count; i++)
-        run_graph(graph_, 1);
-
-    //unsigned long end_time = get_cur_time();
-
-    //printf("Repeat [%d] times %.2f per RUN, used [%lu] us\n", repeat_count, 
-    //       1.0f*(end_time-start_time)/repeat_count, end_time-start_time);
 
     return net_output_blobs_;
 }
 
-template <typename Dtype>
-Net<Dtype>::~Net()
+template <typename Dtype> Net<Dtype>::~Net()
 {
     postrun_graph(graph_);
-    destroy_runtime_graph(graph_);
-    remove_model(model_name_.c_str());
+    destroy_graph(graph_);
 
-    for(auto b: net_input_blobs_)
-	    delete b;
-    for(auto b: net_output_blobs_)
-	    delete b;
+    for(auto b : net_input_blobs_)
+        delete b;
+    for(auto b : net_output_blobs_)
+        delete b;
 
     ReleaseTengine();
 }
 
 INSTANTIATE_CLASS(Net);
 
-}  // namespace caffe
+}    // namespace caffe

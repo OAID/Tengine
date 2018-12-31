@@ -30,64 +30,88 @@
 #include "tensor_mem.hpp"
 #include "graph.hpp"
 #include "operator/relu.hpp"
+#include "data_type.hpp"
 
 namespace TEngine {
 
 namespace ReLuImpl {
 
-struct ReLuOps: public NodeOps {
-
-bool OnBind(Node * node) override
+struct ReLuOps : public NodeOps
 {
-    //set the inplace feature
-    inplace_t io_map;
-
-    io_map[0]=0;
-
-    node->SetAttr(ATTR_INPLACE,io_map);
-
-    return true;
-}
-
-bool Run(Node * node ) override
-{
-    //input tensor and output tensor is the same
-    Tensor * input_tensor = node->GetInputTensor(0);
-    const TShape& shape = input_tensor->GetShape();
-    int elem_num = shape.GetSize();
-    float * data = (float *)get_tensor_mem(input_tensor);
-
-    ReLu * relu_op=dynamic_cast<ReLu *>(node->GetOp());
-    ReLuParam*  param=relu_op->GetParam();
-    if(param->negative_slope==0)
+    bool OnBind(Node* node) override
     {
-        for(int i=0; i < elem_num; i++)
+        // set the inplace feature
+        inplace_t io_map;
+
+        io_map[0] = 0;
+
+        node->SetAttr(ATTR_INPLACE, io_map);
+
+        return true;
+    }
+
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+
+    template <typename data_type> void kernel_run(void* data, int size, float negative_slope)
+    {
+        data_type* out_data = ( data_type* )data;
+        if(negative_slope == 0)
         {
-            if(data[i] < 0) data[i] = 0;
+            for(int i = 0; i < size; i++)
+            {
+                out_data[i] = MAX(out_data[i], 0);
+            }
+        }
+        else
+        {
+            for(int i = 0; i < size; i++)
+            {
+                out_data[i] = MAX(out_data[i], 0.f) + negative_slope * MIN(out_data[i], 0.f);
+            }
         }
     }
-    else
-    {
-        for(int i=0;i<elem_num;i++)
-        {
-           data[i] = std::max(data[i], 0.f)+ param->negative_slope * std::min(data[i], 0.f);
-        }
-    }
-    
-    return true;
-}
 
+    bool Run(Node* node) override
+    {
+        // input tensor and output tensor is the same
+        Tensor* input_tensor = node->GetInputTensor(0);
+        int element_size = DataType::GetTypeSize(input_tensor->GetDataType());
+        const TShape& shape = input_tensor->GetShape();
+        int elem_num = shape.GetSize();
+
+        ReLu* relu_op = dynamic_cast<ReLu*>(node->GetOp());
+        ReLuParam* param = relu_op->GetParam();
+        void* data = get_tensor_mem(input_tensor);
+
+        switch(element_size)
+        {
+            case 4:
+                kernel_run<float>(data, elem_num, param->negative_slope);
+                break;
+#ifdef CONFIG_FLOAT16
+            case 2:
+                kernel_run<__fp16>(data, elem_num, param->negative_slope);
+                break;
+#endif
+            case 1:
+                kernel_run<char>(data, elem_num, param->negative_slope);
+                break;
+        }
+
+        return true;
+    }
 };
 
-} //namespace ReLuImpl
+}    // namespace ReLuImpl
 
 using namespace ReLuImpl;
 
 void RegisterReLuNodeExec(void)
 {
-    ReLuOps * ops = new ReLuOps();
+    ReLuOps* ops = new ReLuOps();
 
     NodeOpsRegistryManager::RegisterOPImplementor("common", "ReLu", ops);
 }
 
-} //namespace TEngine
+}    // namespace TEngine

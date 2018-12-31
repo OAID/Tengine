@@ -27,21 +27,12 @@ namespace TEngine {
 
 using ConfManager = Attribute;
 
-#define TENGINE_VERSION "0.8.0"
+const char* TEngine_git_commit_id = "@" GIT_COMMIT_ID "@";
 
-#ifdef CONFIG_VERSION_POSTFIX
-const std::string TEngineConfig::version(TENGINE_VERSION "-"  CONFIG_VERSION_POSTFIX);
-#else
-const std::string TEngineConfig::version(TENGINE_VERSION);
-#endif
-
-const char * TEngine_git_commit_id="@" GIT_COMMIT_ID "@";
-
-bool TEngineConfig::tengine_mt_mode = true;
 char TEngineConfig::delim_ch = '=';
 char TEngineConfig::commt_ch = '#';
 
-ConfManager * TEngineConfig::GetConfManager(void)
+ConfManager* TEngineConfig::GetConfManager(void)
 {
     static ConfManager instance;
 
@@ -55,17 +46,16 @@ void TEngineConfig::Trim(std::string& s)
     // Erase the leading whitespaces
     s.erase(0, s.find_first_not_of(whitespaces));
     // Erase the trailing whitespaces
-    s.erase(s.find_last_not_of(whitespaces)+1);
+    s.erase(s.find_last_not_of(whitespaces) + 1);
 }
 
-bool TEngineConfig::Load(const std::string filename, const char delimiter, 
-                                                     const char comment)
+bool TEngineConfig::Load(const std::string filename, const char delimiter, const char comment)
 {
     std::fstream cfgfile(filename.c_str());
     if(!cfgfile)
     {
-        LOG_ERROR()<<"Can not open the config file: "<<filename<<"\n";
-        LOG_ERROR()<<"Please cp ./etc/config.example ./etc/config\n";
+        LOG_ERROR() << "Can not open the config file: " << filename << "\n";
+        LOG_ERROR() << "Please cp ./etc/config.example ./etc/config\n";
         return false;
     }
 
@@ -75,7 +65,7 @@ bool TEngineConfig::Load(const std::string filename, const char delimiter,
 
     // Read the keys and values from the config file
     typedef std::string::size_type pos;
-    ConfManager *manager=GetConfManager();
+    ConfManager* manager = GetConfManager();
     while(!cfgfile.eof())
     {
         std::string line;
@@ -92,15 +82,11 @@ bool TEngineConfig::Load(const std::string filename, const char delimiter,
         {
             // Get the key and the value
             std::string key = line.substr(0, delim_pos);
-            line.replace(0, delim_pos+1, "");
+            line.replace(0, delim_pos + 1, "");
             // Remove the leading and trailing whitespaces
             Trim(key);
             Trim(line);
             // Store the key and the value, overwrites if the key is repeated
-            if(key == "mt.mode" && line == "0")
-            {
-                tengine_mt_mode = false;
-            }
             // Set the config manager
             manager->SetAttr(key, line);
         }
@@ -110,28 +96,28 @@ bool TEngineConfig::Load(const std::string filename, const char delimiter,
 
 void TEngineConfig::Remove(const std::string& key)
 {
-    ConfManager *manager = GetConfManager();
+    ConfManager* manager = GetConfManager();
 
     manager->RemoveAttr(key);
 }
 
 void TEngineConfig::DumpConfig(void)
 {
-    ConfManager *manager = GetConfManager();
-   	std::vector<std::string> keys;
+    ConfManager* manager = GetConfManager();
+    std::vector<std::string> keys;
 
     keys = manager->ListAttr();
     std::string value;
-    for(unsigned int i=0; i < keys.size(); i++)
+    for(unsigned int i = 0; i < keys.size(); i++)
     {
         Get<std::string>(keys.at(i), value);
-        std::cout<<keys.at(i)<<" = "<<value<<std::endl;
+        std::cout << keys.at(i) << " = " << value << std::endl;
     }
 }
 
 std::vector<std::string> TEngineConfig::ParseKey(const std::string& key)
 {
-   	std::vector<std::string> result;
+    std::vector<std::string> result;
     std::string subkey = key;
 
     typedef std::string::size_type pos;
@@ -139,72 +125,67 @@ std::vector<std::string> TEngineConfig::ParseKey(const std::string& key)
     while(dot_pos != std::string::npos)
     {
         result.push_back(subkey.substr(0, dot_pos));
-        subkey.replace(0, dot_pos+1, "");
+        subkey.replace(0, dot_pos + 1, "");
         dot_pos = subkey.find('.');
     }
-   	if(subkey.size() > 0)
+    if(subkey.size() > 0)
         result.push_back(subkey);
 
-   	return result;
+    return result;
 }
 
 bool GetSyncRunMode(void)
 {
-    static bool sync_run_mode=false;
-    static bool inited=false;
+    static bool sync_run_mode = false;
+    static bool inited = false;
 
     if(inited)
         return sync_run_mode;
 
-    inited=true;
+    inited = true;
 
     std::string value;
 
-    if(TEngineConfig::Get("exec.sync_run",value))
+    if(TEngineConfig::Get("exec.sync_run", value))
     {
-        if(value=="true" || value=="TRUE")
-            sync_run_mode=true;
+        if(value == "true" || value == "TRUE")
+            sync_run_mode = true;
     }
 
     return sync_run_mode;
-
 }
 
-template<>
-bool ConvertSpecialAny<int>(int& entry, const std::type_info& info, any& data)
+template <> bool ConvertSpecialAny<int>(int& entry, const std::type_info& info, any& data)
 {
-	if(info == typeid(double))
-	{
-		entry=any_cast<double>(data);
-		return true;
-	}
+    if(info == typeid(double))
+    {
+        entry = any_cast<double>(data);
+        return true;
+    }
 
-	return false;
+    return false;
 }
 
-template<>
-bool ConvertSpecialAny<float>(float& entry, const std::type_info& info, any& data)
+template <> bool ConvertSpecialAny<float>(float& entry, const std::type_info& info, any& data)
 {
-	if(info == typeid(double))
-	{
-		entry=any_cast<double>(data);
-		return true;
-	}
+    if(info == typeid(double))
+    {
+        entry = any_cast<double>(data);
+        return true;
+    }
 
-	return false;
+    return false;
 }
 
-template<>
-bool ConvertSpecialAny<std::string>(std::string& entry, const std::type_info& info, any& data)
+template <> bool ConvertSpecialAny<std::string>(std::string& entry, const std::type_info& info, any& data)
 {
-	if(info == typeid(const char *))
-	{
-		entry=any_cast<const char *>(data);
-		return true;
-	}
+    if(info == typeid(const char*))
+    {
+        entry = any_cast<const char*>(data);
+        return true;
+    }
 
-	return false;
+    return false;
 }
 
-
-} //end of namespace TEngine
+}    // end of namespace TEngine

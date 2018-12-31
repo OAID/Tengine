@@ -23,36 +23,31 @@
  */
 #include "operator/detection_output.hpp"
 
-
 namespace TEngine {
 
-bool DetectionOutput::InferShape(const std::vector<TEngine::TShape>& ishape, 
-                               std::vector<TEngine::TShape>& oshape)
+bool DetectionOutput::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEngine::TShape>& oshape,
+                                 int layout)
 {
+    const TShape& input = ishape[0];
+    const std::vector<int>& in_dim = input.GetDim();
 
-    const TShape& input=ishape[0];
-    const std::vector<int>& in_dim=input.GetDim();
- 
     // out shape [batch,keep_top_k+1,6,1]
     TShape shape;
-    std::vector<int> dim={in_dim[0],1,6,1};
+    std::vector<int> dim = {in_dim[0], 1, 6, 1};
     shape.SetDim(dim);
     shape.SetDataLayout("NCHW");
-    oshape[0]=shape;
-    return true;    
+    oshape[0] = shape;
+    return true;
 }
-
 
 void DetectionOutput::SetSchema(void)
 {
     Input({"input:float32"})
-    .Output({"output:float32"})
-    .SetLayout("NCHW")
-   .SetAttr("num_classes",21)
+        .Output({"output:float32"})
+        .SetLayout("NCHW")
+        .SetAttr("num_classes", 21)
 
-    .SetDoc(R"DOC(DetectionOutput Layer)DOC");
-
+        .SetDoc(R"DOC(DetectionOutput Layer)DOC");
 }
 
-
-} //namespace TEngine
+}    // namespace TEngine

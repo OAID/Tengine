@@ -31,21 +31,21 @@ namespace TEngine {
 
 #define BatchNormName "BatchNormalization"
 
-class BatchNorm: public OperatorWithParam<BatchNorm, BatchNormParam> {
-
+class BatchNorm : public OperatorWithParam<BatchNorm, BatchNormParam>
+{
 public:
-    BatchNorm() { name_=BatchNormName; }
-    BatchNorm(const BatchNorm& src) =default;
-    virtual ~BatchNorm() {};
+    BatchNorm()
+    {
+        name_ = BatchNormName;
+    }
+    BatchNorm(const BatchNorm& src) = default;
+    virtual ~BatchNorm(){};
 
     void SetSchema(void) override;
 
     float GetFops(const std::vector<TShape>& inputs, const std::vector<TShape>& outputs) override;
-
 };
 
-
-} //namespace TEngine
-
+}    // namespace TEngine
 
 #endif

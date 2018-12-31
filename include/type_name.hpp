@@ -30,72 +30,59 @@
 #include <memory>
 #include <string>
 #include <cstdlib>
-//For Debug
+// For Debug
 //获取类型易读的名称
 namespace TEngine {
-    template <class T>
-    static std::string type_name()
-    {
-            typedef typename std::remove_reference<T>::type TR;
-            std::unique_ptr<char, void(*)(void*)> own
-                    (
-    #ifndef __GNUC__
-    nullptr,
-    #else
-    abi::__cxa_demangle(typeid(TR).name(), nullptr,
-                    nullptr, nullptr),
-    #endif
-                    std::free
-                    );
-            std::string r = own != nullptr ? own.get() : typeid(TR).name();
-            if (std::is_const<TR>::value)
-                    r += " const";
-            if (std::is_volatile<TR>::value)
-                    r += " volatile";
-            if (std::is_lvalue_reference<T>::value)
-                    r += "&";
-            else if (std::is_rvalue_reference<T>::value)
-                    r += "&&";
-            return r;
-    }
-
-    template <typename T>
-    static void OutputTypeName(T&& t)
-    {
-            std::cout << type_name<T>() << std::endl;
-    }
-
-    template <typename T>
-    static void OutputTypeNameToCerr(T&& t)
-    {
-            std::cerr << type_name<T>() << std::endl;
-    }
-
-    template <typename T>
-    static std::string GetNameForType(T&& t)
-    {
-            return "org:" + type_name<T>() + "  -- decay:" + type_name<typename std::decay<T>::type>();
-    }
-
-    static std::string GetTypeName(const char* name)
-    {
-        #ifndef __GNUC__
-            return name;
-        #else
-            std::unique_ptr<char, void(*)(void*)> own
-            (
-                abi::__cxa_demangle(name, nullptr,
-                        nullptr, nullptr),
-                std::free
-            );
-            std::string r = own.get();        
-            return r;
-        #endif
-    }
-
-    static inline void OutputTypeName(const char* name)
-    {
-        std::cout << "=== " << GetTypeName(name) << std::endl;
-    }
-    
+template <class T> static std::string type_name()
+{
+    typedef typename std::remove_reference<T>::type TR;
+    std::unique_ptr<char, void (*)(void*)> own(
+#ifndef __GNUC__
+        nullptr,
+#else
+        abi::__cxa_demangle(typeid(TR).name(), nullptr, nullptr, nullptr),
+#endif
+        std::free);
+    std::string r = own != nullptr ? own.get() : typeid(TR).name();
+    if(std::is_const<TR>::value)
+        r += " const";
+    if(std::is_volatile<TR>::value)
+        r += " volatile";
+    if(std::is_lvalue_reference<T>::value)
+        r += "&";
+    else if(std::is_rvalue_reference<T>::value)
+        r += "&&";
+    return r;
 }
+
+template <typename T> static void OutputTypeName(T&& t)
+{
+    std::cout << type_name<T>() << std::endl;
+}
+
+template <typename T> static void OutputTypeNameToCerr(T&& t)
+{
+    std::cerr << type_name<T>() << std::endl;
+}
+
+template <typename T> static std::string GetNameForType(T&& t)
+{
+    return "org:" + type_name<T>() + "  -- decay:" + type_name<typename std::decay<T>::type>();
+}
+
+static std::string GetTypeName(const char* name)
+{
+#ifndef __GNUC__
+    return name;
+#else
+    std::unique_ptr<char, void (*)(void*)> own(abi::__cxa_demangle(name, nullptr, nullptr, nullptr), std::free);
+    std::string r = own.get();
+    return r;
+#endif
+}
+
+static inline void OutputTypeName(const char* name)
+{
+    std::cout << "=== " << GetTypeName(name) << std::endl;
+}
+}    // namespace TEngine
