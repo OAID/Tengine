@@ -35,25 +35,23 @@ namespace TEngine {
 class Graph;
 struct GraphOptimizer;
 
-using graph_opt_t=std::function<bool(Graph *,GraphOptimizer *)>;
+using graph_opt_t = std::function<bool(Graph*, GraphOptimizer*)>;
 
-struct GraphOptimizer {
-
+struct GraphOptimizer
+{
     std::string name;
     graph_opt_t optimizer;
-    any   args;
+    any args;
 };
 
-
-class GraphOptimizerManager: public SimpleObjectManager<GraphOptimizerManager,GraphOptimizer*> {
-
+class GraphOptimizerManager : public SimpleObjectManager<GraphOptimizerManager, GraphOptimizer*>
+{
 public:
-  static bool RunOpt(const std::string& name, Graph * graph);
+    static bool RunOpt(const std::string& name, Graph* graph);
 
-  static void Init(void);
-
+    static void Init(void);
 };
 
-} //namespace TEngine
+}    // namespace TEngine
 
 #endif

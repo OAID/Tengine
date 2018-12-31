@@ -30,136 +30,148 @@
 #include "exec_attr.hpp"
 #include "attr_io.hpp"
 
-
 namespace TEngine {
 
-class RuntimeWorkspace;
 class GraphExecutor;
 
-using  get_graph_attr_func_t=std::function<bool(GraphExecutor *, const char * name, void * val, int size)>;
-using  set_graph_attr_func_t=std::function<bool(GraphExecutor *, const char * name, const void * val, int size)>;
+using get_graph_attr_func_t = std::function<bool(GraphExecutor*, const char* name, void* val, int size)>;
+using set_graph_attr_func_t = std::function<bool(GraphExecutor*, const char* name, const void* val, int size)>;
 
-class GraphExecutor {
-
+class GraphExecutor
+{
 public:
+    GraphExecutor()
+    {
+        graph_ = nullptr;
+        graph_attached_ = false;
+        exec_handle_ = nullptr;
+        prerun_done_ = false;
 
-  GraphExecutor() {
-       graph_=nullptr;
-       graph_attached_=false;
-       exec_handle_=nullptr;
-	   InitAttrIO();
-  }
+        InitAttrIO();
+    }
 
-  ~GraphExecutor() { 
-       if(graph_ && !graph_attached_) 
-           ReleaseGraph();
-       if(exec_handle_)
-           ReleaseExecHandle();
-   }
+    ~GraphExecutor()
+    {
+        if(graph_ && !graph_attached_)
+            ReleaseGraph();
+        if(exec_handle_)
+            ReleaseExecHandle();
+    }
 
-   bool CreateGraph(const std::string& graph_name, const std::string& model_name);
+    bool CreateGraph(void* context, const char* graph_name, const char* model_name);
 
-   bool AttachGraph(Graph * graph_);
+    bool AttachGraph(void* context, Graph* graph_);
 
-   Graph * GetGraph(void) { return graph_;}
-   Graph * GetOptimizedGraph(void); 
+    Graph* GetGraph(void)
+    {
+        return graph_;
+    }
+    Graph* GetOptimizedGraph(void);
 
-   RuntimeWorkspace * GetWorkspace(void) {  return ws_;}
+    const std::string& GetGraphName(void)
+    {
+        return graph_->GetName();
+    }
+    const std::string& GetModelName(void)
+    {
+        return model_name_;
+    }
 
-   void SetWorkspace(RuntimeWorkspace * ws) { ws_=ws;}
+    bool SetGraphInputNode(const std::vector<std::string>& node_name);
+    bool SetGraphOutputNode(const std::vector<std::string>& node_name);
 
-   const std::string& GetGraphName(void) { return graph_name_; }
-   const std::string& GetModelName(void) { return model_name_; }
+    int GetGraphInputNodeNum(void);
+    const std::string& GetGraphInputNodeName(int idx);
+    int GetNodeInputNum(const std::string& node_name);
+    const std::string& GetNodeInputTensor(const std::string& node_name, int idx);
 
-   bool SetGraphInputNode(const std::vector<std::string>& node_name);
-   bool SetGraphOutputNode(const std::vector<std::string>& node_name);
+    int GetGraphOutputNodeNum(void);
+    const std::string& GetGraphOutputNodeName(int idx);
+    int GetNodeOutputNum(const std::string& node_name);
+    const std::string& GetNodeOutputTensor(const std::string& node_name, int idx);
 
-   int  GetGraphInputNodeNum(void);
-   const std::string&  GetGraphInputNodeName(int idx);
-   int  GetNodeInputNum(const std::string& node_name);
-   const std::string&  GetNodeInputTensor(const std::string& node_name, int idx);
+    Tensor* FindTensor(const std::string& name);
+    Node* FindNode(const std::string& name);
 
-   int  GetGraphOutputNodeNum(void);
-   const std::string&  GetGraphOutputNodeName(int idx);
-   int  GetNodeOutputNum(const std::string& node_name);
-   const std::string&  GetNodeOutputTensor(const std::string& node_name, int idx);
+    bool SetTensorBuffer(Tensor* tensor, void* buffer, int buffer_size);
+    void* GetTensorBuffer(Tensor* tensor);
 
-   Tensor * FindTensor(const std::string& name);
-   Node * FindNode(const std::string& name);
+    bool SetTensorData(Tensor* tensor, const void* input_data, int data_size);
+    bool GetTensorData(Tensor* tensor, void* output_data, int data_size);
 
-   bool SetTensorBuffer(Tensor * tensor, void * buffer, int buffer_size);
-   void *  GetTensorBuffer(Tensor * tensor);
+    Tensor* GetInputNodeTensor(unsigned int node_idx, unsigned int tensor_idx);
+    Tensor* GetOutputNodeTensor(unsigned int node_idx, unsigned int tensor_idx);
 
-   bool SetTensorData(Tensor * tensor, const void *  input_data,int data_size);
-   bool GetTensorData(Tensor * tensor,void *  output_data,int data_size);
+    int GetExecStatus(void);
+    bool SetEventHook(int event, event_handler_t cb_func, void* cb_arg);
 
-   Tensor * GetInputNodeTensor(unsigned int node_idx, unsigned int tensor_idx);
-   Tensor * GetOutputNodeTensor(unsigned int node_idx, unsigned int tensor_idx);
+    bool InferShape(void);
 
-   bool  RunPass(const std::string& pass_name,const any& param);
+    bool Prerun(void);
 
-   bool InferShape(void);
+    bool Run(int block);
+    bool SyncRun(void);
 
-   bool Prerun(void);
+    int WaitGraph(int try_wait);
 
-   bool Run(int block);
-   bool SyncRun(void);
+    bool Postrun(void);
 
-   int  WaitGraph(int try_wait);
+    ExecAttr* GetExecAttr(void)
+    {
+        return &exec_attr_;
+    }
 
-   bool Postrun(void);
+    int SetGraphAttr(const char* name, const void* val, int size)
+    {
+        if(attr_io_.SetAttr(name, val, size))
+            return 0;
+        else
+            return -1;
+    }
 
-   ExecAttr * GetExecAttr(void) { return &exec_attr_;}
+    int GetGraphAttr(const char* name, void* val, int size)
+    {
+        if(attr_io_.GetAttr(name, val, size))
+            return 0;
+        else
+            return -1;
+    }
 
-   int SetGraphAttr(const char * name, const void * val, int size)
-   {
-       if(attr_io_.SetAttr(name,val,size))
-		   return 0;
-	   else
-		   return -1;
-   }
+    bool GetExecAttrEntry(const char* name, void* val, int size);
+    bool SetExecAttrEntry(const char* name, const void* val, int size);
 
-   int GetGraphAttr(const char * name, void * val, int size)
-   {
-	   if(attr_io_.GetAttr(name,val,size))
-		   return 0;
-	   else
-		   return -1;
-   }
+    bool BailoutSetAttr(const char* name, const void* val, int size);
+    bool BailoutGetAttr(const char* name, void* val, int size);
 
-   bool GetExecAttrEntry   (const char * name, void * val, int size);
-   bool SetExecAttrEntry(const char * name, const void *val, int size);
+    void InitAttrIO(void);
 
-   bool BailoutSetAttr(const char * name, const void * val, int size);
-   bool BailoutGetAttr(const char * name, void * val, int size);
-
-   void InitAttrIO(void);
-
+    bool PrerunDone(void)
+    {
+        return prerun_done_;
+    }
 
 protected:
-   void ReleaseGraph(void);
-   void ReleaseExecHandle(void);
+    void ReleaseGraph(void);
+    void ReleaseExecHandle(void);
+    bool PrepareExec(void* context, Graph* graph, StaticGraph* static_graph);
+    bool SetExecParam(Graph* graph);
 
 private:
+    std::string model_name_;
 
-   std::string graph_name_;
-   std::string model_name_;
+    Graph* graph_;
+    bool graph_attached_;
 
-   RuntimeWorkspace * ws_;
-   Graph * graph_;
-   bool   graph_attached_;
+    ExecAttr exec_attr_;
 
- 
-   ExecAttr  exec_attr_;
+    ExecEnginePtr exec_engine_;
+    exec_handle_t exec_handle_;
+    exec_event_t exec_event_;
 
-   ExecEnginePtr exec_engine_;
-   exec_handle_t exec_handle_;
-   exec_event_t  exec_event_;
-
-   AttrIO attr_io_;
-
+    AttrIO attr_io_;
+    bool prerun_done_;
 };
 
-} //namespace TEngine
+}    // namespace TEngine
 
 #endif

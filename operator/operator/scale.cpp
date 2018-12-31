@@ -24,18 +24,16 @@
 #include "operator/scale.hpp"
 #include "static_graph.hpp"
 
-
 namespace TEngine {
 
 void Scale::SetSchema(void)
 {
-    Input({"input:float32","gamma:float32","bias:float32"})
-   .Output({"output:float32"})
-   .SetAttr("axis",1)
-   .SetAttr("num_axes",1)
-   .SetAttr("bias_term",0)
-   .SetDoc(R"DOC(Scale: only caffe flavor scale)DOC");
+    Input({"input:float32", "gamma:float32", "bias:float32"})
+        .Output({"output:float32"})
+        .SetAttr("axis", 1)
+        .SetAttr("num_axes", 1)
+        .SetAttr("bias_term", 0)
+        .SetDoc(R"DOC(Scale: only caffe flavor scale)DOC");
 }
 
-
-} //namespace TEngine
+}    // namespace TEngine

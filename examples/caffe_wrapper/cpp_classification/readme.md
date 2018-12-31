@@ -10,8 +10,9 @@ cd  ${Tengine_ROOT}
 make install
 ```
 build as ${TENGINE_ROOT}/examples/readme.md
+NOTE: "add_subdirectory(caffe_wrapper)" must be opened in ${TENGINE_ROOT}/examples/CMakeLists.txt
 
-## Test
+## Run
 - go to the directory of the executive programs
 
     ```

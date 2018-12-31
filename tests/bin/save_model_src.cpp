@@ -23,64 +23,53 @@
  */
 #include <unistd.h>
 
-#include <iostream> 
+#include <iostream>
 #include <functional>
 #include <algorithm>
 #include <fstream>
 #include <iomanip>
 #include <time.h>
 
-
 #include "tengine_c_api.h"
 
+const char* text_file = "./models/sqz.prototxt";
+const char* model_file = "./models/squeezenet_v1.1.caffemodel";
 
-const char * text_file="./models/sqz.prototxt";
-const char * model_file="./models/squeezenet_v1.1.caffemodel";
-
-   
-int main(int argc, char * argv[])
+int main(int argc, char* argv[])
 {
-  
-   std::string model_name = "squeeze_net";
+    std::string model_name = "squeeze_net";
 
-   init_tengine_library();
- 
-   if(request_tengine_version("0.1")<0)
-       return 1;
+    init_tengine();
 
-   if(load_model(model_name.c_str(),"caffe",text_file,model_file)<0)
-   {
-       std::cout<<"load model failed\n";
-       return 1; 
-   }
+    if(request_tengine_version("0.9") < 0)
+        return 1;
 
-   std::cout<<"Load model successfully\n";
+    graph_t graph = create_graph(nullptr, "caffe", text_file, model_file);
 
-   graph_t graph=create_runtime_graph("graph0",model_name.c_str(),NULL);
+    if(graph == nullptr)
+    {
+        std::cerr << "Create graph failed\n";
+        std::cerr << "errno: " << get_tengine_errno() << "\n";
+        return 1;
+    }
 
-   if(!check_graph_valid(graph))
-   {
-       std::cout<<"Create graph0 failed\n";
-       return 1;
-   }
+    /*
+       src_tm is the serializer name
+       squeeze_net is the model name,
+       which is used when load source model
+    */
 
-   /* 
-      src_tm is the serializer name 
-      squeezenet is the model name,
-      which is used when load source model
-   */
+    if(save_graph(graph, "src_tm", model_name.c_str()) < 0)
+    {
+        std::cerr << "Save graph failed\n";
+        return 1;
+    }
 
-   if(save_model(graph,"src_tm","squeezenet")<0)
-   {
-       std::cout<<"Save graph failed\n";
-       return 1;
-   }
+    /* free resource */
 
-   /* free resource */
+    destroy_graph(graph);
 
-   destroy_runtime_graph(graph);
-   remove_model(model_name.c_str());
-   release_tengine_library();
+    release_tengine();
 
-   return 0;
+    return 0;
 }

@@ -21,26 +21,14 @@ To add a new operator, you should:
 ## An Example of Scale Operator
 In this section, we use `Scale` operator as our example to show how to add it in Tengine step by step.
 
-### Step 1: Add Operator Header File
+### Step 1: Create Operator Header File
 There are two type of operators:
 - Operator without parameters: `template <typename T>  OperatorNoParam`
 - Operator with parameters: `template <typename T, typename P> OperatorWithParam`
 
 The scale operator is an operator with parameters.
 
-* Define `Scale` class in file [operator/include/operator/scale.hpp](../operator/include/operator/scale.hpp):
-    ```c++
-    class Scale: public OperatorWithParam<Scale,ScaleParam> {
-    public:
-
-        Scale() { name_="Scale"; }
-        Scale(const Scale&)= default;
-        ~Scale() {}
-
-        void SetSchema(void) override;
-    };
-    ```
-* Define `ScaleParam` in file [operator/include/operator/scale_param.hpp](../operator/include/operator/scale_param.hpp):
+* Create `ScaleParam` file [operator/include/operator/scale_param.hpp](../operator/include/operator/scale_param.hpp):
     ```c++
     struct ScaleParam {
     int   axis;
@@ -54,7 +42,19 @@ The scale operator is an operator with parameters.
     };
     };
     ```
-### **Step 2: Add Operator Cpp File**
+* Create `Scale` file [operator/include/operator/scale.hpp](../operator/include/operator/scale.hpp):
+    ```c++
+    class Scale: public OperatorWithParam<Scale,ScaleParam> {
+    public:
+
+        Scale() { name_="Scale"; }
+        Scale(const Scale&)= default;
+        ~Scale() {}
+
+        void SetSchema(void) override;
+    };
+    ```
+### **Step 2: Create Operator Cpp File**
 
 * Set operator schema in file [operator/operator/scale.cpp](../operator/operator/scale.cpp):
     ```c++
@@ -79,7 +79,7 @@ The scale operator is an operator with parameters.
     RegisterOp<Scale>("Scale");
     ```
 
-### **Step 4: Add Implementation in Executor Folder**
+### **Step 4: Create Implementation in Executor Folder**
 
 * Add the implementation of scale operator in file [executor/operator/common/scale.cpp](../executor/operator/common/scale.cpp) and register the implemetation in the function `RegisterScaleNodeExec`:
 
@@ -111,33 +111,7 @@ The scale operator is an operator with parameters.
 * Add `RegisterScale_NodeExec` in file [executor/plugin/init.cpp](../executor/plugin/init.cpp):
     ```c++
         extern void RegisterScale_NodeExec(void);
+        ...
         RegisterScale_NodeExec();
     ```
 
-
-### **Step 6: Test Operator Implementation**
-If you want to test your operator implementation, you can add test in file [executor/tests/test_scale.cpp](../executor/tests/test_scale.cpp).
-
-## Dynamic shape for Operator
-Tengine also support dynamic shape for operators. Operators that need to dynamic shape are `RPN` in faster_rcnn and `detection_output` in SSD. The following will explain how to implement this method.
-
-1. Tell the network from which operator, the shape will be computed dynamically. Add 
-    ```c++
-    SetOperatorDynamicShape(op);
-    ```
-    in your loadcaffe function `LoadCaffeDetectionOutput()` / `LoadCaffeRPN()` in file [serializer/caffe/caffe_serializer.cpp](../serializer/caffe/caffe_serializer.cpp) .
-
-2. Add DynamicProcess and do infer-shape in Run function in file [executor/operator/common/rpn.cpp](../executor/operator/common/rpn.cpp):
-    ```c++
-    bool Run(Node *node)
-    {
-        Tensor *output_tensor = node->GetOutputTensor(0);
-        TShape &out_shape = output_tensor->GetShape();
-
-        // dynamic compute num_box
-        // set the output shape here
-
-        std::vector<int> outdim={1,num_box,4,1};
-        out_shape.SetDim(outdim);
-    }
-    ```

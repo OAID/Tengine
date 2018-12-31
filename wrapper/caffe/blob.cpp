@@ -37,18 +37,17 @@ void Blob<Dtype>::Reshape(const int num, const int channels, const int height, c
     Reshape(shape);
 }
 
-template <typename Dtype>
-void Blob<Dtype>::Reshape(const vector<int>& shape)
+template <typename Dtype> void Blob<Dtype>::Reshape(const vector<int>& shape)
 {
     int dim_size = shape.size();
-    int *dims = new int[dim_size];
+    int* dims = new int[dim_size];
     shape_.resize(dim_size);
     count_ = 1;
 
     for(int i = 0; i < dim_size; ++i)
     {
         if(shape[i] < 0)
-            std::cerr<<"Shape number error\n";
+            std::cerr << "Shape number error\n";
         else
         {
             shape_[i] = shape[i];
@@ -57,80 +56,62 @@ void Blob<Dtype>::Reshape(const vector<int>& shape)
         }
     }
 
-    if (count_ > capacity_)
+    if(count_ > capacity_)
     {
         if(!capacity_)
-            data_ = malloc(sizeof(Dtype)*count_);
+            data_ = malloc(sizeof(Dtype) * count_);
         else
-            data_ = realloc(data_, sizeof(Dtype)*count_);
+            data_ = realloc(data_, sizeof(Dtype) * count_);
 
         capacity_ = count_;
-    }
-
-    if(!name_.empty())
-    {
-        tensor_t tensor = get_graph_tensor(graph_, name_.c_str());
-        if(tensor == nullptr)
-        {
-            std::cerr<<"Get tensor failed\n";
-        }
-        else
-        {
-            set_tensor_shape(tensor, dims, dim_size);
-
-            if(set_tensor_buffer(tensor, data_, sizeof(Dtype)*count_))
-            {
-                std::cerr<<"Create buffer for tensor failed\n";
-            }
-	    put_graph_tensor(tensor);
-        }
-
     }
 
     delete[] dims;
 }
 
-template <typename Dtype>
-const Dtype* Blob<Dtype>::cpu_data() const
+template <typename Dtype> const Dtype* Blob<Dtype>::cpu_data() const
 {
     if(!data_)
     {
-        std::cerr<<"Get blob cpu data failed\n";
+        std::cerr << "Get blob cpu data failed\n";
         return nullptr;
     }
 
-    return (const Dtype*)data_;
+    return ( const Dtype* )data_;
 }
 
-template <typename Dtype>
-Dtype* Blob<Dtype>::mutable_cpu_data()
+template <typename Dtype> Dtype* Blob<Dtype>::mutable_cpu_data()
 {
     if(!data_)
     {
-        std::cerr<<"Get blob mutable cpu data failed\n";
+        std::cerr << "Get blob mutable cpu data failed\n";
         return nullptr;
     }
     return static_cast<Dtype*>(data_);
 }
 
-template <typename Dtype>
-void Blob<Dtype>::set_cpu_data(Dtype* data)
+template <typename Dtype> void Blob<Dtype>::set_cpu_data(Dtype* data)
 {
     if(!data)
     {
-        std::cerr<<"Set blob cpu data failed\n";
+        std::cerr << "Set blob cpu data failed\n";
     }
-    data_ = (void *)data;
+
+    if(data_ && !external_mem_)
+    {
+        free(data_);
+    }
+
+    data_ = ( void* )data;
+    external_mem_ = true;
 }
 
-template <typename Dtype>
-void Blob<Dtype>::FromProto(const BlobProto& proto, bool reshape)
+template <typename Dtype> void Blob<Dtype>::FromProto(const BlobProto& proto, bool reshape)
 {
     if(reshape)
     {
         vector<int> shape;
-        if(proto.has_num() || proto.has_channels() ||
-           proto.has_height() || proto.has_width())
+        if(proto.has_num() || proto.has_channels() || proto.has_height() || proto.has_width())
         {
             shape.resize(4);
             shape[0] = proto.num();
@@ -148,13 +129,13 @@ void Blob<Dtype>::FromProto(const BlobProto& proto, bool reshape)
     }
     else
     {
-	if(data_)
-	    free(data_);
+        if(data_)
+            free(data_);
 
-        data_ = malloc(sizeof(Dtype)*count_);
+        data_ = malloc(sizeof(Dtype) * count_);
     }
 
-    Dtype * data =(Dtype *)data_; 
+    Dtype* data = ( Dtype* )data_;
 
     if(proto.double_data_size() > 0)
     {
@@ -170,5 +151,4 @@ void Blob<Dtype>::FromProto(const BlobProto& proto, bool reshape)
 
 INSTANTIATE_CLASS(Blob);
 
-}  // namespace caffe
-
+}    // namespace caffe

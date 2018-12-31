@@ -23,15 +23,14 @@
  */
 #include "operator/demo_op.hpp"
 
-
 namespace TEngine {
 
 void DemoOp::SetSchema(void)
 {
-  Input({"input:float32/int8"})
-  .Output({"output:float32/int8"})
-  .SetLayout("NCHW")
-  .SetDoc(R"DOC(Demo Operator: a demo operator to show how to define and run a operator)DOC");
+    Input({"input:float32/int8"})
+        .Output({"output:float32/int8"})
+        .SetLayout("NCHW")
+        .SetDoc(R"DOC(Demo Operator: a demo operator to show how to define and run a operator)DOC");
 }
 
-} //namespace TEngine
+}    // namespace TEngine

@@ -24,27 +24,18 @@
 #include "operator/split.hpp"
 #include "static_graph.hpp"
 
-
 namespace TEngine {
 
-bool Split::InferShape(const std::vector<TShape>& ishape, 
-                             std::vector<TShape>& oshape)
+bool Split::InferShape(const std::vector<TShape>& ishape, std::vector<TShape>& oshape, int layout)
 {
-
-    
-    for(unsigned int i=0;i<oshape.size();i++)
-          oshape[i]=ishape[0];
+    for(unsigned int i = 0; i < oshape.size(); i++)
+        oshape[i] = ishape[0];
 
     return true;
 }
 
-
 void Split::SetSchema(void)
 {
-  Input({"input:float32"})
-  .Output({"output:float32"})
-  .SetLayout("NCHW")
-  .SetDoc(R"DOC(Split Operator)DOC");
+    Input({"input:float32"}).Output({"output:float32"}).SetLayout("NCHW").SetDoc(R"DOC(Split Operator)DOC");
 }
-
-}
+}    // namespace TEngine

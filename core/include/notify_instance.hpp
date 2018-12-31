@@ -33,99 +33,91 @@
 
 namespace TEngine {
 
-class NotifyBus: public EventBusInterface {
-
+class NotifyBus : public EventBusInterface
+{
 public:
+    using name_map_t = std::unordered_map<std::string, int>;
+    using event_tree_t = std::map<int, std::queue<EventData>>;
 
-	using name_map_t=std::unordered_map<std::string, int>;
-	using event_tree_t=std::map<int, std::queue<EventData> >;
+    struct EventNode
+    {
+        int event;
+        bool active;    // in active queue or not
+        uint64_t drop_count;
+        uint64_t send_count;
+        uint64_t process_count;
+        uint64_t sync_send_count;
+        uint64_t send_fail_count;
 
-	struct EventNode 
-	{
-		int event;
-                bool active; //in active queue or not
-		uint64_t drop_count;
-		uint64_t send_count;
-		uint64_t process_count;
-		uint64_t sync_send_count;
-		uint64_t send_fail_count;
-             
+        std::string name;
+        event_tree_t event_tree;    // priority and event data
+        std::vector<EventHandle> handle_list;
+        std::recursive_mutex event_mutex;
+    };
 
-		std::string name;
-		event_tree_t event_tree; //priority and event data
-		std::vector<EventHandle> handle_list;
-		std::recursive_mutex event_mutex;
-	};
+    int CreateEvent(const std::string& name);
+    bool RemoveEvent(int event);
+    bool RemoveEvent(const std::string& name);
 
+    std::string EventName(int event);
+    int EventNum(const std::string& name);
 
+    std::string BusName(void);
 
-	int  CreateEvent(const std::string& name);
-	bool RemoveEvent(int event);
-	bool RemoveEvent(const std::string& name);
+    int DropPendingEvent(int event);
+    int DropPendingEvent();
 
-	std::string EventName(int event);
-	int  EventNum(const std::string& name);
+    bool Send(int event, EventData* data, int priority = 10);
+    bool Send(const std::string& event_name, EventData* data, int priority = 10);
 
-	std::string BusName(void);
+    bool SyncSend(int event, EventData* data);
+    bool SyncSend(const std::string& event_name, EventData* data);
 
-	int  DropPendingEvent(int event); 
-	int  DropPendingEvent();
+    bool Book(int event, const EventHandle& handle);
+    bool Book(const std::string& event_name, const EventHandle& handle);
 
-	bool Send(int event, EventData * data, int priority=10);
-	bool Send(const std::string& event_name, EventData * data, int priority=10);
+    int ProcessAllEvents(void);
+    void SetBatchNum(int budget);
+    int GetBatchNum(void);
 
-	bool SyncSend(int event,EventData *data);
-	bool SyncSend(const std::string& event_name,EventData *data );
+    bool GetStats(int event, EventStats& stats);
 
-	bool Book(int event,  const EventHandle& handle);
-        bool Book(const std::string& event_name, const EventHandle& handle);
+    ~NotifyBus();
 
-	int ProcessAllEvents(void);
-        void SetBatchNum(int budget);
-        int  GetBatchNum(void);
-
-	bool GetStats(int event, EventStats& stats);
-
-	~NotifyBus();
-
-	NotifyBus(const std::string& name, int max_event_type_num=1024, int max_event_pending_num=128);
-
+    NotifyBus(const std::string& name, int max_event_type_num = 1024, int max_event_pending_num = 128);
 
 protected:
-	void HandleSingleEvent(EventNode * node, EventData * data);
-	int HandlePendingEvent(EventNode * node);
-        int GetPendingCount(EventNode * node);
+    void HandleSingleEvent(EventNode* node, EventData* data);
+    int HandlePendingEvent(EventNode* node);
+    int GetPendingCount(EventNode* node);
 
+    void LockNameMap();
+    void UnLockNameMap();
 
-	void LockNameMap();
-	void UnLockNameMap();
+    EventNode* GetNode(int event);
+    bool GetNode(EventNode* node);
+    void PutNode(EventNode*);
 
-	EventNode *  GetNode(int event);
-        bool         GetNode(EventNode * node);
-	void PutNode(EventNode *);
+    name_map_t name_map_;
+    std::string bus_name_;
+    EventNode* event_array_;
 
-	name_map_t name_map_;
-	std::string bus_name_;
-	EventNode  * event_array_;
+    std::recursive_mutex name_map_mutex;
 
-	std::recursive_mutex name_map_mutex;
-
-        std::mutex              pending_queue_mutex;
-        std::queue<EventNode *> pending_queue;
-        std::queue<EventNode *> active_queue;
+    std::mutex pending_queue_mutex;
+    std::queue<EventNode*> pending_queue;
+    std::queue<EventNode*> active_queue;
 
 private:
-        int RealHandlePendingEvent(EventNode * node);
-	int RealDropPendingEvent(EventNode * node);
+    int RealHandlePendingEvent(EventNode* node);
+    int RealDropPendingEvent(EventNode* node);
 
-	int max_event_type_;
-	int max_pending_num_;
-        int batch_budget_;
-        int batch_count_;
-
+    int max_event_type_;
+    int max_pending_num_;
+    int batch_budget_;
+    int batch_count_;
 };
 
-} //namespace TEngine
-
+}    // namespace TEngine
 
 #endif

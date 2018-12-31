@@ -6,4 +6,4 @@ function run_test()
     return 0
 }
 
-SUCCESS_STRING="0.5009 - \"n02123159"
+SUCCESS_STRING="0.500(8|9) - \"n02123159"

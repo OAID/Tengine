@@ -30,113 +30,105 @@
 
 namespace TEngine {
 
-const ProfTime::TimeRecord * ProfTime::GetRecord(int idx) const
+const ProfTime::TimeRecord* ProfTime::GetRecord(int idx) const
 {
-   return &record[idx];
+    return &record[idx];
 }
 int ProfTime::GetRecordNum(void) const
 {
-   return record.size();
+    return record.size();
 }
 
-bool ProfTime::Start(int idx, void * ident)
+bool ProfTime::Start(int idx, void* ident)
 {
-   TimeRecord& r=record[idx];
+    TimeRecord& r = record[idx];
 
-   r.start_time=get_cur_time();
-   r.ident=ident;
+    r.start_time = get_cur_time();
+    r.ident = ident;
 
-   return true;
+    return true;
 }
 
 bool ProfTime::Stop(int idx)
 {
-   TimeRecord& r=record[idx];
+    TimeRecord& r = record[idx];
 
-   r.end_time=get_cur_time();
+    r.end_time = get_cur_time();
 
-   uint64_t used_time=r.end_time-r.start_time;
+    uint64_t used_time = r.end_time - r.start_time;
 
-   if(used_time>r.max_time)
-      r.max_time=used_time;
-   if(used_time< r.min_time)
-      r.min_time=used_time;
+    if(used_time > r.max_time)
+        r.max_time = used_time;
+    if(used_time < r.min_time)
+        r.min_time = used_time;
 
-   r.total_used_time+=used_time;
-   r.count++;  
+    r.total_used_time += used_time;
+    r.count++;
 
-   return true;
+    return true;
 }
 
 void ProfTime::Reset(void)
 {
-    int num=record.size();
+    int num = record.size();
 
-    for(int i=0;i<num;i++)
+    for(int i = 0; i < num; i++)
     {
-        TimeRecord& tr=record[i];
+        TimeRecord& tr = record[i];
         tr.Reset();
     }
 }
 
 void ProfTime::Dump(int method)
 {
-    if(method==PROF_DUMP_DECREASE)
+    if(method == PROF_DUMP_DECREASE)
     {
-         std::sort(record.begin(),record.end(),[](const TimeRecord& a, const TimeRecord& b) {
-                 if(a.total_used_time> b.total_used_time)
-                      return true;
-                  else
-                      return false;
-              });
+        std::sort(record.begin(), record.end(), [](const TimeRecord& a, const TimeRecord& b) {
+            if(a.total_used_time > b.total_used_time)
+                return true;
+            else
+                return false;
+        });
     }
     else if(method == PROF_DUMP_INCREASE)
     {
-         std::sort(record.begin(),record.end(),[](const TimeRecord& a, const TimeRecord& b) {
-                 if(a.total_used_time> b.total_used_time)
-                      return false;
-                  else
-                      return true;
-              });
+        std::sort(record.begin(), record.end(), [](const TimeRecord& a, const TimeRecord& b) {
+            if(a.total_used_time > b.total_used_time)
+                return false;
+            else
+                return true;
+        });
     }
 
-    uint64_t accum_time=0;
+    uint64_t accum_time = 0;
 
-    for(unsigned int i=0;i<record.size();i++)
-        accum_time+=record[i].total_used_time;
-  
-   int forward_count=1;
-   int idx=0;
-   for(unsigned int i=0;i<record.size();i++)
-   {
-        const TimeRecord& r=record[i];
+    for(unsigned int i = 0; i < record.size(); i++)
+        accum_time += record[i].total_used_time;
 
-        if(r.count==0)
+    int forward_count = 1;
+    int idx = 0;
+    for(unsigned int i = 0; i < record.size(); i++)
+    {
+        const TimeRecord& r = record[i];
+
+        if(r.count == 0)
             continue;
 
-        forward_count=r.count;
+        forward_count = r.count;
 
-        std::printf("%3d [ %2.2f%% : %.3f ms ]",
-                     idx,
-                      100.0*r.total_used_time/accum_time,
-                      (float)((unsigned long)r.total_used_time/1000.f/r.count));
+        std::printf("%3d [ %2.2f%% : %.3f ms ]", idx, 100.0 * r.total_used_time / accum_time,
+                    ( float )(( unsigned long )r.total_used_time / 1000.f / r.count));
 
-        parser(r.ident,r.count,r.total_used_time);
-        idx+=1;
-        std::cout<<"\n";
+        parser(r.ident, r.count, r.total_used_time);
+        idx += 1;
+        std::cout << "\n";
+    }
 
-   }
-
-   if(accum_time>0)
-   {
-       
-
-      std::printf("\ntotal accumulated time: %lu us. roughly [%lu] us per run\n",
-                   (unsigned long)accum_time,
-				   (unsigned long)(accum_time/forward_count));
-   }
-
-
+    if(accum_time > 0)
+    {
+        std::printf("\ntotal accumulated time: %lu us. roughly [%lu] us per run\n", ( unsigned long )accum_time,
+                    ( unsigned long )(accum_time / forward_count));
+    }
 }
 
-} //namespace TEngine
+}    // namespace TEngine

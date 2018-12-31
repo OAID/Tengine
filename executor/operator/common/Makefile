@@ -1,3 +1,4 @@
+obj-y+=conv_ref.o
 obj-y+=concat.o
 obj-y+=dropout.o
 obj-y+=softmax.o
@@ -21,7 +22,11 @@ obj-y+=resize.o
 obj-y+=pooling.o
 obj-y+=batchnorm.o
 obj-y+=scale.o
+obj-y+=custom_kernel_ops.o
+obj-y+=logistic.o
+obj-y+=detection_postprocess.o
 obj-y+=fused/
+obj-y+=init.o
 
 obj-$(CONFIG_ARCH_BLAS)+=blas/
 

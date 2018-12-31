@@ -29,18 +29,18 @@ namespace caffe {
 
 bool ReadProtoFromBinaryFile(const char* filename, Message* proto)
 {
-    std::ifstream is(filename, std::ios::in|std::ios::binary);
+    std::ifstream is(filename, std::ios::in | std::ios::binary);
 
     if(!is.is_open())
     {
-        std::cerr<<"Cannot open file: "<<filename<<"\n";
+        std::cerr << "Cannot open file: " << filename << "\n";
         return false;
     }
 
     google::protobuf::io::IstreamInputStream input_stream(&is);
     google::protobuf::io::CodedInputStream coded_input(&input_stream);
 
-    coded_input.SetTotalBytesLimit(512<<20, 64<<20);
+    coded_input.SetTotalBytesLimit(512 << 20, 64 << 20);
 
     bool ret = proto->ParseFromCodedStream(&coded_input);
 
@@ -49,4 +49,4 @@ bool ReadProtoFromBinaryFile(const char* filename, Message* proto)
     return ret;
 }
 
-}  // namespace caffe
+}    // namespace caffe

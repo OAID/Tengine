@@ -29,27 +29,26 @@
 namespace TEngine {
 
 #define LRN_ACROSS_CHANNELS 0
-#define LRN_WITHIN_CHANNEL  1
+#define LRN_WITHIN_CHANNEL 1
 
-struct LRNParam : public NamedParam {
-   int   local_size;
-   float alpha;
-   float beta;
-   int   norm_region;
-   float k;
+struct LRNParam : public NamedParam
+{
+    int local_size;
+    float alpha;
+    float beta;
+    int norm_region;
+    float k;
 
-   DECLARE_PARSER_STRUCTURE(LRNParam) {
+    DECLARE_PARSER_STRUCTURE(LRNParam)
+    {
         DECLARE_PARSER_ENTRY(local_size);
         DECLARE_PARSER_ENTRY(alpha);
         DECLARE_PARSER_ENTRY(beta);
         DECLARE_PARSER_ENTRY(norm_region);
         DECLARE_PARSER_ENTRY(k);
-   };
-   
+    };
 };
 
-
-} //namespace TEngine
-
+}    // namespace TEngine
 
 #endif

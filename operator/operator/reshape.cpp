@@ -23,56 +23,76 @@
  */
 #include "operator/reshape.hpp"
 
-
 namespace TEngine {
 
-bool Reshape::InferShape(const std::vector<TEngine::TShape>& ishape, 
-                               std::vector<TEngine::TShape>& oshape)
+bool Reshape::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEngine::TShape>& oshape, int layout)
 {
-    const TShape& input=ishape[0];
-    const int size=input.GetSize();
-    const std::vector<int>& in_dim=input.GetDim();
-    std::vector<int> new_shape(4,1); 
-    int idx=-1;
-    int num_axis=param_.dims.size();
-    for(int i=0;i<num_axis;i++)
+    const TShape& input = ishape[0];
+    const int size = input.GetSize();
+    std::vector<int> new_shape;
+    int new_size = 1;
+    if(param_.dim_0 != -2)
+        new_shape.push_back(param_.dim_0);
+    if(param_.dim_1 != -2)
+        new_shape.push_back(param_.dim_1);
+    if(param_.dim_2 != -2)
+        new_shape.push_back(param_.dim_2);
+    if(param_.dim_3 != -2)
+        new_shape.push_back(param_.dim_3);
+
+    // printf("new_shape: %d, %d, %d, %d\n",new_shape[0],new_shape[1],new_shape[2],new_shape[3]);
+    int dim_size = new_shape.size();
+    int idx = -1;
+    for(int i = 0; i < dim_size; i++)
     {
-        if(param_.dims[i]==0)
-        {
-            new_shape[i]=in_dim[i];
-        }
-        else if(param_.dims[i]==-1)
-        {
-            idx=i;
-        }
+        if(new_shape[i] == 0)
+            new_shape[i] = 1;
+        else if(new_shape[i] == -1)
+            idx = i;
         else
-        {
-             new_shape[i]=param_.dims[i];
-        }
-    }
-    if(idx>=0)
-    {
-        int new_size=new_shape[0]*new_shape[1]*new_shape[2]*new_shape[3];
-        new_shape[idx]=size/new_size;
+            new_size *= new_shape[i];
     }
 
+    if(idx >= 0)
+    {
+        new_shape[idx] = size / new_size;
+    }
 
     TShape shape;
     shape.SetDim(new_shape);
-    shape.SetDataLayout("NCHW");
-    oshape[0]=shape;
-    return true;    
-
+    // only support 2-D 3-D or 4-D
+    if(new_shape.size() == 4)
+    {
+        if(layout == TENGINE_LAYOUT_NCHW)
+            shape.SetDataLayout("NCHW");
+        else
+            shape.SetDataLayout("NHWC");
+    }
+    else if(new_shape.size() == 3)
+    {
+        shape.SetDataLayout("NHW");
+    }
+    else if(new_shape.size() == 2)
+    {
+        shape.SetDataLayout("HW");
+    }
+    else
+        return false;
+    oshape[0] = shape;
+    return true;
 }
-
 
 void Reshape::SetSchema(void)
 {
     Input({"input:float32"})
-    .Output({"output:float32"})
-    .SetLayout("NCHW")
-    .SetDoc(R"DOC(Reshape Layer)DOC");
+        .Output({"output:float32"})
+        .SetLayout("NCHW")
+        .SetAttr("dim_0", -2)
+        .SetAttr("dim_1", -2)
+        .SetAttr("dim_2", -2)
+        .SetAttr("dim_3", -2)
+        .SetAttr("dim_size", 0)
+        .SetDoc(R"DOC(Reshape Layer)DOC");
 }
 
-
-} //namespace TEngine
+}    // namespace TEngine

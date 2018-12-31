@@ -39,35 +39,32 @@ class Graph;
 class GraphTask;
 struct DevExecutor;
 
-struct DevAllocator {
+struct DevAllocator
+{
+    virtual bool Allocate(GenericEngine* engine, GraphExecutor* graph_executor, Graph* graph,
+                          std::vector<Subgraph*>& sub_list) = 0;
+    virtual const std::string& GetName(void) = 0;
+    virtual ~DevAllocator(){};
+    std::string name;
 
-  virtual bool Allocate(GenericEngine * engine,GraphExecutor * graph_executor, Graph * graph, std::vector<Subgraph *>& sub_list)=0;
-  virtual const std::string& GetName(void)=0;
-  virtual ~DevAllocator() {};
-  std::string name;
-
-  void SameGraph(TEngine::Graph*, TEngine::DevExecutor*, std::vector<TEngine::Graph*>&);
-  void PartitionGraph(TEngine::GenericEngine*, TEngine::GraphExecutor*, TEngine::Graph*, std::vector<TEngine::Graph*>&);
+    void SameGraph(TEngine::Graph*, TEngine::DevExecutor*, std::vector<TEngine::Graph*>&);
+    void PartitionGraph(TEngine::GenericEngine*, TEngine::GraphExecutor*, TEngine::Graph*,
+                        std::vector<TEngine::Graph*>&);
 };
 
-
-class DevAllocatorManager: public SimpleObjectManager<DevAllocatorManager,DevAllocator *>{
-
+class DevAllocatorManager : public SimpleObjectManager<DevAllocatorManager, DevAllocator*>
+{
 public:
-	static void OnDevExecutorRegistered(DevExecutor * dev_executor);
-	static void OnDevExecutorUnregistered(DevExecutor* dev_executor);
-	
-	static void LockExecutorList(void);
-	static void UnlockExecutorList(void);
-	
-	std::mutex list_lock;
-	std::vector<DevExecutor *> executor_list;
+    static void OnDevExecutorRegistered(DevExecutor* dev_executor);
+    static void OnDevExecutorUnregistered(DevExecutor* dev_executor);
 
+    static void LockExecutorList(void);
+    static void UnlockExecutorList(void);
+
+    std::mutex list_lock;
+    std::vector<DevExecutor*> executor_list;
 };
 
-
-
-} //namespace TEngine
-
+}    // namespace TEngine
 
 #endif

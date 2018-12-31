@@ -57,12 +57,19 @@ ifeq ($(CONFIG_FRAMEWORK_WRAPPER),y)
     APP_SUB_DIRS+=wrapper
 endif
 
-#APP_SUB_DIRS+=internal
 APP_SUB_DIRS+=tests
 
 
 ifeq ($(CONFIG_ARCH_ARM32),y)
 	COMMON_CFLAGS+=-march=armv7-a -mfpu=neon -mfp16-format=ieee -mfpu=neon-fp16
+endif
+
+ifeq ($(CONFIG_FLOAT16),y)
+	COMMON_CFLAGS+=-DCONFIG_FLOAT16
+endif
+
+ifeq ($(CONFIG_LEGACY_API),y)
+	COMMON_CFLAGS+=-DCONFIG_LEGACY_API
 endif
 
 
@@ -78,6 +85,7 @@ clean: $(SUB_DIRS)
 install: $(APP_SUB_DIRS)
 	@mkdir -p $(INSTALL_DIR)/include $(INSTALL_DIR)/lib
 	cp -f core/include/tengine_c_api.h $(INSTALL_DIR)/include
+	cp -f core/include/tengine_c_compat.h $(INSTALL_DIR)/include
 	cp -f core/include/cpu_device.h $(INSTALL_DIR)/include
 	cp -f core/include/tengine_test_api.h $(INSTALL_DIR)/include
 	cp -f $(BUILD_DIR)/libtengine.so $(INSTALL_DIR)/lib
@@ -87,11 +95,6 @@ ifeq ($(CONFIG_ACL_GPU),y)
     ACL_LIBS+=-Wl,-rpath,$(ACL_ROOT)/build/ -L$(ACL_ROOT)/build
     ACL_LIBS+= -larm_compute_core -larm_compute
     LIB_LDFLAGS+=$(ACL_LIBS) 
-endif
-ifeq ($(CONFIG_CAFFE_REF),y)
-    CAFFE_LIBS+=-Wl,-rpath,$(CAFFE_ROOT)/build/lib -L$(CAFFE_ROOT)/build/lib -lcaffe
-    CAFFE_LIBS+= -lprotobuf -lboost_system -lglog
-    LIB_LDFLAGS+=$(CAFFE_LIBS) 
 endif
 
 
@@ -117,12 +120,12 @@ static: static_lib static_example
 static_lib:
 	@touch core/lib/compiler.cpp
 	@export STATIC_BUILD=y && $(MAKE)
-	$(AR) -crs $(LIB_A) $(LIB_OBJS)
+	$(AR) -crs $(LIB_A) $(wildcard $(LIB_OBJS))
 	@rm $(BUILD_DIR)/libtengine.so
 
 static_example: static_lib
 	$(LD) -o $(BUILD_DIR)/test_tm  $(BUILD_DIR)/tests/bin/test_tm.o $(LIBS) -ltengine \
-	      -ldl -lpthread  -static -L$(BUILD_DIR)
+	      -ldl -lpthread  -static -L$(BUILD_DIR) -lprotobuf -lblas -lpthread
 	@echo ; echo static example: $(BUILD_DIR)/test_tm  created
 
 LIB_LDFLAGS+=-lpthread -lprotobuf -ldl

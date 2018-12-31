@@ -24,30 +24,26 @@
 #ifndef __RESIZE_PARAM_HPP__
 #define __RESIZE_PARAM_HPP__
 
-
 #include "parameter.hpp"
 
 namespace TEngine {
 
 struct StaticOp;
 
-struct ResizeParam : public NamedParam {
-
-
+struct ResizeParam : public NamedParam
+{
     float scale_w;
     float scale_h;
-    int type; // 0 for NEAREST_NEIGHBOR
-              // 1 for BILIEAR
-    
-    DECLARE_PARSER_STRUCTURE(ResizeParam) 
+    int type;    // 0 for NEAREST_NEIGHBOR
+    // 1 for BILIEAR
+
+    DECLARE_PARSER_STRUCTURE(ResizeParam)
     {
-       DECLARE_PARSER_ENTRY(scale_w);
-       DECLARE_PARSER_ENTRY(scale_h);
+        DECLARE_PARSER_ENTRY(scale_w);
+        DECLARE_PARSER_ENTRY(scale_h);
     };
 };
 
-
-} //namespace TEngine
-
+}    // namespace TEngine
 
 #endif

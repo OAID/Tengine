@@ -33,21 +33,18 @@ namespace TEngine {
 
 class Operator;
 
-class OpManager: public SimpleObjectManagerWithLock<OpManager, Operator *> 
+class OpManager : public SimpleObjectManagerWithLock<OpManager, Operator*>
 {
-
-public: 
+public:
     static any GetOpDefParam(const std::string& op_name);
 
     static bool AddOpAttr(const std::string& op_name, const std::string& attr_name, const any& val);
     static bool RemoveOpAttr(const std::string& op_name, const std::string& attr_name);
-    static bool GetOpAttr(const std::string& op_name,const std::string& attr_name, any& val);
+    static bool GetOpAttr(const std::string& op_name, const std::string& attr_name, any& val);
 
-    static Operator * CreateOp(const std::string& op_name);
-
+    static Operator* CreateOp(const std::string& op_name);
 };
 
-
-} //namespace
+}    // namespace TEngine
 
 #endif

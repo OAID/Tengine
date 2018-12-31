@@ -31,3 +31,7 @@ obj-y+=relu6.o
 obj-y+=deconvolution.o
 obj-y+=resize.o
 obj-y+=gemm.o
+obj-y+=generic.o
+obj-y+=lstm.o
+obj-y+=logistic.o
+obj-y+=detection_postprocess.o

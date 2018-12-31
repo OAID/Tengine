@@ -29,22 +29,20 @@
 
 namespace TEngine {
 
+struct BatchNormParam : public NamedParam
+{
+    float rescale_factor;
+    float eps;
+    int caffe_flavor;
 
-struct BatchNormParam : public NamedParam {
-     float rescale_factor;
-     float eps;
-     int caffe_flavor;
-
-     DECLARE_PARSER_STRUCTURE(BatchNormParam) {
-         DECLARE_PARSER_ENTRY(rescale_factor);
-         DECLARE_PARSER_ENTRY(eps);
-         DECLARE_PARSER_ENTRY(caffe_flavor);
-     };
-
+    DECLARE_PARSER_STRUCTURE(BatchNormParam)
+    {
+        DECLARE_PARSER_ENTRY(rescale_factor);
+        DECLARE_PARSER_ENTRY(eps);
+        DECLARE_PARSER_ENTRY(caffe_flavor);
+    };
 };
 
-
-} //namespace TEngine
-
+}    // namespace TEngine
 
 #endif

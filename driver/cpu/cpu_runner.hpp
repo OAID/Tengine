@@ -29,52 +29,51 @@
 #include <functional>
 
 #include "node_ops.hpp"
+#include "graph_perf.hpp"
 
 namespace TEngine {
 
 class Graph;
 class CPUDevice;
 
-using Subgraph=Graph;
+using Subgraph = Graph;
 
-class CPURunner {
-
+class CPURunner
+{
 public:
+    bool SetGraphPerfStat(Subgraph* graph, int action);
+    int GetGraphPerfStat(Subgraph* graph, struct perf_info** buf, int buf_size);
 
-   bool Prerun(Subgraph * sub_graph);
-   bool Run(Subgraph * sub_graph) ; 
-   bool Postrun(Subgraph * sub_graph);
-   
-   bool OptimizeGraph(Subgraph * sub_graph);
+    bool Prerun(Subgraph* sub_graph);
+    bool Run(Subgraph* sub_graph);
+    bool Postrun(Subgraph* sub_graph);
 
-   void AttachCPUDevice(CPUDevice * cpu_dev);
+    bool OptimizeGraph(Subgraph* sub_graph);
 
- 
-   bool BindNodeOps(Subgraph * graph);
-   bool AllocateMem(Subgraph * graph);
+    void AttachCPUDevice(CPUDevice* cpu_dev);
 
-   bool FreeMem(Subgraph * graph);
-   bool UnbindNodeOps(Subgraph * graph);
+    bool BindNodeOps(Subgraph* graph);
+    bool AllocateMem(Subgraph* graph);
 
-   CPURunner() { mem_alloc=malloc; mem_free=free; }
- 
-   ~CPURunner(){} 
+    bool FreeMem(Subgraph* graph);
+    bool UnbindNodeOps(Subgraph* graph);
 
-   mem_alloc_t mem_alloc;
-   mem_free_t mem_free;
-   CPUDevice * cpu_dev_;
-   const CPUInfo * cpu_info_;
+    NodeOps* BindCustomKernel(Node* node);
 
+    CPURunner()
+    {
+        mem_alloc = malloc;
+        mem_free = free;
+    }
 
+    ~CPURunner() {}
+
+    mem_alloc_t mem_alloc;
+    mem_free_t mem_free;
+    CPUDevice* cpu_dev_;
+    const CPUInfo* cpu_info_;
 };
 
-
-
-
-
-
-
-} //namespace TEngine
-
+}    // namespace TEngine
 
 #endif

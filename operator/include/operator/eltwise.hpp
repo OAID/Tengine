@@ -28,39 +28,38 @@
 #include "eltwise_param.hpp"
 namespace TEngine {
 
-class Eltwise: public OperatorWithParam<Eltwise, EltwiseParam> {
-
+class Eltwise : public OperatorWithParam<Eltwise, EltwiseParam>
+{
 public:
-
-    Eltwise() { name_="Eltwise";}
-    Eltwise(const Eltwise& src)=default;
-    virtual ~Eltwise() {};
+    Eltwise()
+    {
+        name_ = "Eltwise";
+    }
+    Eltwise(const Eltwise& src) = default;
+    virtual ~Eltwise(){};
 
     void MethodToType(EltwiseParam& param)
     {
-        std::string& method=param.method;
+        std::string& method = param.method;
 
         /* default eltwise_SUM */
-        param.type=ELT_SUM;
+        param.type = ELT_SUM;
 
         if(method == "max")
-            param.type=ELT_MAX;
-        else if(method =="prod")
-            param.type=ELT_PROD;
+            param.type = ELT_MAX;
+        else if(method == "prod")
+            param.type = ELT_PROD;
     }
-    void ParseParam(EltwiseParam & param, Operator * op) override
+    void ParseParam(EltwiseParam& param, Operator* op) override
     {
-        ParsePredefinedParam(param,op);
+        ParsePredefinedParam(param, op);
         MethodToType(param);
     }
     void SetSchema(void) override;
 
-    bool InferShape(const std::vector<TShape>& ishape,std::vector<TShape>& oshape) override;
-
+    bool InferShape(const std::vector<TShape>& ishape, std::vector<TShape>& oshape, int layout) override;
 };
 
-} //namespace TEngine
-
-
+}    // namespace TEngine
 
 #endif

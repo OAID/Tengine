@@ -6,8 +6,9 @@ This is the implementation of imagenet classification with [Tengine](https://git
 
 It can be used to test the following imagenets:
 
-- squeezenet_V1.1
-- mobilenet_V1
+- squeezenet_v1.1
+- mobilenet_v1
+- mobilenet_v2
 - resnet50
 - googlenet
 - inception_v4
@@ -16,12 +17,15 @@ It can be used to test the following imagenets:
 - vgg16
 
 ## Download required models
-Download the models from [Tengine model zoo](https://pan.baidu.com/s/1LXZ8vOdyOo50IXS0CUPp8g) (psw: 57vb)
+Download the models from [Tengine model zoo](https://pan.baidu.com/s/1LXZ8vOdyOo50IXS0CUPp8g) (psw: 57vb).
 
 Store these files into `${Tengine_ROOT}/models/`
 
-- squeezenet_V1.1(already existed in Tengine_ROOT/models/)
-- mobilenet_V1(already existed in Tengine_ROOT/models/)
+- squeezenet_v1.1(already existed in Tengine_ROOT/models/)
+- mobilenet_v1(already existed in Tengine_ROOT/models/)
+- mobilenet_v2
+  - mobilenet_v2_deploy.prototxt
+  - mobilenet_v2.caffemodel
 - resnet50
   - resnet50.prototxt
   - resnet50.caffemodel
@@ -45,11 +49,12 @@ Store these files into `${Tengine_ROOT}/models/`
 ## Build examples
 ```
 cd  ${Tengine_ROOT}
+make
 make install
 ```
 build as ${TENGINE_ROOT}/examples/readme.md
 
-## Test
+## Run
 - go to the directory of the executive program
 
     ```
@@ -59,7 +64,8 @@ build as ${TENGINE_ROOT}/examples/readme.md
 
     ```
     [Usage]: ./Classify [-n model_name] [-p proto_file] [-m model_file] [-l label_file] [-i image_file]
-                        [-g img_h,img_w] [-s scale] [-w mean[0],mean[1],mean[2]] [-r repeat_count] [-h]
+                        [-g img_h,img_w] [-s scale] [-w mean[0],mean[1],mean[2]] [-r repeat_count]
+                        [-d device_name] [-h]
     ```
     Default model name is : `squeezenet`
 
@@ -80,6 +86,7 @@ build as ${TENGINE_ROOT}/examples/readme.md
     ./Classify -h               // display usage
     ./Classify -n squeezenet    // test squeezenet with default cat.jpg
     ./Classify -n mobilenet     // test mobilenet with default cat.jpg
+    ./Classify -n mobilenet_v2  // test mobilenet_v2 with default cat.jpg
     ./Classify -n resnet50      // test resnet50 with default cat.jpg
     ./Classify -n alexnet       // test alexnet with default cat.jpg
     ./Classify -n googlenet     // test googlenet with default cat.jpg

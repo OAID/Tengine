@@ -38,4 +38,4 @@ Caffe& Caffe::Get()
     return *(thread_instance_.get());
 }
 
-}  // namespace caffe
+}    // namespace caffe

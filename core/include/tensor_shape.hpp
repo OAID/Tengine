@@ -28,135 +28,129 @@
 #include <string>
 #include <iostream>
 
+#include "tengine_c_api.h"
 
 namespace TEngine {
 
-enum  TensorType {
-   kVarTensor,
-   kConstTensor,
-   kInputTensor,
-   kDepTensor
+enum TensorType
+{
+    kUnknownTensor,
+    kVarTensor,
+    kConstTensor,
+    kInputTensor,
+    kDepTensor
 };
 
-class TShape {
-
+class TShape
+{
 public:
-	void SetDataLayout(const std::string& layout_name)
-	{
-               layout_=layout_name;
-	}
+    void SetDataLayout(const std::string& layout_name)
+    {
+        layout_ = layout_name;
+    }
 
-	const std::string& GetDataLayout(void) const
-	{
-		return layout_;
-	}
+    const std::string& GetDataLayout(void) const
+    {
+        return layout_;
+    }
 
-	int GetSize(void) const 
-        { 
-            if(dim_.size()==0)
-                 return 0;
+    int GetSize(void) const
+    {
+        if(dim_.size() == 0)
+            return 0;
 
-            int result=1;
-          
-            for(unsigned int i=0;i<dim_.size();i++)
-                result*=dim_[i];
-            
-            return result;
-        }
+        int result = 1;
 
-        std::vector<int>& GetDim(void) { return dim_;}
+        for(unsigned int i = 0; i < dim_.size(); i++)
+            result *= dim_[i];
 
-        const std::vector<int>& GetDim(void) const { return dim_;}
+        return result;
+    }
 
+    std::vector<int>& GetDim(void)
+    {
+        return dim_;
+    }
 
-        int Shape(unsigned int idx) const
-        {
-            if(idx<dim_.size())
-               return dim_[idx];
+    const std::vector<int>& GetDim(void) const
+    {
+        return dim_;
+    }
 
-            return 1;
-        }
+    int Shape(unsigned int idx) const
+    {
+        if(idx < dim_.size())
+            return dim_[idx];
 
-        bool SetShape(unsigned int idx, int val)
-        {
-            if(idx<dim_.size())
-                return false;
-            
-             dim_[idx]=val;
+        return 1;
+    }
 
-             return true;
-        }
+    bool SetShape(unsigned int idx, int val)
+    {
+        if(idx < dim_.size())
+            return false;
 
-	void SetDim(const std::vector<int>& args, bool layout_check=false);
+        dim_[idx] = val;
 
+        return true;
+    }
 
-        void DumpShape(std::ostream& os) const;
+    void SetDim(const std::vector<int>& args, bool layout_check = false);
 
-        int GetN(void) const;
-        int GetC(void) const;
-        int GetH(void) const;
-        int GetW(void) const;
-        int GetD(void) const;
+    void DumpShape(std::ostream& os) const;
 
-        TShape()=default;
+    int GetN(void) const;
+    int GetC(void) const;
+    int GetH(void) const;
+    int GetW(void) const;
+    int GetD(void) const;
 
+    TShape() = default;
 
-	TShape(const TShape& src) 
-	{ 
-		dim_=src.dim_; 
-		layout_=src.layout_;
-	}
+    TShape(const TShape& src)
+    {
+        dim_ = src.dim_;
+        layout_ = src.layout_;
+    }
 
-	TShape(TShape&& src)
-	{
-		dim_=std::move(src.dim_);
-		layout_=src.layout_;
-	}
+    TShape(TShape&& src)
+    {
+        dim_ = std::move(src.dim_);
+        layout_ = src.layout_;
+    }
 
+    TShape& operator=(const TShape& rhs)
+    {
+        dim_ = rhs.dim_;
+        layout_ = rhs.layout_;
 
-	TShape& operator=(const TShape& rhs) 
-	{
-		dim_=rhs.dim_;
-		layout_=rhs.layout_;
+        return *this;
+    }
 
-		return *this;
-	}
+    TShape& operator=(TShape&& rhs)
+    {
+        dim_ = std::move(rhs.dim_);
+        layout_ = rhs.layout_;
 
-	TShape& operator=(TShape&& rhs)
-	{
-		dim_=std::move(rhs.dim_);
-		layout_=rhs.layout_;
+        return *this;
+    }
 
-		return *this;
-	}
+    bool operator==(const TShape& rhs)
+    {
+        if(layout_ == rhs.layout_ && dim_ == rhs.dim_)
 
-        bool operator==(const TShape & rhs)
-        {
-             if(layout_==rhs.layout_ &&
-                 dim_==rhs.dim_)
+            return true;
+        else
+            return false;
+    }
 
-               return true;
-            else
-               return false;
-        }
-
-
-
-	virtual ~TShape(){};
-
+    virtual ~TShape(){};
 
 private:
-
-	std::vector<int> dim_;
-	std::string layout_;
-
+    std::vector<int> dim_;
+    std::string layout_;
 };
 
-
-} //namesapce TEngine
-
-
+}    // namespace TEngine
 
 #endif
-
-

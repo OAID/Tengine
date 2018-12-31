@@ -32,50 +32,37 @@
 #include "graph.hpp"
 #include "operator/reshape.hpp"
 
-
 namespace TEngine {
-
 
 namespace ReshapeImpl {
 
-
-struct ReshapeOps: public NodeOps {
-
-
-
-bool Run(Node * node)
+struct ReshapeOps : public NodeOps
 {
-    const Tensor * input_tensor=node->GetInputTensor(0);
-    Tensor * output_tensor=node->GetOutputTensor(0);
- 
-    float * input=(float *)get_tensor_mem(input_tensor);
-    float * output=(float *)get_tensor_mem(output_tensor);
-    
-    const TShape&  shape=input_tensor->GetShape();
-    int size=shape.GetSize();
-
-    for(int i=0;i<size;i++)
+    bool OnBind(Node* node)
     {
-        output[i]=input[i];
+        inplace_t io_map;
+
+        io_map[0] = 0;
+        node->SetAttr(ATTR_INPLACE, io_map);
+
+        return true;
     }
 
-
-    return true;
-}
-
+    bool Run(Node* node)
+    {
+        return true;
+    }
 };
 
-} //namespace ReshapeImpl
+}    // namespace ReshapeImpl
 
 using namespace ReshapeImpl;
 
 void RegisterReshapeNodeExec(void)
 {
-    ReshapeOps * ops=new ReshapeOps();
+    ReshapeOps* ops = new ReshapeOps();
 
-    NodeOpsRegistryManager::RegisterOPImplementor("common",
-                "Reshape",ops);
+    NodeOpsRegistryManager::RegisterOPImplementor("common", "Reshape", ops);
 }
 
-
-} //namespace TEngine
+}    // namespace TEngine

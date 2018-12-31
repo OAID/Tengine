@@ -2,11 +2,10 @@
 
 ## 1. Overview
 This document defines the APIs and requirements to develop a serializer module for Tengine. 
-Each serializer module works on one specific model format only, such ONNX/Caffe/Caffe2/Mxnet. 
+Each serializer module works on one specific model format only, such Caffe/ONNX/Mxnet/Tensorflow/Tengine.
 The serializer module loads the whole model file stored in disk, and creates a Tengine in-memory IR, which is StaticGraph. The serializer module also can store the StaticGraph into disk in the specific format. However, current version of this document describes the loading process, which is more important than the storing process.
-The serializer module can be built as a dynamic library and can be loaded on the fly.
 
-The seciont 2, class serializer, introduces interfaces that the developer should implemented.
+The section 2, class serializer, introduces interfaces that the developer should implemented.
 The Serializer module's load method **MUST** be MT-Safe: multiple threads can call the load method simultaneously. It is safe to assume that there is only **ONE** instance for a serializer module in system.
 
 ## 2. Class Serializer
@@ -79,16 +78,17 @@ As different operator has its own parameter definition, the serializer developer
 
 Here is an example of loading caffe's concat operator:
 ```c++
-static bool  LoadCaffeConcat(StaticGraph * graph, StaticNode * node, 
-                             const caffe::LayerParameter& layer_param)
+static bool LoadCaffeConcat(StaticGraph* graph, StaticNode* node, const te_caffe::LayerParameter& layer_param)
 {
-    ConcatParam  param=any_cast<ConcatParam>(OpManager::GetOpDefParam("Concat"));
-    const caffe::ConcatParameter& concat_param=layer_param.concat_param();
+    ConcatParam param = any_cast<ConcatParam>(OpManager::GetOpDefParam("Concat"));
+    const te_caffe::ConcatParameter& concat_param = layer_param.concat_param();
+
     if(concat_param.has_concat_dim())
-        param.axis=static_cast<int>(concat_param.concat_dim());
+        param.axis = static_cast<int>(concat_param.concat_dim());
     else
-        param.axis=concat_param.axis();
-    StaticOp * op=CreateStaticOp(graph, "Concat");
+        param.axis = concat_param.axis();
+
+    StaticOp* op = CreateStaticOp(graph, "Concat");
     SetOperatorParam(op, param);
     SetNodeOp(node, op);
     return true;

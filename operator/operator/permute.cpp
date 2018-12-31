@@ -23,50 +23,43 @@
  */
 #include "operator/permute.hpp"
 
-
 namespace TEngine {
 
-bool Permute::InferShape(const std::vector<TEngine::TShape>& ishape, 
-                               std::vector<TEngine::TShape>& oshape)
+bool Permute::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEngine::TShape>& oshape, int layout)
 {
-
-     const TShape& input=ishape[0];
-     int n=input.GetN();
-     int c=input.GetC();
-     int h=input.GetH();
-     int w=input.GetW();
+    const TShape& input = ishape[0];
+    int n = input.GetN();
+    int c = input.GetC();
+    int h = input.GetH();
+    int w = input.GetW();
 
     // only support for 0231[bhwc]
-    if ((param_.order0==0) &&(param_.order1==2)&&(param_.order2==3)&&(param_.order3==1))
+    if((param_.order0 == 0) && (param_.order1 == 2) && (param_.order2 == 3) && (param_.order3 == 1))
     {
         TShape shape;
-        std::vector<int> dim={n,h,w,c};
+        std::vector<int> dim = {n, h, w, c};
         shape.SetDim(dim);
         shape.SetDataLayout("NCHW");
-        oshape[0]=shape;
-        return true;    
+        oshape[0] = shape;
+        return true;
     }
     else
     {
         return false;
     }
-
 }
-
-
 
 void Permute::SetSchema(void)
 {
     Input({"input:float32"})
-    .Output({"output:float32"})
-    .SetLayout("NCHW")
-    .SetAttr("flag",0)
-    .SetAttr("order0",0)
-    .SetAttr("order1",1)
-    .SetAttr("order2",2)
-    .SetAttr("order3",3)
-    .SetDoc(R"DOC(Permute Layer)DOC");
+        .Output({"output:float32"})
+        .SetLayout("NCHW")
+        .SetAttr("flag", 0)
+        .SetAttr("order0", 0)
+        .SetAttr("order1", 1)
+        .SetAttr("order2", 2)
+        .SetAttr("order3", 3)
+        .SetDoc(R"DOC(Permute Layer)DOC");
 }
 
-
-} //namespace TEngine
+}    // namespace TEngine

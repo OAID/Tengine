@@ -77,50 +77,50 @@
 
 namespace TEngine {
 
-using op_load_t = std::function<bool(StaticGraph *, StaticNode *, void * const, const TM_Operator *)>;
+using op_load_t = std::function<bool(StaticGraph*, StaticNode*, void* const, const TM_Operator*)>;
 
-tm_uoffset_t SaveTmOperator(void * const start_ptr, tm_uoffset_t *cur_pos, Operator *op);
+tm_uoffset_t SaveTmOperator(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op);
 op_load_t LoadTmOpFunc(uint32_t op_type);
 std::string GetOpStr(uint32_t op_type);
-bool LoadTmAccuracyOp(StaticGraph *graph, StaticNode *node, void * const start_ptr, const TM_Operator *tm_op);
-bool LoadTmBatchNormOp(StaticGraph *graph, StaticNode *node, void * const start_ptr, const TM_Operator *tm_op);
-bool LoadTmResizeOp(StaticGraph *graph, StaticNode *node, void * const start_ptr, const TM_Operator *tm_op);
-bool LoadTmConcatOp(StaticGraph *graph, StaticNode *node, void * const start_ptr, const TM_Operator *tm_op);
-bool LoadTmConstOp(StaticGraph *graph, StaticNode *node, void * const start_ptr, const TM_Operator *tm_op);
-bool LoadTmConvOp(StaticGraph *graph, StaticNode *node, void * const start_ptr, const TM_Operator *tm_op);
-bool LoadTmDeconvOp(StaticGraph *graph, StaticNode *node, void * const start_ptr, const TM_Operator *tm_op);
-bool LoadTmDetectionOutputOp(StaticGraph *graph, StaticNode *node, void * const start_ptr, const TM_Operator *tm_op);
-bool LoadTmDropoutOp(StaticGraph *graph, StaticNode *node, void * const start_ptr, const TM_Operator *tm_op);
-bool LoadTmEltwiseOp(StaticGraph *graph, StaticNode *node, void * const start_ptr, const TM_Operator *tm_op);
-bool LoadTmFlattenOp(StaticGraph *graph, StaticNode *node, void * const start_ptr, const TM_Operator *tm_op);
-bool LoadTmFCOp(StaticGraph *graph, StaticNode *node, void * const start_ptr, const TM_Operator *tm_op);
-bool LoadTmInputOp(StaticGraph *graph, StaticNode *node, void * const start_ptr, const TM_Operator *tm_op);
-bool LoadTmLRNOp(StaticGraph *graph, StaticNode *node, void * const start_ptr, const TM_Operator *tm_op);
-bool LoadTmNormalizeOp(StaticGraph *graph, StaticNode *node, void * const start_ptr, const TM_Operator *tm_op);
-bool LoadTmPermuteOp(StaticGraph *graph, StaticNode *node, void * const start_ptr, const TM_Operator *tm_op);
-bool LoadTmPoolingOp(StaticGraph *graph, StaticNode *node, void * const start_ptr, const TM_Operator *tm_op);
-bool LoadTmPreluOp(StaticGraph *graph, StaticNode *node, void * const start_ptr, const TM_Operator *tm_op);
-bool LoadTmPriorBoxOp(StaticGraph *graph, StaticNode *node, void * const start_ptr, const TM_Operator *tm_op);
-bool LoadTmRegionOp(StaticGraph *graph, StaticNode *node, void * const start_ptr, const TM_Operator *tm_op);
-bool LoadTmReLuOp(StaticGraph *graph, StaticNode *node, void * const start_ptr, const TM_Operator *tm_op);
-bool LoadTmRelu6Op(StaticGraph *graph, StaticNode *node, void * const start_ptr, const TM_Operator *tm_op);
-bool LoadTmReorgOp(StaticGraph *graph, StaticNode *node, void * const start_ptr, const TM_Operator *tm_op);
-bool LoadTmReshapeOp(StaticGraph *graph, StaticNode *node, void * const start_ptr, const TM_Operator *tm_op);
-bool LoadTmROIPoolingOp(StaticGraph *graph, StaticNode *node, void * const start_ptr, const TM_Operator *tm_op);
-bool LoadTmRPNOp(StaticGraph *graph, StaticNode *node, void * const start_ptr, const TM_Operator *tm_op);
-bool LoadTmScaleOp(StaticGraph *graph, StaticNode *node, void * const start_ptr, const TM_Operator *tm_op);
-bool LoadTmSliceOp(StaticGraph *graph, StaticNode *node, void * const start_ptr, const TM_Operator *tm_op);
-bool LoadTmSoftmaxOp(StaticGraph *graph, StaticNode *node, void * const start_ptr, const TM_Operator *tm_op);
-bool LoadTmSplitOp(StaticGraph *graph, StaticNode *node, void * const start_ptr, const TM_Operator *tm_op);
+bool LoadTmAccuracyOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM_Operator* tm_op);
+bool LoadTmBatchNormOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM_Operator* tm_op);
+bool LoadTmResizeOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM_Operator* tm_op);
+bool LoadTmConcatOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM_Operator* tm_op);
+bool LoadTmConstOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM_Operator* tm_op);
+bool LoadTmConvOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM_Operator* tm_op);
+bool LoadTmDeconvOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM_Operator* tm_op);
+bool LoadTmDetectionOutputOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM_Operator* tm_op);
+bool LoadTmDropoutOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM_Operator* tm_op);
+bool LoadTmEltwiseOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM_Operator* tm_op);
+bool LoadTmFlattenOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM_Operator* tm_op);
+bool LoadTmFCOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM_Operator* tm_op);
+bool LoadTmInputOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM_Operator* tm_op);
+bool LoadTmLRNOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM_Operator* tm_op);
+bool LoadTmNormalizeOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM_Operator* tm_op);
+bool LoadTmPermuteOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM_Operator* tm_op);
+bool LoadTmPoolingOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM_Operator* tm_op);
+bool LoadTmPreluOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM_Operator* tm_op);
+bool LoadTmPriorBoxOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM_Operator* tm_op);
+bool LoadTmRegionOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM_Operator* tm_op);
+bool LoadTmReLuOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM_Operator* tm_op);
+bool LoadTmRelu6Op(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM_Operator* tm_op);
+bool LoadTmReorgOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM_Operator* tm_op);
+bool LoadTmReshapeOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM_Operator* tm_op);
+bool LoadTmROIPoolingOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM_Operator* tm_op);
+bool LoadTmRPNOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM_Operator* tm_op);
+bool LoadTmScaleOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM_Operator* tm_op);
+bool LoadTmSliceOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM_Operator* tm_op);
+bool LoadTmSoftmaxOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM_Operator* tm_op);
+bool LoadTmSplitOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM_Operator* tm_op);
 
-template <typename T> const T *GetTmPtr(void * const start_ptr, tm_uoffset_t tm_offset)
+template <typename T> const T* GetTmPtr(void* const start_ptr, tm_uoffset_t tm_offset)
 {
     if(tm_offset != NOT_SET)
-        return reinterpret_cast<const T *>(reinterpret_cast<char *>(start_ptr) + tm_offset);
+        return reinterpret_cast<const T*>(reinterpret_cast<char*>(start_ptr) + tm_offset);
     else
         return nullptr;
 }
 
-}  //namespace TEngine
+}    // namespace TEngine
 
 #endif

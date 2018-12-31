@@ -10,10 +10,6 @@ INC_DIR+=-I$(shell pwd)/include
 COMMON_CFLAGS+=$(CONFIG_OPT_CFLAGS)
 COMMON_CFLAGS+= -Wall -g -fPIC  $(INC_DIR)  -Werror
 
-ifeq ($(CONFIG_CAFFE_REF),y)
-    COMMON_CFLAGS+= -DCONFIG_CAFFE_REF=1
-endif
-
 ifeq ($(CONFIG_ARCH_ARM64),y)
     COMMON_CFLAGS+= -DCONFIG_ARCH_ARM64=1
 endif

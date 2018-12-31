@@ -27,23 +27,21 @@
 #include "operator.hpp"
 #include "gemm_param.hpp"
 
-
 namespace TEngine {
 
-class Gemm: public OperatorWithParam<Gemm, GemmParam> {
-
+class Gemm : public OperatorWithParam<Gemm, GemmParam>
+{
 public:
-    Gemm() { name_="Gemm";}
-    Gemm(const Gemm& src)=default;
+    Gemm()
+    {
+        name_ = "Gemm";
+    }
+    Gemm(const Gemm& src) = default;
 
     void SetSchema(void) override;
 
-    bool InferShape(const std::vector<TEngine::TShape>&, std::vector<TEngine::TShape>&) override;
-
-
+    bool InferShape(const std::vector<TEngine::TShape>&, std::vector<TEngine::TShape>&, int layout) override;
 };
-
-
-}
+}    // namespace TEngine
 
 #endif

@@ -26,27 +26,24 @@
 
 #include "parameter.hpp"
 
-
-
 namespace TEngine {
 
+struct GemmParam : public NamedParam
+{
+    float alpha;
+    float beta;
+    int transA;
+    int transB;
 
-struct GemmParam : public NamedParam {
-
-float alpha;
-float beta;
-int   transA;
-int   transB;
-
-DECLARE_PARSER_STRUCTURE(GemmParam) {
-   DECLARE_PARSER_ENTRY(alpha);
-   DECLARE_PARSER_ENTRY(beta);
-   DECLARE_PARSER_ENTRY(transA);
-   DECLARE_PARSER_ENTRY(transB);
-}
-
+    DECLARE_PARSER_STRUCTURE(GemmParam)
+    {
+        DECLARE_PARSER_ENTRY(alpha);
+        DECLARE_PARSER_ENTRY(beta);
+        DECLARE_PARSER_ENTRY(transA);
+        DECLARE_PARSER_ENTRY(transB);
+    }
 };
 
-} //namespace TEngine
+}    // namespace TEngine
 
 #endif

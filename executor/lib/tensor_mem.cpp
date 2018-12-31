@@ -25,62 +25,83 @@
 
 #include "tensor_mem.hpp"
 
-
 namespace TEngine {
 
-void * get_tensor_mem(const Tensor * tensor)
+void* get_tensor_mem(const Tensor* tensor)
 {
-    if(tensor->GetType()==kConstTensor)
+    if(tensor->GetType() == kConstTensor)
         return tensor->GetMemAddr();
 
     TensorMemPtr ptr;
-   
-    if(get_tensor_memptr(tensor,ptr) && ptr.get()!=nullptr)
+
+    if(get_tensor_memptr(tensor, ptr) && ptr.get() != nullptr)
         return ptr.get()->GetMem();
 
-     return nullptr;
+    return nullptr;
 }
 
-bool get_tensor_memptr(const Tensor * tensor, TensorMemPtr& ptr)
+int get_tensor_mem_size(const Tensor* tensor)
 {
-     if(tensor->ExistAttr("tensor_mem"))
-     {
-         ptr=any_cast<TensorMemPtr>(tensor->GetAttr("tensor_mem"));
-         return true;
-     }
-      
-     return false;
+    if(tensor->GetType() == kConstTensor)
+        return tensor->GetTotalSize();
+
+    TensorMemPtr ptr;
+
+    if(get_tensor_memptr(tensor, ptr) && ptr.get() != nullptr)
+        return ptr.get()->GetSize();
+    else
+        return 0;
 }
 
-bool set_tensor_mem(Tensor * tensor, void * addr,int size, mem_release_t releaser)
+bool get_tensor_memptr(const Tensor* tensor, TensorMemPtr& ptr)
 {
-    if(tensor->GetType()==kConstTensor)
-             return false;
+    if(tensor->ExistAttr("tensor_mem"))
+    {
+        ptr = any_cast<TensorMemPtr>(tensor->GetAttr("tensor_mem"));
+        return true;
+    }
 
-     TensorMemPtr ptr(new TensorMem());
-
-     //std::cout<<"set mem: "<<addr<<" for tensor: "<<tensor->GetName()<<"\n";
-
-     ptr.get()->SetMem(addr,size,releaser);
-
-     set_tensor_mem(tensor,ptr);
-
-     return true;
+    return false;
 }
 
-void set_tensor_mem(Tensor * tensor, const TensorMemPtr& ptr)
+bool set_tensor_mem(Tensor* tensor, void* addr, int size, mem_release_t releaser)
 {
-     tensor->SetAttr("tensor_mem",ptr);
+    if(tensor->GetType() == kConstTensor)
+    {
+        LOG_DEBUG() << __FUNCTION__ << ": set const tensor " << tensor->GetName() << " mem: " << addr << "\n";
+
+        tensor->FreeTensor();
+        tensor->SetMemAddr(addr);
+
+        if(releaser)
+        {
+            tensor->SetAttr("free_mem", 1);
+        }
+
+        return true;
+    }
+
+    TensorMemPtr ptr(new TensorMem());
+
+    ptr.get()->SetMem(addr, size, releaser);
+
+    set_tensor_mem(tensor, ptr);
+
+    return true;
 }
 
-void   free_tensor_mem(Tensor * tensor)
+void set_tensor_mem(Tensor* tensor, const TensorMemPtr& ptr)
 {
-    if(tensor->GetType()==kConstTensor)
-             return;
-
-     if(tensor->ExistAttr("tensor_mem"))
-         tensor->RemoveAttr("tensor_mem");
+    tensor->SetAttr("tensor_mem", ptr);
 }
 
+void free_tensor_mem(Tensor* tensor)
+{
+    if(tensor->GetType() == kConstTensor)
+        return;
 
-} //namespace TEngine
+    if(tensor->ExistAttr("tensor_mem"))
+        tensor->RemoveAttr("tensor_mem");
+}
+
+}    // namespace TEngine

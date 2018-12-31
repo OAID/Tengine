@@ -26,21 +26,18 @@
 
 #include "parameter.hpp"
 
-
-
 namespace TEngine {
 
+struct ConcatParam : public NamedParam
+{
+    int axis;
 
-struct ConcatParam : public NamedParam {
-
-int axis;
-
-DECLARE_PARSER_STRUCTURE(ConcatParam) {
-   DECLARE_PARSER_ENTRY(axis);
-}
-
+    DECLARE_PARSER_STRUCTURE(ConcatParam)
+    {
+        DECLARE_PARSER_ENTRY(axis);
+    }
 };
 
-} //namespace TEngine
+}    // namespace TEngine
 
 #endif

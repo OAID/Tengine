@@ -37,44 +37,43 @@
 
 namespace TEngine {
 
-
-class OnnxSerializer: public Serializer {
-
+class OnnxSerializer : public Serializer
+{
 public:
+    OnnxSerializer()
+    {
+        name_ = "onnx_loader";
+        format_name_ = "onnx";
+        version_ = "0.1";
+    }
 
-      OnnxSerializer() 
-      {
-          name_="onnx_loader";
-          format_name_="onnx";
-          version_="0.1";
-      }
+    virtual ~OnnxSerializer(){};
 
-      virtual ~OnnxSerializer(){};
+    unsigned int GetFileNum(void) override
+    {
+        return 1;
+    }
 
-      unsigned int GetFileNum(void) override { return 1; }
+    bool LoadModel(const std::vector<std::string>& file_list, StaticGraph* graph) override;
 
-      bool LoadModel(const std::vector<std::string>& file_list, StaticGraph * graph) override;
-
-      bool LoadConstTensor(const std::string& fname, StaticTensor * const_tensor) override {return false;}
-      bool LoadConstTensor(int fd, StaticTensor * const_tensor) override { return false;}
-
+    bool LoadConstTensor(const std::string& fname, StaticTensor* const_tensor) override
+    {
+        return false;
+    }
+    bool LoadConstTensor(int fd, StaticTensor* const_tensor) override
+    {
+        return false;
+    }
 
 protected:
-      bool LoadModelFile(const char * fname, onnx::ModelProto& model);
+    bool LoadModelFile(const char* fname, onnx::ModelProto& model);
 
-       bool LoadGraph(onnx::ModelProto& model, StaticGraph * graph);
-       bool LoadConstTensor(StaticGraph * graph, const onnx::GraphProto& onnx_graph);
-       void CreateInputNode(StaticGraph * graph, const onnx::GraphProto& onnx_graph);
-       bool LoadNode(StaticGraph * graph, StaticNode * ,const onnx::NodeProto&);
-
-
-
-
-
+    bool LoadGraph(onnx::ModelProto& model, StaticGraph* graph);
+    bool LoadConstTensor(StaticGraph* graph, const onnx::GraphProto& onnx_graph);
+    void CreateInputNode(StaticGraph* graph, const onnx::GraphProto& onnx_graph);
+    bool LoadNode(StaticGraph* graph, StaticNode*, const onnx::NodeProto&);
 };
 
-
-} //namespace TEngine
-
+}    // namespace TEngine
 
 #endif

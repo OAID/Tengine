@@ -32,42 +32,36 @@
 #include "parameter.hpp"
 #include "logger.hpp"
 
-#define TENGINE_MT_SUPPORT
-
 namespace TEngine {
 
-template <typename T>
-bool ConvertSpecialAny(T& entry, const std::type_info & info, any& data);
-
+template <typename T> bool ConvertSpecialAny(T& entry, const std::type_info& info, any& data);
 
 struct TEngineConfig
 {
-    static bool tengine_mt_mode;  // multithread mode
-    static char delim_ch;  // separator between key and value, default is '='
-    static char commt_ch;  // character followed by comments, default is '#'
+    static bool tengine_mt_mode;    // multithread mode
+    static char delim_ch;    // separator between key and value, default is '='
+    static char commt_ch;    // character followed by comments, default is '#'
 
-    static const std::string version;  // TEngine version 
+    static const std::string version;    // TEngine version
 
     using ConfManager = Attribute;
-    static ConfManager *GetConfManager(void);
+    static ConfManager* GetConfManager(void);
 
     // Load a config file
-    static bool Load(const std::string filename, const char delim_ch = '=', 
-                                                 const char commt_ch = '#');
+    static bool Load(const std::string filename, const char delim_ch = '=', const char commt_ch = '#');
 
     // Get the value corresponding to the key
-    template<typename T>static bool Get(const std::string& key, T& value, bool show_warning=false);
+    template <typename T> static bool Get(const std::string& key, T& value, bool show_warning = false);
 
     // Set the key and the value
-    template<typename T>static bool Set(const std::string& key, const T& value, 
-                                        const bool create=true);
+    template <typename T> static bool Set(const std::string& key, const T& value, const bool create = true);
 
     // Remove the item corresponding to the key
     static void Remove(const std::string& key);
 
     // Dump the contents of the config file
     static void DumpConfig(void);
-  
+
     // Remove the leading and trailing whitespaces of a string
     static void Trim(std::string& s);
 
@@ -77,43 +71,41 @@ struct TEngineConfig
     static std::vector<std::string> ParseKey(const std::string& key);
 
 private:
-    TEngineConfig()=default;
-    TEngineConfig(const TEngineConfig&)=delete;
-    TEngineConfig(TEngineConfig&&)=delete;
-}; // end of struct TEngineConfig
+    TEngineConfig() = default;
+    TEngineConfig(const TEngineConfig&) = delete;
+    TEngineConfig(TEngineConfig&&) = delete;
+};    // end of struct TEngineConfig
 
-template <typename T> 
-bool TEngineConfig::Get(const std::string& key, T& value, bool show_warning)
+template <typename T> bool TEngineConfig::Get(const std::string& key, T& value, bool show_warning)
 {
-    ConfManager *manager = GetConfManager();
+    ConfManager* manager = GetConfManager();
     if(!manager->ExistAttr(key))
     {
         if(show_warning)
-            LOG_ERROR()<<"The key is not existed in the config file!\n";
+            LOG_ERROR() << "The key is not existed in the config file!\n";
 
         return false;
     }
 
     any& data = manager->GetAttr(key);
-    if(typeid(T)==data.type())
+    if(typeid(T) == data.type())
     {
-        value=any_cast<T>(data);
+        value = any_cast<T>(data);
         return true;
     }
     if(!ConvertSpecialAny(value, data.type(), data))
     {
-        LOG_ERROR()<<"Type mismatch on config item: "<<key<<"\n";
+        LOG_ERROR() << "Type mismatch on config item: " << key << "\n";
         return false;
     }
     return true;
 }
 
-template <typename T>
-bool TEngineConfig::Set(const std::string& key, const T& value, const bool create)
+template <typename T> bool TEngineConfig::Set(const std::string& key, const T& value, const bool create)
 {
-    ConfManager *manager = GetConfManager();
+    ConfManager* manager = GetConfManager();
 
-    if(!create  && !manager->ExistAttr(key))
+    if(!create && !manager->ExistAttr(key))
     {
         return false;
     }
@@ -123,21 +115,6 @@ bool TEngineConfig::Set(const std::string& key, const T& value, const bool creat
     return true;
 }
 
-#ifdef TENGINE_MT_SUPPORT
-static inline bool GetTEngineMTMode(void)
-{
-    return TEngineConfig::tengine_mt_mode;
-}
-#else
-static inline bool GetTEngineMTMode(void)
-{
-    return false;
-}
-#endif
-
-/* if the graph should be run in sync mode ? */
-bool GetSyncRunMode(void);
-
-} //end of namespace TEngine
+}    // end of namespace TEngine
 
 #endif
