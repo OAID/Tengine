@@ -132,15 +132,15 @@ int main(int argc, char* argv[])
 
     get_input_data(image_file, input_data, img_h, img_w, channel_mean, 1);
 
+    if(cpu_list_str)
+        set_cpu_list(cpu_list_str);
+
     init_tengine();
 
     std::cout << "run-time library version: " << get_tengine_version() << "\n";
 
     if(request_tengine_version("0.9") < 0)
         return -1;
-
-    if(cpu_list_str)
-        set_cpu_list(cpu_list_str);
 
     graph_t graph = create_graph(nullptr, "caffe", text_file, model_file);
 
