@@ -135,7 +135,7 @@ bool GraphExecutor::SetExecParam(Graph* graph)
     {
         int layout = strtoul(layout_str, NULL, 10);
 
-        if(layout == TENGINE_LAYOUT_NCHW || layout == TENGINE_LAYOUT_NCHW)
+        if(layout == TENGINE_LAYOUT_NCHW || layout == TENGINE_LAYOUT_NHWC)
         {
             exec_attr_.layout = layout;
             LOG_INFO() << "ENV set graph layout: [" << layout << "]\n";
