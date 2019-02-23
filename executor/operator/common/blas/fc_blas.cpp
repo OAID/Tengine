@@ -67,8 +67,15 @@ struct FcBlasOps : public NodeOps
 
         int batch_number = in_dims[0];
         int inc = in_dims[1];
-        int inh = in_dims[2];
-        int inw = in_dims[3];
+        int inh =1; 
+        int inw =1; 
+
+        if(in_dims.size()>2)
+            inh=in_dims[2];
+
+        if(in_dims.size()>3)
+            inw=in_dims[3];
+
         int in_chw = inc * inh * inw;
 
         /* specially handling on tensorflow models */
