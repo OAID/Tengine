@@ -140,13 +140,15 @@ int main(int argc, char* argv[])
 
     get_input_data(image_file, input_data, img_h, img_w, channel_mean, 1);
 
+    if(cpu_list_str)
+        set_cpu_list(cpu_list_str);
+        
     init_tengine();
 
     if(request_tengine_version("0.9") < 0)
         return 1;
 
-    if(cpu_list_str)
-        set_cpu_list(cpu_list_str);
+
 
     /* src_tm: the serailizer registered name
      * squeeze_net: the model name when saving the model
