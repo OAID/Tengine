@@ -824,6 +824,11 @@ static bool LoadMxnetBatchNorm(StaticGraph* graph, StaticNode* node, const Mxnet
         ist >> val;
         param.eps = val;
     }
+    else
+    {
+        param.eps=1e-3f;
+    }
+
     param.caffe_flavor = 0;
 
 #ifdef DEBUG
