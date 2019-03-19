@@ -56,12 +56,6 @@ input_param {
   }
 }
 ```
-  
-
-
-## Parameters
-* show_threshold set to `0.5` in [yu_facedetect.cpp/line33](yu_facedetect.cpp#L33)
-* image resize to `320x240` in [yu_facedetect.cpp/line134-line140](yu_facedetect.cpp#L134-L140)
 
 ## Build examples
 
@@ -80,7 +74,8 @@ make
 ```
 * DTENGINE_DIR is your Tengine-dir (should be absolute path)
 ## Run
-
+* threshold set to `0.5` in [yu_facedetect.cpp/line33](yu_facedetect.cpp#L33)
+* image resize to `320x240` in [yu_facedetect.cpp/line134-line140](yu_facedetect.cpp#L134-L140)
 ```bash
 # YuFaceDetect <proto> <caffemodel> <jpg>
 YuFaceDetect \
@@ -89,16 +84,6 @@ YuFaceDetect \
     demo.jpg
 ```
 
-
-## Run
-
-1. run yolov2 by default
-    - model files are `tengine/models/yolo-voc.prototxt` and `tengine/models/yolo-voc.caffemodel`
-    - test image is `tengine/tests/images/ssd_dog.jpg`
-    ```
-    cd  ${Tengine_ROOT}/examples/build/yolov2
-    ./YOLOV2
-    ```
 ## Results
 The default output image is saved as `save.jpg`.
     
