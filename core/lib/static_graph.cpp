@@ -312,6 +312,11 @@ int AddNodeInputTensor(StaticNode* node, StaticTensor* tensor)
 {
     int input_idx = node->input_tensor_list.size();
 
+    if (!tensor){
+         LOG_ERROR() << "Invalid tensor with address: " << tensor << "\n";
+         return input_idx;
+    }
+
     node->input_tensor_list.push_back(tensor->index);
 
     AddTensorConsumer(tensor, node, input_idx);
