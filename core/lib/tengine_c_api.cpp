@@ -365,7 +365,7 @@ int get_graph_input_node_number(graph_t graph)
 {
     GraphExecutor* executor = reinterpret_cast<GraphExecutor*>(graph);
 
-    Graph* real_graph = executor->GetGraph();
+    Graph* real_graph = executor->GetOptimizedGraph();
 
     return real_graph->input_nodes.size();
 }
@@ -374,7 +374,7 @@ node_t get_graph_input_node(graph_t graph, int idx)
 {
     GraphExecutor* executor = reinterpret_cast<GraphExecutor*>(graph);
 
-    Graph* real_graph = executor->GetGraph();
+    Graph* real_graph = executor->GetOptimizedGraph();
 
     if(idx >= ( int )real_graph->input_nodes.size())
     {
@@ -393,7 +393,7 @@ int get_graph_output_node_number(graph_t graph)
 {
     GraphExecutor* executor = reinterpret_cast<GraphExecutor*>(graph);
 
-    Graph* real_graph = executor->GetGraph();
+    Graph* real_graph = executor->GetOptimizedGraph();
 
     return real_graph->output_nodes.size();
 }
@@ -402,7 +402,7 @@ node_t get_graph_output_node(graph_t graph, int idx)
 {
     GraphExecutor* executor = reinterpret_cast<GraphExecutor*>(graph);
 
-    Graph* real_graph = executor->GetGraph();
+    Graph* real_graph = executor->GetOptimizedGraph();
 
     if(idx >= ( int )real_graph->output_nodes.size())
     {

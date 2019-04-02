@@ -571,7 +571,11 @@ Graph* GraphExecutor::GetOptimizedGraph(void)
     if(exec_handle_ == nullptr || exec_engine_ == nullptr)
         return nullptr;
 
-    return exec_engine_->GetOptimizedGraph(exec_handle_);
+	Graph* graph = exec_engine_->GetOptimizedGraph(exec_handle_);
+	if(graph == nullptr)
+		graph = graph_;
+
+    return graph;
 }
 
 bool GraphExecutor::SetExecAttrEntry(const char* name, const void* val, int size)
