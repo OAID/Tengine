@@ -571,9 +571,9 @@ Graph* GraphExecutor::GetOptimizedGraph(void)
     if(exec_handle_ == nullptr || exec_engine_ == nullptr)
         return nullptr;
 
-	Graph* graph = exec_engine_->GetOptimizedGraph(exec_handle_);
-	if(graph == nullptr)
-		graph = graph_;
+    Graph* graph = exec_engine_->GetOptimizedGraph(exec_handle_);
+    if(graph == nullptr)
+        graph = graph_;
 
     return graph;
 }
