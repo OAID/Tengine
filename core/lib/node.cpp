@@ -132,18 +132,7 @@ void Node::MergeAttr(Node* orig)
 
 /* code for attr get/set/add */
 
-#define ATTR_CUSTOM_ATTR "CUSTOM_ATTR"
-
-struct CustomNodeAttr
-{
-    int attr_size;
-    const void* type_info;
-    std::vector<uint8_t> mem;
-};
-
-using node_custom_attr_map_t = std::unordered_map<std::string, CustomNodeAttr>;
-
-int NodeAddParamGeneric(void* node, const char* param_name, const void* type_info, int param_size)
+int NodeAddParamGeneric(void* node, const char* param_name, const char * type_name, int param_size)
 {
     Node* real_node = ( Node* )node;
 
@@ -159,7 +148,7 @@ int NodeAddParamGeneric(void* node, const char* param_name, const void* type_inf
 
     CustomNodeAttr attr_entry;
 
-    attr_entry.type_info = type_info;
+    attr_entry.type_name = type_name;
     attr_entry.attr_size = param_size;
 
     (*attr_map)[param_name] = attr_entry;
@@ -167,13 +156,13 @@ int NodeAddParamGeneric(void* node, const char* param_name, const void* type_inf
     return 0;
 }
 
-int NodeGetParamGeneric(void* node, const char* param_name, const void* type_info, void* param_val, int size)
+int NodeGetParamGeneric(void* node, const char* param_name, const char * type_name, void* param_val, int size)
 {
     Node* real_node = ( Node* )node;
 
     Operator* op = real_node->GetOp();
 
-    if(op->GetParamItem(param_name, ( const std::type_info* )type_info, param_val))
+    if(op->GetParamItem(param_name, type_name, param_val))
         return 0;
 
     /* check custom attr */
@@ -193,7 +182,7 @@ int NodeGetParamGeneric(void* node, const char* param_name, const void* type_inf
 
     CustomNodeAttr* attr_entry = &attr_map->at(param_name);
 
-    if((size != attr_entry->attr_size) || (type_info && attr_entry->type_info && type_info != attr_entry->type_info))
+    if((size != attr_entry->attr_size) || (type_name && attr_entry->type_name && strcmp(type_name,attr_entry->type_name)))
     {
         set_tengine_errno(EINVAL);
         return -1;
@@ -206,13 +195,13 @@ int NodeGetParamGeneric(void* node, const char* param_name, const void* type_inf
     return 0;
 }
 
-int NodeSetParamGeneric(void* node, const char* param_name, const void* type_info, const void* param_val, int size)
+int NodeSetParamGeneric(void* node, const char* param_name, const char* type_name, const void* param_val, int size)
 {
     Node* real_node = ( Node* )node;
 
     Operator* op = real_node->GetOp();
 
-    if(op->SetParamItem(param_name, ( const std::type_info* )type_info, param_val))
+    if(op->SetParamItem(param_name, type_name, param_val))
         return 0;
 
     /* check custom attr */
@@ -232,7 +221,7 @@ int NodeSetParamGeneric(void* node, const char* param_name, const void* type_inf
 
     CustomNodeAttr* attr_entry = &attr_map->at(param_name);
 
-    if((size != attr_entry->attr_size) || (type_info && attr_entry->type_info && type_info != attr_entry->type_info))
+    if((size != attr_entry->attr_size) || (type_name && attr_entry->type_name && strcmp(type_name,attr_entry->type_name)))
     {
         set_tengine_errno(EINVAL);
         return -1;

@@ -51,6 +51,7 @@ bool Gemm::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TE
     dim[1] = n;
 
     out_shape.SetDim(dim);
+    out_shape.SetDataLayout(input.GetDataLayout());
 
     oshape[0] = out_shape;
 
@@ -65,7 +66,6 @@ void Gemm::SetSchema(void)
         .SetAttr("beta", 1.0f)
         .SetAttr("transA", 0)
         .SetAttr("transB", 0)
-        .SetLayout("NCHW")
         .SetDoc(R"DOC(Gemm Operator)DOC");
 }
 

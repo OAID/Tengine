@@ -76,8 +76,9 @@ extern bool TFLiteSerializerRegisterOpLoader();
 #endif
 
 #ifdef CONFIG_TENGINE_SERIALIZER
-extern bool TmSerializerRegisterOpLoader();
+bool TmSerializerInit(void);
 #endif
+
 }    // namespace TEngine
 
 using namespace TEngine;
@@ -137,12 +138,7 @@ int serializer_plugin_init(void)
 #endif
 
 #ifdef CONFIG_TENGINE_SERIALIZER
-    factory->RegisterInterface<TmSerializer>("tengine");
-    auto tm_serializer = factory->Create("tengine");
-
-    SerializerManager::SafeAdd("tengine", SerializerPtr(tm_serializer));
-
-    TmSerializerRegisterOpLoader();
+    TmSerializerInit();
 
 #define SrcTmName "src_tm"
 

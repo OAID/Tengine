@@ -117,15 +117,26 @@ struct ROIPoolingOps : public NodeOps
     }
 };
 
+NodeOps* SelectFunc(const CPUInfo* cpu_info, Node* node)
+{
+    Tensor* input = node->GetInputTensor(0);
+    const int data_type = input->GetDataType();
+    const ExecAttr* exec_attr = any_cast<const ExecAttr*>(node->GetAttr(ATTR_EXEC_ATTR));
+    if(data_type != TENGINE_DT_FP32 || exec_attr->graph_layout != TENGINE_LAYOUT_NCHW)
+        return nullptr;
+
+    ROIPoolingOps* ops = new ROIPoolingOps();
+
+    return ops;
+}
+
 }    // namespace ROIPoolingImpl
 
 using namespace ROIPoolingImpl;
 
 void RegisterROIPoolingNodeExec(void)
 {
-    ROIPoolingOps* ops = new ROIPoolingOps();
-
-    NodeOpsRegistryManager::RegisterOPImplementor("common", "ROIPooling", ops);
+    NodeOpsRegistryManager::RegisterOPImplementor("common", "ROIPooling", ROIPoolingImpl::SelectFunc, 1000);
 }
 
 }    // namespace TEngine

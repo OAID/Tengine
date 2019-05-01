@@ -479,7 +479,7 @@ int main(int argc, char** argv)
 
         std::vector<float> param_biases;
 
-        if(get_node_attr_generic(node, "biases", &typeid(std::vector<float>), &param_biases, sizeof(param_biases)) < 0)
+        if(get_node_attr_generic(node, "biases", typeid(std::vector<float>).name(), &param_biases, sizeof(param_biases)) < 0)
         {
             std::cout << "cannot get bias settings\n";
             return 1;

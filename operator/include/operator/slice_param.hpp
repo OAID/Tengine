@@ -31,6 +31,10 @@ namespace TEngine {
 struct SliceParam : public NamedParam
 {
     int axis;
+    std::vector<int> slice_point_;
+    std::vector<int> begin_;
+    std::vector<int> size_;
+    bool iscaffe;
 
     DECLARE_PARSER_STRUCTURE(SliceParam)
     {

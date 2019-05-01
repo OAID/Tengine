@@ -66,6 +66,8 @@ bool get_tensor_memptr(const Tensor* tensor, TensorMemPtr& ptr)
 
 bool set_tensor_mem(Tensor* tensor, void* addr, int size, mem_release_t releaser)
 {
+    if(addr == nullptr || size == 0)
+        return false;
     if(tensor->GetType() == kConstTensor)
     {
         LOG_DEBUG() << __FUNCTION__ << ": set const tensor " << tensor->GetName() << " mem: " << addr << "\n";

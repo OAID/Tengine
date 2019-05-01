@@ -73,57 +73,43 @@ bool Convolution::InferShape(const std::vector<TShape>& ishape, std::vector<TSha
         return false;
     }
 
-    if(param_.pads.size() == 0)
+    param_.input_channel = input_c;
+
+    if(param_.pad_h0 < 0 )
     {
-        // not onnx format
-        param_.pads.resize(4);
+        int n = (input_h - 1) / param_.stride_h + 1;
+        int total_len = (n - 1) * param_.stride_h + param_.kernel_h;
+        int pad_num = total_len - input_h;
 
-        if(param_.pad_h >= 0)
+        if(param_.pad_h0 == -1)    // TF or SAME_UPPER in ONNX
         {
-            param_.pads[0] = param_.pad_h;
-            param_.pads[2] = param_.pad_h;
+            param_.pad_h0 = pad_num / 2;
+            param_.pad_h1 = pad_num - pad_num / 2;
         }
         else
         {
-            int n = (input_h - 1) / param_.stride_h + 1;
-            int total_len = (n - 1) * param_.stride_h + param_.kernel_h;
-            int pad_num = total_len - input_h;
-
-            if(param_.pad_h == -1)    // TF or SAME_UPPER in ONNX
-            {
-                param_.pads[0] = pad_num / 2;
-                param_.pads[2] = pad_num - pad_num / 2;
-            }
-            else
-            {
-                // SAME_LOWER in ONNX
-                param_.pads[0] = pad_num - pad_num / 2;
-                param_.pads[2] = pad_num / 2;
-            }
+            // SAME_LOWER in ONNX
+            param_.pad_h0 = pad_num - pad_num / 2;
+            param_.pad_h1 = pad_num / 2;
         }
+    }
 
-        if(param_.pad_w >= 0)
+    if(param_.pad_w0 < 0)
+    {
+        int n = (input_w - 1) / param_.stride_w + 1;
+        int total_len = (n - 1) * param_.stride_w + param_.kernel_w;
+        int pad_num = total_len - input_w;
+
+        if(param_.pad_w0 == -1)    // TF or SAME_UPPER in ONNX
         {
-            param_.pads[1] = param_.pad_w;
-            param_.pads[3] = param_.pad_w;
+            param_.pad_w0 = pad_num / 2;
+            param_.pad_w1 = pad_num - pad_num / 2;
         }
         else
         {
-            int n = (input_w - 1) / param_.stride_w + 1;
-            int total_len = (n - 1) * param_.stride_w + param_.kernel_w;
-            int pad_num = total_len - input_w;
-
-            if(param_.pad_w == -1)    // TF or SAME_UPPER in ONNX
-            {
-                param_.pads[1] = pad_num / 2;
-                param_.pads[3] = pad_num - pad_num / 2;
-            }
-            else
-            {
-                // SAME_LOWER in ONNX
-                param_.pads[1] = pad_num - pad_num / 2;
-                param_.pads[3] = pad_num / 2;
-            }
+            // SAME_LOWER in ONNX
+            param_.pad_w0 = pad_num - pad_num / 2;
+            param_.pad_w1 = pad_num / 2;
         }
     }
 
@@ -131,9 +117,9 @@ bool Convolution::InferShape(const std::vector<TShape>& ishape, std::vector<TSha
     int dilation_w = param_.dilation_w;
 
     int output_h =
-        (input_h - dilation_h * (param_.kernel_h - 1) - 1 + param_.pads[0] + param_.pads[2]) / param_.stride_h + 1;
+        (input_h - dilation_h * (param_.kernel_h - 1) - 1 + param_.pad_h0 + param_.pad_h1) / param_.stride_h + 1;
     int output_w =
-        (input_w - dilation_w * (param_.kernel_w - 1) - 1 + param_.pads[1] + param_.pads[3]) / param_.stride_w + 1;
+        (input_w - dilation_w * (param_.kernel_w - 1) - 1 + param_.pad_w0 + param_.pad_w1) / param_.stride_w + 1;
 
     TShape result;
 
@@ -141,13 +127,13 @@ bool Convolution::InferShape(const std::vector<TShape>& ishape, std::vector<TSha
     {
         std::vector<int> dim = {input_n, output_h, output_w, output_c};
         result.SetDim(dim);
-        result.SetDataLayout("NHWC");
+        result.SetDataLayout(TENGINE_LAYOUT_NHWC);
     }
     else
     {
         std::vector<int> dim = {input_n, output_c, output_h, output_w};
         result.SetDim(dim);
-        result.SetDataLayout("NCHW");
+        result.SetDataLayout(TENGINE_LAYOUT_NCHW);
     }
 
     oshape[0] = result;
@@ -176,18 +162,20 @@ void Convolution::SetSchema(void)
 {
     Input({"input:float32", "weight:float32", "bias:float32"})
         .Output({"output:float32"})
-        .SetLayout("NCHW")
         .SetAttr("kernel_h", 1)
         .SetAttr("kernel_w", 1)
         .SetAttr("stride_h", 1)
         .SetAttr("stride_w", 1)
-        .SetAttr("pad_h", 0)
-        .SetAttr("pad_w", 0)
         .SetAttr("dilation_h", 1)
         .SetAttr("dilation_w", 1)
+        .SetAttr("input_channel", 1)
         .SetAttr("output_channel", 1)
         .SetAttr("group", 1)
         .SetAttr("activation", -1)
+        .SetAttr("pad_h0", 0)
+        .SetAttr("pad_w0", 0)
+        .SetAttr("pad_h1", 0)
+        .SetAttr("pad_w1", 0)
         .SetDoc(R"DOC(Convolution Layer)DOC");
 }
 

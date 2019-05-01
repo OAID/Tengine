@@ -25,15 +25,13 @@
 namespace TEngine {
 
 extern void RegisterConv2dFast(void);
-extern void RegisterConv2dINT8(void);
 extern void RegisterConv2dDepth(void);
 extern void RegisterFullyConnectedFast(void);
-extern void RegisterFullyConnectedINT8(void);
 extern void RegisterPoolingNodeExec(void);
 extern void RegisterBatchNormNodeExec(void);
 extern void RegisterScaleNodeExec(void);
-extern void RegisterDeconvNodeExec(void);
 extern void RegisterLRNNodeExec(void);
+
 
 void __attribute__((visibility("default"))) RegisterArmOps(void)
 {

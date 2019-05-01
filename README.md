@@ -63,9 +63,44 @@ Tengine can be extended to support new serialization format, by building new ser
 
 ## Release History
 
+
+## version 1.3.2 - 2019/04/19
+
+**tengine model 2.0**
+
+**New apis**
+
+get_graph_node_number()
+get_graph_node_by_idx()
+
+**New features**
+
+Separate CPU operator as a independent so:  hclcpu.so
+
+Add Reference Operator
+
+Update Testcase & Update permute for mxnet
+
+Update lstm grun mxnet serializer
+
+Support MXNET serializer in CMakelist.txt
+
+Support TFLITE serializer in CMakelist.txt
+
+Support eltwise in TFLITE serializer
+
+**More operator support**
+
+RNN operator definition and blas implementation
+
+LSTM operator definition and blas implementation
+
+GRU operator definition and blas implementation
+
 ## version 1.0.0 - 2018/12/31
 
 **tengine API 2.0**
+
 
 New API set for NN inference
 

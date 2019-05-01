@@ -59,11 +59,11 @@ public:
         return true;
     }
 
-    virtual bool GetParamItem(const char* param_name, const std::type_info* type_info, void* val)
+    virtual bool GetParamItem(const char* param_name, const char * type_name, void* val)
     {
         return false;
     }
-    virtual bool SetParamItem(const char* param_name, const std::type_info* type_info, const void* val)
+    virtual bool SetParamItem(const char* param_name, const char * type_name, const void* val)
     {
         return false;
     }
@@ -82,6 +82,15 @@ public:
     virtual float GetFops(const std::vector<TShape>& ishape, const std::vector<TShape>& oshape)
     {
         return 0.0f;
+    }
+
+    void SetOpVer(int op_ver)
+    {
+        op_ver_ = op_ver;
+    }
+    int GetOpVer(void)
+    {
+        return op_ver_;
     }
 
     void SetName(const std::string& new_name)
@@ -123,13 +132,6 @@ public:
     {
         std::vector<std::string> output_str(args);
         return ParseInputOutput(std::move(output_str), outputs_);
-    }
-
-    Operator& SetLayout(const std::string& layout_str)
-    {
-        layout_ = layout_str;
-
-        return *this;
     }
 
     Operator& SetDoc(std::string&& doc_str)
@@ -174,22 +176,21 @@ public:
     {
         return outputs_[idx].second;
     }
-    const std::string& GetLayout(void) const
-    {
-        return layout_;
-    }
 
-    Operator() = default;
+    Operator()
+    {
+        op_ver_ = 1;
+    }
     Operator(const Operator&) = default;
 
     virtual ~Operator(){};
 
 protected:
+    int op_ver_;
     std::string name_;
     bool dynamic_shape_;
     std::vector<io_str_t> inputs_;
     std::vector<io_str_t> outputs_;
-    std::string layout_;
     std::string doc_;
 
 private:
@@ -290,12 +291,12 @@ public:
             {
                 const std::string& str = any_cast<std::string>(data);
 
-                param.SetItemVal(ir->first, &typeid(const char*), str.c_str());
+                param.SetItemVal(ir->first, typeid(const char*).name(), str.c_str());
             }
             else if(data_type == typeid(int))
             {
                 float f = ( float )any_cast<int>(data);
-                param.SetItemVal(ir->first, &typeid(float), &f);
+                param.SetItemVal(ir->first, typeid(float).name(), &f);
             }
 
             ir++;
@@ -323,14 +324,14 @@ public:
         return param;
     }
 
-    bool GetParamItem(const char* param_name, const std::type_info* type_info, void* val) override
+    bool GetParamItem(const char* param_name, const char * type_name, void* val) override
     {
-        return param_.GetItemVal(param_name, type_info, val);
+        return param_.GetItemVal(param_name, type_name, val);
     }
 
-    bool SetParamItem(const char* param_name, const std::type_info* type_info, const void* val) override
+    bool SetParamItem(const char* param_name, const char * type_name, const void* val) override
     {
-        return param_.SetItemVal(param_name, type_info, val);
+        return param_.SetItemVal(param_name, type_name, val);
     }
 
 protected:

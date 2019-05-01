@@ -91,13 +91,28 @@ if(CONFIG_TF_SERIALIZER)
 endif()
 
 if(CONFIG_TENGINE_SERIALIZER)
+    include_directories(serializer/include/tengine)
+    include_directories(serializer/include/tengine/v1)
+    include_directories(serializer/include/tengine/v2)
     FILE(GLOB_RECURSE tengine_serializer_cpp_src "serializer/tengine/*.cpp")
     FILE(GLOB_RECURSE tengine_serializer_c_src "serializer/tengine/*.c")
     list(APPEND TENGINE_LIB_SRCS ${tengine_serializer_cpp_src} ${tengine_serializer_c_src})
 endif()
 
-    FILE(GLOB_RECURSE source_serializer_cpp_src "serializer/source/*.cpp")
-    list(APPEND TENGINE_LIB_SRCS ${source_serializer_cpp_src})
+if(CONFIG_MXNET_SERIALIZER)
+    FILE(GLOB_RECURSE serializer_src "serializer/mxnet/*.cpp")
+    list(APPEND TENGINE_LIB_SRCS ${serializer_src})
+endif()
+
+if(CONFIG_TFLITE_SERIALIZER)
+    include_directories(serializer/include/tf_lite)
+    FILE(GLOB_RECURSE tflite_serializer_src "serializer/tf_lite/*.cpp")
+    list(APPEND TENGINE_LIB_SRCS ${tflite_serializer_src})
+endif()
+
+
+FILE(GLOB_RECURSE source_serializer_cpp_src "serializer/source/*.cpp")
+list(APPEND TENGINE_LIB_SRCS ${source_serializer_cpp_src})
 
 FILE(GLOB plugin_init "serializer/plugin/init.cpp")
 

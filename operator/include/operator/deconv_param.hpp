@@ -30,19 +30,36 @@ namespace TEngine {
 
 struct DeconvParam : public NamedParam
 {
-    int kernel_size;
-    int stride;
-    int pad;
     int num_output;
-    int dilation;
+	int kernel_h;
+	int kernel_w;
+	int stride_h;
+	int stride_w;
+	int pad_h0;
+	int pad_w0;
+	int pad_h1;
+	int pad_w1;
+	int dilation_h;
+	int dilation_w;
+	int group;
+	int activation;
 
     DECLARE_PARSER_STRUCTURE(DeconvParam)
     {
-        DECLARE_PARSER_ENTRY(kernel_size);
-        DECLARE_PARSER_ENTRY(stride);
-        DECLARE_PARSER_ENTRY(pad);
-        DECLARE_PARSER_ENTRY(num_output);
-        DECLARE_PARSER_ENTRY(dilation);
+   		DECLARE_PARSER_ENTRY(num_output);
+        DECLARE_PARSER_ENTRY(kernel_h);
+        DECLARE_PARSER_ENTRY(kernel_w);
+        DECLARE_PARSER_ENTRY(stride_h);
+        DECLARE_PARSER_ENTRY(stride_w);
+		DECLARE_PARSER_ENTRY(pad_h0);
+	    DECLARE_PARSER_ENTRY(pad_w0);
+		DECLARE_PARSER_ENTRY(pad_h1);
+	    DECLARE_PARSER_ENTRY(pad_w1);
+	    DECLARE_PARSER_ENTRY(dilation_h);
+	    DECLARE_PARSER_ENTRY(dilation_w);
+        DECLARE_PARSER_ENTRY(group);
+ 		DECLARE_PARSER_ENTRY(activation);
+		
     };
 };
 

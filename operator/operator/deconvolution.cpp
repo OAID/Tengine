@@ -35,16 +35,18 @@ bool Deconvolution::InferShape(const std::vector<TShape>& ishape, std::vector<TS
     int input_h = input_shape.GetH();
     int input_w = input_shape.GetW();
 
-    int kernel_extent = param_.dilation * (param_.kernel_size - 1) + 1;
+    int kernel_extent_w = param_.dilation_w * (param_.kernel_w - 1) + 1;
+	int kernel_extent_h = param_.dilation_h * (param_.kernel_h - 1) + 1;
 
-    int output_h = (input_h - 1) * param_.stride + kernel_extent - 2 * param_.pad;
-    int output_w = (input_w - 1) * param_.stride + kernel_extent - 2 * param_.pad;
+
+    int output_h = (input_h - 1) * param_.stride_h + kernel_extent_h - param_.pad_h0 - param_.pad_h1;
+    int output_w = (input_w - 1) * param_.stride_w + kernel_extent_w - param_.pad_w0 - param_.pad_w1;
 
     std::vector<int> dim = {input_n, param_.num_output, output_h, output_w};
     TShape result;
 
     result.SetDim(dim);
-    result.SetDataLayout("NCHW");
+    result.SetDataLayout(input_shape.GetDataLayout());
 
     oshape[0] = result;
 
@@ -53,7 +55,7 @@ bool Deconvolution::InferShape(const std::vector<TShape>& ishape, std::vector<TS
 
 float Deconvolution::GetFops(const std::vector<TShape>& inputs, const std::vector<TShape>& outputs)
 {
-    float ops = 1.0f * param_.num_output * param_.kernel_size * param_.kernel_size * inputs[0].GetSize() * 2;
+    float ops = 1.0f * param_.num_output * param_.kernel_h * param_.kernel_w * inputs[0].GetSize() * 2;
 
     return ops;
 }
@@ -61,13 +63,20 @@ float Deconvolution::GetFops(const std::vector<TShape>& inputs, const std::vecto
 void Deconvolution::SetSchema(void)
 {
     Input({"input:float32", "weight:float32", "bias:float32"})
-        .Output({"output:float32"})
-        .SetLayout("NCHW")
-        .SetAttr("kernel_size", 1)
-        .SetAttr("stride", 1)
-        .SetAttr("pad", 1)
+        .Output({"output:float32"})  
+        .SetAttr("kernel_h", 1)
+        .SetAttr("kernel_w", 1)
+        .SetAttr("stride_h", 1)
+        .SetAttr("stride_w", 1)
+        .SetAttr("pad_h0", 0)
+        .SetAttr("pad_w0", 0)
+        .SetAttr("pad_h1", 0)
+        .SetAttr("pad_w1", 0)
+        .SetAttr("dilation_h", 1)
+        .SetAttr("dilation_w", 1)
         .SetAttr("num_output", 1)
-        .SetAttr("dilation", 1)
+        .SetAttr("group", 1)
+        .SetAttr("activation", -1)
 
         .SetDoc(R"DOC(Deconvolution Layer)DOC");
 }

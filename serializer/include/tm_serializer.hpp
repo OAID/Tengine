@@ -18,7 +18,7 @@
  */
 
 /*
- * Copyright (c) 2018, Open AI Lab
+ * Copyright (c) 2019, Open AI Lab
  * Author: jingyou@openailab.com
  */
 #ifndef __TM_SERIALIZER_HPP__
@@ -26,23 +26,13 @@
 
 #include "serializer.hpp"
 #include "static_graph_interface.hpp"
-#include "logger.hpp"
-#include "tm_generate.h"
 
 namespace TEngine {
 
 class TmSerializer : public Serializer
 {
-    using name_map_t = std::unordered_map<std::string, unsigned int>;
-
 public:
-    TmSerializer()
-    {
-        name_ = "tm_loader";
-        version_ = "0.1";
-        format_name_ = "tengine";
-    }
-
+    TmSerializer() {};
     virtual ~TmSerializer(){};
 
     unsigned int GetFileNum(void) override
@@ -65,21 +55,17 @@ public:
         return false;
     }
 
-    bool LoadModelFromMem(void* mmap_buf, StaticGraph* graph);
-
-    bool IsSaveString(void);
-    bool IsSaveData(void);
-
-protected:
     bool LoadBinaryFile(const char* tm_fname, int& fd, void*& buf, int& size);
-    bool LoadNode(StaticGraph* graph, StaticNode* node, const TM_Node* tm_node, void* mmap_buf);
-    bool LoadTensor(StaticGraph* graph, const TM_Tensor* tm_tensor, const TM_Buffer* tm_buf, void* mmap_buf);
-    bool LoadGraph(StaticGraph* graph, const TM_Model* tm_model, void* mmap_buf);
 
-    tm_uoffset_t SaveTmSubgraph(void* const start_ptr, tm_uoffset_t* cur_pos, Graph* graph);
-    tm_uoffset_t SaveTmNode(void* const start_ptr, tm_uoffset_t* cur_pos, Node* node, name_map_t& tensor_name_map);
-    tm_uoffset_t SaveTmTensor(void* const start_ptr, tm_uoffset_t* cur_pos, Tensor* tensor, unsigned int tensor_id,
-                              unsigned int buffer_id);
+    virtual bool LoadModelFromMem(void* mmap_buf, StaticGraph* graph) { return false; }
+    virtual bool SaveModelIntoMem(void* start_ptr, Graph* graph, uint32_t* tm_model_size) { return false; }
+};
+
+using TmSerializerPtr = std::shared_ptr<TmSerializer>;
+using TmSerializerFactory = SpecificFactory<TmSerializer>;
+
+class TmSerializerManager : public SimpleObjectManagerWithLock<TmSerializerManager, TmSerializerPtr>
+{
 };
 
 }    // namespace TEngine

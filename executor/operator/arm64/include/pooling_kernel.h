@@ -27,16 +27,16 @@
 #include <arm_neon.h>
 
 /**
-* MaxPool_2x2: pooling for ksize=2x2,stride=2, pad=0(default pad=0)
-* @param[in]    input     input data (const float pointer)
-* @param[in]    output    output data (float pointer)
-* @param[in]    inc       input channel (int)
-* @param[in]    inh       input height (int)
-* @param[in]    inw       input width (int)
-* @param[in]    outh      output height (int)
-* @param[in]    outw      output width (int)
-* @return		None
-*/
+ * MaxPool_2x2: pooling for ksize=2x2,stride=2, pad=0(default pad=0)
+ * @param[in]    input     input data (const float pointer)
+ * @param[in]    output    output data (float pointer)
+ * @param[in]    inc       input channel (int)
+ * @param[in]    inh       input height (int)
+ * @param[in]    inw       input width (int)
+ * @param[in]    outh      output height (int)
+ * @param[in]    outw      output width (int)
+ * @return		None
+ */
 
 static void MaxPool_2x2s2(const float* input, float* output, int inc, int inh, int inw, int outh, int outw, int, int,
                           int, int, int, int, int pad_h1, int pad_w1, int)

@@ -271,7 +271,7 @@ static void parse_node(void* data, int repeat_count, uint64_t total_time)
     {
         Convolution* conv_op = dynamic_cast<Convolution*>(node->GetOp());
         ConvParam* param = conv_op->GetParam();
-        printf("%2d x %d / %d_p%d", param->kernel_h, param->kernel_w, param->stride_h, param->pads[0]);
+        printf("%2d x %d / %d_p%d", param->kernel_h, param->kernel_w, param->stride_h, param->pad_h0);
         // if(param->kernel_h==3 && param->stride_h==1)
         // {
         // 	printf(" [%d]",param->mth);
@@ -386,7 +386,7 @@ bool CPURunner::Run(Subgraph* sub_graph)
 
             std::vector<TShape> outputs(output_number);
 
-            if(!op->InferShape(inputs, outputs, node_ops->exec_attr->layout))
+            if(!op->InferShape(inputs, outputs, node_ops->exec_attr->graph_layout))
             {
                 XLOG_ERROR() << "infer shaped for node: " << node->GetName() << " op: " << op->GetName() << " failed\n";
                 ret = false;
@@ -654,10 +654,13 @@ bool CPURunner::FreeMem(Subgraph* sub_graph)
         sub_graph->RemoveAttr("shared_temp_memory");
     }
 
-    MemPool* mem_pool = any_cast<MemPool*>(sub_graph->GetAttr("MemPool"));
-    delete mem_pool;
+    if(sub_graph->ExistAttr("MemPool"))
+    {
+        MemPool* mem_pool = any_cast<MemPool*>(sub_graph->GetAttr("MemPool"));
+        delete mem_pool;
 
-    sub_graph->RemoveAttr("MemPool");
+        sub_graph->RemoveAttr("MemPool");
+    }
 
     return true;
 }
@@ -888,11 +891,12 @@ bool CPURunner::AllocateMem(Subgraph* sub_graph)
                 {
                     void* tensor_addr = get_tensor_mem(input_tensor);
                     int total_size = tensor->GetTotalSize();
-                    set_tensor_mem(tensor, tensor_addr, total_size, nullptr);
+                    if(set_tensor_mem(tensor, tensor_addr, total_size, nullptr))
+		    {
+                        mem_pool->AddRef(tensor);
 
-                    mem_pool->AddRef(tensor);
-
-                    continue;
+                        continue;
+		    }
                 }
             }
 
@@ -900,14 +904,16 @@ bool CPURunner::AllocateMem(Subgraph* sub_graph)
             {
                 int total_size = tensor->GetTotalSize();
                 void* tensor_addr = mem_pool->Allocate(tensor, total_size);
-                set_tensor_mem(tensor, tensor_addr, total_size, nullptr);
+                if(!set_tensor_mem(tensor, tensor_addr, total_size, nullptr))
+                    return false;
             }
         }
         /* input tensor */
         for(unsigned int i = 0; i < node->GetInputNum(); i++)
         {
             Tensor* input_tensor = node->GetInputTensor(i);
-            mem_pool->Free(input_tensor);
+            if(input_tensor->GetName() != "data")
+                mem_pool->Free(input_tensor);
         }
     }
 

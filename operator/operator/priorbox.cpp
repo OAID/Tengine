@@ -54,7 +54,7 @@ bool PriorBox::InferShape(const std::vector<TEngine::TShape>& ishape, std::vecto
     TShape shape;
     std::vector<int> dim = {feat_dim[0], 2, param_.out_dim_, 1};
     shape.SetDim(dim);
-    shape.SetDataLayout("NCHW");
+    shape.SetDataLayout(input.GetDataLayout());
     oshape[0] = shape;
     return true;
 }
@@ -63,7 +63,6 @@ void PriorBox::SetSchema(void)
 {
     Input({"input:float32"})
         .Output({"output:float32"})
-        .SetLayout("NCHW")
         .SetAttr("offset", 0.5)
 
         .SetDoc(R"DOC(PriorBox Layer)DOC");

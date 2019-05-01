@@ -343,6 +343,17 @@ protected:
     bool dynamic_shape_;
 };
 
+#define ATTR_CUSTOM_ATTR "CUSTOM_ATTR"
+
+struct CustomNodeAttr
+{
+    int attr_size;
+    const char* type_name;
+    std::vector<uint8_t> mem;
+};
+
+using node_custom_attr_map_t = std::unordered_map<std::string, CustomNodeAttr>;
+
 }    // namespace TEngine
 
 #endif

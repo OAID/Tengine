@@ -27,7 +27,7 @@ namespace TEngine {
 
 void Dropout::SetSchema(void)
 {
-    Input({"input:float32"}).Output({"output:float32"}).SetLayout("NCHW").SetDoc(R"DOC(Dropout Operator)DOC");
+    Input({"input:float32"}).Output({"output:float32"}).SetDoc(R"DOC(Dropout Operator)DOC");
 }
 
 }    // namespace TEngine

@@ -49,13 +49,18 @@ struct LSTMOps : public NodeOps
     Tensor* w_i_tensor;
     Tensor* w_o_tensor;
     Tensor* proj_tensor;
+    Tensor* kernel_tensor;
+    Tensor* h2h_kernel_tensor;
+    Tensor* h2h_bias_tensor;
+    Tensor* fused_kernel_tensor;
     void* init_h_data;
     void* init_c_data;
-
+    // bool dynamic_shape;
     LSTMOps(void)
     {
         init_c_tensor = nullptr;
         init_h_tensor = nullptr;
+        kernel_tensor=nullptr;
         bias_tensor = nullptr;
         w_f_tensor = nullptr;
         w_i_tensor = nullptr;
@@ -63,6 +68,9 @@ struct LSTMOps : public NodeOps
         proj_tensor = nullptr;
         init_h_data = nullptr;
         init_c_data = nullptr;
+        h2h_kernel_tensor=nullptr;
+        h2h_bias_tensor=nullptr;
+        fused_kernel_tensor=nullptr;
     }
 
     /*
@@ -228,116 +236,191 @@ struct LSTMOps : public NodeOps
     {
         cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, m, n, k, 1.0, a, lda, b, ldb, 0.0, c, ldc);
     }
+    void do_gemm_mx(const float* a, const float* b, float* c, int m, int k, int n, int lda, int ldb, int ldc)
+    {
+        cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasTrans, m, n, k, 1.0, a, lda, b, ldb, 0.0, c, ldc);
+    }
 
     bool do_LSTM_step(const float* input, float* init_h, float* init_c, const float* kernel, const float* bias,
+                      const float* h2h_kernel, const float* h2h_bias,
                       const float* w_f_data, const float* w_i_data, const float* w_o_data, const float* projection,
-                      float forget_bias, int batch_size, int input_size, int hidden_size, int cell_size)
+                      float forget_bias, int batch_size, int input_size, int hidden_size, int cell_size,int mxnet_flag)
     {
-        int input_total_size = input_size + hidden_size;
-        int batch_cell_size = cell_size * batch_size;
-
-        float* merged_input = ( float* )malloc(sizeof(float) * batch_size * (input_total_size));
-        float* matmul_result = ( float* )malloc(sizeof(float) * batch_size * cell_size * 4);
-
-        // merge input
-        concat_axis_1(input, init_h, merged_input, batch_size, input_size, hidden_size);
-
-        // do gemm
-        do_gemm(merged_input, kernel, matmul_result, batch_size, input_total_size, 4 * cell_size, input_total_size,
-                4 * cell_size, 4 * cell_size);
-
-        // add bias
-        if(bias)
+        if(mxnet_flag==1)
         {
-            for(int i = 0; i < batch_size; i++)
-                for(int j = 0; j < 4 * cell_size; j++)
-                    matmul_result[i * 4 * cell_size + j] += bias[j];
-        }
+            int batch_cell_size = cell_size * batch_size;
+            float* i2h = ( float* )malloc(sizeof(float) * batch_size * cell_size * 4);
+            float* h2h = ( float* )malloc(sizeof(float) * batch_size * cell_size * 4);
+            float* gates = ( float* )malloc(sizeof(float) * batch_size * cell_size * 4);
 
-        float* ig = ( float* )malloc(batch_cell_size * sizeof(float));
-        float* cg = ( float* )malloc(batch_cell_size * sizeof(float));
-        float* fg = ( float* )malloc(batch_cell_size * sizeof(float));
-        float* og = ( float* )malloc(batch_cell_size * sizeof(float));
-
-        slice_axis_1(matmul_result, ig, batch_size, 4 * cell_size, 0, cell_size);
-        slice_axis_1(matmul_result, cg, batch_size, 4 * cell_size, cell_size, 2 * cell_size);
-        slice_axis_1(matmul_result, fg, batch_size, 4 * cell_size, 2 * cell_size, 3 * cell_size);
-        slice_axis_1(matmul_result, og, batch_size, 4 * cell_size, 3 * cell_size, 4 * cell_size);
-
-        // forget gate
-        for(int i = 0; i < batch_cell_size; i++)
-            fg[i] += forget_bias;
-
-        // peephole
-        if(w_f_data)
-        {
-            for(int i = 0; i < batch_size; i++)
-                for(int j = 0; j < cell_size; j++)
-                {
-                    fg[i * cell_size + j] += init_c[i * cell_size + j] * w_f_data[j];
-                    ig[i * cell_size + j] += init_c[i * cell_size + j] * w_i_data[j];
-                }
-        }
-
-        sigmoid(fg, batch_cell_size);
-        sigmoid(ig, batch_cell_size);
-        mytanh(cg, batch_cell_size);
-
-        // get cell output
-        for(int i = 0; i < batch_cell_size; i++)
-            init_c[i] = init_c[i] * fg[i] + cg[i] * ig[i];
-
-        if(w_o_data)
-        {
-            for(int i = 0; i < batch_size; i++)
-                for(int j = 0; j < cell_size; j++)
-                {
-                    og[i * cell_size + j] += init_c[i * cell_size + j] * w_o_data[j];
-                }
-        }
-
-        sigmoid(og, batch_cell_size);
-
-        if(projection)
-        {
-            for(int i = 0; i < batch_cell_size; i++)
+            float* ig = ( float* )malloc(batch_cell_size * sizeof(float));
+            float* cg = ( float* )malloc(batch_cell_size * sizeof(float));
+            float* fg = ( float* )malloc(batch_cell_size * sizeof(float));
+            float* og = ( float* )malloc(batch_cell_size * sizeof(float));
+            //                                 m         k              n        
+            do_gemm_mx(input, kernel, i2h, batch_size, input_size, 4 * cell_size, input_size,
+                    input_size, 4 * cell_size);
+            
+            if(bias)
             {
-                og[i] = tanh(init_c[i]) * og[i];
+                for(int i = 0; i < batch_size; i++)
+                    for(int j = 0; j < 4 * cell_size; j++)
+                        i2h[i * 4 * cell_size + j] += bias[j];
             }
 
-            /*batchxcell_size * cell_sizexhidden_size --> batch* hidden_size*/
-            do_gemm(og, projection, init_h, batch_size, cell_size, hidden_size, cell_size, hidden_size, hidden_size);
-        }
-        else
-        {
+            do_gemm_mx(init_h, h2h_kernel, h2h, batch_size, hidden_size, 4 * hidden_size, hidden_size,
+                    hidden_size, 4 * hidden_size);
+            if(h2h_bias)
+            {
+                for(int i = 0; i < batch_size; i++)
+                    for(int j = 0; j < 4 * cell_size; j++)
+                        h2h[i * 4 * cell_size + j] += h2h_bias[j];
+            }
+            
+            for(int i = 0; i < batch_size*4*cell_size; i++)
+                gates[i] = i2h[i]+h2h[i];
+
+            slice_axis_1(gates, ig, batch_size, 4 * cell_size, 0, cell_size);
+            slice_axis_1(gates, fg, batch_size, 4 * cell_size, cell_size, 2 * cell_size);
+            slice_axis_1(gates, cg, batch_size, 4 * cell_size, 2 * cell_size, 3 * cell_size);
+            slice_axis_1(gates, og, batch_size, 4 * cell_size, 3 * cell_size, 4 * cell_size);
+            
+            for(int i = 0; i < batch_size*cell_size; i++)
+                fg[i]+=1;
+            
+            sigmoid(ig, batch_cell_size);
+            sigmoid(fg, batch_cell_size);
+            mytanh(cg, batch_cell_size);
+            sigmoid(og, batch_cell_size);
+
+            for(int i = 0; i < batch_cell_size; i++)
+                init_c[i] = init_c[i] * fg[i] + cg[i] * ig[i];
+            
             for(int i = 0; i < batch_cell_size; i++)
             {
                 init_h[i] = tanh(init_c[i]) * og[i];
             }
+
+            free(i2h);
+            free(h2h);
+            free(gates);
+            free(ig);
+            free(fg);
+            free(cg);
+            free(og);
+            return true;
+
         }
+        else
+        {
+            int input_total_size = input_size + hidden_size;
+            int batch_cell_size = cell_size * batch_size;
 
-        // free memory
-        free(merged_input);
-        free(matmul_result);
-        free(ig);
-        free(cg);
-        free(fg);
-        free(og);
+            float* merged_input = ( float* )malloc(sizeof(float) * batch_size * (input_total_size));
+            float* matmul_result = ( float* )malloc(sizeof(float) * batch_size * cell_size * 4);
 
-        return true;
+            // merge input
+            concat_axis_1(input, init_h, merged_input, batch_size, input_size, hidden_size);
+
+            // do gemm
+            do_gemm(merged_input, kernel, matmul_result, batch_size, input_total_size, 4 * cell_size, input_total_size,
+                    4 * cell_size, 4 * cell_size);
+
+            // add bias
+            if(bias)
+            {
+                for(int i = 0; i < batch_size; i++)
+                    for(int j = 0; j < 4 * cell_size; j++)
+                        matmul_result[i * 4 * cell_size + j] += bias[j];
+            }
+
+            float* ig = ( float* )malloc(batch_cell_size * sizeof(float));
+            float* cg = ( float* )malloc(batch_cell_size * sizeof(float));
+            float* fg = ( float* )malloc(batch_cell_size * sizeof(float));
+            float* og = ( float* )malloc(batch_cell_size * sizeof(float));
+
+            slice_axis_1(matmul_result, ig, batch_size, 4 * cell_size, 0, cell_size);
+            slice_axis_1(matmul_result, cg, batch_size, 4 * cell_size, cell_size, 2 * cell_size);
+            slice_axis_1(matmul_result, fg, batch_size, 4 * cell_size, 2 * cell_size, 3 * cell_size);
+            slice_axis_1(matmul_result, og, batch_size, 4 * cell_size, 3 * cell_size, 4 * cell_size);
+
+            // forget gate
+            for(int i = 0; i < batch_cell_size; i++)
+                fg[i] += forget_bias;
+
+            // peephole
+            if(w_f_data)
+            {
+                for(int i = 0; i < batch_size; i++)
+                    for(int j = 0; j < cell_size; j++)
+                    {
+                        fg[i * cell_size + j] += init_c[i * cell_size + j] * w_f_data[j];
+                        ig[i * cell_size + j] += init_c[i * cell_size + j] * w_i_data[j];
+                    }
+            }
+
+            sigmoid(fg, batch_cell_size);
+            sigmoid(ig, batch_cell_size);
+            mytanh(cg, batch_cell_size);
+
+            // get cell output
+            for(int i = 0; i < batch_cell_size; i++)
+                init_c[i] = init_c[i] * fg[i] + cg[i] * ig[i];
+
+            if(w_o_data)
+            {
+                for(int i = 0; i < batch_size; i++)
+                    for(int j = 0; j < cell_size; j++)
+                    {
+                        og[i * cell_size + j] += init_c[i * cell_size + j] * w_o_data[j];
+                    }
+            }
+
+            sigmoid(og, batch_cell_size);
+
+            if(projection)
+            {
+                for(int i = 0; i < batch_cell_size; i++)
+                {
+                    og[i] = tanh(init_c[i]) * og[i];
+                }
+
+                /*batchxcell_size * cell_sizexhidden_size --> batch* hidden_size*/
+                do_gemm(og, projection, init_h, batch_size, cell_size, hidden_size, cell_size, hidden_size, hidden_size);
+            }
+            else
+            {
+                for(int i = 0; i < batch_cell_size; i++)
+                {
+                    init_h[i] = tanh(init_c[i]) * og[i];
+                }
+            }
+
+            // free memory
+            free(merged_input);
+            free(matmul_result);
+            free(ig);
+            free(cg);
+            free(fg);
+            free(og);
+            return true;
+        }
+        
+
+        
     }
 
     bool do_LSTM(const float* input, float* output, float* init_h, float* init_c, const float* kernel,
-                 const float* bias, const float* w_f_data, const float* w_i_data, const float* w_o_data,
+                 const float* bias, const float* h2h_kernel, const float* h2h_bias, const float* w_f_data, const float* w_i_data, const float* w_o_data,
                  const float* projection, float forget_bias, int seq_lens, int batch_size, int input_size,
-                 int output_len, int hidden_size, int cell_size)
+                 int output_len, int hidden_size, int cell_size,int mxnet_flag)
     {
         for(int i = 0; i < seq_lens; i++)
         {
             const float* seq_input = input + i * batch_size * input_size;
 
-            if(!do_LSTM_step(seq_input, init_h, init_c, kernel, bias, w_f_data, w_i_data, w_o_data, projection,
-                             forget_bias, batch_size, input_size, hidden_size, cell_size))
+            if(!do_LSTM_step(seq_input, init_h, init_c, kernel, bias,h2h_kernel,h2h_bias, w_f_data, w_i_data, w_o_data, projection,
+                             forget_bias, batch_size, input_size, hidden_size, cell_size,mxnet_flag))
                 return false;
 
             if(i + output_len >= seq_lens)
@@ -360,7 +443,10 @@ struct LSTMOps : public NodeOps
         {
             Tensor* temptensor = node->GetInputTensor(count);
             const std::string& name = temptensor->GetName();
-
+            if(name.find(lstm_op->GetKernelName()) != std::string::npos)
+            {
+                kernel_tensor = temptensor;
+            }
             if(name.find(lstm_op->GetInitCellName()) != std::string::npos)
             {
                 init_c_tensor = temptensor;
@@ -389,6 +475,26 @@ struct LSTMOps : public NodeOps
             {
                 proj_tensor = temptensor;
             }
+            if(name.find(lstm_op->Geti2hKernelName()) != std::string::npos)
+            {
+                kernel_tensor = temptensor;
+            }
+            if(name.find(lstm_op->Geti2hBiasName()) != std::string::npos)
+            {
+                bias_tensor = temptensor;
+            }
+            if(name.find(lstm_op->Geth2hKernelName()) != std::string::npos)
+            {
+                h2h_kernel_tensor = temptensor;
+            }
+            if(name.find(lstm_op->Geth2hBiasName()) != std::string::npos)
+            {
+                h2h_bias_tensor = temptensor;
+            }
+            if(name.find(lstm_op->GetFusedKernelName()) != std::string::npos)
+            {
+                fused_kernel_tensor = temptensor;
+            }
         }
 
         if(init_c_tensor)
@@ -411,17 +517,17 @@ struct LSTMOps : public NodeOps
 
         Tensor* input_tensor = node->GetInputTensor(0);
         Tensor* output_tensor = node->GetOutputTensor(0);
-        Tensor* kernel_tensor = node->GetInputTensor(1);
+        // Tensor* kernel_tensor = node->GetInputTensor(1);
 
         float forget_bias = param->forget_bias;
 
         bool has_peephole = param->has_peephole;
         bool has_projection = param->has_projection;
 
-        int input_size = param->input_size;
+        
         int hidden_size = param->hidden_size;
         int cell_size = param->cell_size;
-
+        int input_size=0;
         float* output = ( float* )get_tensor_mem(output_tensor);
         float* input = ( float* )get_tensor_mem(input_tensor);
 
@@ -430,7 +536,16 @@ struct LSTMOps : public NodeOps
         int seq_lens = input_shape.Shape(0);
         int batch_size = input_shape.Shape(1);
         int output_len = param->output_len;
+        int mxnet_flag= param->mxnet_flag;
 
+        if(mxnet_flag==1)
+        {
+            input_size=input_shape.Shape(2);
+        }
+        else
+        {
+            input_size = param->input_size;
+        }
         float* init_h = ( float* )malloc(batch_size * hidden_size * sizeof(float));
 
         if(init_h == nullptr)
@@ -462,16 +577,27 @@ struct LSTMOps : public NodeOps
             memset(init_c, 0x0, sizeof(batch_size * cell_size * sizeof(float)));
         }
 
-        float* kernel = ( float* )get_tensor_mem(kernel_tensor);
-
+        float* kernel =nullptr;
         float* bias = nullptr;
         float* w_f_data = nullptr;
         float* w_i_data = nullptr;
         float* w_o_data = nullptr;
         float* projection = nullptr;
+        float* h2h_kernel =nullptr;
+        float* h2h_bias =nullptr;
+        float* fused_kernel =nullptr;
 
+        if(kernel_tensor)
+            kernel = ( float* )get_tensor_mem(kernel_tensor);
+        
         if(bias_tensor)
             bias = ( float* )get_tensor_mem(bias_tensor);
+        
+        if(h2h_kernel_tensor)
+            h2h_kernel = ( float* )get_tensor_mem(h2h_kernel_tensor);
+        
+        if(h2h_bias_tensor)
+            h2h_bias = ( float* )get_tensor_mem(h2h_bias_tensor);
 
         if(has_peephole)
         {
@@ -479,12 +605,23 @@ struct LSTMOps : public NodeOps
             w_i_data = ( float* )get_tensor_mem(w_i_tensor);
             w_o_data = ( float* )get_tensor_mem(w_o_tensor);
         }
+        //int bsize=2*cell_size*4;
 
+        if(fused_kernel_tensor)
+        {
+            fused_kernel=( float* )get_tensor_mem(fused_kernel_tensor);
+            int kernel_size=get_tensor_mem_size(fused_kernel_tensor)/sizeof(float);
+            kernel=fused_kernel;
+            h2h_kernel=kernel+input_size*hidden_size*4;
+            bias=kernel+kernel_size-hidden_size*4*2;
+            h2h_bias=bias+hidden_size*4;
+        }
         if(has_projection)
             projection = ( float* )get_tensor_mem(proj_tensor);
 
-        bool ret = do_LSTM(input, output, init_h, init_c, kernel, bias, w_f_data, w_i_data, w_o_data, projection,
-                           forget_bias, seq_lens, batch_size, input_size, output_len, hidden_size, cell_size);
+        // std::cout<<"inputmem: "<<input<<"\n";
+        bool ret = do_LSTM(input, output, init_h, init_c, kernel, bias,h2h_kernel,h2h_bias, w_f_data, w_i_data, w_o_data, projection,
+                           forget_bias, seq_lens, batch_size, input_size, output_len, hidden_size, cell_size,mxnet_flag);
 
         free(init_h);
         free(init_c);

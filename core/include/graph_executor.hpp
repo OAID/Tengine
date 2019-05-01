@@ -46,6 +46,7 @@ public:
         graph_attached_ = false;
         exec_handle_ = nullptr;
         prerun_done_ = false;
+        optimize_only=0;
 
         InitAttrIO();
     }
@@ -137,6 +138,9 @@ public:
             return -1;
     }
 
+    bool GetOptimizeOnly(const char* name, void* val, int size);
+    bool SetOptimizeOnly(const char* name, const void* val, int size);
+
     bool GetExecAttrEntry(const char* name, void* val, int size);
     bool SetExecAttrEntry(const char* name, const void* val, int size);
 
@@ -170,6 +174,7 @@ private:
 
     AttrIO attr_io_;
     bool prerun_done_;
+    int optimize_only;
 };
 
 }    // namespace TEngine

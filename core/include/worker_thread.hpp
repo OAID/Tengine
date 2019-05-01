@@ -26,6 +26,9 @@
 #ifndef __WORKER_THREAD_HPP__
 #define __WORKER_THREAD_HPP__
 
+#include <sys/time.h>
+#include <string.h>
+
 #include <queue>
 #include <thread>
 #include <mutex>
@@ -107,6 +110,19 @@ public:
 private:
     void DoWork(void)
     {
+        int task_done_count = 0;
+        bool skip = false;
+
+#ifdef CONFIG_MAX_RUN_TIME
+        long start_time;
+
+        struct timeval tv;
+
+        gettimeofday(&tv, NULL);
+
+        start_time = tv.tv_sec;
+#endif
+
         // bind CPU first
         if(bind_cpu_ >= 0)
         {
@@ -126,10 +142,30 @@ private:
             if(quit_work_)
                 break;
 
-            process_(task, bind_cpu_);
+#ifdef CONFIG_MAX_RUN_COUNT
+            if(task_done_count > CONFIG_MAX_RUN_COUNT)
+                skip = true;
+#endif
+
+#ifdef CONFIG_MAX_RUN_TIME
+            if(!(task_done_count & 0x3fff))
+            {
+                struct timeval tv;
+
+                gettimeofday(&tv, NULL);
+
+                if((tv.tv_sec - start_time) >= CONFIG_MAX_RUN_TIME)
+                    skip = true;
+            }
+
+#endif
+            if(!skip)
+                process_(task, bind_cpu_);
 
             if(inc_done_)
                 inc_done_(1);
+
+            task_done_count++;
         }
     }
 

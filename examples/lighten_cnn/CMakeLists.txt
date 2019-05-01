@@ -3,7 +3,8 @@ cmake_minimum_required (VERSION 2.8)
 project(LIGHTEN_CNN)
 
 set( INSTALL_DIR ${TENGINE_DIR}/install/ )
-set( TENGINE_LIBS tengine)
+set( TENGINE_LIBS tengine hclcpu)
+
 if( ANDROID AND ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "armv7-a"))
     set( PROTOBUF_LIB ${PROTOBUF_DIR}/arm32_lib/libprotobuf.so)
 endif()
@@ -21,6 +22,11 @@ if( BLAS_DIR)
     endif()
 endif()
 
+if ( NOT (ARM OR ANDROID))
+set (BLAS_LIB openblas)
+endif()
+
+
 #opencv
 find_package(OpenCV REQUIRED)
 
@@ -35,6 +41,6 @@ add_executable(LIGHTEN_CNN ${CODE_SRCS})
 if( ANDROID)
     target_link_libraries(LIGHTEN_CNN ${TENGINE_LIBS} ${PROTOBUF_LIB} ${OpenCV_LIBS} ${BLAS_LIB})
 else()
-    target_link_libraries(LIGHTEN_CNN ${TENGINE_LIBS} ${OpenCV_LIBS})
+    target_link_libraries(LIGHTEN_CNN ${TENGINE_LIBS} ${OpenCV_LIBS} ${BLAS_LIB})
 endif()
 

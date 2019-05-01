@@ -69,6 +69,7 @@ $(BUILD_DIR)/%: $(BUILD_DIR)/%.o
 OPENCV_LIB=$(shell pkg-config --libs-only-l --libs-only-L opencv) 
 
 LIBS+=-L ../build/ -ltengine -Wl,-allow-shlib-undefined
+
 SO_LIBS+=-lprotobuf -ldl -lpthread
 SO_LIBS+=-Wl,-rpath,./build/
 SO_LIBS+=$(OPENCV_LIB)

@@ -34,7 +34,6 @@ void PReLU::SetSchema(void)
 {
     Input({"input:float32", "slope:float32"})
         .Output({"output:float32"})
-        .SetLayout("NCHW")    // to check
         .SetDoc(R"DOC(PreLu Operator)DOC");
 }
 

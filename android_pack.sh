@@ -41,5 +41,6 @@ else
 fi
 
 cp build/libtengine.so  ./android_pack  
+cp build/libhclcpu.so  ./android_pack
 
 

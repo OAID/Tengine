@@ -28,7 +28,6 @@
 #include "tengine_c_helper.hpp"
 #include "exec_context.hpp"
 
-#include "data_layout.hpp"
 #include "graph_executor.hpp"
 
 using namespace TEngine;
@@ -114,9 +113,9 @@ int get_node_param_pointer(node_t node, const char* param_name, void* param_val)
     return get_node_attr_pointer(node, param_name, param_val);
 }
 
-int get_node_param_generic(node_t node, const char* param_name, const void* type_info, void* param_val, int size)
+int get_node_param_generic(node_t node, const char* param_name, const char * type_name, void* param_val, int size)
 {
-    return get_node_attr_generic(node, param_name, type_info, param_val, size);
+    return get_node_attr_generic(node, param_name, type_name, param_val, size);
 }
 
 int infer_shape(graph_t graph)
@@ -128,32 +127,22 @@ int infer_shape(graph_t graph)
     return 0;
 }
 
-int set_tensor_layout(tensor_t tensor, const char* layout)
+int set_tensor_layout(tensor_t tensor, int layout)
 {
-    std::string real_layout = layout;
-    const DataLayout* data_layout = DataLayout::GetLayout(real_layout);
-    if(data_layout == nullptr)
-        return -1;
     Tensor* real_tensor = reinterpret_cast<Tensor*>(tensor);
 
     TShape shape = real_tensor->GetShape();
 
-    shape.SetDataLayout(real_layout);
+    shape.SetDataLayout(layout);
     real_tensor->Reshape(shape);
 
     return 0;
 }
 
-int get_tensor_layout(tensor_t tensor, char* layout)
+int get_tensor_layout(tensor_t tensor)
 {
     Tensor* real_tensor = reinterpret_cast<Tensor*>(tensor);
 
     TShape shape = real_tensor->GetShape();
-    const std::string& data_layout = shape.GetDataLayout();
-    if(data_layout.empty())
-        return -1;
-    int len = strlen(data_layout.c_str());
-    memcpy(layout, data_layout.c_str(), len);
-
-    return 0;
+    return shape.GetDataLayout();
 }

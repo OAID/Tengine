@@ -26,7 +26,7 @@ static void PrepareOneTensor(Node* node, Tensor* tensor, struct custom_kernel_te
     t->data_type = tensor->GetDataType();
     t->element_num = shape.GetSize();
     t->element_size = DataType::GetTypeSize(t->data_type);
-    t->layout_type = exec_attr->layout;
+    t->layout_type = exec_attr->graph_layout;
 
     t->data = nullptr;
 }

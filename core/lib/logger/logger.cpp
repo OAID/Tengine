@@ -27,6 +27,7 @@
 #include <iomanip>
 #include <fstream>
 #include <mutex>
+#include <ctime>
 
 #include "compiler.hpp"
 #include "logger.hpp"
@@ -217,8 +218,13 @@ log_stream_t StdLogger::Log(LogLevel level)
     if(option_.log_date)
     {
         auto t = system_clock::to_time_t(system_clock::now());
-
+#if defined(__GNUC__) && __GNUC__ > 5
         (*log_stream) << std::put_time(std::localtime(&t), "%Y-%m-%d %X ");
+#else
+        char buf[128];
+        strftime(buf,128,"%Y-%m-%d %X ",localtime(&t));
+	(*log_stream)<<buf;
+#endif
     }
 
     if(option_.log_level)

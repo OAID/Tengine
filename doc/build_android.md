@@ -94,7 +94,7 @@ cp ~/ComputeLibrary/build_64/libarm_compute* ~/android-ndk-r16b/platforms/androi
 #For armv7:
 cp ~/ComputeLibrary/build_32/libarm_compute* ~/android-ndk-r16b/platforms/android-21/arch-arm/usr/lib/
 cd ~/tengine/example
-mkdir build
+mdkir build
 cd build
 ../android_build_armv7.sh or ../android_build_armv8.sh
 make -j4

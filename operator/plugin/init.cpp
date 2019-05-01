@@ -62,6 +62,15 @@
 #include "operator/lstm.hpp"
 #include "operator/logistic.hpp"
 #include "operator/detection_postprocess.hpp"
+#include "operator/rnn.hpp"
+#include "operator/tanh.hpp"
+#include "operator/sigmoid.hpp"
+#include "operator/squeeze.hpp"
+#include "operator/pad.hpp"
+#include "operator/reduction.hpp"
+#include "operator/swap_axis.hpp"
+#include "operator/gru.hpp"
+#include "operator/add_n.hpp"
 
 using namespace TEngine;
 
@@ -104,6 +113,15 @@ int operator_plugin_init(void)
     RegisterOp<LSTM>("LSTM");
     RegisterOp<Logistic>("Logistic");
     RegisterOp<DetectionPostProcess>("DetectionPostProcess");
+    RegisterOp<RNN>("RNN");
+    RegisterOp<Tanh>("Tanh");
+    RegisterOp<Sigmoid>("Sigmoid");
+    RegisterOp<Squeeze>("Squeeze");
+    RegisterOp<Pad>("Pad");
+    RegisterOp<Reduction>("Reduction");
+    RegisterOp<SwapAxis>("SwapAxis");
+    RegisterOp<GRU>("GRU");
+    RegisterOp<Addn>("Addn");
 
     // std::cout<<"OPERATOR PLUGIN INITED\n";
     return 0;

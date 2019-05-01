@@ -245,7 +245,7 @@ struct PoolOps : public NodeOps
         uint8_t* input_data = ( uint8_t* )get_tensor_mem(itensor);
         uint8_t* output_data = ( uint8_t* )get_tensor_mem(otensor);
 
-        if(exec_attr->layout == TENGINE_LAYOUT_NCHW)
+        if(exec_attr->graph_layout == TENGINE_LAYOUT_NCHW)
         {
             if(param_->alg == kPoolMax)
             {
@@ -260,9 +260,9 @@ struct PoolOps : public NodeOps
                     for(int n = 0; n < input_n; n++)
                     {
                         Generic_MaxPool(( float* )input_data + n * in_chw, ( float* )output_data + n * out_chw, input_c,
-                                        input_h, input_w, output_h, output_w, param_->kernel_shape[0],
-                                        param_->kernel_shape[1], param_->strides[0], param_->strides[1],
-                                        param_->pads[0], param_->pads[1]);
+                                        input_h, input_w, output_h, output_w, param_->kernel_h,
+                                        param_->kernel_w, param_->stride_h, param_->stride_w,
+                                        param_->pad_h0, param_->pad_w0);
                     }
                 }
             }
@@ -279,9 +279,9 @@ struct PoolOps : public NodeOps
                     for(int n = 0; n < input_n; n++)
                     {
                         Generic_AvgPool(( float* )input_data + n * in_chw, ( float* )output_data + n * out_chw, input_c,
-                                        input_h, input_w, output_h, output_w, param_->kernel_shape[0],
-                                        param_->kernel_shape[1], param_->strides[0], param_->strides[1],
-                                        param_->pads[0], param_->pads[1], param_->caffe_flavor);
+                                        input_h, input_w, output_h, output_w, param_->kernel_h,
+                                        param_->kernel_w, param_->stride_h, param_->stride_w,
+                                        param_->pad_h0, param_->pad_w0, param_->caffe_flavor);
                     }
                 }
             }
@@ -314,13 +314,13 @@ struct PoolOps : public NodeOps
                         if(elem_size == 4)
                             Generic_AvgPool_nhwc<float>(
                                 input_data + n * in_chw * 4, output_data + n * out_chw * 4, input_c, input_h, input_w,
-                                output_h, output_w, param_->kernel_shape[0], param_->kernel_shape[1],
-                                param_->strides[0], param_->strides[1], param_->pads[0], param_->pads[1]);
+                                output_h, output_w, param_->kernel_h, param_->kernel_w,
+                                param_->stride_h, param_->stride_w, param_->pad_h0, param_->pad_w0);
                         if(elem_size == 1)
                             Generic_AvgPool_nhwc<uint8_t>(
                                 input_data + n * in_chw, output_data + n * out_chw * 1, input_c, input_h, input_w,
-                                output_h, output_w, param_->kernel_shape[0], param_->kernel_shape[1],
-                                param_->strides[0], param_->strides[1], param_->pads[0], param_->pads[1]);
+                                output_h, output_w, param_->kernel_h, param_->kernel_w,
+                                param_->stride_h, param_->stride_w, param_->pad_h0, param_->pad_w0);
                     }
                 }
             }
@@ -335,15 +335,26 @@ struct PoolOps : public NodeOps
     }
 };
 
+NodeOps* SelectFunc(const CPUInfo* cpu_info, Node* node)
+{
+    Tensor* input = node->GetInputTensor(0);
+    const int data_type = input->GetDataType();
+    const ExecAttr* exec_attr = any_cast<const ExecAttr*>(node->GetAttr(ATTR_EXEC_ATTR));
+    if(data_type != TENGINE_DT_FP32 || exec_attr->graph_layout != TENGINE_LAYOUT_NCHW)
+        return nullptr;
+
+    PoolOps* ops = new PoolOps();
+
+    return ops;
+}
+
 }    // namespace PoolingRef
 
 using namespace PoolingRef;
 
 void RegisterPooling_NodeExec(void)
 {
-    PoolOps* ops = new PoolOps();
-
-    NodeOpsRegistryManager::RegisterOPImplementor("common", "Pooling", ops);
+    NodeOpsRegistryManager::RegisterOPImplementor("common", "Pooling", PoolingRef::SelectFunc, 1000);
 }
 
 }    // namespace TEngine

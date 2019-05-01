@@ -326,10 +326,10 @@ public:
         Convolution* conv_op = dynamic_cast<Convolution*>(node->GetOp());
         ConvParam* param = conv_op->GetParam();
 
-        int pad_x = param->pads[1];
-        int pad_y = param->pads[0];
-        int pad_x_1 = param->pads[3];
-        int pad_y_1 = param->pads[2];
+        int pad_x = param->pad_w0;
+        int pad_y = param->pad_h0;
+        int pad_x_1 = param->pad_w1;
+        int pad_y_1 = param->pad_h1;
         int stride_x = param->stride_w;
         int stride_y = param->stride_h;
         int group = param->group;
@@ -518,8 +518,8 @@ public:
         /* weight */
         Tensor* w_tensor = node->GetInputTensor(1);
         name = w_tensor->GetName();
-        int M = w_tensor->GetShape().GetH();
-        int K = w_tensor->GetShape().GetW();
+        int M = w_tensor->GetShape().GetN();
+        int K = w_tensor->GetShape().GetC();
         CLTensor* wtensor = new CLTensor();
         wtensor->allocator()->init(TensorInfo(TensorShape(K, M), 1, data_type_));
         tensors_map_[name] = wtensor;
@@ -573,12 +573,12 @@ public:
     {
         Pooling* pool_op = dynamic_cast<Pooling*>(node->GetOp());
         PoolParam* param = pool_op->GetParam();
-        int pad_x = param->pad_w;
-        int pad_y = param->pad_h;
+        int pad_x = param->pad_w0;
+        int pad_y = param->pad_h0;
         int stride_x = param->stride_w;
         int stride_y = param->stride_h;
-        int kernel_w = param->kernel_shape[1];
-        int kernel_h = param->kernel_shape[0];
+        int kernel_w = param->kernel_w ;
+        int kernel_h = param->kernel_h;
         int type = param->alg;
         int global = param->global;
 

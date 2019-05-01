@@ -1,7 +1,6 @@
-###     cross compile for ARM64
-#CROSS_COMPILE=aarch64-linux-gnu-
-###     cross compile for ARM32
-#CROSS_COMPILE=arm-linux-gnueabihf-
+MAKEFILE_CONFIG=$(shell pwd)/makefile.config
+include $(MAKEFILE_CONFIG)
+
 SYSROOT:=$(shell pwd)/sysroot/ubuntu_rootfs
 
 ifeq ($(CROSS_COMPILE),aarch64-linux-gnu-)
@@ -17,10 +16,19 @@ ifeq ($(CROSS_COMPILE),arm-linux-gnueabihf-)
    export PKG_CONFIG_PATH
 endif
 
-CC=$(CROSS_COMPILE)gcc -std=gnu99 $(SYSROOT_FLAGS)
-CXX=$(CROSS_COMPILE)g++ -std=c++11 $(SYSROOT_FLAGS)
-LD=$(CROSS_COMPILE)g++ $(SYSROOT_FLAGS) $(SYSROOT_LDFLAGS)
+ifeq ($(EMBEDDED_CROSS_ROOT),)
+    CC=$(CROSS_COMPILE)gcc -std=gnu99 $(SYSROOT_FLAGS)
+    CXX=$(CROSS_COMPILE)g++ -std=c++11 $(SYSROOT_FLAGS)
+    LD=$(CROSS_COMPILE)g++ $(SYSROOT_FLAGS) $(SYSROOT_LDFLAGS)
+else
+    CC=$(CROSS_COMPILE)gcc -std=gnu99 
+    CXX=$(CROSS_COMPILE)g++ -std=c++11 
+    LD=$(CROSS_COMPILE)g++ 
+    PKG_CONFIG_PATH:=$(EMBEDDED_CROSS_ROOT)/usr/lib/pkgconfig
+endif
+
 AR=$(CROSS_COMPILE)ar
+
 
 BUILT_IN_LD=$(CROSS_COMPILE)ld
 
@@ -31,10 +39,9 @@ COMMON_CFLAGS+=-Wno-ignored-attributes -Werror -g
 export CC CXX CFLAGS BUILT_IN_LD LD LDFLAGS CXXFLAGS COMMON_CFLAGS 
 export GIT_COMMIT_ID
 
-MAKEFILE_CONFIG=$(shell pwd)/makefile.config
+
 MAKEBUILD=$(shell pwd)/scripts/makefile.build
 
-include $(MAKEFILE_CONFIG)
 
 BUILD_DIR?=$(shell pwd)/build
 INSTALL_DIR?=$(shell pwd)/install
@@ -45,9 +52,10 @@ export INSTALL_DIR MAKEBUILD TOP_DIR MAKEFILE_CONFIG
 
 LIB_SUB_DIRS=core operator executor serializer driver model_src
 
-
 LIB_SO=$(BUILD_DIR)/libtengine.so
 LIB_A=$(BUILD_DIR)/libtengine.a
+LIB_HCL_SO=$(BUILD_DIR)/libhclcpu.so
+export LIB_HCL_SO
 
 LIB_OBJS=$(addprefix $(BUILD_DIR)/, $(foreach f,$(LIB_SUB_DIRS),$(f)/built-in.o))
 
@@ -62,7 +70,13 @@ APP_SUB_DIRS+=tests
 
 ifeq ($(CONFIG_ARCH_ARM32),y)
 	COMMON_CFLAGS+=-march=armv7-a -mfpu=neon -mfp16-format=ieee -mfpu=neon-fp16
+        export CONFIG_ARCH_ARM32
 endif
+
+ifeq ($(CONFIG_ARCH_ARM64),y)
+        export CONFIG_ARCH_ARM64
+endif
+
 
 ifeq ($(CONFIG_FLOAT16),y)
 	COMMON_CFLAGS+=-DCONFIG_FLOAT16
@@ -73,22 +87,41 @@ ifeq ($(CONFIG_LEGACY_API),y)
 endif
 
 
+HCL_SUB_DIRS+=hclarm
+LIB_HCL_OBJS=$(BUILD_DIR)/hclarm/arm-builtin.o
+
+ifeq ($(CONFIG_KERNEL_FP32),y)
+    COMMON_CFLAGS+=-DCONFIG_KERNEL_FP32
+endif
+
+ifeq ($(CONFIG_KERNEL_FP16),y)
+    COMMON_CFLAGS+=-DCONFIG_KERNEL_FP16
+endif
+
+ifeq ($(CONFIG_KERNEL_INT8),y)
+    COMMON_CFLAGS+=-DCONFIG_KERNEL_INT8
+endif
+
+ifeq ($(CONFIG_KERNEL_UINT8),y)
+    COMMON_CFLAGS+=-DCONFIG_KERNEL_UINT8
+endif
+
 SUB_DIRS=$(LIB_SUB_DIRS) $(APP_SUB_DIRS)
 
-default: $(LIB_SO) $(APP_SUB_DIRS) 
+default: $(LIB_SO) $(LIB_HCL_SO) $(APP_SUB_DIRS) 
 
 build : default
 
 
-clean: $(SUB_DIRS)
+clean: $(SUB_DIRS) $(HCL_SUB_DIRS)
 
-install: $(APP_SUB_DIRS)
-	@mkdir -p $(INSTALL_DIR)/include $(INSTALL_DIR)/lib
+install: $(APP_SUB_DIRS) $(HCL_SUB_DIRS)
+	@mkdir -p $(INSTALL_DIR)/include $(INSTALL_DIR)/lib $(INSTALL_DIR)/tool
 	cp -f core/include/tengine_c_api.h $(INSTALL_DIR)/include
 	cp -f core/include/tengine_c_compat.h $(INSTALL_DIR)/include
 	cp -f core/include/cpu_device.h $(INSTALL_DIR)/include
-	cp -f core/include/tengine_test_api.h $(INSTALL_DIR)/include
 	cp -f $(BUILD_DIR)/libtengine.so $(INSTALL_DIR)/lib
+	cp -f $(BUILD_DIR)/tools/bin/convert_model_to_tm $(INSTALL_DIR)/tool
 
 
 ifeq ($(CONFIG_ACL_GPU),y)
@@ -112,8 +145,15 @@ endif
 
 
 
-$(LIB_SO): $(REAL_LIB_OBJS) 
-	$(LD) -o $@ -shared -Wl,-Bsymbolic -Wl,-Bsymbolic-functions $(wildcard $(LIB_OBJS)) $(LIB_LDFLAGS)
+$(LIB_SO): $(REAL_LIB_OBJS) $(LIB_HCL_SO) 
+	$(LD) -o $@ -shared -Wl,-Bsymbolic -Wl,-Bsymbolic-functions $(wildcard $(LIB_OBJS)) $(LIB_LDFLAGS) $ -L$(BUILD_DIR) -Wl,-rpath,\$$ORIGIN -Wl,-rpath-link=\$$ORIGIN
+
+ifneq ( $(LIB_HCL_SO),)
+     $(LIB_HCL_SO): $(HCL_SUB_DIRS);
+else
+     $(LIB_HCL_SO):
+	
+endif
 
 static: static_lib static_example
 
@@ -125,10 +165,23 @@ static_lib:
 
 static_example: static_lib
 	$(LD) -o $(BUILD_DIR)/test_tm  $(BUILD_DIR)/tests/bin/test_tm.o $(LIBS) -ltengine \
-	      -ldl -lpthread  -static -L$(BUILD_DIR) -lprotobuf -lblas -lpthread
+	      -ldl -lpthread  -static -L$(BUILD_DIR)
 	@echo ; echo static example: $(BUILD_DIR)/test_tm  created
 
-LIB_LDFLAGS+=-lpthread -lprotobuf -ldl
+LIB_LDFLAGS+=-lpthread -ldl
+
+ifeq ($(CONFIG_CAFFE_SERIALIZER),y)
+    PROTOBUF_NEEDED=y
+endif
+
+ifeq ($(CONFIG_TF_SERIALIZER),y)
+    PROTOBUF_NEEDED=y
+endif
+
+ifeq ($(PROTOBUF_NEEDED),y)
+    PROTOBUF_LIB=$(shell export PKG_CONFIG_PATH=${PKG_CONFIG_PATH}  &&  pkg-config  --libs protobuf)
+    LIB_LDFLAGS+=$(PROTOBUF_LIB)
+endif
 
 ifeq ($(CONFIG_ARCH_BLAS),y)
     LIB_LDFLAGS+=-lopenblas
@@ -141,7 +194,7 @@ endif
 $(LIB_SUB_DIRS):
 	@$(MAKE) -C $@  -f $(MAKEBUILD) BUILD_DIR=$(BUILD_DIR)/$@ $(MAKECMDGOALS)
 
-$(APP_SUB_DIRS):
+$(APP_SUB_DIRS) $(HCL_SUB_DIRS):
 	@$(MAKE) -C $@  BUILD_DIR=$(BUILD_DIR)/$@ $(MAKECMDGOALS)
 
 
@@ -153,4 +206,4 @@ distclean:
 	find . -name $(BUILD_DIR) | xargs rm -rf
 	find . -name $(INSTALL_DIR) | xargs rm -rf
 
-.PHONY: clean install $(SUB_DIRS) build
+.PHONY: clean install $(SUB_DIRS) build $(HCL_SUB_DIRS)

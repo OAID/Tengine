@@ -24,36 +24,32 @@
 #include <stdarg.h>
 #include <assert.h>
 #include <string.h>
-
+#include <math.h>
 #include <map>
 #include <set>
 
+#include "share_lib_parser.hpp"
 #include "cpu_device.h"
 #include "tengine_c_api.h"
 #include "tengine_c_compat.h"
 #include "tengine_c_helper.hpp"
 
-#include "data_layout.hpp"
 #include "exec_context.hpp"
 #include "graph_executor.hpp"
 #include "tengine_errno.hpp"
 #include "static_graph_interface.hpp"
 #include "serializer.hpp"
+#include "compiler_fp16.h"
 
 namespace TEngine {
 
-extern int NodeSetParamGeneric(void* node, const char* param_name, const void* type_info, const void* param_val,
+extern int NodeSetParamGeneric(void* node, const char* param_name, const char* type_name, const void* param_val,
                                int size);
-extern int NodeGetParamGeneric(void* node, const char* param_name, const void* type_info, void* param_val, int size);
-extern int NodeAddParamGeneric(void* node, const char* param_name, const void* type_info, int size);
+extern int NodeGetParamGeneric(void* node, const char* param_name, const char* type_name, void* param_val, int size);
+extern int NodeAddParamGeneric(void* node, const char* param_name, const char* type_name, int size);
 }    // namespace TEngine
 
 using namespace TEngine;
-
-void __attribute__((constructor)) first_init(void)
-{
-    NamedData<DataLayout>::InitPredefinedData();
-}
 
 void set_cpu_list(const char* cpu_list_str)
 {
@@ -120,20 +116,20 @@ int dump_model(const char* model_name)
     return -1;
 }
 
-int node_get_attr_generic(void* node, const char* param_name, const void* type_info, void* param_val, int param_size)
+int node_get_attr_generic(void* node, const char* param_name, const char* type_name, void* param_val, int param_size)
 {
-    return NodeGetParamGeneric(node, param_name, type_info, param_val, param_size);
+    return NodeGetParamGeneric(node, param_name, type_name, param_val, param_size);
 }
 
-int node_set_attr_generic(void* node, const char* param_name, const void* type_info, const void* param_val,
+int node_set_attr_generic(void* node, const char* param_name, const char* type_name, const void* param_val,
                           int param_size)
 {
-    return NodeSetParamGeneric(node, param_name, type_info, param_val, param_size);
+    return NodeSetParamGeneric(node, param_name, type_name, param_val, param_size);
 }
 
-int node_add_attr(void* node, const char* param_name, const void* type_info, int param_size)
+int node_add_attr(void* node, const char* param_name, const char* type_name, int param_size)
 {
-    return NodeAddParamGeneric(node, param_name, type_info, param_size);
+    return NodeAddParamGeneric(node, param_name, type_name, param_size);
 }
 
 static int real_vload_model(context_t exec_context, const char* model_name, const char* model_format, const void* addr,
@@ -262,7 +258,7 @@ int save_graph_internal(graph_t graph, const char* model_format, const char* fna
 
     /* Get runtime graph pointer */
     GraphExecutor* executor = static_cast<GraphExecutor*>(graph);
-    Graph* g = executor->GetGraph();
+    Graph* g = executor->GetOptimizedGraph();
 
     /* Save the graph to the files */
     if(!serializer->SaveModel(file_list, g))
@@ -270,6 +266,131 @@ int save_graph_internal(graph_t graph, const char* model_format, const char* fna
 
     return 0;
 }
+
+static float get_absmax_val(float* data, int data_size)
+{
+    float max_val = 0.f;
+    if(data != nullptr)
+    {
+        for(int i = 0; i < data_size; i++)
+        {
+            float abs_val = fabs(data[i]);
+            if(abs_val > max_val)
+                max_val = abs_val;
+        }
+    }
+    return max_val;
+}
+
+static inline bool isSkipQuant(int nodeInedx, int node_no_quant_idxs[], int number)
+{
+    for(int i = 0; i < number; i++)
+    {
+        if(nodeInedx == node_no_quant_idxs[i])
+            return true;
+    }
+    return false;
+}
+#define GET_TENGINE_DT(a) (a+1)
+int quant_graph_internal(graph_t graph, int quant_mode, int node_no_quant_idxs[], int node_no_quant_number)
+{
+    GraphExecutor* executor = static_cast<GraphExecutor*>(graph);
+    Graph* g = executor->GetOptimizedGraph();
+
+    for(unsigned int i = 0; i < g->seq_nodes.size(); i++)
+    {
+        if(isSkipQuant(i, node_no_quant_idxs, node_no_quant_number))
+            continue;
+
+        Node* node = g->seq_nodes[i];
+        Operator* op = node->GetOp();
+        if(op->GetName() == "Const")
+            continue;
+
+        /* set node output */
+        Tensor* output = node->GetOutputTensor(0);
+        output->SetDataType(GET_TENGINE_DT(quant_mode));
+
+        if(op->GetName() == "Convolution" || op->GetName() == "FullyConnected")
+        {
+            // quant weight
+            Tensor* weight_tensor = node->GetInputTensor(1);
+            if(weight_tensor->GetDataType() == TENGINE_DT_FP32)
+            {
+                int kernel_size = (weight_tensor->GetTotalSize()) / sizeof(float);
+                float* kernel_org = (float*)weight_tensor->GetMemAddr();
+
+                // fp16 quant
+                if(quant_mode == TENGINE_QUANT_FP16)
+                {
+                    __fp16 *kernel_new = (__fp16*)malloc(kernel_size * sizeof(__fp16));
+                    for(int i = 0; i < kernel_size; i++)
+                        kernel_new[i] = fp32_to_fp16(kernel_org[i]);
+
+                    // set the memory
+                    weight_tensor->FreeTensor();
+                    weight_tensor->SetMemAddr(kernel_new);
+
+                    // set the data type
+                    weight_tensor->SetDataType(TENGINE_DT_FP16);
+                }
+                // int8 quant
+                else if (quant_mode == TENGINE_QUANT_INT8)
+                {
+                    int8_t *kernel_new = (int8_t *)malloc(kernel_size);
+                    float weight_max = get_absmax_val(kernel_org, kernel_size);
+                    float weight_scale = weight_max / 127;
+                    int zero_point = 0;
+
+                    for(int i = 0; i < kernel_size; i++)
+                        kernel_new[i] = (int8_t)(round(kernel_org[i] / weight_scale) + zero_point);
+
+                    // set the memory
+                    weight_tensor->FreeTensor();
+                    weight_tensor->SetMemAddr(kernel_new);
+
+                    // set the data type
+                    weight_tensor->SetDataType(TENGINE_DT_INT8);
+
+                    // set the quant param
+                    auto p_quant = weight_tensor->GetQuantParam();
+                    p_quant->resize(1);
+                    QuantParam& param = (*p_quant)[0];
+                    param.scale = weight_scale;
+                    param.zero_point = zero_point;
+                }
+            }
+
+            // quant bias
+            if(node->GetInputNum() > 2)
+            {
+                Tensor* bias_tensor = node->GetInputTensor(2);
+                if(bias_tensor->GetDataType() == TENGINE_DT_FP32)
+                {
+                    int bias_size = (bias_tensor->GetTotalSize()) / sizeof(float);
+                    float* bias_org = (float*)bias_tensor->GetMemAddr();
+
+                    if(quant_mode == TENGINE_QUANT_FP16)
+                    {
+                        __fp16 *bias_new = (__fp16*)malloc(bias_size * sizeof(__fp16));
+                        for(int i = 0; i < bias_size; i++)
+                            bias_new[i] = fp32_to_fp16(bias_org[i]);
+
+                        // set the memory
+                        bias_tensor->FreeTensor();
+                        bias_tensor->SetMemAddr(bias_new);
+
+                        // set the data type
+                        bias_tensor->SetDataType(TENGINE_DT_FP16);
+                    }
+                }
+            }
+        }
+    }
+
+    return 0;
+}
+
 
 graph_t create_graph_in_context(context_t exec_context, const char* graph_name, const char* model_name)
 {
@@ -301,12 +422,50 @@ extern void driver_plugin_init(void);
 
 namespace TEngine {
 
-void InitAllPlugin(void)
+int hclcpu_plugin_init(void)
+{
+    static ShareLibParser so_handle;
+
+    try {
+    if(so_handle.Load("libhclcpu.so")<0)
+    {
+        LOG_ERROR()<<"cannot load libhclcpu.so\n";
+        set_tengine_errno(ENOENT);
+        return -1;
+    }
+
+    if(so_handle.ExecuteFunc<int()>("register_hclcpu_ops")<0)
+    {
+        LOG_ERROR()<<"register hcl cpu ops failed\n";
+        set_tengine_errno(EFAULT);
+        return -1;
+    }
+
+    }
+
+    catch(const std::exception& e)
+    {
+        LOG_ERROR()<<e.what()<<"\n";
+        set_tengine_errno(EFAULT);
+        return -1;
+    }
+    
+    return 0;
+}
+
+int InitAllPlugin(void)
 {
     operator_plugin_init();
     serializer_plugin_init();
     executor_plugin_init();
     driver_plugin_init();
+
+    if(hclcpu_plugin_init()<0)
+    {
+       return -1;
+    }
+
+    return 0;
 }
 
 struct tensor_entry

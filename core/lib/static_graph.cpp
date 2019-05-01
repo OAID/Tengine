@@ -69,7 +69,22 @@ void SetGraphDevHandle(StaticGraph* graph, void* release_func, void* dev_handle)
 
 void SetGraphLayout(StaticGraph* graph, int layout)
 {
-    graph->layout = layout;
+    graph->graph_layout = layout;
+}
+
+void SetModelLayout(StaticGraph* graph, int layout)
+{
+    graph->model_layout = layout;
+}
+
+void SetModelFormat(StaticGraph* graph, int model_format)
+{
+    graph->model_format = model_format;
+}
+
+void SetModelSubFormat(StaticGraph* graph, int model_subformat)
+{
+    graph->model_subformat = model_subformat;
 }
 
 void SetGraphInternalName(StaticGraph* graph, const std::string& name)
@@ -382,7 +397,6 @@ StaticTensor* CreateStaticTensor(StaticGraph* graph, const std::string& name)
     tensor_ptr->index = tensor_idx;
     tensor_ptr->name = name;
     tensor_ptr->type = kVarTensor;
-
     graph->tensor_list.push_back(tensor_ptr);
 
     return tensor_ptr.get();
@@ -401,11 +415,6 @@ const std::vector<int>& GetTensorDim(StaticTensor* tensor)
 void SetTensorDataType(StaticTensor* tensor, int data_type)
 {
     tensor->data_type = data_type;
-}
-
-void SetTensorDataLayout(StaticTensor* tensor, const std::string& data_layout)
-{
-    tensor->data_layout = data_layout;
 }
 
 void SetTensorType(StaticTensor* tensor, int type)
@@ -499,7 +508,6 @@ void DumpStaticNode(StaticGraph* graph, StaticNode* node, std::ostream& os)
         StaticTensorPtr tensor_ptr = graph->tensor_list[index];
 
         os << "\tI" << i << ": " << tensor_ptr->name << " type: " << tensor_ptr->type;
-        os << " datalayout: " << tensor_ptr->data_layout << " ";
         os << " data_type: " << tensor_ptr->data_type << " ";
 
         if(tensor_ptr->dims.size())
@@ -521,7 +529,6 @@ void DumpStaticNode(StaticGraph* graph, StaticNode* node, std::ostream& os)
         StaticTensorPtr tensor_ptr = graph->tensor_list[index];
 
         os << "\tO" << i << ": " << tensor_ptr->name << " type: " << tensor_ptr->type;
-        os << " datalayout: " << tensor_ptr->data_layout << " ";
         os << " data_type: " << tensor_ptr->data_type << " ";
 
         if(tensor_ptr->dims.size())

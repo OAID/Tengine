@@ -40,19 +40,19 @@ struct NamedParam
     {
         item_cpy_t cpy_func;
         item_set_any cpy_any;
-        const std::type_info* type_info;
+        const char* type_name;
         int data;
     };
 
-    ItemInfo* FindItem(const std::string& name, const std::type_info* item_type)
+    ItemInfo* FindItem(const std::string& name, const char * type_name)
     {
         if(item_map_.count(name) == 0)
             return nullptr;
 
         ItemInfo& entry = item_map_.at(name);
 
-        // skip type checking if type_info is nullptr
-        if(item_type && (*item_type != *entry.type_info))
+        // skip type checking if type_name is nullptr
+        if(type_name && entry.type_name && strcmp(type_name,entry.type_name))
         {
             // printf("requested: %s recorded:%s\n",item_type->name(),entry.type_info->name());
             return nullptr;
@@ -61,9 +61,9 @@ struct NamedParam
         return &entry;
     }
 
-    bool GetItemVal(const std::string& name, const std::type_info* val_type, void* val)
+    bool GetItemVal(const std::string& name, const char * type_name, void* val)
     {
-        ItemInfo* entry = FindItem(name, val_type);
+        ItemInfo* entry = FindItem(name, type_name);
 
         if(entry == nullptr)
             return false;
@@ -73,9 +73,9 @@ struct NamedParam
         return true;
     }
 
-    bool SetItemVal(const std::string& name, const std::type_info* val_type, const void* val)
+    bool SetItemVal(const std::string& name, const char* type_name, const void* val)
     {
-        ItemInfo* entry = FindItem(name, val_type);
+        ItemInfo* entry = FindItem(name, type_name);
 
         if(entry == nullptr)
             return false;
@@ -91,11 +91,12 @@ struct NamedParam
             return false;
 
         ItemInfo& entry = item_map_.at(name);
-        const std::type_info* item_type = entry.type_info;
-        const std::type_info& any_type = n.type();
+        const char * item_type = entry.type_name;
+        const char * any_type = n.type().name();
 
         /* several special cases */
-        if(*item_type == typeid(const char*) && any_type == typeid(std::string))
+        if(!strcmp(item_type,typeid(const char*).name()) && 
+           !strcmp(any_type, typeid(std::string).name()))
         {
             const char** ptr = ( const char** )(( char* )this + entry.data);
             const std::string& str = any_cast<std::string>(n);
@@ -105,7 +106,8 @@ struct NamedParam
             return true;
         }
 
-        if(*item_type == typeid(std::string) && any_type == typeid(const char*))
+        if(!strcmp(item_type,typeid(std::string).name()) && 
+           !strcmp(any_type,typeid(const char*).name()))
         {
             std::string* p_str = ( std::string* )(( char* )this + entry.data);
             const char* ptr = any_cast<const char*>(n);
@@ -120,7 +122,7 @@ struct NamedParam
 
     bool SetItemFromAny(const std::string& name, const any& n)
     {
-        ItemInfo* entry = FindItem(name, &n.type());
+        ItemInfo* entry = FindItem(name, n.type().name());
 
         if(entry == nullptr)
             return SetItemCompatibleAny(name, n);
@@ -145,7 +147,7 @@ protected:
     {                                                                                    \
         typedef decltype(e) T;                                                           \
         ItemInfo info;                                                                   \
-        info.type_info = &typeid(T);                                                     \
+        info.type_name = typeid(T).name();                                                     \
         info.data = ( char* )&e - ( char* )this;                                         \
         info.cpy_func = [](void* data, const void* v) { *( T* )data = *( const T* )v; }; \
         info.cpy_any = [](void* data, const any& n) { *( T* )data = any_cast<T>(n); };   \

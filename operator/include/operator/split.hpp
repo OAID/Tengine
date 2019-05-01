@@ -25,10 +25,11 @@
 #define __SPLIT_HPP__
 
 #include "operator.hpp"
+#include "split_param.hpp"
 
 namespace TEngine {
 
-class Split : public OperatorNoParam<Split>
+class Split : public OperatorWithParam<Split,SplitParam>
 {
 public:
     Split()
@@ -36,7 +37,7 @@ public:
         name_ = "Split";
     }
     Split(const Split& src) = default;
-    ~Split() {}
+    virtual ~Split() {}
 
     bool InferShape(const std::vector<TShape>& ishape, std::vector<TShape>& oshape, int layout) override;
 

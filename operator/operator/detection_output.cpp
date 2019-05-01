@@ -35,7 +35,7 @@ bool DetectionOutput::InferShape(const std::vector<TEngine::TShape>& ishape, std
     TShape shape;
     std::vector<int> dim = {in_dim[0], 1, 6, 1};
     shape.SetDim(dim);
-    shape.SetDataLayout("NCHW");
+    shape.SetDataLayout(input.GetDataLayout());
     oshape[0] = shape;
     return true;
 }
@@ -44,7 +44,6 @@ void DetectionOutput::SetSchema(void)
 {
     Input({"input:float32"})
         .Output({"output:float32"})
-        .SetLayout("NCHW")
         .SetAttr("num_classes", 21)
 
         .SetDoc(R"DOC(DetectionOutput Layer)DOC");

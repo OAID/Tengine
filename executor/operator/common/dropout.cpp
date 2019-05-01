@@ -51,9 +51,31 @@ struct DropoutOps : public NodeOps
     bool Run(Node* node)
     {
         // Nothing needs to do for inference
-        return true;
+	Tensor* input_tensor = node->GetInputTensor(0);
+	Tensor* output_tensor = node->GetOutputTensor(0);
+	void* input_org = get_tensor_mem(input_tensor);
+	void* output_org = get_tensor_mem(output_tensor);
+	if(input_org == output_org)
+            return true;
+
+	int size = input_tensor->GetTotalSize();
+	memcpy(output_org, input_org, size);
+	return true;
     }
 };
+
+NodeOps* SelectFunc(const CPUInfo* cpu_info, Node* node)
+{
+    Tensor* input = node->GetInputTensor(0);
+    const int data_type = input->GetDataType();
+    const ExecAttr* exec_attr = any_cast<const ExecAttr*>(node->GetAttr(ATTR_EXEC_ATTR));
+    if(data_type != TENGINE_DT_FP32 || exec_attr->graph_layout != TENGINE_LAYOUT_NCHW)
+        return nullptr;
+
+    DropoutOps* ops = new DropoutOps();
+
+    return ops;
+}
 
 }    // namespace DropImpl
 
@@ -61,9 +83,7 @@ using namespace DropImpl;
 
 void RegisterDropoutNodeExec(void)
 {
-    DropoutOps* ops = new DropoutOps();
-
-    NodeOpsRegistryManager::RegisterOPImplementor("common", "Dropout", ops);
+    NodeOpsRegistryManager::RegisterOPImplementor("common", "Dropout", DropImpl::SelectFunc, 1000);
 }
 
 }    // namespace TEngine
