@@ -89,6 +89,24 @@ int main(int argc, char* argv[])
         return -1;
     }
 
+    const char* env = std::getenv("TM_NO_OPTIMIZE");
+    if(env == nullptr)
+    {
+        // optimize graph
+        int optimize_only = 1;
+        if(set_graph_attr(graph, "optimize_only", &optimize_only, sizeof(int)) < 0)
+        {
+            std::cerr<<"set optimize only failed\n";
+            return -1;
+        }
+
+        if(prerun_graph(graph) < 0)
+        {
+            std::cerr<<"prerun failed\n";
+            return -1;
+        }
+    }
+
     // save the tengine model file
     if(save_graph(graph, "tengine", output_tmfile.c_str()) < 0)
     {

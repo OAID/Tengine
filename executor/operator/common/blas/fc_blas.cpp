@@ -129,14 +129,25 @@ struct FcBlasOps : public NodeOps
     }
 };
 
+NodeOps* SelectFunc(const CPUInfo* cpu_info, Node* node)
+{
+    Tensor* input = node->GetInputTensor(0);
+    const int data_type = input->GetDataType();
+    const ExecAttr* exec_attr = any_cast<const ExecAttr*>(node->GetAttr(ATTR_EXEC_ATTR));
+    if(data_type != TENGINE_DT_FP32 || exec_attr->graph_layout != TENGINE_LAYOUT_NCHW)
+        return nullptr;
+
+    FcBlasOps* ops = new FcBlasOps();
+
+    return ops;
+}
+
 }    // namespace FCImpl
 
 using namespace FCImpl;
 void RegisterFcBlasNodeExec(void)
 {
-    FcBlasOps* ops = new FcBlasOps();
-
-    NodeOpsRegistryManager::RegisterOPImplementor("common", "FullyConnected", ops);
+    NodeOpsRegistryManager::RegisterOPImplementor("common", "FullyConnected", FCImpl::SelectFunc, 1000);
 }
 
 }    // namespace TEngine

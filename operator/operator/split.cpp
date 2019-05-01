@@ -28,14 +28,65 @@ namespace TEngine {
 
 bool Split::InferShape(const std::vector<TShape>& ishape, std::vector<TShape>& oshape, int layout)
 {
-    for(unsigned int i = 0; i < oshape.size(); i++)
-        oshape[i] = ishape[0];
+    int axis = param_.axis;
+    const TShape shape = ishape[0];
+    std::vector<int> input_dim = shape.GetDim();
+
+    if(param_.is_caffe)
+    {
+        for(unsigned int i = 0; i < oshape.size(); i++)
+            oshape[i] = ishape[0];
+    }
+    else
+    {
+        if(param_.split_sizes_.size()!= 0)
+        {
+            int sumcheck = 0;
+            int input_slice_num = input_dim[axis];
+            for (unsigned int i = 0; i < param_.split_sizes_.size(); ++i)
+            {
+                sumcheck+=param_.split_sizes_[i];
+            }
+            if(sumcheck!=input_slice_num)
+            {
+                return false;
+            }
+            for (unsigned int i = 0; i < param_.split_sizes_.size(); ++i)
+            {
+                input_dim[axis] = (param_.split_sizes_[i]);
+                oshape[i].SetDim(input_dim);
+                oshape[i].SetDataLayout(shape.GetDataLayout());
+            }
+        }
+        else
+        {
+            int split_dim = param_.split_dim;
+            int split_shape = 0;
+            std::vector<int> dim;
+            dim = ishape[0].GetDim();
+            if(dim[axis]% split_dim!=0)
+                return false;
+            split_shape= dim[axis]/split_dim;
+            input_dim[axis]=split_shape;
+            for(unsigned int i = 0; i < oshape.size(); i++)
+            {
+                oshape[i].SetDim(input_dim);
+                oshape[i].SetDataLayout(shape.GetDataLayout());
+            }
+        }
+
+    }
+
 
     return true;
 }
-
 void Split::SetSchema(void)
 {
-    Input({"input:float32"}).Output({"output:float32"}).SetLayout("NCHW").SetDoc(R"DOC(Split Operator)DOC");
+    Input({"input:float32"})
+    .Output({"output:float32"})
+    .SetAttr("axis", 0)
+    .SetAttr("split_dim", 1)
+    .SetAttr("is_caffe", false)
+    .SetDoc(R"DOC(Split Operator)DOC");
 }
 }    // namespace TEngine

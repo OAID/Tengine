@@ -4,7 +4,8 @@ project(FASTER_RCNN)
 link_directories( ${PROTOBUF_DIR}/lib )
 add_definitions(-std=c++11)
 set( INSTALL_DIR ${TENGINE_DIR}/install )
-set( TENGINE_LIBS tengine)
+set( TENGINE_LIBS tengine hclcpu)
+
 if( ANDROID AND ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "armv7-a"))
     set( PROTOBUF_LIB ${PROTOBUF_DIR}/arm32_lib/libprotobuf.so)
 endif()
@@ -23,6 +24,11 @@ if( BLAS_DIR)
     endif()
 endif()
 
+if ( NOT (ARM OR ANDROID))
+set (BLAS_LIB openblas)
+endif()
+
+
 #opencv
 find_package(OpenCV REQUIRED)
 
@@ -37,7 +43,7 @@ add_executable(FASTER_RCNN ${RESNET_SRCS})
 if( ANDROID)
    target_link_libraries(FASTER_RCNN ${TENGINE_LIBS} ${PROTOBUF_LIB} ${OpenCV_LIBS} ${BLAS_LIB})
 else()
-   target_link_libraries(FASTER_RCNN ${TENGINE_LIBS} ${OpenCV_LIBS})
+   target_link_libraries(FASTER_RCNN ${TENGINE_LIBS} ${OpenCV_LIBS} ${BLAS_LIB})
 endif()
 
 

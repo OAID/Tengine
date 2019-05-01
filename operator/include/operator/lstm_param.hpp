@@ -30,6 +30,9 @@
 
 namespace TEngine {
 
+#define LSTM_ACT_SIGMOID 1
+#define LSTM_ACT_TANH    2
+
 struct LSTMParam : public NamedParam
 {
     float forget_bias;
@@ -44,11 +47,12 @@ struct LSTMParam : public NamedParam
     int has_clip;
     int has_bias;
     int has_init_state;
-    const char* forget_act;
-    const char* input_act;
-    const char* output_act;
-    const char* cellin_act;
-    const char* cellout_act;
+    int forget_act;
+    int input_act;
+    int output_act;
+    int cellin_act;
+    int cellout_act;
+    int mxnet_flag;
 
     DECLARE_PARSER_STRUCTURE(LSTMParam)
     {
@@ -69,6 +73,7 @@ struct LSTMParam : public NamedParam
         DECLARE_PARSER_ENTRY(cellin_act);
         DECLARE_PARSER_ENTRY(output_act);
         DECLARE_PARSER_ENTRY(cellout_act);
+        DECLARE_PARSER_ENTRY(mxnet_flag);
     };
 };
 

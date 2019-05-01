@@ -187,15 +187,26 @@ struct FusedOps : public MTNodeOps
     }
 };
 
+NodeOps* SelectFunc(const CPUInfo* cpu_info, Node* node)
+{
+    Tensor* input = node->GetInputTensor(0);
+    const int data_type = input->GetDataType();
+    const ExecAttr* exec_attr = any_cast<const ExecAttr*>(node->GetAttr(ATTR_EXEC_ATTR));
+    if(data_type != TENGINE_DT_FP32 || exec_attr->graph_layout != TENGINE_LAYOUT_NCHW)
+        return nullptr;
+
+    FusedOps* ops = new FusedOps();
+
+    return ops;
+}
+
 }    // namespace FusedBNScaleReluImpl
 
 using namespace FusedBNScaleReluImpl;
 
 void RegisterCommonFusedBNScaleReluNodeExec(void)
 {
-    FusedOps* ops = new FusedOps();
-
-    NodeOpsRegistryManager::RegisterOPImplementor("common", FusedBNScaleReLu::class_name, ops);
+    NodeOpsRegistryManager::RegisterOPImplementor("common", FusedBNScaleReLu::class_name, FusedBNScaleReluImpl::SelectFunc, 1000);
 }
 
 }    // namespace TEngine

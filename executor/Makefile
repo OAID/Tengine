@@ -1,4 +1,3 @@
-obj-y+=operator/
 obj-y+=lib/
 obj-y+=engine/
 obj-y+=plugin/

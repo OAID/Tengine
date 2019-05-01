@@ -709,8 +709,6 @@ bool ConvFast::Prerun(Node* node)
 
     if(exec_attr->low_mem_mode)
     {
-        printf("free convolution kernel: %s %d\n", kernel_tensor->GetName().c_str(), kernel_tensor->GetTotalSize());
-
         kernel_tensor->FreeMem();
     }
 
@@ -755,10 +753,10 @@ bool ConvFast::Run(Node* node)
     int input_h = input_shape.GetH();
     int input_w = input_shape.GetW();
     int input_size = input_w * input_h * input_chan;
-    int pad_x0 = param->pads[1];    // left padding columns
-    int pad_x1 = param->pads[3];    // right padding columns
-    int pad_y0 = param->pads[0];    // top padding rows
-    int pad_y1 = param->pads[2];    // bottom padding rows
+    int pad_x0 = param->pad_w0;    // left padding columns
+    int pad_x1 = param->pad_w1;    // right padding columns
+    int pad_y0 = param->pad_h0;    // top padding rows
+    int pad_y1 = param->pad_h1;    // bottom padding rows
     int stride_x = param->stride_w;
     int stride_y = param->stride_h;
     int dilation_x = param->dilation_w;
@@ -1043,10 +1041,7 @@ NodeOps* SelectFunc(const CPUInfo* cpu_info, Node* node)
 {
     const ExecAttr* exec_attr = any_cast<const ExecAttr*>(node->GetAttr(ATTR_EXEC_ATTR));
 
-    if(exec_attr->kernel_mode != EXEC_KERNEL_FP32)
-        return nullptr;
-
-    if(exec_attr->layout == TENGINE_LAYOUT_NHWC)
+    if(exec_attr->graph_layout == TENGINE_LAYOUT_NHWC)
         return nullptr;
 
     ConvFast* ops = new ConvFast();

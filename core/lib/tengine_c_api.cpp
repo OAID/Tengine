@@ -88,7 +88,11 @@ int init_tengine(void)
         set_cpu_list(cpu_list_str);
     }
 
-    InitAllPlugin();
+    if(InitAllPlugin()<0)
+    {
+        return -1;
+    }
+
 
     if(TEnginePlugin::InitModule() < 0)
     {
@@ -104,9 +108,37 @@ int init_tengine(void)
     return 0;
 }
 
+void dump_mem_prof(void)
+{
+   int pid=getpid();
+
+   char fname[128];
+
+   LOG_INFO()<<"\ntengine memory profile result:\n";
+
+   sprintf(fname,"/proc/%d/status",pid);
+
+   FILE * fp=fopen(fname,"r");
+
+   char line[128];
+
+   while(fgets(line,128,fp))
+   {
+      if(line[0]=='V' && line[1]=='m')
+        LOG_INFO()<<line;
+   }
+
+   fclose(fp);
+}
+
 void release_tengine(void)
 {
     TEnginePlugin::ReleaseModule();
+
+    const char * mem_prof=std::getenv("TENGINE_MEM_PROFILE");
+
+    if(mem_prof && mem_prof[0]=='1')
+         dump_mem_prof();
 }
 
 graph_t create_graph(context_t context, const char* model_format, const char* fname, ...)
@@ -168,6 +200,7 @@ graph_t create_graph(context_t context, const char* model_format, const char* fn
         graph = create_graph_in_context(exec_context, graph_name, model_name.c_str());
     else
         graph = create_graph_in_context(exec_context, graph_name, nullptr);
+        
 
     if(graph == nullptr)
     {
@@ -191,6 +224,27 @@ int save_graph(graph_t graph, const char* model_format, const char* fname, ...)
     va_start(argp, fname);
 
     return save_graph_internal(graph, model_format, fname, argp);
+}
+
+int quant_graph(graph_t graph, int quant_mode, int node_no_quant_idxs[], int node_no_quant_number)
+{
+    GraphExecutor* executor = static_cast<GraphExecutor*>(graph);
+    Graph* g = executor->GetOptimizedGraph();
+
+    if(g->GetModelFormat() == MODEL_FORMAT_TFLITE)
+    {
+        LOG_INFO() << "Not quant tf-lite model.\n";
+        return 0;
+    }
+
+    if(quant_mode != TENGINE_QUANT_FP16 && quant_mode != TENGINE_QUANT_INT8)
+    {
+        LOG_ERROR() << "Currently only support fp16 and int8 quant.\n";
+        set_tengine_errno(EINVAL);
+        return -1;
+    }
+
+    return quant_graph_internal(graph, quant_mode, node_no_quant_idxs, node_no_quant_number);
 }
 
 int set_graph_layout(graph_t graph, int layout_type)
@@ -691,12 +745,40 @@ int get_node_input_number(node_t node)
     return real_node->GetInputNum();
 }
 
-int add_node_attr(node_t node, const char* attr_name, const void* type_info, int size)
+int get_graph_node_number(graph_t graph)
+{
+    GraphExecutor* executor = reinterpret_cast<GraphExecutor*>(graph);
+    Graph* real_graph = executor->GetOptimizedGraph();
+
+    return real_graph->seq_nodes.size();
+}
+
+node_t get_graph_node_by_idx(graph_t graph, int node_idx)
+{
+    GraphExecutor* executor = reinterpret_cast<GraphExecutor*>(graph);
+    Graph* real_graph = executor->GetOptimizedGraph();
+
+    int node_num=real_graph->seq_nodes.size();
+
+    if(node_idx<0 || node_idx>=node_num)
+    {
+        set_tengine_errno(EINVAL);
+        return nullptr;
+    }
+
+    Node* node = real_graph->seq_nodes[node_idx];
+
+    node->SetAttr(ATTR_API_GRAPH, executor);
+
+    return node;
+}
+
+int add_node_attr(node_t node, const char* attr_name, const char* type_name, int size)
 {
     /* first check if the attribute exists*/
     void* buf = malloc(size);
 
-    int ret = get_node_attr_generic(node, attr_name, type_info, buf, size);
+    int ret = get_node_attr_generic(node, attr_name, type_name, buf, size);
 
     free(buf);
 
@@ -706,17 +788,17 @@ int add_node_attr(node_t node, const char* attr_name, const void* type_info, int
         return -1;
     }
 
-    return node_add_attr(node, attr_name, type_info, size);
+    return node_add_attr(node, attr_name, type_name, size);
 }
 
 int get_node_attr_int(node_t node, const char* attr_name, int* attr_val)
 {
-    return get_node_attr_generic(node, attr_name, &typeid(int), attr_val, sizeof(int));
+    return get_node_attr_generic(node, attr_name, typeid(int).name(), attr_val, sizeof(int));
 }
 
 int get_node_attr_float(node_t node, const char* attr_name, float* attr_val)
 {
-    return get_node_attr_generic(node, attr_name, &typeid(float), attr_val, sizeof(float));
+    return get_node_attr_generic(node, attr_name, typeid(float).name(), attr_val, sizeof(float));
 }
 
 int get_node_attr_pointer(node_t node, const char* attr_name, void* attr_val)
@@ -724,19 +806,19 @@ int get_node_attr_pointer(node_t node, const char* attr_name, void* attr_val)
     return get_node_attr_generic(node, attr_name, nullptr, attr_val, sizeof(void*));
 }
 
-int get_node_attr_generic(node_t node, const char* attr_name, const void* type_info, void* buf, int size)
+int get_node_attr_generic(node_t node, const char* attr_name, const char * type_name, void* buf, int size)
 {
-    return node_get_attr_generic(node, attr_name, type_info, buf, size);
+    return node_get_attr_generic(node, attr_name, type_name, buf, size);
 }
 
 int set_node_attr_int(node_t node, const char* attr_name, const int* attr_val)
 {
-    return set_node_attr_generic(node, attr_name, &typeid(int), attr_val, sizeof(int));
+    return set_node_attr_generic(node, attr_name, typeid(int).name(), attr_val, sizeof(int));
 }
 
 int set_node_attr_float(node_t node, const char* attr_name, const float* attr_val)
 {
-    return set_node_attr_generic(node, attr_name, &typeid(float), attr_val, sizeof(float));
+    return set_node_attr_generic(node, attr_name, typeid(float).name(), attr_val, sizeof(float));
 }
 
 int set_node_attr_pointer(node_t node, const char* attr_name, const void* attr_val)
@@ -744,9 +826,9 @@ int set_node_attr_pointer(node_t node, const char* attr_name, const void* attr_v
     return set_node_attr_generic(node, attr_name, nullptr, attr_val, sizeof(void*));
 }
 
-int set_node_attr_generic(node_t node, const char* attr_name, const void* type_info, const void* buf, int size)
+int set_node_attr_generic(node_t node, const char* attr_name, const char* type_name, const void* buf, int size)
 {
-    return node_set_attr_generic(node, attr_name, type_info, buf, size);
+    return node_set_attr_generic(node, attr_name, type_name, buf, size);
 }
 
 tensor_t create_graph_tensor(graph_t graph, const char* tensor_name, int data_type)
@@ -756,6 +838,13 @@ tensor_t create_graph_tensor(graph_t graph, const char* tensor_name, int data_ty
     if(executor->PrerunDone())
     {
         set_tengine_errno(EACCES);
+        return nullptr;
+    }
+
+    if(data_type<TENGINE_DT_FP32 || data_type > TENGINE_DT_INT16)
+    {
+        LOG_ERROR()<<"unknown data type: "<<data_type<<"\n";
+        set_tengine_errno(EINVAL);
         return nullptr;
     }
 
@@ -777,6 +866,7 @@ tensor_t create_graph_tensor(graph_t graph, const char* tensor_name, int data_ty
 
     new_tensor->SetDataType(data_type);
     new_tensor->SetType(TENSOR_TYPE_CONST);
+    new_tensor->GetShape().SetDataLayout(real_graph->GetLayout());
 
     real_graph->AddTensor(new_tensor);
 
@@ -1469,13 +1559,5 @@ void dump_graph(graph_t graph)
     /* first: try to dump optimized graph */
     Graph* g = executor->GetOptimizedGraph();
 
-    if(g)
-    {
-        g->DumpGraph();
-        return;
-    }
-
-    /* get the origin graph */
-    g = executor->GetGraph();
     g->DumpGraph();
 }

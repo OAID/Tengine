@@ -27,7 +27,7 @@ namespace TEngine {
 
 void Logistic::SetSchema(void)
 {
-    Input({"input:float32"}).Output({"output:float32"}).SetLayout("NCHW").SetDoc(R"DOC(Logistic Layer)DOC");
+    Input({"input:float32"}).Output({"output:float32"}).SetDoc(R"DOC(Logistic Layer)DOC");
 }
 
 }    // namespace TEngine

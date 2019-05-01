@@ -29,7 +29,6 @@ void Normalize::SetSchema(void)
 {
     Input({"input:float32", "scale:float32"})
         .Output({"output:float32"})
-        .SetLayout("NCHW")
         .SetAttr("across_spatial", 0)
         .SetAttr("channel_shared", 0)
         .SetDoc(R"DOC(Normalize Operator)DOC");

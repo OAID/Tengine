@@ -46,7 +46,7 @@ bool DetectionPostProcess::InferShape(const std::vector<TEngine::TShape>& ishape
     std::vector<int> dim3 = {1, num_detected_boxes};
     std::vector<int> dim4 = {1};
 
-    shape.SetDataLayout("NCHW");
+    shape.SetDataLayout(ishape[0].GetDataLayout());
     shape.SetDim(dim1);
     oshape[0] = shape;
     shape.SetDim(dim2);
@@ -61,7 +61,7 @@ bool DetectionPostProcess::InferShape(const std::vector<TEngine::TShape>& ishape
 
 void DetectionPostProcess::SetSchema(void)
 {
-    Input({"input:float32"}).Output({"output:float32"}).SetLayout("NCHW").SetDoc(R"DOC(DetectionPostProcess Layer)DOC");
+    Input({"input:float32"}).Output({"output:float32"}).SetDoc(R"DOC(DetectionPostProcess Layer)DOC");
 }
 
 }    // namespace TEngine

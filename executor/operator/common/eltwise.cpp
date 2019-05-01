@@ -204,15 +204,26 @@ struct EltwiseOps : public NodeOps
 
 };    // struct EltwiseOps
 
+NodeOps* SelectFunc(const CPUInfo* cpu_info, Node* node)
+{
+    Tensor* input = node->GetInputTensor(0);
+    const int data_type = input->GetDataType();
+    const ExecAttr* exec_attr = any_cast<const ExecAttr*>(node->GetAttr(ATTR_EXEC_ATTR));
+    if(data_type != TENGINE_DT_FP32 || exec_attr->graph_layout != TENGINE_LAYOUT_NCHW)
+        return nullptr;
+
+    EltwiseOps* ops = new EltwiseOps();
+
+    return ops;
+}
+
 }    // namespace EltwiseImpl
 
 using namespace EltwiseImpl;
 
 void RegisterEltwiseNodeExec(void)
 {
-    EltwiseOps* ops = new EltwiseOps();
-
-    NodeOpsRegistryManager::RegisterOPImplementor("common", "Eltwise", ops);
+    NodeOpsRegistryManager::RegisterOPImplementor("common", "Eltwise", EltwiseImpl::SelectFunc, 1000);
 }
 
 }    // namespace TEngine

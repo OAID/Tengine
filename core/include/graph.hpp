@@ -50,6 +50,8 @@ public:
     {
         name_ = name;
         model_format_ = -1;
+        model_subformat_ = -1;
+        model_layout_ = -1;
         layout_ = -1;
     }
 
@@ -147,10 +149,32 @@ public:
     {
         model_format_ = model_format;
     }
+
     int GetModelFormat(void)
     {
         return model_format_;
     }
+
+    void SetModelSubFormat(int model_subformat)
+    {
+        model_subformat_ = model_subformat;
+    }
+
+    int GetModelSubFormat(void)
+    {
+        return model_subformat_;
+    }
+
+    void SetModelLayout(int model_layout)
+    {
+        model_layout_ = model_layout;
+    }
+
+    int GetModelLayout(void)
+    {
+        return model_layout_;
+    }
+
     void SetLayout(int layout)
     {
         layout_ = layout;
@@ -176,6 +200,8 @@ protected:
     std::unordered_map<std::string, Tensor*> owned_tensors_;
 
     int model_format_;
+    int model_subformat_;
+    int model_layout_;
     int layout_;
 
     Attribute attrs_;

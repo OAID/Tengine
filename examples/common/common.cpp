@@ -101,24 +101,24 @@ bool set_tengine_config()
  */
 std::string get_file(const char* fname)
 {
-    std::fstream test_fs;
+    FILE* fp;
     std::string fn = fname;
 
     const std::string mod_sch1 = "./" + fn;
     const std::string mod_sch2 = get_root_path() + "models/" + fn;
 
-    test_fs.open(mod_sch1.c_str());
-    if(test_fs.is_open())
+    fp = fopen(mod_sch1.c_str(), "r");
+    if(fp)
     {
-        test_fs.close();
+        fclose(fp);
         return mod_sch1;
     }
     else
     {
-        test_fs.open(mod_sch2.c_str());
-        if(test_fs.is_open())
+        fp = fopen(mod_sch2.c_str(), "r");
+        if(fp)
         {
-            test_fs.close();
+            fclose(fp);
             return mod_sch2;
         }
         else

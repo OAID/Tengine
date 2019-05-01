@@ -173,15 +173,26 @@ struct SoftmaxOps : public NodeOps
     }
 };
 
+NodeOps* SelectFunc(const CPUInfo* cpu_info, Node* node)
+{
+    Tensor* input = node->GetInputTensor(0);
+    const int data_type = input->GetDataType();
+    const ExecAttr* exec_attr = any_cast<const ExecAttr*>(node->GetAttr(ATTR_EXEC_ATTR));
+    if(data_type != TENGINE_DT_FP32 || exec_attr->graph_layout != TENGINE_LAYOUT_NCHW)
+        return nullptr;
+
+    SoftmaxOps* ops = new SoftmaxOps();
+
+    return ops;
+}
+
 }    // namespace SoftmaxImpl
 
 using namespace SoftmaxImpl;
 
 void RegisterSoftmaxNodeExec(void)
 {
-    SoftmaxOps* ops = new SoftmaxOps();
-
-    NodeOpsRegistryManager::RegisterOPImplementor("common", "Softmax", ops);
+    NodeOpsRegistryManager::RegisterOPImplementor("common", "Softmax", SoftmaxImpl::SelectFunc, 1000);
 }
 
 }    // namespace TEngine

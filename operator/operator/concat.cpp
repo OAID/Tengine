@@ -55,7 +55,6 @@ void Concat::SetSchema(void)
     Input({"input:float32"})
         .Output({"output:float32"})
         .SetAttr("axis", 1)
-        .SetLayout("NCHW")
         .SetDoc(R"DOC(Concat Operator)DOC");
 }
 

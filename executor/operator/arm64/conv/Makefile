@@ -9,4 +9,7 @@ obj-y+=dw_k3s2p1.o
 obj-y+=dw_k3s1p1_relu_fused.o
 obj-y+=dw_k3s2p1_relu_fused.o
 
+CXXFLAGS+=-I../include 
+
+conv_2d_acl_CXXFLAGS+=-I$(ACL_ROOT) -I$(ACL_ROOT)/include -I$(ACL_ROOT)/utils
 

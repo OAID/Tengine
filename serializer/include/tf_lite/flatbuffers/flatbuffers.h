@@ -1902,7 +1902,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS
 public:
     Verifier(const uint8_t* buf, size_t buf_len, uoffset_t _max_depth = 64, uoffset_t _max_tables = 1000000)
         : buf_(buf), end_(buf + buf_len), depth_(0), max_depth_(_max_depth), num_tables_(0), max_tables_(_max_tables)
-    // clang-format off
+// clang-format off
     #ifdef FLATBUFFERS_TRACK_VERIFIER_BUFFER_SIZE
         , upper_bound_(buf)
     #endif

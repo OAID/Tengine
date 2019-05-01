@@ -46,14 +46,16 @@ struct ConvParam : public NamedParam
     int kernel_w;
     int stride_h;
     int stride_w;
-    int pad_h;
-    int pad_w;
     int dilation_h;
     int dilation_w;
+    int input_channel;
     int output_channel;
     int group;
     int activation;
-    std::vector<int> pads;
+    int pad_h0;  // top padding rows
+    int pad_w0;  // left padding columns
+    int pad_h1;  // bottom padding rows
+    int pad_w1;  // right padding columns
 
     DECLARE_PARSER_STRUCTURE(ConvParam)
     {
@@ -61,13 +63,16 @@ struct ConvParam : public NamedParam
         DECLARE_PARSER_ENTRY(kernel_w);
         DECLARE_PARSER_ENTRY(stride_h);
         DECLARE_PARSER_ENTRY(stride_w);
-        DECLARE_PARSER_ENTRY(pad_h);
-        DECLARE_PARSER_ENTRY(pad_w);
         DECLARE_PARSER_ENTRY(dilation_h);
         DECLARE_PARSER_ENTRY(dilation_w);
+        DECLARE_PARSER_ENTRY(input_channel);
         DECLARE_PARSER_ENTRY(output_channel);
         DECLARE_PARSER_ENTRY(group);
         DECLARE_PARSER_ENTRY(activation);
+        DECLARE_PARSER_ENTRY(pad_h0);
+        DECLARE_PARSER_ENTRY(pad_w0);
+        DECLARE_PARSER_ENTRY(pad_h1);
+        DECLARE_PARSER_ENTRY(pad_w1);
     };
 };
 

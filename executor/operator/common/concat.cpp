@@ -48,8 +48,13 @@ struct ConcatOps : public NodeOps
         int element_size = DataType::GetTypeSize(input_tensor->GetDataType());
         Tensor* output_tensor = node->GetOutputTensor(0);
         auto out_quant = output_tensor->GetQuantParam();
-        int out_zero = (*out_quant)[0].zero_point;
-        float out_scale = (*out_quant)[0].scale;
+        int out_zero = 0;
+        float out_scale = 1;
+        if( !out_quant->empty() )
+        {
+            out_zero = (*out_quant)[0].zero_point;
+            out_scale = (*out_quant)[0].scale;
+        }
 
         Concat* concat_op = dynamic_cast<Concat*>(node->GetOp());
         ConcatParam* param = concat_op->GetParam();
@@ -107,15 +112,25 @@ struct ConcatOps : public NodeOps
     }
 };
 
+NodeOps* SelectFunc(const CPUInfo* cpu_info, Node* node)
+{
+    Tensor* input = node->GetInputTensor(0);
+    const int data_type = input->GetDataType();
+    if(data_type != TENGINE_DT_FP32 && data_type != TENGINE_DT_UINT8)
+        return nullptr;
+
+    ConcatOps* ops = new ConcatOps();
+
+    return ops;
+}
+
 }    // namespace ConcatImpl
 
 using namespace ConcatImpl;
 
 void RegisterConcatNodeExec(void)
 {
-    ConcatOps* ops = new ConcatOps();
-
-    NodeOpsRegistryManager::RegisterOPImplementor("common", "Concat", ops);
+    NodeOpsRegistryManager::RegisterOPImplementor("common", "Concat", ConcatImpl::SelectFunc, 1000);
 }
 
 }    // namespace TEngine

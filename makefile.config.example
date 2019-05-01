@@ -15,8 +15,19 @@
 #  $ make -j8
 #-------------------------------------------------------------------------------
 
+# cross compile for ARM64
+# CROSS_COMPILE=aarch64-linux-gnu-
+# cross compile for ARM32
+# CROSS_COMPILE=arm-linux-gnueabihf-
+
+# Just to differentiate with sysroot for embedded toolchains building 
+# As toolchains just need a few pre-built libraries
+# 
+# EMBEDDED_CROSS_ROOT=/opt/install/
+
 # Set the target arch 
-CONFIG_ARCH_ARM64=y
+ CONFIG_ARCH_ARM64=y
+# CONFIG_ARCH_ARM32=y
 
 # Enable Compiling Optimization
 CONFIG_OPT_CFLAGS = -O2
@@ -35,6 +46,7 @@ CONFIG_CAFFE_SERIALIZER=y
 # CONFIG_MXNET_SERIALIZER=y
 # CONFIG_ONNX_SERIALIZER=y
 # CONFIG_TF_SERIALIZER=y
+# CONFIG_TFLITE_SERIALIZER=y
 CONFIG_TENGINE_SERIALIZER=y
 
 # Enable Wrappers
@@ -46,3 +58,5 @@ CONFIG_VERSION_POSTFIX=github
 # support legacy API 
 CONFIG_LEGACY_API=y
 
+# kernel configuration
+CONFIG_KERNEL_FP32=y

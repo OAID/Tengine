@@ -134,6 +134,7 @@ int main(int argc, char* argv[])
 
     // dump_graph(graph);
 
+
     // input
     int img_h = 224;
     int img_w = 224;
@@ -158,6 +159,8 @@ int main(int argc, char* argv[])
     }
 
     int repeat_count = 1;
+    if(argc>1)
+        repeat_count = atoi(argv[1]);
     const char* repeat = std::getenv("REPEAT_COUNT");
 
     if(repeat)

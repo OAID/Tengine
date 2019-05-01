@@ -27,6 +27,8 @@
 #include <google/protobuf/text_format.h>
 #include <google/protobuf/message.h>
 
+#include "tengine_c_api.h"
+#include "exec_attr.hpp"
 #include "data_type.hpp"
 #include "tengine_errno.hpp"
 #include "operator_manager.hpp"
@@ -63,6 +65,9 @@ bool OnnxSerializer::LoadModel(const std::vector<std::string>& file_list, Static
     SetGraphSource(graph, file_list[0]);
     SetGraphSourceFormat(graph, "onnx");
     SetGraphConstTensorFile(graph, file_list[0]);
+    SetGraphLayout(graph,TENGINE_LAYOUT_NCHW);
+    SetModelLayout(graph,TENGINE_LAYOUT_NCHW);
+    SetModelFormat(graph,MODEL_FORMAT_ONNX);
 
     return LoadGraph(model, graph);
 }
@@ -191,7 +196,6 @@ void OnnxSerializer::CreateInputNode(StaticGraph* graph, const onnx::GraphProto&
         StaticTensor* tensor = CreateStaticTensor(graph, val.name());
 
         SetTensorDataType(tensor, DataType::GetTypeID("float32"));
-        SetTensorDataLayout(tensor, "NCHW");
 
         if(has_shape)
             SetTensorDim(tensor, dims);
@@ -239,7 +243,6 @@ bool OnnxSerializer::LoadNode(StaticGraph* graph, StaticNode* node, const onnx::
         StaticTensor* tensor = CreateStaticTensor(graph, output_name);
 
         SetTensorDataType(tensor, DataType::GetTypeID("float32"));
-        SetTensorDataLayout(tensor, "NCHW");
         AddNodeOutputTensor(node, tensor);
     }
 
@@ -307,8 +310,10 @@ static bool LoadOnnxConvolutionOp(StaticGraph* graph, StaticNode* node, const on
         }
         else if(attr.name() == "pads")
         {
-            param.pad_h = attr.ints(0);
-            param.pad_w = attr.ints(1);
+            param.pad_h0 = attr.ints(0);
+            param.pad_h1 = attr.ints(0);
+            param.pad_w0 = attr.ints(1);
+            param.pad_w1 = attr.ints(1);
         }
     }
 
@@ -323,13 +328,10 @@ static bool LoadOnnxConvolutionOp(StaticGraph* graph, StaticNode* node, const on
         {
             const std::vector<int>& dim = GetTensorDim(tensor);
 
-            SetTensorDataLayout(tensor, "NCHW");
 
             /* onnx hide the output channel in weight ..*/
             param.output_channel = dim[0];
         }
-        else if(k == 2)
-            SetTensorDataLayout(tensor, "W");
     }
 
     StaticOp* op = CreateStaticOp(graph, "Convolution");
@@ -351,13 +353,6 @@ static bool LoadOnnxBN(StaticGraph* graph, StaticNode* node, const onnx::NodePro
 
         if(attr.name() == "epsilon")
             param.eps = attr.f();
-    }
-
-    for(int k = 1; k < onnx_node.input_size(); k++)
-    {
-        const std::string& input_name = onnx_node.input(k);
-        StaticTensor* tensor = FindTensor(graph, input_name);
-        SetTensorDataLayout(tensor, "W");
     }
 
     StaticOp* op = CreateStaticOp(graph, "BatchNormalization");
@@ -415,8 +410,10 @@ static bool LoadOnnxPooling(StaticGraph* graph, StaticNode* node, const onnx::No
             }
             else if(attr.name() == "pads")
             {
-                param.pad_h = attr.ints(0);
-                param.pad_w = attr.ints(1);
+                param.pad_h0 = attr.ints(0);
+                param.pad_h1 = attr.ints(0);
+                param.pad_w0 = attr.ints(1);
+                param.pad_w1 = attr.ints(1);
             }
         }
     }
@@ -425,20 +422,6 @@ static bool LoadOnnxPooling(StaticGraph* graph, StaticNode* node, const onnx::No
         LOG_ERROR() << "UKNOWN POOLING: " << onnx_op << "\n";
         return false;
     }
-
-    param.kernel_shape.resize(2);
-    param.kernel_shape[0] = param.kernel_h;
-    param.kernel_shape[1] = param.kernel_w;
-
-    param.pads.resize(4);
-    param.pads[0] = param.pad_h;
-    param.pads[1] = param.pad_w;
-    param.pads[2] = param.pad_h;
-    param.pads[3] = param.pad_w;
-
-    param.strides.resize(2);
-    param.strides[0] = param.stride_h;
-    param.strides[1] = param.stride_w;
 
     StaticOp* op = CreateStaticOp(graph, "Pooling");
 
@@ -488,8 +471,6 @@ static bool LoadOnnxGemm(StaticGraph* graph, StaticNode* node, const onnx::NodeP
 
     StaticTensor* bias_tensor = FindTensor(graph, onnx_node.input(2));
 
-    SetTensorDataLayout(weight_tensor, "HW");
-    SetTensorDataLayout(bias_tensor, "W");
 
     if(param.transA)
     {

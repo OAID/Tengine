@@ -347,7 +347,8 @@ bool NodeOpsRegistryManager::RegisterOPImplementor(const std::string& registry_n
         registry->RegisterSelector(prio_selector);
     }
 
-    prio_selector->Register(priority, select_func);
+    if(!prio_selector->Register(priority, select_func))
+        return false;
 
     return true;
 }

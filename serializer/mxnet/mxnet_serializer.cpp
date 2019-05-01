@@ -24,6 +24,8 @@
 
 #include "mxnet_serializer.hpp"
 
+#include "tengine_c_api.h"
+#include "exec_attr.hpp"
 #include "type_name.hpp"
 #include "data_type.hpp"
 #include "tengine_errno.hpp"
@@ -38,6 +40,11 @@
 #include "operator/eltwise_param.hpp"
 #include "operator/fc_param.hpp"
 #include "operator/reshape_param.hpp"
+#include "operator/swap_axis_param.hpp"
+#include "operator/addn_param.hpp"
+#include "operator/lstm_param.hpp"
+#include "operator/gru_param.hpp"
+#include "operator/permute_param.hpp"
 
 //#define DEBUG
 
@@ -46,6 +53,20 @@ namespace TEngine {
 typedef std::string::size_type pos;
 typedef std::map<std::string, std::string>::const_iterator const_iterator;
 using op_load_t = std::function<bool(StaticGraph* graph, StaticNode* node, const MxnetNode& mxnet_node)>;
+
+std::vector<int> &split(const std::string &str, char delim, std::vector<int> &elems, bool skip_empty = true) {
+    std::istringstream iss(str);
+    for (std::string item; getline(iss, item, delim); )
+        if (skip_empty && item.empty()) continue;
+        else elems.push_back(atoi(item.c_str()));
+    return elems;
+}
+
+static void ParseAttr_n(const std::string str, std::vector<int>& result)
+{
+    std::string s = str.substr(1, str.length() - 2);
+    split(s,',',result);
+}
 
 static void Trim(std::string& s, const char charlist[])
 {
@@ -194,8 +215,10 @@ bool MxnetSerializer::LoadTextFile(const char* fname, std::vector<MxnetNode>& no
                     node.name = unknown.str();
                     cnt_unknown_name++;
                 }
-                if(node.op == "Flatten")
+
+                if(node.op == "Flatten"||node.op == "SliceChannel")
                     node.op = "Dropout";
+
                 nodelist.push_back(node);
                 nest--;
                 continue;
@@ -430,8 +453,17 @@ bool MxnetSerializer::LoadModel(const std::vector<std::string>& file_list, Stati
     SetGraphSource(graph, file_list[1]);
     SetGraphSourceFormat(graph, "mxnet");
     SetGraphConstTensorFile(graph, file_list[1]);
+    SetGraphLayout(graph,TENGINE_LAYOUT_NCHW);
+    SetModelLayout(graph,TENGINE_LAYOUT_NCHW);
+    SetModelFormat(graph,MODEL_FORMAT_MXNET);
 
-    return LoadGraph(graph, nodelist, paramlist);
+    bool res = LoadGraph(graph, nodelist, paramlist);
+    for(std::size_t ii=0; ii < paramlist.size(); ++ii)
+    {
+	    std::free(paramlist[ii].raw_data);
+    }
+
+    return res;
 }
 
 bool MxnetSerializer::LoadConstTensor(StaticGraph* graph, const std::vector<MxnetParam>& paramlist)
@@ -513,7 +545,6 @@ void MxnetSerializer::CreateInputNode(StaticGraph* graph, const std::vector<Mxne
 
             SetTensorDataType(tensor, DataType::GetTypeID("float32"));
 
-            SetTensorDataLayout(tensor, "NCHW");
 
             MxnetParam param;
             if(GetParam(mxnet_node.name, paramlist, param))
@@ -551,7 +582,9 @@ void MxnetSerializer::LoadNode(StaticGraph* graph, StaticNode* node, const Mxnet
     {
         int input_idx = mxnet_node.inputs.at(i);
         const MxnetNode& input_node = nodelist.at(input_idx);
-        if(input_node.name == "prob_label")
+
+        if(input_node.name.find("label")!=std::string::npos ||
+           input_node.name.find("state")!=std::string::npos)
             continue;
 
 #ifdef DEBUG
@@ -559,27 +592,6 @@ void MxnetSerializer::LoadNode(StaticGraph* graph, StaticNode* node, const Mxnet
 #endif
 
         StaticTensor* tensor = FindTensor(graph, input_node.name);
-        if(input_node.op == "null")
-        {
-            if(mxnet_node.op == "BatchNorm" || mxnet_node.op == "LeakyReLU")
-            {
-                SetTensorDataLayout(tensor, "W");
-            }
-            else if(mxnet_node.op == "FullyConnected")
-            {
-                if(i == 1)    // weight
-                    SetTensorDataLayout(tensor, "HW");
-                else if(i == 2)    // bias
-                    SetTensorDataLayout(tensor, "W");
-            }
-            else
-            {
-                if(i == 1)    // weight
-                    SetTensorDataLayout(tensor, "NCHW");
-                else if(i == 2)    // bias
-                    SetTensorDataLayout(tensor, "W");
-            }
-        }
 
         AddNodeInputTensor(node, tensor);
     }
@@ -589,7 +601,6 @@ void MxnetSerializer::LoadNode(StaticGraph* graph, StaticNode* node, const Mxnet
     StaticTensor* tensor = CreateStaticTensor(graph, output_name);
 
     SetTensorDataType(tensor, DataType::GetTypeID("float32"));
-    SetTensorDataLayout(tensor, "NCHW");
     AddNodeOutputTensor(node, tensor);
 }
 
@@ -606,7 +617,7 @@ bool MxnetSerializer::LoadGraph(StaticGraph* graph, const std::vector<MxnetNode>
     {
         MxnetNode mxnet_node = nodelist.at(i);
 
-        if(mxnet_node.op == "null")
+        if(mxnet_node.op == "null"||mxnet_node.op == "_zeros")
             continue;
 
         if(!FindOpLoadMethod(mxnet_node.op))
@@ -640,6 +651,7 @@ static bool LoadMxnetSoftmax(StaticGraph* graph, StaticNode* node, const MxnetNo
     StaticOp* op = CreateStaticOp(graph, "Softmax");
 
     SoftmaxParam param = any_cast<SoftmaxParam>(OpManager::GetOpDefParam("Softmax"));
+    param.axis = 1;
 
     SetOperatorParam(op, param);
 
@@ -669,18 +681,30 @@ static void ParseAttr(const std::string str, std::vector<int>& result)
     // Remove leading '(' and trailing ')'
     std::string s = str.substr(1, str.length() - 2);
 
-    pos comma_pos = s.find(',');
-    std::string s1 = s.substr(0, comma_pos);
-    std::string s2 = s.substr(comma_pos + 1);
-    s2.erase(0, s2.find_first_not_of(" "));
+    std::string s1,s2;
+    int i;
+    while(1)
+    {
+        pos comma_pos = s.find(',');
+        if(comma_pos != std::string::npos)
+        {
+            s1 = s.substr(0, comma_pos);
+            s2 = s.substr(comma_pos + 1);
+            s2.erase(0, s2.find_first_not_of(" "));
+            std::istringstream ist1(s1);
+            ist1 >> i;
+            result.push_back(i);
+            s = s2;
 
-    std::istringstream ist1(s1);
-    std::istringstream ist2(s2);
-    int i, j;
-    ist1 >> i;
-    ist2 >> j;
-    result.push_back(i);
-    result.push_back(j);
+        }else
+        {
+            std::istringstream ist2(s2);
+            ist2 >> i;
+            result.push_back(i);
+	    break;
+        }
+    }
+
 }
 
 static bool LoadMxnetConvolution(StaticGraph* graph, StaticNode* node, const MxnetNode& mxnet_node)
@@ -708,8 +732,10 @@ static bool LoadMxnetConvolution(StaticGraph* graph, StaticNode* node, const Mxn
     if(cit != mxnet_node.attrs.end())
     {
         ParseAttr(cit->second, v3);
-        param.pad_h = v3.at(0);
-        param.pad_w = v3.at(1);
+        param.pad_h0 = v3.at(0);
+        param.pad_h1 = v3.at(0);
+        param.pad_w0 = v3.at(1);
+        param.pad_w1 = v3.at(1);
     }
     cit = mxnet_node.attrs.find("num_group");
     if(cit != mxnet_node.attrs.end())
@@ -730,7 +756,7 @@ static bool LoadMxnetConvolution(StaticGraph* graph, StaticNode* node, const Mxn
 
 #ifdef DEBUG
     std::cout << "ConvParam : " << param.kernel_h << ", " << param.kernel_w << ", " << param.stride_h << ", "
-              << param.stride_w << ", " << param.pad_h << ", " << param.pad_w << ", " << param.group << ", "
+              << param.stride_w << ", " << param.pad_h0 << ", " << param.pad_w0 << ", " << param.group << ", "
               << param.output_channel << std::endl;
 #endif
 
@@ -754,10 +780,6 @@ static bool LoadMxnetPooling(StaticGraph* graph, StaticNode* node, const MxnetNo
         ParseAttr(cit->second, v1);
         param.kernel_h = v1.at(0);
         param.kernel_w = v1.at(1);
-
-        param.kernel_shape.resize(2);
-        param.kernel_shape[0] = param.kernel_h;
-        param.kernel_shape[1] = param.kernel_w;
     }
     cit = mxnet_node.attrs.find("stride");
     if(cit != mxnet_node.attrs.end())
@@ -765,43 +787,42 @@ static bool LoadMxnetPooling(StaticGraph* graph, StaticNode* node, const MxnetNo
         ParseAttr(cit->second, v2);
         param.stride_h = v2.at(0);
         param.stride_w = v2.at(1);
-
-        param.strides.resize(2);
-        param.strides[0] = param.stride_h;
-        param.strides[1] = param.stride_w;
     }
     cit = mxnet_node.attrs.find("pad");
     if(cit != mxnet_node.attrs.end())
     {
         ParseAttr(cit->second, v3);
-        param.pad_h = v3.at(0);
-        param.pad_w = v3.at(1);
-
-        param.pads.resize(4);
-        param.pads[0] = param.pad_h;
-        param.pads[1] = param.pad_w;
-        param.pads[2] = param.pad_h;
-        param.pads[3] = param.pad_w;
+        param.pad_h0 = v3.at(0);
+        param.pad_h1 = v3.at(0);
+        param.pad_w0 = v3.at(1);
+        param.pad_w1 = v3.at(1);
     }
     cit = mxnet_node.attrs.find("pool_type");
     if(cit != mxnet_node.attrs.end())
     {
         if(cit->second == "max")
         {
-            param.global = 0;
             param.alg = kPoolMax;
         }
         else if(cit->second == "avg")
         {
-            param.global = 1;
             param.alg = kPoolAvg;
+        }
+    }
+    param.global = 0;
+    cit = mxnet_node.attrs.find("global_pool");
+    if(cit != mxnet_node.attrs.end())
+    {
+        if(cit->second == "True")
+        {
+            param.global = 1;
         }
     }
     param.caffe_flavor = 0;
 
 #ifdef DEBUG
     std::cout << "PoolParam : " << param.kernel_h << ", " << param.kernel_w << ", " << param.stride_h << ", "
-              << param.stride_w << ", " << param.pad_h << ", " << param.pad_w << ", " << param.global << ", "
+              << param.stride_w << ", " << param.pad_h0 << ", " << param.pad_w0 << ", " << param.global << ", "
               << param.alg << std::endl;
 #endif
 
@@ -851,14 +872,42 @@ static bool LoadMxnetDropout(StaticGraph* graph, StaticNode* node, const MxnetNo
     return true;
 }
 
-static bool LoadMxnetRelu(StaticGraph* graph, StaticNode* node, const MxnetNode& mxnet_node)
+static bool LoadMxnetActivation(StaticGraph* graph, StaticNode* node, const MxnetNode& mxnet_node)
 {
-    ReLuParam param = any_cast<ReLuParam>(OpManager::GetOpDefParam("ReLu"));
-    param.negative_slope = 0.f;
+    const_iterator act_type = mxnet_node.attrs.find("act_type");
+    if(act_type != mxnet_node.attrs.end())
+    {
+        if(act_type->second == "relu")
+        {
+            ReLuParam param = any_cast<ReLuParam>(OpManager::GetOpDefParam("ReLu"));
+            param.negative_slope = 0.f;
 
-    StaticOp* op = CreateStaticOp(graph, "ReLu");
-    SetOperatorParam(op, param);
-    SetNodeOp(node, op);
+            StaticOp* op = CreateStaticOp(graph, "ReLu");
+            SetOperatorParam(op, param);
+            SetNodeOp(node, op);
+        }
+        else if(act_type->second == "tanh")
+        {
+            StaticOp* op = CreateStaticOp(graph, "Tanh");
+            SetNodeOp(node, op);
+        }
+        else if(act_type->second == "sigmoid")
+        {
+            StaticOp* op = CreateStaticOp(graph, "Sigmoid");
+            SetNodeOp(node, op);
+        }
+        else if(act_type->second == "softmax")
+        {
+            SoftmaxParam param = any_cast<SoftmaxParam>(OpManager::GetOpDefParam("Softmax"));
+            param.axis = 1;
+
+            StaticOp* op = CreateStaticOp(graph, "Softmax");
+            SetOperatorParam(op, param);
+            SetNodeOp(node, op);
+        }
+        else
+            return false;
+    }
 
     return true;
 }
@@ -877,7 +926,6 @@ static bool LoadMxnetEltScalar(StaticGraph* graph, StaticNode* node, const Mxnet
     dims.push_back(1);
     SetTensorDim(tensor, dims);
     SetTensorDataType(tensor, DataType::GetTypeID("float32"));
-    SetTensorDataLayout(tensor, "W");
     SetTensorSize(tensor, sizeof(float));
 
     float* mem_buf = ( float* )std::malloc(sizeof(float));
@@ -993,7 +1041,116 @@ static bool LoadMxnetReshape(StaticGraph* graph, StaticNode* node, const MxnetNo
 
     return true;
 }
+static bool LoadMxnetPermute(StaticGraph* graph, StaticNode* node, const MxnetNode& mxnet_node)
+{
+    PermuteParam param = any_cast<PermuteParam>(OpManager::GetOpDefParam("Permute"));
 
+    const_iterator cit;
+    std::vector<int> v1;
+
+    cit = mxnet_node.attrs.find("axes");
+    
+    ParseAttr_n(cit->second, v1);
+    
+    param.order0 = v1[0];
+    param.order1 = v1[1];
+    param.order2 = v1[2];
+    param.order3 = -2;
+
+    StaticOp* op = CreateStaticOp(graph, "Permute");
+    SetOperatorParam(op, param);
+    SetNodeOp(node, op);
+
+    return true;
+}
+
+static bool LoadMxnetSwapAxis(StaticGraph* graph, StaticNode* node, const MxnetNode& mxnet_node)
+{
+    SwapAxisParam param = any_cast<SwapAxisParam>(OpManager::GetOpDefParam("SwapAxis"));
+
+    const_iterator cit;
+    cit = mxnet_node.attrs.find("dim1");
+    if(cit != mxnet_node.attrs.end())
+    {
+        std::istringstream ist(cit->second);
+        ist >> param.dim_0;
+    }
+    cit = mxnet_node.attrs.find("dim2");
+    if(cit != mxnet_node.attrs.end())
+    {
+        std::istringstream ist(cit->second);
+        ist >> param.dim_1;
+    }
+
+    StaticOp* op = CreateStaticOp(graph, "SwapAxis");
+    SetOperatorParam(op, param);
+    SetNodeOp(node, op);
+
+    return true;
+}
+
+static bool LoadMxnetAddN(StaticGraph* graph, StaticNode* node, const MxnetNode& mxnet_node)
+{
+    AddnParam param = any_cast<AddnParam>(OpManager::GetOpDefParam("Addn"));
+    param.axis = 1;
+
+    StaticOp* op = CreateStaticOp(graph, "Addn");
+    SetOperatorParam(op, param);
+    SetNodeOp(node, op);
+
+    return true;
+}
+
+static bool LoadMxnetClip(StaticGraph* graph, StaticNode* node, const MxnetNode& mxnet_node)
+{
+    const_iterator cit1, cit2;
+    cit1 = mxnet_node.attrs.find("a_max");
+    cit2 = mxnet_node.attrs.find("a_min");
+    if(cit1 != mxnet_node.attrs.end() && cit1->second == "6" &&
+       cit2 != mxnet_node.attrs.end() && cit2->second == "0")
+    {
+        StaticOp* op = CreateStaticOp(graph, "ReLu6");
+        SetNodeOp(node, op);
+    }
+    else
+        return false;
+
+    return true;
+}
+
+static bool LoadMxnetRNN(StaticGraph* graph, StaticNode* node, const MxnetNode& mxnet_node)
+{
+    const_iterator cit = mxnet_node.attrs.find("mode");
+    const_iterator cit1 = mxnet_node.attrs.find("state_size");
+    int s_size=atoi(cit1->second.c_str());
+
+    if(cit->second == "lstm")
+    {
+        LSTMParam param = any_cast<LSTMParam>(OpManager::GetOpDefParam("LSTM"));
+        param.mxnet_flag=1;
+
+        param.hidden_size=s_size;
+        param.cell_size=s_size;
+
+        StaticOp* op = CreateStaticOp(graph, "LSTM");
+        SetOperatorParam(op, param);
+        // SetOperatorDynamicShape(op);
+        SetNodeOp(node, op);
+        
+    }
+    else if(cit->second == "gru")
+    {
+        GRUParam param = any_cast<GRUParam>(OpManager::GetOpDefParam("GRU"));
+        param.mxnet_flag=1;
+        param.hidden_size=s_size;
+
+        StaticOp* op = CreateStaticOp(graph, "GRU");
+        SetOperatorParam(op, param);
+        // SetOperatorDynamicShape(op);
+        SetNodeOp(node, op);
+    }
+    return true;
+}
 bool MxnetSerializerRegisterOpLoader(void)
 {
     SerializerPtr serializer;
@@ -1009,7 +1166,7 @@ bool MxnetSerializerRegisterOpLoader(void)
     p_mxnet->RegisterOpLoadMethod("Concat", op_load_t(LoadMxnetConcat));
     p_mxnet->RegisterOpLoadMethod("BatchNorm", op_load_t(LoadMxnetBatchNorm));
     p_mxnet->RegisterOpLoadMethod("Dropout", op_load_t(LoadMxnetDropout));
-    p_mxnet->RegisterOpLoadMethod("Activation", op_load_t(LoadMxnetRelu));
+    p_mxnet->RegisterOpLoadMethod("Activation", op_load_t(LoadMxnetActivation));
 
     p_mxnet->RegisterOpLoadMethod("_minus_scalar", op_load_t(LoadMxnetEltScalar));
     p_mxnet->RegisterOpLoadMethod("_mul_scalar", op_load_t(LoadMxnetEltScalar));
@@ -1018,6 +1175,11 @@ bool MxnetSerializerRegisterOpLoader(void)
     p_mxnet->RegisterOpLoadMethod("FullyConnected", op_load_t(LoadMxnetFullyConnected));
 
     p_mxnet->RegisterOpLoadMethod("Reshape", op_load_t(LoadMxnetReshape));
+    p_mxnet->RegisterOpLoadMethod("SwapAxis", op_load_t(LoadMxnetSwapAxis));
+    p_mxnet->RegisterOpLoadMethod("add_n", op_load_t(LoadMxnetAddN));
+    p_mxnet->RegisterOpLoadMethod("clip", op_load_t(LoadMxnetClip));
+    p_mxnet->RegisterOpLoadMethod("RNN", op_load_t(LoadMxnetRNN));
+    p_mxnet->RegisterOpLoadMethod("transpose", op_load_t(LoadMxnetPermute));
 
     return true;
 }

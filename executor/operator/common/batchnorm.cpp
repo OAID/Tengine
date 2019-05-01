@@ -165,15 +165,28 @@ struct BatchNormOps : public NodeOps
     }
 };
 
+NodeOps* SelectFunc(const CPUInfo* cpu_info, Node* node)
+{
+    Tensor* input = node->GetInputTensor(0);
+    const int data_type = input->GetDataType();
+    const ExecAttr* exec_attr = any_cast<const ExecAttr*>(node->GetAttr(ATTR_EXEC_ATTR));
+    if(data_type != TENGINE_DT_FP32 || exec_attr->graph_layout != TENGINE_LAYOUT_NCHW)
+        return nullptr;
+    if((input->GetShape()).GetDim().size() != 4)
+        return nullptr;
+
+    BatchNormOps* ops = new BatchNormOps();
+
+    return ops;
+}
+
 }    // namespace BatchNormImpl
 
 using namespace BatchNormImpl;
 
 void RegisterBatchNorm_NodeExec(void)
 {
-    BatchNormOps* ops = new BatchNormOps();
-
-    NodeOpsRegistryManager::RegisterOPImplementor("common", "BatchNormalization", ops);
+    NodeOpsRegistryManager::RegisterOPImplementor("common", "BatchNormalization", BatchNormImpl::SelectFunc, 1000);
 }
 
 }    // namespace TEngine

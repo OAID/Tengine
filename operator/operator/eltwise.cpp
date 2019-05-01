@@ -59,8 +59,7 @@ void Eltwise::SetSchema(void)
 {
     Input({"input:float32"})
         .Output({"output:float32"})
-        .SetLayout("NCHW")
-        .SetAttr("method", "sum")
+        .SetAttr("type", 2)
         .SetAttr("caffe_flavor", 1)
         .SetDoc(R"DOC(Eltwise Layer)DOC");
 }

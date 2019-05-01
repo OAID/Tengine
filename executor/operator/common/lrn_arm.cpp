@@ -269,6 +269,19 @@ struct LRNOps : public NodeOps
     }
 };
 
+NodeOps* SelectFunc(const CPUInfo* cpu_info, Node* node)
+{
+    Tensor* input = node->GetInputTensor(0);
+    const int data_type = input->GetDataType();
+    const ExecAttr* exec_attr = any_cast<const ExecAttr*>(node->GetAttr(ATTR_EXEC_ATTR));
+    if(data_type != TENGINE_DT_FP32 || exec_attr->graph_layout != TENGINE_LAYOUT_NCHW)
+        return nullptr;
+
+    LRNOps* ops = new LRNOps();
+
+    return ops;
+}
+
 }    // namespace LRNImplArm
 
 using namespace LRNImplArm;
@@ -276,13 +289,11 @@ using namespace LRNImplArm;
 void RegisterLRNNodeExec(void)
 {
 #ifdef CONFIG_ARCH_ARM32
-    LRNOps* arm32_ops = new LRNOps();
-    NodeOpsRegistryManager::RegisterOPImplementor("arm32", "LRN", arm32_ops);
+    NodeOpsRegistryManager::RegisterOPImplementor("arm32", "LRN", LRNImplArm::SelectFunc, 1000);
 #endif
 
 #ifdef CONFIG_ARCH_ARM64
-    LRNOps* arm64_ops = new LRNOps();
-    NodeOpsRegistryManager::RegisterOPImplementor("arm64", "LRN", arm64_ops);
+    NodeOpsRegistryManager::RegisterOPImplementor("arm64", "LRN", LRNImplArm::SelectFunc, 1000);
 #endif
 }
 

@@ -37,7 +37,7 @@ bool Reorg::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<T
     std::vector<int> dim = {n, c * (stride * stride), h / stride, w / stride};
 
     shape.SetDim(dim);
-    shape.SetDataLayout("NCHW");
+    shape.SetDataLayout(input.GetDataLayout());
 
     oshape[0] = shape;
     return true;
@@ -47,7 +47,6 @@ void Reorg::SetSchema(void)
 {
     Input({"input:float32"})
         .Output({"output:float32"})
-        .SetLayout("NCHW")
         .SetAttr("stride", 1)
         .SetDoc(R"DOC(Reorg Operator)DOC");
 }

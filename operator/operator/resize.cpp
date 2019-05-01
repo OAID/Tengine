@@ -37,7 +37,7 @@ bool Resize::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<
     std::vector<int> dim = {in_dim[0], in_dim[1], out_h, out_w};
 
     shape.SetDim(dim);
-    shape.SetDataLayout("NCHW");
+    shape.SetDataLayout(input.GetDataLayout());
 
     oshape[0] = shape;
 
@@ -48,7 +48,6 @@ void Resize::SetSchema(void)
 {
     Input({"input:float32"})
         .Output({"output:float32"})
-        .SetLayout("NCHW")
         .SetAttr("scale_h", 1.f)
         .SetAttr("scale_w", 1.f)
 

@@ -80,15 +80,26 @@ struct PreluOps : public NodeOps
     }
 };
 
+NodeOps* SelectFunc(const CPUInfo* cpu_info, Node* node)
+{
+    Tensor* input = node->GetInputTensor(0);
+    const int data_type = input->GetDataType();
+    const ExecAttr* exec_attr = any_cast<const ExecAttr*>(node->GetAttr(ATTR_EXEC_ATTR));
+    if(data_type != TENGINE_DT_FP32 || exec_attr->graph_layout != TENGINE_LAYOUT_NCHW)
+        return nullptr;
+
+    PreluOps* ops = new PreluOps();
+
+    return ops;
+}
+
 }    // namespace PreluImpl
 
 using namespace PreluImpl;
 
 void RegisterPReLUNodeExec(void)
 {
-    PreluOps* ops = new PreluOps();
-
-    NodeOpsRegistryManager::RegisterOPImplementor("common", "PReLU", ops);
+    NodeOpsRegistryManager::RegisterOPImplementor("common", "PReLU", PreluImpl::SelectFunc, 1000);
 }
 
 }    // namespace TEngine

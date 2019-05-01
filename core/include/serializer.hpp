@@ -41,6 +41,7 @@ class Serializer
 {
 public:
     using op_load_map_t = std::unordered_map<std::string, any>;
+    using op_save_map_t = std::unordered_map<std::string, any>;
 
     Serializer() {}
     virtual ~Serializer(){};
@@ -103,11 +104,34 @@ public:
         return op_load_map_[op_name];
     }
 
+    bool RegisterOpSaveMethod(const std::string& op_name, const any& save_func)
+    {
+        if(op_save_map_.count(op_name))
+            return false;
+
+        op_save_map_[op_name] = save_func;
+        return true;
+    }
+
+    bool FindOpSaveMethod(const std::string& op_name)
+    {
+        if(op_save_map_.count(op_name))
+            return true;
+
+        return false;
+    }
+
+    any& GetOpSaveMethod(const std::string& op_name)
+    {
+        return op_save_map_[op_name];
+    }
+
 protected:
     std::string version_;
     std::string name_;
     std::string format_name_;
     op_load_map_t op_load_map_;
+    op_save_map_t op_save_map_;
 };
 
 using SerializerPtr = std::shared_ptr<Serializer>;

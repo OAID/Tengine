@@ -16,6 +16,10 @@ public:
     LSTM(const LSTM&) = default;
     void SetSchema(void) override;
     bool InferShape(const std::vector<TShape>&, std::vector<TShape>&, int layout) override;
+    const char* GetKernelName(void)
+    {
+        return "kernel";
+    }
     const char* GetBiasName(void)
     {
         return "bias";
@@ -44,6 +48,27 @@ public:
     {
         return "init_h";
     }
+     const char* Geti2hKernelName(void)
+    {
+        return "i2h_weight";
+    }
+    const char* Geti2hBiasName(void)
+    {
+        return "i2h_bias";
+    }
+     const char* Geth2hKernelName(void)
+    {
+        return "h2h_weight";
+    }
+    const char* Geth2hBiasName(void)
+    {
+        return "h2h_bias";
+    }
+    const char* GetFusedKernelName(void)
+    {
+        return "parameters";
+    }
+    
 };
 
 }    // namespace TEngine

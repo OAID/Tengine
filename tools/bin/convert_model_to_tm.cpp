@@ -77,7 +77,8 @@ int main(int argc, char* argv[])
             model_file_needed = true;
             input_file_number = 2;
         }
-        else if(file_format == "caffe_single" || file_format == "onnx" || file_format == "tensorflow")
+        else if(file_format == "caffe_single" || file_format == "onnx" || file_format == "tensorflow" ||
+                file_format == "tflite")
         {
             model_file_needed = true;
             input_file_number = 1;
@@ -149,6 +150,24 @@ int main(int argc, char* argv[])
         std::cout << "Create graph failed\n";
         std::cout << "errno: " << get_tengine_errno() << "\n";
         return -1;
+    }
+
+    const char* env = std::getenv("TM_NO_OPTIMIZE");
+    if(env == nullptr)
+    {
+        // optimize graph
+         int optimize_only = 1;
+        if(set_graph_attr(graph, "optimize_only", &optimize_only, sizeof(int)) < 0)
+        {
+            std::cout<<"set optimize only failed\n";
+            return -1;
+        }
+
+        if(prerun_graph(graph) < 0)
+        {
+            std::cout<<"prerun failed\n";
+            return -1;
+        }
     }
 
     // Save the tengine model file

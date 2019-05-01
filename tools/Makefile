@@ -36,7 +36,7 @@ default: $(libsubdir_list) $(binsubdir_list) $(TEST_LIB) $(BIN_EXES)
 tools: $(BIN_EXES)
 
 
-$(BIN_OBJS): $(binsubdir_list)
+$(BIN_OBJS): $(binsubdir_list);
 
 $(TOOLS_LIB_OBJS): $(libsubdir_list)
 
@@ -64,12 +64,14 @@ clean: $(libsubdir_list) $(binsubdir_list)
 
 $(BUILD_DIR)/%: $(BUILD_DIR)/%.o  $(TOOLS_LIB)
 	@mkdir -p $(@D)
-	$(LD) $(LDFLAGS) $< $(COMMON_OBJS) -o $@ $(TENGINE_SO) $(LIBS) $(SO_LIBS)  -L$(shell pwd)/../build
+	$(LD) $(LDFLAGS) $< $(COMMON_OBJS) -o $@ $(LIBS) $(SO_LIBS)  -L$(shell pwd)/../build
 
 #ugly workaround for cross compiling on arm64 ubuntu rootfs
 OPENCV_LIB=$(shell pkg-config --libs-only-l --libs-only-L opencv) 
 
-TENGINE_SO=-Wl,-rpath,$(shell pwd)/../build -ltengine -Wl,-allow-shlib-undefined
+LIBS+=-Wl,-rpath,$(shell pwd)/../build -ltengine -lhclcpu -Wl,-allow-shlib-undefined
+
+
 LIBS+=-lprotobuf -ldl -lpthread -lresolv
 SO_LIBS+=$(OPENCV_LIB)
 

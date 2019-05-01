@@ -60,14 +60,20 @@ struct StaticGraph
     std::vector<StaticTensorPtr> tensor_list;
     std::unordered_map<std::string, StaticTensorPtr> const_tensor_map;
     std::vector<void*> mem_src;
-    int layout;
+    int graph_layout;
+    int model_layout;
+    int model_format;
+    int model_subformat; // for dla models
 
     StaticGraph(void)
     {
         exec_context = nullptr;
         dev_handle = nullptr;
         release_func = nullptr;
-        layout = -1;
+        graph_layout = -1;
+        model_layout = -1;
+        model_format = -1;
+        model_subformat = -1;
     }
 
     ~StaticGraph(void);
@@ -82,6 +88,7 @@ struct StaticNode
     std::string name;
     int index;
     StaticOpPtr op;
+    Attribute attrs;
 
     std::vector<int> input_tensor_list;
     std::vector<int> output_tensor_list;
@@ -100,10 +107,10 @@ struct StaticTensor
     int mem_size;
     std::vector<int> dims;
     int data_type;
-    std::string data_layout;
     int type;
     float scale;
     int zero_point;
+    int width;
     NodeSynapse producer;
     std::vector<NodeSynapse> consumer;
     virtual ~StaticTensor() {}

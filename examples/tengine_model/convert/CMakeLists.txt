@@ -3,7 +3,7 @@ cmake_minimum_required (VERSION 2.8)
 project(tm_convert)
 
 set( INSTALL_DIR ${TENGINE_DIR}/install/ )
-set( TENGINE_LIBS tengine)
+set( TENGINE_LIBS tengine hclcpu)
 
 set( CODE_SRCS convert_caffe_to_tm.cpp ../../common/common.cpp)
 set( BIN_EXE convert_caffe_to_tm )
@@ -33,6 +33,10 @@ if( BLAS_DIR)
     endif()
 endif()
 
+if ( NOT (ARM OR ANDROID))
+set (BLAS_LIB openblas)
+endif()
+
 
 #exe
 add_executable(${BIN_EXE} ${CODE_SRCS})
@@ -40,6 +44,6 @@ add_executable(${BIN_EXE} ${CODE_SRCS})
 if( ANDROID)
    target_link_libraries(${BIN_EXE} ${TENGINE_LIBS} ${PROTOBUF_LIB} ${BLAS_LIB})
 else()
-   target_link_libraries(${BIN_EXE} ${TENGINE_LIBS})
+   target_link_libraries(${BIN_EXE} ${TENGINE_LIBS} ${BLAS_LIB})
 endif()
           
