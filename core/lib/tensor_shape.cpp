@@ -23,25 +23,14 @@
  */
 #include <unordered_map>
 
-#include "data_layout.hpp"
 #include "tensor_shape.hpp"
 #include "logger.hpp"
 #include "compiler.hpp"
 
 namespace TEngine {
 
-void TShape::SetDim(const std::vector<int>& args, bool layout_check)
+void TShape::SetDim(const std::vector<int>& args)
 {
-    if(layout_check)
-    {
-        const DataLayout* p_layout = DataLayout::GetLayout(layout_);
-
-        if(args.size() != p_layout->GetDimNum())
-        {
-            throw(std::runtime_error("shape dims mismatch"));
-        }
-    }
-
     dim_ = args;
 }
 
@@ -68,36 +57,34 @@ void TShape::DumpShape(std::ostream& os) const
     os << result;
 }
 
-#define GET_DIM(D)                                               \
-    const DataLayout* p_layout = DataLayout::GetLayout(layout_); \
-    int idx = p_layout->Get##D();                                \
-    if(idx < 0)                                                  \
-        return 1;                                                \
-    return dim_[idx]
-
 int TShape::GetN(void) const
 {
-    GET_DIM(N);
+    return Shape(0);
 }
 
 int TShape::GetC(void) const
 {
-    GET_DIM(C);
+    if(layout_==TENGINE_LAYOUT_NCHW)
+         return Shape(1);
+    else
+         return Shape(3);
 }
 
 int TShape::GetH(void) const
 {
-    GET_DIM(H);
+    if(layout_==TENGINE_LAYOUT_NCHW)
+         return Shape(2);
+    else
+         return Shape(1);
 }
 
 int TShape::GetW(void) const
 {
-    GET_DIM(W);
+    if(layout_==TENGINE_LAYOUT_NCHW)
+         return Shape(3);
+    else
+         return Shape(2);
 }
 
-int TShape::GetD(void) const
-{
-    GET_DIM(D);
-}
 
 }    // namespace TEngine

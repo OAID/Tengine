@@ -233,6 +233,16 @@ bool GenericDevExecutor::PrerunTask(SubgraphTask* task)
     if(task->graph_handle == nullptr || !OptimizeGraph(task))
         return false;
 
+    GraphTask * graph_task=task->graph_task;
+    GraphExecutor * executor=graph_task->GetGraphExecutor();
+
+    int optimize_only=0;
+
+    executor->GetGraphAttr("optimize_only",&optimize_only,sizeof(int));
+
+    if(optimize_only)
+        return true;
+
     unsigned int mem_size;
 
     if(DevGetMemorySize(task->graph_handle, mem_size))

@@ -73,15 +73,26 @@ struct FlattenOps : public NodeOps
     }
 };
 
+NodeOps* SelectFunc(const CPUInfo* cpu_info, Node* node)
+{
+    Tensor* input = node->GetInputTensor(0);
+    const int data_type = input->GetDataType();
+    const ExecAttr* exec_attr = any_cast<const ExecAttr*>(node->GetAttr(ATTR_EXEC_ATTR));
+    if(data_type != TENGINE_DT_FP32 || exec_attr->graph_layout != TENGINE_LAYOUT_NCHW)
+        return nullptr;
+
+    FlattenOps* ops = new FlattenOps();
+
+    return ops;
+}
+
 }    // namespace FlattenImpl
 
 using namespace FlattenImpl;
 
 void RegisterFlattenNodeExec(void)
 {
-    FlattenOps* ops = new FlattenOps();
-
-    NodeOpsRegistryManager::RegisterOPImplementor("common", "Flatten", ops);
+    NodeOpsRegistryManager::RegisterOPImplementor("common", "Flatten", FlattenImpl::SelectFunc, 1000);
 }
 
 }    // namespace TEngine

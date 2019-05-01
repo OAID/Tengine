@@ -3,7 +3,7 @@ cmake_minimum_required (VERSION 2.8)
 project(YOLOV2)
 
 set( INSTALL_DIR ${TENGINE_DIR}/install/ )
-set( TENGINE_LIBS tengine)
+set( TENGINE_LIBS tengine hclcpu)
 
 if( ANDROID AND ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "armv7-a"))
     set( PROTOBUF_LIB ${PROTOBUF_DIR}/arm32_lib/libprotobuf.so)
@@ -19,6 +19,11 @@ if( BLAS_DIR)
          set( BLAS_LIB ${BLAS_DIR}/arm64/lib/libopenblas.so)
     endif()
 endif()
+
+if ( NOT (ARM OR ANDROID))
+set (BLAS_LIB openblas)
+endif()
+
 
 set( CODE_SRCS yolov2.cpp ../common/common.cpp)
 set( BIN_EXE YOLOV2)
@@ -46,7 +51,7 @@ add_executable(${BIN_EXE} ${CODE_SRCS})
 if( ANDROID)
    target_link_libraries(${BIN_EXE} ${TENGINE_LIBS} ${PROTOBUF_LIB} ${OpenCV_LIBS} ${BLAS_LIB})
 else()
-   target_link_libraries(${BIN_EXE} ${TENGINE_LIBS} ${OpenCV_LIBS})
+   target_link_libraries(${BIN_EXE} ${TENGINE_LIBS} ${OpenCV_LIBS} ${BLAS_LIB})
 endif()
 
 

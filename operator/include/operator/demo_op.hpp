@@ -37,6 +37,8 @@ public:
     }
     DemoOp(const DemoOp& src) = default;
 
+    bool InferShape(const std::vector<TShape>& ishape, std::vector<TShape>& oshape, int layout) override;
+
     void SetSchema(void) override;
 };
 }    // namespace TEngine

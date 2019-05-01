@@ -587,7 +587,7 @@ static void probe_func(void)
         cpu_dev->online_cpu_number = default_param.cpu_number;
     }
 
-    create_cpu_device("generic_probe", cpu_dev);
+    create_cpu_device(cpu_dev->cpu_name, cpu_dev);
 
     cpu_dev->online_cpu_list = saved_list;
     cpu_dev->online_cpu_number = saved_number;

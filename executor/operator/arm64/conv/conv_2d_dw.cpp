@@ -235,10 +235,10 @@ static bool isDepthwiseSupported(const ConvParam* param, const TShape& input_sha
     int stride_w = param->stride_w;
     int dilation_h = param->dilation_h;
     int dilation_w = param->dilation_w;
-    int pad_h0 = param->pads[0];
-    int pad_w0 = param->pads[1];
-    int pad_h1 = param->pads[2];
-    int pad_w1 = param->pads[3];
+    int pad_h0 = param->pad_h0;
+    int pad_w0 = param->pad_w0;
+    int pad_h1 = param->pad_h1;
+    int pad_w1 = param->pad_w1;
 
     if(group == 1 || input_c != group || kernel_h != 3 || kernel_w != 3 || pad_h0 != 1 || pad_w0 != 1 ||
        pad_h0 != pad_h1 || pad_w0 != pad_w1 || dilation_h != 1 || dilation_w != 1 || stride_w != stride_h)
@@ -252,7 +252,7 @@ NodeOps* SelectFunc(const CPUInfo* cpu_info, Node* node)
 {
     const ExecAttr* exec_attr = any_cast<const ExecAttr*>(node->GetAttr(ATTR_EXEC_ATTR));
 
-    if(exec_attr->layout == TENGINE_LAYOUT_NHWC)
+    if(exec_attr->graph_layout == TENGINE_LAYOUT_NHWC)
         return nullptr;
 
     Operator* op = node->GetOp();

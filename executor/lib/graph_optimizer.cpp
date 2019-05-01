@@ -48,29 +48,25 @@ static void AddConstNodeToSubGraph(Subgraph* graph, Tensor* tensor, Node* fused_
 static bool Weight_Bn(Subgraph* graph, Node* ConvNode, float* mean, float* var, float* gamma, float* beta, float eps,
                       float rescale_factor, Tensor* bias_tensor)
 {
-    Tensor* input_tensor = ConvNode->GetInputTensor(0);
+    Tensor* kernel_tensor = ConvNode->GetInputTensor(1);
     Convolution* conv_op = dynamic_cast<Convolution*>(ConvNode->GetOp());
     ConvParam* param = conv_op->GetParam();
-    const TShape& input_shape = input_tensor->GetShape();
+    const TShape& kernel_shape = kernel_tensor->GetShape();
 
     int group = param->group;
-    int input_chan = input_shape.Shape(1) / group;
+    int input_chan = kernel_shape.Shape(1) ;
 
-    Tensor* output_tensor = ConvNode->GetOutputTensor(0);
-    TShape& output_shape = output_tensor->GetShape();
-
-    int output_chan = output_shape.GetC() / group;
+    int output_chan = kernel_shape.Shape(0) / group;
 
     int kernel_x = param->kernel_w;
     int kernel_y = param->kernel_h;
     int kernel_size = input_chan * kernel_x * kernel_y;
 
-    Tensor* kernel_tensor = ConvNode->GetInputTensor(1);
     float* kernel_org = ( float* )get_tensor_mem(kernel_tensor);
 
-    int channel_num = output_shape.GetC();
+    int channel_num = kernel_shape.Shape(0);
 
-    float* kernel_new = ( float* )(malloc(kernel_size * channel_num * sizeof(float)));
+    float* kernel_new = ( float* )(malloc(kernel_size * channel_num * sizeof(float) + 128));
 
     memcpy(kernel_new, kernel_org, sizeof(float) * kernel_size * channel_num);
 
@@ -102,7 +98,7 @@ static bool Weight_Bn(Subgraph* graph, Node* ConvNode, float* mean, float* var, 
 
     {
         Tensor* new_bias_tensor = new Tensor(bias_name);
-        std::vector<int> dims{1, channel_num, 1, 1};
+        std::vector<int> dims{channel_num};
 
         TShape bias_shape;
         bias_shape.SetDim(dims);
@@ -110,7 +106,7 @@ static bool Weight_Bn(Subgraph* graph, Node* ConvNode, float* mean, float* var, 
         new_bias_tensor->Reshape(bias_shape);
         new_bias_tensor->SetType(kConstTensor);
 
-        void* bias_new = ( void* )malloc(channel_num * sizeof(float));
+        void* bias_new = ( void* )malloc(channel_num * sizeof(float) + 128);
 
         new_bias_tensor->SetMemAddr(bias_new);
 

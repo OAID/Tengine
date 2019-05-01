@@ -100,7 +100,7 @@ bool RPN::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEn
     TShape shape;
     std::vector<int> dim = {feat_dim[0], param_.post_nms_topn + 1, 4, 1};
     shape.SetDim(dim);
-    shape.SetDataLayout("NCHW");
+    shape.SetDataLayout(input.GetDataLayout());
     oshape[0] = shape;
     return true;
 }
@@ -109,7 +109,6 @@ void RPN::SetSchema(void)
 {
     Input({"input:float32"})
         .Output({"output:float32"})
-        .SetLayout("NCHW")
         .SetAttr("feat_stride", 16)
 
         .SetDoc(R"DOC(RPN Layer)DOC");

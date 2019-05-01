@@ -44,12 +44,12 @@ enum TensorType
 class TShape
 {
 public:
-    void SetDataLayout(const std::string& layout_name)
+    void SetDataLayout(int layout)
     {
-        layout_ = layout_name;
+        layout_ = layout;
     }
 
-    const std::string& GetDataLayout(void) const
+    int GetDataLayout(void) const
     {
         return layout_;
     }
@@ -95,7 +95,7 @@ public:
         return true;
     }
 
-    void SetDim(const std::vector<int>& args, bool layout_check = false);
+    void SetDim(const std::vector<int>& args);
 
     void DumpShape(std::ostream& os) const;
 
@@ -103,7 +103,6 @@ public:
     int GetC(void) const;
     int GetH(void) const;
     int GetW(void) const;
-    int GetD(void) const;
 
     TShape() = default;
 
@@ -148,7 +147,7 @@ public:
 
 private:
     std::vector<int> dim_;
-    std::string layout_;
+    int layout_;
 };
 
 }    // namespace TEngine

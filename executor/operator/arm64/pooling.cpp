@@ -31,15 +31,21 @@
 #include "tensor_mem.hpp"
 #include "pooling_kernel.h"
 
+#ifdef CONFIG_AUTH_DEVICE
+#include "auth_nodeops.hpp"
+#endif
+
 namespace TEngine {
 
 namespace PoolingImpl {
+
+const int default_prio = 100;
 
 typedef void (*pool_kernel_t)(const float* input, float* output, int inc, int in_h, int inw, int out_h, int out_w,
                               int kernel_h, int kernel_w, int stride_h, int stride_w, int pad_h0, int pad_w0,
                               int pad_h1, int pad_w1, int is_caffe);
 
-struct PoolingOps : public NodeOps
+struct PoolingOps : public MTNodeOps
 {
     PoolingSize pooling_size = POOL_GENERIC;
     pool_kernel_t kernel_run = nullptr;
@@ -80,15 +86,15 @@ struct PoolingOps : public NodeOps
         Pooling* pooling_op = dynamic_cast<Pooling*>(node->GetOp());
         PoolParam* param_ = pooling_op->GetParam();
 
-        if(param_->strides[0] == 2 && param_->strides[1] == 2)
+        if(param_->stride_h == 2 && param_->stride_w == 2)
         {
-            if(param_->kernel_shape[0] == 2 && param_->kernel_shape[1] == 2)
+            if(param_->kernel_h == 2 && param_->kernel_w == 2)
                 pooling_size = POOL_K2S2;
-            else if(param_->kernel_shape[0] == 3 && param_->kernel_shape[1] == 3)
+            else if(param_->kernel_h == 3 && param_->kernel_w == 3)
                 pooling_size = POOL_K3S2;
         }
-        else if(param_->strides[0] == 1 && param_->strides[1] == 1 && param_->kernel_shape[0] == 3 &&
-                param_->kernel_shape[1] == 3)
+        else if(param_->stride_h == 1 && param_->stride_w == 1 && param_->kernel_h == 3 &&
+                param_->kernel_w == 3)
         {
             pooling_size = POOL_K3S1;
         }
@@ -102,14 +108,14 @@ struct PoolingOps : public NodeOps
             }
 
             kernel_run = Generic_MaxPool;
-            if(param_->pads[0] == 0 && param_->pads[1] == 0)
+            if(param_->pad_h0 == 0 && param_->pad_w0 == 0)
             {
                 if(pooling_size == POOL_K2S2)
                     kernel_run = MaxPool_2x2s2;
                 else if(pooling_size == POOL_K3S2)
                     kernel_run = MaxPool_3x3s2;
             }
-            else if(param_->pads[0] == 1 && param_->pads[1] == 1)
+            else if(param_->pad_h0 == 1 && param_->pad_w0 == 1)
             {
                 if(pooling_size == POOL_K2S2)
                     kernel_run = MaxPool_2x2s2_pad1;
@@ -131,7 +137,7 @@ struct PoolingOps : public NodeOps
             }
 
             kernel_run = Generic_AvgPool;
-            if(param_->pads[0] == 0 && param_->pads[1] == 0)
+            if(param_->pad_h0 == 0 && param_->pad_w0 == 0)
             {
                 if(pooling_size == POOL_K2S2)
                     kernel_run = AvgPool_2x2s2;
@@ -139,7 +145,7 @@ struct PoolingOps : public NodeOps
                     kernel_run = AvgPool_3x3s2;
             }
 
-            if(param_->pads[0] == 1 && param_->pads[1] == 1)
+            if(param_->pad_h0 == 1 && param_->pad_w0 == 1)
             {
                 if(pooling_size == POOL_K2S2)
                     kernel_run = AvgPool_2x2s2_pad1;
@@ -180,8 +186,8 @@ struct PoolingOps : public NodeOps
     printf("input: %d,%d,%d   --> output: %d,%d \n",
                 in_dim[1], in_dim[2], in_dim[3], out_dim[2], out_dim[3]);
     printf("kernel: %d, stride: %d, arg: %d, pad: %d,%d,%d,%d\n",
-                param_->kernel_shape[0], param_->strides[0], param_->alg,
-                param_->pads[0],param_->pads[1],param_->pads[2],param_->pads[3]);
+                param_->kernel_h, param_->stride_h, param_->alg,
+                param_->pad_h0,param_->pad_w0,param_->pad_h1,param_->pad_w1);
 #endif
         int is_caffe = param_->caffe_flavor;
         for(int n = 0; n < in_dim[0]; n++)
@@ -191,8 +197,8 @@ struct PoolingOps : public NodeOps
             if(!exec_attr->pooling_mt)
             {
                 kernel_run(in_ptr, out_ptr, in_dim[1], in_dim[2], in_dim[3], out_dim[2], out_dim[3],
-                           param_->kernel_shape[0], param_->kernel_shape[1], param_->strides[0], param_->strides[1],
-                           param_->pads[0], param_->pads[1], param_->pads[2], param_->pads[3], is_caffe);
+                           param_->kernel_h, param_->kernel_w, param_->stride_h, param_->stride_w,
+                           param_->pad_h0, param_->pad_w0, param_->pad_h1, param_->pad_w1, is_caffe);
             }
             else
             {
@@ -221,14 +227,14 @@ struct PoolingOps : public NodeOps
                     param->in_w = in_dim[3];
                     param->out_h = out_dim[2];
                     param->out_w = out_dim[3];
-                    param->kernel_h = param_->kernel_shape[0];
-                    param->kernel_w = param_->kernel_shape[1];
-                    param->stride_h = param_->strides[0];
-                    param->stride_w = param_->strides[1];
-                    param->pad_h0 = param_->pads[0];
-                    param->pad_w0 = param_->pads[1];
-                    param->pad_h1 = param_->pads[2];
-                    param->pad_w1 = param_->pads[3];
+                    param->kernel_h = param_->kernel_h;
+                    param->kernel_w = param_->kernel_w;
+                    param->stride_h = param_->stride_h;
+                    param->stride_w = param_->stride_w;
+                    param->pad_h0 = param_->pad_h0;
+                    param->pad_w0 = param_->pad_w0;
+                    param->pad_h1 = param_->pad_h1;
+                    param->pad_w1 = param_->pad_w1;
                     param->is_caffe = is_caffe;
                 }
 
@@ -241,16 +247,20 @@ struct PoolingOps : public NodeOps
     }
 };
 
-const int default_prio = 100;
 NodeOps* SelectFunc(const CPUInfo* cpu_info, Node* node)
 {
+#ifdef CONFIG_AUTH_DEVICE
+    if(!get_auth_float_enabled())
+         return nullptr;
+#endif
+
+    Tensor* input = node->GetInputTensor(0);
+    const int data_type = input->GetDataType();
     const ExecAttr* exec_attr = any_cast<const ExecAttr*>(node->GetAttr(ATTR_EXEC_ATTR));
-    if(exec_attr->layout == TENGINE_LAYOUT_NHWC)
+    if( data_type != TENGINE_DT_FP32 || exec_attr->graph_layout != TENGINE_LAYOUT_NCHW)
         return nullptr;
 
     PoolingOps* ops = new PoolingOps();
-
-    ops->need_free = true;
 
     return ops;
 }

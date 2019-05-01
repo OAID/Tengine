@@ -38,12 +38,10 @@ add_subdirectory(faster_rcnn)
 add_subdirectory(lighten_cnn)
 add_subdirectory(imagenet_classification)
 add_subdirectory(mobilenet_ssd)
-
 if( NOT ANDROID)
-   #add_subdirectory(caffe_wrapper)
-   #add_subdirectory(tensorflow_wrapper)
+   add_subdirectory(caffe_wrapper)
+   add_subdirectory(tensorflow_wrapper)
 endif()
-
 add_subdirectory(tengine_model)
 
 

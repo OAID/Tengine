@@ -118,15 +118,26 @@ struct NormalizeOps : public NodeOps
     }
 };
 
+NodeOps* SelectFunc(const CPUInfo* cpu_info, Node* node)
+{
+    Tensor* input = node->GetInputTensor(0);
+    const int data_type = input->GetDataType();
+    const ExecAttr* exec_attr = any_cast<const ExecAttr*>(node->GetAttr(ATTR_EXEC_ATTR));
+    if(data_type != TENGINE_DT_FP32 || exec_attr->graph_layout != TENGINE_LAYOUT_NCHW)
+        return nullptr;
+
+    NormalizeOps* ops = new NormalizeOps();
+
+    return ops;
+}
+
 }    // namespace NormalizeImpl
 
 using namespace NormalizeImpl;
 
 void RegisterNormalizeNodeExec(void)
 {
-    NormalizeOps* ops = new NormalizeOps();
-
-    NodeOpsRegistryManager::RegisterOPImplementor("common", "Normalize", ops);
+    NodeOpsRegistryManager::RegisterOPImplementor("common", "Normalize", NormalizeImpl::SelectFunc, 1000);
 }
 
 }    // namespace TEngine

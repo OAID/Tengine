@@ -1,5 +1,4 @@
 obj-y+=data_type.o
-obj-y+=data_layout.o
 obj-y+=exec_context.o
 obj-y+=tensor.o
 obj-y+=tensor_shape.o
@@ -19,6 +18,7 @@ obj-y+=compiler.o
 obj-y+=tengine_c_helper.o
 obj-y+=tengine_version.o
 obj-y+=tengine_errno.o
+obj-y+=tengine_runtime_error.o
 obj-y+=logger/
 
 obj-$(CONFIG_LEGACY_API)+=tengine_c_compat.o

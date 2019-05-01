@@ -27,7 +27,7 @@ namespace TEngine {
 
 void InputOp::SetSchema(void)
 {
-    SetLayout("NCHW").SetDoc(R"DOC(Input Data Operator)DOC");
+    SetDoc(R"DOC(Input Data Operator)DOC");
 }
 
 }    // namespace TEngine

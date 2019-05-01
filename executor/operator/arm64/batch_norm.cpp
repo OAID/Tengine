@@ -35,7 +35,7 @@
 #include <cmath>
 namespace TEngine {
 
-namespace BatchNormImpl {
+namespace BatchNormImpl64 {
 
 struct BNOps : public NodeOps
 {
@@ -206,15 +206,24 @@ struct BNOps : public NodeOps
     }
 };
 
-}    // namespace BatchNormImpl
+NodeOps* SelectFunc(const CPUInfo* cpu_info, Node* node)
+{
+    Tensor* input = node->GetInputTensor(0);
+    if((input->GetShape()).GetDim().size() != 4)
+        return nullptr;
 
-using namespace BatchNormImpl;
+    BNOps* ops = new BNOps();
+
+    return ops;
+}
+
+}    // namespace BatchNormImpl64
+
+using namespace BatchNormImpl64;
 
 void RegisterBatchNormNodeExec(void)
 {
-    BNOps* ops = new BNOps();
-
-    NodeOpsRegistryManager::RegisterOPImplementor("arm64", BatchNormName, ops);
+    NodeOpsRegistryManager::RegisterOPImplementor("arm64", BatchNormName, BatchNormImpl64::SelectFunc, 1000);
 }
 
 }    // namespace TEngine

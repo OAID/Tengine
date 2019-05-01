@@ -34,11 +34,6 @@ using namespace TEngine;
 namespace TEngine {
 
 extern void NodeOpsRegistryManagerInit(void);
-extern void RegisterCommonOps(void);
-
-#if CONFIG_ARCH_ARM64 == 1 || CONFIG_ARCH_ARM32 == 1
-extern void RegisterArmOps(void);
-#endif
 
 void DevAllocatorManagerInit(void);
 void DevSchedulerManagerInit(void);
@@ -47,12 +42,6 @@ void DevSchedulerManagerInit(void);
 int executor_plugin_init(void)
 {
     NodeOpsRegistryManagerInit();
-
-    RegisterCommonOps();
-
-#if CONFIG_ARCH_ARM64 || CONFIG_ARCH_ARM32
-    RegisterArmOps();
-#endif
 
     DevAllocatorManagerInit();
     DevSchedulerManagerInit();

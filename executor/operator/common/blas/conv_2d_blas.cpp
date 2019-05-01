@@ -37,8 +37,8 @@
 namespace TEngine {
 
 namespace ConvolutionImpl {
-const char* conv_name = "CONV_IMPL";
-const int default_prio = 1200;
+const char* conv_name = "CONV_BLAS";
+const int default_prio = 5000;
 
 struct ConvolutionOps : public NodeOps
 {
@@ -177,8 +177,8 @@ struct ConvolutionOps : public NodeOps
 
         int ksize_h = param->kernel_h;
         int ksize_w = param->kernel_w;
-        int pad_w = param->pads[1];
-        int pad_h = param->pads[0];
+        int pad_w = param->pad_w0;
+        int pad_h = param->pad_h0;
 
         int stride_w = param->stride_w;
         int stride_h = param->stride_h;
@@ -248,13 +248,13 @@ struct ConvolutionOps : public NodeOps
 
 NodeOps* SelectFunc(const CPUInfo* cpu_info, Node* node)
 {
+    Tensor* input = node->GetInputTensor(0);
+    const int data_type = input->GetDataType();
     const ExecAttr* exec_attr = any_cast<const ExecAttr*>(node->GetAttr(ATTR_EXEC_ATTR));
-    if(exec_attr->layout == TENGINE_LAYOUT_NHWC)
+    if(data_type != TENGINE_DT_FP32 || exec_attr->graph_layout != TENGINE_LAYOUT_NCHW)
         return nullptr;
 
     ConvolutionOps* ops = new ConvolutionOps();
-
-    ops->need_free = true;
 
     return ops;
 }
@@ -263,8 +263,9 @@ NodeOps* SelectFunc(const CPUInfo* cpu_info, Node* node)
 
 void RegisterConvBlasNodeExec(void)
 {
-    NodeOpsRegistryManager::RegisterOPImplementor("common", "Convolution", ConvolutionImpl::SelectFunc,
-                                                  ConvolutionImpl::default_prio);
+    if(!NodeOpsRegistryManager::RegisterOPImplementor("common", "Convolution", ConvolutionImpl::SelectFunc,
+                                                  ConvolutionImpl::default_prio))
+        LOG_ERROR()<<__FUNCTION__<<" :Regist OP failed for prio ["<<ConvolutionImpl::default_prio<<"]\n";
 }
 
 }    // namespace TEngine

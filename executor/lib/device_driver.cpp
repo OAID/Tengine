@@ -56,7 +56,7 @@ bool DriverManager::UnregisterDriver(Driver* driver)
 
 Driver* DriverManager::GetDriver(const std::string& name)
 {
-    Driver* driver;
+    Driver* driver=nullptr;
 
     if(!SafeGet(name, driver))
         return nullptr;

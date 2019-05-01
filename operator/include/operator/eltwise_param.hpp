@@ -37,20 +37,28 @@ enum EltType
     ELT_MAX,
     ELT_RSQRT,
     ELT_MIN_SCALAR,
-    ELT_LAST
+    ELT_LAST,
+    ELT_DIV,
+    ELT_LOG,
+    ELT_EXP,
+    ELT_SQRT,
+    ELT_FLOOR,
+    ELT_SQUARE,
+    ELT_POW
 };
 
 namespace TEngine {
 
 struct EltwiseParam : public NamedParam
 {
-    std::string method;
-    EltType type;
+    // std::string method;
+    // EltType type;
+    int type;
     int caffe_flavor;
 
     DECLARE_PARSER_STRUCTURE(EltwiseParam)
     {
-        DECLARE_PARSER_ENTRY(method);
+        DECLARE_PARSER_ENTRY(type);
         DECLARE_PARSER_ENTRY(caffe_flavor);
     };
 };

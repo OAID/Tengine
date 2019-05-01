@@ -8,6 +8,7 @@ MODULE_DIR+=
 ifeq ($(CONFIG_CAFFE_SERIALIZER),y)
     obj-y+=caffe/
     COMMON_CFLAGS+= -DCONFIG_CAFFE_SERIALIZER
+    PROTOBUF_NEEDED=y
 endif
 ifeq ($(CONFIG_MXNET_SERIALIZER),y)
     obj-y+=mxnet/
@@ -20,6 +21,7 @@ endif
 ifeq ($(CONFIG_TF_SERIALIZER),y)
     obj-y+=tensorflow/
     COMMON_CFLAGS+= -DCONFIG_TF_SERIALIZER
+    PROTOBUF_NEEDED=y
 endif
 ifeq ($(CONFIG_TFLITE_SERIALIZER),y)
     obj-y+=tf_lite/
@@ -31,14 +33,19 @@ ifeq ($(CONFIG_TENGINE_SERIALIZER),y)
     COMMON_CFLAGS+= -DCONFIG_TENGINE_SERIALIZER
 endif
 
-obj-y+=source/
-obj-y+=plugin/
+ifeq ($(PROTOBUF_NEEDED),y)
+    #to get the protobuf header file
+    PROTOBUF_HEADER=$(shell pkg-config --cflags protobuf)
+    COMMON_CFLAGS+=$(PROTOBUF_HEADER)
+endif
 
 CXXFLAGS+=
 COMMON_CFLAGS+=$(CONFIG_OPT_CFLAGS)
 COMMON_CFLAGS+= -Wall -g -I$(shell pwd)/include -fPIC  $(INC_DIR) -Werror
 
 
+obj-y+=source/
+obj-y+=plugin/
 
 install:
 

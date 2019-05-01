@@ -176,8 +176,8 @@ struct FCOps : public MTNodeOps
         Tensor* tensor;
 
         tensor = node->GetInputTensor(1);
-        int M = tensor->GetShape().GetH();
-        int K = tensor->GetShape().GetW();
+        int M = tensor->GetShape().Shape(0);
+        int K = tensor->GetShape().Shape(1);
 
         float* weight = ( float* )get_tensor_mem(tensor);
 
@@ -188,8 +188,6 @@ struct FCOps : public MTNodeOps
 
         if(exec_attr->low_mem_mode)
         {
-            printf("Free fc weight: %s %d\n", tensor->GetName().c_str(), tensor->GetTotalSize());
-
             tensor->FreeMem();
         }
 
@@ -240,8 +238,8 @@ struct FCOps : public MTNodeOps
 
         /* weight */
         tensor = node->GetInputTensor(1);
-        int M = tensor->GetShape().GetH();
-        int K = tensor->GetShape().GetW();
+        int M = tensor->GetShape().Shape(0);
+        int K = tensor->GetShape().Shape(1);
         float* weight_interleaved = any_cast<float*>(node->GetAttr("weight_interleaved"));
 
         /* output */
@@ -338,6 +336,10 @@ struct FCOps : public MTNodeOps
 
 NodeOps* SelectFunc(const CPUInfo* cpu_info, Node* node)
 {
+    const ExecAttr* exec_attr = any_cast<const ExecAttr*>(node->GetAttr(ATTR_EXEC_ATTR));
+    if(exec_attr->graph_layout != TENGINE_LAYOUT_NCHW)
+        return nullptr;
+
     FCOps* ops = new FCOps();
 
     int master_cpu = cpu_info->GetMasterCPU();

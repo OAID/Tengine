@@ -19,7 +19,7 @@ bin-obj-y:=
 obj-y:=
 subdir-y:=
 
--include $(MAKEFILE_CONFIG)
+include $(MAKEFILE_CONFIG)
 include Makefile
 
 
@@ -48,9 +48,7 @@ endif
 
 prebuilt_objs=$(prebuilt-obj-y)
 
-#real_subdir_built_in=$(foreach f, $(subdir_objs), $(wildcard $(f)) )
-real_subdir_built_in=$(subdir_objs)
-real_built_in_objs=$(real_subdir_built_in) $(curdir_objs) $(prebuilt_objs)
+real_built_in_objs= $(subdir_objs) $(curdir_objs) $(prebuilt_objs)
 
 #add BUILD_DIR PREFIX
 curdir_objs:=$(addprefix $(BUILD_DIR)/, $(cur_objs))
@@ -79,10 +77,14 @@ $(subdir_objs): $(subdir-y);
 endif
 
 $(BUILT_IN_OBJ): $(real_built_in_objs) 
-	@echo $(BUILT_IN_LD) -r -o $@  $(real_built_in_objs); \
-               $(BUILT_IN_LD) -r -o $@ $(real_built_in_objs);
+	@for file in $? ; do if [  -f $$file  ] ; then \
+     NEED_BUILD=true; break; fi; done; \
+    if [ $$NEED_BUILD ]; then \
+    echo "$(BUILT_IN_LD) -r -o $@  $(wildcard $(real_built_in_objs))"; \
+    $(BUILT_IN_LD) -r -o $@ $(wildcard $(real_built_in_objs)); fi;
 else
 $(BUILT_IN_OBJ):
+
 endif
 
 clean::  $(subdir-y)

@@ -32,8 +32,10 @@
 #include <google/protobuf/text_format.h>
 #include <google/protobuf/message.h>
 
+#include "tengine_c_api.h"
 #include "data_type.hpp"
 #include "type_name.hpp"
+#include "exec_attr.hpp"
 #include "tengine_errno.hpp"
 #include "caffe_serializer.hpp"
 #include "operator_manager.hpp"
@@ -60,6 +62,8 @@
 #include "operator/region_param.hpp"
 #include "operator/deconv_param.hpp"
 #include "operator/resize_param.hpp"
+#include "operator/split_param.hpp"
+
 
 namespace TEngine {
 
@@ -207,6 +211,10 @@ bool CaffeSingle::LoadModel(const std::vector<std::string>& file_list, StaticGra
     SetGraphSource(graph, file_list[0]);
     SetGraphSourceFormat(graph, "caffe");
     SetGraphConstTensorFile(graph, file_list[0]);
+    SetGraphLayout(graph,TENGINE_LAYOUT_NCHW);
+    SetModelLayout(graph,TENGINE_LAYOUT_NCHW);
+    SetModelFormat(graph,MODEL_FORMAT_CAFFE);
+
 
     return LoadGraph(caffe_net, graph);
 }
@@ -237,7 +245,6 @@ bool CaffeSingle::LoadNode(StaticGraph* graph, StaticNode* node, const te_caffe:
 
         StaticTensor* tensor = CreateStaticTensor(graph, tensor_name);
 
-        SetTensorDataLayout(tensor, "NCHW");
         SetTensorDataType(tensor, DataType::GetTypeID("float32"));
 
         AddNodeOutputTensor(node, tensor);
@@ -308,6 +315,10 @@ bool CaffeBuddy::LoadModel(const std::vector<std::string>& file_list, StaticGrap
     SetGraphSource(graph, file_list[1]);
     SetGraphSourceFormat(graph, "caffe");
     SetGraphConstTensorFile(graph, file_list[1]);
+    SetGraphLayout(graph,TENGINE_LAYOUT_NCHW);
+    SetModelLayout(graph,TENGINE_LAYOUT_NCHW);
+    SetModelFormat(graph,MODEL_FORMAT_CAFFE);
+
 
     return LoadGraph(test_net, train_net, graph);
 }
@@ -425,7 +436,6 @@ static void LoadCaffeBlob(StaticGraph* graph, StaticNode* node, const std::vecto
 
         SetTensorDim(tensor, dims);
         SetTensorDataType(tensor, DataType::GetTypeID("float32"));
-        SetTensorDataLayout(tensor, layout_list[i]);
 
         int mem_size = blob.data_size() * 4;
 
@@ -459,7 +469,6 @@ static void CreatePresetNode(StaticGraph* graph, StaticNode* node, const char* n
 
     SetTensorDim(tensor, dims);
     SetTensorDataType(tensor, DataType::GetTypeID("float32"));
-    SetTensorDataLayout(tensor, layout);
 
     int elem_size = 1;
 
@@ -685,24 +694,21 @@ static bool LoadCaffeNormalize(StaticGraph* graph, StaticNode* node, const te_ca
 
 static bool LoadCaffeSlice(StaticGraph* graph, StaticNode* node, const te_caffe::LayerParameter& layer_param)
 {
-    const te_caffe::SliceParameter& slice_param = layer_param.slice_param();
-
-    SliceParam param = any_cast<SliceParam>(OpManager::GetOpDefParam("Slice"));
-
-    if(slice_param.has_axis())
+     const te_caffe::SliceParameter& slice_param = layer_param.slice_param();
+     SliceParam param = any_cast<SliceParam>(OpManager::GetOpDefParam("Slice"));
+     if(slice_param.has_axis())
         param.axis = slice_param.axis();
-    else
+     else
         param.axis = 1;
+     param.iscaffe = true;
+     param.slice_point_.clear();
+     std::copy(slice_param.slice_point().begin(),slice_param.slice_point().end(),std::back_inserter(param.slice_point_));
+     StaticOp* op = CreateStaticOp(graph, "Slice");
+     SetOperatorParam(op, param);
+     SetNodeOp(node, op);
 
-    StaticOp* op = CreateStaticOp(graph, "Slice");
-
-    SetOperatorParam(op, param);
-
-    SetNodeOp(node, op);
-
-    return true;
+     return true;
 }
-
 static bool LoadCaffeReLu(StaticGraph* graph, StaticNode* node, const te_caffe::LayerParameter& layer_param)
 {
     ReLuParam param = any_cast<ReLuParam>(OpManager::GetOpDefParam("ReLu"));
@@ -724,10 +730,11 @@ static bool LoadCaffeReLu(StaticGraph* graph, StaticNode* node, const te_caffe::
 
 static bool LoadCaffeSplit(StaticGraph* graph, StaticNode* node, const te_caffe::LayerParameter& layer_param)
 {
+    SplitParam param = any_cast<SplitParam>(OpManager::GetOpDefParam("Split"));
+    param.is_caffe=true;
     StaticOp* op = CreateStaticOp(graph, "Split");
-
+    SetOperatorParam(op, param);
     SetNodeOp(node, op);
-
     return true;
 }
 
@@ -1050,13 +1057,17 @@ static bool LoadCaffeConvolution(StaticGraph* graph, StaticNode* node, const te_
 
     if(conv_param.has_pad_h() && conv_param.has_pad_w())
     {
-        param.pad_h = conv_param.pad_h();
-        param.pad_w = conv_param.pad_w();
+        param.pad_h0 = conv_param.pad_h();
+        param.pad_h1 = conv_param.pad_h();
+        param.pad_w0 = conv_param.pad_w();
+        param.pad_w1 = conv_param.pad_w();
     }
     else if(conv_param.pad_size())
     {
-        param.pad_h = conv_param.pad(0);
-        param.pad_w = conv_param.pad(0);
+        param.pad_h0 = conv_param.pad(0);
+        param.pad_h1 = conv_param.pad(0);
+        param.pad_w0 = conv_param.pad(0);
+        param.pad_w1 = conv_param.pad(0);
     }
 
     param.output_channel = conv_param.num_output();
@@ -1092,15 +1103,53 @@ static bool LoadCaffeDeconvolution(StaticGraph* graph, StaticNode* node, const t
 
     DeconvParam param = any_cast<DeconvParam>(OpManager::GetOpDefParam("Deconvolution"));
 
-    param.kernel_size = conv_param.kernel_size(0);
-    param.stride = conv_param.stride(0);
-    param.pad = conv_param.pad(0);
+    if(conv_param.has_kernel_h() && conv_param.has_kernel_w())
+    {
+        param.kernel_h = conv_param.kernel_h();
+        param.kernel_w = conv_param.kernel_w();
+    }
+    else
+    {
+        param.kernel_h = conv_param.kernel_size(0);
+        param.kernel_w = conv_param.kernel_size(0);
+    }
+
+    if(conv_param.has_stride_h() && conv_param.has_stride_w())
+    {
+        param.stride_h = conv_param.stride_h();
+        param.stride_w = conv_param.stride_w();
+    }
+    else if(conv_param.stride_size())
+    {
+        param.stride_h = conv_param.stride(0);
+        param.stride_w = conv_param.stride(0);
+    }
+
+    if(conv_param.has_pad_h() && conv_param.has_pad_w())
+    {
+        param.pad_h0 = conv_param.pad_h();
+        param.pad_h1 = conv_param.pad_h();
+        param.pad_w0 = conv_param.pad_w();
+        param.pad_w1 = conv_param.pad_w();
+    }
+    else if(conv_param.pad_size())
+    {
+        param.pad_h0 = conv_param.pad(0);
+        param.pad_w0 = conv_param.pad(0);
+        param.pad_h1 = conv_param.pad(0);
+        param.pad_w1 = conv_param.pad(0);
+    }
     param.num_output = conv_param.num_output();
+
+    if(conv_param.has_group())
+        param.group = conv_param.group();
 
     if(conv_param.dilation_size())
     {
-        param.dilation = conv_param.dilation(0);
+        param.dilation_h = conv_param.dilation(0);
+        param.dilation_w = conv_param.dilation(0);
     }
+
 
     StaticOp* op = CreateStaticOp(graph, "Deconvolution");
 
@@ -1147,27 +1196,23 @@ static bool LoadCaffePooling(StaticGraph* graph, StaticNode* node, const te_caff
         param.kernel_h = pool_param.kernel_h();
         param.kernel_w = pool_param.kernel_w();
     }
-    param.kernel_shape.resize(2);
-    param.kernel_shape[0] = param.kernel_h;
-    param.kernel_shape[1] = param.kernel_w;
 
     param.global = pool_param.global_pooling();
 
     if(pool_param.has_pad())
     {
-        param.pad_h = pool_param.pad();
-        param.pad_w = pool_param.pad();
+        param.pad_h0 = pool_param.pad();
+        param.pad_h1 = pool_param.pad();
+        param.pad_w0 = pool_param.pad();
+        param.pad_w1 = pool_param.pad();
     }
     else if(pool_param.has_pad_h() && pool_param.has_pad_w())
     {
-        param.pad_h = pool_param.pad_h();
-        param.pad_w = pool_param.pad_w();
+        param.pad_h0 = pool_param.pad_h();
+        param.pad_h1 = pool_param.pad_h();
+        param.pad_w0 = pool_param.pad_w();
+        param.pad_w1 = pool_param.pad_w();
     }
-    param.pads.resize(4);
-    param.pads[0] = param.pad_h;
-    param.pads[1] = param.pad_w;
-    param.pads[2] = param.pad_h;
-    param.pads[3] = param.pad_w;
 
     if(pool_param.has_stride())
     {
@@ -1179,9 +1224,6 @@ static bool LoadCaffePooling(StaticGraph* graph, StaticNode* node, const te_caff
         param.stride_h = pool_param.stride_h();
         param.stride_w = pool_param.stride_w();
     }
-    param.strides.resize(2);
-    param.strides[0] = param.stride_h;
-    param.strides[1] = param.stride_w;
 
     param.caffe_flavor = 1;
 

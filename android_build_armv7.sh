@@ -26,7 +26,8 @@ done<../android_config.txt
 cmake -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake \
      -DANDROID_ABI="armeabi-v7a" \
      -DANDROID_ARM_NEON=ON \
-     -DCONFIG_ARCH_BLAS=ON \
+     -DANDROID_ALLOW_UNDEFINED_SYMBOLS=TRUE\
+     -DCONFIG_ARCH_ARM32=ON \
      -DANDROID_PLATFORM=android-21 \
      -DANDROID_STL=c++_shared \
      -DPROTOBUF_DIR=$PROTOBUF_PATH \

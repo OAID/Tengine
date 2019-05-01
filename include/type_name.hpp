@@ -37,7 +37,7 @@ template <class T> static std::string type_name()
 {
     typedef typename std::remove_reference<T>::type TR;
     std::unique_ptr<char, void (*)(void*)> own(
-#ifndef __GNUC__
+#if !defined(__GNUC__) || defined(NO_CXA_DEMANGLE)
         nullptr,
 #else
         abi::__cxa_demangle(typeid(TR).name(), nullptr, nullptr, nullptr),
@@ -72,7 +72,7 @@ template <typename T> static std::string GetNameForType(T&& t)
 
 static std::string GetTypeName(const char* name)
 {
-#ifndef __GNUC__
+#if !defined(__GNUC__) || defined(NO_CXA_DEMANGLE)
     return name;
 #else
     std::unique_ptr<char, void (*)(void*)> own(abi::__cxa_demangle(name, nullptr, nullptr, nullptr), std::free);

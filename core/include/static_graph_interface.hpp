@@ -42,6 +42,9 @@ void DumpStaticGraph(StaticGraph* graph);
 const void* GetGraphContext(StaticGraph* graph);
 void SetGraphDevHandle(StaticGraph* graph, void* release_func, void* dev_handle);
 void SetGraphLayout(StaticGraph* graph, int layout);
+void SetModelLayout(StaticGraph* graph, int layout);
+void SetModelFormat(StaticGraph* graph, int model_format);
+void SetModelSubFormat(StaticGraph* graph, int model_subformat);
 
 // TODO: not available to user
 void SetGraphInternalName(StaticGraph* graph, const std::string& name);
@@ -89,7 +92,6 @@ StaticTensor* CreateStaticTensor(StaticGraph* grap, const std::string& name);
 void SetTensorDim(StaticTensor*, const std::vector<int>& dims);
 const std::vector<int>& GetTensorDim(StaticTensor*);
 void SetTensorDataType(StaticTensor*, int data_type);
-void SetTensorDataLayout(StaticTensor*, const std::string& data_layout);
 void SetTensorType(StaticTensor*, int type);
 int SetTensorSize(StaticTensor*, int size);
 

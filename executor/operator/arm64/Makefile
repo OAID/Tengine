@@ -8,7 +8,9 @@ obj-y+=pooling.o
 obj-y+=scale_neon.o
 obj-y+=init.o
 
-
-CXXFLAGS+=-I./include 
+CXXFLAGS+=-I./include  
 
 pooling_CXXFLAGS+=-Wno-strict-aliasing
+
+COMMON_CFLAGS+=-fvisibility=hidden
+

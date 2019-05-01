@@ -30,6 +30,8 @@
 
 #include "tf_serializer.hpp"
 
+#include "tengine_c_api.h"
+#include "exec_attr.hpp"
 #include "data_type.hpp"
 #include "tengine_errno.hpp"
 
@@ -48,6 +50,8 @@
 #include "operator/softmax_param.hpp"
 #include "operator/generic_param.hpp"
 #include "operator/lstm_param.hpp"
+#include "operator/rnn_param.hpp"
+#include "operator/gru_param.hpp"
 #include "operator_manager.hpp"
 #include "type_name.hpp"
 
@@ -101,6 +105,9 @@ bool TFSerializer::LoadModel(const std::vector<std::string>& file_list, StaticGr
     SetGraphSource(graph, file_list[0]);
     SetGraphSourceFormat(graph, "tensorflow");
     SetGraphConstTensorFile(graph, file_list[0]);
+    SetGraphLayout(graph,TENGINE_LAYOUT_NCHW);
+    SetModelLayout(graph,TENGINE_LAYOUT_NHWC);
+    SetModelFormat(graph,MODEL_FORMAT_TENSORFLOW);
 
     return LoadGraph(tf_net, graph);
 }
@@ -179,7 +186,7 @@ int TFSerializer::FindRNNScope(TFGraph& tf_graph, std::string& rnn_scope)
             break;
         }
 
-        cell_pos = name.find("gru", while_pos);
+        cell_pos = name.find("gru_cell", while_pos);
 
         if(cell_pos != std::string::npos)
         {
@@ -194,6 +201,15 @@ int TFSerializer::FindRNNScope(TFGraph& tf_graph, std::string& rnn_scope)
         {
             rnn_node = node->name;
             rnn_type = TF_RNN_BASIC_LSTM;
+            break;
+        }
+
+        cell_pos = name.find("basic_rnn_cell", while_pos);
+
+        if(cell_pos != std::string::npos)
+        {
+            rnn_node = node->name;
+            rnn_type = TF_RNN_BASIC_RNN;
             break;
         }
     }
@@ -269,136 +285,469 @@ void TFSerializer::ParseLSTMGraph(TFGraph& tf_graph, LSTMNode* lstm_node, std::s
         rnn_ir++;
     }
 }
-
-void TFSerializer::StripRNNScope(TFGraph& tf_graph, std::string& rnn_scope, int rnn_type)
+void TFSerializer::ParseRNNGraph(TFGraph& tf_graph, RNNNode* rnn_node, std::set<TFNode*>& rnn_graph)
 {
-    LSTMNode* lstm_node = new LSTMNode();
+    /* parse input node */
 
-    lstm_node->name = rnn_scope + "lstm";
-    lstm_node->op = "LSTM";
-
-    std::set<TFNode*>& rnn_graph = lstm_node->rnn_graph;
-
-    std::set<TFNode*> rnn_inputs;
-    std::set<TFNode*> rnn_outputs;
-
-    auto ir = tf_graph.seq_nodes.begin();
-    std::string::size_type prefix_len = rnn_scope.size();
-
-    while(ir != tf_graph.seq_nodes.end())
+    for(unsigned int i = 0; i < rnn_node->inputs.size(); i++)
     {
-        TFNode* node = *ir;
+        TFNode* node = rnn_node->inputs[i];
 
-        if(node->name.find(rnn_scope.c_str(), 0, prefix_len) == std::string::npos)
-        {
-            ir++;
+        if(node->op != "Const")
             continue;
+
+        // node->no_static_node=true; //do not automatically create Static Node
+
+        if(node->name.find("basic_rnn_cell/kernel") != std::string::npos)
+        {
+            rnn_node->kernel = node;
         }
-
-        /* this is a node, inside rnn scope, remove it from graph first */
-        ir = tf_graph.seq_nodes.erase(ir);
-
-        rnn_graph.insert(node);
+        else if(node->name.find("basic_rnn_cell/bias") != std::string::npos)
+        {
+            rnn_node->bias = node;
+        }
+        
     }
 
     auto rnn_ir = rnn_graph.begin();
-    auto rnn_end = rnn_graph.end();
+    auto rnn_ir_end = rnn_graph.end();
 
-    while(rnn_ir != rnn_end)
+    while(rnn_ir != rnn_ir_end)
     {
         TFNode* node = *rnn_ir;
+        int name_len = node->name.size();
+        std::string zero_name = "BasicRNNCellZeroState/zeros";
 
-        for(unsigned int i = 0; i < node->inputs.size(); i++)
-        {
-            TFNode* input = node->inputs[i];
-
-            if(!rnn_graph.count(input))
-                rnn_inputs.insert(input);
-        }
-
-        for(unsigned int i = 0; i < node->outputs.size(); i++)
-        {
-            TFNode* output = node->outputs[i];
-
-            if(!rnn_graph.count(output))
-                rnn_outputs.insert(output);
-        }
+        if(node->name.find(zero_name, name_len - zero_name.size()) != std::string::npos)
+            rnn_node->init_h = node;
 
         rnn_ir++;
     }
+}
+void TFSerializer::ParseGRUGraph(TFGraph& tf_graph, GRUNode* gru_node, std::set<TFNode*>& rnn_graph)
+{
+    /* parse input node */
 
-    // insert lstm node
-    auto seq_ir = tf_graph.seq_nodes.begin();
-
-    while(seq_ir != tf_graph.seq_nodes.end())
+    for(unsigned int i = 0; i < gru_node->inputs.size(); i++)
     {
-        TFNode* node = *seq_ir;
+        TFNode* node = gru_node->inputs[i];
 
-        if(rnn_inputs.count(node))
+        if(node->op != "Const")
+            continue;
+
+        // node->no_static_node=true; //do not automatically create Static Node
+
+        if(node->name.find("gru_cell/gates/kernel") != std::string::npos)
         {
-            tf_graph.seq_nodes.insert(seq_ir, lstm_node);
-            break;
+            gru_node->gate_kernel = node;
         }
-
-        seq_ir++;
+        else if(node->name.find("gru_cell/gates/bias") != std::string::npos)
+        {
+            gru_node->gate_bias = node;
+        }
+        else if(node->name.find("gru_cell/candidate/kernel") != std::string::npos)
+        {
+            gru_node->candidate_kernel = node;
+        }
+        else if(node->name.find("gru_cell/candidate/bias") != std::string::npos)
+        {
+            gru_node->candidate_bias = node;
+        }
+        
     }
 
-    // connect inputs and outputs
-    auto set_ir = rnn_inputs.begin();
-    auto set_ir_end = rnn_inputs.end();
+    auto rnn_ir = rnn_graph.begin();
+    auto rnn_ir_end = rnn_graph.end();
 
-    while(set_ir != set_ir_end)
+    while(rnn_ir != rnn_ir_end)
     {
-        TFNode* input_node = *set_ir;
+        TFNode* node = *rnn_ir;
+        int name_len = node->name.size();
+        std::string zero_name = "GRUCellZeroState/zeros";
 
-        for(unsigned int j = 0; j < input_node->outputs.size(); j++)
-        {
-            TFNode* child_node = input_node->outputs[j];
+        if(node->name.find(zero_name, name_len - zero_name.size()) != std::string::npos)
+            gru_node->init_h = node;
 
-            if(rnn_graph.count(child_node))
-                input_node->outputs[j] = lstm_node;
-        }
-
-        lstm_node->inputs.push_back(input_node);
-
-        if(input_node->op == "Identity")
-        {
-            TFNode* parent_node = input_node->inputs[0];
-
-            MergeChildNode(parent_node, input_node);
-        }
-
-        set_ir++;
+        rnn_ir++;
     }
+}
 
-    set_ir = rnn_outputs.begin();
-    set_ir_end = rnn_outputs.end();
-
-    while(set_ir != set_ir_end)
-    {
-        TFNode* output_node = *set_ir;
-
-        for(unsigned int j = 0; j < output_node->inputs.size(); j++)
-        {
-            TFNode* parent_node = output_node->inputs[j];
-
-            if(rnn_graph.count(parent_node))
-                output_node->inputs[j] = lstm_node;
-        }
-
-        lstm_node->outputs.push_back(output_node);
-        set_ir++;
-    }
+void TFSerializer::StripRNNScope(TFGraph& tf_graph, std::string& rnn_scope, int rnn_type)
+{
 
     // collect attributes according to rnn_type
 
     if(rnn_type == TF_RNN_LSTM)
     {
+        LSTMNode* lstm_node = new LSTMNode();
+
+        lstm_node->name = rnn_scope + "lstm";
+        lstm_node->op = "LSTM";
+
+        std::set<TFNode*>& rnn_graph = lstm_node->rnn_graph;
+
+        std::set<TFNode*> rnn_inputs;
+        std::set<TFNode*> rnn_outputs;
+
+        auto ir = tf_graph.seq_nodes.begin();
+        std::string::size_type prefix_len = rnn_scope.size();
+
+        while(ir != tf_graph.seq_nodes.end())
+        {
+            TFNode* node = *ir;
+
+            if(node->name.find(rnn_scope.c_str(), 0, prefix_len) == std::string::npos)
+            {
+                ir++;
+                continue;
+            }
+
+            /* this is a node, inside rnn scope, remove it from graph first */
+            ir = tf_graph.seq_nodes.erase(ir);
+
+            rnn_graph.insert(node);
+        }
+
+        auto rnn_ir = rnn_graph.begin();
+        auto rnn_end = rnn_graph.end();
+
+        while(rnn_ir != rnn_end)
+        {
+            TFNode* node = *rnn_ir;
+
+            for(unsigned int i = 0; i < node->inputs.size(); i++)
+            {
+                TFNode* input = node->inputs[i];
+
+                if(!rnn_graph.count(input))
+                    rnn_inputs.insert(input);
+            }
+
+            for(unsigned int i = 0; i < node->outputs.size(); i++)
+            {
+                TFNode* output = node->outputs[i];
+
+                if(!rnn_graph.count(output))
+                    rnn_outputs.insert(output);
+            }
+
+            rnn_ir++;
+        }
+
+        // insert lstm node
+        auto seq_ir = tf_graph.seq_nodes.begin();
+
+        while(seq_ir != tf_graph.seq_nodes.end())
+        {
+            TFNode* node = *seq_ir;
+
+            if(rnn_inputs.count(node))
+            {
+                tf_graph.seq_nodes.insert(seq_ir, lstm_node);
+                break;
+            }
+
+            seq_ir++;
+        }
+
+        // connect inputs and outputs
+        auto set_ir = rnn_inputs.begin();
+        auto set_ir_end = rnn_inputs.end();
+
+        while(set_ir != set_ir_end)
+        {
+            TFNode* input_node = *set_ir;
+
+            for(unsigned int j = 0; j < input_node->outputs.size(); j++)
+            {
+                TFNode* child_node = input_node->outputs[j];
+
+                if(rnn_graph.count(child_node))
+                    input_node->outputs[j] = lstm_node;
+            }
+
+            lstm_node->inputs.push_back(input_node);
+
+            if(input_node->op == "Identity")
+            {
+                TFNode* parent_node = input_node->inputs[0];
+
+                MergeChildNode(parent_node, input_node);
+            }
+
+            set_ir++;
+        }
+
+        set_ir = rnn_outputs.begin();
+        set_ir_end = rnn_outputs.end();
+
+        while(set_ir != set_ir_end)
+        {
+            TFNode* output_node = *set_ir;
+
+            for(unsigned int j = 0; j < output_node->inputs.size(); j++)
+            {
+                TFNode* parent_node = output_node->inputs[j];
+
+                if(rnn_graph.count(parent_node))
+                    output_node->inputs[j] = lstm_node;
+            }
+
+            lstm_node->outputs.push_back(output_node);
+            set_ir++;
+        }
         ParseLSTMGraph(tf_graph, lstm_node, rnn_graph);
     }
 
+    if(rnn_type == TF_RNN_BASIC_RNN)
+    {
+        RNNNode* rnn_node = new RNNNode();
+
+        rnn_node->name = rnn_scope + "rnn";
+        //std::cout<<rnn_scope<<std::endl;
+        rnn_node->op = "RNN";
+
+        std::set<TFNode*>& rnn_graph = rnn_node->rnn_graph;
+
+        std::set<TFNode*> rnn_inputs;
+        std::set<TFNode*> rnn_outputs;
+
+        auto ir = tf_graph.seq_nodes.begin();
+        std::string::size_type prefix_len = rnn_scope.size();
+
+        while(ir != tf_graph.seq_nodes.end())
+        {
+            TFNode* node = *ir;
+
+            if(node->name.find(rnn_scope.c_str(), 0, prefix_len) == std::string::npos)
+            {
+                ir++;
+                continue;
+            }
+
+            /* this is a node, inside rnn scope, remove it from graph first */
+            ir = tf_graph.seq_nodes.erase(ir);
+
+            rnn_graph.insert(node);
+        }
+
+        auto rnn_ir = rnn_graph.begin();
+        auto rnn_end = rnn_graph.end();
+
+        while(rnn_ir != rnn_end)
+        {
+            TFNode* node = *rnn_ir;
+
+            for(unsigned int i = 0; i < node->inputs.size(); i++)
+            {
+                TFNode* input = node->inputs[i];
+
+                if(!rnn_graph.count(input))
+                    rnn_inputs.insert(input);
+            }
+
+            for(unsigned int i = 0; i < node->outputs.size(); i++)
+            {
+                TFNode* output = node->outputs[i];
+
+                if(!rnn_graph.count(output))
+                    rnn_outputs.insert(output);
+            }
+
+            rnn_ir++;
+        }
+
+        // insert rnn node
+        auto seq_ir = tf_graph.seq_nodes.begin();
+
+        while(seq_ir != tf_graph.seq_nodes.end())
+        {
+            TFNode* node = *seq_ir;
+
+            if(rnn_inputs.count(node))
+            {
+                tf_graph.seq_nodes.insert(seq_ir, rnn_node);
+                break;
+            }
+
+            seq_ir++;
+        }
+
+        // connect inputs and outputs
+        auto set_ir = rnn_inputs.begin();
+        auto set_ir_end = rnn_inputs.end();
+
+        while(set_ir != set_ir_end)
+        {
+            TFNode* input_node = *set_ir;
+
+            for(unsigned int j = 0; j < input_node->outputs.size(); j++)
+            {
+                TFNode* child_node = input_node->outputs[j];
+
+                if(rnn_graph.count(child_node))
+                    input_node->outputs[j] = rnn_node;
+            }
+
+            rnn_node->inputs.push_back(input_node);
+
+            if(input_node->op == "Identity")
+            {
+                TFNode* parent_node = input_node->inputs[0];
+
+                MergeChildNode(parent_node, input_node);
+            }
+
+            set_ir++;
+        }
+
+        set_ir = rnn_outputs.begin();
+        set_ir_end = rnn_outputs.end();
+
+        while(set_ir != set_ir_end)
+        {
+            TFNode* output_node = *set_ir;
+
+            for(unsigned int j = 0; j < output_node->inputs.size(); j++)
+            {
+                TFNode* parent_node = output_node->inputs[j];
+
+                if(rnn_graph.count(parent_node))
+                    output_node->inputs[j] = rnn_node;
+            }
+
+            rnn_node->outputs.push_back(output_node);
+            set_ir++;
+        }
+
+        ParseRNNGraph(tf_graph, rnn_node, rnn_graph);
+    }
+    if(rnn_type == TF_RNN_GRU)
+    {
+        GRUNode* gru_node = new GRUNode();
+
+        gru_node->name = rnn_scope + "gru";
+        //std::cout<<rnn_scope<<std::endl;
+        gru_node->op = "GRU";
+
+        std::set<TFNode*>& rnn_graph = gru_node->rnn_graph;
+
+        std::set<TFNode*> rnn_inputs;
+        std::set<TFNode*> rnn_outputs;
+
+        auto ir = tf_graph.seq_nodes.begin();
+        std::string::size_type prefix_len = rnn_scope.size();
+
+        while(ir != tf_graph.seq_nodes.end())
+        {
+            TFNode* node = *ir;
+
+            if(node->name.find(rnn_scope.c_str(), 0, prefix_len) == std::string::npos)
+            {
+                ir++;
+                continue;
+            }
+
+            /* this is a node, inside rnn scope, remove it from graph first */
+            ir = tf_graph.seq_nodes.erase(ir);
+
+            rnn_graph.insert(node);
+        }
+
+        auto rnn_ir = rnn_graph.begin();
+        auto rnn_end = rnn_graph.end();
+
+        while(rnn_ir != rnn_end)
+        {
+            TFNode* node = *rnn_ir;
+
+            for(unsigned int i = 0; i < node->inputs.size(); i++)
+            {
+                TFNode* input = node->inputs[i];
+
+                if(!rnn_graph.count(input))
+                    rnn_inputs.insert(input);
+            }
+
+            for(unsigned int i = 0; i < node->outputs.size(); i++)
+            {
+                TFNode* output = node->outputs[i];
+
+                if(!rnn_graph.count(output))
+                    rnn_outputs.insert(output);
+            }
+
+            rnn_ir++;
+        }
+
+        // insert rnn node
+        auto seq_ir = tf_graph.seq_nodes.begin();
+
+        while(seq_ir != tf_graph.seq_nodes.end())
+        {
+            TFNode* node = *seq_ir;
+
+            if(rnn_inputs.count(node))
+            {
+                tf_graph.seq_nodes.insert(seq_ir, gru_node);
+                break;
+            }
+
+            seq_ir++;
+        }
+
+        // connect inputs and outputs
+        auto set_ir = rnn_inputs.begin();
+        auto set_ir_end = rnn_inputs.end();
+
+        while(set_ir != set_ir_end)
+        {
+            TFNode* input_node = *set_ir;
+
+            for(unsigned int j = 0; j < input_node->outputs.size(); j++)
+            {
+                TFNode* child_node = input_node->outputs[j];
+
+                if(rnn_graph.count(child_node))
+                    input_node->outputs[j] = gru_node;
+            }
+
+            gru_node->inputs.push_back(input_node);
+
+            if(input_node->op == "Identity")
+            {
+                TFNode* parent_node = input_node->inputs[0];
+
+                MergeChildNode(parent_node, input_node);
+            }
+
+            set_ir++;
+        }
+
+        set_ir = rnn_outputs.begin();
+        set_ir_end = rnn_outputs.end();
+
+        while(set_ir != set_ir_end)
+        {
+            TFNode* output_node = *set_ir;
+
+            for(unsigned int j = 0; j < output_node->inputs.size(); j++)
+            {
+                TFNode* parent_node = output_node->inputs[j];
+
+                if(rnn_graph.count(parent_node))
+                    output_node->inputs[j] = gru_node;
+            }
+
+            gru_node->outputs.push_back(output_node);
+            set_ir++;
+        }
+
+        ParseGRUGraph(tf_graph, gru_node, rnn_graph);
+    }
+
     // cleanup zero in/zero out node
-    seq_ir = tf_graph.seq_nodes.begin();
+    auto seq_ir = tf_graph.seq_nodes.begin();
 
     while(seq_ir != tf_graph.seq_nodes.end())
     {
@@ -1352,7 +1701,6 @@ bool TFSerializer::GenerateStaticGraph(TFGraph& tf_graph, StaticGraph* graph)
         /* create tensor */
         StaticTensor* tensor = CreateStaticTensor(graph, tf_node->name);
 
-        SetTensorDataLayout(tensor, "NCHW");
         SetTensorDataType(tensor, DataType::GetTypeID("float32"));
 
         AddNodeOutputTensor(node, tensor);
@@ -1422,7 +1770,6 @@ static void CreateInputNode(TFNode* tf_node, StaticGraph* graph)
 
     StaticTensor* tensor = CreateStaticTensor(graph, tf_node->name);
 
-    SetTensorDataLayout(tensor, "NCHW");
     SetTensorDataType(tensor, DataType::GetTypeID("float32"));
 
     // if has shape, set it
@@ -1678,7 +2025,6 @@ static bool LoadConstTensor(TFNode* tf_node, StaticGraph* graph)
 
         SetTensorDim(tensor, dims);
         SetTensorSize(tensor, mem_size);
-        SetTensorDataLayout(tensor, layout);
         SetConstTensorBuffer(tensor, mem_ptr);
     }
 
@@ -1730,13 +2076,17 @@ static bool LoadConv2D(TFNode* tf_node, TFGraph& tf_graph, StaticGraph* graph)
     {
         if(value.s() == "VALID")
         {
-            param.pad_h = 0;
-            param.pad_w = 0;
+            param.pad_h0 = 0;
+            param.pad_h1 = 0;
+            param.pad_w0 = 0;
+            param.pad_w1 = 0;
         }
         else if(value.s() == "SAME")
         {
-            param.pad_h = -1;
-            param.pad_w = -1;
+            param.pad_h0 = -1;
+            param.pad_h1 = -1;
+            param.pad_w0 = -1;
+            param.pad_w1 = -1;
         }
     }
 
@@ -1790,7 +2140,6 @@ static bool LoadConv2D(TFNode* tf_node, TFGraph& tf_graph, StaticGraph* graph)
     dims.push_back(kernel_w);
 
     SetTensorDim(weight_tensor, dims);
-    SetTensorDataLayout(weight_tensor, "NCHW");
 
     param.kernel_h = kernel_h;
     param.kernel_w = kernel_w;
@@ -1872,15 +2221,12 @@ static bool LoadConv2D(TFNode* tf_node, TFGraph& tf_graph, StaticGraph* graph)
                         }
                     }
 
-                    /* update the padding arguments */
-                    saved_param.pads.resize(4);
-
                     /* h pad */
-                    saved_param.pads[0] = shape_data[2];
-                    saved_param.pads[2] = shape_data[3];
+                    saved_param.pad_h0 = shape_data[2];
+                    saved_param.pad_h1 = shape_data[3];
                     /* w pad */
-                    saved_param.pads[1] = shape_data[4];
-                    saved_param.pads[3] = shape_data[5];
+                    saved_param.pad_w0 = shape_data[4];
+                    saved_param.pad_w1 = shape_data[5];
 
                     SetOperatorParam(op, saved_param);
                 }
@@ -1919,13 +2265,17 @@ static bool LoadPool(TFNode* tf_node, TFGraph& tf_graph, StaticGraph* graph)
     {
         if(value.s() == "VALID")
         {
-            param.pad_h = 0;
-            param.pad_w = 0;
+            param.pad_h0 = 0;
+            param.pad_h1 = 0;
+            param.pad_w0 = 0;
+            param.pad_w1 = 0;
         }
         else if(value.s() == "SAME")
         {
-            param.pad_h = -1;
-            param.pad_w = -1;
+            param.pad_h0 = -1;
+            param.pad_h1 = -1;
+            param.pad_w0 = -1;
+            param.pad_w1 = -1;
         }
     }
 
@@ -1937,21 +2287,6 @@ static bool LoadPool(TFNode* tf_node, TFGraph& tf_graph, StaticGraph* graph)
     {
         param.alg = kPoolMax;
     }
-
-    // convert to onnx format
-    param.kernel_shape.resize(2);
-    param.kernel_shape[0] = param.kernel_h;
-    param.kernel_shape[1] = param.kernel_w;
-
-    param.pads.resize(4);
-    param.pads[0] = param.pad_h;
-    param.pads[1] = param.pad_w;
-    param.pads[2] = param.pad_h;
-    param.pads[3] = param.pad_w;
-
-    param.strides.resize(2);
-    param.strides[0] = param.stride_h;
-    param.strides[1] = param.stride_w;
 
     StaticOp* op = CreateStaticOp(graph, "Pooling");
     SetOperatorParam(op, param);
@@ -2160,7 +2495,6 @@ static void CreatePresetNode(StaticGraph* graph, StaticNode* node, const char* n
     StaticTensor* tensor = CreateStaticConstTensor(graph, new_tensor_name);
     SetTensorDim(tensor, dims);
     SetTensorDataType(tensor, DataType::GetTypeID("float32"));
-    SetTensorDataLayout(tensor, layout);
 
     int elem_size = 1;
 
@@ -2409,14 +2743,11 @@ static bool LoadGemm(TFNode* tf_node, TFGraph& tf_graph, StaticGraph* graph)
     param.beta = 1;
 
     StaticTensor* weight_tensor = FindTensor(graph, input1->name);
-    SetTensorDataLayout(weight_tensor, "HW");
 
     if(tf_node->inputs.size() > 2)
     {
         TFNode* bias = tf_node->inputs[2];
         AddNodeInputTensor(node, bias->static_tensor);
-        StaticTensor* bias_tensor = FindTensor(graph, bias->name);
-        SetTensorDataLayout(bias_tensor, "W");
     }
 
     if(param.transA)
@@ -2552,7 +2883,6 @@ static bool LoadLSTMInitState(LSTMNode* lstm_node, TFNode* init_node, StaticGrap
     SetTensorDataType(const_tensor, DataType::GetTypeID("float32"));
     SetTensorDim(const_tensor, dims);
     SetTensorSize(const_tensor, dims[0] * dims[1] * sizeof(float));
-    SetTensorDataLayout(const_tensor, "W");
     SetConstTensorBuffer(const_tensor, mem_ptr);
     SetConstTensorFileLocation(const_tensor, -1, 0);
 
@@ -2562,6 +2892,136 @@ static bool LoadLSTMInitState(LSTMNode* lstm_node, TFNode* init_node, StaticGrap
     SetNodeOp(const_node, const_op);
 
     AddNodeInputTensor(lstm_node->static_node, const_tensor);
+
+    return true;
+}
+static bool LoadGRUInitState(GRUNode* gru_node, TFNode* init_node, StaticGraph* graph)
+{
+    /* load const value */
+    TFNode* const_val_node;
+    TFNode* concat_node;
+
+    if(init_node->inputs[0]->op == "Const")
+    {
+        const_val_node = init_node->inputs[0];
+        concat_node = init_node->inputs[1];
+    }
+    else
+    {
+        const_val_node = init_node->inputs[1];
+        concat_node = init_node->inputs[0];
+    }
+
+    int* const_ptr = ( int* )LoadConstParam(const_val_node);
+    float const_val = const_ptr[0];
+
+    free(const_ptr);
+
+    // int* dim0_ptr = ( int* )LoadConstParam(concat_node->inputs[0]);
+    int* dim0_ptr = ( int* )LoadConstParam(concat_node->inputs[1]);
+
+    std::vector<int> dims(1);
+
+    dims[0] = dim0_ptr[0];
+    // dims[1] = dim1_ptr[0];
+
+    free(dim0_ptr);
+    // free(dim1_ptr);
+
+    float* mem_ptr = ( float* )malloc(dims[0] * sizeof(float));
+
+    for(int i = 0; i < dims[0]; i++)
+    {
+        mem_ptr[i] = const_val;
+    }
+
+    /* create node and tensor */
+
+    std::string const_node_name;
+
+    if(init_node == gru_node->init_h)
+        const_node_name = gru_node->name + "/init_h";
+
+    StaticNode* const_node = CreateStaticNode(graph, const_node_name);
+    StaticTensor* const_tensor = CreateStaticConstTensor(graph, const_node_name);
+
+    SetTensorDataType(const_tensor, DataType::GetTypeID("float32"));
+    SetTensorDim(const_tensor, dims);
+    SetTensorSize(const_tensor, dims[0]* sizeof(float));
+    SetConstTensorBuffer(const_tensor, mem_ptr);
+    SetConstTensorFileLocation(const_tensor, -1, 0);
+
+    AddNodeOutputTensor(const_node, const_tensor);
+
+    StaticOp* const_op = CreateStaticOp(graph, "Const");
+    SetNodeOp(const_node, const_op);
+
+    AddNodeInputTensor(gru_node->static_node, const_tensor);
+
+    return true;
+}
+static bool LoadRNNInitState(RNNNode* rnn_node, TFNode* init_node, StaticGraph* graph)
+{
+    /* load const value */
+    TFNode* const_val_node;
+    TFNode* concat_node;
+
+    if(init_node->inputs[0]->op == "Const")
+    {
+        const_val_node = init_node->inputs[0];
+        concat_node = init_node->inputs[1];
+    }
+    else
+    {
+        const_val_node = init_node->inputs[1];
+        concat_node = init_node->inputs[0];
+    }
+
+    int* const_ptr = ( int* )LoadConstParam(const_val_node);
+    float const_val = const_ptr[0];
+
+    free(const_ptr);
+
+    int* dim0_ptr = ( int* )LoadConstParam(concat_node->inputs[0]);
+    int* dim1_ptr = ( int* )LoadConstParam(concat_node->inputs[1]);
+
+    std::vector<int> dims(2);
+
+    dims[0] = dim0_ptr[0];
+    dims[1] = dim1_ptr[0];
+
+    free(dim0_ptr);
+    free(dim1_ptr);
+
+    float* mem_ptr = ( float* )malloc(dims[0] * dims[1] * sizeof(float));
+
+    for(int i = 0; i < dims[0] * dims[1]; i++)
+    {
+        mem_ptr[i] = const_val;
+    }
+
+    /* create node and tensor */
+
+    std::string const_node_name;
+
+    if(init_node == rnn_node->init_h)
+        const_node_name = rnn_node->name + "/init_h";
+
+    StaticNode* const_node = CreateStaticNode(graph, const_node_name);
+    StaticTensor* const_tensor = CreateStaticConstTensor(graph, const_node_name);
+
+    SetTensorDataType(const_tensor, DataType::GetTypeID("float32"));
+    SetTensorDim(const_tensor, dims);
+    SetTensorSize(const_tensor, dims[0] * dims[1] * sizeof(float));
+    SetConstTensorBuffer(const_tensor, mem_ptr);
+    SetConstTensorFileLocation(const_tensor, -1, 0);
+
+    AddNodeOutputTensor(const_node, const_tensor);
+
+    StaticOp* const_op = CreateStaticOp(graph, "Const");
+    SetNodeOp(const_node, const_op);
+
+    AddNodeInputTensor(rnn_node->static_node, const_tensor);
 
     return true;
 }
@@ -2629,6 +3089,8 @@ static bool LoadLSTM(TFNode* tf_node, TFGraph& tf_graph, StaticGraph* graph)
     int cell_size = kernel_dims[1] / 4;
 
     param.cell_size = cell_size;
+    //mxnet false
+    param.mxnet_flag =0;
 
     if(lstm_node->projection)
     {
@@ -2643,6 +3105,99 @@ static bool LoadLSTM(TFNode* tf_node, TFGraph& tf_graph, StaticGraph* graph)
     param.input_size = data_size - param.hidden_size;
 
     StaticOp* op = CreateStaticOp(graph, "LSTM");
+    SetOperatorParam(op, param);
+
+    SetNodeOp(node, op);
+
+    return true;
+}
+
+
+static bool LoadRNN(TFNode* tf_node, TFGraph& tf_graph, StaticGraph* graph)
+{
+    StaticNode* node = tf_node->static_node;
+
+    RNNNode* rnn_node = dynamic_cast<RNNNode*>(tf_node);
+    RNNParam param = any_cast<RNNParam>(OpManager::GetOpDefParam("RNN"));
+
+    // those two are mandatory
+    AddNodeInputTensor(node, tf_node->inputs[0]->static_tensor);
+    AddNodeInputTensor(node, rnn_node->kernel->static_tensor);
+
+    // optional tensors
+    if(rnn_node->bias)
+    {
+        param.has_bias = 1;
+        AddNodeInputTensor(node, rnn_node->bias->static_tensor);
+    }
+
+    if(rnn_node->init_h)
+    {
+        param.has_init_state = 1;
+        LoadRNNInitState(rnn_node, rnn_node->init_h, graph);
+    }
+
+    /* calculate and set other paremeters*/
+    const std::vector<int>& kernel_dims = GetTensorDim(rnn_node->kernel->static_tensor);
+
+    int data_size = kernel_dims[0];
+
+    int hidden_size = kernel_dims[1];
+
+    param.hidden_size = hidden_size;
+
+    param.input_size = data_size - param.hidden_size;
+
+    StaticOp* op = CreateStaticOp(graph, "RNN");
+    SetOperatorParam(op, param);
+
+    SetNodeOp(node, op);
+
+    return true;
+}
+static bool LoadGRU(TFNode* tf_node, TFGraph& tf_graph, StaticGraph* graph)
+{
+    StaticNode* node = tf_node->static_node;
+
+    GRUNode* gru_node = dynamic_cast<GRUNode*>(tf_node);
+    GRUParam param = any_cast<GRUParam>(OpManager::GetOpDefParam("GRU"));
+
+    // those 3 are mandatory
+    AddNodeInputTensor(node, tf_node->inputs[0]->static_tensor);
+    AddNodeInputTensor(node, gru_node->gate_kernel->static_tensor);
+    AddNodeInputTensor(node, gru_node->candidate_kernel->static_tensor);
+
+    // optional tensors
+    if(gru_node->gate_bias)
+    {
+        param.has_gate_bias = 1;
+        AddNodeInputTensor(node, gru_node->gate_bias->static_tensor);
+    }
+    if(gru_node->candidate_bias)
+    {
+        param.has_candidate_bias = 1;
+        AddNodeInputTensor(node, gru_node->candidate_bias->static_tensor);
+    }
+
+    if(gru_node->init_h)
+    {
+        param.has_init_state = 1;
+        LoadGRUInitState(gru_node, gru_node->init_h, graph);
+    }
+
+    /* calculate and set other paremeters*/
+    const std::vector<int>& kernel_dims = GetTensorDim(gru_node->gate_kernel->static_tensor);
+
+    int data_size = kernel_dims[0];
+
+    int hidden_size = kernel_dims[1];
+
+    param.hidden_size = hidden_size/2;
+
+    param.input_size = data_size - param.hidden_size;
+
+    param.mxnet_flag=0;
+    StaticOp* op = CreateStaticOp(graph, "GRU");
     SetOperatorParam(op, param);
 
     SetNodeOp(node, op);
@@ -2688,7 +3243,8 @@ bool TFSerializerRegisterOpLoader(void)
     p_tf->RegisterOpLoadMethod("AudioSpectrogram", op_load_t(LoadGeneric));
     p_tf->RegisterOpLoadMethod("Mfcc", op_load_t(LoadGeneric));
     p_tf->RegisterOpLoadMethod("LSTM", op_load_t(LoadLSTM));
-
+    p_tf->RegisterOpLoadMethod("RNN", op_load_t(LoadRNN));
+    p_tf->RegisterOpLoadMethod("GRU", op_load_t(LoadGRU));
     return true;
 }
 

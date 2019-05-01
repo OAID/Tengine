@@ -108,15 +108,26 @@ struct ScaleOps : public NodeOps
     }
 };
 
+NodeOps* SelectFunc(const CPUInfo* cpu_info, Node* node)
+{
+    Tensor* input = node->GetInputTensor(0);
+    const int data_type = input->GetDataType();
+    const ExecAttr* exec_attr = any_cast<const ExecAttr*>(node->GetAttr(ATTR_EXEC_ATTR));
+    if(data_type != TENGINE_DT_FP32 || exec_attr->graph_layout != TENGINE_LAYOUT_NCHW)
+        return nullptr;
+
+    ScaleOps* ops = new ScaleOps();
+
+    return ops;
+}
+
 }    // namespace ScaleImpl
 
 using namespace ScaleImpl;
 
 void RegisterScale_NodeExec(void)
 {
-    ScaleOps* ops = new ScaleOps();
-
-    NodeOpsRegistryManager::RegisterOPImplementor("common", "Scale", ops);
+    NodeOpsRegistryManager::RegisterOPImplementor("common", "Scale", ScaleImpl::SelectFunc, 1000);
 }
 
 }    // namespace TEngine

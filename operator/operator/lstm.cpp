@@ -12,7 +12,7 @@ bool LSTM::InferShape(const std::vector<TShape>& ishape, std::vector<TShape>& os
     // others: optional
 
     // output tensor: [output_len, batch_size,hidden_size]
-
+    // std::cout<<"!!!!!!!\n";
     const TShape input_shape = ishape[0];
 
     int batch_size = input_shape.Shape(1);
@@ -22,6 +22,8 @@ bool LSTM::InferShape(const std::vector<TShape>& ishape, std::vector<TShape>& os
     dims[0] = param_.output_len;
     dims[1] = batch_size;
     dims[2] = param_.hidden_size;
+    
+    // std::cout<<dims[0]<<","<< dims[1]<<","<<dims[2]<<"\n"; 
 
     oshape[0].SetDim(dims);
 
@@ -45,11 +47,11 @@ void LSTM::SetSchema(void)
         .SetAttr("has_clip", 0)
         .SetAttr("has_bias", 0)
         .SetAttr("has_init_state", 0)
-        .SetAttr("forget_act", "sigmoid")
-        .SetAttr("input_act", "sigmoid")
-        .SetAttr("output_act", "sigmoid")
-        .SetAttr("cellin_act", "tanh")
-        .SetAttr("cellout_act", "tanh")
+        .SetAttr("forget_act", LSTM_ACT_SIGMOID)
+        .SetAttr("input_act", LSTM_ACT_SIGMOID)
+        .SetAttr("output_act", LSTM_ACT_SIGMOID)
+        .SetAttr("cellin_act", LSTM_ACT_TANH)
+        .SetAttr("cellout_act", LSTM_ACT_TANH)
         .SetDoc(R"DOC(LSTM Cell
               input: input sequences, a 3D tensor [seq_length,batch_size,input_size]
               kernel: i/c/f/o weight tensor,[num_directions, 4*hidden_size, ]

@@ -37,7 +37,7 @@ bool ROIPooling::InferShape(const std::vector<TEngine::TShape>& ishape, std::vec
     std::vector<int> dim = {300, c, param_.pooled_h, param_.pooled_w};
 
     shape.SetDim(dim);
-    shape.SetDataLayout("NCHW");
+    shape.SetDataLayout(input.GetDataLayout());
 
     oshape[0] = shape;
 
@@ -48,7 +48,6 @@ void ROIPooling::SetSchema(void)
 {
     Input({"input:float32"})
         .Output({"output:float32"})
-        .SetLayout("NCHW")
         .SetAttr("spatial_scale", 1.f)
 
         .SetDoc(R"DOC(ROIPooling Layer)DOC");

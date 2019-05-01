@@ -43,7 +43,7 @@ extern "C" {
 #define ARCH_ARM_V7 2
 #define ARCH_ARM_V8_2 3
 
-#define MAX_CLUSTER_CPU_NUMBER 4
+#define MAX_CLUSTER_CPU_NUMBER 8
 
 struct cpu_cluster
 {

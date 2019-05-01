@@ -54,7 +54,7 @@ public:
         sl = ::dlopen(so_path.c_str(), RTLD_LAZY | RTLD_GLOBAL);
         if(!sl)
         {
-            std::printf("%s\n", dlerror());
+            //std::printf("%s\n", dlerror());
             throw te_error_unable_to_load_library(so_path);
             return -1;
         }
@@ -70,7 +70,7 @@ public:
             if(!f)
             {
                 throw te_error_shared_function_not_found(func_name);
-                return nullptr;
+                //return nullptr;
             }
             func_map.emplace(func_name, ( func* )f);
             it = func_map.find(func_name);

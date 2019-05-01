@@ -56,7 +56,7 @@ struct PermuteOps : public NodeOps
         }
     }
 
-    bool Run(Node* node)
+   bool Run(Node* node)
     {
         const Tensor* input_tensor = node->GetInputTensor(0);
         Tensor* output_tensor = node->GetOutputTensor(0);
@@ -66,31 +66,75 @@ struct PermuteOps : public NodeOps
 
         const TShape& shape = input_tensor->GetShape();
         const std::vector<int> dims = shape.GetDim();
+        if(dims.size()==4){
+            int batch_number = dims[0];
+            int channel = dims[1];
+            int width = dims[3];
+            int height = dims[2];
+            int _wc = width * channel;
+            int _hw = width * height;
+            int _chw = channel * _hw;
 
-        int batch_number = dims[0];
-        int channel = dims[1];
-        int width = dims[3];
-        int height = dims[2];
-        int _wc = width * channel;
-        int _hw = width * height;
-        int _chw = channel * _hw;
-
-        float* input = ( float* )get_tensor_mem(input_tensor);
-        float* output = ( float* )get_tensor_mem(output_tensor);
-        // 0231 [bhwc]
-        if((param->order0 == 0) && (param->order1 == 2) && (param->order2 == 3) && (param->order3 == 1))
-        {
-            for(int b = 0; b < batch_number; b++)
+            float* input = ( float* )get_tensor_mem(input_tensor);
+            float* output = ( float* )get_tensor_mem(output_tensor);
+            // 0231 [bhwc]
+            // other case to be support
+            if((param->order0 == 0) && (param->order1 == 2) && (param->order2 == 3) && (param->order3 == 1))
             {
-                permute_hwc(input, output, height, width, channel, _wc, _hw);
-                input += _chw;
-                output += _chw;
+                for(int b = 0; b < batch_number; b++)
+                {
+                    permute_hwc(input, output, height, width, channel, _wc, _hw);
+                    input += _chw;
+                    output += _chw;
+                }
             }
         }
-        // other case to be support
+        else if(dims.size()==3)
+        {
+            int channel = dims[0];
+            int width = dims[2];
+            int height = dims[1];
+            int _hw = height * width;
+            int _cw = channel * width;
+
+            float* input = ( float* )get_tensor_mem(input_tensor);
+            float* output = ( float* )get_tensor_mem(output_tensor);
+            if((param->order0 == 1) && (param->order1 == 0) && (param->order2 == 2))
+            {
+                for (int q=0; q<height; q++)
+                {
+                    float* outptr = output+q*_cw;
+
+                    for (int i = 0; i < channel; i++)
+                    {
+                        const float* ptr = input+i*_hw;
+
+                        for (int j = 0; j < width; j++)
+                        {
+                            outptr[i*width + j] = ptr[q*width + j];
+                        }
+                    }
+                }
+            }
+        }
+        
         return true;
     }
+
 };
+
+NodeOps* SelectFunc(const CPUInfo* cpu_info, Node* node)
+{
+    Tensor* input = node->GetInputTensor(0);
+    const int data_type = input->GetDataType();
+    const ExecAttr* exec_attr = any_cast<const ExecAttr*>(node->GetAttr(ATTR_EXEC_ATTR));
+    if(data_type != TENGINE_DT_FP32 || exec_attr->graph_layout != TENGINE_LAYOUT_NCHW)
+        return nullptr;
+
+    PermuteOps* ops = new PermuteOps();
+
+    return ops;
+}
 
 }    // namespace PermuteImpl
 
@@ -98,9 +142,7 @@ using namespace PermuteImpl;
 
 void RegisterPermuteNodeExec(void)
 {
-    PermuteOps* ops = new PermuteOps();
-
-    NodeOpsRegistryManager::RegisterOPImplementor("common", "Permute", ops);
+    NodeOpsRegistryManager::RegisterOPImplementor("common", "Permute", PermuteImpl::SelectFunc, 1000);
 }
 
 }    // namespace TEngine

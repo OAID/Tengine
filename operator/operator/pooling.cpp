@@ -85,34 +85,25 @@ bool Pooling::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector
 
     if(param_.global)
     {
-        param_.pad_h = 0;
-        param_.pad_w = 0;
         param_.stride_h = 1;
         param_.stride_w = 1;
-
-        param_.kernel_shape[0] = input_h;
-        param_.kernel_shape[1] = input_w;
-        param_.pads[0] = param_.pads[1] = param_.pads[2] = param_.pads[3] = 0;
-        param_.strides[0] = param_.strides[1] = 1;
-
+        param_.kernel_h = input_h;
+        param_.kernel_w = input_w;
+        param_.pad_h0 = param_.pad_w0 = param_.pad_h1 = param_.pad_w1 = 0;
         output_h = 1;
         output_w = 1;
     }
     else
     {
-        param_.kernel_shape[0] = param_.kernel_h;
-        param_.kernel_shape[1] = param_.kernel_w;
-        param_.strides[0] = param_.stride_h;
-        param_.strides[1] = param_.stride_w;
         output_h =
-            calc_output_size(input_h, param_.kernel_shape[0], param_.stride_h, param_.pad_h, param_.caffe_flavor);
+            calc_output_size(input_h, param_.kernel_h, param_.stride_h, param_.pad_h0, param_.caffe_flavor);
         output_w =
-            calc_output_size(input_w, param_.kernel_shape[1], param_.stride_w, param_.pad_w, param_.caffe_flavor);
+            calc_output_size(input_w, param_.kernel_w, param_.stride_w, param_.pad_w0, param_.caffe_flavor);
 
-        calc_real_pads(output_h, input_h, param_.kernel_shape[0], param_.stride_h, param_.pad_h, &param_.pads[0],
-                       &param_.pads[2]);
-        calc_real_pads(output_w, input_w, param_.kernel_shape[1], param_.stride_w, param_.pad_w, &param_.pads[1],
-                       &param_.pads[3]);
+        calc_real_pads(output_h, input_h, param_.kernel_h, param_.stride_h, param_.pad_h0, &param_.pad_h0,
+                       &param_.pad_h1);
+        calc_real_pads(output_w, input_w, param_.kernel_w, param_.stride_w, param_.pad_w0, &param_.pad_w0,
+                       &param_.pad_w1);
     }
 
     TShape shape;
@@ -121,14 +112,14 @@ bool Pooling::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector
         std::vector<int> dim = {input_shape.GetN(), input_shape.GetC(), output_h, output_w};
 
         shape.SetDim(dim);
-        shape.SetDataLayout("NCHW");
+        shape.SetDataLayout(TENGINE_LAYOUT_NCHW);
     }
     else
     {
         std::vector<int> dim = {input_shape.GetN(), output_h, output_w, input_shape.GetC()};
 
         shape.SetDim(dim);
-        shape.SetDataLayout("NHWC");
+        shape.SetDataLayout(TENGINE_LAYOUT_NHWC);
     }
     oshape[0] = shape;
     return true;
@@ -136,7 +127,7 @@ bool Pooling::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector
 
 float Pooling::GetFops(const std::vector<TShape>& inputs, const std::vector<TShape>& outputs)
 {
-    float patch_fops = param_.kernel_shape[0] * param_.kernel_shape[1];
+    float patch_fops = param_.kernel_h * param_.kernel_w;
 
     return (patch_fops * outputs[0].GetSize());
 }
@@ -145,16 +136,17 @@ void Pooling::SetSchema(void)
 {
     Input({"input:float32"})
         .Output({"output:float32"})
-        .SetLayout("NCHW")
         .SetAttr("alg", 0)
         .SetAttr("kernel_h", 2)
         .SetAttr("kernel_w", 2)
         .SetAttr("stride_h", 1)
         .SetAttr("stride_w", 1)
-        .SetAttr("pad_h", 0)
-        .SetAttr("pad_w", 0)
         .SetAttr("global", 0)
         .SetAttr("caffe_flavor", 0)
+        .SetAttr("pad_h0", 0)
+        .SetAttr("pad_w0", 0)
+        .SetAttr("pad_h1", 0)
+        .SetAttr("pad_w1", 0)
         .SetDoc(R"DOC(Pooling Layer)DOC");
 }
 

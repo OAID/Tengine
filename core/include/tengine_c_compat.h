@@ -195,7 +195,7 @@ int get_node_param_pointer(node_t node, const char* param_name, void* param_val)
  *
  * @param node, the target node
  * @param param_name, the name of the param to be retrieval
- * @param type_info, pointer to the std::type_info of wanted type, NULL to skip type check
+ * @param type_name, c string return bye the std::type_info::name() , NULL to skip type check
  * @param param_val, pointer to the val to be saved
  * @param size, parameter size
  *
@@ -203,7 +203,7 @@ int get_node_param_pointer(node_t node, const char* param_name, void* param_val)
  *        <0, failed; probably the name does not exist or the type mismatch
  */
 
-int get_node_param_generic(node_t node, const char* param_name, const void* type_info, void* param_val, int size);
+int get_node_param_generic(node_t node, const char* param_name, const char* type_name, void* param_val, int size);
 
 /*!
  * @brief infer shape for graph
@@ -216,11 +216,10 @@ int infer_shape(graph_t graph);
  * @brief Get the layout of tensor.
  *
  * @param [in] tensor: The tensor handle.
- * @param [out] layout: The layout of tensor.
  * @return >=1 the valid dim number, or -1 Fail.
  *
  */
-int get_tensor_layout(tensor_t tensor, char* layout);
+int get_tensor_layout(tensor_t tensor);
 
 /*!
  * @brief Set the layout of tensor.
@@ -230,7 +229,7 @@ int get_tensor_layout(tensor_t tensor, char* layout);
  * @return 0: Success; -1: Fail.
  *
  */
-int set_tensor_layout(tensor_t tensor, const char* layout);
+int set_tensor_layout(tensor_t tensor, const int layout);
 
 #ifdef __cplusplus
 }

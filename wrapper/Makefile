@@ -68,7 +68,7 @@ $(BUILD_DIR)/%: $(BUILD_DIR)/%.o
 
 SO_LIBS=-L../build/core -L../build/wrapper 
 SO_LIBS+=-Wl,-rpath,./build/core:./build/wrapper
-SO_LIBS+=-ltengine -lwrapper 
+SO_LIBS+=-ltengine -lhclcpu -lwrapper
 
 
 LIBS+=-lprotobuf  -lglog

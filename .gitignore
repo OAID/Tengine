@@ -18,3 +18,4 @@ protobuf_lib/
 sysroot/
 android_config.txt
 model_src/
+.vs/

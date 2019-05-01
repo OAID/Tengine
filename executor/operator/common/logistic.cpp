@@ -74,9 +74,9 @@ struct LogisticOps : public NodeOps
             auto o_quantized = output->GetQuantParam();
 
             float i_scale = (*i_quantized)[0].scale;
-            float i_zero = (*i_quantized)[0].zero_point;
+            int i_zero = (*i_quantized)[0].zero_point;
             float o_scale = (*o_quantized)[0].scale;
-            float o_zero = (*o_quantized)[0].zero_point;
+            int o_zero = (*o_quantized)[0].zero_point;
 
             for(int i = 0; i < elements; i++)
             {
@@ -90,15 +90,27 @@ struct LogisticOps : public NodeOps
     }
 };
 
+NodeOps* SelectFunc(const CPUInfo* cpu_info, Node* node)
+{
+    Tensor* input = node->GetInputTensor(0);
+    const int data_type = input->GetDataType();
+    const ExecAttr* exec_attr = any_cast<const ExecAttr*>(node->GetAttr(ATTR_EXEC_ATTR));
+    if( (data_type != TENGINE_DT_FP32 && data_type != TENGINE_DT_UINT8)
+        || exec_attr->graph_layout != TENGINE_LAYOUT_NHWC)
+        return nullptr;
+
+    LogisticOps* ops = new LogisticOps();
+
+    return ops;
+}
+
 }    // namespace LogisticImpl
 
 using namespace LogisticImpl;
 
 void RegisterLogisticNodeExec(void)
 {
-    LogisticOps* ops = new LogisticOps();
-
-    NodeOpsRegistryManager::RegisterOPImplementor("common", "Logistic", ops);
+    NodeOpsRegistryManager::RegisterOPImplementor("common", "Logistic", LogisticImpl::SelectFunc, 1000);
 }
 
 }    // namespace TEngine

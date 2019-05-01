@@ -37,6 +37,10 @@
 #include "cpu_info.hpp"
 #include "exec_attr.hpp"
 
+#ifdef __ANDROID__
+#define dynamic_cast static_cast
+#endif
+
 namespace TEngine {
 
 #define ATTR_NODE_OPS "node_ops"
@@ -191,15 +195,26 @@ struct PrioSelector : public NodeOpsSelector
             auto ops = match_func(cpu_info, node);
 
             if(ops)
+            {
+                ops->need_free=true;
                 return ops;
+            }
         }
 
         return nullptr;
     }
 
-    void Register(int priority, select_node_ops_t func)
+    bool Register(int priority, select_node_ops_t func)
     {
+        for(auto ir = prio_list.begin(); ir != prio_list.end(); ir++)
+        {
+            auto prio = ir->first;
+
+            if(prio == priority)
+                return false;
+        }
         prio_list[priority] = func;
+        return true;
     }
 
     std::map<int, select_node_ops_t> prio_list;

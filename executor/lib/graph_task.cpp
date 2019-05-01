@@ -207,6 +207,11 @@ Graph* GraphTask::GetOptimizedGraph(void)
 
     optimized_graph_ = MergeSubgraph(graph_, sub_list);
 
+    optimized_graph_->SetLayout(graph_->GetLayout());
+    optimized_graph_->SetModelLayout(graph_->GetModelLayout());
+    optimized_graph_->SetModelFormat(graph_->GetModelFormat());
+    optimized_graph_->SetModelSubFormat(graph_->GetModelSubFormat());
+
     return optimized_graph_;
 }
 

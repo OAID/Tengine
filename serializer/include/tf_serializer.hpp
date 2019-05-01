@@ -106,6 +106,81 @@ struct LSTMNode : public TFNode
     }
 };
 
+struct RNNNode : public TFNode
+{
+    float clip;
+
+    std::string direction;
+
+    /* optional inputs */
+    TFNode* kernel;
+    TFNode* bias;
+    TFNode* init_h;
+
+    std::set<TFNode*> rnn_graph;
+
+    RNNNode()
+    {
+        kernel = nullptr;
+        bias = nullptr;
+        init_h = nullptr;
+    }
+
+    ~RNNNode()
+    {
+        auto rnn_ir = rnn_graph.begin();
+        auto rnn_end = rnn_graph.end();
+
+        while(rnn_ir != rnn_end)
+        {
+            delete(*rnn_ir);
+            rnn_ir++;
+        }
+    }
+};
+
+struct GRUNode : public TFNode
+{
+    float clip;
+
+    std::string direction;
+
+    /* optional inputs */
+    TFNode* kernel;
+    TFNode* bias;
+    TFNode* init_h;
+    //gru kernel & bias
+    TFNode* gate_kernel;
+    TFNode* gate_bias;
+    TFNode* candidate_kernel;
+    TFNode* candidate_bias;
+
+    std::set<TFNode*> rnn_graph;
+
+    GRUNode()
+    {
+        kernel = nullptr;
+        bias = nullptr;
+        init_h = nullptr;
+        gate_kernel= nullptr;
+        gate_bias= nullptr;
+        candidate_kernel= nullptr;
+        candidate_bias= nullptr;
+    }
+
+    ~GRUNode()
+    {
+        auto rnn_ir = rnn_graph.begin();
+        auto rnn_end = rnn_graph.end();
+
+        while(rnn_ir != rnn_end)
+        {
+            delete(*rnn_ir);
+            rnn_ir++;
+        }
+    }
+};
+
 struct TFGraph
 {
     std::vector<TFNode*> seq_nodes;
@@ -120,7 +195,7 @@ struct TFGraph
 #define TF_RNN_LSTM 0
 #define TF_RNN_GRU 1
 #define TF_RNN_BASIC_LSTM 2
-
+#define TF_RNN_BASIC_RNN 3
 class TFSerializer : public Serializer
 {
 public:
@@ -165,6 +240,10 @@ protected:
     void StripRNNScope(TFGraph& tf_graph, std::string& rnn_scope, int rnn_type);
 
     void ParseLSTMGraph(TFGraph& tf_graph, LSTMNode* lstm_node, std::set<TFNode*>& rnn_graph);
+
+    void ParseRNNGraph(TFGraph& tf_graph, RNNNode* rnn_node, std::set<TFNode*>& rnn_graph);
+
+    void ParseGRUGraph(TFGraph& tf_graph, GRUNode* gru_node, std::set<TFNode*>& rnn_graph);
 };
 
 }    // namespace TEngine

@@ -35,7 +35,6 @@ void ReLu::SetSchema(void)
     Input({"input:float32"})
         .Output({"output:float32"})
         .SetAttr("negative_slope", 0.f)
-        .SetLayout("NCHW")
         .SetDoc(R"DOC(ReLu Operator)DOC");
 }
 
