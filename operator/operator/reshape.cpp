@@ -28,6 +28,7 @@ namespace TEngine {
 bool Reshape::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEngine::TShape>& oshape, int layout)
 {
     const TShape& input = ishape[0];
+    std::vector<int> in_dim=input.GetDim();
     const int size = input.GetSize();
     std::vector<int> new_shape;
     int new_size = 1;
@@ -43,10 +44,12 @@ bool Reshape::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector
     // printf("new_shape: %d, %d, %d, %d\n",new_shape[0],new_shape[1],new_shape[2],new_shape[3]);
     int dim_size = new_shape.size();
     int idx = -1;
+    
+    //Ref: http://caffe.berkeleyvision.org/tutorial/layers/reshape.html
     for(int i = 0; i < dim_size; i++)
     {
         if(new_shape[i] == 0)
-            new_shape[i] = 1;
+            new_shape[i] = in_dim[i]; 
         else if(new_shape[i] == -1)
             idx = i;
         else
