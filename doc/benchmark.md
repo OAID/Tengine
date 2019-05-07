@@ -109,15 +109,15 @@ conservative ondemand userspace powersave interactive performance
 
 |   | Float32(ms) | INT8（ms） |
 | ---------- | ---|---|
-| rk3399(1*A17) | 201 |111  |
-| rk3399(4*A17) | 67.4 |40  |
+| rk3288(1*A17) | 201 |111  |
+| rk3288(4*A17) | 67.4 |40  |
 
 
 #### SqueezeNet
 |   | Float32(ms) | INT8（ms） |
 | ---------- | ---|---|
-| rk3399(1*A17) | 142 |88 |
-| rk3399(4*A17) | 55  |35 |
+| rk3288(1*A17) | 142 |88 |
+| rk3288(4*A17) | 55  |35 |
 
 Notes:<br>
 (1) We take the average time of N repeats.<br>
