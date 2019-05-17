@@ -5,7 +5,7 @@
 This is mtcnn implementation with the caffe wrapper of [Tengine](https://github.com/OAID/Tengine).
 
 ## Download required models
-Download the required models from [Tengine model zoo](https://pan.baidu.com/s/1LXZ8vOdyOo50IXS0CUPp8g) (psw: 57vb)
+Download the required models from [Tengine model zoo](https://pan.baidu.com/s/1Ar9334MPeIV1eq4pM1eI-Q) (psw: hhgc)
 
 - det1.caffemodel
 - det1.prototxt

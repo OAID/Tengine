@@ -10,7 +10,7 @@ The document describes how to build Tengine for android.
 ---
 
 ##  Use prebuilt Tengine android package
-Download the below file from [Tengine Android build](https://pan.baidu.com/s/1RPHK_ji0LlL3ztjUa893Yg) (password: *ka6a*), and unpack it.
+Download the below file from [Tengine Android build](https://pan.baidu.com/s/1-zsqxXXcZEXmCip-nQzcIw) (password: *wtcz*), and unpack it.
 ```
   - Tengine_android_build_package_arm64.tgz
 ```
@@ -30,7 +30,7 @@ git clone https://github.com/OAID/tengine/
 ```
 ### 2. Download Android ndk, OpenBLAS, OpenCV, Protobuf and ComputeLibrary
 
-Download the below files from [Tengine Android build](https://pan.baidu.com/s/1RPHK_ji0LlL3ztjUa893Yg) (password: *ka6a*):
+Download the below files from [Tengine Android build](https://pan.baidu.com/s/1-zsqxXXcZEXmCip-nQzcIw) (password: *wtcz*):
 ```
   - android-ndk-r16-linux-x86_64.zip
   - openblas020_android.tgz

@@ -43,7 +43,7 @@ please refer to the [**Linux build**](doc/install.md) and [**Android build**](ht
 
 ## Tengine examples and model zoo
 
-please visit [examples](examples/readme.md) for demos on classification/detection and download models from [**Tengine model zoo**](https://pan.baidu.com/s/1LXZ8vOdyOo50IXS0CUPp8g) (psw: 57vb)
+please visit [examples](examples/readme.md) for demos on classification/detection and download models from [**Tengine model zoo**](https://pan.baidu.com/s/1Ar9334MPeIV1eq4pM1eI-Q) (psw: hhgc)
 
 [**tengine applications**](https://github.com/OAID/Tengine-app) is a project for sharing android/linux applications powered by Tengine  
 
@@ -135,7 +135,7 @@ Here is the guide to run [a MSSD example](https://github.com/OAID/Tengine/blob/m
 
 As NDK toolchains will drop gun_stl finally, this version switches to c++_shared 
     
-Please download the pre-built libraries with c++_shared from [Tengine Android Build Libraries](https://pan.baidu.com/s/1RPHK_ji0LlL3ztjUa893Yg), the password is *ka6a*.
+Please download the pre-built libraries with c++_shared from [Tengine Android Build Libraries](https://pan.baidu.com/s/1-zsqxXXcZEXmCip-nQzcIw) (password: *wtcz*).
     
 **Support ACL in Android**
 

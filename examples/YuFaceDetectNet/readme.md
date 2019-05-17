@@ -15,7 +15,7 @@ This is `YuFaceDetectNet`(https://github.com/ShiqiYu/libfacedetection) implement
 You can download model from *Tengine Model Zoo*, or from ShiqiYu github (which need to upgrade the model).
 
 ### **Download form Tengine model zoo**
-You can directly download the upgrated caffemodel in [Tengine model zoo](https://pan.baidu.com/s/1LXZ8vOdyOo50IXS0CUPp8g) (psw: 57vb) in the directory `Tengine_models/yufacedetect`.
+You can directly download the upgrated caffemodel in [Tengine model zoo](https://pan.baidu.com/s/1Ar9334MPeIV1eq4pM1eI-Q) (psw: hhgc) in the directory `Tengine_models/yufacedetect`.
 
 
 - yufacedetectnet-open-v1_new.prototxt
