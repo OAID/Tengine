@@ -48,7 +48,7 @@ conservative ondemand userspace powersave interactive performance
 
 * **get model**
 
-    You can get the models from [Tengine model zoo](https://pan.baidu.com/s/1LXZ8vOdyOo50IXS0CUPp8g), the password is `57vb`. 
+    You can get the models from [Tengine model zoo](https://pan.baidu.com/s/1Ar9334MPeIV1eq4pM1eI-Q) (psw: hhgc)
     And then, put the "mobilenet.caffemodel", "mobilenet_deploy.prototxt", "squeezenet_v1.1.caffemodel", "sqz.prototxt" in `~/tengine/models`.
 
 * **set CPU**
