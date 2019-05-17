@@ -17,7 +17,7 @@ It can be used to test the following imagenets:
 - vgg16
 
 ## Download required models
-Download the models from [Tengine model zoo](https://pan.baidu.com/s/1LXZ8vOdyOo50IXS0CUPp8g) (psw: 57vb).
+Download the models from [Tengine model zoo](https://pan.baidu.com/s/1Ar9334MPeIV1eq4pM1eI-Q) (psw: hhgc).
 
 Store these files into `${Tengine_ROOT}/models/`
 
