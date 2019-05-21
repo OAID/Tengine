@@ -23,6 +23,7 @@ obj-y+=batchnorm.o
 obj-y+=scale.o
 obj-y+=logistic.o
 obj-y+=detection_postprocess.o
+obj-y+=stridedslice.o
 obj-y+=fused/
 obj-y+=init.o
 
