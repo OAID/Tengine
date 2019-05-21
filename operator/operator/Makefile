@@ -44,3 +44,4 @@ obj-y+=squeeze.o
 obj-y+=swap_axis.o
 obj-y+=tanh.o
 obj-y+=gru.o
+obj-y+=stridedslice.o

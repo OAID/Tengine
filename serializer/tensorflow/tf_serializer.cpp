@@ -52,6 +52,7 @@
 #include "operator/lstm_param.hpp"
 #include "operator/rnn_param.hpp"
 #include "operator/gru_param.hpp"
+#include "operator/stridedslice_param.hpp"
 #include "operator_manager.hpp"
 #include "type_name.hpp"
 
@@ -3204,6 +3205,37 @@ static bool LoadGRU(TFNode* tf_node, TFGraph& tf_graph, StaticGraph* graph)
 
     return true;
 }
+static bool LoadStridedSlice(TFNode* tf_node, TFGraph& tf_graph, StaticGraph* graph)
+{
+    StaticNode* node = tf_node->static_node;
+    for(unsigned int i = 0; i < tf_node->inputs.size(); i++)
+    {
+        AddNodeInputTensor(node, tf_node->inputs[i]->static_tensor);
+    }
+    StridedSliceParam param = any_cast<StridedSliceParam>(OpManager::GetOpDefParam("StridedSlice"));
+    int* begins = ( int* )LoadConstParam(tf_node->inputs[1]);
+    int* ends = ( int* )LoadConstParam(tf_node->inputs[2]);
+    int* strides = ( int* )LoadConstParam(tf_node->inputs[3]);
+
+    // tengine NCHW layout
+    param.begin[nhwc_axis_swap[0]]=begins[0];
+    param.end[nhwc_axis_swap[0]]  =ends[0];
+    param.stride[nhwc_axis_swap[0]]=strides[0];
+    param.begin[nhwc_axis_swap[1]]=begins[1];
+    param.end[nhwc_axis_swap[1]]  =ends[1];
+    param.stride[nhwc_axis_swap[1]]=strides[1];
+    param.begin[nhwc_axis_swap[2]]=begins[2];
+    param.end[nhwc_axis_swap[2]]  =ends[2];
+    param.stride[nhwc_axis_swap[2]]=strides[2];
+    param.begin[nhwc_axis_swap[3]]=begins[3];
+    param.end[nhwc_axis_swap[3]]  =ends[3];
+    param.stride[nhwc_axis_swap[3]]=strides[3];
+    StaticOp* op = CreateStaticOp(graph, "StridedSlice");
+    SetOperatorParam(op, param);
+    SetNodeOp(node, op);
+
+    return true;
+}
 
 }    // namespace tf_serializer
 
@@ -3245,6 +3277,7 @@ bool TFSerializerRegisterOpLoader(void)
     p_tf->RegisterOpLoadMethod("LSTM", op_load_t(LoadLSTM));
     p_tf->RegisterOpLoadMethod("RNN", op_load_t(LoadRNN));
     p_tf->RegisterOpLoadMethod("GRU", op_load_t(LoadGRU));
+    p_tf->RegisterOpLoadMethod("StridedSlice", op_load_t(LoadStridedSlice));
     return true;
 }
 
