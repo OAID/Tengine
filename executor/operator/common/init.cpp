@@ -48,7 +48,7 @@ extern void RegisterReLuNodeExec(void);
 extern void RegisterResizeNodeExec(void);
 extern void RegisterLogisticNodeExec(void);
 extern void RegisterDetectionPostProcessNodeExec(void);
-
+extern void RegisterStridedSliceNodeExec(void);
 #ifdef CONFIG_ARCH_BLAS
 extern void RegisterConvBlasNodeExec(void);
 extern void RegisterDeconvBlasNodeExec(void);
@@ -87,7 +87,7 @@ void RegisterCommonOps(void)
     RegisterResizeNodeExec();
     RegisterLogisticNodeExec();
     RegisterDetectionPostProcessNodeExec();
-
+    RegisterStridedSliceNodeExec();
 #ifdef CONFIG_ARCH_BLAS
     RegisterConvBlasNodeExec();
     RegisterDeconvBlasNodeExec();
