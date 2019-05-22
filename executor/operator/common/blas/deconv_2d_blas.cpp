@@ -152,13 +152,9 @@ struct DeconvBlasOps : public NodeOps
         // bias
         const Tensor* bias_tensor = node->GetInputTensor(2);
 	float* bias = nullptr;
-	if (bias_tensor == NULL)
+	if (bias_tensor != NULL)
 	{	
-            bias = nullptr;
-	}
-        else
-	{
-	    bias = ( float* )get_tensor_mem(bias_tensor);
+      	    bias = ( float* )get_tensor_mem(bias_tensor);
         }
 	// param
         Deconvolution* deconv_op = dynamic_cast<Deconvolution*>(node->GetOp());
