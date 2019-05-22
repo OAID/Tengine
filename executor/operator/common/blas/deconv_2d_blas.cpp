@@ -62,7 +62,9 @@ struct DeconvBlasOps : public NodeOps
     void add_bias(float* output, float* bias, int c_out, int hw)
     {
         float* out_ptr = output;
-        for(int c = 0; c < c_out; ++c)
+        if (bias == nullptr)
+	    return;
+	for(int c = 0; c < c_out; ++c)
         {
             float val = bias[c];
             for(int i = 0; i < hw; ++i)
@@ -149,9 +151,12 @@ struct DeconvBlasOps : public NodeOps
 
         // bias
         const Tensor* bias_tensor = node->GetInputTensor(2);
-        float* bias = ( float* )get_tensor_mem(bias_tensor);
-
-        // param
+	float* bias = nullptr;
+	if (bias_tensor != NULL)
+	{	
+      	    bias = ( float* )get_tensor_mem(bias_tensor);
+        }
+	// param
         Deconvolution* deconv_op = dynamic_cast<Deconvolution*>(node->GetOp());
         DeconvParam* param_ = deconv_op->GetParam();
         int pad = param_->pad_w0;
