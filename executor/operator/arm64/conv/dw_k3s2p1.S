@@ -54,6 +54,33 @@
 
 
 KERNEL_NAME:
+   cmp x1,2
+   bgt begin
+   cmp x2,2
+   bgt begin
+   cmp x1,1
+   bne input_2_2
+
+input_1_1:
+   ldr s12,[x0]
+   ldr s24,[x3,#16]
+   fmul s4,s24,s12
+   str s4,[x4]
+   b all_row_done
+
+// input size is 2x2
+input_2_2:
+   ld1 {v12.4s},[x0]        //a00,a01,a10,a11
+   ld1 {v23.4s,v24.4s,v25.4s}, [x3]
+   ins v24.s[2],v24.s[3]
+   ins v24.s[3],v25.s[0]    //k11,k12,k21,k22
+   fmul v4.4s,v12.4s,v24.4s
+   faddp v4.4s,v4.4s,v4.4s
+   faddp v4.4s,v4.4s,v4.4s
+   str s4,[x4]
+   b all_row_done
+
+begin:
    //Load Kernel
    ld1 {v24.4s,v25.4s,v26.4s}, [x3]
    ext  v26.16b,v25.16b,v26.16b,8
@@ -193,7 +220,8 @@ first_left_save_1_3:
    str s28,[x10],#4
 
 first_row_done:
-
+   cmp x1,1
+   beq all_row_done
 
 odd_row_start:
    sub x1,x1,1
