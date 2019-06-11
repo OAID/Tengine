@@ -64,6 +64,13 @@ input_1_1:
    ldr s12,[x0]
    ldr s24,[x3,#16]
    fmul s4,s24,s12
+   cbz x5,input_1_1_non_biases
+   ldr s21,[x5]
+   fadd s4,s21,s4
+input_1_1_non_biases:
+#ifdef CONV_RELU_FUSE
+   fmax s4,s4,wzr
+#endif
    str s4,[x4]
    b all_row_done
 
@@ -76,6 +83,13 @@ input_2_2:
    fmul v4.4s,v12.4s,v24.4s
    faddp v4.4s,v4.4s,v4.4s
    faddp v4.4s,v4.4s,v4.4s
+   cbz x5,input_2_2_non_biases
+   ldr s21,[x5]
+   fadd s4,s21,s4
+input_2_2_non_biases:
+#ifdef CONV_RELU_FUSE
+   fmax s4,s4,wzr
+#endif
    str s4,[x4]
    b all_row_done
 
