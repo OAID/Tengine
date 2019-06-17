@@ -69,7 +69,7 @@ input_1_1:
    fadd s4,s21,s4
 input_1_1_non_biases:
 #ifdef CONV_RELU_FUSE
-   fmax s4,s4,wzr
+   fmov s4,wzr
 #endif
    str s4,[x4]
    b all_row_done
@@ -88,7 +88,7 @@ input_2_2:
    fadd s4,s21,s4
 input_2_2_non_biases:
 #ifdef CONV_RELU_FUSE
-   fmax s4,s4,wzr
+    fmov s4,wzr
 #endif
    str s4,[x4]
    b all_row_done
