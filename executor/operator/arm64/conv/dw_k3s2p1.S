@@ -53,6 +53,8 @@
 .type KERNEL_NAME, %function
 
 KERNEL_NAME:
+
+   fmov s31,wzr
    cmp x1,2
    bgt begin
    cmp x2,2
@@ -69,7 +71,7 @@ input_1_1:
    fadd s4,s21,s4
 input_1_1_non_biases:
 #ifdef CONV_RELU_FUSE
-   fmov s4,wzr
+   fmax s4,s4,s31
 #endif
    str s4,[x4]
    b all_row_done
@@ -88,7 +90,7 @@ input_2_2:
    fadd s4,s21,s4
 input_2_2_non_biases:
 #ifdef CONV_RELU_FUSE
-    fmov s4,wzr
+    fmax s4,s4,s31
 #endif
    str s4,[x4]
    b all_row_done
@@ -103,7 +105,6 @@ begin:
    lsr x9,x9,1
    add x9,x9,1
    lsl x9,x9,2
-   fmov s31,wzr
    dup  v31.4s,v31.s[0]
 
    //get bias
