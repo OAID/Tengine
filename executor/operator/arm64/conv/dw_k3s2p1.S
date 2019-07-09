@@ -53,6 +53,10 @@
 .type KERNEL_NAME, %function
 
 KERNEL_NAME:
+   //used v8,v12,v13
+   sub sp,sp,#0x18
+   str d8,[sp]
+   stp d12,d13,[sp,0x8]
 
    fmov s31,wzr
    cmp x1,2
@@ -724,6 +728,9 @@ last_odd_left_load_done:
 
 last_odd_row_done:   
 all_row_done:
+    ldr d8,[sp]
+    ldp d12,d13,[sp,0x8]
+    add sp,sp,#0x18
    ret
 
 
