@@ -54,7 +54,7 @@ Otherwise, set the CONFIG_ARCH_TYPE: **ARMv8**
 vim  ~/tengine/android_config.txt
 ```
 
-If run Tengine with Openblas, remove the DCONFIG_ARCH_ARM64 in android_build_armv8.sh or DCONFIG_ARCH_ARM32 in android_build_armv7.sh, and set the **-DCONFIG_ARCH_BLAS=ON**, and you must set the correct **BLAS_DIR** in android_config.txt.
+If run Tengine with Openblas, please set the **-DCONFIG_ARCH_BLAS=ON**, and you must set the correct **BLAS_DIR** in android_config.txt.
 
 If run Tengine with ACL GPU, set the **ACL_ROOT** to ComputeLibrary directory in android_config.txt, and set **CONFIG_ACL_GPU** to **ON** in the CMakeLists.txt: `option(CONFIG_ACL_GPU  "build acl gpu version" ON)` 
 
