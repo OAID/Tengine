@@ -59,7 +59,8 @@ Tengine can be extended to support new serialization format, by building new ser
 
 ## Communication && Tech Support
 * Github issues
-* **QQ group**: 829565581 (Question:Tengine  Answer:openailab)
+* QQ group: 829565581 (Question:Tengine  Answer:openailab)
+* Tengine Community: http://www.tengine.org.cn/
 
 ## Release History
 
