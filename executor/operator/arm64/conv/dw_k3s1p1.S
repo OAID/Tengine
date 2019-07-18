@@ -56,9 +56,11 @@
 
 KERNEL_NAME:
    //used v8,v12,v13
-   sub sp,sp,#0x18
-   str d8,[sp]
-   stp d12,d13,[sp,0x8]
+    sub sp, sp, #0x40
+    stp d8, d9, [sp]
+    stp d10, d11, [sp,0x10]
+    stp d12, d13, [sp,0x20]
+    stp d14, d15, [sp,0x30]
 
    //Load Kernel
    ld1 {v24.4s,v25.4s,v26.4s}, [x3]
@@ -737,7 +739,9 @@ single_line_left_load_done:
    str s28,[x10]
 
 single_line_done: 
-    ldr d8,[sp]
-    ldp d12,d13,[sp,0x8]
-    add sp,sp,#0x18
+    ldp d8, d9, [sp]
+    ldp d10, d11, [sp,0x10] 
+    ldp d12, d13, [sp,0x20]
+    ldp d14, d15, [sp,0x30]
+    add sp, sp, #0x40
    ret 

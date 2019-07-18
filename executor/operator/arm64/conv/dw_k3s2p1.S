@@ -54,10 +54,12 @@
 
 KERNEL_NAME:
    //used v8,v12,v13
-   sub sp,sp,#0x18
-   str d8,[sp]
-   stp d12,d13,[sp,0x8]
-
+    sub sp, sp, #0x40
+    stp d8, d9, [sp]
+    stp d10, d11, [sp,0x10]
+    stp d12, d13, [sp,0x20]
+    stp d14, d15, [sp,0x30]
+    
    fmov s31,wzr
    cmp x1,2
    bgt begin
@@ -728,9 +730,11 @@ last_odd_left_load_done:
 
 last_odd_row_done:   
 all_row_done:
-    ldr d8,[sp]
-    ldp d12,d13,[sp,0x8]
-    add sp,sp,#0x18
+    ldp d8, d9, [sp]
+    ldp d10, d11, [sp,0x10] 
+    ldp d12, d13, [sp,0x20]
+    ldp d14, d15, [sp,0x30]
+    add sp, sp, #0x40
    ret
 
 
