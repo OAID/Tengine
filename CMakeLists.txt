@@ -126,6 +126,10 @@ if(CONFIG_TF_SERIALIZER)
     add_definitions(-DCONFIG_TF_SERIALIZER=1)
 endif()
 
+if(CONFIG_TFLITE_SERIALIZER)
+    add_definitions(-DCONFIG_TFLITE_SERIALIZER=1)
+endif()
+
 if(CONFIG_TENGINE_SERIALIZER)
     add_definitions(-DCONFIG_TENGINE_SERIALIZER=1)
 endif()
