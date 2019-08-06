@@ -25,7 +25,7 @@
 
 namespace TEngine {
 
-bool DetectionPostProcess::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEngine::TShape>& oshape)
+bool DetectionPostProcess::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEngine::TShape>& oshape, int layout)
 {
     int max_detections = param_.max_detections;
     int max_classes_per_detection = param_.max_classes_per_detection;
