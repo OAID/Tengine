@@ -1,7 +1,7 @@
 
 cmake_minimum_required (VERSION 2.8)
 project(SSD)
-
+add_definitions(-std=c++11)
 set( INSTALL_DIR ${TENGINE_DIR}/install/)
 set( TENGINE_LIBS tengine hclcpu)
 if( ANDROID AND ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "armv7-a"))
