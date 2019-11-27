@@ -1,4 +1,4 @@
 #!/bin/bash
 
-cmake -DTENGINE_DIR=/home/haitao/workshop/tengine \
+cmake -DTENGINE_DIR=/home/haitao/workshop/tengine/tengine \
       ..

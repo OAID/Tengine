@@ -19,9 +19,15 @@ obj-y+=tengine_c_helper.o
 obj-y+=tengine_version.o
 obj-y+=tengine_errno.o
 obj-y+=tengine_runtime_error.o
+obj-y+=tengine_operations.o
 obj-y+=logger/
+obj-y+=tengine_filed_infos.o
+obj-y+=auth_helper.o
 
-obj-$(CONFIG_LEGACY_API)+=tengine_c_compat.o
+obj-$(CONFIG_ONLINE_REPORT)+=olreport/
+
+
+obj-y+=tengine_c_compat.o
 
 flags-$(STATIC_BUILD)+=-DSTATIC_BUILD
 

@@ -33,6 +33,7 @@ struct SplitParam : public NamedParam
     int axis;
     int split_dim;
     bool is_caffe;
+    int squeeze_axis;
     std::vector<int> split_sizes_;
 
     DECLARE_PARSER_STRUCTURE(SplitParam)
@@ -40,6 +41,7 @@ struct SplitParam : public NamedParam
         DECLARE_PARSER_ENTRY(axis);
         DECLARE_PARSER_ENTRY(split_dim);
         DECLARE_PARSER_ENTRY(is_caffe);
+        DECLARE_PARSER_ENTRY(squeeze_axis);
         DECLARE_PARSER_ENTRY(split_sizes_);
     }
 };

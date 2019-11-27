@@ -51,7 +51,7 @@ static int ref_lrn_uint8(const uint8_t* in_data, uint8_t* out_data, ref_lrn_para
             square[j] = img_data * img_data + bias;
         }
 
-        if(param->norm_region == 0)  /* LRN_ACROSS_CHANNELS */
+        if(param->norm_region == 0) /* LRN_ACROSS_CHANNELS */
         {
             float alpha_over_size = alpha / local_size;
 
@@ -84,7 +84,9 @@ static int ref_lrn_uint8(const uint8_t* in_data, uint8_t* out_data, ref_lrn_para
         }
         else
         {
-            printf("LRN: IN CHANNEL, TO BE IMPLEMENTED\n");
+            free(square);
+            free(accum_square);
+            return -1;
         }
     }
 

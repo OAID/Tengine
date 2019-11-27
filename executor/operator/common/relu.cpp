@@ -38,36 +38,25 @@ namespace ReLuImpl {
 
 struct ReLuOps : public NodeOps
 {
-    bool OnBind(Node* node) override
-    {
-        // set the inplace feature
-        inplace_t io_map;
-
-        io_map[0] = 0;
-
-        node->SetAttr(ATTR_INPLACE, io_map);
-
-        return true;
-    }
-
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
-    template <typename data_type> void kernel_run(void* data, int size, float negative_slope)
+    template <typename data_type> void kernel_run(void* input, void* out, int size, float negative_slope)
     {
-        data_type* out_data = ( data_type* )data;
+        data_type* in_data = ( data_type* )input;
+        data_type* out_data = ( data_type* )out;
         if(negative_slope == 0)
         {
             for(int i = 0; i < size; i++)
             {
-                out_data[i] = MAX(out_data[i], 0);
+                out_data[i] = MAX(in_data[i], 0);
             }
         }
         else
         {
             for(int i = 0; i < size; i++)
             {
-                out_data[i] = MAX(out_data[i], 0.f) + negative_slope * MIN(out_data[i], 0.f);
+                out_data[i] = MAX(in_data[i], 0.f) + negative_slope * MIN(in_data[i], 0.f);
             }
         }
     }
@@ -76,29 +65,30 @@ struct ReLuOps : public NodeOps
     {
         // input tensor and output tensor is the same
         Tensor* input_tensor = node->GetInputTensor(0);
+        Tensor* output_tensor = node->GetOutputTensor(0);
         int element_size = DataType::GetTypeSize(input_tensor->GetDataType());
         const TShape& shape = input_tensor->GetShape();
         int elem_num = shape.GetSize();
 
         ReLu* relu_op = dynamic_cast<ReLu*>(node->GetOp());
         ReLuParam* param = relu_op->GetParam();
-        void* data = get_tensor_mem(input_tensor);
+        float* data = ( float* )get_tensor_mem(input_tensor);
+        float* data1 = ( float* )get_tensor_mem(output_tensor);
 
         switch(element_size)
         {
             case 4:
-                kernel_run<float>(data, elem_num, param->negative_slope);
+                kernel_run<float>(( void* )data, ( void* )data1, elem_num, param->negative_slope);
                 break;
-#ifdef CONFIG_FLOAT16
+#if CONFIG_KERNEL_FP16 && __ARM_ARCH >= 8
             case 2:
-                kernel_run<__fp16>(data, elem_num, param->negative_slope);
+                kernel_run<__fp16>(( void* )data, ( void* )data1, elem_num, ( float )param->negative_slope);
                 break;
 #endif
             case 1:
-                kernel_run<char>(data, elem_num, param->negative_slope);
+                kernel_run<char>(( void* )data, ( void* )data1, elem_num, ( float )param->negative_slope);
                 break;
         }
-
         return true;
     }
 };
@@ -110,7 +100,6 @@ NodeOps* SelectFunc(const CPUInfo* cpu_info, Node* node)
     const ExecAttr* exec_attr = any_cast<const ExecAttr*>(node->GetAttr(ATTR_EXEC_ATTR));
     if(data_type != TENGINE_DT_FP32 || exec_attr->graph_layout != TENGINE_LAYOUT_NCHW)
         return nullptr;
-
     ReLuOps* ops = new ReLuOps();
 
     return ops;

@@ -30,9 +30,10 @@ bool Flatten::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector
     const TShape& input = ishape[0];
 
     const std::vector<int>& in_dim = input.GetDim();
+    int in_size = in_dim.size();
 
     int new_channel = 1;
-    for(int i = param_.axis; i <= param_.end_axis; i++)
+    for(int i = param_.axis; i <= param_.end_axis && i < in_size; i++)
     {
         new_channel *= in_dim[i];
     }

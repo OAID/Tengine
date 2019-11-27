@@ -24,50 +24,45 @@
 
 #include <string.h>
 
-#include "ref_softmax.h"
 #include <math.h>
 #include <stdlib.h>
 
+int ref_softmax_kernel_int8(int8_t* input, int8_t* output, float* max_array, float* sum_array, op_data* op_param)
+{
+    int out_size = op_param->out_size;
+    int in_size = op_param->in_size;
+    int on_size = op_param->on_size;
+    int on_in_size = in_size * on_size;
 
-    int ref_softmax_kernel_int8(int8_t* input, int8_t* output, float* max_array, float* sum_array, op_data* op_param)
+    float* input_f = ( float* )malloc(out_size * on_in_size * sizeof(float));
+    float* output_f = ( float* )malloc(out_size * on_in_size * sizeof(float));
+
+    for(int i = 0; i < out_size; i++)
+        for(int j = 0; j < on_in_size; j++)
+            input_f[i * on_in_size + j] = (input[i * on_in_size + j]) * op_param->i_scale;
+
+    for(int i = 0; i < out_size; i++)
     {
-        int out_size = op_param->out_size;
-        int in_size = op_param->in_size;
-        int on_size = op_param->on_size;
-        int on_in_size = in_size * on_size;
-
-        float* input_f = (float*)malloc(out_size * on_in_size * sizeof(float));
-        float* output_f = (float*)malloc(out_size * on_in_size * sizeof(float));
-
-        for(int i = 0; i < out_size; i++)
-            for(int j=0; j< on_in_size; j++)
-                input_f[i*on_in_size+j] = (input[i*on_in_size+j])*op_param->i_scale;
-
-        for(int i = 0; i < out_size; i++)
-        {
-            /* get max */
-            int img_base = i * in_size * on_size;
-            GetMaxArray(input_f + img_base, max_array, in_size, on_size);
-            GetOutResult(input_f + img_base, output_f + img_base, max_array, sum_array, in_size, on_size);
-        }
-        
-        float fmax=0.0f;
-
-        for(int i = 0; i < out_size; i++)
-            for(int j=0; j< on_in_size; j++)
-                if(fmax<fabs(output_f[i*on_in_size+j])) fmax=fabs(output_f[i*on_in_size+j]);
-
-        float o_scale = fmax/127;
-        op_param->o_scale = o_scale;
- 
-        for(int i = 0; i < out_size; i++)
-            for(int j=0; j< on_in_size; j++)
-                output[i*on_in_size+j] = round(output_f[i*on_in_size+j]/op_param->o_scale);
-        
-        free(input_f);
-        free(output_f);
-
-        return 0;
+        /* get max */
+        int img_base = i * in_size * on_size;
+        GetMaxArray(input_f + img_base, max_array, in_size, on_size);
+        GetOutResult(input_f + img_base, output_f + img_base, max_array, sum_array, in_size, on_size);
     }
 
+    for(int i = 0; i < out_size; i++)
+    {
+        for(int j = 0; j < on_in_size; j++)
+        {
+            int tmp  = round(output_f[i * on_in_size + j] / op_param->o_scale);
+            if(tmp > 127)
+                tmp = 127;
+            if(tmp < -127)
+                tmp = -127;
+            output[i * on_in_size + j] = (int8_t)tmp;
+         }
+    }
+    free(input_f);
+    free(output_f);
 
+    return 0;
+}

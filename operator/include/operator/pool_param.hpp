@@ -43,6 +43,8 @@ enum PoolingSize
 
 namespace TEngine {
 
+#define COUNT_INCLUDE_PAD_MSK 0x010
+
 struct PoolParam : public NamedParam
 {
     int alg;
@@ -52,10 +54,10 @@ struct PoolParam : public NamedParam
     int stride_w;
     int global;
     int caffe_flavor;
-    int pad_h0;  // top padding rows
-    int pad_w0;  // left padding columns
-    int pad_h1;  // bottom padding rows
-    int pad_w1;  // right padding columns
+    int pad_h0;    // top padding rows
+    int pad_w0;    // left padding columns
+    int pad_h1;    // bottom padding rows
+    int pad_w1;    // right padding columns
 
     DECLARE_PARSER_STRUCTURE(PoolParam)
     {

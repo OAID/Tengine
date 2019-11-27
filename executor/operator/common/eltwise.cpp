@@ -189,14 +189,6 @@ struct EltwiseOps : public NodeOps
             case 4:
                 result = kernel_run<float>(output, input0, input1, param->type, ishape, input1_count4);
                 break;
-#ifdef CONFIG_FLOAT16
-            case 2:
-                result = kernel_run<__fp16>(output, input0, input1, param->type, ishape, input1_count4);
-                break;
-#endif
-            case 1:
-                result = kernel_run<char>(output, input0, input1, param->type, ishape, input1_count4);
-                break;
         }
 
         return result;
@@ -208,8 +200,7 @@ NodeOps* SelectFunc(const CPUInfo* cpu_info, Node* node)
 {
     Tensor* input = node->GetInputTensor(0);
     const int data_type = input->GetDataType();
-    const ExecAttr* exec_attr = any_cast<const ExecAttr*>(node->GetAttr(ATTR_EXEC_ATTR));
-    if(data_type != TENGINE_DT_FP32 || exec_attr->graph_layout != TENGINE_LAYOUT_NCHW)
+    if(data_type != TENGINE_DT_FP32)
         return nullptr;
 
     EltwiseOps* ops = new EltwiseOps();

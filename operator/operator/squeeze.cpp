@@ -30,7 +30,7 @@ bool Squeeze::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector
     const TShape& input = ishape[0];
 
     const std::vector<int>& in_dim = input.GetDim();
-    int in_size=in_dim.size();
+    int in_size = in_dim.size();
     std::vector<int> new_shape;
     if(param_.dim_0 != -2)
         new_shape.push_back(param_.dim_0);
@@ -41,59 +41,56 @@ bool Squeeze::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector
     if(param_.dim_3 != -2)
         new_shape.push_back(param_.dim_3);
     bool should_squeeze[4] = {false};
-    int squeezeddim=0;
+    int squeezeddim = 0;
     int newshape_size = new_shape.size();
-    std::vector<int> real_shape={0,2,3,1};
+    std::vector<int> real_shape = {0, 2, 3, 1};
     if(newshape_size)
     {
-        for(int i=0;i<newshape_size;i++)
+        for(int i = 0; i < newshape_size; i++)
         {
-
-           if(new_shape[i]>=0)
-           {
-                int idx=new_shape[i];
-                if(input.GetDataLayout()==TENGINE_LAYOUT_NCHW)
-                    idx=real_shape[idx];
-                if(in_dim[idx]==1 && idx>=0 && idx<4)
+            if(new_shape[i] >= 0)
+            {
+                int idx = new_shape[i];
+                if(input.GetDataLayout() == TENGINE_LAYOUT_NCHW)
+                    idx = real_shape[idx];
+                if(in_dim[idx] == 1 && idx >= 0 && idx < 4)
                 {
-
-                    should_squeeze[idx]=true;
+                    should_squeeze[idx] = true;
                     ++squeezeddim;
                 }
-           }
-           else if(new_shape[i]<0)
-           {
-               int idx=new_shape[i];
-               if(input.GetDataLayout()==TENGINE_LAYOUT_NCHW)
-                    idx=real_shape[idx];
-               if(in_dim[idx]==1 && idx>0 && idx<3)
-               {
-                   int current=in_dim.size()+idx;
-                   should_squeeze[current]=true;
-                   ++squeezeddim;
-               }
-           }
+            }
+            else if(new_shape[i] < 0)
+            {
+                int idx = new_shape[i];
+                if(input.GetDataLayout() == TENGINE_LAYOUT_NCHW)
+                    idx = real_shape[idx];
+                if(in_dim[idx] == 1 && idx > 0 && idx < 3)
+                {
+                    int current = in_dim.size() + idx;
+                    should_squeeze[current] = true;
+                    ++squeezeddim;
+                }
+            }
         }
     }
     else
     {
-        for(int idx=0;idx<in_size;++idx)
+        for(int idx = 0; idx < in_size; ++idx)
         {
-            if (in_dim[idx] == 1) 
+            if(in_dim[idx] == 1)
             {
                 should_squeeze[idx] = true;
                 ++squeezeddim;
             }
         }
     }
-    std::vector<int> odim(in_size-squeezeddim);
-    int o_idx=0;
-    for(int i_idx=0;i_idx<in_size;i_idx++)
+    std::vector<int> odim(in_size - squeezeddim);
+    int o_idx = 0;
+    for(int i_idx = 0; i_idx < in_size; i_idx++)
     {
         if(!should_squeeze[i_idx])
             odim[o_idx++] = in_dim[i_idx];
     }
-
 
     TShape shape;
     shape.SetDim(odim);

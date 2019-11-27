@@ -89,18 +89,16 @@ int mtcnn::load_3model(const std::string& model_dir)
     return 0;
 }
 
-int mtcnn::run_PNet(const cv::Mat& img, scale_window& win, std::vector<face_box>& box_list)
+int mtcnn::run_PNet(image img, scale_window& win, std::vector<face_box>& box_list)
 {
-    cv::Mat resized;
     int scale_h = win.h;
+
     int scale_w = win.w;
     float scale = win.scale;
-
     static bool first_run = true;
+    image resImg = resize_image(img, scale_w, scale_h);
 
-    cv::resize(img, resized, cv::Size(scale_w, scale_h), 0, 0, cv::INTER_NEAREST);
     /* input */
-
     tensor_t input_tensor = get_graph_tensor(PNet_graph, "data");
     int dims[] = {1, 3, scale_h, scale_w};
     set_tensor_shape(input_tensor, dims, 4);
@@ -108,9 +106,7 @@ int mtcnn::run_PNet(const cv::Mat& img, scale_window& win, std::vector<face_box>
     // std::cout<<"mem "<<in_mem<<"\n";
     float* input_data = ( float* )malloc(in_mem);
 
-    std::vector<cv::Mat> input_channels;
-    set_cvMat_input_buffer(input_channels, input_data, scale_h, scale_w);
-    cv::split(resized, input_channels);
+    memcpy(input_data, resImg.data, sizeof(float) * 3 * scale_h * scale_w);
 
     set_tensor_buffer(input_tensor, input_data, in_mem);
 
@@ -136,7 +132,6 @@ int mtcnn::run_PNet(const cv::Mat& img, scale_window& win, std::vector<face_box>
     float* reg_data = ( float* )get_tensor_buffer(tensor);
     int feature_h = dims[2];
     int feature_w = dims[3];
-    // std::cout<<"Pnet scale h,w= "<<feature_h<<","<<feature_w<<"\n";
 
     tensor = get_graph_tensor(PNet_graph, "prob1");
     float* prob_data = ( float* )get_tensor_buffer(tensor);
@@ -146,13 +141,11 @@ int mtcnn::run_PNet(const cv::Mat& img, scale_window& win, std::vector<face_box>
     release_graph_tensor(input_tensor);
     release_graph_tensor(tensor);
 
-    nms_boxes(candidate_boxes, 0.5, NMS_UNION, box_list);
-
-    // std::cout<<"condidate boxes size :"<<candidate_boxes.size()<<"\n";
+    nms_boxes(candidate_boxes, nms_p_threshold_, NMS_UNION, box_list);
     return 0;
 }
 
-int mtcnn::run_RNet(const cv::Mat& img, std::vector<face_box>& pnet_boxes, std::vector<face_box>& output_boxes)
+int mtcnn::run_RNet(image img, std::vector<face_box>& pnet_boxes, std::vector<face_box>& output_boxes)
 {
     int batch = pnet_boxes.size();
     int channel = 3;
@@ -238,7 +231,7 @@ int mtcnn::run_RNet(const cv::Mat& img, std::vector<face_box>& pnet_boxes, std::
     return 0;
 }
 
-int mtcnn::run_ONet(const cv::Mat& img, std::vector<face_box>& rnet_boxes, std::vector<face_box>& output_boxes)
+int mtcnn::run_ONet(image img, std::vector<face_box>& rnet_boxes, std::vector<face_box>& output_boxes)
 {
     int batch = rnet_boxes.size();
 
@@ -258,6 +251,7 @@ int mtcnn::run_ONet(const cv::Mat& img, std::vector<face_box>& rnet_boxes, std::
     for(int i = 0; i < batch; i++)
     {
         copy_one_patch(img, rnet_boxes[i], input_ptr, width, height);
+
         input_ptr += img_size;
     }
 
@@ -292,7 +286,7 @@ int mtcnn::run_ONet(const cv::Mat& img, std::vector<face_box>& rnet_boxes, std::
     int points_page_size = 10;
     for(int i = 0; i < batch; i++)
     {
-        if(*(confidence_data + 1) > conf_r_threshold_)
+        if(*(confidence_data + 1) > conf_o_threshold_)
         {
             face_box output_box;
             face_box& input_box = rnet_boxes[i];
@@ -329,19 +323,30 @@ int mtcnn::run_ONet(const cv::Mat& img, std::vector<face_box>& rnet_boxes, std::
     return 0;
 }
 
-void mtcnn::detect(cv::Mat& img, std::vector<face_box>& face_list)
+void mtcnn::detect(image img, std::vector<face_box>& face_list)
 {
-    cv::Mat working_img;
+    image working_img = make_image(img.c, img.w, img.h);
     float alpha = 0.0078125;
     float mean = 127.5;
-    img.convertTo(working_img, CV_32FC3);
-    working_img = (working_img - mean) * alpha;
-    working_img = working_img.t();
-    cv::cvtColor(working_img, working_img, cv::COLOR_BGR2RGB);
+    for(int c = 0; c < img.c; c++)
+    {
+        for(int i = 0; i < img.h; i++)
+        {
+            for(int j = 0; j < img.w; j++)
+            {
+                working_img.data[c * img.h * img.w + i * img.w + j] =
+                    (img.data[c * img.h * img.w + i * img.w + j] - mean) * alpha;
+            }
+        }
+    }
+    working_img.c = img.c;
+    working_img.h = img.h;
+    working_img.w = img.w;
 
-    int img_h = working_img.rows;
-    int img_w = working_img.cols;
+    working_img = tranpose(working_img);
 
+    int img_h = working_img.h;
+    int img_w = working_img.w;
     std::vector<scale_window> win_list;
 
     std::vector<face_box> total_pnet_boxes;
@@ -367,6 +372,9 @@ void mtcnn::detect(cv::Mat& img, std::vector<face_box>& face_list)
     // 	face_box b=pnet_boxes[i];
     // 	std::cout<<i <<","<<b.x0<<" "<<b.x1<< " "<<b.y0<<" "<<b.y1<<"\t"<<b.score<<"\n";
     // }
+
+    // printf("\n Finish  PNet and start RNet \n");
+
     if(run_RNet(working_img, pnet_boxes, total_rnet_boxes) != 0)
         return;
     total_pnet_boxes.clear();
@@ -376,11 +384,14 @@ void mtcnn::detect(cv::Mat& img, std::vector<face_box>& face_list)
 
     if(!rnet_boxes.size())
         return;
+
     // for(unsigned int i = 0;i < rnet_boxes.size(); i++)
     // {
     // 	face_box b=rnet_boxes[i];
     // 	std::cout<<i <<","<<b.x0<<" "<<b.x1<< " "<<b.y0<<" "<<b.y1<<"\t"<<b.score<<"\n";
     // }
+
+    // printf("\n Finish  RNet and start ONet \n");
     if(run_ONet(working_img, rnet_boxes, total_onet_boxes) != 0)
         return;
     total_rnet_boxes.clear();
@@ -397,8 +408,6 @@ void mtcnn::detect(cv::Mat& img, std::vector<face_box>& face_list)
             box.landmark.x[j] = box.x0 + w * box.landmark.x[j] - 1;
             box.landmark.y[j] = box.y0 + h * box.landmark.y[j] - 1;
         }
-        // std::cout<<"i="<<i<<"\t"<<box.x0<<" "<<box.y0<<" "<<box.x1<<" "<<box.y1<<" "<<box.landmark.x[3]<<"
-        // "<<box.landmark.y[2]<<"\n";
     }
     regress_boxes(total_onet_boxes);
     nms_boxes(total_onet_boxes, nms_o_threshold_, NMS_MIN, face_list);
@@ -416,4 +425,5 @@ void mtcnn::detect(cv::Mat& img, std::vector<face_box>& face_list)
             std::swap(box.landmark.x[l], box.landmark.y[l]);
         }
     }
+    free_image(working_img);
 }

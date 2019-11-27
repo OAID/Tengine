@@ -52,10 +52,10 @@ struct ConvParam : public NamedParam
     int output_channel;
     int group;
     int activation;
-    int pad_h0;  // top padding rows
-    int pad_w0;  // left padding columns
-    int pad_h1;  // bottom padding rows
-    int pad_w1;  // right padding columns
+    int pad_h0;    // top padding rows
+    int pad_w0;    // left padding columns
+    int pad_h1;    // bottom padding rows
+    int pad_w1;    // right padding columns
 
     DECLARE_PARSER_STRUCTURE(ConvParam)
     {

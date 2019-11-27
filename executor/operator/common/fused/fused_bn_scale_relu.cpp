@@ -206,7 +206,8 @@ using namespace FusedBNScaleReluImpl;
 
 void RegisterCommonFusedBNScaleReluNodeExec(void)
 {
-    NodeOpsRegistryManager::RegisterOPImplementor("common", FusedBNScaleReLu::class_name, FusedBNScaleReluImpl::SelectFunc, 1000);
+    NodeOpsRegistryManager::RegisterOPImplementor("common", FusedBNScaleReLu::class_name,
+                                                  FusedBNScaleReluImpl::SelectFunc, 1000);
 }
 
 }    // namespace TEngine

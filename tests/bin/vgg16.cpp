@@ -32,8 +32,6 @@
 #include "tengine_c_api.h"
 #include "common_util.hpp"
 #include "image_process.hpp"
-#include "opencv2/imgproc/imgproc.hpp"
-#include "opencv2/highgui/highgui.hpp"
 
 const char* text_file = "./models/vgg16.prototxt";
 const char* model_file = "./models/vgg16.caffemodel";

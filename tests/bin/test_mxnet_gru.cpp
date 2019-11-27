@@ -54,7 +54,7 @@ int main(int argc, char* argv[])
 
     init_tengine();
 
-    graph_t graph = create_graph(nullptr, "mxnet", model_name1.c_str(),model_name2.c_str());
+    graph_t graph = create_graph(nullptr, "mxnet", model_name1.c_str(), model_name2.c_str());
 
     // set_graph_layout(graph,TENGINE_LAYOUT_NCHW);
     // dump_graph(graph);
@@ -67,7 +67,7 @@ int main(int argc, char* argv[])
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
 
-    int dim[3] = {steps,28, 28};
+    int dim[3] = {steps, 28, 28};
 
     set_tensor_shape(input_tensor, dim, 3);
 

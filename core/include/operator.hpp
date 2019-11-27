@@ -59,11 +59,11 @@ public:
         return true;
     }
 
-    virtual bool GetParamItem(const char* param_name, const char * type_name, void* val)
+    virtual bool GetParamItem(const char* param_name, const char* type_name, void* val)
     {
         return false;
     }
-    virtual bool SetParamItem(const char* param_name, const char * type_name, const void* val)
+    virtual bool SetParamItem(const char* param_name, const char* type_name, const void* val)
     {
         return false;
     }
@@ -303,6 +303,7 @@ public:
         }
     }
 
+    using Operator::ParseParam;
     virtual void ParseParam(P& param, Operator* op)
     {
         ParsePredefinedParam(param, op);
@@ -324,12 +325,12 @@ public:
         return param;
     }
 
-    bool GetParamItem(const char* param_name, const char * type_name, void* val) override
+    bool GetParamItem(const char* param_name, const char* type_name, void* val) override
     {
         return param_.GetItemVal(param_name, type_name, val);
     }
 
-    bool SetParamItem(const char* param_name, const char * type_name, const void* val) override
+    bool SetParamItem(const char* param_name, const char* type_name, const void* val) override
     {
         return param_.SetItemVal(param_name, type_name, val);
     }
@@ -339,6 +340,9 @@ protected:
 };
 
 using OperatorPtr = std::shared_ptr<Operator>;
+
+extern template class SpecificFactory<Operator>;
+extern template SpecificFactory<Operator> SpecificFactory<Operator>::instance;
 
 using OpFactory = SpecificFactory<Operator>;
 

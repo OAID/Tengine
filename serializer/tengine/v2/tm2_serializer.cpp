@@ -48,10 +48,10 @@
 
 namespace TEngine {
 
-extern int NodeSetParamGeneric(void* node, const char* param_name, const char* type_name, const void* param_val, int size);
+extern int NodeSetParamGeneric(void* node, const char* param_name, const char* type_name, const void* param_val,
+                               int size);
 extern int NodeAddParamGeneric(void* node, const char* param_name, const char* type_name, int param_size);
-
-} 
+}    // namespace TEngine
 
 using namespace TEngine;
 
@@ -127,7 +127,7 @@ tm_uoffset_t TmSerializer2::SaveTmTensor(void* const start_ptr, tm_uoffset_t* cu
     {
         std::string name = tensor->GetName();
         TM2_String tensor_name;
-        tensor_name.size = name.size()+1;    // including trailing \0
+        tensor_name.size = name.size() + 1;    // including trailing \0
         tensor_name.offset_data = WriteTmFileAlign1(start_ptr, cur_pos, name.c_str(), tensor_name.size);
         tm_tensor.offset_s_tname = WriteTmObject(start_ptr, cur_pos, &tensor_name, sizeof(TM2_String));
     }
@@ -196,7 +196,7 @@ tm_uoffset_t TmSerializer2::SaveTmNode(void* const start_ptr, tm_uoffset_t* cur_
     {
         std::string name = node->GetName();
         TM2_String node_name;
-        node_name.size = name.size()+1;    // including trailing \0
+        node_name.size = name.size() + 1;    // including trailing \0
         node_name.offset_data = WriteTmFileAlign1(start_ptr, cur_pos, name.c_str(), node_name.size);
         tm_node.offset_s_nname = WriteTmObject(start_ptr, cur_pos, &node_name, sizeof(TM2_String));
     }
@@ -271,7 +271,7 @@ tm_uoffset_t TmSerializer2::SaveTmNode(void* const start_ptr, tm_uoffset_t* cur_
         CustomNodeAttr attr = it->second;
 
         TM2_String tm_attr_name, tm_attr_val;
-        tm_attr_name.size = attr_name.size()+1;    // including trailing \0
+        tm_attr_name.size = attr_name.size() + 1;    // including trailing \0
         tm_attr_name.offset_data = WriteTmFileAlign1(start_ptr, cur_pos, attr_name.c_str(), attr_name.size());
         tm_attr.offset_s_attrname = WriteTmObject(start_ptr, cur_pos, &tm_attr_name, sizeof(TM2_String));
 
@@ -434,7 +434,7 @@ bool TmSerializer2::SaveModelIntoMem(void* start_ptr, Graph* graph, uint32_t* tm
     {
         const std::string& fname = graph->GetName();
         TM2_String model_name;
-        model_name.size = fname.size()+1;    // including trailing \0
+        model_name.size = fname.size() + 1;    // including trailing \0
         model_name.offset_data = WriteTmFileAlign1(start_ptr, &cur_pos, fname.c_str(), model_name.size);
         tm_model.offset_s_mname = WriteTmObject(start_ptr, &cur_pos, &model_name, sizeof(TM2_String));
     }
@@ -528,7 +528,8 @@ bool TmSerializer2::LoadNode(StaticGraph* graph, StaticNode* node, const TM2_Nod
     return true;
 }
 
-bool TmSerializer2::LoadTensor(StaticGraph* graph, const TM2_Tensor* tm_tensor, const TM2_Buffer* tm_buf, void* mmap_buf)
+bool TmSerializer2::LoadTensor(StaticGraph* graph, const TM2_Tensor* tm_tensor, const TM2_Buffer* tm_buf,
+                               void* mmap_buf)
 {
     /* Set the tensor name */
     int idx = tm_tensor->tensor_id;
@@ -538,7 +539,7 @@ bool TmSerializer2::LoadTensor(StaticGraph* graph, const TM2_Tensor* tm_tensor, 
     else
     {
         const TM2_String* tm_str = GetTmPtr<TM2_String>(mmap_buf, tm_tensor->offset_s_tname);
-        tm_tensor_name.assign(GetTmPtr<char>(mmap_buf, tm_str->offset_data), tm_str->size-1);
+        tm_tensor_name.assign(GetTmPtr<char>(mmap_buf, tm_str->offset_data), tm_str->size - 1);
     }
 
     /* Create the static tensor */
@@ -589,15 +590,20 @@ bool TmSerializer2::LoadTensor(StaticGraph* graph, const TM2_Tensor* tm_tensor, 
     /* Set the quant params */
     if(tm_tensor->offect_vo_quantparams != TM2_NOT_SET)
     {
-        const TM2_Vector_offsets* v_quantparams = GetTmPtr<TM2_Vector_offsets>(mmap_buf, tm_tensor->offect_vo_quantparams);
+        const TM2_Vector_offsets* v_quantparams =
+            GetTmPtr<TM2_Vector_offsets>(mmap_buf, tm_tensor->offect_vo_quantparams);
 
         /* currently only support one quant param */
-        assert(v_quantparams->v_num == 1);
-
-        const TM2_QuantParam* tm_qtparam = GetTmPtr<TM2_QuantParam>(mmap_buf, v_quantparams->offsets[0]);
-        tensor->zero_point = tm_qtparam->zero_point;
-        tensor->scale = tm_qtparam->scale;
-        tensor->width = tm_qtparam->width;
+        // assert(v_quantparams->v_num == 1);
+        tensor->zero_point.resize(0);
+        tensor->scale.resize(0);
+        for(unsigned int i = 0; i < v_quantparams->v_num; ++i)
+        {
+            const TM2_QuantParam* tm_qtparam = GetTmPtr<TM2_QuantParam>(mmap_buf, v_quantparams->offsets[i]);
+            tensor->zero_point.push_back(tm_qtparam->zero_point);
+            tensor->scale.push_back(tm_qtparam->scale);
+            tensor->width = tm_qtparam->width;
+        }
     }
 
     return true;
@@ -639,7 +645,7 @@ bool TmSerializer2::LoadGraph(StaticGraph* graph, const TM2_Model* tm_model, voi
         else
         {
             const TM2_String* tm_str = GetTmPtr<TM2_String>(mmap_buf, tm_node->offset_s_nname);
-            tm_node_name.assign(GetTmPtr<char>(mmap_buf, tm_str->offset_data), tm_str->size-1);
+            tm_node_name.assign(GetTmPtr<char>(mmap_buf, tm_str->offset_data), tm_str->size - 1);
         }
 
         const TM2_Operator* tm_operator = GetTmPtr<TM2_Operator>(mmap_buf, tm_node->offset_t_operator);
@@ -668,7 +674,8 @@ bool TmSerializer2::LoadGraph(StaticGraph* graph, const TM2_Model* tm_model, voi
         return false;
 
     const TM2_Vector_indices* v_input_nodes = GetTmPtr<TM2_Vector_indices>(mmap_buf, tm_graph->offset_vi_input_indices);
-    const TM2_Vector_indices* v_output_nodes = GetTmPtr<TM2_Vector_indices>(mmap_buf, tm_graph->offset_vi_output_indices);
+    const TM2_Vector_indices* v_output_nodes =
+        GetTmPtr<TM2_Vector_indices>(mmap_buf, tm_graph->offset_vi_output_indices);
 
     /* Set the input nodes */
     for(unsigned int i = 0; i < v_input_nodes->v_num; i++)
@@ -704,7 +711,7 @@ bool TmSerializer2::LoadModelFromMem(void* mmap_buf, StaticGraph* graph)
     const TM2_Model* tm_model = GetTmPtr<TM2_Model>(mmap_buf, tm_header->offset_root);
 
     /* Load dla tengine model */
-    //if(tm_model->orig_format == MODEL_FORMAT_DLA)
+    // if(tm_model->orig_format == MODEL_FORMAT_DLA)
     //    return LoadDlaModel(mmap_buf, graph);
 
     if(tm_model->offset_s_mname == TM2_NOT_SET)
@@ -715,7 +722,7 @@ bool TmSerializer2::LoadModelFromMem(void* mmap_buf, StaticGraph* graph)
     {
         std::string tm_model_name;
         const TM2_String* tm_str = GetTmPtr<TM2_String>(mmap_buf, tm_model->offset_s_mname);
-        tm_model_name.assign(GetTmPtr<char>(mmap_buf, tm_str->offset_data), tm_str->size-1);
+        tm_model_name.assign(GetTmPtr<char>(mmap_buf, tm_str->offset_data), tm_str->size - 1);
         SetGraphIdentity(graph, "tengine", tm_model_name, "0");
     }
 

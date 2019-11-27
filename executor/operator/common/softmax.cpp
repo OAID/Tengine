@@ -45,14 +45,15 @@ struct SoftmaxOps : public NodeOps
     {
         data_type* input_ptr = ( data_type* )input;
         data_type* array_ptr = ( data_type* )array;
-        std::memset(array, 0, in_size * sizeof(data_type));
-
+        memcpy(array_ptr,input_ptr,in_size* sizeof(data_type));
         for(int j = 0; j < on_size; j++)
             for(int l = 0; l < in_size; l++)
             {
                 if(array_ptr[l] < input_ptr[j * in_size + l])
                     array_ptr[l] = input_ptr[j * in_size + l];
+
             }
+
     }
 
     template <typename data_type>
@@ -95,7 +96,10 @@ struct SoftmaxOps : public NodeOps
         //
         Softmax* softmax_op = dynamic_cast<Softmax*>(node->GetOp());
         SoftmaxParam* param_ = softmax_op->GetParam();
+        int dim_size = dims.size();
         int axis = param_->axis;
+        if(axis > dim_size)
+            axis = dim_size - 1;
         int out_size, in_size, on_size;
         out_size = 1;
         for(int i = 0; i < axis; i++)
@@ -133,12 +137,6 @@ struct SoftmaxOps : public NodeOps
                     GetMaxArray<float>(input + img_base, max_array, in_size, on_size);
                     GetOutResult<float>(input + img_base, output + img_base, max_array, sum_array, in_size, on_size);
                     break;
-#ifdef CONFIG_FLOAT16
-                case 2:
-                    GetMaxArray<__fp16>(input + img_base, max_array, in_size, on_size);
-                    GetOutResult<__fp16>(input + img_base, output + img_base, max_array, sum_array, in_size, on_size);
-                    break;
-#endif
                 case 1:
                     auto i_quant = input_tensor->GetQuantParam();
                     int i_zero = (*i_quant)[0].zero_point;
@@ -177,8 +175,7 @@ NodeOps* SelectFunc(const CPUInfo* cpu_info, Node* node)
 {
     Tensor* input = node->GetInputTensor(0);
     const int data_type = input->GetDataType();
-    const ExecAttr* exec_attr = any_cast<const ExecAttr*>(node->GetAttr(ATTR_EXEC_ATTR));
-    if(data_type != TENGINE_DT_FP32 || exec_attr->graph_layout != TENGINE_LAYOUT_NCHW)
+    if(data_type != TENGINE_DT_FP32 && data_type != TENGINE_DT_UINT8)
         return nullptr;
 
     SoftmaxOps* ops = new SoftmaxOps();

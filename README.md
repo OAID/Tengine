@@ -4,39 +4,17 @@
 
 **Tengine**, developed by **OPEN** AI LAB, is a lite, high-performance, and modular inference engine for embedded device.
 
-Tengine is composed of six modules: **core/operator/serializer/executor/driver/wrapper**.
+Tengine is composed of five modules: **core/operator/serializer/executor/driver**.
 
 - [**core**](core)  provides the basic components and functionalities of the system.
 - [**operator**](operator)  defines the schema of operators, such as convolution, relu, pooling, etc. al. Here is the current support [**operator list**](doc/operator_ir.md).
 - [**serializer**](serializer)  is to load the saved model. The serializer framework is extensible to support different format, including the customized one. Caffe/ONNX/Tensorflow/MXNet and Tengine models can be loaded directly by Tengine.
 - [**executor**](executor)  implements the code to run graph and operators. Current version provides a highly optimized implementation for multi A72 cores.
 - [**driver**](driver)  is the adapter of real H/W and provides service to device executor by HAL API. It is possible for single driver to create multiple devices.
-- [**wrapper**](wrapper)  provides the wrapper of APIs for different frameworks. Both Caffe API wrapper and Tensorflow API wrapper work now.
 
 This version can load and run Caffe model of **mobilenet** and **squeezenet** directly.  For more details, please goto [**install**](doc/install.md).
 
 `NOTE`: Old Caffe model has to be upgraded using **upgrade_net_proto_binary/upgrade_net_proto_binary** from Caffe's package.
-
-## Performance
-
-The data is collected on **1.8G A72** and on chip RK3399, by repeating calling the forward interface to get the average time cost (ms) per run.
-
-- Single A72 core (1xA72)
-
-|NN  |Caffe(Openblas)|Tengine|
-|----|---------------|-------|
-|squeezenet|147|91|
-|mobilenet|306|122|
-
-- Two A72 cores (2xA72)
-
-|NN  |Caffe(Openblas)|Tengine|
-|----|---------------|-------|
-|squeezenet|102|51|
-|mobilenet|232|65|
-
-
-For details to run benchmark, please visit [**benchmark**](doc/benchmark.md) page.
 
 ## Build and Install
 please refer to the [**Linux build**](doc/install.md) and [**Android build**](https://github.com/OAID/Tengine/blob/master/doc/build_android.md)
@@ -63,6 +41,91 @@ Tengine can be extended to support new serialization format, by building new ser
 * Tengine Community: http://www.tengine.org.cn/
 
 ## Release History
+## version 1.9.0 - 2019/09/25
+
+**Optimization**
+
+Optimize TF-LITE
+
+Optimize NCHW Conv_DW
+
+Optimize NCHW Deconv
+
+**New features**
+
+Support Online Report
+
+Support NCHW Post trainging tool
+
+**More operator support**
+
+TF-LITE operator LayerNormLstm implementation
+
+TF-LITE operator L2Normalization implementation
+
+TF-LITE operator L2Pool implementation
+
+TF-LITE operator ReluN1To1 implementation
+
+**Others**
+
+Remove Tensorflow/Caffe wrapper
+
+Move caffe/tensorflow/tf-lite/onnx/mxnet/darknet serializers to tengime-module project
+
+
+## version 1.8.0 - 2019/08/27
+
+**New features**
+
+Support Alexnet Googlenet Inceptiov3 Inceptionv4 Resnet50 on ACL 19.02
+
+Support Darknet models serializer (Yolov2, Yolov2-tiny, Yolov3, Yolov3-tiny)
+
+## version 1.7.1 - 2019/08/02
+
+**New features**
+
+GPU backend support with ACL 19.02
+
+Static tool for convert other models to tengine
+
+Tengine graph use origin layout to execute
+
+Add CV implementation
+
+## version 1.3.2 - 2019/04/19
+
+**tengine model 2.0**
+
+**New apis**
+
+get_graph_node_number()
+get_graph_node_by_idx()
+
+**New features**
+
+Separate CPU operator as a independent so:  hclcpu.so
+
+Add Reference Operator
+
+Update Testcase & Update permute for mxnet
+
+Update lstm grun mxnet serializer
+
+Support MXNET serializer in CMakelist.txt
+
+Support TFLITE serializer in CMakelist.txt
+
+Support eltwise in TFLITE serializer
+
+**More operator support**
+
+RNN operator definition and blas implementation
+
+LSTM operator definition and blas implementation
+
+GRU operator definition and blas implementation
 
 
 ## version 1.3.2 - 2019/04/19

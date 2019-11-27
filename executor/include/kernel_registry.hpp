@@ -29,42 +29,41 @@
 
 namespace TEngine {
 
-template <typename T>
-class KernelRegistry {
+template <typename T> class KernelRegistry
+{
 public:
     bool Register(const T& t, int layout, int data_type)
     {
-          int idx=get_idx(layout,data_type);
+        int idx = get_idx(layout, data_type);
 
-          if(map.count(idx))
-               return false;
+        if(map.count(idx))
+            return false;
 
-          map[idx]=t;
-          return true;
-    }    
+        map[idx] = t;
+        return true;
+    }
 
     bool GetKernel(T& t, int layout, int data_type)
     {
-         int idx=get_idx(layout,data_type);
+        int idx = get_idx(layout, data_type);
 
-         if(map.count(idx)==0)
-              return false;
+        if(map.count(idx) == 0)
+            return false;
 
-         t=map[idx];
+        t = map[idx];
 
-         return true;
+        return true;
     }
 
 private:
-   int  get_idx(int layout, int data_type) { return (layout<<8)|(data_type);}
-   
-   
-   std::unordered_map<int,T> map;
+    int get_idx(int layout, int data_type)
+    {
+        return (layout << 8) | (data_type);
+    }
 
+    std::unordered_map<int, T> map;
 };
 
-
-
-} //namespace TEngine
+}    // namespace TEngine
 
 #endif

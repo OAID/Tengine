@@ -27,9 +27,9 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "opencv2/imgproc/imgproc.hpp"
-#include "opencv2/highgui/highgui.hpp"
+#include <algorithm>
 #include "tengine_c_api.h"
+#include "tengine_operations.h"
 
 #define NMS_UNION 1
 #define NMS_MIN 2
@@ -71,7 +71,8 @@ struct face_box
 
 void cal_scale_list(int height, int width, int minsize, std::vector<scale_window>& list);
 
-void set_cvMat_input_buffer(std::vector<cv::Mat>& input_channels, float* input_data, const int height, const int width);
+// void set_cvMat_input_buffer(std::vector<image>& input_channels, float* input_data, const int height, const int
+// width);
 
 void generate_bounding_box(const float* confidence_data, const float* reg_data, float scale, float threshold,
                            int feature_h, int feature_w, std::vector<face_box>& output, bool transposed);
@@ -83,6 +84,6 @@ void square_boxes(std::vector<face_box>& rects);
 void padding(int img_h, int img_w, std::vector<face_box>& rects);
 void process_boxes(std::vector<face_box>& input, int img_h, int img_w, std::vector<face_box>& rects,
                    float nms_r_thresh);
-void copy_one_patch(const cv::Mat& img, face_box& input_box, float* data_to, int width, int height);
+void copy_one_patch(image img, face_box& input_box, float* data_to, int width, int height);
 
 #endif

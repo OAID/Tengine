@@ -44,7 +44,7 @@ struct NamedParam
         int data;
     };
 
-    ItemInfo* FindItem(const std::string& name, const char * type_name)
+    ItemInfo* FindItem(const std::string& name, const char* type_name)
     {
         if(item_map_.count(name) == 0)
             return nullptr;
@@ -52,7 +52,7 @@ struct NamedParam
         ItemInfo& entry = item_map_.at(name);
 
         // skip type checking if type_name is nullptr
-        if(type_name && entry.type_name && strcmp(type_name,entry.type_name))
+        if(type_name && entry.type_name && strcmp(type_name, entry.type_name))
         {
             // printf("requested: %s recorded:%s\n",item_type->name(),entry.type_info->name());
             return nullptr;
@@ -61,7 +61,7 @@ struct NamedParam
         return &entry;
     }
 
-    bool GetItemVal(const std::string& name, const char * type_name, void* val)
+    bool GetItemVal(const std::string& name, const char* type_name, void* val)
     {
         ItemInfo* entry = FindItem(name, type_name);
 
@@ -91,12 +91,11 @@ struct NamedParam
             return false;
 
         ItemInfo& entry = item_map_.at(name);
-        const char * item_type = entry.type_name;
-        const char * any_type = n.type().name();
+        const char* item_type = entry.type_name;
+        const char* any_type = n.type().name();
 
         /* several special cases */
-        if(!strcmp(item_type,typeid(const char*).name()) && 
-           !strcmp(any_type, typeid(std::string).name()))
+        if(!strcmp(item_type, typeid(const char*).name()) && !strcmp(any_type, typeid(std::string).name()))
         {
             const char** ptr = ( const char** )(( char* )this + entry.data);
             const std::string& str = any_cast<std::string>(n);
@@ -106,8 +105,7 @@ struct NamedParam
             return true;
         }
 
-        if(!strcmp(item_type,typeid(std::string).name()) && 
-           !strcmp(any_type,typeid(const char*).name()))
+        if(!strcmp(item_type, typeid(std::string).name()) && !strcmp(any_type, typeid(const char*).name()))
         {
             std::string* p_str = ( std::string* )(( char* )this + entry.data);
             const char* ptr = any_cast<const char*>(n);
@@ -147,7 +145,7 @@ protected:
     {                                                                                    \
         typedef decltype(e) T;                                                           \
         ItemInfo info;                                                                   \
-        info.type_name = typeid(T).name();                                                     \
+        info.type_name = typeid(T).name();                                               \
         info.data = ( char* )&e - ( char* )this;                                         \
         info.cpy_func = [](void* data, const void* v) { *( T* )data = *( const T* )v; }; \
         info.cpy_any = [](void* data, const any& n) { *( T* )data = any_cast<T>(n); };   \

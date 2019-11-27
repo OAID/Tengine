@@ -25,8 +25,13 @@
 
 #include "operator.hpp"
 #include "attribute.hpp"
+#include "serializer.hpp"
 
 namespace TEngine {
+
+template class SpecificFactory<Serializer>;
+// template SpecificFactory<Serializer> SpecificFactory<Serializer>::instance;
+template SerializerManager SimpleObjectManagerWithLock<SerializerManager, SerializerPtr>::instance;
 
 static Attribute op_method_load_map;
 static Attribute op_method_save_map;

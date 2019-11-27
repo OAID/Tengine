@@ -33,7 +33,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-struct op_data{
+struct op_data
+{
     int layout;
     int batch;
     int channel;
@@ -48,9 +49,7 @@ struct op_data{
     int align[4];
 };
 
-
-typedef int (*ref_pooling_kernel_t)(const void * input, void * output, struct op_data* param);
-
+typedef int (*ref_pooling_kernel_t)(const void* input, void* output, struct op_data* param);
 
 #ifdef CONFIG_KERNEL_FP32
 #include "ref_pooling_fp32.c"
@@ -67,8 +66,6 @@ typedef int (*ref_pooling_kernel_t)(const void * input, void * output, struct op
 #ifdef CONFIG_KERNEL_UINT8
 #include "ref_pooling_uint8.c"
 #endif
-
-
 
 #ifdef __cplusplus
 }

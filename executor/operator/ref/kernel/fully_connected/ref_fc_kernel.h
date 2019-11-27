@@ -36,16 +36,14 @@ extern "C" {
 struct fc_data
 {
     int need_trans;
-    int batch;              //N
-    int out_number;         //OUT
-    int hidden;             //hidden
-    int zero[3];            //input, kernel, output
-    float scale[3];         //input, kernel, output
+    int batch;    // N
+    int out_number;    // OUT
+    int hidden;    // hidden
+    int zero[3];    // input, kernel, output
+    float scale[3];    // input, kernel, output
 };
 
-    
-typedef int (*ref_fc_kernel_t)(const void * input, void * output, const void* weight, const void* bias, fc_data* param);
-
+typedef int (*ref_fc_kernel_t)(const void* input, void* output, const void* weight, const void* bias, fc_data* param);
 
 #ifdef CONFIG_KERNEL_FP32
 #include "ref_fc_fp32.c"
@@ -62,7 +60,6 @@ typedef int (*ref_fc_kernel_t)(const void * input, void * output, const void* we
 #ifdef CONFIG_KERNEL_UINT8
 #include "ref_fc_uint8.c"
 #endif
-
 
 #ifdef __cplusplus
 }

@@ -43,8 +43,8 @@ struct ref_lrn_param
     int norm_region;
     int layout;
     int dims[4];
-    int zero[2];  /* input, output */
-    float scale[2];  /* input, output */
+    int zero[2]; /* input, output */
+    float scale[2]; /* input, output */
 };
 
 typedef int (*ref_lrn_kernel_t)(const void* in_data, void* out_data, ref_lrn_param* param);
@@ -68,6 +68,5 @@ typedef int (*ref_lrn_kernel_t)(const void* in_data, void* out_data, ref_lrn_par
 #ifdef __cplusplus
 }
 #endif
-    
-#endif
 
+#endif

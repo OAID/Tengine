@@ -62,12 +62,12 @@ public:
 
     int load_3model(const std::string& model_dir);
 
-    void detect(cv::Mat& img, std::vector<face_box>& face_list);
+    void detect(image img, std::vector<face_box>& face_list);
 
 protected:
-    int run_PNet(const cv::Mat& img, scale_window& win, std::vector<face_box>& box_list);
-    int run_RNet(const cv::Mat& img, std::vector<face_box>& pnet_boxes, std::vector<face_box>& output_boxes);
-    int run_ONet(const cv::Mat& img, std::vector<face_box>& rnet_boxes, std::vector<face_box>& output_boxes);
+    int run_PNet(image img, scale_window& win, std::vector<face_box>& box_list);
+    int run_RNet(image img, std::vector<face_box>& pnet_boxes, std::vector<face_box>& output_boxes);
+    int run_ONet(image img, std::vector<face_box>& rnet_boxes, std::vector<face_box>& output_boxes);
 
 private:
     graph_t PNet_graph;

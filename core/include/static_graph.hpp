@@ -63,7 +63,7 @@ struct StaticGraph
     int graph_layout;
     int model_layout;
     int model_format;
-    int model_subformat; // for dla models
+    int model_subformat;    // for dla models
 
     StaticGraph(void)
     {
@@ -108,8 +108,10 @@ struct StaticTensor
     std::vector<int> dims;
     int data_type;
     int type;
-    float scale;
-    int zero_point;
+    // float scale;
+    // int zero_point;
+    std::vector<float> scale;
+    std::vector<float> zero_point;
     int width;
     NodeSynapse producer;
     std::vector<NodeSynapse> consumer;

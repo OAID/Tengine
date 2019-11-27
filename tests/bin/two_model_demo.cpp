@@ -23,8 +23,7 @@
  */
 
 #include "cpu_device.h"
-#include "opencv2/highgui/highgui.hpp"
-#include "opencv2/imgproc/imgproc.hpp"
+#include "tengine_operations.h"
 #include "tengine_c_api.h"
 #include <fstream>
 #include <iomanip>    //std::setprecision(4)
@@ -104,50 +103,42 @@ struct Box
 };
 void get_input_data_sqz(const char* image_file, float* input_data, int img_h, int img_w, const float* mean, float scale)
 {
-    cv::Mat img = cv::imread(image_file, -1);
-
-    if(img.empty())
+    image im = imread(image_file);
+    image imRes;
+    if(im.c == 1)
     {
-        std::cerr << "failed to read image file " << image_file << "\n";
-        return;
+        imRes = gray2bgr(im);
     }
-    cv::resize(img, img, cv::Size(img_h, img_w));
-    img.convertTo(img, CV_32FC3);
-    float* img_data = ( float* )img.data;
-    int hw = img_h * img_w;
-    for(int h = 0; h < img_h; h++)
-        for(int w = 0; w < img_w; w++)
-            for(int c = 0; c < 3; c++)
+    else
+    {
+        imRes = im;
+    }
+    image imResize = resize_image(imRes, img_w, img_h);
+    imResize = rgb2bgr_premute(imResize);
+    int hw = img_w * img_h;
+    for(int c = 0; c < 3; c++)
+        for(int h = 0; h < img_h; h++)
+            for(int w = 0; w < img_w; w++)
             {
-                input_data[c * hw + h * img_w + w] = (*img_data - mean[c]) * scale;
-                img_data++;
+                input_data[c * hw + h * img_w + w] = (imResize.data[c * hw + h * img_w + w] - mean[c]) * scale;
             }
 }
 
 void get_input_data_ssd(const char* image_file, float* input_data, int img_h, int img_w)
 {
-    cv::Mat img = cv::imread(image_file);
-
-    if(img.empty())
-    {
-        std::cerr << "Failed to read image file " << image_file << ".\n";
-        return;
-    }
-
-    cv::resize(img, img, cv::Size(img_h, img_w));
-    img.convertTo(img, CV_32FC3);
-    float* img_data = ( float* )img.data;
-    int hw = img_h * img_w;
+    image im = imread(image_file);
 
     float mean[3] = {127.5, 127.5, 127.5};
-    for(int h = 0; h < img_h; h++)
+    int hw = img_w * img_h;
+    image imRes = resize_image(im, img_w, img_h);
+    imRes = rgb2bgr_premute(imRes);
+    for(int c = 0; c < 3; c++)
     {
-        for(int w = 0; w < img_w; w++)
+        for(int h = 0; h < img_h; h++)
         {
-            for(int c = 0; c < 3; c++)
+            for(int w = 0; w < img_w; w++)
             {
-                input_data[c * hw + h * img_w + w] = 0.007843 * (*img_data - mean[c]);
-                img_data++;
+                input_data[c * hw + h * img_w + w] = 0.007843 * (imRes.data[c * hw + h * img_w + w] - mean[c]);
             }
         }
     }
@@ -160,11 +151,11 @@ void post_process_ssd(const char* image_file, float threshold, float* outdata, i
                                  "dog",        "horse",     "motorbike", "person", "pottedplant", "sheep",
                                  "sofa",       "train",     "tvmonitor"};
 
-    cv::Mat img = cv::imread(image_file);
-    int raw_h = img.size().height;
-    int raw_w = img.size().width;
+    image im = imread(image_file);
+
+    int raw_h = im.h;
+    int raw_w = im.w;
     std::vector<Box> boxes;
-    int line_width = raw_w * 0.005;
     printf("detect result num: %d \n", num);
     for(int i = 0; i < num; i++)
     {
@@ -186,20 +177,17 @@ void post_process_ssd(const char* image_file, float threshold, float* outdata, i
     for(int i = 0; i < ( int )boxes.size(); i++)
     {
         Box box = boxes[i];
-        cv::rectangle(img, cv::Rect(box.x0, box.y0, (box.x1 - box.x0), (box.y1 - box.y0)), cv::Scalar(255, 255, 0),
-                      line_width);
+
         std::ostringstream score_str;
-        score_str << box.score;
-        std::string label = std::string(class_names[box.class_idx]) + ": " + score_str.str();
-        int baseLine = 0;
-        cv::Size label_size = cv::getTextSize(label, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
-        cv::rectangle(img,
-                      cv::Rect(cv::Point(box.x0, box.y0 - label_size.height),
-                               cv::Size(label_size.width, label_size.height + baseLine)),
-                      cv::Scalar(255, 255, 0), CV_FILLED);
-        cv::putText(img, label, cv::Point(box.x0, box.y0), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 0));
+        score_str << box.score * 100;
+        std::string labelstr = std::string(class_names[box.class_idx]) + " : " + score_str.str();
+
+        put_label(im, labelstr.c_str(), 0.02, box.x0, box.y0, 255, 255, 125);
+        draw_box(im, box.x0, box.y0, box.x1, box.y1, 2, 125, 0, 125);
     }
-    cv::imwrite(save_name, img);
+
+    save_image(im, save_name);
+
     std::cout << "======================================\n";
     std::cout << "[DETECTED IMAGE SAVED]:\t" << save_name << "\n";
     std::cout << "======================================\n";

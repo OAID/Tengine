@@ -29,9 +29,7 @@
 #include <string>
 #include <vector>
 #include <sys/time.h>
-
-#include "opencv2/imgproc/imgproc.hpp"
-#include "opencv2/highgui/highgui.hpp"
+#include "tengine_operations.h"
 #include "tengine_c_api.h"
 
 #define DEF_MODEL "models/mobilenet_ssd.tflite"
@@ -40,32 +38,20 @@
 
 void get_input_data_ssd(const char* image_file, float* input_data, int img_h, int img_w)
 {
-    cv::Mat img = cv::imread(image_file);
+    image im = imread(image_file);
 
-    if(img.empty())
-    {
-        std::cerr << "Failed to read image file " << image_file << ".\n";
-        return;
-    }
+    image resImg = resize_image(im, img_w, img_h);
 
-    cv::resize(img, img, cv::Size(img_h, img_w));
-    img.convertTo(img, CV_32FC3);
-    float* img_data = ( float* )img.data;
-    float* ptr = input_data;
+    float mean = 127.5;
 
-    float mean[3] = {127.5, 127.5, 127.5};
     for(int h = 0; h < img_h; h++)
-    {
         for(int w = 0; w < img_w; w++)
-        {
             for(int c = 0; c < 3; c++)
             {
-                *ptr = 0.007843 * (img_data[2 - c] - mean[c]);
-                ptr++;
+                int src_index = c * img_h * img_w + h * img_w + w;
+                int dst_index = h * img_w * 3 + w * 3 + c;
+                input_data[dst_index] = 0.007843 * (resImg.data[src_index] - mean);
             }
-            img_data += 3;
-        }
-    }
 }
 
 void LoadLabelFile(std::vector<std::string>& result)

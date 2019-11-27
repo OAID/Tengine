@@ -63,14 +63,12 @@ int main(int argc, char* argv[])
         std::cout << "Create graph0 failed\n";
         return 1;
     }
-     
+
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
 
-    
-    int dim[3] = {steps,28, 28};
+    int dim[3] = {steps, 28, 28};
 
     set_tensor_shape(input_tensor, dim, 3);
-    
 
     int input_size = get_tensor_buffer_size(input_tensor);
     float* input_data = ( float* )malloc(input_size);
@@ -80,8 +78,6 @@ int main(int argc, char* argv[])
 
     set_tensor_buffer(input_tensor, input_data, input_size);
 
-
-
     // std::cout<<"intensr "<<input_tensor<<" buffsize"<<get_tensor_buffer_size(input_tensor)<<
     // "  menptr: "<<get_tensor_buffer(input_tensor)<<"\n";
     prerun_graph(graph);
@@ -89,7 +85,6 @@ int main(int argc, char* argv[])
     // "  menptr: "<<get_tensor_buffer(input_tensor)<<"\n";
     dump_graph(graph);
 
-    
     run_graph(graph, 1);
 
     tensor_t output_tensor = get_graph_output_tensor(graph, 0, 0);

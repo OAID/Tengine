@@ -165,13 +165,15 @@ public:
         return GenericFactory::RegisterInterface<T, Derived, Args...>(name, replace);
     }
 
+    static SpecificFactory<T> instance;
+
     static SpecificFactory<T>* GetFactory()
     {
-        static SpecificFactory<T> instance;
-
         return &instance;
     }
 };
+
+template <typename T> SpecificFactory<T> SpecificFactory<T>::instance;
 
 }    // namespace TEngine
 

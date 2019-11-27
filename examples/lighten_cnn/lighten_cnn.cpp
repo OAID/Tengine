@@ -26,8 +26,7 @@
 #include <string>
 #include <vector>
 #include <sys/time.h>
-#include "opencv2/imgproc/imgproc.hpp"
-#include "opencv2/highgui/highgui.hpp"
+#include <math.h>
 #include "tengine_c_api.h"
 #include "common.hpp"
 

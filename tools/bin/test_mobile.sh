@@ -7,7 +7,4 @@
                                 data \
                                 prob \
                                 224,224 \
-                                /home/usr/val/                       
-
-
-
+                                /home/zhangrui/val/images/ \

@@ -113,7 +113,7 @@ int get_node_param_pointer(node_t node, const char* param_name, void* param_val)
     return get_node_attr_pointer(node, param_name, param_val);
 }
 
-int get_node_param_generic(node_t node, const char* param_name, const char * type_name, void* param_val, int size)
+int get_node_param_generic(node_t node, const char* param_name, const char* type_name, void* param_val, int size)
 {
     return get_node_attr_generic(node, param_name, type_name, param_val, size);
 }

@@ -29,7 +29,7 @@
 
 namespace TEngine {
 
-class Split : public OperatorWithParam<Split,SplitParam>
+class Split : public OperatorWithParam<Split, SplitParam>
 {
 public:
     Split()

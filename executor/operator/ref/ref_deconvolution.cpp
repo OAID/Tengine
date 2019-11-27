@@ -58,33 +58,32 @@ struct RefDeconv : public MTNodeOps
     bool dynamic_shape;
     deconv_ref_param op_param;
 
-    ref_deconv_kernel_t  kernel_run;
-    KernelRegistry<ref_deconv_kernel_t>  kernel_registry;
+    ref_deconv_kernel_t kernel_run;
+    KernelRegistry<ref_deconv_kernel_t> kernel_registry;
     RefDeconv(void)
     {
-        kernel_run=nullptr;
+        kernel_run = nullptr;
         InitRegistry();
     }
 };
 void RefDeconv::InitRegistry(void)
 {
 #ifdef CONFIG_KERNEL_FP32
-    kernel_registry.Register((ref_deconv_kernel_t)ref_deconv_fp32,TENGINE_LAYOUT_NCHW,TENGINE_DT_FP32);
-    kernel_registry.Register((ref_deconv_kernel_t)ref_deconv_fp32,TENGINE_LAYOUT_NHWC,TENGINE_DT_FP32);
+    kernel_registry.Register(( ref_deconv_kernel_t )ref_deconv_fp32, TENGINE_LAYOUT_NCHW, TENGINE_DT_FP32);
+    kernel_registry.Register(( ref_deconv_kernel_t )ref_deconv_fp32, TENGINE_LAYOUT_NHWC, TENGINE_DT_FP32);
 #endif
 #ifdef CONFIG_KERNEL_FP16
-    kernel_registry.Register((ref_deconv_kernel_t)ref_deconv_fp16,TENGINE_LAYOUT_NCHW,TENGINE_DT_FP16);
-    kernel_registry.Register((ref_deconv_kernel_t)ref_deconv_fp16,TENGINE_LAYOUT_NHWC,TENGINE_DT_FP16);
+    kernel_registry.Register(( ref_deconv_kernel_t )ref_deconv_fp16, TENGINE_LAYOUT_NCHW, TENGINE_DT_FP16);
+    kernel_registry.Register(( ref_deconv_kernel_t )ref_deconv_fp16, TENGINE_LAYOUT_NHWC, TENGINE_DT_FP16);
 #endif
 #ifdef CONFIG_KERNEL_INT8
-    kernel_registry.Register((ref_deconv_kernel_t)ref_deconv_int8,TENGINE_LAYOUT_NCHW,TENGINE_DT_INT8);
-    kernel_registry.Register((ref_deconv_kernel_t)ref_deconv_int8,TENGINE_LAYOUT_NHWC,TENGINE_DT_INT8);
+    kernel_registry.Register(( ref_deconv_kernel_t )ref_deconv_int8, TENGINE_LAYOUT_NCHW, TENGINE_DT_INT8);
+    kernel_registry.Register(( ref_deconv_kernel_t )ref_deconv_int8, TENGINE_LAYOUT_NHWC, TENGINE_DT_INT8);
 #endif
 #ifdef CONFIG_KERNEL_UINT8
-    kernel_registry.Register((ref_deconv_kernel_t)ref_deconv_uint8,TENGINE_LAYOUT_NCHW,TENGINE_DT_UINT8);
-    kernel_registry.Register((ref_deconv_kernel_t)ref_deconv_uint8,TENGINE_LAYOUT_NHWC,TENGINE_DT_UINT8);
+    kernel_registry.Register(( ref_deconv_kernel_t )ref_deconv_uint8, TENGINE_LAYOUT_NCHW, TENGINE_DT_UINT8);
+    kernel_registry.Register(( ref_deconv_kernel_t )ref_deconv_uint8, TENGINE_LAYOUT_NHWC, TENGINE_DT_UINT8);
 #endif
-
 }
 bool RefDeconv::Reshape(Node* node)
 {
@@ -103,7 +102,7 @@ bool RefDeconv::GetSharedMemorySize(Node* node, unsigned int& mem_size)
 
 bool RefDeconv::Prerun(Node* node)
 {
-    int  layout=exec_attr->graph_layout;
+    int layout = exec_attr->graph_layout;
 
     Deconvolution* deconv_op = dynamic_cast<Deconvolution*>(node->GetOp());
     DeconvParam* param = deconv_op->GetParam();
@@ -111,14 +110,14 @@ bool RefDeconv::Prerun(Node* node)
     Tensor* input_tensor = node->GetInputTensor(0);
     TShape inshape = input_tensor->GetShape();
 
-    if(0 == layout) // nchw
+    if(0 == layout)    // nchw
     {
         op_param.batch = inshape.Shape(0);
         op_param.in_shape[0] = inshape.Shape(1);
         op_param.in_shape[1] = inshape.Shape(2);
         op_param.in_shape[2] = inshape.Shape(3);
     }
-    else            // nhwc
+    else    // nhwc
     {
         op_param.batch = inshape.Shape(0);
         op_param.in_shape[0] = inshape.Shape(3);
@@ -129,7 +128,7 @@ bool RefDeconv::Prerun(Node* node)
     /* kernel quant param */
     Tensor* kernel_tensor = node->GetInputTensor(1);
     auto* k_quant = kernel_tensor->GetQuantParam();
-    if( (*k_quant).size() !=0)
+    if((*k_quant).size() != 0)
     {
         op_param.scale[1] = (*k_quant)[0].scale;
         op_param.zero[1] = (*k_quant)[0].zero_point;
@@ -137,12 +136,12 @@ bool RefDeconv::Prerun(Node* node)
 
     TShape wshape = kernel_tensor->GetShape();
 
-    if(0 == layout) // hw
+    if(0 == layout)    // hw
     {
         op_param.kernels[0] = wshape.Shape(2);
         op_param.kernels[1] = wshape.Shape(3);
     }
-    else            //
+    else    //
     {
         op_param.kernels[0] = wshape.Shape(1);
         op_param.kernels[1] = wshape.Shape(2);
@@ -151,7 +150,7 @@ bool RefDeconv::Prerun(Node* node)
     /* output quant param */
     Tensor* output_tensor = node->GetOutputTensor(0);
     auto* o_quant = output_tensor->GetQuantParam();
-    if( (*o_quant).size() !=0)
+    if((*o_quant).size() != 0)
     {
         op_param.scale[2] = (*o_quant)[0].scale;
         op_param.zero[2] = (*o_quant)[0].zero_point;
@@ -159,7 +158,7 @@ bool RefDeconv::Prerun(Node* node)
 
     TShape outshape = output_tensor->GetShape();
 
-    if(0 == layout) // chw
+    if(0 == layout)    // chw
     {
         op_param.out_shape[0] = outshape.Shape(1);
         op_param.out_shape[1] = outshape.Shape(2);
@@ -178,14 +177,14 @@ bool RefDeconv::Prerun(Node* node)
     op_param.dilations[1] = param->dilation_h;
     op_param.dilations[0] = param->dilation_w;
 
-    op_param.pads[0] = param->pad_h0;    //pad_h
-    op_param.pads[1] = param->pad_w0;    //pad_w
+    op_param.pads[0] = param->pad_h0;    // pad_h
+    op_param.pads[1] = param->pad_w0;    // pad_w
 
     op_param.group = param->group;
     op_param.activation = param->activation;
     op_param.layout = layout;
 
-    if(!kernel_registry.GetKernel(kernel_run,layout,input_tensor->GetDataType()))
+    if(!kernel_registry.GetKernel(kernel_run, layout, input_tensor->GetDataType()))
     {
         set_tengine_errno(ENOENT);
         return false;
@@ -196,7 +195,7 @@ bool RefDeconv::Prerun(Node* node)
 
 bool RefDeconv::Run(Node* node)
 {
-    //printf("run ref_deconv!!!\n");
+    // printf("run ref_deconv!!!\n");
     Tensor* i_tensor = node->GetInputTensor(0);
     const void* input = get_tensor_mem(i_tensor);
     Tensor* k_tensor = node->GetInputTensor(1);
@@ -210,14 +209,14 @@ bool RefDeconv::Run(Node* node)
 
     /* input quant param */
     auto* in_quant = i_tensor->GetQuantParam();
-    if((*in_quant).size() !=0)
+    if((*in_quant).size() != 0)
     {
         op_param.scale[0] = (*in_quant)[0].scale;
         op_param.zero[0] = (*in_quant)[0].zero_point;
     }
 
-    int ret = kernel_run(input,output,kernel,bias,&op_param);
-    if(ret<0)
+    int ret = kernel_run(input, output, kernel, bias, &op_param);
+    if(ret < 0)
         return false;
     if(i_tensor->GetDataType() == TENGINE_DT_INT8)
     {
@@ -251,7 +250,8 @@ NodeOps* SelectFunc(const CPUInfo* cpu_info, Node* node)
 
 void RegisterRefDeconv2d(void)
 {
-    NodeOpsRegistryManager::RegisterOPImplementor(REF_REGISTRY_NAME, "Deconvolution", RefDeconvolutionOps::SelectFunc,RefDeconvolutionOps::default_prio);
+    NodeOpsRegistryManager::RegisterOPImplementor(REF_REGISTRY_NAME, "Deconvolution", RefDeconvolutionOps::SelectFunc,
+                                                  RefDeconvolutionOps::default_prio);
 }
 
 }    // namespace TEngine

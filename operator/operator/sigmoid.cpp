@@ -32,9 +32,7 @@ float Sigmoid::GetFops(const std::vector<TShape>& inputs, const std::vector<TSha
 
 void Sigmoid::SetSchema(void)
 {
-    Input({"input:float32"})
-        .Output({"output:float32"})
-        .SetDoc(R"DOC(ReLu Operator)DOC");
+    Input({"input:float32"}).Output({"output:float32"}).SetDoc(R"DOC(ReLu Operator)DOC");
 }
 
 }    // namespace TEngine

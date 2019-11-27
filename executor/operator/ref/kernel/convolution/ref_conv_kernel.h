@@ -35,8 +35,8 @@ extern "C" {
 
 struct op_data
 {
-    int in_shape[3];        //NCHW
-    int out_shape[3];       //CHW
+    int in_shape[3];    // NCHW
+    int out_shape[3];    // CHW
     int kernels[2];
     int strides[2];
     int dilations[2];
@@ -45,27 +45,29 @@ struct op_data
     int group;
     int activation;
     int layout;
-    int zero[3];            //input, kernel, output
-    float scale[3];         //input, kernel, output
+    int zero[3];    // input, kernel, output
+    float scale[2];    // input output
+    float* k_scale;
 };
 
 static inline float activation(float input, int activation)
 {
-    if( activation >= 0)
+    if(activation >= 0)
     {
-        if(input < 0)
+        if(input < 0 && activation != 1)
             input = 0;
-        if(activation== 1 && input>1)
+        if(activation == 1 && input > 1)
             input = 1;
-        if(activation== 6 && input>6)
+        if(activation == 6 && input > 6)
             input = 6;
+        if(activation == 1 && input < -1)
+            input = -1;
     }
 
     return input;
 }
-    
-typedef int (*ref_conv_kernel_t)(const void * input, void * output, const void* kernel, const void* bias, op_data* param);
 
+typedef int (*ref_conv_kernel_t)(const void* input, void* output, const void* kernel, const void* bias, op_data* param);
 
 #ifdef CONFIG_KERNEL_FP32
 #include "ref_conv_fp32.c"
@@ -82,8 +84,6 @@ typedef int (*ref_conv_kernel_t)(const void * input, void * output, const void* 
 #ifdef CONFIG_KERNEL_UINT8
 #include "ref_conv_uint8.c"
 #endif
-
-
 
 #ifdef __cplusplus
 }

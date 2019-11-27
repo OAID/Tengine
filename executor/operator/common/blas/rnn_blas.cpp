@@ -81,8 +81,8 @@ struct RNNOps : public NodeOps
         cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, m, n, k, 1.0, a, lda, b, ldb, 0.0, c, ldc);
     }
 
-    bool do_RNN_step(const float* input, float* init_h, const float* kernel, const float* bias,
-                      int batch_size, int input_size, int hidden_size)
+    bool do_RNN_step(const float* input, float* init_h, const float* kernel, const float* bias, int batch_size,
+                     int input_size, int hidden_size)
     {
         int input_total_size = input_size + hidden_size;
         int batch_cell_size = hidden_size * batch_size;
@@ -90,7 +90,7 @@ struct RNNOps : public NodeOps
         float* ig = ( float* )malloc(batch_cell_size * sizeof(float));
 
         float* merged_input = ( float* )malloc(sizeof(float) * batch_size * (input_total_size));
-        float* matmul_result = ( float* )malloc(sizeof(float) * batch_size * hidden_size );
+        float* matmul_result = ( float* )malloc(sizeof(float) * batch_size * hidden_size);
 
         // merge input
         concat_axis_1(input, init_h, merged_input, batch_size, input_size, hidden_size);
@@ -104,13 +104,13 @@ struct RNNOps : public NodeOps
         {
             for(int i = 0; i < batch_size; i++)
                 for(int j = 0; j < hidden_size; j++)
-                    matmul_result[i *hidden_size + j] += bias[j];
+                    matmul_result[i * hidden_size + j] += bias[j];
         }
-        //activation
+        // activation
         for(int i = 0; i < batch_cell_size; i++)
         {
             ig[i] = tanh(matmul_result[i]);
-            init_h[i]=ig[i];
+            init_h[i] = ig[i];
         }
 
         // free memory
@@ -121,8 +121,8 @@ struct RNNOps : public NodeOps
         return true;
     }
 
-    bool do_RNN(const float* input, float* output, float* init_h, const float* kernel,
-                 const float* bias, int seq_lens, int batch_size, int input_size,int output_len, int hidden_size)
+    bool do_RNN(const float* input, float* output, float* init_h, const float* kernel, const float* bias, int seq_lens,
+                int batch_size, int input_size, int output_len, int hidden_size)
     {
         for(int i = 0; i < seq_lens; i++)
         {
@@ -130,12 +130,12 @@ struct RNNOps : public NodeOps
 
             if(!do_RNN_step(seq_input, init_h, kernel, bias, batch_size, input_size, hidden_size))
                 return false;
-            //outputs [batch_size,seq_len,hidden_size]
-            //final_state [batch_size,hidden_size]   
+            // outputs [batch_size,seq_len,hidden_size]
+            // final_state [batch_size,hidden_size]
             if(i + output_len >= seq_lens)
             {
-                memcpy(output, init_h, batch_size*hidden_size * sizeof(float));
-                output += batch_size*hidden_size;
+                memcpy(output, init_h, batch_size * hidden_size * sizeof(float));
+                output += batch_size * hidden_size;
             }
         }
 
@@ -161,7 +161,6 @@ struct RNNOps : public NodeOps
             {
                 bias_tensor = temptensor;
             }
-           
         }
 
         if(init_h_tensor)
@@ -216,11 +215,12 @@ struct RNNOps : public NodeOps
         float* kernel = ( float* )get_tensor_mem(kernel_tensor);
 
         float* bias = nullptr;
-  
+
         if(bias_tensor)
             bias = ( float* )get_tensor_mem(bias_tensor);
 
-        bool ret = do_RNN(input, output, init_h, kernel, bias, seq_lens, batch_size, input_size, output_len, hidden_size);
+        bool ret =
+            do_RNN(input, output, init_h, kernel, bias, seq_lens, batch_size, input_size, output_len, hidden_size);
 
         free(init_h);
 

@@ -34,9 +34,7 @@ bool Addn::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TE
 
 void Addn::SetSchema(void)
 {
-    Input({"input:float32"})
-        .Output({"output:float32"})
-        .SetDoc(R"DOC(Addn Operator)DOC");
+    Input({"input:float32"}).Output({"output:float32"}).SetDoc(R"DOC(Addn Operator)DOC");
 }
 
 }    // namespace TEngine
