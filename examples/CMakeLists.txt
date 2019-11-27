@@ -12,10 +12,6 @@ endif()
 message(STATUS "CMAKE_INSTALL_PREFIX = ${CMAKE_INSTALL_PREFIX}")
 
 cmake_minimum_required(VERSION 2.8)
-if(ANDROID)
-     include_directories(${OpenCV_DIR}/include)
-endif()
-#find_package(OpenCV REQUIRED)
 
 #for compatible
 add_definitions(-DCONFIG_LEGACY_API)
@@ -30,6 +26,7 @@ add_definitions(-Wno-overloaded-virtual)
 add_definitions(-Wno-deprecated-register)
 add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-std=c++11>)
 
+include(utils.cmake)
 
 add_subdirectory(mtcnn)
 add_subdirectory(yolov2)
@@ -38,10 +35,7 @@ add_subdirectory(faster_rcnn)
 add_subdirectory(lighten_cnn)
 add_subdirectory(imagenet_classification)
 add_subdirectory(mobilenet_ssd)
-if( NOT ANDROID)
-   add_subdirectory(caffe_wrapper)
-   add_subdirectory(tensorflow_wrapper)
-endif()
+add_subdirectory(YuFaceDetectNet)
 add_subdirectory(tengine_model)
-
+find_file(EXIST_WRAPPER wrapper_include ${TENGINE_DIR}/install/)
 

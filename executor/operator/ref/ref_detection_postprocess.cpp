@@ -41,28 +41,28 @@ namespace RefDetectionPostOps {
 
 struct RefDetectionPost : public NodeOps
 {
-    bool Prerun(Node * node) override;
-    bool Run(Node * node) override; 
+    bool Prerun(Node* node) override;
+    bool Run(Node* node) override;
     void InitRegistry(void);
 
     dpp_param param;
-    ref_dpp_kernel_t  kernel_run;
-    KernelRegistry<ref_dpp_kernel_t>  kernel_registry;
+    ref_dpp_kernel_t kernel_run;
+    KernelRegistry<ref_dpp_kernel_t> kernel_registry;
 
-    RefDetectionPost(void) 
+    RefDetectionPost(void)
     {
-        kernel_run=nullptr;
+        kernel_run = nullptr;
 
         InitRegistry();
     }
 };
 
-bool RefDetectionPost::Prerun(Node * node)
+bool RefDetectionPost::Prerun(Node* node)
 {
-    if(node->GetInputNum() != 3 || node->GetOutputNum()!=4)
+    if(node->GetInputNum() != 3 || node->GetOutputNum() != 4)
         return false;
 
-    int  layout = exec_attr->graph_layout;
+    int layout = exec_attr->graph_layout;
     DetectionPostProcess* dpp_op = dynamic_cast<DetectionPostProcess*>(node->GetOp());
     DetectionPostProcessParam* param_ = dpp_op->GetParam();
     param.max_classes_per_detection = param_->max_classes_per_detection;
@@ -76,35 +76,34 @@ bool RefDetectionPost::Prerun(Node * node)
     param.scales[3] = param_->scales[3];
 
     Tensor* input = node->GetInputTensor(0);
-    if( input->GetDataType() != TENGINE_DT_FP32 && 
-        input->GetDataType() != TENGINE_DT_FP16 &&
-        input->GetDataType() != TENGINE_DT_UINT8)
+    if(input->GetDataType() != TENGINE_DT_FP32 && input->GetDataType() != TENGINE_DT_FP16 &&
+       input->GetDataType() != TENGINE_DT_UINT8)
         return false;
     param.num_boxes = input->GetShape().Shape(1);
-    auto i_quant   = input->GetQuantParam();
-        
+    auto i_quant = input->GetQuantParam();
+
     Tensor* score = node->GetInputTensor(1);
-    auto s_quant   = score->GetQuantParam();
-    
+    auto s_quant = score->GetQuantParam();
+
     Tensor* anchor = node->GetInputTensor(2);
-    auto a_quant   = anchor->GetQuantParam();
-    
+    auto a_quant = anchor->GetQuantParam();
+
     if(input->GetDataType() == TENGINE_DT_UINT8)
     {
         if(i_quant->size() == 0 || s_quant->size() == 0 || a_quant->size() == 0)
         {
-            std::cerr<<"RefDetectionPost <UINT8> one quant is NONE: <"<<i_quant->size()<<","
-                <<s_quant->size()<<","<<a_quant->size()<<"\n";
+            std::cerr << "RefDetectionPost <UINT8> one quant is NONE: <" << i_quant->size() << "," << s_quant->size()
+                      << "," << a_quant->size() << "\n";
             return false;
         }
         param.quant_scale[0] = (*i_quant)[0].scale;
         param.quant_scale[1] = (*s_quant)[0].scale;
         param.quant_scale[2] = (*a_quant)[0].scale;
-        param.zero[0]  = (*i_quant)[0].zero_point;
-        param.zero[1]  = (*s_quant)[0].zero_point;
-        param.zero[2]  = (*a_quant)[0].zero_point;
+        param.zero[0] = (*i_quant)[0].zero_point;
+        param.zero[1] = (*s_quant)[0].zero_point;
+        param.zero[2] = (*a_quant)[0].zero_point;
     }
-    
+
     if(!kernel_registry.GetKernel(kernel_run, layout, input->GetDataType()))
     {
         set_tengine_errno(ENOENT);
@@ -114,31 +113,31 @@ bool RefDetectionPost::Prerun(Node * node)
     return true;
 }
 
-bool RefDetectionPost::Run(Node * node)
+bool RefDetectionPost::Run(Node* node)
 {
     if(kernel_run == nullptr)
         return false;
 
-    //printf(" ********** run ref dpp\n");
-    
+    // printf(" ********** run ref dpp\n");
+
     Tensor* input = node->GetInputTensor(0);
     const void* input_data = get_tensor_mem(input);
     Tensor* score = node->GetInputTensor(1);
     void* score_data = get_tensor_mem(score);
     Tensor* anchor = node->GetInputTensor(2);
     void* anchor_data = get_tensor_mem(anchor);
-    
-    Tensor* detect_boxes = node->GetOutputTensor(0);
-    float* detect_boxes_data = (float*)get_tensor_mem(detect_boxes);
-    Tensor* detect_classes = node->GetOutputTensor(1);
-    float* detect_classes_data = (float*)get_tensor_mem(detect_classes);
-    Tensor* detect_scores = node->GetOutputTensor(2);
-    float* detect_scores_data = (float*)get_tensor_mem(detect_scores);
-    Tensor* detect_num = node->GetOutputTensor(3);
-    float* detect_num_data = (float*)get_tensor_mem(detect_num);
 
-    if(kernel_run(input_data, score_data, anchor_data, detect_num_data,
-        detect_classes_data, detect_scores_data, detect_boxes_data, &param)<0)
+    Tensor* detect_boxes = node->GetOutputTensor(0);
+    float* detect_boxes_data = ( float* )get_tensor_mem(detect_boxes);
+    Tensor* detect_classes = node->GetOutputTensor(1);
+    float* detect_classes_data = ( float* )get_tensor_mem(detect_classes);
+    Tensor* detect_scores = node->GetOutputTensor(2);
+    float* detect_scores_data = ( float* )get_tensor_mem(detect_scores);
+    Tensor* detect_num = node->GetOutputTensor(3);
+    float* detect_num_data = ( float* )get_tensor_mem(detect_num);
+
+    if(kernel_run(input_data, score_data, anchor_data, detect_num_data, detect_classes_data, detect_scores_data,
+                  detect_boxes_data, &param) < 0)
         return false;
 
     return true;
@@ -147,27 +146,26 @@ bool RefDetectionPost::Run(Node * node)
 void RefDetectionPost::InitRegistry(void)
 {
 #ifdef CONFIG_KERNEL_FP32
-    kernel_registry.Register((ref_dpp_kernel_t)ref_dpp_fp32,TENGINE_LAYOUT_NCHW,TENGINE_DT_FP32);
-    kernel_registry.Register((ref_dpp_kernel_t)ref_dpp_fp32,TENGINE_LAYOUT_NHWC,TENGINE_DT_FP32);
+    kernel_registry.Register(( ref_dpp_kernel_t )ref_dpp_fp32, TENGINE_LAYOUT_NCHW, TENGINE_DT_FP32);
+    kernel_registry.Register(( ref_dpp_kernel_t )ref_dpp_fp32, TENGINE_LAYOUT_NHWC, TENGINE_DT_FP32);
 #endif
 
 #ifdef CONFIG_KERNEL_FP16
-    kernel_registry.Register((ref_dpp_kernel_t)ref_dpp_fp16,TENGINE_LAYOUT_NCHW,TENGINE_DT_FP16);
-    kernel_registry.Register((ref_dpp_kernel_t)ref_dpp_fp16,TENGINE_LAYOUT_NHWC,TENGINE_DT_FP16);
+    kernel_registry.Register(( ref_dpp_kernel_t )ref_dpp_fp16, TENGINE_LAYOUT_NCHW, TENGINE_DT_FP16);
+    kernel_registry.Register(( ref_dpp_kernel_t )ref_dpp_fp16, TENGINE_LAYOUT_NHWC, TENGINE_DT_FP16);
 #endif
 
 #ifdef CONFIG_KERNEL_UINT8
-    kernel_registry.Register((ref_dpp_kernel_t)ref_dpp_uint8,TENGINE_LAYOUT_NCHW,TENGINE_DT_UINT8);
-    kernel_registry.Register((ref_dpp_kernel_t)ref_dpp_uint8,TENGINE_LAYOUT_NHWC,TENGINE_DT_UINT8);
+    kernel_registry.Register(( ref_dpp_kernel_t )ref_dpp_uint8, TENGINE_LAYOUT_NCHW, TENGINE_DT_UINT8);
+    kernel_registry.Register(( ref_dpp_kernel_t )ref_dpp_uint8, TENGINE_LAYOUT_NHWC, TENGINE_DT_UINT8);
 #endif
-
 }
 
 NodeOps* SelectFunc(const CPUInfo* info, Node* node)
 {
     RefDetectionPost* ops = new RefDetectionPost();
 
-    LOG_DEBUG()<<"Demo RefDetectionPost is selected\n";
+    LOG_DEBUG() << "Demo RefDetectionPost is selected\n";
 
     return ops;
 }
@@ -176,8 +174,8 @@ NodeOps* SelectFunc(const CPUInfo* info, Node* node)
 
 void RegisterRefDetectionPostOps(void)
 {
-    NodeOpsRegistryManager::RegisterOPImplementor(REF_REGISTRY_NAME, "DetectionPostProcess", RefDetectionPostOps::SelectFunc, 1000);
+    NodeOpsRegistryManager::RegisterOPImplementor(REF_REGISTRY_NAME, "DetectionPostProcess",
+                                                  RefDetectionPostOps::SelectFunc, 1000);
 }
-
 
 }    // namespace TEngine

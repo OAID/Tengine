@@ -1,9 +1,9 @@
 ## Tengine Multi-thread for CPU/GPU Heterogeneous scheduling Guide
 
-This doc will show you how to run Tengine with multi-thread to run Mobilenet-SSD with Heterogeneous scheduling for both CPU and GPU on RK3399.
+This doc will show you how to run Tengine with multi-thread to run Mobilenet-SSD with Heterogeneous scheduling for both CPU and GPU on EAIDK.
 
 ## Platform
-Firefly-Rk3399 (Linux)
+EAIDK (Linux)
 * GPU: Mali-T860
 * CPU: dual-core Cortex-A72 + quad-core Cortex-A53
 

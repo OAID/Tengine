@@ -6,10 +6,9 @@
 #include <fstream>
 #include <iomanip>
 
+#include "tengine_operations.h"
 #include "tengine_c_api.h"
 #include "common_util.hpp"
-#include "opencv2/imgproc/imgproc.hpp"
-#include "opencv2/highgui/highgui.hpp"
 
 const char* mxnet_text_file = "./models/model-symbol.json";
 const char* mxnet_model_file = "./models/model-mobilefacenet-128-0077.params";
@@ -34,21 +33,16 @@ const float caffe_scale = 0.00781;
 
 void get_input_data(const char* image_file, float* input_data, int img_h, int img_w, const float* mean, float scale)
 {
-    cv::Mat img = cv::imread(image_file, -1);
-    if(img.empty())
-    {
-        std::cerr << "failed to read image file " << image_file << "\n";
-        return;
-    }
+    image img = imread(image_file);
 
-    cv::resize(img, img, cv::Size(img_h, img_w));
-    img.convertTo(img, CV_32FC3);
+    image resImg = resize_image(img, img_w, img_h);
+    resImg = rgb2bgr_premute(resImg);
+    float* img_data = ( float* )resImg.data;
 
-    float* img_data = ( float* )img.data;
     int hw = img_h * img_w;
-    for(int h = 0; h < img_h; h++)
-        for(int w = 0; w < img_w; w++)
-            for(int c = 0; c < 3; c++)
+    for(int c = 0; c < 3; c++)
+        for(int h = 0; h < img_h; h++)
+            for(int w = 0; w < img_w; w++)
             {
                 input_data[c * hw + h * img_w + w] = (*img_data - mean[c]) * scale;
                 img_data++;

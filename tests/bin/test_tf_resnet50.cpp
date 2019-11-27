@@ -28,8 +28,7 @@
 #include <algorithm>
 #include <fstream>
 #include <iomanip>
-#include <opencv2/opencv.hpp>
-
+#include "tengine_operations.h"
 #include "tengine_c_api.h"
 #include "common_util.hpp"
 #include "image_process.hpp"
@@ -56,8 +55,46 @@ void LoadLabelFile(std::vector<std::string>& result, const char* fname)
         result.push_back(line);
 }
 
+float* ReadImageFile(const std::string& image_file, const int input_height, const int input_width,
+                     const float input_mean, const float input_std)
+{
+    image img = imread(image_file.c_str());
+
+    // Resize the image
+
+    image resImg = resize_image(img, input_width, input_height);
+    float* input_data = ( float* )malloc(3 * input_height * input_width * 4);
+    for(int h = 0; h < input_height; h++)
+    {
+        for(int w = 0; w < input_width; ++w)
+        {
+            for(int c = 0; c < 3; c++)
+            {
+                int out_idx = h * input_width * 3 + w * 3 + c;
+                int in_idx = c * input_height * input_width + h * input_width + w;
+                input_data[out_idx] = (resImg.data[in_idx] - input_mean) / input_std;
+            }
+        }
+    }
+
+    return input_data;
+}
+
 int main(int argc, char* argv[])
 {
+    int res;
+    int repeat_count = 1;
+    while((res = getopt(argc, argv, "p:d:r:")) != -1)
+    {
+        switch(res)
+        {
+            case 'r':
+                repeat_count = strtoul(optarg, NULL, 10);
+                break;
+            default:
+                break;
+        }
+    }
     init_tengine();
     if(request_tengine_version("0.9") < 0)
         return 1;
@@ -82,13 +119,11 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    int dims[] = {1, 3, img_h, img_w};
+    int dims[] = {1, img_h, img_w, 3};
     set_tensor_shape(input_tensor, dims, 4);
 
     /* setup input buffer */
-    float* input_data = ( float* )malloc(sizeof(float) * img_h * img_w * 3);
-    get_input_data(image_file, input_data, img_h, img_w, channel_mean, 1);
-
+    float* input_data = ReadImageFile(image_file, img_h, img_w, 0, 1);
     if(set_tensor_buffer(input_tensor, input_data, 3 * img_h * img_w * 4) < 0)
     {
         std::printf("Set buffer for tensor failed\n");
@@ -98,6 +133,13 @@ int main(int argc, char* argv[])
     prerun_graph(graph);
 
     run_graph(graph, 1);
+
+    unsigned long start_time = get_cur_time();
+    for(int i = 0; i < repeat_count; i++)
+        run_graph(graph, 1);
+    unsigned long end_time = get_cur_time();
+    unsigned long off_time = end_time - start_time;
+    printf("Repeat [%d]\t %.2f ms\n", repeat_count, 1.0f * off_time / repeat_count / 1000.);
 
     // const char * output_tensor_name="InceptionV3/Predictions/Softmax";
     tensor_t output_tensor = get_graph_output_tensor(graph, node_idx, tensor_idx);

@@ -41,7 +41,7 @@ public:
     virtual ~StridedSlice() {}
     bool InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEngine::TShape>& oshape,
                     int layout) override;
-
+    void SetSchema(void) override;
 };
 
 }    // namespace TEngine

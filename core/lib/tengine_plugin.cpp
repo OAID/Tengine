@@ -27,6 +27,7 @@
 #include "tengine_plugin.hpp"
 #include "tengine_config.hpp"
 #include "tengine_c_api.h"
+#include "tengine_errno.hpp"
 
 namespace TEngine {
 
@@ -341,13 +342,23 @@ int load_tengine_plugin(const char* plugin_name, const char* fname, const char* 
 
     ShareLibParserPtr handle(new ShareLibParser());
 
-    if(handle->Load(fname) < 0)
-        return -1;
-
-    if(init_func_name)
+    try
     {
-        if(handle->ExecuteFunc<int()>(init_func_name) < 0)
+        if(handle->Load(fname) < 0)
             return -1;
+
+        if(init_func_name)
+        {
+            if(handle->ExecuteFunc<int()>(init_func_name) < 0)
+                return -1;
+        }
+    }
+
+    catch(const std::exception& e)
+    {
+        LOG_ERROR() << e.what() << "\n";
+        set_tengine_errno(EFAULT);
+        return -1;
     }
 
     PluginInfo* p_info = new PluginInfo();

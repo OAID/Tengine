@@ -23,7 +23,7 @@
 
 namespace TEngine {
 
-#define GRU_ACT_TANH    1
+#define GRU_ACT_TANH 1
 
 struct GRUParam : public NamedParam
 {

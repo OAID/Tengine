@@ -75,14 +75,6 @@ struct ReLu6Ops : public NodeOps
             case 4:
                 kernel_run<float>(data, elem_num);
                 break;
-#ifdef CONFIG_FLOAT16
-            case 2:
-                kernel_run<__fp16>(data, elem_num);
-                break;
-#endif
-            case 1:
-                kernel_run<char>(data, elem_num);
-                break;
         }
 
         return true;
@@ -93,8 +85,7 @@ NodeOps* SelectFunc(const CPUInfo* cpu_info, Node* node)
 {
     Tensor* input = node->GetInputTensor(0);
     const int data_type = input->GetDataType();
-    const ExecAttr* exec_attr = any_cast<const ExecAttr*>(node->GetAttr(ATTR_EXEC_ATTR));
-    if(data_type != TENGINE_DT_FP32 || exec_attr->graph_layout != TENGINE_LAYOUT_NCHW)
+    if(data_type != TENGINE_DT_FP32)
         return nullptr;
 
     ReLu6Ops* ops = new ReLu6Ops();

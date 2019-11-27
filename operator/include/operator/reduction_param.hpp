@@ -34,7 +34,7 @@ struct ReductionParam : public NamedParam
     int dim_1;
     int dim_2;
     int dim_3;
-    //type : 0: sum; 1: mean.
+    // type : 0: sum; 1: mean.
     int type;
     int keepdim;
     DECLARE_PARSER_STRUCTURE(ReductionParam)

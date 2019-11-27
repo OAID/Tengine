@@ -38,19 +38,19 @@
 #include "kernel/rpn/ref_rpn_kernel.h"
 
 void ref_proposal_local_anchor(int feat_height, int feat_width, int feat_stride, std::vector<Anchor>& anchors,
-                           float* local_anchors)
+                               float* local_anchors)
 {
-    int feat_size = feat_height*feat_width;
+    int feat_size = feat_height * feat_width;
     int num_anchors = ( int )anchors.size();
     for(int i = 0; i < num_anchors; ++i)
     {
         for(int j = 0; j < feat_height; j++)
             for(int k = 0; k < feat_width; k++)
             {
-                local_anchors[(i * 4 + 0) * feat_size + j * feat_width + k] = anchors[i].x0 + k*feat_stride;
-                local_anchors[(i * 4 + 1) * feat_size + j * feat_width + k] = anchors[i].y0 + j*feat_stride;
-                local_anchors[(i * 4 + 2) * feat_size + j * feat_width + k] = anchors[i].x1 + k*feat_stride;
-                local_anchors[(i * 4 + 3) * feat_size + j * feat_width + k] = anchors[i].y1 + j*feat_stride;
+                local_anchors[(i * 4 + 0) * feat_size + j * feat_width + k] = anchors[i].x0 + k * feat_stride;
+                local_anchors[(i * 4 + 1) * feat_size + j * feat_width + k] = anchors[i].y0 + j * feat_stride;
+                local_anchors[(i * 4 + 2) * feat_size + j * feat_width + k] = anchors[i].x1 + k * feat_stride;
+                local_anchors[(i * 4 + 3) * feat_size + j * feat_width + k] = anchors[i].y1 + j * feat_stride;
             }
     }
 }
@@ -61,43 +61,42 @@ namespace RefRPNImpl {
 
 struct RefRPNOps : public NodeOps
 {
-    bool Prerun(Node * node) override;
-    bool Run(Node * node) override;
+    bool Prerun(Node* node) override;
+    bool Run(Node* node) override;
     void InitRegistry(void);
 
     struct rpn_param param;
     ref_rpn_kernel_t kernel_run;
-    KernelRegistry<ref_rpn_kernel_t>  kernel_registry;
+    KernelRegistry<ref_rpn_kernel_t> kernel_registry;
 
-    RefRPNOps(void) 
+    RefRPNOps(void)
     {
-        kernel_run=nullptr;
+        kernel_run = nullptr;
 
         InitRegistry();
     }
-
 };
 void RefRPNOps::InitRegistry(void)
 {
 #ifdef CONFIG_KERNEL_FP32
-    kernel_registry.Register((ref_rpn_kernel_t)ref_rpn_fp32, TENGINE_LAYOUT_NCHW, TENGINE_DT_FP32);
+    kernel_registry.Register(( ref_rpn_kernel_t )ref_rpn_fp32, TENGINE_LAYOUT_NCHW, TENGINE_DT_FP32);
 #endif
 
 #ifdef CONFIG_KERNEL_FP16
-    kernel_registry.Register((ref_rpn_kernel_t)ref_rpn_fp16, TENGINE_LAYOUT_NCHW, TENGINE_DT_FP16);
+    kernel_registry.Register(( ref_rpn_kernel_t )ref_rpn_fp16, TENGINE_LAYOUT_NCHW, TENGINE_DT_FP16);
 #endif
-/*
+    /*
 
-#ifdef CONFIG_KERNEL_INT8
-    kernel_registry.Register((ref_pooling_kernel_t)ref_pooling_int8,TENGINE_LAYOUT_NCHW,TENGINE_DT_INT8);
-    kernel_registry.Register((ref_pooling_kernel_t)ref_pooling_int8,TENGINE_LAYOUT_NHWC,TENGINE_DT_INT8);
-#endif
+    #ifdef CONFIG_KERNEL_INT8
+        kernel_registry.Register((ref_pooling_kernel_t)ref_pooling_int8,TENGINE_LAYOUT_NCHW,TENGINE_DT_INT8);
+        kernel_registry.Register((ref_pooling_kernel_t)ref_pooling_int8,TENGINE_LAYOUT_NHWC,TENGINE_DT_INT8);
+    #endif
 
-#ifdef CONFIG_KERNEL_UINT8
-    kernel_registry.Register((ref_pooling_kernel_t)ref_pooling_uint8,TENGINE_LAYOUT_NCHW,TENGINE_DT_UINT8);
-    kernel_registry.Register((ref_pooling_kernel_t)ref_pooling_uint8,TENGINE_LAYOUT_NHWC,TENGINE_DT_UINT8);
-#endif
-*/
+    #ifdef CONFIG_KERNEL_UINT8
+        kernel_registry.Register((ref_pooling_kernel_t)ref_pooling_uint8,TENGINE_LAYOUT_NCHW,TENGINE_DT_UINT8);
+        kernel_registry.Register((ref_pooling_kernel_t)ref_pooling_uint8,TENGINE_LAYOUT_NHWC,TENGINE_DT_UINT8);
+    #endif
+    */
 }
 
 bool RefRPNOps::Prerun(Node* node)
@@ -110,10 +109,10 @@ bool RefRPNOps::Prerun(Node* node)
     param.post_nms_topn = param_->post_nms_topn;
     param.nms_thresh = param_->nms_thresh;
 
-    int  layout = exec_attr->graph_layout;
-    Tensor * input = node->GetInputTensor(0);
+    int layout = exec_attr->graph_layout;
+    Tensor* input = node->GetInputTensor(0);
 
-    if(!kernel_registry.GetKernel(kernel_run,layout,input->GetDataType()))
+    if(!kernel_registry.GetKernel(kernel_run, layout, input->GetDataType()))
     {
         set_tengine_errno(ENOENT);
         return false;
@@ -124,7 +123,6 @@ bool RefRPNOps::Prerun(Node* node)
 
 bool RefRPNOps::Run(Node* node)
 {
-    printf("ref RPN run\n");
     RPN* RPN_op = dynamic_cast<RPN*>(node->GetOp());
     RPNParam* param_ = RPN_op->GetParam();
 
@@ -136,7 +134,7 @@ bool RefRPNOps::Run(Node* node)
 
     const void* score_org = get_tensor_mem(score_tensor);
     void* featmap_org = get_tensor_mem(featmap_tensor);
-    const float* info_org = (float*)get_tensor_mem(info_tensor);
+    const float* info_org = ( float* )get_tensor_mem(info_tensor);
     void* output_org = get_tensor_mem(output_tensor);
 
     const TShape& featmap_shape = featmap_tensor->GetShape();
@@ -154,7 +152,6 @@ bool RefRPNOps::Run(Node* node)
     param.src_height = info_org[0];
     param.src_width = info_org[1];
     param.src_scale = info_org[2];
-
 
     // local_anchors (1, anchors_nums_ * 4, map_height_, map_width_);
     int size = param.num_anchors * 4 * feat_size;
@@ -174,7 +171,6 @@ bool RefRPNOps::Run(Node* node)
 
 NodeOps* SelectFunc(const CPUInfo* cpu_info, Node* node)
 {
-
     RefRPNOps* ops = new RefRPNOps();
 
     return ops;
@@ -185,7 +181,6 @@ NodeOps* SelectFunc(const CPUInfo* cpu_info, Node* node)
 void RegisterRefRPNOps(void)
 {
     NodeOpsRegistryManager::RegisterOPImplementor("reference", "RPN", RefRPNImpl::SelectFunc, 1000);
-
 }
 
 }    // namespace TEngine

@@ -32,8 +32,6 @@
 #include "tengine_c_api.h"
 #include "common_util.hpp"
 #include "image_process.hpp"
-#include "opencv2/imgproc/imgproc.hpp"
-#include "opencv2/highgui/highgui.hpp"
 
 const char* model_file = "./models/sqz.onnx.model";
 const char* image_file = "./tests/images/cat.jpg";

@@ -55,7 +55,9 @@ enum exec_policy_t
 #define MODEL_FORMAT_MXNET 4
 #define MODEL_FORMAT_TENSORFLOW 5
 #define MODEL_FORMAT_TFLITE 6
-#define MODEL_FORMAT_DLA 7
+#define MODEL_FORMAT_DARKNET 7
+#define MODEL_FORMAT_DLA 8
+
 
 #define MODEL_SUBFORMAT_AIPU 1
 #define MODEL_SUBFORMAT_NNIE 2
@@ -79,7 +81,7 @@ struct ExecAttr
         policy = kExecLatency;
         priority = 100;
         kernel_mode = EXEC_KERNEL_FP32;
-        low_mem_mode = false;
+        low_mem_mode = true;
         fc_mt = false;
         pooling_mt = false;
         model_format = MODEL_FORMAT_TENGINE;

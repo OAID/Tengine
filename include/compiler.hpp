@@ -3,6 +3,8 @@
 
 #include <string>
 
+#define DLLEXPORT __attribute__((visibility("default")))
+
 #ifdef __ANDROID__
 
 namespace std {

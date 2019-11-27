@@ -36,7 +36,10 @@ struct LRNParam : public NamedParam
     int local_size;
     float alpha;
     float beta;
+    float bias;
     int norm_region;
+    int depth_radius;
+    int istf;
     float k;
 
     DECLARE_PARSER_STRUCTURE(LRNParam)
@@ -44,7 +47,10 @@ struct LRNParam : public NamedParam
         DECLARE_PARSER_ENTRY(local_size);
         DECLARE_PARSER_ENTRY(alpha);
         DECLARE_PARSER_ENTRY(beta);
+        DECLARE_PARSER_ENTRY(bias);
         DECLARE_PARSER_ENTRY(norm_region);
+        DECLARE_PARSER_ENTRY(depth_radius);
+        DECLARE_PARSER_ENTRY(istf);
         DECLARE_PARSER_ENTRY(k);
     };
 };

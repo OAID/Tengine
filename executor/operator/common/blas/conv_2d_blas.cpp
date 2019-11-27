@@ -240,8 +240,11 @@ struct ConvolutionOps : public NodeOps
     bool Postrun(Node* node)
     {
         float* addr;
-        addr = any_cast<float*>(node->GetAttr("buffer"));
-        std::free(addr);
+        if(node->ExistAttr("buffer"))
+        {
+            addr = any_cast<float*>(node->GetAttr("buffer"));
+            std::free(addr);
+        }
         return true;
     }
 };
@@ -264,8 +267,8 @@ NodeOps* SelectFunc(const CPUInfo* cpu_info, Node* node)
 void RegisterConvBlasNodeExec(void)
 {
     if(!NodeOpsRegistryManager::RegisterOPImplementor("common", "Convolution", ConvolutionImpl::SelectFunc,
-                                                  ConvolutionImpl::default_prio))
-        LOG_ERROR()<<__FUNCTION__<<" :Regist OP failed for prio ["<<ConvolutionImpl::default_prio<<"]\n";
+                                                      ConvolutionImpl::default_prio))
+        LOG_ERROR() << __FUNCTION__ << " :Regist OP failed for prio [" << ConvolutionImpl::default_prio << "]\n";
 }
 
 }    // namespace TEngine

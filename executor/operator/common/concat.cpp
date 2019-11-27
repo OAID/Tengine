@@ -50,7 +50,7 @@ struct ConcatOps : public NodeOps
         auto out_quant = output_tensor->GetQuantParam();
         int out_zero = 0;
         float out_scale = 1;
-        if( !out_quant->empty() )
+        if(!out_quant->empty())
         {
             out_zero = (*out_quant)[0].zero_point;
             out_scale = (*out_quant)[0].scale;

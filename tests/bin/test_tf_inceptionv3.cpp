@@ -28,12 +28,10 @@
 #include <algorithm>
 #include <fstream>
 #include <iomanip>
-#include <opencv2/opencv.hpp>
 
+#include "tengine_operations.h"
 #include "tengine_c_api.h"
 #include "common_util.hpp"
-#include "image_process.hpp"
-#include "tengine_config.hpp"
 
 //#define MOBILE_NET
 
@@ -57,42 +55,30 @@ void LoadLabelFile(std::vector<std::string>& result, const char* fname)
         result.push_back(line);
 }
 
-float* ReadImageFile(const std::string& image_file, cv::Mat& img, const int input_height, const int input_width,
+float* ReadImageFile(const std::string& image_file, const int input_height, const int input_width,
                      const float input_mean, const float input_std)
 {
-    // Read image
-    cv::Mat frame = cv::imread(image_file);
-    if(!frame.data)
-    {
-        std::cout << "failed to read image file: " << image_file << std::endl;
-        return nullptr;
-    }
-
-    // Convert BGR to RGB
-    cv::cvtColor(frame, frame, cv::COLOR_BGR2RGB);
+    image img = imread(image_file.c_str());
 
     // Resize the image
-    cv::Mat img_resized;
-    cv::Size input_geometry = cv::Size(input_width, input_height);
-    cv::resize(frame, img_resized, input_geometry);
 
+    image res_img = resize_image(img, input_width, input_height);
     // Convert to float 32, channel 3
-    img_resized.convertTo(img_resized, CV_32FC3);
 
-    img = (img_resized - input_mean) / input_std;
-
-    std::vector<cv::Mat> input_channels;
     float* input_data = ( float* )std::malloc(input_height * input_width * 3 * 4);
-    float* ptr = input_data;
-
-    for(int i = 0; i < 3; ++i)
+    float* tmp_data = res_img.data;    // for test permute
+    for(int h = 0; h < img_h; h++)
     {
-        cv::Mat channel(input_height, input_width, CV_32FC1, ptr);
-        input_channels.push_back(channel);
-        ptr += input_height * input_width;
+        for(int w = 0; w < img_w; ++w)
+        {
+            for(int c = 0; c < 3; c++)
+            {
+                int out_idx = h * img_w * 3 + w * 3 + c;
+                int in_idx = c * img_w * img_h + h * img_w + w;
+                input_data[out_idx] = (tmp_data[in_idx] - input_mean) / input_std;
+            }
+        }
     }
-
-    cv::split(img, input_channels);
 
     return input_data;
 }
@@ -100,9 +86,7 @@ float* ReadImageFile(const std::string& image_file, cv::Mat& img, const int inpu
 int main(int argc, char* argv[])
 {
     /* prepare input data */
-    cv::Mat img;
-    float* input_data = ReadImageFile(image_file, img, img_h, img_w, input_mean, input_std);
-    ;
+    float* input_data = ReadImageFile(image_file, img_h, img_w, input_mean, input_std);
 
     init_tengine();
     if(request_tengine_version("0.9") < 0)
@@ -128,7 +112,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    int dims[] = {1, 3, img_h, img_w};
+    int dims[] = {1, img_h, img_w, 3};
     set_tensor_shape(input_tensor, dims, 4);
 
     /* setup input buffer */

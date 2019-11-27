@@ -71,6 +71,35 @@
 #include "operator/swap_axis.hpp"
 #include "operator/gru.hpp"
 #include "operator/add_n.hpp"
+#include "operator/stridedslice.hpp"
+#include "operator/upsample.hpp"
+#include "operator/crop.hpp"
+#include "operator/copy.hpp"
+#include "operator/power.hpp"
+#include "operator/floor.hpp"
+#include "operator/clip.hpp"
+#include "operator/tile.hpp"
+#include "operator/topkv2.hpp"
+#include "operator/maximum.hpp"
+#include "operator/minimum.hpp"
+#include "operator/argmax.hpp"
+#include "operator/argmin.hpp"
+#include "operator/reverse.hpp"
+#include "operator/feature_match.hpp"
+#include "operator/shuffle_channel.hpp"
+#include "operator/batchToSpaceND.hpp"
+#include "operator/spaceToBatchND.hpp"
+#include "operator/absval.hpp"
+#include "operator/hardswish.hpp"
+#include "operator/interp.hpp"
+#include "operator/selu.hpp"
+#include "operator/l2normalization.hpp"
+#include "operator/l2pool.hpp"
+#include "operator/elu.hpp"
+#include "operator/layernormlstm.hpp"
+#include "operator/relu1.hpp"
+#include "operator/log_softmax.hpp"
+#include "operator/cast.hpp"
 
 using namespace TEngine;
 
@@ -122,6 +151,35 @@ int operator_plugin_init(void)
     RegisterOp<SwapAxis>("SwapAxis");
     RegisterOp<GRU>("GRU");
     RegisterOp<Addn>("Addn");
+    RegisterOp<StridedSlice>("StridedSlice");
+    RegisterOp<Floor>("Floor");
+    RegisterOp<Upsample>("Upsample");
+    RegisterOp<Crop>("Crop");
+    RegisterOp<Copy>("Copy");
+    RegisterOp<Power>("Power");
+    RegisterOp<Clip>("Clip");
+    RegisterOp<Tile>("Tile");
+    RegisterOp<Maximum>("Maximum");
+    RegisterOp<Minimum>("Minimum");
+    RegisterOp<ArgMax>("ArgMax");
+    RegisterOp<ArgMin>("ArgMin");
+    RegisterOp<TopKV2>("TopKV2");
+    RegisterOp<ReverseV2>("ReverseV2");
+    RegisterOp<FeatureMatch>("FeatureMatch");
+    RegisterOp<ShuffleChannel>("ShuffleChannel");
+    RegisterOp<BatchToSpaceND>("BatchToSpaceND");     
+    RegisterOp<SpaceToBatchND>("SpaceToBatchND");
+    RegisterOp<Absval>("Absval");
+    RegisterOp<Hardswish>("Hardswish");
+    RegisterOp<Interp>("Interp");
+    RegisterOp<Selu>("Selu");
+    RegisterOp<L2Normalization>("L2Normalization");
+    RegisterOp<L2Pool>("L2Pool");
+    RegisterOp<Elu>("Elu");
+    RegisterOp<LayerNormLSTM>("LayerNormLSTM");
+    RegisterOp<ReLU1>("ReLU1");
+    RegisterOp<LogSoftmax>("LogSoftmax");
+    RegisterOp<Cast>("Cast");
 
     // std::cout<<"OPERATOR PLUGIN INITED\n";
     return 0;

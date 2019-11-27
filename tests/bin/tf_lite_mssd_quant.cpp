@@ -30,41 +30,23 @@
 #include <vector>
 #include <sys/time.h>
 
-#include "opencv2/imgproc/imgproc.hpp"
-#include "opencv2/highgui/highgui.hpp"
 #include "tengine_c_api.h"
-
+#include "tengine_operations.h"
 #define DEF_MODEL "models/detect.tflite"
 #define DEF_IMAGE "tests/images/ssd_dog.jpg"
 #define DEF_LABEL "models/coco_labels_list.txt"
 
 void get_input_data_ssd(const char* image_file, uint8_t* input_data, int img_h, int img_w)
 {
-    cv::Mat img = cv::imread(image_file);
+    image im = imread(image_file);
 
-    if(img.empty())
-    {
-        std::cerr << "Failed to read image file " << image_file << ".\n";
-        return;
-    }
+    image resImg = resize_image(im, img_w, img_h);
 
-    cv::resize(img, img, cv::Size(img_h, img_w));
-    img.convertTo(img, CV_32FC3);
-    float* img_data = ( float* )img.data;
-    uint8_t* ptr = input_data;
-
+    int index = 0;
     for(int h = 0; h < img_h; h++)
-    {
         for(int w = 0; w < img_w; w++)
-        {
             for(int c = 0; c < 3; c++)
-            {
-                *ptr = img_data[2 - c];
-                ptr++;
-            }
-            img_data += 3;
-        }
-    }
+                input_data[index++] = ( uint8_t )resImg.data[c * img_h * img_w + h * img_w + w];
 }
 
 void LoadLabelFile(std::vector<std::string>& result)
@@ -78,6 +60,7 @@ void LoadLabelFile(std::vector<std::string>& result)
 
 void post_process_ssd(tensor_t t0, tensor_t t1, tensor_t t2, tensor_t t3)
 {
+    image im = imread(DEF_IMAGE);
     float* boxes = ( float* )get_tensor_buffer(t0);
     float* classes = ( float* )get_tensor_buffer(t1);
     float* scores = ( float* )get_tensor_buffer(t2);
@@ -93,11 +76,14 @@ void post_process_ssd(tensor_t t0, tensor_t t1, tensor_t t2, tensor_t t3)
         if(scores[i] > 0.6)
         {
             int class_idx = classes[i];
-            std::cout << "score: " << scores[i] << " class:" << class_idx << "-- " << labels[class_idx];
-            printf("\t%f,%f,%f,%f\n", boxes[i * 4] * 768, boxes[i * 4 + 1] * 576, boxes[i * 4 + 2] * 768,
-                   boxes[i * 4 + 3] * 576);
+            printf("score: %f, class: %d, %s \n", scores[i], class_idx, labels[class_idx].c_str());
+            printf("\t %f, %f, %f, %f\n", boxes[i * 4] * im.w, boxes[i * 4 + 1] * im.h, boxes[i * 4 + 2] * im.w,
+                   boxes[i * 4 + 3] * im.h);
+            draw_box(im, boxes[i * 4] * im.w, boxes[i * 4 + 1] * im.h, boxes[i * 4 + 2] * im.w, boxes[i * 4 + 3] * im.h,
+                     2, 125, 0, 125);
         }
     }
+    save_image(im, "tm_mssd_tflite.jpg");
 }
 
 int main(int argc, char* argv[])

@@ -30,9 +30,8 @@
 #include <iomanip>
 #include <time.h>
 
+#include "tengine_operations.h"
 #include "tengine_c_api.h"
-#include "opencv2/imgproc/imgproc.hpp"
-#include "opencv2/highgui/highgui.hpp"
 #include "common_util.hpp"
 
 const char* text_file = "./models/sqz.prototxt";
@@ -75,20 +74,15 @@ void PrintTopLabels(const char* label_file, float* data)
 void get_input_data(const char* image_file, float* input_data, int img_h, int img_w, const float* mean, float scale)
 {
 #if 1
-    cv::Mat img = cv::imread(image_file, -1);
+    image img = imread(image_file);
 
-    if(img.empty())
-    {
-        std::cerr << "failed to read image file " << image_file << "\n";
-        return;
-    }
-    cv::resize(img, img, cv::Size(img_h, img_w));
-    img.convertTo(img, CV_32FC3);
-    float* img_data = ( float* )img.data;
+    image resImg = resize_image(img, img_w, img_h);
+    resImg = rgb2bgr_premute(resImg);
+    float* img_data = ( float* )resImg.data;
     int hw = img_h * img_w;
-    for(int h = 0; h < img_h; h++)
-        for(int w = 0; w < img_w; w++)
-            for(int c = 0; c < 3; c++)
+    for(int c = 0; c < 3; c++)
+        for(int h = 0; h < img_h; h++)
+            for(int w = 0; w < img_w; w++)
             {
                 input_data[c * hw + h * img_w + w] = (*img_data - mean[c]) * scale;
                 img_data++;
@@ -133,7 +127,7 @@ int main(int argc, char* argv[])
     get_input_data(image_file, input_data, img_h, img_w, channel_mean, 1);
 
     if(cpu_list_str)
-    set_cpu_list(cpu_list_str);
+        set_cpu_list(cpu_list_str);
 
     init_tengine();
 
@@ -141,7 +135,6 @@ int main(int argc, char* argv[])
 
     if(request_tengine_version("0.9") < 0)
         return -1;
-
 
     graph_t graph = create_graph(nullptr, "caffe", text_file, model_file);
 

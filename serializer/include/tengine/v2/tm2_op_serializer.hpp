@@ -59,8 +59,24 @@
 #include "operator/tanh.hpp"
 #include "operator/sigmoid.hpp"
 #include "operator/squeeze.hpp"
+#include "operator/argmax.hpp"
+#include "operator/argmin.hpp"
+#include "operator/maximum.hpp"
+#include "operator/minimum.hpp"
+#include "operator/topkv2.hpp"
+#include "operator/reduction.hpp"
+#include "operator/stridedslice.hpp"
+#include "operator/pad.hpp"
+#include "operator/split.hpp"
+#include "operator/swap_axis.hpp"
+#include "operator/gru.hpp"
+#include "operator/add_n.hpp"
 #include "operator/fused_operator.hpp"
-
+#include "operator/upsample.hpp"
+#include "operator/shuffle_channel.hpp"
+#include "operator/spaceToBatchND.hpp"
+#include "operator/batchToSpaceND.hpp"
+#include "operator/crop.hpp"
 #include "operator/batch_norm_param.hpp"
 #include "operator/concat_param.hpp"
 #include "operator/conv_param.hpp"
@@ -89,8 +105,22 @@
 #include "operator/generic_param.hpp"
 #include "operator/lstm_param.hpp"
 #include "operator/rnn_param.hpp"
+#include "operator/addn_param.hpp"
+#include "operator/gru_param.hpp"
+#include "operator/swap_axis_param.hpp"
 #include "operator/squeeze_param.hpp"
-
+#include "operator/argmax_param.hpp"
+#include "operator/argmin_param.hpp"
+#include "operator/reduction_param.hpp"
+#include "operator/topkv2_param.hpp"
+#include "operator/stridedslice_param.hpp"
+#include "operator/pad_param.hpp"
+#include "operator/split_param.hpp"
+#include "operator/upsample_param.hpp"
+#include "operator/shuffle_channel_param.hpp"
+#include "operator/spaceToBatchND_param.hpp"
+#include "operator/batchToSpaceND_param.hpp"
+#include "operator/crop_param.hpp"
 #include "tm2_format.h"
 
 namespace TEngine {
@@ -101,6 +131,9 @@ using op_load_t = std::function<bool(StaticGraph*, StaticNode*, void* const, con
 using op_save_t = std::function<tm_uoffset_t(void* const, tm_uoffset_t*, Operator*)>;
 
 std::string GetOpStr(uint32_t op_type);
+void AddOpStr(uint32_t op_type, const std::string& name);
+
+#define REG_TM_OPNAME(optype, opname) AddOpStr(optype, opname);
 
 op_load_t LoadTmOpFunc(uint32_t op_type);
 bool LoadTmAccuracyOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
@@ -133,7 +166,8 @@ bool LoadTmScaleOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, 
 bool LoadTmSliceOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
 bool LoadTmSoftmaxOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
 bool LoadTmSplitOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
-bool LoadTmDetectionPostProcessOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
+bool LoadTmDetectionPostProcessOp(StaticGraph* graph, StaticNode* node, void* const start_ptr,
+                                  const TM2_Operator* tm_op);
 bool LoadTmGemmOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
 bool LoadTmGenericOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
 bool LoadTmLogisticOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
@@ -143,6 +177,22 @@ bool LoadTmTanhOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, c
 bool LoadTmSigmoidOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
 bool LoadTmSqueezeOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
 bool LoadTmFusedbnscalereluOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
+bool LoadTmPadOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
+bool LoadTmArgMaxOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
+bool LoadTmArgMinOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
+bool LoadTmReductionOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
+bool LoadTmTopKV2Op(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
+bool LoadTmStridedSliceOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
+bool LoadTmMaxOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
+bool LoadTmMinOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
+bool LoadTmSwapAixsOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
+bool LoadTmGruOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
+bool LoadTmAddnOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
+bool LoadTmUpsampleOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
+bool LoadTmShuffleChannelOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
+bool LoadTmSpaceToBatchNDOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
+bool LoadTmBatchToSpaceNDOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
+bool LoadTmCropOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
 
 op_save_t SaveTmOpFunc(uint32_t op_type);
 tm_uoffset_t SaveTmAccuracyOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op);
@@ -185,7 +235,22 @@ tm_uoffset_t SaveTmTanhOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator
 tm_uoffset_t SaveTmSigmoidOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op);
 tm_uoffset_t SaveTmSqueezeOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op);
 tm_uoffset_t SaveTmFusedbnscalereluOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op);
-
+tm_uoffset_t SaveTmPadOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op);
+tm_uoffset_t SaveTmStridedSliceOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op);
+tm_uoffset_t SaveTmArgMaxOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op);
+tm_uoffset_t SaveTmArgMinOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op);
+tm_uoffset_t SaveTmTopKV2Op(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op);
+tm_uoffset_t SaveTmReductionOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op);
+tm_uoffset_t SaveTmMaxOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op);
+tm_uoffset_t SaveTmMinOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op);
+tm_uoffset_t SaveTmAddnOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op);
+tm_uoffset_t SaveTmGruOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op);
+tm_uoffset_t SaveTmSwapAxisOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op);
+tm_uoffset_t SaveTmUpsampleOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op);
+tm_uoffset_t SaveTmShffleChannelOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op);
+tm_uoffset_t SaveTmSpaceToBatchNDOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op);
+tm_uoffset_t SaveTmBatchToSpaceNDOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op);
+tm_uoffset_t SaveTmCropOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op);
 template <typename T> const T* GetTmPtr(void* const start_ptr, tm_uoffset_t tm_offset)
 {
     if(tm_offset != TM2_NOT_SET)

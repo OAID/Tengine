@@ -29,9 +29,8 @@
 #include <string>
 #include <vector>
 #include <sys/time.h>
-
-#include "opencv2/imgproc/imgproc.hpp"
-#include "opencv2/highgui/highgui.hpp"
+#include <algorithm>
+#include "tengine_operations.h"
 #include "tengine_c_api.h"
 #include "model_config.hpp"
 #include "common.hpp"
@@ -78,41 +77,34 @@ static inline std::vector<int> Argmax(const std::vector<float>& v, int N)
 
 void get_input_data(const char* image_file, float* input_data, int img_h, int img_w, const float* mean, float scale)
 {
-    cv::Mat sample = cv::imread(image_file, -1);
-    if(sample.empty())
+    image im = imread(image_file);
+    image imRes;
+    if(im.c == 1)
     {
-        std::cerr << "Failed to read image file " << image_file << ".\n";
-        return;
+        imRes = gray2bgr(im);
     }
-    cv::Mat img;
-    if(sample.channels() == 4)
+    else if(im.c == 3)
     {
-        cv::cvtColor(sample, img, cv::COLOR_BGRA2BGR);
+        imRes = im;
     }
-    else if(sample.channels() == 1)
-    {
-        cv::cvtColor(sample, img, cv::COLOR_GRAY2BGR);
-    }
-    else
-    {
-        img = sample;
-    }
+    if(im.data == 0)
+        std::cerr << "open file failed " << image_file << "\n";
 
-    cv::resize(img, img, cv::Size(img_h, img_w));
-    img.convertTo(img, CV_32FC3);
-    float* img_data = ( float* )img.data;
-    int hw = img_h * img_w;
-    for(int h = 0; h < img_h; h++)
+    image imResize = resize_image(imRes, img_w, img_h);
+    imResize = rgb2bgr_premute(imResize);
+    int hw = img_w * img_h;
+    for(int c = 0; c < 3; c++)
     {
-        for(int w = 0; w < img_w; w++)
+        for(int h = 0; h < img_h; h++)
         {
-            for(int c = 0; c < 3; c++)
+            for(int w = 0; w < img_w; w++)
             {
-                input_data[c * hw + h * img_w + w] = (*img_data - mean[c]) * scale;
-                img_data++;
+                input_data[c * hw + h * img_w + w] = (imResize.data[c * hw + h * img_w + w] - mean[c]) * scale;
             }
         }
     }
+    free_image(im);
+    free_image(imResize);
 }
 
 void PrintTopLabels(const char* label_file, float* data)

@@ -24,12 +24,13 @@
 
 #include <iostream>
 #include <unistd.h>
+#include <cmath>
 #include <iomanip>
-#include <string>
+#include <algorithm>
+#include <string.h>
 #include <vector>
-#include "opencv2/imgproc/imgproc.hpp"
-#include "opencv2/highgui/highgui.hpp"
 #include "tengine_c_api.h"
+#include "tengine_operations.h"
 #include <sys/time.h>
 #include "common.hpp"
 
@@ -138,30 +139,30 @@ void draw_detections(std::string& image_file, std::string& save_name, std::vecto
                                  "bus",        "car",       "cat",       "chair",  "cow",         "diningtable",
                                  "dog",        "horse",     "motorbike", "person", "pottedplant", "sheep",
                                  "sofa",       "train",     "tvmonitor"};
-    cv::Mat img = cv::imread(image_file);
-    int line_width = img.size().width * 0.005;
-    printf("detect result num: %lu\n", boxes.size());
+    image im = imread(image_file.c_str());
+
     for(int b = 0; b < ( int )boxes.size(); b++)
     {
         abox box = boxes[b];
+
         printf("%s\t: %.3f %%\n", class_names[box.class_idx], box.score * 100);
         printf("BOX:( %g , %g ),( %g , %g )\n", box.x1, box.y1, box.x2, box.y2);
-        cv::rectangle(img, cv::Rect(box.x1, box.y1, (box.x2 - box.x1), (box.y2 - box.y1)), cv::Scalar(255, 0, 255),
-                      line_width);
+
         std::ostringstream score_str;
-        score_str << box.score;
-        std::string label = std::string(class_names[box.class_idx]) + ": " + score_str.str();
-        int baseLine = 0;
-        cv::Size label_size = cv::getTextSize(label, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
-        cv::rectangle(img,
-                      cv::Rect(cv::Point(box.x1, box.y1 - label_size.height),
-                               cv::Size(label_size.width, label_size.height + baseLine)),
-                      cv::Scalar(255, 0, 255), CV_FILLED);
-        cv::putText(img, label, cv::Point(box.x1, box.y1), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 0));
+        score_str << box.score * 100;
+        std::string labelstr = std::string(class_names[box.class_idx]);
+
+        put_label(im, labelstr.c_str(), 0.02, box.x1, box.y1, 255, 255, 125);
+
+        draw_box(im, box.x1, box.y1, box.x2, box.y2, 2, 0, 0, 0);
     }
-    cv::imwrite(save_name, img);
+    // cv::imwrite(save_name, img);
+    save_image(im, "Faster_Rcnn.jpg");
+    free_image(im);
     std::cout << "======================================\n";
-    std::cout << "[DETECTED IMAGE SAVED]:\t" << save_name << "\n";
+    std::cout << "[DETECTED IMAGE SAVED]:\t"
+              << "Faster_Rcnn"
+              << "\n";
     std::cout << "======================================\n";
 }
 
@@ -239,18 +240,14 @@ int main(int argc, char* argv[])
     int val = 1;
     set_graph_attr(graph, "low_mem_mode", &val, sizeof(val));
 
-    cv::Mat image = cv::imread(image_file);
-    if(image.empty())
-    {
-        std::cerr << "failed to read image file " << image_file << "\n";
-        return 0;
-    }
-    // preprocess img
+    image im = imread(image_file.c_str());
+    if(im.data == 0)
+        std::cerr << "Open pic Error: " << image_file << "\n";
     const int INPUT_SIZE_LONG = 500;
     const int INPUT_SIZE_NARROW = 300;
 
-    int max_side = std::max(image.rows, image.cols);
-    int min_side = std::min(image.rows, image.cols);
+    int max_side = std::max(im.h, im.w);
+    int min_side = std::min(im.h, im.w);
 
     float max_side_scale = float(max_side) / float(INPUT_SIZE_LONG);
     float min_side_scale = float(min_side) / float(INPUT_SIZE_NARROW);
@@ -259,35 +256,24 @@ int main(int argc, char* argv[])
 
     // im_info
     float img_scale = 1.f / max_scale;
-    int height = int(image.rows * img_scale);
-    int width = int(image.cols * img_scale);
+    int height = int(im.h * img_scale);
+    int width = int(im.w * img_scale);
     float im_info[3];
     im_info[0] = height;
     im_info[1] = width;
     im_info[2] = img_scale;
-    //
-    cv::Mat resize_img;
-    image.convertTo(resize_img, CV_32FC3);
-    cv::resize(resize_img, resize_img, cv::Size(width, height));
-
-    float* img_data = ( float* )resize_img.data;
 
     int hw = height * width;
     int img_size = hw * 3;
     float* input_data = ( float* )malloc(sizeof(float) * img_size);
 
-    float mean[3] = {102.9801, 115.9465, 122.7717};
-    for(int h = 0; h < height; h++)
-    {
-        for(int w = 0; w < width; w++)
-        {
-            for(int c = 0; c < 3; c++)
-            {
-                input_data[c * hw + h * width + w] = *img_data - mean[c];
-                img_data++;
-            }
-        }
-    }
+    int img_w = width;
+    int img_h = height;
+
+    float mean[3] = {102.9801,115.9465, 122.7717};
+    float scales[3] = {1, 1, 1};
+    image img = imread(image_file.c_str(), img_w, img_h, mean, scales, CAFFE);    
+    memcpy(input_data, img.data, sizeof(float)*3*img_w*img_h); 
 
     // std::cout<<"height width scale"<<height<<","<<width<<","<<img_scale<<"\n";
     // set input and output node
@@ -367,7 +353,7 @@ int main(int argc, char* argv[])
             bbox_delt[j][2] = bbox_delt_data[j * chw + i * 4 + 2];
             bbox_delt[j][3] = bbox_delt_data[j * chw + i * 4 + 3];
         }
-        bbox_tranform_inv(rois_data, bbox_delt, num_roi, image.cols - 1, image.rows - 1);
+        bbox_tranform_inv(rois_data, bbox_delt, num_roi, im.w - 1, im.w - 1);
         std::vector<abox> aboxes;
         for(int j = 0; j < num_roi; j++)
         {

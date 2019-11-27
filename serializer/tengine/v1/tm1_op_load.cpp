@@ -592,6 +592,14 @@ op_load_t LoadTmOpFunc(uint32_t op_type)
     }
 }
 
+using op_tm_name_map_t = std::unordered_map<unsigned int, std::string>;
+
+static op_tm_name_map_t gTmOpName;
+void AddOpStr(uint32_t op_type, const std::string& name)
+{
+    gTmOpName[op_type] = name;
+}
+
 std::string GetOpStr(uint32_t op_type)
 {
     switch(op_type)

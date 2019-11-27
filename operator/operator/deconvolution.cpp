@@ -30,26 +30,73 @@ bool Deconvolution::InferShape(const std::vector<TShape>& ishape, std::vector<TS
 
 {
     const TShape& input_shape = ishape[0];
-
+    //const TShape& weight_shape = ishape[1];
     int input_n = input_shape.GetN();
     int input_h = input_shape.GetH();
     int input_w = input_shape.GetW();
 
-    int kernel_extent_w = param_.dilation_w * (param_.kernel_w - 1) + 1;
-	int kernel_extent_h = param_.dilation_h * (param_.kernel_h - 1) + 1;
+    //int output_c = weight_shape.Shape(1);
+    if(param_.pad_h0 < 0)
+    {
+        int n = (input_h - 1) / param_.stride_h + 1;
+        int total_len = (n - 1) * param_.stride_h + param_.kernel_h;
+        int pad_num = total_len - input_h;
 
+        if(param_.pad_h0 == -1)    // TF or SAME_UPPER in ONNX
+        {
+            param_.pad_h0 = pad_num / 2;
+            param_.pad_h1 = pad_num - pad_num / 2;
+        }
+        else
+        {
+            // SAME_LOWER in ONNX
+            param_.pad_h0 = pad_num - pad_num / 2;
+            param_.pad_h1 = pad_num / 2;
+        }
+    }
+
+    if(param_.pad_w0 < 0)
+    {
+        int n = (input_w - 1) / param_.stride_w + 1;
+        int total_len = (n - 1) * param_.stride_w + param_.kernel_w;
+        int pad_num = total_len - input_w;
+
+        if(param_.pad_w0 == -1)    // TF or SAME_UPPER in ONNX
+        {
+            param_.pad_w0 = pad_num / 2;
+            param_.pad_w1 = pad_num - pad_num / 2;
+        }
+        else
+        {
+            // SAME_LOWER in ONNX
+            param_.pad_w0 = pad_num - pad_num / 2;
+            param_.pad_w1 = pad_num / 2;
+        }
+    }
+    int kernel_extent_w = param_.dilation_w * (param_.kernel_w - 1) + 1;
+    int kernel_extent_h = param_.dilation_h * (param_.kernel_h - 1) + 1;
 
     int output_h = (input_h - 1) * param_.stride_h + kernel_extent_h - param_.pad_h0 - param_.pad_h1;
     int output_w = (input_w - 1) * param_.stride_w + kernel_extent_w - param_.pad_w0 - param_.pad_w1;
 
-    std::vector<int> dim = {input_n, param_.num_output, output_h, output_w};
+    // std::vector<int> dim = {input_n, param_.num_output, output_h, output_w};
+
     TShape result;
 
-    result.SetDim(dim);
-    result.SetDataLayout(input_shape.GetDataLayout());
+    if(layout == TENGINE_LAYOUT_NHWC)
+    {
+        std::vector<int> dim = {input_n, output_h, output_w, param_.num_output};
+        result.SetDim(dim);
+        result.SetDataLayout(TENGINE_LAYOUT_NHWC);
+    }
+    else
+    {
+        std::vector<int> dim = {input_n, param_.num_output, output_h, output_w};
+        result.SetDim(dim);
+        result.SetDataLayout(TENGINE_LAYOUT_NCHW);
+    }
 
     oshape[0] = result;
-
     return true;
 }
 
@@ -63,7 +110,7 @@ float Deconvolution::GetFops(const std::vector<TShape>& inputs, const std::vecto
 void Deconvolution::SetSchema(void)
 {
     Input({"input:float32", "weight:float32", "bias:float32"})
-        .Output({"output:float32"})  
+        .Output({"output:float32"})
         .SetAttr("kernel_h", 1)
         .SetAttr("kernel_w", 1)
         .SetAttr("stride_h", 1)

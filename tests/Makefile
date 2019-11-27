@@ -16,10 +16,8 @@ INC_DIR+=-I$(shell pwd)/../executor/include
 
 CXXFLAGS+=
 
-OPENCV_CFLAGS=$(shell pkg-config --cflags opencv)
-
 COMMON_CFLAGS+=$(CONFIG_OPT_CFLAGS)
-COMMON_CFLAGS+= -Wall -g -I$(shell pwd)/include -fPIC  $(INC_DIR) $(OPENCV_CFLAGS) -Werror
+COMMON_CFLAGS+= -Wall -g -I$(shell pwd)/include -fPIC  $(INC_DIR) -Werror
 
 binsubdir_list=./bin
 
@@ -66,10 +64,6 @@ $(BUILD_DIR)/%: $(BUILD_DIR)/%.o
 	$(LD) $(LDFLAGS) $< $(COMMON_OBJS) -o $@  $(LIBS) $(SO_LIBS)
 
 
-OPENCV_LIB=$(shell pkg-config --libs-only-l --libs-only-L opencv) 
-
 LIBS+=-L ../build/ -ltengine -Wl,-allow-shlib-undefined
-
-SO_LIBS+=-lprotobuf -ldl -lpthread
+SO_LIBS+= -ldl -lpthread
 SO_LIBS+=-Wl,-rpath,./build/
-SO_LIBS+=$(OPENCV_LIB)

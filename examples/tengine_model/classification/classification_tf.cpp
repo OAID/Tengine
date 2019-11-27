@@ -29,10 +29,9 @@
 #include <string>
 #include <vector>
 #include <sys/time.h>
-
-#include "opencv2/imgproc/imgproc.hpp"
-#include "opencv2/highgui/highgui.hpp"
+#include <algorithm>
 #include "tengine_c_api.h"
+#include "tengine_operations.h"
 #include "common.hpp"
 #include "cpu_device.h"
 
@@ -114,32 +113,22 @@ static inline std::vector<int> Argmax(const std::vector<float>& v, int N)
 }
 
 void get_input_data(const char* image_file, float* input_data, const int img_h, const int img_w, const float mean,
-                       const float scale)
+                    const float scale)
 {
-    cv::Mat img = cv::imread(image_file, -1);
-    if(img.empty())
+    image im = imread(image_file);
+    image resImg = resize_image(im, img_w, img_h);
+    int hw = img_w * img_h;
+    for(int h = 0; h < img_h; h++)
     {
-        std::cerr << "Failed to read image file " << image_file << ".\n";
-        return;
+        for(int w = 0; w < img_w; w++)
+        {
+            for(int c = 0; c < 3; c++)
+            {
+                input_data[h * img_h * img_w + w * 3 + c] = (resImg.data[c * hw + h * img_w + w] - mean) * scale;
+            }
+        }
     }
-
-    cv::cvtColor(img, img, cv::COLOR_BGR2RGB);
-    cv::resize(img, img, cv::Size(img_w, img_h));
-    img.convertTo(img, CV_32FC3);
-
-    img = (img - mean) * scale;
-
-    std::vector<cv::Mat> input_channels;
-    float* ptr = input_data;
-
-    for(int i = 0; i < 3; ++i)
-    {
-        cv::Mat channel(img_h, img_w, CV_32FC1, ptr);
-        input_channels.push_back(channel);
-        ptr += img_h * img_w;
-    }
-
-    cv::split(img, input_channels);
+    free_image(im);
 }
 
 void PrintTopLabels(const char* label_file, float* data)
@@ -179,7 +168,7 @@ bool run_tengine_library(const char* model_name, const char* tm_file, const char
 
     // set input shape
     int img_size = img_h * img_w * 3;
-    int dims[] = {1, 3, img_h, img_w};
+    int dims[] = {1, img_h, img_w, 3};
     float* input_data = ( float* )malloc(sizeof(float) * img_size);
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);

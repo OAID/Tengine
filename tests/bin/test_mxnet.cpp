@@ -41,9 +41,9 @@ int main(int argc, char* argv[])
         return 1;
 
     // create graph
-    printf("%s\n",argv[1]);
-    printf("%s\n",argv[2]);
-    graph_t graph = create_graph(nullptr, "mxnet", argv[1],argv[2]);
+    printf("%s\n", argv[1]);
+    printf("%s\n", argv[2]);
+    graph_t graph = create_graph(nullptr, "mxnet", argv[1], argv[2]);
     if(graph == nullptr)
     {
         std::cout << "Create graph failed\n";
@@ -60,10 +60,10 @@ int main(int argc, char* argv[])
     int img_size = img_h * img_w * 1 * 1;
 
     float* input_data = ( float* )malloc(sizeof(float) * img_size);
-    for(int i =0;i<img_size;i++)
-        input_data[i] = -1 + i*3.0/(28*28-1);
-    for(int i=0;i<10;i++)
-        printf("%f,",input_data[i]);
+    for(int i = 0; i < img_size; i++)
+        input_data[i] = -1 + i * 3.0 / (28 * 28 - 1);
+    for(int i = 0; i < 10; i++)
+        printf("%f,", input_data[i]);
     printf("\n");
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     int dims[] = {1, 1, img_h, img_w};
@@ -97,17 +97,17 @@ int main(int argc, char* argv[])
     tensor_t output = get_graph_output_tensor(graph, 0, 0);
     int shape[4];
     int shape_num = get_tensor_shape(output, shape, 4);
-    int output_size = get_tensor_buffer_size(output)/4;
-    std::cout<<"output_size: "<< output_size << " shape: ";
-    for(int i=0;i<shape_num; i++)
-    std::cout<<shape[i]<<",";
-    std::cout<<"\n";
-    float* output_buf = (float*)get_tensor_buffer(output);
-    for(int j =0;j<10;j++)
+    int output_size = get_tensor_buffer_size(output) / 4;
+    std::cout << "output_size: " << output_size << " shape: ";
+    for(int i = 0; i < shape_num; i++)
+        std::cout << shape[i] << ",";
+    std::cout << "\n";
+    float* output_buf = ( float* )get_tensor_buffer(output);
+    for(int j = 0; j < 10; j++)
     {
-        printf("%g,",output_buf[j]);
+        printf("%g,", output_buf[j]);
     }
-        printf("]\n");
+    printf("]\n");
 
     release_graph_tensor(input_tensor);
     release_graph_tensor(output);

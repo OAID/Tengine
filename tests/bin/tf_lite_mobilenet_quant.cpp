@@ -30,8 +30,7 @@
 #include <vector>
 #include <sys/time.h>
 
-#include "opencv2/imgproc/imgproc.hpp"
-#include "opencv2/highgui/highgui.hpp"
+#include "tengine_operations.h"
 #include "tengine_c_api.h"
 
 #define DEF_MODEL "models/mobilenet_quant_v1_224.tflite"
@@ -40,29 +39,20 @@
 
 void get_input_data(const char* image_file, uint8_t* input_data, int img_h, int img_w)
 {
-    cv::Mat img = cv::imread(image_file);
+    image im = imread(image_file);
 
-    if(img.empty())
-    {
-        std::cerr << "Failed to read image file " << image_file << ".\n";
-        return;
-    }
+    image resImg = resize_image(im, img_w, img_h);
 
-    cv::resize(img, img, cv::Size(img_h, img_w));
-    img.convertTo(img, CV_32FC3);
-    float* img_data = ( float* )img.data;
-    uint8_t* ptr = input_data;
-
+    int index = 0;
     for(int h = 0; h < img_h; h++)
     {
         for(int w = 0; w < img_w; w++)
         {
             for(int c = 0; c < 3; c++)
             {
-                *ptr = img_data[2 - c];
-                ptr++;
+                input_data[index] = ( uint8_t )resImg.data[c * img_h * img_w + h * img_w + w];
+                index++;
             }
-            img_data += 3;
         }
     }
 }
@@ -134,7 +124,6 @@ int main(int argc, char* argv[])
 
     // dump_graph(graph);
 
-
     // input
     int img_h = 224;
     int img_w = 224;
@@ -159,7 +148,7 @@ int main(int argc, char* argv[])
     }
 
     int repeat_count = 1;
-    if(argc>1)
+    if(argc > 1)
         repeat_count = atoi(argv[1]);
     const char* repeat = std::getenv("REPEAT_COUNT");
 

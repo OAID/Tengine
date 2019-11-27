@@ -330,8 +330,8 @@ NodeOps* SelectFunc(const CPUInfo* cpu_info, Node* node)
     Tensor* input = node->GetInputTensor(0);
     const int data_type = input->GetDataType();
     const ExecAttr* exec_attr = any_cast<const ExecAttr*>(node->GetAttr(ATTR_EXEC_ATTR));
-    if((data_type != TENGINE_DT_FP32&&data_type != TENGINE_DT_UINT8) ||
-        exec_attr->graph_layout != TENGINE_LAYOUT_NHWC)
+    if((data_type != TENGINE_DT_FP32 && data_type != TENGINE_DT_UINT8) ||
+       exec_attr->graph_layout != TENGINE_LAYOUT_NHWC)
         return nullptr;
 
     DetectionPostProcessOps* ops = new DetectionPostProcessOps();
@@ -345,7 +345,8 @@ using namespace DetectionPostProcessImpl;
 
 void RegisterDetectionPostProcessNodeExec(void)
 {
-    NodeOpsRegistryManager::RegisterOPImplementor("common", "DetectionPostProcess", DetectionPostProcessImpl::SelectFunc, 1000);
+    NodeOpsRegistryManager::RegisterOPImplementor("common", "DetectionPostProcess",
+                                                  DetectionPostProcessImpl::SelectFunc, 1000);
 }
 
 }    // namespace TEngine

@@ -34,23 +34,23 @@ struct te_error_base : public std::runtime_error
     {
         return error_code;
     }
-    te_error_base() : runtime_error("tengine error"){}
+    te_error_base() : runtime_error("tengine error") {}
 };
 struct te_error_shared_function_not_found : public te_error_base
 {
     using te_error_base::te_error_base;
     static std::string msg;
-    
-    te_error_shared_function_not_found(const std::string& func_name) 
+
+    te_error_shared_function_not_found(const std::string& func_name)
     {
-        msg="\nShared function not found: ";
-        msg+=func_name;
-        msg+="\n";
+        msg = "\nShared function not found: ";
+        msg += func_name;
+        msg += "\n";
     }
 
     const char* what() const throw() override
     {
-        return msg.c_str(); 
+        return msg.c_str();
     }
 };
 struct te_error_unable_to_load_library : public te_error_base
@@ -60,10 +60,10 @@ struct te_error_unable_to_load_library : public te_error_base
 
     te_error_unable_to_load_library(const std::string& so_name)
     {
-        msg="\nShared library not found: ";
-        msg+=so_name;
-        msg+="\n";
-    } 
+        msg = "\nShared library not found: ";
+        msg += so_name;
+        msg += "\n";
+    }
 
     const char* what() const throw() override
     {

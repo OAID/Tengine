@@ -33,12 +33,16 @@ static int calc_output_size(int input, int kernel, int stride, int pad, int caff
     int output = 1;
     if(pad >= 0)
     {
-        if(caffe)
+        if(1 == caffe)
         {
             output = 1 + std::ceil((( float )(input - kernel + 2 * pad)) / stride);
             if(pad > 0 && ((output - 1) * stride >= input + pad))
                 output--;
         }
+        else if(2 == caffe)
+        {
+            output = 1 +  (input - kernel + pad) / stride;
+         }
         else
             output = 1 + (input - kernel + 2 * pad) / stride;
     }
@@ -73,11 +77,10 @@ static void calc_real_pads(int out, int in, int kernel, int stride, int pad, int
 bool Pooling::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEngine::TShape>& oshape, int layout)
 {
     const TShape& input_shape = ishape[0];
-
     int input_h = input_shape.GetH();
     int input_w = input_shape.GetW();
 
-    if(param_.kernel_h == input_h && param_.kernel_w == input_w)
+    if(param_.kernel_h == input_h && param_.kernel_w == input_w && param_.pad_w0 <= 0)
         param_.global = 1;
 
     int output_h;
@@ -95,15 +98,25 @@ bool Pooling::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector
     }
     else
     {
-        output_h =
-            calc_output_size(input_h, param_.kernel_h, param_.stride_h, param_.pad_h0, param_.caffe_flavor);
-        output_w =
-            calc_output_size(input_w, param_.kernel_w, param_.stride_w, param_.pad_w0, param_.caffe_flavor);
-
-        calc_real_pads(output_h, input_h, param_.kernel_h, param_.stride_h, param_.pad_h0, &param_.pad_h0,
-                       &param_.pad_h1);
-        calc_real_pads(output_w, input_w, param_.kernel_w, param_.stride_w, param_.pad_w0, &param_.pad_w0,
+        int caffe = param_.caffe_flavor & ~(COUNT_INCLUDE_PAD_MSK);
+        output_h = calc_output_size(input_h, param_.kernel_h, param_.stride_h, param_.pad_h0, caffe);
+        output_w = calc_output_size(input_w, param_.kernel_w, param_.stride_w, param_.pad_w0, caffe);
+        if(2 != caffe)
+        {
+            calc_real_pads(output_h, input_h, param_.kernel_h, param_.stride_h, param_.pad_h0, &param_.pad_h0,
+                        &param_.pad_h1);
+            calc_real_pads(output_w, input_w, param_.kernel_w, param_.stride_w, param_.pad_w0, &param_.pad_w0,
                        &param_.pad_w1);
+        }
+        else
+        {
+            int pad_w0 = param_.pad_w0;
+            int pad_h0 = param_.pad_h0;
+            param_.pad_w0 = pad_w0/2;
+            param_.pad_h0 = pad_h0/2;
+            param_.pad_w1 = pad_w0 - pad_w0/2;
+            param_.pad_h1 = pad_h0 - pad_h0/2;
+        }
     }
 
     TShape shape;

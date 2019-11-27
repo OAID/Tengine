@@ -28,6 +28,10 @@
 
 namespace TEngine {
 
+template class SpecificFactory<Operator>;
+// template SpecificFactory<Operator> SpecificFactory<Operator>::instance;
+template OpManager SimpleObjectManagerWithLock<OpManager, Operator*>::instance;
+
 any OpManager::GetOpDefParam(const std::string& op_name)
 {
     Operator* op;

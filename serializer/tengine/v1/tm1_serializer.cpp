@@ -66,7 +66,7 @@ bool TmSerializer1::IsSaveData(void)
 }
 
 tm_uoffset_t TmSerializer1::SaveTmTensor(void* const start_ptr, tm_uoffset_t* cur_pos, Tensor* tensor,
-                                        unsigned int tensor_id, unsigned int buffer_id)
+                                         unsigned int tensor_id, unsigned int buffer_id)
 {
     TM_Tensor tm_tensor;
     tm_tensor.tensor_id = tensor_id;
@@ -120,7 +120,7 @@ tm_uoffset_t TmSerializer1::SaveTmTensor(void* const start_ptr, tm_uoffset_t* cu
 }
 
 tm_uoffset_t TmSerializer1::SaveTmNode(void* const start_ptr, tm_uoffset_t* cur_pos, Node* node,
-                                      name_map_t& tensor_name_map)
+                                       name_map_t& tensor_name_map)
 {
     TM_Node tm_node;
     tm_node.node_id = node->GetNodeIndex();
@@ -418,7 +418,6 @@ bool TmSerializer1::LoadTensor(StaticGraph* graph, const TM_Tensor* tm_tensor, c
         for(unsigned int i = 0; i < v_dims->v_num; i++)
             dims.push_back(v_dims->dims[i]);
         SetTensorDim(tensor, dims);
-
     }
 
     /* Set the data type */
@@ -546,7 +545,7 @@ bool TmSerializer1::LoadModelFromMem(void* mmap_buf, StaticGraph* graph)
     if(tm_header->ver_main != TM_FILE_VER_MAIN || tm_header->ver_sub != TM_FILE_VER_SUB ||
        tm_header->ver_compile != TM_FILE_VER_COMPILE)
     {
-        printf("Wrong version of tm file\n");
+        LOG_ERROR() << "Wrong version of tm file\n";
         return false;
     }
 
@@ -563,9 +562,9 @@ bool TmSerializer1::LoadModelFromMem(void* mmap_buf, StaticGraph* graph)
         SetGraphIdentity(graph, "tengine", tm_model_name, "0");
     }
 
-    SetModelFormat(graph,MODEL_FORMAT_TENGINE);
-    SetGraphLayout(graph,TENGINE_LAYOUT_NCHW);
-    SetModelLayout(graph,TENGINE_LAYOUT_NCHW);
+    SetModelFormat(graph, MODEL_FORMAT_TENGINE);
+    SetGraphLayout(graph, TENGINE_LAYOUT_NCHW);
+    SetModelLayout(graph, TENGINE_LAYOUT_NCHW);
 
     if(LoadGraph(graph, tm_model, mmap_buf))
         return true;

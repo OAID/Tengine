@@ -14,18 +14,25 @@ bool GRU::InferShape(const std::vector<TShape>& ishape, std::vector<TShape>& osh
     // output tensor: [output_len,batch_size,hidden_size]
 
     const TShape input_shape = ishape[0];
-
-    int batch_size = input_shape.Shape(1);
-
+    int batch_size = input_shape.Shape(0);
     std::vector<int> dims(3);
-
-    dims[1] = param_.output_len;
-    dims[0] = batch_size;
-    dims[2] = param_.hidden_size;
+    if(param_.mxnet_flag == 1)
+    {
+        batch_size = input_shape.Shape(1);
+        dims[0] = input_shape.Shape(0);
+        dims[1] = batch_size;
+        dims[2] = param_.hidden_size;
+    }
+    else
+    {
+        dims[1] = input_shape.Shape(0);
+        dims[0] = batch_size;
+        dims[2] = param_.hidden_size;
+    }
 
     oshape[0].SetDim(dims);
 
-    //std::cout<<dims[0]<<","<< dims[1]<<","<<dims[2]<<"\n";
+    // std::cout<<dims[0]<<","<< dims[1]<<","<<dims[2]<<"\n";
 
     return true;
 }

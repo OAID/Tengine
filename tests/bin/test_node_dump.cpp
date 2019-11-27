@@ -30,10 +30,9 @@
 #include <iomanip>
 #include <time.h>
 
+#include "tengine_operations.h"
 #include "tengine_c_api.h"
 #include "cpu_device.h"
-#include "opencv2/imgproc/imgproc.hpp"
-#include "opencv2/highgui/highgui.hpp"
 #include "common_util.hpp"
 
 const char* text_file = "./models/sqz.prototxt";
@@ -76,24 +75,21 @@ void PrintTopLabels(const char* label_file, float* data)
 void get_input_data(const char* image_file, float* input_data, int img_h, int img_w, const float* mean, float scale)
 {
 #if 1
-    cv::Mat img = cv::imread(image_file, -1);
+    image img = imread(image_file);
+    img = rgb2bgr_premute(img);
+    image resImg = resize_image(img, img_w, img_h);
 
-    if(img.empty())
-    {
-        std::cerr << "failed to read image file " << image_file << "\n";
-        return;
-    }
-    cv::resize(img, img, cv::Size(img_h, img_w));
-    img.convertTo(img, CV_32FC3);
-    float* img_data = ( float* )img.data;
+    // int index = 0;
     int hw = img_h * img_w;
-    for(int h = 0; h < img_h; h++)
-        for(int w = 0; w < img_w; w++)
-            for(int c = 0; c < 3; c++)
+    for(int c = 0; c < 3; c++)
+        for(int h = 0; h < img_h; h++)
+            for(int w = 0; w < img_w; w++)
             {
-                input_data[c * hw + h * img_w + w] = (*img_data - mean[c]) * scale;
-                img_data++;
+                {
+                    input_data[c * hw + h * img_w + w] = (resImg.data[c * hw + h * img_w + w] - mean[c]) * scale;
+                }
             }
+
 #endif
 }
 

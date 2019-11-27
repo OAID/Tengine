@@ -132,7 +132,7 @@ void Node::MergeAttr(Node* orig)
 
 /* code for attr get/set/add */
 
-int NodeAddParamGeneric(void* node, const char* param_name, const char * type_name, int param_size)
+int NodeAddParamGeneric(void* node, const char* param_name, const char* type_name, int param_size)
 {
     Node* real_node = ( Node* )node;
 
@@ -156,7 +156,7 @@ int NodeAddParamGeneric(void* node, const char* param_name, const char * type_na
     return 0;
 }
 
-int NodeGetParamGeneric(void* node, const char* param_name, const char * type_name, void* param_val, int size)
+int NodeGetParamGeneric(void* node, const char* param_name, const char* type_name, void* param_val, int size)
 {
     Node* real_node = ( Node* )node;
 
@@ -182,7 +182,8 @@ int NodeGetParamGeneric(void* node, const char* param_name, const char * type_na
 
     CustomNodeAttr* attr_entry = &attr_map->at(param_name);
 
-    if((size != attr_entry->attr_size) || (type_name && attr_entry->type_name && strcmp(type_name,attr_entry->type_name)))
+    if((size != attr_entry->attr_size) ||
+       (type_name && attr_entry->type_name && strcmp(type_name, attr_entry->type_name)))
     {
         set_tengine_errno(EINVAL);
         return -1;
@@ -221,7 +222,8 @@ int NodeSetParamGeneric(void* node, const char* param_name, const char* type_nam
 
     CustomNodeAttr* attr_entry = &attr_map->at(param_name);
 
-    if((size != attr_entry->attr_size) || (type_name && attr_entry->type_name && strcmp(type_name,attr_entry->type_name)))
+    if((size != attr_entry->attr_size) ||
+       (type_name && attr_entry->type_name && strcmp(type_name, attr_entry->type_name)))
     {
         set_tengine_errno(EINVAL);
         return -1;

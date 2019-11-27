@@ -8,7 +8,7 @@ extern void RegisterRefOps(void);
 extern void RegisterArmOps(void);
 #endif
 
-}
+}    // namespace TEngine
 
 using namespace TEngine;
 
@@ -24,4 +24,3 @@ extern "C" int register_hclcpu_ops(void)
     return 0;
 
 }
-

@@ -96,13 +96,13 @@ int main(int argc, char* argv[])
         int optimize_only = 1;
         if(set_graph_attr(graph, "optimize_only", &optimize_only, sizeof(int)) < 0)
         {
-            std::cerr<<"set optimize only failed\n";
+            std::cerr << "set optimize only failed\n";
             return -1;
         }
 
         if(prerun_graph(graph) < 0)
         {
-            std::cerr<<"prerun failed\n";
+            std::cerr << "prerun failed\n";
             return -1;
         }
     }

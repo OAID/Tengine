@@ -1,54 +1,28 @@
-MAKEFILE_CONFIG=$(shell pwd)/makefile.config
-include $(MAKEFILE_CONFIG)
 
-SYSROOT:=$(shell pwd)/sysroot/ubuntu_rootfs
-
-ifeq ($(CROSS_COMPILE),aarch64-linux-gnu-)
-   SYSROOT_FLAGS:=--sysroot=$(SYSROOT) 
-   SYSROOT_LDFLAGS:=-L/usr/lib/aarch64-linux-gnu -L/lib/aarch64-linux-gnu
-   PKG_CONFIG_PATH:=$(SYSROOT)/usr/lib/aarch64-linux-gnu/pkgconfig
-   export PKG_CONFIG_PATH
-endif
-ifeq ($(CROSS_COMPILE),arm-linux-gnueabihf-)
-   SYSROOT_FLAGS:=--sysroot=$(SYSROOT)32 
-   SYSROOT_LDFLAGS:=-L/usr/lib/arm-linux-gnueabihf -L/lib/arm-linux-gnueabihf
-   PKG_CONFIG_PATH:=$(SYSROOT)32/usr/lib/arm-linux-gnueabihf/pkgconfig
-   export PKG_CONFIG_PATH
-endif
-
-ifeq ($(EMBEDDED_CROSS_ROOT),)
-    CC=$(CROSS_COMPILE)gcc -std=gnu99 $(SYSROOT_FLAGS)
-    CXX=$(CROSS_COMPILE)g++ -std=c++11 $(SYSROOT_FLAGS)
-    LD=$(CROSS_COMPILE)g++ $(SYSROOT_FLAGS) $(SYSROOT_LDFLAGS)
-else
-    CC=$(CROSS_COMPILE)gcc -std=gnu99 
-    CXX=$(CROSS_COMPILE)g++ -std=c++11 
-    LD=$(CROSS_COMPILE)g++ 
-    PKG_CONFIG_PATH:=$(EMBEDDED_CROSS_ROOT)/usr/lib/pkgconfig
-endif
+CC=$(CROSS_COMPILE)gcc -std=gnu99 
+CXX=$(CROSS_COMPILE)g++ -std=c++11 
+LD=$(CROSS_COMPILE)g++ 
 
 AR=$(CROSS_COMPILE)ar
-
 
 BUILT_IN_LD=$(CROSS_COMPILE)ld
 
 GIT_COMMIT_ID=$(shell git rev-parse HEAD)
 
+OPENBLAS_LIB=$(OPENBLAS_LIB_)
+
 COMMON_CFLAGS+=-Wno-ignored-attributes -Werror -g
 
-export CC CXX CFLAGS BUILT_IN_LD LD LDFLAGS CXXFLAGS COMMON_CFLAGS 
+export CC CXX CFLAGS BUILT_IN_LD LD LDFLAGS CXXFLAGS COMMON_CFLAGS
 export GIT_COMMIT_ID
 
-
 MAKEBUILD=$(shell pwd)/scripts/makefile.build
-
 
 BUILD_DIR?=$(shell pwd)/build
 INSTALL_DIR?=$(shell pwd)/install
 TOP_DIR=$(shell pwd)
 
 export INSTALL_DIR MAKEBUILD TOP_DIR MAKEFILE_CONFIG
-
 
 LIB_SUB_DIRS=core operator executor serializer driver model_src
 
@@ -60,13 +34,13 @@ export LIB_HCL_SO
 LIB_OBJS=$(addprefix $(BUILD_DIR)/, $(foreach f,$(LIB_SUB_DIRS),$(f)/built-in.o))
 
 APP_SUB_DIRS+=tools
-
-ifeq ($(CONFIG_FRAMEWORK_WRAPPER),y)
-    APP_SUB_DIRS+=wrapper
-endif
-
+APP_SUB_DIRS+=benchmark
 APP_SUB_DIRS+=tests
 
+ifeq ($(CONFIG_ONLINE_REPORT),y)
+	COMMON_CFLAGS+=-DENABLE_ONLINE_REPORT
+	export CONFIG_ONLINE_REPORT		
+endif
 
 ifeq ($(CONFIG_ARCH_ARM32),y)
 	COMMON_CFLAGS+=-march=armv7-a -mfpu=neon -mfp16-format=ieee -mfpu=neon-fp16
@@ -77,38 +51,24 @@ ifeq ($(CONFIG_ARCH_ARM64),y)
         export CONFIG_ARCH_ARM64
 endif
 
-
-ifeq ($(CONFIG_FLOAT16),y)
-	COMMON_CFLAGS+=-DCONFIG_FLOAT16
-endif
-
-ifeq ($(CONFIG_LEGACY_API),y)
-	COMMON_CFLAGS+=-DCONFIG_LEGACY_API
-endif
-
+COMMON_CFLAGS+=-DCONFIG_LEGACY_API
 
 HCL_SUB_DIRS+=hclarm
 LIB_HCL_OBJS=$(BUILD_DIR)/hclarm/arm-builtin.o
 
-ifeq ($(CONFIG_KERNEL_FP32),y)
-    COMMON_CFLAGS+=-DCONFIG_KERNEL_FP32
-endif
+COMMON_CFLAGS+=-DCONFIG_KERNEL_FP32
 
 ifeq ($(CONFIG_KERNEL_FP16),y)
     COMMON_CFLAGS+=-DCONFIG_KERNEL_FP16
 endif
 
-ifeq ($(CONFIG_KERNEL_INT8),y)
-    COMMON_CFLAGS+=-DCONFIG_KERNEL_INT8
-endif
+COMMON_CFLAGS+=-DCONFIG_KERNEL_INT8
 
-ifeq ($(CONFIG_KERNEL_UINT8),y)
-    COMMON_CFLAGS+=-DCONFIG_KERNEL_UINT8
-endif
+COMMON_CFLAGS+=-DCONFIG_KERNEL_UINT8
 
 SUB_DIRS=$(LIB_SUB_DIRS) $(APP_SUB_DIRS)
 
-default: $(LIB_SO) $(LIB_HCL_SO) $(APP_SUB_DIRS) 
+default: $(LIB_SO) $(LIB_A) $(LIB_HCL_SO) $(APP_SUB_DIRS) 
 
 build : default
 
@@ -116,19 +76,12 @@ build : default
 clean: $(SUB_DIRS) $(HCL_SUB_DIRS)
 
 install: $(APP_SUB_DIRS) $(HCL_SUB_DIRS)
-	@mkdir -p $(INSTALL_DIR)/include $(INSTALL_DIR)/lib $(INSTALL_DIR)/tool
+	@mkdir -p $(INSTALL_DIR)/include $(INSTALL_DIR)/lib
 	cp -f core/include/tengine_c_api.h $(INSTALL_DIR)/include
 	cp -f core/include/tengine_c_compat.h $(INSTALL_DIR)/include
 	cp -f core/include/cpu_device.h $(INSTALL_DIR)/include
 	cp -f $(BUILD_DIR)/libtengine.so $(INSTALL_DIR)/lib
-	cp -f $(BUILD_DIR)/tools/bin/convert_model_to_tm $(INSTALL_DIR)/tool
-
-
-ifeq ($(CONFIG_ACL_GPU),y)
-    ACL_LIBS+=-Wl,-rpath,$(ACL_ROOT)/build/ -L$(ACL_ROOT)/build
-    ACL_LIBS+= -larm_compute_core -larm_compute
-    LIB_LDFLAGS+=$(ACL_LIBS) 
-endif
+	cp -f core/include/tengine_operations.h $(INSTALL_DIR)/include
 
 
 $(LIB_OBJS): $(LIB_SUB_DIRS);
@@ -143,6 +96,8 @@ else
     REAL_LIB_OBJS=$(LIB_OBJS)
 endif
 
+$(LIB_A): $(REAL_LIB_OBJS) 
+	$(AR) crs $@  $(wildcard $(LIB_OBJS))
 
 
 $(LIB_SO): $(REAL_LIB_OBJS) $(LIB_HCL_SO) 
@@ -170,21 +125,8 @@ static_example: static_lib
 
 LIB_LDFLAGS+=-lpthread -ldl
 
-ifeq ($(CONFIG_CAFFE_SERIALIZER),y)
-    PROTOBUF_NEEDED=y
-endif
-
-ifeq ($(CONFIG_TF_SERIALIZER),y)
-    PROTOBUF_NEEDED=y
-endif
-
-ifeq ($(PROTOBUF_NEEDED),y)
-    PROTOBUF_LIB=$(shell export PKG_CONFIG_PATH=${PKG_CONFIG_PATH}  &&  pkg-config  --libs protobuf)
-    LIB_LDFLAGS+=$(PROTOBUF_LIB)
-endif
-
 ifeq ($(CONFIG_ARCH_BLAS),y)
-    LIB_LDFLAGS+=-lopenblas
+	export OPENBLAS_LIB OPENBLAS_CFLAGS
 endif
 
 ifneq ($(MAKECMDGOALS),clean)

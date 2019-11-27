@@ -30,9 +30,8 @@
 #include <vector>
 #include <sys/time.h>
 #include <math.h>
-
-#include "opencv2/imgproc/imgproc.hpp"
-#include "opencv2/highgui/highgui.hpp"
+#include <algorithm>
+#include "tengine_operations.h"
 #include "tengine_c_api.h"
 #include "common.hpp"
 #include "cpu_device.h"
@@ -70,8 +69,7 @@ const Model_Config model_list[] = {
     {"googlenet", 224, 224, 1.f, {104.007, 116.669, 122.679}, "googlenet_fp16.tmfile", "synset_words.txt"},
     {"inception_v3", 395, 395, 0.0078, {104.007, 116.669, 122.679}, "inception_v3_fp16.tmfile", "synset2015.txt"},
     {"inception_v4", 299, 299, 1 / 127.5f, {104.007, 116.669, 122.679}, "inception_v4_fp16.tmfile", "synset_words.txt"},
-    {"vgg16", 224, 224, 1.f, {104.007, 116.669, 122.679}, "vgg16_fp16.tmfile", "synset_words.txt"}
-};
+    {"vgg16", 224, 224, 1.f, {104.007, 116.669, 122.679}, "vgg16_fp16.tmfile", "synset_words.txt"}};
 
 const Model_Config* get_model_config(const char* model_name)
 {
@@ -107,7 +105,7 @@ static inline bool PairCompare(const std::pair<__fp16, int>& lhs, const std::pai
 
 static inline std::vector<int> Argmax(const std::vector<__fp16>& v, int N)
 {
-    std::vector<std::pair<__fp16, int> > pairs;
+    std::vector<std::pair<__fp16, int>> pairs;
     for(size_t i = 0; i < v.size(); ++i)
         pairs.push_back(std::make_pair(v[i], i));
     std::partial_sort(pairs.begin(), pairs.begin() + N, pairs.end(), PairCompare);
@@ -120,6 +118,7 @@ static inline std::vector<int> Argmax(const std::vector<__fp16>& v, int N)
 
 void get_input_data(const char* image_file, __fp16* input_data, int img_h, int img_w, const float* mean, float scale)
 {
+    /*
     cv::Mat sample = cv::imread(image_file, -1);
     if(sample.empty())
     {
@@ -143,6 +142,19 @@ void get_input_data(const char* image_file, __fp16* input_data, int img_h, int i
     cv::resize(img, img, cv::Size(img_h, img_w));
     img.convertTo(img, CV_32FC3);
     float* img_data = ( float* )img.data;
+    */
+    image imIn = imread(image_file);
+    image im;
+    if(imIn.c == 1)
+    {
+        im = gray2bgr(imIn);
+    }
+    else
+    {
+        im = imIn;
+    }
+    image resImg = resize_image(im, img_w, img_h);
+
     int hw = img_h * img_w;
 
     for(int h = 0; h < img_h; h++)
@@ -151,11 +163,12 @@ void get_input_data(const char* image_file, __fp16* input_data, int img_h, int i
         {
             for(int c = 0; c < 3; c++)
             {
-                input_data[c * hw + h * img_w + w] = fp32_to_fp16((*img_data - mean[c]) * scale);
-                img_data++;
+                input_data[c * hw + h * img_w + w] =
+                    fp32_to_fp16((resImg.data[c * hw + h * img_w + w] - mean[c]) * scale);
             }
         }
     }
+    free_image(im);
 }
 
 void PrintTopLabels(const char* label_file, __fp16* data)
@@ -172,7 +185,8 @@ void PrintTopLabels(const char* label_file, __fp16* data)
     {
         int idx = top_N[i];
 
-        std::cout << std::fixed << std::setprecision(4) << fp16_to_fp32(result[idx]) << " - \"" << labels[idx] << "\"\n";
+        std::cout << std::fixed << std::setprecision(4) << fp16_to_fp32(result[idx]) << " - \"" << labels[idx]
+                  << "\"\n";
     }
 }
 
@@ -212,7 +226,7 @@ bool run_tengine_library(const char* model_name, const char* tm_file, const char
         std::cerr << "Prerun graph failed\n";
         return false;
     }
-    //dump_graph(graph);
+    // dump_graph(graph);
 
     struct timeval t0, t1;
     float avg_time = 0.f;
@@ -247,8 +261,8 @@ bool run_tengine_library(const char* model_name, const char* tm_file, const char
     PrintTopLabels(label_file, data);
     std::cout << "--------------------------------------\n";
 
-    //tensor_t tensor1 = get_graph_tensor(graph, "pool1");
-    //Dumpdata("sqz_pool1_fp16.txt", (__fp16*)get_tensor_buffer(tensor1), get_tensor_buffer_size(tensor1)/2);
+    // tensor_t tensor1 = get_graph_tensor(graph, "pool1");
+    // Dumpdata("sqz_pool1_fp16.txt", (__fp16*)get_tensor_buffer(tensor1), get_tensor_buffer_size(tensor1)/2);
 
     free(input_data);
     release_graph_tensor(input_tensor);

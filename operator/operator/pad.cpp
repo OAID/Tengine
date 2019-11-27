@@ -29,21 +29,15 @@ bool Pad::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEn
 {
     const TShape& input = ishape[0];
     // TShape& output = oshape[0];
-    int n = input.GetN();
-    int c = input.GetC();
-    int h = input.GetH();
-    int w = input.GetW();
-
-    std::vector<int> o_dim=input.GetDim();
-    if(param_.pad_0_h!=-1 && param_.pad_0_w!=-1
-    &&param_.pad_1_h!=-1 && param_.pad_1_w!=-1
-    &&param_.pad_2_h!=-1 && param_.pad_2_w!=-1
-    &&param_.pad_3_h!=-1 && param_.pad_3_w!=-1)
+    const std::vector<int>& in_dim = input.GetDim();
+    std::vector<int> o_dim(4);
+    if(param_.pad_0_h != -1 && param_.pad_0_w != -1 && param_.pad_1_h != -1 && param_.pad_1_w != -1 &&
+       param_.pad_2_h != -1 && param_.pad_2_w != -1 && param_.pad_3_h != -1 && param_.pad_3_w != -1)
     {
-        o_dim[0]=n+param_.pad_0_h+param_.pad_0_w;
-        o_dim[1]=h+param_.pad_1_h+param_.pad_1_w;
-        o_dim[2]=w+param_.pad_2_h+param_.pad_2_w;
-        o_dim[3]=c+param_.pad_3_h+param_.pad_3_w;
+        o_dim[0] = in_dim[0] + param_.pad_0_h + param_.pad_0_w;
+        o_dim[1] = in_dim[1] + param_.pad_1_h + param_.pad_1_w;
+        o_dim[2] = in_dim[2] + param_.pad_2_h + param_.pad_2_w;
+        o_dim[3] = in_dim[3] + param_.pad_3_h + param_.pad_3_w;
     }
     else
     {
@@ -51,7 +45,7 @@ bool Pad::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEn
     }
     TShape shape;
     shape.SetDim(o_dim);
-    shape.SetDataLayout(TENGINE_LAYOUT_NHWC);
+    shape.SetDataLayout(input.GetDataLayout());
     oshape[0] = shape;
     return true;
 }

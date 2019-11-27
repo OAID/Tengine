@@ -31,7 +31,7 @@
 namespace TEngine {
 
 #define LSTM_ACT_SIGMOID 1
-#define LSTM_ACT_TANH    2
+#define LSTM_ACT_TANH 2
 
 struct LSTMParam : public NamedParam
 {

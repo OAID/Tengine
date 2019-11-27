@@ -24,8 +24,6 @@
 
 #include <vector>
 
-
-
 #include "data_type.hpp"
 #include "kernel_registry.hpp"
 #include "tengine_errno.hpp"
@@ -41,59 +39,55 @@ namespace TEngine {
 
 namespace RefSwapAxisOps {
 
-
-
 struct RefSwapAxis : public MTNodeOps
 {
-    bool Prerun(Node * node) override;
-    bool Run(Node * node) override;
+    bool Prerun(Node* node) override;
+    bool Run(Node* node) override;
     void InitRegistry(void);
 
     int dims[5];
     ref_swap_axis_kernel_t kernel_run;
     KernelRegistry<ref_swap_axis_kernel_t> kernel_registry;
-    RefSwapAxis(void) 
+    RefSwapAxis(void)
     {
-       
-       kernel_run=nullptr;
+        kernel_run = nullptr;
 
-       InitRegistry();
+        InitRegistry();
     }
 };
 
 void RefSwapAxis::InitRegistry(void)
 {
 #ifdef CONFIG_KERNEL_FP32
-    kernel_registry.Register((ref_swap_axis_kernel_t)ref_swap_axis_fp32,TENGINE_LAYOUT_NCHW,TENGINE_DT_FP32);
-    kernel_registry.Register((ref_swap_axis_kernel_t)ref_swap_axis_fp32,TENGINE_LAYOUT_NHWC,TENGINE_DT_FP32);
+    kernel_registry.Register(( ref_swap_axis_kernel_t )ref_swap_axis_fp32, TENGINE_LAYOUT_NCHW, TENGINE_DT_FP32);
+    kernel_registry.Register(( ref_swap_axis_kernel_t )ref_swap_axis_fp32, TENGINE_LAYOUT_NHWC, TENGINE_DT_FP32);
 #endif
-/*
+
 #ifdef CONFIG_KERNEL_FP16
-    kernel_registry.Register((ref_swap_axis_kernel_t)ref_swap_axis_fp16,TENGINE_LAYOUT_NCHW,TENGINE_DT_FP16);
-    kernel_registry.Register((ref_swap_axis_kernel_t)ref_swap_axis_fp16,TENGINE_LAYOUT_NHWC,TENGINE_DT_FP16);
+    kernel_registry.Register(( ref_swap_axis_kernel_t )ref_swap_axis_fp16, TENGINE_LAYOUT_NCHW, TENGINE_DT_FP16);
+    kernel_registry.Register(( ref_swap_axis_kernel_t )ref_swap_axis_fp16, TENGINE_LAYOUT_NHWC, TENGINE_DT_FP16);
 #endif
 #ifdef CONFIG_KERNEL_INT8
-    kernel_registry.Register((ref_swap_axis_kernel_t)ref_swap_axis_int8,TENGINE_LAYOUT_NCHW,TENGINE_DT_INT8);
-    kernel_registry.Register((ref_swap_axis_kernel_t)ref_swap_axisl_int8,TENGINE_LAYOUT_NHWC,TENGINE_DT_INT8);
+    kernel_registry.Register(( ref_swap_axis_kernel_t )ref_swap_axis_int8, TENGINE_LAYOUT_NCHW, TENGINE_DT_INT8);
+    kernel_registry.Register(( ref_swap_axis_kernel_t )ref_swap_axis_int8, TENGINE_LAYOUT_NHWC, TENGINE_DT_INT8);
 #endif
 
 #ifdef CONFIG_KERNEL_UINT8
-    kernel_registry.Register((ref_swap_axis_kernel_t)ref_swap_axis_uint8,TENGINE_LAYOUT_NCHW,TENGINE_DT_UINT8);
-    kernel_registry.Register((ref_swap_axis_kernel_t)ref_swap_axis_uint8,TENGINE_LAYOUT_NHWC,TENGINE_DT_UINT8);
+    kernel_registry.Register(( ref_swap_axis_kernel_t )ref_swap_axis_uint8, TENGINE_LAYOUT_NCHW, TENGINE_DT_UINT8);
+    kernel_registry.Register(( ref_swap_axis_kernel_t )ref_swap_axis_uint8, TENGINE_LAYOUT_NHWC, TENGINE_DT_UINT8);
 #endif
-*/
 }
 
-bool RefSwapAxis::Prerun(Node * node)
+bool RefSwapAxis::Prerun(Node* node)
 {
     Tensor* input_tensor = node->GetInputTensor(0);
     int layout = exec_attr->graph_layout;
-    if(!kernel_registry.GetKernel(kernel_run,layout,input_tensor->GetDataType()))
+    if(!kernel_registry.GetKernel(kernel_run, layout, input_tensor->GetDataType()))
     {
         set_tengine_errno(ENOENT);
         return false;
     }
-    
+
     std::vector<int>& in_dims = input_tensor->GetShape().GetDim();
     int in_dims_size = in_dims.size();
     SwapAxis* swap = dynamic_cast<SwapAxis*>(node->GetOp());
@@ -106,28 +100,27 @@ bool RefSwapAxis::Prerun(Node * node)
         dim0 = dim1;
         dim1 = tmp;
     }
-    
+
     for(int i = 0; i < 5; i++)
         dims[i] = 1;
-    //dim0
+    // dim0
     for(int i = 0; i < dim0; i++)
         dims[0] *= in_dims[i];
-    //dim1
+    // dim1
     dims[1] = in_dims[dim0];
-    //dim2
-    for(int i = dim0+1; i < dim1; i++ )
+    // dim2
+    for(int i = dim0 + 1; i < dim1; i++)
         dims[2] *= in_dims[i];
-    //dim3
+    // dim3
     dims[3] = in_dims[dim1];
-    //dim4
-    for(int i = dim1+1; i < in_dims_size; i++ )
+    // dim4
+    for(int i = dim1 + 1; i < in_dims_size; i++)
         dims[4] *= in_dims[i];
-    
 
     return true;
 }
 
-bool RefSwapAxis::Run(Node * node)
+bool RefSwapAxis::Run(Node* node)
 {
     Tensor* input_tensor = node->GetInputTensor(0);
     Tensor* output_tensor = node->GetOutputTensor(0);
@@ -135,7 +128,17 @@ bool RefSwapAxis::Run(Node * node)
     void* input_org = get_tensor_mem(input_tensor);
     void* output_org = get_tensor_mem(output_tensor);
 
-    kernel_run(input_org, output_org, dims);
+    if(kernel_run(input_org, output_org, dims))
+        return false;
+    if(input_tensor->GetDataType() == TENGINE_DT_INT8)
+    {
+        auto* i_quant = input_tensor->GetQuantParam();
+        auto* o_quant = output_tensor->GetQuantParam();
+        QuantParam q_param;
+        q_param.scale = (*i_quant)[0].scale;
+        o_quant->resize(0);
+        o_quant->push_back(q_param);
+    }
 
     return true;
 }
@@ -144,11 +147,10 @@ NodeOps* SelectFunc(const CPUInfo* info, Node* node)
 {
     RefSwapAxis* ops = new RefSwapAxis();
 
-    LOG_DEBUG()<<"RefSwapAxis is selected\n";
+    LOG_DEBUG() << "RefSwapAxis is selected\n";
 
     return ops;
 }
-
 
 }    // namespace RefSwapAxisOps
 

@@ -34,7 +34,10 @@ void LRN::SetSchema(void)
         .SetAttr("alpha", 1.0f)
         .SetAttr("beta", 0.75f)
         .SetAttr("norm_region", 0)
-        .SetAttr("k", 1.0f);
+        .SetAttr("k", 1.0f)
+        .SetAttr("bias", 1.0f)
+        .SetAttr("depth_radius", 5.0f)
+        .SetAttr("istf", 0);
 }
 
 }    // namespace TEngine

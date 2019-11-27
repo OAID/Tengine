@@ -196,7 +196,7 @@ struct PrioSelector : public NodeOpsSelector
 
             if(ops)
             {
-                ops->need_free=true;
+                ops->need_free = true;
                 return ops;
             }
         }

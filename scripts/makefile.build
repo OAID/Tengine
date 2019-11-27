@@ -19,7 +19,6 @@ bin-obj-y:=
 obj-y:=
 subdir-y:=
 
-include $(MAKEFILE_CONFIG)
 include Makefile
 
 

@@ -30,7 +30,7 @@ bool Reduction::InferShape(const std::vector<TEngine::TShape>& ishape, std::vect
     const TShape& input = ishape[0];
 
     const std::vector<int>& in_dim = input.GetDim();
-    int in_size=in_dim.size();
+    int in_size = in_dim.size();
     std::vector<int> new_shape;
     if(param_.dim_0 != -2)
         new_shape.push_back(param_.dim_0);
@@ -41,56 +41,51 @@ bool Reduction::InferShape(const std::vector<TEngine::TShape>& ishape, std::vect
     if(param_.dim_3 != -2)
         new_shape.push_back(param_.dim_3);
     bool should_reduced[4] = {false};
-    int reduceddim=0;
-    int kd=param_.keepdim;
+    int reduceddim = 0;
+    int kd = param_.keepdim;
     int newshape_size = new_shape.size();
-    std::vector<int> real_shape={0,2,3,1};
+    std::vector<int> real_shape = {0, 3, 1, 2};
     if(newshape_size)
     {
-        for(int i=0;i<newshape_size;i++)
+        for(int i = 0; i < newshape_size; i++)
         {
-           
-           if(new_shape[i]>=0)
-           {
-                int idx=new_shape[i];
-                if(input.GetDataLayout()==TENGINE_LAYOUT_NCHW)
-                    idx=real_shape[idx];
-                if(idx>=0 && idx<4)
+            if(new_shape[i] >= 0)
+            {
+                int idx = new_shape[i];
+                if(input.GetDataLayout() == TENGINE_LAYOUT_NHWC)
+                    idx = real_shape[idx];
+                if(idx >= 0 && idx < 4)
                 {
-                    
-                    should_reduced[idx]=true;
+                    should_reduced[idx] = true;
                     ++reduceddim;
                 }
-           }
-           else if(new_shape[i]<0)
-           {
-                int current=in_dim.size()+new_shape[i];
-                if(input.GetDataLayout()==TENGINE_LAYOUT_NCHW)
+            }
+            else if(new_shape[i] < 0)
+            {
+                int current = in_dim.size() + new_shape[i];
+                if(input.GetDataLayout() == TENGINE_LAYOUT_NHWC)
                 {
-                    current=real_shape[current];
+                    current = real_shape[current];
                 }
-            
-                should_reduced[current]=true;
+
+                should_reduced[current] = true;
                 ++reduceddim;
-                                 
-           }
+            }
         }
     }
     else
     {
-        for(int idx=0;idx<in_size;++idx)
+        for(int idx = 0; idx < in_size; ++idx)
         {
-            
             should_reduced[idx] = true;
             ++reduceddim;
-        
         }
     }
-    if(in_size-reduceddim==0)
+    if(in_size - reduceddim == 0)
     {
-        if(kd==0)
+        if(kd == 0)
         {
-            std::vector<int> odim={1};
+            std::vector<int> odim = {1};
             TShape shape;
             shape.SetDim(odim);
 
@@ -101,9 +96,9 @@ bool Reduction::InferShape(const std::vector<TEngine::TShape>& ishape, std::vect
         else
         {
             std::vector<int> odim(in_size);
-            for(int i_idx=0,o_idx=0;i_idx<in_size;i_idx++)
+            for(int i_idx = 0, o_idx = 0; i_idx < in_size; i_idx++)
             {
-                odim[o_idx++]=1;
+                odim[o_idx++] = 1;
             }
             TShape shape;
             shape.SetDim(odim);
@@ -114,29 +109,28 @@ bool Reduction::InferShape(const std::vector<TEngine::TShape>& ishape, std::vect
         }
 
         return false;
-        
     }
     else
     {
-        int o_size=0;
-        if(kd==0)
+        int o_size = 0;
+        if(kd == 0)
         {
-            o_size=in_size-reduceddim;
+            o_size = in_size - reduceddim;
         }
         else
         {
-            o_size=in_size;
+            o_size = in_size;
         }
         std::vector<int> odim(o_size);
-        for(int i_idx=0,o_idx=0;i_idx<in_size;i_idx++)
+        for(int i_idx = 0, o_idx = 0; i_idx < in_size; i_idx++)
         {
             if(!should_reduced[i_idx])
             {
-                odim[o_idx++]=in_dim[i_idx];
+                odim[o_idx++] = in_dim[i_idx];
             }
-            else if(should_reduced[i_idx]&&kd==1)
+            else if(should_reduced[i_idx] && kd == 1)
             {
-                odim[o_idx++]=1;
+                odim[o_idx++] = 1;
             }
         }
         TShape shape;
@@ -145,7 +139,6 @@ bool Reduction::InferShape(const std::vector<TEngine::TShape>& ishape, std::vect
         shape.SetDataLayout(input.GetDataLayout());
         oshape[0] = shape;
         return true;
-
     }
 
     return false;
@@ -159,8 +152,8 @@ void Reduction::SetSchema(void)
         .SetAttr("dim_1", -2)
         .SetAttr("dim_2", -2)
         .SetAttr("dim_3", -2)
-        .SetAttr("keepdim",0)
-        .SetAttr("type",0)
+        .SetAttr("keepdim", 0)
+        .SetAttr("type", 0)
         .SetDoc(R"DOC(Squeeze Layer)DOC");
 }
 

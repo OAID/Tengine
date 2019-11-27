@@ -136,6 +136,8 @@ struct DevExecutor
 private:
     bool nonblock_run_;
 };
+extern template class SpecificFactory<DevExecutor>;
+extern template SpecificFactory<DevExecutor> SpecificFactory<DevExecutor>::instance;
 
 using DevExecutorFactory = SpecificFactory<DevExecutor>;
 

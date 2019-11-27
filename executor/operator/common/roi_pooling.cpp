@@ -46,7 +46,6 @@ struct ROIPoolingOps : public NodeOps
 
         TShape& roi_shape = roi_tensor->GetShape();
         TShape& out_shape = output_tensor->GetShape();
-
         const float* featmap = ( float* )get_tensor_mem(feat_tensor);
         float* roi = ( float* )get_tensor_mem(roi_tensor);
         float* output = ( float* )get_tensor_mem(output_tensor);
