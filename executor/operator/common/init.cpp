@@ -49,6 +49,14 @@ extern void RegisterResizeNodeExec(void);
 extern void RegisterLogisticNodeExec(void);
 extern void RegisterDetectionPostProcessNodeExec(void);
 extern void RegisterStridedSliceNodeExec(void);
+extern void RegisterPadNodeExec(void);
+extern void RegisterUpsampleNodeExec(void);
+extern void RegisterFMCommonNodeExec(void);
+extern void RegisterL2NormalizationNodeExec(void);
+extern void RegisterL2Pool_NodeExec(void);
+extern void RegisterEluNodeExec(void);
+extern void RegisterLayerNormLSTMNodeExec(void);
+extern void RegisterReLU1NodeExec(void);
 #ifdef CONFIG_ARCH_BLAS
 extern void RegisterConvBlasNodeExec(void);
 extern void RegisterDeconvBlasNodeExec(void);
@@ -60,6 +68,9 @@ extern void RegisterGRUNodeExec(void);
 extern void RegisterPooling_NodeExec(void);
 extern void RegisterBatchNorm_NodeExec(void);
 extern void RegisterScale_NodeExec(void);
+extern void RegisterCrop_NodeExec(void);
+extern void RegisterCopy_NodeExec(void);
+extern void RegisterPower_NodeExec(void);
 
 extern void RegisterCommonFusedBNScaleReluNodeExec(void);
 
@@ -88,6 +99,14 @@ void RegisterCommonOps(void)
     RegisterLogisticNodeExec();
     RegisterDetectionPostProcessNodeExec();
     RegisterStridedSliceNodeExec();
+    RegisterPadNodeExec();
+    RegisterUpsampleNodeExec();
+    RegisterFMCommonNodeExec();
+    RegisterL2NormalizationNodeExec();
+    RegisterL2Pool_NodeExec();
+    RegisterEluNodeExec();
+    RegisterLayerNormLSTMNodeExec();
+    RegisterReLU1NodeExec();
 #ifdef CONFIG_ARCH_BLAS
     RegisterConvBlasNodeExec();
     RegisterDeconvBlasNodeExec();
@@ -98,7 +117,11 @@ void RegisterCommonOps(void)
 #endif
     RegisterPooling_NodeExec();
     RegisterBatchNorm_NodeExec();
+    RegisterCrop_NodeExec();
     RegisterScale_NodeExec();
+    RegisterCrop_NodeExec();
+    RegisterCopy_NodeExec();
+    RegisterPower_NodeExec();
 
     RegisterCommonFusedBNScaleReluNodeExec();
 }

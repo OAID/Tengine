@@ -95,7 +95,7 @@ struct Logger
 #define LOG_ALERT() DO_LOG(kAlert)
 #define LOG_FATAL() DO_LOG(kCrit)
 
-#define XLOG_DEBUG() LOG_DEBUG() << __FILE___ << ":" << __LINE__ << " "
+#define XLOG_DEBUG() LOG_DEBUG() << __FILE__ << ":" << __LINE__ << " "
 #define XLOG_INFO() LOG_INFO() << __FILE__ << ":" << __LINE__ << " "
 #define XLOG_WARN() LOG_WARN() << __FILE__ << ":" << __LINE__ << " "
 #define XLOG_ERROR() LOG_ERROR() << __FILE__ << ":" << __LINE__ << " "

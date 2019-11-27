@@ -1,4 +1,4 @@
-driver-$(CONFIG_ACL_GPU)+=acl_graph/
+#driver-$(CONFIG_ACL_GPU)+=acl_graph/
 
 obj-y+=cpu/ plugin/  $(driver-y)
 

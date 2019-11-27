@@ -65,7 +65,7 @@ int main(int argc, char* argv[])
 
     if(get_tensor_buffer_size(input_tensor) == 0)
     {
-        int dim[3] = {steps,1,10};
+        int dim[3] = {steps, 1, 10};
 
         set_tensor_shape(input_tensor, dim, 3);
     }
@@ -75,7 +75,7 @@ int main(int argc, char* argv[])
 
     for(unsigned int i = 0; i < input_size / sizeof(float); i++)
         input_data[i] = 23.05;
-    
+
     prerun_graph(graph);
 
     dump_graph(graph);

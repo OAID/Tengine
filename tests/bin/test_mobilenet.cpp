@@ -30,16 +30,14 @@
 #include <fstream>
 #include <iomanip>
 
+#include "tengine_operations.h"
 #include "tengine_c_api.h"
-#include "opencv2/imgproc/imgproc.hpp"
-#include "opencv2/highgui/highgui.hpp"
 
-const char* model_file = "./models/mobilenet.tm";
+const char* model_file = "./models/mobilenet.tmfile";
 const char* image_file = "./tests/images/cat.jpg";
 const char* label_file = "./models/synset_words.txt";
 
 const float channel_mean[3] = {104.007, 116.669, 122.679};
-
 
 int repeat_count = 100;
 
@@ -51,7 +49,6 @@ unsigned long get_cur_time(void)
 
     return (tv.tv_sec * 1000000 + tv.tv_usec);
 }
-
 
 void LoadLabelFile(std::vector<std::string>& result, const char* fname)
 {
@@ -67,7 +64,6 @@ static inline bool PairCompare(const std::pair<float, int>& lhs, const std::pair
     return lhs.first > rhs.first;
 }
 
-
 static inline std::vector<int> Argmax(const std::vector<float>& v, int N)
 {
     std::vector<std::pair<float, int>> pairs;
@@ -81,23 +77,17 @@ static inline std::vector<int> Argmax(const std::vector<float>& v, int N)
     return result;
 }
 
-
 void get_input_data(const char* image_file, float* input_data, int img_h, int img_w, const float* mean, float scale)
 {
-    cv::Mat img = cv::imread(image_file, -1);
+    image img = imread(image_file);
 
-    if(img.empty())
-    {
-        std::cerr << "failed to read image file " << image_file << "\n";
-        return;
-    }
-    cv::resize(img, img, cv::Size(img_h, img_w));
-    img.convertTo(img, CV_32FC3);
-    float* img_data = ( float* )img.data;
+    image resImg = resize_image(img, img_w, img_h);
+    resImg = rgb2bgr_premute(resImg);
+    float* img_data = ( float* )resImg.data;
     int hw = img_h * img_w;
-    for(int h = 0; h < img_h; h++)
-        for(int w = 0; w < img_w; w++)
-            for(int c = 0; c < 3; c++)
+    for(int c = 0; c < 3; c++)
+        for(int h = 0; h < img_h; h++)
+            for(int w = 0; w < img_w; w++)
             {
                 input_data[c * hw + h * img_w + w] = (*img_data - mean[c]) * scale;
                 img_data++;
@@ -129,6 +119,8 @@ int main(int argc, char* argv[])
 
     get_input_data(image_file, input_data, img_h, img_w, channel_mean, 0.017);
 
+    for(int i = 0; i < 10; ++i)
+        printf("%f\n", input_data[i]);
 
     init_tengine();
 
@@ -169,7 +161,6 @@ int main(int argc, char* argv[])
         std::printf("Set buffer for tensor failed\n");
         return -1;
     }
-
 
     /* run the graph */
     int ret_prerun = prerun_graph(graph);

@@ -46,7 +46,7 @@ public:
         graph_attached_ = false;
         exec_handle_ = nullptr;
         prerun_done_ = false;
-        optimize_only=0;
+        optimize_only = 0;
 
         InitAttrIO();
     }

@@ -27,18 +27,23 @@ namespace TEngine {
 bool Resize::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEngine::TShape>& oshape, int layout)
 {
     const TShape& input = ishape[0];
-    const std::vector<int>& in_dim = input.GetDim();
 
-    int out_h = ( int )(in_dim[2] * param_.scale_h);
-    int out_w = ( int )(in_dim[3] * param_.scale_w);
+    int out_h = ( int )(input.GetH() * param_.scale_h);
+    int out_w = ( int )(input.GetW() * param_.scale_w);
 
     TShape shape;
-
-    std::vector<int> dim = {in_dim[0], in_dim[1], out_h, out_w};
-
-    shape.SetDim(dim);
-    shape.SetDataLayout(input.GetDataLayout());
-
+    if(layout == TENGINE_LAYOUT_NHWC)
+    {
+       std::vector<int> dim = {input.GetN(), out_h, out_w, input.GetC()};
+       shape.SetDim(dim);
+       shape.SetDataLayout(TENGINE_LAYOUT_NHWC);
+    }
+    else
+    {
+       std::vector<int> dim = {input.GetN(), input.GetC(), out_h, out_w};
+       shape.SetDim(dim);
+       shape.SetDataLayout(TENGINE_LAYOUT_NCHW);
+    }
     oshape[0] = shape;
 
     return true;

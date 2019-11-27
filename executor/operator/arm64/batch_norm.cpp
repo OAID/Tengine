@@ -76,8 +76,23 @@ struct BNOps : public NodeOps
         rescale_factor = param->rescale_factor ? 1 / param->rescale_factor : 0;
         for(int c = 0; c < channel_num; c++)
         {
-            scale_var_inv[c] = 1.f / std::sqrt(var[c] * rescale_factor + eps);
-            scale_mean[c] = -mean[c] * rescale_factor * scale_var_inv[c];
+            float tmp = std::sqrt(var[c] * rescale_factor + eps);
+            scale_var_inv[c] = (float)(1.f / tmp);
+            tmp = rescale_factor * scale_var_inv[c];
+            scale_mean[c] = (float)(-mean[c] * tmp);
+        }
+        if(!param->caffe_flavor)
+        {
+            const Tensor* gamma_tensor = node->GetInputTensor(1);
+            const Tensor* beta_tensor = node->GetInputTensor(2);
+            const float* gamma = ( const float* )get_tensor_mem(gamma_tensor);
+            const float* beta = ( const float* )get_tensor_mem(beta_tensor);
+            for(int c = 0; c < channel_num; c++)
+            {
+                scale_var_inv[c] *= gamma[c];
+                scale_mean[c] *= gamma[c];
+                scale_mean[c] += beta[c];
+            }
         }
 
         node->SetAttr("scale_mean", scale_mean);
@@ -98,95 +113,38 @@ struct BNOps : public NodeOps
         int channel_size = dims[2] * dims[3];
         int img_size = channel_num * channel_size;
 
-        BatchNorm* bn_op = dynamic_cast<BatchNorm*>(node->GetOp());
-        BatchNormParam* param = bn_op->GetParam();
-
         const float* input = ( const float* )get_tensor_mem(input_tensor);
         float* output = ( float* )get_tensor_mem(output_tensor);
 
-        if(param->caffe_flavor)
+        float* scale_mean = any_cast<float*>(node->GetAttr("scale_mean"));
+        float* scale_var_inv = any_cast<float*>(node->GetAttr("scale_var_inv"));
+
+        /* only use mean and var */
+        for(int i = 0; i < batch_number; i++)
         {
-            float* scale_mean = any_cast<float*>(node->GetAttr("scale_mean"));
-            float* scale_var_inv = any_cast<float*>(node->GetAttr("scale_var_inv"));
-
-            /* only use mean and var */
-            for(int i = 0; i < batch_number; i++)
+            for(int c = 0; c < channel_num; c++)
             {
-                for(int c = 0; c < channel_num; c++)
-                {
-                    float s_mean = scale_mean[c];
-                    float s_var = scale_var_inv[c];
-                    float32x4_t _mean = vdupq_n_f32(s_mean);
-                    float32x4_t _var = vdupq_n_f32(s_var);
-                    int offset = i * img_size + c * channel_size;
-                    const float* input_ptr = input + offset;
-                    float* output_ptr = output + offset;
+                float s_mean = scale_mean[c];
+                float s_var = scale_var_inv[c];
+                float32x4_t _mean = vdupq_n_f32(s_mean);
+                float32x4_t _var = vdupq_n_f32(s_var);
+                int offset = i * img_size + c * channel_size;
+                const float* input_ptr = input + offset;
+                float* output_ptr = output + offset;
 
-                    for(int l = 0; l < channel_size - 3; l += 4)
-                    {
-                        float32x4_t _input = vld1q_f32(input_ptr);
-                        vst1q_f32(output_ptr, vmlaq_f32(_mean, _input, _var));
-                        input_ptr += 4;
-                        output_ptr += 4;
-                        // output[offset]= input[offset]*scale_var_inv[c] - scale_mean[c];
-                    }
-                    for(int l = channel_size & ~3; l < channel_size; l++)
-                    {
-                        *output_ptr = (*input_ptr) * s_var + s_mean;
-                        input_ptr++;
-                        output_ptr++;
-                    }
+                for(int l = 0; l < channel_size - 3; l += 4)
+                {
+                    float32x4_t _input = vld1q_f32(input_ptr);
+                    vst1q_f32(output_ptr, vmlaq_f32(_mean, _input, _var));
+                    input_ptr += 4;
+                    output_ptr += 4;
+                    // output[offset]= input[offset]*scale_var_inv[c] - scale_mean[c];
                 }
-            }
-        }
-        else
-        {
-            float* scale_mean = any_cast<float*>(node->GetAttr("scale_mean"));
-            float* scale_var_inv = any_cast<float*>(node->GetAttr("scale_var_inv"));
-
-            const Tensor* gamma_tensor = node->GetInputTensor(1);
-            const Tensor* beta_tensor = node->GetInputTensor(2);
-            const float* gamma = ( const float* )get_tensor_mem(gamma_tensor);
-            const float* beta = ( const float* )get_tensor_mem(beta_tensor);
-
-            for(int i = 0; i < batch_number; i++)
-            {
-                for(int c = 0; c < channel_num; c++)
+                for(int l = channel_size & ~3; l < channel_size; l++)
                 {
-                    float s_mean = scale_mean[c];
-                    float s_var = scale_var_inv[c];
-                    float s_gamma = gamma[c];
-                    float s_beta = beta[c];
-
-                    float s_val1 = s_beta + s_gamma * s_mean;
-                    float s_val2 = s_gamma * s_var;
-
-                    float32x4_t _mean = vdupq_n_f32(s_mean);
-                    float32x4_t _var = vdupq_n_f32(s_var);
-                    float32x4_t _gamma = vdupq_n_f32(s_gamma);
-                    float32x4_t _beta = vdupq_n_f32(s_beta);
-
-                    float32x4_t val1 = vmlaq_f32(_beta, _gamma, _mean);
-                    float32x4_t val2 = vmulq_f32(_gamma, _var);
-
-                    int offset = i * img_size + c * channel_size;
-                    const float* input_ptr = input + offset;
-                    float* output_ptr = output + offset;
-
-                    for(int l = 0; l < channel_size - 3; l += 4)
-                    {
-                        float32x4_t _input = vld1q_f32(input_ptr);
-                        // output = val1 + _input * val2
-                        vst1q_f32(output_ptr, vmlaq_f32(val1, _input, val2));
-                        input_ptr += 4;
-                        output_ptr += 4;
-                    }
-                    for(int l = channel_size & ~3; l < channel_size; l++)
-                    {
-                        *output_ptr = (*input_ptr) * s_val2 + s_val1;
-                        input_ptr++;
-                        output_ptr++;
-                    }
+                    *output_ptr = (*input_ptr) * s_var + s_mean;
+                    input_ptr++;
+                    output_ptr++;
                 }
             }
         }
@@ -209,7 +167,10 @@ struct BNOps : public NodeOps
 NodeOps* SelectFunc(const CPUInfo* cpu_info, Node* node)
 {
     Tensor* input = node->GetInputTensor(0);
-    if((input->GetShape()).GetDim().size() != 4)
+    const ExecAttr* exec_attr = any_cast<const ExecAttr*>(node->GetAttr(ATTR_EXEC_ATTR));
+    if(input->GetDataType() != TENGINE_DT_FP32 || exec_attr->graph_layout != TENGINE_LAYOUT_NCHW)
+        return nullptr;
+    if(input->GetShape().GetDim().size() != 4 && input->GetShape().GetDim().size() != 3)
         return nullptr;
 
     BNOps* ops = new BNOps();

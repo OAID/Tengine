@@ -17,8 +17,15 @@ endif()
 
 if(CONFIG_AUTH_DEVICE)
 include_directories(hclarm/auth)
+include_directories(${AUTH_HEADER})
 FILE(GLOB_RECURSE HCL_AUTH_SRCS hclarm/*.cpp hclarm/*.c)
 list(APPEND TOPERATOR_LIB_SRCS ${HCL_AUTH_SRCS})
+
+if (CONFIG_AUTHENICATION)
+	message("-------------here-----------")
+	add_definitions(-DCONFIG_AUTHENICATION=1)
+endif()
+
 
 # For different settings, please change the COMPILE_FLAGS
 # Please refers to hclarm/auth/auth.config 

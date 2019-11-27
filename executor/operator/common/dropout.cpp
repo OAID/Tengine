@@ -51,16 +51,16 @@ struct DropoutOps : public NodeOps
     bool Run(Node* node)
     {
         // Nothing needs to do for inference
-	Tensor* input_tensor = node->GetInputTensor(0);
-	Tensor* output_tensor = node->GetOutputTensor(0);
-	void* input_org = get_tensor_mem(input_tensor);
-	void* output_org = get_tensor_mem(output_tensor);
-	if(input_org == output_org)
+        Tensor* input_tensor = node->GetInputTensor(0);
+        Tensor* output_tensor = node->GetOutputTensor(0);
+        void* input_org = get_tensor_mem(input_tensor);
+        void* output_org = get_tensor_mem(output_tensor);
+        if(input_org == output_org)
             return true;
 
-	int size = input_tensor->GetTotalSize();
-	memcpy(output_org, input_org, size);
-	return true;
+        int size = input_tensor->GetTotalSize();
+        memcpy(output_org, input_org, size);
+        return true;
     }
 };
 

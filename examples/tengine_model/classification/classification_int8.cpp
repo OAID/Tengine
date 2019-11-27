@@ -30,9 +30,8 @@
 #include <vector>
 #include <sys/time.h>
 #include <math.h>
-
-#include "opencv2/imgproc/imgproc.hpp"
-#include "opencv2/highgui/highgui.hpp"
+#include <algorithm>
+#include "tengine_operations.h"
 #include "tengine_c_api.h"
 #include "common.hpp"
 #include "cpu_device.h"
@@ -69,9 +68,7 @@ const Model_Config model_list[] = {
     {"googlenet", 224, 224, 1.f, {104.007, 116.669, 122.679}, "googlenet_int8.tmfile", "synset_words.txt"},
     {"inception_v3", 395, 395, 0.0078, {104.007, 116.669, 122.679}, "inception_v3_int8.tmfile", "synset2015.txt"},
     {"inception_v4", 299, 299, 1 / 127.5f, {104.007, 116.669, 122.679}, "inception_v4_int8.tmfile", "synset_words.txt"},
-    {"vgg16", 224, 224, 1.f, {104.007, 116.669, 122.679}, "vgg16_int8.tmfile", "synset_words.txt"}
-};
-
+    {"vgg16", 224, 224, 1.f, {104.007, 116.669, 122.679}, "vgg16_int8.tmfile", "synset_words.txt"}};
 
 const Model_Config* get_model_config(const char* model_name)
 {
@@ -134,8 +131,9 @@ static float get_absmax_val(float* data, int data_size)
 }
 
 void get_input_data(const char* image_file, int8_t* input_data, int img_h, int img_w, const float* mean, float scale,
-                    float *input_scale, int *zero_point)
+                    float* input_scale, int* zero_point)
 {
+    /*
     cv::Mat sample = cv::imread(image_file, -1);
     if(sample.empty())
     {
@@ -160,28 +158,42 @@ void get_input_data(const char* image_file, int8_t* input_data, int img_h, int i
     img.convertTo(img, CV_32FC3);
     float* img_data = ( float* )img.data;
     int hw = img_h * img_w;
+    */
+    image imIn = imread(image_file);
+    image im;
+    if(imIn.c == 1)
+    {
+        im = gray2bgr(imIn);
+    }
+    else
+    {
+        im = imIn;
+    }
+    image resImg = resize_image(im, img_w, img_h);
 
-    float* temp_data = (float*)malloc(hw*3*sizeof(float));
+    int hw = img_w * img_h;
     for(int h = 0; h < img_h; h++)
     {
         for(int w = 0; w < img_w; w++)
         {
             for(int c = 0; c < 3; c++)
             {
-                temp_data[c * hw + h * img_w + w] = (*img_data - mean[c]) * scale;
-                img_data++;
+                resImg.data[c * hw + h * img_w + w] = (resImg.data[c * hw + h * img_w + w] - mean[c]) * scale;
             }
         }
     }
 
-    float input_max = get_absmax_val(temp_data, hw*3);
+    float input_max = get_absmax_val(resImg.data, hw * 3);
     *input_scale = input_max / 127;
     *zero_point = 0;
 
-    for(int i = 0; i < hw*3; i++)
-        input_data[i] = (int8_t)(round(temp_data[i] / *input_scale) + *zero_point);
+    for(int i = 0; i < hw * 3; i++)
+        input_data[i] = (int8_t)(round(resImg.data[i] / *input_scale) + *zero_point);
 
-    free(temp_data);
+
+    free_image(im);
+    
+    // free(temp_data);
 }
 
 void PrintTopLabels(const char* label_file, int8_t* data, float q_scale)
@@ -239,7 +251,7 @@ bool run_tengine_library(const char* model_name, const char* tm_file, const char
         std::cerr << "Prerun graph failed\n";
         return false;
     }
-    //dump_graph(graph);
+    // dump_graph(graph);
 
     struct timeval t0, t1;
     float avg_time = 0.f;

@@ -32,19 +32,108 @@
 #include "graph.hpp"
 #include "operator/slice.hpp"
 
-
 namespace TEngine {
 
 namespace SliceImpl {
 const int default_prio = 200;
 struct SliceOps : public NodeOps
 {
-    template <typename T>
-    bool caffe_run(Node *node)
+    template <typename T> bool mxnet_run(Node* node)
+    {
+        Slice* slice_op = dynamic_cast<Slice*>(node->GetOp());
+        SliceParam* param = slice_op->GetParam();
+        Tensor* input_tensor = node->GetInputTensor(0);
+        auto in_dim = input_tensor->GetShape().GetDim();
+        T* input = ( T* )get_tensor_mem(input_tensor);
+        Tensor* output_tensor = node->GetOutputTensor(0);
+        T* output = ( T* )get_tensor_mem(output_tensor);
+        int indim_size = in_dim.size();
+
+        if(indim_size == 4)
+        {
+            int in_dim_1 = in_dim[1];
+            int in_dim_2 = in_dim[2];
+            int in_dim_3 = in_dim[3];
+            int start_0 = (param->axis == 0) ? param->begin : 0;
+            int start_1 = (param->axis == 1) ? param->begin : 0;
+            int start_2 = (param->axis == 2) ? param->begin : 0;
+            int start_3 = (param->axis == 3) ? param->begin : 0;
+            int stop_0 = (param->axis == 0) ? param->end : in_dim[0];
+            int stop_1 = (param->axis == 1) ? param->end : in_dim[1];
+            int stop_2 = (param->axis == 2) ? param->end : in_dim[2];
+            int stop_3 = (param->axis == 3) ? param->end : in_dim[3];
+
+            for(int n = start_0; n < stop_0; ++n)
+            {
+                for(int i = start_1; i < stop_1; ++i)
+                {
+                    for(int j = start_2; j < stop_2; ++j)
+                    {
+                        int len = start_3 - stop_3;
+                        int input_off =
+                            n * in_dim_1 * in_dim_2 * in_dim_3 + i * in_dim_2 * in_dim_3 + j * in_dim_3 + start_3;
+                        memcpy(output, input + input_off, len * sizeof(T));
+                        output += len;
+                    }
+                }
+            }
+        }
+        else if(indim_size == 3)
+        {
+            // int in_dim_0 = in_dim_new[0];
+            int in_dim_1 = in_dim[1];
+            int in_dim_2 = in_dim[2];
+            // int in_dim_3 = in_dim_new[3];
+            int start_0 = (param->axis == 0) ? param->begin : 0;
+            int start_1 = (param->axis == 1) ? param->begin : 0;
+            int start_2 = (param->axis == 2) ? param->begin : 0;
+
+            // int start_3=(param->axis==3)? param->begin:0;
+            int stop_0 = (param->axis == 0) ? param->end : in_dim[0];
+            int stop_1 = (param->axis == 1) ? param->end : in_dim[1];
+            int stop_2 = (param->axis == 2) ? param->end : in_dim[2];
+            // int stop_3=(param->axis==3)? param->end:param->in_shape[3];
+
+            for(int n = start_0; n < stop_0; ++n)
+            {
+                for(int i = start_1; i < stop_1; ++i)
+                {
+                    int len = stop_2 - start_2;
+                    int input_off = n * in_dim_1 * in_dim_2 + i * in_dim_2 + start_2;
+                    memcpy(output, input + input_off, len * sizeof(T));
+                    output += len;
+                }
+            }
+        }
+        else if(indim_size == 2)
+        {
+            // int in_dim_0 = in_dim_new[0];
+            int in_dim_1 = in_dim[1];
+            // int in_dim_3 = in_dim_new[3];
+            int start_0 = (param->axis == 0) ? param->begin : 0;
+            int start_1 = (param->axis == 1) ? param->begin : 0;
+
+            // int start_3=(param->axis==3)? param->begin:0;
+            int stop_0 = (param->axis == 0) ? param->end : in_dim[0];
+            int stop_1 = (param->axis == 1) ? param->end : in_dim[1];
+            // int stop_3=(param->axis==3)? param->end:param->in_shape[3];
+
+            for(int n = start_0; n < stop_0; ++n)
+            {
+                int len = stop_1 - start_0;
+                int input_off = n * in_dim_1 + start_1;
+                memcpy(output, input + input_off, len * sizeof(T));
+                output += len;
+            }
+        }
+
+        return true;
+    }
+    template <typename T> bool caffe_run(Node* node)
     {
         // get the slice param
-        Slice * slice_op = dynamic_cast<Slice*>(node->GetOp());
-        SliceParam * param = slice_op->GetParam();
+        Slice* slice_op = dynamic_cast<Slice*>(node->GetOp());
+        SliceParam* param = slice_op->GetParam();
         int slice_axis = param->axis;
         int num_slices = 1;
         int slice_size = 1;
@@ -66,33 +155,31 @@ struct SliceOps : public NodeOps
         unsigned int out_num = node->GetOutputNum();
         for(unsigned int i = 0; i < out_num; i++)
         {
-              Tensor* output_tensor = node->GetOutputTensor(i);
-              T* output = (T* )get_tensor_mem(output_tensor);
-              int out_slice = (output_tensor->GetShape()).Shape(slice_axis);
+            Tensor* output_tensor = node->GetOutputTensor(i);
+            T* output = ( T* )get_tensor_mem(output_tensor);
+            int out_slice = (output_tensor->GetShape()).Shape(slice_axis);
 
-              for(int n = 0; n < num_slices; n++)
-              {
-                   int in_offset = (n * in_slice + slice_index) * slice_size;
-                   int out_offset  = n * out_slice * slice_size;
-                   memcpy(output+out_offset,input + in_offset,slice_size * out_slice * sizeof(T));
-              }
-              slice_index += out_slice;
+            for(int n = 0; n < num_slices; n++)
+            {
+                int in_offset = (n * in_slice + slice_index) * slice_size;
+                int out_offset = n * out_slice * slice_size;
+                memcpy(output + out_offset, input + in_offset, slice_size * out_slice * sizeof(T));
+            }
+            slice_index += out_slice;
         }
         return true;
-
     }
-    template<typename T>
-    bool tf_run(Node *node)
+    template <typename T> bool tf_run(Node* node)
     {
         // get the slice param
-        Slice * slice_op = dynamic_cast<Slice*>(node->GetOp());
-        SliceParam * param = slice_op->GetParam();
+        Slice* slice_op = dynamic_cast<Slice*>(node->GetOp());
+        SliceParam* param = slice_op->GetParam();
         // get the input data
         Tensor* input_tensor = node->GetInputTensor(0);
         const TShape& input_shape = input_tensor->GetShape();
-        T* input = (T* )get_tensor_mem(input_tensor);
+        T* input = ( T* )get_tensor_mem(input_tensor);
         Tensor* output_tensor = node->GetOutputTensor(0);
-        T *output = (T* )get_tensor_mem(output_tensor);
+        T* output = ( T* )get_tensor_mem(output_tensor);
         std::vector<int> in_dim = input_shape.GetDim();
         int in_dim_new[4];
         int maxdim = 4;
@@ -122,33 +209,24 @@ struct SliceOps : public NodeOps
         int in_dim_3 = in_dim_new[3];
 
         int start_dim_0 = (4 - real_dim) > 0 ? 0 : begins[0];
-        int stop_dim_0 = ((4 - real_dim) > 0 || sizes[0] == -1)
-                     ? in_dim_0 - start_dim_0
-                     : start_dim_0 + sizes[0];
+        int stop_dim_0 = ((4 - real_dim) > 0 || sizes[0] == -1) ? in_dim_0 - start_dim_0 : start_dim_0 + sizes[0];
         int start_dim_1 = (3 - real_dim) > 0 ? 0 : begins[1];
-        int stop_dim_1 = ((3 - real_dim) > 0 || sizes[1] == -1)
-                     ? in_dim_1 - start_dim_1
-                     : start_dim_1 + sizes[1];
+        int stop_dim_1 = ((3 - real_dim) > 0 || sizes[1] == -1) ? in_dim_1 - start_dim_1 : start_dim_1 + sizes[1];
         int start_dim_2 = (2 - real_dim) > 0 ? 0 : begins[2];
-        int stop_dim_2 = ((2 - real_dim) > 0 || sizes[2] == -1)
-                     ? in_dim_2 - start_dim_2
-                     : start_dim_2 + sizes[2];
+        int stop_dim_2 = ((2 - real_dim) > 0 || sizes[2] == -1) ? in_dim_2 - start_dim_2 : start_dim_2 + sizes[2];
         int start_dim_3 = (1 - real_dim) > 0 ? 0 : begins[3];
-        int stop_dim_3 = ((1 - real_dim) > 0 || sizes[3] == -1)
-                     ? in_dim_3 - start_dim_3
-                     : start_dim_3 + sizes[3];
+        int stop_dim_3 = ((1 - real_dim) > 0 || sizes[3] == -1) ? in_dim_3 - start_dim_3 : start_dim_3 + sizes[3];
 
-        for(int n = start_dim_0; n < stop_dim_0;++n)
+        for(int n = start_dim_0; n < stop_dim_0; ++n)
         {
             for(int i = start_dim_1; i < stop_dim_1; ++i)
             {
                 for(int j = start_dim_2; j < stop_dim_2; ++j)
                 {
                     int len = stop_dim_3 - start_dim_3;
-                    int input_off = n * in_dim_1 * in_dim_2 * in_dim_3 +
-                                    i * in_dim_2 * in_dim_3 +
-                                    j * in_dim_3 + start_dim_3;
-                    memcpy(output,input + input_off,len * sizeof(T));
+                    int input_off =
+                        n * in_dim_1 * in_dim_2 * in_dim_3 + i * in_dim_2 * in_dim_3 + j * in_dim_3 + start_dim_3;
+                    memcpy(output, input + input_off, len * sizeof(T));
                     output += len;
                 }
             }
@@ -157,11 +235,15 @@ struct SliceOps : public NodeOps
     }
     bool Run(Node* node)
     {
-        Slice * slice_op = dynamic_cast<Slice*>(node->GetOp());
-        SliceParam * param = slice_op->GetParam();
+        Slice* slice_op = dynamic_cast<Slice*>(node->GetOp());
+        SliceParam* param = slice_op->GetParam();
         if(param->iscaffe)
         {
             return caffe_run<float>(node);
+        }
+        else if(param->ismxnet)
+        {
+            return mxnet_run<float>(node);
         }
         else
         {
@@ -171,15 +253,10 @@ struct SliceOps : public NodeOps
 };
 NodeOps* SelectFunc(const CPUInfo* cpu_info, Node* node)
 {
-#ifdef CONFIG_ATUH_DEVICE
-    if(!get_auth_float_enabled())
-       return nullptr;
-#endif
-
     Tensor* input = node->GetInputTensor(0);
     const int data_type = input->GetDataType();
     const ExecAttr* exec_attr = any_cast<const ExecAttr*>(node->GetAttr(ATTR_EXEC_ATTR));
-    if(data_type != TENGINE_DT_FP32 ||exec_attr->graph_layout != TENGINE_LAYOUT_NCHW)
+    if(data_type != TENGINE_DT_FP32 || exec_attr->graph_layout != TENGINE_LAYOUT_NCHW)
         return nullptr;
     SliceOps* ops = new SliceOps();
     return ops;
@@ -192,8 +269,8 @@ using namespace SliceImpl;
 void RegisterSliceNodeExec(void)
 {
     if(!NodeOpsRegistryManager::RegisterOPImplementor("common", "Slice", SliceImpl::SelectFunc,
-                                                  SliceImpl::default_prio))
-        LOG_ERROR()<<__FUNCTION__<<" :Regist OP failed for prio["<<SliceImpl::default_prio<<"]\n";
+                                                      SliceImpl::default_prio))
+        LOG_ERROR() << __FUNCTION__ << " :Regist OP failed for prio[" << SliceImpl::default_prio << "]\n";
 }
 
 }    // namespace TEngine

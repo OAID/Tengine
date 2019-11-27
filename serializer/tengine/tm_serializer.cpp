@@ -36,6 +36,9 @@
 
 namespace TEngine {
 
+// template SpecificFactory<TmSerializer> SpecificFactory<TmSerializer>::instance;
+template class SpecificFactory<TmSerializer>;
+
 extern bool register_tm1_serializer();
 extern bool register_tm2_serializer();
 
@@ -83,7 +86,7 @@ bool TmSerializer::SaveModel(std::vector<void*>& addr_list, std::vector<int>& si
     const char* env = std::getenv("TM_FILE_MAX_SIZE");
     if(env)
         malloc_size = std::atoi(env);
-     
+
     void* start_ptr = ( void* )malloc(malloc_size);
     if(start_ptr == nullptr)
     {
@@ -93,7 +96,7 @@ bool TmSerializer::SaveModel(std::vector<void*>& addr_list, std::vector<int>& si
 
     TmSerializerPtr tm_serializer;
     TmSerializerManager::SafeGet("tm_v2", tm_serializer);
-        
+
     bool ret = tm_serializer->SaveModelIntoMem(start_ptr, graph, &tm_model_size);
 
     addr_list.push_back(start_ptr);
@@ -107,7 +110,7 @@ bool TmSerializer::LoadBinaryFile(const char* tm_fname, int& fd, void*& buf, int
     fd = open(tm_fname, O_RDONLY);
     if(fd == -1)
     {
-        printf("Could not open '%s'\n", tm_fname);
+        LOG_ERROR() << "Could not open \'" << tm_fname << "\'\n";
         return false;
     }
 
@@ -118,7 +121,7 @@ bool TmSerializer::LoadBinaryFile(const char* tm_fname, int& fd, void*& buf, int
     buf = mmap(NULL, size, PROT_READ, MAP_SHARED, fd, 0);
     if(buf == MAP_FAILED)
     {
-        printf("Mmap of '%s' failed\n", tm_fname);
+        LOG_ERROR() << "Mmap of \'" << tm_fname << "\' failed\n";
         return false;
     }
 
@@ -145,12 +148,13 @@ bool TmSerializer::LoadModel(const std::vector<std::string>& file_list, StaticGr
     TmSerializerPtr tm_serializer;
     if(*ver_main < 2)
     {
-        LOG_WARN() << "The input tengine model file is in old format, please regenerate it by using tengine convert tool.\n";
+        LOG_WARN()
+            << "The input tengine model file is in old format, please regenerate it by using tengine convert tool.\n";
         TmSerializerManager::SafeGet("tm_v1", tm_serializer);
     }
     else
         TmSerializerManager::SafeGet("tm_v2", tm_serializer);
-        
+
     bool ret = tm_serializer->LoadModelFromMem(mmap_buf, graph);
 
     munmap(const_cast<void*>(mmap_buf), mmap_size);
@@ -159,7 +163,7 @@ bool TmSerializer::LoadModel(const std::vector<std::string>& file_list, StaticGr
 }
 
 bool TmSerializer::LoadModel(const std::vector<const void*>& addr_list, const std::vector<int>& size_list,
-                             StaticGraph* graph)
+                             StaticGraph* graph, bool transfer_mem)
 {
     if(addr_list.size() != GetFileNum())
         return false;
@@ -173,7 +177,8 @@ bool TmSerializer::LoadModel(const std::vector<const void*>& addr_list, const st
     TmSerializerPtr tm_serializer;
     if(*ver_main < 2)
     {
-        LOG_WARN() << "The input tengine model file is in old format, please regenerate it by using tengine convert tool.\n";
+        LOG_WARN()
+            << "The input tengine model file is in old format, please regenerate it by using tengine convert tool.\n";
         TmSerializerManager::SafeGet("tm_v1", tm_serializer);
     }
     else
@@ -181,7 +186,7 @@ bool TmSerializer::LoadModel(const std::vector<const void*>& addr_list, const st
 
     bool ret = tm_serializer->LoadModelFromMem(mmap_buf, graph);
 
-    if(ret)
+    if(ret && transfer_mem)
         graph->mem_src.push_back(mmap_buf);
 
     return ret;

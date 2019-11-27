@@ -6,7 +6,8 @@ bin-obj-y+=demo.o
 bin-obj-y+=test_perf_stat.o
 bin-obj-y+=test_node_dump.o
 bin-obj-y+=two_model_demo.o
-
+bin-obj-y+=test_caffe_shufflenet.o
+bin-obj-y+=test_mxnet_mobile_quant.o
 bin-obj-y+=test_rnn.o
 
 bin-obj-$(CONFIG_ACL_GPU)+=mt_mssd.o
@@ -18,6 +19,7 @@ bin-obj-y+=test_mxnet_mobilenet.o
 bin-obj-y+=test_mxnet_mobileface.o
 bin-obj-y+=test_mxnet_lstm.o
 bin-obj-y+=test_mxnet_gru.o
+bin-obj-y+=test_mxnet_mobile_quant.o
 endif
 
 ifeq ($(CONFIG_TF_SERIALIZER),y)
@@ -27,6 +29,11 @@ bin-obj-y+=test_tf_resnet50.o
 bin-obj-y+=test_tf.o
 bin-obj-y+=test_tf_gru.o
 bin-obj-y+=test_tf_lstm.o
+bin-obj-y+=test_tf_max.o
+bin-obj-y+=test_tf_min.o
+bin-obj-y+=test_tf_argmax.o
+bin-obj-y+=test_tf_topk.o
+bin-obj-y+=test_tf_sqz.o
 endif
 
 ifeq ($(CONFIG_TENGINE_SERIALIZER),y)
@@ -45,5 +52,9 @@ ifeq ($(CONFIG_TFLITE_SERIALIZER),y)
 bin-obj-y+=tf_lite_mssd.o
 bin-obj-y+=tf_lite_mssd_quant.o
 bin-obj-y+=tf_lite_mobilenet_quant.o
+bin-obj-y+=tf_lite_mobilenet.o
 endif
 
+ifeq ($(CONFIG_DARKNET_SERIALIZER),y)
+bin-obj-y+=test_dk_yolo.o
+endif

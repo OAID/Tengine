@@ -32,6 +32,9 @@
 namespace TEngine {
 
 class Operator;
+class OpManager;
+
+extern template OpManager SimpleObjectManagerWithLock<OpManager, Operator*>::instance;
 
 class OpManager : public SimpleObjectManagerWithLock<OpManager, Operator*>
 {

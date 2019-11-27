@@ -1,10 +1,10 @@
-* Platform: RK3399 (Linux)
+* Platform: EAIDK (Linux)
   
 1. build ACL
     ```
     git clone https://github.com/ARM-software/ComputeLibrary.git
-    git checkout v18.05
-    scons Werror=1 -j4 debug=0 asserts=1 neon=0 opencl=1 embed_kernels=1 os=linux arch=arm64-v8a
+    git checkout v19.02
+    scons Werror=1 -j4 debug=0 asserts=0 neon=0 opencl=1 embed_kernels=1 os=linux arch=arm64-v8a
     ```
 
 2. set GPU frequency
@@ -40,11 +40,12 @@
     export GPU_CONCAT=0           # disable gpu run concat,     avoid frequent data transfer between cpu and gpu
     export ACL_FP16=1             # enable gpu fp16
     export REPEAT_COUNT=50        # repeat count to run mssd,     get avg time
+    export ACL_NHWC=1             # run acl graph on NHWC layout
     taskset 0x1 ./MSSD -d acl_opencl          # -d acl_opencl to use gpu, taskset 0x1 to bind CPU0(A53)
     ```
-    It costs `150ms` to run mobilenetssd using `GPU + 1A53`
+    It costs `118ms` to run mobilenetssd using `GPU + 1A53`
     ```
-    repeat 50 times, avg time per run is 150.887 ms
+    repeat 50 times, avg time per run is 118.33 ms
     detect result num: 3
     dog     :100%
     BOX:( 138.332 , 209.167 ),( 324.072 , 541.449 )

@@ -32,9 +32,7 @@ float PReLU::GetFops(const std::vector<TShape>& inputs, const std::vector<TShape
 
 void PReLU::SetSchema(void)
 {
-    Input({"input:float32", "slope:float32"})
-        .Output({"output:float32"})
-        .SetDoc(R"DOC(PreLu Operator)DOC");
+    Input({"input:float32", "slope:float32"}).Output({"output:float32"}).SetDoc(R"DOC(PreLu Operator)DOC");
 }
 
 }    // namespace TEngine

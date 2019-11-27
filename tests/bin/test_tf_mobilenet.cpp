@@ -28,14 +28,10 @@
 #include <algorithm>
 #include <fstream>
 #include <iomanip>
-#include <opencv2/opencv.hpp>
 
 #include "tengine_c_api.h"
 #include "common_util.hpp"
-#include "image_process.hpp"
-#include "tengine_config.hpp"
-
-//#define MOBILE_NET
+#include "tengine_operations.h"
 
 const char* model_file = "./models/frozen_mobilenet_v1_224.pb";
 const char* label_file = "./models/synset_words.txt";
@@ -47,6 +43,7 @@ float input_mean = -127;
 float input_std = 127;
 
 using namespace TEngine;
+using namespace std;
 
 void LoadLabelFile(std::vector<std::string>& result, const char* fname)
 {
@@ -57,42 +54,27 @@ void LoadLabelFile(std::vector<std::string>& result, const char* fname)
         result.push_back(line);
 }
 
-float* ReadImageFile(const std::string& image_file, cv::Mat& img, const int input_height, const int input_width,
+float* ReadImageFile(const std::string& image_file, const int input_height, const int input_width,
                      const float input_mean, const float input_std)
 {
-    // Read image
-    cv::Mat frame = cv::imread(image_file);
-    if(!frame.data)
-    {
-        std::cout << "failed to read image file: " << image_file << std::endl;
-        return nullptr;
-    }
-
-    // Convert BGR to RGB
-    cv::cvtColor(frame, frame, cv::COLOR_BGR2RGB);
+    image img = imread(image_file.c_str());
 
     // Resize the image
-    cv::Mat img_resized;
-    cv::Size input_geometry = cv::Size(input_width, input_height);
-    cv::resize(frame, img_resized, input_geometry);
 
-    // Convert to float 32, channel 3
-    img_resized.convertTo(img_resized, CV_32FC3);
-
-    img = (img_resized - input_mean) / input_std;
-
-    std::vector<cv::Mat> input_channels;
-    float* input_data = ( float* )std::malloc(input_height * input_width * 3 * 4);
-    float* ptr = input_data;
-
-    for(int i = 0; i < 3; ++i)
+    image resImg = resize_image(img, input_width, input_height);
+    float* input_data = ( float* )malloc(3 * input_height * input_width * 4);
+    for(int h = 0; h < input_height; h++)
     {
-        cv::Mat channel(input_height, input_width, CV_32FC1, ptr);
-        input_channels.push_back(channel);
-        ptr += input_height * input_width;
+        for(int w = 0; w < input_width; ++w)
+        {
+            for(int c = 0; c < 3; c++)
+            {
+                int out_idx = h * input_width * 3 + w * 3 + c;
+                int in_idx = c * input_height * input_width + h * input_width + w;
+                input_data[out_idx] = (resImg.data[in_idx] - input_mean) / input_std;
+            }
+        }
     }
-
-    cv::split(img, input_channels);
 
     return input_data;
 }
@@ -100,10 +82,7 @@ float* ReadImageFile(const std::string& image_file, cv::Mat& img, const int inpu
 int main(int argc, char* argv[])
 {
     /* prepare input data */
-    cv::Mat img;
-    float* input_data = ReadImageFile(image_file, img, img_h, img_w, input_mean, input_std);
-    ;
-
+    float* input_data = ReadImageFile(image_file, img_h, img_w, input_mean, input_std);
     init_tengine();
     if(request_tengine_version("0.9") < 0)
         return 1;
@@ -128,7 +107,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    int dims[] = {1, 3, img_h, img_w};
+    int dims[] = {1, img_h, img_w, 3};
     set_tensor_shape(input_tensor, dims, 4);
 
     /* setup input buffer */
@@ -139,7 +118,7 @@ int main(int argc, char* argv[])
 
     /* run the graph */
     prerun_graph(graph);
-
+    // dump_graph(graph);
     run_graph(graph, 1);
 
     // const char * output_tensor_name="MobilenetV1/Predictions/Softmax";
@@ -171,7 +150,6 @@ int main(int argc, char* argv[])
     for(unsigned int i = 0; i < top_N.size(); i++)
     {
         int idx = top_N[i];
-
         std::cout << std::fixed << std::setprecision(4) << result[idx] << " - \"";
         std::cout << labels[idx] << "\"\n";
     }

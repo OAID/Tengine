@@ -27,8 +27,7 @@
 #include <sys/time.h>
 
 #include "tengine_c_api.h"
-#include "opencv2/imgproc/imgproc.hpp"
-#include "opencv2/highgui/highgui.hpp"
+#include "tengine_operations.h"
 
 float show_threshold = 0.5;
 
@@ -42,10 +41,9 @@ struct Box
     float score;
 };
 
-void post_process_ssd(cv::Mat& img, float threshold, float* outdata, int num, const std::string& save_name)
+void post_process_ssd(image img, float threshold, float* outdata, int num, const std::string& save_name)
 {
     std::vector<Box> boxes;
-    int line_width = img.cols * 0.005;
     printf("--------------------------------------------\n");
     printf("Face id: prob%%\tBOX:( x0 , y0 ),( x1 , y1 )\n");
     printf("--------------------------------------------\n");
@@ -58,10 +56,10 @@ void post_process_ssd(cv::Mat& img, float threshold, float* outdata, int num, co
             Box box;
             box.class_idx = outdata[0];
             box.score = outdata[1];
-            box.x0 = outdata[2] * img.cols;
-            box.y0 = outdata[3] * img.rows;
-            box.x1 = outdata[4] * img.cols;
-            box.y1 = outdata[5] * img.rows;
+            box.x0 = outdata[2] * img.w;
+            box.y0 = outdata[3] * img.h;
+            box.x1 = outdata[4] * img.w;
+            box.y1 = outdata[5] * img.h;
             boxes.push_back(box);
             printf("Face %d:\t%.0f%%\t", detected_face_num, box.score * 100);
             printf("BOX:( %g , %g ),( %g , %g )\n", box.x0, box.y0, box.x1, box.y1);
@@ -72,43 +70,37 @@ void post_process_ssd(cv::Mat& img, float threshold, float* outdata, int num, co
     for(int i = 0; i < ( int )boxes.size(); i++)
     {
         Box box = boxes[i];
-        cv::rectangle(img, cv::Rect(box.x0, box.y0, (box.x1 - box.x0), (box.y1 - box.y0)), cv::Scalar(255, 255, 0),
-                      line_width);
 
         std::ostringstream score_str;
-        score_str.precision(3);
-        score_str << box.score;
-        std::string label = score_str.str();
-        int baseLine = 0;
-        cv::Size label_size = cv::getTextSize(label, cv::FONT_HERSHEY_SIMPLEX, 0.3, 1, &baseLine);
-        cv::rectangle(img,
-                      cv::Rect(cv::Point(box.x0, box.y0 - label_size.height),
-                               cv::Size(label_size.width, label_size.height + baseLine)),
-                      cv::Scalar(255, 255, 0), CV_FILLED);
-        cv::putText(img, label, cv::Point(box.x0, box.y0), cv::FONT_HERSHEY_SIMPLEX, 0.3, cv::Scalar(0, 0, 0));
+        score_str << box.score * 100;
+        std::string labelstr = score_str.str();
+
+        put_label(img, labelstr.c_str(), 0.02, box.x0, box.y0, 255, 255, 125);
+        draw_box(img, box.x0, box.y0, box.x1, box.y1, 2, 125, 0, 125);
     }
-    cv::imwrite(save_name, img);
+    save_image(img, "Yu_FaceDetect.jpg");
     std::cout << "======================================\n";
-    std::cout << "[DETECTED IMAGE SAVED]:\t" << save_name << "\n";
+    std::cout << "[DETECTED IMAGE SAVED]:\t"
+              << "Yu_FaceDetect"
+              << "\n";
     std::cout << "======================================\n";
 }
 
-void get_input_data(cv::Mat& img, float* input_data, int img_h, int img_w)
+void get_input_data(image img, float* input_data, int img_h, int img_w)
 {
-    int mean[3] = { 104,117,123 };
-    unsigned char* src_ptr=(unsigned char*)(img.ptr(0));
-    int hw = img_h * img_w;
+    int mean[3] = {104, 117, 123};
     for(int h = 0; h < img_h; h++)
     {
         for(int w = 0; w < img_w; w++)
         {
             for(int c = 0; c < 3; c++)
             {
-                input_data[c * hw + h * img_w + w] =(float)(*src_ptr - mean[c]);
-                src_ptr++;
+                int hw = img_w * img_h;
+                img.data[c * hw + h * img_w + w] = 0.007843 * (img.data[c * hw + h * img_w + w] - mean[c]);
             }
         }
     }
+    memcpy(input_data, img.data, sizeof(float) * 3 * img_w * img_h);
 }
 
 int main(int argc, char* argv[])
@@ -121,30 +113,16 @@ int main(int argc, char* argv[])
     std::string proto_name_ = argv[1];
     std::string mdl_name_ = argv[2];
     std::string image_file = argv[3];
-    
+
     std::string save_file = "save.jpg";
-    
-    cv::Mat img = cv::imread(image_file);
-    if(img.empty())
-    {
-        std::cerr << "failed to read image file " << image_file << "\n";
-        return -1;
-    }
-#if 1
-    // resize to 320 x 240
-    cv::Mat resize_img;
+    image im = imread(image_file.c_str());
+
     int img_w = 320;
     int img_h = 240;
-    cv::resize(img, resize_img, cv::Size(img_w, img_h), 0, 0,cv::INTER_NEAREST);
+    image resImage = resize_image(im, img_w, img_h);
+
     float* input_data = ( float* )malloc(sizeof(float) * img_h * img_w * 3);
-    get_input_data(resize_img, input_data, img_h, img_w);
-#else
-    // use origin image size
-    int img_h = img.rows;
-    int img_w = img.cols;
-    float* input_data = ( float* )malloc(sizeof(float) * img_h * img_w * 3);
-    get_input_data(img, input_data, img_h, img_w);
-#endif
+    get_input_data(resImage, input_data, img_h, img_w);
 
     init_tengine();
     if(request_tengine_version("0.9") < 0)
@@ -196,8 +174,8 @@ int main(int argc, char* argv[])
     get_tensor_shape(out_tensor, out_dim, 4);
     float* outdata = ( float* )get_tensor_buffer(out_tensor);
     int num = out_dim[1];
-    
-    post_process_ssd(img, show_threshold, outdata, num, save_file.c_str());
+
+    post_process_ssd(im, show_threshold, outdata, num, save_file.c_str());
 
     // free
     release_graph_tensor(out_tensor);

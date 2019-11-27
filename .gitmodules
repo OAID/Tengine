@@ -1,0 +1,3 @@
+[submodule "tengine-module"]
+	path = tengine-module
+	url = https://github.com/OAID/tengine-module.git

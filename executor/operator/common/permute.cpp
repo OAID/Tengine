@@ -56,7 +56,7 @@ struct PermuteOps : public NodeOps
         }
     }
 
-   bool Run(Node* node)
+    bool Run(Node* node)
     {
         const Tensor* input_tensor = node->GetInputTensor(0);
         Tensor* output_tensor = node->GetOutputTensor(0);
@@ -66,7 +66,8 @@ struct PermuteOps : public NodeOps
 
         const TShape& shape = input_tensor->GetShape();
         const std::vector<int> dims = shape.GetDim();
-        if(dims.size()==4){
+        if(dims.size() == 4)
+        {
             int batch_number = dims[0];
             int channel = dims[1];
             int width = dims[3];
@@ -89,7 +90,7 @@ struct PermuteOps : public NodeOps
                 }
             }
         }
-        else if(dims.size()==3)
+        else if(dims.size() == 3)
         {
             int channel = dims[0];
             int width = dims[2];
@@ -101,26 +102,25 @@ struct PermuteOps : public NodeOps
             float* output = ( float* )get_tensor_mem(output_tensor);
             if((param->order0 == 1) && (param->order1 == 0) && (param->order2 == 2))
             {
-                for (int q=0; q<height; q++)
+                for(int q = 0; q < height; q++)
                 {
-                    float* outptr = output+q*_cw;
+                    float* outptr = output + q * _cw;
 
-                    for (int i = 0; i < channel; i++)
+                    for(int i = 0; i < channel; i++)
                     {
-                        const float* ptr = input+i*_hw;
+                        const float* ptr = input + i * _hw;
 
-                        for (int j = 0; j < width; j++)
+                        for(int j = 0; j < width; j++)
                         {
-                            outptr[i*width + j] = ptr[q*width + j];
+                            outptr[i * width + j] = ptr[q * width + j];
                         }
                     }
                 }
             }
         }
-        
+
         return true;
     }
-
 };
 
 NodeOps* SelectFunc(const CPUInfo* cpu_info, Node* node)

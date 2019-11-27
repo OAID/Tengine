@@ -25,26 +25,25 @@
 
 namespace TEngine {
 
-/* 
-   DemoOps demos to permute a 2d matrix and 
-   then expanding one column to summerize each row of the permuted matrix 
+/*
+   DemoOps demos to permute a 2d matrix and
+   then expanding one column to summerize each row of the permuted matrix
 */
 
 bool DemoOp::InferShape(const std::vector<TShape>& ishape, std::vector<TShape>& oshape, int layout)
 {
-    int h=ishape[0].Shape(0);
-    int w=ishape[0].Shape(1);
+    int h = ishape[0].Shape(0);
+    int w = ishape[0].Shape(1);
     std::vector<int> dims;
 
     dims.push_back(w);
-    dims.push_back(h+1);
+    dims.push_back(h + 1);
 
     oshape[0].SetDim(dims);
-    oshape[0].SetDataLayout(layout); 
+    oshape[0].SetDataLayout(layout);
 
     return true;
 }
-
 
 void DemoOp::SetSchema(void)
 {

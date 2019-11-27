@@ -30,6 +30,9 @@
 
 namespace TEngine {
 
+// template SpecificFactory<DevExecutor> SpecificFactory<DevExecutor>::instance;
+template class SpecificFactory<DevExecutor>;
+
 bool DevExecutorManager::RegisterDevExecutor(DevExecutor* dev_executor)
 {
     // add the new created dev_executor into executor manager

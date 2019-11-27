@@ -56,18 +56,13 @@ int main(int argc, char** argv)
     if(argc >= 4)
         sv_name = argv[3];
 
-    cv::Mat image = cv::imread(img_name);
-    if(image.empty())
-    {
-        std::cerr << "cv::imread " << img_name << " failed\n";
-        return -1;
-    }
+    image im = imread(img_name.c_str());
 
     int min_size = 40;
 
     float conf_p = 0.6;
     float conf_r = 0.7;
-    float conf_o = 0.8;
+    float conf_o = 0.7;
 
     float nms_p = 0.5;
     float nms_r = 0.7;
@@ -89,7 +84,7 @@ int main(int argc, char** argv)
     for(int i = 0; i < repeat_count; i++)
     {
         gettimeofday(&t0, NULL);
-        det->detect(image, face_info);
+        det->detect(im, face_info);
         gettimeofday(&t1, NULL);
 
         float mytime = ( float )((t1.tv_sec * 1000000 + t1.tv_usec) - (t0.tv_sec * 1000000 + t0.tv_usec)) / 1000;
@@ -106,15 +101,15 @@ int main(int argc, char** argv)
     {
         face_box& box = face_info[i];
         std::printf("BOX:( %g , %g ),( %g , %g )\n", box.x0, box.y0, box.x1, box.y1);
-        cv::rectangle(image, cv::Point(box.x0, box.y0), cv::Point(box.x1, box.y1), cv::Scalar(0, 255, 0), 1);
+        draw_box(im, box.x0, box.y0, box.x1, box.y1, 2, 0, 0, 0);
         for(int l = 0; l < 5; l++)
         {
-            cv::circle(image, cv::Point(box.landmark.x[l], box.landmark.y[l]), 1, cv::Scalar(255, 0, 255), 2);
+            draw_circle(im, box.landmark.x[l], box.landmark.y[l], 3, 50, 125, 25);
         }
     }
 
-    cv::imwrite(sv_name, image);
-
+    save_image(im, "Mtcnn.jpg");
+    free_image(im);
     delete det;
 
     release_tengine();

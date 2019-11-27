@@ -29,6 +29,7 @@ This documentation describes the operator definitions.
     - [Scale](#scale)
     - [Slice](#slice)
     - [Softmax](#softmax)
+    - [FeatureMatch](#feature_match)
 
 
 ## BatchNorm
@@ -559,4 +560,24 @@ Softmax computes the softmax normalized values. The output tensor has the same s
     
     which axis to coerce the input into 2D, default is set to 1.
     
+## Feature_match
 
+Feature-match computes the results of X*W+b with X as input,W as weight and b as bias.
+Feature-match support update the weighti's shape and datas.
+
+**Inputs**:
+* `input`: float32
+* `weight`: float32
+* `bias`: float32
+
+**Outputs**:
+* `output`: float32
+
+**Parameters**:
+* `num_output`: int
+
+    number of output, which is the size of bias
+
+* `refreshed`: int
+
+    default value is 0, if set 1, refreshed the weight's data

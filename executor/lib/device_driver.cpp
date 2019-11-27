@@ -31,6 +31,8 @@
 
 namespace TEngine {
 
+template DriverManager SimpleObjectManagerWithLock<DriverManager, Driver*>::instance;
+
 bool DriverManager::RegisterDriver(const std::string& name, Driver* driver)
 {
     return SafeAdd(name, driver);
@@ -56,7 +58,7 @@ bool DriverManager::UnregisterDriver(Driver* driver)
 
 Driver* DriverManager::GetDriver(const std::string& name)
 {
-    Driver* driver=nullptr;
+    Driver* driver = nullptr;
 
     if(!SafeGet(name, driver))
         return nullptr;

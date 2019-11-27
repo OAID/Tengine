@@ -142,19 +142,19 @@ bool GraphExecutor::SetExecParam(Graph* graph)
     exec_attr_.model_layout = graph->GetModelLayout();
     exec_attr_.model_format = graph->GetModelFormat();
 
-    if(exec_attr_.graph_layout<0)
+    if(exec_attr_.graph_layout < 0)
     {
-        LOG_ERROR()<<"why graph layout is: "<<exec_attr_.graph_layout<<"\n";
+        LOG_ERROR() << "why graph layout is: " << exec_attr_.graph_layout << "\n";
     }
 
-    if(exec_attr_.model_layout<0)
+    if(exec_attr_.model_layout < 0)
     {
-        LOG_ERROR()<<"why model layout is: "<<exec_attr_.model_layout<<"\n";
+        LOG_ERROR() << "why model layout is: " << exec_attr_.model_layout << "\n";
     }
 
-    if(exec_attr_.model_format<0)
+    if(exec_attr_.model_format < 0)
     {
-        LOG_ERROR()<<"why model format is: "<<exec_attr_.model_format<<"\n";
+        LOG_ERROR() << "why model format is: " << exec_attr_.model_format << "\n";
     }
 
     // check graph layout variable
@@ -352,14 +352,12 @@ bool GraphExecutor::InferShape(void)
         {
             Tensor* input = node->GetInputTensor(j);
             TShape& shape = input->GetShape();
-
             if(shape.GetSize() == 0)
             {
                 XLOG_ERROR() << "infer shape failed on node: " << node->GetName()
                              << " due to input: " << input->GetName() << " size is zero\n";
                 return false;
             }
-
             if(shape.GetSize() < 0)
             {
                 skip = true;
@@ -530,9 +528,9 @@ bool GraphExecutor::Prerun(void)
 
     SetExecParam(graph_);
 
-    int optimize_only=0;
+    int optimize_only = 0;
 
-    GetGraphAttr("optimize_only",&optimize_only,sizeof(int));
+    GetGraphAttr("optimize_only", &optimize_only, sizeof(int));
 
     if(optimize_only)
     {
@@ -601,24 +599,22 @@ Graph* GraphExecutor::GetOptimizedGraph(void)
 
 bool GraphExecutor::GetOptimizeOnly(const char* name, void* val, int size)
 {
-    if(size!=sizeof(int))
+    if(size != sizeof(int))
         return false;
 
-    *(int *)val=optimize_only;
+    *( int* )val = optimize_only;
 
     return 0;
-    
 }
 
 bool GraphExecutor::SetOptimizeOnly(const char* name, const void* val, int size)
 {
-    const int * int_ptr=(const int *)val;
+    const int* int_ptr = ( const int* )val;
 
-    optimize_only=int_ptr[0];
-    
+    optimize_only = int_ptr[0];
+
     return true;
 }
-
 
 bool GraphExecutor::SetExecAttrEntry(const char* name, const void* val, int size)
 {
@@ -735,16 +731,14 @@ void GraphExecutor::InitAttrIO(void)
     attr_io_.RegSetFunc("fc_mt", set_func);
     attr_io_.RegSetFunc("pooling_mt", set_func);
 
+    auto set_opt_only_func = std::bind(&GraphExecutor::SetOptimizeOnly, this, std::placeholders::_1,
+                                       std::placeholders::_2, std::placeholders::_3);
 
-    auto set_opt_only_func=std::bind(&GraphExecutor::SetOptimizeOnly,this,std::placeholders::_1,std::placeholders::_2,
-    std::placeholders::_3);
+    auto get_opt_only_func = std::bind(&GraphExecutor::GetOptimizeOnly, this, std::placeholders::_1,
+                                       std::placeholders::_2, std::placeholders::_3);
 
-    auto get_opt_only_func=std::bind(&GraphExecutor::GetOptimizeOnly,this,std::placeholders::_1,std::placeholders::_2,
-    std::placeholders::_3);
-
-    attr_io_.RegSetFunc("optimize_only",set_opt_only_func);
-    attr_io_.RegGetFunc("optimize_only",get_opt_only_func);
-    
+    attr_io_.RegSetFunc("optimize_only", set_opt_only_func);
+    attr_io_.RegGetFunc("optimize_only", get_opt_only_func);
 
     // bailout
     auto set_func2 = std::bind(&GraphExecutor::BailoutSetAttr, this, std::placeholders::_1, std::placeholders::_2,

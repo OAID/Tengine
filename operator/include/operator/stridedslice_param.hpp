@@ -33,7 +33,21 @@ struct StridedSliceParam : public NamedParam
     int begin[4];
     int end[4];
     int stride[4];
+    int shrink_axis_mask;
+    int new_axis_mask;
+    int ellipsis_mask;
+    int begin_mask;
+    int end_mask;
+    DECLARE_PARSER_STRUCTURE(StridedSliceParam)
+    {
+        DECLARE_PARSER_ENTRY(shrink_axis_mask);
+        DECLARE_PARSER_ENTRY(new_axis_mask);
+        DECLARE_PARSER_ENTRY(ellipsis_mask);
+        DECLARE_PARSER_ENTRY(begin_mask);
+        DECLARE_PARSER_ENTRY(end_mask);
+    };
 };
+
 }    // namespace TEngine
 
 #endif

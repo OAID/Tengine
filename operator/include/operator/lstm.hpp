@@ -48,7 +48,7 @@ public:
     {
         return "init_h";
     }
-     const char* Geti2hKernelName(void)
+    const char* Geti2hKernelName(void)
     {
         return "i2h_weight";
     }
@@ -56,7 +56,7 @@ public:
     {
         return "i2h_bias";
     }
-     const char* Geth2hKernelName(void)
+    const char* Geth2hKernelName(void)
     {
         return "h2h_weight";
     }
@@ -68,7 +68,6 @@ public:
     {
         return "parameters";
     }
-    
 };
 
 }    // namespace TEngine

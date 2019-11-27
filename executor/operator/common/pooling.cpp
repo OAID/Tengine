@@ -220,7 +220,6 @@ struct PoolOps : public NodeOps
         // operator, param
         Pooling* pooling_op = dynamic_cast<Pooling*>(node->GetOp());
         PoolParam* param_ = pooling_op->GetParam();
-
         // input, output, shape
         Tensor* itensor = node->GetInputTensor(0);
         const TShape& ishape = itensor->GetShape();
@@ -260,9 +259,8 @@ struct PoolOps : public NodeOps
                     for(int n = 0; n < input_n; n++)
                     {
                         Generic_MaxPool(( float* )input_data + n * in_chw, ( float* )output_data + n * out_chw, input_c,
-                                        input_h, input_w, output_h, output_w, param_->kernel_h,
-                                        param_->kernel_w, param_->stride_h, param_->stride_w,
-                                        param_->pad_h0, param_->pad_w0);
+                                        input_h, input_w, output_h, output_w, param_->kernel_h, param_->kernel_w,
+                                        param_->stride_h, param_->stride_w, param_->pad_h0, param_->pad_w0);
                     }
                 }
             }
@@ -279,9 +277,9 @@ struct PoolOps : public NodeOps
                     for(int n = 0; n < input_n; n++)
                     {
                         Generic_AvgPool(( float* )input_data + n * in_chw, ( float* )output_data + n * out_chw, input_c,
-                                        input_h, input_w, output_h, output_w, param_->kernel_h,
-                                        param_->kernel_w, param_->stride_h, param_->stride_w,
-                                        param_->pad_h0, param_->pad_w0, param_->caffe_flavor);
+                                        input_h, input_w, output_h, output_w, param_->kernel_h, param_->kernel_w,
+                                        param_->stride_h, param_->stride_w, param_->pad_h0, param_->pad_w0,
+                                        param_->caffe_flavor != 0);
                     }
                 }
             }
@@ -312,15 +310,15 @@ struct PoolOps : public NodeOps
                     for(int n = 0; n < input_n; n++)
                     {
                         if(elem_size == 4)
-                            Generic_AvgPool_nhwc<float>(
-                                input_data + n * in_chw * 4, output_data + n * out_chw * 4, input_c, input_h, input_w,
-                                output_h, output_w, param_->kernel_h, param_->kernel_w,
-                                param_->stride_h, param_->stride_w, param_->pad_h0, param_->pad_w0);
+                            Generic_AvgPool_nhwc<float>(input_data + n * in_chw * 4, output_data + n * out_chw * 4,
+                                                        input_c, input_h, input_w, output_h, output_w, param_->kernel_h,
+                                                        param_->kernel_w, param_->stride_h, param_->stride_w,
+                                                        param_->pad_h0, param_->pad_w0);
                         if(elem_size == 1)
-                            Generic_AvgPool_nhwc<uint8_t>(
-                                input_data + n * in_chw, output_data + n * out_chw * 1, input_c, input_h, input_w,
-                                output_h, output_w, param_->kernel_h, param_->kernel_w,
-                                param_->stride_h, param_->stride_w, param_->pad_h0, param_->pad_w0);
+                            Generic_AvgPool_nhwc<uint8_t>(input_data + n * in_chw, output_data + n * out_chw * 1,
+                                                          input_c, input_h, input_w, output_h, output_w,
+                                                          param_->kernel_h, param_->kernel_w, param_->stride_h,
+                                                          param_->stride_w, param_->pad_h0, param_->pad_w0);
                     }
                 }
             }

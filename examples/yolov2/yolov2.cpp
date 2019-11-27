@@ -27,9 +27,8 @@
 #include <string>
 #include <vector>
 #include <typeinfo>
-#include "opencv2/imgproc/imgproc.hpp"
-#include "opencv2/highgui/highgui.hpp"
 #include "tengine_c_api.h"
+#include "tengine_operations.h"
 #include "common.hpp"
 #include <sys/time.h>
 #include "common.hpp"
@@ -223,10 +222,9 @@ void draw_detections(std::string& image_file, std::string& save_name, int num, f
                                  "bus",        "car",       "cat",       "chair",  "cow",         "diningtable",
                                  "dog",        "horse",     "motorbike", "person", "pottedplant", "sheep",
                                  "sofa",       "train",     "tvmonitor"};
-    cv::Mat img = cv::imread(image_file);
-    int img_h = img.size().height;
-    int img_w = img.size().width;
-    int line_width = img_w * 0.005;
+    image im = imread(image_file.c_str());
+    int img_h = im.h;
+    int img_w = im.w;
     int i, j;
     for(i = 0; i < num; ++i)
     {
@@ -240,6 +238,7 @@ void draw_detections(std::string& image_file, std::string& save_name, int num, f
                     class_id = j;
                 }
                 printf("%s\t:%.0f%%\n", class_names[class_id + 1], probs[i][j] * 100);
+
                 Box b = boxes[i];
                 int left = (b.x - b.w / 2.) * img_w;
                 int right = (b.x + b.w / 2.) * img_w;
@@ -253,84 +252,77 @@ void draw_detections(std::string& image_file, std::string& save_name, int num, f
                     top = 0;
                 if(bot > img_h - 1)
                     bot = img_h - 1;
+
                 printf("BOX:( %d , %d ),( %d , %d )\n", left, top, right, bot);
-                cv::rectangle(img, cv::Rect(left, top, (right - left), (bot - top)), cv::Scalar(0, 255, 255),
-                              line_width);
+
                 std::ostringstream score_str;
-                score_str << probs[i][j];
-                std::string label = std::string(class_names[class_id + 1]) + ": " + score_str.str();
-                int baseLine = 0;
-                cv::Size label_size = cv::getTextSize(label, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
-                cv::rectangle(img,
-                              cv::Rect(cv::Point(left, top - label_size.height),
-                                       cv::Size(label_size.width, label_size.height + baseLine)),
-                              cv::Scalar(0, 255, 255), CV_FILLED);
-                cv::putText(img, label, cv::Point(left, top), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 0));
+                score_str << probs[i][j] * 100;
+                std::string labelstr = std::string(class_names[class_id + 1]) + ": " + std::string(score_str.str());
+                put_label(im, labelstr.c_str(), 0.02, left, top, 255, 255, 125);
+                draw_box(im, left, top, right, bot, 2, 125, 0, 125);
             }
         }
     }
 
-    cv::imwrite(save_name, img);
+    save_image(im, "Yolov2_Image.jpg");
+    free_image(im);
     std::cout << "======================================\n";
-    std::cout << "[DETECTED IMAGE SAVED]:\t" << save_name << "\n";
+    std::cout << "[DETECTED IMAGE SAVED]:\t"
+              << "Yolov2_Image"
+              << "\n";
     std::cout << "======================================\n";
 }
 
 void preprocess_yolov2(std::string& image_file, float* input_data, int img_h, int img_w, int* raw_h, int* raw_w)
 {
-    cv::Mat img = cv::imread(image_file, -1);
-    if(img.empty())
+    image im = load_image_stb(image_file.c_str(), 0);
+
+    for(int c = 0; c < im.c; c++)
     {
-        std::cerr << "failed to read image file " << image_file << "\n";
-        return;
+        for(int h = 0; h < im.h; h++)
+        {
+            for(int w = 0; w < im.w; w++)
+            {
+                int newIndex = ( c )*im.h * im.w + h * im.w + w;
+                im.data[newIndex] = im.data[newIndex] ;
+            }
+        }
     }
 
-    *raw_h = img.rows;
-    *raw_w = img.cols;
+    *raw_h = im.h;
+    *raw_w = im.w;
 
-    int new_w = img.cols;
-    int new_h = img.rows;
-    if((( float )img_w / img.cols) < (( float )img_h / img.rows))
+    int new_w = im.w;
+    int new_h = im.h;
+    if((( float )img_w / im.w) < (( float )img_h / im.h))
     {
         new_w = img_w;
-        new_h = (img.rows * img_w) / img.cols;
+        new_h = (im.h * img_w) / im.w;
     }
     else
     {
         new_h = img_h;
-        new_w = (img.cols * img_h) / img.rows;
+        new_w = (im.w * img_h) / im.h;
     }
-
-    img.convertTo(img, CV_32FC3);
-    img = img.mul(0.00392156862745098f);
-
-    std::vector<cv::Mat> channels;
-    cv::split(img, channels);
-    cv::Mat temp = channels[2];
-    channels[2] = channels[0];
-    channels[0] = temp;
-    cv::merge(channels, img);
-    cv::Mat resize_img;
-    cv::Mat dst_img;
-    cv::resize(img, resize_img, cv::Size(new_w, new_h));
 
     int delta_h = (img_h - new_h) * 0.5f;
     int delta_w = (img_w - new_w) * 0.5f;
-    cv::copyMakeBorder(resize_img, dst_img, delta_h, delta_h, delta_w, delta_w, cv::BORDER_CONSTANT, cv::Scalar(0.5f));
 
-    float* img_data = ( float* )dst_img.data;
-    int hw = img_h * img_w;
+    image imRes = resize_image(im, new_w, new_h);
+    image resImg = copyMaker(imRes, delta_h, delta_h, delta_w, delta_w, 0.5f);
     for(int h = 0; h < img_h; h++)
     {
         for(int w = 0; w < img_w; w++)
         {
             for(int c = 0; c < 3; c++)
             {
-                input_data[c * hw + h * img_w + w] = *img_data;
-                img_data++;
+                int hw = img_w * img_h;
+                input_data[c * hw + h * img_w + w] = (resImg.data[c * hw + h * img_w + w]) * 0.0039;
             }
         }
     }
+    free_image(imRes);    
+
 }
 
 int main(int argc, char** argv)
@@ -479,7 +471,8 @@ int main(int argc, char** argv)
 
         std::vector<float> param_biases;
 
-        if(get_node_attr_generic(node, "biases", typeid(std::vector<float>).name(), &param_biases, sizeof(param_biases)) < 0)
+        if(get_node_attr_generic(node, "biases", typeid(std::vector<float>).name(), &param_biases,
+                                 sizeof(param_biases)) < 0)
         {
             std::cout << "cannot get bias settings\n";
             return 1;

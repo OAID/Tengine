@@ -760,6 +760,10 @@ protected:
     int policy_;
 };
 
+class DriverManager;
+
+extern template DriverManager SimpleObjectManagerWithLock<DriverManager, Driver*>::instance;
+
 class DriverManager : public SimpleObjectManagerWithLock<DriverManager, Driver*>
 {
 public:

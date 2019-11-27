@@ -32,11 +32,10 @@
 #include "tengine_c_api.h"
 #include "common_util.hpp"
 #include "image_process.hpp"
-#include "opencv2/imgproc/imgproc.hpp"
-#include "opencv2/highgui/highgui.hpp"
 
-const char* text_file = "./models/mobilenet-symbol.json";
-const char* model_file = "./models/mobilenet-0000.params";
+//const char* text_file = "./models/1.json";
+const char* text_file = "./models/mx_mobile.tmfile";
+const char* model_file = "./models/1.params";
 const char* image_file = "./tests/images/cat.jpg";
 const char* label_file = "./models/synset_words.txt";
 
@@ -91,7 +90,8 @@ int main(int argc, char* argv[])
 
    std::cout<<"Load model successfully\n";
 #endif
-    graph_t graph = create_graph(nullptr, "mxnet", text_file, model_file);
+//    graph_t graph = create_graph(nullptr, "mxnet", text_file,model_file);
+    graph_t graph = create_graph(nullptr, "tengine", text_file);
 
     if(graph == nullptr)
     {
@@ -131,8 +131,6 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    for(int i = 0; i < 10; i++)
-        run_graph(graph, 1);
 
     // benchmark start here
 

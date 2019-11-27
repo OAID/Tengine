@@ -39,19 +39,19 @@ bool Split::InferShape(const std::vector<TShape>& ishape, std::vector<TShape>& o
     }
     else
     {
-        if(param_.split_sizes_.size()!= 0)
+        if(param_.split_sizes_.size() != 0)
         {
             int sumcheck = 0;
             int input_slice_num = input_dim[axis];
-            for (unsigned int i = 0; i < param_.split_sizes_.size(); ++i)
+            for(unsigned int i = 0; i < param_.split_sizes_.size(); ++i)
             {
-                sumcheck+=param_.split_sizes_[i];
+                sumcheck += param_.split_sizes_[i];
             }
-            if(sumcheck!=input_slice_num)
+            if(sumcheck != input_slice_num)
             {
                 return false;
             }
-            for (unsigned int i = 0; i < param_.split_sizes_.size(); ++i)
+            for(unsigned int i = 0; i < param_.split_sizes_.size(); ++i)
             {
                 input_dim[axis] = (param_.split_sizes_[i]);
                 oshape[i].SetDim(input_dim);
@@ -64,29 +64,31 @@ bool Split::InferShape(const std::vector<TShape>& ishape, std::vector<TShape>& o
             int split_shape = 0;
             std::vector<int> dim;
             dim = ishape[0].GetDim();
-            if(dim[axis]% split_dim!=0)
+            if(dim[axis] % split_dim != 0)
                 return false;
-            split_shape= dim[axis]/split_dim;
-            input_dim[axis]=split_shape;
+            split_shape = dim[axis] / split_dim;
+            input_dim[axis] = split_shape;
+            if(param_.squeeze_axis == 1 && split_shape == 1)
+            {
+                input_dim.erase(input_dim.begin() + axis);
+            }
             for(unsigned int i = 0; i < oshape.size(); i++)
             {
                 oshape[i].SetDim(input_dim);
                 oshape[i].SetDataLayout(shape.GetDataLayout());
             }
         }
-
     }
-
 
     return true;
 }
 void Split::SetSchema(void)
 {
     Input({"input:float32"})
-    .Output({"output:float32"})
-    .SetAttr("axis", 0)
-    .SetAttr("split_dim", 1)
-    .SetAttr("is_caffe", false)
-    .SetDoc(R"DOC(Split Operator)DOC");
+        .Output({"output:float32"})
+        .SetAttr("axis", 0)
+        .SetAttr("split_dim", 1)
+        .SetAttr("is_caffe", false)
+        .SetDoc(R"DOC(Split Operator)DOC");
 }
 }    // namespace TEngine

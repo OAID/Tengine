@@ -29,13 +29,13 @@
 #include <fstream>
 #include <iomanip>
 #include <vector>
-#include <opencv2/opencv.hpp>
 
 #include "prof_utils.hpp"
 #include "tengine_c_api.h"
+#include "tengine_operations.h"
 #include "tengine_config.hpp"
 
-#define RUN_TIME 5000
+#define RUN_TIME 10
 
 using namespace std;
 
@@ -64,6 +64,26 @@ using namespace TEngine;
 
 void get_input_data(std::string& image_file, float* input_data, int img_h, int img_w, float* mean, float* scale)
 {
+    image sample = imread(image_file.c_str());
+    if(sample.data == 0)
+    {
+        std::cerr << "Failed to read image file " << image_file << ".\n";
+        return;
+    }
+
+    image img = resize_image(sample, img_h, img_w);
+    img = rgb2bgr_premute(img);
+    for(int c = 0; c < img.c; c++){
+        for(int i = 0; i < img_h; i++){
+            for(int j = 0; j < img_w; j++){
+                int index = c*img_h*img_w + i*img_w + j;
+                input_data[index] = (img.data[index] - mean[c]) * scale[c];
+            }
+        }
+    }
+    free(img.data);
+    free(sample.data);
+    /*
     cv::Mat sample = cv::imread(image_file, -1);
     if(sample.empty())
     {
@@ -86,6 +106,7 @@ void get_input_data(std::string& image_file, float* input_data, int img_h, int i
 
     cv::resize(img, img, cv::Size(img_h, img_w));
     img.convertTo(img, CV_32FC3);
+
     float* img_data = ( float* )img.data;
     int hw = img_h * img_w;
     for(int h = 0; h < img_h; h++)
@@ -94,12 +115,12 @@ void get_input_data(std::string& image_file, float* input_data, int img_h, int i
         {
             for(int c = 0; c < 3; c++)
             {
-                input_data[c * hw + h * img_w + w] = *img_data - mean[c];
-                input_data[c * hw + h * img_w + w] = input_data[c * hw + h * img_w + w] * scale[c];
+                input_data[c * hw + h * img_w + w] = (*img_data - mean[c]) * scale[c];
                 img_data++;
             }
         }
     }
+    */
 }
 
 void split(std::string& s, std::string delim, std::vector<std::string>* ret)
@@ -192,7 +213,6 @@ int main(int argc, char* argv[])
 
     int img_w = atoi(wh[0].c_str());
     int img_h = atoi(wh[1].c_str());
-
     int img_size = img_h * img_w * 3;
     float* input_data = ( float* )malloc(sizeof(float) * img_size);
 
@@ -208,8 +228,9 @@ int main(int argc, char* argv[])
         std::cout << "errno: " << get_tengine_errno() << "\n";
         return 1;
     }
-
-    tensor_t input_tensor = get_graph_tensor(graph, input_tensor_name.c_str());
+    int node_idx = 0;
+    int tensor_idx = 0;
+    tensor_t input_tensor = get_graph_input_tensor(graph, node_idx, tensor_idx);
 
     if(input_tensor == nullptr)
     {
@@ -221,7 +242,7 @@ int main(int argc, char* argv[])
 
     set_tensor_shape(input_tensor, dims, 4);
 
-    tensor_t output_tensor = get_graph_tensor(graph, output_tensor_name.c_str());
+    tensor_t output_tensor = get_graph_output_tensor(graph, 0,0);
 
     /* setup output buffer */
 
@@ -257,6 +278,7 @@ int main(int argc, char* argv[])
         std::vector<int> top_N = Argmax(result, 5);
 
         int right_idx = labels[i];
+
         if(right_idx == top_N[0])
         {
             top1++;

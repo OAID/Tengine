@@ -25,10 +25,7 @@
 #include <iomanip>
 #include <string>
 #include "tengine_c_api.h"
-#include "tengine_config.hpp"
 #include <sys/time.h>
-
-using namespace TEngine;
 
 int main(int argc, char* argv[])
 {
@@ -76,9 +73,11 @@ int main(int argc, char* argv[])
     // if use gpu
     int use_gpu = 0;
     const char* gpu_flag = std::getenv("USE_GPU");
-    if (gpu_flag) use_gpu= atoi(gpu_flag);
-    if (use_gpu) set_graph_device(graph, "acl_opencl");
-    // 
+    if(gpu_flag)
+        use_gpu = atoi(gpu_flag);
+    if(use_gpu)
+        set_graph_device(graph, "acl_opencl");
+    //
 
     int ret_prerun = prerun_graph(graph);
     if(ret_prerun < 0)

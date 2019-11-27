@@ -31,13 +31,13 @@
 #include "graph.hpp"
 #include "tengine_errno.hpp"
 #include "operator/add_n.hpp"
-#include "kernel/ref_add_n/ref_addn_kernel.h"
+#include "kernel/add_n/ref_addn_kernel.h"
 #include <cmath>
 
 namespace TEngine {
 
 namespace RefAddNImpl {
-//const int default_prio = 1500;
+// const int default_prio = 1500;
 struct RefAddNOps : public NodeOps
 {
     bool Prerun(Node* node) override;
@@ -57,23 +57,22 @@ struct RefAddNOps : public NodeOps
 
 void RefAddNOps::InitRegistry(void)
 {
-    #ifdef CONFIG_KERNEL_FP32
-    kernel_registry.Register((ref_add_n_kernel_t)ref_addn_fp32,TENGINE_LAYOUT_NCHW,TENGINE_DT_FP32);
-    kernel_registry.Register((ref_add_n_kernel_t)ref_addn_fp32,TENGINE_LAYOUT_NHWC,TENGINE_DT_FP32);
-    #endif
-    #ifdef CONFIG_KERNEL_FP16
-    kernel_registry.Register((ref_add_n_kernel_t)ref_addn_fp16,TENGINE_LAYOUT_NCHW,TENGINE_DT_FP16);
-    kernel_registry.Register((ref_add_n_kernel_t)ref_addn_fp16,TENGINE_LAYOUT_NHWC,TENGINE_DT_FP16);
-    #endif
-    #ifdef CONFIG_KERNEL_INT8
-    kernel_registry.Register((ref_add_n_kernel_t)ref_addn_int8,TENGINE_LAYOUT_NCHW,TENGINE_DT_INT8);
-    kernel_registry.Register((ref_add_n_kernel_t)ref_addn_int8,TENGINE_LAYOUT_NHWC,TENGINE_DT_INT8);
-    #endif
-    #ifdef CONFIG_KERNEL_UINT8
-    kernel_registry.Register((ref_add_n_kernel_t)ref_addn_uint8,TENGINE_LAYOUT_NCHW,TENGINE_DT_UINT8);
-    kernel_registry.Register((ref_add_n_kernel_t)ref_addn_uint8,TENGINE_LAYOUT_NHWC,TENGINE_DT_UINT8);
-    #endif
-    
+#ifdef CONFIG_KERNEL_FP32
+    kernel_registry.Register(( ref_add_n_kernel_t )ref_addn_fp32, TENGINE_LAYOUT_NCHW, TENGINE_DT_FP32);
+    kernel_registry.Register(( ref_add_n_kernel_t )ref_addn_fp32, TENGINE_LAYOUT_NHWC, TENGINE_DT_FP32);
+#endif
+#ifdef CONFIG_KERNEL_FP16
+    kernel_registry.Register(( ref_add_n_kernel_t )ref_addn_fp16, TENGINE_LAYOUT_NCHW, TENGINE_DT_FP16);
+    kernel_registry.Register(( ref_add_n_kernel_t )ref_addn_fp16, TENGINE_LAYOUT_NHWC, TENGINE_DT_FP16);
+#endif
+#ifdef CONFIG_KERNEL_INT8
+    kernel_registry.Register(( ref_add_n_kernel_t )ref_addn_int8, TENGINE_LAYOUT_NCHW, TENGINE_DT_INT8);
+    kernel_registry.Register(( ref_add_n_kernel_t )ref_addn_int8, TENGINE_LAYOUT_NHWC, TENGINE_DT_INT8);
+#endif
+#ifdef CONFIG_KERNEL_UINT8
+    kernel_registry.Register(( ref_add_n_kernel_t )ref_addn_uint8, TENGINE_LAYOUT_NCHW, TENGINE_DT_UINT8);
+    kernel_registry.Register(( ref_add_n_kernel_t )ref_addn_uint8, TENGINE_LAYOUT_NHWC, TENGINE_DT_UINT8);
+#endif
 }
 
 bool RefAddNOps::Prerun(Node* node)
@@ -84,11 +83,11 @@ bool RefAddNOps::Prerun(Node* node)
     unsigned int input_num = node->GetInputNum();
     op_param.input_size = input_tensor->GetTotalSize();
     op_param.in_num = input_num;
-    op_param.in_scale=new float[input_num];
-    op_param.in_zero =new int[input_num];
+    op_param.in_scale = new float[input_num];
+    op_param.in_zero = new int[input_num];
     in_data_ptrs = new uint8_t*[input_num];
 
-    if(!kernel_registry.GetKernel(kernel_run,layout,data_type))
+    if(!kernel_registry.GetKernel(kernel_run, layout, data_type))
     {
         set_tengine_errno(ENOENT);
         return false;
@@ -110,24 +109,24 @@ bool RefAddNOps::Run(Node* node)
             op_param.in_scale[i] = (*in_quant)[0].scale;
             op_param.in_zero[i] = (*in_quant)[0].zero_point;
         }
-        
-        in_data_ptrs[i] = (uint8_t*)get_tensor_mem(input_tensor);
+
+        in_data_ptrs[i] = ( uint8_t* )get_tensor_mem(input_tensor);
     }
-    
+
     Tensor* output_tensor = node->GetOutputTensor(0);
-    uint8_t* out_data = (uint8_t*)get_tensor_mem(output_tensor);
+    uint8_t* out_data = ( uint8_t* )get_tensor_mem(output_tensor);
     memset(out_data, 0, op_param.input_size);
-    if( data_type == TENGINE_DT_UINT8 )
+    if(data_type == TENGINE_DT_UINT8)
     {
         auto* o_quant = output_tensor->GetQuantParam();
         op_param.out_scale = (*o_quant)[0].scale;
         op_param.out_zero = (*o_quant)[0].zero_point;
     }
     int ret = kernel_run(in_data_ptrs, out_data, &op_param);
-    if(ret<0)
+    if(ret < 0)
         return false;
 
-    if( data_type == TENGINE_DT_INT8 )
+    if(data_type == TENGINE_DT_INT8)
     {
         Tensor* o_tensor = node->GetOutputTensor(0);
         auto* o_quant = o_tensor->GetQuantParam();
