@@ -410,18 +410,30 @@ bool LoadTmReshapeOp(StaticGraph* graph, StaticNode* node, void* const start_ptr
 
     ReshapeParam param = any_cast<ReshapeParam>(OpManager::GetOpDefParam(op_str));
     const TM_ReshapeParam* tm_param = GetTmPtr<TM_ReshapeParam>(start_ptr, tm_op->offset_t_param);
+    
+        // set the reverse
+    if(tm_param->reverse)
+        param.reverse = true;
+    else 
+        param.reverse =false;
+    // set the is_mxnet
+    if(tm_param->is_mxnet)
+        param.is_mxnet = true;
+    else 
+        param.is_mxnet = false;
 
-    param.dim_0 = tm_param->dim_0;
-    param.dim_1 = tm_param->dim_1;
-    param.dim_2 = tm_param->dim_2;
-    param.dim_3 = tm_param->dim_3;
-    param.dim_size = tm_param->dim_size;
-    param.axis = tm_param->axis;
+    if(tm_param->offset_re_shape != NOT_SET)
+    {    
+        const TM_Vector_dims* v_re_shape = GetTmPtr<TM_Vector_dims>(start_ptr, tm_param->offset_re_shape);
+        for(unsigned int i = 0; i < v_re_shape->v_num; i++) 
+            param.re_shape.push_back(v_re_shape->dims[i]);
+    } 
 
     StaticOp* op = CreateStaticOp(graph, op_str);
     SetOperatorParam(op, param);
     SetNodeOp(node, op);
     return true;
+
 }
 
 bool LoadTmROIPoolingOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM_Operator* tm_op)

@@ -112,13 +112,15 @@ bool SigmoidOps::Run(Node* node)
     const TShape& shape = input_tensor->GetShape();
     int elem_num = shape.GetSize();
     void* data = get_tensor_mem(input_tensor);
+    void* out_data =get_tensor_mem(output_tensor);
     if(input_tensor->GetDataType() == TENGINE_DT_INT8 || input_tensor->GetDataType() == TENGINE_DT_UINT8)
     {
         if(get_scale_zero(input_tensor, output_tensor, &op_param) < 0)
             return false;
     }
 
-    int ret = kernel_run(data, elem_num, &op_param);
+    int ret = kernel_run(data, out_data, elem_num, &op_param);
+    
 
     if(input_tensor->GetDataType() == TENGINE_DT_INT8)
     {

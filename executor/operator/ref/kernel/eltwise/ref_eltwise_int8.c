@@ -385,17 +385,15 @@ static int ref_eltwise_int8(int8_t* input0, int8_t* input1, int8_t* output, eltw
         default:
             break;
     }
-    float output_max = 0.0f;
+
     for(int i = 0; i < out_size; i++)
     {
-        if(output_max < fabs(output_buf[i]))
-            output_max = fabs(output_buf[i]);
-    }
-    param->scale[2] = output_max / 127;
-    float tmp_scale = 127 / output_max;
-    for(int i = 0; i < out_size; i++)
-    {
-        output[i] = round(output_buf[i] * tmp_scale);
+        int8_t tmp = round(output_buf[i] / param->scale[2]);
+        if (tmp > 127)
+            tmp = 127;
+        else if (tmp < -127)
+            tmp = -127;
+        output[i] = tmp;
     }
 
     return 0;

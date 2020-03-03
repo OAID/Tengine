@@ -37,8 +37,44 @@ namespace TEngine {
 
 namespace BatchNormImpl64 {
 
+void batchnorm_kernel(int i, int id, void* data, const float* input, float* output, float* scale_mean, float* scale_var, int channel_size)
+{
+    int step = ((int*)data)[0];
+    for(int c = 0; c < step; c++)
+    {
+        int cur_c = id * step + c;
+        float s_mean = scale_mean[cur_c];
+        float s_var = scale_var[cur_c];
+        float32x4_t _mean = vdupq_n_f32(s_mean);
+        float32x4_t _var = vdupq_n_f32(s_var);
+        int offset = cur_c * channel_size;
+        const float* input_ptr = input + offset;
+        float* output_ptr = output + offset;
+
+        // output[offset]= input[offset]*scale_var_inv[c] - scale_mean[c];
+        for(int l = 0; l < (channel_size & -4); l += 4)
+        {
+            float32x4_t _input = vld1q_f32(input_ptr);
+            vst1q_f32(output_ptr, vmlaq_f32(_mean, _input, _var));
+            input_ptr += 4;
+            output_ptr += 4;
+        }
+        for(int l = channel_size & ~3; l < channel_size; l++)
+        {
+            *output_ptr = (*input_ptr) * s_var + s_mean;
+            input_ptr++;
+            output_ptr++;
+        }
+    }
+}
+
 struct BNOps : public NodeOps
 {
+    BNOps()
+    {
+        name_ = "arm_batchnorm_fp32";
+    }
+
     bool OnBind(Node* node)
     {
         // set the inplace feature
@@ -119,33 +155,33 @@ struct BNOps : public NodeOps
         float* scale_mean = any_cast<float*>(node->GetAttr("scale_mean"));
         float* scale_var_inv = any_cast<float*>(node->GetAttr("scale_var_inv"));
 
+
+        int cpu_number = cpu_info->GetCPUNumber();
+        int block = channel_num;
+        block = block > 0 ? block : 1;
+        int num_task = cpu_number < block ? cpu_number : block;
+        int step = channel_num / num_task;
         /* only use mean and var */
         for(int i = 0; i < batch_number; i++)
         {
-            for(int c = 0; c < channel_num; c++)
-            {
-                float s_mean = scale_mean[c];
-                float s_var = scale_var_inv[c];
-                float32x4_t _mean = vdupq_n_f32(s_mean);
-                float32x4_t _var = vdupq_n_f32(s_var);
-                int offset = i * img_size + c * channel_size;
-                const float* input_ptr = input + offset;
-                float* output_ptr = output + offset;
+            const float* cur_input = input + i * img_size;
+            float* cur_output = output + i * img_size;
 
-                for(int l = 0; l < channel_size - 3; l += 4)
-                {
-                    float32x4_t _input = vld1q_f32(input_ptr);
-                    vst1q_f32(output_ptr, vmlaq_f32(_mean, _input, _var));
-                    input_ptr += 4;
-                    output_ptr += 4;
-                    // output[offset]= input[offset]*scale_var_inv[c] - scale_mean[c];
-                }
-                for(int l = channel_size & ~3; l < channel_size; l++)
-                {
-                    *output_ptr = (*input_ptr) * s_var + s_mean;
-                    input_ptr++;
-                    output_ptr++;
-                }
+            if(num_task == 1)
+                batchnorm_kernel( 0, 0, &step, cur_input, cur_output, scale_mean, scale_var_inv, channel_size);
+            else
+            {
+                MULTI_THREAD_START(num_task, step, p_id, p_param)
+                    batchnorm_kernel( 0, p_id, p_param, cur_input, cur_output, scale_mean, scale_var_inv, channel_size);
+                MULTI_THREAD_END();
+            }
+            if(num_task * step != channel_num)
+            {
+                int offset = num_task * step;
+                int remain_num = channel_num - offset;
+                cur_input += offset * channel_size;
+                cur_output += offset * channel_size;
+                batchnorm_kernel( 0, 0, &remain_num, cur_input, cur_output, scale_mean + offset, scale_var_inv + offset, channel_size);
             }
         }
 

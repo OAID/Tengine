@@ -27,6 +27,7 @@
 .text
 .align 5
 .global bn_scale_relu_neon
+.hidden bn_scale_relu_neon
 .type   bn_scale_relu_neon, %function
 
 bn_scale_relu_neon:

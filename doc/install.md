@@ -9,7 +9,7 @@ This guide gives instructions on how to build and test Tengine on Linux system. 
 
 To get started, git clone the latest Tengine repository.
 	
-	git clone --recurse-submodules https://github.com/OAID/tengine/
+	git clone https://github.com/OAID/tengine/
 	
 ### **1.2 Install dependent libraries**
 

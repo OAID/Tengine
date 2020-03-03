@@ -1,6 +1,6 @@
 
 
-int ref_sigmoid_int8(int8_t* data, int size, sigmoid_param* param)
+int ref_sigmoid_int8(int8_t* data, int8_t* out_data, int size, sigmoid_param* param)
 {
     float* tmp = ( float* )malloc(size * sizeof(float));
     float max_val = 0.f;
@@ -21,7 +21,7 @@ int ref_sigmoid_int8(int8_t* data, int size, sigmoid_param* param)
 
     for(int i = 0; i < size; i++)
     {
-        data[i] = round(tmp[i] / out_scale);
+        out_data[i] = round(tmp[i] / out_scale);
     }
     param->scale[1] = out_scale;
 

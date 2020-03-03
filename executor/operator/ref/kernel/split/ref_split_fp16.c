@@ -18,11 +18,11 @@ static int ref_split_fp16(const __fp16* in_data, __fp16** out_data, struct split
     {
         __fp16* output = ( __fp16* )out_data[i];
         int out_slice = 0;
-        if(param->squeeze_dim == 1)
-        {
-            out_slice = 1;
-        }
-        else
+        // if(param->squeeze_dim == 1)
+        // {
+        //     out_slice = 1;
+        // }
+        // else
         {
             out_slice = param->output_shape[i].dim[slice_axis];
         }

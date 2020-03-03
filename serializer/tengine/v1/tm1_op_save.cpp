@@ -388,13 +388,29 @@ static tm_uoffset_t SaveTmReshapeOp(void* const start_ptr, tm_uoffset_t* cur_pos
 {
     ReshapeParam* p = (dynamic_cast<Reshape*>(op))->GetParam();
     TM_ReshapeParam tm_param;
-
-    tm_param.dim_0 = p->dim_0;
-    tm_param.dim_1 = p->dim_1;
-    tm_param.dim_2 = p->dim_2;
-    tm_param.dim_3 = p->dim_3;
-    tm_param.dim_size = p->dim_size;
-    tm_param.axis = p->axis;
+    if(p->reverse)
+        tm_param.reverse = 1;
+    else
+        tm_param.reverse = 0;
+    if(p->is_mxnet)
+        tm_param.is_mxnet = 1;
+    else
+        tm_param.is_mxnet = 0;
+    
+    if((p->re_shape).size())
+    {   
+        size_t vector_size = sizeof(tm_size_t) + sizeof(int32_t) * (p->re_shape).size();
+        TM_Vector_dims* v_re_shape = ( TM_Vector_dims* )malloc(vector_size);
+        v_re_shape->v_num = (p->re_shape).size();
+        for(unsigned int i = 0; i < (p->re_shape).size(); i++)
+        {   
+            v_re_shape->dims[i] = p->re_shape[i];
+        }   
+        tm_param.offset_re_shape = WriteTmObject(start_ptr, cur_pos, v_re_shape, vector_size);
+        free(v_re_shape);
+    }   
+    else
+        tm_param.offset_re_shape = NOT_SET;
 
     TM_Operator tm_op;
     SetTmOperator(&tm_op, TM_OPTYPE_RESHAPE, NOT_SET,

@@ -1,6 +1,6 @@
 
 
-int ref_sigmoid_fp16(__fp16* data, int size, sigmoid_param* param)
+int ref_sigmoid_fp16(__fp16* data, __fp16* out_data, int size, sigmoid_param* param)
 {
     for(int i = 0; i < size; i++)
     {
@@ -9,13 +9,13 @@ int ref_sigmoid_fp16(__fp16* data, int size, sigmoid_param* param)
         float realcompt = SIGMOID_MIN(realdata, 30.f);
         realcompt = SIGMOID_MAX(realdata, -30.f);
         realcompt = 1 / (1 + exp(-realcompt));
-        data[i] = fp32_to_fp16(realcompt);
+        out_data[i] = fp32_to_fp16(realcompt);
 
 #else
         data[i] = SIGMOID_MIN(data[i], 30.0f);
         data[i] = SIGMOID_MAX(data[i], -30.0f);
 
-        data[i] = 1 / (1 + exp(-data[i]));
+        out_data[i] = 1 / (1 + exp(-data[i]));
 #endif
     }
     return 0;

@@ -48,14 +48,16 @@ out_width = ceil(float(in_width - filter_width + 1) / float(strides[2]))
 
 bool Convolution::InferShape(const std::vector<TShape>& ishape, std::vector<TShape>& oshape, int layout)
 {
-    if(ishape.size() < 2)
+    if(ishape.size() < 2){
         return false;
+    }
 
     const TShape& input_shape = ishape[0];
     const TShape& weight_shape = ishape[1];
 
-    if(input_shape.GetDim().size() != 4 || weight_shape.GetDim().size() != 4)
+    if(input_shape.GetDim().size() != 4 || weight_shape.GetDim().size() != 4){
         return false;
+    }
 
     int input_n = input_shape.GetN();
     int input_c = input_shape.GetC();

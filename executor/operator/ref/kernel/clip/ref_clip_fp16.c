@@ -22,33 +22,37 @@
  * Author: bingzhang@openailab.com
  */
 
-int ref_clip_fp16(__fp16* data, int size, float max, float min, float scale, int zero_point)
+int ref_clip_fp16(__fp16* in_data, __fp16* data, int size, float max, float min, float scale, int zero_point)
 {
 /* for arm32 && x86 */
 #if !defined(__ARM_ARCH) || __ARM_ARCH < 8
 
     for(int i = 0; i < size; i++)
     {
-        if(fp16_to_fp32(data[i]) <= min)
+        if(fp16_to_fp32(in_data[i]) <= min)
         {
             data[i] = fp32_to_fp16(min);
         }
-        if(fp16_to_fp32(data[i]) >= max)
+        else if(fp16_to_fp32(in_data[i]) >= max && max != 0)
         {
             data[i] = fp32_to_fp16(max);
+        } else {
+            data[i] = in_data[i];
         }
     }
 
 #else
     for(int i = 0; i < size; i++)
     {
-        if(data[i] <= min)
+        if(in_data[i] <= min)
         {
             data[i] = min;
         }
-        if(data[i] >= max)
+        else if(in_data[i] >= max)
         {
             data[i] = max;
+        } else {
+            data[i] = in_data[i];
         }
     }
 #endif

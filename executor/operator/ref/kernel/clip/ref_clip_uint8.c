@@ -22,18 +22,20 @@
  * Author: bingzhang@openailab.com
  */
 
-int ref_clip_uint8(uint8_t* data, int size, float max, float min, float scale, int zero_point)
+int ref_clip_uint8(uint8_t* in_data, uint8_t* data, int size, float max, float min, float scale, int zero_point)
 {
     for(int i = 0; i < size; i++)
     {
-        float real_data = data[i] * scale;
+        float real_data = in_data[i] * scale;
         if(real_data <= min * scale)
         {
             data[i] = round(min / scale) + zero_point;
         }
-        if(real_data >= max * scale)
+        else if(real_data >= max * scale && max != 0)
         {
             data[i] = round(min / scale) + zero_point;
+        }else {
+            data[i] = round(real_data / scale) + zero_point;
         }
     }
     return 0;

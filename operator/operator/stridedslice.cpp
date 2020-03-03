@@ -22,7 +22,7 @@
  * Author: chunyinglv@openailab.com
  */
 #include "operator/stridedslice.hpp"
-
+#include <math.h>
 namespace TEngine {
 
 // bool StridedSlice::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEngine::TShape>& oshape, int
@@ -58,10 +58,11 @@ bool StridedSlice::InferShape(const std::vector<TEngine::TShape>& ishape, std::v
         int delta_1=(-param_.begin[1] + param_.end[1])<0? param_.begin[1] -param_.end[1] :-param_.begin[1] + param_.end[1];
         int delta_2=(-param_.begin[2] + param_.end[2])<0? param_.begin[2] -param_.end[2] :-param_.begin[2] + param_.end[2];
         int delta_3=(-param_.begin[3] + param_.end[3])<0? param_.begin[3] -param_.end[3] :-param_.begin[3] + param_.end[3];
-        o_dim[0]= (in_dim[0]-delta_0)/param_.stride[0];
-        o_dim[1]= (in_dim[1]-delta_1)/param_.stride[1];
-        o_dim[2]= (in_dim[2]-delta_2)/param_.stride[2];
-        o_dim[3]= (in_dim[3]-delta_3)/param_.stride[3];
+        o_dim[0]= ceil(((float)in_dim[0]-(float)delta_0)/(float)param_.stride[0]);
+        o_dim[1]= ceil(((float)in_dim[1]-(float)delta_1)/(float)param_.stride[1]);
+        o_dim[2]= ceil(((float)in_dim[2]-(float)delta_2)/(float)param_.stride[2]);
+        o_dim[3]= ceil(((float)in_dim[3]-(float)delta_3)/(float)param_.stride[3]);
+
 
         TShape shape;
         shape.SetDim(o_dim);

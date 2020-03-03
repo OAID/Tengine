@@ -22,12 +22,19 @@
  * Author: zpluo@openailab.com
  */
 #include "operator/reverse.hpp"
+#include "static_graph.hpp"
+#include <cmath>
 
 namespace TEngine {
-bool ReverseV2::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEngine::TShape>& oshape, int layout)
+bool Reverse::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEngine::TShape>& oshape, int layout)
 {
     const TShape& input = ishape[0];
     const std::vector<int>& in_dim = input.GetDim();
+
+    if(( int )in_dim.size() != 4)
+    {
+        return false;
+    }
 
     TShape shape;
 
@@ -38,9 +45,11 @@ bool ReverseV2::InferShape(const std::vector<TEngine::TShape>& ishape, std::vect
 
     return true;
 }
-void ReverseV2::SetSchema(void)
+void Reverse::SetSchema(void)
 {
-    Input({"input:float32", "axis:int32"}).Output({"output:float32"}).SetDoc(R"DOC(ReverseV2 Operator)DOC");
+    Input({"input:float32", "axis:int32"})
+    .Output({"output:float32"})
+    .SetDoc(R"DOC(Reverse Operator)DOC");
 }
 
 }    // namespace TEngine

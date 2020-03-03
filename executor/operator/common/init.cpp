@@ -29,15 +29,14 @@ namespace TEngine {
 extern void RegisterConcatNodeExec(void);
 extern void RegisterDropoutNodeExec(void);
 extern void RegisterSoftmaxNodeExec(void);
-extern void RegisterLRN_NodeExec(void);
 extern void RegisterEltwiseNodeExec(void);
+extern void RegisterLRN_NodeExec(void);
 extern void RegisterSliceNodeExec(void);
 extern void RegisterPReLUNodeExec(void);
 extern void RegisterNormalizeNodeExec(void);
 extern void RegisterPermuteNodeExec(void);
 extern void RegisterFlattenNodeExec(void);
 extern void RegisterPriorBoxNodeExec(void);
-extern void RegisterReshapeNodeExec(void);
 extern void RegisterDetectionOutputNodeExec(void);
 extern void RegisterRegionNodeExec(void);
 extern void RegisterReorgNodeExec(void);
@@ -81,13 +80,11 @@ void RegisterCommonOps(void)
     RegisterSoftmaxNodeExec();
     RegisterLRN_NodeExec();
     RegisterPReLUNodeExec();
-    RegisterEltwiseNodeExec();
     RegisterSliceNodeExec();
     RegisterNormalizeNodeExec();
     RegisterPermuteNodeExec();
     RegisterFlattenNodeExec();
     RegisterPriorBoxNodeExec();
-    RegisterReshapeNodeExec();
     RegisterDetectionOutputNodeExec();
     RegisterRegionNodeExec();
     RegisterReorgNodeExec();
@@ -122,7 +119,7 @@ void RegisterCommonOps(void)
     RegisterCrop_NodeExec();
     RegisterCopy_NodeExec();
     RegisterPower_NodeExec();
-
+    RegisterEltwiseNodeExec();
     RegisterCommonFusedBNScaleReluNodeExec();
 }
 

@@ -44,7 +44,7 @@ struct sigmoid_param
 #define SIGMOID_MAX(a, b) ((a) > (b) ? (a) : (b))
 #define SIGMOID_MIN(a, b) ((a) < (b) ? (a) : (b))
 
-typedef int (*ref_sigmoid_t)(void* data, int size, sigmoid_param* param);
+typedef int (*ref_sigmoid_t)(void* data, void* out_data, int size, sigmoid_param* param);
 
 #ifdef CONFIG_KERNEL_FP32
 #include "ref_sigmoid_fp32.c"

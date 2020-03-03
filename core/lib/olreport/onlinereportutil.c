@@ -45,6 +45,16 @@ int get_rand()
     return rand() +1;
 }
 
+void strtrim(char* data)
+{
+	int idx = strlen(data) - 1;
+	while( idx >= 0 && data[idx] == ' ' )
+	{
+		--idx;
+	}
+	data[idx+1] = '\0';
+}
+
 uint32_t get_arch()
 {
     #ifdef CONFIG_ARCH_ARM64
@@ -101,6 +111,7 @@ void get_os_info(char* os,int maxLen)
             }
         }
 
+	strtrim(os);
         fclose(fp);
         return ;
     }
@@ -127,6 +138,7 @@ void get_os_info(char* os,int maxLen)
 		    *(pl+1) = '\0';
         }                    
     }
+    strtrim(os);
     fclose(fp);
 #endif
     
@@ -144,6 +156,7 @@ void get_os_kernel_info(char* os,int maxlen)
         {
             *pa = '\0';
         }
+	strtrim(os);
         fclose(fp);
         return ;
     }
@@ -175,6 +188,7 @@ void get_os_kernel_info(char* os,int maxlen)
 		}
 	}
 
+    strtrim(os);
     fclose(fp);
 }
 

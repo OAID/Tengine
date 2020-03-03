@@ -24,7 +24,7 @@ static inline uint8_t calc_max_uint8(const uint8_t* input, int layout, int c, in
     else
         max = input[start_h * w * c + start_w * c + cur_ch];
 
-    uint8_t tmp = 0.0f;
+    uint8_t tmp = 0;
     for(int i = start_h; i < end_h; i++)
         for(int j = start_w; j < end_w; j++)
         {
@@ -44,7 +44,6 @@ static int ref_pooling_uint8(const uint8_t* input, uint8_t* output, struct op_da
     int input_chw = param->channel * param->input[0] * param->input[1];
     int output_chw = param->channel * param->output[0] * param->output[1];
 
-    int zero_point = param->zero_point;
 
     for(int n = 0; n < param->batch; n++)
     {
@@ -55,9 +54,8 @@ static int ref_pooling_uint8(const uint8_t* input, uint8_t* output, struct op_da
             {
                 for(int pw = 0; pw < param->output[1]; pw++)
                 {
-                    int pool_size = 1;
-                    int pool_size_caffe = 1;
                     int offset = 0;
+                    int pool_size = 1;
                     int h_start = ph * param->strides[0] - param->pads[0];
                     int h_end = h_start + param->kernels[0];
                     if(h_end > param->input[0] + param->pads[0])
@@ -67,9 +65,6 @@ static int ref_pooling_uint8(const uint8_t* input, uint8_t* output, struct op_da
                     if(w_end > param->input[1] + param->pads[1])
                         w_end = param->input[1] + param->pads[1];
 
-                    if(param->caffe_flavor)
-                        pool_size_caffe = (h_end - h_start) * (w_end - w_start);
-
                     h_start = h_start > 0 ? h_start : 0;
                     w_start = w_start > 0 ? w_start : 0;
                     h_end = h_end < param->input[0] ? h_end : param->input[0];
@@ -77,8 +72,6 @@ static int ref_pooling_uint8(const uint8_t* input, uint8_t* output, struct op_da
                     // printf("w: %d,%d ,h: %d,%d\n",w_start,w_end,h_start,h_end);
 
                     pool_size = (h_end - h_start) * (w_end - w_start);
-                    if(!param->caffe_flavor)
-                        pool_size_caffe = (h_end - h_start) * (w_end - w_start);
 
                     if(param->layout == 0)    // nchw
                         offset = n * output_chw + c * param->output[0] * param->output[1] + ph * param->output[1] + pw;
@@ -98,8 +91,8 @@ static int ref_pooling_uint8(const uint8_t* input, uint8_t* output, struct op_da
                         //  (a-z)*s + ... + (n-z)*s = (output-z)*s*pool_size_caffe
                         //  (a+...+z)-pool_size*z = output*pool_size_caffe  - z* pool_size_caffe
                         //  output = ( sum + (pool_size_caffe - pool_size)*z )/pool_size_caffe
-                        int diff_size = pool_size_caffe - pool_size;
-                        output[offset] = ( uint8_t )round((sum + diff_size * zero_point) / pool_size_caffe);
+                        //  int diff_size = pool_size_caffe - pool_size;
+                        output[offset] = ( uint8_t )round((sum + pool_size/2) / pool_size);
                     }
                     else
                         return -1;

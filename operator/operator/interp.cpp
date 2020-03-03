@@ -34,11 +34,10 @@ bool Interp::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<
     int in_h = input.GetH();
     int in_w = input.GetW();
     
-    if (param_.output_height == 0 || param_.output_width == 0)
-    {
-        param_.output_height = in_h * param_.height_scale;
-        param_.output_width = in_w * param_.width_scale;
-    }
+
+    param_.output_height = in_h * param_.height_scale;
+    param_.output_width = in_w * param_.width_scale;
+
 
     TShape out_shape;
 

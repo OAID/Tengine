@@ -55,13 +55,9 @@ static int ref_concat_uint8(const uint8_t** in_data, uint8_t* out_data, const st
         output_size *= param->output_shape.dim[ii];
     }
 
-    float* output_tmp = ( float* )malloc(output_size * 4);
-    if(NULL == output_tmp)
-    {
-        return -1;
-    }
-
-    float* output_ptr = output_tmp;
+    uint8_t* output_ptr = out_data;
+    float out_scale = param->output_shape.scale;
+    uint8_t out_zero = param->output_shape.zero;
     for(int k = 0; k < outer_size; ++k)
     {
         for(int j = 0; j < param->input_counts; ++j)
@@ -72,24 +68,21 @@ static int ref_concat_uint8(const uint8_t** in_data, uint8_t* out_data, const st
 
             const uint8_t* input_ptr = ( const uint8_t* )(in_data[j] + k * cp_size);
 
-            for(int ii = 0; ii < cp_size; ++ii)
+            if(scale == out_scale && input_zero == out_zero)
             {
-                float val = (input_ptr[ii] - input_zero) * scale;
-                output_ptr[ii] = val;
+                memcpy(output_ptr, input_ptr, cp_size);
+            }
+            else
+            {
+                float t_scale = scale / out_scale;
+                for(int ii = 0; ii < cp_size; ++ii)
+                {
+                    output_ptr[ii] = round((input_ptr[ii] - input_zero)*t_scale) + out_zero;
+                }
             }
             output_ptr += cp_size;
         }
     }
 
-    float out_scale = 1.0f / param->output_shape.scale;
-    uint8_t out_zero = param->output_shape.zero;
-
-    uint8_t* last_output_ptr = out_data;
-    for(int ii = 0; ii < output_size; ++ii)
-    {
-        last_output_ptr[ii] = round(output_tmp[ii] * out_scale + out_zero);
-    }
-
-    free(output_tmp);
     return 0;
 }

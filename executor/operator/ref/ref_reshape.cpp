@@ -61,20 +61,23 @@ bool RefReshape::Run(Node* node)
     data_type = input_tensor->GetDataType();
     auto* in_quant = input_tensor->GetQuantParam();
     float scale = 0;
+    int zero = 0;
     if((*in_quant).size() != 0)
     {
         scale = (*in_quant)[0].scale;
+        zero = (*in_quant)[0].zero_point;
     }
     else
     {
         scale = 1;
     }
 
-    if(data_type == TENGINE_DT_INT8)
+    if(data_type == TENGINE_DT_INT8 || data_type == TENGINE_DT_UINT8)
     {
         auto* o_quant = output_tensor->GetQuantParam();
         QuantParam q_param;
         q_param.scale = scale;
+        q_param.zero_point = zero;
         o_quant->resize(0);
         o_quant->push_back(q_param);
     }

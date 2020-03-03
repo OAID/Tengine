@@ -18,11 +18,11 @@ static int ref_split_uint8(const uint8_t* in_data, uint8_t** out_data, struct sp
     {
         uint8_t* output = ( uint8_t* )out_data[i];
         int out_slice = 0;
-        if(param->squeeze_dim == 1)
-        {
-            out_slice = 1;
-        }
-        else
+        // if(param->squeeze_dim == 1)
+        // {
+        //     out_slice = 1;
+        // }
+        // else
         {
             out_slice = param->output_shape[i].dim[slice_axis];
         }

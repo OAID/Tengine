@@ -311,6 +311,7 @@ struct ResizeOps : public MTNodeOps
 
 NodeOps* SelectFunc(const CPUInfo* cpu_info, Node* node)
 {
+    return nullptr;
     Tensor* input = node->GetInputTensor(0);
     const int data_type = input->GetDataType();
     const ExecAttr* exec_attr = any_cast<const ExecAttr*>(node->GetAttr(ATTR_EXEC_ATTR));

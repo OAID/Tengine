@@ -61,7 +61,7 @@ static int ref_conv_uint8(const uint8_t* input, uint8_t* output, const uint8_t* 
                         else
                         {
                             output_offset = n * group * output_c * output_h * output_w +
-                                            h * output_w * group * output_c + w * group * output_c + output_c * g + c;
+                                            h * output_w * group * output_c + w * group * output_c + g * output_c + c;
                         }
                         for(kc = 0; kc < input_c; ++kc)
                         {
@@ -89,9 +89,10 @@ static int ref_conv_uint8(const uint8_t* input, uint8_t* output, const uint8_t* 
                                             input_offset = n * group * input_c * input_h * input_w +
                                                            cur_y * input_w * input_c * group + cur_x * input_c * group +
                                                            g * input_c + kc;
-                                            kernel_offset = c * kernel_size * group +
-                                                            kh * param->kernels[1] * input_c * group +
-                                                            kw * input_c * group + g * input_c + kc;
+                                            if(group == 1)
+                                                kernel_offset = c * kernel_size + kh * param->kernels[1] * input_c + kw * input_c + kc;
+                                            else
+                                                kernel_offset = kh * param->kernels[1] * group * output_c + kw * group * output_c + g * output_c + c;
                                         }
                                         total += (input_buf[input_offset] * kernel_buf[kernel_offset]);
                                     }

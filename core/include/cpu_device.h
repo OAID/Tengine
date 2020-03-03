@@ -31,12 +31,14 @@ extern "C" {
 // cpu model list
 #define CPU_GENERIC 0
 #define CPU_A72 1
-#define CPU_A53 2
+#define CPU_A53 CPU_A72
 #define CPU_A17 3
-#define CPU_A7 4
-#define CPU_A55 5
+#define CPU_A7 CPU_A17
+#define CPU_A55 CPU_A72
 #define CPU_KRYO 6
-#define CPU_A73 7
+#define CPU_A73 CPU_A72
+#define CPU_A9 CPU_A17
+#define CPU_A15 CPU_A17
 
 #define ARCH_GENERIC 0
 #define ARCH_ARM_V8 1

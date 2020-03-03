@@ -79,6 +79,7 @@ image imread2tf(image resImg, int img_w, int img_h, float* means, float* scale){
             }
         }
     }   
+    free_image(resImg);
     return outImg;
 }
 image imread2mxnet(image resImg, int img_w, int img_h, float* means, float* scale){
@@ -95,6 +96,7 @@ image imread2mxnet(image resImg, int img_w, int img_h, float* means, float* scal
             }
         }
     } 
+    free_image(resImg);
     return outImg;
 }
 image imread2tflite(image resImg, int img_w, int img_h, float* means, float* scale){
@@ -109,12 +111,16 @@ image imread2tflite(image resImg, int img_w, int img_h, float* means, float* sca
             }
         }
     }    
+    free_image(resImg);
     return outImg;
 }
 image imread(const char* filename, int img_w, int img_h, float* means, float* scale, FUNCSTYLE func){
 
     image out = imread(filename);
-    image resImg = resize_image(out, img_w, img_h);
+    //image resImg = resize_image(out, img_w, img_h);
+    image resImg = make_image(img_w, img_h, out.c);
+
+
     int choice = 0;
     if(out.c == 1){
         choice = 0;
@@ -123,14 +129,14 @@ image imread(const char* filename, int img_w, int img_h, float* means, float* sc
     }
     switch(choice){
         case 0:
-            resImg = gray2bgr(resImg);
+            out = gray2bgr(out);
             break;
         case 1:
-            resImg = rgb2gray(resImg);
+            out = rgb2gray(out);
             break;
         case 2:
             if(func != 2)
-                resImg = rgb2bgr_premute(resImg);
+                out = rgb2bgr_premute(out);
             break;
         default:
             break;
@@ -138,25 +144,32 @@ image imread(const char* filename, int img_w, int img_h, float* means, float* sc
 
     switch(func){
         case 0:
-            return out;
+            tengine_resize(out.data, resImg.data, out.w, out.h, out.c, out.h, out.w);
+            free_image(out);
+            return resImg;
             break;
         case 1:
-            out = imread2caffe(resImg, img_w, img_h,   means,  scale);
+            tengine_resize(out.data, resImg.data, img_w, img_h, out.c, out.h, out.w);
+            resImg = imread2caffe(resImg, img_w, img_h,   means,  scale);
             break;
         case 2: 
-            out = imread2tf(resImg,   img_w,   img_h,  means, scale);
+            tengine_resize(out.data, resImg.data, img_w, img_h, out.c, out.h, out.w);
+            resImg = imread2tf(resImg,   img_w,   img_h,  means, scale);
             break;
         case 3:
-            out = imread2mxnet( resImg,  img_w,  img_h,  means,  scale);
+            tengine_resize(out.data, resImg.data, img_w, img_h, out.c, out.h, out.w);
+            resImg = imread2mxnet( resImg,  img_w,  img_h,  means,  scale);
             break;
         case 4:
-            out = imread2tflite( resImg,  img_w,  img_h,  means,  scale);
+            tengine_resize(out.data, resImg.data, img_w, img_h, out.c, out.h, out.w);
+            resImg = imread2tflite( resImg,  img_w,  img_h,  means,  scale);
         default:
             break;
     }
- 
-    return out;
+    free_image(out);
+    return resImg;
 }
+
 
 static double get_pixelData(image m, int x, int y, int c)
 {
@@ -856,6 +869,7 @@ image gray2bgr(image src)
             }
         }
     }
+    free_image(src);
     return res;
 }
 
@@ -978,6 +992,7 @@ image rgb2gray(image src)
             res.data[i * res.w + j] = (r * 299 + g * 587 + b * 114 + 500) / 1000;
         }
     }
+    free_image(src);
     return res;
 }
 
@@ -1015,3 +1030,198 @@ image letterbox(image im, int w, int h){
 }
 
 
+
+
+void tengine_resize_f32(float* data, float* res, int ow, int oh, int c, int h, int w )
+{
+    float _scale_x = (float)(w) / (float)(ow);
+    float _scale_y = (float)(h) / (float)(oh);
+    float offset = 0.5f;
+
+    int16_t* buf = new int16_t[ow+ow+ow+oh+oh+oh];
+    int16_t* xCoef = (int16_t*)(buf);
+    int16_t* xPos = (int16_t*)(buf+ow+ow);
+    int16_t* yCoef = (int16_t*)(buf + ow+ow+ow);
+    int16_t* yPos = (int16_t*)(buf+ ow+ow+ow+oh+oh);
+
+    for(int i = 0; i < ow; i++){
+        float fx = (float)(((float)i +offset)*_scale_x - offset);
+        int sx = (int)fx;
+        fx -= sx;
+        if(sx < 0){
+            sx = 0;
+            fx = 0.f;
+        }
+        if(sx >= w - 1){
+            sx = w - 2;
+            fx = 0.f;
+        }
+        xCoef[i] = fx*2048;
+        xCoef[i+ow] = (1.f-fx)*2048;
+        xPos[i] = sx;
+    }
+    for(int j = 0; j < oh; j++){
+        float fy = (float)(((float)j +offset)*_scale_y - offset);
+        int sy = (int)fy;
+        fy -= sy;
+        if (sy < 0)
+        {
+            sy = 0;
+            fy = 0.f;
+        }
+        if(sy >= h - 1){
+            sy = h - 2;
+            fy = 0.f;
+        }
+        yCoef[j] = fy * 2048;
+        yCoef[j+oh] = (1.f - fy) * 2048;
+        yPos[j] = sy;
+    }
+    int32_t* row = new int32_t[ow + ow];
+    for(int k = 0; k < c; k++)
+    {
+        int32_t channel = k*w*h;
+        for(int j = 0; j < oh ; j++)
+        {
+            #ifdef __ARM_NEON
+            int32x4_t fy_0 = vdupq_n_s32(yCoef[j+oh]);
+            int32x4_t _fy = vdupq_n_s32(yCoef[j]);
+            #endif
+            int32_t* p0_u = row;
+            int32_t* p0_d = row+ow;
+            int32_t yPosValue = yPos[j]*w+channel;
+            for(int i = 0; i < ow ; i++){
+                int32_t data0 =(int32_t)*(data + yPosValue + xPos[i]) *xCoef[i+ow]>>11;
+                int32_t data1 =(int32_t)*(data + yPosValue + xPos[i] +1)* xCoef[i]>>11;
+                int32_t data2 =(int32_t)*(data + yPosValue + w + xPos[i]) * xCoef[i+ow]>>11;
+                int32_t data3 =(int32_t)*(data + yPosValue + w + xPos[i] + 1)* xCoef[i]>>11;
+                p0_u[i] = ((data0) + (data1));
+                p0_d[i] = ((data2) + (data3));
+            }
+            #ifdef __ARM_NEON
+            for(int i = 0; i < (ow & -4); i+=4){
+
+                int32x4_t c1DataR =vmulq_s32( vld1q_s32(p0_u + i), fy_0);
+                int32x4_t c1DataL =vmulq_s32( vld1q_s32(p0_d + i), _fy);
+                int32x4_t c1Data_int = vshrq_n_s32(vaddq_s32(c1DataR, c1DataL),11);
+                float32x4_t c1Data_float = vcvtq_f32_s32(c1Data_int);
+                vst1q_f32(res, c1Data_float);
+
+                res += 4;
+            }
+
+            for(int i = ow & ~3; i < ow; i++){
+                int32_t data0 = *(p0_u + i) * yCoef[j+oh];
+                int32_t data1 = *(p0_d + i) * yCoef[j];
+                *res = (data0 + data1) >> 11;
+                res++;
+            }
+            #else
+            for(int i = 0; i < ow; i++){
+                int32_t data0 = *(p0_u + i) * yCoef[j+oh];
+                int32_t data1 = *(p0_d + i) * yCoef[j];
+                *res = (data0 + data1) >> 11;
+                res++;
+            }
+            #endif
+
+        }
+    }
+    delete[] row;
+    delete[] buf;
+
+}
+
+
+void tengine_resize_uint8(uint8_t* data, float* res, int ow, int oh, int c, int h, int w ){
+    float _scale_x = (float)(w) / (float)(ow);
+    float _scale_y = (float)(h) / (float)(oh);
+    float offset = 0.5f;
+
+    int16_t* buf = new int16_t[ow+ow+ow+oh+oh+oh];
+    int16_t* xCoef = (int16_t*)(buf);
+    int16_t* xPos = (int16_t*)(buf+ow+ow);
+    int16_t* yCoef = (int16_t*)(buf + ow+ow+ow);
+    int16_t* yPos = (int16_t*)(buf+ ow+ow+ow+oh+oh);
+    for(int i = 0; i < ow; i++){
+        float fx = (float)(((float)i +offset)*_scale_x - offset);
+        int sx = (int)fx;
+        fx -= sx;
+        if(sx < 0){
+           sx = 0;
+           fx = 0.f;
+        }
+        if(sx >= w - 1){
+           sx = w - 2;
+           fx = 0.f;
+        }
+        xCoef[i] = fx*2048;
+        xCoef[i+ow] = (1.f-fx)*2048;
+        xPos[i] = sx;
+    }
+    for(int j = 0; j < oh; j++){
+        float fy = (float)(((float)j +offset)*_scale_y - offset);
+        int sy = (int)fy;
+        fy -= sy;
+        if (sy < 0)
+        {
+            sy = 0;
+            fy = 0.f;
+        }
+        if(sy >= h - 1){
+            sy = h - 2;
+            fy = 0.f;
+        }
+        yCoef[j] = fy * 2048;
+        yCoef[j+oh] = (1.f - fy) * 2048;
+        yPos[j] = sy;
+    }
+    int32_t* row = new int32_t[ow + ow];
+    for(int k = 0; k < c; k++)
+    {
+        int32_t channel = k*w*h;
+        for(int j = 0; j < oh ; j++)
+        {
+        #ifdef __ARM_NEON
+            int32x4_t fy_0 = vdupq_n_s32(yCoef[j+oh]);
+            int32x4_t _fy = vdupq_n_s32(yCoef[j]);
+        #endif
+            int32_t* p0_u = row;
+            int32_t* p0_d = row+ow;
+            int32_t yPosValue = yPos[j]*w+channel;
+            for(int i = 0; i < ow ; i++){
+                int32_t data0 =(int32_t)*(data + yPosValue + xPos[i]) *xCoef[i+ow]>>11;
+                int32_t data1 =(int32_t)*(data + yPosValue + xPos[i] +1)* xCoef[i]>>11;
+                int32_t data2 =(int32_t)*(data + yPosValue + w + xPos[i]) * xCoef[i+ow]>>11;
+                int32_t data3 =(int32_t)*(data + yPosValue + w + xPos[i] + 1)* xCoef[i]>>11;
+                p0_u[i] = ((data0) + (data1));
+                p0_d[i] = ((data2) + (data3));
+            }
+            #ifdef __ARM_NEON
+            for(int i = 0; i < (ow & -4); i+=4){
+                int32x4_t c1DataR =vmulq_s32( vld1q_s32(p0_u + i), fy_0);
+                int32x4_t c1DataL =vmulq_s32( vld1q_s32(p0_d + i), _fy);
+                int32x4_t c1Data_int = vshrq_n_s32(vaddq_s32(c1DataR, c1DataL),11);
+                float32x4_t c1Data_float = vcvtq_f32_s32(c1Data_int);
+                vst1q_f32(res, c1Data_float);
+                res += 4;
+            }
+            for(int i = ow & ~3; i < ow; i++){
+                int32_t data0 = *(p0_u + i) * yCoef[j+oh];
+                int32_t data1 = *(p0_d + i) * yCoef[j];
+                *res = (data0 + data1) >> 11;
+                res++;
+             }
+             #else
+             for(int i = 0; i < ow; i++){
+                int32_t data0 = *(p0_u + i) * yCoef[j+oh];
+                int32_t data1 = *(p0_d + i) * yCoef[j];
+                *res = (data0 + data1) >> 11;
+                res++;
+             }
+             #endif
+         }
+    }
+    delete[] row;
+    delete[] buf;
+}
