@@ -187,12 +187,106 @@ static int mxnet_run(const int8_t* in_data, int8_t** out_data, int element_size,
 
     return 0;
 }
+static int onnx_run(const int8_t* in_data, int8_t** out_data, int element_size, const struct slice_param* param)
+{
+    const int8_t* input = in_data;
+    int8_t* output = out_data[0];
+
+    // const int begins = param->begin;
+    // const int end = param->end;
+
+    if(param->dim_num == 4)
+    {
+        const int* in_dim_new = param->in_shape;
+
+        int in_dim_1 = in_dim_new[1];
+        int in_dim_2 = in_dim_new[2];
+        int in_dim_3 = in_dim_new[3];
+        int start_0 = (param->axis == 0) ? param->begin : 0;
+        int start_1 = (param->axis == 1) ? param->begin : 0;
+        int start_2 = (param->axis == 2) ? param->begin : 0;
+        int start_3 = (param->axis == 3) ? param->begin : 0;
+        int stop_0 = (param->axis == 0) ? param->in_shape[0]+param->end : param->in_shape[0];
+        int stop_1 = (param->axis == 1) ? param->in_shape[1]+param->end : param->in_shape[1];
+        int stop_2 = (param->axis == 2) ? param->in_shape[2]+param->end : param->in_shape[2];
+        int stop_3 = (param->axis == 3) ? param->in_shape[3]+param->end : param->in_shape[3];
+
+        for(int n = start_0; n < stop_0; ++n)
+        {
+            for(int i = start_1; i < stop_1; ++i)
+            {
+                for(int j = start_2; j < stop_2; ++j)
+                {
+                    int len = start_3 - stop_3;
+                    int input_off =
+                        n * in_dim_1 * in_dim_2 * in_dim_3 + i * in_dim_2 * in_dim_3 + j * in_dim_3 + start_3;
+                    memcpy(output, input + input_off * element_size, len * element_size);
+                    output += len * element_size;
+                }
+            }
+        }
+    }
+    else if(param->dim_num == 3)
+    {
+        const int* in_dim_new = param->in_shape_3;
+        // int in_dim_0 = in_dim_new[0];
+        int in_dim_1 = in_dim_new[1];
+        int in_dim_2 = in_dim_new[2];
+        // int in_dim_3 = in_dim_new[3];
+        int start_0 = (param->axis == 0) ? param->begin : 0;
+        int start_1 = (param->axis == 1) ? param->begin : 0;
+        int start_2 = (param->axis == 2) ? param->begin : 0;
+
+        // int start_3=(param->axis==3)? param->begin:0;
+        int stop_0 = (param->axis == 0) ? param->in_shape[0]+param->end : param->in_shape_3[0];
+        int stop_1 = (param->axis == 1) ? param->in_shape[1]+param->end : param->in_shape_3[1];
+        int stop_2 = (param->axis == 2) ? param->in_shape[2]+param->end : param->in_shape_3[2];
+        // int stop_3=(param->axis==3)? param->end:param->in_shape[3];
+
+        for(int n = start_0; n < stop_0; ++n)
+        {
+            for(int i = start_1; i < stop_1; ++i)
+            {
+                int len = stop_2 - start_2;
+                int input_off = n * in_dim_1 * in_dim_2 + i * in_dim_2 + start_2;
+                memcpy(output, input + input_off * element_size, len * element_size);
+                output += len * element_size;
+            }
+        }
+    }
+    else if(param->dim_num == 2)
+    {
+        const int* in_dim_new = param->in_shape_2;
+        // int in_dim_0 = in_dim_new[0];
+        int in_dim_1 = in_dim_new[1];
+        // int in_dim_3 = in_dim_new[3];
+        int start_0 = (param->axis == 0) ? param->begin : 0;
+        int start_1 = (param->axis == 1) ? param->begin : 0;
+
+        // int start_3=(param->axis==3)? param->begin:0;
+        int stop_0 = (param->axis == 0) ? param->in_shape[0]+param->end : param->in_shape_2[0];
+        int stop_1 = (param->axis == 1) ? param->in_shape[1]+param->end : param->in_shape_2[1];
+        // int stop_3=(param->axis==3)? param->end:param->in_shape[3];
+
+        for(int n = start_0; n < stop_0; ++n)
+        {
+            int len = stop_1 - start_0;
+            int input_off = n * in_dim_1 + start_1;
+            memcpy(output, input + input_off * element_size, len * element_size);
+            output += len * element_size;
+        }
+    }
+
+    return 0;
+}
 static int ref_slice_common(const int8_t* in_data, int8_t** out_data, int element_size, const struct slice_param* param)
 {
     if(param->iscaffe)
         return caffe_run(in_data, out_data, element_size, param);
     else if(param->ismxnet)
         return mxnet_run(in_data, out_data, element_size, param);
+    else if(param->isonnx)
+        return onnx_run(in_data, out_data, element_size, param);
     else
         return tf_run(in_data, out_data, element_size, param);
 }

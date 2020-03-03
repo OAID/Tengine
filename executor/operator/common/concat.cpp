@@ -47,20 +47,10 @@ struct ConcatOps : public NodeOps
         Tensor* input_tensor = node->GetInputTensor(0);
         int element_size = DataType::GetTypeSize(input_tensor->GetDataType());
         Tensor* output_tensor = node->GetOutputTensor(0);
-        auto out_quant = output_tensor->GetQuantParam();
-        int out_zero = 0;
-        float out_scale = 1;
-        if(!out_quant->empty())
-        {
-            out_zero = (*out_quant)[0].zero_point;
-            out_scale = (*out_quant)[0].scale;
-        }
-
         Concat* concat_op = dynamic_cast<Concat*>(node->GetOp());
         ConcatParam* param = concat_op->GetParam();
 
-        std::vector<int> dims = input_tensor->GetShape().GetDim();
-        std::vector<int> out_dims = output_tensor->GetShape().GetDim();
+        std::vector<int> dims = output_tensor->GetShape().GetDim();
         int axis = param->axis;
         int out_size, in_size, on_size;
         out_size = 1;
@@ -69,7 +59,7 @@ struct ConcatOps : public NodeOps
             out_size *= dims[i];
         }
         in_size = element_size;
-        for(size_t i = axis + 1; i < out_dims.size(); i++)
+        for(size_t i = axis + 1; i < dims.size(); i++)
         {
             in_size *= dims[i];
         }
@@ -77,33 +67,18 @@ struct ConcatOps : public NodeOps
         uint8_t* output = ( uint8_t* )get_tensor_mem(output_tensor);
         uint8_t* output_ptr = output;
         int input_number = node->GetInputNum();
+        int out_axis = dims[axis];
         int offset_concat_axis = 0;
-        int out_axis = out_dims[axis];
         for(int i = 0; i < input_number; ++i)
         {
             input_tensor = node->GetInputTensor(i);
             uint8_t* input = ( uint8_t* )get_tensor_mem(input_tensor);
-            dims = input_tensor->GetShape().GetDim();
-            on_size = dims[axis];
+            std::vector<int> in_dims = input_tensor->GetShape().GetDim();
+            on_size = in_dims[axis];
             for(int n = 0; n < out_size; ++n)
             {
-                if(element_size == 4)
-                    memcpy(output_ptr + (n * out_axis + offset_concat_axis) * in_size, input + n * on_size * in_size,
+                memcpy(output_ptr + (n * out_axis + offset_concat_axis) * in_size, input + n * on_size * in_size,
                            (on_size * in_size));
-                else if(element_size == 1)
-                {
-                    auto quant = input_tensor->GetQuantParam();
-                    int zero_point = (*quant)[0].zero_point;
-                    float scale = (*quant)[0].scale;
-                    uint8_t* output_cur = output_ptr + (n * out_axis + offset_concat_axis) * in_size;
-                    uint8_t* input_cur = input + n * on_size * in_size;
-                    for(int m = 0; m < on_size; m++)
-                        for(int n = 0; n < in_size; n++)
-                        {
-                            output_cur[m * in_size + n] =
-                                std::round((input_cur[m * in_size + n] - zero_point) * scale / out_scale) + out_zero;
-                        }
-                }
             }
             offset_concat_axis += on_size;
         }
@@ -116,7 +91,7 @@ NodeOps* SelectFunc(const CPUInfo* cpu_info, Node* node)
 {
     Tensor* input = node->GetInputTensor(0);
     const int data_type = input->GetDataType();
-    if(data_type != TENGINE_DT_FP32 && data_type != TENGINE_DT_UINT8)
+    if(data_type != TENGINE_DT_FP32)
         return nullptr;
 
     ConcatOps* ops = new ConcatOps();

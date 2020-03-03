@@ -44,7 +44,7 @@ bool Reduction::InferShape(const std::vector<TEngine::TShape>& ishape, std::vect
     int reduceddim = 0;
     int kd = param_.keepdim;
     int newshape_size = new_shape.size();
-    std::vector<int> real_shape = {0, 3, 1, 2};
+    std::vector<int> real_shape = {0, 1, 2, 3};
     if(newshape_size)
     {
         for(int i = 0; i < newshape_size; i++)

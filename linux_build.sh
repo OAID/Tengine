@@ -34,8 +34,8 @@ then
 	fi
 fi
 
-if [ -n "${EMBEDDED_CROSS_ROOT}" ] ; then
-	export PATH=${EMBEDDED_CROSS_ROOT}:${PATH}
+if [ -n "${EMBEDDED_CROSS_PATH}" ] ; then
+	export PATH=${EMBEDDED_CROSS_PATH}:${PATH}
 fi
 
 if [ -n "${EMBEDDED_PKG_CONFIG_PATH}" ]; then
@@ -43,71 +43,76 @@ if [ -n "${EMBEDDED_PKG_CONFIG_PATH}" ]; then
 	echo $PKG_CONFIG_PATH
 fi
 
-if [ -n "$OPENBLAS_LIB_PATH" ]
-then
-OPENBLAS_LIB=$OPENBLAS_LIB_PATH
-OPENBLAS_CFLAGS=$OPENBLAS_INCLUDE_PATH
-else
-OPENBLAS_LIB=`pkg-config --libs openblas`
-OPENBLAS_CFLAGS=`pkg-config --cflags openblas`
-fi
-
+CFG_BLAS=OFF
 if [[ "$OPEN_BLAS" == "y" ]]
 then
-	if [ -z "$OPENBLAS_LIB" ] || [ -z "$OPENBLAS_CFLAGS" ]
-	then
-		echo "Open Blas is Opened,must configure OPENBLAS_LIB_PATH= OPENBLAS_INCLUDE_PATH= "
-		exit 1
-	fi
+	CFG_BLAS=ON
 fi
 
 if [ "$ARCH_TYPE" == "Arm64" ]; then
-	CONFIG_ARCH_ARM64=y
+	CONFIG_ARCH_ARM64=ON
 elif [ "$ARCH_TYPE" == "Arm32" ]; then
-	CONFIG_ARCH_ARM32=y
+	CONFIG_ARCH_ARM32=ON
 fi
 
-make OPENBLAS_LIB_="$OPENBLAS_LIB" OPENBLAS_CFLAGS="$OPENBLAS_CFLAGS" CONFIG_KERNEL_FP16="$CONFIG_KERNEL_FP16" CONFIG_OPT_CFLAGS="$CONFIG_OPT_CFLAGS" CROSS_COMPILE="$CROSS_COMPILE" CONFIG_ONLINE_REPORT="$CONFIG_ONLINE_REPORT" CONFIG_VERSION_POSTFIX="$CONFIG_VERSION_POSTFIX" CONFIG_ARCH_ARM64="$CONFIG_ARCH_ARM64" CONFIG_ARCH_ARM32="$CONFIG_ARCH_ARM32" CONFIG_ARCH_BLAS=$OPEN_BLAS -j$CPU_NUMS && make install
+BUILD_TENGINE_MODULE=OFF
+if [ "$BUILD_ACL" == "y" ] || [ "$BUILD_SERIALIZER" == "y" ]
+then
+	BUILD_TENGINE_MODULE=ON
+fi
+
+if [ "$BUILD_ACL" == "y" ]
+then
+	ACL_OPEN=ON
+else
+	ACL_OPEN=OFF
+fi
+
+CFG_BUILD_TOOLS=OFF
+if [[ "$BUILD_TOOLS" == "y" ]]
+then
+	CFG_BUILD_TOOLS=ON
+fi
+
+TENGINE_ROOT=`pwd`
+
+mkdir build
+cd build
+
+cmake -DCMAKE_C_COMPILER=${CROSS_COMPILE}gcc \
+      -DCMAKE_CXX_COMPILER=${CROSS_COMPILE}g++ \
+      -DCONFIG_ARCH_ARM64=$CONFIG_ARCH_ARM64 \
+      -DCONFIG_ARCH_ARM32=$CONFIG_ARCH_ARM32 \
+      -DCONFIG_ARCH_ARM8_2=$ARM8_2 \
+      -DCONFIG_ARCH_BLAS=$CFG_BLAS \
+      -DCONFIG_KERNEL_FP16=$CONFIG_KERNEL_FP16 \
+      -DCONFIG_AUTHENICATION=$CFG_AUTH_DEVICE \
+      -DCONFIG_ONLINE_REPORT=$CFG_ONLINE_REPORT \
+      -DCONFIG_VERSION_POSTFIX=$CFG_VERSION_POSTFIX \
+      -DOPENBLAS_LIB_PATH=$OPENBLAS_LIB_PATH \
+      -DOPENBLAS_INCLUDE_PATH=$OPENBLAS_INCLUDE_PATH \
+      -DAUTH_LIB=$AUTH_LIB \
+      -DAUTH_HEADER=$AUTH_HEADER \
+      -DCONFIG_HCL_RELEASE=$HCL_RELEASE \
+      -DCONFIG_AUTHED_FAILED_NOT_WORK=$AUTHED_FAILED_NOT_WORK \
+      -DCONFIG_BUILD_TENGINE_MODULE=$BUILD_TENGINE_MODULE \
+      -DCONFIG_TENGINE_ROOT=$TENGINE_ROOT \
+      -DUSE_EXTERN_PATH=y \
+      -DBUILD_SERIALIZER=$BUILD_SERIALIZER \
+      -DCONFIG_ACL_OPENCL=$ACL_OPEN \
+      -DPROTOBUF_LIB_PATH=$PROTOBUF_LIB_PATH \
+      -DPROTOBUF_INCLUDE_PATH=$PROTOBUF_INCLUDE_PATH \
+      -DACL_ROOT=$ACL_ROOT \
+      -DCONFIG_BUILD_CONVERT_TOOLS=$CFG_BUILD_TOOLS \
+      -DCONFIG_OPT_CFLAGS="$CONFIG_OPT_CFLAGS" \
+      ..
+
+make -j$CPU_NUMS && make install
 
 if [ "$?" != "0" ]
 then
 	echo "please read How_To_Build_Linux.md User mumual , also maybe can try delete build"
 	exit 1
-fi
-
-if [ "$BUILD_ACL" == "y" ] || [ "$BUILD_SERIALIZER" == "y" ]
-then
-	MAKE_TENGINE_MODULE=y
-fi
-
-if [ "${MAKE_TENGINE_MODULE}" = "y" ]
-then
-	if [ "$BUILD_ACL" == "y" ]
-	then
-		ACL_OPEN=ON
-	else
-		ACL_OPEN=OFF
-	fi
-
-TENGINE_ROOT=`pwd`
-export TENGINE_ROOT ACL_OPEN BUILD_SERIALIZER PROTOBUF_LIB_PATH PROTOBUF_INCLUDE_PATH ARCH_TYPE CROSS_COMPILE EMBEDDED_CROSS_ROOT
-export ACL_ROOT
-export USE_EXTERN_PATH=1 
-if [[ "$BUILD_TOOLS" == "y" ]]
-then
-	export BUILD_TOOLS=ON
-fi
-cd tengine-module
-mkdir build
-cd build
-../linux_build.sh
-make -j$CPU_NUMS && make install
-if [ "$?" != "0" ]
-then
-	echo "please read How_To_Build_Linux.md and User mumual ,also maybe can try delete build"
-	exit 1
-fi
-
 fi
 
 echo "EMBEDDED_CROSS_PATH=$EMBEDDED_CROSS_PATH" > tengine_build.log

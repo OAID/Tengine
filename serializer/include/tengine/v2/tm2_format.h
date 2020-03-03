@@ -103,6 +103,37 @@ typedef uint8_t tm_bool_t; /* bool is 1-byte unsigned integer */
 #define TM2_OPSTR_SPACETOBATCHND "SpaceToBatchND"
 #define TM2_OPSTR_BATCHTOSPACEND "BatchToSpaceND"
 #define TM2_OPSTR_CROP "Crop"
+#define TM2_OPSTR_PSROIPOOLING "Psroipooling"
+#define TM2_OPSTR_ROIALIGN "Roialign"
+#define TM2_OPSTR_EXPANDDIMS "Expanddims"
+#define TM2_OPSTR_UNARY "Unary"
+#define TM2_OPSTR_BIAS "Bias"
+#define TM2_OPSTR_NOOP "Noop"
+#define TM2_OPSTR_THRESHOLD "Threshold"
+#define TM2_OPSTR_HARDSIGMOID "Hardsigmoid"
+#define TM2_OPSTR_EMBED "Embedding"
+#define TM2_OPSTR_INSTANCENORM "InstanceNorm"
+#define TM2_OPSTR_MVN "MVN"
+#define TM2_OPSTR_ABSVAL "Absval"
+#define TM2_OPSTR_CAST "Cast"
+#define TM2_OPSTR_HARDSWISH "HardSwish"
+#define TM2_OPSTR_INTERP "Interp"
+#define TM2_OPSTR_SELU "Selu"
+#define TM2_OPSTR_ELU "Elu"
+#define TM2_OPSTR_BROADMUL "BroadMul"
+#define TM2_OPSTR_LOGICAL "Logical"
+#define TM2_OPSTR_GATHER "Gather"
+#define TM2_OPSTR_TRANSPOSE "Transpose"
+#define TM2_OPSTR_REVERSE "Reverse"
+#define TM2_OPSTR_COMPARISON "Comparison"
+#define TM2_OPSTR_SPACETODEPTH "SpaceToDepth"
+#define TM2_OPSTR_DEPTHTOSPACE "DepthToSpace"
+#define TM2_OPSTR_SQUAREDDIFFERENCE "SquaredDifference"
+#define TM2_OPSTR_SPARSETODENSE "SparseToDense"
+#define TM2_OPSTR_CEIL "Ceil"
+#define TM2_OPSTR_ROUND "Round"
+#define TM2_OPSTR_ZEROSLIKE "ZerosLike"
+#define TM2_OPSTR_CLIP "Clip"
 /* Operator types */
 #define TM2_OPTYPE_ACCURACY 0 /* No Param                 */
 #define TM2_OPTYPE_BATCHNORMALIZATION 1 /* TM2_BatchNormParam       */
@@ -161,7 +192,38 @@ typedef uint8_t tm_bool_t; /* bool is 1-byte unsigned integer */
 #define TM2_OPTYPE_RESIZE 54
 #define TM2_OPTYPE_SHUFFLECHANNEL 55 /* TM2_ShuffleChannelParam        */
 #define TM2_OPTYPE_CROP 56  /* TM2_CropParam */
-#define TM2_OPTYPE_NUM 57
+#define TM2_OPTYPE_ROIALIGN 57
+#define TM2_OPTYPE_PSROIPOOLING 58
+#define TM2_OPTYPE_UNARY 59
+#define TM2_OPTYPE_EXPANDDIMS 60
+#define TM2_OPTYPE_BIAS 61
+#define TM2_OPTYPE_NOOP 62
+#define TM2_OPTYPE_THRESHOLD 63
+#define TM2_OPTYPE_HARDSIGMOID 64
+#define TM2_OPTYPE_EMBED 65
+#define TM2_OPTYPE_INSTANCENORM 66
+#define TM2_OPTYPE_MVN 67
+#define TM2_OPTYPE_ABSVAL 68
+#define TM2_OPTYPE_CAST 69
+#define TM2_OPTYPE_HARDSWISH 70
+#define TM2_OPTYPE_INTERP 71
+#define TM2_OPTYPE_SELU 72
+#define TM2_OPTYPE_ELU 73
+#define TM2_OPTYPE_BROADMUL 74
+#define TM2_OPTYPE_LOGICAL 75
+#define TM2_OPTYPE_GATHER 76
+#define TM2_OPTYPE_TRANSPOSE 77
+#define TM2_OPTYPE_COMPARISON 78
+#define TM2_OPTYPE_SPACETODEPTH 79
+#define TM2_OPTYPE_DEPTHTOSPACE 80
+#define TM2_OPTYPE_REVERSE 81
+#define TM2_OPTYPE_SPARSETODENSE 82
+#define TM2_OPTYPE_CEIL 83
+#define TM2_OPTYPE_SQUAREDDIFFERENCE 84
+#define TM2_OPTYPE_ROUND 85
+#define TM2_OPTYPE_ZEROSLIKE 86
+#define TM2_OPTYPE_CLIP 87
+#define TM2_OPTYPE_NUM 88
 
 /* --------------------- -------- TM objects -------------------------------- */
 
@@ -446,12 +508,9 @@ typedef struct
 
 typedef struct
 {
-    int32_t dim_0;
-    int32_t dim_1;
-    int32_t dim_2;
-    int32_t dim_3;
-    int32_t dim_size;
-    int32_t axis;
+    int32_t is_mxnet;
+    int32_t reverse;
+    tm_uoffset_t offset_re_shape;
 } TM2_ReshapeParam;
 
 typedef struct
@@ -496,6 +555,7 @@ typedef struct
     tm_uoffset_t offset_vi_sizes; /* offset of TM2_Vector_dims <sizes> */
     int32_t iscaffe;
     int32_t ismxnet;
+    int32_t isonnx;
     int32_t begin;
     int32_t end;
 } TM2_SliceParam;
@@ -651,8 +711,9 @@ typedef struct
 {
     int32_t axis;
     int32_t split_dim;
-    int32_t squeeze_axis;
+    // int32_t squeeze_axis;
     tm_bool_t is_caffe;
+    tm_bool_t is_onnx;
     tm_uoffset_t offset_split_sizes;
 } TM2_SplitParam;
 
@@ -701,6 +762,137 @@ typedef struct
    int32_t axis;
    int32_t flag;
 } TM2_CropParam;
+
+
+typedef struct 
+{
+    int32_t pooled_width;
+    int32_t pooled_height;
+    float spatial_scale;
+} TM2_RoialignParam;
+
+typedef struct
+{
+    int32_t pooled_w;
+    int32_t pooled_h;
+    float spatial_scale;
+    int32_t output_dim;
+} TM2_PsroipoolingParam;
+
+typedef struct
+{
+    int32_t axis;
+} TM2_ExpanddimsParam;
+
+typedef struct
+{
+    int32_t type;
+} TM2_UnaryParam;
+
+
+typedef struct
+{
+   int32_t bias_size;
+} TM2_BiasParam;
+
+typedef struct
+{
+   float threshold;
+} TM2_ThresholdParam;
+
+typedef struct
+{
+   float alpha;
+   float beta;
+} TM2_HardsigmoidParam;
+
+typedef struct
+{
+   int32_t num_output;
+   int32_t input_dim;
+   int32_t bias_term;
+   int32_t weight_data_size;
+} TM2_EmbedParam;
+
+typedef struct
+{
+   float eps;
+} TM2_InstanceNormParam;
+
+typedef struct
+{
+    int32_t across_channels;
+    int32_t normalize_variance;
+    float eps;
+} TM2_MVNParam;
+
+
+typedef struct{
+    int32_t type_from;
+    int32_t type_to;
+}TM2_CastParam;
+
+typedef struct{
+    float alpha;
+    float beta;
+}TM2_HardSwishParam;
+
+typedef struct{
+    int32_t resize_type;//1=nearest  2=bilinear  3=bicubic
+    float width_scale;
+    float height_scale;
+    int32_t output_width;
+    int32_t output_height;
+}TM2_InterpParam;
+
+typedef struct{
+    float alpha;
+    float lambda;
+}TM2_SeluParam;
+
+typedef struct{
+    float alpha;
+}TM2_EluParam;
+
+typedef struct
+{
+    uint32_t type;
+} TM2_LogicalParam;
+
+typedef struct
+{
+    int32_t axis;
+    int32_t indices_num;
+} TM2_GatherParam;
+typedef struct{
+    tm_uoffset_t offset_tr_shape;
+}TM2_TransposeParam;
+typedef struct
+{
+    int32_t type;
+} TM2_ComparisonParam;
+typedef struct
+{
+   int block_size;
+} TM2_SpaceToDepthParam;
+
+typedef struct
+{
+   int block_size;
+} TM2_DepthToSpaceParam;
+
+typedef struct
+{
+    int output_shape_size0;
+    int output_shape_size1;
+    int default_value;
+} TM2_SparseToDenseParam;
+
+typedef struct
+{
+    float max;
+    float min;
+} TM2_ClipParam;
 
 
 #ifdef __cplusplus

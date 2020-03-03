@@ -220,5 +220,15 @@ void draw_box(image a, int x1, int y1, int x2, int y2, int w, float r, float g, 
 void free_image(image m);
 
 image letterbox(image im, int w, int h);
+void tengine_resize_f32(float* input, float* output, int img_w, int img_h, int c, int h, int w);
+void tengine_resize_uint8(uint8_t* input, float* output, int img_w, int img_h, int c, int h, int w);
+
+template<typename T>
+void tengine_resize(T* input, float* output, int img_w, int img_h, int c, int h, int w){
+    if(sizeof(T) == sizeof(float))
+    	tengine_resize_f32((float*)input, output, img_w, img_h, c, h, w);
+    if(sizeof(T) == sizeof(uint8_t))
+	    tengine_resize_uint8((uint8_t*)input, output, img_w, img_h, c, h, w);
+}
 
 #endif

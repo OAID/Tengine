@@ -299,398 +299,7 @@ int save_graph_internal(graph_t graph, const char* model_format, const char* fna
     return 0;
 }
 
-static float get_absmax_val(float* data, int data_size)
-{
-    float max_val = 0.f;
-    if(data != nullptr)
-    {
-        for(int i = 0; i < data_size; i++)
-        {
-            float abs_val = fabs(data[i]);
-            if(abs_val > max_val)
-                max_val = abs_val;
-        }
-    }
-    return max_val;
-}
-
-static inline bool isSkipQuant(int nodeInedx, int node_no_quant_idxs[], int number)
-{
-    for(int i = 0; i < number; i++)
-    {
-        if(nodeInedx == node_no_quant_idxs[i])
-            return true;
-    }
-    return false;
-}
-#if 1
-void dump_graph_tensor_scale_internal(graph_t graph)
-{
-    GraphExecutor* executor = static_cast<GraphExecutor*>(graph);
-    Graph* g = executor->GetOptimizedGraph();
-
-    for(unsigned int i = 0; i < g->seq_nodes.size(); i++)
-    {
-        Node* node = g->seq_nodes[i];
-        Operator *op = node->GetOp();
-        if(op->GetName() == "Const")
-            continue;
-        if(op->GetName() == "Convolution")
-        {
-            if(node->GetInputNum() > 2)
-            {
-                Tensor* bias_tensor = node->GetInputTensor(2);
-                printf("bias datye type is %d\n",bias_tensor->GetDataType());
-            }
-        }
-        for(unsigned int j = 0; j < node->GetOutputNum(); j++)
-        {
-            Tensor* output_tensor = node->GetOutputTensor(j);
-            std::cout<<"tensor name is :" << output_tensor->GetName()<<"\n";
-            // set the quant scale;
-            auto p_quant = output_tensor->GetQuantParam();
-            QuantParam& param = (*p_quant)[0];
-            printf("scale is %f,zero is %d\n",param.scale,param.zero_point);
-        }
-    }
-
-}
-#endif
-
-int post_train_graph_internal(graph_t graph, const char*file_name)
-{
-    GraphExecutor* executor = static_cast<GraphExecutor*>(graph);
-    Graph* g = executor->GetOptimizedGraph();
-    std::map<std::string,float> layer_scale;
-    bool parse_from_file = false;
-    if(NULL != file_name)
-    {
-        std::ifstream scales(file_name);
-        std::string line;
-        while(std::getline(scales,line))
-        {
-            std::string layer_name;
-            float scale_val = 0.f;
-            size_t last = 0;
-            size_t index = line.find_first_of(" ",last);
-            layer_name = line.substr(last,index-last);
-            last = index + 1;
-            scale_val = atof((line.substr(last,line.size()- last)).c_str());
-            layer_scale[layer_name] = scale_val;
-        }
-        parse_from_file = true;
-        //only support one input
-    }
-    //set the input node quant param
-    if(parse_from_file)
-    {
-        if(layer_scale.count("input") != 0)
-        {
-            Node* input_node = g->input_nodes[0];
-            Tensor* input_tensor = input_node->GetOutputTensor(0);
-            auto in_quant = input_tensor->GetQuantParam();
-            if(in_quant->size()<=0)
-            {
-                in_quant->resize(1);
-            }
-            QuantParam& param = (*in_quant)[0];
-            param.scale = layer_scale["input"];
-            param.zero_point = 0;
-        }
-    }
-
-    for(unsigned int i = 0; i < g->seq_nodes.size(); i++)
-    {
-        Node* node = g->seq_nodes[i];
-        Operator *op = node->GetOp();
-        if(op->GetName() == "Const")
-            continue;
-        if(op->GetName() == "Input" && parse_from_file)
-            continue;
-        std::string node_name = node->GetName();
-        #if 1
-        if(parse_from_file && (op->GetName() == "Flatten" || op->GetName() == "Dropout" || op->GetName() == "Reshape"||
-           op->GetName() == "Squeeze"))
-        {
-            Tensor* input_tensor = node->GetInputTensor(0);
-            auto in_quant = input_tensor->GetQuantParam();
-            if(in_quant->size() != 1)
-            {
-                printf("input tensor quant param is null\n");
-                return -1;
-            }
-            Tensor* out_tensor = node->GetOutputTensor(0);
-            auto out_quant = out_tensor->GetQuantParam();
-            float scale = (*in_quant)[0].scale;
-            float zero = (*in_quant)[0].zero_point;
-
-            if(out_quant->size()<=0)
-            {
-                out_quant->resize(1);
-            }
-            (*out_quant)[0].scale = scale;
-            (*out_quant)[0].zero_point = zero;
-
-            continue;
-        }
-        #endif
-        #if 0
-        if(op->GetName() == "Concat")
-        {
-            float scale = 0;
-            float zero = 0;
-            for(unsigned int j = 0; j < node->GetInputNum(); j++)
-            {
-                Tensor* input_tensor = node->GetInputTensor(j);
-                auto in_quant = input_tensor->GetQuantParam();
-                if(in_quant->size() != 1)
-                {
-                    printf("input tensor quant param is null\n");
-                    return -1;
-                }
-                float tmp_scale = (*in_quant)[j].scale;
-                float tmp_zero = (*in_quant)[j].zero_point;
-                if(tmp_scale > scale)
-                {
-                   scale = tmp_scale;
-                   zero = tmp_zero;
-                }
-            }
-
-            Tensor* out_tensor = node->GetOutputTensor(0);
-            auto out_quant = out_tensor->GetQuantParam();
-            if(out_quant->size()<=0)
-            {
-                out_quant->resize(1);
-            }
-            (*out_quant)[0].scale = scale;
-            (*out_quant)[0].zero_point = zero;
-
-            continue;
-        }
-        #endif
-
-        float output_scale = 0.f;
-        if(parse_from_file)
-        {
-            for(auto it = layer_scale.begin();it != layer_scale.end(); ++it)
-            {
-                if(node_name.find(it->first) != node_name.npos)
-                {
-                    //std::cout<<"find the node:"<< node_name<<"layer_Name:" << it->first<<"\n";
-                    output_scale = it->second;
-                }
-            }
-        }
-        for(unsigned int j = 0; j < node->GetOutputNum(); j++)
-        {
-            Tensor* output_tensor = node->GetOutputTensor(j);
-            // set the quant scale;
-            auto p_quant = output_tensor->GetQuantParam();
-            if(p_quant->size()<=0)
-            {
-                p_quant->resize(1);
-            }
-            QuantParam& param = (*p_quant)[0];
-            if(parse_from_file)
-            {
-                param.scale = output_scale;
-                param.zero_point = 0;
-            }
-            else
-            {
-                param.scale = param.scale/127;
-                param.zero_point = 0;
-            }
-        }
-    }
-    return 0;
-}
-
 #define GET_TENGINE_DT(a) (a + 1)
-int quant_graph_internal(graph_t graph, int quant_mode, int node_no_quant_idxs[], int node_no_quant_number)
-{
-    GraphExecutor* executor = static_cast<GraphExecutor*>(graph);
-    Graph* g = executor->GetOptimizedGraph();
-
-    for(unsigned int i = 0; i < g->seq_nodes.size(); i++)
-    {
-        if(isSkipQuant(i, node_no_quant_idxs, node_no_quant_number))
-            continue;
-
-        Node* node = g->seq_nodes[i];
-        Operator* op = node->GetOp();
-        if(op->GetName() == "Const")
-            continue;
-
-        /* set node output */
-        for(unsigned int j = 0; j < node->GetOutputNum(); ++j)
-        {
-            Tensor* output = node->GetOutputTensor(j);
-            output->SetDataType(GET_TENGINE_DT(quant_mode));
-        }
-
-        if(op->GetName() == "Convolution" || op->GetName() == "FullyConnected")
-        {
-            // quant weight
-            // Tensor* input_tensor = node->GetInputTensor(0);
-            Tensor* weight_tensor = node->GetInputTensor(1);
-            if(weight_tensor->GetDataType() == TENGINE_DT_FP32)
-            {
-                int kernel_size = (weight_tensor->GetTotalSize()) / sizeof(float);
-                float* kernel_org = ( float* )weight_tensor->GetMemAddr();
-
-                // fp16 quant
-                if(quant_mode == TENGINE_QUANT_FP16)
-                {
-                    __fp16* kernel_new = ( __fp16* )malloc(kernel_size * sizeof(__fp16));
-                    for(int i = 0; i < kernel_size; i++)
-                        kernel_new[i] = fp32_to_fp16(kernel_org[i]);
-
-                    // set the memory
-                    weight_tensor->FreeTensor();
-                    weight_tensor->SetMemAddr(kernel_new);
-
-                    // set the data type
-                    weight_tensor->SetDataType(TENGINE_DT_FP16);
-                }
-                // int8 quant
-                else if(quant_mode == TENGINE_QUANT_INT8)
-                {
-                    bool bperchannel = false;
-                    int perchannel_size = 0;
-                    int channel_num = weight_tensor->GetShape().GetN();
-                    ;
-                    if(op->GetName() == "Convolution")
-                    {
-                        int group = 0;
-                        int k_h = 0;
-                        int k_w = 0;
-
-                        node_get_attr_generic(node, "group", typeid(int).name(), &group, sizeof(int));
-                        // node_get_attr_generic(node,"input_channel",typeid(int).name(), &in_c,sizeof(int));
-                        node_get_attr_generic(node, "kernel_h", typeid(int).name(), &k_h, sizeof(int));
-                        node_get_attr_generic(node, "kernel_w", typeid(int).name(), &k_w, sizeof(int));
-
-                        if(group == channel_num)
-                        {
-                            bperchannel = true;
-                            perchannel_size = k_h * k_w;
-                        }
-                    }
-                    int8_t* kernel_new = ( int8_t* )malloc(kernel_size);
-                    if(bperchannel)
-                    {
-                        auto p_quant = weight_tensor->GetQuantParam();
-                        p_quant->resize(channel_num);
-                        for(int i = 0; i < channel_num; ++i)
-                        {
-                            float* kernel_tmp = kernel_org + i * perchannel_size;
-                            int8_t* kernel_int8_tmp = kernel_new + i * perchannel_size;
-                            float weight_max = get_absmax_val(kernel_tmp, perchannel_size);
-                            float weight_scale = weight_max / 127;
-                            int zero_point = 0;
-                            QuantParam& param = (*p_quant)[i];
-                            param.scale = weight_scale;
-                            param.zero_point = zero_point;
-                            for(int j = 0; j < perchannel_size; j++)
-                            {
-                                kernel_int8_tmp[j] = (int8_t)(round(kernel_tmp[j] / weight_scale) + zero_point);
-                            }
-                        }
-                        // set the memory
-                        weight_tensor->FreeTensor();
-                        weight_tensor->SetMemAddr(kernel_new);
-                        weight_tensor->SetDataType(TENGINE_DT_INT8);
-                        bperchannel = false;
-                    }
-                    else
-                    {
-                        float weight_max = get_absmax_val(kernel_org, kernel_size);
-                        float weight_scale = weight_max / 127;
-                        int zero_point = 0;
-                        for(int i = 0; i < kernel_size; i++)
-                            kernel_new[i] = (int8_t)(round(kernel_org[i] / weight_scale) + zero_point);
-
-                        // set the memory
-                        weight_tensor->FreeTensor();
-                        weight_tensor->SetMemAddr(kernel_new);
-
-                        // set the data type
-                        weight_tensor->SetDataType(TENGINE_DT_INT8);
-
-                        // set the quant param
-                        auto p_quant = weight_tensor->GetQuantParam();
-                        p_quant->resize(1);
-                        QuantParam& param = (*p_quant)[0];
-                        param.scale = weight_scale;
-                        param.zero_point = zero_point;
-                    }
-                }
-            }
-
-            // quant bias
-            if(node->GetInputNum() > 2)
-            {
-                Tensor* bias_tensor = node->GetInputTensor(2);
-                if(bias_tensor->GetDataType() == TENGINE_DT_FP32)
-                {
-                    int bias_size = (bias_tensor->GetTotalSize()) / sizeof(float);
-                    float* bias_org = ( float* )bias_tensor->GetMemAddr();
-
-                    if(quant_mode == TENGINE_QUANT_FP16)
-                    {
-                        __fp16* bias_new = ( __fp16* )malloc(bias_size * sizeof(__fp16));
-                        for(int i = 0; i < bias_size; i++)
-                            bias_new[i] = fp32_to_fp16(bias_org[i]);
-
-                        // set the memory
-                        bias_tensor->FreeTensor();
-                        bias_tensor->SetMemAddr(bias_new);
-
-                        // set the data type
-                        bias_tensor->SetDataType(TENGINE_DT_FP16);
-                    }
-                    if(quant_mode == TENGINE_QUANT_INT8)
-                    {
-                        int32_t* bias_new = ( int32_t* )malloc(bias_size * sizeof(int32_t));
-                        auto p_quant = weight_tensor->GetQuantParam();
-                        Tensor* input_tensor = node->GetInputTensor(0);
-                        auto in_quant = input_tensor->GetQuantParam();
-                        QuantParam& in_param = (*in_quant)[0];
-                        float input_scale = in_param.scale;
-                        if(p_quant->size() > 1)
-                        {
-                            for(int i = 0; i < bias_size; i++)
-                            {
-                                QuantParam& param = (*p_quant)[i];
-                                float weight_scale = param.scale;
-                                bias_new[i] = (int32_t)(bias_org[i] / (input_scale * weight_scale));
-                            }
-                        }
-                        else
-                        {
-                            QuantParam& param = (*p_quant)[0];
-                            float weight_scale = param.scale;
-                            for(int i = 0; i < bias_size; i++)
-                            {
-                                bias_new[i] = (int32_t)(bias_org[i] / (input_scale * weight_scale));
-                            }
-                        }
-                        // set the memory
-                        bias_tensor->FreeTensor();
-                        bias_tensor->SetMemAddr(bias_new);
-                        // set the data type
-                        bias_tensor->SetDataType(TENGINE_DT_INT32);
-                    }
-                }
-            }
-        }
-    }
-
-    return 0;
-}
-
 graph_t create_graph_in_context(context_t exec_context, const char* graph_name, const char* model_name)
 {
     GraphExecutor* executor = new GraphExecutor();
@@ -780,6 +389,9 @@ extern void operator_plugin_init(void);
 extern void serializer_plugin_init(void);
 extern void executor_plugin_init(void);
 extern void driver_plugin_init(void);
+#ifdef ALL_IN_STATIC_LIB
+extern "C" int register_hclcpu_ops(void);
+#endif
 
 namespace TEngine {
 
@@ -796,6 +408,16 @@ int hclcpu_plugin_init(bool ignore_failure)
 
     try
     {
+        #ifdef ALL_IN_STATIC_LIB
+
+        if(register_hclcpu_ops())
+        {
+            LOG_ERROR() << "register register_hclcpu_ops failed\n";
+            set_tengine_errno(EFAULT);
+            return -1;
+        }
+
+        #else
         if(so_handle.Load("libhclcpu.so") < 0)
         {
             LOG_ERROR() << "cannot load libhclcpu.so\n";
@@ -809,6 +431,10 @@ int hclcpu_plugin_init(bool ignore_failure)
             set_tengine_errno(EFAULT);
             return -1;
         }
+        #endif
+#ifdef ENABLE_ONLINE_REPORT
+        gsHclVersion = so_handle.ExecuteFunc<const char*()>("get_hcl_version");
+#endif
     }
 
     catch(const std::exception& e)

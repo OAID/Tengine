@@ -577,7 +577,7 @@ bool TmSerializer2::LoadTensor(StaticGraph* graph, const TM2_Tensor* tm_tensor, 
     if(tm_tensor->type == kConstTensor)
     {
         SetTensorSize(tensor, tm_buf->size);
-        void* buf = malloc(tm_buf->size);
+        void* buf = malloc(tm_buf->size + 128);
         if(tm_buf->offset_data != TM2_NOT_SET)
         {
             memcpy(buf, GetTmPtr<void>(mmap_buf, tm_buf->offset_data), tm_buf->size);

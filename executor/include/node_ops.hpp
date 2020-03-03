@@ -69,6 +69,25 @@ struct sub_op_task
     void* data;
 };
 
+#define MULTI_THREAD_START(task_num, step, id, param) \
+    std::vector<sub_op_task> task_list; \
+    task_list.resize(task_num); \
+    for(int i = 0; i < task_num; i ++) \
+    { \
+        sub_op_task* task = &task_list[i]; \
+        task->seq = i; \
+        task->data = &step; \
+        task->exec_func = [&](int , int id, void* param)->bool \
+        {
+
+#define MULTI_THREAD_END() \
+            return true; \
+        };\
+    } \
+    task_dispatch(task_list, -1); \
+    wait_done(); 
+   
+
 struct tensor_dump_header
 {
     int elem_size;
@@ -125,6 +144,10 @@ struct NodeOps
     virtual bool StopDump(Node* node);
     virtual int GetDump(Node* node, void** buf, int buf_size);
     virtual bool SaveDump(Node* node);
+    std::string GetName()
+    {
+        return name_;
+    }
 
     /* note: the mem_addr will be released by caller */
 
@@ -157,6 +180,7 @@ struct NodeOps
 
     virtual ~NodeOps() {}
 
+    std::string name_;
     bool need_free;
     mem_alloc_t mem_alloc;
     mem_free_t mem_free;

@@ -106,8 +106,8 @@ bool MaximumOps::Run(Node* node)
     Tensor* output_tensor = node->GetOutputTensor(0);
     void* output_data = get_tensor_mem(output_tensor);
 
-    printf("elem_num_a =  %d \n", elem_num_a);
-    printf("elem_num_a =  %d \n", elem_num_b);
+    //printf("elem_num_a =  %d \n", elem_num_a);
+    //printf("elem_num_a =  %d \n", elem_num_b);
     if(elem_num_a != elem_num_b)
     {
         LOG_ERROR() << "Tensor size is not equal\n";

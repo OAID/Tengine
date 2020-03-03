@@ -33,7 +33,7 @@
 extern "C" {
 #endif
 
-typedef int (*ref_clip_t)(void* data, int size, float max, float min, float scale, int zero_point);
+typedef int (*ref_clip_t)(void* in_data, void* data, int size, float max, float min, float scale, int zero_point);
 
 #ifdef CONFIG_KERNEL_FP32
 #include "ref_clip_fp32.c"

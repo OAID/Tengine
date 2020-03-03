@@ -372,38 +372,6 @@ int save_graph(graph_t graph, const char* model_format, const char* fname, ...)
     return save_graph_internal(graph, model_format, fname, argp);
 }
 
-int post_train_graph(graph_t graph,const char* file_name)
-{
-    return post_train_graph_internal(graph,file_name);
-}
-#if 1
-void dump_graph_tensor_scale(graph_t graph)
-{
-    dump_graph_tensor_scale_internal(graph);
-}
-#endif
-
-int quant_graph(graph_t graph, int quant_mode, int node_no_quant_idxs[], int node_no_quant_number)
-{
-    GraphExecutor* executor = static_cast<GraphExecutor*>(graph);
-    Graph* g = executor->GetOptimizedGraph();
-
-    if(g->GetModelFormat() == MODEL_FORMAT_TFLITE)
-    {
-        LOG_INFO() << "Not quant tf-lite model.\n";
-        return 0;
-    }
-
-    if(quant_mode != TENGINE_QUANT_FP16 && quant_mode != TENGINE_QUANT_INT8)
-    {
-        LOG_ERROR() << "Currently only support fp16 and int8 quant.\n";
-        set_tengine_errno(EINVAL);
-        return -1;
-    }
-
-    return quant_graph_internal(graph, quant_mode, node_no_quant_idxs, node_no_quant_number);
-}
-
 int set_graph_layout(graph_t graph, int layout_type)
 {
     if(layout_type != TENGINE_LAYOUT_NCHW && layout_type != TENGINE_LAYOUT_NHWC)

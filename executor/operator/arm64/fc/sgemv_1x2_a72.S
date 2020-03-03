@@ -68,6 +68,7 @@
 
         .type sgemv_1x2_a72 STT_FUNC
         .global sgemv_1x2_a72
+        .hidden sgemv_1x2_a72
 sgemv_1x2_a72:
 // initial
 	movi	d30, 0
@@ -121,6 +122,5 @@ save_result:
 
 	ret
 
-        .space  256
         .end
 

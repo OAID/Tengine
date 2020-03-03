@@ -130,10 +130,10 @@ struct PriorBoxOps : public NodeOps
                         box += 4;
                         if(param_->flip)
                         {
-                            box[0] = (center_x - box_height * 0.5f) / img_w;
-                            box[1] = (center_y - box_width * 0.5f) / img_h;
-                            box[2] = (center_x + box_height * 0.5f) / img_w;
-                            box[3] = (center_y + box_width * 0.5f) / img_h;
+                            box[0] = (center_x - box_height * 0.5f) / img_h;
+                            box[1] = (center_y - box_width * 0.5f) / img_w;
+                            box[2] = (center_x + box_height * 0.5f) / img_h;
+                            box[3] = (center_y + box_width * 0.5f) / img_w;
                             box += 4;
                         }
                     }

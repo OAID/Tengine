@@ -100,10 +100,20 @@ static int get_scale_zero_1(Tensor* itensor, eltwise_param* param)
 
 bool EltwiseOps::Prerun(Node* node)
 {
-    Tensor* input_tensor = node->GetInputTensor(0);
-
     int layout = exec_attr->graph_layout;
-
+    Tensor* input_tensor = node->GetInputTensor(0);
+    Tensor* output_tensor = node->GetOutputTensor(0);
+    auto* o_quant = output_tensor->GetQuantParam();
+    if (input_tensor->GetDataType() == TENGINE_DT_UINT8 || input_tensor->GetDataType() == TENGINE_DT_INT8)
+    {
+        if (o_quant->size() == 0)
+        {
+            return false;
+        }
+        op_param.scale[2] = (*o_quant)[0].scale;
+        op_param.zero[2] = (*o_quant)[0].zero_point;
+    }
+    op_param.layout = layout;
     if(!kernel_registry.GetKernel(kernel_run, layout, input_tensor->GetDataType()))
     {
         set_tengine_errno(ENOENT);
@@ -134,7 +144,7 @@ bool EltwiseOps::Run(Node* node)
         if(get_scale_zero(input_tensor0, output_tensor, &op_param) < 0)
             return false;
     }
-
+   
     if(node->GetInputNum() > 1)
     {
         input_tensor1 = node->GetInputTensor(1);

@@ -13,19 +13,9 @@ static int ref_conv_int8(const int8_t* input, int8_t* output, const int8_t* kern
     int kernel_size = input_c * param->kernels[0] * param->kernels[1];
     float *i32_f32_scales = (float*)malloc(sizeof(float) * param->out_shape[0]);
 
-    if(param->in_shape[0] != group)
+    for(int i = 0; i < param->out_shape[0]; i++)
     {
-        for(int i = 0; i < param->out_shape[0]; i++)
-        {
-            i32_f32_scales[i] = (param->scale[0] * param->k_scale[0]);
-        }
-    }
-    else
-    {
-        for(int i = 0; i < param->out_shape[0]; i++)
-        {
-            i32_f32_scales[i] = (param->scale[0] * param->k_scale[i]);
-        }
+        i32_f32_scales[i] = (param->scale[0] * param->k_scale[i]);
     }
     /* malloc  output */
     int output_size = group * batch * output_c * output_h * output_w;

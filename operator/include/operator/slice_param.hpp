@@ -38,6 +38,7 @@ struct SliceParam : public NamedParam
     int end;
     bool ismxnet;
     bool iscaffe;
+    bool isonnx;
 
     DECLARE_PARSER_STRUCTURE(SliceParam)
     {
@@ -45,6 +46,8 @@ struct SliceParam : public NamedParam
         DECLARE_PARSER_ENTRY(begin);
         DECLARE_PARSER_ENTRY(end);
         DECLARE_PARSER_ENTRY(ismxnet);
+        DECLARE_PARSER_ENTRY(isonnx);
+
     }
 };
 

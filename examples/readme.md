@@ -9,6 +9,11 @@
 - yolov2
 - faster_rcnn
 - lighten_cnn
+- caffe_wrapper
+  - cpp_classification(squeezenet, mobilenet, etc)
+  - mtcnn
+- tensorflow_wrapper
+  - label_image(inception_v3, mobilenet, resnet50)
 - tengine_model
   - classification(squeezenet, mobilenet, mobilenet_v2, resnet50, alexnet, googlenet, inception_v3, inception_v4, vgg16)
   - convert(convert caffe model to tengine model)

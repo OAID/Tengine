@@ -380,13 +380,12 @@ typedef struct
 
 typedef struct
 {
-    int32_t dim_0;
-    int32_t dim_1;
-    int32_t dim_2;
-    int32_t dim_3;
-    int32_t dim_size;
-    int32_t axis;
+    int32_t is_mxnet;
+    int32_t reverse;
+    tm_uoffset_t offset_re_shape;
 } TM_ReshapeParam;
+
+
 
 typedef struct
 {

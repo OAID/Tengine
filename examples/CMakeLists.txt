@@ -38,4 +38,9 @@ add_subdirectory(mobilenet_ssd)
 add_subdirectory(YuFaceDetectNet)
 add_subdirectory(tengine_model)
 find_file(EXIST_WRAPPER wrapper_include ${TENGINE_DIR}/install/)
+if( EXIST_WRAPPER AND NOT ANDROID)
+	add_subdirectory(caffe_wrapper)
+	add_subdirectory(tensorflow_wrapper)
+endif()
+
 

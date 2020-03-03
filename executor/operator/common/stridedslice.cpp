@@ -81,7 +81,25 @@ struct StridedSliceOps : public NodeOps
         const std::vector<int>& in_dim = shape.GetDim();
 
         const TShape& shape1 = output_tensor->GetShape();
-        const std::vector<int>& out_dim = shape1.GetDim();
+        const std::vector<int> &out_dim_tmp = shape1.GetDim(); 
+        std::vector<int> out_dim;
+        
+        if(in_dim.size() == 2){
+            out_dim.push_back(1);
+            out_dim.push_back(1);
+            out_dim.push_back(out_dim_tmp[0]);
+            out_dim.push_back(out_dim_tmp[1]);
+        }else if(in_dim.size() == 3){
+            out_dim.push_back(out_dim_tmp[0]);
+            out_dim.push_back(1);
+            out_dim.push_back(out_dim_tmp[1]);
+            out_dim.push_back(out_dim_tmp[2]); 
+        }
+        else {
+            out_dim = out_dim_tmp;
+        }
+
+
         int element_size = DataType::GetTypeSize(input_tensor->GetDataType());
         if(1 == element_size)
         {

@@ -81,9 +81,31 @@ bool Slice::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<T
                 out_dim[i] = input_dim[i];
             }
         }
-
         oshape[0].SetDim(out_dim);
         oshape[0].SetDataLayout(input.GetDataLayout());
+    } else if(param_.isonnx){
+        int axis = param_.axis;
+        int dim_len = input_dim.size();
+        //printf("dim_len: %d end: %d beign: %d \n", axis, param_.end, param_.begin);
+        std::vector<int> out_dim(dim_len);
+        out_dim.reserve(input_dim.size());
+        for(int i = 0; i < dim_len; i++)
+        {
+            if(i == axis)
+            {
+                out_dim[i] =  input_dim[i] + (param_.end - param_.begin);
+            }
+            else
+            {
+                //int tmpdim=input_dim[i];
+                out_dim[i] = input_dim[i];
+            }
+            //printf(" %d ", out_dim[i]);
+        }
+        //printf("\n");
+
+        oshape[0].SetDim(out_dim);
+        oshape[0].SetDataLayout(input.GetDataLayout());        
     }
     else
     {
@@ -108,6 +130,7 @@ void Slice::SetSchema(void)
         .SetAttr("axis", 1)
         .SetAttr("iscaffe", false)
         .SetAttr("ismxnet", false)
+        .SetAttr("isonnx", false)
         .SetDoc(R"DOC(Slice Operator)DOC");
 }
 

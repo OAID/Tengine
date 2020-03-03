@@ -68,6 +68,7 @@
 
         .type sgemv_1x8_a72 STT_FUNC
         .global sgemv_1x8_a72
+        .hidden sgemv_1x8_a72
 sgemv_1x8_a72:
 // initial
 	cmp	x3, 0x4
@@ -127,6 +128,5 @@ save_result:
 
 	ret
  
-        .space  256
         .end
 

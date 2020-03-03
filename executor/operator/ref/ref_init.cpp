@@ -71,7 +71,30 @@ extern void RegisterRefShuffleChannel(void);
 extern void RegisterRefBatchToSpaceND(void);
 extern void RegisterRefSpaceToBatchND(void);
 extern void RegisterRefLogSoftmaxOps(void);
-
+extern void RegisterRefExpandDimsOps(void);
+extern void RegisterRefUnaryOps(void);
+extern void RegisterRefRoialignOps(void);
+extern void RegisterRefPsroipoolingOps(void);
+extern void RegisterRefBiasOps(void);
+extern void RegisterRefNoopOps(void);
+extern void RegisterRefThresholdOps(void);
+extern void RegisterRefHardsigmoidOps(void);
+extern void RegisterRefEmbedOps(void);
+extern void RegisterRefInstanceNormOps(void);
+extern void RegisterRefMVNOps(void);
+extern void RegisterRefBroadMulOps(void);
+extern void RegisterRefLogicalOps(void);
+extern void RegisterRefGatherOps(void);
+extern void RegisterRefTransposeOps(void);
+extern void RegisterRefReverseOps(void);
+extern void RegisterComparisonOps(void);
+extern void RegisterRefSpaceToDepth(void);
+extern void RegisterRefDepthToSpace(void);
+extern void RegisterRefSquaredDifferenceOps(void);
+extern void RegisterRefSparseToDenseOps(void);
+extern void RegisterRefCeilOps(void);
+extern void RegisterRefRoundOps(void);
+extern void RegisterRefZerosLikeOps(void);
 void RegisterRefOps(void)
 {
     RegisterRefPoolingOps();
@@ -119,7 +142,30 @@ void RegisterRefOps(void)
     RegisterRefSpaceToBatchND(); 
     RegisterRefBatchToSpaceND();    
     RegisterRefLogSoftmaxOps();
-
+    RegisterRefExpandDimsOps();
+    RegisterRefUnaryOps();
+    RegisterRefPsroipoolingOps();
+    RegisterRefRoialignOps();
+    RegisterRefBiasOps();
+    RegisterRefNoopOps();
+    RegisterRefThresholdOps();
+    RegisterRefHardsigmoidOps();
+    RegisterRefEmbedOps();
+    RegisterRefInstanceNormOps();
+    RegisterRefMVNOps();   
+    RegisterRefBroadMulOps(); 
+    RegisterRefLogicalOps();
+    RegisterRefGatherOps();
+    RegisterRefTransposeOps(); 
+    RegisterRefReverseOps();    
+    RegisterComparisonOps();       
+    RegisterRefSpaceToDepth();
+    RegisterRefDepthToSpace();
+    RegisterRefSparseToDenseOps();
+    RegisterRefCeilOps();
+    RegisterRefRoundOps();
+    RegisterRefSquaredDifferenceOps();
+    RegisterRefZerosLikeOps();
 }
 
 }    // namespace TEngine

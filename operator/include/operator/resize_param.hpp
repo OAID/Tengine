@@ -41,6 +41,7 @@ struct ResizeParam : public NamedParam
     {
         DECLARE_PARSER_ENTRY(scale_w);
         DECLARE_PARSER_ENTRY(scale_h);
+        DECLARE_PARSER_ENTRY(type);
     };
 };
 

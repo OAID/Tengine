@@ -41,6 +41,22 @@ Tengine can be extended to support new serialization format, by building new ser
 * Tengine Community: http://www.tengine.org.cn/
 
 ## Release History
+
+## version 1.12.0 - 2020/02/29
+
+**New features**
+
+Support Arm Performance Op : 
+
+	Conv,Deconv,Fc,Pooling,Absval,Batchnorm,Cast,Eltwise,Elu,Hardswish,Interp,Prelu,Relu,Scale,Selu,Sigmode,Softmax,Tanh
+
+Support Arm Winograd
+
+
+**Others**
+
+Remove Makefile replaced with cmake
+
 ## version 1.9.0 - 2019/09/25
 
 **Optimization**

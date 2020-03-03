@@ -417,18 +417,31 @@ bool LoadTmReshapeOp(StaticGraph* graph, StaticNode* node, void* const start_ptr
 
     ReshapeParam param = any_cast<ReshapeParam>(OpManager::GetOpDefParam(op_str));
     const TM2_ReshapeParam* tm_param = GetTmPtr<TM2_ReshapeParam>(start_ptr, tm_op->offset_t_param);
+    // set the reverse
+    if(tm_param->reverse)
+        param.reverse = true;
+    else
+        param.reverse =false;
+    // set the is_mxnet
+    if(tm_param->is_mxnet)
+        param.is_mxnet = true;
+    else
+        param.is_mxnet = false;
 
-    param.dim_0 = tm_param->dim_0;
-    param.dim_1 = tm_param->dim_1;
-    param.dim_2 = tm_param->dim_2;
-    param.dim_3 = tm_param->dim_3;
-    param.dim_size = tm_param->dim_size;
-    param.axis = tm_param->axis;
+    if(tm_param->offset_re_shape != TM2_NOT_SET)
+    {
+        const TM2_Vector_dims* v_re_shape = GetTmPtr<TM2_Vector_dims>(start_ptr, tm_param->offset_re_shape);
+        for(unsigned int i = 0; i < v_re_shape->v_num; i++){
+            param.re_shape.push_back(v_re_shape->dims[i]);
+        }
+    }
 
+    
     StaticOp* op = CreateStaticOp(graph, op_str);
     SetOperatorParam(op, param);
     SetNodeOp(node, op);
     return true;
+
 }
 
 bool LoadTmROIPoolingOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op)
@@ -533,6 +546,13 @@ bool LoadTmSliceOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, 
     {
         param.ismxnet = false;
     }
+    if(tm_param->isonnx == 1){
+        param.isonnx = true;
+    }
+    else
+    {
+        param.isonnx = false;
+    }
     param.begin = tm_param->begin;
     param.end = tm_param->end;
     StaticOp* op = CreateStaticOp(graph, op_str);
@@ -565,8 +585,17 @@ bool LoadTmSplitOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, 
         param.is_caffe = true;
     else
         param.is_caffe = false;
+
+    if(tm_param->is_onnx){
+        param.is_onnx = true;
+    } else {
+        param.is_onnx = false;
+    }
+
     if(!param.is_caffe)
     {
+        if(tm_param->is_onnx)
+            param.axis = tm_param->axis;
         param.split_dim = tm_param->split_dim;
         if(tm_param->offset_split_sizes != TM2_NOT_SET)
         {
@@ -1018,6 +1047,413 @@ bool LoadTmCropOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, c
     SetNodeOp(node, op);
     return true;
 }
+
+
+bool LoadTmPsroipoolingOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op){
+    const std::string& op_str = TM2_OPSTR_PSROIPOOLING;
+
+    PsroipoolingParam param = any_cast<PsroipoolingParam>(OpManager::GetOpDefParam(op_str));
+    const TM2_PsroipoolingParam* tm_param = GetTmPtr<TM2_PsroipoolingParam>(start_ptr, tm_op->offset_t_param);
+
+    param.output_dim = tm_param->output_dim;
+    param.pooled_h = tm_param->pooled_h;
+    param.pooled_w = tm_param->pooled_w;
+    param.spatial_scale = tm_param->spatial_scale;
+    StaticOp* op = CreateStaticOp(graph, op_str);
+    SetOperatorParam(op, param);
+    SetNodeOp(node, op);
+    return true;
+}
+bool LoadTmRoialignOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op){
+    const std::string& op_str = TM2_OPSTR_ROIALIGN;
+
+    RoialignParam param = any_cast<RoialignParam>(OpManager::GetOpDefParam(op_str));
+    const TM2_RoialignParam* tm_param = GetTmPtr<TM2_RoialignParam>(start_ptr, tm_op->offset_t_param);
+
+    param.pooled_height = tm_param->pooled_height;
+    param.pooled_width = tm_param->pooled_width;
+    param.spatial_scale = tm_param->spatial_scale;
+    StaticOp* op = CreateStaticOp(graph, op_str);
+    SetOperatorParam(op, param);
+    SetNodeOp(node, op);
+    return true;
+}
+bool LoadTmUnaryOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op){
+
+    const std::string& op_str = TM2_OPSTR_UNARY;
+
+    UnaryParam param = any_cast<UnaryParam>(OpManager::GetOpDefParam(op_str));
+    const TM2_UnaryParam* tm_param = GetTmPtr<TM2_UnaryParam>(start_ptr, tm_op->offset_t_param);
+    param.type = tm_param->type;
+    StaticOp* op = CreateStaticOp(graph, op_str);
+    SetOperatorParam(op, param);
+    SetNodeOp(node, op);
+    return true;
+}
+bool LoadTmExpanddimsOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op){
+
+    const std::string& op_str = TM2_OPSTR_EXPANDDIMS;
+
+    ExpandDimsParam param = any_cast<ExpandDimsParam>(OpManager::GetOpDefParam(op_str));
+    const TM2_ExpanddimsParam* tm_param = GetTmPtr<TM2_ExpanddimsParam>(start_ptr, tm_op->offset_t_param);
+    param.axis = tm_param->axis;
+    StaticOp* op = CreateStaticOp(graph, op_str);
+    SetOperatorParam(op, param);
+    SetNodeOp(node, op);
+    return true;
+}
+bool LoadTmNoopOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op)
+{
+    StaticOp* op = CreateStaticOp(graph, TM2_OPSTR_NOOP);
+    SetNodeOp(node, op);
+    return true;
+}
+bool LoadTmMVNOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op)
+{
+    const std::string& op_str = TM2_OPSTR_MVN;
+
+    MVNParam param = any_cast<MVNParam>(OpManager::GetOpDefParam(op_str));
+    const TM2_MVNParam* tm_param = GetTmPtr<TM2_MVNParam>(start_ptr, tm_op->offset_t_param);
+
+    param.across_channels = tm_param->across_channels;
+    param.eps = tm_param->eps;
+    param.normalize_variance = tm_param->normalize_variance;
+	 		        
+    StaticOp* op = CreateStaticOp(graph, op_str);
+    SetOperatorParam(op, param);
+    SetNodeOp(node, op);
+    return true;
+}
+
+bool LoadTmBiasOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op)
+{
+    const std::string& op_str = TM2_OPSTR_BIAS;
+
+    BiasParam param = any_cast<BiasParam>(OpManager::GetOpDefParam(op_str));
+    const TM2_BiasParam* tm_param = GetTmPtr<TM2_BiasParam>(start_ptr, tm_op->offset_t_param);
+
+    param.bias_size = tm_param->bias_size;
+    
+    StaticOp* op = CreateStaticOp(graph, op_str);
+    SetOperatorParam(op, param);
+    SetNodeOp(node, op);
+    return true;
+}
+bool LoadTmInstanceNormOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op)
+{
+    const std::string& op_str = TM2_OPSTR_INSTANCENORM;
+
+    InstanceNormParam param = any_cast<InstanceNormParam>(OpManager::GetOpDefParam(op_str));
+    const TM2_InstanceNormParam* tm_param = GetTmPtr<TM2_InstanceNormParam>(start_ptr, tm_op->offset_t_param);
+
+    param.eps = tm_param->eps;
+    StaticOp* op = CreateStaticOp(graph, op_str);
+    SetOperatorParam(op, param);
+    SetNodeOp(node, op);
+    return true;
+}
+
+bool LoadTmThresholdOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op)
+{
+    const std::string& op_str = TM2_OPSTR_THRESHOLD;
+
+    ThresholdParam param = any_cast<ThresholdParam>(OpManager::GetOpDefParam(op_str));
+    const TM2_ThresholdParam* tm_param = GetTmPtr<TM2_ThresholdParam>(start_ptr, tm_op->offset_t_param);
+
+    param.threshold = tm_param->threshold;
+
+    StaticOp* op = CreateStaticOp(graph, op_str);
+    SetOperatorParam(op, param);
+    SetNodeOp(node, op);
+    return true;
+}
+bool LoadTmHardsigmoidOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op)
+{
+    const std::string& op_str = TM2_OPSTR_HARDSIGMOID;
+
+    HardsigmoidParam param = any_cast<HardsigmoidParam>(OpManager::GetOpDefParam(op_str));
+    const TM2_HardsigmoidParam* tm_param = GetTmPtr<TM2_HardsigmoidParam>(start_ptr, tm_op->offset_t_param);
+
+    param.alpha = tm_param->alpha;
+    param.beta = tm_param->beta;
+
+    StaticOp* op = CreateStaticOp(graph, op_str);
+    SetOperatorParam(op, param);
+    SetNodeOp(node, op);
+    return true;
+}
+bool LoadTmEmbedOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op)
+{
+    const std::string& op_str = TM2_OPSTR_EMBED;
+
+    EmbedParam param = any_cast<EmbedParam>(OpManager::GetOpDefParam(op_str));
+    const TM2_EmbedParam* tm_param = GetTmPtr<TM2_EmbedParam>(start_ptr, tm_op->offset_t_param);
+
+    //param.bias_term = tm_param->bias_term;
+    param.input_dim = tm_param->input_dim;
+    param.num_output = tm_param->num_output;
+    param.weight_data_size = tm_param->weight_data_size;
+
+    StaticOp* op = CreateStaticOp(graph, op_str);
+    SetOperatorParam(op, param);
+    SetNodeOp(node, op);
+    return true;
+}
+bool LoadTmAbsvalOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op)
+{
+    StaticOp* op = CreateStaticOp(graph, TM2_OPSTR_ABSVAL);
+    SetNodeOp(node, op);
+    return true;
+}
+bool LoadTmCastOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op){
+    const std::string& op_str = TM2_OPSTR_CAST;
+
+    CastParam param = any_cast<CastParam>(OpManager::GetOpDefParam(op_str));
+    const TM2_CastParam* tm_param = GetTmPtr<TM2_CastParam>(start_ptr, tm_op->offset_t_param);
+
+    param.type_from = tm_param->type_from;
+    param.type_to = tm_param->type_to;
+			        
+    StaticOp* op = CreateStaticOp(graph, op_str);
+    SetOperatorParam(op, param);
+    SetNodeOp(node, op);
+    return true;
+}
+bool LoadTmHardSwishOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op){
+    const std::string& op_str = TM2_OPSTR_HARDSWISH;
+
+    HardswishParam param = any_cast<HardswishParam>(OpManager::GetOpDefParam(op_str));
+    const TM2_HardSwishParam* tm_param = GetTmPtr<TM2_HardSwishParam>(start_ptr, tm_op->offset_t_param);
+
+    param.alpha = tm_param->alpha;
+    param.beta = tm_param->beta;
+			        
+    StaticOp* op = CreateStaticOp(graph, op_str);
+    SetOperatorParam(op, param);
+    SetNodeOp(node, op);
+    return true;
+}
+
+bool LoadTmInterpOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op){
+    const std::string& op_str = TM2_OPSTR_INTERP;
+
+    InterpParam param = any_cast<InterpParam>(OpManager::GetOpDefParam(op_str));
+    const TM2_InterpParam* tm_param = GetTmPtr<TM2_InterpParam>(start_ptr, tm_op->offset_t_param);
+
+    param.height_scale = tm_param->height_scale;
+    param.output_height = tm_param->output_height;
+    param.output_width = tm_param->output_width;
+    param.resize_type = tm_param->resize_type;
+    param.width_scale = tm_param->width_scale;
+			        
+    StaticOp* op = CreateStaticOp(graph, op_str);
+    SetOperatorParam(op, param);
+    SetNodeOp(node, op);
+    return true;
+}
+
+bool LoadTmSeluOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op){
+    const std::string& op_str = TM2_OPSTR_SELU;
+
+    SeluParam param = any_cast<SeluParam>(OpManager::GetOpDefParam(op_str));
+    const TM2_SeluParam* tm_param = GetTmPtr<TM2_SeluParam>(start_ptr, tm_op->offset_t_param);
+
+    param.alpha = tm_param->alpha;
+    param.lambda = tm_param->lambda;
+
+    StaticOp* op = CreateStaticOp(graph, op_str);
+    SetOperatorParam(op, param);
+    SetNodeOp(node, op);
+    return true;    
+}
+bool LoadTmEluOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op){
+    const std::string& op_str = TM2_OPSTR_ELU;
+
+    EluParam param = any_cast<EluParam>(OpManager::GetOpDefParam(op_str));
+    const TM2_EluParam* tm_param = GetTmPtr<TM2_EluParam>(start_ptr, tm_op->offset_t_param);
+
+    param.alpha = tm_param->alpha;
+    
+    StaticOp* op = CreateStaticOp(graph, op_str);
+    SetOperatorParam(op, param);
+    SetNodeOp(node, op);
+    return true;   
+}
+bool LoadTmBroadMulOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op)
+{
+    StaticOp* op = CreateStaticOp(graph, TM2_OPSTR_BROADMUL);
+    SetNodeOp(node, op);
+    return true;
+}
+bool LoadTmLogicalOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op)
+{
+    const std::string& op_str = TM2_OPSTR_LOGICAL;
+
+    LogicalParam param = any_cast<LogicalParam>(OpManager::GetOpDefParam(op_str));
+    const TM2_LogicalParam* tm_param = GetTmPtr<TM2_LogicalParam>(start_ptr, tm_op->offset_t_param);
+
+    param.type = tm_param->type;
+			        
+    StaticOp* op = CreateStaticOp(graph, op_str);
+    SetOperatorParam(op, param);
+    SetNodeOp(node, op);
+    return true;
+}
+bool LoadTmGatherOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op)
+{
+    const std::string& op_str = TM2_OPSTR_GATHER;
+
+    GatherParam param = any_cast<GatherParam>(OpManager::GetOpDefParam(op_str));
+    const TM2_GatherParam* tm_param = GetTmPtr<TM2_GatherParam>(start_ptr, tm_op->offset_t_param);
+
+    param.axis = tm_param->axis;
+    param.indices_num = tm_param->indices_num;
+       
+    StaticOp* op = CreateStaticOp(graph, op_str);
+    SetOperatorParam(op, param);
+    SetNodeOp(node, op);
+    return true;
+}
+bool LoadTmTransposeOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op){
+    const std::string& op_str = TM2_OPSTR_TRANSPOSE;
+
+    TransposeParam param = any_cast<TransposeParam>(OpManager::GetOpDefParam(op_str));
+    const TM2_TransposeParam* tm_param = GetTmPtr<TM2_TransposeParam>(start_ptr, tm_op->offset_t_param);
+    
+    if(tm_param->offset_tr_shape != TM2_NOT_SET)
+    {
+        const TM2_Vector_dims* v_re_shape = GetTmPtr<TM2_Vector_dims>(start_ptr, tm_param->offset_tr_shape);
+        for(unsigned int i = 0; i < v_re_shape->v_num; i++){
+            param.tr_shape.push_back(v_re_shape->dims[i]);
+        }
+    } 
+    
+    StaticOp* op = CreateStaticOp(graph, op_str);
+    SetOperatorParam(op, param);
+    SetNodeOp(node, op);
+    return true;   
+}
+bool LoadTmReverseOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op)
+{
+    const std::string& op_str = TM2_OPSTR_REVERSE;
+
+    StaticOp* op = CreateStaticOp(graph, op_str);
+    SetNodeOp(node, op);
+    return true;
+}       
+bool LoadTmComparisonOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op)
+{
+    const std::string& op_str = TM2_OPSTR_MVN;
+
+    ComparisonParam param = any_cast<ComparisonParam>(OpManager::GetOpDefParam(op_str));
+    const TM2_ComparisonParam* tm_param = GetTmPtr<TM2_ComparisonParam>(start_ptr, tm_op->offset_t_param);
+
+    param.type = tm_param->type;
+	 		        
+    StaticOp* op = CreateStaticOp(graph, op_str);
+    SetOperatorParam(op, param);
+    SetNodeOp(node, op);
+    return true;
+}
+
+bool LoadTmSpaceToDepthOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op)
+{
+    const std::string& op_str = TM2_OPSTR_SPACETODEPTH;
+
+    SpaceToDepthParam param = any_cast<SpaceToDepthParam>(OpManager::GetOpDefParam(op_str));
+    const TM2_SpaceToDepthParam* tm_param = GetTmPtr<TM2_SpaceToDepthParam>(start_ptr, tm_op->offset_t_param);
+
+    param.block_size = tm_param->block_size;
+
+    StaticOp* op = CreateStaticOp(graph, op_str);
+    SetOperatorParam(op, param);
+    SetNodeOp(node, op);
+    return true;
+}
+
+bool LoadTmDepthToSpaceOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op)
+{
+    const std::string& op_str = TM2_OPSTR_DEPTHTOSPACE;
+
+    DepthToSpaceParam param = any_cast<DepthToSpaceParam>(OpManager::GetOpDefParam(op_str));
+    const TM2_DepthToSpaceParam* tm_param = GetTmPtr<TM2_DepthToSpaceParam>(start_ptr, tm_op->offset_t_param);
+
+    param.block_size = tm_param->block_size;
+
+    StaticOp* op = CreateStaticOp(graph, op_str);
+    SetOperatorParam(op, param);
+    SetNodeOp(node, op);
+    return true;
+}
+bool LoadTmSquaredDifferenceOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op)
+{
+    const std::string& op_str = TM2_OPSTR_SQUAREDDIFFERENCE;
+
+    StaticOp* op = CreateStaticOp(graph, op_str);
+    SetNodeOp(node, op);
+    return true;
+} 
+
+bool LoadTmSparseToDenseOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op)
+{
+    const std::string& op_str = TM2_OPSTR_SPARSETODENSE;
+
+    SparseToDenseParam param = any_cast<SparseToDenseParam>(OpManager::GetOpDefParam(op_str));
+    const TM2_SparseToDenseParam* tm_param = GetTmPtr<TM2_SparseToDenseParam>(start_ptr, tm_op->offset_t_param);
+
+    param.output_shape_size0 = tm_param->output_shape_size0;
+    param.output_shape_size1 = tm_param->output_shape_size1;
+    param.default_value = tm_param->default_value;
+
+    StaticOp* op = CreateStaticOp(graph, op_str);
+    SetOperatorParam(op, param);
+    SetNodeOp(node, op);
+    return true;
+}
+
+bool LoadTmCeilOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op)
+{
+    const std::string& op_str = TM2_OPSTR_CEIL;
+
+    StaticOp* op = CreateStaticOp(graph, op_str);
+    SetNodeOp(node, op);
+    return true;
+}
+
+bool LoadTmRoundOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op)
+{
+    const std::string& op_str = TM2_OPSTR_ROUND;
+
+    StaticOp* op = CreateStaticOp(graph, op_str);
+    SetNodeOp(node, op);
+    return true;
+}
+
+bool LoadTmZerosLikeOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op)
+{
+    const std::string& op_str = TM2_OPSTR_ZEROSLIKE;
+
+    StaticOp* op = CreateStaticOp(graph, op_str);
+    SetNodeOp(node, op);
+    return true;
+}
+
+bool LoadTmClipOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op)
+{
+    const std::string& op_str = TM2_OPSTR_CLIP;
+
+    ClipParam param = any_cast<ClipParam>(OpManager::GetOpDefParam(op_str));
+    const TM2_ClipParam* tm_param = GetTmPtr<TM2_ClipParam>(start_ptr, tm_op->offset_t_param);
+
+    param.max = tm_param->max;
+    param.min = tm_param->min;
+
+    StaticOp* op = CreateStaticOp(graph, op_str);
+    SetOperatorParam(op, param);
+    SetNodeOp(node, op);
+    return true;
+}
+
 op_load_t LoadTmOpFunc(uint32_t op_type)
 {
     switch(op_type)
@@ -1136,7 +1572,69 @@ op_load_t LoadTmOpFunc(uint32_t op_type)
 	        return LoadTmResizeOp;
         case TM2_OPTYPE_CROP:
             return LoadTmCropOp;
-	    default:
+        case TM2_OPTYPE_PSROIPOOLING:
+            return LoadTmPsroipoolingOp;
+        case TM2_OPTYPE_ROIALIGN:
+            return LoadTmRoialignOp;
+        case TM2_OPTYPE_UNARY:
+            return LoadTmUnaryOp;
+        case TM2_OPTYPE_EXPANDDIMS:
+            return LoadTmExpanddimsOp; 
+        case TM2_OPTYPE_NOOP:
+            return LoadTmNoopOp;
+        case TM2_OPTYPE_BIAS:
+            return LoadTmBiasOp;
+        case TM2_OPTYPE_THRESHOLD:
+            return LoadTmThresholdOp;
+        case TM2_OPTYPE_EMBED:
+            return LoadTmEmbedOp;
+        case TM2_OPTYPE_HARDSIGMOID:
+            return LoadTmHardsigmoidOp;
+	    case TM2_OPTYPE_INSTANCENORM:
+            return LoadTmInstanceNormOp;
+        case TM2_OPTYPE_MVN:
+            return LoadTmMVNOp;  
+        case TM2_OPTYPE_ABSVAL:
+            return LoadTmAbsvalOp;    
+        case TM2_OPTYPE_CAST:
+            return LoadTmCastOp;
+        case TM2_OPTYPE_HARDSWISH:
+            return LoadTmHardSwishOp;
+        case TM2_OPTYPE_INTERP:
+            return LoadTmInterpOp;
+        case TM2_OPTYPE_SELU:
+            return LoadTmSeluOp;
+        case TM2_OPTYPE_ELU:
+            return LoadTmEluOp;                          
+        case TM2_OPTYPE_BROADMUL:
+            return LoadTmBroadMulOp; 
+        case TM2_OPTYPE_LOGICAL:
+            return LoadTmLogicalOp;  
+        case TM2_OPTYPE_GATHER:
+            return LoadTmGatherOp;                         
+        case TM2_OPTYPE_TRANSPOSE:
+            return LoadTmTransposeOp; 
+        case TM2_OPTYPE_COMPARISON:                                   
+            return LoadTmComparisonOp;
+        case TM2_OPTYPE_SPACETODEPTH:
+            return LoadTmSpaceToDepthOp;
+        case TM2_OPTYPE_DEPTHTOSPACE: 
+            return LoadTmDepthToSpaceOp; 
+        case TM2_OPTYPE_REVERSE:
+            return LoadTmReverseOp;
+        case TM2_OPTYPE_SQUAREDDIFFERENCE:
+            return LoadTmSquaredDifferenceOp;
+        case TM2_OPTYPE_SPARSETODENSE:
+            return LoadTmSparseToDenseOp;
+        case TM2_OPTYPE_CEIL:
+            return LoadTmCeilOp;
+        case TM2_OPTYPE_ROUND:
+            return LoadTmRoundOp;
+        case TM2_OPTYPE_ZEROSLIKE:
+            return LoadTmZerosLikeOp;
+        case TM2_OPTYPE_CLIP:
+            return LoadTmClipOp;                                                     
+	default:
             LOG_ERROR() << "Operator #" << op_type << " not supported in tengine model yet\n";
             return nullptr;
     }
@@ -1274,6 +1772,68 @@ std::string GetOpStr(uint32_t op_type)
 	        return std::string(TM2_OPSTR_RESIZE);
         case TM2_OPTYPE_CROP:
             return std::string(TM2_OPSTR_CROP);
+        case TM2_OPTYPE_PSROIPOOLING:
+            return std::string(TM2_OPSTR_PSROIPOOLING);
+        case TM2_OPTYPE_ROIALIGN:
+            return std::string(TM2_OPSTR_ROIALIGN); 
+        case TM2_OPTYPE_EXPANDDIMS:
+            return std::string(TM2_OPSTR_EXPANDDIMS);
+        case TM2_OPTYPE_UNARY:
+            return std::string(TM2_OPSTR_UNARY);    
+        case TM2_OPTYPE_BIAS:
+            return std::string(TM2_OPSTR_BIAS);
+        case TM2_OPTYPE_NOOP:
+            return std::string(TM2_OPSTR_NOOP);
+        case TM2_OPTYPE_THRESHOLD:
+            return std::string(TM2_OPSTR_THRESHOLD);
+        case TM2_OPTYPE_HARDSIGMOID:
+            return std::string(TM2_OPSTR_HARDSIGMOID);
+        case TM2_OPTYPE_EMBED:
+            return std::string(TM2_OPSTR_EMBED);
+        case TM2_OPTYPE_INSTANCENORM:
+            return std::string(TM2_OPSTR_INSTANCENORM);
+        case TM2_OPTYPE_MVN:
+            return std::string(TM2_OPSTR_MVN); 
+        case TM2_OPTYPE_ABSVAL:
+            return std::string(TM2_OPSTR_ABSVAL);  
+        case TM2_OPTYPE_CAST:
+            return std::string(TM2_OPSTR_CAST);  
+        case TM2_OPTYPE_HARDSWISH:
+            return std::string(TM2_OPSTR_HARDSWISH); 
+        case TM2_OPTYPE_INTERP:
+            return std::string(TM2_OPSTR_INTERP); 
+        case TM2_OPTYPE_SELU:
+            return std::string(TM2_OPSTR_SELU); 
+        case TM2_OPTYPE_ELU:
+            return std::string(TM2_OPSTR_ELU);                        
+        case TM2_OPTYPE_BROADMUL:
+            return std::string(TM2_OPSTR_BROADMUL); 
+        case TM2_OPTYPE_LOGICAL:
+            return std::string(TM2_OPSTR_LOGICAL); 
+        case TM2_OPTYPE_GATHER:
+            return std::string(TM2_OPSTR_GATHER);                        
+        case TM2_OPTYPE_TRANSPOSE:
+            return std::string(TM2_OPSTR_TRANSPOSE);
+        case TM2_OPTYPE_COMPARISON:
+            return std::string(TM2_OPSTR_COMPARISON); 
+        case TM2_OPTYPE_SPACETODEPTH:
+            return std::string(TM2_OPSTR_SPACETODEPTH);
+        case TM2_OPTYPE_DEPTHTOSPACE:                  
+            return std::string(TM2_OPSTR_DEPTHTOSPACE);   
+        case TM2_OPTYPE_REVERSE:
+            return std::string(TM2_OPSTR_REVERSE); 
+        case TM2_OPTYPE_SQUAREDDIFFERENCE:
+            return std::string(TM2_OPSTR_SQUAREDDIFFERENCE);
+        case TM2_OPTYPE_SPARSETODENSE:
+            return std::string(TM2_OPSTR_SPARSETODENSE);
+        case TM2_OPTYPE_CEIL:
+            return std::string(TM2_OPSTR_CEIL);
+        case TM2_OPTYPE_ROUND:
+            return std::string(TM2_OPSTR_ROUND);
+        case TM2_OPTYPE_ZEROSLIKE:
+            return std::string(TM2_OPSTR_ZEROSLIKE);
+        case TM2_OPTYPE_CLIP:
+            return std::string(TM2_OPSTR_CLIP);                   
 	    default:
             LOG_ERROR() << "Get operator string failed\n";
             return std::string("");

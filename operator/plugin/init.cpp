@@ -100,9 +100,31 @@
 #include "operator/relu1.hpp"
 #include "operator/log_softmax.hpp"
 #include "operator/cast.hpp"
-
+#include "operator/expanddims.hpp"
+#include "operator/unary.hpp"
+#include "operator/roialign.hpp"
+#include "operator/psroipooling.hpp"
+#include "operator/bias.hpp"
+#include "operator/noop.hpp"
+#include "operator/threshold.hpp"
+#include "operator/hardsigmoid.hpp"
+#include "operator/embed.hpp"
+#include "operator/instancenorm.hpp"
+#include "operator/mvn.hpp"
+#include "operator/broadmul.hpp"
+#include "operator/logical.hpp"
+#include "operator/gather.hpp"
+#include "operator/transpose.hpp"
+#include "operator/comparison.hpp"
+#include "operator/spacetodepth.hpp"
+#include "operator/depthtospace.hpp"
+#include "operator/squared_difference.hpp"
+#include "operator/sparsetodense.hpp"
+#include "operator/ceil.hpp"
+#include "operator/round.hpp"
+#include "operator/zeros_like.hpp"
 using namespace TEngine;
-
+ 
 int operator_plugin_init(void)
 {
     RegisterOp<Convolution>("Convolution");
@@ -164,7 +186,7 @@ int operator_plugin_init(void)
     RegisterOp<ArgMax>("ArgMax");
     RegisterOp<ArgMin>("ArgMin");
     RegisterOp<TopKV2>("TopKV2");
-    RegisterOp<ReverseV2>("ReverseV2");
+    RegisterOp<Reverse>("Reverse");
     RegisterOp<FeatureMatch>("FeatureMatch");
     RegisterOp<ShuffleChannel>("ShuffleChannel");
     RegisterOp<BatchToSpaceND>("BatchToSpaceND");     
@@ -180,7 +202,29 @@ int operator_plugin_init(void)
     RegisterOp<ReLU1>("ReLU1");
     RegisterOp<LogSoftmax>("LogSoftmax");
     RegisterOp<Cast>("Cast");
-
+    RegisterOp<ExpandDims>("ExpandDims");
+    RegisterOp<Unary>("Unary");
+    RegisterOp<Roialign>("Roialign");   
+    RegisterOp<Psroipooling>("Psroipooling");  
+    RegisterOp<Bias>("Bias");
+    RegisterOp<Noop>("Noop");
+    RegisterOp<Threshold>("Threshold");
+    RegisterOp<Hardsigmoid>("Hardsigmoid");
+    RegisterOp<Embed>("Embedding");
+    RegisterOp<InstanceNorm>("InstanceNorm");
+    RegisterOp<MVN>("MVN"); 
+    RegisterOp<BroadMul>("BroadMul"); 
+    RegisterOp<Logical>("Logical"); 
+    RegisterOp<Gather>("Gather"); 
+    RegisterOp<Transpose>("Transpose");   
+    RegisterOp<Comparison>("Comparison"); 
+    RegisterOp<SpaceToDepth>("SpaceToDepth");
+    RegisterOp<DepthToSpace>("DepthToSpace");
+    RegisterOp<Ceil>("Ceil");
+    RegisterOp<Round>("Round");
+    RegisterOp<SquaredDifference>("SquaredDifference");
+    RegisterOp<SparseToDense>("SparseToDense");
+    RegisterOp<ZerosLike>("ZerosLike");   
     // std::cout<<"OPERATOR PLUGIN INITED\n";
     return 0;
 }
