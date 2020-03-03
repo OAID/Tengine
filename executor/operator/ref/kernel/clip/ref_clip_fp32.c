@@ -22,17 +22,21 @@
  * Author: bingzhang@openailab.com
  */
 
-int ref_clip_fp32(float* data, int size, float max, float min, float scale, int zero_point)
+int ref_clip_fp32(float* in_data, float* data, int size, float max, float min, float scale, int zero_point)
 {
     for(int i = 0; i < size; i++)
     {
-        if(data[i] <= min)
+        
+        if(in_data[i] <= min)
         {
             data[i] = min;
         }
-        if(data[i] >= max)
+        else if(in_data[i] >= max && max != 0)
         {
             data[i] = max;
+        }
+        else {
+            data[i] = in_data[i];
         }
     }
     return 0;

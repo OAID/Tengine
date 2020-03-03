@@ -55,7 +55,7 @@ void Resize::SetSchema(void)
         .Output({"output:float32"})
         .SetAttr("scale_h", 1.f)
         .SetAttr("scale_w", 1.f)
-
+        .SetAttr("type", 0)
         .SetDoc(R"DOC(Resize Layer)DOC");
 }
 

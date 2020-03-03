@@ -77,6 +77,7 @@ void SetNodeOp(StaticNode* node, StaticOp* op);
 StaticOp* GetNodeOp(StaticNode* node);
 const std::string& GetNodeName(StaticNode* node);
 StaticTensor* GetNodeOutputTensor(StaticGraph* graph, StaticNode* node, int idx);
+StaticTensor* GetNodeInputTensor(StaticGraph* graph, StaticNode* node, int idx);
 
 // StaticOp
 StaticOp* CreateStaticOp(StaticGraph* graph, const std::string& op_name);

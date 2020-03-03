@@ -38,6 +38,99 @@ namespace SliceImpl {
 const int default_prio = 200;
 struct SliceOps : public NodeOps
 {
+    template <typename T> bool onnx_run(Node* node)
+    {
+        Slice* slice_op = dynamic_cast<Slice*>(node->GetOp());
+        SliceParam* param = slice_op->GetParam();
+        Tensor* input_tensor = node->GetInputTensor(0);
+        auto in_dim = input_tensor->GetShape().GetDim();
+        T* input = ( T* )get_tensor_mem(input_tensor);
+        Tensor* output_tensor = node->GetOutputTensor(0);
+        T* output = ( T* )get_tensor_mem(output_tensor);
+        int indim_size = in_dim.size();
+
+        if(indim_size == 4)
+        {
+            int in_dim_1 = in_dim[1];
+            int in_dim_2 = in_dim[2];
+            int in_dim_3 = in_dim[3];
+            int start_0 = (param->axis == 0) ? param->begin : 0;
+            int start_1 = (param->axis == 1) ? param->begin : 0;
+            int start_2 = (param->axis == 2) ? param->begin : 0;
+            int start_3 = (param->axis == 3) ? param->begin : 0;
+            int stop_0 = (param->axis == 0) ? in_dim[0]-abs(param->end) : in_dim[0];
+            int stop_1 = (param->axis == 1) ? in_dim[1]-abs(param->end) : in_dim[1];
+            int stop_2 = (param->axis == 2) ? in_dim[2]-abs(param->end) : in_dim[2];
+            int stop_3 = (param->axis == 3) ? in_dim[3]-abs(param->end) : in_dim[3];
+
+            for(int n = start_0; n < stop_0; ++n)
+            {
+                for(int i = start_1; i < stop_1; ++i)
+                {
+                    for(int j = start_2; j < stop_2; ++j)
+                    {
+                        int len = abs(start_3 - stop_3);
+                        int input_off =
+                            n * in_dim_1 * in_dim_2 * in_dim_3 + i * in_dim_2 * in_dim_3 + j * in_dim_3 + start_3;
+                        memcpy(output, input + input_off, len * sizeof(T));
+                        output += len;
+                    }
+                }
+            }
+
+        }
+        else if(indim_size == 3)
+        {
+            // int in_dim_0 = in_dim_new[0];
+            int in_dim_1 = in_dim[1];
+            int in_dim_2 = in_dim[2];
+            // int in_dim_3 = in_dim_new[3];
+            int start_0 = (param->axis == 0) ? param->begin : 0;
+            int start_1 = (param->axis == 1) ? param->begin : 0;
+            int start_2 = (param->axis == 2) ? param->begin : 0;
+
+            // int start_3=(param->axis==3)? param->begin:0;
+            int stop_0 = (param->axis == 0) ? param->end : in_dim[0];
+            int stop_1 = (param->axis == 1) ? param->end : in_dim[1];
+            int stop_2 = (param->axis == 2) ? param->end : in_dim[2];
+            // int stop_3=(param->axis==3)? param->end:param->in_shape[3];
+
+            for(int n = start_0; n < stop_0; ++n)
+            {
+                for(int i = start_1; i < stop_1; ++i)
+                {
+                    int len = stop_2 - start_2;
+                    int input_off = n * in_dim_1 * in_dim_2 + i * in_dim_2 + start_2;
+                    memcpy(output, input + input_off, len * sizeof(T));
+                    output += len;
+                }
+            }
+        }
+        else if(indim_size == 2)
+        {
+            // int in_dim_0 = in_dim_new[0];
+            int in_dim_1 = in_dim[1];
+            // int in_dim_3 = in_dim_new[3];
+            int start_0 = (param->axis == 0) ? param->begin : 0;
+            int start_1 = (param->axis == 1) ? param->begin : 0;
+
+            // int start_3=(param->axis==3)? param->begin:0;
+            int stop_0 = (param->axis == 0) ? param->end : in_dim[0];
+            int stop_1 = (param->axis == 1) ? param->end : in_dim[1];
+            // int stop_3=(param->axis==3)? param->end:param->in_shape[3];
+
+            for(int n = start_0; n < stop_0; ++n)
+            {
+                int len = stop_1 - start_0;
+                int input_off = n * in_dim_1 + start_1;
+                memcpy(output, input + input_off, len * sizeof(T));
+                output += len;
+            }
+        }
+
+        return true;
+    }
+
     template <typename T> bool mxnet_run(Node* node)
     {
         Slice* slice_op = dynamic_cast<Slice*>(node->GetOp());
@@ -77,6 +170,7 @@ struct SliceOps : public NodeOps
                     }
                 }
             }
+
         }
         else if(indim_size == 3)
         {
@@ -241,9 +335,11 @@ struct SliceOps : public NodeOps
         {
             return caffe_run<float>(node);
         }
-        else if(param->ismxnet)
+        else if(param->ismxnet )
         {
             return mxnet_run<float>(node);
+        } else if (param->isonnx){
+            return onnx_run<float>(node);
         }
         else
         {

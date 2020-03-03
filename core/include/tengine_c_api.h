@@ -359,29 +359,6 @@ graph_t create_graph(context_t context, const char* model_format, const char* fi
 int save_graph(graph_t graph, const char* model_format, const char* file_name, ...);
 
 /*!
- * @brief save the quant param into graph
- *
- * @param [in] graph, the graph handle
- * @param [in] the quant param file
- *
- * @return  0 success or -1 fail
- */
-
-int post_train_graph(graph_t graph,const char*file_name);
-/*!
- * @brief quant the graph according to the quant mode
- *
- * @param [in/out] graph, the graph handle
- * @param [in] quant_mode, the quant mode(fp16, int8 or uint8). see TENGINE_QUANT_FP16 etc.
- * @param [in] node_no_quant_idxs, the index array of nodes not quant
- * @param [in] node_no_quant_number, the number of nodes not quant
- *
- * @return  0 success or -1 fail
- */
-void dump_graph_tensor_scale(graph_t graph);
-int quant_graph(graph_t graph, int quant_mode, int node_no_quant_idxs[], int node_no_quant_number);
-
-/*!
  * @brief Set the layout type of the graph
  *        the default layout of graph is NCHW
  * @param [in] graph, the graph handle

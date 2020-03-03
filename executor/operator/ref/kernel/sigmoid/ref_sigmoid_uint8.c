@@ -1,6 +1,6 @@
 
 
-int ref_sigmoid_uint8(uint8_t* data, int size, sigmoid_param* param)
+int ref_sigmoid_uint8(uint8_t* data, uint8_t* out_data, int size, sigmoid_param* param)
 {
     for(int i = 0; i < size; i++)
     {
@@ -9,7 +9,7 @@ int ref_sigmoid_uint8(uint8_t* data, int size, sigmoid_param* param)
         real_comp = SIGMOID_MAX(real_in, -30);
 
         real_comp = 1 / (1 + exp(-real_comp));
-        data[i] = round(real_comp / param->scale[1]) + param->zero[1];
+        out_data[i] = round(real_comp / param->scale[1]) + param->zero[1];
     }
     return 0;
 }

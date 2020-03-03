@@ -60,10 +60,21 @@ struct ReluOps : public MTNodeOps
 
 bool ReluOps::Prerun(Node* node)
 {
-    Tensor* input = node->GetInputTensor(0);
     int layout = exec_attr->graph_layout;
+    Tensor* input_tensor = node->GetInputTensor(0);
+    Tensor* output_tensor = node->GetOutputTensor(0);
+    auto i_quant = input_tensor->GetQuantParam();
+    auto o_quant = output_tensor->GetQuantParam();
 
-    if(!kernel_registry.GetKernel(kernel_run, layout, input->GetDataType()))
+    if(input_tensor->GetDataType() == TENGINE_DT_INT8)
+    {
+        if(i_quant->size() == 1)
+        {
+            o_quant->resize(0);
+            o_quant->push_back((*i_quant)[0]);
+        }
+    }
+    if(!kernel_registry.GetKernel(kernel_run, layout, input_tensor->GetDataType()))
     {
         set_tengine_errno(ENOENT);
         // printf("errorno: %d\n",ENOENT);

@@ -98,21 +98,37 @@ public:
     void StopWorker(void)
     {
         std::unique_lock<std::mutex> cv_lock(*worker_lock_);
-        quit_work_ = true;
-        cv_lock.unlock();
 
+        quit_work_ = true;
         worker_cv_->notify_all();
+        active_cv_.notify_one();
+
+        cv_lock.unlock();
     }
 
-    bool LaunchWorker(void)
+    bool LaunchWorker(bool master_cpu=false)
     {
-        auto func = std::bind(&WorkerThread::DoWork, this);
+        auto func = std::bind(&WorkerThread::DoWork, this,master_cpu);
         worker_ = new std::thread(func);
         return true;
     }
 
+    void Activate(int dispatch_cpu)
+    {
+         dispatch_cpu_=dispatch_cpu;
+         active_count_++;
+
+         std::unique_lock<std::mutex> cv_lock(*worker_lock_);
+         active_cv_.notify_one();
+    }
+
+    void Deactivate(void)
+    {
+        active_count_--;
+    }
+
 private:
-    void DoWork(void)
+    void DoWork(bool master_cpu)
     {
         int task_done_count = 0;
 
@@ -127,43 +143,66 @@ private:
                 bind_done_ = true;
         }
 
-        // set scheduler
-        struct sched_param sched_param;
+	if(master_cpu)
+	{
+           // set scheduler
+           struct sched_param sched_param;
 
-        sched_param.sched_priority = 10;
-        sched_setscheduler(0, SCHED_RR, &sched_param);
+           sched_param.sched_priority = 10;
+           sched_setscheduler(0, SCHED_RR, &sched_param);
+	}
 
-        while(true)
+	while(true)
         {
-            T task;
-            GetTask(task);
+            while(active_count_>0)
+            {
+                T task;
+    
+                if(GetTask(task))
+                {
+                    process_(task, bind_cpu_);
 
+                    if(inc_done_)
+                        inc_done_(1);
+
+                    task_done_count++;
+                }
+                else
+                    std::this_thread::yield();
+            }
+
+            std::unique_lock<std::mutex> cv_lock(*worker_lock_);
+
+            active_cv_.wait(cv_lock,[this]{return (active_count_>0 || quit_work_); });
+
+            cv_lock.unlock();
+ 
             if(quit_work_)
                 break;
-
-            process_(task, bind_cpu_);
-
-            if(inc_done_)
-                inc_done_(1);
-
-            task_done_count++;
         }
     }
 
-    void GetTask(T& task)
+    bool GetTask(T& task)
     {
+        bool ret=false;
         std::unique_lock<std::mutex> cv_lock(*worker_lock_);
 
-        if(task_queue_->empty() && !quit_work_)
-            worker_cv_->wait(cv_lock, [this] { return !task_queue_->empty() || quit_work_; });
+        if(bind_cpu_==dispatch_cpu_)
+        {
+            if(task_queue_->empty() && !quit_work_)
+                worker_cv_->wait(cv_lock, [this] { return !task_queue_->empty() || quit_work_; });
+        }
 
-        if(!quit_work_)
+        if(!task_queue_->empty())
         {
             task = task_queue_->front();
             task_queue_->pop();
+            ret=true;
         }
 
         cv_lock.unlock();
+
+        return ret;
     }
 
     void Init(const process_t& func)
@@ -177,6 +216,9 @@ private:
         worker_lock_ = nullptr;
         worker_cv_ = nullptr;
 
+        active_count_=0;
+        dispatch_cpu_=-100;
+
         //    LaunchWorker();
     }
 
@@ -184,6 +226,11 @@ private:
     bool bind_done_;
     bool quit_work_;
     process_t process_;
+
+    std::atomic<unsigned int> active_count_;
+    std::condition_variable  active_cv_;
+    int dispatch_cpu_;
+
 
     std::queue<T>* task_queue_;
     std::mutex* worker_lock_;

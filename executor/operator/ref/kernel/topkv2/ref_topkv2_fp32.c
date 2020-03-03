@@ -69,9 +69,9 @@ static void quick_sort_fp32(float* a, int low, int high, std::vector<int>& index
 static int ref_topkv2_fp32(float* in_data, float* out_data, int* out_index, struct topkv2_param* param)
 {
     int k = param->k;
-    printf("K = %d  \n", k);
-    printf("Num_rows = %d  \n", param->num_rows);
-    printf("rows_size = %d  \n", param->row_size);
+    //printf("K = %d  \n", k);
+    //printf("Num_rows = %d  \n", param->num_rows);
+    //printf("rows_size = %d  \n", param->row_size);
 
     int row_size = param->row_size;
     int num_rows = param->num_rows;
@@ -94,12 +94,12 @@ static int ref_topkv2_fp32(float* in_data, float* out_data, int* out_index, stru
         index.clear();
         //        printf("after clearsize of the array - %d \n", (int)index.size());
     }
-    for(int i = 0; i < num_rows * k; ++i)
-    {
-        printf("Value %f  \n", out_data[i]);
-        printf("Index %d  \n", out_index[i]);
-    }
+    //for(int i = 0; i < num_rows * k; ++i)
+    //{
+    //    printf("Value %f  \n", out_data[i]);
+    //    printf("Index %d  \n", out_index[i]);
+    //}
 
-    printf("size of the array - %d \n", ( int )index.size());
+    //printf("size of the array - %d \n", ( int )index.size());
     return 0;
 }

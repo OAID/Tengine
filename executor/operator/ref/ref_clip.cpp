@@ -42,7 +42,7 @@ namespace RefClipOps {
 struct ClipOps : public MTNodeOps
 {
     bool Prerun(Node* node) override;
-    bool OnBind(Node* node) override;
+    //bool OnBind(Node* node) override;
     bool Run(Node* node) override;
     void InitRegistry(void);
 
@@ -72,7 +72,7 @@ bool ClipOps::Prerun(Node* node)
 
     return true;
 }
-
+/*
 bool ClipOps::OnBind(Node* node)
 {
     inplace_t io_map;
@@ -82,7 +82,7 @@ bool ClipOps::OnBind(Node* node)
     node->SetAttr(ATTR_INPLACE, io_map);
     return true;
 }
-
+*/
 bool ClipOps::Run(Node* node)
 {
     Tensor* input_tensor = node->GetInputTensor(0);
@@ -91,6 +91,7 @@ bool ClipOps::Run(Node* node)
     int elem_num = shape.GetSize();
     Clip* clip_op = dynamic_cast<Clip*>(node->GetOp());
     ClipParam* param = clip_op->GetParam();
+    void* in_data = get_tensor_mem(input_tensor);
     void* data = get_tensor_mem(output_tensor);
 
     float scale = 1.f;
@@ -104,8 +105,7 @@ bool ClipOps::Run(Node* node)
         out_quant_param->resize(0);
         out_quant_param->push_back((*quant_param)[0]);
     }
-
-    int ret = kernel_run(data, elem_num, param->max, param->min, scale, zero_point);
+    int ret = kernel_run(in_data, data, elem_num, param->max, param->min, scale, zero_point);
 
     if(ret < 0)
         return false;

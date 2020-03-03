@@ -382,17 +382,36 @@ tm_uoffset_t SaveTmReshapeOp(void* const start_ptr, tm_uoffset_t* cur_pos, Opera
 {
     ReshapeParam* p = (dynamic_cast<Reshape*>(op))->GetParam();
     TM2_ReshapeParam tm_param;
+    if(p->reverse)
+        tm_param.reverse = 1;
+    else
+        tm_param.reverse = 0;
+    if(p->is_mxnet)
+        tm_param.is_mxnet = 1;
+    else
+        tm_param.is_mxnet = 0;
+    
+    if((p->re_shape).size())
+    {
+        size_t vector_size = sizeof(tm_size_t) + sizeof(int32_t) * (p->re_shape).size();
+        TM2_Vector_dims* v_re_shape = ( TM2_Vector_dims* )malloc(vector_size);
+        v_re_shape->v_num = (p->re_shape).size();
+        for(unsigned int i = 0; i < (p->re_shape).size(); i++)
+        {
+            v_re_shape->dims[i] = p->re_shape[i];
+        }
+        tm_param.offset_re_shape = WriteTmObject(start_ptr, cur_pos, v_re_shape, vector_size);
+        free(v_re_shape);
+    }
+    else{
+        tm_param.offset_re_shape = TM2_NOT_SET;
+    }
 
-    tm_param.dim_0 = p->dim_0;
-    tm_param.dim_1 = p->dim_1;
-    tm_param.dim_2 = p->dim_2;
-    tm_param.dim_3 = p->dim_3;
-    tm_param.dim_size = p->dim_size;
-    tm_param.axis = p->axis;
 
     TM2_Operator tm_op;
     SetTmOperator(&tm_op, TM2_OPTYPE_RESHAPE, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_ReshapeParam)));
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
+
 }
 
 tm_uoffset_t SaveTmResizeOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
@@ -493,7 +512,11 @@ tm_uoffset_t SaveTmSliceOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operato
 
     tm_param.axis = p->axis;
     tm_param.iscaffe = p->iscaffe;
-
+    tm_param.isonnx = p->isonnx;
+    if(!tm_param.iscaffe){
+        tm_param.begin = p->begin;
+        tm_param.end = p->end;
+    }
     if((p->slice_point_).size())
     {
         size_t vector_size = sizeof(tm_size_t) + sizeof(int32_t) * (p->slice_point_).size();
@@ -538,6 +561,7 @@ tm_uoffset_t SaveTmSliceOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operato
     }
     else
         tm_param.offset_vi_sizes = TM2_NOT_SET;
+    
 
     TM2_Operator tm_op;
     SetTmOperator(&tm_op, TM2_OPTYPE_SLICE, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_SliceParam)));
@@ -563,8 +587,16 @@ tm_uoffset_t SaveTmSplitOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operato
         tm_param.is_caffe = 1;
     else
         tm_param.is_caffe = 0;
+
+    if(p->is_onnx){
+        tm_param.is_onnx = 1;
+    } else {
+        tm_param.is_onnx = 0;
+    }
     if(!p->is_caffe)
     {
+        if(p->is_onnx)
+            tm_param.axis = p->axis;
         size_t vector_size = sizeof(tm_size_t) + sizeof(int32_t) * (p->split_sizes_).size();
         TM2_Vector_dims* v_split_sizes = ( TM2_Vector_dims* )malloc(vector_size);
         v_split_sizes->v_num = (p->split_sizes_).size();
@@ -969,6 +1001,332 @@ tm_uoffset_t SaveTmCropOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator
     SetTmOperator(&tm_op, TM2_OPTYPE_CROP, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_CropParam)));
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
 }
+
+tm_uoffset_t SaveTmUnaryOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op){
+    UnaryParam* p = (dynamic_cast<Unary*>(op))->GetParam();
+    TM2_UnaryParam tm_param;
+
+    tm_param.type = p->type;
+
+    TM2_Operator tm_op;
+    SetTmOperator(&tm_op, TM2_OPTYPE_UNARY, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_UnaryParam)));
+    return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
+}
+tm_uoffset_t SaveTmPsroipoolingOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op){
+    PsroipoolingParam* p = (dynamic_cast<Psroipooling*>(op))->GetParam();
+    TM2_PsroipoolingParam tm_param;
+
+    tm_param.spatial_scale = p->spatial_scale;
+    tm_param.pooled_w = p->pooled_w;
+    tm_param.pooled_h = p->pooled_h;
+    tm_param.output_dim = p->output_dim;
+
+    TM2_Operator tm_op;
+    SetTmOperator(&tm_op, TM2_OPTYPE_PSROIPOOLING, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_PsroipoolingParam)));
+    return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
+}
+tm_uoffset_t SaveTmExpanddimsOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op){
+    ExpandDimsParam* p = (dynamic_cast<ExpandDims*>(op))->GetParam();
+    TM2_ExpanddimsParam tm_param;
+
+    tm_param.axis= p->axis;
+
+    TM2_Operator tm_op;
+    SetTmOperator(&tm_op, TM2_OPTYPE_EXPANDDIMS, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_ExpanddimsParam)));
+    return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
+}
+tm_uoffset_t SaveTmRoialignOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op){
+    RoialignParam* p = (dynamic_cast<Roialign*>(op))->GetParam();
+    TM2_RoialignParam tm_param;
+
+    tm_param.spatial_scale = p->spatial_scale;
+    tm_param.pooled_width = p->pooled_width;
+    tm_param.pooled_height = p->pooled_height;
+
+    TM2_Operator tm_op;
+    SetTmOperator(&tm_op, TM2_OPTYPE_ROIALIGN, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_RoialignParam)));
+    return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));    
+}
+
+tm_uoffset_t SaveTmBiasOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
+{
+    BiasParam* p = (dynamic_cast<Bias*>(op))->GetParam();
+    TM2_BiasParam tm_param;
+
+    tm_param.bias_size = p->bias_size;
+    TM2_Operator tm_op;
+    SetTmOperator(&tm_op, TM2_OPTYPE_BIAS, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_BiasParam)));
+    return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
+}
+
+tm_uoffset_t SaveTmThresholdOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
+{
+    ThresholdParam* p = (dynamic_cast<Threshold*>(op))->GetParam();
+    TM2_ThresholdParam tm_param;
+
+    tm_param.threshold = p->threshold;
+    TM2_Operator tm_op;
+    SetTmOperator(&tm_op, TM2_OPTYPE_THRESHOLD, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_ThresholdParam)));
+    return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
+}
+
+tm_uoffset_t SaveTmNoopOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
+{
+    TM2_Operator tm_op;
+    SetTmOperator(&tm_op, TM2_OPTYPE_NOOP, TM2_NOT_SET);
+    return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
+}
+
+tm_uoffset_t SaveTmEmbedOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
+{
+    EmbedParam* p = (dynamic_cast<Embed*>(op))->GetParam();
+    TM2_EmbedParam tm_param;
+
+    //tm_param.bias_term = p->bias_term;
+    tm_param.input_dim = p->input_dim;
+    tm_param.num_output = p->num_output;
+    tm_param.weight_data_size = p->weight_data_size;
+
+    TM2_Operator tm_op;
+    SetTmOperator(&tm_op, TM2_OPTYPE_EMBED, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_EmbedParam)));
+    return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
+}
+tm_uoffset_t SaveTmHardsigmoidOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
+{
+    HardsigmoidParam* p = (dynamic_cast<Hardsigmoid*>(op))->GetParam();
+    TM2_HardsigmoidParam tm_param;
+
+    tm_param.alpha = p->alpha;
+    tm_param.beta = p->beta;
+					    
+    TM2_Operator tm_op;
+    SetTmOperator(&tm_op, TM2_OPTYPE_HARDSIGMOID, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_HardsigmoidParam)));
+    return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
+}
+tm_uoffset_t SaveTmInstanceNormOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
+{
+    InstanceNormParam* p = (dynamic_cast<InstanceNorm*>(op))->GetParam();
+    TM2_InstanceNormParam tm_param;
+    tm_param.eps = p->eps;
+    TM2_Operator tm_op;
+    SetTmOperator(&tm_op, TM2_OPTYPE_INSTANCENORM, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_InstanceNormParam)));
+    return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
+}
+tm_uoffset_t SaveTmMVNOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
+{
+    MVNParam* p = (dynamic_cast<MVN*>(op))->GetParam();
+    TM2_MVNParam tm_param;
+
+    tm_param.across_channels = p->across_channels;
+    tm_param.eps = p->eps;
+    tm_param.normalize_variance = p->normalize_variance;
+    TM2_Operator tm_op;
+    SetTmOperator(&tm_op, TM2_OPTYPE_MVN, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_MVNParam)));
+    return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
+}
+
+tm_uoffset_t SaveTmAbsvalOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op){
+    TM2_Operator tm_op;
+    SetTmOperator(&tm_op, TM2_OPTYPE_ABSVAL, TM2_NOT_SET);
+    return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
+}
+
+tm_uoffset_t SaveTmCastOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op){
+    CastParam* p = (dynamic_cast<Cast*>(op))->GetParam();
+    TM2_CastParam tm_param;
+    tm_param.type_from = p->type_from;
+    tm_param.type_to = p->type_to;
+    
+    TM2_Operator tm_op;
+    SetTmOperator(&tm_op, TM2_OPTYPE_CAST, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_CastParam)));
+    return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
+}
+
+tm_uoffset_t SaveTmHardSwishOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op){
+    HardswishParam* p = (dynamic_cast<Hardswish*>(op))->GetParam();
+    TM2_HardSwishParam tm_param;
+    tm_param.alpha = p->alpha;
+    tm_param.beta = p->beta;
+
+    TM2_Operator tm_op;
+    SetTmOperator(&tm_op, TM2_OPTYPE_CAST, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_HardSwishParam)));
+    return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));    
+}
+tm_uoffset_t SaveTmInterpOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op){
+    InterpParam* p = (dynamic_cast<Interp*>(op))->GetParam();
+    TM2_InterpParam tm_param;
+    tm_param.height_scale = p->height_scale;
+    tm_param.output_height = p->output_height;
+    tm_param.output_width = p->output_width;
+    tm_param.resize_type = p->resize_type;
+    tm_param.width_scale = p->width_scale;
+
+    TM2_Operator tm_op;
+    SetTmOperator(&tm_op, TM2_OPTYPE_INTERP, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_InterpParam)));
+    return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));    
+}
+tm_uoffset_t SaveTmSeluOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op){
+    SeluParam* p = (dynamic_cast<Selu*>(op))->GetParam();
+    TM2_SeluParam tm_param;
+    tm_param.alpha = p->alpha;
+    tm_param.lambda = p->lambda;
+
+    TM2_Operator tm_op;
+    SetTmOperator(&tm_op, TM2_OPTYPE_SELU, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_SeluParam)));
+    return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));  
+}
+tm_uoffset_t SaveTmEluOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op){
+    EluParam* p = (dynamic_cast<Elu*>(op))->GetParam();
+    TM2_EluParam tm_param;
+    tm_param.alpha = p->alpha;
+
+    TM2_Operator tm_op;
+    SetTmOperator(&tm_op, TM2_OPTYPE_ELU, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_EluParam)));
+    return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));  
+}
+
+tm_uoffset_t SaveTmBroadMulOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op){
+    TM2_Operator tm_op;
+    SetTmOperator(&tm_op, TM2_OPTYPE_BROADMUL, TM2_NOT_SET);
+    return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
+}
+
+tm_uoffset_t SaveTmLogicalOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
+{
+    LogicalParam* p = (dynamic_cast<Logical*>(op))->GetParam();
+    TM2_LogicalParam tm_param;
+
+    tm_param.type = p->type;
+					    
+    TM2_Operator tm_op;
+    SetTmOperator(&tm_op, TM2_OPTYPE_LOGICAL, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_LogicalParam)));
+    return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
+}
+
+tm_uoffset_t SaveTmGatherOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
+{
+    GatherParam* p = (dynamic_cast<Gather*>(op))->GetParam();
+    TM2_GatherParam tm_param;
+
+    tm_param.axis = p->axis;
+    tm_param.indices_num = p->indices_num;
+
+    TM2_Operator tm_op;
+    SetTmOperator(&tm_op, TM2_OPTYPE_GATHER, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_GatherParam)));
+    return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
+}
+tm_uoffset_t SaveTmTransposeOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
+{
+    TransposeParam* p = (dynamic_cast<Transpose*>(op))->GetParam();
+    TM2_TransposeParam tm_param;
+    if((p->tr_shape).size())
+    {
+        size_t vector_size = sizeof(tm_size_t) + sizeof(int32_t) * (p->tr_shape).size();
+        TM2_Vector_dims* v_re_shape = ( TM2_Vector_dims* )malloc(vector_size);
+        v_re_shape->v_num = (p->tr_shape).size();
+        for(unsigned int i = 0; i < (p->tr_shape).size(); i++)
+        {
+            v_re_shape->dims[i] = p->tr_shape[i];
+        }
+        tm_param.offset_tr_shape = WriteTmObject(start_ptr, cur_pos, v_re_shape, vector_size);
+        free(v_re_shape);
+    }
+    else{
+        tm_param.offset_tr_shape = TM2_NOT_SET;
+    }
+    TM2_Operator tm_op;
+    SetTmOperator(&tm_op, TM2_OPTYPE_TRANSPOSE, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_TransposeParam)));
+    return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));  
+}
+tm_uoffset_t SaveTmComparisonOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
+{
+    ComparisonParam* p = (dynamic_cast<Comparison*>(op))->GetParam();
+    TM2_ComparisonParam tm_param;
+
+    tm_param.type = p->type;
+    TM2_Operator tm_op;
+    SetTmOperator(&tm_op, TM2_OPTYPE_MVN, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_ComparisonParam)));
+    return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
+}
+tm_uoffset_t SaveTmReverseOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
+{
+    TM2_Operator tm_op;
+    SetTmOperator(&tm_op, TM2_OPTYPE_REVERSE, TM2_NOT_SET);
+    return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
+}
+tm_uoffset_t SaveTmSpaceToDepthOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
+{
+    SpaceToDepthParam* p = (dynamic_cast<SpaceToDepth*>(op))->GetParam();
+    TM2_SpaceToDepthParam tm_param;
+
+    tm_param.block_size = p->block_size;
+					    
+    TM2_Operator tm_op;
+    SetTmOperator(&tm_op, TM2_OPTYPE_SPACETODEPTH, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_SpaceToDepthParam)));
+    return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
+}
+tm_uoffset_t SaveTmDepthToSpaceOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
+{
+    DepthToSpaceParam* p = (dynamic_cast<DepthToSpace*>(op))->GetParam();
+    TM2_DepthToSpaceParam tm_param;
+
+    tm_param.block_size = p->block_size;
+					    
+    TM2_Operator tm_op;
+    SetTmOperator(&tm_op, TM2_OPTYPE_SPACETODEPTH, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_DepthToSpaceParam)));
+    return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
+}
+tm_uoffset_t SaveTmSquaredDifferenceOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
+{
+    TM2_Operator tm_op;
+    SetTmOperator(&tm_op, TM2_OPTYPE_SQUAREDDIFFERENCE, TM2_NOT_SET);
+    return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
+}
+tm_uoffset_t SaveTmSparseToDenseOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
+{
+    SparseToDenseParam* p = (dynamic_cast<SparseToDense*>(op))->GetParam();
+    TM2_SparseToDenseParam tm_param;
+
+    tm_param.output_shape_size0 = p->output_shape_size0;
+    tm_param.output_shape_size1 = p->output_shape_size1;
+    tm_param.default_value = p->default_value;
+					    
+    TM2_Operator tm_op;
+    SetTmOperator(&tm_op, TM2_OPTYPE_SPARSETODENSE, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_SparseToDenseParam)));
+    return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
+}
+tm_uoffset_t SaveTmCeilOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
+{
+    TM2_Operator tm_op;
+    SetTmOperator(&tm_op, TM2_OPTYPE_CEIL, TM2_NOT_SET);
+    return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
+}
+tm_uoffset_t SaveTmRoundOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
+{
+    TM2_Operator tm_op;
+    SetTmOperator(&tm_op, TM2_OPTYPE_ROUND, TM2_NOT_SET);
+    return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
+}
+tm_uoffset_t SaveTmZerosLikeOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
+{
+    TM2_Operator tm_op;
+    SetTmOperator(&tm_op, TM2_OPTYPE_ZEROSLIKE, TM2_NOT_SET);
+    return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
+}
+
+tm_uoffset_t SaveTmClipOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
+{
+    ClipParam* p = (dynamic_cast<Clip*>(op))->GetParam();
+    TM2_ClipParam tm_param;
+
+    tm_param.max = p->max;
+    tm_param.min = p->min;
+					    
+    TM2_Operator tm_op;
+    SetTmOperator(&tm_op, TM2_OPTYPE_CLIP, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_ClipParam)));
+    return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
+}
+
 op_save_t SaveTmOpFunc(uint32_t op_type)
 {
     switch(op_type)
@@ -1086,7 +1444,69 @@ op_save_t SaveTmOpFunc(uint32_t op_type)
         case TM2_OPTYPE_RESIZE:
             return SaveTmResizeOp;	  
         case TM2_OPTYPE_CROP:
-            return SaveTmCropOp;  
+            return SaveTmCropOp;
+        case TM2_OPTYPE_ROIALIGN:
+            return SaveTmRoialignOp;
+        case TM2_OPTYPE_PSROIPOOLING:
+            return SaveTmPsroipoolingOp;
+        case TM2_OPTYPE_EXPANDDIMS:
+            return SaveTmExpanddimsOp;
+        case TM2_OPTYPE_UNARY:
+            return SaveTmUnaryOp;
+        case TM2_OPTYPE_BIAS:
+            return SaveTmBiasOp;  
+        case TM2_OPTYPE_NOOP:
+            return SaveTmNoopOp;  
+        case TM2_OPTYPE_THRESHOLD:
+            return SaveTmThresholdOp;  
+        case TM2_OPTYPE_HARDSIGMOID:
+            return SaveTmHardsigmoidOp;
+        case TM2_OPTYPE_EMBED:
+            return SaveTmEmbedOp;
+        case TM2_OPTYPE_INSTANCENORM:
+            return SaveTmInstanceNormOp;
+        case TM2_OPTYPE_MVN:
+            return SaveTmMVNOp; 
+        case TM2_OPTYPE_ABSVAL:
+            return SaveTmAbsvalOp;    
+        case TM2_OPTYPE_CAST:
+            return SaveTmCastOp;     
+        case TM2_OPTYPE_HARDSWISH:
+            return SaveTmHardSwishOp;     
+        case TM2_OPTYPE_INTERP:
+            return SaveTmInterpOp;    
+        case TM2_OPTYPE_SELU:
+            return SaveTmSeluOp;     
+        case TM2_OPTYPE_ELU:
+            return SaveTmEluOp;                           
+        case TM2_OPTYPE_BROADMUL:
+            return SaveTmBroadMulOp;
+        case TM2_OPTYPE_LOGICAL:
+            return SaveTmLogicalOp;   
+        case TM2_OPTYPE_GATHER:
+            return SaveTmGatherOp;                           
+        case TM2_OPTYPE_TRANSPOSE:
+            return SaveTmTransposeOp;
+        case TM2_OPTYPE_COMPARISON:
+            return SaveTmComparisonOp; 
+        case TM2_OPTYPE_REVERSE:
+            return SaveTmReverseOp;                                    
+        case TM2_OPTYPE_SPACETODEPTH:
+            return SaveTmSpaceToDepthOp;
+        case TM2_OPTYPE_DEPTHTOSPACE:
+            return SaveTmDepthToSpaceOp;
+        case TM2_OPTYPE_SQUAREDDIFFERENCE:
+            return SaveTmSquaredDifferenceOp;
+        case TM2_OPTYPE_SPARSETODENSE:
+            return SaveTmSparseToDenseOp;
+        case TM2_OPTYPE_CEIL:
+            return SaveTmCeilOp;
+        case TM2_OPTYPE_ROUND:
+            return SaveTmRoundOp;
+        case TM2_OPTYPE_ZEROSLIKE:
+            return SaveTmZerosLikeOp;
+        case TM2_OPTYPE_CLIP:
+            return SaveTmClipOp;                                        
 	    default:
             LOG_ERROR() << "Operator #" << op_type << " not supported in tengine model yet\n";
             return nullptr;

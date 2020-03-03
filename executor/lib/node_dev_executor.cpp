@@ -311,6 +311,7 @@ bool NodeExecutor::Init(void)
 
         worker_->SetQueue(&task_queue_, &worker_lock_, &worker_cv_);
         worker_->LaunchWorker();
+        worker_->Activate(-1);
     }
 
     return true;
@@ -321,7 +322,10 @@ bool NodeExecutor::Release(void)
     if(SupportNonblockRun() && create_worker_)
     {
         if(worker_)
+        {
+            worker_->Deactivate();
             delete worker_;
+        }
     }
 
     return true;

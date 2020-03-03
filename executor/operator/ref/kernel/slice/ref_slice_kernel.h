@@ -53,6 +53,7 @@ struct slice_param
     float out_scale;    // for input tensor int8
     bool iscaffe;
     bool ismxnet;
+    bool isonnx;
     int begin;
     int end;
 };

@@ -42,15 +42,14 @@ static int ref_split_fp32(const float* in_data, float** out_data, struct split_p
     {
         float* output = ( float* )out_data[i];
         int out_slice = 0;
-        if(param->squeeze_dim == 1)
-        {
-            out_slice = 1;
-        }
-        else
+        // if(param->squeeze_dim == 1)
+        // {
+        //     out_slice = 1;
+        // }
+        // else
         {
             out_slice = param->output_shape[i].dim[slice_axis];
         }
-
         for(int n = 0; n < num_slices; n++)
         {
             int in_offset = (n * in_slice + slice_index) * slice_size;
@@ -59,6 +58,5 @@ static int ref_split_fp32(const float* in_data, float** out_data, struct split_p
         }
         slice_index += out_slice;
     }
-
     return 0;
 }

@@ -1,0 +1,31 @@
+#!/bin/bash 
+
+if [ -z "$USE_EXTERN_PATH" ]
+then
+source ../default.config
+fi
+
+if [ -n "${EMBEDDED_CROSS_ROOT}" ] ; then
+	export PATH=${EMBEDDED_CROSS_ROOT}:${PATH}
+fi
+
+if [ -z "$PROTOBUF_LIB_PATH" ]
+then
+	PROTOBUF_LIB_PATH=`pkg-config --libs-only-L protobuf`
+	if [ -n "$PROTOBUF_LIB_PATH" ]
+	then
+		PROTOBUF_LIB_PATH=${PROTOBUF_LIB_PATH#*L}
+	fi
+fi
+
+CMAKE=cmake
+
+$CMAKE -DPROTOBUF_INCLUDE_PATH="${PROTOBUF_INCLUDE_PATH}"  -DPROTOBUF_LIB_PATH="${PROTOBUF_LIB_PATH}" \
+      -DACL_ROOT="${ACL_ROOT}" -DOPEN_ACL_OPENCL=$ACL_OPEN \
+      -DCONFIG_BUILD_CONVERT_TOOLS=$BUILD_TOOLS \
+      -DARCH_TYPE="${ARCH_TYPE}" \
+      -DCONFIG_TENGINE_ROOT=$TENGINE_ROOT \
+      -DCMAKE_C_COMPILER=${CROSS_COMPILE}gcc \
+      -DCMAKE_CXX_COMPILER=${CROSS_COMPILE}g++ \
+      -DBUILD_SERIALIZER=$BUILD_SERIALIZER \
+      .. 

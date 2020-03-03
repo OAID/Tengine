@@ -37,8 +37,50 @@ namespace TEngine {
 
 namespace LRNImpl {
 
+void lrn_kernel(int i, int id, void* data, const float* input, float* output, float* square,
+        int h, int w, int channel, int local_size, float alpha_over_size, float beta)
+{
+    int step = ((int*)data)[0];
+    int channel_size = h * w;
+    float* accum_square = ( float* )(std::malloc(channel_size * sizeof(float)));
+
+    int start_c = step * id;
+    int end_c = step * id + step;
+    for(int c = start_c; c < end_c; c++)
+    {
+        int c_start = c - local_size / 2;
+        int c_end = c + local_size / 2;
+
+        std::memset(accum_square, 0x0, channel_size * sizeof(float));
+
+        for(int l = c_start; l <= c_end; l++)
+        {
+            if(l < 0 || l >= channel)
+                continue;
+
+            for(int n = 0; n < channel_size; n++)
+            {
+                accum_square[n] += square[l * channel_size + n];
+            }
+        }
+        /* get the output */
+        const float* cur_input = input + c * channel_size;
+        float* cur_output = output + c * channel_size;
+        for(int n = 0; n < channel_size; n++)
+        {
+            *cur_output++ = *cur_input++ * std::pow(1.0f + alpha_over_size * accum_square[n], -beta);
+        }
+
+    }
+
+    std::free(accum_square);
+}
 struct LRNOps : public NodeOps
 {
+    LRNOps()
+    {
+        name_ = "com_lrn_fp32";
+    }
     bool Run(Node* node)
     {
         Tensor* input_tensor = node->GetInputTensor(0);
@@ -50,8 +92,6 @@ struct LRNOps : public NodeOps
         float* input = ( float* )get_tensor_mem(input_tensor);
         float* output = ( float* )get_tensor_mem(output_tensor);
 
-        float* square = ( float* )(std::malloc(input_tensor->GetTotalSize()));
-
         const TShape& shape = input_tensor->GetShape();
         const std::vector<int>& dims = shape.GetDim();
 
@@ -61,63 +101,55 @@ struct LRNOps : public NodeOps
         int w = dims[3];
 
         int img_size = c * h * w;
-        int channel_size = h * w;
         float alpha = param->alpha;
         float beta = param->beta;
         float bias = param->k;
         int local_size = param->local_size;
+        float alpha_over_size = alpha / local_size;
 
-        float* accum_square = ( float* )(std::malloc(channel_size * sizeof(float)));
+        float* square = ( float* )(std::malloc(img_size * sizeof(float)));
+        int cpu_number = cpu_info->GetCPUNumber();
+        int num_task = c < cpu_number ? c : cpu_number;
+        int step = c / num_task;
 
         for(int i = 0; i < n; i++)
         {
             /* get square value */
 
-            float* img_base = input + i * img_size;
+            float* in_base = input + i * img_size;
+            float* out_base = output + i * img_size;
 
-            for(int j = 0; j < img_size; j++)
-                square[j] = img_base[j] * img_base[j] + bias;
-
-            if(param->norm_region == LRN_ACROSS_CHANNELS)
+            if(param->norm_region != LRN_ACROSS_CHANNELS)
             {
-                float alpha_over_size = alpha / local_size;
-
-                for(int j = 0; j < c; j++)
-                {
-                    int c_start = j - local_size / 2;
-                    int c_end = j + local_size / 2;
-
-                    std::memset(accum_square, 0x0, channel_size * sizeof(float));
-
-                    for(int l = c_start; l <= c_end; l++)
-                    {
-                        if(l < 0 || l >= c)
-                            continue;
-
-                        for(int n = 0; n < channel_size; n++)
-                        {
-                            accum_square[n] += square[l * channel_size + n];
-                        }
-                    }
-
-                    /* get the output */
-
-                    for(int n = 0; n < channel_size; n++)
-                    {
-                        int offset = i * img_size + j * channel_size + n;
-                        output[offset] = input[offset] * std::pow(1.0f + alpha_over_size * accum_square[n], -beta);
-                    }
-                }
+                LOG_ERROR()<<"LRN Only support ACORSS_CHANNEL\n";
+                return false;
             }
             else
             {
-                std::cout << "LRN: IN CHANNEL, TO BE IMPLEMENTED\n";
+                for(int j = 0; j < img_size; j++)
+                    square[j] = in_base[j] * in_base[j] + bias;
+            }
+            if(num_task == 1)
+            {
+                lrn_kernel(0, 0, &c, in_base, out_base, square, h, w, c, local_size, alpha_over_size, beta);
+            }
+            else
+            {
+                MULTI_THREAD_START(num_task, step, id, param)
+                    lrn_kernel(0, id, param, in_base, out_base, square, h, w, c, local_size, alpha_over_size, beta);
+                MULTI_THREAD_END();
+            }
+            if(num_task * step != c)
+            {
+                int offset = num_task * step;
+                int remain_num = c - offset;
+                in_base += offset * h * w;
+                out_base += offset * h * w;
+                lrn_kernel(0, 0, &remain_num, in_base, out_base, square, h, w, c, local_size, alpha_over_size, beta);
             }
         }
 
         std::free(square);
-        std::free(accum_square);
-
         return true;
     }
 };

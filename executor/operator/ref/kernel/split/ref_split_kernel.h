@@ -48,7 +48,7 @@ struct split_param
     struct shape_dim* output_shape;
     int output_dim;
     int axis;
-    int squeeze_dim;
+    // int squeeze_dim;
     float out_scale;
 };
 

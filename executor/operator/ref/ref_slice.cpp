@@ -92,6 +92,7 @@ bool RefSlice::Prerun(Node* node)
     op_param.dim_num = ( int )(in_dim.size());
     op_param.iscaffe = param->iscaffe;
     op_param.ismxnet = param->ismxnet;
+    op_param.isonnx = param->isonnx;
     if(!kernel_registry.GetKernel(kernel_run, layout, data_type))
     {
         set_tengine_errno(ENOENT);
@@ -142,7 +143,7 @@ bool RefSlice::Run(Node* node)
             }
         }
     }
-    else if(op_param.ismxnet)
+    else if(op_param.ismxnet || op_param.isonnx)
     {
         op_param.begin = param->begin;
         op_param.end = param->end;

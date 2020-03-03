@@ -53,26 +53,32 @@ struct NormalizeOps : public NodeOps
 
     void norm_channel(float* input, float* output, float* buffer, float* scale, int hw, int channel)
     {
-        for(int j = 0; j < hw; j++)
+        memset(buffer, 0, hw*sizeof(float));
+        
+        for(int i = 0; i < channel; i++)
         {
-            buffer[j] = 0;
-            for(int i = 0; i < channel; i++)
+            for(int j = 0; j < hw; j++)
             {
                 float data = *(input + i * hw + j);
                 buffer[j] += (data * data);
             }
-            buffer[j] = 1.f / sqrt(buffer[j]);
         }
 
-        float* out_ptr = output;
         for(int j = 0; j < hw; j++)
         {
-            for(int i = 0; i < channel; i++)
+            buffer[j] = 1.f / sqrt(buffer[j]);
+        }     
+
+        float* out_ptr = output;
+
+        for(int i = 0; i < channel; i++)
+        {
+            for(int j = 0; j < hw; j++)
             {
                 float data = *(input + i * hw + j);
                 *(out_ptr + i * hw + j) = data * buffer[j] * scale[i];
             }
-        }
+        } 
     }
 
     bool Run(Node* node)
@@ -98,12 +104,14 @@ struct NormalizeOps : public NodeOps
         float* buffer = any_cast<float*>(node->GetAttr("buffer"));
 
         if(param_->channel_shared == 0 && param_->across_spatial == 0)
+        {
             for(int i = 0; i < batch_number; i++)
             {
                 norm_channel(input, output, buffer, scale, channel_size, channel_num);
                 input += img_size;
                 output += img_size;
             }
+        }
         // other case to be support
         return true;
     }

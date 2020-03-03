@@ -28,16 +28,16 @@
 
 namespace TEngine {
 
-class ReverseV2 : public OperatorNoParam<ReverseV2>
+class Reverse : public OperatorNoParam<Reverse>
 {
 public:
-    ReverseV2()
+    Reverse()
     {
-        name_ = "ReverseV2";
+        name_ = "Reverse";
     }
-    ReverseV2(const ReverseV2& src) = default;
+    Reverse(const Reverse& src) = default;
 
-    virtual ~ReverseV2() {}
+    virtual ~Reverse() {}
     bool InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEngine::TShape>& oshape,
                     int layout) override;
     void SetSchema(void) override;

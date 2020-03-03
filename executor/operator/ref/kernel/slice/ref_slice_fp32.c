@@ -25,4 +25,5 @@
 static int ref_slice_fp32(const float* in_data, float** out_data, const struct slice_param* param)
 {
     return ref_slice_common(( const int8_t* )in_data, ( int8_t** )out_data, sizeof(float), param);
+
 }

@@ -50,8 +50,6 @@ struct RefDeconv : public MTNodeOps
     bool Run(Node* node) override;
     bool Reshape(Node* node) override;
     bool Postrun(Node* node) override;
-    bool GetSharedMemorySize(Node*, unsigned int& mem_size) override;
-    bool SetSharedMemoryAddr(Node*, void* mem_addr, int mem_size) override;
     void InitRegistry(void);
 
     int element_size;
@@ -86,16 +84,6 @@ void RefDeconv::InitRegistry(void)
 #endif
 }
 bool RefDeconv::Reshape(Node* node)
-{
-    return true;
-}
-
-bool RefDeconv::SetSharedMemoryAddr(Node* node, void* mem_addr, int mem_size)
-{
-    return true;
-}
-
-bool RefDeconv::GetSharedMemorySize(Node* node, unsigned int& mem_size)
 {
     return true;
 }

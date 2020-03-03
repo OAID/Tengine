@@ -83,7 +83,7 @@ bool RefSplit::Prerun(Node* node)
     Tensor* output_tensor = node->GetOutputTensor(0);
     Split* split_op = dynamic_cast<Split*>(node->GetOp());
     SplitParam* param = split_op->GetParam();
-    op_param.squeeze_dim = param->squeeze_axis;
+    // op_param.squeeze_dim = param->squeeze_axis;
     Tensor* input_tensor = node->GetInputTensor(0);
     int data_type = input_tensor->GetDataType();
     op_param.axis = param->axis;

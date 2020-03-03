@@ -127,8 +127,9 @@ public:
         master_thread_ = new WorkerThread<cpu_task>(f, cpu_info_.master_cpu);
 
         master_thread_->SetQueue(&master_task_queue_, &master_queue_lock_, &master_queue_cv_);
+        master_thread_->LaunchWorker(true);
 
-        master_thread_->LaunchWorker();
+        master_thread_->Activate(cpu_info_.master_cpu);
     }
 
     void LaunchAider(void)
@@ -204,6 +205,7 @@ public:
     {
         if(master_thread_)
         {
+            master_thread_->Deactivate();
             delete master_thread_;
             master_thread_ = nullptr;
         }
@@ -240,11 +242,27 @@ public:
 
     bool RealRun(Subgraph* graph)
     {
+        ActivateWorker();
         run_lock_.lock();
         bool ret = backend_runner_.Run(graph);
         run_lock_.unlock();
+        DeActivateWorker();
 
         return ret;
+    }
+
+    void ActivateWorker(void)
+    {
+       int master_cpu=cpu_info_.master_cpu;
+
+       for(auto t: aider_threads_)
+            t->Activate(master_cpu);
+    }
+
+    void DeActivateWorker(void)
+    {
+       for(auto t: aider_threads_)
+            t->Deactivate();
     }
 
     bool RealOptimizeGraph(DevContext* context, Subgraph* graph)

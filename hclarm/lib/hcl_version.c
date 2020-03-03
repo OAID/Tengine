@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#define HCL_VERSION "1.9.0"
+#define HCL_VERSION "1.12.0"
 
 const char* get_hcl_version(void)
 {

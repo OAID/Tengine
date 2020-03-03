@@ -83,7 +83,7 @@ struct ExecAttr
         kernel_mode = EXEC_KERNEL_FP32;
         low_mem_mode = true;
         fc_mt = false;
-        pooling_mt = false;
+        pooling_mt = true;
         model_format = MODEL_FORMAT_TENGINE;
         exec_context = nullptr;
         dev_handle = nullptr;

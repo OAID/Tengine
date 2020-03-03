@@ -45,13 +45,6 @@ int vload_mem_model(context_t exec_context, const char* model_name, const char* 
 graph_t create_graph_in_context(context_t exec_context, const char* graph_name, const char* model_name);
 
 int save_graph_internal(graph_t graph, const char* file_format, const char* fname, va_list argp);
-#if 1
-//TODO remove
-void dump_graph_tensor_scale_internal(graph_t graph);
-#endif
-int quant_graph_internal(graph_t graph, int quant_mode, int node_no_quant_idxs[], int node_no_quant_number);
-
-int post_train_graph_internal(graph_t graph,const char* file_name);
 
 int get_model_format(graph_t graph);
 

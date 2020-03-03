@@ -4,7 +4,7 @@
 |    Date    | Rev |Change Description|Author
 | ---------- | --- |---|---|
 | 2018-12-27 |  0.9 |update newest benchmark|ZhangRui/LuoHao
-
+| 2020-02-28 |  1.12 | update benchmark | ZengJieJun
 
 ---
 
@@ -18,7 +18,7 @@
 
 
 ## **Test Environment**
-- Tengine : 0.9.0
+- Tengine : 1.12.0
 - Broad : **Firefly-3399 (RK3399), TinkerBoard (RK3288)**
 - Operating System : Ubuntu 16.04.
 
@@ -86,38 +86,34 @@ conservative ondemand userspace powersave interactive performance
 
 #### MobileNet
 
-|   | Float32(ms) | INT8（ms） |
-| ---------- | ---|---|
-| rk3399(1*A72) | 111.8 |80.1  |
-| rk3399(2*A72) | 63.7  |46.5  |
-| rk3399(1*A53) | 259.6 |198.0 |
-| rk3399(4*A53) | 81.6  |63.7  |
+|   | Float32(ms) |
+| ---------- | ---|
+| rk3399(1*A72) | 176.4 |
+| rk3399(2*A72) | 62.5  |
 
 
 #### SqueezeNet
-|   | Float32(ms) | INT8（ms） |
-| ---------- | ---|---|
-| rk3399(1*A72) | 79.4  |60.4 |
-| rk3399(2*A72) | 49.3  |37.6 |
-| rk3399(1*A53) | 177.0 |151.2 |
-| rk3399(4*A53) | 68.4  |59.6 |
+|   | Float32(ms) |
+| ---------- | ---|
+| rk3399(1*A72) | 117.4  |
+| rk3399(2*A72) | 44.8   |
 
 
 ### RK3288
 
 #### MobileNet
 
-|   | Float32(ms) | INT8（ms） |
-| ---------- | ---|---|
-| rk3288(1*A17) | 201 |111  |
-| rk3288(4*A17) | 67.4 |40  |
+|   | Float32(ms) |
+| ---------- | ---|
+| rk3288(1*A17) | 463.0 |
+| rk3288(4*A17) | 73.4 |
 
 
 #### SqueezeNet
-|   | Float32(ms) | INT8（ms） |
-| ---------- | ---|---|
-| rk3288(1*A17) | 142 |88 |
-| rk3288(4*A17) | 55  |35 |
+|   | Float32(ms) |
+| ---------- | ---|
+| rk3288(1*A17) | 247.2 |
+| rk3288(4*A17) | 48.0  |
 
 Notes:<br>
 (1) We take the average time of N repeats.<br>
