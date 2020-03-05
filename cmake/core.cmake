@@ -1,9 +1,9 @@
-FILE(GLOB_RECURSE core_src "core/lib/*.cpp" "core/lib/*.c" )
+FILE(GLOB core_src "core/lib/*.cpp" "core/lib/*.c" "core/lib/logger/*.cpp" "core/lib/logger/*.c")
 
 if( CONFIG_ONLINE_REPORT )
     include_directories(core/include/olreport)
-else()
-	list(FILTER core_src EXCLUDE REGEX ".*olreport.*")
+    FILE(GLOB online_src "core/lib/olreport/*.cpp" "core/lib/olreport/*.c")
+    list(APPEND core_src ${online_src})
 endif()
 
 include_directories(core/include)
