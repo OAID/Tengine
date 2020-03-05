@@ -4,7 +4,7 @@ message(STATUS,"CMAKE_CURRENT_SRC_DIR = ${CMAKE_CURRENT_SOURCE_DIR}")
 endif()
 message(STATUS "CMAKE_INSTALL_PREFIX = ${CMAKE_INSTALL_PREFIX}")
 
-cmake_minimum_required(VERSION 3.6)
+cmake_minimum_required(VERSION 2.8)
 
 # set(CMAKE_BUILD_TYPE debug)
 # set(CMAKE_BUILD_TYPE relwithdebinfo)
