@@ -46,7 +46,8 @@ public:
     }
     int Load(const std::string& so_path)
     {
-        // test if the so is already loaded
+#ifndef ALL_IN_STATIC_LIB
+// test if the so is already loaded
         sl = ::dlopen(so_path.c_str(), RTLD_NOLOAD | RTLD_NOW);
 
         if(sl)
@@ -59,11 +60,13 @@ public:
             throw te_error_unable_to_load_library(so_path);
             return -1;
         }
+#endif
         return 0;    // ok
     };
 
     template <typename F> std::function<F> GetFunction(const std::string func_name)
     {
+#ifndef ALL_IN_STATIC_LIB
         auto it = func_map.find(func_name);
         if(it == func_map.end())
         {
@@ -77,6 +80,9 @@ public:
             it = func_map.find(func_name);
         }
         return std::function<F>(( F* )(it->second));
+#else
+	return NULL;
+#endif
     }
 
     template <typename F, typename... Args>
