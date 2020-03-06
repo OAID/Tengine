@@ -292,9 +292,8 @@ endif()
 if(AUTH_LIB)
 	TARGET_LINK_LIBRARIES(hclcpu ${AUTH_LIB}/libauthd.a)
 endif()
-if(NOT BUILT_IN_OPENCV)
-	add_subdirectory(benchmark)
-endif()
+
+#add_subdirectory(benchmark)
 #add_subdirectory(tests)
 
 install (TARGETS tengine  DESTINATION lib)
