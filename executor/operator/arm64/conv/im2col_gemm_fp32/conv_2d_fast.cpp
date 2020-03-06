@@ -1405,6 +1405,19 @@ NodeOps* SelectFunc(const CPUInfo* cpu_info, Node* node)
     ConvParam* param = conv_op->GetParam();
 
     ops->activation = param->activation;
+	
+    /* set the cpu affinity, modify the affinity of master thread to the master_cpu */
+    int master_cpu = cpu_info->GetMasterCPU();
+    cpu_set_t mask;
+
+    CPU_ZERO(&mask);
+    CPU_SET(master_cpu, &mask); /* add CPU0 to cpu set */
+
+    /* Set the CPU affinity for a pid */
+    if (sched_setaffinity(0, sizeof(cpu_set_t), &mask) == -1) 
+    {   
+        printf("sched_setaffinity failed!");
+    }	
 
     return ops;
 }
