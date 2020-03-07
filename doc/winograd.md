@@ -7,7 +7,19 @@ Tengine use winograd algorithm to accelerate convolution computations.
 * `default set to OPEN winograd`
 * if want to close winograd, `export NO_WINO=1`
 * if want to re-open winograd, `unset NO_WINO`
-  
+ 
+## Winograd Precision
+The winograd F(4,3) implementation for convolution may bring in some precision problem. Compare with convolution-im2col+gemm, the **maximum relative error**  may range from `1e-4~1e-7`.
+
+For classification networks, we tested the top1/top5 of squeezenet-v1.1, with 50000 images of ImageNet2012 validation sets.
+
+|squeezenet-v1.1(fp32)   | top1| top5 |
+| ---------- | ---|---|
+| with wino | 56.51%|79.24%  |
+| without wino| 56.51% |79.24%  |
+
+The winograd implementation does not induce significant precision drop for top1/top5 of classification networks.
+
 ## Example on RK3399
 This example tests the winograd acceleration on 1A53 cpu on RK3399. 
 
