@@ -1414,10 +1414,7 @@ NodeOps* SelectFunc(const CPUInfo* cpu_info, Node* node)
     CPU_SET(master_cpu, &mask); /* add CPU0 to cpu set */
 
     /* Set the CPU affinity for a pid */
-    if (sched_setaffinity(0, sizeof(cpu_set_t), &mask) == -1) 
-    {   
-        printf("sched_setaffinity failed!");
-    }	
+    sched_setaffinity(0, sizeof(cpu_set_t), &mask);
 
     return ops;
 }
