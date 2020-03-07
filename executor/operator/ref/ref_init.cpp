@@ -27,14 +27,10 @@
 namespace TEngine {
 
 extern void RegisterRefConv2d(void);
-extern void RegisterRefDeconv2d(void);
-extern void RegisterRefFCOps(void);
 
 void RegisterRefOps(void)
 {
     RegisterRefConv2d();
-    RegisterRefDeconv2d();
-    RegisterRefFCOps();
 }
 
 }    // namespace TEngine
