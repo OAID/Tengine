@@ -1,0 +1,43 @@
+name: Tengine-Actions
+
+on: [push, pull_request]
+
+jobs:
+  linux-gcc:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: system-update
+      run: sudo apt-get update
+    - name: install-unzip
+      run: sudo apt install unzip
+    - name: install-protobuf
+      run: sudo apt-get install libprotobuf-dev protobuf-compiler
+    - name: install-opencv
+      run: sudo apt-get install libopencv-dev
+    - name: install-pkg-config
+      run: sudo apt-get install pkg-config
+    - name: cache-openblas
+      id: cache-openblas
+      uses: actions/cache@v1
+      with:
+        path: "openblas-install"
+        key: openblas-linux-install
+    - name: openblas
+      if: steps.cache-openblas.outputs.cache-hit != 'true'
+      run: |
+        curl -sL  https://github.com/xianyi/OpenBLAS/archive/v0.3.9.zip -o OpenBLAS-0.3.9.zip
+        unzip OpenBLAS-0.3.9.zip
+        cd OpenBLAS-0.3.9
+        make
+        make PREFIX=$GITHUB_WORKSPACE/openblas-install install
+    - name: openblas-env
+      run: |
+        echo "::set-env name=OPENBLAS_INCLUDE_PATH::$GITHUB_WORKSPACE/openblas-install/include"
+        echo "::set-env name=OPENBLAS_LIB_PATH::$GITHUB_WORKSPACE/openblas-install/lib"
+        echo $OPENBLAS_INCLUDE_PATH
+        echo $OPENBLAS_LIB_PATH
+    - name: build-Tengine
+      run: |
+        bash linux_build.sh default_config/x86_linux_native.config
+        
