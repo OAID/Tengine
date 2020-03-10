@@ -1,6 +1,6 @@
 # Tengine Overview
 
-[![GitHub license](http://OAID.github.io/pics/apache_2.0.svg)](./LICENSE)
+[![GitHub license](http://OAID.github.io/pics/apache_2.0.svg)](./LICENSE) [![Build Status](https://img.shields.io/github/workflow/status/OAID/Tengine/Tengine-Actions)](https://github.com/OAID/Tengine/actions?query=workflow%3ATengine-Actions)
 
 **Tengine**, developed by **OPEN** AI LAB, is a lite, high-performance, and modular inference engine for embedded device.
 
