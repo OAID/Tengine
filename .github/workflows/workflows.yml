@@ -1,0 +1,140 @@
+name: Tengine-Actions
+
+on: [push, pull_request]
+
+jobs:
+  linux-gcc:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: system-update
+      run: sudo apt-get update
+    - name: install-unzip
+      run: sudo apt install unzip
+    - name: install-protobuf
+      run: sudo apt-get install libprotobuf-dev protobuf-compiler
+    - name: install-opencv
+      run: sudo apt-get install libopencv-dev
+    - name: install-pkg-config
+      run: sudo apt-get install pkg-config
+    - name: cache-openblas
+      id: cache-openblas
+      uses: actions/cache@v1
+      with:
+        path: "openblas-install"
+        key: openblas-linux-install
+    - name: openblas
+      if: steps.cache-openblas.outputs.cache-hit != 'true'
+      run: |
+        curl -sL  https://github.com/xianyi/OpenBLAS/archive/v0.3.9.zip -o OpenBLAS-0.3.9.zip
+        unzip OpenBLAS-0.3.9.zip
+        cd OpenBLAS-0.3.9
+        make
+        make PREFIX=$GITHUB_WORKSPACE/openblas-install install
+    - name: openblas-env
+      run: |
+        echo "::set-env name=OPENBLAS_INCLUDE_PATH::$GITHUB_WORKSPACE/openblas-install/include"
+        echo "::set-env name=OPENBLAS_LIB_PATH::$GITHUB_WORKSPACE/openblas-install/lib"
+    - name: build-Tengine
+      run: |
+        bash linux_build.sh default_config/x86_linux_native.config
+
+
+  android-armv7-a:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: configure
+      run: |
+        mkdir build && cd build
+        cmake -DCMAKE_TOOLCHAIN_FILE=$ANDROID_HOME/ndk-bundle/build/cmake/android.toolchain.cmake \
+            -DANDROID_ABI="armeabi-v7a"             \
+            -DCONFIG_ARCH_ARM8_2=OFF                \
+            -DCONFIG_ARCH_ARM64=OFF                 \
+            -DCONFIG_ARCH_ARM32=ON                  \
+            -DANDROID_ARM_NEON=ON                   \
+            -DCONFIG_ARCH_BLAS=OFF                  \
+            -DCONFIG_KERNEL_FP16=OFF                \
+            -DCONFIG_AUTHENICATION=OFF              \
+            -DCONFIG_ONLINE_REPORT=OFF              \
+            -DCONFIG_VERSION_POSTFIX=OFF            \
+            -DANDROID_PLATFORM=22                   \
+            -DANDROID_STL=c++_shared                \
+            -DANDROID_ALLOW_UNDEFINED_SYMBOLS=TRUE  \
+            -DCONFIG_BUILD_TENGINE_MODULE=OFF       \
+            -DCONFIG_TENGINE_ROOT=`pwd`/..          \
+            -DUSE_EXTERN_PATH=y                     \
+            -DBUILD_SERIALIZER=OFF                  \
+            -DCONFIG_ACL_OPENCL=OFF                 \
+            -DCONFIG_OPT_CFLAGS="-O2"               \
+            ..
+    - name: build
+      run: cmake --build build -j 2
+
+
+  android-armv8-a:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: system-update
+      run: sudo apt-get update
+    - name: install-protobuf
+      run: sudo apt-get install libprotobuf-dev protobuf-compiler
+    - name: configure
+      run: |
+        mkdir build && cd build
+        cmake -DCMAKE_TOOLCHAIN_FILE=$ANDROID_HOME/ndk-bundle/build/cmake/android.toolchain.cmake \
+            -DANDROID_ABI="arm64-v8a"               \
+            -DCONFIG_ARCH_ARM8_2=OFF                \
+            -DCONFIG_ARCH_ARM64=ON                  \
+            -DCONFIG_ARCH_ARM32=OFF                 \
+            -DANDROID_ARM_NEON=OFF                  \
+            -DCONFIG_ARCH_BLAS=OFF                  \
+            -DCONFIG_KERNEL_FP16=OFF                \
+            -DCONFIG_AUTHENICATION=OFF              \
+            -DCONFIG_ONLINE_REPORT=OFF              \
+            -DCONFIG_VERSION_POSTFIX=OFF            \
+            -DANDROID_PLATFORM=22                   \
+            -DANDROID_STL=c++_shared                \
+            -DANDROID_ALLOW_UNDEFINED_SYMBOLS=TRUE  \
+            -DCONFIG_BUILD_TENGINE_MODULE=OFF       \
+            -DCONFIG_TENGINE_ROOT=`pwd`/..          \
+            -DUSE_EXTERN_PATH=y                     \
+            -DBUILD_SERIALIZER=OFF                  \
+            -DCONFIG_ACL_OPENCL=OFF                 \
+            -DCONFIG_OPT_CFLAGS="-O2"               \
+            ..
+    - name: build
+      run: cmake --build build -j 2
+
+
+  android-armv8-a-fp16:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: configure
+      run: |
+        mkdir build && cd build
+        cmake -DCMAKE_TOOLCHAIN_FILE=$ANDROID_HOME/ndk-bundle/build/cmake/android.toolchain.cmake \
+            -DANDROID_ABI="arm64-v8a"               \
+            -DCONFIG_ARCH_ARM8_2=ON                 \
+            -DCONFIG_ARCH_ARM64=ON                  \
+            -DCONFIG_ARCH_ARM32=OFF                 \
+            -DANDROID_ARM_NEON=OFF                  \
+            -DCONFIG_ARCH_BLAS=OFF                  \
+            -DCONFIG_KERNEL_FP16=ON                 \
+            -DCONFIG_AUTHENICATION=OFF              \
+            -DCONFIG_ONLINE_REPORT=OFF              \
+            -DCONFIG_VERSION_POSTFIX=OFF            \
+            -DANDROID_PLATFORM=22                   \
+            -DANDROID_STL=c++_shared                \
+            -DANDROID_ALLOW_UNDEFINED_SYMBOLS=TRUE  \
+            -DCONFIG_BUILD_TENGINE_MODULE=OFF       \
+            -DCONFIG_TENGINE_ROOT=`pwd`/..          \
+            -DUSE_EXTERN_PATH=y                     \
+            -DBUILD_SERIALIZER=OFF                  \
+            -DCONFIG_ACL_OPENCL=OFF                 \
+            -DCONFIG_OPT_CFLAGS="-O2"               \
+            ..
+    - name: build
+      run: cmake --build build -j 2
