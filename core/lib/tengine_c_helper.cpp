@@ -390,7 +390,11 @@ extern void serializer_plugin_init(void);
 extern void executor_plugin_init(void);
 extern void driver_plugin_init(void);
 #ifdef ALL_IN_STATIC_LIB
+#ifdef BUILD_TOOLS
+int register_hclcpu_ops(void){}
+#else
 extern "C" int register_hclcpu_ops(void);
+#endif
 #endif
 
 namespace TEngine {

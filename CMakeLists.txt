@@ -46,7 +46,8 @@ endif()
 #real  project logic starts from here
 
 project(tengine)
-set(BUILD_ALL_IN_STATIC 1)
+set(BUILD_ALL_IN_ONE 1)
+add_definitions(-DALL_IN_STATIC_LIB=1)
 
 if(BUILT_IN_OPENCV)
     set(BUILD_ALL_IN_STATIC 1)
@@ -256,6 +257,8 @@ ENDFOREACH()
 
 if(BUILD_ALL_IN_STATIC)
     ADD_LIBRARY(tengine STATIC ${TENGINE_LIB_SRCS} ${TENGINE_SIGN_SRCS} ${TOPERATOR_LIB_SRCS})
+elseif(BUILD_ALL_IN_ONE)
+    ADD_LIBRARY(tengine SHARED ${TENGINE_LIB_SRCS} ${TENGINE_SIGN_SRCS} ${TOPERATOR_LIB_SRCS})
 else()
     ADD_LIBRARY(hclcpu SHARED ${TOPERATOR_LIB_SRCS})
     ADD_LIBRARY(tengine SHARED ${TENGINE_LIB_SRCS} ${TENGINE_SIGN_SRCS})
@@ -263,6 +266,7 @@ endif()
 
 if(CONFIG_BUILD_CONVERT_TOOLS)
 ADD_LIBRARY(tengine-static STATIC ${TENGINE_LIB_SRCS} ${TENGINE_SIGN_SRCS})
+SET_TARGET_PROPERTIES(tengine-static  PROPERTIES COMPILE_FLAGS "-DBUILD_TOOLS=1" )
 SET_TARGET_PROPERTIES(tengine-static PROPERTIES OUTPUT_NAME tengine)
 endif()
 
@@ -270,7 +274,7 @@ if( NOT ANDROID)
 	TARGET_LINK_LIBRARIES(tengine -lpthread -ldl)
 endif()
 
-if(BUILD_ALL_IN_STATIC)
+if(BUILD_ALL_IN_STATIC OR BUILD_ALL_IN_ONE)
 ADD_DEPENDENCIES(tengine KERNEL_ASM_TARGET)
 else()
 #executor
@@ -294,10 +298,10 @@ if(AUTH_LIB)
 endif()
 
 add_subdirectory(benchmark)
-#add_subdirectory(tests)
+add_subdirectory(tests)
 
 install (TARGETS tengine  DESTINATION lib)
-if(NOT BUILD_ALL_IN_STATIC)
+if(NOT BUILD_ALL_IN_STATIC AND NOT BUILD_ALL_IN_ONE)
 install (TARGETS hclcpu  DESTINATION lib)
 endif()
 install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/core/include/tengine_c_api.h DESTINATION include)
