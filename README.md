@@ -45,7 +45,8 @@ Tengine can be extended to support new serialization format, by building new ser
 ## Benchmark
 
 Test on RK3399-1*A72
+
  Model  |  fp32 | int8 Mixed precision | e2e int8 |
  ---- | ----- | ------  | ------
- Squeezenet v1.1  | 55.3ms | 48.6ms | 44.6ms 
- Mobilenet v1  | 108.7ms |   74.6ms | 64.2ms
+ Squeezenet v1.1  | 55.3ms | 48.6ms| 44.6ms 
+ Mobilenet v1  | 108.7ms | 74.6ms| 64.2ms
