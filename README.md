@@ -2,7 +2,7 @@
 
 [![GitHub license](http://OAID.github.io/pics/apache_2.0.svg)](./LICENSE) [![Build Status](https://img.shields.io/github/workflow/status/OAID/Tengine/Tengine-Actions)](https://github.com/OAID/Tengine/actions?query=workflow%3ATengine-Actions)
 
-**Tengine**, developed by **OPEN** AI LAB, is a lite, high-performance, and modular inference engine for embedded device.
+**Tengine**, developed by **OPEN** AI LAB, is an AI application development platform for AIoT scenarios launched by OPEN AI LAB, which is dedicated to solving the fragmentation problem of aiot industrial chain and accelerating the landing of AI industrialization. Tengine is specially designed for AIoT scenarios, and it has several features, such as cross platform, heterogeneous scheduling, chip bottom acceleration, ultra light weight and independent, and complete development and deployment tool chain. Tengine is compatible with a variety of operating systems and deep learning algorithm framework, which simplifies and accelerates the rapid migration of scene oriented AI algorithm on embedded edge devices, as well as the actual application deployment;
 
 Tengine is composed of five modules: **core/operator/serializer/executor/driver**.
 
@@ -38,6 +38,7 @@ Tengine can be extended to support new serialization format, by building new ser
 ## Communication && Tech Support
 * Github issues
 * QQ group: 829565581 (Question:Tengine  Answer:openailab)
+* email: Support@openailab.com
 * Tengine Community: http://www.tengine.org.cn/
 
 
