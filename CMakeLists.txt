@@ -46,6 +46,7 @@ endif()
 #real  project logic starts from here
 
 project(tengine)
+set(BUILD_ALL_IN_STATIC 1)
 
 if(BUILT_IN_OPENCV)
     set(BUILD_ALL_IN_STATIC 1)
