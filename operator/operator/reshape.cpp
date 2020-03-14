@@ -42,10 +42,7 @@ bool Reshape::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector
         {
             if(0 == param_.re_shape[i])
             {
-                if(param_.is_mxnet)
-                    new_shape.push_back(in_dims[in_idx]);
-                else
-                    new_shape.push_back(1);
+                new_shape.push_back(in_dims[i]);
                 in_idx++;
             }
             else if(-1 == param_.re_shape[i])
