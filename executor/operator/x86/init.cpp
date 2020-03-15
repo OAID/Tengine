@@ -31,7 +31,7 @@ extern void RegisterConvNodeExec_x86(void);
 void RegisterX86Ops(void)
 {
     RegisterConvNodeExec_x86();
-	printf("%s\n", __FUNCTION__);
+    printf("%s\n", __FUNCTION__);
 }
 
 }    // namespace TEngine

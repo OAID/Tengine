@@ -1,6 +1,6 @@
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-	set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/install" CACHE PATH "Installation Directory")
-	message(STATUS,"CMAKE_CURRENT_SRC_DIR = ${CMAKE_CURRENT_SOURCE_DIR}")
+    set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/install" CACHE PATH "Installation Directory")
+    message(STATUS,"CMAKE_CURRENT_SRC_DIR = ${CMAKE_CURRENT_SOURCE_DIR}")
 endif()
 message(STATUS "CMAKE_INSTALL_PREFIX = ${CMAKE_INSTALL_PREFIX}")
 
@@ -12,31 +12,31 @@ set(CMAKE_BUILD_TYPE release)
 
 #get the NDK_ROOT from android.toolchains.cmake
 if(ANDROID)
-	set(PARSED_ANDROID_NDK_REGEX "(.+)/build/cmake/android.toolchain.cmake")
-	string(REGEX REPLACE "${PARSED_ANDROID_NDK_REGEX}" "\\1"  PARSED_ANDROID_NDK ${CMAKE_TOOLCHAIN_FILE})
-	file(READ "${PARSED_ANDROID_NDK}/source.properties" TE_NDK_SOURCE_PROPERTIES)
-	
-	set(TE_NDK_REVISION_REGEX
-	  "^Pkg\\.Desc = Android NDK\nPkg\\.Revision = ([0-9]+)\\.([0-9]+)\\.([0-9]+)?")
-	  
-	if(NOT TE_NDK_SOURCE_PROPERTIES MATCHES "${TE_NDK_REVISION_REGEX}")
-		message(FATAL_ERROR "Failed to parse Android NDK revision: ${ANDROID_NDK}/source.properties.\n${TE_NDK_SOURCE_PROPERTIES}")
-	endif()
+    set(PARSED_ANDROID_NDK_REGEX "(.+)/build/cmake/android.toolchain.cmake")
+    string(REGEX REPLACE "${PARSED_ANDROID_NDK_REGEX}" "\\1"  PARSED_ANDROID_NDK ${CMAKE_TOOLCHAIN_FILE})
+    file(READ "${PARSED_ANDROID_NDK}/source.properties" TE_NDK_SOURCE_PROPERTIES)
 
-	set(PARSED_NDK_MAJOR "${CMAKE_MATCH_1}")
-	set(PARSED_NDK_MINOR "${CMAKE_MATCH_2}")
+    set(TE_NDK_REVISION_REGEX
+        "^Pkg\\.Desc = Android NDK\nPkg\\.Revision = ([0-9]+)\\.([0-9]+)\\.([0-9]+)?")
+        
+    if(NOT TE_NDK_SOURCE_PROPERTIES MATCHES "${TE_NDK_REVISION_REGEX}")
+        message(FATAL_ERROR "Failed to parse Android NDK revision: ${ANDROID_NDK}/source.properties.\n${TE_NDK_SOURCE_PROPERTIES}")
+    endif()
 
-	#ndk less than 15, CMAKE 3.6.3 works, while higher version may failed
-	if(PARSED_NDK_MAJOR LESS 15)
-		if(CMAKE_VERSION VERSION_GREATER 3.6.3)
-			message(FATAL_ERROR  "please use cmake at most VERSION 3.6.3 for ndk " ${PARSED_NDK_MAJOR} "." ${PARSED_NDK_MINOR})
-		endif()
-	endif()
+    set(PARSED_NDK_MAJOR "${CMAKE_MATCH_1}")
+    set(PARSED_NDK_MINOR "${CMAKE_MATCH_2}")
 
-	#in face, this is related with run-time env, since API LEVEL 22 binary can run on API LEVEL 23 platform
-	if(ANDROID_PLATFORM_LEVEL LESS 23)
-		add_definitions(-DNO_CXA_DEMANGLE)
-	endif()
+    #ndk less than 15, CMAKE 3.6.3 works, while higher version may failed
+    if(PARSED_NDK_MAJOR LESS 15)
+        if(CMAKE_VERSION VERSION_GREATER 3.6.3)
+            message(FATAL_ERROR  "please use cmake at most VERSION 3.6.3 for ndk " ${PARSED_NDK_MAJOR} "." ${PARSED_NDK_MINOR})
+        endif()
+    endif()
+
+    #in face, this is related with run-time env, since API LEVEL 22 binary can run on API LEVEL 23 platform
+    if(ANDROID_PLATFORM_LEVEL LESS 23)
+        add_definitions(-DNO_CXA_DEMANGLE)
+    endif()
 endif()
 
 #real  project logic starts from here
@@ -60,17 +60,16 @@ option(CONFIG_BUILD_TENGINE_MODULE  "Build Tengine module" OFF)
 option(CONFIG_BUILD_CONVERT_TOOLS  "Build Tools" OFF)
 
 if(ANDROID_NDK_MAJOR AND (ANDROID_NDK_MAJOR GREATER 18))
-	option(CONFIG_KERNEL_FP16 "KERNEL FP16" OFF)
+    option(CONFIG_KERNEL_FP16 "KERNEL FP16" OFF)
 endif()
 
 if(NOT CONFIG_VERSION_POSTFIX)
-set(CONFIG_VERSION_POSTFIX github)
+    set(CONFIG_VERSION_POSTFIX github)
 endif()
 
 #message("list dir ${CMAKE_CURRENT_LIST_DIR}/.git")
 if(EXISTS ${CMAKE_CURRENT_LIST_DIR}/.git)
-    execute_process(COMMAND git -C ${CMAKE_CURRENT_LIST_DIR} rev-parse HEAD
-                    OUTPUT_VARIABLE git_commit_id)
+    execute_process(COMMAND git -C ${CMAKE_CURRENT_LIST_DIR} rev-parse HEAD OUTPUT_VARIABLE git_commit_id)
     STRING(STRIP ${git_commit_id} stripped_commit_id)
 else()
     set(stripped_commit_id "UNKNOWN")
@@ -81,7 +80,7 @@ set(GIT_COMMIT_ID -DGIT_COMMIT_ID="0x${stripped_commit_id}")
 message("GIT COMMIT ID: " 0x${stripped_commit_id})
 
 if( NOT ANDROID )
-       add_definitions(-DCONFIG_LEGACY_API=1)
+    add_definitions(-DCONFIG_LEGACY_API=1)
 endif()
 
 if(CONFIG_ARCH_X86)
@@ -92,8 +91,8 @@ endif()
 if(CONFIG_ARCH_ARM32)
     add_definitions(-DCONFIG_ARCH_ARM32=1)
     if(NOT ANDROID)
-	    add_definitions(-march=armv7-a -mfpu=neon -mfp16-format=ieee -mfpu=neon-fp16)
-	    set(ARCH_TYPE,"Arm32")
+        add_definitions(-march=armv7-a -mfpu=neon -mfp16-format=ieee -mfpu=neon-fp16)
+        set(ARCH_TYPE,"Arm32")
     endif()
 endif()
 
@@ -116,11 +115,11 @@ if(CONFIG_KERNEL_FP16)
 endif()
 
 if(CONFIG_KERNEL_INT8)
-	add_definitions(-DCONFIG_KERNEL_INT8=1)
+    add_definitions(-DCONFIG_KERNEL_INT8=1)
 endif()
 
 if(CONFIG_KERNEL_UINT8)
-	add_definitions(-DCONFIG_KERNEL_UINT8=1)
+    add_definitions(-DCONFIG_KERNEL_UINT8=1)
 endif()
 
 if(CONFIG_AUTH_DEVICE)
@@ -141,19 +140,19 @@ if (CONFIG_HCL_RELEASE)
 endif()
 
 if (CONFIG_AUTHED_FAILED_NOT_WORK)
-	add_definitions(-DCONFIG_AUTHENICATION_DISABLEWORK=1)
+    add_definitions(-DCONFIG_AUTHENICATION_DISABLEWORK=1)
 endif()
 
 add_definitions(${GIT_COMMIT_ID})
 add_definitions(-fPIC)
 add_definitions(-funroll-loops)
 if(ANDROID)
-	add_definitions(-Wno-deprecated-register)
-	add_definitions(-Wno-overloaded-virtual)
-	add_definitions(-O3)
+    add_definitions(-Wno-deprecated-register)
+    add_definitions(-Wno-overloaded-virtual)
+    add_definitions(-O3)
 else()
-	add_definitions(-Wno-packed-bitfield-compat)
-	add_definitions(-O2)
+    add_definitions(-Wno-packed-bitfield-compat)
+    add_definitions(-O2)
 endif()
 
 add_definitions(${CONFIG_OPT_CFLAGS})
@@ -180,8 +179,8 @@ set(can_use_assembler TRUE)
 enable_language(ASM-ATT)
 
 if(CONFIG_BUILD_TENGINE_MODULE)
-	set(TENGINE_IN_BIND 1)
-	add_subdirectory(tengine-module)
+    set(TENGINE_IN_BIND 1)
+    add_subdirectory(tengine-module)
 endif()
 
 FOREACH(src ${TENGINE_LIB_SRCS} ${TENGINE_SIGN_SRCS} )
@@ -205,25 +204,25 @@ else()
 endif()
 
 if(CONFIG_BUILD_CONVERT_TOOLS)
-	ADD_LIBRARY(tengine-static STATIC ${TENGINE_LIB_SRCS} ${TENGINE_SIGN_SRCS})
-	SET_TARGET_PROPERTIES(tengine-static  PROPERTIES COMPILE_FLAGS "-DBUILD_TOOLS=1" )
-	SET_TARGET_PROPERTIES(tengine-static PROPERTIES OUTPUT_NAME tengine)
+    ADD_LIBRARY(tengine-static STATIC ${TENGINE_LIB_SRCS} ${TENGINE_SIGN_SRCS})
+    SET_TARGET_PROPERTIES(tengine-static  PROPERTIES COMPILE_FLAGS "-DBUILD_TOOLS=1" )
+    SET_TARGET_PROPERTIES(tengine-static PROPERTIES OUTPUT_NAME tengine)
 endif()
 
 if( NOT ANDROID)
-	TARGET_LINK_LIBRARIES(tengine -lpthread -ldl)
+    TARGET_LINK_LIBRARIES(tengine -lpthread -ldl)
 endif()
 
 if(BUILD_ALL_IN_STATIC OR BUILD_ALL_IN_ONE)
-	ADD_DEPENDENCIES(tengine KERNEL_ASM_TARGET)
+    ADD_DEPENDENCIES(tengine KERNEL_ASM_TARGET)
 else()
 #executor
-	ADD_DEPENDENCIES(hclcpu KERNEL_ASM_TARGET)
-	TARGET_LINK_LIBRARIES(hclcpu tengine)
+    ADD_DEPENDENCIES(hclcpu KERNEL_ASM_TARGET)
+    TARGET_LINK_LIBRARIES(hclcpu tengine)
 endif()
 
 if(AUTH_LIB)
-	TARGET_LINK_LIBRARIES(hclcpu ${AUTH_LIB}/libauthd.a)
+    TARGET_LINK_LIBRARIES(hclcpu ${AUTH_LIB}/libauthd.a)
 endif()
 
 add_subdirectory(benchmark)
@@ -231,7 +230,7 @@ add_subdirectory(tests)
 
 install (TARGETS tengine  DESTINATION lib)
 if(NOT BUILD_ALL_IN_STATIC AND NOT BUILD_ALL_IN_ONE)
-	install (TARGETS hclcpu  DESTINATION lib)
+    install (TARGETS hclcpu  DESTINATION lib)
 endif()
 install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/core/include/tengine_c_api.h DESTINATION include)
 install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/core/include/cpu_device.h DESTINATION include)

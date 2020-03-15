@@ -5,7 +5,7 @@ extern void RegisterRefOps(void);
 
 #if CONFIG_ARCH_X86
 extern void RegisterX86Ops(void);
-#endif	
+#endif
 
 #if CONFIG_ARCH_ARM64 == 1 || CONFIG_ARCH_ARM32 == 1
 extern void RegisterArmOps(void);
@@ -21,7 +21,7 @@ using namespace TEngine;
 extern "C" int register_hclcpu_ops(void)
 {
     RegisterRefOps();
-	
+
 #if CONFIG_ARCH_X86
     RegisterX86Ops();
 #endif	
