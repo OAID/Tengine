@@ -146,7 +146,6 @@ endif()
 
 add_definitions(${GIT_COMMIT_ID})
 add_definitions(-fPIC)
-add_definitions(-g)
 add_definitions(-funroll-loops)
 if(ANDROID)
 	add_definitions(-Wno-deprecated-register)
