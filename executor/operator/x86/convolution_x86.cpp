@@ -18,8 +18,8 @@
  */
 
 /*
- * Copyright (c) 2018, Open AI Lab
- * Author: chunyinglv@openailab.com
+ * Copyright (c) 2020, OPEN AI LAB
+ * Author: qtang@openailab.com
  */
 #include <iostream>
 #include <functional>
@@ -32,13 +32,12 @@
 #include "graph.hpp"
 #include "operator/convolution.hpp"
 #include <math.h>
-#include <cblas.h>
 
 namespace TEngine {
 
 namespace ConvolutionImpl {
-const char* conv_name = "CONV_BLAS";
-const int default_prio = 5000;
+const char* conv_name = "CONV_X86";
+const int default_prio = 500;
 
 struct ConvolutionOps : public NodeOps
 {
@@ -136,6 +135,165 @@ struct ConvolutionOps : public NodeOps
         return Prerun(node);
     }
 
+	// int M = outch;  		// outch
+	// int N = outw * outh; // outsize or out stride
+	// int K = kernel_w * kernel_h * inch; // ksize * inch
+	// float* pA = kernel
+	// float* pB = input_data
+	// float* pC = output_data
+	/* 
+    void sgemm(int M, int N, int K, float* pA, float* pB, float* pC) // round 1, 'tu fa' sgemm
+    {
+        for (int i=0; i<M; i++)
+        {
+            float* output = pC + i*N;
+
+            for (int j=0; j<N; j++)
+            {
+                float sum = 0;
+
+                for (int k=0; k<K; k++)
+                {
+                    sum += pA[i*K + k] * pB[k*N + j];
+                }
+                output[0] = sum;
+
+                output++;
+            }
+        }
+    }
+	*/
+	/*
+    void sgemm(int M, int N, int K, float* pA, float* pB, float* pC) // round 2, reorder data matrix
+    {
+		float* pB_t = (float* )malloc(N * K * sizeof(float));
+		
+		// data, col2row
+		for (int i=0; i<K; i++)
+		{
+			for (int j=0; j<N; j++)
+			{
+				pB_t[j*K + i] = pB[i*N + j];
+			}
+		}
+		
+        for (int i=0; i<M; i++)
+        {
+            float* output = pC + i*N;
+
+            for (int j=0; j<N; j++)
+            {
+                float sum = 0;
+				
+				float* va = pA + i*K;
+				float* vb = pB_t + j*K;
+				
+                for (int k=0; k<K; k++)
+                {
+                    sum += va[0] * vb[0];
+					
+					va += 1;
+					vb += 1;
+                }
+                output[0] = sum;
+
+                output++;
+            }
+        }
+		
+		free(pB_t);
+    }	
+	*/
+    void sgemm(int M, int N, int K, float* pA, float* pB, float* pC) // round 3, unloop output ch
+    {
+		float* pB_t = (float* )malloc(N * K * sizeof(float));
+		
+		// data, col2row
+		for (int i=0; i<K; i++)
+		{
+			for (int j=0; j<N; j++)
+			{
+				pB_t[j*K + i] = pB[i*N + j];
+			}
+		}
+		
+		// output ch0 - ch3
+		int i=0;
+        for (; i+3<M; i+=4)
+        {
+            float* output0 = pC + (i  )*N;
+			float* output1 = pC + (i+1)*N;
+			float* output2 = pC + (i+2)*N;
+			float* output3 = pC + (i+3)*N;
+
+            for (int j=0; j<N; j++)
+            {
+                float sum0 = 0;
+				float sum1 = 0;
+				float sum2 = 0;
+				float sum3 = 0;
+				
+				float* va0 = pA + (i  )*K;
+				float* va1 = pA + (i+1)*K;
+				float* va2 = pA + (i+2)*K;
+				float* va3 = pA + (i+3)*K;
+				
+				float* vb = pB_t + j*K;
+				
+                for (int k=0; k<K; k++)
+                {
+                    sum0 += va0[0] * vb[0];
+					sum1 += va1[0] * vb[0];
+					sum2 += va2[0] * vb[0];
+					sum3 += va3[0] * vb[0];
+					
+					va0 += 1;
+					va1 += 1;
+					va2 += 1;
+					va3 += 1;
+					
+					vb += 1;
+                }
+                output0[0] = sum0;
+				output1[0] = sum1;
+				output2[0] = sum2;
+				output3[0] = sum3;
+
+                output0++;
+				output1++;
+				output2++;
+				output3++;
+            }
+        }
+		
+		// output ch0
+		for (; i<M; i++)
+		{
+            float* output = pC + i*N;
+
+            for (int j=0; j<N; j++)
+            {
+                float sum = 0;
+				
+				float* va = pA   + i*K;
+				float* vb = pB_t + j*K;
+				
+                for (int k=0; k<K; k++)
+                {
+                    sum += va[0] * vb[0];
+					
+					va += 1;
+					vb += 1;
+                }
+                output[0] = sum;
+
+                output++;
+            }			
+		}
+		
+		free(pB_t);
+    }	
+
     bool Run(Node* node)
     {
         bool debug_conv = false;
@@ -212,9 +370,8 @@ struct ConvolutionOps : public NodeOps
             {
                 im2col(input + i * in_chw + g * in_chw_g, buffer, inh, inw, inc_g, outh, outw, outc_g, ksize_h, ksize_w,
                        stride_h, stride_w, pad_h, pad_w, dilation_h, dilation_w);
-
-                cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, m, n, k, 1, kernel + g * kernel_size_g, k,
-                            buffer, n, 0, output + i * out_chw + g * out_chw_g, n);
+				
+				sgemm(m, n, k, kernel + g * kernel_size_g, buffer, output + i * out_chw + g * out_chw_g);
             }
         }
         if(have_biases)
@@ -264,11 +421,18 @@ NodeOps* SelectFunc(const CPUInfo* cpu_info, Node* node)
 
 }    // namespace ConvolutionImpl
 
-void RegisterConvBlasNodeExec(void)
+void RegisterConvNodeExec_x86(void)
 {
-    if(!NodeOpsRegistryManager::RegisterOPImplementor("common", "Convolution", ConvolutionImpl::SelectFunc,
-                                                      ConvolutionImpl::default_prio))
-        LOG_ERROR() << __FUNCTION__ << " :Regist OP failed for prio [" << ConvolutionImpl::default_prio << "]\n";
+	if(!NodeOpsRegistryManager::RegisterOPImplementor("x86", "Convolution", ConvolutionImpl::SelectFunc, ConvolutionImpl::default_prio))
+	{
+		LOG_ERROR() << __FUNCTION__ << " :Regist OP failed for prio [" << ConvolutionImpl::default_prio << "]\n";
+		printf("%s :Regist OP failed for prio %d\n", __FUNCTION__, ConvolutionImpl::default_prio);
+	}
+	else
+	{
+		printf("%s :Regist OP succeed for prio %d\n", __FUNCTION__, ConvolutionImpl::default_prio);
+	}
+        
 }
 
 }    // namespace TEngine
