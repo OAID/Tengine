@@ -54,8 +54,8 @@ More Benchmark data to be added.
 - [ ] Netron support Tengine model .tmfile
 - [ ] New compile configuration file
 - [ ] Easy to use C++ API
-- [ ] Easy to use python API
-- [ ] Support more ops of onnx(PyTorch)
+- [ ] Easy to use Python API
+- [ ] Support more ops of ONNX(PyTorch)
 
 ##### Optimization
 
