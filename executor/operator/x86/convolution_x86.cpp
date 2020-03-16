@@ -54,7 +54,6 @@ namespace TEngine {
 
 namespace ConvolutionImpl {
 const char* conv_name = "CONV_X86";
-const int default_prio = 500;
 
 struct ConvolutionOps : public NodeOps
 {
@@ -846,14 +845,14 @@ NodeOps* SelectFunc(const CPUInfo* cpu_info, Node* node)
 
 void RegisterConvNodeExec_x86(void)
 {
-    if(!NodeOpsRegistryManager::RegisterOPImplementor("x86", "Convolution", ConvolutionImpl::SelectFunc, ConvolutionImpl::default_prio))
+    if (!NodeOpsRegistryManager::RegisterOPImplementor("x86", "Convolution", ConvolutionImpl::SelectFunc, 500))
     {
-        LOG_ERROR() << __FUNCTION__ << " :Regist OP failed for prio [" << ConvolutionImpl::default_prio << "]\n";
-        printf("%s :Regist OP failed for prio %d\n", __FUNCTION__, ConvolutionImpl::default_prio);
+        LOG_ERROR() << __FUNCTION__ << " :Regist OP failed for prio \n";
+        printf("%s :Regist OP failed\n", __FUNCTION__);
     }
     else
     {
-        printf("%s :Regist OP succeed for prio %d\n", __FUNCTION__, ConvolutionImpl::default_prio);
+        printf("%s :Regist OP succeed\n", __FUNCTION__);
     }
 }
 

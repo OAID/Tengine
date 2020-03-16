@@ -1,7 +1,7 @@
 include_directories(executor/include executor/operator/include)
 
 FILE(GLOB_RECURSE COMMON_LIB_CPP_SRCS executor/engine/*.cpp executor/lib/*.cpp executor/plugin/*.cpp)
-FILE(GLOB COMMON_CPP_SRCS executor/operator/init.cpp)
+FILE(GLOB COMMON_CPP_SRCS executor/operator/init.cpp executor/operator/common/*.cpp)
 FILE(GLOB_RECURSE REF_CPP_SRCS executor/operator/ref/*.cpp)
 
 if(CONFIG_AUTH_DEVICE)
@@ -13,7 +13,6 @@ list(APPEND TOPERATOR_LIB_SRCS ${HCL_AUTH_SRCS})
 if (CONFIG_AUTHENICATION)
     add_definitions(-DCONFIG_AUTHENICATION=1)
 endif()
-
 
 # For different settings, please change the COMPILE_FLAGS
 # Please refers to hclarm/auth/auth.config 

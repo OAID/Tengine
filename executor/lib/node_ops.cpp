@@ -293,6 +293,11 @@ NodeOps* NodeOpsRegistryManager::RealFindNodeOps(const CPUInfo* cpu_info, Node* 
         return ops;
 #endif
 
+    // search common
+    ops = FindNodeOps("common", cpu_info, node);
+    if(ops)
+        return ops;
+
     // the final search: reference
 
     ops = FindNodeOps(REF_REGISTRY_NAME, cpu_info, node);
