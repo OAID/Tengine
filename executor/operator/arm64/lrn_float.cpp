@@ -336,13 +336,7 @@ using namespace LRNImplArm;
 
 void RegisterLRNNodeExec(void)
 {
-#ifdef CONFIG_ARCH_ARM32
-    NodeOpsRegistryManager::RegisterOPImplementor("arm32", "LRN", LRNImplArm::SelectFunc, 1000);
-#endif
-
-#ifdef CONFIG_ARCH_ARM64
     NodeOpsRegistryManager::RegisterOPImplementor("arm64", "LRN", LRNImplArm::SelectFunc, 1000);
-#endif
 }
 
 }    // namespace TEngine

@@ -286,10 +286,15 @@ NodeOps* NodeOpsRegistryManager::RealFindNodeOps(const CPUInfo* cpu_info, Node* 
             return ops;
     }
 
+    // search x86
+#if CONFIG_ARCH_X86
+    ops = FindNodeOps("x86", cpu_info, node);
+    if(ops)
+        return ops;
+#endif
+
     // search common
-
     ops = FindNodeOps("common", cpu_info, node);
-
     if(ops)
         return ops;
 

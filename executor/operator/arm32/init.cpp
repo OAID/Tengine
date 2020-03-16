@@ -57,6 +57,7 @@ extern void RegisterEluFP32(void);
 extern void RegisterCastFP32(void);
 extern void RegisterEltwiseFP32(void);
 extern void RegisterConv2dDirect3x3Dilation(void);
+extern void RegisterLRNNodeExec(void);
 
 void __attribute__((visibility("default"))) RegisterArmOps(void)
 {
@@ -93,6 +94,7 @@ void __attribute__((visibility("default"))) RegisterArmOps(void)
     RegisterCastFP32();
     RegisterEltwiseFP32();
     RegisterConv2dDirect3x3Dilation();
+	RegisterLRNNodeExec();
 }
 
 }    // namespace TEngine

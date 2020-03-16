@@ -7,23 +7,19 @@ The document describes how to build Tengine for android.
 ```
 git clone https://github.com/OAID/tengine/
 ```
-### 2. Download Android ndk, OpenBLAS, Protobuf and ComputeLibrary
+### 2. Download Android ndk, Protobuf and ComputeLibrary
 
 Download the below files from [Tengine Android build](https://pan.baidu.com/s/1-zsqxXXcZEXmCip-nQzcIw) (password: *wtcz*):
 ```
   - android-ndk-r16-linux-x86_64.zip
-  - Openblas_0220_android.tgz
 ```
-### 3. Unpack Android ndk and OpenBLAS
+### 3. Unpack Android ndk
 ```
 unzip android-ndk-r16-linux-x86_64.zip
-tar -zxvf Openblas_0220_android.tgz
 ```
 ### 4. Set *ANDROID_NDK* in system environment
 ```
-If run Tengine with Openblas turn on OPEN_BLAS and set OPENBLAS_LIB_PATH,OPENBLAS_INCLUDE_PATH in file example_config/arm_android_cross.config.
 If want to build with Armv8 please set *ARCH_TYPE=Arm64* in file example_config/arm_android_cross.config.  
-
 ```
 
 ### 5. Build tengine
@@ -34,10 +30,10 @@ cd ~/tengine
 
 ### 6. Build example
 ### 6.1. Set the *TENGINE_DIR*
-If want to run Tengine with OpenBlas, please add the correct blas path in example/android_build_armv7.sh or example/android_build_armv8.sh. `-DBLAS_DIR=/home/usr/Openblas_0220_android`
+If want to run Tengine
 ```
 cd ~/tengine/example
-vim android_build_armv7.sh or  vim android_build_armv8.sh
+vim android_build_armv7.sh or vim android_build_armv8.sh
 ```
 Make sure the install directory is in your *TENGINE_DIR*.
 ### 6.3. Build the example    

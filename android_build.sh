@@ -32,16 +32,6 @@ then
     fi
 fi
 
-if [[ "$OPEN_BLAS" == "y" ]]
-then
-    if [ -z "$OPENBLAS_LIB_PATH" ] || [ -z "$OPENBLAS_INCLUDE_PATH" ]
-    then
-        echo "Open Blas is Opened,must configure OPENBLAS_LIB_PATH= OPENBLAS_INCLUDE_PATH= "
-        exit 1
-
-    fi
-fi
-
 API_LEVEL="android-$API_LEVEL"
 
 ARM8_2=$CONFIG_KERNEL_FP16
@@ -76,12 +66,6 @@ else
 	ACL_OPEN=OFF
 fi
 
-CFG_BLAS=OFF
-if [ "$OPEN_BLAS" == "y" ]
-then
-	CFG_BLAS=ON
-fi
-
 CMAKE=cmake
 
 $CMAKE -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake \
@@ -90,15 +74,12 @@ $CMAKE -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake \
     -DCONFIG_ARCH_ARM32=$ARM32 \
     -DCONFIG_ARCH_ARM8_2=$ARM8_2 \
     -DANDROID_ARM_NEON=$ARM_NEON \
-    -DCONFIG_ARCH_BLAS=$CFG_BLAS \
     -DCONFIG_KERNEL_FP16=$CONFIG_KERNEL_FP16 \
     -DCONFIG_AUTHENICATION=$CFG_AUTH_DEVICE \
     -DCONFIG_ONLINE_REPORT=$CFG_ONLINE_REPORT \
     -DCONFIG_VERSION_POSTFIX=$CFG_VERSION_POSTFIX \
     -DANDROID_PLATFORM=$API_LEVEL \
     -DANDROID_STL=c++_shared \
-    -DOPENBLAS_LIB_PATH=$OPENBLAS_LIB_PATH \
-    -DOPENBLAS_INCLUDE_PATH=$OPENBLAS_INCLUDE_PATH \
     -DANDROID_ALLOW_UNDEFINED_SYMBOLS=TRUE\
     -DAUTH_LIB=$AUTH_LIB \
     -DAUTH_HEADER=$AUTH_HEADER \
@@ -134,7 +115,4 @@ echo "PROTOBUF_INCLUDE_PATH=$PROTOBUF_INCLUDE_PATH" >> tengine_build.log
 echo "BUILD_ACL=$BUILD_ACL" >> tengine_build.log
 echo "ACL_ROOT=$ACL_ROOT" >> tengine_build.log
 echo "BUILD_TOOLS=$BUILD_TOOLS" >> tengine_build.log
-echo "OPEN_BLAS=$OPEN_BLAS" >> tengine_build.log
-echo "OPENBLAS_LIB_PATH=$OPENBLAS_LIB_PATH" >> tengine_build.log
-echo "OPENBLAS_INCLUDE_PATH=$OPENBLAS_INCLUDE_PATH" >> tengine_build.log
 echo "Build Sucessed"

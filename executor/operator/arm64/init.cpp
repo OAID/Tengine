@@ -40,7 +40,6 @@ extern void RegisterDeConv2dDepth(void);
 extern void RegisterDeConv2dDepth4x4(void);
 extern void RegisterLRNNodeExec(void);
 extern void RegisterFeatureMatchFast(void);
-
 extern void RegisterConv2d_DW_FP32_NHWC(void);
 extern void RegisterConv2dFp32NHWC(void);
 extern void RegisterSigmoidFP32(void);
@@ -59,6 +58,7 @@ extern void RegisterEluFP32(void);
 extern void RegisterCastFP32(void);
 extern void RegisterEltwiseFP32(void);
 extern void RegisterConv2dDirect3x3Dilation(void);
+extern void RegisterLRNNodeExec(void);
 
 void __attribute__((visibility("default"))) RegisterArmOps(void)
 {
@@ -96,6 +96,7 @@ void __attribute__((visibility("default"))) RegisterArmOps(void)
     RegisterCastFP32();
     RegisterEltwiseFP32();
     RegisterConv2dDirect3x3Dilation();
+	RegisterLRNNodeExec();
 }
 
 }    // namespace TEngine

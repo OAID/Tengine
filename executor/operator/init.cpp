@@ -4,6 +4,10 @@ extern void NodeOpsRegistryManagerInit(void);
 extern void RegisterCommonOps(void);
 extern void RegisterRefOps(void);
 
+#if CONFIG_ARCH_X86
+extern void RegisterX86Ops(void);
+#endif
+
 #if CONFIG_ARCH_ARM64 == 1 || CONFIG_ARCH_ARM32 == 1
 extern void RegisterArmOps(void);
 #endif
@@ -20,6 +24,10 @@ extern "C" int register_hclcpu_ops(void)
     RegisterCommonOps();
     RegisterRefOps();
 
+#if CONFIG_ARCH_X86
+    RegisterX86Ops();
+#endif	
+
 #if CONFIG_ARCH_ARM64 || CONFIG_ARCH_ARM32
     RegisterArmOps();
 #endif
@@ -29,5 +37,4 @@ extern "C" int register_hclcpu_ops(void)
 #endif
 
     return 0;
-
 }
