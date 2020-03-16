@@ -27,11 +27,12 @@
 namespace TEngine {
 
 extern void RegisterConvNodeExec_x86(void);
+extern void RegisterFcNodeExec_x86(void);
 
 void RegisterX86Ops(void)
 {
     RegisterConvNodeExec_x86();
-    printf("%s\n", __FUNCTION__);
+    RegisterFcNodeExec_x86();
 }
 
 }    // namespace TEngine
