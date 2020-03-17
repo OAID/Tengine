@@ -50,13 +50,11 @@ project(tengine)
 if(BUILT_IN_OPENCV)
     set(BUILD_ALL_IN_STATIC 1)
     if(CONFIG_ARCH_ARM64)
-	    #option(CONFIG_ARCH_ARM64 "build arm64 version" ON)
-	    #option(CONFIG_ARCH_ARM32 "build arm32 version" OFF)
 	set(CONFIG_ARCH_ARM64 ON)
+	message(STATUS "CONFIG_ARCH_ARM64 = ${CONFIG_ARCH_ARM64}")
     elseif(CONFIG_ARCH_ARM32)
-	    #option(CONFIG_ARCH_ARM64 "build arm64 version" OFF)
-	    #option(CONFIG_ARCH_ARM32 "build arm32 version" ON)
 	set(CONFIG_ARCH_ARM32 ON)
+	message(STATUS "CONFIG_ARCH_ARM32 = ${CONFIG_ARCH_ARM32}")
     else()
 	option(CONFIG_ARCH_ARM64 "build arm64 version" OFF)
         option(CONFIG_ARCH_ARM32 "build arm32 version" OFF)
@@ -85,11 +83,6 @@ option(CONFIG_AUTHED_FAILED_NOT_WORK  "AUTHED FAIELD TENGINE DO NOT WORK" OFF)
 option(CONFIG_BUILD_TENGINE_MODULE  "Build Tengine module" OFF)
 option(CONFIG_BUILD_CONVERT_TOOLS  "Build Tools" OFF)
 
-message(STATUS "CONFIG_ARCH_ARM64 = ${CONFIG_ARCH_ARM64}")
-message(STATUS "CONFIG_ARCH_ARM32 = ${CONFIG_ARCH_ARM32}")
-
-
-
 if(NOT CONFIG_VERSION_POSTFIX)
 set(CONFIG_VERSION_POSTFIX github)
 endif()
@@ -104,8 +97,6 @@ else()
 endif()
 
 set(GIT_COMMIT_ID -DGIT_COMMIT_ID="0x${stripped_commit_id}")
-
-message("GIT COMMIT ID: " 0x${stripped_commit_id})
 
 if( NOT ANDROID )
        add_definitions(-DCONFIG_LEGACY_API=1)
