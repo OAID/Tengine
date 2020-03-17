@@ -1,63 +1,74 @@
-# Tengine examples
+我们提供2类模型示例，一类是分类网络，一类是检测网络。
 
-[![GitHub license](http://OAID.github.io/pics/apache_2.0.svg)](./LICENSE)
+#### 如何编译
 
-- imagenet_classification(squeezenet, mobilenet, mobilenet_v2, resnet50, alexnet, googlenet, inception_v3, inception_v4, vgg16)
-- mtcnn
-- ssd
-- mobilenet_ssd
-- yolov2
-- faster_rcnn
-- lighten_cnn
-- caffe_wrapper
-  - cpp_classification(squeezenet, mobilenet, etc)
-  - mtcnn
-- tensorflow_wrapper
-  - label_image(inception_v3, mobilenet, resnet50)
-- tengine_model
-  - classification(squeezenet, mobilenet, mobilenet_v2, resnet50, alexnet, googlenet, inception_v3, inception_v4, vgg16)
-  - convert(convert caffe model to tengine model)
+这里我们假设你已经完成Tengine的编译。
 
+如果不知道如何编译Tengine，请参考[Tengine快速上手指南](https://github.com/OAID/Tengine/wiki)。
 
-## Download required models
-Download the models from [Tengine model zoo](https://pan.baidu.com/s/1Ar9334MPeIV1eq4pM1eI-Q) (psw: hhgc).
+我们提供2套编译脚本，一个用于Linux平台测试程序生成，一个用于Android平台测试程序生成。
 
+- ###### Linux编译
 
-## How to build these examples
-### 1. install [Tengine](https://github.com/OAID/Tengine)
-### 2. install opencv
+1. 编辑linux_build.sh脚本，设置正确的Tengine代码路径
 
 ```
-sudo apt-get install libopencv-dev
+vim ./linux_build.sh
+
+TENGINE_PATH=/path/to/tengine
 ```
 
-### 3. make examples
-#### 3.1 Linux
-```
-cd ~/tengine/examples
-vim linux_build.sh
-```
-Set the correct Tengine path.
-```
-mkdir build
-cd build
-../linux_build.sh
-make -j4 
-```
-#### 3.2 Android
-```
-cd ~/tengine/examples
-vim android_build_armv7.sh or vim android_build_armv8.sh
-```
-Set the correct NDK path, Tengine path, Opencv path and protobuf path. If you want to run Tengine with OpenBlas, please add the correct blas path in android_build_armv7.sh or android_build_armv8.sh.
-```
--DBLAS_DIR=/home/usr/openbla020_android
-```
+2. 执行linux_build.sh脚本
 
 ```
-mkdir build
-cd build
-../android_build_armv7.sh or ../android_build_armv8.sh
-make -j4
+chmod +x ./linux_build.sh
+./linux_build.sh
 ```
 
+- ###### Android编译
+
+Android测试程序的编译是在Linux Host机上使用[NDK](https://developer.android.google.cn/ndk/guides)编译的。
+
+1. 编辑android_build.sh脚本，设置正确的Tengine代码路径、ANDROID_NDK路径、ABI/API_LEVEL属性
+
+```
+vim ./android_build.sh
+
+
+ANDROID_NDK="/path/to/android-ndk-r16"
+ABI="" # 比如armeabi-v7a
+API_LEVEL= # 比如22
+
+TENGINE_PATH=/path/to/tengine
+```
+
+2. 执行android_build.sh脚本
+
+```
+chmod +x ./android_build.sh
+./linux_build.sh
+```
+
+#### 模型文件获取
+
+
+我们在百度网盘中提供了所有examples的原始框架模型和Tengine模型。
+
+
+[获取模型文件](https://pan.baidu.com/s/1Ar9334MPeIV1eq4pM1eI-Q?errno=0&errmsg=Auth%20Login%20Sucess&&bduss=&ssnerror=0&traceid=#list/path=%2FTengine_models&parentPath=%2F) 提取码：hhgc
+
+#### 执行样例
+
+编译完成后，将下载的模型放在样例代码的tengine目录下，与source和data同级。
+
+
+直接执行以下命令：
+
+```
+chmod +x ./tf_example.sh
+./tf_example.sh
+```
+
+tf_example.sh是执行tensorflow模型转换成的Tengine模型的执行脚本。
+
+相应的，如果想执行caffe模型转换成的Tengine模型，请执行./caffe_example.sh。

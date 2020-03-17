@@ -1,11 +1,11 @@
-#/bin/bash
+#!/bin/bash
 
 # please do configure
+ANDROID_NDK="/root/sf/android-ndk-r16"
+ABI="armeabi-v7a"
+API_LEVEL=22
 
-EMBEDDED_CROSS_ROOT=""
-TOOL_CHAIN_PREFIX=""
-
-TENGINE_PATH=/home/test/workspace/model_zoo/tengine
+TENGINE_PATH=/path/to/tengine
 
 # end configure
 
@@ -16,26 +16,26 @@ do_build()
 {
 	cur_pwd=`pwd`
 	cd $1
-	if [ -f "linux_build.sh" ]
+	if [ -f "android_build.sh" ]
 	then
 		if [ -d "build" ]
 		then
-			rm -fr build
+			rm -rf build
 		fi
-		sh linux_build.sh $2 $3 $4 $5
+		sh android_build.sh $2 $3 $4 $5 $6
 	fi
 	cd -
 }
 
 all_dir=`ls -R |grep "/source:$"|sed 's/:/ /g'`
 
+
 for dr in $all_dir
 do
-	do_build $dr $TENGINE_INCLUDE_PATH $TENGINE_LIB_PATH $EMBEDDED_CROSS_ROOT $TOOL_CHAIN_PREFIX
+	do_build $dr $TENGINE_INCLUDE_PATH $TENGINE_LIB_PATH $ANDROID_NDK $ABI $API_LEVEL
 	if [ "$?" != "0" ]
 	then
-		echo "build failed"
-		exit 1
+		 echo "build failed"
+		 exit 1
 	fi
 done
-
