@@ -147,6 +147,13 @@ bool RefBatchNormOps::Run(Node* node)
             op_param.input_w = dims[2];
             op_param.input_h = 1;
         }
+        else if(2 == dims.size())
+        {
+            op_param.input_n = dims[0];
+            op_param.input_c = dims[1];
+            op_param.input_w = 1;
+            op_param.input_h = 1;
+        }
         else
         {
             return false;
