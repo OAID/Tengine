@@ -227,6 +227,7 @@ endif()
 
 add_subdirectory(benchmark)
 add_subdirectory(tests)
+add_subdirectory(examples)
 
 install (TARGETS tengine  DESTINATION lib)
 if(NOT BUILD_ALL_IN_STATIC AND NOT BUILD_ALL_IN_ONE)
