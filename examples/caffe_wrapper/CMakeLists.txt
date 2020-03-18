@@ -1,2 +1,0 @@
-add_subdirectory(cpp_classification)
-add_subdirectory(mtcnn)
