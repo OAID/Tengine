@@ -18,8 +18,8 @@
  */
 
 /*
- * Copyright (c) 2019, OPEN AI LAB
- * Author: jingyou@openailab.com
+ * Copyright (c) 2020, OPEN AI LAB
+ * Author: jxyang@openailab.com
  */
 #ifndef __COMMON_HPP__
 #define __COMMON_HPP__
