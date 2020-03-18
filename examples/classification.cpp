@@ -18,7 +18,7 @@
  */
 
 /*
- * Copyright (c) 2020, Open AI Lab
+ * Copyright (c) 2020, OPEN AI LAB
  * Author: jxyang@openailab.com
  */
 #include <unistd.h>
