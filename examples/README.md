@@ -1,4 +1,4 @@
-### Where is the compiled executable files?
+### Where are the compiled executable files?
 
 When you finish compiling Tengine, examples executable files are under /path/to/Tengine/install/examples folder.
 
