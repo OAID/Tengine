@@ -207,6 +207,8 @@ void show_usage()
     std::cout << "[Usage]: " << gExcName << " [-h]\n"
               << "    [-m model] [-t tm_file] [-l label_file] [-i image_file]\n"
               << "    [-g img_h,img_w] [-s scale] [-w mean[0],mean[1],mean[2]] [-r repeat_count]\n";
+
+    std::cout << "\nmobilenet example: \n" << "    ./classification -m mobilenet -t /path/to/mobilenet.tmfile -l /path/to/labels.txt -i /path/to/img.jpg -g 224,224 -s 0.017 -w 104.007,116.669,122.679" << std::endl;
 }
 
 int main(int argc, char* argv[])
