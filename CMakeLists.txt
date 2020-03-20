@@ -187,7 +187,7 @@ enable_language(ASM-ATT)
 
 if(CONFIG_ACL_OPENCL OR CONFIG_BUILD_CONVERT_TOOLS OR CONFIG_BUILD_SERIALIZER)
 	set(TENGINE_IN_BIND 1)
-	add_subdirectory(tengine-module)
+	add_subdirectory(tools)
 endif()
 #add_subdirectory(signature)
 
