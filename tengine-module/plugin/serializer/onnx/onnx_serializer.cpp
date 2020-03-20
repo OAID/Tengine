@@ -240,7 +240,6 @@ bool OnnxSerializer::LoadConstTensor(StaticGraph* graph, const onnx::GraphProto&
 
         if(dim_size==0)
         {
-            printf("const test!!!!\n");
             dims.push_back(1);
         }
         
@@ -916,12 +915,10 @@ static bool LoadOnnxInterp(StaticGraph* graph, StaticNode* node, const onnx::Nod
     }
     else
     {
-        printf("test!!load interp 2 input\n");
         const std::string& input_name = onnx_node.input(1);
         // std::cout<<"tensor name:"<<input_name<<"\n";
         StaticTensor* tensor = FindTensor(graph, input_name);
         float* data = ( float* )GetConstTensorBuffer(tensor);
-        printf("data: %f, %f \n",data[2],data[3]);
         //int scales_size = tensor->dims[0];
         // printf("scale size:%d\n", scales_size);
         // printf("scale data:%f %f\n",data[0], data[1]);

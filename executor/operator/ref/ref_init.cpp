@@ -95,6 +95,7 @@ extern void RegisterRefSparseToDenseOps(void);
 extern void RegisterRefCeilOps(void);
 extern void RegisterRefRoundOps(void);
 extern void RegisterRefZerosLikeOps(void);
+extern void RegisterRefInterpOps(void);
 void RegisterRefOps(void)
 {
     RegisterRefPoolingOps();
@@ -166,6 +167,7 @@ void RegisterRefOps(void)
     RegisterRefRoundOps();
     RegisterRefSquaredDifferenceOps();
     RegisterRefZerosLikeOps();
+    RegisterRefInterpOps();
 }
 
 }    // namespace TEngine
