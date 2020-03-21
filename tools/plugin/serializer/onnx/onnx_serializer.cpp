@@ -237,6 +237,11 @@ bool OnnxSerializer::LoadConstTensor(StaticGraph* graph, const onnx::GraphProto&
             tensor_size *= onnx_tensor.dims(l);
             dims.push_back(onnx_tensor.dims(l));
         }
+
+        if(dim_size==0)
+        {
+            dims.push_back(1);
+        }
         
         SetTensorDim(tensor, dims);
 
@@ -245,17 +250,53 @@ bool OnnxSerializer::LoadConstTensor(StaticGraph* graph, const onnx::GraphProto&
        
         if(onnx_tensor.has_raw_data())
         {
-            SetTensorDataType(tensor, DataType::GetTypeID("float32"));
-            tensor_size = 4 * tensor_size;
-            SetTensorSize(tensor, tensor_size);
+            if(onnx_tensor.data_type()==7)
+            {
+                SetTensorDataType(tensor, DataType::GetTypeID("float32"));
+                tensor_size = sizeof(int64_t) * tensor_size;
+                SetTensorSize(tensor, tensor_size);
 
-            uint8_t* mem_buf = ( uint8_t* )std::malloc(tensor_size);
-            uint8_t* raw_data = ( uint8_t* )onnx_tensor.raw_data().c_str();
+                int64_t* mem_buf = ( int64_t* )std::malloc(tensor_size);
+                int64_t* raw_data = ( int64_t* )onnx_tensor.raw_data().data();
 
-            for(int i = 0; i < tensor_size; i++)
-                mem_buf[i] = raw_data[i];
+                for(int i = 0; i < tensor_size/sizeof(int64_t); i++)
+                {
+                    mem_buf[i] = raw_data[i];
+                }
+                SetConstTensorBuffer(tensor, mem_buf);
+            }
+            else if(onnx_tensor.data_type()==1)
+            {
+                SetTensorDataType(tensor, DataType::GetTypeID("float32"));
+                tensor_size = 4 * tensor_size;
+                SetTensorSize(tensor, tensor_size);
+
+                float* mem_buf = ( float* )std::malloc(tensor_size);
+                float* raw_data = ( float* )onnx_tensor.raw_data().c_str();
+
+                for(int i = 0; i < tensor_size/4; i++)
+                {
+                    mem_buf[i] = raw_data[i];
+                }
+                SetConstTensorBuffer(tensor, mem_buf);
+            }
+            else
+            {
+                SetTensorDataType(tensor, DataType::GetTypeID("float32"));
+                tensor_size = 4 * tensor_size;
+                SetTensorSize(tensor, tensor_size);
+
+                uint8_t* mem_buf = ( uint8_t* )std::malloc(tensor_size);
+                uint8_t* raw_data = ( uint8_t* )onnx_tensor.raw_data().c_str();
+
+                for(int i = 0; i < tensor_size/4; i++)
+                {
+                    mem_buf[i] = raw_data[i];
+                }
+                SetConstTensorBuffer(tensor, mem_buf);
+            }
             
-            SetConstTensorBuffer(tensor, mem_buf);
+
         } 
         else
         {
@@ -878,7 +919,6 @@ static bool LoadOnnxInterp(StaticGraph* graph, StaticNode* node, const onnx::Nod
         // std::cout<<"tensor name:"<<input_name<<"\n";
         StaticTensor* tensor = FindTensor(graph, input_name);
         float* data = ( float* )GetConstTensorBuffer(tensor);
-
         //int scales_size = tensor->dims[0];
         // printf("scale size:%d\n", scales_size);
         // printf("scale data:%f %f\n",data[0], data[1]);
