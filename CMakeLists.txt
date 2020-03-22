@@ -226,7 +226,6 @@ if(AUTH_LIB)
 endif()
 
 add_subdirectory(benchmark)
-add_subdirectory(tests)
 add_subdirectory(examples)
 
 install (TARGETS tengine  DESTINATION lib)
@@ -241,3 +240,5 @@ if(ANDROID)
     install (FILES ${ANDROID_NDK}/sources/cxx-stl/llvm-libc++/libs/${ANDROID_ABI}/libc++_shared.so DESTINATION lib)
 endif()
 
+enable_testing()
+add_subdirectory(tests)
