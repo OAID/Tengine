@@ -28,8 +28,12 @@ int main(int argc, char *argv[]) {
         printf("Test ELU error: ref=%0.6f vs. out=%0.6f does not less than epsilon=%0.6f\n", value[i], output[i], epsilon);
         printf("%0.8f > %0.8f.\n", std::fabs(value[i] - output[i]), epsilon);
 
+        delete ops; 
+
         return -1;
     }
+
+    delete ops; 
 
     return 0;
 }
