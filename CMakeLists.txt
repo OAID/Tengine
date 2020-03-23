@@ -62,6 +62,7 @@ option(CONFIG_ACL_OPENCL  "Build Tengine module" OFF)
 option(CONFIG_BUILD_CONVERT_TOOLS  "Build Tools" OFF)
 option(CONFIG_BUILD_SERIALIZER "build serializer" OFF)
 
+message(STATUS "CONFIG_ARCH_X86 = ${CONFIG_ARCH_X86}")
 message(STATUS "CONFIG_ARCH_ARM64 = ${CONFIG_ARCH_ARM64}")
 message(STATUS "CONFIG_ARCH_ARM32 = ${CONFIG_ARCH_ARM32}")
 
@@ -88,6 +89,10 @@ message("GIT COMMIT ID: " 0x${stripped_commit_id})
 
 if( NOT ANDROID )
     add_definitions(-DCONFIG_LEGACY_API=1)
+endif()
+
+if (CONFIG_ARCH_X86)
+    add_definitions(-DCONFIG_ARCH_X86=1)
 endif()
 
 if (CONFIG_ARCH_ARM64)
