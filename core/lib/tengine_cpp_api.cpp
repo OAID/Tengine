@@ -36,7 +36,7 @@ bool b_tengine_inited = false;
 
 Net::Net()
 {
-    printf("tengine cpp api : %s\n", __FUNCTION__);
+    // printf("tengine cpp api : %s\n", __FUNCTION__);
     net_lock_.lock();
     if(!b_tengine_inited)
     {
@@ -45,17 +45,12 @@ Net::Net()
     }
     net_lock_.unlock();
     graph = NULL;
-    tensor_in = NULL;
-    tensor_out = NULL;
     b_preruned = false;
 }
 
 Net::~Net()
 {
-    printf("tengine cpp api : %s\n", __FUNCTION__);
-
-    release_graph_tensor(tensor_out);
-    release_graph_tensor(tensor_in);
+    // printf("tengine cpp api : %s\n", __FUNCTION__);
     postrun_graph(graph);
     destroy_graph(graph);
     net_lock_.lock();
@@ -66,14 +61,12 @@ Net::~Net()
     }
     net_lock_.unlock();
     graph = NULL;
-    tensor_in = NULL;
-    tensor_out = NULL;
     b_preruned = false;
 }
 
 int Net::load_model(context_t context, const char* model_format, const char* model_file, ...)
 {
-    printf("tengine cpp api : %s\n", __FUNCTION__);
+    // printf("tengine cpp api : %s\n", __FUNCTION__);
     graph = create_graph(NULL, model_format, model_file);
 
     if(graph == NULL)
@@ -88,8 +81,7 @@ int Net::load_model(context_t context, const char* model_format, const char* mod
 
 int Net::input_shape(int n, int c, int h, int w, const char* tensor_name)
 {
-    printf("tengine cpp api : %s name : %s %d:%d:%d:%d\n", __FUNCTION__, tensor_name, n, c, h, w);
-
+    // printf("tengine cpp api : %s name : %s %d:%d:%d:%d\n", __FUNCTION__, tensor_name, n, c, h, w);
     int dims[4];
 
     dims[0] = n;
@@ -110,7 +102,7 @@ int Net::input_shape(int n, int c, int h, int w, const char* tensor_name)
 
 int Net::input_tensor(const float* buffer, const int buffer_size, const char* tensor_name)
 {
-    printf("tengine cpp api : %s tensor_name:%s\n", __FUNCTION__, tensor_name);
+    // printf("tengine cpp api : %s tensor_name:%s\n", __FUNCTION__, tensor_name);
     tensor_t tensor = get_graph_tensor(graph, tensor_name);
     if(tensor == NULL)
     {
@@ -129,7 +121,7 @@ int Net::input_tensor(const float* buffer, const int buffer_size, const char* te
 
 int Net::prerun(void)
 {
-    printf("tengine cpp api : %s\n", __FUNCTION__);
+    // printf("tengine cpp api : %s\n", __FUNCTION__);
 
     int ret = prerun_graph(graph);
     if(ret < 0)
@@ -148,7 +140,7 @@ int Net::run(int block)
         if(prerun() == 0)
             b_preruned = true;
     }
-    printf("tengine cpp api : %s\n", __FUNCTION__);
+    // printf("tengine cpp api : %s\n", __FUNCTION__);
     int ret = run_graph(graph, block);
 
     return ret;
@@ -156,31 +148,32 @@ int Net::run(int block)
 
 void Net::dump()
 {
-    printf("tengine cpp api : %s\n", __FUNCTION__);
+    // printf("tengine cpp api : %s\n", __FUNCTION__);
     dump_graph(graph);
     return;
 }
 
 int Net::extract_tensor(float*& buffer, int& buffer_size, const char* tensor_name)
 {
-    printf("tengine cpp api : %s\n", __FUNCTION__);
+    // printf("tengine cpp api : %s\n", __FUNCTION__);
 
-    tensor_out = get_graph_tensor(graph, tensor_name);
-    if(tensor_out == NULL)
+    tensor_t tensor = get_graph_tensor(graph, tensor_name);
+    if(tensor == NULL)
     {
         std::printf("Cannot find output tensor , tensor_name: %s \n", tensor_name);
         return -1;
     }
 
-    buffer_size = get_tensor_buffer_size(tensor_out) / 4;
-    buffer = ( float* )(get_tensor_buffer(tensor_out));
+    buffer_size = get_tensor_buffer_size(tensor) / 4;
+    buffer = ( float* )(get_tensor_buffer(tensor));
 
     return 0;
 }
+
 int Net::input_tensor(std::string name, Tensor& t)
 {
     input_shape(t.n, t.c, t.h, t.w, name.c_str());
-    printf("tengine cpp api : %s tensor_name:%s\n", __FUNCTION__,name.c_str());
+    // printf("tengine cpp api : %s tensor_name:%s\n", __FUNCTION__,name.c_str());
     tensor_t tensor = get_graph_tensor(graph, name.c_str());
     if(tensor == NULL)
     {
@@ -199,23 +192,23 @@ int Net::input_tensor(std::string name, Tensor& t)
 
 int Net::extract_tensor(std::string name, Tensor& t)
 {
-    printf("tengine cpp api : %s\n", __FUNCTION__);
+    // printf("tengine cpp api : %s\n", __FUNCTION__);
 
-    tensor_out = get_graph_tensor(graph, name.c_str());
-    if(tensor_out == NULL)
+    tensor_t tensor = get_graph_tensor(graph, name.c_str());
+    if(tensor == NULL)
     {
         std::printf("Cannot find output tensor , tensor_name: %s \n", name.c_str());
         return -1;
     }
     int dims[4] = {0};
     int dim_num = 4;
-    dim_num = get_tensor_shape(tensor_out, dims, dim_num);
+    dim_num = get_tensor_shape(tensor, dims, dim_num);
     if(dim_num < 0)
     {
         std::printf("Get tensor shape failed\n");
         return -1;
     }
-    printf("tengine cpp api : %s dims: %d:%d:%d:%d\n", __FUNCTION__, dims[0], dims[1], dims[2], dims[3]);
+    // printf("tengine cpp api : %s dims: %d:%d:%d:%d\n", __FUNCTION__, dims[0], dims[1], dims[2], dims[3]);
     // Tensor m;
     if(dim_num == 4)
         t.create(dims[3], dims[2], dims[1], 4);
@@ -224,8 +217,8 @@ int Net::extract_tensor(std::string name, Tensor& t)
         /* code */
     }
 
-    int buffer_size = get_tensor_buffer_size(tensor_out);
-    void* buffer = (get_tensor_buffer(tensor_out));
+    int buffer_size = get_tensor_buffer_size(tensor);
+    void* buffer = (get_tensor_buffer(tensor));
     memcpy(t.data, buffer, buffer_size);
 
     return 0;

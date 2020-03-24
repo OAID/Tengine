@@ -47,26 +47,21 @@ public:
     int load_model(context_t context, const char* model_format, const char* model_file, ...);
     // set input shape
     int input_shape(int n, int c, int h, int w, const char* node_name);
-    int input_shape_index(int n, int c, int h, int w, const int node_index);
-    // set input data buffer
+    // input data by buffer
     int input_tensor(const float* buffer, const int buffer_size, const char* node_name);
-    int input_tensor_index(const float* buffer, const int buffer_size, const int node_index);
+    // output data by buffer
+    int extract_tensor(float*& buffer, int& buffer_size, const char* node_name);
+    // input data by tensor
+    int input_tensor(std::string name, Tensor& t);
+    // output data by tensor
+    int extract_tensor(std::string name, Tensor& t);
+
     // run
     int run(int block = 1);
     void dump();
 
-    // extract output data
-    int extract_tensor(float*& buffer, int& buffer_size, const char* node_name);
-    int extract_tensor_index(float*& buffer, int& buffer_size, const int node_index);
-
-    // with Tensor
-    int input_tensor(std::string name, Tensor& t);
-    int extract_tensor(std::string name, Tensor& t);
-
 public:
     graph_t graph;
-    tensor_t tensor_in;
-    tensor_t tensor_out;
     bool b_preruned;
     std::mutex net_lock_;
 
@@ -74,36 +69,7 @@ private:
     // prerun
     int prerun();
 };
-/*
-class Net
-{
-public:
-    // Net initial
-    Net();
-    // Net clear
-    ~Net();
-    // load model
-    int load_model(context_t context, const char* model_format, const char* model_file, ...);
-    // set input shape
-    int input_shape(int n, int c, int h, int w, const char* node_name);
-    int input_shape_index(int n, int c, int h, int w, const int node_index);
-    // set input data buffer
-    int input_tensor(const Tensor in, const char* node_name);
-    int input_tensor_index(const Tensor in, const int node_index);
-    // prerun
-    int prerun();
-    // run
-    int run(int block = 1);
-    // extract output data
-    int extract_tensor(Tensor &out, const char* node_name);
-    int extract_tensor_index(Tensor &out, const int node_index);
 
-public:
-    graph_t graph;
-    tensor_t tensor_in;
-    tensor_t tensor_out;
-};
-*/
 class Tensor
 {
 public:
@@ -181,19 +147,22 @@ public:
     std::vector<float> zero_points;
 };
 
-inline Tensor::Tensor() : dim_num(0), layout(0), elem_size(0), elem_num(0), data(0), n(0), c(0), h(0), w(0){}
+inline Tensor::Tensor()
+    : dim_num(0), layout(0), elem_size(0), elem_num(0), data(0), n(0), c(0), h(0), w(0)
+{
+}
 inline Tensor::Tensor(int _w, size_t _elem_size, uint8_t _layout)
-    : dim_num(0), layout(TENGINE_LAYOUT_NCHW), elem_size(4u), elem_num(0), data(0), n(0), c(0), h(0), w(0)
+    : dim_num(0), layout(0), elem_size(0), elem_num(0), data(0), n(0), c(0), h(0), w(0)
 {
     create(_w, _elem_size, _layout);
 }
 inline Tensor::Tensor(int _w, int _h, size_t _elem_size, uint8_t _layout)
-    : dim_num(0), layout(TENGINE_LAYOUT_NCHW), elem_size(4u), elem_num(0), data(0), n(0), c(0), h(0), w(0)
+    : dim_num(0), layout(0), elem_size(0), elem_num(0), data(0), n(0), c(0), h(0), w(0)
 {
     create(_w, _h, _elem_size, _layout);
 }
 inline Tensor::Tensor(int _w, int _h, int _c, size_t _elem_size, uint8_t _layout)
-    : dim_num(0), layout(TENGINE_LAYOUT_NCHW), elem_size(4u), elem_num(0), data(0), n(0), c(0), h(0), w(0)
+    : dim_num(0), layout(0), elem_size(0), elem_num(0), data(0), n(0), c(0), h(0), w(0)
 {
     create(_w, _h, _c, _elem_size, _layout);
 }

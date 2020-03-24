@@ -19,3 +19,4 @@ sysroot/
 android_config.txt
 model_src/
 .vs/
+.vscode/

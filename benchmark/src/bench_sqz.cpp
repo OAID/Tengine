@@ -117,11 +117,12 @@ int main(int argc, char* argv[])
     int img_h = 227;
     int img_w = 227;
 
-    /* load model */
+
     tengine::Net squeezenet;
     tengine::Tensor input_tensor;
     tengine::Tensor output_tensor;
 
+    /* load model */
     squeezenet.load_model(NULL, "tengine", model_file);
 
     /* prepare input data */
@@ -130,7 +131,18 @@ int main(int argc, char* argv[])
     
     /* forward */
     squeezenet.input_tensor("data", input_tensor);
-    squeezenet.run();
+
+    unsigned long start_time = get_cur_time();
+
+    for(int i = 0; i < repeat_count; i++)   
+        squeezenet.run();
+
+    unsigned long end_time = get_cur_time();
+    unsigned long off_time = end_time - start_time;    
+
+    std::printf("Repeat [%d] time %.2f us per RUN. used %lu us\n", repeat_count, 1.0f * off_time / repeat_count, off_time);
+
+    /* get result */
     squeezenet.extract_tensor("prob", output_tensor);
 
     /* after process */
