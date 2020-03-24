@@ -103,8 +103,10 @@ bool RefSoftmax::Run(Node* node)
     const std::vector<int>& dims = input_tensor->GetShape().GetDim();
     Softmax* softmax_op = dynamic_cast<Softmax*>(node->GetOp());
     SoftmaxParam* param_ = softmax_op->GetParam();
-
+    int dim_size = dims.size();
     int axis = param_->axis;
+    if(axis > dim_size)
+        axis = dim_size - 1;
     int out_size = 1;
     for(int i = 0; i < axis; i++)
     {
