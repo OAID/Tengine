@@ -1,7 +1,7 @@
 include_directories(executor/include executor/operator/include)
 
 FILE(GLOB_RECURSE COMMON_LIB_CPP_SRCS executor/engine/*.cpp executor/lib/*.cpp executor/plugin/*.cpp)
-FILE(GLOB COMMON_CPP_SRCS executor/operator/init.cpp executor/operator/common/*.cpp)
+FILE(GLOB COMMON_CPP_SRCS executor/operator/init.cpp)
 FILE(GLOB_RECURSE REF_CPP_SRCS executor/operator/ref/*.cpp)
 
 if(CONFIG_AUTH_DEVICE)
