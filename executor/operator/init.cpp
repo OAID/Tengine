@@ -1,7 +1,6 @@
 namespace TEngine {
 
 extern void NodeOpsRegistryManagerInit(void);
-extern void RegisterCommonOps(void);
 extern void RegisterRefOps(void);
 
 #if CONFIG_ARCH_X86
@@ -21,7 +20,6 @@ using namespace TEngine;
 
 extern "C" int register_hclcpu_ops(void)
 {
-    RegisterCommonOps();
     RegisterRefOps();
 
 #if CONFIG_ARCH_X86
