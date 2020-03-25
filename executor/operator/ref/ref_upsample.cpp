@@ -142,7 +142,7 @@ NodeOps* SelectFunc(const CPUInfo* info, Node* node)
 {
     RefUpsample* ops = new RefUpsample();
     const ExecAttr* exec_attr = any_cast<const ExecAttr*>(node->GetAttr(ATTR_EXEC_ATTR));
-    if(exec_attr->graph_layout != TENGINE_LAYOUT_NHWC)
+    if(exec_attr->graph_layout != TENGINE_LAYOUT_NCHW)
         return nullptr;
 
     LOG_DEBUG() << "RefUpsample is selected\n";
