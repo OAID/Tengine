@@ -123,7 +123,6 @@ int main(int argc, char* argv[])
     int img_h = 227;
     int img_w = 227;
 
-
     tengine::Net squeezenet;
     tengine::Tensor input_tensor;
     tengine::Tensor output_tensor;
@@ -132,7 +131,7 @@ int main(int argc, char* argv[])
     squeezenet.load_model(NULL, "tengine", model_file);
 
     /* prepare input data */
-    input_tensor.create(img_w, img_h, 3, sizeof(float), TENGINE_LAYOUT_NCHW);
+    input_tensor.create(img_w, img_h, 3);
     get_input_data(image_file, (float* )input_tensor.data, img_h, img_w, channel_mean, 1);
     
     /* forward */

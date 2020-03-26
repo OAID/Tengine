@@ -29,12 +29,11 @@
 #include <fstream>
 #include <iomanip>
 
+#include "tengine_operations.h"
 #include "tengine_c_api.h"
 #include "common_util.hpp"
-#include "image_process.hpp"
 
-//const char* text_file = "./models/1.json";
-const char* text_file = "./models/mobilenet_int8.tmfile";
+const char* model_file = "./models/mobilenet.tmfile";
 const char* image_file = "./tests/images/cat.jpg";
 const char* label_file = "./models/synset_words.txt";
 
@@ -42,53 +41,103 @@ const float channel_mean[3] = {104.007, 116.669, 122.679};
 
 using namespace TEngine;
 
-int repeat_count = 1;
+int repeat_count = 100;
 
 void LoadLabelFile(std::vector<std::string>& result, const char* fname)
 {
     std::ifstream labels(fname);
 
     std::string line;
-    while(std::getline(labels, line))
-        result.push_back(line);
+    if(labels.is_open())
+    {
+        while(std::getline(labels, line))
+            result.push_back(line);
+    }
+}
+
+void get_input_data(const char* image_file, float* input_data, int img_h, int img_w, const float* mean, float scale)
+{
+    image img = imread(image_file);
+
+    image resImg = resize_image(img, img_w, img_h);
+    resImg = rgb2bgr_premute(resImg);
+    float* img_data = ( float* )resImg.data;
+    int hw = img_h * img_w;
+    for(int c = 0; c < 3; c++)
+        for(int h = 0; h < img_h; h++)
+            for(int w = 0; w < img_w; w++)
+            {
+                input_data[c * hw + h * img_w + w] = (*img_data - mean[c]) * scale;
+                img_data++;
+            }
 }
 
 int main(int argc, char* argv[])
 {
+    std::string device = "";
+    std::string file_path = "";
+    char* cpu_list_str = nullptr;
+    ;
+
     int res;
 
-    while((res = getopt(argc, argv, "r:")) != -1)
+    while((res = getopt(argc, argv, "p:d:f:r:")) != -1)
     {
         switch(res)
         {
+            case 'p':
+                cpu_list_str = optarg;
+                break;
+
+            case 'd':
+                device = optarg;
+                break;
+
+            case 'f':
+                file_path = optarg;
+                break;
+
             case 'r':
                 repeat_count = strtoul(optarg, NULL, 10);
                 break;
+
             default:
                 break;
         }
     }
 
-    // const char * model_name="mobilenet";
     int img_h = 224;
     int img_w = 224;
 
+    std::string sub_dir = "/repo.log";
+
+    std::string filename = "";
+    if("" != file_path)
+    {
+        filename = file_path + sub_dir;
+    }
+
     /* prepare input data */
     float* input_data = ( float* )malloc(sizeof(float) * img_h * img_w * 3);
+
     get_input_data(image_file, input_data, img_h, img_w, channel_mean, 0.017);
-    int img_size = img_h * img_w * 3;
-    float in_scale = 0;
-    int in_zero = 0;
+
+    if(cpu_list_str)
+        set_cpu_list(cpu_list_str);
+
     init_tengine();
 
-    if(request_tengine_version("0.9") < 0)
-        return 1;
+    std::cout << "run-time library version: " << get_tengine_version() << "\n";
 
-    graph_t graph = create_graph(nullptr, "tengine", text_file);
+    if(request_tengine_version("0.9") < 0)
+        return -1;
+
+    graph_t graph = create_graph(nullptr, "tengine", model_file);
 
     if(graph == nullptr)
     {
         std::cout << "Create graph0 failed\n";
+        std::cout << "errno: " << get_tengine_errno() << "\n";
         return -1;
     }
 
@@ -97,32 +146,27 @@ int main(int argc, char* argv[])
     int tensor_idx = 0;
 
     tensor_t input_tensor = get_graph_input_tensor(graph, node_idx, tensor_idx);
+
     if(input_tensor == nullptr)
     {
         std::printf("Cannot find input tensor,node_idx: %d,tensor_idx: %d\n", node_idx, tensor_idx);
         return -1;
     }
-    
-	get_tensor_quant_param(input_tensor,&in_scale,&in_zero,1);
-	
-	int8_t * input_s8 = (int8_t*)malloc(sizeof(int8_t) * img_size);
-	
-	for(int i = 0; i < img_size;i++)
-	{
-		input_s8[i] = round(input_data[i] / in_scale);
-	} 
 
     int dims[] = {1, 3, img_h, img_w};
 
     set_tensor_shape(input_tensor, dims, 4);
-	set_tensor_data_type(input_tensor,TENGINE_DT_INT8);
+
     /* setup input buffer */
 
-    if(set_tensor_buffer(input_tensor, input_s8, 3 * img_h * img_w) < 0)
+    if(set_tensor_buffer(input_tensor, input_data, 3 * img_h * img_w * 4) < 0)
     {
         std::printf("Set buffer for tensor failed\n");
         return -1;
     }
+
+    if(!device.empty())
+        set_graph_device(graph, device.c_str());
 
     /* run the graph */
     int ret_prerun = prerun_graph(graph);
@@ -131,9 +175,9 @@ int main(int argc, char* argv[])
         std::printf("prerun failed\n");
         return -1;
     }
+    run_graph(graph, 1);
 
     // benchmark start here
-
     printf("REPEAT COUNT= %d\n", repeat_count);
 
     unsigned long start_time = get_cur_time();
@@ -147,6 +191,17 @@ int main(int argc, char* argv[])
     std::printf("Repeat [%d] time %.2f us per RUN. used %lu us\n", repeat_count, 1.0f * off_time / repeat_count,
                 off_time);
 
+    if(filename != "")
+    {
+        FILE* fp = fopen(filename.c_str(), "a");
+
+        fprintf(fp, "device:%20s,  repeat_count:%5d,  per use_time:%10.2f,", device.c_str(), repeat_count,
+                1.0f * off_time / repeat_count);
+        fprintf(fp, "\n");
+
+        fclose(fp);
+    }
+
     /* get output tensor */
     tensor_t output_tensor = get_graph_output_tensor(graph, node_idx, tensor_idx);
 
@@ -156,36 +211,12 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    int dim_size = get_tensor_shape(output_tensor, dims, 4);
+    int count = get_tensor_buffer_size(output_tensor) / 4;
 
-    if(dim_size < 0)
-    {
-        printf("Get output tensor shape failed\n");
-        return -1;
-    }
+    float* data = ( float* )(get_tensor_buffer(output_tensor));
+    float* end = data + count;
 
-    printf("output tensor shape: [");
-
-    for(int i = 0; i < dim_size; i++)
-        printf("%d ", dims[i]);
-
-    printf("]\n");
-
-    int count = get_tensor_buffer_size(output_tensor);
-	int8_t * out_data_s8 = (int8_t*)(get_tensor_buffer(output_tensor));
-	float *out_data_fp32 = (float*) malloc(count * sizeof(float));
-	float out_scale = 1.f;
-	int out_zero = 0;
-	get_tensor_quant_param(output_tensor,&out_scale,&out_zero,1);
-
-	//dequant the output data
-	for(int i = 0; i < count ; i ++)
-    {
-        out_data_fp32[i] = out_data_s8[i] * out_scale;
-    }
-    float* end = out_data_fp32 + count;
-       
-    std::vector<float> result(out_data_fp32, end);
+    std::vector<float> result(data, end);
 
     std::vector<int> top_N = Argmax(result, 5);
 
@@ -196,21 +227,18 @@ int main(int argc, char* argv[])
     for(unsigned int i = 0; i < top_N.size(); i++)
     {
         int idx = top_N[i];
-
-        std::cout << std::fixed << std::setprecision(4) << result[idx] << " - \"";
-        std::cout << labels[idx] << "\"\n";
+        if(labels.size())
+            std::cout << std::fixed << std::setprecision(4) << result[idx] << " - \"" << labels[idx] << "\"\n";
+        else
+            std::cout << std::fixed << std::setprecision(4) << result[idx] << " - " << idx << "\n";
     }
 
-    release_graph_tensor(input_tensor);
     release_graph_tensor(output_tensor);
-
+    release_graph_tensor(input_tensor);
     postrun_graph(graph);
-
     destroy_graph(graph);
 
     free(input_data);
-	free(input_s8);
-    free(out_data_fp32);
 
     std::cout << "ALL TEST DONE\n";
 
