@@ -49,8 +49,11 @@ void LoadLabelFile(std::vector<std::string>& result, const char* fname)
     std::ifstream labels(fname);
 
     std::string line;
-    while(std::getline(labels, line))
-        result.push_back(line);
+    if(labels.is_open())
+    {
+        while(std::getline(labels, line))
+            result.push_back(line);
+    }        
 }
 
 void PrintTopLabels(const char* label_file, float* data)
@@ -66,8 +69,11 @@ void PrintTopLabels(const char* label_file, float* data)
     for(unsigned int i = 0; i < top_N.size(); i++)
     {
         int idx = top_N[i];
-
-        std::cout << std::fixed << std::setprecision(4) << result[idx] << " - \"" << labels[idx] << "\"\n";
+        if(labels.size())
+            std::cout << std::fixed << std::setprecision(4) << result[idx] << " - \"" << labels[idx] << "\"\n";
+        else
+            std::cout << std::fixed << std::setprecision(4) << result[idx] << " - " << idx << "\n";
+        
     }
 }
 
