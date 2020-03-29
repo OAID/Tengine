@@ -3,7 +3,7 @@
 *.so
 *.exe
 tests/data/
-build/
+build*/
 *.log
 *.pb.cc
 *.pb.h
