@@ -43,6 +43,7 @@ set(BUILD_ALL_IN_ONE 1)
 add_definitions(-DALL_IN_STATIC_LIB=1)
 
 option(CONFIG_ARCH_X86 "build x86 version" OFF)
+option(CONFIG_ARCH_X86_AVX "build avx2 for x86" OFF)
 option(CONFIG_ARCH_ARM64 "build arm64 version" OFF)
 option(CONFIG_ARCH_ARM32 "build arm32 version" OFF)
 option(CONFIG_ARCH_ARM8_2 "build float16 for arm8.2" OFF)
@@ -63,6 +64,7 @@ option(CONFIG_BUILD_CONVERT_TOOLS  "Build Tools" OFF)
 option(CONFIG_BUILD_SERIALIZER "build serializer" OFF)
 
 message(STATUS "CONFIG_ARCH_X86 = ${CONFIG_ARCH_X86}")
+message(STATUS "CONFIG_ARCH_X86_AVX = ${CONFIG_ARCH_X86_AVX}")
 message(STATUS "CONFIG_ARCH_ARM64 = ${CONFIG_ARCH_ARM64}")
 message(STATUS "CONFIG_ARCH_ARM32 = ${CONFIG_ARCH_ARM32}")
 
@@ -93,6 +95,9 @@ endif()
 
 if (CONFIG_ARCH_X86)
     add_definitions(-DCONFIG_ARCH_X86=1)
+    if (CONFIG_ARCH_X86_AVX)
+        add_definitions(-mfma -mf16c)
+    endif()
 endif()
 
 if (CONFIG_ARCH_ARM64)
