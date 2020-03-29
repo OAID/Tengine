@@ -17,7 +17,7 @@ matrix:
       compiler: gcc
       env:
         - NAME=linux-gcc
-        - BUILD="mkdir build && cd build && cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/x86_convert_tool.gcc.toolchain.cmake .. && make -j2 && ctest --output-on-failure -j 2"
+        - BUILD="mkdir build && cd build && cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/x86.gcc.toolchain.cmake .. && make -j2 && ctest --output-on-failure -j 2"
 
     - name: "linux-gcc-arm64"
       os: linux
