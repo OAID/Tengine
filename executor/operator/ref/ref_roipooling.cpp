@@ -108,6 +108,10 @@ bool RefRoiPooling::Run(Node* node)
     op_param.in_w = dims[3];
     op_param.num_rois = roi_shape.GetC();
 
+    TShape& out_shape = out_tensor->GetShape();
+    std::vector<int> outdim = {roi_shape.GetC(), dims[1], param->pooled_h, param->pooled_w};
+    out_shape.SetDim(outdim);
+
     if(feat_tensor->GetDataType() == TENGINE_DT_INT8 || feat_tensor->GetDataType() == TENGINE_DT_UINT8)
     {
         auto* feat_quant = feat_tensor->GetQuantParam();
