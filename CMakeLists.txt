@@ -231,7 +231,10 @@ if(AUTH_LIB)
 endif()
 
 add_subdirectory(benchmark)
+
+enable_testing()
 add_subdirectory(tests)
+
 add_subdirectory(examples)
 
 install (TARGETS tengine  DESTINATION lib)
