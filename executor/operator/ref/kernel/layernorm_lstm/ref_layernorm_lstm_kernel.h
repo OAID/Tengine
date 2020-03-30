@@ -93,7 +93,7 @@ void mytanh(float* data, float* output, int size)
 {
     for(int i = 0; i < size; i++)
     {
-        output[i] = std::tanh(data[i]);
+        output[i] = tanh(data[i]);
     }
 }
 
