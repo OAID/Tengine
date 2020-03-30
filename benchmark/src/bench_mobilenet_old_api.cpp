@@ -33,8 +33,7 @@
 #include "tengine_c_api.h"
 #include "common_util.hpp"
 
-const char* text_file = "./models/mobilenet_deploy.prototxt";
-const char* model_file = "./models/mobilenet.caffemodel";
+const char* model_file = "./models/mobilenet.tmfile";
 const char* image_file = "./tests/images/cat.jpg";
 const char* label_file = "./models/synset_words.txt";
 
@@ -49,8 +48,11 @@ void LoadLabelFile(std::vector<std::string>& result, const char* fname)
     std::ifstream labels(fname);
 
     std::string line;
-    while(std::getline(labels, line))
-        result.push_back(line);
+    if(labels.is_open())
+    {
+        while(std::getline(labels, line))
+            result.push_back(line);
+    }
 }
 
 void get_input_data(const char* image_file, float* input_data, int img_h, int img_w, const float* mean, float scale)
@@ -130,7 +132,7 @@ int main(int argc, char* argv[])
     if(request_tengine_version("0.9") < 0)
         return -1;
 
-    graph_t graph = create_graph(nullptr, "caffe", text_file, model_file);
+    graph_t graph = create_graph(nullptr, "tengine", model_file);
 
     if(graph == nullptr)
     {
@@ -225,9 +227,10 @@ int main(int argc, char* argv[])
     for(unsigned int i = 0; i < top_N.size(); i++)
     {
         int idx = top_N[i];
-
-        std::cout << std::fixed << std::setprecision(4) << result[idx] << " - \"";
-        std::cout << labels[idx] << "\"\n";
+        if(labels.size())
+            std::cout << std::fixed << std::setprecision(4) << result[idx] << " - \"" << labels[idx] << "\"\n";
+        else
+            std::cout << std::fixed << std::setprecision(4) << result[idx] << " - " << idx << "\n";
     }
 
     release_graph_tensor(output_tensor);
