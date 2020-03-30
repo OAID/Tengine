@@ -32,11 +32,13 @@
 #include <iomanip>
 #include <algorithm>
 #include "tengine_c_api.h"
+#include "tengine_cpp_api.h"
 #include "tengine_operations.h"
 #include "common.hpp"
+//#include "common_util.hpp"
 
 #define DEFAULT_MODEL_NAME "squeezenet"
-#define DEFAULT_LABEL_FILE "./synset_words.txt"
+#define DEFAULT_LABEL_FILE "./models/synset_words.txt"
 #define DEFAULT_IMG_H 227
 #define DEFAULT_IMG_W 227
 #define DEFAULT_SCALE 1.f
@@ -45,162 +47,16 @@
 #define DEFAULT_MEAN3 122.679
 #define DEFAULT_REPEAT_CNT 1
 
-static std::string gExcName{""};
-
-bool run_tengine_library(const char* model_name, const char* tm_file, const char* label_file, const char* image_file,
-                         int img_h, int img_w, const float* mean, float scale, int repeat_count)
+static inline unsigned long get_cur_time(void)
 {
-    // init
-    init_tengine();
-    std::cout << "tengine library version: " << get_tengine_version() << "\n";
-    if(request_tengine_version("1.0") < 0)
-        return false;
+    struct timespec tm;
 
-    // create graph
-    graph_t graph = create_graph(nullptr, "tengine", tm_file);
-    if(graph == nullptr)
-    {
-        std::cerr << "Create graph failed.\n";
-        std::cerr << "errno: " << get_tengine_errno() << "\n";
-        return false;
-    }
+    clock_gettime(CLOCK_MONOTONIC, &tm);
 
-    // set input
-    int img_size = img_h * img_w * 3;
-    int dims[] = {1, 3, img_h, img_w};
-    if( strstr(model_name, "_tflow") != 0 || strstr(model_name, "_tflite") != 0)
-    {
-        dims[1] = img_h;
-        dims[2] = img_w;
-        dims[3] = 3;
-    }
-    float* input_data = ( float* )malloc(sizeof(float) * img_size);
-    uint8_t* input_data_tflite = ( uint8_t* )malloc(img_size);
-    tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
-    if(input_tensor == nullptr)
-    {
-        std::cerr << "Get input tensor failed\n";
-        return false;
-    }
-    set_tensor_shape(input_tensor, dims, 4);
-    if(strstr(model_name, "_tflite") != 0){
-        int val = 1;
-        set_graph_attr(graph, "low_mem_mode", &val, sizeof(val));
-    }
-
-    // prerun
-    if(prerun_graph(graph) < 0)
-    {
-        std::cerr << "Prerun graph failed\n";
-        return false;
-    }
-
-    struct timeval t0, t1;
-    float avg_time = 0.f;
-    float min_time = __DBL_MAX__;
-    float max_time = -__DBL_MAX__;
-    std::string str = model_name;
-    std::string::size_type p1 = str.find("_tflow");
-    std::string::size_type p2 = str.find("_mx");
-    std::string::size_type p3 = str.find("_tflite");    
-    if(p1 != std::string::npos){
-        get_input_data_tf(image_file, input_data, img_h, img_w, mean, scale);
-    }
-    else if(p2 != std::string::npos){
-        get_input_data_mx(image_file, input_data, img_h, img_w, mean);
-    }
-    else if(p3 != std::string::npos){
-        get_input_data_uint8(image_file, input_data_tflite, img_h, img_w);
-    }    
-    else{
-        get_input_data(image_file, input_data, img_h, img_w, mean, scale);            
-    }
-
-    if(strstr(model_name, "_tflite") != 0){
-        set_tensor_buffer(input_tensor, input_data_tflite, img_size * 4);
-    }
-    else
-       set_tensor_buffer(input_tensor, input_data, img_size * 4);
-    
-    // warm up
-    run_graph(graph, 1);
-    run_graph(graph, 1);
-    
-    // run
-    for(int i = 0; i < repeat_count; i++)
-    {
-        gettimeofday(&t0, NULL);
-        if(run_graph(graph, 1) < 0)
-        {
-            std::cerr << "Run graph failed\n";
-            return false;
-        }
-        gettimeofday(&t1, NULL);
-
-        float mytime = ( float )((t1.tv_sec * 1000000 + t1.tv_usec) - (t0.tv_sec * 1000000 + t0.tv_usec)) / 1000;
-        avg_time += mytime;
-        min_time = std::min(min_time, mytime);
-        max_time = std::max(max_time, mytime);
-    }
-    std::cout << "\nModel name : " << model_name << "\n"
-              << "tengine model file : " << tm_file << "\n"
-              << "label file : " << label_file << "\n"
-              << "image file : " << image_file << "\n"
-              << "img_h, imag_w, scale, mean[3] : " << img_h << " " << img_w << " " << scale << " " << mean[0] << " "
-              << mean[1] << " " << mean[2] << "\n";
-    std::cout << "\nRepeat " << repeat_count << " times, avg time per run is " << avg_time / repeat_count << " ms\n" << "max time is " << max_time << " ms, min time is " << min_time << " ms\n";
-    std::cout << "--------------------------------------\n";
-
-    // print output
-    tensor_t output_tensor = get_graph_output_tensor(graph, 0, 0);
-  
-    if(strstr(model_name, "_tflite") != 0){
-        uint8_t* data = ( uint8_t* )get_tensor_buffer(output_tensor);
-        int data_size = get_tensor_buffer_size(output_tensor);
-        float output_scale = 0.0f;
-        int zero_point = 0;
-        get_tensor_quant_param(output_tensor, &output_scale, &zero_point, 1);
-        PrintTopLabels_uint8(label_file, data, data_size, output_scale, zero_point);
-    } 
-    else if (strstr(model_name, "nasnet_tflow") != 0)
-    {
-        std::string output_tensor_name = "final_layer/predictions";
-        output_tensor = get_graph_tensor(graph, output_tensor_name.c_str());
-        float* data = ( float* )get_tensor_buffer(output_tensor);
-        int data_size = get_tensor_buffer_size(output_tensor) / sizeof(float);
-        float* end = data + data_size;
-
-        std::vector<float> result(data, end);
-        std::vector<int> top_N = Argmax(result, 5);
-        std::vector<std::string> labels;
-
-        LoadLabelFile_nasnet(labels, label_file);
-
-        for(unsigned int i = 0; i < top_N.size(); i++)
-        {
-            int idx = top_N[i];
-
-            std::cout << std::fixed << std::setprecision(4) << result[idx] << " - \"";
-            std::cout << labels[idx-1] << "\"\n";
-        }        
-    }
-     else {
-        float* data = ( float* )get_tensor_buffer(output_tensor);
-        int data_size = get_tensor_buffer_size(output_tensor) / sizeof(float);
-        PrintTopLabels_common(label_file, data, data_size, model_name);
-    }
-    std::cout << "--------------------------------------\n";
-
-    free(input_data);
-    release_graph_tensor(input_tensor);
-    release_graph_tensor(output_tensor);
-    postrun_graph(graph);
-    destroy_graph(graph);
-
-    release_tengine();
-
-    return true;
+    return (tm.tv_sec * 1000000 + tm.tv_nsec / 1000);
 }
+
+static std::string gExcName{""};
 
 void show_usage()
 {
@@ -323,12 +179,51 @@ int main(int argc, char* argv[])
     }
     if(model_name.empty())
         model_name = tm_file;
-    
-    // start to run
-    if(!run_tengine_library(model_name.c_str(), tm_file.c_str(), label_file.c_str(), image_file.c_str(), img_h, img_w,
-                            mean, scale, repeat_count))
-        return -1;
+    const char* _model_file = model_name.c_str();
+    const char* _image_file = image_file.c_str();
+    const char* _label_file = label_file.c_str();
+    const float* _channel_mean = mean;
 
+    tengine::Net somenet;
+    tengine::Tensor input_tensor;
+    tengine::Tensor output_tensor;
+
+    std::cout << "tengine library version: " << get_tengine_version() << "\n";
+    if(request_tengine_version("1.0") < 0)
+        return false;
+    std::cout << "\nModel name : " << model_name << "\n"
+              << "tengine model file : " << tm_file << "\n"
+              << "label file : " << label_file << "\n"
+              << "image file : " << image_file << "\n"
+              << "img_h, imag_w, scale, mean[3] : " << img_h << " " << img_w << " " << scale << " " << mean[0] << " "
+              << mean[1] << " " << mean[2] << "\n";
+    /* load model */
+    somenet.load_model(NULL, "tengine", _model_file);
+
+    /* prepare input data */
+    input_tensor.create(img_w, img_h, 3);
+    get_input_data(_image_file, (float* )input_tensor.data, img_h, img_w, _channel_mean, 0.017);
+    
+    /* forward */
+    somenet.input_tensor("data", input_tensor);
+
+    unsigned long start_time = get_cur_time();
+
+    for(int i = 0; i < repeat_count; i++)
+        somenet.run();
+
+    unsigned long end_time = get_cur_time();
+    unsigned long off_time = end_time - start_time;    
+
+    std::printf("Repeat [%d] time %.2f us per RUN. used %lu us\n", repeat_count, 1.0f * off_time / repeat_count, off_time);
+
+    /* get result */
+    somenet.extract_tensor("fc7", output_tensor);
+
+    /* after process */
+    PrintTopLabels(_label_file, (float*)output_tensor.data,1000);
+    
+    std::cout << "--------------------------------------\n";
     std::cout << "ALL TEST DONE\n";
 
     return 0;
