@@ -200,7 +200,7 @@ void vectorclip(const float* input, float* output, int size, float abs)
 {
     for(int i = 0; i < 0; i++)
     {
-        output[i] = std::max(std::min(input[i], abs), -abs);
+        output[i] = Lnlstm_MAX(Lnlstm_MIN(input[i], abs), -abs);
     }
 }
 
@@ -243,14 +243,6 @@ void layer_norm_nhwc(const float* input, float* output, int cell_size, int batch
     }
 }   
 
-void dump_scratch(float* data, int size)
-{
-    for(int i = 0; i < size; i++)
-    {
-        printf("%.7f ",data[i]);
-    }
-    std::cout << std::endl;
-}
 
 void activationswitch(float* input, float* output,int batch_size, int cell_size, TEngine::FusedActivation activationtype)
 {
@@ -301,17 +293,10 @@ void DoLayerNormLSTM(float* input, float* output,
     {
         matbatchvectorwiseproduct(i2i_weights_data, input, input_gate_scratch, batch_size, cell_size, input_size);
     }
-    //dump_scratch(const_cast<float*>(i2f_weights_data), cell_size*input_size);
     matbatchvectorwiseproduct(i2f_weights_data, input, forget_gate_scratch, batch_size, cell_size, input_size);
     matbatchvectorwiseproduct(i2c_weights_data, input, cell_scratch, batch_size, cell_size, input_size);
     matbatchvectorwiseproduct(i2o_weights_data, input, output_gate_scratch, batch_size, cell_size, input_size);
 
-    //std::cout<<"first deal."<<std::endl;
-    //dump_scratch(input_gate_scratch, cell_size*batch_size);
-    //dump_scratch(forget_gate_scratch, cell_size*batch_size);
-    //dump_scratch(cell_scratch, cell_size*batch_size);
-    //dump_scratch(output_gate_scratch, cell_size*batch_size);
-    //dump_scratch(icellstate_data, cell_size*batch_size);
     if(!use_cifg)
     {
         matbatchvectorwiseproduct(r2i_weights_data, iactivationstate_data, input_gate_scratch, batch_size, cell_size, output_size);
@@ -325,21 +310,13 @@ void DoLayerNormLSTM(float* input, float* output,
     {
         if(use_peephole)
         {
-            //dump_scratch(icellstate_data, cell_size*batch_size);
             vectorbatchvectorwiseproductacc(c2i_weights_data, icellstate_data, input_gate_scratch, batch_size, cell_size);
         }
-        //dump_scratch(input_gate_scratch, cell_size*batch_size);
         layer_norm_nhwc(input_gate_scratch, input_gate_scratch, cell_size, batch_size);
-        //dump_scratch(input_gate_scratch, cell_size*batch_size);
         vectorbatchvectorwiseproduct(ilayer_norm_coefficients_data, input_gate_scratch, input_gate_scratch, batch_size, cell_size);
-        //dump_scratch(input_gate_scratch, cell_size*batch_size);
         vectoradd(input_gate_scratch, igate_bias_data, input_gate_scratch, batch_size, cell_size);
-        //dump_scratch(input_gate_scratch, cell_size*batch_size);
         sigmoid(input_gate_scratch, input_gate_scratch, cell_size * batch_size);
-        //dump_scratch(input_gate_scratch, cell_size*batch_size);
     }
-    //std::cout<<"update input gate done."<<std::endl;
-    //dump_scratch(input_gate_scratch, cell_size*batch_size);
     //update forget gate
     if(use_peephole)
     {
@@ -349,8 +326,6 @@ void DoLayerNormLSTM(float* input, float* output,
     vectorbatchvectorwiseproduct(flayer_norm_coefficients_data, forget_gate_scratch, forget_gate_scratch, batch_size, cell_size);
     vectoradd(forget_gate_scratch, fgate_bias_data, forget_gate_scratch, batch_size, cell_size);
     sigmoid(forget_gate_scratch, forget_gate_scratch, cell_size * batch_size);
-    //std::cout<<"update forget gate."<<std::endl;
-    //dump_scratch(forget_gate_scratch, cell_size*batch_size);
     //update cell
     vectorvectorwiseproduct(forget_gate_scratch, icellstate_data, icellstate_data,cell_size * batch_size);
     layer_norm_nhwc(cell_scratch, cell_scratch, cell_size, batch_size);
@@ -359,7 +334,6 @@ void DoLayerNormLSTM(float* input, float* output,
     activationswitch(cell_scratch, cell_scratch, batch_size , cell_size, activationtype);
     if(use_cifg)
     {
-        //std::cout << "use_cifg."<<std::endl;
         vector1sub(forget_gate_scratch, forget_gate_scratch, batch_size * cell_size);
         vectorvectorwiseproductacc(cell_scratch, forget_gate_scratch, icellstate_data, batch_size * cell_size);
     }
@@ -367,22 +341,15 @@ void DoLayerNormLSTM(float* input, float* output,
     {
         vectorvectorwiseproductacc(cell_scratch, input_gate_scratch, icellstate_data, batch_size * cell_size);
     }
-    //dump_scratch(icellstate_data, cell_size*batch_size);
     if(cell_clip > 0.0)
     {
         vectorclip(cell_scratch, cell_scratch, batch_size * cell_size, cell_clip);
     }
-    //std::cout<<"update cell."<<std::endl;
-    //dump_scratch(cell_scratch, cell_size*batch_size);
     //update output gate
-    //std::cout<<"before update output gate."<<std::endl;
-    //dump_scratch(output_gate_scratch, cell_size*batch_size);
     if(use_peephole)
     {
         vectorbatchvectorwiseproductacc(c2o_weights_data, icellstate_data, output_gate_scratch, batch_size, cell_size);
     }
-    //std::cout<<"update output gate."<<std::endl;
-    //dump_scratch(const_cast<float*>(c2o_weights_data), cell_size);
     layer_norm_nhwc(output_gate_scratch, output_gate_scratch, cell_size, batch_size);   
     vectorbatchvectorwiseproduct(olayer_norm_coefficients_data, output_gate_scratch, output_gate_scratch, batch_size, cell_size);
     vectoradd(output_gate_scratch, ogate_bias_data, output_gate_scratch, batch_size, cell_size);
@@ -416,8 +383,6 @@ void DoLayerNormLSTM(float* input, float* output,
             memcpy(output, output_gate_scratch, batch_size * output_size * sizeof(float));
         }
         memcpy(iactivationstate_data, output, batch_size * output_size * sizeof(float));
-        //dump_scratch(icellstate_data, batch_size * cell_size);
-        //dump_scratch(iactivationstate_data, batch_size * output_size);
     }
     else
     {
