@@ -11,14 +11,16 @@ cmake_minimum_required(VERSION 2.8)
 set(CMAKE_BUILD_TYPE release)
 
 #get the NDK_ROOT from android.toolchains.cmake
+
 if(ANDROID)
     set(PARSED_ANDROID_NDK_REGEX "(.+)/build/cmake/android.toolchain.cmake")
+
     string(REGEX REPLACE "${PARSED_ANDROID_NDK_REGEX}" "\\1"  PARSED_ANDROID_NDK ${CMAKE_TOOLCHAIN_FILE})
+
     file(READ "${PARSED_ANDROID_NDK}/source.properties" TE_NDK_SOURCE_PROPERTIES)
 
     set(TE_NDK_REVISION_REGEX
-        "^Pkg\\.Desc = Android NDK\nPkg\\.Revision = ([0-9]+)\\.([0-9]+)\\.([0-9]+)?")
-        
+  "^Pkg\\.Desc = Android NDK\nPkg\\.Revision = ([0-9]+)\\.([0-9]+)\\.([0-9]+)?")
     if(NOT TE_NDK_SOURCE_PROPERTIES MATCHES "${TE_NDK_REVISION_REGEX}")
         message(FATAL_ERROR "Failed to parse Android NDK revision: ${ANDROID_NDK}/source.properties.\n${TE_NDK_SOURCE_PROPERTIES}")
     endif()
@@ -32,39 +34,47 @@ if(ANDROID)
             message(FATAL_ERROR  "please use cmake at most VERSION 3.6.3 for ndk " ${PARSED_NDK_MAJOR} "." ${PARSED_NDK_MINOR})
         endif()
     endif()
-
-    #in face, this is related with run-time env, since API LEVEL 22 binary can run on API LEVEL 23 platform
-    if(ANDROID_PLATFORM_LEVEL LESS 23)
-        add_definitions(-DNO_CXA_DEMANGLE)
-    endif()
 endif()
 
 #real  project logic starts from here
+
 project(tengine)
 set(BUILD_ALL_IN_ONE 1)
 add_definitions(-DALL_IN_STATIC_LIB=1)
 
 option(CONFIG_ARCH_X86 "build x86 version" OFF)
-option(CONFIG_ARCH_ARM32 "build arm32 version" OFF)
+option(CONFIG_ARCH_X86_AVX "build avx2 for x86" OFF)
 option(CONFIG_ARCH_ARM64 "build arm64 version" OFF)
+option(CONFIG_ARCH_ARM32 "build arm32 version" OFF)
 option(CONFIG_ARCH_ARM8_2 "build float16 for arm8.2" OFF)
-option(CONFIG_KERNEL_FP32 "KERNEL FP32" ON)
-option(CONFIG_KERNEL_INT8 "KERNEL INT8" ON)
-option(CONFIG_KERNEL_UINT8 "KERNEL UINT8" ON)
-option(CONFIG_ONLINE_REPORT "online report" OFF)
 option(CONFIG_TENGINE_SERIALIZER "tengine serializer" ON)
+option(CONFIG_ONLINE_REPORT "online report" OFF)
+option(CONFIG_KERNEL_FP32 "KERNEL FP32" ON)
+if(ANDROID_NDK_MAJOR AND (ANDROID_NDK_MAJOR GREATER 18 ) )
+    option(CONFIG_KERNEL_FP16 "KERNEL FP16" OFF)
+endif()
+option(CONFIG_KERNEL_INT8 "KERNEL INT8" OFF)
+option(CONFIG_KERNEL_UINT8 "KERNEL UINT8" OFF)
+option(CONFIG_AUTH_DEVICE  "AUTH DEVICE" OFF)
 option(CONFIG_AUTHENICATION "AUTH DEVICE" OFF)
 option(CONFIG_HCL_RELEASE  "HCL RELEASE" OFF)
 option(CONFIG_AUTHED_FAILED_NOT_WORK  "AUTHED FAIELD TENGINE DO NOT WORK" OFF)
-option(CONFIG_BUILD_TENGINE_MODULE  "Build Tengine module" OFF)
+option(CONFIG_ACL_OPENCL  "Build Tengine module" OFF)
 option(CONFIG_BUILD_CONVERT_TOOLS  "Build Tools" OFF)
+option(CONFIG_BUILD_SERIALIZER "build serializer" OFF)
 
-if(ANDROID_NDK_MAJOR AND (ANDROID_NDK_MAJOR GREATER 18))
-    option(CONFIG_KERNEL_FP16 "KERNEL FP16" OFF)
+message(STATUS "CONFIG_ARCH_X86 = ${CONFIG_ARCH_X86}")
+message(STATUS "CONFIG_ARCH_X86_AVX = ${CONFIG_ARCH_X86_AVX}")
+message(STATUS "CONFIG_ARCH_ARM64 = ${CONFIG_ARCH_ARM64}")
+message(STATUS "CONFIG_ARCH_ARM32 = ${CONFIG_ARCH_ARM32}")
+
+#in face, this is related with run-time env, since API LEVEL 22 binary can run on API LEVEL 23 platform
+if(ANDROID_PLATFORM_LEVEL LESS 23)
+    add_definitions(-DNO_CXA_DEMANGLE)
 endif()
 
 if(NOT CONFIG_VERSION_POSTFIX)
-    set(CONFIG_VERSION_POSTFIX github)
+set(CONFIG_VERSION_POSTFIX github)
 endif()
 
 #message("list dir ${CMAKE_CURRENT_LIST_DIR}/.git")
@@ -83,9 +93,15 @@ if( NOT ANDROID )
     add_definitions(-DCONFIG_LEGACY_API=1)
 endif()
 
-if(CONFIG_ARCH_X86)
+if (CONFIG_ARCH_X86)
     add_definitions(-DCONFIG_ARCH_X86=1)
-	set(ARCH_TYPE,"X86")
+    if (CONFIG_ARCH_X86_AVX)
+        add_definitions(-mfma -mf16c)
+    endif()
+endif()
+
+if (CONFIG_ARCH_ARM64)
+    add_definitions(-DCONFIG_ARCH_ARM64=1)
 endif()
 
 if(CONFIG_ARCH_ARM32)
@@ -96,21 +112,18 @@ if(CONFIG_ARCH_ARM32)
     endif()
 endif()
 
-if (CONFIG_ARCH_ARM64)
-    add_definitions(-DCONFIG_ARCH_ARM64=1)
-endif()
-
 if(CONFIG_ARCH_ARM8_2)
     add_definitions(-DCONFIG_ARCH_ARM8_2=1)
     add_definitions(-mcpu=cortex-a55)
 endif()
 
 add_definitions(-DCONFIG_TENGINE_SERIALIZER=1)
+
 add_definitions(-DCONFIG_KERNEL_FP32=1)
 
 if(CONFIG_KERNEL_FP16)
     if( ANDROID_NDK_MAJOR AND ( ${ANDROID_NDK_MAJOR} GREATER 18 ) )
-	    add_definitions(-DCONFIG_KERNEL_FP16=1)
+        add_definitions(-DCONFIG_KERNEL_FP16=1)
     endif()
 endif()
 
@@ -125,11 +138,9 @@ endif()
 if(CONFIG_AUTH_DEVICE)
     add_definitions(-DCONFIG_AUTH_DEVICE=1)
 endif()
-
 if (CONFIG_VERSION_POSTFIX)
     add_definitions(-DCONFIG_VERSION_POSTFIX="${CONFIG_VERSION_POSTFIX}")
 endif()
-
 if (CONFIG_ONLINE_REPORT)
     add_definitions(-DCONFIG_ONLINE_REPORT=1)
     add_definitions(-DENABLE_ONLINE_REPORT=1)
@@ -144,6 +155,7 @@ if (CONFIG_AUTHED_FAILED_NOT_WORK)
 endif()
 
 add_definitions(${GIT_COMMIT_ID})
+add_definitions(-Wno-unused-command-line-argument)
 add_definitions(-fPIC)
 add_definitions(-funroll-loops)
 if(ANDROID)
@@ -154,18 +166,12 @@ else()
     add_definitions(-Wno-packed-bitfield-compat)
     add_definitions(-O2)
 endif()
-
-add_definitions(${CONFIG_OPT_CFLAGS})
+add_definitions("-O2 ${CONFIG_OPT_CFLAGS}")
 
 set(CMAKE_CXX_STANDARD 11)
 set(CXX_STANDARD_REQUIRED ON)
 
-if(BUILD_ALL_IN_STATIC)
-    add_definitions(-DALL_IN_STATIC_LIB=1)
-    set(STATIC_BUILD "${STATIC_BUILD} -DSTATIC_BUILD")
-else()
-    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Bsymbolic -Bsymbolic-functions")
-endif()
+set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Bsymbolic -Bsymbolic-functions")
 
 include_directories(include)
 
@@ -178,9 +184,9 @@ include(cmake/driver.cmake)
 set(can_use_assembler TRUE)
 enable_language(ASM-ATT)
 
-if(CONFIG_BUILD_TENGINE_MODULE)
+if(CONFIG_ACL_OPENCL OR CONFIG_BUILD_CONVERT_TOOLS OR CONFIG_BUILD_SERIALIZER)
     set(TENGINE_IN_BIND 1)
-    add_subdirectory(tengine-module)
+    add_subdirectory(tools)
 endif()
 
 FOREACH(src ${TENGINE_LIB_SRCS} ${TENGINE_SIGN_SRCS} )
@@ -216,7 +222,6 @@ endif()
 if(BUILD_ALL_IN_STATIC OR BUILD_ALL_IN_ONE)
     ADD_DEPENDENCIES(tengine KERNEL_ASM_TARGET)
 else()
-#executor
     ADD_DEPENDENCIES(hclcpu KERNEL_ASM_TARGET)
     TARGET_LINK_LIBRARIES(hclcpu tengine)
 endif()
@@ -226,7 +231,10 @@ if(AUTH_LIB)
 endif()
 
 add_subdirectory(benchmark)
+
+enable_testing()
 add_subdirectory(tests)
+
 add_subdirectory(examples)
 
 install (TARGETS tengine  DESTINATION lib)
@@ -237,3 +245,7 @@ install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/core/include/tengine_c_api.h DESTINAT
 install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/core/include/cpu_device.h DESTINATION include)
 install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/core/include/tengine_c_compat.h DESTINATION include)
 install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/core/include/tengine_operations.h DESTINATION include)
+if(ANDROID)
+    install (FILES ${ANDROID_NDK}/sources/cxx-stl/llvm-libc++/libs/${ANDROID_ABI}/libc++_shared.so DESTINATION lib)
+endif()
+

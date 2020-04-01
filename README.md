@@ -1,6 +1,6 @@
 # Tengine Overview
 
-[![GitHub license](http://OAID.github.io/pics/apache_2.0.svg)](./LICENSE) [![Build Status](https://img.shields.io/github/workflow/status/OAID/Tengine/Tengine-Actions)](https://github.com/OAID/Tengine/actions?query=workflow%3ATengine-Actions)
+[![GitHub license](http://OAID.github.io/pics/apache_2.0.svg)](./LICENSE) [![Build Status](https://img.shields.io/github/workflow/status/OAID/Tengine/Tengine-Actions)](https://github.com/OAID/Tengine/actions?query=workflow%3ATengine-Actions) [![Test Status](https://img.shields.io/travis/OAID/Tengine/master?label=test)](https://travis-ci.org/OAID/Tengine)
 
 **Tengine**, developed by **OPEN** AI LAB, is an AI application development platform for AIoT scenarios launched by OPEN AI LAB, which is dedicated to solving the fragmentation problem of aiot industrial chain and accelerating the landing of AI industrialization. Tengine is specially designed for AIoT scenarios, and it has several features, such as cross platform, heterogeneous scheduling, chip bottom acceleration, ultra light weight and independent, and complete development and deployment tool chain. Tengine is compatible with a variety of operating systems and deep learning algorithm framework, which simplifies and accelerates the rapid migration of scene oriented AI algorithm on embedded edge devices, as well as the actual application deployment;
 
@@ -18,7 +18,7 @@ please refer to Wiki
 
 ## Tengine examples and model zoo
 
-please visit [examples](examples/readme.md) for demos on classification/detection and download models from [**Tengine model zoo**](https://pan.baidu.com/s/1Ar9334MPeIV1eq4pM1eI-Q) (psw: hhgc)
+please visit [examples](https://github.com/OAID/Tengine/tree/master/examples) for demos on classification/detection and download models from [**Tengine model zoo**](https://pan.baidu.com/s/1Ar9334MPeIV1eq4pM1eI-Q) (psw: hhgc)
 
 [**tengine applications**](https://github.com/OAID/Tengine-app) is a project for sharing android/linux applications powered by Tengine  
 

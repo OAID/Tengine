@@ -3,7 +3,7 @@
 *.so
 *.exe
 tests/data/
-build/
+build*/
 *.log
 *.pb.cc
 *.pb.h
@@ -19,3 +19,4 @@ sysroot/
 android_config.txt
 model_src/
 .vs/
+.vscode/

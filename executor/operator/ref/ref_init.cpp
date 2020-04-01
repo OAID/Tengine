@@ -95,6 +95,23 @@ extern void RegisterRefSparseToDenseOps(void);
 extern void RegisterRefCeilOps(void);
 extern void RegisterRefRoundOps(void);
 extern void RegisterRefZerosLikeOps(void);
+extern void RegisterRefInterpOps(void);
+extern void RegisterRefLogisticOps(void);
+extern void RegisterRefFeatureMatchOps(void);
+extern void RegisterRefL2NormOps(void);
+extern void RegisterRefL2PoolOps(void);
+extern void RegisterRefEluOps(void);
+extern void RegisterRefCopyOps(void);
+extern void RegisterRefLayernormLSTMOps(void);
+extern void RegisterRefCropOps(void);
+extern void RegisterRefPowerOps(void);
+extern void RegisterRelu1Ops(void);
+extern void RegisterRefScale(void);
+extern void RegisterRefStridedSlice(void);
+extern void RegisterRefUpsample(void);
+extern void RegisterRefGRUOps(void);
+extern void RegisterRefLSTMOps(void);
+extern void RegisterRefRNNOps(void);
 void RegisterRefOps(void)
 {
     RegisterRefPoolingOps();
@@ -166,6 +183,24 @@ void RegisterRefOps(void)
     RegisterRefRoundOps();
     RegisterRefSquaredDifferenceOps();
     RegisterRefZerosLikeOps();
+    RegisterRefInterpOps();
+
+    RegisterRefLogisticOps();
+    RegisterRefFeatureMatchOps();
+    RegisterRefL2NormOps();
+    RegisterRefL2PoolOps();
+    RegisterRefEluOps();
+    RegisterRefCopyOps();
+    RegisterRefLayernormLSTMOps();
+    RegisterRefCropOps();
+    RegisterRefPowerOps();
+    RegisterRelu1Ops();
+    RegisterRefScale();
+    RegisterRefStridedSlice();
+    RegisterRefUpsample();
+    RegisterRefGRUOps();
+    RegisterRefLSTMOps();
+    RegisterRefRNNOps();
 }
 
 }    // namespace TEngine
