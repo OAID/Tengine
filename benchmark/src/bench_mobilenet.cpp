@@ -136,7 +136,7 @@ int main(int argc, char* argv[])
 
     /* load model */
     mobilenet.load_model(NULL, "tengine", model_file);
-
+    mobilenet.set_device(device);
     /* prepare input data */
     input_tensor.create(img_w, img_h, 3);
     get_input_data(image_file, (float* )input_tensor.data, img_h, img_w, channel_mean, 0.017);

@@ -96,7 +96,7 @@ void get_input_data(const char* image_file, float* input_data, int img_h, int im
 
 int main(int argc, char* argv[])
 {
-    std::string device;
+    std::string device = "";
     char* cpu_list_str = nullptr;
     ;
 
@@ -129,7 +129,7 @@ int main(int argc, char* argv[])
 
     /* load model */
     squeezenet.load_model(NULL, "tengine", model_file);
-
+    squeezenet.set_device(device);
     /* prepare input data */
     input_tensor.create(img_w, img_h, 3);
     get_input_data(image_file, (float* )input_tensor.data, img_h, img_w, channel_mean, 1);

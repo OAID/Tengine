@@ -45,6 +45,7 @@ public:
     ~Net();
     // load model
     int load_model(context_t context, const char* model_format, const char* model_file, ...);
+    int set_device(std::string device);
     // set input shape
     int input_shape(int n, int c, int h, int w, const char* node_name);
     // input data by buffer
