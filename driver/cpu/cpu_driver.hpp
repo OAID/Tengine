@@ -127,14 +127,9 @@ public:
         master_thread_ = new WorkerThread<cpu_task>(f, cpu_info_.master_cpu);
 
         master_thread_->SetQueue(&master_task_queue_, &master_queue_lock_, &master_queue_cv_);
-<<<<<<< HEAD
-
-        master_thread_->LaunchWorker();
-=======
         master_thread_->LaunchWorker(true);
 
         master_thread_->Activate(cpu_info_.master_cpu);
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     }
 
     void LaunchAider(void)
@@ -210,10 +205,7 @@ public:
     {
         if(master_thread_)
         {
-<<<<<<< HEAD
-=======
             master_thread_->Deactivate();
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
             delete master_thread_;
             master_thread_ = nullptr;
         }
@@ -250,23 +242,15 @@ public:
 
     bool RealRun(Subgraph* graph)
     {
-<<<<<<< HEAD
-        run_lock_.lock();
-        bool ret = backend_runner_.Run(graph);
-        run_lock_.unlock();
-=======
         ActivateWorker();
         run_lock_.lock();
         bool ret = backend_runner_.Run(graph);
         run_lock_.unlock();
         DeActivateWorker();
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
         return ret;
     }
 
-<<<<<<< HEAD
-=======
     void ActivateWorker(void)
     {
        int master_cpu=cpu_info_.master_cpu;
@@ -281,7 +265,6 @@ public:
             t->Deactivate();
     }
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     bool RealOptimizeGraph(DevContext* context, Subgraph* graph)
     {
         context->optimized_graph = graph;

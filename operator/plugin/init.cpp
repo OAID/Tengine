@@ -71,11 +71,6 @@
 #include "operator/swap_axis.hpp"
 #include "operator/gru.hpp"
 #include "operator/add_n.hpp"
-<<<<<<< HEAD
-
-using namespace TEngine;
-
-=======
 #include "operator/stridedslice.hpp"
 #include "operator/upsample.hpp"
 #include "operator/crop.hpp"
@@ -130,7 +125,6 @@ using namespace TEngine;
 #include "operator/zeros_like.hpp"
 using namespace TEngine;
  
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 int operator_plugin_init(void)
 {
     RegisterOp<Convolution>("Convolution");
@@ -179,9 +173,6 @@ int operator_plugin_init(void)
     RegisterOp<SwapAxis>("SwapAxis");
     RegisterOp<GRU>("GRU");
     RegisterOp<Addn>("Addn");
-<<<<<<< HEAD
-
-=======
     RegisterOp<StridedSlice>("StridedSlice");
     RegisterOp<Floor>("Floor");
     RegisterOp<Upsample>("Upsample");
@@ -234,7 +225,6 @@ int operator_plugin_init(void)
     RegisterOp<SquaredDifference>("SquaredDifference");
     RegisterOp<SparseToDense>("SparseToDense");
     RegisterOp<ZerosLike>("ZerosLike");   
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     // std::cout<<"OPERATOR PLUGIN INITED\n";
     return 0;
 }

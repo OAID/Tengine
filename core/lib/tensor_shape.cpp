@@ -64,50 +64,26 @@ int TShape::GetN(void) const
 
 int TShape::GetC(void) const
 {
-<<<<<<< HEAD
-    if(layout_==TENGINE_LAYOUT_NCHW)
-         return Shape(1);
-    else
-         return Shape(3);
-=======
     if(layout_ == TENGINE_LAYOUT_NCHW)
         return Shape(1);
     else
         return Shape(3);
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 }
 
 int TShape::GetH(void) const
 {
-<<<<<<< HEAD
-    if(layout_==TENGINE_LAYOUT_NCHW)
-         return Shape(2);
-    else
-         return Shape(1);
-=======
     if(layout_ == TENGINE_LAYOUT_NCHW)
         return Shape(2);
     else
         return Shape(1);
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 }
 
 int TShape::GetW(void) const
 {
-<<<<<<< HEAD
-    if(layout_==TENGINE_LAYOUT_NCHW)
-         return Shape(3);
-    else
-         return Shape(2);
-}
-
-
-=======
     if(layout_ == TENGINE_LAYOUT_NCHW)
         return Shape(3);
     else
         return Shape(2);
 }
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 }    // namespace TEngine

@@ -26,14 +26,6 @@ namespace TEngine {
 
 extern void RegisterConv2dFast(void);
 extern void RegisterConv2dDepth(void);
-<<<<<<< HEAD
-extern void RegisterFullyConnectedFast(void);
-extern void RegisterPoolingNodeExec(void);
-extern void RegisterBatchNormNodeExec(void);
-extern void RegisterScaleNodeExec(void);
-extern void RegisterLRNNodeExec(void);
-
-=======
 extern void RegisterConv2dDepth3x3(void);
 extern void RegisterConv2dWinograd(void);
 extern void RegisterConv2dWinograd_1(void);
@@ -67,19 +59,11 @@ extern void RegisterCastFP32(void);
 extern void RegisterEltwiseFP32(void);
 extern void RegisterConv2dDirect3x3Dilation(void);
 extern void RegisterLRNNodeExec(void);
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
 void __attribute__((visibility("default"))) RegisterArmOps(void)
 {
     RegisterConv2dFast();
     RegisterConv2dDepth();
-<<<<<<< HEAD
-    RegisterFullyConnectedFast();
-    RegisterPoolingNodeExec();
-    RegisterBatchNormNodeExec();
-    RegisterScaleNodeExec();
-    RegisterLRNNodeExec();
-=======
     RegisterConv2dDepth3x3();
     RegisterConv2dWinograd();
     RegisterConv2dWinograd_1();
@@ -113,7 +97,6 @@ void __attribute__((visibility("default"))) RegisterArmOps(void)
     RegisterEltwiseFP32();
     RegisterConv2dDirect3x3Dilation();
 	RegisterLRNNodeExec();
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 }
 
 }    // namespace TEngine

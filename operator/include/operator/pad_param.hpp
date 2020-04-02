@@ -30,11 +30,7 @@ namespace TEngine {
 
 struct PadParam : public NamedParam
 {
-<<<<<<< HEAD
-    //mode : 0: CONSTANT; 1: REFLECT; 2: SYMMETRIC.
-=======
     // mode : 0: CONSTANT; 1: REFLECT; 2: SYMMETRIC.
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     int mode;
     int pad_0_h;
     int pad_0_w;

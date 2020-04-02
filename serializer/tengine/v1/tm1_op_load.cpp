@@ -410,15 +410,6 @@ bool LoadTmReshapeOp(StaticGraph* graph, StaticNode* node, void* const start_ptr
 
     ReshapeParam param = any_cast<ReshapeParam>(OpManager::GetOpDefParam(op_str));
     const TM_ReshapeParam* tm_param = GetTmPtr<TM_ReshapeParam>(start_ptr, tm_op->offset_t_param);
-<<<<<<< HEAD
-
-    param.dim_0 = tm_param->dim_0;
-    param.dim_1 = tm_param->dim_1;
-    param.dim_2 = tm_param->dim_2;
-    param.dim_3 = tm_param->dim_3;
-    param.dim_size = tm_param->dim_size;
-    param.axis = tm_param->axis;
-=======
     
         // set the reverse
     if(tm_param->reverse)
@@ -437,16 +428,12 @@ bool LoadTmReshapeOp(StaticGraph* graph, StaticNode* node, void* const start_ptr
         for(unsigned int i = 0; i < v_re_shape->v_num; i++) 
             param.re_shape.push_back(v_re_shape->dims[i]);
     } 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
     StaticOp* op = CreateStaticOp(graph, op_str);
     SetOperatorParam(op, param);
     SetNodeOp(node, op);
     return true;
-<<<<<<< HEAD
-=======
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 }
 
 bool LoadTmROIPoolingOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM_Operator* tm_op)
@@ -617,8 +604,6 @@ op_load_t LoadTmOpFunc(uint32_t op_type)
     }
 }
 
-<<<<<<< HEAD
-=======
 using op_tm_name_map_t = std::unordered_map<unsigned int, std::string>;
 
 static op_tm_name_map_t gTmOpName;
@@ -627,7 +612,6 @@ void AddOpStr(uint32_t op_type, const std::string& name)
     gTmOpName[op_type] = name;
 }
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 std::string GetOpStr(uint32_t op_type)
 {
     switch(op_type)

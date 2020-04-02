@@ -55,13 +55,10 @@
 #include "custom_kernel.hpp"
 #include "operator/generic.hpp"
 
-<<<<<<< HEAD
-=======
 #ifdef ENABLE_ONLINE_REPORT
 #include "tenginereportmgr.hpp"
 #endif
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 using namespace TEngine;
 
 #define TO_BE_IMPLEMENTED XLOG_WARN() << "TODO: " << __FUNCTION__ << " to be implemented\n"
@@ -95,19 +92,11 @@ int init_tengine(void)
         set_cpu_list(cpu_list_str);
     }
 
-<<<<<<< HEAD
-    if(InitAllPlugin()<0)
-=======
     if(InitAllPlugin() < 0)
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     {
         return -1;
     }
 
-<<<<<<< HEAD
-
-=======
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     if(TEnginePlugin::InitModule() < 0)
     {
         LOG_ERROR() << "init module failed\n";
@@ -119,44 +108,6 @@ int init_tengine(void)
     TEngineConfig::Set("exec.engine", "generic", true);
 
     init_mutex.unlock();
-<<<<<<< HEAD
-    return 0;
-}
-
-void dump_mem_prof(void)
-{
-   int pid=getpid();
-
-   char fname[128];
-
-   LOG_INFO()<<"\ntengine memory profile result:\n";
-
-   sprintf(fname,"/proc/%d/status",pid);
-
-   FILE * fp=fopen(fname,"r");
-
-   char line[128];
-
-   while(fgets(line,128,fp))
-   {
-      if(line[0]=='V' && line[1]=='m')
-        LOG_INFO()<<line;
-   }
-
-   fclose(fp);
-}
-
-void release_tengine(void)
-{
-    TEnginePlugin::ReleaseModule();
-
-    const char * mem_prof=std::getenv("TENGINE_MEM_PROFILE");
-
-    if(mem_prof && mem_prof[0]=='1')
-         dump_mem_prof();
-}
-
-=======
 
     #ifdef ENABLE_ONLINE_REPORT
     init_tengine_report_mgr();
@@ -315,15 +266,11 @@ void release_tengine(void)
    model_format == "xxx:m", it is to load model from memory instead of file
 */
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 graph_t create_graph(context_t context, const char* model_format, const char* fname, ...)
 {
     va_list argp;
     va_start(argp, fname);
-<<<<<<< HEAD
-=======
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     bool new_context_created = false;
 
     ExecContext* exec_context = reinterpret_cast<ExecContext*>(context);
@@ -344,52 +291,15 @@ graph_t create_graph(context_t context, const char* model_format, const char* fn
         new_context_created = true;
     }
 
-<<<<<<< HEAD
-    const char* graph_name = nullptr;
-    char tmp_buf[128];
-
-=======
     graph_t graph = nullptr;
     const char* graph_name = nullptr;
     char tmp_buf[128];
 
     /* if model_format is NULL, create a empty graph, so that model_name is NULL */
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     if(model_format == nullptr)
     {
         sprintf(tmp_buf, "graph0x%lx:%u", ( long )context, rand());
         graph_name = tmp_buf;
-<<<<<<< HEAD
-    }
-    else
-    {
-        graph_name = fname;
-    }
-
-    sprintf(tmp_buf, "%p:", ( void* )exec_context);
-
-    std::string model_name(tmp_buf);
-
-    model_name += graph_name;
-
-    if(model_format && vload_file_model(exec_context, model_name.c_str(), model_format, fname, argp) < 0)
-    {
-        if(new_context_created)
-            delete exec_context;
-
-        return nullptr;
-    }
-
-    // dump_model(model_name.c_str());
-
-    graph_t graph;
-
-    if(model_format)
-        graph = create_graph_in_context(exec_context, graph_name, model_name.c_str());
-    else
-        graph = create_graph_in_context(exec_context, graph_name, nullptr);
-        
-=======
 
         graph = create_graph_in_context(exec_context, graph_name, nullptr);
     }
@@ -437,7 +347,6 @@ graph_t create_graph(context_t context, const char* model_format, const char* fn
         if(model_loaded)
             graph = create_graph_in_context(exec_context, graph_name, model_name.c_str());
     }
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
     if(graph == nullptr)
     {
@@ -463,30 +372,6 @@ int save_graph(graph_t graph, const char* model_format, const char* fname, ...)
     return save_graph_internal(graph, model_format, fname, argp);
 }
 
-<<<<<<< HEAD
-int quant_graph(graph_t graph, int quant_mode, int node_no_quant_idxs[], int node_no_quant_number)
-{
-    GraphExecutor* executor = static_cast<GraphExecutor*>(graph);
-    Graph* g = executor->GetOptimizedGraph();
-
-    if(g->GetModelFormat() == MODEL_FORMAT_TFLITE)
-    {
-        LOG_INFO() << "Not quant tf-lite model.\n";
-        return 0;
-    }
-
-    if(quant_mode != TENGINE_QUANT_FP16 && quant_mode != TENGINE_QUANT_INT8)
-    {
-        LOG_ERROR() << "Currently only support fp16 and int8 quant.\n";
-        set_tengine_errno(EINVAL);
-        return -1;
-    }
-
-    return quant_graph_internal(graph, quant_mode, node_no_quant_idxs, node_no_quant_number);
-}
-
-=======
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 int set_graph_layout(graph_t graph, int layout_type)
 {
     if(layout_type != TENGINE_LAYOUT_NCHW && layout_type != TENGINE_LAYOUT_NHWC)
@@ -998,15 +883,9 @@ node_t get_graph_node_by_idx(graph_t graph, int node_idx)
     GraphExecutor* executor = reinterpret_cast<GraphExecutor*>(graph);
     Graph* real_graph = executor->GetOptimizedGraph();
 
-<<<<<<< HEAD
-    int node_num=real_graph->seq_nodes.size();
-
-    if(node_idx<0 || node_idx>=node_num)
-=======
     int node_num = real_graph->seq_nodes.size();
 
     if(node_idx < 0 || node_idx >= node_num)
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     {
         set_tengine_errno(EINVAL);
         return nullptr;
@@ -1052,11 +931,7 @@ int get_node_attr_pointer(node_t node, const char* attr_name, void* attr_val)
     return get_node_attr_generic(node, attr_name, nullptr, attr_val, sizeof(void*));
 }
 
-<<<<<<< HEAD
-int get_node_attr_generic(node_t node, const char* attr_name, const char * type_name, void* buf, int size)
-=======
 int get_node_attr_generic(node_t node, const char* attr_name, const char* type_name, void* buf, int size)
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 {
     return node_get_attr_generic(node, attr_name, type_name, buf, size);
 }
@@ -1091,15 +966,9 @@ tensor_t create_graph_tensor(graph_t graph, const char* tensor_name, int data_ty
         return nullptr;
     }
 
-<<<<<<< HEAD
-    if(data_type<TENGINE_DT_FP32 || data_type > TENGINE_DT_INT16)
-    {
-        LOG_ERROR()<<"unknown data type: "<<data_type<<"\n";
-=======
     if(data_type < TENGINE_DT_FP32 || data_type > TENGINE_DT_INT16)
     {
         LOG_ERROR() << "unknown data type: " << data_type << "\n";
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
         set_tengine_errno(EINVAL);
         return nullptr;
     }
@@ -1374,14 +1243,11 @@ int wait_graph(graph_t graph, int try_wait)
 
 int postrun_graph(graph_t graph)
 {
-<<<<<<< HEAD
-=======
     const char* mem_prof = std::getenv("TENGINE_MEM_PROFILE");
 
     if(mem_prof && mem_prof[0] == '1')
         dump_mem_prof();
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     GraphExecutor* executor = reinterpret_cast<GraphExecutor*>(graph);
 
     executor->Postrun();
@@ -1435,10 +1301,6 @@ int set_graph_device(graph_t graph, const char* dev_name)
 
     if(!exec_context->ExistDevice(dev_name))
     {
-<<<<<<< HEAD
-        set_tengine_errno(ENOENT);
-        return -1;
-=======
         std::string so_name = std::string("lib") + dev_name + std::string(".so");
         std::string init_func = std::string(dev_name) + std::string("_init");
 
@@ -1450,7 +1312,6 @@ int set_graph_device(graph_t graph, const char* dev_name)
             set_tengine_errno(ENOENT);
             return -1;
         }
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     }
 
     DevProposal prop;
@@ -1839,8 +1700,6 @@ void dump_graph(graph_t graph)
 
     g->DumpGraph();
 }
-<<<<<<< HEAD
-=======
 
 int set_online_report_status(int new_stat)
 {
@@ -1850,4 +1709,3 @@ int set_online_report_status(int new_stat)
     return 0;
     #endif
 }
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074

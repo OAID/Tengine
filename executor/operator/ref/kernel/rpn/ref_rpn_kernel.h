@@ -64,17 +64,6 @@ struct rpn_param
     int per_nms_topn;
     int post_nms_topn;
     float nms_thresh;
-<<<<<<< HEAD
-    //float scales[4];
-    //float quant_scale[3];
-    //int zero[3];
-};
-
-#define RPN_MIN(a,b) ( (a)<(b) ? (a) : (b) )
-#define RPN_MAX(a,b) ( (a)>(b) ? (a) : (b) )
-
-typedef int (*ref_rpn_kernel_t )(const void* score, void* featmap, float* anchor, void* output, struct rpn_param* param);
-=======
     // float scales[4];
     // float quant_scale[3];
     // int zero[3];
@@ -84,7 +73,6 @@ typedef int (*ref_rpn_kernel_t )(const void* score, void* featmap, float* anchor
 #define RPN_MAX(a, b) ((a) > (b) ? (a) : (b))
 
 typedef int (*ref_rpn_kernel_t)(const void* score, void* featmap, float* anchor, void* output, struct rpn_param* param);
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
 static inline void bbox_tranform_inv(float* m_box, float* local_anchors, struct rpn_param* param)
 {
@@ -92,18 +80,6 @@ static inline void bbox_tranform_inv(float* m_box, float* local_anchors, struct 
     int c_4 = param->feat_chan / 4;
     for(int i = 0; i < c_4; ++i)
     {
-<<<<<<< HEAD
-        for(int j = 0; j < (2*feat_size); ++j)
-        {
-            local_anchors[(i*4+2)*feat_size + j] -= local_anchors[(i*4+0)*feat_size + j] - 1;
-            local_anchors[(i*4+0)*feat_size + j] += local_anchors[(i*4+2)*feat_size + j] * 0.5;
-
-            m_box[(i * 4 + 0) * feat_size + j] *= local_anchors[(i*4+2)*feat_size + j];
-            m_box[(i * 4 + 0) * feat_size + j] += local_anchors[(i*4+0)*feat_size + j];
-
-            m_box[(i * 4 + 2) * feat_size + j] = exp(m_box[(i * 4 + 2) * feat_size + j]);
-            m_box[(i * 4 + 2) * feat_size + j] *= local_anchors[(i*4+2)*feat_size + j];
-=======
         for(int j = 0; j < (2 * feat_size); ++j)
         {
             local_anchors[(i * 4 + 2) * feat_size + j] -= local_anchors[(i * 4 + 0) * feat_size + j] - 1;
@@ -114,30 +90,19 @@ static inline void bbox_tranform_inv(float* m_box, float* local_anchors, struct 
 
             m_box[(i * 4 + 2) * feat_size + j] = exp(m_box[(i * 4 + 2) * feat_size + j]);
             m_box[(i * 4 + 2) * feat_size + j] *= local_anchors[(i * 4 + 2) * feat_size + j];
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
         }
     }
 }
 
-<<<<<<< HEAD
-static inline void ref_filter_boxes(struct RPN_Box* boxes, const float* featmap, const float* score, int* num_boxes, struct rpn_param* param)
-=======
 static inline void ref_filter_boxes(struct RPN_Box* boxes, const float* featmap, const float* score, int* num_boxes,
                                     struct rpn_param* param)
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 {
     float local_minsize = param->min_size * param->src_scale;
     int c_4 = param->feat_chan / 4;
     int feat_size = param->feat_height * param->feat_width;
-<<<<<<< HEAD
-    
-    int offset_w, offset_h, offset_x, offset_y, offset_s;
-    
-=======
 
     int offset_w, offset_h, offset_x, offset_y, offset_s;
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     int num = 0;
     for(int h = 0; h < param->feat_height; h++)
         for(int w = 0; w < param->feat_width; w++)
@@ -164,18 +129,6 @@ static inline void ref_filter_boxes(struct RPN_Box* boxes, const float* featmap,
                     tmp.y1 = RPN_MIN(RPN_MAX(tmp.y1, 0), param->src_height);
                     tmp.score = score[offset_s];
                     memcpy(boxes + num, &tmp, sizeof(struct RPN_Box));
-<<<<<<< HEAD
-                    num ++;
-                }
-                offset_x += 4*feat_size;
-                offset_y += 4*feat_size;
-                offset_w += 4*feat_size;
-                offset_h += 4*feat_size;
-                offset_s += feat_size;
-            }
-        }
-        
-=======
                     num++;
                 }
                 offset_x += 4 * feat_size;
@@ -186,18 +139,13 @@ static inline void ref_filter_boxes(struct RPN_Box* boxes, const float* featmap,
             }
         }
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     *num_boxes = num;
 }
 
 void sort_rpn_boxes_by_score(struct RPN_Box* boxes, int size)
 {
     int i, j;
-<<<<<<< HEAD
-    for(i = 0; i < size-1; i++)
-=======
     for(i = 0; i < size - 1; i++)
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     {
         int max_idx = i;
         for(j = i + 1; j < size; j++)
@@ -208,13 +156,8 @@ void sort_rpn_boxes_by_score(struct RPN_Box* boxes, int size)
         if(i != max_idx)
         {
             struct RPN_Box tmp;
-<<<<<<< HEAD
-            memcpy(&tmp, boxes+i, sizeof(struct RPN_Box));
-            memcpy(boxes + i, boxes+max_idx, sizeof(struct RPN_Box));
-=======
             memcpy(&tmp, boxes + i, sizeof(struct RPN_Box));
             memcpy(boxes + i, boxes + max_idx, sizeof(struct RPN_Box));
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
             memcpy(boxes + max_idx, &tmp, sizeof(struct RPN_Box));
         }
     }
@@ -225,15 +168,9 @@ void nms_rpn_boxes(struct RPN_Box* input_boxes, int* size, float nms_thresh)
     int input_size = *size;
     int output_size = 0;
 
-<<<<<<< HEAD
-    struct RPN_Box* output_boxes = (struct RPN_Box*)malloc(sizeof(struct RPN_Box)*input_size);
-    float* areas = (float*)malloc(sizeof(float)* input_size);
-    int* picked = (int*)malloc(sizeof(int)* input_size);
-=======
     struct RPN_Box* output_boxes = ( struct RPN_Box* )malloc(sizeof(struct RPN_Box) * input_size);
     float* areas = ( float* )malloc(sizeof(float) * input_size);
     int* picked = ( int* )malloc(sizeof(int) * input_size);
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
     for(int i = 0; i < input_size; ++i)
     {
@@ -242,11 +179,7 @@ void nms_rpn_boxes(struct RPN_Box* input_boxes, int* size, float nms_thresh)
     for(int i = 0; i < input_size; ++i)
     {
         int keep = 1;
-<<<<<<< HEAD
-        for(int j = 0; j < output_size;j++)
-=======
         for(int j = 0; j < output_size; j++)
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
         {
             float xx1 = RPN_MAX(input_boxes[i].x0, output_boxes[j].x0);
             float yy1 = RPN_MAX(input_boxes[i].y0, output_boxes[j].y0);
@@ -266,14 +199,8 @@ void nms_rpn_boxes(struct RPN_Box* input_boxes, int* size, float nms_thresh)
         {
             memcpy(output_boxes + output_size, input_boxes + i, sizeof(struct RPN_Box));
             picked[output_size] = i;
-<<<<<<< HEAD
-            output_size ++;
-        }
-        
-=======
             output_size++;
         }
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     }
     memcpy(input_boxes, output_boxes, output_size * sizeof(struct RPN_Box));
     *size = output_size;

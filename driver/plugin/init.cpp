@@ -27,15 +27,6 @@
 #include "logger.hpp"
 
 namespace TEngine {
-<<<<<<< HEAD
-
-#ifdef CONFIG_ACL_GPU
-// extern void ACLDriverInit(void);
-extern void ACLGraphInit(void);
-#endif
-
-=======
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 extern void CPUDriverInit(void);
 }    // namespace TEngine
 
@@ -43,14 +34,6 @@ using namespace TEngine;
 
 int driver_plugin_init(void)
 {
-<<<<<<< HEAD
-#ifdef CONFIG_ACL_GPU
-    // ACLDriverInit();
-    ACLGraphInit();
-#endif
-
-=======
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     CPUDriverInit();
 
     return 0;

@@ -55,11 +55,7 @@ public:
 
     /* the memory stored in addr_list will be released by static graph */
     virtual bool LoadModel(const std::vector<const void*>& addr_list, const std::vector<int>& size_list,
-<<<<<<< HEAD
-                           StaticGraph* static_graph)
-=======
                            StaticGraph* static_graph, bool transfer_mem = false)
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     {
         return false;
     }
@@ -141,15 +137,12 @@ protected:
 using SerializerPtr = std::shared_ptr<Serializer>;
 using SerializerFactory = SpecificFactory<Serializer>;
 
-<<<<<<< HEAD
-=======
 extern template class SpecificFactory<Serializer>;
 extern template SpecificFactory<Serializer> SpecificFactory<Serializer>::instance;
 
 class SerializerManager;
 extern template SerializerManager SimpleObjectManagerWithLock<SerializerManager, SerializerPtr>::instance;
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 class SerializerManager : public SimpleObjectManagerWithLock<SerializerManager, SerializerPtr>
 {
 };

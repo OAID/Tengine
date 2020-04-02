@@ -388,15 +388,6 @@ static tm_uoffset_t SaveTmReshapeOp(void* const start_ptr, tm_uoffset_t* cur_pos
 {
     ReshapeParam* p = (dynamic_cast<Reshape*>(op))->GetParam();
     TM_ReshapeParam tm_param;
-<<<<<<< HEAD
-
-    tm_param.dim_0 = p->dim_0;
-    tm_param.dim_1 = p->dim_1;
-    tm_param.dim_2 = p->dim_2;
-    tm_param.dim_3 = p->dim_3;
-    tm_param.dim_size = p->dim_size;
-    tm_param.axis = p->axis;
-=======
     if(p->reverse)
         tm_param.reverse = 1;
     else
@@ -420,7 +411,6 @@ static tm_uoffset_t SaveTmReshapeOp(void* const start_ptr, tm_uoffset_t* cur_pos
     }   
     else
         tm_param.offset_re_shape = NOT_SET;
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
     TM_Operator tm_op;
     SetTmOperator(&tm_op, TM_OPTYPE_RESHAPE, NOT_SET,

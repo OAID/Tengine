@@ -34,27 +34,20 @@ struct SliceParam : public NamedParam
     std::vector<int> slice_point_;
     std::vector<int> begin_;
     std::vector<int> size_;
-<<<<<<< HEAD
-    bool iscaffe;
-=======
     int begin;
     int end;
     bool ismxnet;
     bool iscaffe;
     bool isonnx;
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
     DECLARE_PARSER_STRUCTURE(SliceParam)
     {
         DECLARE_PARSER_ENTRY(axis);
-<<<<<<< HEAD
-=======
         DECLARE_PARSER_ENTRY(begin);
         DECLARE_PARSER_ENTRY(end);
         DECLARE_PARSER_ENTRY(ismxnet);
         DECLARE_PARSER_ENTRY(isonnx);
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     }
 };
 

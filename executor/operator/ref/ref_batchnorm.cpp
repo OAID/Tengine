@@ -31,20 +31,12 @@
 #include "tengine_errno.hpp"
 #include "graph.hpp"
 #include "operator/batch_norm.hpp"
-<<<<<<< HEAD
-#include "kernel/ref_batchnorm/ref_batchnorm_kernel.h"
-=======
 #include "kernel/batchnorm/ref_batchnorm_kernel.h"
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 #include <cmath>
 
 namespace TEngine {
 
-<<<<<<< HEAD
-namespace RefBatchNormImpl{
-=======
 namespace RefBatchNormImpl {
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
 struct RefBatchNormOps : public NodeOps
 {
@@ -64,25 +56,6 @@ struct RefBatchNormOps : public NodeOps
 
 void RefBatchNormOps::InitRegistry(void)
 {
-<<<<<<< HEAD
-    #ifdef CONFIG_KERNEL_FP32
-    kernel_registry.Register((ref_batchnorm_kernel_t)ref_batchnorm_fp32,TENGINE_LAYOUT_NCHW,TENGINE_DT_FP32);
-    kernel_registry.Register((ref_batchnorm_kernel_t)ref_batchnorm_fp32,TENGINE_LAYOUT_NHWC,TENGINE_DT_FP32);
-    #endif
-    #ifdef CONFIG_KERNEL_FP16
-    kernel_registry.Register((ref_batchnorm_kernel_t)ref_batchnorm_fp16,TENGINE_LAYOUT_NCHW,TENGINE_DT_FP16);
-    kernel_registry.Register((ref_batchnorm_kernel_t)ref_batchnorm_fp16,TENGINE_LAYOUT_NHWC,TENGINE_DT_FP16);
-    #endif
-    #ifdef CONFIG_KERNEL_INT8
-    kernel_registry.Register((ref_batchnorm_kernel_t)ref_batchnorm_int8,TENGINE_LAYOUT_NCHW,TENGINE_DT_INT8);
-    kernel_registry.Register((ref_batchnorm_kernel_t)ref_batchnorm_int8,TENGINE_LAYOUT_NHWC,TENGINE_DT_INT8);
-    #endif
-    #ifdef CONFIG_KERNEL_UINT8
-    kernel_registry.Register((ref_batchnorm_kernel_t)ref_batchnorm_uint8,TENGINE_LAYOUT_NCHW,TENGINE_DT_UINT8);
-    kernel_registry.Register((ref_batchnorm_kernel_t)ref_batchnorm_uint8,TENGINE_LAYOUT_NHWC,TENGINE_DT_UINT8);
-    #endif
-    
-=======
 #ifdef CONFIG_KERNEL_FP32
     kernel_registry.Register(( ref_batchnorm_kernel_t )ref_batchnorm_fp32, TENGINE_LAYOUT_NCHW, TENGINE_DT_FP32);
     kernel_registry.Register(( ref_batchnorm_kernel_t )ref_batchnorm_fp32, TENGINE_LAYOUT_NHWC, TENGINE_DT_FP32);
@@ -99,7 +72,6 @@ void RefBatchNormOps::InitRegistry(void)
     kernel_registry.Register(( ref_batchnorm_kernel_t )ref_batchnorm_uint8, TENGINE_LAYOUT_NCHW, TENGINE_DT_UINT8);
     kernel_registry.Register(( ref_batchnorm_kernel_t )ref_batchnorm_uint8, TENGINE_LAYOUT_NHWC, TENGINE_DT_UINT8);
 #endif
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 }
 bool RefBatchNormOps::Prerun(Node* node)
 {
@@ -109,12 +81,7 @@ bool RefBatchNormOps::Prerun(Node* node)
     const Tensor* input_tensor = node->GetInputTensor(0);
     int data_type = input_tensor->GetDataType();
     const TShape& shape = input_tensor->GetShape();
-<<<<<<< HEAD
-    const std::vector<int> dims = shape.GetDim();
-    int channel_num = dims[1];
-=======
     int channel_num = shape.GetC();
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     float* scale_mean = ( float* )mem_alloc(channel_num * sizeof(float));
     float* scale_var_inv = ( float* )mem_alloc(channel_num * sizeof(float));
     const Tensor* mean_tensor = node->GetInputTensor(3);
@@ -128,15 +95,10 @@ bool RefBatchNormOps::Prerun(Node* node)
     rescale_factor = param->rescale_factor ? 1 / param->rescale_factor : 0;
     for(int c = 0; c < channel_num; c++)
     {
-<<<<<<< HEAD
-        scale_var_inv[c] = 1.f / sqrt(var[c] * rescale_factor + eps);
-        scale_mean[c] = -mean[c] * rescale_factor * scale_var_inv[c];
-=======
         float tmp = std::sqrt(var[c] * rescale_factor + eps);
         scale_var_inv[c] = (float)(1.f / tmp);
         tmp = rescale_factor * scale_var_inv[c];
         scale_mean[c] = (float)(-mean[c] * tmp);
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     }
     float* gamma = NULL;
     float* beta = NULL;
@@ -144,13 +106,8 @@ bool RefBatchNormOps::Prerun(Node* node)
     {
         const Tensor* gamma_tensor = node->GetInputTensor(1);
         const Tensor* beta_tensor = node->GetInputTensor(2);
-<<<<<<< HEAD
-        gamma = (float* )get_tensor_mem(gamma_tensor);
-        beta = (float* )get_tensor_mem(beta_tensor);
-=======
         gamma = ( float* )get_tensor_mem(gamma_tensor);
         beta = ( float* )get_tensor_mem(beta_tensor);
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     }
     int layout = exec_attr->graph_layout;
     op_param.iscaffe = param->caffe_flavor;
@@ -159,11 +116,7 @@ bool RefBatchNormOps::Prerun(Node* node)
     op_param.gamma = gamma;
     op_param.beta = beta;
     op_param.layout = layout;
-<<<<<<< HEAD
-   
-=======
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     if(!kernel_registry.GetKernel(kernel_run, layout, data_type))
     {
         set_tengine_errno(ENOENT);
@@ -177,11 +130,7 @@ bool RefBatchNormOps::Run(Node* node)
     Tensor* input_tensor = node->GetInputTensor(0);
     const TShape& shape = input_tensor->GetShape();
     const std::vector<int> dims = shape.GetDim();
-<<<<<<< HEAD
-    
-=======
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     if(TENGINE_LAYOUT_NCHW == op_param.layout)
     {
         if(4 == dims.size())
@@ -198,8 +147,6 @@ bool RefBatchNormOps::Run(Node* node)
             op_param.input_w = dims[2];
             op_param.input_h = 1;
         }
-<<<<<<< HEAD
-=======
         else if(2 == dims.size())
         {
             op_param.input_n = dims[0];
@@ -207,7 +154,6 @@ bool RefBatchNormOps::Run(Node* node)
             op_param.input_w = 1;
             op_param.input_h = 1;
         }
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
         else
         {
             return false;
@@ -234,46 +180,28 @@ bool RefBatchNormOps::Run(Node* node)
             return false;
         }
     }
-<<<<<<< HEAD
-=======
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     auto* in_quant = input_tensor->GetQuantParam();
     if(in_quant->size())
     {
         op_param.in_scale = (*in_quant)[0].scale;
         op_param.in_zero = (*in_quant)[0].zero_point;
     }
-<<<<<<< HEAD
-    uint8_t* input = (uint8_t*)get_tensor_mem(input_tensor);
-    Tensor* output_tensor = node->GetOutputTensor(0);
-    uint8_t*out_data = (uint8_t*)get_tensor_mem(output_tensor);
-    const int data_type = input_tensor->GetDataType();
-    if( data_type == TENGINE_DT_UINT8 )
-=======
     uint8_t* input = ( uint8_t* )get_tensor_mem(input_tensor);
     Tensor* output_tensor = node->GetOutputTensor(0);
     uint8_t* out_data = ( uint8_t* )get_tensor_mem(output_tensor);
     const int data_type = input_tensor->GetDataType();
     if(data_type == TENGINE_DT_UINT8)
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     {
         auto* o_quant = output_tensor->GetQuantParam();
         op_param.out_scale = (*o_quant)[0].scale;
         op_param.out_zero = (*o_quant)[0].zero_point;
     }
     int ret = kernel_run(input, out_data, &op_param);
-<<<<<<< HEAD
-    if(ret<0)
-        return false;
-
-    if(data_type == TENGINE_DT_INT8 )
-=======
     if(ret < 0)
         return false;
 
     if(data_type == TENGINE_DT_INT8)
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     {
         Tensor* o_tensor = node->GetOutputTensor(0);
         auto* o_quant = o_tensor->GetQuantParam();
@@ -299,22 +227,12 @@ NodeOps* SelectFunc(const CPUInfo* cpu_info, Node* node)
     return ops;
 }
 
-<<<<<<< HEAD
-}// namespace RefBatchNormImpl
-
-
-void RegisterRefBatchNormOps(void)
-{
-    NodeOpsRegistryManager::RegisterOPImplementor(REF_REGISTRY_NAME, "BatchNormalization", 
-        RefBatchNormImpl::SelectFunc, 1000);
-=======
 }    // namespace RefBatchNormImpl
 
 void RegisterRefBatchNormOps(void)
 {
     NodeOpsRegistryManager::RegisterOPImplementor(REF_REGISTRY_NAME, "BatchNormalization", RefBatchNormImpl::SelectFunc,
                                                   1000);
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 }
 
 }    // namespace TEngine

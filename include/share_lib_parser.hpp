@@ -54,12 +54,8 @@ public:
         sl = ::dlopen(so_path.c_str(), RTLD_LAZY | RTLD_GLOBAL);
         if(!sl)
         {
-<<<<<<< HEAD
-            //std::printf("%s\n", dlerror());
-=======
             // std::printf("%s\n", dlerror());
             throw te_error_unable_to_load_library(dlerror());
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
             throw te_error_unable_to_load_library(so_path);
             return -1;
         }
@@ -75,11 +71,7 @@ public:
             if(!f)
             {
                 throw te_error_shared_function_not_found(func_name);
-<<<<<<< HEAD
-                //return nullptr;
-=======
                 // return nullptr;
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
             }
             func_map.emplace(func_name, ( func* )f);
             it = func_map.find(func_name);
@@ -101,11 +93,6 @@ public:
 
     ~ShareLibParser()
     {
-<<<<<<< HEAD
-        if(sl)
-            ::dlclose(sl);
-=======
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     };
 
 private:

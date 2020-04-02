@@ -131,10 +131,6 @@ bool Graph::CreateNodeFromStatic(Node* node, const StaticGraph* static_graph, co
     StaticOp* static_op = static_node->op.get();
 
     Operator* op = OpManager::CreateOp(static_op->name);
-<<<<<<< HEAD
-
-=======
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     if(op == nullptr)
     {
         XLOG_ERROR() << "failed to create operator: " << static_op->name << "\n";
@@ -183,12 +179,6 @@ bool Graph::CreateNodeFromStatic(Node* node, const StaticGraph* static_graph, co
         std::vector<QuantParam>* quant_param = tensor->GetQuantParam();
         quant_param->resize(1);
 
-<<<<<<< HEAD
-        (*quant_param)[0].scale = static_tensor->scale;
-        (*quant_param)[0].zero_point = static_tensor->zero_point;
-        (*quant_param)[0].width = static_tensor->width;
-
-=======
         //        (*quant_param)[0].scale = static_tensor->scale;
         //        (*quant_param)[0].zero_point = static_tensor->zero_point;
         //        (*quant_param)[0].width = static_tensor->width;
@@ -200,7 +190,6 @@ bool Graph::CreateNodeFromStatic(Node* node, const StaticGraph* static_graph, co
             (*quant_param)[i].zero_point = static_tensor->zero_point[i];
             (*quant_param)[i].width = static_tensor->width;
         }
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
         if(static_tensor->type == kConstTensor)
         {
             StaticConstTensor* const_tensor = dynamic_cast<StaticConstTensor*>(static_tensor);
@@ -352,19 +341,11 @@ bool Graph::RealCreateFromStatic(const StaticGraphPtr& static_graph)
 
     /* save the model format */
 
-<<<<<<< HEAD
-    //model_format_ = model_format_mapping(static_graph->source_format);
-    model_format_=static_graph->model_format;
-    model_subformat_=static_graph->model_subformat;
-    model_layout_=static_graph->model_layout;
-    layout_=static_graph->graph_layout;
-=======
     // model_format_ = model_format_mapping(static_graph->source_format);
     model_format_ = static_graph->model_format;
     model_subformat_ = static_graph->model_subformat;
     model_layout_ = static_graph->model_layout;
     layout_ = static_graph->graph_layout;
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
     return true;
 }

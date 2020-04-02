@@ -28,40 +28,6 @@ namespace TEngine {
 bool Reshape::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEngine::TShape>& oshape, int layout)
 {
     const TShape& input = ishape[0];
-<<<<<<< HEAD
-    std::vector<int> in_dim=input.GetDim();
-    const int size = input.GetSize();
-    std::vector<int> new_shape;
-    int new_size = 1;
-    if(param_.dim_0 != -2)
-        new_shape.push_back(param_.dim_0);
-    if(param_.dim_1 != -2)
-        new_shape.push_back(param_.dim_1);
-    if(param_.dim_2 != -2)
-        new_shape.push_back(param_.dim_2);
-    if(param_.dim_3 != -2)
-        new_shape.push_back(param_.dim_3);
-
-    // printf("new_shape: %d, %d, %d, %d\n",new_shape[0],new_shape[1],new_shape[2],new_shape[3]);
-    int dim_size = new_shape.size();
-    int idx = -1;
-    
-    //Ref: http://caffe.berkeleyvision.org/tutorial/layers/reshape.html
-    for(int i = 0; i < dim_size; i++)
-    {
-        if(new_shape[i] == 0)
-            new_shape[i] = in_dim[i]; 
-        else if(new_shape[i] == -1)
-            idx = i;
-        else
-            new_size *= new_shape[i];
-    }
-
-    if(idx >= 0)
-    {
-        new_shape[idx] = size / new_size;
-    }
-=======
     const int size = input.GetSize();
     std::vector<int> new_shape;     
     
@@ -148,7 +114,6 @@ bool Reshape::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector
             printf("%d ", new_shape[i]);
         printf("\n");     
     }*/
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
     TShape shape;
     shape.SetDim(new_shape);
@@ -156,18 +121,12 @@ bool Reshape::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector
 
     oshape[0] = shape;
     return true;
-<<<<<<< HEAD
-=======
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 }
 
 void Reshape::SetSchema(void)
 {
-<<<<<<< HEAD
-=======
     /*
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     Input({"input:float32"})
         .Output({"output:float32"})
         .SetAttr("dim_0", -2)
@@ -176,8 +135,6 @@ void Reshape::SetSchema(void)
         .SetAttr("dim_3", -2)
         .SetAttr("dim_size", 0)
         .SetDoc(R"DOC(Reshape Layer)DOC");
-<<<<<<< HEAD
-=======
         */
     Input({"input:float32"})
         .Output({"output:float32"})
@@ -186,7 +143,6 @@ void Reshape::SetSchema(void)
         .SetAttr("is_onnx", false)
         .SetDoc(R"DOC(Reshape Layer)DOC");
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 }
 
 }    // namespace TEngine

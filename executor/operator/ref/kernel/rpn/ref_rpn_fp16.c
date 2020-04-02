@@ -1,7 +1,5 @@
 #include "ref_rpn_kernel.h"
 
-<<<<<<< HEAD
-=======
 static inline void bbox_tranform_inv_fp16(__fp16* m_box, float* local_anchors, struct rpn_param* param)
 {
     int feat_size = param->feat_height * param->feat_width;
@@ -74,29 +72,11 @@ static inline void ref_filter_boxes_fp16(struct RPN_Box* boxes, const __fp16* fe
     *num_boxes = num;
 }
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 int ref_rpn_fp16(const __fp16* score, __fp16* featmap, float* anchors, __fp16* output, struct rpn_param* param)
 {
     if(score == nullptr || featmap == nullptr || anchors == nullptr || output == nullptr)
         return false;
     int featmap_size = param->feat_height * param->feat_width * param->feat_chan;
-<<<<<<< HEAD
-    int max_num_boxes = featmap_size /4;
-    struct RPN_Box* boxes = (struct RPN_Box*)malloc(max_num_boxes * sizeof(struct RPN_Box));
-
-    /*   __fp16 -> float */
-    float* featmap_fp32 = (float*)malloc(featmap_size * sizeof(float));
-    float* score_fp32 = (float*)malloc(max_num_boxes * sizeof(float));
-    for(int i = 0; i < featmap_size; i++)
-        featmap_fp32[i] = fp16_to_fp32(featmap[i]);
-    for(int i = 0; i < max_num_boxes; i++)
-        score_fp32[i] = fp16_to_fp32(score[i]);
-
-    bbox_tranform_inv(featmap_fp32, anchors, param);
-    
-    int num_boxes = 0;
-    ref_filter_boxes(boxes, featmap_fp32, score_fp32, &num_boxes, param);
-=======
 
     int max_num_boxes = featmap_size / 4;
 
@@ -106,7 +86,6 @@ int ref_rpn_fp16(const __fp16* score, __fp16* featmap, float* anchors, __fp16* o
 
     int num_boxes = 0;
     ref_filter_boxes_fp16(boxes, featmap, score, &num_boxes, param);
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
     sort_rpn_boxes_by_score(boxes, num_boxes);
 
@@ -122,10 +101,6 @@ int ref_rpn_fp16(const __fp16* score, __fp16* featmap, float* anchors, __fp16* o
     }
     // inder shape [default batch=1]
 
-<<<<<<< HEAD
-    // std::cout<<"num_box "<<num_box<<"\n";
-=======
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     for(int i = 0; i < num_boxes; i++)
     {
         __fp16* outptr = output + i * 4;
@@ -135,11 +110,6 @@ int ref_rpn_fp16(const __fp16* score, __fp16* featmap, float* anchors, __fp16* o
         outptr[3] = fp32_to_fp16(boxes[i].y1);
     }
 
-<<<<<<< HEAD
-    free(score_fp32);
-    free(featmap_fp32);
-=======
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     free(boxes);
     return num_boxes;
 }

@@ -44,41 +44,6 @@ namespace RefConvolutionOps {
 
 const int default_prio = 1500;
 
-<<<<<<< HEAD
-inline static int get_scale_zero(Tensor* itensor, Tensor* otensor, Tensor* ktensor, op_data* param)
-{
-    auto* i_quant = itensor->GetQuantParam();
-    auto* k_quant = ktensor->GetQuantParam();
-    auto* o_quant = otensor->GetQuantParam();
-    if( i_quant->size() != 1 || k_quant->size() != 1)
-    {
-        std::cerr<<"quant size: input("<< i_quant->size()<<"),kernel("<<k_quant->size()<<")\n";
-        return -1;
-    }
-    param->scale[0] = (*i_quant)[0].scale;
-    param->scale[1] = (*k_quant)[0].scale;
-    if(itensor->GetDataType() == TENGINE_DT_UINT8)
-    {
-        if( o_quant->size() != 1)
-        {
-            std::cerr<<"output quant size: "<<o_quant->size()<<"\n";
-            return -1;
-        }
-
-        param->scale[2] = (*o_quant)[0].scale;
-        param->zero[2] = (*o_quant)[0].zero_point;
-
-        param->zero[0] = (*i_quant)[0].zero_point;
-        param->zero[1] = (*k_quant)[0].zero_point;
-    }
-    //printf("scale: %f,%f,%f   --     zero : %d,%d,%d \n",
-    //            param->scale[0],param->scale[1],param->scale[2],
-    //            param->zero[0],param->zero[1],param->zero[2]);
-    return 0;
-}
-
-=======
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 struct RefConv : public MTNodeOps
 {
     bool Prerun(Node* node) override;
@@ -89,48 +54,18 @@ struct RefConv : public MTNodeOps
 
     bool dynamic_shape;
     op_data op_param;
-<<<<<<< HEAD
-    
-    ref_conv_kernel_t  kernel_run;
-    KernelRegistry<ref_conv_kernel_t>  kernel_registry;
-    RefConv(void) 
-    {
-        kernel_run=nullptr;
-=======
 
     ref_conv_kernel_t kernel_run;
     KernelRegistry<ref_conv_kernel_t> kernel_registry;
     RefConv(void)
     {
         kernel_run = nullptr;
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
         InitRegistry();
     }
 };
 void RefConv::InitRegistry(void)
 {
 #ifdef CONFIG_KERNEL_FP32
-<<<<<<< HEAD
-    kernel_registry.Register((ref_conv_kernel_t)ref_conv_fp32,TENGINE_LAYOUT_NCHW,TENGINE_DT_FP32);
-    kernel_registry.Register((ref_conv_kernel_t)ref_conv_fp32,TENGINE_LAYOUT_NHWC,TENGINE_DT_FP32);
-#endif
-
-#ifdef CONFIG_KERNEL_FP16
-    kernel_registry.Register((ref_conv_kernel_t)ref_conv_fp16,TENGINE_LAYOUT_NCHW,TENGINE_DT_FP16);
-    kernel_registry.Register((ref_conv_kernel_t)ref_conv_fp16,TENGINE_LAYOUT_NHWC,TENGINE_DT_FP16);
-#endif
-
-#ifdef CONFIG_KERNEL_INT8
-    kernel_registry.Register((ref_conv_kernel_t)ref_conv_int8,TENGINE_LAYOUT_NCHW,TENGINE_DT_INT8);
-    kernel_registry.Register((ref_conv_kernel_t)ref_conv_int8,TENGINE_LAYOUT_NHWC,TENGINE_DT_INT8);
-#endif
-
-#ifdef CONFIG_KERNEL_UINT8
-    kernel_registry.Register((ref_conv_kernel_t)ref_conv_uint8,TENGINE_LAYOUT_NCHW,TENGINE_DT_UINT8);
-    kernel_registry.Register((ref_conv_kernel_t)ref_conv_uint8,TENGINE_LAYOUT_NHWC,TENGINE_DT_UINT8);
-#endif
-
-=======
     kernel_registry.Register(( ref_conv_kernel_t )ref_conv_fp32, TENGINE_LAYOUT_NCHW, TENGINE_DT_FP32);
     kernel_registry.Register(( ref_conv_kernel_t )ref_conv_fp32, TENGINE_LAYOUT_NHWC, TENGINE_DT_FP32);
 #endif
@@ -149,24 +84,15 @@ void RefConv::InitRegistry(void)
     kernel_registry.Register(( ref_conv_kernel_t )ref_conv_uint8, TENGINE_LAYOUT_NCHW, TENGINE_DT_UINT8);
     kernel_registry.Register(( ref_conv_kernel_t )ref_conv_uint8, TENGINE_LAYOUT_NHWC, TENGINE_DT_UINT8);
 #endif
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 }
 
 bool RefConv::Prerun(Node* node)
 {
-<<<<<<< HEAD
-    int  layout=exec_attr->graph_layout;
-    
-    Convolution* conv_op = dynamic_cast<Convolution*>(node->GetOp());
-    ConvParam* param = conv_op->GetParam();
-    
-=======
     int layout = exec_attr->graph_layout;
 
     Convolution* conv_op = dynamic_cast<Convolution*>(node->GetOp());
     ConvParam* param = conv_op->GetParam();
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     Tensor* input_tensor = node->GetInputTensor(0);
     op_param.batch = input_tensor->GetShape().GetN();
     op_param.in_shape[0] = input_tensor->GetShape().GetC();
@@ -193,10 +119,6 @@ bool RefConv::Prerun(Node* node)
     op_param.group = param->group;
     op_param.activation = param->activation;
     op_param.layout = layout;
-<<<<<<< HEAD
-
-    if(!kernel_registry.GetKernel(kernel_run,layout,input_tensor->GetDataType()))
-=======
     op_param.k_scale = NULL;
     if(kernel_tensor->GetDataType() == TENGINE_DT_INT8 || kernel_tensor->GetDataType() == TENGINE_DT_UINT8)
     {
@@ -223,7 +145,6 @@ bool RefConv::Prerun(Node* node)
     }
 
     if(!kernel_registry.GetKernel(kernel_run, layout, input_tensor->GetDataType()))
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     {
         set_tengine_errno(ENOENT);
         return false;
@@ -234,10 +155,6 @@ bool RefConv::Prerun(Node* node)
 
 bool RefConv::Reshape(Node* node)
 {
-<<<<<<< HEAD
-    
-=======
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     Tensor* input_tensor = node->GetInputTensor(0);
     op_param.batch = input_tensor->GetShape().GetN();
     op_param.in_shape[0] = input_tensor->GetShape().GetC();
@@ -253,10 +170,6 @@ bool RefConv::Reshape(Node* node)
 }
 bool RefConv::Run(Node* node)
 {
-<<<<<<< HEAD
-    //printf("---------------------------- Run ref_conv!!!\n");
-=======
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     Tensor* i_tensor = node->GetInputTensor(0);
     const void* input = get_tensor_mem(i_tensor);
     Tensor* k_tensor = node->GetInputTensor(1);
@@ -268,43 +181,17 @@ bool RefConv::Run(Node* node)
     Tensor* o_tensor = node->GetOutputTensor(0);
     void* output = get_tensor_mem(o_tensor);
 
-<<<<<<< HEAD
-    /* Get input,kernel,output scale & zero */
-    /* Current: one tensor has only one quantparam(scale)*/
-    if(i_tensor->GetDataType() == TENGINE_DT_INT8 ||
-        i_tensor->GetDataType() == TENGINE_DT_UINT8 )
-    {
-        if(get_scale_zero(i_tensor, o_tensor, k_tensor, &op_param) < 0)
-            return false;
-    }
-
-    int ret = kernel_run(input,output,kernel,bias,&op_param);
-    if(i_tensor->GetDataType() == TENGINE_DT_INT8)
-    {
-        auto* o_quant = o_tensor->GetQuantParam();
-        QuantParam q_param;
-        q_param.scale = op_param.scale[2];
-        o_quant->resize(0);
-        o_quant->push_back(q_param);
-    }
-    if(ret<0)
-        return false;
-=======
     int ret = kernel_run(input, output, kernel, bias, &op_param);
     if(ret < 0)
         return false;
     
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     return true;
 }
 
 bool RefConv::Postrun(Node* node)
 {
-<<<<<<< HEAD
-=======
     if(op_param.k_scale)
         free(op_param.k_scale);
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     return true;
 }
 

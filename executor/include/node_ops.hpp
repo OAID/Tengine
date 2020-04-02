@@ -69,8 +69,6 @@ struct sub_op_task
     void* data;
 };
 
-<<<<<<< HEAD
-=======
 #define MULTI_THREAD_START(task_num, step, id, param) \
     std::vector<sub_op_task> task_list; \
     task_list.resize(task_num); \
@@ -90,7 +88,6 @@ struct sub_op_task
     wait_done(); 
    
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 struct tensor_dump_header
 {
     int elem_size;
@@ -147,13 +144,10 @@ struct NodeOps
     virtual bool StopDump(Node* node);
     virtual int GetDump(Node* node, void** buf, int buf_size);
     virtual bool SaveDump(Node* node);
-<<<<<<< HEAD
-=======
     std::string GetName()
     {
         return name_;
     }
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
     /* note: the mem_addr will be released by caller */
 
@@ -186,10 +180,7 @@ struct NodeOps
 
     virtual ~NodeOps() {}
 
-<<<<<<< HEAD
-=======
     std::string name_;
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     bool need_free;
     mem_alloc_t mem_alloc;
     mem_free_t mem_free;
@@ -229,11 +220,7 @@ struct PrioSelector : public NodeOpsSelector
 
             if(ops)
             {
-<<<<<<< HEAD
-                ops->need_free=true;
-=======
                 ops->need_free = true;
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
                 return ops;
             }
         }

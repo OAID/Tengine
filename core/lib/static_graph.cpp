@@ -361,8 +361,6 @@ StaticTensor* GetNodeOutputTensor(StaticGraph* graph, StaticNode* node, int idx)
     return graph->tensor_list[tensor_idx].get();
 }
 
-<<<<<<< HEAD
-=======
 StaticTensor* GetNodeInputTensor(StaticGraph* graph, StaticNode* node, int idx)
 {
     int tensor_idx = node->input_tensor_list[idx];
@@ -370,7 +368,6 @@ StaticTensor* GetNodeInputTensor(StaticGraph* graph, StaticNode* node, int idx)
     return graph->tensor_list[tensor_idx].get();
 }
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 StaticOp* CreateStaticOp(StaticGraph* graph, const std::string& op_name)
 {
     StaticOp* op = new StaticOp();

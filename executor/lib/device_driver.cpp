@@ -31,11 +31,8 @@
 
 namespace TEngine {
 
-<<<<<<< HEAD
-=======
 template DriverManager SimpleObjectManagerWithLock<DriverManager, Driver*>::instance;
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 bool DriverManager::RegisterDriver(const std::string& name, Driver* driver)
 {
     return SafeAdd(name, driver);
@@ -61,11 +58,7 @@ bool DriverManager::UnregisterDriver(Driver* driver)
 
 Driver* DriverManager::GetDriver(const std::string& name)
 {
-<<<<<<< HEAD
-    Driver* driver=nullptr;
-=======
     Driver* driver = nullptr;
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
     if(!SafeGet(name, driver))
         return nullptr;

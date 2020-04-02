@@ -48,11 +48,7 @@ typedef uint8_t tm_bool_t; /* bool is 1-byte unsigned integer */
 /* Operator strings */
 #define TM2_OPSTR_ACCURACY "Accuracy"
 #define TM2_OPSTR_BATCHNORMALIZATION "BatchNormalization"
-<<<<<<< HEAD
-#define TM2_OPSTR_BILINEARRESIZE "BilinearResize"
-=======
 #define TM2_OPSTR_BILINEARRESIZE "Resize"
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 #define TM2_OPSTR_CONCAT "Concat"
 #define TM2_OPSTR_CONST "Const"
 #define TM2_OPSTR_CONVOLUTION "Convolution"
@@ -89,52 +85,6 @@ typedef uint8_t tm_bool_t; /* bool is 1-byte unsigned integer */
 #define TM2_OPSTR_TANH "Tanh"
 #define TM2_OPSTR_SIGMOID "Sigmoid"
 #define TM2_OPSTR_SQUEEZE "Squeeze"
-<<<<<<< HEAD
-#define TM2_OPSTR_FUSEDBNSCALERELU "Fused.BNScaleReLu"
-
-/* Operator types */
-#define TM2_OPTYPE_ACCURACY 0           /* No Param                 */
-#define TM2_OPTYPE_BATCHNORMALIZATION 1 /* TM2_BatchNormParam       */
-#define TM2_OPTYPE_BILINEARRESIZE 2     /* TM2_ResizeParam          */
-#define TM2_OPTYPE_CONCAT 3             /* TM2_ConcatParam          */
-#define TM2_OPTYPE_CONST 4              /* No Param                 */
-#define TM2_OPTYPE_CONVOLUTION 5        /* TM2_ConvParam            */
-#define TM2_OPTYPE_DECONVOLUTION 6      /* TM2_DeconvParam          */
-#define TM2_OPTYPE_DETECTIONOUTPUT 7    /* TM2_DetectionOutputParam */
-#define TM2_OPTYPE_DROPOUT 8            /* No Param                 */
-#define TM2_OPTYPE_ELTWISE 9            /* TM2_EltwiseParam         */
-#define TM2_OPTYPE_FLATTEN 10           /* TM2_FlattenParam         */
-#define TM2_OPTYPE_FULLYCONNECTED 11    /* TM2_FCParam              */
-#define TM2_OPTYPE_INPUTOP 12           /* No Param                 */
-#define TM2_OPTYPE_LRN 13               /* TM2_LRNParam             */
-#define TM2_OPTYPE_NORMALIZE 14         /* TM2_NormalizeParam       */
-#define TM2_OPTYPE_PERMUTE 15           /* TM2_PermuteParam         */
-#define TM2_OPTYPE_POOLING 16           /* TM2_PoolParam            */
-#define TM2_OPTYPE_PRELU 17             /* No Param                 */
-#define TM2_OPTYPE_PRIORBOX 18          /* TM2_PriorBoxParam        */
-#define TM2_OPTYPE_REGION 19            /* TM2_RegionParam          */
-#define TM2_OPTYPE_RELU 20              /* TM2_ReLuParam            */
-#define TM2_OPTYPE_RELU6 21             /* No Param                 */
-#define TM2_OPTYPE_REORG 22             /* TM2_ReorgParam           */
-#define TM2_OPTYPE_RESHAPE 23           /* TM2_ReshapeParam         */
-#define TM2_OPTYPE_ROIPOOLING 24        /* TM2_ROIPoolingParam      */
-#define TM2_OPTYPE_RPN 25               /* TM2_RPNParam             */
-#define TM2_OPTYPE_SCALE 26             /* TM2_ScaleParam           */
-#define TM2_OPTYPE_SLICE 27             /* TM2_SliceParam           */
-#define TM2_OPTYPE_SOFTMAX 28           /* TM2_SoftmaxParam         */
-#define TM2_OPTYPE_SPLIT 29             /* No Param                 */
-#define TM2_OPTYPE_DETECTIONPOSTPROCESS 30 /* TM2_DetectionPostProcessParam */
-#define TM2_OPTYPE_GEMM 31              /* TM2_GemmParam            */
-#define TM2_OPTYPE_GENERIC 32           /* TM2_GenericParam         */
-#define TM2_OPTYPE_LOGISTIC 33          /* No Param                 */
-#define TM2_OPTYPE_LSTM 34              /* TM2_LstmParam            */
-#define TM2_OPTYPE_RNN 35               /* TM2_RnnParam             */
-#define TM2_OPTYPE_TANH 36              /* No Param                 */
-#define TM2_OPTYPE_SIGMOID 37           /* No Param                 */
-#define TM2_OPTYPE_SQUEEZE 38           /* TM2_SqueezeParam         */
-#define TM2_OPTYPE_FUSEDBNSCALERELU 39  /* No Param                 */
-#define TM2_OPTYPE_NUM 40
-=======
 #define TM2_OPSTR_PAD "Pad"
 #define TM2_OPSTR_STRIDEDSLICE "StridedSlice"
 #define TM2_OPSTR_REDUCTION "Reduction"
@@ -274,7 +224,6 @@ typedef uint8_t tm_bool_t; /* bool is 1-byte unsigned integer */
 #define TM2_OPTYPE_ZEROSLIKE 86
 #define TM2_OPTYPE_CLIP 87
 #define TM2_OPTYPE_NUM 88
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
 /* --------------------- -------- TM objects -------------------------------- */
 
@@ -430,17 +379,10 @@ typedef struct
     int32_t output_channel;
     int32_t group;
     int32_t activation;
-<<<<<<< HEAD
-    int32_t pad_h0;  /* top padding rows */
-    int32_t pad_w0;  /* left padding columns */
-    int32_t pad_h1;  /* bottom padding rows */
-    int32_t pad_w1;  /* right padding columns */
-=======
     int32_t pad_h0; /* top padding rows */
     int32_t pad_w0; /* left padding columns */
     int32_t pad_h1; /* bottom padding rows */
     int32_t pad_w1; /* right padding columns */
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 } TM2_ConvParam;
 
 typedef struct
@@ -519,17 +461,10 @@ typedef struct
     int32_t stride_w;
     int32_t global;
     int32_t caffe_flavor;
-<<<<<<< HEAD
-    int32_t pad_h0;  /* top padding rows */
-    int32_t pad_w0;  /* left padding columns */
-    int32_t pad_h1;  /* bottom padding rows */
-    int32_t pad_w1;  /* right padding columns */
-=======
     int32_t pad_h0; /* top padding rows */
     int32_t pad_w0; /* left padding columns */
     int32_t pad_h1; /* bottom padding rows */
     int32_t pad_w1; /* right padding columns */
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 } TM2_PoolParam;
 
 typedef struct
@@ -573,28 +508,16 @@ typedef struct
 
 typedef struct
 {
-<<<<<<< HEAD
-    int32_t dim_0;
-    int32_t dim_1;
-    int32_t dim_2;
-    int32_t dim_3;
-    int32_t dim_size;
-    int32_t axis;
-=======
     int32_t is_mxnet;
     int32_t reverse;
     tm_uoffset_t offset_re_shape;
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 } TM2_ReshapeParam;
 
 typedef struct
 {
     float scale_x;
     float scale_y;
-<<<<<<< HEAD
-=======
     int type;
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 } TM2_ResizeParam;
 
 typedef struct
@@ -631,13 +554,10 @@ typedef struct
     tm_uoffset_t offset_vi_begins; /* offset of TM2_Vector_dims <begins> */
     tm_uoffset_t offset_vi_sizes; /* offset of TM2_Vector_dims <sizes> */
     int32_t iscaffe;
-<<<<<<< HEAD
-=======
     int32_t ismxnet;
     int32_t isonnx;
     int32_t begin;
     int32_t end;
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 } TM2_SliceParam;
 
 typedef struct
@@ -682,10 +602,7 @@ typedef struct
     int32_t output_act;
     int32_t cellin_act;
     int32_t cellout_act;
-<<<<<<< HEAD
-=======
     int32_t mxnet_flag;
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 } TM2_LstmParam;
 
 typedef struct
@@ -709,8 +626,6 @@ typedef struct
     int32_t dim_3;
 } TM2_SqueezeParam;
 
-<<<<<<< HEAD
-=======
 typedef struct
 {
     int32_t axis;
@@ -980,7 +895,6 @@ typedef struct
 } TM2_ClipParam;
 
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 #ifdef __cplusplus
 }
 #endif

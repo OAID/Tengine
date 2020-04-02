@@ -31,11 +31,7 @@
 
 namespace TEngine {
 
-<<<<<<< HEAD
-#define TENGINE_VERSION "1.3.2"
-=======
 #define TENGINE_VERSION "1.12.0"
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
 #ifdef CONFIG_VERSION_POSTFIX
 const std::string tengine_version(TENGINE_VERSION "-" CONFIG_VERSION_POSTFIX);

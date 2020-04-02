@@ -25,11 +25,6 @@
 
 #include "operator.hpp"
 #include "attribute.hpp"
-<<<<<<< HEAD
-
-namespace TEngine {
-
-=======
 #include "serializer.hpp"
 
 namespace TEngine {
@@ -38,7 +33,6 @@ template class SpecificFactory<Serializer>;
 // template SpecificFactory<Serializer> SpecificFactory<Serializer>::instance;
 template SerializerManager SimpleObjectManagerWithLock<SerializerManager, SerializerPtr>::instance;
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 static Attribute op_method_load_map;
 static Attribute op_method_save_map;
 

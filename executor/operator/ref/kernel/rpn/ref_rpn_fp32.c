@@ -5,19 +5,11 @@ int ref_rpn_fp32(const float* score, float* featmap, float* anchors, float* outp
     if(score == nullptr || featmap == nullptr || anchors == nullptr || output == nullptr)
         return false;
     int featmap_size = param->feat_height * param->feat_width * param->feat_chan;
-<<<<<<< HEAD
-    int max_num_boxes = featmap_size /4;
-    struct RPN_Box* boxes = (struct RPN_Box*)malloc(max_num_boxes * sizeof(struct RPN_Box));
-
-    bbox_tranform_inv(featmap, anchors, param);
-    
-=======
     int max_num_boxes = featmap_size / 4;
     struct RPN_Box* boxes = ( struct RPN_Box* )malloc(max_num_boxes * sizeof(struct RPN_Box));
 
     bbox_tranform_inv(featmap, anchors, param);
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     int num_boxes = 0;
     ref_filter_boxes(boxes, featmap, score, &num_boxes, param);
 

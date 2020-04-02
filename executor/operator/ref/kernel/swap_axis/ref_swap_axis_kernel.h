@@ -22,30 +22,13 @@
  * Author: haoluo@openailab.com
  */
 
-<<<<<<< HEAD
- 
-#ifndef __REF_SWAP_AXIS_H__
-#define __REF_SWAP_AXIS_H__
- 
-=======
 #ifndef __REF_SWAP_AXIS_H__
 #define __REF_SWAP_AXIS_H__
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 #include <stdint.h>
 #include <string.h>
 #include <math.h>
 #include "compiler_fp16.h"
-<<<<<<< HEAD
- 
-#ifdef __cplusplus
- extern "C" {
-#endif
-
-
-typedef int (*ref_swap_axis_kernel_t)(void * input, void * output, int* dims);
-
-=======
 
 #ifdef __cplusplus
 extern "C" {
@@ -69,16 +52,11 @@ static int ref_swap_axis_common(const char* in_data, char* out_data, const int* 
                 }
     return 0;
 }
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
 #ifdef CONFIG_KERNEL_FP32
 #include "ref_swap_axis_fp32.c"
 #endif
-<<<<<<< HEAD
-/*
-=======
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 #ifdef CONFIG_KERNEL_FP16
 #include "ref_swap_axis_fp16.c"
 #endif
@@ -90,22 +68,9 @@ static int ref_swap_axis_common(const char* in_data, char* out_data, const int* 
 #ifdef CONFIG_KERNEL_UINT8
 #include "ref_swap_axis_uint8.c"
 #endif
-<<<<<<< HEAD
-*/
-
-
-=======
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
 #ifdef __cplusplus
 }
 #endif
 
-<<<<<<< HEAD
-
 #endif
-
-
-=======
-#endif
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074

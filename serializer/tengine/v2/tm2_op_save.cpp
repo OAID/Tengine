@@ -65,12 +65,7 @@ tm_uoffset_t SaveTmConcatOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operat
     tm_param.axis = p->axis;
 
     TM2_Operator tm_op;
-<<<<<<< HEAD
-    SetTmOperator(&tm_op, TM2_OPTYPE_CONCAT,
-                  WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_ConcatParam)));
-=======
     SetTmOperator(&tm_op, TM2_OPTYPE_CONCAT, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_ConcatParam)));
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
 }
 
@@ -102,12 +97,7 @@ tm_uoffset_t SaveTmConvOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator
     tm_param.pad_w1 = p->pad_w1;
 
     TM2_Operator tm_op;
-<<<<<<< HEAD
-    SetTmOperator(&tm_op, TM2_OPTYPE_CONVOLUTION,
-                  WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_ConvParam)));
-=======
     SetTmOperator(&tm_op, TM2_OPTYPE_CONVOLUTION, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_ConvParam)));
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
 }
 
@@ -167,12 +157,7 @@ tm_uoffset_t SaveTmEltwiseOp(void* const start_ptr, tm_uoffset_t* cur_pos, Opera
     tm_param.caffe_flavor = p->caffe_flavor;
 
     TM2_Operator tm_op;
-<<<<<<< HEAD
-    SetTmOperator(&tm_op, TM2_OPTYPE_ELTWISE,
-                  WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_EltwiseParam)));
-=======
     SetTmOperator(&tm_op, TM2_OPTYPE_ELTWISE, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_EltwiseParam)));
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
 }
 
@@ -183,12 +168,7 @@ tm_uoffset_t SaveTmFCOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* 
     tm_param.num_output = p->num_output;
 
     TM2_Operator tm_op;
-<<<<<<< HEAD
-    SetTmOperator(&tm_op, TM2_OPTYPE_FULLYCONNECTED,
-                  WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_FCParam)));
-=======
     SetTmOperator(&tm_op, TM2_OPTYPE_FULLYCONNECTED, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_FCParam)));
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
 }
 
@@ -200,12 +180,7 @@ tm_uoffset_t SaveTmFlattenOp(void* const start_ptr, tm_uoffset_t* cur_pos, Opera
     tm_param.end_axis = p->end_axis;
 
     TM2_Operator tm_op;
-<<<<<<< HEAD
-    SetTmOperator(&tm_op, TM2_OPTYPE_FLATTEN,
-                  WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_FlattenParam)));
-=======
     SetTmOperator(&tm_op, TM2_OPTYPE_FLATTEN, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_FlattenParam)));
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
 }
 
@@ -255,12 +230,7 @@ tm_uoffset_t SaveTmPermuteOp(void* const start_ptr, tm_uoffset_t* cur_pos, Opera
     tm_param.order3 = p->order3;
 
     TM2_Operator tm_op;
-<<<<<<< HEAD
-    SetTmOperator(&tm_op, TM2_OPTYPE_PERMUTE,
-                  WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_PermuteParam)));
-=======
     SetTmOperator(&tm_op, TM2_OPTYPE_PERMUTE, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_PermuteParam)));
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
 }
 
@@ -281,12 +251,7 @@ tm_uoffset_t SaveTmPoolingOp(void* const start_ptr, tm_uoffset_t* cur_pos, Opera
     tm_param.pad_w1 = p->pad_w1;
 
     TM2_Operator tm_op;
-<<<<<<< HEAD
-    SetTmOperator(&tm_op, TM2_OPTYPE_POOLING,
-                  WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_PoolParam)));
-=======
     SetTmOperator(&tm_op, TM2_OPTYPE_POOLING, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_PoolParam)));
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
 }
 
@@ -354,12 +319,7 @@ tm_uoffset_t SaveTmPriorBoxOp(void* const start_ptr, tm_uoffset_t* cur_pos, Oper
     tm_param.out_dim = p->out_dim_;
 
     TM2_Operator tm_op;
-<<<<<<< HEAD
-    SetTmOperator(&tm_op, TM2_OPTYPE_PRIORBOX,
-                  WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_PriorBoxParam)));
-=======
     SetTmOperator(&tm_op, TM2_OPTYPE_PRIORBOX, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_PriorBoxParam)));
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
 }
 
@@ -385,12 +345,7 @@ tm_uoffset_t SaveTmRegionOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operat
     free(v_biases);
 
     TM2_Operator tm_op;
-<<<<<<< HEAD
-    SetTmOperator(&tm_op, TM2_OPTYPE_REGION,
-                  WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_RegionParam)));
-=======
     SetTmOperator(&tm_op, TM2_OPTYPE_REGION, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_RegionParam)));
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
 }
 
@@ -419,12 +374,7 @@ tm_uoffset_t SaveTmReorgOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operato
     tm_param.stride = p->stride;
 
     TM2_Operator tm_op;
-<<<<<<< HEAD
-    SetTmOperator(&tm_op, TM2_OPTYPE_REORG,
-                  WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_ReorgParam)));
-=======
     SetTmOperator(&tm_op, TM2_OPTYPE_REORG, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_ReorgParam)));
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
 }
 
@@ -432,20 +382,6 @@ tm_uoffset_t SaveTmReshapeOp(void* const start_ptr, tm_uoffset_t* cur_pos, Opera
 {
     ReshapeParam* p = (dynamic_cast<Reshape*>(op))->GetParam();
     TM2_ReshapeParam tm_param;
-<<<<<<< HEAD
-
-    tm_param.dim_0 = p->dim_0;
-    tm_param.dim_1 = p->dim_1;
-    tm_param.dim_2 = p->dim_2;
-    tm_param.dim_3 = p->dim_3;
-    tm_param.dim_size = p->dim_size;
-    tm_param.axis = p->axis;
-
-    TM2_Operator tm_op;
-    SetTmOperator(&tm_op, TM2_OPTYPE_RESHAPE,
-                  WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_ReshapeParam)));
-    return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
-=======
     if(p->reverse)
         tm_param.reverse = 1;
     else
@@ -476,7 +412,6 @@ tm_uoffset_t SaveTmReshapeOp(void* const start_ptr, tm_uoffset_t* cur_pos, Opera
     SetTmOperator(&tm_op, TM2_OPTYPE_RESHAPE, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_ReshapeParam)));
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 }
 
 tm_uoffset_t SaveTmResizeOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
@@ -485,10 +420,7 @@ tm_uoffset_t SaveTmResizeOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operat
     TM2_ResizeParam tm_param;
     tm_param.scale_x = p->scale_w;
     tm_param.scale_y = p->scale_h;
-<<<<<<< HEAD
-=======
     tm_param.type = p->type;
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
     TM2_Operator tm_op;
     SetTmOperator(&tm_op, TM2_OPTYPE_BILINEARRESIZE,
@@ -569,12 +501,7 @@ tm_uoffset_t SaveTmScaleOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operato
     tm_param.bias_term = p->bias_term;
 
     TM2_Operator tm_op;
-<<<<<<< HEAD
-    SetTmOperator(&tm_op, TM2_OPTYPE_SCALE,
-                  WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_ScaleParam)));
-=======
     SetTmOperator(&tm_op, TM2_OPTYPE_SCALE, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_ScaleParam)));
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
 }
 
@@ -585,15 +512,11 @@ tm_uoffset_t SaveTmSliceOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operato
 
     tm_param.axis = p->axis;
     tm_param.iscaffe = p->iscaffe;
-<<<<<<< HEAD
-
-=======
     tm_param.isonnx = p->isonnx;
     if(!tm_param.iscaffe){
         tm_param.begin = p->begin;
         tm_param.end = p->end;
     }
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     if((p->slice_point_).size())
     {
         size_t vector_size = sizeof(tm_size_t) + sizeof(int32_t) * (p->slice_point_).size();
@@ -638,17 +561,10 @@ tm_uoffset_t SaveTmSliceOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operato
     }
     else
         tm_param.offset_vi_sizes = TM2_NOT_SET;
-<<<<<<< HEAD
-
-    TM2_Operator tm_op;
-    SetTmOperator(&tm_op, TM2_OPTYPE_SLICE,
-                  WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_SliceParam)));
-=======
     
 
     TM2_Operator tm_op;
     SetTmOperator(&tm_op, TM2_OPTYPE_SLICE, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_SliceParam)));
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
 }
 
@@ -659,21 +575,12 @@ tm_uoffset_t SaveTmSoftmaxOp(void* const start_ptr, tm_uoffset_t* cur_pos, Opera
     tm_param.axis = p->axis;
 
     TM2_Operator tm_op;
-<<<<<<< HEAD
-    SetTmOperator(&tm_op, TM2_OPTYPE_SOFTMAX,
-                  WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_SoftmaxParam)));
-=======
     SetTmOperator(&tm_op, TM2_OPTYPE_SOFTMAX, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_SoftmaxParam)));
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
 }
 
 tm_uoffset_t SaveTmSplitOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
 {
-<<<<<<< HEAD
-    TM2_Operator tm_op;
-    SetTmOperator(&tm_op, TM2_OPTYPE_SPLIT, TM2_NOT_SET);
-=======
     SplitParam* p = (dynamic_cast<Split*>(op))->GetParam();
     TM2_SplitParam tm_param;
     if(p->is_caffe)
@@ -704,7 +611,6 @@ tm_uoffset_t SaveTmSplitOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operato
 
     TM2_Operator tm_op;
     SetTmOperator(&tm_op, TM2_OPTYPE_SPLIT, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_SplitParam)));
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
 }
 
@@ -730,11 +636,7 @@ tm_uoffset_t SaveTmDetectionPostProcessOp(void* const start_ptr, tm_uoffset_t* c
 
     TM2_Operator tm_op;
     SetTmOperator(&tm_op, TM2_OPTYPE_DETECTIONPOSTPROCESS,
-<<<<<<< HEAD
-                   WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_DetectionPostProcessParam)));
-=======
                   WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_DetectionPostProcessParam)));
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
 }
 
@@ -749,12 +651,7 @@ tm_uoffset_t SaveTmGemmOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator
     tm_param.transB = p->transB;
 
     TM2_Operator tm_op;
-<<<<<<< HEAD
-    SetTmOperator(&tm_op, TM2_OPTYPE_GEMM,
-                   WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_GemmParam)));
-=======
     SetTmOperator(&tm_op, TM2_OPTYPE_GEMM, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_GemmParam)));
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
 }
 
@@ -767,21 +664,12 @@ tm_uoffset_t SaveTmGenericOp(void* const start_ptr, tm_uoffset_t* cur_pos, Opera
     tm_param.max_output_num = p->max_output_num;
 
     TM2_String op_name;
-<<<<<<< HEAD
-    op_name.size = strlen(p->op_name) + 1;  // including trailing \0
-=======
     op_name.size = strlen(p->op_name) + 1;    // including trailing \0
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     op_name.offset_data = WriteTmFileAlign1(start_ptr, cur_pos, p->op_name, op_name.size);
     tm_param.offset_s_opname = WriteTmObject(start_ptr, cur_pos, &op_name, sizeof(TM2_String));
 
     TM2_Operator tm_op;
-<<<<<<< HEAD
-    SetTmOperator(&tm_op, TM2_OPTYPE_GENERIC,
-                   WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_GenericParam)));
-=======
     SetTmOperator(&tm_op, TM2_OPTYPE_GENERIC, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_GenericParam)));
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
 }
 
@@ -816,12 +704,7 @@ tm_uoffset_t SaveTmLstmOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator
     tm_param.cellout_act = p->cellout_act;
 
     TM2_Operator tm_op;
-<<<<<<< HEAD
-    SetTmOperator(&tm_op, TM2_OPTYPE_LSTM,
-                   WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_LstmParam)));
-=======
     SetTmOperator(&tm_op, TM2_OPTYPE_LSTM, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_LstmParam)));
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
 }
 
@@ -841,12 +724,7 @@ tm_uoffset_t SaveTmRnnOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator*
     tm_param.activation = p->activation;
 
     TM2_Operator tm_op;
-<<<<<<< HEAD
-    SetTmOperator(&tm_op, TM2_OPTYPE_RNN,
-                   WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_RnnParam)));
-=======
     SetTmOperator(&tm_op, TM2_OPTYPE_RNN, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_RnnParam)));
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
 }
 
@@ -875,12 +753,7 @@ tm_uoffset_t SaveTmSqueezeOp(void* const start_ptr, tm_uoffset_t* cur_pos, Opera
     tm_param.dim_3 = p->dim_3;
 
     TM2_Operator tm_op;
-<<<<<<< HEAD
-    SetTmOperator(&tm_op, TM2_OPTYPE_SQUEEZE,
-                   WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_SqueezeParam)));
-=======
     SetTmOperator(&tm_op, TM2_OPTYPE_SQUEEZE, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_SqueezeParam)));
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
 }
 
@@ -891,8 +764,6 @@ tm_uoffset_t SaveTmFusedbnscalereluOp(void* const start_ptr, tm_uoffset_t* cur_p
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
 }
 
-<<<<<<< HEAD
-=======
 tm_uoffset_t SaveTmMaxOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
 {
     TM2_Operator tm_op;
@@ -1456,7 +1327,6 @@ tm_uoffset_t SaveTmClipOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
 }
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 op_save_t SaveTmOpFunc(uint32_t op_type)
 {
     switch(op_type)
@@ -1541,9 +1411,6 @@ op_save_t SaveTmOpFunc(uint32_t op_type)
             return SaveTmSqueezeOp;
         case TM2_OPTYPE_FUSEDBNSCALERELU:
             return SaveTmFusedbnscalereluOp;
-<<<<<<< HEAD
-        default:
-=======
         case TM2_OPTYPE_SWAPAXIS:
             return SaveTmSwapAxisOp;
         case TM2_OPTYPE_GRU:
@@ -1641,7 +1508,6 @@ op_save_t SaveTmOpFunc(uint32_t op_type)
         case TM2_OPTYPE_CLIP:
             return SaveTmClipOp;                                        
 	    default:
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
             LOG_ERROR() << "Operator #" << op_type << " not supported in tengine model yet\n";
             return nullptr;
     }

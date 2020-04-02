@@ -31,24 +31,6 @@ namespace TEngine {
 struct DeconvParam : public NamedParam
 {
     int num_output;
-<<<<<<< HEAD
-	int kernel_h;
-	int kernel_w;
-	int stride_h;
-	int stride_w;
-	int pad_h0;
-	int pad_w0;
-	int pad_h1;
-	int pad_w1;
-	int dilation_h;
-	int dilation_w;
-	int group;
-	int activation;
-
-    DECLARE_PARSER_STRUCTURE(DeconvParam)
-    {
-   		DECLARE_PARSER_ENTRY(num_output);
-=======
     int kernel_h;
     int kernel_w;
     int stride_h;
@@ -65,22 +47,10 @@ struct DeconvParam : public NamedParam
     DECLARE_PARSER_STRUCTURE(DeconvParam)
     {
         DECLARE_PARSER_ENTRY(num_output);
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
         DECLARE_PARSER_ENTRY(kernel_h);
         DECLARE_PARSER_ENTRY(kernel_w);
         DECLARE_PARSER_ENTRY(stride_h);
         DECLARE_PARSER_ENTRY(stride_w);
-<<<<<<< HEAD
-		DECLARE_PARSER_ENTRY(pad_h0);
-	    DECLARE_PARSER_ENTRY(pad_w0);
-		DECLARE_PARSER_ENTRY(pad_h1);
-	    DECLARE_PARSER_ENTRY(pad_w1);
-	    DECLARE_PARSER_ENTRY(dilation_h);
-	    DECLARE_PARSER_ENTRY(dilation_w);
-        DECLARE_PARSER_ENTRY(group);
- 		DECLARE_PARSER_ENTRY(activation);
-		
-=======
         DECLARE_PARSER_ENTRY(pad_h0);
         DECLARE_PARSER_ENTRY(pad_w0);
         DECLARE_PARSER_ENTRY(pad_h1);
@@ -89,7 +59,6 @@ struct DeconvParam : public NamedParam
         DECLARE_PARSER_ENTRY(dilation_w);
         DECLARE_PARSER_ENTRY(group);
         DECLARE_PARSER_ENTRY(activation);
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     };
 };
 

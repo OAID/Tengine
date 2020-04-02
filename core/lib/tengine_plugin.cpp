@@ -27,10 +27,7 @@
 #include "tengine_plugin.hpp"
 #include "tengine_config.hpp"
 #include "tengine_c_api.h"
-<<<<<<< HEAD
-=======
 #include "tengine_errno.hpp"
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
 namespace TEngine {
 
@@ -345,15 +342,6 @@ int load_tengine_plugin(const char* plugin_name, const char* fname, const char* 
 
     ShareLibParserPtr handle(new ShareLibParser());
 
-<<<<<<< HEAD
-    if(handle->Load(fname) < 0)
-        return -1;
-
-    if(init_func_name)
-    {
-        if(handle->ExecuteFunc<int()>(init_func_name) < 0)
-            return -1;
-=======
     try
     {
         if(handle->Load(fname) < 0)
@@ -371,7 +359,6 @@ int load_tengine_plugin(const char* plugin_name, const char* fname, const char* 
         LOG_ERROR() << e.what() << "\n";
         set_tengine_errno(EFAULT);
         return -1;
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     }
 
     PluginInfo* p_info = new PluginInfo();

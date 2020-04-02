@@ -32,18 +32,11 @@ namespace TEngine {
 template <typename M, typename T> class SimpleObjectManager : public std::unordered_map<std::string, T>
 {
 public:
-<<<<<<< HEAD
-    static M* GetInstance(void)
-    {
-        static M instance;
-        return &instance;
-=======
     static M instance;
 
     static M* GetInstance(void)
     {
         return &SimpleObjectManager<M, T>::instance;
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     }
 
     static bool Find(const std::string& name)
@@ -183,11 +176,8 @@ protected:
     typename std::unordered_map<std::string, T>::iterator seq_ir_;
 };
 
-<<<<<<< HEAD
-=======
 template <typename M, typename T> M SimpleObjectManager<M, T>::instance;
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 }    // namespace TEngine
 
 #endif

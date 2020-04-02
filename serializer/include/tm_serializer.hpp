@@ -32,11 +32,7 @@ namespace TEngine {
 class TmSerializer : public Serializer
 {
 public:
-<<<<<<< HEAD
-    TmSerializer() {};
-=======
     TmSerializer(){};
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     virtual ~TmSerializer(){};
 
     unsigned int GetFileNum(void) override
@@ -47,11 +43,7 @@ public:
     bool LoadModel(const std::vector<std::string>& file_list, StaticGraph* graph) override;
     bool SaveModel(const std::vector<std::string>& file_list, Graph* graph) override;
     bool LoadModel(const std::vector<const void*>& addr_list, const std::vector<int>& size_list,
-<<<<<<< HEAD
-                   StaticGraph* static_graph) override;
-=======
                    StaticGraph* static_graph, bool transfer_mem) override;
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     bool SaveModel(std::vector<void*>& addr_list, std::vector<int>& size_list, Graph* graph) override;
 
     bool LoadConstTensor(const std::string& fname, StaticTensor* const_tensor) override
@@ -65,10 +57,6 @@ public:
 
     bool LoadBinaryFile(const char* tm_fname, int& fd, void*& buf, int& size);
 
-<<<<<<< HEAD
-    virtual bool LoadModelFromMem(void* mmap_buf, StaticGraph* graph) { return false; }
-    virtual bool SaveModelIntoMem(void* start_ptr, Graph* graph, uint32_t* tm_model_size) { return false; }
-=======
     virtual bool LoadModelFromMem(void* mmap_buf, StaticGraph* graph)
     {
         return false;
@@ -77,18 +65,14 @@ public:
     {
         return false;
     }
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 };
 
 using TmSerializerPtr = std::shared_ptr<TmSerializer>;
 using TmSerializerFactory = SpecificFactory<TmSerializer>;
 
-<<<<<<< HEAD
-=======
 extern template class SpecificFactory<TmSerializer>;
 extern template SpecificFactory<TmSerializer> SpecificFactory<TmSerializer>::instance;
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 class TmSerializerManager : public SimpleObjectManagerWithLock<TmSerializerManager, TmSerializerPtr>
 {
 };

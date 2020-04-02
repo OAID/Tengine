@@ -41,13 +41,10 @@
 #include "serializer.hpp"
 #include "compiler_fp16.h"
 
-<<<<<<< HEAD
-=======
 #ifdef ENABLE_ONLINE_REPORT
 #include "tenginereportmgr.hpp"
 #endif
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 namespace TEngine {
 
 extern int NodeSetParamGeneric(void* node, const char* param_name, const char* type_name, const void* param_val,
@@ -58,11 +55,8 @@ extern int NodeAddParamGeneric(void* node, const char* param_name, const char* t
 
 using namespace TEngine;
 
-<<<<<<< HEAD
-=======
 static std::string gsHclVersion;
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 void set_cpu_list(const char* cpu_list_str)
 {
     char* copy_str = strdup(cpu_list_str);
@@ -151,11 +145,6 @@ static int real_vload_model(context_t exec_context, const char* model_name, cons
 
     if(!SerializerManager::SafeGet(model_format, serializer))
     {
-<<<<<<< HEAD
-        LOG_ERROR() << "Get serializer failed, unknown model format: " << model_format << "\n";
-        set_tengine_errno(EINVAL);
-        return -1;
-=======
         /* try to load from plugin */
         std::string plugin_fname = std::string("lib") + model_format + "-serializer.so";
         std::string plugin_init_func = std::string(model_format) + "_plugin_init";
@@ -168,7 +157,6 @@ static int real_vload_model(context_t exec_context, const char* model_name, cons
         }
 
         SerializerManager::SafeGet(model_format, serializer);
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     }
 
     StaticGraph* static_graph = CreateStaticGraph(model_name);
@@ -237,15 +225,9 @@ static int vload_model(context_t exec_context, const char* model_name, const cha
 
     if(StaticGraphManager::Find(model_name))
     {
-<<<<<<< HEAD
-        set_tengine_errno(EEXIST);
-        StaticGraphManager::Put();
-        return -1;
-=======
         // set_tengine_errno(EEXIST);
         StaticGraphManager::Put();
         return 0;
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     }
 
     int ret = real_vload_model(exec_context, model_name, model_format, addr, mem_size, argp);
@@ -267,8 +249,6 @@ int vload_mem_model(context_t exec_context, const char* model_name, const char* 
     return vload_model(exec_context, model_name, model_format, addr, mem_size, argp);
 }
 
-<<<<<<< HEAD
-=======
 int get_model_format(graph_t graph)
 {
     GraphExecutor* executor = static_cast<GraphExecutor*>(graph);
@@ -277,18 +257,12 @@ int get_model_format(graph_t graph)
 
 }
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 int save_graph_internal(graph_t graph, const char* model_format, const char* fname, va_list argp)
 {
     /* Get the serializer according to model_format */
     SerializerPtr serializer;
     if(!SerializerManager::SafeGet(model_format, serializer))
     {
-<<<<<<< HEAD
-        LOG_ERROR() << "unknown model format: " << model_format << "\n";
-        set_tengine_errno(ENOENT);
-        return -1;
-=======
         /* try to load from plugin */
         std::string plugin_fname = std::string("lib") + model_format + "-serializer.so";
         std::string plugin_init_func = std::string(model_format) + "_plugin_init";
@@ -301,7 +275,6 @@ int save_graph_internal(graph_t graph, const char* model_format, const char* fna
         }
 
         SerializerManager::SafeGet(model_format, serializer);
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     }
 
     /* Create file list */
@@ -326,154 +299,6 @@ int save_graph_internal(graph_t graph, const char* model_format, const char* fna
     return 0;
 }
 
-<<<<<<< HEAD
-static float get_absmax_val(float* data, int data_size)
-{
-    float max_val = 0.f;
-    if(data != nullptr)
-    {
-        for(int i = 0; i < data_size; i++)
-        {
-            float abs_val = fabs(data[i]);
-            if(abs_val > max_val)
-                max_val = abs_val;
-        }
-    }
-    return max_val;
-}
-
-static inline bool isSkipQuant(int nodeInedx, int node_no_quant_idxs[], int number)
-{
-    for(int i = 0; i < number; i++)
-    {
-        if(nodeInedx == node_no_quant_idxs[i])
-            return true;
-    }
-    return false;
-}
-#define GET_TENGINE_DT(a) (a+1)
-int quant_graph_internal(graph_t graph, int quant_mode, int node_no_quant_idxs[], int node_no_quant_number)
-{
-    GraphExecutor* executor = static_cast<GraphExecutor*>(graph);
-    Graph* g = executor->GetOptimizedGraph();
-
-    for(unsigned int i = 0; i < g->seq_nodes.size(); i++)
-    {
-        if(isSkipQuant(i, node_no_quant_idxs, node_no_quant_number))
-            continue;
-
-        Node* node = g->seq_nodes[i];
-        Operator* op = node->GetOp();
-        if(op->GetName() == "Const")
-            continue;
-
-        /* set node output */
-        Tensor* output = node->GetOutputTensor(0);
-        output->SetDataType(GET_TENGINE_DT(quant_mode));
-
-        if(op->GetName() == "Convolution" || op->GetName() == "FullyConnected")
-        {
-            // quant weight
-            Tensor* weight_tensor = node->GetInputTensor(1);
-            if(weight_tensor->GetDataType() == TENGINE_DT_FP32)
-            {
-                int kernel_size = (weight_tensor->GetTotalSize()) / sizeof(float);
-                float* kernel_org = (float*)weight_tensor->GetMemAddr();
-
-                // fp16 quant
-                if(quant_mode == TENGINE_QUANT_FP16)
-                {
-                    __fp16 *kernel_new = (__fp16*)malloc(kernel_size * sizeof(__fp16));
-                    for(int i = 0; i < kernel_size; i++)
-                        kernel_new[i] = fp32_to_fp16(kernel_org[i]);
-
-                    // set the memory
-                    weight_tensor->FreeTensor();
-                    weight_tensor->SetMemAddr(kernel_new);
-
-                    // set the data type
-                    weight_tensor->SetDataType(TENGINE_DT_FP16);
-                }
-                // int8 quant
-                else if (quant_mode == TENGINE_QUANT_INT8)
-                {
-                    int8_t *kernel_new = (int8_t *)malloc(kernel_size);
-                    float weight_max = get_absmax_val(kernel_org, kernel_size);
-                    float weight_scale = weight_max / 127;
-                    int zero_point = 0;
-
-                    for(int i = 0; i < kernel_size; i++)
-                        kernel_new[i] = (int8_t)(round(kernel_org[i] / weight_scale) + zero_point);
-
-                    // set the memory
-                    weight_tensor->FreeTensor();
-                    weight_tensor->SetMemAddr(kernel_new);
-
-                    // set the data type
-                    weight_tensor->SetDataType(TENGINE_DT_INT8);
-
-                    // set the quant param
-                    auto p_quant = weight_tensor->GetQuantParam();
-                    p_quant->resize(1);
-                    QuantParam& param = (*p_quant)[0];
-                    param.scale = weight_scale;
-                    param.zero_point = zero_point;
-                }
-            }
-
-            // quant bias
-            if(node->GetInputNum() > 2)
-            {
-                Tensor* bias_tensor = node->GetInputTensor(2);
-                if(bias_tensor->GetDataType() == TENGINE_DT_FP32)
-                {
-                    int bias_size = (bias_tensor->GetTotalSize()) / sizeof(float);
-                    float* bias_org = (float*)bias_tensor->GetMemAddr();
-
-                    if(quant_mode == TENGINE_QUANT_FP16)
-                    {
-                        __fp16 *bias_new = (__fp16*)malloc(bias_size * sizeof(__fp16));
-                        for(int i = 0; i < bias_size; i++)
-                            bias_new[i] = fp32_to_fp16(bias_org[i]);
-
-                        // set the memory
-                        bias_tensor->FreeTensor();
-                        bias_tensor->SetMemAddr(bias_new);
-
-                        // set the data type
-                        bias_tensor->SetDataType(TENGINE_DT_FP16);
-                    }
-                }
-            }
-        }
-    }
-
-    return 0;
-}
-
-
-graph_t create_graph_in_context(context_t exec_context, const char* graph_name, const char* model_name)
-{
-    GraphExecutor* executor = new GraphExecutor();
-
-    if(!executor->CreateGraph(exec_context, graph_name, model_name))
-    {
-        delete executor;
-        return nullptr;
-    }
-
-    return executor;
-}
-
-const char* get_model_name(graph_t graph)
-{
-    GraphExecutor* executor = static_cast<GraphExecutor*>(graph);
-
-    if(executor->GetModelName().empty())
-        return nullptr;
-    else
-        return executor->GetModelName().c_str();
-=======
 #define GET_TENGINE_DT(a) (a + 1)
 graph_t create_graph_in_context(context_t exec_context, const char* graph_name, const char* model_name)
 {
@@ -558,46 +383,12 @@ printf("Support online report\n");
     }
 
     printf("-------------------------------------------------------");
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 }
 
 extern void operator_plugin_init(void);
 extern void serializer_plugin_init(void);
 extern void executor_plugin_init(void);
 extern void driver_plugin_init(void);
-<<<<<<< HEAD
-
-namespace TEngine {
-
-int hclcpu_plugin_init(void)
-{
-    static ShareLibParser so_handle;
-
-    try {
-    if(so_handle.Load("libhclcpu.so")<0)
-    {
-        LOG_ERROR()<<"cannot load libhclcpu.so\n";
-        set_tengine_errno(ENOENT);
-        return -1;
-    }
-
-    if(so_handle.ExecuteFunc<int()>("register_hclcpu_ops")<0)
-    {
-        LOG_ERROR()<<"register hcl cpu ops failed\n";
-        set_tengine_errno(EFAULT);
-        return -1;
-    }
-
-    }
-
-    catch(const std::exception& e)
-    {
-        LOG_ERROR()<<e.what()<<"\n";
-        set_tengine_errno(EFAULT);
-        return -1;
-    }
-    
-=======
 #ifdef ALL_IN_STATIC_LIB
 #ifdef BUILD_TOOLS
 int register_hclcpu_ops(void){}
@@ -670,7 +461,6 @@ int hclcpu_plugin_init(bool ignore_failure)
 
     }
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     return 0;
 }
 
@@ -681,11 +471,6 @@ int InitAllPlugin(void)
     executor_plugin_init();
     driver_plugin_init();
 
-<<<<<<< HEAD
-    if(hclcpu_plugin_init()<0)
-    {
-       return -1;
-=======
     /* as for convert tool, it is all right to have no hclcpu */
     bool ignore_failure = false;
 
@@ -700,7 +485,6 @@ int InitAllPlugin(void)
     {
         LOG_ERROR() << "no graph can be executed on CPU\n";
         return -1;
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     }
 
     return 0;

@@ -31,11 +31,7 @@
 namespace TEngine {
 
 #define LSTM_ACT_SIGMOID 1
-<<<<<<< HEAD
-#define LSTM_ACT_TANH    2
-=======
 #define LSTM_ACT_TANH 2
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
 struct LSTMParam : public NamedParam
 {

@@ -1,16 +1,6 @@
 namespace TEngine {
 
 extern void NodeOpsRegistryManagerInit(void);
-<<<<<<< HEAD
-extern void RegisterCommonOps(void);
-extern void RegisterRefOps(void);
-
-#if CONFIG_ARCH_ARM64 == 1
-extern void RegisterArmOps(void);
-#endif
-
-}
-=======
 extern void RegisterRefOps(void);
 
 #if CONFIG_ARCH_X86
@@ -25,25 +15,11 @@ extern void RegisterArmOps(void);
 extern void RegisterArmHalfOps(void);
 #endif
 }    // namespace TEngine
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
 using namespace TEngine;
 
 extern "C" int register_hclcpu_ops(void)
 {
-<<<<<<< HEAD
-    RegisterCommonOps();
-    RegisterRefOps();
-
-#if CONFIG_ARCH_ARM64
-    RegisterArmOps();
-#endif
-
-    return 0;
-
-}
-
-=======
     RegisterRefOps();
 
 #if CONFIG_ARCH_X86
@@ -60,4 +36,3 @@ extern "C" int register_hclcpu_ops(void)
 
     return 0;
 }
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074

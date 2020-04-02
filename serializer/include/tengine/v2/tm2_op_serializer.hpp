@@ -59,9 +59,6 @@
 #include "operator/tanh.hpp"
 #include "operator/sigmoid.hpp"
 #include "operator/squeeze.hpp"
-<<<<<<< HEAD
-#include "operator/fused_operator.hpp"
-=======
 #include "operator/argmax.hpp"
 #include "operator/argmin.hpp"
 #include "operator/maximum.hpp"
@@ -111,7 +108,6 @@
 #include "operator/spacetodepth.hpp"
 #include "operator/depthtospace.hpp"
 #include "operator/clip.hpp"
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
 #include "operator/batch_norm_param.hpp"
 #include "operator/concat_param.hpp"
@@ -141,10 +137,6 @@
 #include "operator/generic_param.hpp"
 #include "operator/lstm_param.hpp"
 #include "operator/rnn_param.hpp"
-<<<<<<< HEAD
-#include "operator/squeeze_param.hpp"
-
-=======
 #include "operator/addn_param.hpp"
 #include "operator/gru_param.hpp"
 #include "operator/swap_axis_param.hpp"
@@ -184,7 +176,6 @@
 #include "operator/depthtospace_param.hpp"
 #include "operator/sparsetodense_param.hpp"
 #include "operator/clip_param.hpp"
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 #include "tm2_format.h"
 
 namespace TEngine {
@@ -195,12 +186,9 @@ using op_load_t = std::function<bool(StaticGraph*, StaticNode*, void* const, con
 using op_save_t = std::function<tm_uoffset_t(void* const, tm_uoffset_t*, Operator*)>;
 
 std::string GetOpStr(uint32_t op_type);
-<<<<<<< HEAD
-=======
 void AddOpStr(uint32_t op_type, const std::string& name);
 
 #define REG_TM_OPNAME(optype, opname) AddOpStr(optype, opname);
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
 op_load_t LoadTmOpFunc(uint32_t op_type);
 bool LoadTmAccuracyOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
@@ -233,12 +221,8 @@ bool LoadTmScaleOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, 
 bool LoadTmSliceOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
 bool LoadTmSoftmaxOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
 bool LoadTmSplitOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
-<<<<<<< HEAD
-bool LoadTmDetectionPostProcessOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
-=======
 bool LoadTmDetectionPostProcessOp(StaticGraph* graph, StaticNode* node, void* const start_ptr,
                                   const TM2_Operator* tm_op);
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 bool LoadTmGemmOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
 bool LoadTmGenericOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
 bool LoadTmLogisticOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
@@ -248,8 +232,6 @@ bool LoadTmTanhOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, c
 bool LoadTmSigmoidOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
 bool LoadTmSqueezeOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
 bool LoadTmFusedbnscalereluOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
-<<<<<<< HEAD
-=======
 bool LoadTmPadOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
 bool LoadTmArgMaxOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
 bool LoadTmArgMinOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
@@ -298,7 +280,6 @@ bool LoadTmRoundOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, 
 bool LoadTmZerosLikeOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
 bool LoadTmClipOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
 op_save_t SaveTmOpFunc(uint32_t op_type);
 tm_uoffset_t SaveTmAccuracyOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op);
@@ -341,8 +322,6 @@ tm_uoffset_t SaveTmTanhOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator
 tm_uoffset_t SaveTmSigmoidOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op);
 tm_uoffset_t SaveTmSqueezeOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op);
 tm_uoffset_t SaveTmFusedbnscalereluOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op);
-<<<<<<< HEAD
-=======
 tm_uoffset_t SaveTmPadOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op);
 tm_uoffset_t SaveTmStridedSliceOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op);
 tm_uoffset_t SaveTmArgMaxOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op);
@@ -391,7 +370,6 @@ tm_uoffset_t SaveTmRoundOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operato
 tm_uoffset_t SaveTmZerosLikeOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op);
 tm_uoffset_t SaveTmClipOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op);
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
 template <typename T> const T* GetTmPtr(void* const start_ptr, tm_uoffset_t tm_offset)
 {

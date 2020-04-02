@@ -76,13 +76,10 @@ extern "C" {
 #define TENGINE_QUANT_INT8 1
 #define TENGINE_QUANT_UINT8 2
 
-<<<<<<< HEAD
-=======
 /* tengine online report stat */
 #define ST_ONLINE_REPORT_DISABLED 0
 #define ST_ONLINE_REPORT_ENABLED 1
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 /* follow the std. UNIX log level definitioin */
 enum log_level
 {
@@ -362,22 +359,6 @@ graph_t create_graph(context_t context, const char* model_format, const char* fi
 int save_graph(graph_t graph, const char* model_format, const char* file_name, ...);
 
 /*!
-<<<<<<< HEAD
- * @brief quant the graph according to the quant mode
- *
- * @param [in/out] graph, the graph handle
- * @param [in] quant_mode, the quant mode(fp16, int8 or uint8). see TENGINE_QUANT_FP16 etc.
- * @param [in] node_no_quant_idxs, the index array of nodes not quant
- * @param [in] node_no_quant_number, the number of nodes not quant
- *
- * @return  0 success or -1 fail
- */
-
-int quant_graph(graph_t graph, int quant_mode, int node_no_quant_idxs[], int node_no_quant_number);
-
-/*!
-=======
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
  * @brief Set the layout type of the graph
  *        the default layout of graph is NCHW
  * @param [in] graph, the graph handle
@@ -613,22 +594,12 @@ int get_node_output_number(node_t node);
  */
 int get_node_input_number(node_t node);
 
-<<<<<<< HEAD
-
-/*!
- * @brief Get graph node number 
- * 
- *
- * @param [in] graph: the graph handle
- *  
-=======
 /*!
  * @brief Get graph node number
  *
  *
  * @param [in] graph: the graph handle
  *
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
  * @return >=0 the number of the graph node
  *         -1  on error
  */
@@ -636,11 +607,7 @@ int get_node_input_number(node_t node);
 int get_graph_node_number(graph_t graph);
 
 /*!
-<<<<<<< HEAD
- * @brief Get graph node by idx 
-=======
  * @brief Get graph node by idx
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
  *
  *
  * @param [in] graph: the graph handle
@@ -656,22 +623,14 @@ node_t get_graph_node_by_idx(graph_t graph, int node_idx);
  *
  * @param [in] node: The target node handle.
  * @param [in] attr_name: The name of the attribute to be added.
-<<<<<<< HEAD
- * @param [in] type_name: The c string get by  std::type_info::name() 
-=======
  * @param [in] type_name: The c string get by  std::type_info::name()
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
  *                   can be set to NULL to skip type match checking.
  * @param [in] size: The size of the attribute
  *
  * @return 0: Successfully,
  *         -1: Failed.
  */
-<<<<<<< HEAD
-int add_node_attr(node_t node, const char* attr_name, const char * type_name, int size);
-=======
 int add_node_attr(node_t node, const char* attr_name, const char* type_name, int size);
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
 /*!
  * @brief Get the attribute value (int) of a node
@@ -718,11 +677,7 @@ int get_node_attr_pointer(node_t node, const char* attr_name, void* attr_val);
  *
  * @param [in] node: The target node.
  * @param [in] attr_name: The name of the attribute to be retrieval.
-<<<<<<< HEAD
- * @param [in] type_name: The c string get by  std::type_info::name() 
-=======
  * @param [in] type_name: The c string get by  std::type_info::name()
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
  *                   can be set to NULL to skip type match checking.
  * @param [out] buf: The pointer to the buffer to save val.
  * @param [in] size: The buffer size.
@@ -789,11 +744,7 @@ int set_node_attr_pointer(node_t node, const char* attr_name, const void* attr_v
  *         -1: Failed, The name does not exist or the type mismatch.
  *
  */
-<<<<<<< HEAD
-int set_node_attr_generic(node_t node, const char* attr_name, const char * type_name, const void* buf, int size);
-=======
 int set_node_attr_generic(node_t node, const char* attr_name, const char* type_name, const void* buf, int size);
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
 /*!
  * @brief Set customer kernel of a node, on a specific device,
@@ -1392,8 +1343,6 @@ void set_log_output(log_print_t func);
  */
 void dump_graph(graph_t graph);
 
-<<<<<<< HEAD
-=======
 /*!
  * @brief Turn on/off report .
  *        
@@ -1405,7 +1354,6 @@ void dump_graph(graph_t graph);
  */
 int set_online_report_status(int new_stat);
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 /**************************** Plug-in operate set *******************/
 /*!
  * @brief Load one plugin from disk, and execute the init function.
@@ -1446,8 +1394,6 @@ int get_tengine_plugin_number(void);
  */
 const char* get_tengine_plugin_name(int idx);
 
-<<<<<<< HEAD
-=======
 /*!
  * @brief Tengine is Authed.
  *
@@ -1465,7 +1411,6 @@ int is_tengine_auth();
  */
 void about_tengine();
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 #ifdef __cplusplus
 }
 #endif

@@ -311,10 +311,7 @@ bool NodeExecutor::Init(void)
 
         worker_->SetQueue(&task_queue_, &worker_lock_, &worker_cv_);
         worker_->LaunchWorker();
-<<<<<<< HEAD
-=======
         worker_->Activate(-1);
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     }
 
     return true;
@@ -325,14 +322,10 @@ bool NodeExecutor::Release(void)
     if(SupportNonblockRun() && create_worker_)
     {
         if(worker_)
-<<<<<<< HEAD
-            delete worker_;
-=======
         {
             worker_->Deactivate();
             delete worker_;
         }
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     }
 
     return true;

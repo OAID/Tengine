@@ -380,16 +380,6 @@ typedef struct
 
 typedef struct
 {
-<<<<<<< HEAD
-    int32_t dim_0;
-    int32_t dim_1;
-    int32_t dim_2;
-    int32_t dim_3;
-    int32_t dim_size;
-    int32_t axis;
-} TM_ReshapeParam;
-
-=======
     int32_t is_mxnet;
     int32_t reverse;
     tm_uoffset_t offset_re_shape;
@@ -397,7 +387,6 @@ typedef struct
 
 
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 typedef struct
 {
     float scale_x;

@@ -85,13 +85,10 @@ using op_load_t = std::function<bool(StaticGraph*, StaticNode*, void* const, con
 tm_uoffset_t SaveTmOperator(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op);
 op_load_t LoadTmOpFunc(uint32_t op_type);
 std::string GetOpStr(uint32_t op_type);
-<<<<<<< HEAD
-=======
 void AddOpStr(uint32_t op_type, const std::string& name);
 
 #define REG_TM_OPNAME(optype, opname) AddOpStr(optype, opname);
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 bool LoadTmAccuracyOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM_Operator* tm_op);
 bool LoadTmBatchNormOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM_Operator* tm_op);
 bool LoadTmResizeOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM_Operator* tm_op);

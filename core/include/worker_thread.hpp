@@ -26,13 +26,9 @@
 #ifndef __WORKER_THREAD_HPP__
 #define __WORKER_THREAD_HPP__
 
-<<<<<<< HEAD
-#include <sys/time.h>
-=======
 #include <sched.h>
 #include <sys/time.h>
 #include <errno.h>
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 #include <string.h>
 
 #include <queue>
@@ -40,11 +36,8 @@
 #include <mutex>
 #include <condition_variable>
 
-<<<<<<< HEAD
-=======
 #include "logger.hpp"
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 namespace TEngine {
 
 template <typename T> class WorkerThread
@@ -105,17 +98,6 @@ public:
     void StopWorker(void)
     {
         std::unique_lock<std::mutex> cv_lock(*worker_lock_);
-<<<<<<< HEAD
-        quit_work_ = true;
-        cv_lock.unlock();
-
-        worker_cv_->notify_all();
-    }
-
-    bool LaunchWorker(void)
-    {
-        auto func = std::bind(&WorkerThread::DoWork, this);
-=======
 
         quit_work_ = true;
         worker_cv_->notify_all();
@@ -127,28 +109,10 @@ public:
     bool LaunchWorker(bool master_cpu=false)
     {
         auto func = std::bind(&WorkerThread::DoWork, this,master_cpu);
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
         worker_ = new std::thread(func);
         return true;
     }
 
-<<<<<<< HEAD
-private:
-    void DoWork(void)
-    {
-        int task_done_count = 0;
-        bool skip = false;
-
-#ifdef CONFIG_MAX_RUN_TIME
-        long start_time;
-
-        struct timeval tv;
-
-        gettimeofday(&tv, NULL);
-
-        start_time = tv.tv_sec;
-#endif
-=======
     void Activate(int dispatch_cpu)
     {
          dispatch_cpu_=dispatch_cpu;
@@ -167,7 +131,6 @@ private:
     void DoWork(bool master_cpu)
     {
         int task_done_count = 0;
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
         // bind CPU first
         if(bind_cpu_ >= 0)
@@ -180,57 +143,6 @@ private:
                 bind_done_ = true;
         }
 
-<<<<<<< HEAD
-        while(true)
-        {
-            T task;
-            GetTask(task);
-
-            if(quit_work_)
-                break;
-
-#ifdef CONFIG_MAX_RUN_COUNT
-            if(task_done_count > CONFIG_MAX_RUN_COUNT)
-                skip = true;
-#endif
-
-#ifdef CONFIG_MAX_RUN_TIME
-            if(!(task_done_count & 0x3fff))
-            {
-                struct timeval tv;
-
-                gettimeofday(&tv, NULL);
-
-                if((tv.tv_sec - start_time) >= CONFIG_MAX_RUN_TIME)
-                    skip = true;
-            }
-
-#endif
-            if(!skip)
-                process_(task, bind_cpu_);
-
-            if(inc_done_)
-                inc_done_(1);
-
-            task_done_count++;
-        }
-    }
-
-    void GetTask(T& task)
-    {
-        std::unique_lock<std::mutex> cv_lock(*worker_lock_);
-
-        if(task_queue_->empty() && !quit_work_)
-            worker_cv_->wait(cv_lock, [this] { return !task_queue_->empty() || quit_work_; });
-
-        if(!quit_work_)
-        {
-            task = task_queue_->front();
-            task_queue_->pop();
-        }
-
-        cv_lock.unlock();
-=======
 	if(master_cpu)
 	{
            // set scheduler
@@ -291,7 +203,6 @@ private:
         cv_lock.unlock();
 
         return ret;
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     }
 
     void Init(const process_t& func)
@@ -305,12 +216,9 @@ private:
         worker_lock_ = nullptr;
         worker_cv_ = nullptr;
 
-<<<<<<< HEAD
-=======
         active_count_=0;
         dispatch_cpu_=-100;
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
         //    LaunchWorker();
     }
 
@@ -319,14 +227,11 @@ private:
     bool quit_work_;
     process_t process_;
 
-<<<<<<< HEAD
-=======
     std::atomic<unsigned int> active_count_;
     std::condition_variable  active_cv_;
     int dispatch_cpu_;
 
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     std::queue<T>* task_queue_;
     std::mutex* worker_lock_;
     std::condition_variable* worker_cv_;

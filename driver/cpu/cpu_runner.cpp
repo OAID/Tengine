@@ -22,11 +22,7 @@
  * Author: haitao@openailab.com
  */
 #include <algorithm>
-<<<<<<< HEAD
-
-=======
 #include <math.h>
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 #include "graph.hpp"
 #include "custom_kernel.hpp"
 #include "cpu_runner.hpp"
@@ -36,10 +32,7 @@
 #include "graph_optimizer.hpp"
 #include "cpu_driver.hpp"
 #include "operator/convolution.hpp"
-<<<<<<< HEAD
-=======
 #include "operator/pooling.hpp"
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 #include "tengine_errno.hpp"
 
 namespace TEngine {
@@ -47,12 +40,9 @@ namespace TEngine {
 #define ENABLE_TIME_PROFILING
 #define ATTR_GRAPH_PERF_BUFFER "GraphPerfStatBuf"
 
-<<<<<<< HEAD
-=======
 #define MEM_ALIGN_SIZE 64
 #define MEM_ALIGN_MASK (~(MEM_ALIGN_SIZE-1))
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 void DumpFloat(const char* fname, float* data, int number);
 
 static std::unordered_map<std::string, CPUInfo> predefined_list;
@@ -91,10 +81,7 @@ struct MemPool
     struct MemBlock
     {
         void* addr;
-<<<<<<< HEAD
-=======
         void * real_addr;
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
         int size;
         int ref_count;
         int alloc_count;
@@ -121,12 +108,8 @@ struct MemPool
             for(int i = 0; i < block_number; i++)
             {
                 MemBlock b;
-<<<<<<< HEAD
-                b.addr = mem_alloc(block_size + 128);
-=======
                 b.real_addr = mem_alloc(block_size + 128+MEM_ALIGN_SIZE);
                 b.addr=(void*)(((long)b.real_addr+MEM_ALIGN_SIZE-1)&MEM_ALIGN_MASK);
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
                 b.size = block_size;
                 b.ref_count = 0;
                 b.alloc_count = 0;
@@ -140,12 +123,8 @@ struct MemPool
             for(int i = 0; i < block_number; i++)
             {
                 MemBlock b;
-<<<<<<< HEAD
-                b.addr = mem_alloc(mem_block[0] + 128);
-=======
                 b.real_addr = mem_alloc(mem_block[0] + 128+MEM_ALIGN_SIZE);
                 b.addr=(void*)(((long)b.real_addr+MEM_ALIGN_SIZE-1)&MEM_ALIGN_MASK);
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
                 b.size = mem_block[0];
                 b.ref_count = 0;
                 b.alloc_count = 0;
@@ -156,12 +135,8 @@ struct MemPool
             for(int i = 1; i < block_number; i++)
             {
                 MemBlock b;
-<<<<<<< HEAD
-                b.addr = mem_alloc(mem_block[i] + 128);
-=======
                 b.real_addr = mem_alloc(mem_block[i] + 128+MEM_ALIGN_SIZE);
                 b.addr=(void*)(((long)b.real_addr+MEM_ALIGN_SIZE-1)&MEM_ALIGN_MASK);
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
                 b.size = mem_block[i];
                 b.ref_count = 0;
 
@@ -174,11 +149,7 @@ struct MemPool
     {
         for(unsigned int i = 0; i < block_list.size(); i++)
         {
-<<<<<<< HEAD
-            void* addr = block_list[i].addr;
-=======
             void* addr = block_list[i].real_addr;
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
             mem_free(addr);
 
             // printf("block [%d %p %d] allocated[%d]\n",
@@ -281,14 +252,10 @@ bool CPURunner::Prerun(Subgraph* sub_graph)
         NodeOps* node_ops = any_cast<NodeOps*>(node->GetAttr(ATTR_NODE_OPS));
 
         if(!node_ops->Prerun(node))
-<<<<<<< HEAD
-            return false;
-=======
         {
             XLOG_ERROR() << "Prerun for node: " << node->GetName() << " op: " << node->GetOp()->GetName() << " failed\n";
             return false;
         }
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     }
 
     return true;
@@ -298,54 +265,21 @@ bool CPURunner::Prerun(Subgraph* sub_graph)
 
 static void parse_node(void* data, int repeat_count, uint64_t total_time)
 {
-<<<<<<< HEAD
-    Node* node = ( Node* )data;
-=======
     const char* env = std::getenv("DEBUG");
     Node* node = ( Node* )data;
     NodeOps* node_ops = any_cast<NodeOps*>(node->GetAttr(ATTR_NODE_OPS));
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     Tensor* input_tensor = node->GetInputTensor(0);
     Tensor* output_tensor = node->GetOutputTensor(0);
     Operator* op = node->GetOp();
     TShape& ishape = input_tensor->GetShape();
-<<<<<<< HEAD
-    TShape& oshape = output_tensor->GetShape();
-    printf(" Node_idx:%3d", node->GetNodeIndex());
-=======
     const std::vector<int>& in_dim = ishape.GetDim();
     TShape& oshape = output_tensor->GetShape();
     const std::vector<int>& out_dim = oshape.GetDim();
     printf(" Node_idx: %4d", node->GetNodeIndex());
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     // float* outdata=(float *)get_tensor_mem(output_tensor);
     // float* indata=(float *)get_tensor_mem(input_tensor);
     // printf("\t%s\n",output_tensor->GetName().c_str());
 
-<<<<<<< HEAD
-    printf("\t%10s\t%4d x%4d x%6d  -> %4d x%4d x%6d\t", op->GetName().c_str(), ishape.GetC(), ishape.GetH(),
-           ishape.GetW(), oshape.GetC(), oshape.GetH(), oshape.GetW());
-    if(op->GetName() == "Convolution")
-    {
-        Convolution* conv_op = dynamic_cast<Convolution*>(node->GetOp());
-        ConvParam* param = conv_op->GetParam();
-        printf("%2d x %d / %d_p%d", param->kernel_h, param->kernel_w, param->stride_h, param->pad_h0);
-        // if(param->kernel_h==3 && param->stride_h==1)
-        // {
-        // 	printf(" [%d]",param->mth);
-        // }
-        // else
-        // {
-        // 	printf("    ");
-        // }
-        if(param->group != 1)
-        {
-            printf(" (%2d)", param->group);
-        }
-        else
-        {
-            printf("     ");
-=======
     printf("  %10s", op->GetName().c_str());
     if(env && env[0] == '1')
         printf("(%s)", node_ops->GetName().c_str());
@@ -388,16 +322,11 @@ static void parse_node(void* data, int repeat_count, uint64_t total_time)
         else
         {
             printf("       Avg");
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
         }
     }
     else
     {
-<<<<<<< HEAD
-        printf("   x    /   _     ");
-=======
         printf("            ");
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     }
     if(op->GetName() == "Convolution" || op->GetName() == "FullyConnected" || op->GetName() == "Deconvolution")
     {
@@ -572,9 +501,6 @@ bool CPURunner::Run(Subgraph* sub_graph)
             ret = false;
             break;
         }
-<<<<<<< HEAD
-
-=======
         if(getenv("ENABLE_CALIBRATION"))
         {
             for(unsigned int i = 0; i < node->GetOutputNum(); i++)
@@ -598,7 +524,6 @@ bool CPURunner::Run(Subgraph* sub_graph)
                 param.scale = max;
             }
         }
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 //#define DUMP_NODE_OUTPUT
 #ifdef DUMP_NODE_OUTPUT
         {
@@ -943,11 +868,7 @@ bool CPURunner::AllocateMem(Subgraph* sub_graph)
             continue;
 
         NodeOps* node_ops = any_cast<NodeOps*>(node->GetAttr(ATTR_NODE_OPS));
-<<<<<<< HEAD
-        unsigned int mem_size;
-=======
         unsigned int mem_size = 0;
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
         if(node_ops->GetSharedMemorySize(node, mem_size) && mem_size > max_shared_mem_size)
         {
@@ -957,17 +878,11 @@ bool CPURunner::AllocateMem(Subgraph* sub_graph)
 
     if(max_shared_mem_size > 0)
     {
-<<<<<<< HEAD
-        void* shared_memory = mem_alloc(max_shared_mem_size + 128);
-        sub_graph->SetAttr("shared_temp_memory", shared_memory);
-
-=======
         void* shared_memory = mem_alloc(max_shared_mem_size + 128+MEM_ALIGN_SIZE);
         sub_graph->SetAttr("shared_temp_memory", shared_memory);
 
         shared_memory=(void *)(((long)(shared_memory)+MEM_ALIGN_SIZE-1)&(MEM_ALIGN_MASK));
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
         for(unsigned int i = 0; i < seq_nodes.size(); i++)
         {
             Node* node = seq_nodes[i];
@@ -977,11 +892,7 @@ bool CPURunner::AllocateMem(Subgraph* sub_graph)
 
             NodeOps* node_ops = any_cast<NodeOps*>(node->GetAttr(ATTR_NODE_OPS));
 
-<<<<<<< HEAD
-            unsigned int mem_size;
-=======
             unsigned int mem_size = 0;
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
             if(node_ops->GetSharedMemorySize(node, mem_size))
                 node_ops->SetSharedMemoryAddr(node, shared_memory, mem_size);
@@ -1040,19 +951,11 @@ bool CPURunner::AllocateMem(Subgraph* sub_graph)
                     void* tensor_addr = get_tensor_mem(input_tensor);
                     int total_size = tensor->GetTotalSize();
                     if(set_tensor_mem(tensor, tensor_addr, total_size, nullptr))
-<<<<<<< HEAD
-		    {
-                        mem_pool->AddRef(tensor);
-
-                        continue;
-		    }
-=======
                     {
                         mem_pool->AddRef(tensor);
 
                         continue;
                     }
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
                 }
             }
 

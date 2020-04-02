@@ -33,16 +33,9 @@
 
 #include "graph.hpp"
 
-<<<<<<< HEAD
-extern "C" void sgemv_1x8_a72(float* biases, float* input, float* kernel, long kernel_size, float* output);
-extern "C" void sgemv_1x2_a72(float* biases, float* input, float* kernel, long kernel_size, float* output);
-extern "C" void sgemv_1x8_a53(float* biases, float* input, float* kernel, long kernel_size, float* output);
-extern "C" void sgemv_1x2_a53(float* biases, float* input, float* kernel, long kernel_size, float* output);
-=======
 #include "op_utils.hpp"
 
 #include "feature_match_kernel/A72.inl"
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
 #define TYPE_A72 0
 #define TYPE_A53 1
@@ -51,11 +44,7 @@ namespace TEngine {
 
 namespace FC_fast {
 
-<<<<<<< HEAD
-int default_prio = 100;
-=======
 int default_prio = 200;
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
 // interleave most kernels in 8, last 7 interleave in 2, copy the lat kernels
 void interleave_kernel(const float* kernel, const float* kernel_interleaved, int kernel_chan, int kernel_size)
@@ -110,15 +99,8 @@ void sgemv1x8(const float* input, float* weight_interleaved, bool have_biases, c
         cur_kernel = ( float* )(weight_interleaved + weight_stride * ch);
         cur_result = ( float* )(output + ch);
         cur_biases = have_biases ? ( float* )(biases + ch) : nullptr;
-<<<<<<< HEAD
-        if(cpu_type == TYPE_A72)
-            sgemv_1x8_a72(cur_biases, ( float* )input, cur_kernel, weight_stride, cur_result);
-        else
-            sgemv_1x8_a53(cur_biases, ( float* )input, cur_kernel, weight_stride, cur_result);
-=======
 
         sgemv_1x8_a72(cur_biases, ( float* )input, cur_kernel, weight_stride, cur_result);
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     }
 
     return;
@@ -137,15 +119,8 @@ void sgemv1x2(const float* input, float* weight_interleaved, bool have_biases, c
         cur_kernel = ( float* )(weight_interleaved + weight_stride * ch);
         cur_result = ( float* )(output + ch);
         cur_biases = have_biases ? ( float* )(biases + ch) : nullptr;
-<<<<<<< HEAD
-        if(cpu_type == TYPE_A72)
-            sgemv_1x2_a72(cur_biases, ( float* )input, cur_kernel, weight_stride, cur_result);
-        else
-            sgemv_1x2_a53(cur_biases, ( float* )input, cur_kernel, weight_stride, cur_result);
-=======
         if(cpu_type == TYPE_A72 || 1)
             sgemv_1x2_a72(cur_biases, ( float* )input, cur_kernel, weight_stride, cur_result);
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     }
 
     if(end_channel & 0x1)
@@ -163,14 +138,11 @@ void sgemv1x2(const float* input, float* weight_interleaved, bool have_biases, c
 
 struct FCOps : public MTNodeOps
 {
-<<<<<<< HEAD
-=======
     FCOps()
     {
         name_ = "arm_fc_fp32";
     }
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     int cpu_type;
 
     using sgemv_func_t =
@@ -232,10 +204,6 @@ struct FCOps : public MTNodeOps
         tensor = node->GetInputTensor(0);
         float* input = ( float* )get_tensor_mem(tensor);
         int batch = tensor->GetShape().GetN();
-<<<<<<< HEAD
-
-=======
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
         const TShape& tshape = tensor->GetShape();
 
         int c = tshape.Shape(1);
@@ -367,15 +335,10 @@ struct FCOps : public MTNodeOps
 
 NodeOps* SelectFunc(const CPUInfo* cpu_info, Node* node)
 {
-<<<<<<< HEAD
-    const ExecAttr* exec_attr = any_cast<const ExecAttr*>(node->GetAttr(ATTR_EXEC_ATTR));
-    if(exec_attr->graph_layout != TENGINE_LAYOUT_NCHW)
-=======
     Tensor* input = node->GetInputTensor(0);
     const int data_type = input->GetDataType();
     const ExecAttr* exec_attr = any_cast<const ExecAttr*>(node->GetAttr(ATTR_EXEC_ATTR));
     if(data_type != TENGINE_DT_FP32 || exec_attr->graph_layout != TENGINE_LAYOUT_NCHW)
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
         return nullptr;
 
     FCOps* ops = new FCOps();
@@ -387,11 +350,6 @@ NodeOps* SelectFunc(const CPUInfo* cpu_info, Node* node)
     else
         ops->cpu_type = TYPE_A53;
 
-<<<<<<< HEAD
-    ops->need_free = true;
-
-=======
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     return ops;
 }
 
@@ -401,14 +359,9 @@ using namespace FC_fast;
 
 void RegisterFullyConnectedFast(void)
 {
-<<<<<<< HEAD
-    NodeOpsRegistryManager::RegisterOPImplementor("arm64", "FullyConnected", FC_fast::SelectFunc,
-                                                  FC_fast::default_prio);
-=======
     if(!NodeOpsRegistryManager::RegisterOPImplementor("arm64", "FullyConnected", FC_fast::SelectFunc,
                                                       FC_fast::default_prio))
         LOG_ERROR() << __FUNCTION__ << " :Regist OP failed for prio [" << FC_fast::default_prio << "]\n";
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 }
 
 }    // namespace TEngine

@@ -51,11 +51,7 @@ static int ref_lrn_fp16(const __fp16* in_data, __fp16* out_data, ref_lrn_param* 
             square[j] = img_data * img_data + bias;
         }
 
-<<<<<<< HEAD
-        if(param->norm_region == 0)  /* LRN_ACROSS_CHANNELS */
-=======
         if(param->norm_region == 0) /* LRN_ACROSS_CHANNELS */
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
         {
             float alpha_over_size = alpha / local_size;
 
@@ -89,13 +85,9 @@ static int ref_lrn_fp16(const __fp16* in_data, __fp16* out_data, ref_lrn_param* 
         }
         else
         {
-<<<<<<< HEAD
-            printf("LRN: IN CHANNEL, TO BE IMPLEMENTED\n");
-=======
             free(square);
             free(accum_square);
             return -1;
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
         }
     }
 

@@ -3,11 +3,7 @@
 *.so
 *.exe
 tests/data/
-<<<<<<< HEAD
-build/
-=======
 build*/
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 *.log
 *.pb.cc
 *.pb.h
@@ -23,7 +19,4 @@ sysroot/
 android_config.txt
 model_src/
 .vs/
-<<<<<<< HEAD
-=======
 .vscode/
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074

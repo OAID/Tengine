@@ -36,39 +36,23 @@
 
 #include "graph.hpp"
 #include "operator/normalize.hpp"
-<<<<<<< HEAD
-#include "kernel/ref_normalize/ref_normalize_kernel.h"
-=======
 #include "kernel/normalize/ref_normalize_kernel.h"
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
 namespace TEngine {
 
 namespace RefNormalizeOps {
 
-<<<<<<< HEAD
-
-=======
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 struct RefNormalize : public MTNodeOps
 {
     bool Prerun(Node* node) override;
     bool Run(Node* node) override;
     void InitRegistry(void);
     ref_normalize_param op_param;
-<<<<<<< HEAD
-    ref_normalize_kernel_t  kernel_run;
-    KernelRegistry<ref_normalize_kernel_t>  kernel_registry;
-    RefNormalize(void)
-    {
-        kernel_run=nullptr;
-=======
     ref_normalize_kernel_t kernel_run;
     KernelRegistry<ref_normalize_kernel_t> kernel_registry;
     RefNormalize(void)
     {
         kernel_run = nullptr;
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
         InitRegistry();
     }
 };
@@ -76,24 +60,6 @@ struct RefNormalize : public MTNodeOps
 void RefNormalize::InitRegistry(void)
 {
 #ifdef CONFIG_KERNEL_FP32
-<<<<<<< HEAD
-    kernel_registry.Register((ref_normalize_kernel_t)ref_normalize_fp32,TENGINE_LAYOUT_NCHW,TENGINE_DT_FP32);
-    kernel_registry.Register((ref_normalize_kernel_t)ref_normalize_fp32,TENGINE_LAYOUT_NHWC,TENGINE_DT_FP32);
-#endif
-#ifdef CONFIG_KERNEL_FP16
-    kernel_registry.Register((ref_normalize_kernel_t)ref_normalize_fp16,TENGINE_LAYOUT_NCHW,TENGINE_DT_FP16);
-    kernel_registry.Register((ref_normalize_kernel_t)ref_normalize_fp16,TENGINE_LAYOUT_NHWC,TENGINE_DT_FP16);
-#endif
-#ifdef CONFIG_KERNEL_INT8
-    kernel_registry.Register((ref_normalize_kernel_t)ref_normalize_int8,TENGINE_LAYOUT_NCHW,TENGINE_DT_INT8);
-    kernel_registry.Register((ref_normalize_kernel_t)ref_normalize_int8,TENGINE_LAYOUT_NHWC,TENGINE_DT_INT8);
-#endif
-#ifdef CONFIG_KERNEL_UINT8
-    kernel_registry.Register((ref_normalize_kernel_t)ref_normalize_uint8,TENGINE_LAYOUT_NCHW,TENGINE_DT_UINT8);
-    kernel_registry.Register((ref_normalize_kernel_t)ref_normalize_uint8,TENGINE_LAYOUT_NHWC,TENGINE_DT_UINT8);
-#endif
-
-=======
     kernel_registry.Register(( ref_normalize_kernel_t )ref_normalize_fp32, TENGINE_LAYOUT_NCHW, TENGINE_DT_FP32);
     kernel_registry.Register(( ref_normalize_kernel_t )ref_normalize_fp32, TENGINE_LAYOUT_NHWC, TENGINE_DT_FP32);
 #endif
@@ -109,18 +75,13 @@ void RefNormalize::InitRegistry(void)
     kernel_registry.Register(( ref_normalize_kernel_t )ref_normalize_uint8, TENGINE_LAYOUT_NCHW, TENGINE_DT_UINT8);
     kernel_registry.Register(( ref_normalize_kernel_t )ref_normalize_uint8, TENGINE_LAYOUT_NHWC, TENGINE_DT_UINT8);
 #endif
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 }
 
 bool RefNormalize::Prerun(Node* node)
 {
     int layout = exec_attr->graph_layout;
     Tensor* input_tensor = node->GetInputTensor(0);
-<<<<<<< HEAD
-    if(!kernel_registry.GetKernel(kernel_run,layout,input_tensor->GetDataType()))
-=======
     if(!kernel_registry.GetKernel(kernel_run, layout, input_tensor->GetDataType()))
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     {
         set_tengine_errno(ENOENT);
         return false;
@@ -131,27 +92,15 @@ bool RefNormalize::Prerun(Node* node)
 
 bool RefNormalize::Run(Node* node)
 {
-<<<<<<< HEAD
-    
-    Tensor* input_tensor = node->GetInputTensor(0);
-    Tensor* output_tensor = node->GetOutputTensor(0);
-    //Normalize* normalize_op = dynamic_cast<Normalize*>(node->GetOp());
-    //NormalizeParam* param_ = normalize_op->GetParam();
-=======
     Tensor* input_tensor = node->GetInputTensor(0);
     Tensor* output_tensor = node->GetOutputTensor(0);
     // Normalize* normalize_op = dynamic_cast<Normalize*>(node->GetOp());
     // NormalizeParam* param_ = normalize_op->GetParam();
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
     TShape& shape = input_tensor->GetShape();
     std::vector<int> dims = shape.GetDim();
     const ExecAttr* exec_attr = any_cast<const ExecAttr*>(node->GetAttr(ATTR_EXEC_ATTR));
-<<<<<<< HEAD
-    
-=======
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     op_param.layout = exec_attr->graph_layout;
     if(TENGINE_LAYOUT_NCHW == op_param.layout)
     {
@@ -160,32 +109,13 @@ bool RefNormalize::Run(Node* node)
         op_param.input_w = dims[3];
         op_param.input_c = dims[1];
     }
-<<<<<<< HEAD
-    else // nhwc
-=======
     else    // nhwc
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     {
         op_param.input_n = dims[0];
         op_param.input_h = dims[1];
         op_param.input_w = dims[2];
         op_param.input_c = dims[3];
     }
-<<<<<<< HEAD
-    
-    uint8_t *scale = NULL;
-    if(node->GetInputNum() > 1)
-    {
-        const Tensor* scale_tensor = node->GetInputTensor(1);
-        scale = (uint8_t* )get_tensor_mem(scale_tensor);
-    }
-    uint8_t* input = (uint8_t *)get_tensor_mem(input_tensor);
-    uint8_t* output = (uint8_t *)get_tensor_mem(output_tensor);
-    if(TENGINE_DT_UINT8 == input_tensor->GetDataType() ||
-       TENGINE_DT_INT8 == input_tensor->GetDataType())
-    {
-        auto *in_quant = input_tensor->GetQuantParam();
-=======
 
     uint8_t* scale = NULL;
     if(node->GetInputNum() > 1)
@@ -198,7 +128,6 @@ bool RefNormalize::Run(Node* node)
     if(TENGINE_DT_UINT8 == input_tensor->GetDataType() || TENGINE_DT_INT8 == input_tensor->GetDataType())
     {
         auto* in_quant = input_tensor->GetQuantParam();
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
         if(in_quant->size())
         {
             op_param.in_scale = (*in_quant)[0].scale;
@@ -207,11 +136,7 @@ bool RefNormalize::Run(Node* node)
         if(node->GetInputNum() == 2)
         {
             Tensor* scale_tensor = node->GetInputTensor(1);
-<<<<<<< HEAD
-            auto *scale_quant = scale_tensor->GetQuantParam();
-=======
             auto* scale_quant = scale_tensor->GetQuantParam();
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
             if(scale_quant->size())
             {
                 op_param.scale_scale = (*scale_quant)[0].scale;
@@ -221,26 +146,13 @@ bool RefNormalize::Run(Node* node)
     }
     if(TENGINE_DT_UINT8 == input_tensor->GetDataType())
     {
-<<<<<<< HEAD
-        auto *out_quant = output_tensor->GetQuantParam();
-=======
         auto* out_quant = output_tensor->GetQuantParam();
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
         if(out_quant->size())
         {
             op_param.out_scale = (*out_quant)[0].scale;
             op_param.out_zero = (*out_quant)[0].zero_point;
         }
     }
-<<<<<<< HEAD
-    int ret = kernel_run(input,output,scale,&(this->op_param));
-    if(ret < 0)
-        return false;
-    
-    if(TENGINE_DT_INT8 == input_tensor->GetDataType())
-    {
-        auto *out_quant = output_tensor->GetQuantParam();
-=======
     int ret = kernel_run(input, output, scale, &(this->op_param));
     if(ret < 0)
         return false;
@@ -248,27 +160,18 @@ bool RefNormalize::Run(Node* node)
     if(TENGINE_DT_INT8 == input_tensor->GetDataType())
     {
         auto* out_quant = output_tensor->GetQuantParam();
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
         QuantParam q_param;
         q_param.scale = op_param.out_scale;
         q_param.zero_point = 0;
         out_quant->resize(0);
         out_quant->push_back(q_param);
     }
-<<<<<<< HEAD
-    
-=======
 
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     return true;
 }
 
 NodeOps* SelectFunc(const CPUInfo* cpu_info, Node* node)
-<<<<<<< HEAD
-{ 
-=======
 {
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     RefNormalize* ops = new RefNormalize();
 
     return ops;

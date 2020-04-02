@@ -25,12 +25,8 @@
 
 namespace TEngine {
 
-<<<<<<< HEAD
-bool DetectionPostProcess::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEngine::TShape>& oshape)
-=======
 bool DetectionPostProcess::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEngine::TShape>& oshape,
                                       int layout)
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 {
     int max_detections = param_.max_detections;
     int max_classes_per_detection = param_.max_classes_per_detection;
@@ -51,11 +47,7 @@ bool DetectionPostProcess::InferShape(const std::vector<TEngine::TShape>& ishape
     std::vector<int> dim3 = {1, num_detected_boxes};
     std::vector<int> dim4 = {1};
 
-<<<<<<< HEAD
-    shape.SetDataLayout(ishape[0].GetDataLayout());
-=======
     shape.SetDataLayout(layout);
->>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     shape.SetDim(dim1);
     oshape[0] = shape;
     shape.SetDim(dim2);
