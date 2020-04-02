@@ -52,7 +52,7 @@ void LoadLabelFile(std::vector<std::string>& result, const char* fname)
     {
         while(std::getline(labels, line))
             result.push_back(line);
-    }        
+    }
 }
 
 void PrintTopLabels(const char* label_file, float* data)
@@ -72,7 +72,6 @@ void PrintTopLabels(const char* label_file, float* data)
             std::cout << std::fixed << std::setprecision(4) << result[idx] << " - \"" << labels[idx] << "\"\n";
         else
             std::cout << std::fixed << std::setprecision(4) << result[idx] << " - " << idx << "\n";
-        
     }
 }
 
@@ -98,8 +97,6 @@ int main(int argc, char* argv[])
     std::string device = "";
     std::string file_path = "";
     char* cpu_list_str = nullptr;
-    ;
-
     int res;
 
     while((res = getopt(argc, argv, "p:d:f:r:")) != -1)
@@ -137,10 +134,13 @@ int main(int argc, char* argv[])
     /* load model */
     mobilenet.load_model(NULL, "tengine", model_file);
 
+    /* set device */
+    mobilenet.set_device(device);
+
     /* prepare input data */
     input_tensor.create(img_w, img_h, 3);
-    get_input_data(image_file, (float* )input_tensor.data, img_h, img_w, channel_mean, 0.017);
-    
+    get_input_data(image_file, ( float* )input_tensor.data, img_h, img_w, channel_mean, 0.017);
+
     /* forward */
     mobilenet.input_tensor("data", input_tensor);
 
@@ -150,16 +150,17 @@ int main(int argc, char* argv[])
         mobilenet.run();
 
     unsigned long end_time = get_cur_time();
-    unsigned long off_time = end_time - start_time;    
+    unsigned long off_time = end_time - start_time;
 
-    std::printf("Repeat [%d] time %.2f us per RUN. used %lu us\n", repeat_count, 1.0f * off_time / repeat_count, off_time);
+    std::printf("Repeat [%d] time %.2f us per RUN. used %lu us\n", repeat_count, 1.0f * off_time / repeat_count,
+                off_time);
 
     /* get result */
     mobilenet.extract_tensor("fc7", output_tensor);
 
     /* after process */
-    PrintTopLabels(label_file, (float*)output_tensor.data);
-    
+    PrintTopLabels(label_file, ( float* )output_tensor.data);
+
     std::cout << "--------------------------------------\n";
     std::cout << "ALL TEST DONE\n";
 
