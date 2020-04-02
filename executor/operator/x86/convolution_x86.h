@@ -1150,7 +1150,7 @@ void sgemm(int M, int N, int K, float* pA, float* pB, float* pC) // unloop outpu
         int j=0;
         for (; j+3<N; j+=4)
         {
-            float* va = pA_t + (i/4 + j%4) * 4*K;
+            float* va = pA_t + (i/4 + i%4) * 4*K;
             float* vb = pB_t + (j/4) * 4*K;
 #if __SSE__
             __m128 _sum0 = _mm_set1_ps(0.f);
@@ -1213,7 +1213,7 @@ void sgemm(int M, int N, int K, float* pA, float* pB, float* pC) // unloop outpu
 
         for (; j<N; j++)
         {
-            float* va = pA_t + (i/4 + j%4) * 4*K;
+            float* va = pA_t + (i/4 + i%4) * 4*K;
             float* vb = pB_t + (j/4 + j%4) * 4*K;
 
             int k=0;
