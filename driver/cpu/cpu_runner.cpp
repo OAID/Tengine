@@ -41,7 +41,7 @@ namespace TEngine {
 #define ATTR_GRAPH_PERF_BUFFER "GraphPerfStatBuf"
 
 #define MEM_ALIGN_SIZE 64
-#define MEM_ALIGN_MASK (~(MEM_ALIGN_SIZE-1))
+#define MEM_ALIGN_MASK (~(MEM_ALIGN_SIZE - 1))
 
 void DumpFloat(const char* fname, float* data, int number);
 
@@ -81,7 +81,7 @@ struct MemPool
     struct MemBlock
     {
         void* addr;
-        void * real_addr;
+        void* real_addr;
         int size;
         int ref_count;
         int alloc_count;
@@ -108,8 +108,8 @@ struct MemPool
             for(int i = 0; i < block_number; i++)
             {
                 MemBlock b;
-                b.real_addr = mem_alloc(block_size + 128+MEM_ALIGN_SIZE);
-                b.addr=(void*)(((long)b.real_addr+MEM_ALIGN_SIZE-1)&MEM_ALIGN_MASK);
+                b.real_addr = mem_alloc(block_size + 128 + MEM_ALIGN_SIZE);
+                b.addr = ( void* )((( long )b.real_addr + MEM_ALIGN_SIZE - 1) & MEM_ALIGN_MASK);
                 b.size = block_size;
                 b.ref_count = 0;
                 b.alloc_count = 0;
@@ -123,8 +123,8 @@ struct MemPool
             for(int i = 0; i < block_number; i++)
             {
                 MemBlock b;
-                b.real_addr = mem_alloc(mem_block[0] + 128+MEM_ALIGN_SIZE);
-                b.addr=(void*)(((long)b.real_addr+MEM_ALIGN_SIZE-1)&MEM_ALIGN_MASK);
+                b.real_addr = mem_alloc(mem_block[0] + 128 + MEM_ALIGN_SIZE);
+                b.addr = ( void* )((( long )b.real_addr + MEM_ALIGN_SIZE - 1) & MEM_ALIGN_MASK);
                 b.size = mem_block[0];
                 b.ref_count = 0;
                 b.alloc_count = 0;
@@ -135,8 +135,8 @@ struct MemPool
             for(int i = 1; i < block_number; i++)
             {
                 MemBlock b;
-                b.real_addr = mem_alloc(mem_block[i] + 128+MEM_ALIGN_SIZE);
-                b.addr=(void*)(((long)b.real_addr+MEM_ALIGN_SIZE-1)&MEM_ALIGN_MASK);
+                b.real_addr = mem_alloc(mem_block[i] + 128 + MEM_ALIGN_SIZE);
+                b.addr = ( void* )((( long )b.real_addr + MEM_ALIGN_SIZE - 1) & MEM_ALIGN_MASK);
                 b.size = mem_block[i];
                 b.ref_count = 0;
 
@@ -253,7 +253,8 @@ bool CPURunner::Prerun(Subgraph* sub_graph)
 
         if(!node_ops->Prerun(node))
         {
-            XLOG_ERROR() << "Prerun for node: " << node->GetName() << " op: " << node->GetOp()->GetName() << " failed\n";
+            XLOG_ERROR() << "Prerun for node: " << node->GetName() << " op: " << node->GetOp()->GetName()
+                         << " failed\n";
             return false;
         }
     }
@@ -298,8 +299,8 @@ static void parse_node(void* data, int repeat_count, uint64_t total_time)
     {
         Convolution* conv_op = dynamic_cast<Convolution*>(node->GetOp());
         ConvParam* param = conv_op->GetParam();
-        printf("K: %dx%d | S: %dx%d | P: %d %d %d %d", param->kernel_h, param->kernel_w, param->stride_h, param->stride_w,
-               param->pad_h0, param->pad_h1, param->pad_w0, param->pad_w1);
+        printf("K: %dx%d | S: %dx%d | P: %d %d %d %d", param->kernel_h, param->kernel_w, param->stride_h,
+               param->stride_w, param->pad_h0, param->pad_h1, param->pad_w0, param->pad_w1);
         if(param->group != 1)
         {
             printf(" DW(%2d)", param->group);
@@ -313,8 +314,8 @@ static void parse_node(void* data, int repeat_count, uint64_t total_time)
     {
         Pooling* conv_op = dynamic_cast<Pooling*>(node->GetOp());
         PoolParam* param = conv_op->GetParam();
-        printf("K: %dx%d | S: %dx%d | P: %d %d %d %d", param->kernel_h, param->kernel_w, param->stride_h, param->stride_w,
-               param->pad_h0, param->pad_h1, param->pad_w0, param->pad_w1);
+        printf("K: %dx%d | S: %dx%d | P: %d %d %d %d", param->kernel_h, param->kernel_w, param->stride_h,
+               param->stride_w, param->pad_h0, param->pad_h1, param->pad_w0, param->pad_w1);
         if(param->alg == 0)
         {
             printf("       Max");
@@ -507,20 +508,20 @@ bool CPURunner::Run(Subgraph* sub_graph)
             {
                 Tensor* t = node->GetOutputTensor(i);
                 int size = t->GetTotalSize();
-                float* data = (float*)get_tensor_mem(t);
+                float* data = ( float* )get_tensor_mem(t);
                 auto p_quant = t->GetQuantParam();
                 if(p_quant->size() == 0)
                     p_quant->resize(1);
                 QuantParam& param = (*p_quant)[0];
                 float max = 0.f;
-                for(unsigned int i = 0; i < size/sizeof(float); i++)
+                for(unsigned int i = 0; i < size / sizeof(float); i++)
                 {
                     if(fabs(data[i]) > max)
                     {
                         max = fabs(data[i]);
                     }
                 }
-                //update the scale;
+                // update the scale;
                 param.scale = max;
             }
         }
@@ -878,10 +879,10 @@ bool CPURunner::AllocateMem(Subgraph* sub_graph)
 
     if(max_shared_mem_size > 0)
     {
-        void* shared_memory = mem_alloc(max_shared_mem_size + 128+MEM_ALIGN_SIZE);
+        void* shared_memory = mem_alloc(max_shared_mem_size + 128 + MEM_ALIGN_SIZE);
         sub_graph->SetAttr("shared_temp_memory", shared_memory);
 
-        shared_memory=(void *)(((long)(shared_memory)+MEM_ALIGN_SIZE-1)&(MEM_ALIGN_MASK));
+        shared_memory = ( void* )((( long )(shared_memory) + MEM_ALIGN_SIZE - 1) & (MEM_ALIGN_MASK));
 
         for(unsigned int i = 0; i < seq_nodes.size(); i++)
         {
