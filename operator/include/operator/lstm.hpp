@@ -48,7 +48,11 @@ public:
     {
         return "init_h";
     }
+<<<<<<< HEAD
      const char* Geti2hKernelName(void)
+=======
+    const char* Geti2hKernelName(void)
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     {
         return "i2h_weight";
     }
@@ -56,7 +60,11 @@ public:
     {
         return "i2h_bias";
     }
+<<<<<<< HEAD
      const char* Geth2hKernelName(void)
+=======
+    const char* Geth2hKernelName(void)
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     {
         return "h2h_weight";
     }
@@ -68,7 +76,10 @@ public:
     {
         return "parameters";
     }
+<<<<<<< HEAD
     
+=======
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 };
 
 }    // namespace TEngine

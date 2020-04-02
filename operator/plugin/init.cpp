@@ -71,9 +71,66 @@
 #include "operator/swap_axis.hpp"
 #include "operator/gru.hpp"
 #include "operator/add_n.hpp"
+<<<<<<< HEAD
 
 using namespace TEngine;
 
+=======
+#include "operator/stridedslice.hpp"
+#include "operator/upsample.hpp"
+#include "operator/crop.hpp"
+#include "operator/copy.hpp"
+#include "operator/power.hpp"
+#include "operator/floor.hpp"
+#include "operator/clip.hpp"
+#include "operator/tile.hpp"
+#include "operator/topkv2.hpp"
+#include "operator/maximum.hpp"
+#include "operator/minimum.hpp"
+#include "operator/argmax.hpp"
+#include "operator/argmin.hpp"
+#include "operator/reverse.hpp"
+#include "operator/feature_match.hpp"
+#include "operator/shuffle_channel.hpp"
+#include "operator/batchToSpaceND.hpp"
+#include "operator/spaceToBatchND.hpp"
+#include "operator/absval.hpp"
+#include "operator/hardswish.hpp"
+#include "operator/interp.hpp"
+#include "operator/selu.hpp"
+#include "operator/l2normalization.hpp"
+#include "operator/l2pool.hpp"
+#include "operator/elu.hpp"
+#include "operator/layernormlstm.hpp"
+#include "operator/relu1.hpp"
+#include "operator/log_softmax.hpp"
+#include "operator/cast.hpp"
+#include "operator/expanddims.hpp"
+#include "operator/unary.hpp"
+#include "operator/roialign.hpp"
+#include "operator/psroipooling.hpp"
+#include "operator/bias.hpp"
+#include "operator/noop.hpp"
+#include "operator/threshold.hpp"
+#include "operator/hardsigmoid.hpp"
+#include "operator/embed.hpp"
+#include "operator/instancenorm.hpp"
+#include "operator/mvn.hpp"
+#include "operator/broadmul.hpp"
+#include "operator/logical.hpp"
+#include "operator/gather.hpp"
+#include "operator/transpose.hpp"
+#include "operator/comparison.hpp"
+#include "operator/spacetodepth.hpp"
+#include "operator/depthtospace.hpp"
+#include "operator/squared_difference.hpp"
+#include "operator/sparsetodense.hpp"
+#include "operator/ceil.hpp"
+#include "operator/round.hpp"
+#include "operator/zeros_like.hpp"
+using namespace TEngine;
+ 
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 int operator_plugin_init(void)
 {
     RegisterOp<Convolution>("Convolution");
@@ -122,7 +179,62 @@ int operator_plugin_init(void)
     RegisterOp<SwapAxis>("SwapAxis");
     RegisterOp<GRU>("GRU");
     RegisterOp<Addn>("Addn");
+<<<<<<< HEAD
 
+=======
+    RegisterOp<StridedSlice>("StridedSlice");
+    RegisterOp<Floor>("Floor");
+    RegisterOp<Upsample>("Upsample");
+    RegisterOp<Crop>("Crop");
+    RegisterOp<Copy>("Copy");
+    RegisterOp<Power>("Power");
+    RegisterOp<Clip>("Clip");
+    RegisterOp<Tile>("Tile");
+    RegisterOp<Maximum>("Maximum");
+    RegisterOp<Minimum>("Minimum");
+    RegisterOp<ArgMax>("ArgMax");
+    RegisterOp<ArgMin>("ArgMin");
+    RegisterOp<TopKV2>("TopKV2");
+    RegisterOp<Reverse>("Reverse");
+    RegisterOp<FeatureMatch>("FeatureMatch");
+    RegisterOp<ShuffleChannel>("ShuffleChannel");
+    RegisterOp<BatchToSpaceND>("BatchToSpaceND");     
+    RegisterOp<SpaceToBatchND>("SpaceToBatchND");
+    RegisterOp<Absval>("Absval");
+    RegisterOp<Hardswish>("Hardswish");
+    RegisterOp<Interp>("Interp");
+    RegisterOp<Selu>("Selu");
+    RegisterOp<L2Normalization>("L2Normalization");
+    RegisterOp<L2Pool>("L2Pool");
+    RegisterOp<Elu>("Elu");
+    RegisterOp<LayerNormLSTM>("LayerNormLSTM");
+    RegisterOp<ReLU1>("ReLU1");
+    RegisterOp<LogSoftmax>("LogSoftmax");
+    RegisterOp<Cast>("Cast");
+    RegisterOp<ExpandDims>("ExpandDims");
+    RegisterOp<Unary>("Unary");
+    RegisterOp<Roialign>("Roialign");   
+    RegisterOp<Psroipooling>("Psroipooling");  
+    RegisterOp<Bias>("Bias");
+    RegisterOp<Noop>("Noop");
+    RegisterOp<Threshold>("Threshold");
+    RegisterOp<Hardsigmoid>("Hardsigmoid");
+    RegisterOp<Embed>("Embedding");
+    RegisterOp<InstanceNorm>("InstanceNorm");
+    RegisterOp<MVN>("MVN"); 
+    RegisterOp<BroadMul>("BroadMul"); 
+    RegisterOp<Logical>("Logical"); 
+    RegisterOp<Gather>("Gather"); 
+    RegisterOp<Transpose>("Transpose");   
+    RegisterOp<Comparison>("Comparison"); 
+    RegisterOp<SpaceToDepth>("SpaceToDepth");
+    RegisterOp<DepthToSpace>("DepthToSpace");
+    RegisterOp<Ceil>("Ceil");
+    RegisterOp<Round>("Round");
+    RegisterOp<SquaredDifference>("SquaredDifference");
+    RegisterOp<SparseToDense>("SparseToDense");
+    RegisterOp<ZerosLike>("ZerosLike");   
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     // std::cout<<"OPERATOR PLUGIN INITED\n";
     return 0;
 }

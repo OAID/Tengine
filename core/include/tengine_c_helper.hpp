@@ -39,14 +39,27 @@ void set_cpu_list(const char* cpu_list_str);
 
 int vload_file_model(context_t exec_context, const char* model_name, const char* model_format, const char* fname,
                      va_list argp);
+<<<<<<< HEAD
+=======
+int vload_mem_model(context_t exec_context, const char* model_name, const char* model_format, const void* addr,
+                    int mem_size, va_list argp);
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
 graph_t create_graph_in_context(context_t exec_context, const char* graph_name, const char* model_name);
 
 int save_graph_internal(graph_t graph, const char* file_format, const char* fname, va_list argp);
 
+<<<<<<< HEAD
 int quant_graph_internal(graph_t graph, int quant_mode, int node_no_quant_idxs[], int node_no_quant_number);
 
 const char* get_model_name(graph_t graph);
+=======
+int get_model_format(graph_t graph);
+
+const char* get_model_name(graph_t graph);
+
+const char* get_tengine_hcl_version();
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 }
 
 namespace TEngine {

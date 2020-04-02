@@ -233,12 +233,21 @@ bool GenericDevExecutor::PrerunTask(SubgraphTask* task)
     if(task->graph_handle == nullptr || !OptimizeGraph(task))
         return false;
 
+<<<<<<< HEAD
     GraphTask * graph_task=task->graph_task;
     GraphExecutor * executor=graph_task->GetGraphExecutor();
 
     int optimize_only=0;
 
     executor->GetGraphAttr("optimize_only",&optimize_only,sizeof(int));
+=======
+    GraphTask* graph_task = task->graph_task;
+    GraphExecutor* executor = graph_task->GetGraphExecutor();
+
+    int optimize_only = 0;
+
+    executor->GetGraphAttr("optimize_only", &optimize_only, sizeof(int));
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
     if(optimize_only)
         return true;

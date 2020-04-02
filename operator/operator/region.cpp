@@ -27,10 +27,14 @@ namespace TEngine {
 
 void Region::SetSchema(void)
 {
+<<<<<<< HEAD
     Input({"input:float32"})
         .Output({"output:float32"})
         .SetAttr("num_classes", 1)
         .SetDoc(R"DOC(Region Operator)DOC");
+=======
+    Input({"input:float32"}).Output({"output:float32"}).SetAttr("num_classes", 1).SetDoc(R"DOC(Region Operator)DOC");
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 }
 
 }    // namespace TEngine

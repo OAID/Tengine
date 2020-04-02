@@ -59,11 +59,19 @@ public:
         return true;
     }
 
+<<<<<<< HEAD
     virtual bool GetParamItem(const char* param_name, const char * type_name, void* val)
     {
         return false;
     }
     virtual bool SetParamItem(const char* param_name, const char * type_name, const void* val)
+=======
+    virtual bool GetParamItem(const char* param_name, const char* type_name, void* val)
+    {
+        return false;
+    }
+    virtual bool SetParamItem(const char* param_name, const char* type_name, const void* val)
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     {
         return false;
     }
@@ -303,6 +311,10 @@ public:
         }
     }
 
+<<<<<<< HEAD
+=======
+    using Operator::ParseParam;
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     virtual void ParseParam(P& param, Operator* op)
     {
         ParsePredefinedParam(param, op);
@@ -324,12 +336,20 @@ public:
         return param;
     }
 
+<<<<<<< HEAD
     bool GetParamItem(const char* param_name, const char * type_name, void* val) override
+=======
+    bool GetParamItem(const char* param_name, const char* type_name, void* val) override
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     {
         return param_.GetItemVal(param_name, type_name, val);
     }
 
+<<<<<<< HEAD
     bool SetParamItem(const char* param_name, const char * type_name, const void* val) override
+=======
+    bool SetParamItem(const char* param_name, const char* type_name, const void* val) override
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     {
         return param_.SetItemVal(param_name, type_name, val);
     }
@@ -340,6 +360,12 @@ protected:
 
 using OperatorPtr = std::shared_ptr<Operator>;
 
+<<<<<<< HEAD
+=======
+extern template class SpecificFactory<Operator>;
+extern template SpecificFactory<Operator> SpecificFactory<Operator>::instance;
+
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 using OpFactory = SpecificFactory<Operator>;
 
 template <typename T> void RegisterOp(const std::string& name)

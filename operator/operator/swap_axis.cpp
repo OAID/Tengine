@@ -27,22 +27,38 @@ namespace TEngine {
 
 bool SwapAxis::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEngine::TShape>& oshape, int layout)
 {
+<<<<<<< HEAD
     if(param_.dim_0 == param_.dim_1 )
     {
         return false;
     }
     if(ishape.size()!=1 || oshape.size()!=1)
+=======
+    if(param_.dim_0 == param_.dim_1)
+    {
+        return false;
+    }
+    if(ishape.size() != 1 || oshape.size() != 1)
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
         return false;
 
     const std::vector<int>& in_dim = ishape[0].GetDim();
     int in_dim_size = in_dim.size();
 
+<<<<<<< HEAD
     if( param_.dim_0 >= in_dim_size ||  param_.dim_1 >= in_dim_size)
+=======
+    if(param_.dim_0 >= in_dim_size || param_.dim_1 >= in_dim_size)
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
         return false;
 
     std::vector<int> new_dim;
     new_dim.resize(in_dim_size);
+<<<<<<< HEAD
     for(int i=0;i<in_dim_size;i++)
+=======
+    for(int i = 0; i < in_dim_size; i++)
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
         new_dim[i] = in_dim[i];
     new_dim[param_.dim_0] = in_dim[param_.dim_1];
     new_dim[param_.dim_1] = in_dim[param_.dim_0];

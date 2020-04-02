@@ -41,6 +41,7 @@ namespace RefFCOps {
 
 struct RefFC : public MTNodeOps
 {
+<<<<<<< HEAD
     bool Prerun(Node * node) override;
     bool Run(Node * node) override; 
     void InitRegistry(void);
@@ -52,27 +53,52 @@ struct RefFC : public MTNodeOps
     RefFC(void) 
     {
         kernel_run=nullptr;
+=======
+    bool Prerun(Node* node) override;
+    bool Run(Node* node) override;
+    void InitRegistry(void);
+
+    struct fc_data param;
+    ref_fc_kernel_t kernel_run;
+    KernelRegistry<ref_fc_kernel_t> kernel_registry;
+
+    RefFC(void)
+    {
+        kernel_run = nullptr;
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
         InitRegistry();
     }
 };
 
+<<<<<<< HEAD
 bool RefFC::Prerun(Node * node)
 {
     int  layout = exec_attr->graph_layout;
+=======
+bool RefFC::Prerun(Node* node)
+{
+    int layout = exec_attr->graph_layout;
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     FullyConnected* fc_op = dynamic_cast<FullyConnected*>(node->GetOp());
     FCParam* param_ = fc_op->GetParam();
     param.out_number = param_->num_output;
 
     Tensor* input = node->GetInputTensor(0);
+<<<<<<< HEAD
     auto i_quant   = input->GetQuantParam();
         
+=======
+    auto i_quant = input->GetQuantParam();
+
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     Tensor* weight = node->GetInputTensor(1);
     int weight_out = weight->GetShape().Shape(0);
     if(weight_out == param.out_number)
         param.need_trans = 0;
     else
         param.need_trans = 1;
+<<<<<<< HEAD
     auto w_quant   = weight->GetQuantParam();
     
     Tensor* output = node->GetOutputTensor(0);
@@ -84,11 +110,25 @@ bool RefFC::Prerun(Node * node)
         {
             std::cerr<<"FC <UINT8> one quant is NONE: <"<<i_quant->size()<<","
                 <<w_quant->size()<<","<<o_quant->size()<<"\n";
+=======
+    auto w_quant = weight->GetQuantParam();
+
+    Tensor* output = node->GetOutputTensor(0);
+    auto o_quant = output->GetQuantParam();
+
+    if(input->GetDataType() == TENGINE_DT_UINT8 || input->GetDataType() == TENGINE_DT_INT8)
+    {
+        if(i_quant->size() == 0 || w_quant->size() == 0 || o_quant->size() == 0)
+        {
+            std::cerr << "FC <UINT8> one quant is NONE: <" << i_quant->size() << "," << w_quant->size() << ","
+                      << o_quant->size() << "\n";
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
             return false;
         }
         param.scale[0] = (*i_quant)[0].scale;
         param.scale[1] = (*w_quant)[0].scale;
         param.scale[2] = (*o_quant)[0].scale;
+<<<<<<< HEAD
         param.zero[0]  = (*i_quant)[0].zero_point;
         param.zero[1]  = (*w_quant)[0].zero_point;
         param.zero[2]  = (*o_quant)[0].zero_point;
@@ -104,6 +144,13 @@ bool RefFC::Prerun(Node * node)
         param.zero[1]  = (*w_quant)[0].zero_point;
     }
     
+=======
+        param.zero[0] = (*i_quant)[0].zero_point;
+        param.zero[1] = (*w_quant)[0].zero_point;
+        param.zero[2] = (*o_quant)[0].zero_point;
+    }
+
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     if(!kernel_registry.GetKernel(kernel_run, layout, input->GetDataType()))
     {
         set_tengine_errno(ENOENT);
@@ -113,12 +160,17 @@ bool RefFC::Prerun(Node * node)
     return true;
 }
 
+<<<<<<< HEAD
 bool RefFC::Run(Node * node)
+=======
+bool RefFC::Run(Node* node)
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 {
     if(kernel_run == nullptr)
         return false;
 
     Tensor* input = node->GetInputTensor(0);
+<<<<<<< HEAD
     param.batch   = input->GetShape().Shape(0);
     param.hidden  = input->GetShape().GetSize()/param.batch;
     const void* input_data = get_tensor_mem(input);
@@ -136,6 +188,18 @@ bool RefFC::Run(Node * node)
         param.scale[0] = (*i_quant)[0].scale;
         param.zero[0]  = (*i_quant)[0].zero_point;
     }
+=======
+    param.batch = input->GetShape().Shape(0);
+    param.hidden = input->GetShape().GetSize() / param.batch;
+    const void* input_data = get_tensor_mem(input);
+    Tensor* weight = node->GetInputTensor(1);
+
+    void* weight_data = get_tensor_mem(weight);
+
+    Tensor* output = node->GetOutputTensor(0);
+    void* output_data = get_tensor_mem(output);
+
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
     void* bias_data = nullptr;
     if(node->GetInputNum() > 2)
@@ -143,6 +207,7 @@ bool RefFC::Run(Node * node)
         Tensor* bias = node->GetInputTensor(2);
         bias_data = get_tensor_mem(bias);
     }
+<<<<<<< HEAD
     if(kernel_run(input_data, output_data, weight_data, bias_data, &param)<0)
         return false;
 
@@ -155,12 +220,17 @@ bool RefFC::Run(Node * node)
         (*o_quant)[0].zero_point = param.zero[2];
     }
 
+=======
+    if(kernel_run(input_data, output_data, weight_data, bias_data, &param) < 0)
+        return false;
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     return true;
 }
 
 void RefFC::InitRegistry(void)
 {
 #ifdef CONFIG_KERNEL_FP32
+<<<<<<< HEAD
     kernel_registry.Register((ref_fc_kernel_t)ref_fc_fp32,TENGINE_LAYOUT_NCHW,TENGINE_DT_FP32);
     kernel_registry.Register((ref_fc_kernel_t)ref_fc_fp32,TENGINE_LAYOUT_NHWC,TENGINE_DT_FP32);
 #endif
@@ -180,13 +250,37 @@ void RefFC::InitRegistry(void)
     kernel_registry.Register((ref_fc_kernel_t)ref_fc_uint8,TENGINE_LAYOUT_NHWC,TENGINE_DT_UINT8);
 #endif
 
+=======
+    kernel_registry.Register(( ref_fc_kernel_t )ref_fc_fp32, TENGINE_LAYOUT_NCHW, TENGINE_DT_FP32);
+    kernel_registry.Register(( ref_fc_kernel_t )ref_fc_fp32, TENGINE_LAYOUT_NHWC, TENGINE_DT_FP32);
+#endif
+
+#ifdef CONFIG_KERNEL_FP16
+    kernel_registry.Register(( ref_fc_kernel_t )ref_fc_fp16, TENGINE_LAYOUT_NCHW, TENGINE_DT_FP16);
+    kernel_registry.Register(( ref_fc_kernel_t )ref_fc_fp16, TENGINE_LAYOUT_NHWC, TENGINE_DT_FP16);
+#endif
+
+#ifdef CONFIG_KERNEL_INT8
+    kernel_registry.Register(( ref_fc_kernel_t )ref_fc_int8, TENGINE_LAYOUT_NCHW, TENGINE_DT_INT8);
+    kernel_registry.Register(( ref_fc_kernel_t )ref_fc_int8, TENGINE_LAYOUT_NHWC, TENGINE_DT_INT8);
+#endif
+
+#ifdef CONFIG_KERNEL_UINT8
+    kernel_registry.Register(( ref_fc_kernel_t )ref_fc_uint8, TENGINE_LAYOUT_NCHW, TENGINE_DT_UINT8);
+    kernel_registry.Register(( ref_fc_kernel_t )ref_fc_uint8, TENGINE_LAYOUT_NHWC, TENGINE_DT_UINT8);
+#endif
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 }
 
 NodeOps* SelectFunc(const CPUInfo* info, Node* node)
 {
     RefFC* ops = new RefFC();
 
+<<<<<<< HEAD
     LOG_DEBUG()<<"Demo RefFCOp is selected\n";
+=======
+    LOG_DEBUG() << "Demo RefFCOp is selected\n";
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
     return ops;
 }
@@ -198,5 +292,8 @@ void RegisterRefFCOps(void)
     NodeOpsRegistryManager::RegisterOPImplementor(REF_REGISTRY_NAME, "FullyConnected", RefFCOps::SelectFunc, 1000);
 }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 }    // namespace TEngine

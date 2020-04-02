@@ -45,10 +45,14 @@ bool Reorg::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<T
 
 void Reorg::SetSchema(void)
 {
+<<<<<<< HEAD
     Input({"input:float32"})
         .Output({"output:float32"})
         .SetAttr("stride", 1)
         .SetDoc(R"DOC(Reorg Operator)DOC");
+=======
+    Input({"input:float32"}).Output({"output:float32"}).SetAttr("stride", 1).SetDoc(R"DOC(Reorg Operator)DOC");
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 }
 
 }    // namespace TEngine

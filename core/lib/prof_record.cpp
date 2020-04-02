@@ -116,7 +116,11 @@ void ProfTime::Dump(int method)
 
         forward_count = r.count;
 
+<<<<<<< HEAD
         std::printf("%3d [ %2.2f%% : %.3f ms ]", idx, 100.0 * r.total_used_time / accum_time,
+=======
+        std::printf("%3d [ %3.2f%% : %.3f ms ]", idx, 100.0 * r.total_used_time / accum_time,
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
                     ( float )(( unsigned long )r.total_used_time / 1000.f / r.count));
 
         parser(r.ident, r.count, r.total_used_time);

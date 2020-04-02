@@ -57,11 +57,19 @@ struct dpp_param
     int zero[3];
 };
 
+<<<<<<< HEAD
 #define DPP_MIN(a,b) ( a<b ? a : b )
 #define DPP_MAX(a,b) ( a>b ? a : b )
 
 typedef int (*ref_dpp_kernel_t )(const void* input, const void* score, const void* anchor,
         void* detect_num, void* detect_class, void* detect_score, void* detect_boxes, dpp_param* param);
+=======
+#define DPP_MIN(a, b) (a < b ? a : b)
+#define DPP_MAX(a, b) (a > b ? a : b)
+
+typedef int (*ref_dpp_kernel_t)(const void* input, const void* score, const void* anchor, void* detect_num,
+                                void* detect_class, void* detect_score, void* detect_boxes, dpp_param* param);
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
 static inline float intersection_area(const struct Dpp_Box a, const struct Dpp_Box b)
 {
@@ -77,13 +85,21 @@ static inline float intersection_area(const struct Dpp_Box a, const struct Dpp_B
     return inter_width * inter_height;
 }
 
+<<<<<<< HEAD
 static inline void nms_sorted_bboxes(const struct Dpp_Box* boxes, int boxes_size, int* picked, int* picked_size, float nms_threshold)
+=======
+static inline void nms_sorted_bboxes(const struct Dpp_Box* boxes, int boxes_size, int* picked, int* picked_size,
+                                     float nms_threshold)
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 {
     float areas[boxes_size];
     int n_picked = 0;
     for(int i = 0; i < boxes_size; i++)
     {
+<<<<<<< HEAD
 
+=======
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
         float width = boxes[i].x1 - boxes[i].x0;
         float height = boxes[i].y1 - boxes[i].y0;
 
@@ -95,7 +111,10 @@ static inline void nms_sorted_bboxes(const struct Dpp_Box* boxes, int boxes_size
         int keep = 1;
         for(int j = 0; j < n_picked; j++)
         {
+<<<<<<< HEAD
 
+=======
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
             // intersection over union
             float inter_area = intersection_area(boxes[i], boxes[picked[j]]);
             float union_area = areas[i] + areas[picked[j]] - inter_area;
@@ -107,7 +126,11 @@ static inline void nms_sorted_bboxes(const struct Dpp_Box* boxes, int boxes_size
         if(keep)
         {
             picked[n_picked] = i;
+<<<<<<< HEAD
             n_picked ++;
+=======
+            n_picked++;
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
         }
     }
     *picked_size = n_picked;
@@ -116,7 +139,11 @@ static inline void nms_sorted_bboxes(const struct Dpp_Box* boxes, int boxes_size
 void sort_boxes_by_score(struct Dpp_Box* boxes, int size)
 {
     int i, j;
+<<<<<<< HEAD
     for(i = 0; i < size-1; i++)
+=======
+    for(i = 0; i < size - 1; i++)
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     {
         int max_idx = i;
         for(j = i + 1; j < size; j++)
@@ -129,20 +156,33 @@ void sort_boxes_by_score(struct Dpp_Box* boxes, int size)
         if(i != max_idx)
         {
             struct Dpp_Box tmp;
+<<<<<<< HEAD
             memcpy(&tmp, boxes+i, sizeof(struct Dpp_Box));
             memcpy(boxes + i, boxes+max_idx, sizeof(struct Dpp_Box));
+=======
+            memcpy(&tmp, boxes + i, sizeof(struct Dpp_Box));
+            memcpy(boxes + i, boxes + max_idx, sizeof(struct Dpp_Box));
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
             memcpy(boxes + max_idx, &tmp, sizeof(struct Dpp_Box));
         }
         else
         {
             if(boxes[max_idx].score < 0.6)
+<<<<<<< HEAD
                 return ;
+=======
+                return;
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
         }
     }
 }
 
 static inline int decode_single_box(struct Dpp_Box* box, const float* box_ptr, const float* anchor_ptr,
+<<<<<<< HEAD
         const float* scales)
+=======
+                                    const float* scales)
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 {
     int i = box->box_idx;
 
@@ -164,9 +204,14 @@ static inline int decode_single_box(struct Dpp_Box* box, const float* box_ptr, c
     return 0;
 }
 
+<<<<<<< HEAD
 void get_all_boxes_rect(struct Dpp_Box* all_class_bbox_rects,
         const float* box, const float* scores, const float* anchor,
         int num_boxes, int num_classes, float* scales)
+=======
+void get_all_boxes_rect(struct Dpp_Box* all_class_bbox_rects, const float* box, const float* scores,
+                        const float* anchor, int num_boxes, int num_classes, float* scales)
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 {
     struct Dpp_Box selected_box;
     for(int j = 0; j < num_boxes; j++)
@@ -181,26 +226,41 @@ void get_all_boxes_rect(struct Dpp_Box* all_class_bbox_rects,
             selected_box.score = score;
             selected_box.class_idx = i;
             selected_box.box_idx = j;
+<<<<<<< HEAD
             //printf("score: %f ,box_idx: %d ,class: %d\n",score, j, i);
+=======
+            // printf("score: %f ,box_idx: %d ,class: %d\n",score, j, i);
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
             if(decode_single_box(&selected_box, box, anchor, scales) < 0)
                 continue;
 
+<<<<<<< HEAD
             //struct Box* cls_vector = all_class_bbox_rects[i];
             memcpy(all_class_bbox_rects + i*num_boxes +j, &selected_box, sizeof(struct Dpp_Box));
             
+=======
+            // struct Box* cls_vector = all_class_bbox_rects[i];
+            memcpy(all_class_bbox_rects + i * num_boxes + j, &selected_box, sizeof(struct Dpp_Box));
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
         }
     }
 }
 
 int ref_dpp_common(const float* input_f, const float* score_f, const float* anchor_f, dpp_param* param,
+<<<<<<< HEAD
         float* detect_num, float* detect_class, float* detect_score, float* detect_boxes)
 {
 
+=======
+                   float* detect_num, float* detect_class, float* detect_score, float* detect_boxes)
+{
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     const int num_classes = param->num_classes + 1;
     const int num_boxes = param->num_boxes;
     const int max_detections = param->max_detections;
 
+<<<<<<< HEAD
     struct Dpp_Box* all_boxes = (struct Dpp_Box*)malloc(num_classes*num_boxes*sizeof(struct Dpp_Box));
     memset(all_boxes, 0, sizeof(struct Dpp_Box)*num_classes*num_boxes);
 
@@ -210,56 +270,98 @@ int ref_dpp_common(const float* input_f, const float* score_f, const float* anch
     int max_picked_boxes = 2 * max_detections * num_classes;
     struct Dpp_Box* picked_boxes = (struct Dpp_Box*)malloc(max_picked_boxes * sizeof(struct Dpp_Box));
     memset(picked_boxes, 0, sizeof(struct Dpp_Box)*max_picked_boxes);
+=======
+    struct Dpp_Box* all_boxes = ( struct Dpp_Box* )malloc(num_classes * num_boxes * sizeof(struct Dpp_Box));
+    memset(all_boxes, 0, sizeof(struct Dpp_Box) * num_classes * num_boxes);
+
+    get_all_boxes_rect(all_boxes, input_f, score_f, anchor_f, num_boxes, num_classes, param->scales);
+
+    int max_picked_boxes = 2 * max_detections * num_classes;
+    struct Dpp_Box* picked_boxes = ( struct Dpp_Box* )malloc(max_picked_boxes * sizeof(struct Dpp_Box));
+    memset(picked_boxes, 0, sizeof(struct Dpp_Box) * max_picked_boxes);
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     int all_picked_size = 0;
 
     for(int i = 1; i < num_classes; i++)
     {
+<<<<<<< HEAD
         struct Dpp_Box* class_box = all_boxes + i*num_boxes;
+=======
+        struct Dpp_Box* class_box = all_boxes + i * num_boxes;
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
         // sort
         sort_boxes_by_score(class_box, num_boxes);
         int box_size = 0;
+<<<<<<< HEAD
         for(int j = 0; j < num_boxes; j ++)
         {
             if(class_box[j].score < 0.6)
                 break;
             box_size ++;
+=======
+        for(int j = 0; j < num_boxes; j++)
+        {
+            if(class_box[j].score < 0.6)
+                break;
+            box_size++;
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
         }
         if(box_size == 0)
             continue;
 
+<<<<<<< HEAD
 
 
         if( box_size > max_detections * 2)
+=======
+        if(box_size > max_detections * 2)
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
             box_size = max_detections * 2;
 
         int picked[num_boxes];
         int picked_size = 0;
 
+<<<<<<< HEAD
         picked[0]=0;
+=======
+        picked[0] = 0;
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
         nms_sorted_bboxes(class_box, box_size, picked, &picked_size, param->nms_iou_threshold);
 
         // save the survivors
         for(int j = 0; j < picked_size; j++)
         {
             int z = picked[j];
+<<<<<<< HEAD
             memcpy(picked_boxes + all_picked_size, class_box + z,sizeof(struct Dpp_Box));
             all_picked_size++;
         }
 
+=======
+            memcpy(picked_boxes + all_picked_size, class_box + z, sizeof(struct Dpp_Box));
+            all_picked_size++;
+        }
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     }
 
     sort_boxes_by_score(picked_boxes, max_picked_boxes);
     if(all_picked_size > max_detections)
         all_picked_size = max_detections;
 
+<<<<<<< HEAD
     printf("all_picked_size: %d\n",all_picked_size);
+=======
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     // generate output tensors
     detect_num[0] = all_picked_size;
 
     for(int i = 0; i < all_picked_size; i++)
     {
+<<<<<<< HEAD
 
+=======
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
         detect_class[i] = picked_boxes[i].class_idx;
         detect_score[i] = picked_boxes[i].score;
 
@@ -275,7 +377,10 @@ int ref_dpp_common(const float* input_f, const float* score_f, const float* anch
     return 0;
 }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 #ifdef CONFIG_KERNEL_FP32
 #include "ref_dpp_fp32.c"
 #endif
@@ -288,7 +393,10 @@ int ref_dpp_common(const float* input_f, const float* score_f, const float* anch
 #include "ref_dpp_uint8.c"
 #endif
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 #ifdef __cplusplus
 }
 #endif

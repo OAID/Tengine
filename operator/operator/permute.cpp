@@ -44,14 +44,22 @@ bool Permute::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector
         oshape[0] = shape;
         return true;
     }
+<<<<<<< HEAD
     else if((param_.order0 == 1) && (param_.order1 == 0) && (param_.order2 == 2) && dims.size()==3)
+=======
+    else if((param_.order0 == 1) && (param_.order1 == 0) && (param_.order2 == 2) && dims.size() == 3)
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     {
         // int n = input.GetN();
         int c = input.Shape(0);
         int h = input.Shape(1);
         int w = input.Shape(2);
         TShape shape;
+<<<<<<< HEAD
         std::vector<int> dim = {h,c,w};
+=======
+        std::vector<int> dim = {h, c, w};
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
         shape.SetDim(dim);
         oshape[0] = shape;
         return true;

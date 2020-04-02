@@ -41,6 +41,13 @@
 #include "serializer.hpp"
 #include "compiler_fp16.h"
 
+<<<<<<< HEAD
+=======
+#ifdef ENABLE_ONLINE_REPORT
+#include "tenginereportmgr.hpp"
+#endif
+
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 namespace TEngine {
 
 extern int NodeSetParamGeneric(void* node, const char* param_name, const char* type_name, const void* param_val,
@@ -51,6 +58,11 @@ extern int NodeAddParamGeneric(void* node, const char* param_name, const char* t
 
 using namespace TEngine;
 
+<<<<<<< HEAD
+=======
+static std::string gsHclVersion;
+
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 void set_cpu_list(const char* cpu_list_str)
 {
     char* copy_str = strdup(cpu_list_str);
@@ -139,9 +151,24 @@ static int real_vload_model(context_t exec_context, const char* model_name, cons
 
     if(!SerializerManager::SafeGet(model_format, serializer))
     {
+<<<<<<< HEAD
         LOG_ERROR() << "Get serializer failed, unknown model format: " << model_format << "\n";
         set_tengine_errno(EINVAL);
         return -1;
+=======
+        /* try to load from plugin */
+        std::string plugin_fname = std::string("lib") + model_format + "-serializer.so";
+        std::string plugin_init_func = std::string(model_format) + "_plugin_init";
+
+        if(load_tengine_plugin(model_format, plugin_fname.c_str(), plugin_init_func.c_str()) < 0)
+        {
+            LOG_ERROR() << "Get serializer failed, unknown model format: " << model_format << "\n";
+            set_tengine_errno(ENOENT);
+            return -1;
+        }
+
+        SerializerManager::SafeGet(model_format, serializer);
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     }
 
     StaticGraph* static_graph = CreateStaticGraph(model_name);
@@ -210,9 +237,15 @@ static int vload_model(context_t exec_context, const char* model_name, const cha
 
     if(StaticGraphManager::Find(model_name))
     {
+<<<<<<< HEAD
         set_tengine_errno(EEXIST);
         StaticGraphManager::Put();
         return -1;
+=======
+        // set_tengine_errno(EEXIST);
+        StaticGraphManager::Put();
+        return 0;
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     }
 
     int ret = real_vload_model(exec_context, model_name, model_format, addr, mem_size, argp);
@@ -234,15 +267,41 @@ int vload_mem_model(context_t exec_context, const char* model_name, const char* 
     return vload_model(exec_context, model_name, model_format, addr, mem_size, argp);
 }
 
+<<<<<<< HEAD
+=======
+int get_model_format(graph_t graph)
+{
+    GraphExecutor* executor = static_cast<GraphExecutor*>(graph);
+    Graph* g = executor->GetOptimizedGraph();
+    return g->GetModelFormat();
+
+}
+
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 int save_graph_internal(graph_t graph, const char* model_format, const char* fname, va_list argp)
 {
     /* Get the serializer according to model_format */
     SerializerPtr serializer;
     if(!SerializerManager::SafeGet(model_format, serializer))
     {
+<<<<<<< HEAD
         LOG_ERROR() << "unknown model format: " << model_format << "\n";
         set_tengine_errno(ENOENT);
         return -1;
+=======
+        /* try to load from plugin */
+        std::string plugin_fname = std::string("lib") + model_format + "-serializer.so";
+        std::string plugin_init_func = std::string(model_format) + "_plugin_init";
+
+        if(load_tengine_plugin(model_format, plugin_fname.c_str(), plugin_init_func.c_str()) < 0)
+        {
+            LOG_ERROR() << "save graph failed, unknown model format: " << model_format << "\n";
+            set_tengine_errno(ENOENT);
+            return -1;
+        }
+
+        SerializerManager::SafeGet(model_format, serializer);
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     }
 
     /* Create file list */
@@ -267,6 +326,7 @@ int save_graph_internal(graph_t graph, const char* model_format, const char* fna
     return 0;
 }
 
+<<<<<<< HEAD
 static float get_absmax_val(float* data, int data_size)
 {
     float max_val = 0.f;
@@ -413,12 +473,99 @@ const char* get_model_name(graph_t graph)
         return nullptr;
     else
         return executor->GetModelName().c_str();
+=======
+#define GET_TENGINE_DT(a) (a + 1)
+graph_t create_graph_in_context(context_t exec_context, const char* graph_name, const char* model_name)
+{
+    GraphExecutor* executor = new GraphExecutor();
+
+    if(!executor->CreateGraph(exec_context, graph_name, model_name))
+    {
+        delete executor;
+        return nullptr;
+    }
+
+    return executor;
+}
+
+const char* get_model_name(graph_t graph)
+{
+    GraphExecutor* executor = static_cast<GraphExecutor*>(graph);
+
+    if(executor->GetModelName().empty())
+        return nullptr;
+    else
+        return executor->GetModelName().c_str();
+}
+
+const char* get_tengine_hcl_version()
+{
+    return gsHclVersion.c_str();
+}
+
+namespace TEngine
+{
+    static int g_CurrentAuthedStatus = 1;
+    std::function<void()> DUMP_HCL_VERSION_INFO_handle;
+
+    void tengine_authed_status(int status)
+    {
+        printf("set status : %d\n",status);
+        g_CurrentAuthedStatus = status;
+    }
+}
+
+extern "C" int tengine_authed_test();
+int is_tengine_auth()
+{
+    static bool bInit = false;
+    if( !bInit )
+    {
+        tengine_authed_test();
+        bInit = true;
+    }
+
+    return TEngine::g_CurrentAuthedStatus;
+}
+
+void about_tengine()
+{
+    printf("-------------------About Teninge----------------------\n");
+    printf("Tengine Version : %s\n",get_tengine_version());
+#ifdef CONFIG_KERNEL_FP32
+printf("Support fp32 calc\n");
+#endif
+
+#ifdef CONFIG_KERNEL_FP16
+printf("Support fp16 calc\n");
+#endif
+
+#ifdef CONFIG_KERNEL_INT8
+printf("Support int8 calc\n");
+#endif
+
+#ifdef CONFIG_KERNEL_UINT8
+printf("Support uint8 calc\n");
+#endif
+
+#ifdef ENABLE_ONLINE_REPORT
+printf("Support online report\n");
+#endif
+
+    if( TEngine::DUMP_HCL_VERSION_INFO_handle )
+    {
+        TEngine::DUMP_HCL_VERSION_INFO_handle();
+    }
+
+    printf("-------------------------------------------------------");
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 }
 
 extern void operator_plugin_init(void);
 extern void serializer_plugin_init(void);
 extern void executor_plugin_init(void);
 extern void driver_plugin_init(void);
+<<<<<<< HEAD
 
 namespace TEngine {
 
@@ -450,6 +597,80 @@ int hclcpu_plugin_init(void)
         return -1;
     }
     
+=======
+#ifdef ALL_IN_STATIC_LIB
+#ifdef BUILD_TOOLS
+int register_hclcpu_ops(void){}
+#else
+extern "C" int register_hclcpu_ops(void);
+#endif
+#endif
+
+namespace TEngine {
+
+
+typedef void (*REGISTER_AUTHED_HANDLE_CBK_T) ( int status );
+
+int hclcpu_plugin_init(bool ignore_failure)
+{
+    if( ignore_failure )
+    {
+	    return 0;
+    }
+    static ShareLibParser so_handle;
+
+    try
+    {
+        #ifdef ALL_IN_STATIC_LIB
+
+        if(register_hclcpu_ops())
+        {
+            LOG_ERROR() << "register register_hclcpu_ops failed\n";
+            set_tengine_errno(EFAULT);
+            return -1;
+        }
+
+        #else
+        if(so_handle.Load("libhclcpu.so") < 0)
+        {
+            LOG_ERROR() << "cannot load libhclcpu.so\n";
+            set_tengine_errno(ENOENT);
+            return -1;
+        }
+
+        if(so_handle.ExecuteFunc<int()>("register_hclcpu_ops") < 0)
+        {
+            LOG_ERROR() << "register hcl cpu ops failed\n";
+            set_tengine_errno(EFAULT);
+            return -1;
+        }
+        #endif
+#ifdef ENABLE_ONLINE_REPORT
+        gsHclVersion = so_handle.ExecuteFunc<const char*()>("get_hcl_version");
+#endif
+    }
+
+    catch(const std::exception& e)
+    {
+        if(!ignore_failure)
+        {
+            LOG_ERROR() << e.what() << "\n";
+            set_tengine_errno(EFAULT);
+            return -1;
+        }
+    }
+
+    try
+    {
+        so_handle.ExecuteFunc<void(REGISTER_AUTHED_HANDLE_CBK_T)>("set_tengine_authed_status_func",tengine_authed_status);
+        DUMP_HCL_VERSION_INFO_handle = so_handle.GetFunction<bool()>("dump_hcl_version_info");
+    }
+    catch (const std::exception&)
+    {
+
+    }
+
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     return 0;
 }
 
@@ -460,9 +681,26 @@ int InitAllPlugin(void)
     executor_plugin_init();
     driver_plugin_init();
 
+<<<<<<< HEAD
     if(hclcpu_plugin_init()<0)
     {
        return -1;
+=======
+    /* as for convert tool, it is all right to have no hclcpu */
+    bool ignore_failure = false;
+
+    const char* hcl_str = std::getenv("IGNORE_HCLCPU");
+
+    if(hcl_str && hcl_str[0] == '1')
+    {
+        ignore_failure = true;
+    }
+
+    if(hclcpu_plugin_init(ignore_failure) < 0)
+    {
+        LOG_ERROR() << "no graph can be executed on CPU\n";
+        return -1;
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     }
 
     return 0;

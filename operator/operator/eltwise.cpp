@@ -61,6 +61,12 @@ void Eltwise::SetSchema(void)
         .Output({"output:float32"})
         .SetAttr("type", 2)
         .SetAttr("caffe_flavor", 1)
+<<<<<<< HEAD
+=======
+        .SetAttr("power", 1)
+        .SetAttr("scale", 1)
+        .SetAttr("shift", 0)
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
         .SetDoc(R"DOC(Eltwise Layer)DOC");
 }
 

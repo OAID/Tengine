@@ -30,6 +30,10 @@ namespace TEngine {
 
 struct ReshapeParam : public NamedParam
 {
+<<<<<<< HEAD
+=======
+    /*
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     int dim_0;
     int dim_1;
     int dim_2;
@@ -45,6 +49,22 @@ struct ReshapeParam : public NamedParam
         DECLARE_PARSER_ENTRY(dim_3);
         DECLARE_PARSER_ENTRY(dim_size);
     };
+<<<<<<< HEAD
+=======
+    */
+    std::vector<int> re_shape;
+    bool reverse;
+    bool is_mxnet;
+    bool is_onnx;
+    int dim_size;
+    DECLARE_PARSER_STRUCTURE(ReshapeParam)
+    {
+        DECLARE_PARSER_ENTRY(reverse);
+        DECLARE_PARSER_ENTRY(is_mxnet);
+        DECLARE_PARSER_ENTRY(is_onnx);
+    };
+
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 };
 
 }    // namespace TEngine

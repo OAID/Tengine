@@ -52,10 +52,14 @@ bool Concat::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<
 
 void Concat::SetSchema(void)
 {
+<<<<<<< HEAD
     Input({"input:float32"})
         .Output({"output:float32"})
         .SetAttr("axis", 1)
         .SetDoc(R"DOC(Concat Operator)DOC");
+=======
+    Input({"input:float32"}).Output({"output:float32"}).SetAttr("axis", 1).SetDoc(R"DOC(Concat Operator)DOC");
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 }
 
 }    // namespace TEngine

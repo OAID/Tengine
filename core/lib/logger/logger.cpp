@@ -222,8 +222,13 @@ log_stream_t StdLogger::Log(LogLevel level)
         (*log_stream) << std::put_time(std::localtime(&t), "%Y-%m-%d %X ");
 #else
         char buf[128];
+<<<<<<< HEAD
         strftime(buf,128,"%Y-%m-%d %X ",localtime(&t));
 	(*log_stream)<<buf;
+=======
+        strftime(buf, 128, "%Y-%m-%d %X ", localtime(&t));
+        (*log_stream) << buf;
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 #endif
     }
 

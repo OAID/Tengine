@@ -46,7 +46,10 @@ public:
     float GetFops(const std::vector<TEngine::TShape>& ishape, const std::vector<TEngine::TShape>& oshape) override;
 
     void SetSchema(void) override;
+<<<<<<< HEAD
 
+=======
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 };
 
 }    // namespace TEngine

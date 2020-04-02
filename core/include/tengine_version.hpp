@@ -29,6 +29,11 @@ extern "C" {
 
 const char* get_tengine_version(void);
 int request_tengine_version(const char* version);
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 }
 
 #endif

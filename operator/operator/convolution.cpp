@@ -48,14 +48,26 @@ out_width = ceil(float(in_width - filter_width + 1) / float(strides[2]))
 
 bool Convolution::InferShape(const std::vector<TShape>& ishape, std::vector<TShape>& oshape, int layout)
 {
+<<<<<<< HEAD
     if(ishape.size() < 2)
         return false;
+=======
+    if(ishape.size() < 2){
+        return false;
+    }
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
     const TShape& input_shape = ishape[0];
     const TShape& weight_shape = ishape[1];
 
+<<<<<<< HEAD
     if(input_shape.GetDim().size() != 4 || weight_shape.GetDim().size() != 4)
         return false;
+=======
+    if(input_shape.GetDim().size() != 4 || weight_shape.GetDim().size() != 4){
+        return false;
+    }
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
     int input_n = input_shape.GetN();
     int input_c = input_shape.GetC();
@@ -75,7 +87,11 @@ bool Convolution::InferShape(const std::vector<TShape>& ishape, std::vector<TSha
 
     param_.input_channel = input_c;
 
+<<<<<<< HEAD
     if(param_.pad_h0 < 0 )
+=======
+    if(param_.pad_h0 < 0)
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     {
         int n = (input_h - 1) / param_.stride_h + 1;
         int total_len = (n - 1) * param_.stride_h + param_.kernel_h;
@@ -145,7 +161,17 @@ float Convolution::GetFops(const std::vector<TShape>& inputs, const std::vector<
 {
     const std::vector<int>& input_dims = inputs[0].GetDim();
 
+<<<<<<< HEAD
     int per_input_c = input_dims[1] / param_.group;
+=======
+    int layout = inputs[0].GetDataLayout();
+    int per_input_c;
+
+    if(layout == TENGINE_LAYOUT_NCHW)
+        per_input_c = input_dims[1] / param_.group;
+    else
+        per_input_c = input_dims[3] / param_.group;
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
     float ops = 1.0f * per_input_c * param_.kernel_h * param_.kernel_w * outputs[0].GetSize() * 2;
 

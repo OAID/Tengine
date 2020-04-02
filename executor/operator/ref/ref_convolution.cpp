@@ -44,6 +44,7 @@ namespace RefConvolutionOps {
 
 const int default_prio = 1500;
 
+<<<<<<< HEAD
 inline static int get_scale_zero(Tensor* itensor, Tensor* otensor, Tensor* ktensor, op_data* param)
 {
     auto* i_quant = itensor->GetQuantParam();
@@ -76,6 +77,8 @@ inline static int get_scale_zero(Tensor* itensor, Tensor* otensor, Tensor* ktens
     return 0;
 }
 
+=======
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 struct RefConv : public MTNodeOps
 {
     bool Prerun(Node* node) override;
@@ -86,18 +89,28 @@ struct RefConv : public MTNodeOps
 
     bool dynamic_shape;
     op_data op_param;
+<<<<<<< HEAD
     
     ref_conv_kernel_t  kernel_run;
     KernelRegistry<ref_conv_kernel_t>  kernel_registry;
     RefConv(void) 
     {
         kernel_run=nullptr;
+=======
+
+    ref_conv_kernel_t kernel_run;
+    KernelRegistry<ref_conv_kernel_t> kernel_registry;
+    RefConv(void)
+    {
+        kernel_run = nullptr;
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
         InitRegistry();
     }
 };
 void RefConv::InitRegistry(void)
 {
 #ifdef CONFIG_KERNEL_FP32
+<<<<<<< HEAD
     kernel_registry.Register((ref_conv_kernel_t)ref_conv_fp32,TENGINE_LAYOUT_NCHW,TENGINE_DT_FP32);
     kernel_registry.Register((ref_conv_kernel_t)ref_conv_fp32,TENGINE_LAYOUT_NHWC,TENGINE_DT_FP32);
 #endif
@@ -117,15 +130,43 @@ void RefConv::InitRegistry(void)
     kernel_registry.Register((ref_conv_kernel_t)ref_conv_uint8,TENGINE_LAYOUT_NHWC,TENGINE_DT_UINT8);
 #endif
 
+=======
+    kernel_registry.Register(( ref_conv_kernel_t )ref_conv_fp32, TENGINE_LAYOUT_NCHW, TENGINE_DT_FP32);
+    kernel_registry.Register(( ref_conv_kernel_t )ref_conv_fp32, TENGINE_LAYOUT_NHWC, TENGINE_DT_FP32);
+#endif
+
+#ifdef CONFIG_KERNEL_FP16
+    kernel_registry.Register(( ref_conv_kernel_t )ref_conv_fp16, TENGINE_LAYOUT_NCHW, TENGINE_DT_FP16);
+    kernel_registry.Register(( ref_conv_kernel_t )ref_conv_fp16, TENGINE_LAYOUT_NHWC, TENGINE_DT_FP16);
+#endif
+
+#ifdef CONFIG_KERNEL_INT8
+    kernel_registry.Register(( ref_conv_kernel_t )ref_conv_int8, TENGINE_LAYOUT_NCHW, TENGINE_DT_INT8);
+    kernel_registry.Register(( ref_conv_kernel_t )ref_conv_int8, TENGINE_LAYOUT_NHWC, TENGINE_DT_INT8);
+#endif
+
+#ifdef CONFIG_KERNEL_UINT8
+    kernel_registry.Register(( ref_conv_kernel_t )ref_conv_uint8, TENGINE_LAYOUT_NCHW, TENGINE_DT_UINT8);
+    kernel_registry.Register(( ref_conv_kernel_t )ref_conv_uint8, TENGINE_LAYOUT_NHWC, TENGINE_DT_UINT8);
+#endif
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 }
 
 bool RefConv::Prerun(Node* node)
 {
+<<<<<<< HEAD
     int  layout=exec_attr->graph_layout;
     
     Convolution* conv_op = dynamic_cast<Convolution*>(node->GetOp());
     ConvParam* param = conv_op->GetParam();
     
+=======
+    int layout = exec_attr->graph_layout;
+
+    Convolution* conv_op = dynamic_cast<Convolution*>(node->GetOp());
+    ConvParam* param = conv_op->GetParam();
+
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     Tensor* input_tensor = node->GetInputTensor(0);
     op_param.batch = input_tensor->GetShape().GetN();
     op_param.in_shape[0] = input_tensor->GetShape().GetC();
@@ -152,8 +193,37 @@ bool RefConv::Prerun(Node* node)
     op_param.group = param->group;
     op_param.activation = param->activation;
     op_param.layout = layout;
+<<<<<<< HEAD
 
     if(!kernel_registry.GetKernel(kernel_run,layout,input_tensor->GetDataType()))
+=======
+    op_param.k_scale = NULL;
+    if(kernel_tensor->GetDataType() == TENGINE_DT_INT8 || kernel_tensor->GetDataType() == TENGINE_DT_UINT8)
+    {
+        auto* k_quant = kernel_tensor->GetQuantParam();
+        int size = k_quant->size();
+        if(size < 1)
+            return false;
+        float* scale = ( float* )malloc(sizeof(float) * size);
+        for(int i = 0; i < size; i++)
+        {
+            scale[i] = (*k_quant)[i].scale;
+        }
+        op_param.k_scale = scale;
+        op_param.zero[1] = (*k_quant)[0].zero_point;
+        //get the input quant scale and output quant scale
+        auto* i_quant = input_tensor->GetQuantParam();
+        auto* o_quant = output_tensor->GetQuantParam();
+        if(i_quant->size() != 1 || o_quant->size() != 1)
+            return false;
+        op_param.scale[0] = (*i_quant)[0].scale;
+        op_param.zero[0] = (*i_quant)[0].zero_point;
+        op_param.scale[1] = (*o_quant)[0].scale;
+        op_param.zero[2] = (*o_quant)[0].zero_point;
+    }
+
+    if(!kernel_registry.GetKernel(kernel_run, layout, input_tensor->GetDataType()))
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     {
         set_tengine_errno(ENOENT);
         return false;
@@ -164,7 +234,10 @@ bool RefConv::Prerun(Node* node)
 
 bool RefConv::Reshape(Node* node)
 {
+<<<<<<< HEAD
     
+=======
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     Tensor* input_tensor = node->GetInputTensor(0);
     op_param.batch = input_tensor->GetShape().GetN();
     op_param.in_shape[0] = input_tensor->GetShape().GetC();
@@ -180,7 +253,10 @@ bool RefConv::Reshape(Node* node)
 }
 bool RefConv::Run(Node* node)
 {
+<<<<<<< HEAD
     //printf("---------------------------- Run ref_conv!!!\n");
+=======
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     Tensor* i_tensor = node->GetInputTensor(0);
     const void* input = get_tensor_mem(i_tensor);
     Tensor* k_tensor = node->GetInputTensor(1);
@@ -192,6 +268,7 @@ bool RefConv::Run(Node* node)
     Tensor* o_tensor = node->GetOutputTensor(0);
     void* output = get_tensor_mem(o_tensor);
 
+<<<<<<< HEAD
     /* Get input,kernel,output scale & zero */
     /* Current: one tensor has only one quantparam(scale)*/
     if(i_tensor->GetDataType() == TENGINE_DT_INT8 ||
@@ -212,11 +289,22 @@ bool RefConv::Run(Node* node)
     }
     if(ret<0)
         return false;
+=======
+    int ret = kernel_run(input, output, kernel, bias, &op_param);
+    if(ret < 0)
+        return false;
+    
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     return true;
 }
 
 bool RefConv::Postrun(Node* node)
 {
+<<<<<<< HEAD
+=======
+    if(op_param.k_scale)
+        free(op_param.k_scale);
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     return true;
 }
 

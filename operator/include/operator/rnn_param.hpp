@@ -23,7 +23,11 @@
 
 namespace TEngine {
 
+<<<<<<< HEAD
 #define RNN_ACT_TANH    1
+=======
+#define RNN_ACT_TANH 1
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
 struct RNNParam : public NamedParam
 {

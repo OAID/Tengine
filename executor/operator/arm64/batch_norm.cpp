@@ -37,8 +37,49 @@ namespace TEngine {
 
 namespace BatchNormImpl64 {
 
+<<<<<<< HEAD
 struct BNOps : public NodeOps
 {
+=======
+void batchnorm_kernel(int i, int id, void* data, const float* input, float* output, float* scale_mean, float* scale_var, int channel_size)
+{
+    int step = ((int*)data)[0];
+    for(int c = 0; c < step; c++)
+    {
+        int cur_c = id * step + c;
+        float s_mean = scale_mean[cur_c];
+        float s_var = scale_var[cur_c];
+        float32x4_t _mean = vdupq_n_f32(s_mean);
+        float32x4_t _var = vdupq_n_f32(s_var);
+        int offset = cur_c * channel_size;
+        const float* input_ptr = input + offset;
+        float* output_ptr = output + offset;
+
+        // output[offset]= input[offset]*scale_var_inv[c] - scale_mean[c];
+        for(int l = 0; l < (channel_size & -4); l += 4)
+        {
+            float32x4_t _input = vld1q_f32(input_ptr);
+            vst1q_f32(output_ptr, vmlaq_f32(_mean, _input, _var));
+            input_ptr += 4;
+            output_ptr += 4;
+        }
+        for(int l = channel_size & ~3; l < channel_size; l++)
+        {
+            *output_ptr = (*input_ptr) * s_var + s_mean;
+            input_ptr++;
+            output_ptr++;
+        }
+    }
+}
+
+struct BNOps : public NodeOps
+{
+    BNOps()
+    {
+        name_ = "arm_batchnorm_fp32";
+    }
+
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     bool OnBind(Node* node)
     {
         // set the inplace feature
@@ -76,8 +117,28 @@ struct BNOps : public NodeOps
         rescale_factor = param->rescale_factor ? 1 / param->rescale_factor : 0;
         for(int c = 0; c < channel_num; c++)
         {
+<<<<<<< HEAD
             scale_var_inv[c] = 1.f / std::sqrt(var[c] * rescale_factor + eps);
             scale_mean[c] = -mean[c] * rescale_factor * scale_var_inv[c];
+=======
+            float tmp = std::sqrt(var[c] * rescale_factor + eps);
+            scale_var_inv[c] = (float)(1.f / tmp);
+            tmp = rescale_factor * scale_var_inv[c];
+            scale_mean[c] = (float)(-mean[c] * tmp);
+        }
+        if(!param->caffe_flavor)
+        {
+            const Tensor* gamma_tensor = node->GetInputTensor(1);
+            const Tensor* beta_tensor = node->GetInputTensor(2);
+            const float* gamma = ( const float* )get_tensor_mem(gamma_tensor);
+            const float* beta = ( const float* )get_tensor_mem(beta_tensor);
+            for(int c = 0; c < channel_num; c++)
+            {
+                scale_var_inv[c] *= gamma[c];
+                scale_mean[c] *= gamma[c];
+                scale_mean[c] += beta[c];
+            }
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
         }
 
         node->SetAttr("scale_mean", scale_mean);
@@ -98,6 +159,7 @@ struct BNOps : public NodeOps
         int channel_size = dims[2] * dims[3];
         int img_size = channel_num * channel_size;
 
+<<<<<<< HEAD
         BatchNorm* bn_op = dynamic_cast<BatchNorm*>(node->GetOp());
         BatchNormParam* param = bn_op->GetParam();
 
@@ -188,6 +250,41 @@ struct BNOps : public NodeOps
                         output_ptr++;
                     }
                 }
+=======
+        const float* input = ( const float* )get_tensor_mem(input_tensor);
+        float* output = ( float* )get_tensor_mem(output_tensor);
+
+        float* scale_mean = any_cast<float*>(node->GetAttr("scale_mean"));
+        float* scale_var_inv = any_cast<float*>(node->GetAttr("scale_var_inv"));
+
+
+        int cpu_number = cpu_info->GetCPUNumber();
+        int block = channel_num;
+        block = block > 0 ? block : 1;
+        int num_task = cpu_number < block ? cpu_number : block;
+        int step = channel_num / num_task;
+        /* only use mean and var */
+        for(int i = 0; i < batch_number; i++)
+        {
+            const float* cur_input = input + i * img_size;
+            float* cur_output = output + i * img_size;
+
+            if(num_task == 1)
+                batchnorm_kernel( 0, 0, &step, cur_input, cur_output, scale_mean, scale_var_inv, channel_size);
+            else
+            {
+                MULTI_THREAD_START(num_task, step, p_id, p_param)
+                    batchnorm_kernel( 0, p_id, p_param, cur_input, cur_output, scale_mean, scale_var_inv, channel_size);
+                MULTI_THREAD_END();
+            }
+            if(num_task * step != channel_num)
+            {
+                int offset = num_task * step;
+                int remain_num = channel_num - offset;
+                cur_input += offset * channel_size;
+                cur_output += offset * channel_size;
+                batchnorm_kernel( 0, 0, &remain_num, cur_input, cur_output, scale_mean + offset, scale_var_inv + offset, channel_size);
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
             }
         }
 
@@ -209,7 +306,14 @@ struct BNOps : public NodeOps
 NodeOps* SelectFunc(const CPUInfo* cpu_info, Node* node)
 {
     Tensor* input = node->GetInputTensor(0);
+<<<<<<< HEAD
     if((input->GetShape()).GetDim().size() != 4)
+=======
+    const ExecAttr* exec_attr = any_cast<const ExecAttr*>(node->GetAttr(ATTR_EXEC_ATTR));
+    if(input->GetDataType() != TENGINE_DT_FP32 || exec_attr->graph_layout != TENGINE_LAYOUT_NCHW)
+        return nullptr;
+    if(input->GetShape().GetDim().size() != 4 && input->GetShape().GetDim().size() != 3)
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
         return nullptr;
 
     BNOps* ops = new BNOps();

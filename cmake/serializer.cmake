@@ -1,6 +1,7 @@
 
 include_directories(serializer/include)
 
+<<<<<<< HEAD
 if(CONFIG_CAFFE_SERIALIZER)
     FILE(GLOB_RECURSE serializer_src "serializer/caffe/*.cpp")
 
@@ -90,6 +91,8 @@ if(CONFIG_TF_SERIALIZER)
     list(APPEND TENGINE_LIB_SRCS ${tf_proto_cc})
 endif()
 
+=======
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 if(CONFIG_TENGINE_SERIALIZER)
     include_directories(serializer/include/tengine)
     include_directories(serializer/include/tengine/v1)
@@ -99,6 +102,7 @@ if(CONFIG_TENGINE_SERIALIZER)
     list(APPEND TENGINE_LIB_SRCS ${tengine_serializer_cpp_src} ${tengine_serializer_c_src})
 endif()
 
+<<<<<<< HEAD
 if(CONFIG_MXNET_SERIALIZER)
     FILE(GLOB_RECURSE serializer_src "serializer/mxnet/*.cpp")
     list(APPEND TENGINE_LIB_SRCS ${serializer_src})
@@ -113,6 +117,10 @@ endif()
 
 FILE(GLOB_RECURSE source_serializer_cpp_src "serializer/source/*.cpp")
 list(APPEND TENGINE_LIB_SRCS ${source_serializer_cpp_src})
+=======
+#FILE(GLOB_RECURSE source_serializer_cpp_src "serializer/source/*.cpp")
+#list(APPEND TENGINE_LIB_SRCS ${source_serializer_cpp_src})
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
 FILE(GLOB plugin_init "serializer/plugin/init.cpp")
 

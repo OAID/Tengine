@@ -22,6 +22,7 @@
  * Author: haoluo@openailab.com
  */
 
+<<<<<<< HEAD
 static int ref_swap_axis_fp32(const float* in_data,float* out_data,const int* dims)
 {
     
@@ -38,4 +39,9 @@ static int ref_swap_axis_fp32(const float* in_data,float* out_data,const int* di
                 }
 
     return 0;
+=======
+static int ref_swap_axis_fp32(const float* in_data, float* out_data, const int* dims)
+{
+    return ref_swap_axis_common(( const char* )in_data, ( char* )out_data, dims, sizeof(float));
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 }

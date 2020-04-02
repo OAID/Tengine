@@ -33,7 +33,10 @@
 #include "operator/relu.hpp"
 #include "operator/scale.hpp"
 #include "operator/eltwise.hpp"
+<<<<<<< HEAD
 
+=======
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 #include "tensor_mem.hpp"
 
 namespace TEngine {
@@ -54,6 +57,7 @@ static bool Weight_Bn(Subgraph* graph, Node* ConvNode, float* mean, float* var, 
     const TShape& kernel_shape = kernel_tensor->GetShape();
 
     int group = param->group;
+<<<<<<< HEAD
     int input_chan = kernel_shape.Shape(1) ;
 
     int output_chan = kernel_shape.Shape(0) / group;
@@ -66,6 +70,16 @@ static bool Weight_Bn(Subgraph* graph, Node* ConvNode, float* mean, float* var, 
 
     int channel_num = kernel_shape.Shape(0);
 
+=======
+    // int input_chan = kernel_shape.Shape(1);
+    int input_chan = kernel_shape.GetC();
+    int output_chan = kernel_shape.Shape(0) / group;
+    int kernel_x = param->kernel_w;
+    int kernel_y = param->kernel_h;
+    int kernel_size = input_chan * kernel_x * kernel_y;
+    float* kernel_org = ( float* )get_tensor_mem(kernel_tensor);
+    int channel_num = kernel_shape.Shape(0);
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     float* kernel_new = ( float* )(malloc(kernel_size * channel_num * sizeof(float) + 128));
 
     memcpy(kernel_new, kernel_org, sizeof(float) * kernel_size * channel_num);
@@ -153,6 +167,7 @@ static bool Weight_Bn(Subgraph* graph, Node* ConvNode, float* mean, float* var, 
             scale_mean[c] = scale_mean[c] + beta[c];
         }
     }
+<<<<<<< HEAD
 
     for(int g = 0; g < group; g++)
     {
@@ -169,6 +184,45 @@ static bool Weight_Bn(Subgraph* graph, Node* ConvNode, float* mean, float* var, 
         }
     }
 
+=======
+    if(kernel_shape.GetDataLayout() == TENGINE_LAYOUT_NCHW)
+    {
+        for(int g = 0; g < group; g++)
+        {
+            float* kernel = kernel_new + g * output_chan * kernel_size;
+            for(int o_c = 0; o_c < output_chan; o_c++)
+            {
+                float w_scale = scale_var_inv[g * output_chan + o_c];
+                for(int i = 0; i < kernel_size; i++)
+                {
+                    kernel[o_c * kernel_size + i] = kernel[o_c * kernel_size + i] * w_scale;
+                }
+            }
+        }
+    }
+    else
+    {
+        for(int o_c = 0; o_c < output_chan; o_c++)
+        {
+            for(int k_h = 0; k_h < kernel_y; ++k_h)
+            {
+                for(int k_w = 0; k_w < kernel_x; ++k_w)
+                {
+                    for(int g = 0; g < group; ++g)
+                    {
+                        float w_scale = scale_var_inv[g * output_chan + o_c];
+                        for(int i_c = 0; i_c < input_chan; ++i_c)
+                        {
+                            int weight_idx = o_c * group * kernel_size + k_h * kernel_x * input_chan * group +
+                                             k_w * input_chan * group + g * input_chan + i_c;
+                            kernel_new[weight_idx] = kernel_new[weight_idx] * w_scale;
+                        }
+                    }
+                }
+            }
+        }
+    }
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     float* bias_tmp = ( float* )get_tensor_mem(ConvNode->GetInputTensor(2));
 
     for(int i = 0; i < channel_num; i++)
@@ -657,7 +711,14 @@ static bool GraphFuseConvReLuCommon(Graph* graph, GraphOptimizer* opt, bool relu
 
         if(!NodeInGraph(conv_node, graph))
             continue;
+<<<<<<< HEAD
 
+=======
+        // if parents has muti_consumer: not fuse
+        Tensor* conv_otensor = conv_node->GetOutputTensor(0);
+        if(conv_otensor->consumer.size() > 1)
+            continue;
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
         Subgraph* sub = new Subgraph("conv_relu");
 
         sub->seq_nodes.push_back(conv_node);
@@ -747,12 +808,18 @@ static bool GraphFuseConvReLuCommon(Graph* graph, GraphOptimizer* opt, bool relu
 
     return true;
 }
+<<<<<<< HEAD
 
+=======
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 static bool GraphFuseConvReLu(Graph* graph, GraphOptimizer* opt)
 {
     return GraphFuseConvReLuCommon(graph, opt, false);
 }
+<<<<<<< HEAD
 
+=======
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 static bool GraphFuseConvReLu6(Graph* graph, GraphOptimizer* opt)
 {
     return GraphFuseConvReLuCommon(graph, opt, true);

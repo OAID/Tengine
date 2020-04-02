@@ -25,13 +25,20 @@
 
 namespace TEngine {
 
+<<<<<<< HEAD
 /* 
    DemoOps demos to permute a 2d matrix and 
    then expanding one column to summerize each row of the permuted matrix 
+=======
+/*
+   DemoOps demos to permute a 2d matrix and
+   then expanding one column to summerize each row of the permuted matrix
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 */
 
 bool DemoOp::InferShape(const std::vector<TShape>& ishape, std::vector<TShape>& oshape, int layout)
 {
+<<<<<<< HEAD
     int h=ishape[0].Shape(0);
     int w=ishape[0].Shape(1);
     std::vector<int> dims;
@@ -41,11 +48,25 @@ bool DemoOp::InferShape(const std::vector<TShape>& ishape, std::vector<TShape>& 
 
     oshape[0].SetDim(dims);
     oshape[0].SetDataLayout(layout); 
+=======
+    int h = ishape[0].Shape(0);
+    int w = ishape[0].Shape(1);
+    std::vector<int> dims;
+
+    dims.push_back(w);
+    dims.push_back(h + 1);
+
+    oshape[0].SetDim(dims);
+    oshape[0].SetDataLayout(layout);
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
     return true;
 }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 void DemoOp::SetSchema(void)
 {
     Input({"input:float32/int8"})

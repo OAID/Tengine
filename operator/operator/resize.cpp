@@ -27,6 +27,7 @@ namespace TEngine {
 bool Resize::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEngine::TShape>& oshape, int layout)
 {
     const TShape& input = ishape[0];
+<<<<<<< HEAD
     const std::vector<int>& in_dim = input.GetDim();
 
     int out_h = ( int )(in_dim[2] * param_.scale_h);
@@ -39,6 +40,25 @@ bool Resize::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<
     shape.SetDim(dim);
     shape.SetDataLayout(input.GetDataLayout());
 
+=======
+
+    int out_h = ( int )(input.GetH() * param_.scale_h);
+    int out_w = ( int )(input.GetW() * param_.scale_w);
+
+    TShape shape;
+    if(layout == TENGINE_LAYOUT_NHWC)
+    {
+       std::vector<int> dim = {input.GetN(), out_h, out_w, input.GetC()};
+       shape.SetDim(dim);
+       shape.SetDataLayout(TENGINE_LAYOUT_NHWC);
+    }
+    else
+    {
+       std::vector<int> dim = {input.GetN(), input.GetC(), out_h, out_w};
+       shape.SetDim(dim);
+       shape.SetDataLayout(TENGINE_LAYOUT_NCHW);
+    }
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     oshape[0] = shape;
 
     return true;
@@ -50,7 +70,11 @@ void Resize::SetSchema(void)
         .Output({"output:float32"})
         .SetAttr("scale_h", 1.f)
         .SetAttr("scale_w", 1.f)
+<<<<<<< HEAD
 
+=======
+        .SetAttr("type", 0)
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
         .SetDoc(R"DOC(Resize Layer)DOC");
 }
 

@@ -1,0 +1,15 @@
+convert_model_to_tm 可以方便的将 Caffe、Onnx、Mxnet、 Darknet、Tensorflow 或 Tf-lite 模型转换成 Tengine 模型。 
+目前仅提供Linux x86 64bit平台的工具。
+
+命令格式为：
+[Usage]: ./install/tool/convert_model_to_tm [-h] [-f file_format] [-p proto_file] [-m model_file] [-o output_tmfile]
+
+file_format 可以指定：caffe、caffe_single、onnx、mxnet、tensorflow、Darknet、tflite 当输入只有一个模型文件时，不需要指定“-p”选项，只指定“-m”选项即可。 “-h”是“help”选项。 
+
+下面是将 Caffe 模型和 Tensorflow 模型（squeezenet）转成 Tengine 模型的使用示例：
+
+
+cd ~/tengine
+
+./install/tool/convert_model_to_tm -f caffe -p models/sqz.prototxt -m models/squeezenet_v1.1.caffemodel -o models/squeezenet.tmfile 
+./install/tool/convert_model_to_tm -f tensorflow -m models/squeezenet.pb -o models/squeezenet_tf.tmfile

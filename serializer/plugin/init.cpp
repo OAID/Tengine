@@ -26,6 +26,7 @@
 
 #include "serializer.hpp"
 
+<<<<<<< HEAD
 #ifdef CONFIG_CAFFE_SERIALIZER
 #include "caffe_serializer.hpp"
 #endif
@@ -49,12 +50,17 @@
 #ifdef CONFIG_TENGINE_SERIALIZER
 #include "tm_serializer.hpp"
 #include "src_tm_serializer.hpp"
+=======
+#ifdef CONFIG_TENGINE_SERIALIZER
+#include "tm_serializer.hpp"
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 #endif
 
 #include "logger.hpp"
 
 namespace TEngine {
 
+<<<<<<< HEAD
 #ifdef CONFIG_ONNX_SERIALIZER
 extern bool OnnxSerializerRegisterOpLoader();
 #endif
@@ -75,6 +81,8 @@ extern bool TFSerializerRegisterOpLoader();
 extern bool TFLiteSerializerRegisterOpLoader();
 #endif
 
+=======
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 #ifdef CONFIG_TENGINE_SERIALIZER
 bool TmSerializerInit(void);
 #endif
@@ -87,6 +95,7 @@ int serializer_plugin_init(void)
 {
     // Register into factory
 
+<<<<<<< HEAD
     auto factory = SerializerFactory::GetFactory();
 
 #ifdef CONFIG_ONNX_SERIALIZER
@@ -136,16 +145,27 @@ int serializer_plugin_init(void)
 
     TFLiteSerializerRegisterOpLoader();
 #endif
+=======
+    //auto factory = SerializerFactory::GetFactory();
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
 #ifdef CONFIG_TENGINE_SERIALIZER
     TmSerializerInit();
 
+<<<<<<< HEAD
 #define SrcTmName "src_tm"
+=======
+/*#define SrcTmName "src_tm"
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
     factory->RegisterInterface<SrcTmSerializer>(SrcTmName);
     auto src_tm_serializer = factory->Create(SrcTmName);
 
+<<<<<<< HEAD
     SerializerManager::SafeAdd(SrcTmName, SerializerPtr(src_tm_serializer));
+=======
+    SerializerManager::SafeAdd(SrcTmName, SerializerPtr(src_tm_serializer));*/
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
 #endif
 

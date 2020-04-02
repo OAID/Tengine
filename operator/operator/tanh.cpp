@@ -27,9 +27,13 @@ namespace TEngine {
 
 void Tanh::SetSchema(void)
 {
+<<<<<<< HEAD
     Input({"input:float32"})
         .Output({"output:float32"})
         .SetDoc(R"DOC(Tanh Layer)DOC");
+=======
+    Input({"input:float32"}).Output({"output:float32"}).SetDoc(R"DOC(Tanh Layer)DOC");
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 }
 
 }    // namespace TEngine

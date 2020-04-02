@@ -44,7 +44,12 @@ enum EltType
     ELT_SQRT,
     ELT_FLOOR,
     ELT_SQUARE,
+<<<<<<< HEAD
     ELT_POW
+=======
+    ELT_POW,
+    ELT_POWER
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 };
 
 namespace TEngine {
@@ -55,11 +60,23 @@ struct EltwiseParam : public NamedParam
     // EltType type;
     int type;
     int caffe_flavor;
+<<<<<<< HEAD
+=======
+    float shift;
+    float power;
+    float scale;
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
     DECLARE_PARSER_STRUCTURE(EltwiseParam)
     {
         DECLARE_PARSER_ENTRY(type);
         DECLARE_PARSER_ENTRY(caffe_flavor);
+<<<<<<< HEAD
+=======
+        DECLARE_PARSER_ENTRY(shift);
+        DECLARE_PARSER_ENTRY(power);
+        DECLARE_PARSER_ENTRY(scale);
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     };
 };
 

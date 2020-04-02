@@ -39,7 +39,12 @@ public:
     DetectionPostProcess(const DetectionPostProcess& src) = default;
 
     virtual ~DetectionPostProcess() {}
+<<<<<<< HEAD
     bool InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEngine::TShape>& oshape);
+=======
+    bool InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<TEngine::TShape>& oshape,
+                    int layout) override;
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     void SetSchema(void) override;
 };
 

@@ -34,23 +34,40 @@ struct te_error_base : public std::runtime_error
     {
         return error_code;
     }
+<<<<<<< HEAD
     te_error_base() : runtime_error("tengine error"){}
+=======
+    te_error_base() : runtime_error("tengine error") {}
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 };
 struct te_error_shared_function_not_found : public te_error_base
 {
     using te_error_base::te_error_base;
     static std::string msg;
+<<<<<<< HEAD
     
     te_error_shared_function_not_found(const std::string& func_name) 
     {
         msg="\nShared function not found: ";
         msg+=func_name;
         msg+="\n";
+=======
+
+    te_error_shared_function_not_found(const std::string& func_name)
+    {
+        msg = "\nShared function not found: ";
+        msg += func_name;
+        msg += "\n";
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     }
 
     const char* what() const throw() override
     {
+<<<<<<< HEAD
         return msg.c_str(); 
+=======
+        return msg.c_str();
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     }
 };
 struct te_error_unable_to_load_library : public te_error_base
@@ -60,10 +77,17 @@ struct te_error_unable_to_load_library : public te_error_base
 
     te_error_unable_to_load_library(const std::string& so_name)
     {
+<<<<<<< HEAD
         msg="\nShared library not found: ";
         msg+=so_name;
         msg+="\n";
     } 
+=======
+        msg = "\nShared library not found: ";
+        msg += so_name;
+        msg += "\n";
+    }
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
     const char* what() const throw() override
     {

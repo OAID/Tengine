@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 if(CMAKE_TOOLCHAIN_FILE)
 set(LIBRARY_OUTPUT_PATH_ROOT ${CMAKE_BINARY_DIR} CACHE PATH "root for library output, set this to change where android libs are compiled to")
 # get absolute path, but get_filename_component ABSOLUTE only refer with source dir, so find_file here :(
@@ -45,3 +46,17 @@ endif()
 add_subdirectory(tengine_model)
 
 
+=======
+set( CLASSIFICATION classification )
+set( MOBILENET_SSD mobilenet_ssd )
+
+add_executable(${CLASSIFICATION} classification.cpp common.cpp)
+target_link_libraries(${CLASSIFICATION} tengine)
+
+add_executable(${MOBILENET_SSD} mobilenet_ssd.cpp common.cpp)
+target_link_libraries(${MOBILENET_SSD} tengine)
+
+install(TARGETS ${CLASSIFICATION} DESTINATION examples)
+install(TARGETS ${MOBILENET_SSD} DESTINATION examples)
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/synset_words.txt DESTINATION examples)
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074

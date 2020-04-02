@@ -26,7 +26,13 @@
 #ifndef __WORKER_THREAD_HPP__
 #define __WORKER_THREAD_HPP__
 
+<<<<<<< HEAD
 #include <sys/time.h>
+=======
+#include <sched.h>
+#include <sys/time.h>
+#include <errno.h>
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 #include <string.h>
 
 #include <queue>
@@ -34,6 +40,11 @@
 #include <mutex>
 #include <condition_variable>
 
+<<<<<<< HEAD
+=======
+#include "logger.hpp"
+
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 namespace TEngine {
 
 template <typename T> class WorkerThread
@@ -94,6 +105,7 @@ public:
     void StopWorker(void)
     {
         std::unique_lock<std::mutex> cv_lock(*worker_lock_);
+<<<<<<< HEAD
         quit_work_ = true;
         cv_lock.unlock();
 
@@ -103,10 +115,24 @@ public:
     bool LaunchWorker(void)
     {
         auto func = std::bind(&WorkerThread::DoWork, this);
+=======
+
+        quit_work_ = true;
+        worker_cv_->notify_all();
+        active_cv_.notify_one();
+
+        cv_lock.unlock();
+    }
+
+    bool LaunchWorker(bool master_cpu=false)
+    {
+        auto func = std::bind(&WorkerThread::DoWork, this,master_cpu);
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
         worker_ = new std::thread(func);
         return true;
     }
 
+<<<<<<< HEAD
 private:
     void DoWork(void)
     {
@@ -122,6 +148,26 @@ private:
 
         start_time = tv.tv_sec;
 #endif
+=======
+    void Activate(int dispatch_cpu)
+    {
+         dispatch_cpu_=dispatch_cpu;
+         active_count_++;
+
+         std::unique_lock<std::mutex> cv_lock(*worker_lock_);
+         active_cv_.notify_one();
+    }
+
+    void Deactivate(void)
+    {
+        active_count_--;
+    }
+
+private:
+    void DoWork(bool master_cpu)
+    {
+        int task_done_count = 0;
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
         // bind CPU first
         if(bind_cpu_ >= 0)
@@ -134,6 +180,7 @@ private:
                 bind_done_ = true;
         }
 
+<<<<<<< HEAD
         while(true)
         {
             T task;
@@ -183,6 +230,68 @@ private:
         }
 
         cv_lock.unlock();
+=======
+	if(master_cpu)
+	{
+           // set scheduler
+           struct sched_param sched_param;
+
+           sched_param.sched_priority = 10;
+           sched_setscheduler(0, SCHED_RR, &sched_param);
+	}
+
+	while(true)
+        {
+            while(active_count_>0)
+            {
+                T task;
+    
+                if(GetTask(task))
+                {
+                    process_(task, bind_cpu_);
+
+                    if(inc_done_)
+                        inc_done_(1);
+
+                    task_done_count++;
+                }
+                else
+                    std::this_thread::yield();
+            }
+
+            std::unique_lock<std::mutex> cv_lock(*worker_lock_);
+
+            active_cv_.wait(cv_lock,[this]{return (active_count_>0 || quit_work_); });
+
+            cv_lock.unlock();
+ 
+            if(quit_work_)
+                break;
+        }
+    }
+
+    bool GetTask(T& task)
+    {
+        bool ret=false;
+        std::unique_lock<std::mutex> cv_lock(*worker_lock_);
+
+        if(bind_cpu_==dispatch_cpu_)
+        {
+            if(task_queue_->empty() && !quit_work_)
+                worker_cv_->wait(cv_lock, [this] { return !task_queue_->empty() || quit_work_; });
+        }
+
+        if(!task_queue_->empty())
+        {
+            task = task_queue_->front();
+            task_queue_->pop();
+            ret=true;
+        }
+
+        cv_lock.unlock();
+
+        return ret;
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     }
 
     void Init(const process_t& func)
@@ -196,6 +305,12 @@ private:
         worker_lock_ = nullptr;
         worker_cv_ = nullptr;
 
+<<<<<<< HEAD
+=======
+        active_count_=0;
+        dispatch_cpu_=-100;
+
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
         //    LaunchWorker();
     }
 
@@ -204,6 +319,14 @@ private:
     bool quit_work_;
     process_t process_;
 
+<<<<<<< HEAD
+=======
+    std::atomic<unsigned int> active_count_;
+    std::condition_variable  active_cv_;
+    int dispatch_cpu_;
+
+
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     std::queue<T>* task_queue_;
     std::mutex* worker_lock_;
     std::condition_variable* worker_cv_;

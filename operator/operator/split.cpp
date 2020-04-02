@@ -36,6 +36,7 @@ bool Split::InferShape(const std::vector<TShape>& ishape, std::vector<TShape>& o
     {
         for(unsigned int i = 0; i < oshape.size(); i++)
             oshape[i] = ishape[0];
+<<<<<<< HEAD
     }
     else
     {
@@ -54,6 +55,51 @@ bool Split::InferShape(const std::vector<TShape>& ishape, std::vector<TShape>& o
             for (unsigned int i = 0; i < param_.split_sizes_.size(); ++i)
             {
                 input_dim[axis] = (param_.split_sizes_[i]);
+=======
+    }else if (param_.is_onnx){
+        if(param_.split_sizes_.size() != 0)
+        {
+            int sumcheck = 0;
+            int input_slice_num = input_dim[axis];
+            for(unsigned int i = 0; i < param_.split_sizes_.size(); ++i)
+            {
+                sumcheck += param_.split_sizes_[i];
+            }
+            if(sumcheck != input_slice_num)
+            {
+                return false;
+            }
+            for(unsigned int i = 0; i < param_.split_sizes_.size(); ++i)
+            {
+                input_dim[axis] = (param_.split_sizes_[i]);
+                //for(int i = 0; i < axis; i++)
+                //    input_dim[i] = (param_.split_sizes_[i]);
+                //printf("%d %d %d %d \n", input_dim[0],input_dim[1],input_dim[2],input_dim[3]);
+                
+                oshape[i].SetDim(input_dim);
+                oshape[i].SetDataLayout(shape.GetDataLayout());                 
+            }           
+        }       
+    }
+    else
+    {
+        if(param_.split_sizes_.size() != 0)
+        {
+            int sumcheck = 0;
+            int input_slice_num = input_dim[axis];
+            for(unsigned int i = 0; i < param_.split_sizes_.size(); ++i)
+            {
+                sumcheck += param_.split_sizes_[i];
+            }
+            if(sumcheck != input_slice_num)
+            {
+                return false;
+            }
+            for(unsigned int i = 0; i < param_.split_sizes_.size(); ++i)
+            {
+                input_dim[axis] = (param_.split_sizes_[i]);
+                //printf("%d ", input_dim[axis]);
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
                 oshape[i].SetDim(input_dim);
                 oshape[i].SetDataLayout(shape.GetDataLayout());
             }
@@ -64,29 +110,55 @@ bool Split::InferShape(const std::vector<TShape>& ishape, std::vector<TShape>& o
             int split_shape = 0;
             std::vector<int> dim;
             dim = ishape[0].GetDim();
+<<<<<<< HEAD
             if(dim[axis]% split_dim!=0)
                 return false;
             split_shape= dim[axis]/split_dim;
             input_dim[axis]=split_shape;
+=======
+            if(dim[axis] % split_dim != 0)
+                return false;
+            split_shape = dim[axis] / split_dim;
+            input_dim[axis] = split_shape;
+            if( split_shape == 1)
+            {
+                input_dim.erase(input_dim.begin() + axis);
+            }
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
             for(unsigned int i = 0; i < oshape.size(); i++)
             {
                 oshape[i].SetDim(input_dim);
                 oshape[i].SetDataLayout(shape.GetDataLayout());
             }
         }
+<<<<<<< HEAD
 
     }
 
 
+=======
+    }
+
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     return true;
 }
 void Split::SetSchema(void)
 {
     Input({"input:float32"})
+<<<<<<< HEAD
     .Output({"output:float32"})
     .SetAttr("axis", 0)
     .SetAttr("split_dim", 1)
     .SetAttr("is_caffe", false)
     .SetDoc(R"DOC(Split Operator)DOC");
+=======
+        .Output({"output:float32"})
+        .SetAttr("axis", 0)
+        .SetAttr("split_dim", 1)
+        // .SetAttr("squeeze_axis", 0)
+        .SetAttr("is_caffe", false)
+        .SetAttr("is_onnx", false)
+        .SetDoc(R"DOC(Split Operator)DOC");
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 }
 }    // namespace TEngine

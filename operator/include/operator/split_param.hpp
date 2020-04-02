@@ -33,13 +33,24 @@ struct SplitParam : public NamedParam
     int axis;
     int split_dim;
     bool is_caffe;
+<<<<<<< HEAD
     std::vector<int> split_sizes_;
 
+=======
+    // int squeeze_axis;
+    std::vector<int> split_sizes_;
+    bool is_onnx;
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     DECLARE_PARSER_STRUCTURE(SplitParam)
     {
         DECLARE_PARSER_ENTRY(axis);
         DECLARE_PARSER_ENTRY(split_dim);
         DECLARE_PARSER_ENTRY(is_caffe);
+<<<<<<< HEAD
+=======
+        DECLARE_PARSER_ENTRY(is_onnx);
+        // DECLARE_PARSER_ENTRY(squeeze_axis);
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
         DECLARE_PARSER_ENTRY(split_sizes_);
     }
 };

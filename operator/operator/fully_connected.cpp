@@ -32,21 +32,59 @@ bool FullyConnected::InferShape(const std::vector<TEngine::TShape>& ishape, std:
     const TShape& input = ishape[0];
     const TShape& weight = ishape[1];
 
+<<<<<<< HEAD
     int m = input.GetN();
     int input_k = input.GetW() * input.GetH() * input.GetC();
+=======
+    std::vector<int> dim;
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
     int n = weight.Shape(0);
     int k = weight.Shape(1);
 
+<<<<<<< HEAD
+=======
+    int m = input.Shape(0);
+    int input_k = input.Shape(1);
+
+    if(input.GetDim().size() == 2)
+    {
+        dim = {m, n};
+    }
+    else if(input.GetDim().size() == 3)
+    {
+        input_k *= input.Shape(2);
+        if(layout == TENGINE_LAYOUT_NHWC)
+            dim = {m, 1, n};
+        else
+            dim = {m, n, 1};
+    }
+    else if(input.GetDim().size() == 4)
+    {
+        input_k *= input.Shape(2) * input.Shape(3);
+        if(layout == TENGINE_LAYOUT_NHWC)
+            dim = {m, 1, 1, n};
+        else
+            dim = {m, n, 1, 1};
+    }
+    else
+        return false;
+
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
     if(k != input_k)
         return false;
 
     TShape shape;
 
+<<<<<<< HEAD
     std::vector<int> dim = {m, n, 1, 1};
 
     shape.SetDim(dim);
     shape.SetDataLayout(input.GetDataLayout());
+=======
+    shape.SetDim(dim);
+    shape.SetDataLayout(layout);
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
     oshape[0] = shape;
 

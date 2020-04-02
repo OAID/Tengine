@@ -28,7 +28,10 @@ namespace TEngine {
 namespace TMSerializer1 {
 
 extern bool TmSerializerRegisterOpLoader1();
+<<<<<<< HEAD
 
+=======
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 }
 
 using namespace TMSerializer1;
@@ -46,4 +49,7 @@ bool register_tm1_serializer(void)
 }
 
 }    // namespace TEngine
+<<<<<<< HEAD
 
+=======
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074

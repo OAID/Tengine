@@ -14,6 +14,7 @@ bool LSTM::InferShape(const std::vector<TShape>& ishape, std::vector<TShape>& os
     // output tensor: [output_len, batch_size,hidden_size]
     // std::cout<<"!!!!!!!\n";
     const TShape input_shape = ishape[0];
+<<<<<<< HEAD
 
     int batch_size = input_shape.Shape(1);
 
@@ -24,6 +25,30 @@ bool LSTM::InferShape(const std::vector<TShape>& ishape, std::vector<TShape>& os
     dims[2] = param_.hidden_size;
     
     // std::cout<<dims[0]<<","<< dims[1]<<","<<dims[2]<<"\n"; 
+=======
+    int batch_size = input_shape.Shape(1);
+    if(param_.mxnet_flag == 0)
+    {
+        batch_size = input_shape.Shape(0);
+    }
+
+    //
+    std::vector<int> dims(3);
+    if(param_.mxnet_flag == 0)
+    {
+        dims[0] = batch_size;
+        dims[1] = input_shape.Shape(0);
+        dims[2] = param_.hidden_size;
+    }
+    else
+    {
+        dims[0] = input_shape.Shape(0);
+        dims[1] = batch_size;
+        dims[2] = param_.hidden_size;
+    }
+
+    // std::cout<<dims[0]<<","<< dims[1]<<","<<dims[2]<<"\n";
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
 
     oshape[0].SetDim(dims);
 

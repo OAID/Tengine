@@ -25,6 +25,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+<<<<<<< HEAD
 #include "ref_softmax.h"
 #include <math.h>
 
@@ -45,3 +46,19 @@
 
 
 
+=======
+#include <math.h>
+
+int ref_softmax_kernel_fp32(float* input, float* output, float* max_array, float* sum_array, op_data* op_param)
+{
+    for(int i = 0; i < op_param->out_size; i++)
+    {
+        /* get max */
+        int img_base = i * op_param->in_size * op_param->on_size;
+        GetMaxArray(input + img_base, max_array, op_param->in_size, op_param->on_size);
+        GetOutResult(input + img_base, output + img_base, max_array, sum_array, op_param->in_size, op_param->on_size);
+    }
+
+    return 0;
+}
+>>>>>>> bb35a6791dfd4a11405787254ac718ea8bb4d074
