@@ -18,7 +18,7 @@ Tengine is composed of five modules: **core/operator/serializer/executor/driver*
 
 
 ## Build and Install
-please refer to Wiki
+please refer to [Wiki](https://github.com/OAID/Tengine/wiki)
 
 ## Tengine examples and model zoo
 
@@ -40,10 +40,10 @@ please visit [examples](https://github.com/OAID/Tengine/tree/master/examples) fo
 
 Test on RK3399-1*A72 
 
- Model  |  fp32 | int8-hybrid | int8-e2e |
- ---- | ----- | ------  | ------
- Squeezenet v1.1  | 55.3ms | 48.6ms| 44.6ms 
- Mobilenet v1  | 108.7ms | 74.6ms| 64.2ms
+| Model           | fp32    | int8-hybrid | int8-e2e |
+| --------------- | ------- | ----------- | -------- |
+| Squeezenet v1.1 | 55.3ms  | 48.6ms      | 44.6ms   |
+| Mobilenet v1    | 108.7ms | 74.6ms      | 64.2ms   |
 
 More Benchmark data to be added.
 
@@ -55,13 +55,12 @@ More Benchmark data to be added.
 ##### Feature
 
 - [ ] More examples
-- [ ] Netron support Tengine model .tmfile
-- [ ] New compile configuration file
-- [ ] Easy to use C++ API
-- [ ] Easy to use Python API
+- [x] Netron support Tengine model .tmfile
+- [x] New compile configuration file
+- [x] Easy to use C++ API
+- [x] Easy to use Python API
 - [ ] Support more ops of ONNX(PyTorch)
 
 ##### Optimization
 
-- [ ] x86 platform ops
-
+- [x] x86 platform ops
