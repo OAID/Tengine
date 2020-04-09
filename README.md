@@ -61,3 +61,6 @@ More Benchmark data to be added.
 
 - [ ] x86 platform ops
 
+##### CI Test [![Build Status](https://travis-ci.org/RudyFoo/Tengine.svg?branch=master)](https://travis-ci.org/RudyFoo/Tengine)
+
+- [ ]relu
