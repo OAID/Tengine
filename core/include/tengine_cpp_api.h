@@ -34,6 +34,13 @@
 #define TENGINE_LAYOUT_NCHW 0
 #define TENGINE_LAYOUT_NHWC 1
 
+enum EKernelMode
+{
+	eKernelMode_Float32 = 0,
+    eKernelMode_Int8 = 2,
+    eKernelMode_Int8Perchannel,
+};
+
 namespace tengine {
 class Tensor;
 class Net
@@ -55,6 +62,14 @@ public:
     int input_tensor(std::string name, Tensor& t);
     // output data by tensor
     int extract_tensor(std::string name, Tensor& t);
+
+public:
+    // set kenel mode
+    static int set_kernel_mode(EKernelMode kernel_mode);
+    // turn on/off wino
+    static int switch_wino(bool is_open);
+    // bind cpu 
+    static int set_worker_cpu_list(const int* cpu_list,int num);
 
     // run
     int run(int block = 1);
