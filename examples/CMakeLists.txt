@@ -2,6 +2,8 @@ set( CLASSIFICATION classification )
 set( MOBILENET_SSD mobilenet_ssd )
 set( CLASSIFICATION_CV classification_cv )
 
+add_subdirectory(mtcnn)
+
 if(OPENCV_EXAMPLE)
 
 if(ANDROID)
