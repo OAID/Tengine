@@ -64,8 +64,9 @@ struct CastOps : public NodeOps
             {
                 out_data[i] = fp32_to_fp16(data[i]);
             }
-	}
-	if (type_from == 2 && type_to == 1)
+        }
+
+        if (type_from == 2 && type_to == 1)
         {
             __fp16* data = ( __fp16* )get_tensor_mem(input_tensor);
             float* out_data = ( float* )get_tensor_mem(output_tensor);
