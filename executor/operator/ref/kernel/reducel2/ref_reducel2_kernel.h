@@ -39,8 +39,7 @@ struct reducel2_param
 {
     int axis;
     int dims[4];
-//    float scale[2];
-//    int zero[2];
+
 };
 
 typedef int (*ref_reducel2_t)(void* in_data, void* out_data,reducel2_param* param);
