@@ -1,40 +1,36 @@
-#list (APPEND test_inlucde_path "${CMAKE_SOURCE_DIR}")
-#list (APPEND test_inlucde_path "${CMAKE_SOURCE_DIR}/include")
-#list (APPEND test_inlucde_path "${CMAKE_SOURCE_DIR}/operator/include")
-
-
-# macro for adding test
-#macro (tengine_test name)
-#    add_executable (test_${name} ${name}.cpp)
-
-#    target_include_directories (test_${name} PRIVATE ${test_inlucde_path})
-#    target_link_libraries (test_${name} tengine)
-
-#    add_test (test_${name} test_${name})
-#endmacro()
-
-
-#tengine_test(elu)
-
 list (APPEND test_inlucde_path "${CMAKE_SOURCE_DIR}")
 list (APPEND test_inlucde_path "${CMAKE_SOURCE_DIR}/include")
 list (APPEND test_inlucde_path "${CMAKE_SOURCE_DIR}/operator/include")
 list (APPEND test_inlucde_path "${CMAKE_SOURCE_DIR}/tests/include")
 
-function(create_target file_list)
-  STRING(REGEX REPLACE ".+/(.+)\\..*" "\\1" fname ${file_list})
-  add_executable(${fname} ${file_list})
-  target_include_directories (${fname} PRIVATE ${test_inlucde_path})
-  target_link_libraries(${fname} tengine)
-  
-  add_test(NAME ${fname} COMMAND ${fname})
-  install(TARGETS ${fname} DESTINATION tests/unit/)
-endfunction()
+# macro for adding test
+macro (tengine_test name)
+    add_executable (${name} ${name}.cpp)
+
+    target_include_directories (test_${name} PRIVATE ${test_inlucde_path})
+    target_link_libraries (test_${name} tengine)
+
+    add_test (test_${name} test_${name})
+endmacro()
 
 
-FILE(GLOB file_list "*.cpp" "*.c")
-
-foreach(file ${file_list})
-	create_target(${file})
-endforeach()
-
+tengine_test(elu)
+tengine_test(test_LayerNormLstm_tflite)
+tengine_test(test_ceil_op)
+tengine_test(test_convert_calibration)
+tengine_test(test_deconv)
+tengine_test(test_dw_conv_general)
+tengine_test(test_dw_conv_k5k7)
+tengine_test(test_dw_deconv_4x4s2p1)
+tengine_test(test_dw_deconv_general)
+tengine_test(test_gather_op)
+tengine_test(test_logical_and_op)
+tengine_test(test_logical_or_op)
+tengine_test(test_prelu)
+tengine_test(test_relu)
+tengine_test(test_reverse_op)
+tengine_test(test_round_op)
+tengine_test(test_softmax)
+tengine_test(test_sparsetodense_op)
+tengine_test(test_squared_difference_op)
+tengine_test(test_zeros_like_op)
