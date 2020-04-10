@@ -16,9 +16,11 @@ jobs:
     - name: install-pkg-config
       run: sudo apt-get install pkg-config
     - name: configure
-      run: mkdir build && cd build && cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/x86_convert_tool.gcc.toolchain.cmake .. &&make test
+      run: mkdir build && cd build && cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/x86_convert_tool.gcc.toolchain.cmake ..
     - name: build
       run: cmake --build build -j 2
+    - name: test
+      run: make test
 
 
   android-armv7-a:
