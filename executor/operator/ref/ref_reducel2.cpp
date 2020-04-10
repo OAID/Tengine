@@ -70,27 +70,7 @@ bool RefReduceL2::Prerun(Node* node)
 
     return true;
 }
-/*
-static int get_scale_zero(Tensor* itensor, Tensor* otensor, reducel2_param* param)
-{
-    auto* i_quant = itensor->GetQuantParam();
-    auto* o_quant = otensor->GetQuantParam();
-    if(i_quant->size() != 1)
-        return -1;
-    param->scale[0] = (*i_quant)[0].scale;
-    if(itensor->GetDataType() == TENGINE_DT_UINT8)
-    {
-        if(o_quant->size() != 1)
-            return -1;
 
-        param->scale[1] = (*o_quant)[0].scale;
-        param->zero[1] = (*o_quant)[0].zero_point;
-
-        param->zero[0] = (*i_quant)[0].zero_point;
-    }
-    return 0;
-}
-*/
 bool RefReduceL2::Run(Node* node)
 {
     ReduceL2* reducel2_op = dynamic_cast<ReduceL2*>(node->GetOp());
@@ -98,13 +78,7 @@ bool RefReduceL2::Run(Node* node)
 
     Tensor* input_tensor = node->GetInputTensor(0);
     Tensor* out_tensor = node->GetOutputTensor(0);
-/*
-    if(input_tensor->GetDataType() == TENGINE_DT_INT8 || input_tensor->GetDataType() == TENGINE_DT_UINT8)
-    {
-        if(get_scale_zero(input_tensor, out_tensor, &param) < 0)
-            return false;
-    }
- */
+
     const TShape& i_shape = input_tensor->GetShape();
     auto in_dim = i_shape.GetDim();
     void* in_data = get_tensor_mem(input_tensor);
@@ -142,7 +116,7 @@ NodeOps* SelectFunc(const CPUInfo* info, Node* node)
 {
     RefReduceL2* ops = new RefReduceL2();
 
-    LOG_DEBUG() << "Reduction RefOp is selected\n";
+    LOG_DEBUG() << "ReduceL2 RefOp is selected\n";
 
     return ops;
 }
