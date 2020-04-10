@@ -7,10 +7,10 @@ list (APPEND test_inlucde_path "${CMAKE_SOURCE_DIR}/tests/include")
 macro (tengine_test name)
     add_executable (${name} ${name}.cpp)
 
-    target_include_directories (test_${name} PRIVATE ${test_inlucde_path})
-    target_link_libraries (test_${name} tengine)
+    target_include_directories (${name} PRIVATE ${test_inlucde_path})
+    target_link_libraries (${name} tengine)
 
-    add_test (test_${name} test_${name})
+    add_test (${name} ${name})
 endmacro()
 
 
