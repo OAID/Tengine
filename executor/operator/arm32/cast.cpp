@@ -60,46 +60,20 @@ struct CastOps : public NodeOps
         {
             float* data = ( float* )get_tensor_mem(input_tensor);
             __fp16* out_data = ( __fp16* )get_tensor_mem(output_tensor);
-#ifdef ANDROID
             for(int i = 0; i < elem_num; i++)
             {
                 out_data[i] = fp32_to_fp16(data[i]);
             }
-#else
-            for(int i = 0; i < (elem_num & -4); i += 4)
-            {
-                float32x4_t x = vld1q_f32(data+i);
-                float16x4_t _p = vcvt_f16_f32(x);
-                vst1_f16(out_data+i, _p);
-            }
-            for(int i = elem_num & ~3; i < elem_num; i++)
-            {
-                out_data[i] = fp32_to_fp16(data[i]);
-            }
-#endif
         }
 
         if (type_from == 2 && type_to == 1)
         {
             __fp16* data = ( __fp16* )get_tensor_mem(input_tensor);
             float* out_data = ( float* )get_tensor_mem(output_tensor);
-#ifdef ANDROID
             for(int i = 0; i < elem_num; i++)
             {
                 out_data[i] = fp16_to_fp32(data[i]);
             }
-#else        
-            for(int i = 0; i < (elem_num & -4); i += 4)
-            {
-                float16x4_t x = vld1_f16(data+i);
-                float32x4_t _p = vcvt_f32_f16(x);
-                vst1q_f32(out_data+i, _p);
-            }
-            for(int i = elem_num & ~3; i < elem_num; i++)
-            {
-                out_data[i] = fp16_to_fp32(data[i]);
-            }
-#endif  
         }
 
         return true;
