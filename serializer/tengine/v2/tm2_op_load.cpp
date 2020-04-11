@@ -1454,6 +1454,53 @@ bool LoadTmClipOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, c
     return true;
 }
 
+
+bool LoadTmMatMulOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op)
+{
+    const std::string& op_str = TM2_OPSTR_MATMUL;
+
+    StaticOp* op = CreateStaticOp(graph, op_str);
+    SetNodeOp(node, op);
+    return true;
+}
+
+bool LoadTmReduceL2Op(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op)
+{
+    const std::string& op_str = TM2_OPSTR_REDUCEL2;
+
+    ReduceL2Param param = any_cast<ReduceL2Param>(OpManager::GetOpDefParam(op_str));
+    const TM2_ReduceL2Param* tm_param = GetTmPtr<TM2_ReduceL2Param>(start_ptr, tm_op->offset_t_param);
+
+    param.axis = tm_param->axis;
+    param.keepdim = tm_param->keepdim;
+
+    StaticOp* op = CreateStaticOp(graph, op_str);
+    SetOperatorParam(op, param);
+    SetNodeOp(node, op);
+    return true;
+}
+
+bool LoadTmUnsqueezeOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op)
+{
+    const std::string& op_str = TM2_OPSTR_UNSQUEEZE;
+
+    UnsqueezeParam param = any_cast<UnsqueezeParam>(OpManager::GetOpDefParam(op_str));
+    const TM2_UnsqueezeParam* tm_param = GetTmPtr<TM2_UnsqueezeParam>(start_ptr, tm_op->offset_t_param);
+
+    if(tm_param->offset_vi_axises != TM2_NOT_SET)
+    {
+        const TM2_Vector_dims* v_axises = GetTmPtr<TM2_Vector_dims>(start_ptr, tm_param->offset_vi_axises);
+        for(unsigned int i = 0; i < v_axises->v_num; i++)
+            param.axises.push_back(v_axises->dims[i]);
+    }
+
+    StaticOp* op = CreateStaticOp(graph, op_str);
+    SetOperatorParam(op, param);
+    SetNodeOp(node, op);
+    return true;
+}
+
+
 op_load_t LoadTmOpFunc(uint32_t op_type)
 {
     switch(op_type)
@@ -1634,6 +1681,12 @@ op_load_t LoadTmOpFunc(uint32_t op_type)
             return LoadTmZerosLikeOp;
         case TM2_OPTYPE_CLIP:
             return LoadTmClipOp;                                                     
+	case TM2_OPTYPE_MATMUL:
+	    return LoadTmMatMulOp;
+	case TM2_OPTYPE_REDUCEL2:
+	    return LoadTmReduceL2Op;
+	case TM2_OPTYPE_UNSQUEEZE:
+	    return LoadTmUnsqueezeOp;
 	default:
             LOG_ERROR() << "Operator #" << op_type << " not supported in tengine model yet\n";
             return nullptr;
@@ -1833,8 +1886,14 @@ std::string GetOpStr(uint32_t op_type)
         case TM2_OPTYPE_ZEROSLIKE:
             return std::string(TM2_OPSTR_ZEROSLIKE);
         case TM2_OPTYPE_CLIP:
-            return std::string(TM2_OPSTR_CLIP);                   
-	    default:
+            return std::string(TM2_OPSTR_CLIP);
+        case TM2_OPTYPE_MATMUL:
+	    return std::string(TM2_OPSTR_MATMUL);	    
+        case TM2_OPTYPE_REDUCEL2:
+	    return std::string(TM2_OPSTR_REDUCEL2);
+	case TM2_OPTYPE_UNSQUEEZE:
+            return std::string(TM2_OPSTR_UNSQUEEZE);
+	default:
             LOG_ERROR() << "Get operator string failed\n";
             return std::string("");
     }
