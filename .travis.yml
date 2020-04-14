@@ -17,7 +17,9 @@ matrix:
       compiler: gcc
       env:
         - NAME=linux-gcc
-        - BUILD="mkdir build && cd build && cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/x86.gcc.toolchain.cmake .. && make -j2 && ctest --output-on-failure -j 2"
+        - BUILD="mkdir build && cd build && cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/x86.gcc.toolchain.cmake .. && make -j2"
+        - DOWNLOAD="cd build/tests/model && git clone https://github.com/kalcohol/TengineModels.git && mv ./TengineModels/* ./"
+        - TEST="cd build && ctest --output-on-failure -j 2"
 
     - name: "linux-gcc-arm64"
       os: linux
@@ -26,10 +28,14 @@ matrix:
       compiler: gcc
       env:
         - NAME=linux-gcc-arm64
-        - BUILD="mkdir build && cd build && cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/arm64.native.gcc.toolchain.cmake .. && make -j2 && ctest --output-on-failure -j 2"
+        - BUILD="mkdir build && cd build && cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/arm64.native.gcc.toolchain.cmake .. && make -j2"
+        - DOWNLOAD="cd build/tests/model && git clone https://github.com/kalcohol/TengineModels.git && mv ./TengineModels/* ./"
+        - TEST="cd build && ctest --output-on-failure -j 2"
 
 before_install:
   - eval "${BEFORE_BUILD}"
 
 script:
   - eval "${BUILD}"
+  - eval "${DOWNLOAD}"
+  - eval "${TEST}"
