@@ -137,6 +137,8 @@ typedef uint8_t tm_bool_t; /* bool is 1-byte unsigned integer */
 #define TM2_OPSTR_MATMUL "MatMul"
 #define TM2_OPSTR_REDUCEL2 "ReduceL2"
 #define TM2_OPSTR_UNSQUEEZE "Unsqueeze"
+#define TM2_OPSTR_TOPK "TopK"
+
 
 /* Operator types */
 #define TM2_OPTYPE_ACCURACY 0 /* No Param                 */
@@ -230,7 +232,8 @@ typedef uint8_t tm_bool_t; /* bool is 1-byte unsigned integer */
 #define TM2_OPTYPE_MATMUL 88
 #define TM2_OPTYPE_REDUCEL2 89
 #define TM2_OPTYPE_UNSQUEEZE 90
-#define TM2_OPTYPE_NUM 91
+#define TM2_OPTYPE_TOPK 91
+#define TM2_OPTYPE_NUM 92
 /* --------------------- -------- TM objects -------------------------------- */
 
 typedef struct
@@ -910,6 +913,15 @@ typedef struct
 {
     tm_uoffset_t offset_vi_axises;
 }TM2_UnsqueezeParam;
+
+typedef struct
+{
+    int k;
+    int axis;
+    // bool sorted;
+    // bool largest;
+}TM2_TopKParam;
+
 
 #ifdef __cplusplus
 }

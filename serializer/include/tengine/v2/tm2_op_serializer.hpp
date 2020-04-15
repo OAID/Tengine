@@ -111,6 +111,7 @@
 #include "operator/matmul.hpp"
 #include "operator/reducel2.hpp"
 #include "operator/unsqueeze.hpp"
+#include "operator/topk.hpp"
 
 #include "operator/batch_norm_param.hpp"
 #include "operator/concat_param.hpp"
@@ -181,6 +182,7 @@
 #include "operator/clip_param.hpp"
 #include "operator/reducel2_param.hpp"
 #include "operator/unsqueeze_param.hpp"
+#include "operator/topk_param.hpp"
 #include "tm2_format.h"
 
 namespace TEngine {
@@ -287,6 +289,7 @@ bool LoadTmClipOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, c
 bool LoadTmMatMulOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
 bool LoadTmReduceL2Op(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
 bool LoadTmUnsqueezeOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
+bool LoadTmTopKOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op);
 
 op_save_t SaveTmOpFunc(uint32_t op_type);
 tm_uoffset_t SaveTmAccuracyOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op);
@@ -379,6 +382,7 @@ tm_uoffset_t SaveTmClipOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator
 tm_uoffset_t SaveTmMatMulOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op);
 tm_uoffset_t SaveTmReduceL2Op(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op);
 tm_uoffset_t SaveTmUnsqueezeOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op);
+tm_uoffset_t SaveTmTopKOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op);
 
 template <typename T> const T* GetTmPtr(void* const start_ptr, tm_uoffset_t tm_offset)
 {

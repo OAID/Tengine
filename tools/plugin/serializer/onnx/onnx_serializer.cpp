@@ -56,7 +56,7 @@
 #include "operator/reducel2_param.hpp"
 #include "operator/unsqueeze_param.hpp"
 #include "operator/squeeze_param.hpp"
-
+#include "operator/topk_param.hpp"
 #include "type_name.hpp"
 #include "compiler.hpp"
 
@@ -1300,6 +1300,42 @@ static bool LoadOnnxUnsqueeze(StaticGraph* graph, StaticNode* node, const onnx::
     return true;
 }
 
+static bool LoadOnnxTopK(StaticGraph* graph, StaticNode* node, const onnx::NodeProto& onnx_node)
+{
+
+    TopKParam param = any_cast<TopKParam>(OpManager::GetOpDefParam("TopK"));
+ 
+
+    StaticTensor * input_tensor = FindTensor(graph,onnx_node.input(0));
+
+    for(int k = 0; k < onnx_node.attribute_size(); k++)
+    {
+        const onnx::AttributeProto& attr = onnx_node.attribute(k);
+        if(attr.name() == "axis")
+        {
+            param.axis = attr.i();
+        }
+        if(attr.name() == "k")
+        {
+            param.k = attr.i();
+        }
+        // if(attr.name() == "largest")
+        // {
+        //     param.largest = attr.i();
+        // }
+        // if(attr.name() == "sorted")
+        // {
+        //     param.sorted = attr.i();
+        // }
+    }
+    StaticOp* op = CreateStaticOp(graph, "TopK");
+
+    SetOperatorParam(op, param);
+
+    SetNodeOp(node, op);
+
+    return true;
+}
 
 // To register all op loader...
 bool OnnxSerializerRegisterOpLoader(void)
@@ -1347,7 +1383,7 @@ bool OnnxSerializerRegisterOpLoader(void)
     p_onnx->RegisterOpLoadMethod("ReduceL2", op_load_t(LoadOnnxReduceL2));
     p_onnx->RegisterOpLoadMethod("Unsqueeze", op_load_t(LoadOnnxUnsqueeze));
     p_onnx->RegisterOpLoadMethod("Squeeze", op_load_t(LoadOnnxSqueeze));
-
+    p_onnx->RegisterOpLoadMethod("TopK", op_load_t(LoadOnnxTopK));
     //p_onnx->RegisterOpLoadMethod("Constant", op_load_t(LoadOnnxConstant));
     return true;
 }

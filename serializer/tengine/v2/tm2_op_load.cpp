@@ -1500,6 +1500,22 @@ bool LoadTmUnsqueezeOp(StaticGraph* graph, StaticNode* node, void* const start_p
     return true;
 }
 
+bool LoadTmTopKOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op)
+{
+    const std::string& op_str = TM2_OPSTR_TOPK;
+
+    TopKParam param = any_cast<TopKParam>(OpManager::GetOpDefParam(op_str));
+    const TM2_TopKParam* tm_param = GetTmPtr<TM2_TopKParam>(start_ptr, tm_op->offset_t_param);
+
+    param.k = tm_param->k;
+    param.axis = tm_param->axis;
+
+    StaticOp* op = CreateStaticOp(graph, op_str);
+    SetOperatorParam(op, param);
+    SetNodeOp(node, op);
+    return true;
+}
+
 
 op_load_t LoadTmOpFunc(uint32_t op_type)
 {
@@ -1681,13 +1697,15 @@ op_load_t LoadTmOpFunc(uint32_t op_type)
             return LoadTmZerosLikeOp;
         case TM2_OPTYPE_CLIP:
             return LoadTmClipOp;                                                     
-	case TM2_OPTYPE_MATMUL:
-	    return LoadTmMatMulOp;
-	case TM2_OPTYPE_REDUCEL2:
-	    return LoadTmReduceL2Op;
-	case TM2_OPTYPE_UNSQUEEZE:
-	    return LoadTmUnsqueezeOp;
-	default:
+        case TM2_OPTYPE_MATMUL:
+            return LoadTmMatMulOp;
+        case TM2_OPTYPE_REDUCEL2:
+            return LoadTmReduceL2Op;
+        case TM2_OPTYPE_UNSQUEEZE:
+            return LoadTmUnsqueezeOp;
+        case TM2_OPTYPE_TOPK:
+            return LoadTmTopKOp;
+        default:
             LOG_ERROR() << "Operator #" << op_type << " not supported in tengine model yet\n";
             return nullptr;
     }
@@ -1888,12 +1906,14 @@ std::string GetOpStr(uint32_t op_type)
         case TM2_OPTYPE_CLIP:
             return std::string(TM2_OPSTR_CLIP);
         case TM2_OPTYPE_MATMUL:
-	    return std::string(TM2_OPSTR_MATMUL);	    
+	        return std::string(TM2_OPSTR_MATMUL);	    
         case TM2_OPTYPE_REDUCEL2:
-	    return std::string(TM2_OPSTR_REDUCEL2);
-	case TM2_OPTYPE_UNSQUEEZE:
+	        return std::string(TM2_OPSTR_REDUCEL2);
+        case TM2_OPTYPE_UNSQUEEZE:
             return std::string(TM2_OPSTR_UNSQUEEZE);
-	default:
+        case TM2_OPTYPE_TOPK:
+            return std::string(TM2_OPSTR_TOPK);
+        default:
             LOG_ERROR() << "Get operator string failed\n";
             return std::string("");
     }

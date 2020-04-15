@@ -126,7 +126,7 @@
 #include "operator/round.hpp"
 #include "operator/zeros_like.hpp"
 #include "operator/unsqueeze.hpp"
-
+#include "operator/topk.hpp"
 using namespace TEngine;
  
 int operator_plugin_init(void)
@@ -232,6 +232,7 @@ int operator_plugin_init(void)
     RegisterOp<MatMul>("MatMul");   
     RegisterOp<ReduceL2>("ReduceL2");
     RegisterOp<Unsqueeze>("Unsqueeze");
+    RegisterOp<TopK>("TopK");
     // std::cout<<"OPERATOR PLUGIN INITED\n";
     return 0;
 }

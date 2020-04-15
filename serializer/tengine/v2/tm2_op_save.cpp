@@ -1372,6 +1372,23 @@ tm_uoffset_t SaveTmUnsqueezeOp(void* const start_ptr, tm_uoffset_t* cur_pos, Ope
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
 }
 
+tm_uoffset_t SaveTmTopKOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
+{
+    TopKParam* p = (dynamic_cast<TopK*>(op))->GetParam();
+    TM2_TopKParam tm_param;
+
+    tm_param.k = p->k;
+    tm_param.axis = p->axis;
+    // if(p->sorted)
+    //     tm_param.sorted = 1;
+    // else
+    //     tm_param.sorted = 0;
+
+    TM2_Operator tm_op;
+    SetTmOperator(&tm_op, TM2_OPTYPE_TOPK, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_TopKParam)));
+    return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
+}
+
 op_save_t SaveTmOpFunc(uint32_t op_type)
 {
     switch(op_type)
@@ -1552,13 +1569,15 @@ op_save_t SaveTmOpFunc(uint32_t op_type)
             return SaveTmZerosLikeOp;
         case TM2_OPTYPE_CLIP:
             return SaveTmClipOp;    
-	case TM2_OPTYPE_MATMUL:
+	    case TM2_OPTYPE_MATMUL:
     	    return SaveTmMatMulOp;	    
-	case TM2_OPTYPE_REDUCEL2:
-	    return SaveTmReduceL2Op;
-	case TM2_OPTYPE_UNSQUEEZE:
-	    return SaveTmUnsqueezeOp;
-	default:
+	    case TM2_OPTYPE_REDUCEL2:
+	        return SaveTmReduceL2Op;
+	    case TM2_OPTYPE_UNSQUEEZE:
+	        return SaveTmUnsqueezeOp;
+        case TM2_OPTYPE_TOPK:
+	        return SaveTmTopKOp;
+	    default:
             LOG_ERROR() << "Operator #" << op_type << " not supported in tengine model yet\n";
             return nullptr;
     }
