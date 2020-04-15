@@ -159,13 +159,9 @@ int main(int argc, char* argv[])
 
 
     tengine::Net somenet;
-
     tengine::Tensor input_tensor;
-
     tengine::Tensor output_tensor;
-
-
-
+	
     if(request_tengine_version("0.9") != 1)
     {
         std::cout << " request tengine version failed\n";
@@ -181,7 +177,6 @@ int main(int argc, char* argv[])
     somenet.load_model(NULL, "tengine", model_file.c_str());
 
 
-
     // input
     int img_h = 300;
     int img_w = 300;
@@ -192,13 +187,9 @@ int main(int argc, char* argv[])
     float scales = 0.007843;
 
     int repeat_count = 1;
-
     const char* repeat = std::getenv("REPEAT_COUNT");
 
-
-
     if(repeat)
-
         repeat_count = std::strtoul(repeat, NULL, 10);
 
 
@@ -208,7 +199,6 @@ int main(int argc, char* argv[])
     input_tensor.create(img_w, img_h, 3);
 
     get_input_data(image_file.c_str(), (float* )input_tensor.data, img_h, img_w, mean, scales);
-
     //set_tensor_buffer(input_tensor, input_data, img_size * 4);
 
 
@@ -218,40 +208,22 @@ int main(int argc, char* argv[])
     somenet.input_tensor("data", input_tensor);
 
 
-
     struct timeval t0, t1;
-
     float total_time = 0.f;
-
     float min_time = __DBL_MAX__;
-
     float max_time = -__DBL_MAX__;
-
     for(int i = 0; i < repeat_count; i++)
-
     {
-
         gettimeofday(&t0, NULL);
-
         somenet.run();
-
         gettimeofday(&t1, NULL);
-
         float mytime = ( float )((t1.tv_sec * 1000000 + t1.tv_usec) - (t0.tv_sec * 1000000 + t0.tv_usec)) / 1000;
-
         total_time += mytime;
-
         min_time = std::min(min_time, mytime);
-
         max_time = std::max(max_time, mytime);
-
     }
-
     std::cout << "--------------------------------------\n";
-
     std::cout << "\nRepeat " << repeat_count << " times, avg time per run is " << total_time / repeat_count << " ms\n" << "max time is " << max_time << " ms, min time is " << min_time << " ms\n";
-
-
 
     //tensor_t out_tensor = get_graph_output_tensor(graph, 0, 0);    //"detection_out");
 
@@ -259,17 +231,12 @@ int main(int argc, char* argv[])
 
     somenet.extract_tensor("detection_out", output_tensor);
 
-    
-
     float* outdata = ( float* )(output_tensor.data);
 
     float show_threshold = 0.5;
 
-
-
     post_process_ssd(image_file, show_threshold, outdata, output_tensor.c);
 
     return 0;
-
 }
 
