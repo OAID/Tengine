@@ -53,7 +53,9 @@
 #include "operator/transpose_param.hpp"
 #include "operator/slice_param.hpp"
 #include "operator/split_param.hpp"
-
+#include "operator/reducel2_param.hpp"
+#include "operator/unsqueeze_param.hpp"
+#include "operator/squeeze_param.hpp"
 
 #include "type_name.hpp"
 #include "compiler.hpp"
@@ -1170,6 +1172,134 @@ static bool LoadOnnxSub(StaticGraph* graph, StaticNode* node, const onnx::NodePr
 
     return true;
 }
+static bool LoadOnnxMatMul(StaticGraph* graph, StaticNode* node, const onnx::NodeProto& onnx_node)
+{
+    StaticTensor * input_tensor = FindTensor(graph,onnx_node.input(0));
+    StaticTensor* weight_tensor = FindTensor(graph, onnx_node.input(1));
+
+    if(2 == input_tensor->dims.size() && weight_tensor->type == kConstTensor)
+    {
+        int k = weight_tensor->dims[0];
+        int n = weight_tensor->dims[1];
+        weight_tensor->dims[0] = n;
+        weight_tensor->dims[1] = k;
+
+        float* tmp = ( float* )malloc(k * n * sizeof(float));
+        float* data = ( float* )GetConstTensorBuffer(weight_tensor);
+        for(int i = 0; i < n; i++)
+        {
+            for(int j = 0; j < k; j++)
+            {
+                tmp[i * k + j] = data[j * n + i];
+            }
+        }
+        memcpy(data, tmp, n * k * sizeof(float));
+
+        free(tmp);
+
+        StaticOp* op = CreateStaticOp(graph, "FullyConnected");
+        FCParam fc_param = any_cast<FCParam>(OpManager::GetOpDefParam("FullyConnected"));
+
+        fc_param.num_output = weight_tensor->dims[0];
+        SetOperatorParam(op, fc_param);
+        SetNodeOp(node, op);
+																			        
+        return true;
+    }
+		        
+    StaticOp* op = CreateStaticOp(graph, "MatMul");
+    SetNodeOp(node, op);
+
+    return true;
+}
+
+static bool LoadOnnxReduceL2(StaticGraph* graph, StaticNode* node, const onnx::NodeProto& onnx_node)
+{
+    ReduceL2Param param = any_cast<ReduceL2Param>(OpManager::GetOpDefParam("ReduceL2"));
+    for(int k = 0; k < onnx_node.attribute_size(); k++)
+    {
+        const onnx::AttributeProto& attr = onnx_node.attribute(k);
+        if(attr.name() == "axes")
+        {
+            param.axis = attr.ints(0);  // TODO:Support muti axis
+        }
+        if(attr.name() == "keepdims")
+        {
+            param.keepdim = attr.i();
+        }
+    }
+    StaticOp* op = CreateStaticOp(graph, "ReduceL2");
+
+    SetOperatorParam(op, param);
+
+    SetNodeOp(node, op);
+
+   return true;
+}
+
+static bool LoadOnnxSqueeze(StaticGraph* graph, StaticNode* node, const onnx::NodeProto& onnx_node)
+{
+    SqueezeParam param = any_cast<SqueezeParam>(OpManager::GetOpDefParam("Squeeze"));
+    for(int k = 0; k < onnx_node.attribute_size(); k++)
+    {
+        const onnx::AttributeProto& attr = onnx_node.attribute(k);
+        if(attr.name() == "axes")
+        {
+            for(int i = 0; i < attr.ints_size();i++)
+            {
+                if(0 == attr.ints(i))
+                {
+                    param.dim_0 = 1;
+                }
+                else if(1 == attr.ints(i))
+                {
+                    param.dim_1 = 1;
+                }
+                else if(2 == attr.ints(i))
+                {
+                    param.dim_2 = 1;
+                }
+                else if(3 == attr.ints(i))
+                {
+                     param.dim_3 = 1;
+                }
+            }
+        }
+    }
+
+    StaticOp* op = CreateStaticOp(graph, "Squeeze");
+    SetOperatorParam(op, param);
+
+    SetNodeOp(node, op);
+
+   return true;
+}
+
+static bool LoadOnnxUnsqueeze(StaticGraph* graph, StaticNode* node, const onnx::NodeProto& onnx_node)
+{
+    UnsqueezeParam param = any_cast<UnsqueezeParam>(OpManager::GetOpDefParam("Unsqueeze"));
+
+    for(int k = 0; k < onnx_node.attribute_size(); k++)
+    {
+        const onnx::AttributeProto& attr = onnx_node.attribute(k);
+        if(attr.name() == "axes")
+        {
+            for(int i = 0; i < attr.ints_size();i++)
+            {
+                param.axises.push_back(attr.ints(i));
+            }
+        }
+    }
+    sort(param.axises.begin(), param.axises.end());
+    StaticOp* op = CreateStaticOp(graph, "Unsqueeze");
+
+    SetOperatorParam(op, param);
+
+    SetNodeOp(node, op);
+
+    return true;
+}
+
 
 // To register all op loader...
 bool OnnxSerializerRegisterOpLoader(void)
@@ -1196,9 +1326,9 @@ bool OnnxSerializerRegisterOpLoader(void)
     p_onnx->RegisterOpLoadMethod("Flatten", op_load_t(LoadOnnxFlatten));
     p_onnx->RegisterOpLoadMethod("Gemm", op_load_t(LoadOnnxGemm));
     p_onnx->RegisterOpLoadMethod("HardSwish", op_load_t(LoadOnnxHardSwish));
-	p_onnx->RegisterOpLoadMethod("Elu", op_load_t(LoadOnnxElu));
+    p_onnx->RegisterOpLoadMethod("Elu", op_load_t(LoadOnnxElu));
     p_onnx->RegisterOpLoadMethod("Tanh", op_load_t(LoadOnnxTanh));
-	p_onnx->RegisterOpLoadMethod("PRelu", op_load_t(LoadOnnxPRelu));
+    p_onnx->RegisterOpLoadMethod("PRelu", op_load_t(LoadOnnxPRelu));
     p_onnx->RegisterOpLoadMethod("Upsample", op_load_t(LoadOnnxInterp));
     p_onnx->RegisterOpLoadMethod("Clip", op_load_t(LoadOnnxClip));
     p_onnx->RegisterOpLoadMethod("Mul", op_load_t(LoadOnnxMul));
@@ -1208,11 +1338,16 @@ bool OnnxSerializerRegisterOpLoader(void)
     p_onnx->RegisterOpLoadMethod("Reshape", op_load_t(LoadOnnxReshape));
     p_onnx->RegisterOpLoadMethod("LeakyRelu", op_load_t(LoadOnnxLeakyReLu));
     p_onnx->RegisterOpLoadMethod("Transpose", op_load_t(LoadOnnxTranspose));
-	p_onnx->RegisterOpLoadMethod("Slice", op_load_t(LoadOnnxSlice));
+    p_onnx->RegisterOpLoadMethod("Slice", op_load_t(LoadOnnxSlice));
     p_onnx->RegisterOpLoadMethod("Sigmoid", op_load_t(LoadOnnxSigmod));
     p_onnx->RegisterOpLoadMethod("Split", op_load_t(LoadOnnxSplit));
     p_onnx->RegisterOpLoadMethod("Exp", op_load_t(LoadOnnxExp));
     p_onnx->RegisterOpLoadMethod("Sub", op_load_t(LoadOnnxSub));
+    p_onnx->RegisterOpLoadMethod("MatMul", op_load_t(LoadOnnxMatMul));
+    p_onnx->RegisterOpLoadMethod("ReduceL2", op_load_t(LoadOnnxReduceL2));
+    p_onnx->RegisterOpLoadMethod("Unsqueeze", op_load_t(LoadOnnxUnsqueeze));
+    p_onnx->RegisterOpLoadMethod("Squeeze", op_load_t(LoadOnnxSqueeze));
+
     //p_onnx->RegisterOpLoadMethod("Constant", op_load_t(LoadOnnxConstant));
     return true;
 }

@@ -1,0 +1,52 @@
+sudo: false
+
+language: cpp
+
+addons:
+  apt:
+    packages:
+      - cmake
+      - libprotobuf-dev
+      - protobuf-compiler
+
+matrix:
+  include:
+    - name: "linux-gcc"
+      os: linux
+      dist: xenial
+      compiler: gcc
+      env:
+        - NAME=linux-gcc
+        - BUILD="mkdir build && cd build && cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/x86.gcc.toolchain.cmake .. && make -j2"
+        - DOWNLOAD="cd tests/model && git clone https://github.com/kalcohol/TengineModels.git && mv ./TengineModels/* ./"
+        - TEST="cd ../.. && ctest --output-on-failure -j 2"
+
+    - name: "linux-gcc-arm32"
+      os: linux
+      arch: arm64
+      dist: bionic
+      env:
+        - NAME=linux-gcc-arm32
+        - BEFORE_BUILD="sudo dpkg --add-architecture armhf && sudo apt-get update && sudo apt-get -y install crossbuild-essential-armhf libc6:armhf libstdc++-5-dev:armhf linux-libc-dev:armhf"
+        - BUILD="mkdir build && cd build && cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/arm64.native.gcc.toolchain.cmake .. && make -j2"
+        - DOWNLOAD="cd tests/model && git clone https://github.com/kalcohol/TengineModels.git && mv ./TengineModels/* ./"
+        - TEST="cd ../.. && ctest --output-on-failure -j 2"
+
+    - name: "linux-gcc-arm64"
+      os: linux
+      arch: arm64
+      dist: bionic
+      compiler: gcc
+      env:
+        - NAME=linux-gcc-arm64
+        - BUILD="mkdir build && cd build && cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/arm64.native.gcc.toolchain.cmake .. && make -j2"
+        - DOWNLOAD="cd tests/model && git clone https://github.com/kalcohol/TengineModels.git && mv ./TengineModels/* ./"
+        - TEST="cd ../.. && ctest --output-on-failure -j 2"
+
+before_install:
+  - eval "${BEFORE_BUILD}"
+
+script:
+  - eval "${BUILD}"
+  - eval "${DOWNLOAD}"
+  - eval "${TEST}"

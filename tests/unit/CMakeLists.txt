@@ -1,0 +1,36 @@
+list (APPEND test_inlucde_path "${CMAKE_SOURCE_DIR}")
+list (APPEND test_inlucde_path "${CMAKE_SOURCE_DIR}/include")
+list (APPEND test_inlucde_path "${CMAKE_SOURCE_DIR}/operator/include")
+list (APPEND test_inlucde_path "${CMAKE_SOURCE_DIR}/tests/include")
+
+# macro for adding test
+macro (tengine_test name)
+    add_executable (${name} ${name}.cpp)
+
+    target_include_directories (${name} PRIVATE ${test_inlucde_path})
+    target_link_libraries (${name} tengine)
+
+    add_test (${name} ${name})
+endmacro()
+
+
+tengine_test(elu)
+tengine_test(test_LayerNormLstm_tflite)
+tengine_test(test_ceil_op)
+tengine_test(test_convert_calibration)
+tengine_test(test_deconv)
+tengine_test(test_dw_conv_general)
+tengine_test(test_dw_conv_k5k7)
+tengine_test(test_dw_deconv_4x4s2p1)
+tengine_test(test_dw_deconv_general)
+tengine_test(test_gather_op)
+tengine_test(test_logical_and_op)
+tengine_test(test_logical_or_op)
+tengine_test(test_prelu)
+tengine_test(test_relu)
+tengine_test(test_reverse_op)
+tengine_test(test_round_op)
+tengine_test(test_softmax)
+tengine_test(test_sparsetodense_op)
+tengine_test(test_squared_difference_op)
+tengine_test(test_zeros_like_op)

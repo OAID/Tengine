@@ -1327,6 +1327,51 @@ tm_uoffset_t SaveTmClipOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
 }
 
+tm_uoffset_t SaveTmMatMulOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
+{
+    TM2_Operator tm_op;
+    SetTmOperator(&tm_op, TM2_OPTYPE_MATMUL, TM2_NOT_SET);
+    return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
+}
+
+tm_uoffset_t SaveTmReduceL2Op(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
+{
+    ReduceL2Param* p = (dynamic_cast<ReduceL2*>(op))->GetParam();
+    TM2_ReduceL2Param tm_param;
+
+    tm_param.axis = p->axis;
+    tm_param.keepdim = p->keepdim;
+
+    TM2_Operator tm_op;
+    SetTmOperator(&tm_op, TM2_OPTYPE_REDUCEL2, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_ReduceL2Param)));
+    return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
+}
+
+tm_uoffset_t SaveTmUnsqueezeOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operator* op)
+{
+    UnsqueezeParam* p = (dynamic_cast<Unsqueeze*>(op))->GetParam();
+    TM2_UnsqueezeParam tm_param;
+
+    if((p->axises).size())
+    {
+        size_t vector_size = sizeof(tm_size_t) + sizeof(int32_t) * (p->axises).size();
+        TM2_Vector_dims* v_axises = ( TM2_Vector_dims* )malloc(vector_size);
+        v_axises->v_num = (p->axises).size();
+        for(unsigned int i = 0; i < (p->axises).size(); i++)
+        {
+            v_axises->dims[i] = p->axises[i];
+												            }
+            tm_param.offset_vi_axises = WriteTmObject(start_ptr, cur_pos, v_axises, vector_size);
+            free(v_axises);
+        }
+    else
+        tm_param.offset_vi_axises = TM2_NOT_SET;
+
+    TM2_Operator tm_op;
+    SetTmOperator(&tm_op, TM2_OPTYPE_UNSQUEEZE, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_UnsqueezeParam)));
+    return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
+}
+
 op_save_t SaveTmOpFunc(uint32_t op_type)
 {
     switch(op_type)
@@ -1506,8 +1551,14 @@ op_save_t SaveTmOpFunc(uint32_t op_type)
         case TM2_OPTYPE_ZEROSLIKE:
             return SaveTmZerosLikeOp;
         case TM2_OPTYPE_CLIP:
-            return SaveTmClipOp;                                        
-	    default:
+            return SaveTmClipOp;    
+	case TM2_OPTYPE_MATMUL:
+    	    return SaveTmMatMulOp;	    
+	case TM2_OPTYPE_REDUCEL2:
+	    return SaveTmReduceL2Op;
+	case TM2_OPTYPE_UNSQUEEZE:
+	    return SaveTmUnsqueezeOp;
+	default:
             LOG_ERROR() << "Operator #" << op_type << " not supported in tengine model yet\n";
             return nullptr;
     }

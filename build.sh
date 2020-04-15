@@ -21,10 +21,17 @@ cmake -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake -D
 make -j$CPU_NUMS && make install
 popd
 
-##### linux of hisiv200
-mkdir -p build-hisiv200-linux
-pushd build-hisiv200-linux
+##### linux of himix200
+mkdir -p build-himiv200-linux
+pushd build-himiv200-linux
 cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/himix200.toolchain.cmake ..
+make -j$CPU_NUMS && make install
+popd
+
+##### linux of hisiv500
+mkdir -p build-hisiv500-linux
+pushd build-hisiv500-linux
+cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/hisiv500_linux_cross.config ..
 make -j$CPU_NUMS && make install
 popd
 
@@ -56,3 +63,10 @@ cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/x86_convert_tool.gcc.toolchain.cmake 
 make -j$CPU_NUMS && make install
 popd
 
+##### linux for  arch64-linux-gnu toolchain
+mkdir -p build-aarch64-linux-gnu_gpu
+pushd build-aarch64-linux-gnu_gpu
+cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/aarch64-linux-gnu.toolchain.cmake \
+-DCONFIG_ACL_OPENCL=ON  -DACL_ROOT=/home/cmeng/ComputeLibrary ..
+make -j$CPU_NUMS && make install
+popd

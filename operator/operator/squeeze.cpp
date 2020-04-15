@@ -32,6 +32,8 @@ bool Squeeze::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector
     const std::vector<int>& in_dim = input.GetDim();
     int in_size = in_dim.size();
     std::vector<int> new_shape;
+    TShape shape;
+
     if(param_.dim_0 != -2)
         new_shape.push_back(param_.dim_0);
     if(param_.dim_1 != -2)
@@ -40,6 +42,7 @@ bool Squeeze::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector
         new_shape.push_back(param_.dim_2);
     if(param_.dim_3 != -2)
         new_shape.push_back(param_.dim_3);
+    
     bool should_squeeze[4] = {false};
     int squeezeddim = 0;
     int newshape_size = new_shape.size();
@@ -91,9 +94,8 @@ bool Squeeze::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector
         if(!should_squeeze[i_idx])
             odim[o_idx++] = in_dim[i_idx];
     }
-
-    TShape shape;
     shape.SetDim(odim);
+
 
     shape.SetDataLayout(input.GetDataLayout());
     oshape[0] = shape;
@@ -111,4 +113,4 @@ void Squeeze::SetSchema(void)
         .SetDoc(R"DOC(Squeeze Layer)DOC");
 }
 
-}    // namespace TEngine
+}   

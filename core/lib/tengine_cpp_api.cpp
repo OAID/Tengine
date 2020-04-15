@@ -79,6 +79,14 @@ int Net::load_model(context_t context, const char* model_format, const char* mod
     return 0;
 }
 
+int Net::set_device(std::string device)
+{
+    if(!device.empty())
+    {
+        set_graph_device(graph, device.c_str());
+    }
+}
+
 int Net::input_shape(int n, int c, int h, int w, const char* tensor_name)
 {
     // printf("tengine cpp api : %s name : %s %d:%d:%d:%d\n", __FUNCTION__, tensor_name, n, c, h, w);
