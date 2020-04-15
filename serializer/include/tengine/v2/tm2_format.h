@@ -36,7 +36,7 @@ extern "C" {
 #define TM2_FILE_VER_SUB 0
 #define TM2_FILE_VER_COMPILE 0
 
-#define TM2_OP_VER 1
+#define TM2_OP_VER 2
 
 #define TM2_NOT_SET 0x00
 
@@ -521,6 +521,16 @@ typedef struct
 
 typedef struct
 {
+    int32_t dim_0;
+    int32_t dim_1;
+    int32_t dim_2;
+    int32_t dim_3;
+    int32_t dim_size;
+    int32_t axis;
+} TM2_ReshapeParam_V1;
+
+typedef struct
+{
     float scale_x;
     float scale_y;
     int type;
@@ -870,9 +880,11 @@ typedef struct
     int32_t axis;
     int32_t indices_num;
 } TM2_GatherParam;
+
 typedef struct{
     tm_uoffset_t offset_tr_shape;
 }TM2_TransposeParam;
+
 typedef struct
 {
     int32_t type;

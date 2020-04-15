@@ -416,25 +416,44 @@ bool LoadTmReshapeOp(StaticGraph* graph, StaticNode* node, void* const start_ptr
     const std::string& op_str = TM2_OPSTR_RESHAPE;
 
     ReshapeParam param = any_cast<ReshapeParam>(OpManager::GetOpDefParam(op_str));
-    const TM2_ReshapeParam* tm_param = GetTmPtr<TM2_ReshapeParam>(start_ptr, tm_op->offset_t_param);
+   
     // set the reverse
-    if(tm_param->reverse)
-        param.reverse = true;
-    else
-        param.reverse =false;
-    // set the is_mxnet
-    if(tm_param->is_mxnet)
-        param.is_mxnet = true;
-    else
-        param.is_mxnet = false;
+    int load_op_ver=tm_op->op_ver;
 
-    if(tm_param->offset_re_shape != TM2_NOT_SET)
+    if (load_op_ver==1)
+    { 
+        const TM2_ReshapeParam_V1* tm_param = GetTmPtr<TM2_ReshapeParam_V1>(start_ptr, tm_op->offset_t_param);
+        if(tm_param->dim_0!=-2)
+            param.re_shape.push_back(tm_param->dim_0);
+        if(tm_param->dim_1!=-2)
+            param.re_shape.push_back(tm_param->dim_1);
+        if(tm_param->dim_2!=-2)
+            param.re_shape.push_back(tm_param->dim_2);
+        if(tm_param->dim_3!=-2)
+            param.re_shape.push_back(tm_param->dim_3);
+    }
+    else
     {
-        const TM2_Vector_dims* v_re_shape = GetTmPtr<TM2_Vector_dims>(start_ptr, tm_param->offset_re_shape);
-        for(unsigned int i = 0; i < v_re_shape->v_num; i++){
-            param.re_shape.push_back(v_re_shape->dims[i]);
+        const TM2_ReshapeParam* tm_param = GetTmPtr<TM2_ReshapeParam>(start_ptr, tm_op->offset_t_param);
+        if(tm_param->reverse)
+            param.reverse = true;
+        else
+            param.reverse =false;
+        // set the is_mxnet
+        if(tm_param->is_mxnet)
+            param.is_mxnet = true;
+        else
+            param.is_mxnet = false;
+
+        if(tm_param->offset_re_shape != TM2_NOT_SET)
+        {
+            const TM2_Vector_dims* v_re_shape = GetTmPtr<TM2_Vector_dims>(start_ptr, tm_param->offset_re_shape);
+            for(unsigned int i = 0; i < v_re_shape->v_num; i++){
+                param.re_shape.push_back(v_re_shape->dims[i]);
+            }
         }
     }
+    // #endif
 
     
     StaticOp* op = CreateStaticOp(graph, op_str);
