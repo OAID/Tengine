@@ -423,13 +423,13 @@ bool LoadTmReshapeOp(StaticGraph* graph, StaticNode* node, void* const start_ptr
     if (load_op_ver==1)
     { 
         const TM2_ReshapeParam_V1* tm_param = GetTmPtr<TM2_ReshapeParam_V1>(start_ptr, tm_op->offset_t_param);
-        if(tm_param->dim_0!=-2)
+        if(tm_param->dim_0!=-2 && tm_param->dim_0!=0)
             param.re_shape.push_back(tm_param->dim_0);
-        if(tm_param->dim_1!=-2)
+        if(tm_param->dim_1!=-2 && tm_param->dim_1!=0)
             param.re_shape.push_back(tm_param->dim_1);
-        if(tm_param->dim_2!=-2)
+        if(tm_param->dim_2!=-2 && tm_param->dim_2!=0)
             param.re_shape.push_back(tm_param->dim_2);
-        if(tm_param->dim_3!=-2)
+        if(tm_param->dim_3!=-2 && tm_param->dim_3!=0)
             param.re_shape.push_back(tm_param->dim_3);
     }
     else
