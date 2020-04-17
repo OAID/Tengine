@@ -679,9 +679,13 @@ static bool LoadOnnxFlatten(StaticGraph* graph, StaticNode* node, const onnx::No
 {
     FlattenParam param = any_cast<FlattenParam>(OpManager::GetOpDefParam("Flatten"));
 
-    const onnx::AttributeProto& attr = onnx_node.attribute(0);
+    if (onnx_node.attribute_size() >= 1) {
+        const onnx::AttributeProto& attr = onnx_node.attribute(0);
+        param.axis = attr.i();
+    } else {
+        param.axis = 1;
+    }
 
-    param.axis = attr.i();
 
     StaticOp* op = CreateStaticOp(graph, "Flatten");
 
