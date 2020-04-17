@@ -479,7 +479,7 @@ bool OnnxSerializer::LoadGraph(onnx::ModelProto& model, StaticGraph* graph)
         for(int j = 0; j < (int) no_supported_op.size(); j++)
         {
             LOG_ERROR() << no_supported_op[j];
-            if (j != no_supported_op.size()) {
+            if (j != no_supported_op.size() - 1) {
                 LOG_ERROR() << ", ";
             }
         }
