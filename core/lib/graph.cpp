@@ -676,7 +676,7 @@ bool Graph::IsOutputNode(Node* node)
 
 bool Graph::IsInputNode(Node* node)
 {
-    for(unsigned int i = 0; i < output_nodes.size(); i++)
+    for(unsigned int i = 0; i < input_nodes.size(); i++)
     {
         if(input_nodes[i] == node)
             return true;
