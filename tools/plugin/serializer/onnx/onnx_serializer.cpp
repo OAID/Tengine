@@ -919,18 +919,42 @@ static bool LoadOnnxInterp(StaticGraph* graph, StaticNode* node, const onnx::Nod
             }
         }
     }
-    else
+    else if (onnx_node.input_size() == 3)   // onnx resize op
     {
-        const std::string& input_name = onnx_node.input(1);
         // std::cout<<"tensor name:"<<input_name<<"\n";
-        StaticTensor* tensor = FindTensor(graph, input_name);
+        {
+            StaticTensor* tensor = FindTensor(graph, onnx_node.input(1));
+            float* data = ( float* )GetConstTensorBuffer(tensor);
+            auto n = tensor->dims[0];
+            for (int i = 0; i < n; i++) {
+                if ((i < n / 2 && data[i] != 0) || (i >= n / 2 && data[i] != 1)) {
+                    LOG_ERROR() << "resize roi is not supported\n";
+                    return false;
+                }
+            }
+        }
+        StaticTensor* tensor = FindTensor(graph, onnx_node.input(2));
         float* data = ( float* )GetConstTensorBuffer(tensor);
+        auto n = tensor->dims[0];
+        if (n != 4) {
+            LOG_ERROR() << "Resize op only supports 4-D tensor\n";
+            return false;
+        }
+        if (data[0] != 1 || data[1] != 1) {
+            LOG_ERROR() << "Only 2-D resize is supported\n";
+            return false;
+        }
+
         //int scales_size = tensor->dims[0];
         // printf("scale size:%d\n", scales_size);
         // printf("scale data:%f %f\n",data[0], data[1]);
         param.height_scale = data[2];
         param.width_scale = data[3];
-
+    }
+    else
+    {
+        LOG_ERROR() << "Resize op do not support \"sizes\" input\n";
+        return false;
     }
 
     std::string mode = "nearest";
@@ -951,6 +975,11 @@ static bool LoadOnnxInterp(StaticGraph* graph, StaticNode* node, const onnx::Nod
     else if (mode == "bilinear" || mode == "linear")
     {
         param.resize_type = 2;
+    } 
+    else 
+    {
+        LOG_ERROR() << "Cubic resize is not supported\n";
+        return false;
     }
 
     SetOperatorParam(op, param);
@@ -1334,6 +1363,7 @@ bool OnnxSerializerRegisterOpLoader(void)
     p_onnx->RegisterOpLoadMethod("Tanh", op_load_t(LoadOnnxTanh));
     p_onnx->RegisterOpLoadMethod("PRelu", op_load_t(LoadOnnxPRelu));
     p_onnx->RegisterOpLoadMethod("Upsample", op_load_t(LoadOnnxInterp));
+    p_onnx->RegisterOpLoadMethod("Resize", op_load_t(LoadOnnxInterp));
     p_onnx->RegisterOpLoadMethod("Clip", op_load_t(LoadOnnxClip));
     p_onnx->RegisterOpLoadMethod("Mul", op_load_t(LoadOnnxMul));
     p_onnx->RegisterOpLoadMethod("Div", op_load_t(LoadOnnxDiv));
