@@ -409,6 +409,7 @@ tm_uoffset_t SaveTmReshapeOp(void* const start_ptr, tm_uoffset_t* cur_pos, Opera
 
 
     TM2_Operator tm_op;
+    tm_op.op_ver=2;
     SetTmOperator(&tm_op, TM2_OPTYPE_RESHAPE, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_ReshapeParam)));
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
 
@@ -1235,6 +1236,7 @@ tm_uoffset_t SaveTmTransposeOp(void* const start_ptr, tm_uoffset_t* cur_pos, Ope
         tm_param.offset_tr_shape = TM2_NOT_SET;
     }
     TM2_Operator tm_op;
+    tm_op.op_ver=2;
     SetTmOperator(&tm_op, TM2_OPTYPE_TRANSPOSE, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_TransposeParam)));
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));  
 }
