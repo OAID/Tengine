@@ -474,11 +474,14 @@ bool OnnxSerializer::LoadGraph(onnx::ModelProto& model, StaticGraph* graph)
     if(no_supported_op.size())
     {
         
-        LOG_ERROR() << "These "<<no_supported_op.size() << "op are not supported\n";
+        LOG_ERROR() << "These "<<no_supported_op.size() << " op are not supported\n";
         LOG_ERROR() << "{";
         for(int j = 0; j < (int) no_supported_op.size(); j++)
         {
-            LOG_ERROR() << no_supported_op[j] <<",";
+            LOG_ERROR() << no_supported_op[j];
+            if (j != no_supported_op.size() - 1) {
+                LOG_ERROR() << ", ";
+            }
         }
         LOG_ERROR() << "}\n";
    
