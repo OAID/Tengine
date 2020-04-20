@@ -81,6 +81,7 @@
 #include "operator/tile.hpp"
 #include "operator/topkv2.hpp"
 #include "operator/maximum.hpp"
+#include "operator/matmul.hpp"
 #include "operator/minimum.hpp"
 #include "operator/argmax.hpp"
 #include "operator/argmin.hpp"
@@ -95,6 +96,7 @@
 #include "operator/selu.hpp"
 #include "operator/l2normalization.hpp"
 #include "operator/l2pool.hpp"
+#include "operator/reducel2.hpp"
 #include "operator/elu.hpp"
 #include "operator/layernormlstm.hpp"
 #include "operator/relu1.hpp"
@@ -123,6 +125,8 @@
 #include "operator/ceil.hpp"
 #include "operator/round.hpp"
 #include "operator/zeros_like.hpp"
+#include "operator/unsqueeze.hpp"
+
 using namespace TEngine;
  
 int operator_plugin_init(void)
@@ -225,6 +229,9 @@ int operator_plugin_init(void)
     RegisterOp<SquaredDifference>("SquaredDifference");
     RegisterOp<SparseToDense>("SparseToDense");
     RegisterOp<ZerosLike>("ZerosLike");   
+    RegisterOp<MatMul>("MatMul");   
+    RegisterOp<ReduceL2>("ReduceL2");
+    RegisterOp<Unsqueeze>("Unsqueeze");
     // std::cout<<"OPERATOR PLUGIN INITED\n";
     return 0;
 }

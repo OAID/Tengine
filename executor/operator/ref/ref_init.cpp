@@ -112,6 +112,9 @@ extern void RegisterRefUpsample(void);
 extern void RegisterRefGRUOps(void);
 extern void RegisterRefLSTMOps(void);
 extern void RegisterRefRNNOps(void);
+extern void RegisterRefMatMulOps(void);
+extern void RegisterRefReduceL2Ops(void);
+extern void RegisterRefUnsqueezeOps(void);
 void RegisterRefOps(void)
 {
     RegisterRefPoolingOps();
@@ -201,6 +204,9 @@ void RegisterRefOps(void)
     RegisterRefGRUOps();
     RegisterRefLSTMOps();
     RegisterRefRNNOps();
+    RegisterRefMatMulOps();
+    RegisterRefReduceL2Ops();
+    RegisterRefUnsqueezeOps();
 }
 
 }    // namespace TEngine

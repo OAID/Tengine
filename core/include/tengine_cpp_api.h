@@ -52,6 +52,8 @@ public:
     ~Net();
     // load model
     int load_model(context_t context, const char* model_format, const char* model_file, ...);
+    // set device
+    int set_device(std::string device);
     // set input shape
     int input_shape(int n, int c, int h, int w, const char* node_name);
     // input data by buffer
@@ -164,10 +166,7 @@ public:
     std::vector<float> zero_points;
 };
 
-inline Tensor::Tensor()
-    : dim_num(0), layout(0), elem_size(0), elem_num(0), data(0), n(0), c(0), h(0), w(0)
-{
-}
+inline Tensor::Tensor() : dim_num(0), layout(0), elem_size(0), elem_num(0), data(0), n(0), c(0), h(0), w(0) {}
 inline Tensor::Tensor(int _w, size_t _elem_size, uint8_t _layout)
     : dim_num(0), layout(0), elem_size(0), elem_num(0), data(0), n(0), c(0), h(0), w(0)
 {

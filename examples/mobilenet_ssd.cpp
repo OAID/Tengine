@@ -19,7 +19,7 @@
 
 /*
  * Copyright (c) 2020, OPEN AI LAB
- * Author: jxyang@openailab.com
+ * Author: sqfu@openailab.com
  */
 
 #include <unistd.h>
@@ -29,7 +29,7 @@
 #include <vector>
 #include <sys/time.h>
 #include "tengine_operations.h"
-#include "tengine_c_api.h"
+#include "tengine_cpp_api.h"
 #include "common.hpp"
 
 static std::string gExcName{""};
@@ -85,11 +85,13 @@ void post_process_ssd(std::string& image_file, float threshold, float* outdata, 
     }
     for(int i = 0; i < ( int )boxes.size(); i++)
     {
+
         Box box = boxes[i];
 
         std::ostringstream score_str;
         score_str << box.score * 100;
         std::string labelstr = std::string(class_names[box.class_idx]) + " : " + score_str.str();
+
 
         put_label(im, labelstr.c_str(), 0.02, box.x0, box.y0, 255, 255, 125);
         draw_box(im, box.x0, box.y0, box.x1, box.y1, 2, 125, 0, 125);
@@ -154,12 +156,12 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    // init tengine
-    if(init_tengine() < 0)
-    {
-        std::cout << " init tengine failed\n";
-        return 1;
-    }
+
+
+    tengine::Net somenet;
+    tengine::Tensor input_tensor;
+    tengine::Tensor output_tensor;
+	
     if(request_tengine_version("0.9") != 1)
     {
         std::cout << " request tengine version failed\n";
@@ -171,44 +173,18 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    // create graph
-    graph_t graph = create_graph(nullptr, "tengine", model_file.c_str());
+    /* load model */
+    somenet.load_model(NULL, "tengine", model_file.c_str());
 
-    if(graph == nullptr)
-    {
-        std::cout << "Create graph failed\n";
-        std::cout << " ,errno: " << get_tengine_errno() << "\n";
-        return 1;
-    }
-
-    if(device != nullptr)
-    {
-        set_graph_device(graph, device);
-    }
 
     // input
     int img_h = 300;
     int img_w = 300;
     int img_size = img_h * img_w * 3;
-    float* input_data = ( float* )malloc(sizeof(float) * img_size);
 
-    int node_idx = 0;
-    int tensor_idx = 0;
-    tensor_t input_tensor = get_graph_input_tensor(graph, node_idx, tensor_idx);
-    if(input_tensor == nullptr)
-    {
-        std::printf("Cannot find input tensor,node_idx: %d,tensor_idx: %d\n", node_idx, tensor_idx);
-        return -1;
-    }
+    float mean[3] = {127.5, 127.5, 127.5};
 
-    int dims[] = {1, 3, img_h, img_w};
-    set_tensor_shape(input_tensor, dims, 4);
-    ret = prerun_graph(graph);
-    if(ret != 0)
-    {
-        std::cout << "Prerun graph failed, errno: " << get_tengine_errno() << "\n";
-        return 1;
-    }
+    float scales = 0.007843;
 
     int repeat_count = 1;
     const char* repeat = std::getenv("REPEAT_COUNT");
@@ -216,23 +192,22 @@ int main(int argc, char* argv[])
     if(repeat)
         repeat_count = std::strtoul(repeat, NULL, 10);
 
-    // warm up
-    get_input_data_ssd(image_file, input_data, img_h, img_w);
-    set_tensor_buffer(input_tensor, input_data, img_size * 4);
-    
-    ret = run_graph(graph, 1);
-    if(ret != 0)
-    {
-        std::cout << "Run graph failed, errno: " << get_tengine_errno() << "\n";
-        return 1;
-    }
 
-    //run_graph(graph, 1);
-    //run_graph(graph, 1);
-    //run_graph(graph, 1);
-    //run_graph(graph, 1);
-    run_graph(graph, 1);
-    
+
+        /* prepare input data */
+
+    input_tensor.create(img_w, img_h, 3);
+
+    get_input_data(image_file.c_str(), (float* )input_tensor.data, img_h, img_w, mean, scales);
+    //set_tensor_buffer(input_tensor, input_data, img_size * 4);
+
+
+
+        /* forward */
+
+    somenet.input_tensor("data", input_tensor);
+
+
     struct timeval t0, t1;
     float total_time = 0.f;
     float min_time = __DBL_MAX__;
@@ -240,7 +215,7 @@ int main(int argc, char* argv[])
     for(int i = 0; i < repeat_count; i++)
     {
         gettimeofday(&t0, NULL);
-        run_graph(graph, 1);
+        somenet.run();
         gettimeofday(&t1, NULL);
         float mytime = ( float )((t1.tv_sec * 1000000 + t1.tv_usec) - (t0.tv_sec * 1000000 + t0.tv_usec)) / 1000;
         total_time += mytime;
@@ -250,32 +225,17 @@ int main(int argc, char* argv[])
     std::cout << "--------------------------------------\n";
     std::cout << "\nRepeat " << repeat_count << " times, avg time per run is " << total_time / repeat_count << " ms\n" << "max time is " << max_time << " ms, min time is " << min_time << " ms\n";
 
-    tensor_t out_tensor = get_graph_output_tensor(graph, 0, 0);    //"detection_out");
-    int out_dim[4];
-    ret = get_tensor_shape(out_tensor, out_dim, 4);
-    if(ret <= 0)
-    {
-        std::cout << "get tensor shape failed, errno: " << get_tengine_errno() << "\n";
-        return 1;
-    }
-    float* outdata = ( float* )get_tensor_buffer(out_tensor);
-    int num = out_dim[1];
+    //tensor_t out_tensor = get_graph_output_tensor(graph, 0, 0);    //"detection_out");
+
+        /* get result */
+
+    somenet.extract_tensor("detection_out", output_tensor);
+
+    float* outdata = ( float* )(output_tensor.data);
+
     float show_threshold = 0.5;
 
-    post_process_ssd(image_file, show_threshold, outdata, num);
-
-    release_graph_tensor(out_tensor);
-    release_graph_tensor(input_tensor);
-
-    ret = postrun_graph(graph);
-    if(ret != 0)
-    {
-        std::cout << "Postrun graph failed, errno: " << get_tengine_errno() << "\n";
-        return 1;
-    }
-    free(input_data);
-    destroy_graph(graph);
-    release_tengine();
+    post_process_ssd(image_file, show_threshold, outdata, output_tensor.c);
 
     return 0;
 }

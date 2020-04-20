@@ -416,25 +416,44 @@ bool LoadTmReshapeOp(StaticGraph* graph, StaticNode* node, void* const start_ptr
     const std::string& op_str = TM2_OPSTR_RESHAPE;
 
     ReshapeParam param = any_cast<ReshapeParam>(OpManager::GetOpDefParam(op_str));
-    const TM2_ReshapeParam* tm_param = GetTmPtr<TM2_ReshapeParam>(start_ptr, tm_op->offset_t_param);
+   
     // set the reverse
-    if(tm_param->reverse)
-        param.reverse = true;
-    else
-        param.reverse =false;
-    // set the is_mxnet
-    if(tm_param->is_mxnet)
-        param.is_mxnet = true;
-    else
-        param.is_mxnet = false;
+    int load_op_ver=tm_op->op_ver;
 
-    if(tm_param->offset_re_shape != TM2_NOT_SET)
+    if (load_op_ver==1)
+    { 
+        const TM2_ReshapeParam_V1* tm_param = GetTmPtr<TM2_ReshapeParam_V1>(start_ptr, tm_op->offset_t_param);
+        if(tm_param->dim_0!=-2 && tm_param->dim_0!=0)
+            param.re_shape.push_back(tm_param->dim_0);
+        if(tm_param->dim_1!=-2 && tm_param->dim_1!=0)
+            param.re_shape.push_back(tm_param->dim_1);
+        if(tm_param->dim_2!=-2 && tm_param->dim_2!=0)
+            param.re_shape.push_back(tm_param->dim_2);
+        if(tm_param->dim_3!=-2 && tm_param->dim_3!=0)
+            param.re_shape.push_back(tm_param->dim_3);
+    }
+    else
     {
-        const TM2_Vector_dims* v_re_shape = GetTmPtr<TM2_Vector_dims>(start_ptr, tm_param->offset_re_shape);
-        for(unsigned int i = 0; i < v_re_shape->v_num; i++){
-            param.re_shape.push_back(v_re_shape->dims[i]);
+        const TM2_ReshapeParam* tm_param = GetTmPtr<TM2_ReshapeParam>(start_ptr, tm_op->offset_t_param);
+        if(tm_param->reverse)
+            param.reverse = true;
+        else
+            param.reverse =false;
+        // set the is_mxnet
+        if(tm_param->is_mxnet)
+            param.is_mxnet = true;
+        else
+            param.is_mxnet = false;
+
+        if(tm_param->offset_re_shape != TM2_NOT_SET)
+        {
+            const TM2_Vector_dims* v_re_shape = GetTmPtr<TM2_Vector_dims>(start_ptr, tm_param->offset_re_shape);
+            for(unsigned int i = 0; i < v_re_shape->v_num; i++){
+                param.re_shape.push_back(v_re_shape->dims[i]);
+            }
         }
     }
+    // #endif
 
     
     StaticOp* op = CreateStaticOp(graph, op_str);
@@ -1454,6 +1473,53 @@ bool LoadTmClipOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, c
     return true;
 }
 
+
+bool LoadTmMatMulOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op)
+{
+    const std::string& op_str = TM2_OPSTR_MATMUL;
+
+    StaticOp* op = CreateStaticOp(graph, op_str);
+    SetNodeOp(node, op);
+    return true;
+}
+
+bool LoadTmReduceL2Op(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op)
+{
+    const std::string& op_str = TM2_OPSTR_REDUCEL2;
+
+    ReduceL2Param param = any_cast<ReduceL2Param>(OpManager::GetOpDefParam(op_str));
+    const TM2_ReduceL2Param* tm_param = GetTmPtr<TM2_ReduceL2Param>(start_ptr, tm_op->offset_t_param);
+
+    param.axis = tm_param->axis;
+    param.keepdim = tm_param->keepdim;
+
+    StaticOp* op = CreateStaticOp(graph, op_str);
+    SetOperatorParam(op, param);
+    SetNodeOp(node, op);
+    return true;
+}
+
+bool LoadTmUnsqueezeOp(StaticGraph* graph, StaticNode* node, void* const start_ptr, const TM2_Operator* tm_op)
+{
+    const std::string& op_str = TM2_OPSTR_UNSQUEEZE;
+
+    UnsqueezeParam param = any_cast<UnsqueezeParam>(OpManager::GetOpDefParam(op_str));
+    const TM2_UnsqueezeParam* tm_param = GetTmPtr<TM2_UnsqueezeParam>(start_ptr, tm_op->offset_t_param);
+
+    if(tm_param->offset_vi_axises != TM2_NOT_SET)
+    {
+        const TM2_Vector_dims* v_axises = GetTmPtr<TM2_Vector_dims>(start_ptr, tm_param->offset_vi_axises);
+        for(unsigned int i = 0; i < v_axises->v_num; i++)
+            param.axises.push_back(v_axises->dims[i]);
+    }
+
+    StaticOp* op = CreateStaticOp(graph, op_str);
+    SetOperatorParam(op, param);
+    SetNodeOp(node, op);
+    return true;
+}
+
+
 op_load_t LoadTmOpFunc(uint32_t op_type)
 {
     switch(op_type)
@@ -1634,6 +1700,12 @@ op_load_t LoadTmOpFunc(uint32_t op_type)
             return LoadTmZerosLikeOp;
         case TM2_OPTYPE_CLIP:
             return LoadTmClipOp;                                                     
+	case TM2_OPTYPE_MATMUL:
+	    return LoadTmMatMulOp;
+	case TM2_OPTYPE_REDUCEL2:
+	    return LoadTmReduceL2Op;
+	case TM2_OPTYPE_UNSQUEEZE:
+	    return LoadTmUnsqueezeOp;
 	default:
             LOG_ERROR() << "Operator #" << op_type << " not supported in tengine model yet\n";
             return nullptr;
@@ -1833,8 +1905,14 @@ std::string GetOpStr(uint32_t op_type)
         case TM2_OPTYPE_ZEROSLIKE:
             return std::string(TM2_OPSTR_ZEROSLIKE);
         case TM2_OPTYPE_CLIP:
-            return std::string(TM2_OPSTR_CLIP);                   
-	    default:
+            return std::string(TM2_OPSTR_CLIP);
+        case TM2_OPTYPE_MATMUL:
+	    return std::string(TM2_OPSTR_MATMUL);	    
+        case TM2_OPTYPE_REDUCEL2:
+	    return std::string(TM2_OPSTR_REDUCEL2);
+	case TM2_OPTYPE_UNSQUEEZE:
+            return std::string(TM2_OPSTR_UNSQUEEZE);
+	default:
             LOG_ERROR() << "Get operator string failed\n";
             return std::string("");
     }
