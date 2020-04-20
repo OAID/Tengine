@@ -23,6 +23,7 @@
  */
 
 #include "tengine_convolution_op.hpp"
+#include "tengine_cpp_api.h"
 
 #include <vector>
 
@@ -48,8 +49,8 @@ namespace tengine
             return 0;
         }
 
-        int create_conv_node(graph_t graph, const char* node_name, const char* input_name, int in_h, int in_w, int out_h, int out_w,
-            int kernel_h, int kernel_w, int stride_h, int stride_w, int pad_h, int pad_w, int inch, int outch, int group,
+        int create_conv_node(graph_t graph, const char* node_name, const char* input_name, int in_h, int in_w,
+            int kernel_h, int kernel_w, int stride_h, int stride_w, int pad_h, int pad_w, int pad_h1,int pad_w1,int inch, int outch, int group,
             int dilation_h, int dilation_w, int activation, std::string padMode)
         {
             node_t conv_node      = create_graph_node(graph, node_name, "Convolution");
@@ -99,7 +100,7 @@ namespace tengine
             release_graph_node(b_node);
             release_graph_tensor(b_tensor);
 
-            int pad_h1 = pad_h;
+            /*int pad_h1 = pad_h;
             int pad_w1 = pad_w;
 
             if (!padMode.empty())
@@ -114,7 +115,7 @@ namespace tengine
                     if (out_w_temp < out_w)
                         pad_w1 += 1;
                 }
-             }
+             }*/
 
             /* attr */
             set_node_attr_int(conv_node, "kernel_h", &kernel_h);
@@ -137,10 +138,9 @@ namespace tengine
         }
 
         graph_t create_conv_graph(float *input_data, int inch, int group, int in_h, int in_w,
-                        float *output_data, int outch, int out_h, int out_w,
-                        int kernel_h, int kernel_w,
+                        int output_c,int kernel_h, int kernel_w,
                         int stride_h,int stride_w,
-                        int pad_h, int pad_w,  int dilation_h, int dilation_w, int activation,
+                        int pad_h, int pad_w,  int pad_h1,int pad_w1,int dilation_h, int dilation_w, int activation,
                         float * teg_weight , float * teg_bias , std::string padMode)
         {
             #define FLOAT_TO_REALSIZE (4)
@@ -152,9 +152,8 @@ namespace tengine
             tensor_t  bias_tensor   = NULL;
             /* create graph for convolution */
             int in_size  = in_h * in_w * inch;
-            int out_size  = out_h * out_w * outch;
-            int weight_size = outch * (inch / group) * kernel_w * kernel_h;
-            int bias_size = outch;
+            int weight_size = output_c * (inch / group) * kernel_w * kernel_h;
+            int bias_size = output_c;
             int buf_size  = 0;
             int input_num = 0;
 
@@ -175,8 +174,8 @@ namespace tengine
                 ok = false;
             }
 
-            if (ok && create_conv_node(graph, conv_name, input_name, in_h, in_w, out_h, out_w, kernel_h, kernel_w,
-                stride_h, stride_w, pad_h, pad_w, inch, outch, group, dilation_h, dilation_w, activation, padMode) < 0)
+            if (ok && create_conv_node(graph, conv_name, input_name, in_h, in_w, kernel_h, kernel_w,
+                stride_h, stride_w, pad_h, pad_w,pad_h1,pad_w1, inch, output_c, group, dilation_h, dilation_w, activation, padMode) < 0)
             {
                 ok = false;
             }
@@ -244,11 +243,11 @@ namespace tengine
             if (ok)
             {
                 /* set output data */
-                output_tensor = get_node_output_tensor(conv_node, 0);
+                /*output_tensor = get_node_output_tensor(conv_node, 0);
                 int ret = set_tensor_buffer(output_tensor, output_data, out_size * FLOAT_TO_REALSIZE);
                 if(ret)
                 {
-                }
+                }*/
             }
 
             if (!ok)
@@ -261,41 +260,34 @@ namespace tengine
 
         }
 
-        TTengineOpPtr TengineConvolution::create(OpData& input,OpData& output,int group,float* kernel,float kernel_s,
-                    int kernel_h,int kernel_w,float* teg_bias,int stride_h,int stride_w,int pad_h,int pad_w,
+        TTengineOpPtr TengineConvolution::create(Tensor& input,int output_c,int group,float* kernel,float kernel_s,
+                    int kernel_h,int kernel_w,float* teg_bias,int stride_h,int stride_w,int pad_h,int pad_w,int pad_h1,int pad_w1,
                     int dilation_h,int dilation_w,size_t wstep,const std::string& padMode)
         {
             TengineConvolution* op = new TengineConvolution() ;
-            op->init(input,output,group,kernel,kernel_s,kernel_h,kernel_w,teg_bias,stride_h,stride_w,pad_h,pad_w,dilation_h,dilation_w,wstep,padMode);
+            op->init(input,output_c,group,kernel,kernel_s,kernel_h,kernel_w,teg_bias,stride_h,stride_w,pad_h,pad_w,pad_h1,pad_w1,dilation_h,dilation_w,wstep,padMode);
             return TTengineOpPtr(op);
         }
 
-        bool TengineConvolution::init(OpData& input,OpData& output,int group,float* kernel,float kernel_s,
-                    int kernel_h,int kernel_w,float* teg_bias,int stride_h,int stride_w,int pad_h,int pad_w,
+        bool TengineConvolution::init(Tensor& input,int output_c,int group,float* kernel,float kernel_s,
+                    int kernel_h,int kernel_w,float* teg_bias,int stride_h,int stride_w,int pad_h,int pad_w,int pad_h1,int pad_w1,
                     int dilation_h,int dilation_w,size_t wstep,const std::string& padMode)
         {
             
             std::vector<float> teg_weight_vec;
 
             float *teg_weight = NULL;
-            int kernel_inwh = (input.c_ / group) * kernel_w * kernel_h;
+            int kernel_inwh = (input.c / group) * kernel_w * kernel_h;
             // Do not using the activation fuse mode, just convolution only.
             int activation = -1;
 
-            if ( !( kernel_s == 2 && kernel_h == kernel_w && pad_h == pad_w && 
-                dilation_h == dilation_w && stride_h == stride_w
-                && output.n_ == 1 && pad_h < 10 ) ) // just for Conv2D
-            {
-                    return false;
-            }
-            else
             {
                 // weight
                 if (kernel_inwh != wstep)
                 {
-                    teg_weight_vec.resize(kernel_inwh * output.c_);
+                    teg_weight_vec.resize(kernel_inwh * output_c);
                     teg_weight = &teg_weight_vec[0];
-                    for (int i=0; i<output.c_; i++)
+                    for (int i=0; i<output_c; i++)
                     {
                         memcpy(teg_weight+i*kernel_inwh, kernel+i*wstep, kernel_inwh*FLOAT_TO_REALSIZE);
                     }
@@ -310,15 +302,10 @@ namespace tengine
 
             init_tengine();
 
-            _graph = create_conv_graph(input.data_,input.c_,group,input.h_,input.w_,output.data_,output.c_,output.h_,output.w_,kernel_h,
-                kernel_w,stride_h,stride_w,pad_h,pad_w,dilation_h,dilation_w,activation,teg_weight,teg_bias,padMode);
+            _graph = create_conv_graph((float*)input.data,input.c,group,input.h,input.w,output_c,kernel_h,
+                kernel_w,stride_h,stride_w,pad_h,pad_w,pad_h1,pad_w1,dilation_h,dilation_w,activation,teg_weight,teg_bias,padMode);
 
-            /* prerun */
-            if(_graph == NULL || prerun_graph(_graph) < 0)
-            {
-                return false;
-            }
-            return true;
+             return true;
         }
 
 
@@ -329,10 +316,49 @@ namespace tengine
                 return false;
             }
 
+            if( prerun_graph(_graph) < 0 )
+            {
+                return false;
+            }
+
             if(run_graph(_graph, 1) < 0)
             {
                 return false;
             }
+
+            return true;
+        }
+
+        Tensor* TengineConvolution::get_output_tensor()const
+        {
+            node_t out_node = get_graph_output_node(_graph,0);
+            tensor_t out_tensor = get_node_output_tensor(out_node,0);
+
+            int dims[4] = {0};
+            int dim_num = 4;
+            dim_num = get_tensor_shape(out_tensor, dims, dim_num);
+            if(dim_num < 0)
+            {
+                std::printf("Get tensor shape failed\n");
+                return NULL;
+            }
+
+            Tensor* t = NULL;
+            if(dim_num == 4)
+            {
+                t = new Tensor(dims[0],dims[3], dims[2], dims[1], 4);
+            }
+            else
+            {
+                return NULL;
+            }
+
+            int buffer_size = get_tensor_buffer_size(out_tensor);
+            void* buffer = (get_tensor_buffer(out_tensor));
+
+            memcpy(t->data, buffer, buffer_size);
+            return t;
+
         }
 
         TengineConvolution::~TengineConvolution()

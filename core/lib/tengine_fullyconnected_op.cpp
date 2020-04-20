@@ -23,6 +23,9 @@
  */
 
 #include "tengine_fullyconnected_op.hpp"
+#include "tengine_cpp_api.h"
+
+#include <memory.h>
 
 namespace tengine
 {
@@ -45,7 +48,7 @@ namespace tengine
         }
 
 
-        int create_fc_graph(graph_t graph,OpData& input,OpData& output,const char* weight,const char* bias,int num_output)
+        int create_fc_graph(graph_t graph,Tensor& input,const char* weight,const char* bias,int num_output)
         {
             const char* data_name = "data";
             const char* output_name = "data/output";
@@ -53,28 +56,26 @@ namespace tengine
             const char* weight_name = "data/weight";
             const char* bias_name = "data/bias";
 
-            if (create_input_node(graph, data_name, input.n_,input.c_, input.h_, input.w_) != 0)
+            if (create_input_node(graph, data_name, input.n,input.c, input.h, input.w) != 0)
             {
                 return -1;
             }
 
             node_t fc_node = create_graph_node(graph,node_name,"FullyConnected");
-            set_node_attr_int(fc_node, "number_output", &num_output);
+            set_node_attr_int(fc_node, "num_output", &num_output);
 
             /* set input data */
-            tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
-            set_tensor_buffer(input_tensor, input.data_, input.n_ * input.c_ * input.h_ * input.w_ * sizeof(float));
+            tensor_t input_tensor = get_graph_tensor(graph, data_name);
+            set_node_input_tensor(fc_node, 0, input_tensor);
+            //set_tensor_buffer(input_tensor, input.data_, input.n_ * input.c_ * input.h_ * input.w_ * sizeof(float));
             release_graph_tensor(input_tensor);
 
             /* output */
             tensor_t output_tensor = create_graph_tensor(graph, output_name, TENGINE_DT_FP32);
             set_node_output_tensor(fc_node, 0, output_tensor, TENSOR_TYPE_VAR);
-            /* set output data */
-            set_tensor_buffer(output_tensor, output.data_, output.n_ * output.c_ * output.h_ * output.w_ * sizeof(float));
-            release_graph_tensor(output_tensor);
 
             /* weight */
-            int w_dims[] = {num_output, input.c_ * input.h_ * input.w_};
+            int w_dims[] = {num_output, input.c * input.h * input.w};
             node_t w_node = create_graph_node(graph, weight_name, "Const");
             tensor_t w_tensor = create_graph_tensor(graph, weight_name, TENGINE_DT_FP32);
             set_node_output_tensor(w_node, 0, w_tensor, TENSOR_TYPE_CONST);
@@ -83,6 +84,7 @@ namespace tengine
 
             /* set weight data */
             int buf_size = get_tensor_buffer_size(w_tensor);
+            
             set_tensor_buffer(w_tensor, (void*)weight, buf_size);
             release_graph_node(w_node);
             release_graph_tensor(w_tensor);
@@ -106,7 +108,7 @@ namespace tengine
 
             /* set input/output node */
             const char* inputs_name[]  = {data_name};
-            const char* outputs_name[] = {output_name};
+            const char* outputs_name[] = {node_name};
             if (set_graph_input_node(graph, inputs_name, sizeof(inputs_name) / sizeof(char*)) < 0)
             {
                 return -1;
@@ -120,7 +122,7 @@ namespace tengine
             return 0;
         }
 
-        bool TengineFullyConnected::init(OpData& input,OpData& output,const char* weight,const char* bias,int num_output)
+        bool TengineFullyConnected::init(Tensor& input,const char* weight,const char* bias,int num_output)
         {
             init_tengine();
             _graph = create_graph(NULL, NULL, NULL);
@@ -129,7 +131,7 @@ namespace tengine
                 return false;
             }
 
-            if( 0 != create_fc_graph(_graph,input,output,weight,bias,num_output) )
+            if( 0 != create_fc_graph(_graph,input,weight,bias,num_output) )
             {
                 destroy_graph(_graph);
                 return false;
@@ -138,10 +140,10 @@ namespace tengine
             return true;
         }
 
-        TTengineOpPtr TengineFullyConnected::create(OpData& input,OpData& output,const char* weight,const char* bias,int num_output)
+        TTengineOpPtr TengineFullyConnected::create(Tensor& input,const char* weight,const char* bias,int num_output)
         {
-            TengineFullyConnected* op = new TengineFullyConnected() ;
-            op->init(input,output,weight,bias,num_output);
+            TengineFullyConnected* op = new TengineFullyConnected();
+            op->init(input,weight,bias,num_output);
             return TTengineOpPtr(op);
         }
 
@@ -152,10 +154,50 @@ namespace tengine
                 return false;
             }
 
+            if( prerun_graph(_graph) < 0 )
+            {
+                return false;
+            }
+
             if(run_graph(_graph, 1) < 0)
             {
                 return false;
             }
+
+            return true;
+        }
+
+        Tensor* TengineFullyConnected::get_output_tensor()const
+        {
+            node_t out_node = get_graph_output_node(_graph,0);
+            tensor_t out_tensor = get_node_output_tensor(out_node,0);
+
+            int dims[4] = {0};
+            int dim_num = 4;
+            dim_num = get_tensor_shape(out_tensor, dims, dim_num);
+            if(dim_num < 0)
+            {
+                std::printf("Get tensor shape failed\n");
+                return NULL;
+            }
+
+            Tensor* t = NULL;
+            if(dim_num == 4)
+            {
+                t = new Tensor(dims[0],dims[3], dims[2], dims[1], 4);
+            }
+            else
+            {
+                return NULL;
+            }
+
+            int buffer_size = get_tensor_buffer_size(out_tensor);
+            void* buffer = (get_tensor_buffer(out_tensor));
+
+            memcpy(t->data, buffer, buffer_size);
+
+            return t;
+
         }
 
         TengineFullyConnected::~TengineFullyConnected()

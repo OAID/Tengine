@@ -40,8 +40,9 @@ namespace tengine
                 ~TengineFullyConnected();
                 virtual bool run();
                 virtual bool valid()const;
-                
-                bool init(OpData& input,OpData& output,const char* weight,const char* bias,int num_output);
+                virtual Tensor* get_output_tensor()const;
+
+                bool init(Tensor& input,const char* weight,const char* bias,int num_output);
 
             protected:
                 TengineFullyConnected(){}
@@ -50,7 +51,7 @@ namespace tengine
                 graph_t _graph;
 
             public:
-                static TTengineOpPtr create(OpData& input,OpData& output,const char* weight,const char* bias,int num_output);
+                static TTengineOpPtr create(Tensor& input,const char* weight,const char* bias,int num_output);
         };
 
     }

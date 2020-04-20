@@ -546,6 +546,28 @@ void Tensor::create(int _w, int _h, int _c, size_t _elem_size, uint8_t _layout)
     }
 }
 
+void Tensor::create(int _n,int _w, int _h, int _c, size_t _elem_size, uint8_t _layout)
+{
+    if(w == _w && elem_size == _elem_size && _layout == layout)
+        return;
+
+    w = _w;
+    h = _h;
+    c = _c;
+    n = _n;
+
+    elem_size = _elem_size;
+    dim_num = 4;
+    layout = _layout;
+    elem_num = w * h * c * n;
+
+    if(total() > 0)
+    {
+        size_t totalsize = total() * elem_size;
+        data = malloc(totalsize);
+    }
+}
+
 bool Tensor::empty() const
 {
     return data == 0 || total() == 0;

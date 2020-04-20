@@ -30,39 +30,16 @@
 
 namespace tengine
 {
+    class Tensor;
     namespace nn
     {
-        struct OpData
-        {
-            OpData()
-                :data_(0)
-                ,n_(0)
-                ,c_(0)
-                ,h_(0)
-                ,w_(0)
-                {}
-
-            OpData(float* dat,int n,int c,int h,int w)
-            :data_(dat)
-            ,n_(n)
-            ,c_(c)
-            ,h_(h)
-            ,w_(w)
-            {}
-
-            float* data_;
-            int n_;
-            int c_;
-            int h_;
-            int w_;
-        };
-
         class TengineOp
         {
             public:
                 virtual ~TengineOp() {}
                 virtual bool run() = 0;
                 virtual bool valid()const = 0;
+                virtual class Tensor* get_output_tensor()const = 0;
         };
 
         typedef std::shared_ptr<TengineOp> TTengineOpPtr;
