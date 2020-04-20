@@ -36,7 +36,7 @@ extern "C" {
 #define TM2_FILE_VER_SUB 0
 #define TM2_FILE_VER_COMPILE 0
 
-#define TM2_OP_VER 1
+#define TM2_OP_VER 2
 
 #define TM2_NOT_SET 0x00
 
@@ -134,6 +134,10 @@ typedef uint8_t tm_bool_t; /* bool is 1-byte unsigned integer */
 #define TM2_OPSTR_ROUND "Round"
 #define TM2_OPSTR_ZEROSLIKE "ZerosLike"
 #define TM2_OPSTR_CLIP "Clip"
+#define TM2_OPSTR_MATMUL "MatMul"
+#define TM2_OPSTR_REDUCEL2 "ReduceL2"
+#define TM2_OPSTR_UNSQUEEZE "Unsqueeze"
+
 /* Operator types */
 #define TM2_OPTYPE_ACCURACY 0 /* No Param                 */
 #define TM2_OPTYPE_BATCHNORMALIZATION 1 /* TM2_BatchNormParam       */
@@ -223,8 +227,10 @@ typedef uint8_t tm_bool_t; /* bool is 1-byte unsigned integer */
 #define TM2_OPTYPE_ROUND 85
 #define TM2_OPTYPE_ZEROSLIKE 86
 #define TM2_OPTYPE_CLIP 87
-#define TM2_OPTYPE_NUM 88
-
+#define TM2_OPTYPE_MATMUL 88
+#define TM2_OPTYPE_REDUCEL2 89
+#define TM2_OPTYPE_UNSQUEEZE 90
+#define TM2_OPTYPE_NUM 91
 /* --------------------- -------- TM objects -------------------------------- */
 
 typedef struct
@@ -512,6 +518,16 @@ typedef struct
     int32_t reverse;
     tm_uoffset_t offset_re_shape;
 } TM2_ReshapeParam;
+
+typedef struct
+{
+    int32_t dim_0;
+    int32_t dim_1;
+    int32_t dim_2;
+    int32_t dim_3;
+    int32_t dim_size;
+    int32_t axis;
+} TM2_ReshapeParam_V1;
 
 typedef struct
 {
@@ -864,9 +880,11 @@ typedef struct
     int32_t axis;
     int32_t indices_num;
 } TM2_GatherParam;
+
 typedef struct{
     tm_uoffset_t offset_tr_shape;
 }TM2_TransposeParam;
+
 typedef struct
 {
     int32_t type;
@@ -894,6 +912,16 @@ typedef struct
     float min;
 } TM2_ClipParam;
 
+typedef struct
+{
+    int axis;
+    int keepdim;
+}TM2_ReduceL2Param;
+
+typedef struct
+{
+    tm_uoffset_t offset_vi_axises;
+}TM2_UnsqueezeParam;
 
 #ifdef __cplusplus
 }

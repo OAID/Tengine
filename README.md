@@ -1,6 +1,10 @@
+<p align="center"><img width="20%" src="Tengine_main_logo.png" /></p>
+
 # Tengine Overview
 
 [![GitHub license](http://OAID.github.io/pics/apache_2.0.svg)](./LICENSE) [![Build Status](https://img.shields.io/github/workflow/status/OAID/Tengine/Tengine-Actions)](https://github.com/OAID/Tengine/actions?query=workflow%3ATengine-Actions) [![Test Status](https://img.shields.io/travis/OAID/Tengine/master?label=test)](https://travis-ci.org/OAID/Tengine)
+
+
 
 **Tengine**, developed by **OPEN** AI LAB, is an AI application development platform for AIoT scenarios launched by OPEN AI LAB, which is dedicated to solving the fragmentation problem of aiot industrial chain and accelerating the landing of AI industrialization. Tengine is specially designed for AIoT scenarios, and it has several features, such as cross platform, heterogeneous scheduling, chip bottom acceleration, ultra light weight and independent, and complete development and deployment tool chain. Tengine is compatible with a variety of operating systems and deep learning algorithm framework, which simplifies and accelerates the rapid migration of scene oriented AI algorithm on embedded edge devices, as well as the actual application deployment;
 
@@ -14,7 +18,7 @@ Tengine is composed of five modules: **core/operator/serializer/executor/driver*
 
 
 ## Build and Install
-please refer to Wiki
+please refer to [Wiki](https://github.com/OAID/Tengine/wiki)
 
 ## Tengine examples and model zoo
 
@@ -36,10 +40,10 @@ please visit [examples](https://github.com/OAID/Tengine/tree/master/examples) fo
 
 Test on RK3399-1*A72 
 
- Model  |  fp32 | int8-hybrid | int8-e2e |
- ---- | ----- | ------  | ------
- Squeezenet v1.1  | 55.3ms | 48.6ms| 44.6ms 
- Mobilenet v1  | 108.7ms | 74.6ms| 64.2ms
+| Model           | fp32    | int8-hybrid | int8-e2e |
+| --------------- | ------- | ----------- | -------- |
+| Squeezenet v1.1 | 55.3ms  | 48.6ms      | 44.6ms   |
+| Mobilenet v1    | 108.7ms | 74.6ms      | 64.2ms   |
 
 More Benchmark data to be added.
 
@@ -51,13 +55,12 @@ More Benchmark data to be added.
 ##### Feature
 
 - [ ] More examples
-- [ ] Netron support Tengine model .tmfile
-- [ ] New compile configuration file
-- [ ] Easy to use C++ API
-- [ ] Easy to use Python API
+- [x] Netron support Tengine model .tmfile
+- [x] New compile configuration file
+- [x] Easy to use C++ API
+- [x] Easy to use Python API
 - [ ] Support more ops of ONNX(PyTorch)
 
 ##### Optimization
 
-- [ ] x86 platform ops
-
+- [x] x86 platform ops

@@ -100,7 +100,7 @@ static void sgemm(int M, int N, int K, float* pA, float* pB, float* pC) // kerne
         for (; j+3<N; j+=4)         // output ch0 - ch3
         {
             float* va = pA_t + (j/4) * 4*K;
-            float* vb = pB;
+            float* vb = pB + i*K;
 #if __SSE2__
             __m128 _sum0 = _mm_set1_ps(0.f);
 
@@ -163,7 +163,7 @@ static void sgemm(int M, int N, int K, float* pA, float* pB, float* pC) // kerne
             float sum = 0;
 
             float* va = pA_t + (j/4 + j%4) * 4*K;
-            float* vb = pB;
+            float* vb = pB + i*K;
 
             for (int k=0; k<K; k++)
             {

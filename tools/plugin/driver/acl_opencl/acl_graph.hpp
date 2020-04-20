@@ -492,13 +492,15 @@ public:
         void* acl_data = nullptr;
         void* data = nullptr;
         ActivationLayerInfo act_info;
-        if(node->ExistAttr("Fused.ReLu"))
-            act_info = ActivationLayerInfo(ActivationLayerInfo::ActivationFunction::RELU);
-        if(node->ExistAttr("Fused.ReLu6"))
-            act_info = ActivationLayerInfo(ActivationLayerInfo::ActivationFunction::BOUNDED_RELU);
-        Convolution* conv_op = dynamic_cast< Convolution* >(node->GetOp());
+
+        Convolution* conv_op = dynamic_cast<Convolution*>(node->GetOp());
         ConvParam* param = conv_op->GetParam();
-        
+
+        if(param->activation == 0)
+            act_info = ActivationLayerInfo(ActivationLayerInfo::ActivationFunction::RELU);
+        else if(param->activation == 6)
+            act_info = ActivationLayerInfo(ActivationLayerInfo::ActivationFunction::BOUNDED_RELU);
+
         int pad_x = param->pad_w0;
         int pad_y = param->pad_h0;
         int pad_x_1 = param->pad_w1;
@@ -630,8 +632,16 @@ public:
             {
                 CLDepthwiseConvolutionLayer3x3* dwconv3x3 = new CLDepthwiseConvolutionLayer3x3();
                 dwconv3x3->configure(itensor, wtensor, btensor, otensor,
-                                     PadStrideInfo(stride_x, stride_y, pad_x, pad_y), 1, act_info);
+                                     PadStrideInfo(stride_x, stride_y, pad_x, pad_y), 1);
                 functions_map_.push_back(dwconv3x3);
+
+                if(act_info.enabled())
+                {
+                    CLActivationLayer* relu = new CLActivationLayer();
+                    relu->configure(otensor, otensor,
+                                    ActivationLayerInfo(ActivationLayerInfo::ActivationFunction::RELU));
+                    functions_map_.push_back(relu);
+                }
             }
             else
             {

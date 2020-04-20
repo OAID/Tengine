@@ -53,7 +53,9 @@
 #include "operator/transpose_param.hpp"
 #include "operator/slice_param.hpp"
 #include "operator/split_param.hpp"
-
+#include "operator/reducel2_param.hpp"
+#include "operator/unsqueeze_param.hpp"
+#include "operator/squeeze_param.hpp"
 
 #include "type_name.hpp"
 #include "compiler.hpp"
@@ -472,11 +474,14 @@ bool OnnxSerializer::LoadGraph(onnx::ModelProto& model, StaticGraph* graph)
     if(no_supported_op.size())
     {
         
-        LOG_ERROR() << "These "<<no_supported_op.size() << "op are not supported\n";
+        LOG_ERROR() << "These "<<no_supported_op.size() << " op are not supported\n";
         LOG_ERROR() << "{";
         for(int j = 0; j < (int) no_supported_op.size(); j++)
         {
-            LOG_ERROR() << no_supported_op[j] <<",";
+            LOG_ERROR() << no_supported_op[j];
+            if (j != no_supported_op.size() - 1) {
+                LOG_ERROR() << ", ";
+            }
         }
         LOG_ERROR() << "}\n";
    
@@ -677,9 +682,13 @@ static bool LoadOnnxFlatten(StaticGraph* graph, StaticNode* node, const onnx::No
 {
     FlattenParam param = any_cast<FlattenParam>(OpManager::GetOpDefParam("Flatten"));
 
-    const onnx::AttributeProto& attr = onnx_node.attribute(0);
+    if (onnx_node.attribute_size() >= 1) {
+        const onnx::AttributeProto& attr = onnx_node.attribute(0);
+        param.axis = attr.i();
+    } else {
+        param.axis = 1;
+    }
 
-    param.axis = attr.i();
 
     StaticOp* op = CreateStaticOp(graph, "Flatten");
 
@@ -913,18 +922,42 @@ static bool LoadOnnxInterp(StaticGraph* graph, StaticNode* node, const onnx::Nod
             }
         }
     }
-    else
+    else if (onnx_node.input_size() == 3)   // onnx resize op
     {
-        const std::string& input_name = onnx_node.input(1);
         // std::cout<<"tensor name:"<<input_name<<"\n";
-        StaticTensor* tensor = FindTensor(graph, input_name);
+        {
+            StaticTensor* tensor = FindTensor(graph, onnx_node.input(1));
+            float* data = ( float* )GetConstTensorBuffer(tensor);
+            auto n = tensor->dims[0];
+            for (int i = 0; i < n; i++) {
+                if ((i < n / 2 && data[i] != 0) || (i >= n / 2 && data[i] != 1)) {
+                    LOG_ERROR() << "resize roi is not supported\n";
+                    return false;
+                }
+            }
+        }
+        StaticTensor* tensor = FindTensor(graph, onnx_node.input(2));
         float* data = ( float* )GetConstTensorBuffer(tensor);
+        auto n = tensor->dims[0];
+        if (n != 4) {
+            LOG_ERROR() << "Resize op only supports 4-D tensor\n";
+            return false;
+        }
+        if (data[0] != 1 || data[1] != 1) {
+            LOG_ERROR() << "Only 2-D resize is supported\n";
+            return false;
+        }
+
         //int scales_size = tensor->dims[0];
         // printf("scale size:%d\n", scales_size);
         // printf("scale data:%f %f\n",data[0], data[1]);
         param.height_scale = data[2];
         param.width_scale = data[3];
-
+    }
+    else
+    {
+        LOG_ERROR() << "Resize op do not support \"sizes\" input\n";
+        return false;
     }
 
     std::string mode = "nearest";
@@ -945,6 +978,11 @@ static bool LoadOnnxInterp(StaticGraph* graph, StaticNode* node, const onnx::Nod
     else if (mode == "bilinear" || mode == "linear")
     {
         param.resize_type = 2;
+    } 
+    else 
+    {
+        LOG_ERROR() << "Cubic resize is not supported\n";
+        return false;
     }
 
     SetOperatorParam(op, param);
@@ -1170,6 +1208,134 @@ static bool LoadOnnxSub(StaticGraph* graph, StaticNode* node, const onnx::NodePr
 
     return true;
 }
+static bool LoadOnnxMatMul(StaticGraph* graph, StaticNode* node, const onnx::NodeProto& onnx_node)
+{
+    StaticTensor * input_tensor = FindTensor(graph,onnx_node.input(0));
+    StaticTensor* weight_tensor = FindTensor(graph, onnx_node.input(1));
+
+    if(2 == input_tensor->dims.size() && weight_tensor->type == kConstTensor)
+    {
+        int k = weight_tensor->dims[0];
+        int n = weight_tensor->dims[1];
+        weight_tensor->dims[0] = n;
+        weight_tensor->dims[1] = k;
+
+        float* tmp = ( float* )malloc(k * n * sizeof(float));
+        float* data = ( float* )GetConstTensorBuffer(weight_tensor);
+        for(int i = 0; i < n; i++)
+        {
+            for(int j = 0; j < k; j++)
+            {
+                tmp[i * k + j] = data[j * n + i];
+            }
+        }
+        memcpy(data, tmp, n * k * sizeof(float));
+
+        free(tmp);
+
+        StaticOp* op = CreateStaticOp(graph, "FullyConnected");
+        FCParam fc_param = any_cast<FCParam>(OpManager::GetOpDefParam("FullyConnected"));
+
+        fc_param.num_output = weight_tensor->dims[0];
+        SetOperatorParam(op, fc_param);
+        SetNodeOp(node, op);
+																			        
+        return true;
+    }
+		        
+    StaticOp* op = CreateStaticOp(graph, "MatMul");
+    SetNodeOp(node, op);
+
+    return true;
+}
+
+static bool LoadOnnxReduceL2(StaticGraph* graph, StaticNode* node, const onnx::NodeProto& onnx_node)
+{
+    ReduceL2Param param = any_cast<ReduceL2Param>(OpManager::GetOpDefParam("ReduceL2"));
+    for(int k = 0; k < onnx_node.attribute_size(); k++)
+    {
+        const onnx::AttributeProto& attr = onnx_node.attribute(k);
+        if(attr.name() == "axes")
+        {
+            param.axis = attr.ints(0);  // TODO:Support muti axis
+        }
+        if(attr.name() == "keepdims")
+        {
+            param.keepdim = attr.i();
+        }
+    }
+    StaticOp* op = CreateStaticOp(graph, "ReduceL2");
+
+    SetOperatorParam(op, param);
+
+    SetNodeOp(node, op);
+
+   return true;
+}
+
+static bool LoadOnnxSqueeze(StaticGraph* graph, StaticNode* node, const onnx::NodeProto& onnx_node)
+{
+    SqueezeParam param = any_cast<SqueezeParam>(OpManager::GetOpDefParam("Squeeze"));
+    for(int k = 0; k < onnx_node.attribute_size(); k++)
+    {
+        const onnx::AttributeProto& attr = onnx_node.attribute(k);
+        if(attr.name() == "axes")
+        {
+            for(int i = 0; i < attr.ints_size();i++)
+            {
+                if(0 == attr.ints(i))
+                {
+                    param.dim_0 = 1;
+                }
+                else if(1 == attr.ints(i))
+                {
+                    param.dim_1 = 1;
+                }
+                else if(2 == attr.ints(i))
+                {
+                    param.dim_2 = 1;
+                }
+                else if(3 == attr.ints(i))
+                {
+                     param.dim_3 = 1;
+                }
+            }
+        }
+    }
+
+    StaticOp* op = CreateStaticOp(graph, "Squeeze");
+    SetOperatorParam(op, param);
+
+    SetNodeOp(node, op);
+
+   return true;
+}
+
+static bool LoadOnnxUnsqueeze(StaticGraph* graph, StaticNode* node, const onnx::NodeProto& onnx_node)
+{
+    UnsqueezeParam param = any_cast<UnsqueezeParam>(OpManager::GetOpDefParam("Unsqueeze"));
+
+    for(int k = 0; k < onnx_node.attribute_size(); k++)
+    {
+        const onnx::AttributeProto& attr = onnx_node.attribute(k);
+        if(attr.name() == "axes")
+        {
+            for(int i = 0; i < attr.ints_size();i++)
+            {
+                param.axises.push_back(attr.ints(i));
+            }
+        }
+    }
+    sort(param.axises.begin(), param.axises.end());
+    StaticOp* op = CreateStaticOp(graph, "Unsqueeze");
+
+    SetOperatorParam(op, param);
+
+    SetNodeOp(node, op);
+
+    return true;
+}
+
 
 // To register all op loader...
 bool OnnxSerializerRegisterOpLoader(void)
@@ -1196,10 +1362,11 @@ bool OnnxSerializerRegisterOpLoader(void)
     p_onnx->RegisterOpLoadMethod("Flatten", op_load_t(LoadOnnxFlatten));
     p_onnx->RegisterOpLoadMethod("Gemm", op_load_t(LoadOnnxGemm));
     p_onnx->RegisterOpLoadMethod("HardSwish", op_load_t(LoadOnnxHardSwish));
-	p_onnx->RegisterOpLoadMethod("Elu", op_load_t(LoadOnnxElu));
+    p_onnx->RegisterOpLoadMethod("Elu", op_load_t(LoadOnnxElu));
     p_onnx->RegisterOpLoadMethod("Tanh", op_load_t(LoadOnnxTanh));
-	p_onnx->RegisterOpLoadMethod("PRelu", op_load_t(LoadOnnxPRelu));
+    p_onnx->RegisterOpLoadMethod("PRelu", op_load_t(LoadOnnxPRelu));
     p_onnx->RegisterOpLoadMethod("Upsample", op_load_t(LoadOnnxInterp));
+    p_onnx->RegisterOpLoadMethod("Resize", op_load_t(LoadOnnxInterp));
     p_onnx->RegisterOpLoadMethod("Clip", op_load_t(LoadOnnxClip));
     p_onnx->RegisterOpLoadMethod("Mul", op_load_t(LoadOnnxMul));
     p_onnx->RegisterOpLoadMethod("Div", op_load_t(LoadOnnxDiv));
@@ -1208,11 +1375,16 @@ bool OnnxSerializerRegisterOpLoader(void)
     p_onnx->RegisterOpLoadMethod("Reshape", op_load_t(LoadOnnxReshape));
     p_onnx->RegisterOpLoadMethod("LeakyRelu", op_load_t(LoadOnnxLeakyReLu));
     p_onnx->RegisterOpLoadMethod("Transpose", op_load_t(LoadOnnxTranspose));
-	p_onnx->RegisterOpLoadMethod("Slice", op_load_t(LoadOnnxSlice));
+    p_onnx->RegisterOpLoadMethod("Slice", op_load_t(LoadOnnxSlice));
     p_onnx->RegisterOpLoadMethod("Sigmoid", op_load_t(LoadOnnxSigmod));
     p_onnx->RegisterOpLoadMethod("Split", op_load_t(LoadOnnxSplit));
     p_onnx->RegisterOpLoadMethod("Exp", op_load_t(LoadOnnxExp));
     p_onnx->RegisterOpLoadMethod("Sub", op_load_t(LoadOnnxSub));
+    p_onnx->RegisterOpLoadMethod("MatMul", op_load_t(LoadOnnxMatMul));
+    p_onnx->RegisterOpLoadMethod("ReduceL2", op_load_t(LoadOnnxReduceL2));
+    p_onnx->RegisterOpLoadMethod("Unsqueeze", op_load_t(LoadOnnxUnsqueeze));
+    p_onnx->RegisterOpLoadMethod("Squeeze", op_load_t(LoadOnnxSqueeze));
+
     //p_onnx->RegisterOpLoadMethod("Constant", op_load_t(LoadOnnxConstant));
     return true;
 }

@@ -1,9 +1,3 @@
-if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-    set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/install" CACHE PATH "Installation Directory")
-    message(STATUS,"CMAKE_CURRENT_SRC_DIR = ${CMAKE_CURRENT_SOURCE_DIR}")
-endif()
-message(STATUS "CMAKE_INSTALL_PREFIX = ${CMAKE_INSTALL_PREFIX}")
-
 cmake_minimum_required(VERSION 2.8)
 
 # set(CMAKE_BUILD_TYPE debug)
@@ -236,6 +230,9 @@ enable_testing()
 add_subdirectory(tests)
 
 add_subdirectory(examples)
+
+## Configure install directory
+set(CMAKE_INSTALL_PREFIX "${tengine_BINARY_DIR}/install")
 
 install (TARGETS tengine  DESTINATION lib)
 if(NOT BUILD_ALL_IN_STATIC AND NOT BUILD_ALL_IN_ONE)
