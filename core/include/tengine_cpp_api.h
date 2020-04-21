@@ -34,6 +34,13 @@
 #define TENGINE_LAYOUT_NCHW 0
 #define TENGINE_LAYOUT_NHWC 1
 
+enum EKernelMode
+{
+	eKernelMode_Float32 = 0,
+    eKernelMode_Int8 = 2,
+    eKernelMode_Int8Perchannel,
+};
+
 namespace tengine {
 class Tensor;
 class Net
@@ -57,6 +64,14 @@ public:
     int input_tensor(std::string name, Tensor& t);
     // output data by tensor
     int extract_tensor(std::string name, Tensor& t);
+
+public:
+    // set kenel mode
+    static int set_kernel_mode(EKernelMode kernel_mode);
+    // turn on/off wino
+    static int switch_wino(bool is_open);
+    // bind cpu 
+    static int set_worker_cpu_list(const int* cpu_list,int num);
 
     // run
     int run(int block = 1);
@@ -83,6 +98,7 @@ public:
     Tensor(int w, int h, size_t elem_size = 4u, uint8_t layout = TENGINE_LAYOUT_NCHW);
     // dim
     Tensor(int w, int h, int c, size_t elem_size = 4u, uint8_t layout = TENGINE_LAYOUT_NCHW);
+    Tensor(int n,int w, int h, int c, size_t elem_size = 4u, uint8_t layout = TENGINE_LAYOUT_NCHW);
     // copy
     Tensor(const Tensor& m);
     // release
@@ -106,6 +122,7 @@ public:
     void create(int w, int h, size_t elem_size = 4u, uint8_t layout = TENGINE_LAYOUT_NCHW);
     // allocate dim
     void create(int w, int h, int c, size_t elem_size = 4u, uint8_t layout = TENGINE_LAYOUT_NCHW);
+    void create(int n,int w, int h, int c, size_t elem_size = 4u, uint8_t layout = TENGINE_LAYOUT_NCHW);
 
     bool empty() const;
     size_t total() const;
@@ -165,6 +182,13 @@ inline Tensor::Tensor(int _w, int _h, int _c, size_t _elem_size, uint8_t _layout
 {
     create(_w, _h, _c, _elem_size, _layout);
 }
+
+inline Tensor::Tensor(int _n,int _w, int _h, int _c, size_t _elem_size, uint8_t _layout)
+    :dim_num(0), layout(0), elem_size(0), elem_num(0), data(0),c(0), h(0), w(0),n(0)
+{
+    create(_n,_w, _h, _c, _elem_size, _layout);
+}
+
 }    // namespace tengine
 
 #endif

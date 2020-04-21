@@ -30,6 +30,7 @@
 #include <arm_neon.h>
 #endif
 #include "tengine_cpp_api.h"
+#include "cpu_device.h"
 
 namespace tengine {
 bool b_tengine_inited = false;
@@ -76,6 +77,56 @@ int Net::load_model(context_t context, const char* model_format, const char* mod
         return -1;
     }
 
+    return 0;
+}
+
+int Net::set_kernel_mode(EKernelMode kernel_mode)
+{
+	const char* MODE_STR = "KERNEL_MODE";
+    const char* PER_CHANNEL = "PER_CHANNEL";
+    switch( kernel_mode)
+    {
+        case eKernelMode_Float32:
+        {
+            setenv(MODE_STR ,"1",1);
+            unsetenv(PER_CHANNEL);
+            break;
+        }
+        case eKernelMode_Int8:
+        {
+            setenv(MODE_STR ,"2",1);
+            unsetenv(PER_CHANNEL);
+            break;
+        }
+        case eKernelMode_Int8Perchannel:
+        {
+            setenv(MODE_STR ,"2",1);
+            setenv("PER_CHANNEL" ,"1",1);
+            break;
+        }
+    }
+
+    return 0;
+}
+
+int Net::switch_wino(bool is_open)
+{
+	const char* WINO_STR = "NO_WINO";
+	if( is_open )
+	{
+		unsetenv(WINO_STR);
+	}
+	else
+	{
+		setenv(WINO_STR,"1",1);
+	}
+
+	return 0;
+}
+
+int Net::set_worker_cpu_list(const int* cpu_list,int num)
+{
+	set_working_cpu(cpu_list,num);
     return 0;
 }
 
@@ -494,6 +545,28 @@ void Tensor::create(int _w, int _h, int _c, size_t _elem_size, uint8_t _layout)
     h = _h;
     c = _c;
     n = 1;
+    elem_num = w * h * c * n;
+
+    if(total() > 0)
+    {
+        size_t totalsize = total() * elem_size;
+        data = malloc(totalsize);
+    }
+}
+
+void Tensor::create(int _n,int _w, int _h, int _c, size_t _elem_size, uint8_t _layout)
+{
+    if(w == _w && elem_size == _elem_size && _layout == layout)
+        return;
+
+    w = _w;
+    h = _h;
+    c = _c;
+    n = _n;
+
+    elem_size = _elem_size;
+    dim_num = 4;
+    layout = _layout;
     elem_num = w * h * c * n;
 
     if(total() > 0)
