@@ -249,14 +249,73 @@ int Net::input_tensor(std::string name, Tensor& t)
     return 0;
 }
 
+int Net::input_tensor(int node_index, int tensor_index, Tensor& t)
+{
+    int dims[4];
+
+    dims[0] = t.n;
+    dims[1] = t.c;
+    dims[2] = t.h;
+    dims[3] = t.w;
+
+    // printf("tengine cpp api : %s tensor_name:%s\n", __FUNCTION__,name.c_str());
+    tensor_t tensor = get_graph_input_tensor(graph, node_index, tensor_index);
+    if(tensor == NULL)
+    {
+        std::printf("Cannot find tensor node_index: %d, tensor_index: %d\n", node_index, tensor_index);
+        return -1;
+    }
+    int ret = set_tensor_buffer(tensor, ( void* )t.data, t.total() * t.elem_size);
+    if(ret < 0)
+    {
+        std::printf("Set buffer for tensor failed\n");
+        return -1;
+    }
+
+    set_tensor_shape(tensor, dims, 4);
+
+    return 0;
+}
+
 int Net::extract_tensor(std::string name, Tensor& t)
 {
-    // printf("tengine cpp api : %s\n", __FUNCTION__);
-
     tensor_t tensor = get_graph_tensor(graph, name.c_str());
     if(tensor == NULL)
     {
         std::printf("Cannot find output tensor , tensor_name: %s \n", name.c_str());
+        return -1;
+    }
+    int dims[4] = {0};
+    int dim_num = 4;
+    dim_num = get_tensor_shape(tensor, dims, dim_num);
+    if(dim_num < 0)
+    {
+        std::printf("Get tensor shape failed\n");
+        return -1;
+    }
+    // printf("tengine cpp api : %s dims: %d:%d:%d:%d\n", __FUNCTION__, dims[0], dims[1], dims[2], dims[3]);
+    // Tensor m;
+    if(dim_num == 4)
+        t.create(dims[3], dims[2], dims[1], 4);
+    else
+    {
+        /* code */
+    }
+
+    int buffer_size = get_tensor_buffer_size(tensor);
+    void* buffer = (get_tensor_buffer(tensor));
+    memcpy(t.data, buffer, buffer_size);
+
+    return 0;
+}
+
+int Net::extract_tensor(int node_index, int tensor_index, Tensor& t)
+{
+    tensor_t tensor = get_graph_output_tensor(graph, node_index, tensor_index);
+
+    if(tensor == NULL)
+    {
+        std::printf("Cannot find output tensor, node_index: %d, tensor_index: %d\n", node_index, tensor_index);
         return -1;
     }
     int dims[4] = {0};
