@@ -37,7 +37,7 @@ const char* model_file = "./models/mobilenet.tmfile";
 const char* image_file = "./tests/images/cat.jpg";
 const char* label_file = "./models/synset_words.txt";
 
-const float channel_mean[3] = {104.007, 116.669, 122.679};
+const float channel_mean[3] = {103.94, 116.78, 123.68};
 
 using namespace TEngine;
 
