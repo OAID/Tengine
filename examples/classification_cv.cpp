@@ -242,10 +242,10 @@ int main(int argc, char* argv[])
 
     /* prepare input data */
     input_tensor.create(img_w, img_h, 3);
-    get_input_data_cv(_image_file, (float* )input_tensor.data, img_h, img_w, _channel_mean, 0.017);
+    get_input_data_cv(_image_file, (float* )input_tensor.data, img_h, img_w, _channel_mean, scale);
     
     /* forward */
-    somenet.input_tensor("data", input_tensor);
+    somenet.input_tensor(0, 0, input_tensor);
 
     unsigned long start_time = get_cur_time();
 
@@ -253,12 +253,12 @@ int main(int argc, char* argv[])
         somenet.run();
 
     unsigned long end_time = get_cur_time();
-    unsigned long off_time = end_time - start_time;    
+    unsigned long off_time = end_time - start_time;
 
     std::printf("Repeat [%d] time %.2f us per RUN. used %lu us\n", repeat_count, 1.0f * off_time / repeat_count, off_time);
 
     /* get result */
-    somenet.extract_tensor("fc7", output_tensor);
+    somenet.extract_tensor(0, 0, output_tensor);
 
     /* after process */
     PrintTopLabels(_label_file, (float*)output_tensor.data,1000);

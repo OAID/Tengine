@@ -62,8 +62,12 @@ public:
     int extract_tensor(float*& buffer, int& buffer_size, const char* node_name);
     // input data by tensor
     int input_tensor(std::string name, Tensor& t);
+    // output data by node num and tensor index
+    int input_tensor(int node_index, int tensor_index, Tensor& t);
     // output data by tensor
     int extract_tensor(std::string name, Tensor& t);
+    // output data by node num and tensor index
+    int extract_tensor(int node_index, int tensor_index, Tensor& t);
 
 public:
     // set kenel mode

@@ -113,14 +113,14 @@ bool run_tengine_library(const char* model_name, const char* tm_file, const char
         get_input_data_uint8(image_file, input_data_tflite, img_h, img_w);
     }    
     else{
-        get_input_data(image_file, input_data, img_h, img_w, mean, scale);            
+        get_input_data(image_file, input_data, img_h, img_w, mean, scale);
     }
 
     if(strstr(model_name, "_tflite") != 0){
         set_tensor_buffer(input_tensor, input_data_tflite, img_size * 4);
     }
     else
-       set_tensor_buffer(input_tensor, input_data, img_size * 4);
+        set_tensor_buffer(input_tensor, input_data, img_size * 4);
     
     // warm up
     run_graph(graph, 1);
@@ -184,7 +184,7 @@ bool run_tengine_library(const char* model_name, const char* tm_file, const char
             std::cout << labels[idx-1] << "\"\n";
         }        
     }
-     else {
+    else {
         float* data = ( float* )get_tensor_buffer(output_tensor);
         int data_size = get_tensor_buffer_size(output_tensor) / sizeof(float);
         PrintTopLabels_common(label_file, data, data_size, model_name);
