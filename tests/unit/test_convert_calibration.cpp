@@ -33,10 +33,10 @@
 #include "common_util.hpp"
 #include "image_process.hpp"
 
-//const char* text_file = "./models/1.json";
-const char* text_file = "./models/mobilenet_int8.tmfile";
+//const char* text_file = "../models/1.json";
+const char* text_file = "../models/mobilenet_int8.tmfile";
 const char* image_file = "./images/cat.jpg";
-const char* label_file = "./models/synset_words.txt";
+const char* label_file = "../models/synset_words.txt";
 
 const float channel_mean[3] = {104.007, 116.669, 122.679};
 
