@@ -55,12 +55,11 @@ More Benchmark data to be added.
 ##### Feature
 
 - [ ] More examples
-- [x] Netron support Tengine model .tmfile
-- [x] New compile configuration file
-- [x] Easy to use C++ API
-- [x] Easy to use Python API
+- [ ] Web-based convert tool
+- [ ] CV API
 - [ ] Support more ops of ONNX(PyTorch)
+
 
 ##### Optimization
 
-- [x] x86 platform ops
+- [ ] arm v8.2 fp16 perf ops
