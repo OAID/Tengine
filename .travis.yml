@@ -18,7 +18,7 @@ matrix:
       env:
         - NAME=linux-gcc
         - BUILD="mkdir build && cd build && cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/x86.gcc.toolchain.cmake .. && make -j2"
-        - DOWNLOAD="git clone https://github.com/RudyFoo/TengineModels_ex.git && mv ./TengineModels_ex/* ./test/ && cd tests/model && git clone https://github.com/kalcohol/TengineModels.git && mv ./TengineModels/* ./"
+        - DOWNLOAD="git clone https://github.com/RudyFoo/TengineModels_ex.git && mv ./TengineModels_ex/* ./tests/ && cd tests/model && git clone https://github.com/kalcohol/TengineModels.git && mv ./TengineModels/* ./"
         - TEST="cd ../.. && ctest --output-on-failure -j 2"
 
     - name: "linux-gcc-arm32"
@@ -29,7 +29,7 @@ matrix:
         - NAME=linux-gcc-arm32
         - BEFORE_BUILD="sudo dpkg --add-architecture armhf && sudo apt-get update && sudo apt-get -y install crossbuild-essential-armhf libc6:armhf libstdc++-5-dev:armhf linux-libc-dev:armhf"
         - BUILD="mkdir build && cd build && cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/arm64.native.gcc.toolchain.cmake .. && make -j2"
-        - DOWNLOAD="git clone https://github.com/RudyFoo/TengineModels_ex.git && mv ./TengineModels_ex/* ./test/ && cd tests/model && git clone https://github.com/kalcohol/TengineModels.git && mv ./TengineModels/* ./"
+        - DOWNLOAD="git clone https://github.com/RudyFoo/TengineModels_ex.git && mv ./TengineModels_ex/* ./tests/ && cd tests/model && git clone https://github.com/kalcohol/TengineModels.git && mv ./TengineModels/* ./"
         - TEST="cd ../.. && ctest --output-on-failure -j 2"
 
     - name: "linux-gcc-arm64"
@@ -40,7 +40,7 @@ matrix:
       env:
         - NAME=linux-gcc-arm64
         - BUILD="mkdir build && cd build && cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/arm64.native.gcc.toolchain.cmake .. && make -j2"
-        - DOWNLOAD="git clone https://github.com/RudyFoo/TengineModels_ex.git && mv ./TengineModels_ex/* ./test/ && cd tests/model && git clone https://github.com/kalcohol/TengineModels.git && mv ./TengineModels/* ./"
+        - DOWNLOAD="git clone https://github.com/RudyFoo/TengineModels_ex.git && mv ./TengineModels_ex/* ./tests/ && cd tests/model && git clone https://github.com/kalcohol/TengineModels.git && mv ./TengineModels/* ./"
         - TEST="cd ../.. && ctest --output-on-failure -j 2"
 
 before_install:
