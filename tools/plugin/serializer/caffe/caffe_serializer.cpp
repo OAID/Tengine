@@ -368,10 +368,13 @@ bool CaffeBuddy::LoadModel(const std::vector<const void*>& addr_list, const std:
 
     /* the first one is  proto file, the second one is parameter file */
 
-    if(!google::protobuf::TextFormat::ParseFromString(( const char* )addr_list[0], &test_net))
     {
-        LOG_ERROR() << "failed to parse proto file\n";
-        return false;
+        std::string prototxt_str(static_cast<const char*>(addr_list[0]), size_list[0]);
+        if(!google::protobuf::TextFormat::ParseFromString(prototxt_str, &test_net))
+        {
+            LOG_ERROR() << "failed to parse proto file\n";
+            return false;
+        }
     }
 
     if(!train_net.ParseFromArray(addr_list[1], size_list[1]))
