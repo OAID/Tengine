@@ -247,7 +247,7 @@ tm_uoffset_t TmSerializer2::SaveTmNode(void* const start_ptr, tm_uoffset_t* cur_
     if(!FindOpSaveMethod(op_name))
     {
         LOG_ERROR() << "cannot find save function for operator: " << op_name << "\n";
-        return false;
+        return 0;
     }
     op_save_t op_save_func = any_cast<op_save_t>(GetOpSaveMethod(op_name));
     tm_node.offset_t_operator = op_save_func(start_ptr, cur_pos, node->GetOp());
@@ -331,7 +331,12 @@ tm_uoffset_t TmSerializer2::SaveTmSubgraph(void* const start_ptr, tm_uoffset_t* 
             tensor_name_map[p_tensor->GetName()] = tensor_num;
             tensor_num++;
         }
-        v_nodes->offsets[i] = SaveTmNode(start_ptr, cur_pos, p_node, tensor_name_map);
+        const auto offset = SaveTmNode(start_ptr, cur_pos, p_node, tensor_name_map);
+        if (offset == 0) {
+            // save node failed
+            return offset;
+        }
+        v_nodes->offsets[i] = offset;
     }
     /* Write the vector of nodes */
     tm_subgraph.offset_vo_seq_nodes = WriteTmObject(start_ptr, cur_pos, v_nodes, vector_size);
@@ -446,7 +451,11 @@ bool TmSerializer2::SaveModelIntoMem(void* start_ptr, Graph* graph, uint32_t* tm
     size_t vector_size = sizeof(tm_size_t) + sizeof(tm_uoffset_t) * 1;
     TM2_Vector_offsets* v_subgraphs = ( TM2_Vector_offsets* )malloc(vector_size);
     v_subgraphs->v_num = 1;
-    v_subgraphs->offsets[0] = SaveTmSubgraph(start_ptr, &cur_pos, graph);
+    const auto offset = SaveTmSubgraph(start_ptr, &cur_pos, graph);
+    if (offset == 0) {
+        return false;
+    }
+    v_subgraphs->offsets[0] = offset;
 
     /* Write the vector of subgraphs */
     tm_model.offset_vo_subgraphs = WriteTmObject(start_ptr, &cur_pos, v_subgraphs, vector_size);
