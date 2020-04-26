@@ -93,7 +93,8 @@ bool RefSplit::Prerun(Node* node)
 
     op_param.output_shape = new shape_dim[out_nums];
     op_param.output_counts = out_nums;
-
+    op_param.is_caffe = param->is_caffe;
+    
     auto dims = output_tensor->GetShape().GetDim();
     op_param.output_dim = ( int )(dims.size());
     for(int i = 0; i < out_nums; i++)

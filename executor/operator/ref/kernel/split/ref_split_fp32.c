@@ -41,22 +41,31 @@ static int ref_split_fp32(const float* in_data, float** out_data, struct split_p
     for(unsigned int i = 0; i < out_num; i++)
     {
         float* output = ( float* )out_data[i];
-        int out_slice = 0;
-        // if(param->squeeze_dim == 1)
-        // {
-        //     out_slice = 1;
-        // }
-        // else
-        {
-            out_slice = param->output_shape[i].dim[slice_axis];
+        if(param->is_caffe){
+            int size = 1;
+            for(int i = 0; i < 4; i++){
+                size *= param->input_shape.dim[i];
+            }
+            memcpy(output, in_data, sizeof(float)*size);
+        } else {
+
+            int out_slice = 0;
+            // if(param->squeeze_dim == 1)
+            // {
+            //     out_slice = 1;
+            // }
+            // else
+            {
+                out_slice = param->output_shape[i].dim[slice_axis];
+            }
+            for(int n = 0; n < num_slices; n++)
+            {
+                int in_offset = (n * in_slice + slice_index) * slice_size;
+                int out_offset = n * out_slice * slice_size;
+                memcpy(output + out_offset, in_data + in_offset, slice_size * out_slice * sizeof(float));
+            }
+            slice_index += out_slice;
         }
-        for(int n = 0; n < num_slices; n++)
-        {
-            int in_offset = (n * in_slice + slice_index) * slice_size;
-            int out_offset = n * out_slice * slice_size;
-            memcpy(output + out_offset, in_data + in_offset, slice_size * out_slice * sizeof(float));
-        }
-        slice_index += out_slice;
     }
     return 0;
 }
