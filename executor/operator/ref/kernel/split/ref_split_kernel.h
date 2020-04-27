@@ -50,6 +50,7 @@ struct split_param
     int axis;
     // int squeeze_dim;
     float out_scale;
+    bool is_caffe;
 };
 
 typedef int (*ref_split_t)(void* data, void** out_data, split_param* param);

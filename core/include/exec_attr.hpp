@@ -57,6 +57,7 @@ enum exec_policy_t
 #define MODEL_FORMAT_TFLITE 6
 #define MODEL_FORMAT_DARKNET 7
 #define MODEL_FORMAT_DLA 8
+#define MODEL_FORMAT_NCNN 9
 
 
 #define MODEL_SUBFORMAT_AIPU 1
