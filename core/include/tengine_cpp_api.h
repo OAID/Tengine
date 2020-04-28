@@ -102,7 +102,7 @@ public:
     Tensor(int w, int h, size_t elem_size = 4u, uint8_t layout = TENGINE_LAYOUT_NCHW);
     // dim
     Tensor(int w, int h, int c, size_t elem_size = 4u, uint8_t layout = TENGINE_LAYOUT_NCHW);
-    Tensor(int n,int w, int h, int c, size_t elem_size = 4u, uint8_t layout = TENGINE_LAYOUT_NCHW);
+    Tensor(int n, int w, int h, int c, size_t elem_size = 4u, uint8_t layout = TENGINE_LAYOUT_NCHW);
     // copy
     Tensor(const Tensor& m);
     // release
@@ -126,7 +126,7 @@ public:
     void create(int w, int h, size_t elem_size = 4u, uint8_t layout = TENGINE_LAYOUT_NCHW);
     // allocate dim
     void create(int w, int h, int c, size_t elem_size = 4u, uint8_t layout = TENGINE_LAYOUT_NCHW);
-    void create(int n,int w, int h, int c, size_t elem_size = 4u, uint8_t layout = TENGINE_LAYOUT_NCHW);
+    void create(int n, int w, int h, int c, size_t elem_size = 4u, uint8_t layout = TENGINE_LAYOUT_NCHW);
 
     bool empty() const;
     size_t total() const;
@@ -170,17 +170,22 @@ public:
     std::vector<float> zero_points;
 };
 
-inline Tensor::Tensor() : dim_num(0), layout(0), elem_size(0), elem_num(0), data(0), n(0), c(0), h(0), w(0) {}
+inline Tensor::Tensor() : dim_num(0), layout(0), elem_size(0), elem_num(0), data(0), n(0), c(0), h(0), w(0)
+{
+}
+
 inline Tensor::Tensor(int _w, size_t _elem_size, uint8_t _layout)
     : dim_num(0), layout(0), elem_size(0), elem_num(0), data(0), n(0), c(0), h(0), w(0)
 {
     create(_w, _elem_size, _layout);
 }
+
 inline Tensor::Tensor(int _w, int _h, size_t _elem_size, uint8_t _layout)
     : dim_num(0), layout(0), elem_size(0), elem_num(0), data(0), n(0), c(0), h(0), w(0)
 {
     create(_w, _h, _elem_size, _layout);
 }
+
 inline Tensor::Tensor(int _w, int _h, int _c, size_t _elem_size, uint8_t _layout)
     : dim_num(0), layout(0), elem_size(0), elem_num(0), data(0), n(0), c(0), h(0), w(0)
 {
@@ -188,9 +193,9 @@ inline Tensor::Tensor(int _w, int _h, int _c, size_t _elem_size, uint8_t _layout
 }
 
 inline Tensor::Tensor(int _n,int _w, int _h, int _c, size_t _elem_size, uint8_t _layout)
-    :dim_num(0), layout(0), elem_size(0), elem_num(0), data(0),c(0), h(0), w(0),n(0)
+    :dim_num(0), layout(0), elem_size(0), elem_num(0), data(0), n(0), c(0), h(0), w(0)
 {
-    create(_n,_w, _h, _c, _elem_size, _layout);
+    create(_n, _w, _h, _c, _elem_size, _layout);
 }
 
 }    // namespace tengine

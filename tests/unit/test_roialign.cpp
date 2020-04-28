@@ -95,12 +95,12 @@ int main(int argc, char* argv[])
         std::printf("Set buffer for tensor failed\n");
         return -1;
     }
-    float* input_data2 = ( float* )malloc(sizeof(float) * 5 );
+    float* input_data2 = ( float* )malloc(sizeof(float) * 4 );
 
-    for(int i = 0; i < 5; i++){
+    for(int i = 0; i < 4; i++){
         input_data2[i] = input2[i] ;
     }    
-    if(set_tensor_buffer(input_tensor1, input_data2, 5 * sizeof(float)) < 0)
+    if(set_tensor_buffer(input_tensor1, input_data2, 4 * sizeof(float)) < 0)
     {
         std::printf("Set buffer for tensor failed\n");
         return -1;

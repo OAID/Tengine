@@ -438,7 +438,7 @@ bool LoadTmReshapeOp(StaticGraph* graph, StaticNode* node, void* const start_ptr
         if(tm_param->reverse)
             param.reverse = true;
         else
-            param.reverse =false;
+            param.reverse = false;
         // set the is_mxnet
         if(tm_param->is_mxnet)
             param.is_mxnet = true;

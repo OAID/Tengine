@@ -60,7 +60,7 @@ void post_process_ssd(std::string& image_file, float threshold, float* outdata, 
                                  "dog",        "horse",     "motorbike", "person", "pottedplant", "sheep",
                                  "sofa",       "train",     "tvmonitor"};
 
-     image im = imread(image_file.c_str());
+    image im = imread(image_file.c_str());
 
     int raw_h = im.h;
     int raw_w = im.w;
@@ -227,10 +227,6 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    //run_graph(graph, 1);
-    //run_graph(graph, 1);
-    //run_graph(graph, 1);
-    //run_graph(graph, 1);
     run_graph(graph, 1);
     
     struct timeval t0, t1;

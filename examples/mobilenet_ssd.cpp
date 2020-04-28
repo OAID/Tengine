@@ -60,7 +60,7 @@ void post_process_ssd(std::string& image_file, float threshold, float* outdata, 
                                  "dog",        "horse",     "motorbike", "person", "pottedplant", "sheep",
                                  "sofa",       "train",     "tvmonitor"};
 
-     image im = imread(image_file.c_str());
+    image im = imread(image_file.c_str());
 
     int raw_h = im.h;
     int raw_w = im.w;
@@ -85,13 +85,11 @@ void post_process_ssd(std::string& image_file, float threshold, float* outdata, 
     }
     for(int i = 0; i < ( int )boxes.size(); i++)
     {
-
         Box box = boxes[i];
 
         std::ostringstream score_str;
         score_str << box.score * 100;
         std::string labelstr = std::string(class_names[box.class_idx]) + " : " + score_str.str();
-
 
         put_label(im, labelstr.c_str(), 0.02, box.x0, box.y0, 255, 255, 125);
         draw_box(im, box.x0, box.y0, box.x1, box.y1, 2, 125, 0, 125);
@@ -156,8 +154,6 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-
-
     tengine::Net somenet;
     tengine::Tensor input_tensor;
     tengine::Tensor output_tensor;
@@ -176,7 +172,6 @@ int main(int argc, char* argv[])
     /* load model */
     somenet.load_model(NULL, "tengine", model_file.c_str());
 
-
     // input
     int img_h = 300;
     int img_w = 300;
@@ -192,21 +187,13 @@ int main(int argc, char* argv[])
     if(repeat)
         repeat_count = std::strtoul(repeat, NULL, 10);
 
-
-
-        /* prepare input data */
-
+    /* prepare input data */
     input_tensor.create(img_w, img_h, 3);
 
     get_input_data(image_file.c_str(), (float* )input_tensor.data, img_h, img_w, mean, scales);
-    //set_tensor_buffer(input_tensor, input_data, img_size * 4);
 
-
-
-        /* forward */
-
-    somenet.input_tensor("data", input_tensor);
-
+    /* forward */
+    somenet.input_tensor(0, 0, input_tensor);
 
     struct timeval t0, t1;
     float total_time = 0.f;
@@ -226,10 +213,8 @@ int main(int argc, char* argv[])
     std::cout << "\nRepeat " << repeat_count << " times, avg time per run is " << total_time / repeat_count << " ms\n" << "max time is " << max_time << " ms, min time is " << min_time << " ms\n";
 
     //tensor_t out_tensor = get_graph_output_tensor(graph, 0, 0);    //"detection_out");
-
-        /* get result */
-
-    somenet.extract_tensor("detection_out", output_tensor);
+    /* get result */
+    somenet.extract_tensor(0, 0, output_tensor);
 
     float* outdata = ( float* )(output_tensor.data);
 
