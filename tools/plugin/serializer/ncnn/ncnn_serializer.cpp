@@ -1105,19 +1105,27 @@ static bool LoadNcnnDetectionOutput(StaticGraph* graph, StaticNode* node, const 
     if(iter != ncnn_node.attrs.end()){
         ParseAttr_n(iter->second, v1);
         param.nms_threshold = v1.at(0);
+    }else{
+        param.nms_threshold = 0.05;
     }
     iter = ncnn_node.attrs.find(2);
     if(iter != ncnn_node.attrs.end()){
         param.nms_top_k = std::atoi(iter->second.c_str());
+    }else{
+        param.nms_top_k = 300;
     }
     iter = ncnn_node.attrs.find(3);
     if(iter != ncnn_node.attrs.end()){
         param.keep_top_k = std::atoi(iter->second.c_str());
+    }else{
+        param.keep_top_k = 100;
     }
     iter = ncnn_node.attrs.find(4);
     if(iter != ncnn_node.attrs.end()){
         ParseAttr_n(iter->second, v2);
         param.confidence_threshold = v2.at(0);
+    }else {
+        param.confidence_threshold = 0.5f;
     }
     StaticOp* op = CreateStaticOp(graph, "DetectionOutput");
 
@@ -1133,7 +1141,7 @@ static bool LoadNcnnPriorBox(StaticGraph* graph, StaticNode* node, const NcnnNod
 
     PriorBoxParam param = any_cast<PriorBoxParam>(OpManager::GetOpDefParam("PriorBox"));
     const_iterator iter;
-    std::vector<float> v1,v2,v3,v4, vr1, vr2, vr3, vr4, ih,iw,sh,sw;
+    std::vector<float> v1, v2, v3, v4, vr1, vr2, vr3, vr4, ih, iw, sh, sw;
     
     iter = ncnn_node.attrs.find(0);
     if(iter != ncnn_node.attrs.end()){
@@ -1189,12 +1197,15 @@ static bool LoadNcnnPriorBox(StaticGraph* graph, StaticNode* node, const NcnnNod
     iter = ncnn_node.attrs.find(7);
     if(iter != ncnn_node.attrs.end()){
         param.flip = std::atoi(iter->second.c_str());
+    }else{
+        param.flip = 1;
     }
     iter = ncnn_node.attrs.find(8);
     if(iter != ncnn_node.attrs.end()){
         param.clip = std::atoi(iter->second.c_str());
+    }else{
+        param.clip = 0;
     }
-
     iter = ncnn_node.attrs.find(9);
     if(iter != ncnn_node.attrs.end()){
         if( std::atoi(iter->second.c_str()) != -233)
@@ -1215,7 +1226,7 @@ static bool LoadNcnnPriorBox(StaticGraph* graph, StaticNode* node, const NcnnNod
         if(sh.at(0) != -233)
             param.step_h = sh.at(0);
         else 
-            param.step_h = 0;
+            param.step_h = 0.f;
     }
     iter = ncnn_node.attrs.find(12);
     if(iter != ncnn_node.attrs.end()){
@@ -1223,7 +1234,7 @@ static bool LoadNcnnPriorBox(StaticGraph* graph, StaticNode* node, const NcnnNod
         if(sw.at(0) != -233)
             param.step_w = sw.at(0);
         else 
-            param.step_w = 0;
+            param.step_w = 0.f;
     }
 
     iter = ncnn_node.attrs.find(13);
@@ -1284,13 +1295,8 @@ static bool LoadNcnnReshape(StaticGraph* graph, StaticNode* node, const NcnnNode
             param.re_shape.push_back(std::atoi(iter->second.c_str()));
         }
     } 
-
-    /*
-    for(int i = 0; i < (int)param.re_shape.size(); i++){
-        printf("%d ", param.re_shape[i]);
-    }
-    printf("\n");
-    */
+    
+    
 
     //param.is_mxnet = true;
 

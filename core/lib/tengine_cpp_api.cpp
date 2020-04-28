@@ -293,13 +293,31 @@ int Net::extract_tensor(std::string name, Tensor& t)
         std::printf("Get tensor shape failed\n");
         return -1;
     }
-    // printf("tengine cpp api : %s dims: %d:%d:%d:%d\n", __FUNCTION__, dims[0], dims[1], dims[2], dims[3]);
-    // Tensor m;
-    if(dim_num == 4)
-        t.create(dims[3], dims[2], dims[1], 4);
+
+    int layout = get_tensor_layout(tensor);
+    if (layout == TENGINE_LAYOUT_NCHW)
+    {
+        // printf("tengine cpp api : %s dims: n %d, c %d, h %d, w %d\n", __FUNCTION__, dims[0], dims[1], dims[2], dims[3]);
+        // Mat m;
+        if(dim_num == 4)
+            t.create(dims[3], dims[2], dims[1], 4);
+        else
+        {
+            std::printf("Get tensor dim num is not 4, failed\n");
+            return -1;
+        }
+    }
     else
     {
-        /* code */
+        // printf("tengine cpp api : %s dims: n %d, h %d, w %d, c %d\n", __FUNCTION__, dims[0], dims[1], dims[2], dims[3]);
+        // Mat m;
+        if(dim_num == 4)
+            t.create(dims[2], dims[1], dims[3], 4);
+        else
+        {
+            std::printf("Get tensor dim num is not 4, failed\n");
+            return -1;
+        }        
     }
 
     int buffer_size = get_tensor_buffer_size(tensor);
@@ -326,13 +344,29 @@ int Net::extract_tensor(int node_index, int tensor_index, Tensor& t)
         std::printf("Get tensor shape failed\n");
         return -1;
     }
-    // printf("tengine cpp api : %s dims: %d:%d:%d:%d\n", __FUNCTION__, dims[0], dims[1], dims[2], dims[3]);
-    // Tensor m;
-    if(dim_num == 4)
-        t.create(dims[3], dims[2], dims[1], 4);
+
+    int layout = get_tensor_layout(tensor);
+    if (layout == TENGINE_LAYOUT_NCHW)
+    {
+        // printf("tengine cpp api : %s dims: n %d, c %d, h %d, w %d\n", __FUNCTION__, dims[0], dims[1], dims[2], dims[3]);
+        // Mat m;
+        if(dim_num == 4)
+            t.create(dims[3], dims[2], dims[1], 4);
+        else
+        {
+            /* code */
+        }
+    }
     else
     {
-        /* code */
+        // printf("tengine cpp api : %s dims: n %d, h %d, w %d, c %d\n", __FUNCTION__, dims[0], dims[1], dims[2], dims[3]);
+        // Mat m;
+        if(dim_num == 4)
+            t.create(dims[2], dims[1], dims[3], 4);
+        else
+        {
+            /* code */
+        }        
     }
 
     int buffer_size = get_tensor_buffer_size(tensor);
@@ -613,7 +647,7 @@ void Tensor::create(int _w, int _h, int _c, size_t _elem_size, uint8_t _layout)
     }
 }
 
-void Tensor::create(int _n,int _w, int _h, int _c, size_t _elem_size, uint8_t _layout)
+void Tensor::create(int _n, int _w, int _h, int _c, size_t _elem_size, uint8_t _layout)
 {
     if(w == _w && elem_size == _elem_size && _layout == layout)
         return;

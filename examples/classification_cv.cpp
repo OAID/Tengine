@@ -37,7 +37,6 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "common.hpp"
-//#include "common_util.hpp"
 
 #define DEFAULT_MODEL_NAME "squeezenet"
 #define DEFAULT_LABEL_FILE "./models/synset_words.txt"

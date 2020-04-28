@@ -114,15 +114,15 @@ bool RefPriorbox::Run(Node* node)
         op_param.image_w = param_->img_w;
     }
 
-    if(param_->step_h == 0 || param_->step_w == 0)
+    if((int)param_->step_h == 0 || (int)param_->step_w == 0)
     {
         op_param.step_w = ( float )(op_param.image_w) / feat_width;
-        op_param.step_h = ( float )(op_param.image_h) / feat_height;
+        op_param.step_h = ( float )(op_param.image_h) / feat_height;    
     }
     else
     {
         op_param.step_w = param_->step_w;
-        op_param.step_h = param_->step_h;
+        op_param.step_h = param_->step_h;       
     }
     op_param.offset = param_->offset;
     op_param.num_priors = param_->num_priors_;
@@ -136,13 +136,12 @@ bool RefPriorbox::Run(Node* node)
     op_param.aspect_ratio_size = ( int )param_->aspect_ratio.size();
     if(!param_->aspect_ratio.empty())
     {
-        op_param.aspect_ratio = &(param_->aspect_ratio[0]);
+        op_param.aspect_ratio = &(param_->aspect_ratio[0]);      
     }
     if(!param_->min_size.empty())
     {
-        op_param.min_size = &(param_->min_size[0]);
+        op_param.min_size = &(param_->min_size[0]);   
     }
-
     if(!param_->variance.empty())
     {
         op_param.variance = &(param_->variance[0]);
