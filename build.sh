@@ -63,10 +63,17 @@ cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/x86_convert_tool.gcc.toolchain.cmake 
 make -j$CPU_NUMS && make install
 popd
 
-##### linux for  arch64-linux-gnu toolchain
+##### linux for arch64-linux-gnu toolchain
 mkdir -p build-aarch64-linux-gnu_gpu
 pushd build-aarch64-linux-gnu_gpu
 cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/aarch64-linux-gnu.toolchain.cmake \
 -DCONFIG_ACL_OPENCL=ON  -DACL_ROOT=/home/cmeng/ComputeLibrary ..
+make -j$CPU_NUMS && make install
+popd
+
+##### linux x86 ncnn serializer cv api
+mkdir -p build-linux-x86-ncnn-cv
+pushd build-linux-x86-ncnn-cv
+cmake -DCONFIG_ARCH_X86=ON -DCONFIG_ARCH_X86_AVX=ON -DCONFIG_NCNN_SERIALIZER=ON -DOPENCV_EXAMPLE=ON ..
 make -j$CPU_NUMS && make install
 popd
