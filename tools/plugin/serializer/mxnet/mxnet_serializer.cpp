@@ -1121,7 +1121,7 @@ static bool LoadMxnetElemwiseAdd(StaticGraph* graph, StaticNode* node, const Mxn
 static bool LoadMxnetElemwiseMul(StaticGraph* graph, StaticNode* node, const MxnetNode& mxnet_node)
 {
     EltwiseParam param = any_cast<EltwiseParam>(OpManager::GetOpDefParam("Eltwise"));
-    param.type = ELT_PROD_SCALAR;
+    param.type = ELT_PROD;
     param.caffe_flavor = 0;
 
     StaticOp* op = CreateStaticOp(graph, "Eltwise");
