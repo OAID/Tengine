@@ -1067,7 +1067,9 @@ static bool LoadMxnetEltScalar(StaticGraph* graph, StaticNode* node, const Mxnet
     else if(mxnet_node.op == "_mul_scalar")
         param.type = ELT_PROD_SCALAR;
     else if(mxnet_node.op == "_div_scalar")
-        param.type = ELT_DIV;        
+        param.type = ELT_DIV;   
+    else if(mxnet_node.op == "_plus_scalar")
+        param.type = ELT_SUM;           
     param.caffe_flavor = 0;
 
     StaticTensor* tensor = CreateStaticConstTensor(graph, mxnet_node.name + "_scalar");
@@ -1107,6 +1109,19 @@ static bool LoadMxnetElemwiseAdd(StaticGraph* graph, StaticNode* node, const Mxn
 {
     EltwiseParam param = any_cast<EltwiseParam>(OpManager::GetOpDefParam("Eltwise"));
     param.type = ELT_SUM;
+    param.caffe_flavor = 0;
+
+    StaticOp* op = CreateStaticOp(graph, "Eltwise");
+    SetOperatorParam(op, param);
+    SetNodeOp(node, op);
+
+    return true;
+}
+
+static bool LoadMxnetElemwiseMul(StaticGraph* graph, StaticNode* node, const MxnetNode& mxnet_node)
+{
+    EltwiseParam param = any_cast<EltwiseParam>(OpManager::GetOpDefParam("Eltwise"));
+    param.type = ELT_PROD_SCALAR;
     param.caffe_flavor = 0;
 
     StaticOp* op = CreateStaticOp(graph, "Eltwise");
@@ -1680,6 +1695,9 @@ bool MxnetSerializerRegisterOpLoader(void)
     p_mxnet->RegisterOpLoadMethod("tan", op_load_t(LoadMxnetUnaryTan));
     p_mxnet->RegisterOpLoadMethod("broadcast_mul", op_load_t(LoadMxnetBroadMul));
     p_mxnet->RegisterOpLoadMethod("_div_scalar", op_load_t(LoadMxnetEltScalar));
+    p_mxnet->RegisterOpLoadMethod("_plus_scalar", op_load_t(LoadMxnetEltScalar));
+    p_mxnet->RegisterOpLoadMethod("elemwise_mul", op_load_t(LoadMxnetElemwiseMul));
+
 
     return true;
 }
