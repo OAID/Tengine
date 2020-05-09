@@ -18,6 +18,19 @@
  */
 
 /*
+ * Parts of the following code in this file refs to
+ * https://github.com/Tencent/ncnn/blob/master/src/layer/innerproduct.h
+ * BUG1989 is pleased to support the open source community by supporting ncnn available.
+ *
+ * Copyright (C) 2019 BUG1989. All rights reserved.
+ *
+ * Licensed under the BSD 3-Clause License (the "License"); you may not use this
+ * file except in compliance with the License. You may obtain a copy of the License at
+ *
+ * https://opensource.org/licenses/BSD-3-Clause
+ */
+
+/*
  * Copyright (c) 2020, OPEN AI LAB
  * Author: qtang@openailab.com
  */
@@ -34,152 +47,46 @@
 #include <immintrin.h>
 #endif
 
-#if 0 //__AVX__
-// TODO
-#else
-// int M = batch size;          // outch
-// int N = outpuh channel num;  // outsize or out stride
-// int K = kernel_w * kernel_h * inch; // ksize * inch
-// float* pA = kernel
-// float* pB = input_data
-// float* pC = output_data
-static void sgemm(int M, int N, int K, float* pA, float* pB, float* pC) // kernel pack 4, using intrinsic
+int innerproduct(int inc, int inh, int inw, int outc, float* weight, float* input, float* output, float* _bias)
 {
-    // kernel pack 4
-    float* pA_t = (float* )malloc((4*K * (N/4 + N%4)) * sizeof(float));
+    size_t elemsize = sizeof(float);
+    int size = inw * inh;
+
+    // outc
+#pragma omp parallel for num_threads(opt.num_threads)
+    for(int p = 0; p < outc; p++)
     {
-        int nn_outch = N >> 2;
-        int remain_outch_start = nn_outch << 2;
+        int q = 0;
+        float sum = _bias ? _bias[p] : 0.f;
+        const float* weight1 = weight + p * inc * size;
 
-        for (int pp=0; pp<nn_outch; pp++)
+#if __AVX__ || __SSE__
+#if __SSE__
+        float _sum[4] = {0.f};
+        __m128 _sum0 = _mm_set1_ps(0.f);
+        for(; q + 3 < inc * size; q = q + 4)
         {
-            int p = pp * 4;
-
-            const float* k0 = pA + (p+0)*K;
-            const float* k1 = pA + (p+1)*K;
-            const float* k2 = pA + (p+2)*K;
-            const float* k3 = pA + (p+3)*K;
-
-            float* ktmp = pA_t + (p/4) * 4*K;
-
-            for (int q=0; q<K; q++)
-            {
-                ktmp[0] = k0[0];
-                ktmp[1] = k1[0];
-                ktmp[2] = k2[0];
-                ktmp[3] = k3[0];
-                ktmp += 4;
-
-                k0 += 1;
-                k1 += 1;
-                k2 += 1;
-                k3 += 1;
-            }
+            __m128 _input = _mm_loadu_ps(input + q);
+            __m128 _weight = _mm_loadu_ps(weight1 + q);
+            __m128 _sum1 = _mm_mul_ps(_input, _weight);
+            _sum0 = _mm_add_ps(_sum0, _sum1);
         }
-        
-        for (int p=remain_outch_start; p<N; p++)
-        {
-            const float* k0 = pA + (p+0)*K;
-
-            float* ktmp = pA_t + (p/4 + p%4) * 4*K;
-
-            for (int q=0; q<K; q++)
-            {
-                ktmp[0] = k0[0];
-                ktmp++;
-                k0++;
-            }
-        }
-    }
-
-    for (int i=0; i<M; i++)         // batch num
-    {
-        float* output = pC + i*N;   // output image step
-
-        int j=0;
-        for (; j+3<N; j+=4)         // output ch0 - ch3
-        {
-            float* va = pA_t + (j/4) * 4*K;
-            float* vb = pB + i*K;
-#if __SSE2__
-            __m128 _sum0 = _mm_set1_ps(0.f);
-
-            int k=0;
-            for (; k+3<K; k=k+4)
-            {
-                __m128 _va0 = _mm_loadu_ps(va);
-                __m128 _va1 = _mm_loadu_ps(va+4);
-                __m128 _va2 = _mm_loadu_ps(va+8);
-                __m128 _va3 = _mm_loadu_ps(va+12);
-                __m128 _vb0 = _mm_set1_ps(vb[0]);
-                __m128 _vb1 = _mm_set1_ps(vb[1]);
-                __m128 _vb2 = _mm_set1_ps(vb[2]);
-                __m128 _vb3 = _mm_set1_ps(vb[3]);
-
-                _sum0 = _mm_add_ps(_sum0, _mm_mul_ps(_va0, _vb0));  // sum0 =  (a00-a03) * b00
-                _sum0 = _mm_add_ps(_sum0, _mm_mul_ps(_va1, _vb1));  // sum0 += (a10-a13) * b01
-                _sum0 = _mm_add_ps(_sum0, _mm_mul_ps(_va2, _vb2));  // sum0 += (a20-a23) * b02
-                _sum0 = _mm_add_ps(_sum0, _mm_mul_ps(_va3, _vb3));  // sum0 += (a30-a33) * b03
-            
-                va += 16;
-                vb += 4;
-            }
-
-            for (; k<K; k++)
-            {
-                __m128 _vb0 = _mm_set1_ps(vb[0]);
-                __m128 _va = _mm_loadu_ps(va); 
-
-                _sum0 = _mm_add_ps(_sum0, _mm_mul_ps(_va, _vb0));   // sum0 += (a00-a30) * b00
-
-                va += 4;
-                vb += 1;
-            }
-            _mm_storeu_ps(output, _sum0);
-#else
-            float sum[4] = {0};
-
-            for (int k=0; k<K; k++)
-            {
-                for (int n=0; n<4; n++)
-                {
-                    sum[n] += va[n] * vb[0];
-                }
-
-                va += 4;
-                vb += 1;
-            }
-
-            for (int n=0; n<4; n++)
-            {
-                output[n] = sum[n];
-            }
+        _mm_storeu_ps(_sum, _sum0);
+        float tmp = _sum[0] + _sum[1] + _sum[2] + _sum[3];
+        sum = sum + tmp;
+#else    //__AVX__
+// TODO
 #endif
-            output += 4;
+#endif
+        for(; q < inc * size; q++)
+        {
+            float tmp = input[q] * weight1[q];
+            sum = sum + tmp;
         }
 
-        for (; j<N; j++)            // output ch0
-        {
-            float sum = 0;
-
-            float* va = pA_t + (j/4 + j%4) * 4*K;
-            float* vb = pB + i*K;
-
-            for (int k=0; k<K; k++)
-            {
-                sum += va[0] * vb[0];
-
-                va += 1;
-                vb += 1;
-            }
-
-            output[0] = sum;
-            output++;
-        }            
+        output[p] = sum;
     }
 
-    free(pA_t);
+    return 0;
 }
-#endif
-
 #endif
