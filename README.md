@@ -1,4 +1,4 @@
-<p align="center"><img width="20%" src="logo-Tengine.png" /></p>
+<p align="center"><img width="40%" src="logo-Tengine.png" /></p>
 
 # Tengine Overview
 
