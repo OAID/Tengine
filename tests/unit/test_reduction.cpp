@@ -42,12 +42,15 @@ int main(int argc, char* argv[])
     init_tengine();
 
     graph_t graph = create_graph(nullptr, "tengine", model_name.c_str());
-    set_graph_layout(graph, TENGINE_LAYOUT_NHWC);
+   
     if(graph == nullptr)
     {
         std::cout << "Create graph0 failed\n";
         return 1;
     }
+
+    set_graph_layout(graph, TENGINE_LAYOUT_NHWC);
+    
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
 

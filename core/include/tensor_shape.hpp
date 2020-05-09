@@ -87,7 +87,7 @@ public:
 
     bool SetShape(unsigned int idx, int val)
     {
-        if(idx < dim_.size())
+        if(idx > dim_.size())
             return false;
 
         dim_[idx] = val;
