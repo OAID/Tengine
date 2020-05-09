@@ -136,6 +136,8 @@ int Net::set_device(std::string device)
     {
         set_graph_device(graph, device.c_str());
     }
+
+    return 0;
 }
 
 int Net::input_shape(int n, int c, int h, int w, const char* tensor_name)
