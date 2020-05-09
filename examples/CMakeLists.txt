@@ -16,10 +16,12 @@ if(OPENCV_EXAMPLE)
     add_executable(${CLASSIFICATION_CV} classification_cv.cpp common.cpp)
     add_executable(ncnn_squeezenet ncnn_squeezenet.cpp)
     add_executable(ncnn_mobilenetssd ncnn_mobilenetssd.cpp)
+    add_executable(mobilenet_ssd_cv mobilenet_ssd_cv.cpp common.cpp)
 
     target_link_libraries(${CLASSIFICATION_CV} tengine ${OpenCV_LIBS})
     target_link_libraries(ncnn_squeezenet tengine ${OpenCV_LIBS})
     target_link_libraries(ncnn_mobilenetssd tengine ${OpenCV_LIBS})
+    target_link_libraries(mobilenet_ssd_cv tengine ${OpenCV_LIBS})
 
     install(TARGETS ${CLASSIFICATION_CV} DESTINATION examples)
     install(TARGETS ncnn_squeezenet DESTINATION examples)

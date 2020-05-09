@@ -17,6 +17,13 @@ popd
 ##### android aarch64
 mkdir -p build-android-aarch64
 pushd build-android-aarch64
+cmake -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake -DANDROID_ABI="arm64-v8a" -DANDROID_PLATFORM=android-22 -DANDROID_STL=c++_shared -DANDROID_ARM_NEON=ON -DCONFIG_ARCH_ARM64=ON -DCONFIG_ARCH_ARM8_2=ON -DANDROID_ALLOW_UNDEFINED_SYMBOLS=TRUE ..
+make -j$CPU_NUMS && make install
+popd
+
+##### android aarch64 armv8.2 for fp16
+mkdir -p build-android-aarch64
+pushd build-android-aarch64
 cmake -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake -DANDROID_ABI="arm64-v8a" -DANDROID_PLATFORM=android-22 -DANDROID_STL=c++_shared -DANDROID_ARM_NEON=ON -DCONFIG_ARCH_ARM64=ON -DANDROID_ALLOW_UNDEFINED_SYMBOLS=TRUE ..
 make -j$CPU_NUMS && make install
 popd

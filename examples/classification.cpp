@@ -46,29 +46,14 @@
 #define DEFAULT_MEAN3 122.679
 #define DEFAULT_REPEAT_CNT 1
 
-
-
-static inline unsigned long get_cur_time(void)
-
+static double get_current_time(void)
 {
-
-    struct timespec tm;
-
-
-
-    clock_gettime(CLOCK_MONOTONIC, &tm);
-
-
-
-    return (tm.tv_sec * 1000000 + tm.tv_nsec / 1000);
-
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return tv.tv_sec * 1000.0 + (tv.tv_usec / 1000.0);
 }
 
-
-
 static std::string gExcName{""};
-
-
 
 void show_usage()
 {
@@ -202,7 +187,7 @@ int main(int argc, char* argv[])
 
     std::cout << "tengine library version: " << get_tengine_version() << "\n";
     if(request_tengine_version("1.0") < 0)
-        return false;
+        return -1;
 
     std::cout << "\nModel name : " << model_name << "\n"
               << "tengine model file : " << tm_file << "\n"
@@ -221,14 +206,26 @@ int main(int argc, char* argv[])
     /* forward */
     somenet.input_tensor(0, 0, input_tensor);
 
-    unsigned long start_time = get_cur_time();
-
+    double min_time, max_time, total_time;
+    min_time = __DBL_MAX__;
+    max_time = -__DBL_MAX__;
+    total_time = 0;
     for(int i = 0; i < repeat_count; i++)
+    {
+        double start_time = get_current_time();
         somenet.run();
+        double end_time = get_current_time();
+        double cur_time = end_time - start_time;
 
-    unsigned long end_time = get_cur_time();
-    unsigned long off_time = end_time - start_time;
-    std::printf("Repeat [%d] time %.2f us per RUN. used %lu us\n", repeat_count, 1.0f * off_time / repeat_count, off_time);
+        total_time += cur_time;
+        if (cur_time > max_time)
+            max_time = cur_time;
+        if (cur_time < min_time)
+            min_time = cur_time;
+
+        printf("Cost %.3f ms\n", cur_time);
+    }
+    printf("Repeat [%d] min %.3f ms, max %.3f ms, avg %.3f ms\n", repeat_count, min_time, max_time, total_time / repeat_count);
 
     /* get result */
     somenet.extract_tensor(0, 0, output_tensor);
@@ -236,7 +233,6 @@ int main(int argc, char* argv[])
     /* after process */
     PrintTopLabels(_label_file, (float*)output_tensor.data, 1000);
     std::cout << "--------------------------------------\n";
-
     std::cout << "ALL TEST DONE\n";
 
     return 0;
