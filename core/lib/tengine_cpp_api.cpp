@@ -302,7 +302,7 @@ int Net::extract_tensor(std::string name, Tensor& t)
         // printf("tengine cpp api : %s dims: n %d, c %d, h %d, w %d\n", __FUNCTION__, dims[0], dims[1], dims[2], dims[3]);
         // Mat m;
         if(dim_num == 4)
-            t.create(dims[3], dims[2], dims[1], 4);
+            t.create(dims[0], dims[3], dims[2], dims[1], 4);
         else
         {
             std::printf("Get tensor dim num is not 4, failed\n");
@@ -314,7 +314,7 @@ int Net::extract_tensor(std::string name, Tensor& t)
         // printf("tengine cpp api : %s dims: n %d, h %d, w %d, c %d\n", __FUNCTION__, dims[0], dims[1], dims[2], dims[3]);
         // Mat m;
         if(dim_num == 4)
-            t.create(dims[2], dims[1], dims[3], 4);
+            t.create(dims[0], dims[2], dims[1], dims[3], 4);
         else
         {
             std::printf("Get tensor dim num is not 4, failed\n");
