@@ -33,7 +33,33 @@
 #include "cpu_device.h"
 
 namespace tengine {
+
 bool b_tengine_inited = false;
+std::mutex net_lock_;
+
+void Net::Init()
+{
+    // printf("tengine cpp api : %s\n", __FUNCTION__);
+    net_lock_.lock();
+    if(!b_tengine_inited)
+    {
+        init_tengine();
+        b_tengine_inited = true;
+    }
+    net_lock_.unlock();
+}
+
+void Net::Deinit()
+{
+    net_lock_.lock();
+    if(b_tengine_inited)
+    {
+        release_tengine();
+        b_tengine_inited = false;
+    }
+    net_lock_.unlock();
+    // printf("tengine cpp api : %s\n", __FUNCTION__);
+}
 
 Net::Net()
 {
@@ -54,13 +80,7 @@ Net::~Net()
     // printf("tengine cpp api : %s\n", __FUNCTION__);
     postrun_graph(graph);
     destroy_graph(graph);
-    net_lock_.lock();
-    if(b_tengine_inited)
-    {
-        release_tengine();
-        b_tengine_inited = false;
-    }
-    net_lock_.unlock();
+
     graph = NULL;
     b_preruned = false;
 }
@@ -82,26 +102,23 @@ int Net::load_model(context_t context, const char* model_format, const char* mod
 
 int Net::set_kernel_mode(EKernelMode kernel_mode)
 {
-	const char* MODE_STR = "KERNEL_MODE";
+    const char* MODE_STR = "KERNEL_MODE";
     const char* PER_CHANNEL = "PER_CHANNEL";
-    switch( kernel_mode)
+    switch(kernel_mode)
     {
-        case eKernelMode_Float32:
-        {
-            setenv(MODE_STR ,"1",1);
+        case eKernelMode_Float32: {
+            setenv(MODE_STR, "1", 1);
             unsetenv(PER_CHANNEL);
             break;
         }
-        case eKernelMode_Int8:
-        {
-            setenv(MODE_STR ,"2",1);
+        case eKernelMode_Int8: {
+            setenv(MODE_STR, "2", 1);
             unsetenv(PER_CHANNEL);
             break;
         }
-        case eKernelMode_Int8Perchannel:
-        {
-            setenv(MODE_STR ,"2",1);
-            setenv("PER_CHANNEL" ,"1",1);
+        case eKernelMode_Int8Perchannel: {
+            setenv(MODE_STR, "2", 1);
+            setenv("PER_CHANNEL", "1", 1);
             break;
         }
     }
@@ -111,22 +128,22 @@ int Net::set_kernel_mode(EKernelMode kernel_mode)
 
 int Net::switch_wino(bool is_open)
 {
-	const char* WINO_STR = "NO_WINO";
-	if( is_open )
-	{
-		unsetenv(WINO_STR);
-	}
-	else
-	{
-		setenv(WINO_STR,"1",1);
-	}
+    const char* WINO_STR = "NO_WINO";
+    if(is_open)
+    {
+        unsetenv(WINO_STR);
+    }
+    else
+    {
+        setenv(WINO_STR, "1", 1);
+    }
 
-	return 0;
+    return 0;
 }
 
-int Net::set_worker_cpu_list(const int* cpu_list,int num)
+int Net::set_worker_cpu_list(const int* cpu_list, int num)
 {
-	set_working_cpu(cpu_list,num);
+    set_working_cpu(cpu_list, num);
     return 0;
 }
 
@@ -297,10 +314,10 @@ int Net::extract_tensor(std::string name, Tensor& t)
     }
 
     int layout = get_tensor_layout(tensor);
-    if (layout == TENGINE_LAYOUT_NCHW)
+    if(layout == TENGINE_LAYOUT_NCHW)
     {
-        // printf("tengine cpp api : %s dims: n %d, c %d, h %d, w %d\n", __FUNCTION__, dims[0], dims[1], dims[2], dims[3]);
-        // Mat m;
+        // printf("tengine cpp api : %s dims: n %d, c %d, h %d, w %d\n", __FUNCTION__, dims[0], dims[1], dims[2],
+        // dims[3]); Mat m;
         if(dim_num == 4)
             t.create(dims[0], dims[3], dims[2], dims[1], 4);
         else
@@ -311,15 +328,15 @@ int Net::extract_tensor(std::string name, Tensor& t)
     }
     else
     {
-        // printf("tengine cpp api : %s dims: n %d, h %d, w %d, c %d\n", __FUNCTION__, dims[0], dims[1], dims[2], dims[3]);
-        // Mat m;
+        // printf("tengine cpp api : %s dims: n %d, h %d, w %d, c %d\n", __FUNCTION__, dims[0], dims[1], dims[2],
+        // dims[3]); Mat m;
         if(dim_num == 4)
             t.create(dims[0], dims[2], dims[1], dims[3], 4);
         else
         {
             std::printf("Get tensor dim num is not 4, failed\n");
             return -1;
-        }        
+        }
     }
 
     int buffer_size = get_tensor_buffer_size(tensor);
@@ -348,10 +365,10 @@ int Net::extract_tensor(int node_index, int tensor_index, Tensor& t)
     }
 
     int layout = get_tensor_layout(tensor);
-    if (layout == TENGINE_LAYOUT_NCHW)
+    if(layout == TENGINE_LAYOUT_NCHW)
     {
-        // printf("tengine cpp api : %s dims: n %d, c %d, h %d, w %d\n", __FUNCTION__, dims[0], dims[1], dims[2], dims[3]);
-        // Mat m;
+        // printf("tengine cpp api : %s dims: n %d, c %d, h %d, w %d\n", __FUNCTION__, dims[0], dims[1], dims[2],
+        // dims[3]); Mat m;
         if(dim_num == 4)
             t.create(dims[0], dims[3], dims[2], dims[1], 4);
         else
@@ -361,14 +378,14 @@ int Net::extract_tensor(int node_index, int tensor_index, Tensor& t)
     }
     else
     {
-        // printf("tengine cpp api : %s dims: n %d, h %d, w %d, c %d\n", __FUNCTION__, dims[0], dims[1], dims[2], dims[3]);
-        // Mat m;
+        // printf("tengine cpp api : %s dims: n %d, h %d, w %d, c %d\n", __FUNCTION__, dims[0], dims[1], dims[2],
+        // dims[3]); Mat m;
         if(dim_num == 4)
             t.create(dims[0], dims[2], dims[1], dims[3], 4);
         else
         {
             /* code */
-        }        
+        }
     }
 
     int buffer_size = get_tensor_buffer_size(tensor);

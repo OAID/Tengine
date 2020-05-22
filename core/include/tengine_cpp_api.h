@@ -36,7 +36,7 @@
 
 enum EKernelMode
 {
-	eKernelMode_Float32 = 0,
+    eKernelMode_Float32 = 0,
     eKernelMode_Int8 = 2,
     eKernelMode_Int8Perchannel,
 };
@@ -46,6 +46,8 @@ class Tensor;
 class Net
 {
 public:
+    static void Init();
+    static void Deinit();
     // Net initial
     Net();
     // Net clear
@@ -74,8 +76,8 @@ public:
     static int set_kernel_mode(EKernelMode kernel_mode);
     // turn on/off wino
     static int switch_wino(bool is_open);
-    // bind cpu 
-    static int set_worker_cpu_list(const int* cpu_list,int num);
+    // bind cpu
+    static int set_worker_cpu_list(const int* cpu_list, int num);
 
     // run
     int run(int block = 1);
@@ -84,7 +86,6 @@ public:
 public:
     graph_t graph;
     bool b_preruned;
-    std::mutex net_lock_;
 
 private:
     // prerun
@@ -170,9 +171,7 @@ public:
     std::vector<float> zero_points;
 };
 
-inline Tensor::Tensor() : dim_num(0), layout(0), elem_size(0), elem_num(0), data(0), n(0), c(0), h(0), w(0)
-{
-}
+inline Tensor::Tensor() : dim_num(0), layout(0), elem_size(0), elem_num(0), data(0), n(0), c(0), h(0), w(0) {}
 
 inline Tensor::Tensor(int _w, size_t _elem_size, uint8_t _layout)
     : dim_num(0), layout(0), elem_size(0), elem_num(0), data(0), n(0), c(0), h(0), w(0)
@@ -192,8 +191,8 @@ inline Tensor::Tensor(int _w, int _h, int _c, size_t _elem_size, uint8_t _layout
     create(_w, _h, _c, _elem_size, _layout);
 }
 
-inline Tensor::Tensor(int _n,int _w, int _h, int _c, size_t _elem_size, uint8_t _layout)
-    :dim_num(0), layout(0), elem_size(0), elem_num(0), data(0), n(0), c(0), h(0), w(0)
+inline Tensor::Tensor(int _n, int _w, int _h, int _c, size_t _elem_size, uint8_t _layout)
+    : dim_num(0), layout(0), elem_size(0), elem_num(0), data(0), n(0), c(0), h(0), w(0)
 {
     create(_n, _w, _h, _c, _elem_size, _layout);
 }
