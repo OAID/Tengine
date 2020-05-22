@@ -83,11 +83,7 @@ bool FcBlasOps::Run(Node* node)
     int in_size = inc * inh * inw;
     int outc = out_dims[1];
 
-    int m = batch_number;
-    int k = in_size;
-    int n = outc;
-
-    innerproduct(inc, inh, inw, outc, weight, input, output, bias);
+    innerproduct(batch_number, inc, inh, inw, outc, weight, input, output, bias);
 
     return true;
 }
