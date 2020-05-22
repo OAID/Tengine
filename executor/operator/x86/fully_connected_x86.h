@@ -47,44 +47,47 @@
 #include <immintrin.h>
 #endif
 
-int innerproduct(int inc, int inh, int inw, int outc, float* weight, float* input, float* output, float* _bias)
+int innerproduct(int inn, int inc, int inh, int inw, int outc, float* weight, float* input, float* output, float* _bias)
 {
     size_t elemsize = sizeof(float);
     int size = inw * inh;
 
-    // outc
+// outc
 #pragma omp parallel for num_threads(opt.num_threads)
-    for(int p = 0; p < outc; p++)
+    for(int n = 0; n < inn; n++)
     {
-        int q = 0;
-        float sum = _bias ? _bias[p] : 0.f;
-        const float* weight1 = weight + p * inc * size;
-
+        for(int p = 0; p < outc; p++)
+        {
+            int q = 0;
+            float sum = _bias ? _bias[p] : 0.f;
+            const float* weight1 = weight + p * inc * size;
+            const float* input1 = input + n * inc * size;
 #if __AVX__ || __SSE__
 #if __SSE__
-        float _sum[4] = {0.f};
-        __m128 _sum0 = _mm_set1_ps(0.f);
-        for(; q + 3 < inc * size; q = q + 4)
-        {
-            __m128 _input = _mm_loadu_ps(input + q);
-            __m128 _weight = _mm_loadu_ps(weight1 + q);
-            __m128 _sum1 = _mm_mul_ps(_input, _weight);
-            _sum0 = _mm_add_ps(_sum0, _sum1);
-        }
-        _mm_storeu_ps(_sum, _sum0);
-        float tmp = _sum[0] + _sum[1] + _sum[2] + _sum[3];
-        sum = sum + tmp;
-#else    //__AVX__
-// TODO
-#endif
-#endif
-        for(; q < inc * size; q++)
-        {
-            float tmp = input[q] * weight1[q];
+            float _sum[4] = {0.f};
+            __m128 _sum0 = _mm_set1_ps(0.f);
+            for(; q + 3 < inc * size; q = q + 4)
+            {
+                __m128 _input = _mm_loadu_ps(input1 + q);
+                __m128 _weight = _mm_loadu_ps(weight1 + q);
+                __m128 _sum1 = _mm_mul_ps(_input, _weight);
+                _sum0 = _mm_add_ps(_sum0, _sum1);
+            }
+            _mm_storeu_ps(_sum, _sum0);
+            float tmp = _sum[0] + _sum[1] + _sum[2] + _sum[3];
             sum = sum + tmp;
-        }
+#else    //__AVX__
+         // TODO
+#endif
+#endif
+            for(; q < inc * size; q++)
+            {
+                float tmp = input1[q] * weight1[q];
+                sum = sum + tmp;
+            }
 
-        output[p] = sum;
+            output[n * outc + p] = sum;
+        }
     }
 
     return 0;
