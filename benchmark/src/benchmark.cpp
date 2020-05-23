@@ -131,7 +131,7 @@ int main(int argc, char* argv[])
             benchmark_graph("mobilenetv1", "./models/mobilenet_benchmark.tmfile", 224, 224, 3, 1);
             break;
         case 1:
-            benchmark_graph("squeezenet_v1.1", "./models/squeezenet_v1.1_benchmark.tmfile", 227, 227, 3, 10);
+            benchmark_graph("squeezenet_v1.1", "./models/squeezenet_v1.1_benchmark.tmfile", 227, 227, 3, 1);
             break;
         case 2:
             benchmark_graph("vgg16", "./models/vgg16_benchmark.tmfile", 224, 224, 3, 1);
@@ -154,7 +154,7 @@ int main(int argc, char* argv[])
             benchmark_graph("mobilenetv3", "./models/mobilenetv3_benchmark.tmfile", 224, 224, 3, 1);
         default:
             benchmark_graph("mobilenetv1", "./models/mobilenet_benchmark.tmfile", 224, 224, 3, 1);
-            benchmark_graph("squeezenet_v1.1", "./models/squeezenet_v1.1_benchmark.tmfile", 227, 227, 3, 10);
+            benchmark_graph("squeezenet_v1.1", "./models/squeezenet_v1.1_benchmark.tmfile", 227, 227, 3, 1);
             benchmark_graph("vgg16", "./models/vgg16_benchmark.tmfile", 224, 224, 3, 1);
             benchmark_graph("mssd", "./models/mssd_benchmark.tmfile", 300, 300, 3, 1);
             benchmark_graph("resnet50", "./models/resnet50_benchmark.tmfile", 224, 224, 3, 1);
