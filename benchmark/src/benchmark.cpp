@@ -51,6 +51,7 @@ using namespace TEngine;
 
 int repeat_count = 100;
 char debug = 0;
+int warm_count = 10;
 
 void benchmark_graph(const char* graph_name, const std::string model_file, int img_h, int img_w, int c, int n)
 {
@@ -76,6 +77,9 @@ void benchmark_graph(const char* graph_name, const std::string model_file, int i
     double time_max = -DBL_MAX;
     double time_avg = 0;
 
+    for(int i=0; i < warm_count; i++)
+	    net.run();
+    
     for(int i = 0; i < repeat_count; i++)
     {
         unsigned long start_time = get_cur_time();
@@ -91,7 +95,7 @@ void benchmark_graph(const char* graph_name, const std::string model_file, int i
 
     time_avg /= repeat_count;
 
-    fprintf(stderr, "%20s  min = %7.4f ms   max = %7.4f ms   avg = %7.4f ms\n", graph_name, time_min / 1000,
+    fprintf(stderr, "%20s  min = %7.2f ms   max = %7.2f ms   avg = %7.2f ms\n", graph_name, time_min / 1000,
             time_max / 1000, time_avg / 1000);
 
     std::cout << "--------------------------------------\n";
@@ -150,8 +154,10 @@ int main(int argc, char* argv[])
             break;
         case 7:
             benchmark_graph("mobilenetv2", "./models/mobilenet_v2_benchmark.tmfile", 224, 224, 3, 1);
-        case 8:
+            break;
+	case 8:
             benchmark_graph("mobilenetv3", "./models/mobilenetv3_benchmark.tmfile", 224, 224, 3, 1);
+            break;
         default:
             benchmark_graph("mobilenetv1", "./models/mobilenet_benchmark.tmfile", 224, 224, 3, 1);
             benchmark_graph("squeezenet_v1.1", "./models/squeezenet_v1.1_benchmark.tmfile", 227, 227, 3, 1);
