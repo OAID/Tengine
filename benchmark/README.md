@@ -51,7 +51,7 @@ Parameter
 
 Typical output (executed in linux)
 
-HiSilicon Hi3559V100 (Cortex-A73 1.2GHz x 2 + Cortex-A53 1.2GHz x 2)
+HiSilicon Hi3559V100 (Cortex-A73 1.6GHz x 2 + Cortex-A53 1.2GHz x 2)
 ```
 root@hi3559V100:~/Tengine$ ./build-linux-native/benchmark/src/benchmark -s 10 -r 100
 loop_count = 100
