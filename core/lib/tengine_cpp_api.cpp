@@ -33,7 +33,33 @@
 #include "cpu_device.h"
 
 namespace tengine {
+
 bool b_tengine_inited = false;
+std::mutex net_lock_;
+
+void Net::Init()
+{
+    // printf("tengine cpp api : %s\n", __FUNCTION__);
+    net_lock_.lock();
+    if(!b_tengine_inited)
+    {
+        init_tengine();
+        b_tengine_inited = true;
+    }
+    net_lock_.unlock();
+}
+
+void Net::Deinit()
+{
+    net_lock_.lock();
+    if(b_tengine_inited)
+    {
+        release_tengine();
+        b_tengine_inited = false;
+    }
+    net_lock_.unlock();
+    // printf("tengine cpp api : %s\n", __FUNCTION__);
+}
 
 Net::Net()
 {
@@ -54,13 +80,7 @@ Net::~Net()
     // printf("tengine cpp api : %s\n", __FUNCTION__);
     postrun_graph(graph);
     destroy_graph(graph);
-    net_lock_.lock();
-    if(b_tengine_inited)
-    {
-        release_tengine();
-        b_tengine_inited = false;
-    }
-    net_lock_.unlock();
+
     graph = NULL;
     b_preruned = false;
 }

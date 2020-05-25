@@ -46,6 +46,8 @@ class Tensor;
 class Net
 {
 public:
+    static void Init();
+    static void Deinit();
     // Net initial
     Net();
     // Net clear
@@ -84,7 +86,6 @@ public:
 public:
     graph_t graph;
     bool b_preruned;
-    std::mutex net_lock_;
 
 private:
     // prerun
