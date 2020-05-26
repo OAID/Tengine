@@ -24,11 +24,11 @@ $ make -j4
 
 Usage
 ```
-# The models file in <tengine-root-dir>/modesl is convert without model params.
+# The models file in <tengine-root-dir>/models is convert without model params.
 $ cd <tengine-root-dir>
 $ ./<your-build-dir>/benchmark/src/benchmark -r [loop count] -s [model index]
 ```
-run benchncnn on android device
+run benchmark on android device
 ```
 # for running on android device, upload to /data/local/tmp/ folder
 $ adb push benchncnn /data/local/tmp/
