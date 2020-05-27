@@ -220,7 +220,7 @@ int main(int argc, char* argv[])
 
     float show_threshold = 0.5;
 
-    post_process_ssd(image_file, show_threshold, outdata, output_tensor.c);
+    post_process_ssd(image_file, show_threshold, outdata, output_tensor.h);
 
     return 0;
 }
