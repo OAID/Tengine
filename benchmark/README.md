@@ -45,7 +45,7 @@ Parameter
 | param       | options             | default |
 | ----------- | ------------------- | ------- |
 | loop count  | 1~N                 | 10      |
-| model index | 0~N   >8 all models | 0       |
+| model index | 0~N                 | -1      |
 
 ---
 
