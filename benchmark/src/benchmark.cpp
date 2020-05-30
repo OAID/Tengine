@@ -19,10 +19,9 @@
 
 /*
  * Copyright (c) 2020, OPEN AI LAB
- * Author: qtang@openailab.com
+ * Author: cmeng@openailab.com
  */
 #include <unistd.h>
-
 #include <iostream>
 #include <functional>
 #include <algorithm>
@@ -35,11 +34,8 @@
 #include "tengine_cpp_api.h"
 #include "common_util.hpp"
 
-const char* model_file = "./models/mobilenet.tmfile";
-const char* image_file = "./tests/images/cat.jpg";
-const char* label_file = "./models/synset_words.txt";
+using namespace TEngine;
 
-const float channel_mean[3] = {103.94, 116.78, 123.68};
 typedef struct s_MODEL_CONFIG
 {
     const char* model_file;
@@ -47,11 +43,9 @@ typedef struct s_MODEL_CONFIG
     int img_w;
 } S_MODEL_CONFIG;
 
-using namespace TEngine;
-
-int repeat_count = 100;
-char debug = 0;
-int warm_count = 10;
+int debug = 0;
+int repeat_count = 10;
+int warm_count = 3;
 
 void benchmark_graph(const char* graph_name, const std::string model_file, int img_h, int img_w, int c, int n)
 {
@@ -63,12 +57,10 @@ void benchmark_graph(const char* graph_name, const std::string model_file, int i
     net.load_model(NULL, "tengine", model_file.c_str());
     if(debug)
         net.dump();
-    /* set device */
-    // net.set_device(device);
 
     /* prepare input data */
     input_tensor.create(n, img_w, img_h, c);
-    input_tensor.fill(0.0f);
+    input_tensor.fill(0.1f);
 
     /* forward */
     net.input_tensor("data", input_tensor);
@@ -106,7 +98,8 @@ int main(int argc, char* argv[])
     std::string file_path = "";
     char* cpu_list_str = nullptr;
     int res;
-    int select_num = 0;
+    int select_num = -1;
+	
     while((res = getopt(argc, argv, "p:r:d:s:")) != -1)
     {
         switch(res)
@@ -118,7 +111,7 @@ int main(int argc, char* argv[])
                 debug = *optarg;
                 break;
             case 's':
-                select_num = strtoul(optarg, NULL, 10);
+                select_num = strtoul(optarg, NULL, -1);
                 break;
             case 'r':
                 repeat_count = strtoul(optarg, NULL, 10);
@@ -159,15 +152,15 @@ int main(int argc, char* argv[])
             benchmark_graph("mobilenetv3", "./models/mobilenetv3_benchmark.tmfile", 224, 224, 3, 1);
             break;
         default:
-            benchmark_graph("mobilenetv1", "./models/mobilenet_benchmark.tmfile", 224, 224, 3, 1);
             benchmark_graph("squeezenet_v1.1", "./models/squeezenet_v1.1_benchmark.tmfile", 227, 227, 3, 1);
-            benchmark_graph("vgg16", "./models/vgg16_benchmark.tmfile", 224, 224, 3, 1);
-            benchmark_graph("mssd", "./models/mssd_benchmark.tmfile", 300, 300, 3, 1);
-            benchmark_graph("resnet50", "./models/resnet50_benchmark.tmfile", 224, 224, 3, 1);
-            benchmark_graph("retinaface", "./models/retinaface_benchmark.tmfile", 1024, 1024, 3, 1);
-            benchmark_graph("yolov3", "./models/yolov3_benchmark.tmfile", 416, 416, 3, 1);
+            benchmark_graph("mobilenetv1", "./models/mobilenet_benchmark.tmfile", 224, 224, 3, 1);
             benchmark_graph("mobilenetv2", "./models/mobilenet_v2_benchmark.tmfile", 224, 224, 3, 1);
             benchmark_graph("mobilenetv3", "./models/mobilenetv3_benchmark.tmfile", 224, 224, 3, 1);
+            benchmark_graph("resnet50", "./models/resnet50_benchmark.tmfile", 224, 224, 3, 1);   
+            benchmark_graph("vgg16", "./models/vgg16_benchmark.tmfile", 224, 224, 3, 1);
+            benchmark_graph("mssd", "./models/mssd_benchmark.tmfile", 300, 300, 3, 1);
+            benchmark_graph("retinaface", "./models/retinaface_benchmark.tmfile", 1024, 1024, 3, 1);
+            benchmark_graph("yolov3", "./models/yolov3_benchmark.tmfile", 416, 416, 3, 1);
     }
     tengine::Net::Deinit();
     std::cout << "ALL TEST DONE\n";
