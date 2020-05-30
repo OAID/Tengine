@@ -10,7 +10,6 @@ build*/
 makefile.config
 etc/config
 install/
-models/
 *.tgz
 protobuf/
 OpenBLAS/
