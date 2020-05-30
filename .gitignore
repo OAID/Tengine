@@ -20,3 +20,5 @@ android_config.txt
 model_src/
 .vs/
 .vscode/
+cmake-build-debug/
+.idea/

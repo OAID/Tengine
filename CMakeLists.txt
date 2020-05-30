@@ -163,7 +163,6 @@ else()
     add_definitions(-Wno-packed-bitfield-compat)
     add_definitions(-O2)
 endif()
-add_definitions("-O2 ${CONFIG_OPT_CFLAGS}")
 
 set(CMAKE_CXX_STANDARD 11)
 set(CXX_STANDARD_REQUIRED ON)

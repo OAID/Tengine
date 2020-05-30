@@ -150,11 +150,16 @@ bool EltwiseOps::Run(Node* node)
         input_tensor1 = node->GetInputTensor(1);
         const TShape& ishape1 = input_tensor1->GetShape();
         input1 = get_tensor_mem(input_tensor1);
-        op_param.shape1[0] = ishape1.GetN();
-        op_param.shape1[1] = ishape1.GetC();
-        op_param.shape1[2] = ishape1.GetH();
-        op_param.shape1[3] = ishape1.GetW();
-
+        
+        auto in_dim1 = ishape1.GetDim();
+        for(unsigned int i = 0; i < in_dim1.size(); i++)
+        {
+            op_param.shape1[i] = in_dim1[i];
+        }
+        for(int i = in_dim1.size(); i < 4;i++)
+        {
+            op_param.shape1[i] = 1;
+        }
         if(input_tensor1->GetDataType() == TENGINE_DT_INT8 || input_tensor1->GetDataType() == TENGINE_DT_UINT8)
         {
             if(get_scale_zero_1(input_tensor1, &op_param) < 0)
@@ -162,10 +167,17 @@ bool EltwiseOps::Run(Node* node)
         }
     }
     void* output = get_tensor_mem(output_tensor);
-    op_param.shape0[0] = ishape.GetN();
-    op_param.shape0[1] = ishape.GetC();
-    op_param.shape0[2] = ishape.GetH();
-    op_param.shape0[3] = ishape.GetW();
+    // ToDo The broadcast mode(vector + tensor) need to support,now is only support c channel;
+    auto in_dim0 = ishape.GetDim();
+    for(unsigned int i = 0; i < in_dim0.size(); i++)
+    {
+        op_param.shape0[i] = in_dim0[i];
+    }
+    for(int i = in_dim0.size(); i < 4;i++)
+    {
+        op_param.shape0[i] = 1;
+    }
+
     op_param.type = param->type;
     op_param.shift = param->shift;
     op_param.power = param->power;
