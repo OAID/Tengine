@@ -63,7 +63,7 @@ void benchmark_graph(const char* graph_name, const std::string model_file, int i
     input_tensor.fill(0.1f);
 
     /* forward */
-    net.input_tensor("data", input_tensor);
+    net.input_tensor(0, 0, input_tensor);
 
     double time_min = DBL_MAX;
     double time_max = -DBL_MAX;
@@ -148,19 +148,28 @@ int main(int argc, char* argv[])
         case 7:
             benchmark_graph("mobilenetv2", "./models/mobilenet_v2_benchmark.tmfile", 224, 224, 3, 1);
             break;
-	case 8:
+	    case 8:
             benchmark_graph("mobilenetv3", "./models/mobilenetv3_benchmark.tmfile", 224, 224, 3, 1);
             break;
+        case 9:
+            benchmark_graph("mobilefacenets",   "./models/mobilefacenets_benchmark.tmfile",     112, 112, 3, 1);
+            break;
         default:
-            benchmark_graph("squeezenet_v1.1", "./models/squeezenet_v1.1_benchmark.tmfile", 227, 227, 3, 1);
-            benchmark_graph("mobilenetv1", "./models/mobilenet_benchmark.tmfile", 224, 224, 3, 1);
-            benchmark_graph("mobilenetv2", "./models/mobilenet_v2_benchmark.tmfile", 224, 224, 3, 1);
-            benchmark_graph("mobilenetv3", "./models/mobilenetv3_benchmark.tmfile", 224, 224, 3, 1);
-            benchmark_graph("resnet50", "./models/resnet50_benchmark.tmfile", 224, 224, 3, 1);   
-            benchmark_graph("vgg16", "./models/vgg16_benchmark.tmfile", 224, 224, 3, 1);
-            benchmark_graph("mssd", "./models/mssd_benchmark.tmfile", 300, 300, 3, 1);
-            benchmark_graph("retinaface", "./models/retinaface_benchmark.tmfile", 1024, 1024, 3, 1);
-            benchmark_graph("yolov3", "./models/yolov3_benchmark.tmfile", 416, 416, 3, 1);
+            benchmark_graph("squeezenet_v1.1",  "./models/squeezenet_v1.1_benchmark.tmfile",    227, 227, 3, 1);
+            benchmark_graph("mobilenetv1",      "./models/mobilenet_benchmark.tmfile",          224, 224, 3, 1);
+            benchmark_graph("mobilenetv2",      "./models/mobilenet_v2_benchmark.tmfile",       224, 224, 3, 1);
+            benchmark_graph("mobilenetv3",      "./models/mobilenet_v3_benchmark.tmfile",       224, 224, 3, 1);
+            benchmark_graph("shufflenetv2",     "./models/shufflenet_v2_benchmark.tmfile",      224, 224, 3, 1);
+            benchmark_graph("resnet18",         "./models/resnet18_benchmark.tmfile",           224, 224, 3, 1);
+            benchmark_graph("resnet50",         "./models/resnet50_benchmark.tmfile",           224, 224, 3, 1);
+            benchmark_graph("googlenet",        "./models/googlenet_benchmark.tmfile",          224, 224, 3, 1);
+            benchmark_graph("inceptionv3",      "./models/inception_v3_benchmark.tmfile",       299, 299, 3, 1);
+            benchmark_graph("vgg16",            "./models/vgg16_benchmark.tmfile",              224, 224, 3, 1);
+            benchmark_graph("mssd",             "./models/mssd_benchmark.tmfile",               300, 300, 3, 1);
+            benchmark_graph("retinaface",       "./models/retinaface_benchmark.tmfile",         320, 240, 3, 1);
+            benchmark_graph("yolov3",           "./models/yolov3_benchmark.tmfile",             416, 416, 3, 1);
+            benchmark_graph("yolov3_tiny",      "./models/yolov3_tiny_benchmark.tmfile",        416, 416, 3, 1);
+            benchmark_graph("mobilefacenets",   "./models/mobilefacenets_benchmark.tmfile",     112, 112, 3, 1);
     }
     tengine::Net::Deinit();
     std::cout << "ALL TEST DONE\n";
