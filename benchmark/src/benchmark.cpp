@@ -111,7 +111,7 @@ int main(int argc, char* argv[])
                 debug = *optarg;
                 break;
             case 's':
-                select_num = strtoul(optarg, NULL, -1);
+                select_num = strtoul(optarg, NULL, 10);
                 break;
             case 'r':
                 repeat_count = strtoul(optarg, NULL, 10);
