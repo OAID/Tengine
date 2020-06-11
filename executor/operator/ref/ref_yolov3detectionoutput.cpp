@@ -90,9 +90,9 @@ bool RefYOLOV3DetectionOutput::Run(Node* node)
     int offset = 0;
     for(int i = 0; i < node->GetInputNum(); i++)
     { 
-        memcpy(input_ptr+offset, input_datas[i], data_len[i]);
+        memcpy((float*)input_ptr+offset, input_datas[i], data_len[i]);
         offset += data_len[i];
-        printf("%d\n", data_len[i]);
+        //printf("%d\n", data_len[i]);
     }
     Tensor* output_tensor = node->GetOutputTensor(0);
     void* output = (void*)get_tensor_buffer(output_tensor);
@@ -101,7 +101,7 @@ bool RefYOLOV3DetectionOutput::Run(Node* node)
     {
         return false;
     }
-    printf("run done.\n");
+    //printf("run done.\n");
     int num_detected = param.output_box.size();
     int total_size = num_detected * 6 * 4;
     void* mem_addr = mem_alloc(total_size);
@@ -124,7 +124,7 @@ bool RefYOLOV3DetectionOutput::Run(Node* node)
             outptr[5] = r.y1;
         }
         std::vector<int> dims = out_shape.GetDim();
-        printf("%d %d %d %d %d.\n", dims[0], dims[1], dims[2], dims[3], out_shape.GetDataLayout());
+        //printf("%d %d %d %d %d.\n", dims[0], dims[1], dims[2], dims[3], out_shape.GetDataLayout());
     }
     if(output_tensor->GetDataType() == TENGINE_DT_FP16)
     {
