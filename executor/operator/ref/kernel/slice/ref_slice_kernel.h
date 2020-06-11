@@ -54,6 +54,7 @@ struct slice_param
     bool iscaffe;
     bool ismxnet;
     bool isonnx;
+    bool isncnn;
     int begin;
     int end;
 };

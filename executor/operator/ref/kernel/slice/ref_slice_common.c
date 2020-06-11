@@ -39,6 +39,7 @@ static int caffe_run(const int8_t* in_data, int8_t** out_data, int element_size,
     {
         slice_size = slice_size * in_dim[i];
     }
+    printf("%d %d \n", num_slices, slice_size);
     int in_slice = in_dim[slice_axis];
     int slice_index = 0;
     int out_num = param->out_num;
@@ -46,16 +47,19 @@ static int caffe_run(const int8_t* in_data, int8_t** out_data, int element_size,
     {
         int8_t* output = out_data[i];
         int out_slice = param->output_shape[i].dims[slice_axis];
+        printf("%d\n",out_slice);
         for(int n = 0; n < num_slices; n++)
         {
             int in_offset = (n * in_slice + slice_index) * slice_size * element_size;
             int out_offset = n * out_slice * slice_size * element_size;
+            //printf("%d %d\n", in_offset, slice_size);
             memcpy(output + out_offset, input + in_offset, slice_size * out_slice * element_size);
         }
         slice_index += out_slice;
     }
     return 0;
 }
+
 static int tf_run(const int8_t* in_data, int8_t** out_data, int element_size, const struct slice_param* param)
 {
     const int8_t* input = in_data;
@@ -281,7 +285,7 @@ static int onnx_run(const int8_t* in_data, int8_t** out_data, int element_size, 
 }
 static int ref_slice_common(const int8_t* in_data, int8_t** out_data, int element_size, const struct slice_param* param)
 {
-    if(param->iscaffe)
+    if(param->iscaffe||param->isncnn)
         return caffe_run(in_data, out_data, element_size, param);
     else if(param->ismxnet)
         return mxnet_run(in_data, out_data, element_size, param);
