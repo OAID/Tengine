@@ -86,7 +86,7 @@ bool Slice::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<T
     } else if(param_.isonnx){
         int axis = param_.axis;
         int dim_len = input_dim.size();
-        //printf("dim_len: %d end: %d beign: %d \n", axis, param_.end, param_.begin);
+        printf("dim_len: %d end: %d beign: %d \n", axis, param_.end, param_.begin);
         std::vector<int> out_dim(dim_len);
         out_dim.reserve(input_dim.size());
         for(int i = 0; i < dim_len; i++)
@@ -106,6 +106,26 @@ bool Slice::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<T
 
         oshape[0].SetDim(out_dim);
         oshape[0].SetDataLayout(input.GetDataLayout());        
+    }
+    else if(param_.isncnn){
+        const TShape& input = ishape[0];
+        std::vector<int> input_dim = input.GetDim();
+        int axis = param_.axis;
+        int prev = 0;
+        for(int i = 0; i < oshape.size(); i++)
+        {
+            //printf("%d\n", i);
+            int slice = param_.slice_point_[i];
+            std::vector<int> output_dim = input_dim;
+            if(slice == -233)
+            {
+                slice = static_cast<int>((input_dim[axis]-prev) / (oshape.size() - i));
+            }
+            output_dim[axis] = slice;
+            oshape[i].SetDim(output_dim);
+            oshape[i].SetDataLayout(input.GetDataLayout());
+            prev += slice;
+        }
     }
     else
     {
@@ -131,6 +151,7 @@ void Slice::SetSchema(void)
         .SetAttr("iscaffe", false)
         .SetAttr("ismxnet", false)
         .SetAttr("isonnx", false)
+        .SetAttr("isncnn", false)
         .SetDoc(R"DOC(Slice Operator)DOC");
 }
 
