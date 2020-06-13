@@ -33,12 +33,15 @@ bool Interp::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<
     int in_c = input.GetC();
     int in_h = input.GetH();
     int in_w = input.GetW();
-    
-
-    param_.output_height = in_h * param_.height_scale;
-    param_.output_width = in_w * param_.width_scale;
-
-
+    if(param_.width_scale != 0.0 && param_.height_scale != 0.0)
+    {
+        param_.output_height = in_h * param_.height_scale;
+        param_.output_width = in_w * param_.width_scale;
+    }
+    else{
+        param_.height_scale = static_cast<float>(param_.output_height) / static_cast<float>(in_h);
+        param_.width_scale = static_cast<float>(param_.output_width) / static_cast<float>(in_w);
+    }
     TShape out_shape;
 
     std::vector<int> dim(4);
@@ -47,12 +50,11 @@ bool Interp::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<
     dim[1] = in_c;
     dim[2] = param_.output_height;
     dim[3] = param_.output_width;
-
     out_shape.SetDim(dim);
     out_shape.SetDataLayout(input.GetDataLayout());
 
     oshape[0] = out_shape;
-
+    
     return true;
 }
 

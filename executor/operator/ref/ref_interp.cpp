@@ -71,14 +71,19 @@ bool InterpOps::Run(Node* node)
     int inc = shape.GetC();
     int inh = shape.GetH(); 
     int inw = shape.GetW();
-
-
-
-    int output_width = static_cast<int>(inh * width_scale);
-    int output_height = static_cast<int>(inw * height_scale);
-
-
-
+    int output_width;
+    int output_height;
+    if(width_scale == 0.f && height_scale == 0.f)
+    {
+        output_height = param->output_height;
+        output_width = param->output_width;
+    }
+    else
+    {
+        output_width = static_cast<int>(inh * width_scale);
+        output_height = static_cast<int>(inw * height_scale);
+    }
+    
     op_param.inc=inc;
     op_param.inh=inh;
     op_param.inw=inw;
@@ -100,7 +105,6 @@ bool InterpOps::Run(Node* node)
     //    o_quant->resize(0);
     //    o_quant->push_back(q_param);
     // }
-
     if(ret < 0)
         return false;
     else

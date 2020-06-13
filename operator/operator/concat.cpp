@@ -44,7 +44,7 @@ bool Concat::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<
     dim[axis] = concat_shape;
 
     shape.SetDim(dim);
-
+    shape.SetDataLayout(ishape[0].GetDataLayout());
     oshape[0] = shape;
 
     return true;

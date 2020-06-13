@@ -54,8 +54,10 @@
 #include "operator/eltwise_param.hpp"
 #include "operator/interp_param.hpp"
 #include "operator/crop_param.hpp"
-
-
+#include "operator/slice_param.hpp"
+#include "operator/deconv_param.hpp"
+#include "operator/yolov3detectionoutput_param.hpp"
+#include "operator/unary_param.hpp"
 namespace TEngine{
 
 typedef std::map<int, std::string>::const_iterator const_iterator;
@@ -77,6 +79,7 @@ bool NcnnSerializer::vstr_is_float(const char vstr[16])
 
 int  NcnnSerializer::read(void* buf, int size)
 {
+    //printf("start read.\n");
     return fread(buf, 1, size, fp);
 }
 
@@ -90,27 +93,30 @@ bool NcnnSerializer::LoadBinaryFile(const char* fname, std::vector<NcnnParam>& p
         return false;
     }
    
-    float magic = 0;
+    float magic = 0; 
     int nscan = 0;
     for(int i = 0; i < (int)nodelist.size(); i++){
-        
+        //printf("%d of %d %s type %s.\n", i, (int)nodelist.size(), nodelist[i].name.c_str(), nodelist[i].op.c_str());  
         if(nodelist[i].op == "Convolution" || nodelist[i].op == "DeconvolutionDepthWise" 
         || nodelist[i].op == "Deconvolution" || nodelist[i].op == "ConvolutionDepthWise"){
             NcnnParam weight;
             nscan = read(&magic, sizeof(float));
             weight.name = nodelist[i].name+"_w";
-            
             std::map<int, std::string>::iterator iter;
             iter = nodelist[i].attrs.find(6);
+            //printf("%s\n", iter->second.c_str());
             weight.data_len = std::atoi(iter->second.c_str());
             //printf("%s %d ",nodelist[i].name.c_str(), weight.data_len);
             iter = nodelist[i].attrs.find(0);
+            //printf("%d\n", std::atoi(iter->second.c_str()));
             int output_channel = std::atoi(iter->second.c_str());            
 
             weight.data = (float*)malloc(sizeof(float)*weight.data_len);            
+            //printf("%f %f ", weight.data, weight.data);
             read(weight.data, sizeof(float)*weight.data_len);
-            //printf("%f %f \n", weight.data, weight.data);
+            //printf("%s read weigth done.",nodelist[i].name.c_str());
             iter = nodelist[i].attrs.find(1);
+            //printf("%d\n", std::atoi(iter->second.c_str()));
             int kernel_size = std::atoi(iter->second.c_str());
             int c = weight.data_len/(output_channel*kernel_size*kernel_size);
             weight.dims.push_back(output_channel);
@@ -118,7 +124,11 @@ bool NcnnSerializer::LoadBinaryFile(const char* fname, std::vector<NcnnParam>& p
             weight.dims.push_back(kernel_size);
             weight.dims.push_back(kernel_size);
             iter = nodelist[i].attrs.find(5);
-            int biasTerm = std::atoi(iter->second.c_str());
+            int biasTerm = 0;
+            
+            if(!iter->second.empty())
+                biasTerm = std::atoi(iter->second.c_str());
+
             paramlist.push_back(weight);
             if(biasTerm == 1){
                 NcnnParam bias;
@@ -128,6 +138,7 @@ bool NcnnSerializer::LoadBinaryFile(const char* fname, std::vector<NcnnParam>& p
                 read(bias.data, sizeof(float)*output_channel);
                 bias.dims.push_back(output_channel);
                 paramlist.push_back(bias);
+                //printf("biased\n");
             }            
         }
         else if(nodelist[i].op == "BatchNorm"){
@@ -260,6 +271,28 @@ bool NcnnSerializer::LoadBinaryFile(const char* fname, std::vector<NcnnParam>& p
                 paramlist.push_back(bias);
             }   
         }
+        else if(nodelist[i].op == "MemoryData"){
+            NcnnParam const_data;
+            //nscan = read(&magic, sizeof(float));
+            std::map<int, std::string>::iterator iter;
+            int data_len = 1;
+            int size = (int)nodelist[i].attrs.size();
+            std::vector<int> dims(size);
+            for(iter = nodelist[i].attrs.begin(); iter != nodelist[i].attrs.end(); iter++)
+            {
+                std::pair<int, std::string> pair = *iter;
+                data_len *= atoi(pair.second.c_str());
+                dims[pair.first] = atoi(pair.second.c_str());
+            }
+            printf("%d.\n", data_len);
+            const_data.name = nodelist[i].name;
+            const_data.dim_size = (int) dims.size();
+            const_data.dims = dims;
+            const_data.data_len = data_len;
+            const_data.data = (float*)malloc(sizeof(float)*data_len);
+            read(const_data.data, sizeof(float)* data_len);
+            paramlist.push_back(const_data);
+        }
     }
     if(nscan < 0){
         LOG_ERROR() << "Cannot read the binary file: " << fname << "\n";
@@ -275,6 +308,11 @@ bool NcnnSerializer::LoadBinaryFile(const char* fname, std::vector<NcnnParam>& p
         printf("%f ", data[j]);
     }
 #endif
+    /*for(int i = 0; i < paramlist.size(); i++)
+    {
+        printf("%s %f\n", paramlist[i].name.c_str(), ((float*)paramlist[i].data)[0]);
+    }*/
+    //printf("read done.\n");
     return true;
 }
 
@@ -314,7 +352,6 @@ bool NcnnSerializer::LoadTextFile(const char* fname, std::vector<NcnnNode>& node
         node.op = layer_type;
         node.optimized = 0;
         node.name = layer_name;
-
         for(int j = 0; j < bottom_count; j++){
             char bottom_name[256];
             res = fscanf(fp, "%255s=", bottom_name);
@@ -389,6 +426,7 @@ bool NcnnSerializer::LoadTextFile(const char* fname, std::vector<NcnnNode>& node
                 }
                 free(params[id].f_data_array);
                 free(params[id].i_data_array);
+                //printf("%s %d %s.\n", node.name.c_str(), id, str.c_str());  
                 node.attrs.insert(std::pair<int, std::string>(id, str));
             }
             else
@@ -435,6 +473,7 @@ bool NcnnSerializer::LoadTextFile(const char* fname, std::vector<NcnnNode>& node
                             return false;
                         }
                     }
+                    //printf("%s %d %s.\n", node.name.c_str(), id, str.c_str());
                     node.attrs.insert(std::pair<int, std::string>(id, str));
                     free(params[id].f_data_array);
                     free(params[id].i_data_array);
@@ -450,6 +489,7 @@ bool NcnnSerializer::LoadTextFile(const char* fname, std::vector<NcnnNode>& node
                     }
                     bool is_float = vstr_is_float(vstr);
                     //printf("string value: %s \n", vstr);
+                    //printf("%s %d %s.\n", node.name.c_str(), id, vstr);
                     node.attrs.insert(std::pair<int, std::string>(id, vstr));
                     float f_data;
                     int i_data;
@@ -505,10 +545,14 @@ bool NcnnSerializer::LoadConstTensor(StaticGraph* graph, const std::vector<NcnnN
         std::vector<int> dims = ncnn_tensor.dims;
         StaticTensor* tensor = CreateStaticConstTensor(graph, ncnn_tensor.name);
         SetTensorDim(tensor, dims);
-
+        /*printf("%s ",ncnn_tensor.name.c_str());
+        for(int i = 0 ; i < dims.size(); i++)
+        {
+            printf("%d ", dims[i]);
+        }
+        printf("\n");*/
         SetTensorDataType(tensor, DataType::GetTypeID("float32"));
         SetTensorSize(tensor, ncnn_tensor.data_len);
-
         float* mem_buf = ( float* )std::malloc(ncnn_tensor.data_len*sizeof(float));
         float* raw_data = ( float* )ncnn_tensor.data;
         /* load data */
@@ -517,7 +561,7 @@ bool NcnnSerializer::LoadConstTensor(StaticGraph* graph, const std::vector<NcnnN
 
         SetConstTensorBuffer(tensor, mem_buf);
         SetConstTensorFileLocation(tensor, -1, 0);
-
+        //printf("Load constTensor %s %d.\n", tensor->name.c_str(), tensor->mem_size);
         StaticOp* op = CreateStaticOp(graph, "Const");
         StaticNode* node = CreateStaticNode(graph, GetTensorName(tensor));
         SetNodeOp(node, op);
@@ -526,7 +570,7 @@ bool NcnnSerializer::LoadConstTensor(StaticGraph* graph, const std::vector<NcnnN
     }
 
     return true;
-}
+}       
 
 static bool GetParam(const std::string name, const std::vector<NcnnParam>& paramlist, NcnnParam& param)
 {
@@ -550,10 +594,10 @@ void NcnnSerializer::CreateInputNode(StaticGraph* graph, const std::vector<NcnnN
     for(unsigned int i = 0; i < nodelist.size(); i++)
     {
         const NcnnNode& ncnn_node = nodelist.at(i);
-        if(ncnn_node.name == "data" || ncnn_node.name == "input")
+        if(ncnn_node.op == "Input")
         {
             //printf("Create input tensor %s \n",  ncnn_node.name.c_str());
-            std::string input_name = "data";
+            std::string input_name = ncnn_node.name;
 
             StaticTensor* tensor = CreateStaticTensor(graph, input_name);
 
@@ -597,10 +641,11 @@ void NcnnSerializer::LoadNode(StaticGraph* graph, StaticNode* node, const NcnnNo
         std::cout <<"  op name:  "<<ncnn_node.name <<"    input:  " << input_name << std::endl;
 #endif
         StaticTensor* tensor = FindTensor(graph, input_name);
+        //printf("%s input %s size is %d.\n", ncnn_node.name.c_str(), tensor->name.c_str(), tensor->mem_size);
         if(tensor == NULL){
             printf("Can not find tensor : %s \n", input_name.c_str());
         }
-        AddNodeInputTensor(node, tensor);
+        AddNodeInputTensor(node, tensor);  
     }
 
     size = (int)paramlist.size();
@@ -611,7 +656,7 @@ void NcnnSerializer::LoadNode(StaticGraph* graph, StaticNode* node, const NcnnNo
             StaticTensor* tensor = FindTensor(graph, paramlist[i].name);
 
             AddNodeInputTensor(node, tensor);
-        }        
+        }
     }
 
     int out_size = (int)ncnn_node.output_name.size();
@@ -632,13 +677,15 @@ bool NcnnSerializer::LoadGraph(StaticGraph* graph, const std::vector<NcnnNode>& 
 
     LoadConstTensor(graph, nodelist, paramlist);
     CreateInputNode(graph, nodelist, paramlist);
-
+    std::vector<int> node_to_remove;
     unsigned int i;
     std::vector<std::string> no_supported_op;
     for(i = 0; i < nodelist.size(); i++)
     {
         NcnnNode ncnn_node = nodelist.at(i);
-
+        
+        if(ncnn_node.op == "Noop"&&ncnn_node.output_name.size() == 0)
+            node_to_remove.push_back(i);
         if(!FindOpLoadMethod(ncnn_node.op))
         {
             auto it = find(no_supported_op.begin(),no_supported_op.end(),ncnn_node.op);
@@ -657,16 +704,34 @@ bool NcnnSerializer::LoadGraph(StaticGraph* graph, const std::vector<NcnnNode>& 
         }
         LOG_ERROR() << "}\n";
         return false;
-    }   
+    }
     for(i = 0; i < nodelist.size(); i++)
     {
         NcnnNode ncnn_node = nodelist.at(i);
-        if(ncnn_node.op == "Input" )
+        if(ncnn_node.op == "Input"||ncnn_node.op == "MemoryData")
             continue;
 
+        if(ncnn_node.op == "Noop"&&ncnn_node.output_name.size() == 0)
+            continue;
 
-        StaticNode* node = CreateStaticNode(graph, ncnn_node.name);
-
+        StaticNode* node = nullptr;
+        //printf("%s\n", ncnn_node.name.c_str());
+        if(FindNode(graph, ncnn_node.name) != nullptr)
+        {
+            int counter = 0;  
+            const std::string node_name = ncnn_node.name;
+            std::string new_name = node_name + std::to_string(counter++); 
+            while(FindNode(graph, new_name) != nullptr)
+            {
+                new_name = node_name + std::to_string(counter++);
+                //printf("%s\n", new_name.c_str());
+            }
+            node = CreateStaticNode(graph, new_name);
+        }
+        else
+        {
+            node = CreateStaticNode(graph, ncnn_node.name);
+        }
         LoadNode(graph, node, ncnn_node, nodelist, paramlist);
 
         op_load_t op_func = any_cast<op_load_t>(GetOpLoadMethod(ncnn_node.op));
@@ -677,11 +742,16 @@ bool NcnnSerializer::LoadGraph(StaticGraph* graph, const std::vector<NcnnNode>& 
     if(i < nodelist.size()){
         return false;
     }
-
 #if DEBUG
     std::cout << "Successfully load all nodes" << std::endl;
 #endif
+    for(int i = 0; i < graph->tensor_list.size(); i++)
+    {
+        StaticTensor* stttensor = graph->tensor_list[i].get();
+        
+        //printf("%s %d\n", stttensor->name.c_str(), stttensor->mem_size);
 
+    }
     return true;
 }
 
@@ -857,7 +927,7 @@ static bool LoadNcnnSoftmax(StaticGraph* graph, StaticNode* node, const NcnnNode
     return true;
 }
 
-static bool LoadNcnnConcat(StaticGraph* graph, StaticNode* node, const NcnnNode& ncnn_node)
+static bool LoadNcnnConcat(StaticGraph* graph, StaticNode* node,  const NcnnNode& ncnn_node)
 {
     StaticOp* op = CreateStaticOp(graph, "Concat");
 
@@ -910,7 +980,6 @@ static bool LoadNcnnConvolution(StaticGraph* graph, StaticNode* node, const Ncnn
     ConvParam param = any_cast<ConvParam>(OpManager::GetOpDefParam("Convolution"));
 
     const_iterator iter;
-
     iter = ncnn_node.attrs.find(0);
     if(iter != ncnn_node.attrs.end()){
         param.output_channel = std::atoi(iter->second.c_str());
@@ -960,7 +1029,7 @@ static bool LoadNcnnConvolution(StaticGraph* graph, StaticNode* node, const Ncnn
     if(iter != ncnn_node.attrs.end()){
         param.activation = ActRELU;
     }
-
+    //printf("%s %d %d %d %d %d %d.\n", node->name.c_str(), param.output_channel, param.kernel_h, param.stride_h, param.dilation_h, param.pad_h0, param.activation);
     SetOperatorParam(op, param);
     SetNodeOp(node, op);
 
@@ -1274,14 +1343,14 @@ static bool LoadNcnnReshape(StaticGraph* graph, StaticNode* node, const NcnnNode
         if(-233 != std::atoi(iter->second.c_str())){
             param.re_shape.push_back(std::atoi(iter->second.c_str()));
         }
-    } else {
-        param.re_shape.push_back(0);    
-    }
+    } 
     iter = ncnn_node.attrs.find(2);
     if(iter != ncnn_node.attrs.end()){
         if(-233 != std::atoi(iter->second.c_str())){
             param.re_shape.push_back(std::atoi(iter->second.c_str()));
         }
+    } else {
+        param.re_shape.push_back(0);    
     }
     iter = ncnn_node.attrs.find(1);
     if(iter != ncnn_node.attrs.end()){
@@ -1390,7 +1459,18 @@ static bool LoadNcnnInterp(StaticGraph* graph, StaticNode* node, const NcnnNode&
         ParseAttr_n(iter->second, v2);
         param.height_scale = v2.at(0);
     }
-
+    iter = ncnn_node.attrs.find(3);
+    if(iter != ncnn_node.attrs.end()){
+        //printf("find 3.\n");
+        ParseAttr_n(iter->second, v2);
+        param.output_width = v2.at(0);
+    }
+    iter = ncnn_node.attrs.find(4);
+    if(iter != ncnn_node.attrs.end()){
+        //printf("find 4.\n");
+        ParseAttr_n(iter->second, v2);
+        param.output_height = v2.at(0);
+    }
     StaticOp* op = CreateStaticOp(graph, "Interp");
 
     SetOperatorParam(op, param);
@@ -1406,6 +1486,211 @@ static bool LoadNcnnCrop(StaticGraph* graph, StaticNode* node, const NcnnNode& n
     param.num_args = 2;
     StaticOp* op = CreateStaticOp(graph, "Crop");
 
+    SetOperatorParam(op, param);
+
+    SetNodeOp(node, op);
+
+    return true;
+}
+
+static bool LoadNcnnSlice(StaticGraph* graph, StaticNode* node, const NcnnNode& ncnn_node)
+{
+    SliceParam param = any_cast<SliceParam>(OpManager::GetOpDefParam("Slice"));
+    param.isncnn= true;
+    param.iscaffe = false;
+    param.ismxnet = false;
+    param.isonnx = false;
+    param.slice_point_.clear();
+    const_iterator iter;
+    iter = ncnn_node.attrs.find(0);
+    std::vector<float> v1;
+    if(iter != ncnn_node.attrs.end()){
+        ParseAttr_n(iter->second, v1);
+        for(int i = 0; i < (int)v1.size(); i++){
+            param.slice_point_.push_back((int)v1.at(i));
+        }
+    }
+    iter = ncnn_node.attrs.find(1);
+    if(iter != ncnn_node.attrs.end()){
+        param.axis = std::atoi(iter->second.c_str())+1;
+    }
+    StaticOp* op = CreateStaticOp(graph, "Slice");
+
+    SetOperatorParam(op, param);
+
+    SetNodeOp(node, op);
+
+    return true;
+}
+
+static bool LoadNcnnNoop(StaticGraph* graph, StaticNode* node, const NcnnNode& ncnn_node)
+{
+    
+    StaticOp* op = CreateStaticOp(graph, "Noop");
+
+    SetNodeOp(node, op);
+
+    return true;
+}
+
+static bool LoadNcnnSigmoid(StaticGraph* graph, StaticNode* node, const NcnnNode& ncnn_node)
+{
+    
+    StaticOp* op = CreateStaticOp(graph, "Sigmoid");
+
+    SetNodeOp(node, op);
+
+    return true;
+}
+
+static bool LoadNcnnYolov3DetectionOutput(StaticGraph* graph, StaticNode* node, const NcnnNode& ncnn_node)
+{
+    YOLOV3DetectionOutputParam param = any_cast<YOLOV3DetectionOutputParam>(OpManager::GetOpDefParam("YOLOV3DetectionOutput"));
+    const_iterator iter;
+    iter = ncnn_node.attrs.find(0);
+    if(iter != ncnn_node.attrs.end())
+    {
+        param.num_classes = std::atoi(iter->second.c_str());
+    }
+    iter = ncnn_node.attrs.find(1);
+    if(iter != ncnn_node.attrs.end())
+    {
+        param.num_box = std::atoi(iter->second.c_str());
+    }
+    iter = ncnn_node.attrs.find(2);
+    if(iter != ncnn_node.attrs.end())
+    {
+        param.confidence_threshold = std::atof(iter->second.c_str());
+    }
+    iter = ncnn_node.attrs.find(3);
+    if(iter != ncnn_node.attrs.end())
+    {
+        //printf("nms_threshold is %f\n", std::atof(iter->second.c_str()));
+        param.nms_threshold = std::atof(iter->second.c_str());
+    }
+    iter = ncnn_node.attrs.find(4);
+    if(iter != ncnn_node.attrs.end())
+    {
+        std::vector<float> v1;
+        ParseAttr_n(iter->second, v1);
+        for(int i = 0; i < (int)v1.size(); i++){
+            param.bias.push_back(v1.at(i));
+        }
+    }
+    iter = ncnn_node.attrs.find(5);
+    if(iter != ncnn_node.attrs.end())
+    {
+        std::vector<float> v1;
+        ParseAttr_n(iter->second, v1);
+        for(int i = 0; i < (int)v1.size(); i++){
+            param.mask.push_back(v1.at(i));
+        }
+    }
+    iter = ncnn_node.attrs.find(6);
+    if(iter != ncnn_node.attrs.end())
+    {
+        std::vector<float> v1;
+        ParseAttr_n(iter->second, v1);
+        for(int i = 0; i < (int)v1.size(); i++){
+            param.anchors_scale.push_back(v1.at(i));
+        }
+    }
+    StaticOp* op = CreateStaticOp(graph, "YOLOV3DetectionOutput");
+
+    SetOperatorParam(op, param);
+    SetNodeOp(node, op);
+    return true;
+}
+
+static bool LoadNcnnDeconv(StaticGraph* graph, StaticNode* node, const NcnnNode& ncnn_node)
+{
+    DeconvParam param = any_cast<DeconvParam>(OpManager::GetOpDefParam("Deconvolution"));
+    const_iterator iter;
+    std::vector<float> v1;
+    iter = ncnn_node.attrs.find(0);
+    if(iter != ncnn_node.attrs.end())
+    {
+        param.num_output = std::atoi(iter->second.c_str());
+    }
+    iter = ncnn_node.attrs.find(1);
+    if(iter != ncnn_node.attrs.end())
+    {
+        param.kernel_w = std::atoi(iter->second.c_str());
+        param.kernel_h = std::atoi(iter->second.c_str());
+    }
+    iter = ncnn_node.attrs.find(11);
+    if(iter != ncnn_node.attrs.end())
+    {
+        param.kernel_h = std::atoi(iter->second.c_str());
+    }
+    iter = ncnn_node.attrs.find(2);
+    if(iter != ncnn_node.attrs.end())
+    {
+        param.dilation_w = std::atoi(iter->second.c_str());
+        param.dilation_h = std::atoi(iter->second.c_str());
+    }
+    iter = ncnn_node.attrs.find(12);
+    if(iter != ncnn_node.attrs.end())
+    {
+        param.dilation_h = std::atoi(iter->second.c_str());
+    }
+    iter = ncnn_node.attrs.find(3);
+    if(iter != ncnn_node.attrs.end())
+    {
+        param.stride_h = std::atoi(iter->second.c_str());
+        param.stride_w = std::atoi(iter->second.c_str());
+    }
+    iter = ncnn_node.attrs.find(13);
+    if(iter != ncnn_node.attrs.end())
+    {
+        param.stride_w = std::atoi(iter->second.c_str());
+    }   
+    iter = ncnn_node.attrs.find(4);
+    if(iter != ncnn_node.attrs.end())
+    {
+        param.pad_w0 = std::atoi(iter->second.c_str());
+        param.pad_w1 = std::atoi(iter->second.c_str());
+        param.pad_h0 = std::atoi(iter->second.c_str());
+        param.pad_h1 = std::atoi(iter->second.c_str());
+    }
+    iter = ncnn_node.attrs.find(15);
+    if(iter != ncnn_node.attrs.end())
+    {
+        param.pad_w1 = std::atoi(iter->second.c_str());
+    }   
+    iter = ncnn_node.attrs.find(16);
+    if(iter != ncnn_node.attrs.end())
+    {
+        param.pad_h0 = std::atoi(iter->second.c_str());
+    }   
+    iter = ncnn_node.attrs.find(17);
+    if(iter != ncnn_node.attrs.end())
+    {
+        param.pad_h1 = std::atoi(iter->second.c_str());
+    }
+    iter = ncnn_node.attrs.find(7);
+    if(iter != ncnn_node.attrs.end())
+    {
+        param.group = std::atoi(iter->second.c_str());
+    }
+    StaticOp* op = CreateStaticOp(graph, "Deconvolution");
+
+    SetOperatorParam(op, param);
+    SetNodeOp(node, op);
+    return true;            
+}
+
+static bool LoadNcnnUnary(StaticGraph* graph, StaticNode* node, const NcnnNode& ncnn_node)
+{
+    StaticOp* op = CreateStaticOp(graph, "Unary");
+
+    UnaryParam param = any_cast<UnaryParam>(OpManager::GetOpDefParam("Unary"));
+
+    const_iterator iter;
+    iter = ncnn_node.attrs.find(0);
+    if(iter != ncnn_node.attrs.end())
+        param.type = std::atoi(iter->second.c_str());
+    
     SetOperatorParam(op, param);
 
     SetNodeOp(node, op);
@@ -1442,7 +1727,12 @@ bool NcnnSerializerRegisterOpLoader(void)
     p_ncnn->RegisterOpLoadMethod("Interp", op_load_t(LoadNcnnInterp));
     p_ncnn->RegisterOpLoadMethod("Crop", op_load_t(LoadNcnnCrop));  
     p_ncnn->RegisterOpLoadMethod("BinaryOp", op_load_t(LoadNcnnEltwise)); 
-
+    p_ncnn->RegisterOpLoadMethod("Slice", op_load_t(LoadNcnnSlice));
+    p_ncnn->RegisterOpLoadMethod("Noop", op_load_t(LoadNcnnNoop));
+    p_ncnn->RegisterOpLoadMethod("Sigmoid", op_load_t(LoadNcnnSigmoid));
+    p_ncnn->RegisterOpLoadMethod("UnaryOp", op_load_t(LoadNcnnUnary));
+    p_ncnn->RegisterOpLoadMethod("Yolov3DetectionOutput", op_load_t(LoadNcnnYolov3DetectionOutput));
+    p_ncnn->RegisterOpLoadMethod("DeconvolutionDepthWise", op_load_t(LoadNcnnDeconv));
     return true;
 }
 
