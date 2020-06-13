@@ -39,7 +39,7 @@ static int caffe_run(const int8_t* in_data, int8_t** out_data, int element_size,
     {
         slice_size = slice_size * in_dim[i];
     }
-    printf("%d %d \n", num_slices, slice_size);
+    // printf("%d %d \n", num_slices, slice_size);
     int in_slice = in_dim[slice_axis];
     int slice_index = 0;
     int out_num = param->out_num;
