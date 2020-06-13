@@ -86,7 +86,7 @@ bool Slice::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector<T
     } else if(param_.isonnx){
         int axis = param_.axis;
         int dim_len = input_dim.size();
-        printf("dim_len: %d end: %d beign: %d \n", axis, param_.end, param_.begin);
+        // printf("dim_len: %d end: %d beign: %d \n", axis, param_.end, param_.begin);
         std::vector<int> out_dim(dim_len);
         out_dim.reserve(input_dim.size());
         for(int i = 0; i < dim_len; i++)
