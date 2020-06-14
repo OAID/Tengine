@@ -289,7 +289,12 @@ endif()
 #add_subdirectory(benchmark)
 #add_subdirectory(tests)
 
-install (TARGETS tengine  DESTINATION lib)
+if(BUILT_IN_OPENCV AND NOT BUILD_SHARED_LIBS )
+    install(TARGETS tengine EXPORT OpenCVModules ARCHIVE DESTINATION ${OPENCV_3P_LIB_INSTALL_PATH} COMPONENT dev)
+else()
+    install(TARGETS tengine  DESTINATION lib)
+endif()
+
 if(NOT BUILD_ALL_IN_STATIC)
 install (TARGETS hclcpu  DESTINATION lib)
 endif()
