@@ -296,7 +296,7 @@ endif()
 
 if(BUILT_IN_OPENCV)
     if(NOT BUILD_SHARED_LIBS )
-        install(TARGETS tengine EXPORT OpenCVModules ARCHIVE DESTINATION lib)
+        install(TARGETS tengine EXPORT OpenCVModules ARCHIVE DESTINATION "${OPENCV_3P_LIB_INSTALL_PATH}" COMPONENT dev)
     endif()
 else()
     install(TARGETS tengine  DESTINATION lib)
