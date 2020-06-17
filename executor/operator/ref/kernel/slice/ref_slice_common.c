@@ -47,7 +47,7 @@ static int caffe_run(const int8_t* in_data, int8_t** out_data, int element_size,
     {
         int8_t* output = out_data[i];
         int out_slice = param->output_shape[i].dims[slice_axis];
-        printf("%d\n",out_slice);
+        //printf("%d\n",out_slice);
         for(int n = 0; n < num_slices; n++)
         {
             int in_offset = (n * in_slice + slice_index) * slice_size * element_size;
