@@ -57,3 +57,8 @@ if(CONFIG_NCNN_SERIALIZER)
     add_definitions(-DCONFIG_NCNN_SERIALIZER=1)
     add_subdirectory(ncnn)
 endif()
+
+if(CONFIG_MEGENGINE_SERIALIZER)
+    add_definitions(-DCONFIG_MEGENGINE_SERIALIZER=1)
+    add_subdirectory(megengine)
+endif()

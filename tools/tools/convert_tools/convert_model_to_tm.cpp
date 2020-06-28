@@ -50,6 +50,7 @@ extern "C" int darknet_plugin_init(void);
 extern "C" int onnx_plugin_init(void);
 extern "C" int tensorflow_plugin_init(void);
 extern "C" int tflite_plugin_init(void);
+extern "C" int megengine_plugin_init(void);
 
 void init_other_serializer()
 {
@@ -60,6 +61,7 @@ void init_other_serializer()
 	onnx_plugin_init();
 	tensorflow_plugin_init();
 	tflite_plugin_init();
+    megengine_plugin_init();
 }
 
 int main(int argc, char* argv[])
@@ -114,7 +116,7 @@ int main(int argc, char* argv[])
             input_file_number = 2;
         }
         else if(file_format == "caffe_single" || file_format == "onnx" || file_format == "tensorflow" ||
-                file_format == "tflite")
+                file_format == "tflite" || file_format == "megengine")
         {
             model_file_needed = true;
             input_file_number = 1;

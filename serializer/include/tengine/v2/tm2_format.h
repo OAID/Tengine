@@ -105,7 +105,7 @@ typedef uint8_t tm_bool_t; /* bool is 1-byte unsigned integer */
 #define TM2_OPSTR_CROP "Crop"
 #define TM2_OPSTR_PSROIPOOLING "Psroipooling"
 #define TM2_OPSTR_ROIALIGN "Roialign"
-#define TM2_OPSTR_EXPANDDIMS "Expanddims"
+#define TM2_OPSTR_EXPANDDIMS "ExpandDims"
 #define TM2_OPSTR_UNARY "Unary"
 #define TM2_OPSTR_BIAS "Bias"
 #define TM2_OPSTR_NOOP "Noop"

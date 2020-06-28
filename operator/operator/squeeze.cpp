@@ -46,7 +46,7 @@ bool Squeeze::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector
     bool should_squeeze[4] = {false};
     int squeezeddim = 0;
     int newshape_size = new_shape.size();
-    std::vector<int> real_shape = {0, 2, 3, 1};
+    std::vector<int> real_shape = {0, 1, 2, 3};
     if(newshape_size)
     {
         for(int i = 0; i < newshape_size; i++)
@@ -54,7 +54,7 @@ bool Squeeze::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector
             if(new_shape[i] >= 0)
             {
                 int idx = new_shape[i];
-                if(input.GetDataLayout() == TENGINE_LAYOUT_NCHW)
+                if(input.GetDataLayout() == TENGINE_LAYOUT_NHWC)
                     idx = real_shape[idx];
                 if(in_dim[idx] == 1 && idx >= 0 && idx < 4)
                 {
@@ -65,7 +65,7 @@ bool Squeeze::InferShape(const std::vector<TEngine::TShape>& ishape, std::vector
             else if(new_shape[i] < 0)
             {
                 int idx = new_shape[i];
-                if(input.GetDataLayout() == TENGINE_LAYOUT_NCHW)
+                if(input.GetDataLayout() == TENGINE_LAYOUT_NHWC)
                     idx = real_shape[idx];
                 if(in_dim[idx] == 1 && idx > 0 && idx < 3)
                 {
