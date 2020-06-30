@@ -88,6 +88,7 @@ bool RefTransposeOps::Run(Node* node)
     Transpose* transpose = dynamic_cast<Transpose*>(node->GetOp());
     TransposeParam* param_ = transpose->GetParam();
     int tr_size = param_->tr_shape.size();
+    op_param.permute.clear();
     for(int i = 0; i < tr_size; i++){
         op_param.permute.push_back(param_->tr_shape[i]);
     }
@@ -127,6 +128,7 @@ bool RefTransposeOps::Run(Node* node)
         op_param.in_dims[3] = 1;
     } 
     */
+   op_param.in_dims.clear();
     for(int i = 0; i < (int)in_dims.size(); i++){
         op_param.in_dims.push_back(in_dims[i]);
     }
