@@ -879,6 +879,7 @@ typedef struct
 {
     int32_t axis;
     int32_t indices_num;
+    tm_bool_t is_onnx;
 } TM2_GatherParam;
 
 typedef struct{

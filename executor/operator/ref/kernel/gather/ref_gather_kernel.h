@@ -12,10 +12,11 @@ extern "C" {
 
 struct gather_param
 {
-    int in_shape[4];    // the dim of the input
+    std::vector<int> in_shape;    // the dim of the input
     int axis;
     int indices_num;
     int dim_size;    
+    bool is_onnx;   
 };
 
 typedef int (*ref_gather_t)(void* input,void* input_indices,void* output, const struct gather_param* param);

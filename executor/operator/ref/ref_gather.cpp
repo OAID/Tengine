@@ -50,7 +50,7 @@ bool GatherOps::Prerun(Node* node)
 #endif
     op_param.axis = param->axis;
     op_param.indices_num = param->indices_num;
-
+    op_param.is_onnx = param->is_onnx;
     if(!kernel_registry.GetKernel(kernel_run, layout, data_type))
     {
         set_tengine_errno(ENOENT);
@@ -70,10 +70,10 @@ bool GatherOps::Run(Node* node)
     void* indices_data = get_tensor_mem(indices_tensor);
     
     op_param.dim_size = (int)in_dim.size();   
-
+    op_param.in_shape.clear();
     for(int i = 0; i < op_param.dim_size; i++)
     {
-        op_param.in_shape[i] = in_dim[i];
+        op_param.in_shape.push_back(in_dim[i]);
     }
     
     // int indices_num = op_param.indices_num;

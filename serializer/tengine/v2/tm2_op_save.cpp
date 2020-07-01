@@ -1211,7 +1211,7 @@ tm_uoffset_t SaveTmGatherOp(void* const start_ptr, tm_uoffset_t* cur_pos, Operat
 
     tm_param.axis = p->axis;
     tm_param.indices_num = p->indices_num;
-
+    tm_param.is_onnx = p->is_onnx;
     TM2_Operator tm_op;
     SetTmOperator(&tm_op, TM2_OPTYPE_GATHER, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_GatherParam)));
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));

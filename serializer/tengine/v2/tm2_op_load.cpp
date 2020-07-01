@@ -1327,7 +1327,8 @@ bool LoadTmGatherOp(StaticGraph* graph, StaticNode* node, void* const start_ptr,
 
     param.axis = tm_param->axis;
     param.indices_num = tm_param->indices_num;
-       
+    param.is_onnx = tm_param->is_onnx;
+    
     StaticOp* op = CreateStaticOp(graph, op_str);
     SetOperatorParam(op, param);
     SetNodeOp(node, op);

@@ -56,6 +56,7 @@
 #include "operator/reducel2_param.hpp"
 #include "operator/unsqueeze_param.hpp"
 #include "operator/squeeze_param.hpp"
+#include "operator/gather_param.hpp"
 
 #include "type_name.hpp"
 #include "compiler.hpp"
@@ -180,7 +181,7 @@ void OnnxSerializer::LoadConstNode(const onnx::GraphProto& onnx_graph, StaticGra
 
         const std::string& op = node.op_type();
      
-        if(op == "Reshape"){
+        if(op == "Reshape" || op == "Gather" || op == "Div" ){
             const onnx::TensorProto& shape_tensor = node_tensor[node.input(1)];
             StaticTensor* tensor = CreateStaticConstTensor(graph, node.input(1));
             std::vector<int> dims;
@@ -1337,6 +1338,33 @@ static bool LoadOnnxUnsqueeze(StaticGraph* graph, StaticNode* node, const onnx::
 }
 
 
+static bool LoadOnnxGather(StaticGraph* graph, StaticNode* node, const onnx::NodeProto& onnx_node)
+{
+    GatherParam param = any_cast<GatherParam>(OpManager::GetOpDefParam("Gather"));
+    StaticTensor* indices_tensor = FindTensor(graph, onnx_node.input(1));
+
+    for(int k = 0; k < onnx_node.attribute_size(); k++)
+    {
+        const onnx::AttributeProto& attr = onnx_node.attribute(k);
+        if(attr.name() == "axis"){
+            param.axis = attr.i();
+        } 
+    } 
+    int64_t* data = (int64_t*)GetConstTensorBuffer(indices_tensor);
+    param.indices_num = *data;
+    param.is_onnx = true;
+    //printf("Gather data: %d %d \n", param.axis, param.indices_num);
+
+    StaticOp* op = CreateStaticOp(graph, "Gather");
+
+    SetOperatorParam(op, param);
+
+    SetNodeOp(node, op);
+
+    return true;
+}
+
+
 // To register all op loader...
 bool OnnxSerializerRegisterOpLoader(void)
 {
@@ -1384,7 +1412,7 @@ bool OnnxSerializerRegisterOpLoader(void)
     p_onnx->RegisterOpLoadMethod("ReduceL2", op_load_t(LoadOnnxReduceL2));
     p_onnx->RegisterOpLoadMethod("Unsqueeze", op_load_t(LoadOnnxUnsqueeze));
     p_onnx->RegisterOpLoadMethod("Squeeze", op_load_t(LoadOnnxSqueeze));
-
+    p_onnx->RegisterOpLoadMethod("Gather", op_load_t(LoadOnnxGather));
     //p_onnx->RegisterOpLoadMethod("Constant", op_load_t(LoadOnnxConstant));
     return true;
 }

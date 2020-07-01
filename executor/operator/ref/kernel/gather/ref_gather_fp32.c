@@ -1,5 +1,7 @@
 static int ref_gather_fp32(float* input, int* input_indices, float* output, gather_param* param)
 {
+
+if(param->is_onnx == false){
     float* out_ptr = output;
     float* in_ptr = input;
     int axis = param->axis;
@@ -35,10 +37,34 @@ static int ref_gather_fp32(float* input, int* input_indices, float* output, gath
         {
             for(int i = 0; i < param->indices_num; i++)
             {
-                 memcpy(out_ptr + (outer * param->indices_num + i) * inner_size,in_ptr + (outer* axis_size + (int)input_indices[i]) * inner_size, inner_size* sizeof(float));
+                //printf("indices_num %d %d %d \n", i, (int)input_indices[i], outer);
+                memcpy(out_ptr + (outer * param->indices_num + i) * inner_size,
+                        in_ptr + (outer* axis_size + (int)input_indices[i]) * inner_size, inner_size* sizeof(float));
             }
         }
+} else {
+    float* out_ptr = output;
+    float* in_ptr = input;
+    int axis = param->axis;
+    int outer_size = 1;
+    int inner_size = 1;
+    int axis_size = param->in_shape[axis];
+    for(int i = 0; i < axis; i++)
+    {
+        outer_size *= param->in_shape[i];
+    }
+    for(int i = axis + 1; i < param->dim_size; i++)
+    {
+        inner_size *= param->in_shape[i];
+    }
+    for(int outer = 0; outer < outer_size; ++outer)
+    {
 
+            memcpy(out_ptr + (outer * param->indices_num ) * inner_size,
+                    in_ptr + (outer* axis_size + param->indices_num) * inner_size, inner_size* sizeof(float));
+        
+    }
+}
     //}
 
 
