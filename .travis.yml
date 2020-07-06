@@ -23,7 +23,7 @@ matrix:
       dist: bionic
       env:
         - NAME=linux-gcc-arm32
-        - BEFORE_BUILD="sudo apt update && sudo dpkg --add-architecture armhf && sudo apt update && sudo apt -y install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf && sudo apt -y install libc6:armhf libncurses5:armhf libstdc++6:armhf libgomp1:armhf gcc:armhf g++:armhf"
+        - BEFORE_BUILD="sudo apt update && sudo dpkg --add-architecture armhf && sudo apt update && sudo apt -y install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf && sudo apt -y install libc6:armhf libncurses5:armhf libstdc++6:armhf libgomp1:armhf"
         - BUILD="mkdir build && cd build && cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/arm-linux-gnueabihf.toolchain.cmake .. && make -j2"
 
     - name: "linux-gcc-arm64"
