@@ -44,6 +44,7 @@
 #include <algorithm>
 #include <cmath>
 #include "common.h"
+#include <stdlib.h>
 
 #include "tengine_c_api.h"
 #include "tengine_operations.h"
@@ -356,8 +357,8 @@ int get_input_data(const char* image_file, const int& max_size, const int& targe
     if (scale * ( float )im_size_max > ( float )max_size)
         scale = float(max_size) / float(im_size_max);
 
-    dst_size.width = ( int )std::round(( float )img.w * scale);
-    dst_size.height = ( int )std::round(( float )img.h * scale);
+    dst_size.width = ( int )round(( float )img.w * scale);
+    dst_size.height = ( int )round(( float )img.h * scale);
 
     image resImg = resize_image(img, dst_size.width, dst_size.height);
     int img_size = dst_size.height * dst_size.width * 3;
@@ -417,10 +418,10 @@ int main(int argc, char* argv[])
                 image_file = optarg;
                 break;
             case 'r':
-                repeat_count = std::stoi(optarg, nullptr, 10);
+                repeat_count = atoi(optarg);
                 break;
             case 't':
-                num_thread = std::stoi(optarg, nullptr, 10);
+                num_thread = atoi(optarg);
                 break;
             case 'h':
                 show_usage();
