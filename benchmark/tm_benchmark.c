@@ -200,7 +200,7 @@ int main(int argc, char* argv[])
         case 7:
             benchmark_graph("googlenet",        "./models/googlenet_benchmark.tmfile",          224, 224, 3, 1);
             break;
-	    case 8:
+        case 8:
             benchmark_graph("inceptionv3",      "./models/inception_v3_benchmark.tmfile",       299, 299, 3, 1);
             break;
         case 9:
