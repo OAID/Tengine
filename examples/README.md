@@ -2,7 +2,7 @@
 
 Tengine Lite 的 examples 将提供简单的、好玩的 demo。
 
-Tengine Lite 兼容 Tengine 原有的 C API 供用户使用，这里我们使用 C API 展示如何运行 tm_classification 例程运行 MobileNet v1 分类网络模型，实现指定图片分类的功能。让你快速上手Tengine C++ API。这里，我们使用在这个撸猫时代行业从业者大爱的 tiger cat 作为测试图片。
+Tengine Lite 兼容 Tengine 原有的 C API 供用户使用，这里我们使用 C API 展示如何运行 tm_classification 例程运行 MobileNet v1 分类网络模型，实现指定图片分类的功能。让你快速上手Tengine Lite C API。这里，我们使用在这个撸猫时代行业从业者大爱的 tiger cat 作为测试图片。
 
 ![lu mao](https://github.com/OAID/Tengine/blob/master/tests/images/cat.jpg)
 
@@ -20,7 +20,9 @@ install
 ├── bin
 │   ├── tm_benchmark
 │   ├── tm_classification
-│   └── tm_mobilenet_ssd
+│   ├── tm_mobilenet_ssd
+│   ├── tm_retinaface
+│   └── tm_yolov3_tiny
 ├── include
 │   └── tengine_c_api.h
 └── lib
@@ -33,11 +35,7 @@ install
 
 ```bash
 $ export LD_LIBRARY_PATH=./build/install/lib
-<<<<<<< examples/README.md
 $ ./build/install/example/tm_classification -m models/mobilenet.tmfile -i images/cat.jpg -g 224,224 -s 0.017,0.017,0.017 -w 104.007,116.669,122.679
-=======
-$ ./build/install/example/tm_classification -l models/synset_words.txt -m models/mobilenet.tmfile -i images/cat.jpg -g 224,224 -s 0.017,0.017,0.017 -w 104.007,116.669,122.679
->>>>>>> examples/README.md
 ```
 
 结果如下：
