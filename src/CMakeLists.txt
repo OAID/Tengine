@@ -65,13 +65,20 @@ else()
 endif()
 
 
+# show linking libraries
+if(TENGINE_VERBOSE)
+    message (STATUS "TENGINE: 'TENGINE_LINKING_LIBS' is ${TENGINE_LINKING_LIBS}.")
+endif()
+
+
 # add include path
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${TENGINE_PRIVATE_INC_DIRS})
 
+
 if (ANDROID)
-    target_link_libraries(${CMAKE_PROJECT_NAME} android)
+    target_link_libraries(${CMAKE_PROJECT_NAME} android ${TENGINE_LINKING_LIBS})
 else()
-    target_link_libraries(${CMAKE_PROJECT_NAME} pthread dl m)
+    target_link_libraries(${CMAKE_PROJECT_NAME} pthread dl m ${TENGINE_LINKING_LIBS})
 endif()
 
 install (TARGETS ${CMAKE_PROJECT_NAME} DESTINATION lib)

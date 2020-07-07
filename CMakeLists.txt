@@ -72,7 +72,7 @@ option(TENGINE_DEBUG_MEM_STAT "print memory status for library" OFF)
 add_definitions(-DCONFIG_TENGINE_SERIALIZER)
 
 # Debug macro information
-if (TENGINE_BUILD_BENCHMARK)
+if (TENGINE_DEBUG_MEM_STAT)
     add_definitions(-DCONFIG_MEM_STAT)
 endif()
 if (TENGINE_DEBUG_DATA)
@@ -106,34 +106,40 @@ enable_language(ASM)
 include_directories(include/)
 include_directories(src/op/)
 
-# add OpenMP support
 
+# add OpenMP support
 if (NOT TENGINE_FORCE_SKIP_OPENMP)
     find_package(OpenMP)
     if(NOT TARGET OpenMP::OpenMP_CXX AND (OpenMP_CXX_FOUND OR OPENMP_FOUND))
-    list (APPEND TENGINE_CXX_PRIVATE_COMPILE_OPTIONS ${OpenMP_CXX_FLAGS})
-    #message("Old mode, gcc build with ${OpenMP_CXX_FLAGS}")
-
-        set (TENGINE_WITH_OPENMP ON)
+        add_definitions(${OpenMP_CXX_FLAGS})
+        message("Old mode, gcc build with ${OpenMP_CXX_FLAGS}")
     endif()
 endif()
 
-if(TENGINE_WITH_OPENMP AND (OpenMP_CXX_FOUND OR OPENMP_FOUND))
+if(TENGINE_OPENMP AND (OpenMP_CXX_FOUND OR OPENMP_FOUND))
     if(TENGINE_VERBOSE)
         message (STATUS "TENGINE: OpenMP support enabled.")
     endif()
 
-    if(OpenMP_CXX_FOUND)
-        list (APPEND TENGINE_CXX_LINKING_LIBS OpenMP::OpenMP_CXX)
-        #message("New mode, gcc build with linking OpenMP::OpenMP_CXX")
+    if(ANDROID_NDK_MAJOR AND (ANDROID_NDK_MAJOR GREATER 20))
+        add_definitions("-fopenmp")
+        list (APPEND TENGINE_LINKING_LIBS "-fopenmp -static-openmp")
+        if(TENGINE_VERBOSE)
+            message (STATUS "TENGINE: Android NDK is ${ANDROID_NDK_MAJOR}.${ANDROID_NDK_MINOR}.")
+        endif()
+    elseif(OpenMP_CXX_FOUND)
+        list (APPEND TENGINE_LINKING_LIBS "OpenMP::OpenMP_CXX")
+        if(TENGINE_VERBOSE)
+            message (STATUS "TENGINE: 'OpenMP_CXX_FOUND' is ${OpenMP_CXX_FOUND}.")
+        endif()
     else()
-        list (APPEND TENGINE_CXX_LINKING_LIBS "${OpenMP_CXX_FLAGS}")
-        #message("Old mode, gcc build with linking ${OpenMP_CXX_FLAGS}")
+        list (APPEND TENGINE_LINKING_LIBS "${OpenMP_CXX_FLAGS}")
+        if(TENGINE_VERBOSE)
+            message (STATUS "TENGINE: 'OpenMP_CXX_FLAGS' is ${OpenMP_CXX_FLAGS}.")
+        endif()
     endif()
 endif()
 
-# Report summary
-include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/summary.cmake")
 
 # enable cmake ctest module
 enable_testing()
@@ -149,3 +155,7 @@ endif()
 if (TENGINE_BUILD_TESTS)
     # add_subdirectory(test) todo
 endif()
+
+# Report summary
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/summary.cmake")
+
