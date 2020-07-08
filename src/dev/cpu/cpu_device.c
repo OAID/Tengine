@@ -856,7 +856,7 @@ static int mem_pool_get_backend_mem(struct mem_pool* mem_pool)
     {
         struct mem_block_entry* entry = ( struct mem_block_entry* )get_vector_data(mem_pool->block_list, i);
 
-        entry->block_size = entry->max_req_size + mem_pool->align_size + 4;
+        entry->block_size = entry->max_req_size + mem_pool->align_size + 128;
 
         entry->addr = sys_malloc(entry->block_size);
 
