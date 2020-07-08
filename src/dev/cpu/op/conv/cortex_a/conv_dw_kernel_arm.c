@@ -228,26 +228,6 @@ int conv_dw_run(struct ir_tensor* input_tensor, struct ir_tensor* filter_tensor,
                                     act_type, num_thread);
         }
     }
-    /*
-    static char name[100] = "conv11.txt";
-    if(name[4] == '1')
-    {
-        FILE* pf = fopen(name, "w");
-        fprintf(pf,"k_size: %d, out: %d, %d, %d\n",kernel_size, out_c, out_h, out_w);
 
-        for(int i = 0; i < out_c; i++)
-            for(int j = 0; j < out_h; j++)
-            for(int k = 0; k < out_w; k++)
-            {
-                if( k ==0)
-                    fprintf(pf,"[%3d/%3d]: ", i, j);
-                fprintf(pf,"%f ", output_buf[i * out_h * out_w + j * out_w + k]);
-                if( k == out_w -1)
-                    fprintf(pf,"\n");
-            }
-        fclose(pf);
-    }
-    name[4] = '2';
-    */
     return 0;
 }
