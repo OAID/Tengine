@@ -21,16 +21,16 @@
 
 ### 1.1 下载 Tengine Lite 源码
 
-下载 Tengine Lite 源码，位于 Tengine 的分支 Tengine-Lite 上：
+下载 Tengine Lite 源码，位于 Tengine 的分支 tengine-lite 上：
 
 ```bash
-git clone -b Tengine-Lite https://github.com/OAID/Tengine.git Tengine-Lite
+git clone -b tengine-lite https://github.com/OAID/Tengine.git
 ```
 
 ### 1.2 编译 Tengine Lite
 
 ```bash
-cd Tengine-Lite
+cd Tengine
 mkdir build 
 cd build
 cmake ..
@@ -38,7 +38,7 @@ make
 make install
 ```
 
-编译完成后 build/install/lib 目录会生成 `libtengine.so` 文件，如下所示：
+编译完成后 build/install/lib 目录会生成 `libtengine-lite.so` 文件，如下所示：
 
 ```bash
 install
@@ -57,7 +57,7 @@ install
 ### 2.1 下载源码
 
 ```bash
-git clone -b Tengine-lite https://github.com/OAID/Tengine.git Tengine-Lite
+git clone -b tengine-lite https://github.com/OAID/Tengine.git
 ```
 
 ### 2.2 安装交叉编译工具链
@@ -77,7 +77,7 @@ sudo apt install g++-arm-linux-gnueabihf
 ### 2.3 编译 Tengine Lite
 
 ```bash
-cd Tengine-lite
+cd Tengine
 mkdir build 
 cd build
 cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/arm-linux-gnueabihf.toolchain.cmake ..
@@ -85,7 +85,7 @@ make
 make install
 ```
 
-编译完成后会生成 `libtengine.so` 文件，并且会把相关的头文件、`libtengine.so` 文件和相关的测试程序复制到 `build/install` 目录中。
+编译完成后会生成 `libtengine-lite.so` 文件，并且会把相关的头文件、`libtengine-lite.so` 文件和相关的测试程序复制到 `build/install` 目录中。
 
 ## 3. 交叉编译 Arm32/64 Android 版本
 
@@ -112,7 +112,7 @@ list(APPEND ANDROID_COMPILER_FLAGS
 ### 3.3 下载 Tengine Lite 源码
 
 ```bash
-git clone -b Tengine-lite https://github.com/OAID/Tengine.git Tengine-Lite
+git clone -b tengine-lite https://github.com/OAID/Tengine.git
 ```
 
 ### 3.4 编译 Tengine Lite
@@ -139,4 +139,4 @@ make install
 
 ## 4. 总结
 
-本文档只是简单指导如何编译对应的 Tengine Lite 版本，有需要可以参考 `Tengine-lite/build.sh` 文件。
+本文档只是简单指导如何编译对应的 Tengine Lite 版本，有需要可以参考 `Tengine/build.sh` 文件。
