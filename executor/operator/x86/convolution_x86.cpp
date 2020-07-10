@@ -33,7 +33,6 @@
 #include "graph.hpp"
 #include "operator/convolution.hpp"
 #include "convolution_x86.h"
-#include "dwconvolution_x86.h"
 #include <math.h>
 
 namespace TEngine {
