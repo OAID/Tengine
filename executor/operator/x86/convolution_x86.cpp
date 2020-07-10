@@ -33,6 +33,7 @@
 #include "graph.hpp"
 #include "operator/convolution.hpp"
 #include "convolution_x86.h"
+#include "dwconvolution_x86.h"
 #include <math.h>
 
 namespace TEngine {
@@ -208,30 +209,45 @@ bool ConvolutionOps::Run(Node* node)
 
     bool have_biases = (node->GetInputNum() > 2);
     float* biases = nullptr;
-
+    int dw_done = 0;
     if(debug_conv)
     {
         std::cout << inc << " " << inh << " " << inw << "\tksp dg: " << ksize_h << " " << stride_h << " " << pad_h
                   << " " << dilation_w << " " << group << "\t" << outc << " " << outh << " " << outw << "\t";
     }
-
-    for(int i = 0; i < batch_number; i++)
+    
+    if(1 == inc_g)
     {
-        for(int g = 0; g < group; g++)
+        if(have_biases)
         {
-            im2col(input + i * in_chw + g * in_chw_g, buffer, inh, inw, inc_g, outh, outw, outc_g, ksize_h, ksize_w,
-                   stride_h, stride_w, pad_h, pad_w, dilation_h, dilation_w);
-            sgemm(m, n, k, kernel + g * kernel_size_g, buffer, output + i * out_chw + g * out_chw_g);
+            biases = ( float* )get_tensor_mem(node->GetInputTensor(2));
         }
+        dw_done = dw_choose_func(input, kernel, biases, output, batch_number, inc, inh, inw,
+                                outw, outh, stride_h, stride_w, pad_h, pad_w, dilation_h, 
+                                dilation_w, ksize_h, ksize_w, have_biases);  
     }
-    if(have_biases)
+
+    if(!dw_done)
     {
-        biases = ( float* )get_tensor_mem(node->GetInputTensor(2));
         for(int i = 0; i < batch_number; i++)
         {
-            add_bias(output + i * out_chw, biases, outc, out_hw);
+            for(int g = 0; g < group; g++)
+            {
+                im2col(input + i * in_chw + g * in_chw_g, buffer, inh, inw, inc_g, outh, outw, outc_g, ksize_h, ksize_w,
+                   stride_h, stride_w, pad_h, pad_w, dilation_h, dilation_w);
+                sgemm(m, n, k, kernel + g * kernel_size_g, buffer, output + i * out_chw + g * out_chw_g);
+            }
+        }
+        if(have_biases)
+        {
+            biases = ( float* )get_tensor_mem(node->GetInputTensor(2));
+            for(int i = 0; i < batch_number; i++)
+            {
+                add_bias(output + i * out_chw, biases, outc, out_hw);
+            }
         }
     }
+    
     if(activation >= 0)
     {
         relu(output, batch_number * out_chw, activation);
