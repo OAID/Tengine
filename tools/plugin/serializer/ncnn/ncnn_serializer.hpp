@@ -98,7 +98,8 @@ protected:
 
     void LoadNode(StaticGraph* graph, StaticNode* node,const NcnnNode& ncnn_node,
                   const std::vector<NcnnNode>& nodelist,const std::vector<NcnnParam>& paramlist);
-
+    //bool LoadConstNode(StaticGraph* graph, const std::vector<NcnnNode>& nodelist,
+    //                    const std::vector<NcnnParam>& paramlist);
     bool LoadConstTensor(StaticGraph* graph, const std::vector<NcnnNode>& nodelist,
                          const std::vector<NcnnParam>& paramlist);
     void CreateInputNode(StaticGraph* graph, const std::vector<NcnnNode>& nodelist,

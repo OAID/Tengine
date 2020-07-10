@@ -332,16 +332,19 @@ static int ref_eltwise_fp32(float* input0, float* input1, float* output, eltwise
     switch(param->type)
     {
         case 0:    // ELT_PROD
+        case 1:    // ELT_PROD_SCALAR
         {
             elt_prod(input_hw, input_hw_1, input_count4, input1_count4, input0, input1, param, output);
             break;
         }
         case 2:    // ELT_SUM
+        case 3:    // ELT_SUM_SCALAR
         {
             elt_sum(input_hw, input_hw_1, input_count4, input1_count4, input0, input1, param, output);
             break;
         }
         case 4:    // ELT_SUB
+        case 5:    // ELT_SUB_SCALAR
         {
             elt_sub(input_hw, input_hw_1, input_count4, input1_count4, input0, input1, param, output);
             break;

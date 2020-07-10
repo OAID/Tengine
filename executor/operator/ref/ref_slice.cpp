@@ -93,6 +93,7 @@ bool RefSlice::Prerun(Node* node)
     op_param.iscaffe = param->iscaffe;
     op_param.ismxnet = param->ismxnet;
     op_param.isonnx = param->isonnx;
+    op_param.isncnn = param->isncnn;
     if(!kernel_registry.GetKernel(kernel_run, layout, data_type))
     {
         set_tengine_errno(ENOENT);
@@ -115,7 +116,7 @@ bool RefSlice::Run(Node* node)
         op_param.out_scale = (*in_quant)[0].scale;
     }
     const int data_type = input_tensor->GetDataType();
-    if(op_param.iscaffe)
+    if(op_param.iscaffe||op_param.isncnn)
     {
         // set the input dim and output dim
         for(int i = 0; i < op_param.dim_num; i++)

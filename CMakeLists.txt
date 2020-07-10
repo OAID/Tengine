@@ -65,11 +65,6 @@ message(STATUS "CONFIG_ARCH_ARM32 = ${CONFIG_ARCH_ARM32}")
 message(STATUS "CONFIG_TENGINE_SERIALIZER = ${CONFIG_TENGINE_SERIALIZER}")
 message(STATUS "CONFIG_NCNN_SERIALIZER = ${CONFIG_NCNN_SERIALIZER}")
 
-message(STATUS "CONFIG_ARCH_X86 = ${CONFIG_ARCH_X86}")
-message(STATUS "CONFIG_ARCH_ARM64 = ${CONFIG_ARCH_ARM64}")
-message(STATUS "CONFIG_ARCH_ARM32 = ${CONFIG_ARCH_ARM32}")
-message(STATUS "CONFIG_ARCH_ARM8_2 = ${CONFIG_ARCH_ARM8_2}")
-
 #in face, this is related with run-time env, since API LEVEL 22 binary can run on API LEVEL 23 platform
 if(ANDROID_PLATFORM_LEVEL LESS 23)
     add_definitions(-DNO_CXA_DEMANGLE)
@@ -168,7 +163,6 @@ else()
     add_definitions(-Wno-packed-bitfield-compat)
     add_definitions(-O2)
 endif()
-add_definitions("-O2 ${CONFIG_OPT_CFLAGS}")
 
 set(CMAKE_CXX_STANDARD 11)
 set(CXX_STANDARD_REQUIRED ON)
@@ -255,3 +249,28 @@ if(ANDROID)
     install (FILES ${ANDROID_NDK}/sources/cxx-stl/llvm-libc++/libs/${ANDROID_ABI}/libc++_shared.so DESTINATION lib)
 endif()
 
+# Debugging function
+function(ocv_cmake_dump_vars)
+  set(OPENCV_SUPPRESS_DEPRECATIONS 1)  # suppress deprecation warnings from variable_watch() guards
+  get_cmake_property(__variableNames VARIABLES)
+  cmake_parse_arguments(DUMP "" "TOFILE" "" ${ARGN})
+  set(regex "${DUMP_UNPARSED_ARGUMENTS}")
+  string(TOLOWER "${regex}" regex_lower)
+  set(__VARS "")
+  foreach(__variableName ${__variableNames})
+    string(TOLOWER "${__variableName}" __variableName_lower)
+    if((__variableName MATCHES "${regex}" OR __variableName_lower MATCHES "${regex_lower}")
+        AND NOT __variableName_lower MATCHES "^__")
+      get_property(__value VARIABLE PROPERTY "${__variableName}")
+      set(__VARS "${__VARS}${__variableName}=${__value}\n")
+    endif()
+  endforeach()
+  if(DUMP_TOFILE)
+    file(WRITE ${CMAKE_BINARY_DIR}/${DUMP_TOFILE} "${__VARS}")
+  else()
+    message(AUTHOR_WARNING "${__VARS}")
+  endif()
+endfunction()
+
+# This should be the last command
+ocv_cmake_dump_vars("" TOFILE "CMakeVars.txt")

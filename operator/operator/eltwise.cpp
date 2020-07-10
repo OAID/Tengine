@@ -42,7 +42,7 @@ bool Eltwise::InferShape(const std::vector<TShape>& ishape, std::vector<TShape>&
 
     int i0_size = ishape[0].GetSize();
     int i1_size = ishape[1].GetSize();
-
+    //printf("%d %d.\n", i0_size, i1_size);
     if(i0_size >= i1_size)
     {
         oshape[0] = ishape[0];
