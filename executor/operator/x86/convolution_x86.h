@@ -39,6 +39,7 @@
 #define __CONVOLUTION_X86_H__
 
 #include <stdlib.h>
+#include "dwconvolution_x86.h"
 
 #if __SSE2__
 #include <emmintrin.h>
