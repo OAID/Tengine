@@ -6,55 +6,56 @@
 
 
 
-## Introduction
-
-**Tengine Lite** is developed by **OPEN AI LAB**. This project implements the **fast** and **efficient** deployment of deep learning neural network models on embedded devices. In order to achieve cross-platform deployment in many **AIoT** applications, this project is based on the original Tengine project using **C language** for reconstruction, and deep frame tailoring for the characteristics of limited embedded device resources. Also, it adopts a completely separated front-end/back-end design, which makes it possible to be transplanted and deployed onto CPU, GPU, NPU and other heterogeneous computing units rapidly, conveniently. At the same time, it is compatible with the original API and model format `tmfile` of **Tengine**, which reduces the cost of evaluation and migration.
+[**English Version**](README_EN.md)
 
 
 
-The core code of Tengine Lite consists of 4 modules:
+## 简介
 
-- [**dev**](src/dev): NN Operators back-end module, currently provides CPU code, and gradually open source GPU and NPU reference code;
-- [**lib**](src/lib): core components of the framework, including NNIR, Computational Graphs, Hardware Resources, and the scheduling and execution modules of model serializer;
-- [**op**](src/op): NN Operators front-end module, which realizes registration and initialization of NN Operators;
-- [**serializer**](src/serializer): Model decoder, which decodes binary tmfile format into serialized model parameter.
+**Tengine Lite** 由 **OPEN AI LAB** 主导开发，该项目实现了深度学习神经网络模型在嵌入式设备上**快速**、**高效**部署。为实现众多 **AIoT** 应用中跨平台部署，本项目基于原有 Tengine 项目使用 **C 语言**进行重构，针对嵌入式设备资源有限的特点进行深度框架裁剪。同时采用完全分离的前后端设计，利于 CPU、GPU、NPU 等异构计算单元快速移植和部署。同时**兼容 Tengine** 框架原有 API 和 模型格式 tmfile，降低评估、迁移成本。
+
+Tengine Lite 核心代码由 4 个模块组成：
+
+- [**dev**](src/dev)：  NN Operators 后端模块，当前提供 CPU 代码，后续逐步开源 GPU、NPU 参考代码；
+- [**lib**](src/lib)：框架核心部件，包括 NNIR、计算图、硬件资源、模型解析器的调度和执行模块；
+- [**op**](src/op)：NN Operators 前端模块，实现 NN Operators 注册、初始化；
+- [**serializer**](src/serializer)：模型解析器，实现 tmfile 格式的网络模型参数解析。
 
 
-## Architecture
+## 架构简析
 ![Tengine Lite 架构](doc/architecture.png)
 
 
-## How to use
+## 如何使用
 
-### Compile
+### 编译
 
-- [Quick Compilation](doc/compile.md) Simple cross-platform compilation based on cmake.
+- [快速编译](doc/compile.md) 基于 cmake 实现简单的跨平台编译。
 
-### Example
+### 示例
 
-- [examples](examples/) provides basic classification and detection algorithm use cases, which are continuously updated according to the needs of issues.
+- [examples](examples/) 提供基础的分类、检测算法用例，根据 issue 需求持续更新。
 
-### Model Zoo
+### 模型仓库
 
-- [Tengine model zoo](https://pan.baidu.com/s/1Ar9334MPeIV1eq4pM1eI-Q) Model zoo samples are compatible with the original Tengine (password: hhgc).
+- [Tengine model zoo](https://pan.baidu.com/s/1Ar9334MPeIV1eq4pM1eI-Q) 兼容原有 Tengine 的模型示例仓库（密码：hhgc）。
 
-### Model Convert tool
+### 转换工具
 
-- [Pre-compiled version](https://github.com/OAID/Tengine/releases/download/lite-v0.1/convert_model_to_tm): Pre-compiled model convert tool is provided on Linux system;
-- [Online Convert tool](https://convertmodel.com/): Based on WebAssembly (the models are converted locally by browsers, no private data will be uploaded);
-- [Source Compilation](doc/convert_tm.md): Refer to the original Tengine project, convert tool could be built by users.
+- [预编译版本](https://github.com/OAID/Tengine/releases/download/lite-v0.1/convert_model_to_tm)：提供 Linux 系统上预编译好的模型转换工具；
+- [在线转换版本](https://convertmodel.com/)：基于 WebAssembly 实现（浏览器本地转换，模型不会上传）；
+- [源码编译](doc/convert_tm.md)：参考原有 Tengine 项目编译生成。
 
-### Speed assessment
+### 速度评估
 
--[Benchmark](benchmark/) Basic network speed assessment tool, any pull request is welcomed.
+- [Benchmark](benchmark/) 基础网络速度评估工具，欢迎大家更新。
 
 ## Roadmap
 
 - [Road map](doc/roadmap.md)
 
-## Acknowledgement
-
-Tengine Lite got ideas and developed based on these projects：
+## 致谢
+Tengine Lite 参考和借鉴了下列项目：
 
 - [Caffe](https://github.com/BVLC/caffe)
 - [Tensorflow](https://github.com/tensorflow/tensorflow)
@@ -73,10 +74,10 @@ Tengine Lite got ideas and developed based on these projects：
 
 ## FAQ
 
-- [FAQ common questions](doc/faq.md)
+- [FAQ 常见问题](doc/faq.md)
 
-## Tech Forum
+## 技术讨论
 - Github issues
-- QQ groupchat: 829565581 (Answer: openailab)
+- QQ 群: 829565581 (答案：openailab)
 - Email: Support@openailab.com
-- Tengine Community: http://www.tengine.org.cn/
+- Tengine 社区: http://www.tengine.org.cn/
