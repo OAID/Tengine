@@ -28,12 +28,14 @@ namespace TEngine {
 
 extern void RegisterConvNodeExec_x86(void);
 extern void RegisterConvWinoNodeExec_x86(void);
+extern void RegisterConvDwNodeExec_x86(void);
 extern void RegisterFcNodeExec_x86(void);
 
 void RegisterX86Ops(void)
 {
     RegisterConvNodeExec_x86();
     RegisterConvWinoNodeExec_x86();
+    RegisterConvDwNodeExec_x86();
     RegisterFcNodeExec_x86();
 }
 
