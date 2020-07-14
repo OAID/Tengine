@@ -8,7 +8,7 @@
 #endif
 
 #if __AVX__
-static void newdwconv3x3s1d1(int inc, int inw, int inh, int outw, int outh, float* kernel_data, float* const img_data, float* const bias_data, float* const output, bool have_biases)
+static void dwconv3x3s1d1(int inc, int inw, int inh, int outw, int outh, float* kernel_data, float* const img_data, float* const bias_data, float* const output, bool have_biases)
 {
     int inwh = inw * inh;
     int outwh = outw * outh;
@@ -665,7 +665,7 @@ static void newdwconv3x3s1d1(int inc, int inw, int inh, int outw, int outh, floa
     free(bias_tmp);
 }
 
-static void newdwconv3x3s2d1(int inc, int inw, int inh, int outw, int outh, float* kernel_data, float* const img_data, float* const bias_data, float* const output, bool have_biases)
+static void dwconv3x3s2d1(int inc, int inw, int inh, int outw, int outh, float* kernel_data, float* const img_data, float* const bias_data, float* const output, bool have_biases)
 {
     int inwh = inw * inh;
     int outwh = outw * outh;
@@ -1190,7 +1190,7 @@ static void newdwconv3x3s2d1(int inc, int inw, int inh, int outw, int outh, floa
     free(bias_tmp);
 }
 #else//SSE2
-static void newdwconv3x3s1d1(int inc, int inw, int inh, int outw, int outh, float* kernel_data, float* const img_data, float* const bias_data, float* const output, bool have_biases)
+static void dwconv3x3s1d1(int inc, int inw, int inh, int outw, int outh, float* kernel_data, float* const img_data, float* const bias_data, float* const output, bool have_biases)
 {
     printf("sse conv3x3s1d1.\n");
     int inwh = inw * inh;
@@ -1831,7 +1831,7 @@ static void newdwconv3x3s1d1(int inc, int inw, int inh, int outw, int outh, floa
     free(bias_tmp);
 }
 
-static void newdwconv3x3s2d1(int inc, int inw, int inh, int outw, int outh, float* kernel_data, float* const img_data, float* const bias_data, float* const output, bool have_biases)
+static void dwconv3x3s2d1(int inc, int inw, int inh, int outw, int outh, float* kernel_data, float* const img_data, float* const bias_data, float* const output, bool have_biases)
 {
     int inwh = inw * inh;
     int outwh = outw * outh;
