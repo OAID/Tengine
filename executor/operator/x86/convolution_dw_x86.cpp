@@ -46,8 +46,6 @@ struct ConvolutionDwOps : public NodeOps
     bool Postrun(Node* node) override;
     bool Reshape(Node* node) override;
     void pad(float* input, float* output, int in_h, int in_w, int out_h, int out_w, int top, int left, float v);
-    void convdw3x3s1(float* output, float* input, float* kernel, float* _bias, int channel, int in_h, int in_w, int out_h, int out_w);
-    void convdw3x3s2(float* output, float* input, float* kernel, float* _bias, int channel, int in_h, int in_w, int out_h, int out_w);
     void relu(float* data, int size, int activation);
 };
 
@@ -62,183 +60,6 @@ void ConvolutionDwOps::relu(float* data, int size, int activation)
             data[i] = std::min(data[i], ( float )activation);
         }
     }
-}
-
-void ConvolutionDwOps::convdw3x3s1(float* output, float* input, float* _kernel, float* _bias, int channel, int in_h, int in_w, int out_h, int out_w)
-{
-    int w = in_w;
-    int h = in_h;
-    int c_step_in = w * h;
-
-    int outw = out_w;
-    int outh = out_h;
-    int c_step_out = outw * outh;
-
-    const int group = channel;
-    const float* kernel = _kernel;
-
-    for (int g=0; g<group; g++)
-    {
-        float* out = output + g * c_step_out;
-        float* outptr = out;
-        float* outptr2 = outptr + outw;
-
-        const float bias0 = _bias ? _bias[g] : 0.f;
-        const float* kernel0 = kernel + g*9;
-
-        const float* img0 = input + g * c_step_in;
-        const float* r0 = img0;
-        const float* r1 = img0 + w;
-        const float* r2 = img0 + w*2;
-        const float* r3 = img0 + w*3;
-
-        const float* k0 = kernel0;
-        const float* k1 = kernel0 + 3;
-        const float* k2 = kernel0 + 6;
-
-        int i = 0;
-        for (; i+1 < outh; i+=2)
-        {
-            int remain = outw;
-
-            for (; remain>0; remain--)
-            {
-                float sum = bias0;
-                sum += r0[0] * k0[0];
-                sum += r0[1] * k0[1];
-                sum += r0[2] * k0[2];
-                sum += r1[0] * k1[0];
-                sum += r1[1] * k1[1];
-                sum += r1[2] * k1[2];
-                sum += r2[0] * k2[0];
-                sum += r2[1] * k2[1];
-                sum += r2[2] * k2[2];
-
-                float sum2 = bias0;
-                sum2 += r1[0] * k0[0];
-                sum2 += r1[1] * k0[1];
-                sum2 += r1[2] * k0[2];
-                sum2 += r2[0] * k1[0];
-                sum2 += r2[1] * k1[1];
-                sum2 += r2[2] * k1[2];
-                sum2 += r3[0] * k2[0];
-                sum2 += r3[1] * k2[1];
-                sum2 += r3[2] * k2[2];
-
-                *outptr = sum;
-                *outptr2 = sum2;
-
-                r0++;
-                r1++;
-                r2++;
-                r3++;
-                outptr++;
-                outptr2++;
-            }
-
-            r0 += 2 + w;
-            r1 += 2 + w;
-            r2 += 2 + w;
-            r3 += 2 + w;
-
-            outptr += outw;
-            outptr2 += outw;
-        }
-
-        for (; i < outh; i++)
-        {
-            int remain = outw;
-
-            for (; remain>0; remain--)
-            {
-                float sum = bias0;
-                sum += r0[0] * k0[0];
-                sum += r0[1] * k0[1];
-                sum += r0[2] * k0[2];
-                sum += r1[0] * k1[0];
-                sum += r1[1] * k1[1];
-                sum += r1[2] * k1[2];
-                sum += r2[0] * k2[0];
-                sum += r2[1] * k2[1];
-                sum += r2[2] * k2[2];
-
-                *outptr = sum;
-
-                r0++;
-                r1++;
-                r2++;
-                outptr++;
-            }
-
-            r0 += 2;
-            r1 += 2;
-            r2 += 2;
-        }
-    }
-}
-
-void ConvolutionDwOps::convdw3x3s2(float* output, float* input, float* _kernel, float* _bias, int channel, int in_h, int in_w, int out_h, int out_w)
-{
-    int w = in_w;
-    int h = in_h;
-    int c_step_in = w * h;
-
-    int outw = out_w;
-    int outh = out_h;
-    int c_step_out = outw * outh;
-
-    const int group = channel;
-
-    const int tailstep = w - 2*outw + w;
-    const float* kernel = _kernel;
-
-    for (int g=0; g<group; g++)
-    {
-        float* out = output + g * c_step_out;
-        float* outptr = out;
-
-        const float* kernel0 = kernel + g*9;
-        const float bias0 = _bias ? _bias[g] : 0.f;
-
-        const float* img0 = input + g * c_step_in;
-        const float* r0 = img0;
-        const float* r1 = img0 + w;
-        const float* r2 = img0 + w*2;
-
-        const float* k0 = kernel0;
-        const float* k1 = kernel0 + 3;
-        const float* k2 = kernel0 + 6;
-
-        int i = 0;
-        for (; i < outh; i++)
-        {
-            int remain = outw;
-            for (; remain>0; remain--)
-            {
-                float sum = bias0;
-                sum += r0[0] * k0[0];
-                sum += r0[1] * k0[1];
-                sum += r0[2] * k0[2];
-                sum += r1[0] * k1[0];
-                sum += r1[1] * k1[1];
-                sum += r1[2] * k1[2];
-                sum += r2[0] * k2[0];
-                sum += r2[1] * k2[1];
-                sum += r2[2] * k2[2];
-
-                *outptr = sum;
-
-                r0 += 2;
-                r1 += 2;
-                r2 += 2;
-                outptr++;
-            }
-
-            r0 += tailstep;
-            r1 += tailstep;
-            r2 += tailstep;
-        }
-    }    
 }
 
 bool ConvolutionDwOps::Prerun(Node* node)
@@ -409,9 +230,9 @@ bool ConvolutionDwOps::Run(Node* node)
     for(int i = 0; i < batch_number; i++)
     {
         if (stride_h == 1)
-            newdwconv3x3s1d1(inc, inw_tmp, inh_tmp, outw, outh, kernel, input_tmp, biases, output, have_biases);
+            dwconv3x3s1d1(inc, inw_tmp, inh_tmp, outw, outh, kernel, input_tmp, biases, output, have_biases);
         else
-            newdwconv3x3s2d1(inc, inw_tmp, inh_tmp, outw, outh, kernel, input_tmp, biases, output, have_biases);
+            dwconv3x3s2d1(inc, inw_tmp, inh_tmp, outw, outh, kernel, input_tmp, biases, output, have_biases);
     }
 
     /* relu */
