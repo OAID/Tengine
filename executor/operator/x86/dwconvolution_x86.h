@@ -1192,12 +1192,10 @@ static void dwconv3x3s2d1(int inc, int inw, int inh, int outw, int outh, float* 
 #else//SSE2
 static void dwconv3x3s1d1(int inc, int inw, int inh, int outw, int outh, float* kernel_data, float* const img_data, float* const bias_data, float* const output, bool have_biases)
 {
-    printf("sse conv3x3s1d1.\n");
     int inwh = inw * inh;
     int outwh = outw * outh;
     int channel_count = inc >> 2;
     int channel_remain = inc - (channel_count << 2);
-    printf("%d %d.\n", channel_count, channel_remain);
     //generate the image tmp
     float* img_tmp = (float*) malloc(4 * inwh * (channel_count + 1) * sizeof(float)); 
     float* kernel_tmp = (float*) malloc(4 * 9 * (channel_count + 1) * sizeof(float));
