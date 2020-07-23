@@ -49,7 +49,16 @@ bool MegengineSerializer::LoadModel(const std::vector<std::string>& file_list, S
         mgb::serialization::InputFile::make_fs(file_list[0].c_str());
     auto loader = mgb::serialization::GraphLoader::make(std::move(inp_file));
     mgb::serialization::GraphLoadConfig config;
-    mgb::serialization::GraphLoader::LoadResult network = loader->load(config, false);
+    mgb::serialization::GraphLoader::LoadResult network;
+    try
+    {
+        network = loader->load(config, false);
+    }
+    catch(std::exception& e)
+    {
+        LOG_ERROR() << "Invalid Megengine Model File.\n";
+        exit(1);
+    }
 
     cg = static_cast<mgb::cg::ComputingGraphImpl*>(network.graph.get());
 
@@ -596,6 +605,272 @@ static bool LoadMGEMatrixMul(StaticGraph* graph, StaticNode* node, const mgb::cg
     return true;
 }
 
+// actually it's more like slice in caffe
+static bool LoadMGESubtensor(StaticGraph* graph, StaticNode* node, const mgb::cg::OperatorNodeBase& mge_op)
+{
+    auto oup1 = subtensor_op->output()[0];
+    const std::string& output1_name = oup1->name();
+    StaticTensor* tensor1 = CreateStaticTensor(graph, output1_name + "_mid");
+    SetTensorDataType(tensor1, DataType::GetTypeID("float32"));
+    AddNodeOutputTensor(node, tensor1);
+
+    auto oup2 = mge_op.output()[0];
+    const std::string& output2_name = oup2->name();
+    StaticTensor* tensor2 = CreateStaticTensor(graph, output2_name + "_mid");
+    SetTensorDataType(tensor2, DataType::GetTypeID("float32"));
+    AddNodeOutputTensor(node, tensor2);
+
+    auto inputs = mge_op.input();
+    const std::string& input_name = inputs[0]->name();
+    StaticTensor* inp_tensor = FindTensor(graph, input_name);
+    AddNodeInputTensor(node, inp_tensor);
+
+    // only fit simplest case: x[0], x[1]
+    SliceParam param = any_cast<SliceParam>(OpManager::GetOpDefParam("Slice"));
+    param.axis = 0;
+
+    int *slice_points1 = ( int* )std::malloc(sizeof(int)), *slice_points2 = ( int* )std::malloc(sizeof(int));
+    GetConstTensorValue(inputs[1], slice_points1, sizeof(int));
+    GetConstTensorValue(subtensor_op->input()[1], slice_points2, sizeof(int));
+    int idx = (*slice_points1 > *slice_points2) ? *slice_points1 : *slice_points2;
+    param.slice_point_.clear();
+    param.slice_point_.push_back(idx);
+
+    param.iscaffe = true;
+
+    StaticOp* op = CreateStaticOp(graph, "Slice");
+    SetOperatorParam(op, param);
+    SetNodeOp(node, op);
+    subtensor_op = nullptr;
+
+    {
+        ReshapeParam param1 = any_cast<ReshapeParam>(OpManager::GetOpDefParam("Reshape")),
+                     param2 = any_cast<ReshapeParam>(OpManager::GetOpDefParam("Reshape"));
+
+        auto& shape_vec1 = oup1->shape();
+        auto& shape_vec2 = oup2->shape();
+
+        for(size_t i = 0; i < shape_vec1.ndim; ++i)
+        {
+            param1.re_shape.push_back(shape_vec1[i]);
+            param2.re_shape.push_back(shape_vec2[i]);
+        }
+
+        StaticNode* node1 = CreateStaticNode(graph, mge_op.name() + "_reshape1");
+        AddNodeInputTensor(node1, tensor1);
+        StaticTensor* out_tensor1 = CreateStaticTensor(graph, output1_name);
+        SetTensorDataType(out_tensor1, DataType::GetTypeID("float32"));
+        AddNodeOutputTensor(node1, out_tensor1);
+        StaticOp* op1 = CreateStaticOp(graph, "Reshape");
+
+        SetOperatorParam(op1, param1);
+        SetNodeOp(node1, op1);
+
+        StaticNode* node2 = CreateStaticNode(graph, mge_op.name() + "_reshape2");
+        AddNodeInputTensor(node2, tensor2);
+        StaticTensor* out_tensor2 = CreateStaticTensor(graph, output2_name);
+        SetTensorDataType(out_tensor2, DataType::GetTypeID("float32"));
+        AddNodeOutputTensor(node2, out_tensor2);
+        StaticOp* op2 = CreateStaticOp(graph, "Reshape");
+        SetOperatorParam(op2, param2);
+        SetNodeOp(node2, op2);
+    }
+    return true;
+}
+
+// transpose
+static bool LoadMGEDimshuffle(StaticGraph* graph, StaticNode* node, const mgb::cg::OperatorNodeBase& mge_op)
+{
+    auto oup = mge_op.output()[0];
+    const std::string& output_name = oup->name();
+    StaticTensor* tensor = CreateStaticTensor(graph, output_name);
+    SetTensorDataType(tensor, DataType::GetTypeID("float32"));
+    AddNodeOutputTensor(node, tensor);
+
+    auto mge_params = (opr_footprint_ptr->calc_footprint(const_cast<mgb::cg::OperatorNodeBase*>(&mge_op))).param;
+    auto mge_param_obj = *(static_cast<mgb::json::Object*>(mge_params.get()));
+    std::vector<std::shared_ptr<mgb::json::Value>> pattern =
+        (static_cast<mgb::json::Array*>(mge_param_obj["pattern"].get()))->get_impl();
+    int ndim = (static_cast<mgb::json::NumberInt*>(mge_param_obj["ndim"].get()))->get_impl();
+
+    TransposeParam param = any_cast<TransposeParam>(OpManager::GetOpDefParam("Transpose"));
+    for(int i = 0; i < ndim; i++)
+    {
+        param.tr_shape.push_back(std::stoi(pattern[i]->to_string()));
+    }
+
+    StaticOp* op = CreateStaticOp(graph, "Transpose");
+    SetOperatorParam(op, param);
+    SetNodeOp(node, op);
+    return true;
+}
+
+static const std::unordered_map<std::string, int> reduce_type = {
+    {"SUM", 0},
+    {"MAX", 4},
+    {"MIN", 5},
+    {"PRODUCT", 6},
+};
+
+static bool LoadMGEReduce(StaticGraph* graph, StaticNode* node, const mgb::cg::OperatorNodeBase& mge_op)
+{
+    auto oup = mge_op.output()[0];
+    const std::string& output_name = oup->name();
+    StaticTensor* tensor = CreateStaticTensor(graph, output_name);
+    SetTensorDataType(tensor, DataType::GetTypeID("float32"));
+    AddNodeOutputTensor(node, tensor);
+
+    auto mge_params = (opr_footprint_ptr->calc_footprint(const_cast<mgb::cg::OperatorNodeBase*>(&mge_op))).param;
+    auto mge_param_obj = *(static_cast<mgb::json::Object*>(mge_params.get()));
+    const std::string& mode = (static_cast<mgb::json::String*>(mge_param_obj["mode"].get()))->get_impl();
+    int axis = (static_cast<mgb::json::NumberInt*>(mge_param_obj["axis"].get()))->get_impl();
+
+    ReductionParam param = any_cast<ReductionParam>(OpManager::GetOpDefParam("Reduction"));
+    param.type = reduce_type.at(mode);
+    param.keepdim = 1;
+
+    if(axis <= 4)
+    {
+        param.dim_0 = axis;
+    }
+
+    StaticOp* op = CreateStaticOp(graph, "Reduction");
+    SetOperatorParam(op, param);
+    SetNodeOp(node, op);
+
+    return true;
+}
+
+// for complicated case, use reshape instead
+static bool LoadAxisAddRemove(StaticGraph* graph, StaticNode* node, const mgb::cg::OperatorNodeBase& mge_op)
+{
+    auto oup = mge_op.output()[0];
+    const std::string& output_name = oup->name();
+    StaticTensor* tensor = CreateStaticTensor(graph, output_name);
+    SetTensorDataType(tensor, DataType::GetTypeID("float32"));
+    AddNodeOutputTensor(node, tensor);
+
+    auto mge_params = (opr_footprint_ptr->calc_footprint(const_cast<mgb::cg::OperatorNodeBase*>(&mge_op))).param;
+    auto mge_param_obj = *(static_cast<mgb::json::Object*>(mge_params.get()));
+    auto nr_desc = (static_cast<mgb::json::NumberInt*>(mge_param_obj["nr_desc"].get()))->get_impl();
+    auto desc = (static_cast<mgb::json::Array*>(mge_param_obj["desc"].get()))->get_impl();
+    auto desc_obj = *(static_cast<mgb::json::Object*>(desc[0].get()));
+    int method = (static_cast<mgb::json::NumberInt*>(desc_obj["method"].get()))->get_impl();
+    int axis = (static_cast<mgb::json::NumberInt*>(desc_obj["axisnum"].get()))->get_impl();
+
+    StaticOp* op;
+    if(nr_desc == 1)
+    {
+        if(method == 1)
+        {
+            SqueezeParam param = any_cast<SqueezeParam>(OpManager::GetOpDefParam("Squeeze"));
+            if(axis == 0)
+            {
+                param.dim_0 = axis;
+            }
+            else if(axis == 1)
+            {
+                param.dim_1 = axis;
+            }
+            else if(axis == 2)
+            {
+                param.dim_2 = axis;
+            }
+            else if(axis == 3)
+            {
+                param.dim_3 = axis;
+            }
+
+            op = CreateStaticOp(graph, "Squeeze");
+            SetOperatorParam(op, param);
+        }
+        else
+        {
+            ExpandDimsParam param = any_cast<ExpandDimsParam>(OpManager::GetOpDefParam("ExpandDims"));
+            param.axis = axis;
+
+            op = CreateStaticOp(graph, "ExpandDims");
+            SetOperatorParam(op, param);
+        }
+    }
+    else
+    {
+        ReshapeParam param = any_cast<ReshapeParam>(OpManager::GetOpDefParam("Reshape"));
+        auto& shape_vec = oup->shape();
+        for(size_t i = 0; i < shape_vec.ndim; ++i)
+        {
+            param.re_shape.push_back(shape_vec[i]);
+        }
+
+        op = CreateStaticOp(graph, "Reshape");
+        SetOperatorParam(op, param);
+    }
+
+    SetNodeOp(node, op);
+    return true;
+}
+
+static bool LoadDeconv(StaticGraph* graph, StaticNode* node, const mgb::cg::OperatorNodeBase& mge_op)
+{
+    auto inputs = mge_op.input();
+    StaticTensor* inp_tensor = FindTensor(graph, inputs[1]->name());
+    StaticTensor* weight_tensor = FindTensor(graph, inputs[0]->name());
+    AddNodeInputTensor(node, inp_tensor);
+    AddNodeInputTensor(node, weight_tensor);
+
+    auto oup = mge_op.output()[0];
+    const std::string& output_name = oup->name();
+    StaticTensor* tensor = CreateStaticTensor(graph, output_name);
+    SetTensorDataType(tensor, DataType::GetTypeID("float32"));
+    AddNodeOutputTensor(node, tensor);
+
+    auto mge_params = (opr_footprint_ptr->calc_footprint(const_cast<mgb::cg::OperatorNodeBase*>(&mge_op))).param;
+    auto mge_param_obj = *(static_cast<mgb::json::Object*>(mge_params.get()));
+    int stride_w = (static_cast<mgb::json::NumberInt*>(mge_param_obj["stride_w"].get()))->get_impl();
+    int stride_h = (static_cast<mgb::json::NumberInt*>(mge_param_obj["stride_h"].get()))->get_impl();
+    int pad_w = (static_cast<mgb::json::NumberInt*>(mge_param_obj["pad_w"].get()))->get_impl();
+    int pad_h = (static_cast<mgb::json::NumberInt*>(mge_param_obj["pad_h"].get()))->get_impl();
+    int dilate_w = (static_cast<mgb::json::NumberInt*>(mge_param_obj["dilate_w"].get()))->get_impl();
+    int dilate_h = (static_cast<mgb::json::NumberInt*>(mge_param_obj["dilate_h"].get()))->get_impl();
+    const std::string& sparse = (static_cast<mgb::json::String*>(mge_param_obj["sparse"].get()))->get_impl();
+
+    DeconvParam param = any_cast<DeconvParam>(OpManager::GetOpDefParam("Deconvolution"));
+    param.kernel_w = (inputs[0]->shape())[3];
+    param.kernel_h = (inputs[0]->shape())[2];
+    param.stride_w = stride_w;
+    param.stride_h = stride_h;
+    param.pad_w0 = pad_w;
+    param.pad_w1 = pad_w;
+    param.pad_h0 = pad_h;
+    param.pad_h1 = pad_h;
+    param.dilation_w = dilate_w;
+    param.dilation_h = dilate_h;
+    param.group = 1;
+    param.num_output = oup->shape()[1];
+
+    if(sparse.compare("GROUP") == 0)
+    {
+        param.kernel_w = (inputs[0]->shape())[4];
+        param.kernel_h = (inputs[0]->shape())[3];
+        param.group = (inputs[0]->shape())[0];
+
+        std::vector<int> dims;
+
+        dims.push_back(param.num_output * param.group);
+        dims.push_back(1);
+        dims.push_back(param.kernel_h);
+        dims.push_back(param.kernel_w);
+
+        SetTensorDim(weight_tensor, dims);
+    }
+
+    StaticOp* op = CreateStaticOp(graph, "Deconvolution");
+    SetOperatorParam(op, param);
+    SetNodeOp(node, op);
+
+    return true;
+}
+
 bool MegengineSerializerRegisterOpLoader(void)
 {
     SerializerPtr serializer;
@@ -616,6 +891,11 @@ bool MegengineSerializerRegisterOpLoader(void)
     p_mge->RegisterOpLoadMethod("Identity", op_load_t(LoadMGEIdentity));
     p_mge->RegisterOpLoadMethod("MatrixMul", op_load_t(LoadMGEMatrixMul));
     p_mge->RegisterOpLoadMethod("MarkNoBroadcastElemwise", op_load_t(LoadMGEIdentity));
+    p_mge->RegisterOpLoadMethod("Subtensor", op_load_t(LoadMGESubtensor));
+    p_mge->RegisterOpLoadMethod("Dimshuffle", op_load_t(LoadMGEDimshuffle));
+    p_mge->RegisterOpLoadMethod("Reduce", op_load_t(LoadMGEReduce));
+    p_mge->RegisterOpLoadMethod("AxisAddRemove", op_load_t(LoadAxisAddRemove));
+    p_mge->RegisterOpLoadMethod("ConvolutionBackwardData", op_load_t(LoadDeconv));
 
     return true;
 }
