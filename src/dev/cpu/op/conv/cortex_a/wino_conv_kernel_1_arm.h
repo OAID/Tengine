@@ -19,22 +19,20 @@
 
 /*
  * Copyright (c) 2020, OPEN AI LAB
- * Author: haoluo@openailab.com
+ * Author: zhli@openailab.com
  */
-#ifndef __WINO_CONV_KERNEL_ARM_H_
-#define __WINO_CONV_KERNEL_ARM_H_
+#ifndef __WINO_CONV_KERNEL_1_ARM_H_
+#define __WINO_CONV_KERNEL_1_ARM_H_
 
 #include "tengine_ir.h"
 #include "convolution_param.h"
 #include "../conv_hcl_kernel.h"
 
-int wino_conv_hcl_prerun(struct ir_tensor* input_tensor, struct ir_tensor* filter_tensor,
+int wino_conv_hcl_prerun_1(struct ir_tensor* input_tensor, struct ir_tensor* filter_tensor,
                          struct ir_tensor* output_tensor, struct conv_priv_info* info, struct conv_param* param)
     __attribute__((weak));
 
-int wino_conv_hcl_postrun(struct conv_priv_info* info) __attribute__((weak));
-
-int wino_conv_hcl_run(struct ir_tensor* input_tensor, struct ir_tensor* filter_tensor, struct ir_tensor* bias_tensor,
+int wino_conv_hcl_run_1(struct ir_tensor* input_tensor, struct ir_tensor* filter_tensor, struct ir_tensor* bias_tensor,
                       struct ir_tensor* output_tensor, struct conv_priv_info* conv_info, struct conv_param* param,
                       int num_thread, int affinity) __attribute__((weak));
 

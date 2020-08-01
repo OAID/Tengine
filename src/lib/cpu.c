@@ -339,6 +339,7 @@ int set_cpu_affine(size_t mask)
         return -1;
 #endif
 
+    return 0;
 #elif __APPLE_IOS__
     // thread affinity not supported on ios
     ( void )mask;
@@ -348,8 +349,6 @@ int set_cpu_affine(size_t mask)
     if (0 != status)
         return -1;
 #endif
-
-    return 0;
 }
 
 size_t get_cluster_mask(int cluster)

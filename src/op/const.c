@@ -18,56 +18,45 @@
  */
 
 /*
- * Copyright (c) 2020, OPEN AI LAB
+ * Copyright (c) 2020, Open AI Lab
  * Author: bhu@openailab.com
  */
 
 #include <stdio.h>
-#include <stdlib.h>
-
+#include <assert.h>
 #include "sys_port.h"
-#include "module.h"
 #include "tengine_ir.h"
 #include "tengine_errno.h"
 #include "tengine_log.h"
-#include "tengine_serializer.h"
-#include "tm2_serializer.h"
 #include "tengine_op.h"
+#include "parameter.h"
 
-static int input_op_map(int op)
-{
-    return OP_INPUT;
-}
 
-static int tm2_load_input(struct ir_graph* ir_graph, struct ir_node* ir_node, const TM2_Node* tm_node,
-                          const TM2_Operator* tm_op)
+static int init_op(struct ir_op* op)
 {
     return 0;
 }
 
-static int reg_tm2_ops(void* arg)
+static void release_op(struct ir_op* op)
 {
-    struct serializer* tm2_s = find_serializer("tengine");
 
-    if (tm2_s == NULL)
-    {
-        TLOG_ERR("tengine serializer has not been registered yet\n");
-        return -1;
-    }
-
-    tm2_s->register_op_loader(tm2_s, TM2_OPTYPE_INPUTOP, 1, tm2_load_input, input_op_map, NULL);
-
-    return 0;
 }
 
-static int unreg_tm2_ops(void* arg)
+static int register_const_op(void* arg)
 {
-    struct serializer* tm2_s = find_serializer("tengine");
+    struct op_method m;
 
-    tm2_s->unregister_op_loader(tm2_s, TM2_OPTYPE_INPUTOP, 1, tm2_load_input);
+    m.op_version = 1;
+    m.init_op = init_op;
+    m.release_op = release_op;
 
-    return 0;
+    return register_op(OP_CONST, OP_CONST_NAME , &m);
 }
 
-REGISTER_MODULE_INIT(MOD_OP_LEVEL, "reg_input_ops", reg_tm2_ops);
-REGISTER_MODULE_EXIT(MOD_OP_LEVEL, "unreg_input_ops", unreg_tm2_ops);
+static int unregister_const_op(void* arg)
+{
+    return unregister_op(OP_CONST, 1);
+}
+
+AUTO_REGISTER_OP(register_const_op);
+AUTO_UNREGISTER_OP(unregister_const_op);

@@ -19,6 +19,7 @@ if(TENGINE_USE_TINY_SERIALIZER)
 endif()
 
 # add core srcs
+list(APPEND TENGINE_BACKEND_COMMON "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/cpu_allocator.c")
 list(APPEND TENGINE_BACKEND_COMMON "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/cpu_device.c")
 list(APPEND TENGINE_BACKEND_COMMON "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/cpu_module.c")
 list(APPEND TENGINE_BACKEND_COMMON "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/cpu_node_ops.c")
@@ -28,16 +29,24 @@ list(APPEND TENGINE_BACKEND_COMMON "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/cpu_prob
 file(GLOB_RECURSE TENGINE_BACKEND_REF_OPS "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/op/*ref.c")
 
 # add hcl operator files
-file(GLOB_RECURSE TENGINE_BACKEND_HCL_OPS   "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/op/*hcl.c"
-                                            "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/op/*arm.c")
-
-# add hcl asm operator files
+# arm
 if (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM")
+    file(GLOB_RECURSE TENGINE_BACKEND_HCL_OPS   "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/op/*hcl.c"
+                                                "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/op/*arm.c")
     if (TENGINE_TARGET_PROCESSOR_32Bit)
         file(GLOB_RECURSE TENGINE_BACKEND_HCL_ASM_OPS "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/op/aarch32/*.S")
     else()
         file(GLOB_RECURSE TENGINE_BACKEND_HCL_ASM_OPS "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/op/aarch64/*.S")
     endif()
+endif()
+
+# X86
+if (${TENGINE_TARGET_PROCESSOR} MATCHES "X86")
+    if (TENGINE_ARCH_X86_AVX)
+        add_definitions(-mfma -mf16c)
+    endif()
+    file(GLOB_RECURSE TENGINE_BACKEND_HCL_OPS   "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/op/*hcl.c"
+                                                "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/op/*x86.c")
 endif()
 
 # add cmsis operator files
@@ -54,6 +63,14 @@ if (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM")
         ${TENGINE_BACKEND_REF_OPS}
         ${TENGINE_BACKEND_HCL_OPS}
         ${TENGINE_BACKEND_HCL_ASM_OPS})
+elseif (${TENGINE_TARGET_PROCESSOR} MATCHES "X86")
+    add_library(${CMAKE_PROJECT_NAME} SHARED
+        ${TENGINE_LIB_SRCS} ${TENGINE_FRONT_END_SRCS}
+        ${TENGINE_SERIALIZER_SRCS}
+        ${TENGINE_TINY_SERIALIZER_SRCS}
+        ${TENGINE_BACKEND_COMMON}
+        ${TENGINE_BACKEND_REF_OPS}
+        ${TENGINE_BACKEND_HCL_OPS})
 else()
     add_library(${CMAKE_PROJECT_NAME} SHARED
         ${TENGINE_LIB_SRCS}
