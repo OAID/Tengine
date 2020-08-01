@@ -41,7 +41,7 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
 
     struct fc_priv_info* priv_info = ( struct fc_priv_info* )exec_node->ops_priv;
 
-    input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    input_tensor  = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     filter_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
@@ -207,6 +207,14 @@ static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, 
 
 static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struct ir_node* exec_node)
 {
+    struct ir_node* ir_node = exec_node;
+    struct ir_graph* ir_graph = ir_node->graph;
+    struct ir_tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+
+    /* todo support uint8 */
+    if (input_tensor->data_type != TENGINE_DT_FP32)
+        return 0;
+
     return OPS_SCORE_BEST;
 }
 

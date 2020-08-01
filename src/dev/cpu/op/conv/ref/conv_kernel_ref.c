@@ -1,17 +1,31 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * License); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * AS IS BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+/*
+ * Copyright (c) 2020, OPEN AI LAB
+ * Author: bhu@openailab.com
+ */
+
 #include <stdint.h>
 #include <stdlib.h>
 #include <math.h>
-#include "conv_kernel_ref.h"
-
-#include <sys/time.h>
-
-static double get_current_time()
-{
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-
-    return tv.tv_sec * 1000.0 + tv.tv_usec / 1000.0;
-}
+#include "../conv_ref_kernel.h"
 
 static int get_private_mem_size(struct ir_tensor* filter)
 {
@@ -24,46 +38,64 @@ static void interleave(struct ir_tensor* filter, struct conv_priv_info* priv_inf
     memcpy(priv_info->interleave_buffer, filter->data, filter->elem_num * filter->elem_size);
 }
 
-static inline void copy_one_element(void* src, void* dst, int src_off, int dst_off, int elem_size, int input_zero)
+static inline void copy_one_element(void* src, void* dst, int src_off, int dst_off, int elem_type, int zero_point)
 {
-    switch (elem_size)
+    switch (elem_type)
     {
-        case 4: {
+        case TENGINE_DT_FP32:
+        case TENGINE_DT_INT32:
+        {
             int32_t* int_dst = dst;
             int32_t* int_src = src;
             int_dst[dst_off] = int_src[src_off];
         }
         break;
-        case 2: {
+        case TENGINE_DT_FP16:
+        case TENGINE_DT_INT16:
+        {
             int16_t* int_dst = dst;
             int16_t* int_src = src;
             int_dst[dst_off] = int_src[src_off];
         }
         break;
-        case 1: {
+        case TENGINE_DT_INT8:
+        {
+            int8_t* int_dst = dst;
+            int8_t* int_src = src;
+            int_dst[dst_off] = int_src[src_off] - zero_point;
+        }
+        break;
+        case TENGINE_DT_UINT8:
+        {
             int8_t* int_dst = dst;
             uint8_t* int_src = src;
-            int_dst[dst_off] = (int8_t)(( int )int_src[src_off] - ( int )input_zero);
+            int_dst[dst_off] = (int8_t)((int)int_src[src_off] - (int)zero_point);
         }
         break;
     }
 }
 
-static inline void zero_one_element(void* dst, int dst_off, int elem_size)
+static inline void zero_one_element(void* dst, int dst_off, int elem_type)
 {
-    switch (elem_size)
+    switch (elem_type)
     {
-        case 4: {
+        case TENGINE_DT_FP32:
+        case TENGINE_DT_INT32:
+        {
             int32_t* int_dst = dst;
             int_dst[dst_off] = 0x0;
         }
         break;
-        case 2: {
+        case TENGINE_DT_FP16:
+        case TENGINE_DT_INT16:
+        {
             int16_t* int_dst = dst;
             int_dst[dst_off] = 0x0;
         }
         break;
-        case 1: {
+        case TENGINE_DT_INT8:
+        case TENGINE_DT_UINT8:
+        {
             int8_t* int_dst = dst;
             int_dst[dst_off] = 0x0;
         }
@@ -71,10 +103,31 @@ static inline void zero_one_element(void* dst, int dst_off, int elem_size)
     }
 }
 
-static void do_im2col(void* input, void* im2col_buf, int in_c, int in_h, int in_w, int out_c, int out_h, int out_w,
-                      int k_h, int k_w, int s_h, int s_w, int p_h0, int p_h1, int p_w0, int p_w1, int d_h, int d_w,
-                      int elem_size, int input_zero)
+static void im2col(struct ir_tensor* input, struct ir_tensor* output, struct conv_priv_info* priv_info, struct conv_param* param, int n, int group)
 {
+    int input_chan = param->input_channel / param->group;
+    int image_size = input->dims[1] * input->dims[2] * input->dims[3];
+    int group_size = input_chan * input->dims[2] * input->dims[3];
+
+    void* input_base  = input->data + (n * image_size + group * group_size) * input->elem_size;
+    void* im2col_buf = priv_info->im2col_buffer;
+
+    int zero_point = input->zero_point;
+
+    int k_h = param->kernel_h;
+    int k_w = param->kernel_w;
+    int in_c = input_chan;
+    int in_h = input->dims[2];
+    int in_w = input->dims[3];
+    int out_h = output->dims[2];
+    int out_w = output->dims[3];
+    int s_h = param->stride_h;
+    int s_w = param->stride_w;
+    int p_h0 = param->pad_h0;
+    int p_w0 = param->pad_w0;
+    int d_h  = param->dilation_h;
+    int d_w  = param->dilation_w;
+    int data_type = input->data_type;
     int kernel_size = k_h * k_w * in_c;
 
     for (int i = 0; i < kernel_size; i++)
@@ -96,34 +149,13 @@ static void do_im2col(void* input, void* im2col_buf, int in_c, int in_h, int in_
                 if (img_h >= 0 && img_w >= 0 && img_h < in_h && img_w < in_w)
                 {
                     int in_off = c_off * in_h * in_w + img_h * in_w + img_w;
-                    copy_one_element(input, im2col_buf, in_off, out_off, elem_size, input_zero);
+                    copy_one_element(input_base, im2col_buf, in_off, out_off, data_type, zero_point);
                 }
                 else
-                    zero_one_element(im2col_buf, out_off, elem_size);
+                    zero_one_element(im2col_buf, out_off, data_type);
             }
         }
     }
-}
-
-static void im2col(struct ir_tensor* input, struct ir_tensor* output, struct conv_priv_info* priv_info,
-                   struct conv_param* param, int n, int group)
-{
-    int input_chan = param->input_channel / param->group;
-    int image_size = input->dims[1] * input->dims[2] * input->dims[3];
-    int group_size = input_chan * input->dims[2] * input->dims[3];
-
-    void* input_base = input->data + (n * image_size + group * group_size) * input->elem_size;
-    void* im2col_buf = priv_info->im2col_buffer;
-
-    int input_zero = 0;
-
-    if (input->data_type == TENGINE_DT_UINT8)
-        input_zero = input->zero_point;
-
-    do_im2col(input_base, im2col_buf, input_chan, input->dims[2], input->dims[3], output->dims[1] / param->group,
-              output->dims[2], output->dims[3], param->kernel_h, param->kernel_w, param->stride_h, param->stride_w,
-              param->pad_h0, param->pad_h1, param->pad_w0, param->pad_w1, param->dilation_h, param->dilation_w,
-              input->elem_size, input_zero);
 }
 
 static void sgemm_fp32(struct ir_tensor* input, struct ir_tensor* filter, struct ir_tensor* bias,
@@ -226,8 +258,7 @@ static void sgemm_uint8(struct ir_tensor* input_tensor, struct ir_tensor* filter
     /* data point */
     unsigned char* interleave_uint8 = ( unsigned char* )priv_info->interleave_buffer + outchan_g * group * kernel_size;
     signed char* im2col_int8 = priv_info->im2col_buffer;
-    unsigned char* output_uint8 =
-        ( unsigned char* )output_tensor->data + n * out_image_size + outchan_g * group * out_h * out_w;
+    unsigned char* output_uint8 = ( unsigned char* )output_tensor->data + n * out_image_size + outchan_g * group * out_h * out_w;
     int* bias_int32 = NULL;
     if (bias_tensor)
         bias_int32 = ( int* )bias_tensor->data + outchan_g * group;
@@ -236,16 +267,16 @@ static void sgemm_uint8(struct ir_tensor* input_tensor, struct ir_tensor* filter
     float input_scale = input_tensor->scale;
     float weight_scale = filter_tensor->scale;
     float output_scale = output_tensor->scale;
-    float bias_scale = 0.f;
-    if (bias_tensor)
-        bias_scale = bias_tensor->scale;
+//    float bias_scale = 0.f;
+//    if (bias_tensor)
+//        bias_scale = bias_tensor->scale;
 
     unsigned char input_zero = input_tensor->zero_point;
     unsigned char weight_zero = filter_tensor->zero_point;
     unsigned char output_zero = output_tensor->zero_point;
 
     /* int8 sgemm */
-    //    #pragma omp parallel for num_threads(num_thread)
+    #pragma omp parallel for num_threads(num_thread)
     for (int i = 0; i < outchan_g; i++)
     {
         unsigned char* kernel = interleave_uint8 + i * kernel_size;
@@ -270,7 +301,7 @@ static void sgemm_uint8(struct ir_tensor* input_tensor, struct ir_tensor* filter
             }
 
             // dequant sum from int32 to fp32
-            float sum_fp32 = sum_int32 * input_scale * weight_scale;
+            float sum_fp32 = (float)sum_int32 * input_scale * weight_scale;
 
             // relu
             if (param->activation > 0)
@@ -354,7 +385,7 @@ int conv_kernel_postrun(struct conv_priv_info* priv_info)
 
 int conv_kernel_run(struct ir_tensor* input_tensor, struct ir_tensor* filter_tensor, struct ir_tensor* bias_tensor,
                     struct ir_tensor* output_tensor, struct conv_priv_info* priv_info, struct conv_param* param,
-                    int num_thread)
+                    int num_thread, int cpu_affinity)
 {
     int group = param->group;
     int type = input_tensor->data_type;
@@ -367,8 +398,7 @@ int conv_kernel_run(struct ir_tensor* input_tensor, struct ir_tensor* filter_ten
             if (type == TENGINE_DT_FP32)
                 sgemm_fp32(input_tensor, filter_tensor, bias_tensor, output_tensor, priv_info, param, i, j, num_thread);
             else
-                sgemm_uint8(input_tensor, filter_tensor, bias_tensor, output_tensor, priv_info, param, i, j,
-                            num_thread);
+                sgemm_uint8(input_tensor, filter_tensor, bias_tensor, output_tensor, priv_info, param, i, j, num_thread);
         }
     }
 

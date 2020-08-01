@@ -19,7 +19,7 @@
 
 /*
  * Copyright (c) 2020, OPEN AI LAB
- * Author: haitao@openailab.com
+ * Author: lswang@openailab.com
  */
 
 #include <stdio.h>
@@ -29,131 +29,58 @@
 #include "vector.h"
 #include "tengine_ir.h"
 #include "tengine_exec.h"
+
 #include "dev_allocator.h"
 
-static int allocate(struct dev_allocator* allocator, struct ir_graph* ir_graph)
+static int allocator_vector_created = 0;
+
+static struct vector* allocator_vector;
+
+
+int init_allocator_registry(struct dev_allocator* allocator)
 {
-    struct subgraph* subgraph = ( struct subgraph* )sys_malloc(sizeof(struct subgraph));
-
-    init_subgraph(ir_graph, subgraph, 0);
-
-    subgraph->node_num = ir_graph->node_num;
-    subgraph->node_list = ( uint16_t* )sys_malloc(sizeof(uint16_t) * ir_graph->node_num);
-
-    for (int i = 0; i < subgraph->node_num; i++)
-        subgraph->node_list[i] = ir_graph->node_list[i]->idx;
-
-    if (ir_graph->nn_dev)
-        subgraph->nn_dev = ir_graph->nn_dev;
-    else
-        subgraph->nn_dev = ir_graph->exec_attr->exec_context->def_dev;
-
-    /* subgraph will record the input tensors and output tensors, instead of nodes */
-
-    for (int i = 0; i < ir_graph->input_num; i++)
+    if (!allocator_vector_created)
     {
-        struct ir_node* node = get_ir_graph_node(ir_graph, ir_graph->input_nodes[i]);
-
-        if (node->input_num)
-        {
-            for (int j = 0; j < node->input_num; j++)
-            {
-                struct ir_tensor* tensor = get_ir_graph_tensor(ir_graph, node->input_tensors[j]);
-
-                if (tensor->tensor_type == TENSOR_TYPE_INPUT || tensor->tensor_type == TENSOR_TYPE_VAR)
-                {
-                    subgraph->input_num++;
-                    subgraph->input_tensor_list =
-                        sys_realloc(subgraph->input_tensor_list, subgraph->input_num * sizeof(uint16_t));
-                    subgraph->input_tensor_list[subgraph->input_num - 1] = tensor->idx;
-                }
-            }
-        }
-        else
-        {
-            for (int j = 0; j < node->output_num; j++)
-            {
-                struct ir_tensor* tensor = get_ir_graph_tensor(ir_graph, node->output_tensors[j]);
-
-                if (tensor->tensor_type != TENSOR_TYPE_INPUT)
-                    continue;
-
-                subgraph->input_num++;
-                subgraph->input_tensor_list =
-                    sys_realloc(subgraph->input_tensor_list, subgraph->input_num * sizeof(uint16_t));
-                subgraph->input_tensor_list[subgraph->input_num - 1] = tensor->idx;
-            }
-        }
+        allocator_vector = create_vector(sizeof(struct dev_allocator), NULL);
+        allocator_vector_created = 1;
     }
 
-    for (int i = 0; i < ir_graph->output_num; i++)
-    {
-        struct ir_node* node = get_ir_graph_node(ir_graph, ir_graph->output_nodes[i]);
+    if (allocator_vector == NULL)
+        return -1;
 
-        for (int j = 0; j < node->output_num; j++)
-        {
-            struct ir_tensor* tensor = get_ir_graph_tensor(ir_graph, node->output_tensors[j]);
-
-            if (tensor->consumer_num == 0)
-            {
-                subgraph->output_num++;
-                subgraph->output_tensor_list =
-                    sys_realloc(subgraph->output_tensor_list, subgraph->output_num * sizeof(uint16_t));
-                subgraph->output_tensor_list[subgraph->output_num - 1] = tensor->idx;
-            }
-        }
-    }
-
-    /* strip out duplicated input tensors */
-    uint16_t* real_inputs = ( uint16_t* )sys_malloc(subgraph->input_num * sizeof(uint16_t));
-    int real_input_num = 1;
-
-    real_inputs[0] = subgraph->input_tensor_list[0];
-
-    for (int i = 1; i < subgraph->input_num; i++)
-    {
-        int idx = subgraph->input_tensor_list[i];
-        int j;
-
-        for (j = 0; j < real_input_num; j++)
-        {
-            if (idx == real_inputs[j])
-                break;
-        }
-
-        if (j < real_input_num)
-            continue;
-
-        real_inputs[real_input_num] = idx;
-        real_input_num++;
-    }
-
-    sys_free(subgraph->input_tensor_list);
-
-    subgraph->input_num = real_input_num;
-    subgraph->input_tensor_list = real_inputs;
-
-    /* set the correct input wait count: INPUT tensor is always ready */
-    subgraph->input_wait_count = 0;
-
-    for (int i = 0; i < subgraph->input_num; i++)
-    {
-        struct ir_tensor* tensor = get_ir_graph_tensor(ir_graph, subgraph->input_tensor_list[i]);
-
-        if (tensor->tensor_type == TENSOR_TYPE_VAR)
-            subgraph->input_wait_count++;
-    }
-
-    /* attached to graph */
-
-    push_vector_data(ir_graph->subgraph_list, &subgraph);
+    push_vector_data(allocator_vector, allocator);
 
     return 0;
 }
 
-static struct dev_allocator single_allocator = {.allocate = allocate};
+int release_allocator_registry()
+{
+    release_vector(allocator_vector);
+    return 0;
+}
 
 struct dev_allocator* get_default_dev_allocator(void)
 {
-    return &single_allocator;
+    for (int i = 0; i < get_vector_num(allocator_vector); i++)
+    {
+        struct dev_allocator* allocator = get_vector_data(allocator_vector, i);
+        if (!strcmp("cpu_dev", allocator->name))
+        {
+            return allocator;
+        }
+    }
+}
+
+struct dev_allocator* get_dev_allocator(const char* dev_name)
+{
+    for (int i = 0; i < get_vector_num(allocator_vector); i++)
+    {
+        struct dev_allocator* allocator = get_vector_data(allocator_vector, i);
+        if (!strcmp(dev_name, allocator->name))
+        {
+            return allocator;
+        }
+    }
+
+    return NULL;
 }

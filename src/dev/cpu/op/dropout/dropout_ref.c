@@ -54,6 +54,12 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
+    if (input_tensor->data_type == TENGINE_DT_UINT8 || input_tensor->data_type == TENGINE_DT_INT8)
+    {
+        output_tensor->scale = input_tensor->scale;
+        output_tensor->zero_point = input_tensor->zero_point;
+    }
+
     if (input_tensor->data == output_tensor->data)
         return 0;
 

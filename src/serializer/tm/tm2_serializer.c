@@ -449,6 +449,8 @@ static int load_graph_tensors(struct tm2_serializer* tm2_s, struct ir_graph* gra
                 const TM2_QuantParam* tm_qtparam = ( TM2_QuantParam* )(mem_base + v_quantparams->offsets[0]);
                 ir_tensor->scale = tm_qtparam->scale;
                 ir_tensor->zero_point = tm_qtparam->zero_point;
+
+//                printf("name %s, scale %f, zero %d\n", ir_tensor->name, ir_tensor->scale, ir_tensor->zero_point);
             }
             else if (v_quantparams->v_num > 1)
             {

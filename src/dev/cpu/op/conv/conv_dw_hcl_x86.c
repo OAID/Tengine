@@ -19,7 +19,7 @@
 
 /*
  * Copyright (c) 2020, OPEN AI LAB
- * Author: haoluo@openailab.com
+ * Author: qtang@openailab.com
  */
 #include "sys_port.h"
 #include "module.h"
@@ -29,7 +29,7 @@
 #include "../../cpu_node_ops.h"
 #include "tengine_op.h"
 #include "convolution_param.h"
-#include "cortex_a/conv_dw_kernel_arm.h"
+#include "x86/conv_dw_kernel_x86.h"
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
@@ -97,7 +97,12 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     int in_c = input_tensor->dims[1] / group;
     int out_c = output_tensor->dims[1] / group;
 
-    if (param->group > 1 && in_c == 1 && out_c == 1 && pad_h0 == pad_h1 && pad_w0 == pad_w1)
+    /* todo support uint8 */
+    if (input_tensor->data_type != TENGINE_DT_FP32)
+        return 0;
+
+    if (param->group > 1 && in_c == 1 && out_c == 1 && pad_h0 == pad_h1 && pad_w0 == pad_w1 && dilation_h == 1 && dilation_w == 1 && kernel_h == 3 && kernel_w == 3 &&
+        ((stride_h == 1 && stride_w == 1) || (stride_h == 2 && stride_w == 2)))
         return OPS_SCORE_BEST * 2;
     else
         return 0;

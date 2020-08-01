@@ -29,7 +29,7 @@
 #include "../../cpu_node_ops.h"
 #include "tengine_op.h"
 #include "convolution_param.h"
-#include "ref/conv_kernel_ref.h"
+#include "conv_ref_kernel.h"
 
 static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
@@ -76,7 +76,8 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct ir_tensor* weight_tensor;
     struct ir_tensor* bias_tensor = NULL;
     struct ir_tensor* output_tensor = NULL;
-    int num_thread = exec_graph->num_thread;
+    int num_thread   = exec_graph->num_thread;
+    int cpu_affinity = exec_graph->cpu_affinity;
 
     input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     weight_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
@@ -90,7 +91,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct conv_priv_info* conv_priv_info = ( struct conv_priv_info* )exec_node->ops_priv;
 
     if (conv_kernel_run(input_tensor, weight_tensor, bias_tensor, output_tensor, conv_priv_info, conv_param,
-                        num_thread) < 0)
+                        num_thread, cpu_affinity) < 0)
     {
         TLOG_ERR("hcl conv run failed\n");
         set_tengine_errno(EFAULT);

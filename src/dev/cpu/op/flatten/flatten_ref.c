@@ -50,15 +50,22 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct ir_tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
     int out_size = input_tensor->elem_num;
-    float* input_org = ( float* )input_tensor->data;
-    float* output_org = ( float* )output_tensor->data;
 
-    int num_thread = exec_graph->num_thread;
-
-    // #pragma omp parallel for num_threads(num_thread)
-    for (int i = 0; i < out_size; i++)
+    if (input_tensor->data_type == TENGINE_DT_FP32)
     {
-        output_org[i] = input_org[i];
+        float* input_org = input_tensor->data;
+        float* output_org = output_tensor->data;
+
+        for (int i = 0; i < out_size; i++)
+            output_org[i] = input_org[i];
+    }
+    else
+    {
+        uint8_t* input_org = input_tensor->data;
+        uint8_t* output_org = output_tensor->data;
+
+        for (int i = 0; i < out_size; i++)
+            output_org[i] = input_org[i];
     }
 
     return 0;

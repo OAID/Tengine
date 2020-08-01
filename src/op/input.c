@@ -19,23 +19,48 @@
 
 /*
  * Copyright (c) 2020, OPEN AI LAB
- * Author: haoluo@openailab.com
+ * Author: qtang@openailab.com
  */
-#ifndef __WINO_CONV_KERNEL_ARM_H_
-#define __WINO_CONV_KERNEL_ARM_H_
 
+#include <stdio.h>
+#include <assert.h>
+
+#include "sys_port.h"
 #include "tengine_ir.h"
-#include "convolution_param.h"
-#include "../conv_hcl_kernel.h"
+#include "tengine_errno.h"
+#include "tengine_log.h"
+#include "tengine_op.h"
+#include "parameter.h"
 
-int wino_conv_hcl_prerun(struct ir_tensor* input_tensor, struct ir_tensor* filter_tensor,
-                         struct ir_tensor* output_tensor, struct conv_priv_info* info, struct conv_param* param)
-    __attribute__((weak));
+static int init_op(struct ir_op* op)
+{
+    op->same_shape = 1;
+    op->infer_shape = NULL;
 
-int wino_conv_hcl_postrun(struct conv_priv_info* info) __attribute__((weak));
+    return 0;
+}
 
-int wino_conv_hcl_run(struct ir_tensor* input_tensor, struct ir_tensor* filter_tensor, struct ir_tensor* bias_tensor,
-                      struct ir_tensor* output_tensor, struct conv_priv_info* conv_info, struct conv_param* param,
-                      int num_thread, int affinity) __attribute__((weak));
+static void release_op(struct ir_op* op)
+{
 
-#endif
+}
+
+static int register_input_op(void* arg)
+{
+    struct op_method m;
+
+    m.op_version = 1;
+    m.init_op = init_op;
+    m.release_op = release_op;
+    m.access_param_entry = NULL;
+
+    return register_op(OP_INPUT, OP_INPUT_NAME , &m);
+}
+
+static int unregister_input_op(void* arg)
+{
+    return unregister_op(OP_INPUT, 1);
+}
+
+AUTO_REGISTER_OP(register_input_op);
+AUTO_UNREGISTER_OP(unregister_input_op);

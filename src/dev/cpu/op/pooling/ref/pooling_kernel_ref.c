@@ -202,12 +202,27 @@ int pooling_kernel_ref_run(struct ir_tensor* input_tensor, struct ir_tensor* out
     }
     else
     {
-        uint8_t* input = input_tensor->data;
-        uint8_t* output = output_tensor->data;
+        uint8_t* input_uint8 = ( uint8_t* )input_tensor->data;
+        uint8_t* output_uint8 = ( uint8_t* )output_tensor->data;
+
+        float input_scale = input_tensor->scale;
+        float output_scale = output_tensor->scale;
+        int input_zero = input_tensor->zero_point;
+        int output_zero = output_tensor->zero_point;
+
+        /* input dequant */
+        float* input_fp32 = ( float* )sys_malloc(input_tensor->elem_num * sizeof(float));
+        float* output_fp32 = ( float* )sys_malloc(output_tensor->elem_num * sizeof(float));
+
+        for (int i = 0; i < input_tensor->elem_num; i++)
+            input_fp32[i] = (input_uint8[i] - input_zero) * input_scale; 
+
+        float* input = input_fp32;
+        float* output = output_fp32;
 
         for (int n = 0; n < batch; n++)
         {
-            const uint8_t* input_cur = input + n * input_chw;
+            const float* input_cur = input + n * input_chw;
             for (int c = 0; c < channel; c++)
             {
                 for (int ph = 0; ph < out_h; ph++)
@@ -244,15 +259,15 @@ int pooling_kernel_ref_run(struct ir_tensor* input_tensor, struct ir_tensor* out
 
                         if (method == HCL_POOL_MAX)
                         {
-                            uint8_t max = calc_max_uint8(input_cur, layout, channel, in_h, in_w, c, h_start, w_start,
-                                                         h_end, w_end);
+                            float max = calc_max_fp32(input_cur, layout, channel, in_h, in_w, c, h_start, w_start,
+                                                      h_end, w_end);
                             output[offset] = max;
                         }
                         else if (method == HCL_POOL_AVG)
                         {
-                            int sum = calc_sum_uint8(input_cur, layout, channel, in_h, in_w, c, h_start, w_start, h_end,
-                                                     w_end);
-                            output[offset] = ( uint8_t )round((sum + pool_size / 2) / pool_size);
+                            float sum = calc_sum_fp32(input_cur, layout, channel, in_h, in_w, c, h_start, w_start,
+                                                      h_end, w_end);
+                            output[offset] = sum / pool_size;
                         }
                         else
                             return -1;
@@ -260,6 +275,16 @@ int pooling_kernel_ref_run(struct ir_tensor* input_tensor, struct ir_tensor* out
                 }
             }
         }
+
+        /* output quant */
+        for (int i = 0; i < output_tensor->elem_num; i++)
+        {
+            int output_data = round(output_fp32[i] / output_scale) + output_zero;
+            output_uint8[i] = output_data > 255 ? 255 : output_data;
+        }
+
+        sys_free(input_fp32);
+        sys_free(output_fp32); 
     }
 
     return 0;

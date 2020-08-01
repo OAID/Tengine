@@ -25,8 +25,11 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "conv_kernel_arm.h"
+#include "../conv_hcl_kernel.h"
 #include "wino_conv_kernel_arm.h"
+#ifdef __aarch64__
+#include "wino_conv_kernel_1_arm.h"
+#endif
 
 #ifdef __aarch64__
 #define PER_OUT_CHAN 16
@@ -106,20 +109,22 @@ static void interleave_kernel(float* kernel, float* kernel_interleaved, int kern
     }
 }
 
+/* kernel interleave */
 static void interleave(struct ir_tensor* filter, struct conv_priv_info* priv_info, struct conv_param* param)
 {
-    int group = param->group;
+    int group       = param->group;
     int kernel_size = filter->dims[1] * filter->dims[2] * filter->dims[3];
-    int out_chan = filter->dims[0] / group;
+    int out_chan    = filter->dims[0] / group;
+    int out_chan_align4 = (out_chan + 3) / 4 * 4;
 
-    int kernel_size_algin = kernel_size * ((out_chan + 3) & -4);
-    int kernel_size_g = kernel_size * out_chan;
+    int kernel_size_algin = kernel_size * out_chan_align4;
+    int kernel_size_group = kernel_size * out_chan;
 
     float* kernel = filter->data;
     float* interleave_buf = priv_info->interleave_buffer;
     for (int g = 0; g < group; g++)
     {
-        float* cur_kernel = kernel + g * kernel_size_g;
+        float* cur_kernel     = kernel + g * kernel_size_group;
         float* cur_interleave = interleave_buf + g * kernel_size_algin;
         interleave_kernel(cur_kernel, cur_interleave, out_chan, kernel_size);
     }
@@ -312,8 +317,7 @@ static void sgemm_set(float* col, float* kernel, float* biases, float* output, i
 #ifdef __aarch64__
             {
                 float* col_tmp = ( float* )(col + col_line * kernel_size);
-                sgemm_4x16_a72(biasptr, col_tmp, kernel_tmp, kernel_size, output_tmp + col_line, output_xy, activation,
-                               0);
+                sgemm_4x16_a72(biasptr, col_tmp, kernel_tmp, kernel_size, output_tmp + col_line, output_xy, activation, 0);
             }
             {
                 float result[64];
@@ -328,8 +332,7 @@ static void sgemm_set(float* col, float* kernel, float* biases, float* output, i
 #else
             {
                 float* col_tmp = ( float* )(col + col_line * kernel_size);
-                sgemm_4x12_a17(biasptr, col_tmp, kernel_tmp, kernel_size, output_tmp + col_line, output_xy, activation,
-                               0);
+                sgemm_4x12_a17(biasptr, col_tmp, kernel_tmp, kernel_size, output_tmp + col_line, output_xy, activation, 0);
             }
             {
                 float result[64];
@@ -359,11 +362,9 @@ static void sgemm_set(float* col, float* kernel, float* biases, float* output, i
             {
                 float* col_tmp = ( float* )(col + col_line * kernel_size);
 #ifdef __aarch64__
-                sgemm_4x16_a72(biasptr, col_tmp, kernel_tmp, kernel_size, output_tmp + col_line, output_xy, activation,
-                               0);
+                sgemm_4x16_a72(biasptr, col_tmp, kernel_tmp, kernel_size, output_tmp + col_line, output_xy, activation, 0);
 #else
-                sgemm_4x12_a17(biasptr, col_tmp, kernel_tmp, kernel_size, output_tmp + col_line, output_xy, activation,
-                               0);
+                sgemm_4x12_a17(biasptr, col_tmp, kernel_tmp, kernel_size, output_tmp + col_line, output_xy, activation, 0);
 #endif
             }
         }
@@ -391,11 +392,9 @@ static void sgemm4x4(float* col, float* kernel, float* biases, float* output, in
         {
             cur_col = ( float* )(col + col_line * kernel_size);
 #ifdef __aarch64__
-            sgemm_4x4_a72(cur_biases, cur_col, cur_kernel, kernel_size, cur_output + col_line, output_xy, activation,
-                          0);
+            sgemm_4x4_a72(cur_biases, cur_col, cur_kernel, kernel_size, cur_output + col_line, output_xy, activation, 0);
 #else
-            sgemm_4x4_a17(cur_biases, cur_col, cur_kernel, kernel_size, cur_output + col_line, output_xy, activation,
-                          0);
+            sgemm_4x4_a17(cur_biases, cur_col, cur_kernel, kernel_size, cur_output + col_line, output_xy, activation, 0);
 #endif
         }
         if (col_end3)
@@ -447,6 +446,7 @@ static void sgemm4x4(float* col, float* kernel, float* biases, float* output, in
     }
 }
 
+/* check the conv wheather need to be using winograd */
 static int winograd_support(struct conv_param* param, int in_h, int in_w)
 {
     int kernel_h = param->kernel_h;
@@ -470,17 +470,42 @@ static int winograd_support(struct conv_param* param, int in_h, int in_w)
     return 1;
 }
 
+/*
+ * get the memory size for im2col of input tensor
+ */
 int conv_hcl_get_shared_mem_size(struct ir_tensor* input, struct ir_tensor* output, struct conv_param* param)
 {
-    int in_h = input->dims[2];
-    int in_w = input->dims[3];
+    int in_h  = input->dims[2];
+    int in_w  = input->dims[3];
+    int out_h = output->dims[2];
+    int out_w = output->dims[3];
     int group = param->group;
-    int input_chan = param->input_channel / group;
+    int input_chan  = param->input_channel / group;
     int kernel_size = input_chan * param->kernel_h * param->kernel_w;
+    int out_cstep   = out_h * out_w;      // channel cstep, output_h * output_w
+    int elem_size   = input->elem_size;   // uint8/int8 is 1 byte, fp32 is 4 bytes
 
-    int output_xy = output->dims[2] * output->dims[3];
-    int elem_size = input->elem_size;
-    int mem_size = elem_size * kernel_size * ((output_xy + 3) & -4) + 128;
+    out_cstep = (out_cstep + 3) / 4 * 4;
+    int mem_size = elem_size * kernel_size * out_cstep + 128;
+
+    return mem_size;
+}
+
+int conv_hcl_get_shared_pack4_mem_size(struct ir_tensor* filter, struct ir_tensor* output, struct conv_param* param)
+{
+    return 0;
+}
+
+/*
+ * get the memory size for im2col + sgemm of kernel tensor interleave
+ */
+static int get_private_mem_size(struct ir_tensor* filter, struct conv_param* param)
+{
+    int group = param->group;
+    int out_chan = filter->dims[0] / group;
+    int out_chan_align4 = (out_chan + 3) / 4 * 4;
+    int kernel_size = filter->dims[1] * filter->dims[2] * filter->dims[3];
+    int mem_size = kernel_size * filter->elem_size * out_chan_align4 * group + 128;    // caution
 
     return mem_size;
 }
@@ -494,41 +519,53 @@ int conv_hcl_set_shared_mem(struct conv_priv_info* priv_info, void* mem, int mem
     return 0;
 }
 
-static int get_private_mem_size(struct ir_tensor* filter, struct conv_param* param)
+int conv_hcl_set_shared_pack4_mem(struct conv_priv_info* priv_info, void* mem, int mem_size)
 {
-    int group = param->group;
-    int out_chan = filter->dims[0] / group;
-    int kernel_size = filter->dims[1] * filter->dims[2] * filter->dims[3];
+    priv_info->external_im2col_pack4_mem = 0;
+    priv_info->im2col_buffer_pack4 = NULL;
+    priv_info->im2col_buffer_pack4_size = 0;
 
-    return kernel_size * filter->elem_size * ((out_chan + 3) & -4) * group + 128;    // caution
+    return 0;
 }
 
 int conv_hcl_prerun(struct ir_tensor* input_tensor, struct ir_tensor* filter_tensor, struct ir_tensor* output_tensor,
                     struct conv_priv_info* priv_info, struct conv_param* param)
 {
+    int in_c = input_tensor->dims[1];
     int in_h = input_tensor->dims[2];
     int in_w = input_tensor->dims[3];
-    if (winograd_support(param, in_h, in_w))
+
+    /* check winograd implement, only for conv3x3s1 */
+    priv_info->winograd = winograd_support(param, in_h, in_w);
+    if (priv_info->winograd)
     {
-        return wino_conv_hcl_prerun(input_tensor, filter_tensor, output_tensor, priv_info, param);
+#ifdef __aarch64__
+        if(in_c >= 256)
+            return wino_conv_hcl_prerun_1(input_tensor, filter_tensor, output_tensor, priv_info, param);
+        else
+#endif
+            return wino_conv_hcl_prerun(input_tensor, filter_tensor, output_tensor, priv_info, param);
     }
 
+    /* alloc mem of im2col  */
     if (!priv_info->external_im2col_mem)
     {
         int mem_size = conv_hcl_get_shared_mem_size(input_tensor, output_tensor, param);
         void* mem = sys_malloc(mem_size);
-        priv_info->im2col_buffer = mem;
+        priv_info->im2col_buffer      = mem;
         priv_info->im2col_buffer_size = mem_size;
     }
 
+    /* alloc mem of kernel interleave */
     if (!priv_info->external_interleave_mem)
     {
         int mem_size = get_private_mem_size(filter_tensor, param);
         void* mem = sys_malloc(mem_size);
-        priv_info->interleave_buffer = mem;
+        priv_info->interleave_buffer      = mem;
         priv_info->interleave_buffer_size = mem_size;
     }
 
+    /* kernel interleave */
     interleave(filter_tensor, priv_info, param);
 
     return 0;
@@ -536,6 +573,11 @@ int conv_hcl_prerun(struct ir_tensor* input_tensor, struct ir_tensor* filter_ten
 
 int conv_hcl_postrun(struct conv_priv_info* priv_info)
 {
+    if (priv_info->winograd)
+    {
+        wino_conv_hcl_postrun(priv_info);
+    }
+
     if (!priv_info->external_interleave_mem && priv_info->interleave_buffer != NULL)
     {
         sys_free(priv_info->interleave_buffer);
@@ -577,10 +619,14 @@ int conv_hcl_run(struct ir_tensor* input_tensor, struct ir_tensor* filter_tensor
     int kernel_size = in_c * kernel_h * kernel_w;
     int input_image_size = input_tensor->dims[1] * input_tensor->dims[2] * input_tensor->dims[3];
 
-    if (winograd_support(param, in_h, in_w))
+    if (priv_info->winograd)
     {
-        return wino_conv_hcl_run(input_tensor, filter_tensor, bias_tensor, output_tensor, priv_info, param, num_thread,
-                                 cpu_affinity);
+#ifdef __aarch64__
+        if(in_c >= 256)
+            return wino_conv_hcl_run_1(input_tensor, filter_tensor, bias_tensor, output_tensor, priv_info, param, num_thread, cpu_affinity);
+        else
+#endif
+            return wino_conv_hcl_run(input_tensor, filter_tensor, bias_tensor, output_tensor, priv_info, param, num_thread, cpu_affinity);
     }
 
     int out_c = output_tensor->dims[1] / group;
