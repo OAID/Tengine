@@ -40,7 +40,7 @@ int conv_hcl_run(struct ir_tensor* input_tensor, struct ir_tensor* filter_tensor
 int conv_hcl_get_shared_mem_size(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor,
                                  struct conv_param* param) __attribute__((weak));
 int conv_hcl_get_shared_pack4_mem_size(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor,
-                                 struct conv_param* param) __attribute__((weak));                                 
+                                       struct conv_param* param) __attribute__((weak));
 
 int conv_hcl_set_shared_mem(struct conv_priv_info* priv_info, void* mem, int mem_size) __attribute__((weak));
 int conv_hcl_set_shared_pack4_mem(struct conv_priv_info* priv_info, void* mem, int mem_size) __attribute__((weak));
