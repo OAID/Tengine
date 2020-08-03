@@ -235,14 +235,16 @@ static int load_graph_tensors(struct tm2_serializer* tm2_s, struct ir_graph* gra
 
                 if (type == TENGINE_DT_FP32)
                 {
-                    ir_tensor->data = ( float* )sys_malloc(size * sizeof(float));
+                    ir_tensor->data = ( float* )sys_malloc(size * 2 * sizeof(float));
                     ir_tensor->free_host_mem = 1;
+                    memset(ir_tensor->data, 1, size * 2 * sizeof(float));
                 }
 
                 if (type == TENGINE_DT_UINT8 || type == TENGINE_DT_INT8)
                 {
-                    ir_tensor->data = ( unsigned char* )sys_malloc(size * sizeof(unsigned char));
+                    ir_tensor->data = ( unsigned char* )sys_malloc(size * 2 * sizeof(unsigned char));
                     ir_tensor->free_host_mem = 1;
+                    memset(ir_tensor->data, 1, size * 2 * sizeof(unsigned char));
                 }
             }
             else
@@ -447,6 +449,8 @@ static int load_graph_tensors(struct tm2_serializer* tm2_s, struct ir_graph* gra
                 const TM2_QuantParam* tm_qtparam = ( TM2_QuantParam* )(mem_base + v_quantparams->offsets[0]);
                 ir_tensor->scale = tm_qtparam->scale;
                 ir_tensor->zero_point = tm_qtparam->zero_point;
+
+//                printf("name %s, scale %f, zero %d\n", ir_tensor->name, ir_tensor->scale, ir_tensor->zero_point);
             }
             else if (v_quantparams->v_num > 1)
             {

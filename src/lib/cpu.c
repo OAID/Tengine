@@ -170,7 +170,7 @@ static int get_max_freq_khz(int cpuid)
 
             fclose(fp);
 
-            if (EOF != ret)
+            if (max_freq_khz <=0 && EOF == ret)
                 return -1;
             else
                 return max_freq_khz;
@@ -258,7 +258,7 @@ int init_cluster_mask()
     for (int i = 0; i < core_count; i++)
     {
         int max_freq_khz = get_max_freq_khz(i);
-//        fprintf(stderr, "cpu %d, max_freq_khz %d\n", i, max_freq_khz);
+        // fprintf(stderr, "cpu %d, max_freq_khz %d\n", i, max_freq_khz);
         max_freq_array[i] = max_freq_khz;
 
         if (max_freq_khz > max_freq_max_val)

@@ -21,12 +21,19 @@
  * Copyright (c) 2020, OPEN AI LAB
  * Author: haoluo@openailab.com
  */
-#ifndef __WINO_CONV_KERNEL_ARM_H_
-#define __WINO_CONV_KERNEL_ARM_H_
+#ifndef __WINO_CONV_KERNEL_X86_H_
+#define __WINO_CONV_KERNEL_X86_H_
 
 #include "tengine_ir.h"
 #include "convolution_param.h"
 #include "../conv_hcl_kernel.h"
+
+#if __SSE2__
+#include <emmintrin.h>
+#endif
+#if __AVX__
+#include <immintrin.h>
+#endif
 
 int wino_conv_hcl_prerun(struct ir_tensor* input_tensor, struct ir_tensor* filter_tensor,
                          struct ir_tensor* output_tensor, struct conv_priv_info* info, struct conv_param* param)

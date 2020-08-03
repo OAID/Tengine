@@ -60,6 +60,12 @@ int benchmark_graph(const char* graph_name, const char* model_file, int img_h, i
     int img_size = img_h * img_w * c;
     int dims[] = {n, c, img_h, img_w};    // nchw
     float* input_data = ( float* )malloc(img_size * sizeof(float));
+
+    if (input_data == NULL)
+    {
+        fprintf(stderr, "malloc input data buffer failed\n");
+        return -1;
+    }
     memset(input_data, 1, img_size * sizeof(float));
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
@@ -222,13 +228,13 @@ int main(int argc, char* argv[])
             benchmark_graph("squeezenet_v1.1",  "./models/squeezenet_v1.1_benchmark.tmfile",    227, 227, 3, 1);
             benchmark_graph("mobilenetv1",      "./models/mobilenet_benchmark.tmfile",          224, 224, 3, 1);
             benchmark_graph("mobilenetv2",      "./models/mobilenet_v2_benchmark.tmfile",       224, 224, 3, 1);
-            benchmark_graph("mobilenetv3",      "./models/mobilenet_v3_benchmark.tmfile",       224, 224, 3, 1);
+//            benchmark_graph("mobilenetv3",      "./models/mobilenet_v3_benchmark.tmfile",       224, 224, 3, 1);
             benchmark_graph("shufflenetv2",     "./models/shufflenet_v2_benchmark.tmfile",      224, 224, 3, 1);
             benchmark_graph("resnet18",         "./models/resnet18_benchmark.tmfile",           224, 224, 3, 1);
             benchmark_graph("resnet50",         "./models/resnet50_benchmark.tmfile",           224, 224, 3, 1);
             benchmark_graph("googlenet",        "./models/googlenet_benchmark.tmfile",          224, 224, 3, 1);
-            benchmark_graph("inceptionv3",      "./models/inception_v3_benchmark.tmfile",       299, 299, 3, 1);
-            benchmark_graph("vgg16",            "./models/vgg16_benchmark.tmfile",              224, 224, 3, 1);
+//            benchmark_graph("inceptionv3",      "./models/inception_v3_benchmark.tmfile",       299, 299, 3, 1);
+//            benchmark_graph("vgg16",            "./models/vgg16_benchmark.tmfile",              224, 224, 3, 1);
             benchmark_graph("mssd",             "./models/mssd_benchmark.tmfile",               300, 300, 3, 1);
             benchmark_graph("retinaface",       "./models/retinaface_benchmark.tmfile",         320, 240, 3, 1);
             benchmark_graph("yolov3_tiny",      "./models/yolov3_tiny_benchmark.tmfile",        416, 416, 3, 1);

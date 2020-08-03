@@ -89,7 +89,6 @@ void destroy_exec_attr(struct ir_graph* g, struct exec_attr* attr);
 int release_dev_mem(struct nn_device* dev, struct dev_mem* dev_mem);
 
 struct exec_scheduler* get_default_scheduler(void);
-struct dev_allocator* get_default_dev_allocator(void);
 struct nn_device* get_default_nn_device(void);
 
 #endif

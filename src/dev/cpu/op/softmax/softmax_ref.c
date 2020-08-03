@@ -151,23 +151,24 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
     int on_in_size = on_size * in_size;
 
-    float* input_f = NULL;
-    float* output_f = NULL;
-
     if (type == TENGINE_DT_UINT8)
     {
-        input_f = ( float* )malloc(on_in_size * 4);
-        output_f = ( float* )malloc(on_in_size * 4);
+        int totol_size = on_in_size * out_size;
+
+        float* input_f = ( float* )malloc(totol_size * 4);
+        float* output_f = ( float* )malloc(totol_size * 4);
 
         float input_scale = input_tensor->scale;
         float output_scale = output_tensor->scale;
         uint8_t input_zero = input_tensor->zero_point;
         uint8_t output_zero = output_tensor->zero_point;
 
+        /* dequant to fp32 */
         for (int i = 0; i < out_size; i++)
             for (int j = 0; j < on_in_size; j++)
                 input_f[i * on_in_size + j] = (input[i * on_in_size + j] - input_zero) * input_scale;
 
+        /* fp32 softmax */
         for (int i = 0; i < out_size; i++)
         {
             /* get max */
@@ -177,6 +178,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
                          exec_graph->num_thread);
         }
 
+        /* quant to uint8 */
         for (int i = 0; i < out_size; i++)
             for (int j = 0; j < on_in_size; j++)
                 output[i * on_in_size + j] = round((output_f[i * on_in_size + j] / output_scale) + output_zero);

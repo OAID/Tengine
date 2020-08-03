@@ -61,6 +61,7 @@ struct exec_node
     };
 
     int shared_mem_size;
+    int shared_pack4_mem_size;
 };
 
 struct mem_block_entry
@@ -92,10 +93,14 @@ struct exec_graph
 
     void* shared_mem;
     int shared_mem_size;
+    void* shared_pack4_mem;
+    int shared_pack4_mem_size;
     int num_thread;
     int cpu_affinity;
 };
 
 #define GET_MEM_PTR_HEADER(ptr) ( struct mem_ptr_header* )(( char* )ptr - 4);
+
+int register_cpu_device(void);
 
 #endif
