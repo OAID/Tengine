@@ -42,9 +42,9 @@ Tengine Lite 核心代码由 4 个模块组成：
 
 ### 转换工具
 
-- [预编译版本](https://github.com/OAID/Tengine/releases/download/lite-v0.1/convert_model_to_tm)：提供 Linux 系统上预编译好的模型转换工具；
+- [预编译版本](https://github.com/OAID/Tengine-Convert-Tools/releases/download/v0.1/tm_convert_tool)：提供 Linux 系统上预编译好的模型转换工具；
 - [在线转换版本](https://convertmodel.com/)：基于 WebAssembly 实现（浏览器本地转换，模型不会上传）；
-- [源码编译](doc/convert_tm.md)：参考原有 Tengine 项目编译生成。
+- [源码编译](https://github.com/OAID/Tengine-Convert-Tools)：参考 **Tengine-Convert-Tools** 项目编译生成。
 
 ### 速度评估
 
