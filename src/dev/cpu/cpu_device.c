@@ -1481,7 +1481,7 @@ static int run(struct nn_device* dev, struct subgraph* subgraph)
         /* TODO: handle the shape changed  and dynamic shape case */
         if (node_ops->reshape && node_ops->reshape(node_ops, node, exec_graph) < 0)
         {
-            TLOG_ERR("%s: failed to run node %d, %s\n", dev->name, node->ir_node->idx, node->ir_node->name);
+            TLOG_ERR("%s: failed to reshape node %d, %s\n", dev->name, node->ir_node->idx, node->ir_node->name);
             return -1;
         }
 
