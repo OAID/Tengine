@@ -57,7 +57,10 @@ static void pad_0_align_2D(float* dst, float* src, int m, int n, int m_align, in
 {
     int i;
     if (n >= n_align && m >= m_align)
+    {
+        memcpy(dst, src, m * n * sizeof(float));
         return;
+    }
     for (i = 0; i < m; ++i)
     {
         memcpy(dst + (i + pad_h) * n_align + pad_w, src + i * n, n * sizeof(float));
@@ -69,7 +72,10 @@ void pad_0_align_3D(float* dst, float* src, int m, int n, int m_align, int n_ali
 {
     int i;
     if (n >= n_align && m >= m_align)
+    {
+        memcpy(dst, src, c * m * n * sizeof(float));
         return;
+    }
     for (i = 0; i < c; ++i)
     {
         pad_0_align_2D(dst + i * m_align * n_align, src + i * m * n, m, n, m_align, n_align, pad_h, pad_w);
@@ -80,7 +86,10 @@ static void delete_0_2D(float* dst, float* src, int m_align, int n_align, int m,
 {
     int i;
     if (n >= n_align && m >= m_align)
+    {
+        memcpy(dst, src, m * n * sizeof(float));
         return;
+    }
     for (i = 0; i < m; ++i)
     {
         memcpy(dst + i * n, src + (i + pad_h) * n_align + pad_w, n * sizeof(float));
@@ -92,7 +101,10 @@ void delete_0_3D(float* dst, float* src, int m_align, int n_align, int m, int n,
 {
     int i;
     if (n >= n_align && m >= m_align)
+    {
+        memcpy(dst, src, c * m * n * sizeof(float));
         return;
+    }
     for (i = 0; i < c; ++i)
     {
         delete_0_2D(dst + i * m * n, src + i * m_align * n_align, m_align, n_align, m, n, pad_h, pad_w);
@@ -1295,8 +1307,8 @@ int wino_conv_hcl_prerun(struct ir_tensor* input_tensor, struct ir_tensor* filte
     int block_w = (output_w + TILE - 1) / TILE;
     int block = block_h * block_w;
 
-    int padded_inh = TILE * block_h + 2 * pad_h;
-    int padded_inw = TILE * block_w + 2 * pad_w;
+    int padded_inh = TILE * block_h + 2;
+    int padded_inw = TILE * block_w + 2;
     int pad_inhw = padded_inh * padded_inw;
 
     int outw = block_w * TILE;
@@ -1383,8 +1395,8 @@ int wino_conv_hcl_run(struct ir_tensor* input_tensor, struct ir_tensor* filter_t
     int block_h = (out_h + TILE - 1) / TILE;
     int block_w = (out_w + TILE - 1) / TILE;
     int block_hw = block_h * block_w;
-    int padded_in_h = block_h * TILE + 2 * pad_h0;
-    int padded_in_w = block_w * TILE + 2 * pad_h0;
+    int padded_in_h = block_h * TILE + 2;
+    int padded_in_w = block_w * TILE + 2;
     int padded_in_hw = padded_in_h * padded_in_w;
 
     /* buffer addr */
