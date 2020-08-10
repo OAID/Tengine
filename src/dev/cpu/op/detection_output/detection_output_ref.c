@@ -159,9 +159,9 @@ static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, 
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct ir_node* ir_node = exec_node->ir_node;
+    struct ir_node* ir_node   = exec_node->ir_node;
     struct ir_graph* ir_graph = ir_node->graph;
-    struct ir_tensor* loc_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    struct ir_tensor* loc_tensor  = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     struct ir_tensor* conf_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
     struct ir_tensor* priorbox_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[2]);
     struct ir_tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
@@ -218,12 +218,12 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     }
 
     const int num_priorx4 = priorbox_tensor->dims[2];
-    const int num_prior = num_priorx4 / 4;
+    const int num_prior   = num_priorx4 / 4;
     const int num_classes = param->num_classes;
 
     int b = 0;
-    float* loc_ptr = location + b * num_priorx4;
-    float* conf_ptr = confidence + b * num_prior * num_classes;
+    float* loc_ptr   = location + b * num_priorx4;
+    float* conf_ptr  = confidence + b * num_prior * num_classes;
     float* prior_ptr = priorbox + b * num_priorx4 * 2;
 
     Box_t boxes[num_prior];

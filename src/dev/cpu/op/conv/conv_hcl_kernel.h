@@ -8,10 +8,8 @@ struct conv_priv_info
 {
     void* interleave_buffer;    // kernel transform buffer
     void* interleave_buffer_pack4;    // kernel pack4
-    void* p_input_max;
     void* im2col_buffer;    // input data transform buffer
     void* im2col_buffer_pack4;    // input data transform buffer pack4
-    void* p_kernel_max;
     void* input_pad;
     void* dot_block;
     void* transform_input;

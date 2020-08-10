@@ -403,36 +403,71 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         input1_count4 = input_tensor1->elem_num;
     }
 
-    int input_chan_0 = 0;
-    int input_hw_0 = 0;
-    int input0_count4 = input_tensor0->elem_num;
+    if (input_tensor0->elem_num >= input_tensor1->elem_num)
+    {
+        int input_chan_0 = 0;
+        int input_hw_0 = 0;
+        int input0_count4 = input_tensor0->elem_num;
 
-    if (layout == TENGINE_LAYOUT_NCHW)
-    {
-        input_chan_0 = input_tensor0->dims[1];
-        input_hw_0 = input_tensor0->dims[2] * input_tensor0->dims[3];
-    }
-    else if (layout == TENGINE_LAYOUT_NHWC)
-    {
-        input_chan_0 = input_tensor0->dims[3];
-        input_hw_0 = input_tensor0->dims[1] * input_tensor0->dims[2];
+        if (layout == TENGINE_LAYOUT_NCHW)
+        {
+            input_chan_0 = input_tensor0->dims[1];
+            input_hw_0 = input_tensor0->dims[2] * input_tensor0->dims[3];
+        }
+        else if (layout == TENGINE_LAYOUT_NHWC)
+        {
+            input_chan_0 = input_tensor0->dims[3];
+            input_hw_0 = input_tensor0->dims[1] * input_tensor0->dims[2];
+        }
+        else
+        {
+            TLOG_ERR("unknown graph layout: %d\n", ir_graph->graph_layout);
+            set_tengine_errno(EFAULT);
+            return -1;
+        }
+
+        int ret = -1;
+        if (input_tensor0->data_type == TENGINE_DT_FP32)
+            ret = ref_eltwise_fp32(output, input0, input1, eltwise_param->type, input0_count4, input_chan_0, input_hw_0,
+                                   input1_count4, exec_graph->num_thread);
+        else
+            ret = ref_eltwise_uint8(output_tensor, input_tensor0, input_tensor1, eltwise_param->type, input0_count4,
+                                    input_chan_0, input_hw_0, input1_count4, exec_graph->num_thread);
+        return ret;
     }
     else
     {
-        TLOG_ERR("unknown graph layout: %d\n", ir_graph->graph_layout);
-        set_tengine_errno(EFAULT);
-        return -1;
+        int input_chan_0 = 0;
+        int input_hw_0 = 0;
+        int input0_count4 = input_tensor1->elem_num;
+        input1_count4 = input_tensor0->elem_num;
+
+        if (layout == TENGINE_LAYOUT_NCHW)
+        {
+            input_chan_0 = input_tensor1->dims[1];
+            input_hw_0 = input_tensor1->dims[2] * input_tensor1->dims[3];
+        }
+        else if (layout == TENGINE_LAYOUT_NHWC)
+        {
+            input_chan_0 = input_tensor1->dims[3];
+            input_hw_0 = input_tensor1->dims[1] * input_tensor1->dims[2];
+        }
+        else
+        {
+            TLOG_ERR("unknown graph layout: %d\n", ir_graph->graph_layout);
+            set_tengine_errno(EFAULT);
+            return -1;
+        }
+
+        int ret = -1;
+        if (input_tensor1->data_type == TENGINE_DT_FP32)
+            ret = ref_eltwise_fp32(output, input1, input0, eltwise_param->type, input0_count4, input_chan_0, input_hw_0,
+                                   input1_count4, exec_graph->num_thread);
+        else
+            ret = ref_eltwise_uint8(output_tensor, input_tensor1, input_tensor0, eltwise_param->type, input0_count4,
+                                    input_chan_0, input_hw_0, input1_count4, exec_graph->num_thread);
+        return ret;
     }
-
-    int ret = -1;
-    if (input_tensor0->data_type == TENGINE_DT_FP32)
-        ret = ref_eltwise_fp32(output, input0, input1, eltwise_param->type, input0_count4, input_chan_0, input_hw_0,
-                               input1_count4, exec_graph->num_thread);
-    else
-        ret = ref_eltwise_uint8(output_tensor, input_tensor0, input_tensor1, eltwise_param->type, input0_count4,
-                                input_chan_0, input_hw_0, input1_count4, exec_graph->num_thread);
-
-    return ret;
 }
 
 static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struct ir_node* exec_node)

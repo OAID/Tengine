@@ -62,10 +62,10 @@ static int tm2_load_deconv(struct ir_graph* ir_graph, struct ir_node* ir_node, c
 
     deconv_param->dilation_h = tm_param->dilation_h;
     deconv_param->dilation_w = tm_param->dilation_w;
-    /* TODO: get input_channel from tm_param */
 
-    deconv_param->group = deconv_param->group;
-
+    deconv_param->group = tm_param->group ;
+    deconv_param->num_output = tm_param->num_output ;
+    deconv_param->activation = tm_param->activation ;
     return 0;
 }
 

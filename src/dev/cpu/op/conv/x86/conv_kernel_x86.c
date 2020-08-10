@@ -1255,7 +1255,7 @@ static int winograd_support(struct conv_param* param, int in_h, int in_w)
         return 0;
 
     if (group != 1 || kernel_h != 3 || kernel_w != 3 || stride_h != 1 || stride_w != 1 || dilation_h != 1 ||
-        dilation_w != 1 || input_chan < 16 || output_chan < 16)
+        dilation_w != 1 || input_chan < 16 || output_chan < 16 || output_chan % 16)
         return 0;
 
     return 1;

@@ -1,4 +1,4 @@
-# macro for adding test
+# macro for adding examples
 macro (tengine_example name file)
     add_executable(${name}
         "${CMAKE_CURRENT_SOURCE_DIR}/${file}"
@@ -17,3 +17,20 @@ tengine_example(tm_mobilenet_ssd_uint8      tm_mobilenet_ssd_uint8.cpp)
 tengine_example(tm_retinaface               tm_retinaface.cpp)
 tengine_example(tm_yolov3_tiny              tm_yolov3_tiny.cpp)
 
+# add examples with opencv
+if (${TENGINE_TARGET_PROCESSOR} MATCHES "X86")
+    find_package(OpenCV REQUIRED)
+    include_directories(${OpenCV_INCLUDE_DIRS})
+
+    if(OpenCV_FOUND)
+        # macro for adding examples
+        macro (tengine_example_cv name file)
+            add_executable(${name}  "${CMAKE_CURRENT_SOURCE_DIR}/${file}")
+            target_link_libraries(${name} ${CMAKE_PROJECT_NAME} ${OpenCV_LIBS})
+        endmacro()
+
+        tengine_example_cv(tm_yolact        tm_yolact.cpp)
+    else()
+        message(WARNING "OpenCV not found, some examples won't be built")    
+    endif()
+endif()

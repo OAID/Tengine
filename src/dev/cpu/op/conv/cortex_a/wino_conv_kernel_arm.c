@@ -985,9 +985,9 @@ static inline void transform_output_f43_4tile(float* buffer_ptr, float* out, int
 
 // trans_input  [block_hw/4][ELEM_SIZE][inc][4]
 // kernel       [out_c/PER_OUT_CHAN][ELEM_SIZE][in_c][PER_OUT_CHAN]
-static void wino_sgemm_set(const float* ker, const float* inp, float* output, const float* bias, int cin, int cout_end,
-                           int block_h, int block_w, int out_h, int out_w, int resi_h, int resi_w, int activation,
-                           int num_thread, int cpu_affinity)
+static void wino_sgemm_set(const float* ker, const float* inp, float* output, const float* bias, int cin,
+                           int cout_end, int block_h, int block_w, int out_h, int out_w, int resi_h,
+                           int resi_w, int activation, int num_thread, int cpu_affinity)
 {
     int flag_outw = 1;
     if (out_w < 16)

@@ -78,18 +78,26 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         struct ir_tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[i]);
         float* input_data = input_tensor->data;
         float* output_data = output_tensor->data;
-        int out_slice = 0;
 
-        out_slice = output_tensor->dims[slice_axis];
-
-        for (int n = 0; n < num_slices; n++)
+        if (split_param->is_caffe)
         {
-            int in_offset = (n * in_slice + slice_index) * slice_size;
-            int out_offset = n * out_slice * slice_size;
-            memcpy(output_data + out_offset, input_data + in_offset, slice_size * out_slice * sizeof(float));
+            memcpy(output_data, input_data, input_tensor->elem_num * sizeof(float));
         }
+        else
+        {
+            int out_slice = 0;
 
-        slice_index += out_slice;
+            out_slice = output_tensor->dims[slice_axis];
+
+            for (int n = 0; n < num_slices; n++)
+            {
+                int in_offset = (n * in_slice + slice_index) * slice_size;
+                int out_offset = n * out_slice * slice_size;
+                memcpy(output_data + out_offset, input_data + in_offset, slice_size * out_slice * sizeof(float));
+            }
+
+            slice_index += out_slice;
+        }
     }
 
     return 0;

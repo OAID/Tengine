@@ -180,8 +180,17 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
         /* quant to uint8 */
         for (int i = 0; i < out_size; i++)
+        {
             for (int j = 0; j < on_in_size; j++)
-                output[i * on_in_size + j] = round((output_f[i * on_in_size + j] / output_scale) + output_zero);
+            {
+                int udata = (int)(round(output_f[i * on_in_size + j] / output_scale) + output_zero);
+                if (udata > 255)
+                    udata = 255;
+                else if (udata < 0)
+                    udata = 0;
+                output[i * on_in_size + j] = udata;
+            }
+        }
 
         free(input_f);
         free(output_f);

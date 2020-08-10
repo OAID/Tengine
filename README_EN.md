@@ -81,6 +81,6 @@ Tengine Lite got ideas and developed based on these projects：
 
 ## Tech Forum
 - Github issues
-- QQ groupchat: 829565581 (Answer: openailab)
+- QQ groupchat: 829565581
 - Email: Support@openailab.com
 - Tengine Community: http://www.tengine.org.cn/

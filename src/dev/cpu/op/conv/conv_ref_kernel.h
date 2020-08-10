@@ -8,8 +8,6 @@ struct conv_priv_info
 {
     void* interleave_buffer;
     void* im2col_buffer;
-    void* p_input_max;
-    void* p_kernel_max;
     int im2col_buffer_size;
     int interleave_buffer_size;
     int external_im2col_mem;

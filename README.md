@@ -78,6 +78,6 @@ Tengine Lite 参考和借鉴了下列项目：
 
 ## 技术讨论
 - Github issues
-- QQ 群: 829565581 (答案：openailab)
+- QQ 群: 829565581
 - Email: Support@openailab.com
 - Tengine 社区: http://www.tengine.org.cn/
