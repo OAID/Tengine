@@ -60,7 +60,8 @@ static int infer_shape(struct ir_node* node)
             else
             {
                 int temp = 1;
-                push_vector_data(new_shape, ( void* )&temp);
+                if (i == 0)
+                    push_vector_data(new_shape, ( void* )&temp);
             }
 
             in_idx++;
@@ -145,6 +146,8 @@ static int infer_shape(struct ir_node* node)
         int* a = ( int* )get_vector_data(new_shape, i);
         new_shape_temp[i] = *a;
     }
+
+    output->layout = input->layout;
 
     set_ir_tensor_shape(output, new_shape_temp, get_vector_num(new_shape));
 

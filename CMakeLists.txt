@@ -65,7 +65,7 @@ option(TENGINE_BUILD_TESTS "build tests" OFF)
 option(TENGINE_DEBUG_DATA "extract data for every layer" OFF)
 option(TENGINE_DEBUG_TIME "print time information for every layer" OFF)
 option(TENGINE_DEBUG_MEM_STAT "print memory status for library" OFF)
-option(TENGINE_ARCH_X86_AVX "build avx2 for x86" OFF)
+option(TENGINE_AVX2 "build avx2 for x86" OFF)
 
 
 # add_definitions(-DCONFIG_DISABLE_PARAM_ACCESS)

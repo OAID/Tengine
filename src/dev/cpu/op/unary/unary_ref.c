@@ -38,11 +38,7 @@ static int ref_unary_fp32(struct ir_tensor* input_tensor, struct ir_tensor* outp
     float* in_data = input_tensor->data;
     float* out_data = output_tensor->data;
 
-    int n = input_tensor->dims[0];
-    int c = input_tensor->dims[1];
-    int h = input_tensor->dims[2];
-    int w = input_tensor->dims[3];
-    int size = n * c * h * w;
+    int size = input_tensor->elem_num;
 
     int type = param->type;
 

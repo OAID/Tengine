@@ -7,10 +7,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
+    - name: update
+      run: sudo apt-get update
+    - name: protobuf
+      run: sudo apt-get install libopencv-dev    
     - name: configure
       run: mkdir build && cd build && cmake ..
     - name: build
       run: cmake --build build -j 2
+
+
+  linux-gcc-avx2:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: update
+      run: sudo apt-get update
+    - name: protobuf
+      run: sudo apt-get install libopencv-dev    
+    - name: configure
+      run: mkdir build && cd build && cmake -DTENGINE_AVX2=ON ..
+    - name: build
+      run: cmake --build build -j 2      
 
 
   android-armv7-a:
