@@ -6,6 +6,7 @@ addons:
   apt:
     packages:
       - cmake
+      - libopencv-dev
 
 matrix:
   include:
