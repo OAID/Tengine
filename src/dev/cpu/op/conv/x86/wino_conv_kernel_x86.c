@@ -832,7 +832,7 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
 
                 for (int i = 0; i < tiles; i++)
                 {
-                    const float* kptr = kernel_tm_test + 4 * r * inch * outch + (p / 8 + (p % 8) / 4) * inch * 32;
+                    const float* kptr = kernel_tm_test + 4 * r * inch * outch + (p / 8 + (p % 8) / 4) * inch * 16;
                     const float* r0 = bottom_blob_tm + 4 * inch * (tiles * r + i);
 #if __AVX__ || __SSE__
 #if __AVX__
@@ -918,7 +918,7 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
                 for (int i = 0; i < tiles; i++)
                 {
                     const float* kptr =
-                        kernel_tm_test + 4 * r * inch * outch + (p / 8 + (p % 8) / 4 + p % 4) * inch * 32;
+                        kernel_tm_test + 4 * r * inch * outch + (p / 8 + (p % 8) / 4 + p % 4) * inch * 4;
                     const float* r0 = bottom_blob_tm + 4 * inch * (tiles * r + i);
 #if __AVX__ || __SSE__
 #if __AVX__
@@ -1226,7 +1226,7 @@ void conv3x3s1_winograd43_transform_kernel_sse(const float* kernel, float* kerne
             const float* kernel2 = ( const float* )kernel_tm + (p + 2) * inch * 36;
             const float* kernel3 = ( const float* )kernel_tm + (p + 3) * inch * 36;
 
-            float* ktmp = kernel_tm_test + (p / 8 + (p % 8) / 4) * inch * 32;
+            float* ktmp = kernel_tm_test + (p / 8 + (p % 8) / 4) * inch * 16;
             for (int q = 0; q < inch; q++)
             {
                 ktmp[0] = kernel0[r * 4 + 0];
@@ -1260,7 +1260,7 @@ void conv3x3s1_winograd43_transform_kernel_sse(const float* kernel, float* kerne
         for (; p < outch; p++)
         {
             const float* kernel0 = ( const float* )kernel_tm + p * inch * 36;
-            float* ktmp = kernel_tm_test + (p / 8 + (p % 8) / 4 + p % 4) * inch * 32;
+            float* ktmp = kernel_tm_test + (p / 8 + (p % 8) / 4 + p % 4) * inch * 4;
 
             for (int q = 0; q < inch; q++)
             {
