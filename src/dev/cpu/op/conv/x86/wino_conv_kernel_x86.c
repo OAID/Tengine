@@ -937,7 +937,7 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
 #else
                         _sum0 = _mm_add_ps(_sum0, _mm_mul_ps(_r0, _k0));
 #endif
-                        kptr += 16;
+                        kptr += 4;
                         r0 += 4;
                     }
                     _mm_storeu_ps(output0_tm, _sum0);
@@ -948,7 +948,7 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
                     {
                         for (int n = 0; n < 4; n++)
                         {
-                            sum0[n] += ( int )r0[n] * kptr[n];
+                            sum0[n] += r0[n] * kptr[n];
                         }
                         kptr += 4;
                         r0 += 4;
