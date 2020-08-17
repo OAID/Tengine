@@ -491,11 +491,6 @@ int conv_hcl_get_shared_mem_size(struct ir_tensor* input, struct ir_tensor* outp
     return mem_size;
 }
 
-int conv_hcl_get_shared_pack4_mem_size(struct ir_tensor* filter, struct ir_tensor* output, struct conv_param* param)
-{
-    return 0;
-}
-
 /*
  * get the memory size for im2col + sgemm of kernel tensor interleave
  */
@@ -525,6 +520,11 @@ int conv_hcl_set_shared_pack4_mem(struct conv_priv_info* priv_info, void* mem, i
     priv_info->im2col_buffer_pack4 = NULL;
     priv_info->im2col_buffer_pack4_size = 0;
 
+    return 0;
+}
+
+int conv_hcl_get_shared_pack4_mem_size(struct ir_tensor* filter, struct ir_tensor* output, struct conv_param* param)
+{
     return 0;
 }
 

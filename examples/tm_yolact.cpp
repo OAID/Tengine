@@ -46,8 +46,12 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
+#include "common.h"
 #include "tengine_c_api.h"
+#include "tengine_operations.h"
 
+#define DEFAULT_REPEAT_COUNT 1
+#define DEFAULT_THREAD_COUNT 1
 
 struct Object
 {
@@ -213,7 +217,7 @@ static void fast_nms(std::vector< std::vector<Object> >& class_candidates, std::
         objects.resize(keep_top_k);
 }
 
-static int detect_yolact(const cv::Mat& bgr, std::vector<Object>& objects)
+static int detect_yolact(const cv::Mat& bgr, std::vector<Object>& objects, const char* model_file, int repeat_count, int num_thread)
 {
     /* inital tengine */
     if (init_tengine() != 0)
@@ -232,7 +236,7 @@ static int detect_yolact(const cv::Mat& bgr, std::vector<Object>& objects)
     const float norm_vals[3] = {1.0/58.40f, 1.0/57.12f, 1.0/57.38f};
 
     /* create graph, load tengine model xxx.tmfile */
-    graph_t graph = create_graph(NULL, "tengine", "./yolact_tm.tmfile");
+    graph_t graph = create_graph(NULL, "tengine", model_file);
     if (NULL == graph)
     {
         fprintf(stderr, "Create graph failed.\n");
@@ -258,7 +262,7 @@ static int detect_yolact(const cv::Mat& bgr, std::vector<Object>& objects)
         return -1;
     }
 
-    if (prerun_graph_multithread(graph, TENGINE_CLUSTER_ALL, 1) < 0)
+    if (prerun_graph_multithread(graph, TENGINE_CLUSTER_ALL, num_thread) < 0)
     {
         fprintf(stderr, "Prerun multithread graph failed.\n");
         return -1;
@@ -272,20 +276,35 @@ static int detect_yolact(const cv::Mat& bgr, std::vector<Object>& objects)
         return -1;
     }
 
-    dump_graph(graph);
-
     /* run graph */
-    if (run_graph(graph, 1) < 0)
+    double min_time = __DBL_MAX__;
+    double max_time = -__DBL_MAX__;
+    double total_time = 0.;
+    for (int i = 0; i < repeat_count; i++)
     {
-        fprintf(stderr, "Run graph failed\n");
-        return -1;
+        double start = get_current_time();
+        if (run_graph(graph, 1) < 0)
+        {
+            fprintf(stderr, "Run graph failed\n");
+            return -1;
+        }
+        double end = get_current_time();
+        double cur = end - start;
+        total_time += cur;
+        if (min_time > cur)
+            min_time = cur;
+        if (max_time < cur)
+            max_time = cur;
     }
+    fprintf(stderr, "Repeat %d times, thread %d, avg time %.2f ms, max_time %.2f ms, min_time %.2f ms\n", repeat_count,
+            num_thread, total_time / repeat_count, max_time, min_time);
+    fprintf(stderr, "--------------------------------------\n");
 
     /* get the result of classification */
-    tensor_t maskmaps_tensor   = get_graph_output_tensor(graph, 0, 0);
-    tensor_t location_tensor   = get_graph_output_tensor(graph, 1, 0);
-    tensor_t mask_tensor       = get_graph_output_tensor(graph, 2, 0);
-    tensor_t confidence_tensor = get_graph_output_tensor(graph, 3, 0);
+    tensor_t maskmaps_tensor   = get_graph_output_tensor(graph, 1, 0);
+    tensor_t location_tensor   = get_graph_output_tensor(graph, 2, 0);
+    tensor_t mask_tensor       = get_graph_output_tensor(graph, 3, 0);
+    tensor_t confidence_tensor = get_graph_output_tensor(graph, 4, 0);
     float* maskmaps     = ( float* )get_tensor_buffer(maskmaps_tensor);
     float* location     = ( float* )get_tensor_buffer(location_tensor);
     float* mask         = ( float* )get_tensor_buffer(mask_tensor);
@@ -508,28 +527,73 @@ static void draw_objects(const cv::Mat& bgr, const std::vector<Object>& objects)
         }
     }
 
-    cv::imwrite("result.png", image);
+    cv::imwrite("yolact_out.png", image);
+}
+
+void show_usage()
+{
+    fprintf(stderr, "[Usage]:  [-h]\n    [-m model_file] [-i image_file] [-r repeat_count] [-t thread_count]\n");
 }
 
 int main(int argc, char** argv)
 {
-    if (argc != 2)
+    int repeat_count = DEFAULT_REPEAT_COUNT;
+    int num_thread = DEFAULT_THREAD_COUNT;
+    char* model_file = nullptr;
+    char* image_file = nullptr;
+
+    int res;
+    while ((res = getopt(argc, argv, "m:i:r:t:h:")) != -1)
     {
-        fprintf(stderr, "Usage: %s [imagepath]\n", argv[0]);
+        switch (res)
+        {
+            case 'm':
+                model_file = optarg;
+                break;
+            case 'i':
+                image_file = optarg;
+                break;
+            case 'r':
+                repeat_count = std::strtoul(optarg, nullptr, 10);
+                break;
+            case 't':
+                num_thread = std::strtoul(optarg, nullptr, 10);
+                break;
+            case 'h':
+                show_usage();
+                return 0;
+            default:
+                break;
+        }
+    }
+
+    /* check files */
+    if (nullptr == model_file)
+    {
+        fprintf(stderr, "Error: Tengine model file not specified!\n");
+        show_usage();
         return -1;
     }
 
-    const char* imagepath = argv[1];
+    if (nullptr == image_file)
+    {
+        fprintf(stderr, "Error: Image file not specified!\n");
+        show_usage();
+        return -1;
+    }
 
-    cv::Mat m = cv::imread(imagepath, 1);
+    if (!check_file_exist(model_file) || !check_file_exist(image_file))
+        return -1;
+
+    cv::Mat m = cv::imread(image_file, 1);
     if (m.empty())
     {
-        fprintf(stderr, "cv::imread %s failed\n", imagepath);
+        fprintf(stderr, "cv::imread %s failed\n", image_file);
         return -1;
     }
 
     std::vector<Object> objects;
-    detect_yolact(m, objects);
+    detect_yolact(m, objects, model_file, repeat_count, num_thread);
     draw_objects(m, objects);
 
     return 0;

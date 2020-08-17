@@ -1,4 +1,5 @@
-# macro for adding examples
+# add examples with metal
+# macro for adding test
 macro (tengine_example name file)
     add_executable(${name}
         "${CMAKE_CURRENT_SOURCE_DIR}/${file}"
@@ -16,6 +17,10 @@ tengine_example(tm_mobilenet_ssd            tm_mobilenet_ssd.c)
 tengine_example(tm_mobilenet_ssd_uint8      tm_mobilenet_ssd_uint8.cpp)
 tengine_example(tm_retinaface               tm_retinaface.cpp)
 tengine_example(tm_yolov3_tiny              tm_yolov3_tiny.cpp)
+tengine_example(tm_yolov3_uint8             tm_yolov3_uint8.cpp)
+tengine_example(tm_landmark                 tm_landmark.cpp)
+tengine_example(tm_landmark_uint8           tm_landmark_uint8.cpp)
+
 
 # add examples with opencv
 if (${TENGINE_TARGET_PROCESSOR} MATCHES "X86")
@@ -25,12 +30,14 @@ if (${TENGINE_TARGET_PROCESSOR} MATCHES "X86")
     if(OpenCV_FOUND)
         # macro for adding examples
         macro (tengine_example_cv name file)
-            add_executable(${name}  "${CMAKE_CURRENT_SOURCE_DIR}/${file}")
+            add_executable(${name}
+                    "${CMAKE_CURRENT_SOURCE_DIR}/${file}"
+                    "${CMAKE_CURRENT_SOURCE_DIR}/common/tengine_operations.c")
             target_link_libraries(${name} ${CMAKE_PROJECT_NAME} ${OpenCV_LIBS})
         endmacro()
 
         tengine_example_cv(tm_yolact        tm_yolact.cpp)
     else()
-        message(WARNING "OpenCV not found, some examples won't be built")    
+        message(WARNING "OpenCV not found, some examples won't be built")
     endif()
 endif()

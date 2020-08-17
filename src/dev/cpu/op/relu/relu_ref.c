@@ -114,7 +114,7 @@ static int ref_relu_uint8(struct ir_tensor* input_tensor, struct ir_tensor* outp
 
     for(int i=0; i<total_size; i++)
     {
-        data_fp32[i] = (input_uint8[i] - input_zero) * input_scale;
+        data_fp32[i] = ((float )input_uint8[i] - (float )input_zero) * input_scale;
     }
 
     /* process */
