@@ -22,19 +22,16 @@
  * Author: qtang@openailab.com
  */
 
+#include <math.h>
 #include "sys_port.h"
 #include "module.h"
-#include "tengine_errno.h"
-#include "tengine_log.h"
 #include "tengine_ir.h"
 #include "../../cpu_node_ops.h"
 #include "tengine_op.h"
 #include "upsample_param.h"
-#include <math.h>
 
 static int ref_upsample_fp32(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor,
                              struct upsample_param* param, int num_thread)
-// static int ref_upsample_fp32(float* input, float* output, upsample_param* param)
 {
     float* input = input_tensor->data;
     float* output = output_tensor->data;
@@ -68,6 +65,74 @@ static int ref_upsample_fp32(struct ir_tensor* input_tensor, struct ir_tensor* o
     return 0;
 }
 
+static int ref_upsample_uint8(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor,
+                              struct upsample_param* param, int num_thread)
+{
+    float* input = input_tensor->data;
+    float* output = output_tensor->data;
+
+    float scale = param->scale;
+    int batch = output_tensor->dims[0];
+    int channel = output_tensor->dims[1];
+    int out_h = output_tensor->dims[2];
+    int out_w = output_tensor->dims[3];
+    int input_h = input_tensor->dims[2];
+    int input_w = input_tensor->dims[3];
+
+    /* dequant */
+    uint8_t* input_uint8 = input_tensor->data;
+    uint8_t* output_uint8 = output_tensor->data;
+    float input_scale = input_tensor->scale;
+    float output_scale = output_tensor->scale;
+    int32_t input_zero = input_tensor->zero_point;
+    int32_t output_zero = output_tensor->zero_point;
+    int input_size = input_tensor->elem_num;
+    int output_size = output_tensor->elem_num;
+
+    float* input_fp32 = ( float* )sys_malloc(input_size * sizeof(float));
+    float* output_fp32 = ( float* )sys_malloc(output_size * sizeof(float));
+
+    for (int i = 0; i < input_size; i++)
+    {
+        input_fp32[i] = (( float )input_uint8[i] - ( float )input_zero) * input_scale;
+    }
+
+    /* fp32 inference */
+    for (int n = 0; n < batch; ++n)
+    {
+        for (int c = 0; c < channel; c++)
+        {
+            for (int h = 0; h < out_h; h++)
+            {
+                for (int w = 0; w < out_w; w++)
+                {
+                    int in_w = w / scale;
+                    int in_h = h / scale;
+                    int out_idx = n * channel * out_h * out_w + c * out_h * out_w + h * out_w + w;
+                    int in_idx = n * channel * input_h * input_w + c * input_w * input_h + in_h * input_w + in_w;
+                    output_fp32[out_idx] = input_fp32[in_idx];
+                }
+            }
+        }
+    }
+
+    /* quant */
+    for (int i = 0; i < output_size; i++)
+    {
+        int udata = round(output_fp32[i] / output_scale + output_zero);
+        if (udata > 255)
+            udata = 255;
+        else if (udata < 0)
+            udata = 0;
+        output_uint8[i] = udata;
+    }
+
+    sys_free(input_fp32);
+    sys_free(output_fp32);
+
+    return 0;
+}
+
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     return 0;
@@ -90,9 +155,13 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
     struct upsample_param* upsample_param = ( struct upsample_param* )ir_node->op.param_mem;
 
-    ref_upsample_fp32(input_tensor, output_tensor, upsample_param, exec_graph->num_thread);
+    int ret = -1;
+    if (input_tensor->data_type == TENGINE_DT_FP32)
+        ret = ref_upsample_fp32(input_tensor, output_tensor, upsample_param, exec_graph->num_thread);
+    else
+        ret = ref_upsample_uint8(input_tensor, output_tensor, upsample_param, exec_graph->num_thread);
 
-    return 0;
+    return ret;
 }
 
 static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struct ir_node* exec_node)

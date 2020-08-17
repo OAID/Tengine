@@ -44,7 +44,10 @@ static double get_current_time()
 
 static int get_private_mem_size(struct ir_tensor* filter)
 {
-    return filter->elem_num * filter->elem_size;    // caution
+    if (filter->data_type == TENGINE_DT_UINT8)    // simulator uint8 inference with fp32
+        return filter->elem_num * filter->elem_size * 4;
+    else
+        return filter->elem_num * filter->elem_size;    // caution
 }
 
 static void interleave(struct ir_tensor* filter, struct conv_priv_info* priv_info)
@@ -53,7 +56,21 @@ static void interleave(struct ir_tensor* filter, struct conv_priv_info* priv_inf
     memcpy(priv_info->interleave_buffer, filter->data, filter->elem_num * filter->elem_size);
 }
 
-void im2col(float* data_img, float* data_col, int inh, int inw, int inc, int outh, int outw, int outc, int ksize_h,
+static void interleave_uint8(struct ir_tensor* filter, struct conv_priv_info* priv_info)
+{
+    /* dequant uint8 weight to fp32 for simulator */
+    float* weight_fp32 = (float* )priv_info->interleave_buffer;
+    uint8_t* weight_uint8 = (uint8_t*)filter->data;
+    float scale = filter->scale;
+    int zero_point = filter->zero_point;
+
+    for (int i = 0; i < filter->elem_num; i++)
+    {
+        weight_fp32[i] = ((float)weight_uint8[i] - (float)zero_point) * scale;
+    }
+}
+
+void im2col_fp32(float* data_img, float* data_col, int inh, int inw, int inc, int outh, int outw, int ksize_h,
             int ksize_w, int sh, int sw, int ph, int pw, int dh, int dw)
 {
     const int channels_col = ksize_h * ksize_w * inc;
@@ -95,6 +112,69 @@ void im2col(float* data_img, float* data_col, int inh, int inw, int inc, int out
     }
 }
 
+void im2col_uint8(uint8_t* data_img, float* data_col, struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, struct conv_param* param)
+{
+    int ksize_h = param->kernel_h;
+    int ksize_w = param->kernel_w;
+
+    int inc = param->input_channel / param->group;
+    int sh = param->stride_h;
+    int sw = param->stride_w;
+    int ph = param->pad_h0;
+    int pw = param->pad_w0;
+    int dh = param->dilation_h;
+    int dw = param->dilation_w;
+
+    int inh = input_tensor->dims[2];
+    int inw = input_tensor->dims[3];
+    int outh = output_tensor->dims[2];
+    int outw = output_tensor->dims[3];
+
+    float scale = input_tensor->scale;
+    int zero_point = input_tensor->zero_point;
+
+    const int channels_col = ksize_h * ksize_w * inc;
+
+    for (int c = 0; c < channels_col; ++c)
+    {
+        const int kw = c % ksize_w;
+        int c_ = c / ksize_w;
+        const int kh = c_ % ksize_h;
+        c_ = c_ / ksize_h;
+        const int im_col = kw * dw - pw;
+        const int w_low = max(0, -im_col / sw + (-im_col % sw > 0));
+        const int w_high = min(outw, (inw - im_col) / sw + ((inw - im_col) % sw > 0));
+
+        for (int h = 0; h < outh; ++h)
+        {
+            const int im_row = kh * dh + h * sh - ph;
+            float* out = data_col + (c * outh + h) * outw;
+            const float* end = out + w_high;
+
+            if (im_row >= 0 && im_row < inh)
+            {
+                uint8_t * in = data_img + inw * (im_row + inh * c_) + im_col + (w_low - 1) * sw;
+
+                memset(out, 0, w_low * sizeof(float));
+                out += w_low;
+                while (out < end)
+                {
+                    in += sw;
+
+                    float in_fp32 = ((float)in[0] - (float)zero_point) * scale;
+                    out[0] = in_fp32;
+                    out++;
+                }
+                memset(out, 0, (outw - w_high) * sizeof(float));
+            }
+            else
+            {
+                memset(out, 0, outw * sizeof(float));
+            }
+        }
+    }
+}
+
 static void im2col_ir(struct ir_tensor* input, struct ir_tensor* output, struct conv_priv_info* priv_info,
                       struct conv_param* param, int n, int group)
 {
@@ -105,14 +185,11 @@ static void im2col_ir(struct ir_tensor* input, struct ir_tensor* output, struct 
     void* input_base = input->data + (n * image_size + group * group_size) * input->elem_size;
     void* im2col_buf = priv_info->im2col_buffer;
 
-    int input_zero = 0;
-
     if (input->data_type == TENGINE_DT_UINT8)
-        input_zero = input->zero_point;
-
-    im2col(input_base, im2col_buf, input->dims[2], input->dims[3], input_chan, output->dims[2], output->dims[3],
-           output->dims[1] / param->group, param->kernel_h, param->kernel_w, param->stride_h, param->stride_w,
-           param->pad_h0, param->pad_w0, param->dilation_h, param->dilation_w);
+        im2col_uint8(input_base, im2col_buf, input, output, param);
+    else
+        im2col_fp32(input_base, im2col_buf, input->dims[2], input->dims[3], input_chan, output->dims[2], output->dims[3],
+               param->kernel_h, param->kernel_w, param->stride_h, param->stride_w, param->pad_h0, param->pad_w0, param->dilation_h, param->dilation_w);
 }
 
 #if __AVX__
@@ -1238,6 +1315,99 @@ static void sgemm_fp32(struct ir_tensor* input, struct ir_tensor* filter, struct
     }
 }
 
+static void sgemm_uint8(struct ir_tensor* input, struct ir_tensor* filter, struct ir_tensor* bias,
+                        struct ir_tensor* output, struct conv_priv_info* priv_info, struct conv_param* param, int n,
+                        int group, int num_thread)
+{
+    int kernel_size = param->kernel_h * param->kernel_w * param->input_channel / param->group;
+    int outchan_g = param->output_channel / param->group;
+
+    int out_h = output->dims[2];
+    int out_w = output->dims[3];
+    int out_image_size = output->dims[1] * output->dims[2] * output->dims[3];
+
+    float* interleave_fp32 = ( float* )priv_info->interleave_buffer_pack4 + outchan_g * group * kernel_size;
+    float* im2col_pack4_fp32 = priv_info->im2col_buffer_pack4;
+    uint8_t * output_uint8 = ( uint8_t* )output->data + n * out_image_size + outchan_g * group * out_h * out_w;
+    int* bias_int32 = NULL;
+    float bias_scale = 0.f;
+
+    if (bias)
+    {
+        bias_int32 = ( int* )bias->data + outchan_g * group;
+        bias_scale = input->scale * filter->scale;
+    }
+
+    float* filter_sgemm = interleave_fp32;
+    float* input_sgemm_pack4 = im2col_pack4_fp32;
+    float* output_sgemm = (float*)sys_malloc(outchan_g * out_h * out_w * sizeof(float));
+
+    sgemm(outchan_g, out_h * out_w, kernel_size, filter_sgemm, input_sgemm_pack4, output_sgemm, num_thread);
+
+    /* process bias */
+    if (bias)
+    {
+        for (int i = 0; i < outchan_g; i++)
+        {
+            for (int j = 0; j < out_h * out_w; j++)
+            {
+                int output_off = i * (out_h * out_w) + j;
+                output_sgemm[output_off] += (float )bias_int32[i] * bias_scale;
+            }
+        }
+    }
+
+    /* process activation relu */
+    if (param->activation == 0)
+    {
+        for (int i = 0; i < outchan_g; i++)
+        {
+            for (int j = 0; j < out_h * out_w; j++)
+            {
+                int output_off = i * (out_h * out_w) + j;
+
+                if (output_sgemm[output_off] < 0)
+                    output_sgemm[output_off] = 0;
+            }
+        }
+    }
+
+    /* process activation relu6 */
+    if (param->activation > 0)
+    {
+        for (int i = 0; i < outchan_g; i++)
+        {
+            for (int j = 0; j < out_h * out_w; j++)
+            {
+                int output_off = i * (out_h * out_w) + j;
+
+                if (output_sgemm[output_off] < 0)
+                    output_sgemm[output_off] = 0;
+                if (output_sgemm[output_off] > 6)
+                    output_sgemm[output_off] = 6;
+            }
+        }
+    }
+
+    /* quant from fp32 to uint8 */
+    for (int i = 0; i < outchan_g; i++)
+    {
+        for (int j = 0; j < out_h * out_w; j++)
+        {
+            int output_off = i * (out_h * out_w) + j;
+
+            int udata = ( int )(round(output_sgemm[output_off] / output->scale) + output->zero_point);
+            if (udata > 255)
+                udata = 255;
+            else if (udata < 0)
+                udata = 0;
+            output_uint8[output_off] = udata;
+        }
+    }
+
+    sys_free(output_sgemm);
+}
+
 /* check the conv wheather need to be using winograd */
 static int winograd_support(struct conv_param* param, int in_h, int in_w)
 {
@@ -1269,6 +1439,10 @@ int conv_hcl_get_shared_mem_size(struct ir_tensor* input, struct ir_tensor* outp
     int output_xy = output->dims[2] * output->dims[3];
     int elem_size = input->elem_size;
 
+    // simulator uint8 inference with fp32
+    if (input->data_type == TENGINE_DT_UINT8)
+        elem_size = 4;
+
     return elem_size * output_xy * kernel_size;
 }
 
@@ -1279,11 +1453,21 @@ int conv_hcl_get_shared_pack4_mem_size(struct ir_tensor* filter, struct ir_tenso
     int N = output->dims[2] * output->dims[3];
     int elem_size = filter->elem_size;
 
+    // simulator uint8 inference with fp32
+    if (filter->data_type == TENGINE_DT_UINT8)
+        elem_size = 4;
+
     return (8 * K * (N / 8 + N % 8)) * elem_size;
 }
 int conv_hcl_get_interleave_pack4_size(int M, int K, struct ir_tensor* filter)
 {
-    int size = 8 * K * (M / 8 + (M % 8) / 4 + M % 4) * filter->elem_size;
+    int elem_size = filter->elem_size;
+
+    // simulator uint8 inference with fp32
+    if (filter->data_type == TENGINE_DT_UINT8)
+        elem_size = 4;
+
+    int size = 8 * K * (M / 8 + (M % 8) / 4 + M % 4) * elem_size;
     return size;
 }
 void conv_hcl_interleave_pack4(int M, int K, struct conv_priv_info* priv_info)
@@ -1382,11 +1566,21 @@ int conv_hcl_get_shared_pack4_mem_size(struct ir_tensor* filter, struct ir_tenso
     int N = output->dims[2] * output->dims[3];
     int elem_size = filter->elem_size;
 
+    // simulator uint8 inference with fp32
+    if (filter->data_type == TENGINE_DT_UINT8)
+        elem_size = 4;
+
     return (4 * K * (N / 4 + N % 4)) * elem_size;
 }
 int conv_hcl_get_interleave_pack4_size(int M, int K, struct ir_tensor* filter)
 {
-    int size = 4 * K * (M / 4 + M % 4) * filter->elem_size;
+    int elem_size = filter->elem_size;
+
+    // simulator uint8 inference with fp32
+    if (filter->data_type == TENGINE_DT_UINT8)
+        elem_size = 4;
+
+    int size = 4 * K * (M / 4 + M % 4) * elem_size;
     return size;
 }
 void conv_hcl_interleave_pack4(int M, int K, struct conv_priv_info* priv_info)
@@ -1445,10 +1639,13 @@ int conv_hcl_prerun(struct ir_tensor* input_tensor, struct ir_tensor* filter_ten
     int in_w = input_tensor->dims[3];
 
     /* check winograd implement, only for conv3x3s1 */
-    priv_info->winograd = winograd_support(param, in_h, in_w);
-    if (priv_info->winograd)
+    if (input_tensor->data_type == TENGINE_DT_FP32)
     {
-        return wino_conv_hcl_prerun(input_tensor, filter_tensor, output_tensor, priv_info, param);
+        priv_info->winograd = winograd_support(param, in_h, in_w);
+        if (priv_info->winograd)
+        {
+            return wino_conv_hcl_prerun(input_tensor, filter_tensor, output_tensor, priv_info, param);
+        }
     }
 
     if (!priv_info->external_im2col_mem)
@@ -1474,7 +1671,10 @@ int conv_hcl_prerun(struct ir_tensor* input_tensor, struct ir_tensor* filter_ten
         priv_info->interleave_buffer_size = mem_size;
     }
 
-    interleave(filter_tensor, priv_info);
+    if (input_tensor->data_type == TENGINE_DT_UINT8)
+        interleave_uint8(filter_tensor, priv_info);
+    else
+        interleave(filter_tensor, priv_info);
 
     if (priv_info->external_interleave_pack4_mem)
     {
@@ -1557,7 +1757,9 @@ int conv_hcl_run(struct ir_tensor* input_tensor, struct ir_tensor* filter_tensor
             float* im2col_pack4_fp32 = priv_info->im2col_buffer_pack4;
             input_pack4(K, N, im2col_fp32, im2col_pack4_fp32, num_thread);
 
-            if (type == TENGINE_DT_FP32)
+            if (type == TENGINE_DT_UINT8)
+                sgemm_uint8(input_tensor, filter_tensor, bias_tensor, output_tensor, priv_info, param, i, j, num_thread);
+            else
                 sgemm_fp32(input_tensor, filter_tensor, bias_tensor, output_tensor, priv_info, param, i, j, num_thread);
         }
     }

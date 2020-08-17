@@ -19,7 +19,7 @@
 
 /*
  * Copyright (c) 2020, OPEN AI LAB
- * Author: ruizhang@openailab.com
+ * Author: qtang@openailab.com
  */
 
 #include <unistd.h>
@@ -77,7 +77,10 @@ const int classes = 80;
 const float thresh = 0.5;
 const float hier_thresh = 0.5;
 const float nms = 0.45;
+const int numBBoxes = 5;
 const int relative = 1;
+const int yolov3_numAnchors = 6;
+const int yolov2_numAnchors = 5;
 
 // yolov3
 float biases[18] = {10, 13, 16, 30, 33, 23, 30, 61, 62, 45, 59, 119, 116, 90, 156, 198, 373, 326};
@@ -617,7 +620,8 @@ image letterbox_image(image im, int w, int h)
     return boxed;
 }
 
-void get_input_data_darknet(const char* image_file, float* input_data, int net_h, int net_w)
+void get_input_data_darknet_uint8(const char* image_file, uint8_t* input_data, int net_h, int net_w, float input_scale,
+                                  int zero_point)
 {
     int size = 3 * net_w * net_h;
     image sized;
@@ -627,7 +631,17 @@ void get_input_data_darknet(const char* image_file, float* input_data, int net_h
         im.data[i] = im.data[i] / 255;
     }
     sized = letterbox(im, net_w, net_h);
-    memcpy(input_data, sized.data, size * sizeof(float));
+
+    for (int i = 0; i < size; i++)
+    {
+        int udata = (round)(sized.data[i] / input_scale + ( float )zero_point);
+        if (udata > 255)
+            udata = 255;
+        else if (udata < 0)
+            udata = 0;
+
+        input_data[i] = udata;
+    }
 
     free_image(sized);
     free_image(im);
@@ -647,9 +661,9 @@ int main(int argc, char* argv[])
 
     int layer_type = 0;
     int numBBoxes = 3;
-    int total_numAnchors = 6;
-    int net_w = 416;
-    int net_h = 416;
+    int total_numAnchors = 9;
+    int net_w = 608;
+    int net_h = 608;
 
     int res;
     while ((res = getopt(argc, argv, "m:i:r:t:h:")) != -1)
@@ -711,7 +725,7 @@ int main(int argc, char* argv[])
     int img_size = net_h * net_w * 3;
     int dims[] = {1, 3, net_h, net_w};    // nchw
 
-    std::vector<float> input_data(img_size);
+    std::vector<uint8_t> input_data(img_size);
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == nullptr)
@@ -733,8 +747,11 @@ int main(int argc, char* argv[])
     }
 
     /* prepare process input data, set the data mem to input tensor */
-    get_input_data_darknet(image_file, input_data.data(), net_h, net_w);
-    if (set_tensor_buffer(input_tensor, input_data.data(), img_size * 4) < 0)
+    float input_scale = 0.f;
+    int input_zero_point = 0;
+    get_tensor_quant_param(input_tensor, &input_scale, &input_zero_point, 1);
+    get_input_data_darknet_uint8(image_file, input_data.data(), net_h, net_w, input_scale, input_zero_point);
+    if (set_tensor_buffer(input_tensor, input_data.data(), img_size) < 0)
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;
@@ -778,8 +795,22 @@ int main(int argc, char* argv[])
         int out_h = out_dim[2];
         l_params = make_darknet_layer(1, out_w, out_h, net_w, net_h, numBBoxes, total_numAnchors, classes, layer_type);
         layers_params.push_back(l_params);
-        float* out_data = ( float* )get_tensor_buffer(out_tensor);
-        forward_darknet_layer_cpu(out_data, l_params);
+
+        /* dequant output data */
+        float output_scale = 0.f;
+        int output_zero_point = 0;
+        get_tensor_quant_param(out_tensor, &output_scale, &output_zero_point, 1);
+        int count = get_tensor_buffer_size(out_tensor) / sizeof(uint8_t);
+        uint8_t* data_uint8 = ( uint8_t* )get_tensor_buffer(out_tensor);
+        float* data_fp32 = ( float* )malloc(sizeof(float) * count);
+        for (int c = 0; c < count; c++)
+        {
+            data_fp32[c] = (( float )data_uint8[c] - ( float )output_zero_point) * output_scale;
+        }
+
+        forward_darknet_layer_cpu(data_fp32, l_params);
+
+        free(data_fp32);
     }
     int nboxes = 0;
     // get network boxes

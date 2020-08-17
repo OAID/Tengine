@@ -43,7 +43,7 @@ int ref_clip_fp32(struct ir_tensor* input_tensor, struct ir_tensor* output_tenso
     float* input_data = input_tensor->data;
     float* out_data = output_tensor->data;
 
-#pragma omp parallel for num_threads(num_thread)
+    #pragma omp parallel for num_threads(num_thread)
     for (int q = 0; q < channels; q++)
     {
         float* src = input_data + c_step * q;

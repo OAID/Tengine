@@ -178,8 +178,8 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     struct ir_graph* ir_graph = ir_node->graph;
     struct ir_tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
 
-    /* todo support uint8 */
-    if (input_tensor->data_type != TENGINE_DT_FP32)
+    /* todo support int8/fp16 */
+    if (input_tensor->data_type != TENGINE_DT_FP32 && input_tensor->data_type != TENGINE_DT_UINT8)
         return 0;
 
     return OPS_SCORE_BEST;
