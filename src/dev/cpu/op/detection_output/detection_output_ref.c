@@ -159,25 +159,71 @@ static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, 
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct ir_node* ir_node = exec_node->ir_node;
+    struct ir_node* ir_node   = exec_node->ir_node;
     struct ir_graph* ir_graph = ir_node->graph;
-    struct ir_tensor* loc_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    struct ir_tensor* loc_tensor  = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     struct ir_tensor* conf_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
     struct ir_tensor* priorbox_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[2]);
     struct ir_tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
     detection_output_param_t* param = ( detection_output_param_t* )(ir_node->op.param_mem);
 
-    float* location = ( float* )loc_tensor->data;
-    float* confidence = ( float* )conf_tensor->data;
-    float* priorbox = ( float* )priorbox_tensor->data;
+    float* location   = NULL;
+    float* confidence = NULL;
+    float* priorbox   = NULL;
+
+    /* use original fp32 data or dequant uint8 to fp32 */
+    if (loc_tensor->data_type == TENGINE_DT_FP32)
+        location = ( float* )loc_tensor->data;
+    else
+    {
+        uint8_t* location_u8 = loc_tensor->data;
+        uint32_t elem_num    = loc_tensor->elem_num;
+        uint32_t zero_point  = loc_tensor->zero_point;
+        float scale = loc_tensor->scale;
+        location = (float*)sys_malloc(elem_num * sizeof(float));
+        for (int i=0; i<elem_num; i++)
+        {
+            location[i] = ((float)location_u8[i] - (float)zero_point) * scale;
+        }
+    }
+
+    if (conf_tensor->data_type == TENGINE_DT_FP32)
+        confidence = ( float* )conf_tensor->data;
+    else
+    {
+        uint8_t* confidence_u8 = conf_tensor->data;
+        uint32_t elem_num      = conf_tensor->elem_num;
+        uint32_t zero_point    = conf_tensor->zero_point;
+        float scale = conf_tensor->scale;
+        confidence = (float*)sys_malloc(elem_num * sizeof(float));
+        for (int i=0; i<elem_num; i++)
+        {
+            confidence[i] = ((float)confidence_u8[i] - (float)zero_point) * scale;
+        }
+    }
+
+    if (priorbox_tensor->data_type == TENGINE_DT_FP32)
+        priorbox = ( float* )priorbox_tensor->data;
+    else
+    {
+        uint8_t* priorbox_u8 = priorbox_tensor->data;
+        uint32_t elem_num    = priorbox_tensor->elem_num;
+        uint32_t zero_point  = priorbox_tensor->zero_point;
+        float scale = priorbox_tensor->scale;
+        priorbox = (float*)sys_malloc(elem_num * sizeof(float));
+        for (int i=0; i<elem_num; i++)
+        {
+            priorbox[i] = ((float)priorbox_u8[i] - (float)zero_point) * scale;
+        }
+    }
 
     const int num_priorx4 = priorbox_tensor->dims[2];
-    const int num_prior = num_priorx4 / 4;
+    const int num_prior   = num_priorx4 / 4;
     const int num_classes = param->num_classes;
 
     int b = 0;
-    float* loc_ptr = location + b * num_priorx4;
-    float* conf_ptr = confidence + b * num_prior * num_classes;
+    float* loc_ptr   = location + b * num_priorx4;
+    float* conf_ptr  = confidence + b * num_prior * num_classes;
     float* prior_ptr = priorbox + b * num_priorx4 * 2;
 
     Box_t boxes[num_prior];
@@ -231,11 +277,17 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     set_ir_tensor_shape(output_tensor, dims, 4);
 
     // output
-    float* output_data = ( float* )output_tensor->data;
+    float* output_fp32 = NULL;
+    if (output_tensor->data_type == TENGINE_DT_FP32)
+        output_fp32 = ( float* )output_tensor->data;
+    else
+    {
+        output_fp32 = (float*)sys_malloc(output_tensor->elem_num * sizeof(float ));
+    }
 
     for (int i = 0; i < num_detected; i++)
     {
-        float* outptr = output_data + i * 6;
+        float* outptr = output_fp32 + i * 6;
         outptr[0] = bbox_rects[i].class_idx;
         outptr[1] = bbox_rects[i].score;
         outptr[2] = bbox_rects[i].x0;
@@ -246,6 +298,30 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
     sys_free(bbox_rects);
     release_vector(output_bbox_v);
+
+    /* quant uint8 */
+    if (output_tensor->data_type == TENGINE_DT_UINT8)
+    {
+        uint8_t* output_u8 = output_tensor->data;
+        uint32_t elem_num = output_tensor->elem_num;
+        float scale = output_tensor->scale;
+        uint32_t zero_point = output_tensor->zero_point;
+        for(int i=0; i<elem_num; i++)
+        {
+            int udata = (int)(output_fp32[i] / scale + zero_point);
+            if (udata > 255)
+                udata = 255;
+            else if (udata < 0)
+                udata = 0;
+
+            output_u8[i] = udata;
+        }
+
+        sys_free(location);
+        sys_free(confidence);
+        sys_free(priorbox);
+        sys_free(output_fp32);
+    }
 
     return 0;
 }

@@ -101,6 +101,14 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
 
     int pool_size = 0;
 
+    struct ir_node* ir_node = exec_node;
+    struct ir_graph* ir_graph = ir_node->graph;
+    struct ir_tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+
+    /* todo support uint8 */
+    if (input_tensor->data_type != TENGINE_DT_FP32)
+        return 0;    
+
     /* filter perf global pooling case */
     if (global)
         return OPS_SCORE_BEST;

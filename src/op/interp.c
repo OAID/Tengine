@@ -53,8 +53,16 @@ static int infer_shape(struct ir_node* node)
         return -1;
     }
 
-    param->output_height = in_h * param->height_scale;
-    param->output_width = in_w * param->width_scale;
+    if (param->height_scale != 0 && param->width_scale != 0)
+    {
+        param->output_height = in_h * param->height_scale;
+        param->output_width = in_w * param->width_scale;
+    }
+    else
+    {
+        param->height_scale = (float )param->output_height / (float )in_h;
+        param->width_scale = (float )param->output_width / (float )in_w;
+    }
 
     int dim[4] = {0};
 

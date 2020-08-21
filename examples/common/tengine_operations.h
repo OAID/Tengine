@@ -64,7 +64,7 @@ typedef struct
  * read image to buffer
  * @param [in] filename: image name
  * @param [in] channels: c
-*/
+ */
 image load_image_stb(const char* filename, int channels);
 
 /**
@@ -72,7 +72,7 @@ image load_image_stb(const char* filename, int channels);
  * @param [in] w: image's w
  * @param [in] h: image's h
  * @param [in] c: image's c
-*/
+ */
 image make_image(int w, int h, int c);
 
 /**
@@ -104,54 +104,54 @@ void add_image(image source, image dest, int dx, int dy);
  * @param [out] input_data: data buffer
  * @param [in] img_h: image's h
  * @param [in] img_w: image's w
- * @param [in] mean: means 
+ * @param [in] mean: means
  * @param [in] scale: scale
  */
-void get_input_data(const char* image_file, float* input_data, int img_h, int img_w, const float* mean, const float* scale);
+void get_input_data(const char* image_file, float* input_data, int img_h, int img_w, const float* mean,
+                    const float* scale);
 
 /**
  * read image and output with nhwc format
- * @param [in] filename: image name 
+ * @param [in] filename: image name
  * @param [in] img_w: resize width
  * @param [in] img_h: resize height
  * @param [in] means: image means value, needs to be size of three: means[0], means[1], means[2]
  * @param [in] scale: image scale value, needs to be size of three: scale[0], scale[1], scale[2]
  * @param [in] convert: image data format, RGB, BGR, GRAY
-*/
+ */
 image imread2tf(image im, int img_w, int img_h, float* means, float* scale);
-
 
 /**
  * read image and output with nchw format
- * @param [in] filename: image name 
+ * @param [in] filename: image name
  * @param [in] img_w: resize width
  * @param [in] img_h: resize height
  * @param [in] means: image means value, needs to be size of three: means[0], means[1], means[2]
  * @param [in] scale: image scale value, needs to be size of three: scale[0], scale[1], scale[2]
  * @param [in] convert: image data format, RGB, BGR, GRAY
-*/
+ */
 image imread2caffe(image im, int img_w, int img_h, float* means, float* scale);
 
 /**
  * read image and output with nchw format
- * @param [in] filename: image name 
+ * @param [in] filename: image name
  * @param [in] img_w: resize width
  * @param [in] img_h: resize height
  * @param [in] means: image means value, needs to be size of three: means[0], means[1], means[2]
  * @param [in] scale: image scale value, needs to be size of three: scale[0], scale[1], scale[2]
  * @param [in] convert: image data format, RGB, BGR, GRAY
-*/
+ */
 image imread2mxnet(image im, int img_w, int img_h, float* means, float* scale);
 
 /**
  * read image and output with nhwc format
- * @param [in] filename: image name 
+ * @param [in] filename: image name
  * @param [in] img_w: resize width
  * @param [in] img_h: resize height
  * @param [in] means: image means value, needs to be size of three: means[0], means[1], means[2]
  * @param [in] scale: image scale value, needs to be size of three: scale[0], scale[1], scale[2]
  * @param [in] convert: image data format, RGB, BGR, GRAY
-*/
+ */
 image imread2tflite(image im, int img_w, int img_h, float* means, float* scale);
 /*
  * resize the image, and then return the image type

@@ -38,11 +38,11 @@
 #define DEFAULT_MEAN1 104.007
 #define DEFAULT_MEAN2 116.669
 #define DEFAULT_MEAN3 122.679
-#define DEFAULT_LOOP_COUNT   1
+#define DEFAULT_LOOP_COUNT 1
 #define DEFAULT_THREAD_COUNT 1
 
-int tengine_classify(const char* model_file, const char* image_file, int img_h, int img_w,
-                     const float* mean, const float* scale, int loop_count, int num_thread)
+int tengine_classify(const char* model_file, const char* image_file, int img_h, int img_w, const float* mean,
+                     const float* scale, int loop_count, int num_thread)
 {
     /* inital tengine */
     if (init_tengine() != 0)
@@ -62,8 +62,8 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
     }
 
     /* set the input shape to initial the graph, and prerun graph to infer shape */
-    int img_size      = img_h * img_w * 3;
-    int dims[]        = {1, 3, img_h, img_w};    // nchw
+    int img_size = img_h * img_w * 3;
+    int dims[] = {1, 3, img_h, img_w};    // nchw
     float* input_data = ( float* )malloc(img_size * sizeof(float));
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
@@ -115,14 +115,16 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
     }
     fprintf(stderr, "\nmodel file : %s\n", model_file);
     fprintf(stderr, "image file : %s\n", image_file);
-    fprintf(stderr, "img_h, img_w, scale[3], mean[3] : %d %d , %.3f %.3f %.3f, %.1f %.1f %.1f\n", img_h, img_w, scale[0], scale[1], scale[2], mean[0], mean[1], mean[2]);
-    fprintf(stderr, "Repeat %d times, thread %d, avg time %.2f ms, max_time %.2f ms, min_time %.2f ms\n", loop_count, num_thread, total_time / loop_count, max_time, min_time);
+    fprintf(stderr, "img_h, img_w, scale[3], mean[3] : %d %d , %.3f %.3f %.3f, %.1f %.1f %.1f\n", img_h, img_w,
+            scale[0], scale[1], scale[2], mean[0], mean[1], mean[2]);
+    fprintf(stderr, "Repeat %d times, thread %d, avg time %.2f ms, max_time %.2f ms, min_time %.2f ms\n", loop_count,
+            num_thread, total_time / loop_count, max_time, min_time);
     fprintf(stderr, "--------------------------------------\n");
 
     /* get the result of classification */
     tensor_t output_tensor = get_graph_output_tensor(graph, 0, 0);
-    float* output_data     = ( float* )get_tensor_buffer(output_tensor);
-    int output_size        = get_tensor_buffer_size(output_tensor) / sizeof(float);
+    float* output_data = ( float* )get_tensor_buffer(output_tensor);
+    int output_size = get_tensor_buffer_size(output_tensor) / sizeof(float);
 
     print_topk(output_data, output_size, 5);
     fprintf(stderr, "--------------------------------------\n");
@@ -140,16 +142,20 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
 
 void show_usage()
 {
-    fprintf(stderr, "[Usage]:  [-h]\n    [-m model_file] [-i image_file]\n [-g img_h,img_w] [-s scale[0],scale[1],scale[2]] [-w "
-           "mean[0],mean[1],mean[2]] [-r loop_count] [-t thread_count]\n");
-    fprintf(stderr, "\nmobilenet example: \n    ./classification -m /path/to/mobilenet.tmfile -i /path/to/img.jpg -g 224,224 -s "
-           "0.017,0.017,0.017 -w 104.007,116.669,122.679\n");
+    fprintf(
+        stderr,
+        "[Usage]:  [-h]\n    [-m model_file] [-i image_file]\n [-g img_h,img_w] [-s scale[0],scale[1],scale[2]] [-w "
+        "mean[0],mean[1],mean[2]] [-r loop_count] [-t thread_count]\n");
+    fprintf(
+        stderr,
+        "\nmobilenet example: \n    ./classification -m /path/to/mobilenet.tmfile -i /path/to/img.jpg -g 224,224 -s "
+        "0.017,0.017,0.017 -w 104.007,116.669,122.679\n");
 }
 
 int main(int argc, char* argv[])
 {
-    int loop_count   = DEFAULT_LOOP_COUNT;
-    int num_thread   = DEFAULT_THREAD_COUNT;
+    int loop_count = DEFAULT_LOOP_COUNT;
+    int num_thread = DEFAULT_THREAD_COUNT;
     char* model_file = NULL;
     char* image_file = NULL;
     float img_hw[2] = {0.f};

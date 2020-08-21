@@ -100,12 +100,12 @@ void show_usage()
 int main(int argc, char* argv[])
 {
     int repeat_count = DEFAULT_REPEAT_COUNT;
-    int num_thread   = DEFAULT_THREAD_COUNT;
+    int num_thread = DEFAULT_THREAD_COUNT;
     char* model_file = NULL;
     char* image_file = NULL;
     int img_h = 300;
     int img_w = 300;
-    float mean[3]  = {127.5f, 127.5f, 127.5f};
+    float mean[3] = {127.5f, 127.5f, 127.5f};
     float scale[3] = {0.007843f, 0.007843f, 0.007843f};
     float show_threshold = 0.5f;
 
@@ -166,8 +166,8 @@ int main(int argc, char* argv[])
     }
 
     /* set the input shape to initial the graph, and prerun graph to infer shape */
-    int img_size      = img_h * img_w * 3;
-    int dims[]        = {1, 3, img_h, img_w};    // nchw
+    int img_size = img_h * img_w * 3;
+    int dims[] = {1, 3, img_h, img_w};    // nchw
     float* input_data = ( float* )malloc(img_size * sizeof(float));
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
@@ -183,7 +183,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    if (prerun_graph(graph) < 0)
+    if (prerun_graph_multithread(graph, TENGINE_CLUSTER_ALL, num_thread) < 0)
     {
         fprintf(stderr, "Prerun graph failed\n");
         return -1;
@@ -218,7 +218,7 @@ int main(int argc, char* argv[])
             max_time = cur;
     }
     fprintf(stderr, "Repeat %d times, thread %d, avg time %.2f ms, max_time %.2f ms, min_time %.2f ms\n", repeat_count,
-           num_thread, total_time / repeat_count, max_time, min_time);
+            num_thread, total_time / repeat_count, max_time, min_time);
     fprintf(stderr, "--------------------------------------\n");
 
     /* process the detection result */

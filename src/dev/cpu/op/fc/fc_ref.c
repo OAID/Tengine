@@ -42,18 +42,25 @@ struct fc_data
     float scale[3];    // input, kernel, output
 };
 
-static int ref_fc_fp32(const float* input, float* output, const float* weight, const float* bias, struct fc_data* param)
+static int ref_fc_fp32(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, struct ir_tensor* weight_tensor, struct ir_tensor* bias_tensor, struct fc_data* param)
 {
     int batch = param->batch;
     int hidden = param->hidden;
     int out_number = param->out_number;
+
+    float* input = input_tensor->data;
+    float* output = output_tensor->data;
+    float* weight = weight_tensor->data;
+    float* bias = NULL;
+    if (bias_tensor)
+        bias = bias_tensor->data;
 
     int n, i, j;
     for (n = 0; n < batch; n++)
     {
         for (i = 0; i < out_number; i++)
         {
-            float tmp = bias ? bias[i] : 0.0;
+            float tmp = bias ? bias[i] : 0.f;
             for (j = 0; j < hidden; j++)
             {
                 if (param->need_trans == 0)
@@ -64,6 +71,94 @@ static int ref_fc_fp32(const float* input, float* output, const float* weight, c
             output[n * out_number + i] = tmp;
         }
     }
+    return 0;
+}
+
+static int ref_fc_uint8(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, struct ir_tensor* weight_tensor, struct ir_tensor* bias_tensor, struct fc_data* param)
+{
+    int batch = param->batch;
+    int hidden = param->hidden;
+    int out_number = param->out_number;
+
+    uint8_t* input  = input_tensor->data;
+    uint8_t* output = output_tensor->data;
+    uint8_t* weight = weight_tensor->data;
+
+    float input_scale = input_tensor->scale;
+    float output_scale = output_tensor->scale;
+    float weight_scale = weight_tensor->scale;
+    int32_t input_zero = input_tensor->zero_point;
+    int32_t output_zero = output_tensor->zero_point;
+    int32_t weight_zero = weight_tensor->zero_point;
+
+    if (bias_tensor)
+    {
+        int32_t* bias = bias_tensor->data;
+        float bias_scale = bias_tensor->scale;
+                  
+        int n, i, j;
+        for (n = 0; n < batch; n++)
+        {
+            for (i = 0; i < out_number; i++)
+            {
+                float data = bias[i] * bias_scale;
+                for (j = 0; j < hidden; j++)
+                {
+                    if (param->need_trans == 0)
+                    {
+                        float input_fp32  = ((float)input[n * hidden + j] - (float)input_zero) * input_scale;
+                        float weight_fp32 = ((float)weight[i * hidden + j] - (float)weight_zero) * weight_scale;
+                        data += input_fp32 * weight_fp32;
+                    }
+                    else
+                    {
+                        float input_fp32  = ((float)input[n * hidden + j] - (float)input_zero) * input_scale;
+                        float weight_fp32 = ((float)weight[i + j * out_number] - (float)weight_zero) * weight_scale;                        
+                        data += input_fp32 * weight_fp32;
+                    }
+                }
+                int udata = round(data / output_scale) + output_zero;
+                if (udata > 255)
+                    udata = 255;
+                else if (udata < 0)
+                    udata = 0;
+                output[n * out_number + i] = udata;
+            }
+        }
+    }
+    else
+    {       
+        int n, i, j;
+        for (n = 0; n < batch; n++)
+        {
+            for (i = 0; i < out_number; i++)
+            {
+                float data = 0.f;
+                for (j = 0; j < hidden; j++)
+                {
+                    if (param->need_trans == 0)
+                    {
+                        float input_fp32  = ((float)input[n * hidden + j] - (float)input_zero) * input_scale;
+                        float weight_fp32 = ((float)weight[i * hidden + j] - (float)weight_zero) * weight_scale;
+                        data += input_fp32 * weight_fp32;
+                    }
+                    else
+                    {
+                        float input_fp32  = ((float)input[n * hidden + j] - (float)input_zero) * input_scale;
+                        float weight_fp32 = ((float)weight[i + j * out_number] - (float)weight_zero) * weight_scale;                        
+                        data += input_fp32 * weight_fp32;
+                    }
+                }
+                int udata = round(data / output_scale) + output_zero;
+                if (udata > 255)
+                    udata = 255;
+                else if (udata < 0)
+                    udata = 0;
+                output[n * out_number + i] = udata;
+            }
+        }
+    }
+
     return 0;
 }
 
@@ -135,7 +230,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct ir_graph* ir_graph = ir_node->graph;
     struct ir_tensor* input_tensor;
     struct ir_tensor* weight_tensor;
-    struct ir_tensor* bias_tensor;
+    struct ir_tensor* bias_tensor = NULL;
     struct ir_tensor* output_tensor;
 
     input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
@@ -145,20 +240,16 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct fc_param* param = ( struct fc_param* )ir_node->op.param_mem;
     struct fc_data* op_param = ( struct fc_data* )exec_node->ops_priv;
 
-    const void* input_data = input_tensor->data;
-    void* weight_data = weight_tensor->data;
-    void* output_data = output_tensor->data;
-
-    void* bias_data = NULL;
     if (ir_node->input_num > 2)
-    {
         bias_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[2]);
-        bias_data = bias_tensor->data;
-    }
-    if (ref_fc_fp32(input_data, output_data, weight_data, bias_data, op_param) < 0)
-        return -1;
 
-    return 0;
+    int ret = -1;
+    if (input_tensor->data_type == TENGINE_DT_FP32)
+        ret = ref_fc_fp32(input_tensor, output_tensor, weight_tensor, bias_tensor, op_param);
+    else
+        ret = ref_fc_uint8(input_tensor, output_tensor, weight_tensor, bias_tensor, op_param);
+
+    return ret;
 }
 
 static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)

@@ -23,51 +23,44 @@
  */
 
 #include <stdio.h>
-#include <stdlib.h>
+#include <assert.h>
 
 #include "sys_port.h"
-#include "module.h"
 #include "tengine_ir.h"
 #include "tengine_errno.h"
 #include "tengine_log.h"
-#include "tengine_serializer.h"
-#include "tm2_serializer.h"
 #include "tengine_op.h"
+#include "parameter.h"
 
-static int const_op_map(int op)
+static int init_op(struct ir_op* op)
 {
-    return OP_CONST;
-}
-
-static int tm2_load_const(struct ir_graph* ir_graph, struct ir_node* ir_node, const TM2_Node* tm_node,
-                          const TM2_Operator* tm_op)
-{
-    return 0;
-}
-
-static int reg_tm2_ops(void* arg)
-{
-    struct serializer* tm2_s = find_serializer("tengine");
-
-    if (tm2_s == NULL)
-    {
-        TLOG_ERR("tengine serializer has not been registered yet\n");
-        return -1;
-    }
-
-    tm2_s->register_op_loader(tm2_s, TM2_OPTYPE_CONST, 1, tm2_load_const, const_op_map, NULL);
+    op->same_shape = 1;
+    op->infer_shape = NULL;
 
     return 0;
 }
 
-static int unreg_tm2_ops(void* arg)
+static void release_op(struct ir_op* op)
 {
-    struct serializer* tm2_s = find_serializer("tengine");
 
-    tm2_s->unregister_op_loader(tm2_s, TM2_OPTYPE_CONST, 1, tm2_load_const);
-
-    return 0;
 }
 
-REGISTER_MODULE_INIT(MOD_OP_LEVEL, "reg_const_ops", reg_tm2_ops);
-REGISTER_MODULE_EXIT(MOD_OP_LEVEL, "unreg_const_ops", unreg_tm2_ops);
+static int register_input_op(void* arg)
+{
+    struct op_method m;
+
+    m.op_version = 1;
+    m.init_op = init_op;
+    m.release_op = release_op;
+    m.access_param_entry = NULL;
+
+    return register_op(OP_INPUT, OP_INPUT_NAME , &m);
+}
+
+static int unregister_input_op(void* arg)
+{
+    return unregister_op(OP_INPUT, 1);
+}
+
+AUTO_REGISTER_OP(register_input_op);
+AUTO_UNREGISTER_OP(unregister_input_op);

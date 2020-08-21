@@ -2,7 +2,11 @@
 
 # Tengine Lite
 
-[![GitHub license](http://OAID.github.io/pics/apache_2.0.svg)](./LICENSE) [![Build Status](https://img.shields.io/github/workflow/status/OAID/Tengine/Tengine-Lite-Actions/tengine-lite)](https://github.com/OAID/Tengine/actions?query=workflow%3ATengine-Lite-Actions) [![Test Status](https://img.shields.io/travis/OAID/Tengine/tengine-lite?label=test)](https://travis-ci.org/OAID/Tengine)
+[![GitHub license](http://OAID.github.io/pics/apache_2.0.svg)](./LICENSE) [![Build Status](https://img.shields.io/github/workflow/status/OAID/Tengine/Tengine-Lite-Actions/tengine-lite)](https://github.com/OAID/Tengine/actions?query=workflow%3ATengine-Lite-Actions) [![Build Status](https://img.shields.io/github/workflow/status/OAID/Tengine-Convert-Tools/Tengine-Convert-Tools-Actions?label=tools%20build)](https://github.com/OAID/Tengine-Convert-Tools/actions?query=workflow%3ATengine-Convert-Tools-Actions) [![Test Status](https://img.shields.io/travis/OAID/Tengine/tengine-lite?label=test)](https://travis-ci.org/OAID/Tengine)
+
+
+
+[**English Version**](README_EN.md)
 
 
 
@@ -38,9 +42,9 @@ Tengine Lite 核心代码由 4 个模块组成：
 
 ### 转换工具
 
-- [预编译版本](https://github.com/OAID/Tengine/releases/download/lite-v0.1/convert_model_to_tm)：提供 Linux 系统上预编译好的模型转换工具；
+- [预编译版本](https://github.com/OAID/Tengine-Convert-Tools/releases/download/v0.1/tm_convert_tool)：提供 Linux 系统上预编译好的模型转换工具；
 - [在线转换版本](https://convertmodel.com/)：基于 WebAssembly 实现（浏览器本地转换，模型不会上传）；
-- [源码编译](doc/convert_tm.md)：参考原有 Tengine 项目编译生成。
+- [源码编译](https://github.com/OAID/Tengine-Convert-Tools)：参考 **Tengine-Convert-Tools** 项目编译生成。
 
 ### 速度评估
 
@@ -74,6 +78,6 @@ Tengine Lite 参考和借鉴了下列项目：
 
 ## 技术讨论
 - Github issues
-- QQ 群: 829565581 (答案：openailab)
+- QQ 群: 829565581
 - Email: Support@openailab.com
 - Tengine 社区: http://www.tengine.org.cn/

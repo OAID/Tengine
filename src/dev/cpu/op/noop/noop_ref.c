@@ -54,20 +54,46 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 {
     struct ir_node* ir_node = exec_node->ir_node;
     struct ir_graph* ir_graph = ir_node->graph;
-    struct ir_tensor* input_tensor;
-    struct ir_tensor* output_tensor;
-    int layout = ir_graph->graph_layout;
+    struct ir_tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    struct ir_tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+    if (input_tensor->data == output_tensor->data)
+        return 0;
 
-    // inplace inference
-    if (input_tensor->data != output_tensor->data)
+    int size = 1;
+    for (int i = 0; i < input_tensor->dim_num; i++)
+        size *= input_tensor->dims[i];
+
+    switch (input_tensor->data_type)
     {
-        TLOG_ERR("input and output are not the same mem\n");
-        set_tengine_errno(EFAULT);
+        case TENGINE_DT_FP32:
+        case TENGINE_DT_INT32: {
+            size *= 4;
+            break;
+        }
+        case TENGINE_DT_FP16:
+        case TENGINE_DT_INT16: {
+            size *= 2;
+            break;
+        }
+        case TENGINE_DT_UINT8:
+        case TENGINE_DT_INT8: {
+            size *= 1;
+            break;
+        }
+        default:
+            set_tengine_errno(EINVAL);
+            return -1;
+    }
+
+    if (size <= 0)
+    {
+        set_tengine_errno(EINVAL);
         return -1;
     }
+
+    /* another */
+    memmove(output_tensor->data, input_tensor->data, size);
 
     return 0;
 }

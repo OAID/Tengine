@@ -37,7 +37,6 @@
  * https://opensource.org/licenses/BSD-3-Clause
  */
 
-
 #include <unistd.h>
 #include <vector>
 #include <string>

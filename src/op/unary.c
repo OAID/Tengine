@@ -40,6 +40,8 @@ static int infer_shape(struct ir_node* node)
     struct ir_tensor* input = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
     struct ir_tensor* output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
 
+    output->layout = input->layout;
+
     set_ir_tensor_shape(output, input->dims, input->dim_num);
 
     return 0;

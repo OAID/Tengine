@@ -51,11 +51,16 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct ir_node* ir_node = exec_node->ir_node;
     struct ir_graph* ir_graph = ir_node->graph;
     struct ir_tensor* featmap_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    struct ir_tensor* data_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
-    struct ir_tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+    struct ir_tensor* data_tensor    = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
+    struct ir_tensor* output_tensor  = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
     priorbox_param_t* param = ( priorbox_param_t* )(ir_node->op.param_mem);
     //	float* input_org = ( float* )input_tensor->data;
-    float* output_org = ( float* )output_tensor->data;
+
+    float* output_fp32 = NULL;
+    if (output_tensor->data_type == TENGINE_DT_FP32)
+        output_fp32 = ( float* )output_tensor->data;
+    else
+        output_fp32 = ( float* )sys_malloc(output_tensor->elem_num * sizeof(float ));
 
     const int data_height = data_tensor->dims[2];
     const int data_width = data_tensor->dims[3];
@@ -91,7 +96,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     float offset_ = param->offset;
     for (int h = 0; h < feat_height; ++h)
     {
-        float* box = output_org + h * num_priors * 4 * feat_width;
+        float* box = output_fp32 + h * num_priors * 4 * feat_width;
         for (int w = 0; w < feat_width; ++w)
         {
             float center_x = (w + offset_) * step_w;
@@ -151,11 +156,11 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     {
         for (int d = 0; d < dim; ++d)
         {
-            output_org[d] = T_MIN(T_MAX(output_org[d], 0.f), 1.f);
+            output_fp32[d] = T_MIN(T_MAX(output_fp32[d], 0.f), 1.f);
         }
     }
     // set the variance.
-    float* output_ptr = output_org + dim;
+    float* output_ptr = output_fp32 + dim;
     int size = dim / 4;
     for (int i = 0; i < size; i++)
     {
@@ -165,6 +170,27 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         output_ptr[3] = param->variance[3];
         output_ptr += 4;
     }
+
+    /* quant to uint8 */
+    if (output_tensor->data_type == TENGINE_DT_UINT8)
+    {
+        uint8_t* output_org = output_tensor->data;
+
+        for (int i=0; i<output_tensor->elem_num; i++)
+        {
+            int udata = (int)(output_fp32[i] / output_tensor->scale + output_tensor->zero_point);
+            if (udata > 255)
+                udata = 255;
+            else if (udata < 0)
+                udata = 0;
+
+            output_org[i] = udata;
+        }
+
+        sys_free(output_fp32);
+    }
+
+
     return 0;
 }
 

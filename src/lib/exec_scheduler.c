@@ -129,6 +129,23 @@ static int sched_run(struct exec_scheduler* scheduler, struct ir_graph* ir_graph
                 return -1;
             }
 
+            for (int j = 0; j < get_vector_num(ir_graph->subgraph_list); j++)
+            {
+                struct subgraph* waiting_sub_graph = *(struct subgraph**)get_vector_data(ir_graph->subgraph_list, j);
+                for (int k = 0; k < waiting_sub_graph->input_num; k++)
+                {
+                    uint16_t waiting_input_idx = waiting_sub_graph->input_tensor_list[k];
+                    for (int m = 0; m < subgraph->output_num; m++)
+                    {
+                        int16_t current_output_idx = subgraph->output_tensor_list[m];
+                        if (current_output_idx == waiting_input_idx)
+                        {
+                            waiting_sub_graph->input_ready_count++;
+                        }
+                    }
+                }
+            }
+
             subgraph->status = GRAPH_STAT_READY;
         }
 

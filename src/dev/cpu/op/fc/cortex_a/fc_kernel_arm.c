@@ -25,6 +25,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <math.h>
+#include <arm_neon.h>
 #include "fc_kernel_arm.h"
 
 #include <sys/time.h>
@@ -37,40 +38,38 @@ void sgemv_1x8_a17(float* biases, float* input, float* kernel, int kernel_size, 
 void sgemv_1x2_a17(float* biases, float* input, float* kernel, int kernel_size, float* output);
 #endif
 
+typedef void (*kernel_t)(float* biases, float* input, float* kernel, int kernel_size, float* output);
+
 static void sgemv1x8(float* input, float* output, float* kernel, float* bias, int kernel_size, int start_ch, int end_ch,
-                     int num_thread, int cpu_affinity)
+                     int num_thread, kernel_t kernel_1x8)
 {
-#pragma omp parallel for num_threads(num_thread)
+    #pragma omp parallel for num_threads(num_thread)
     for (int ch = start_ch; ch < end_ch; ch += 8)
     {
         float* cur_kernel = kernel + ch * kernel_size;
         float* cur_output = output + ch;
-        float* cur_bias = bias ? bias + ch : bias;
-#ifdef __aarch64__
-        sgemv_1x8_a72(cur_bias, input, cur_kernel, kernel_size, cur_output);
-#else
-        sgemv_1x8_a17(cur_bias, input, cur_kernel, kernel_size, cur_output);
-#endif
+        float zeros[8] = {0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
+        float* cur_bias = bias ? bias + ch : zeros;
+
+        kernel_1x8(cur_bias, input, cur_kernel, kernel_size, cur_output);
     }
 }
 
 static void sgemv1x2(float* input, float* output, float* kernel, float* bias, int kernel_size, int start_ch, int end_ch,
-                     int num_thread, int cpu_affinity)
+                     int num_thread, kernel_t kernel_1x2)
 {
     int ch = 0;
     int end_ch2 = end_ch & -2;
 
-#pragma omp parallel for num_threads(num_thread)
+    #pragma omp parallel for num_threads(num_thread)
     for (ch = start_ch; ch < end_ch2; ch += 2)
     {
         float* cur_kernel = kernel + ch * kernel_size;
         float* cur_output = output + ch;
-        float* cur_bias = bias ? bias + ch : bias;
-#ifdef __aarch64__
-        sgemv_1x2_a72(cur_bias, input, cur_kernel, kernel_size, cur_output);
-#else
-        sgemv_1x2_a17(cur_bias, input, cur_kernel, kernel_size, cur_output);
-#endif
+        float zeros[2] = {0.f, 0.f};
+        float* cur_bias = bias ? bias + ch : zeros;
+
+        kernel_1x2(cur_bias, input, cur_kernel, kernel_size, cur_output);
     }
     if (end_ch & 0x1)
     {
@@ -125,7 +124,7 @@ static void interleave_kernel(const float* kernel, float* kernel_interleaved, in
 int fc_kernel_prerun(struct ir_tensor* input_tensor, struct ir_tensor* filter_tensor, struct ir_tensor* output_tensor,
                      struct fc_priv_info* priv_info, struct fc_param* param)
 {
-    int num_output = param->num_output;
+    int num_output  = param->num_output;
     int kernel_size = filter_tensor->dims[1];
 
     if (!priv_info->interleave_buffer)
@@ -172,20 +171,35 @@ int fc_kernel_run(struct ir_tensor* input_tensor, struct ir_tensor* filter_tenso
     int out_num = param->num_output;
     int kernel_size = filter_tensor->dims[1];
 
-    float* input = input_tensor->data;
+    float* input  = input_tensor->data;
     float* output = output_tensor->data;
-    float* biases = bias_tensor->data;
+    float* biases = NULL;
+    if (bias_tensor)
+        biases = bias_tensor->data;
     float* weight = priv_info->interleave_buffer;
-    int out_num_8 = out_num & ~7;
+    int remain_out_start = (out_num >> 3) << 3;
 
+    /* set cpu affinity sgemv kernel */
+    kernel_t kernel_1x8;
+    kernel_t kernel_1x2;
+
+#ifdef __aarch64__
+    kernel_1x8 = (kernel_t)sgemv_1x8_a72;
+    kernel_1x2 = (kernel_t)sgemv_1x2_a72;
+#else
+    kernel_1x8 = (kernel_t)sgemv_1x8_a17;
+    kernel_1x2 = (kernel_t)sgemv_1x2_a17;
+#endif        
+
+    /* process */
     for (int i = 0; i < input_tensor->dims[0]; i++)
     {
         float* cur_input = input + i * kernel_size;
         float* cur_output = output + i * out_num;
 
-        sgemv1x8(cur_input, cur_output, weight, biases, kernel_size, 0, out_num_8, num_thread, cpu_affinity);
+        sgemv1x8(cur_input, cur_output, weight, biases, kernel_size, 0, remain_out_start, num_thread, kernel_1x8);
         if (out_num & 0x7)
-            sgemv1x2(cur_input, cur_output, weight, biases, kernel_size, out_num_8, out_num, num_thread, cpu_affinity);
+            sgemv1x2(cur_input, cur_output, weight, biases, kernel_size, remain_out_start, out_num, num_thread, kernel_1x2);
     }
 
     return 0;

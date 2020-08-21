@@ -65,6 +65,7 @@ option(TENGINE_BUILD_TESTS "build tests" OFF)
 option(TENGINE_DEBUG_DATA "extract data for every layer" OFF)
 option(TENGINE_DEBUG_TIME "print time information for every layer" OFF)
 option(TENGINE_DEBUG_MEM_STAT "print memory status for library" OFF)
+option(TENGINE_AVX2 "build avx2 for x86" OFF)
 
 
 # add_definitions(-DCONFIG_DISABLE_PARAM_ACCESS)
@@ -85,7 +86,7 @@ endif()
 # add_definitions(-g)
 # add_definitions(-O0)
 add_definitions(-fPIC)
-add_definitions(-O2)
+add_definitions(-O3)
 
 if (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM")
     if (TENGINE_TARGET_PROCESSOR_32Bit AND NOT ANDROID)

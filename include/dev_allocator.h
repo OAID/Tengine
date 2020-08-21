@@ -19,7 +19,7 @@
 
 /*
  * Copyright (c) 2020, OPEN AI LAB
- * Author: haitao@openailab.com
+ * Author: lswang@openailab.com
  */
 
 #ifndef __DEV_ALLOCATOR_H__
@@ -33,5 +33,15 @@ struct dev_allocator
     int (*allocate)(struct dev_allocator*, struct ir_graph*);
     int (*release)(struct dev_allocator*);
 };
+
+int init_allocator_registry(struct dev_allocator* allocator);
+
+int release_allocator_registry();
+
+struct dev_allocator* get_default_dev_allocator(void);
+
+struct dev_allocator* get_dev_allocator(const char* dev_name);
+
+#define REGISTER_DEV_ALLOCATOR(func_name) static void(func_name)(void) __attribute__((constructor))
 
 #endif

@@ -95,7 +95,7 @@ image make_empty_image(int w, int h, int c)
     return out;
 }
 
-image imread_process_1(image resImg, int img_w, int img_h, float* means, float* scale)
+image imread2caffe(image resImg, int img_w, int img_h, float* means, float* scale)
 {
     for (int c = 0; c < resImg.c; c++)
     {
@@ -138,7 +138,7 @@ image imread_process(const char* filename, int img_w, int img_h, float* means, f
     }
 
     tengine_resize_f32(out.data, resImg.data, img_w, img_h, out.c, out.h, out.w);
-    resImg = imread_process_1(resImg, img_w, img_h, means, scale);
+    resImg = imread2caffe(resImg, img_w, img_h, means, scale);
 
     free_image(out);
     return resImg;
@@ -332,7 +332,8 @@ image resize_image(image im, int ow, int oh)
 
                 float32x4_t fx_0 = vsubq_f32(offset_1, fx);
 
-                const int32x4_t in_idx = vaddq_s32(vaddq_s32(vmulq_s32(sy_0, w_0), vcvtq_s32_f32(sx)), vmulq_s32(in_hw_0, k_0));
+                const int32x4_t in_idx =
+                    vaddq_s32(vaddq_s32(vmulq_s32(sy_0, w_0), vcvtq_s32_f32(sx)), vmulq_s32(in_hw_0, k_0));
 
                 int32x4_t in_index0 = in_idx;
                 int32x4_t in_index2 = vaddq_s32(in_idx, vcvtq_s32_f32(offset_1));
@@ -698,11 +699,11 @@ image rgb2bgr_premute(image src)
 image image_premute(image src)
 {
     float* GRB = ( float* )malloc(sizeof(float) * src.c * src.h * src.w);
-    for(int c = 0; c < src.c; c++)
+    for (int c = 0; c < src.c; c++)
     {
-        for(int h = 0; h < src.h; h++)
+        for (int h = 0; h < src.h; h++)
         {
-            for(int w = 0; w < src.w; w++)
+            for (int w = 0; w < src.w; w++)
             {
                 int newIndex = ( c )*src.h * src.w + h * src.w + w;
                 int grbIndex = (2 - c) * src.h * src.w + h * src.w + w;
@@ -1050,9 +1051,9 @@ void print_topk(float* data, int total_num, int topk)
         cls_scores[i].score = data[i];
     }
 
-    sort_cls_score(cls_scores, 0, total_num-1);
+    sort_cls_score(cls_scores, 0, total_num - 1);
     char strline[128] = "";
-    for(int i = 0; i < topk; i++)
+    for (int i = 0; i < topk; i++)
     {
         fprintf(stderr, "%f, %d\n", cls_scores[i].score, cls_scores[i].id);
     }

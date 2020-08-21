@@ -993,7 +993,7 @@ static void wino_sgemm_set(const float* ker, const float* inp, float* output, co
     if (out_w < 16)
         flag_outw = 0;
 
-    #pragma omp parallel for num_threads(num_thread)
+#pragma omp parallel for num_threads(num_thread)
     for (int p = 0; p < (cout_end & -PER_OUT_CHAN); p += PER_OUT_CHAN)
     {
         int out_hw = out_w * out_h;
