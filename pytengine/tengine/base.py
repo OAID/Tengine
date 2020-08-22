@@ -277,16 +277,6 @@ class Policy:
         return "<device_policy  :%s>" % device_policy[self.enum]
 
 
-def _notify_shutdown():
-    """Notify Tengine about a shutdown."""
-    print("release tengine")
-    check_call(_LIB.release_tengine())
-    pass
-
-
-atexit.register(_notify_shutdown)
-
-
 class tensor_dump_header(ctypes.Structure):
     _fields_ = [('elem_size', ctypes.c_int),
                 ('elem_number', ctypes.c_int),

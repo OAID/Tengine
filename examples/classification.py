@@ -55,6 +55,5 @@ def main():
     for i in idx:
         print(classes[i], output[i])
 
-
 if __name__ == '__main__':
     main()
