@@ -7,7 +7,7 @@ endif()
 
 
 # add lib files, for utility
-file(GLOB_RECURSE TENGINE_LIB_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/lib/*.c)
+file(GLOB_RECURSE TENGINE_LIB_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/lib/*.c ${CMAKE_CURRENT_SOURCE_DIR}/lib/tengine_cpp_api.cpp)
 
 # add front end files
 file(GLOB_RECURSE TENGINE_FRONT_END_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/op/*.c)
@@ -100,3 +100,4 @@ endif()
 
 install (TARGETS ${CMAKE_PROJECT_NAME} DESTINATION lib)
 install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/../include/tengine_c_api.h DESTINATION include)
+install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/../include/tengine_cpp_api.h DESTINATION include)

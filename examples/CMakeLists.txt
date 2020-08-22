@@ -11,6 +11,7 @@ macro (tengine_example name file)
 endmacro()
 
 # add examples
+tengine_example(classification              classification.cpp)
 tengine_example(tm_classification           tm_classification.c)
 tengine_example(tm_classification_uint8     tm_classification_uint8.c)
 tengine_example(tm_mobilenet_ssd            tm_mobilenet_ssd.c)
