@@ -121,6 +121,8 @@ enum
     OP_UNSQUEEZE,
     OP_UPSAMPLE,
     OP_ZEROSLIKE,
+    //add for yolov4
+    OP_MISH,
     OP_BUILTIN_LAST
 };
 

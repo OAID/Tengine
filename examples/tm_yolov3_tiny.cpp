@@ -34,6 +34,7 @@
 #include <algorithm>
 #include "common.h"
 #include "tengine_c_api.h"
+#include "tengine_c_api_ex.h"
 #include "tengine_operations.h"
 #include <math.h>
 
@@ -74,10 +75,13 @@ typedef struct layer
 } layer;
 
 const int classes = 80;
-const float thresh = 0.5;
+const float thresh = 0.3;
 const float hier_thresh = 0.5;
-const float nms = 0.45;
+const float nms = 0.6;
 const int relative = 1;
+
+//yolov4
+float biases_yolov4[18] = {12, 16, 19, 36, 40, 28, 36, 75, 76, 55, 72, 146, 142, 110, 192, 243, 459, 401};
 
 // yolov3
 float biases[18] = {10, 13, 16, 30, 33, 23, 30, 61, 62, 45, 59, 119, 116, 90, 156, 198, 373, 326};
@@ -109,7 +113,8 @@ layer make_darknet_layer(int batch, int w, int h, int net_w, int net_h, int n, i
         {
             for (int i = 0; i < total * 2; ++i)
             {
-                l.biases[i] = biases[i];
+                // l.biases[i] = biases[i];
+                l.biases[i] = biases_yolov4[i];
             }
             if (l.w == net_w / 32)
             {
@@ -335,6 +340,8 @@ int get_yolo_detections(layer l, int w, int h, int netw, int neth, float thresh,
 
                 dets[count].bbox = get_yolo_box(predictions, l.biases, l.mask[n], box_index, col, row, l.w, l.h, netw,
                                                 neth, l.w * l.h);
+                // dets[count].bbox = get_yolov4_box(predictions, l.biases, l.mask[n], box_index, col, row, l.w, l.h, netw,
+                //                                 neth, l.w * l.h);                                                
                 dets[count].objectness = objectness;
                 dets[count].classes = l.classes;
                 for (j = 0; j < l.classes; ++j)
@@ -647,9 +654,11 @@ int main(int argc, char* argv[])
 
     int layer_type = 0;
     int numBBoxes = 3;
-    int total_numAnchors = 6;
-    int net_w = 416;
-    int net_h = 416;
+    int total_numAnchors = 9;
+    // int net_w = 416;
+    // int net_h = 416;
+    int net_w = 384;
+    int net_h = 512;    
 
     int res;
     while ((res = getopt(argc, argv, "m:i:r:t:h:")) != -1)
@@ -747,6 +756,8 @@ int main(int argc, char* argv[])
     for (int i = 0; i < repeat_count; i++)
     {
         double start = get_current_time();
+        // set_log_level(LOG_INFO);
+        // dump_graph(graph);
         if (run_graph(graph, 1) < 0)
         {
             fprintf(stderr, "Run graph failed\n");
@@ -757,6 +768,14 @@ int main(int argc, char* argv[])
         total_time += cur;
         min_time = std::min(min_time, cur);
         max_time = std::max(max_time, cur);
+
+        //add for test
+        auto node = get_graph_node(graph, "convolutional_1");
+        auto temp_tensor = get_node_output_tensor(node, 0);
+        float* out_data = ( float* )get_tensor_buffer(temp_tensor);
+        int out_dim[4];
+        get_tensor_shape(temp_tensor, out_dim, 4);
+        fprintf(stderr, "tensor dims %d %d %d %d\n", out_dim[0], out_dim[1], out_dim[2], out_dim[3]);
     }
     fprintf(stderr, "Repeat %d times, thread %d, avg time %.2f ms, max_time %.2f ms, min_time %.2f ms\n", repeat_count,
             num_thread, total_time / repeat_count, max_time, min_time);
