@@ -18,24 +18,12 @@
  */
 
 /*
- * Copyright (c) 2020, OPEN AI LAB
- * Author: haitao@openailab.com
+ * Copyright (c) 2018, Open AI Lab
+ * Author: xiaowei@openailab.com
  */
 
-#ifndef __EXEC_SCHEDULER_H__
-#define __EXEC_SCHEDULER_H__
+#define KERNEL_NAME dw_k3s1p1_fp16_relu6_fused_a76
+#define CONV_RELU_FUSE
+#define CONV_RELU6_FUSE
 
-struct ir_graph;
-
-struct exec_scheduler
-{
-    char* name;
-
-    int (*prerun)(struct exec_scheduler*, struct ir_graph*, int num_thread, int cpu_affinity, int mode);
-    int (*run)(struct exec_scheduler*, struct ir_graph*, int block);
-    int (*wait)(struct exec_scheduler*, struct ir_graph*);
-    int (*postrun)(struct exec_scheduler*, struct ir_graph*);
-    void (*release)(struct exec_scheduler*);
-};
-
-#endif
+#include "./dw_k3s1p1_fp16_a76.S"

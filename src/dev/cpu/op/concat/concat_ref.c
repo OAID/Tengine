@@ -31,6 +31,7 @@
 #include "../../cpu_node_ops.h"
 #include "tengine_op.h"
 #include "concat_param.h"
+#include "compiler_fp16.h"
 
 struct shape_dim
 {
@@ -89,6 +90,49 @@ static int ref_concat_fp32(const float** in_data, float* out_data, const struct 
         {
             int cp_size = param->input_shape[j].dim[axis] * in_size;
             memcpy(output_ptr, in_data[j] + k * cp_size, cp_size * sizeof(float));
+            output_ptr += cp_size;
+        }
+    }
+
+    return 0;
+}
+
+static int ref_concat_fp16(const __fp16** in_data, __fp16* out_data, const struct concat_op_param* param, int num_thread)
+{
+    int axis = param->axis;
+    int concat_dim = 0;
+    for(int ii = 0; ii < param->input_counts; ++ii)
+    {
+        concat_dim += param->input_shape[ii].dim[axis];
+    }
+
+    if(concat_dim != param->output_shape.dim[axis])
+    {
+        printf("concat dimensions is not same output: ( %d -- %d )\n", concat_dim, param->output_shape.dim[axis]);
+        return -1;
+    }
+
+    int out_size, in_size;
+
+    out_size = 1;
+    for(int ii = 0; ii < axis; ++ii)
+    {
+        out_size *= param->output_shape.dim[ii];
+    }
+    in_size = 1;
+    for(int ii = axis + 1; ii < param->output_dim; ++ii)
+    {
+        in_size *= param->input_shape[0].dim[ii];
+    }
+
+    __fp16* output_ptr = out_data;
+
+    for(int k = 0; k < out_size; ++k)
+    {
+        for(int j = 0; j < param->input_counts; ++j)
+        {
+            int cp_size = param->input_shape[j].dim[axis] * in_size;
+            memcpy(output_ptr, in_data[j] + k * cp_size, cp_size * sizeof(__fp16));
             output_ptr += cp_size;
         }
     }
@@ -237,14 +281,19 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         concat_op_param->input_data[i] = input_tensor->data;
     }
 
+    int ret = -1;
+
     if (input_tensor->data_type == TENGINE_DT_FP32)
-        ref_concat_fp32(( const float** )concat_op_param->input_data, out_data, concat_op_param,
+        ret = ref_concat_fp32(( const float** )concat_op_param->input_data, out_data, concat_op_param,
                         exec_graph->num_thread);
+    else if (input_tensor->data_type == TENGINE_DT_FP16)
+        ret = ref_concat_fp16(( const __fp16** )concat_op_param->input_data, out_data, concat_op_param,
+                         exec_graph->num_thread);
     else
-        ref_concat_uint8(( const uint8_t** )concat_op_param->input_data, out_data, concat_op_param,
+        ret = ref_concat_uint8(( const uint8_t** )concat_op_param->input_data, out_data, concat_op_param,
                          exec_graph->num_thread);
 
-    return 0;
+    return ret;
 }
 
 static int postrun(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)

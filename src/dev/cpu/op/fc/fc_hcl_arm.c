@@ -20,6 +20,7 @@
 /*
  * Copyright (c) 2020, OPEN AI LAB
  * Author: haoluo@openailab.com
+ * update: qtang@openailab.com
  */
 #include "sys_port.h"
 #include "module.h"
@@ -30,28 +31,46 @@
 #include "tengine_op.h"
 #include "fc_param.h"
 #include "cortex_a/fc_kernel_arm.h"
+#if __ARM_FEATURE_FP16_VECTOR_ARITHMETIC
+#include "cortex_a/fc_kernel_fp16_arm82.h"
+#endif
 
 static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     struct ir_node* ir_node = exec_node->ir_node;
     struct ir_graph* ir_graph = ir_node->graph;
-    struct ir_tensor* input_tensor;
-    struct ir_tensor* filter_tensor;
-    struct ir_tensor* output_tensor;
+    struct ir_tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    struct ir_tensor* filter_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
+    struct ir_tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
     struct fc_priv_info* priv_info = ( struct fc_priv_info* )exec_node->ops_priv;
-
-    input_tensor  = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    filter_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
-    output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-
     struct fc_param* fc_param = ( struct fc_param* )ir_node->op.param_mem;
 
-    /* prerun now */
-    if (fc_kernel_prerun(input_tensor, filter_tensor, output_tensor, priv_info, fc_param) < 0)
+    /* fp32 prerun */
+    if (exec_graph->mode == TENGINE_MODE_FP32)
     {
-        TLOG_ERR("hcl fc prerun failed\n");
-        set_tengine_errno(EFAULT);
+        if (fc_kernel_prerun(input_tensor, filter_tensor, output_tensor, priv_info, fc_param) < 0)
+        {
+            TLOG_ERR("hcl fc prerun failed\n");
+            set_tengine_errno(EFAULT);
+            return -1;
+        }
+    }
+    /* fp16 prerun */
+#if __ARM_FEATURE_FP16_VECTOR_ARITHMETIC
+    else if (exec_graph->mode == TENGINE_MODE_FP16)
+    {
+        if(fp16_fc_kernel_prerun(input_tensor, filter_tensor, output_tensor, priv_info, fc_param) < 0)
+        {
+            TLOG_ERR("hcl fp16 fc prerun failed\n");
+            set_tengine_errno(EFAULT);
+            return -1;
+        }
+    }
+#endif
+    else
+    {
+        printf("Tengine work node not support %d\n", exec_graph->mode);
         return -1;
     }
 
@@ -79,11 +98,32 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct fc_param* fc_param = ( struct fc_param* )ir_node->op.param_mem;
     struct fc_priv_info* priv_info = ( struct fc_priv_info* )exec_node->ops_priv;
 
-    if (fc_kernel_run(input_tensor, weight_tensor, bias_tensor, output_tensor, priv_info, fc_param, num_thread,
-                      cpu_affinity) < 0)
+    /* fp32 run */
+    if (exec_graph->mode == TENGINE_MODE_FP32)
     {
-        TLOG_ERR("hcl fc run failed\n");
-        set_tengine_errno(EFAULT);
+        if (fc_kernel_run(input_tensor, weight_tensor, bias_tensor, output_tensor, priv_info, fc_param, num_thread,
+                        cpu_affinity) < 0)
+        {
+            TLOG_ERR("hcl fc run failed\n");
+            set_tengine_errno(EFAULT);
+            return -1;
+        }
+    }
+    /* fp16 run */
+#if __ARM_FEATURE_FP16_VECTOR_ARITHMETIC
+    else if (exec_graph->mode == TENGINE_MODE_FP16)
+    {
+        if (fp16_fc_kernel_run(input_tensor, weight_tensor, bias_tensor, output_tensor, priv_info, fc_param, num_thread, cpu_affinity) < 0)
+        {
+            TLOG_ERR("hcl fp16 fc run failed\n");
+            set_tengine_errno(EFAULT);
+            return -1;
+        }
+    }
+#endif
+    else
+    {
+        printf("Tengine work node not support %d\n", exec_graph->mode);
         return -1;
     }
 
@@ -175,22 +215,14 @@ static int postrun(struct node_ops* node_ops, struct exec_node* exec_node, struc
 
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    //    struct ir_node* ir_node   = exec_node->ir_node;
-    //    struct ir_graph* ir_graph = ir_node->graph;
-    //    struct ir_tensor* input_tensor  = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    //    struct ir_tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    //    struct fc_param* fc_param = ( struct fc_param* )ir_node->op.param_mem;
-
+    /* init the private info data of convolution op */
     struct fc_priv_info* priv_info = ( struct fc_priv_info* )sys_malloc(sizeof(struct fc_priv_info));
     if (priv_info == NULL)
     {
         set_tengine_errno(ENOMEM);
         return -1;
     }
-
     memset(priv_info, 0, sizeof(struct fc_priv_info));
-
-    /* get shared memory size */
     exec_node->ops_priv = priv_info;
 
     return 0;
@@ -212,8 +244,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     struct ir_tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
 
     /* todo support uint8 */
+#if __ARM_FEATURE_FP16_VECTOR_ARITHMETIC
+    if (input_tensor->data_type != TENGINE_DT_FP32 && input_tensor->data_type != TENGINE_DT_FP16)
+        return 0;
+#else
     if (input_tensor->data_type != TENGINE_DT_FP32)
         return 0;
+#endif
 
     return OPS_SCORE_BEST;
 }

@@ -19,23 +19,16 @@
 
 /*
  * Copyright (c) 2020, OPEN AI LAB
- * Author: haitao@openailab.com
+ * Author: qtang@openailab.com
  */
+#ifndef __CONV_DW_KERNEL_FP16_ARM82_H_
+#define __CONV_DW_KERNEL_FP16_ARM82_H_
 
-#ifndef __EXEC_SCHEDULER_H__
-#define __EXEC_SCHEDULER_H__
+#include "tengine_ir.h"
+#include "convolution_param.h"
 
-struct ir_graph;
-
-struct exec_scheduler
-{
-    char* name;
-
-    int (*prerun)(struct exec_scheduler*, struct ir_graph*, int num_thread, int cpu_affinity, int mode);
-    int (*run)(struct exec_scheduler*, struct ir_graph*, int block);
-    int (*wait)(struct exec_scheduler*, struct ir_graph*);
-    int (*postrun)(struct exec_scheduler*, struct ir_graph*);
-    void (*release)(struct exec_scheduler*);
-};
+int conv_dw_fp16_run(struct ir_tensor* input_tensor, struct ir_tensor* filter_tensor, struct ir_tensor* bias_tensor,
+                struct ir_tensor* output_tensor, struct conv_param* param, int num_thread, int cpu_affinity)
+    __attribute__((weak));
 
 #endif
