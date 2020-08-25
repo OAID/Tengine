@@ -30,6 +30,7 @@
 #include "../../cpu_node_ops.h"
 #include "tengine_op.h"
 #include "softmax_param.h"
+#include "compiler_fp16.h"
 #include <math.h>
 
 /**
@@ -144,17 +145,63 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     }
     on_size = dims[axis];
 
-    uint8_t* input = input_tensor->data;
-    uint8_t* output = output_tensor->data;
     float* max_array = ( float* )malloc(in_size * sizeof(float));
     float* sum_array = ( float* )malloc(in_size * sizeof(float));
 
     int on_in_size = on_size * in_size;
 
-    if (type == TENGINE_DT_UINT8)
+    if (type == TENGINE_DT_FP32)
+    {
+        float* input = input_tensor->data;
+        float* output = output_tensor->data;
+
+        for (int i = 0; i < out_size; i++)
+        {
+            /* get max */
+            int img_base = i * on_in_size * element_size;
+
+            GetMaxArray(input + img_base, max_array, in_size, on_size, exec_graph->num_thread);
+            GetOutResult(input + img_base, output + img_base, max_array, sum_array, in_size, on_size,
+                         exec_graph->num_thread);
+        }
+    }
+    else if (type == TENGINE_DT_FP16)
+    {
+        int totol_size = on_in_size * out_size;
+        __fp16* input = input_tensor->data;
+        __fp16* output = output_tensor->data;
+        float* input_f = ( float* )malloc(totol_size * 4);
+        float* output_f = ( float* )malloc(totol_size * 4);
+
+        /* fp16 to fp32 */
+        for (int i = 0; i < out_size; i++)
+            for (int j = 0; j < on_in_size; j++)
+                input_f[i * on_in_size + j] = fp16_to_fp32(input[i * on_in_size + j]);
+
+        /* fp32 softmax */
+        for (int i = 0; i < out_size; i++)
+        {
+            /* get max */
+            int img_base = i * in_size * on_size;
+            GetMaxArray(input_f + img_base, max_array, in_size, on_size, exec_graph->num_thread);
+            GetOutResult(input_f + img_base, output_f + img_base, max_array, sum_array, in_size, on_size,
+                         exec_graph->num_thread);
+        }
+
+        /* fp32 to fp16 */
+        for (int i = 0; i < out_size; i++)
+            for (int j = 0; j < on_in_size; j++)
+                output[i * on_in_size + j] = fp32_to_fp16(output_f[i * on_in_size + j]);
+
+        free(input_f);
+        free(output_f);
+    }
+    else if (type == TENGINE_DT_UINT8)
     {
         int totol_size = on_in_size * out_size;
 
+        uint8_t* input = input_tensor->data;
+        uint8_t* output = output_tensor->data;
         float* input_f = ( float* )malloc(totol_size * 4);
         float* output_f = ( float* )malloc(totol_size * 4);
 
@@ -166,7 +213,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         /* dequant to fp32 */
         for (int i = 0; i < out_size; i++)
             for (int j = 0; j < on_in_size; j++)
-                input_f[i * on_in_size + j] = (input[i * on_in_size + j] - input_zero) * input_scale;
+                input_f[i * on_in_size + j] = ((float)input[i * on_in_size + j] - (float)input_zero) * input_scale;
 
         /* fp32 softmax */
         for (int i = 0; i < out_size; i++)
@@ -197,15 +244,8 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     }
     else
     {
-        for (int i = 0; i < out_size; i++)
-        {
-            /* get max */
-            int img_base = i * on_in_size * element_size;
-
-            GetMaxArray(input + img_base, max_array, in_size, on_size, exec_graph->num_thread);
-            GetOutResult(input + img_base, output + img_base, max_array, sum_array, in_size, on_size,
-                         exec_graph->num_thread);
-        }
+        printf("Input data type %d not to be supported.\n", type);
+        return -1;
     }
 
     free(max_array);

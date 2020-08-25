@@ -59,6 +59,12 @@ extern "C" {
 #define TENGINE_CLUSTER_MEDIUM 2
 #define TENGINE_CLUSTER_LITTLE 3
 
+#define TENGINE_MODE_FP32 0
+#define TENGINE_MODE_FP16 1
+#define TENGINE_MODE_HYBRID_INT8 2
+#define TENGINE_MODE_UINT8 3
+#define TENGINE_MODE_INT8 4 // todo
+
 /* node dump action definition */
 #define NODE_DUMP_ACTION_DISABLE 0
 #define NODE_DUMP_ACTION_ENABLE 1
@@ -122,6 +128,15 @@ typedef void* node_t;
 typedef int (*event_handler_t)(graph_t, int, void* arg);
 
 typedef void (*log_print_t)(const char*);
+
+
+/* graph exec options */
+struct options
+{
+    int num_thread;
+    int cluster;
+    int precision;
+};
 
 /* performance profiling records */
 
@@ -1005,7 +1020,7 @@ int set_graph_gd_method(graph_t graph, int gd_method, ...);
  * @return 0: Success, -1: Fail.
  *
  */
-int prerun_graph_multithread(graph_t graph, int cluster, int threads);
+int prerun_graph_multithread(graph_t graph, struct options opt);
 
 /*!
  * @brief Initialize resource for graph execution.

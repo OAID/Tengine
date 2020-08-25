@@ -47,6 +47,11 @@ double get_current_time()
 
 int benchmark_graph(const char* graph_name, const char* model_file, int img_h, int img_w, int c, int n)
 {
+    struct options opt;
+    opt.num_thread = 1;
+    opt.cluster = TENGINE_CLUSTER_LITTLE;
+    opt.precision = TENGINE_MODE_FP32;
+
     /* create graph, load tengine model xxx.tmfile */
     graph_t graph = create_graph(NULL, "tengine", model_file);
     if (NULL == graph)
@@ -81,7 +86,7 @@ int benchmark_graph(const char* graph_name, const char* model_file, int img_h, i
         return -1;
     }
 
-    if (prerun_graph_multithread(graph, power, num_threads) < 0)
+    if (prerun_graph_multithread(graph, opt) < 0)
     {
         fprintf(stderr, "Prerun multithread graph failed.\n");
         return -1;

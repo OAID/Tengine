@@ -30,6 +30,7 @@
 #include "../../cpu_node_ops.h"
 #include "tengine_op.h"
 #include "fc_param.h"
+#include "compiler_fp16.h"
 #include <math.h>
 
 struct fc_data
@@ -71,6 +72,41 @@ static int ref_fc_fp32(struct ir_tensor* input_tensor, struct ir_tensor* output_
             output[n * out_number + i] = tmp;
         }
     }
+
+    return 0;
+}
+
+
+static int ref_fc_fp16(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, struct ir_tensor* weight_tensor, struct ir_tensor* bias_tensor, struct fc_data* param)
+{
+    int batch = param->batch;
+    int hidden = param->hidden;
+    int out_number = param->out_number;
+
+    __fp16* input = input_tensor->data;
+    __fp16* output = output_tensor->data;
+    __fp16* weight = weight_tensor->data;
+    __fp16* bias = NULL;
+    if (bias_tensor)
+        bias = bias_tensor->data;
+
+    int n, i, j;
+    for (n = 0; n < batch; n++)
+    {
+        for (i = 0; i < out_number; i++)
+        {
+            float tmp = bias ? fp16_to_fp32(bias[i]) : 0.f;
+            for (j = 0; j < hidden; j++)
+            {
+                if (param->need_trans == 0)
+                    tmp += fp16_to_fp32(input[n * hidden + j]) * fp16_to_fp32(weight[i * hidden + j]);
+                else
+                    tmp += fp16_to_fp32(input[n * hidden + j]) * fp16_to_fp32(weight[i + j * out_number]);
+            }
+            output[n * out_number + i] = fp32_to_fp16(tmp);
+        }
+    }
+
     return 0;
 }
 
@@ -246,8 +282,15 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     int ret = -1;
     if (input_tensor->data_type == TENGINE_DT_FP32)
         ret = ref_fc_fp32(input_tensor, output_tensor, weight_tensor, bias_tensor, op_param);
-    else
+    else if (input_tensor->data_type == TENGINE_DT_FP16)
+        ret = ref_fc_fp16(input_tensor, output_tensor, weight_tensor, bias_tensor, op_param);
+    else if (input_tensor->data_type == TENGINE_DT_UINT8)
         ret = ref_fc_uint8(input_tensor, output_tensor, weight_tensor, bias_tensor, op_param);
+    else
+    {
+        printf("Input data type %d not to be supported.\n", input_tensor->data_type);
+        return -1;
+    }
 
     return ret;
 }

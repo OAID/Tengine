@@ -219,6 +219,12 @@ static void fast_nms(std::vector< std::vector<Object> >& class_candidates, std::
 
 static int detect_yolact(const cv::Mat& bgr, std::vector<Object>& objects, const char* model_file, int repeat_count, int num_thread)
 {
+    /* set runtime options */
+    struct options opt;
+    opt.num_thread = num_thread;
+    opt.cluster = TENGINE_CLUSTER_LITTLE;
+    opt.precision = TENGINE_MODE_FP32;
+
     /* inital tengine */
     if (init_tengine() != 0)
     {
@@ -262,7 +268,7 @@ static int detect_yolact(const cv::Mat& bgr, std::vector<Object>& objects, const
         return -1;
     }
 
-    if (prerun_graph_multithread(graph, TENGINE_CLUSTER_ALL, num_thread) < 0)
+    if (prerun_graph_multithread(graph, opt) < 0)
     {
         fprintf(stderr, "Prerun multithread graph failed.\n");
         return -1;
