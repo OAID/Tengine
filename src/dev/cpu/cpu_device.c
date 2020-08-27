@@ -421,7 +421,7 @@ void extract_feature_blob_f32(const char* comment, const char* layer_name, const
 
                                     __fp16 val = base_ptr[offset];
                                     float val_fp32 = fp16_to_fp32(val);
-                                    if (val < 0)
+                                    if (val_fp32 < 0)
                                         fprintf(pFile, "%.4f ", val_fp32);
                                     else
                                         fprintf(pFile, " %.4f ", val_fp32);
@@ -487,7 +487,7 @@ void extract_feature_blob_f32(const char* comment, const char* layer_name, const
 
                                 __fp16 val = base_ptr[offset];
                                 float val_fp32 = fp16_to_fp32(val);
-                                if (val < 0)
+                                if (val_fp32 < 0)
                                     fprintf(pFile, "%.4f ", val_fp32);
                                 else
                                     fprintf(pFile, " %.4f ", val_fp32);
@@ -546,7 +546,7 @@ void extract_feature_blob_f32(const char* comment, const char* layer_name, const
 
                             __fp16 val = base_ptr[offset];
                             float val_fp32 = fp16_to_fp32(val);
-                            if (val < 0)
+                            if (val_fp32 < 0)
                                 fprintf(pFile, "%.4f ", val_fp32);
                             else
                                 fprintf(pFile, " %.4f ", val_fp32);
@@ -587,7 +587,7 @@ void extract_feature_blob_f32(const char* comment, const char* layer_name, const
 
                         __fp16 val = base_ptr[offset];
                         float val_fp32 = fp16_to_fp32(val);
-                        if (val < 0)
+                        if (val_fp32 < 0)
                             fprintf(pFile, "%.4f ", val_fp32);
                         else
                             fprintf(pFile, " %.4f ", val_fp32);
@@ -608,7 +608,7 @@ void extract_feature_blob_f32(const char* comment, const char* layer_name, const
                 {
                     __fp16 val = base_ptr[w];
                     float val_fp32 = fp16_to_fp32(val);
-                    if (val < 0)
+                    if (val_fp32 < 0)
                         fprintf(pFile, "%.4f ", val_fp32);
                     else
                         fprintf(pFile, " %.4f ", val_fp32);
@@ -682,7 +682,7 @@ void extract_feature_blob_f32(const char* comment, const char* layer_name, const
 
                                     unsigned char val = base_ptr[offset];
                                     float val_fp32 = (val - zero_point) * scale;
-                                    if (val < 0)
+                                    if (val_fp32 < 0)
                                         fprintf(pFile, "%.4f ", val_fp32);
                                     else
                                         fprintf(pFile, " %.4f ", val_fp32);
@@ -748,7 +748,7 @@ void extract_feature_blob_f32(const char* comment, const char* layer_name, const
 
                                 unsigned char val = base_ptr[offset];
                                 float val_fp32 = (val - zero_point) * scale;
-                                if (val < 0)
+                                if (val_fp32 < 0)
                                     fprintf(pFile, "%.4f ", val_fp32);
                                 else
                                     fprintf(pFile, " %.4f ", val_fp32);
@@ -807,7 +807,7 @@ void extract_feature_blob_f32(const char* comment, const char* layer_name, const
 
                             unsigned char val = base_ptr[offset];
                             float val_fp32 = (val - zero_point) * scale;
-                            if (val < 0)
+                            if (val_fp32 < 0)
                                 fprintf(pFile, "%.4f ", val_fp32);
                             else
                                 fprintf(pFile, " %.4f ", val_fp32);
@@ -848,7 +848,7 @@ void extract_feature_blob_f32(const char* comment, const char* layer_name, const
 
                         unsigned char val = base_ptr[offset];
                         float val_fp32 = (val - zero_point) * scale;
-                        if (val < 0)
+                        if (val_fp32 < 0)
                             fprintf(pFile, "%.4f ", val_fp32);
                         else
                             fprintf(pFile, " %.4f ", val_fp32);
@@ -869,7 +869,7 @@ void extract_feature_blob_f32(const char* comment, const char* layer_name, const
                 {
                     unsigned char val = base_ptr[w];
                     float val_fp32 = (val - zero_point) * scale;
-                    if (val < 0)
+                    if (val_fp32 < 0)
                         fprintf(pFile, "%.4f ", val_fp32);
                     else
                         fprintf(pFile, " %.4f ", val_fp32);
