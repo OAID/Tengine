@@ -78,6 +78,7 @@ BOX:( 171 , 27 ),( 345 , 356 )
 ======================================
 ```
 目标检测结果会保存为图片，名称为：`tengine_example_out.jpg`。
+![]('./images/object_detection.jpg')
 
 - 人脸检测
 
@@ -98,6 +99,7 @@ BOX 0.93:( 19.7433 , 15.3631 ),( 74.7011 , 95.6369 )
 ```
 
 人脸检测结果会保存为图片，名称为：`tengine_example_out.jpg`。
+![]('./images/face_detection.jpg')
 
 - 人脸特征点检测
 
@@ -113,6 +115,7 @@ $ ./build/examples/tm_landmark -m models/landmark.tmfile -i images/mobileface01.
 Repeat [1] min 29.110 ms, max 29.110 ms, avg 29.110 ms
 ```
 
-人脸特征点检测结果会保存为图片，名称为：`tengine_example_out.jpg`。
+人脸特征点检测结果会保存为图片，名称为：`landmarkout.jpg`。
+![]('./images/landmarkout.jpg')
 
 我们将持续更新各种有趣的 demo ，敬请期待......
