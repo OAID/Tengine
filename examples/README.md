@@ -79,6 +79,7 @@ BOX:( 171 , 27 ),( 345 , 356 )
 ======================================
 ```
 目标检测结果会保存为图片，名称为：`tengine_example_out.jpg`。
+
 ![](./images/object_detection.jpg)
 
 运行YOLO v3 Tiny：
