@@ -1,14 +1,18 @@
-## examples
+# examples
 
 Tengine Lite 的 examples 将提供简单的、好玩的 demo。
+
+## 分类任务 - [tm_classification.c](tm_classificaton.c)
 
 Tengine Lite 兼容 Tengine 原有的 C API 供用户使用，这里我们使用 C API 展示如何运行 tm_classification 例程运行 MobileNet v1 分类网络模型，实现指定图片分类的功能。让你快速上手Tengine Lite C API。这里，我们使用在这个撸猫时代行业从业者大爱的 tiger cat 作为测试图片。
 
 ![lu mao](https://github.com/OAID/Tengine/blob/master/tests/images/cat.jpg)
 
+模型在此处可以找到：[Tengine model zoo](https://pan.baidu.com/s/1Ar9334MPeIV1eq4pM1eI-Q) 兼容原有 Tengine 的模型示例仓库（密码：hhgc）。
+
 ### 源码参考
 
-[tm_classification.c](example/tm_classificaton.c)
+[tm_classification.c](tm_classificaton.c)
 
 ### 编译
 
@@ -53,5 +57,128 @@ Repeat 1 times, thread 1, avg time 656.76 ms, max_time 656.76 ms, min_time 656.7
 6.357488, 281
 --------------------------------------
 ```
+
+## 人脸关键点检测任务 - [tm_landmark.cpp](tm_landmark.cpp)
+
+使用图片：
+
+![](https://github.com/OAID/Tengine/blob/master/tests/images/mobileface02.jpg)
+
+```bash
+$ export LD_LIBRARY_PATH=./build/install/lib
+$ ./build/install/example/tm_landmark -m models/landmark.tmfile -i images/mobileface02.jpg -r 1 -t 1
+```
+
+结果如下：
+
+```bash
+tengine-lite library version: 0.2-dev
+Repeat [1] min 17.461 ms, max 17.461 ms, avg 17.461 ms
+```
+
+## ssd目标检测任务 - [tm_mobilenet_ssd.cpp](tm_mobilenet_ssd.cpp)
+
+使用图片：
+
+![](https://github.com/OAID/Tengine/blob/master/tests/images/ssd_dog.jpg)
+
+```bash
+$ export LD_LIBRARY_PATH=./build/install/lib
+$ ./build/install/example/tm_mobilenet_ssd -m models/mobilenet_ssd.tmfile -i images/ssd_dog.jpg -r 1 -t 1
+```
+
+结果如下：
+
+```bash
+tengine-lite library version: 0.2-dev
+Repeat 1 times, thread 1, avg time 206.30 ms, max_time 206.30 ms, min_time 206.30 ms
+--------------------------------------
+detect result num: 3
+dog	:99.8%
+BOX:( 138 , 209 ),( 324 , 541 )
+car	:99.7%
+BOX:( 467 , 72 ),( 687 , 171 )
+bicycle	:99.5%
+BOX:( 107 , 141 ),( 574 , 415 )
+======================================
+[DETECTED IMAGE SAVED]:
+======================================
+```
+
+
+## retinaface人脸检测任务 - [tm_refinaface.cpp](tm_refinaface.cpp)
+
+使用图片：
+
+![](https://github.com/OAID/Tengine/blob/master/tests/images/mtcnn_face4.jpg)
+
+```bash
+$ export LD_LIBRARY_PATH=./build/install/lib
+$ ./build/install/example/tm_retinaface -m models/retinaface.tmfile -i images/mtcnn_face4.jpg -r 1 -t 1
+```
+
+结果如下：
+
+```bash
+tengine-lite library version: 0.2-dev
+img_h, img_w : 316, 474
+Repeat 1 times, thread 1, avg time 75.72 ms, max_time 75.72 ms, min_time 75.72 ms
+--------------------------------------
+detected face num: 4
+BOX 0.99:( 38.9179 , 86.3346 ),( 45.7028 , 63.2934 )
+BOX 0.99:( 168.12 , 86.14 ),( 37.5249 , 47.7839 )
+BOX 0.98:( 383.673 , 56.4136 ),( 77.176 , 83.8093 )
+BOX 0.98:( 289.365 , 103.773 ),( 38.0025 , 47.6989 )
+```
+
+
+## yolact实例分割任务 - [tm_yolact.cpp](tm_yolact.cpp)
+
+使用图片：
+
+![](https://github.com/OAID/Tengine/blob/master/tests/images/ssd_car.jpg)
+
+```bash
+$ export LD_LIBRARY_PATH=./build/install/lib
+$ ./build/install/example/tm_yolact -m models/yolact.tmfile -i images/ssd_car.jpg -r 1 -t 1
+```
+
+结果如下：
+
+```bash
+tengine-lite library version: 0.2-dev
+Repeat 1 times, thread 1, avg time 15833.47 ms, max_time 15833.47 ms, min_time 15833.47 ms
+--------------------------------------
+6 = 0.99966 at 130.82 57.77 340.78 x 237.36
+3 = 0.99675 at 323.39 194.97 175.57 x 132.96
+1 = 0.33431 at 191.24 195.78 103.06 x 179.22
+```
+
+## yolov3目标检测任务 - [tm_yolov3.cpp](tm_yolov3.cpp)
+
+使用图片：
+
+![](https://github.com/OAID/Tengine/blob/master/tests/images/ssd_dog.jpg)
+
+```bash
+$ export LD_LIBRARY_PATH=./build/install/lib
+$ ./build/install/example/tm_yolact -m models/yolov3_tiny.tmfile -i images/ssd_dog.jpg -r 1 -t 1
+```
+
+结果如下：
+
+```bash
+tengine-lite library version: 0.2-dev
+Repeat 1 times, thread 1, avg time 262.52 ms, max_time 262.52 ms, min_time 262.52 ms
+--------------------------------------
+num_detections,4
+16: 57%
+left = 129,right = 369,top = 186,bot = 516
+2: 65%
+left = 465,right = 677,top = 74,bot = 171
+1: 60%
+left = 205,right = 576,top = 153,bot = 447
+```
+
 
 我们将持续更新各种有趣的 demo ，敬请期待......
