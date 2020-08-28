@@ -35,7 +35,7 @@ install
 
 - 图像分类
 
-运行：
+运行MobileNet：
 
 ```bash
 $ ./build/examples/tm_classification -m models/mobilenet.tmfile -i images/cat.jpg -g 224,224 -s 0.017,0.017,0.017 -w 104.007,116.669,122.679
@@ -59,7 +59,8 @@ Repeat 1 times, thread 1, avg time 89.72 ms, max_time 89.72 ms, min_time 89.72 m
 
 - 目标检测
 
-运行：
+
+运行MobileNet SSD：
 
 ```bash
 $ ./build/examples/tm_mobilenet_ssd -m models/mobilenet_ssd.tmfile -i images/cat.jpg
@@ -80,9 +81,45 @@ BOX:( 171 , 27 ),( 345 , 356 )
 目标检测结果会保存为图片，名称为：`tengine_example_out.jpg`。
 ![]('./images/object_detection.jpg')
 
+运行YOLO v3 Tiny：
+
+```bash
+./build/examples/tm_yolov3_tiny -m models/yolov3_tiny.tmfile -i images/cat.jpg
+```
+
+结果如下：
+```bash
+Repeat 1 times, thread 1, avg time 176.44 ms, max_time 176.44 ms, min_time 176.44 ms
+--------------------------------------
+num_detections,1
+15: 64%
+left = 164,right = 340,top = 29,bot = 346
+```
+目标检测结果会保存为图片，名称为：`tengine_example_out.jpg`。
+
+- 实例分割
+
+运行YOLACT：
+
+```bash
+$ ./build/examples/tm_yolact -m models/yolact.tmfile -i images/cat.jpg
+```
+
+结果如下：
+```bash
+Repeat 1 times, thread 1, avg time 3862.59 ms, max_time 3862.59 ms, min_time 3862.59 ms
+--------------------------------------
+16 = 0.91342 at 151.76 9.49 210.51 x 347.15
+```
+
+目标检测结果会保存为图片，名称为：`yolact_out.png`。
+
+![](./images/yolact_out.png)
+
+
 - 人脸检测
 
-运行：
+运行Retina Face：
 
 ```bash
 $ ./build/examples/tm_retinaface -m models/retinaface.tmfile -i images/mobileface01.jpg
