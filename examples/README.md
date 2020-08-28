@@ -31,27 +31,88 @@ install
 
 ### 运行结果
 
-将测试图片和模型文件放在 Tengine-Lite 根目录下，运行：
+将测试图片和模型文件放在 Tengine-Lite 根目录下。
+
+- 图像分类
+
+运行：
 
 ```bash
-$ export LD_LIBRARY_PATH=./build/install/lib
-$ ./build/install/example/tm_classification -m models/mobilenet.tmfile -i images/cat.jpg -g 224,224 -s 0.017,0.017,0.017 -w 104.007,116.669,122.679
+$ ./build/examples/tm_classification -m models/mobilenet.tmfile -i images/cat.jpg -g 224,224 -s 0.017,0.017,0.017 -w 104.007,116.669,122.679
 ```
 
 结果如下：
 
 ```bash
-model file : ./temp/models/mobilenet_v1.tmfile
-image file : ./temp/images/cat.jpg
+model file : models/mobilenet.tmfile
+image file : images/cat.jpg
 img_h, img_w, scale[3], mean[3] : 224 224 , 0.017 0.017 0.017, 104.0 116.7 122.7
-Repeat 1 times, thread 1, avg time 656.76 ms, max_time 656.76 ms, min_time 656.76 ms
+Repeat 1 times, thread 1, avg time 89.72 ms, max_time 89.72 ms, min_time 89.72 ms
 --------------------------------------
-8.574148, 282
+8.574146, 282
 7.880116, 277
-7.812579, 278
-7.286453, 263
+7.812573, 278
+7.286457, 263
 6.357488, 281
 --------------------------------------
 ```
+
+- 目标检测
+
+运行：
+
+```bash
+$ ./build/examples/tm_mobilenet_ssd -m models/mobilenet_ssd.tmfile -i images/cat.jpg
+```
+
+结果如下：
+
+```bash
+Repeat 1 times, thread 1, avg time 149.96 ms, max_time 149.96 ms, min_time 149.96 ms
+--------------------------------------
+detect result num: 1
+cat	:100.0%
+BOX:( 171 , 27 ),( 345 , 356 )
+======================================
+[DETECTED IMAGE SAVED]:
+======================================
+```
+目标检测结果会保存为图片，名称为：`tengine_example_out.jpg`。
+
+- 人脸检测
+
+运行：
+
+```bash
+$ ./build/examples/tm_retinaface -m models/retinaface.tmfile -i images/mobileface01.jpg
+```
+
+结果如下：
+
+```bash
+img_h, img_w : 112, 112
+Repeat 1 times, thread 1, avg time 30.81 ms, max_time 30.81 ms, min_time 30.81 ms
+--------------------------------------
+detected face num: 1
+BOX 0.93:( 19.7433 , 15.3631 ),( 74.7011 , 95.6369 )
+```
+
+人脸检测结果会保存为图片，名称为：`tengine_example_out.jpg`。
+
+- 人脸特征点检测
+
+运行：
+
+```bash
+$ ./build/examples/tm_landmark -m models/landmark.tmfile -i images/mobileface01.jpg
+```
+
+结果如下：
+
+```bash
+Repeat [1] min 29.110 ms, max 29.110 ms, avg 29.110 ms
+```
+
+人脸特征点检测结果会保存为图片，名称为：`tengine_example_out.jpg`。
 
 我们将持续更新各种有趣的 demo ，敬请期待......
