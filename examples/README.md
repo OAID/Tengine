@@ -2,7 +2,7 @@
 
 Tengine Lite 的 examples 将提供简单的、好玩的 demo。
 
-## 分类任务 - [tm_classification.c](tm_classificaton.c)
+## 分类任务 - [tm_classification.c](tm_classification.c)
 
 Tengine Lite 兼容 Tengine 原有的 C API 供用户使用，这里我们使用 C API 展示如何运行 tm_classification 例程运行 MobileNet v1 分类网络模型，实现指定图片分类的功能。让你快速上手Tengine Lite C API。这里，我们使用在这个撸猫时代行业从业者大爱的 tiger cat 作为测试图片。
 
@@ -12,7 +12,7 @@ Tengine Lite 兼容 Tengine 原有的 C API 供用户使用，这里我们使用
 
 ### 源码参考
 
-[tm_classification.c](tm_classificaton.c)
+[tm_classification.c](tm_classification.c)
 
 ### 编译
 
