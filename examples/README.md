@@ -76,6 +76,8 @@ tengine-lite library version: 0.2-dev
 Repeat [1] min 17.461 ms, max 17.461 ms, avg 17.461 ms
 ```
 
+![](https://s1.ax1x.com/2020/08/28/doZQxO.jpg)
+
 ## ssd目标检测任务 - [tm_mobilenet_ssd.cpp](tm_mobilenet_ssd.cpp)
 
 使用图片：
@@ -105,6 +107,8 @@ BOX:( 107 , 141 ),( 574 , 415 )
 ======================================
 ```
 
+![](https://s1.ax1x.com/2020/08/28/doeJ6U.jpg)
+
 
 ## retinaface人脸检测任务 - [tm_refinaface.cpp](tm_refinaface.cpp)
 
@@ -131,6 +135,7 @@ BOX 0.98:( 383.673 , 56.4136 ),( 77.176 , 83.8093 )
 BOX 0.98:( 289.365 , 103.773 ),( 38.0025 , 47.6989 )
 ```
 
+![](https://s1.ax1x.com/2020/08/28/doeBfx.jpg)
 
 ## yolact实例分割任务 - [tm_yolact.cpp](tm_yolact.cpp)
 
@@ -153,6 +158,8 @@ Repeat 1 times, thread 1, avg time 15833.47 ms, max_time 15833.47 ms, min_time 1
 3 = 0.99675 at 323.39 194.97 175.57 x 132.96
 1 = 0.33431 at 191.24 195.78 103.06 x 179.22
 ```
+
+![](https://s1.ax1x.com/2020/08/28/doe4ht.png)
 
 ## yolov3目标检测任务 - [tm_yolov3.cpp](tm_yolov3.cpp)
 
@@ -180,5 +187,6 @@ left = 465,right = 677,top = 74,bot = 171
 left = 205,right = 576,top = 153,bot = 447
 ```
 
+![](https://s1.ax1x.com/2020/08/28/domYCt.jpg)
 
 我们将持续更新各种有趣的 demo ，敬请期待......
