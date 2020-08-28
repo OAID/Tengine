@@ -82,7 +82,7 @@ BOX:( 171 , 27 ),( 345 , 356 )
 ```
 目标检测结果会保存为图片，名称为：`tengine_example_out.jpg`。
 
-![](./images/object_detection.jpg)
+![](./images/object_detection_mobilenetssd.jpg)
 
 - 运行YOLO v3 Tiny模型：
 
@@ -98,7 +98,9 @@ num_detections,1
 15: 64%
 left = 164,right = 340,top = 29,bot = 346
 ```
-目标检测结果会保存为图片，名称为：`tengine_example_out.jpg`，输出同上图。
+目标检测结果会保存为图片，名称为：`tengine_example_out.jpg`。
+
+![](./images/object_detection_yolov3tiny.jpg)
 
 #### 实例分割
 
