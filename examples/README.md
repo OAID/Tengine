@@ -8,6 +8,7 @@ Tengine Lite 兼容 Tengine 原有的 C API 供用户使用，这里我们使用
 
 ### 源码参考
 
+图像分类：
 [tm_classification.c](example/tm_classificaton.c)
 
 ### 编译
@@ -33,9 +34,9 @@ install
 
 将测试图片和模型文件放在 Tengine-Lite 根目录下。
 
-- 图像分类
+#### 图像分类
 
-运行MobileNet：
+- 运行MobileNet模型：
 
 ```bash
 $ ./build/examples/tm_classification -m models/mobilenet.tmfile -i images/cat.jpg -g 224,224 -s 0.017,0.017,0.017 -w 104.007,116.669,122.679
@@ -57,10 +58,11 @@ Repeat 1 times, thread 1, avg time 89.72 ms, max_time 89.72 ms, min_time 89.72 m
 --------------------------------------
 ```
 
-- 目标检测
+#### 目标检测
 
+这里展示两个目标检测模型，MobileNet SSD和YOLO v3 Tiny.
 
-运行MobileNet SSD：
+- 运行MobileNet SSD模型：
 
 ```bash
 $ ./build/examples/tm_mobilenet_ssd -m models/mobilenet_ssd.tmfile -i images/cat.jpg
@@ -82,7 +84,7 @@ BOX:( 171 , 27 ),( 345 , 356 )
 
 ![](./images/object_detection.jpg)
 
-运行YOLO v3 Tiny：
+- 运行YOLO v3 Tiny模型：
 
 ```bash
 ./build/examples/tm_yolov3_tiny -m models/yolov3_tiny.tmfile -i images/cat.jpg
@@ -98,9 +100,9 @@ left = 164,right = 340,top = 29,bot = 346
 ```
 目标检测结果会保存为图片，名称为：`tengine_example_out.jpg`，输出同上图。
 
-- 实例分割
+#### 实例分割
 
-运行YOLACT：
+- 运行YOLACT模型：
 
 ```bash
 $ ./build/examples/tm_yolact -m models/yolact.tmfile -i images/cat.jpg
@@ -118,9 +120,9 @@ Repeat 1 times, thread 1, avg time 3862.59 ms, max_time 3862.59 ms, min_time 386
 ![](./images/yolact_out.png)
 
 
-- 人脸检测
+#### 人脸检测
 
-运行Retina Face：
+- 运行Retina Face模型：
 
 ```bash
 $ ./build/examples/tm_retinaface -m models/retinaface.tmfile -i images/mobileface01.jpg
@@ -140,9 +142,9 @@ BOX 0.93:( 19.7433 , 15.3631 ),( 74.7011 , 95.6369 )
 
 ![](./images/face_detection.jpg)
 
-- 人脸特征点检测
+#### 人脸特征点检测
 
-运行：
+- 运行Landmark模型：
 
 ```bash
 $ ./build/examples/tm_landmark -m models/landmark.tmfile -i images/mobileface01.jpg
