@@ -20,7 +20,6 @@ const float s_nms = 0.45;
 
 float s_anchors[] = {12, 16, 19, 36, 40, 28, 36, 75, 76, 55, 72, 146, 142, 110, 192, 243, 459, 401};
 
-
 typedef struct layer
 {
     int total_anchor;
@@ -43,7 +42,7 @@ typedef struct
 typedef struct
 {
     box bbox;
-    float x,y,w,h;
+    float x, y, w, h;
     int classes;
     float* prob;
     float objectness;
@@ -92,14 +91,14 @@ layer make_darknet_layer(int w, int h, int net_w, int net_h, int n, int total, i
         }
     }
     l.outputs = l.inputs;
-    l.output = ( float* )calloc( l.outputs, sizeof(float));
+    l.output = ( float* )calloc(l.outputs, sizeof(float));
 
     return l;
 }
 
 int entry_index(layer l, int box, int channel, int loc)
 {
-    return  box * l.w * l.h * (4 + l.classes + 1) + channel * l.w * l.h + loc;
+    return box * l.w * l.h * (4 + l.classes + 1) + channel * l.w * l.h + loc;
 }
 
 inline void logistic_cpu(float* input, int size)
@@ -110,16 +109,17 @@ inline void logistic_cpu(float* input, int size)
     }
 }
 
-inline float logistic_cpu(float input){
+inline float logistic_cpu(float input)
+{
     return 1.f / (1.f + expf(-input));
 }
 
-void decodebox(layer l,box &b, int box_index, int row,int col,int input_w,int input_h){
-    
+void decodebox(layer l, box& b, int box_index, int row, int col, int input_w, int input_h)
+{
     b.x = (col + logistic_cpu(b.x)) / l.w;
     b.y = (row + logistic_cpu(b.y)) / l.h;
-    b.w = exp(b.w) * l.anchors[ 2 * l.anchor_mask[box_index]] / input_w;
-    b.h = exp(b.h) * l.anchors[ 2 * l.anchor_mask[box_index] + 1] / input_h;
+    b.w = exp(b.w) * l.anchors[2 * l.anchor_mask[box_index]] / input_w;
+    b.h = exp(b.h) * l.anchors[2 * l.anchor_mask[box_index] + 1] / input_h;
 }
 
 void correct_yolo_boxes(std::vector<detection*>& dets, int n, int w, int h, int netw, int neth)
@@ -149,8 +149,8 @@ void correct_yolo_boxes(std::vector<detection*>& dets, int n, int w, int h, int 
     }
 }
 
-
-std::vector<detection*> forward_darknet_layer_cpu(const float* input, layer l,int img_w,int img_h,int net_w,int net_h)
+std::vector<detection*> forward_darknet_layer_cpu(const float* input, layer l, int img_w, int img_h, int net_w,
+                                                  int net_h)
 {
     std::vector<detection*> dets;
     memcpy(( void* )l.output, ( void* )input, sizeof(float) * l.inputs);
@@ -161,29 +161,31 @@ std::vector<detection*> forward_darknet_layer_cpu(const float* input, layer l,in
         logistic_cpu(l.output + index, l.w * l.h);
         for (size_t loc = 0; loc < l.w * l.h; loc++)
         {
-            if(l.output[index + loc] > s_thresh){
+            if (l.output[index + loc] > s_thresh)
+            {
                 /* row col */
                 int row = loc / l.w;
                 int col = loc % l.w;
 
-                detection* temp_detection = (detection *)calloc(1,sizeof(detection));
+                detection* temp_detection = ( detection* )calloc(1, sizeof(detection));
 
                 /* objectness */
                 temp_detection->objectness = l.output[index + loc];
 
                 /* bbox */
-                temp_detection->bbox.x = l.output[entry_index(l,i,0,loc)];
-                temp_detection->bbox.y = l.output[entry_index(l,i,1,loc)];
-                temp_detection->bbox.w = l.output[entry_index(l,i,2,loc)];
-                temp_detection->bbox.h = l.output[entry_index(l,i,3,loc)];
+                temp_detection->bbox.x = l.output[entry_index(l, i, 0, loc)];
+                temp_detection->bbox.y = l.output[entry_index(l, i, 1, loc)];
+                temp_detection->bbox.w = l.output[entry_index(l, i, 2, loc)];
+                temp_detection->bbox.h = l.output[entry_index(l, i, 3, loc)];
                 decodebox(l, temp_detection->bbox, i, row, col, net_w, net_h);
 
                 /* classes_prob */
-                temp_detection->prob = (float*)calloc(l.classes,sizeof(float));
-                for(int j = 5; j < l.classes + 5;j++){
-                    int grid_index = entry_index(l,i,j,loc);
+                temp_detection->prob = ( float* )calloc(l.classes, sizeof(float));
+                for (int j = 5; j < l.classes + 5; j++)
+                {
+                    int grid_index = entry_index(l, i, j, loc);
                     logistic_cpu(l.output + grid_index, 1);
-                    temp_detection->prob[j-5] = l.output[grid_index > s_thresh] ? l.output[grid_index] : 0;
+                    temp_detection->prob[j - 5] = l.output[grid_index > s_thresh] ? l.output[grid_index] : 0;
                 }
 
                 /* classes_num */
@@ -194,13 +196,13 @@ std::vector<detection*> forward_darknet_layer_cpu(const float* input, layer l,in
         }
     }
 
-    if (dets.size() > 0) {
-        correct_yolo_boxes( dets, dets.size(),img_w,img_h, net_w, net_h);
+    if (dets.size() > 0)
+    {
+        correct_yolo_boxes(dets, dets.size(), img_w, img_h, net_w, net_h);
     }
 
     return dets;
 }
-
 
 int nms_comparator(const detection* pa, const detection* pb)
 {
@@ -276,7 +278,7 @@ void do_nms_sort(std::vector<detection*>& dets, int total, int classes, float th
         {
             dets[i]->sort_class = k;
         }
-        std::sort(dets.begin(),dets.end(),nms_comparator);
+        std::sort(dets.begin(), dets.end(), nms_comparator);
         for (i = 0; i < total; ++i)
         {
             if (dets[i]->prob[k] == 0)
@@ -293,7 +295,6 @@ void do_nms_sort(std::vector<detection*>& dets, int total, int classes, float th
         }
     }
 }
-
 
 void get_input_data_darknet(const char* image_file, float* input_data, int net_h, int net_w)
 {
@@ -313,16 +314,17 @@ void get_input_data_darknet(const char* image_file, float* input_data, int net_h
 
 void show_usage()
 {
-    fprintf(stderr, "[Usage]:  [-h]\n    [-m model_file] [-i image_file] [-r repeat_count] [-t thread_count] [-s size:608:512] \n");
+    fprintf(
+        stderr,
+        "[Usage]:  [-h]\n    [-m model_file] [-i image_file] [-r repeat_count] [-t thread_count] [-s size:608:512] \n");
 }
 
-
-int main(int argc, char* argv[]) {
-
+int main(int argc, char* argv[])
+{
     const char* model_file = nullptr;
     const char* image_file = nullptr;
     int net_h = 608;
-    int net_w = 608; 
+    int net_w = 608;
     int repeat_count = 1;
     int num_thread = 1;
 
@@ -374,7 +376,6 @@ int main(int argc, char* argv[]) {
     if (!check_file_exist(model_file) || !check_file_exist(image_file))
         return -1;
 
-
     /* init */
     init_tengine();
     fprintf(stderr, "tengine-lite library version: %s\n", get_tengine_version());
@@ -414,7 +415,7 @@ int main(int argc, char* argv[]) {
     }
 
     /* prepare process input data, set the data mem to input tensor */
-    get_input_data_darknet(image_file,input_data.data(),net_h,net_w);
+    get_input_data_darknet(image_file, input_data.data(), net_h, net_w);
     if (set_tensor_buffer(input_tensor, input_data.data(), img_size * 4) < 0)
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
@@ -439,14 +440,14 @@ int main(int argc, char* argv[]) {
         min_time = std::min(min_time, cur);
         max_time = std::max(max_time, cur);
     }
-    fprintf(stderr, "Repeat %d times, thread %d, avg time %.2f ms, max_time %.2f ms, min_time %.2f ms\n", 1,
-            1, total_time , max_time, min_time);
+    fprintf(stderr, "Repeat %d times, thread %d, avg time %.2f ms, max_time %.2f ms, min_time %.2f ms\n", 1, 1,
+            total_time, max_time, min_time);
     fprintf(stderr, "--------------------------------------\n");
 
     image img = imread(image_file);
     int output_node_num = get_graph_output_node_number(graph);
 
-    /* save layer */ 
+    /* save layer */
     std::vector<layer> layers_params;
     layers_params.clear();
 
@@ -466,14 +467,15 @@ int main(int argc, char* argv[]) {
         l_params = make_darknet_layer(out_w, out_h, net_w, net_h, YOLOV4_NUM_BOXES, YOLOV4_TOTAL_ANCHOR, CLASSES_COCO);
         layers_params.push_back(l_params);
         float* out_data = ( float* )get_tensor_buffer(out_tensor);
-        std::vector<detection*> l_dets = forward_darknet_layer_cpu(out_data, l_params,img.w,img.h,net_w,net_h);
-        if(l_dets.size() == 0) 
+        std::vector<detection*> l_dets = forward_darknet_layer_cpu(out_data, l_params, img.w, img.h, net_w, net_h);
+        if (l_dets.size() == 0)
             continue;
-        detections.insert(detections.end(),l_dets.begin(), l_dets.end());
+        detections.insert(detections.end(), l_dets.begin(), l_dets.end());
     }
 
-    if ( detections.size() == 0 ){
-        fprintf(stderr,"no object detect");
+    if (detections.size() == 0)
+    {
+        fprintf(stderr, "no object detect");
         return 0;
     }
 
