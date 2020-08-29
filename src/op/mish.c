@@ -19,7 +19,7 @@
 
 /*
  * Copyright (c) 2020, OPEN AI LAB
- * Author: qtang@openailab.com
+ * Author: 942002795@qq.com
  */
 
 #include <stdio.h>
