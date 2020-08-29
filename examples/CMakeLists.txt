@@ -22,6 +22,7 @@ tengine_example(tm_yolov3_uint8             tm_yolov3_uint8.cpp)
 tengine_example(tm_landmark                 tm_landmark.cpp)
 tengine_example(tm_landmark_uint8           tm_landmark_uint8.cpp)
 tengine_example(tm_mobilefacenet            tm_mobilefacenet.cpp)
+tengine_example(tm_yolov4                   tm_yolov4.cpp)
 
 
 # add examples with opencv
