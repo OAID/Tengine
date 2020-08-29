@@ -508,9 +508,38 @@ int main(int argc, char* argv[])
             draw_box(img, left, top, right, bot, 2, 125, 0, 125);
             fprintf(stderr, "left = %d,right = %d,top = %d,bot = %d\n", left, right, top, bot);
         }
+
+        if (detections[i]->prob)
+            free(detections[i]->prob);
     }
 
     save_image(img, "tengine_example_out");
+
+    /* free resource */
+    /* release tengine */
+    for (int i = 0; i < output_node_num; ++i)
+    {
+        tensor_t out_tensor = get_graph_output_tensor(graph, i, 0);
+        release_graph_tensor(out_tensor);
+    }
+
+    free_image(img);
+
+    for (int i = 0; i < layers_params.size(); i++)
+    {
+        layer l = layers_params[i];
+        if (l.output)
+            free(l.output);
+        if (l.anchors)
+            free(l.anchors);
+        if (l.anchor_mask)
+            free(l.anchor_mask);
+    }
+
+    release_graph_tensor(input_tensor);
+    postrun_graph(graph);
+    destroy_graph(graph);
+    release_tengine();
 
     return 0;
 }
