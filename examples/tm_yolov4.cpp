@@ -185,7 +185,7 @@ std::vector<detection*> forward_darknet_layer_cpu(const float* input, layer l, i
                 {
                     int grid_index = entry_index(l, i, j, loc);
                     logistic_cpu(l.output + grid_index, 1);
-                    temp_detection->prob[j - 5] = l.output[grid_index > s_thresh] ? l.output[grid_index] : 0;
+                    temp_detection->prob[j - 5] = l.output[grid_index] > s_thresh ? l.output[grid_index] : 0;
                 }
 
                 /* classes_num */
