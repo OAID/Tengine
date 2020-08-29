@@ -60,7 +60,7 @@ static int register_mish_op(void* arg)
     m.init_op = init_op;
     m.release_op = release_op;
 
-    return register_op(OP_MISH, OP_RELU6_NAME, &m);
+    return register_op(OP_MISH, OP_MISH_NAME, &m);
 }
 
 static int unregister_mish_op(void* arg)
