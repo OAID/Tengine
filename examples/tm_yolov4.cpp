@@ -124,25 +124,6 @@ layer make_darknet_layer(int batch, int w, int h, int net_w, int net_h, int n, i
                 l.mask[i] = j++;
         }
     }
-    if (6 == total)
-    {
-        for (int i = 0; i < total * 2; ++i)
-        {
-            l.biases[i] = biases_tiny[i];
-        }
-        if (l.w == net_w / 32)
-        {
-            int j = 3;
-            for (int i = 0; i < l.n; ++i)
-                l.mask[i] = j++;
-        }
-        if (l.w == net_w / 16)
-        {
-            int j = 0;
-            for (int i = 0; i < l.n; ++i)
-                l.mask[i] = j++;
-        }
-    }
     l.outputs = l.inputs;
     l.output = ( float* )calloc(batch * l.outputs, sizeof(float));
 

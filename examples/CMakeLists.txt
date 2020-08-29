@@ -18,6 +18,7 @@ tengine_example(tm_mobilenet_ssd_uint8      tm_mobilenet_ssd_uint8.cpp)
 tengine_example(tm_retinaface               tm_retinaface.cpp)
 tengine_example(tm_yolov3_tiny              tm_yolov3_tiny.cpp)
 tengine_example(tm_yolov3_uint8             tm_yolov3_uint8.cpp)
+tengine_example(tm_yolov4                   tm_yolov4.cpp)
 tengine_example(tm_landmark                 tm_landmark.cpp)
 tengine_example(tm_landmark_uint8           tm_landmark_uint8.cpp)
 
