@@ -38,7 +38,7 @@ if (${TENGINE_TARGET_PROCESSOR} MATCHES "X86")
                     "${CMAKE_CURRENT_SOURCE_DIR}/common/tengine_operations.c")
             target_link_libraries(${name} ${CMAKE_PROJECT_NAME} ${OpenCV_LIBS})
         endmacro()
-
+	tengine_example_cv(tm_openpose      tm_openpose.cpp)
         tengine_example_cv(tm_yolact        tm_yolact.cpp)
     else()
         message(WARNING "OpenCV not found, some examples won't be built")
