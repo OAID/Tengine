@@ -634,19 +634,7 @@ void combination_image(image source, image dest, int dx, int dy)
 
 image imread(const char* filename)
 {
-    image im = load_image_stb(filename, 0);
-    for (int c = 0; c < im.c; c++)
-    {
-        for (int h = 0; h < im.h; h++)
-        {
-            for (int w = 0; w < im.w; w++)
-            {
-                int newIndex = ( c )*im.h * im.w + h * im.w + w;
-                im.data[newIndex] = im.data[newIndex];
-            }
-        }
-    }
-    return im;
+    return load_image_stb(filename, 0);
 }
 
 image imread2post(const char* filename)
