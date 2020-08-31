@@ -121,6 +121,7 @@ enum
     OP_UNSQUEEZE,
     OP_UPSAMPLE,
     OP_ZEROSLIKE,
+    OP_MISH,
     OP_BUILTIN_LAST
 };
 
