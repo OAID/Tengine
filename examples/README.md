@@ -189,4 +189,47 @@ left = 205,right = 576,top = 153,bot = 447
 
 ![](https://s1.ax1x.com/2020/08/28/domYCt.jpg)
 
+## 人体姿态识别任务任务 - [tm_openpose.cpp](tm_openpose.cpp)
+
+使用图片：
+
+![](https://s1.ax1x.com/2020/09/01/dvJm8A.jpg)
+
+```bash
+$ export LD_LIBRARY_PATH=./build/install/lib
+$ ./build/install/example/tm_openpose -m models/openpose_coco.tmfile -i image/pose.jpg -r 1 -t 1
+```
+
+结果如下：
+
+```bash
+tengine-lite library version: 0.2-dev
+Repeat 1 times, thread 1, avg time 15350.25 ms, max_time 15350.25 ms, min_time 15350.25 ms
+--------------------------------------
+KeyPoints Coordinate:
+0:[292.174, 55.6522]
+1:[306.087, 125.217]
+2:[250.435, 139.13]
+3:[236.522, 222.609]
+4:[222.609, 306.087]
+5:[361.739, 125.217]
+6:[403.478, 208.696]
+7:[417.391, 292.174]
+8:[264.348, 306.087]
+9:[264.348, 431.304]
+10:[264.348, 570.435]
+11:[347.826, 306.087]
+12:[375.652, 431.304]
+13:[333.913, 542.609]
+14:[278.261, 41.7391]
+15:[306.087, 41.7391]
+16:[264.348, 55.6522]
+17:[320, 55.6522]
+```
+
+![](https://s1.ax1x.com/2020/09/01/dvJ2x1.jpg)
+![](https://s1.ax1x.com/2020/09/01/dvJxZ8.jpg)
+
+人体姿态识别结果会保存为图片，名称为：`Output-Keypionts.jpg`和`Output-Skeleton.jpg`。
+
 我们将持续更新各种有趣的 demo ，敬请期待......
