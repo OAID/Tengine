@@ -189,7 +189,7 @@ left = 205,right = 576,top = 153,bot = 447
 
 ![](https://s1.ax1x.com/2020/08/28/domYCt.jpg)
 
-## 人体姿态识别任务任务 - [tm_openpose.cpp](tm_openpose.cpp)
+## 人体姿态识别任务 - [tm_openpose.cpp](tm_openpose.cpp)
 
 使用图片：
 
