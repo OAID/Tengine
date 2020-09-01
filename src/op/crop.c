@@ -38,7 +38,7 @@ DEFINE_PARM_PARSE_ENTRY(crop_param, flag, num_args, offset_c, offset_h, offset_w
 static int infer_shape(struct ir_node* node)
 {
     struct ir_graph* graph = node->graph;
-    struct ir_tensor* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
+    struct ir_tensor* input = get_ir_graph_tensor(graph, node->input_tensors[1]); // Don't try to modify !
     struct ir_tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
     struct crop_param* crop_param = ( struct crop_param* )(node->op.param_mem);
 
