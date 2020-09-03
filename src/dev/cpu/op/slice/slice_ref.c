@@ -349,6 +349,10 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
     struct shape_dim sd[out_num];
     int8_t** out_data_ptrs = ( int8_t** )sys_malloc(out_num * sizeof(int8_t*));
+    if(out_data_ptrs == NULL)
+    {
+        return -1;
+    }
 
     op_param.axis = _param->axis;
     op_param.output_shape = sd;
@@ -416,6 +420,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
             input_tensor->dims[2] == out_tensor->dims[2] && input_tensor->dims[3] == out_tensor->dims[3])
         {
             memcpy(( void* )(out_data_ptrs[0]), ( void* )input, mem_size);
+            sys_free(out_data_ptrs);
             return true;
         }
     }
