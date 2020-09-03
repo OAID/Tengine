@@ -114,6 +114,12 @@ int main(int argc, char* argv[])
     if (!check_file_exist(model_file) || !check_file_exist(image_file))
         return -1;
 
+    /* set runtime options */
+    struct options opt;
+    opt.num_thread = 1;
+    opt.cluster = TENGINE_CLUSTER_LITTLE;
+    opt.precision = TENGINE_MODE_UINT8;
+
     /* inital tengine */
     init_tengine();
     fprintf(stderr, "tengine-lite library version: %s\n", get_tengine_version());
@@ -151,7 +157,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    if (prerun_graph_multithread(graph, TENGINE_CLUSTER_ALL, num_thread) < 0)
+    if (prerun_graph_multithread(graph, opt) < 0)
     {
         fprintf(stderr, "Prerun multithread graph failed.\n");
         return -1;

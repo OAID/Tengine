@@ -277,7 +277,7 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     if (input_tensor->data_type != TENGINE_DT_FP32)
         return 0;
 
-    return OPS_SCORE_BEST;
+    return 0;
 }
 
 static struct node_ops hcl_node_ops = {.prerun = prerun,

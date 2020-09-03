@@ -155,11 +155,6 @@ int fc_kernel_postrun(struct fc_priv_info* priv_info)
         priv_info->input_buffer = NULL;
         priv_info->input_buffer_size = 0;
     }
-    if (priv_info->kernel_max != NULL)
-    {
-        sys_free(priv_info->kernel_max);
-        priv_info->kernel_max = NULL;
-    }
 
     return 0;
 }
@@ -189,7 +184,7 @@ int fc_kernel_run(struct ir_tensor* input_tensor, struct ir_tensor* filter_tenso
 #else
     kernel_1x8 = (kernel_t)sgemv_1x8_a17;
     kernel_1x2 = (kernel_t)sgemv_1x2_a17;
-#endif        
+#endif
 
     /* process */
     for (int i = 0; i < input_tensor->dims[0]; i++)

@@ -74,7 +74,7 @@ typedef struct layer
 } layer;
 
 const int classes = 80;
-const float thresh = 0.5;
+const float thresh = 0.55;
 const float hier_thresh = 0.5;
 const float nms = 0.45;
 const int relative = 1;

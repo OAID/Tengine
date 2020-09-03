@@ -65,6 +65,12 @@ void get_input_uint8_data(const char* image_file, uint8_t* input_data, int img_h
 int tengine_classify(const char* model_file, const char* image_file, int img_h, int img_w,
                      float* mean, float* scale, int loop_count, int num_thread)
 {
+    /* set runtime options */
+    struct options opt;
+    opt.num_thread = 1;
+    opt.cluster = TENGINE_CLUSTER_LITTLE;
+    opt.precision = TENGINE_MODE_UINT8;
+
     /* inital tengine */
     if (init_tengine() != 0)
     {
@@ -100,7 +106,7 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
         return -1;
     }
 
-    if (prerun_graph_multithread(graph, TENGINE_CLUSTER_ALL, num_thread) < 0)
+    if (prerun_graph_multithread(graph, opt) < 0)
     {
         fprintf(stderr, "Prerun multithread graph failed.\n");
         return -1;
