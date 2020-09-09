@@ -890,7 +890,7 @@ static int unload_graph(struct serializer* s, struct ir_graph* graph, void* s_pr
 
     if (priv->fd >= 0)
     {
-        munmap(( void* )priv->base, priv->mem_len);
+        // munmap(( void* )priv->base, priv->mem_len);
         close(priv->fd);
     }
 
