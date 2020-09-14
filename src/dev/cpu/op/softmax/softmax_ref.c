@@ -158,7 +158,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         for (int i = 0; i < out_size; i++)
         {
             /* get max */
-            int img_base = i * on_in_size * element_size;
+            int img_base = i * on_in_size;
 
             GetMaxArray(input + img_base, max_array, in_size, on_size, exec_graph->num_thread);
             GetOutResult(input + img_base, output + img_base, max_array, sum_array, in_size, on_size,

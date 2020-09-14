@@ -76,7 +76,7 @@ int exec_module_exit(int stop_on_all_error);
 
 #define REGISTER_CRIT_MODULE_EXIT_ARG(level, name, func, arg)   \
     DECLARE_AUTO_INIT_FUNC(UNIQ_DUMMY_NAME(mod_exit));          \
-    static void UNIQ_DUMMY_NAME(mod_exit(void)                  \
+    static void UNIQ_DUMMY_NAME(mod_exit)(void)                 \
     {                                                           \
         register_module_exit(level, name, func, arg);           \
     }
