@@ -61,5 +61,11 @@ int mish_run(struct ir_tensor* output_tensor, struct ir_tensor* input_tensor, in
         int offset = i * chan_size;
         mish_kernel(0, 0, &chan_size, data + offset, out_data + offset);
     }
+
+    for(int i = 0; i < 10; i++)
+    {
+        printf("%f\n", out_data[i]);
+    }
+
     return 0;
 }
