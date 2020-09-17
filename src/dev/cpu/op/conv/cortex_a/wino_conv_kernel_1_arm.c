@@ -1438,7 +1438,10 @@ int wino_conv_hcl_run_1(struct ir_tensor* input_tensor, struct ir_tensor* filter
             }
         }
         sys_free(trans_inp);
-        trans_output_1(trans_out, output, biases_buf, 0, block_h, block_w, 0, out_c, out_hw, out_w, resi_h,
+        int bias_term = 0;
+        if(biases_buf != NULL)
+            bias_term = 1;
+        trans_output_1(trans_out, output, biases_buf, bias_term, block_h, block_w, 0, out_c, out_hw, out_w, resi_h,
                        resi_w, act_type);
 
         sys_free(trans_out);
