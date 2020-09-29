@@ -32,7 +32,7 @@ struct nn_device
     char* name;
 
     int (*init)(struct nn_device* dev);
-    int (*prerun)(struct nn_device* dev, struct subgraph* subgraph, int num_thread, int cpu_affinity);
+    int (*prerun)(struct nn_device* dev, struct subgraph* subgraph, int num_thread, int cpu_affinity, int mode);
     int (*run)(struct nn_device* dev, struct subgraph* subgraph);
     int (*postrun)(struct nn_device* dev, struct subgraph* subgraph);
     int (*async_run)(struct nn_device* dev, struct subgraph* subgraph);

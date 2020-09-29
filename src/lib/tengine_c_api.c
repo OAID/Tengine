@@ -944,7 +944,7 @@ size_t DLLEXPORT get_cluster_affinity_mask(int cluster)
     struct exec_context* context = get_ir_graph_context(ir_graph);
     struct exec_scheduler* scheduler = context->scheduler;
 
-    if (scheduler->prerun(scheduler, ir_graph, count, cluster) < 0)
+    if (scheduler->prerun(scheduler, ir_graph, count, cluster, TENGINE_MODE_FP32) < 0)
     {
         ir_graph->status = GRAPH_STAT_ERROR;
         fprintf(stderr, "scheduler->prerun failed\n");
@@ -990,7 +990,7 @@ int DLLEXPORT prerun_graph(graph_t graph)
 
     struct exec_scheduler* scheduler = context->scheduler;
 
-    if (scheduler->prerun(scheduler, ir_graph, 1, TENGINE_CLUSTER_BIG) < 0)
+    if (scheduler->prerun(scheduler, ir_graph, 1, TENGINE_CLUSTER_BIG, TENGINE_MODE_FP32) < 0)
     {
         ir_graph->status = GRAPH_STAT_ERROR;
         fprintf(stderr, "scheduler->prerun failed\n");
@@ -1002,14 +1002,14 @@ int DLLEXPORT prerun_graph(graph_t graph)
     return 0;
 }
 
-int DLLEXPORT prerun_graph_multithread(graph_t graph, int cluster, int threads)
+int DLLEXPORT prerun_graph_multithread(graph_t graph, struct options opt)
 {
     check_cpu();
-    size_t mask = get_cluster_mask(cluster);
+    size_t mask = get_cluster_mask(opt.cluster);
     int count = get_mask_count(mask);
 
-    if (count > threads)
-        count = threads;
+    if (count > opt.num_thread)
+        count = opt.num_thread;
 
     struct ir_graph* ir_graph = ( struct ir_graph* )graph;
     if (infer_shape_graph(ir_graph) < 0)
@@ -1029,7 +1029,7 @@ int DLLEXPORT prerun_graph_multithread(graph_t graph, int cluster, int threads)
     }
 
     struct exec_scheduler* scheduler = context->scheduler;
-    if (scheduler->prerun(scheduler, ir_graph, count, cluster) < 0)
+    if (scheduler->prerun(scheduler, ir_graph, count, opt.cluster, opt.precision) < 0)
     {
         ir_graph->status = GRAPH_STAT_ERROR;
         fprintf(stderr, "scheduler->prerun failed\n");
@@ -1219,7 +1219,14 @@ int DLLEXPORT add_context_device(context_t context, const char* dev_name)
         return -1;
     }
 
-    push_vector_data(exec_context->dev_list, dev);
+    push_vector_data(exec_context->dev_list, &dev);
+
+    struct dev_allocator* dev_allocator = get_dev_allocator(dev_name);
+
+    if (NULL != dev_allocator)
+    {
+        exec_context->dev_allocator = dev_allocator;
+    }
 
     return 0;
 }

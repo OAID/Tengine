@@ -42,14 +42,14 @@ static int ref_psroipooling_fp32(struct ir_tensor* featmap_tensor, struct ir_ten
     float* roi = roi_tensor->data;
     float* output = output_tensor->data;
 
-    float spatial_scale = spatial_scale;
+    float spatial_scale = param->spatial_scale;
     int out_h = param->pooled_h;
     int out_w = param->pooled_w;
     int channel = featmap_tensor->dims[1];
     int in_h = featmap_tensor->dims[2];
     int in_w = featmap_tensor->dims[3];
     int num_rois = roi_tensor->dims[1];
-    int output_dim = output_dim;
+    int output_dim = param->output_dim;
     int pool_hw = out_h * out_w;
 
     for (int n = 0; n < num_rois; ++n)

@@ -47,6 +47,11 @@ double get_current_time()
 
 int benchmark_graph(const char* graph_name, const char* model_file, int img_h, int img_w, int c, int n)
 {
+    struct options opt;
+    opt.num_thread = 1;
+    opt.cluster = TENGINE_CLUSTER_LITTLE;
+    opt.precision = TENGINE_MODE_FP32;
+
     /* create graph, load tengine model xxx.tmfile */
     graph_t graph = create_graph(NULL, "tengine", model_file);
     if (NULL == graph)
@@ -81,7 +86,7 @@ int benchmark_graph(const char* graph_name, const char* model_file, int img_h, i
         return -1;
     }
 
-    if (prerun_graph_multithread(graph, power, num_threads) < 0)
+    if (prerun_graph_multithread(graph, opt) < 0)
     {
         fprintf(stderr, "Prerun multithread graph failed.\n");
         return -1;
@@ -228,13 +233,13 @@ int main(int argc, char* argv[])
             benchmark_graph("squeezenet_v1.1",  "./models/squeezenet_v1.1_benchmark.tmfile",    227, 227, 3, 1);
             benchmark_graph("mobilenetv1",      "./models/mobilenet_benchmark.tmfile",          224, 224, 3, 1);
             benchmark_graph("mobilenetv2",      "./models/mobilenet_v2_benchmark.tmfile",       224, 224, 3, 1);
-//            benchmark_graph("mobilenetv3",      "./models/mobilenet_v3_benchmark.tmfile",       224, 224, 3, 1);
+            // benchmark_graph("mobilenetv3",      "./models/mobilenet_v3_benchmark.tmfile",       224, 224, 3, 1);
             benchmark_graph("shufflenetv2",     "./models/shufflenet_v2_benchmark.tmfile",      224, 224, 3, 1);
             benchmark_graph("resnet18",         "./models/resnet18_benchmark.tmfile",           224, 224, 3, 1);
             benchmark_graph("resnet50",         "./models/resnet50_benchmark.tmfile",           224, 224, 3, 1);
             benchmark_graph("googlenet",        "./models/googlenet_benchmark.tmfile",          224, 224, 3, 1);
-//            benchmark_graph("inceptionv3",      "./models/inception_v3_benchmark.tmfile",       299, 299, 3, 1);
-//            benchmark_graph("vgg16",            "./models/vgg16_benchmark.tmfile",              224, 224, 3, 1);
+            // benchmark_graph("inceptionv3",      "./models/inception_v3_benchmark.tmfile",       299, 299, 3, 1);
+            // benchmark_graph("vgg16",            "./models/vgg16_benchmark.tmfile",              224, 224, 3, 1);
             benchmark_graph("mssd",             "./models/mssd_benchmark.tmfile",               300, 300, 3, 1);
             benchmark_graph("retinaface",       "./models/retinaface_benchmark.tmfile",         320, 240, 3, 1);
             benchmark_graph("yolov3_tiny",      "./models/yolov3_tiny_benchmark.tmfile",        416, 416, 3, 1);

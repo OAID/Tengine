@@ -81,6 +81,14 @@ static int infer_shape(struct ir_node* node)
 
     for (int i = 0; i < node->input_num; i++)
     {
+        struct ir_tensor* input_tensor = get_ir_graph_tensor(graph, node->input_tensors[0]);
+
+        if (axis < 0)
+        {
+            axis = input_tensor->dim_num + axis;
+            concat_param->axis = axis;
+        }
+
         struct ir_tensor* input = get_ir_graph_tensor(graph, node->input_tensors[i]);
         concat_shape += input->dims[axis];
     }

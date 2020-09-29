@@ -1,7 +1,7 @@
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
+ * distributed with this work for additional information
  * regarding copyright ownership.  The ASF licenses this file
  * to you under the Apache License, Version 2.0 (the
  * License); you may not use this file except in compliance
@@ -74,19 +74,19 @@ typedef struct layer
 } layer;
 
 const int classes = 80;
-const float thresh = 0.5;
+const float thresh = 0.55;
 const float hier_thresh = 0.5;
 const float nms = 0.45;
 const int relative = 1;
 
 // yolov3
-float biases[18] = {10,13,16,30,33,23,30,61,62,45,59,119,116,90,156,198,373,326};
+float biases[18] = {10, 13, 16, 30, 33, 23, 30, 61, 62, 45, 59, 119, 116, 90, 156, 198, 373, 326};
 // tiny
-float biases_tiny[12] = {10,14,  23,27,  37,58 , 81,82,  135,169,  344,319};
+float biases_tiny[12] = {10, 14, 23, 27, 37, 58, 81, 82, 135, 169, 344, 319};
 // yolov2
 float biases_yolov2[10] = {0.57273, 0.677385, 1.87446, 2.06253, 3.33843, 5.47434, 7.88282, 3.52778, 9.77052, 9.16828};
 
-layer make_darknet_layer(int batch, int w, int h, int net_w, int net_h, int n, int total, int classes,int layer_type)
+layer make_darknet_layer(int batch, int w, int h, int net_w, int net_h, int n, int total, int classes, int layer_type)
 {
     layer l = {0};
     l.n = n;
@@ -102,82 +102,82 @@ layer make_darknet_layer(int batch, int w, int h, int net_w, int net_h, int n, i
     l.inputs = l.w * l.h * l.c;
 
     l.biases = ( float* )calloc(total * 2, sizeof(float));
-    if(layer_type == 0)
+    if (layer_type == 0)
     {
         l.mask = ( int* )calloc(n, sizeof(int));
-        if(9 == total)
+        if (9 == total)
         {
-            for(int i = 0; i < total * 2; ++i)
+            for (int i = 0; i < total * 2; ++i)
             {
                 l.biases[i] = biases[i];
             }
-            if(l.w == net_w / 32)
+            if (l.w == net_w / 32)
             {
                 int j = 6;
-                for(int i = 0; i < l.n; ++i)
+                for (int i = 0; i < l.n; ++i)
                     l.mask[i] = j++;
             }
-            if(l.w == net_w / 16)
+            if (l.w == net_w / 16)
             {
                 int j = 3;
-                for(int i = 0; i < l.n; ++i)
+                for (int i = 0; i < l.n; ++i)
                     l.mask[i] = j++;
             }
-            if(l.w == net_w / 8)
+            if (l.w == net_w / 8)
             {
                 int j = 0;
-                for(int i = 0; i < l.n; ++i)
+                for (int i = 0; i < l.n; ++i)
                     l.mask[i] = j++;
             }
         }
-        if(6 == total)
+        if (6 == total)
         {
-            for(int i =0;i<total*2;++i)
+            for (int i = 0; i < total * 2; ++i)
             {
                 l.biases[i] = biases_tiny[i];
             }
-            if(l.w == net_w / 32)
+            if (l.w == net_w / 32)
             {
                 int j = 3;
-                for(int i =0;i<l.n;++i)
+                for (int i = 0; i < l.n; ++i)
                     l.mask[i] = j++;
             }
-            if(l.w == net_w / 16)
+            if (l.w == net_w / 16)
             {
                 int j = 0;
-                for(int i =0;i<l.n;++i)
+                for (int i = 0; i < l.n; ++i)
                     l.mask[i] = j++;
             }
         }
     }
-    else if(1 == layer_type)
+    else if (1 == layer_type)
     {
         l.coords = 4;
-        for(int i =0;i<total*2;++i)
+        for (int i = 0; i < total * 2; ++i)
         {
             l.biases[i] = biases_yolov2[i];
         }
     }
     l.layer_type = layer_type;
     l.outputs = l.inputs;
-    l.output = (float*)calloc(batch * l.outputs, sizeof(float));
+    l.output = ( float* )calloc(batch * l.outputs, sizeof(float));
 
     return l;
 }
 
 void free_darknet_layer(layer l)
 {
-    if(NULL != l.biases)
+    if (NULL != l.biases)
     {
         free(l.biases);
         l.biases = NULL;
     }
-    if(NULL != l.mask)
+    if (NULL != l.mask)
     {
         free(l.mask);
         l.mask = NULL;
     }
-    if(NULL != l.output)
+    if (NULL != l.output)
     {
         free(l.output);
         l.output = NULL;
@@ -193,7 +193,7 @@ static int entry_index(layer l, int batch, int location, int entry)
 
 void logistic_cpu(float* input, int size)
 {
-    for(int i = 0; i < size; ++i)
+    for (int i = 0; i < size; ++i)
     {
         input[i] = 1.f / (1.f + expf(-input[i]));
     }
@@ -202,11 +202,11 @@ void logistic_cpu(float* input, int size)
 void forward_darknet_layer_cpu(const float* input, layer l)
 {
     memcpy(( void* )l.output, ( void* )input, sizeof(float) * l.inputs * l.batch);
-    if(0 == l.layer_type)
+    if (0 == l.layer_type)
     {
-        for(int b = 0; b < l.batch; ++b)
+        for (int b = 0; b < l.batch; ++b)
         {
-            for(int n = 0; n < l.n; ++n)
+            for (int n = 0; n < l.n; ++n)
             {
                 int index = entry_index(l, b, n * l.w * l.h, 0);
                 logistic_cpu(l.output + index, 2 * l.w * l.h);
@@ -221,14 +221,14 @@ int yolo_num_detections(layer l, float thresh)
 {
     int i, n, b;
     int count = 0;
-    for(b = 0; b < l.batch; ++b)
+    for (b = 0; b < l.batch; ++b)
     {
-        for(i = 0; i < l.w * l.h; ++i)
+        for (i = 0; i < l.w * l.h; ++i)
         {
-            for(n = 0; n < l.n; ++n)
+            for (n = 0; n < l.n; ++n)
             {
                 int obj_index = entry_index(l, b, n * l.w * l.h + i, 4);
-                if(l.output[obj_index] > thresh)
+                if (l.output[obj_index] > thresh)
                     ++count;
             }
         }
@@ -240,16 +240,16 @@ int num_detections(vector<layer> layers_params, float thresh)
 {
     int i;
     int s = 0;
-    for(i = 0; i < ( int )layers_params.size(); ++i)
+    for (i = 0; i < ( int )layers_params.size(); ++i)
     {
         layer l = layers_params[i];
-        if(0 == l.layer_type)
+        if (0 == l.layer_type)
             s += yolo_num_detections(l, thresh);
-        else if(1 == l.layer_type)
-            s += l.w*l.h*l.n;
+        else if (1 == l.layer_type)
+            s += l.w * l.h * l.n;
     }
 
-    fprintf(stderr, "%s,%d\n",__func__,s);
+    fprintf(stderr, "%s,%d\n", __func__, s);
     return s;
 }
 
@@ -258,11 +258,11 @@ detection* make_network_boxes(vector<layer> layers_params, float thresh, int* nu
     layer l = layers_params[0];
     int i;
     int nboxes = num_detections(layers_params, thresh);
-    if(num)
+    if (num)
         *num = nboxes;
     detection* dets = ( detection* )calloc(nboxes, sizeof(detection));
 
-    for(i = 0; i < nboxes; ++i)
+    for (i = 0; i < nboxes; ++i)
     {
         dets[i].prob = ( float* )calloc(l.classes, sizeof(float));
     }
@@ -274,7 +274,7 @@ void correct_yolo_boxes(detection* dets, int n, int w, int h, int netw, int neth
     int i;
     int new_w = 0;
     int new_h = 0;
-    if((( float )netw / w) < (( float )neth / h))
+    if ((( float )netw / w) < (( float )neth / h))
     {
         new_w = netw;
         new_h = (h * netw) / w;
@@ -284,14 +284,14 @@ void correct_yolo_boxes(detection* dets, int n, int w, int h, int netw, int neth
         new_h = neth;
         new_w = (w * neth) / h;
     }
-    for(i = 0; i < n; ++i)
+    for (i = 0; i < n; ++i)
     {
         box b = dets[i].bbox;
         b.x = (b.x - (netw - new_w) / 2. / netw) / (( float )new_w / netw);
         b.y = (b.y - (neth - new_h) / 2. / neth) / (( float )new_h / neth);
         b.w *= ( float )netw / new_w;
         b.h *= ( float )neth / new_h;
-        if(!relative)
+        if (!relative)
         {
             b.x *= w;
             b.w *= w;
@@ -313,22 +313,23 @@ box get_yolo_box(float* x, float* biases, int n, int index, int i, int j, int lw
     return b;
 }
 
-int get_yolo_detections(layer l, int w, int h, int netw, int neth, float thresh, int* map, int relative, detection* dets)
+int get_yolo_detections(layer l, int w, int h, int netw, int neth, float thresh, int* map, int relative,
+                        detection* dets)
 {
     int i, j, n, b;
     float* predictions = l.output;
     int count = 0;
-    for(b = 0; b < l.batch; ++b)
+    for (b = 0; b < l.batch; ++b)
     {
-        for(i = 0; i < l.w * l.h; ++i)
+        for (i = 0; i < l.w * l.h; ++i)
         {
             int row = i / l.w;
             int col = i % l.w;
-            for(n = 0; n < l.n; ++n)
+            for (n = 0; n < l.n; ++n)
             {
                 int obj_index = entry_index(l, b, n * l.w * l.h + i, 4);
                 float objectness = predictions[obj_index];
-                if(objectness <= thresh)
+                if (objectness <= thresh)
                     continue;
                 int box_index = entry_index(l, b, n * l.w * l.h + i, 0);
 
@@ -336,7 +337,7 @@ int get_yolo_detections(layer l, int w, int h, int netw, int neth, float thresh,
                                                 neth, l.w * l.h);
                 dets[count].objectness = objectness;
                 dets[count].classes = l.classes;
-                for(j = 0; j < l.classes; ++j)
+                for (j = 0; j < l.classes; ++j)
                 {
                     int class_index = entry_index(l, b, n * l.w * l.h + i, 4 + 1 + j);
                     float prob = objectness * predictions[class_index];
@@ -350,25 +351,30 @@ int get_yolo_detections(layer l, int w, int h, int netw, int neth, float thresh,
     return count;
 }
 
-void correct_region_boxes(detection *dets, int n, int w, int h, int netw, int neth, int relative)
+void correct_region_boxes(detection* dets, int n, int w, int h, int netw, int neth, int relative)
 {
     int i;
-    int new_w=0;
-    int new_h=0;
-    if (((float)netw/w) < ((float)neth/h)) {
+    int new_w = 0;
+    int new_h = 0;
+    if ((( float )netw / w) < (( float )neth / h))
+    {
         new_w = netw;
-        new_h = (h * netw)/w;
-    } else {
-        new_h = neth;
-        new_w = (w * neth)/h;
+        new_h = (h * netw) / w;
     }
-    for (i = 0; i < n; ++i){
+    else
+    {
+        new_h = neth;
+        new_w = (w * neth) / h;
+    }
+    for (i = 0; i < n; ++i)
+    {
         box b = dets[i].bbox;
-        b.x =  (b.x - (netw - new_w)/2./netw) / ((float)new_w/netw);
-        b.y =  (b.y - (neth - new_h)/2./neth) / ((float)new_h/neth);
-        b.w *= (float)netw/new_w;
-        b.h *= (float)neth/new_h;
-        if(!relative){
+        b.x = (b.x - (netw - new_w) / 2. / netw) / (( float )new_w / netw);
+        b.y = (b.y - (neth - new_h) / 2. / neth) / (( float )new_h / neth);
+        b.w *= ( float )netw / new_w;
+        b.h *= ( float )neth / new_h;
+        if (!relative)
+        {
             b.x *= w;
             b.w *= w;
             b.y *= h;
@@ -378,79 +384,79 @@ void correct_region_boxes(detection *dets, int n, int w, int h, int netw, int ne
     }
 }
 
-box get_region_box(float *x, float *biases, int n, int index, int i, int j, int w, int h, int stride)
+box get_region_box(float* x, float* biases, int n, int index, int i, int j, int w, int h, int stride)
 {
     box b;
-    b.x = (i + x[index + 0*stride]) / w;
-    b.y = (j + x[index + 1*stride]) / h;
-    b.w = exp(x[index + 2*stride]) * biases[2*n]   / w;
-    b.h = exp(x[index + 3*stride]) * biases[2*n+1] / h;
+    b.x = (i + x[index + 0 * stride]) / w;
+    b.y = (j + x[index + 1 * stride]) / h;
+    b.w = exp(x[index + 2 * stride]) * biases[2 * n] / w;
+    b.h = exp(x[index + 3 * stride]) * biases[2 * n + 1] / h;
     return b;
 }
 
-void get_region_detections(layer l, int w, int h, int netw, int neth, float thresh, int *map, float tree_thresh, int relative, detection *dets)
+void get_region_detections(layer l, int w, int h, int netw, int neth, float thresh, int* map, float tree_thresh,
+                           int relative, detection* dets)
 {
-    int i,j,n;
-    float *predictions = l.output;
+    int i, j, n;
+    float* predictions = l.output;
 
-    for (i = 0; i < l.w*l.h; ++i)
+    for (i = 0; i < l.w * l.h; ++i)
     {
         int row = i / l.w;
         int col = i % l.w;
-        for(n = 0; n < l.n; ++n)
+        for (n = 0; n < l.n; ++n)
         {
-            int index = n*l.w*l.h + i;
-            for(j = 0; j < l.classes; ++j)
+            int index = n * l.w * l.h + i;
+            for (j = 0; j < l.classes; ++j)
             {
                 dets[index].prob[j] = 0;
             }
-            int obj_index  = entry_index(l, 0, n*l.w*l.h + i, l.coords);
-            int box_index  = entry_index(l, 0, n*l.w*l.h + i, 0);
-            int mask_index = entry_index(l, 0, n*l.w*l.h + i, 4);
+            int obj_index = entry_index(l, 0, n * l.w * l.h + i, l.coords);
+            int box_index = entry_index(l, 0, n * l.w * l.h + i, 0);
+            int mask_index = entry_index(l, 0, n * l.w * l.h + i, 4);
             float scale = predictions[obj_index];
-            dets[index].bbox = get_region_box(predictions, l.biases, n, box_index, col, row, l.w, l.h, l.w*l.h);
+            dets[index].bbox = get_region_box(predictions, l.biases, n, box_index, col, row, l.w, l.h, l.w * l.h);
             dets[index].objectness = scale > thresh ? scale : 0;
-            if(dets[index].mask)
+            if (dets[index].mask)
             {
-                for(j = 0; j < l.coords - 4; ++j)
+                for (j = 0; j < l.coords - 4; ++j)
                 {
-                    dets[index].mask[j] = l.output[mask_index + j*l.w*l.h];
+                    dets[index].mask[j] = l.output[mask_index + j * l.w * l.h];
                 }
             }
-            //int class_index = entry_index(l, 0, n*l.w*l.h + i, l.coords + 1);
-            if(dets[index].objectness)
+            // int class_index = entry_index(l, 0, n*l.w*l.h + i, l.coords + 1);
+            if (dets[index].objectness)
             {
-                for(j = 0; j < l.classes; ++j)
+                for (j = 0; j < l.classes; ++j)
                 {
-                    int class_index = entry_index(l, 0, n*l.w*l.h + i, l.coords + 1 + j);
-                    float prob = scale*predictions[class_index];
+                    int class_index = entry_index(l, 0, n * l.w * l.h + i, l.coords + 1 + j);
+                    float prob = scale * predictions[class_index];
                     dets[index].prob[j] = (prob > thresh) ? prob : 0;
                 }
             }
         }
     }
-    correct_region_boxes(dets, l.w*l.h*l.n, w, h, netw, neth, relative);
+    correct_region_boxes(dets, l.w * l.h * l.n, w, h, netw, neth, relative);
 }
 
 void fill_network_boxes(vector<layer> layers_params, int img_w, int img_h, int net_w, int net_h, float thresh,
                         float hier, int* map, int relative, detection* dets)
 {
     int j;
-    for(j = 0; j < ( int )layers_params.size(); ++j)
+    for (j = 0; j < ( int )layers_params.size(); ++j)
     {
         layer l = layers_params[j];
-        if(0 == l.layer_type)
+        if (0 == l.layer_type)
         {
             int count = get_yolo_detections(l, img_w, img_h, net_w, net_h, thresh, map, relative, dets);
             dets += count;
         }
         else
         {
-            get_region_detections(l, img_w,img_h, net_w, net_h, thresh, map, hier, relative, dets);
-            dets += l.w*l.h*l.n;
+            get_region_detections(l, img_w, img_h, net_w, net_h, thresh, map, hier, relative, dets);
+            dets += l.w * l.h * l.n;
         }
     }
-
 }
 
 detection* get_network_boxes(vector<layer> layers_params, int img_w, int img_h, int net_w, int net_h, float thresh,
@@ -468,7 +474,7 @@ detection* get_network_boxes(vector<layer> layers_params, int img_w, int img_h, 
 void free_detections(detection* dets, int nboxes)
 {
     int i;
-    for(i = 0; i < nboxes; ++i)
+    for (i = 0; i < nboxes; ++i)
     {
         free(dets[i].prob);
     }
@@ -480,7 +486,7 @@ int nms_comparator(const void* pa, const void* pb)
     detection a = *( detection* )pa;
     detection b = *( detection* )pb;
     float diff = 0;
-    if(b.sort_class >= 0)
+    if (b.sort_class >= 0)
     {
         diff = a.prob[b.sort_class] - b.prob[b.sort_class];
     }
@@ -488,9 +494,9 @@ int nms_comparator(const void* pa, const void* pb)
     {
         diff = a.objectness - b.objectness;
     }
-    if(diff < 0)
+    if (diff < 0)
         return 1;
-    else if(diff > 0)
+    else if (diff > 0)
         return -1;
     return 0;
 }
@@ -510,7 +516,7 @@ float box_intersection(box a, box b)
 {
     float w = overlap(a.x, a.w, b.x, b.w);
     float h = overlap(a.y, a.h, b.y, b.h);
-    if(w < 0 || h < 0)
+    if (w < 0 || h < 0)
         return 0;
     float area = w * h;
     return area;
@@ -532,9 +538,9 @@ void do_nms_sort(detection* dets, int total, int classes, float thresh)
 {
     int i, j, k;
     k = total - 1;
-    for(i = 0; i <= k; ++i)
+    for (i = 0; i <= k; ++i)
     {
-        if(dets[i].objectness == 0)
+        if (dets[i].objectness == 0)
         {
             detection swap = dets[i];
             dets[i] = dets[k];
@@ -545,22 +551,22 @@ void do_nms_sort(detection* dets, int total, int classes, float thresh)
     }
     total = k + 1;
 
-    for(k = 0; k < classes; ++k)
+    for (k = 0; k < classes; ++k)
     {
-        for(i = 0; i < total; ++i)
+        for (i = 0; i < total; ++i)
         {
             dets[i].sort_class = k;
         }
         qsort(dets, total, sizeof(detection), nms_comparator);
-        for(i = 0; i < total; ++i)
+        for (i = 0; i < total; ++i)
         {
-            if(dets[i].prob[k] == 0)
+            if (dets[i].prob[k] == 0)
                 continue;
             box a = dets[i].bbox;
-            for(j = i + 1; j < total; ++j)
+            for (j = i + 1; j < total; ++j)
             {
                 box b = dets[j].bbox;
-                if(box_iou(a, b) > thresh)
+                if (box_iou(a, b) > thresh)
                 {
                     dets[j].prob[k] = 0;
                 }
@@ -574,7 +580,7 @@ image letterbox_image(image im, int w, int h);
 void rgbgr_image(image im)
 {
     int i;
-    for(i = 0; i < im.w * im.h; ++i)
+    for (i = 0; i < im.w * im.h; ++i)
     {
         float swap = im.data[i];
         im.data[i] = im.data[i + im.w * im.h * 2];
@@ -585,7 +591,7 @@ void rgbgr_image(image im)
 void fill_image(image m, float s)
 {
     int i;
-    for(i = 0; i < m.h * m.w * m.c; ++i)
+    for (i = 0; i < m.h * m.w * m.c; ++i)
         m.data[i] = s;
 }
 
@@ -593,7 +599,7 @@ image letterbox_image(image im, int w, int h)
 {
     int new_w = im.w;
     int new_h = im.h;
-    if((( float )w / im.w) < (( float )h / im.h))
+    if ((( float )w / im.w) < (( float )h / im.h))
     {
         new_w = w;
         new_h = (im.h * w) / im.w;
@@ -616,7 +622,7 @@ void get_input_data_darknet(const char* image_file, float* input_data, int net_h
     int size = 3 * net_w * net_h;
     image sized;
     image im = load_image_stb(image_file, 3);
-    for(int i=0; i<im.c * im.h * im.w; i++)
+    for (int i = 0; i < im.c * im.h * im.w; i++)
     {
         im.data[i] = im.data[i] / 255;
     }
@@ -635,20 +641,20 @@ void show_usage()
 int main(int argc, char* argv[])
 {
     int repeat_count = DEFAULT_REPEAT_COUNT;
-    int num_thread   = DEFAULT_THREAD_COUNT;
+    int num_thread = DEFAULT_THREAD_COUNT;
     char* model_file = nullptr;
     char* image_file = nullptr;
 
     int layer_type = 0;
-    int numBBoxes  = 3;
+    int numBBoxes = 3;
     int total_numAnchors = 6;
     int net_w = 416;
     int net_h = 416;
 
     int res;
-    while((res = getopt(argc, argv, "m:i:r:t:h:")) != -1)
+    while ((res = getopt(argc, argv, "m:i:r:t:h:")) != -1)
     {
-        switch(res)
+        switch (res)
         {
             case 'm':
                 model_file = optarg;
@@ -660,7 +666,7 @@ int main(int argc, char* argv[])
                 repeat_count = std::strtoul(optarg, nullptr, 10);
                 break;
             case 't':
-                num_thread   = std::strtoul(optarg, nullptr, 10);
+                num_thread = std::strtoul(optarg, nullptr, 10);
                 break;
             case 'h':
                 show_usage();
@@ -687,7 +693,7 @@ int main(int argc, char* argv[])
 
     if (!check_file_exist(model_file) || !check_file_exist(image_file))
         return -1;
-    
+
     /* inital tengine */
     init_tengine();
     fprintf(stderr, "tengine-lite library version: %s\n", get_tengine_version());
@@ -702,8 +708,8 @@ int main(int argc, char* argv[])
     }
 
     /* set the input shape to initial the graph, and prerun graph to infer shape */
-    int img_size      = net_h * net_w * 3;
-    int dims[]        = {1, 3, net_h, net_w};   // nchw
+    int img_size = net_h * net_w * 3;
+    int dims[] = {1, 3, net_h, net_w};    // nchw
 
     std::vector<float> input_data(img_size);
 
@@ -717,7 +723,7 @@ int main(int argc, char* argv[])
     if (set_tensor_shape(input_tensor, dims, 4) < 0)
     {
         fprintf(stderr, "Set input tensor shape failed\n");
-        return -1;        
+        return -1;
     }
 
     if (prerun_graph(graph) < 0)
@@ -735,10 +741,10 @@ int main(int argc, char* argv[])
     }
 
     /* run graph */
-    double min_time   = __DBL_MAX__;
-    double max_time   = -__DBL_MAX__;
+    double min_time = __DBL_MAX__;
+    double max_time = -__DBL_MAX__;
     double total_time = 0.;
-    for(int i=0; i<repeat_count; i++)
+    for (int i = 0; i < repeat_count; i++)
     {
         double start = get_current_time();
         if (run_graph(graph, 1) < 0)
@@ -752,7 +758,8 @@ int main(int argc, char* argv[])
         min_time = std::min(min_time, cur);
         max_time = std::max(max_time, cur);
     }
-    fprintf(stderr, "Repeat %d times, thread %d, avg time %.2f ms, max_time %.2f ms, min_time %.2f ms\n", repeat_count, num_thread, total_time / repeat_count, max_time, min_time);
+    fprintf(stderr, "Repeat %d times, thread %d, avg time %.2f ms, max_time %.2f ms, min_time %.2f ms\n", repeat_count,
+            num_thread, total_time / repeat_count, max_time, min_time);
     fprintf(stderr, "--------------------------------------\n");
 
     /* process the detection result */
@@ -761,7 +768,7 @@ int main(int argc, char* argv[])
 
     vector<layer> layers_params;
     layers_params.clear();
-    for(int i = 0; i < output_node_num; ++i)
+    for (int i = 0; i < output_node_num; ++i)
     {
         tensor_t out_tensor = get_graph_output_tensor(graph, i, 0);    //"detection_out"
         int out_dim[4];
@@ -776,39 +783,36 @@ int main(int argc, char* argv[])
     }
     int nboxes = 0;
     // get network boxes
-    detection* dets = get_network_boxes(layers_params, img.w, img.h, net_w, net_h, thresh, hier_thresh, 0, relative, &nboxes);
-    // release layer memory
-//    for (int index = 0; index < (int)layers_params.size(); ++index)
-//    {
-//        free_darknet_layer(layers_params[index]);
-//    }
+    detection* dets =
+        get_network_boxes(layers_params, img.w, img.h, net_w, net_h, thresh, hier_thresh, 0, relative, &nboxes);
+
     if (nms != 0)
     {
         do_nms_sort(dets, nboxes, classes, nms);
     }
-    
+
     int i, j;
-    for(i = 0; i < nboxes; ++i)
+    for (i = 0; i < nboxes; ++i)
     {
         int cls = -1;
-        for(j = 0; j < classes; ++j)
+        for (j = 0; j < classes; ++j)
         {
-            if(dets[i].prob[j] > 0.5)
+            if (dets[i].prob[j] > 0.5)
             {
-                if(cls < 0)
+                if (cls < 0)
                 {
                     cls = j;
                 }
                 fprintf(stderr, "%d: %.0f%%\n", cls, dets[i].prob[j] * 100);
             }
         }
-        if(cls >= 0)
+        if (cls >= 0)
         {
             box b = dets[i].bbox;
-            int left  = (b.x - b.w / 2.) * img.w;
+            int left = (b.x - b.w / 2.) * img.w;
             int right = (b.x + b.w / 2.) * img.w;
-            int top   = (b.y - b.h / 2.) * img.h;
-            int bot   = (b.y + b.h / 2.) * img.h;
+            int top = (b.y - b.h / 2.) * img.h;
+            int bot = (b.y + b.h / 2.) * img.h;
             draw_box(img, left, top, right, bot, 2, 125, 0, 125);
             fprintf(stderr, "left = %d,right = %d,top = %d,bot = %d\n", left, right, top, bot);
         }
@@ -822,7 +826,7 @@ int main(int argc, char* argv[])
     save_image(img, "tengine_example_out");
 
     /* release tengine */
-    for(int i = 0; i < output_node_num; ++i)
+    for (int i = 0; i < output_node_num; ++i)
     {
         tensor_t out_tensor = get_graph_output_tensor(graph, i, 0);
         release_graph_tensor(out_tensor);
@@ -830,7 +834,7 @@ int main(int argc, char* argv[])
 
     free_image(img);
 
-    for (int i=0; i<layers_params.size(); i++)
+    for (int i = 0; i < layers_params.size(); i++)
     {
         layer l = layers_params[i];
         if (l.output)

@@ -60,17 +60,20 @@ static int infer_shape(struct ir_node* node)
 
     int i0_size = input0->elem_num;
     int i1_size = input1->elem_num;
+    int dim_num = 0;
 
     if (i0_size >= i1_size)
     {
         memcpy(output->dims, input0->dims, input0->dim_num * sizeof(int));
+        dim_num = input0->dim_num;
     }
-    else if (i0_size < i1_size)
+    else
     {
-        memcpy(output->dims, input1->dims, input0->dim_num * sizeof(int));
+        memcpy(output->dims, input1->dims, input1->dim_num * sizeof(int));
+        dim_num = input1->dim_num;
     }
 
-    set_ir_tensor_shape(output, output->dims, 4);
+    set_ir_tensor_shape(output, output->dims, dim_num);
 
     return 0;
 }

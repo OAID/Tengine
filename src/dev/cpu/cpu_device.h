@@ -97,6 +97,7 @@ struct exec_graph
     int shared_pack4_mem_size;
     int num_thread;
     int cpu_affinity;
+    int mode;
 };
 
 #define GET_MEM_PTR_HEADER(ptr) ( struct mem_ptr_header* )(( char* )ptr - 4);

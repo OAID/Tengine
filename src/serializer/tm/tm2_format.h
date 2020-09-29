@@ -137,6 +137,7 @@ typedef uint8_t tm_bool_t; /* bool is 1-byte unsigned integer */
 #define TM2_OPSTR_REDUCEL2 "ReduceL2"
 #define TM2_OPSTR_MEAN "Mean"
 #define TM2_OPSTR_MATMUL "MatMul"
+#define TM2_OPSTR_MISH "Mish"
 /* Operator types */
 #define TM2_OPTYPE_ACCURACY 0 /* No Param                 */
 #define TM2_OPTYPE_BATCHNORMALIZATION 1 /* TM2_BatchNormParam       */
@@ -230,7 +231,10 @@ typedef uint8_t tm_bool_t; /* bool is 1-byte unsigned integer */
 #define TM2_OPTYPE_REDUCEL2 89
 #define TM2_OPTYPE_MEAN 90
 #define TM2_OPTYPE_MATMUL 91
-#define TM2_OPTYPE_NUM 92
+
+
+#define TM2_OPTYPE_MISH 97
+#define TM2_OPTYPE_NUM 98
 
 /* --------------------- -------- TM objects -------------------------------- */
 

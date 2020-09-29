@@ -57,7 +57,10 @@ static void pad_0_align_2D(float* dst, float* src, int m, int n, int m_align, in
 {
     int i;
     if (n >= n_align && m >= m_align)
+    {
+        memcpy(dst, src, m * n * sizeof(float));
         return;
+    }
     for (i = 0; i < m; ++i)
     {
         memcpy(dst + (i + pad_h) * n_align + pad_w, src + i * n, n * sizeof(float));
@@ -69,7 +72,10 @@ void pad_0_align_3D(float* dst, float* src, int m, int n, int m_align, int n_ali
 {
     int i;
     if (n >= n_align && m >= m_align)
+    {
+        memcpy(dst, src, c * m * n * sizeof(float));
         return;
+    }
     for (i = 0; i < c; ++i)
     {
         pad_0_align_2D(dst + i * m_align * n_align, src + i * m * n, m, n, m_align, n_align, pad_h, pad_w);
@@ -80,7 +86,10 @@ static void delete_0_2D(float* dst, float* src, int m_align, int n_align, int m,
 {
     int i;
     if (n >= n_align && m >= m_align)
+    {
+        memcpy(dst, src, m * n * sizeof(float));
         return;
+    }
     for (i = 0; i < m; ++i)
     {
         memcpy(dst + i * n, src + (i + pad_h) * n_align + pad_w, n * sizeof(float));
@@ -92,7 +101,10 @@ void delete_0_3D(float* dst, float* src, int m_align, int n_align, int m, int n,
 {
     int i;
     if (n >= n_align && m >= m_align)
+    {
+        memcpy(dst, src, c * m * n * sizeof(float));
         return;
+    }
     for (i = 0; i < c; ++i)
     {
         delete_0_2D(dst + i * m * n, src + i * m_align * n_align, m_align, n_align, m, n, pad_h, pad_w);
@@ -820,7 +832,7 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
 
                 for (int i = 0; i < tiles; i++)
                 {
-                    const float* kptr = kernel_tm_test + 4 * r * inch * outch + (p / 8 + (p % 8) / 4) * inch * 32;
+                    const float* kptr = kernel_tm_test + 4 * r * inch * outch + (p / 8 + (p % 8) / 4) * inch * 16;
                     const float* r0 = bottom_blob_tm + 4 * inch * (tiles * r + i);
 #if __AVX__ || __SSE__
 #if __AVX__
@@ -906,7 +918,7 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
                 for (int i = 0; i < tiles; i++)
                 {
                     const float* kptr =
-                        kernel_tm_test + 4 * r * inch * outch + (p / 8 + (p % 8) / 4 + p % 4) * inch * 32;
+                        kernel_tm_test + 4 * r * inch * outch + (p / 8 + (p % 8) / 4 + p % 4) * inch * 4;
                     const float* r0 = bottom_blob_tm + 4 * inch * (tiles * r + i);
 #if __AVX__ || __SSE__
 #if __AVX__
@@ -925,7 +937,7 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
 #else
                         _sum0 = _mm_add_ps(_sum0, _mm_mul_ps(_r0, _k0));
 #endif
-                        kptr += 16;
+                        kptr += 4;
                         r0 += 4;
                     }
                     _mm_storeu_ps(output0_tm, _sum0);
@@ -936,7 +948,7 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
                     {
                         for (int n = 0; n < 4; n++)
                         {
-                            sum0[n] += ( int )r0[n] * kptr[n];
+                            sum0[n] += r0[n] * kptr[n];
                         }
                         kptr += 4;
                         r0 += 4;
@@ -1214,7 +1226,7 @@ void conv3x3s1_winograd43_transform_kernel_sse(const float* kernel, float* kerne
             const float* kernel2 = ( const float* )kernel_tm + (p + 2) * inch * 36;
             const float* kernel3 = ( const float* )kernel_tm + (p + 3) * inch * 36;
 
-            float* ktmp = kernel_tm_test + (p / 8 + (p % 8) / 4) * inch * 32;
+            float* ktmp = kernel_tm_test + (p / 8 + (p % 8) / 4) * inch * 16;
             for (int q = 0; q < inch; q++)
             {
                 ktmp[0] = kernel0[r * 4 + 0];
@@ -1248,7 +1260,7 @@ void conv3x3s1_winograd43_transform_kernel_sse(const float* kernel, float* kerne
         for (; p < outch; p++)
         {
             const float* kernel0 = ( const float* )kernel_tm + p * inch * 36;
-            float* ktmp = kernel_tm_test + (p / 8 + (p % 8) / 4 + p % 4) * inch * 32;
+            float* ktmp = kernel_tm_test + (p / 8 + (p % 8) / 4 + p % 4) * inch * 4;
 
             for (int q = 0; q < inch; q++)
             {
@@ -1295,8 +1307,8 @@ int wino_conv_hcl_prerun(struct ir_tensor* input_tensor, struct ir_tensor* filte
     int block_w = (output_w + TILE - 1) / TILE;
     int block = block_h * block_w;
 
-    int padded_inh = TILE * block_h + 2 * pad_h;
-    int padded_inw = TILE * block_w + 2 * pad_w;
+    int padded_inh = TILE * block_h + 2;
+    int padded_inw = TILE * block_w + 2;
     int pad_inhw = padded_inh * padded_inw;
 
     int outw = block_w * TILE;
@@ -1383,8 +1395,8 @@ int wino_conv_hcl_run(struct ir_tensor* input_tensor, struct ir_tensor* filter_t
     int block_h = (out_h + TILE - 1) / TILE;
     int block_w = (out_w + TILE - 1) / TILE;
     int block_hw = block_h * block_w;
-    int padded_in_h = block_h * TILE + 2 * pad_h0;
-    int padded_in_w = block_w * TILE + 2 * pad_h0;
+    int padded_in_h = block_h * TILE + 2;
+    int padded_in_w = block_w * TILE + 2;
     int padded_in_hw = padded_in_h * padded_in_w;
 
     /* buffer addr */

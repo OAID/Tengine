@@ -22,20 +22,15 @@
  * Author: qtang@openailab.com
  */
 
-#include <unistd.h>
 #include <iostream>
-#include <iomanip>
 #include <string>
 #include <vector>
 #include "tengine_operations.h"
 #include "tengine_c_api.h"
-#include <sys/time.h>
 #include "common.h"
 
-#define VXDEVICE "VX"
-
-#define DEF_MODEL "models/mssd_caffe.tmfile"
-#define DEF_IMAGE "images/ssd_dog.jpg"
+#define DEFAULT_REPEAT_COUNT 1
+#define DEFAULT_THREAD_COUNT 1
 
 typedef struct Box
 {
@@ -47,17 +42,17 @@ typedef struct Box
     float score;
 } Box_t;
 
-void get_input_uint_data_ssd(std::string& image_file, uint8_t* input_data, int img_h, int img_w)
+void get_input_uint_data_ssd(const char* image_file, uint8_t* input_data, int img_h, int img_w, float input_scale, int zero_point)
 {
     float mean[3] = {127.5f, 127.5f, 127.5f};
     float scales[3] = {1 / 127.5f, 1 / 127.5f, 1 / 127.5f};
-    image img = imread_process(image_file.c_str(), img_w, img_h, mean, scales);
+    image img = imread_process(image_file, img_w, img_h, mean, scales);
 
     float* image_data = ( float* )img.data;
 
     for (int i = 0; i < img_w * img_h * 3; i++)
     {
-        int udata = int(image_data[i] / 0.009504f + 133);
+        int udata = round(image_data[i] / input_scale + zero_point);
         if (udata > 255)
             udata = 255;
         else if (udata < 0)
@@ -69,14 +64,14 @@ void get_input_uint_data_ssd(std::string& image_file, uint8_t* input_data, int i
     free_image(img);
 }
 
-void post_process_ssd(std::string& image_file, float threshold, float* outdata, int num)
+void post_process_ssd(const char* image_file, float threshold, float* outdata, int num)
 {
     const char* class_names[] = {"background", "aeroplane", "bicycle",   "bird",   "boat",        "bottle",
                                  "bus",        "car",       "cat",       "chair",  "cow",         "diningtable",
                                  "dog",        "horse",     "motorbike", "person", "pottedplant", "sheep",
                                  "sofa",       "train",     "tvmonitor"};
 
-    image im = imread(image_file.c_str());
+    image im = imread(image_file);
 
     int raw_h = im.h;
     int raw_w = im.w;
@@ -102,12 +97,6 @@ void post_process_ssd(std::string& image_file, float threshold, float* outdata, 
     for (int i = 0; i < ( int )boxes.size(); i++)
     {
         Box box = boxes[i];
-
-//        std::ostringstream score_str;
-//        score_str << box.score * 100;
-//        std::string labelstr = std::string(class_names[box.class_idx]) + " : " + score_str.str();
-
-//        put_label(im, labelstr.c_str(), 0.02, box.x0, box.y0, 255, 255, 125);
         draw_box(im, box.x0, box.y0, box.x1, box.y1, 2, 125, 0, 125);
     }
 
@@ -120,29 +109,66 @@ void post_process_ssd(std::string& image_file, float threshold, float* outdata, 
     std::cout << "======================================\n";
 }
 
+void show_usage()
+{
+    fprintf(stderr, "[Usage]:  [-h]\n    [-m model_file] [-i image_file] [-r repeat_count] [-t thread_count]\n");
+}
+
 int main(int argc, char* argv[])
 {
-    int ret = -1;
-    std::string model_file, model_post_file;
-    std::string image_file;
-    std::string save_name = "save.jpg";
-    float show_threshold = 0.5f;
-
-    if (model_file.empty())
-    {
-        model_file = DEF_MODEL;
-        std::cout << "model file not specified,using " << model_file << " by default\n";
-    }
-
-    if (image_file.empty())
-    {
-        image_file = DEF_IMAGE;
-        std::cout << "image file not specified,using " << image_file << " by default\n";
-    }
-
-    // input
+    int repeat_count = DEFAULT_REPEAT_COUNT;
+    int num_thread = DEFAULT_THREAD_COUNT;
+    char* model_file = nullptr;
+    char* image_file = nullptr;
     int img_h = 300;
     int img_w = 300;
+    float mean[3] = {127.5f, 127.5f, 127.5f};
+    float scale[3] = {0.007843f, 0.007843f, 0.007843f};
+    float show_threshold = 0.5f;
+    int ret;
+    while ((ret = getopt(argc, argv, "m:i:r:t:h:")) != -1)
+    {
+        switch (ret)
+        {
+            case 'm':
+                model_file = optarg;
+                break;
+            case 'i':
+                image_file = optarg;
+                break;
+            case 'r':
+                repeat_count = atoi(optarg);
+                break;
+            case 't':
+                num_thread = atoi(optarg);
+                break;
+            case 'h':
+                show_usage();
+                return 0;
+            default:
+                break;
+        }
+    }
+
+    /* check files */
+    if (model_file == NULL)
+    {
+        fprintf(stderr, "Error: Tengine model file not specified!\n");
+        show_usage();
+        return -1;
+    }
+
+    if (image_file == NULL)
+    {
+        fprintf(stderr, "Error: Image file not specified!\n");
+        show_usage();
+        return -1;
+    }
+
+    if (!check_file_exist(model_file) || !check_file_exist(image_file))
+        return -1;
+
+    // input
     int img_size = img_h * img_w * 3;
     uint8_t* input_data = ( uint8_t* )malloc(img_size);
 
@@ -153,24 +179,14 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    if (request_tengine_version("0.9") < 0)
-    {
-        std::cout << " request tengine version failed\n";
-        return 1;
-    }
-
     // create graph
-    graph_t graph = create_graph(nullptr, "tengine", model_file.c_str());
+    graph_t graph = create_graph(nullptr, "tengine", model_file);
     if (graph == nullptr)
     {
         std::cout << "Create graph failed\n";
         std::cout << "errno: " << get_tengine_errno() << "\n";
         return 1;
     }
-
-    dump_graph(graph);
-
-    //set_graph_device(graph, VXDEVICE);
 
     int node_idx = 0;
     int tensor_idx = 0;
@@ -190,8 +206,11 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    // set graph tensor
-    get_input_uint_data_ssd(image_file, input_data, img_h, img_w);
+    /* prepare process input data, set the data mem to input tensor */
+    float input_scale = 0.f;
+    int input_zero_point = 0;
+    get_tensor_quant_param(input_tensor, &input_scale, &input_zero_point, 1);    
+    get_input_uint_data_ssd(image_file, input_data, img_h, img_w, input_scale, input_zero_point);
     set_tensor_buffer(input_tensor, input_data, img_size);
 
     /* run graph */
@@ -214,8 +233,8 @@ int main(int argc, char* argv[])
         if (max_time < cur)
             max_time = cur;
     }
-    fprintf(stderr, "Repeat %d times, thread %d, avg time %.2f ms, max_time %.2f ms, min_time %.2f ms\n", 1,
-            1, total_time / 1, max_time, min_time);
+    fprintf(stderr, "Repeat %d times, thread %d, avg time %.2f ms, max_time %.2f ms, min_time %.2f ms\n", 1, 1,
+            total_time / 1, max_time, min_time);
     fprintf(stderr, "--------------------------------------\n");
 
     /* process the detection result */
@@ -223,13 +242,17 @@ int main(int argc, char* argv[])
     int out_dim[4];
     get_tensor_shape(output_tensor, out_dim, 4);
     int output_size = get_tensor_buffer_size(output_tensor);
-    uint8_t* output_u8 = (uint8_t*)get_tensor_buffer(output_tensor);
-    float* output_data = (float*)malloc(output_size*sizeof(float));
+    uint8_t* output_u8 = ( uint8_t* )get_tensor_buffer(output_tensor);
+    float* output_data = ( float* )malloc(output_size * sizeof(float));
 
     /* dequant */
-    for (int i=0; i<output_size; i++)
-        output_data[i] = ((float)output_u8[i] - 0.f) * 0.078698f;
+    float output_scale = 0.f;
+    int output_zero_point = 0;
+    get_tensor_quant_param(output_tensor, &output_scale, &output_zero_point, 1);    
+    for (int i = 0; i < output_size; i++)
+        output_data[i] = (( float )output_u8[i] - output_zero_point) * output_scale;
 
+    /* post_process_ssd */
     post_process_ssd(image_file, show_threshold, output_data, out_dim[1]);
 
     /* release tengine */

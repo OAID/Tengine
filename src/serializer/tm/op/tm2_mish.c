@@ -19,7 +19,7 @@
 
 /*
  * Copyright (c) 2020, OPEN AI LAB
- * Author: qtang@openailab.com
+ * Author: 942002795@qq.com
  */
 
 #include <stdio.h>
@@ -34,12 +34,12 @@
 #include "tm2_serializer.h"
 #include "tengine_op.h"
 
-static int const_op_map(int op)
+static int mish_op_map(int op)
 {
-    return OP_CONST;
+    return OP_MISH;
 }
 
-static int tm2_load_const(struct ir_graph* ir_graph, struct ir_node* ir_node, const TM2_Node* tm_node,
+static int tm2_load_mish(struct ir_graph* ir_graph, struct ir_node* ir_node, const TM2_Node* tm_node,
                           const TM2_Operator* tm_op)
 {
     return 0;
@@ -55,7 +55,7 @@ static int reg_tm2_ops(void* arg)
         return -1;
     }
 
-    tm2_s->register_op_loader(tm2_s, TM2_OPTYPE_CONST, 1, tm2_load_const, const_op_map, NULL);
+    tm2_s->register_op_loader(tm2_s, TM2_OPTYPE_MISH, 1, tm2_load_mish, mish_op_map, NULL);
 
     return 0;
 }
@@ -64,10 +64,10 @@ static int unreg_tm2_ops(void* arg)
 {
     struct serializer* tm2_s = find_serializer("tengine");
 
-    tm2_s->unregister_op_loader(tm2_s, TM2_OPTYPE_CONST, 1, tm2_load_const);
+    tm2_s->unregister_op_loader(tm2_s, TM2_OPTYPE_MISH, 1, tm2_load_mish);
 
     return 0;
 }
 
-REGISTER_MODULE_INIT(MOD_OP_LEVEL, "reg_const_ops", reg_tm2_ops);
-REGISTER_MODULE_EXIT(MOD_OP_LEVEL, "unreg_const_ops", unreg_tm2_ops);
+REGISTER_MODULE_INIT(MOD_OP_LEVEL, "reg_mish_ops", reg_tm2_ops);
+REGISTER_MODULE_EXIT(MOD_OP_LEVEL, "unreg_mish_ops", unreg_tm2_ops);

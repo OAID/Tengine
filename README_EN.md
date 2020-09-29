@@ -2,7 +2,7 @@
 
 # Tengine Lite
 
-[![GitHub license](http://OAID.github.io/pics/apache_2.0.svg)](./LICENSE) [![Build Status](https://img.shields.io/github/workflow/status/OAID/Tengine/Tengine-Lite-Actions/tengine-lite)](https://github.com/OAID/Tengine/actions?query=workflow%3ATengine-Lite-Actions) [![Test Status](https://img.shields.io/travis/OAID/Tengine/tengine-lite?label=test)](https://travis-ci.org/OAID/Tengine)
+[![GitHub license](http://OAID.github.io/pics/apache_2.0.svg)](./LICENSE) [![Build Status](https://img.shields.io/github/workflow/status/OAID/Tengine/Tengine-Lite-Actions/tengine-lite)](https://github.com/OAID/Tengine/actions?query=workflow%3ATengine-Lite-Actions) [![Build Status](https://img.shields.io/github/workflow/status/OAID/Tengine-Convert-Tools/Tengine-Convert-Tools-Actions?label=tools%20build)](https://github.com/OAID/Tengine-Convert-Tools/actions?query=workflow%3ATengine-Convert-Tools-Actions) [![Test Status](https://img.shields.io/travis/OAID/Tengine/tengine-lite?label=test)](https://travis-ci.org/OAID/Tengine)
 
 
 
@@ -44,9 +44,9 @@ The core code of Tengine Lite consists of 4 modules:
 
 ### Model Convert tool
 
-- [Pre-compiled version](https://github.com/OAID/Tengine/releases/download/lite-v0.1/convert_model_to_tm): Pre-compiled model convert tool is provided on Linux system;
+- [Pre-compiled version](https://github.com/OAID/Tengine-Convert-Tools/releases/download/v0.1/tm_convert_tool): Pre-compiled model convert tool is provided on Linux system;
 - [Online Convert tool](https://convertmodel.com/): Based on WebAssembly (the models are converted locally by browsers, no private data will be uploaded);
-- [Source Compilation](doc/convert_tm.md): Refer to the original Tengine project, convert tool could be built by users.
+- [Source Compilation](https://github.com/OAID/Tengine-Convert-Tools): Refer to **Tengine-Convert-Tools** project, convert tool could be built by users.
 
 ### Speed assessment
 
@@ -81,6 +81,6 @@ Tengine Lite got ideas and developed based on these projects：
 
 ## Tech Forum
 - Github issues
-- QQ groupchat: 829565581 (Answer: openailab)
+- QQ groupchat: 829565581
 - Email: Support@openailab.com
 - Tengine Community: http://www.tengine.org.cn/

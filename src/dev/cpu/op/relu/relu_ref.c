@@ -29,6 +29,7 @@
 #include "../../cpu_node_ops.h"
 #include "tengine_op.h"
 #include "relu_param.h"
+#include "compiler_fp16.h"
 
 static int ref_relu_fp32(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, float negative_slope,
                          int num_thread)
@@ -89,8 +90,84 @@ static int ref_relu_fp32(struct ir_tensor* input_tensor, struct ir_tensor* outpu
     return 0;
 }
 
-static int ref_relu_uint8(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, float negative_slope,
+static int ref_relu_fp16(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, float negative_slope,
                          int num_thread)
+{
+    int batch = input_tensor->dims[0];
+    int channels = input_tensor->dims[1];
+    int h = input_tensor->dims[2];
+    int w = input_tensor->dims[3];
+
+    int size = h * w;
+    int c_step = h * w;
+    int batch_step = channels * c_step;
+    int total_size = batch * batch_step;
+
+    /* cost fp16 to fp32 */
+    __fp16* input_fp16 = input_tensor->data;
+    __fp16* output_fp16 = output_tensor->data;
+    float* input_fp32 = (float*)sys_malloc(total_size * sizeof(float));
+
+    for(int i=0; i<total_size; i++)
+    {
+        input_fp32[i] = fp16_to_fp32(input_fp16[i]);
+    }
+
+    /* process */
+    if (negative_slope == 0)
+    {
+        for (int n = 0; n < batch; n++)
+        {
+//#pragma omp parallel for num_threads(num_thread)
+            for (int q = 0; q < channels; q++)
+            {
+                float* src = input_fp32 + batch_step * n + c_step * q;
+                float* dst = input_fp32 + batch_step * n + c_step * q;
+
+                for (int i = 0; i < size; i++)
+                {
+                    if (src[i] < 0)
+                        dst[i] = 0;
+                    else
+                        dst[i] = src[i];
+                }
+            }
+        }
+    }
+    else
+    {
+        for (int n = 0; n < batch; n++)
+        {
+//#pragma omp parallel for num_threads(num_thread)
+            for (int q = 0; q < channels; q++)
+            {
+                float* src = input_fp32 + batch_step * n + c_step * q;
+                float* dst = input_fp32 + batch_step * n + c_step * q;
+
+                for (int i = 0; i < size; i++)
+                {
+                    if (src[i] < 0)
+                        dst[i] = src[i] * negative_slope;
+                    else
+                        dst[i] = src[i];
+                }
+            }
+        }
+    }
+
+    /* cost fp32 to fp16 */
+    for(int i=0; i<total_size; i++)
+    {
+        output_fp16[i] = fp32_to_fp16(input_fp32[i]);
+    }
+
+    sys_free(input_fp32);
+
+    return 0;
+}
+
+static int ref_relu_uint8(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, float negative_slope,
+                          int num_thread)
 {
     int batch = input_tensor->dims[0];
     int channels = input_tensor->dims[1];
@@ -114,7 +191,7 @@ static int ref_relu_uint8(struct ir_tensor* input_tensor, struct ir_tensor* outp
 
     for(int i=0; i<total_size; i++)
     {
-        data_fp32[i] = (input_uint8[i] - input_zero) * input_scale;
+        data_fp32[i] = ((float )input_uint8[i] - (float )input_zero) * input_scale;
     }
 
     /* process */
@@ -200,8 +277,15 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     int ret = 0;
     if (input_tensor->data_type == TENGINE_DT_FP32)
         ret = ref_relu_fp32(input_tensor, output_tensor, relu_param->negative_slope, exec_graph->num_thread);
-    else
+    else if (input_tensor->data_type == TENGINE_DT_FP16)
+        ret = ref_relu_fp16(input_tensor, output_tensor, relu_param->negative_slope, exec_graph->num_thread);
+    else if (input_tensor->data_type == TENGINE_DT_UINT8)
         ret = ref_relu_uint8(input_tensor, output_tensor, relu_param->negative_slope, exec_graph->num_thread);
+    else
+    {
+        printf("Input data type %d not to be supported.\n", input_tensor->data_type);
+        return -1;
+    }
 
     return ret;
 }

@@ -31,7 +31,7 @@ struct exec_scheduler
 {
     char* name;
 
-    int (*prerun)(struct exec_scheduler*, struct ir_graph*, int num_thread, int cpu_affinity);
+    int (*prerun)(struct exec_scheduler*, struct ir_graph*, int num_thread, int cpu_affinity, int mode);
     int (*run)(struct exec_scheduler*, struct ir_graph*, int block);
     int (*wait)(struct exec_scheduler*, struct ir_graph*);
     int (*postrun)(struct exec_scheduler*, struct ir_graph*);

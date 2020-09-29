@@ -31,7 +31,7 @@
 #include "exec_scheduler.h"
 #include "nn_device.h"
 
-static int sched_prerun(struct exec_scheduler* scheduler, struct ir_graph* ir_graph, int num_thread, int cpu_affinity)
+static int sched_prerun(struct exec_scheduler* scheduler, struct ir_graph* ir_graph, int num_thread, int cpu_affinity, int mode)
 {
     int subgraph_num = get_vector_num(ir_graph->subgraph_list);
 
@@ -40,7 +40,7 @@ static int sched_prerun(struct exec_scheduler* scheduler, struct ir_graph* ir_gr
         struct subgraph* subgraph = get_ir_graph_subgraph(ir_graph, i);
         struct nn_device* nn_dev = subgraph->nn_dev;
 
-        if (nn_dev->prerun(nn_dev, subgraph, num_thread, cpu_affinity) < 0)
+        if (nn_dev->prerun(nn_dev, subgraph, num_thread, cpu_affinity, mode) < 0)
         {
             subgraph->status = GRAPH_STAT_ERROR;
             TLOG_ERR("subgraph %d prerun failed\n", subgraph->idx);

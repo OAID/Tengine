@@ -114,5 +114,6 @@
 #define OP_UNSQUEEZE_NAME "Unsqueeze"
 #define OP_UPSAMPLE_NAME "Upsample"
 #define OP_ZEROSLIKE_NAME "ZerosLike"
+#define OP_MISH_NAME "Mish"
 
 #endif

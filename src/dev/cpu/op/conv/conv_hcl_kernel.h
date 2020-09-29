@@ -8,10 +8,8 @@ struct conv_priv_info
 {
     void* interleave_buffer;    // kernel transform buffer
     void* interleave_buffer_pack4;    // kernel pack4
-    void* p_input_max;
     void* im2col_buffer;    // input data transform buffer
     void* im2col_buffer_pack4;    // input data transform buffer pack4
-    void* p_kernel_max;
     void* input_pad;
     void* dot_block;
     void* transform_input;
@@ -28,6 +26,7 @@ struct conv_priv_info
     int winograd;
 };
 
+/* float32 */
 int conv_hcl_prerun(struct ir_tensor* input_tensor, struct ir_tensor* filter_tensor, struct ir_tensor* output_tensor,
                     struct conv_priv_info* info, struct conv_param* param) __attribute__((weak));
 
@@ -39,10 +38,27 @@ int conv_hcl_run(struct ir_tensor* input_tensor, struct ir_tensor* filter_tensor
 
 int conv_hcl_get_shared_mem_size(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor,
                                  struct conv_param* param) __attribute__((weak));
+
 int conv_hcl_get_shared_pack4_mem_size(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor,
-                                 struct conv_param* param) __attribute__((weak));                                 
+                                       struct conv_param* param) __attribute__((weak));
 
 int conv_hcl_set_shared_mem(struct conv_priv_info* priv_info, void* mem, int mem_size) __attribute__((weak));
+
 int conv_hcl_set_shared_pack4_mem(struct conv_priv_info* priv_info, void* mem, int mem_size) __attribute__((weak));
+
+/* fp16 */
+#if __ARM_FEATURE_FP16_VECTOR_ARITHMETIC
+int fp16_conv_hcl_prerun(struct ir_tensor*  input_tensor, 
+                    struct ir_tensor*  filter_tensor,  
+                    struct ir_tensor*  output_tensor,
+                    struct conv_priv_info* info,     
+                    struct conv_param* param)  __attribute__((weak)); 
+
+int fp16_conv_hcl_postrun(struct conv_priv_info* info) __attribute__((weak));
+
+int fp16_conv_hcl_run(struct ir_tensor* input_tensor, struct ir_tensor* filter_tensor, struct ir_tensor* bias_tensor, struct ir_tensor* output_tensor, struct conv_priv_info* conv_info, struct conv_param* param, int num_thread, int cpu_affinity)  __attribute__((weak)); 
+
+int fp16_conv_hcl_get_shared_mem_size(struct ir_tensor*  input_tensor, struct ir_tensor*  output_tensor, struct conv_param* param) __attribute__((weak));
+#endif
 
 #endif

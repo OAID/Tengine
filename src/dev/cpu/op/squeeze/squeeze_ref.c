@@ -51,17 +51,15 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
     int out_size = input_tensor->elem_num;
     float* input_org = ( float* )input_tensor->data;
-    //	float *output = (float *)sys_malloc(out_size * sizeof(float));
     float* output_org = ( float* )output_tensor->data;
     int num_thread = exec_graph->num_thread;
     //
-#pragma omp parallel for num_threads(num_thread)
+//#pragma omp parallel for num_threads(num_thread)
     for (int i = 0; i < out_size; i++)
     {
         output_org[i] = input_org[i];
     }
-    //	memcpy(output_org, output, out_size * sizeof(float));
-    //	sys_free(output);
+
     return 0;
 }
 

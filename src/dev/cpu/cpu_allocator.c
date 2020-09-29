@@ -160,10 +160,9 @@ static struct dev_allocator cpu_allocator = {
 #ifdef STANDLONE_MODE
 void register_cpu_allocator(void)
 #else
+REGISTER_DEV_ALLOCATOR(register_cpu_allocator);
 static void register_cpu_allocator(void)
 {
     init_allocator_registry(&cpu_allocator);
 }
-
-REGISTER_DEV_ALLOCATOR(register_cpu_allocator);
 #endif

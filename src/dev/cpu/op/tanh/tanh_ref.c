@@ -33,25 +33,12 @@
 
 int ref_tanh_fp32(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, int num_thread)
 {
-    int w = input_tensor->dims[3];
-    int h = output_tensor->dims[2];
-    int channels = input_tensor->dims[1];
-    int size = h * w;
-    int c_step = h * w;
-
     float* input_data = input_tensor->data;
     float* out_data = output_tensor->data;
 
-#pragma omp parallel for num_threads(num_thread)
-    for (int q = 0; q < channels; q++)
+    for (int i = 0; i < input_tensor->elem_num; i++)
     {
-        float* src = input_data + c_step * q;
-        float* dst = out_data + c_step * q;
-
-        for (int i = 0; i < size; i++)
-        {
-            dst[i] = tanhf(src[i]);
-        }
+        out_data[i] = tanhf(input_data[i]);
     }
 
     return 0;
@@ -59,15 +46,11 @@ int ref_tanh_fp32(struct ir_tensor* input_tensor, struct ir_tensor* output_tenso
 
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    exec_node->inplace_map[0] = 0;
-    exec_node->inplace_map[1] = 0;
-    exec_node->inplace_map_num = 1;
     return 0;
 }
 
 static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    exec_node->inplace_map_num = 0;
     return 0;
 }
 
@@ -80,13 +63,6 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
     input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-
-    if (input_tensor->data != output_tensor->data)
-    {
-        TLOG_ERR("input and output are not the same mem\n");
-        set_tengine_errno(EFAULT);
-        return -1;
-    }
 
     ref_tanh_fp32(input_tensor, output_tensor, exec_graph->num_thread);
 
