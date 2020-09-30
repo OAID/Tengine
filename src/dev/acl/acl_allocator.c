@@ -906,7 +906,7 @@ static int acl_allocate(struct dev_allocator* allocator, struct ir_graph* ir_gra
 
     split_graph_node_to_sub_graph(ir_graph);
     generate_sub_graph_io(ir_graph);
-    dump_sub_graph(ir_graph);
+    //dump_sub_graph(ir_graph);
 
     return 0;
 }
