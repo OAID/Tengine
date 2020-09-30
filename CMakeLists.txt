@@ -68,6 +68,8 @@ option(TENGINE_DEBUG_MEM_STAT "print memory status for library" OFF)
 option(TENGINE_ARCH_X86_AVX "build avx2 for x86" OFF)
 option(TENGINE_ARCH_ARM_82 "build armv8.2 for arm" OFF)
 
+# some plugin options
+option(TENGINE_ENABLE_ACL "Build with Arm Compute Library(ACL) support" OFF)
 
 # add_definitions(-DCONFIG_DISABLE_PARAM_ACCESS)
 # add_definitions(-DCONFIG_INTERN_ALLOCATOR)
