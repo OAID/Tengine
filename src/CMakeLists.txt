@@ -64,7 +64,25 @@ endif()
 
 # add cmsis operator files
 file(GLOB_RECURSE TENGINE_BACKEND_CMSIS_OPS "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/op/*cmsis.c")
+# add ACL GPU support
+if (TENGINE_ENABLE_ACL)
+    list(APPEND TENGINE_PRIVATE_INC_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/dev/acl)
+    list(APPEND TENGINE_PRIVATE_INC_DIRS ${CMAKE_SOURCE_DIR}/3rdparty/acl/include)
+    list(APPEND TENGINE_ACL_LIB_DIRS ${CMAKE_SOURCE_DIR}/3rdparty/acl/lib)
 
+    #link_directories(${TENGINE_ACL_LIB_DIRS})
+    if(TENGINE_VERBOSE)
+        message (STATUS "TENGINE: 'TENGINE_ACL_LIB_DIRS' is ${TENGINE_ACL_LIB_DIRS}.")
+    endif()
+
+    file(GLOB_RECURSE TENGINE_BACKEND_ACL_BASE "${CMAKE_CURRENT_SOURCE_DIR}/dev/acl/*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/dev/acl/*.c")
+endif ()
+
+
+# add libraries path
+list(APPEND TENGINE_PRIVATE_LIB_DIRS ${TENGINE_ACL_LIB_DIRS})
+set(TENGINE_COMMON_LIB_DIRS ${TENGINE_PRIVATE_LIB_DIRS} CACHE INTERNAL "" FORCE)
+link_directories(${TENGINE_PRIVATE_LIB_DIRS})
 
 # add advanced hcl source files
 if (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM")
@@ -75,7 +93,8 @@ if (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM")
         ${TENGINE_BACKEND_COMMON}
         ${TENGINE_BACKEND_REF_OPS}
         ${TENGINE_BACKEND_HCL_OPS}
-        ${TENGINE_BACKEND_HCL_ASM_OPS})
+        ${TENGINE_BACKEND_HCL_ASM_OPS}
+        ${TENGINE_BACKEND_ACL_BASE})
 elseif (${TENGINE_TARGET_PROCESSOR} MATCHES "X86")
     add_library(${CMAKE_PROJECT_NAME} SHARED
         ${TENGINE_LIB_SRCS} ${TENGINE_FRONT_END_SRCS}
@@ -111,5 +130,9 @@ else()
     target_link_libraries(${CMAKE_PROJECT_NAME} pthread dl m ${TENGINE_LINKING_LIBS})
 endif()
 
+if (TENGINE_ENABLE_ACL)
+    target_link_libraries(${CMAKE_PROJECT_NAME} arm_compute arm_compute_core)
+    message("${CMAKE_PROJECT_NAME}")
+endif ()
 install (TARGETS ${CMAKE_PROJECT_NAME} DESTINATION lib)
 install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/../include/tengine_c_api.h DESTINATION include)
