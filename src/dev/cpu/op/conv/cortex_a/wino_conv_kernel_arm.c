@@ -922,6 +922,394 @@ static inline void transform_output_f43_1tile(const float* buffer_ptr, float* ou
     }
 }
 
+static inline int support_out4_neon(int outh, int outw, int block_idx, int block_h, int block_w){
+    int flag_outw = 1;
+    if (outw < 16)
+        flag_outw = 0;
+
+    int idx_h[4];
+    int idx_w[4];
+    idx_h[0] = (block_idx) / block_w;
+    idx_h[1] = (block_idx + 1) / block_w;
+    idx_h[2] = (block_idx + 2) / block_w;
+    idx_h[3] = (block_idx + 3) / block_w;
+
+    idx_w[0] = (block_idx) % block_w;
+    idx_w[1] = (block_idx + 1) % block_w;
+    idx_w[2] = (block_idx + 2) % block_w;
+    idx_w[3] = (block_idx + 3) % block_w;
+
+    int wino_out_4_tiles = 0;
+    if (flag_outw) {
+        if ((idx_h[0] == idx_h[3]) && (idx_h[0] < (block_h - 1)) && (idx_w[3] < (block_w - 1))) {
+            wino_out_4_tiles = 1;
+        }
+    }
+    return wino_out_4_tiles;
+}
+
+static inline void tran_out_4_neon(float *input, float *output, size_t i, float *ker, float *bias,
+                                  int activation) {
+
+    /*
+    float AT[24]={
+      1.,  1.,  1.,  1.,  1.,  0.,
+      0.,  1., -1.,  2., -2.,  0.,
+      0.,  1.,  1.,  4.,  4.,  0.,
+      0.,  1., -1.,  8., -8.,  1.
+    };
+    float A[24]={
+      1.,  0.,  0.,  0.,
+      1.,  1.,  1.,  1.,
+      1., -1.,  1., -1.,
+      1.,  2.,  4.,  8.,
+      1., -2.,  4., -8.,
+      0.,  0.,  0.,  1.
+    };
+    */
+    float32x4_t q8 = vld1q_f32(input + 28);  //r11
+    float32x4_t q9 = vld1q_f32(input + 32);  //r12
+    float32x4_t q10 = vld1q_f32(input + 36);  //r13
+    float32x4_t q11 = vld1q_f32(input + 40);  //r14
+    float32x4_t q12 = vld1q_f32(input + 52);  //r21
+    float32x4_t q13 = vld1q_f32(input + 56);  //r22
+    float32x4_t q14 = vld1q_f32(input + 60);  //r23
+    float32x4_t q15 = vld1q_f32(input + 64);  //r24
+
+    q8 = vsubq_f32(q8, q12);  //r11 - r21     ---------
+    q9 = vsubq_f32(q9, q13);  //r12 - r22     ---------
+    q10 = vsubq_f32(q10,q14); //r13 - r23  --------
+    q11 = vsubq_f32(q11,q15); //r14 - r24  ---------
+
+    float32x4_t q0 = vld1q_f32(input + 76);  //r31
+    float32x4_t q1 = vld1q_f32(input + 80);  //r32
+    float32x4_t q2 = vld1q_f32(input + 84);  //r33
+    float32x4_t q3 = vld1q_f32(input + 88);  //r34
+    float32x4_t q4 = vld1q_f32(input + 100);  //r41
+    float32x4_t q5 = vld1q_f32(input + 104);  //r42
+    float32x4_t q6 = vld1q_f32(input + 108); //r43
+    float32x4_t q7 = vld1q_f32(input + 112); //r44
+
+    q12 = vsubq_f32(q0, q4);  //r31-r41    -----------
+    q13 = vsubq_f32(q1, q5);  //r32-r42    -----------
+    q0 = vmlaq_n_f32(q8, q12, 2);   //r11-r21+2*(r31-r41)
+    q1 = vmlaq_n_f32(q9, q13, 2);   //r12-r22+2*(r32-r42)
+    q14 = vsubq_f32(q2, q6); //r33 - r43      -------------
+    q15 = vsubq_f32(q3, q7); //r34 - r44      -------------
+    q2 = vmlaq_n_f32(q10, q14,  2);  //r13-r23+2(r33-r43)
+    q3 = vmlaq_n_f32(q11, q15,2);    //r14-r24+2(r34-r44)
+    //pre line3
+    q8 = vmlaq_n_f32(q8,q12,8);
+    q9 = vmlaq_n_f32(q9,q13,8);
+    q10 = vmlaq_n_f32(q10,q14,8);
+    q11 = vmlaq_n_f32(q11,q15,8);
+    //
+    q4 = vaddq_f32(q0,q1);
+    q5 = vaddq_f32(q2,q3);
+    q6 = vsubq_f32(q0,q1);
+    q7 = vsubq_f32(q2,q3);
+
+    q12 = vld1q_f32(input + 24);  //r10 r20
+    q13 = vld1q_f32(input + 48);
+    q0 = vsubq_f32(q12,q13);
+    q14 = vld1q_f32(input + 72);  //r30 r40
+    q15 = vld1q_f32(input + 96);
+    q1 = vsubq_f32(q14,q15);
+    q12 = vmlaq_n_f32(q0,q1,8);
+    q0 = vmlaq_n_f32(q0,q1,2);
+    q0 = vaddq_f32(vaddq_f32(q4,q5),q0);   //out q0
+    q1 = vmlaq_n_f32(q6,q7,2);   // out q1
+    q2 = vmlaq_n_f32(q4,q5,4);   // out q2
+
+    //
+    q3 = vld1q_f32(input + 44);
+    q4 = vld1q_f32(input + 68);
+    q3 = vsubq_f32(q3,q4);
+    q4 = vld1q_f32(input + 92);
+    q5 = vld1q_f32(input + 116);
+    q4 = vsubq_f32(q4,q5);
+    q13 = vmlaq_n_f32(q3,q4,8);
+    q3 = vmlaq_n_f32(q3,q4,2);
+    q3 = vaddq_f32(vmlaq_n_f32(q6,q7,8),q3);  //out q3
+    if (bias) {
+        q6 = vdupq_n_f32(bias[0]);
+        q0 = vaddq_f32(q0, q6);
+        q1 = vaddq_f32(q1, q6);
+        q2 = vaddq_f32(q2, q6);
+        q3 = vaddq_f32(q3, q6);
+    }
+    if (activation >= 0) {
+        q5 = vdupq_n_f32(0);
+        q0 = vmaxq_f32(q0, q5);
+        q1 = vmaxq_f32(q1, q5);
+        q2 = vmaxq_f32(q2, q5);
+        q3 = vmaxq_f32(q3, q5);
+    }
+    if (activation == 6) {
+        q6 = vdupq_n_f32(6);
+        q0 = vminq_f32(q0, q6);
+        q1 = vminq_f32(q1, q6);
+        q2 = vminq_f32(q2, q6);
+        q3 = vminq_f32(q3, q6);
+    }
+    float32x4x4_t out = {q0,q1,q2,q3};
+    vst4q_f32(output + i,out);
+
+    q0 = vld1q_f32(input + 124);  //r51
+    q1 = vld1q_f32(input + 128);
+    q2 = vld1q_f32(input + 132);
+    q3 = vld1q_f32(input + 136);  //r54
+    q4 = vaddq_f32(q8,q0);
+    q5 = vaddq_f32(q9,q1);
+    q6 = vaddq_f32(q10,q2);
+    q7 = vaddq_f32(q11,q3);
+    q2 = vaddq_f32(q4,q5);
+    q3 = vaddq_f32(q6,q7);
+    q8 = vld1q_f32(input + 120);
+    q12 = vaddq_f32(q12, q8);
+    q0 = vaddq_f32(vaddq_f32(q2,q3),q12);
+    q2 = vmlaq_n_f32(q2,q3,4);
+    q3 = vsubq_f32(q4, q5);
+    q4 = vsubq_f32(q6, q7);
+    q1 = vmlaq_n_f32(q3,q4,2);
+    q3 = vmlaq_n_f32(q3,q4,8);
+    q9 = vld1q_f32(input + 140);
+    q13 = vaddq_f32(q13,q9);
+    q3 = vaddq_f32(q3,q13);
+    if (bias) {
+        q6 = vdupq_n_f32(bias[0]);
+        q0 = vaddq_f32(q0, q6);
+        q1 = vaddq_f32(q1, q6);
+        q2 = vaddq_f32(q2, q6);
+        q3 = vaddq_f32(q3, q6);
+    }
+    if (activation >= 0) {
+        q5 = vdupq_n_f32(0);
+        q0 = vmaxq_f32(q0, q5);
+        q1 = vmaxq_f32(q1, q5);
+        q2 = vmaxq_f32(q2, q5);
+        q3 = vmaxq_f32(q3, q5);
+    }
+    if (activation == 6) {
+        q6 = vdupq_n_f32(6);
+        q0 = vminq_f32(q0, q6);
+        q1 = vminq_f32(q1, q6);
+        q2 = vminq_f32(q2, q6);
+        q3 = vminq_f32(q3, q6);
+    }
+
+    float32x4x4_t out1 = {q0,q1,q2,q3};
+    vst4q_f32(output + 3*i,out1);
+
+    // line0 and line2
+    q8 = vld1q_f32(input + 28);  //r11
+    q9 = vld1q_f32(input + 32);  //r12
+    q10 = vld1q_f32(input + 36);  //r13
+    q11 = vld1q_f32(input + 40);  //r14
+    q12 = vld1q_f32(input + 52);  //r21
+    q13 = vld1q_f32(input + 56);  //r22
+    q14 = vld1q_f32(input + 60);  //r23
+    q15 = vld1q_f32(input + 64);  //r24
+    q8 = vaddq_f32(q8, q12);  //r11 + r21     ---------
+    q9 = vaddq_f32(q9, q13);  //r12 + r22     ---------
+    q10 = vaddq_f32(q10,q14); //r13 + r23  --------
+    q11 = vaddq_f32(q11,q15); //r14 + r24  ---------
+
+    q0 = vld1q_f32(input + 76);  //r31
+    q1 = vld1q_f32(input + 80);  //r32
+    q2 = vld1q_f32(input + 84);  //r33
+    q3 = vld1q_f32(input + 88);  //r34
+    q4 = vld1q_f32(input + 100);  //r41
+    q5 = vld1q_f32(input + 104);  //r42
+    q6 = vld1q_f32(input + 108); //r43
+    q7 = vld1q_f32(input + 112); //r44
+
+    q12 = vaddq_f32(q0, q4);   //r31+r41
+    q13 = vaddq_f32(q1, q5);   //r32+r42
+    q0 = vaddq_f32(q8, q12);   //r11+r21+1*(r31+r41)
+    q1 = vaddq_f32(q9, q13);   //r12+r22+1*(r32+r42)
+    q14 = vaddq_f32(q2, q6);   //r33 + r43
+    q15 = vaddq_f32(q3, q7);   //r34 + r44
+    q2 = vaddq_f32(q10, q14);  //r13+r23+(r33+r43)
+    q3 = vaddq_f32(q11, q15);  //r14+r24+(r34+r44)
+
+    //q4 q5 q6 q7
+    q4 = vld1q_f32(input + 4);
+    q5 = vld1q_f32(input + 8);
+    q6 = vld1q_f32(input + 12);
+    q7 = vld1q_f32(input + 16);
+    q0 = vaddq_f32(q0,q4);
+    q1 = vaddq_f32(q1,q5);
+    q2 = vaddq_f32(q2,q6);
+    q3 = vaddq_f32(q3,q7);
+    //pre line2
+    q8 = vmlaq_n_f32(q8,q12,4);
+    q9 = vmlaq_n_f32(q9,q13,4);
+    q10 = vmlaq_n_f32(q10,q14,4);
+    q11 = vmlaq_n_f32(q11,q15,4);
+
+    q4 = vaddq_f32(q0,q1);
+    q5 = vaddq_f32(q2,q3);
+    q6 = vsubq_f32(q0,q1);
+    q7 = vsubq_f32(q2,q3);
+    q12 = vld1q_f32(input + 24);  //r10 r20
+    q13 = vld1q_f32(input + 48);
+    q0 = vaddq_f32(q12,q13);
+    q14 = vld1q_f32(input + 72);  //r30 r40
+    q15 = vld1q_f32(input + 96);
+    q1 = vaddq_f32(q14,q15);
+    q12 = vmlaq_n_f32(q0,q1,4);
+    q2 = vld1q_f32(input);
+    q0 = vaddq_f32(q0,q1);
+    q0 = vaddq_f32(q0,q2);
+    q0 = vaddq_f32(q0,vaddq_f32(q4,q5)); // output q0
+    q2 = vmlaq_n_f32(q4,q5,4); //output q2
+    q1 = vmlaq_n_f32(q6,q7,2);
+    q3 = vmlaq_n_f32(q6,q7,8);
+
+    q4 = vld1q_f32(input+ 44);
+    q5 = vld1q_f32(input + 68 );
+    q6 = vld1q_f32(input + 92);
+    q7 = vld1q_f32(input + 116);
+    q4 = vaddq_f32(q4,q5);
+    q6 = vaddq_f32(q6,q7);
+    q13 = vmlaq_n_f32(q4,q6,4);
+    q5 = vld1q_f32(input+20);
+    q4 = vaddq_f32(vaddq_f32(q4,q6),q5);
+    q3 = vaddq_f32(q3,q4);
+    if (bias) {
+        q6 = vdupq_n_f32(bias[0]);
+        q0 = vaddq_f32(q0, q6);
+        q1 = vaddq_f32(q1, q6);
+        q2 = vaddq_f32(q2, q6);
+        q3 = vaddq_f32(q3, q6);
+    }
+    if (activation >= 0) {
+        q5 = vdupq_n_f32(0);
+        q0 = vmaxq_f32(q0, q5);
+        q1 = vmaxq_f32(q1, q5);
+        q2 = vmaxq_f32(q2, q5);
+        q3 = vmaxq_f32(q3, q5);
+    }
+    if (activation == 6) {
+        q6 = vdupq_n_f32(6);
+        q0 = vminq_f32(q0, q6);
+        q1 = vminq_f32(q1, q6);
+        q2 = vminq_f32(q2, q6);
+        q3 = vminq_f32(q3, q6);
+    }
+    float32x4x4_t out2 = {q0,q1,q2,q3};
+    vst4q_f32(output,out2);
+
+    q4 = vaddq_f32(q8,q9);
+    q5 = vaddq_f32(q10,q11);
+    q6 = vsubq_f32(q8,q9);
+    q7 = vsubq_f32(q10,q11);
+    q0 = vaddq_f32(q4,q5);
+    q0 = vaddq_f32(q12,q0);
+    q2 = vmlaq_n_f32(q4,q5,4);
+    q1 = vmlaq_n_f32(q6,q7,2);
+    q3 = vmlaq_n_f32(q6,q7,8);
+    q3 = vaddq_f32(q3,q13);
+    if (bias) {
+        q6 = vdupq_n_f32(bias[0]);
+        q0 = vaddq_f32(q0, q6);
+        q1 = vaddq_f32(q1, q6);
+        q2 = vaddq_f32(q2, q6);
+        q3 = vaddq_f32(q3, q6);
+    }
+    if (activation >= 0) {
+        q5 = vdupq_n_f32(0);
+        q0 = vmaxq_f32(q0, q5);
+        q1 = vmaxq_f32(q1, q5);
+        q2 = vmaxq_f32(q2, q5);
+        q3 = vmaxq_f32(q3, q5);
+    }
+    if (activation == 6) {
+        q6 = vdupq_n_f32(6);
+        q0 = vminq_f32(q0, q6);
+        q1 = vminq_f32(q1, q6);
+        q2 = vminq_f32(q2, q6);
+        q3 = vminq_f32(q3, q6);
+    }
+    float32x4x4_t out3 = {q0,q1,q2,q3};
+    vst4q_f32(output + 2*i,out3);
+}
+
+static inline void transform_output_f43_4tile_1(float* buffer_ptr, float* out, int p_idx, int block_idx, int block_h,
+                                                int block_w, int outh, int outw, int resi_h, int resi_w,
+                                                int KER_COUT_UNIT_, const float* bias, int activation, int wino_out_4_tiles)
+{
+    int out_hw = outh * outw;
+    float tmp_buffer[TILE * TILE];
+
+    int idx_h[4];
+    int idx_w[4];
+    idx_h[0] = (block_idx) / block_w;
+    idx_h[1] = (block_idx + 1) / block_w;
+    idx_h[2] = (block_idx + 2) / block_w;
+    idx_h[3] = (block_idx + 3) / block_w;
+
+    idx_w[0] = (block_idx) % block_w;
+    idx_w[1] = (block_idx + 1) % block_w;
+    idx_w[2] = (block_idx + 2) % block_w;
+    idx_w[3] = (block_idx + 3) % block_w;
+
+    float* bias_ptr = NULL;
+    if(wino_out_4_tiles){
+        float* bias_ptr = NULL;
+        for(int pss = 0; pss < KER_COUT_UNIT_; pss++){
+            int cout_idx = p_idx + pss;
+            float* out_ptr = out + cout_idx * out_hw + idx_h[0] * TILE * outw + idx_w[0] * TILE;
+            if(bias){
+                bias_ptr = ( float* )(bias + cout_idx);
+            }
+            float ker00[4] = {2, 4, 8, 0};
+            tran_out_4_neon(buffer_ptr + pss * ELEM_SIZE * 4, out_ptr, outw, ker00,
+                           bias_ptr, activation);
+        }
+    }
+    else {
+        for (int p = 0; p < KER_COUT_UNIT_; p++) {
+            int cout_idx = p_idx + p;
+            float *out_ptr = out + cout_idx * out_hw;
+            if (bias) {
+                bias_ptr = (float *) bias + cout_idx;
+            }
+
+            for (int ii = 0; ii < 4; ii++) {
+                int i_h = idx_h[ii];
+                int j_w = idx_w[ii];
+                if ((resi_h == 0 && resi_w == 0) || (resi_h == 0 && (j_w < block_w - 1)) ||
+                    (resi_w == 0 && (i_h < block_h - 1)) ||
+                    ((j_w < block_w - 1) && (i_h < block_h - 1))) {
+                    trans_output_f43(buffer_ptr, out_ptr + (i_h * TILE * outw + j_w * TILE), outw,
+                                     bias_ptr, activation);
+                }    // direct use_out_ptr
+                else {
+                    int ret_h = TILE - resi_h;
+                    if (i_h < block_h - 1)
+                        ret_h = TILE;
+                    int ret_w = TILE - resi_w;
+                    if (j_w < block_w - 1)
+                        ret_w = TILE;
+
+                    // tmp_buffer
+                    trans_output_f43_ordinary(buffer_ptr, tmp_buffer, bias_ptr);
+                    float *out_pointer = out_ptr + (i_h * TILE * outw + j_w * TILE);
+                    for (int hh = 0; hh < ret_h; hh++) {
+                        for (int ww = 0; ww < ret_w; ww++) {
+                            out_pointer[hh * outw + ww] = do_activation(tmp_buffer[hh * 4 + ww],
+                                                                        activation);
+                        }
+                    }
+                }    // end else, tmp_buff
+                buffer_ptr += ELEM_SIZE;
+            }
+        }
+    }
+}
+
 static inline void transform_output_f43_4tile(float* buffer_ptr, float* out, int p_idx, int block_idx, int block_h,
                                               int block_w, int outh, int outw, int resi_h, int resi_w,
                                               int KER_COUT_UNIT_, const float* bias, int activation)
@@ -1115,19 +1503,34 @@ static void wino_sgemm_set(const float* ker, const float* inp, float* output, co
             }
             float buffer[PER_OUT_CHAN * 4 * ELEM_SIZE];
             float* buffer_ptr0 = buffer;
-            for (int pp = 0; pp < PER_OUT_CHAN; pp++)
-            {
-                for (int t = 0; t < 4; t++)
+            int wino_out_4_tiles = support_out4_neon(out_h, out_w, i, block_h, block_w);
+            if (wino_out_4_tiles) {
+                for (int pp = 0; pp < PER_OUT_CHAN; pp++)
                 {
                     for (int ss = 0; ss < ELEM_SIZE; ss++)
                     {
-                        *buffer_ptr0 = out_buffer[ss * 4 * PER_OUT_CHAN + pp * 4 + t];
-                        buffer_ptr0++;
+                        for (int t = 0; t < 4; t++)
+                        {
+                            *buffer_ptr0 = out_buffer[ss * 4 * PER_OUT_CHAN + pp * 4 + t];
+                            buffer_ptr0++;
+                        }
+                    }
+                }
+            } else {
+                for (int pp = 0; pp < PER_OUT_CHAN; pp++)
+                {
+                    for (int t = 0; t < 4; t++)
+                    {
+                        for (int ss = 0; ss < ELEM_SIZE; ss++)
+                        {
+                            *buffer_ptr0 = out_buffer[ss * 4 * PER_OUT_CHAN + pp * 4 + t];
+                            buffer_ptr0++;
+                        }
                     }
                 }
             }
 
-            transform_output_f43_4tile(buffer, output, p, i, block_h, block_w, out_h, out_w, resi_h, resi_w, PER_OUT_CHAN, bias, activation);
+            transform_output_f43_4tile_1(buffer, output, p, i, block_h, block_w, out_h, out_w, resi_h, resi_w, PER_OUT_CHAN, bias, activation, wino_out_4_tiles);
 #endif
         }
         for (; i < block_hw; i++)
@@ -1302,20 +1705,35 @@ void wino_sgemm_4x4(const float* ker, const float* inp, float* output, const flo
             // interleave
             float buffer[4 * 4 * ELEM_SIZE];
             float* buffer_ptr0 = buffer;
-            for (int pp = 0; pp < 4; pp++)
-            {
-                for (int t = 0; t < 4; t++)
+            int wino_out_4_tiles = support_out4_neon(out_h, out_w, i, block_h, block_w);
+            if (wino_out_4_tiles) {
+                for (int pp = 0; pp < 4; pp++)
                 {
                     for (int ss = 0; ss < ELEM_SIZE; ss++)
                     {
-                        *buffer_ptr0 = out_buffer[ss * 4 * 4 + pp * 4 + t];
-                        buffer_ptr0++;
+                        for (int t = 0; t < 4; t++)
+                        {
+                            *buffer_ptr0 = out_buffer[ss * 4 * 4 + pp * 4 + t];
+                            buffer_ptr0++;
+                        }
+                    }
+                }
+            } else {
+                for (int pp = 0; pp < 4; pp++)
+                {
+                    for (int t = 0; t < 4; t++)
+                    {
+                        for (int ss = 0; ss < ELEM_SIZE; ss++)
+                        {
+                            *buffer_ptr0 = out_buffer[ss * 4 * 4 + pp * 4 + t];
+                            buffer_ptr0++;
+                        }
                     }
                 }
             }
             // end interleave
-            transform_output_f43_4tile(buffer, output, p, i, block_h, block_w, out_h, out_w, resi_h, resi_w, 4, bias,
-                                       activation);
+            transform_output_f43_4tile_1(buffer, output, p, i, block_h, block_w, out_h, out_w, resi_h, resi_w, 4, bias,
+                                       activation, wino_out_4_tiles);
 #endif
         }
 
