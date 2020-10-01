@@ -87,18 +87,4 @@ int fp16_conv_hcl_run(struct ir_tensor* input_tensor , struct ir_tensor* filter_
 int fp16_conv_hcl_get_shared_mem_size(struct ir_tensor*  input_tensor ,struct ir_tensor*  output_tensor , struct conv_param* param) __attribute__((weak)) ;
 #endif
 
-/* hybrid int8 */
-int hybrid_conv_hcl_prerun(struct ir_tensor* input_tensor, struct ir_tensor* filter_tensor,
-                           struct ir_tensor* output_tensor, struct conv_priv_info* info, struct conv_param* param)
-    __attribute__((weak));
-
-int hybrid_conv_hcl_postrun(struct conv_priv_info* info) __attribute__((weak));
-
-int hybrid_conv_hcl_run(struct ir_tensor* input_tensor, struct ir_tensor* filter_tensor, struct ir_tensor* bias_tensor,
-                        struct ir_tensor* output_tensor, struct conv_priv_info* conv_info, struct conv_param* param,
-                        int num_thread, int cpu_affinity) __attribute__((weak));
-
-int hybrid_conv_hcl_get_shared_mem_size(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor,
-                                        struct conv_param* param) __attribute__((weak));
-
 #endif

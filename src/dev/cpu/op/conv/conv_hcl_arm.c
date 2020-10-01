@@ -31,10 +31,6 @@
 #include "tengine_op.h"
 #include "convolution_param.h"
 #include "./cortex_a/conv_kernel_arm.h"
-#ifdef CONFIG_AUTH_DEVICE
-#include <sys/time.h>
-#include "auth.h"
-#endif
 
 static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
@@ -46,17 +42,6 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
 
     struct conv_param* conv_param = ( struct conv_param* )ir_node->op.param_mem;
     struct conv_priv_info* conv_priv_info = ( struct conv_priv_info* )exec_node->ops_priv;
-
-#ifdef CONFIG_AUTH_DEVICE
-    node_ops->InitTimeLimited(node_ops);
-
-    bool float_enabled = get_auth_float_enabled();
-    bool int8_enabled = get_auth_int8_enabled();
-    if (!float_enabled || !int8_enabled)
-    {
-        return -1;
-    }
-#endif
 
     /* get cpu affinity */
     conv_priv_info->cpu_type = exec_graph->cpu_affinity;
@@ -112,16 +97,6 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
         }
     }
 #endif
-    /* hybrid int8 prerun */
-    else if (exec_graph->mode == TENGINE_MODE_HYBRID_INT8)
-    {
-        if (hybrid_conv_hcl_prerun(input_tensor, filter_tensor, output_tensor, conv_priv_info, conv_param) < 0)
-        {
-            TLOG_ERR("hcl conv hybrid int8 prerun failed\n");
-            set_tengine_errno(EFAULT);
-            return -1;
-        }
-    }
     else
     {
         printf("Tengine work node not support %d\n", exec_graph->mode);
@@ -153,11 +128,6 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct conv_param* conv_param = ( struct conv_param* )ir_node->op.param_mem;
     struct conv_priv_info* conv_priv_info = ( struct conv_priv_info* )exec_node->ops_priv;
 
-#ifdef CONFIG_AUTH_DEVICE
-    if (node_ops->skip_run)
-        return -1;
-#endif
-
     /* fp32 run */
     if (exec_graph->mode == TENGINE_MODE_FP32 || exec_graph->mode == TENGINE_MODE_UINT8)
     {
@@ -181,35 +151,11 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         }        
     }
 #endif
-    /* hybrid int8 run */
-    else if (exec_graph->mode == TENGINE_MODE_HYBRID_INT8)
-    {
-        if (hybrid_conv_hcl_run(input_tensor, weight_tensor, bias_tensor, output_tensor, conv_priv_info, conv_param, num_thread, cpu_affinity) < 0)
-        {
-            TLOG_ERR("hcl conv hybrid int8 run failed\n");
-            set_tengine_errno(EFAULT);
-            return -1;
-        }
-    }
     else
     {
         printf("Tengine work node not support %d\n", exec_graph->mode);
         return -1;
     }
-
-#ifdef CONFIG_AUTH_DEVICE
-    if (node_ops->time_limited && (!(node_ops->run_count & IGNORE_AUTH_TIMES)))
-    {
-        struct timeval tv;
-        gettimeofday(&tv, NULL);
-
-        if ((tv.tv_sec - node_ops->tv_start) >= node_ops->time_limited)
-        {
-            node_ops->skip_run = true;
-        }
-    }
-    node_ops->run_count++;
-#endif    
 
     return 0;
 }
@@ -245,16 +191,6 @@ static int postrun(struct node_ops* node_ops, struct exec_node* exec_node, struc
         }
     }
 #endif
-    /* hybrid int8 postrun */
-    else if (exec_graph->mode == TENGINE_MODE_HYBRID_INT8)
-    {
-        if (hybrid_conv_hcl_postrun(conv_priv_info) < 0)
-        {
-            TLOG_ERR("hcl conv hybrid int8 postrun failed\n");
-            set_tengine_errno(EFAULT);
-            return -1;
-        }
-    }
     else
     {
         printf("Tengine work node not support %d\n", exec_graph->mode);
@@ -300,10 +236,6 @@ static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, str
         exec_node->shared_mem_size = fp16_conv_hcl_get_shared_mem_size(input_tensor, output_tensor, conv_param);
     }
 #endif
-    else if (exec_graph->mode == TENGINE_MODE_HYBRID_INT8)
-    {
-        exec_node->shared_mem_size = hybrid_conv_hcl_get_shared_mem_size(input_tensor, output_tensor, conv_param);
-    }
     else
     {
         printf("Tengine work node not support %d\n", exec_graph->mode);
@@ -352,16 +284,6 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_PREFER;
 }
 
-#ifdef CONFIG_AUTH_DEVICE
-static void InitTimeLimited(struct node_ops* node_ops)
-{
-    node_ops->time_limited = get_auth_time_limited();
-    node_ops->run_count = 0;
-    node_ops->skip_run = get_auth_skip_run();
-    node_ops->tv_start = get_auth_time_start();
-}
-#endif
-
 static struct node_ops hcl_node_ops = {.prerun = prerun,
                                        .run = run,
                                        .reshape = reshape,
@@ -369,10 +291,6 @@ static struct node_ops hcl_node_ops = {.prerun = prerun,
                                        .init_node = init_node,
                                        .release_node = release_node,
                                        .score = score
-#ifdef CONFIG_AUTH_DEVICE
-                                       ,
-                                       .InitTimeLimited = InitTimeLimited
-#endif
 };
 
 static int reg_conv_hcl_ops(void* arg)
