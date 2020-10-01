@@ -47,7 +47,7 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
     conv_priv_info->cpu_type = exec_graph->cpu_affinity;
 
     /* fp32 prerun */
-    if (exec_graph->mode == TENGINE_MODE_FP32 || exec_graph->mode == TENGINE_MODE_UINT8)
+    if (exec_graph->mode == TENGINE_MODE_FP32)
     {
         if (conv_hcl_set_shared_mem && exec_node->shared_mem_size < exec_graph->shared_mem_size)
         {
@@ -129,7 +129,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct conv_priv_info* conv_priv_info = ( struct conv_priv_info* )exec_node->ops_priv;
 
     /* fp32 run */
-    if (exec_graph->mode == TENGINE_MODE_FP32 || exec_graph->mode == TENGINE_MODE_UINT8)
+    if (exec_graph->mode == TENGINE_MODE_FP32)
     {
         if (conv_hcl_run(input_tensor, weight_tensor, bias_tensor, output_tensor, conv_priv_info, conv_param, num_thread,
                          cpu_affinity) < 0)
@@ -170,7 +170,7 @@ static int postrun(struct node_ops* node_ops, struct exec_node* exec_node, struc
     struct conv_priv_info* conv_priv_info = ( struct conv_priv_info* )exec_node->ops_priv;
 
     /* fp32 postrun */
-    if (exec_graph->mode == TENGINE_MODE_FP32 || exec_graph->mode == TENGINE_MODE_UINT8)
+    if (exec_graph->mode == TENGINE_MODE_FP32)
     {
         if (conv_hcl_postrun(conv_priv_info) < 0)
         {
@@ -225,7 +225,7 @@ static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, str
     exec_node->ops_priv = conv_priv_info;
 
     /* get shared memory size */
-    if (exec_graph->mode == TENGINE_MODE_FP32 || exec_graph->mode == TENGINE_MODE_UINT8)
+    if (exec_graph->mode == TENGINE_MODE_FP32)
     {
         exec_node->shared_mem_size = conv_hcl_get_shared_mem_size(input_tensor, output_tensor, conv_param);
         exec_node->shared_pack4_mem_size = conv_hcl_get_shared_pack4_mem_size(filter_tensor, output_tensor, conv_param);
