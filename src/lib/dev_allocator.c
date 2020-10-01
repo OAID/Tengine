@@ -69,6 +69,8 @@ struct dev_allocator* get_default_dev_allocator(void)
             return allocator;
         }
     }
+
+    return NULL;
 }
 
 struct dev_allocator* get_dev_allocator(const char* dev_name)

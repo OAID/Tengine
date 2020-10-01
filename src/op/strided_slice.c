@@ -59,6 +59,12 @@ static int infer_shape(struct ir_node* node)
     dims[2] = ceil((( float )input->dims[2] - ( float )delta_2) / ( float )param_->stride[2]);
     dims[3] = ceil((( float )input->dims[3] - ( float )delta_3) / ( float )param_->stride[3]);
 
+    for (int i=0; i<4; i++)
+    {
+        if (dims[i] == 0)
+            dims[i] = 1;
+    }
+
     set_ir_tensor_shape(output, dims, input->dim_num);
 
     return 0;

@@ -98,12 +98,14 @@ static int register_logical_op(void* arg)
     m.op_version = 1;
     m.init_op = init_op;
     m.release_op = release_op;
+    m.access_param_entry = access_param_entry;
 
     return register_op(OP_LOGICAL, OP_LOGICAL_NAME, &m);
 }
 
 static int unregister_logical_op(void* arg)
 {
+    sys_free(GET_PARAM_PARSE_MAP(logical_param));
     return unregister_op(OP_LOGICAL, 1);
 }
 

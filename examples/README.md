@@ -39,7 +39,7 @@ install
 
 ```bash
 $ export LD_LIBRARY_PATH=./build/install/lib
-$ ./build/install/example/tm_classification -m models/mobilenet.tmfile -i images/cat.jpg -g 224,224 -s 0.017,0.017,0.017 -w 104.007,116.669,122.679
+$ ./build/install/bin/tm_classification -m models/mobilenet.tmfile -i images/cat.jpg -g 224,224 -s 0.017,0.017,0.017 -w 104.007,116.669,122.679
 ```
 
 结果如下：
@@ -66,7 +66,7 @@ Repeat 1 times, thread 1, avg time 656.76 ms, max_time 656.76 ms, min_time 656.7
 
 ```bash
 $ export LD_LIBRARY_PATH=./build/install/lib
-$ ./build/install/example/tm_landmark -m models/landmark.tmfile -i images/mobileface02.jpg -r 1 -t 1
+$ ./build/install/bin/tm_landmark -m models/landmark.tmfile -i images/mobileface02.jpg -r 1 -t 1
 ```
 
 结果如下：
@@ -86,7 +86,7 @@ Repeat [1] min 17.461 ms, max 17.461 ms, avg 17.461 ms
 
 ```bash
 $ export LD_LIBRARY_PATH=./build/install/lib
-$ ./build/install/example/tm_mobilenet_ssd -m models/mobilenet_ssd.tmfile -i images/ssd_dog.jpg -r 1 -t 1
+$ ./build/install/bin/tm_mobilenet_ssd -m models/mobilenet_ssd.tmfile -i images/ssd_dog.jpg -r 1 -t 1
 ```
 
 结果如下：
@@ -118,7 +118,7 @@ BOX:( 107 , 141 ),( 574 , 415 )
 
 ```bash
 $ export LD_LIBRARY_PATH=./build/install/lib
-$ ./build/install/example/tm_retinaface -m models/retinaface.tmfile -i images/mtcnn_face4.jpg -r 1 -t 1
+$ ./build/install/bin/tm_retinaface -m models/retinaface.tmfile -i images/mtcnn_face4.jpg -r 1 -t 1
 ```
 
 结果如下：
@@ -145,7 +145,7 @@ BOX 0.98:( 289.365 , 103.773 ),( 38.0025 , 47.6989 )
 
 ```bash
 $ export LD_LIBRARY_PATH=./build/install/lib
-$ ./build/install/example/tm_yolact -m models/yolact.tmfile -i images/ssd_car.jpg -r 1 -t 1
+$ ./build/install/bin/tm_yolact -m models/yolact.tmfile -i images/ssd_car.jpg -r 1 -t 1
 ```
 
 结果如下：
@@ -169,7 +169,7 @@ Repeat 1 times, thread 1, avg time 15833.47 ms, max_time 15833.47 ms, min_time 1
 
 ```bash
 $ export LD_LIBRARY_PATH=./build/install/lib
-$ ./build/install/example/tm_yolact -m models/yolov3_tiny.tmfile -i images/ssd_dog.jpg -r 1 -t 1
+$ ./build/install/bin/tm_yolact -m models/yolov3_tiny.tmfile -i images/ssd_dog.jpg -r 1 -t 1
 ```
 
 结果如下：
@@ -197,7 +197,7 @@ left = 205,right = 576,top = 153,bot = 447
 
 ```bash
 $ export LD_LIBRARY_PATH=./build/install/lib
-$ ./build/install/example/tm_openpose -m models/openpose_coco.tmfile -i image/pose.jpg -r 1 -t 1
+$ ./build/install/bin/tm_openpose -m models/openpose_coco.tmfile -i image/pose.jpg -r 1 -t 1
 ```
 
 结果如下：

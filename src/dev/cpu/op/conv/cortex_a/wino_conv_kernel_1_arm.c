@@ -39,8 +39,6 @@
 #define WINO_MAX(a, b) ((a) > (b) ? (a) : (b))
 #define WINO_MIN(a, b) ((a) < (b) ? (a) : (b))
 
-// #ifdef __aarch64__
-
 #define PER_OUT_CHAN 16
 #define KER_COUT_UNIT 16
 #define KER_COUT_UNIT4 4
@@ -50,29 +48,6 @@ void wino_sgemm_4x4_A72(float* output, const float* input, const float* kernel, 
 void wino_sgemm_1x16(float* output, const float* input, const float* kernel, long cin);
 void wino_sgemm_1x4(float* output, const float* input, const float* kernel, long cin);
 void tran_out_4(float*, float*, int, float*, float*, int);
-
-// #else
-
-// #define PER_OUT_CHAN 12
-// void wino_sgemm_4x12_A17(float* output, const float* input, const float* kernel, long cin);
-// void wino_sgemm_4x4_A17(float* output, const float* input, const float* kernel, long cin);
-// void wino_sgemm_1x12_A17(float* output, const float* input, const float* kernel, long cin);
-
-// // need to be optimized by neon
-// static inline void wino_sgemm_1x4_cpu(float* output, const float* input, const float* kernel, long cin)
-// {
-//     for (int i = 0; i < 4; i++)
-//     {
-//         float sum = 0;
-//         for (int k = 0; k < cin; k++)
-//         {
-//             sum += input[k] * kernel[k * 4 + i];
-//         }
-//         output[i] = sum;
-//     }
-// }
-
-// #endif
 
 #define INTERLEAVE_KERNEL_UNIT(cout_idx_p,cout_unit,cin,ker_src,ker_dst,ELEM_SIZE,i,j,s){          \
     for(i = 0; i < cin; i++){                                                                      \
@@ -598,14 +573,9 @@ static inline void tran_input_4block(const float* input, float* trans_inp, int i
             float* temp_inp_ptr = ( float* )(input + idxh[0] * 4 * inw + idxw[0] * 4);
             for (int c = 0; c < inc; c++)
             {
-#ifdef __aarch64__
                 float ker00[4] = {1, 2, 4, 5};
                 tran_inp_4(temp_inp_ptr, inp_ptr_4tile + 4 * c, ker00, inw, inc * 16, in_hw);
                 temp_inp_ptr += in_hw;
-#else
-                trans_inp_4_cpu(temp_inp_ptr, inp_ptr_4tile + c * 4, inw, inc * 4);
-                temp_inp_ptr += in_hw;
-#endif
             }
         }
         else
@@ -643,8 +613,8 @@ static inline void tran_input_4block(const float* input, float* trans_inp, int i
 }
 
 // tran_inp [block_hw/4][36][inc][4] -> [36][block_hw/4][inc][4]
-static inline void tran_input_4block_1(const float* input, float* trans_inp, int inc, int block_h,
-                                       int block_w, int inh, int inw)
+static inline void tran_input_4block_1(const float* input, float* trans_inp, int inc, int block_h, int block_w, int inh,
+                                       int inw,int num_thread)
 {
     int in_hw = inh * inw;
     int block_hw = block_h * block_w;
@@ -654,6 +624,7 @@ static inline void tran_input_4block_1(const float* input, float* trans_inp, int
 
     int s_size = block_hw * inc * sizeof(float);
 
+#pragma omp parallel for num_threads(num_thread) shared(block_hw,nn_block,in_hw) private(idxh,idxw)
     for(int ib = 0; ib < nn_block; ib++)
     {
         int off_set0 = ib * BLOCK_HW_UNIT * inc;
@@ -1114,22 +1085,19 @@ static void wino_sgemm_4x16_1(const float* ker, const float* inp, float* output,
 void wino_sgemm_4x4_1(const float* ker, const float* inp, float* output, int cin, int cout_start,
                     int cout_end, int block_h, int block_w, int out_c, int activation, int s, int num_thread, int cpu_affinity)
 {
-    int p, i;
-
-    float* out_ptr;
-    float* out_ptr1;
-
     int block_start = 0;
     int block_hw = block_h * block_w;
     int block_end = block_hw;
 
-    for (p = (cout_start & -KER_COUT_UNIT4); p < (cout_end & -KER_COUT_UNIT4); p += KER_COUT_UNIT4)
+#pragma omp parallel for num_threads(num_thread)
+    for (int p = (cout_start & -KER_COUT_UNIT4); p < (cout_end & -KER_COUT_UNIT4); p += KER_COUT_UNIT4)
     {
-        out_ptr = output + p * ELEM_SIZE * cin;
+        float* out_ptr = output + p * ELEM_SIZE * block_hw;
 
+        int i = 0;
         for(i = (block_start & -4); i < (block_end & -4); i += 4)
         {
-            out_ptr1 = out_ptr + i * ELEM_SIZE * cin;
+            float* out_ptr1 = out_ptr + i * ELEM_SIZE * KER_COUT_UNIT4;
             int offset = s * block_hw * cin + i * cin;
             int offset_ker = s * cin * out_c + p * cin;
 //#ifdef __aarch64__
@@ -1137,7 +1105,7 @@ void wino_sgemm_4x4_1(const float* ker, const float* inp, float* output, int cin
         }
         for(; i < block_end; i++)
         {
-            out_ptr1 = out_ptr + i * ELEM_SIZE * KER_COUT_UNIT4;
+            float* out_ptr1 = out_ptr + i * ELEM_SIZE * KER_COUT_UNIT4;
 
             int offset_ker = s * cin * out_c + p * cin;
             int offset = s * block_hw * cin + i * cin;
@@ -1145,17 +1113,21 @@ void wino_sgemm_4x4_1(const float* ker, const float* inp, float* output, int cin
             wino_sgemm_1x4(out_ptr1 + s * KER_COUT_UNIT4, inp + offset, ker + offset_ker, cin);
         }
     }
-    for(p = (cout_end & -KER_COUT_UNIT4); p < cout_end; p ++){
-        out_ptr = output + p * ELEM_SIZE * block_hw;
+    for (int p = (cout_end & -KER_COUT_UNIT4); p < cout_end; p++)
+    {
+        float* out_ptr = output + p * ELEM_SIZE * block_hw;
         float* ker_ = (float*)(ker + s * cin * out_c + p * cin);
-        for(i = (block_start & -4); i < (block_end & -4); i += 4){
-            out_ptr1 = out_ptr + i * ELEM_SIZE + s*BLOCK_HW_UNIT;
+        int i = 0;
+        for (i = (block_start & -4); i < (block_end & -4); i += 4)
+        {
+            float* out_ptr1 = out_ptr + i * ELEM_SIZE + s * BLOCK_HW_UNIT;
             float* inp_ = (float*)(inp + s * block_hw * cin + i*cin);
             float sum0 = 0;
             float sum1 = 0;
             float sum2 = 0;
             float sum3 = 0;
-            for(int k = 0; k < cin; k++){
+            for (int k = 0; k < cin; k++)
+            {
                 sum0 += inp_[k * 4    ] * ker_[k];
                 sum1 += inp_[k * 4 + 1] * ker_[k];
                 sum2 += inp_[k * 4 + 2] * ker_[k];
@@ -1166,8 +1138,9 @@ void wino_sgemm_4x4_1(const float* ker, const float* inp, float* output, int cin
             out_ptr1[2] = sum2;
             out_ptr1[3] = sum3;
         }
-        for(; i < block_end; i++){
-            out_ptr1 = out_ptr + i * ELEM_SIZE + s;
+        for(; i < block_end; i++)
+		{
+            float* out_ptr1 = out_ptr + i * ELEM_SIZE + s;
             float* inp_ = (float*)(inp + s * block_hw * cin + i*cin);
             float sum0 = 0;
             for(int k = 0; k < cin; k++){
@@ -1283,11 +1256,12 @@ static inline void trans_output_p(float* trans_out_ptr,
 // transform output
 static inline void trans_output_1(float* trans_out, float* output, float* bias, int bias_term, int block_h, int block_w,
                                 int cout_start, int cout_end, int out_hw, int out_w, int resi_h, int resi_w,
-                                int activation)
+                                  int activation,int num_thread)
 {
     int block_hw = block_h * block_w;
     int p;
     //cout 16
+#pragma omp parallel for num_threads(num_thread) shared(block_hw)
     for(p = cout_start; p < (cout_end& -KER_COUT_UNIT); p+=KER_COUT_UNIT){
         trans_output_p(trans_out + p * block_hw * ELEM_SIZE,
                        output, bias, bias_term,
@@ -1296,6 +1270,7 @@ static inline void trans_output_1(float* trans_out, float* output, float* bias, 
                        activation, p, KER_COUT_UNIT);
     }
     //cout 4
+#pragma omp parallel for num_threads(num_thread) shared(block_hw)
     for(p = (cout_end & -KER_COUT_UNIT); p < (cout_end & -KER_COUT_UNIT4); p += KER_COUT_UNIT4){
         trans_output_p(trans_out + p * block_hw * ELEM_SIZE,
                        output, bias, bias_term,
@@ -1304,6 +1279,7 @@ static inline void trans_output_1(float* trans_out, float* output, float* bias, 
                        activation, p, KER_COUT_UNIT4);
     }
     // cout 1
+#pragma omp parallel for num_threads(num_thread) shared(block_hw)
     for(p=(cout_end & -KER_COUT_UNIT4); p < cout_end; p ++){
         trans_output_p(trans_out + p * block_hw * ELEM_SIZE,
                        output, bias, bias_term,
@@ -1388,9 +1364,13 @@ int wino_conv_hcl_run_1(struct ir_tensor* input_tensor, struct ir_tensor* filter
     float* input_buf = ( float* )input_tensor->data;
     float* output_buf = ( float* )output_tensor->data;
     float* biases_buf = NULL;
+    int bias_term = 0;
 
     if (bias_tensor != NULL)
+    {
         biases_buf = ( float* )bias_tensor->data;
+        bias_term = 1;
+    }
 
     float* col_buf = ( float* )priv_info->im2col_buffer;
     float* interleave_buf = ( float* )priv_info->interleave_buffer;
@@ -1417,7 +1397,7 @@ int wino_conv_hcl_run_1(struct ir_tensor* input_tensor, struct ir_tensor* filter
         pad_input1(input, input_padded, in_c, in_h, in_w, padded_in_h, padded_in_w, pad_h0, pad_w0);
 
         /* trans input */
-        tran_input_4block_1(input_padded, trans_inp, in_c, block_h, block_w, padded_in_h, padded_in_w);
+        tran_input_4block_1(input_padded, trans_inp, in_c, block_h, block_w, padded_in_h, padded_in_w, num_thread);
 
         if (resi_block != block_hw)
         {
@@ -1438,8 +1418,8 @@ int wino_conv_hcl_run_1(struct ir_tensor* input_tensor, struct ir_tensor* filter
             }
         }
         sys_free(trans_inp);
-        trans_output_1(trans_out, output, biases_buf, 0, block_h, block_w, 0, out_c, out_hw, out_w, resi_h,
-                       resi_w, act_type);
+        trans_output_1(trans_out, output, biases_buf, bias_term, block_h, block_w, 0, out_c, out_hw, out_w, resi_h, resi_w,
+                       act_type,num_thread);
 
         sys_free(trans_out);
     }

@@ -20,7 +20,10 @@
 /*
  * Copyright (c) 2020, OPEN AI LAB
  * Author: bhu@openailab.com
+ * update：qtang@openailab.com
  */
+
+#include <math.h>
 #include "sys_port.h"
 #include "module.h"
 #include "tengine_errno.h"
@@ -28,45 +31,427 @@
 #include "tengine_ir.h"
 #include "../../cpu_node_ops.h"
 #include "tengine_op.h"
+#include "compiler_fp16.h"
 #include "convolution_param.h"
-#include "conv_ref_kernel.h"
 
-static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
+static  int ref_conv_fp32(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, struct ir_tensor* kernel,
+                      struct ir_tensor* bias, struct conv_param* conv_param)
 {
-    struct ir_node* ir_node = exec_node->ir_node;
-    struct ir_graph* ir_graph = ir_node->graph;
-    struct ir_tensor* input_tensor;
-    struct ir_tensor* filter_tensor;
-    struct ir_tensor* output_tensor;
+    int batch = input_tensor->dims[0];
+    int group = conv_param->group;
+    int input_c = conv_param->input_channel / group;
+    int input_h = input_tensor->dims[2];
+    int input_w = input_tensor->dims[3];
+    int output_c = output_tensor->dims[1] / group;
+    int output_h = output_tensor->dims[2];
+    int output_w = output_tensor->dims[3];
 
-    struct conv_priv_info* conv_priv_info = ( struct conv_priv_info* )exec_node->ops_priv;
+    int kernel_size = input_c * conv_param->kernel_h * conv_param->kernel_w;
+    int n, g, c, h, w, kc, kh, kw;
+    int input_offset = 0;
+    int kernel_offset = 0;
+    int output_offset = 0;
 
-    if (conv_kernel_set_shared_mem)
+    float* input_data = input_tensor->data;
+    float* output_data = output_tensor->data;
+    float* kernel_data = kernel->data;
+    float* bias_data = NULL;
+    if (bias != NULL)
+        bias_data = bias->data;
+
+    if (conv_param->kernel_h == 0)
+        conv_param->kernel_h = 1;
+    if (conv_param->kernel_w == 0)
+        conv_param->kernel_w = 1;
+    if (input_w == 0)
+        input_w = 1;
+
+    for(n = 0; n < batch; ++n)
     {
-        if (conv_kernel_set_shared_mem(conv_priv_info, exec_graph->shared_mem, exec_node->shared_mem_size) < 0)
+        for(g = 0; g < group; ++g)
         {
-            TLOG_ERR("hcl conv: set shared memory failed\n");
-            set_tengine_errno(EFAULT);
-            return -1;
+            for(c = 0; c < output_c; ++c)
+            {
+                for(h = 0; h < output_h; ++h)
+                {
+                    for(w = 0; w < output_w; ++w)
+                    {
+                        const int h_start = (h * conv_param->stride_h) - conv_param->pad_h0;
+                        const int w_start = (w * conv_param->stride_w) - conv_param->pad_w0;
+                        float total = 0.f;
+                        if(input_tensor->layout == 0)
+                        {
+                            output_offset = n * group * output_c * output_h * output_w +
+                                            g * output_c * output_h * output_w + c * output_h * output_w +
+                                            h * output_w + w;
+                        }
+                        else
+                        {
+                            output_offset = n * group * output_c * output_h * output_w +
+                                            h * output_w * group * output_c + w * group * output_c + output_c * g + c;
+                        }
+                        for(kc = 0; kc < input_c; ++kc)
+                        {
+                            for(kh = 0; kh < conv_param->kernel_h; ++kh)
+                            {
+                                for(kw = 0; kw < conv_param->kernel_w; ++kw)
+                                {
+                                    const int cur_y = h_start + conv_param->dilation_h * kh;
+                                    const int cur_x = w_start + conv_param->dilation_w * kw;
+                                    // If the location is outside the bounds of the input image,
+                                    // use zero as a default value.
+                                    if((cur_x >= 0) && (cur_x < input_w) && (cur_y >= 0) && (cur_y < input_h))
+                                    {
+                                        if(input_tensor->layout == 0)
+                                        {
+                                            input_offset = n * group * input_c * input_h * input_w +
+                                                           g * input_c * input_h * input_w + kc * input_h * input_w +
+                                                           cur_y * input_w + cur_x;
+                                            kernel_offset = g * output_c * kernel_size + c * kernel_size +
+                                                            kc * conv_param->kernel_h * conv_param->kernel_w +
+                                                            kh * conv_param->kernel_w + kw;
+                                        }
+                                        else
+                                        {
+                                            input_offset = n * group * input_c * input_h * input_w +
+                                                           cur_y * input_w * input_c * group + cur_x * input_c * group +
+                                                           g * input_c + kc;
+                                            kernel_offset = c * group * kernel_size +
+                                                            kh * conv_param->kernel_w * input_c * group +
+                                                            kw * input_c * group + g * input_c + kc;
+                                        }
+
+                                        total += input_data[input_offset] * kernel_data[kernel_offset];
+                                    }
+                                }
+                            }
+                        }
+
+                        if (bias != NULL)
+                            total += bias_data[output_c * g + c];
+
+                        if(conv_param->activation >= 0)
+                        {
+                            if(total < 0 && conv_param->activation != 1)
+                            {
+                                total = 0;
+                            }
+                            if(total > 1 && conv_param->activation == 1)
+                            {
+                                total = 1;
+                            }
+                            if(total > 6 && conv_param->activation == 6)
+                            {
+                                total = 6;
+                            }
+                            if(total < -1 && conv_param->activation == 1)
+                            {
+                                total = -1;
+                            }
+                        }
+                        output_data[output_offset] = total;
+                    }
+                }
+            }
         }
-    }
-
-    input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    filter_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
-    output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-
-    struct conv_param* conv_param = ( struct conv_param* )ir_node->op.param_mem;
-
-    /* prerun now */
-    if (conv_kernel_prerun(input_tensor, filter_tensor, output_tensor, conv_priv_info, conv_param) < 0)
-    {
-        TLOG_ERR("hcl conv prerun failed\n");
-        set_tengine_errno(EFAULT);
-        return -1;
     }
 
     return 0;
 }
+static  int ref_conv_fp16(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, struct ir_tensor* kernel,
+                      struct ir_tensor* bias, struct conv_param* conv_param)
+{
+    int batch = input_tensor->dims[0];
+    int group = conv_param->group;
+    int input_c = conv_param->input_channel / group;
+    int input_h = input_tensor->dims[2];
+    int input_w = input_tensor->dims[3];
+    int output_c = output_tensor->dims[1] / group;
+    int output_h = output_tensor->dims[2];
+    int output_w = output_tensor->dims[3];
+
+    int kernel_size = input_c * conv_param->kernel_h * conv_param->kernel_w;
+    int n, g, c, h, w, kc, kh, kw;
+    int input_offset = 0;
+    int kernel_offset = 0;
+    int output_offset = 0;
+
+    __fp16* input_data = input_tensor->data;
+    __fp16* output_data = output_tensor->data;
+    __fp16* kernel_data = kernel->data;
+    __fp16* bias_data = NULL;
+    if (bias != NULL)
+        bias_data = bias->data;
+
+    if (conv_param->kernel_h == 0)
+        conv_param->kernel_h = 1;
+    if (conv_param->kernel_w == 0)
+        conv_param->kernel_w = 1;
+    if (input_w == 0)
+        input_w = 1;
+
+    for(n = 0; n < batch; ++n)
+    {
+        for(g = 0; g < group; ++g)
+        {
+            for(c = 0; c < output_c; ++c)
+            {
+                for(h = 0; h < output_h; ++h)
+                {
+                    for(w = 0; w < output_w; ++w)
+                    {
+                        const int h_start = (h * conv_param->stride_h) - conv_param->pad_h0;
+                        const int w_start = (w * conv_param->stride_w) - conv_param->pad_w0;
+                        float total = 0.f;
+                        if(input_tensor->layout == 0)
+                        {
+                            output_offset = n * group * output_c * output_h * output_w +
+                                            g * output_c * output_h * output_w + c * output_h * output_w +
+                                            h * output_w + w;
+                        }
+                        else
+                        {
+                            output_offset = n * group * output_c * output_h * output_w +
+                                            h * output_w * group * output_c + w * group * output_c + output_c * g + c;
+                        }
+                        for(kc = 0; kc < input_c; ++kc)
+                        {
+                            for(kh = 0; kh < conv_param->kernel_h; ++kh)
+                            {
+                                for(kw = 0; kw < conv_param->kernel_w; ++kw)
+                                {
+                                    const int cur_y = h_start + conv_param->dilation_h * kh;
+                                    const int cur_x = w_start + conv_param->dilation_w * kw;
+                                    // If the location is outside the bounds of the input image,
+                                    // use zero as a default value.
+                                    if((cur_x >= 0) && (cur_x < input_w) && (cur_y >= 0) && (cur_y < input_h))
+                                    {
+                                        if(input_tensor->layout == 0)
+                                        {
+                                            input_offset = n * group * input_c * input_h * input_w +
+                                                           g * input_c * input_h * input_w + kc * input_h * input_w +
+                                                           cur_y * input_w + cur_x;
+                                            kernel_offset = g * output_c * kernel_size + c * kernel_size +
+                                                            kc * conv_param->kernel_h * conv_param->kernel_w +
+                                                            kh * conv_param->kernel_w + kw;
+                                        }
+                                        else
+                                        {
+                                            input_offset = n * group * input_c * input_h * input_w +
+                                                           cur_y * input_w * input_c * group + cur_x * input_c * group +
+                                                           g * input_c + kc;
+                                            kernel_offset = c * group * kernel_size +
+                                                            kh * conv_param->kernel_w * input_c * group +
+                                                            kw * input_c * group + g * input_c + kc;
+                                        }
+
+                                        total += fp16_to_fp32(input_data[input_offset]) * fp16_to_fp32(kernel_data[kernel_offset]);
+                                    }
+                                }
+                            }
+                        }
+
+                        if (bias != NULL)
+                            total += fp16_to_fp32(bias_data[output_c * g + c]);
+
+                        if(conv_param->activation >= 0)
+                        {
+                            if(total < 0 && conv_param->activation != 1)
+                            {
+                                total = 0;
+                            }
+                            if(total > 1 && conv_param->activation == 1)
+                            {
+                                total = 1;
+                            }
+                            if(total > 6 && conv_param->activation == 6)
+                            {
+                                total = 6;
+                            }
+                            if(total < -1 && conv_param->activation == 1)
+                            {
+                                total = -1;
+                            }
+                        }
+                        output_data[output_offset] = fp32_to_fp16(total);
+                    }
+                }
+            }
+        }
+    }
+
+    return 0;
+}
+
+static  int ref_conv_uint8(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, struct ir_tensor* kernel,
+                      struct ir_tensor* bias, struct conv_param* conv_param)
+{
+    int batch = input_tensor->dims[0];
+    int group = conv_param->group;
+    int input_c = conv_param->input_channel / group;
+    int input_h = input_tensor->dims[2];
+    int input_w = input_tensor->dims[3];
+    int output_c = output_tensor->dims[1] / group;
+    int output_h = output_tensor->dims[2];
+    int output_w = output_tensor->dims[3];
+
+    int kernel_size = input_c * conv_param->kernel_h * conv_param->kernel_w;
+    int n, g, c, h, w, kc, kh, kw;
+    int input_offset = 0;
+    int kernel_offset = 0;
+    int output_offset = 0;
+
+    uint8_t* input_data = input_tensor->data;
+    uint8_t* output_data = output_tensor->data;
+    uint8_t* kernel_data = kernel->data;
+    int32_t* bias_data = NULL;
+    if (bias != NULL)
+        bias_data = bias->data;
+
+    float input_scale = input_tensor->scale;
+    float kernel_scale = kernel->scale;
+    float output_scale = output_tensor->scale;
+    int32_t kernel_zero = kernel->zero_point;
+    int32_t input_zero = input_tensor->zero_point;
+    int32_t output_zero = output_tensor->zero_point;
+
+    /* dequant input  */
+    int input_size = batch * group * input_c * input_h * input_w;
+    float* input_fp32 = ( float* )sys_malloc(sizeof(float) * input_size);
+    for(int i = 0; i < input_size; i++)
+        input_fp32[i] = ((float )input_data[i] - input_zero) * input_scale;
+
+    /* dequant kernel  */
+    int kernel_total = group * output_c * kernel_size;
+    float* kernel_fp32 = ( float* )sys_malloc(sizeof(float) * kernel_total);
+    for(int i = 0; i < kernel_total; i++)
+        kernel_fp32[i] = ((float )kernel_data[i] - kernel_zero) * kernel_scale;
+
+    /* dequant biases  */
+    int bias_size = group * output_c;
+
+    float* bias_fp32 = NULL;
+    if(bias != NULL)
+    {
+        bias_fp32 = ( float* )sys_malloc(sizeof(float) * bias_size);
+        for(int i = 0; i < bias_size; i++)
+            bias_fp32[i] = (float )bias_data[i] * input_scale * kernel_scale;
+    }        
+
+    if (conv_param->kernel_h == 0)
+        conv_param->kernel_h = 1;
+    if (conv_param->kernel_w == 0)
+        conv_param->kernel_w = 1;
+    if (input_w == 0)
+        input_w = 1;
+
+    for(n = 0; n < batch; ++n)
+    {
+        for(g = 0; g < group; ++g)
+        {
+            for(c = 0; c < output_c; ++c)
+            {
+                for(h = 0; h < output_h; ++h)
+                {
+                    for(w = 0; w < output_w; ++w)
+                    {
+                        const int h_start = (h * conv_param->stride_h) - conv_param->pad_h0;
+                        const int w_start = (w * conv_param->stride_w) - conv_param->pad_w0;
+                        float total = 0.f;
+                        if(input_tensor->layout == 0)
+                        {
+                            output_offset = n * group * output_c * output_h * output_w +
+                                            g * output_c * output_h * output_w + c * output_h * output_w +
+                                            h * output_w + w;
+                        }
+                        else
+                        {
+                            output_offset = n * group * output_c * output_h * output_w +
+                                            h * output_w * group * output_c + w * group * output_c + output_c * g + c;
+                        }
+                        for(kc = 0; kc < input_c; ++kc)
+                        {
+                            for(kh = 0; kh < conv_param->kernel_h; ++kh)
+                            {
+                                for(kw = 0; kw < conv_param->kernel_w; ++kw)
+                                {
+                                    const int cur_y = h_start + conv_param->dilation_h * kh;
+                                    const int cur_x = w_start + conv_param->dilation_w * kw;
+                                    // If the location is outside the bounds of the input image,
+                                    // use zero as a default value.
+                                    if((cur_x >= 0) && (cur_x < input_w) && (cur_y >= 0) && (cur_y < input_h))
+                                    {
+                                        if(input_tensor->layout == 0)
+                                        {
+                                            input_offset = n * group * input_c * input_h * input_w +
+                                                           g * input_c * input_h * input_w + kc * input_h * input_w +
+                                                           cur_y * input_w + cur_x;
+                                            kernel_offset = g * output_c * kernel_size + c * kernel_size +
+                                                            kc * conv_param->kernel_h * conv_param->kernel_w +
+                                                            kh * conv_param->kernel_w + kw;
+                                        }
+                                        else
+                                        {
+                                            input_offset = n * group * input_c * input_h * input_w +
+                                                           cur_y * input_w * input_c * group + cur_x * input_c * group +
+                                                           g * input_c + kc;
+                                            kernel_offset = c * group * kernel_size +
+                                                            kh * conv_param->kernel_w * input_c * group +
+                                                            kw * input_c * group + g * input_c + kc;
+                                        }
+
+                                        total += input_fp32[input_offset] * kernel_fp32[kernel_offset];
+                                    }
+                                }
+                            }
+                        }
+
+                        if (bias != NULL)
+                            total += bias_fp32[output_c * g + c];
+
+                        if(conv_param->activation >= 0)
+                        {
+                            if(total < 0 && conv_param->activation != 1)
+                            {
+                                total = 0;
+                            }
+                            if(total > 1 && conv_param->activation == 1)
+                            {
+                                total = 1;
+                            }
+                            if(total > 6 && conv_param->activation == 6)
+                            {
+                                total = 6;
+                            }
+                            if(total < -1 && conv_param->activation == 1)
+                            {
+                                total = -1;
+                            }
+                        }
+
+                        int out = round(total / output_scale) + output_zero;
+                        if(out > 255)
+                            out = 255;
+                        if(out < 0)
+                            out = 0;
+                        output_data[output_offset] = out;
+                    }
+                }
+            }
+        }
+    }
+
+    sys_free(input_fp32);
+    sys_free(kernel_fp32);
+    if (bias != NULL)
+        sys_free(bias_fp32);
+
+    return 0;
+}
+
+
+//add conv op by wangxinwei for debug conv
+//======================================================================================================//
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
@@ -88,17 +473,21 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
     struct conv_param* conv_param = ( struct conv_param* )ir_node->op.param_mem;
-    struct conv_priv_info* conv_priv_info = ( struct conv_priv_info* )exec_node->ops_priv;
 
-    if (conv_kernel_run(input_tensor, weight_tensor, bias_tensor, output_tensor, conv_priv_info, conv_param,
-                        num_thread, cpu_affinity) < 0)
+    int ret = 0;
+    if (input_tensor->data_type == TENGINE_DT_FP32)
+        ret = ref_conv_fp32(input_tensor, output_tensor, weight_tensor, bias_tensor, conv_param);
+    else if (input_tensor->data_type == TENGINE_DT_FP16)
+        ret = ref_conv_fp16(input_tensor, output_tensor, weight_tensor, bias_tensor, conv_param);
+    else if (input_tensor->data_type == TENGINE_DT_UINT8)
+        ret = ref_conv_uint8(input_tensor, output_tensor, weight_tensor, bias_tensor, conv_param);
+    else
     {
-        TLOG_ERR("hcl conv run failed\n");
-        set_tengine_errno(EFAULT);
+        printf("Input data type %d not to be supported.\n", input_tensor->data_type);
         return -1;
     }
 
-    return 0;
+    return ret;
 }
 
 static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
@@ -116,6 +505,19 @@ static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struc
     int n = input_tensor->dims[0];
     int h, w;
     int ret = 0;
+
+    if (conv_param->kernel_w == 0)
+    {
+        conv_param->kernel_w = 1;
+        conv_param->pad_w0 = 0;
+        conv_param->pad_w1 = 0;
+    }
+    if (conv_param->kernel_h == 0)
+        conv_param->kernel_h = 1;
+    if (conv_param->stride_w == 0)
+        conv_param->stride_w = 1;
+    if (conv_param->stride_h == 0)
+        conv_param->stride_h = 1;
 
     if (ir_graph->graph_layout == TENGINE_LAYOUT_NCHW)
     {
@@ -162,7 +564,7 @@ static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struc
     {
         out_h =
             (h - conv_param->dilation_h * (conv_param->kernel_h - 1) - 1 + conv_param->pad_h0 + conv_param->pad_h1) /
-                conv_param->stride_h +
+            conv_param->stride_h +
             1;
     }
 
@@ -188,7 +590,7 @@ static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struc
     {
         out_w =
             (w - conv_param->dilation_w * (conv_param->kernel_w - 1) - 1 + conv_param->pad_w0 + conv_param->pad_w1) /
-                conv_param->stride_w +
+            conv_param->stride_w +
             1;
     }
 
@@ -201,6 +603,13 @@ static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struc
             dims[1] = out_c;
             dims[2] = out_h;
             dims[3] = out_w;
+
+            for (int i=0; i<4; i++)
+            {
+                if (dims[i] == 0)
+                    dims[i] = 1;
+            }
+
             ret = set_ir_tensor_shape(output_tensor, dims, 4);
         }
     }
@@ -211,6 +620,13 @@ static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struc
             dims[1] = out_h;
             dims[2] = out_w;
             dims[3] = out_c;
+
+            for (int i=0; i<4; i++)
+            {
+                if (dims[i] == 0)
+                    dims[i] = 1;
+            }
+
             ret = set_ir_tensor_shape(output_tensor, dims, 4);
         }
     }
@@ -220,51 +636,16 @@ static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struc
 
 static int postrun(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct conv_priv_info* conv_priv_info = ( struct conv_priv_info* )exec_node->ops_priv;
-
-    if (conv_kernel_postrun(conv_priv_info) < 0)
-    {
-        TLOG_ERR("hcl conv prerun failed\n");
-        set_tengine_errno(EFAULT);
-        return -1;
-    }
-
     return 0;
 }
 
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct ir_node* ir_node = exec_node->ir_node;
-    struct ir_graph* ir_graph = ir_node->graph;
-    struct ir_tensor* input_tensor;
-    struct ir_tensor* output_tensor;
-
-    input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-
-    struct conv_param* conv_param = ( struct conv_param* )ir_node->op.param_mem;
-    struct conv_priv_info* conv_priv_info = ( struct conv_priv_info* )sys_malloc(sizeof(struct conv_priv_info));
-    if (conv_priv_info == NULL)
-    {
-        set_tengine_errno(ENOMEM);
-        return -1;
-    }
-
-    memset(conv_priv_info, 0, sizeof(struct conv_priv_info));
-
-    /* get shared memory size */
-    exec_node->ops_priv = conv_priv_info;
-    exec_node->shared_mem_size = conv_kernel_get_shared_mem_size(input_tensor, output_tensor, conv_param);
-
     return 0;
 }
 
 static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct conv_priv_info* conv_priv_info = ( struct conv_priv_info* )exec_node->ops_priv;
-    sys_free(conv_priv_info);
-    exec_node->ops_priv = NULL;
-
     return 0;
 }
 
@@ -273,13 +654,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_CANDO;
 }
 
-static struct node_ops hcl_node_ops = {.prerun = prerun,
-                                       .run = run,
-                                       .reshape = reshape,
-                                       .postrun = postrun,
-                                       .init_node = init_node,
-                                       .release_node = release_node,
-                                       .score = score};
+static struct node_ops hcl_node_ops = {.prerun = NULL,
+    .run = run,
+    .reshape = reshape,
+    .postrun = NULL,
+    .init_node = init_node,
+    .release_node = release_node,
+    .score = score};
 
 static int reg_conv_hcl_ops(void* arg)
 {

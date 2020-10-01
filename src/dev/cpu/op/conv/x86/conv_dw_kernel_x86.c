@@ -1557,14 +1557,14 @@ static void convdw3x3s1(float* output, float* img_data, float* kernel_data, floa
                 _mm_storeu_ps(otmp + 28, _sum7);
 
 #else
-                float sum0[4] = {btmp[0]};
-                float sum1[4] = {btmp[0]};
-                float sum2[4] = {btmp[0]};
-                float sum3[4] = {btmp[0]};
-                float sum4[4] = {btmp[0]};
-                float sum5[4] = {btmp[0]};
-                float sum6[4] = {btmp[0]};
-                float sum7[4] = {btmp[0]};
+                float sum0[4] = {btmp[0], btmp[1], btmp[2], btmp[3]};
+                float sum1[4] = {btmp[0], btmp[1], btmp[2], btmp[3]};
+                float sum2[4] = {btmp[0], btmp[1], btmp[2], btmp[3]};
+                float sum3[4] = {btmp[0], btmp[1], btmp[2], btmp[3]};
+                float sum4[4] = {btmp[0], btmp[1], btmp[2], btmp[3]};
+                float sum5[4] = {btmp[0], btmp[1], btmp[2], btmp[3]};
+                float sum6[4] = {btmp[0], btmp[1], btmp[2], btmp[3]};
+                float sum7[4] = {btmp[0], btmp[1], btmp[2], btmp[3]};
                 for (int k = 0; k < 4; k++)
                 {
                     sum0[k] += itmp0[k] * ktmp[k];
@@ -1752,10 +1752,10 @@ static void convdw3x3s1(float* output, float* img_data, float* kernel_data, floa
                 _mm_storeu_ps(otmp + 12, _sum3);
 
 #else
-                float sum0[4] = {btmp[0]};
-                float sum1[4] = {btmp[0]};
-                float sum2[4] = {btmp[0]};
-                float sum3[4] = {btmp[0]};
+                float sum0[4] = {btmp[0], btmp[1], btmp[2], btmp[3]};
+                float sum1[4] = {btmp[0], btmp[1], btmp[2], btmp[3]};
+                float sum2[4] = {btmp[0], btmp[1], btmp[2], btmp[3]};
+                float sum3[4] = {btmp[0], btmp[1], btmp[2], btmp[3]};
                 for (int k = 0; k < 4; k++)
                 {
                     sum0[k] += itmp0[k] * ktmp[k];
@@ -1855,7 +1855,7 @@ static void convdw3x3s1(float* output, float* img_data, float* kernel_data, floa
 
                 _mm_storeu_ps(otmp, _sum0);
 #else
-                float sum0[4] = {btmp[0]};
+                float sum0[4] = {btmp[0], btmp[1], btmp[2], btmp[3]};
                 for (int k = 0; k < 4; k++)
                 {
                     sum0[k] += itmp0[k] * ktmp[k];
@@ -2150,10 +2150,10 @@ static void convdw3x3s2(float* output, float* img_data, float* kernel_data, floa
                 _mm_storeu_ps(otmp + 12, _sum3);
 
 #else
-                float sum0[4] = {btmp[0]};
-                float sum1[4] = {btmp[0]};
-                float sum2[4] = {btmp[0]};
-                float sum3[4] = {btmp[0]};
+                float sum0[4] = {btmp[0], btmp[1], btmp[2], btmp[3]};
+                float sum1[4] = {btmp[0], btmp[1], btmp[2], btmp[3]};
+                float sum2[4] = {btmp[0], btmp[1], btmp[2], btmp[3]};
+                float sum3[4] = {btmp[0], btmp[1], btmp[2], btmp[3]};
                 for (int k = 0; k < 4; k++)
                 {
                     sum0[k] += itmp0[k] * ktmp[k];
@@ -2253,7 +2253,7 @@ static void convdw3x3s2(float* output, float* img_data, float* kernel_data, floa
 
                 _mm_storeu_ps(otmp, _sum0);
 #else
-                float sum0[4] = {btmp[0]};
+                float sum0[4] = {btmp[0], btmp[1], btmp[2], btmp[3]};
                 for (int k = 0; k < 4; k++)
                 {
                     sum0[k] += itmp0[k] * ktmp[k];

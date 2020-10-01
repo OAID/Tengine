@@ -1,3 +1,5 @@
+link_directories(${TENGINE_COMMON_LIB_DIRS})
+
 # add examples with metal
 # macro for adding test
 macro (tengine_example name file)

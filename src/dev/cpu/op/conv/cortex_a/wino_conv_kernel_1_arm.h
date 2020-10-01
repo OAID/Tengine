@@ -26,7 +26,7 @@
 
 #include "tengine_ir.h"
 #include "convolution_param.h"
-#include "../conv_hcl_kernel.h"
+#include "conv_kernel_arm.h"
 
 int wino_conv_hcl_prerun_1(struct ir_tensor* input_tensor, struct ir_tensor* filter_tensor,
                          struct ir_tensor* output_tensor, struct conv_priv_info* info, struct conv_param* param)

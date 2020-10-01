@@ -78,8 +78,8 @@ static int init_op(struct ir_op* op)
 
     op->param_mem = psroipooling_param;
     op->param_size = sizeof(struct psroipooling_param);
-    op->same_shape = 1;
-    op->infer_shape = NULL;
+    op->same_shape = 0;
+    op->infer_shape = infer_shape;
 
     return 0;
 }

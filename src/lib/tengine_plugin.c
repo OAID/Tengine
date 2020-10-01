@@ -38,6 +38,7 @@ static int exec_so_func(so_handle_t handle, const char* func_name)
         TLOG_ERR("exec so func: %s failed\n", func_name);
         return -1;
     }
+    TLOG_INFO("function:%s executed\n", func_name);
 
     return 0;
 }

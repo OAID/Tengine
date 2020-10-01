@@ -584,7 +584,7 @@ static inline void trans_inp_4_cpu(float* inp, float* inp_ptr, int inw, int s_si
 
 // trans_input  [block_hw/4][ELEM_SIZE][inc][4]
 static inline void tran_input_4block(const float* input, float* trans_inp, int inc, int block_h, int block_w, int inh,
-                                     int inw)
+                                     int inw, int num_thread)
 {
     int in_hw = inh * inw;
     int block_hw = block_h * block_w;
@@ -592,6 +592,7 @@ static inline void tran_input_4block(const float* input, float* trans_inp, int i
     int idxh[4];
     int idxw[4];
 
+#pragma omp parallel for num_threads(num_thread) shared(block_hw,nn_block,in_hw) private(idxh,idxw)
     for (int ib = 0; ib < nn_block; ib++)
     {
         float* inp_ptr_4tile = trans_inp + ib * 4 * ELEM_SIZE * inc;
@@ -1165,22 +1166,20 @@ void wino_sgemm_4x4(const float* ker, const float* inp, float* output, const flo
                     int cout_end, int block_h, int block_w, int out_h, int out_w, int resi_h, int resi_w,
                     int activation, int num_thread, int cpu_affinity)
 {
-    int block_hw = block_h * block_w;
-    int out_hw = out_w * out_h;
-    int p, i;
     int flag_outw = 1;
     if (out_w < 16)
         flag_outw = 0;
-
-    const float* ker_ptr;
-    const float* inp_ptr;
-    for (p = (cout_start & -4); p < (cout_end & -4); p += 4)
+    
+#pragma omp parallel for num_threads(num_thread)
+    for (int p = (cout_start & -4); p < (cout_end & -4); p += 4)
     {
-        ker_ptr = ker + p * ELEM_SIZE * cin;
-
-        for (i = 0; i < (block_hw & -4); i += 4)
+        int block_hw = block_h * block_w;
+        int out_hw = out_w * out_h;
+        const float* ker_ptr = ker + p * ELEM_SIZE * cin;
+        int i = 0;
+        for (; i < (block_hw & -4); i += 4)
         {
-            inp_ptr = inp + i * ELEM_SIZE * cin;
+            const float* inp_ptr = inp + i * ELEM_SIZE * cin;
             float out_buffer[4 * 4 * ELEM_SIZE];
 #ifdef __aarch64__
             int idx_h[4];
@@ -1322,7 +1321,7 @@ void wino_sgemm_4x4(const float* ker, const float* inp, float* output, const flo
 
         for (; i < block_hw; i++)
         {
-            inp_ptr = inp + i * ELEM_SIZE * cin;
+            const float* inp_ptr = inp + i * ELEM_SIZE * cin;
 
             float out_buffer[4 * ELEM_SIZE];
             for (int s = 0; s < ELEM_SIZE; s++)
@@ -1351,12 +1350,16 @@ void wino_sgemm_4x4(const float* ker, const float* inp, float* output, const flo
             // end transform
         }
     }
-    for (p = (cout_end & -4); p < cout_end; p++)
+    int block_hw = block_h * block_w;
+    int out_hw = out_w * out_h;
+
+    for (int p = (cout_end & -4); p < cout_end; p++)
     {
-        ker_ptr = ker + p * ELEM_SIZE * cin;
-        for (i = 0; i < (block_hw & -4); i += 4)
+        const float* ker_ptr = ker + p * ELEM_SIZE * cin;
+        int i = 0;
+        for (; i < (block_hw & -4); i += 4)
         {
-            inp_ptr = inp + i * ELEM_SIZE * cin;
+            const float* inp_ptr = inp + i * ELEM_SIZE * cin;
             float buffer[4 * ELEM_SIZE];
             int idx_h[4];
             int idx_w[4];
@@ -1434,7 +1437,7 @@ void wino_sgemm_4x4(const float* ker, const float* inp, float* output, const flo
 
         for (; i < block_hw; i++)
         {
-            inp_ptr = inp + i * ELEM_SIZE * cin;
+            const float* inp_ptr = inp + i * ELEM_SIZE * cin;
 
             float buffer[ELEM_SIZE];
             for (int s = 0; s < ELEM_SIZE; s++)
@@ -1564,7 +1567,7 @@ int wino_conv_hcl_run(struct ir_tensor* input_tensor, struct ir_tensor* filter_t
         pad_input1(input, input_padd_buf, in_c, in_h, in_w, padded_in_h, padded_in_w, pad_h0, pad_w0);
 
         /* trans input */
-        tran_input_4block(input_padd_buf, trans_input_buf, in_c, block_h, block_w, padded_in_h, padded_in_w);
+        tran_input_4block(input_padd_buf, trans_input_buf, in_c, block_h, block_w, padded_in_h, padded_in_w, num_thread);
 
         if (resi_block != block_hw)
         {

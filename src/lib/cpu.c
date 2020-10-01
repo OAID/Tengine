@@ -64,12 +64,12 @@
 #include <omp.h>
 #endif
 
-static int core_count = 0;
+static size_t core_count = 0;
 
-static int affinity_mask_all_cluster = 0;
-static int affinity_mask_big_cluster = 0;
-static int affinity_mask_medium_cluster = 0;
-static int affinity_mask_little_cluster = 0;
+static size_t affinity_mask_all_cluster = 0;
+static size_t affinity_mask_big_cluster = 0;
+static size_t affinity_mask_medium_cluster = 0;
+static size_t affinity_mask_little_cluster = 0;
 
 int init_cpu_count()
 {
@@ -247,7 +247,7 @@ int init_cluster_mask()
     if (0 != affinity_mask_all_cluster)
         return 0;
 
-    affinity_mask_all_cluster = (1 << core_count) - 1;
+    affinity_mask_all_cluster = ((size_t)(1) << core_count) - 1;
 
     //#ifdef __ANDROID__
     int max_freq_min_val = INT_MAX;
@@ -339,6 +339,7 @@ int set_cpu_affine(size_t mask)
         return -1;
 #endif
 
+    return 0;
 #elif __APPLE_IOS__
     // thread affinity not supported on ios
     ( void )mask;
@@ -348,8 +349,6 @@ int set_cpu_affine(size_t mask)
     if (0 != status)
         return -1;
 #endif
-
-    return 0;
 }
 
 size_t get_cluster_mask(int cluster)
