@@ -188,12 +188,10 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    int node_idx = 0;
-    int tensor_idx = 0;
-    tensor_t input_tensor = get_graph_input_tensor(graph, node_idx, tensor_idx);
+    tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == nullptr)
     {
-        std::printf("Cannot find input tensor,node_idx: %d,tensor_idx: %d\n", node_idx, tensor_idx);
+        std::printf("Cannot find input tensor\n");
         return -1;
     }
 
@@ -211,13 +209,17 @@ int main(int argc, char* argv[])
     int input_zero_point = 0;
     get_tensor_quant_param(input_tensor, &input_scale, &input_zero_point, 1);    
     get_input_uint_data_ssd(image_file, input_data, img_h, img_w, input_scale, input_zero_point);
-    set_tensor_buffer(input_tensor, input_data, img_size);
+    if (set_tensor_buffer(input_tensor, input_data, img_size) < 0)
+    {
+        fprintf(stderr, "Set input tensor buffer failed\n");
+        return -1;
+    }
 
     /* run graph */
     double min_time = __DBL_MAX__;
     double max_time = -__DBL_MAX__;
     double total_time = 0.;
-    for (int i = 0; i < 1; i++)
+    for (int i = 0; i < repeat_count; i++)
     {
         double start = get_current_time();
         if (run_graph(graph, 1) < 0)
@@ -250,7 +252,7 @@ int main(int argc, char* argv[])
     int output_zero_point = 0;
     get_tensor_quant_param(output_tensor, &output_scale, &output_zero_point, 1);    
     for (int i = 0; i < output_size; i++)
-        output_data[i] = (( float )output_u8[i] - output_zero_point) * output_scale;
+        output_data[i] = (( float )output_u8[i] - (float )output_zero_point) * output_scale;
 
     /* post_process_ssd */
     post_process_ssd(image_file, show_threshold, output_data, out_dim[1]);

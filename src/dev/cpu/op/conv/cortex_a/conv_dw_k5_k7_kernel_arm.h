@@ -72,7 +72,7 @@ void depthwise_conv_k5s1(float* input, float* weight, float* bias, float* output
 
     if (!no_pad)    // have pad
     {
-#pragma omp parallel for num_threads(num_thread)
+// #pragma omp parallel for num_threads(num_thread)
         for (int c = 0; c < channel; c++)
         {
             /* pad */
@@ -105,7 +105,7 @@ void depthwise_conv_k5s1(float* input, float* weight, float* bias, float* output
     }
     else
     {
-#pragma omp parallel for num_threads(num_thread)
+// #pragma omp parallel for num_threads(num_thread)
         for (int c = 0; c < channel; c++)
         {
             float* input_cur = input + c * input_h * input_w;

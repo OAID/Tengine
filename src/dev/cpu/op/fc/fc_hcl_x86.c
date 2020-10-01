@@ -181,8 +181,8 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
     int batch_number = input_tensor->dims[0];
     int inc = input_tensor->dims[1];
-    int inh = input_tensor->dims[2];
-    int inw = input_tensor->dims[3];
+    int inh = input_tensor->dims[2] ? input_tensor->dims[2] : 1;
+    int inw = input_tensor->dims[3] ? input_tensor->dims[3] : 1;
     int outc = output_tensor->dims[1];
 
     void* bias_data = NULL;
@@ -220,7 +220,8 @@ static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struc
     }
     else if (input->dim_num == 3)
     {
-        input_k *= input->dims[2];
+        if (input->dims[2] != 0)
+            input_k *= input->dims[2];
         if (graph->graph_layout == TENGINE_LAYOUT_NHWC)
         {
             dim[0] = m;
@@ -236,7 +237,8 @@ static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struc
     }
     else if (input->dim_num == 4)
     {
-        input_k *= input->dims[2] * input->dims[3];
+        if (input->dims[2] * input->dims[3] != 0)
+            input_k *= input->dims[2] * input->dims[3];
         if (graph->graph_layout == TENGINE_LAYOUT_NHWC)
         {
             dim[0] = m;
@@ -277,7 +279,7 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     if (input_tensor->data_type != TENGINE_DT_FP32)
         return 0;
 
-    return 0;
+    return OPS_SCORE_BEST;
 }
 
 static struct node_ops hcl_node_ops = {.prerun = prerun,

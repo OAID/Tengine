@@ -71,8 +71,8 @@ static int infer_shape(struct ir_node* node)
     int kernel_extent_w = deconv_param->dilation_w * (deconv_param->kernel_w - 1) + 1;
     int kernel_extent_h = deconv_param->dilation_h * (deconv_param->kernel_h - 1) + 1;
 
-    int output_h = (h - 1) * deconv_param->stride_h + kernel_extent_h - deconv_param->pad_h0 - deconv_param->pad_h1;
-    int output_w = (w - 1) * deconv_param->stride_w + kernel_extent_w - deconv_param->pad_w0 - deconv_param->pad_w1;
+    int output_h = (h - 1) * deconv_param->stride_h + kernel_extent_h - deconv_param->pad_h0 - deconv_param->pad_h1 + deconv_param->output_pad_h0;
+    int output_w = (w - 1) * deconv_param->stride_w + kernel_extent_w - deconv_param->pad_w0 - deconv_param->pad_w1 + deconv_param->output_pad_w0;
 
     int dims[4];
 
@@ -126,6 +126,8 @@ static int init_op(struct ir_op* op)
     deconv_param->dilation_w = 1;
     deconv_param->group = 1;
     deconv_param->activation = -1;
+    deconv_param->output_pad_h0 = 0;
+    deconv_param->output_pad_w0 = 0;
 
     op->param_mem = deconv_param;
     op->param_size = sizeof(struct deconv_param);

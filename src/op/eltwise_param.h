@@ -43,13 +43,17 @@ enum EltType
     ELT_SQRT,
     ELT_FLOOR,
     ELT_SQUARE,
-    ELT_POW
+    ELT_POW,
+    ELT_POWER,
 };
 
 struct eltwise_param
 {
     int type;
     int caffe_flavor;
+    float shift;
+    float power;
+    float scale;
 };
 
 #endif

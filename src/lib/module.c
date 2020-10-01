@@ -145,6 +145,7 @@ int exec_module_init(int stop_on_all_error)
         if (v == NULL)
             continue;
         release_vector(v);
+        init_vector[i] = NULL;
     }
 
     return 0;

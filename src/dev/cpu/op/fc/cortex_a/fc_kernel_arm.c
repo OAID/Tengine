@@ -58,11 +58,10 @@ static void sgemv1x8(float* input, float* output, float* kernel, float* bias, in
 static void sgemv1x2(float* input, float* output, float* kernel, float* bias, int kernel_size, int start_ch, int end_ch,
                      int num_thread, kernel_t kernel_1x2)
 {
-    int ch = 0;
     int end_ch2 = end_ch & -2;
 
     #pragma omp parallel for num_threads(num_thread)
-    for (ch = start_ch; ch < end_ch2; ch += 2)
+    for (int ch = start_ch; ch < end_ch2; ch += 2)
     {
         float* cur_kernel = kernel + ch * kernel_size;
         float* cur_output = output + ch;
@@ -71,6 +70,7 @@ static void sgemv1x2(float* input, float* output, float* kernel, float* bias, in
 
         kernel_1x2(cur_bias, input, cur_kernel, kernel_size, cur_output);
     }
+    int ch = end_ch2;
     if (end_ch & 0x1)
     {
         float* cur_kernel = kernel + end_ch2 * kernel_size;

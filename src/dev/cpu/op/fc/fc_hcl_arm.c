@@ -169,7 +169,8 @@ static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struc
     }
     else if (input->dim_num == 4)
     {
-        input_k *= input->dims[2] * input->dims[3];
+        if (input->dims[2] * input->dims[3] != 0)
+            input_k *= input->dims[2] * input->dims[3];
         if (graph->graph_layout == TENGINE_LAYOUT_NHWC)
         {
             dim[0] = m;
