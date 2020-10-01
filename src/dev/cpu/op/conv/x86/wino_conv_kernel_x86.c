@@ -1313,8 +1313,8 @@ int wino_conv_hcl_prerun(struct ir_tensor* input_tensor, struct ir_tensor* filte
 
     int outw = block_w * TILE;
     int outh = block_h * TILE;
-    priv_info->input_pad = ( float* )sys_malloc(input_c * pad_inhw * sizeof(float));
-    memset(priv_info->input_pad, 0, input_c * pad_inhw * sizeof(float));
+    priv_info->input_pad = ( float* )sys_malloc(batch * input_c * pad_inhw * sizeof(float));
+    memset(priv_info->input_pad, 0, batch * input_c * pad_inhw * sizeof(float));
     priv_info->dot_block = ( float* )sys_malloc(ELEM_SIZE * block * output_c * sizeof(float));
     priv_info->transform_input = ( float* )sys_malloc(ELEM_SIZE * block * input_c * sizeof(float));
     priv_info->output_bordered = NULL;
@@ -1406,16 +1406,16 @@ int wino_conv_hcl_run(struct ir_tensor* input_tensor, struct ir_tensor* filter_t
     if (bias_tensor != NULL)
         biases = ( float* )bias_tensor->data;
 
-    pad_0_align_3D(priv_info->input_pad, input, in_h, in_w, padded_in_h, padded_in_w, in_c, pad_h0, pad_w0);
-
     for (int i = 0; i < batch; i++)
     {
         for (int g = 0; g < group; g++)
         {
-            conv3x3s1_winograd43_sse(priv_info->input_pad + i * input_size + g * input_size_g, output,
-                                     priv_info->interleave_buffer, priv_info->dot_block, priv_info->transform_input,
-                                     priv_info->output_bordered, biases, padded_in_w, padded_in_h, in_c, out_w, out_h,
-                                     out_c, num_thread);
+            pad_0_align_3D(priv_info->input_pad + i * in_c * padded_in_h * padded_in_w, input + i * in_c * in_h * in_w,
+                           in_h, in_w, padded_in_h, padded_in_w, in_c, pad_h0, pad_w0);
+            conv3x3s1_winograd43_sse(priv_info->input_pad + i * in_c * padded_in_h * padded_in_w + g * input_size_g,
+                                     output + i * out_c * out_h * out_w, priv_info->interleave_buffer,
+                                     priv_info->dot_block, priv_info->transform_input, priv_info->output_bordered,
+                                     biases, padded_in_w, padded_in_h, in_c, out_w, out_h, out_c, num_thread);
         }
     }
     if (act_type >= 0)

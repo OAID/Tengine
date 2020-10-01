@@ -79,15 +79,11 @@ int ref_ceil_fp32(struct ir_tensor* input_tensor, struct ir_tensor* output_tenso
 
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    // exec_node->inplace_map[0] = 0;
-    // exec_node->inplace_map[1] = 0;
-    // exec_node->inplace_map_num = 1;
     return 0;
 }
 
 static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    // exec_node->inplace_map_num = 0;
     return 0;
 }
 
@@ -102,18 +98,9 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct ir_graph* ir_graph = ir_node->graph;
     struct ir_tensor* input_tensor;
     struct ir_tensor* output_tensor;
-    int layout = ir_graph->graph_layout;
 
     input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-
-    // inplace inference
-    // if(input_tensor->data != output_tensor->data)
-    // {
-    //     TLOG_ERR("input and output are not the same mem\n");
-    //     set_tengine_errno(EFAULT);
-    //     return -1;
-    // }
 
     int ret = ref_ceil_fp32(input_tensor, output_tensor, exec_graph->num_thread);
     if (ret != 0)

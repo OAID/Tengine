@@ -41,11 +41,11 @@ static int infer_shape(struct ir_node* node)
     struct ir_tensor* input0 = get_ir_graph_tensor(graph, node->input_tensors[0]);
     struct ir_tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
 
-    // struct eltwise_param* eltwise_param = ( struct eltwise_param* )(node->op.param_mem);
+    struct eltwise_param* eltwise_param = ( struct eltwise_param* )(node->op.param_mem);
 
     if (node->input_num == 1)
     {
-        memcpy(output->dims, input0->dims, input0->dim_num * sizeof(int));
+        set_ir_tensor_shape(output, input0->dims, input0->dim_num);
         return 0;
     }
 

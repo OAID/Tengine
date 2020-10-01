@@ -47,8 +47,23 @@ static int infer_shape(struct ir_node* node)
     int n = input->dims[0];
     int h, w;
 
+    if (conv_param->kernel_w == 0)
+    {
+        conv_param->kernel_w = 1;
+        conv_param->pad_w0 = 0;
+        conv_param->pad_w1 = 0;
+    }
+
+    if (conv_param->kernel_h == 0)
+        conv_param->kernel_h = 1;
+    if (conv_param->stride_w == 0)
+        conv_param->stride_w = 1;
+    if (conv_param->stride_h == 0)
+        conv_param->stride_h = 1;
+
     if (graph->graph_layout == TENGINE_LAYOUT_NCHW)
     {
+        conv_param->input_channel = input->dims[1];
         h = input->dims[2];
         w = input->dims[3];
     }
@@ -56,6 +71,7 @@ static int infer_shape(struct ir_node* node)
     {
         h = input->dims[1];
         w = input->dims[2];
+        conv_param->input_channel = input->dims[1];
     }
     else
     {
@@ -135,6 +151,12 @@ static int infer_shape(struct ir_node* node)
         dims[1] = out_h;
         dims[2] = out_w;
         dims[3] = out_c;
+    }
+
+    for (int i=0; i<4; i++)
+    {
+        if (dims[i] == 0)
+            dims[i] = 1;
     }
 
     set_ir_tensor_shape(output, dims, 4);

@@ -21,6 +21,7 @@
  * Copyright (c) 2020, OPEN AI LAB
  * Author: qtang@openailab.com
  */
+
 #ifndef __CONV_DW_KERNEL_X86_H_
 #define __CONV_DW_KERNEL_X86_H_
 

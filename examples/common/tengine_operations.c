@@ -114,7 +114,6 @@ image imread2caffe(image resImg, int img_w, int img_h, float* means, float* scal
 image imread_process(const char* filename, int img_w, int img_h, float* means, float* scale)
 {
     image out = imread(filename);
-    image resImg = make_image(img_w, img_h, out.c);
 
     int choice = 0;
     if (out.c == 1)
@@ -136,6 +135,8 @@ image imread_process(const char* filename, int img_w, int img_h, float* means, f
         default:
             break;
     }
+
+    image resImg = make_image(img_w, img_h, out.c);
 
     tengine_resize_f32(out.data, resImg.data, img_w, img_h, out.c, out.h, out.w);
     resImg = imread2caffe(resImg, img_w, img_h, means, scale);

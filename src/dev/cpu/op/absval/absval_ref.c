@@ -59,21 +59,11 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     float* idata = ( float* )input_tensor->data;
     float* odata = ( float* )output_tensor->data;
 
-    int channel_num = input_tensor->dims[1];
-    int batch_number = input_tensor->dims[0];
-    int channel_size = (input_tensor->dims[2]) * (input_tensor->dims[3]);
-
-    int num_thread = exec_graph->num_thread;
-
-    for (int c = 0; c < channel_num * batch_number; c++)
+    for (int i = 0; i < output_tensor->elem_num; i++)
     {
-        for (int i = 0; i < channel_size; i++)
-        {
-            if (*idata < 0)
-                *odata = -*idata;
-            idata++;
-            odata++;
-        }
+        odata[i] = idata[i];
+        if (odata[i] < 0)
+            odata[i] = fabs(odata[i]);
     }
 
     return 0;

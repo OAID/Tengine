@@ -56,7 +56,8 @@ static int infer_shape(struct ir_node* node)
     }
     else if (input->dim_num == 3)
     {
-        input_k *= input->dims[2];
+        if (input->dims[2] != 0)
+            input_k *= input->dims[2];
         if (graph->graph_layout == TENGINE_LAYOUT_NHWC)
         {
             dim[0] = m;
@@ -72,7 +73,8 @@ static int infer_shape(struct ir_node* node)
     }
     else if (input->dim_num == 4)
     {
-        input_k *= input->dims[2] * input->dims[3];
+        if (input->dims[2] * input->dims[3] != 0)
+            input_k *= input->dims[2] * input->dims[3];
         if (graph->graph_layout == TENGINE_LAYOUT_NHWC)
         {
             dim[0] = m;
