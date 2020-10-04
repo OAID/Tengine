@@ -381,7 +381,7 @@ static int prerun(struct nn_device *dev, struct subgraph *subgraph, int num_thre
 {
     (void)num_thread;
     (void)cpu_affinity;
-    fprintf(stdout, "ACL initialized\n");
+    // fprintf(stdout, "ACL initialized\n");
     char* env = getenv("ACL_FP16");
     DataType data_type;
     if(env)
@@ -750,7 +750,7 @@ static int run(struct nn_device *dev, struct subgraph *subgraph)
 
 static int postrun(struct nn_device *dev, struct subgraph *subgraph)
 {
-    printf("run into acl postrun!!!\n");
+    // printf("run into acl postrun!!!\n");
     CLGraph* graph = (CLGraph*)subgraph->exec_graph;
     DestroyACLGraph(graph);
     return 0;
