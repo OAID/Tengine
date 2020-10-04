@@ -137,6 +137,16 @@ make
 make install
 ```
 
-## 4. 总结
+## 4. GPU 版本
+
+#### 4.1 ACL
+
+请参考 [Tengine Lite ACL GPU 使用说明](gpu_acl_user_manual.md)。
+
+#### 4.2 Vulkan
+
+请参考 [Tengine Lite Vulkan GPU 使用说明](gpu_vulkan_user_manual.md)。
+
+## 5. 总结
 
 本文档只是简单指导如何编译对应的 Tengine Lite 版本，有需要可以参考 ` Tengine-Lite/build.sh` 文件。
