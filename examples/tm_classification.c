@@ -47,7 +47,7 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
     /* set runtime options */
     struct options opt;
     opt.num_thread = num_thread;
-    opt.cluster = TENGINE_CLUSTER_LITTLE;
+    opt.cluster = TENGINE_CLUSTER_ALL;
     opt.precision = TENGINE_MODE_FP32;
 
     /* inital tengine */
@@ -67,7 +67,7 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
         return -1;
     }
 
-    /* set the input shape to initial the graph, and prerun graph to infer shape */
+    /* set the shape, data buffer of input_tensor of the graph */
     int img_size = img_h * img_w * 3;
     int dims[] = {1, 3, img_h, img_w};    // nchw
     float* input_data = ( float* )malloc(img_size * sizeof(float));
@@ -85,6 +85,13 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
         return -1;
     }
 
+    if (set_tensor_buffer(input_tensor, input_data, img_size * 4) < 0)
+    {
+        fprintf(stderr, "Set input tensor buffer failed\n");
+        return -1;
+    }    
+
+    /* prerun graph, set work options(num_thread, cluster, precision) */
     if (prerun_graph_multithread(graph, opt) < 0)
     {
         fprintf(stderr, "Prerun multithread graph failed.\n");
@@ -93,11 +100,6 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
 
     /* prepare process input data, set the data mem to input tensor */
     get_input_data(image_file, input_data, img_h, img_w, mean, scale);
-    if (set_tensor_buffer(input_tensor, input_data, img_size * 4) < 0)
-    {
-        fprintf(stderr, "Set input tensor buffer failed\n");
-        return -1;
-    }
 
     /* run graph */
     double min_time = __DBL_MAX__;
@@ -137,8 +139,6 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
 
     /* release tengine */
     free(input_data);
-    release_graph_tensor(input_tensor);
-    release_graph_tensor(output_tensor);
     postrun_graph(graph);
     destroy_graph(graph);
     release_tengine();
