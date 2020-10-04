@@ -107,7 +107,7 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
 
     /* todo support uint8 */
     if (input_tensor->data_type != TENGINE_DT_FP32)
-        return 0;    
+        return 0;
 
     /* filter perf global pooling case */
     if (global)
@@ -140,7 +140,9 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
         {
             if (pad_h0 == 0 && pad_h1 == 0 && (pool_size == POOL_K2S2 || pool_size == POOL_K3S2))
                 return OPS_SCORE_BEST;
-            if (pad_h0 == 1 && pad_h1 == 1 && (pool_size == POOL_K2S2 || pool_size == POOL_K3S2))
+            if (pad_h0 == 1 && pad_h1 == 1 && (pool_size == POOL_K2S2 || pool_size == POOL_K3S2 || pool_size == POOL_K3S1))
+                return OPS_SCORE_BEST;
+            else if(pad_h0 == 0 && pad_h1 == 1 && (pool_size == POOL_K3S2))
                 return OPS_SCORE_BEST;
         }
     }

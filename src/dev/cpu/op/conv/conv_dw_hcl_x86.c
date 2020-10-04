@@ -101,9 +101,12 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     if (input_tensor->data_type != TENGINE_DT_FP32)
         return 0;
 
+    if (kernel_h != kernel_w || input_tensor->dims[0] > 1)
+        return 0;
+
     if (param->group > 1 && in_c == 1 && out_c == 1 && pad_h0 == pad_h1 && pad_w0 == pad_w1 && dilation_h == 1 && dilation_w == 1 && kernel_h == 3 && kernel_w == 3 &&
         ((stride_h == 1 && stride_w == 1) || (stride_h == 2 && stride_w == 2)))
-        return OPS_SCORE_BEST * 2;
+        return OPS_SCORE_BEST;
     else
         return 0;
 }

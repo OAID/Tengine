@@ -230,22 +230,9 @@ static int load_graph_tensors(struct tm2_serializer* tm2_s, struct ir_graph* gra
             /* fill temp data buffer to benchmark */
             if (tm_buf->offset_data == TM2_NOT_SET)
             {
-                int size = ir_tensor->elem_num;
-                int type = ir_tensor->data_type;
-
-                if (type == TENGINE_DT_FP32)
-                {
-                    ir_tensor->data = ( float* )sys_malloc(size * 2 * sizeof(float));
-                    ir_tensor->free_host_mem = 1;
-                    memset(ir_tensor->data, 1, size * 2 * sizeof(float));
-                }
-
-                if (type == TENGINE_DT_UINT8 || type == TENGINE_DT_INT8)
-                {
-                    ir_tensor->data = ( unsigned char* )sys_malloc(size * 2 * sizeof(unsigned char));
-                    ir_tensor->free_host_mem = 1;
-                    memset(ir_tensor->data, 1, size * 2 * sizeof(unsigned char));
-                }
+                ir_tensor->data = sys_malloc(ir_tensor->elem_num * ir_tensor->elem_size);
+                memset(ir_tensor->data, 0, ir_tensor->elem_num * ir_tensor->elem_size);
+                ir_tensor->free_host_mem = 1;
             }
             else
             {
@@ -366,9 +353,9 @@ static int load_graph_tensors(struct tm2_serializer* tm2_s, struct ir_graph* gra
                         dims[3] = ir_tensor->dims[3];
 
                         /* nhwc to nchw */
-                        fprintf(stderr, "%s:\n", ir_tensor->name);
-                        fprintf(stderr, "original %d, %d, %d, %d\n", dims_org[0], dims_org[1], dims_org[2], dims_org[3]);
-                        fprintf(stderr, "permute  %d, %d, %d, %d\n", dims[0], dims[1], dims[2], dims[3]);
+                        // fprintf(stderr, "%s:\n", ir_tensor->name);
+                        // fprintf(stderr, "original %d, %d, %d, %d\n", dims_org[0], dims_org[1], dims_org[2], dims_org[3]);
+                        // fprintf(stderr, "permute  %d, %d, %d, %d\n", dims[0], dims[1], dims[2], dims[3]);
 
                         unsigned char* input = tensor_data_org;
                         unsigned char* output = ir_tensor->data;
@@ -890,7 +877,7 @@ static int unload_graph(struct serializer* s, struct ir_graph* graph, void* s_pr
 
     if (priv->fd >= 0)
     {
-        // munmap(( void* )priv->base, priv->mem_len);
+        munmap(( void* )priv->base, priv->mem_len);
         close(priv->fd);
     }
 

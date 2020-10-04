@@ -167,15 +167,33 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct logical_param* logical_param = ( struct logical_param* )ir_node->op.param_mem;
     struct logical_param_ref logical_param_ref;
 
-    logical_param_ref.shape0[0] = input_tensor0->dims[0];
-    logical_param_ref.shape0[1] = input_tensor0->dims[1];
-    logical_param_ref.shape0[2] = input_tensor0->dims[2];
-    logical_param_ref.shape0[3] = input_tensor0->dims[3];
+    logical_param_ref.shape0[0] = 1;
+    logical_param_ref.shape0[1] = 1;
+    logical_param_ref.shape0[2] = 1;
+    logical_param_ref.shape0[3] = 1;
 
-    logical_param_ref.shape1[0] = input_tensor1->dims[0];
-    logical_param_ref.shape1[1] = input_tensor1->dims[1];
-    logical_param_ref.shape1[2] = input_tensor1->dims[2];
-    logical_param_ref.shape1[3] = input_tensor1->dims[3];
+    logical_param_ref.shape1[0] = 1;
+    logical_param_ref.shape1[1] = 1;
+    logical_param_ref.shape1[2] = 1;
+    logical_param_ref.shape1[3] = 1;
+
+    if (input_tensor0->dims[0] !=0)
+        logical_param_ref.shape0[0] = input_tensor0->dims[0];
+    if (input_tensor0->dims[1] !=0)
+        logical_param_ref.shape0[1] = input_tensor0->dims[1];
+    if (input_tensor0->dims[2] !=0)
+        logical_param_ref.shape0[2] = input_tensor0->dims[2];
+    if (input_tensor0->dims[3] !=0)
+        logical_param_ref.shape0[3] = input_tensor0->dims[3];
+
+    if (input_tensor1->dims[0] !=0)
+        logical_param_ref.shape1[0] = input_tensor1->dims[0];
+    if (input_tensor1->dims[1] !=0)
+        logical_param_ref.shape1[1] = input_tensor1->dims[1];
+    if (input_tensor1->dims[2] !=0)
+        logical_param_ref.shape1[2] = input_tensor1->dims[2];
+    if (input_tensor1->dims[3] !=0)
+        logical_param_ref.shape1[3] = input_tensor1->dims[3];
 
     logical_param_ref.type = logical_param->type;
 

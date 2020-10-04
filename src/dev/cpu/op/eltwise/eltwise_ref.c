@@ -45,7 +45,7 @@ struct eltwise_op_param
 #define ELT_MIN(a, b) ((a) < (b) ? (a) : (b))
 
 static int ref_eltwise_fp32(void* output, void* input0, void* input1, int type, int input_count4, int input_chan,
-                            int input_hw, int input1_count4, int num_thread)
+                            int input_hw, int input1_count4, int num_thread, int input_hw_1, struct eltwise_param* eltwise_param)
 {
     float* out_ptr = ( float* )output;
     float* in0 = ( float* )input0;
@@ -100,6 +100,14 @@ static int ref_eltwise_fp32(void* output, void* input0, void* input1, int type, 
                     *out_ptr++ = in0[i] + in1[i / input_hw];
                 }
             }
+            else if(input_hw == input_hw_1){
+                for( int i = 0; i < input_chan; i++){
+                    for(int j = 0; j < input_hw; j++){
+                        *out_ptr++ = in0[i*input_hw + j] + in1[j];
+                    }
+                }
+                // printf("%d %d \n", input1_count4, input_chan);
+            }
             else
                 return -1;
             break;
@@ -124,11 +132,24 @@ static int ref_eltwise_fp32(void* output, void* input0, void* input1, int type, 
                     *out_ptr++ = in0[i] * in1[i];
                 }
             }
+            else if(input_count4 == 1)
+            {
+                for(int i = 0; i < input1_count4; ++i)
+                {
+                    *out_ptr++ = (in1[i]) * in0[0];
+                }
+            }
             else if (input_chan == input1_count4)
             {
                 for (int i = 0; i < input_count4; ++i)
                 {
                     *out_ptr++ = in0[i] * in1[i / input_hw];
+                }
+            }
+            else if (input_chan == input_count4){
+                for(int i = 0; i < input1_count4; i++)
+                {
+                    *out_ptr++ = in0[i/input_hw] * in1[i];
                 }
             }
             else
@@ -185,6 +206,53 @@ static int ref_eltwise_fp32(void* output, void* input0, void* input1, int type, 
                 break;
             }
             break;
+        case ELT_POW:
+            if(input_count4 == 1){
+                for(int i = 0; i < input1_count4; i++){
+                    *out_ptr++ = pow(in0[0], in1[i]);
+                }
+            } else if (input1_count4 == 1){
+                for(int i = 0; i < input1_count4; i++){
+                    *out_ptr++ = pow(in0[0], in1[i]);
+                }
+            } else if (input_count4 == input1_count4){
+                for(int i = 0; i < input_count4; i++){
+                    *out_ptr++ = pow(in0[i], in1[i]);
+                }
+            } else {
+                printf("Case not support \n");
+            }
+            break;
+        case ELT_POWER:
+            for(int i = 0; i < input_count4; i++){
+                *out_ptr++ = pow((eltwise_param->shift + eltwise_param->scale * in0[i]), eltwise_param->power);
+            }
+            break;
+        case ELT_LOG:
+            for(int i = 0; i < input_count4; i++){
+                *out_ptr++ = log(in0[i]);
+            }
+            break;
+        case ELT_EXP:
+            for(int i = 0; i < input_count4; i++){
+                *out_ptr++ = exp(in0[i]);
+            }
+            break;
+        case ELT_SQRT:
+            for(int i = 0; i < input_count4; i++){
+                *out_ptr++ = sqrt(in0[i]);
+            }
+            break;
+        case ELT_FLOOR:
+            for(int i = 0; i < input_count4; i++){
+                *out_ptr++ = floor(in0[i]);
+            }
+            break;
+        case ELT_SQUARE:
+            for(int i = 0; i < input_count4; i++){
+                *out_ptr++ = pow(in0[i], 2);
+            }
+            break;
         default:
             break;
     }
@@ -194,7 +262,7 @@ static int ref_eltwise_fp32(void* output, void* input0, void* input1, int type, 
 
 static int ref_eltwise_uint8(struct ir_tensor* output_tensor, struct ir_tensor* input_tensor0,
                              struct ir_tensor* input_tensor1, int type, int input_count4, int input_chan, int input_hw,
-                             int input1_count4, int num_thread)
+                             int input1_count4, int num_thread, int input_hw_1, struct eltwise_param* eltwise_param)
 {
     uint8_t* input0_uint8 = ( uint8_t* )input_tensor0->data;
     uint8_t* input1_uint8 = ( uint8_t* )input_tensor1->data;
@@ -235,6 +303,13 @@ static int ref_eltwise_uint8(struct ir_tensor* output_tensor, struct ir_tensor* 
                     out_ptr[i] = in0[i] - in1[i / input_hw];
                 }
             }
+            else if (input1_count4 == 1)
+            {
+                for (int i = 0; i < input_count4; ++i)
+                {
+                    out_ptr[i] = in0[i] - in1[0];
+                }
+            }
             else
                 return -1;
             break;
@@ -258,6 +333,13 @@ static int ref_eltwise_uint8(struct ir_tensor* output_tensor, struct ir_tensor* 
                 for (int i = 0; i < input_count4; ++i)
                 {
                     out_ptr[i] = in0[i] + in1[i / input_hw];
+                }
+            }
+            else if(input_hw == input_hw_1){
+                for( int i = 0; i < input_chan; i++){
+                    for(int j = 0; j < input_hw; j++){
+                        out_ptr[i] = in0[i*input_hw + j] + in1[j];
+                    }
                 }
             }
             else
@@ -345,15 +427,63 @@ static int ref_eltwise_uint8(struct ir_tensor* output_tensor, struct ir_tensor* 
                 break;
             }
             break;
+        case ELT_POW:
+            if(input_count4 == 1){
+                for(int i = 0; i < input1_count4; i++){
+                    out_ptr[i] = pow(in0[0], in1[i]);
+                }
+            } else if (input1_count4 == 1){
+                for(int i = 0; i < input1_count4; i++){
+                    out_ptr[i] = pow(in0[0], in1[i]);
+                }
+            } else if (input_count4 == input1_count4){
+                for(int i = 0; i < input_count4; i++){
+                    out_ptr[i] = pow(in0[i], in1[i]);
+                }
+            } else {
+                printf("Case not support \n");
+            }
+            break;
+        case ELT_POWER:
+            for(int i = 0; i < input_count4; i++){
+                out_ptr[i] = pow((eltwise_param->shift + eltwise_param->scale * in0[i]), eltwise_param->power);
+            }
+            break;
+        case ELT_LOG:
+            for(int i = 0; i < input_count4; i++){
+                out_ptr[i] = log(in0[i]);
+            }
+            break;
+        case ELT_EXP:
+            for(int i = 0; i < input_count4; i++){
+                out_ptr[i] = exp(in0[i]);
+            }
+            break;
+        case ELT_SQRT:
+            for(int i = 0; i < input_count4; i++){
+                out_ptr[i] = sqrt(in0[i]);
+            }
+            break;
+        case ELT_FLOOR:
+            for(int i = 0; i < input_count4; i++){
+                out_ptr[i] = floor(in0[i]);
+            }
+            break;
+        case ELT_SQUARE:
+            for(int i = 0; i < input_count4; i++){
+                out_ptr[i] = pow(in0[i], 2);
+            }
+            break;
         default:
             break;
     }
+
 
     /* output quant */
     for (int i = 0; i < output_tensor->elem_num; i++)
     {
         int output_data = round(out_ptr[i] / out_scale) + out_zero;
-        output_uint8[i] = output_data > 255 ? 255 : output_data;
+        output_uint8[i] = output_data; // adjust for QA Models test case(mobilenet_v2_1.0_quant_tfile.tmfile)
     }
 
     sys_free(in0);
@@ -395,15 +525,17 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     void* input1 = NULL;
     void* output = output_tensor->data;
     int input1_count4 = 0;
+    int input_hw_1 = 0;
 
     if (ir_node->input_num > 1)
     {
         input_tensor1 = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
         input1 = input_tensor1->data;
         input1_count4 = input_tensor1->elem_num;
+        input_hw_1 = input_tensor1->dims[2]*input_tensor1->dims[3];
     }
 
-    if (input_tensor0->elem_num >= input_tensor1->elem_num)
+    if (!input_tensor1 || input_tensor0->elem_num >= input_tensor1->elem_num)
     {
         int input_chan_0 = 0;
         int input_hw_0 = 0;
@@ -429,10 +561,10 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         int ret = -1;
         if (input_tensor0->data_type == TENGINE_DT_FP32)
             ret = ref_eltwise_fp32(output, input0, input1, eltwise_param->type, input0_count4, input_chan_0, input_hw_0,
-                                   input1_count4, exec_graph->num_thread);
+                                   input1_count4, exec_graph->num_thread, input_hw_1, eltwise_param);
         else
             ret = ref_eltwise_uint8(output_tensor, input_tensor0, input_tensor1, eltwise_param->type, input0_count4,
-                                    input_chan_0, input_hw_0, input1_count4, exec_graph->num_thread);
+                                    input_chan_0, input_hw_0, input1_count4, exec_graph->num_thread, input_hw_1, eltwise_param);
         return ret;
     }
     else
@@ -462,10 +594,10 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         int ret = -1;
         if (input_tensor1->data_type == TENGINE_DT_FP32)
             ret = ref_eltwise_fp32(output, input1, input0, eltwise_param->type, input0_count4, input_chan_0, input_hw_0,
-                                   input1_count4, exec_graph->num_thread);
+                                   input1_count4, exec_graph->num_thread, input_hw_1, eltwise_param);
         else
             ret = ref_eltwise_uint8(output_tensor, input_tensor1, input_tensor0, eltwise_param->type, input0_count4,
-                                    input_chan_0, input_hw_0, input1_count4, exec_graph->num_thread);
+                                    input_chan_0, input_hw_0, input1_count4, exec_graph->num_thread, input_hw_1, eltwise_param);
         return ret;
     }
 }

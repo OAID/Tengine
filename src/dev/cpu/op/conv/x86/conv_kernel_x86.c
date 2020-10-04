@@ -25,7 +25,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <math.h>
-#include "../conv_hcl_kernel.h"
+#include "conv_kernel_x86.h"
 #include "wino_conv_kernel_x86.h"
 #if __SSE2__
 #include <emmintrin.h>
@@ -1694,6 +1694,11 @@ int conv_hcl_prerun(struct ir_tensor* input_tensor, struct ir_tensor* filter_ten
             priv_info->interleave_buffer = NULL;
         }
     }
+    else
+    {
+        priv_info->interleave_buffer_pack4 = priv_info->interleave_buffer;
+        priv_info->interleave_buffer_pack4_size = priv_info->interleave_buffer_size;
+    }
 
     return 0;
 }
@@ -1754,9 +1759,15 @@ int conv_hcl_run(struct ir_tensor* input_tensor, struct ir_tensor* filter_tensor
             int N = output_tensor->dims[2] * output_tensor->dims[3];
 
             float* im2col_fp32 = priv_info->im2col_buffer;
-            float* im2col_pack4_fp32 = priv_info->im2col_buffer_pack4;
-            input_pack4(K, N, im2col_fp32, im2col_pack4_fp32, num_thread);
 
+            if (priv_info->external_interleave_pack4_mem)
+            {
+                input_pack4(K, N, im2col_fp32, ( float* )priv_info->im2col_buffer_pack4, num_thread);
+            }
+            else
+            {
+                priv_info->im2col_buffer_pack4 = im2col_fp32;
+            }
             if (type == TENGINE_DT_UINT8)
                 sgemm_uint8(input_tensor, filter_tensor, bias_tensor, output_tensor, priv_info, param, i, j, num_thread);
             else

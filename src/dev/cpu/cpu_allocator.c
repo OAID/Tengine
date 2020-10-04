@@ -29,7 +29,7 @@
 #include "vector.h"
 #include "tengine_ir.h"
 #include "tengine_exec.h"
-
+#include "tengine_log.h"
 #include "cpu_allocator.h"
 
 static int cpu_allocate(struct dev_allocator* allocator, struct ir_graph* ir_graph)
@@ -163,6 +163,7 @@ void register_cpu_allocator(void)
 REGISTER_DEV_ALLOCATOR(register_cpu_allocator);
 static void register_cpu_allocator(void)
 {
+    TLOG_INFO("start to run register cpu allocator\n");
     init_allocator_registry(&cpu_allocator);
 }
 #endif

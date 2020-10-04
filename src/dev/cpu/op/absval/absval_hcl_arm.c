@@ -82,6 +82,8 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         {
             if (*idata < 0)
                 *odata = -*idata;
+            else
+                *odata = *idata;
             idata++;
             odata++;
         }

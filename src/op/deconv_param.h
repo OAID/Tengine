@@ -40,6 +40,8 @@ struct deconv_param
     int dilation_w;
     int group;
     int activation;
+    int output_pad_h0;
+    int output_pad_w0;
 };
 
 #endif

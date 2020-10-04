@@ -1,3 +1,5 @@
+link_directories(${TENGINE_COMMON_LIB_DIRS})
+
 # macro for adding test
 macro (tengine_example name file)
     add_executable(${name} ${CMAKE_CURRENT_SOURCE_DIR}/${file})

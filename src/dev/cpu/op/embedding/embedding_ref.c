@@ -87,7 +87,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     }
 
     return ref_embed_fp32(input->data, output->data, weight_tensor->data, bias_tensor ? bias_tensor->data : NULL,
-                          param->input_dim, param->num_output, output->elem_size, param->bias_term, 1.0f, 0.0f);
+                          param->input_dim, param->num_output, input->elem_size, param->bias_term, 1.0f, 0.0f);
 }
 
 static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struct ir_node* exec_node)
@@ -103,15 +103,15 @@ static struct node_ops hcl_node_ops = {.prerun = NULL,
                                        .release_node = release_node,
                                        .score = score};
 
-static int reg_relu_hcl_ops(void* arg)
+static int reg_embed_hcl_ops(void* arg)
 {
     return register_builtin_node_ops(OP_EMBEDDING, &hcl_node_ops);
 }
 
-static int unreg_relu_hcl_ops(void* arg)
+static int unreg_embed_hcl_ops(void* arg)
 {
     return unregister_builtin_node_ops(OP_EMBEDDING, &hcl_node_ops);
 }
 
-AUTO_REGISTER_OPS(reg_relu_hcl_ops);
-AUTO_UNREGISTER_OPS(unreg_relu_hcl_ops);
+AUTO_REGISTER_OPS(reg_embed_hcl_ops);
+AUTO_UNREGISTER_OPS(unreg_embed_hcl_ops);
