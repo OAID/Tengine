@@ -1549,10 +1549,10 @@ struct dev_allocator* get_acl_allocator(void)
     return &acl_allocator;
 }
 #else
+REGISTER_DEV_ALLOCATOR(register_acl_allocator);
 static void register_acl_allocator(void)
 {
+    TLOG_INFO("start to run register acl allocator\n");
     init_allocator_registry(&acl_allocator);
 }
-
-REGISTER_DEV_ALLOCATOR(register_acl_allocator);
 #endif
