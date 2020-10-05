@@ -168,10 +168,10 @@ int main(int argc, char* argv[])
     if (rep_str)
     {
         fprintf(stderr, "run into gpu by acl\n");
-	    context_t acl_context = create_context("ACL", 1);
+        context_t acl_context = create_context("ACL", 1);
         add_context_device(acl_context, "ACL");
         graph = create_graph(acl_context, "tengine", model_file);
-	    set_graph_device(graph, "ACL");
+        set_graph_device(graph, "ACL");
     }
     else
     {
