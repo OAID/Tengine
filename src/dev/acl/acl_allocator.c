@@ -30,6 +30,7 @@
 #include "tengine_op.h"
 #include "tengine_ir.h"
 #include "tengine_exec.h"
+#include "tengine_log.h"
 
 #include "acl_allocator.h"
 
@@ -493,7 +494,7 @@ int find_children_nodes(struct ir_graph* ir_graph, int search_node_list[], int s
     if(node_id == -1)
         return -1;
 
-    // printf("first node id:%d\n",node_id);
+    // TLOG_INFO("first node id:%d\n",node_id);
     // bfs
     find_node_num = bfs_from_first_node_id(ir_graph, search_node_list, subgraph_idx, node_id);
     
@@ -528,10 +529,10 @@ void split_graph_node_to_sub_graph(struct ir_graph* ir_graph)
             continue;
         allocated_num += cur_allo_num;
         subgraph_idx++;
-        // printf("allocated_num:%d\n", allocated_num);
+        // TLOG_INFO("allocated_num:%d\n", allocated_num);
     }
     if(allocated_num != ir_graph->node_num)
-        printf("WARNING!!! allocated_num != ir_graph->node_num\n");
+        TLOG_INFO("WARNING!!! allocated_num != ir_graph->node_num\n");
 
     // test
     struct nn_device* test_dev = (struct nn_device*)sys_malloc(sizeof(struct nn_device));
@@ -872,39 +873,39 @@ void dump_sub_graph0(struct ir_graph* ir_graph)
 {
     const int sub_graph_count = get_vector_num(ir_graph->subgraph_list);
 
-    fprintf(stdout, "Total sub_graph: %d.\n", sub_graph_count);
+    TLOG_INFO("Total sub_graph: %d.\n", sub_graph_count);
     for (int i = 0; i < sub_graph_count; i++)
     {
         struct subgraph* sub_graph = *( struct subgraph** )get_vector_data(ir_graph->subgraph_list, i);
 
-        fprintf(stdout, "Sub graph[%d]: {%8s } has %d nodes, %d input tensors, %d output tensors.\n", sub_graph->idx,
+        TLOG_INFO("Sub graph[%d]: {%8s } has %d nodes, %d input tensors, %d output tensors.\n", sub_graph->idx,
                 sub_graph->nn_dev->name, sub_graph->node_num, sub_graph->input_num, sub_graph->output_num);
-        fprintf(stdout, "\tSub nodes: [ ");
+        TLOG_INFO("\tSub nodes: [ ");
         for (int j = 0; j < sub_graph->node_num - 1; j++)
         {
             int node_id = sub_graph->node_list[j];
-            fprintf(stdout, "%d, ", node_id);
+            TLOG_INFO("%d, ", node_id);
         }
-        fprintf(stdout, "%d ].\n", sub_graph->node_list[sub_graph->node_num - 1]);
+        TLOG_INFO("%d ].\n", sub_graph->node_list[sub_graph->node_num - 1]);
         fflush(stdout);
 
-        fprintf(stdout, "\tSub input  tensors: [ ");
+        TLOG_INFO("\tSub input  tensors: [ ");
         for (int j = 0; j < sub_graph->input_num - 1; j++)
         {
             int tensor_id = sub_graph->input_tensor_list[j];
-            fprintf(stdout, "%d, ", tensor_id);
+            TLOG_INFO("%d, ", tensor_id);
         }
-        fprintf(stdout, "%d ].\n", sub_graph->input_tensor_list[sub_graph->input_num - 1]);
+        TLOG_INFO("%d ].\n", sub_graph->input_tensor_list[sub_graph->input_num - 1]);
         fflush(stdout);
 
-        fprintf(stdout, "\tSub output tensors: [ ");
+        TLOG_INFO("\tSub output tensors: [ ");
         for (int j = 0; j < sub_graph->output_num - 1; j++)
         {
             int tensor_id = sub_graph->output_tensor_list[j];
-            fprintf(stdout, "%d, ", tensor_id);
+            TLOG_INFO("%d, ", tensor_id);
 
         }
-        fprintf(stdout, "%d ].\n\n", sub_graph->output_tensor_list[sub_graph->output_num - 1]);
+        TLOG_INFO("%d ].\n\n", sub_graph->output_tensor_list[sub_graph->output_num - 1]);
         fflush(stdout);
     }
 }
@@ -915,34 +916,34 @@ void dump_sub_graph(struct ir_graph* ir_graph)
     for (int i = 0; i < subgraph_num; i++)
     {
         struct subgraph* subgraph = *(struct subgraph**)get_vector_data(ir_graph->subgraph_list, i);
-        printf("subgraph[%2d] dev[%7s] node:[ ",i,subgraph->nn_dev->name);
+        TLOG_INFO("subgraph[%2d] dev[%7s] node:[ ",i,subgraph->nn_dev->name);
         for (int j = 0; j < subgraph->node_num; j++)
         {
-            printf("%d ",subgraph->node_list[j]);
+            TLOG_INFO("%d ",subgraph->node_list[j]);
         }
-        printf("]");
+        TLOG_INFO("]");
 
-        printf(" in tensor:[ ");
+        TLOG_INFO(" in tensor:[ ");
         int input_num = subgraph->input_num;
         for (int j = 0; j < input_num; j++)
         {
-            printf("%d ",subgraph->input_tensor_list[j]);
+            TLOG_INFO("%d ",subgraph->input_tensor_list[j]);
         }
-        printf("]");
+        TLOG_INFO("]");
         
-        printf(" out tensor:[ ");
+        TLOG_INFO(" out tensor:[ ");
         int output_num = subgraph->output_num;
         for (int j = 0; j < output_num; j++)
         {
-            printf("%d ",subgraph->output_tensor_list[j]);
+            TLOG_INFO("%d ",subgraph->output_tensor_list[j]);
         }
-        printf("]\n");
+        TLOG_INFO("]\n");
     }
 }
 
 static int acl_allocate(struct dev_allocator* allocator, struct ir_graph* ir_graph)
 {
-    printf("run into acl allocate!!!\n");
+    TLOG_INFO("run into acl allocate!!!\n");
 
     split_graph_node_to_sub_graph(ir_graph);
     generate_sub_graph_io(ir_graph);
@@ -956,17 +957,17 @@ static int acl_allocate(struct dev_allocator* allocator, struct ir_graph* ir_gra
 struct vector* get_graph_blocked_nodes(const struct ir_graph* ir_graph)
 {
     struct vector* blocked_nodes_list = create_vector(sizeof(uint16_t), NULL);
-    printf("blocked_node list[ ");
+    TLOG_INFO("blocked_node list[ ");
     for (uint16_t i = 0; i < ir_graph->node_num; i++)
     {
         if (!node_in_white_list(ir_graph, i))
         {
             push_vector_data(blocked_nodes_list, &i);
-            printf("%d ", i);
-            // printf("%s ", get_op_name(ir_graph->node_list[i]->op.op_type));
+            TLOG_INFO("%d ", i);
+            // TLOG_INFO("%s ", get_op_name(ir_graph->node_list[i]->op.op_type));
         }
     }
-    printf(" ]\n");
+    TLOG_INFO(" ]\n");
     return blocked_nodes_list;
 }
 
@@ -1472,7 +1473,7 @@ int generate_subgraph_io(struct ir_graph* ir_graph)
         struct subgraph* sub_graph =get_ir_graph_subgraph(ir_graph, i);
         int start = sub_graph->node_list[0];
         int end = sub_graph->node_list[sub_graph->node_num - 1];
-        // printf("start:%d, end:%d\n",start, end);
+        // TLOG_INFO("start:%d, end:%d\n",start, end);
         if(partition_graph(ir_graph, sub_graph, start, end, subgraph_idx++) < 0)
             return -1;
     }
@@ -1486,37 +1487,37 @@ void dump_subgraph(struct ir_graph* ir_graph)
 { 
     const int sub_graph_count = get_vector_num(ir_graph->subgraph_list);
 
-    fprintf(stdout, "Total sub_graph: %d.\n", sub_graph_count);
+    TLOG_INFO("Total sub_graph: %d.\n", sub_graph_count);
 
     for (int i = 0; i < sub_graph_count; i++)
     {
         struct subgraph* sub_graph =get_ir_graph_subgraph(ir_graph, i);
 
-        fprintf(stdout, "Sub nodes: {%8s }[ ", sub_graph->nn_dev->name);
+        TLOG_INFO("Sub nodes: {%8s }[ ", sub_graph->nn_dev->name);
         for (int j = 0; j < sub_graph->node_num - 1; j++)
         {
             int node_id = sub_graph->node_list[j];
-            fprintf(stdout, "%d, ", node_id);
+            TLOG_INFO("%d, ", node_id);
         }
-        fprintf(stdout, "%d ].\n", sub_graph->node_list[sub_graph->node_num - 1]);
+        TLOG_INFO("%d ].\n", sub_graph->node_list[sub_graph->node_num - 1]);
     }
     fflush(stdout);
 
     for (int i = 0; i < sub_graph_count; i++)
     {
         struct subgraph* sub_graph =get_ir_graph_subgraph(ir_graph, i);
-        printf("subgraphg:%d, addr:%p, node_num:%d, node list 0:%d\n",i, sub_graph, sub_graph->node_num, sub_graph->node_list[0]);
-        printf("subgraph nn dev:%s\n",sub_graph->nn_dev->name);
+        TLOG_INFO("subgraphg:%d, addr:%p, node_num:%d, node list 0:%d\n",i, sub_graph, sub_graph->node_num, sub_graph->node_list[0]);
+        TLOG_INFO("subgraph nn dev:%s\n",sub_graph->nn_dev->name);
         for (int j = 0; j < sub_graph->input_num; j++)
         {
             struct ir_tensor* input_tensor = get_ir_graph_tensor(ir_graph, sub_graph->input_tensor_list[j]);
-            printf("input tensor name: %30s, tensor idx:%d\n",input_tensor->name, input_tensor->idx);
+            TLOG_INFO("input tensor name: %30s, tensor idx:%d\n",input_tensor->name, input_tensor->idx);
         }
 
         for (int k = 0; k < sub_graph->output_num; k++)
         {
             struct ir_tensor* output_tensor = get_ir_graph_tensor(ir_graph, sub_graph->output_tensor_list[k]);
-            printf("output tensor name:%30s, tensor idx:%d\n",output_tensor->name, output_tensor->idx);
+            TLOG_INFO("output tensor name:%30s, tensor idx:%d\n",output_tensor->name, output_tensor->idx);
         }
         
     }
@@ -1524,8 +1525,8 @@ void dump_subgraph(struct ir_graph* ir_graph)
 
 static int acl_allocate(struct dev_allocator* allocator, struct ir_graph* ir_graph)
 {
-    // printf("run into acl allocate!!!\n");
-    fprintf(stdout, "ACL initialized\n");
+    // TLOG_INFO("run into acl allocate!!!\n");
+    TLOG_INFO("ACL initialized\n");
 
     if(split_graph_node_to_sub_graph(ir_graph) < 0)
         return -1;

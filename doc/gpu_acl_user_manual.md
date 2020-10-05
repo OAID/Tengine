@@ -56,6 +56,18 @@ $ make install
 
 ## Demo
 
+#### Depned librarys
+
+```
+3rdparty/acl/lib/
+├── libarm_compute.so
+├── libarm_compute_core.so
+└── libarm_compute_graph.so
+
+build-acl-arm64/install/lib/
+└── libtengine-lite.so
+```
+
 #### Set env
 
 Enable GPU FP16 mode
@@ -70,10 +82,10 @@ export ACL_NHWC=1
 
 ```bash
 [root@localhost tengine-lite]# ./tm_mssd_acl -m mssd.tmfile -i ssd_dog.jpg -t 1 -r 10
-tengine-lite library version: 0.2-dev
-run into rep_str
-run into acl allocate!!!
-ACL initialized
+start to run register cpu allocator
+start to run register acl allocator
+tengine-lite library version: 1.0-dev
+run into gpu by acl
 Repeat 10 times, thread 2, avg time 82.32 ms, max_time 135.70 ms, min_time 74.10 ms
 --------------------------------------
 detect result num: 3 

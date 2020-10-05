@@ -100,12 +100,12 @@ void show_usage()
 int main(int argc, char* argv[])
 {
     int repeat_count = DEFAULT_REPEAT_COUNT;
-    int num_thread   = DEFAULT_THREAD_COUNT;
-    char* model_file = "models/mssd.tmfile";
-    char* image_file = "images/ssd_dog.jpg";
+    int num_thread = DEFAULT_THREAD_COUNT;
+    char* model_file = NULL;
+    char* image_file = NULL;
     int img_h = 300;
     int img_w = 300;
-    float mean[3]  = {127.5f, 127.5f, 127.5f};
+    float mean[3] = {127.5f, 127.5f, 127.5f};
     float scale[3] = {0.007843f, 0.007843f, 0.007843f};
     float show_threshold = 0.5f;
 
@@ -152,16 +152,22 @@ int main(int argc, char* argv[])
     if (!check_file_exist(model_file) || !check_file_exist(image_file))
         return -1;
 
+    /* set runtime options */
+    struct options opt;
+    opt.num_thread = num_thread;
+    opt.cluster = TENGINE_CLUSTER_ALL;
+    opt.precision = TENGINE_MODE_FP32;        
+
     /* inital tengine */
     init_tengine();
     fprintf(stderr, "tengine-lite library version: %s\n", get_tengine_version());
 
     /* create graph, load tengine model xxx.tmfile */
     graph_t graph;
-    const char * rep_str=getenv("ACL");
-    if(rep_str)
+    const char *rep_str = getenv("ACL");
+    if (rep_str)
     {
-        printf("run into rep_str\n");
+        fprintf(stderr, "run into gpu by acl\n");
 	    context_t acl_context = create_context("ACL", 1);
         add_context_device(acl_context, "ACL");
         graph = create_graph(acl_context, "tengine", model_file);
@@ -169,9 +175,9 @@ int main(int argc, char* argv[])
     }
     else
     {
+        fprintf(stderr, "run into cpu by default\n");
         graph = create_graph(NULL, "tengine", model_file);
     }
-
 
     if (graph == NULL)
     {
@@ -198,7 +204,14 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    if (prerun_graph(graph) < 0)
+    if (set_tensor_buffer(input_tensor, input_data, img_size * 4) < 0)
+    {
+        fprintf(stderr, "Set input tensor buffer failed\n");
+        return -1;
+    }    
+
+    /* prerun graph, set work options(num_thread, cluster, precision) */
+    if (prerun_graph_multithread(graph, opt) < 0)
     {
         fprintf(stderr, "Prerun graph failed\n");
         return -1;
@@ -206,11 +219,6 @@ int main(int argc, char* argv[])
 
     /* prepare process input data, set the data mem to input tensor */
     get_input_data(image_file, input_data, img_h, img_w, mean, scale);
-    if (set_tensor_buffer(input_tensor, input_data, img_size * 4) < 0)
-    {
-        fprintf(stderr, "Set input tensor buffer failed\n");
-        return -1;
-    }
 
     /* run graph */
     double min_time = __DBL_MAX__;
@@ -245,8 +253,6 @@ int main(int argc, char* argv[])
 
     /* release tengine */
     free(input_data);
-    release_graph_tensor(input_tensor);
-    release_graph_tensor(output_tensor);
     postrun_graph(graph);
     destroy_graph(graph);
     release_tengine();
