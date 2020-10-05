@@ -127,7 +127,7 @@ void depthwise_conv_k5s2(float* input_buf, float* weight_buf, float* bias, float
     int mid_w = output_w - 2;
     int mid_w_block = mid_w & -4;
 
-#pragma omp parallel for num_threads(num_thread)
+// #pragma omp parallel for num_threads(num_thread)
     for (int c = 0; c < channel; c++)
     {
         int w, h;
