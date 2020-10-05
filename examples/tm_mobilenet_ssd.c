@@ -154,8 +154,8 @@ int main(int argc, char* argv[])
 
     /* set runtime options */
     struct options opt;
-    opt.num_thread = 1;
-    opt.cluster = TENGINE_CLUSTER_LITTLE;
+    opt.num_thread = num_thread;
+    opt.cluster = TENGINE_CLUSTER_ALL;
     opt.precision = TENGINE_MODE_FP32;
 
     /* inital tengine */
@@ -189,6 +189,13 @@ int main(int argc, char* argv[])
         return -1;
     }
 
+    if (set_tensor_buffer(input_tensor, input_data, img_size * 4) < 0)
+    {
+        fprintf(stderr, "Set input tensor buffer failed\n");
+        return -1;
+    }    
+
+    /* prerun graph, set work options(num_thread, cluster, precision) */
     if (prerun_graph_multithread(graph, opt) < 0)
     {
         fprintf(stderr, "Prerun graph failed\n");
@@ -197,11 +204,6 @@ int main(int argc, char* argv[])
 
     /* prepare process input data, set the data mem to input tensor */
     get_input_data(image_file, input_data, img_h, img_w, mean, scale);
-    if (set_tensor_buffer(input_tensor, input_data, img_size * 4) < 0)
-    {
-        fprintf(stderr, "Set input tensor buffer failed\n");
-        return -1;
-    }
 
     /* run graph */
     double min_time = __DBL_MAX__;
@@ -236,8 +238,6 @@ int main(int argc, char* argv[])
 
     /* release tengine */
     free(input_data);
-    release_graph_tensor(input_tensor);
-    release_graph_tensor(output_tensor);
     postrun_graph(graph);
     destroy_graph(graph);
     release_tengine();

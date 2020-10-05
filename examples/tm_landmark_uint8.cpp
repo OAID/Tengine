@@ -116,8 +116,8 @@ int main(int argc, char* argv[])
 
     /* set runtime options */
     struct options opt;
-    opt.num_thread = 1;
-    opt.cluster = TENGINE_CLUSTER_LITTLE;
+    opt.num_thread = num_thread;
+    opt.cluster = TENGINE_CLUSTER_ALL;
     opt.precision = TENGINE_MODE_UINT8;
 
     /* inital tengine */
