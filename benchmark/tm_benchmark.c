@@ -197,6 +197,7 @@ int main(int argc, char* argv[])
             break;
         case 3:
             opt.cluster = TENGINE_CLUSTER_LITTLE;
+            break;
         default:
             opt.cluster = 0;
     }

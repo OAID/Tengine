@@ -50,3 +50,6 @@ build*/
 # IDE
 .vs
 .vscode
+
+# 3rd party files depend on ACL
+3rdparty/

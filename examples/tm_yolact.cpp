@@ -222,7 +222,7 @@ static int detect_yolact(const cv::Mat& bgr, std::vector<Object>& objects, const
     /* set runtime options */
     struct options opt;
     opt.num_thread = num_thread;
-    opt.cluster = TENGINE_CLUSTER_LITTLE;
+    opt.cluster = TENGINE_CLUSTER_ALL;
     opt.precision = TENGINE_MODE_FP32;
 
     /* inital tengine */
