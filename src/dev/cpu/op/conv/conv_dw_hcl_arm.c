@@ -134,6 +134,9 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
 	if (kernel_h == 7 && kernel_w == 7 && stride_h == 1 && stride_w == 1)    // this is a bug, todo fix it.
         return 0;
 
+    if (kernel_h == 2 && kernel_w == 2)    // this is a bug, todo fix it.
+        return 0;
+
     if (param->group > 1 && in_c == 1 && out_c == 1 && pad_h0 == pad_h1 && pad_w0 == pad_w1) // caution this, todo fix.
         return OPS_SCORE_BEST;
     else
