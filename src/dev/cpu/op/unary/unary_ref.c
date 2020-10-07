@@ -153,6 +153,156 @@ static int ref_unary_fp32(struct ir_tensor* input_tensor, struct ir_tensor* outp
     return 0;
 }
 
+static int ref_unary_uint8(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, struct unary_param* param,
+                          int num_thread)
+{
+    /* dequant */
+    uint8_t* input_uint8 = input_tensor->data;
+    uint8_t* output_uint8 = output_tensor->data;
+    float input_scale = input_tensor->scale;
+    float output_scale = output_tensor->scale;
+    int32_t input_zero = input_tensor->zero_point;
+    int32_t output_zero = output_tensor->zero_point;
+    int input_size = input_tensor->elem_num;
+    int output_size = output_tensor->elem_num;
+
+    float* in_data = ( float* )sys_malloc(input_size * sizeof(float));
+    float* out_data = ( float* )sys_malloc(output_size * sizeof(float));
+
+    for (int i = 0; i < input_size; i++)
+    {
+        in_data[i] = (( float )input_uint8[i] - ( float )input_zero) * input_scale;
+    }
+
+    int size = input_tensor->elem_num;
+
+    int type = param->type;
+
+    switch (type)
+    {
+        case 0:
+            for (int i = 0; i < size; i++)
+            {
+                out_data[i] = fabs(in_data[i]);
+            }
+            break;
+        case 1:
+            for (int i = 0; i < size; i++)
+            {
+                out_data[i] = -(in_data[i]);
+            }
+            break;
+        case 2:
+            for (int i = 0; i < size; i++)
+            {
+                out_data[i] = floor(in_data[i]);
+            }
+            break;
+        case 3:
+            for (int i = 0; i < size; i++)
+            {
+                out_data[i] = ceil(in_data[i]);
+            }
+            break;
+        case 4:
+            for (int i = 0; i < size; i++)
+            {
+                out_data[i] = in_data[i] * in_data[i];
+            }
+            break;
+        case 5:
+            for (int i = 0; i < size; i++)
+            {
+                out_data[i] = sqrt(in_data[i]);
+            }
+            break;
+        case 6:
+            for (int i = 0; i < size; i++)
+            {
+                out_data[i] = 1.f / sqrt(in_data[i]);
+            }
+            break;
+        case 7:
+            for (int i = 0; i < size; i++)
+            {
+                out_data[i] = exp(in_data[i]);
+            }
+            break;
+        case 8:
+            for (int i = 0; i < size; i++)
+            {
+                out_data[i] = log(in_data[i]);
+            }
+            break;
+        case 9:
+            for (int i = 0; i < size; i++)
+            {
+                out_data[i] = sin(in_data[i]);
+            }
+            break;
+        case 10:
+            for (int i = 0; i < size; i++)
+            {
+                out_data[i] = cos(in_data[i]);
+            }
+            break;
+        case 11:
+            for (int i = 0; i < size; i++)
+            {
+                out_data[i] = tan(in_data[i]);
+            }
+            break;
+        case 12:
+            for (int i = 0; i < size; i++)
+            {
+                out_data[i] = asin(in_data[i]);
+            }
+            break;
+        case 13:
+            for (int i = 0; i < size; i++)
+            {
+                out_data[i] = acos(in_data[i]);
+            }
+            break;
+        case 14:
+            for (int i = 0; i < size; i++)
+            {
+                out_data[i] = atan(in_data[i]);
+            }
+            break;
+        case 15:
+            for (int i = 0; i < size; i++)
+            {
+                out_data[i] = 1.f / (in_data[i]);
+            }
+            break;
+        case 16:
+            for (int i = 0; i < size; i++)
+            {
+                out_data[i] = tanh(in_data[i]);
+            }
+            break;
+        default:
+            break;
+    }
+
+    /* quant */
+    for (int i = 0; i < output_size; i++)
+    {
+        int udata = round(out_data[i] / output_scale + output_zero);
+        if (udata > 255)
+            udata = 255;
+        else if (udata < 0)
+            udata = 0;
+        output_uint8[i] = udata;
+    }
+
+    sys_free(in_data);
+    sys_free(out_data);
+
+    return 0;
+}
+
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     return 0;
@@ -174,9 +324,13 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
     struct unary_param* unary_param = ( struct unary_param* )ir_node->op.param_mem;
 
-    ref_unary_fp32(input_tensor, output_tensor, unary_param, exec_graph->num_thread);
+	int ret = -1;
+    if (input_tensor->data_type == TENGINE_DT_FP32)
+        ret = ref_unary_fp32(input_tensor, output_tensor, unary_param, exec_graph->num_thread);
+    else if(input_tensor->data_type == TENGINE_DT_UINT8)
+        ret = ref_unary_uint8(input_tensor, output_tensor, unary_param, exec_graph->num_thread);
 
-    return 0;
+    return ret;
 }
 
 static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struct ir_node* exec_node)

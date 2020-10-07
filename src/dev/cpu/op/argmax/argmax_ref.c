@@ -20,6 +20,7 @@
 /*
  * Copyright (c) 2020, OPEN AI LAB
  * Author: jjzeng@openailab.com
+ * Update: hhchen@openailab.com
  */
 
 #include <math.h>
@@ -46,6 +47,38 @@ static int ref_argmax_fp32(float* input, int* output, const struct argmax_op_par
     float max_value;
     int max_value_index;
     float current;
+
+    int axis_size = param->axis_size;
+    int outer_size = param->outer_size;
+    int inner_size = param->inner_size;
+
+    for (int outer = 0; outer < outer_size; ++outer)
+    {
+        for (int inner = 0; inner < inner_size; ++inner)
+        {
+            max_value = input[outer * axis_size * inner_size + inner];
+            max_value_index = 0;
+            for (int i = 1; i < axis_size; ++i)
+            {
+                current = input[(outer * axis_size + i) * inner_size + inner];
+                if (current > max_value)
+                {
+                    max_value = current;
+                    max_value_index = i;
+                }
+            }
+            output[outer * inner_size + inner] = max_value_index;
+        }
+    }
+
+    return 0;
+}
+
+static int ref_argmax_uint8(uint8_t* input, int* output, const struct argmax_op_param* param)
+{
+    uint8_t max_value;
+    int max_value_index;
+    uint8_t current;
 
     int axis_size = param->axis_size;
     int outer_size = param->outer_size;
@@ -142,7 +175,10 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     fprintf(stderr, "output_tensor->elem_num:%d\n", output_tensor->elem_num);
     fprintf(stderr, "output_tensor->elem_size:%d\n", output_tensor->elem_size);
 
-    ref_argmax_fp32(( float* )in_data, out_data, argmax_op_param);
+    if (input_tensor->data_type == TENGINE_DT_FP32)
+        ref_argmax_fp32(( float* )in_data, out_data, argmax_op_param);
+    else if(input_tensor->data_type == TENGINE_DT_UINT8)
+        ref_argmax_uint8(( uint8_t* )in_data, out_data, argmax_op_param);
 
     return 0;
 }

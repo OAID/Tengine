@@ -19,7 +19,7 @@
 
 /*
  * Copyright (c) 2020, OPEN AI LAB
- * Author: chh@openailab.com
+ * Author: hhchen@openailab.com
  */
 
 #include "sys_port.h"
@@ -37,6 +37,118 @@ static int ref_crop_fp32(struct ir_tensor* input_tensor, struct ir_tensor* outpu
 {
     float* input = input_tensor->data;
     float* output = output_tensor->data;
+
+    int iDataC = input_tensor->dims[1];
+    int iDataH = input_tensor->dims[2];
+    int iDataW = input_tensor->dims[3];
+
+    int oDataN = output_tensor->dims[0];
+    int oDataC = output_tensor->dims[1];
+    int oDataH = output_tensor->dims[2];
+    int oDataW = output_tensor->dims[3];
+
+    // MXNet
+    if (param->flag == 1)
+    {
+        if (param->num_args == 1)
+        {
+            int offsetH = (iDataH - param->crop_h) / 2;
+            int offsetW = (iDataW - param->crop_w) / 2;
+            if ((param->offset_h + oDataH <= iDataH) && (param->offset_w + oDataW <= iDataW))
+            {
+                for (int n = 0; n < oDataN; n++)
+                {
+                    for (int c = 0; c < oDataC; c++)
+                    {
+                        for (int h = 0; h < oDataH; h++)
+                        {
+                            int i_h = h + offsetH;
+                            for (int w = 0; w < oDataW; w++)
+                            {
+                                int i_w = w + offsetW;
+                                output[n * oDataC * oDataH * oDataW + c * oDataH * oDataW + h * oDataW + w] =
+                                    input[n * iDataC * iDataH * iDataW + c * iDataH * iDataW + i_h * iDataW + i_w];
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (param->num_args == 2)
+        {
+            if ((param->offset_h + oDataH <= iDataH) && (param->offset_w + oDataW <= iDataW))
+            {
+                for (int n = 0; n < oDataN; n++)
+                {
+                    for (int c = 0; c < oDataC; c++)
+                    {
+                        for (int h = 0; h < oDataH; h++)
+                        {
+                            int i_h = h + param->offset_h;
+                            for (int w = 0; w < oDataW; w++)
+                            {
+                                int i_w = w + param->offset_w;
+                                output[n * oDataC * oDataH * oDataW + c * oDataH * oDataW + h * oDataW + w] =
+                                    input[n * iDataC * iDataH * iDataW + c * iDataH * iDataW + i_h * iDataW + i_w];
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    // Caffe
+    if (param->flag == 0)
+    {
+        if (param->axis == 1)
+        {
+            for (int n = 0; n < oDataN; n++)
+            {
+                for (int c = 0; c < oDataC; c++)
+                {
+                    int i_c = param->offset_c + c;
+                    for (int h = 0; h < oDataH; h++)
+                    {
+                        int i_h = param->offset_h + h;
+                        for (int w = 0; w < oDataW; w++)
+                        {
+                            int i_w = param->offset_w + w;
+                            output[n * oDataC * oDataH * oDataW + c * oDataH * oDataW + h * oDataW + w] =
+                                input[n * iDataC * iDataH * iDataW + i_c * iDataH * iDataW + i_h * iDataW + i_w];
+                        }
+                    }
+                }
+            }
+        }
+        if (param->axis == 2)
+        {
+            for (int n = 0; n < oDataN; n++)
+            {
+                for (int c = 0; c < oDataC; c++)
+                {
+                    for (int h = 0; h < oDataH; h++)
+                    {
+                        int i_h = param->offset_h + h;
+                        for (int w = 0; w < oDataW; w++)
+                        {
+                            int i_w = param->offset_w + w;
+                            output[n * oDataC * oDataH * oDataW + c * oDataH * oDataW + h * oDataW + w] =
+                                input[n * iDataC * iDataH * iDataW + c * iDataH * iDataW + i_h * iDataW + i_w];
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return 0;
+}
+
+static int ref_crop_uint8(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, struct crop_param* param,
+                         int num_thread)
+{
+    uint8_t* input = input_tensor->data;
+    uint8_t* output = output_tensor->data;
 
     int iDataC = input_tensor->dims[1];
     int iDataH = input_tensor->dims[2];
@@ -165,7 +277,10 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
     struct crop_param* crop_param = ( struct crop_param* )ir_node->op.param_mem;
 
-    ref_crop_fp32(input_tensor, output_tensor, crop_param, exec_graph->num_thread);
+    if (input_tensor->data_type == TENGINE_DT_FP32)
+        ref_crop_fp32(input_tensor, output_tensor, crop_param, exec_graph->num_thread);
+    else if(input_tensor->data_type == TENGINE_DT_UINT8)
+        ref_crop_uint8(input_tensor, output_tensor, crop_param, exec_graph->num_thread);
 
     return 0;
 }

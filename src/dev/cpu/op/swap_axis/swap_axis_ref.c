@@ -19,7 +19,7 @@
 
 /*
  * Copyright (c) 2020, OPEN AI LAB
- * Author: jxyang@openailab.com
+ * Author: hhchen@openailab.com
  */
 
 #include <math.h>
@@ -32,8 +32,11 @@
 #include "tengine_op.h"
 #include "swap_axis_param.h"
 
-static int ref_swap_axis_common(const float* in_data, float* out_data, const int* dims, int element_size)
+static int ref_swap_axis_common(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, const int* dims, int element_size)
 {
+    const float* in_data = ( float* )input_tensor->data;
+    float* out_data = ( float* )output_tensor->data;
+
     for (int i = 0; i < dims[0]; i++)
         for (int j = 0; j < dims[3]; j++)
             for (int p = 0; p < dims[2]; p++)
@@ -48,6 +51,27 @@ static int ref_swap_axis_common(const float* in_data, float* out_data, const int
                 }
     return 0;
 }
+
+static int ref_swap_axis_uint8(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, const int* dims, int element_size)
+{
+    const uint8_t* in_data = ( uint8_t* )input_tensor->data;
+    uint8_t* out_data = ( uint8_t* )output_tensor->data;
+
+    for (int i = 0; i < dims[0]; i++)
+        for (int j = 0; j < dims[3]; j++)
+            for (int p = 0; p < dims[2]; p++)
+                for (int q = 0; q < dims[1]; q++)
+                {
+                    int out_index = i * dims[1] * dims[2] * dims[3] * dims[4] + j * dims[2] * dims[1] * dims[4] +
+                                    p * dims[1] * dims[4] + q * dims[4];
+                    int in_index = i * dims[1] * dims[2] * dims[3] * dims[4] + q * dims[2] * dims[3] * dims[4] +
+                                   p * dims[3] * dims[4] + j * dims[4];
+                    memcpy(out_data + out_index * element_size, in_data + in_index * element_size,
+                           dims[4] * element_size);
+                }
+    return 0;
+}
+
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     return 0;
@@ -97,12 +121,13 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     for (int i = dim1 + 1; i < in_size; i++)
         dims[4] *= input_tensor->dims[i];
 
-    float* input_org = ( float* )input_tensor->data;
-    float* output_org = ( float* )output_tensor->data;
+	int ret = -1;
+    if (input_tensor->data_type == TENGINE_DT_FP32)
+        ret = ref_swap_axis_common(input_tensor, output_tensor, dims, sizeof(float));
+    else if(input_tensor->data_type == TENGINE_DT_UINT8)
+        ret = ref_swap_axis_uint8(input_tensor, output_tensor, dims, sizeof(uint8_t));
 
-    if (ref_swap_axis_common(input_org, output_org, dims, sizeof(float)))
-        return -1;
-    return 0;
+    return ret;
 }
 
 static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struct ir_node* exec_node)

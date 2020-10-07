@@ -32,6 +32,62 @@
 #include "tengine_op.h"
 #include "split_param.h"
 
+int ref_split_fp32(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, struct split_param* split_param, int* slice_index, int num_slices, int slice_size, int in_slice, int slice_axis)
+{
+    float* input_data = input_tensor->data;
+    float* output_data = output_tensor->data;
+
+    if (split_param->is_caffe)
+    {
+        memcpy(output_data, input_data, input_tensor->elem_num * sizeof(float));
+    }
+    else
+    {
+        int out_slice = 0;
+
+        out_slice = output_tensor->dims[slice_axis];
+
+        for (int n = 0; n < num_slices; n++)
+        {
+            int in_offset = (n * in_slice + *slice_index) * slice_size;
+            int out_offset = n * out_slice * slice_size;
+            memcpy(output_data + out_offset, input_data + in_offset, slice_size * out_slice * sizeof(float));
+        }
+
+        *slice_index += out_slice;
+    }
+	
+	return 0;
+}
+
+int ref_split_uint8(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, struct split_param* split_param, int* slice_index, int num_slices, int slice_size, int in_slice, int slice_axis)
+{
+    uint8_t* input_data = input_tensor->data;
+    uint8_t* output_data = output_tensor->data;
+
+    if (split_param->is_caffe)
+    {
+        memcpy(output_data, input_data, input_tensor->elem_num * sizeof(uint8_t));
+    }
+    else
+    {
+        int out_slice = 0;
+
+        out_slice = output_tensor->dims[slice_axis];
+
+        for (int n = 0; n < num_slices; n++)
+        {
+            int in_offset = (n * in_slice + *slice_index) * slice_size;
+            int out_offset = n * out_slice * slice_size;
+            memcpy(output_data + out_offset, input_data + in_offset, slice_size * out_slice * sizeof(uint8_t));
+        }
+
+        *slice_index += out_slice;
+    }
+	
+	return 0;
+}
+
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     return 0;
@@ -73,34 +129,18 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     int slice_index = 0;
     int out_num = ir_node->output_num;
 
+	int ret = -1;
     for (int i = 0; i < out_num; i++)
     {
         struct ir_tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[i]);
-        float* input_data = input_tensor->data;
-        float* output_data = output_tensor->data;
-
-        if (split_param->is_caffe)
-        {
-            memcpy(output_data, input_data, input_tensor->elem_num * sizeof(float));
-        }
-        else
-        {
-            int out_slice = 0;
-
-            out_slice = output_tensor->dims[slice_axis];
-
-            for (int n = 0; n < num_slices; n++)
-            {
-                int in_offset = (n * in_slice + slice_index) * slice_size;
-                int out_offset = n * out_slice * slice_size;
-                memcpy(output_data + out_offset, input_data + in_offset, slice_size * out_slice * sizeof(float));
-            }
-
-            slice_index += out_slice;
-        }
+        
+        if (input_tensor->data_type == TENGINE_DT_FP32)
+            ret = ref_split_fp32(input_tensor, output_tensor, split_param, &slice_index, num_slices, slice_size, in_slice, slice_axis);
+       	else if(input_tensor->data_type == TENGINE_DT_UINT8)
+           	ret = ref_split_uint8(input_tensor, output_tensor, split_param, &slice_index, num_slices, slice_size, in_slice, slice_axis);
     }
 
-    return 0;
+    return ret;
 }
 
 static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struct ir_node* exec_node)

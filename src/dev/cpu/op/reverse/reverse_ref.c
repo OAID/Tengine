@@ -130,6 +130,99 @@ int ref_reverse_fp32(void* input, void* input_axis, void* output, const struct r
     return 0;
 }
 
+int ref_reverse_uint8(void* input, void* input_axis, void* output, const struct reverse_param* param, int num_thread)
+{
+    uint8_t* out_ptr = output;
+    uint8_t* in_ptr = input;
+    int* axis_ptr = input_axis;
+    int axis = axis_ptr[0];
+
+    int in_w = param->in_shape[3];
+    int in_hw = param->in_shape[2] * in_w;
+    int in_chw = param->in_shape[1] * in_hw;
+
+    if (param->dim_size == 4)
+    {
+        if (axis == 0 || axis == -4)
+        {
+            for (int i = 0; i < param->in_shape[0]; i++)
+            {
+                for (int j = 0; j < param->in_shape[1]; j++)
+                {
+                    for (int y = 0; y < param->in_shape[2]; y++)
+                    {
+                        for (int x = 0; x < param->in_shape[3]; x++)
+                        {
+                            out_ptr[i * in_chw + j * in_hw + y * in_w + x] =
+                                in_ptr[(param->in_shape[0] - 1 - i) * in_chw + j * in_hw + y * in_w + x];
+                        }
+                    }
+                }
+            }
+        }
+
+        else if (axis == 1 || axis == -3)
+        {
+            for (int i = 0; i < param->in_shape[0]; i++)
+            {
+                for (int j = 0; j < param->in_shape[1]; j++)
+                {
+                    for (int y = 0; y < param->in_shape[2]; y++)
+                    {
+                        for (int x = 0; x < param->in_shape[3]; x++)
+                        {
+                            out_ptr[i * in_chw + j * in_hw + y * in_w + x] =
+                                in_ptr[i * in_chw + (param->in_shape[1] - 1 - j) * in_hw + y * in_w + x];
+                        }
+                    }
+                }
+            }
+        }
+
+        else if (axis == 2 || axis == -2)
+        {
+            for (int i = 0; i < param->in_shape[0]; i++)
+            {
+                for (int j = 0; j < param->in_shape[1]; j++)
+                {
+                    for (int y = 0; y < param->in_shape[2]; y++)
+                    {
+                        for (int x = 0; x < param->in_shape[3]; x++)
+                        {
+                            out_ptr[i * in_chw + j * in_hw + y * in_w + x] =
+                                in_ptr[i * in_chw + j * in_hw + (param->in_shape[2] - 1 - y) * in_w + x];
+                        }
+                    }
+                }
+            }
+        }
+
+        else if (axis == 3 || axis == -1)
+        {
+            for (int i = 0; i < param->in_shape[0]; i++)
+            {
+                for (int j = 0; j < param->in_shape[1]; j++)
+                {
+                    for (int y = 0; y < param->in_shape[2]; y++)
+                    {
+                        for (int x = 0; x < param->in_shape[3]; x++)
+                        {
+                            out_ptr[i * in_chw + j * in_hw + y * in_w + x] =
+                                in_ptr[i * in_chw + j * in_hw + y * in_w + (param->in_shape[3] - 1 - x)];
+                        }
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        return -1;
+    }
+
+    return 0;
+}
+
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     return 0;
@@ -166,12 +259,15 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         reverse_param.in_shape[i] = input_tensor->dims[i];
     }
 
-    int ret = ref_reverse_fp32(input_tensor->data, axis_tensor->data, output_tensor->data, &reverse_param,
+    int ret = -1;
+    if (input_tensor->data_type == TENGINE_DT_FP32)
+        ret = ref_reverse_fp32(input_tensor->data, axis_tensor->data, output_tensor->data, &reverse_param,
                                exec_graph->num_thread);
-    if (ret != 0)
-        return -1;
+    else if(input_tensor->data_type == TENGINE_DT_UINT8)
+        ret = ref_reverse_uint8(input_tensor->data, axis_tensor->data, output_tensor->data, &reverse_param,
+                               exec_graph->num_thread);
 
-    return 0;
+    return ret;
 }
 
 static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struct ir_node* exec_node)
