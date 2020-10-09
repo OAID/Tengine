@@ -241,10 +241,10 @@ static int onnx_run(const int8_t* in_data, int8_t** out_data, int element_size, 
         int start_1 = (param->axis == 1) ? param->begin : 0;
         int start_2 = (param->axis == 2) ? param->begin : 0;
         int start_3 = (param->axis == 3) ? param->begin : 0;
-        int stop_0 = (param->axis == 0) ? param->in_shape[0] + param->end : param->in_shape[0];
-        int stop_1 = (param->axis == 1) ? param->in_shape[1] + param->end : param->in_shape[1];
-        int stop_2 = (param->axis == 2) ? param->in_shape[2] + param->end : param->in_shape[2];
-        int stop_3 = (param->axis == 3) ? param->in_shape[3] + param->end : param->in_shape[3];
+        int stop_0 = (param->axis == 0) ? param->end : param->in_shape[0];
+        int stop_1 = (param->axis == 1) ? param->end : param->in_shape[1];
+        int stop_2 = (param->axis == 2) ? param->end : param->in_shape[2];
+        int stop_3 = (param->axis == 3) ? param->end : param->in_shape[3];
 
         for (int n = start_0; n < stop_0; ++n)
         {
@@ -252,7 +252,7 @@ static int onnx_run(const int8_t* in_data, int8_t** out_data, int element_size, 
             {
                 for (int j = start_2; j < stop_2; ++j)
                 {
-                    int len = start_3 - stop_3;
+                    int len = stop_3 - start_3;
                     int input_off =
                         n * in_dim_1 * in_dim_2 * in_dim_3 + i * in_dim_2 * in_dim_3 + j * in_dim_3 + start_3;
                     memcpy(output, input + input_off * element_size, len * element_size);
@@ -273,9 +273,9 @@ static int onnx_run(const int8_t* in_data, int8_t** out_data, int element_size, 
         int start_2 = (param->axis == 2) ? param->begin : 0;
 
         // int start_3=(param->axis==3)? param->begin:0;
-        int stop_0 = (param->axis == 0) ? param->in_shape[0] + param->end : param->in_shape_3[0];
-        int stop_1 = (param->axis == 1) ? param->in_shape[1] + param->end : param->in_shape_3[1];
-        int stop_2 = (param->axis == 2) ? param->in_shape[2] + param->end : param->in_shape_3[2];
+        int stop_0 = (param->axis == 0) ? param->end : param->in_shape_3[0];
+        int stop_1 = (param->axis == 1) ? param->end : param->in_shape_3[1];
+        int stop_2 = (param->axis == 2) ? param->end : param->in_shape_3[2];
         // int stop_3=(param->axis==3)? param->end:param->in_shape[3];
 
         for (int n = start_0; n < stop_0; ++n)
@@ -299,8 +299,8 @@ static int onnx_run(const int8_t* in_data, int8_t** out_data, int element_size, 
         int start_1 = (param->axis == 1) ? param->begin : 0;
 
         // int start_3=(param->axis==3)? param->begin:0;
-        int stop_0 = (param->axis == 0) ? param->in_shape[0] + param->end : param->in_shape_2[0];
-        int stop_1 = (param->axis == 1) ? param->in_shape[1] + param->end : param->in_shape_2[1];
+        int stop_0 = (param->axis == 0) ? param->end : param->in_shape_2[0];
+        int stop_1 = (param->axis == 1) ? param->end : param->in_shape_2[1];
         // int stop_3=(param->axis==3)? param->end:param->in_shape[3];
 
         for (int n = start_0; n < stop_0; ++n)
