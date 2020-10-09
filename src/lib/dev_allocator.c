@@ -28,6 +28,7 @@
 #include "sys_port.h"
 #include "vector.h"
 #include "tengine_ir.h"
+#include "tengine_log.h"
 #include "tengine_exec.h"
 
 #include "dev_allocator.h"
@@ -44,6 +45,8 @@ int init_allocator_registry(struct dev_allocator* allocator)
         allocator_vector = create_vector(sizeof(struct dev_allocator), NULL);
         allocator_vector_created = 1;
     }
+
+    // TLOG_INFO("Tengine: Allocator(%s) is inited.\n", allocator->name);
 
     if (allocator_vector == NULL)
         return -1;
@@ -69,6 +72,8 @@ struct dev_allocator* get_default_dev_allocator(void)
             return allocator;
         }
     }
+
+    return NULL;
 }
 
 struct dev_allocator* get_dev_allocator(const char* dev_name)

@@ -34,14 +34,131 @@
 
 #define INTERP_MIN(a, b) ((a) < (b) ? (a) : (b))
 
-int ref_interp_fp32(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, struct interp_param* param)
+void linear_coeffs(int w, int outw, int* xofs, float* alpha)
 {
-    if (input_tensor->dim_num != 4)
+    double scale = ( double )w / outw;
+
+    for(int dx = 0; dx < outw; dx++)
     {
-        printf("interp dim num is not 4\n");
-        return -1;
+        float fx = ( float )((dx + 0.5) * scale - 0.5);
+        int sx = floor(fx);
+        fx -= sx;
+
+        if(sx < 0)
+        {
+            sx = 0;
+            fx = 0.f;
+        }
+        if(sx >= w - 1)
+        {
+            sx = w - 2;
+            fx = 1.f;
+        }
+
+        xofs[dx] = sx;
+
+        alpha[dx * 2] = 1.f - fx;
+        alpha[dx * 2 + 1] = fx;
+    }
+}
+
+void resize_bilinear_image(float* src, float* dst, float* alpha, int* xofs, float* beta, int* yofs, int out_h, int out_w, int in_h, int in_w)
+{
+    int w = out_w;  //dst.w;
+    int h = out_h;  //dst.h;
+
+    // loop body
+    float* rowsbuf0 = ( float* )sys_malloc(w * sizeof(float));
+    float* rowsbuf1 = ( float* )sys_malloc(w * sizeof(float));
+    float* rows0 = rowsbuf0;
+    float* rows1 = rowsbuf1;
+
+    memset(rowsbuf0, 0, w * sizeof(float));
+    memset(rowsbuf1, 0, w * sizeof(float));
+
+    int prev_sy1 = -2;
+    for (int dy = 0; dy < h; dy++ )
+    {
+        int sy = yofs[dy];
+
+        if (sy == prev_sy1)
+        {
+            // reuse all rows
+        }
+        else if (sy == prev_sy1 + 1)
+        {
+            // hresize one row
+            float* rows0_old = rows0;
+            rows0 = rows1;
+            rows1 = rows0_old;
+            const float* S1 = src + (sy+1)*in_w;   //src.row(sy+1);
+
+            const float* alphap = alpha;
+            float* rows1p = rows1;
+
+            for (int dx = 0; dx < w; dx++)
+            {
+                int sx = xofs[dx];
+                const float* S1p = S1 + sx;
+
+                float a0 = alphap[0];
+                float a1 = alphap[1];
+                rows1p[dx] = S1p[0]*a0 + S1p[1]*a1;
+
+                alphap += 2;
+            }
+        }
+        else
+        {
+            // hresize two rows
+            const float* S0 = src + sy*in_w;       //src.row(sy);
+            const float* S1 = src + (sy+1)*in_w;   //src.row(sy+1);
+
+            const float* alphap = alpha;
+            float* rows0p = rows0;
+            float* rows1p = rows1;
+
+            for (int dx = 0; dx < w; dx++)
+            {
+                int sx = xofs[dx];
+                const float* S0p = S0 + sx;
+                const float* S1p = S1 + sx;
+
+                float a0 = alphap[0];
+                float a1 = alphap[1];
+                rows0p[dx] = S0p[0]*a0 + S0p[1]*a1;
+                rows1p[dx] = S1p[0]*a0 + S1p[1]*a1;
+
+                alphap += 2;
+            }
+
+        }
+
+        prev_sy1 = sy;
+
+        // vresize
+        float b0 = beta[0];
+        float b1 = beta[1];
+
+        float* rows0p = rows0;
+        float* rows1p = rows1;
+        float* Dp = dst + dy * out_w; //dst.row(dy);
+
+        for (int dx = 0; dx < w; dx++)
+        {
+            float temp = *rows0p++ * b0 + *rows1p++ * b1;
+            *Dp++ = temp;
+        }
+
+        beta += 2;
     }
 
+    sys_free(rowsbuf0);
+    sys_free(rowsbuf1);
+}
+
+int ref_interp_fp32(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, struct interp_param* param)
+{
     float* input = input_tensor->data;
     float* output = output_tensor->data;
 
@@ -50,53 +167,34 @@ int ref_interp_fp32(struct ir_tensor* input_tensor, struct ir_tensor* output_ten
     int in_h = input_tensor->dims[2];
     int in_w = input_tensor->dims[3];
     int out_h = output_tensor->dims[2];
-    int out_w = output_tensor->dims[3];    
+    int out_w = output_tensor->dims[3];
 
-    for (int n = 0; n < batch; ++n) 
+    int in_channel_size = in_h * in_w;
+    int out_channel_size = out_h * out_w;
+
+    int* buf = sys_malloc((param->output_width + param->output_height + param->output_width*2 + param->output_height*2)*sizeof(float));
+
+    if (buf == NULL)
     {
-        for (int c = 0; c < channel; ++c) 
-        {
-            for (int y = 0; y < param->output_height; ++y) 
-            {
-                float in_y = INTERP_MIN(y / param->height_scale, (float)(in_h - 1));
-                const int in_y1 = INTERP_MIN((int)(in_y), in_h - 1);
-                const int in_y2 = INTERP_MIN(in_y1 + 1, in_h - 1);
-                float dy1 = fabs(in_y - in_y1);
-                float dy2 = fabs(in_y - in_y2);
-                if (in_y1 == in_y2) 
-                {
-                    dy1 = 0.5f;
-                    dy2 = 0.5f;
-                }
-
-                const int input_width_mul_y1 = in_w * in_y1;
-                const int input_width_mul_y2 = in_w * in_y2;
-
-                for (int x = 0; x < param->output_width; ++x) 
-                {
-                    float in_x = INTERP_MIN(x / param->width_scale, (float)(in_w - 1));
-                    const int in_x1 = INTERP_MIN((int)(in_x), in_w - 1);
-                    const int in_x2 = INTERP_MIN(in_x1 + 1, in_w - 1);
-
-                    float dx1 = fabs(in_x - in_x1);
-                    float dx2 = fabs(in_x - in_x2);
-                    if (in_x1 == in_x2) 
-                    {
-                        dx1 = 0.5f;
-                        dx2 = 0.5f;
-                    }
-
-                    float X11 = input[input_width_mul_y1 + in_x1];
-                    float X21 = input[input_width_mul_y1 + in_x2];
-                    float X12 = input[input_width_mul_y2 + in_x1];
-                    float X22 = input[input_width_mul_y2 + in_x2];
-                    output[param->output_width * y + x] = dx2 * dy2 * X11 +dx1 * dy2 * X21 +dx2 * dy1 * X12 +dx1 * dy1 * X22;
-                }
-            }
-            input += in_h * in_w;
-            output += param->output_width * param->output_height;
-        }
+        printf("interp malloc failed!\n");
+        return -1;
     }
+
+    int* xofs = buf;//new int[ow];
+    int* yofs = buf + param->output_width ;//new int[oh];
+
+    float* alpha = (float*)(buf + param->output_width  + param->output_height);//new float[ow * 2];
+    float* beta = (float*)(buf + param->output_width + param->output_height + param->output_width*2);//new float[oh * 2];
+
+    linear_coeffs(in_w, out_w, xofs, alpha);
+    linear_coeffs(in_h, out_h, yofs, beta);
+
+    for (int q = 0; q < channel; ++q)
+    {
+        resize_bilinear_image(input+in_channel_size*q, output+out_channel_size*q, alpha, xofs, beta, yofs, out_h, out_w, in_h, in_w);
+    }
+
+    sys_free(buf);
 
     return 0;
 }

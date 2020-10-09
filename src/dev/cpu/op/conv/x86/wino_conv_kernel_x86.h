@@ -19,14 +19,14 @@
 
 /*
  * Copyright (c) 2020, OPEN AI LAB
- * Author: haoluo@openailab.com
+ * Author: qwang@openailab.com
  */
 #ifndef __WINO_CONV_KERNEL_X86_H_
 #define __WINO_CONV_KERNEL_X86_H_
 
 #include "tengine_ir.h"
 #include "convolution_param.h"
-#include "../conv_hcl_kernel.h"
+#include "conv_kernel_x86.h"
 
 #if __SSE2__
 #include <emmintrin.h>

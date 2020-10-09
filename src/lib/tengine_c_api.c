@@ -46,12 +46,16 @@
 typedef const char* const_char_t;
 typedef void* void_ptr_t;
 
-#define TENGINE_LITE_VERSION "0.2"
-
-#ifdef CONFIG_VERSION_POSTFIX
 #define STR_VERSION2(a) #a
 #define STR_VERSION(a) STR_VERSION2(a)
 
+#ifdef TENGINE_LITE_VERSION
+static const char* tengine_lite_version = STR_VERSION(TENGINE_LITE_VERSION);
+#else
+static const char* tengine_lite_version = "1.0";
+#endif
+
+#ifdef CONFIG_VERSION_POSTFIX
 static const char* ver_postfix = STR_VERSION(CONFIG_VERSION_POSTFIX);
 #else
 static const char* ver_postfix = "dev";
@@ -139,7 +143,7 @@ const_char_t DLLEXPORT get_tengine_version(void)
 {
     static char buf[128];
 
-    snprintf(buf, 128, "%s-%s", TENGINE_LITE_VERSION, ver_postfix);
+    snprintf(buf, 128, "%s-%s", tengine_lite_version, ver_postfix);
 
     buf[127] = 0x0; /* save moving */
 
@@ -931,7 +935,7 @@ size_t DLLEXPORT get_cluster_affinity_mask(int cluster)
     return get_cluster_mask(cluster);
 }
 
- int set_graph_thread(graph_t graph, int cluster, int threads)
+int set_graph_thread(graph_t graph, int cluster, int threads)
 {
     check_cpu();
     size_t mask = get_cluster_mask(cluster);
@@ -1193,6 +1197,7 @@ int DLLEXPORT add_context_device(context_t context, const char* dev_name)
 
     if (dev == NULL)
     {
+        TLOG_ERR("not found device");
         set_tengine_errno(ENOENT);
         return -1;
     }
@@ -1225,7 +1230,12 @@ int DLLEXPORT add_context_device(context_t context, const char* dev_name)
 
     if (NULL != dev_allocator)
     {
+        TLOG_INFO("add dev allocator\n");
         exec_context->dev_allocator = dev_allocator;
+    }
+    else
+    {
+        TLOG_WARNING("dev allocator not found\n");
     }
 
     return 0;

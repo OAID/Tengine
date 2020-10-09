@@ -1457,6 +1457,107 @@ static void max_3x3s1_p1(const float* input, float* output, int inc, int inh, in
     }
 }
 
+static void avg_3x3s1_p1(const float* input, float* output, int inc, int inh, int inw, int outh, int outw, int k_h,
+                         int k_w, int s_h, int s_w, int pad_h0, int pad_w0, int pad_h1, int pad_w1, int is_caffe)
+{
+    //     fprintf(stderr, "avg_3x3s1_p1\n");
+    int in_hw = inw * inh;
+
+    int mid_w = inw - 2;
+    int mid_h = inh - 2;
+
+    for (int c = 0; c < inc; c++)
+    {
+        const float* line1 = input + c * in_hw;
+        const float* line2 = line1 + inw;
+
+        float* out_ptr = output + c * in_hw;
+
+        // h begin left----[line1+=0]-----------------------------------
+        if (is_caffe == 0)
+            *out_ptr = (line1[0] + line1[1] + line2[0] + line2[1]) * 0.25f;
+        else
+            *out_ptr = (line1[0] + line1[1] + line2[0] + line2[1]) * 0.11111111f;
+        out_ptr++;
+
+        // h begin center----[line1+=1]----------------------------------
+        for (int j = 0; j < mid_w; j++)
+        {
+            if (is_caffe == 0)
+                *out_ptr = (line1[0] + line1[1] + line1[2] + line2[0] + line2[1] + line2[2]) * 0.16666667f;
+            else
+                *out_ptr = (line1[0] + line1[1] + line1[2] + line2[0] + line2[1] + line2[2]) * 0.11111111f;
+            out_ptr++;
+            line1 += 1;
+            line2 += 1;
+        }
+        // h begin right----[line1+=2]-----------------------------------
+        if (is_caffe == 0)
+            *out_ptr = (line1[0] + line1[1] + line2[0] + line2[1]) * 0.25f;
+        else
+            *out_ptr = (line1[0] + line1[1] + line2[0] + line2[1]) * 0.11111111f;
+        out_ptr++;
+        line1 += 2;
+        line2 += 2;
+
+        // h center ---------------------------------------
+        const float* line0 = input + c * in_hw;
+
+        for (int i = 0; i < mid_h; i++)
+        {
+            // left
+            if (is_caffe == 0)
+                *out_ptr = (line0[0] + line0[1] + line1[0] + line1[1] + line2[0] + line2[1]) * 0.16666667f;
+            else
+                *out_ptr = (line0[0] + line0[1] + line1[0] + line1[1] + line2[0] + line2[1]) * 0.11111111f;
+            out_ptr++;
+
+            // mid
+            for (int j = 0; j < mid_w; j++)
+            {
+                *out_ptr =
+                    (line0[0] + line0[1] + line0[2] + line1[0] + line1[1] + line1[2] + line2[0] + line2[1] + line2[2]) *
+                    0.11111111f;
+                out_ptr++;
+                line0 += 1;
+                line1 += 1;
+                line2 += 1;
+            }
+            if (is_caffe == 0)
+                *out_ptr = (line0[0] + line0[1] + line1[0] + line1[1] + line2[0] + line2[1]) * 0.16666667f;
+            else
+                *out_ptr = (line0[0] + line0[1] + line1[0] + line1[1] + line2[0] + line2[1]) * 0.11111111f;
+            out_ptr++;
+            line0 += 2;
+            line1 += 2;
+            line2 += 2;
+        }
+
+        // h end ------------------------------------------
+        if (is_caffe == 0)
+            *out_ptr = (line0[0] + line0[1] + line1[0] + line1[1]) * 0.25f;
+        else
+            *out_ptr = (line0[0] + line0[1] + line1[0] + line1[1]) * 0.11111111f;
+        out_ptr++;
+
+        for (int j = 0; j < mid_w; j++)
+        {
+            if (is_caffe == 0)
+                *out_ptr = (line0[0] + line0[1] + line0[2] + line1[0] + line1[1] + line1[2]) * 0.16666667f;
+            else
+                *out_ptr = (line0[0] + line0[1] + line0[2] + line1[0] + line1[1] + line1[2]) * 0.11111111f;
+            out_ptr++;
+            line0 += 1;
+            line1 += 1;
+        }
+
+        if (is_caffe == 0)
+            *out_ptr = (line0[0] + line0[1] + line1[0] + line1[1]) * 0.25f;
+        else
+            *out_ptr = (line0[0] + line0[1] + line1[0] + line1[1]) * 0.11111111f;
+    }
+}
+
 static void avg_global(const float* input, float* output, int inc, int inh, int inw, int outh, int outw, int k_h,
                        int k_w, int s_h, int s_w, int pad_h0, int pad_w0, int pad_h1, int pad_w1, int is_caffe)
 {
@@ -1599,6 +1700,13 @@ int pooling_kernel_perf_prerun(struct ir_tensor* input, struct ir_tensor* out, s
                     param->funct = ( pooling_kernel_t )avg_2x2s2_p1;
                 else if (pool_size == POOL_K3S2)
                     param->funct = ( pooling_kernel_t )avg_3x3s2_p1;
+                else if (pool_size == POOL_K3S1)
+                    param->funct = ( pooling_kernel_t )avg_3x3s1_p1;
+            }
+            else if (param->pad_h0 == 0 && param->pad_h1 == 1)
+            {
+                if (pool_size == POOL_K3S2)
+                    param->funct = ( pooling_kernel_t ) avg_3x3s2;
             }
         }
 

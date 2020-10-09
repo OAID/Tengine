@@ -60,7 +60,7 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
     /* set runtime options */
     struct options opt;
     opt.num_thread = num_thread;
-    opt.cluster = TENGINE_CLUSTER_LITTLE;
+    opt.cluster = TENGINE_CLUSTER_ALL;
     opt.precision = TENGINE_MODE_FP16;
 
     /* inital tengine */

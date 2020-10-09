@@ -19,7 +19,7 @@
 
 /*
  * Copyright (c) 2020, OPEN AI LAB
- * Author: bhu@openailab.com
+ * Author: hhchen@openailab.com
  */
 
 #include <math.h>
@@ -31,6 +31,32 @@
 #include "../../cpu_node_ops.h"
 #include "tengine_op.h"
 #include "unsqueeze_param.h"
+
+int ref_unsqueeze_fp32(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor)
+{
+    float* input_data = input_tensor->data;
+    float* out_data = output_tensor->data;
+
+    for (int i = 0; i < input_tensor->elem_num; i++)
+    {
+        out_data[i] = input_data[i];
+    }
+
+    return 0;
+}
+
+int ref_unsqueeze_uint8(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor)
+{
+    uint8_t* input_data = input_tensor->data;
+    uint8_t* out_data = output_tensor->data;
+
+    for (int i = 0; i < input_tensor->elem_num; i++)
+    {
+        out_data[i] = input_data[i];
+    }
+
+    return 0;
+}
 
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
@@ -49,16 +75,13 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct ir_tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     struct ir_tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    int out_size = input_tensor->elem_num;
-    float* input_org = ( float* )input_tensor->data;
-    float* output_org = ( float* )output_tensor->data;
+	int ret = -1;
+    if (input_tensor->data_type == TENGINE_DT_FP32)
+        ret = ref_unsqueeze_fp32(input_tensor, output_tensor);
+    else if(input_tensor->data_type == TENGINE_DT_UINT8)
+        ret = ref_unsqueeze_uint8(input_tensor, output_tensor);
 
-    for (int i = 0; i < out_size; i++)
-    {
-        output_org[i] = input_org[i];
-    }
-
-    return 0;
+    return ret;
 }
 
 static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struct ir_node* exec_node)

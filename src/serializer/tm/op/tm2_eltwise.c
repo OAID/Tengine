@@ -50,6 +50,9 @@ static int tm2_load_eltwise(struct ir_graph* ir_graph, struct ir_node* ir_node, 
 
     eltwise_param->type = tm_param->type;
     eltwise_param->caffe_flavor = tm_param->caffe_flavor;
+    eltwise_param->shift = tm_param->shift;
+    eltwise_param->power = tm_param->power;
+    eltwise_param->scale = tm_param->scale;
 
     return 0;
 }

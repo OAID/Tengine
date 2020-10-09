@@ -1,3 +1,5 @@
+link_directories(${TENGINE_COMMON_LIB_DIRS})
+
 # add examples with metal
 # macro for adding test
 macro (tengine_example name file)
@@ -10,12 +12,20 @@ macro (tengine_example name file)
     install (TARGETS ${name} DESTINATION bin)
 endmacro()
 
-# add examples
+# add c++ api examples
+if (TENGINE_BUILD_CPP_API)
+    tengine_example(cpp_tm_classification       cpp_tm_classification.cpp)
+    tengine_example(cpp_tm_mobilenet_ssd        cpp_tm_mobilenet_ssd.cpp)
+endif()
+
+# add c api examples
 tengine_example(tm_classification           tm_classification.c)
 tengine_example(tm_classification_fp16      tm_classification_fp16.c)
 tengine_example(tm_classification_uint8     tm_classification_uint8.c)
+tengine_example(tm_classification_vulkan    tm_classification_vulkan.c)
 tengine_example(tm_mobilenet_ssd            tm_mobilenet_ssd.c)
 tengine_example(tm_mobilenet_ssd_uint8      tm_mobilenet_ssd_uint8.cpp)
+tengine_example(tm_mobilenet_ssd_acl        tm_mobilenet_ssd_acl.c)
 tengine_example(tm_retinaface               tm_retinaface.cpp)
 tengine_example(tm_yolov3_tiny              tm_yolov3_tiny.cpp)
 tengine_example(tm_yolov3_uint8             tm_yolov3_uint8.cpp)
@@ -23,6 +33,7 @@ tengine_example(tm_landmark                 tm_landmark.cpp)
 tengine_example(tm_landmark_uint8           tm_landmark_uint8.cpp)
 tengine_example(tm_mobilefacenet            tm_mobilefacenet.cpp)
 tengine_example(tm_yolov4                   tm_yolov4.cpp)
+tengine_example(tm_crnn                     tm_crnn.cpp)
 
 
 # add examples with opencv
@@ -37,6 +48,7 @@ if (${TENGINE_TARGET_PROCESSOR} MATCHES "X86")
                     "${CMAKE_CURRENT_SOURCE_DIR}/${file}"
                     "${CMAKE_CURRENT_SOURCE_DIR}/common/tengine_operations.c")
             target_link_libraries(${name} ${CMAKE_PROJECT_NAME} ${OpenCV_LIBS})
+            install (TARGETS ${name} DESTINATION bin)
         endmacro()
         tengine_example_cv(tm_openpose      tm_openpose.cpp)
         tengine_example_cv(tm_yolact        tm_yolact.cpp)

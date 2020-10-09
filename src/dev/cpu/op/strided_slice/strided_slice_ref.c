@@ -20,6 +20,7 @@
 /*
  * Copyright (c) 2020, OPEN AI LAB
  * Author: sqfu@openailab.com
+ * Update: hhchen@openailab.com
  */
 
 #include <math.h>
@@ -32,30 +33,8 @@
 #include "tengine_op.h"
 #include "strided_slice_param.h"
 
-static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
+int ref_strided_slice_fp32(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, struct strided_slice_param* param)
 {
-    return 0;
-}
-
-static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
-{
-    return 0;
-}
-
-static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
-{
-    return 0;
-}
-
-static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
-{
-    struct ir_node* ir_node = exec_node->ir_node;
-    struct ir_graph* ir_graph = ir_node->graph;
-    struct ir_tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    struct ir_tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-
-    struct strided_slice_param* param = ( struct strided_slice_param* )ir_node->op.param_mem;
-
     int batch_num = input_tensor->dims[0];
     int in_c = input_tensor->dims[1];
     int in_h = input_tensor->dims[2];
@@ -94,6 +73,81 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     }
 
     return 0;
+}
+
+int ref_strided_slice_uint8(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, struct strided_slice_param* param)
+{
+    int batch_num = input_tensor->dims[0];
+    int in_c = input_tensor->dims[1];
+    int in_h = input_tensor->dims[2];
+    int in_w = input_tensor->dims[3];
+
+    int out_c = output_tensor->dims[1];
+    int out_h = output_tensor->dims[2];
+    int out_w = output_tensor->dims[3];
+
+    int out_chw = out_c * out_h * out_w;
+    int out_hw = out_h * out_w;
+    int in_chw = in_c * in_h * in_w;
+    int in_hw = in_h * in_w;
+
+    uint8_t* input_data = input_tensor->data;
+    uint8_t* output_data = output_tensor->data;
+
+    for (int n = 0; n < batch_num; n++)
+    {
+        for (int c = 0; c < out_c; c++)
+        {
+            for (int h = 0; h < out_h; h++)
+            {
+                for (int w = 0; w < out_w; w++)
+                {
+                    int input_index = (param->begin[0] + n * param->stride[0]) * in_chw +
+                                      (param->begin[1] + c * param->stride[1]) * in_hw +
+                                      (param->begin[2] + h * param->stride[2]) * in_w +
+                                      (param->begin[3] + w * param->stride[3]);
+                    int output_index = n * out_chw + c * out_hw + h * out_w + w;
+
+                    output_data[output_index] = input_data[input_index];
+                }
+            }
+        }
+    }
+
+    return 0;
+}
+
+static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
+{
+    return 0;
+}
+
+static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
+{
+    return 0;
+}
+
+static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
+{
+    return 0;
+}
+
+static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
+{
+    struct ir_node* ir_node = exec_node->ir_node;
+    struct ir_graph* ir_graph = ir_node->graph;
+    struct ir_tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    struct ir_tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+
+    struct strided_slice_param* param = ( struct strided_slice_param* )ir_node->op.param_mem;
+
+	int ret = -1;
+    if (input_tensor->data_type == TENGINE_DT_FP32)
+        ret = ref_strided_slice_fp32(input_tensor, output_tensor, param);
+    else if(input_tensor->data_type == TENGINE_DT_UINT8)
+        ret = ref_strided_slice_uint8(input_tensor, output_tensor, param);
+
+    return ret;
 }
 
 static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struct ir_node* exec_node)

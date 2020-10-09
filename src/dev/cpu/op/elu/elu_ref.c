@@ -20,6 +20,7 @@
 /*
  * Copyright (c) 2020, OPEN AI LAB
  * Author: zpluo@openailab.com
+ * Update: hhchen@openailab.com
  */
 
 #include <math.h>
@@ -70,6 +71,55 @@ int ref_elu_fp32(float* data, float* out_data, int size, p_elu_param param)
     return 0;
 }
 
+int ref_elu_uint8(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, int size, p_elu_param param)
+{
+    /* dequant */
+    uint8_t* input_uint8 = input_tensor->data;
+    uint8_t* output_uint8 = output_tensor->data;
+    float input_scale = input_tensor->scale;
+    float output_scale = output_tensor->scale;
+    int32_t input_zero = input_tensor->zero_point;
+    int32_t output_zero = output_tensor->zero_point;
+    int input_size = input_tensor->elem_num;
+    int output_size = output_tensor->elem_num;
+
+    float* data = ( float* )sys_malloc(input_size * sizeof(float));
+    float* out_data = ( float* )sys_malloc(output_size * sizeof(float));
+
+    for (int i = 0; i < input_size; i++)
+    {
+        data[i] = (( float )input_uint8[i] - ( float )input_zero) * input_scale;
+    }
+
+    for (int i = 0; i < size; i++)
+    {
+        if (data[i] < 0)
+        {
+            out_data[i] = (exp(data[i]) - 1) * param->alpha;
+        }
+        else
+        {
+            out_data[i] = data[i];
+        }
+    }
+    
+    /* quant */
+    for (int i = 0; i < output_size; i++)
+    {
+        int udata = round(out_data[i] / output_scale + output_zero);
+        if (udata > 255)
+            udata = 255;
+        else if (udata < 0)
+            udata = 0;
+        output_uint8[i] = udata;
+    }
+
+    sys_free(data);
+    sys_free(out_data);
+
+    return 0;
+}
+
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     struct ir_node* node = exec_node->ir_node;
@@ -92,7 +142,12 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     op_param.scale = scale;
     op_param.zero_point = zero_point;
 
-    return ref_elu_fp32(in_data, out_data, elem_num, &op_param);
+    if (input_tensor->data_type == TENGINE_DT_FP32)
+        ref_elu_fp32(in_data, out_data, elem_num, &op_param);
+    else if(input_tensor->data_type == TENGINE_DT_UINT8)
+        ref_elu_uint8(input_tensor, output_tensor, elem_num, &op_param);
+
+    return 0;
 }
 
 static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struct ir_node* exec_node)

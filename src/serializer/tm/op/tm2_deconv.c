@@ -66,6 +66,10 @@ static int tm2_load_deconv(struct ir_graph* ir_graph, struct ir_node* ir_node, c
     deconv_param->group = tm_param->group ;
     deconv_param->num_output = tm_param->num_output ;
     deconv_param->activation = tm_param->activation ;
+    
+    deconv_param->output_pad_h0 = tm_param->output_pad_h0;
+    deconv_param->output_pad_w0 = tm_param->output_pad_w0;
+
     return 0;
 }
 
