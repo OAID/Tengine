@@ -33,6 +33,7 @@ tengine_example(tm_landmark                 tm_landmark.cpp)
 tengine_example(tm_landmark_uint8           tm_landmark_uint8.cpp)
 tengine_example(tm_mobilefacenet            tm_mobilefacenet.cpp)
 tengine_example(tm_yolov4                   tm_yolov4.cpp)
+tengine_example(tm_yolov4_tiny              tm_yolov4_tiny.cpp)
 tengine_example(tm_crnn                     tm_crnn.cpp)
 
 
