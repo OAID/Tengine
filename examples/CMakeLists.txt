@@ -37,11 +37,11 @@ tengine_example(tm_crnn                     tm_crnn.cpp)
 
 
 # add examples with opencv
-if (${TENGINE_TARGET_PROCESSOR} MATCHES "X86")
-    find_package(OpenCV REQUIRED)
-    include_directories(${OpenCV_INCLUDE_DIRS})
+find_package(OpenCV QUIET)
 
     if(OpenCV_FOUND)
+    include_directories(${OpenCV_INCLUDE_DIRS})
+    
         # macro for adding examples
         macro (tengine_example_cv name file)
             add_executable(${name}
@@ -55,4 +55,4 @@ if (${TENGINE_TARGET_PROCESSOR} MATCHES "X86")
     else()
         message(WARNING "OpenCV not found, some examples won't be built")
     endif()
-endif()
+
