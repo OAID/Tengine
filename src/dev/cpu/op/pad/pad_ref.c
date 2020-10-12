@@ -43,10 +43,69 @@ static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, 
     return 0;
 }
 
-static void pad(float* input, float* output, int in_h, int in_w, int out_h, int out_w, int top, int left, float v)
+static void ref_pad_fp32(float* input, float* output, int in_h, int in_w, int out_h, int out_w, int top, int left, float v)
 {
     float* ptr = input;
     float* outptr = output;
+
+    int y = 0;
+    // fill top
+    for (; y < top; y++)
+    {
+        int x = 0;
+        for (; x < out_w; x++)
+        {
+            outptr[x] = v;
+        }
+        outptr += out_w;
+    }
+    // fill center
+    for (; y < (top + in_h); y++)
+    {
+        int x = 0;
+        for (; x < left; x++)
+        {
+            outptr[x] = v;
+        }
+        if (in_w < 12)
+        {
+            for (; x < (left + in_w); x++)
+            {
+                outptr[x] = ptr[x - left];
+            }
+        }
+        else
+        {
+            //            memcpy(outptr + left, ptr, in_w * sizeof(float));
+            //            x += in_w;
+            for (; x < in_w; x++)
+            {
+                outptr[left + x] = ptr[x];
+            }
+        }
+        for (; x < out_w; x++)
+        {
+            outptr[x] = v;
+        }
+        ptr += in_w;
+        outptr += out_w;
+    }
+    // fill bottom
+    for (; y < out_h; y++)
+    {
+        int x = 0;
+        for (; x < out_w; x++)
+        {
+            outptr[x] = v;
+        }
+        outptr += out_w;
+    }
+}
+
+static void ref_pad_uint8(uint8_t* input, uint8_t* output, int in_h, int in_w, int out_h, int out_w, int top, int left, float v)
+{
+    uint8_t* ptr = input;
+    uint8_t* outptr = output;
 
     int y = 0;
     // fill top
@@ -134,10 +193,18 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         {
             for (int c = 0; c < channel; c++)
             {
-                float* input_data = ( float* )input_tensor->data + n * in_size + c * in_cstep;
-                float* output_data = ( float* )output_tensor->data + n * out_size + c * out_cstep;
-
-                pad(input_data, output_data, in_h, in_w, out_h, out_w, pad_top, pad_left, param->value);
+                if (input_tensor->data_type == TENGINE_DT_FP32)
+                {
+                    float* input_data = ( float* )input_tensor->data + n * in_size + c * in_cstep;
+                    float* output_data = ( float* )output_tensor->data + n * out_size + c * out_cstep;
+                    ref_pad_fp32(input_data, output_data, in_h, in_w, out_h, out_w, pad_top, pad_left, param->value);
+                }
+                else if(input_tensor->data_type == TENGINE_DT_UINT8)
+                {
+                    uint8_t* input_data = ( uint8_t* )input_tensor->data + n * in_size + c * in_cstep;
+                    uint8_t* output_data = ( uint8_t* )output_tensor->data + n * out_size + c * out_cstep;
+                    ref_pad_uint8(input_data, output_data, in_h, in_w, out_h, out_w, pad_top, pad_left, param->value);
+                }
             }
         }
     }

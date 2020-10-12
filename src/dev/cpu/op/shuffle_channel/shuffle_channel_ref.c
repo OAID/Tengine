@@ -19,7 +19,7 @@
 
 /*
  * Copyright (c) 2020, OPEN AI LAB
- * Author: haitao@openailab.com
+ * Author: hhchen@openailab.com
  */
 #include <math.h>
 #include "sys_port.h"
@@ -30,9 +30,64 @@
 #include "../../cpu_node_ops.h"
 #include "tengine_op.h"
 #include "shuffle_channel_param.h"
-#include "ref/shuffle_channel_kernel_ref.h"
 
-extern int ref_shuffle_channel_fp32(const float* in_data, float* out_data, p_internal_shuffle_channel_param op_param);
+int ref_shuffle_channel_fp32(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, struct shuffle_channel_param* param)
+{
+    int batch = input_tensor->dims[0];
+    int c = input_tensor->dims[1];
+    int h = input_tensor->dims[2];
+    int w = input_tensor->dims[3];
+    int group = param->group;
+    int elemsize = input_tensor->elem_size;
+    int chs_per_group = c / group;
+
+    float* input_fp32 = input_tensor->data;
+    float* output_fp32 = output_tensor->data;
+
+    for (int n = 0; n < batch; n++)
+    {
+        for (int i = 0; i < group; i++)
+        {
+            for (int j = 0; j != chs_per_group; j++)
+            {
+                int src_q = n * c * h * w + (chs_per_group * i + j) * h * w;
+                int dst_q = n * c * h * w + (group * j + i) * h * w;
+                memcpy(output_fp32 + dst_q, input_fp32 + src_q, h * w * elemsize);
+            }
+        }
+    }
+
+    return 0;
+}
+
+int ref_shuffle_channel_uint8(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, struct shuffle_channel_param* param)
+{
+    int batch = input_tensor->dims[0];
+    int c = input_tensor->dims[1];
+    int h = input_tensor->dims[2];
+    int w = input_tensor->dims[3];
+    int group = param->group;
+    int elemsize = input_tensor->elem_size;
+    int chs_per_group = c / group;
+
+    uint8_t* input_uint8 = input_tensor->data;
+    uint8_t* output_uint8 = output_tensor->data;
+
+    for (int n = 0; n < batch; n++)
+    {
+        for (int i = 0; i < group; i++)
+        {
+            for (int j = 0; j != chs_per_group; j++)
+            {
+                int src_q = n * c * h * w + (chs_per_group * i + j) * h * w;
+                int dst_q = n * c * h * w + (group * j + i) * h * w;
+                memcpy(output_uint8 + dst_q, input_uint8 + src_q, h * w * elemsize);
+            }
+        }
+    }
+
+    return 0;
+}
 
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
@@ -49,30 +104,12 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
     struct ir_node* ir_node = exec_node->ir_node;
     struct ir_graph* ir_graph = ir_node->graph;
     struct ir_tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    struct shuffle_channel_param* param = ( struct shuffle_channel_param* )ir_node->op.param_mem;
 
-    p_internal_shuffle_channel_param p_param =
-        ( p_internal_shuffle_channel_param )sys_malloc(sizeof(internal_shuffle_channel_param));
-    p_param->eletsize = input_tensor->elem_size;
-    p_param->group = param->group;
-
-    int ii = 0;
-    p_param->n = input_tensor->dims[ii++];
-    p_param->c = input_tensor->dims[ii++];
-    p_param->h = input_tensor->dims[ii++];
-    p_param->w = input_tensor->dims[ii++];
-
-    exec_node->ops_priv = p_param;
-
-    return 0;
-}
-
-static int postrun(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
-{
-    struct _internal_shuffle_channel_param* p_param = ( struct _internal_shuffle_channel_param* )exec_node->ops_priv;
-
-    if (p_param)
-        sys_free(p_param);
+    if (input_tensor->dim_num !=4)
+    {
+        printf("dims num is not 4, not support shuffle channel\n");
+        return -1;
+    }
 
     return 0;
 }
@@ -81,14 +118,17 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 {
     struct ir_node* ir_node = exec_node->ir_node;
     struct ir_graph* ir_graph = ir_node->graph;
-
     struct ir_tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     struct ir_tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+    struct shuffle_channel_param* param = ( struct shuffle_channel_param* )ir_node->op.param_mem;
 
-    ref_shuffle_channel_fp32(input_tensor->data, output_tensor->data,
-                             ( p_internal_shuffle_channel_param )exec_node->ops_priv);
+	int ret = -1;
+    if (input_tensor->data_type == TENGINE_DT_FP32)
+        ret = ref_shuffle_channel_fp32(input_tensor, output_tensor, param);
+    else if(input_tensor->data_type == TENGINE_DT_UINT8)
+        ret = ref_shuffle_channel_uint8(input_tensor, output_tensor, param);
 
-    return 0;
+    return ret;
 }
 
 static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struct ir_node* exec_node)
@@ -99,7 +139,7 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
 static struct node_ops hcl_node_ops = {.prerun = prerun,
                                        .run = run,
                                        .reshape = NULL,
-                                       .postrun = postrun,
+                                       .postrun = NULL,
                                        .init_node = init_node,
                                        .release_node = release_node,
                                        .score = score};

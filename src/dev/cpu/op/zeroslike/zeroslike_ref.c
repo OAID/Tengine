@@ -77,11 +77,54 @@ int ref_zeroslike_fp32(struct ir_tensor* input_tensor, struct ir_tensor* output_
     return -1;
 }
 
+int ref_zeroslike_uint8(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, int num_thread)
+{
+    // dims size = 2 or 3
+    if (input_tensor->dim_num < 4)
+    {
+        uint8_t* input_data = input_tensor->data;
+        uint8_t* out_data = output_tensor->data;
+        int total_size = input_tensor->elem_num;
+
+        for (int i = 0; i < total_size; i++)
+        {
+            input_data[i] = 0;
+        }
+
+        return 0;
+    }
+    // dims size 3
+    else if (input_tensor->dim_num == 4)
+    {
+        int w = input_tensor->dims[3];
+        int h = output_tensor->dims[2];
+        int channels = input_tensor->dims[1];
+        int size = h * w;
+        int c_step = h * w;
+
+        uint8_t* input_data = input_tensor->data;
+        uint8_t* out_data = output_tensor->data;
+
+#pragma omp parallel for num_threads(num_thread)
+        for (int q = 0; q < channels; q++)
+        {
+            uint8_t* src = input_data + c_step * q;
+            uint8_t* dst = out_data + c_step * q;
+
+            for (int i = 0; i < size; i++)
+            {
+                dst[i] = 0;
+            }
+        }
+
+        return 0;
+    }
+
+    return -1;
+}
+
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    // exec_node->inplace_map[0] = 0;
-    // exec_node->inplace_map[1] = 0;
-    // exec_node->inplace_map_num = 1;
     return 0;
 }
 
@@ -107,19 +150,13 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    // inplace inference
-    // if(input_tensor->data != output_tensor->data)
-    // {
-    //     TLOG_ERR("input and output are not the same mem\n");
-    //     set_tengine_errno(EFAULT);
-    //     return -1;
-    // }
+    int ret = -1;
+    if (input_tensor->data_type == TENGINE_DT_FP32)
+        ret = ref_zeroslike_fp32(input_tensor, output_tensor, exec_graph->num_thread);
+    else if(input_tensor->data_type == TENGINE_DT_UINT8)
+        ret = ref_zeroslike_uint8(input_tensor, output_tensor, exec_graph->num_thread);
 
-    int ret = ref_zeroslike_fp32(input_tensor, output_tensor, exec_graph->num_thread);
-    if (ret != 0)
-        return -1;
-
-    return 0;
+    return ret;
 }
 
 static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struct ir_node* exec_node)

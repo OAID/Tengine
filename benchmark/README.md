@@ -63,9 +63,99 @@ $ ./tm_benchmark
 
 Typical output (executed in linux)
 
+Khadas VIM3 (Cortex-A73 2.2GHz x 4 + Cortex-A53 1.8GHz x 2)
+
+```bash
+khadas@Khadas:~/tengine-lite/benchmark$ ../build/benchmark/tm_benchmark -r 5 -t 1 -p 1
+start to run register cpu allocator
+loop_counts = 5
+num_threads = 1
+power       = 1
+tengine-lite library version: 1.0-dev
+     squeezenet_v1.1  min =   55.66 ms   max =   56.19 ms   avg =   56.04 ms
+         mobilenetv1  min =  103.18 ms   max =  105.37 ms   avg =  104.26 ms
+         mobilenetv2  min =   91.46 ms   max =   93.07 ms   avg =   91.92 ms
+         mobilenetv3  min =   56.30 ms   max =   57.17 ms   avg =   56.64 ms
+        shufflenetv2  min =   29.92 ms   max =   30.62 ms   avg =   30.29 ms
+            resnet18  min =  162.31 ms   max =  162.74 ms   avg =  162.48 ms
+            resnet50  min =  495.61 ms   max =  498.00 ms   avg =  496.99 ms
+           googlenet  min =  199.16 ms   max =  200.32 ms   avg =  199.72 ms
+         inceptionv3  min =  801.93 ms   max =  813.71 ms   avg =  807.08 ms
+               vgg16  min =  866.41 ms   max =  877.53 ms   avg =  871.45 ms
+                mssd  min =  204.10 ms   max =  208.92 ms   avg =  206.05 ms
+          retinaface  min =   28.57 ms   max =   29.06 ms   avg =   28.86 ms
+         yolov3_tiny  min =  233.68 ms   max =  235.12 ms   avg =  234.19 ms
+      mobilefacenets  min =   44.32 ms   max =   44.82 ms   avg =   44.60 ms
+ALL TEST DONE
+khadas@Khadas:~/tengine-lite/benchmark$ ../build/benchmark/tm_benchmark -r 5 -t 4 -p 1
+start to run register cpu allocator
+loop_counts = 5
+num_threads = 4
+power       = 1
+tengine-lite library version: 1.0-dev
+     squeezenet_v1.1  min =   22.10 ms   max =   22.33 ms   avg =   22.24 ms
+         mobilenetv1  min =   32.07 ms   max =   32.68 ms   avg =   32.49 ms
+         mobilenetv2  min =   40.16 ms   max =   40.59 ms   avg =   40.32 ms
+         mobilenetv3  min =   32.37 ms   max =   32.60 ms   avg =   32.49 ms
+        shufflenetv2  min =   12.67 ms   max =   12.91 ms   avg =   12.76 ms
+            resnet18  min =   69.67 ms   max =   70.34 ms   avg =   69.91 ms
+            resnet50  min =  174.66 ms   max =  175.34 ms   avg =  174.94 ms
+           googlenet  min =   84.43 ms   max =   85.01 ms   avg =   84.82 ms
+         inceptionv3  min =  274.61 ms   max =  276.78 ms   avg =  275.74 ms
+               vgg16  min =  379.63 ms   max =  385.95 ms   avg =  382.01 ms
+                mssd  min =   66.67 ms   max =   67.28 ms   avg =   67.01 ms
+          retinaface  min =   15.15 ms   max =   15.34 ms   avg =   15.24 ms
+         yolov3_tiny  min =  110.07 ms   max =  110.81 ms   avg =  110.50 ms
+      mobilefacenets  min =   16.97 ms   max =   17.16 ms   avg =   17.06 ms
+ALL TEST DONE
+khadas@Khadas:~/tengine-lite/benchmark$ ../build/benchmark/tm_benchmark -r 5 -t 1 -p 3
+start to run register cpu allocator
+loop_counts = 5
+num_threads = 1
+power       = 3
+tengine-lite library version: 1.0-dev
+     squeezenet_v1.1  min =  116.30 ms   max =  116.43 ms   avg =  116.34 ms
+         mobilenetv1  min =  236.10 ms   max =  236.35 ms   avg =  236.21 ms
+         mobilenetv2  min =  198.35 ms   max =  198.58 ms   avg =  198.42 ms
+         mobilenetv3  min =  128.56 ms   max =  128.99 ms   avg =  128.76 ms
+        shufflenetv2  min =   66.71 ms   max =   66.85 ms   avg =   66.75 ms
+            resnet18  min =  358.30 ms   max =  358.49 ms   avg =  358.44 ms
+            resnet50  min = 1094.14 ms   max = 1094.90 ms   avg = 1094.45 ms
+           googlenet  min =  434.48 ms   max =  434.83 ms   avg =  434.61 ms
+         inceptionv3  min = 1778.71 ms   max = 1779.36 ms   avg = 1779.03 ms
+               vgg16  min = 1903.84 ms   max = 1932.26 ms   avg = 1909.85 ms
+                mssd  min =  462.74 ms   max =  463.72 ms   avg =  463.13 ms
+          retinaface  min =   59.83 ms   max =   59.94 ms   avg =   59.89 ms
+         yolov3_tiny  min =  501.01 ms   max =  501.60 ms   avg =  501.32 ms
+      mobilefacenets  min =   99.05 ms   max =   99.22 ms   avg =   99.13 ms
+ALL TEST DONE
+khadas@Khadas:~/tengine-lite/benchmark$ ../build/benchmark/tm_benchmark -r 5 -t 2 -p 3
+start to run register cpu allocator
+loop_counts = 5
+num_threads = 2
+power       = 3
+tengine-lite library version: 1.0-dev
+     squeezenet_v1.1  min =   63.93 ms   max =   64.02 ms   avg =   63.97 ms
+         mobilenetv1  min =  115.33 ms   max =  115.47 ms   avg =  115.40 ms
+         mobilenetv2  min =  105.52 ms   max =  105.74 ms   avg =  105.58 ms
+         mobilenetv3  min =   83.13 ms   max =   84.02 ms   avg =   83.63 ms
+        shufflenetv2  min =   40.04 ms   max =   40.13 ms   avg =   40.09 ms
+            resnet18  min =  208.76 ms   max =  209.16 ms   avg =  208.88 ms
+            resnet50  min =  600.78 ms   max =  607.13 ms   avg =  603.52 ms
+           googlenet  min =  252.26 ms   max =  252.46 ms   avg =  252.34 ms
+         inceptionv3  min =  949.61 ms   max =  960.68 ms   avg =  953.56 ms
+               vgg16  min = 1105.32 ms   max = 1120.49 ms   avg = 1108.90 ms
+                mssd  min =  237.19 ms   max =  237.38 ms   avg =  237.30 ms
+          retinaface  min =   36.85 ms   max =   36.96 ms   avg =   36.89 ms
+         yolov3_tiny  min =  297.31 ms   max =  298.04 ms   avg =  297.62 ms
+      mobilefacenets  min =   53.09 ms   max =   53.18 ms   avg =   53.14 ms
+ALL TEST DONE
+
+```
+
 EAIDK610 (Cortex-A72 1.8GHz x 2 + Cortex-A53 1.4GHz x 4)
 
-```shell
+```bash
 [openailab@localhost benchmark]$ ../cmake-build-debug/benchmark/tm_benchmark -r 8
 loop_counts  = 8
 num_threads  = 1

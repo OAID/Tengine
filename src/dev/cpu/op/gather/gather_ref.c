@@ -20,6 +20,7 @@
 /*
  * Copyright (c) 2020, OPEN AI LAB
  * Author: jxyang@openailab.com
+ * Update: hhchen@openailab.com
  */
 
 #include <math.h>
@@ -72,6 +73,38 @@ static int ref_gather_fp32(float* input, int* input_indices, float* output, gath
     return 0;
 }
 
+static int ref_gather_uint8(uint8_t* input, int* input_indices, uint8_t* output, gather_param_t* param, int num_thread)
+{
+    uint8_t* out_ptr = output;
+    uint8_t* in_ptr = input;
+    int axis = param->axis;
+    int outer_size = 1;
+    int inner_size = 1;
+    int axis_size = param->in_shape[axis];
+
+    for (int i = 0; i < axis; i++)
+    {
+        outer_size *= param->in_shape[i];
+    }
+
+    for (int i = axis + 1; i < param->dim_size; i++)
+    {
+        inner_size *= param->in_shape[i];
+    }
+
+	// #pragma omp parallel for num_threads(num_thread)
+    for (int outer = 0; outer < outer_size; ++outer)
+    {
+        for (int i = 0; i < param->indices_num; i++)
+        {
+            memcpy(out_ptr + (outer * param->indices_num + i) * inner_size,
+                   in_ptr + (outer * axis_size + ( int )input_indices[i]) * inner_size, inner_size);
+        }
+    }
+
+    return 0;
+}
+
 static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     struct ir_node* ir_node = exec_node->ir_node;
@@ -113,7 +146,11 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     // int indices_num = op_param.indices_num;
     void* output = output_tensor->data;
 
-    int ret = ref_gather_fp32(input, indices_data, output, op_priv_info, exec_graph->num_thread);
+    int ret = -1;
+    if (input_tensor->data_type == TENGINE_DT_FP32)
+        ret = ref_gather_fp32(input, indices_data, output, op_priv_info, exec_graph->num_thread);
+    else if(input_tensor->data_type == TENGINE_DT_UINT8)
+        ret = ref_gather_uint8(input, indices_data, output, op_priv_info, exec_graph->num_thread);
 
     return ret;
 }
