@@ -448,6 +448,12 @@ int main(int argc, char* argv[])
     if (!check_file_exist(model_file) || !check_file_exist(image_file))
         return -1;
 
+    /* set runtime options */
+    struct options opt;
+    opt.num_thread = num_thread;
+    opt.cluster = TENGINE_CLUSTER_ALL;
+    opt.precision = TENGINE_MODE_FP32;        
+
     /* inital tengine */
     int ret = init_tengine();
     if (0 != ret)
@@ -477,7 +483,6 @@ int main(int argc, char* argv[])
 
     float im_scale;
 
-    // int img_size = get_input_data(image_file, max_size, target_size, image_data, image_size, tensor_size, im_scale);
     int img_size = get_input_data(image_file, image_data, image_size);
 
     /* set the input shape to initial the graph, and pre-run graph to infer shape */
@@ -496,16 +501,17 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    if (0 != prerun_graph(graph))
-    {
-        printf("Pre-run graph failed\n");
-        return -1;
-    }
-
     /* set the data mem to input tensor */
     if (set_tensor_buffer(input_tensor, image_data.data(), img_size * 4) < 0)
     {
         printf("Set input tensor buffer failed\n");
+        return -1;
+    }    
+
+    /* prerun graph, set work options(num_thread, cluster, precision) */
+    if (0 != prerun_graph_multithread(graph, opt))
+    {
+        printf("Pre-run graph failed\n");
         return -1;
     }
 
