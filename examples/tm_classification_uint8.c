@@ -106,6 +106,13 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
         return -1;
     }
 
+    if (set_tensor_buffer(input_tensor, input_data, img_size) < 0)
+    {
+        fprintf(stderr, "Set input tensor buffer failed\n");
+        return -1;
+    }    
+
+    /* prerun graph, set work options(num_thread, cluster, precision) */
     if (prerun_graph_multithread(graph, opt) < 0)
     {
         fprintf(stderr, "Prerun multithread graph failed.\n");
@@ -117,11 +124,6 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
     int input_zero_point = 0;
     get_tensor_quant_param(input_tensor, &input_scale, &input_zero_point, 1);
     get_input_uint8_data(image_file, input_data, img_h, img_w, mean, scale, input_scale, input_zero_point);
-    if (set_tensor_buffer(input_tensor, input_data, img_size) < 0)
-    {
-        fprintf(stderr, "Set input tensor buffer failed\n");
-        return -1;
-    }
 
     /* run graph */
     double min_time = __DBL_MAX__;
