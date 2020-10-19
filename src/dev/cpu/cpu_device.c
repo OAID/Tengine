@@ -36,7 +36,6 @@
 #include "tengine_log.h"
 #include "tengine_op.h"
 #include "compiler_fp16.h"
-#include "../../../../native_log.h"
 
 #include <sys/time.h>
 
@@ -1754,7 +1753,6 @@ static int run(struct nn_device* dev, struct subgraph* subgraph)
         if (node_ops->run(node_ops, node, exec_graph) < 0)
         {
             TLOG_ERR("%s: failed to run node %d, %s\n", dev->name, node->ir_node->idx, node->ir_node->name);
-            ALOGE("%s: failed to run node %d, %s\n", dev->name, node->ir_node->idx, node->ir_node->name);
             return -1;
         }
         char* name = node->ir_node->name;
