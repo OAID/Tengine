@@ -168,9 +168,11 @@ int main(int argc, char* argv[])
     if (!check_file_exist(model_file) || !check_file_exist(image_file))
         return -1;
 
-    // input
-    int img_size = img_h * img_w * 3;
-    uint8_t* input_data = ( uint8_t* )malloc(img_size);
+    /* set runtime options */
+    struct options opt;
+    opt.num_thread = num_thread;
+    opt.cluster = TENGINE_CLUSTER_ALL;
+    opt.precision = TENGINE_MODE_UINT8;
 
     // init tengine
     if (init_tengine() < 0)
@@ -188,20 +190,35 @@ int main(int argc, char* argv[])
         return 1;
     }
 
+    /* set the input shape to initial the graph, and prerun graph to infer shape */
+    int img_size = img_h * img_w * 3;
+    int dims[] = {1, 3, img_h, img_w};    // nchw
+    uint8_t* input_data = ( uint8_t* )malloc(img_size * sizeof(uint8_t));    
+
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
-    if (input_tensor == nullptr)
+    if (input_tensor == NULL)
     {
-        std::printf("Cannot find input tensor\n");
+        fprintf(stderr, "Get input tensor failed\n");
         return -1;
     }
 
-    int dims[] = {1, 3, img_h, img_w};
-    set_tensor_shape(input_tensor, dims, 4);
-    ret = prerun_graph(graph);
-    if (ret != 0)
+    if (set_tensor_shape(input_tensor, dims, 4) < 0)
     {
-        std::cout << "Prerun graph failed, errno: " << get_tengine_errno() << "\n";
-        return 1;
+        fprintf(stderr, "Set input tensor shape failed\n");
+        return -1;
+    }
+
+    if (set_tensor_buffer(input_tensor, input_data, img_size * sizeof(uint8_t)) < 0)
+    {
+        fprintf(stderr, "Set input tensor buffer failed\n");
+        return -1;
+    }    
+
+    /* prerun graph, set work options(num_thread, cluster, precision) */
+    if (prerun_graph_multithread(graph, opt) < 0)
+    {
+        fprintf(stderr, "Prerun graph failed\n");
+        return -1;
     }
 
     /* prepare process input data, set the data mem to input tensor */
@@ -209,11 +226,6 @@ int main(int argc, char* argv[])
     int input_zero_point = 0;
     get_tensor_quant_param(input_tensor, &input_scale, &input_zero_point, 1);    
     get_input_uint_data_ssd(image_file, input_data, img_h, img_w, input_scale, input_zero_point);
-    if (set_tensor_buffer(input_tensor, input_data, img_size) < 0)
-    {
-        fprintf(stderr, "Set input tensor buffer failed\n");
-        return -1;
-    }
 
     /* run graph */
     double min_time = __DBL_MAX__;

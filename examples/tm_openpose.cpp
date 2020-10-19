@@ -89,9 +89,9 @@ void post_process_pose(cv::Mat img, cv::Mat frameCopy, float threshold, float* o
             p.y *= ( float )frameWidth / W;
             p.x *= ( float )frameHeight / H;
 
-            cv::circle(frameCopy, cv::Point(( int )p.x, ( int )p.y), 8, cv::Scalar(0, 255, 255), -1);
-            cv::putText(frameCopy, cv::format("%d", n), cv::Point(( int )p.x, ( int )p.y), cv::FONT_HERSHEY_COMPLEX, 1,
-                        cv::Scalar(0, 0, 255), 3);
+            cv::circle(frameCopy, cv::Point(( int )p.x, ( int )p.y), 4, cv::Scalar(255, 255, 0), -1);
+            cv::putText(frameCopy, cv::format("%d", n), cv::Point(( int )p.x, ( int )p.y), cv::FONT_HERSHEY_PLAIN, 2,
+                        cv::Scalar(0, 255, 255), 2);
         }
         points[n] = p;
         std::cout << n << ":" << p << std::endl;
@@ -108,9 +108,9 @@ void post_process_pose(cv::Mat img, cv::Mat frameCopy, float threshold, float* o
         if (partA.x <= 0 || partA.y <= 0 || partB.x <= 0 || partB.y <= 0)
             continue;
 
-        cv::line(img, partA, partB, cv::Scalar(0, 255, 255), 8);
-        cv::circle(img, partA, 8, cv::Scalar(0, 0, 255), -1);
-        cv::circle(img, partB, 8, cv::Scalar(0, 0, 255), -1);
+        cv::line(img, partA, partB, cv::Scalar(0, 255, 255), 2);
+        cv::circle(img, partA, 4, cv::Scalar(255, 255, 0), -1);
+        cv::circle(img, partB, 4, cv::Scalar(255, 255, 0), -1);
     }
 }
 
@@ -171,6 +171,12 @@ int main(int argc, char* argv[])
     if (!check_file_exist(model_file) || !check_file_exist(image_file))
         return -1;
 
+    /* set runtime options */
+    struct options opt;
+    opt.num_thread = num_thread;
+    opt.cluster = TENGINE_CLUSTER_ALL;
+    opt.precision = TENGINE_MODE_FP32;
+
     /* inital tengine */
     init_tengine();
     fprintf(stderr, "tengine-lite library version: %s\n", get_tengine_version());
@@ -202,9 +208,16 @@ int main(int argc, char* argv[])
     {
         fprintf(stderr, "Set input tensor shape failed\n");
         return -1;
-    };
+    }
 
-    if (prerun_graph(graph) < 0)
+    if (set_tensor_buffer(input_tensor, input_data, img_size * 4) < 0)
+    {
+        fprintf(stderr, "Set input tensor buffer failed\n");
+        return -1;
+    }    
+
+    /* prerun graph, set work options(num_thread, cluster, precision) */
+    if (prerun_graph_multithread(graph, opt) < 0)
     {
         fprintf(stderr, "Prerun graph failed\n");
         return -1;
@@ -213,12 +226,6 @@ int main(int argc, char* argv[])
     /* prepare process input data, set the data mem to input tensor */
     cv::Mat frame = cv::imread(image_file);
     get_input_data_pose(frame, input_data, img_h, img_w);
-    // set_tensor_buffer(input_tensor, input_data, img_size*4);
-    if (set_tensor_buffer(input_tensor, input_data, img_size * 4) < 0)
-    {
-        fprintf(stderr, "Set input tensor buffer failed\n");
-        return -1;
-    }
 
     /* run graph */
     double min_time = __DBL_MAX__;
@@ -242,7 +249,7 @@ int main(int argc, char* argv[])
             total_time, max_time, min_time);
     fprintf(stderr, "--------------------------------------\n");
 
-    /* get output tensor */
+    /* get the result of classification */
     tensor_t out_tensor = get_graph_output_tensor(graph, 0, 0);
     int out_dim[4];
 
@@ -264,22 +271,12 @@ int main(int argc, char* argv[])
     cv::imwrite("Output-Keypionts.jpg", frameCopy);
     cv::imwrite("Output-Skeleton.jpg", frame);
 
-    // Release memory for input tensor
-    release_graph_tensor(input_tensor);
-    // free output tensor memory
-    release_graph_tensor(out_tensor);
-    // Release memory for each node memory of tengine graph
-    if (postrun_graph(graph) != 0)
-    {
-        std::cout << "Postrun graph failed, errno: " << get_tengine_errno() << "\n";
-        return 1;
-    }
-    // free memory for input data
+    /* release tengine */
     free(input_data);
-    // destory tengine graph
+    postrun_graph(graph);
     destroy_graph(graph);
-    // release all memory of tenging that allocate at beginning
     release_tengine();
+
     return 0;
 }
 

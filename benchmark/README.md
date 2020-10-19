@@ -176,3 +176,51 @@ power        = 0
       mobilefacenets  min =   46.79 ms   max =   49.18 ms   avg =   47.22 ms
 ALL TEST DONE
 ```
+
+Raspberry Pi 3B  (Cortex-A53 1.2GHZ x 4)
+
+```
+pi@raspberrypi:~/Tengine-Lite/build $ ./benchmark/tm_benchmark -r 8
+start to run register cpu allocator
+loop_counts = 8
+num_threads = 1
+power       = 0
+tengine-lite library version: 1.0-dev
+     squeezenet_v1.1  min =  190.74 ms   max =  191.98 ms   avg =  191.15 ms
+         mobilenetv1  min =  364.62 ms   max =  365.88 ms   avg =  364.92 ms
+         mobilenetv2  min =  323.45 ms   max =  325.61 ms   avg =  323.85 ms
+         mobilenetv3  min =  249.12 ms   max =  250.35 ms   avg =  249.39 ms
+        shufflenetv2  min =  108.03 ms   max =  108.22 ms   avg =  108.12 ms
+            resnet18  min =  598.48 ms   max =  605.05 ms   avg =  600.50 ms
+            resnet50  min = 1754.92 ms   max = 1760.45 ms   avg = 1757.52 ms
+           googlenet  min =  704.96 ms   max =  710.59 ms   avg =  705.90 ms
+         inceptionv3  min = 2937.00 ms   max = 2940.33 ms   avg = 2939.03 ms
+               vgg16  min = 3365.99 ms   max = 3546.59 ms   avg = 3391.13 ms
+                mssd  min =  733.63 ms   max =  737.31 ms   avg =  735.61 ms
+          retinaface  min =  112.00 ms   max =  114.12 ms   avg =  112.59 ms
+         yolov3_tiny  min =  886.04 ms   max =  908.04 ms   avg =  889.82 ms
+      mobilefacenets  min =  161.90 ms   max =  163.71 ms   avg =  162.18 ms
+ALL TEST DONE
+pi@raspberrypi:~/Tengine-Lite/build $ ./benchmark/tm_benchmark -r 8 -t 4
+start to run register cpu allocator
+loop_counts = 8
+num_threads = 4
+power       = 0
+tengine-lite library version: 1.0-dev
+     squeezenet_v1.1  min =   85.47 ms   max =   86.43 ms   avg =   86.05 ms
+         mobilenetv1  min =  122.97 ms   max =  123.52 ms   avg =  123.29 ms
+         mobilenetv2  min =  139.47 ms   max =  139.92 ms   avg =  139.76 ms
+         mobilenetv3  min =  154.04 ms   max =  154.79 ms   avg =  154.41 ms
+        shufflenetv2  min =   42.62 ms   max =   43.07 ms   avg =   42.82 ms
+            resnet18  min =  362.03 ms   max =  364.59 ms   avg =  363.25 ms
+            resnet50  min =  834.65 ms   max =  844.14 ms   avg =  838.60 ms
+           googlenet  min =  364.03 ms   max =  367.16 ms   avg =  365.25 ms
+         inceptionv3  min = 1074.93 ms   max = 1091.14 ms   avg = 1082.19 ms
+               vgg16  min = 2622.68 ms   max = 2902.42 ms   avg = 2687.51 ms
+                mssd  min =  258.68 ms   max =  260.33 ms   avg =  259.32 ms
+          retinaface  min =   61.80 ms   max =   62.40 ms   avg =   61.98 ms
+         yolov3_tiny  min =  673.53 ms   max =  695.12 ms   avg =  678.93 ms
+      mobilefacenets  min =   72.38 ms   max =   72.78 ms   avg =   72.54 ms
+ALL TEST DONE
+```
+

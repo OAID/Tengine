@@ -148,6 +148,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
+    /* prerun graph, set work options(num_thread, cluster, precision) */
     if (prerun_graph_multithread(graph, opt) < 0)
     {
         fprintf(stderr, "Prerun multithread graph failed.\n");

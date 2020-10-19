@@ -268,6 +268,13 @@ static int detect_yolact(const cv::Mat& bgr, std::vector<Object>& objects, const
         return -1;
     }
 
+    if (set_tensor_buffer(input_tensor, input_data, img_size * sizeof(float)) < 0)
+    {
+        fprintf(stderr, "Set input tensor buffer failed\n");
+        return -1;
+    }    
+
+    /* prerun graph, set work options(num_thread, cluster, precision) */
     if (prerun_graph_multithread(graph, opt) < 0)
     {
         fprintf(stderr, "Prerun multithread graph failed.\n");
@@ -276,11 +283,6 @@ static int detect_yolact(const cv::Mat& bgr, std::vector<Object>& objects, const
 
     /* prepare process input data, set the data mem to input tensor */
     get_input_data_cv(bgr, input_data, target_size, target_size, mean_vals, norm_vals, 1);
-    if (set_tensor_buffer(input_tensor, input_data, img_size * 4) < 0)
-    {
-        fprintf(stderr, "Set input tensor buffer failed\n");
-        return -1;
-    }
 
     /* run graph */
     double min_time = __DBL_MAX__;

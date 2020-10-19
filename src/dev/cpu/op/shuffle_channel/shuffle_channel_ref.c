@@ -52,7 +52,7 @@ int ref_shuffle_channel_fp32(struct ir_tensor* input_tensor, struct ir_tensor* o
             {
                 int src_q = n * c * h * w + (chs_per_group * i + j) * h * w;
                 int dst_q = n * c * h * w + (group * j + i) * h * w;
-                memcpy(input_fp32 + dst_q, output_fp32 + src_q, h * w * elemsize);
+                memcpy(output_fp32 + dst_q, input_fp32 + src_q, h * w * elemsize);
             }
         }
     }
@@ -81,7 +81,7 @@ int ref_shuffle_channel_uint8(struct ir_tensor* input_tensor, struct ir_tensor* 
             {
                 int src_q = n * c * h * w + (chs_per_group * i + j) * h * w;
                 int dst_q = n * c * h * w + (group * j + i) * h * w;
-                memcpy(input_uint8 + dst_q, output_uint8 + src_q, h * w * elemsize);
+                memcpy(output_uint8 + dst_q, input_uint8 + src_q, h * w * elemsize);
             }
         }
     }

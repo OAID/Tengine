@@ -126,7 +126,7 @@ void process_crnn_result(const float* ocr_data, const char* label_file)
 
 void show_usage()
 {
-    fprintf(stderr, "[Usage]:  [-h]\n    [-m model_file] [-i image_file] [-r repeat_count] [-t thread_count]\n");
+    fprintf(stderr, "[Usage]:  [-h]\n    [-m model_file] [-i image_file] [-l lable_file] [-r repeat_count] [-t thread_count]\n");
 }
 
 int main(int argc, char* argv[])
