@@ -31,8 +31,6 @@
 #include "tengine_op.h"
 #include "fc_param.h"
 #include "cortex_a/fc_kernel_arm.h"
-#include "../../../../../../native_log.h"
-
 #if __ARM_FEATURE_FP16_VECTOR_ARITHMETIC
 #include "cortex_a/fc_kernel_fp16_arm82.h"
 #endif
@@ -73,7 +71,6 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
     else
     {
         printf("Tengine work node not support %d\n", exec_graph->mode);
-        ALOGE("Tengine work node not support %d\n",exec_graph->mode)
         return -1;
     }
 
