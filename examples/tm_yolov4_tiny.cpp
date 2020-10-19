@@ -695,10 +695,6 @@ int main(int argc, char* argv[])
     if (!check_file_exist(model_file) || !check_file_exist(image_file))
         return -1;
 
-<<<<<<< HEAD
-    /* inital tengine */
-    init_tengine();
-=======
     /* set runtime options */
     struct options opt;
     opt.num_thread = num_thread;
@@ -711,7 +707,6 @@ int main(int argc, char* argv[])
         fprintf(stderr, "Initial tengine failed.\n");
         return -1;
     }
->>>>>>> 42c24cac6e75599376c68501ab38dcd270c4f7ee
     fprintf(stderr, "tengine-lite library version: %s\n", get_tengine_version());
 
     /* create graph, load tengine model xxx.tmfile */
@@ -742,22 +737,6 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-<<<<<<< HEAD
-    if (prerun_graph(graph) < 0)
-    {
-        fprintf(stderr, "Prerun graph failed\n");
-        return -1;
-    }
-
-    /* prepare process input data, set the data mem to input tensor */
-    get_input_data_darknet(image_file, input_data.data(), net_h, net_w);
-    if (set_tensor_buffer(input_tensor, input_data.data(), img_size * 4) < 0)
-    {
-        fprintf(stderr, "Set input tensor buffer failed\n");
-        return -1;
-    }
-
-=======
     if (set_tensor_buffer(input_tensor, input_data.data(), img_size * 4) < 0)
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
@@ -774,7 +753,6 @@ int main(int argc, char* argv[])
     /* prepare process input data, set the data mem to input tensor */
     get_input_data_darknet(image_file, input_data.data(), net_h, net_w);
 
->>>>>>> 42c24cac6e75599376c68501ab38dcd270c4f7ee
     /* run graph */
     double min_time = __DBL_MAX__;
     double max_time = -__DBL_MAX__;
