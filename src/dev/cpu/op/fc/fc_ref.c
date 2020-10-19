@@ -284,7 +284,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         ret = ref_fc_fp32(input_tensor, output_tensor, weight_tensor, bias_tensor, op_param);
     else if (input_tensor->data_type == TENGINE_DT_FP16)
         ret = ref_fc_fp16(input_tensor, output_tensor, weight_tensor, bias_tensor, op_param);
-    else if (input_tensor->data_type == TENGINE_DT_UINT8)
+    else if (input_tensor->data_type == TENGINE_DT_UINT8 || input_tensor->data_type == TENGINE_DT_INT8)
         ret = ref_fc_uint8(input_tensor, output_tensor, weight_tensor, bias_tensor, op_param);
     else
     {

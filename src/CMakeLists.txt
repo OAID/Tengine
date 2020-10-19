@@ -164,7 +164,7 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${TENGINE_PRIVATE_INC_D
 
 
 if (ANDROID)
-    target_link_libraries(${CMAKE_PROJECT_NAME} android ${TENGINE_LINKING_LIBS})
+    target_link_libraries(${CMAKE_PROJECT_NAME} android log ${TENGINE_LINKING_LIBS})
 else()
     target_link_libraries(${CMAKE_PROJECT_NAME} pthread dl m ${TENGINE_LINKING_LIBS})
 endif()
