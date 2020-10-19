@@ -189,7 +189,7 @@ left = 205,right = 576,top = 153,bot = 447
 
 ![](https://s1.ax1x.com/2020/08/28/domYCt.jpg)
 
-## yolov4-tinye目标检测任务 - [tm_yolov4_tiny.cpp](tm_yolov4_tiny.cpp)
+## yolov4-tiny目标检测任务 - [tm_yolov4_tiny.cpp](tm_yolov4_tiny.cpp)
 
 使用图片：
 
