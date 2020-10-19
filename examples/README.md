@@ -4,7 +4,7 @@ Tengine Lite 的 examples 将提供简单的、好玩的 demo。
 
 ## 分类任务 - [tm_classification.c](tm_classification.c)
 
-Tengine Lite 兼容 Tengine 原有的 C API 供用户使用，这里我们使用 C API 展示如何运行 tm_classification 例程运行 MobileNet v1 分类网络模型，实现指定图片分类的功能。让你快速上手Tengine Lite C API。这里，我们使用在这个撸猫时代行业从业者大爱的 tiger cat 作为测试图片。
+Tengine Lite 兼容 Tengine 原有的 C API 供用户使用，这里我们使用 C API 展示如何运行 tm_classification 例程运行 MobileNet v1 分类网络模型，实现指定图片分类的功能。让你快速上手 Tengine Lite C API。这里，我们使用在这个撸猫时代行业从业者大爱的 tiger cat 作为测试图片。
 
 ![lu mao](https://github.com/OAID/Tengine/blob/master/tests/images/cat.jpg)
 
@@ -22,11 +22,27 @@ build.sh 编译脚本默认配置已实现自动编译 examples 中的 demo 程�
 bug1989@DESKTOP-SGN0H2A:/mnt/d/ubuntu/gitlab/build-linux$ tree install
 install
 ├── bin
+│   ├── cpp_tm_classification
+│   ├── cpp_tm_mobilenet_ssd
 │   ├── tm_benchmark
 │   ├── tm_classification
+│   ├── tm_classification_fp16
+│   ├── tm_classification_uint8
+│   ├── tm_classification_vulkan
+│   ├── tm_crnn
+│   ├── tm_landmark
+│   ├── tm_landmark_uint8
+│   ├── tm_mobilefacenet
 │   ├── tm_mobilenet_ssd
+│   ├── tm_mobilenet_ssd_acl
+│   ├── tm_mobilenet_ssd_uint8
+│   ├── tm_openpose
 │   ├── tm_retinaface
-│   └── tm_yolov3_tiny
+│   ├── tm_yolact
+│   ├── tm_yolov3_tiny
+│   ├── tm_yolov3_uint8
+│   ├── tm_yolov4
+│   └── tm_yolov4_tiny
 ├── include
 │   └── tengine_c_api.h
 └── lib
@@ -45,7 +61,10 @@ $ ./build/install/bin/tm_classification -m models/mobilenet.tmfile -i images/cat
 结果如下：
 
 ```bash
-model file : ./temp/models/mobilenet_v1.tmfile
+start to run register cpu allocator
+tengine-lite library version: 1.0-dev
+
+model file : ./temp/models/mobilenet.tmfile
 image file : ./temp/images/cat.jpg
 img_h, img_w, scale[3], mean[3] : 224 224 , 0.017 0.017 0.017, 104.0 116.7 122.7
 Repeat 1 times, thread 1, avg time 656.76 ms, max_time 656.76 ms, min_time 656.76 ms
@@ -72,13 +91,14 @@ $ ./build/install/bin/tm_landmark -m models/landmark.tmfile -i images/mobileface
 结果如下：
 
 ```bash
-tengine-lite library version: 0.2-dev
+start to run register cpu allocator
+tengine-lite library version: 1.0-dev
 Repeat [1] min 17.461 ms, max 17.461 ms, avg 17.461 ms
 ```
 
 ![](https://s1.ax1x.com/2020/08/28/doZQxO.jpg)
 
-## ssd目标检测任务 - [tm_mobilenet_ssd.cpp](tm_mobilenet_ssd.cpp)
+## ssd 目标检测任务 - [tm_mobilenet_ssd.cpp](tm_mobilenet_ssd.cpp)
 
 使用图片：
 
@@ -92,7 +112,8 @@ $ ./build/install/bin/tm_mobilenet_ssd -m models/mobilenet_ssd.tmfile -i images/
 结果如下：
 
 ```bash
-tengine-lite library version: 0.2-dev
+start to run register cpu allocator
+tengine-lite library version: 1.0-dev
 Repeat 1 times, thread 1, avg time 206.30 ms, max_time 206.30 ms, min_time 206.30 ms
 --------------------------------------
 detect result num: 3
@@ -109,8 +130,7 @@ BOX:( 107 , 141 ),( 574 , 415 )
 
 ![](https://s1.ax1x.com/2020/08/28/doeJ6U.jpg)
 
-
-## retinaface人脸检测任务 - [tm_refinaface.cpp](tm_refinaface.cpp)
+## retinaface 人脸检测任务 - [tm_refinaface.cpp](tm_refinaface.cpp)
 
 使用图片：
 
@@ -124,7 +144,8 @@ $ ./build/install/bin/tm_retinaface -m models/retinaface.tmfile -i images/mtcnn_
 结果如下：
 
 ```bash
-tengine-lite library version: 0.2-dev
+start to run register cpu allocator
+tengine-lite library version: 1.0-dev
 img_h, img_w : 316, 474
 Repeat 1 times, thread 1, avg time 75.72 ms, max_time 75.72 ms, min_time 75.72 ms
 --------------------------------------
@@ -137,7 +158,7 @@ BOX 0.98:( 289.365 , 103.773 ),( 38.0025 , 47.6989 )
 
 ![](https://s1.ax1x.com/2020/08/28/doeBfx.jpg)
 
-## yolact实例分割任务 - [tm_yolact.cpp](tm_yolact.cpp)
+## yolact 实例分割任务 - [tm_yolact.cpp](tm_yolact.cpp)
 
 使用图片：
 
@@ -151,7 +172,8 @@ $ ./build/install/bin/tm_yolact -m models/yolact.tmfile -i images/ssd_car.jpg -r
 结果如下：
 
 ```bash
-tengine-lite library version: 0.2-dev
+start to run register cpu allocator
+tengine-lite library version: 1.0-dev
 Repeat 1 times, thread 1, avg time 15833.47 ms, max_time 15833.47 ms, min_time 15833.47 ms
 --------------------------------------
 6 = 0.99966 at 130.82 57.77 340.78 x 237.36
@@ -161,7 +183,7 @@ Repeat 1 times, thread 1, avg time 15833.47 ms, max_time 15833.47 ms, min_time 1
 
 ![](https://s1.ax1x.com/2020/08/28/doe4ht.png)
 
-## yolov3目标检测任务 - [tm_yolov3.cpp](tm_yolov3.cpp)
+## yolov3 目标检测任务 - [tm_yolov3.cpp](tm_yolov3.cpp)
 
 使用图片：
 
@@ -175,7 +197,8 @@ $ ./build/install/bin/tm_yolact -m models/yolov3_tiny.tmfile -i images/ssd_dog.j
 结果如下：
 
 ```bash
-tengine-lite library version: 0.2-dev
+start to run register cpu allocator
+tengine-lite library version: 1.0-dev
 Repeat 1 times, thread 1, avg time 262.52 ms, max_time 262.52 ms, min_time 262.52 ms
 --------------------------------------
 num_detections,4
@@ -203,7 +226,8 @@ $ ./build/install/bin/tm_openpose -m models/openpose_coco.tmfile -i image/pose.j
 结果如下：
 
 ```bash
-tengine-lite library version: 0.2-dev
+start to run register cpu allocator
+tengine-lite library version: 1.0-dev
 Repeat 1 times, thread 1, avg time 15350.25 ms, max_time 15350.25 ms, min_time 15350.25 ms
 --------------------------------------
 KeyPoints Coordinate:
