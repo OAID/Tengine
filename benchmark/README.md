@@ -176,3 +176,97 @@ power        = 0
       mobilefacenets  min =   46.79 ms   max =   49.18 ms   avg =   47.22 ms
 ALL TEST DONE
 ```
+
+Raspberry Pi 3B  (Cortex-A53 1.2GHZ x 4)
+
+```
+pi@raspberrypi:~/Tengine-Lite/build $ ./benchmark/tm_benchmark -r 8
+start to run register cpu allocator
+loop_counts = 8
+num_threads = 1
+power       = 0
+tengine-lite library version: 1.0-dev
+     squeezenet_v1.1  min =  190.74 ms   max =  191.98 ms   avg =  191.15 ms
+         mobilenetv1  min =  364.62 ms   max =  365.88 ms   avg =  364.92 ms
+         mobilenetv2  min =  323.45 ms   max =  325.61 ms   avg =  323.85 ms
+         mobilenetv3  min =  249.12 ms   max =  250.35 ms   avg =  249.39 ms
+        shufflenetv2  min =  108.03 ms   max =  108.22 ms   avg =  108.12 ms
+            resnet18  min =  598.48 ms   max =  605.05 ms   avg =  600.50 ms
+            resnet50  min = 1754.92 ms   max = 1760.45 ms   avg = 1757.52 ms
+           googlenet  min =  704.96 ms   max =  710.59 ms   avg =  705.90 ms
+         inceptionv3  min = 2937.00 ms   max = 2940.33 ms   avg = 2939.03 ms
+               vgg16  min = 3365.99 ms   max = 3546.59 ms   avg = 3391.13 ms
+                mssd  min =  733.63 ms   max =  737.31 ms   avg =  735.61 ms
+          retinaface  min =  112.00 ms   max =  114.12 ms   avg =  112.59 ms
+         yolov3_tiny  min =  886.04 ms   max =  908.04 ms   avg =  889.82 ms
+      mobilefacenets  min =  161.90 ms   max =  163.71 ms   avg =  162.18 ms
+ALL TEST DONE
+pi@raspberrypi:~/Tengine-Lite/build $ ./benchmark/tm_benchmark -r 8 -t 4
+start to run register cpu allocator
+loop_counts = 8
+num_threads = 4
+power       = 0
+tengine-lite library version: 1.0-dev
+     squeezenet_v1.1  min =   85.47 ms   max =   86.43 ms   avg =   86.05 ms
+         mobilenetv1  min =  122.97 ms   max =  123.52 ms   avg =  123.29 ms
+         mobilenetv2  min =  139.47 ms   max =  139.92 ms   avg =  139.76 ms
+         mobilenetv3  min =  154.04 ms   max =  154.79 ms   avg =  154.41 ms
+        shufflenetv2  min =   42.62 ms   max =   43.07 ms   avg =   42.82 ms
+            resnet18  min =  362.03 ms   max =  364.59 ms   avg =  363.25 ms
+            resnet50  min =  834.65 ms   max =  844.14 ms   avg =  838.60 ms
+           googlenet  min =  364.03 ms   max =  367.16 ms   avg =  365.25 ms
+         inceptionv3  min = 1074.93 ms   max = 1091.14 ms   avg = 1082.19 ms
+               vgg16  min = 2622.68 ms   max = 2902.42 ms   avg = 2687.51 ms
+                mssd  min =  258.68 ms   max =  260.33 ms   avg =  259.32 ms
+          retinaface  min =   61.80 ms   max =   62.40 ms   avg =   61.98 ms
+         yolov3_tiny  min =  673.53 ms   max =  695.12 ms   avg =  678.93 ms
+      mobilefacenets  min =   72.38 ms   max =   72.78 ms   avg =   72.54 ms
+ALL TEST DONE
+```
+
+Raspberry Pi 4B  (Cortex-A72 1.5GHZ x 4)
+```bash
+pi@raspberrypi:~/Tengine/benchmark $ ../build/benchmark/tm_benchmark -r 8
+start to run register cpu allocator
+loop_counts = 8
+num_threads = 1
+power       = 0
+tengine-lite library version: 1.0-dev
+     squeezenet_v1.1  min =   70.35 ms   max =   72.14 ms   avg =   70.99 ms
+         mobilenetv1  min =  125.71 ms   max =  126.87 ms   avg =  126.30 ms
+         mobilenetv2  min =  124.22 ms   max =  125.28 ms   avg =  124.67 ms
+         mobilenetv3  min =   78.73 ms   max =   79.78 ms   avg =   79.10 ms
+        shufflenetv2  min =   38.69 ms   max =   39.25 ms   avg =   38.96 ms
+            resnet18  min =  219.02 ms   max =  220.24 ms   avg =  219.49 ms
+            resnet50  min =  632.10 ms   max =  633.48 ms   avg =  632.85 ms
+           googlenet  min =  264.98 ms   max =  385.50 ms   avg =  287.44 ms
+         inceptionv3  min = 1035.28 ms   max = 1060.50 ms   avg = 1039.35 ms
+               vgg16  min = 1163.56 ms   max = 1409.93 ms   avg = 1222.29 ms
+                mssd  min =  254.38 ms   max =  255.45 ms   avg =  254.99 ms
+          retinaface  min =   40.51 ms   max =   45.60 ms   avg =   41.24 ms
+         yolov3_tiny  min =  301.45 ms   max =  304.59 ms   avg =  303.26 ms
+      mobilefacenets  min =   59.49 ms   max =   60.40 ms   avg =   59.76 ms
+ALL TEST DONE
+pi@raspberrypi:~/Tengine/benchmark $ ../build/benchmark/tm_benchmark -r 8 -t 4
+start to run register cpu allocator
+loop_counts = 8
+num_threads = 4
+power       = 0
+tengine-lite library version: 1.0-dev
+     squeezenet_v1.1  min =   40.91 ms   max =   42.42 ms   avg =   41.44 ms
+         mobilenetv1  min =   54.45 ms   max =   55.20 ms   avg =   54.84 ms
+         mobilenetv2  min =   66.10 ms   max =   66.99 ms   avg =   66.39 ms
+         mobilenetv3  min =   56.95 ms   max =   57.37 ms   avg =   57.14 ms
+        shufflenetv2  min =   19.91 ms   max =   20.39 ms   avg =   20.10 ms
+            resnet18  min =  157.12 ms   max =  160.92 ms   avg =  158.37 ms
+            resnet50  min =  330.70 ms   max =  335.26 ms   avg =  332.28 ms
+           googlenet  min =  169.96 ms   max =  172.73 ms   avg =  171.61 ms
+         inceptionv3  min =  502.01 ms   max =  526.95 ms   avg =  511.20 ms
+               vgg16  min =  818.95 ms   max =  854.09 ms   avg =  839.29 ms
+                mssd  min =  110.79 ms   max =  113.91 ms   avg =  111.96 ms
+          retinaface  min =   25.39 ms   max =   42.38 ms   avg =   27.72 ms
+         yolov3_tiny  min =  188.28 ms   max =  190.19 ms   avg =  188.88 ms
+      mobilefacenets  min =   28.96 ms   max =   31.83 ms   avg =   29.59 ms
+ALL TEST DONE
+
+```
