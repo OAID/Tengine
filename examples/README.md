@@ -285,7 +285,7 @@ KeyPoints Coordinate:
 
 人体姿态识别结果会保存为图片，名称为：`Output-Keypionts.jpg`和`Output-Skeleton.jpg`。
 
-## 人体姿态识别任务 - [tm_crnn.cpp](tm_crnn.cpp)
+## 汉字识别任务 - [tm_crnn.cpp](tm_crnn.cpp)
 
 目录结构: 在根目录下新建model文件夹, 并从[Tengine model zoo](https://pan.baidu.com/s/1Ar9334MPeIV1eq4pM1eI-Q) ( 密码：hhgc ) 中下载对应的模型文件和测试图片放入其中, 这里是: `crnn_lite_dense.tmfile`模型文件, `o2_resize.jpg`测试图片, 以及`keys.txt`字库文件. 在以上步骤的基础上, 输入如下命令行
 
