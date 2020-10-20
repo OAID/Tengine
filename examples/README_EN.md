@@ -261,4 +261,28 @@ KeyPoints Coordinate:
 
 The result of human pose estimation will be saved as images, whose names are: `Output-Keypionts.jpg` and `Output-Skeleton.jpg`.
 
+## Chinese character recognition task - [tm_crnn.cpp](tm_crnn.cpp)
+
+Folder structure: create `model` directory under project root directory, and download corresponding model and testing image files from [Tengine model zoo](https://pan.baidu.com/s/1Ar9334MPeIV1eq4pM1eI-Q) ( password：_hhgc_ ) there. Specifically, `crnn_lite_dense.tmfile` as model file, `o2_resize.jpg` as testing image, `keys.txt` as font file. Then we execute:
+
+![](https://s1.ax1x.com/2020/10/20/BSlFPS.jpg)
+
+```bash
+export LD_LIBRARY_PATH=./build/install/lib
+./build/install/bin/tm_crnn -m model/crnn_lite_dense.tmfile -i model/o2_resize.jpg -l model/keys.txt
+```
+
+result:
+
+```bash
+start to run register cpu allocator
+tengine-lite library version: 1.0-dev
+Repeat 1 times, thread 1, avg time 43.32 ms, max_time 43.32 ms, min_time 43.32 ms
+--------------------------------------
+如何突破自己的颜值上限
+--------------------------------------
+```
+
+The result of ocr recognition is displayed in terminal, you may also modify the source code to save it to file.
+
 We will continously updating more fancy demos, please stay tuned...

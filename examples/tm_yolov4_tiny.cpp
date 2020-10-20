@@ -230,7 +230,7 @@ int yolo_num_detections(layer l, float thresh)
                 int obj_index = entry_index(l, b, n * l.w * l.h + i, 4);
                 if (l.output[obj_index] > thresh)
                 {
-                    printf(".....%d -- %f\n",obj_index, l.output[obj_index]);
+                    // printf(".....%d -- %f\n",obj_index, l.output[obj_index]);
                     ++count;
                 }
             }
@@ -277,16 +277,8 @@ void correct_yolo_boxes(detection* dets, int n, int w, int h, int netw, int neth
     int i;
     int new_w = 0;
     int new_h = 0;
-    if ((( float )netw / w) < (( float )neth / h))
-    {
-        new_w = netw;
-        new_h = (h * netw) / w;
-    }
-    else
-    {
-        new_h = neth;
-        new_w = (w * neth) / h;
-    }
+    new_w = netw;
+    new_h = neth;
     for (i = 0; i < n; ++i)
     {
         box b = dets[i].bbox;
@@ -629,8 +621,14 @@ void get_input_data_darknet(const char* image_file, float* input_data, int net_h
     {
         im.data[i] = im.data[i] / 255;
     }
-    sized = letterbox(im, net_w, net_h);
-    memcpy(input_data, sized.data, size * sizeof(float));
+    int ow = net_w;
+    int oh = net_h;
+    sized = resize_image(im, ow, oh);
+    float *resize_data = (float*)sized.data;
+    for (int i = 0; i < size; i++)
+    {
+        input_data[i] = resize_data[i];
+    }
 
     free_image(sized);
     free_image(im);
