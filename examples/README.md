@@ -212,6 +212,35 @@ left = 205,right = 576,top = 153,bot = 447
 
 ![](https://s1.ax1x.com/2020/08/28/domYCt.jpg)
 
+## yolov4-tiny目标检测任务 - [tm_yolov4_tiny.cpp](tm_yolov4_tiny.cpp)
+
+使用图片：
+
+![](https://github.com/OAID/Tengine/blob/master/tests/images/ssd_dog.jpg)
+
+```bash
+$ export LD_LIBRARY_PATH=./build/install/lib
+$ ./build/install/bin/tm_yolov4_tiny -m models/yolov4_tiny.tmfile -i images/ssd_dog.jpg -r 1 -t 1
+```
+结果如下：
+
+```bash
+start to run register cpu allocator
+tengine-lite library version: 1.0-dev
+Repeat 1 times, thread 1, avg time 177.72 ms, max_time 177.72 ms, min_time 177.72 ms
+--------------------------------------
+num_detections,10
+16: 74%
+left = 125,right = 327,top = 221,bot = 537
+2: 40%
+7: 84%
+left = 455,right = 703,top = 77,bot = 168
+1: 28%
+left = 56,right = 603,top = 85,bot = 496
+```
+
+![](https://s1.ax1x.com/2020/10/19/0zpvfU.jpg)
+
 ## 人体姿态识别任务 - [tm_openpose.cpp](tm_openpose.cpp)
 
 使用图片：
