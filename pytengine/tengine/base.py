@@ -1,6 +1,6 @@
 # coding: utf-8
 # pylint: disable=invalid-name, no-member, trailing-comma-tuple, bad-mcs-classmethod-argument
-"""ctypes library of tegine and helper functions."""
+"""ctypes library of tengine and helper functions."""
 from __future__ import absolute_import
 
 import atexit
@@ -213,10 +213,10 @@ class DType:
         pass
 
     def __str__(self):
-        return "<Tegine dtype :%s>" % Tengine_type[self.enum]
+        return "<Tengine dtype :%s>" % Tengine_type[self.enum]
 
     def __repr__(self):
-        return "<Tegine dtype :%s>" % Tengine_type[self.enum]
+        return "<Tengine dtype :%s>" % Tengine_type[self.enum]
 
 
 graph_exec_stat = [
