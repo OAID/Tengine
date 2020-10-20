@@ -285,4 +285,30 @@ KeyPoints Coordinate:
 
 人体姿态识别结果会保存为图片，名称为：`Output-Keypionts.jpg`和`Output-Skeleton.jpg`。
 
+## 汉字识别任务 - [tm_crnn.cpp](tm_crnn.cpp)
+
+目录结构: 在根目录下新建model文件夹, 并从[Tengine model zoo](https://pan.baidu.com/s/1Ar9334MPeIV1eq4pM1eI-Q) ( 密码：hhgc ) 中下载对应的模型文件和测试图片放入其中, 这里是: `crnn_lite_dense.tmfile`模型文件, `o2_resize.jpg`测试图片, 以及`keys.txt`字库文件. 在以上步骤的基础上, 输入如下命令行
+
+测试图片：
+
+![](https://s1.ax1x.com/2020/10/20/BSlFPS.jpg)
+
+```bash
+$ export LD_LIBRARY_PATH=./build/install/lib
+$ ./build/install/bin/tm_crnn -m model/crnn_lite_dense.tmfile -i model/o2_resize.jpg -l model/keys.txt
+```
+
+结果如下：
+
+```bash
+start to run register cpu allocator
+tengine-lite library version: 1.0-dev
+Repeat 1 times, thread 1, avg time 43.32 ms, max_time 43.32 ms, min_time 43.32 ms
+--------------------------------------
+如何突破自己的颜值上限
+--------------------------------------
+```
+
+其中ocr的识别结果会直接打印到终端中, 同时如果需要保存为txt文件可以修改源码使其重定向到文件。
+
 我们将持续更新各种有趣的 demo ，敬请期待......
