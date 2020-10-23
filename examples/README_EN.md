@@ -4,6 +4,17 @@
 
 Tengine Lite's examples providing simple yet fancy demos.
 
+  - [Classification](#classification-task---tmclassificationc)
+  - [Facial Landmark Detection](#facial-landmark-detection-task---tmlandmarkcpp)
+  - [SSD Object Detection](#ssd-object-detection-task---tmmobilenetssdcpp)
+  - [RetinaFace Face Detection](#retinaface-face-detection-task---tmrefinafacecpp)
+  - [Yolact Instance Segmentation](#yolact-instance-segmentation-task---tmyolactcpp)
+  - [YoloV3 Object Detection Task](#yolov3-object-detection-task---tmyolov3cpp)
+  - [Yolov4-tiny Object Detection Task](#yolov4\-tiny-object-detection-task---tm_yolov4_tiny.cpp)
+  - [Human Pose Estimation Task](#human-pose-estimation-task---tmopenposecpp)
+  - [Chinese character recognition](#chinese-character-recognition-task---tmcrnncpp)
+  
+----------
 ## Classification task - [tm_classification.c](tm_classification.c)
 
 Tengine Lite is compatible with original Tengine's C API. Here we demonstrate how to run MobileNet v1 via tm_classification example code, providing image classification functionality. This would help you get involve with Tengine Lite C API. We use the popular tiger cat image for test.
@@ -216,6 +227,35 @@ left = 205,right = 576,top = 153,bot = 447
 ```
 
 ![](https://s1.ax1x.com/2020/08/28/domYCt.jpg)
+
+## Yolov4-tiny Object Detection Task - [tm_yolov4_tiny.cpp](tm_yolov4_tiny.cpp)
+
+We use this image:
+
+![](https://github.com/OAID/Tengine/blob/master/tests/images/ssd_dog.jpg)
+
+```bash
+$ export LD_LIBRARY_PATH=./build/install/lib
+$ ./build/install/bin/tm_yolov4_tiny -m models/yolov4_tiny.tmfile -i images/ssd_dog.jpg -r 1 -t 1
+```
+output：
+
+```bash
+start to run register cpu allocator
+tengine-lite library version: 1.0-dev
+Repeat 1 times, thread 1, avg time 177.72 ms, max_time 177.72 ms, min_time 177.72 ms
+--------------------------------------
+num_detections,10
+16: 74%
+left = 125,right = 327,top = 221,bot = 537
+2: 40%
+7: 84%
+left = 455,right = 703,top = 77,bot = 168
+1: 28%
+left = 56,right = 603,top = 85,bot = 496
+```
+
+![](https://s1.ax1x.com/2020/10/19/0zpvfU.jpg)
 
 ## Human Pose Estimation Task - [tm_openpose.cpp](tm_openpose.cpp)
 
