@@ -11,7 +11,7 @@ Tengine Lite 的 examples 将提供简单的、好玩的 demo。
 - [yolov3 目标检测任务](#yolov3-目标检测任务---tm_yolov3cpp)
 - [yolov4-tiny目标检测任务](#yolov4-tiny目标检测任务---tm_yolov4_tinycpp)
 - [openpose人体姿态识别任务](#人体姿态识别任务---tm_openposecpp)
-- [crnn汉字识别任务](汉字识别任务---tm_crnncpp)
+- [crnn汉字识别任务](#汉字识别任务---tm_crnncpp)
   
 ----------
 ## 分类任务 - [tm_classification.c](tm_classification.c)
