@@ -28,6 +28,10 @@
 #include <string>
 #include <fstream>
 
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+
 #include "common.h"
 #include "tengine_c_api.h"
 #include "tengine_operations.h"
@@ -35,47 +39,53 @@
 #define DEFAULT_REPEAT_COUNT 1
 #define DEFAULT_THREAD_COUNT 1
 
-image rgb2gray_testcrnn(image src)
+void get_input_data_cv(const cv::Mat& sample, float* input_data, int img_h, int img_w, int img_c, const float* mean,
+                       const float* scale, int swapRB = 0)
 {
-    image res;
-    res.h = src.h;
-    res.w = src.w;
-    res.c = 1;
-    res.data = ( float* )malloc(sizeof(float) * res.h * res.w);
-
-    for (int i = 0; i < res.h; i++)
+    cv::Mat img;
+    if (sample.channels() == 4)
     {
-        for (int j = 0; j < res.w; j++)
+        cv::cvtColor(sample, img, cv::COLOR_BGRA2BGR);
+    }
+    else if (sample.channels() == 1 && img_c == 3 && swapRB == 0)
+    {
+        cv::cvtColor(sample, img, cv::COLOR_GRAY2BGR);
+    }
+    else if (sample.channels() == 1 && img_c == 3 && swapRB == 1)
+    {
+        cv::cvtColor(sample, img, cv::COLOR_GRAY2RGB);
+    }
+    else if (sample.channels() == 3 && img_c == 3  && swapRB == 1)
+    {
+        cv::cvtColor(sample, img, cv::COLOR_BGR2RGB);
+    }
+    else if (sample.channels() == 3 && img_c == 1)
+    {
+        cv::cvtColor(sample, img, cv::COLOR_BGR2GRAY);
+    }
+    else
+    {
+        img = sample;
+    }
+
+    cv::resize(img, img, cv::Size(img_w, img_h));
+    if (img_c == 3)
+        img.convertTo(img, CV_32FC3);
+    else if (img_c == 1)
+        img.convertTo(img, CV_32FC1);
+    float* img_data = ( float* )img.data;
+    int hw = img_h * img_w;
+    for (int h = 0; h < img_h; h++)
+    {
+        for (int w = 0; w < img_w; w++)
         {
-            float r = src.data[0 * src.h * src.w + i * src.w + j];
-            float g = src.data[1 * src.h * src.w + i * src.w + j];
-            float b = src.data[2 * src.h * src.w + i * src.w + j];
-            res.data[i * res.w + j] = (r * 0.114f + g * 0.587f + b * 0.299f);
+            for (int c = 0; c < img_c; c++)
+            {
+                input_data[c * hw + h * img_w + w] = (*img_data - mean[c]) * scale[c];
+                img_data++;
+            }
         }
     }
-    free_image(src);
-    return res;
-}
-
-image imread_process_testcrnn(const char* filename, int img_w, int img_h, float* means, float* scale)
-{
-    image out = imread(filename);
-    image resImg = make_image(img_w, img_h, 1);
-    out = rgb2gray_testcrnn(out);
-    tengine_resize_f32(out.data, resImg.data, img_w, img_h, out.c, out.h, out.w);
-    resImg = imread2caffe(resImg, img_w, img_h, means, scale);
-    free_image(out);
-    return resImg;
-}
-
-void get_input_data_test_crnn(const char* image_file, float* input_data, int img_h, int img_w, const float* mean,
-                              const float* scale)
-{
-    float means[3] = {mean[0], mean[1], mean[2]};
-    float scales[3] = {scale[0], scale[1], scale[2]};
-    image img = imread_process_testcrnn(image_file, img_w, img_h, means, scales);
-    memcpy(input_data, img.data, sizeof(float) * img.c * img_w * img_h);
-    free_image(img);
 }
 
 std::string read_txt(const std::string& filename, int line)
@@ -126,7 +136,7 @@ void process_crnn_result(const float* ocr_data, const char* label_file)
 
 void show_usage()
 {
-    fprintf(stderr, "[Usage]:  [-h]\n    [-m model_file] [-i image_file] [-l lable_file] [-r repeat_count] [-t thread_count]\n");
+    fprintf(stderr, "[Usage]:  [-h]\n    [-m model_file] [-i image_file] [-l label_file] [-r repeat_count] [-t thread_count]\n");
 }
 
 int main(int argc, char* argv[])
@@ -194,6 +204,13 @@ int main(int argc, char* argv[])
     if (!check_file_exist(model_file) || !check_file_exist(image_file) || !check_file_exist(label_file))
         return -1;
 
+    cv::Mat m = cv::imread(image_file, 1);
+    if (m.empty())
+    {
+        fprintf(stderr, "cv::imread %s failed\n", image_file);
+        return -1;
+    }
+
     /* set runtime options */
     struct options opt;
     opt.num_thread = num_thread;
@@ -248,7 +265,7 @@ int main(int argc, char* argv[])
     }
 
     /* prepare process input data, set the data mem to input tensor */
-    get_input_data_test_crnn(image_file, input_data, img_h, img_w, mean, scale);
+    get_input_data_cv(m, input_data, img_h, img_w, 1, mean, scale);
 
     /* run graph */
     double min_time = __DBL_MAX__;
