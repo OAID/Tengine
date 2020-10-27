@@ -123,7 +123,7 @@ static int infer_shape(struct ir_node* node)
                 }
                 if (slice_end > 0)
                 {
-                    out_dims[i] = dims_in[i] + (slice_param->begin - slice_end);
+                    out_dims[i] = slice_end - slice_param->begin;
                 }
                 else
                 {
