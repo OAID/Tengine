@@ -12,7 +12,7 @@
 
 ## Introduction
 
-**Tengine Lite** is developed by **OPEN AI LAB**. This project implements the **fast** and **efficient** deployment of deep learning neural network models on embedded devices. In order to achieve cross-platform deployment in many **AIoT** applications, this project is based on the original Tengine project using **C language** for reconstruction, and deep frame tailoring for the characteristics of limited embedded device resources. Also, it adopts a completely separated front-end/back-end design, which makes it possible to be transplanted and deployed onto CPU, GPU, NPU and other heterogeneous computing units rapidly, conveniently. At the same time, it is compatible with the original API and model format `tmfile` of **Tengine**, which reduces the cost of evaluation and migration.
+**Tengine Lite** is developed by **[OPEN AI LAB](http://www.openailab.com)**. This project meet the demand of **fast** and **efficient** deployment of deep learning neural network models on embedded devices. In order to achieve cross-platform deployment in many **AIoT** applications, this project is based on the original Tengine project using **C language** for reconstruction, and deep frame tailoring for the characteristics of limited embedded device resources. Also, it adopts a completely separated front-end/back-end design, which makes it possible to be transplanted and deployed onto CPU, GPU, NPU and other heterogeneous computing units rapidly, conveniently. At the same time, it is compatible with the original API and model format `tmfile` of **Tengine**, which reduces the cost of evaluation and migration.
 
 
 
@@ -25,6 +25,7 @@ The core code of Tengine Lite consists of 4 modules:
 
 
 ## Architecture
+
 ![Tengine Lite 架构](doc/architecture.png)
 
 
@@ -40,7 +41,7 @@ The core code of Tengine Lite consists of 4 modules:
 
 ### Model Zoo
 
-- [Tengine model zoo](https://pan.baidu.com/s/1Ar9334MPeIV1eq4pM1eI-Q) Model zoo samples are compatible with the original Tengine (password: hhgc).
+- [Tengine model zoo](https://pan.baidu.com/s/1Ar9334MPeIV1eq4pM1eI-Q) Model zoo samples are compatible with the original Tengine (password: _hhgc_).
 
 ### Model Convert tool
 
@@ -50,7 +51,7 @@ The core code of Tengine Lite consists of 4 modules:
 
 ### Speed assessment
 
--[Benchmark](benchmark/) Basic network speed assessment tool, any pull request is welcomed.
+- [Benchmark](benchmark/) Basic network speed assessment tool, any pull request is welcomed.
 
 ## Roadmap
 
@@ -69,7 +70,7 @@ Tengine Lite got ideas and developed based on these projects：
 - [Paddle Lite](https://github.com/PaddlePaddle/Paddle-Lite)
 - [ACL](https://github.com/ARM-software/ComputeLibrary)
 - [stb](https://github.com/nothings/stb)
-- [convertmodel](https://convertmodel.com/)
+- [convertmodel](https://convertmodel.com)
 
 ## License
 
@@ -80,7 +81,8 @@ Tengine Lite got ideas and developed based on these projects：
 - [FAQ common questions](doc/faq.md)
 
 ## Tech Forum
+
 - Github issues
 - QQ groupchat: 829565581
 - Email: Support@openailab.com
-- Tengine Community: http://www.tengine.org.cn/
+- Tengine Community: http://www.tengine.org.cn

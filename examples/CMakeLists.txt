@@ -34,7 +34,6 @@ tengine_example(tm_landmark_uint8           tm_landmark_uint8.cpp)
 tengine_example(tm_mobilefacenet            tm_mobilefacenet.cpp)
 tengine_example(tm_yolov4                   tm_yolov4.cpp)
 tengine_example(tm_yolov4_tiny              tm_yolov4_tiny.cpp)
-tengine_example(tm_crnn                     tm_crnn.cpp)
 
 
 # add examples with opencv
@@ -53,6 +52,8 @@ find_package(OpenCV QUIET)
         endmacro()
         tengine_example_cv(tm_openpose      tm_openpose.cpp)
         tengine_example_cv(tm_yolact        tm_yolact.cpp)
+        tengine_example_cv(tm_crnn          tm_crnn.cpp)
+        tengine_example_cv(tm_alphapose     tm_alphapose.cpp)
     else()
         message(WARNING "OpenCV not found, some examples won't be built")
     endif()
