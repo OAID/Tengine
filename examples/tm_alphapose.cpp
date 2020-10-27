@@ -68,7 +68,7 @@ cv::Mat get_input_data_pose(const char * img_file_path)
 
     float* img_data = ( float* )img.data;
     float means[3]{DEFAULT_MEAN1, DEFAULT_MEAN2, DEFAULT_MEAN3};
-    float scales[3]{DEFAULT_SCALE1, DEFAULT_SCALE1, DEFAULT_SCALE1};
+    float scales[3]{DEFAULT_SCALE1, DEFAULT_SCALE2, DEFAULT_SCALE3};
 
     for (int h = 0; h < img.rows; h++)
     {
@@ -76,7 +76,7 @@ cv::Mat get_input_data_pose(const char * img_file_path)
         {
             for (int c = 0; c < 3; c++)
             {
-                *img_data = scales[c] * (*img_data - means[c]);
+                *img_data = (scales[c] * (*img_data)) - means[c];
                 img_data++;
             }
         }
@@ -216,7 +216,7 @@ cv::Mat transform_box_invert_batch(cv::Mat & pt,
                 size[i][j] *= (input_res_h * 1.f / input_res_w);
             }
 
-            if (j == 1 && size[i][j] > len_h_element)
+            if (size[i][j] > len_h_element)
             {
                 len_h_element = size[i][j];
             }
@@ -240,7 +240,7 @@ cv::Mat transform_box_invert_batch(cv::Mat & pt,
             new_point.ptr<cv::Vec2f>(i, j)->val[0] = _pt + ul[i][0];
 
             _pt = pt.ptr<cv::Vec2f>(i, j)->val[1] * len_h[i] / output_res_h;
-            _pt = _pt - clamp_min_func(((len_w[i] - 1) / 2 - center[i][1]));
+            _pt = _pt - clamp_min_func(((len_h[i] - 1) / 2 - center[i][1]));
             new_point.ptr<cv::Vec2f>(i, j)->val[1] = _pt + ul[i][1];
         }
     }
