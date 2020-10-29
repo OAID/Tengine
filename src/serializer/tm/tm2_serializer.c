@@ -869,19 +869,24 @@ static int unload_graph(struct serializer* s, struct ir_graph* graph, void* s_pr
 {
     struct tm2_priv* priv = ( struct tm2_priv* )s_priv;
 
-    if (priv->base)
-        sys_free(( void* )priv->base);
-
-    graph->serializer = NULL;
-    graph->serializer_priv = NULL;
-
     if (priv->fd >= 0)
     {
         munmap(( void* )priv->base, priv->mem_len);
         close(priv->fd);
+        priv->fd = -1;
     }
 
+    if (priv->base)
+    {
+        sys_free(( void* )priv->base);
+        priv->base = NULL;
+    }
+
+    graph->serializer = NULL;
+    graph->serializer_priv = NULL;
+
     sys_free(priv);
+    priv = NULL;
 
     return 0;
 }
