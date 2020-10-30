@@ -99,6 +99,11 @@ endif()
 add_definitions(-fPIC)
 add_definitions(-O3)
 
+# OHOS 3.0.0.80 patch for ASM language
+if (OHOS AND NOT DEFINED CMAKE_ASM_COMPILER_TARGET)
+    set(CMAKE_ASM_COMPILER_TARGET ${OHOS_LLVM})
+endif()
+
 if (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM")
     if (TENGINE_TARGET_PROCESSOR_32Bit AND NOT ANDROID)
         add_definitions(-march=armv7-a)
