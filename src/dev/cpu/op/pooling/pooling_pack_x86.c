@@ -28,7 +28,7 @@
 #include "../../cpu_node_ops.h"
 #include "tengine_op.h"
 #include "pooling_param.h"
-#include "pooling_sse_x86.h"
+#include "pooling_pack_x86.h"
 
 #define POOL_K2S2 1
 #define POOL_K3S2 2
@@ -104,6 +104,12 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     struct ir_node* ir_node = exec_node;
     struct ir_graph* ir_graph = ir_node->graph;
     struct ir_tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    int in_c = input_tensor->dims[1];
+    /* not global only support pack4 */
+    if (global != 1 && in_c % 4 != 0)
+    {
+        return 0;
+    }
 
     /* todo support uint8 */
     if (input_tensor->data_type != TENGINE_DT_FP32)
@@ -129,19 +135,21 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
         /* general max pooling, k2s2, k2k2p1, k3s1p1, k3s2, k3s2p1 */
         if (type == POOL_MAX && (pad_h0 == pad_w0) && (pad_h1 == pad_w1) && pad_tf != -1)
         {
-            if (pad_h0 == 0 && (pool_size == POOL_K2S2 || pool_size == POOL_K3S2))
-                return 0;
-            if (pad_h0 == 1 && (pool_size == POOL_K2S2 || pool_size == POOL_K3S2 || pool_size == POOL_K3S1))
-                return 0;
+            if (pad_h0 == 0 && (pool_size == POOL_K3S2 || pool_size == POOL_K2S2))
+                return OPS_SCORE_BEST;
+            if (pad_h0 == 1 && (pool_size == POOL_K3S1 || pool_size == POOL_K2S2 || pool_size == POOL_K3S2))
+                return OPS_SCORE_BEST;
         }
 
         /* general avg pooling, k2s2, k2s2p1, k3s2, k3s2p1 */
         if (type == POOL_AVG && (pad_h0 == pad_w0) && (pad_h1 == pad_w1))
         {
             if (pad_h0 == 0 && pad_h1 == 0 && (pool_size == POOL_K2S2 || pool_size == POOL_K3S2))
-                return 0;
-            if (pad_h0 == 1 && pad_h1 == 1 && (pool_size == POOL_K2S2 || pool_size == POOL_K3S2))
-                return 0;
+                return OPS_SCORE_BEST;
+            if (pad_h0 == 1 && pad_h1 == 1 && (pool_size == POOL_K2S2 || pool_size == POOL_K3S1))
+                return OPS_SCORE_BEST;
+            else if (pad_h0 == 0 && pad_h1 == 1 && (pool_size == POOL_K3S2))
+                return OPS_SCORE_BEST;
         }
     }
 
