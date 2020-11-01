@@ -89,6 +89,35 @@ int ref_shuffle_channel_uint8(struct ir_tensor* input_tensor, struct ir_tensor* 
     return 0;
 }
 
+int ref_shuffle_channel_int8(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, struct shuffle_channel_param* param)
+{
+    int batch = input_tensor->dims[0];
+    int c = input_tensor->dims[1];
+    int h = input_tensor->dims[2];
+    int w = input_tensor->dims[3];
+    int group = param->group;
+    int elemsize = input_tensor->elem_size;
+    int chs_per_group = c / group;
+
+    int8_t* input_int8 = input_tensor->data;
+    int8_t* output_int8 = output_tensor->data;
+
+    for (int n = 0; n < batch; n++)
+    {
+        for (int i = 0; i < group; i++)
+        {
+            for (int j = 0; j != chs_per_group; j++)
+            {
+                int src_q = n * c * h * w + (chs_per_group * i + j) * h * w;
+                int dst_q = n * c * h * w + (group * j + i) * h * w;
+                memcpy(output_int8 + dst_q, input_int8 + src_q, h * w * elemsize);
+            }
+        }
+    }
+
+    return 0;
+}
+
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     return 0;
@@ -127,6 +156,10 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         ret = ref_shuffle_channel_fp32(input_tensor, output_tensor, param);
     else if(input_tensor->data_type == TENGINE_DT_UINT8)
         ret = ref_shuffle_channel_uint8(input_tensor, output_tensor, param);
+    else if(input_tensor->data_type == TENGINE_DT_INT8)
+        ret = ref_shuffle_channel_int8(input_tensor, output_tensor, param);
+    else
+        printf("Input data type %d not to be supported.\n", input_tensor->data_type);
 
     return ret;
 }

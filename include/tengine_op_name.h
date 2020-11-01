@@ -115,5 +115,13 @@
 #define OP_UPSAMPLE_NAME "Upsample"
 #define OP_ZEROSLIKE_NAME "ZerosLike"
 #define OP_MISH_NAME "Mish"
+#define OP_LOGSOFTMAX_NAME "LogSoftmax"
+#define OP_RELU1_NAME "ReLU1"
+#define OP_L2NORMALIZATION_NAME "L2Normalization"
+#define OP_L2POOL_NAME "L2Pool"
+#define OP_TILE_NAME "Tile"
+#define OP_SHAPE_NAME "Shape"
+#define OP_SCATTER_NAME "Scatter"
+#define OP_WHERE_NAME "Where"
 
 #endif

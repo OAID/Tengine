@@ -60,20 +60,24 @@ static void quick_sort_fp32(float* a, int low, int high, int* indexv)
     int i = low;
     int j = high;
     float key = a[low];
+
     if (low >= high)
     {
         return;
     }
+
     while (low < high)
     {
         while (low < high && key >= a[high])
         {
             --high;
         }
+
         if (key < a[high])
         {
             swap_fp32(&a[low], &a[high]);
             swap_int(&indexv[low], &indexv[high]);
+
             ++low;
         }
         while (low < high && key <= a[low])
@@ -84,6 +88,7 @@ static void quick_sort_fp32(float* a, int low, int high, int* indexv)
         {
             swap_fp32(&a[low], &a[high]);
             swap_int(&indexv[low], &indexv[high]);
+
             --high;
         }
     }

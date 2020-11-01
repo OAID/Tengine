@@ -1410,9 +1410,9 @@ int wino_conv_hcl_run(struct ir_tensor* input_tensor, struct ir_tensor* filter_t
     {
         for (int g = 0; g < group; g++)
         {
-            pad_0_align_3D(priv_info->input_pad + i * in_c * padded_in_h * padded_in_w, input + i * in_c * in_h * in_w,
+            pad_0_align_3D((float*)priv_info->input_pad + i * in_c * padded_in_h * padded_in_w, input + i * in_c * in_h * in_w,
                            in_h, in_w, padded_in_h, padded_in_w, in_c, pad_h0, pad_w0);
-            conv3x3s1_winograd43_sse(priv_info->input_pad + i * in_c * padded_in_h * padded_in_w + g * input_size_g,
+            conv3x3s1_winograd43_sse((float*)priv_info->input_pad + i * in_c * padded_in_h * padded_in_w + g * input_size_g,
                                      output + i * out_c * out_h * out_w, priv_info->interleave_buffer,
                                      priv_info->dot_block, priv_info->transform_input, priv_info->output_bordered,
                                      biases, padded_in_w, padded_in_h, in_c, out_w, out_h, out_c, num_thread);
