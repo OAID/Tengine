@@ -53,6 +53,9 @@ static inline float calc_max_fp32(const float* input, int layout, int c, int h, 
     return max;
 }
 
+#if MACOS
+
+#else
 static inline void calc_sum_fp16(const __fp16* input, __fp16* sum, int layout, int c, int h, int w, int cur_ch,
                                  int start_h, int start_w, int end_h, int end_w)
 {
@@ -94,7 +97,7 @@ static inline void calc_max_fp16(const __fp16* input, __fp16* max, int layout, i
     }
     *max = fp32_to_fp16(max_f);
 }
-
+#endif
 static inline int calc_sum_uint8(const uint8_t* input, int layout, int c, int h, int w, int cur_ch, int start_h,
                                  int start_w, int end_h, int end_w)
 {
@@ -125,6 +128,46 @@ static inline uint8_t calc_max_uint8(const uint8_t* input, int layout, int c, in
         for (int j = start_w; j < end_w; j++)
         {
             if (layout == 0)
+                tmp = input[cur_ch * h * w + i * w + j];
+            else
+                tmp = input[i * w * c + j * c + cur_ch];
+
+            max = max > tmp ? max : tmp;
+        }
+
+    return max;
+}
+
+static inline int calc_sum_int8(const int8_t* input, int layout, int c, int h, int w, int cur_ch, int start_h,
+                                int start_w, int end_h, int end_w)
+{
+    int sum = 0;
+    for(int i = start_h; i < end_h; i++)
+        for(int j = start_w; j < end_w; j++)
+        {
+            if(layout == 0)
+                sum += input[cur_ch * h * w + i * w + j];
+            else
+                sum += input[i * w * c + j * c + cur_ch];
+        }
+
+    return sum;
+}
+
+static inline int8_t calc_max_int8(const int8_t* input, int layout, int c, int h, int w, int cur_ch, int start_h,
+                                   int start_w, int end_h, int end_w)
+{
+    int8_t max = 0;
+    if(layout == 0)
+        max = input[cur_ch * h * w + start_h * w + start_w];
+    else
+        max = input[start_h * w * c + start_w * c + cur_ch];
+
+    int8_t tmp = 0;
+    for(int i = start_h; i < end_h; i++)
+        for(int j = start_w; j < end_w; j++)
+        {
+            if(layout == 0)
                 tmp = input[cur_ch * h * w + i * w + j];
             else
                 tmp = input[i * w * c + j * c + cur_ch];
@@ -244,7 +287,10 @@ int pooling_kernel_ref_run(struct ir_tensor* input_tensor, struct ir_tensor* out
         }
     }
     else if (type == TENGINE_DT_FP16)
-    {
+    {   
+        #if MACOS
+        printf("FP16 not support mac os");
+        #else
         __fp16* input = input_tensor->data;
         __fp16* output = output_tensor->data;
 
@@ -302,9 +348,12 @@ int pooling_kernel_ref_run(struct ir_tensor* input_tensor, struct ir_tensor* out
                     }
                 }
             }
-        }        
+               
+        }   
+        #endif  
+       
     }
-    else
+    else if (type == TENGINE_DT_UINT8)
     {
         uint8_t* input_uint8 = ( uint8_t* )input_tensor->data;
         uint8_t* output_uint8 = ( uint8_t* )output_tensor->data;
@@ -389,6 +438,89 @@ int pooling_kernel_ref_run(struct ir_tensor* input_tensor, struct ir_tensor* out
 
         sys_free(input_fp32);
         sys_free(output_fp32); 
+    }
+    else if (type == TENGINE_DT_INT8)
+    {
+        int8_t* input_int8 = ( int8_t* )input_tensor->data;
+        int8_t* output_int8 = ( int8_t* )output_tensor->data;
+
+        float input_scale = input_tensor->scale;
+        float output_scale = output_tensor->scale;
+        float requant_scale = input_scale / output_scale;
+
+        for (int n = 0; n < batch; n++)
+        {
+            const int8_t * input_cur = input_int8 + n * input_chw;
+            for (int c = 0; c < channel; c++)
+            {
+                for (int ph = 0; ph < out_h; ph++)
+                {
+                    for (int pw = 0; pw < out_w; pw++)
+                    {
+                        int pool_size = 1;
+                        int offset = 0;
+                        int h_start = ph * stride_h - pad_h;
+                        int h_end = h_start + kernel_h;
+
+                        if (h_end > in_h + pad_h)
+                            h_end = in_h + pad_h;
+                        int w_start = pw * stride_w - pad_w;
+                        int w_end = w_start + kernel_w;
+
+                        if (w_end > in_w + pad_w)
+                            w_end = in_w + pad_w;
+
+                        if (caffe_flavor)
+                            pool_size = (h_end - h_start) * (w_end - w_start);
+
+                        h_start = h_start > 0 ? h_start : 0;
+                        w_start = w_start > 0 ? w_start : 0;
+                        h_end = h_end < in_h ? h_end : in_h;
+                        w_end = w_end < in_w ? w_end : in_w;
+
+                        if (!caffe_flavor)
+                            pool_size = (h_end - h_start) * (w_end - w_start);
+                        if (layout == TENGINE_LAYOUT_NCHW)    // nchw
+                            offset = n * output_chw + c * out_h * out_w + ph * out_w + pw;
+                        else
+                            offset = n * output_chw + ph * out_w * channel + pw * channel + c;
+
+                        if (method == HCL_POOL_MAX)
+                        {
+                            int8_t max = calc_max_int8(input_cur, layout, channel, in_h, in_w, c, h_start, w_start,
+                                                      h_end, w_end);
+
+                            int32_t data_i32 = round((float )max * requant_scale);
+                            if (data_i32 > 127)
+                                data_i32 = 127;
+                            else if (data_i32 < -127)
+                                data_i32 = -127;
+                            output_int8[offset] = (int8_t)data_i32;
+                        }
+                        else if (method == HCL_POOL_AVG)
+                        {
+                            int32_t sum_i32 = calc_sum_int8(input_cur, layout, channel, in_h, in_w, c, h_start, w_start,
+                                                      h_end, w_end);
+                            float sum_fp32 = sum_i32 * input_scale;
+                            sum_fp32 = sum_fp32 / (float)pool_size;
+                            int32_t data_i32 = round((float )sum_fp32 / output_scale);
+                            if (data_i32 > 127)
+                                data_i32 = 127;
+                            else if (data_i32 < -127)
+                                data_i32 = -127;
+                            output_int8[offset] = (int8_t)data_i32;
+                        }
+                        else
+                            return -1;
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        printf("Input data type %d not to be supported.\n", type);
+        return -1;
     }
 
     return 0;

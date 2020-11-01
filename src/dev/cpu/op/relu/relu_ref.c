@@ -31,8 +31,7 @@
 #include "relu_param.h"
 #include "compiler_fp16.h"
 
-static int ref_relu_fp32(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, float negative_slope,
-                         int num_thread)
+static int ref_relu_fp32(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, float negative_slope)
 {
     int total_size = input_tensor->elem_num;
     float* input_data = input_tensor->data;
@@ -61,7 +60,8 @@ static int ref_relu_fp32(struct ir_tensor* input_tensor, struct ir_tensor* outpu
 
     return 0;
 }
-
+#if MACOS
+#else
 static int ref_relu_fp16(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, float negative_slope,
                          int num_thread)
 {
@@ -111,7 +111,7 @@ static int ref_relu_fp16(struct ir_tensor* input_tensor, struct ir_tensor* outpu
 
     return 0;
 }
-
+#endif
 static int ref_relu_uint8(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, float negative_slope,
                           int num_thread)
 {
@@ -170,6 +170,61 @@ static int ref_relu_uint8(struct ir_tensor* input_tensor, struct ir_tensor* outp
     return 0;
 }
 
+static int ref_relu_int8(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, float negative_slope)
+{
+    int total_size = input_tensor->elem_num;
+
+    /* dequant */
+    int8_t* input_int8 = input_tensor->data;
+    int8_t* output_int8 = output_tensor->data;
+    float input_scale = input_tensor->scale;
+    float output_scale = output_tensor->scale;
+
+    float* data_fp32 = (float*)sys_malloc(total_size * sizeof(float));
+
+    for(int i=0; i<total_size; i++)
+    {
+        data_fp32[i] = (float )input_int8[i] * input_scale;
+    }
+
+    /* process */
+    if (negative_slope == 0)
+    {
+        for (int i = 0; i < total_size; i++)
+        {
+            if (data_fp32[i] < 0)
+                data_fp32[i] = 0;
+            else
+                data_fp32[i] = data_fp32[i];
+        }
+    }
+    else
+    {
+        for (int i = 0; i < total_size; i++)
+        {
+            if (data_fp32[i] < 0)
+                data_fp32[i] = data_fp32[i] * negative_slope;
+            else
+                data_fp32[i] = data_fp32[i];
+        }
+    }
+
+    /* quant */
+    for(int i=0; i<total_size; i++)
+    {
+        int data_i32 = round(data_fp32[i] / output_scale);
+        if (data_i32 > 127)
+            data_i32 = 127;
+        else if (data_i32 < -127)
+            data_i32 = -127;
+        output_int8[i] = (int8_t)data_i32;
+    }
+
+    sys_free(data_fp32);
+
+    return 0;
+}
+
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     return 0;
@@ -192,18 +247,21 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
     struct relu_param* relu_param = ( struct relu_param* )ir_node->op.param_mem;
 
-    int ret = 0;
+    int ret = -1;
     if (input_tensor->data_type == TENGINE_DT_FP32)
-        ret = ref_relu_fp32(input_tensor, output_tensor, relu_param->negative_slope, exec_graph->num_thread);
+        ret = ref_relu_fp32(input_tensor, output_tensor, relu_param->negative_slope);
     else if (input_tensor->data_type == TENGINE_DT_FP16)
+        #if MACOS
+        printf("FP16 not support mac os");
+        #else
         ret = ref_relu_fp16(input_tensor, output_tensor, relu_param->negative_slope, exec_graph->num_thread);
+        #endif
     else if (input_tensor->data_type == TENGINE_DT_UINT8)
         ret = ref_relu_uint8(input_tensor, output_tensor, relu_param->negative_slope, exec_graph->num_thread);
+    else if (input_tensor->data_type == TENGINE_DT_INT8)
+        ret = ref_relu_int8(input_tensor, output_tensor, relu_param->negative_slope);
     else
-    {
         printf("Input data type %d not to be supported.\n", input_tensor->data_type);
-        return -1;
-    }
 
     return ret;
 }
