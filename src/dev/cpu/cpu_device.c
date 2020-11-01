@@ -1121,7 +1121,513 @@ void extract_feature_blob_f32(const char* comment, const char* layer_name, const
                 break;
             }
         }
+    }
+    else if (type == TENGINE_DT_INT8)
+    {
+        float scale = tensor->scale;
+        /* dequant to fp32 */
+        switch (tensor->dim_num)
+        {
+            case 5: {
+                int dim5 = tensor->dims[0], batch = tensor->dims[1], channel = 0, height = 0, width = 0;
+                if (TENGINE_LAYOUT_NCHW == tensor->layout)
+                {
+                    channel = tensor->dims[2];
+                    height = tensor->dims[3];
+                    width = tensor->dims[4];
+                }
+                if (TENGINE_LAYOUT_NHWC == tensor->layout)
+                {
+                    height = tensor->dims[2];
+                    width = tensor->dims[3];
+                    channel = tensor->dims[4];
+                }
 
+                fprintf(pFile, "Shape is {%d %d %d %d %d}, data type is int8, dequant to fp32\n", dim5, batch, channel, height, width);
+
+                int8_t * base_ptr = tensor->data;
+
+                for (int d5 = 0; d5 < dim5; d5++)
+                {
+                    fprintf(pFile, "Dim5 %d:\n", d5);
+
+                    for (int n = 0; n < batch; n++)
+                    {
+                        fprintf(pFile, "\tBatch %d:\n", n);
+
+                        for (int ch = 0; ch < channel; ch++)
+                        {
+                            fprintf(pFile, "\t\tChannel %d:\n", ch);
+
+                            for (int h = 0; h < height; h++)
+                            {
+                                fprintf(pFile, "\t\t\t");
+
+                                for (int w = 0; w < width; w++)
+                                {
+                                    int offset = 0;
+                                    if (TENGINE_LAYOUT_NCHW == tensor->layout)
+                                    {
+                                        offset += d5 * batch * channel * height * width;
+                                        offset += n * channel * height * width;
+                                        offset += ch * height * width;
+                                        offset += h * width;
+                                        offset += w;
+                                    }
+                                    if (TENGINE_LAYOUT_NHWC == tensor->layout)
+                                    {
+                                        offset += d5 * batch * channel * height * width;
+                                        offset += n * channel * height * width;
+                                        offset += ch;
+                                        offset += h * width * channel;
+                                        offset += w * channel;
+                                    }
+
+                                    int8_t val = base_ptr[offset];
+                                    float val_fp32 = (float )val * scale;
+                                    if (val_fp32 < 0)
+                                        fprintf(pFile, "%.4f ", val_fp32);
+                                    else
+                                        fprintf(pFile, " %.4f ", val_fp32);
+                                }
+                                fprintf(pFile, "\n");
+                            }
+                            fprintf(pFile, "\n");
+                        }
+                        fprintf(pFile, "\n");
+                    }
+                    fprintf(pFile, "\n");
+                }
+
+                break;
+            }
+            case 4: {
+                int batch = tensor->dims[0], channel = 0, height = 0, width = 0;
+                if (TENGINE_LAYOUT_NCHW == tensor->layout)
+                {
+                    channel = tensor->dims[1];
+                    height = tensor->dims[2];
+                    width = tensor->dims[3];
+                }
+                if (TENGINE_LAYOUT_NHWC == tensor->layout)
+                {
+                    height = tensor->dims[1];
+                    width = tensor->dims[2];
+                    channel = tensor->dims[3];
+                }
+
+                fprintf(pFile, "Shape is {%d %d %d %d}, data type is int8\n", batch, channel, height, width);
+
+                int8_t * base_ptr = tensor->data;
+                for (int n = 0; n < batch; n++)
+                {
+                    fprintf(pFile, "Batch %d:\n", n);
+
+                    for (int ch = 0; ch < channel; ch++)
+                    {
+                        fprintf(pFile, "\tChannel %d:\n", ch);
+
+                        for (int h = 0; h < height; h++)
+                        {
+                            fprintf(pFile, "\t\t");
+
+                            for (int w = 0; w < width; w++)
+                            {
+                                int offset = 0;
+                                if (TENGINE_LAYOUT_NCHW == tensor->layout)
+                                {
+                                    offset += n * channel * height * width;
+                                    offset += ch * height * width;
+                                    offset += h * width;
+                                    offset += w;
+                                }
+                                if (TENGINE_LAYOUT_NHWC == tensor->layout)
+                                {
+                                    offset += n * channel * height * width;
+                                    offset += ch;
+                                    offset += h * width * channel;
+                                    offset += w * channel;
+                                }
+
+                                int8_t val = base_ptr[offset];
+                                float val_fp32 = (float )val * scale;
+                                if (val_fp32 < 0)
+                                    fprintf(pFile, "%.4f ", val_fp32);
+                                else
+                                    fprintf(pFile, " %.4f ", val_fp32);
+                            }
+                            fprintf(pFile, "\n");
+                        }
+                        fprintf(pFile, "\n");
+                    }
+                    fprintf(pFile, "\n");
+                }
+
+                break;
+            }
+            case 3: {
+                int batch = 0, channel = 0, width = 0;
+
+                if (TENGINE_LAYOUT_NCHW == tensor->layout)
+                {
+                    batch = tensor->dims[0];
+                    channel = tensor->dims[1];
+                    width = tensor->dims[2];
+                }
+                if (TENGINE_LAYOUT_NHWC == tensor->layout)
+                {
+                    batch = tensor->dims[0];
+                    width = tensor->dims[1];
+                    channel = tensor->dims[2];
+                }
+
+                fprintf(pFile, "Shape is {%d %d %d}, data type is int8\n", batch, channel, width);
+
+                int8_t * base_ptr = tensor->data;
+                for (int n = 0; n < batch; n++)
+                {
+                    for (int ch = 0; ch < channel; ch++)
+                    {
+                        fprintf(pFile, "Channel %d:\n", ch);
+                        fprintf(pFile, "\t");
+
+                        for (int w = 0; w < width; w++)
+                        {
+                            int offset = 0;
+
+                            if (TENGINE_LAYOUT_NCHW == tensor->layout)
+                            {
+                                offset += n * channel * width;
+                                offset += ch * width;
+                                offset += w;
+                            }
+                            if (TENGINE_LAYOUT_NHWC == tensor->layout)
+                            {
+                                offset += ch;
+                                offset += n * width * channel;
+                                offset += w * channel;
+                            }
+
+                            int8_t val = base_ptr[offset];
+                            float val_fp32 = (float )val * scale;
+                            if (val_fp32 < 0)
+                                fprintf(pFile, "%.4f ", val_fp32);
+                            else
+                                fprintf(pFile, " %.4f ", val_fp32);
+                        }
+                        fprintf(pFile, "\n");
+                    }
+                    fprintf(pFile, "\n");
+                }
+
+                break;
+            }
+            case 2: {
+                int height = 0, width = 0;
+
+                if (TENGINE_LAYOUT_NCHW == tensor->layout)
+                {
+                    height = tensor->dims[0];
+                    width = tensor->dims[1];
+                }
+                if (TENGINE_LAYOUT_NHWC == tensor->layout)
+                {
+                    height = tensor->dims[0];
+                    width = tensor->dims[1];
+                }
+
+                fprintf(pFile, "Shape is {%d %d}, data type is int8\n", height, width);
+
+                int8_t * base_ptr = tensor->data;
+
+                for (int h = 0; h < height; h++)
+                {
+                    for (int w = 0; w < width; w++)
+                    {
+                        int offset = 0;
+
+                        offset += h * width;
+                        offset += w;
+
+                        int8_t val = base_ptr[offset];
+                        float val_fp32 = (float )val * scale;
+                        if (val_fp32 < 0)
+                            fprintf(pFile, "%.4f ", val_fp32);
+                        else
+                            fprintf(pFile, " %.4f ", val_fp32);
+                    }
+                    fprintf(pFile, "\n");
+                }
+
+                break;
+            }
+            case 1: {
+                int width = tensor->dims[0];
+
+                fprintf(pFile, "Shape is {%d}, data type is int8\n", width);
+
+                int8_t * base_ptr = tensor->data;
+
+                for (int w = 0; w < width; w++)
+                {
+                    unsigned char val = base_ptr[w];
+                    float val_fp32 = (float )val * scale;
+                    if (val_fp32 < 0)
+                        fprintf(pFile, "%.4f ", val_fp32);
+                    else
+                        fprintf(pFile, " %.4f ", val_fp32);
+                }
+
+                break;
+            }
+        }
+
+        /* original int8 */
+        fprintf(pFile, "\n\n");
+        switch (tensor->dim_num)
+        {
+            case 5: {
+                int dim5 = tensor->dims[0], batch = tensor->dims[1], channel = 0, height = 0, width = 0;
+                if (TENGINE_LAYOUT_NCHW == tensor->layout)
+                {
+                    channel = tensor->dims[2];
+                    height = tensor->dims[3];
+                    width = tensor->dims[4];
+                }
+                if (TENGINE_LAYOUT_NHWC == tensor->layout)
+                {
+                    height = tensor->dims[2];
+                    width = tensor->dims[3];
+                    channel = tensor->dims[4];
+                }
+
+                fprintf(pFile, "Shape is {%d %d %d %d %d}, data type is int8, scale %f\n", dim5, batch, channel, height, width, scale);
+
+                int8_t* base_ptr = tensor->data;
+
+                for (int d5 = 0; d5 < dim5; d5++)
+                {
+                    fprintf(pFile, "Dim5 %d:\n", d5);
+
+                    for (int n = 0; n < batch; n++)
+                    {
+                        fprintf(pFile, "\tBatch %d:\n", n);
+
+                        for (int ch = 0; ch < channel; ch++)
+                        {
+                            fprintf(pFile, "\t\tChannel %d:\n", ch);
+
+                            for (int h = 0; h < height; h++)
+                            {
+                                fprintf(pFile, "\t\t\t");
+
+                                for (int w = 0; w < width; w++)
+                                {
+                                    int offset = 0;
+                                    if (TENGINE_LAYOUT_NCHW == tensor->layout)
+                                    {
+                                        offset += d5 * batch * channel * height * width;
+                                        offset += n * channel * height * width;
+                                        offset += ch * height * width;
+                                        offset += h * width;
+                                        offset += w;
+                                    }
+                                    if (TENGINE_LAYOUT_NHWC == tensor->layout)
+                                    {
+                                        offset += d5 * batch * channel * height * width;
+                                        offset += n * channel * height * width;
+                                        offset += ch;
+                                        offset += h * width * channel;
+                                        offset += w * channel;
+                                    }
+
+                                    int8_t val = base_ptr[offset];
+
+                                    fprintf(pFile, "%3d ", val);
+                                }
+                                fprintf(pFile, "\n");
+                            }
+                            fprintf(pFile, "\n");
+                        }
+                        fprintf(pFile, "\n");
+                    }
+                    fprintf(pFile, "\n");
+                }
+
+                break;
+            }
+            case 4: {
+                int batch = tensor->dims[0], channel = 0, height = 0, width = 0;
+                if (TENGINE_LAYOUT_NCHW == tensor->layout)
+                {
+                    channel = tensor->dims[1];
+                    height = tensor->dims[2];
+                    width = tensor->dims[3];
+                }
+                if (TENGINE_LAYOUT_NHWC == tensor->layout)
+                {
+                    height = tensor->dims[1];
+                    width = tensor->dims[2];
+                    channel = tensor->dims[3];
+                }
+
+                fprintf(pFile, "Shape is {%d %d %d %d}, data type is int8, scale %f\n", batch, channel, height, width, scale);
+
+                int8_t* base_ptr = tensor->data;
+                for (int n = 0; n < batch; n++)
+                {
+                    fprintf(pFile, "Batch %d:\n", n);
+
+                    for (int ch = 0; ch < channel; ch++)
+                    {
+                        fprintf(pFile, "\tChannel %d:\n", ch);
+
+                        for (int h = 0; h < height; h++)
+                        {
+                            fprintf(pFile, "\t\t");
+
+                            for (int w = 0; w < width; w++)
+                            {
+                                int offset = 0;
+                                if (TENGINE_LAYOUT_NCHW == tensor->layout)
+                                {
+                                    offset += n * channel * height * width;
+                                    offset += ch * height * width;
+                                    offset += h * width;
+                                    offset += w;
+                                }
+                                if (TENGINE_LAYOUT_NHWC == tensor->layout)
+                                {
+                                    offset += n * channel * height * width;
+                                    offset += ch;
+                                    offset += h * width * channel;
+                                    offset += w * channel;
+                                }
+
+                                int8_t val = base_ptr[offset];
+
+                                fprintf(pFile, "%3d ", val);
+                            }
+                            fprintf(pFile, "\n");
+                        }
+                        fprintf(pFile, "\n");
+                    }
+                    fprintf(pFile, "\n");
+                }
+
+                break;
+            }
+            case 3: {
+                int batch = 0, channel = 0, width = 0;
+
+                if (TENGINE_LAYOUT_NCHW == tensor->layout)
+                {
+                    batch = tensor->dims[0];
+                    channel = tensor->dims[1];
+                    width = tensor->dims[2];
+                }
+                if (TENGINE_LAYOUT_NHWC == tensor->layout)
+                {
+                    batch = tensor->dims[0];
+                    width = tensor->dims[1];
+                    channel = tensor->dims[2];
+                }
+
+                fprintf(pFile, "Shape is {%d %d %d}, data type is int8, scale %f\n", batch, channel, width, scale);
+
+                int8_t* base_ptr = tensor->data;
+                for (int n = 0; n < batch; n++)
+                {
+                    for (int ch = 0; ch < channel; ch++)
+                    {
+                        fprintf(pFile, "Channel %d:\n", ch);
+                        fprintf(pFile, "\t");
+
+                        for (int w = 0; w < width; w++)
+                        {
+                            int offset = 0;
+
+                            if (TENGINE_LAYOUT_NCHW == tensor->layout)
+                            {
+                                offset += n * channel * width;
+                                offset += ch * width;
+                                offset += w;
+                            }
+                            if (TENGINE_LAYOUT_NHWC == tensor->layout)
+                            {
+                                offset += ch;
+                                offset += n * width * channel;
+                                offset += w * channel;
+                            }
+
+                            int8_t val = base_ptr[offset];
+
+                            fprintf(pFile, "%3d ", val);
+                        }
+                        fprintf(pFile, "\n");
+                    }
+                    fprintf(pFile, "\n");
+                }
+
+                break;
+            }
+            case 2: {
+                int height = 0, width = 0;
+
+                if (TENGINE_LAYOUT_NCHW == tensor->layout)
+                {
+                    height = tensor->dims[0];
+                    width = tensor->dims[1];
+                }
+                if (TENGINE_LAYOUT_NHWC == tensor->layout)
+                {
+                    height = tensor->dims[0];
+                    width = tensor->dims[1];
+                }
+
+                fprintf(pFile, "Shape is {%d %d}, data type is int8, scale %f\n", height, width, scale);
+
+                int8_t* base_ptr = tensor->data;
+
+                for (int h = 0; h < height; h++)
+                {
+                    for (int w = 0; w < width; w++)
+                    {
+                        int offset = 0;
+
+                        offset += h * width;
+                        offset += w;
+
+                        int8_t val = base_ptr[offset];
+
+                        fprintf(pFile, "%3d ", val);
+                    }
+                    fprintf(pFile, "\n");
+                }
+
+                break;
+            }
+            case 1: {
+                int width = tensor->dims[0];
+
+                fprintf(pFile, "Shape is {%d}, data type is int8, scale %f\n", width, scale);
+
+                int8_t * base_ptr = tensor->data;
+
+                for (int w = 0; w < width; w++)
+                {
+                    int8_t val = base_ptr[w];
+
+                    fprintf(pFile, "%3d ", val);
+                }
+
+                break;
+            }
+        }
+    }
+    else
+    {
+        printf("Input data type %d not to be supported.\n", type);
     }
 
     // close file

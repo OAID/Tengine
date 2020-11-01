@@ -23,7 +23,6 @@
  */
 
 #include <math.h>
-#include <unistd.h>
 #include "sys_port.h"
 #include "module.h"
 #include "tengine_errno.h"
@@ -54,12 +53,11 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct ir_tensor* data_tensor    = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
     struct ir_tensor* output_tensor  = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
     priorbox_param_t* param = ( priorbox_param_t* )(ir_node->op.param_mem);
-    //	float* input_org = ( float* )input_tensor->data;
 
     float* output_fp32 = NULL;
     if (output_tensor->data_type == TENGINE_DT_FP32)
         output_fp32 = ( float* )output_tensor->data;
-    else
+    else if (output_tensor->data_type == TENGINE_DT_UINT8 || output_tensor->data_type == TENGINE_DT_INT8)
         output_fp32 = ( float* )sys_malloc(output_tensor->elem_num * sizeof(float ));
 
     const int data_height = data_tensor->dims[2];
@@ -189,7 +187,23 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
         sys_free(output_fp32);
     }
+    /* quant to int8 */
+    if (output_tensor->data_type == TENGINE_DT_INT8)
+    {
+        int8_t* output_org = output_tensor->data;
 
+        for (int i=0; i<output_tensor->elem_num; i++)
+        {
+            int data_i32 = round(output_fp32[i] / output_tensor->scale);
+            if (data_i32 > 127)
+                data_i32 = 127;
+            else if (data_i32 < -127)
+                data_i32 = -127;
+            output_org[i] = (int8_t)data_i32;
+        }
+
+        sys_free(output_fp32);
+    }
 
     return 0;
 }
