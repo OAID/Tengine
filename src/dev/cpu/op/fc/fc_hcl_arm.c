@@ -31,6 +31,7 @@
 #include "tengine_op.h"
 #include "fc_param.h"
 #include "cortex_a/fc_kernel_arm.h"
+#include "cortex_a/fc_kernel_int8_arm.h"
 #if __ARM_FEATURE_FP16_VECTOR_ARITHMETIC
 #include "cortex_a/fc_kernel_fp16_arm82.h"
 #endif
@@ -50,6 +51,14 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
     if (exec_graph->mode == TENGINE_MODE_FP32)
     {
         if (fc_kernel_prerun(input_tensor, filter_tensor, output_tensor, priv_info, fc_param) < 0)
+        {
+            TLOG_ERR("hcl fc prerun failed\n");
+            set_tengine_errno(EFAULT);
+            return -1;
+        }
+    }
+    else if(exec_graph->mode == TENGINE_MODE_INT8){
+        if (int8_fc_kernel_prerun(input_tensor, filter_tensor, output_tensor, priv_info, fc_param) < 0)
         {
             TLOG_ERR("hcl fc prerun failed\n");
             set_tengine_errno(EFAULT);
@@ -103,6 +112,14 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     {
         if (fc_kernel_run(input_tensor, weight_tensor, bias_tensor, output_tensor, priv_info, fc_param, num_thread,
                         cpu_affinity) < 0)
+        {
+            TLOG_ERR("hcl fc run failed\n");
+            set_tengine_errno(EFAULT);
+            return -1;
+        }
+    }
+    else if (exec_graph->mode == TENGINE_MODE_INT8) {
+        if (int8_fc_kernel_run(input_tensor, weight_tensor, bias_tensor, output_tensor, priv_info,fc_param,num_thread,cpu_affinity) < 0)
         {
             TLOG_ERR("hcl fc run failed\n");
             set_tengine_errno(EFAULT);
@@ -249,6 +266,9 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     if (input_tensor->data_type != TENGINE_DT_FP32 && input_tensor->data_type != TENGINE_DT_FP16)
         return 0;
 #else
+    if (input_tensor->data_type == TENGINE_DT_INT8){
+        return OPS_SCORE_BEST;
+    }
     if (input_tensor->data_type != TENGINE_DT_FP32)
         return 0;
 #endif
