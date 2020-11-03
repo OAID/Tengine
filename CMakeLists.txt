@@ -123,7 +123,6 @@ if (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM")
     endif()
 endif()
 
-
 enable_language(ASM)
 
 # local include files
