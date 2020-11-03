@@ -106,11 +106,13 @@ endif()
 
 if (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM")
     if (TENGINE_TARGET_PROCESSOR_32Bit)
-        add_definitions(-march=armv7-a)
-        add_definitions(-mfpu=neon)
         if (OHOS)
+            add_definitions(-march=armv7-a)
+            add_definitions(-mfpu=neon)
             add_definitions(-mfloat-abi=softfp)
         elseif (NOT ANDROID)
+            add_definitions(-march=armv7-a)
+            add_definitions(-mfpu=neon)
             add_definitions(-mfp16-format=ieee)
             add_definitions(-mfpu=neon-fp16)
         endif()
@@ -120,6 +122,7 @@ if (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM")
         add_definitions ("${TENGINE_TOOLCHIN_FLAG}")
     endif()
 endif()
+
 
 enable_language(ASM)
 
