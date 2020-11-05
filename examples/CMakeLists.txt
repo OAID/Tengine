@@ -21,6 +21,7 @@ endif()
 # add c api examples
 tengine_example(tm_classification           tm_classification.c)
 tengine_example(tm_classification_fp16      tm_classification_fp16.c)
+tengine_example(tm_classification_int8      tm_classification_int8.c)
 tengine_example(tm_classification_uint8     tm_classification_uint8.c)
 tengine_example(tm_classification_vulkan    tm_classification_vulkan.c)
 tengine_example(tm_mobilenet_ssd            tm_mobilenet_ssd.c)

@@ -42,7 +42,7 @@
 #define DEFAULT_MEAN1 0.406
 #define DEFAULT_MEAN2 0.457
 #define DEFAULT_MEAN3 0.480
-#define DEFAULT_REPEAT_COUNT 100
+#define DEFAULT_REPEAT_COUNT 1
 #define DEFAULT_THREAD_COUNT 1
 
 using bbox_t = std::array<float, 4>;

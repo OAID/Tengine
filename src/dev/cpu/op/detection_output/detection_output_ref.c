@@ -23,7 +23,6 @@
  */
 
 #include <math.h>
-#include <unistd.h>
 #include "sys_port.h"
 #include "module.h"
 #include "tengine_ir.h"
@@ -117,7 +116,8 @@ static inline float intersection_area(const Box_t* a, const Box_t* b)
 
 void nms_sorted_bboxes(const Box_t* bboxes, int bboxes_num, int* picked, int* picked_num, float nms_threshold)
 {
-    float areas[bboxes_num];
+    float* areas = sys_malloc(sizeof(float) * bboxes_num);
+
     for (int i = 0; i < bboxes_num; i++)
     {
         float width = bboxes[i].x1 - bboxes[i].x0;
@@ -145,6 +145,8 @@ void nms_sorted_bboxes(const Box_t* bboxes, int bboxes_num, int* picked, int* pi
             *picked_num += 1;
         }
     }
+
+	sys_free(areas);
 }
 
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
@@ -174,7 +176,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     /* use original fp32 data or dequant uint8 to fp32 */
     if (loc_tensor->data_type == TENGINE_DT_FP32)
         location = ( float* )loc_tensor->data;
-    else
+    else if (loc_tensor->data_type == TENGINE_DT_UINT8)
     {
         uint8_t* location_u8 = loc_tensor->data;
         uint32_t elem_num    = loc_tensor->elem_num;
@@ -186,10 +188,21 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
             location[i] = ((float)location_u8[i] - (float)zero_point) * scale;
         }
     }
+    else if (loc_tensor->data_type == TENGINE_DT_INT8)
+    {
+        int8_t* location_i8 = loc_tensor->data;
+        uint32_t elem_num   = loc_tensor->elem_num;
+        float scale = loc_tensor->scale;
+        location = (float*)sys_malloc(elem_num * sizeof(float));
+        for (int i=0; i<elem_num; i++)
+        {
+            location[i] = (float)location_i8[i] * scale;
+        }
+    }
 
     if (conf_tensor->data_type == TENGINE_DT_FP32)
         confidence = ( float* )conf_tensor->data;
-    else
+    else if (conf_tensor->data_type == TENGINE_DT_UINT8)
     {
         uint8_t* confidence_u8 = conf_tensor->data;
         uint32_t elem_num      = conf_tensor->elem_num;
@@ -201,10 +214,21 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
             confidence[i] = ((float)confidence_u8[i] - (float)zero_point) * scale;
         }
     }
+    else if (conf_tensor->data_type == TENGINE_DT_INT8)
+    {
+        int8_t* confidence_i8 = conf_tensor->data;
+        uint32_t elem_num     = conf_tensor->elem_num;
+        float scale = conf_tensor->scale;
+        confidence = (float*)sys_malloc(elem_num * sizeof(float));
+        for (int i=0; i<elem_num; i++)
+        {
+            confidence[i] = (float)confidence_i8[i] * scale;
+        }
+    }
 
     if (priorbox_tensor->data_type == TENGINE_DT_FP32)
         priorbox = ( float* )priorbox_tensor->data;
-    else
+    else if (priorbox_tensor->data_type == TENGINE_DT_UINT8)
     {
         uint8_t* priorbox_u8 = priorbox_tensor->data;
         uint32_t elem_num    = priorbox_tensor->elem_num;
@@ -214,6 +238,17 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         for (int i=0; i<elem_num; i++)
         {
             priorbox[i] = ((float)priorbox_u8[i] - (float)zero_point) * scale;
+        }
+    }
+    else if (priorbox_tensor->data_type == TENGINE_DT_INT8)
+    {
+        int8_t* priorbox_i8 = priorbox_tensor->data;
+        uint32_t elem_num   = priorbox_tensor->elem_num;
+        float scale = priorbox_tensor->scale;
+        priorbox = (float*)sys_malloc(elem_num * sizeof(float));
+        for (int i=0; i<elem_num; i++)
+        {
+            priorbox[i] = (float)priorbox_i8[i] * scale;
         }
     }
 
@@ -226,13 +261,13 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     float* conf_ptr  = confidence + b * num_prior * num_classes;
     float* prior_ptr = priorbox + b * num_priorx4 * 2;
 
-    Box_t boxes[num_prior];
+    Box_t* boxes = sys_malloc(sizeof(Box_t) * num_prior);
     get_boxes(boxes, num_prior, loc_ptr, prior_ptr);
     struct vector* output_bbox_v = create_vector(sizeof(Box_t), NULL);
 
     for (int i = 1; i < num_classes; i++)
     {
-        Box_t class_box[num_prior];
+        Box_t* class_box = sys_malloc(sizeof(Box_t) * num_prior);
         int class_box_num = 0;
         for (int j = 0; j < num_prior; j++)
         {
@@ -250,7 +285,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         if (class_box_num > param->nms_top_k)
             class_box_num = param->nms_top_k;
 
-        int picked[class_box_num];    // = NULL;
+        int* picked = sys_malloc(sizeof(int) * class_box_num);    // = NULL;
         int picked_num = 0;
         nms_sorted_bboxes(class_box, class_box_num, picked, &picked_num, param->nms_threshold);
 
@@ -259,7 +294,12 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
             int z = picked[j];
             push_vector_data(output_bbox_v, &class_box[z]);
         }
+
+		sys_free(picked);
+		sys_free(class_box);
     }
+
+	sys_free(boxes);
 
     int total_num = get_vector_num(output_bbox_v);
     Box_t* bbox_rects = ( Box_t* )sys_malloc(total_num * sizeof(Box_t));
@@ -322,13 +362,34 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         sys_free(priorbox);
         sys_free(output_fp32);
     }
+    /* quant int8 */
+    else if (output_tensor->data_type == TENGINE_DT_INT8)
+    {
+        int8_t* output_i8 = output_tensor->data;
+        int32_t elem_num = output_tensor->elem_num;
+        float scale = output_tensor->scale;
+        for(int i=0; i<elem_num; i++)
+        {
+            int data_i32 = round(output_fp32[i] / scale);
+            if (data_i32 > 127)
+                data_i32 = 127;
+            else if (data_i32 < -127)
+                data_i32 = -127;
+            output_i8[i] = (int8_t)data_i32;
+        }
+
+        sys_free(location);
+        sys_free(confidence);
+        sys_free(priorbox);
+        sys_free(output_fp32);
+    }
 
     return 0;
 }
 
 static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struct ir_node* exec_node)
 {
-    return OPS_SCORE_BEST;
+    return OPS_SCORE_CANDO;
 }
 
 static struct node_ops detection_output_node_ops = {.prerun = NULL,

@@ -138,6 +138,13 @@ typedef uint8_t tm_bool_t; /* bool is 1-byte unsigned integer */
 #define TM2_OPSTR_MEAN "Mean"
 #define TM2_OPSTR_MATMUL "MatMul"
 #define TM2_OPSTR_MISH "Mish"
+#define TM2_OPSTR_L2NORMALIZATION "L2Normalization"
+#define TM2_OPSTR_RELU1 "ReLU1"
+#define TM2_OPSTR_SHAPE "Shape"
+#define TM2_OPSTR_LOGSOFTMAX "LogSoftmax"
+#define TM2_OPSTR_SCATTER "Scatter"
+#define TM2_OPSTR_TILE "Tile"
+#define TM2_OPSTR_L2POOL "L2Pool"
 /* Operator types */
 #define TM2_OPTYPE_ACCURACY 0 /* No Param                 */
 #define TM2_OPTYPE_BATCHNORMALIZATION 1 /* TM2_BatchNormParam       */
@@ -232,9 +239,16 @@ typedef uint8_t tm_bool_t; /* bool is 1-byte unsigned integer */
 #define TM2_OPTYPE_MEAN 90
 #define TM2_OPTYPE_MATMUL 91
 
-
 #define TM2_OPTYPE_MISH 97
-#define TM2_OPTYPE_NUM 98
+#define TM2_OPTYPE_L2NORMALIZATION 98
+#define TM2_OPTYPE_RELU1 99
+#define TM2_OPTYPE_SHAPE 100
+#define TM2_OPTYPE_LOGSOFTMAX 101
+#define TM2_OPTYPE_SCATTER 102
+#define TM2_OPTYPE_L2POOL 103
+#define TM2_OPTYPE_TILE 104
+#define TM2_OPTYPE_WHERE 105
+#define TM2_OPTYPE_NUM 106
 
 /* --------------------- -------- TM objects -------------------------------- */
 
@@ -924,9 +938,36 @@ typedef struct
 
 typedef struct
 {
-    int axis;
-    int keepdim;
+    int32_t axis;
+    int32_t keepdim;
 } TM2_ReduceL2Param;
+
+typedef struct
+{
+    int32_t axis;
+} TM2_LogSoftmaxParam;
+
+typedef struct
+{
+    int32_t axis;
+    int32_t is_onnx;
+} TM2_ScatterParam;
+
+typedef struct
+{
+    int32_t paddingType;
+    int32_t kernel_h;
+    int32_t kernel_w;
+    int32_t stride_h;
+    int32_t stride_w;
+} TM2_L2PoolParam;
+
+typedef struct
+{
+    int32_t frame_flag;
+    int32_t reps_size;
+    tm_uoffset_t offset_reps;
+} TM2_TileParam;
 
 #ifdef __cplusplus
 }

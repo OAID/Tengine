@@ -80,7 +80,7 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     if (eltwise_param->type != ELT_SUM || input_tensor_0->elem_num != input_tensor_1->elem_num)
         return 0;
 
-    return 0;
+    return OPS_SCORE_BEST;
 }
 
 static struct node_ops hcl_node_ops = {.prerun = NULL,

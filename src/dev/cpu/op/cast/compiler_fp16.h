@@ -29,6 +29,10 @@
 extern "C" {
 #endif
 
+#if MACOS
+
+#else
+
 #ifdef __ARM_ARCH
 
 #define fp16_to_fp32(data) \
@@ -124,6 +128,7 @@ static inline __fp16 fp32_to_fp16(float data)
     return fp16;
 }
 
+#endif
 #endif
 
 #ifdef __cplusplus

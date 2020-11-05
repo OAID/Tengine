@@ -32,93 +32,106 @@
 static int perf_relu_fp32(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, float negative_slope,
                           int num_thread)
 {
-    int w = input_tensor->dims[3];
-    int h = output_tensor->dims[2];
-    int channels = input_tensor->dims[1];
+    int batch = input_tensor->dims[0] ? input_tensor->dims[0] : 1;
+    int channels = input_tensor->dims[1] ? input_tensor->dims[1] : 1;
+    int h = output_tensor->dims[2] ? output_tensor->dims[2] : 1;
+    int w = input_tensor->dims[3] ? input_tensor->dims[3] : 1;
+
     int size = h * w;
     int c_step = h * w;
+    int b_step = channels * h * w;
 
-    float* input_data = input_tensor->data;
-    float* out_data = output_tensor->data;
+    float* input_data = (float*)input_tensor->data;
+    float* out_data = (float*)output_tensor->data;
 
     if (negative_slope == 0)
     {
-#pragma omp parallel for num_threads(num_thread)
-        for (int q = 0; q < channels; q++)
+        for (int n = 0; n < batch; n++)
         {
-            float* src = input_data + c_step * q;
-            float* dst = out_data + c_step * q;
+            float* input = input_data + n * b_step;
+            float* output = out_data + n * b_step;
+#pragma omp parallel for num_threads(num_thread)
+            for (int q = 0; q < channels; q++)
+            {
+                float* src = input + c_step * q;
+                float* dst = output + c_step * q;
 
 #if __ARM_NEON
-            int nn = size >> 2;
-            int remain = size - (nn << 2);
+                int nn = size >> 2;
+                int remain = size - (nn << 2);
 #else
-            int remain = size;
+                int remain = size;
 #endif    // __ARM_NEON
 
 #if __ARM_NEON
-            float32x4_t _zero = vdupq_n_f32(0.f);
-            for (; nn > 0; nn--)
-            {
-                float32x4_t _p = vld1q_f32(src);
-                _p = vmaxq_f32(_p, _zero);
-                vst1q_f32(dst, _p);
+                float32x4_t _zero = vdupq_n_f32(0.f);
+                for (; nn > 0; nn--)
+                {
+                    float32x4_t _p = vld1q_f32(src);
+                    _p = vmaxq_f32(_p, _zero);
+                    vst1q_f32(dst, _p);
 
-                src += 4;
-                dst += 4;
-            }
+                    src += 4;
+                    dst += 4;
+                }
 #endif
-            for (; remain > 0; remain--)
-            {
-                if (src[0] < 0)
-                    dst[0] = 0;
-                else
-                    dst[0] = src[0];
+                for (; remain > 0; remain--)
+                {
+                    if (src[0] < 0)
+                        dst[0] = 0;
+                    else
+                        dst[0] = src[0];
 
-                src++;
-                dst++;
+                    src++;
+                    dst++;
+                }
             }
         }
     }
     else
     {
-#pragma omp parallel for num_threads(num_thread)
-        for (int q = 0; q < channels; q++)
+        for (int n = 0; n < batch; n++)
         {
-            float* src = input_data + c_step * q;
-            float* dst = out_data + c_step * q;
+            float* input = input_data + n * b_step;
+            float* output = out_data + n * b_step;
+#pragma omp parallel for num_threads(num_thread)
+            for (int q = 0; q < channels; q++)
+            {
+                float* src = input + c_step * q;
+                float* dst = output + c_step * q;
 
 #if __ARM_NEON
-            int nn = size >> 2;
-            int remain = size - (nn << 2);
+                int nn = size >> 2;
+                int remain = size - (nn << 2);
 #else
-            int remain = size;
+                int remain = size;
 #endif    // __ARM_NEON
 
 #if __ARM_NEON
-            float32x4_t _zero = vdupq_n_f32(0.f);
-            float32x4_t _slope = vdupq_n_f32(negative_slope);
-            for (; nn > 0; nn--)
-            {
-                float32x4_t _p = vld1q_f32(src);
-                uint32x4_t _lemask = vcleq_f32(_p, _zero);
-                float32x4_t _ps = vmulq_f32(_p, _slope);
-                _p = vbslq_f32(_lemask, _ps, _p);
-                vst1q_f32(dst, _p);
+                float32x4_t _zero = vdupq_n_f32(0.f);
+                float32x4_t _slope = vdupq_n_f32(negative_slope);
+                for (; nn > 0; nn--)
+                {
+                    float32x4_t _p = vld1q_f32(src);
+                    uint32x4_t _lemask = vcleq_f32(_p, _zero);
+                    float32x4_t _ps = vmulq_f32(_p, _slope);
+                    _p = vbslq_f32(_lemask, _ps, _p);
+                    vst1q_f32(dst, _p);
 
-                src += 4;
-                dst += 4;
-            }
+                    src += 4;
+                    dst += 4;
+                }
 #endif
-            for (; remain > 0; remain--)
-            {
-                if (src[0] < 0)
-                    dst[0] = src[0] * negative_slope;
-                else
-                    dst[0] = src[0];
+                for (; remain > 0; remain--)
+                {
+                    if (src[0] < 0)
+                        dst[0] = src[0] * negative_slope;
+                    else
+                        dst[0] = src[0];
 
-                src++;
-                dst++;
+                    src++;
+                    dst++;
+                }
             }
         }
     }

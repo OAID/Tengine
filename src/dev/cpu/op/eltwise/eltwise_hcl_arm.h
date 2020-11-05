@@ -32,18 +32,18 @@
 int perf_eltwise_fp32(struct ir_tensor* output_tensor, struct ir_tensor* input_tensor0, struct ir_tensor* input_tensor1,
                       struct eltwise_param* eltwise_param, int num_thread)
 {
-    int batch = input_tensor0->dims[0];
-    int channel = input_tensor0->dims[1];
-    int in_h = input_tensor0->dims[2];
-    int in_w = input_tensor0->dims[3];
+    int batch = input_tensor0->dims[0] ? input_tensor0->dims[0] : 1;
+    int channel = input_tensor0->dims[1] ? input_tensor0->dims[1] : 1;
+    int in_h = input_tensor0->dims[2] ? input_tensor0->dims[2] : 1;
+    int in_w = input_tensor0->dims[3] ? input_tensor0->dims[3] : 1;
     int c_step = in_h * in_w;
     int b_step = channel * in_h * in_w;
 
     for (int n = 0; n < batch; n++)
     {
-        float* input0 = input_tensor0->data + n * b_step;
-        float* input1 = input_tensor1->data + n * b_step;
-        float* output = output_tensor->data + n * b_step;
+        float* input0 = (float*)input_tensor0->data + n * b_step;
+        float* input1 = (float*)input_tensor1->data + n * b_step;
+        float* output = (float*)output_tensor->data + n * b_step;
 
 #pragma omp parallel for num_threads(num_thread)
         for (int q = 0; q < channel; q++)
