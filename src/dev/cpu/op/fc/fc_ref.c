@@ -79,6 +79,9 @@ static int ref_fc_fp32(struct ir_tensor* input_tensor, struct ir_tensor* output_
 
 static int ref_fc_fp16(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, struct ir_tensor* weight_tensor, struct ir_tensor* bias_tensor, struct fc_data* param)
 {
+    #if MACOS
+
+    #else
     int batch = param->batch;
     int hidden = param->hidden;
     int out_number = param->out_number;
@@ -106,7 +109,7 @@ static int ref_fc_fp16(struct ir_tensor* input_tensor, struct ir_tensor* output_
             output[n * out_number + i] = fp32_to_fp16(tmp);
         }
     }
-
+    #endif
     return 0;
 }
 
@@ -191,6 +194,95 @@ static int ref_fc_uint8(struct ir_tensor* input_tensor, struct ir_tensor* output
                 else if (udata < 0)
                     udata = 0;
                 output[n * out_number + i] = udata;
+            }
+        }
+    }
+
+    return 0;
+}
+
+
+static int ref_fc_int8(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, struct ir_tensor* weight_tensor, struct ir_tensor* bias_tensor, struct fc_data* param)
+{
+    int batch = param->batch;
+    int hidden = param->hidden;
+    int out_number = param->out_number;
+
+    int8_t* input  = input_tensor->data;
+    int8_t* output = output_tensor->data;
+    int8_t* weight = weight_tensor->data;
+
+    float input_scale = input_tensor->scale;
+    float output_scale = output_tensor->scale;
+    float* weight_scales = weight_tensor->scale_list;
+    float* requant_scales = (float*)malloc(out_number * sizeof(float));
+
+    for (int i=0; i<out_number; i++)
+        requant_scales[i] = (input_scale * weight_scales[i]) / output_scale;
+
+    if (bias_tensor)
+    {
+        int32_t* bias_i32 = bias_tensor->data;
+
+        int n, i, j;
+        for (n = 0; n < batch; n++)
+        {
+            for (i = 0; i < out_number; i++)
+            {
+                int32_t output_i32 = bias_i32[i];
+                for (j = 0; j < hidden; j++)
+                {
+                    if (param->need_trans == 0)
+                    {
+                        int8_t input_i8  = input[n * hidden + j];
+                        int8_t weight_i8 = weight[i * hidden + j];
+                        output_i32 += (int32_t)input_i8 * (int32_t)weight_i8;
+                    }
+                    else
+                    {
+                        int8_t input_i8  = input[n * hidden + j];
+                        int8_t weight_i8 = weight[i + j * out_number];
+                        output_i32 += (int32_t)input_i8 * (int32_t)weight_i8;
+                    }
+                }
+                int data_i32 = round(output_i32 * requant_scales[i]);
+                if (data_i32 > 127)
+                    data_i32 = 127;
+                else if (data_i32 < -127)
+                    data_i32 = -127;
+                output[n * out_number + i] = (int8_t)data_i32;
+            }
+        }
+    }
+    else
+    {
+        int n, i, j;
+        for (n = 0; n < batch; n++)
+        {
+            for (i = 0; i < out_number; i++)
+            {
+                int32_t output_i32 = 0;
+                for (j = 0; j < hidden; j++)
+                {
+                    if (param->need_trans == 0)
+                    {
+                        int8_t input_i8  = input[n * hidden + j];
+                        int8_t weight_i8 = weight[i * hidden + j];
+                        output_i32 += (int32_t)input_i8 * (int32_t)weight_i8;
+                    }
+                    else
+                    {
+                        int8_t input_i8  = input[n * hidden + j];
+                        int8_t weight_i8 = weight[i + j * out_number];
+                        output_i32 += (int32_t)input_i8 * (int32_t)weight_i8;
+                    }
+                }
+                int data_i32 = round(output_i32 * requant_scales[i]);
+                if (data_i32 > 127)
+                    data_i32 = 127;
+                else if (data_i32 < -127)
+                    data_i32 = -127;
+                output[n * out_number + i] = (int8_t)data_i32;
             }
         }
     }
@@ -283,9 +375,15 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     if (input_tensor->data_type == TENGINE_DT_FP32)
         ret = ref_fc_fp32(input_tensor, output_tensor, weight_tensor, bias_tensor, op_param);
     else if (input_tensor->data_type == TENGINE_DT_FP16)
+        #if MACOS
+        printf("FP16 not support for mac os");
+        #else
         ret = ref_fc_fp16(input_tensor, output_tensor, weight_tensor, bias_tensor, op_param);
+        #endif
     else if (input_tensor->data_type == TENGINE_DT_UINT8)
         ret = ref_fc_uint8(input_tensor, output_tensor, weight_tensor, bias_tensor, op_param);
+    else if (input_tensor->data_type == TENGINE_DT_INT8)
+        ret = ref_fc_int8(input_tensor, output_tensor, weight_tensor, bias_tensor, op_param);
     else
     {
         printf("Input data type %d not to be supported.\n", input_tensor->data_type);

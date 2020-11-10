@@ -23,7 +23,6 @@
  */
 
 #include <math.h>
-#include <unistd.h>
 #include "sys_port.h"
 #include "module.h"
 #include "tengine_errno.h"
@@ -101,7 +100,40 @@ static void __chw_u8(const uint8_t* input, uint8_t* output, int hh, int ww, int 
     }
 }
 
-//static int ref_permute_fp32(const float* in_data, float* out_data, const permute_param_t* param, const int dims[], int layout)
+static void __hwc_i8(const int8_t* input, int8_t* output, int hh, int ww, int cc, int wc, int hw)
+{
+    for (int h = 0; h < hh; ++h)
+    {
+        int8_t* out_ptr = output + h * wc;
+
+        for (int w = 0; w < ww; ++w)
+        {
+            for (int c = 0; c < cc; ++c)
+            {
+                const int8_t* in_ptr = input + c * hw + h * ww;
+                out_ptr[w * cc + c] = in_ptr[w];
+            }
+        }
+    }
+}
+
+static void __chw_i8(const int8_t* input, int8_t* output, int hh, int ww, int cc, int wc, int hw)
+{
+    for (int c = 0; c < cc; ++c)
+    {
+        int8_t* output_ptr = output + c * hw;    // chw
+        for (int h = 0; h < hh; ++h)
+        {
+            for (int w = 0; w < ww; ++w)
+            {
+                const int8_t* input_ptr = input + h * wc + w * cc;    // input hwc + wc
+                // hw + w = input_ptr[c]
+                output_ptr[h * ww + w] = input_ptr[c];
+            }
+        }
+    }
+}
+
 static int ref_permute_fp32(const struct ir_tensor* input_tensor, const struct ir_tensor* output_tensor, const permute_param_t* param)
 {
     float* in_data = input_tensor->data;
@@ -266,6 +298,88 @@ static int ref_permute_uint8(const struct ir_tensor* input_tensor, const struct 
     return 0;
 }
 
+static int ref_permute_int8(const struct ir_tensor* input_tensor, const struct ir_tensor* output_tensor, const permute_param_t* param)
+{
+    int8_t* in_data = input_tensor->data;
+    int8_t* out_data = output_tensor->data;
+    const int* dims = input_tensor->dims;
+    int layout = input_tensor->layout;
+
+    int n;
+    int c;
+    int h;
+    int w;
+    if (layout == TENGINE_LAYOUT_NCHW)
+    {
+        n = dims[0];
+        c = dims[1];
+        h = dims[2];
+        w = dims[3];
+    }
+    else
+    {
+        n = dims[0];
+        h = dims[1];
+        w = dims[2];
+        c = dims[3];
+    }
+
+    int wc = w * c;
+    int hw = h * w;
+    int chw = c * hw;
+
+    const int8_t* input = in_data;
+    int8_t* output = out_data;
+    if (param->order0 == 0 && param->order1 == 2 && param->order2 == 3 && param->order3 == 1)
+    {
+        for (int ii = 0; ii < n; ++ii)
+        {
+            __hwc_i8(input, output, h, w, c, wc, hw);
+
+            input += chw;
+            output += chw;
+        }
+    }
+    else if (param->order0 == 0 && param->order1 == 3 && param->order2 == 1 && param->order3 == 2)
+    {
+        for (int ii = 0; ii < n; ++ii)
+        {
+            __chw_i8(input, output, h, w, c, wc, hw);
+
+            input += chw;
+            output += chw;
+        }
+    }
+    else if ((param->order0 == 1) && (param->order1 == 0) && (param->order2 == 2))
+    {
+        int channel = dims[0];
+        int width = dims[2];
+        int height = dims[1];
+        int _hw = height * width;
+        int _cw = channel * width;
+        for (int q = 0; q < height; q++)
+        {
+            int8_t* outptr = output + q * _cw;
+
+            for (int i = 0; i < channel; i++)
+            {
+                const int8_t* ptr = input + i * _hw;
+
+                for (int j = 0; j < width; j++)
+                {
+                    outptr[i * width + j] = ptr[q * width + j];
+                }
+            }
+        }
+    }
+    else
+    {
+        return -1;
+    }
+
+    return 0;
+}
+
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     return 0;
@@ -283,12 +397,16 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct ir_tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     struct ir_tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
     permute_param_t* param = ( struct permute_param* )(ir_node->op.param_mem);
-    int ret = -1;
 
+    int ret = -1;
     if (input_tensor->data_type == TENGINE_DT_FP32)
         ret = ref_permute_fp32(input_tensor, output_tensor, param);
-    else
+    else if (input_tensor->data_type == TENGINE_DT_UINT8)
         ret = ref_permute_uint8(input_tensor, output_tensor, param);
+    else if (input_tensor->data_type == TENGINE_DT_INT8)
+        ret = ref_permute_int8(input_tensor, output_tensor, param);
+    else
+        printf("Input data type %d not to be supported.\n", input_tensor->data_type);
 
     return ret;
 }

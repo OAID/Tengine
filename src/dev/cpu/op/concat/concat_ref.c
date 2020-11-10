@@ -52,7 +52,7 @@ struct concat_op_param
     void** input_data;
 };
 
-static int ref_concat_fp32(const float** in_data, float* out_data, const struct concat_op_param* param, int num_thread)
+static int ref_concat_fp32(const float** in_data, float* out_data, const struct concat_op_param* param)
 {
     int axis = param->axis;
     int concat_dim = 0;
@@ -97,7 +97,7 @@ static int ref_concat_fp32(const float** in_data, float* out_data, const struct 
     return 0;
 }
 
-static int ref_concat_fp16(const __fp16** in_data, __fp16* out_data, const struct concat_op_param* param, int num_thread)
+static int ref_concat_fp16(const __fp16** in_data, __fp16* out_data, const struct concat_op_param* param)
 {
     int axis = param->axis;
     int concat_dim = 0;
@@ -140,8 +140,7 @@ static int ref_concat_fp16(const __fp16** in_data, __fp16* out_data, const struc
     return 0;
 }
 
-static int ref_concat_uint8(const uint8_t** in_data, uint8_t* out_data, const struct concat_op_param* param,
-                            int num_thread)
+static int ref_concat_uint8(const uint8_t** in_data, uint8_t* out_data, const struct concat_op_param* param)
 {
     int axis = param->axis;
     int concat_dim = 0;
@@ -197,6 +196,74 @@ static int ref_concat_uint8(const uint8_t** in_data, uint8_t* out_data, const st
                 for (int ii = 0; ii < cp_size; ++ii)
                 {
                     output_ptr[ii] = round((input_ptr[ii] - input_zero) * t_scale) + out_zero;
+                }
+            }
+            output_ptr += cp_size;
+        }
+    }
+
+    return 0;
+}
+
+static int ref_concat_int8(const int8_t** in_data, int8_t* out_data, const struct concat_op_param* param)
+{
+    int axis = param->axis;
+    int concat_dim = 0;
+    for (int ii = 0; ii < param->input_counts; ++ii)
+    {
+        concat_dim += param->input_shape[ii].dim[axis];
+    }
+
+    if (concat_dim != param->output_shape.dim[axis])
+    {
+        fprintf(stderr, "concat dimensions is not same output: ( %d -- %d )\n", concat_dim, param->output_shape.dim[axis]);
+        return -1;
+    }
+
+    int outer_size, in_size;
+    outer_size = 1;
+    for (int ii = 0; ii < axis; ++ii)
+    {
+        outer_size *= param->output_shape.dim[ii];
+    }
+    in_size = 1;
+    for (int ii = axis + 1; ii < param->output_dim; ++ii)
+    {
+        in_size *= param->output_shape.dim[ii];
+    }
+
+    int output_size = 1;
+    for (int ii = 0; ii < param->output_dim; ++ii)
+    {
+        output_size *= param->output_shape.dim[ii];
+    }
+
+    int8_t* output_ptr = out_data;
+    float output_scale = param->output_shape.scale;
+    for (int k = 0; k < outer_size; ++k)
+    {
+        for (int j = 0; j < param->input_counts; ++j)
+        {
+            int cp_size = param->input_shape[j].dim[axis] * in_size;
+            float input_scale = param->input_shape[j].scale;
+
+            const int8_t* input_ptr = ( const int8_t* )(in_data[j] + k * cp_size);
+
+            if (input_scale == output_scale)
+            {
+                memcpy(output_ptr, input_ptr, cp_size);
+            }
+            else
+            {
+                float requant_scale = input_scale / output_scale;
+                for (int ii = 0; ii < cp_size; ++ii)
+                {
+                    int data_i32 = round((float )input_ptr[ii] * requant_scale);
+                    if (data_i32 > 127)
+                        data_i32 = 127;
+                    else if (data_i32 < -127)
+                        data_i32 = -127;
+                    output_ptr[ii] = (int8_t)data_i32;
                 }
             }
             output_ptr += cp_size;
@@ -282,16 +349,16 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     }
 
     int ret = -1;
-
     if (input_tensor->data_type == TENGINE_DT_FP32)
-        ret = ref_concat_fp32(( const float** )concat_op_param->input_data, out_data, concat_op_param,
-                        exec_graph->num_thread);
+        ret = ref_concat_fp32(( const float** )concat_op_param->input_data, out_data, concat_op_param);
     else if (input_tensor->data_type == TENGINE_DT_FP16)
-        ret = ref_concat_fp16(( const __fp16** )concat_op_param->input_data, out_data, concat_op_param,
-                         exec_graph->num_thread);
+        ret = ref_concat_fp16(( const __fp16** )concat_op_param->input_data, out_data, concat_op_param);
+    else if (input_tensor->data_type == TENGINE_DT_UINT8)
+        ret = ref_concat_uint8(( const uint8_t** )concat_op_param->input_data, out_data, concat_op_param);
+    else if (input_tensor->data_type == TENGINE_DT_INT8)
+        ret = ref_concat_int8(( const int8_t** )concat_op_param->input_data, out_data, concat_op_param);
     else
-        ret = ref_concat_uint8(( const uint8_t** )concat_op_param->input_data, out_data, concat_op_param,
-                         exec_graph->num_thread);
+        printf("Input data type %d not to be supported.\n", input_tensor->data_type);
 
     return ret;
 }
@@ -308,7 +375,7 @@ static int postrun(struct node_ops* node_ops, struct exec_node* exec_node, struc
 
 static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struct ir_node* exec_node)
 {
-    return OPS_SCORE_BEST;
+    return OPS_SCORE_CANDO;
 }
 
 static struct node_ops hcl_node_ops = {.prerun = prerun,

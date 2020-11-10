@@ -1,34 +1,37 @@
 # examples
 
-[**English Version**](README_EN.md)
+[**中文版本**](README.md)
 
-Tengine Lite 的 examples 将提供简单的、好玩的 demo。
-- [分类任务](#分类任务---tm_classificationc)
-- [人脸关键点检测任务](#人脸关键点检测任务---tm_landmarkcpp)
-- [ssd 目标检测任务](#ssd-目标检测任务---tm_mobilenet_ssdcpp)
-- [retinaface 人脸检测任务](#retinaface-人脸检测任务---tm_refinafacecpp)
-- [yolact 实例分割任务](#yolact-实例分割任务---tm_yolactcpp)
-- [yolov3 目标检测任务](#yolov3-目标检测任务---tm_yolov3cpp)
-- [yolov4-tiny目标检测任务](#yolov4-tiny目标检测任务---tm_yolov4_tinycpp)
-- [openpose人体姿态识别任务](#人体姿态识别任务---tm_openposecpp)
-- [crnn汉字识别任务](#汉字识别任务---tm_crnncpp)
+Tengine Lite's examples providing simple yet fancy demos.
+
+  - [Classification](#classification-task---tm_classificationc)
+  - [Facial Landmark Detection](#facial-landmark-detection-task---tm_landmarkcpp)
+  - [SSD Object Detection](#ssd-object-detection-task---tm_mobilenet_ssdcpp)
+  - [RetinaFace Face Detection](#retinaface-face-detection-task---tm_refinafacecpp)
+  - [Yolact Instance Segmentation](#yolact-instance-segmentation-task---tm_yolactcpp)
+  - [YoloV3 Object Detection Task](#yolov3-object-detection-task---tm_yolov3cpp)
+  - [Yolov4-tiny Object Detection Task](#yolov4-tiny-object-detection-task---tm_yolov4_tinycpp)
+  - [Human Pose Estimation Task](#human-pose-estimation-task---tm_openposecpp)
+  - [Chinese character recognition](#chinese-character-recognition-task---tm_crnncpp)
   
 ----------
-## 分类任务 - [tm_classification.c](tm_classification.c)
+## Classification task - [tm_classification.c](tm_classification.c)
 
-Tengine Lite 兼容 Tengine 原有的 C API 供用户使用，这里我们使用 C API 展示如何运行 tm_classification 例程运行 MobileNet v1 分类网络模型，实现指定图片分类的功能。让你快速上手 Tengine Lite C API。这里，我们使用在这个撸猫时代行业从业者大爱的 tiger cat 作为测试图片。
+Tengine Lite is compatible with original Tengine's C API. Here we demonstrate how to run MobileNet v1 via tm_classification example code, providing image classification functionality. This would help you get involve with Tengine Lite C API. We use the popular tiger cat image for test.
 
 ![lu mao](https://github.com/OAID/Tengine/blob/master/tests/images/cat.jpg)
 
-模型在此处可以找到：[Tengine model zoo](https://pan.baidu.com/s/1Ar9334MPeIV1eq4pM1eI-Q) 兼容原有 Tengine 的模型示例仓库（密码：hhgc）。
+Model files can be found here: [Tengine model zoo](https://pan.baidu.com/s/1Ar9334MPeIV1eq4pM1eI-Q), which are compatible with original Tengine example models（password：_hhgc_）。
 
-### 源码参考
+
+
+### Reference Code
 
 [tm_classification.c](tm_classification.c)
 
-### 编译
+### Compilation
 
-build.sh 编译脚本默认配置已实现自动编译 examples 中的 demo 程序，以 x86 平台为例，demo 存放在 ./build/install/bin/ 目录下。
+build.sh compiles example folders demo programs on default. Take x86 platform as example, the compilation generated demos are stored in `./build/install/bin/` folder.
 
 ```bash
 bug1989@DESKTOP-SGN0H2A:/mnt/d/ubuntu/gitlab/build-linux$ tree install
@@ -61,16 +64,16 @@ install
     └── libtengine-lite.so
 ```
 
-### 运行结果
+### Running Result
 
-将测试图片和模型文件放在 Tengine-Lite 根目录下，运行：
+Put testing images and models under root folder of Tengine-Lite project, and run it:
 
 ```bash
 export LD_LIBRARY_PATH=./build/install/lib
 ./build/install/bin/tm_classification -m models/mobilenet.tmfile -i images/cat.jpg -g 224,224 -s 0.017,0.017,0.017 -w 104.007,116.669,122.679
 ```
 
-结果如下：
+output:
 
 ```bash
 start to run register cpu allocator
@@ -89,18 +92,19 @@ Repeat 1 times, thread 1, avg time 656.76 ms, max_time 656.76 ms, min_time 656.7
 --------------------------------------
 ```
 
-## 人脸关键点检测任务 - [tm_landmark.cpp](tm_landmark.cpp)
+## Facial Landmark Detection Task - [tm_landmark.cpp](tm_landmark.cpp)
 
-使用图片：
+We use this image:
 
 ![](https://github.com/OAID/Tengine/blob/master/tests/images/mobileface02.jpg)
 
+Run it with:
 ```bash
 export LD_LIBRARY_PATH=./build/install/lib
 ./build/install/bin/tm_landmark -m models/landmark.tmfile -i images/mobileface02.jpg -r 1 -t 1
 ```
 
-结果如下：
+output:
 
 ```bash
 start to run register cpu allocator
@@ -110,18 +114,18 @@ Repeat [1] min 17.461 ms, max 17.461 ms, avg 17.461 ms
 
 ![](https://s1.ax1x.com/2020/08/28/doZQxO.jpg)
 
-## ssd 目标检测任务 - [tm_mobilenet_ssd.cpp](tm_mobilenet_ssd.cpp)
+## SSD Object Detection Task - [tm_mobilenet_ssd.cpp](tm_mobilenet_ssd.cpp)
 
-使用图片：
+We use this image:
 
 ![](https://github.com/OAID/Tengine/blob/master/tests/images/ssd_dog.jpg)
 
 ```bash
-$ export LD_LIBRARY_PATH=./build/install/lib
-$ ./build/install/bin/tm_mobilenet_ssd -m models/mobilenet_ssd.tmfile -i images/ssd_dog.jpg -r 1 -t 1
+export LD_LIBRARY_PATH=./build/install/lib
+./build/install/bin/tm_mobilenet_ssd -m models/mobilenet_ssd.tmfile -i images/ssd_dog.jpg -r 1 -t 1
 ```
 
-结果如下：
+output:
 
 ```bash
 start to run register cpu allocator
@@ -142,18 +146,18 @@ BOX:( 107 , 141 ),( 574 , 415 )
 
 ![](https://s1.ax1x.com/2020/08/28/doeJ6U.jpg)
 
-## retinaface 人脸检测任务 - [tm_refinaface.cpp](tm_refinaface.cpp)
+## RetinaFace Face Detection Task - [tm_refinaface.cpp](tm_refinaface.cpp)
 
-使用图片：
+We use this image:
 
 ![](https://github.com/OAID/Tengine/blob/master/tests/images/mtcnn_face4.jpg)
 
 ```bash
-$ export LD_LIBRARY_PATH=./build/install/lib
-$ ./build/install/bin/tm_retinaface -m models/retinaface.tmfile -i images/mtcnn_face4.jpg -r 1 -t 1
+export LD_LIBRARY_PATH=./build/install/lib
+./build/install/bin/tm_retinaface -m models/retinaface.tmfile -i images/mtcnn_face4.jpg -r 1 -t 1
 ```
 
-结果如下：
+output：
 
 ```bash
 start to run register cpu allocator
@@ -170,18 +174,18 @@ BOX 0.98:( 289.365 , 103.773 ),( 38.0025 , 47.6989 )
 
 ![](https://s1.ax1x.com/2020/08/28/doeBfx.jpg)
 
-## yolact 实例分割任务 - [tm_yolact.cpp](tm_yolact.cpp)
+## Yolact Instance Segmentation Task - [tm_yolact.cpp](tm_yolact.cpp)
 
-使用图片：
+We use this image:
 
 ![](https://github.com/OAID/Tengine/blob/master/tests/images/ssd_car.jpg)
 
 ```bash
-$ export LD_LIBRARY_PATH=./build/install/lib
-$ ./build/install/bin/tm_yolact -m models/yolact.tmfile -i images/ssd_car.jpg -r 1 -t 1
+export LD_LIBRARY_PATH=./build/install/lib
+./build/install/bin/tm_yolact -m models/yolact.tmfile -i images/ssd_car.jpg -r 1 -t 1
 ```
 
-结果如下：
+output:
 
 ```bash
 start to run register cpu allocator
@@ -195,18 +199,18 @@ Repeat 1 times, thread 1, avg time 15833.47 ms, max_time 15833.47 ms, min_time 1
 
 ![](https://s1.ax1x.com/2020/08/28/doe4ht.png)
 
-## yolov3 目标检测任务 - [tm_yolov3.cpp](tm_yolov3.cpp)
+## YoloV3 Object Detection Task - [tm_yolov3.cpp](tm_yolov3.cpp)
 
-使用图片：
+We use this image:
 
 ![](https://github.com/OAID/Tengine/blob/master/tests/images/ssd_dog.jpg)
 
 ```bash
-$ export LD_LIBRARY_PATH=./build/install/lib
-$ ./build/install/bin/tm_yolact -m models/yolov3_tiny.tmfile -i images/ssd_dog.jpg -r 1 -t 1
+export LD_LIBRARY_PATH=./build/install/lib
+./build/install/bin/tm_yolact -m models/yolov3_tiny.tmfile -i images/ssd_dog.jpg -r 1 -t 1
 ```
 
-结果如下：
+output：
 
 ```bash
 start to run register cpu allocator
@@ -224,9 +228,9 @@ left = 205,right = 576,top = 153,bot = 447
 
 ![](https://s1.ax1x.com/2020/08/28/domYCt.jpg)
 
-## yolov4-tiny目标检测任务 - [tm_yolov4_tiny.cpp](tm_yolov4_tiny.cpp)
+## Yolov4-tiny Object Detection Task - [tm_yolov4_tiny.cpp](tm_yolov4_tiny.cpp)
 
-使用图片：
+We use this image:
 
 ![](https://github.com/OAID/Tengine/blob/master/tests/images/ssd_dog.jpg)
 
@@ -234,7 +238,7 @@ left = 205,right = 576,top = 153,bot = 447
 $ export LD_LIBRARY_PATH=./build/install/lib
 $ ./build/install/bin/tm_yolov4_tiny -m models/yolov4_tiny.tmfile -i images/ssd_dog.jpg -r 1 -t 1
 ```
-结果如下：
+output：
 
 ```bash
 start to run register cpu allocator
@@ -253,18 +257,18 @@ left = 56,right = 603,top = 85,bot = 496
 
 ![](https://s1.ax1x.com/2020/10/19/0zpvfU.jpg)
 
-## 人体姿态识别任务 - [tm_openpose.cpp](tm_openpose.cpp)
+## Human Pose Estimation Task - [tm_openpose.cpp](tm_openpose.cpp)
 
-使用图片：
+We use this image:
 
 ![](https://s1.ax1x.com/2020/09/01/dvJm8A.jpg)
 
 ```bash
-$ export LD_LIBRARY_PATH=./build/install/lib
-$ ./build/install/bin/tm_openpose -m models/openpose_coco.tmfile -i image/pose.jpg -r 1 -t 1
+export LD_LIBRARY_PATH=./build/install/lib
+./build/install/bin/tm_openpose -m models/openpose_coco.tmfile -i image/pose.jpg -r 1 -t 1
 ```
 
-结果如下：
+output:
 
 ```bash
 start to run register cpu allocator
@@ -295,13 +299,11 @@ KeyPoints Coordinate:
 ![](https://s1.ax1x.com/2020/09/01/dvJ2x1.jpg)
 ![](https://s1.ax1x.com/2020/09/01/dvJxZ8.jpg)
 
-人体姿态识别结果会保存为图片，名称为：`Output-Keypionts.jpg`和`Output-Skeleton.jpg`。
+The result of human pose estimation will be saved as images, whose names are: `Output-Keypionts.jpg` and `Output-Skeleton.jpg`.
 
-## 汉字识别任务 - [tm_crnn.cpp](tm_crnn.cpp)
+## Chinese character recognition task - [tm_crnn.cpp](tm_crnn.cpp)
 
-目录结构: 在根目录下新建model文件夹, 并从[Tengine model zoo](https://pan.baidu.com/s/1Ar9334MPeIV1eq4pM1eI-Q) ( 密码：hhgc ) 中下载对应的模型文件和测试图片放入其中, 这里是: `crnn_lite_dense.tmfile`模型文件, `o2_resize.jpg`测试图片, 以及`keys.txt`字库文件. 在以上步骤的基础上, 输入如下命令行
-
-测试图片：
+Folder structure: create `model` directory under project root directory, and download corresponding model and testing image files from [Tengine model zoo](https://pan.baidu.com/s/1Ar9334MPeIV1eq4pM1eI-Q) ( password：_hhgc_ ) there. Specifically, `crnn_lite_dense.tmfile` as model file, `o2_resize.jpg` as testing image, `keys.txt` as font file. Then we execute:
 
 ![](https://s1.ax1x.com/2020/10/20/BSlFPS.jpg)
 
@@ -310,7 +312,7 @@ export LD_LIBRARY_PATH=./build/install/lib
 ./build/install/bin/tm_crnn -m model/crnn_lite_dense.tmfile -i model/o2_resize.jpg -l model/keys.txt
 ```
 
-结果如下：
+result:
 
 ```bash
 start to run register cpu allocator
@@ -321,6 +323,6 @@ Repeat 1 times, thread 1, avg time 43.32 ms, max_time 43.32 ms, min_time 43.32 m
 --------------------------------------
 ```
 
-其中ocr的识别结果会直接打印到终端中, 同时如果需要保存为txt文件可以修改源码使其重定向到文件。
+The result of ocr recognition is displayed in terminal, you may also modify the source code to save it to file.
 
-我们将持续更新各种有趣的 demo ，敬请期待......
+We will continously updating more fancy demos, please stay tuned...

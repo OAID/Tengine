@@ -59,13 +59,26 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         for (int i = 0; i < out_size; i++)
             output_org[i] = input_org[i];
     }
-    else
+    else if (input_tensor->data_type == TENGINE_DT_UINT8)
     {
         uint8_t* input_org = input_tensor->data;
         uint8_t* output_org = output_tensor->data;
 
         for (int i = 0; i < out_size; i++)
             output_org[i] = input_org[i];
+    }
+    else if (input_tensor->data_type == TENGINE_DT_INT8)
+    {
+        int8_t* input_org = input_tensor->data;
+        int8_t* output_org = output_tensor->data;
+
+        for (int i = 0; i < out_size; i++)
+            output_org[i] = input_org[i];
+    }
+    else
+    {
+        printf("Input data type %d not to be supported.\n", input_tensor->data_type);
+        return -1;
     }
 
     return 0;
