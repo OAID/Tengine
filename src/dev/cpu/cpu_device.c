@@ -618,7 +618,7 @@ void extract_feature_blob_f32(const char* comment, const char* layer_name, const
             }
         }
     }    
-    else
+    else if(type == TENGINE_DT_UINT8)
     {
         float scale = tensor->scale;
         int32_t zero_point = tensor->zero_point;
