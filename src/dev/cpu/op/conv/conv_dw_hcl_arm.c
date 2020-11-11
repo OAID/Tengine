@@ -31,6 +31,7 @@
 #include "tengine_op.h"
 #include "convolution_param.h"
 #include "cortex_a/conv_dw_kernel_arm.h"
+#include "cortex_a/conv_dw_kernel_int8_arm.h"
 
 #if __ARM_FEATURE_FP16_VECTOR_ARITHMETIC
 #include "cortex_a/conv_dw_kernel_fp16_arm82.h"
@@ -77,6 +78,15 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         }
     }
 #endif
+    else if(exec_graph->mode == TENGINE_MODE_INT8)
+    {
+        if (conv_dw_int8_run(input_tensor, weight_tensor, bias_tensor, output_tensor, conv_param, num_thread, cpu_affinity) < 0)
+        {
+            TLOG_ERR("hcl conv run failed\n");
+            set_tengine_errno(EFAULT);
+            return -1;
+        }
+    }
     else
     {
         printf("Tengine work node not support %d\n", exec_graph->mode);
@@ -128,6 +138,9 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     if (input_tensor->data_type != TENGINE_DT_FP32 && input_tensor->data_type != TENGINE_DT_FP16)
         return 0;
 #else
+    if (input_tensor->data_type == TENGINE_DT_INT8 && param->group > 1 && in_c == 1 && out_c == 1 && pad_h0 == pad_h1 && pad_w0 == pad_w1 && kernel_h == 3)
+        return OPS_SCORE_BEST;
+
     if (input_tensor->data_type != TENGINE_DT_FP32)
         return 0;
 #endif

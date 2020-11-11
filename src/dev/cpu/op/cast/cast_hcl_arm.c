@@ -50,6 +50,10 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
+    #if MACOS
+
+    #else
+
     struct ir_node* ir_node = exec_node->ir_node;
     struct ir_graph* ir_graph = ir_node->graph;
     struct ir_tensor* input_tensor;
@@ -99,7 +103,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
             }
         }
     }
-
+    #endif
     return 0;
 }
 

@@ -26,8 +26,14 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+
+#ifdef _MSC_VER
+#include <io.h>
+#else
 #include <unistd.h>
 #include <sys/mman.h>
+#endif
+
 #include <fcntl.h>
 
 #include "sys_port.h"
@@ -353,9 +359,9 @@ static int load_graph_tensors(struct tm2_serializer* tm2_s, struct ir_graph* gra
                         dims[3] = ir_tensor->dims[3];
 
                         /* nhwc to nchw */
-                        // fprintf(stderr, "%s:\n", ir_tensor->name);
-                        // fprintf(stderr, "original %d, %d, %d, %d\n", dims_org[0], dims_org[1], dims_org[2], dims_org[3]);
-                        // fprintf(stderr, "permute  %d, %d, %d, %d\n", dims[0], dims[1], dims[2], dims[3]);
+//                        fprintf(stderr, "%s:\n", ir_tensor->name);
+//                        fprintf(stderr, "original %d, %d, %d, %d\n", dims_org[0], dims_org[1], dims_org[2], dims_org[3]);
+//                        fprintf(stderr, "permute  %d, %d, %d, %d\n", dims[0], dims[1], dims[2], dims[3]);
 
                         unsigned char* input = tensor_data_org;
                         unsigned char* output = ir_tensor->data;
@@ -869,19 +875,24 @@ static int unload_graph(struct serializer* s, struct ir_graph* graph, void* s_pr
 {
     struct tm2_priv* priv = ( struct tm2_priv* )s_priv;
 
-    if (priv->base)
-        sys_free(( void* )priv->base);
-
-    graph->serializer = NULL;
-    graph->serializer_priv = NULL;
-
     if (priv->fd >= 0)
     {
         munmap(( void* )priv->base, priv->mem_len);
         close(priv->fd);
+        priv->fd = -1;
     }
 
+    if (priv->base)
+    {
+        sys_free(( void* )priv->base);
+        priv->base = NULL;
+    }
+
+    graph->serializer = NULL;
+    graph->serializer_priv = NULL;
+
     sys_free(priv);
+    priv = NULL;
 
     return 0;
 }

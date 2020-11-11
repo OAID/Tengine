@@ -122,6 +122,14 @@ enum
     OP_UPSAMPLE,
     OP_ZEROSLIKE,
     OP_MISH,
+    OP_LOGSOFTMAX,
+    OP_RELU1,
+    OP_L2NORMALIZATION,
+    OP_L2POOL,
+    OP_TILE,
+    OP_SHAPE,
+    OP_SCATTER,
+    OP_WHERE,    
     OP_BUILTIN_LAST
 };
 
@@ -142,7 +150,7 @@ void release_op_registry(void);
 
 struct op_method* find_op_method(int op_type, int op_version);
 
-#define AUTO_REGISTER_OP(reg_func) REGISTER_MODULE_INIT(MOD_OP_LEVEL, #reg_func, reg_func)
+#define AUTO_REGISTER_OP(reg_func)     REGISTER_MODULE_INIT(MOD_OP_LEVEL,   #reg_func, reg_func)
 #define AUTO_UNREGISTER_OP(unreg_func) REGISTER_MODULE_EXIT(MOD_OP_LEVEL, #unreg_func, unreg_func);
 
 #endif

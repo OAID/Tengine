@@ -282,8 +282,13 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct ir_graph* ir_graph = ir_node->graph;
     struct ir_tensor* i_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     struct ir_tensor* weight_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
-    struct ir_tensor* bias_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[2]);
+    struct ir_tensor* bias_tensor = NULL;
     struct ir_tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+
+    if (ir_node->input_num > 2)	
+    {	
+        bias_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[2]);	
+    }
 
     void* output_data = output_tensor->data;
     const void* input_data = i_tensor->data;

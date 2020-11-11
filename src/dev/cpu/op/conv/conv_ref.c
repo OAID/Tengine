@@ -34,8 +34,8 @@
 #include "compiler_fp16.h"
 #include "convolution_param.h"
 
-static  int ref_conv_fp32(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, struct ir_tensor* kernel,
-                      struct ir_tensor* bias, struct conv_param* conv_param)
+static int ref_conv_fp32(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, struct ir_tensor* kernel,
+                         struct ir_tensor* bias, struct conv_param* conv_param)
 {
     int batch = input_tensor->dims[0];
     int group = conv_param->group;
@@ -66,20 +66,20 @@ static  int ref_conv_fp32(struct ir_tensor* input_tensor, struct ir_tensor* outp
     if (input_w == 0)
         input_w = 1;
 
-    for(n = 0; n < batch; ++n)
+    for (n = 0; n < batch; ++n)
     {
-        for(g = 0; g < group; ++g)
+        for (g = 0; g < group; ++g)
         {
-            for(c = 0; c < output_c; ++c)
+            for (c = 0; c < output_c; ++c)
             {
-                for(h = 0; h < output_h; ++h)
+                for (h = 0; h < output_h; ++h)
                 {
-                    for(w = 0; w < output_w; ++w)
+                    for (w = 0; w < output_w; ++w)
                     {
                         const int h_start = (h * conv_param->stride_h) - conv_param->pad_h0;
                         const int w_start = (w * conv_param->stride_w) - conv_param->pad_w0;
                         float total = 0.f;
-                        if(input_tensor->layout == 0)
+                        if (input_tensor->layout == 0)
                         {
                             output_offset = n * group * output_c * output_h * output_w +
                                             g * output_c * output_h * output_w + c * output_h * output_w +
@@ -90,19 +90,19 @@ static  int ref_conv_fp32(struct ir_tensor* input_tensor, struct ir_tensor* outp
                             output_offset = n * group * output_c * output_h * output_w +
                                             h * output_w * group * output_c + w * group * output_c + output_c * g + c;
                         }
-                        for(kc = 0; kc < input_c; ++kc)
+                        for (kc = 0; kc < input_c; ++kc)
                         {
-                            for(kh = 0; kh < conv_param->kernel_h; ++kh)
+                            for (kh = 0; kh < conv_param->kernel_h; ++kh)
                             {
-                                for(kw = 0; kw < conv_param->kernel_w; ++kw)
+                                for (kw = 0; kw < conv_param->kernel_w; ++kw)
                                 {
                                     const int cur_y = h_start + conv_param->dilation_h * kh;
                                     const int cur_x = w_start + conv_param->dilation_w * kw;
                                     // If the location is outside the bounds of the input image,
                                     // use zero as a default value.
-                                    if((cur_x >= 0) && (cur_x < input_w) && (cur_y >= 0) && (cur_y < input_h))
+                                    if ((cur_x >= 0) && (cur_x < input_w) && (cur_y >= 0) && (cur_y < input_h))
                                     {
-                                        if(input_tensor->layout == 0)
+                                        if (input_tensor->layout == 0)
                                         {
                                             input_offset = n * group * input_c * input_h * input_w +
                                                            g * input_c * input_h * input_w + kc * input_h * input_w +
@@ -130,21 +130,21 @@ static  int ref_conv_fp32(struct ir_tensor* input_tensor, struct ir_tensor* outp
                         if (bias != NULL)
                             total += bias_data[output_c * g + c];
 
-                        if(conv_param->activation >= 0)
+                        if (conv_param->activation >= 0)
                         {
-                            if(total < 0 && conv_param->activation != 1)
+                            if (total < 0 && conv_param->activation != 1)
                             {
                                 total = 0;
                             }
-                            if(total > 1 && conv_param->activation == 1)
+                            if (total > 1 && conv_param->activation == 1)
                             {
                                 total = 1;
                             }
-                            if(total > 6 && conv_param->activation == 6)
+                            if (total > 6 && conv_param->activation == 6)
                             {
                                 total = 6;
                             }
-                            if(total < -1 && conv_param->activation == 1)
+                            if (total < -1 && conv_param->activation == 1)
                             {
                                 total = -1;
                             }
@@ -158,9 +158,12 @@ static  int ref_conv_fp32(struct ir_tensor* input_tensor, struct ir_tensor* outp
 
     return 0;
 }
-static  int ref_conv_fp16(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, struct ir_tensor* kernel,
-                      struct ir_tensor* bias, struct conv_param* conv_param)
+static int ref_conv_fp16(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, struct ir_tensor* kernel,
+                         struct ir_tensor* bias, struct conv_param* conv_param)
 {
+    #if MACOS
+    printf("FP16 not support under mac os");
+    #else
     int batch = input_tensor->dims[0];
     int group = conv_param->group;
     int input_c = conv_param->input_channel / group;
@@ -190,20 +193,20 @@ static  int ref_conv_fp16(struct ir_tensor* input_tensor, struct ir_tensor* outp
     if (input_w == 0)
         input_w = 1;
 
-    for(n = 0; n < batch; ++n)
+    for (n = 0; n < batch; ++n)
     {
-        for(g = 0; g < group; ++g)
+        for (g = 0; g < group; ++g)
         {
-            for(c = 0; c < output_c; ++c)
+            for (c = 0; c < output_c; ++c)
             {
-                for(h = 0; h < output_h; ++h)
+                for (h = 0; h < output_h; ++h)
                 {
-                    for(w = 0; w < output_w; ++w)
+                    for (w = 0; w < output_w; ++w)
                     {
                         const int h_start = (h * conv_param->stride_h) - conv_param->pad_h0;
                         const int w_start = (w * conv_param->stride_w) - conv_param->pad_w0;
                         float total = 0.f;
-                        if(input_tensor->layout == 0)
+                        if (input_tensor->layout == 0)
                         {
                             output_offset = n * group * output_c * output_h * output_w +
                                             g * output_c * output_h * output_w + c * output_h * output_w +
@@ -214,19 +217,19 @@ static  int ref_conv_fp16(struct ir_tensor* input_tensor, struct ir_tensor* outp
                             output_offset = n * group * output_c * output_h * output_w +
                                             h * output_w * group * output_c + w * group * output_c + output_c * g + c;
                         }
-                        for(kc = 0; kc < input_c; ++kc)
+                        for (kc = 0; kc < input_c; ++kc)
                         {
-                            for(kh = 0; kh < conv_param->kernel_h; ++kh)
+                            for (kh = 0; kh < conv_param->kernel_h; ++kh)
                             {
-                                for(kw = 0; kw < conv_param->kernel_w; ++kw)
+                                for (kw = 0; kw < conv_param->kernel_w; ++kw)
                                 {
                                     const int cur_y = h_start + conv_param->dilation_h * kh;
                                     const int cur_x = w_start + conv_param->dilation_w * kw;
                                     // If the location is outside the bounds of the input image,
                                     // use zero as a default value.
-                                    if((cur_x >= 0) && (cur_x < input_w) && (cur_y >= 0) && (cur_y < input_h))
+                                    if ((cur_x >= 0) && (cur_x < input_w) && (cur_y >= 0) && (cur_y < input_h))
                                     {
-                                        if(input_tensor->layout == 0)
+                                        if (input_tensor->layout == 0)
                                         {
                                             input_offset = n * group * input_c * input_h * input_w +
                                                            g * input_c * input_h * input_w + kc * input_h * input_w +
@@ -245,7 +248,8 @@ static  int ref_conv_fp16(struct ir_tensor* input_tensor, struct ir_tensor* outp
                                                             kw * input_c * group + g * input_c + kc;
                                         }
 
-                                        total += fp16_to_fp32(input_data[input_offset]) * fp16_to_fp32(kernel_data[kernel_offset]);
+                                        total += fp16_to_fp32(input_data[input_offset]) *
+                                                 fp16_to_fp32(kernel_data[kernel_offset]);
                                     }
                                 }
                             }
@@ -254,21 +258,21 @@ static  int ref_conv_fp16(struct ir_tensor* input_tensor, struct ir_tensor* outp
                         if (bias != NULL)
                             total += fp16_to_fp32(bias_data[output_c * g + c]);
 
-                        if(conv_param->activation >= 0)
+                        if (conv_param->activation >= 0)
                         {
-                            if(total < 0 && conv_param->activation != 1)
+                            if (total < 0 && conv_param->activation != 1)
                             {
                                 total = 0;
                             }
-                            if(total > 1 && conv_param->activation == 1)
+                            if (total > 1 && conv_param->activation == 1)
                             {
                                 total = 1;
                             }
-                            if(total > 6 && conv_param->activation == 6)
+                            if (total > 6 && conv_param->activation == 6)
                             {
                                 total = 6;
                             }
-                            if(total < -1 && conv_param->activation == 1)
+                            if (total < -1 && conv_param->activation == 1)
                             {
                                 total = -1;
                             }
@@ -279,12 +283,12 @@ static  int ref_conv_fp16(struct ir_tensor* input_tensor, struct ir_tensor* outp
             }
         }
     }
-
+    #endif
     return 0;
 }
 
-static  int ref_conv_uint8(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, struct ir_tensor* kernel,
-                      struct ir_tensor* bias, struct conv_param* conv_param)
+static int ref_conv_uint8(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, struct ir_tensor* kernel,
+                          struct ir_tensor* bias, struct conv_param* conv_param)
 {
     int batch = input_tensor->dims[0];
     int group = conv_param->group;
@@ -318,25 +322,25 @@ static  int ref_conv_uint8(struct ir_tensor* input_tensor, struct ir_tensor* out
     /* dequant input  */
     int input_size = batch * group * input_c * input_h * input_w;
     float* input_fp32 = ( float* )sys_malloc(sizeof(float) * input_size);
-    for(int i = 0; i < input_size; i++)
-        input_fp32[i] = ((float )input_data[i] - input_zero) * input_scale;
+    for (int i = 0; i < input_size; i++)
+        input_fp32[i] = (( float )input_data[i] - input_zero) * input_scale;
 
     /* dequant kernel  */
     int kernel_total = group * output_c * kernel_size;
     float* kernel_fp32 = ( float* )sys_malloc(sizeof(float) * kernel_total);
-    for(int i = 0; i < kernel_total; i++)
-        kernel_fp32[i] = ((float )kernel_data[i] - kernel_zero) * kernel_scale;
+    for (int i = 0; i < kernel_total; i++)
+        kernel_fp32[i] = (( float )kernel_data[i] - kernel_zero) * kernel_scale;
 
     /* dequant biases  */
     int bias_size = group * output_c;
 
     float* bias_fp32 = NULL;
-    if(bias != NULL)
+    if (bias != NULL)
     {
         bias_fp32 = ( float* )sys_malloc(sizeof(float) * bias_size);
-        for(int i = 0; i < bias_size; i++)
-            bias_fp32[i] = (float )bias_data[i] * input_scale * kernel_scale;
-    }        
+        for (int i = 0; i < bias_size; i++)
+            bias_fp32[i] = ( float )bias_data[i] * input_scale * kernel_scale;
+    }
 
     if (conv_param->kernel_h == 0)
         conv_param->kernel_h = 1;
@@ -345,20 +349,20 @@ static  int ref_conv_uint8(struct ir_tensor* input_tensor, struct ir_tensor* out
     if (input_w == 0)
         input_w = 1;
 
-    for(n = 0; n < batch; ++n)
+    for (n = 0; n < batch; ++n)
     {
-        for(g = 0; g < group; ++g)
+        for (g = 0; g < group; ++g)
         {
-            for(c = 0; c < output_c; ++c)
+            for (c = 0; c < output_c; ++c)
             {
-                for(h = 0; h < output_h; ++h)
+                for (h = 0; h < output_h; ++h)
                 {
-                    for(w = 0; w < output_w; ++w)
+                    for (w = 0; w < output_w; ++w)
                     {
                         const int h_start = (h * conv_param->stride_h) - conv_param->pad_h0;
                         const int w_start = (w * conv_param->stride_w) - conv_param->pad_w0;
                         float total = 0.f;
-                        if(input_tensor->layout == 0)
+                        if (input_tensor->layout == 0)
                         {
                             output_offset = n * group * output_c * output_h * output_w +
                                             g * output_c * output_h * output_w + c * output_h * output_w +
@@ -369,19 +373,19 @@ static  int ref_conv_uint8(struct ir_tensor* input_tensor, struct ir_tensor* out
                             output_offset = n * group * output_c * output_h * output_w +
                                             h * output_w * group * output_c + w * group * output_c + output_c * g + c;
                         }
-                        for(kc = 0; kc < input_c; ++kc)
+                        for (kc = 0; kc < input_c; ++kc)
                         {
-                            for(kh = 0; kh < conv_param->kernel_h; ++kh)
+                            for (kh = 0; kh < conv_param->kernel_h; ++kh)
                             {
-                                for(kw = 0; kw < conv_param->kernel_w; ++kw)
+                                for (kw = 0; kw < conv_param->kernel_w; ++kw)
                                 {
                                     const int cur_y = h_start + conv_param->dilation_h * kh;
                                     const int cur_x = w_start + conv_param->dilation_w * kw;
                                     // If the location is outside the bounds of the input image,
                                     // use zero as a default value.
-                                    if((cur_x >= 0) && (cur_x < input_w) && (cur_y >= 0) && (cur_y < input_h))
+                                    if ((cur_x >= 0) && (cur_x < input_w) && (cur_y >= 0) && (cur_y < input_h))
                                     {
-                                        if(input_tensor->layout == 0)
+                                        if (input_tensor->layout == 0)
                                         {
                                             input_offset = n * group * input_c * input_h * input_w +
                                                            g * input_c * input_h * input_w + kc * input_h * input_w +
@@ -409,30 +413,30 @@ static  int ref_conv_uint8(struct ir_tensor* input_tensor, struct ir_tensor* out
                         if (bias != NULL)
                             total += bias_fp32[output_c * g + c];
 
-                        if(conv_param->activation >= 0)
+                        if (conv_param->activation >= 0)
                         {
-                            if(total < 0 && conv_param->activation != 1)
+                            if (total < 0 && conv_param->activation != 1)
                             {
                                 total = 0;
                             }
-                            if(total > 1 && conv_param->activation == 1)
+                            if (total > 1 && conv_param->activation == 1)
                             {
                                 total = 1;
                             }
-                            if(total > 6 && conv_param->activation == 6)
+                            if (total > 6 && conv_param->activation == 6)
                             {
                                 total = 6;
                             }
-                            if(total < -1 && conv_param->activation == 1)
+                            if (total < -1 && conv_param->activation == 1)
                             {
                                 total = -1;
                             }
                         }
 
                         int out = round(total / output_scale) + output_zero;
-                        if(out > 255)
+                        if (out > 255)
                             out = 255;
-                        if(out < 0)
+                        if (out < 0)
                             out = 0;
                         output_data[output_offset] = out;
                     }
@@ -450,7 +454,155 @@ static  int ref_conv_uint8(struct ir_tensor* input_tensor, struct ir_tensor* out
 }
 
 
-//add conv op by wangxinwei for debug conv
+static int ref_conv_int8(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, struct ir_tensor* kernel,
+                          struct ir_tensor* bias, struct conv_param* conv_param)
+{
+    int batch = input_tensor->dims[0];
+    int group = conv_param->group;
+    int input_c = conv_param->input_channel / group;
+    int input_h = input_tensor->dims[2];
+    int input_w = input_tensor->dims[3];
+    int output_c = output_tensor->dims[1] / group;
+    int output_h = output_tensor->dims[2];
+    int output_w = output_tensor->dims[3];
+
+    int kernel_size = input_c * conv_param->kernel_h * conv_param->kernel_w;
+    int n, g, c, h, w, kc, kh, kw;
+    int input_offset = 0;
+    int kernel_offset = 0;
+    int output_offset = 0;
+
+    int8_t* input_i8 = input_tensor->data;
+    int8_t* output_i8 = output_tensor->data;
+    int8_t* kernel_i8 = kernel->data;
+    int32_t* bias_i32 = NULL;
+    if (bias != NULL)
+        bias_i32 = bias->data;
+
+    float input_scale = input_tensor->scale;
+    float* kernel_scales = kernel->scale_list;
+    float output_scale = output_tensor->scale;
+
+    /* input and kernel scales */
+    int dequant_scales_size = group * output_c;
+    float *dequant_scales = (float*)malloc(sizeof(float) * dequant_scales_size);
+
+    for(int i = 0; i < dequant_scales_size; i++)
+    {
+        dequant_scales[i] = (input_scale * kernel_scales[i]);
+    }
+
+    if (conv_param->kernel_h == 0)
+        conv_param->kernel_h = 1;
+    if (conv_param->kernel_w == 0)
+        conv_param->kernel_w = 1;
+    if (input_w == 0)
+        input_w = 1;
+
+    for (n = 0; n < batch; ++n)
+    {
+        for (g = 0; g < group; ++g)
+        {
+            for (c = 0; c < output_c; ++c)
+            {
+                for (h = 0; h < output_h; ++h)
+                {
+                    for (w = 0; w < output_w; ++w)
+                    {
+                        const int h_start = (h * conv_param->stride_h) - conv_param->pad_h0;
+                        const int w_start = (w * conv_param->stride_w) - conv_param->pad_w0;
+                        int32_t total_i32 = 0;
+                        if (input_tensor->layout == 0)
+                        {
+                            output_offset = n * group * output_c * output_h * output_w +
+                                            g * output_c * output_h * output_w + c * output_h * output_w +
+                                            h * output_w + w;
+                        }
+                        else
+                        {
+                            output_offset = n * group * output_c * output_h * output_w +
+                                            h * output_w * group * output_c + w * group * output_c + output_c * g + c;
+                        }
+                        for (kc = 0; kc < input_c; ++kc)
+                        {
+                            for (kh = 0; kh < conv_param->kernel_h; ++kh)
+                            {
+                                for (kw = 0; kw < conv_param->kernel_w; ++kw)
+                                {
+                                    const int cur_y = h_start + conv_param->dilation_h * kh;
+                                    const int cur_x = w_start + conv_param->dilation_w * kw;
+                                    // If the location is outside the bounds of the input image,
+                                    // use zero as a default value.
+                                    if ((cur_x >= 0) && (cur_x < input_w) && (cur_y >= 0) && (cur_y < input_h))
+                                    {
+                                        if (input_tensor->layout == 0)
+                                        {
+                                            input_offset = n * group * input_c * input_h * input_w +
+                                                           g * input_c * input_h * input_w + kc * input_h * input_w +
+                                                           cur_y * input_w + cur_x;
+                                            kernel_offset = g * output_c * kernel_size + c * kernel_size +
+                                                            kc * conv_param->kernel_h * conv_param->kernel_w +
+                                                            kh * conv_param->kernel_w + kw;
+                                        }
+                                        else
+                                        {
+                                            input_offset = n * group * input_c * input_h * input_w +
+                                                           cur_y * input_w * input_c * group + cur_x * input_c * group +
+                                                           g * input_c + kc;
+                                            kernel_offset = c * group * kernel_size +
+                                                            kh * conv_param->kernel_w * input_c * group +
+                                                            kw * input_c * group + g * input_c + kc;
+                                        }
+
+                                        total_i32 += (int32_t)input_i8[input_offset] * (int32_t)kernel_i8[kernel_offset];
+                                    }
+                                }
+                            }
+                        }
+
+                        if (bias != NULL)
+                            total_i32 += bias_i32[output_c * g + c];
+
+                        float total = total_i32 * dequant_scales[output_c * g + c];
+
+                        if (conv_param->activation >= 0)
+                        {
+                            if (total < 0 && conv_param->activation != 1)
+                            {
+                                total = 0;
+                            }
+                            if (total > 1 && conv_param->activation == 1)
+                            {
+                                total = 1;
+                            }
+                            if (total > 6 && conv_param->activation == 6)
+                            {
+                                total = 6;
+                            }
+                            if (total < -1 && conv_param->activation == 1)
+                            {
+                                total = -1;
+                            }
+                        }
+
+                        int out = round(total / output_scale);
+                        if (out > 127)
+                            out = 127;
+                        if (out < -127)
+                            out = -127;
+                        output_i8[output_offset] = (uint8_t)out;
+                    }
+                }
+            }
+        }
+    }
+
+    sys_free(dequant_scales);
+
+    return 0;
+}
+
+// add conv op by wangxinwei for debug conv
 //======================================================================================================//
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
@@ -461,7 +613,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct ir_tensor* weight_tensor;
     struct ir_tensor* bias_tensor = NULL;
     struct ir_tensor* output_tensor = NULL;
-    int num_thread   = exec_graph->num_thread;
+    int num_thread = exec_graph->num_thread;
     int cpu_affinity = exec_graph->cpu_affinity;
 
     input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
@@ -481,6 +633,8 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         ret = ref_conv_fp16(input_tensor, output_tensor, weight_tensor, bias_tensor, conv_param);
     else if (input_tensor->data_type == TENGINE_DT_UINT8)
         ret = ref_conv_uint8(input_tensor, output_tensor, weight_tensor, bias_tensor, conv_param);
+    else if (input_tensor->data_type == TENGINE_DT_INT8)
+        ret = ref_conv_int8(input_tensor, output_tensor, weight_tensor, bias_tensor, conv_param);
     else
     {
         printf("Input data type %d not to be supported.\n", input_tensor->data_type);
@@ -564,7 +718,7 @@ static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struc
     {
         out_h =
             (h - conv_param->dilation_h * (conv_param->kernel_h - 1) - 1 + conv_param->pad_h0 + conv_param->pad_h1) /
-            conv_param->stride_h +
+                conv_param->stride_h +
             1;
     }
 
@@ -590,7 +744,7 @@ static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struc
     {
         out_w =
             (w - conv_param->dilation_w * (conv_param->kernel_w - 1) - 1 + conv_param->pad_w0 + conv_param->pad_w1) /
-            conv_param->stride_w +
+                conv_param->stride_w +
             1;
     }
 
@@ -604,7 +758,7 @@ static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struc
             dims[2] = out_h;
             dims[3] = out_w;
 
-            for (int i=0; i<4; i++)
+            for (int i = 0; i < 4; i++)
             {
                 if (dims[i] == 0)
                     dims[i] = 1;
@@ -621,7 +775,7 @@ static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struc
             dims[2] = out_w;
             dims[3] = out_c;
 
-            for (int i=0; i<4; i++)
+            for (int i = 0; i < 4; i++)
             {
                 if (dims[i] == 0)
                     dims[i] = 1;
@@ -655,12 +809,12 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
 }
 
 static struct node_ops hcl_node_ops = {.prerun = NULL,
-    .run = run,
-    .reshape = reshape,
-    .postrun = NULL,
-    .init_node = init_node,
-    .release_node = release_node,
-    .score = score};
+                                       .run = run,
+                                       .reshape = reshape,
+                                       .postrun = NULL,
+                                       .init_node = init_node,
+                                       .release_node = release_node,
+                                       .score = score};
 
 static int reg_conv_hcl_ops(void* arg)
 {

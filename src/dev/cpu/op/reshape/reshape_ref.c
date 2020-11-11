@@ -23,7 +23,6 @@
  */
 
 #include <math.h>
-#include <unistd.h>
 #include "sys_port.h"
 #include "module.h"
 #include "tengine_errno.h"
@@ -154,7 +153,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
                 return 0;
             }
         }
-        else
+        else if (output_tensor->data_type == TENGINE_DT_UINT8)
         {
             if (output_tensor->dim_num == 4)
             {
@@ -218,6 +217,73 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
                     }
 
                 free(data_uint8_temp);
+                return 0;
+            }
+        }
+        else if (output_tensor->data_type == TENGINE_DT_INT8)
+        {
+            if (output_tensor->dim_num == 4)
+            {
+                int in_ch = input_tensor->dims[1];
+                int in_h = input_tensor->dims[2];
+                int in_w = input_tensor->dims[3];
+
+                int out_ch = output_tensor->dims[1];
+                int out_h = output_tensor->dims[2];
+                int out_w = output_tensor->dims[3];
+
+                int8_t* input_int8 = input_tensor->data;
+                int8_t* output_int8 = output_tensor->data;
+                int8_t* data_int8_temp = ( int8_t* )malloc(size);
+
+                int index = 0;
+                for (int h = 0; h < in_h; h++)
+                    for (int w = 0; w < in_w; w++)
+                        for (int c = 0; c < in_ch; c++)
+                            data_int8_temp[index++] = input_int8[c * in_h * in_w + h * in_w + w];
+
+                /* transpose nhwc to nchw */
+                index = 0;
+                for (int c = 0; c < out_ch; c++)
+                    for (int h = 0; h < out_h; h++)
+                        for (int w = 0; w < out_w; w++)
+                        {
+                            output_int8[index] = data_int8_temp[h * out_w * out_ch + w * out_ch + c];
+                            index++;
+                        }
+
+                free(data_int8_temp);
+                return 0;
+            }
+            else if (output_tensor->dim_num == 3)
+            {
+                int in_ch = input_tensor->dims[1];
+                int in_h = input_tensor->dims[2];
+                int in_w = input_tensor->dims[3];
+
+                int out_ch = output_tensor->dims[1];
+                int out_w = output_tensor->dims[2];
+
+                int8_t* input_int8 = input_tensor->data;
+                int8_t* output_int8 = output_tensor->data;
+                int8_t* data_int8_temp = ( int8_t* )malloc(size);
+
+                int index = 0;
+                for (int h = 0; h < in_h; h++)
+                    for (int w = 0; w < in_w; w++)
+                        for (int c = 0; c < in_ch; c++)
+                            data_int8_temp[index++] = input_int8[c * in_h * in_w + h * in_w + w];
+
+                /* transpose nhwc to nchw */
+                index = 0;
+                for (int c = 0; c < out_ch; c++)
+                    for (int w = 0; w < out_w; w++)
+                    {
+                        output_int8[index] = data_int8_temp[w * out_ch + c];
+                        index++;
+                    }
+
+                free(data_int8_temp);
                 return 0;
             }
         }

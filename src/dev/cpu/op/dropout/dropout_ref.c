@@ -71,7 +71,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
 static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struct ir_node* exec_node)
 {
-    return OPS_SCORE_BEST;
+    return OPS_SCORE_CANDO;
 }
 
 static struct node_ops hcl_node_ops = {.prerun = NULL,
