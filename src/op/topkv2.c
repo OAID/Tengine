@@ -88,7 +88,6 @@ static int init_op(struct ir_op* op)
 static void release_op(struct ir_op* op)
 {
     sys_free(op->param_mem);
-    sys_free(GET_PARAM_PARSE_MAP(topkv2_param));
 }
 
 static int register_topkv2_op(void* arg)
@@ -105,6 +104,7 @@ static int register_topkv2_op(void* arg)
 
 static int unregister_topkv2_op(void* arg)
 {
+    sys_free(GET_PARAM_PARSE_MAP(topkv2_param));
     return unregister_op(OP_TOPKV2, 1);
 }
 
