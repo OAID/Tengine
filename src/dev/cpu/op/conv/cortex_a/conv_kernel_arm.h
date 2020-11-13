@@ -72,6 +72,17 @@ int conv_hcl_get_shared_pack4_mem_size(struct ir_tensor* input_tensor, struct ir
 int conv_hcl_set_shared_mem(struct conv_priv_info* priv_info, void* mem, int mem_size) __attribute__((weak));
 int conv_hcl_set_shared_pack4_mem(struct conv_priv_info* priv_info, void* mem, int mem_size) __attribute__((weak));
 
+int int8_conv_hcl_prerun(struct ir_tensor*  input_tensor,
+                         struct ir_tensor*  filter_tensor,
+                         struct ir_tensor*  output_tensor,
+                         struct conv_priv_info* priv_info,
+                         struct conv_param* param)  __attribute__((weak));
+
+int int8_conv_hcl_postrun(struct conv_priv_info* info) __attribute__((weak));
+
+int int8_conv_hcl_run(struct ir_tensor* input_tensor , struct ir_tensor* filter_tensor ,struct ir_tensor* bias_tensor ,  struct ir_tensor* output_tensor , struct conv_priv_info*  conv_info ,struct conv_param* param, int num_thread, int cpu_affinity)  __attribute__((weak));
+
+int int8_conv_hcl_get_shared_mem_size(struct ir_tensor*  input_tensor ,struct ir_tensor*  output_tensor , struct conv_param* param) __attribute__((weak)) ;
 /* fp16 */
 #if __ARM_FEATURE_FP16_VECTOR_ARITHMETIC
 int fp16_conv_hcl_prerun(struct ir_tensor*  input_tensor, 

@@ -97,6 +97,15 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
         }
     }
 #endif
+    else if (exec_graph->mode == TENGINE_MODE_INT8)
+    {
+        if (int8_conv_hcl_prerun(input_tensor,filter_tensor,output_tensor,conv_priv_info,conv_param) < 0)
+        {
+            TLOG_ERR("hcl conv hybrid int8 prerun failed\n");
+            set_tengine_errno(EFAULT);
+            return -1;
+        }
+    }
     else
     {
         printf("Tengine work node not support %d\n", exec_graph->mode);
@@ -151,6 +160,15 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         }        
     }
 #endif
+    else if (exec_graph->mode == TENGINE_MODE_INT8)
+    {
+        if (int8_conv_hcl_run(input_tensor, weight_tensor, bias_tensor, output_tensor, conv_priv_info, conv_param, num_thread, cpu_affinity) < 0)
+        {
+            TLOG_ERR("hcl conv int8 run failed\n");
+            set_tengine_errno(EFAULT);
+            return -1;
+        }
+    }
     else
     {
         printf("Tengine work node not support %d\n", exec_graph->mode);
@@ -191,6 +209,15 @@ static int postrun(struct node_ops* node_ops, struct exec_node* exec_node, struc
         }
     }
 #endif
+    else if (exec_graph->mode == TENGINE_MODE_INT8)
+    {
+        if (int8_conv_hcl_postrun(conv_priv_info) < 0)
+        {
+            TLOG_ERR("hcl conv fp16 postrun failed\n");
+            set_tengine_errno(EFAULT);
+            return -1;
+        }
+    }
     else
     {
         printf("Tengine work node not support %d\n", exec_graph->mode);
@@ -236,6 +263,10 @@ static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, str
         exec_node->shared_mem_size = fp16_conv_hcl_get_shared_mem_size(input_tensor, output_tensor, conv_param);
     }
 #endif
+    else if (exec_graph->mode == TENGINE_MODE_INT8)
+    {
+        exec_node->shared_mem_size = int8_conv_hcl_get_shared_mem_size(input_tensor,output_tensor,conv_param);
+    }
     else
     {
         printf("Tengine work node not support %d\n", exec_graph->mode);
@@ -266,6 +297,8 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     int kernel_w = param->kernel_w;
     int in_c = input_tensor->dims[1] / group;
     int out_c = output_tensor->dims[1] / group;
+    if (input_tensor->data_type == TENGINE_DT_INT8)
+        return OPS_SCORE_BEST;
 
     /* todo support int8/fp16 */
 #if __ARM_FEATURE_FP16_VECTOR_ARITHMETIC    
