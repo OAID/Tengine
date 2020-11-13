@@ -109,7 +109,8 @@ void gemv_1x2_int8(const int32_t *biases, const float *scales, int8_t *inp, int8
     int remainw = (kernel_size << 3) >> 3;
     int8x8x2_t weight;
     int8x8_t input;
-    int16x8_t out_16_0, out_16_1, out_32_0, out_32_1;
+    int16x8_t out_16_0, out_16_1;
+    int32x4_t out_32_0, out_32_1;
     int32_t sum0 = 0, sum1 = 0;
     for (int i = 0; i < remainw; i = i + 8) {
         weight = vld2_s8(weight_ptr);
