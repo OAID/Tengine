@@ -1,6 +1,7 @@
-//
-// Created by Hebing Shi on 2020/11/4.
-//
+/*
+ * Author: 1091545398@qq.com
+ */
+
 #include "conv_dw_kernel_int8_arm.h"
 #include "tengine_ir.h"
 #include "sys_port.h"
@@ -117,6 +118,7 @@ static inline void conv_dw_int8_3x3s1(const int8_t* input, int8_t* kernel, const
         float32x4_t f1 = vdupq_n_f32(1);
         float32x4_t f6 = vdupq_n_f32(6);
         float32x4_t f_1 = vdupq_n_f32(-1);
+        uint32x4_t u_1 = vmovq_n_u32(1);
 
         for (; i + 1 < outh; i += 2)
         {
@@ -238,8 +240,13 @@ static inline void conv_dw_int8_3x3s1(const int8_t* input, int8_t* kernel, const
 
                 sum0_f = vmulq_f32(sum0_f, outscale);
                 sum0_1_f = vmulq_f32(sum0_1_f, outscale);
-                sum0_f = vaddq_f32(sum0_f, f_0_5);
-                sum0_1_f = vaddq_f32(sum0_1_f, f_0_5);
+
+                sum0_f = vaddq_f32(sum0_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcgtq_f32(f0,sum0_f),u_1)),0.5));
+                sum0_1_f = vaddq_f32(sum0_1_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcgtq_f32(f0,sum0_1_f),u_1)),0.5));
+                sum0_f = vaddq_f32(sum0_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcltq_f32(f0,sum0_f),u_1)),-0.5));
+                sum0_1_f = vaddq_f32(sum0_1_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcltq_f32(f0,sum0_1_f),u_1)),-0.5));
+                //sum0_f = vaddq_f32(sum0_f, f_0_5);
+                //sum0_1_f = vaddq_f32(sum0_1_f, f_0_5);
 
                 float32x4_t sum2_f = vcvtq_f32_s32(sum2);
                 float32x4_t sum2_1_f = vcvtq_f32_s32(sum2_1);
@@ -277,9 +284,11 @@ static inline void conv_dw_int8_3x3s1(const int8_t* input, int8_t* kernel, const
                 }
                 sum2_f = vmulq_f32(sum2_f, outscale);
                 sum2_1_f = vmulq_f32(sum2_1_f, outscale);
-
-                sum2_f = vaddq_f32(sum2_f, f_0_5);
-                sum2_1_f = vaddq_f32(sum2_1_f, f_0_5);
+                /* round */
+                sum2_f = vaddq_f32(sum2_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcgtq_f32(f0,sum2_f),u_1)),0.5));
+                sum2_1_f = vaddq_f32(sum2_1_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcgtq_f32(f0,sum2_1_f),u_1)),0.5));
+                sum2_f = vaddq_f32(sum2_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcltq_f32(f0,sum2_f),u_1)),-0.5));
+                sum2_1_f = vaddq_f32(sum2_1_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcltq_f32(f0,sum2_1_f),u_1)),-0.5));
 
                 sum2 = vcvtq_s32_f32(sum2_f);
                 sum2_1 = vcvtq_s32_f32(sum2_1_f);
@@ -425,10 +434,13 @@ static inline void conv_dw_int8_3x3s1(const int8_t* input, int8_t* kernel, const
                         sum0_1_f = vminq_f32(sum0_1_f, f6);
                     }
                 }
+                /* round */
                 sum0_f = vmulq_f32(sum0_f, outscale);
                 sum0_1_f = vmulq_f32(sum0_1_f, outscale);
-                sum0_f = vaddq_f32(sum0_f, f_0_5);
-                sum0_1_f = vaddq_f32(sum0_1_f, f_0_5);
+                sum0_f = vaddq_f32(sum0_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcgtq_f32(f0,sum0_f),u_1)),0.5));
+                sum0_1_f = vaddq_f32(sum0_1_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcgtq_f32(f0,sum0_1_f),u_1)),0.5));
+                sum0_f = vaddq_f32(sum0_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcltq_f32(f0,sum0_f),u_1)),-0.5));
+                sum0_1_f = vaddq_f32(sum0_1_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcltq_f32(f0,sum0_1_f),u_1)),-0.5));
 
                 sum0 = vcvtq_s32_f32(sum0_f);
                 sum0_1 = vcvtq_s32_f32(sum0_1_f);
@@ -507,6 +519,7 @@ static inline void conv_dw_int8_3x3s2(const int8_t* input, const int8_t* kernel,
         float32x4_t f1 = vdupq_n_f32(1);
         float32x4_t f6 = vdupq_n_f32(6);
         float32x4_t f_1 = vdupq_n_f32(-1);
+        uint32x4_t u_1 = vmovq_n_u32(1);
 
         for (; i < outh; ++i)
         {
@@ -593,8 +606,11 @@ static inline void conv_dw_int8_3x3s2(const int8_t* input, const int8_t* kernel,
 
                 sum0_f = vmulq_f32(sum0_f, outscale);
                 sum0_1_f = vmulq_f32(sum0_1_f, outscale);
-                sum0_f = vaddq_f32(sum0_f, f_0_5);
-                sum0_1_f = vaddq_f32(sum0_1_f, f_0_5);
+                /* round */
+                sum0_f = vaddq_f32(sum0_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcgtq_f32(f0,sum0_f),u_1)),0.5));
+                sum0_1_f = vaddq_f32(sum0_1_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcgtq_f32(f0,sum0_1_f),u_1)),0.5));
+                sum0_f = vaddq_f32(sum0_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcltq_f32(f0,sum0_f),u_1)),-0.5));
+                sum0_1_f = vaddq_f32(sum0_1_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcltq_f32(f0,sum0_1_f),u_1)),-0.5));
 
                 sum0 = vcvtq_s32_f32(sum0_f);
                 sum0_1 = vcvtq_s32_f32(sum0_1_f);
