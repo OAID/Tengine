@@ -1,6 +1,6 @@
-//
-// Created by Hebing Shi on 2020/11/4.
-//
+/*
+ * Author: 1091545398@qq.com
+ */
 
 #ifndef TENGINLITE_CONV_DW_KERNEL_INT8_ARM_H
 #define TENGINLITE_CONV_DW_KERNEL_INT8_ARM_H
