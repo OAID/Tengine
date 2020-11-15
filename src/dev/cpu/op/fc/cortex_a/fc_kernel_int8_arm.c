@@ -17,6 +17,10 @@
  * under the License.
  */
 
+/*
+ * Author: 1091545398@qq.com
+ */
+
 #include <stdint.h>
 #include <stdlib.h>
 #include <math.h>
