@@ -226,6 +226,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     op_param.normalize_variance = param->normalize_variance;
     op_param.across_channels = param->across_channels;
     op_param.eps = param->eps;
+    op_param.layout = graph->graph_layout;
 
     void* in_data = input_tensor->data;
     void* out_data = output_tensor->data;
