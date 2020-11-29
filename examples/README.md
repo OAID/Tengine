@@ -203,7 +203,7 @@ Repeat 1 times, thread 1, avg time 15833.47 ms, max_time 15833.47 ms, min_time 1
 
 ```bash
 $ export LD_LIBRARY_PATH=./build/install/lib
-$ ./build/install/bin/tm_yolact -m models/yolov3_tiny.tmfile -i images/ssd_dog.jpg -r 1 -t 1
+$ ./build/install/bin/tm_yolov3_tiny -m models/yolov3_tiny.tmfile -i images/ssd_dog.jpg -r 1 -t 1
 ```
 
 结果如下：
