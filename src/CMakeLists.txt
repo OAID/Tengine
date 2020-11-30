@@ -60,7 +60,7 @@ endif()
 # X86
 if (${TENGINE_TARGET_PROCESSOR} MATCHES "X86")
     if (TENGINE_ARCH_X86_AVX)
-        add_definitions(-mfma -mf16c)
+        add_definitions(-mfma -mf16c -mavx2)
     endif()
     file(GLOB_RECURSE TENGINE_BACKEND_HCL_OPS   "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/op/*hcl.c"
                                                 "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/op/*x86.c")

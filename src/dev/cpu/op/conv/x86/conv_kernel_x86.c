@@ -1023,6 +1023,139 @@ static void sgemm_i8(int M, int N, int K, int8_t* pA_t, int8_t* pB_t, int32_t* p
             int8_t* va = pA_t + (i / 8) * 8 * K;
             int8_t* vb = pB_t + (j / 8) * 8 * K;
 
+#if __AVX__
+            __m256i _sum0 = _mm256_set1_epi32(0);
+            __m256i _sum1 = _mm256_set1_epi32(0);
+            __m256i _sum2 = _mm256_set1_epi32(0);
+            __m256i _sum3 = _mm256_set1_epi32(0);
+            __m256i _sum4 = _mm256_set1_epi32(0);
+            __m256i _sum5 = _mm256_set1_epi32(0);
+            __m256i _sum6 = _mm256_set1_epi32(0);
+            __m256i _sum7 = _mm256_set1_epi32(0);
+
+            int k = 0;
+            for (; k + 3 < K; k = k + 4) {
+                // k0
+                __m256i _va0 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*va));
+                __m256i _va1 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 1)));
+                __m256i _va2 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 2)));
+                __m256i _va3 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 3)));
+                __m256i _vb0 = _mm256_cvtepi8_epi32(_mm_loadu_si128((__m128i*)vb));
+                __m256i _vb1 =
+                    _mm256_cvtepi8_epi32(_mm_loadu_si128((__m128i*)(vb + 8)));
+                __m256i _vb2 =
+                    _mm256_cvtepi8_epi32(_mm_loadu_si128((__m128i*)(vb + 16)));
+                __m256i _vb3 =
+                    _mm256_cvtepi8_epi32(_mm_loadu_si128((__m128i*)(vb + 24)));
+                _sum0 = _mm256_add_epi32(_mm256_mullo_epi32(_vb0, _va0), _sum0);
+                _sum1 = _mm256_add_epi32(_mm256_mullo_epi32(_vb0, _va1), _sum1);
+                _sum2 = _mm256_add_epi32(_mm256_mullo_epi32(_vb0, _va2), _sum2);
+                _sum3 = _mm256_add_epi32(_mm256_mullo_epi32(_vb0, _va3), _sum3);
+                _va0 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 4)));
+                _va1 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 5)));
+                _va2 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 6)));
+                _va3 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 7)));
+                _sum4 = _mm256_add_epi32(_mm256_mullo_epi32(_vb0, _va0), _sum4);
+                _sum5 = _mm256_add_epi32(_mm256_mullo_epi32(_vb0, _va1), _sum5);
+                _sum6 = _mm256_add_epi32(_mm256_mullo_epi32(_vb0, _va2), _sum6);
+                _sum7 = _mm256_add_epi32(_mm256_mullo_epi32(_vb0, _va3), _sum7);
+
+                va += 8;
+
+                // k1
+                _va0 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*va));
+                _va1 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 1)));
+                _va2 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 2)));
+                _va3 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 3)));
+                _sum0 = _mm256_add_epi32(_mm256_mullo_epi32(_vb1, _va0), _sum0);
+                _sum1 = _mm256_add_epi32(_mm256_mullo_epi32(_vb1, _va1), _sum1);
+                _sum2 = _mm256_add_epi32(_mm256_mullo_epi32(_vb1, _va2), _sum2);
+                _sum3 = _mm256_add_epi32(_mm256_mullo_epi32(_vb1, _va3), _sum3);
+                _va0 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 4)));
+                _va1 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 5)));
+                _va2 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 6)));
+                _va3 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 7)));
+                _sum4 = _mm256_add_epi32(_mm256_mullo_epi32(_vb1, _va0), _sum4);
+                _sum5 = _mm256_add_epi32(_mm256_mullo_epi32(_vb1, _va1), _sum5);
+                _sum6 = _mm256_add_epi32(_mm256_mullo_epi32(_vb1, _va2), _sum6);
+                _sum7 = _mm256_add_epi32(_mm256_mullo_epi32(_vb1, _va3), _sum7);
+
+                va += 8;
+
+                // k2
+                _va0 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*va));
+                _va1 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 1)));
+                _va2 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 2)));
+                _va3 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 3)));
+                _sum0 = _mm256_add_epi32(_mm256_mullo_epi32(_vb2, _va0), _sum0);
+                _sum1 = _mm256_add_epi32(_mm256_mullo_epi32(_vb2, _va1), _sum1);
+                _sum2 = _mm256_add_epi32(_mm256_mullo_epi32(_vb2, _va2), _sum2);
+                _sum3 = _mm256_add_epi32(_mm256_mullo_epi32(_vb2, _va3), _sum3);
+                _va0 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 4)));
+                _va1 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 5)));
+                _va2 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 6)));
+                _va3 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 7)));
+                _sum4 = _mm256_add_epi32(_mm256_mullo_epi32(_vb2, _va0), _sum4);
+                _sum5 = _mm256_add_epi32(_mm256_mullo_epi32(_vb2, _va1), _sum5);
+                _sum6 = _mm256_add_epi32(_mm256_mullo_epi32(_vb2, _va2), _sum6);
+                _sum7 = _mm256_add_epi32(_mm256_mullo_epi32(_vb2, _va3), _sum7);
+
+                va += 8;
+
+                // k3
+                _va0 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*va));
+                _va1 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 1)));
+                _va2 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 2)));
+                _va3 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 3)));
+                _sum0 = _mm256_add_epi32(_mm256_mullo_epi32(_vb3, _va0), _sum0);
+                _sum1 = _mm256_add_epi32(_mm256_mullo_epi32(_vb3, _va1), _sum1);
+                _sum2 = _mm256_add_epi32(_mm256_mullo_epi32(_vb3, _va2), _sum2);
+                _sum3 = _mm256_add_epi32(_mm256_mullo_epi32(_vb3, _va3), _sum3);
+                _va0 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 4)));
+                _va1 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 5)));
+                _va2 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 6)));
+                _va3 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 7)));
+                _sum4 = _mm256_add_epi32(_mm256_mullo_epi32(_vb3, _va0), _sum4);
+                _sum5 = _mm256_add_epi32(_mm256_mullo_epi32(_vb3, _va1), _sum5);
+                _sum6 = _mm256_add_epi32(_mm256_mullo_epi32(_vb3, _va2), _sum6);
+                _sum7 = _mm256_add_epi32(_mm256_mullo_epi32(_vb3, _va3), _sum7);
+
+                va += 8;
+                vb += 32;
+            }
+            for (; k < K; k++) {
+                __m256i _va0 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*va));
+                __m256i _va1 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 1)));
+                __m256i _va2 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 2)));
+                __m256i _va3 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 3)));
+                __m256i _va4 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 4)));
+                __m256i _va5 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 5)));
+                __m256i _va6 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 6)));
+                __m256i _va7 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 7)));
+                __m256i _vb0 = _mm256_cvtepi8_epi32(_mm_loadu_si128((__m128i*)vb));
+                _sum0 = _mm256_add_epi32(_mm256_mullo_epi32(_vb0, _va0), _sum0);
+                _sum1 = _mm256_add_epi32(_mm256_mullo_epi32(_vb0, _va1), _sum1);
+                _sum2 = _mm256_add_epi32(_mm256_mullo_epi32(_vb0, _va2), _sum2);
+                _sum3 = _mm256_add_epi32(_mm256_mullo_epi32(_vb0, _va3), _sum3);
+                _sum4 = _mm256_add_epi32(_mm256_mullo_epi32(_vb0, _va4), _sum4);
+                _sum5 = _mm256_add_epi32(_mm256_mullo_epi32(_vb0, _va5), _sum5);
+                _sum6 = _mm256_add_epi32(_mm256_mullo_epi32(_vb0, _va6), _sum6);
+                _sum7 = _mm256_add_epi32(_mm256_mullo_epi32(_vb0, _va7), _sum7);
+
+                va += 8;
+                vb += 8;
+            }
+
+            _mm256_storeu_si256(output0, _sum0);
+            _mm256_storeu_si256(output1, _sum1);
+            _mm256_storeu_si256(output2, _sum2);
+            _mm256_storeu_si256(output3, _sum3);
+            _mm256_storeu_si256(output4, _sum4);
+            _mm256_storeu_si256(output5, _sum5);
+            _mm256_storeu_si256(output6, _sum6);
+            _mm256_storeu_si256(output7, _sum7);
+
+#else
             int32_t sum0[8] = {0};
             int32_t sum1[8] = {0};
             int32_t sum2[8] = {0};
@@ -1061,7 +1194,7 @@ static void sgemm_i8(int M, int N, int K, int8_t* pA_t, int8_t* pB_t, int32_t* p
                 output6[n] = sum6[n];
                 output7[n] = sum7[n];
             }
-
+#endif
             output0 += 8;
             output1 += 8;
             output2 += 8;
@@ -1077,6 +1210,63 @@ static void sgemm_i8(int M, int N, int K, int8_t* pA_t, int8_t* pB_t, int32_t* p
             int8_t* va = pA_t + (i / 8) * 8 * K;
             int8_t* vb = pB_t + (j / 8 + j % 8) * 8 * K;
 
+#if __AVX__
+            __m256i _sum0_7 = _mm256_set1_epi32(0);
+            __m256i _sum0 = _mm256_set1_epi32(0);
+            __m256i _sum1 = _mm256_set1_epi32(0);
+            __m256i _sum2 = _mm256_set1_epi32(0);
+            __m256i _sum3 = _mm256_set1_epi32(0);
+
+            int k = 0;
+            for (; k + 3 < K; k = k + 4) {
+                __m256i _vb0 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*vb));
+                __m256i _vb1 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(vb + 1)));
+                __m256i _vb2 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(vb + 2)));
+                __m256i _vb3 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(vb + 3)));
+                __m256i _va0 = _mm256_cvtepi8_epi32(_mm_loadu_si128((__m128i*)va));
+                __m256i _va1 =
+                    _mm256_cvtepi8_epi32(_mm_loadu_si128((__m128i*)(va + 8)));
+                __m256i _va2 =
+                    _mm256_cvtepi8_epi32(_mm_loadu_si128((__m128i*)(va + 16)));
+                __m256i _va3 =
+                    _mm256_cvtepi8_epi32(_mm_loadu_si128((__m128i*)(va + 24)));
+
+                _sum0 = _mm256_add_epi32(_mm256_mullo_epi32(_va0, _vb0), _sum0);
+                _sum1 = _mm256_add_epi32(_mm256_mullo_epi32(_va1, _vb1), _sum1);
+                _sum2 = _mm256_add_epi32(_mm256_mullo_epi32(_va2, _vb2), _sum2);
+                _sum3 = _mm256_add_epi32(_mm256_mullo_epi32(_va3, _vb3), _sum3);
+
+                va += 32;
+                vb += 4;
+            }
+
+            _sum0 = _mm256_add_epi32(_sum0, _sum1);
+            _sum2 = _mm256_add_epi32(_sum2, _sum3);
+            _sum0_7 = _mm256_add_epi32(_sum0_7, _sum0);
+            _sum0_7 = _mm256_add_epi32(_sum0_7, _sum2);
+
+            for (; k < K; k++) {
+                __m256i _vb0 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*vb));
+                __m256i _va = _mm256_cvtepi8_epi32(_mm_loadu_si128((__m128i*)va));
+
+                _sum0_7 = _mm256_add_epi32(_mm256_mullo_epi32(_va, _vb0), _sum0_7);
+
+                va += 8;
+                vb += 1;
+            }
+
+            int32_t output_sum0_7[8] = {0};
+            _mm256_storeu_si256(output_sum0_7, _sum0_7);
+
+            output0[0] = output_sum0_7[0];
+            output1[0] = output_sum0_7[1];
+            output2[0] = output_sum0_7[2];
+            output3[0] = output_sum0_7[3];
+            output4[0] = output_sum0_7[4];
+            output5[0] = output_sum0_7[5];
+            output6[0] = output_sum0_7[6];
+            output7[0] = output_sum0_7[7];
+#else
             int32_t sum0 = 0;
             int32_t sum1 = 0;
             int32_t sum2 = 0;
@@ -1108,7 +1298,7 @@ static void sgemm_i8(int M, int N, int K, int8_t* pA_t, int8_t* pB_t, int32_t* p
             output5[0] = sum5;
             output6[0] = sum6;
             output7[0] = sum7;
-
+#endif
             output0++;
             output1++;
             output2++;
@@ -1136,7 +1326,91 @@ static void sgemm_i8(int M, int N, int K, int8_t* pA_t, int8_t* pB_t, int32_t* p
         {
             int8_t* va = pA_t + (i / 8 + (i % 8) / 4) * 8 * K;
             int8_t* vb = pB_t + (j / 8) * 8 * K;
+#if __AVX__
+            __m256i _sum0 = _mm256_set1_epi32(0);
+            __m256i _sum1 = _mm256_set1_epi32(0);
+            __m256i _sum2 = _mm256_set1_epi32(0);
+            __m256i _sum3 = _mm256_set1_epi32(0);
 
+            int k = 0;
+            for (; k + 3 < K; k = K + 4) {
+                // k0
+                __m256i _va0 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*va));
+                __m256i _va1 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 1)));
+                __m256i _va2 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 2)));
+                __m256i _va3 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 3)));
+                __m256i _vb0 = _mm256_cvtepi8_epi32(_mm_loadu_si128((__m128i*)vb));
+                __m256i _vb1 =
+                    _mm256_cvtepi8_epi32(_mm_loadu_si128((__m128i*)(vb + 8)));
+                __m256i _vb2 =
+                    _mm256_cvtepi8_epi32(_mm_loadu_si128((__m128i*)(vb + 16)));
+                __m256i _vb3 =
+                    _mm256_cvtepi8_epi32(_mm_loadu_si128((__m128i*)(vb + 24)));
+                _sum0 = _mm256_add_epi32(_mm256_mullo_epi32(_vb0, _va0), _sum0);
+                _sum1 = _mm256_add_epi32(_mm256_mullo_epi32(_vb0, _va1), _sum1);
+                _sum2 = _mm256_add_epi32(_mm256_mullo_epi32(_vb0, _va2), _sum2);
+                _sum3 = _mm256_add_epi32(_mm256_mullo_epi32(_vb0, _va3), _sum3);
+
+                va += 4;
+
+                // k1
+                _va0 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*va));
+                _va1 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 1)));
+                _va2 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 2)));
+                _va3 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 3)));
+                _sum0 = _mm256_add_epi32(_mm256_mullo_epi32(_vb1, _va0), _sum0);
+                _sum1 = _mm256_add_epi32(_mm256_mullo_epi32(_vb1, _va1), _sum1);
+                _sum2 = _mm256_add_epi32(_mm256_mullo_epi32(_vb1, _va2), _sum2);
+                _sum3 = _mm256_add_epi32(_mm256_mullo_epi32(_vb1, _va3), _sum3);
+
+                va += 4;
+
+                // k2
+                _va0 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*va));
+                _va1 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 1)));
+                _va2 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 2)));
+                _va3 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 3)));
+                _sum0 = _mm256_add_epi32(_mm256_mullo_epi32(_vb2, _va0), _sum0);
+                _sum1 = _mm256_add_epi32(_mm256_mullo_epi32(_vb2, _va1), _sum1);
+                _sum2 = _mm256_add_epi32(_mm256_mullo_epi32(_vb2, _va2), _sum2);
+                _sum3 = _mm256_add_epi32(_mm256_mullo_epi32(_vb2, _va3), _sum3);
+
+                va += 4;
+
+                // k3
+                _va0 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*va));
+                _va1 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 1)));
+                _va2 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 2)));
+                _va3 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 3)));
+                _sum0 = _mm256_add_epi32(_mm256_mullo_epi32(_vb3, _va0), _sum0);
+                _sum1 = _mm256_add_epi32(_mm256_mullo_epi32(_vb3, _va1), _sum1);
+                _sum2 = _mm256_add_epi32(_mm256_mullo_epi32(_vb3, _va2), _sum2);
+                _sum3 = _mm256_add_epi32(_mm256_mullo_epi32(_vb3, _va3), _sum3);
+
+                va += 4;
+                vb += 32;
+            }
+
+            for (; k < K; k++) {
+                __m256i _va0 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*va));
+                __m256i _va1 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 1)));
+                __m256i _va2 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 2)));
+                __m256i _va3 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 3)));
+                __m256i _vb0 = _mm256_cvtepi8_epi32(_mm_loadu_si128((__m128i*)vb));
+                _sum0 = _mm256_add_epi32(_mm256_mullo_epi32(_vb0, _va0), _sum0);
+                _sum1 = _mm256_add_epi32(_mm256_mullo_epi32(_vb0, _va1), _sum1);
+                _sum2 = _mm256_add_epi32(_mm256_mullo_epi32(_vb0, _va2), _sum2);
+                _sum3 = _mm256_add_epi32(_mm256_mullo_epi32(_vb0, _va3), _sum3);
+
+                va += 4;
+                vb += 8;
+            }
+
+            _mm256_storeu_si256(output0, _sum0);
+            _mm256_storeu_si256(output1, _sum1);
+            _mm256_storeu_si256(output2, _sum2);
+            _mm256_storeu_si256(output3, _sum3);
+#else
             int32_t sum0[8] = {0};
             int32_t sum1[8] = {0};
             int32_t sum2[8] = {0};
@@ -1163,7 +1437,7 @@ static void sgemm_i8(int M, int N, int K, int8_t* pA_t, int8_t* pB_t, int32_t* p
                 output2[n] = sum2[n];
                 output3[n] = sum3[n];
             }
-
+#endif
             output0 += 8;
             output1 += 8;
             output2 += 8;
@@ -1174,7 +1448,57 @@ static void sgemm_i8(int M, int N, int K, int8_t* pA_t, int8_t* pB_t, int32_t* p
         {
             int8_t* va = pA_t + (i / 8 + (i % 8) / 4) * 8 * K;
             int8_t* vb = pB_t + (j / 8 + j % 8) * 8 * K;
+#if __AVX__
+        __m256i _sum0_3 = _mm256_set1_epi32(0);
+        __m256i _sum0 = _mm256_set1_epi32(0);
+        __m256i _sum1 = _mm256_set1_epi32(0);
+        __m256i _sum2 = _mm256_set1_epi32(0);
+        __m256i _sum3 = _mm256_set1_epi32(0);
 
+        int k=0;
+        for (; k + 3 < K; k = k + 4)
+        {
+            __m256i _vb0 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*vb));
+            __m256i _vb1 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(vb + 1)));
+            __m256i _vb2 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(vb + 2)));
+            __m256i _vb3 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(vb + 3)));
+            __m256i _va0 = _mm256_cvtepi8_epi32(_mm_loadu_si128((__m128i*)va));
+            __m256i _va1 = _mm256_cvtepi8_epi32(_mm_loadu_si128((__m128i*)(va + 4)));
+            __m256i _va2 = _mm256_cvtepi8_epi32(_mm_loadu_si128((__m128i*)(va + 8)));
+            __m256i _va3 = _mm256_cvtepi8_epi32(_mm_loadu_si128((__m128i*)(va + 12)));
+
+            _sum0 = _mm256_add_epi32(_mm256_mullo_epi32(_va0, _vb0), _sum0);
+            _sum1 = _mm256_add_epi32(_mm256_mullo_epi32(_va1, _vb1), _sum1);
+            _sum2 = _mm256_add_epi32(_mm256_mullo_epi32(_va2, _vb2), _sum2);
+            _sum3 = _mm256_add_epi32(_mm256_mullo_epi32(_va3, _vb3), _sum3);
+
+            va+=16;
+            vb+=4;
+        }
+
+        _sum0 = _mm256_add_epi32(_sum0, _sum1);
+        _sum2 = _mm256_add_epi32(_sum2, _sum3);
+        _sum0_3 = _mm256_add_epi32(_sum0_3, _sum0);
+        _sum0_3 = _mm256_add_epi32(_sum0_3, _sum2);
+
+        for (; k < K; k++)
+        {
+            __m256i _vb0 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*vb));
+            __m256i _va = _mm256_cvtepi8_epi32(_mm_loadu_si128((__m128i*)va));
+
+            _sum0_3 = _mm256_add_epi32(_mm256_mullo_epi32(_va, _vb0), _sum0_3);
+
+            va += 4;
+            vb += 1;
+        }
+        //drop last 4 value
+        int32_t output_sum0_3[4] = {0};
+        _mm256_storeu_si256(output_sum0_3, _sum0_3);
+        output0[0] = output_sum0_3[0];
+        output1[0] = output_sum0_3[1];
+        output2[0] = output_sum0_3[2];
+        output3[0] = output_sum0_3[3];
+#else
             int32_t sum0 = 0;
             int32_t sum1 = 0;
             int32_t sum2 = 0;
@@ -1194,7 +1518,7 @@ static void sgemm_i8(int M, int N, int K, int8_t* pA_t, int8_t* pB_t, int32_t* p
             output1[0] = sum1;
             output2[0] = sum2;
             output3[0] = sum3;
-
+#endif
             output0++;
             output1++;
             output2++;
@@ -1214,7 +1538,44 @@ static void sgemm_i8(int M, int N, int K, int8_t* pA_t, int8_t* pB_t, int32_t* p
         {
             int8_t* va = pA_t + (i / 8 + (i % 8) / 4 + i % 4) * 8 * K;
             int8_t* vb = pB_t + (j / 8) * 8 * K;
+#if __AVX__
+            __m256i _sum0 = _mm256_set1_epi32(0);
 
+            int k = 0;
+            for (; k + 3 < K; k = k + 4) {
+                __m256i _va0 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*va));
+                __m256i _va1 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 1)));
+                __m256i _va2 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 2)));
+                __m256i _va3 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*(va + 3)));
+                __m256i _vb0 = _mm256_cvtepi8_epi32(_mm_loadu_si128((__m128i*)vb));
+                __m256i _vb1 =
+                    _mm256_cvtepi8_epi32(_mm_loadu_si128((__m128i*)(vb + 8)));
+                __m256i _vb2 =
+                    _mm256_cvtepi8_epi32(_mm_loadu_si128((__m128i*)(vb + 16)));
+                __m256i _vb3 =
+                    _mm256_cvtepi8_epi32(_mm_loadu_si128((__m128i*)(vb + 24)));
+
+                _sum0 = _mm256_add_epi32(_mm256_mullo_epi32(_vb0, _va0), _sum0);
+                _sum0 = _mm256_add_epi32(_mm256_mullo_epi32(_vb1, _va1), _sum0);
+                _sum0 = _mm256_add_epi32(_mm256_mullo_epi32(_vb2, _va2), _sum0);
+                _sum0 = _mm256_add_epi32(_mm256_mullo_epi32(_vb3, _va3), _sum0);
+
+                va += 4;
+                vb += 32;
+            }
+
+            for (; k < K; k++) {
+                __m256i _va0 = _mm256_cvtepi8_epi32(_mm_set1_epi8(*va));
+                __m256i _vb0 = _mm256_cvtepi8_epi32(_mm_loadu_si128((__m128i*)vb));
+
+                _sum0 = _mm256_add_epi32(_mm256_mullo_epi32(_vb0, _va0), _sum0);
+
+                va += 1;
+                vb += 8;
+            }
+
+            _mm256_storeu_si256(output, _sum0);
+#else
             int32_t sum[8] = {0};
 
             for (int k = 0; k < K; k++)
@@ -1232,7 +1593,7 @@ static void sgemm_i8(int M, int N, int K, int8_t* pA_t, int8_t* pB_t, int32_t* p
             {
                 output[n] = sum[n];
             }
-
+#endif
             output += 8;
         }
 
