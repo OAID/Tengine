@@ -119,6 +119,7 @@ int main(int argc, char* argv[])
     opt.num_thread = num_thread;
     opt.cluster = TENGINE_CLUSTER_ALL;
     opt.precision = TENGINE_MODE_UINT8;
+    opt.affinity = 0;
 
     /* inital tengine */
     init_tengine();
