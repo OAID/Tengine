@@ -136,6 +136,7 @@ struct options
     int num_thread;
     int cluster;
     int precision;
+    uint64_t affinity;
 };
 
 /* performance profiling records */

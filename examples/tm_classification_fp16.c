@@ -62,6 +62,7 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
     opt.num_thread = num_thread;
     opt.cluster = TENGINE_CLUSTER_ALL;
     opt.precision = TENGINE_MODE_FP16;
+    opt.affinity = 0;
 
     /* inital tengine */
     if (init_tengine() != 0)

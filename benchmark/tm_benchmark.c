@@ -33,6 +33,7 @@
 #define DEFAULT_LOOP_COUNT      1
 #define DEFAULT_THREAD_COUNT    1
 #define DEFAULT_CLUSTER         TENGINE_CLUSTER_ALL
+#define DEFAULT_CPU_AFFINITY    255
 
 int loop_counts = DEFAULT_LOOP_COUNT;
 
@@ -142,9 +143,10 @@ int main(int argc, char* argv[])
     int select_num  = -1;
     int num_threads = DEFAULT_THREAD_COUNT;
     int power       = DEFAULT_CLUSTER;
+    int affinity    = DEFAULT_CPU_AFFINITY;
 
     int res;
-    while ((res = getopt(argc, argv, "r:t:p:s:h")) != -1)
+    while ((res = getopt(argc, argv, "r:t:p:s:a:h")) != -1)
     {
         switch (res)
         {
@@ -160,6 +162,9 @@ int main(int argc, char* argv[])
             case 's':
                 select_num = atoi(optarg);
                 break;
+            case 'a':
+                affinity = atoi(optarg);
+                break;                
             case 'h':
                 show_usage();
                 return 0;
@@ -171,6 +176,7 @@ int main(int argc, char* argv[])
     fprintf(stderr, "loop_counts = %d\n", loop_counts);
     fprintf(stderr, "num_threads = %d\n", num_threads);
     fprintf(stderr, "power       = %d\n", power);
+    fprintf(stderr, "affinity    = %d\n", affinity);
 
     /* inital tengine */
     if (init_tengine() != 0)
@@ -183,6 +189,7 @@ int main(int argc, char* argv[])
     struct options opt;
     opt.num_thread = num_threads;
     opt.precision = TENGINE_MODE_FP32;
+    opt.affinity = affinity;
 
     switch (power)
     {

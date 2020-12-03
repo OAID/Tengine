@@ -1041,7 +1041,15 @@ int DLLEXPORT prerun_graph_multithread(graph_t graph, struct options opt)
     }
 
     ir_graph->status = GRAPH_STAT_READY;
-    set_cpu_affine(mask);
+
+    if (0 != opt.affinity && 0 != (opt.affinity & mask))
+    {
+        set_cpu_affine(opt.affinity);
+    }
+    else
+    {
+        set_cpu_affine(mask);
+    }
 
     return 0;
 }
