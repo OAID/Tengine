@@ -263,7 +263,8 @@ int init_cluster_mask()
     if (0 != affinity_mask_all_cluster)
         return 0;
 
-    affinity_mask_all_cluster = ((size_t)(1) << core_count) - 1;
+//    affinity_mask_all_cluster = ((size_t)(1) << core_count) - (size_t)(1);
+    affinity_mask_all_cluster = (size_t)(0) - (size_t)(1);
 
 #ifndef _MSC_VER
     int max_freq_min_val = INT_MAX;
