@@ -135,7 +135,7 @@ int benchmark_graph(struct options* opt, const char* graph_name, const char* mod
 
 void show_usage()
 {
-    fprintf(stderr, "[Usage]:  [-h]\n  [-r loop_count] [-t thread_count] [-p cpu affinity, 0:auto, 1:big, 2:middle, 3:little] [-s net]\n");
+    fprintf(stderr, "[Usage]:  [-h]\n  [-r loop_count] [-t thread_count] [-p cpu affinity, 0:auto, 1:big, 2:middle, 3:little] [-s net] [-a cpu mask]\n");
 }
 
 int main(int argc, char* argv[])
@@ -164,7 +164,7 @@ int main(int argc, char* argv[])
                 break;
             case 'a':
                 affinity = atoi(optarg);
-                break;                
+                break;
             case 'h':
                 show_usage();
                 return 0;
