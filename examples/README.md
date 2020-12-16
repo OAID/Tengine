@@ -241,14 +241,9 @@ start to run register cpu allocator
 tengine-lite library version: 1.0-dev
 Repeat 1 times, thread 1, avg time 177.72 ms, max_time 177.72 ms, min_time 177.72 ms
 --------------------------------------
-num_detections,10
-16: 74%
-left = 125,right = 327,top = 221,bot = 537
-2: 40%
-7: 84%
-left = 455,right = 703,top = 77,bot = 168
-1: 28%
-left = 56,right = 603,top = 85,bot = 496
+16: 75%, [ 126, 223, 326, 536], dog
+ 7: 84%, [ 455,  77, 703, 168], truck
+ 1: 28%, [  56,  85, 603, 496], bicycle
 ```
 
 ![](https://s1.ax1x.com/2020/10/19/0zpvfU.jpg)
