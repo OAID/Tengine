@@ -33,7 +33,7 @@ $ make install
 
 ## Demo
 
-```bash
+```
 violet:/data/local/tmp/tengine/vulkan $ ./tm_classification_vulkan -m mobilenet.tmfile -i cat.jpg -g 224,224 -s 0.017,0.017,0.017 -r 10
 start to run register cpu allocator
 start to run register vk allocator
