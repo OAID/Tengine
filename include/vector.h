@@ -25,6 +25,10 @@
 #ifndef __VECTOR_H__
 #define __VECTOR_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <string.h>
 
 #include "sys_port.h"
@@ -132,5 +136,9 @@ static inline void remove_vector_by_idx(struct vector* v, int idx)
 }
 
 int remove_vector_data(struct vector* v, void* data);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

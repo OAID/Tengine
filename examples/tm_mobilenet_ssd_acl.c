@@ -27,10 +27,10 @@
 #include <stdio.h>
 
 #include "common.h"
-#include "vector.h"
 #include "tengine_c_api.h"
 #include "tengine_operations.h"
 
+#define DEFAULT_MAX_BOX_COUNT 100
 #define DEFAULT_REPEAT_COUNT 1
 #define DEFAULT_THREAD_COUNT 1
 
@@ -55,7 +55,9 @@ void post_process_ssd(const char* image_file, float threshold, const float* outd
 
     int raw_h = im.h;
     int raw_w = im.w;
-    struct vector* boxes = create_vector(sizeof(Box_t), NULL);
+
+    Box_t* boxes = malloc(sizeof(Box_t) * DEFAULT_MAX_BOX_COUNT);
+    int box_count = 0;
 
     fprintf(stderr, "detect result num: %d \n", num);
     for (int i = 0; i < num; i++)
@@ -71,19 +73,22 @@ void post_process_ssd(const char* image_file, float threshold, const float* outd
             box.x1 = outdata[4] * raw_w;
             box.y1 = outdata[5] * raw_h;
 
-            push_vector_data(boxes, ( void* )&box);
+            boxes = realloc(boxes, sizeof(Box_t) * (box_count + 1));
+            boxes[box_count] = box;
+            box_count++;
+
             fprintf(stderr, "%s\t:%.1f%%\n", class_names[box.class_idx], box.score * 100);
             fprintf(stderr, "BOX:( %d , %d ),( %d , %d )\n", box.x0, box.y0, box.x1, box.y1);
         }
         outdata += 6;
     }
-    for (int i = 0; i < get_vector_num(boxes); i++)
+    for (int i = 0; i < box_count; i++)
     {
-        Box_t box = *( struct Box* )get_vector_data(boxes, i);
+        Box_t box = boxes[i];
         draw_box(im, box.x0, box.y0, box.x1, box.y1, 2, 125, 0, 125);
     }
 
-    release_vector(boxes);
+    free(boxes);
 
     save_image(im, "tengine_example_out");
     free_image(im);

@@ -129,7 +129,8 @@ int fc_kernel_prerun(struct ir_tensor* input_tensor, struct ir_tensor* filter_te
 
     if (!priv_info->interleave_buffer)
     {
-        int mem_size = sizeof(float) * num_output * kernel_size;
+        int elemsize = input_tensor->elem_size;
+        int mem_size = elemsize * num_output * kernel_size;
         void* mem = sys_malloc(mem_size);
         priv_info->interleave_buffer = mem;
         priv_info->interleave_buffer_size = mem_size;

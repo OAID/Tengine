@@ -1146,14 +1146,14 @@ static void sgemm_i8(int M, int N, int K, int8_t* pA_t, int8_t* pB_t, int32_t* p
                 vb += 8;
             }
 
-            _mm256_storeu_si256(output0, _sum0);
-            _mm256_storeu_si256(output1, _sum1);
-            _mm256_storeu_si256(output2, _sum2);
-            _mm256_storeu_si256(output3, _sum3);
-            _mm256_storeu_si256(output4, _sum4);
-            _mm256_storeu_si256(output5, _sum5);
-            _mm256_storeu_si256(output6, _sum6);
-            _mm256_storeu_si256(output7, _sum7);
+            _mm256_storeu_si256((__m256i* )output0, _sum0);
+            _mm256_storeu_si256((__m256i* )output1, _sum1);
+            _mm256_storeu_si256((__m256i* )output2, _sum2);
+            _mm256_storeu_si256((__m256i* )output3, _sum3);
+            _mm256_storeu_si256((__m256i* )output4, _sum4);
+            _mm256_storeu_si256((__m256i* )output5, _sum5);
+            _mm256_storeu_si256((__m256i* )output6, _sum6);
+            _mm256_storeu_si256((__m256i* )output7, _sum7);
 
 #else
             int32_t sum0[8] = {0};
@@ -1256,7 +1256,7 @@ static void sgemm_i8(int M, int N, int K, int8_t* pA_t, int8_t* pB_t, int32_t* p
             }
 
             int32_t output_sum0_7[8] = {0};
-            _mm256_storeu_si256(output_sum0_7, _sum0_7);
+            _mm256_storeu_si256((__m256i* )output_sum0_7, _sum0_7);
 
             output0[0] = output_sum0_7[0];
             output1[0] = output_sum0_7[1];
@@ -1406,10 +1406,10 @@ static void sgemm_i8(int M, int N, int K, int8_t* pA_t, int8_t* pB_t, int32_t* p
                 vb += 8;
             }
 
-            _mm256_storeu_si256(output0, _sum0);
-            _mm256_storeu_si256(output1, _sum1);
-            _mm256_storeu_si256(output2, _sum2);
-            _mm256_storeu_si256(output3, _sum3);
+            _mm256_storeu_si256((__m256i* )output0, _sum0);
+            _mm256_storeu_si256((__m256i* )output1, _sum1);
+            _mm256_storeu_si256((__m256i* )output2, _sum2);
+            _mm256_storeu_si256((__m256i* )output3, _sum3);
 #else
             int32_t sum0[8] = {0};
             int32_t sum1[8] = {0};
@@ -1493,7 +1493,7 @@ static void sgemm_i8(int M, int N, int K, int8_t* pA_t, int8_t* pB_t, int32_t* p
         }
         //drop last 4 value
         int32_t output_sum0_3[4] = {0};
-        _mm256_storeu_si256(output_sum0_3, _sum0_3);
+        _mm256_storeu_si256((__m256i* )output_sum0_3, _sum0_3);
         output0[0] = output_sum0_3[0];
         output1[0] = output_sum0_3[1];
         output2[0] = output_sum0_3[2];
@@ -1574,7 +1574,7 @@ static void sgemm_i8(int M, int N, int K, int8_t* pA_t, int8_t* pB_t, int32_t* p
                 vb += 8;
             }
 
-            _mm256_storeu_si256(output, _sum0);
+            _mm256_storeu_si256((__m256i* )output, _sum0);
 #else
             int32_t sum[8] = {0};
 

@@ -41,7 +41,7 @@
 #define DEFAULT_LOOP_COUNT 1
 #define DEFAULT_THREAD_COUNT 1
 
-void get_input_int8_data(const char* image_file, uint8_t* input_data, int img_h, int img_w, float* mean, float* scale,
+void get_input_int8_data(const char* image_file, int8_t* input_data, int img_h, int img_w, float* mean, float* scale,
                           float input_scale)
 {
     image img = imread_process(image_file, img_w, img_h, mean, scale);

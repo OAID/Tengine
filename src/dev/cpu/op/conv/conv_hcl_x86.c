@@ -19,9 +19,9 @@
 
 /*
  * Copyright (c) 2020, OPEN AI LAB
- * Author: haoluo@openailab.com
- * Update: qtang@openailab.com
+ * Author: qtang@openailab.com
  */
+
 #include "sys_port.h"
 #include "module.h"
 #include "tengine_errno.h"
@@ -369,12 +369,6 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
 
     if (group != 1)
         return 0;
-
-//    if (input_tensor->dims[0] > 1)
-//        return 0;
-
-    // if (kernel_h != kernel_w)
-    //     return 0;
 
     return OPS_SCORE_PREFER;
 }

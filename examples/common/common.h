@@ -24,9 +24,18 @@
 #ifndef __COMMON_H__
 #define __COMMON_H__
 
+#include <float.h>
+#include <stdint.h>
 #include <math.h>
 #include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+#ifdef _MSC_VER
+#include "getopt.h"
+#else
 #include <unistd.h>
+#endif
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN

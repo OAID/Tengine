@@ -25,6 +25,7 @@
 #ifndef __CPU_NODE_OPS_H__
 #define __CPU_NODE_OPS_H__
 
+#include <stdbool.h>
 #include "module.h"
 #include "cpu_device.h"
 
@@ -54,6 +55,14 @@ struct node_ops
 
     /* score */
     int (*score)(struct node_ops*, struct exec_graph*, struct ir_node*);
+
+#ifdef CONFIG_AUTH_DEVICE
+    void (*InitTimeLimited)(struct node_ops*);
+    unsigned long time_limited;
+    bool skip_run;
+    int run_count;
+    unsigned long tv_start;
+#endif
 };
 
 int init_cpu_node_ops_registry(void);

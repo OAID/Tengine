@@ -153,11 +153,14 @@ static int sched_run(struct exec_scheduler* scheduler, struct ir_graph* ir_graph
            shoudl from higher idx to lower idx */
         for (int i = ready_num - 1; i >= 0; i--)
             remove_vector_by_idx(wait_list, ready_list[i]);
+
+#ifndef _MSC_VER
 #ifdef __CC_ARM
         __memory_changed();
 #else
         /* GNU CC*/
         __asm__ __volatile__("" ::: "memory"); /* force to read vector->num from memory */
+#endif
 #endif
     }
 

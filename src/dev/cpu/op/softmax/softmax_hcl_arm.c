@@ -33,6 +33,24 @@
 #include "tengine_op.h"
 #include "softmax_param.h"
 
+static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
+{
+    struct ir_node* ir_node = exec_node->ir_node;
+    struct ir_graph* ir_graph = ir_node->graph;
+    struct ir_tensor* input_tensor;
+    struct ir_tensor* output_tensor;
+    int ret = 0;
+
+    input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+
+    if (input_tensor->dims[0] != output_tensor->dims[0] || input_tensor->dims[1] != output_tensor->dims[1] || input_tensor->dims[2] != output_tensor->dims[2] ||
+        input_tensor->dims[3] != output_tensor->dims[3])
+    ret = set_ir_tensor_shape(output_tensor, input_tensor->dims, input_tensor->dim_num);
+
+    return ret;
+}
+
 static inline float32x4_t vexpq10_f32(float32x4_t x)
 {
     x = vmlaq_n_f32(vdupq_n_f32(1.0f), x, 0.0009765625f);    // n = 10
@@ -235,7 +253,7 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
 
 static struct node_ops hcl_node_ops = {.prerun = prerun,
                                        .run = run,
-                                       .reshape = NULL,
+                                       .reshape = reshape,
                                        .postrun = NULL,
                                        .init_node = init_node,
                                        .release_node = release_node,

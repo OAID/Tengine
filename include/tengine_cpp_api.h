@@ -35,29 +35,29 @@ class Net
 {
 public:
     // Net initial
-    Net();
+    DLLEXPORT Net();
     // Net clear
-    ~Net();
+    DLLEXPORT ~Net();
     // load model
-    int load_model(context_t context, const char* model_format, const char* model_file, ...);
+    DLLEXPORT int load_model(context_t context, const char* model_format, const char* model_file, ...);
     // set device
-    int set_device(const std::string& device) const;
+    DLLEXPORT int set_device(const std::string& device) const;
     // set input shape
-    int input_shape(const std::string& tensor_name, int n, int c, int h, int w) const;
+    DLLEXPORT int input_shape(const std::string& tensor_name, int n, int c, int h, int w) const;
     // input data by tensor
-    int input_tensor(const std::string& tensor_name, Tensor& t) const;
+    DLLEXPORT int input_tensor(const std::string& tensor_name, Tensor& t) const;
     // input data by buffer
-    int input_tensor(const std::string& tensor_name, const float* buffer, int buffer_size) const;
+    DLLEXPORT int input_tensor(const std::string& tensor_name, const float* buffer, int buffer_size) const;
     // output data by tensor
-    int extract_tensor(const std::string& tensor_name, Tensor& t) const;
+    DLLEXPORT int extract_tensor(const std::string& tensor_name, Tensor& t) const;
     // output data by buffer
-    int extract_tensor(const std::string& tensor_name, float*& buffer, int& buffer_size) const;
+    DLLEXPORT int extract_tensor(const std::string& tensor_name, float*& buffer, int& buffer_size) const;
 
 public:
     // run
-    int run(int block = 1);
+    DLLEXPORT int run(int block = 1);
     // dump graph
-    void dump() const;
+    DLLEXPORT void dump() const;
 
 public:
     // ir graph point
@@ -76,33 +76,34 @@ class Tensor
 {
 public:
     // empty
-    Tensor();
+    DLLEXPORT Tensor();
     // vec
-    Tensor(int n, int w, size_t elem_size = 4u, uint8_t layout = TENGINE_LAYOUT_NCHW);
+    DLLEXPORT Tensor(int n, int w, size_t elem_size = 4u, uint8_t layout = TENGINE_LAYOUT_NCHW);
     // image
-    Tensor(int n, int h, int w, size_t elem_size = 4u, uint8_t layout = TENGINE_LAYOUT_NCHW);
+    DLLEXPORT Tensor(int n, int h, int w, size_t elem_size = 4u, uint8_t layout = TENGINE_LAYOUT_NCHW);
     // dim
-    Tensor(int n, int c, int h, int w, size_t elem_size = 4u, uint8_t layout = TENGINE_LAYOUT_NCHW);
+    DLLEXPORT Tensor(int n, int c, int h, int w, size_t elem_size = 4u, uint8_t layout = TENGINE_LAYOUT_NCHW);
     // copy
-    Tensor(const Tensor& m);
+    DLLEXPORT Tensor(const Tensor& m);
     // release
-    ~Tensor();
+    DLLEXPORT ~Tensor();
     // assign
     // Tensor& operator=(const Tensor& m);
     // set all
-    void fill(float v) const;
-    template <typename T> void fill(T v);
+    DLLEXPORT void fill(float v) const;
+    template <typename T>
+    DLLEXPORT void fill(T v);
     // deep copy
-    Tensor clone() const;
+    DLLEXPORT Tensor clone() const;
     // allocate vec
-    void create(int n, int w, size_t elem_size = 4u, uint8_t layout = TENGINE_LAYOUT_NCHW);
+    DLLEXPORT void create(int n, int w, size_t elem_size = 4u, uint8_t layout = TENGINE_LAYOUT_NCHW);
     // allocate image
-    void create(int n, int h, int w, size_t elem_size = 4u, uint8_t layout = TENGINE_LAYOUT_NCHW);
+    DLLEXPORT void create(int n, int h, int w, size_t elem_size = 4u, uint8_t layout = TENGINE_LAYOUT_NCHW);
     // allocate dim
-    void create(int n, int c, int h, int w, size_t elem_size = 4u, uint8_t layout = TENGINE_LAYOUT_NCHW);
+    DLLEXPORT void create(int n, int c, int h, int w, size_t elem_size = 4u, uint8_t layout = TENGINE_LAYOUT_NCHW);
 
-    bool empty() const;
-    size_t total() const;
+    DLLEXPORT bool empty() const;
+    DLLEXPORT size_t total() const;
 
     // // convenient construct from pixel data and resize to specific size, type is RGB/BGR
     // static Tensor from_pixels_resize(const unsigned char* pixels, int type, int c, int h, int w, int target_width,

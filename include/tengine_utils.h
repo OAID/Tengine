@@ -25,6 +25,10 @@
 #ifndef __TENGINE_UTILS_H__
 #define __TENGINE_UTILS_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 const char* tensor_type_string(int tensor_type);
 const char* layout_string(int dayout);
 const char* model_format_string(int model_format);
@@ -44,5 +48,9 @@ const char* data_type_typeinfo_name(int data_type);
 int param_entry_type_mapping(const char* type_name);
 
 void dump_float(const char* fname, float* data, int number);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

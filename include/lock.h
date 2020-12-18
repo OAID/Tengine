@@ -19,7 +19,7 @@
 
 /*
  * Copyright (c) 2020, OPEN AI LAB
- * Author: haitao@openailab.com
+ * Author: lswang@openailab.com
  */
 
 #ifndef __SYS_LOCK_H__
@@ -34,17 +34,47 @@ static inline void init_lock(lock_t* lock)
     lock[0] = 0;
 }
 
-static inline void lock(lock_t* l)
+static inline void lock(lock_t* lock)
 {
-    l[0] = 1;
+    lock[0] = 1;
 }
 
-static inline void unlock(lock_t* l)
+static inline void unlock(lock_t* lock)
 {
-    l[0] = 0;
+    lock[0] = 0;
 }
 
-#else
+#else    // CONFIG_BAREMETAL_BUILD
+#ifdef _MSC_VER
+#include <stdbool.h>
+#include <windows.h>
+
+typedef CRITICAL_SECTION lock_t;
+
+static inline void init_lock(lock_t* mutex)
+{
+    if (mutex != NULL)
+    {
+        InitializeCriticalSection(mutex);
+    }
+}
+
+static inline void lock(lock_t* mutex)
+{
+    if (mutex != NULL)
+    {
+        EnterCriticalSection(mutex);
+    }
+}
+
+static inline void unlock(lock_t* mutex)
+{
+    if (mutex != NULL)
+    {
+        LeaveCriticalSection(mutex);
+    }
+}
+#else    //_MSC_VER
 #include <pthread.h>
 
 typedef pthread_mutex_t lock_t;
@@ -54,15 +84,16 @@ static inline void init_lock(lock_t* lock)
     pthread_mutex_init(lock, NULL);
 }
 
-static inline void lock(lock_t* l)
+static inline void lock(lock_t* lock)
 {
-    pthread_mutex_lock(l);
+    pthread_mutex_lock(lock);
 }
 
-static inline void unlock(lock_t* l)
+static inline void unlock(lock_t* lock)
 {
-    pthread_mutex_unlock(l);
+    pthread_mutex_unlock(lock);
 }
-#endif
+#endif    //_MSC_VER
+#endif    // CONFIG_BAREMETAL_BUILD
 
 #endif

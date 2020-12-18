@@ -42,7 +42,6 @@ Net::Net()
     opt.num_thread = 1;
     opt.precision = TENGINE_MODE_FP32;
     opt.cluster = TENGINE_CLUSTER_ALL;
-    opt.affinity = 0;
 }
 
 Net::~Net()

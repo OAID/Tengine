@@ -37,13 +37,18 @@
  * https://opensource.org/licenses/BSD-3-Clause
  */
 
-#include <unistd.h>
 #include <vector>
 #include <string>
+
+#ifdef _MSC_VER
+#define NOMINMAX
+#endif
+
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
+
 #include "common.h"
-#include <stdlib.h>
 
 #include "tengine_c_api.h"
 #include "tengine_operations.h"
@@ -517,7 +522,7 @@ int main(int argc, char* argv[])
     }
 
     /* run graph */
-    float min_time = __FLT_MAX__, max_time = 0, total_time = 0.f;
+    float min_time = FLT_MAX, max_time = 0, total_time = 0.f;
     for (int i = 0; i < repeat_count; i++)
     {
         double start = get_current_time();
