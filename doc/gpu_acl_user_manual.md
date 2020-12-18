@@ -91,7 +91,7 @@ export ACL_NHWC=1
 
 #### Result
 
-```bash
+```
 [root@localhost tengine-lite]# ./tm_mssd_acl -m mssd.tmfile -i ssd_dog.jpg -t 1 -r 10
 start to run register cpu allocator
 start to run register acl allocator
