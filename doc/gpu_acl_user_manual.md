@@ -6,6 +6,17 @@ The ARM Compute Library(ACL) is a set of computer vision and machine learning fu
 
 Tengine Lite has supported to integrate with OpenCL Library of ACL to inference CNN by ARM-Mail GPU.
 
+support check:
+
+```bash
+sudo apt install clinfo
+clinfo
+
+result:
+Number of platforms                               1
+.....
+```
+
 ## Build
 
 ### ACL GPU Library
