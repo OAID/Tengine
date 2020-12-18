@@ -76,6 +76,19 @@ sudo apt install g++-arm-linux-gnueabihf
 
 ### 2.3 编译 Tengine Lite
 
+Arm64 Linux 交叉编译
+
+```bash
+cd Tengine-Lite
+mkdir build 
+cd build
+cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/aarch64-linux-gnu.toolchain.cmake ..
+make
+make install
+```
+
+Arm32 Linux 交叉编译
+
 ```bash
 cd Tengine-Lite
 mkdir build 
