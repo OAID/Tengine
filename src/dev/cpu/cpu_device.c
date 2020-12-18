@@ -2293,8 +2293,8 @@ void parse_node_debug_time(struct subgraph* subgraph, int node_id)
         int w_c = w_dims[1];
         int w_h = w_dims[2];
         int w_w = w_dims[3];
-        mflops = out_c * out_w * out_h * w_c * w_w * w_h * 2 / 1000000.0;
-        fprintf(stdout, "MFLOPS:%6.2f Rate:%3.0f", mflops, mflops / timer[i] * 100);
+        mflops = out_c * out_w * out_h * w_c * w_w * w_h * 2 / 1000000.0f;
+        fprintf(stdout, "MFLOPS:%6.2f Rate:%3.0f", mflops, mflops / timer[i] * 1000.0f);
     }
     fprintf(stdout, "\n");
     if (node_id == node_num - 1)
