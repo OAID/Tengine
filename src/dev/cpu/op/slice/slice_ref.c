@@ -347,7 +347,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
     int out_num = exec_node->output_num;
 
-    struct shape_dim sd[out_num];
+    struct shape_dim sd[MAX_SHAPE_DIM_NUM * 2];
     int8_t** out_data_ptrs = ( int8_t** )sys_malloc(out_num * sizeof(int8_t*));
     if(out_data_ptrs == NULL)
     {

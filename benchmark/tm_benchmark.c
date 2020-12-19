@@ -23,11 +23,12 @@
  * Update: lswang@openailab.com
  */
 
-#include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <sys/time.h>
+#include <float.h>
+
+#include "common.h"
 #include "tengine_c_api.h"
 
 #define DEFAULT_LOOP_COUNT      1
@@ -36,14 +37,6 @@
 #define DEFAULT_CPU_AFFINITY    255
 
 int loop_counts = DEFAULT_LOOP_COUNT;
-
-double get_current_time()
-{
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-
-    return tv.tv_sec * 1000.0 + tv.tv_usec / 1000.0;
-}
 
 int benchmark_graph(struct options* opt, const char* graph_name, const char* model_file, int img_h, int img_w, int c, int n)
 {
@@ -102,8 +95,8 @@ int benchmark_graph(struct options* opt, const char* graph_name, const char* mod
     }
 
     /* run graph */
-    double min_time = __DBL_MAX__;
-    double max_time = -__DBL_MAX__;
+    double min_time = DBL_MAX;
+    double max_time = DBL_MIN;
     double total_time = 0.;
     for (int i = 0; i < loop_counts; i++)
     {

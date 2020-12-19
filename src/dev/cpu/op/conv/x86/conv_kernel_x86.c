@@ -932,7 +932,11 @@ static void sgemm_fp(int M, int N, int K, float* pA_t, float* pB_t, float* pC, i
                 va += 4;
                 vb += 4;
             }
+#ifdef _WIN32
+            float sum0 = _sum0.m128_f32[0] + _sum0.m128_f32[1] + _sum0.m128_f32[2] + _sum0.m128_f32[3];
+#else
             float sum0 = _sum0[0] + _sum0[1] + _sum0[2] + _sum0[3];
+#endif
 #else
             float sum0 = 0.f;
 #endif    // __AVX__
