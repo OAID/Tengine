@@ -27,6 +27,7 @@
 
 #include "dev_allocator.h"
 
+#define CPU_DEV_NAME "cpu_dev"
 #ifdef STANDLONE_MODE
 void register_cpu_allocator(void);
 #else

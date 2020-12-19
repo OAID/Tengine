@@ -22,10 +22,8 @@
  * Author: qtang@openailab.com
  */
 
-#include <unistd.h>
 #include <iostream>
 #include <functional>
-#include <algorithm>
 
 #include "common.h"
 #include "tengine_c_api.h"
@@ -160,8 +158,8 @@ int main(int argc, char* argv[])
     get_input_fp32_data(image_file, input_data, img_h, img_w, mean, scale);
 
     /* run graph */
-    double min_time = __DBL_MAX__;
-    double max_time = -__DBL_MAX__;
+    double min_time = DBL_MAX;
+    double max_time = DBL_MIN;
     double total_time = 0.;
     for (int i = 0; i < repeat_count; i++)
     {

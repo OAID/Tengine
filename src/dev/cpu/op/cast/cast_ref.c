@@ -50,9 +50,6 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    #if MACOS
-
-    #else
     struct ir_node* ir_node = exec_node->ir_node;
     struct ir_graph* ir_graph = ir_node->graph;
     struct ir_tensor* input_tensor;
@@ -65,64 +62,136 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     int type_from = cast_param->type_from;
     int type_to = cast_param->type_to;
 
-    int channel_num = input_tensor->dims[1];
-    int batch_number = input_tensor->dims[0];
-    int channel_size = (input_tensor->dims[2]) * (input_tensor->dims[3]);
-
     int num_thread = exec_graph->num_thread;
 
-    if (type_from == 1 && type_to == 2)
+
+    if (type_from == type_to)
+    {
+        return 0;
+    }
+
+    if (input_tensor->elem_num != output_tensor->elem_num || input_tensor->dim_num != output_tensor->dim_num)
+    {
+        return -1;
+    }
+
+    for (uint8_t i = 0; i < input_tensor->dim_num; i++)
+    {
+        if (input_tensor->dims[i] != output_tensor->dims[i])
+            return -1;
+    }
+
+    if (input_tensor->layout != output_tensor->layout)
+    {
+        return -1;
+    }
+    #if MACOS
+
+    #else
+    if (type_from == TENGINE_DT_FP32 && type_to == TENGINE_DT_FP16)
     {
         float* idata = ( float* )input_tensor->data;
         __fp16* odata = ( __fp16* )output_tensor->data;
 
 #pragma omp parallel for num_threads(num_thread)
-        for (int i = 0; i < (channel_num * batch_number); i++)
+        for (int i = 0; i < input_tensor->elem_num; i++)
         {
-            int offset = i * channel_size;
-            for (int j = 0; j < channel_size; j++)
-            {
-                odata[j + offset] = fp32_to_fp16(idata[j + offset]);
-            }
+            odata[i] = fp32_to_fp16(idata[i]);
         }
+
+        return 0;
     }
 
-    if (type_from == 2 && type_to == 1)
+    if (type_from == TENGINE_DT_FP16 && type_to == TENGINE_DT_FP32)
     {
         __fp16* idata = ( __fp16* )input_tensor->data;
         float* odata = ( float* )output_tensor->data;
 
 #pragma omp parallel for num_threads(num_thread)
-        for (int i = 0; i < (channel_num * batch_number); i++)
+        for (int i = 0; i < input_tensor->elem_num; i++)
         {
-            int offset = i * channel_size;
-            for (int j = 0; j < channel_size; j++)
-            {
-                odata[j + offset] = fp16_to_fp32(idata[j + offset]);
-            }
+            odata[i] = fp16_to_fp32(idata[i]);
         }
+
+        return 0;
     }
     #endif
-    return 0;
+    if (type_from == TENGINE_DT_FP32 && type_to == TENGINE_DT_UINT8)
+    {
+        float* idata = (float*)input_tensor->data;
+        uint8_t* odata = (uint8_t*)output_tensor->data;
+
+        if (1 == input_tensor->quant_param_num)
+        {
+            float scale = input_tensor->scale;
+            int zero_point = input_tensor->zero_point;
+
+#pragma omp parallel for num_threads(num_thread)
+            for (int i = 0; i < input_tensor->elem_num; i++)
+            {
+                int val = (int)(roundf(idata[i] / scale)) + zero_point;
+
+                if (255 >= val && 0 <= val)
+                    odata[i] = (uint8_t)val;
+                else
+                {
+                    if (255 < val)
+                        odata[i] = 255;
+                    if (0 > val)
+                        odata[i] = 0;
+                }
+            }
+
+            return 0;
+        }
+    }
+
+    if (type_from == TENGINE_DT_UINT8 && type_to == TENGINE_DT_FP32)
+    {
+        uint8_t* idata = (uint8_t*)input_tensor->data;
+        float* odata = (float*)output_tensor->data;
+
+        if (1 == input_tensor->quant_param_num)
+        {
+            float scale = input_tensor->scale;
+            int zero_point = input_tensor->zero_point;
+
+#pragma omp parallel for num_threads(num_thread)
+            for (int i = 0; i < input_tensor->elem_num; i++)
+            {
+                odata[i] = (float)(idata[i] - zero_point) * scale;
+            }
+
+            return 0;
+        }
+    }
+
+    return -1;
+}
+
+static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
+{
+    struct ir_node* node = exec_node->ir_node;
+    struct ir_graph* ir_graph = node->graph;
+    struct ir_tensor* input = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
+    struct ir_tensor* output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
+
+    int ret = set_ir_tensor_shape(output, input->dims, input->dim_num);
+    return ret;
 }
 
 static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struct ir_node* exec_node)
 {
-    struct ir_node* ir_node = exec_node;
-    struct ir_graph* ir_graph = ir_node->graph;
-    struct ir_tensor* input_tensor;
-
-    input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-
-    if (input_tensor->layout != TENGINE_LAYOUT_NCHW)
-        return 0;
+    (void)node_ops;
+    (void)exec_graph;
+    (void)exec_node;
 
     return OPS_SCORE_CANDO;
 }
 
-static struct node_ops hcl_node_ops = {.prerun = prerun,
+static struct node_ops ref_node_ops = {.prerun = prerun,
                                        .run = run,
-                                       .reshape = NULL,
+                                       .reshape = reshape,
                                        .postrun = NULL,
                                        .init_node = init_node,
                                        .release_node = release_node,
@@ -130,12 +199,12 @@ static struct node_ops hcl_node_ops = {.prerun = prerun,
 
 static int reg_cast_hcl_ops(void* arg)
 {
-    return register_builtin_node_ops(OP_CAST, &hcl_node_ops);
+    return register_builtin_node_ops(OP_CAST, &ref_node_ops);
 }
 
 static int unreg_cast_hcl_ops(void* arg)
 {
-    return unregister_builtin_node_ops(OP_CAST, &hcl_node_ops);
+    return unregister_builtin_node_ops(OP_CAST, &ref_node_ops);
 }
 
 AUTO_REGISTER_OPS(reg_cast_hcl_ops);

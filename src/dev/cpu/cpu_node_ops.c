@@ -24,6 +24,12 @@
 
 #include <stdio.h>
 
+#ifndef STANDLONE_MODE
+#ifdef TENGINE_AUTO_LOAD_HCL
+#include <dlfcn.h>
+#endif
+#endif
+
 #include "sys_port.h"
 #include "tengine_errno.h"
 #include "tengine_log.h"
@@ -34,6 +40,10 @@
 
 static struct vector** builtin_ops_registry;
 static struct vector* custom_ops_registry;
+
+#ifdef TENGINE_AUTO_LOAD_HCL
+    void* hcl_handler = NULL;
+#endif
 
 struct custom_reg_entry
 {
@@ -238,6 +248,24 @@ int init_cpu_node_ops_registry(void)
     if (init_custom_ops_registry() < 0)
         return -1;
 
+#ifndef STANDLONE_MODE
+#ifdef TENGINE_AUTO_LOAD_HCL
+    hcl_handler = dlopen("libhclcpu.so", RTLD_NOW);
+
+    if (NULL == hcl_handler)
+    {
+        TLOG_ERR("Tengine: Automation loading HCL was failed, Exit.\n");
+        fflush(stderr);
+        exit(ENOENT);
+    }
+    else
+    {
+        TLOG_INFO("Tengine: Automation loading HCL was done.\n");
+        fflush(stdout);
+    }
+#endif
+#endif
+
     return 0;
 }
 
@@ -245,4 +273,10 @@ void release_cpu_node_ops_registry(void)
 {
     release_builtin_ops_registry();
     release_custom_ops_registry();
+
+#ifndef STANDLONE_MODE
+#ifdef TENGINE_AUTO_LOAD_HCL
+    dlclose(hcl_handler);
+#endif
+#endif
 }

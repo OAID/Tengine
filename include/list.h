@@ -98,7 +98,30 @@ static inline void replace_list(struct list* old, struct list* new)
 
     init_list(old);
 }
+#ifdef _MSC_VER
+#define list_entry(ptr, type, member) container_of(ptr, type, member)
 
+#define list_entry_head(list, type, member) list_entry((list)->next, type, member)
+
+#define list_entry_tail(list, type, member) list_entry((list)->prev, type, member)
+
+#define list_entry_next(entry, type, member) list_entry((entry)->member.next, type, member)
+
+#define list_entry_is_last(entry, list, member) list_is_last(&entry->member, list)
+
+#define list_entry_is_first(entry, list, member) list_is_first(&entry->member, list)
+
+#define list_for_each(pos, list) for(pos = (list)->next; pos != (list); pos = pos->next)
+
+#define list_for_each_safe(pos, n, list) for(pos = (list)->next, n = pos->next; pos != (list); pos = n, n = pos->next)
+
+#define list_entry_for_each(pos, type, list, member) \
+    for(pos = list_entry_head(list, type, member); &pos->member != (list); pos = list_entry_next(pos, type, member))
+
+#define list_for_each_entry_safe(pos, type, n, list, member)                                                           \
+    for(pos = list_entry_head(list, type, member), n = list_entry_next(pos, type, member); &pos->member != (list);     \
+        pos = n, n = list_entry_next(n, type, member))
+#else
 #define list_entry(ptr, type, member) container_of(ptr, type, member)
 
 #define list_entry_head(list, type, member) list_entry((list)->next, type, member)
@@ -121,5 +144,7 @@ static inline void replace_list(struct list* old, struct list* new)
 #define list_for_each_entry_safe(pos, n, list, member)                                                               \
     for(pos = list_entry_head(list, typeof(*pos), member), n = list_entry_next(pos, member); &pos->member != (list); \
         pos = n, n = list_entry_next(n, member))
+
+#endif
 
 #endif

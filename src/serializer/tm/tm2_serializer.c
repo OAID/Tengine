@@ -591,6 +591,10 @@ static int load_graph_nodes(struct tm2_serializer* tm2_s, struct ir_graph* ir_gr
                     tm_param->dim_0 = 2;
                     tm_param->dim_1 = 3;
                 }
+                else if(tm_param->dim_0 == -1)
+                {
+                     tm_param->dim_0 = 4;
+                }
                 else
                 {
                     fprintf(stderr, "reduction, nhwc to nchw, need todo something\n");
@@ -877,7 +881,7 @@ static int unload_graph(struct serializer* s, struct ir_graph* graph, void* s_pr
 
     if (priv->fd >= 0)
     {
-        munmap(( void* )priv->base, priv->mem_len);
+        // munmap(( void* )priv->base, priv->mem_len);
         close(priv->fd);
         priv->fd = -1;
     }

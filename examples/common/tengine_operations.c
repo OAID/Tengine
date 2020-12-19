@@ -21,11 +21,13 @@
  * Copyright (c) 2020, OPEN AI LAB
  */
 
+#include <stdint.h>
 #include <math.h>
 #include <string.h>
 #include "tengine_operations.h"
 #include "stb_image.h"
 #include "stb_image_write.h"
+
 #if __ARM_NEON
 #include <arm_neon.h>
 #endif

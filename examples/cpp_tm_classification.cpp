@@ -21,9 +21,14 @@
  * Copyright (c) 2020, OPEN AI LAB
  * Author: qtang@openailab.com
  */
-#include <unistd.h>
+
 #include <iostream>
 #include <string>
+
+#ifdef _MSC_VER
+#define NOMINMAX
+#endif
+
 #include <algorithm>
 
 #include "common.h"
@@ -170,8 +175,8 @@ int main(int argc, char* argv[])
         somenet.input_tensor("data", input_tensor);
 
         double min_time, max_time, total_time;
-        min_time = __DBL_MAX__;
-        max_time = -__DBL_MAX__;
+        min_time = DBL_MAX;
+        max_time = DBL_MIN;
         total_time = 0;
         for (int i = 0; i < loop_count; i++)
         {

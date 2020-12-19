@@ -22,12 +22,17 @@
  * Author: qtang@openailab.com
  */
 
-#include <unistd.h>
 #include <cstdlib>
 #include <cstdio>
 #include <string>
 #include <iostream>
 #include <vector>
+
+#ifdef _MSC_VER
+#define NOMINMAX
+#endif
+
+#include <algorithm>
 
 #include "common.h"
 #include "tengine_cpp_api.h"
@@ -185,8 +190,8 @@ int main(int argc, char* argv[])
         somenet.input_tensor("data", input_tensor);
 
         double min_time, max_time, total_time;
-        min_time = __DBL_MAX__;
-        max_time = -__DBL_MAX__;
+        min_time = DBL_MAX;
+        max_time = DBL_MIN;
         total_time = 0;
         for (int i = 0; i < repeat_count; i++)
         {

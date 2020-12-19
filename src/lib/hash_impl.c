@@ -76,8 +76,14 @@ static void release_hash(struct hash* t)
 
         if (h->mt_safe)
             lock(&b->lock);
-
-        list_for_each_entry_safe(pos, dummy, &b->head, link) release_hash_entry(h, pos);
+#ifdef _MSC_VER
+		list_for_each_entry_safe(pos, struct hash_entry, dummy, &b->head, link)
+#else
+		list_for_each_entry_safe(pos, dummy, &b->head, link)
+#endif
+		{
+			release_hash_entry(h, pos);
+		}
 
         if (h->mt_safe)
             unlock(&b->lock);
@@ -133,7 +139,11 @@ static struct hash_entry* find_entry(struct hash* t, const void* key, int key_si
     b->search_count++;
 #endif
 
-    list_entry_for_each(e, &b->head, link)
+#ifdef _MSC_VER
+	list_entry_for_each(e, struct hash_entry, &b->head, link)
+#else
+	list_entry_for_each(e, &b->head, link)
+#endif
     {
         if (compare_hash_key(e->key, e->key_size, key, key_size) == 0)
         {
@@ -168,7 +178,11 @@ static int insert_hash(struct hash* t, const void* key, int key_size, void* data
     if (h->mt_safe)
         lock(&b->lock);
 
-    list_entry_for_each(e, &b->head, link)
+#ifdef _MSC_VER
+	list_entry_for_each(e, struct hash_entry, &b->head, link)
+#else
+	list_entry_for_each(e, &b->head, link)
+#endif
     {
         if (compare_hash_key(e->key, e->key_size, key, key_size) == 0)
         {
@@ -221,7 +235,11 @@ static int delete_hash(struct hash* t, const void* key, int key_size)
     if (h->mt_safe)
         lock(&b->lock);
 
-    list_entry_for_each(e, &b->head, link)
+#ifdef _MSC_VER
+	list_entry_for_each(e, struct hash_entry, &b->head, link)
+#else
+	list_entry_for_each(e, &b->head, link)
+#endif
     {
         if (compare_hash_key(e->key, e->key_size, key, key_size) == 0)
         {
@@ -304,7 +322,11 @@ static hash_entry_t get_next_entry(struct hash* t)
 
         if (!list_entry_is_last(h->seq_ptr, &b->head, link))
         {
-            h->seq_ptr = list_entry_next(h->seq_ptr, link);
+#ifdef _MSC_VER            
+			h->seq_ptr = list_entry_next(h->seq_ptr, struct hash_entry, link);
+#else
+			h->seq_ptr = list_entry_next(h->seq_ptr, link);
+#endif
             return h->seq_ptr;
         }
 

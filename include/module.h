@@ -19,7 +19,7 @@
 
 /*
  * Copyright (c) 2020, OPEN AI LAB
- * Author: haitao@openailab.com
+ * Author: lswang@openailab.com
  */
 
 #ifndef __TENGINE_MODULE_H__
@@ -28,6 +28,12 @@
 #include <stdio.h>
 
 #include "compiler.h"
+
+#ifdef _MSC_VER
+#define SECNAME ".CRT$XCG"
+#pragma section(SECNAME, long, read)
+typedef void(__cdecl* _PVFV)();
+#endif
 
 enum
 {
@@ -49,44 +55,58 @@ int register_module_exit(int level, const char* name, module_exit_func_t func, v
 int exec_module_init(int stop_on_all_error);
 int exec_module_exit(int stop_on_all_error);
 
-#define REGISTER_MODULE_INIT_ARG(level, name, func, arg)        \
-    DECLARE_AUTO_INIT_FUNC(UNIQ_DUMMY_NAME(mod_init));          \
-    static void UNIQ_DUMMY_NAME(mod_init)(void)                 \
-    {                                                           \
-        register_norm_module_init(level, name, func, arg);      \
+#ifdef _MSC_VER
+#define REGISTER_MODULE_INIT_ARG(level, name, func, arg)   \
+    static void dump_func(void)                            \
+    {                                                      \
+        register_norm_module_init(level, name, func, arg); \
+    }                                                      \
+    __declspec(allocate(SECNAME)) static _PVFV dump_ptr[] = {dump_func};
+#else
+#define REGISTER_MODULE_INIT_ARG(level, name, func, arg)   \
+    DECLARE_AUTO_INIT_FUNC(UNIQ_DUMMY_NAME(mod_init));     \
+    static void UNIQ_DUMMY_NAME(mod_init)(void)            \
+    {                                                      \
+        register_norm_module_init(level, name, func, arg); \
     }
+#endif
 
-#define REGISTER_CRIT_MODULE_INIT_ARG(level, name, func, arg)   \
-    DECLARE_AUTO_INIT_FUNC(UNIQ_DUMMY_NAME(mod_init));          \
-    static void UNIQ_DUMMY_NAME(mod_init)(void)                 \
-    {                                                           \
-        register_crit_module_init(level, name, func, arg);      \
+#ifdef _MSC_VER
+#define REGISTER_CRIT_MODULE_INIT_ARG(level, name, func, arg) \
+    static void dump_func(void)                               \
+    {                                                         \
+        register_crit_module_init(level, name, func, arg);    \
+    }                                                         \
+    __declspec(allocate(SECNAME)) static _PVFV dump_ptr[] = {dump_func};
+#else
+#define REGISTER_CRIT_MODULE_INIT_ARG(level, name, func, arg) \
+    DECLARE_AUTO_INIT_FUNC(UNIQ_DUMMY_NAME(mod_init));        \
+    static void UNIQ_DUMMY_NAME(mod_init)(void)               \
+    {                                                         \
+        register_crit_module_init(level, name, func, arg);    \
     }
+#endif
 
 #define REGISTER_CRIT_MODULE_INIT(level, name, func) REGISTER_CRIT_MODULE_INIT_ARG(level, name, func, NULL)
 
 #define REGISTER_MODULE_INIT(level, name, func) REGISTER_MODULE_INIT_ARG(level, name, func, NULL)
 
-#define REGISTER_MODULE_EXIT_ARG(level, name, func, arg)        \
-    DECLARE_AUTO_INIT_FUNC(UNIQ_DUMMY_NAME(mod_exit));          \
-    static void UNIQ_DUMMY_NAME(mod_exit)(void)                 \
-    {                                                           \
-        register_module_exit(level, name, func, arg);           \
+#define REGISTER_MODULE_EXIT_ARG(level, name, func, arg) \
+    DECLARE_AUTO_INIT_FUNC(UNIQ_DUMMY_NAME(mod_exit));   \
+    static void UNIQ_DUMMY_NAME(mod_exit)(void)          \
+    {                                                    \
+        register_module_exit(level, name, func, arg);    \
     }
 
-#define REGISTER_CRIT_MODULE_EXIT_ARG(level, name, func, arg)   \
-    DECLARE_AUTO_INIT_FUNC(UNIQ_DUMMY_NAME(mod_exit));          \
-    static void UNIQ_DUMMY_NAME(mod_exit)(void)                 \
-    {                                                           \
-        register_module_exit(level, name, func, arg);           \
+#define REGISTER_CRIT_MODULE_EXIT_ARG(level, name, func, arg) \
+    DECLARE_AUTO_INIT_FUNC(UNIQ_DUMMY_NAME(mod_exit));        \
+    static void UNIQ_DUMMY_NAME(mod_exit)(void)               \
+    {                                                         \
+        register_module_exit(level, name, func, arg);         \
     }
 
 #define REGISTER_CRIT_MODULE_EXIT(level, name, func) REGISTER_CRIT_MODULE_EXIT_ARG(level, name, func, NULL)
 
 #define REGISTER_MODULE_EXIT(level, name, func) REGISTER_MODULE_EXIT_ARG(level, name, func, NULL)
-
-#define DECLARE_AUTO_INIT_FUNC(func_name) static void(func_name)(void) __attribute__((constructor))
-
-#define DECLARE_AUTO_EXIT_FUNC(func_name) static void(func_name)(void) __attribute__((destructor))
 
 #endif

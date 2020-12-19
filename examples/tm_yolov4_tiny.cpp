@@ -22,14 +22,12 @@
  * Author: 942002795@qq.com
  */
 
-#include <unistd.h>
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <iomanip>
 #include <string>
 #include <vector>
-#include <sys/time.h>
 #include <stdlib.h>
 #include <algorithm>
 #include "common.h"
@@ -769,8 +767,8 @@ int main(int argc, char* argv[])
     get_input_data_darknet(image_file, input_data.data(), net_h, net_w);
 
     /* run graph */
-    double min_time = __DBL_MAX__;
-    double max_time = -__DBL_MAX__;
+    double min_time = DBL_MAX;
+    double max_time = DBL_MIN;
     double total_time = 0.;
     for (int i = 0; i < repeat_count; i++)
     {
@@ -783,8 +781,10 @@ int main(int argc, char* argv[])
         double end = get_current_time();
         double cur = end - start;
         total_time += cur;
-        min_time = std::min(min_time, cur);
-        max_time = std::max(max_time, cur);
+        if (min_time > cur)
+            min_time = cur;
+        if (max_time < cur)
+            max_time = cur;
     }
     fprintf(stderr, "Repeat %d times, thread %d, avg time %.2f ms, max_time %.2f ms, min_time %.2f ms\n", repeat_count,
             num_thread, total_time / repeat_count, max_time, min_time);

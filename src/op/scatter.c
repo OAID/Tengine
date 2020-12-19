@@ -36,6 +36,14 @@
 
 DEFINE_PARM_PARSE_ENTRY(scatter_param, axis, is_onnx);
 
+static int infer_shape(struct ir_node* node){
+    struct ir_graph* ir_graph = node->graph;
+    struct ir_tensor* input = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
+    struct ir_tensor* output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
+
+    int ret = set_ir_tensor_shape(output, input->dims, input->dim_num);
+    return ret;
+}
 static int init_op(struct ir_op* op)
 {
     struct scatter_param* scatter_param = ( struct scatter_param* )sys_malloc(sizeof(struct scatter_param));
@@ -45,8 +53,14 @@ static int init_op(struct ir_op* op)
         return -1;
     }
 
-    scatter_param->axis = 0;
+    scatter_param->axis = -1;
     scatter_param->is_onnx = 0;
+
+    op->param_mem = scatter_param;
+    op->param_size = sizeof(struct scatter_param);
+    op->same_shape = 0;
+    op->infer_shape = infer_shape;
+
     return 0;
 }
 
@@ -54,14 +68,7 @@ static void release_op(struct ir_op* op)
 {
     sys_free(op->param_mem);
 }
-static int infer_shape(struct ir_node* node){
-    struct ir_graph* ir_graph = node->graph;
-    struct ir_tensor* input = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
-    struct ir_tensor* output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
 
-    int ret = set_ir_tensor_shape(output, input->dims, input->dim_num);
-    return ret;
-}
 
 static int register_scatter_op(void* arg)
 {

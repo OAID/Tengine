@@ -19,7 +19,7 @@
 
 /*
  * Copyright (c) 2020, OPEN AI LAB
- * Author: haitao@openailab.com
+ * Author: lswang@openailab.com
  */
 
 #ifndef __TENGINE_LOG_H__
@@ -51,67 +51,67 @@ struct logger
 
 extern struct logger* get_default_logger(void);
 
-#define SET_LOG_OUTPUT(func)                          \
-    do                                                \
-    {                                                 \
-        struct logger* logger = get_default_logger(); \
-        logger->set_output_func(logger, func);        \
+#define SET_LOG_OUTPUT(func)                              \
+    do                                                    \
+    {                                                     \
+        struct logger* logger = get_default_logger();     \
+        logger->set_output_func(logger, func);            \
     } while(0)
 
-#define SET_LOG_LEVEL(level)                          \
-    do                                                \
-    {                                                 \
-        struct logger* logger = get_default_logger(); \
-        logger->set_log_level(logger, level);         \
+#define SET_LOG_LEVEL(level)                              \
+    do                                                    \
+    {                                                     \
+        struct logger* logger = get_default_logger();     \
+        logger->set_log_level(logger, level);             \
     } while(0)
 
-#define SET_LOG_PRINT_TIME(val)                       \
-    do                                                \
-    {                                                 \
-        struct logger* logger = get_default_logger(); \
-        logger->option.print_time = val;              \
+#define SET_LOG_PRINT_TIME(val)                           \
+    do                                                    \
+    {                                                     \
+        struct logger* logger = get_default_logger();     \
+        logger->option.print_time = val;                  \
     } while(0)
 
-#define SET_LOG_PRINT_LEVEL(val)                      \
-    do                                                \
-    {                                                 \
-        struct logger* logger = get_default_logger(); \
-        logger->option.print_level = val;             \
+#define SET_LOG_PRINT_LEVEL(val)                          \
+    do                                                    \
+    {                                                     \
+        struct logger* logger = get_default_logger();     \
+        logger->option.print_level = val;                 \
     } while(0)
 
-#define SET_LOG_PRINT_PREFIX(val)                     \
-    do                                                \
-    {                                                 \
-        struct logger* logger = get_default_logger(); \
-        logger->option.print_prefix = val;            \
+#define SET_LOG_PRINT_PREFIX(val)                         \
+    do                                                    \
+    {                                                     \
+        struct logger* logger = get_default_logger();     \
+        logger->option.print_prefix = val;                \
     } while(0)
 
-#define SET_LOG_PREFIX(prefix)                        \
-    do                                                \
-    {                                                 \
-        struct logger* logger = get_default_logger(); \
-        logger->prefix = prefix;                      \
+#define SET_LOG_PREFIX(prefix)                            \
+    do                                                    \
+    {                                                     \
+        struct logger* logger = get_default_logger();     \
+        logger->prefix = prefix;                          \
     } while(0)
 
-#define LOG(level, fmt, content...)                   \
-    do                                                \
-    {                                                 \
-        struct logger* logger = get_default_logger(); \
-        logger->log(logger, level, fmt, ##content);   \
+#define LOG(level, fmt, ...)                              \
+    do                                                    \
+    {                                                     \
+        struct logger* logger = get_default_logger();     \
+        logger->log(logger, level, fmt, ##__VA_ARGS__);   \
     } while(0)
 
-#define TLOG_EMERG(fmt, content...) LOG(LOG_EMERG, fmt, ##content)
-#define TLOG_ALERT(fmt, content...) LOG(LOG_ALERT, fmt, ##content)
-#define TLOG_CRIT(fmt, content...) LOG(LOG_CRIT, fmt, ##content)
-#define TLOG_ERR(fmt, content...) LOG(LOG_ERR, fmt, ##content)
-#define TLOG_WARNING(fmt, content...) LOG(LOG_WARNING, fmt, ##content)
-#define TLOG_NOTICE(fmt, content...) LOG(LOG_NOTICE, fmt, ##content)
-#define TLOG_INFO(fmt, content...) LOG(LOG_INFO, fmt, ##content)
-#define TLOG_DEBUG(fmt, content...) LOG(LOG_DEBUG, fmt, ##content)
+#define TLOG_EMERG(fmt, ...)    LOG(LOG_EMERG,   fmt, ##__VA_ARGS__)
+#define TLOG_ALERT(fmt, ...)    LOG(LOG_ALERT,   fmt, ##__VA_ARGS__)
+#define TLOG_CRIT(fmt, ...)     LOG(LOG_CRIT,    fmt, ##__VA_ARGS__)
+#define TLOG_ERR(fmt, ...)      LOG(LOG_ERR,     fmt, ##__VA_ARGS__)
+#define TLOG_WARNING(fmt, ...)  LOG(LOG_WARNING, fmt, ##__VA_ARGS__)
+#define TLOG_NOTICE(fmt, ...)   LOG(LOG_NOTICE,  fmt, ##__VA_ARGS__)
+#define TLOG_INFO(fmt, ...)     LOG(LOG_INFO,    fmt, ##__VA_ARGS__)
+#define TLOG_DEBUG(fmt, ...)    LOG(LOG_DEBUG,   fmt, ##__VA_ARGS__)
 
-#define XLOG(level, fmt, content...)          \
-    LOG(level, "%s:%d ", __FILE__, __LINE__); \
-    LOG(level, fmt, ##content)
+#define XLOG(level, fmt, ...)                             \
+    LOG(level, "%s:%d ", __FILE__, __LINE__);             \
+    LOG(level, fmt, ##__VA_ARGS__)
 
 #ifdef __cplusplus
 }

@@ -64,6 +64,12 @@ int release_allocator_registry()
 
 struct dev_allocator* get_default_dev_allocator(void)
 {
+    if (NULL == allocator_vector)
+    {
+        TLOG_CRIT("Tengine: No available device.\n");
+        return NULL;
+    }
+
     for (int i = 0; i < get_vector_num(allocator_vector); i++)
     {
         struct dev_allocator* allocator = get_vector_data(allocator_vector, i);

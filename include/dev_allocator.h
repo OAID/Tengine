@@ -25,13 +25,20 @@
 #ifndef __DEV_ALLOCATOR_H__
 #define __DEV_ALLOCATOR_H__
 
+#include "compiler.h"
+
 struct ir_graph;
+struct subgraph;
+struct vector;
+
 
 struct dev_allocator
 {
     char* name;
-    int (*allocate)(struct dev_allocator*, struct ir_graph*);
-    int (*release)(struct dev_allocator*);
+    int (*describe)(struct dev_allocator*, struct vector* allowed_ops, struct vector* blocked_ops, struct vector* precision);
+    int (*evaluation)(struct dev_allocator*, struct subgraph*, struct vector* tensors, struct vector* nodes);
+    int (*allocate)(struct dev_allocator*, struct subgraph*);
+    int (*release)(struct dev_allocator*, struct subgraph*);
 };
 
 int init_allocator_registry(struct dev_allocator* allocator);
@@ -42,6 +49,6 @@ struct dev_allocator* get_default_dev_allocator(void);
 
 struct dev_allocator* get_dev_allocator(const char* dev_name);
 
-#define REGISTER_DEV_ALLOCATOR(func_name) static void(func_name)(void) __attribute__((constructor))
+#define REGISTER_DEV_ALLOCATOR(func_name) DECLARE_AUTO_INIT_FUNC(func_name)
 
 #endif

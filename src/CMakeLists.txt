@@ -29,10 +29,6 @@ list(APPEND TENGINE_BACKEND_COMMON "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/cpu_modu
 list(APPEND TENGINE_BACKEND_COMMON "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/cpu_node_ops.c")
 list(APPEND TENGINE_BACKEND_COMMON "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/cpu_probe.c")
 
-# add reference operator files
-file(GLOB_RECURSE TENGINE_BACKEND_REF_OPS "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/op/*ref.c")
-
-# add hcl operator files
 # arm
 if (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM")
     if (TENGINE_ARCH_ARM_82)
@@ -52,18 +48,78 @@ if (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM")
             file(GLOB_RECURSE TENGINE_BACKEND_HCL_ASM_OPS   "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/op/aarch64/*.S"
                                                             "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/op/armv8_2/*.S")
         else()
-            file(GLOB_RECURSE TENGINE_BACKEND_HCL_ASM_OPS   "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/op/aarch64/*.S")
+            file(GLOB_RECURSE TENGINE_BACKEND_HCL_ASM_OPS "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/op/aarch64/*.S")
         endif()
     endif()
 endif()
 
-# X86
+# x86
 if (${TENGINE_TARGET_PROCESSOR} MATCHES "X86")
     if (TENGINE_ARCH_X86_AVX)
-        add_definitions(-mfma -mf16c -mavx2)
+        if(CMAKE_SYSTEM_NAME MATCHES "Windows")
+            add_definitions(/arch:AVX2)
+        else()
+            add_definitions(-mfma -mf16c -mavx2)
+        endif()
     endif()
-    file(GLOB_RECURSE TENGINE_BACKEND_HCL_OPS   "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/op/*hcl.c"
-                                                "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/op/*x86.c")
+endif()
+
+# add operator files
+if (TENGINE_DYNAMIC_COMPILE AND EXISTS "${CMAKE_SOURCE_DIR}/cmake/operators.cmake")
+    # macro for adding include op dir
+    macro (ADD_OP name)
+        # add reference operator files 
+        set (REF_OP_PATH "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/op/${name}/*ref.c")
+        list (APPEND REF_SOURCE ${REF_OP_PATH})
+        
+        # add hcl operator files
+        # arm
+        if (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM")
+            if (TENGINE_ARCH_ARM_82)
+                set (ARM_OP_PATH "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/op/${name}/*arm.c")
+                set (ARM82_OP_PATH "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/op/${name}/*fp16_arm82.c")
+            else()
+                set (ARM_OP_PATH "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/op/${name}/*arm.c")
+            endif()
+            list (APPEND HCL_SOURCE ${ARM_OP_PATH})
+            list (APPEND HCL_SOURCE ${ARM82_OP_PATH})
+        endif()
+
+        # X86
+        if (${TENGINE_TARGET_PROCESSOR} MATCHES "X86")
+            set (X86_OP_PATH "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/op/${name}/*x86.c")
+            list (APPEND HCL_SOURCE ${X86_OP_PATH})
+        endif()
+    endmacro()
+    include(${CMAKE_SOURCE_DIR}/cmake/operators.cmake)
+
+    # add reference operator files
+    file(GLOB_RECURSE TENGINE_BACKEND_REF_OPS ${REF_SOURCE})
+
+    # add hcl operator files
+    # arm or x86
+    if (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM" OR ${TENGINE_TARGET_PROCESSOR} MATCHES "X86")
+        file(GLOB_RECURSE TENGINE_BACKEND_HCL_OPS   ${HCL_SOURCE})
+    endif()
+else()
+    # add reference operator files
+    file(GLOB_RECURSE TENGINE_BACKEND_REF_OPS "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/op/*ref.c")
+
+    # add hcl operator files
+    # arm
+    if (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM")
+        if (TENGINE_ARCH_ARM_82)
+            file(GLOB_RECURSE TENGINE_BACKEND_HCL_OPS   "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/op/*arm.c"
+                                                        "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/op/*fp16_arm82.c")
+        else()
+            file(GLOB_RECURSE TENGINE_BACKEND_HCL_OPS   "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/op/*arm.c")
+        endif()                                                    
+    endif()
+
+    # X86
+    if (${TENGINE_TARGET_PROCESSOR} MATCHES "X86")
+        file(GLOB_RECURSE TENGINE_BACKEND_HCL_OPS   "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/op/*x86.c")
+    endif()
 endif()
 
 # add cmsis operator files
@@ -98,27 +154,48 @@ if (TENGINE_ENABLE_VULKAN)
 endif()
 
 
-# add VeriSilicon VIP8000 NPU support
-if (TENGINE_ENABLE_VIPNPU)
-    list(APPEND TENGINE_PRIVATE_INC_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/dev/vxnpu)
-    list(APPEND TENGINE_PRIVATE_INC_DIRS ${CMAKE_SOURCE_DIR}/3rdparty/vsi_sdk/include)
-    list(APPEND TENGINE_PRIVATE_INC_DIRS ${CMAKE_SOURCE_DIR}/3rdparty/acuity-ovxlib-dev/include)
-    list(APPEND TENGINE_VIPNPU_LIB_DIRS ${CMAKE_SOURCE_DIR}/3rdparty/acuity-ovxlib-dev/lib)
-
-    link_directories(${TENGINE_VIPNPU_LIB_DIRS})
-    if(TENGINE_VERBOSE)
-        message (STATUS "TENGINE: 'TENGINE_VIPNPU_LIB_DIRS' is ${TENGINE_VIPNPU_LIB_DIRS}.")
-    endif()
-
-    file(GLOB_RECURSE TENGINE_BACKEND_VXNPU_BASE "${CMAKE_CURRENT_SOURCE_DIR}/dev/vxnpu/*.c")
-    file(GLOB_RECURSE TENGINE_BACKEND_VXNPU_OPS "${CMAKE_CURRENT_SOURCE_DIR}/dev/vxnpu/op/*.c")
-endif ()
-
 # add libraries path
 list(APPEND TENGINE_PRIVATE_LIB_DIRS ${TENGINE_ACL_LIB_DIRS})
 list(APPEND TENGINE_PRIVATE_LIB_DIRS ${TENGINE_VULKAN_LIB_DIRS})
 set(TENGINE_COMMON_LIB_DIRS ${TENGINE_PRIVATE_LIB_DIRS} CACHE INTERNAL "" FORCE)
 link_directories(${TENGINE_PRIVATE_LIB_DIRS})
+
+
+# add standalone hcl lib
+set (TENGINE_STANDALONE_HCL_LIB_NAME hclcpu)
+if (TENGINE_STANDALONE_HCL)
+    if (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM")
+        add_library (
+                ${TENGINE_STANDALONE_HCL_LIB_NAME} SHARED
+                ${TENGINE_BACKEND_HCL_OPS}
+                ${TENGINE_BACKEND_HCL_ASM_OPS}
+                ${TOPERATOR_LIB_SRCS}
+        )
+    elseif (${TENGINE_TARGET_PROCESSOR} MATCHES "X86")
+        add_library (
+                ${TENGINE_STANDALONE_HCL_LIB_NAME} SHARED
+                ${TENGINE_BACKEND_HCL_OPS}
+                ${TOPERATOR_LIB_SRCS}
+        )
+    endif()
+
+    if (TENGINE_BACKEND_HCL_OPS)
+        unset(TENGINE_BACKEND_HCL_OPS)
+    endif()
+
+    if (TENGINE_BACKEND_HCL_ASM_OPS)
+        unset(TENGINE_BACKEND_HCL_ASM_OPS)
+    endif()
+
+    if (TOPERATOR_LIB_SRCS)
+        unset(TOPERATOR_LIB_SRCS)
+    endif()
+
+    if (TENGINE_STANDALONE_HCL_AUTO_LOAD)
+        add_definitions(-DTENGINE_AUTO_LOAD_HCL)
+    endif()
+endif()
+
 
 # add advanced hcl source files
 if (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM")
@@ -162,11 +239,19 @@ endif()
 # add include path
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${TENGINE_PRIVATE_INC_DIRS})
 
+if (NOT TENGINE_ENABLE_ALL_SYMBOL)
+    if (NOT (CMAKE_SYSTEM_NAME MATCHES "Windows"))
+        set_property (TARGET ${CMAKE_PROJECT_NAME} PROPERTY COMPILE_FLAGS "-fvisibility=hidden")
+        set_property (TARGET ${CMAKE_PROJECT_NAME} PROPERTY LINK_FLAGS    "-fvisibility=hidden")
+    endif()
+endif()
 
 if (ANDROID)
     target_link_libraries(${CMAKE_PROJECT_NAME} android ${TENGINE_LINKING_LIBS})
-elseif(OHOS)
+elseif(MSVC)
     target_link_libraries(${CMAKE_PROJECT_NAME} ${TENGINE_LINKING_LIBS})
+elseif(OHOS)
+    target_link_libraries(${CMAKE_PROJECT_NAME} dl m ${TENGINE_LINKING_LIBS})
 else()
     target_link_libraries(${CMAKE_PROJECT_NAME} pthread dl m ${TENGINE_LINKING_LIBS})
 endif()
@@ -180,7 +265,16 @@ if (TENGINE_ENABLE_VULKAN)
     message("===== vulkan library === ${Vulkan_LIBRARY}")
     add_dependencies(${CMAKE_PROJECT_NAME} generate-spirv)
 endif ()
+
+if (TENGINE_STANDALONE_HCL)
+    target_link_libraries(${CMAKE_PROJECT_NAME} ${TENGINE_STANDALONE_HCL_LIB_NAME})
+endif()
+
+# add install files
 install (TARGETS ${CMAKE_PROJECT_NAME} DESTINATION lib)
+if (TENGINE_STANDALONE_HCL)
+    install (TARGETS ${TENGINE_STANDALONE_HCL_LIB_NAME} DESTINATION lib)
+endif()
 install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/../include/tengine_c_api.h DESTINATION include)
 if (TENGINE_BUILD_CPP_API)
     install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/../include/tengine_cpp_api.h DESTINATION include)
