@@ -25,6 +25,13 @@
 #ifndef __COMPILIER_FP16_H__
 #define __COMPILIER_FP16_H__
 
+#ifdef MACOS
+
+#else
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifdef __ARM_ARCH
 
 #define fp16_to_fp32(data) \
@@ -40,7 +47,23 @@
     })
 
 #else
+#ifdef _MSC_VER
+#pragma  pack (push,1)
+struct fp16_pack
+{
+    unsigned short frac : 10;
+    unsigned char exp : 5;
+    unsigned char sign : 1;
+};
 
+struct fp32_pack
+{
+    unsigned int frac : 23;
+    unsigned char exp : 8;
+    unsigned char sign : 1;
+};
+#pragma pack(pop)
+#else
 struct fp16_pack
 {
     unsigned short frac : 10;
@@ -54,6 +77,7 @@ struct fp32_pack
     unsigned char exp : 8;
     unsigned char sign : 1;
 } __attribute__((packed));
+#endif
 
 typedef struct fp16_pack __fp16;
 
@@ -119,7 +143,11 @@ static inline __fp16 fp32_to_fp16(float data)
 
     return fp16;
 }
+#endif
 
 #endif
 
+#ifdef __cplusplus
+}
+#endif
 #endif

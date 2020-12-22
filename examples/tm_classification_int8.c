@@ -22,7 +22,6 @@
  * Author: qtang@openailab.com
  */
 
-#include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -41,7 +40,7 @@
 #define DEFAULT_LOOP_COUNT 1
 #define DEFAULT_THREAD_COUNT 1
 
-void get_input_int8_data(const char* image_file, uint8_t* input_data, int img_h, int img_w, float* mean, float* scale,
+void get_input_int8_data(const char* image_file, int8_t* input_data, int img_h, int img_w, float* mean, float* scale,
                           float input_scale)
 {
     image img = imread_process(image_file, img_w, img_h, mean, scale);
@@ -70,6 +69,7 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
     opt.num_thread = num_thread;
     opt.cluster = TENGINE_CLUSTER_ALL;
     opt.precision = TENGINE_MODE_INT8;
+    opt.affinity = 0;
 
     /* inital tengine */
     if (init_tengine() != 0)
@@ -124,8 +124,8 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
     }
 
     /* run graph */
-    double min_time = __DBL_MAX__;
-    double max_time = -__DBL_MAX__;
+    double min_time = DBL_MAX;
+    double max_time = DBL_MIN;
     double total_time = 0.;
     for (int i = 0; i < loop_count; i++)
     {

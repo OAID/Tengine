@@ -25,6 +25,10 @@
 #ifndef __SYS_PORT_H__
 #define __SYS_PORT_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -32,7 +36,11 @@
 #ifdef CONFIG_ARCH_CORTEX_M
 char* strdup(const char*);
 #else
+#if MACOS
+#include <sys/malloc.h>
+#else
 #include <malloc.h>
+#endif
 #endif
 
 #include "compiler.h"
@@ -57,6 +65,10 @@ int insert_mem_block(void* ptr, size_t size);
 
 void set_buddy_mem_status(int disabled);
 
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif

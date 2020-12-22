@@ -8,16 +8,10 @@
 #define POOL_K3S2 2
 #define POOL_K3S1 3
 
-typedef void (*pooling_kernel_t)(const void* input, void* output, int inc, int inh, int inw, int outh, int outw, int,
+typedef void (*pooling_kernel_t)(const float* input, float* output, int inc, int inh, int inw, int outh, int outw, int,
                                  int, int, int, int, int, int pad_h1, int pad_w1, int);
 
-static inline float max(float a, float b)
-{
-    if (a > b)
-        return a;
-    else
-        return b;
-}
+#define max(a, b) (((a) > (b)) ? (a) : (b))
 
 static void avg_2x2s2_p1(const float* input, float* output, int inc, int inh, int inw, int outh, int outw, int k_h,
                          int k_w, int s_h, int s_w, int pad_h0, int pad_w0, int pad_h1, int pad_w1, int is_caffe)
@@ -1506,7 +1500,12 @@ static void avg_global(const float* input, float* output, int inc, int inh, int 
             __m128 p01 = _mm_loadu_ps(line0 + 4);
             p00 = _mm_add_ps(p00, p01);
 
+
+#ifdef _WIN32
+            sum += (p00.m128_f32[0] + p00.m128_f32[1] + p00.m128_f32[2] + p00.m128_f32[3]);
+#else
             sum += (p00[0] + p00[1] + p00[2] + p00[3]);
+#endif
             line0 += 8;
         }
         for (int j = tail; j < in_hw; j++)
@@ -1538,7 +1537,11 @@ static void max_global(const float* input, float* output, int inc, int inh, int 
             res = _mm_max_ps(res, max0);
             line0 += 8;
         }
+#ifdef _WIN32
+        float max_ = max(max(res.m128_f32[0], res.m128_f32[1]), max(res.m128_f32[2], res.m128_f32[3]));
+#else
         float max_ = max(max(res[0], res[1]), max(res[2], res[3]));
+#endif
         for (int j = tail; j < in_hw; j++)
         {
             max_ = max(max_, line0[0]);
@@ -1725,13 +1728,13 @@ int pooling_kernel_perf_run(struct ir_tensor* input, struct ir_tensor* output, s
     {
         for (int n = 0; n < batch; n++)
         {
-            void* input_frame = input->data + n * img_size * input->elem_size;
-            void* output_frame = output->data + n * feature_size * output->elem_size;
+            float* input_frame = ( float* )input->data + n * img_size;
+            float* output_frame = ( float* )output->data + n * feature_size;
 #pragma omp parallel for num_threads(num_thread)
             for (int ch = 0; ch < c; ch++)
             {
-                void* cur_input = input_frame + ch * in_h * in_w * input->elem_size;
-                void* cur_output = output_frame + ch * out_h * out_w * output->elem_size;
+                float* cur_input = input_frame + ch * in_h * in_w;
+                float* cur_output = output_frame + ch * out_h * out_w;
                 kernel(cur_input, cur_output, 1, in_h, in_w, out_h, out_w, param->kernel_h, param->kernel_w,
                        param->stride_h, param->stride_w, param->pad_h0, param->pad_w0, param->pad_h1, param->pad_w1,
                        is_caffe);

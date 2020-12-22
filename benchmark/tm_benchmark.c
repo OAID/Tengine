@@ -23,26 +23,20 @@
  * Update: lswang@openailab.com
  */
 
-#include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <sys/time.h>
+#include <float.h>
+
+#include "common.h"
 #include "tengine_c_api.h"
 
 #define DEFAULT_LOOP_COUNT      1
 #define DEFAULT_THREAD_COUNT    1
 #define DEFAULT_CLUSTER         TENGINE_CLUSTER_ALL
+#define DEFAULT_CPU_AFFINITY    255
 
 int loop_counts = DEFAULT_LOOP_COUNT;
-
-double get_current_time()
-{
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-
-    return tv.tv_sec * 1000.0 + tv.tv_usec / 1000.0;
-}
 
 int benchmark_graph(struct options* opt, const char* graph_name, const char* model_file, int img_h, int img_w, int c, int n)
 {
@@ -101,8 +95,8 @@ int benchmark_graph(struct options* opt, const char* graph_name, const char* mod
     }
 
     /* run graph */
-    double min_time = __DBL_MAX__;
-    double max_time = -__DBL_MAX__;
+    double min_time = DBL_MAX;
+    double max_time = DBL_MIN;
     double total_time = 0.;
     for (int i = 0; i < loop_counts; i++)
     {
@@ -134,7 +128,7 @@ int benchmark_graph(struct options* opt, const char* graph_name, const char* mod
 
 void show_usage()
 {
-    fprintf(stderr, "[Usage]:  [-h]\n  [-r loop_count] [-t thread_count] [-p cpu affinity, 0:auto, 1:big, 2:middle, 3:little] [-s net]\n");
+    fprintf(stderr, "[Usage]:  [-h]\n  [-r loop_count] [-t thread_count] [-p cpu affinity, 0:auto, 1:big, 2:middle, 3:little] [-s net] [-a cpu mask]\n");
 }
 
 int main(int argc, char* argv[])
@@ -142,9 +136,10 @@ int main(int argc, char* argv[])
     int select_num  = -1;
     int num_threads = DEFAULT_THREAD_COUNT;
     int power       = DEFAULT_CLUSTER;
+    int affinity    = DEFAULT_CPU_AFFINITY;
 
     int res;
-    while ((res = getopt(argc, argv, "r:t:p:s:h")) != -1)
+    while ((res = getopt(argc, argv, "r:t:p:s:a:h")) != -1)
     {
         switch (res)
         {
@@ -160,6 +155,9 @@ int main(int argc, char* argv[])
             case 's':
                 select_num = atoi(optarg);
                 break;
+            case 'a':
+                affinity = atoi(optarg);
+                break;
             case 'h':
                 show_usage();
                 return 0;
@@ -171,6 +169,7 @@ int main(int argc, char* argv[])
     fprintf(stderr, "loop_counts = %d\n", loop_counts);
     fprintf(stderr, "num_threads = %d\n", num_threads);
     fprintf(stderr, "power       = %d\n", power);
+    fprintf(stderr, "affinity    = %d\n", affinity);
 
     /* inital tengine */
     if (init_tengine() != 0)
@@ -183,6 +182,7 @@ int main(int argc, char* argv[])
     struct options opt;
     opt.num_thread = num_threads;
     opt.precision = TENGINE_MODE_FP32;
+    opt.affinity = affinity;
 
     switch (power)
     {

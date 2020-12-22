@@ -76,6 +76,19 @@ sudo apt install g++-arm-linux-gnueabihf
 
 ### 2.3 编译 Tengine Lite
 
+Arm64 Linux 交叉编译
+
+```bash
+cd Tengine-Lite
+mkdir build 
+cd build
+cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/aarch64-linux-gnu.toolchain.cmake ..
+make
+make install
+```
+
+Arm32 Linux 交叉编译
+
 ```bash
 cd Tengine-Lite
 mkdir build 
@@ -190,11 +203,11 @@ set BUILD_DIR=ohos-arm64-v8a
 if not exist %BUILD_DIR% md %BUILD_DIR%
 cd %BUILD_DIR%
 
-cmake -G Ninja ^
-    -DCMAKE_TOOLCHAIN_FILE=%TOOLCHAIN% ^
-    -DOHOS_ARCH="arm64-v8a" ^
-    -DCMAKE_BUILD_TYPE=Release ^
-    -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON ^
+cmake -G Ninja \
+    -DCMAKE_TOOLCHAIN_FILE=%TOOLCHAIN% \
+    -DOHOS_ARCH="arm64-v8a" \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
     ../..
 
 ::ninja

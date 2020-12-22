@@ -60,7 +60,7 @@ static int register_shape_op(void* arg)
     m.init_op = init_op;
     m.release_op = release_op;
 
-    return register_op(OP_SHAPE, OP_RELU1_NAME, &m);
+    return register_op(OP_SHAPE, OP_SHAPE_NAME, &m);
 }
 
 static int unregister_shape_op(void* arg)

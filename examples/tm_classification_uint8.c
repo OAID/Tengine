@@ -22,7 +22,6 @@
  * Author: qtang@openailab.com
  */
 
-#include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -35,14 +34,14 @@
 #define DEFAULT_SCALE1 0.017f
 #define DEFAULT_SCALE2 0.017f
 #define DEFAULT_SCALE3 0.017f
-#define DEFAULT_MEAN1 123.68f
-#define DEFAULT_MEAN2 116.779f
-#define DEFAULT_MEAN3 103.939f
-#define DEFAULT_LOOP_COUNT   1
+#define DEFAULT_MEAN1 104.007
+#define DEFAULT_MEAN2 116.669
+#define DEFAULT_MEAN3 122.679
+#define DEFAULT_LOOP_COUNT 1
 #define DEFAULT_THREAD_COUNT 1
 
-
-void get_input_uint8_data(const char* image_file, uint8_t* input_data, int img_h, int img_w, float* mean, float* scale, float input_scale, int zero_point)
+void get_input_uint8_data(const char* image_file, uint8_t* input_data, int img_h, int img_w, float* mean, float* scale,
+                          float input_scale, int zero_point)
 {
     image img = imread_process(image_file, img_w, img_h, mean, scale);
 
@@ -62,14 +61,15 @@ void get_input_uint8_data(const char* image_file, uint8_t* input_data, int img_h
     free_image(img);
 }
 
-int tengine_classify(const char* model_file, const char* image_file, int img_h, int img_w,
-                     float* mean, float* scale, int loop_count, int num_thread)
+int tengine_classify(const char* model_file, const char* image_file, int img_h, int img_w, float* mean, float* scale,
+                     int loop_count, int num_thread)
 {
     /* set runtime options */
     struct options opt;
     opt.num_thread = num_thread;
     opt.cluster = TENGINE_CLUSTER_ALL;
     opt.precision = TENGINE_MODE_UINT8;
+    opt.affinity = 0;
 
     /* inital tengine */
     if (init_tengine() != 0)
@@ -126,8 +126,8 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
     get_input_uint8_data(image_file, input_data, img_h, img_w, mean, scale, input_scale, input_zero_point);
 
     /* run graph */
-    double min_time = __DBL_MAX__;
-    double max_time = -__DBL_MAX__;
+    double min_time = DBL_MAX;
+    double max_time = DBL_MIN;
     double total_time = 0.;
     for (int i = 0; i < loop_count; i++)
     {

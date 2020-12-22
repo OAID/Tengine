@@ -22,7 +22,6 @@
  * Author: qtang@openailab.com
  */
 
-#include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -40,15 +39,17 @@
 #define DEFAULT_MEAN3 122.679
 #define DEFAULT_LOOP_COUNT 1
 #define DEFAULT_THREAD_COUNT 1
+#define DEFAULT_CPU_AFFINITY 255
 
 int tengine_classify(const char* model_file, const char* image_file, int img_h, int img_w, const float* mean,
-                     const float* scale, int loop_count, int num_thread)
+                     const float* scale, int loop_count, int num_thread, int affinity)
 {
     /* set runtime options */
     struct options opt;
     opt.num_thread = num_thread;
     opt.cluster = TENGINE_CLUSTER_ALL;
     opt.precision = TENGINE_MODE_FP32;
+    opt.affinity = affinity;
 
     /* inital tengine */
     if (init_tengine() != 0)
@@ -102,8 +103,8 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
     get_input_data(image_file, input_data, img_h, img_w, mean, scale);
 
     /* run graph */
-    double min_time = __DBL_MAX__;
-    double max_time = -__DBL_MAX__;
+    double min_time = DBL_MAX;
+    double max_time = DBL_MIN;
     double total_time = 0.;
     for (int i = 0; i < loop_count; i++)
     {
@@ -151,7 +152,7 @@ void show_usage()
     fprintf(
         stderr,
         "[Usage]:  [-h]\n    [-m model_file] [-i image_file]\n [-g img_h,img_w] [-s scale[0],scale[1],scale[2]] [-w "
-        "mean[0],mean[1],mean[2]] [-r loop_count] [-t thread_count]\n");
+        "mean[0],mean[1],mean[2]] [-r loop_count] [-t thread_count] [-a cpu_affinity]\n");
     fprintf(
         stderr,
         "\nmobilenet example: \n    ./classification -m /path/to/mobilenet.tmfile -i /path/to/img.jpg -g 224,224 -s "
@@ -162,6 +163,7 @@ int main(int argc, char* argv[])
 {
     int loop_count = DEFAULT_LOOP_COUNT;
     int num_thread = DEFAULT_THREAD_COUNT;
+    int cpu_affinity = DEFAULT_CPU_AFFINITY;
     char* model_file = NULL;
     char* image_file = NULL;
     float img_hw[2] = {0.f};
@@ -171,7 +173,7 @@ int main(int argc, char* argv[])
     float scale[3] = {0.f, 0.f, 0.f};
 
     int res;
-    while ((res = getopt(argc, argv, "m:i:l:g:s:w:r:t:h")) != -1)
+    while ((res = getopt(argc, argv, "m:i:l:g:s:w:r:t:a:h")) != -1)
     {
         switch (res)
         {
@@ -197,6 +199,9 @@ int main(int argc, char* argv[])
                 break;
             case 't':
                 num_thread = atoi(optarg);
+                break;
+            case 'a':
+                cpu_affinity = atoi(optarg);
                 break;
             case 'h':
                 show_usage();
@@ -252,7 +257,7 @@ int main(int argc, char* argv[])
         fprintf(stderr, "Mean value not specified, use default   %.1f, %.1f, %.1f\n", mean[0], mean[1], mean[2]);
     }
 
-    if (tengine_classify(model_file, image_file, img_h, img_w, mean, scale, loop_count, num_thread) < 0)
+    if (tengine_classify(model_file, image_file, img_h, img_w, mean, scale, loop_count, num_thread, cpu_affinity) < 0)
         return -1;
 
     return 0;

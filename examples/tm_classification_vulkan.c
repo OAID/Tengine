@@ -22,7 +22,6 @@
  * Author: qtang@openailab.com
  */
 
-#include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -49,6 +48,7 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
     opt.num_thread = num_thread;
     opt.cluster = TENGINE_CLUSTER_ALL;
     opt.precision = TENGINE_MODE_FP32;
+    opt.affinity = 0;
 
     /* inital tengine */
     if (init_tengine() != 0)
@@ -104,8 +104,8 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
     }
 
     /* run graph */
-    double min_time = __DBL_MAX__;
-    double max_time = -__DBL_MAX__;
+    double min_time = DBL_MAX;
+    double max_time = DBL_MIN;
     double total_time = 0.;
     for (int i = 0; i < loop_count; i++)
     {

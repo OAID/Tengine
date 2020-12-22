@@ -57,14 +57,6 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
             return -1;
         }
     }
-    else if(exec_graph->mode == TENGINE_MODE_INT8){
-        if (int8_fc_kernel_prerun(input_tensor, filter_tensor, output_tensor, priv_info, fc_param) < 0)
-        {
-            TLOG_ERR("hcl fc prerun failed\n");
-            set_tengine_errno(EFAULT);
-            return -1;
-        }
-    }
     /* fp16 prerun */
 #if __ARM_FEATURE_FP16_VECTOR_ARITHMETIC
     else if (exec_graph->mode == TENGINE_MODE_FP16)
@@ -77,6 +69,15 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
         }
     }
 #endif
+    else if(exec_graph->mode == TENGINE_MODE_INT8)
+	{
+        if (int8_fc_kernel_prerun(input_tensor, filter_tensor, output_tensor, priv_info, fc_param) < 0)
+        {
+            TLOG_ERR("hcl fc prerun failed\n");
+            set_tengine_errno(EFAULT);
+            return -1;
+        }
+    }
     else
     {
         printf("Tengine work node not support %d\n", exec_graph->mode);
@@ -118,14 +119,6 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
             return -1;
         }
     }
-    else if (exec_graph->mode == TENGINE_MODE_INT8) {
-        if (int8_fc_kernel_run(input_tensor, weight_tensor, bias_tensor, output_tensor, priv_info,fc_param,num_thread,cpu_affinity) < 0)
-        {
-            TLOG_ERR("hcl fc run failed\n");
-            set_tengine_errno(EFAULT);
-            return -1;
-        }
-    }
     /* fp16 run */
 #if __ARM_FEATURE_FP16_VECTOR_ARITHMETIC
     else if (exec_graph->mode == TENGINE_MODE_FP16)
@@ -138,6 +131,15 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         }
     }
 #endif
+    else if (exec_graph->mode == TENGINE_MODE_INT8) 
+	{
+        if (int8_fc_kernel_run(input_tensor, weight_tensor, bias_tensor, output_tensor, priv_info,fc_param,num_thread,cpu_affinity) < 0)
+        {
+            TLOG_ERR("hcl fc run failed\n");
+            set_tengine_errno(EFAULT);
+            return -1;
+        }
+    }
     else
     {
         printf("Tengine work node not support %d\n", exec_graph->mode);
@@ -170,7 +172,8 @@ static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struc
     }
     else if (input->dim_num == 3)
     {
-        input_k *= input->dims[2];
+        if (input->dims[2] != 0)
+            input_k *= input->dims[2];
         if (graph->graph_layout == TENGINE_LAYOUT_NHWC)
         {
             dim[0] = m;
@@ -224,7 +227,7 @@ static int postrun(struct node_ops* node_ops, struct exec_node* exec_node, struc
 
     if (fc_kernel_postrun(priv_info) < 0)
     {
-        TLOG_ERR("hcl fc prerun failed\n");
+        TLOG_ERR("hcl fc postrun failed\n");
         set_tengine_errno(EFAULT);
         return -1;
     }
@@ -266,14 +269,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     if (input_tensor->data_type != TENGINE_DT_FP32 && input_tensor->data_type != TENGINE_DT_FP16)
         return 0;
 #else
-    if (input_tensor->data_type == TENGINE_DT_INT8){
+    if (input_tensor->data_type == TENGINE_DT_FP32)
         return OPS_SCORE_BEST;
-    }
-    if (input_tensor->data_type != TENGINE_DT_FP32)
-        return 0;
+    if (input_tensor->data_type == TENGINE_DT_INT8)
+        return OPS_SCORE_BEST;		
 #endif
 
-    return OPS_SCORE_BEST;
+    return 0;
 }
 
 static struct node_ops hcl_node_ops = {.prerun = prerun,

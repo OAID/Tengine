@@ -31,30 +31,53 @@
 #include "relu_param.h"
 #include "compiler_fp16.h"
 
-static int ref_relu_fp32(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, float negative_slope)
+static int ref_relu_fp32(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, float negative_slope,
+                         int num_thread)
 {
-    int total_size = input_tensor->elem_num;
     float* input_data = input_tensor->data;
     float* output_data = output_tensor->data;
+    int batch = input_tensor->dims[0];
+    int channel = input_tensor->dims[1];
+    int cstep = input_tensor->dims[2] * input_tensor->dims[3];
 
     if (negative_slope == 0)
     {
-        for (int i = 0; i < total_size; i++)
+        for (int n = 0; n < batch; n++)
         {
-            if (input_data[i] < 0)
-                output_data[i] = 0;
-            else
-                output_data[i] = input_data[i];
+#pragma omp parallel for num_threads(num_thread)
+            for (int c = 0; c < channel; c++)
+            {
+                float* in_data = input_data + n * channel * cstep + c * cstep;
+                float* out_data = output_data + n * channel * cstep + c * cstep;
+
+                for (int i = 0; i < cstep; i++)
+                {
+                    if (in_data[i] < 0.f)
+                        out_data[i] = 0.f;
+                    else
+                        out_data[i] = in_data[i];
+                }
+            }
         }
     }
     else
     {
-        for (int i = 0; i < total_size; i++)
+        for (int n = 0; n < batch; n++)
         {
-            if (input_data[i] < 0)
-                output_data[i] = input_data[i] * negative_slope;
-            else
-                output_data[i] = input_data[i];
+#pragma omp parallel for num_threads(num_thread)
+            for (int c = 0; c < channel; c++)
+            {
+                float* in_data = input_data + n * channel * cstep + c * cstep;
+                float* out_data = output_data + n * channel * cstep + c * cstep;
+
+                for (int i = 0; i < cstep; i++)
+                {
+                    if (in_data[i] < 0)
+                        out_data[i] = in_data[i] * negative_slope;
+                    else
+                        out_data[i] = in_data[i];
+                }
+            }
         }
     }
 
@@ -249,7 +272,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
     int ret = -1;
     if (input_tensor->data_type == TENGINE_DT_FP32)
-        ret = ref_relu_fp32(input_tensor, output_tensor, relu_param->negative_slope);
+        ret = ref_relu_fp32(input_tensor, output_tensor, relu_param->negative_slope, exec_graph->num_thread);
     else if (input_tensor->data_type == TENGINE_DT_FP16)
         #if MACOS
         printf("FP16 not support mac os");

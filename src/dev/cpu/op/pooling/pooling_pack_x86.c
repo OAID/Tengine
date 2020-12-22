@@ -136,9 +136,9 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
         if (type == POOL_MAX && (pad_h0 == pad_w0) && (pad_h1 == pad_w1) && pad_tf != -1)
         {
             if (pad_h0 == 0 && (pool_size == POOL_K3S2 || pool_size == POOL_K2S2))
-                return OPS_SCORE_BEST;
+                return 0;
             if (pad_h0 == 1 && (pool_size == POOL_K3S1 || pool_size == POOL_K2S2 || pool_size == POOL_K3S2))
-                return OPS_SCORE_BEST;
+                return 0;
         }
 
         /* general avg pooling, k2s2, k2s2p1, k3s2, k3s2p1 */

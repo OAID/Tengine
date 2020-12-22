@@ -42,6 +42,14 @@
 #include "nn_device.h"
 #include "tengine_utils.h"
 #include "tengine_serializer.h"
+#include "exec_graph.h"
+
+#ifdef ENABLE_ONLINE_REPORT
+#include "tenginereportmgr.h"
+#endif
+
+char* get_hcl_version(void);
+char* gsHclVersion = NULL;
 
 typedef const char* const_char_t;
 typedef void* void_ptr_t;
@@ -52,11 +60,11 @@ typedef void* void_ptr_t;
 #ifdef TENGINE_LITE_VERSION
 static const char* tengine_lite_version = STR_VERSION(TENGINE_LITE_VERSION);
 #else
-static const char* tengine_lite_version = "1.0";
+static const char* tengine_lite_version = "1.2";
 #endif
 
-#ifdef CONFIG_VERSION_POSTFIX
-static const char* ver_postfix = STR_VERSION(CONFIG_VERSION_POSTFIX);
+#ifdef TENGINE_VERSION_POSTFIX
+static const char* ver_postfix = STR_VERSION(TENGINE_VERSION_POSTFIX);
 #else
 static const char* ver_postfix = "dev";
 #endif
@@ -67,7 +75,7 @@ void (*enable_mem_stat)(void) = NULL;
 void (*disable_intern_allocator)(void) = NULL;
 void (*disable_mem_stat)(void) = NULL;
 
-int DLLEXPORT init_tengine(void)
+int init_tengine(void)
 {
     // if (enable_intern_allocator)
     //     enable_intern_allocator();
@@ -107,6 +115,12 @@ int DLLEXPORT init_tengine(void)
         return ret;
     }
 
+#ifdef ENABLE_ONLINE_REPORT
+    gsHclVersion = get_hcl_version();
+    init_tengine_report_mgr();
+    do_tengine_report(ACTION_INIT);
+#endif
+
     ret = exec_module_init(0);
     if (0 != ret)
     {
@@ -117,7 +131,7 @@ int DLLEXPORT init_tengine(void)
     return 0;
 }
 
-void DLLEXPORT release_tengine(void)
+void release_tengine(void)
 {
     int ret = 0;
 
@@ -137,9 +151,13 @@ void DLLEXPORT release_tengine(void)
 
     // if (disable_intern_allocator)
     //     disable_intern_allocator();
+#ifdef ENABLE_ONLINE_REPORT
+    // do_tengine_report(ACTION_RELEASE);
+    release_tengine_report_mgr();
+#endif
 }
 
-const_char_t DLLEXPORT get_tengine_version(void)
+const_char_t get_tengine_version(void)
 {
     static char buf[128];
 
@@ -150,12 +168,12 @@ const_char_t DLLEXPORT get_tengine_version(void)
     return buf;
 }
 
-int DLLEXPORT request_tengine_version(const char* version)
+int request_tengine_version(const char* version)
 {
     return 1;
 }
 
-graph_t DLLEXPORT create_graph(context_t context, const char* model_format, const char* fname, ...)
+graph_t create_graph(context_t context, const char* model_format, const char* fname, ...)
 {
     int priv_context = 0;
 
@@ -221,6 +239,8 @@ graph_t DLLEXPORT create_graph(context_t context, const char* model_format, cons
 
         if (ret < 0)
             goto error;
+
+        ir_graph->nn_dev = get_default_nn_device();
     }
 
     return ir_graph;
@@ -232,14 +252,7 @@ error:
     return NULL;
 }
 
-int DLLEXPORT save_graph(graph_t graph, const char* model_format, const char* fname, ...)
-{
-    // TODO: save graph as tengine model
-    set_tengine_errno(ENOTSUP);
-    return -1;
-}
-
-int DLLEXPORT set_graph_layout(graph_t graph, int layout_type)
+int set_graph_layout(graph_t graph, int layout_type)
 {
     struct ir_graph* ir_graph = ( struct ir_graph* )graph;
 
@@ -254,7 +267,7 @@ int DLLEXPORT set_graph_layout(graph_t graph, int layout_type)
     return 0;
 }
 
-int DLLEXPORT set_graph_input_node(graph_t graph, const char* input_nodes[], int input_number)
+int set_graph_input_node(graph_t graph, const char* input_nodes[], int input_number)
 {
     struct ir_graph* ir_graph = ( struct ir_graph* )graph;
     int16_t* node_idxs;
@@ -288,7 +301,7 @@ int DLLEXPORT set_graph_input_node(graph_t graph, const char* input_nodes[], int
     return ret;
 }
 
-int DLLEXPORT set_graph_output_node(graph_t graph, const char* output_nodes[], int output_number)
+int set_graph_output_node(graph_t graph, const char* output_nodes[], int output_number)
 {
     struct ir_graph* ir_graph = ( struct ir_graph* )graph;
 
@@ -323,14 +336,7 @@ int DLLEXPORT set_graph_output_node(graph_t graph, const char* output_nodes[], i
     return ret;
 }
 
-graph_t DLLEXPORT merge_graph(int graph_num, graph_t graph0, graph_t graph1, ...)
-{
-    // TODO: merge graph
-    set_tengine_errno(ENOTSUP);
-    return NULL;
-}
-
-int DLLEXPORT destroy_graph(graph_t graph)
+int destroy_graph(graph_t graph)
 {
     struct ir_graph* ir_graph = ( struct ir_graph* )graph;
 
@@ -342,14 +348,14 @@ int DLLEXPORT destroy_graph(graph_t graph)
     return 0;
 }
 
-int DLLEXPORT get_graph_input_node_number(graph_t graph)
+int get_graph_input_node_number(graph_t graph)
 {
     struct ir_graph* ir_graph = ( struct ir_graph* )graph;
 
     return ir_graph->input_num;
 }
 
-node_t DLLEXPORT get_graph_input_node(graph_t graph, int idx)
+node_t get_graph_input_node(graph_t graph, int idx)
 {
     struct ir_graph* ir_graph = ( struct ir_graph* )graph;
 
@@ -362,14 +368,14 @@ node_t DLLEXPORT get_graph_input_node(graph_t graph, int idx)
     return get_ir_graph_node(ir_graph, ir_graph->input_nodes[idx]);
 }
 
-int DLLEXPORT get_graph_output_node_number(graph_t graph)
+int get_graph_output_node_number(graph_t graph)
 {
     struct ir_graph* ir_graph = ( struct ir_graph* )graph;
 
     return ir_graph->output_num;
 }
 
-node_t DLLEXPORT get_graph_output_node(graph_t graph, int idx)
+node_t get_graph_output_node(graph_t graph, int idx)
 {
     struct ir_graph* ir_graph = ( struct ir_graph* )graph;
 
@@ -382,7 +388,7 @@ node_t DLLEXPORT get_graph_output_node(graph_t graph, int idx)
     return get_ir_graph_node(ir_graph, ir_graph->output_nodes[idx]);
 }
 
-tensor_t DLLEXPORT get_graph_input_tensor(graph_t graph, int input_idx, int tensor_idx)
+tensor_t get_graph_input_tensor(graph_t graph, int input_idx, int tensor_idx)
 {
     struct ir_graph* ir_graph = ( struct ir_graph* )graph;
 
@@ -405,7 +411,7 @@ tensor_t DLLEXPORT get_graph_input_tensor(graph_t graph, int input_idx, int tens
     return get_ir_graph_tensor(ir_node->graph, ir_node->output_tensors[tensor_idx]);
 }
 
-tensor_t DLLEXPORT get_graph_output_tensor(graph_t graph, int output_idx, int tensor_idx)
+tensor_t get_graph_output_tensor(graph_t graph, int output_idx, int tensor_idx)
 {
     struct ir_graph* ir_graph = ( struct ir_graph* )graph;
 
@@ -428,7 +434,7 @@ tensor_t DLLEXPORT get_graph_output_tensor(graph_t graph, int output_idx, int te
     return get_ir_graph_tensor(ir_node->graph, ir_node->output_tensors[tensor_idx]);
 }
 
-node_t DLLEXPORT create_graph_node(graph_t graph, const char* node_name, const char* op_name)
+node_t create_graph_node(graph_t graph, const char* node_name, const char* op_name)
 {
     struct ir_graph* ir_graph = ( struct ir_graph* )graph;
 
@@ -451,7 +457,7 @@ node_t DLLEXPORT create_graph_node(graph_t graph, const char* node_name, const c
     return create_ir_node(ir_graph, node_name, op_type, 1);
 }
 
-node_t DLLEXPORT get_graph_node(graph_t graph, const char* node_name)
+node_t get_graph_node(graph_t graph, const char* node_name)
 {
     struct ir_graph* ir_graph = ( struct ir_graph* )graph;
 
@@ -466,7 +472,24 @@ node_t DLLEXPORT get_graph_node(graph_t graph, const char* node_name)
     return ir_graph->node_list[node_idx];
 }
 
-const_char_t DLLEXPORT get_node_name(node_t node)
+node_t get_graph_node_by_idx(graph_t graph, int idx)
+{
+    struct ir_graph* ir_graph = ( struct ir_graph* )graph;
+
+    if (idx < 0 || idx >= ir_graph->node_num)
+        return NULL;
+
+    return ir_graph->node_list[idx];
+}
+
+int get_graph_node_num(graph_t graph)
+{
+    struct ir_graph* ir_graph = ( struct ir_graph* )graph;
+
+    return ir_graph->node_num;
+}
+
+const_char_t get_node_name(node_t node)
 {
     struct ir_node* ir_node = ( struct ir_node* )node;
 
@@ -478,7 +501,7 @@ const_char_t DLLEXPORT get_node_name(node_t node)
     return ir_node->name;
 }
 
-const_char_t DLLEXPORT get_node_op(node_t node)
+const_char_t get_node_op(node_t node)
 {
     struct ir_node* ir_node = ( struct ir_node* )node;
 
@@ -487,13 +510,13 @@ const_char_t DLLEXPORT get_node_op(node_t node)
     return get_op_name(op_type);
 }
 
-void DLLEXPORT release_graph_node(node_t node)
+void release_graph_node(node_t node)
 {
     ( void )node;
     // NOTHING NEEDS TO DO
 }
 
-tensor_t DLLEXPORT get_node_input_tensor(node_t node, int input_idx)
+tensor_t get_node_input_tensor(node_t node, int input_idx)
 {
     struct ir_node* ir_node = ( struct ir_node* )node;
 
@@ -506,7 +529,7 @@ tensor_t DLLEXPORT get_node_input_tensor(node_t node, int input_idx)
     return get_ir_graph_tensor(ir_node->graph, ir_node->input_tensors[input_idx]);
 }
 
-tensor_t DLLEXPORT get_node_output_tensor(node_t node, int output_idx)
+tensor_t get_node_output_tensor(node_t node, int output_idx)
 {
     struct ir_node* ir_node = ( struct ir_node* )node;
 
@@ -519,19 +542,19 @@ tensor_t DLLEXPORT get_node_output_tensor(node_t node, int output_idx)
     return get_ir_graph_tensor(ir_node->graph, ir_node->output_tensors[output_idx]);
 }
 
-int DLLEXPORT set_custom_kernel(node_t node, const char* dev_name, struct custom_kernel_ops* kernel_ops)
+int set_custom_kernel(node_t node, const char* dev_name, struct custom_kernel_ops* kernel_ops)
 {
     // TODO: set custom kernel
     return -1;
 }
 
-int DLLEXPORT remove_custom_kernel(node_t node, const char* dev_name)
+int remove_custom_kernel(node_t node, const char* dev_name)
 {
     // TODO: remove custom kernel
     return -1;
 }
 
-int DLLEXPORT set_node_input_tensor(node_t node, int input_idx, tensor_t tensor)
+int set_node_input_tensor(node_t node, int input_idx, tensor_t tensor)
 {
     struct ir_node* ir_node = ( struct ir_node* )node;
     struct ir_tensor* ir_tensor = ( struct ir_tensor* )tensor;
@@ -539,7 +562,7 @@ int DLLEXPORT set_node_input_tensor(node_t node, int input_idx, tensor_t tensor)
     return set_ir_node_input_tensor(ir_node, input_idx, ir_tensor);
 }
 
-int DLLEXPORT set_node_output_tensor(node_t node, int output_idx, tensor_t tensor, int tensor_type)
+int set_node_output_tensor(node_t node, int output_idx, tensor_t tensor, int tensor_type)
 {
     struct ir_node* ir_node = ( struct ir_node* )node;
     struct ir_tensor* ir_tensor = ( struct ir_tensor* )tensor;
@@ -549,21 +572,21 @@ int DLLEXPORT set_node_output_tensor(node_t node, int output_idx, tensor_t tenso
     return set_ir_node_output_tensor(ir_node, output_idx, ir_tensor);
 }
 
-int DLLEXPORT get_node_output_number(node_t node)
+int get_node_output_number(node_t node)
 {
     struct ir_node* ir_node = ( struct ir_node* )node;
 
     return ir_node->output_num;
 }
 
-int DLLEXPORT get_node_input_number(node_t node)
+int get_node_input_number(node_t node)
 {
     struct ir_node* ir_node = ( struct ir_node* )node;
 
     return ir_node->input_num;
 }
 
-int DLLEXPORT add_node_attr(node_t node, const char* attr_name, const char* type_name, int size)
+int add_node_attr(node_t node, const char* attr_name, const char* type_name, int size)
 {
     struct ir_node* ir_node = ( struct ir_node* )node;
 
@@ -584,39 +607,22 @@ int DLLEXPORT add_node_attr(node_t node, const char* attr_name, const char* type
     return 0;
 }
 
-node_t DLLEXPORT get_graph_node_by_idx(graph_t graph, int idx)
-{
-    struct ir_graph* ir_graph = ( struct ir_graph* )graph;
-
-    if (idx < 0 || idx >= ir_graph->node_num)
-        return NULL;
-
-    return ir_graph->node_list[idx];
-}
-
-int DLLEXPORT get_graph_node_num(graph_t graph)
-{
-    struct ir_graph* ir_graph = ( struct ir_graph* )graph;
-
-    return ir_graph->node_num;
-}
-
-int DLLEXPORT get_node_attr_int(node_t node, const char* attr_name, int* attr_val)
+int get_node_attr_int(node_t node, const char* attr_name, int* attr_val)
 {
     return get_node_attr_generic(node, attr_name, data_type_typeinfo_name(TENGINE_DT_INT32), attr_val, sizeof(int));
 }
 
-int DLLEXPORT get_node_attr_float(node_t node, const char* attr_name, float* attr_val)
+int get_node_attr_float(node_t node, const char* attr_name, float* attr_val)
 {
     return get_node_attr_generic(node, attr_name, data_type_typeinfo_name(TENGINE_DT_FP32), attr_val, sizeof(float));
 }
 
-int DLLEXPORT get_node_attr_pointer(node_t node, const char* attr_name, void* attr_val)
+int get_node_attr_pointer(node_t node, const char* attr_name, void* attr_val)
 {
     return get_node_attr_generic(node, attr_name, NULL, attr_val, sizeof(void*));
 }
 
-int DLLEXPORT get_node_attr_generic(node_t node, const char* attr_name, const char* type_name, void* buf, int size)
+int get_node_attr_generic(node_t node, const char* attr_name, const char* type_name, void* buf, int size)
 {
     struct ir_node* ir_node = ( struct ir_node* )node;
 
@@ -637,22 +643,22 @@ int DLLEXPORT get_node_attr_generic(node_t node, const char* attr_name, const ch
     return get_attr_val(attr_mem, attr_num, attr_name, type_name, buf, size);
 }
 
-int DLLEXPORT set_node_attr_int(node_t node, const char* attr_name, const int* attr_val)
+int set_node_attr_int(node_t node, const char* attr_name, const int* attr_val)
 {
     return set_node_attr_generic(node, attr_name, data_type_typeinfo_name(TENGINE_DT_INT32), attr_val, sizeof(int));
 }
 
-int DLLEXPORT set_node_attr_float(node_t node, const char* attr_name, const float* attr_val)
+int set_node_attr_float(node_t node, const char* attr_name, const float* attr_val)
 {
     return set_node_attr_generic(node, attr_name, data_type_typeinfo_name(TENGINE_DT_FP32), attr_val, sizeof(float));
 }
 
-int DLLEXPORT set_node_attr_pointer(node_t node, const char* attr_name, const void* attr_val)
+int set_node_attr_pointer(node_t node, const char* attr_name, const void* attr_val)
 {
     return set_node_attr_generic(node, attr_name, NULL, attr_val, sizeof(void*));
 }
 
-int DLLEXPORT set_node_attr_generic(node_t node, const char* attr_name, const char* type_name, const void* buf,
+int set_node_attr_generic(node_t node, const char* attr_name, const char* type_name, const void* buf,
                                     int size)
 {
     struct ir_node* ir_node = ( struct ir_node* )node;
@@ -674,14 +680,14 @@ int DLLEXPORT set_node_attr_generic(node_t node, const char* attr_name, const ch
     return set_attr_val(attr_mem, attr_num, attr_name, type_name, buf, size);
 }
 
-tensor_t DLLEXPORT create_graph_tensor(graph_t graph, const char* tensor_name, int data_type)
+tensor_t create_graph_tensor(graph_t graph, const char* tensor_name, int data_type)
 {
     struct ir_graph* ir_graph = ( struct ir_graph* )graph;
 
     return create_ir_tensor(ir_graph, tensor_name, data_type);
 }
 
-tensor_t DLLEXPORT get_graph_tensor(graph_t graph, const char* tensor_name)
+tensor_t get_graph_tensor(graph_t graph, const char* tensor_name)
 {
     struct ir_graph* ir_graph = ( struct ir_graph* )graph;
 
@@ -713,7 +719,7 @@ tensor_t DLLEXPORT get_graph_tensor(graph_t graph, const char* tensor_name)
     return NULL;
 }
 
-const_char_t DLLEXPORT get_tensor_name(tensor_t tensor)
+const_char_t get_tensor_name(tensor_t tensor)
 {
     struct ir_tensor* ir_tensor = ( struct ir_tensor* )tensor;
 
@@ -723,19 +729,19 @@ const_char_t DLLEXPORT get_tensor_name(tensor_t tensor)
     return ir_tensor->name;
 }
 
-void DLLEXPORT release_graph_tensor(tensor_t tensor)
+void release_graph_tensor(tensor_t tensor)
 {
     // NOTHING NEEDS TO DO
 }
 
-int DLLEXPORT set_tensor_shape(tensor_t tensor, const int dims[], int dim_number)
+int set_tensor_shape(tensor_t tensor, const int dims[], int dim_number)
 {
     struct ir_tensor* ir_tensor = ( struct ir_tensor* )tensor;
 
     return set_ir_tensor_shape(ir_tensor, dims, dim_number);
 }
 
-int DLLEXPORT get_tensor_shape(tensor_t tensor, int dims[], int dim_number)
+int get_tensor_shape(tensor_t tensor, int dims[], int dim_number)
 {
     struct ir_tensor* ir_tensor = ( struct ir_tensor* )tensor;
 
@@ -751,14 +757,14 @@ int DLLEXPORT get_tensor_shape(tensor_t tensor, int dims[], int dim_number)
     return ir_tensor->dim_num;
 }
 
-int DLLEXPORT get_tensor_buffer_size(tensor_t tensor)
+int get_tensor_buffer_size(tensor_t tensor)
 {
     struct ir_tensor* ir_tensor = ( struct ir_tensor* )tensor;
 
     return ir_tensor->elem_size * ir_tensor->elem_num;
 }
 
-void_ptr_t DLLEXPORT get_tensor_buffer(tensor_t tensor)
+void_ptr_t get_tensor_buffer(tensor_t tensor)
 {
     struct ir_tensor* ir_tensor = ( struct ir_tensor* )tensor;
 
@@ -767,7 +773,7 @@ void_ptr_t DLLEXPORT get_tensor_buffer(tensor_t tensor)
     return ir_tensor->data;
 }
 
-int DLLEXPORT set_tensor_buffer(tensor_t tensor, void* buffer, int buffer_size)
+int set_tensor_buffer(tensor_t tensor, void* buffer, int buffer_size)
 {
     struct ir_tensor* ir_tensor = ( struct ir_tensor* )tensor;
     int tensor_size = get_tensor_buffer_size(tensor);
@@ -789,7 +795,7 @@ int DLLEXPORT set_tensor_buffer(tensor_t tensor, void* buffer, int buffer_size)
     return 0;
 }
 
-int DLLEXPORT get_tensor_data(tensor_t tensor, void* output_data, int data_size)
+int get_tensor_data(tensor_t tensor, void* output_data, int data_size)
 {
     struct ir_tensor* ir_tensor = ( struct ir_tensor* )tensor;
     int tensor_size = get_tensor_buffer_size(tensor);
@@ -817,7 +823,7 @@ int DLLEXPORT get_tensor_data(tensor_t tensor, void* output_data, int data_size)
     return -1;
 }
 
-int DLLEXPORT set_tensor_data(tensor_t tensor, const void* input_data, int data_size)
+int set_tensor_data(tensor_t tensor, const void* input_data, int data_size)
 {
     struct ir_tensor* ir_tensor = ( struct ir_tensor* )tensor;
     int tensor_size = get_tensor_buffer_size(tensor);
@@ -838,14 +844,14 @@ int DLLEXPORT set_tensor_data(tensor_t tensor, const void* input_data, int data_
     return -1;
 }
 
-int DLLEXPORT get_tensor_data_type(tensor_t tensor)
+int get_tensor_data_type(tensor_t tensor)
 {
     struct ir_tensor* ir_tensor = ( struct ir_tensor* )tensor;
 
     return ir_tensor->data_type;
 }
 
-int DLLEXPORT set_tensor_data_type(tensor_t tensor, int data_type)
+int set_tensor_data_type(tensor_t tensor, int data_type)
 {
     struct ir_tensor* ir_tensor = ( struct ir_tensor* )tensor;
 
@@ -854,14 +860,14 @@ int DLLEXPORT set_tensor_data_type(tensor_t tensor, int data_type)
     return 0;
 }
 
-int DLLEXPORT get_tensor_layout(tensor_t tensor)
+int get_tensor_layout(tensor_t tensor)
 {
     struct ir_tensor* ir_tensor = ( struct ir_tensor* )tensor;
 
     return ir_tensor->layout;
 }
 
-int DLLEXPORT set_tensor_layout(tensor_t tensor, int layout)
+int set_tensor_layout(tensor_t tensor, int layout)
 {
     struct ir_tensor* ir_tensor = ( struct ir_tensor* )tensor;
 
@@ -870,21 +876,21 @@ int DLLEXPORT set_tensor_layout(tensor_t tensor, int layout)
     return 0;
 }
 
-int DLLEXPORT set_tensor_quant_param(tensor_t tensor, const float* scale, const int* zero_point, int number)
+int set_tensor_quant_param(tensor_t tensor, const float* scale, const int* zero_point, int number)
 {
     struct ir_tensor* ir_tensor = ( struct ir_tensor* )tensor;
 
     return set_ir_tensor_quant_param(ir_tensor, scale, zero_point, number);
 }
 
-int DLLEXPORT get_tensor_quant_param(tensor_t tensor, float* scale, int* zero_point, int number)
+int get_tensor_quant_param(tensor_t tensor, float* scale, int* zero_point, int number)
 {
     struct ir_tensor* ir_tensor = ( struct ir_tensor* )tensor;
 
     return get_ir_tensor_quant_param(ir_tensor, scale, zero_point, number);
 }
 
-int DLLEXPORT set_graph_device(graph_t graph, const char* dev_name)
+int set_graph_device(graph_t graph, const char* dev_name)
 {
     struct ir_graph* ir_graph = ( struct ir_graph* )graph;
     struct nn_device* nn_dev = get_nn_device_by_name(dev_name);
@@ -899,7 +905,7 @@ int DLLEXPORT set_graph_device(graph_t graph, const char* dev_name)
     return 0;
 }
 
-int DLLEXPORT set_graph_attr(graph_t graph, const char* attr_name, const void* buf, int size)
+int set_graph_attr(graph_t graph, const char* attr_name, const void* buf, int size)
 {
     struct ir_graph* ir_graph = ( struct ir_graph* )graph;
     struct ir_attr* attr_mem = ir_graph->attr_mem;
@@ -920,7 +926,7 @@ int DLLEXPORT set_graph_attr(graph_t graph, const char* attr_name, const void* b
     return 0;
 }
 
-int DLLEXPORT get_graph_attr(graph_t graph, const char* attr_name, void* buf, int size)
+int get_graph_attr(graph_t graph, const char* attr_name, void* buf, int size)
 {
     struct ir_graph* ir_graph = ( struct ir_graph* )graph;
     struct ir_attr* attr_mem = ir_graph->attr_mem;
@@ -929,7 +935,7 @@ int DLLEXPORT get_graph_attr(graph_t graph, const char* attr_name, void* buf, in
     return get_attr_val(attr_mem, attr_num, attr_name, NULL, buf, size);
 }
 
-size_t DLLEXPORT get_cluster_affinity_mask(int cluster)
+size_t get_cluster_affinity_mask(int cluster)
 {
     check_cpu();
     return get_cluster_mask(cluster);
@@ -970,7 +976,7 @@ int set_graph_thread_mask(graph_t graph, size_t cpu_mask)
     return 0;
 }
 
-int DLLEXPORT prerun_graph(graph_t graph)
+int prerun_graph(graph_t graph)
 {
     struct ir_graph* ir_graph = ( struct ir_graph* )graph;
 
@@ -983,12 +989,17 @@ int DLLEXPORT prerun_graph(graph_t graph)
 
     struct exec_context* context = get_ir_graph_context(ir_graph);
 
-    struct dev_allocator* allocator = context->dev_allocator;
-
-    if (allocator->allocate(allocator, ir_graph) < 0)
+    if (0 != split_graph(ir_graph))
     {
         ir_graph->status = GRAPH_STAT_ERROR;
-        fprintf(stderr, "allocator->allocate failed\n");
+        fprintf(stderr, "split graph failed\n");
+        return -1;
+    }
+
+    if (0 != optimize_graph(ir_graph, TENGINE_MODE_FP32))
+    {
+        ir_graph->status = GRAPH_STAT_ERROR;
+        fprintf(stderr, "optimize graph failed\n");
         return -1;
     }
 
@@ -1006,7 +1017,7 @@ int DLLEXPORT prerun_graph(graph_t graph)
     return 0;
 }
 
-int DLLEXPORT prerun_graph_multithread(graph_t graph, struct options opt)
+int prerun_graph_multithread(graph_t graph, struct options opt)
 {
     check_cpu();
     size_t mask = get_cluster_mask(opt.cluster);
@@ -1024,11 +1035,18 @@ int DLLEXPORT prerun_graph_multithread(graph_t graph, struct options opt)
     }
 
     struct exec_context* context = get_ir_graph_context(ir_graph);
-    struct dev_allocator* allocator = context->dev_allocator;
-    if (allocator->allocate(allocator, ir_graph) < 0)
+
+    if (0 != split_graph(ir_graph))
     {
         ir_graph->status = GRAPH_STAT_ERROR;
-        fprintf(stderr, "allocator->allocate failed\n");
+        fprintf(stderr, "split graph failed\n");
+        return -1;
+    }
+
+    if (0 != optimize_graph(ir_graph, opt.precision))
+    {
+        ir_graph->status = GRAPH_STAT_ERROR;
+        fprintf(stderr, "optimize graph failed\n");
         return -1;
     }
 
@@ -1041,12 +1059,20 @@ int DLLEXPORT prerun_graph_multithread(graph_t graph, struct options opt)
     }
 
     ir_graph->status = GRAPH_STAT_READY;
-    set_cpu_affine(mask);
+
+    if (0 != opt.affinity && 0 != (opt.affinity & mask))
+    {
+        set_cpu_affine(opt.affinity);
+    }
+    else
+    {
+        set_cpu_affine(mask);
+    }
 
     return 0;
 }
 
-int DLLEXPORT run_graph(graph_t graph, int block)
+int run_graph(graph_t graph, int block)
 {
     struct ir_graph* ir_graph = ( struct ir_graph* )graph;
     struct exec_context* context = get_ir_graph_context(ir_graph);
@@ -1068,7 +1094,7 @@ int DLLEXPORT run_graph(graph_t graph, int block)
     return 0;
 }
 
-int DLLEXPORT wait_graph(graph_t graph, int try_wait)
+int wait_graph(graph_t graph, int try_wait)
 {
     struct ir_graph* ir_graph = ( struct ir_graph* )graph;
     struct exec_context* context = get_ir_graph_context(ir_graph);
@@ -1092,7 +1118,7 @@ int DLLEXPORT wait_graph(graph_t graph, int try_wait)
     return scheduler->wait(scheduler, ir_graph);
 }
 
-int DLLEXPORT postrun_graph(graph_t graph)
+int postrun_graph(graph_t graph)
 {
     struct ir_graph* ir_graph = ( struct ir_graph* )graph;
     struct exec_context* context = get_ir_graph_context(ir_graph);
@@ -1109,24 +1135,35 @@ int DLLEXPORT postrun_graph(graph_t graph)
     return 0;
 }
 
-void DLLEXPORT dump_graph(graph_t graph)
+void dump_graph(graph_t graph)
 {
     dump_ir_graph(graph);
 }
 
-const_char_t DLLEXPORT get_node_device(node_t node)
+const_char_t get_node_device(node_t node)
 {
     struct ir_node* ir_node = ( struct ir_node* )node;
     struct ir_graph* graph = ir_node->graph;
-    struct subgraph* subgraph = get_ir_graph_subgraph(graph, ir_node->subgraph_idx);
 
-    if (subgraph->nn_dev)
-        return subgraph->nn_dev->name;
-
-    return NULL;
+    int subgraph_count = get_vector_num(graph->subgraph_list);
+    if (subgraph_count > 0)
+    {
+        if (0 > ir_node->subgraph_idx)
+            return NULL;
+        else
+        {
+            struct subgraph* subgraph = get_ir_graph_subgraph(graph, ir_node->subgraph_idx);
+            if (subgraph->nn_dev)
+                return subgraph->nn_dev->name;
+        }
+    }
+    else
+    {
+        return graph->nn_dev->name;
+    }
 }
 
-context_t DLLEXPORT create_context(const char* context_name, int empty_context)
+context_t create_context(const char* context_name, int empty_context)
 {
     struct exec_context* context = ( struct exec_context* )sys_malloc(sizeof(struct exec_context));
 
@@ -1157,7 +1194,7 @@ context_t DLLEXPORT create_context(const char* context_name, int empty_context)
     return context;
 }
 
-void DLLEXPORT destroy_context(context_t context)
+void destroy_context(context_t context)
 {
     struct exec_context* exec_context = ( struct exec_context* )context;
 
@@ -1169,14 +1206,14 @@ void DLLEXPORT destroy_context(context_t context)
     sys_free(exec_context);
 }
 
-int DLLEXPORT get_context_device_number(context_t context)
+int get_context_device_number(context_t context)
 {
     struct exec_context* exec_context = ( struct exec_context* )context;
 
     return get_vector_num(exec_context->dev_list);
 }
 
-const_char_t DLLEXPORT get_context_device(context_t context, int idx)
+const_char_t get_context_device(context_t context, int idx)
 {
     struct exec_context* exec_context = ( struct exec_context* )context;
 
@@ -1191,7 +1228,7 @@ const_char_t DLLEXPORT get_context_device(context_t context, int idx)
     return dev->name;
 }
 
-int DLLEXPORT add_context_device(context_t context, const char* dev_name)
+int add_context_device(context_t context, const char* dev_name)
 {
     struct nn_device* dev = get_nn_device_by_name(dev_name);
 
@@ -1241,7 +1278,7 @@ int DLLEXPORT add_context_device(context_t context, const char* dev_name)
     return 0;
 }
 
-int DLLEXPORT remove_context_device(context_t context, const char* dev_name)
+int remove_context_device(context_t context, const char* dev_name)
 {
     struct exec_context* exec_context = ( struct exec_context* )context;
 
@@ -1267,31 +1304,36 @@ int DLLEXPORT remove_context_device(context_t context, const char* dev_name)
     return 0;
 }
 
-int DLLEXPORT set_context_attr(context_t context, const char* attr_name, const void* val, int val_size)
+int set_context_attr(context_t context, const char* attr_name, const void* val, int val_size)
 {
     set_tengine_errno(ENOTSUP);
     return -1;
 }
 
-int DLLEXPORT get_context_attr(context_t context, const char* attr_name, void* val, int val_size)
+int get_context_attr(context_t context, const char* attr_name, void* val, int val_size)
 {
     set_tengine_errno(ENOTSUP);
     return -1;
 }
 
-int DLLEXPORT clr_tengine_errno()
+int clr_tengine_errno()
 {
     int ret = get_tengine_errno();
     set_tengine_errno(0);
     return ret;
 }
 
-void DLLEXPORT set_log_level(enum log_level level)
+void set_log_level(enum log_level level)
 {
     SET_LOG_LEVEL(level);
 }
 
-void DLLEXPORT set_log_output(log_print_t func)
+void set_log_output(log_print_t func)
 {
     SET_LOG_OUTPUT(func);
+}
+
+const char* get_tengine_hcl_version()
+{
+    return gsHclVersion;
 }

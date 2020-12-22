@@ -93,12 +93,12 @@ void generate_anchors(const int base_size, const struct vector* ratios_, const s
     base_anchor.x1 = base_size - 1.f;
     base_anchor.y1 = base_size - 1.f;
 
-    struct vector* ratio_anchors = create_vector(sizeof(struct Anchor_t*) * 2, NULL);
+    struct vector* ratio_anchors = create_vector(sizeof(struct Anchor), NULL);
 
     ratio_enum(base_anchor, ratios_, ratio_anchors);
     for (int i = 0; i < ( int )ratio_anchors->elem_num; ++i)
     {
-        struct vector* scale_anchors = create_vector(sizeof(struct Anchor_t*) * 2, NULL);
+        struct vector* scale_anchors = create_vector(sizeof(struct Anchor), NULL);
 
         scale_enum(*( Anchor_t* )get_vector_data(ratio_anchors, i), scales_, scale_anchors);
         for (int j = 0; j < scale_anchors->elem_num; j++)
@@ -120,7 +120,7 @@ static int infer_shape(struct ir_node* node)
     struct ir_tensor* output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
     rpn_param_t* rpn_param = ( rpn_param_t* )node->op.param_mem;
 
-    rpn_param->anchors_ = create_vector(sizeof(struct Anchor_t*) * 2, NULL);
+    rpn_param->anchors_ = create_vector(sizeof(struct Anchor), NULL);
     generate_anchors(rpn_param->basesize, rpn_param->ratios, rpn_param->anchor_scales, rpn_param->anchors_);
 
     int dims[4];

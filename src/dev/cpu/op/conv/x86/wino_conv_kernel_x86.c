@@ -68,7 +68,7 @@ static void pad_0_align_2D(float* dst, float* src, int m, int n, int m_align, in
 }
 
 // pad 0 in right and down side on 3D
-void pad_0_align_3D(float* dst, float* src, int m, int n, int m_align, int n_align, int c, int pad_h, int pad_w)
+static void pad_0_align_3D(float* dst, float* src, int m, int n, int m_align, int n_align, int c, int pad_h, int pad_w)
 {
     int i;
     if (n >= n_align && m >= m_align)
@@ -97,7 +97,7 @@ static void delete_0_2D(float* dst, float* src, int m_align, int n_align, int m,
 }
 
 // pad 0 in right and down side on 3D
-void delete_0_3D(float* dst, float* src, int m_align, int n_align, int m, int n, int c, int pad_h, int pad_w)
+static void delete_0_3D(float* dst, float* src, int m_align, int n_align, int m, int n, int c, int pad_h, int pad_w)
 {
     int i;
     if (n >= n_align && m >= m_align)
@@ -1335,21 +1335,25 @@ int wino_conv_hcl_postrun(struct conv_priv_info* priv_info)
         sys_free(priv_info->interleave_buffer);
         priv_info->interleave_buffer = NULL;
     }
+
     if (priv_info->input_pad)
     {
         sys_free(priv_info->input_pad);
         priv_info->input_pad = NULL;
     }
+
     if (priv_info->dot_block)
     {
         sys_free(priv_info->dot_block);
         priv_info->dot_block = NULL;
     }
+
     if (priv_info->transform_input)
     {
         sys_free(priv_info->transform_input);
         priv_info->transform_input = NULL;
     }
+
     if (priv_info->output_bordered)
     {
         sys_free(priv_info->output_bordered);

@@ -91,7 +91,7 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
     {
         if (fp16_conv_hcl_prerun(input_tensor, filter_tensor, output_tensor, conv_priv_info, conv_param) < 0)
         {
-            TLOG_ERR("hcl conv hybrid int8 prerun failed\n");
+            TLOG_ERR("hcl conv fp16 prerun failed\n");
             set_tengine_errno(EFAULT);
             return -1;
         }
@@ -101,7 +101,7 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
     {
         if (int8_conv_hcl_prerun(input_tensor,filter_tensor,output_tensor,conv_priv_info,conv_param) < 0)
         {
-            TLOG_ERR("hcl conv hybrid int8 prerun failed\n");
+            TLOG_ERR("hcl conv int8 prerun failed\n");
             set_tengine_errno(EFAULT);
             return -1;
         }

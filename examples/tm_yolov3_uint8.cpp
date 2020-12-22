@@ -22,20 +22,20 @@
  * Author: qtang@openailab.com
  */
 
-#include <unistd.h>
-#include <iostream>
-#include <fstream>
-#include <sstream>
+#include <cstdlib>
 #include <iomanip>
-#include <string>
 #include <vector>
-#include <sys/time.h>
-#include <stdlib.h>
+
+#ifdef _MSC_VER
+#define NOMINMAX
+#endif
+
 #include <algorithm>
+#include <cmath>
+
 #include "common.h"
 #include "tengine_c_api.h"
 #include "tengine_operations.h"
-#include <math.h>
 
 #define DEFAULT_REPEAT_COUNT 1
 #define DEFAULT_THREAD_COUNT 1
@@ -713,6 +713,7 @@ int main(int argc, char* argv[])
     opt.num_thread = num_thread;
     opt.cluster = TENGINE_CLUSTER_ALL;
     opt.precision = TENGINE_MODE_UINT8;
+    opt.affinity = 0;
 
     /* inital tengine */
     if (init_tengine() != 0)
@@ -770,8 +771,8 @@ int main(int argc, char* argv[])
     get_input_data_darknet_uint8(image_file, input_data.data(), net_h, net_w, input_scale, input_zero_point);
 
     /* run graph */
-    double min_time = __DBL_MAX__;
-    double max_time = -__DBL_MAX__;
+    double min_time = DBL_MAX;
+    double max_time = DBL_MIN;
     double total_time = 0.;
     for (int i = 0; i < repeat_count; i++)
     {

@@ -37,13 +37,18 @@
  * https://opensource.org/licenses/BSD-3-Clause
  */
 
-#include <unistd.h>
 #include <vector>
 #include <string>
+
+#ifdef _MSC_VER
+#define NOMINMAX
+#endif
+
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
+
 #include "common.h"
-#include <stdlib.h>
 
 #include "tengine_c_api.h"
 #include "tengine_operations.h"
@@ -452,7 +457,8 @@ int main(int argc, char* argv[])
     struct options opt;
     opt.num_thread = num_thread;
     opt.cluster = TENGINE_CLUSTER_ALL;
-    opt.precision = TENGINE_MODE_FP32;        
+    opt.precision = TENGINE_MODE_FP32;
+    opt.affinity = 0;       
 
     /* inital tengine */
     int ret = init_tengine();
@@ -516,7 +522,7 @@ int main(int argc, char* argv[])
     }
 
     /* run graph */
-    float min_time = __FLT_MAX__, max_time = 0, total_time = 0.f;
+    float min_time = FLT_MAX, max_time = 0, total_time = 0.f;
     for (int i = 0; i < repeat_count; i++)
     {
         double start = get_current_time();

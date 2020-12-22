@@ -25,10 +25,11 @@
 #ifndef __TENGINE_ERRNO_H__
 #define __TENGINE_ERRNO_H__
 
-#include <errno.h>
+#ifdef _MSC_VER
 
-#ifdef CONFIG_ARCH_CORTEX_M
+#define EBADSLT 57
 
+#elif CONFIG_ARCH_CORTEX_M
 #define ENOENT 102
 #define EAGAIN 111
 #define EFAULT 114
@@ -36,10 +37,20 @@
 #define ENOSPC 128
 #define ENODATA 161
 #define ENOTSUP 195
-
+#else
+#include <errno.h>
 #endif
 
-extern int get_tengine_errno(void);
-extern void set_tengine_errno(int err_num);
+#ifndef DLLEXPORT
+#ifdef _MSC_VER
+#define DLLEXPORT __declspec(dllexport)
+#else
+#define DLLEXPORT __attribute((visibility("default")))
+#endif
+#endif
+
+DLLEXPORT int get_tengine_errno(void);
+
+DLLEXPORT void set_tengine_errno(int err_num);
 
 #endif

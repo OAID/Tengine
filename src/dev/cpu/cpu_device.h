@@ -26,6 +26,9 @@
 #define __CPU_DEVICE_H__
 
 #include "nn_device.h"
+#include "convolution_param.h"
+#include "deconv_param.h"
+#include "pooling_param.h"
 
 #define MEM_POOL_ALLOCATED 8
 
@@ -98,6 +101,7 @@ struct exec_graph
     int num_thread;
     int cpu_affinity;
     int mode;
+    void* timer;
 };
 
 #define GET_MEM_PTR_HEADER(ptr) ( struct mem_ptr_header* )(( char* )ptr - 4);
