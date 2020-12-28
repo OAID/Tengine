@@ -32,7 +32,7 @@
 #include <stdio.h>
 
 #ifdef _MSC_VER
-#include "getopt.h"
+#include "msc_getopt.h"
 #else
 #include <unistd.h>
 #endif
