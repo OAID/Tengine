@@ -34,6 +34,8 @@
 #ifdef _MSC_VER
 #include "msc_getopt.h"
 #else
+
+#include <getopt.h>
 #include <unistd.h>
 #endif
 
