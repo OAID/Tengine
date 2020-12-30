@@ -32,7 +32,7 @@
 #include <math.h>
 
 
-void pad_int8(int8_t* input, int8_t* output, int in_h, int in_w, int out_h, int out_w, int top, int left, int8_t v)
+static void pad_int8(int8_t* input, int8_t* output, int in_h, int in_w, int out_h, int out_w, int top, int left, int8_t v)
 {
     int8_t* ptr = input;
     int8_t* outptr = output;
@@ -130,6 +130,7 @@ static int conv3x3s1_int8_sse(struct ir_tensor* input_tensor, struct ir_tensor* 
     else
     {
         input_tmp = ( int8_t* )sys_malloc(inh_tmp * inw_tmp * inch * sizeof(int8_t));
+#pragma omp parallel for num_threads(num_thread)        
         for (int g = 0; g < inch; g++)
         {
             int8_t* pad_in = input_int8 + g * inh * inw;
@@ -306,6 +307,7 @@ static int conv3x3s2_int8_sse(struct ir_tensor* input_tensor, struct ir_tensor* 
     else
     {
         input_tmp = ( int8_t* )sys_malloc(inh_tmp * inw_tmp * inch * sizeof(int8_t));
+#pragma omp parallel for num_threads(num_thread)        
         for (int g = 0; g < inch; g++)
         {
             int8_t* pad_in = input_int8 + g * inh * inw;
