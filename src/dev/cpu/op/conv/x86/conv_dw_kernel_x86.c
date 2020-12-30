@@ -2508,7 +2508,7 @@ static void convdw3x3s2(float* output, float* input, float* _kernel, float* _bia
 #endif
 
 int conv_dw_run(struct ir_tensor* input_tensor, struct ir_tensor* weight_tensor, struct ir_tensor* bias_tensor,
-                struct ir_tensor* output_tensor, struct conv_param* param, int num_thread, int cpu_affinity)
+                struct ir_tensor* output_tensor, struct conv_priv_info* conv_info, struct conv_param* param, int num_thread, int cpu_affinity)
 {
     float* input = ( float* )input_tensor->data;
     float* output = ( float* )output_tensor->data;

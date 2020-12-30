@@ -36,13 +36,6 @@
 #define max(a, b) ((a) > (b) ? (a) : (b))
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
-static double get_current_time()
-{
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-
-    return tv.tv_sec * 1000.0 + tv.tv_usec / 1000.0;
-}
 #endif
 
 static int get_private_mem_size(struct ir_tensor* filter)
@@ -1007,7 +1000,7 @@ static void sgemm_i8(int M, int N, int K, int8_t* pA_t, int8_t* pB_t, int32_t* p
     nn_outch = M >> 3;
     remain_outch_start = nn_outch << 3;
 
-//#pragma omp parallel for num_threads(num_thread)
+#pragma omp parallel for num_threads(num_thread)
     for (int pp = 0; pp < nn_outch; pp++)
     {
         int i = pp * 8;
@@ -1027,7 +1020,7 @@ static void sgemm_i8(int M, int N, int K, int8_t* pA_t, int8_t* pB_t, int32_t* p
             int8_t* va = pA_t + (i / 8) * 8 * K;
             int8_t* vb = pB_t + (j / 8) * 8 * K;
 
-#if __AVX__
+#if 0 //__AVX__
             __m256i _sum0 = _mm256_set1_epi32(0);
             __m256i _sum1 = _mm256_set1_epi32(0);
             __m256i _sum2 = _mm256_set1_epi32(0);
@@ -1214,7 +1207,7 @@ static void sgemm_i8(int M, int N, int K, int8_t* pA_t, int8_t* pB_t, int32_t* p
             int8_t* va = pA_t + (i / 8) * 8 * K;
             int8_t* vb = pB_t + (j / 8 + j % 8) * 8 * K;
 
-#if __AVX__
+#if 0 //__AVX__
             __m256i _sum0_7 = _mm256_set1_epi32(0);
             __m256i _sum0 = _mm256_set1_epi32(0);
             __m256i _sum1 = _mm256_set1_epi32(0);
@@ -1330,7 +1323,7 @@ static void sgemm_i8(int M, int N, int K, int8_t* pA_t, int8_t* pB_t, int32_t* p
         {
             int8_t* va = pA_t + (i / 8 + (i % 8) / 4) * 8 * K;
             int8_t* vb = pB_t + (j / 8) * 8 * K;
-#if __AVX__
+#if 0 //__AVX__
             __m256i _sum0 = _mm256_set1_epi32(0);
             __m256i _sum1 = _mm256_set1_epi32(0);
             __m256i _sum2 = _mm256_set1_epi32(0);
@@ -1452,7 +1445,7 @@ static void sgemm_i8(int M, int N, int K, int8_t* pA_t, int8_t* pB_t, int32_t* p
         {
             int8_t* va = pA_t + (i / 8 + (i % 8) / 4) * 8 * K;
             int8_t* vb = pB_t + (j / 8 + j % 8) * 8 * K;
-#if __AVX__
+#if 0 //__AVX__
         __m256i _sum0_3 = _mm256_set1_epi32(0);
         __m256i _sum0 = _mm256_set1_epi32(0);
         __m256i _sum1 = _mm256_set1_epi32(0);
@@ -1542,7 +1535,7 @@ static void sgemm_i8(int M, int N, int K, int8_t* pA_t, int8_t* pB_t, int32_t* p
         {
             int8_t* va = pA_t + (i / 8 + (i % 8) / 4 + i % 4) * 8 * K;
             int8_t* vb = pB_t + (j / 8) * 8 * K;
-#if __AVX__
+#if 0 //__AVX__
             __m256i _sum0 = _mm256_set1_epi32(0);
 
             int k = 0;
