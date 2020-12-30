@@ -655,7 +655,8 @@ static inline void conv_dw_int8_3x3s2(const int8_t* input, const int8_t* kernel,
 }
 
 int conv_dw_int8_run(struct ir_tensor* input_tensor, struct ir_tensor* filter_tensor, struct ir_tensor* bias_tensor,
-                     struct ir_tensor* output_tensor, struct conv_param* param, int num_thread, int cpu_affinity)
+                 struct ir_tensor* output_tensor, struct conv_priv_info* priv_info, struct conv_param* param,
+                 int num_thread, int cpu_affinity)
 {
     int pads[4];
     int group = param->group;
