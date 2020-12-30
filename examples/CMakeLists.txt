@@ -38,6 +38,8 @@ tengine_example(tm_yolov4_tiny              tm_yolov4_tiny.cpp)
 
 
 # add examples with opencv
+# set(OpenCV_DIR /mnt/d/ubuntu/opencv_install/linux-armv7/lib/cmake/opencv4)
+
 find_package(OpenCV QUIET)
 
     if(OpenCV_FOUND)
