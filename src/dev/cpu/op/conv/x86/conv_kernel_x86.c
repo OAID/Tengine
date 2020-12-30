@@ -1811,6 +1811,7 @@ static void sgemm_int8(struct ir_tensor* input, struct ir_tensor* filter, struct
     sgemm_i8(outchan_g, out_h * out_w, kernel_size, filter_sgemm, input_sgemm_pack4, output_sgemm_int32, num_thread);
 
     /* process bias and dequant output from int32 to fp32 */
+#pragma omp parallel for num_threads(num_thread)
     for (int i = 0; i < outchan_g; i++)
     {
         for (int j = 0; j < out_h * out_w; j++)
@@ -1826,6 +1827,7 @@ static void sgemm_int8(struct ir_tensor* input, struct ir_tensor* filter, struct
     /* process activation relu */
     if (param->activation == 0)
     {
+#pragma omp parallel for num_threads(num_thread)
         for (int i = 0; i < outchan_g; i++)
         {
             for (int j = 0; j < out_h * out_w; j++)
@@ -1841,6 +1843,7 @@ static void sgemm_int8(struct ir_tensor* input, struct ir_tensor* filter, struct
     /* process activation relu6 */
     if (param->activation > 0)
     {
+#pragma omp parallel for num_threads(num_thread)
         for (int i = 0; i < outchan_g; i++)
         {
             for (int j = 0; j < out_h * out_w; j++)
@@ -1858,6 +1861,7 @@ static void sgemm_int8(struct ir_tensor* input, struct ir_tensor* filter, struct
     /* quant from fp32 to int8 */
     for (int i = 0; i < outchan_g; i++)
     {
+#pragma omp parallel for num_threads(num_thread)
         for (int j = 0; j < out_h * out_w; j++)
         {
             int output_off = i * (out_h * out_w) + j;
