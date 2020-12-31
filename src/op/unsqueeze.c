@@ -46,29 +46,56 @@ static int infer_shape(struct ir_node* node)
     int axises_size = unsqueeze_param->axises_size;
     int* out_dim = ( int* )sys_malloc((input->dim_num + axises_size) * sizeof(int));
 
-    for (int i = 0; i < input->dim_num; ++i)
+    if (axises_size == 1)
     {
-        out_dim[i] = input->dims[i];
+        for (int i = 0; i < input->dim_num; ++i)
+        {
+            out_dim[i] = input->dims[i];
+        }
+
+        for (unsigned int j = 0; j < unsqueeze_param->axises_size; j++)
+        {
+            int dim_size = input->dim_num;
+            int pos = unsqueeze_param->axises[j];
+            if (pos < 0)
+            {
+                pos = pos + dim_size;
+            }
+
+            if (pos < 0 || pos > dim_size)
+                return false;
+
+            for (int i = axises_size + input->dim_num - 1; i > pos; --i)
+            {
+                out_dim[i] = input->dims[i - 1];
+            }
+
+            out_dim[pos] = 1;
+        }
     }
-
-    for (unsigned int j = 0; j < unsqueeze_param->axises_size; j++)
+    else // test for OneFlow and daquanxian yyds
     {
-        int dim_size = input->dim_num;
-        int pos = unsqueeze_param->axises[j];
-        if (pos < 0)
+        for (int i = 0; i < input->dim_num + axises_size; ++i)
         {
-            pos = pos + dim_size;
+            out_dim[i] = -99;
         }
 
-        if (pos < 0 || pos > dim_size)
-            return false;
-
-        for (int i = axises_size + input->dim_num - 1; i > pos; --i)
+        for (unsigned int j = 0; j < unsqueeze_param->axises_size; j++)
         {
-            out_dim[i] = input->dims[i - 1];
+            int pos = unsqueeze_param->axises[j];
+            out_dim[pos] = 1;
         }
 
-        out_dim[pos] = 1;
+        int k = 0;
+        for (int i = 0; i < input->dim_num + axises_size; ++i)
+        {
+            if (out_dim[i] == -99)
+            {
+                out_dim[i] = input->dims[k];
+                k++;
+            }
+
+        }
     }
 
     set_ir_tensor_shape(output, out_dim, axises_size + input->dim_num);
