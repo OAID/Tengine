@@ -1,4 +1,4 @@
-name: Tengine-Lite-Actions
+name: tengine-lite-actions
 
 on: [push, pull_request]
 
@@ -17,6 +17,7 @@ jobs:
       run: cmake --build build -j 2
     - name: models
       run: |
+        cd build
         wget http://139.180.196.82/lite/models.zip
         unzip models.zip
         wget http://139.180.196.82/lite/x86_data.zip
@@ -66,6 +67,7 @@ jobs:
       run: cmake --build build -j 2
     - name: models
       run: |
+        cd build
         wget http://139.180.196.82/lite/models.zip
         unzip models.zip
         wget http://139.180.196.82/lite/arm32_data.zip
@@ -116,6 +118,7 @@ jobs:
       run: cmake --build build -j 2
     - name: models
       run: |
+        cd build
         wget http://139.180.196.82/lite/models.zip
         unzip models.zip
         wget http://139.180.196.82/lite/arm64_data.zip
