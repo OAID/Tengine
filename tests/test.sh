@@ -4,7 +4,7 @@ export NumClusterLite=1
 
 function classify_cat()
 {
-    ./build/tests/tm_classify -n $1
+    ./tests/tm_classify -n $1
     if [ "$?" != 0 ]; then
         echo "failed"
         return 0
@@ -16,7 +16,7 @@ function classify_cat()
 
 function classify_bike()
 {
-    ./build/tests/tm_classify -n $1 -i ./images/bike.jpg
+    ./tests/tm_classify -n $1 -i ./images/bike.jpg
     if [ "$?" != 0 ]; then
         echo "failed"
         return 0

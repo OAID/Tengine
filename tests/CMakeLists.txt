@@ -91,7 +91,7 @@ tengine_test(test_plugin        utility/test_plugin.c)
 ]]
 
 # model level test
-tengine_test(tm_classify     models/test_tm_classification.cpp)
+tengine_test(tm_classify           models/test_tm_classification.cpp)
 tengine_test(tm_darknet_yolo       models/test_tm_darknet_yolo.cpp)
 tengine_test(tm_faster_rcnn        models/test_tm_faster_rcnn.cpp)
 tengine_test(tm_lighten_cnn        models/test_tm_lighten_cnn.cpp)

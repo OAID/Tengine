@@ -3,7 +3,7 @@ name: Tengine-Lite-Actions
 on: [push, pull_request]
 
 jobs:
-  linux-gcc:
+  linux-gcc-x86:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
@@ -25,7 +25,9 @@ jobs:
         wget http://139.180.196.82/lite/images.zip
         unzip images.zip
     - name: test
-      run: ./tests/test.sh
+      run: |
+        cd build
+        ../tests/test.sh
 
 
   linux-gcc-arm32:
@@ -74,7 +76,8 @@ jobs:
     - name: test
       run: |
         export PATH=$GITHUB_WORKSPACE/qemu-install/bin:$PATH
-        ./tests/test_arm32.sh 
+        cd build
+        ../tests/test_arm32.sh
 
 
   linux-gcc-aarch64:
@@ -120,15 +123,14 @@ jobs:
         mv arm64_data data
         wget http://139.180.196.82/lite/images.zip
         unzip images
-
-
     - name: test
       run: |
         export PATH=$GITHUB_WORKSPACE/qemu-install/bin:$PATH
-        ./tests/test_arm64.sh 
+        cd build
+        ../tests/test_arm64.sh
         
 
-  linux-gcc-avx2:
+  linux-gcc-x86-avx2:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1

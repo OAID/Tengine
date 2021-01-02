@@ -218,7 +218,7 @@ static int set_sched_affinity(size_t thread_affinity_mask)
 #define CPU_ZERO(cpusetp) memset((cpusetp), 0, sizeof(cpu_set_t))
 
     // set affinity for thread
-#if (defined __GLIBC__) || (defined _OHOS_)
+#if (defined __GLIBC__) || (defined _OHOS_) ||  (defined V831) 
     pid_t pid = syscall(SYS_gettid);
 #else
 #ifdef PI3

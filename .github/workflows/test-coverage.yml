@@ -1,0 +1,44 @@
+name: test-coverage
+
+on: [push, pull_request]
+
+jobs:
+  linux-gcc-x86:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: update
+      run: sudo apt-get update
+    - name: protobuf
+      run: sudo apt-get install libopencv-dev
+    - name: lcov
+      run: sudo apt-get install lcov      
+    - name: configure
+      run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=debug -DTENGINE_BUILD_TESTS=ON -DTENGINE_COVERAGE=ON ..
+    - name: build
+      run: cmake --build build -j 2
+    - name: models
+      run: |
+        cd build
+        wget http://139.180.196.82/lite/models.zip
+        unzip models.zip
+        wget http://139.180.196.82/lite/x86_data.zip
+        unzip x86_data.zip
+        mv x86_data data
+        wget http://139.180.196.82/lite/images.zip
+        unzip images.zip
+    - name: test
+      run: |
+        cd build
+        ../tests/test.sh
+    - name: lcov-collect
+      run: |
+        cd build
+        lcov -d ./src -c -o lcov.info
+        lcov -r lcov.info '/usr/*' -o lcov.info
+        lcov --list lcov.info
+    - name: codecov
+      uses: codecov/codecov-action@v1.0.11
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        file: build/lcov.info        
