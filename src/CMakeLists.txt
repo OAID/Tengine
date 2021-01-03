@@ -90,6 +90,12 @@ if (TENGINE_DYNAMIC_COMPILE AND EXISTS "${CMAKE_SOURCE_DIR}/cmake/operators.cmak
             set (X86_OP_PATH "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/op/${name}/*x86.c")
             list (APPEND HCL_SOURCE ${X86_OP_PATH})
         endif()
+
+        # MIPS64
+        if (${TENGINE_TARGET_PROCESSOR} MATCHES "MIPS")
+            set (MIPS_OP_PATH "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/op/${name}/*mips.c")
+            list (APPEND HCL_SOURCE ${MIPS_OP_PATH})
+        endif()
     endmacro()
     include(${CMAKE_SOURCE_DIR}/cmake/operators.cmake)
 
@@ -97,8 +103,8 @@ if (TENGINE_DYNAMIC_COMPILE AND EXISTS "${CMAKE_SOURCE_DIR}/cmake/operators.cmak
     file(GLOB_RECURSE TENGINE_BACKEND_REF_OPS ${REF_SOURCE})
 
     # add hcl operator files
-    # arm or x86
-    if (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM" OR ${TENGINE_TARGET_PROCESSOR} MATCHES "X86")
+    # arm or x86 or mips64
+    if (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM" OR ${TENGINE_TARGET_PROCESSOR} MATCHES "X86" OR ${TENGINE_TARGET_PROCESSOR} MATCHES "MIPS")
         file(GLOB_RECURSE TENGINE_BACKEND_HCL_OPS   ${HCL_SOURCE})
     endif()
 else()
@@ -119,6 +125,11 @@ else()
     # X86
     if (${TENGINE_TARGET_PROCESSOR} MATCHES "X86")
         file(GLOB_RECURSE TENGINE_BACKEND_HCL_OPS   "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/op/*x86.c")
+    endif()
+
+    # MIPS64
+    if (${TENGINE_TARGET_PROCESSOR} MATCHES "MIPS")
+        file(GLOB_RECURSE TENGINE_BACKEND_HCL_OPS   "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/op/*mips.c")
     endif()
 endif()
 
@@ -169,13 +180,19 @@ if (TENGINE_STANDALONE_HCL)
                 ${TENGINE_STANDALONE_HCL_LIB_NAME} SHARED
                 ${TENGINE_BACKEND_HCL_OPS}
                 ${TENGINE_BACKEND_HCL_ASM_OPS}
-                ${TOPERATOR_LIB_SRCS}
         )
     elseif (${TENGINE_TARGET_PROCESSOR} MATCHES "X86")
         add_library (
                 ${TENGINE_STANDALONE_HCL_LIB_NAME} SHARED
                 ${TENGINE_BACKEND_HCL_OPS}
-                ${TOPERATOR_LIB_SRCS}
+        )
+    elseif (${TENGINE_TARGET_PROCESSOR} MATCHES "MIPS")
+        add_definitions(-mips64r2)
+        add_definitions(-mabi=64)
+        add_definitions(-mmsa)
+        add_library (
+                ${TENGINE_STANDALONE_HCL_LIB_NAME} SHARED
+                ${TENGINE_BACKEND_HCL_OPS}
         )
     endif()
 
@@ -185,10 +202,6 @@ if (TENGINE_STANDALONE_HCL)
 
     if (TENGINE_BACKEND_HCL_ASM_OPS)
         unset(TENGINE_BACKEND_HCL_ASM_OPS)
-    endif()
-
-    if (TOPERATOR_LIB_SRCS)
-        unset(TOPERATOR_LIB_SRCS)
     endif()
 
     if (TENGINE_STANDALONE_HCL_AUTO_LOAD)
@@ -220,6 +233,14 @@ elseif (${TENGINE_TARGET_PROCESSOR} MATCHES "X86")
         ${TENGINE_BACKEND_HCL_OPS}
         ${TENGINE_BACKEND_VULKAN_BASE}
         ${TENGINE_BACKEND_VULKAN_OPS})
+elseif (${TENGINE_TARGET_PROCESSOR} MATCHES "MIPS")
+    add_library(${CMAKE_PROJECT_NAME} SHARED
+        ${TENGINE_LIB_SRCS} ${TENGINE_FRONT_END_SRCS}
+        ${TENGINE_SERIALIZER_SRCS}
+        ${TENGINE_TINY_SERIALIZER_SRCS}
+        ${TENGINE_BACKEND_COMMON}
+        ${TENGINE_BACKEND_REF_OPS}
+        ${TENGINE_BACKEND_HCL_OPS})
 else()
     add_library(${CMAKE_PROJECT_NAME} SHARED
         ${TENGINE_LIB_SRCS}
@@ -284,4 +305,4 @@ endif()
 install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/../include/tengine_c_api.h DESTINATION include)
 if (TENGINE_BUILD_CPP_API)
     install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/../include/tengine_cpp_api.h DESTINATION include)
-endif ()
+endif()

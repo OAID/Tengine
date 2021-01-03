@@ -63,6 +63,5 @@ struct conv_priv_info
     int external_interleave_pack4_mem;    // flag
     int cpu_type;
     int winograd;
-
 };
 #endif

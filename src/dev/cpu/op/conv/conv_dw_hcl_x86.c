@@ -481,9 +481,9 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
     int ret = -1;
     if (exec_graph->mode == TENGINE_MODE_FP32)
-        ret= conv_dw_run(input_tensor, weight_tensor, bias_tensor, output_tensor, conv_priv_info, conv_param, num_thread, cpu_affinity);
+        ret = conv_dw_run(input_tensor, weight_tensor, bias_tensor, output_tensor, conv_priv_info, conv_param, num_thread, cpu_affinity);
     else if (exec_graph->mode == TENGINE_MODE_INT8)
-        ret= conv_dw_run_int8(input_tensor, weight_tensor, bias_tensor, output_tensor, conv_param, num_thread);
+        ret = conv_dw_run_int8(input_tensor, weight_tensor, bias_tensor, output_tensor, conv_param, num_thread);
     else
     {
             TLOG_ERR("hcl conv run failed\n");
