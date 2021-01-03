@@ -36,7 +36,7 @@
 #define max(a, b) ((a) > (b) ? (a) : (b))
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
-void relu(float* data, int size, int activation)
+static void relu(float* data, int size, int activation)
 {
     for (int i = 0; i < size; i++)
     {
@@ -48,7 +48,8 @@ void relu(float* data, int size, int activation)
         }
     }
 }
-void pad(float* input, float* output, int in_h, int in_w, int out_h, int out_w, int top, int left, float v)
+
+static void pad(float* input, float* output, int in_h, int in_w, int out_h, int out_w, int top, int left, float v)
 {
     float* ptr = input;
     float* outptr = output;
