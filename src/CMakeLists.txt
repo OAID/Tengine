@@ -270,6 +270,12 @@ if (TENGINE_STANDALONE_HCL)
     target_link_libraries(${CMAKE_PROJECT_NAME} ${TENGINE_STANDALONE_HCL_LIB_NAME})
 endif()
 
+if(TENGINE_COVERAGE)
+    SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage")
+    SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage")    
+    target_link_libraries(${CMAKE_PROJECT_NAME} -coverage -lgcov)
+endif()
+
 # add install files
 install (TARGETS ${CMAKE_PROJECT_NAME} DESTINATION lib)
 if (TENGINE_STANDALONE_HCL)
