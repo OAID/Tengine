@@ -56,7 +56,10 @@ static int infer_shape(struct ir_node* node)
         if (0 == param->re_shape[i])
         {
             if (param->is_mxnet)
-                push_vector_data(new_shape, ( void* )&input->dims[in_idx]);
+            {
+                int temp = input->dims[in_idx];
+                push_vector_data(new_shape, ( void* )&temp);
+            }
             else
             {
                 int temp = 1;
@@ -98,6 +101,7 @@ static int infer_shape(struct ir_node* node)
         else
         {
             push_vector_data(new_shape, ( void* )&param->re_shape[i]);
+            in_idx++;
         }
     }
 
