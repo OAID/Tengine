@@ -17,6 +17,10 @@
  * under the License.
  */
 
+/*
+ * Copyright (c) 2020, Martin Han
+ * Author: hansh-sz@hotmail.com
+ */
 
 #include "sys_port.h"
 #include "module.h"

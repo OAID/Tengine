@@ -43,9 +43,13 @@ Tengine Lite 核心代码由 4 个模块组成：
 
 ### 转换工具
 
-- [预编译版本](https://github.com/OAID/Tengine-Convert-Tools/releases/download/v0.1/tm_convert_tool)：提供 Linux 系统上预编译好的模型转换工具；
+- [预编译版本](https://github.com/OAID/Tengine/releases/download/lite-v1.2/convert_tool.zip)：提供 Ubuntu 18.04 系统上预编译好的模型转换工具；
 - [在线转换版本](https://convertmodel.com/)：基于 WebAssembly 实现（浏览器本地转换，模型不会上传）；
-- [源码编译](https://github.com/OAID/Tengine-Convert-Tools)：参考 **Tengine-Convert-Tools** 项目编译生成。
+- [源码编译](https://github.com/OAID/Tengine-Convert-Tools)：参考 **Tengine-Convert-Tools** 项目编译生成，建议采用。
+
+### 量化工具
+
+- [预编译版本](tools/quantize/README.md)：提供 Ubuntu 18.04 系统上预编译好的模型量化工具，已支持uint8/int8；
 
 ### 速度评估
 
@@ -67,6 +71,7 @@ Tengine Lite 参考和借鉴了下列项目：
 - [MegEngine](https://github.com/MegEngine/MegEngine)
 - [ONNX](https://github.com/onnx/onnx)
 - [ncnn](https://github.com/Tencent/ncnn)
+- [FeatherCNN](https://github.com/Tencent/FeatherCNN)
 - [MNN](https://github.com/alibaba/MNN)
 - [Paddle Lite](https://github.com/PaddlePaddle/Paddle-Lite)
 - [ACL](https://github.com/ARM-software/ComputeLibrary)

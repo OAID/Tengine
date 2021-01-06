@@ -17,6 +17,11 @@
  * under the License.
  */
 
+/*
+ * Copyright (c) 2020, Martin Han
+ * Author: hansh-sz@hotmail.com
+ */
+
 #include <stdint.h>
 #include <stdlib.h>
 #include <math.h>
