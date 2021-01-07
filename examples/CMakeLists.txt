@@ -42,22 +42,21 @@ tengine_example(tm_yolov4_tiny              tm_yolov4_tiny.cpp)
 
 find_package(OpenCV QUIET)
 
-    if(OpenCV_FOUND)
-    include_directories(${OpenCV_INCLUDE_DIRS})
-    
-        # macro for adding examples
-        macro (tengine_example_cv name file)
-            add_executable(${name}
-                    "${CMAKE_CURRENT_SOURCE_DIR}/${file}"
-                    "${CMAKE_CURRENT_SOURCE_DIR}/common/tengine_operations.c")
-            target_link_libraries(${name} ${CMAKE_PROJECT_NAME} ${OpenCV_LIBS})
-            install (TARGETS ${name} DESTINATION bin)
-        endmacro()
-        tengine_example_cv(tm_openpose      tm_openpose.cpp)
-        tengine_example_cv(tm_yolact        tm_yolact.cpp)
-        tengine_example_cv(tm_crnn          tm_crnn.cpp)
-        tengine_example_cv(tm_alphapose     tm_alphapose.cpp)
-    else()
-        message(WARNING "OpenCV not found, some examples won't be built")
-    endif()
+if(OpenCV_FOUND)
+include_directories(${OpenCV_INCLUDE_DIRS})
 
+    # macro for adding examples
+    macro (tengine_example_cv name file)
+        add_executable(${name}
+                "${CMAKE_CURRENT_SOURCE_DIR}/${file}"
+                "${CMAKE_CURRENT_SOURCE_DIR}/common/tengine_operations.c")
+        target_link_libraries(${name} ${CMAKE_PROJECT_NAME} ${OpenCV_LIBS})
+        install (TARGETS ${name} DESTINATION bin)
+    endmacro()
+    tengine_example_cv(tm_openpose      tm_openpose.cpp)
+    tengine_example_cv(tm_yolact        tm_yolact.cpp)
+    tengine_example_cv(tm_crnn          tm_crnn.cpp)
+    tengine_example_cv(tm_alphapose     tm_alphapose.cpp)
+else()
+    message(WARNING "OpenCV not found, some examples won't be built")
+endif()
