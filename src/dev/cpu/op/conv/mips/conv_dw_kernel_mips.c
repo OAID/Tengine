@@ -17,6 +17,10 @@
  * under the License.
  */
 
+/*
+ * Copyright (c) 2020, Martin Han
+ * Author: hansh-sz@hotmail.com
+ */
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -52,7 +56,7 @@ void convdw3x3s1(float* output, float* input, float* _kernel, float* _bias, int 
     const int group = channel;
     const float* kernel = _kernel;
 
-    #pragma omp parallel for num_threads(num_thread)
+#pragma omp parallel for num_threads(num_thread)
     for (int g=0; g<group; g++)
     {
         float* out = output + g * c_step_out;
@@ -168,7 +172,7 @@ void convdw3x3s2(float* output, float* input, float* _kernel, float* _bias, int 
     const int tailstep = w - 2*outw + w;
     const float* kernel = _kernel;
 
-    #pragma omp parallel for num_threads(num_thread)
+#pragma omp parallel for num_threads(num_thread)
     for (int g=0; g<group; g++)
     {
         float* out = output + g * c_step_out;
@@ -317,6 +321,7 @@ int conv_dw_run(struct ir_tensor* input_tensor, struct ir_tensor* weight_tensor,
     else
     {
         input_tmp = ( float* )sys_malloc(inh_tmp * inw_tmp * group * sizeof(float));
+#pragma omp parallel for num_threads(num_thread)        
         for (int g = 0; g < group; g++)
         {
             float* pad_in  = input + g * inh * inw;

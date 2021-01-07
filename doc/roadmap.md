@@ -6,6 +6,6 @@
 - [ ] optimize AutoKernel implement on x86
 - [ ] fix the Float32 bugs of Vulkan 
 - [ ] support the mode type of PaddlePaddle
-- [ ] support the mode type of OneFlow
+- [x] support the mode type of OneFlow
 - [ ] opensource the plugin implement of NPU
-- [ ] add more test case
+- [x] add more test case

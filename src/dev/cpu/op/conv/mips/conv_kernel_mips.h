@@ -17,6 +17,10 @@
  * under the License.
  */
 
+/*
+ * Copyright (c) 2020, Martin Han
+ * Author: hansh-sz@hotmail.com
+ */
 
 #ifndef _CONV_KERNEL_MIPS_H_
 #define _CONV_KERNEL_MIPS_H_
