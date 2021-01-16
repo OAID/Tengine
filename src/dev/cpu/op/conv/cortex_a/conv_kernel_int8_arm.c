@@ -1,650 +1,2097 @@
 /*
- * Author: 1091545398@qq.com
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * License); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * AS IS BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
-#include "conv_kernel_arm.h"
-#include <arm_neon.h>
-#define PER_OUT_CHAN 8
-#define PER_INPUT_COL 8
 
-static inline void sgemm_8x8(int32_t* biases, int8_t* input, int8_t* kernel, long kernel_size, int8_t* output,
-                             long output_xy, int activation, int layout, float* dequant_scales, float outputscales)
+/*
+ * Copyright (c) 2020, OPEN AI LAB
+ * Author: qwang@openailab.com
+ */
+
+#include <stdint.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <math.h>
+
+#include "conv_kernel_int8_arm.h"
+
+#ifdef __aarch64__
+void i8gemm_4x16_a72_int8(int* biases, int8_t* input, int8_t* kernel, long kernel_size, int8_t* output,
+                                int* multi, long output_xy, int* shift, int activation_min, int activation_max);
+void i8gemm_4x4_a72_int8(int* biases, int8_t* input, int8_t* kernel, long kernel_size, int8_t* output,
+                                int* multi, long output_xy, int* shift, int activation_min, int activation_max);
+void im2col_int8_1x1(int8_t* input, long input_xy, int8_t* col, long col_cnt, long input_chan);
+void im2col_int8_3x3(int8_t* input, long input_x, long input_y, long input_chan, int8_t* col, long stride);
+// col_start and col_end need to be 16 aligned
+// kernel_start need to be 4 aligned
+static void i8gemm4x16(int8_t* col, int8_t* kernel, bool bias_term, int* biases, int8_t* output, int* multi,
+                       int kernel_size, int output_xy, int col_start, int col_end, int kernel_start, int kernel_end,
+                       int activation_min, int activation_max, int* q_shift, int num_thread, int cpu_affinity)
 {
-    int kernel_4 = kernel_size >> 2;
-    int remian = kernel_4 << 2;
-    int32x4_t out0 = {0, 0, 0, 0}, out1 = {0, 0, 0, 0}, out2 = {0, 0, 0, 0}, out3 = {0, 0, 0, 0}, out4 = {0, 0, 0, 0},
-              out5 = {0, 0, 0, 0}, out6 = {0, 0, 0, 0}, out7 = {0, 0, 0, 0}, out8 = {0, 0, 0, 0}, out9 = {0, 0, 0, 0},
-              out10 = {0, 0, 0, 0}, out11 = {0, 0, 0, 0}, out12 = {0, 0, 0, 0}, out13 = {0, 0, 0, 0},
-              out14 = {0, 0, 0, 0}, out15 = {0, 0, 0, 0};
-    int16x8_t col_0, col_1, col_2, col_3, col_4, col_5, col_6, col_7;
-    int8x8_t kernel_0, input_0;
-    int8_t* kernel_ptr = kernel;
-    int8_t* input_ptr = input;
-    for (int i = 0; i < kernel_4; i++)
+    int col_end3 = col_end & 3;
+    int kernel_size_aligned2 = (kernel_size + 1) & -2;
+
+#pragma omp parallel for num_threads(num_thread)
+    for(int kernel_num = (kernel_start & -16); kernel_num < (kernel_end & -16); kernel_num += 16)
     {
-        kernel_0 = vld1_s8(kernel_ptr);
-        input_0 = vld1_s8(input_ptr);
-        col_0 = vmull_s8(input_0, vdup_n_s8(vget_lane_s8(kernel_0, 0)));
-        col_1 = vmull_s8(input_0, vdup_n_s8(vget_lane_s8(kernel_0, 1)));
-        col_2 = vmull_s8(input_0, vdup_n_s8(vget_lane_s8(kernel_0, 2)));
-        col_3 = vmull_s8(input_0, vdup_n_s8(vget_lane_s8(kernel_0, 3)));
-        col_4 = vmull_s8(input_0, vdup_n_s8(vget_lane_s8(kernel_0, 4)));
-        col_5 = vmull_s8(input_0, vdup_n_s8(vget_lane_s8(kernel_0, 5)));
-        col_6 = vmull_s8(input_0, vdup_n_s8(vget_lane_s8(kernel_0, 6)));
-        col_7 = vmull_s8(input_0, vdup_n_s8(vget_lane_s8(kernel_0, 7)));
-
-        kernel_0 = vld1_s8(kernel_ptr + 8);
-        input_0 = vld1_s8(input_ptr + 8);
-        col_0 = vmlal_s8(col_0, input_0, vdup_n_s8(vget_lane_s8(kernel_0, 0)));
-        col_1 = vmlal_s8(col_1, input_0, vdup_n_s8(vget_lane_s8(kernel_0, 1)));
-        col_2 = vmlal_s8(col_2, input_0, vdup_n_s8(vget_lane_s8(kernel_0, 2)));
-        col_3 = vmlal_s8(col_3, input_0, vdup_n_s8(vget_lane_s8(kernel_0, 3)));
-        col_4 = vmlal_s8(col_4, input_0, vdup_n_s8(vget_lane_s8(kernel_0, 4)));
-        col_5 = vmlal_s8(col_5, input_0, vdup_n_s8(vget_lane_s8(kernel_0, 5)));
-        col_6 = vmlal_s8(col_6, input_0, vdup_n_s8(vget_lane_s8(kernel_0, 6)));
-        col_7 = vmlal_s8(col_7, input_0, vdup_n_s8(vget_lane_s8(kernel_0, 7)));
-
-        out0 = vaddq_s32(out0, vmovl_s16(vget_low_s16(col_0)));
-        out1 = vaddq_s32(out1, vmovl_s16(vget_high_s16(col_0)));
-        out2 = vaddq_s32(out2, vmovl_s16(vget_low_s16(col_1)));
-        out3 = vaddq_s32(out3, vmovl_s16(vget_high_s16(col_1)));
-        out4 = vaddq_s32(out4, vmovl_s16(vget_low_s16(col_2)));
-        out5 = vaddq_s32(out5, vmovl_s16(vget_high_s16(col_2)));
-        out6 = vaddq_s32(out6, vmovl_s16(vget_low_s16(col_3)));
-        out7 = vaddq_s32(out7, vmovl_s16(vget_high_s16(col_3)));
-        out8 = vaddq_s32(out8, vmovl_s16(vget_low_s16(col_4)));
-        out9 = vaddq_s32(out9, vmovl_s16(vget_high_s16(col_4)));
-        out10 = vaddq_s32(out10, vmovl_s16(vget_low_s16(col_5)));
-        out11 = vaddq_s32(out11, vmovl_s16(vget_high_s16(col_5)));
-        out12 = vaddq_s32(out12, vmovl_s16(vget_low_s16(col_6)));
-        out13 = vaddq_s32(out13, vmovl_s16(vget_high_s16(col_6)));
-        out14 = vaddq_s32(out14, vmovl_s16(vget_low_s16(col_7)));
-        out15 = vaddq_s32(out15, vmovl_s16(vget_high_s16(col_7)));
-
-        kernel_0 = vld1_s8(kernel_ptr + 16);
-        input_0 = vld1_s8(input_ptr + 16);
-        col_0 = vmull_s8(input_0, vdup_n_s8(vget_lane_s8(kernel_0, 0)));
-        col_1 = vmull_s8(input_0, vdup_n_s8(vget_lane_s8(kernel_0, 1)));
-        col_2 = vmull_s8(input_0, vdup_n_s8(vget_lane_s8(kernel_0, 2)));
-        col_3 = vmull_s8(input_0, vdup_n_s8(vget_lane_s8(kernel_0, 3)));
-        col_4 = vmull_s8(input_0, vdup_n_s8(vget_lane_s8(kernel_0, 4)));
-        col_5 = vmull_s8(input_0, vdup_n_s8(vget_lane_s8(kernel_0, 5)));
-        col_6 = vmull_s8(input_0, vdup_n_s8(vget_lane_s8(kernel_0, 6)));
-        col_7 = vmull_s8(input_0, vdup_n_s8(vget_lane_s8(kernel_0, 7)));
-
-        kernel_0 = vld1_s8(kernel_ptr + 24);
-        input_0 = vld1_s8(input_ptr + 24);
-        col_0 = vmlal_s8(col_0, input_0, vdup_n_s8(vget_lane_s8(kernel_0, 0)));
-        col_1 = vmlal_s8(col_1, input_0, vdup_n_s8(vget_lane_s8(kernel_0, 1)));
-        col_2 = vmlal_s8(col_2, input_0, vdup_n_s8(vget_lane_s8(kernel_0, 2)));
-        col_3 = vmlal_s8(col_3, input_0, vdup_n_s8(vget_lane_s8(kernel_0, 3)));
-        col_4 = vmlal_s8(col_4, input_0, vdup_n_s8(vget_lane_s8(kernel_0, 4)));
-        col_5 = vmlal_s8(col_5, input_0, vdup_n_s8(vget_lane_s8(kernel_0, 5)));
-        col_6 = vmlal_s8(col_6, input_0, vdup_n_s8(vget_lane_s8(kernel_0, 6)));
-        col_7 = vmlal_s8(col_7, input_0, vdup_n_s8(vget_lane_s8(kernel_0, 7)));
-
-        out0 = vaddq_s32(out0, vmovl_s16(vget_low_s16(col_0)));
-        out1 = vaddq_s32(out1, vmovl_s16(vget_high_s16(col_0)));
-        out2 = vaddq_s32(out2, vmovl_s16(vget_low_s16(col_1)));
-        out3 = vaddq_s32(out3, vmovl_s16(vget_high_s16(col_1)));
-        out4 = vaddq_s32(out4, vmovl_s16(vget_low_s16(col_2)));
-        out5 = vaddq_s32(out5, vmovl_s16(vget_high_s16(col_2)));
-        out6 = vaddq_s32(out6, vmovl_s16(vget_low_s16(col_3)));
-        out7 = vaddq_s32(out7, vmovl_s16(vget_high_s16(col_3)));
-        out8 = vaddq_s32(out8, vmovl_s16(vget_low_s16(col_4)));
-        out9 = vaddq_s32(out9, vmovl_s16(vget_high_s16(col_4)));
-        out10 = vaddq_s32(out10, vmovl_s16(vget_low_s16(col_5)));
-        out11 = vaddq_s32(out11, vmovl_s16(vget_high_s16(col_5)));
-        out12 = vaddq_s32(out12, vmovl_s16(vget_low_s16(col_6)));
-        out13 = vaddq_s32(out13, vmovl_s16(vget_high_s16(col_6)));
-        out14 = vaddq_s32(out14, vmovl_s16(vget_low_s16(col_7)));
-        out15 = vaddq_s32(out15, vmovl_s16(vget_high_s16(col_7)));
-
-        kernel_ptr += 32;
-        input_ptr += 32;
-    }
-
-    for (int i = remian; i < kernel_size; ++i)
-    {
-        kernel_0 = vld1_s8(kernel_ptr);
-        input_0 = vld1_s8(input_ptr);
-        col_0 = vmull_s8(input_0, vdup_n_s8(vget_lane_s8(kernel_0, 0)));
-        col_1 = vmull_s8(input_0, vdup_n_s8(vget_lane_s8(kernel_0, 1)));
-        col_2 = vmull_s8(input_0, vdup_n_s8(vget_lane_s8(kernel_0, 2)));
-        col_3 = vmull_s8(input_0, vdup_n_s8(vget_lane_s8(kernel_0, 3)));
-        col_4 = vmull_s8(input_0, vdup_n_s8(vget_lane_s8(kernel_0, 4)));
-        col_5 = vmull_s8(input_0, vdup_n_s8(vget_lane_s8(kernel_0, 5)));
-        col_6 = vmull_s8(input_0, vdup_n_s8(vget_lane_s8(kernel_0, 6)));
-        col_7 = vmull_s8(input_0, vdup_n_s8(vget_lane_s8(kernel_0, 7)));
-
-        out0 = vaddq_s32(out0, vmovl_s16(vget_low_s16(col_0)));
-        out1 = vaddq_s32(out1, vmovl_s16(vget_high_s16(col_0)));
-        out2 = vaddq_s32(out2, vmovl_s16(vget_low_s16(col_1)));
-        out3 = vaddq_s32(out3, vmovl_s16(vget_high_s16(col_1)));
-        out4 = vaddq_s32(out4, vmovl_s16(vget_low_s16(col_2)));
-        out5 = vaddq_s32(out5, vmovl_s16(vget_high_s16(col_2)));
-        out6 = vaddq_s32(out6, vmovl_s16(vget_low_s16(col_3)));
-        out7 = vaddq_s32(out7, vmovl_s16(vget_high_s16(col_3)));
-        out8 = vaddq_s32(out8, vmovl_s16(vget_low_s16(col_4)));
-        out9 = vaddq_s32(out9, vmovl_s16(vget_high_s16(col_4)));
-        out10 = vaddq_s32(out10, vmovl_s16(vget_low_s16(col_5)));
-        out11 = vaddq_s32(out11, vmovl_s16(vget_high_s16(col_5)));
-        out12 = vaddq_s32(out12, vmovl_s16(vget_low_s16(col_6)));
-        out13 = vaddq_s32(out13, vmovl_s16(vget_high_s16(col_6)));
-        out14 = vaddq_s32(out14, vmovl_s16(vget_low_s16(col_7)));
-        out15 = vaddq_s32(out15, vmovl_s16(vget_high_s16(col_7)));
-
-        input_ptr += 8;
-        kernel_ptr += 8;
-    }
-
-    if (biases)
-    {
-        int32x4_t biases0 = vld1q_s32(biases);
-        int32x4_t biases1 = vld1q_s32(biases + 4);
-        out0 = vaddq_s32(out0, vdupq_n_s32(vgetq_lane_s32(biases0, 0)));
-        out1 = vaddq_s32(out1, vdupq_n_s32(vgetq_lane_s32(biases0, 0)));
-        out2 = vaddq_s32(out2, vdupq_n_s32(vgetq_lane_s32(biases0, 1)));
-        out3 = vaddq_s32(out3, vdupq_n_s32(vgetq_lane_s32(biases0, 1)));
-        out4 = vaddq_s32(out4, vdupq_n_s32(vgetq_lane_s32(biases0, 2)));
-        out5 = vaddq_s32(out5, vdupq_n_s32(vgetq_lane_s32(biases0, 2)));
-        out6 = vaddq_s32(out6, vdupq_n_s32(vgetq_lane_s32(biases0, 3)));
-        out7 = vaddq_s32(out7, vdupq_n_s32(vgetq_lane_s32(biases0, 3)));
-        out8 = vaddq_s32(out8, vdupq_n_s32(vgetq_lane_s32(biases1, 0)));
-        out9 = vaddq_s32(out9, vdupq_n_s32(vgetq_lane_s32(biases1, 0)));
-        out10 = vaddq_s32(out10, vdupq_n_s32(vgetq_lane_s32(biases1, 1)));
-        out11 = vaddq_s32(out11, vdupq_n_s32(vgetq_lane_s32(biases1, 1)));
-        out12 = vaddq_s32(out12, vdupq_n_s32(vgetq_lane_s32(biases1, 2)));
-        out13 = vaddq_s32(out13, vdupq_n_s32(vgetq_lane_s32(biases1, 2)));
-        out14 = vaddq_s32(out14, vdupq_n_s32(vgetq_lane_s32(biases1, 3)));
-        out15 = vaddq_s32(out15, vdupq_n_s32(vgetq_lane_s32(biases1, 3)));
-    }
-
-    float32x4_t dsclae0 = vld1q_f32(dequant_scales);
-    float32x4_t dsclae1 = vld1q_f32(dequant_scales + 4);
-    float32x4_t out0_f = vmulq_n_f32(vcvtq_f32_s32(out0), vgetq_lane_f32(dsclae0, 0));
-    float32x4_t out1_f = vmulq_n_f32(vcvtq_f32_s32(out1), vgetq_lane_f32(dsclae0, 0));
-    float32x4_t out2_f = vmulq_n_f32(vcvtq_f32_s32(out2), vgetq_lane_f32(dsclae0, 1));
-    float32x4_t out3_f = vmulq_n_f32(vcvtq_f32_s32(out3), vgetq_lane_f32(dsclae0, 1));
-    float32x4_t out4_f = vmulq_n_f32(vcvtq_f32_s32(out4), vgetq_lane_f32(dsclae0, 2));
-    float32x4_t out5_f = vmulq_n_f32(vcvtq_f32_s32(out5), vgetq_lane_f32(dsclae0, 2));
-    float32x4_t out6_f = vmulq_n_f32(vcvtq_f32_s32(out6), vgetq_lane_f32(dsclae0, 3));
-    float32x4_t out7_f = vmulq_n_f32(vcvtq_f32_s32(out7), vgetq_lane_f32(dsclae0, 3));
-    float32x4_t out8_f = vmulq_n_f32(vcvtq_f32_s32(out8), vgetq_lane_f32(dsclae1, 0));
-    float32x4_t out9_f = vmulq_n_f32(vcvtq_f32_s32(out9), vgetq_lane_f32(dsclae1, 0));
-    float32x4_t out10_f = vmulq_n_f32(vcvtq_f32_s32(out10), vgetq_lane_f32(dsclae1, 1));
-    float32x4_t out11_f = vmulq_n_f32(vcvtq_f32_s32(out11), vgetq_lane_f32(dsclae1, 1));
-    float32x4_t out12_f = vmulq_n_f32(vcvtq_f32_s32(out12), vgetq_lane_f32(dsclae1, 2));
-    float32x4_t out13_f = vmulq_n_f32(vcvtq_f32_s32(out13), vgetq_lane_f32(dsclae1, 2));
-    float32x4_t out14_f = vmulq_n_f32(vcvtq_f32_s32(out14), vgetq_lane_f32(dsclae1, 3));
-    float32x4_t out15_f = vmulq_n_f32(vcvtq_f32_s32(out15), vgetq_lane_f32(dsclae1, 3));
-
-    float32x4_t f_0 = vdupq_n_f32(0);
-    float32x4_t f_1 = vdupq_n_f32(-1);
-    float32x4_t f6 = vdupq_n_f32(6);
-    float32x4_t f1 = vdupq_n_f32(1);
-    if (activation >= 0)
-    {
-        if (activation != 1)
+        int* cur_biases = NULL;
+        if(bias_term)
         {
-            out0_f = vmaxq_f32(out0_f, f_0);
-            out1_f = vmaxq_f32(out1_f, f_0);
-            out2_f = vmaxq_f32(out2_f, f_0);
-            out3_f = vmaxq_f32(out3_f, f_0);
-            out4_f = vmaxq_f32(out4_f, f_0);
-            out5_f = vmaxq_f32(out5_f, f_0);
-            out6_f = vmaxq_f32(out6_f, f_0);
-            out7_f = vmaxq_f32(out7_f, f_0);
-            out8_f = vmaxq_f32(out8_f, f_0);
-            out9_f = vmaxq_f32(out9_f, f_0);
-            out10_f = vmaxq_f32(out10_f, f_0);
-            out11_f = vmaxq_f32(out11_f, f_0);
-            out12_f = vmaxq_f32(out12_f, f_0);
-            out13_f = vmaxq_f32(out13_f, f_0);
-            out14_f = vmaxq_f32(out14_f, f_0);
-            out15_f = vmaxq_f32(out15_f, f_0);
+            cur_biases = biases + kernel_num;
         }
-        if (activation == 1)
-        {
-            out0_f = vminq_f32(out0_f, f1);
-            out1_f = vminq_f32(out1_f, f1);
-            out2_f = vminq_f32(out2_f, f1);
-            out3_f = vminq_f32(out3_f, f1);
-            out4_f = vminq_f32(out4_f, f1);
-            out5_f = vminq_f32(out5_f, f1);
-            out6_f = vminq_f32(out6_f, f1);
-            out7_f = vminq_f32(out7_f, f1);
-            out8_f = vminq_f32(out8_f, f1);
-            out9_f = vminq_f32(out9_f, f1);
-            out10_f = vminq_f32(out10_f, f1);
-            out11_f = vminq_f32(out11_f, f1);
-            out12_f = vminq_f32(out12_f, f1);
-            out13_f = vminq_f32(out13_f, f1);
-            out14_f = vminq_f32(out14_f, f1);
-            out15_f = vminq_f32(out15_f, f1);
 
-            out0_f = vmaxq_f32(out0_f, f_1);
-            out1_f = vmaxq_f32(out1_f, f_1);
-            out2_f = vmaxq_f32(out2_f, f_1);
-            out3_f = vmaxq_f32(out3_f, f_1);
-            out4_f = vmaxq_f32(out4_f, f_1);
-            out5_f = vmaxq_f32(out5_f, f_1);
-            out6_f = vmaxq_f32(out6_f, f_1);
-            out7_f = vmaxq_f32(out7_f, f_1);
-            out8_f = vmaxq_f32(out8_f, f_1);
-            out9_f = vmaxq_f32(out9_f, f_1);
-            out10_f = vmaxq_f32(out10_f, f_1);
-            out11_f = vmaxq_f32(out11_f, f_1);
-            out12_f = vmaxq_f32(out12_f, f_1);
-            out13_f = vmaxq_f32(out13_f, f_1);
-            out14_f = vmaxq_f32(out14_f, f_1);
-            out15_f = vmaxq_f32(out15_f, f_1);
+        int result[64] = {0};
+        int8_t* output_line[4];
+
+        int* pmulti = multi + kernel_num;
+        int* pq_shift = q_shift + kernel_num;
+
+        int8_t* cur_kernel = kernel + kernel_num * kernel_size_aligned2;
+        int8_t* output_result = output + kernel_num * output_xy;
+
+        for(int col_line = (col_start & -4); col_line < (col_end & -4); col_line += 4)
+        {
+            int8_t* cur_col = col + col_line * kernel_size_aligned2;
+            
+            i8gemm_4x16_a72_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, output_result + col_line, pmulti,
+                              output_xy, pq_shift, activation_min, activation_max);
         }
-        if (activation == 6)
+
+        if(col_end3)
         {
-            out0_f = vminq_f32(out0_f, f6);
-            out1_f = vminq_f32(out1_f, f6);
-            out2_f = vminq_f32(out2_f, f6);
-            out3_f = vminq_f32(out3_f, f6);
-            out4_f = vminq_f32(out4_f, f6);
-            out5_f = vminq_f32(out5_f, f6);
-            out6_f = vminq_f32(out6_f, f6);
-            out7_f = vminq_f32(out7_f, f6);
-            out8_f = vminq_f32(out8_f, f6);
-            out9_f = vminq_f32(out9_f, f6);
-            out10_f = vminq_f32(out10_f, f6);
-            out11_f = vminq_f32(out11_f, f6);
-            out12_f = vminq_f32(out12_f, f6);
-            out13_f = vminq_f32(out13_f, f6);
-            out14_f = vminq_f32(out14_f, f6);
-            out15_f = vminq_f32(out15_f, f6);
-        }
-    }
+            int col_line = col_end & -4;
+            int8_t* cur_col = col + col_line * kernel_size_aligned2;
 
-    float32x4_t f_0_5 = vdupq_n_f32(0.5);
-    int32x4_t d127 = vdupq_n_s32(127);
-    int32x4_t d_127 = vdupq_n_s32(-127);
-    uint32x4_t u_1 = vmovq_n_u32(1);
+            i8gemm_4x16_a72_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, (int8_t*)result, pmulti, 0, pq_shift, activation_min, activation_max);
 
-    out0_f = vmulq_n_f32(out0_f, outputscales);
-    out1_f = vmulq_n_f32(out1_f, outputscales);
-    out2_f = vmulq_n_f32(out2_f, outputscales);
-    out3_f = vmulq_n_f32(out3_f, outputscales);
-    out4_f = vmulq_n_f32(out4_f, outputscales);
-    out5_f = vmulq_n_f32(out5_f, outputscales);
-    out6_f = vmulq_n_f32(out6_f, outputscales);
-    out7_f = vmulq_n_f32(out7_f, outputscales);
-    out8_f = vmulq_n_f32(out8_f, outputscales);
-    out9_f = vmulq_n_f32(out9_f, outputscales);
-    out10_f = vmulq_n_f32(out10_f, outputscales);
-    out11_f = vmulq_n_f32(out11_f, outputscales);
-    out12_f = vmulq_n_f32(out12_f, outputscales);
-    out13_f = vmulq_n_f32(out13_f, outputscales);
-    out14_f = vmulq_n_f32(out14_f, outputscales);
-    out15_f = vmulq_n_f32(out15_f, outputscales);
-
-    /* round pos */
-    out0_f = vaddq_f32(out0_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcgtq_f32(f_0,out0_f),u_1)),0.5));
-    out1_f = vaddq_f32(out1_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcgtq_f32(f_0,out1_f),u_1)),0.5));
-    out2_f = vaddq_f32(out2_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcgtq_f32(f_0,out2_f),u_1)),0.5));
-    out3_f = vaddq_f32(out3_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcgtq_f32(f_0,out3_f),u_1)),0.5));
-    out4_f = vaddq_f32(out4_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcgtq_f32(f_0,out4_f),u_1)),0.5));
-    out5_f = vaddq_f32(out5_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcgtq_f32(f_0,out5_f),u_1)),0.5));
-    out6_f = vaddq_f32(out6_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcgtq_f32(f_0,out6_f),u_1)),0.5));
-    out7_f = vaddq_f32(out7_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcgtq_f32(f_0,out7_f),u_1)),0.5));
-    out8_f = vaddq_f32(out8_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcgtq_f32(f_0,out8_f),u_1)),0.5));
-    out9_f = vaddq_f32(out9_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcgtq_f32(f_0,out9_f),u_1)),0.5));
-    out10_f = vaddq_f32(out10_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcgtq_f32(f_0,out10_f),u_1)),0.5));
-    out11_f = vaddq_f32(out11_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcgtq_f32(f_0,out11_f),u_1)),0.5));
-    out12_f = vaddq_f32(out12_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcgtq_f32(f_0,out12_f),u_1)),0.5));
-    out13_f = vaddq_f32(out13_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcgtq_f32(f_0,out13_f),u_1)),0.5));
-    out14_f = vaddq_f32(out14_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcgtq_f32(f_0,out14_f),u_1)),0.5));
-    out15_f = vaddq_f32(out15_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcgtq_f32(f_0,out15_f),u_1)),0.5));
-
-    /* round neg */
-    out0_f = vaddq_f32(out0_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcltq_f32(f_0,out0_f),u_1)),-0.5));
-    out1_f = vaddq_f32(out1_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcltq_f32(f_0,out1_f),u_1)),-0.5));
-    out2_f = vaddq_f32(out2_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcltq_f32(f_0,out2_f),u_1)),-0.5));
-    out3_f = vaddq_f32(out3_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcltq_f32(f_0,out3_f),u_1)),-0.5));
-    out4_f = vaddq_f32(out4_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcltq_f32(f_0,out4_f),u_1)),-0.5));
-    out5_f = vaddq_f32(out5_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcltq_f32(f_0,out5_f),u_1)),-0.5));
-    out6_f = vaddq_f32(out6_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcltq_f32(f_0,out6_f),u_1)),-0.5));
-    out7_f = vaddq_f32(out7_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcltq_f32(f_0,out7_f),u_1)),-0.5));
-    out8_f = vaddq_f32(out8_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcltq_f32(f_0,out8_f),u_1)),-0.5));
-    out9_f = vaddq_f32(out9_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcltq_f32(f_0,out9_f),u_1)),-0.5));
-    out10_f = vaddq_f32(out10_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcltq_f32(f_0,out10_f),u_1)),-0.5));
-    out11_f = vaddq_f32(out11_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcltq_f32(f_0,out11_f),u_1)),-0.5));
-    out12_f = vaddq_f32(out12_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcltq_f32(f_0,out12_f),u_1)),-0.5));
-    out13_f = vaddq_f32(out13_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcltq_f32(f_0,out13_f),u_1)),-0.5));
-    out14_f = vaddq_f32(out14_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcltq_f32(f_0,out14_f),u_1)),-0.5));
-    out15_f = vaddq_f32(out15_f, vmulq_n_f32(vcvtq_f32_u32(vaddq_u32(vcltq_f32(f_0,out15_f),u_1)),-0.5));
-
-    out0 = vcvtq_s32_f32(out0_f);
-    out1 = vcvtq_s32_f32(out1_f);
-    out2 = vcvtq_s32_f32(out2_f);
-    out3 = vcvtq_s32_f32(out3_f);
-    out4 = vcvtq_s32_f32(out4_f);
-    out5 = vcvtq_s32_f32(out5_f);
-    out6 = vcvtq_s32_f32(out6_f);
-    out7 = vcvtq_s32_f32(out7_f);
-    out8 = vcvtq_s32_f32(out8_f);
-    out9 = vcvtq_s32_f32(out9_f);
-    out10 = vcvtq_s32_f32(out10_f);
-    out11 = vcvtq_s32_f32(out11_f);
-    out12 = vcvtq_s32_f32(out12_f);
-    out13 = vcvtq_s32_f32(out13_f);
-    out14 = vcvtq_s32_f32(out14_f);
-    out15 = vcvtq_s32_f32(out15_f);
-
-    out0 = vminq_s32(d127, vmaxq_s32(out0, d_127));
-    out1 = vminq_s32(d127, vmaxq_s32(out1, d_127));
-    out2 = vminq_s32(d127, vmaxq_s32(out2, d_127));
-    out3 = vminq_s32(d127, vmaxq_s32(out3, d_127));
-    out4 = vminq_s32(d127, vmaxq_s32(out4, d_127));
-    out5 = vminq_s32(d127, vmaxq_s32(out5, d_127));
-    out6 = vminq_s32(d127, vmaxq_s32(out6, d_127));
-    out7 = vminq_s32(d127, vmaxq_s32(out7, d_127));
-    out8 = vminq_s32(d127, vmaxq_s32(out8, d_127));
-    out9 = vminq_s32(d127, vmaxq_s32(out9, d_127));
-    out10 = vminq_s32(d127, vmaxq_s32(out10, d_127));
-    out11 = vminq_s32(d127, vmaxq_s32(out11, d_127));
-    out12 = vminq_s32(d127, vmaxq_s32(out12, d_127));
-    out13 = vminq_s32(d127, vmaxq_s32(out13, d_127));
-    out14 = vminq_s32(d127, vmaxq_s32(out14, d_127));
-    out15 = vminq_s32(d127, vmaxq_s32(out15, d_127));
-
-    int8x8_t col0 = vmovn_s16(vcombine_s16(vmovn_s32(out0), vmovn_s32(out1)));
-    int8x8_t col1 = vmovn_s16(vcombine_s16(vmovn_s32(out2), vmovn_s32(out3)));
-    int8x8_t col2 = vmovn_s16(vcombine_s16(vmovn_s32(out4), vmovn_s32(out5)));
-    int8x8_t col3 = vmovn_s16(vcombine_s16(vmovn_s32(out6), vmovn_s32(out7)));
-    int8x8_t col4 = vmovn_s16(vcombine_s16(vmovn_s32(out8), vmovn_s32(out9)));
-    int8x8_t col5 = vmovn_s16(vcombine_s16(vmovn_s32(out10), vmovn_s32(out11)));
-    int8x8_t col6 = vmovn_s16(vcombine_s16(vmovn_s32(out12), vmovn_s32(out13)));
-    int8x8_t col7 = vmovn_s16(vcombine_s16(vmovn_s32(out14), vmovn_s32(out15)));
-
-    vst1_s8(output, col0);
-    vst1_s8(output + output_xy, col1);
-    vst1_s8(output + 2 * output_xy, col2);
-    vst1_s8(output + 3 * output_xy, col3);
-    vst1_s8(output + 4 * output_xy, col4);
-    vst1_s8(output + 5 * output_xy, col5);
-    vst1_s8(output + 6 * output_xy, col6);
-    vst1_s8(output + 7 * output_xy, col7);
-}
-
-static void sgemm_set(int8_t* col, int8_t* kernel, int32_t* biases, int8_t* output, int kernel_size, int ch_start,
-                      int ch_end, int output_xy, int activation, int num_thread, int cpu_affinity,
-                      float* dequant_scales, float output_scales)
-{
-    int nn_outch = ch_end / PER_OUT_CHAN;
-    int col_end7 = output_xy & 0x7;
-    if (col_end7)
-    {
-        for (int pp = 0; pp < nn_outch; pp++)
-        {
-            int p = pp * PER_OUT_CHAN;
-
-            int32_t* biasptr = biases ? ( int32_t* )(biases + p) : NULL;
-            int8_t* kernel_tmp = ( int8_t* )(kernel + p * kernel_size);
-            int8_t* output_tmp = ( int8_t* )(output + p * output_xy);
-            float* dequant_tmp = dequant_scales + p;
-
-            int col_line = 0;
-            for (col_line = 0; col_line + 7 < output_xy; col_line += 8)
+            for(int i = 0; i < 4; i++)
             {
-                int8_t* col_tmp = ( int8_t* )(col + col_line * kernel_size);
-                sgemm_8x8(biasptr, col_tmp, kernel_tmp, kernel_size, output_tmp + col_line, output_xy, activation, 0,
-                          dequant_tmp, output_scales);
-            }
-            {
-                int8_t result[64];
-                int8_t* col_tmp = ( int8_t* )(col + col_line * kernel_size);
-
-                sgemm_8x8(biasptr, col_tmp, kernel_tmp, kernel_size, result, 8, activation, 0, dequant_tmp,
-                          output_scales);
-                for (int i = 0; i < 8; i++)
+                for(int j = 0; j < 4; j++)
                 {
-                    for (int j = 0; j < (col_end7); j++)
-                        *(output + (p + i) * output_xy + col_line + j) = result[(i << 3) + j];
+                    output_line[j] = output + (kernel_num + i * 4 + j) * output_xy + col_line;
+                }
+
+                *(output_line[0] + 0) = result[i * 16 + 0];
+                *(output_line[1] + 0) = result[i * 16 + 5];
+                *(output_line[2] + 0) = result[i * 16 + 10];
+                *(output_line[3] + 0) = result[i * 16 + 15];
+
+                if((col_end3) >= 2)
+                {
+                    *(output_line[0] + 1) = result[i * 16 + 4];
+                    *(output_line[1] + 1) = result[i * 16 + 1];
+                    *(output_line[2] + 1) = result[i * 16 + 14];
+                    *(output_line[3] + 1) = result[i * 16 + 11];
+                }
+                if((col_end3) == 3)
+                {
+                    *(output_line[0] + 2) = result[i * 16 + 8];
+                    *(output_line[1] + 2) = result[i * 16 + 13];
+                    *(output_line[2] + 2) = result[i * 16 + 2];
+                    *(output_line[3] + 2) = result[i * 16 + 7];
                 }
             }
         }
     }
-    else
+    return;
+}
+// col_start and kernel_start need to be 4 aligned
+static void i8gemm4x4(int8_t* col, int8_t* kernel, bool bias_term, int* biases, int8_t* output, int* multi,
+                      int kernel_size, int output_xy, int col_start, int col_end, int kernel_start, int kernel_end,
+                      int activation_min, int activation_max, int* q_shift, int num_thread, int cpu_affinity)
+{
+    int col_end3 = col_end & 3;
+    int kernel_end3 = kernel_end & 3;
+    int kernel_size_aligned2 = (kernel_size + 1) & -2;
+
+#pragma omp parallel for num_threads(num_thread)
+    for(int kernel_num = kernel_start & -4; kernel_num < (kernel_end & -4); kernel_num += 4)
     {
-        for (int pp = 0; pp < nn_outch; pp++)
+        int* cur_biases = NULL;
+        if(bias_term)
         {
-            int p = pp * PER_OUT_CHAN;
+            cur_biases = biases + kernel_num;
+        }
 
-            int32_t* biasptr = biases ? ( int32_t* )(biases + p) : NULL;
-            int8_t* kernel_tmp = ( int8_t* )(kernel + p * kernel_size);
-            int8_t* output_tmp = ( int8_t* )(output + p * output_xy);
-            float* dequant_tmp = dequant_scales + p;
+        int result[16] = {0};
+        int8_t* output_line[4];
 
-            int col_line = 0;
-            for (col_line = 0; col_line + 7 < output_xy; col_line += 8)
+        int* pmulti = multi + kernel_num;
+        int* pq_shift = q_shift + kernel_num;
+
+        int8_t* cur_kernel = kernel + kernel_num * kernel_size_aligned2;
+        int8_t* output_result = output + kernel_num * output_xy;
+
+        for(int col_line = (col_start & -4); col_line < (col_end & -4); col_line += 4)
+        {
+            int8_t* cur_col = col + col_line * kernel_size_aligned2;
+
+            i8gemm_4x4_a72_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, output_result + col_line, pmulti,
+                              output_xy, pq_shift, activation_min, activation_max);
+        }
+        if(col_end3)
+        {
+            int col_line = col_end & -4;
+            int8_t* cur_col = col + col_line * kernel_size_aligned2;
+
+            i8gemm_4x4_a72_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, (int8_t*)result, pmulti, 0, pq_shift, activation_min, activation_max);
+
+            for(int j = 0; j < 4; j++)
             {
-                int8_t* col_tmp = ( int8_t* )(col + col_line * kernel_size);
-                sgemm_8x8(biasptr, col_tmp, kernel_tmp, kernel_size, output_tmp + col_line, output_xy, activation, 0,
-                          dequant_tmp, output_scales);
+                output_line[j] = output + (kernel_num + j) * output_xy + col_line;
+            }
+
+            *(output_line[0] + 0) = result[0];
+            *(output_line[1] + 0) = result[5];
+            *(output_line[2] + 0) = result[10];
+            *(output_line[3] + 0) = result[15];
+
+            if(col_end3 >= 2)
+            {
+                *(output_line[0] + 1) = result[4];
+                *(output_line[1] + 1) = result[1];
+                *(output_line[2] + 1) = result[14];
+                *(output_line[3] + 1) = result[11];
+            }
+            if(col_end3 == 3)
+            {
+                *(output_line[0] + 2) = result[8];
+                *(output_line[1] + 2) = result[13];
+                *(output_line[2] + 2) = result[2];
+                *(output_line[3] + 2) = result[7];
             }
         }
     }
-}
-
-static void im2col(int8_t* input, int8_t* col, int in_c, int in_w, int in_h, int k_w, int k_h, int s_w, int s_h,
-                   int d_w, int d_h, int pad_w0, int pad_w1, int pad_h0, int pad_h1, int out_w, int out_h,
-                   int num_thread)
-{
-    if (k_w == 1 && k_h == 1 && s_w == 1 && s_h == 1)
+    if(kernel_end3)
     {
-        int kernel_size = in_c;
-        int in_xy = in_w * in_h;
-        int out_xy = out_w * out_h;
-        int col_end_ = out_xy & 7;
-        int8_t* cur_col_ = col;
-        for (int col_i = 0; col_i < out_xy - 7; col_i += PER_INPUT_COL)
+        int kernel_num = kernel_end & -4;
+        int* cur_biases = NULL;
+        if(bias_term)
         {
-            for (int inp_c = 0; inp_c < kernel_size; ++inp_c)
+            cur_biases = biases + kernel_num;
+        }
+
+        int result[16] = {0};
+        int8_t* output_line[4];
+
+        int* pmulti = multi + kernel_num;
+        int* pq_shift = q_shift + kernel_num;
+        int8_t* cur_kernel = kernel + kernel_num * kernel_size_aligned2;
+
+        for(int col_line = (col_start & -4); col_line < (col_end & -4); col_line += 4)
+        {
+            int8_t* cur_col = col + col_line * kernel_size_aligned2;
+
+            i8gemm_4x4_a72_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, (int8_t*)result, pmulti, 0, pq_shift, activation_min, activation_max);
+
+            for(int j = 0; j < 4; j++)
             {
-                for (int oup_i = 0; oup_i < PER_INPUT_COL; ++oup_i)
+                output_line[j] = output + (kernel_num + j) * output_xy + col_line;
+            }
+
+            *(output_line[0] + 0) = result[0];
+            *(output_line[0] + 1) = result[4];
+            *(output_line[0] + 2) = result[8];
+            *(output_line[0] + 3) = result[12];
+
+            if(kernel_end3 >= 2)
+            {
+                *(output_line[1] + 0) = result[5];
+                *(output_line[1] + 1) = result[1];
+                *(output_line[1] + 2) = result[13];
+                *(output_line[1] + 3) = result[9];
+            }
+            if(kernel_end3 == 3)
+            {
+                *(output_line[2] + 0) = result[10];
+                *(output_line[2] + 1) = result[14];
+                *(output_line[2] + 2) = result[2];
+                *(output_line[2] + 3) = result[6];
+            }
+        }
+        if(col_end3)
+        {
+            int col_line = col_end & -4;
+            int8_t* cur_col = col + col_line * kernel_size_aligned2;
+
+            i8gemm_4x4_a72_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, (int8_t*)result, pmulti, 0, pq_shift, activation_min, activation_max);
+
+            for(int j = 0; j < 4; j++)
+            {
+                output_line[j] = output + (kernel_num + j) * output_xy + col_line;
+            }
+
+            *(output_line[0] + 0) = result[0];
+            if(col_end3 >= 2)
+                *(output_line[0] + 1) = result[4];
+            if(col_end3 == 3)
+                *(output_line[0] + 2) = result[8];
+            if(kernel_end3 >= 2)
+            {
+                *(output_line[1] + 0) = result[5];
+                if(col_end3 >= 2)
+                    *(output_line[1] + 1) = result[1];
+                if(col_end3 == 3)
+                    *(output_line[1] + 2) = result[13];
+            }
+            if(kernel_end3 == 3)
+            {
+                *(output_line[2] + 0) = result[10];
+                if(col_end3 >= 2)
+                    *(output_line[2] + 1) = result[14];
+                if(col_end3 == 3)
+                    *(output_line[2] + 2) = result[2];
+            }
+        }
+    }
+    return;
+}
+#else
+void i8gemm_4x4_a17_int8(int* biases, int8_t* input, int8_t* kernel, int kernel_size, int8_t* output,
+                         int* multi, int output_xy, int* shift, int activation_min, int activation_max);
+void i8gemm_4x8_a17_int8(int* biases, int8_t* input, int8_t* kernel, int kernel_size, int8_t* output,
+                         int* multi, int output_xy, int* shift, int activation_min, int activation_max);
+
+// col_start and col_end need to be 8 aligned kernel_start need to be 4 aligned
+static void i8gemm4x8(int8_t* col, int8_t* kernel, bool bias_term, int* biases, int8_t* output, int* multi,
+                      int kernel_size, int output_xy, int col_start, int col_end, int kernel_start, int kernel_end,
+                      int activation_min, int activation_max, int* q_shift, int num_thread, int cpu_affinity)
+{
+#pragma omp parallel for num_threads(num_thread)
+    for(int kernel_num = (kernel_start & -8); kernel_num < (kernel_end & -8); kernel_num += 8)
+    {
+        int col_end3 = col_end & 3;
+        int kernel_size_aligned2 = (kernel_size + 1) & -2;
+        int* cur_biases = NULL;
+
+        if(bias_term)
+            cur_biases = biases + kernel_num;
+
+        int result[32] = {0};
+        int8_t* output_line[4];
+
+        int* pmulti = multi + kernel_num;
+        int* pq_shift = q_shift + kernel_num;
+
+        int8_t* cur_kernel = kernel + kernel_num * kernel_size_aligned2;
+        int8_t* output_result = output + kernel_num * output_xy;
+
+        for(int col_line = (col_start & -4); col_line < (col_end & -4); col_line += 4)
+        {
+            int8_t* cur_col = col + col_line * kernel_size_aligned2;
+
+            i8gemm_4x8_a17_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, output_result + col_line, pmulti,
+                               output_xy, pq_shift, activation_min, activation_max);
+        }
+
+        if(col_end3)
+        {
+            int col_line = col_end & -4;
+            int8_t* cur_col = col + col_line * kernel_size_aligned2;
+
+            i8gemm_4x8_a17_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, (int8_t*)result, pmulti, 0, pq_shift, activation_min, activation_max);
+
+            for(int i = 0; i < 2; i++)
+            {
+                for(int j = 0; j < 4; j++)
                 {
-                    *(cur_col_++) = *(input + in_xy * inp_c + col_i + oup_i);
+                    output_line[j] = output + (kernel_num + i * 4 + j) * output_xy + col_line;
+                }
+
+                *(output_line[0] + 0) = result[i * 16 + 0];
+                *(output_line[1] + 0) = result[i * 16 + 5];
+                *(output_line[2] + 0) = result[i * 16 + 10];
+                *(output_line[3] + 0) = result[i * 16 + 15];
+
+                if(col_end3 >= 2)
+                {
+                    *(output_line[0] + 1) = result[i * 16 + 4];
+                    *(output_line[1] + 1) = result[i * 16 + 1];
+                    *(output_line[2] + 1) = result[i * 16 + 14];
+                    *(output_line[3] + 1) = result[i * 16 + 11];
+                }
+                if(col_end3 == 3)
+                {
+                    *(output_line[0] + 2) = result[i * 16 + 8];
+                    *(output_line[1] + 2) = result[i * 16 + 13];
+                    *(output_line[2] + 2) = result[i * 16 + 2];
+                    *(output_line[3] + 2) = result[i * 16 + 7];
                 }
             }
         }
-        int col_i = out_xy & -PER_INPUT_COL;
-        int8_t* cur_col;
-        // final 8 input
-        if (col_end_)
-        {
-            cur_col = col + col_i * kernel_size;
-            for (int col_j = 0; col_j < kernel_size; col_j++)
-            {
-                for (int i = 0; i < 8; i++)
-                {
-                    if (i < col_end_)
-                        *cur_col++ = *(input + col_j * in_xy + col_i + i);
-                    else
-                        *cur_col++ = 0;
-                }
-            }
-        }
-    }
-    else
-    {
-        int out_xy = out_w * out_h;
-        for (int col_i = 0; col_i < out_xy - 7; col_i += 8)
-        {
-            int kernel_size = k_w * k_h * in_c;
-            int in_xy = in_w * in_h;
-            int col_end7 = out_xy & 7;
-            int8_t* cur_col = col + col_i * kernel_size;
-            int cnt_y[8] = {col_i / out_w,       (col_i + 1) / out_w, (col_i + 2) / out_w, (col_i + 3) / out_w,
-                            (col_i + 4) / out_w, (col_i + 5) / out_w, (col_i + 6) / out_w, (col_i + 7) / out_w};
-            int cnt_x[8] = {col_i - cnt_y[0] * out_w,     col_i - cnt_y[1] * out_w + 1, col_i - cnt_y[2] * out_w + 2,
-                            col_i - cnt_y[3] * out_w + 3, col_i - cnt_y[4] * out_w + 4, col_i - cnt_y[5] * out_w + 5,
-                            col_i - cnt_y[6] * out_w + 6, col_i - cnt_y[7] * out_w + 7};
-            int imx_start[8] = {cnt_x[0] * s_w - pad_w0, cnt_x[1] * s_w - pad_w0, cnt_x[2] * s_w - pad_w0,
-                                cnt_x[3] * s_w - pad_w0, cnt_x[4] * s_w - pad_w0, cnt_x[5] * s_w - pad_w0,
-                                cnt_x[6] * s_w - pad_w0, cnt_x[7] * s_w - pad_w0};
-            int imy_start[8] = {cnt_y[0] * s_h - pad_h0, cnt_y[1] * s_h - pad_h0, cnt_y[2] * s_h - pad_h0,
-                                cnt_y[3] * s_h - pad_h0, cnt_y[4] * s_h - pad_h0, cnt_y[5] * s_h - pad_h0,
-                                cnt_y[6] * s_h - pad_h0, cnt_y[7] * s_h - pad_h0};
-            for (int kch = 0; kch < in_c; kch++)
-                for (int ky = 0; ky < (k_h * d_h); ky += d_h)
-                    for (int kx = 0; kx < (k_w * d_w); kx += d_w)
-                    {
-                        int imx[8] = {imx_start[0] + kx, imx_start[1] + kx, imx_start[2] + kx, imx_start[3] + kx,
-                                      imx_start[4] + kx, imx_start[5] + kx, imx_start[6] + kx, imx_start[7] + kx};
-                        int imy[8] = {imy_start[0] + ky, imy_start[1] + ky, imy_start[2] + ky, imy_start[3] + ky,
-                                      imy_start[4] + ky, imy_start[5] + ky, imy_start[6] + ky, imy_start[7] + ky};
-                        for (int i = 0; i < 8; i++)
-                        {
-                            if (imx[i] >= 0 && imx[i] < in_w && imy[i] >= 0 && imy[i] < in_h)
-                                *cur_col++ = *(input + in_xy * kch + in_w * imy[i] + imx[i]);
-                            else
-                                *cur_col++ = 0;
-                        }
-                    }
-        }
-        int col_i = out_xy & -8;
-        int8_t* cur_col;
-        int kernel_size = k_w * k_h * in_c;
-        int in_xy = in_w * in_h;
-        int col_end7 = out_xy & 7;
-        if (col_end7)
-        {
-            cur_col = col + col_i * kernel_size;
-            int cnt_y[8] = {col_i / out_w,       (col_i + 1) / out_w, (col_i + 2) / out_w, (col_i + 3) / out_w,
-                            (col_i + 4) / out_w, (col_i + 5) / out_w, (col_i + 6) / out_w, (col_i + 7) / out_w};
-            int cnt_x[8] = {col_i - cnt_y[0] * out_w,     col_i - cnt_y[1] * out_w + 1, col_i - cnt_y[2] * out_w + 2,
-                            col_i - cnt_y[3] * out_w + 3, col_i - cnt_y[4] * out_w + 4, col_i - cnt_y[5] * out_w + 5,
-                            col_i - cnt_y[6] * out_w + 6, col_i - cnt_y[7] * out_w + 7};
-            int imx_start[8] = {cnt_x[0] * s_w - pad_w0, cnt_x[1] * s_w - pad_w0, cnt_x[2] * s_w - pad_w0,
-                                cnt_x[3] * s_w - pad_w0, cnt_x[4] * s_w - pad_w0, cnt_x[5] * s_w - pad_w0,
-                                cnt_x[6] * s_w - pad_w0, cnt_x[7] * s_w - pad_w0};
-            int imy_start[8] = {cnt_y[0] * s_h - pad_h0, cnt_y[1] * s_h - pad_h0, cnt_y[2] * s_h - pad_h0,
-                                cnt_y[3] * s_h - pad_h0, cnt_y[4] * s_h - pad_h0, cnt_y[5] * s_h - pad_h0,
-                                cnt_y[6] * s_h - pad_h0, cnt_y[7] * s_h - pad_h0};
-            for (int kch = 0; kch < in_c; kch++)
-                for (int ky = 0; ky < (k_h * d_h); ky += d_h)
-                    for (int kx = 0; kx < (k_w * d_w); kx += d_w)
-                    {
-                        int imx[8] = {imx_start[0] + kx, imx_start[1] + kx, imx_start[2] + kx, imx_start[3] + kx,
-                                      imx_start[4] + kx, imx_start[5] + kx, imx_start[6] + kx, imx_start[7] + kx};
-                        int imy[8] = {imy_start[0] + ky, imy_start[1] + ky, imy_start[2] + ky, imy_start[3] + ky,
-                                      imy_start[4] + ky, imy_start[5] + ky, imy_start[6] + ky, imy_start[7] + ky};
-                        for (int i = 0; i < 8; i++)
-                        {
-                            if (i < col_end7 && imx[i] >= 0 && imx[i] < in_w && imy[i] >= 0 && imy[i] < in_h)
-                                *cur_col++ = *(input + in_xy * kch + in_w * imy[i] + imx[i]);
-                            else
-                                *cur_col++ = 0;
-                        }
-                    }
-        }
     }
 }
 
-static void inline interleave_kernel(int8_t* kernel, int8_t* kernel_interleave, int out_chan, int kernelsize)
+// col_start and kernel_start need to be 4 aligned
+static void i8gemm4x4(int8_t* col, int8_t* kernel, bool bias_term, int* biases, int8_t* output, int* multi,
+                      int kernel_size, int output_xy, int col_start, int col_end, int kernel_start, int kernel_end,
+                      int activation_min, int activation_max, int* q_shift, int num_thread, int cpu_affinity)
 {
-    int8_t* kernel_head[PER_OUT_CHAN];
-    int8_t* cur_kernel_intervel = kernel_interleave;
-    int i, j, k;
-    for (i = 0; i + PER_OUT_CHAN - 1 < out_chan; i = i + PER_OUT_CHAN)
+#pragma omp parallel for num_threads(num_thread)
+    for(int kernel_num = (kernel_start & -4); kernel_num < (kernel_end & -4); kernel_num += 4)
     {
-        for (j = 0; j < PER_OUT_CHAN; ++j)
+        int col_end3 = col_end & 3;
+        int kernel_end3 = kernel_end & 3;
+        int kernel_size_aligned2 = (kernel_size + 1) & -2;
+        int* cur_biases = NULL;
+
+        if(bias_term)
+            cur_biases = biases + kernel_num;
+
+        int result[16] = {0};
+        int8_t* output_line[4];
+
+        int* pmulti = multi + kernel_num;
+	    int* pq_shift = q_shift + kernel_num;
+
+        int8_t* cur_kernel = kernel + kernel_num * kernel_size_aligned2;
+        int8_t* output_result = output + kernel_num * output_xy;
+
+        for(int col_line = (col_start & -4); col_line < (col_end & -4); col_line += 4)
         {
-            kernel_head[j] = kernel + (j + i) * kernelsize;
+            int8_t* cur_col = col + col_line * kernel_size_aligned2;
+
+            i8gemm_4x4_a17_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, output_result + col_line, pmulti,
+                               output_xy, pq_shift, activation_min, activation_max);
         }
-        for (k = 0; k < kernelsize; ++k)
+
+        if(col_end3)
         {
-            for (j = 0; j < PER_OUT_CHAN; ++j)
+            int col_line = col_end & -4;
+            int8_t* cur_col = col + col_line * kernel_size_aligned2;
+
+            i8gemm_4x4_a17_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, (int8_t*)result, pmulti, 0, pq_shift, activation_min, activation_max);
+
+            for(int j = 0; j < 4; j++)
             {
-                *(cur_kernel_intervel++) = kernel_head[j][k];
+                output_line[j] = output + (kernel_num + j) * output_xy + col_line;
+            }
+
+            *(output_line[0] + 0) = result[0];
+            *(output_line[1] + 0) = result[5];
+            *(output_line[2] + 0) = result[10];
+            *(output_line[3] + 0) = result[15];
+
+            if(col_end3 >= 2)
+            {
+                *(output_line[0] + 1) = result[4];
+                *(output_line[1] + 1) = result[1];
+                *(output_line[2] + 1) = result[14];
+                *(output_line[3] + 1) = result[11];
+            }
+            if(col_end3 == 3)
+            {
+                *(output_line[0] + 2) = result[8];
+                *(output_line[1] + 2) = result[13];
+                *(output_line[2] + 2) = result[2];
+                *(output_line[3] + 2) = result[7];
             }
         }
     }
-    int remian = out_chan % 8;
-    if (remian)
+
+    int col_end3 = col_end & 3;
+    int kernel_end3 = kernel_end & 3;
+    int kernel_size_aligned2 = (kernel_size + 1) & -2;
+
+    if(kernel_end3)
     {
-        for (k = 0; k < remian; ++k)
+        int kernel_num = kernel_end & -4;
+        int* cur_biases = NULL;
+        if(bias_term)
         {
-            kernel_head[k] = kernel + kernelsize * (i + k);
+            cur_biases = biases + kernel_num;
         }
-        for (j = 0; j < kernelsize; ++j)
+
+        int result[16] = {0};
+        int8_t* output_line[4];
+
+        int* pmulti = multi + kernel_num;
+        int* pq_shift = q_shift + kernel_num;
+        int8_t* cur_kernel = kernel + kernel_num * kernel_size_aligned2;
+
+        for(int col_line = (col_start & -4); col_line < (col_end & -4); col_line += 4)
         {
-            for (k = 0; k < remian; k++)
+            int8_t* cur_col = col + col_line * kernel_size_aligned2;
+
+            i8gemm_4x4_a17_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, (int8_t*)result, pmulti, 0, pq_shift, activation_min, activation_max);
+
+            for(int j = 0; j < 4; j++)
             {
-                *(cur_kernel_intervel++) = kernel_head[k][j];
+                output_line[j] = output + (kernel_num + j) * output_xy + col_line;
             }
-            for (; k < PER_OUT_CHAN; ++k)
+
+            *(output_line[0] + 0) = result[0];
+            *(output_line[0] + 1) = result[4];
+            *(output_line[0] + 2) = result[8];
+            *(output_line[0] + 3) = result[12];
+
+            if(kernel_end3 >= 2)
             {
-                *(cur_kernel_intervel++) = 0;
+                *(output_line[1] + 0) = result[5];
+                *(output_line[1] + 1) = result[1];
+                *(output_line[1] + 2) = result[13];
+                *(output_line[1] + 3) = result[9];
+            }
+            if(kernel_end3 == 3)
+            {
+                *(output_line[2] + 0) = result[10];
+                *(output_line[2] + 1) = result[14];
+                *(output_line[2] + 2) = result[2];
+                *(output_line[2] + 3) = result[6];
+            }
+        }
+        if(col_end3)
+        {
+            int col_line = col_end & -4;
+            int8_t* cur_col = col + col_line * kernel_size_aligned2;
+
+            i8gemm_4x4_a17_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, (int8_t*)result, pmulti, 0, pq_shift, activation_min, activation_max);
+
+            for(int j = 0; j < 4; j++)
+            {
+                output_line[j] = output + (kernel_num + j) * output_xy + col_line;
+            }
+
+            *(output_line[0] + 0) = result[0];
+            if(col_end3 >= 2)
+                *(output_line[0] + 1) = result[4];
+            if(col_end3 == 3)
+                *(output_line[0] + 2) = result[8];
+            if(kernel_end3 >= 2)
+            {
+                *(output_line[1] + 0) = result[5];
+                if(col_end3 >= 2)
+                    *(output_line[1] + 1) = result[1];
+                if(col_end3 == 3)
+                    *(output_line[1] + 2) = result[13];
+            }
+            if(kernel_end3 == 3)
+            {
+                *(output_line[2] + 0) = result[10];
+                if(col_end3 >= 2)
+                    *(output_line[2] + 1) = result[14];
+                if(col_end3 == 3)
+                    *(output_line[2] + 2) = result[2];
             }
         }
     }
 }
-
-static inline void interleave(struct ir_tensor* filter, struct conv_priv_info* priv_info, struct conv_param* param)
+#endif
+/*
+ * get the memory size for im2col + sgemm of kernel tensor interleave
+ */
+static int get_private_mem_size(struct ir_tensor* filter, struct conv_param* param)
 {
     int group = param->group;
     int out_chan = filter->dims[0] / group;
+    int out_chan_align4 = (out_chan + 3) / 4 * 4;
     int kernel_size = filter->dims[1] * filter->dims[2] * filter->dims[3];
-
-    int kernel_size_g = kernel_size * out_chan;
-    int kernel_interleaved_size_g = kernel_size * ((out_chan + 7) & -8);
-
-    int8_t* kernel = ( int8_t* )filter->data;
-
-    int8_t* interleave_buf = ( int8_t* )priv_info->interleave_buffer;
-    for (int g = 0; g < group; g++)
-    {
-        int8_t* cur_kernel = kernel + g * kernel_size_g;
-        int8_t* cur_interleave = interleave_buf + g * kernel_interleaved_size_g;
-        interleave_kernel(cur_kernel, cur_interleave, out_chan, kernel_size);
-    }
-}
-
-int int8_conv_hcl_get_shared_mem_size(struct ir_tensor* input_tensor, struct ir_tensor* output,
-                                      struct conv_param* param)
-{
-    int group = param->group;
-    int input_chan = param->input_channel / group;
-    int kernel_size = input_chan * param->kernel_h * param->kernel_w;
-
-    int output_xy = output->dims[2] * output->dims[3];
-    int mem_size = kernel_size * ((output_xy + 7) & -8) + 128;
+    int mem_size = kernel_size * filter->elem_size * out_chan_align4 * group + 128;    // caution
 
     return mem_size;
 }
 
-int int8_conv_hcl_prerun(struct ir_tensor* input_tensor, struct ir_tensor* filter_tensor,
-                         struct ir_tensor* output_tensor, struct conv_priv_info* priv_info, struct conv_param* param)
+int int8_conv_hcl_set_shared_mem(struct conv_priv_info* priv_info, void* mem, int mem_size)
 {
+    priv_info->external_im2col_mem = 1;
+    priv_info->im2col_buffer = mem;
+    priv_info->im2col_buffer_size = mem_size;
+
+    return 0;
+}
+
+int int8_conv_hcl_set_shared_pack4_mem(struct conv_priv_info* priv_info, void* mem, int mem_size)
+{
+    priv_info->external_im2col_pack4_mem = 0;
+    priv_info->im2col_buffer_pack4 = NULL;
+    priv_info->im2col_buffer_pack4_size = 0;
+
+    return 0;
+}
+
+int int8_conv_hcl_get_shared_mem_size(struct ir_tensor* input, struct ir_tensor* output, struct conv_param* param)
+{
+    int in_h  = input->dims[2];
+    int in_w  = input->dims[3];
+    int out_h = output->dims[2];
+    int out_w = output->dims[3];
     int group = param->group;
-    int input_chan = param->input_channel / group;
+    int input_chan  = param->input_channel / group;
     int kernel_size = input_chan * param->kernel_h * param->kernel_w;
-    int output_xy = output_tensor->dims[2] * output_tensor->dims[3];
-    int im2col_size = int8_conv_hcl_get_shared_mem_size(input_tensor, output_tensor, param);
+    int out_cstep   = out_h * out_w;      // channel cstep, output_h * output_w
+    int elem_size   = input->elem_size;   // uint8/int8 is 1 byte, fp32 is 4 bytes
 
-    int out_chan = filter_tensor->dims[0] / group;
-    int kernel_mem_size = kernel_size * ((out_chan + 7) & -8) * group + 128;
+    out_cstep = (out_cstep + 3) / 4 * 4;
+    
+    int kernel_size_aligned2 = (kernel_size + 1) & -2;
+    int mem_size = elem_size * kernel_size_aligned2 * out_cstep + 128;
 
+    return mem_size;
+}
+
+void interleave_kernel_int8(int8_t* kernel, int8_t* kernel_int8, int kernel_chan, int kernel_size)
+{
+#ifdef __aarch64__
+    int8_t* cur_kernel[16];
+    int8_t* cur_kernel_int8 = kernel_int8;
+    int i, j, k;
+
+    // interleave 16 kernels
+    for(i = 0; i < (kernel_chan & -16); i += 16)
+    {
+        for(j = 0; j < 16; j++)
+            cur_kernel[j] = kernel + kernel_size * (i + j);
+        for(j = 0; j < (kernel_size & -2); j += 2)
+            for(k = 0; k < 16; k++)
+            {
+                *(cur_kernel_int8++) = *(cur_kernel[k] + j);
+                *(cur_kernel_int8++) = *(cur_kernel[k] + j + 1);
+            }
+        if(kernel_size & 0x1)
+            for(k = 0; k < 16; k++)
+            {
+                *(cur_kernel_int8++) = *(cur_kernel[k] + j);
+                *(cur_kernel_int8++) = 0;
+            }
+    }
+
+    // interleave 4 kernels
+    for(i = (kernel_chan & -16); i < (kernel_chan & -4); i += 4)
+    {
+        for(j = 0; j < 4; j++)
+            cur_kernel[j] = kernel + kernel_size * (i + j);
+        for(j = 0; j < (kernel_size & -2); j += 2)
+            for(k = 0; k < 4; k++)
+            {
+                *(cur_kernel_int8++) = *(cur_kernel[k] + j);
+                *(cur_kernel_int8++) = *(cur_kernel[k] + j + 1);
+            }
+        if(kernel_size & 0x1)
+            for(k = 0; k < 4; k++)
+            {
+                *(cur_kernel_int8++) = *(cur_kernel[k] + j);
+                *(cur_kernel_int8++) = 0;
+            }
+    }
+    // last 4 kernels
+    if((kernel_chan & 0x3) != 0)
+    {
+        for(j = 0; j < 3; j++)
+            cur_kernel[j] = kernel + kernel_size * (i + j);
+        if((kernel_chan & 0x3) == 3)
+        {
+            for(j = 0; j < (kernel_size & -2); j += 2)
+            {
+                for(k = 0; k < 3; k++)
+                {
+                    *(cur_kernel_int8++) = *(cur_kernel[k] + j);
+                    *(cur_kernel_int8++) = *(cur_kernel[k] + j + 1);
+                }
+                for(k = 0; k < 2; k++)
+                    *(cur_kernel_int8++) = 0;
+            }
+            if(kernel_size & 0x1)
+            {
+                for(k = 0; k < 3; k++)
+                {
+                    *(cur_kernel_int8++) = *(cur_kernel[k] + j);
+                    *(cur_kernel_int8++) = 0;
+                }
+                for(k = 0; k < 2; k++)
+                    *(cur_kernel_int8++) = 0;
+            }
+        }
+        else if((kernel_chan & 0x3) == 2)
+        {
+            for(j = 0; j < (kernel_size & -2); j += 2)
+            {
+                for(k = 0; k < 2; k++)
+                {
+                    *(cur_kernel_int8++) = *(cur_kernel[k] + j);
+                    *(cur_kernel_int8++) = *(cur_kernel[k] + j + 1);
+                }
+                for(k = 0; k < 4; k++)
+                    *(cur_kernel_int8++) = 0;
+            }
+            if(kernel_size & 0x1)
+            {
+                for(k = 0; k < 2; k++)
+                {
+                    *(cur_kernel_int8++) = *(cur_kernel[k] + j);
+                    *(cur_kernel_int8++) = 0;
+                }
+                for(k = 0; k < 4; k++)
+                    *(cur_kernel_int8++) = 0;
+            }
+        }
+        else if((kernel_chan & 0x3) == 1)
+        {
+            for(j = 0; j < (kernel_size & -2); j += 2)
+            {
+                *(cur_kernel_int8++) = *(cur_kernel[0] + j);
+                *(cur_kernel_int8++) = *(cur_kernel[0] + j + 1);
+                for(k = 0; k < 6; k++)
+                    *(cur_kernel_int8++) = 0;
+            }
+            if(kernel_size & 0x1)
+            {
+                *(cur_kernel_int8++) = *(cur_kernel[0] + j);
+                for(k = 0; k < 7; k++)
+                    *(cur_kernel_int8++) = 0;
+            }
+        }
+    }
+#else
+    int8_t* cur_kernel[8];
+    int8_t* cur_kernel_int8 = kernel_int8;
+    int i, j, k;
+    int kernel_chan3 = kernel_chan & 0x3;
+    int kernel_size1 = kernel_size & 0x1;
+
+    // interleave 8 kernels
+    for(i = 0; i < (kernel_chan & -8); i += 8)
+    {
+        for(j = 0; j < 8; j++)
+            cur_kernel[j] = kernel + kernel_size * (i + j);
+        for(j = 0; j < (kernel_size & -2); j += 2)
+            for(k = 0; k < 8; k++)
+            {
+                *(cur_kernel_int8++) = *(cur_kernel[k] + j);
+                *(cur_kernel_int8++) = *(cur_kernel[k] + j + 1);
+            }
+        if(kernel_size1)
+            for(k = 0; k < 8; k++)
+            {
+                *(cur_kernel_int8++) = *(cur_kernel[k] + j);
+                *(cur_kernel_int8++) = 0;
+            }
+    }
+
+    // interleave 4 kernels
+    for(; i < (kernel_chan & -4); i += 4)
+    {
+        for(j = 0; j < 4; j++)
+            cur_kernel[j] = kernel + kernel_size * (i + j);
+        for(j = 0; j < (kernel_size & -2); j += 2)
+            for(k = 0; k < 4; k++)
+            {
+                *(cur_kernel_int8++) = *(cur_kernel[k] + j);
+                *(cur_kernel_int8++) = *(cur_kernel[k] + j + 1);
+            }
+        if(kernel_size1)
+            for(k = 0; k < 4; k++)
+            {
+                *(cur_kernel_int8++) = *(cur_kernel[k] + j);
+                *(cur_kernel_int8++) = 0;
+            }
+    }
+    // last 4 kernels
+    if(kernel_chan3)
+    {
+        for(j = 0; j < 3; j++)
+            cur_kernel[j] = kernel + kernel_size * (i + j);
+        if((kernel_chan3) == 3)
+        {
+            for(j = 0; j < (kernel_size & -2); j += 2)
+            {
+                for(k = 0; k < 3; k++)
+                {
+                    *(cur_kernel_int8++) = *(cur_kernel[k] + j);
+                    *(cur_kernel_int8++) = *(cur_kernel[k] + j + 1);
+                }
+                for(k = 0; k < 2; k++)
+                    *(cur_kernel_int8++) = 0;
+            }
+            if(kernel_size1)
+            {
+                for(k = 0; k < 3; k++)
+                {
+                    *(cur_kernel_int8++) = *(cur_kernel[k] + j);
+                    *(cur_kernel_int8++) = 0;
+                }
+                for(k = 0; k < 2; k++)
+                    *(cur_kernel_int8++) = 0;
+            }
+        }
+        else if((kernel_chan3) == 2)
+        {
+            for(j = 0; j < (kernel_size & -2); j += 2)
+            {
+                for(k = 0; k < 2; k++)
+                {
+                    *(cur_kernel_int8++) = *(cur_kernel[k] + j);
+                    *(cur_kernel_int8++) = *(cur_kernel[k] + j + 1);
+                }
+                for(k = 0; k < 4; k++)
+                    *(cur_kernel_int8++) = 0;
+            }
+            if(kernel_size1)
+            {
+                for(k = 0; k < 2; k++)
+                {
+                    *(cur_kernel_int8++) = *(cur_kernel[k] + j);
+                    *(cur_kernel_int8++) = 0;
+                }
+                for(k = 0; k < 4; k++)
+                    *(cur_kernel_int8++) = 0;
+            }
+        }
+        else
+        {    // kernel_chan & 0x3 == 1
+            for(j = 0; j < (kernel_size & -2); j += 2)
+            {
+                *(cur_kernel_int8++) = *(cur_kernel[0] + j);
+                *(cur_kernel_int8++) = *(cur_kernel[0] + j + 1);
+                for(k = 0; k < 6; k++)
+                    *(cur_kernel_int8++) = 0;
+            }
+            if(kernel_size1)
+            {
+                *(cur_kernel_int8++) = *(cur_kernel[0] + j);
+                for(k = 0; k < 7; k++)
+                    *(cur_kernel_int8++) = 0;
+            }
+        }
+    }
+#endif
+}
+
+/* kernel interleave */
+static void interleave_int8(struct ir_tensor* filter, struct conv_priv_info* priv_info, struct conv_param* param)
+{
+    int group       = param->group;
+    int kernel_size = filter->dims[1] * filter->dims[2] * filter->dims[3];
+    int out_chan    = filter->dims[0] / group;
+    int out_chan_align4 = (out_chan + 3) / 4 * 4;
+
+    int kernel_size_algin = kernel_size * out_chan_align4;
+    int kernel_size_group = kernel_size * out_chan;
+
+    int8_t* kernel = filter->data;
+    int8_t* interleave_buf = priv_info->interleave_buffer;
+    for (int g = 0; g < group; g++)
+    {
+        int8_t* cur_kernel     = kernel + g * kernel_size_group;
+        int8_t* cur_interleave = interleave_buf + g * kernel_size_algin;
+        interleave_kernel_int8(cur_kernel, cur_interleave, out_chan, kernel_size);
+    }
+}
+
+static void im2col_int8(int8_t* im, int8_t* col, int input_chan, int input_x, int input_y, int kernel_x, int kernel_y, int stride_x, int stride_y, int dilation_x,
+                   int dilation_y, int pad_x0, int pad_x1, int pad_y0, int pad_y1, int output_x, int output_y, int num_thread)
+{
+    int col_start = 0;
+    int col_end = output_x * output_y;
+    int kernel_xy = kernel_x * kernel_y;
+    int kernel_size = kernel_xy * input_chan;
+    int kernel_size_aligned2 = (kernel_size + 1) & -2;
+    int input_xy = input_x * input_y;
+
+    int col_end3 = col_end & 0x3;
+    int kernel_size1 = kernel_size & 0x1;
+    int is_1x1 = (kernel_x == 1) && (kernel_y == 1) && (stride_x == 1) && (stride_y == 1);
+    int is_3x3 = (kernel_x == 3) && (kernel_y == 3) && (dilation_x == 1) && (dilation_y == 1);
+    bool is_pad0 = (pad_x0 == 0) && (pad_y0 == 0) && (pad_x1 == 0) && (pad_y1 == 0);
+
+#ifdef __aarch64__
+    // is 1x1
+    if(is_1x1)
+    {
+        int8_t* cur_col = col + col_start * kernel_size_aligned2;
+        int col_cnt = (col_end & -4) - (col_start & -4);
+        im2col_int8_1x1(( int8_t* )im + col_start, input_xy, cur_col, col_cnt, kernel_size);
+        cur_col += col_cnt * kernel_size_aligned2;
+        int col_i = col_end & -4;
+        // final 4 input
+        if(col_end3)
+        {
+            for(int kch = 0; kch < (kernel_size & -2); kch += 2)
+            {
+                for(int i = 0; i < 4; i++)
+                {
+                    if((col_i + i) < col_end)
+                    {
+                        *cur_col++ = *(im + input_xy * (kch + 0) + col_i + i);
+                        *cur_col++ = *(im + input_xy * (kch + 1) + col_i + i);
+                    }
+                    else
+                    {
+                        *cur_col++ = 0;
+                        *cur_col++ = 0;
+                    }
+                }
+            }
+            int kch = kernel_size & -2;
+            if(kernel_size1)
+            {
+                for(int i = 0; i < 4; i++)
+                {
+                    if((col_i + i) < col_end)
+                    {
+                        *cur_col++ = *(im + input_xy * (kch + 0) + col_i + i);
+                        *cur_col++ = 0;
+                    }
+                    else
+                    {
+                        *cur_col++ = 0;
+                        *cur_col++ = 0;
+                    }
+                }
+            }
+        }
+    }
+    // 3x3 non dilation
+    else if(is_3x3)
+    {
+#pragma omp parallel for num_threads(num_thread)
+        for(int col_i = (col_start & -4); col_i < (col_end & -4); col_i += 4)
+        {
+            int imx[4] = {0};
+            int imy[4] = {0};
+            int cnt_x[4] = {0};
+            int cnt_y[4] = {0};
+            int imx_start[4] = {0};
+            int imy_start[4] = {0};
+            int8_t* cur_col = col + col_i * kernel_size_aligned2;
+
+            for(int i = 0; i < 4; i++)
+            {
+                cnt_y[i] = (col_i + i) / output_x;
+                cnt_x[i] = col_i + i - cnt_y[i] * output_x;
+                imx_start[i] = cnt_x[i] * stride_x - pad_x0;
+                imy_start[i] = cnt_y[i] * stride_y - pad_y0;
+            }
+            if((cnt_y[0] == cnt_y[3]) &&
+               (is_pad0 || (cnt_y[0] > 0 && cnt_x[0] > 0 && cnt_y[0] < (output_y - 1) && cnt_x[3] < (output_x - 1))))
+            {
+                int8_t* input_start = ( int8_t* )(im + imy_start[0] * input_x + imx_start[0]);
+                im2col_int8_3x3(input_start, input_x, input_y, input_chan, cur_col, stride_x);
+                cur_col += 4 * kernel_size_aligned2;
+            }
+            else
+            {
+                bool odd_line = false;
+                int kchp = 0;
+                int kyp = 0;
+                for(int kch = 0; kch < input_chan; kch++)
+                {
+                    for(int ky = 0; ky < 3; ky++)
+                    {
+                        if(odd_line)
+                        {
+                            for(int i = 0; i < 4; i++)
+                            {
+                                imy[i] = imy_start[i] + kyp;
+                                imx[i] = imx_start[i] + 2;
+                                if(imx[i] < input_x && imy[i] >= 0 && imy[i] < input_y)
+                                    *cur_col++ = *(im + input_xy * kchp + input_x * imy[i] + imx[i]);
+                                else
+                                    *cur_col++ = 0;
+                                imy[i] = imy_start[i] + ky;
+                                if(imx_start[i] >= 0 && imy[i] >= 0 && imy[i] < input_y)
+                                    *cur_col++ = *(im + input_xy * kch + input_x * imy[i] + imx_start[i]);
+                                else
+                                    *cur_col++ = 0;
+                            }
+                            for(int i = 0; i < 4; i++)
+                            {
+                                for(int k = 0; k < 2; k++)
+                                {
+                                    imx[i] = imx_start[i] + 1 + k;
+                                    if(imx[i] >= 0 && imx[i] < input_x && imy[i] >= 0 && imy[i] < input_y)
+                                        *cur_col++ = *(im + input_xy * kch + input_x * imy[i] + imx[i]);
+                                    else
+                                        *cur_col++ = 0;
+                                }
+                            }
+                            odd_line = false;
+                        }
+                        // even line  2n
+                        else
+                        {
+                            for(int i = 0; i < 4; i++)
+                                imy[i] = imy_start[i] + ky;
+                            for(int i = 0; i < 4; i++)
+                            {
+                                for(int k = 0; k < 2; k++)
+                                {
+                                    imx[i] = imx_start[i] + k;
+                                    if(imx[i] >= 0 && imx[i] < input_x && imy[i] >= 0 && imy[i] < input_y)
+                                        *cur_col++ = *(im + input_xy * kch + input_x * imy[i] + imx[i]);
+                                    else
+                                        *cur_col++ = 0;
+                                }
+                            }
+                            kchp = kch;
+                            kyp = ky;
+                            odd_line = true;
+                        }
+                    }
+                }
+                if(kernel_size1)
+                {
+                    for(int i = 0; i < 4; i++)
+                    {
+                        imy[i] = imy_start[i] + kyp;
+                        imx[i] = imx_start[i] + 2;
+                        if(imx[i] < input_x && imy[i] >= 0 && imy[i] < input_y)
+                            *cur_col++ = *(im + input_xy * kchp + input_x * imy[i] + imx[i]);
+                        else
+                            *cur_col++ = 0;
+                        *cur_col++ = 0;
+                    }
+                }
+            }
+        }
+        int col_i = col_end & -4;
+        if(col_end3)
+        {
+            int imx[4] = {0};
+            int imy[4] = {0};
+            int cnt_x[4] = {0};
+            int cnt_y[4] = {0};
+            int imx_start[4] = {0};
+            int imy_start[4] = {0};
+            int8_t* cur_col = col + col_i * kernel_size_aligned2;
+            for(int i = 0; i < 4; i++)
+            {
+                cnt_y[i] = (col_i + i) / output_x;
+                cnt_x[i] = col_i + i - cnt_y[i] * output_x;
+                imx_start[i] = cnt_x[i] * stride_x - pad_x0;
+                imy_start[i] = cnt_y[i] * stride_y - pad_y0;
+            }
+            bool odd_line = false;
+            int kchp = 0;
+            int kyp = 0;
+            for(int kch = 0; kch < input_chan; kch++)
+            {
+                for(int ky = 0; ky < 3; ky++)
+                {
+                    // odd line 1 + 2n
+                    if(odd_line)
+                    {
+                        for(int i = 0; i < 4; i++)
+                        {
+                            imy[i] = imy_start[i] + kyp;
+                            imx[i] = imx_start[i] + 2;
+                            if((i < col_end3) && imx[i] < input_x && imy[i] >= 0 && imy[i] < input_y)
+                                *cur_col++ = *(im + input_xy * kchp + input_x * imy[i] + imx[i]);
+                            else
+                                *cur_col++ = 0;
+                            imy[i] = imy_start[i] + ky;
+                            if((i < col_end3) && imx_start[i] >= 0 && imy[i] >= 0 && imy[i] < input_y)
+                                *cur_col++ = *(im + input_xy * kch + input_x * imy[i] + imx_start[i]);
+                            else
+                                *cur_col++ = 0;
+                        }
+                        for(int i = 0; i < 4; i++)
+                        {
+                            for(int k = 0; k < 2; k++)
+                            {
+                                imx[i] = imx_start[i] + (1 + k);
+                                if((i < col_end3) && imx[i] >= 0 && imx[i] < input_x && imy[i] >= 0 && imy[i] < input_y)
+                                    *cur_col++ = *(im + input_xy * kch + input_x * imy[i] + imx[i]);
+                                else
+                                    *cur_col++ = 0;
+                            }
+                        }
+                        odd_line = false;
+                    }
+                    // even line  2n + 1
+                    else
+                    {
+                        for(int i = 0; i < 4; i++)
+                            imy[i] = imy_start[i] + ky;
+                        for(int i = 0; i < 4; i++)
+                        {
+                            for(int k = 0; k < 2; k++)
+                            {
+                                imx[i] = imx_start[i] + k;
+                                if(i < col_end3 && imx[i] >= 0 && imx[i] < input_x && imy[i] >= 0 && imy[i] < input_y)
+                                    *cur_col++ = *(im + input_xy * kch + input_x * imy[i] + imx[i]);
+                                else
+                                    *cur_col++ = 0;
+                            }
+                        }
+                        kchp = kch;
+                        kyp = ky;
+                        odd_line = true;
+                    }
+                }
+            }
+            if(kernel_size1)
+            {
+                for(int i = 0; i < 4; i++)
+                {
+                    imy[i] = imy_start[i] + kyp;
+                    imx[i] = imx_start[i] + 2;
+                    if((i < col_end3) && imx[i] < input_x && imy[i] >= 0 && imy[i] < input_y)
+                        *cur_col++ = *(im + input_xy * kchp + input_x * imy[i] + imx[i]);
+                    else
+                        *cur_col++ = 0;
+                    *cur_col++ = 0;
+                }
+            }
+        }
+    }
+    // general case for kernel size <=3
+    else if((kernel_x) < 4 && (kernel_y < 4))
+    {
+        int kch[2], kx[2], ky[2], imx[4][2], imy[4][2];
+        int8_t* cur_col = col + col_start * kernel_size_aligned2;
+        for(int col_i = (col_start & -4); col_i < (col_end & -4); col_i += 4)
+        {
+            int cnt_x[4] = {0};
+            int cnt_y[4] = {0};
+            int imx_start[4] = {0};
+            int imy_start[4] = {0};
+            for(int i = 0; i < 4; i++)
+            {
+                cnt_y[i] = (col_i + i) / output_x;
+                cnt_x[i] = col_i + i - cnt_y[i] * output_x;
+                imx_start[i] = cnt_x[i] * stride_x - pad_x0;
+                imy_start[i] = cnt_y[i] * stride_y - pad_y0;
+            }
+            for(int col_j = 0; col_j < (kernel_size & -2); col_j += 2)
+            {
+                for(int k = 0; k < 2; k++)
+                {
+                    kch[k] = (col_j + k) / kernel_xy;
+                    ky[k] = (col_j + k - kch[k] * kernel_xy) / kernel_x;
+                    kx[k] = (col_j + k - kch[k] * kernel_xy) - ky[k] * kernel_x;
+                    ky[k] = ky[k] * dilation_y;
+                    kx[k] = kx[k] * dilation_x;
+                    for(int i = 0; i < 4; i++)
+                    {
+                        imx[i][k] = imx_start[i] + kx[k];
+                        imy[i][k] = imy_start[i] + ky[k];
+                    }
+                }
+                for(int i = 0; i < 4; i++)
+                {
+                    for(int k = 0; k < 2; k++)
+                    {
+                        if(imx[i][k] >= 0 && imx[i][k] < input_x && imy[i][k] >= 0 && imy[i][k] < input_y)
+                            *cur_col++ = *(im + input_xy * kch[k] + input_x * imy[i][k] + imx[i][k]);
+                        else
+                            *cur_col++ = 0;
+                    }
+                }
+            }
+            int col_j = kernel_size & -2;
+            if(kernel_size1)
+            {
+                kch[0] = col_j / kernel_xy;
+                ky[0] = (col_j - kch[0] * kernel_xy) / kernel_x;
+                kx[0] = col_j - kch[0] * kernel_xy - ky[0] * kernel_x;
+                ky[0] = ky[0] * dilation_y;
+                kx[0] = kx[0] * dilation_x;
+                for(int i = 0; i < 4; i++)
+                {
+                    imx[i][0] = imx_start[i] + kx[0];
+                    imy[i][0] = imy_start[i] + ky[0];
+                    if(imx[i][0] >= 0 && imx[i][0] < input_x && imy[i][0] >= 0 && imy[i][0] < input_y)
+                        *cur_col++ = *(im + input_xy * kch[0] + input_x * imy[i][0] + imx[i][0]);
+                    else
+                        *cur_col++ = 0;
+                    *cur_col++ = 0;
+                }
+            }
+        }
+        int col_i = col_end & -4;
+        // final 4 input
+        if(col_end3)
+        {
+            int cnt_x[4] = {0};
+            int cnt_y[4] = {0};
+            int imx_start[4] = {0};
+            int imy_start[4] = {0};
+            for(int i = 0; i < 4; i++)
+            {
+                cnt_y[i] = (col_i + i) / output_x;
+                cnt_x[i] = col_i + i - cnt_y[i] * output_x;
+                imx_start[i] = cnt_x[i] * stride_x - pad_x0;
+                imy_start[i] = cnt_y[i] * stride_y - pad_y0;
+            }
+            for(int col_j = 0; col_j < (kernel_size & -2); col_j += 2)
+            {
+                for(int k = 0; k < 2; k++)
+                {
+                    kch[k] = (col_j + k) / kernel_xy;
+                    ky[k] = (col_j + k - kch[k] * kernel_xy) / kernel_x;
+                    kx[k] = (col_j + k - kch[k] * kernel_xy) - ky[k] * kernel_x;
+                    ky[k] = ky[k] * dilation_y;
+                    kx[k] = kx[k] * dilation_x;
+                    for(int i = 0; i < 4; i++)
+                    {
+                        imx[i][k] = imx_start[i] + kx[k];
+                        imy[i][k] = imy_start[i] + ky[k];
+                    }
+                }
+                for(int i = 0; i < 4; i++)
+                {
+                    for(int k = 0; k < 2; k++)
+                    {
+                        if((col_i + i) < col_end && imx[i][k] >= 0 && imx[i][k] < input_x && imy[i][k] >= 0 &&
+                           imy[i][k] < input_y)
+                            *cur_col++ = *(im + input_xy * kch[k] + input_x * imy[i][k] + imx[i][k]);
+                        else
+                            *cur_col++ = 0;
+                    }
+                }
+            }
+            int col_j = kernel_size & -2;
+            if(kernel_size1)
+            {
+                kch[0] = col_j / kernel_xy;
+                ky[0] = (col_j - kch[0] * kernel_xy) / kernel_x;
+                kx[0] = col_j - kch[0] * kernel_xy - ky[0] * kernel_x;
+                ky[0] = ky[0] * dilation_y;
+                kx[0] = kx[0] * dilation_x;
+                for(int i = 0; i < 4; i++)
+                {
+                    imx[i][0] = imx_start[i] + kx[0];
+                    imy[i][0] = imy_start[i] + ky[0];
+                    if((col_i + i) < col_end && imx[i][0] >= 0 && imx[i][0] < input_x && imy[i][0] >= 0 && imy[i][0] < input_y)
+                        *cur_col++ = *(im + input_xy * kch[0] + input_x * imy[i][0] + imx[i][0]);
+                    else
+                        *cur_col++ = 0;
+                    *cur_col++ = 0;
+                }
+            }
+        }
+    }
+    // general case for kernel size >=3
+    else
+    {
+        int kch, kx, ky, kchp, kyp, imx[4], imy[4] = {0};
+        int kernel_x1 = kernel_x & 0x1;
+        int8_t* cur_col = col + col_start * kernel_size_aligned2;
+        for(int col_i = (col_start & -4); col_i < (col_end & -4); col_i += 4)
+        {
+            int cnt_x[4] = {0};
+            int cnt_y[4] = {0};
+            int imx_start[4] = {0};
+            int imy_start[4] = {0};
+            for(int i = 0; i < 4; i++)
+            {
+                cnt_y[i] = (col_i + i) / output_x;
+                cnt_x[i] = col_i + i - cnt_y[i] * output_x;
+                imx_start[i] = cnt_x[i] * stride_x - pad_x0;
+                imy_start[i] = cnt_y[i] * stride_y - pad_y0;
+            }
+            bool odd_line = false;
+            kchp = 0;
+            kyp = 0;
+            for(int kch = 0; kch < input_chan; kch++)
+            {
+                for(ky = 0; ky < kernel_y; ky++)
+                {
+                    // odd line 2 + 2n
+                    if(odd_line)
+                    {
+                        for(int i = 0; i < 4; i++)
+                        {
+                            imy[i] = imy_start[i] + kyp * dilation_y;
+                            imx[i] = imx_start[i] + (kernel_x - 1) * dilation_x;
+                            if(imx[i] < input_x && imy[i] >= 0 && imy[i] < input_y)
+                                *cur_col++ = *(im + input_xy * kchp + input_x * imy[i] + imx[i]);
+                            else
+                                *cur_col++ = 0;
+                            imy[i] = imy_start[i] + ky * dilation_y;
+                            if(imx_start[i] >= 0 && imy[i] >= 0 && imy[i] < input_y)
+                                *cur_col++ = *(im + input_xy * kch + input_x * imy[i] + imx_start[i]);
+                            else
+                                *cur_col++ = 0;
+                        }
+                        for(kx = 1; kx < kernel_x; kx += 2)
+                        {
+                            for(int i = 0; i < 4; i++)
+                            {
+                                for(int k = 0; k < 2; k++)
+                                {
+                                    imx[i] = imx_start[i] + (kx + k) * dilation_x;
+                                    if(imx[i] >= 0 && imx[i] < input_x && imy[i] >= 0 && imy[i] < input_y)
+                                        *cur_col++ = *(im + input_xy * kch + input_x * imy[i] + imx[i]);
+                                    else
+                                        *cur_col++ = 0;
+                                }
+                            }
+                        }
+                        odd_line = false;
+                    }
+                    // even line  2n
+                    else
+                    {
+                        for(int i = 0; i < 4; i++)
+                            imy[i] = imy_start[i] + ky * dilation_y;
+                        for(kx = 0; kx < (kernel_x - 1); kx += 2)
+                        {
+                            for(int i = 0; i < 4; i++)
+                            {
+                                for(int k = 0; k < 2; k++)
+                                {
+                                    imx[i] = imx_start[i] + (kx + k) * dilation_x;
+                                    if(imx[i] >= 0 && imx[i] < input_x && imy[i] >= 0 && imy[i] < input_y)
+                                        *cur_col++ = *(im + input_xy * kch + input_x * imy[i] + imx[i]);
+                                    else
+                                        *cur_col++ = 0;
+                                }
+                            }
+                        }
+                        kchp = kch;
+                        kyp = ky;
+                        odd_line = kernel_x1 ? true : false;
+                    }
+                }
+            }
+            if(kernel_size1)
+            {
+                for(int i = 0; i < 4; i++)
+                {
+                    imy[i] = imy_start[i] + kyp * dilation_y;
+                    imx[i] = imx_start[i] + (kernel_x - 1) * dilation_x;
+                    if(imx[i] < input_x && imy[i] >= 0 && imy[i] < input_y)
+                        *cur_col++ = *(im + input_xy * kchp + input_x * imy[i] + imx[i]);
+                    else
+                        *cur_col++ = 0;
+                    *cur_col++ = 0;
+                }
+            }
+        }
+        int col_i = col_end & -4;
+        // final 4 input
+        if(col_end3)
+        {
+            int cnt_x[4] = {0};
+            int cnt_y[4] = {0};
+            int imx_start[4] = {0};
+            int imy_start[4] = {0};
+            for(int i = 0; i < 4; i++)
+            {
+                cnt_y[i] = (col_i + i) / output_x;
+                cnt_x[i] = col_i + i - cnt_y[i] * output_x;
+                imx_start[i] = cnt_x[i] * stride_x - pad_x0;
+                imy_start[i] = cnt_y[i] * stride_y - pad_y0;
+            }
+            bool odd_line = false;
+            kchp = 0;
+            kyp = 0;
+            for(int kch = 0; kch < input_chan; kch++)
+            {
+                for(ky = 0; ky < kernel_y; ky++)
+                {
+                    // odd line 1 + 2n
+                    if(odd_line)
+                    {
+                        for(int i = 0; i < 4; i++)
+                        {
+                            imy[i] = imy_start[i] + kyp * dilation_y;
+                            imx[i] = imx_start[i] + (kernel_x - 1) * dilation_x;
+                            if((i < col_end3) && imx[i] < input_x && imy[i] >= 0 && imy[i] < input_y)
+                                *cur_col++ = *(im + input_xy * kchp + input_x * imy[i] + imx[i]);
+                            else
+                                *cur_col++ = 0;
+                            imy[i] = imy_start[i] + ky * dilation_y;
+                            if((i < col_end3) && imx_start[i] >= 0 && imy[i] >= 0 && imy[i] < input_y)
+                                *cur_col++ = *(im + input_xy * kch + input_x * imy[i] + imx_start[i]);
+                            else
+                                *cur_col++ = 0;
+                        }
+                        for(kx = 1; kx < kernel_x; kx += 2)
+                        {
+                            for(int i = 0; i < 4; i++)
+                            {
+                                for(int k = 0; k < 2; k++)
+                                {
+                                    imx[i] = imx_start[i] + (kx + k) * dilation_x;
+                                    if((i < col_end3) && imx[i] >= 0 && imx[i] < input_x && imy[i] >= 0 &&
+                                       imy[i] < input_y)
+                                        *cur_col++ = *(im + input_xy * kch + input_x * imy[i] + imx[i]);
+                                    else
+                                        *cur_col++ = 0;
+                                }
+                            }
+                        }
+                        odd_line = false;
+                    }
+                    // even line  2n + 1
+                    else
+                    {
+                        for(int i = 0; i < 4; i++)
+                            imy[i] = imy_start[i] + ky * dilation_y;
+                        for(kx = 0; kx < (kernel_x - 1); kx += 2)
+                        {
+                            for(int i = 0; i < 4; i++)
+                            {
+                                for(int k = 0; k < 2; k++)
+                                {
+                                    imx[i] = imx_start[i] + (kx + k) * dilation_x;
+                                    if(i < col_end3 && imx[i] >= 0 && imx[i] < input_x && imy[i] >= 0 &&
+                                       imy[i] < input_y)
+                                        *cur_col++ = *(im + input_xy * kch + input_x * imy[i] + imx[i]);
+                                    else
+                                        *cur_col++ = 0;
+                                }
+                            }
+                        }
+                        kchp = kch;
+                        kyp = ky;
+                        odd_line = kernel_x1 ? true : false;
+                    }
+                }
+            }
+            if(kernel_size1)
+            {
+                for(int i = 0; i < 4; i++)
+                {
+                    imy[i] = imy_start[i] + kyp * dilation_y;
+                    imx[i] = imx_start[i] + (kernel_x - 1) * dilation_x;
+                    if((i < col_end3) && imx[i] < input_x && imy[i] >= 0 && imy[i] < input_y)
+                        *cur_col++ = *(im + input_xy * kchp + input_x * imy[i] + imx[i]);
+                    else
+                        *cur_col++ = 0;
+                    *cur_col++ = 0;
+                }
+            }
+        }
+    }
+#else
+    if(is_3x3)
+    {
+        int stride_x2 = stride_x * 2;
+        int stride_x3 = stride_x * 3;
+// #pragma omp parallel for num_threads(num_thread)
+        for(int col_i = (col_start & -4); col_i < (col_end & -4); col_i += 4)
+        {
+            int imx[4] = {0};
+            int imy[4] = {0};
+            int cnt_x[4] = {0};
+            int cnt_y[4] = {0};
+            int imx_start[4] = {0};
+            int imy_start[4] = {0};
+            int8_t* cur_col = col + col_i * kernel_size_aligned2;
+            for(int i = 0; i < 4; i++)
+            {
+                cnt_y[i] = (col_i + i) / output_x;
+                cnt_x[i] = col_i + i - cnt_y[i] * output_x;
+                imx_start[i] = cnt_x[i] * stride_x - pad_x0;
+                imy_start[i] = cnt_y[i] * stride_y - pad_y0;
+            }
+            if((cnt_y[0] == cnt_y[3]) &&
+               (is_pad0 || (cnt_y[0] > 0 && cnt_x[0] > 0 && cnt_y[0] < (output_y - 1) && cnt_x[3] < (output_x - 1))))
+            {
+                int8_t* l00 = ( int8_t* )(im + imy_start[0] * input_x + imx_start[0]);
+                int8_t* l01 = l00 + input_x;
+                int8_t* l02 = l00 + input_x * 2;
+                int8_t* l10 = l00 + input_xy;
+                int8_t* l11 = l10 + input_x;
+                int8_t* l12 = l10 + input_x * 2;
+                for(int kch = 0; kch < (input_chan & -2); kch += 2)
+                {
+                    cur_col[0] = l00[0];
+                    cur_col[1] = l00[1];
+                    cur_col[2] = l00[0 + stride_x];
+                    cur_col[3] = l00[1 + stride_x];
+                    cur_col[4] = l00[0 + stride_x2];
+                    cur_col[5] = l00[1 + stride_x2];
+                    cur_col[6] = l00[0 + stride_x3];
+                    cur_col[7] = l00[1 + stride_x3];
+                    cur_col[8] = l00[2];
+                    cur_col[9] = l01[0];
+                    cur_col[10] = l00[2 + stride_x];
+                    cur_col[11] = l01[0 + stride_x];
+                    cur_col[12] = l00[2 + stride_x2];
+                    cur_col[13] = l01[0 + stride_x2];
+                    cur_col[14] = l00[2 + stride_x3];
+                    cur_col[15] = l01[0 + stride_x3];
+                    cur_col[16] = l01[1];
+                    cur_col[17] = l01[2];
+                    cur_col[18] = l01[1 + stride_x];
+                    cur_col[19] = l01[2 + stride_x];
+                    cur_col[20] = l01[1 + stride_x2];
+                    cur_col[21] = l01[2 + stride_x2];
+                    cur_col[22] = l01[1 + stride_x3];
+                    cur_col[23] = l01[2 + stride_x3];
+                    cur_col[24] = l02[0];
+                    cur_col[25] = l02[1];
+                    cur_col[26] = l02[0 + stride_x];
+                    cur_col[27] = l02[1 + stride_x];
+                    cur_col[28] = l02[0 + stride_x2];
+                    cur_col[29] = l02[1 + stride_x2];
+                    cur_col[30] = l02[0 + stride_x3];
+                    cur_col[31] = l02[1 + stride_x3];
+                    cur_col[32] = l02[2];
+                    cur_col[33] = l10[0];
+                    cur_col[34] = l02[2 + stride_x];
+                    cur_col[35] = l10[0 + stride_x];
+                    cur_col[36] = l02[2 + stride_x2];
+                    cur_col[37] = l10[0 + stride_x2];
+                    cur_col[38] = l02[2 + stride_x3];
+                    cur_col[39] = l10[0 + stride_x3];
+                    cur_col[40] = l10[1];
+                    cur_col[41] = l10[2];
+                    cur_col[42] = l10[1 + stride_x];
+                    cur_col[43] = l10[2 + stride_x];
+                    cur_col[44] = l10[1 + stride_x2];
+                    cur_col[45] = l10[2 + stride_x2];
+                    cur_col[46] = l10[1 + stride_x3];
+                    cur_col[47] = l10[2 + stride_x3];
+                    cur_col[48] = l11[0];
+                    cur_col[49] = l11[1];
+                    cur_col[50] = l11[0 + stride_x];
+                    cur_col[51] = l11[1 + stride_x];
+                    cur_col[52] = l11[0 + stride_x2];
+                    cur_col[53] = l11[1 + stride_x2];
+                    cur_col[54] = l11[0 + stride_x3];
+                    cur_col[55] = l11[1 + stride_x3];
+                    cur_col[56] = l11[2];
+                    cur_col[57] = l12[0];
+                    cur_col[58] = l11[2 + stride_x];
+                    cur_col[59] = l12[0 + stride_x];
+                    cur_col[60] = l11[2 + stride_x2];
+                    cur_col[61] = l12[0 + stride_x2];
+                    cur_col[62] = l11[2 + stride_x3];
+                    cur_col[63] = l12[0 + stride_x3];
+                    cur_col[64] = l12[1];
+                    cur_col[65] = l12[2];
+                    cur_col[66] = l12[1 + stride_x];
+                    cur_col[67] = l12[2 + stride_x];
+                    cur_col[68] = l12[1 + stride_x2];
+                    cur_col[69] = l12[2 + stride_x2];
+                    cur_col[70] = l12[1 + stride_x3];
+                    cur_col[71] = l12[2 + stride_x3];
+                    cur_col += 72;
+                    l00 += input_xy * 2;
+                    l01 += input_xy * 2;
+                    l02 += input_xy * 2;
+                    l10 += input_xy * 2;
+                    l11 += input_xy * 2;
+                    l12 += input_xy * 2;
+                }
+                if(input_chan & 0x1)
+                {
+                    cur_col[0] = l00[0];
+                    cur_col[1] = l00[1];
+                    cur_col[2] = l00[0 + stride_x];
+                    cur_col[3] = l00[1 + stride_x];
+                    cur_col[4] = l00[0 + stride_x2];
+                    cur_col[5] = l00[1 + stride_x2];
+                    cur_col[6] = l00[0 + stride_x3];
+                    cur_col[7] = l00[1 + stride_x3];
+                    cur_col[8] = l00[2];
+                    cur_col[9] = l01[0];
+                    cur_col[10] = l00[2 + stride_x];
+                    cur_col[11] = l01[0 + stride_x];
+                    cur_col[12] = l00[2 + stride_x2];
+                    cur_col[13] = l01[0 + stride_x2];
+                    cur_col[14] = l00[2 + stride_x3];
+                    cur_col[15] = l01[0 + stride_x3];
+                    cur_col[16] = l01[1];
+                    cur_col[17] = l01[2];
+                    cur_col[18] = l01[1 + stride_x];
+                    cur_col[19] = l01[2 + stride_x];
+                    cur_col[20] = l01[1 + stride_x2];
+                    cur_col[21] = l01[2 + stride_x2];
+                    cur_col[22] = l01[1 + stride_x3];
+                    cur_col[23] = l01[2 + stride_x3];
+                    cur_col[24] = l02[0];
+                    cur_col[25] = l02[1];
+                    cur_col[26] = l02[0 + stride_x];
+                    cur_col[27] = l02[1 + stride_x];
+                    cur_col[28] = l02[0 + stride_x2];
+                    cur_col[29] = l02[1 + stride_x2];
+                    cur_col[30] = l02[0 + stride_x3];
+                    cur_col[31] = l02[1 + stride_x3];
+                    cur_col[32] = l02[2];
+                    cur_col[33] = 0;
+                    cur_col[34] = l02[2 + stride_x];
+                    cur_col[35] = 0;
+                    cur_col[36] = l02[2 + stride_x2];
+                    cur_col[37] = 0;
+                    cur_col[38] = l02[2 + stride_x3];
+                    cur_col[39] = 0;
+                }
+            }
+            else
+            {
+                bool odd_line = false;
+                int kchp = 0;
+                int kyp = 0;
+                for(int kch = 0; kch < input_chan; kch++)
+                {
+                    for(int ky = 0; ky < 3; ky++)
+                    {
+                        if(odd_line)
+                        {
+                            for(int i = 0; i < 4; i++)
+                            {
+                                imy[i] = imy_start[i] + kyp;
+                                imx[i] = imx_start[i] + 2;
+                                if(imx[i] < input_x && imy[i] >= 0 && imy[i] < input_y)
+                                    *cur_col++ = *(im + input_xy * kchp + input_x * imy[i] + imx[i]);
+                                else
+                                    *cur_col++ = 0;
+                                imy[i] = imy_start[i] + ky;
+                                if(imx_start[i] >= 0 && imy[i] >= 0 && imy[i] < input_y)
+                                    *cur_col++ = *(im + input_xy * kch + input_x * imy[i] + imx_start[i]);
+                                else
+                                    *cur_col++ = 0;
+                            }
+                            for(int i = 0; i < 4; i++)
+                            {
+                                for(int k = 0; k < 2; k++)
+                                {
+                                    imx[i] = imx_start[i] + 1 + k;
+                                    if(imx[i] >= 0 && imx[i] < input_x && imy[i] >= 0 && imy[i] < input_y)
+                                        *cur_col++ = *(im + input_xy * kch + input_x * imy[i] + imx[i]);
+                                    else
+                                        *cur_col++ = 0;
+                                }
+                            }
+                            odd_line = false;
+                        }
+                        // even line  2n
+                        else
+                        {
+                            for(int i = 0; i < 4; i++)
+                                imy[i] = imy_start[i] + ky;
+                            for(int i = 0; i < 4; i++)
+                            {
+                                for(int k = 0; k < 2; k++)
+                                {
+                                    imx[i] = imx_start[i] + k;
+                                    if(imx[i] >= 0 && imx[i] < input_x && imy[i] >= 0 && imy[i] < input_y)
+                                        *cur_col++ = *(im + input_xy * kch + input_x * imy[i] + imx[i]);
+                                    else
+                                        *cur_col++ = 0;
+                                }
+                            }
+                            kchp = kch;
+                            kyp = ky;
+                            odd_line = true;
+                        }
+                    }
+                }
+                if(kernel_size1)
+                {
+                    for(int i = 0; i < 4; i++)
+                    {
+                        imy[i] = imy_start[i] + kyp;
+                        imx[i] = imx_start[i] + 2;
+                        if(imx[i] < input_x && imy[i] >= 0 && imy[i] < input_y)
+                            *cur_col++ = *(im + input_xy * kchp + input_x * imy[i] + imx[i]);
+                        else
+                            *cur_col++ = 0;
+                        *cur_col++ = 0;
+                    }
+                }
+            }
+        }
+
+        int col_i = col_end & -4;
+        if(col_end3)
+        {
+            int imx[4] = {0};
+            int imy[4] = {0};
+            int cnt_x[4] = {0};
+            int cnt_y[4] = {0};
+            int imx_start[4] = {0};
+            int imy_start[4] = {0};
+            int8_t* cur_col = col + col_i * kernel_size_aligned2;
+            for(int i = 0; i < 4; i++)
+            {
+                cnt_y[i] = (col_i + i) / output_x;
+                cnt_x[i] = col_i + i - cnt_y[i] * output_x;
+                imx_start[i] = cnt_x[i] * stride_x - pad_x0;
+                imy_start[i] = cnt_y[i] * stride_y - pad_y0;
+            }
+            bool odd_line = false;
+            int kchp = 0;
+            int kyp = 0;
+            for(int kch = 0; kch < input_chan; kch++)
+            {
+                for(int ky = 0; ky < 3; ky++)
+                {
+                    // odd line 1 + 2n
+                    if(odd_line)
+                    {
+                        for(int i = 0; i < 4; i++)
+                        {
+                            imy[i] = imy_start[i] + kyp;
+                            imx[i] = imx_start[i] + 2;
+                            if((i < col_end3) && imx[i] < input_x && imy[i] >= 0 && imy[i] < input_y)
+                                *cur_col++ = *(im + input_xy * kchp + input_x * imy[i] + imx[i]);
+                            else
+                                *cur_col++ = 0;
+                            imy[i] = imy_start[i] + ky;
+                            if((i < col_end3) && imx_start[i] >= 0 && imy[i] >= 0 && imy[i] < input_y)
+                                *cur_col++ = *(im + input_xy * kch + input_x * imy[i] + imx_start[i]);
+                            else
+                                *cur_col++ = 0;
+                        }
+                        for(int i = 0; i < 4; i++)
+                        {
+                            for(int k = 0; k < 2; k++)
+                            {
+                                imx[i] = imx_start[i] + (1 + k);
+                                if((i < col_end3) && imx[i] >= 0 && imx[i] < input_x && imy[i] >= 0 && imy[i] < input_y)
+                                    *cur_col++ = *(im + input_xy * kch + input_x * imy[i] + imx[i]);
+                                else
+                                    *cur_col++ = 0;
+                            }
+                        }
+                        odd_line = false;
+                    }
+                    // even line  2n + 1
+                    else
+                    {
+                        for(int i = 0; i < 4; i++)
+                            imy[i] = imy_start[i] + ky;
+                        for(int i = 0; i < 4; i++)
+                        {
+                            for(int k = 0; k < 2; k++)
+                            {
+                                imx[i] = imx_start[i] + k;
+                                if(i < col_end3 && imx[i] >= 0 && imx[i] < input_x && imy[i] >= 0 && imy[i] < input_y)
+                                    *cur_col++ = *(im + input_xy * kch + input_x * imy[i] + imx[i]);
+                                else
+                                    *cur_col++ = 0;
+                            }
+                        }
+                        kchp = kch;
+                        kyp = ky;
+                        odd_line = true;
+                    }
+                }
+            }
+            if(kernel_size1)
+            {
+                for(int i = 0; i < 4; i++)
+                {
+                    imy[i] = imy_start[i] + kyp;
+                    imx[i] = imx_start[i] + 2;
+                    if((i < col_end3) && imx[i] < input_x && imy[i] >= 0 && imy[i] < input_y)
+                        *cur_col++ = *(im + input_xy * kchp + input_x * imy[i] + imx[i]);
+                    else
+                        *cur_col++ = 0;
+                    *cur_col++ = 0;
+                }
+            }
+        }
+    }
+    // general case for kernel size <=3
+    else if((kernel_x) < 4 && (kernel_y < 4))
+    {
+        int kch[2], kx[2], ky[2], imx[4][2], imy[4][2];
+        for(int col_i = (col_start & -4); col_i < (col_end & -4); col_i += 4)
+        {
+            int cnt_x[4] = {0};
+            int cnt_y[4] = {0};
+            int imx_start[4] = {0};
+            int imy_start[4] = {0};
+            int8_t* cur_col = col + col_i * kernel_size_aligned2;
+            for(int i = 0; i < 4; i++)
+            {
+                cnt_y[i] = (col_i + i) / output_x;
+                cnt_x[i] = col_i + i - cnt_y[i] * output_x;
+                imx_start[i] = cnt_x[i] * stride_x - pad_x0;
+                imy_start[i] = cnt_y[i] * stride_y - pad_y0;
+            }
+            for(int col_j = 0; col_j < (kernel_size & -2); col_j += 2)
+            {
+                for(int k = 0; k < 2; k++)
+                {
+                    kch[k] = (col_j + k) / kernel_xy;
+                    ky[k] = (col_j + k - kch[k] * kernel_xy) / kernel_x;
+                    kx[k] = (col_j + k - kch[k] * kernel_xy) - ky[k] * kernel_x;
+                    ky[k] = ky[k] * dilation_y;
+                    kx[k] = kx[k] * dilation_x;
+                    for(int i = 0; i < 4; i++)
+                    {
+                        imx[i][k] = imx_start[i] + kx[k];
+                        imy[i][k] = imy_start[i] + ky[k];
+                    }
+                }
+                for(int i = 0; i < 4; i++)
+                {
+                    for(int k = 0; k < 2; k++)
+                    {
+                        if(imx[i][k] >= 0 && imx[i][k] < input_x && imy[i][k] >= 0 && imy[i][k] < input_y)
+                            *cur_col++ = *(im + input_xy * kch[k] + input_x * imy[i][k] + imx[i][k]);
+                        else
+                            *cur_col++ = 0;
+                    }
+                }
+            }
+            int col_j = kernel_size & -2;
+            if(kernel_size1)
+            {
+                kch[0] = col_j / kernel_xy;
+                ky[0] = (col_j - kch[0] * kernel_xy) / kernel_x;
+                kx[0] = col_j - kch[0] * kernel_xy - ky[0] * kernel_x;
+                ky[0] = ky[0] * dilation_y;
+                kx[0] = kx[0] * dilation_x;
+                for(int i = 0; i < 4; i++)
+                {
+                    imx[i][0] = imx_start[i] + kx[0];
+                    imy[i][0] = imy_start[i] + ky[0];
+                    if(imx[i][0] >= 0 && imx[i][0] < input_x && imy[i][0] >= 0 && imy[i][0] < input_y)
+                        *cur_col++ = *(im + input_xy * kch[0] + input_x * imy[i][0] + imx[i][0]);
+                    else
+                        *cur_col++ = 0;
+                    *cur_col++ = 0;
+                }
+            }
+        }
+        int col_i = col_end & -4;
+        // final 4 input
+        if(col_end3)
+        {
+            int cnt_x[4] = {0};
+            int cnt_y[4] = {0};
+            int imx_start[4] = {0};
+            int imy_start[4] = {0};
+            int8_t* cur_col = col + col_i * kernel_size_aligned2;
+            for(int i = 0; i < 4; i++)
+            {
+                cnt_y[i] = (col_i + i) / output_x;
+                cnt_x[i] = col_i + i - cnt_y[i] * output_x;
+                imx_start[i] = cnt_x[i] * stride_x - pad_x0;
+                imy_start[i] = cnt_y[i] * stride_y - pad_y0;
+            }
+            for(int col_j = 0; col_j < (kernel_size & -2); col_j += 2)
+            {
+                for(int k = 0; k < 2; k++)
+                {
+                    kch[k] = (col_j + k) / kernel_xy;
+                    ky[k] = (col_j + k - kch[k] * kernel_xy) / kernel_x;
+                    kx[k] = (col_j + k - kch[k] * kernel_xy) - ky[k] * kernel_x;
+                    ky[k] = ky[k] * dilation_y;
+                    kx[k] = kx[k] * dilation_x;
+                    for(int i = 0; i < 4; i++)
+                    {
+                        imx[i][k] = imx_start[i] + kx[k];
+                        imy[i][k] = imy_start[i] + ky[k];
+                    }
+                }
+                for(int i = 0; i < 4; i++)
+                {
+                    for(int k = 0; k < 2; k++)
+                    {
+                        if((col_i + i) < col_end && imx[i][k] >= 0 && imx[i][k] < input_x && imy[i][k] >= 0 &&
+                           imy[i][k] < input_y)
+                            *cur_col++ = *(im + input_xy * kch[k] + input_x * imy[i][k] + imx[i][k]);
+                        else
+                            *cur_col++ = 0;
+                    }
+                }
+            }
+            int col_j = kernel_size & -2;
+            if(kernel_size1)
+            {
+                kch[0] = col_j / kernel_xy;
+                ky[0] = (col_j - kch[0] * kernel_xy) / kernel_x;
+                kx[0] = col_j - kch[0] * kernel_xy - ky[0] * kernel_x;
+                ky[0] = ky[0] * dilation_y;
+                kx[0] = kx[0] * dilation_x;
+                for(int i = 0; i < 4; i++)
+                {
+                    imx[i][0] = imx_start[i] + kx[0];
+                    imy[i][0] = imy_start[i] + ky[0];
+                    if((col_i + i) < col_end && imx[i][0] >= 0 && imx[i][0] < input_x && imy[i][0] >= 0 &&
+                       imy[i][0] < input_y)
+                        *cur_col++ = *(im + input_xy * kch[0] + input_x * imy[i][0] + imx[i][0]);
+                    else
+                        *cur_col++ = 0;
+                    *cur_col++ = 0;
+                }
+            }
+        }
+    }
+    // general case for kernel size >=3
+    else
+    {
+        int kch, kx, ky, kchp, kyp, imx[4], imy[4];
+        int kernel_x1 = kernel_x & 0x1;
+        int8_t* cur_col = col + col_start * kernel_size_aligned2;
+        for(int col_i = (col_start & -4); col_i < (col_end & -4); col_i += 4)
+        {
+            int cnt_x[4] = {0};
+            int cnt_y[4] = {0};
+            int imx_start[4] = {0};
+            int imy_start[4] = {0};
+            for(int i = 0; i < 4; i++)
+            {
+                cnt_y[i] = (col_i + i) / output_x;
+                cnt_x[i] = col_i + i - cnt_y[i] * output_x;
+                imx_start[i] = cnt_x[i] * stride_x - pad_x0;
+                imy_start[i] = cnt_y[i] * stride_y - pad_y0;
+            }
+            bool odd_line = false;
+            kchp = 0;
+            kyp = 0;
+            for(int kch = 0; kch < input_chan; kch++)
+            {
+                for(int ky = 0; ky < kernel_y; ky++)
+                {
+                    // odd line 2 + 2n
+                    if(odd_line)
+                    {
+                        for(int i = 0; i < 4; i++)
+                        {
+                            imy[i] = imy_start[i] + kyp * dilation_y;
+                            imx[i] = imx_start[i] + (kernel_x - 1) * dilation_x;
+                            if(imx[i] < input_x && imy[i] >= 0 && imy[i] < input_y)
+                                *cur_col++ = *(im + input_xy * kchp + input_x * imy[i] + imx[i]);
+                            else
+                                *cur_col++ = 0;
+                            imy[i] = imy_start[i] + ky * dilation_y;
+                            if(imx_start[i] >= 0 && imy[i] >= 0 && imy[i] < input_y)
+                                *cur_col++ = *(im + input_xy * kch + input_x * imy[i] + imx_start[i]);
+                            else
+                                *cur_col++ = 0;
+                        }
+                        for(int kx = 1; kx < kernel_x; kx += 2)
+                        {
+                            for(int i = 0; i < 4; i++)
+                            {
+                                for(int k = 0; k < 2; k++)
+                                {
+                                    imx[i] = imx_start[i] + (kx + k) * dilation_x;
+                                    if(imx[i] >= 0 && imx[i] < input_x && imy[i] >= 0 && imy[i] < input_y)
+                                        *cur_col++ = *(im + input_xy * kch + input_x * imy[i] + imx[i]);
+                                    else
+                                        *cur_col++ = 0;
+                                }
+                            }
+                        }
+                        odd_line = false;
+                    }
+                    // even line  2n
+                    else
+                    {
+                        for(int i = 0; i < 4; i++)
+                            imy[i] = imy_start[i] + ky * dilation_y;
+                        for(int kx = 0; kx < (kernel_x - 1); kx += 2)
+                        {
+                            for(int i = 0; i < 4; i++)
+                            {
+                                for(int k = 0; k < 2; k++)
+                                {
+                                    imx[i] = imx_start[i] + (kx + k) * dilation_x;
+                                    if(imx[i] >= 0 && imx[i] < input_x && imy[i] >= 0 && imy[i] < input_y)
+                                        *cur_col++ = *(im + input_xy * kch + input_x * imy[i] + imx[i]);
+                                    else
+                                        *cur_col++ = 0;
+                                }
+                            }
+                        }
+                        kchp = kch;
+                        kyp = ky;
+                        odd_line = kernel_x1 ? true : false;
+                    }
+                }
+            }
+            if(kernel_size1)
+            {
+                for(int i = 0; i < 4; i++)
+                {
+                    imy[i] = imy_start[i] + kyp * dilation_y;
+                    imx[i] = imx_start[i] + (kernel_x - 1) * dilation_x;
+                    if(imx[i] < input_x && imy[i] >= 0 && imy[i] < input_y)
+                        *cur_col++ = *(im + input_xy * kchp + input_x * imy[i] + imx[i]);
+                    else
+                        *cur_col++ = 0;
+                    *cur_col++ = 0;
+                }
+            }
+        }
+        int col_i = col_end & -4;
+        // final 4 input
+        if(col_end3)
+        {
+            int cnt_x[4] = {0};
+            int cnt_y[4] = {0};
+            int imx_start[4] = {0};
+            int imy_start[4] = {0};
+            for(int i = 0; i < 4; i++)
+            {
+                cnt_y[i] = (col_i + i) / output_x;
+                cnt_x[i] = col_i + i - cnt_y[i] * output_x;
+                imx_start[i] = cnt_x[i] * stride_x - pad_x0;
+                imy_start[i] = cnt_y[i] * stride_y - pad_y0;
+            }
+            bool odd_line = false;
+            kchp = 0;
+            kyp = 0;
+            for(int kch = 0; kch < input_chan; kch++)
+            {
+                for(int ky = 0; ky < kernel_y; ky++)
+                {
+                    // odd line 1 + 2n
+                    if(odd_line)
+                    {
+                        for(int i = 0; i < 4; i++)
+                        {
+                            imy[i] = imy_start[i] + kyp * dilation_y;
+                            imx[i] = imx_start[i] + (kernel_x - 1) * dilation_x;
+                            if((i < col_end3) && imx[i] < input_x && imy[i] >= 0 && imy[i] < input_y)
+                                *cur_col++ = *(im + input_xy * kchp + input_x * imy[i] + imx[i]);
+                            else
+                                *cur_col++ = 0;
+                            imy[i] = imy_start[i] + ky * dilation_y;
+                            if((i < col_end3) && imx_start[i] >= 0 && imy[i] >= 0 && imy[i] < input_y)
+                                *cur_col++ = *(im + input_xy * kch + input_x * imy[i] + imx_start[i]);
+                            else
+                                *cur_col++ = 0;
+                        }
+                        for(int kx = 1; kx < kernel_x; kx += 2)
+                        {
+                            for(int i = 0; i < 4; i++)
+                            {
+                                for(int k = 0; k < 2; k++)
+                                {
+                                    imx[i] = imx_start[i] + (kx + k) * dilation_x;
+                                    if((i < col_end3) && imx[i] >= 0 && imx[i] < input_x && imy[i] >= 0 &&
+                                       imy[i] < input_y)
+                                        *cur_col++ = *(im + input_xy * kch + input_x * imy[i] + imx[i]);
+                                    else
+                                        *cur_col++ = 0;
+                                }
+                            }
+                        }
+                        odd_line = false;
+                    }
+                    // even line  2n + 1
+                    else
+                    {
+                        for(int i = 0; i < 4; i++)
+                        {
+                            imy[i] = imy_start[i] + ky * dilation_y;
+                        }
+                        for(int kx = 0; kx < (kernel_x - 1); kx += 2)
+                        {
+                            for(int i = 0; i < 4; i++)
+                            {
+                                for(int k = 0; k < 2; k++)
+                                {
+                                    imx[i] = imx_start[i] + (kx + k) * dilation_x;
+                                    if(i < col_end3 && imx[i] >= 0 && imx[i] < input_x && imy[i] >= 0 &&
+                                       imy[i] < input_y)
+                                        *cur_col++ = *(im + input_xy * kch + input_x * imy[i] + imx[i]);
+                                    else
+                                        *cur_col++ = 0;
+                                }
+                            }
+                        }
+                        kchp = kch;
+                        kyp = ky;
+                        odd_line = kernel_x1 ? true : false;
+                    }
+                }
+            }
+            if(kernel_size1)
+            {
+                for(int i = 0; i < 4; i++)
+                {
+                    imy[i] = imy_start[i] + kyp * dilation_y;
+                    imx[i] = imx_start[i] + (kernel_x - 1) * dilation_x;
+                    if((i < col_end3) && imx[i] < input_x && imy[i] >= 0 && imy[i] < input_y)
+                        *cur_col++ = *(im + input_xy * kchp + input_x * imy[i] + imx[i]);
+                    else
+                        *cur_col++ = 0;
+                    *cur_col++ = 0;
+                }
+            }
+        }
+    }
+#endif
+}
+
+int int8_conv_hcl_prerun(struct ir_tensor* input_tensor, struct ir_tensor* filter_tensor, struct ir_tensor* output_tensor,
+                    struct conv_priv_info* priv_info, struct conv_param* param)
+{
+    int in_c = input_tensor->dims[1];
+    int in_h = input_tensor->dims[2];
+    int in_w = input_tensor->dims[3];
+
+    int out_c = output_tensor->dims[1];
+    int out_h = output_tensor->dims[2];
+    int out_w = output_tensor->dims[3];
+    /* alloc mem of im2col  */
     if (!priv_info->external_im2col_mem)
     {
-        void* mem = sys_malloc(im2col_size);
-        priv_info->im2col_buffer = mem;
-        priv_info->im2col_buffer_size = im2col_size;
+        int mem_size = int8_conv_hcl_get_shared_mem_size(input_tensor, output_tensor, param);
+        void* mem = sys_malloc(mem_size);
+        priv_info->im2col_buffer      = mem;
+        priv_info->im2col_buffer_size = mem_size;
     }
-
+    /* alloc mem of kernel interleave */
     if (!priv_info->external_interleave_mem)
     {
-        void* mem = sys_malloc(kernel_mem_size);
-        priv_info->interleave_buffer = mem;
-        priv_info->interleave_buffer_size = kernel_mem_size;
+        int mem_size = get_private_mem_size(filter_tensor, param);
+        void* mem = sys_malloc(mem_size);
+        priv_info->interleave_buffer      = mem;
+        priv_info->interleave_buffer_size = mem_size;
     }
-    interleave(filter_tensor, priv_info, param);
+    /* kernel interleave */
+    interleave_int8(filter_tensor, priv_info, param);
+
+    priv_info->multi = (int*)sys_malloc(out_c * sizeof(int));
+    priv_info->q_shift = (int*)sys_malloc(out_c * sizeof(int));
+
+    float input_scale = input_tensor->scale;
+    float* kernel_scales = filter_tensor->scale_list;
+    float output_scale = output_tensor->scale;
+
+    priv_info->activation_min = -127;
+    priv_info->activation_max = 127;
+    /*  set activation   */
+    if(param->activation >= 0)
+    {
+        priv_info->activation_min = 0;
+        if(param->activation == 1)
+            priv_info->activation_max = round(1.0 / output_scale);
+        if(param->activation == 6)
+            priv_info->activation_max = round(6.0 / output_scale);
+
+        if(priv_info->activation_max > 127)
+            priv_info->activation_max = 127;
+    }
+
+    for(int i=0; i<out_c; i++)
+    {
+        float kernel_scale = kernel_scales[i];
+        float scale = input_scale * kernel_scale / output_scale;
+
+        int shift;
+        float q = frexp(scale, &shift);
+        int fix_q = round(q * (1ll << 31));
+        // printf("prerun: %f,%lld,%d,%d, %lld\n",q, fix_q, multi, q_shift, 1ll<<31);
+        if(fix_q == (1l << 31))
+        {
+            fix_q /= 2;
+            shift++;
+        }
+
+        priv_info->multi[i] = (int)fix_q;
+        priv_info->q_shift[i] = (int)shift;
+    }
     return 0;
 }
 
@@ -661,13 +2108,25 @@ int int8_conv_hcl_postrun(struct conv_priv_info* priv_info)
         sys_free(priv_info->im2col_buffer);
         priv_info->im2col_buffer = NULL;
     }
+    if (priv_info->multi)
+    {
+        sys_free(priv_info->multi);
+        priv_info->multi = NULL;
+    }
+    if (priv_info->q_shift)
+    {
+        sys_free(priv_info->q_shift);
+        priv_info->q_shift = NULL;
+    }
+
     return 0;
 }
 
 int int8_conv_hcl_run(struct ir_tensor* input_tensor, struct ir_tensor* filter_tensor, struct ir_tensor* bias_tensor,
-                      struct ir_tensor* output_tensor, struct conv_priv_info* priv_info, struct conv_param* param,
-                      int num_thread, int cpu_affinity)
+                 struct ir_tensor* output_tensor, struct conv_priv_info* priv_info, struct conv_param* param,
+                 int num_thread, int cpu_affinity)
 {
+    /* param */
     int group = param->group;
     int kernel_h = param->kernel_h;
     int kernel_w = param->kernel_w;
@@ -679,8 +2138,7 @@ int int8_conv_hcl_run(struct ir_tensor* input_tensor, struct ir_tensor* filter_t
     int pad_h1 = param->pad_h1;
     int pad_w0 = param->pad_w0;
     int pad_w1 = param->pad_w1;
-    int activation = param->activation;
-    int input_image_size = input_tensor->dims[1] * input_tensor->dims[2] * input_tensor->dims[3];
+    int act_type = param->activation;
 
     int batch = input_tensor->dims[0];
     int in_c = input_tensor->dims[1] / group;
@@ -688,51 +2146,85 @@ int int8_conv_hcl_run(struct ir_tensor* input_tensor, struct ir_tensor* filter_t
     int in_w = input_tensor->dims[3];
     int input_size = in_c * in_h * in_w;
     int kernel_size = in_c * kernel_h * kernel_w;
+    int input_image_size = input_tensor->dims[1] * input_tensor->dims[2] * input_tensor->dims[3];
 
     int out_c = output_tensor->dims[1] / group;
     int out_h = output_tensor->dims[2];
     int out_w = output_tensor->dims[3];
     int out_hw = out_h * out_w;
     int output_size = out_c * out_h * out_w;
-    int out_c_align = ((out_c + 7) & -8);
+    int out_c_align = ((out_c + 3) & -4);
     int output_image_size = output_tensor->dims[1] * output_tensor->dims[2] * output_tensor->dims[3];
-    /* about int8 */
-    float input_scale = input_tensor->scale;
-    float* kernel_scales = filter_tensor->scale_list;
-    float output_scale = 1 / output_tensor->scale;
-    /* input and kernel scales */
-    int dequant_scales_size = group * out_c;
-    float* dequant_scales = ( float* )malloc(sizeof(float) * dequant_scales_size);
-    for (int i = 0; i < dequant_scales_size; i++)
-    {
-        dequant_scales[i] = (input_scale * kernel_scales[i]);
-    }
+
+    int activation_min = priv_info->activation_min;
+    int activation_max = priv_info->activation_max;
 
     /* buffer addr */
     int8_t* input_buf = ( int8_t* )input_tensor->data;
     int8_t* output_buf = ( int8_t* )output_tensor->data;
     int32_t* biases_buf = NULL;
+    bool have_biases = false;
     if (bias_tensor != NULL)
-        biases_buf = ( int32_t* )bias_tensor->data;
+    {
+        biases_buf = (int32_t*)bias_tensor->data;
+        have_biases = true;
+    }
+
     int8_t* col_buf = ( int8_t* )priv_info->im2col_buffer;
     int8_t* interleave_buf = ( int8_t* )priv_info->interleave_buffer;
 
-    for (int n = 0; n < batch; ++n)
+    /* block size split parameter */
+    int L2_CACHE_SIZE = (cpu_affinity == TENGINE_CLUSTER_LITTLE)? 512 * 1024 : 1024 * 1024;
+    int kernel_size_l1 = kernel_size;
+#ifdef __aarch64__
+    int col_cnt_l2 = L2_CACHE_SIZE * 3 / kernel_size_l1 / 4;
+#else
+    int col_cnt_l2 = L2_CACHE_SIZE / 4 / kernel_size_l1 * 3 / 4;
+#endif
+    col_cnt_l2 = col_cnt_l2 > 4 ? (col_cnt_l2 & -4) : 4;
+
+    for (int n = 0; n < batch; n++)    // batch size
     {
-        for (int g = 0; g < group; ++g)
+        int8_t* input = input_buf + n * input_size * group;
+        int8_t* output = output_buf + n * output_size * group;
+        for (int g = 0; g < group; g++)
         {
-            /* im2col */
-            int8_t* cur_input = input_buf + n * input_image_size + g * input_size;
-            im2col(cur_input, col_buf, in_c, in_w, in_h, kernel_w, kernel_h, stride_w, stride_h, dilation_w, dilation_h,
+            int8_t* cur_input = input + g * input_size;
+
+            im2col_int8(cur_input, col_buf, in_c, in_w, in_h, kernel_w, kernel_h, stride_w, stride_h, dilation_w, dilation_h,
                    pad_w0, pad_w1, pad_h0, pad_h1, out_w, out_h, num_thread);
 
-            /* gemm */
-            int8_t* cur_kernel = interleave_buf + g * kernel_size * out_c_align;
-            int8_t* cur_output = output_buf + n * output_image_size + g * output_size;
-            int32_t* cur_bias = biases_buf ? (biases_buf + g * out_c) : NULL;
-            sgemm_set(col_buf, cur_kernel, cur_bias, cur_output, kernel_size, 0, out_c_align, out_hw, activation,
-                      num_thread, cpu_affinity, dequant_scales, output_scale);
+            int kernel_size_aligned2 = (kernel_size + 1) & -2;
+            int output_chan_aligned4 = (out_c + 3) & -4;
+
+            int8_t* kernel_g = interleave_buf + g * kernel_size_aligned2 * output_chan_aligned4;
+            int8_t* output_g = output + g * output_size;
+            int* bias_g = have_biases ? (biases_buf + g * out_c) : NULL;
+            int* multi_g = priv_info->multi + g * out_c;
+            int* q_shift_g = priv_info->q_shift + g * out_c;
+
+            // for input block of L2 cache size
+            for(int col_i = 0; col_i < out_hw; col_i += col_cnt_l2)
+            {
+                int col_start = col_i;
+                int col_end = col_i + col_cnt_l2;
+                col_end = col_end > out_hw ? out_hw : col_end;
+#ifdef __aarch64__
+                i8gemm4x16(col_buf, kernel_g, have_biases, bias_g, output_g, multi_g, kernel_size, out_hw,
+                            col_start, col_end, 0, out_c & -16, activation_min, activation_max, q_shift_g, num_thread, cpu_affinity);
+                if(out_c & 0xf)
+                    i8gemm4x4(col_buf, kernel_g, have_biases, bias_g, output_g, multi_g, kernel_size, out_hw,
+                                col_start, col_end, out_c & -16, out_c, activation_min, activation_max, q_shift_g, num_thread, cpu_affinity);
+#else
+                i8gemm4x8(col_buf, kernel_g, have_biases, bias_g, output_g, multi_g, kernel_size, out_hw,
+                            col_start, col_end, 0, out_c & -8, activation_min, activation_max, q_shift_g, num_thread, cpu_affinity);
+                if(out_c & 0x7)
+                    i8gemm4x4(col_buf, kernel_g, have_biases, bias_g, output_g, multi_g, kernel_size, out_hw,
+                                col_start, col_end, out_c & -8, out_c, activation_min, activation_max, q_shift_g, num_thread, cpu_affinity);
+#endif
+            }    // col_cont
         }
     }
+    
     return 0;
 }

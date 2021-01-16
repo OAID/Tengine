@@ -42,7 +42,8 @@ static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, 
     return 0;
 }
 
-static int ref_tile_fp32(float* data, float* output, int* repeat, int* inDim, int* outDim, int flag){
+static int ref_tile_fp32(float* data, float* output, int* repeat, int* inDim, int* outDim, int flag)
+{
     int index = 0;
     
     if(flag == 0)   // caffe
@@ -128,35 +129,40 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     int size = 0;
     int default_value = 1;
 
-
-    if(frame_flag == 0){
-        repeat = param->reps;
-        size = get_vector_num(repeat);
-        for(int i = 0; i < 4 - size; i++){
+    if(frame_flag == 0)
+    {
+        size = param->reps_size;
+        for(int i = 0; i < 4 - size; i++)
+        {
             push_vector_data(repeat, (void*)&default_value);
         }
     }
-    else if ( frame_flag == 1){
+    else if ( frame_flag == 1)
+    {
         size = input_reps_shape[0]*input_reps_shape[1]*input_reps_shape[2]*input_reps_shape[3];
-        for(int i = 0; i < size; i++){
+        for(int i = 0; i < size; i++)
+        {
             push_vector_data(repeat, (void*)&input_reps[i]);
         }
-        for(int i = 0; i < 4 - size; i++){
+        for(int i = 0; i < 4 - size; i++)
+        {
             push_vector_data(repeat, (void*)&default_value);
         }
     }
+
     int* repeat_data = (int*)sys_malloc(get_vector_num(repeat)*sizeof(int));
-    for(int i = 0; i < get_vector_num(repeat); i++){
+    for(int i = 0; i < get_vector_num(repeat); i++)
+    {
         int* a = (int*)get_vector_data(repeat, i);
         repeat_data[i] = *a;
     }
+    
     ref_tile_fp32(input_tensor->data, output_tensor->data, repeat_data, inDim, outDim, frame_flag);
     sys_free(repeat_data);
     release_vector(repeat);
 
+    return 0;
 }
-
-
 
 static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struct ir_node* exec_node)
 {

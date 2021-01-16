@@ -99,7 +99,16 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
 #endif
     else if (exec_graph->mode == TENGINE_MODE_INT8)
     {
-        if (int8_conv_hcl_prerun(input_tensor,filter_tensor,output_tensor,conv_priv_info,conv_param) < 0)
+        if (int8_conv_hcl_set_shared_mem && exec_node->shared_mem_size < exec_graph->shared_mem_size)
+        {
+            if (int8_conv_hcl_set_shared_mem(conv_priv_info, exec_graph->shared_mem, exec_graph->shared_mem_size) < 0)
+            {
+                TLOG_ERR("hcl conv int8: set shared memory failed\n");
+                set_tengine_errno(EFAULT);
+                return -1;
+            }
+        }
+        if (int8_conv_hcl_prerun(input_tensor, filter_tensor, output_tensor, conv_priv_info, conv_param) < 0)
         {
             TLOG_ERR("hcl conv int8 prerun failed\n");
             set_tengine_errno(EFAULT);
@@ -437,8 +446,6 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     int kernel_w = param->kernel_w;
     int in_c = input_tensor->dims[1] / group;
     int out_c = output_tensor->dims[1] / group;
-    if (input_tensor->data_type == TENGINE_DT_INT8)
-        return OPS_SCORE_BEST;
 
     /* todo support int8/fp16 */
 #if __ARM_FEATURE_FP16_VECTOR_ARITHMETIC    
@@ -448,7 +455,7 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     if (group != 1)
         return 0;
 #else
-    if (input_tensor->data_type != TENGINE_DT_FP32)
+    if (input_tensor->data_type != TENGINE_DT_FP32 && input_tensor->data_type != TENGINE_DT_INT8)
         return 0;
 #endif
     if (group > 1 && kernel_h == 5 && kernel_w == 5 && in_c == 1 && out_c == 1)

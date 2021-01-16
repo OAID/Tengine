@@ -187,15 +187,17 @@ static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, str
 
     return 0;
 }
+
 static int postrun(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     struct ir_node* ir_node = exec_node->ir_node;
-    gather_param_t* op_param = ( struct gather_param_t* )exec_node->ops_priv;
+    gather_param_t* op_param = ( gather_param_t* )exec_node->ops_priv;
 
     sys_free(op_param->in_shape);
 
     return 0;
 }
+
 static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     gather_param_t* op_priv_info = ( gather_param_t* )exec_node->ops_priv;
