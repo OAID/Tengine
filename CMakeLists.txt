@@ -129,6 +129,11 @@ if (TENGINE_VERSION_POSTFIX)
     add_definitions(-DTENGINE_VERSION_POSTFIX=${TENGINE_VERSION_POSTFIX})
 endif()
 
+# add_definitions(-g)
+# add_definitions(-O0)
+add_definitions(-fPIC)
+add_definitions(-O3)
+
 # OHOS 3.0.0.80 patch for ASM language
 if (OHOS AND NOT DEFINED CMAKE_ASM_COMPILER_TARGET)
     set(CMAKE_ASM_COMPILER_TARGET ${OHOS_LLVM})

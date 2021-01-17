@@ -1161,6 +1161,8 @@ const_char_t get_node_device(node_t node)
     {
         return graph->nn_dev->name;
     }
+
+    return NULL;
 }
 
 context_t create_context(const char* context_name, int empty_context)

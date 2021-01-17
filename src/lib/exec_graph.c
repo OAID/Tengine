@@ -1213,6 +1213,8 @@ int deal_with_sub_graph_evolution(struct subgraph* sub_graph, struct dev_allocat
         release_vector(evolution_tensors);
         release_vector(evolution_nodes);
     }
+
+    return 0;
 }
 
 

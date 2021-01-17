@@ -85,7 +85,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
     /* transpose nchw to nhwc */
     //check dim size first???
-    if(input_tensor->dim_num == 4 && (output_tensor->dim_num == 3||output_tensor->dim_num == 4))
+    if(input_tensor->dim_num == 4 && (output_tensor->dim_num == 2||output_tensor->dim_num == 3||output_tensor->dim_num == 4))
     {
         if (ir_graph->model_layout == TENGINE_LAYOUT_NHWC)
         {
@@ -153,6 +153,29 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
                         }
 
                     free(data_fp32_temp);
+                    return 0;
+                }
+                else if (output_tensor->dim_num == 2)
+                {
+                    int in_ch = input_tensor->dims[1];
+                    int in_h = input_tensor->dims[2];
+                    int in_w = input_tensor->dims[3];
+
+                    float* input_fp32 = input_tensor->data;
+                    float* output_fp32 = output_tensor->data;
+
+                    int index = 0;
+                    for (int h = 0; h < in_h; h++)
+                    {
+                        for (int w = 0; w < in_w; w++)
+                        {
+                            for (int c = 0; c < in_ch; c++)
+                            {
+                                output_fp32[index++] = input_fp32[c * in_h * in_w + h * in_w + w];
+                            }
+                        }
+                    }
+
                     return 0;
                 }
             }

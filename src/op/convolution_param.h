@@ -63,5 +63,12 @@ struct conv_priv_info
     int external_interleave_pack4_mem;    // flag
     int cpu_type;
     int winograd;
+    int wino_off;
+
+    /* int8 params */
+    int* q_shift;
+    int* multi;
+    int activation_min;
+    int activation_max;
 };
 #endif
