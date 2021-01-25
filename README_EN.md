@@ -46,7 +46,7 @@ The core code of Tengine Lite consists of 4 modules:
 ### Model Convert tool
 
 - [Pre-compiled version](https://github.com/OAID/Tengine-Convert-Tools/releases/download/v0.1/tm_convert_tool): Pre-compiled model convert tool is provided on Linux system;
-- [Online Convert tool](https://convertmodel.com/): Based on WebAssembly (the models are converted locally by browsers, no private data will be uploaded);
+- [Online Convert tool](https://convertmodel.com/#outputFormat=tengine): Based on WebAssembly (the models are converted locally by browsers, no private data will be uploaded);
 - [Source Compilation](https://github.com/OAID/Tengine-Convert-Tools): Refer to **Tengine-Convert-Tools** project, convert tool could be built by users.
 
 ### Speed assessment
