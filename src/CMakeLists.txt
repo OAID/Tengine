@@ -400,7 +400,7 @@ target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE ${TENGINE_LINKING_LIBRARIES_
 if(TENGINE_COVERAGE)
     SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage")
     SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage")    
-    target_link_libraries(${CMAKE_PROJECT_NAME} -coverage -lgcov)
+    target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE -coverage -lgcov)
 endif()
 
 # add install files
