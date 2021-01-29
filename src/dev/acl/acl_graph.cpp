@@ -22,25 +22,45 @@
  * Author: lswang@openailab.com
  */
 
-#ifndef __ACL_DEVICE_H__
-#define __ACL_DEVICE_H__
-
-#define ACL_DEV_NAME "ACL"
+#include "acl_graph.hpp"
+#include "acl_executor.hpp"
 
 extern "C"
 {
-struct acl_device
-{
-    struct nn_device base;
-
-    int (*load_graph)(struct acl_device* dev);
-
-    int (*load_ir_graph)(struct acl_device* dev);
-
-    int (*unload_graph)(struct acl_device* dev);
-};
-
-int register_acl_device(void);
+#include "nn_device.h"
 }
 
-#endif
+int acl_dev_init(struct nn_device* dev)
+{
+    (void)dev;
+    return 0;
+}
+
+int acl_dev_prerun(struct nn_device* dev, struct subgraph* subgraph, int num_thread, int cpu_affinity, int mode)
+{
+    subgraph->exec_graph = new CLGraph;
+    auto engine = (CLGraph*)subgraph->exec_graph;
+
+    return engine->prerun(subgraph, cpu_affinity, mode);
+}
+
+int acl_dev_run(struct nn_device* dev, struct subgraph* subgraph)
+{
+    auto engine = (CLGraph*)subgraph->exec_graph;
+    return engine->run(subgraph);
+}
+
+int acl_dev_postrun(struct nn_device* dev, struct subgraph* subgraph)
+{
+    auto engine = (CLGraph*)subgraph->exec_graph;
+    engine->postrun(subgraph);
+    delete engine;
+
+    return 0;
+}
+
+int acl_dev_release(struct nn_device* dev)
+{
+    (void)dev;
+    return 0;
+}

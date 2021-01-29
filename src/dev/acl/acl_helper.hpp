@@ -22,25 +22,12 @@
  * Author: lswang@openailab.com
  */
 
-#ifndef __ACL_DEVICE_H__
-#define __ACL_DEVICE_H__
+#pragma once
 
-#define ACL_DEV_NAME "ACL"
-
-extern "C"
-{
-struct acl_device
-{
-    struct nn_device base;
-
-    int (*load_graph)(struct acl_device* dev);
-
-    int (*load_ir_graph)(struct acl_device* dev);
-
-    int (*unload_graph)(struct acl_device* dev);
-};
-
-int register_acl_device(void);
-}
-
-#endif
+#include <memory>
+#include <sstream>
+#include <ctime>
+#include <iomanip>
+#include <iostream>
+#include <ostream>
+#include <string>

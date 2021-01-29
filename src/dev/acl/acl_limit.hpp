@@ -19,28 +19,34 @@
 
 /*
  * Copyright (c) 2021, Open AI Lab
- * Author: lswang@openailab.com
+ * Author: hhchen@openailab.com
  */
 
-#ifndef __ACL_DEVICE_H__
-#define __ACL_DEVICE_H__
 
-#define ACL_DEV_NAME "ACL"
+#pragma once
 
 extern "C"
 {
-struct acl_device
-{
-    struct nn_device base;
-
-    int (*load_graph)(struct acl_device* dev);
-
-    int (*load_ir_graph)(struct acl_device* dev);
-
-    int (*unload_graph)(struct acl_device* dev);
-};
-
-int register_acl_device(void);
+#include "tengine_op.h"
 }
 
-#endif
+const int acl_supported_ops[] = {
+        OP_BATCHNORM,
+        OP_CLIP,
+        OP_CONCAT,
+        OP_CONST,
+        OP_CONV,
+        OP_DROPOUT,
+        OP_ELTWISE,
+        OP_FC,
+//        OP_FLATTEN,
+        OP_INPUT,
+//        OP_PERMUTE,
+        OP_POOL,
+        OP_RELU,
+        OP_RESIZE,
+//        OP_RESHAPE,
+//        OP_SLICE,
+        OP_SOFTMAX
+//        OP_BIAS,
+};
