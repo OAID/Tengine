@@ -54,19 +54,7 @@
 #define UNIQ_DUMMY_NAME(name)                                   \
     UNIQ_DUMMY_NAME_WITH_LINE(name, __LINE__)
 
-#ifdef __cplusplus
-#define DECLARE_AUTO_INIT_FUNC(f)                               \
-    static void f(void);                                        \
-    struct f##_t_                                               \
-    {                                                           \
-        f##_t_(void)                                            \
-        {                                                       \
-            f();                                                \
-        }                                                       \
-    };                                                          \
-    static f##_t_ f##_;                                         \
-    static void f(void)
-#elif defined(_MSC_VER)
+#ifdef _MSC_VER
 #pragma section(".CRT$XCU", read)
 #define DECLARE_AUTO_INIT_FUNC(func_name)                       \
     static void func_name(void);                                \

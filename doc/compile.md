@@ -160,6 +160,14 @@ make install
 
 请参考 [Tengine Lite Vulkan GPU 使用说明](gpu_vulkan_user_manual.md)。
 
+#### 4.3 CUDA
+
+请参考 [Tengine Lite CUDA GPU 使用说明](gpu_cuda_user_manual.md)。
+
+#### 4.4 TensoRT
+
+请参考 [Tengine Lite TensorRT GPU 使用说明](gpu_trt_user_manual.md)。
+
 ## 5. 交叉编译 Arm64 OHOS（鸿蒙系统） 版本
 
 ### 5.1 安装 DevEco Studio 和 OHOS NDK
