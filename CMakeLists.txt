@@ -39,6 +39,7 @@ message(STATUS "CMAKE_INSTALL_PREFIX = ${CMAKE_INSTALL_PREFIX}")
 
 # Enable the languages which in use
 ENABLE_LANGUAGE (C CXX)
+ENABLE_LANGUAGE (ASM)
 
 if(CMAKE_TOOLCHAIN_FILE)
     set(LIBRARY_OUTPUT_PATH_ROOT ${CMAKE_BINARY_DIR} CACHE PATH "root for library output, set this to change where android libs are compiled to")
@@ -53,11 +54,13 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE release CACHE STRING "Choose the type of build" FORCE)
 endif()
 
-# Do check list
-include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/check.cmake")
+# include cmake helper list
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/check.cmake")        # Do check list
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/system_check.cmake)   # system check
 
 project(tengine-lite)
 
+# some basic options
 option(TENGINE_ENABLE_ALL_SYMBOL "enable all symbol" ON)
 option(TENGINE_OPENMP "openmp support" ON)
 option(TENGINE_BUILD_BENCHMARK "build benchmark" ON)
@@ -72,41 +75,15 @@ option(TENGINE_ARCH_X86_AVX "build avx2 for x86" ON)
 option(TENGINE_ARCH_ARM_82 "build armv8.2 for arm" OFF)
 MESSAGE(STATUS "operation system is ${CMAKE_SYSTEM}")
 
-IF (CMAKE_SYSTEM_NAME MATCHES "Linux")
-    MESSAGE(STATUS "current platform: Linux ")
-ELSEIF (CMAKE_SYSTEM_NAME MATCHES "Windows")
-    MESSAGE(STATUS "current platform: Windows")
-ELSEIF (CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
-    MESSAGE(STATUS "current platform: FreeBSD")
-ELSE ()
-    MESSAGE(STATUS "other platform: ${CMAKE_SYSTEM_NAME}")
-ENDIF (CMAKE_SYSTEM_NAME MATCHES "Linux")
-
-IF (WIN32)
-    MESSAGE(STATUS "Now is windows")
-ELSEIF (APPLE)
-    MESSAGE(STATUS "Now is Apple systems.")
-    option(MACOS "compiler undr mac os " ON)
-    if(MACOS)
-        MESSAGE(STATUS "MAC OS COMPILER")
-        add_definitions(-DMACOS)
-    endif()
-ELSEIF (OHOS)
-    MESSAGE(STATUS "Now is Harmony OS")
-    add_definitions(-D_OHOS_)
-ELSEIF (ANDROID)
-    MESSAGE(STATUS "Now is Android")
-    add_definitions(-fno-integrated-as)    
-ELSEIF (UNIX)
-    MESSAGE(STATUS "Now is UNIX-like OS's. Including Apple os x  and CYGwin")
-ENDIF ()
-
+# some hcl options
 option(TENGINE_STANDALONE_HCL "build standalone hcl lib" OFF)
 option(TENGINE_STANDALONE_HCL_AUTO_LOAD "auto load standalone hcl lib" ON)
 
 # some plugin options
 option(TENGINE_ENABLE_ACL "Build with Arm Compute Library(ACL) support" OFF)
 option(TENGINE_ENABLE_VULKAN "Build with Vulkan GPU compute support" OFF)
+option(TENGINE_ENABLE_TENSORRT "Build with nVIDIA TensorRT support" OFF)
+option(TENGINE_ENABLE_CUDABACKEND "Build with nVIDIA cuda support" OFF)
 
 # add_definitions(-DCONFIG_DISABLE_PARAM_ACCESS)
 # add_definitions(-DCONFIG_INTERN_ALLOCATOR)
@@ -114,25 +91,39 @@ add_definitions(-DCONFIG_TENGINE_SERIALIZER)
 
 # Debug macro information
 if (TENGINE_DEBUG_MEM_STAT)
-    add_definitions(-DCONFIG_MEM_STAT)
+    LIST (APPEND TENGINE_COMPILE_DEFINITION_CXX_PRIVATE CONFIG_MEM_STAT)
+    LIST (APPEND TENGINE_COMPILE_DEFINITION_CUDA_PRIVATE CONFIG_MEM_STAT)
 endif()
 if (TENGINE_DEBUG_DATA)
-    add_definitions(-DDEBUG_DATA)
+    LIST (APPEND TENGINE_COMPILE_DEFINITION_CXX_PRIVATE DEBUG_DATA)
+    LIST (APPEND TENGINE_COMPILE_DEFINITION_CUDA_PRIVATE DEBUG_DATA)
 endif()
 if (TENGINE_DEBUG_TIME)
-    add_definitions(-DDEBUG_TIME)
+    LIST (APPEND TENGINE_COMPILE_DEFINITION_CXX_PRIVATE DEBUG_TIME)
+    LIST (APPEND TENGINE_COMPILE_DEFINITION_CUDA_PRIVATE DEBUG_TIME)
 endif()
 if (TENGINE_LITE_VERSION)
-    add_definitions(-DTENGINE_LITE_VERSION=${TENGINE_LITE_VERSION})
+    LIST (APPEND TENGINE_COMPILE_DEFINITION_CXX_PRIVATE TENGINE_LITE_VERSION=${TENGINE_LITE_VERSION})
+    LIST (APPEND TENGINE_COMPILE_DEFINITION_CUDA_PRIVATE TENGINE_LITE_VERSION=${TENGINE_LITE_VERSION})
 endif()
 if (TENGINE_VERSION_POSTFIX)
-    add_definitions(-DTENGINE_VERSION_POSTFIX=${TENGINE_VERSION_POSTFIX})
+    LIST (APPEND TENGINE_COMPILE_DEFINITION_CXX_PRIVATE TENGINE_VERSION_POSTFIX=${TENGINE_VERSION_POSTFIX})
+    LIST (APPEND TENGINE_COMPILE_DEFINITION_CUDA_PRIVATE TENGINE_VERSION_POSTFIX=${TENGINE_VERSION_POSTFIX})
 endif()
 
-# add_definitions(-g)
-# add_definitions(-O0)
-add_definitions(-fPIC)
-add_definitions(-O3)
+
+#list(APPEND TENGINE_COMPILE_OPTIONS_C_PRIVATE -g)
+#list(APPEND TENGINE_COMPILE_OPTIONS_C_PRIVATE -O0)
+list(APPEND TENGINE_COMPILE_OPTIONS_C_PRIVATE -fPIC)
+
+#list(APPEND TENGINE_COMPILE_OPTIONS_CXX_PRIVATE -g)
+#list(APPEND TENGINE_COMPILE_OPTIONS_CXX_PRIVATE -O0)
+list(APPEND TENGINE_COMPILE_OPTIONS_CXX_PRIVATE -fPIC)
+
+#list(APPEND TENGINE_COMPILE_OPTIONS_CUDA_PRIVATE -g)
+#list(APPEND TENGINE_COMPILE_OPTIONS_CUDA_PRIVATE -O0)
+list(APPEND TENGINE_COMPILE_OPTIONS_CUDA_PRIVATE -Xcompiler=-fPIC)
+
 
 # OHOS 3.0.0.80 patch for ASM language
 if (OHOS AND NOT DEFINED CMAKE_ASM_COMPILER_TARGET)
@@ -142,23 +133,42 @@ endif()
 if (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM")
     if (TENGINE_TARGET_PROCESSOR_32Bit)
         if (OHOS)
-            add_definitions(-march=armv7-a)
-            add_definitions(-mfpu=neon)
-            add_definitions(-mfloat-abi=softfp)
+            list(APPEND TENGINE_COMPILE_OPTIONS_C_PRIVATE -march=armv7-a)
+            list(APPEND TENGINE_COMPILE_OPTIONS_C_PRIVATE -mfpu=neon)
+            list(APPEND TENGINE_COMPILE_OPTIONS_C_PRIVATE -mfloat-abi=softfp)
+
+            list(APPEND TENGINE_COMPILE_OPTIONS_CXX_PRIVATE -march=armv7-a)
+            list(APPEND TENGINE_COMPILE_OPTIONS_CXX_PRIVATE -mfpu=neon)
+            list(APPEND TENGINE_COMPILE_OPTIONS_CXX_PRIVATE -mfloat-abi=softfp)
+
+            list(APPEND TENGINE_COMPILE_OPTIONS_CUDA_PRIVATE -march=armv7-a)
+            list(APPEND TENGINE_COMPILE_OPTIONS_CUDA_PRIVATE -mfpu=neon)
+            list(APPEND TENGINE_COMPILE_OPTIONS_CUDA_PRIVATE -mfloat-abi=softfp)
         elseif (NOT ANDROID)
-            add_definitions(-march=armv7-a)
-            add_definitions(-mfpu=neon)
-            add_definitions(-mfp16-format=ieee)
-            add_definitions(-mfpu=neon-fp16)
+            list(APPEND TENGINE_COMPILE_OPTIONS_C_PRIVATE -march=armv7-a)
+            list(APPEND TENGINE_COMPILE_OPTIONS_C_PRIVATE -mfpu=neon)
+            list(APPEND TENGINE_COMPILE_OPTIONS_C_PRIVATE -mfp16-format=ieee)
+            list(APPEND TENGINE_COMPILE_OPTIONS_C_PRIVATE -mfpu=neon-fp16)
+
+            list(APPEND TENGINE_COMPILE_OPTIONS_CXX_PRIVATE -march=armv7-a)
+            list(APPEND TENGINE_COMPILE_OPTIONS_CXX_PRIVATE -mfpu=neon)
+            list(APPEND TENGINE_COMPILE_OPTIONS_CXX_PRIVATE -mfp16-format=ieee)
+            list(APPEND TENGINE_COMPILE_OPTIONS_CXX_PRIVATE -mfpu=neon-fp16)
+
+            list(APPEND TENGINE_COMPILE_OPTIONS_CUDA_PRIVATE -march=armv7-a)
+            list(APPEND TENGINE_COMPILE_OPTIONS_CUDA_PRIVATE -mfpu=neon)
+            list(APPEND TENGINE_COMPILE_OPTIONS_CUDA_PRIVATE -mfp16-format=ieee)
+            list(APPEND TENGINE_COMPILE_OPTIONS_CUDA_PRIVATE -mfpu=neon-fp16)
         endif()
     endif()
 
     if (TENGINE_TOOLCHIN_FLAG)
-        add_definitions ("${TENGINE_TOOLCHIN_FLAG}")
+        list(APPEND TENGINE_COMPILE_OPTIONS_C_PRIVATE "${TENGINE_TOOLCHIN_FLAG}")
+        list(APPEND TENGINE_COMPILE_OPTIONS_CXX_PRIVATE "${TENGINE_TOOLCHIN_FLAG}")
+        list(APPEND TENGINE_COMPILE_OPTIONS_CUDA_PRIVATE "${TENGINE_TOOLCHIN_FLAG}")
     endif()
 endif()
 
-enable_language(ASM)
 
 # local include files
 include_directories(include/)
@@ -168,34 +178,11 @@ include_directories(src/op/)
 # add OpenMP support
 set (TENGINE_VERBOSE ON)
 if (NOT TENGINE_FORCE_SKIP_OPENMP)
-    find_package(OpenMP)
-    if(OpenMP_C_FOUND OR OPENMP_FOUND)
+    include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/check_library_openmp.cmake)
+
+    TENGINE_CHECK_LIB_OPENMP(TENGINE_OMP_FOUND)
+    if(TENGINE_OMP_FOUND AND TENGINE_VERBOSE)
         message (STATUS "TENGINE: OpenMP was found.")
-    endif()
-endif()
-
-if(TENGINE_OPENMP AND (OpenMP_C_FOUND OR OPENMP_FOUND))
-    if(TENGINE_VERBOSE)
-        message (STATUS "TENGINE: OpenMP support enabled.")
-    endif()
-
-    add_definitions(-fopenmp)
-
-    if(ANDROID_NDK_MAJOR AND (ANDROID_NDK_MAJOR GREATER 20))
-        list (APPEND TENGINE_LINKING_LIBS "-fopenmp -static-openmp")
-        if(TENGINE_VERBOSE)
-            message (STATUS "TENGINE: Android NDK is ${ANDROID_NDK_MAJOR}.${ANDROID_NDK_MINOR}.")
-        endif()
-    elseif(OpenMP_C_FOUND)
-        list (APPEND TENGINE_LINKING_LIBS "OpenMP::OpenMP_C")
-        if(TENGINE_VERBOSE)
-            message (STATUS "TENGINE: 'OpenMP_C_FOUND' is ${OpenMP_C_FOUND}.")
-        endif()
-    else()
-        list (APPEND TENGINE_LINKING_LIBS "${OpenMP_C_FLAGS}")
-        if(TENGINE_VERBOSE)
-            message (STATUS "TENGINE: 'OpenMP_C_FLAGS' is ${OpenMP_C_FLAGS}.")
-        endif()
     endif()
 endif()
 
