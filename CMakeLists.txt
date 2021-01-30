@@ -73,7 +73,6 @@ option(TENGINE_DEBUG_TIME "print time information for every layer" OFF)
 option(TENGINE_DEBUG_MEM_STAT "print memory status for library" OFF)
 option(TENGINE_ARCH_X86_AVX "build avx2 for x86" ON)
 option(TENGINE_ARCH_ARM_82 "build armv8.2 for arm" OFF)
-MESSAGE(STATUS "operation system is ${CMAKE_SYSTEM}")
 
 # some hcl options
 option(TENGINE_STANDALONE_HCL "build standalone hcl lib" OFF)
