@@ -395,12 +395,12 @@ target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE $<$<COMPILE_LANGUAGE:ASM>: 
 target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE $<$<COMPILE_LANGUAGE:C>: ${TENGINE_COMPILE_OPTIONS_C_PRIVATE}>)
 target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE $<$<COMPILE_LANGUAGE:CXX>: ${TENGINE_COMPILE_OPTIONS_CXX_PRIVATE}>)
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${TENGINE_INCLUDE_DIRS_PRIVATE})
-target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE ${TENGINE_LINKING_LIBRARIES_PRIVATE})
+target_link_libraries(${CMAKE_PROJECT_NAME} ${TENGINE_LINKING_LIBRARIES_PRIVATE})
 
 if(TENGINE_COVERAGE)
     SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage")
     SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage")    
-    target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE -coverage -lgcov)
+    target_link_libraries(${CMAKE_PROJECT_NAME} -coverage -lgcov)
 endif()
 
 # add install files
