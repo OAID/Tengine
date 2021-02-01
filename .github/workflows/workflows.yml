@@ -15,20 +15,20 @@ jobs:
       run: mkdir build && cd build && cmake -DTENGINE_BUILD_TESTS=ON ..
     - name: build
       run: cmake --build build -j 2
-    # - name: models
-    #   run: |
-    #     cd build
-    #     wget http://139.180.196.82/lite/models.zip
-    #     unzip models.zip
-    #     wget http://139.180.196.82/lite/x86_data.zip
-    #     unzip x86_data.zip
-    #     mv x86_data data
-    #     wget http://139.180.196.82/lite/images.zip
-    #     unzip images.zip
-    # - name: test
-    #   run: |
-    #     cd build
-    #     ../tests/test.sh
+    - name: models
+      run: |
+        cd build
+        wget http://139.180.196.82/lite/models.zip
+        unzip models.zip
+        wget http://139.180.196.82/lite/x86_data.zip
+        unzip x86_data.zip
+        mv x86_data data
+        wget http://139.180.196.82/lite/images.zip
+        unzip images.zip
+    - name: test
+      run: |
+        cd build
+        ../tests/test.sh
 
 
   linux-gcc-arm32:
@@ -65,21 +65,21 @@ jobs:
       run: mkdir build && cd build && cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/arm-linux-gnueabi.toolchain.cmake -DTENGINE_BUILD_TESTS=ON ..
     - name: build
       run: cmake --build build -j 2
-    # - name: models
-    #   run: |
-    #     cd build
-    #     wget http://139.180.196.82/lite/models.zip
-    #     unzip models.zip
-    #     wget http://139.180.196.82/lite/arm32_data.zip
-    #     unzip arm32_data.zip
-    #     mv arm32_data data
-    #     wget http://139.180.196.82/lite/images.zip
-    #     unzip images.zip
-    # - name: test
-    #   run: |
-    #     export PATH=$GITHUB_WORKSPACE/qemu-install/bin:$PATH
-    #     cd build
-    #     ../tests/test_arm32.sh
+    - name: models
+      run: |
+        cd build
+        wget http://139.180.196.82/lite/models.zip
+        unzip models.zip
+        wget http://139.180.196.82/lite/arm32_data.zip
+        unzip arm32_data.zip
+        mv arm32_data data
+        wget http://139.180.196.82/lite/images.zip
+        unzip images.zip
+    - name: test
+      run: |
+        export PATH=$GITHUB_WORKSPACE/qemu-install/bin:$PATH
+        cd build
+        ../tests/test_arm32.sh
 
 
   linux-gcc-aarch64:
@@ -116,21 +116,21 @@ jobs:
       run: mkdir build && cd build && cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/aarch64-linux-gnu.toolchain.cmake -DTENGINE_BUILD_TESTS=ON ..
     - name: build
       run: cmake --build build -j 2
-    # - name: models
-    #   run: |
-    #     cd build
-    #     wget http://139.180.196.82/lite/models.zip
-    #     unzip models.zip
-    #     wget http://139.180.196.82/lite/arm64_data.zip
-    #     unzip arm64_data.zip
-    #     mv arm64_data data
-    #     wget http://139.180.196.82/lite/images.zip
-    #     unzip images
-    # - name: test
-    #   run: |
-    #     export PATH=$GITHUB_WORKSPACE/qemu-install/bin:$PATH
-    #     cd build
-    #     ../tests/test_arm64.sh
+    - name: models
+      run: |
+        cd build
+        wget http://139.180.196.82/lite/models.zip
+        unzip models.zip
+        wget http://139.180.196.82/lite/arm64_data.zip
+        unzip arm64_data.zip
+        mv arm64_data data
+        wget http://139.180.196.82/lite/images.zip
+        unzip images
+    - name: test
+      run: |
+        export PATH=$GITHUB_WORKSPACE/qemu-install/bin:$PATH
+        cd build
+        ../tests/test_arm64.sh
         
 
   linux-gcc-x86-avx2:
