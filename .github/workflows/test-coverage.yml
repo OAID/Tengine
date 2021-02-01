@@ -41,4 +41,4 @@ jobs:
       uses: codecov/codecov-action@v1.0.11
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
-        file: build/lcov.info        
+        file: build/lcov.info
