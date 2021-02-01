@@ -18,9 +18,7 @@ $ export CUDACXX=/usr/local/cuda/bin/nvcc
 ```bash
 $ cd <tengine-lite-root-dir>
 $ mkdir -p build-linux-cuda
-$ cmake -DTENGINE_ENABLE_CUDABACKEND=ON \
-    -DCUDA_INCLUDE_DIR=/usr/local/cuda-10.2/targets/aarch64-linux/include \
-    -DCUDA_LIBARAY_DIR=/usr/local/cuda-10.2/targets/aarch64-linux/lib ..
+$ cmake -DTENGINE_ENABLE_CUDABACKEND=ON ..
 
 $ make -j4
 $ make install
