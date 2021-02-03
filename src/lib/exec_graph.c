@@ -960,9 +960,42 @@ void dump_sub_graph(struct subgraph* sub_graph)
     TLOG_INFO("%d ].\n", sub_graph->output_tensor_list[sub_graph->output_num - 1]);
 }
 
+static int check_sub_info(struct ir_graph* ir_graph)
+{
+    int subgraph_num = get_vector_num(ir_graph->subgraph_list);
+    if (subgraph_num < 1)
+        return 0;
+    return 1;
+}
+
+static void set_subgraph_device(struct ir_graph* ir_graph)
+{
+    int subgraph_num = get_vector_num(ir_graph->subgraph_list);
+    for (int i = 0; i < subgraph_num; i++)
+    {
+        struct subgraph* subgraph = get_ir_graph_subgraph(ir_graph, i);
+        struct ir_tensor* output_tensor = get_ir_graph_tensor(ir_graph, subgraph->output_tensor_list[0]);
+        struct nn_device* default_device = get_default_nn_device();
+        struct dev_allocator* exec_allocator = ir_graph->exec_attr->exec_context->dev_allocator;
+        if (output_tensor->data_type == TENGINE_DT_UINT8 && 0 != strcmp(default_device->name, exec_allocator->name))
+        {
+            struct nn_device* nn_dev = *(struct nn_device**)get_vector_data(ir_graph->exec_attr->exec_context->dev_list, 0);
+            subgraph->nn_dev = nn_dev;
+        }
+        else
+        {
+            subgraph->nn_dev = ir_graph->exec_attr->exec_context->def_dev;
+        }
+    }
+}
 
 int split_graph(struct ir_graph* ir_graph)
 {
+    if (check_sub_info(ir_graph))
+    {
+        set_subgraph_device(ir_graph);
+        return 0;
+    }
     struct nn_device* default_device = get_default_nn_device();
     struct dev_allocator* exec_allocator = ir_graph->exec_attr->exec_context->dev_allocator;
 
@@ -1272,11 +1305,15 @@ int add_cast_node_and_tensor_for_input(struct subgraph* sub_graph, struct ir_ten
 
 int optimize_graph(struct ir_graph* ir_graph, int precision)
 {
+    if (check_sub_info(ir_graph))
+    {
+        return 0;
+    }
     const int sub_graph_count = get_vector_num(ir_graph->subgraph_list);
     int is_heterogeneous_computing = 0;
 
     struct dev_allocator* exec_allocator = ir_graph->exec_attr->exec_context->dev_allocator;
-    if (NULL != exec_allocator && 0 != strcmp(exec_allocator->name, get_default_device()) && sub_graph_count > 1)
+    if (NULL != exec_allocator && 0 != strcmp(exec_allocator->name, get_default_device()) && sub_graph_count > 1 && 0 == strcmp("VX", exec_allocator->name))
     {
         is_heterogeneous_computing = 1;
     }
@@ -1541,6 +1578,40 @@ int optimize_graph(struct ir_graph* ir_graph, int precision)
                         }
 
                         TLOG_INFO("\n");
+                    }
+                }
+
+                // each var tensor
+                for (uint16_t j = 0; j < sub_graph->node_num; j++)
+                {
+                    uint16_t node_id = sub_graph->node_list[j];
+                    struct ir_node* node = get_ir_graph_node(ir_graph, node_id);
+
+                    for (uint8_t k = 0; k < node->input_num; k++)
+                    {
+                        uint16_t tensor_id = node->input_tensors[k];
+                        struct ir_tensor* tensor = get_ir_graph_tensor(ir_graph, tensor_id);
+
+                        if (TENSOR_TYPE_VAR == tensor->tensor_type || TENSOR_TYPE_INPUT == tensor->tensor_type)
+                        {
+                            if (TENGINE_DT_FP32 == tensor->data_type)
+                            {
+                                tensor->data_type = TENGINE_DT_UINT8;
+                                tensor->elem_size = data_type_size(TENGINE_DT_UINT8);
+                            }
+                        }
+                    }
+
+                    for (uint8_t k = 0; k < node->output_num; k++)
+                    {
+                        uint16_t tensor_id = node->output_tensors[k];
+                        struct ir_tensor* tensor = get_ir_graph_tensor(ir_graph, tensor_id);
+
+                        if (TENSOR_TYPE_VAR == tensor->tensor_type && TENGINE_DT_FP32 == tensor->data_type)
+                        {
+                            tensor->data_type = TENGINE_DT_UINT8;
+                            tensor->elem_size = data_type_size(TENGINE_DT_UINT8);
+                        }
                     }
                 }
             }

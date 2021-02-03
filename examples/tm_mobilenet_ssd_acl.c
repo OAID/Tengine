@@ -19,19 +19,16 @@
 
 /*
  * Copyright (c) 2020, OPEN AI LAB
- * Author: sqfu@openailab.com
+ * Author: qtang@openailab.com
  */
-
-#include <stdlib.h>
-#include <stdio.h>
 
 #include "common.h"
 #include "tengine_c_api.h"
 #include "tengine_operations.h"
 
 #define DEFAULT_MAX_BOX_COUNT 100
-#define DEFAULT_REPEAT_COUNT 1
-#define DEFAULT_THREAD_COUNT 1
+#define DEFAULT_REPEAT_COUNT    1
+#define DEFAULT_THREAD_COUNT    1
 
 typedef struct Box
 {
@@ -161,10 +158,14 @@ int main(int argc, char* argv[])
     opt.num_thread = num_thread;
     opt.cluster = TENGINE_CLUSTER_ALL;
     opt.precision = TENGINE_MODE_FP32;
-    opt.affinity = 0;    
+    opt.affinity = 0;
 
     /* inital tengine */
-    init_tengine();
+    if (init_tengine() != 0)
+    {
+        fprintf(stderr, "Initial tengine failed.\n");
+        return -1;
+    }
     fprintf(stderr, "tengine-lite library version: %s\n", get_tengine_version());
 
     /* create arm ACL backend */
@@ -186,8 +187,8 @@ int main(int argc, char* argv[])
     }
 
     /* set the input shape to initial the graph, and prerun graph to infer shape */
-    int img_size      = img_h * img_w * 3;
-    int dims[]        = {1, 3, img_h, img_w};    // nchw
+    int img_size = img_h * img_w * 3;
+    int dims[] = {1, 3, img_h, img_w};    // nchw
     float* input_data = ( float* )malloc(img_size * sizeof(float));
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
@@ -240,7 +241,7 @@ int main(int argc, char* argv[])
             max_time = cur;
     }
     fprintf(stderr, "Repeat %d times, thread %d, avg time %.2f ms, max_time %.2f ms, min_time %.2f ms\n", repeat_count,
-           num_thread, total_time / repeat_count, max_time, min_time);
+            num_thread, total_time / repeat_count, max_time, min_time);
     fprintf(stderr, "--------------------------------------\n");
 
     /* process the detection result */

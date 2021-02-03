@@ -32,7 +32,7 @@ extern "C"
 
 bool CLGraph::AddEltwiseLayer(struct ir_node* node)
 {
-    fprintf(stderr, "Tengine ACl: Support OP(%d) OP_ELTWISE.\n", node->idx);
+    TLOG_INFO("Tengine ACl: Support OP(%d) OP_ELTWISE.\n", node->idx);
     struct ir_graph* graph = node->graph;
     struct ir_tensor* input_tensor0 = get_ir_graph_tensor(graph, node->input_tensors[0]);
     std::string name = input_tensor0->name;

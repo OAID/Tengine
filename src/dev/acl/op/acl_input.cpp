@@ -31,7 +31,7 @@ extern "C"
 
 bool CLGraph::AddInputLayer(struct ir_node* node)
 {
-    fprintf(stderr, "Tengine ACL: Support OP(%d) OP_INPUT.\n", node->idx);
+    TLOG_INFO("Tengine ACL: Support OP(%d) OP_INPUT.\n", node->idx);
     /* output */
     struct ir_graph* graph = node->graph;
     struct ir_tensor* tensor = get_ir_graph_tensor(graph, node->output_tensors[0]);

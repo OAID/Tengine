@@ -32,7 +32,7 @@ extern "C"
 
 bool CLGraph::AddPoolingLayer(struct ir_node* node)
 {
-    fprintf(stderr, "Tengine ACL: Support OP(%d) OP_POOl.\n", node->idx);
+    TLOG_INFO("Tengine ACL: Support OP(%d) OP_POOl.\n", node->idx);
     struct ir_graph* graph = node->graph;
     struct pool_param* param = ( struct pool_param* )node->op.param_mem;
     int pad_x = param->pad_w0;
@@ -70,7 +70,6 @@ bool CLGraph::AddPoolingLayer(struct ir_node* node)
     }
     else
     {
-        // TLOG_ERR("can't find node [%s]tensor named :%s\n", node->name, name);
         return false;
     }
 
@@ -80,13 +79,6 @@ bool CLGraph::AddPoolingLayer(struct ir_node* node)
     int TengineDataLayOut = o_tensor->layout;
     TensorInfo* info = itensor->info();
 
-    //    int out_h = std::ceil(( float )(info->dimension(1) - kernel_h + 2 * pad_y) / stride_y) + 1;
-    //    int out_w = std::ceil(( float )(info->dimension(0) - kernel_w + 2 * pad_x) / stride_x) + 1;
-    //    if(bForcedNHWCMode_ == true && TengineDataLayOut == TENGINE_LAYOUT_NCHW)
-    //    {
-    //        out_h = std::ceil(( float )(info->dimension(2) - kernel_h + 2 * pad_y) / stride_y) + 1;
-    //        out_w = std::ceil(( float )(info->dimension(1) - kernel_w + 2 * pad_x) / stride_x) + 1;
-    //    }
     int out_h = o_tensor->dims[2];
     int out_w = o_tensor->dims[3];
 
@@ -114,7 +106,6 @@ bool CLGraph::AddPoolingLayer(struct ir_node* node)
         data_layout = DataLayout::NCHW;
     }
 
-    // otensor->allocator()->init(TensorInfo(TensorShape(out_h, out_w, channel, 1), 1, data_type_));
     tensors_map_[name] = otensor;
     CLPoolingLayer* pooling = new CLPoolingLayer();
     PoolingLayerInfo pooling_info;

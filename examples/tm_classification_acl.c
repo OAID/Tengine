@@ -59,7 +59,7 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
     }
     fprintf(stderr, "tengine-lite library version: %s\n", get_tengine_version());
 
-    /* create arm ACL backend */
+    /* create arm acl backend */
     context_t acl_context = create_context("acl", 1);
     int rtt = add_context_device(acl_context, "ACL");
     if (0 > rtt)

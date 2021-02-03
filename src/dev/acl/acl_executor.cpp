@@ -59,7 +59,7 @@ void copy_buffer(void* dest, const void* src, const int src_len, DataType dest_t
     else if(dest_type == DataType::F32 && src_type == DataType::F16)
         copy_fp16_to_fp32(( float* )dest, ( const __fp16* )src, src_len);
     else
-        printf("copy_buffer may failed!!!");
+        fprintf(stderr, "copy_buffer may failed!!!");
 }
 
 
@@ -164,10 +164,6 @@ static void copy_itensor(CLTensor* cl_tensor, void* buf, int buf_size, bool to_t
     uint8_t* slice_ptr = cl_tensor->buffer();
     uint8_t* buf_ptr = ( uint8_t* )buf;
 
-    // struct timeval t1,t0;
-    // struct timeval t2,t3;
-    // gettimeofday(&t0, NULL);
-    // int a;
     for(unsigned int i = 0; i < slice_num; i++)
     {
         uint8_t* data_ptr = slice_ptr + padding.top * strides[1] + padding.left * strides[0];
@@ -185,14 +181,7 @@ static void copy_itensor(CLTensor* cl_tensor, void* buf, int buf_size, bool to_t
             }
             else
             {
-                // gettimeofday(&t2, NULL);
                 copy_buffer(buf_ptr, data_ptr, data_len, DataType::F32, data_type);
-                // if(h == 0)
-                // {
-                //     gettimeofday(&t3, NULL);
-                //     float mytime0 = ( float )((t3.tv_sec * 1000000 + t3.tv_usec) - (t2.tv_sec * 1000000 + t2.tv_usec)) / 1000;
-                //     printf("\nacl graph copy_buffer time:%f",mytime0);
-                // }
             }
 
             buf_ptr = buf_ptr + buf_len;
@@ -202,14 +191,6 @@ static void copy_itensor(CLTensor* cl_tensor, void* buf, int buf_size, bool to_t
 
         slice_ptr += slice_h * slice_w * strides[0];
     }
-
-    // gettimeofday(&t1, NULL);
-    // float mytime = ( float )((t1.tv_sec * 1000000 + t1.tv_usec) - (t0.tv_sec * 1000000 + t0.tv_usec)) / 1000;
-    // if(!to_tensor)
-    // {
-    //     printf("\nacl graph copy_itensor time:%f\n",mytime);
-    //     printf("loop time :%d data_len :%d\n", slice_num * cl_info->dimension(1), a);
-    // }
 }
 
 static void copy_to_itensor(CLTensor* cl_tensor, const void* buf, int buf_size, DataType tensor_dt)
@@ -250,9 +231,6 @@ void copy_from_itensor_with_permuteNHWCTONCHW(CLTensor* cl_tensor, void* buf, in
     int offsetSize = padding.top * strides[1] + padding.left * strides[0];
 
     assert(n * h * w * c * 4 == buf_size);
-
-    // if(data_type == DataType::F16)
-    //       buf_len = data_len << 1;
 
     if(data_type == DataType::F32)
     {
@@ -338,11 +316,10 @@ bool CLGraph::CreateACLGraph(struct subgraph* subgraph, DataType type, bool bDat
     CLScheduler::get().default_init();
     this->init("acl_graph", type); // tengine-lite's subgraph has not name.
 
-    /*1  Check Data Layout Work Mode*/
-    this->bForcedNHWCMode_ = bDataLayoutOpFlag;    //
+    /* 1  Check Data Layout Work Mode*/
+    this->bForcedNHWCMode_ = bDataLayoutOpFlag;
 
     /* first, process input nodes' input tensor */
-
     struct ir_graph* ir_graph = subgraph->graph;
     int input_size = subgraph->input_num;
     for(int i = 0; i < input_size; i++)
@@ -390,13 +367,11 @@ bool CLGraph::CreateACLGraph(struct subgraph* subgraph, DataType type, bool bDat
 
     /* now, let's scan all nodes! */
     int node_size = subgraph->node_num;
-    // printf("node size:%d\n",node_size);
     for(int i = 0; i < node_size; i++)
     {
         bool ret = false;
         struct ir_node* node = get_ir_graph_node(ir_graph, subgraph->node_list[i]);
         uint16_t op_type = node->op.op_type;
-        // printf("op name:\t%s\t%d\n",get_node_name(node), node->idx);
         if(op_type == OP_CONST)
             continue;
 
@@ -466,18 +441,30 @@ bool CLGraph::CreateACLGraph(struct subgraph* subgraph, DataType type, bool bDat
 
 int CLGraph::prerun(struct subgraph *subgraph, int cpu_affinity, int mode)
 {
-    (void)cpu_affinity;
-    // fprintf(stdout, "ACL initialized\n");
-    char* env = getenv("ACL_FP16");
+    fprintf(stderr, "ACL initialized\n");
+
     DataType data_type;
-    if(env)
-        data_type = DataType::F16; //acl lib
-    else
-        data_type = DataType::F32;
-    env = getenv("ACL_NHWC");
-    l32AclNHWCOptimizeFlag_ = env ? true : false; // ACL Opt Mode : ACL Normal Mode
+
+    /* set precision */
+    switch(mode)
+    {
+        case TENGINE_DT_FP32:
+            data_type = DataType::F32;
+            fprintf(stderr, "ACL Backend set precision Float32\n", mode);
+            break;
+        case TENGINE_DT_FP16:
+            data_type = DataType::F16;
+            fprintf(stderr, "ACL Backend set precision Float16\n", mode);
+            break;        
+        default:
+            fprintf(stderr, "ACL Backend not support this %d data mode\n", mode);
+            return -1;        
+    }
+
+    char* env = getenv("ACL_NHWC");
+    // l32AclNHWCOptimizeFlag_ = env ? true : false; // ACL Opt Mode : ACL Normal Mode
+    l32AclNHWCOptimizeFlag_ = true;
     this->CreateACLGraph(subgraph, data_type, l32AclNHWCOptimizeFlag_);
-    // printf("data_type:%d  NHWCflag:%d\n",data_type==DataType::F16?16:32,l32AclNHWCOptimizeFlag_);
 
     auto ir_start = this->tensors_map_.begin();
     auto ir_end = this->tensors_map_.end();
@@ -493,7 +480,6 @@ int CLGraph::prerun(struct subgraph *subgraph, int cpu_affinity, int mode)
     int output_node_size = subgraph->output_num;
     for (int i = 0; i < output_node_size; i++)
     {
-        //struct ir_node* node = get_ir_graph_node(ir_graph, ir_graph->output_nodes[i]);
         struct ir_tensor* output_tensor = get_ir_graph_tensor(ir_graph, subgraph->output_tensor_list[i]);
         void* mem_addr = output_tensor->data;
         if(mem_addr)
@@ -507,17 +493,10 @@ int CLGraph::prerun(struct subgraph *subgraph, int cpu_affinity, int mode)
 
 int CLGraph::run(struct subgraph *subgraph)
 {
-//    int size = functions_map_.size();
-//    for(int i = 0; i < size; i++)
-//    {
-//        functions_map_[i]->run();
-//    }
-
     struct ir_graph* ir_graph = subgraph->graph;
     int input_number = subgraph->input_num;
     DataType data_type_ = this->data_type_;
     int l32ScratchMemSize_ = this->l32ScratchMemSize_;
-    // char* pcScratchMem_ = graph->pcScratchMem_;
     void* scratch_mem = NULL;
 
     for(int i = 0; i < input_number; i++)
@@ -558,12 +537,10 @@ int CLGraph::run(struct subgraph *subgraph)
             acl_input->map();
             copy_to_itensor(acl_input, buf, size, data_type_);
             acl_input->unmap();
-
         }
         else
         {
             /* normal Input Node */
-            // struct ir_tensor* out = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
             bool bDataPermute = false;
             if(l32AclNHWCOptimizeFlag_ == 1)
             {
@@ -609,135 +586,17 @@ int CLGraph::run(struct subgraph *subgraph)
     if(!scratch_mem)
         sys_free(scratch_mem);
 
-    // struct timeval t1,t0;
-    // gettimeofday(&t0, NULL);
-
     int size = functions_map_.size();
     for(int i = 0; i < size; i++)
     {
         functions_map_[i]->run();
     }
 
-    // gettimeofday(&t1, NULL);
-    // float mytime = ( float )((t1.tv_sec * 1000000 + t1.tv_usec) - (t0.tv_sec * 1000000 + t0.tv_usec)) / 1000;
-    // printf("acl graph run time:%f\n",mytime);
-
-// #define DUMP_TENSOR
-#ifdef DUMP_TENSOR
-    printf("run into dump tensor\n");
-    int node_size = ir_graph->node_num;
-    for(int i = 0; i < node_size; i++)
-    {
-        struct ir_node* node = get_ir_graph_node(ir_graph, subgraph->node_list[i]);
-
-        struct ir_op op = node->op;
-        uint16_t op_type = op.op_type;
-        struct ir_tensor* ooo = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
-
-        if(op_type != OP_CONST && op_type != OP_INPUT)
-        {
-            CLTensor* cltensor = graph->GetCLTensor(ooo->name);
-            cltensor->map();
-            float* save32 = nullptr;
-            int size = cltensor->info()->total_size();
-
-            TensorInfo* ptTensorInfo = cltensor->info();
-
-            int real_size = ooo->elem_num * ooo->elem_size;
-
-            void* real_data = malloc(real_size);
-
-            copy_from_itensor(cltensor, real_data, real_size, data_type_);
-
-            size = real_size >> 2;
-            save32 = ( float* )real_data;
-
-            struct ir_op op = node->op;
-
-            std::cout << " out: " << ooo->name << " op_type: " << op.op_type << " out_size:" << size << "\n";
-            const char* name_s = ooo->name;
-            char name[100] = {0};
-            for(unsigned int i = 0; i < strlen(name_s); i++)
-            {
-                if(name_s[i] == '/')
-                    name[i] = '_';
-                else
-                    name[i] = name_s[i];
-            }
-            std::string fname = name;
-
-            // fname += name;
-
-            fname += ".dat";
-            fname = "/home/xlchen/dump_tl/" + fname;
-
-            FILE* pf = fopen(fname.c_str(), "w");
-
-            int n = ptTensorInfo->dimension(3);
-            int c = ptTensorInfo->dimension(2);
-            int h = ptTensorInfo->dimension(1);
-            int w = ptTensorInfo->dimension(0);
-
-            printf("[%d]Tensor name %s, dim info [0123]:%d,%d,%d,%d\n", i, name, n, c, h, w);
-
-#ifdef NHWC_PROC_MODE
-            int N = n;    // 3
-            int C = w;    // 0
-            int H = c;    // 2
-            int W = h;    // 1
-#else
-            int N = n;    //
-            int C = c;
-            int H = h;
-            int W = w;
-#endif
-            fprintf(pf, "[%d]tensor name %s, dim[]:%d,%d,%d,%d\n", i, name, N, C, H, W);
-
-            int nn = 0;
-            for(int i = 0; i < N; i++)
-            {
-                fprintf(pf, "\n N[%d]:\n", i);
-                for(int j = 0; j < C; j++)
-                {
-                    fprintf(pf, "\n C[%d]:", j);
-
-                    for(int k = 0; k < H; k++)
-                    {
-                        fprintf(pf, "\n H[%d]:", k);
-                        for(int m = 0; m < W; m++)
-                        {
-                            fprintf(pf, "%g,", save32[nn]);
-                            nn++;
-                        }
-                    }
-                }
-            }
-
-            //assert(nn == size);
-
-#if 0
-            for(int j = 0; j < size; j++)
-            {
-                if(j % 32 == 0)
-                    fprintf(pf, "\n[%d]:", j);
-
-                fprintf(pf, "%g,", save32[j]);
-            }
-#endif
-
-            fclose(pf);
-            cltensor->unmap();
-        }
-    }
-#endif
-    // gettimeofday(&t0, NULL);
-    // float total_time = 0.f;
     int output_num = subgraph->output_num;
     for(int i = 0; i < output_num; i++)
     {
         struct ir_tensor* output = get_ir_graph_tensor(ir_graph, subgraph->output_tensor_list[i]);
         std::string output_name = output->name;
-        // printf("output name:%s\n",output_name.c_str());
         CLTensor* cltensor = this->GetCLTensor(output_name);
         TensorInfo* ptTensorInfo = cltensor->info();
         int DataLayoutType = output->layout;
@@ -747,55 +606,14 @@ int CLGraph::run(struct subgraph *subgraph)
         void* output_buf = output->data;
         int out_size = output->elem_size * output->elem_num;
 
-        // cltensor->map();
-        // copy_from_itensor(cltensor, output_buf, out_size, data_type_);
-        // cltensor->unmap();
-        // struct timeval t3,t2;
-
-
-#if 1
         // if we enable ACL_OP flag, we need to permute output data back
         if(DataLayoutType != AclDataLayoutforTengine)
         {
             if(AclDataLayoutforTengine == TENGINE_LAYOUT_NHWC)
             {
-// NHWC -> NCHW
-#if 0
-                if(out_size > l32ScratchMemSize_)
-				{
-					delete pcScratchMem_;
-					pcScratchMem_ = new char[out_size];
-					l32ScratchMemSize_ = out_size;
-				}
-				assert(pcScratchMem_ != NULL);
-
-				assert(ptTensorInfo->data_layout() == DataLayout::NHWC);
-				int n = ptTensorInfo->dimension(3);
-				int c = ptTensorInfo->dimension(0);
-				int h = ptTensorInfo->dimension(2);
-				int w = ptTensorInfo->dimension(1);
-
-				int tengine_data_type = output->GetDataType();
-				int DataEleSize = gs32TengineDataElemetSize[tengine_data_type];
-
-				_PermuteDatalayoutNHWCToNCHW(output_buf,
-											 n,c,h,w,
-											 pcScratchMem_,
-											 DataEleSize);
-				memcpy(output_buf, pcScratchMem_, out_size);
-#else
-
                 cltensor->map();
                 copy_from_itensor_with_permuteNHWCTONCHW(cltensor, output_buf, out_size, data_type_);
                 cltensor->unmap();
-                // gettimeofday(&t2, NULL);
-                // gettimeofday(&t3, NULL);
-                // float mytime = ( float )((t3.tv_sec * 1000000 + t3.tv_usec) - (t2.tv_sec * 1000000 + t2.tv_usec)) / 1000;
-                // printf("copy tensor name:%s out_size:%d\n",output->name, out_size);
-                // printf("acl graph map() data time:%f\n",mytime);
-                // total_time += mytime;
-
-#endif
             }
             else
             {
@@ -810,24 +628,11 @@ int CLGraph::run(struct subgraph *subgraph)
             copy_from_itensor(cltensor, output_buf, out_size, data_type_);
             cltensor->unmap();
         }
-#endif
-
-// DUMP OUT_BUF
-#ifdef DUMP_TENSOR_
-        MyDumpTesnorData(output);
-#endif
     }
-    // printf("acl graph copy data time:%f\n",total_time);
-    // gettimeofday(&t1, NULL);
-    // mytime = ( float )((t1.tv_sec * 1000000 + t1.tv_usec) - (t0.tv_sec * 1000000 + t0.tv_usec)) / 1000;
-    // printf("acl graph write output data time:%f\n",mytime);
 }
 
 int CLGraph::postrun(struct subgraph *subgraph)
 {
-    // printf("run into acl postrun!!!\n");
-//    CLGraph* graph = (CLGraph*)subgraph->exec_graph;
-//    DestroyACLGraph(graph);
     return 0;
 }
 
