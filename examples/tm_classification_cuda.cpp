@@ -41,8 +41,6 @@
 #define DEFAULT_THREAD_COUNT 1
 #define DEFAULT_CPU_AFFINITY 255
 
-#define NVDEVICE "CUDA"
-
 int tengine_classify(const char* model_file, const char* image_file, int img_h, int img_w, const float* mean,
                      const float* scale, int loop_count, int num_thread, int affinity)
 {
@@ -61,16 +59,17 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
     }
     fprintf(stderr, "tengine-lite library version: %s\n", get_tengine_version());
 	
-    context_t nv_context = create_context("nv", 1);
-    int rtt = add_context_device(nv_context, NVDEVICE);
+    /* create NVIDIA CUDA backend */
+    context_t cuda_context = create_context("cuda", 1);
+    int rtt = add_context_device(cuda_context, "CUDA");
     if (0 > rtt)
     {
-        fprintf(stderr, " add_context_device NVDEVICE failed.\n");
+        fprintf(stderr, " add_context_device NV CUDA DEVICE failed.\n");
         return -1;
     }	
 
     /* create graph, load tengine model xxx.tmfile */
-    graph_t graph = create_graph(nv_context, "tengine", model_file);
+    graph_t graph = create_graph(cuda_context, "tengine", model_file);
     if (NULL == graph)
     {
         fprintf(stderr, "Create graph failed.\n");

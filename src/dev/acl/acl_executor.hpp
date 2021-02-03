@@ -64,8 +64,8 @@ using namespace arm_compute;
 
 template <typename T>
 inline void _PermuteDatalayoutNCHWToNHWCInter(T* pvData, int n, int c, int h, int w, T* pvOutputData);
-inline void _PermuteDatalayoutNCHWToNHWC(void* pvData, int n, int c, int h, int w, void* pvOutputData, int DataEleSize);
-inline void copy_buffer(void* dest, const void* src, const int src_len, DataType dest_type, DataType src_type);
+void _PermuteDatalayoutNCHWToNHWC(void* pvData, int n, int c, int h, int w, void* pvOutputData, int DataEleSize);
+void copy_buffer(void* dest, const void* src, const int src_len, DataType dest_type, DataType src_type);
 
 class CLGraph
 {

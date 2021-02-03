@@ -167,24 +167,18 @@ int main(int argc, char* argv[])
     init_tengine();
     fprintf(stderr, "tengine-lite library version: %s\n", get_tengine_version());
 
-    /* create graph, load tengine model xxx.tmfile */
-    graph_t graph;
-    const char *rep_str = getenv("ACL");
-    if (rep_str)
+    /* create arm ACL backend */
+    context_t acl_context = create_context("acl", 1);
+    int rtt = add_context_device(acl_context, "ACL");
+    if (0 > rtt)
     {
-        fprintf(stderr, "run into gpu by acl\n");
-        context_t acl_context = create_context("ACL", 1);
-        add_context_device(acl_context, "ACL");
-        graph = create_graph(acl_context, "tengine", model_file);
-        set_graph_device(graph, "ACL");
-    }
-    else
-    {
-        fprintf(stderr, "run into cpu by default\n");
-        graph = create_graph(NULL, "tengine", model_file);
+        fprintf(stderr, " add_context_device ACL DEVICE failed.\n");
+        return -1;
     }
 
-    if (graph == NULL)
+    /* create graph, load tengine model xxx.tmfile */
+    graph_t graph = create_graph(acl_context, "tengine", model_file);
+    if (NULL == graph)
     {
         fprintf(stderr, "Create graph failed.\n");
         fprintf(stderr, "errno: %d \n", get_tengine_errno());

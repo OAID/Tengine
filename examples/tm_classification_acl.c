@@ -41,7 +41,6 @@
 #define DEFAULT_THREAD_COUNT 1
 #define DEFAULT_CPU_AFFINITY 255
 
-
 int tengine_classify(const char* model_file, const char* image_file, int img_h, int img_w, const float* mean,
                      const float* scale, int loop_count, int num_thread, int affinity)
 {
@@ -59,18 +58,18 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
         return -1;
     }
     fprintf(stderr, "tengine-lite library version: %s\n", get_tengine_version());
-	
-    /* create NVIDIA TensorRT backend */
-    context_t trt_context = create_context("trt", 1);
-    int rtt = add_context_device(trt_context, "TRT");
+
+    /* create arm ACL backend */
+    context_t acl_context = create_context("acl", 1);
+    int rtt = add_context_device(acl_context, "ACL");
     if (0 > rtt)
     {
-        fprintf(stderr, " add_context_device NV TensorRT DEVICE failed.\n");
+        fprintf(stderr, " add_context_device NVDEVICE failed.\n");
         return -1;
     }
 
     /* create graph, load tengine model xxx.tmfile */
-    graph_t graph = create_graph(trt_context, "tengine", model_file);
+    graph_t graph = create_graph(acl_context, "tengine", model_file);
     if (NULL == graph)
     {
         fprintf(stderr, "Create graph failed.\n");
