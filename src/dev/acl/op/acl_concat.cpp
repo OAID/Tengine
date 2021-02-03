@@ -34,7 +34,7 @@ extern "C"
 
 bool CLGraph::AddConcatLayer(struct ir_node* node)
 {
-    fprintf(stderr, "Tengine ACl: Support OP(%d) OP_CONCAT.\n", node->idx);
+    TLOG_INFO("Tengine ACl: Support OP(%d) OP_CONCAT.\n", node->idx);
     struct concat_param* param = ( struct concat_param* )node->op.param_mem;
 
     struct ir_graph* graph = node->graph;
@@ -71,7 +71,6 @@ bool CLGraph::AddConcatLayer(struct ir_node* node)
                     assert(tensor->dim_num == 4);
 
                     pClTensorInfo->set_tensor_shape(TensorShape(dim[3], dim[2], dim[1], dim[0]));
-                    //                    pClTensorInfo->set_data_layout(DataLayout::NHWC);
                 }
                 else
                 {
@@ -80,11 +79,9 @@ bool CLGraph::AddConcatLayer(struct ir_node* node)
         }
         else
         {
-            // TLOG_ERR("can't find node [%s]tensor named :%s\n", node->name, name);
             return false;
         }
         inputs_vector.push_back(itensor);
-        //        fprintf(stderr," in dimension0 %d \n",itensor->info()->dimension(0));
     }
 
     /*output */
@@ -105,19 +102,17 @@ bool CLGraph::AddConcatLayer(struct ir_node* node)
     {
         // need to re init datalayout to nhwc
         TensorInfo ClTensorInfo_o = TensorInfo(TensorShape(dim_o[3], dim_o[2], dim_o[1], dim_o[0]), 1, data_type_);
-        //        ClTensorInfo_o.set_data_layout(DataLayout::NHWC);
         otensor->allocator()->init(ClTensorInfo_o);
     }
     else
     {
-        TensorInfo ClTensorInfo_o = TensorInfo(TensorShape(dim_o[1], dim_o[3], dim_o[2], dim_o[0]), 1, data_type_);
+        TensorInfo ClTensorInfo_o = TensorInfo(TensorShape(dim_o[3], dim_o[3], dim_o[1], dim_o[0]), 1, data_type_);
         ClTensorInfo_o.set_data_layout(DataLayout::NCHW);
         otensor->allocator()->init(ClTensorInfo_o);
     }
     tensors_map_[name] = otensor;
 
     CLConcatenateLayer* concat = new CLConcatenateLayer();
-    // concat->configure(inputs_vector, otensor, DataLayoutDimension::CHANNEL);
     int axis = 3 - param->axis;
     concat->configure(inputs_vector, otensor, axis);
     functions_map_.push_back(concat);

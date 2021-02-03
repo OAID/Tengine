@@ -32,7 +32,7 @@ extern "C"
 
 bool CLGraph::AddConvolutionLayer(struct ir_node* node)
 {
-    fprintf(stderr, "Tengine ACl: Support OP(%d) OP_CONV.\n", node->idx);
+    TLOG_INFO("Tengine ACl: Support OP(%d) OP_CONV.\n", node->idx);
     struct ir_graph* graph = node->graph;
     void* acl_data = nullptr;
     void* data = nullptr;
