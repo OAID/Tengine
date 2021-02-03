@@ -50,7 +50,7 @@ static inline void copy_fp16_to_fp32(float* f32, const __fp16* f16, const int f1
         f32[i] = f16[i];
 }
 
-inline void copy_buffer(void* dest, const void* src, const int src_len, DataType dest_type, DataType src_type)
+void copy_buffer(void* dest, const void* src, const int src_len, DataType dest_type, DataType src_type)
 {
     if(dest_type == src_type)
         memcpy(dest, src, src_len);
@@ -87,7 +87,7 @@ inline void _PermuteDatalayoutNCHWToNHWCInter(T* pvData, int n, int c, int h, in
     }
 }
 
-inline void _PermuteDatalayoutNCHWToNHWC(void* pvData, int n, int c, int h, int w, void* pvOutputData, int DataEleSize)
+void _PermuteDatalayoutNCHWToNHWC(void* pvData, int n, int c, int h, int w, void* pvOutputData, int DataEleSize)
 {
     assert(pvData != NULL);
     assert(pvOutputData != NULL);

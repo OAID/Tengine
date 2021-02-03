@@ -24,6 +24,7 @@ tengine_example(tm_classification_fp16      tm_classification_fp16.c)
 tengine_example(tm_classification_int8      tm_classification_int8.c)
 tengine_example(tm_classification_uint8     tm_classification_uint8.c)
 tengine_example(tm_classification_vulkan    tm_classification_vulkan.c)
+tengine_example(tm_classification_acl       tm_classification_acl.c)
 tengine_example(tm_classification_trt       tm_classification_trt.cpp)
 tengine_example(tm_classification_cuda      tm_classification_cuda.cpp)
 tengine_example(tm_mobilenet_ssd            tm_mobilenet_ssd.c)
@@ -41,10 +42,9 @@ tengine_example(tm_yolov4_tiny              tm_yolov4_tiny.cpp)
 
 # add examples with opencv
 # set(OpenCV_DIR /mnt/d/ubuntu/opencv_install/linux-armv7/lib/cmake/opencv4)
-
 find_package(OpenCV QUIET)
 
-if(OpenCV_FOUND)
+if(OpenCV_FOUND AND ${TENGINE_TARGET_PROCESSOR} MATCHES "X86")
 include_directories(${OpenCV_INCLUDE_DIRS})
 
     # macro for adding examples

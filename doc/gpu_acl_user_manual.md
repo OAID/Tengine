@@ -25,7 +25,7 @@ Number of platforms                               1
 
 ```bash
 $ git clone https://github.com/ARM-software/ComputeLibrary.git
-$ git checkout v20.02
+$ git checkout v20.05
 ```
 
 #### Build ACL 

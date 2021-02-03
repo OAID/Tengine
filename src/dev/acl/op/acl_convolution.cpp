@@ -163,7 +163,8 @@ bool CLGraph::AddConvolutionLayer(struct ir_node* node)
             scratch_mem = sys_malloc(s32DataSize);
             assert(scratch_mem != NULL);
 
-            _PermuteDatalayoutNCHWToNHWC(pvBuf, dim_w[1], dim_w[0], dim_w[2], dim_w[3], scratch_mem, s32TengineEleSize);
+            _PermuteDatalayoutNCHWToNHWC(pvBuf, dim_w[1], dim_w[0], dim_w[2], dim_w[3], scratch_mem,
+                                         s32TengineEleSize);
             TensorInfo w_info = TensorInfo(TensorShape(dim_w[0], dim_w[3], dim_w[2], dim_w[1]), 1, data_type_);
             w_info.set_data_layout(DataLayout::NHWC);
             wtensor->allocator()->init(w_info);
@@ -173,7 +174,8 @@ bool CLGraph::AddConvolutionLayer(struct ir_node* node)
         else
         {
             // NCHW
-            TensorInfo ClTensorInfo = TensorInfo(TensorShape(dim_w[3], dim_w[2], dim_w[0], dim_w[1]), 1, data_type_);
+            TensorInfo ClTensorInfo =
+                    TensorInfo(TensorShape(dim_w[3], dim_w[2], dim_w[0], dim_w[1]), 1, data_type_);
             ClTensorInfo.set_data_layout(DataLayout::NCHW);
             wtensor->allocator()->init(ClTensorInfo);
         }
@@ -185,7 +187,7 @@ bool CLGraph::AddConvolutionLayer(struct ir_node* node)
             //            functions_map_.push_back(dwconv3x3);
 
             CLDepthwiseConvolutionLayer* dwconv = new CLDepthwiseConvolutionLayer();
-            dwconv->configure(itensor, wtensor, btensor, otensor, PadStrideInfo(stride_x, stride_y, pad_x, pad_y));
+            dwconv->configure(itensor, wtensor, btensor, otensor, PadStrideInfo(stride_x, stride_y, pad_x, pad_y), 1, act_info);
             functions_map_.push_back(dwconv);
         }
         else
@@ -222,7 +224,8 @@ bool CLGraph::AddConvolutionLayer(struct ir_node* node)
             scratch_mem = sys_malloc(s32DataSize);
             assert(scratch_mem != NULL);
 
-            _PermuteDatalayoutNCHWToNHWC(pvBuf, dim_w[0], dim_w[1], dim_w[2], dim_w[3], scratch_mem, s32TengineEleSize);
+            _PermuteDatalayoutNCHWToNHWC(pvBuf, dim_w[0], dim_w[1], dim_w[2], dim_w[3], scratch_mem,
+                                         s32TengineEleSize);
             TensorInfo w_info = TensorInfo(TensorShape(dim_w[1], dim_w[3], dim_w[2], dim_w[0]), 1, data_type_);
             w_info.set_data_layout(DataLayout::NHWC);
             wtensor->allocator()->init(w_info);
@@ -231,7 +234,8 @@ bool CLGraph::AddConvolutionLayer(struct ir_node* node)
         else
         {
             // NCHW
-            TensorInfo ClTensorInfo = TensorInfo(TensorShape(dim_w[3], dim_w[2], dim_w[1], dim_w[0]), 1, data_type_);
+            TensorInfo ClTensorInfo =
+                    TensorInfo(TensorShape(dim_w[3], dim_w[2], dim_w[1], dim_w[0]), 1, data_type_);
             ClTensorInfo.set_data_layout(DataLayout::NCHW);
             wtensor->allocator()->init(ClTensorInfo);
         }

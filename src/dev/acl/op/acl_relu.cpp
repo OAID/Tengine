@@ -79,8 +79,7 @@ bool CLGraph::AddReLuLayer(struct ir_node* node)
     }
     else
     {
-        relu->configure(itensor, otensor,
-                        ActivationLayerInfo(ActivationLayerInfo::ActivationFunction::LEAKY_RELU, slop_param));
+        relu->configure(itensor, otensor, ActivationLayerInfo(ActivationLayerInfo::ActivationFunction::LEAKY_RELU,slop_param));
     }
 
     functions_map_.push_back(relu);

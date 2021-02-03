@@ -54,7 +54,8 @@ bool CLGraph::AddReLu6Layer(struct ir_node* node)
     tensors_map_[name] = otensor;
 
     CLActivationLayer* relu = new CLActivationLayer();
-    relu->configure(itensor, otensor, ActivationLayerInfo(ActivationLayerInfo::ActivationFunction::BOUNDED_RELU, 6));
+    relu->configure(itensor, otensor,
+                    ActivationLayerInfo(ActivationLayerInfo::ActivationFunction::BOUNDED_RELU, 6));
 
     functions_map_.push_back(relu);
 
