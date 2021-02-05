@@ -167,6 +167,14 @@ int TensorRTEngine::Build(struct subgraph* subgraph)
                 }
                 break;
             }
+            case OP_DECONV: {
+                if (!AddDeConvolutionNode(ir_graph, ir_node))
+                {
+                    fprintf(stderr, "Tengine: Cannot add Deconvolution op(%d).\n", ir_node->idx);
+                    return -6;
+                }
+                break;
+            }
             case OP_CROP: {
                 if (!AddCropNode(ir_graph, ir_node))
                 {
