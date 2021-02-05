@@ -73,6 +73,7 @@ private:
     bool AddBatchNormNode(struct ir_graph* ir_graph, struct ir_node* node);
     bool AddConcatNode(struct ir_graph* ir_graph, struct ir_node* node);
     bool AddConvolutionNode(struct ir_graph* ir_graph, struct ir_node* node);
+    bool AddDeConvolutionNode(struct ir_graph* ir_graph, struct ir_node* node);
     bool AddCropNode(struct ir_graph* ir_graph, struct ir_node* node);
     bool AddDropoutNode(struct ir_graph* ir_graph, struct ir_node* node);
     bool AddEltwiseLayer(struct ir_graph* ir_graph, struct ir_node* node);
