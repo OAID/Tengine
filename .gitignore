@@ -53,3 +53,6 @@ build*/
 
 # 3rd party files depend on ACL
 3rdparty/
+
+# 3rd party files depend on TIM-VX
+src/dev/tim-vx/src/

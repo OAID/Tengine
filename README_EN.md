@@ -45,7 +45,7 @@ The core code of Tengine Lite consists of 4 modules:
 
 ### Model Convert tool
 
-- [Pre-compiled version](https://github.com/OAID/Tengine-Convert-Tools/releases/download/v0.1/tm_convert_tool): Pre-compiled model convert tool is provided on Linux system;
+- [Pre-compiled version](https://github.com/OAID/Tengine/releases/download/lite-v1.2/convert_tool.zip): Pre-compiled model convert tool is provided on Linux system;
 - [Online Convert tool](https://convertmodel.com/#outputFormat=tengine): Based on WebAssembly (the models are converted locally by browsers, no private data will be uploaded);
 - [Source Compilation](https://github.com/OAID/Tengine-Convert-Tools): Refer to **Tengine-Convert-Tools** project, convert tool could be built by users.
 
@@ -66,11 +66,13 @@ Tengine Lite got ideas and developed based on these projects：
 - [MegEngine](https://github.com/MegEngine/MegEngine)
 - [ONNX](https://github.com/onnx/onnx)
 - [ncnn](https://github.com/Tencent/ncnn)
+- [FeatherCNN](https://github.com/Tencent/FeatherCNN)
 - [MNN](https://github.com/alibaba/MNN)
 - [Paddle Lite](https://github.com/PaddlePaddle/Paddle-Lite)
 - [ACL](https://github.com/ARM-software/ComputeLibrary)
 - [stb](https://github.com/nothings/stb)
 - [convertmodel](https://convertmodel.com)
+- [TIM-VX](https://github.com/VeriSilicon/TIM-VX)
 
 ## License
 

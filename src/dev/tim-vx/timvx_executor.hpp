@@ -1,0 +1,119 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * License); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * AS IS BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+/*
+ * Copyright (c) 2021, Open AI Lab
+ * Author: lswang@openailab.com
+ */
+
+#ifndef __TIMVX_TIMVX_EXECUTOR_HPP__
+#define __TIMVX_TIMVX_EXECUTOR_HPP__
+
+extern "C"
+{
+#include "tengine_ir.h"
+#include "tengine_log.h"
+}
+
+#include <map>
+#include <algorithm>
+#include <iomanip>
+#include <iostream>
+#include <tuple>
+#include <vector>
+
+#include "tim/vx/context.h"
+#include "tim/vx/graph.h"
+#include "tim/vx/operation.h"
+
+#include "tim/vx/ops/activations.h"
+#include "tim/vx/ops/concat.h"
+#include "tim/vx/ops/conv2d.h"
+#include "tim/vx/ops/elementwise.h"
+#include "tim/vx/ops/fullyconnected.h"
+#include "tim/vx/ops/pool2d.h"
+#include "tim/vx/ops/reshape.h"
+#include "tim/vx/ops/softmax.h"
+#include "tim/vx/tensor.h"
+
+#include "convolution_param.h"
+
+#define SPEC_TYPE_OUTPUT 1
+#define SPEC_TYPE_DWCONV 2
+
+typedef std::map<uint32_t, std::shared_ptr<tim::vx::Tensor>> dict_irt2vxt;
+
+
+class VXEngine
+{
+public:
+    VXEngine();
+    ~VXEngine() = default;
+
+    int VXEnginePreRun(struct subgraph* subgraph);
+    int VXEngineRun(struct subgraph* subgraph);
+    void VXEnginePostRun();
+
+private:
+    int Build(struct subgraph* subgraph);
+    void VXTensorMap(struct ir_graph* ir_graph, int ir_tensor_idx, int spec_type);
+
+    bool AddClipNode(struct ir_node* ir_node);
+    bool AddConcatNode(struct ir_node* ir_node);
+    bool AddConvolutionNode(struct ir_node* ir_node);
+    bool AddDropoutNode(struct ir_node* ir_node);
+    bool AddEltwisSumNode(struct ir_node* ir_node);
+    bool AddFlattenNode(struct ir_node* ir_node);
+    bool AddFullyConnectionNode(struct ir_node* node);
+    bool AddPoolingNode(struct ir_node* ir_node);
+    bool AddReluNode(struct ir_node* ir_node);
+
+
+
+public:
+    std::shared_ptr<tim::vx::Context> context;
+    std::shared_ptr<tim::vx::Graph> graph;
+    std::shared_ptr<tim::vx::Operation> ops;
+
+private:
+    dict_irt2vxt     vx_tensor_map;
+    dict_irt2vxt     vx_node_map;
+
+
+
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#endif

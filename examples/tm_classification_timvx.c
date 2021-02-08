@@ -29,16 +29,17 @@
 #include "tengine_c_api.h"
 #include "tengine_operations.h"
 
-#define DEFAULT_IMG_H 224
-#define DEFAULT_IMG_W 224
-#define DEFAULT_SCALE1 0.017f
-#define DEFAULT_SCALE2 0.017f
-#define DEFAULT_SCALE3 0.017f
+#define DEFAULT_IMG_H 227
+#define DEFAULT_IMG_W 227
+#define DEFAULT_SCALE1 1.f
+#define DEFAULT_SCALE2 1.f
+#define DEFAULT_SCALE3 1.f
 #define DEFAULT_MEAN1 104.007
 #define DEFAULT_MEAN2 116.669
 #define DEFAULT_MEAN3 122.679
 #define DEFAULT_LOOP_COUNT 1
 #define DEFAULT_THREAD_COUNT 1
+#define DEFAULT_CPU_AFFINITY 255
 
 void get_input_uint8_data(const char* image_file, uint8_t* input_data, int img_h, int img_w, float* mean, float* scale,
                           float input_scale, int zero_point)
@@ -49,7 +50,7 @@ void get_input_uint8_data(const char* image_file, uint8_t* input_data, int img_h
 
     for (int i = 0; i < img_w * img_h * 3; i++)
     {
-        int udata = (round)(image_data[i] / input_scale + zero_point);
+        int udata = (round)(image_data[i] / input_scale + (float)zero_point);
         if (udata > 255)
             udata = 255;
         else if (udata < 0)
@@ -62,14 +63,14 @@ void get_input_uint8_data(const char* image_file, uint8_t* input_data, int img_h
 }
 
 int tengine_classify(const char* model_file, const char* image_file, int img_h, int img_w, float* mean, float* scale,
-                     int loop_count, int num_thread)
+					  int loop_count, int num_thread, int affinity)
 {
     /* set runtime options */
     struct options opt;
     opt.num_thread = num_thread;
     opt.cluster = TENGINE_CLUSTER_ALL;
     opt.precision = TENGINE_MODE_UINT8;
-    opt.affinity = 0;
+    opt.affinity = affinity;
 
     /* inital tengine */
     if (init_tengine() != 0)
@@ -79,8 +80,17 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
     }
     fprintf(stderr, "tengine-lite library version: %s\n", get_tengine_version());
 
+    /* create arm acl backend */
+    context_t timvx_context = create_context("timvx", 1);
+    int rtt = add_context_device(timvx_context, "TIMVX");
+    if (0 > rtt)
+    {
+        fprintf(stderr, " add_context_device VSI DEVICE failed.\n");
+        return -1;
+    }
+
     /* create graph, load tengine model xxx.tmfile */
-    graph_t graph = create_graph(NULL, "tengine", model_file);
+    graph_t graph = create_graph(timvx_context, "tengine", model_file);
     if (NULL == graph)
     {
         fprintf(stderr, "Create graph failed.\n");
@@ -184,7 +194,7 @@ void show_usage()
     fprintf(
         stderr,
         "[Usage]:  [-h]\n    [-m model_file] [-i image_file]\n [-g img_h,img_w] [-s scale[0],scale[1],scale[2]] [-w "
-        "mean[0],mean[1],mean[2]] [-r loop_count] [-t thread_count]\n");
+        "mean[0],mean[1],mean[2]] [-r loop_count] [-t thread_count] [-a cpu_affinity]\n");
     fprintf(
         stderr,
         "\nmobilenet example: \n    ./classification -m /path/to/mobilenet.tmfile -i /path/to/img.jpg -g 224,224 -s "
@@ -195,6 +205,7 @@ int main(int argc, char* argv[])
 {
     int loop_count = DEFAULT_LOOP_COUNT;
     int num_thread = DEFAULT_THREAD_COUNT;
+    int cpu_affinity = DEFAULT_CPU_AFFINITY;
     char* model_file = NULL;
     char* image_file = NULL;
     float img_hw[2] = {0.f};
@@ -204,7 +215,7 @@ int main(int argc, char* argv[])
     float scale[3] = {0.f, 0.f, 0.f};
 
     int res;
-    while ((res = getopt(argc, argv, "m:i:l:g:s:w:r:t:h")) != -1)
+    while ((res = getopt(argc, argv, "m:i:l:g:s:w:r:t:a:h")) != -1)
     {
         switch (res)
         {
@@ -230,6 +241,9 @@ int main(int argc, char* argv[])
                 break;
             case 't':
                 num_thread = atoi(optarg);
+                break;
+            case 'a':
+                cpu_affinity = atoi(optarg);
                 break;
             case 'h':
                 show_usage();
@@ -274,7 +288,7 @@ int main(int argc, char* argv[])
         scale[0] = DEFAULT_SCALE1;
         scale[1] = DEFAULT_SCALE2;
         scale[2] = DEFAULT_SCALE3;
-        fprintf(stderr, "Scale value not specified, use default  %.3f, %.3f, %.3f\n", scale[0], scale[1], scale[2]);
+        fprintf(stderr, "Scale value not specified, use default  %.1f, %.1f, %.1f\n", scale[0], scale[1], scale[2]);
     }
 
     if (mean[0] == -1.0 || mean[1] == -1.0 || mean[2] == -1.0)
@@ -285,7 +299,7 @@ int main(int argc, char* argv[])
         fprintf(stderr, "Mean value not specified, use default   %.1f, %.1f, %.1f\n", mean[0], mean[1], mean[2]);
     }
 
-    if (tengine_classify(model_file, image_file, img_h, img_w, mean, scale, loop_count, num_thread) < 0)
+    if (tengine_classify(model_file, image_file, img_h, img_w, mean, scale, loop_count, num_thread, cpu_affinity) < 0)
         return -1;
 
     return 0;
