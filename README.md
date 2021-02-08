@@ -77,6 +77,7 @@ Tengine Lite 参考和借鉴了下列项目：
 - [ACL](https://github.com/ARM-software/ComputeLibrary)
 - [stb](https://github.com/nothings/stb)
 - [convertmodel](https://convertmodel.com)
+- [TIM-VX](https://github.com/VeriSilicon/TIM-VX)
 
 ## License
 

@@ -200,6 +200,87 @@ if (TENGINE_ENABLE_TENSORRT)
     file(GLOB_RECURSE TENGINE_BACKEND_TENSORRT_OPS "${CMAKE_CURRENT_SOURCE_DIR}/dev/tensorrt/op/*.cpp")
 endif ()
 
+if (TENGINE_ENABLE_TIM_VX)
+    if (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM")
+        set(TIM_VX_ARCH "aarch64")
+    elseif (${TENGINE_TARGET_PROCESSOR} MATCHES "X86")
+        set(TIM_VX_ARCH "x86_64")
+    else()
+        message(FATAL_ERROR "Tengine: Unsupported OS:${TENGINE_TARGET_PROCESSOR}")
+    endif()
+
+    if (TENGINE_ENABLE_TIM_VX_INTEGRATION)
+        set(VSI_TIM_NAME "tim_vx_internal")
+        set(VSI_TIM_VX_BASE "${CMAKE_CURRENT_SOURCE_DIR}/dev/tim-vx/src/tim/vx")
+
+        aux_source_directory(${VSI_TIM_VX_BASE} VSI_TIM_VX_SRC)
+        aux_source_directory(${VSI_TIM_VX_BASE}/ops VSI_TIM_OPS_SRC)
+        aux_source_directory(${VSI_TIM_VX_BASE}/internal/src VSI_TIM_INTERNAL_SRC)
+        aux_source_directory(${VSI_TIM_VX_BASE}/internal/src/kernel VSI_TIM_INTERNAL_KERNEL)
+        aux_source_directory(${VSI_TIM_VX_BASE}/internal/src/kernel/cl VSI_TIM_INTERNAL_KERNEL_CL)
+        aux_source_directory(${VSI_TIM_VX_BASE}/internal/src/kernel/cpu VSI_TIM_INTERNAL_KERNEL_CPU)
+        aux_source_directory(${VSI_TIM_VX_BASE}/internal/src/kernel/evis VSI_TIM_INTERNAL_KERNEL_EVIS)
+        aux_source_directory(${VSI_TIM_VX_BASE}/internal/src/kernel/vx VSI_TIM_INTERNAL_KERNEL_VX)
+        aux_source_directory(${VSI_TIM_VX_BASE}/internal/src/ops VSI_TIM_INTERNAL_OPS)
+        aux_source_directory(${VSI_TIM_VX_BASE}/internal/src/client VSI_TIM_INTERNAL_CLIENT)
+        aux_source_directory(${VSI_TIM_VX_BASE}/internal/src/libnnext VSI_TIM_INTERNAL_LIBNNEXT)
+        aux_source_directory(${VSI_TIM_VX_BASE}/internal/src/libnnext/ops/kernel VSI_TIM_INTERNAL_LIBNNEXT_OPS_KERNEL)
+        aux_source_directory(${VSI_TIM_VX_BASE}/internal/src/quantization VSI_TIM_INTERNAL_QUANTIZATION)
+        aux_source_directory(${VSI_TIM_VX_BASE}/internal/src/custom/ops VSI_TIM_INTERNAL_CUSTOM_OPS)
+        aux_source_directory(${VSI_TIM_VX_BASE}/internal/src/custom/ops/kernel VSI_TIM_INTERNAL_CUSTOM_OPS_KERNEL)
+        aux_source_directory(${VSI_TIM_VX_BASE}/internal/src/utils VSI_TIM_INTERNAL_UTILS)
+
+        list(APPEND VSI_TIM_VX_ALL_SRC
+            ${VSI_TIM_VX_SRC}
+            ${VSI_TIM_OPS_SRC}
+            ${VSI_TIM_INTERNAL_SRC}
+            ${VSI_TIM_INTERNAL_KERNEL}
+            ${VSI_TIM_INTERNAL_KERNEL_CL}
+            ${VSI_TIM_INTERNAL_KERNEL_CPU}
+            ${VSI_TIM_INTERNAL_KERNEL_EVIS}
+            ${VSI_TIM_INTERNAL_KERNEL_VX}
+            ${VSI_TIM_INTERNAL_OPS}
+            ${VSI_TIM_INTERNAL_CLIENT}
+            ${VSI_TIM_INTERNAL_LIBNNEXT}
+            ${VSI_TIM_INTERNAL_LIBNNEXT_OPS_KERNEL}
+            ${VSI_TIM_INTERNAL_QUANTIZATION}
+            ${VSI_TIM_INTERNAL_CUSTOM_OPS}
+            ${VSI_TIM_INTERNAL_CUSTOM_OPS_KERNEL}
+            ${VSI_TIM_INTERNAL_UTILS}
+            )
+
+        #message("VSI_TIM_VX_ALL_SRC=${VSI_TIM_VX_ALL_SRC}")
+
+        add_library(${VSI_TIM_NAME} STATIC ${VSI_TIM_VX_ALL_SRC})
+        target_link_directories(${VSI_TIM_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/3rdparty/tim-vx/lib/${TIM_VX_ARCH})
+        target_link_libraries(${VSI_TIM_NAME} PRIVATE CLC GAL OpenVX OpenVXU VSC ArchModelSw NNArchPerf)
+        target_include_directories(${VSI_TIM_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/3rdparty/tim-vx/include)
+        target_include_directories(${VSI_TIM_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/dev/tim-vx/include)
+        target_include_directories(${VSI_TIM_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/dev/tim-vx/include/tim/vx)
+        target_include_directories(${VSI_TIM_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/dev/tim-vx/src/tim/vx)
+        target_include_directories(${VSI_TIM_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/dev/tim-vx/src/tim/vx/internal/include)
+        set_target_properties(${VSI_TIM_NAME} PROPERTIES CXX_STANDARD_REQUIRED 14)
+        set_target_properties(${VSI_TIM_NAME} PROPERTIES CXX_STANDARD 14)
+        set(VSI_TIM_OVXLIB_API_ATTR "__attribute__\(\(visibility\(\"default\"\)\)\)")
+        target_compile_definitions(${VSI_TIM_NAME} PRIVATE "-DOVXLIB_API=${VSI_TIM_OVXLIB_API_ATTR}")
+        target_compile_options(${VSI_TIM_NAME} PRIVATE $<$<OR:$<COMPILE_LANGUAGE:C>,$<COMPILE_LANGUAGE:CXX>>:-fPIC>)
+        target_compile_options(${VSI_TIM_NAME} PRIVATE $<$<OR:$<COMPILE_LANGUAGE:C>,$<COMPILE_LANGUAGE:CXX>>:-O0>)
+        target_compile_options(${VSI_TIM_NAME} PRIVATE $<$<OR:$<COMPILE_LANGUAGE:C>,$<COMPILE_LANGUAGE:CXX>>:-g>)
+    endif()
+
+    list(APPEND TENGINE_INCLUDE_DIRS_PRIVATE  ${CMAKE_CURRENT_SOURCE_DIR}/dev/tim-vx)
+    list(APPEND TENGINE_INCLUDE_DIRS_PRIVATE  ${CMAKE_CURRENT_SOURCE_DIR}/dev/tim-vx/op)
+    list(APPEND TENGINE_INCLUDE_DIRS_PRIVATE  ${CMAKE_CURRENT_SOURCE_DIR}/dev/tim-vx/include)
+
+    list(APPEND TENGINE_INCLUDE_DIRS_PRIVATE  ${CMAKE_SOURCE_DIR}/3rdparty/tim-vx/include)
+
+    list(APPEND TENGINE_TIM_VX_LIB_DIRS ${CMAKE_SOURCE_DIR}/3rdparty/tim-vx/lib/${TIM_VX_ARCH})
+
+    file(GLOB TENGINE_BACKEND_TIM_VX_BASE "${CMAKE_CURRENT_SOURCE_DIR}/dev/tim-vx/*.cc")
+    file(GLOB TENGINE_BACKEND_TIM_VX_OPS  "${CMAKE_CURRENT_SOURCE_DIR}/dev/tim-vx/op/*.cc")
+endif ()
+
+
 # add nVIDIA cudabackend support
 if (TENGINE_ENABLE_CUDABACKEND)
     enable_language(CUDA)
@@ -299,7 +380,9 @@ if (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM")
         ${TENGINE_BACKEND_TENSORRT_BASE}
         ${TENGINE_BACKEND_TENSORRT_OPS}
         ${TENGINE_BACKEND_CUDABACKEND_BASE}
-        ${TENGINE_BACKEND_CUDABACKEND_OPS})
+        ${TENGINE_BACKEND_CUDABACKEND_OPS}
+        ${TENGINE_BACKEND_TIM_VX_BASE}
+        ${TENGINE_BACKEND_TIM_VX_OPS})
 elseif (${TENGINE_TARGET_PROCESSOR} MATCHES "X86")
     add_library(${CMAKE_PROJECT_NAME} SHARED
         ${TENGINE_LIB_SRCS} ${TENGINE_FRONT_END_SRCS}
@@ -313,7 +396,9 @@ elseif (${TENGINE_TARGET_PROCESSOR} MATCHES "X86")
         ${TENGINE_BACKEND_TENSORRT_BASE}
         ${TENGINE_BACKEND_TENSORRT_OPS}
         ${TENGINE_BACKEND_CUDABACKEND_BASE}
-        ${TENGINE_BACKEND_CUDABACKEND_OPS})
+        ${TENGINE_BACKEND_CUDABACKEND_OPS}
+        ${TENGINE_BACKEND_TIM_VX_BASE}
+        ${TENGINE_BACKEND_TIM_VX_OPS})
 elseif (${TENGINE_TARGET_PROCESSOR} MATCHES "MIPS")
     add_definitions(-mips64r2)
     add_definitions(-mabi=64)
@@ -336,8 +421,10 @@ else()
 endif()
 
 
+if (NOT TENGINE_FORCE_SKIP_OPENMP)
+    TENGINE_USE_LIB_OPENMP(${CMAKE_PROJECT_NAME})
+endif()
 
-TENGINE_USE_LIB_OPENMP(${CMAKE_PROJECT_NAME})
 # show linking libraries
 if(TENGINE_VERBOSE)
     message (STATUS "TENGINE: 'TENGINE_LINKING_LIBRARIES_PRIVATE' is ${TENGINE_LINKING_LIBRARIES_PRIVATE}.")
@@ -384,6 +471,15 @@ endif()
 if (TENGINE_ENABLE_TENSORRT)
     list(APPEND TENGINE_LINKING_LIBRARIES_PRIVATE nvinfer)
     list(APPEND TENGINE_LINKING_LIBRARIES_PRIVATE cudart)
+endif()
+
+if (TENGINE_ENABLE_TIM_VX)
+    target_link_directories(${CMAKE_PROJECT_NAME} PUBLIC ${TENGINE_TIM_VX_LIB_DIRS})
+    if  (TENGINE_ENABLE_TIM_VX_INTEGRATION)
+        list(APPEND TENGINE_LINKING_LIBRARIES_PRIVATE ${VSI_TIM_NAME})
+    else()
+        list(APPEND TENGINE_LINKING_LIBRARIES_PRIVATE tim-vx)
+    endif()
 endif()
 
 if (TENGINE_ENABLE_CUDABACKEND)

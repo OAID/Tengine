@@ -83,6 +83,7 @@ option(TENGINE_ENABLE_ACL "Build with Arm Compute Library(ACL) support" OFF)
 option(TENGINE_ENABLE_VULKAN "Build with Vulkan GPU compute support" OFF)
 option(TENGINE_ENABLE_TENSORRT "Build with nVIDIA TensorRT support" OFF)
 option(TENGINE_ENABLE_CUDABACKEND "Build with nVIDIA cuda support" OFF)
+option(TENGINE_ENABLE_TIM_VX "Build with VSI Tensor Interface Module for OpenVX support" OFF)
 
 # add_definitions(-DCONFIG_DISABLE_PARAM_ACCESS)
 # add_definitions(-DCONFIG_INTERN_ALLOCATOR)
