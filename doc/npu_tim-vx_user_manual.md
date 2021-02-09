@@ -1,24 +1,45 @@
-# Tengine Lite VeriSilicon TIM-VX User Manual
+# Tengine Lite with VeriSilicon TIM-VX User Manual
 
-## Brief
+## 1. Brief
 
 TIM-VX is a software integration module provided by VeriSilicon to facilitate deployment of Neural-Networks on OpenVX enabled ML accelerators.
 
 Tengine Lite has supported to integrate with TIM-VX Library of Verisilicon to inference CNN by Khadas VIM3(Amlogic A311D).
 
-## Build
+## 2. How to Build
 
-For some special reasons, only supported on Khadas VIM3 to work the following steps, currently.
+For some special reasons, only supported on Khadas VIM3 or x86_64 simulator to work the following steps, currently.
 
-### TIM-VX NPU Library
-
-#### Download Source code of TIM-VX 
+##### Download Source code of TIM-VX 
 
 ```bash
 $ git clone https://github.com/VeriSilicon/TIM-VX.git
 ```
 
-#### Download prebuild-sdk of A311D
+##### Download Tengine Lite
+
+```bash
+$ git clone https://github.com/OAID/Tengine.git tengine-lite
+$ cd tengine-lite
+```
+
+#### 2.1 Prepare for x86_64 simulator platform
+
+##### Create depend files
+
+```bash
+$ cd <tengine-lite-root-dir>
+$ mkdir -p ./3rdparty/tim-vx/lib/x86_64
+$ mkdir -p ./3rdparty/tim-vx/include
+$ cp -rf ../TIM-VX/include/*    ./3rdparty/tim-vx/include/
+$ cp -rf ../TIM-VX/src    ./src/dev/tim-vx/
+$ cp -rf ../TIM-VX/prebuilt-sdk/x86_64_linux/include/*    ./3rdparty/tim-vx/include/
+$ cp -rf ../TIM-VX/prebuilt-sdk/x86_64_linux/lib/*    ./3rdparty/tim-vx/lib/x86_64/
+```
+
+#### 2.2 Prepare for on Khadas VIM3 platform
+
+##### Download prebuild-sdk of A311D
 
 ```bash
 $ wget -c https://github.com/VeriSilicon/TIM-VX/releases/download/v1.1.28/aarch64_A311D_D312513_A294074_R311680_T312233_O312045.tgz
@@ -26,16 +47,7 @@ $ tar zxvf aarch64_A311D_D312513_A294074_R311680_T312233_O312045.tgz
 $ mv aarch64_A311D_D312513_A294074_R311680_T312233_O312045 prebuild-sdk-a311d
 ```
 
-### Tengine Lite
-
-#### Download Tengine Lite
-
-```bash
-$ git clone https://github.com/OAID/Tengine.git tengine-lite
-$ cd tengine-lite
-```
-
-#### Create depend files
+##### Create depend files
 
 ```bash
 $ cd <tengine-lite-root-dir>
@@ -44,10 +56,10 @@ $ mkdir -p ./3rdparty/tim-vx/include
 $ cp -rf ../TIM-VX/include/*    ./3rdparty/tim-vx/include/
 $ cp -rf ../TIM-VX/src    ./src/dev/tim-vx/
 $ cp -rf ../prebuild-sdk-a311d/include/*    ./3rdparty/tim-vx/include/
-$ cp -rf ../prebuild-sdk-a311d/lib/*.so    ./3rdparty/tim-vx/lib/aarch64/
+$ cp -rf ../prebuild-sdk-a311d/lib/*    ./3rdparty/tim-vx/lib/aarch64/
 ```
 
-#### Build Tengine Lite
+#### 2.3 Build Tengine Lite with TIM-VX
 
 ```bash
 $ mkdir build && cd build
@@ -56,17 +68,19 @@ $ make -j4
 $ make install
 ```
 
-## Demo
+## 3. Demo
 
-#### Depned librarys
+#### 3.1 Depned librarys
 
 ```
 3rdparty/tim-vx/lib/
-├── libOpenVX.so.1 
-├── libVSC.so
-├── libGAL.so
 ├── libArchModelSw.so
-└── libNNArchPerf.so 
+├── libCLC.so
+├── libGAL.so
+├── libNNArchPerf.so
+├── libOpenVX.so
+├── libOpenVXU.so
+└── libVSC.so
 
 build-tim-vx-arm64/install/lib/
 └── libtengine-lite.so
@@ -74,7 +88,7 @@ build-tim-vx-arm64/install/lib/
 
 On the Khadas VIM3, it need to replace those libraries in the /lib/ path
 
-#### Set uint8 Inference mode
+#### 3.2 Set uint8 Inference mode
 
 TIM-VX Library needs the uint8 network model
 
@@ -87,7 +101,7 @@ opt.precision = TENGINE_MODE_UINT8;
 opt.affinity = 0;
 ```
 
-#### Result
+#### 3.3 Result
 
 ```
 [khadas@Khadas tengine-lite]# ./tm_classification_timvx -m squeezenet_uint8.tmfile -i cat.jpg -r 1 -s 0.017,0.017,0.017 -r 10

@@ -133,18 +133,27 @@ jobs:
         ../tests/test_arm64.sh
         
 
-  linux-gcc-x86-avx2:
+  linux-gcc-x86-timvx-simulator:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
     - name: update
       run: sudo apt-get update
     - name: protobuf
-      run: sudo apt-get install libopencv-dev    
+      run: sudo apt-get install libopencv-dev
+    - name: tim-vx
+      run: |
+        git clone https://github.com/VeriSilicon/TIM-VX.git
+        mkdir -p ./3rdparty/tim-vx/lib/x86_64
+        mkdir -p ./3rdparty/tim-vx/include
+        cp -rf ./TIM-VX/include/*    ./3rdparty/tim-vx/include/
+        cp -rf ./TIM-VX/src    ./src/dev/tim-vx/
+        cp -rf ./TIM-VX/prebuilt-sdk/x86_64_linux/include/*    ./3rdparty/tim-vx/include/
+        cp -rf ./TIM-VX/prebuilt-sdk/x86_64_linux/lib/*    ./3rdparty/tim-vx/lib/x86_64/
     - name: configure
-      run: mkdir build && cd build && cmake -DTENGINE_AVX2=ON ..
+      run: mkdir build && cd build && cmake -DTENGINE_ENABLE_TIM_VX=ON -DTENGINE_ENABLE_TIM_VX_INTEGRATION=ON ..
     - name: build
-      run: cmake --build build -j 2      
+      run: cmake --build build -j 2
 
 
   android-armv7-a:

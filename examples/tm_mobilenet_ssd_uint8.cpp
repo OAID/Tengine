@@ -274,8 +274,6 @@ int main(int argc, char* argv[])
     /* release tengine */
     free(output_data);
     free(input_data);
-    release_graph_tensor(input_tensor);
-    release_graph_tensor(output_tensor);
     postrun_graph(graph);
     destroy_graph(graph);
     release_tengine();
