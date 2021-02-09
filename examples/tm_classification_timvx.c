@@ -80,7 +80,7 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
     }
     fprintf(stderr, "tengine-lite library version: %s\n", get_tengine_version());
 
-    /* create arm acl backend */
+    /* create VeriSilicon TIM-VX backend */
     context_t timvx_context = create_context("timvx", 1);
     int rtt = add_context_device(timvx_context, "TIMVX");
     if (0 > rtt)

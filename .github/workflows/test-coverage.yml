@@ -12,7 +12,7 @@ jobs:
     - name: protobuf
       run: sudo apt-get install libopencv-dev
     - name: lcov
-      run: sudo apt-get install lcov      
+      run: sudo apt-get install lcov
     - name: configure
       run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=debug -DTENGINE_BUILD_TESTS=ON -DTENGINE_COVERAGE=ON ..
     - name: build
@@ -27,7 +27,7 @@ jobs:
         mv x86_data data
         wget http://139.180.196.82/lite/images.zip
         unzip images.zip
-    - name: test
+    - name: test-cpu
       run: |
         cd build
         ../tests/test.sh
@@ -37,6 +37,57 @@ jobs:
         lcov -d ./src -c -o lcov.info
         lcov -r lcov.info '/usr/*' -o lcov.info
         lcov --list lcov.info
+    - name: codecov
+      uses: codecov/codecov-action@v1.0.11
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        file: build/lcov.info
+
+
+  linux-gcc-x86-timvx-simulator:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: update
+      run: sudo apt-get update
+    - name: protobuf
+      run: sudo apt-get install libopencv-dev
+    - name: lcov
+      run: sudo apt-get install lcov
+    - name: tim-vx
+      run: |
+        git clone https://github.com/VeriSilicon/TIM-VX.git
+        mkdir -p ./3rdparty/tim-vx/lib/x86_64
+        mkdir -p ./3rdparty/tim-vx/include
+        cp -rf ./TIM-VX/include/*    ./3rdparty/tim-vx/include/
+        cp -rf ./TIM-VX/src    ./src/dev/tim-vx/
+        cp -rf ./TIM-VX/prebuilt-sdk/x86_64_linux/include/*    ./3rdparty/tim-vx/include/
+        cp -rf ./TIM-VX/prebuilt-sdk/x86_64_linux/lib/*    ./3rdparty/tim-vx/lib/x86_64/      
+    - name: configure
+      run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=debug -DTENGINE_ENABLE_TIM_VX=ON -DTENGINE_ENABLE_TIM_VX_INTEGRATION=ON -DTENGINE_COVERAGE=ON ..
+    - name: build
+      run: cmake --build build -j 2
+    - name: models
+      run: |
+        cd build
+        wget http://139.180.196.82/lite/images.zip
+        unzip images.zip
+        git clone https://github.com/BUG1989/tengine_test_data.git
+    - name: test-timvx-simulator
+      run: |
+        cd build
+        export LD_LIBRARY_PATH=../3rdparty/tim-vx/lib/x86_64/
+        ./examples/tm_classification_timvx -m ./tengine_test_data/mobilenet_uint8.tmfile -i ./images/cat.jpg -g 224,224, -s 0.017,0.017,0.017
+        ./examples/tm_classification_timvx -m ./tengine_test_data/squeezenet_uint8.tmfile -i ./images/cat.jpg -g 227,227, -s 0.017,0.017,0.017
+    - name: lcov-collect
+      run: |
+        cd build
+        lcov -d ./src -c -o lcov.info
+        lcov -r lcov.info '*3rdparty*' -o lcov.info
+        lcov -r lcov.info '*/src/dev/cpu/*' -o lcov.info
+        lcov -r lcov.info '*/src/dev/tim-vx/src/*' -o lcov.info
+        lcov -r lcov.info '/usr/*' -o lcov.info
+        lcov --list lcov.info        
     - name: codecov
       uses: codecov/codecov-action@v1.0.11
       with:
