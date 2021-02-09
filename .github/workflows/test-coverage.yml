@@ -43,7 +43,7 @@ jobs:
         token: ${{ secrets.CODECOV_TOKEN }}
         file: build/lcov.info
 
-jobs:
+
   linux-gcc-x86-timvx-simulator:
     runs-on: ubuntu-latest
     steps:
