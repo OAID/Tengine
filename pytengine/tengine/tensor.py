@@ -121,7 +121,7 @@ class Tensor(object):
         :return: None
         """
         _LIB.set_tensor_buffer.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int]
-        value_bytes = _LIB.data_type_size(_LIB.get_tensor_data_type(ctypes.c_void_p(self.tensor)))
+        value_bytes = ctypes.sizeof(Tengine_ctype[self.dtype.enum])
         check_call(_LIB.set_tensor_buffer(self.tensor, np.ctypeslib.as_ctypes(value), value.size * value_bytes))
 
     def getData(self):
