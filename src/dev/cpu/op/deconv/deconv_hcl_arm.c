@@ -142,7 +142,7 @@ static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, 
 
 static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struct ir_node* exec_node)
 {
-    return OPS_SCORE_PREFER;
+    return 0;
 }
 
 static struct node_ops hcl_node_ops = {.prerun = prerun,
