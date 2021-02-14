@@ -27,7 +27,7 @@
 
 struct interp_param
 {
-    int resize_type;
+    int resize_type; // 1:nearest  2:bilinear or linear
     int output_height;
     int output_width;
     float height_scale;

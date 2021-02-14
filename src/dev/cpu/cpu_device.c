@@ -3026,24 +3026,6 @@ static int run(struct nn_device* dev, struct subgraph* subgraph)
             if (output_tensor->dim_num <= 5)
                 extract_feature_blob_f32("out", name, output_tensor);
         }
-
-//#define DUMP_NODE_OUTPUT
-#ifdef DUMP_NODE_OUTPUT
-        /* dump the node output */
-        struct ir_node* ir_node = node->ir_node;
-        struct ir_graph* ir_graph = ir_node->graph;
-
-        for (int i = 0; i < ir_node->input_num; i++)
-        {
-            char fname[128];
-            struct ir_tensor* ir_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[i]);
-
-            sprintf(fname, "/tmp/dump/node%s%d.%d", (ir_node->idx < 10 ? "0" : ""), ir_node->idx, i);
-
-            dump_float(fname, ir_tensor->data, ir_tensor->elem_num);
-        }
-
-#endif
     }
 
     return 0;
