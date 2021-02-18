@@ -144,6 +144,16 @@ static inline struct node_ops* find_builtin_node_ops(struct exec_graph* exec_gra
             selected_ops = node_ops;
             max_score = score;
         }
+
+        /* always run with reference op that using the naive c implement */
+        const char* env = getenv("TG_DEBUG_SCORE");
+        if (env && env[0] == '1' && score == OPS_SCORE_CANDO)
+        {
+            selected_ops = node_ops;
+            max_score = score;
+
+            return selected_ops;
+        }
     }
 
     return selected_ops;
