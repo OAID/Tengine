@@ -474,20 +474,8 @@ int main(int argc, char* argv[])
 
     printf("tengine-lite library version: %s\n", get_tengine_version());
 
-    context_t context = nullptr;
-    if (strcmp(device_name, "TRT") == 0)
-    {
-        context = create_context("nv", 1);
-        int rtt = add_context_device(context, device_name);
-        if (0 > rtt)
-        {
-            fprintf(stderr, " add_context_device %s failed.\n", device_name);
-            return -1;
-        }
-    }
-
     /* create graph, load tengine model xxx.tmfile */
-    graph_t graph = create_graph(context, "tengine", model_file);
+    graph_t graph = create_graph(NULL, "tengine", model_file);
     if (graph == nullptr)
     {
         printf("Load model to graph failed(%d).\n", get_tengine_errno());

@@ -461,7 +461,7 @@ int CLGraph::prerun(struct subgraph *subgraph, int cpu_affinity, int mode)
             return -1;        
     }
 
-    char* env = getenv("ACL_NHWC");
+//    char* env = getenv("ACL_NHWC");
     // l32AclNHWCOptimizeFlag_ = env ? true : false; // ACL Opt Mode : ACL Normal Mode
     l32AclNHWCOptimizeFlag_ = true;
     this->CreateACLGraph(subgraph, data_type, l32AclNHWCOptimizeFlag_);
@@ -554,14 +554,6 @@ int CLGraph::run(struct subgraph *subgraph)
 
                     int l32InputDataSize = tensor_input->elem_size * tensor_input->elem_num;
                     assert(l32InputDataSize == Dim[1] * Dim[2] * Dim[3] * 4 * Dim[0]);
-                    // if(l32InputDataSize > l32ScratchMemSize_)
-                    // {
-                    //     delete pcScratchMem_;
-                    //     pcScratchMem_ = new char[l32InputDataSize];
-                    //     // pcScratchMem_ = (char*)sys_realloc(pcScratchMem_, l32InputDataSize * sizeof(int));
-                    //     l32ScratchMemSize_ = l32InputDataSize;
-                    // }
-                    // assert(pcScratchMem_ != NULL);
 
                     scratch_mem = sys_malloc(l32InputDataSize);
                     assert(scratch_mem != NULL);

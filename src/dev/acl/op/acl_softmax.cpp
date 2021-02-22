@@ -28,6 +28,7 @@
 extern "C"
 {
 #include "tengine_op.h"
+#include "softmax_param.h"
 }
 
 class MYSoftmaxLayer : public IFunction
@@ -83,13 +84,15 @@ public:
 
 bool CLGraph::AddSoftmaxLayer(struct ir_node* node)
 {
+    struct softmax_param* param = ( struct softmax_param* )node->op.param_mem;
+
     struct ir_graph* graph = node->graph;
     struct ir_tensor* input_tensor = get_ir_graph_tensor(graph, node->input_tensors[0]);
-    std::string name = input_tensor->name;
+    std::string name_in = input_tensor->name;
     CLTensor* itensor = nullptr;
-    if (tensors_map_.count(name))
+    if (tensors_map_.count(name_in))
     {
-        itensor = tensors_map_[name];
+        itensor = tensors_map_[name_in];
     }
     else
     {
@@ -99,14 +102,35 @@ bool CLGraph::AddSoftmaxLayer(struct ir_node* node)
 
     /*output */
     struct ir_tensor* o_tensor = get_ir_graph_tensor(graph, node->output_tensors[0]);
-    name = o_tensor->name;
+    std::string name_out = o_tensor->name;
 
     TensorInfo* info = itensor->info();
-    int size = info->dimension(0) * info->dimension(1) * info->dimension(2);
-    TensorShape shape(size);
     CLTensor* otensor = new CLTensor();
-    otensor->allocator()->init(TensorInfo(shape, 1, data_type_));
-    tensors_map_[name] = otensor;
+
+    if (info->dimension(0) == 1)
+    {
+        int size = info->dimension(0) * info->dimension(1) * info->dimension(2);
+        TensorShape shape(size);
+
+        otensor->allocator()->init(TensorInfo(shape, 1, data_type_));
+        tensors_map_[name_out] = otensor;
+    }
+    else
+    {
+        int* dims = input_tensor->dims;
+
+        TensorInfo ClTensorInfo_i = TensorInfo(TensorShape(dims[1], dims[3], dims[2], dims[0]), 1, data_type_);
+        ClTensorInfo_i.set_data_layout(DataLayout::NHWC);
+        itensor->allocator()->init(ClTensorInfo_i);
+
+        TensorInfo ClTensorInfo_o = TensorInfo(TensorShape(dims[1], dims[3], dims[2], dims[0]), 1, data_type_);
+        ClTensorInfo_o.set_data_layout(DataLayout::NHWC);
+        otensor->allocator()->init(ClTensorInfo_o);
+
+        tensors_map_[name_in] = itensor;
+        tensors_map_[name_out] = otensor;
+    }
+
     if (info->dimension(0) == 1)
     {
         MYSoftmaxLayer* softmax = new MYSoftmaxLayer();

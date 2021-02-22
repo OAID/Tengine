@@ -59,7 +59,7 @@ bool CLGraph::AddReLuLayer(struct ir_node* node)
     if (bForcedNHWCMode_ == true && TengineDataLayOut == TENGINE_LAYOUT_NCHW)
     {
         // need to re init datalayout to nhwc
-        TensorInfo ClTensorInfo_o = TensorInfo(TensorShape(dim_o[1], dim_o[2], dim_o[3], dim_o[0]), 1, data_type_);
+        TensorInfo ClTensorInfo_o = TensorInfo(TensorShape(dim_o[1], dim_o[3], dim_o[2], dim_o[0]), 1, data_type_);
         ClTensorInfo_o.set_data_layout(DataLayout::NHWC);
         otensor->allocator()->init(ClTensorInfo_o);
     }
