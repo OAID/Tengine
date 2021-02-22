@@ -91,12 +91,30 @@ bool CLGraph::AddConcatLayer(struct ir_node* node)
     CLTensor* otensor = new CLTensor();
     int TengineDataLayOut = out->layout;
 
+    int axis = 3 - param->axis;
     if (bForcedNHWCMode_ == true && TengineDataLayOut == TENGINE_LAYOUT_NCHW)
     {
         // need to re init datalayout to nhwc
         TensorInfo ClTensorInfo_o = TensorInfo(TensorShape(dim_o[1], dim_o[3], dim_o[2], dim_o[0]), 1, data_type_);
         ClTensorInfo_o.set_data_layout(DataLayout::NHWC);
         otensor->allocator()->init(ClTensorInfo_o);
+        switch(axis)
+        {
+            case 0:
+                axis = 1;
+                break;
+            case 1:
+                axis = 2;
+                break;
+            case 2:
+                axis = 0;
+                break;
+            case 3:
+                axis = 3;
+                break;
+            default:
+                break;
+        }
     }
     else if (bForcedNHWCMode_ == false && TengineDataLayOut == TENGINE_LAYOUT_NCHW)
     {
@@ -106,14 +124,14 @@ bool CLGraph::AddConcatLayer(struct ir_node* node)
     }
     else
     {
-        TensorInfo ClTensorInfo_o = TensorInfo(TensorShape(dim_o[3], dim_o[3], dim_o[1], dim_o[0]), 1, data_type_);
+        TensorInfo ClTensorInfo_o = TensorInfo(TensorShape(dim_o[3], dim_o[2], dim_o[1], dim_o[0]), 1, data_type_);
         ClTensorInfo_o.set_data_layout(DataLayout::NCHW);
         otensor->allocator()->init(ClTensorInfo_o);
     }
     tensors_map_[name] = otensor;
 
     CLConcatenateLayer* concat = new CLConcatenateLayer();
-    int axis = 3 - param->axis;
+//    int axis = 3 - param->axis;
     concat->configure(inputs_vector, otensor, axis);
     functions_map_.push_back(concat);
 
