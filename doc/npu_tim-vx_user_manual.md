@@ -2,9 +2,9 @@
 
 ## 1. Brief
 
-TIM-VX is a software integration module provided by VeriSilicon to facilitate deployment of Neural-Networks on OpenVX enabled ML accelerators.
+[TIM-VX](https://github.com/VeriSilicon/TIM-VX.git) is a software integration module provided by VeriSilicon to facilitate deployment of Neural-Networks on OpenVX enabled ML accelerators.
 
-Tengine Lite has supported to integrate with TIM-VX Library of Verisilicon to inference CNN by Khadas VIM3(Amlogic A311D).
+Tengine Lite has supported to integrate with TIM-VX Library of Verisilicon to inference CNN by [Khadas VIM3](https://www.khadas.cn/product-page/vim3)(Amlogic A311D).
 
 ## 2. How to Build
 
@@ -14,6 +14,7 @@ For some special reasons, only supported on Khadas VIM3 or x86_64 simulator to w
 
 ```bash
 $ git clone https://github.com/VeriSilicon/TIM-VX.git
+$ sudo apt-get install libgtest-dev
 ```
 
 ##### Download Tengine Lite
@@ -86,7 +87,17 @@ build-tim-vx-arm64/install/lib/
 └── libtengine-lite.so
 ```
 
-On the Khadas VIM3, it need to replace those libraries in the /lib/ path
+On the Khadas VIM3, it need to replace those libraries in the /lib/ 
+
+#### 3.2 Replace the kernel module on the board if necessary
+- Q: Why?
+- A: Because the firmware of Khadas VIM3 maybe pre-install old version kernel module of NPU  
+- Q: How to?
+- A: Remove the old kernel module and replace it with the new version(in the /prebuild-sdk-a311d/lib/galcore.ko) 
+```
+$ rmmod galcore
+$ ismod galcore
+```
 
 #### 3.2 Set uint8 Inference mode
 
