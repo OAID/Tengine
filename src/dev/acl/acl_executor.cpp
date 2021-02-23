@@ -333,6 +333,13 @@ bool CLGraph::CreateACLGraph(struct subgraph* subgraph, DataType type, bool bDat
             const std::string& name = tensor->name;
 
             int dim_size = tensor->dim_num;
+
+            for (int j=0;j<dim_size;j++)
+            {
+                if (dims[j] == 0)
+                    dims[j] = 1;
+            }
+
             if(dim_size == 4)
             {
                 TensorInfo i_info =
@@ -386,6 +393,9 @@ bool CLGraph::CreateACLGraph(struct subgraph* subgraph, DataType type, bool bDat
                     ret = this->AddBNLayer(node, node_next);
                 break;
             }
+            case OP_CAST:
+                ret = this->AddCastLayer(node);
+                break;
             case OP_CONCAT:
             {
                 if (node->input_num < 2)
@@ -400,6 +410,15 @@ bool CLGraph::CreateACLGraph(struct subgraph* subgraph, DataType type, bool bDat
             case OP_CONV:
                 ret = this->AddConvolutionLayer(node);
                 break;
+            case OP_CROP:
+                ret = this->AddCropLayer(node);
+                break;
+            case OP_DECONV:
+            {
+                /* deconv upsample */
+                ret = this->AddInterpLayer(node);
+                break;
+            }
             case OP_DROPOUT:
                 ret = this->AddDropoutLayer(node);
                 break;
@@ -418,11 +437,17 @@ bool CLGraph::CreateACLGraph(struct subgraph* subgraph, DataType type, bool bDat
             case OP_RELU:
                 ret = this->AddReLuLayer(node);
                 break;
+            case OP_RESHAPE:
+                ret = this->AddReshapeLayer(node);
+                break;
             case OP_RESIZE:
                 ret = this->AddResizeLayer(node);
                 break;
             case OP_SOFTMAX:
                 ret = this->AddSoftmaxLayer(node);
+                break;
+            case OP_INTERP:
+                ret = this->AddInterpLayer(node);
                 break;
             default:
                 fprintf(stderr,"Fail to support this op(%d)!!!\n",i);
@@ -450,19 +475,17 @@ int CLGraph::prerun(struct subgraph *subgraph, int cpu_affinity, int mode)
     {
         case TENGINE_DT_FP32:
             data_type = DataType::F32;
-            fprintf(stderr, "ACL Backend set precision Float32\n", mode);
+            fprintf(stderr, "ACL Backend set precision Float32\n");
             break;
         case TENGINE_DT_FP16:
             data_type = DataType::F16;
-            fprintf(stderr, "ACL Backend set precision Float16\n", mode);
+            fprintf(stderr, "ACL Backend set precision Float16\n");
             break;        
         default:
             fprintf(stderr, "ACL Backend not support this %d data mode\n", mode);
             return -1;        
     }
 
-//    char* env = getenv("ACL_NHWC");
-    // l32AclNHWCOptimizeFlag_ = env ? true : false; // ACL Opt Mode : ACL Normal Mode
     l32AclNHWCOptimizeFlag_ = true;
     this->CreateACLGraph(subgraph, data_type, l32AclNHWCOptimizeFlag_);
 
@@ -497,7 +520,7 @@ int CLGraph::run(struct subgraph *subgraph)
     int input_number = subgraph->input_num;
     DataType data_type_ = this->data_type_;
     int l32ScratchMemSize_ = this->l32ScratchMemSize_;
-    void* scratch_mem = NULL;
+    void* scratch_mem = nullptr;
 
     for(int i = 0; i < input_number; i++)
     {
@@ -511,13 +534,13 @@ int CLGraph::run(struct subgraph *subgraph)
                 int DataLayoutType = tensor_input->layout;
                 if(DataLayoutType == TENGINE_LAYOUT_NCHW)
                 {
-                    // need to permute data layout type  to nhwc
+                    // need to permute data layout type to nhwc
                     int* Dim = tensor_input->dims;
                     int tengine_data_type = tensor_input->data_type;
                     int DataEleSize = gs32TengineDataElemetSize[tengine_data_type];
 
                     int l32InputDataSize = tensor_input->elem_size * tensor_input->elem_num;
-                    assert(l32InputDataSize == Dim[1] * Dim[2] * Dim[3] * 4 * Dim[0]);
+//                    assert(l32InputDataSize == Dim[1] * Dim[2] * Dim[3] * 4 * Dim[0]);
 
                     scratch_mem = sys_malloc(l32InputDataSize);
                     assert(scratch_mem != NULL);
@@ -553,7 +576,6 @@ int CLGraph::run(struct subgraph *subgraph)
                     int DataEleSize = gs32TengineDataElemetSize[tengine_data_type];
 
                     int l32InputDataSize = tensor_input->elem_size * tensor_input->elem_num;
-                    assert(l32InputDataSize == Dim[1] * Dim[2] * Dim[3] * 4 * Dim[0]);
 
                     scratch_mem = sys_malloc(l32InputDataSize);
                     assert(scratch_mem != NULL);
