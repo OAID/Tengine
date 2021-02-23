@@ -36,7 +36,8 @@
 
 DEFINE_PARM_PARSE_ENTRY(tile_param, frame_flag, reps);
 
-static int infer_shape(struct ir_node* node){
+static int infer_shape(struct ir_node* node)
+{
     struct ir_graph* graph = node->graph;
     struct ir_tensor* input_tensor = get_ir_graph_tensor(graph, node->input_tensors[0]);
     struct ir_tensor* output_tensor = get_ir_graph_tensor(graph, node->output_tensors[0]);
@@ -47,15 +48,18 @@ static int infer_shape(struct ir_node* node){
     int output_h = 0;
     int output_w = 0;
     struct vector* reps_vector = create_vector(sizeof(int), NULL);
-    for(int i = 0; i < param->reps_size; i++){
+    for(int i = 0; i < param->reps_size; i++)
+    {
         push_vector_data(reps_vector, (void*)&param->reps[i]);
     }
 
     if(frame == 0) // caffe
     {
         int param_size = get_vector_num(reps_vector);
-        if(param_size != 0){
-            for(int i = 0; i < param_size / 2; i++){
+        if(param_size != 0)
+        {
+            for(int i = 0; i < param_size / 2; i++)
+            {
                 int temp = ((int*)get_vector_data(reps_vector,0))[0];
                 int ori_reps = ((int*)get_vector_data(reps_vector, param_size -i -1))[0];
                 set_vector_data(reps_vector, i, (void*)&ori_reps);
@@ -66,19 +70,23 @@ static int infer_shape(struct ir_node* node){
             return -1;
         }
         int push_data = 1;
-        switch(param_size){
+        switch(param_size)
+        {
             case 0:
-                for(int i = 0; i < 4; i++){
+                for(int i = 0; i < 4; i++)
+                {
                     push_vector_data(reps_vector, (void*)&push_data);
                 }
                 break;
             case 1:
-                for(int i = 0; i < 3; i++){
+                for(int i = 0; i < 3; i++)
+                {
                     push_vector_data(reps_vector, (void*)&push_data);
                 };
                 break;
             case 2:
-                for(int i = 0; i < 2; i++){
+                for(int i = 0; i < 2; i++)
+                {
                     push_vector_data(reps_vector, (void*)&push_data);
                 }
                 break;
@@ -93,12 +101,15 @@ static int infer_shape(struct ir_node* node){
         output_h = input_tensor->dims[2]*(( int* )get_vector_data(reps_vector, 1))[0];
         output_w = input_tensor->dims[3]*(( int* )get_vector_data(reps_vector, 0))[0];
         
-    } else if (frame == 1) {
+    } 
+    else if (frame == 1) 
+    {
         printf("Tile::InferShape onnx\n");
     }
 
     int* new_shape = (int*)sys_malloc(get_vector_num(reps_vector)*sizeof(int));
-    for(int i = 0; i < get_vector_num(reps_vector); i++){
+    for(int i = 0; i < get_vector_num(reps_vector); i++)
+    {
         int* a = (int*)get_vector_data(reps_vector, i);
         new_shape[i] = *a;
     }

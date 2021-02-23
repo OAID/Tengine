@@ -30,7 +30,21 @@
 
 #define HASH_STATS
 
-struct hash_bucket;
+struct hash_bucket
+{
+	int entry_count;
+	lock_t lock;
+	int idx;
+
+	struct list head;
+
+#ifdef HASH_STATS
+	uint64_t ins_count;
+	uint64_t del_count;
+	uint64_t search_count;
+	uint64_t hit_count;
+#endif
+};
 
 struct hash_entry
 {
@@ -41,25 +55,9 @@ struct hash_entry
     struct hash_bucket* bucket;
 };
 
-struct hash_bucket
-{
-    int entry_count;
-    lock_t lock;
-    int idx;
-
-    struct list head;
-
-#ifdef HASH_STATS
-    uint64_t ins_count;
-    uint64_t del_count;
-    uint64_t search_count;
-    uint64_t hit_count;
-#endif
-};
-
 struct hash_impl
 {
-    struct hash interface;
+    struct hash hash_interface;
 
     /* data fields */
     int bucket_size;

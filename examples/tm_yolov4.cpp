@@ -1,9 +1,12 @@
-#include <stdio.h>
+#include <cstdio>
 
-#include <unistd.h>
-#include <stdlib.h>
-#include <stdio.h>
+#include <cstdlib>
+#include <cstdio>
 #include <vector>
+
+#ifdef _MSC_VER
+#define NOMINMAX
+#endif
 #include <algorithm>
 
 #include "common.h"
@@ -380,7 +383,8 @@ int main(int argc, char* argv[])
     struct options opt;
     opt.num_thread = num_thread;
     opt.cluster = TENGINE_CLUSTER_ALL;
-    opt.precision = TENGINE_MODE_FP32;        
+    opt.precision = TENGINE_MODE_FP32;
+    opt.affinity = 0;     
 
     /* inital tengine */
     if (init_tengine() != 0)
@@ -435,8 +439,8 @@ int main(int argc, char* argv[])
     get_input_data_darknet(image_file, input_data.data(), net_h, net_w);
 
     /* run graph */
-    double min_time = __DBL_MAX__;
-    double max_time = -__DBL_MAX__;
+    double min_time = DBL_MAX;
+    double max_time = DBL_MIN;
     double total_time = 0.;
     for (int i = 0; i < 1; i++)
     {

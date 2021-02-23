@@ -528,7 +528,7 @@ void dump_ir_node(struct ir_graph* g, struct ir_node* n)
     {
         struct ir_tensor* tensor = get_ir_graph_tensor(g, n->input_tensors[i]);
 
-        TLOG_INFO("\t    %d: [id: %d]", i, tensor->idx);
+        TLOG_INFO("\t    %d: [id: %d] ", i, tensor->idx);
 
         dump_ir_tensor(g, tensor);
     }

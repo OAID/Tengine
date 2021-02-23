@@ -36,31 +36,122 @@
 
 static int ref_prelu_fp32(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, struct ir_tensor* slope_tensor)
 {
-    int dim0 = input_tensor->dims[0];
-    int dim1 = input_tensor->dims[1];
-    int dim2 = input_tensor->dims[2];
-    int dim3 = input_tensor->dims[3];
-    float* data = input_tensor->data;
-    float* out_data = output_tensor->data;
+    int dim_num = input_tensor->dim_num;
+    int slope_num = slope_tensor->elem_num;
+
+    float* input_data = input_tensor->data;
+    float* output_data = output_tensor->data;
     float* slope = slope_tensor->data;
 
-    int offset = 0;
-    // nchw
-    for (int i = 0; i < dim0; i++)
+    if (dim_num == 2)
     {
-        for (int c = 0; c < dim1; c++)
+        int n = input_tensor->dims[0];
+        int w = input_tensor->dims[1];
+
+        if (slope_num > 1)
         {
-            for (int l = 0; l < dim2; l++)
+            for (int i = 0; i < n; i++)
             {
-                for (int k = 0; k < dim3; k++)
+                for (int k = 0; k < w; k++)
                 {
-                    offset = i * dim1 * dim2 * dim3 + c * dim2 * dim3 + l * dim3 + k;
-                    out_data[offset] = MAX(data[offset], 0) + slope[c] * MIN(data[offset], 0.f);
+                    int offset = i * w + k;
+                    output_data[offset] = MAX(input_data[offset], 0) + slope[k] * MIN(input_data[offset], 0.f);
+                }
+            }
+        }
+        else
+        {
+            for (int i = 0; i < n; i++)
+            {
+                for (int k = 0; k < w; k++)
+                {
+                    int offset = i * w + k;
+                    output_data[offset] = MAX(input_data[offset], 0) + slope[0] * MIN(input_data[offset], 0.f);
                 }
             }
         }
     }
-    return 0;
+
+    if (dim_num == 3)
+    {
+        int n = input_tensor->dims[0];
+        int c = input_tensor->dims[1];
+        int w = input_tensor->dims[2];
+
+        if (slope_num > 1)
+        {
+            for (int i = 0; i < n; i++)
+            {
+                for (int j = 0; j < c; c++)
+                {
+                    for (int k = 0; k < w; k++)
+                    {
+                        int offset = i * c * w + j * w + k;
+                        output_data[offset] = MAX(input_data[offset], 0) + slope[c] * MIN(input_data[offset], 0.f);
+                    }
+                }
+            }
+        }
+        else
+        {
+            for (int i = 0; i < n; i++)
+            {
+                for (int j = 0; j < c; j++)
+                {
+                    for (int k = 0; k < w; k++)
+                    {
+                        int offset = i * c * w + j * w + k;
+                        output_data[offset] = MAX(input_data[offset], 0) + slope[0] * MIN(input_data[offset], 0.f);
+                    }
+                }
+            }
+        }
+    }
+
+    if (dim_num == 4)
+    {
+        int n = input_tensor->dims[0];
+        int c = input_tensor->dims[1];
+        int h = input_tensor->dims[2];
+        int w = input_tensor->dims[3];
+
+        if (slope_num > 1)
+        {
+            for (int i = 0; i < n; i++)
+            {
+                for (int j = 0; j < c; j++)
+                {
+                    for (int l = 0; l < h; l++)
+                    {
+                        for (int k = 0; k < w; k++)
+                        {
+                            int offset = i * c * h * w + j * h * w + l * w + k;
+                            output_data[offset] = MAX(input_data[offset], 0) + slope[c] * MIN(input_data[offset], 0.f);
+                        }
+                    }
+                }
+            }
+        }
+        else
+        {
+            for (int i = 0; i < n; i++)
+            {
+                for (int j = 0; j < c; j++)
+                {
+                    for (int l = 0; l < h; l++)
+                    {
+                        for (int k = 0; k < w; k++)
+                        {
+                            int offset = i * c * h * w + j * h * w + l * w + k;
+                            output_data[offset] = MAX(input_data[offset], 0) + slope[0] * MIN(input_data[offset], 0.f);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return 0; 
 }
 
 static int ref_prelu_uint8(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, struct ir_tensor* slope_tensor)

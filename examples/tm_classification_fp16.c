@@ -22,7 +22,6 @@
  * Author: qtang@openailab.com
  */
 
-#include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -62,6 +61,7 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
     opt.num_thread = num_thread;
     opt.cluster = TENGINE_CLUSTER_ALL;
     opt.precision = TENGINE_MODE_FP16;
+    opt.affinity = 0;
 
     /* inital tengine */
     if (init_tengine() != 0)
@@ -98,13 +98,6 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
         return -1;
     }
 
-    if (set_tensor_buffer(input_tensor, input_data, img_size * 2) < 0)
-    {
-        fprintf(stderr, "Set input tensor buffer failed\n");
-        return -1;
-    }    
-
-    /* prerun graph, set work options(num_thread, cluster, precision) */
     if (prerun_graph_multithread(graph, opt) < 0)
     {
         fprintf(stderr, "Prerun multithread graph failed.\n");
@@ -113,10 +106,15 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
 
     /* prepare process input data, set the data mem to input tensor */
     get_input_fp16_data(image_file, input_data, img_h, img_w, mean, scale);
+    if (set_tensor_buffer(input_tensor, input_data, img_size * 2) < 0)
+    {
+        fprintf(stderr, "Set input tensor buffer failed\n");
+        return -1;
+    }
 
     /* run graph */
-    double min_time = __DBL_MAX__;
-    double max_time = -__DBL_MAX__;
+    double min_time = DBL_MAX;
+    double max_time = DBL_MIN;
     double total_time = 0.;
     for (int i = 0; i < loop_count; i++)
     {

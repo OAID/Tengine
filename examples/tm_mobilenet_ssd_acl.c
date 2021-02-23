@@ -19,20 +19,16 @@
 
 /*
  * Copyright (c) 2020, OPEN AI LAB
- * Author: sqfu@openailab.com
+ * Author: qtang@openailab.com
  */
 
-#include <unistd.h>
-#include <stdlib.h>
-#include <stdio.h>
-
 #include "common.h"
-#include "vector.h"
 #include "tengine_c_api.h"
 #include "tengine_operations.h"
 
-#define DEFAULT_REPEAT_COUNT 1
-#define DEFAULT_THREAD_COUNT 1
+#define DEFAULT_MAX_BOX_COUNT 100
+#define DEFAULT_REPEAT_COUNT    1
+#define DEFAULT_THREAD_COUNT    1
 
 typedef struct Box
 {
@@ -55,7 +51,9 @@ void post_process_ssd(const char* image_file, float threshold, const float* outd
 
     int raw_h = im.h;
     int raw_w = im.w;
-    struct vector* boxes = create_vector(sizeof(Box_t), NULL);
+
+    Box_t* boxes = malloc(sizeof(Box_t) * DEFAULT_MAX_BOX_COUNT);
+    int box_count = 0;
 
     fprintf(stderr, "detect result num: %d \n", num);
     for (int i = 0; i < num; i++)
@@ -71,19 +69,22 @@ void post_process_ssd(const char* image_file, float threshold, const float* outd
             box.x1 = outdata[4] * raw_w;
             box.y1 = outdata[5] * raw_h;
 
-            push_vector_data(boxes, ( void* )&box);
+            boxes = realloc(boxes, sizeof(Box_t) * (box_count + 1));
+            boxes[box_count] = box;
+            box_count++;
+
             fprintf(stderr, "%s\t:%.1f%%\n", class_names[box.class_idx], box.score * 100);
             fprintf(stderr, "BOX:( %d , %d ),( %d , %d )\n", box.x0, box.y0, box.x1, box.y1);
         }
         outdata += 6;
     }
-    for (int i = 0; i < get_vector_num(boxes); i++)
+    for (int i = 0; i < box_count; i++)
     {
-        Box_t box = *( struct Box* )get_vector_data(boxes, i);
+        Box_t box = boxes[i];
         draw_box(im, box.x0, box.y0, box.x1, box.y1, 2, 125, 0, 125);
     }
 
-    release_vector(boxes);
+    free(boxes);
 
     save_image(im, "tengine_example_out");
     free_image(im);
@@ -156,30 +157,29 @@ int main(int argc, char* argv[])
     struct options opt;
     opt.num_thread = num_thread;
     opt.cluster = TENGINE_CLUSTER_ALL;
-    opt.precision = TENGINE_MODE_FP32;        
+    opt.precision = TENGINE_MODE_FP32;
+    opt.affinity = 0;
 
     /* inital tengine */
-    init_tengine();
+    if (init_tengine() != 0)
+    {
+        fprintf(stderr, "Initial tengine failed.\n");
+        return -1;
+    }
     fprintf(stderr, "tengine-lite library version: %s\n", get_tengine_version());
 
-    /* create graph, load tengine model xxx.tmfile */
-    graph_t graph;
-    const char *rep_str = getenv("ACL");
-    if (rep_str)
+    /* create arm ACL backend */
+    context_t acl_context = create_context("acl", 1);
+    int rtt = add_context_device(acl_context, "ACL");
+    if (0 > rtt)
     {
-        fprintf(stderr, "run into gpu by acl\n");
-        context_t acl_context = create_context("ACL", 1);
-        add_context_device(acl_context, "ACL");
-        graph = create_graph(acl_context, "tengine", model_file);
-        set_graph_device(graph, "ACL");
-    }
-    else
-    {
-        fprintf(stderr, "run into cpu by default\n");
-        graph = create_graph(NULL, "tengine", model_file);
+        fprintf(stderr, " add_context_device ACL DEVICE failed.\n");
+        return -1;
     }
 
-    if (graph == NULL)
+    /* create graph, load tengine model xxx.tmfile */
+    graph_t graph = create_graph(acl_context, "tengine", model_file);
+    if (NULL == graph)
     {
         fprintf(stderr, "Create graph failed.\n");
         fprintf(stderr, "errno: %d \n", get_tengine_errno());
@@ -187,8 +187,8 @@ int main(int argc, char* argv[])
     }
 
     /* set the input shape to initial the graph, and prerun graph to infer shape */
-    int img_size      = img_h * img_w * 3;
-    int dims[]        = {1, 3, img_h, img_w};    // nchw
+    int img_size = img_h * img_w * 3;
+    int dims[] = {1, 3, img_h, img_w};    // nchw
     float* input_data = ( float* )malloc(img_size * sizeof(float));
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
@@ -221,8 +221,8 @@ int main(int argc, char* argv[])
     get_input_data(image_file, input_data, img_h, img_w, mean, scale);
 
     /* run graph */
-    double min_time = __DBL_MAX__;
-    double max_time = -__DBL_MAX__;
+    double min_time = DBL_MAX;
+    double max_time = DBL_MIN;
     double total_time = 0.;
     for (int i = 0; i < repeat_count; i++)
     {
@@ -241,7 +241,7 @@ int main(int argc, char* argv[])
             max_time = cur;
     }
     fprintf(stderr, "Repeat %d times, thread %d, avg time %.2f ms, max_time %.2f ms, min_time %.2f ms\n", repeat_count,
-           num_thread, total_time / repeat_count, max_time, min_time);
+            num_thread, total_time / repeat_count, max_time, min_time);
     fprintf(stderr, "--------------------------------------\n");
 
     /* process the detection result */

@@ -154,7 +154,6 @@ static int init_op(struct ir_op* op)
 static void release_op(struct ir_op* op)
 {
     sys_free(op->param_mem);
-    sys_free(GET_PARAM_PARSE_MAP(squeeze_param));
 }
 
 static int register_squeeze_op(void* arg)
@@ -171,6 +170,7 @@ static int register_squeeze_op(void* arg)
 
 static int unregister_squeeze_op(void* arg)
 {
+    sys_free(GET_PARAM_PARSE_MAP(squeeze_param));
     return unregister_op(OP_SQUEEZE, 1);
 }
 

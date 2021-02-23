@@ -37,18 +37,20 @@
  * Author: lswang@openailab.com
  */
 
+#include "cpu.h"
+
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
-
 #include "tengine_c_api.h"
 
-//#ifndef __ANDROID__
+#ifndef _MSC_VER
+#include <pthread.h>
 #include <sys/syscall.h>
 #include <sched.h>
 #include <unistd.h>
 #include <stdint.h>
-//#endif
+#endif
 
 #if __APPLE__
 #include "TargetConditionals.h"
@@ -120,6 +122,7 @@ int init_cpu_count()
     return core_count;
 }
 
+#ifndef _MSC_VER
 static int get_max_freq_khz(int cpuid)
 {
     // first try, for all possible cpu
@@ -215,24 +218,36 @@ static int set_sched_affinity(size_t thread_affinity_mask)
 #define CPU_ZERO(cpusetp) memset((cpusetp), 0, sizeof(cpu_set_t))
 
     // set affinity for thread
-#if defined(__GLIBC__) || defined(__OHOS__)
+#if (defined __GLIBC__) || (defined _OHOS_) ||  (defined V831) 
     pid_t pid = syscall(SYS_gettid);
 #else
 #ifdef PI3
     pid_t pid = getpid();
 #else
+
+#ifdef MACOS
+    uint64_t tid64;
+    pthread_threadid_np(NULL, &tid64);
+    pid_t pid = (pid_t)tid64;
+#else
     pid_t pid = gettid();
+#endif
 #endif
 #endif
     cpu_set_t mask;
     CPU_ZERO(&mask);
-    for (int i = 0; i < ( int )sizeof(size_t) * 8; i++)
+//    for (int i = 0; i < ( int )sizeof(size_t) * 8; i++)
+    for (int i = 0; i < core_count; i++)
     {
         if (thread_affinity_mask & (1 << i))
             CPU_SET(i, &mask);
     }
-
+#if MACOS
+    int syscallret = syscall(set_sched_affinity, pid, sizeof(mask), &mask);
+#else
     int syscallret = syscall(__NR_sched_setaffinity, pid, sizeof(mask), &mask);
+#endif
+    
     if (syscallret)
     {
         fprintf(stderr, "syscall error %d\n", syscallret);
@@ -241,15 +256,17 @@ static int set_sched_affinity(size_t thread_affinity_mask)
 
     return 0;
 }
+#endif
 
 int init_cluster_mask()
 {
     if (0 != affinity_mask_all_cluster)
         return 0;
 
-    affinity_mask_all_cluster = ((size_t)(1) << core_count) - 1;
+//    affinity_mask_all_cluster = ((size_t)(1) << core_count) - (size_t)(1);
+    affinity_mask_all_cluster = (size_t)(0) - (size_t)(1);
 
-    //#ifdef __ANDROID__
+#ifndef _MSC_VER
     int max_freq_min_val = INT_MAX;
     int max_freq_max_val = 0;
 
@@ -285,10 +302,10 @@ int init_cluster_mask()
                 affinity_mask_medium_cluster |= (1 << i);
         }
     }
-    //#else
-    //    // TODO implement me for other platforms
-    //    affinity_mask_big_cluster = affinity_mask_all_cluster;
-    //#endif
+#else
+    // TODO implement me for other platforms
+    affinity_mask_big_cluster = affinity_mask_all_cluster;
+#endif
 
     return 0;
 }
@@ -305,7 +322,7 @@ int get_mask_count(size_t mask)
 {
     int count = 0;
 
-    for (int i = 0; i < sizeof(size_t) * 8; i++)
+    for (int i = 0; i < core_count; i++)
         if (mask & (1 << i))
             count++;
 
@@ -314,7 +331,7 @@ int get_mask_count(size_t mask)
 
 int set_cpu_affine(size_t mask)
 {
-#ifdef __ANDROID__
+#if defined __ANDROID__ || defined __linux__
     int count = get_mask_count(mask);
 
 #ifdef _OPENMP
@@ -322,7 +339,7 @@ int set_cpu_affine(size_t mask)
     omp_set_num_threads(count);
 
     int status[sizeof(size_t) * 8] = {0};
-
+    #pragma omp parallel for num_threads(count)
     for (int i = 0; i < count; i++)
     {
         status[i] = set_sched_affinity(mask);
@@ -339,15 +356,15 @@ int set_cpu_affine(size_t mask)
         return -1;
 #endif
 
-    return 0;
-#elif __APPLE_IOS__
+#elif __APPLE_IOS__ || _MSC_VER
     // thread affinity not supported on ios
     ( void )mask;
     return -1;
 #else
     int status = set_sched_affinity(mask);
-    if (0 != status)
-        return -1;
+    if (0 != status) return -1;
+
+	return 0;
 #endif
 }
 

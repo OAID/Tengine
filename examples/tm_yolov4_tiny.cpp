@@ -22,14 +22,12 @@
  * Author: 942002795@qq.com
  */
 
-#include <unistd.h>
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <iomanip>
 #include <string>
 #include <vector>
-#include <sys/time.h>
 #include <stdlib.h>
 #include <algorithm>
 #include "common.h"
@@ -252,7 +250,6 @@ int num_detections(vector<layer> layers_params, float thresh)
             s += l.w * l.h * l.n;
     }
 
-    fprintf(stderr, "%s,%d\n", __func__, s);
     return s;
 }
 
@@ -634,6 +631,21 @@ void get_input_data_darknet(const char* image_file, float* input_data, int net_h
     free_image(im);
 }
 
+static const char* class_names[] = {"person", "bicycle", "car", "motorcycle", "airplane", "bus",
+                                    "train", "truck", "boat", "traffic light", "fire hydrant",
+                                    "stop sign", "parking meter", "bench", "bird", "cat", "dog",
+                                    "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe",
+                                    "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee",
+                                    "skis", "snowboard", "sports ball", "kite", "baseball bat",
+                                    "baseball glove", "skateboard", "surfboard", "tennis racket",
+                                    "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl",
+                                    "banana", "apple", "sandwich", "orange", "broccoli", "carrot",
+                                    "hot dog", "pizza", "donut", "cake", "chair", "couch",
+                                    "potted plant", "bed", "dining table", "toilet", "tv", "laptop",
+                                    "mouse", "remote", "keyboard", "cell phone", "microwave", "oven",
+                                    "toaster", "sink", "refrigerator", "book", "clock", "vase",
+                                    "scissors", "teddy bear", "hair drier", "toothbrush"};
+
 void show_usage()
 {
     fprintf(stderr, "[Usage]:  [-h]\n    [-m model_file] [-i image_file] [-r repeat_count] [-t thread_count]\n");
@@ -700,6 +712,7 @@ int main(int argc, char* argv[])
     opt.num_thread = num_thread;
     opt.cluster = TENGINE_CLUSTER_ALL;
     opt.precision = TENGINE_MODE_FP32;
+    opt.affinity = 0;
 
     /* inital tengine */
     if (init_tengine() != 0)
@@ -754,8 +767,8 @@ int main(int argc, char* argv[])
     get_input_data_darknet(image_file, input_data.data(), net_h, net_w);
 
     /* run graph */
-    double min_time = __DBL_MAX__;
-    double max_time = -__DBL_MAX__;
+    double min_time = DBL_MAX;
+    double max_time = DBL_MIN;
     double total_time = 0.;
     for (int i = 0; i < repeat_count; i++)
     {
@@ -768,8 +781,10 @@ int main(int argc, char* argv[])
         double end = get_current_time();
         double cur = end - start;
         total_time += cur;
-        min_time = std::min(min_time, cur);
-        max_time = std::max(max_time, cur);
+        if (min_time > cur)
+            min_time = cur;
+        if (max_time < cur)
+            max_time = cur;
     }
     fprintf(stderr, "Repeat %d times, thread %d, avg time %.2f ms, max_time %.2f ms, min_time %.2f ms\n", repeat_count,
             num_thread, total_time / repeat_count, max_time, min_time);
@@ -815,7 +830,6 @@ int main(int argc, char* argv[])
             {
                 cls = j;
                 best_class_prob = dets[i].prob[j];
-                fprintf(stderr, "%d: %.0f%%\n", cls, dets[i].prob[j] * 100);
             }
         }
         if (cls >= 0)
@@ -826,7 +840,7 @@ int main(int argc, char* argv[])
             int top = (b.y - b.h / 2.) * img.h;
             int bot = (b.y + b.h / 2.) * img.h;
             draw_box(img, left, top, right, bot, 2, 125, 0, 125);
-            fprintf(stderr, "left = %d,right = %d,top = %d,bot = %d\n", left, right, top, bot);
+            fprintf(stderr, "%2d: %.0f%%, [%4d,%4d,%4d,%4d], %s\n", cls, best_class_prob * 100, left, top, right, bot, class_names[cls]);
         }
 
         if (dets[i].mask)

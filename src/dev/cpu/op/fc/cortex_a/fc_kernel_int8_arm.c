@@ -17,6 +17,10 @@
  * under the License.
  */
 
+/*
+ * Author: 1091545398@qq.com
+ */
+
 #include <stdint.h>
 #include <stdlib.h>
 #include <math.h>
@@ -34,7 +38,8 @@ void gemv_1x8_int8(int32_t *biases, const float *scales, int8_t *inp, int8_t *ke
     int8_t *input_ptr = inp;
     int8_t *weight_ptr = kernel;
     int remainw = (kernel_size >> 3) << 3;
-    for (int i = 0; i < remainw; i = i + 8) {
+    for (int i = 0; i < remainw; i = i + 8) 
+    {
         input = vld1_s8(input_ptr);
         weight_0_1 = vld1q_s8(weight_ptr);
         weight_2_3 = vld1q_s8(weight_ptr + 16);
@@ -64,7 +69,8 @@ void gemv_1x8_int8(int32_t *biases, const float *scales, int8_t *inp, int8_t *ke
         weight_ptr += 64;
     }
 
-    for (int i = remainw; i < kernel_size; ++i) {
+    for (int i = remainw; i < kernel_size; ++i) 
+    {
         weight0_16 = vmull_s8(vdup_n_s8(input_ptr[0]), vld1_s8(weight_ptr));
         res = vaddq_s32(vmovl_s16(vget_low_s16(weight0_16)), res);
         res1 = vaddq_s32(vmovl_s16(vget_high_s16(weight0_16)), res1);
@@ -72,7 +78,8 @@ void gemv_1x8_int8(int32_t *biases, const float *scales, int8_t *inp, int8_t *ke
         weight_ptr += 8;
     }
 
-    if (biases) {
+    if (biases) 
+    {
         int32x4_t bias = vld1q_s32(biases);
         int32x4_t bias1 = vld1q_s32(biases + 4);
         res = vaddq_s32(res,bias);
@@ -103,15 +110,18 @@ void gemv_1x8_int8(int32_t *biases, const float *scales, int8_t *inp, int8_t *ke
 }
 
 void gemv_1x2_int8(const int32_t *biases, const float *scales, int8_t *inp, int8_t *kernel, long kernel_size,
-              int8_t *output) {
+              int8_t *output) 
+{
     int8_t *input_ptr = inp;
     int8_t *weight_ptr = kernel;
     int remainw = (kernel_size << 3) >> 3;
     int8x8x2_t weight;
     int8x8_t input;
-    int16x8_t out_16_0, out_16_1, out_32_0, out_32_1;
+    int16x8_t out_16_0, out_16_1;
+    int32x4_t out_32_0, out_32_1;
     int32_t sum0 = 0, sum1 = 0;
-    for (int i = 0; i < remainw; i = i + 8) {
+    for (int i = 0; i < remainw; i = i + 8) 
+    {
         weight = vld2_s8(weight_ptr);
         input = vld1_s8(input_ptr);
         out_16_0 = vmull_s8(weight.val[0], input);
@@ -126,14 +136,16 @@ void gemv_1x2_int8(const int32_t *biases, const float *scales, int8_t *inp, int8
         input_ptr += 8;
     }
 
-    for (int i = remainw; i < kernel_size; ++i) {
+    for (int i = remainw; i < kernel_size; ++i) 
+    {
         sum0 += weight_ptr[0] * input_ptr[0];
         sum1 += weight_ptr[1] * input_ptr[0];
         input_ptr++;
         weight_ptr += 2;
     }
 
-    if (biases) {
+    if (biases) 
+    {
         sum0 += biases[0];
         sum1 += biases[1];
     }
@@ -158,14 +170,16 @@ void gemv_1x2_int8(const int32_t *biases, const float *scales, int8_t *inp, int8
 void gemv1x8(const int8_t *input, const int8_t *output, int8_t *weight_interleaved,
              const int32_t *biases, const float *scales,
              int kernel_size, int start_channel, int end_channel, int num_thread,
-             int cpu_affinity) {
+             int cpu_affinity) 
+{
     int ch = 0;
     int8_t *cur_kernel, *cur_result;
     int32_t *cur_biases;
     const float *cur_scales;
 
     // #pragma omp parallel for num_threads(num_thread)
-    for (ch = start_channel; ch < end_channel; ch += 8) {
+    for (ch = start_channel; ch < end_channel; ch += 8) 
+    {
         cur_kernel = (int8_t *) (weight_interleaved + kernel_size * ch);
         cur_result = (int8_t *) (output + ch);
         cur_biases = biases ? (int32_t *) (biases + ch) : NULL;
@@ -211,13 +225,15 @@ void gemv1x2(const int8_t *input, int8_t *output, int8_t *weight_interleaved,
 }
 
 
-static void interleave_kernel(const int8_t *kernel, int8_t *kernel_interleaved, int out_chan, int kernel_size) {
+static void interleave_kernel(const int8_t *kernel, int8_t *kernel_interleaved, int out_chan, int kernel_size) 
+{
     int i, j, k;
     int8_t *cur_kernel[8];
     int8_t *cur_kernel_interleaved;
 
     // interleave 8 kernel
-    for (i = 0; i < (out_chan & -8); i += 8) {
+    for (i = 0; i < (out_chan & -8); i += 8) 
+    {
         for (j = 0; j < 8; j++)
             cur_kernel[j] = (int8_t *) kernel + kernel_size * (i + j);
         cur_kernel_interleaved = (int8_t *) kernel_interleaved + kernel_size * i;
@@ -227,7 +243,8 @@ static void interleave_kernel(const int8_t *kernel, int8_t *kernel_interleaved, 
     }
 
     // interleave 2 kernel
-    for (; i < (out_chan & -2); i += 2) {
+    for (; i < (out_chan & -2); i += 2) 
+    {
         for (j = 0; j < 2; j++)
             cur_kernel[j] = (int8_t *) kernel + kernel_size * (i + j);
         cur_kernel_interleaved = (int8_t *) kernel_interleaved + kernel_size * i;
@@ -237,7 +254,8 @@ static void interleave_kernel(const int8_t *kernel, int8_t *kernel_interleaved, 
     }
 
     // copy last kernel
-    if (out_chan & 0x1) {
+    if (out_chan & 0x1) 
+    {
         cur_kernel[0] = (int8_t *) kernel + kernel_size * i;
         cur_kernel_interleaved = (int8_t *) kernel_interleaved + kernel_size * i;
         for (k = 0; k < kernel_size; k++)
@@ -251,19 +269,22 @@ int int8_fc_kernel_prerun(struct ir_tensor *input_tensor, \
                     struct ir_tensor *filter_tensor, \
                     struct ir_tensor *output_tensor, \
                     struct fc_priv_info *priv_info, \
-                    struct fc_param *param) {
+                    struct fc_param *param) 
+{
 
     int num_output = param->num_output;
     int kernel_size = filter_tensor->dims[1];
     int kernel_align = ((kernel_size + 1) & -2);
 
-    if (!priv_info->interleave_buffer) {
+    if (!priv_info->interleave_buffer) 
+    {
         int mem_size = num_output * kernel_align;
         void *mem = sys_malloc(mem_size);
         priv_info->interleave_buffer = mem;
         priv_info->interleave_buffer_size = mem_size;
     }
-    if (!priv_info->input_buffer) {
+    if (!priv_info->input_buffer) 
+    {
         int mem_size = kernel_align;
         void *mem = sys_malloc(mem_size);
         priv_info->input_buffer = mem;
@@ -277,7 +298,6 @@ int int8_fc_kernel_prerun(struct ir_tensor *input_tensor, \
 
     return 0;
 }
-
 
 int int8_fc_kernel_run(struct ir_tensor *input_tensor, \
                     struct ir_tensor *filter_tensor, \
@@ -296,7 +316,6 @@ int int8_fc_kernel_run(struct ir_tensor *input_tensor, \
     if (bias_tensor)
         biases = (int32_t *) bias_tensor->data;
 
-
     float input_scale = input_tensor->scale;
     float output_scale = output_tensor->scale;
     float *weight_scales = filter_tensor->scale_list;
@@ -305,10 +324,10 @@ int int8_fc_kernel_run(struct ir_tensor *input_tensor, \
     for (int i = 0; i < out_num; i++)
         requant_scales[i] = (input_scale * weight_scales[i]) / output_scale;
 
-
     int out_num_8 = out_num & ~7;
 
-    for (int i = 0; i < input_tensor->dims[0]; i++) {
+    for (int i = 0; i < input_tensor->dims[0]; i++) 
+    {
         int8_t *cur_input = input + i * kernel_size;
         int8_t *cur_output = output + i * out_num;
 
@@ -317,7 +336,5 @@ int int8_fc_kernel_run(struct ir_tensor *input_tensor, \
             gemv1x2(cur_input, cur_output, weight, biases, requant_scales, kernel_size, out_num_8,out_num,num_thread, cpu_affinity);
     }
 
-
     return 0;
-
 }

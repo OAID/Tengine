@@ -43,7 +43,7 @@ static int infer_shape(struct ir_node* node)
     struct ir_tensor* input = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
     struct slice_param* slice_param = ( struct slice_param* )(node->op.param_mem);
     int dims_len = input->dim_num;
-    int dims_in[dims_len];
+    int dims_in[MAX_SHAPE_DIM_NUM * 2];
 
     for (int j = 0; j < dims_len; j++)
     {
@@ -89,7 +89,7 @@ static int infer_shape(struct ir_node* node)
         int dim_len = input->dim_num;
         // std::vector<int> out_dim(dim_len);
         // out_dim.reserve(input_dim.size());
-        int out_dims[dim_len];
+        int out_dims[MAX_SHAPE_DIM_NUM * 2];
         for (int i = 0; i < dim_len; i++)
         {
             if (i == axis)
@@ -110,7 +110,7 @@ static int infer_shape(struct ir_node* node)
     {
         int axis = slice_param->axis;
         int dim_len = input->dim_num;
-        int out_dims[dim_len];
+        int out_dims[MAX_SHAPE_DIM_NUM * 2];
         for (int i = 0; i < dim_len; i++)
         {
             if (i == axis)
@@ -142,7 +142,7 @@ static int infer_shape(struct ir_node* node)
     else
     {
         int dim_len = input->dim_num;
-        int out_dims[dim_len];
+        int out_dims[MAX_SHAPE_DIM_NUM * 2];
         // input shape size must be equal to begin and size's size;
         if ((slice_param->size_->elem_num != slice_param->begin_->elem_num) ||
             (slice_param->size_->elem_num != dim_len))

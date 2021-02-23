@@ -237,18 +237,18 @@ typedef uint8_t tm_bool_t; /* bool is 1-byte unsigned integer */
 #define TM2_OPTYPE_UNSQUEEZE 88
 #define TM2_OPTYPE_REDUCEL2 89
 #define TM2_OPTYPE_MEAN 90
-#define TM2_OPTYPE_MATMUL 91
-
+#define TM2_OPTYPE_EXPAND 91
+#define TM2_OPTYPE_MATMUL 92
+#define TM2_OPTYPE_SCATTER 93
+#define TM2_OPTYPE_SHAPE 94
+#define TM2_OPTYPE_WHERE 95
+#define TM2_OPTYPE_TILE 96
 #define TM2_OPTYPE_MISH 97
-#define TM2_OPTYPE_L2NORMALIZATION 98
-#define TM2_OPTYPE_RELU1 99
-#define TM2_OPTYPE_SHAPE 100
-#define TM2_OPTYPE_LOGSOFTMAX 101
-#define TM2_OPTYPE_SCATTER 102
-#define TM2_OPTYPE_L2POOL 103
-#define TM2_OPTYPE_TILE 104
-#define TM2_OPTYPE_WHERE 105
-#define TM2_OPTYPE_NUM 106
+#define TM2_OPTYPE_L2POOL 98
+#define TM2_OPTYPE_LOGSOFTMAX 99
+#define TM2_OPTYPE_RELU1 100
+#define TM2_OPTYPE_L2NORMALIZATION 101
+#define TM2_OPTYPE_NUM 102
 
 /* --------------------- -------- TM objects -------------------------------- */
 
@@ -950,7 +950,7 @@ typedef struct
 typedef struct
 {
     int32_t axis;
-    int32_t is_onnx;
+    tm_bool_t is_onnx;
 } TM2_ScatterParam;
 
 typedef struct

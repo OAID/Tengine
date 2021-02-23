@@ -18,25 +18,17 @@
  */
 
 /*
- * Copyright (c) 2020, Open AI Lab
- * Author: xlchen@openailab.com
+ * Copyright (c) 2021, Open AI Lab
+ * Author: lswang@openailab.com
  */
 
-#ifndef __VX_DEVICE_HPP__
-#define __VX_DEVICE_HPP__
+#ifndef __ACL_DEVICE_H__
+#define __ACL_DEVICE_H__
 
-#include <stdint.h>
+#define ACL_DEV_NAME "ACL"
 
-extern "C" {
-    #include "nn_device.h"
-}
-
-#ifndef MAX_SHAPE_DIM_NUM
-#define MAX_SHAPE_DIM_NUM 4
-#endif
-
-struct ir_graph;
-
+extern "C"
+{
 struct acl_device
 {
     struct nn_device base;
@@ -46,10 +38,9 @@ struct acl_device
     int (*load_ir_graph)(struct acl_device* dev);
 
     int (*unload_graph)(struct acl_device* dev);
-
-    
 };
 
-// int register_acl_device(void);
+int register_acl_device(void);
+}
 
 #endif

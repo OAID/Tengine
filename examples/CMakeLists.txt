@@ -7,7 +7,7 @@ macro (tengine_example name file)
         "${CMAKE_CURRENT_SOURCE_DIR}/${file}"
         "${CMAKE_CURRENT_SOURCE_DIR}/common/tengine_operations.c")
 
-    target_link_libraries(${name} ${CMAKE_PROJECT_NAME})
+    target_link_libraries(${name} PRIVATE ${CMAKE_PROJECT_NAME} m)
     include_directories("${PROJECT_SOURCE_DIR}/examples/common")
     install (TARGETS ${name} DESTINATION bin)
 endmacro()
@@ -24,6 +24,10 @@ tengine_example(tm_classification_fp16      tm_classification_fp16.c)
 tengine_example(tm_classification_int8      tm_classification_int8.c)
 tengine_example(tm_classification_uint8     tm_classification_uint8.c)
 tengine_example(tm_classification_vulkan    tm_classification_vulkan.c)
+tengine_example(tm_classification_acl       tm_classification_acl.c)
+tengine_example(tm_classification_timvx     tm_classification_timvx.c)
+tengine_example(tm_classification_trt       tm_classification_trt.cpp)
+tengine_example(tm_classification_cuda      tm_classification_cuda.cpp)
 tengine_example(tm_mobilenet_ssd            tm_mobilenet_ssd.c)
 tengine_example(tm_mobilenet_ssd_uint8      tm_mobilenet_ssd_uint8.cpp)
 tengine_example(tm_mobilenet_ssd_acl        tm_mobilenet_ssd_acl.c)
@@ -38,24 +42,24 @@ tengine_example(tm_yolov4_tiny              tm_yolov4_tiny.cpp)
 
 
 # add examples with opencv
+# set(OpenCV_DIR /mnt/d/ubuntu/opencv_install/linux-armv7/lib/cmake/opencv4)
 find_package(OpenCV QUIET)
 
-    if(OpenCV_FOUND)
-    include_directories(${OpenCV_INCLUDE_DIRS})
-    
-        # macro for adding examples
-        macro (tengine_example_cv name file)
-            add_executable(${name}
-                    "${CMAKE_CURRENT_SOURCE_DIR}/${file}"
-                    "${CMAKE_CURRENT_SOURCE_DIR}/common/tengine_operations.c")
-            target_link_libraries(${name} ${CMAKE_PROJECT_NAME} ${OpenCV_LIBS})
-            install (TARGETS ${name} DESTINATION bin)
-        endmacro()
-        tengine_example_cv(tm_openpose      tm_openpose.cpp)
-        tengine_example_cv(tm_yolact        tm_yolact.cpp)
-        tengine_example_cv(tm_crnn          tm_crnn.cpp)
-        tengine_example_cv(tm_alphapose     tm_alphapose.cpp)
-    else()
-        message(WARNING "OpenCV not found, some examples won't be built")
-    endif()
+if(OpenCV_FOUND AND ${TENGINE_TARGET_PROCESSOR} MATCHES "X86")
+include_directories(${OpenCV_INCLUDE_DIRS})
 
+    # macro for adding examples
+    macro (tengine_example_cv name file)
+        add_executable(${name}
+                "${CMAKE_CURRENT_SOURCE_DIR}/${file}"
+                "${CMAKE_CURRENT_SOURCE_DIR}/common/tengine_operations.c")
+        target_link_libraries(${name} ${CMAKE_PROJECT_NAME} ${OpenCV_LIBS})
+        install (TARGETS ${name} DESTINATION bin)
+    endmacro()
+    tengine_example_cv(tm_openpose      tm_openpose.cpp)
+    tengine_example_cv(tm_yolact        tm_yolact.cpp)
+    tengine_example_cv(tm_crnn          tm_crnn.cpp)
+    tengine_example_cv(tm_alphapose     tm_alphapose.cpp)
+else()
+    message(WARNING "OpenCV not found, some examples won't be built")
+endif()

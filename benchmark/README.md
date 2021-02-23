@@ -63,6 +63,53 @@ $ ./tm_benchmark
 
 Typical output (executed in linux)
 
+Loongson (Loongson-3A4000 1.8GHz x 4)
+
+```bash
+lshf@lshf-PC:~/tengine$ ./tm_benchmark -r 5 -t 1 -a 1
+loop_counts = 5
+num_threads = 1
+power       = 0
+affinity    = 1
+tengine-lite library version: 1.2-dev
+     squeezenet_v1.1  min =   89.81 ms   max =   93.23 ms   avg =   90.62 ms
+         mobilenetv1  min =  176.65 ms   max =  185.06 ms   avg =  180.75 ms
+         mobilenetv2  min =  156.59 ms   max =  159.12 ms   avg =  157.42 ms
+         mobilenetv3  min =  116.69 ms   max =  119.75 ms   avg =  117.80 ms
+        shufflenetv2  min =   51.79 ms   max =   52.16 ms   avg =   52.02 ms
+            resnet18  min =  303.88 ms   max =  307.23 ms   avg =  305.00 ms
+            resnet50  min =  814.42 ms   max =  845.91 ms   avg =  823.05 ms
+           googlenet  min =  448.30 ms   max =  452.39 ms   avg =  450.34 ms
+         inceptionv3  min = 1347.01 ms   max = 1382.67 ms   avg = 1354.61 ms
+               vgg16  min = 1600.50 ms   max = 1641.57 ms   avg = 1613.64 ms
+                mssd  min =  343.57 ms   max =  350.56 ms   avg =  346.15 ms
+          retinaface  min =   44.51 ms   max =   45.22 ms   avg =   44.78 ms
+         yolov3_tiny  min =  379.41 ms   max =  412.98 ms   avg =  393.67 ms
+      mobilefacenets  min =   72.47 ms   max =   77.21 ms   avg =   74.12 ms
+ALL TEST DONE
+lshf@lshf-PC:~/tengine$ ./tm_benchmark -r 5 -t 4 -a 15
+loop_counts = 5
+num_threads = 4
+power       = 0
+affinity    = 15
+tengine-lite library version: 1.2-dev
+     squeezenet_v1.1  min =   41.70 ms   max =   51.71 ms   avg =   44.31 ms
+         mobilenetv1  min =   58.48 ms   max =   70.96 ms   avg =   61.13 ms
+         mobilenetv2  min =   59.84 ms   max =   75.17 ms   avg =   63.18 ms
+         mobilenetv3  min =   74.02 ms   max =   92.92 ms   avg =   83.97 ms
+        shufflenetv2  min =   22.45 ms   max =   22.86 ms   avg =   22.59 ms
+            resnet18  min =  113.43 ms   max =  128.62 ms   avg =  117.73 ms
+            resnet50  min =  294.62 ms   max =  311.93 ms   avg =  306.26 ms
+           googlenet  min =  273.35 ms   max =  336.59 ms   avg =  291.95 ms
+         inceptionv3  min =  528.23 ms   max =  554.43 ms   avg =  537.49 ms           
+               vgg16  min =  922.84 ms   max =  938.98 ms   avg =  930.91 ms
+                mssd  min =  117.87 ms   max =  156.81 ms   avg =  129.44 ms
+          retinaface  min =   20.44 ms   max =   21.02 ms   avg =   20.74 ms
+         yolov3_tiny  min =  168.25 ms   max =  194.35 ms   avg =  181.12 ms
+      mobilefacenets  min =   25.64 ms   max =   50.17 ms   avg =   30.66 ms
+ALL TEST DONE
+```
+
 Khadas VIM3 (Cortex-A73 2.2GHz x 4 + Cortex-A53 1.8GHz x 2)
 
 ```bash
@@ -150,7 +197,6 @@ tengine-lite library version: 1.0-dev
          yolov3_tiny  min =  297.31 ms   max =  298.04 ms   avg =  297.62 ms
       mobilefacenets  min =   53.09 ms   max =   53.18 ms   avg =   53.14 ms
 ALL TEST DONE
-
 ```
 
 EAIDK610 (Cortex-A72 1.8GHz x 2 + Cortex-A53 1.4GHz x 4)

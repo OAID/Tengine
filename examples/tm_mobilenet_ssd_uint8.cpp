@@ -42,7 +42,8 @@ typedef struct Box
     float score;
 } Box_t;
 
-void get_input_uint_data_ssd(const char* image_file, uint8_t* input_data, int img_h, int img_w, float input_scale, int zero_point)
+void get_input_uint_data_ssd(const char* image_file, uint8_t* input_data, int img_h, int img_w, float input_scale,
+                             int zero_point)
 {
     float mean[3] = {127.5f, 127.5f, 127.5f};
     float scales[3] = {1 / 127.5f, 1 / 127.5f, 1 / 127.5f};
@@ -173,6 +174,7 @@ int main(int argc, char* argv[])
     opt.num_thread = num_thread;
     opt.cluster = TENGINE_CLUSTER_ALL;
     opt.precision = TENGINE_MODE_UINT8;
+    opt.affinity = 0;
 
     // init tengine
     if (init_tengine() < 0)
@@ -228,8 +230,8 @@ int main(int argc, char* argv[])
     get_input_uint_data_ssd(image_file, input_data, img_h, img_w, input_scale, input_zero_point);
 
     /* run graph */
-    double min_time = __DBL_MAX__;
-    double max_time = -__DBL_MAX__;
+    double min_time = DBL_MAX;
+    double max_time = DBL_MIN;
     double total_time = 0.;
     for (int i = 0; i < repeat_count; i++)
     {
@@ -272,8 +274,6 @@ int main(int argc, char* argv[])
     /* release tengine */
     free(output_data);
     free(input_data);
-    release_graph_tensor(input_tensor);
-    release_graph_tensor(output_tensor);
     postrun_graph(graph);
     destroy_graph(graph);
     release_tengine();

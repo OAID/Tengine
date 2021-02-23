@@ -31,6 +31,9 @@
 #include "param_type.h"
 #include "va_arg_util.h"
 
+#ifdef _MSC_VER
+#define CONFIG_DISABLE_PARAM_ACCESS
+#else
 #define ADD_PARAM_ENTRY(map, idx, s, e)                   \
     {                                                     \
         struct s dummy;                                   \
@@ -44,6 +47,7 @@
         p_entry->size = size;                             \
         idx++;                                            \
     }
+#endif
 
 #ifdef CONFIG_DISABLE_PARAM_ACCESS
 
@@ -72,7 +76,7 @@
         int entry_number = COUNT_VA_ARG(__VA_ARGS__) + 1;                                                       \
         int idx = 0;                                                                                            \
                                                                                                                 \
-        map = ( struct param_entry_map* )sys_malloc(sizeof(struct param_entry_map) +                                \
+        map = ( struct param_entry_map* )sys_malloc(sizeof(struct param_entry_map) +                            \
                                                 sizeof(struct param_entry) * entry_number);                     \
                                                                                                                 \
         map->number = entry_number;                                                                             \

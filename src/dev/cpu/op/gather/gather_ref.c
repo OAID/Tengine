@@ -35,10 +35,11 @@
 
 typedef struct
 {
-    int in_shape[4];    // the dim of the input
+    int* in_shape;    // the dim of the input
     int axis;
     int indices_num;
     int dim_size;
+    int is_onnx;
 } gather_param_t;
 
 static int ref_gather_fp32(float* input, int* input_indices, float* output, gather_param_t* param, int num_thread)
@@ -58,18 +59,28 @@ static int ref_gather_fp32(float* input, int* input_indices, float* output, gath
     for (int i = axis + 1; i < param->dim_size; i++)
     {
         inner_size *= param->in_shape[i];
+        // printf("inner_size size: %d %d \n", inner_size, param->in_shape[i]);
     }
 
 	// #pragma omp parallel for num_threads(num_thread)
-    for (int outer = 0; outer < outer_size; ++outer)
-    {
-        for (int i = 0; i < param->indices_num; i++)
+    if(param->is_onnx){
+        for (int outer = 0; outer < outer_size; ++outer)
         {
-            memcpy(out_ptr + (outer * param->indices_num + i) * inner_size,
-                   in_ptr + (outer * axis_size + ( int )input_indices[i]) * inner_size, inner_size * sizeof(float));
+            memcpy(out_ptr + (outer * param->indices_num ) * inner_size,
+            in_ptr + (outer* axis_size + param->indices_num) * inner_size, inner_size* sizeof(float));
+        }
+    } else {
+        for (int outer = 0; outer < outer_size; ++outer)
+        {
+            for (int i = 0; i < param->indices_num; i++)
+            {
+
+                memcpy(out_ptr + (outer * param->indices_num + i) * inner_size,
+                       in_ptr + (outer * axis_size + ( int )input_indices[i]) * inner_size, inner_size * sizeof(float));
+                
+            }
         }
     }
-
     return 0;
 }
 
@@ -111,10 +122,12 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
     struct ir_graph* ir_graph = ir_node->graph;
     struct gather_param* gather_param = ( struct gather_param* )ir_node->op.param_mem;
     gather_param_t* op_priv_info = ( gather_param_t* )exec_node->ops_priv;
+    struct ir_tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
 
     op_priv_info->axis = gather_param->axis;
     op_priv_info->indices_num = gather_param->indices_num;
-
+    op_priv_info->is_onnx = gather_param->is_onnx;
+    op_priv_info->in_shape = (int*)sys_malloc(input_tensor->dim_num*sizeof(int));
     /* prerun now */
     return 0;
 }
@@ -137,11 +150,11 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     void* indices_data = indices_tensor->data;
 
     op_priv_info->dim_size = input_tensor->dim_num;
-
     for (int i = 0; i < op_priv_info->dim_size; i++)
     {
         op_priv_info->in_shape[i] = input_tensor->dims[i];
     }
+    // printf("in shape: %d %d %d %d\n", op_priv_info->in_shape[0], op_priv_info->in_shape[1], op_priv_info->in_shape[3], op_priv_info->in_shape[3]);
 
     // int indices_num = op_param.indices_num;
     void* output = output_tensor->data;
@@ -171,6 +184,16 @@ static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, str
     memset(op_priv_info, 0, sizeof(gather_param_t));
 
     exec_node->ops_priv = op_priv_info;
+
+    return 0;
+}
+
+static int postrun(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
+{
+    struct ir_node* ir_node = exec_node->ir_node;
+    gather_param_t* op_param = ( gather_param_t* )exec_node->ops_priv;
+
+    sys_free(op_param->in_shape);
 
     return 0;
 }

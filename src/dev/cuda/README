@@ -1,0 +1,13 @@
+
+EXAMPLE:
+cmake -DTENGINE_ENABLE_TENSORRT=ON \
+-DTENSORRT_INCLUDE_DIR=/usr/include/aarch64-linux-gnu \
+-DTENSORRT_LIBRARY_DIR=/usr/lib/aarch64-linux-gnu \
+-DCUDA_INCLUDE_DIR=/usr/local/cuda-10.2/targets/aarch64-linux/include \
+-DCUDA_LIBARAY_DIR=/usr/local/cuda-10.2/targets/aarch64-linux/lib ..
+
+cmake -DTENGINE_ENABLE_CUDABACKEND=ON \
+-DCUDA_INCLUDE_DIR=/usr/local/cuda-10.2/targets/aarch64-linux/include \
+-DCUDA_LIBARAY_DIR=/usr/local/cuda-10.2/targets/aarch64-linux/lib ..
+
+export CUDACXX=/usr/local/cuda/bin/nvcc

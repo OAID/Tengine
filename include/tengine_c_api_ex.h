@@ -25,7 +25,7 @@
 #ifndef __TENGINE_C_API_EX_H__
 #define __TENGINE_C_API_EX_H__
 
-node_t get_graph_node_by_idx(graph_t graph, int idx);
-int get_graph_node_num(graph_t graph);
+DLLEXPORT node_t get_graph_node_by_idx(graph_t graph, int idx);
+DLLEXPORT int get_graph_node_num(graph_t graph);
 
 #endif

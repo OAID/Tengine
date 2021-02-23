@@ -159,42 +159,80 @@ void resize_bilinear_image(float* src, float* dst, float* alpha, int* xofs, floa
 
 int ref_interp_fp32(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, struct interp_param* param)
 {
-    float* input = input_tensor->data;
-    float* output = output_tensor->data;
-
-    int batch = input_tensor->dims[0];
-    int channel = input_tensor->dims[1];
-    int in_h = input_tensor->dims[2];
-    int in_w = input_tensor->dims[3];
-    int out_h = output_tensor->dims[2];
-    int out_w = output_tensor->dims[3];
-
-    int in_channel_size = in_h * in_w;
-    int out_channel_size = out_h * out_w;
-
-    int* buf = sys_malloc((param->output_width + param->output_height + param->output_width*2 + param->output_height*2)*sizeof(float));
-
-    if (buf == NULL)
+    if (param->resize_type == 1)
     {
-        printf("interp malloc failed!\n");
+        float* input = input_tensor->data;
+        float* output = output_tensor->data;
+
+        int batch = output_tensor->dims[0];
+        int channel = output_tensor->dims[1];
+        int output_h = output_tensor->dims[2];
+        int output_w = output_tensor->dims[3];
+        int input_h = input_tensor->dims[2];
+        int input_w = input_tensor->dims[3];
+
+        for (int n = 0; n < batch; ++n)
+        {
+            for (int c = 0; c < channel; c++)
+            {
+                for (int h = 0; h < output_h; h++)
+                {
+                    for (int w = 0; w < output_w; w++)
+                    {
+                        int in_w = w / param->width_scale;
+                        int in_h = h / param->height_scale;
+                        int out_idx = n * channel * output_h * output_w + c * output_h * output_w + h * output_w + w;
+                        int in_idx = n * channel * input_h * input_w + c * input_w * input_h + in_h * input_w + in_w;
+                        output[out_idx] = input[in_idx];
+                    }
+                }
+            }
+        }
+    }
+    else if (param->resize_type == 2)
+    {
+        float* input = input_tensor->data;
+        float* output = output_tensor->data;
+
+        int batch = input_tensor->dims[0];
+        int channel = input_tensor->dims[1];
+        int in_h = input_tensor->dims[2];
+        int in_w = input_tensor->dims[3];
+        int out_h = output_tensor->dims[2];
+        int out_w = output_tensor->dims[3];
+
+        int in_channel_size = in_h * in_w;
+        int out_channel_size = out_h * out_w;
+
+        int* buf = sys_malloc((param->output_width + param->output_height + param->output_width*2 + param->output_height*2)*sizeof(float));
+
+        if (buf == NULL)
+        {
+            fprintf(stderr,"interp malloc failed!\n");
+            return -1;
+        }
+
+        int* xofs = buf;//new int[ow];
+        int* yofs = buf + param->output_width ;//new int[oh];
+
+        float* alpha = (float*)(buf + param->output_width  + param->output_height);//new float[ow * 2];
+        float* beta = (float*)(buf + param->output_width + param->output_height + param->output_width*2);//new float[oh * 2];
+
+        linear_coeffs(in_w, out_w, xofs, alpha);
+        linear_coeffs(in_h, out_h, yofs, beta);
+
+        for (int q = 0; q < channel; ++q)
+        {
+            resize_bilinear_image(input+in_channel_size*q, output+out_channel_size*q, alpha, xofs, beta, yofs, out_h, out_w, in_h, in_w);
+        }
+
+        sys_free(buf);
+    }
+    else
+    {
+        fprintf(stderr,"interp resize type %d not support!\n", param->resize_type);
         return -1;
     }
-
-    int* xofs = buf;//new int[ow];
-    int* yofs = buf + param->output_width ;//new int[oh];
-
-    float* alpha = (float*)(buf + param->output_width  + param->output_height);//new float[ow * 2];
-    float* beta = (float*)(buf + param->output_width + param->output_height + param->output_width*2);//new float[oh * 2];
-
-    linear_coeffs(in_w, out_w, xofs, alpha);
-    linear_coeffs(in_h, out_h, yofs, beta);
-
-    for (int q = 0; q < channel; ++q)
-    {
-        resize_bilinear_image(input+in_channel_size*q, output+out_channel_size*q, alpha, xofs, beta, yofs, out_h, out_w, in_h, in_w);
-    }
-
-    sys_free(buf);
 
     return 0;
 }
@@ -221,36 +259,73 @@ int ref_interp_uint8(struct ir_tensor* input_tensor, struct ir_tensor* output_te
     }
 
     /* process */
-    int batch = input_tensor->dims[0];
-    int channel = input_tensor->dims[1];
-    int in_h = input_tensor->dims[2];
-    int in_w = input_tensor->dims[3];
-    int out_h = output_tensor->dims[2];
-    int out_w = output_tensor->dims[3];
-
-    int in_channel_size = in_h * in_w;
-    int out_channel_size = out_h * out_w;
-
-    int* buf = sys_malloc((param->output_width + param->output_height + param->output_width*2 + param->output_height*2)*sizeof(float));
-
-    if (buf == NULL)
+    if (param->resize_type == 1)
     {
-        printf("interp malloc failed!\n");
-        return -1;
+        int batch = output_tensor->dims[0];
+        int channel = output_tensor->dims[1];
+        int output_h = output_tensor->dims[2];
+        int output_w = output_tensor->dims[3];
+        int input_h = input_tensor->dims[2];
+        int input_w = input_tensor->dims[3];
+
+        for (int n = 0; n < batch; ++n)
+        {
+            for (int c = 0; c < channel; c++)
+            {
+                for (int h = 0; h < output_h; h++)
+                {
+                    for (int w = 0; w < output_w; w++)
+                    {
+                        int in_w = w / param->width_scale;
+                        int in_h = h / param->height_scale;
+                        int out_idx = n * channel * output_h * output_w + c * output_h * output_w + h * output_w + w;
+                        int in_idx = n * channel * input_h * input_w + c * input_w * input_h + in_h * input_w + in_w;
+                        output_fp32[out_idx] = input_fp32[in_idx];
+                    }
+                }
+            }
+        }
     }
-
-    int* xofs = buf;//new int[ow];
-    int* yofs = buf + param->output_width ;//new int[oh];
-
-    float* alpha = (float*)(buf + param->output_width  + param->output_height);//new float[ow * 2];
-    float* beta = (float*)(buf + param->output_width + param->output_height + param->output_width*2);//new float[oh * 2];
-
-    linear_coeffs(in_w, out_w, xofs, alpha);
-    linear_coeffs(in_h, out_h, yofs, beta);
-
-    for (int q = 0; q < channel; ++q)
+    else if (param->resize_type == 2)
     {
-        resize_bilinear_image(input_fp32+in_channel_size*q, output_fp32+out_channel_size*q, alpha, xofs, beta, yofs, out_h, out_w, in_h, in_w);
+        int batch = input_tensor->dims[0];
+        int channel = input_tensor->dims[1];
+        int in_h = input_tensor->dims[2];
+        int in_w = input_tensor->dims[3];
+        int out_h = output_tensor->dims[2];
+        int out_w = output_tensor->dims[3];
+
+        int in_channel_size = in_h * in_w;
+        int out_channel_size = out_h * out_w;
+
+        int* buf = sys_malloc((param->output_width + param->output_height + param->output_width*2 + param->output_height*2)*sizeof(float));
+
+        if (buf == NULL)
+        {
+            fprintf(stderr,"interp malloc failed!\n");
+            return -1;
+        }
+
+        int* xofs = buf;//new int[ow];
+        int* yofs = buf + param->output_width ;//new int[oh];
+
+        float* alpha = (float*)(buf + param->output_width  + param->output_height);//new float[ow * 2];
+        float* beta = (float*)(buf + param->output_width + param->output_height + param->output_width*2);//new float[oh * 2];
+
+        linear_coeffs(in_w, out_w, xofs, alpha);
+        linear_coeffs(in_h, out_h, yofs, beta);
+
+        for (int q = 0; q < channel; ++q)
+        {
+            resize_bilinear_image(input_fp32+in_channel_size*q, output_fp32+out_channel_size*q, alpha, xofs, beta, yofs, out_h, out_w, in_h, in_w);
+        }
+
+        sys_free(buf);
+    }
+    else
+    {
+        fprintf(stderr,"interp resize type %d not support!\n", param->resize_type);
+        return -1;
     }
 
     /* quant */
@@ -264,7 +339,6 @@ int ref_interp_uint8(struct ir_tensor* input_tensor, struct ir_tensor* output_te
         output_uint8[i] = udata;
     }
 
-    sys_free(buf);
     sys_free(input_fp32);
     sys_free(output_fp32);
 
@@ -297,7 +371,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     int ret = -1;
     if (input_tensor->data_type == TENGINE_DT_FP32)
         ret = ref_interp_fp32(input_tensor, output_tensor, param);
-    if (input_tensor->data_type == TENGINE_DT_UINT8)
+    else if (input_tensor->data_type == TENGINE_DT_UINT8)
         ret = ref_interp_uint8(input_tensor, output_tensor, param);
     else
         printf("Input data type %d not to be supported.\n", input_tensor->data_type);

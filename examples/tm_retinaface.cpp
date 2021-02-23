@@ -37,13 +37,18 @@
  * https://opensource.org/licenses/BSD-3-Clause
  */
 
-#include <unistd.h>
 #include <vector>
 #include <string>
+
+#ifdef _MSC_VER
+#define NOMINMAX
+#endif
+
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
+
 #include "common.h"
-#include <stdlib.h>
 
 #include "tengine_c_api.h"
 #include "tengine_operations.h"
@@ -394,7 +399,7 @@ int get_input_data(const char* image_file, std::vector<float>& image_data, Size2
 
 void show_usage()
 {
-    printf("[Usage]:  [-h]\n    [-m model_file] [-i image_file] [-r repeat_count] [-t thread_count]\n");
+    printf("[Usage]:  [-h]\n    [-m model_file] [-i image_file] [-r repeat_count] [-t thread_count] [-n device_name]\n");
 }
 
 int main(int argc, char* argv[])
@@ -404,9 +409,10 @@ int main(int argc, char* argv[])
 
     const char* model_file = MODEL_PATH;
     const char* image_file = IMAGE_PATH;
+    const char* device_name = "";
 
     int res;
-    while ((res = getopt(argc, argv, "m:i:r:t:h:")) != -1)
+    while ((res = getopt(argc, argv, "m:i:r:t:h:n:")) != -1)
     {
         switch (res)
         {
@@ -421,6 +427,9 @@ int main(int argc, char* argv[])
                 break;
             case 't':
                 num_thread = atoi(optarg);
+                break;
+            case 'n':
+                device_name = optarg;
                 break;
             case 'h':
                 show_usage();
@@ -452,7 +461,8 @@ int main(int argc, char* argv[])
     struct options opt;
     opt.num_thread = num_thread;
     opt.cluster = TENGINE_CLUSTER_ALL;
-    opt.precision = TENGINE_MODE_FP32;        
+    opt.precision = TENGINE_MODE_FP32;
+    opt.affinity = 0;       
 
     /* inital tengine */
     int ret = init_tengine();
@@ -465,7 +475,7 @@ int main(int argc, char* argv[])
     printf("tengine-lite library version: %s\n", get_tengine_version());
 
     /* create graph, load tengine model xxx.tmfile */
-    graph_t graph = create_graph(nullptr, "tengine", model_file);
+    graph_t graph = create_graph(NULL, "tengine", model_file);
     if (graph == nullptr)
     {
         printf("Load model to graph failed(%d).\n", get_tengine_errno());
@@ -516,7 +526,7 @@ int main(int argc, char* argv[])
     }
 
     /* run graph */
-    float min_time = __FLT_MAX__, max_time = 0, total_time = 0.f;
+    float min_time = FLT_MAX, max_time = 0, total_time = 0.f;
     for (int i = 0; i < repeat_count; i++)
     {
         double start = get_current_time();

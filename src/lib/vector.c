@@ -44,7 +44,7 @@ struct vector* create_vector(int elem_size, void (*free_data)(void*))
     v->space_num = v->ahead_num;
 
     v->real_mem = sys_malloc(v->entry_size * v->space_num + VECTOR_ALIGN_SIZE);
-    v->mem = ( void* )((( long )v->real_mem) & (~(VECTOR_ALIGN_SIZE - 1)));
+    v->mem = ( void* )(((size_t)v->real_mem) & (~((size_t)VECTOR_ALIGN_SIZE - 1)));
 
     for (int i = 0; i < v->space_num; i++)
     {
@@ -80,7 +80,7 @@ int resize_vector(struct vector* v, int new_size)
         return -1;
 
     v->real_mem = new_mem;
-    v->mem = ( void* )((( long )(v->real_mem)) & (~(VECTOR_ALIGN_SIZE - 1)));
+    v->mem = ( void* )(((size_t)(v->real_mem)) & (~(VECTOR_ALIGN_SIZE - 1)));
 
     for (int i = v->space_num; i < new_size; i++)
     {

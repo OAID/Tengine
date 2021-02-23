@@ -355,6 +355,7 @@ bool tengine_predict(float * input_data, graph_t graph, const int input_dims[4],
     opt.num_thread = num_thread;
     opt.cluster = TENGINE_CLUSTER_ALL;
     opt.precision = TENGINE_MODE_FP32;
+    opt.affinity = 0;
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == NULL)

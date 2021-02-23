@@ -91,12 +91,30 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
     {
         if (fp16_conv_hcl_prerun(input_tensor, filter_tensor, output_tensor, conv_priv_info, conv_param) < 0)
         {
-            TLOG_ERR("hcl conv hybrid int8 prerun failed\n");
+            TLOG_ERR("hcl conv fp16 prerun failed\n");
             set_tengine_errno(EFAULT);
             return -1;
         }
     }
 #endif
+    else if (exec_graph->mode == TENGINE_MODE_INT8)
+    {
+        if (int8_conv_hcl_set_shared_mem && exec_node->shared_mem_size < exec_graph->shared_mem_size)
+        {
+            if (int8_conv_hcl_set_shared_mem(conv_priv_info, exec_graph->shared_mem, exec_graph->shared_mem_size) < 0)
+            {
+                TLOG_ERR("hcl conv int8: set shared memory failed\n");
+                set_tengine_errno(EFAULT);
+                return -1;
+            }
+        }
+        if (int8_conv_hcl_prerun(input_tensor, filter_tensor, output_tensor, conv_priv_info, conv_param) < 0)
+        {
+            TLOG_ERR("hcl conv int8 prerun failed\n");
+            set_tengine_errno(EFAULT);
+            return -1;
+        }
+    }
     else
     {
         printf("Tengine work node not support %d\n", exec_graph->mode);
@@ -151,6 +169,16 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         }        
     }
 #endif
+    else if (exec_graph->mode == TENGINE_MODE_INT8)
+    {
+        if (int8_conv_hcl_run(input_tensor, weight_tensor, bias_tensor, output_tensor, conv_priv_info, conv_param, num_thread,
+                         cpu_affinity) < 0)
+        {
+            TLOG_ERR("hcl conv int8 run failed\n");
+            set_tengine_errno(EFAULT);
+            return -1;
+        }
+    }
     else
     {
         printf("Tengine work node not support %d\n", exec_graph->mode);
@@ -162,7 +190,146 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
 static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    return 0;
+    struct ir_node* ir_node = exec_node->ir_node;
+    struct ir_graph* ir_graph = ir_node->graph;
+    struct ir_tensor* input_tensor;
+    struct ir_tensor* output_tensor;
+
+    input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+    struct conv_param* conv_param = ( struct conv_param* )ir_node->op.param_mem;
+
+    /* dynamic get the shape of output tensor */
+    int n = input_tensor->dims[0];
+    int h, w;
+    int ret = 0;
+
+    if (conv_param->kernel_w == 0)
+    {
+        conv_param->kernel_w = 1;
+        conv_param->pad_w0 = 0;
+        conv_param->pad_w1 = 0;
+    }
+    if (conv_param->kernel_h == 0)
+        conv_param->kernel_h = 1;
+    if (conv_param->stride_w == 0)
+        conv_param->stride_w = 1;
+    if (conv_param->stride_h == 0)
+        conv_param->stride_h = 1;
+
+    if (ir_graph->graph_layout == TENGINE_LAYOUT_NCHW)
+    {
+        h = input_tensor->dims[2];
+        w = input_tensor->dims[3];
+    }
+    else if (ir_graph->graph_layout == TENGINE_LAYOUT_NHWC)
+    {
+        h = input_tensor->dims[1];
+        w = input_tensor->dims[2];
+    }
+    else
+    {
+        TLOG_ERR("convolution infer shape: unknown graph layout: %d\n", ir_graph->graph_layout);
+        set_tengine_errno(EFAULT);
+        return -1;
+    }
+
+    int out_c = conv_param->output_channel;
+    int out_h, out_w;
+
+    /* handle the same padding case, which pad_h0 and pad_h1 is -1 (SAME_UPPER)
+        -2 (SAME_LOWER) */
+
+    if (conv_param->pad_h0 < 0)
+    {
+        out_h = (h - 1) / conv_param->stride_h + 1;
+
+        int total_len = (out_h - 1) * conv_param->stride_h + conv_param->kernel_h;
+        int pad_num = total_len - h;
+
+        if (conv_param->pad_h0 == -1)
+        {
+            conv_param->pad_h0 = pad_num / 2;
+            conv_param->pad_h1 = pad_num - pad_num / 2;
+        }
+        else
+        {
+            conv_param->pad_h1 = pad_num / 2;
+            conv_param->pad_h0 = pad_num - pad_num / 2;
+        }
+    }
+    else
+    {
+        out_h =
+            (h - conv_param->dilation_h * (conv_param->kernel_h - 1) - 1 + conv_param->pad_h0 + conv_param->pad_h1) /
+            conv_param->stride_h +
+            1;
+    }
+
+    if (conv_param->pad_w0 < 0)
+    {
+        out_w = (w - 1) / conv_param->stride_w + 1;
+
+        int total_len = (out_w - 1) * conv_param->stride_w + conv_param->kernel_w;
+        int pad_num = total_len - w;
+
+        if (conv_param->pad_w0 == -1)
+        {
+            conv_param->pad_w0 = pad_num / 2;
+            conv_param->pad_w1 = pad_num - pad_num / 2;
+        }
+        else
+        {
+            conv_param->pad_w1 = pad_num / 2;
+            conv_param->pad_w0 = pad_num - pad_num / 2;
+        }
+    }
+    else
+    {
+        out_w =
+            (w - conv_param->dilation_w * (conv_param->kernel_w - 1) - 1 + conv_param->pad_w0 + conv_param->pad_w1) /
+            conv_param->stride_w +
+            1;
+    }
+
+    int dims[4];
+    dims[0] = n;
+    if (ir_graph->graph_layout == TENGINE_LAYOUT_NCHW)
+    {
+        if (output_tensor->dims[1] != out_c || output_tensor->dims[2] != out_h || output_tensor->dims[3] != out_w)
+        {
+            dims[1] = out_c;
+            dims[2] = out_h;
+            dims[3] = out_w;
+
+            for (int i=0; i<4; i++)
+            {
+                if (dims[i] == 0)
+                    dims[i] = 1;
+            }
+
+            ret = set_ir_tensor_shape(output_tensor, dims, 4);
+        }
+    }
+    else
+    {
+        if (output_tensor->dims[1] != out_h || output_tensor->dims[2] != out_w || output_tensor->dims[3] != out_c)
+        {
+            dims[1] = out_h;
+            dims[2] = out_w;
+            dims[3] = out_c;
+
+            for (int i=0; i<4; i++)
+            {
+                if (dims[i] == 0)
+                    dims[i] = 1;
+            }
+
+            ret = set_ir_tensor_shape(output_tensor, dims, 4);
+        }
+    }
+
+    return ret;
 }
 
 static int postrun(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
@@ -191,6 +358,15 @@ static int postrun(struct node_ops* node_ops, struct exec_node* exec_node, struc
         }
     }
 #endif
+    else if (exec_graph->mode == TENGINE_MODE_INT8)
+    {
+        if (int8_conv_hcl_postrun(conv_priv_info) < 0)
+        {
+            TLOG_ERR("hcl conv int8 postrun failed\n");
+            set_tengine_errno(EFAULT);
+            return -1;
+        }
+    }
     else
     {
         printf("Tengine work node not support %d\n", exec_graph->mode);
@@ -236,6 +412,10 @@ static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, str
         exec_node->shared_mem_size = fp16_conv_hcl_get_shared_mem_size(input_tensor, output_tensor, conv_param);
     }
 #endif
+    else if (exec_graph->mode == TENGINE_MODE_INT8)
+    {
+        exec_node->shared_mem_size = int8_conv_hcl_get_shared_mem_size(input_tensor, output_tensor, conv_param);
+    }
     else
     {
         printf("Tengine work node not support %d\n", exec_graph->mode);
@@ -275,7 +455,7 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     if (group != 1)
         return 0;
 #else
-    if (input_tensor->data_type != TENGINE_DT_FP32)
+    if (input_tensor->data_type != TENGINE_DT_FP32 && input_tensor->data_type != TENGINE_DT_INT8)
         return 0;
 #endif
     if (group > 1 && kernel_h == 5 && kernel_w == 5 && in_c == 1 && out_c == 1)

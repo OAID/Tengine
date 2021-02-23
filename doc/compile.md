@@ -76,6 +76,19 @@ sudo apt install g++-arm-linux-gnueabihf
 
 ### 2.3 编译 Tengine Lite
 
+Arm64 Linux 交叉编译
+
+```bash
+cd Tengine-Lite
+mkdir build 
+cd build
+cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/aarch64-linux-gnu.toolchain.cmake ..
+make
+make install
+```
+
+Arm32 Linux 交叉编译
+
 ```bash
 cd Tengine-Lite
 mkdir build 
@@ -147,6 +160,14 @@ make install
 
 请参考 [Tengine Lite Vulkan GPU 使用说明](gpu_vulkan_user_manual.md)。
 
+#### 4.3 CUDA
+
+请参考 [Tengine Lite CUDA GPU 使用说明](gpu_cuda_user_manual.md)。
+
+#### 4.4 TensoRT
+
+请参考 [Tengine Lite TensorRT GPU 使用说明](gpu_trt_user_manual.md)。
+
 ## 5. 交叉编译 Arm64 OHOS（鸿蒙系统） 版本
 
 ### 5.1 安装 DevEco Studio 和 OHOS NDK
@@ -190,11 +211,11 @@ set BUILD_DIR=ohos-arm64-v8a
 if not exist %BUILD_DIR% md %BUILD_DIR%
 cd %BUILD_DIR%
 
-cmake -G Ninja ^
-    -DCMAKE_TOOLCHAIN_FILE=%TOOLCHAIN% ^
-    -DOHOS_ARCH="arm64-v8a" ^
-    -DCMAKE_BUILD_TYPE=Release ^
-    -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON ^
+cmake -G Ninja \
+    -DCMAKE_TOOLCHAIN_FILE=%TOOLCHAIN% \
+    -DOHOS_ARCH="arm64-v8a" \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
     ../..
 
 ::ninja

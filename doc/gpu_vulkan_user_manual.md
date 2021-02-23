@@ -6,7 +6,15 @@ Vulkan is a new generation graphics and compute API that provides high-efficienc
 
 ## How to build
 
-### Download Vulkan SDK
+### Build for Linux
+
+On Debian, Ubuntu , you can install vulkan sdk: 
+
+```bash
+sudo apt instal libvulkan-dev
+```
+
+Download Vulkan SDK
 
 ```bash
 # download vulkan sdk
@@ -17,6 +25,14 @@ $ tar -xf vulkansdk-linux-x86_64-1.1.114.0.tar.gz
 $ export VULKAN_SDK=`pwd`/1.1.114.0/x86_64
 ```
 
+```bash
+$ cd <tengine-lite-root-dir>
+$ mkdir -p build-linux-vulkan
+$ cmake -DTENGINE_ENABLE_VULKAN=ON ..
+
+$ make -j4
+$ make install
+```
 ### Build Android Library
 
 ```bash
@@ -33,7 +49,7 @@ $ make install
 
 ## Demo
 
-```bash
+```
 violet:/data/local/tmp/tengine/vulkan $ ./tm_classification_vulkan -m mobilenet.tmfile -i cat.jpg -g 224,224 -s 0.017,0.017,0.017 -r 10
 start to run register cpu allocator
 start to run register vk allocator

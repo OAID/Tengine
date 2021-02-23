@@ -100,7 +100,7 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     int out_c = output_tensor->dims[1] / group;
 
     if (param->group > 1 && in_c == 1 && out_c == 1)
-        return OPS_SCORE_BEST * 2;
+        return 0;
     else
         return 0;
 }

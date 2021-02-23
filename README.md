@@ -2,7 +2,12 @@
 
 # Tengine Lite
 
-[![GitHub license](http://OAID.github.io/pics/apache_2.0.svg)](./LICENSE) [![Build Status](https://img.shields.io/github/workflow/status/OAID/Tengine/Tengine-Lite-Actions/tengine-lite)](https://github.com/OAID/Tengine/actions?query=workflow%3ATengine-Lite-Actions) [![Build Status](https://img.shields.io/github/workflow/status/OAID/Tengine-Convert-Tools/Tengine-Convert-Tools-Actions?label=tools%20build)](https://github.com/OAID/Tengine-Convert-Tools/actions?query=workflow%3ATengine-Convert-Tools-Actions) [![Test Status](https://img.shields.io/travis/OAID/Tengine/tengine-lite?label=test)](https://travis-ci.org/OAID/Tengine)
+[![GitHub license](http://OAID.github.io/pics/apache_2.0.svg)](./LICENSE)
+[![Build Status](https://img.shields.io/github/workflow/status/OAID/Tengine/Tengine-Lite-Actions/tengine-lite)](https://github.com/OAID/Tengine/actions?query=workflow%3ATengine-Lite-Actions)
+[![Build Status](https://img.shields.io/github/workflow/status/OAID/Tengine-Convert-Tools/Tengine-Convert-Tools-Actions?label=tools%20build)](https://github.com/OAID/Tengine-Convert-Tools/actions?query=workflow%3ATengine-Convert-Tools-Actions)
+[![Test Status](https://img.shields.io/travis/OAID/Tengine/tengine-lite?label=test)](https://travis-ci.org/OAID/Tengine)
+[![codecov](https://codecov.io/gh/OAID/Tengine/branch/tengine-lite/graph/badge.svg?token=kz9NcQPRrk)](https://codecov.io/gh/OAID/Tengine)
+[![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/OAID/Tengine.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/OAID/Tengine/context:cpp)
 
 
 
@@ -43,13 +48,20 @@ Tengine Lite 核心代码由 4 个模块组成：
 
 ### 转换工具
 
-- [预编译版本](https://github.com/OAID/Tengine-Convert-Tools/releases/download/v0.1/tm_convert_tool)：提供 Linux 系统上预编译好的模型转换工具；
-- [在线转换版本](https://convertmodel.com/)：基于 WebAssembly 实现（浏览器本地转换，模型不会上传）；
-- [源码编译](https://github.com/OAID/Tengine-Convert-Tools)：参考 **Tengine-Convert-Tools** 项目编译生成。
+- [预编译版本](https://github.com/OAID/Tengine/releases/download/lite-v1.2/convert_tool.zip)：提供 Ubuntu 18.04 系统上预编译好的模型转换工具；
+- [在线转换版本](https://convertmodel.com/#outputFormat=tengine)：基于 WebAssembly 实现（浏览器本地转换，模型不会上传）；
+- [源码编译](https://github.com/OAID/Tengine-Convert-Tools)：参考 **Tengine-Convert-Tools** 项目编译生成，建议采用。
+
+### 量化工具
+
+- [预编译版本](tools/quantize/README.md)：提供 Ubuntu 18.04 系统上预编译好的模型量化工具，已支持uint8/int8；
 
 ### 速度评估
 
 - [Benchmark](benchmark/) 基础网络速度评估工具，欢迎大家更新。
+
+### AutoKernel Plugin
+- [AutoKernel](https://github.com/OAID/AutoKernel.git) 是一个简单易用，低门槛的自动算子优化工具，AutoKernel Plugin实现了自动优化算子一键部署到Tengine中；
 
 ## Roadmap
 
@@ -64,11 +76,13 @@ Tengine Lite 参考和借鉴了下列项目：
 - [MegEngine](https://github.com/MegEngine/MegEngine)
 - [ONNX](https://github.com/onnx/onnx)
 - [ncnn](https://github.com/Tencent/ncnn)
+- [FeatherCNN](https://github.com/Tencent/FeatherCNN)
 - [MNN](https://github.com/alibaba/MNN)
 - [Paddle Lite](https://github.com/PaddlePaddle/Paddle-Lite)
 - [ACL](https://github.com/ARM-software/ComputeLibrary)
 - [stb](https://github.com/nothings/stb)
 - [convertmodel](https://convertmodel.com)
+- [TIM-VX](https://github.com/VeriSilicon/TIM-VX)
 
 ## License
 

@@ -1,6 +1,11 @@
 #include <stdio.h>
 #include <string.h>
+
+#ifdef _MSC_VER
+#include <windows.h>
+#else
 #include <dlfcn.h>
+#endif
 
 #include "compiler.h"
 #include "sys_port.h"
@@ -10,7 +15,13 @@
 #include "vector.h"
 
 typedef const char* const_char_t;
+
+#ifdef _MSC_VER
+typedef int(*fun_ptr)(void);
+typedef HINSTANCE so_handle_t;
+#else
 typedef void* so_handle_t;
+#endif
 
 struct plugin_header
 {
@@ -23,11 +34,20 @@ static struct vector* plugin_list = NULL;
 
 static int exec_so_func(so_handle_t handle, const char* func_name)
 {
-    void* func = dlsym(handle, func_name);
+#ifdef _MSC_VER
+	void* func = (fun_ptr)GetProcAddress(handle, func_name);
+#else
+	void* func = dlsym(handle, func_name);
+#endif
 
     if (func == NULL)
     {
-        TLOG_ERR("find func: %s failed, reason %s\n", func_name, dlerror());
+#ifdef _MSC_VER
+		TLOG_ERR("find func: %s failed, error code %d\n", func_name, GetLastError());
+#else
+		TLOG_ERR("find func: %s failed, reason %s\n", func_name, dlerror());
+#endif
+
         return -1;
     }
 
@@ -43,7 +63,7 @@ static int exec_so_func(so_handle_t handle, const char* func_name)
     return 0;
 }
 
-int DLLEXPORT load_tengine_plugin(const char* plugin_name, const char* fname, const char* init_func_name)
+int load_tengine_plugin(const char* plugin_name, const char* fname, const char* init_func_name)
 {
     struct plugin_header header;
 
@@ -76,11 +96,19 @@ int DLLEXPORT load_tengine_plugin(const char* plugin_name, const char* fname, co
     }
 
     /* load the so */
-    header.handle = dlopen(fname, RTLD_LAZY);
+#ifdef _MSC_VER
+	header.handle = LoadLibraryA(fname);
+#else
+	header.handle = dlopen(fname, RTLD_LAZY);
+#endif
 
     if (header.handle == NULL)
     {
-        TLOG_ERR("load plugin failed: %s\n", dlerror());
+#ifdef _MSC_VER
+		TLOG_ERR("load plugin failed: error code %d\n", GetLastError());
+#else
+		TLOG_ERR("load plugin failed: %s\n", dlerror());
+#endif
         set_tengine_errno(EINVAL);
         return -1;
     }
@@ -89,7 +117,13 @@ int DLLEXPORT load_tengine_plugin(const char* plugin_name, const char* fname, co
     if (init_func_name && exec_so_func(header.handle, init_func_name) < 0)
     {
         set_tengine_errno(EINVAL);
-        dlclose(header.handle);
+
+#ifdef _MSC_VER
+		FreeLibrary(header.handle);
+#else
+		dlclose(header.handle);
+#endif
+
         return -1;
     }
 
@@ -101,7 +135,7 @@ int DLLEXPORT load_tengine_plugin(const char* plugin_name, const char* fname, co
     return 0;
 }
 
-int DLLEXPORT unload_tengine_plugin(const char* plugin_name, const char* rel_func_name)
+int unload_tengine_plugin(const char* plugin_name, const char* rel_func_name)
 {
     if (plugin_list == NULL)
         return -1;
@@ -129,7 +163,11 @@ int DLLEXPORT unload_tengine_plugin(const char* plugin_name, const char* rel_fun
     if (rel_func_name)
         exec_so_func(target->handle, rel_func_name);
 
-    dlclose(target->handle);
+#ifdef _MSC_VER
+	FreeLibrary(target->handle);
+#else
+	dlclose(target->handle);
+#endif
 
     remove_vector_data(plugin_list, target);
 
@@ -141,7 +179,7 @@ int DLLEXPORT unload_tengine_plugin(const char* plugin_name, const char* rel_fun
     return 0;
 }
 
-int DLLEXPORT get_tengine_plugin_number(void)
+int get_tengine_plugin_number(void)
 {
     int plugin_num = 0;
 
@@ -151,7 +189,7 @@ int DLLEXPORT get_tengine_plugin_number(void)
     return plugin_num;
 }
 
-const_char_t DLLEXPORT get_tengine_plugin_name(int idx)
+const_char_t get_tengine_plugin_name(int idx)
 {
     int plugin_num = get_tengine_plugin_number();
 

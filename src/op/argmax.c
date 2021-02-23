@@ -50,7 +50,7 @@ static int infer_shape(struct ir_node* node)
         return -1;
     }
 
-    int outdims[input->dim_num];
+    int outdims[MAX_SHAPE_DIM_NUM * 2];
 
     // Change HWC to CHW
     int tmp = input->dims[2];

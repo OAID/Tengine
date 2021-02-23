@@ -28,15 +28,27 @@
 #ifdef CONFIG_BAREMETAL_BUILD
 static int tengine_errno;
 #else
+#ifdef _MSC_VER
+__declspec(thread) int tengine_errno;
+#else
 static __thread int tengine_errno;
 #endif
+#endif
 
-int DLLEXPORT get_tengine_errno(void)
+#ifdef _MSC_VER
+#pragma warning (disable : 2375)
+#endif
+
+DLLEXPORT int get_tengine_errno(void)
 {
     return tengine_errno;
 }
 
-void set_tengine_errno(int err_num)
+DLLEXPORT void set_tengine_errno(int err_num)
 {
     tengine_errno = err_num;
 }
+
+#ifdef _MSC_VER
+#pragma warning (pop)
+#endif
