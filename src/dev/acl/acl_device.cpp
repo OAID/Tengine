@@ -66,7 +66,7 @@ int acl_describe(struct dev_allocator* allocator, struct vector* allowed_ops, st
         }
         else
         {
-            if (j < sizeof(acl_supported_ops) / sizeof(acl_supported_ops[0]))
+            if (j < (sizeof(acl_supported_ops) / sizeof(acl_supported_ops[0])))
                 j++;
         }
     }

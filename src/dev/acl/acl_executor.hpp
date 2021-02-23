@@ -83,15 +83,19 @@ private:
     bool CreateACLGraph(struct subgraph* subgraph, DataType type, bool bDataLayoutOpFlag = false);
 
     bool AddBNLayer(struct ir_node* node, struct ir_node* node_scale);
-    bool AddConvolutionLayer(struct ir_node* node);
+    bool AddCastLayer(struct ir_node* node);
     bool AddConcatLayer(struct ir_node* node);
+    bool AddConvolutionLayer(struct ir_node* node);
+    bool AddCropLayer(struct ir_node* node);
     bool AddDropoutLayer(struct ir_node* node);
     bool AddEltwiseLayer(struct ir_node* node);
     bool AddFCLayer(struct ir_node* node);
     bool AddInputLayer(struct ir_node* node);
+    bool AddInterpLayer(struct ir_node* node);
     bool AddPoolingLayer(struct ir_node* node);
     bool AddReLuLayer(struct ir_node* node);
     bool AddReLu6Layer(struct ir_node* node);
+    bool AddReshapeLayer(struct ir_node* node);
     bool AddResizeLayer(struct ir_node* node);
     bool AddSoftmaxLayer(struct ir_node* node);
 
