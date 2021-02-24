@@ -64,3 +64,22 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 else()
     message(WARNING "OpenCV not found, some examples won't be built")
 endif()
+
+if (TENGINE_ENABLE_NNIE)
+    function (tengine_nnie_example name file)
+        add_executable(${name} 
+                    "${CMAKE_CURRENT_SOURCE_DIR}/${file}"
+                    "${CMAKE_CURRENT_SOURCE_DIR}/common/tengine_operations.c")    
+
+        target_link_libraries(${name} PRIVATE ${CMAKE_PROJECT_NAME})
+
+        include_directories("${PROJECT_SOURCE_DIR}/src/dev/nnie/include")
+        include_directories("${PROJECT_SOURCE_DIR}/src/dev/nnie/common")
+        include_directories("${PROJECT_SOURCE_DIR}/3rdparty/nnie/include")
+
+        install (TARGETS ${name} DESTINATION bin)
+    endfunction()
+
+    # add c api examples
+    tengine_nnie_example(tm_yolov3_nnie             tm_yolov3_nnie.cpp)
+endif()

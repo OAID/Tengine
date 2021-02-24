@@ -34,14 +34,17 @@
 #include "tengine_errno.h"
 #include "tengine_utils.h"
 
-static struct vector* op_list;
+static struct vector* op_list = NULL;
 
 int init_op_registry(void)
 {
-    op_list = create_vector(sizeof(struct op_method), NULL);
+    if (NULL == op_list)
+    {
+        op_list = create_vector(sizeof(struct op_method), NULL);
 
-    if (op_list == NULL)
-        return -1;
+        if (op_list == NULL)
+            return -1;
+    }
 
     return 0;
 }
@@ -79,6 +82,11 @@ struct op_method* find_op_method(int op_type, int op_version)
 
 int register_op(int op_type, const char* op_name, struct op_method* op_method)
 {
+    if (NULL == op_list)
+    {
+        init_op_registry();
+    }
+
     if (op_name && register_op_map(op_type, op_name) < 0)
         return -1;
 
