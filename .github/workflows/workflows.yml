@@ -18,12 +18,12 @@ jobs:
     - name: models
       run: |
         cd build
-        wget http://139.180.196.82/lite/models.zip
+        wget http://198.55.120.234/lite/models.zip
         unzip models.zip
-        wget http://139.180.196.82/lite/x86_data.zip
+        wget http://198.55.120.234/lite/x86_data.zip
         unzip x86_data.zip
         mv x86_data data
-        wget http://139.180.196.82/lite/images.zip
+        wget http://198.55.120.234/lite/images.zip
         unzip images.zip
     - name: test
       run: |
@@ -68,12 +68,12 @@ jobs:
     - name: models
       run: |
         cd build
-        wget http://139.180.196.82/lite/models.zip
+        wget http://198.55.120.234/lite/models.zip
         unzip models.zip
-        wget http://139.180.196.82/lite/arm32_data.zip
+        wget http://198.55.120.234/lite/arm32_data.zip
         unzip arm32_data.zip
         mv arm32_data data
-        wget http://139.180.196.82/lite/images.zip
+        wget http://198.55.120.234/lite/images.zip
         unzip images.zip
     - name: test
       run: |
@@ -119,12 +119,12 @@ jobs:
     - name: models
       run: |
         cd build
-        wget http://139.180.196.82/lite/models.zip
+        wget http://198.55.120.234/lite/models.zip
         unzip models.zip
-        wget http://139.180.196.82/lite/arm64_data.zip
+        wget http://198.55.120.234/lite/arm64_data.zip
         unzip arm64_data.zip
         mv arm64_data data
-        wget http://139.180.196.82/lite/images.zip
+        wget http://198.55.120.234/lite/images.zip
         unzip images
     - name: test
       run: |
