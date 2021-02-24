@@ -20,12 +20,12 @@ jobs:
     - name: models
       run: |
         cd build
-        wget http://139.180.196.82/lite/models.zip
+        wget http://198.55.120.234/lite/models.zip
         unzip models.zip
-        wget http://139.180.196.82/lite/x86_data.zip
+        wget http://198.55.120.234/lite/x86_data.zip
         unzip x86_data.zip
         mv x86_data data
-        wget http://139.180.196.82/lite/images.zip
+        wget http://198.55.120.234/lite/images.zip
         unzip images.zip
     - name: test-cpu
       run: |
