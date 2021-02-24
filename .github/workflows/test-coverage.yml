@@ -52,6 +52,8 @@ jobs:
       run: sudo apt-get update
     - name: protobuf
       run: sudo apt-get install libopencv-dev
+    - name: gtest
+      run: sudo apt-get install libgtest-dev
     - name: lcov
       run: sudo apt-get install lcov
     - name: tim-vx
