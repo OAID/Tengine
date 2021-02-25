@@ -14,7 +14,6 @@ For some special reasons, only supported on Khadas VIM3 or x86_64 simulator to w
 
 ```bash
 $ git clone https://github.com/VeriSilicon/TIM-VX.git
-$ sudo apt-get install libgtest-dev
 ```
 
 ##### Download Tengine Lite
@@ -36,6 +35,7 @@ $ cp -rf ../TIM-VX/include/*    ./3rdparty/tim-vx/include/
 $ cp -rf ../TIM-VX/src    ./src/dev/tim-vx/
 $ cp -rf ../TIM-VX/prebuilt-sdk/x86_64_linux/include/*    ./3rdparty/tim-vx/include/
 $ cp -rf ../TIM-VX/prebuilt-sdk/x86_64_linux/lib/*    ./3rdparty/tim-vx/lib/x86_64/
+$ rm ./src/dev/tim-vx/src/tim/vx/*_test.cc
 ```
 
 #### 2.2 Prepare for on Khadas VIM3 platform
@@ -96,7 +96,7 @@ On the Khadas VIM3, it need to replace those libraries in the /lib/
 - A: Remove the old kernel module and replace it with the new version(in the /prebuild-sdk-a311d/lib/galcore.ko) 
 ```
 $ rmmod galcore
-$ ismod galcore
+$ insmod galcore.ko
 ```
 
 #### 3.2 Set uint8 Inference mode
