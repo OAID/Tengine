@@ -63,7 +63,8 @@ jobs:
         cp -rf ./TIM-VX/src    ./src/dev/tim-vx/
         cp -rf ./TIM-VX/prebuilt-sdk/x86_64_linux/include/*    ./3rdparty/tim-vx/include/
         cp -rf ./TIM-VX/prebuilt-sdk/x86_64_linux/lib/*    ./3rdparty/tim-vx/lib/x86_64/
-        rm ./src/dev/tim-vx/src/tim/vx/*_test.cc
+        rm ./src/dev/tim-vx/src/tim/vx/context_test.cc
+        rm ./src/dev/tim-vx/src/tim/vx/graph_test.cc
     - name: configure
       run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=debug -DTENGINE_ENABLE_TIM_VX=ON -DTENGINE_ENABLE_TIM_VX_INTEGRATION=ON -DTENGINE_COVERAGE=ON ..
     - name: build
