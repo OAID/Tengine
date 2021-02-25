@@ -125,10 +125,15 @@ struct op_map_entry
     const char* op_name;
 };
 
-static struct vector* op_map_list;
+static struct vector* op_map_list = NULL;
 
 int register_op_map(int op_type, const char* name)
 {
+    if (NULL == op_map_list)
+    {
+        init_op_name_map();
+    }
+
     struct op_map_entry e;
 
     e.op_type = op_type;
@@ -160,10 +165,13 @@ int unregister_op_map(int op_type)
 
 int init_op_name_map(void)
 {
-    op_map_list = create_vector(sizeof(struct op_map_entry), NULL);
+    if (NULL == op_map_list)
+    {
+        op_map_list = create_vector(sizeof(struct op_map_entry), NULL);
 
-    if (op_map_list == NULL)
-        return -1;
+        if (op_map_list == NULL)
+            return -1;
+    }
 
     return 0;
 }

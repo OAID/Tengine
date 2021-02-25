@@ -31,7 +31,7 @@
 #endif
 #include "tengine_cpp_api.h"
 
-namespace tengine {
+namespace Tengine {
 
 Net::Net()
 {
@@ -443,4 +443,4 @@ size_t Tensor::total() const
 // // Caffe
 // void Tensor::substract_mean_normalize(const float* mean_vals, const float* norm_vals, const int type) {}
 
-}    // namespace tengine
+}    // namespace Tengine
