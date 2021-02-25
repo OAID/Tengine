@@ -35,7 +35,7 @@ $ cp -rf ../TIM-VX/include/*    ./3rdparty/tim-vx/include/
 $ cp -rf ../TIM-VX/src    ./src/dev/tim-vx/
 $ cp -rf ../TIM-VX/prebuilt-sdk/x86_64_linux/include/*    ./3rdparty/tim-vx/include/
 $ cp -rf ../TIM-VX/prebuilt-sdk/x86_64_linux/lib/*    ./3rdparty/tim-vx/lib/x86_64/
-$ rm ./src/dev/tim-vx/src/*_test.cc
+$ rm ./src/dev/tim-vx/src/tim/vx/*_test.cc
 ```
 
 #### 2.2 Prepare for on Khadas VIM3 platform
