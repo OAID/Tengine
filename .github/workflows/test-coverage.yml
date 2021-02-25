@@ -52,8 +52,6 @@ jobs:
       run: sudo apt-get update
     - name: protobuf
       run: sudo apt-get install libopencv-dev
-    - name: gtest
-      run: sudo apt-get install libgtest-dev
     - name: lcov
       run: sudo apt-get install lcov
     - name: tim-vx
@@ -72,7 +70,7 @@ jobs:
     - name: models
       run: |
         cd build
-        wget http://139.180.196.82/lite/images.zip
+        wget http://198.55.120.234/lite/images.zip
         unzip images.zip
         git clone https://github.com/BUG1989/tengine_test_data.git
     - name: test-timvx-simulator

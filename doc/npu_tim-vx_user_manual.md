@@ -14,7 +14,6 @@ For some special reasons, only supported on Khadas VIM3 or x86_64 simulator to w
 
 ```bash
 $ git clone https://github.com/VeriSilicon/TIM-VX.git
-$ sudo apt-get install libgtest-dev
 ```
 
 ##### Download Tengine Lite

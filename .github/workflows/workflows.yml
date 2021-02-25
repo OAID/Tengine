@@ -141,8 +141,6 @@ jobs:
       run: sudo apt-get update
     - name: protobuf
       run: sudo apt-get install libopencv-dev
-    - name: gtest
-      run: sudo apt-get install libgtest-dev
     - name: tim-vx
       run: |
         git clone https://github.com/VeriSilicon/TIM-VX.git
