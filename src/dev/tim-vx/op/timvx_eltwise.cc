@@ -31,7 +31,7 @@ extern "C"
 }
 
 
-bool VXEngine::AddEltwisSumNode(struct ir_node* ir_node)
+bool VXEngine::AddEltwiseNode(struct ir_node* ir_node)
 {
     TLOG_INFO("Tengine TIM-VX: Support OP(%d) OP_RELU.\n", ir_node->idx);
     struct ir_graph* ir_graph = ir_node->graph;
@@ -62,6 +62,14 @@ bool VXEngine::AddEltwisSumNode(struct ir_node* ir_node)
         {
             auto eltsum = graph->CreateOperation<tim::vx::ops::Add>();
             (*eltsum)
+                .BindInputs(add_in_tensor)
+                .BindOutputs({ this->vx_tensor_map[output_tensor->idx] });
+            break;
+        }
+        case ELT_SUB:
+        {
+            auto eltsub = graph->CreateOperation<tim::vx::ops::Sub>();
+            (*eltsub)
                 .BindInputs(add_in_tensor)
                 .BindOutputs({ this->vx_tensor_map[output_tensor->idx] });
             break;

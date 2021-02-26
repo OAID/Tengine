@@ -159,11 +159,17 @@ int VXEngine::Build(struct subgraph* subgraph)
             case OP_CONV:
                 this->AddConvolutionNode(ir_node);
                 break;
+            case OP_DEPTHTOSPACE:
+                this->AddDepthToSpaceNode(ir_node);
+                break;
             case OP_DROPOUT:
                 this->AddDropoutNode(ir_node);
                 break;
             case OP_ELTWISE:
-                this->AddEltwisSumNode(ir_node);
+                this->AddEltwiseNode(ir_node);
+                break;
+            case OP_ELU:
+                this->AddEluNode(ir_node);
                 break;
             case OP_FC:
                 this->AddFullyConnectionNode(ir_node);
@@ -171,23 +177,51 @@ int VXEngine::Build(struct subgraph* subgraph)
             case OP_FLATTEN:
                 this->AddFlattenNode(ir_node);
                 break;
+            case OP_GATHER:
+                this->AddGatherNode(ir_node);
+                break;
+            case OP_HARDSWISH:
+                this->AddHardSwishNode(ir_node);
+                break;
+            case OP_INTERP:
+                this->AddInterpNode(ir_node);
+                break;
 //            case OP_PERMUTE:
 //                this->AddPermuteNode(ir_graph, ir_node);
 //                break;
             case OP_POOL:
                 this->AddPoolingNode(ir_node);
                 break;
+            case OP_PRELU:
+                this->AddPReluNode(ir_node);
+                break;
             case OP_RELU:
                 this->AddReluNode(ir_node);
                 break;
-//            case OP_RESHAPE:
-//                this->AddReshapeNode(ir_graph, ir_node);
-//                break;
-//            case OP_SLICE:
-//                this->AddSliceNode(ir_graph, ir_node);
-//                break;
-//            case OP_SOFTMAX:
-//                this->AddSoftmaxNode(ir_graph, ir_node);
+            case OP_RELU1:
+                this->AddRelu1Node(ir_node);
+                break;
+            case OP_RESHAPE:
+                this->AddReshapeNode(ir_node);
+                break;
+            case OP_SIGMOID:
+                this->AddSigmoidNode(ir_node);
+                break;
+            case OP_SLICE:
+                this->AddSliceNode(ir_node);
+                break;
+            case OP_SOFTMAX:
+                this->AddSoftmaxNode(ir_node);
+                break;
+            case OP_SPACETODEPTH:
+                this->AddSpaceToDepthNode(ir_node);
+                break;
+            case OP_TANH:
+                this->AddTanhNode(ir_node);
+                break;
+            case OP_UPSAMPLE:
+                this->AddUpsampleNode(ir_node);
+                break;
             default:
                 fprintf(stderr, "Tengine TIM-VX: Cannot support OP(%d).\n", ir_node->idx);
                 break;
