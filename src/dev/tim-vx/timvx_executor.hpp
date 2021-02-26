@@ -43,13 +43,19 @@ extern "C"
 #include "tim/vx/operation.h"
 
 #include "tim/vx/ops/activations.h"
+#include "tim/vx/ops/depth2space.h"
 #include "tim/vx/ops/concat.h"
 #include "tim/vx/ops/conv2d.h"
 #include "tim/vx/ops/elementwise.h"
 #include "tim/vx/ops/fullyconnected.h"
+#include "tim/vx/ops/gather.h"
 #include "tim/vx/ops/pool2d.h"
 #include "tim/vx/ops/reshape.h"
+#include "tim/vx/ops/resize.h"
+#include "tim/vx/ops/slice.h"
 #include "tim/vx/ops/softmax.h"
+#include "tim/vx/ops/space2depth.h"
+
 #include "tim/vx/tensor.h"
 
 #include "convolution_param.h"
@@ -77,12 +83,27 @@ private:
     bool AddClipNode(struct ir_node* ir_node);
     bool AddConcatNode(struct ir_node* ir_node);
     bool AddConvolutionNode(struct ir_node* ir_node);
+    bool AddDepthToSpaceNode(struct ir_node* ir_node);
     bool AddDropoutNode(struct ir_node* ir_node);
-    bool AddEltwisSumNode(struct ir_node* ir_node);
+    bool AddEltwiseNode(struct ir_node* ir_node);
+    bool AddEluNode(struct ir_node* ir_node);
     bool AddFlattenNode(struct ir_node* ir_node);
     bool AddFullyConnectionNode(struct ir_node* node);
+    bool AddGatherNode(struct ir_node* node);
+    bool AddHardSwishNode(struct ir_node* node);
+    bool AddInterpNode(struct ir_node* ir_node);
     bool AddPoolingNode(struct ir_node* ir_node);
+    bool AddPReluNode(struct ir_node* ir_node);
     bool AddReluNode(struct ir_node* ir_node);
+    bool AddRelu1Node(struct ir_node* ir_node);
+    bool AddReshapeNode(struct ir_node* ir_node);
+    bool AddSigmoidNode(struct ir_node* ir_node);
+    bool AddSliceNode(struct ir_node* ir_node);
+    bool AddSoftmaxNode(struct ir_node* ir_node);
+    bool AddSpaceToDepthNode(struct ir_node* ir_node);
+    bool AddTanhNode(struct ir_node* ir_node);
+    bool AddUpsampleNode(struct ir_node* ir_node);
+
 
 
 

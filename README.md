@@ -54,14 +54,18 @@ Tengine Lite 核心代码由 4 个模块组成：
 
 ### 量化工具
 
-- [预编译版本](tools/quantize/README.md)：提供 Ubuntu 18.04 系统上预编译好的模型量化工具，已支持uint8/int8；
+- [预编译版本](tools/quantize/README.md)：提供 Ubuntu 18.04 系统上预编译好的模型量化工具，已支持uint8/int8。
 
 ### 速度评估
 
 - [Benchmark](benchmark/) 基础网络速度评估工具，欢迎大家更新。
 
+### NPU Plugin
+
+- [TIM-VX](doc/npu_tim-vx_user_manual.md) VeriSilicon NPU 使用指南。
+
 ### AutoKernel Plugin
-- [AutoKernel](https://github.com/OAID/AutoKernel.git) 是一个简单易用，低门槛的自动算子优化工具，AutoKernel Plugin实现了自动优化算子一键部署到Tengine中；
+- [AutoKernel](https://github.com/OAID/AutoKernel.git) 是一个简单易用，低门槛的自动算子优化工具，AutoKernel Plugin实现了自动优化算子一键部署到Tengine中。
 
 ## Roadmap
 

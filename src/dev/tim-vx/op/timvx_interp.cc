@@ -27,31 +27,32 @@
 extern "C"
 {
 #include "tengine_op.h"
-#include "relu_param.h"
+#include "interp_param.h"
 }
 
-bool VXEngine::AddReluNode(struct ir_node* ir_node)
+
+bool VXEngine::AddInterpNode(struct ir_node* ir_node)
 {
-    TLOG_INFO("Tengine TIM-VX: Support OP(%d) OP_RELU.\n", ir_node->idx);
+    TLOG_INFO("Tengine TIM-VX: Support OP(%d) OP_INTERP.\n", ir_node->idx);
     struct ir_graph* ir_graph = ir_node->graph;
 
     struct ir_tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     struct ir_tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    struct relu_param* param = (struct relu_param*)ir_node->op.param_mem;
+    struct interp_param* param = (struct interp_param*)ir_node->op.param_mem;
 
-    if (param->negative_slope > 0.000001)
-    {
-        auto leaky_relu = this->graph->CreateOperation<tim::vx::ops::LeakyRelu>(0.1);
-        (*leaky_relu).BindInput( this->vx_tensor_map[input_tensor->idx] )
-            .BindOutput({ this->vx_tensor_map[output_tensor->idx] });
-    }
+    tim::vx::ResizeType resize_type;
+    if (param->resize_type == 1)
+        resize_type = tim::vx::ResizeType::NEAREST_NEIGHBOR;
+    else if(param->resize_type == 2)
+        resize_type = tim::vx::ResizeType::BILINEAR;
     else
-    {
-        auto relu = this->graph->CreateOperation<tim::vx::ops::Relu>();
-        (*relu).BindInput( this->vx_tensor_map[input_tensor->idx] )
-            .BindOutput({ this->vx_tensor_map[output_tensor->idx] });
-    }
+        fprintf(stderr, " Not support this resize type(%d)\n",resize_type);
+
+    auto resize = graph->CreateOperation<tim::vx::ops::Resize>(resize_type, 0.0f, false, false, param->output_height, param->output_width);
+    (*resize)
+        .BindInputs({ this->vx_tensor_map[input_tensor->idx] })
+        .BindOutputs({ this->vx_tensor_map[output_tensor->idx] });
 
     return true;
 }

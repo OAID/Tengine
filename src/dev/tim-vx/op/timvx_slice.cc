@@ -27,31 +27,43 @@
 extern "C"
 {
 #include "tengine_op.h"
-#include "relu_param.h"
+#include "slice_param.h"
 }
 
-bool VXEngine::AddReluNode(struct ir_node* ir_node)
+
+bool VXEngine::AddSliceNode(struct ir_node* ir_node)
 {
-    TLOG_INFO("Tengine TIM-VX: Support OP(%d) OP_RELU.\n", ir_node->idx);
+    TLOG_INFO("Tengine TIM-VX: Support OP(%d) OP_SLICE.\n", ir_node->idx);
     struct ir_graph* ir_graph = ir_node->graph;
 
     struct ir_tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     struct ir_tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    struct relu_param* param = (struct relu_param*)ir_node->op.param_mem;
+    struct slice_param* param = (struct slice_param*)ir_node->op.param_mem;
 
-    if (param->negative_slope > 0.000001)
+    uint32_t axis = output_tensor->dim_num - param->axis;
+
+    std::vector<int32_t> start;
+    for (int i = output_tensor->dim_num - 1; i >= 0; i--)
     {
-        auto leaky_relu = this->graph->CreateOperation<tim::vx::ops::LeakyRelu>(0.1);
-        (*leaky_relu).BindInput( this->vx_tensor_map[input_tensor->idx] )
-            .BindOutput({ this->vx_tensor_map[output_tensor->idx] });
+        if (axis == i)
+            start.push_back(param->begin);
+        else
+            start.push_back(0);
     }
-    else
+
+    std::vector<int32_t> length;
+    for (int i = output_tensor->dim_num - 1; i >= 0; i--)
     {
-        auto relu = this->graph->CreateOperation<tim::vx::ops::Relu>();
-        (*relu).BindInput( this->vx_tensor_map[input_tensor->idx] )
-            .BindOutput({ this->vx_tensor_map[output_tensor->idx] });
+        if (axis == i)
+            length.push_back(param->end - param->begin);
+        else
+            length.push_back(-1);
     }
+
+    auto slice = this->graph->CreateOperation<tim::vx::ops::Slice>(output_tensor->dim_num, start, length);
+    (*slice).BindInput( this->vx_tensor_map[input_tensor->idx] )
+        .BindOutput({ this->vx_tensor_map[output_tensor->idx] });
 
     return true;
 }
