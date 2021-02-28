@@ -43,89 +43,107 @@ static int infer_shape(struct ir_node* node)
     struct ir_tensor* output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
     struct squeeze_param* squeeze_param = ( struct squeeze_param* )node->op.param_mem;
 
-    int in_size = input->dim_num;
+    int squeeze_param_array[] = { squeeze_param->dim_0, squeeze_param->dim_1, squeeze_param->dim_2, squeeze_param->dim_3 };
 
-    int new_shape[4];
-    int dim_size = 0;
-    if (squeeze_param->dim_0 != -2)
+    uint8_t out_dim_num = 0;
+    for (uint8_t i = 0; i < input->dim_num; i++)
     {
-        new_shape[dim_size] = squeeze_param->dim_0;
-        dim_size++;
-    }
-    if (squeeze_param->dim_1 != -2)
-    {
-        new_shape[dim_size] = squeeze_param->dim_1;
-        dim_size++;
-    }
-    if (squeeze_param->dim_2 != -2)
-    {
-        new_shape[dim_size] = squeeze_param->dim_2;
-        dim_size++;
-    }
-    if (squeeze_param->dim_3 != -2)
-    {
-        new_shape[dim_size] = squeeze_param->dim_3;
-        dim_size++;
-    }
-
-    bool should_squeeze[4] = {false};
-    int squeezeddim = 0;
-    int newshape_size = dim_size;
-    int real_shape[4] = {0, 2, 3, 1};
-
-    if (newshape_size)
-    {
-        for (int i = 0; i < newshape_size; i++)
+        if (!(i < sizeof(squeeze_param_array) / sizeof(squeeze_param_array[0]) && 1 == squeeze_param_array[i]))
         {
-            if (new_shape[i] >= 0)
-            {
-                int idx = new_shape[i];
-                if (ir_graph->graph_layout == TENGINE_LAYOUT_NCHW)
-                    idx = real_shape[idx];
-                if (input->dims[idx] == 1 && idx >= 0 && idx < 4)
-                {
-                    should_squeeze[idx] = true;
-                    ++squeezeddim;
-                }
-            }
-            else if (new_shape[i] < 0)
-            {
-                int idx = new_shape[i];
-                if (ir_graph->graph_layout == TENGINE_LAYOUT_NCHW)
-                    idx = real_shape[idx];
-                if (input->dims[idx] == 1 && idx > 0 && idx < 3)
-                {
-                    int current = input->dim_num + idx;
-                    should_squeeze[current] = true;
-                    ++squeezeddim;
-                }
-            }
+            output->dims[out_dim_num] = input->dims[i];
+            out_dim_num++;
         }
     }
-    else
-    {
-        for (int idx = 0; idx < in_size; ++idx)
-        {
-            if (input->dims[idx] == 1)
-            {
-                should_squeeze[idx] = true;
-                ++squeezeddim;
-            }
-        }
-    }
+    output->dim_num = out_dim_num;
 
-    int* odim = ( int* )sys_malloc((in_size - squeezeddim) * sizeof(int));
-    int o_idx = 0;
-    for (int i_idx = 0; i_idx < in_size; i_idx++)
-    {
-        if (!should_squeeze[i_idx])
-            odim[o_idx++] = input->dims[i_idx];
-    }
+    set_ir_tensor_shape(output, output->dims, output->dim_num);
 
-    set_ir_tensor_shape(output, odim, o_idx);
-
-    sys_free(odim);
     return 0;
+
+
+//    int in_size = input->dim_num;
+//
+//    int new_shape[4];
+//    int dim_size = 0;
+//    if (squeeze_param->dim_0 != -2)
+//    {
+//        new_shape[dim_size] = squeeze_param->dim_0;
+//        dim_size++;
+//    }
+//    if (squeeze_param->dim_1 != -2)
+//    {
+//        new_shape[dim_size] = squeeze_param->dim_1;
+//        dim_size++;
+//    }
+//    if (squeeze_param->dim_2 != -2)
+//    {
+//        new_shape[dim_size] = squeeze_param->dim_2;
+//        dim_size++;
+//    }
+//    if (squeeze_param->dim_3 != -2)
+//    {
+//        new_shape[dim_size] = squeeze_param->dim_3;
+//        dim_size++;
+//    }
+//
+//    bool should_squeeze[4] = {false};
+//    int squeezeddim = 0;
+//    int newshape_size = dim_size;
+//    int real_shape[4] = {0, 2, 3, 1};
+//
+//    if (newshape_size)
+//    {
+//        for (int i = 0; i < newshape_size; i++)
+//        {
+//            if (new_shape[i] >= 0)
+//            {
+//                int idx = new_shape[i];
+//                if (ir_graph->graph_layout == TENGINE_LAYOUT_NCHW)
+//                    idx = real_shape[idx];
+//                if (input->dims[idx] == 1 && idx >= 0 && idx < 4)
+//                {
+//                    should_squeeze[idx] = true;
+//                    ++squeezeddim;
+//                }
+//            }
+//            else if (new_shape[i] < 0)
+//            {
+//                int idx = new_shape[i];
+//                if (ir_graph->graph_layout == TENGINE_LAYOUT_NCHW)
+//                    idx = real_shape[idx];
+//                if (input->dims[idx] == 1 && idx > 0 && idx < 3)
+//                {
+//                    int current = input->dim_num + idx;
+//                    should_squeeze[current] = true;
+//                    ++squeezeddim;
+//                }
+//            }
+//        }
+//    }
+//    else
+//    {
+//        for (int idx = 0; idx < in_size; ++idx)
+//        {
+//            if (input->dims[idx] == 1)
+//            {
+//                should_squeeze[idx] = true;
+//                ++squeezeddim;
+//            }
+//        }
+//    }
+//
+//    int* odim = ( int* )sys_malloc((in_size - squeezeddim) * sizeof(int));
+//    int o_idx = 0;
+//    for (int i_idx = 0; i_idx < in_size; i_idx++)
+//    {
+//        if (!should_squeeze[i_idx])
+//            odim[o_idx++] = input->dims[i_idx];
+//    }
+//
+//    set_ir_tensor_shape(output, odim, o_idx);
+//
+//    sys_free(odim);
+//    return 0;
 }
 
 static int init_op(struct ir_op* op)

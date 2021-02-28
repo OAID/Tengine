@@ -129,7 +129,9 @@ enum
     OP_TILE,
     OP_SHAPE,
     OP_SCATTER,
-    OP_WHERE,    
+    OP_WHERE,
+    OP_SOFTPLUS,
+    OP_RECIPROCAL,   
     OP_BUILTIN_LAST
 };
 
