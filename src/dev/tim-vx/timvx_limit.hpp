@@ -89,7 +89,6 @@ const int timvx_supported_ops[] = {
 //    OP_REDUCTION,
 //    OP_REGION,
     OP_RELU,
-    OP_RELU1,
     OP_RELU6,
 //    OP_REORG,
     OP_RESHAPE,
@@ -124,11 +123,14 @@ const int timvx_supported_ops[] = {
 //    OP_ZEROSLIKE,
 //    OP_MISH,
 //    OP_LOGSOFTMAX,
+//    OP_RELU1,
 //    OP_L2NORMALIZATION,
 //    OP_L2POOL,
 //    OP_TILE,
 //    OP_SHAPE,
 //    OP_SCATTER,
 //    OP_WHERE,
+//    OP_SOFTPLUS,
+//    OP_RECIPROCAL,
 //    OP_BUILTIN_LAST
 };
