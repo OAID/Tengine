@@ -112,6 +112,13 @@ void VXEngine::VXTensorMap(struct ir_graph* ir_graph, int ir_tensor_idx, int spe
                                         tim::vx::TensorAttribute::CONSTANT, vx_quant);
             vx_tensor = this->graph->CreateTensor(vx_spec, ir_tensor->data);
         }
+        else if (spec_type == SPEC_TYPE_PRELU)
+        {
+            TLOG_INFO("Log:#### 111 SPEC_TYPE_PRELU\n");
+            tim::vx::TensorSpec vx_spec(datatype, vx_shape,
+                                        tim::vx::TensorAttribute::CONSTANT);
+            vx_tensor = this->graph->CreateTensor(vx_spec, ir_tensor->data);
+        }
         else if (ir_tensor->tensor_type == TENSOR_TYPE_INPUT )
         {
             tim::vx::TensorSpec vx_spec(datatype, vx_shape,
@@ -253,7 +260,12 @@ int VXEngine::VXEnginePreRun(struct subgraph* subgraph)
                 TLOG_INFO("Log:#### 000 SPEC_TYPE_DWCONV\n");
                 this->VXTensorMap(ir_graph, ir_node->input_tensors[1], SPEC_TYPE_DWCONV);
             }       
-        } 
+        }
+        else if (ir_node->op.op_type == OP_PRELU)
+        {
+            TLOG_INFO("Log:#### 001 SPEC_TYPE_PRELU\n");
+            this->VXTensorMap(ir_graph, ir_node->input_tensors[1], SPEC_TYPE_PRELU);
+        }
     }
     for (int i = 0; i < subgraph->node_num; i++)
     {
