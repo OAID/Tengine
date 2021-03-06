@@ -7,6 +7,10 @@ macro (tengine_test name file)
     add_test (${name} ${name})
 endmacro()
 
+# operator level test
+tengine_test(test_op_prelu              op/test_op_prelu.c)
+# tengine_test(test_op_prelu_timvx        op/test_op_prelu_timvx.c)
+
 #[[ add op
 tengine_test(test_op_conv               op/test_op_conv.c)
 tengine_test(test_op_bias               op/test_op_bias.cpp)
