@@ -62,6 +62,7 @@ extern "C"
 
 #define SPEC_TYPE_OUTPUT 1
 #define SPEC_TYPE_DWCONV 2
+#define SPEC_TYPE_PRELU  3
 
 typedef std::map<uint32_t, std::shared_ptr<tim::vx::Tensor>> dict_irt2vxt;
 
@@ -104,9 +105,6 @@ private:
     bool AddTanhNode(struct ir_node* ir_node);
     bool AddUpsampleNode(struct ir_node* ir_node);
 
-
-
-
 public:
     std::shared_ptr<tim::vx::Context> context;
     std::shared_ptr<tim::vx::Graph> graph;
@@ -115,26 +113,6 @@ public:
 private:
     dict_irt2vxt     vx_tensor_map;
     dict_irt2vxt     vx_node_map;
-
-
-
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 #endif

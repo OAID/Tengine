@@ -22,6 +22,7 @@
  * Author: hhchen@openailab.com
  */
 
+#include <math.h>
 #include "sys_port.h"
 #include "module.h"
 #include "tengine_errno.h"
@@ -29,7 +30,8 @@
 #include "tengine_ir.h"
 #include "../../cpu_node_ops.h"
 #include "tengine_op.h"
-#include <math.h>
+#include "compiler_fp16.h"
+
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
@@ -156,21 +158,18 @@ static int ref_prelu_fp32(struct ir_tensor* input_tensor, struct ir_tensor* outp
 
 static int ref_prelu_uint8(struct ir_tensor* input_tensor, struct ir_tensor* output_tensor, struct ir_tensor* slope_tensor)
 {
-    int dim0 = input_tensor->dims[0];
-    int dim1 = input_tensor->dims[1];
-    int dim2 = input_tensor->dims[2];
-    int dim3 = input_tensor->dims[3];
-    uint8_t* data = input_tensor->data;
-    uint8_t* out_data = output_tensor->data;
-    uint8_t* slope = slope_tensor->data;
+    int dim_num = input_tensor->dim_num;
+    int slope_num = slope_tensor->elem_num;
+
+    uint8_t* input_data = input_tensor->data;
+    uint8_t* output_data = output_tensor->data;
+    __fp16* slope_fp16 = slope_tensor->data;
 
     /* dequant */
     float input_scale = input_tensor->scale;
     float output_scale = output_tensor->scale;
-    float slope_scale = slope_tensor->scale;
     uint32_t input_zero = input_tensor->zero_point;
     uint32_t output_zero = output_tensor->zero_point;
-    uint32_t slope_zero = slope_tensor->zero_point;
     int input_size = input_tensor->elem_num;
     int output_size = output_tensor->elem_num;
     int slope_size = slope_tensor->elem_num;
@@ -181,26 +180,116 @@ static int ref_prelu_uint8(struct ir_tensor* input_tensor, struct ir_tensor* out
 
     for (int i = 0; i < input_size; i++)
     {
-        input_fp32[i] = (( float )data[i] - ( float )input_zero) * input_scale;
+        input_fp32[i] = (( float )input_data[i] - ( float )input_zero) * input_scale;
     }
     for (int i = 0; i < slope_size; i++)
     {
-        slope_fp32[i] = (( float )slope[i] - ( float )slope_zero) * slope_scale;
+        slope_fp32[i] = fp16_to_fp32(slope_fp16[i]);
     }
 
-    int offset = 0;
-    // nchw
-    for (int i = 0; i < dim0; i++)
+    if (dim_num == 2)
     {
-        for (int c = 0; c < dim1; c++)
+        int n = input_tensor->dims[0];
+        int w = input_tensor->dims[1];
+
+        if (slope_num > 1)
         {
-            for (int l = 0; l < dim2; l++)
+            for (int i = 0; i < n; i++)
             {
-                for (int k = 0; k < dim3; k++)
+                for (int k = 0; k < w; k++)
                 {
-                    // nchw
-                    offset = i * dim1 * dim2 * dim3 + c * dim2 * dim3 + l * dim3 + k;
-                    output_fp32[offset] = MAX(input_fp32[offset], 0) + slope_fp32[c] * MIN(input_fp32[offset], 0.f);
+                    int offset = i * w + k;
+                    output_fp32[offset] = MAX(input_fp32[offset], 0) + slope_fp32[k] * MIN(input_fp32[offset], 0.f);
+                }
+            }
+        }
+        else
+        {
+            for (int i = 0; i < n; i++)
+            {
+                for (int k = 0; k < w; k++)
+                {
+                    int offset = i * w + k;
+                    output_fp32[offset] = MAX(input_fp32[offset], 0) + slope_fp32[0] * MIN(input_fp32[offset], 0.f);
+                }
+            }
+        }
+    }
+
+    if (dim_num == 3)
+    {
+        int n = input_tensor->dims[0];
+        int c = input_tensor->dims[1];
+        int w = input_tensor->dims[2];
+
+        if (slope_num > 1)
+        {
+            for (int i = 0; i < n; i++)
+            {
+                for (int j = 0; j < c; c++)
+                {
+                    for (int k = 0; k < w; k++)
+                    {
+                        int offset = i * c * w + j * w + k;
+                        output_fp32[offset] = MAX(input_fp32[offset], 0) + slope_fp32[c] * MIN(input_fp32[offset], 0.f);
+                    }
+                }
+            }
+        }
+        else
+        {
+            for (int i = 0; i < n; i++)
+            {
+                for (int j = 0; j < c; j++)
+                {
+                    for (int k = 0; k < w; k++)
+                    {
+                        int offset = i * c * w + j * w + k;
+                        output_fp32[offset] = MAX(input_fp32[offset], 0) + slope_fp32[0] * MIN(input_fp32[offset], 0.f);
+                    }
+                }
+            }
+        }
+    }
+
+    if (dim_num == 4)
+    {
+        int n = input_tensor->dims[0];
+        int c = input_tensor->dims[1];
+        int h = input_tensor->dims[2];
+        int w = input_tensor->dims[3];
+
+        if (slope_num > 1)
+        {
+            for (int i = 0; i < n; i++)
+            {
+                for (int j = 0; j < c; j++)
+                {
+                    for (int l = 0; l < h; l++)
+                    {
+                        for (int k = 0; k < w; k++)
+                        {
+                            int offset = i * c * h * w + j * h * w + l * w + k;
+                            output_fp32[offset] = MAX(input_fp32[offset], 0) + slope_fp32[c] * MIN(input_fp32[offset], 0.f);
+                        }
+                    }
+                }
+            }
+        }
+        else
+        {
+            for (int i = 0; i < n; i++)
+            {
+                for (int j = 0; j < c; j++)
+                {
+                    for (int l = 0; l < h; l++)
+                    {
+                        for (int k = 0; k < w; k++)
+                        {
+                            int offset = i * c * h * w + j * h * w + l * w + k;
+                            output_fp32[offset] = MAX(input_fp32[offset], 0) + slope_fp32[0] * MIN(input_fp32[offset], 0.f);
+                        }
+                    }
                 }
             }
         }
@@ -214,7 +303,7 @@ static int ref_prelu_uint8(struct ir_tensor* input_tensor, struct ir_tensor* out
             udata = 255;
         else if (udata < 0)
             udata = 0;
-        out_data[i] = udata;
+        output_data[i] = udata;
     }
 
     sys_free(input_fp32);
@@ -338,7 +427,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
     int ret = -1;
     if (input_tensor->data_type == TENGINE_DT_FP32)
-        ret = ref_prelu_fp32(input_tensor, output_tensor, slope_tensor);
+        ret = ref_prelu_fp32(input_tensor, output_tensor, slope_tensor);      
     else if(input_tensor->data_type == TENGINE_DT_UINT8)
         ret = ref_prelu_uint8(input_tensor, output_tensor, slope_tensor);
     else if(input_tensor->data_type == TENGINE_DT_INT8)
