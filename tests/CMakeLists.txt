@@ -9,7 +9,10 @@ endmacro()
 
 # operator level test
 tengine_test(test_op_prelu              op/test_op_prelu.c)
-# tengine_test(test_op_prelu_timvx        op/test_op_prelu_timvx.c)
+
+if (TENGINE_ENABLE_TIM_VX)
+    tengine_test(test_op_prelu_timvx        op/test_op_prelu_timvx.c)
+endif()
 
 #[[ add op
 tengine_test(test_op_conv               op/test_op_conv.c)

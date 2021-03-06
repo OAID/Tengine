@@ -38,7 +38,7 @@ bool VXEngine::AddPReluNode(struct ir_node* ir_node)
     struct ir_tensor* slope_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
     struct ir_tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    auto prelu = this->graph->CreateOperation<tim::vx::ops::Prelu>(1);
+    auto prelu = this->graph->CreateOperation<tim::vx::ops::Prelu>(0);
 
     (*prelu)
         .BindInputs({this->vx_tensor_map[input_tensor->idx], this->vx_tensor_map[slope_tensor->idx]})
