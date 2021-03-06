@@ -89,7 +89,7 @@ static int ref_prelu_fp32(struct ir_tensor* input_tensor, struct ir_tensor* outp
                     for (int k = 0; k < w; k++)
                     {
                         int offset = i * c * w + j * w + k;
-                        output_data[offset] = MAX(input_data[offset], 0) + slope[c] * MIN(input_data[offset], 0.f);
+                        output_data[offset] = MAX(input_data[offset], 0) + slope[j] * MIN(input_data[offset], 0.f);
                     }
                 }
             }
@@ -128,7 +128,7 @@ static int ref_prelu_fp32(struct ir_tensor* input_tensor, struct ir_tensor* outp
                         for (int k = 0; k < w; k++)
                         {
                             int offset = i * c * h * w + j * h * w + l * w + k;
-                            output_data[offset] = MAX(input_data[offset], 0) + slope[c] * MIN(input_data[offset], 0.f);
+                            output_data[offset] = MAX(input_data[offset], 0) + slope[j] * MIN(input_data[offset], 0.f);
                         }
                     }
                 }
@@ -231,7 +231,7 @@ static int ref_prelu_uint8(struct ir_tensor* input_tensor, struct ir_tensor* out
                     for (int k = 0; k < w; k++)
                     {
                         int offset = i * c * w + j * w + k;
-                        output_fp32[offset] = MAX(input_fp32[offset], 0) + slope_fp32[c] * MIN(input_fp32[offset], 0.f);
+                        output_fp32[offset] = MAX(input_fp32[offset], 0) + slope_fp32[j] * MIN(input_fp32[offset], 0.f);
                     }
                 }
             }
@@ -270,7 +270,7 @@ static int ref_prelu_uint8(struct ir_tensor* input_tensor, struct ir_tensor* out
                         for (int k = 0; k < w; k++)
                         {
                             int offset = i * c * h * w + j * h * w + l * w + k;
-                            output_fp32[offset] = MAX(input_fp32[offset], 0) + slope_fp32[c] * MIN(input_fp32[offset], 0.f);
+                            output_fp32[offset] = MAX(input_fp32[offset], 0) + slope_fp32[j] * MIN(input_fp32[offset], 0.f);
                         }
                     }
                 }

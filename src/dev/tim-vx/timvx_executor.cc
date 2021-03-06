@@ -52,6 +52,7 @@ void VXEngine::VXTensorMap(struct ir_graph* ir_graph, int ir_tensor_idx, int spe
         struct ir_tensor* ir_tensor = get_ir_graph_tensor(ir_graph, ir_tensor_idx);
         unsigned int* Dims = (unsigned int*)ir_tensor->dims;
 
+        /* set data type */
         tim::vx::DataType datatype;
         switch(ir_tensor->data_type)
         {
@@ -75,6 +76,7 @@ void VXEngine::VXTensorMap(struct ir_graph* ir_graph, int ir_tensor_idx, int spe
         tim::vx::ShapeType vx_shape;
         TLOG_INFO("Log:ir_tensor->dim_num %d\n",ir_tensor->dim_num);
 
+        /* set dims */
         struct ir_node* ir_node = get_ir_graph_node(ir_graph, ir_tensor->producer);
         if (ir_node->op.op_type == OP_FC && ir_node->output_tensors[0] == ir_tensor_idx)
         {
@@ -82,6 +84,12 @@ void VXEngine::VXTensorMap(struct ir_graph* ir_graph, int ir_tensor_idx, int spe
             {
                 vx_shape.push_back(Dims[i]);
             }
+        }
+        else if (spec_type == SPEC_TYPE_PRELU)
+        {
+            vx_shape.push_back(1);
+            vx_shape.push_back(1);
+            vx_shape.push_back(Dims[0]);
         }
         else
         {
@@ -91,9 +99,11 @@ void VXEngine::VXTensorMap(struct ir_graph* ir_graph, int ir_tensor_idx, int spe
             }
         }
 
+        /* set quant params */
         tim::vx::Quantization vx_quant(tim::vx::QuantType::ASYMMETRIC, ir_tensor->scale,
                                        ir_tensor->zero_point);
 
+        /* create the vx tesnor */
         std::shared_ptr<tim::vx::Tensor> vx_tensor;
 
         TLOG_INFO("Log:#### 010 %d\n",spec_type);         
