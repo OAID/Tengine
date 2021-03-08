@@ -58,6 +58,7 @@ $ cp -rf ../TIM-VX/include/*    ./3rdparty/tim-vx/include/
 $ cp -rf ../TIM-VX/src    ./src/dev/tim-vx/
 $ cp -rf ../prebuild-sdk-a311d/include/*    ./3rdparty/tim-vx/include/
 $ cp -rf ../prebuild-sdk-a311d/lib/*    ./3rdparty/tim-vx/lib/aarch64/
+$ rm ./src/dev/tim-vx/src/tim/vx/*_test.cc
 ```
 
 #### 2.3 Build Tengine Lite with TIM-VX
@@ -141,3 +142,8 @@ Repeat 10 times, thread 1, avg time 2.95 ms, max_time 3.42 ms, min_time 2.76 ms
 | Amlogic | A311D        |
 | NXP     | i.MX 8M Plus |
 | X86-64  | Simulator    |
+
+### 5. The uint8 quantization model
+The TIM-VX NPU backend needs the uint8 tmfile as it's input model file, you can **quantize** the tmfile from **float32** to **uint8** from here. 
+- [Tengine Post Training Quantization Tools](../tools/quantize/README.md)
+- [Download the uint8 quant tool](https://github.com/OAID/Tengine/releases/download/lite-v1.3/quant_tool_uint8)
