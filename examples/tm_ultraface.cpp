@@ -219,7 +219,7 @@ static void post_process_ultraface(const char* image_file, float *boxs_data, flo
     std::vector<FaceInfo> face_list;
     nms(bbox_collection, face_list);
 
-    fprintf(stderr, "detected face num: %d\n", face_list.size());
+    fprintf(stderr, "detected face num: %ld\n", face_list.size());
     for (int i = 0; i < face_list.size(); i++)
     {
         FaceInfo box = face_list[i];
