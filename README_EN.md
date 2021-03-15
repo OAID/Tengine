@@ -2,7 +2,12 @@
 
 # Tengine Lite
 
-[![GitHub license](http://OAID.github.io/pics/apache_2.0.svg)](./LICENSE) [![Build Status](https://img.shields.io/github/workflow/status/OAID/Tengine/Tengine-Lite-Actions/tengine-lite)](https://github.com/OAID/Tengine/actions?query=workflow%3ATengine-Lite-Actions) [![Build Status](https://img.shields.io/github/workflow/status/OAID/Tengine-Convert-Tools/Tengine-Convert-Tools-Actions?label=tools%20build)](https://github.com/OAID/Tengine-Convert-Tools/actions?query=workflow%3ATengine-Convert-Tools-Actions) [![Test Status](https://img.shields.io/travis/OAID/Tengine/tengine-lite?label=test)](https://travis-ci.org/OAID/Tengine)
+[![GitHub license](http://OAID.github.io/pics/apache_2.0.svg)](./LICENSE)
+[![Build Status](https://img.shields.io/github/workflow/status/OAID/Tengine/Tengine-Lite-Actions/tengine-lite)](https://github.com/OAID/Tengine/actions?query=workflow%3ATengine-Lite-Actions)
+[![Build Status](https://img.shields.io/github/workflow/status/OAID/Tengine-Convert-Tools/Tengine-Convert-Tools-Actions?label=tools%20build)](https://github.com/OAID/Tengine-Convert-Tools/actions?query=workflow%3ATengine-Convert-Tools-Actions)
+[![Test Status](https://img.shields.io/travis/OAID/Tengine/tengine-lite?label=test)](https://travis-ci.org/OAID/Tengine)
+[![codecov](https://codecov.io/gh/OAID/Tengine/branch/tengine-lite/graph/badge.svg?token=kz9NcQPRrk)](https://codecov.io/gh/OAID/Tengine)
+[![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/OAID/Tengine.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/OAID/Tengine/context:cpp)
 
 
 
@@ -45,8 +50,8 @@ The core code of Tengine Lite consists of 4 modules:
 
 ### Model Convert tool
 
-- [Pre-compiled version](https://github.com/OAID/Tengine-Convert-Tools/releases/download/v0.1/tm_convert_tool): Pre-compiled model convert tool is provided on Linux system;
-- [Online Convert tool](https://convertmodel.com/): Based on WebAssembly (the models are converted locally by browsers, no private data will be uploaded);
+- [Pre-compiled version](https://github.com/OAID/Tengine/releases/download/lite-v1.2/convert_tool.zip): Pre-compiled model convert tool is provided on Linux system;
+- [Online Convert tool](https://convertmodel.com/#outputFormat=tengine): Based on WebAssembly (the models are converted locally by browsers, no private data will be uploaded);
 - [Source Compilation](https://github.com/OAID/Tengine-Convert-Tools): Refer to **Tengine-Convert-Tools** project, convert tool could be built by users.
 
 ### Speed assessment
@@ -66,11 +71,13 @@ Tengine Lite got ideas and developed based on these projects：
 - [MegEngine](https://github.com/MegEngine/MegEngine)
 - [ONNX](https://github.com/onnx/onnx)
 - [ncnn](https://github.com/Tencent/ncnn)
+- [FeatherCNN](https://github.com/Tencent/FeatherCNN)
 - [MNN](https://github.com/alibaba/MNN)
 - [Paddle Lite](https://github.com/PaddlePaddle/Paddle-Lite)
 - [ACL](https://github.com/ARM-software/ComputeLibrary)
 - [stb](https://github.com/nothings/stb)
 - [convertmodel](https://convertmodel.com)
+- [TIM-VX](https://github.com/VeriSilicon/TIM-VX)
 
 ## License
 

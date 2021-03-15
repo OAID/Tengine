@@ -36,7 +36,7 @@
 #define max(a, b) ((a) > (b) ? (a) : (b))
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
-void relu(float* data, int size, int activation)
+static void relu(float* data, int size, int activation)
 {
     for (int i = 0; i < size; i++)
     {
@@ -48,7 +48,8 @@ void relu(float* data, int size, int activation)
         }
     }
 }
-void pad(float* input, float* output, int in_h, int in_w, int out_h, int out_w, int top, int left, float v)
+
+static void pad(float* input, float* output, int in_h, int in_w, int out_h, int out_w, int top, int left, float v)
 {
     float* ptr = input;
     float* outptr = output;
@@ -2508,7 +2509,7 @@ static void convdw3x3s2(float* output, float* input, float* _kernel, float* _bia
 #endif
 
 int conv_dw_run(struct ir_tensor* input_tensor, struct ir_tensor* weight_tensor, struct ir_tensor* bias_tensor,
-                struct ir_tensor* output_tensor, struct conv_param* param, int num_thread, int cpu_affinity)
+                struct ir_tensor* output_tensor, struct conv_priv_info* conv_info, struct conv_param* param, int num_thread, int cpu_affinity)
 {
     float* input = ( float* )input_tensor->data;
     float* output = ( float* )output_tensor->data;
@@ -2551,6 +2552,7 @@ int conv_dw_run(struct ir_tensor* input_tensor, struct ir_tensor* weight_tensor,
     else
     {
         input_tmp = ( float* )sys_malloc(inh_tmp * inw_tmp * group * sizeof(float));
+#pragma omp parallel for num_threads(num_thread)        
         for (int g = 0; g < group; g++)
         {
             float* pad_in = input + g * inh * inw;

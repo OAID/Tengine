@@ -172,8 +172,6 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
     /* release tengine */
     free(input_data);
     free(output_data);
-    release_graph_tensor(input_tensor);
-    release_graph_tensor(output_tensor);
     postrun_graph(graph);
     destroy_graph(graph);
     release_tengine();

@@ -155,7 +155,7 @@ static void DirectConv(float* input_buf, int input_h, int input_w, float* output
 #endif
 
 int conv_dw_run(struct ir_tensor* input_tensor, struct ir_tensor* filter_tensor, struct ir_tensor* bias_tensor,
-                struct ir_tensor* output_tensor, struct conv_param* param, int num_thread, int cpu_affinity)
+                struct ir_tensor* output_tensor, struct conv_priv_info* conv_info, struct conv_param* param, int num_thread, int cpu_affinity)
 {
     /* param */
     int pads[4];

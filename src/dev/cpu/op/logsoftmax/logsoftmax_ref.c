@@ -41,6 +41,7 @@ struct ref_logsoftmax_param
     float scale[2]; // scale[0]: input scale, scale[1]: output scale
     int zero_point[2]; // zero_point[0]: input zero_point, zero_point[1]: output zero_point
 };
+
 static void GetMaxArray(float* input, float* array, int in_size, int on_size)
 {
     float* input_ptr = ( float* )input;
@@ -70,7 +71,6 @@ static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, 
     return 0;
 }
 
-
 static void GetOutResult(float* input, float* output, float* array, float* sum_array, int in_size, int on_size)
 {
     float* input_ptr = ( float* )input;
@@ -99,6 +99,7 @@ static void GetOutResult(float* input, float* output, float* array, float* sum_a
             output_ptr[index]=log(output_ptr[index]);
         }
 }
+
 static int ref_logsoftmax_fp32(float* input_data, float* output_data, float* max_array, float* sum_array, struct ref_logsoftmax_param* op_param)
 {
     for(int i = 0; i < op_param->out_size; i++)
@@ -107,15 +108,14 @@ static int ref_logsoftmax_fp32(float* input_data, float* output_data, float* max
         GetMaxArray(input_data + img_base, max_array, op_param->in_size, op_param->on_size);
         GetOutResult(input_data + img_base, output_data + img_base, max_array, sum_array, op_param->in_size, op_param->on_size);
     }
+
+    return 0;
 }
-
-
 
 static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     return 0;
 }
-
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {

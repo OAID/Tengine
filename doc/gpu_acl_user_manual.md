@@ -25,7 +25,7 @@ Number of platforms                               1
 
 ```bash
 $ git clone https://github.com/ARM-software/ComputeLibrary.git
-$ git checkout v20.02
+$ git checkout v20.05
 ```
 
 #### Build ACL 
@@ -79,14 +79,17 @@ build-acl-arm64/install/lib/
 └── libtengine-lite.so
 ```
 
-#### Set env
+#### Set FP16 Inference mode
 
 Enable GPU FP16 mode
 
 ```bash
-export ACL=1
-export ACL_FP16=1
-export ACL_NHWC=1
+/* set runtime options */
+struct options opt;
+opt.num_thread = num_thread;
+opt.cluster = TENGINE_CLUSTER_ALL;
+opt.precision = TENGINE_MODE_FP16;
+opt.affinity = 0;
 ```
 
 #### Result

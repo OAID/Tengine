@@ -150,7 +150,7 @@ make
 make install
 ```
 
-## 4. GPU 版本
+## 4. 异构计算 版本
 
 #### 4.1 ACL
 
@@ -159,6 +159,18 @@ make install
 #### 4.2 Vulkan
 
 请参考 [Tengine Lite Vulkan GPU 使用说明](gpu_vulkan_user_manual.md)。
+
+#### 4.3 CUDA
+
+请参考 [Tengine Lite CUDA GPU 使用说明](gpu_cuda_user_manual.md)。
+
+#### 4.4 TensoRT
+
+请参考 [Tengine Lite TensorRT GPU 使用说明](gpu_trt_user_manual.md)。
+
+#### 4.5 TIM-VX
+
+请参考 [Tengine Lite VeriSilicon NPU 使用说明](npu_tim-vx_user_manual.md)。
 
 ## 5. 交叉编译 Arm64 OHOS（鸿蒙系统） 版本
 

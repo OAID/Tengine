@@ -1100,7 +1100,7 @@ int wait_graph(graph_t graph, int try_wait)
     struct exec_context* context = get_ir_graph_context(ir_graph);
     struct exec_scheduler* scheduler = context->scheduler;
 
-    if (ir_graph->status != GRAPH_STAT_RUNNING || ir_graph->status != GRAPH_STAT_READY)
+    if (ir_graph->status != GRAPH_STAT_RUNNING && ir_graph->status != GRAPH_STAT_READY)
     {
         set_tengine_errno(EINVAL);
         return -1;
@@ -1161,6 +1161,8 @@ const_char_t get_node_device(node_t node)
     {
         return graph->nn_dev->name;
     }
+
+    return NULL;
 }
 
 context_t create_context(const char* context_name, int empty_context)

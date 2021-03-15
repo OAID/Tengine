@@ -18,17 +18,30 @@
  */
 
 /*
- * Copyright (c) 2020, OPEN AI LAB
- * Author: lswang@openailab.com
+ * Copyright (c) 2021, Open AI Lab
+ * Author: hhchen@openailab.com
  */
 
-#ifndef __ACL_ALLOCATOR_H__
-#define __ACL_ALLOCATOR_H__
+#include "timvx_executor.hpp"
 
-#include "dev_allocator.h"
+extern "C"
+{
+#include "tengine_op.h"
+}
 
-#ifdef STANDLONE_MODE
-struct dev_allocator* get_acl_allocator(void);
-#endif
 
-#endif
+bool VXEngine::AddHardSwishNode(struct ir_node* ir_node)
+{
+    TLOG_INFO("Tengine TIM-VX: Support OP(%d) OP_HARDSWISH.\n", ir_node->idx);
+    struct ir_graph* ir_graph = ir_node->graph;
+
+    struct ir_tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    struct ir_tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+
+    auto hardswish = graph->CreateOperation<tim::vx::ops::HardSwish>();
+    (*hardswish)
+        .BindInputs({ this->vx_tensor_map[input_tensor->idx] })
+        .BindOutputs({ this->vx_tensor_map[output_tensor->idx] });
+
+    return true;
+}

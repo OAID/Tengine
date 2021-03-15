@@ -16,4 +16,4 @@ SET ( CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY )
 
 # other needed options
 SET (TENGINE_TOOLCHIN_FLAG "-march=armv7-a -mfloat-abi=softfp -mfpu=neon-vfpv4")
-SET (TENGINE_FORCE_SKIP_OPENMP OFF)
+SET (TENGINE_FORCE_SKIP_OPENMP ON)
