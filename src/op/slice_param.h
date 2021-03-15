@@ -33,6 +33,7 @@ typedef struct slice_param
     int begin;
     int end;
     int axis;
+    int step;
     bool ismxnet;
     bool iscaffe;
     bool isonnx;

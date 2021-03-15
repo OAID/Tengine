@@ -50,6 +50,7 @@ struct slice_param_ref
     int out_num;
     int dim_num;
     int axis;    // for caffe
+    int step;    // for onnx
     float out_scale;    // for input tensor int8
     bool iscaffe;
     bool ismxnet;
@@ -246,6 +247,32 @@ static int onnx_run(const int8_t* in_data, int8_t** out_data, int element_size, 
         int stop_2 = (param->axis == 2) ? param->end : param->in_shape[2];
         int stop_3 = (param->axis == 3) ? param->end : param->in_shape[3];
 
+        if (param->step > 1)
+        {
+            int step_0 = (param->axis == 0) ? param->step : 1;
+            int step_1 = (param->axis == 1) ? param->step : 1;
+            int step_2 = (param->axis == 2) ? param->step : 1;
+            int step_3 = (param->axis == 3) ? param->step : 1;
+            for (int n = start_0; n < stop_0; n = n + step_0)
+            {
+                for (int i = start_1; i < stop_1; i = i + step_1)
+                {
+                    for (int j = start_2; j < stop_2; j = j + step_2)
+                    {
+                        for (int k = start_3; k < stop_3; k = k + step_3)
+                        {
+                            int input_index =
+                                n * in_dim_1 * in_dim_2 * in_dim_3 + i * in_dim_2 * in_dim_3 + j * in_dim_3 + k;
+                            memcpy(output, input + input_index * element_size, element_size);
+                            output += element_size;
+                        }
+                    }
+                }
+            }
+
+            return 0;
+        }
+
         for (int n = start_0; n < stop_0; ++n)
         {
             for (int i = start_1; i < stop_1; ++i)
@@ -388,6 +415,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         op_param.begin = _param->begin;
         op_param.end = _param->end;
         op_param.axis = _param->axis;
+        op_param.step = _param->step;
         op_param.dim_num = input_tensor->dim_num;
         for (unsigned int idx = 0; idx < input_tensor->dim_num; idx++)
         {
