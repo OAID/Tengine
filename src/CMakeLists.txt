@@ -71,6 +71,11 @@ if (${TENGINE_TARGET_PROCESSOR} MATCHES "X86")
         endif()
     endif()
 endif()
+file(GLOB_RECURSE TENGINE_BACKEND_HCL_ASM_OPS "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/op/rv64/*.S")
+# RV64
+if (${TENGINE_TARGET_PROCESSOR} MATCHES "lp64dv")
+    file(GLOB_RECURSE TENGINE_BACKEND_HCL_ASM_OPS "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/op/rv64/*.S")
+endif()
 
 # add operator files
 if (TENGINE_DYNAMIC_COMPILE AND EXISTS "${CMAKE_SOURCE_DIR}/cmake/operators.cmake")
@@ -104,6 +109,12 @@ if (TENGINE_DYNAMIC_COMPILE AND EXISTS "${CMAKE_SOURCE_DIR}/cmake/operators.cmak
             set (MIPS_OP_PATH "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/op/${name}/*mips.c")
             list (APPEND HCL_SOURCE ${MIPS_OP_PATH})
         endif()
+
+        # RV64
+        if (${TENGINE_TARGET_PROCESSOR} MATCHES "lp64dv")
+            set (RV64_OP_PATH "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/op/${name}/*rv64.c")
+            list (APPEND HCL_SOURCE ${RV64_OP_PATH})
+        endif()
     endmacro()
     include(${CMAKE_SOURCE_DIR}/cmake/operators.cmake)
 
@@ -111,8 +122,8 @@ if (TENGINE_DYNAMIC_COMPILE AND EXISTS "${CMAKE_SOURCE_DIR}/cmake/operators.cmak
     file(GLOB_RECURSE TENGINE_BACKEND_REF_OPS ${REF_SOURCE})
 
     # add hcl operator files
-    # arm or x86 or mips64
-    if (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM" OR ${TENGINE_TARGET_PROCESSOR} MATCHES "X86" OR ${TENGINE_TARGET_PROCESSOR} MATCHES "MIPS")
+    # arm or x86 or mips64 or rv64
+    if (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM" OR ${TENGINE_TARGET_PROCESSOR} MATCHES "X86" OR ${TENGINE_TARGET_PROCESSOR} MATCHES "MIPS" OR ${TENGINE_TARGET_PROCESSOR} MATCHES "lp64dv")
         file(GLOB_RECURSE TENGINE_BACKEND_HCL_OPS   ${HCL_SOURCE})
     endif()
 else()
@@ -138,6 +149,11 @@ else()
     # MIPS64
     if (${TENGINE_TARGET_PROCESSOR} MATCHES "MIPS")
         file(GLOB_RECURSE TENGINE_BACKEND_HCL_OPS   "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/op/*mips.c")
+    endif()
+
+    # RV64
+    if (${TENGINE_TARGET_PROCESSOR} MATCHES "lp64dv")
+        file(GLOB_RECURSE TENGINE_BACKEND_HCL_OPS   "${CMAKE_CURRENT_SOURCE_DIR}/dev/cpu/op/*rv64.c")
     endif()
 endif()
 
@@ -390,7 +406,26 @@ if (TENGINE_STANDALONE_HCL)
                 ${TENGINE_STANDALONE_HCL_LIB_NAME} SHARED
                 ${TENGINE_BACKEND_HCL_OPS}
         )
+    elseif (${TENGINE_TARGET_PROCESSOR} MATCHES "lp64dv")
+        message (STATUS "TENGINE RV64 TENGINE_BACKEND_HCL_ASM_OPS.----------------------------------------------")
+        list(APPEND TENGINE_COMPILE_OPTIONS_C_PRIVATE -rv64imafdcvxtheadc)
+        list(APPEND TENGINE_COMPILE_OPTIONS_C_PRIVATE -mabi=lp64dv)
+        list(APPEND TENGINE_COMPILE_OPTIONS_C_PRIVATE -mtune=c910)
+
+        list(APPEND TENGINE_COMPILE_OPTIONS_CXX_PRIVATE -rv64imafdcvxtheadc)
+        list(APPEND TENGINE_COMPILE_OPTIONS_CXX_PRIVATE -mabi=lp64dv)
+        list(APPEND TENGINE_COMPILE_OPTIONS_CXX_PRIVATE -mtune=c910)
+
+        list(APPEND TENGINE_COMPILE_OPTIONS_CUDA_PRIVATE -rv64imafdcvxtheadc)
+        list(APPEND TENGINE_COMPILE_OPTIONS_CUDA_PRIVATE -mabi=lp64dv)
+        list(APPEND TENGINE_COMPILE_OPTIONS_CUDA_PRIVATE -mtune=c910)
+        add_library (
+                ${TENGINE_STANDALONE_HCL_LIB_NAME} SHARED
+                ${TENGINE_BACKEND_HCL_OPS}
+                ${TENGINE_BACKEND_HCL_ASM_OPS}
+        )
     endif()
+    
 
     if (TENGINE_BACKEND_HCL_OPS)
         unset(TENGINE_BACKEND_HCL_OPS)
@@ -458,6 +493,18 @@ elseif (${TENGINE_TARGET_PROCESSOR} MATCHES "MIPS")
         ${TENGINE_BACKEND_COMMON}
         ${TENGINE_BACKEND_REF_OPS}
         ${TENGINE_BACKEND_HCL_OPS})
+elseif (${TENGINE_TARGET_PROCESSOR} MATCHES "lp64dv")
+    add_definitions(-march=rv64imafdcvxtheadc)
+    add_definitions(-mabi=lp64dv)
+    add_definitions(-mtune=c910)
+    add_library(${CMAKE_PROJECT_NAME} SHARED
+        ${TENGINE_LIB_SRCS} ${TENGINE_FRONT_END_SRCS}
+        ${TENGINE_SERIALIZER_SRCS}
+        ${TENGINE_TINY_SERIALIZER_SRCS}
+        ${TENGINE_BACKEND_COMMON}
+        ${TENGINE_BACKEND_REF_OPS}
+        ${TENGINE_BACKEND_HCL_OPS}
+        ${TENGINE_BACKEND_HCL_ASM_OPS})
 else()
     add_library(${CMAKE_PROJECT_NAME} SHARED
         ${TENGINE_LIB_SRCS}
