@@ -26,8 +26,8 @@ void pool_max(const int N,
     int w_out = hw_out % output_w;
 
     int c_in = c_out;
-    int h_in = h_out * stride_h - pad_h;
-    int w_in = w_out * stride_w - pad_w;
+    int h_in = mad24(h_out, stride_h, - pad_h);
+    int w_in = mad24(w_out, stride_w, - pad_w);
 
     const int h_start = max(h_in, 0);
     const int w_start = max(w_in, 0);
@@ -40,7 +40,7 @@ void pool_max(const int N,
     {
       for (int w = w_start; w < w_end; w++)
       {
-        int maxidx = h * input_w + w;
+        int maxidx = mad24(h, input_w, w);
         if (input_data[maxidx] > maxval)
         {
           maxval = input_data[maxidx];
@@ -76,8 +76,8 @@ void pool_avg(const int N,
     int w_out = hw_out % output_w;
 
     int c_in = c_out;
-    int h_in = h_out * stride_h - pad_h;
-    int w_in = w_out * stride_w - pad_w;
+    int h_in = mad24(h_out, stride_h, - pad_h);
+    int w_in = mad24(w_out, stride_w, - pad_w);
 
     int h_start = max(h_in, 0);
     int w_start = max(w_in, 0);

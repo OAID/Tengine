@@ -19,7 +19,7 @@
 
 /*
  * Copyright (c) 2020, OPEN AI LAB
- * Author: renzun@openailab.com
+ * Author: qtang@openailab.com
  */
 
 #include "sys_port.h"

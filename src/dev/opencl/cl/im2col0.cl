@@ -26,8 +26,8 @@ void im2col(__global const float* data_im,
     int w_kernel = hw_kernel % kernel_w;
 
     int c_in = w_out / kernel_hw;
-    int h_in = h_step * stride_h - pad_h + h_kernel;
-    int w_in = w_step * stride_w - pad_w + w_kernel;
+    int h_in = mad24(h_step, stride_h, - pad_h + h_kernel);
+    int w_in = mad24(w_step, stride_w, - pad_w + w_kernel);
 
     col_data[index] = (h_in >= 0 && w_in >= 0 && h_in < height && w_in < width)
         ? data_im[c_in * height * width + h_in * width + w_in]

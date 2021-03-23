@@ -50,12 +50,6 @@ bool OCLEngine::init()
     commandQueue = clCreateCommandQueue(context, devices[0], CL_QUEUE_PROFILING_ENABLE, NULL);
 
 
-    /** Test Hello World */
-    NUM=64;
-    input = new float[NUM];
-    for(int i=0;i<NUM;i++)
-        input[i]=i;
-    output = new float[NUM];
 }
 
 bool OCLEngine::build_kernel(const char *filename, const char *kernel_name)
@@ -271,9 +265,6 @@ int OCLEngine::OCLEngineRun(struct subgraph* subgraph)
         clReleaseEvent(enentPoint);
     }
 
-//    /** Test Hello World */
-//    CHECK_ENQUEUE_BUFFER_STATUS(clEnqueueWriteBuffer(commandQueue, this->ocl_tensor_map[0], CL_TRUE, 0, NUM * sizeof(float), (void *) input, 0, NULL, NULL));
-
     /* run */
     /**Step 10: Running the kernel.*/
     if (queue_list.empty())
@@ -289,13 +280,38 @@ int OCLEngine::OCLEngineRun(struct subgraph* subgraph)
 //        fprintf(stderr,"term %d\n",term++);
         auto it = queue_list[i];
         fprintf(stderr,"queue_work_size %s %d %d\n",it.name.c_str(), it.queue_global_work_size[0], it.queue_local_work_size[0]);
-//        cl_event enentPoint;
+//        double start0 = get_current_time();
+        cl_event enentPoint;
+        it.enentPoint = enentPoint;
         CHECK_ENQUEUE_KERNEL_STATUS(clEnqueueNDRangeKernel(commandQueue, it.queue_kernel, it.dims, NULL, it.queue_global_work_size, it.queue_local_work_size, 0, NULL, &enentPoint) );
+//        if (0 == (i+1) % 10)
+//            clFinish(commandQueue);
 //        clWaitForEvents(1,&enentPoint); ///wait
+//        clFinish(commandQueue);
+//        double end0 = get_current_time();
+//        double cur0 = end0 - start0;
+//        fprintf(stderr,"time %s %lf\n",it.name.c_str(), cur0);
+
+//        size_t len;
+//        cl_ulong queued;
+//        cl_ulong submit;
+//        cl_ulong start;
+//        cl_ulong end;
+//        clGetEventProfilingInfo(enentPoint, CL_PROFILING_COMMAND_QUEUED, sizeof(queued)*2, &queued, &len);
+//        clGetEventProfilingInfo(enentPoint, CL_PROFILING_COMMAND_SUBMIT, sizeof(submit)*2, &submit, &len);
+//        clGetEventProfilingInfo(enentPoint, CL_PROFILING_COMMAND_START, sizeof(start)*2, &start, &len);
+//        clGetEventProfilingInfo(enentPoint, CL_PROFILING_COMMAND_END, sizeof(end)*2, &end, &len);
+//        auto time = (end - start) / 1000000.0;
+//        fprintf(stderr,"time %lf\n",time);
+//        fprintf(stderr,"time queued %ld\n", queued);
+//        fprintf(stderr,"time submit %ld\n", submit);
+//        fprintf(stderr,"time start  %ld\n", start);
+//        fprintf(stderr,"time end    %ld\n\n", end);
+
 //        clReleaseEvent(enentPoint);
     }
     clFinish(commandQueue);
-    clReleaseEvent(enentPoint);
+//    clReleaseEvent(enentPoint);
 
     /* download data */
     /**Step 11: Read the cout put back to host memory.*/
@@ -319,10 +335,6 @@ int OCLEngine::OCLEngineRun(struct subgraph* subgraph)
         std::cout<<"data out "<<output_tensor->name<<" "<<data_out[0]<<std::endl;
     }
 
-
-//    /** Test Hello World */
-//    CHECK_ENQUEUE_BUFFER_STATUS(clEnqueueReadBuffer(commandQueue, this->ocl_tensor_map[1], CL_TRUE, 0, NUM * sizeof(float), output, 0, NULL, NULL) );
-//    std::cout<<output[NUM-1]<<std::endl;
 
 #ifdef DEBUG_DATA
     for (auto iter = this->gpu_addr_map.begin(); iter != this->gpu_addr_map.end(); iter++)

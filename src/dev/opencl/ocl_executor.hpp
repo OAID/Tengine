@@ -31,6 +31,7 @@ extern "C"
 #include "tengine_ir.h"
 #include "tengine_op.h"
 #include "tengine_log.h"
+
 #include <unistd.h>
 }
 
@@ -52,6 +53,7 @@ struct OCLqueue
     std::string name;
     int dims;
     cl_kernel queue_kernel;
+    cl_event enentPoint;
     size_t *queue_global_work_size;
     size_t *queue_local_work_size;
 };
@@ -73,8 +75,6 @@ private:
     int BuildTensor(struct subgraph* subgraph);
     int BuildKernel(struct subgraph* subgraph);
 
-
-    bool AddHelloWorldNode();
 
     bool AddClipNode(struct ir_node* ir_node);
     bool AddConcatNode(struct ir_node* ir_node);
@@ -102,12 +102,6 @@ private:
 public:
     dict_uint2clmem             ocl_tensor_map;
     std::vector<struct OCLqueue>    queue_list;
-
-/** Test Hello World */
-public:
-    int NUM;
-    float *input;
-    float *output;
 
 public:
     int bin_num;

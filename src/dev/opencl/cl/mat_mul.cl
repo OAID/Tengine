@@ -21,7 +21,7 @@ void mat_mul(__global const float* x,
 
   int col = (index / N) << 2;
   int row = (index % N) << 2;
-  if (index < bM*bN)
+  if (i < bM && j < bN)
   {
     if (col+3 < M && row+3 < N)
     {

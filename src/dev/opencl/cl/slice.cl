@@ -6,10 +6,10 @@ void slice(__global float* y,
                 int res)
 {
     const int idx = get_global_id(0);
-    int idx_new = idx + res;
 
     if (idx < N)
     {
+        const int idx_new = idx + res;
         y[idx] = x[idx_new];
     }
 }

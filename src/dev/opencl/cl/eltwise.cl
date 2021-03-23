@@ -12,3 +12,9 @@ void eltwise_add(__global float* y,
       y[idx] = x0[idx] + x1[idx];
     }
 }
+
+
+
+
+
+

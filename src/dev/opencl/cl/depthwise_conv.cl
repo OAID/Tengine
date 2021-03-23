@@ -26,8 +26,8 @@ void depthwise_conv(const int N,
     int w_out = hw_out % output_w;
 
     int c_in = c_out;
-    int h_in = h_out * stride_h - pad_h;
-    int w_in = w_out * stride_w - pad_w;
+    int h_in = mad24(h_out, stride_h, - pad_h);
+    int w_in = mad24(w_out, stride_w, - pad_w);
 
     const int h_in_start = max(h_in, 0);
     const int w_in_start = max(w_in, 0);
@@ -47,9 +47,9 @@ void depthwise_conv(const int N,
       int w0 = w_weight_start;
       for (int w = w_in_start; w < w_in_end; w++)
       {
-        int input_idx = h * input_w + w;
-        int weight_idx = h0 * kernel_w + w0;
-        sumval = sumval + input_data[input_idx] * weight_data[weight_idx];
+        int input_idx = mad24(h, input_w, w);
+        int weight_idx = mad24(h0, kernel_w, w0);
+        sumval = mad(input_data[input_idx], weight_data[weight_idx], sumval);
         w0 ++;
       }
       h0 ++;

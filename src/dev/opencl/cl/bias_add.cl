@@ -7,6 +7,7 @@ void bias_add(__global float* y,
     const int idx = get_global_id(0);
     if (idx < N)
     {
-        y[idx] += x[idx % elem_num_perimg / elem_perchannel];
+        const int x_idx = idx % elem_num_perimg / elem_perchannel;
+        y[idx] += x[x_idx];
     }
 }

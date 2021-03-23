@@ -101,7 +101,7 @@ bool OCLEngine::AddConvolutionNode(struct ir_node* ir_node)
 
         char cl_kernel_path1[500] = "";
         strcat(cl_kernel_path1, cl_env);
-        strcat(cl_kernel_path1, "/src/dev/opencl/cl/mat_mul.cl");
+        strcat(cl_kernel_path1, "/src/dev/opencl/cl/mat_mul9.cl");
         //fprintf(stderr,"Log cl kernel path: %s\n",cl_kernel_path1);
         this->build_kernel(&cl_kernel_path1[0], "mat_mul");
 
@@ -117,14 +117,19 @@ bool OCLEngine::AddConvolutionNode(struct ir_node* ir_node)
         CHECK_SET_KERNEL_STATUS(clSetKernelArg(kernel, ++arg_idx, sizeof(int), &N) );
         CHECK_SET_KERNEL_STATUS(clSetKernelArg(kernel, ++arg_idx, sizeof(int), &K) );
 
+        int TS = 16;
         struct OCLqueue Mat_Mul;
-        Mat_Mul.name = "Mat_Mul"; //std::to_string(ir_node->idx); //"Mat_Mul";
+        Mat_Mul.name = std::to_string(M) + "x" + std::to_string(N) + "x" + std::to_string(K); //"Mat_Mul"; //std::to_string(ir_node->idx); //"Mat_Mul";
         Mat_Mul.dims = 1;
         Mat_Mul.queue_kernel = this->kernel;
-        Mat_Mul.queue_global_work_size = (size_t*)malloc(1 * sizeof(size_t));
-        Mat_Mul.queue_global_work_size[0] = ((M + 3)/4*4) * ((N + 3)/4*4);
-        Mat_Mul.queue_local_work_size = (size_t*)malloc(1 * sizeof(size_t));
-        Mat_Mul.queue_local_work_size[0] = (M + 3)/4;
+        Mat_Mul.queue_global_work_size = (size_t*)malloc(Mat_Mul.dims * sizeof(size_t));
+        Mat_Mul.queue_global_work_size[0] = ((M + (TS-1))/TS*TS) * ((N + (TS-1))/TS*TS);
+//        Mat_Mul.queue_global_work_size[0] = ((M + (TS-1))/TS*TS);
+//        Mat_Mul.queue_global_work_size[1] = ((N + (TS-1))/TS*TS);
+        Mat_Mul.queue_local_work_size = (size_t*)malloc(Mat_Mul.dims * sizeof(size_t));
+        Mat_Mul.queue_local_work_size[0] = TS * TS;
+//        Mat_Mul.queue_local_work_size[0] = TS;
+//        Mat_Mul.queue_local_work_size[1] = TS;
         this->queue_list.push_back(Mat_Mul);
 
         /* bias_add and relu compute */

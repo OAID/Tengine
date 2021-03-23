@@ -26,8 +26,8 @@ void im2col(__global const float* data_im,
     int w_kernel = hw_kernel % kernel_w;
 
     int c_in = w_out / kernel_hw;
-    int h_in = h_step * stride_h - pad_h + h_kernel;
-    int w_in = w_step * stride_w - pad_w + w_kernel;
+    int h_in = mad24(h_step, stride_h, - pad_h + h_kernel);
+    int w_in = mad24(w_step, stride_w, - pad_w + w_kernel);
 
     int out_c = height_col * width_col;
     int out_index = w_out * out_c + h_out;
@@ -36,3 +36,4 @@ void im2col(__global const float* data_im,
         : 0;
   }
 }
+

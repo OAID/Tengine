@@ -17,11 +17,19 @@ void concat2(__global float* y,
     {
       if (row < pre_size)
       {
-         y[idx] = x0[col * pre_size + row];
+         const int x0_idx = col * pre_size + row;
+         y[idx] = x0[x0_idx];
       }
       else
       {
-         y[idx] = x1[col * post_size + row - pre_size];
+         const int x1_idx = col * post_size + row - pre_size;
+         y[idx] = x1[x1_idx];
       }
     }
 }
+
+
+
+
+
+
