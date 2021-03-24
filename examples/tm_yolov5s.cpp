@@ -452,12 +452,13 @@ int main(int argc, char* argv[])
             total_time, max_time, min_time);
     fprintf(stderr, "--------------------------------------\n");
 
-    // 179: 1, 3, 20, 20, 85
-    // 178: 1, 3, 40, 40, 85
-    // 177: 1, 3, 80, 80, 85
-    tensor_t p8_output = get_graph_output_tensor(graph, 177, 0);
-    tensor_t p16_output = get_graph_output_tensor(graph, 178, 0);
-    tensor_t p32_output = get_graph_output_tensor(graph, 179, 0);
+    /* yolov5 postprocess */
+    // 0: 1, 3, 20, 20, 85
+    // 1: 1, 3, 40, 40, 85
+    // 2: 1, 3, 80, 80, 85
+    tensor_t p8_output = get_graph_output_tensor(graph, 0, 0);
+    tensor_t p16_output = get_graph_output_tensor(graph, 1, 0);
+    tensor_t p32_output = get_graph_output_tensor(graph, 2, 0);
 
     float* p8_data = ( float*)get_tensor_buffer(p8_output);
     float* p16_data = ( float*)get_tensor_buffer(p16_output);
@@ -495,7 +496,8 @@ int main(int argc, char* argv[])
     float ratio_y = (float)raw_h / img_h;
 
     int count = picked.size();
-    printf("%d\n",count);
+    fprintf(stderr, "detection num: %d\n",count);
+
     objects.resize(count);
     for (int i = 0; i < count; i++)
     {
@@ -516,6 +518,7 @@ int main(int argc, char* argv[])
         objects[i].rect.height = y1 - y0;
     }
 
+    /* yolov5 draw the result */
     draw_objects(m, objects);
 
     /* release tengine */
