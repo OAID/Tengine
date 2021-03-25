@@ -471,7 +471,7 @@ int main(int argc, char* argv[])
     std::vector<detection*> detections;
     detections.clear();
 
-    /* decode layer one by one*/
+    /* decode layer one by one */
     for (int node = 0; node < output_node_num; ++node)
     {
         tensor_t out_tensor = get_graph_output_tensor(graph, node, 0);
