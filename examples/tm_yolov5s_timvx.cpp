@@ -133,7 +133,8 @@ static void nms_sorted_bboxes(const std::vector<Object>& faceobjects, std::vecto
     }
 }
 
-void get_input_data_focas(const char* image_file, float* input_data, int img_h, int img_w, const float* mean, const float* scale)
+void get_input_data_focas_uint8(const char* image_file, uint8_t* input_data, int img_h, int img_w, const float* mean, const float* scale, float input_scale,
+                                  int zero_point)
 {
     cv::Mat sample = cv::imread(image_file, 1);
     cv::Mat img;
@@ -211,15 +212,23 @@ void get_input_data_focas(const char* image_file, float* input_data, int img_h, 
                     for (int h = 0; h < 320; h++)
                     {
                         old_index = i + g * 640 + c * 640 * 640 + w * 2 * 640 + h * 2;
-                        input_data[new_index] = input_temp[old_index];
+
+                        /* quant to uint8 */
+                        int udata = (round)(input_temp[old_index] / input_scale + ( float )zero_point);
+                        if (udata > 255)
+                            udata = 255;
+                        else if (udata < 0)
+                            udata = 0;
+
+                        input_data[new_index] = udata;
                         new_index++;
                     }
                 }
             }
         }
     }
-	
-	free(input_temp);
+
+    free(input_temp);
 }
 
 static void generate_proposals(int stride,  const float* feat, float prob_threshold, std::vector<Object>& objects)
@@ -336,7 +345,7 @@ static void draw_objects(const cv::Mat& bgr, const std::vector<Object>& objects)
                     cv::Scalar(0, 0, 0));
     }
 
-    cv::imwrite("yolov5_out.jpg", image);
+    cv::imwrite("yolov5_timvx_out.jpg", image);
 }
 
 void show_usage()
@@ -413,7 +422,7 @@ int main(int argc, char* argv[])
     struct options opt;
     opt.num_thread = num_thread;
     opt.cluster = TENGINE_CLUSTER_ALL;
-    opt.precision = TENGINE_MODE_FP32;
+    opt.precision = TENGINE_MODE_UINT8;
     opt.affinity = 0;
 
     /* inital tengine */
@@ -424,8 +433,17 @@ int main(int argc, char* argv[])
     }
     fprintf(stderr, "tengine-lite library version: %s\n", get_tengine_version());
 
+    /* create VeriSilicon TIM-VX backend */
+    context_t timvx_context = create_context("timvx", 1);
+    int rtt = add_context_device(timvx_context, "TIMVX");
+    if (0 > rtt)
+    {
+        fprintf(stderr, " add_context_device VSI DEVICE failed.\n");
+        return -1;
+    }
+
     /* create graph, load tengine model xxx.tmfile */
-    graph_t graph = create_graph(nullptr, "tengine", model_file);
+    graph_t graph = create_graph(timvx_context, "tengine", model_file);
     if (graph == nullptr)
     {
         fprintf(stderr, "Create graph failed.\n");
@@ -435,7 +453,7 @@ int main(int argc, char* argv[])
 
     int img_size = img_h * img_w * img_c;
     int dims[] = {1, 12, int(img_h / 2), int(img_w / 2)};
-    float* input_data = ( float* )malloc(img_size * sizeof(float));
+    uint8_t* input_data = ( uint8_t* )malloc(img_size * sizeof(uint8_t));
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == nullptr)
@@ -450,7 +468,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    if (set_tensor_buffer(input_tensor, input_data, img_size * 4) < 0)
+    if (set_tensor_buffer(input_tensor, input_data, img_size) < 0)
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;
@@ -464,7 +482,10 @@ int main(int argc, char* argv[])
     }
 
     /* prepare process input data, set the data mem to input tensor */
-    get_input_data_focas(image_file, input_data, img_h, img_w, mean, scale);
+    float input_scale = 0.f;
+    int input_zero_point = 0;
+    get_tensor_quant_param(input_tensor, &input_scale, &input_zero_point, 1);    
+    get_input_data_focas_uint8(image_file, input_data, img_h, img_w, mean, scale, input_scale, input_zero_point);
 
     /* run graph */
     double min_time = DBL_MAX;
@@ -496,11 +517,44 @@ int main(int argc, char* argv[])
     tensor_t p16_output = get_graph_output_tensor(graph, 1, 0);
     tensor_t p32_output = get_graph_output_tensor(graph, 2, 0);
 
-    float* p8_data = ( float*)get_tensor_buffer(p8_output);
-    float* p16_data = ( float*)get_tensor_buffer(p16_output);
-    float* p32_data = ( float*)get_tensor_buffer(p32_output);
+    /* dequant output data */
+    float p8_scale = 0.f;
+    float p16_scale = 0.f;
+    float p32_scale = 0.f;
+    int p8_zero_point = 0;
+    int p16_zero_point = 0;
+    int p32_zero_point = 0;
 
-	/* postprocess */
+    get_tensor_quant_param(p8_output, &p8_scale, &p8_zero_point, 1);
+    get_tensor_quant_param(p16_output, &p16_scale, &p16_zero_point, 1);
+    get_tensor_quant_param(p32_output, &p32_scale, &p32_zero_point, 1);
+
+    int p8_count = get_tensor_buffer_size(p8_output) / sizeof(uint8_t);
+    int p16_count = get_tensor_buffer_size(p16_output) / sizeof(uint8_t);
+    int p32_count = get_tensor_buffer_size(p32_output) / sizeof(uint8_t);
+
+    uint8_t* p8_data_u8 = ( uint8_t* )get_tensor_buffer(p8_output);
+    float* p8_data = ( float* )malloc(sizeof(float) * p8_count);
+    for (int c = 0; c < p8_count; c++)
+    {
+        p8_data[c] = (( float )p8_data_u8[c] - ( float )p8_zero_point) * p8_scale;
+    }
+
+    uint8_t* p16_data_u8 = ( uint8_t* )get_tensor_buffer(p16_output);
+    float* p16_data = ( float* )malloc(sizeof(float) * p16_count);
+    for (int c = 0; c < p16_count; c++)
+    {
+        p16_data[c] = (( float )p16_data_u8[c] - ( float )p16_zero_point) * p16_scale;
+    }  
+
+    uint8_t* p32_data_u8 = ( uint8_t* )get_tensor_buffer(p32_output);
+    float* p32_data = ( float* )malloc(sizeof(float) * p32_count);
+    for (int c = 0; c < p32_count; c++)
+    {
+        p32_data[c] = (( float )p32_data_u8[c] - ( float )p32_zero_point) * p32_scale;
+    }
+
+    /* postprocess */
     const float prob_threshold = 0.25f;
     const float nms_threshold = 0.45f;
 
@@ -580,6 +634,9 @@ int main(int argc, char* argv[])
     draw_objects(img, objects);
 
     /* release tengine */
+    free(p8_data);
+    free(p16_data);
+    free(p32_data);
     postrun_graph(graph);
     destroy_graph(graph);
     release_tengine();
