@@ -25,7 +25,16 @@ $ cd tengine-lite
 
 #### 2.1 Prepare for x86_64 simulator platform
 
-##### Create depend files
+**non-cross-compilation**
+
+```bash
+$ cd <TIM-VX-root-dir>
+$ mkdir build && cd build
+$ cmake ..
+$ make -j4
+```
+
+**Create depend files**
 
 ```bash
 $ cd <tengine-lite-root-dir>
@@ -36,16 +45,30 @@ $ cp -rf ../TIM-VX/src    ./src/dev/tim-vx/
 $ cp -rf ../TIM-VX/prebuilt-sdk/x86_64_linux/include/*    ./3rdparty/tim-vx/include/
 $ cp -rf ../TIM-VX/prebuilt-sdk/x86_64_linux/lib/*    ./3rdparty/tim-vx/lib/x86_64/
 $ rm ./src/dev/tim-vx/src/tim/vx/*_test.cc
+
+$ cp -rf ../TIM-VX/build/src/tim/vx/libtim-vx.so    ./3rdparty/tim-vx/lib/x86_64/
+
+$ export LD_LIBRARY_PATH=<tengine-lite-root-dir>/3rdparty/tim-vx/lib/x86_64
 ```
 
 #### 2.2 Prepare for on Khadas VIM3 platform
 
-##### Download prebuild-sdk of A311D
+**cross-compilation**
 
 ```bash
-$ wget -c https://github.com/VeriSilicon/TIM-VX/releases/download/v1.1.28/aarch64_A311D_D312513_A294074_R311680_T312233_O312045.tgz
-$ tar zxvf aarch64_A311D_D312513_A294074_R311680_T312233_O312045.tgz
-$ mv aarch64_A311D_D312513_A294074_R311680_T312233_O312045 prebuild-sdk-a311d
+$ cd <TIM-VX-root-dir>
+$ mkdir build && cd build
+$ cmake .. --config A311D
+$ make -j4
+```
+
+**non-cross-compilation**
+
+```bash
+$ cd <TIM-VX-root-dir>
+$ mkdir build && cd build
+$ cmake .. 
+$ make -j4
 ```
 
 ##### Create depend files
@@ -59,13 +82,18 @@ $ cp -rf ../TIM-VX/src    ./src/dev/tim-vx/
 $ cp -rf ../prebuild-sdk-a311d/include/*    ./3rdparty/tim-vx/include/
 $ cp -rf ../prebuild-sdk-a311d/lib/*    ./3rdparty/tim-vx/lib/aarch64/
 $ rm ./src/dev/tim-vx/src/tim/vx/*_test.cc
+
+$ cp -rf ../TIM-VX/build/src/tim/vx/libtim-vx.so    ./3rdparty/tim-vx/lib/aarch64/
+
+$ export LD_LIBRARY_PATH=<tengine-lite-root-dir>/3rdparty/tim-vx/lib/aarch64
 ```
 
 #### 2.3 Build Tengine Lite with TIM-VX
 
 ```bash
+$ cd <tengine-lite-root-dir>
 $ mkdir build && cd build
-$ cmake -DTENGINE_ENABLE_TIM_VX=ON -DTENGINE_ENABLE_TIM_VX_INTEGRATION=ON ..
+$ cmake -DTENGINE_ENABLE_TIM_VX=ON ..
 $ make -j4
 $ make install
 ```
