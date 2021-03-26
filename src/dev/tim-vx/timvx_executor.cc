@@ -123,7 +123,6 @@ void VXEngine::VXTensorMap(struct ir_graph* ir_graph, int ir_tensor_idx, int spe
             }
         }
 
-        fprintf(stderr,"Log ZeroPoint: %d \n",ir_tensor->zero_point);
         tim::vx::Quantization vx_quant(tim::vx::QuantType::ASYMMETRIC, ir_tensor->scale,
                                        ir_tensor->zero_point);
 
@@ -177,14 +176,11 @@ void VXEngine::VXTensorMap(struct ir_graph* ir_graph, int ir_tensor_idx, int spe
 
 int VXEngine::Build(struct subgraph* subgraph)
 {
-    set_log_level(LOG_INFO);
-    fprintf(stderr,"FKFKFKFKFKFKFKFKF!!!!\n");
     dump_sub_graph(subgraph);
     struct ir_graph* ir_graph = subgraph->graph;
 
     for (int i = 0; i < subgraph->node_num; i++)
     {
-        fprintf(stderr,"Log: ???????????????\n");
         uint16_t node_id = subgraph->node_list[i];
         struct ir_node* ir_node = get_ir_graph_node(ir_graph, node_id);
         auto op_type = ir_node->op.op_type;
@@ -246,7 +242,6 @@ int VXEngine::Build(struct subgraph* subgraph)
                 this->AddRelu1Node(ir_node);
                 break;
             case OP_RESHAPE:
-                fprintf(stderr,"Log: RESHAPE\n");
                 this->AddReshapeNode(ir_node);
                 break;
             case OP_SIGMOID:
@@ -265,7 +260,6 @@ int VXEngine::Build(struct subgraph* subgraph)
                 this->AddTanhNode(ir_node);
                 break;
             case OP_TRANSPOSE:
-                fprintf(stderr,"Log: TRANSPOSE\n");
                 this->AddTransposeNode(ir_node);
                 break;
             case OP_UPSAMPLE:
@@ -345,7 +339,7 @@ int VXEngine::VXEngineRun(struct subgraph* subgraph)
     struct ir_graph* ir_graph = subgraph->graph;
 
     /* upload data */
-    fprintf(stderr,"subgraph->input_num %d\n",subgraph->input_num);
+//    fprintf(stderr,"subgraph->input_num %d\n",subgraph->input_num);
     if (subgraph->input_num > 0)
     {
         for (uint8_t i = 0; i < subgraph->input_num; i++)

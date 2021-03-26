@@ -43,11 +43,6 @@ bool VXEngine::AddPReluNode(struct ir_node* ir_node)
     {
         struct ir_tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[i]);
         add_in_tensor[i] = this->vx_tensor_map[input_tensor->idx];
-        fprintf(stderr,"\nadd_in_tensor.shape()\n");
-        for (int j = 0; j < 4; j++)
-        {
-            fprintf(stderr,"%d ",add_in_tensor[i]->GetShape()[j]);
-        }
     }
 
     auto prelu = this->graph->CreateOperation<tim::vx::ops::Prelu>(1);

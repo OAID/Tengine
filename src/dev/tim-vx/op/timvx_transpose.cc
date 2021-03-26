@@ -58,8 +58,6 @@ bool VXEngine::AddTransposeNode(struct ir_node* ir_node)
         perm[3] = (uint32_t )param->tr_shape[2];
     }
 
-    fprintf(stderr,"AAABBBBAAA\n");
-
     auto transpose = graph->CreateOperation<tim::vx::ops::Transpose>(perm);
     vx_node_map[ir_node->idx] = transpose;
 

@@ -75,8 +75,6 @@ bool VXEngine::AddConvolutionNode(struct ir_node* ir_node)
         padtype = tim::vx::PadType::SAME;
     }
 
-    fprintf(stderr,"FKAAAAAAA\n");
-
     int multiplier = 0;
     if (param->group == weight_tensor->dims[0])
         multiplier = 1;
@@ -98,7 +96,6 @@ bool VXEngine::AddConvolutionNode(struct ir_node* ir_node)
         for (int i = output_tensor->dim_num - 1; i >= 0; i--)
         {
             vx_shape.push_back(output_tensor->dims[i]);
-            fprintf(stderr,"vxshape %d\n",output_tensor->dims[i]);
             perm.push_back(output_tensor->dims[i]);
         }
         tim::vx::TensorSpec tmp_spec(tim::vx::DataType::UINT8, vx_shape,
