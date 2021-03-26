@@ -115,6 +115,12 @@ void VXEngine::VXTensorMap(struct ir_graph* ir_graph, int ir_tensor_idx, int spe
                 vx_shape.push_back(Dims[i]);
             }
         }
+        else if (spec_type == SPEC_TYPE_PRELU)
+        {
+            vx_shape.push_back(1);
+            vx_shape.push_back(1);
+            vx_shape.push_back(Dims[0]);
+        }
         else
         {
             for (int i = ir_tensor->dim_num - 1; i >= 0; i--)
@@ -123,9 +129,11 @@ void VXEngine::VXTensorMap(struct ir_graph* ir_graph, int ir_tensor_idx, int spe
             }
         }
 
+        /* set quant params */
         tim::vx::Quantization vx_quant(tim::vx::QuantType::ASYMMETRIC, ir_tensor->scale,
                                        ir_tensor->zero_point);
 
+        /* create the vx tesnor */
         std::shared_ptr<tim::vx::Tensor> vx_tensor;
 
         TLOG_INFO("Log:#### 010 %d\n",spec_type);         
@@ -176,7 +184,7 @@ void VXEngine::VXTensorMap(struct ir_graph* ir_graph, int ir_tensor_idx, int spe
 
 int VXEngine::Build(struct subgraph* subgraph)
 {
-    dump_sub_graph(subgraph);
+//    dump_sub_graph(subgraph);
     struct ir_graph* ir_graph = subgraph->graph;
 
     for (int i = 0; i < subgraph->node_num; i++)
