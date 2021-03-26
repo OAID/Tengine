@@ -44,7 +44,13 @@ bool VXEngine::AddConcatNode(struct ir_node* ir_node)
     }
 
     struct concat_param* param = (struct concat_param*)ir_node->op.param_mem;
+
     struct ir_tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+
+//    auto concat = graph->CreateOperation<tim::vx::ops::Concat>(output_tensor->dim_num - param->axis - 1, ir_node->input_num);
+//    (*concat)
+//        .BindInputs(concat_in_tensor)
+//        .BindOutputs({ this->vx_tensor_map[output_tensor->idx] });
 
     if (ir_node->input_num == 1)
     {
@@ -55,6 +61,8 @@ bool VXEngine::AddConcatNode(struct ir_node* ir_node)
             perm.push_back(output_tensor->dims[i]);
         }
         auto reshape = graph->CreateOperation<tim::vx::ops::Reshape>(perm);
+        vx_node_map[ir_node->idx] = reshape;
+
         (*reshape)
             .BindInputs({ this->vx_tensor_map[input_tensor->idx] })
             .BindOutputs({ this->vx_tensor_map[output_tensor->idx] });
@@ -66,6 +74,7 @@ bool VXEngine::AddConcatNode(struct ir_node* ir_node)
             .BindInputs(concat_in_tensor)
             .BindOutputs({ this->vx_tensor_map[output_tensor->idx] });
     }
-    
+
+
     return true;
 }

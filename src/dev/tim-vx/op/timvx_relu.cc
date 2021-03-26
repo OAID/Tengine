@@ -42,7 +42,7 @@ bool VXEngine::AddReluNode(struct ir_node* ir_node)
 
     if (param->negative_slope > 0.000001)
     {
-        auto leaky_relu = this->graph->CreateOperation<tim::vx::ops::LeakyRelu>(0.1);
+        auto leaky_relu = this->graph->CreateOperation<tim::vx::ops::LeakyRelu>(param->negative_slope);
         (*leaky_relu).BindInput( this->vx_tensor_map[input_tensor->idx] )
             .BindOutput({ this->vx_tensor_map[output_tensor->idx] });
     }
@@ -55,3 +55,4 @@ bool VXEngine::AddReluNode(struct ir_node* ir_node)
 
     return true;
 }
+

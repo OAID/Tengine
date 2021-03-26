@@ -27,30 +27,33 @@
 extern "C"
 {
 #include "tengine_op.h"
-#include "concat_param.h"
+#include "permute_param.h"
 }
 
 
-bool VXEngine::AddDropoutNode(struct ir_node* ir_node)
+bool VXEngine::AddPermuteNode(struct ir_node* ir_node)
 {
-    TLOG_INFO("Tengine TIM-VX: Support OP(%d) OP_DROPOUT.\n", ir_node->idx);
+    TLOG_INFO("Tengine TIM-VX: Support OP(%d) OP_PERMUTE.\n", ir_node->idx);
     struct ir_graph* ir_graph = ir_node->graph;
 
     struct ir_tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     struct ir_tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    std::vector<uint32_t> perm;
-    for (int i = output_tensor->dim_num - 1; i >= 0; i--)
-    {
-        perm.push_back(output_tensor->dims[i]);
-    }
+    struct permute_param* param = (struct permute_param*)ir_node->op.param_mem;
 
-    auto dropout = graph->CreateOperation<tim::vx::ops::Reshape>(perm);
-    vx_node_map[ir_node->idx] = dropout;
+    std::vector<uint32_t> perm(4);
+    perm[0] = param->order3;
+    perm[1] = param->order2;
+    perm[2] = param->order1;
+    perm[3] = param->order0;
 
-    (*dropout)
+    auto permute = graph->CreateOperation<tim::vx::ops::Transpose>(perm);
+    vx_node_map[ir_node->idx] = permute;
+
+    (*permute)
         .BindInputs({ this->vx_tensor_map[input_tensor->idx] })
         .BindOutputs({ this->vx_tensor_map[output_tensor->idx] });
 
     return true;
 }
+
