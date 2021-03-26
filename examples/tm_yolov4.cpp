@@ -162,7 +162,7 @@ std::vector<detection*> forward_darknet_layer_cpu(const float* input, layer l, i
     {
         int index = entry_index(l, i, 4, 0);
         logistic_cpu(l.output + index, l.w * l.h);
-        for (size_t loc = 0; loc < l.w * l.h; loc++)
+        for (size_t loc = 0; loc < (size_t)l.w * l.h; loc++)
         {
             if (l.output[index + loc] > s_thresh)
             {
@@ -471,7 +471,7 @@ int main(int argc, char* argv[])
     std::vector<detection*> detections;
     detections.clear();
 
-    /* decode layer one by one*/
+    /* decode layer one by one */
     for (int node = 0; node < output_node_num; ++node)
     {
         tensor_t out_tensor = get_graph_output_tensor(graph, node, 0);

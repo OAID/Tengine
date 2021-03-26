@@ -1384,7 +1384,7 @@ int optimize_graph(struct ir_graph* ir_graph, int precision)
 
                                     if (TENGINE_DT_UINT8 == tensor->data_type && TENGINE_DT_FP32 == precision)
                                     {
-                                        float* cast_data = (float*)sys_malloc(data_type_size(precision) * tensor->elem_num);
+                                        float* cast_data = (float*)sys_malloc((size_t)data_type_size(precision) * tensor->elem_num);
                                         uint8_t* original_data = (uint8_t*)tensor->data;
 
                                         for (int p = 0; p < tensor->elem_num; p++)
@@ -1398,7 +1398,7 @@ int optimize_graph(struct ir_graph* ir_graph, int precision)
 
                                     if (TENGINE_DT_FP32 == tensor->data_type && TENGINE_DT_UINT8 == precision)
                                     {
-                                        uint8_t* cast_data = (uint8_t*)sys_malloc(data_type_size(precision) * tensor->elem_num);
+                                        uint8_t* cast_data = (uint8_t*)sys_malloc((size_t)data_type_size(precision) * tensor->elem_num);
                                         float* original_data = (float*)tensor->data;
 
                                         for (int p = 0; p < tensor->elem_num; p++)
@@ -1547,7 +1547,7 @@ int optimize_graph(struct ir_graph* ir_graph, int precision)
                                     {
                                         TLOG_INFO("Type [%d] -> [%d]; Size [%d] -> [%d]. Scale: %.6f, Zp: %d.", tensor->data_type, TENGINE_DT_UINT8, tensor->elem_size, data_type_size(TENGINE_DT_UINT8), tensor->scale, tensor->zero_point);
 
-                                        uint8_t* cast_data = (uint8_t*)sys_malloc(data_type_size(TENGINE_DT_UINT8) * tensor->elem_num);
+                                        uint8_t* cast_data = (uint8_t*)sys_malloc((size_t)data_type_size(TENGINE_DT_UINT8) * tensor->elem_num);
                                         float* original_data = (float*)tensor->data;
 
                                         for (int p = 0; p < tensor->elem_num; p++)

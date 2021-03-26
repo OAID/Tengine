@@ -195,7 +195,7 @@ static int ref_concat_uint8(const uint8_t** in_data, uint8_t* out_data, const st
                 float t_scale = scale / out_scale;
                 for (int ii = 0; ii < cp_size; ++ii)
                 {
-                    output_ptr[ii] = round((input_ptr[ii] - input_zero) * t_scale) + out_zero;
+                    output_ptr[ii] = roundf((input_ptr[ii] - (float )input_zero) * t_scale) + (float )out_zero;
                 }
             }
             output_ptr += cp_size;
