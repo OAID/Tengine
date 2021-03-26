@@ -18,7 +18,7 @@
  */
 
 /*
- * Copyright (c) 2021, Open AI Lab
+ * Copyright (c) 2021, OPEN AI LAB
  * Author: hhchen@openailab.com
  */
 
@@ -38,30 +38,11 @@ bool VXEngine::AddPReluNode(struct ir_node* ir_node)
     struct ir_tensor* slope_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
     struct ir_tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    std::vector<std::shared_ptr<tim::vx::Tensor> > add_in_tensor(ir_node->input_num);
-    for (int i = 0; i < ir_node->input_num; i++)
-    {
-        struct ir_tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[i]);
-        add_in_tensor[i] = this->vx_tensor_map[input_tensor->idx];
-    }
+    auto prelu = this->graph->CreateOperation<tim::vx::ops::Prelu>(0);
 
-    auto prelu = this->graph->CreateOperation<tim::vx::ops::Prelu>(1);
-    (*prelu).BindInputs( {this->vx_tensor_map[input_tensor->idx], this->vx_tensor_map[slope_tensor->idx]} )
-        .BindOutput({ this->vx_tensor_map[output_tensor->idx] });
-
-//    if (param->negative_slope > 0.000001)
-//    {
-//        auto leaky_relu = this->graph->CreateOperation<tim::vx::ops::LeakyRelu>(0.1);
-//        (*leaky_relu).BindInput( this->vx_tensor_map[input_tensor->idx] )
-//            .BindOutput({ this->vx_tensor_map[output_tensor->idx] });
-//    }
-//    else
-//    {
-//        auto relu = this->graph->CreateOperation<tim::vx::ops::Relu>();
-//        (*relu).BindInput( this->vx_tensor_map[input_tensor->idx] )
-//            .BindOutput({ this->vx_tensor_map[output_tensor->idx] });
-//    }
+    (*prelu)
+        .BindInputs({this->vx_tensor_map[input_tensor->idx], this->vx_tensor_map[slope_tensor->idx]})
+        .BindOutput({this->vx_tensor_map[output_tensor->idx]});
 
     return true;
 }
-
