@@ -45,6 +45,7 @@ bool VXEngine::AddReshapeNode(struct ir_node* ir_node)
     }
 
     auto reshape = graph->CreateOperation<tim::vx::ops::Reshape>(perm);
+    vx_node_map[ir_node->idx] = reshape;
 
     (*reshape)
         .BindInputs({ this->vx_tensor_map[input_tensor->idx] })

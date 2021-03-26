@@ -27,30 +27,44 @@
 extern "C"
 {
 #include "tengine_op.h"
-#include "concat_param.h"
+#include "transpose_param.h"
 }
 
 
-bool VXEngine::AddDropoutNode(struct ir_node* ir_node)
+bool VXEngine::AddTransposeNode(struct ir_node* ir_node)
 {
-    TLOG_INFO("Tengine TIM-VX: Support OP(%d) OP_DROPOUT.\n", ir_node->idx);
+    TLOG_INFO("Tengine TIM-VX: Support OP(%d) OP_TRANSPOSE.\n", ir_node->idx);
     struct ir_graph* ir_graph = ir_node->graph;
 
     struct ir_tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     struct ir_tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    std::vector<uint32_t> perm;
-    for (int i = output_tensor->dim_num - 1; i >= 0; i--)
+    struct transpose_param* param = (struct transpose_param*)ir_node->op.param_mem;
+
+    std::vector<uint32_t> perm(output_tensor->dim_num);
+    if (output_tensor->dim_num == 5)
     {
-        perm.push_back(output_tensor->dims[i]);
+        perm[0] = (uint32_t )param->tr_shape[4];
+        perm[1] = (uint32_t )param->tr_shape[0];
+        perm[2] = (uint32_t )param->tr_shape[1];
+        perm[3] = (uint32_t )param->tr_shape[2];
+        perm[4] = (uint32_t )param->tr_shape[3];
+    }
+    else if (output_tensor->dim_num == 4)
+    {
+        perm[0] = (uint32_t )param->tr_shape[3];
+        perm[1] = (uint32_t )param->tr_shape[0];
+        perm[2] = (uint32_t )param->tr_shape[1];
+        perm[3] = (uint32_t )param->tr_shape[2];
     }
 
-    auto dropout = graph->CreateOperation<tim::vx::ops::Reshape>(perm);
-    vx_node_map[ir_node->idx] = dropout;
+    auto transpose = graph->CreateOperation<tim::vx::ops::Transpose>(perm);
+    vx_node_map[ir_node->idx] = transpose;
 
-    (*dropout)
+    (*transpose)
         .BindInputs({ this->vx_tensor_map[input_tensor->idx] })
         .BindOutputs({ this->vx_tensor_map[output_tensor->idx] });
 
     return true;
 }
+

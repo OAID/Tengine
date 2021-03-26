@@ -30,7 +30,6 @@ extern "C"
 #include "slice_param.h"
 }
 
-
 bool VXEngine::AddSliceNode(struct ir_node* ir_node)
 {
     TLOG_INFO("Tengine TIM-VX: Support OP(%d) OP_SLICE.\n", ir_node->idx);
@@ -41,7 +40,7 @@ bool VXEngine::AddSliceNode(struct ir_node* ir_node)
 
     struct slice_param* param = (struct slice_param*)ir_node->op.param_mem;
 
-    uint32_t axis = output_tensor->dim_num - param->axis;
+    uint32_t axis = output_tensor->dim_num - 1 - param->axis;
 
     std::vector<int32_t> start;
     for (int i = output_tensor->dim_num - 1; i >= 0; i--)
@@ -58,7 +57,7 @@ bool VXEngine::AddSliceNode(struct ir_node* ir_node)
         if (axis == i)
             length.push_back(param->end - param->begin);
         else
-            length.push_back(-1);
+            length.push_back(output_tensor->dims[i]);
     }
 
     auto slice = this->graph->CreateOperation<tim::vx::ops::Slice>(output_tensor->dim_num, start, length);
@@ -67,3 +66,4 @@ bool VXEngine::AddSliceNode(struct ir_node* ir_node)
 
     return true;
 }
+

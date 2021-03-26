@@ -45,3 +45,4 @@ bool VXEngine::AddTanhNode(struct ir_node* ir_node)
 
     return true;
 }
+

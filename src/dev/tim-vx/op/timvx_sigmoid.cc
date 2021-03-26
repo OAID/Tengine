@@ -45,3 +45,4 @@ bool VXEngine::AddSigmoidNode(struct ir_node* ir_node)
 
     return true;
 }
+

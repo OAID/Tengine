@@ -47,11 +47,20 @@ bool VXEngine::AddInterpNode(struct ir_node* ir_node)
     else if(param->resize_type == 2)
         resize_type = tim::vx::ResizeType::BILINEAR;
     else
-        fprintf(stderr, " Not support this resize type(%d)\n",resize_type);
+        fprintf(stderr," Not support this resize type(%d)\n",resize_type);
+
+    std::vector<std::shared_ptr<tim::vx::Tensor> > add_in_tensor(ir_node->input_num);
+    for (int i = 0; i < ir_node->input_num; i++)
+    {
+        struct ir_tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[i]);
+        add_in_tensor[i] = this->vx_tensor_map[input_tensor->idx];
+    }
 
     auto resize = graph->CreateOperation<tim::vx::ops::Resize>(resize_type, 0.0f, false, false, param->output_height, param->output_width);
+    vx_node_map[ir_node->idx] = resize;
+
     (*resize)
-        .BindInputs({ this->vx_tensor_map[input_tensor->idx] })
+        .BindInputs(add_in_tensor)
         .BindOutputs({ this->vx_tensor_map[output_tensor->idx] });
 
     return true;
