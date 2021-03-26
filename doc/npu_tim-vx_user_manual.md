@@ -74,6 +74,10 @@ $ make -j4
 ##### Create depend files
 
 ```bash
+$ wget -c https://github.com/VeriSilicon/TIM-VX/releases/download/v1.1.28/aarch64_A311D_D312513_A294074_R311680_T312233_O312045.tgz
+$ tar zxvf aarch64_A311D_D312513_A294074_R311680_T312233_O312045.tgz
+$ mv aarch64_A311D_D312513_A294074_R311680_T312233_O312045 prebuild-sdk-a311d
+$
 $ cd <tengine-lite-root-dir>
 $ mkdir -p ./3rdparty/tim-vx/lib/aarch64
 $ mkdir -p ./3rdparty/tim-vx/include
