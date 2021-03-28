@@ -1,3 +1,26 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * License); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * AS IS BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+/*
+ * Copyright (c) 2021, OPEN AI LAB
+ */
+
 #include <cstdio>
 
 #include <cstdlib>
@@ -17,6 +40,7 @@
 #define YOLOV4_TOTAL_ANCHOR 9
 #define CLASSES_COCO 80
 
+const int classes = 80;
 const float s_thresh = 0.5;
 const float s_hier_thresh = 0.5;
 const float s_nms = 0.45;
@@ -315,6 +339,21 @@ void get_input_data_darknet(const char* image_file, float* input_data, int net_h
     free_image(im);
 }
 
+static const char* class_names[] = {"person", "bicycle", "car", "motorcycle", "airplane", "bus",
+                                    "train", "truck", "boat", "traffic light", "fire hydrant",
+                                    "stop sign", "parking meter", "bench", "bird", "cat", "dog",
+                                    "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe",
+                                    "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee",
+                                    "skis", "snowboard", "sports ball", "kite", "baseball bat",
+                                    "baseball glove", "skateboard", "surfboard", "tennis racket",
+                                    "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl",
+                                    "banana", "apple", "sandwich", "orange", "broccoli", "carrot",
+                                    "hot dog", "pizza", "donut", "cake", "chair", "couch",
+                                    "potted plant", "bed", "dining table", "toilet", "tv", "laptop",
+                                    "mouse", "remote", "keyboard", "cell phone", "microwave", "oven",
+                                    "toaster", "sink", "refrigerator", "book", "clock", "vase",
+                                    "scissors", "teddy bear", "hair drier", "toothbrush"};
+
 void show_usage()
 {
     fprintf(
@@ -326,6 +365,9 @@ int main(int argc, char* argv[])
 {
     const char* model_file = nullptr;
     const char* image_file = nullptr;
+
+    int numBBoxes = 3;
+    int total_numAnchors = 9;
     int net_h = 608;
     int net_w = 608;
     int repeat_count = 1;
@@ -480,7 +522,7 @@ int main(int argc, char* argv[])
         layer l_params;
         int out_w = out_dim[3];
         int out_h = out_dim[2];
-        l_params = make_darknet_layer(out_w, out_h, net_w, net_h, YOLOV4_NUM_BOXES, YOLOV4_TOTAL_ANCHOR, CLASSES_COCO);
+        l_params = make_darknet_layer(out_w, out_h, net_w, net_h, numBBoxes, total_numAnchors, classes);
         layers_params.push_back(l_params);
         float* out_data = ( float* )get_tensor_buffer(out_tensor);
         std::vector<detection*> l_dets = forward_darknet_layer_cpu(out_data, l_params, img.w, img.h, net_w, net_h);
@@ -496,22 +538,23 @@ int main(int argc, char* argv[])
     }
 
     /* do nms */
-    do_nms_sort(detections, detections.size(), CLASSES_COCO, s_nms);
+    do_nms_sort(detections, detections.size(), classes, s_nms);
 
     /* print output dectections */
     int i, j;
     for (i = 0; i < detections.size(); ++i)
     {
         int cls = -1;
-        for (j = 0; j < CLASSES_COCO; ++j)
+        float best_class_prob = s_thresh;
+        for (j = 0; j < classes; ++j)
         {
-            if (detections[i]->prob[j] > 0.5)
+            if (detections[i]->prob[j] > best_class_prob)
             {
                 if (cls < 0)
                 {
                     cls = j;
+                    best_class_prob = detections[i]->prob[j];
                 }
-                fprintf(stderr, "%d: %.0f%%\n", cls, detections[i]->prob[j] * 100);
             }
         }
         if (cls >= 0)
@@ -522,17 +565,16 @@ int main(int argc, char* argv[])
             int top = (b.y - b.h / 2.) * img.h;
             int bot = (b.y + b.h / 2.) * img.h;
             draw_box(img, left, top, right, bot, 2, 125, 0, 125);
-            fprintf(stderr, "left = %d,right = %d,top = %d,bot = %d\n", left, right, top, bot);
+            fprintf(stderr, "%2d: %3.0f%%, [%4d,%4d,%4d,%4d], %s\n", cls, best_class_prob * 100, left, top, right, bot, class_names[cls]);
         }
 
         if (detections[i]->prob)
             free(detections[i]->prob);
     }
 
-    save_image(img, "tengine_example_out");
+    save_image(img, "yolov4_out");
 
     /* free resource */
-    /* release tengine */
     for (int i = 0; i < output_node_num; ++i)
     {
         tensor_t out_tensor = get_graph_output_tensor(graph, i, 0);
@@ -552,7 +594,7 @@ int main(int argc, char* argv[])
             free(l.anchor_mask);
     }
 
-    release_graph_tensor(input_tensor);
+    /* release tengine */
     postrun_graph(graph);
     destroy_graph(graph);
     release_tengine();

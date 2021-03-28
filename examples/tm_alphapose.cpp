@@ -370,7 +370,7 @@ bool tengine_predict(float * input_data, graph_t graph, const int input_dims[4],
         return false;
     }
 
-    size_t input_data_size = input_dims[0] * input_dims[1] * input_dims[2] * input_dims[3] * sizeof(float);
+    size_t input_data_size = (unsigned long)input_dims[0] * input_dims[1] * input_dims[2] * input_dims[3] * sizeof(float);
     if (set_tensor_buffer(input_tensor, input_data, input_data_size) < 0)
     {
         fprintf(stderr, "Set input tensor buffer failed\n");

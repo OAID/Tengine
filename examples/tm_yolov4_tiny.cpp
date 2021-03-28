@@ -35,9 +35,6 @@
 #include "tengine_operations.h"
 #include <math.h>
 
-#define DEFAULT_REPEAT_COUNT 1
-#define DEFAULT_THREAD_COUNT 1
-
 using namespace std;
 
 typedef struct
@@ -653,16 +650,16 @@ void show_usage()
 
 int main(int argc, char* argv[])
 {
-    int repeat_count = DEFAULT_REPEAT_COUNT;
-    int num_thread = DEFAULT_THREAD_COUNT;
-    char* model_file = nullptr;
-    char* image_file = nullptr;
+    const char* model_file = nullptr;
+    const char* image_file = nullptr;
 
     int layer_type = 0;
     int numBBoxes = 3;
     int total_numAnchors = 6;
     int net_w = 416;
     int net_h = 416;
+    int repeat_count = 1;
+    int num_thread = 1;    
 
     int res;
     while ((res = getopt(argc, argv, "m:i:r:t:h:")) != -1)
@@ -840,7 +837,7 @@ int main(int argc, char* argv[])
             int top = (b.y - b.h / 2.) * img.h;
             int bot = (b.y + b.h / 2.) * img.h;
             draw_box(img, left, top, right, bot, 2, 125, 0, 125);
-            fprintf(stderr, "%2d: %.0f%%, [%4d,%4d,%4d,%4d], %s\n", cls, best_class_prob * 100, left, top, right, bot, class_names[cls]);
+            fprintf(stderr, "%2d: %3.0f%%, [%4d,%4d,%4d,%4d], %s\n", cls, best_class_prob * 100, left, top, right, bot, class_names[cls]);
         }
 
         if (dets[i].mask)
@@ -849,7 +846,7 @@ int main(int argc, char* argv[])
             free(dets[i].prob);
     }
     free(dets);
-    save_image(img, "tengine_example_out");
+    save_image(img, "yolov4_tiny_out");
 
     /* release tengine */
     for (int i = 0; i < output_node_num; ++i)

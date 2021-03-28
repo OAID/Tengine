@@ -86,7 +86,7 @@ static int caffe_run(const int8_t* in_data, int8_t** out_data, int element_size,
         {
             int in_offset = (n * in_slice + slice_index) * slice_size * element_size;
             int out_offset = n * out_slice * slice_size * element_size;
-            memcpy(output + out_offset, input + in_offset, slice_size * out_slice * element_size);
+            memcpy(output + out_offset, input + in_offset, (size_t)slice_size * out_slice * element_size);
         }
         slice_index += out_slice;
     }
@@ -124,7 +124,7 @@ static int tf_run(const int8_t* in_data, int8_t** out_data, int element_size, co
                 int len = stop_dim_3 - start_dim_3;
                 int input_off =
                     n * in_dim_1 * in_dim_2 * in_dim_3 + i * in_dim_2 * in_dim_3 + j * in_dim_3 + start_dim_3;
-                memcpy(output, input + input_off * element_size, len * element_size);
+                memcpy(output, input + input_off * element_size, (size_t)len * element_size);
                 output += len * element_size;
             }
         }
@@ -164,7 +164,7 @@ static int mxnet_run(const int8_t* in_data, int8_t** out_data, int element_size,
                     int len = start_3 - stop_3;
                     int input_off =
                         n * in_dim_1 * in_dim_2 * in_dim_3 + i * in_dim_2 * in_dim_3 + j * in_dim_3 + start_3;
-                    memcpy(output, input + input_off * element_size, len * element_size);
+                    memcpy(output, input + input_off * element_size, (size_t)len * element_size);
                     output += len * element_size;
                 }
             }
@@ -193,7 +193,7 @@ static int mxnet_run(const int8_t* in_data, int8_t** out_data, int element_size,
             {
                 int len = stop_2 - start_2;
                 int input_off = n * in_dim_1 * in_dim_2 + i * in_dim_2 + start_2;
-                memcpy(output, input + input_off * element_size, len * element_size);
+                memcpy(output, input + input_off * element_size, (size_t)len * element_size);
                 output += len * element_size;
             }
         }
@@ -216,7 +216,7 @@ static int mxnet_run(const int8_t* in_data, int8_t** out_data, int element_size,
         {
             int len = stop_1 - start_0;
             int input_off = n * in_dim_1 + start_1;
-            memcpy(output, input + input_off * element_size, len * element_size);
+            memcpy(output, input + input_off * element_size, (size_t)len * element_size);
             output += len * element_size;
         }
     }
@@ -282,7 +282,7 @@ static int onnx_run(const int8_t* in_data, int8_t** out_data, int element_size, 
                     int len = stop_3 - start_3;
                     int input_off =
                         n * in_dim_1 * in_dim_2 * in_dim_3 + i * in_dim_2 * in_dim_3 + j * in_dim_3 + start_3;
-                    memcpy(output, input + input_off * element_size, len * element_size);
+                    memcpy(output, input + input_off * element_size, (size_t)len * element_size);
                     output += len * element_size;
                 }
             }
@@ -311,7 +311,7 @@ static int onnx_run(const int8_t* in_data, int8_t** out_data, int element_size, 
             {
                 int len = stop_2 - start_2;
                 int input_off = n * in_dim_1 * in_dim_2 + i * in_dim_2 + start_2;
-                memcpy(output, input + input_off * element_size, len * element_size);
+                memcpy(output, input + input_off * element_size, (size_t)len * element_size);
                 output += len * element_size;
             }
         }
@@ -334,7 +334,7 @@ static int onnx_run(const int8_t* in_data, int8_t** out_data, int element_size, 
         {
             int len = stop_1 - start_0;
             int input_off = n * in_dim_1 + start_1;
-            memcpy(output, input + input_off * element_size, len * element_size);
+            memcpy(output, input + input_off * element_size, (size_t)len * element_size);
             output += len * element_size;
         }
     }
