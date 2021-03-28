@@ -36,15 +36,6 @@
 #include "tengine_c_api.h"
 #include "tengine_operations.h"
 
-#define YOLOV4_NUM_BOXES 3
-#define YOLOV4_TOTAL_ANCHOR 9
-#define CLASSES_COCO 80
-
-const int classes = 80;
-const float s_thresh = 0.5;
-const float s_hier_thresh = 0.5;
-const float s_nms = 0.45;
-
 float s_anchors[] = {12, 16, 19, 36, 40, 28, 36, 75, 76, 55, 72, 146, 142, 110, 192, 243, 459, 401};
 
 typedef struct layer
@@ -177,7 +168,7 @@ void correct_yolo_boxes(std::vector<detection*>& dets, int n, int w, int h, int 
 }
 
 std::vector<detection*> forward_darknet_layer_cpu(const float* input, layer l, int img_w, int img_h, int net_w,
-                                                  int net_h)
+                                                  int net_h, const float s_thresh)
 {
     std::vector<detection*> dets;
     memcpy(( void* )l.output, ( void* )input, sizeof(float) * l.inputs);
@@ -373,6 +364,11 @@ int main(int argc, char* argv[])
     int repeat_count = 1;
     int num_thread = 1;
 
+    const int classes = 80;
+    const float s_thresh = 0.5;
+    const float s_hier_thresh = 0.5;
+    const float s_nms = 0.45;    
+
     int res;
     while ((res = getopt(argc, argv, "m:i:r:t:h:s:")) != -1)
     {
@@ -525,13 +521,13 @@ int main(int argc, char* argv[])
         l_params = make_darknet_layer(out_w, out_h, net_w, net_h, numBBoxes, total_numAnchors, classes);
         layers_params.push_back(l_params);
         float* out_data = ( float* )get_tensor_buffer(out_tensor);
-        std::vector<detection*> l_dets = forward_darknet_layer_cpu(out_data, l_params, img.w, img.h, net_w, net_h);
-        if (l_dets.size() == 0)
+        std::vector<detection*> l_dets = forward_darknet_layer_cpu(out_data, l_params, img.w, img.h, net_w, net_h, s_thresh);
+        if (l_dets.empty())
             continue;
         detections.insert(detections.end(), l_dets.begin(), l_dets.end());
     }
 
-    if (detections.size() == 0)
+    if (detections.empty())
     {
         fprintf(stderr, "no object detect");
         return 0;
