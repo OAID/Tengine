@@ -73,12 +73,7 @@ typedef struct layer
     int coords;
 } layer;
 
-const int classes = 80;
-const float thresh = 0.5;
-const float hier_thresh = 0.5;
-const float nms = 0.45;
-const int numBBoxes = 5;
-const int relative = 1;
+
 const int yolov3_numAnchors = 6;
 const int yolov2_numAnchors = 5;
 
@@ -664,6 +659,12 @@ int main(int argc, char* argv[])
     int total_numAnchors = 9;
     int net_w = 608;
     int net_h = 608;
+
+    const int classes = 80;
+    const float thresh = 0.5;
+    const float hier_thresh = 0.5;
+    const float nms = 0.45;
+    const int relative = 1;    
 
     int res;
     while ((res = getopt(argc, argv, "m:i:r:t:h:")) != -1)

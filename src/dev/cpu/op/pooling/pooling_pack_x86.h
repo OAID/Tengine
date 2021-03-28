@@ -1687,7 +1687,7 @@ static void pack4(float* input, float* input_buffer, int in_h, int in_w)
         {
             for (int c = 0; c < PACK4; c++)
             {
-                input_buffer[i * in_w * PACK4 + j * PACK4 + c] = input[c * in_w * in_h + i * in_w + j];
+                input_buffer[i * in_w * PACK4 + j * PACK4 + c] = input[(unsigned long)c * in_w * in_h + i * in_w + j];
             }
         }
     }
@@ -1744,8 +1744,8 @@ int pooling_kernel_perf_run(struct ir_tensor* input, struct ir_tensor* output, s
     else
     {
         int packc4 = c >> 2;
-        float* input_buffer = ( float* )calloc(sizeof(float), PACK4 * in_h * in_w);
-        float* output_buffer = ( float* )calloc(sizeof(float), PACK4 * out_h * out_w);
+        float* input_buffer  = ( float* )calloc(sizeof(float), PACK4 * (size_t)in_h * in_w);
+        float* output_buffer = ( float* )calloc(sizeof(float), PACK4 * (size_t)out_h * out_w);
         for (int n = 0; n < batch; n++)
         {
             for (int pck = 0; pck < packc4; pck++)
