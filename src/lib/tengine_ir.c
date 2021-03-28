@@ -640,7 +640,7 @@ void destroy_ir_tensor(struct ir_graph* ir_graph, struct ir_tensor* ir_tensor)
         struct subgraph* subgraph = get_ir_graph_subgraph(ir_graph, node->subgraph_idx);
         struct nn_device* nn_dev = subgraph->nn_dev;
 
-        release_dev_mem(nn_dev, ir_tensor->dev_mem);
+//        release_dev_mem(nn_dev, ir_tensor->dev_mem);
 
         sys_free(ir_tensor->dev_mem);
     }
