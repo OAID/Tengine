@@ -35,9 +35,6 @@
 #include "tengine_operations.h"
 #include <math.h>
 
-#define DEFAULT_REPEAT_COUNT 1
-#define DEFAULT_THREAD_COUNT 1
-
 using namespace std;
 
 typedef struct
@@ -70,12 +67,6 @@ typedef struct layer
     float* output;
     int coords;
 } layer;
-
-const int classes = 80;
-const float thresh = 0.25;
-const float hier_thresh = 0.5;
-const float nms = 0.45;
-const int relative = 1;
 
 // yolov3
 float biases[18] = {10, 13, 16, 30, 33, 23, 30, 61, 62, 45, 59, 119, 116, 90, 156, 198, 373, 326};
@@ -158,7 +149,7 @@ layer make_darknet_layer(int batch, int w, int h, int net_w, int net_h, int n, i
     }
     l.layer_type = layer_type;
     l.outputs = l.inputs;
-    l.output = ( float* )calloc(batch * l.outputs, sizeof(float));
+    l.output = ( float* )calloc((size_t)batch * l.outputs, sizeof(float));
 
     return l;
 }
@@ -653,16 +644,22 @@ void show_usage()
 
 int main(int argc, char* argv[])
 {
-    int repeat_count = DEFAULT_REPEAT_COUNT;
-    int num_thread = DEFAULT_THREAD_COUNT;
-    char* model_file = nullptr;
-    char* image_file = nullptr;
+    const char* model_file = nullptr;
+    const char* image_file = nullptr;
 
     int layer_type = 0;
     int numBBoxes = 3;
     int total_numAnchors = 6;
     int net_w = 416;
     int net_h = 416;
+    int repeat_count = 1;
+    int num_thread = 1;
+
+    const int classes = 80;
+    const float thresh = 0.25;
+    const float hier_thresh = 0.5;
+    const float nms = 0.45;
+    const int relative = 1;
 
     int res;
     while ((res = getopt(argc, argv, "m:i:r:t:h:")) != -1)
@@ -840,7 +837,7 @@ int main(int argc, char* argv[])
             int top = (b.y - b.h / 2.) * img.h;
             int bot = (b.y + b.h / 2.) * img.h;
             draw_box(img, left, top, right, bot, 2, 125, 0, 125);
-            fprintf(stderr, "%2d: %.0f%%, [%4d,%4d,%4d,%4d], %s\n", cls, best_class_prob * 100, left, top, right, bot, class_names[cls]);
+            fprintf(stderr, "%2d: %3.0f%%, [%4d,%4d,%4d,%4d], %s\n", cls, best_class_prob * 100, left, top, right, bot, class_names[cls]);
         }
 
         if (dets[i].mask)
@@ -849,7 +846,7 @@ int main(int argc, char* argv[])
             free(dets[i].prob);
     }
     free(dets);
-    save_image(img, "tengine_example_out");
+    save_image(img, "yolov4_tiny_out");
 
     /* release tengine */
     for (int i = 0; i < output_node_num; ++i)

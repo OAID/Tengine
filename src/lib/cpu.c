@@ -362,10 +362,10 @@ int set_cpu_affine(size_t mask)
     return -1;
 #else
     int status = set_sched_affinity(mask);
-    if (0 != status) return -1;
-
-	return 0;
+    if (0 != status) 
+        return -1;
 #endif
+    return 0;
 }
 
 size_t get_cluster_mask(int cluster)

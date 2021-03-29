@@ -83,7 +83,7 @@ image load_image_stb(const char* filename, int channels)
 image make_image(int w, int h, int c)
 {
     image out = make_empty_image(w, h, c);
-    out.data = ( float* )calloc(h * w * c, sizeof(float));
+    out.data = ( float* )calloc((size_t)h * w * c, sizeof(float));
     return out;
 }
 
@@ -481,7 +481,7 @@ image copyMaker(image im, int top, int bottom, int left, int right, float value)
 void save_image(image im, const char* name)
 {
     char buff[256];
-    unsigned char* data = ( unsigned char* )calloc(im.w * im.h * im.c, sizeof(char));
+    unsigned char* data = ( unsigned char* )calloc((size_t)im.w * im.h * im.c, sizeof(char));
     int i, k;
     for (k = 0; k < im.c; ++k)
     {
@@ -588,8 +588,8 @@ static float get_pixelBychannel(image m, int x, int y, int c)
 image copy_image(image p)
 {
     image copy = p;
-    copy.data = ( float* )calloc(p.h * p.w * p.c, sizeof(float));
-    memcpy(copy.data, p.data, p.h * p.w * p.c * sizeof(float));
+    copy.data = ( float* )calloc((size_t)p.h * p.w * p.c, sizeof(float));
+    memcpy(copy.data, p.data, (unsigned long)p.h * p.w * p.c * sizeof(float));
     return copy;
 }
 

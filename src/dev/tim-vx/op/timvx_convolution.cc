@@ -118,7 +118,7 @@ bool VXEngine::AddConvolutionNode(struct ir_node* ir_node)
                 .BindInputs({ this->vx_tensor_map[input_tensor->idx], this->vx_tensor_map[weight_tensor->idx] })
                 .BindOutputs({ tmp_output });
         }
-//        this->vx_tensor_map[output_tensor->idx] = tmp_output;
+        this->vx_tensor_map[output_tensor->idx + ir_graph->tensor_num] = tmp_output;
         if (param->activation == 0)
         {
             TLOG_INFO("Log:1.1append relu\n");

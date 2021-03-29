@@ -30,7 +30,6 @@ extern "C"
 #include "softmax_param.h"
 }
 
-
 bool VXEngine::AddSoftmaxNode(struct ir_node* ir_node)
 {
     TLOG_INFO("Tengine TIM-VX: Support OP(%d) OP_SOFTMAX.\n", ir_node->idx);
