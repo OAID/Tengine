@@ -27,46 +27,41 @@
 extern "C"
 {
 #include "tengine_op.h"
-#include "eltwise_param.h"
+#include "interp_param.h"
 }
 
 
-bool VXEngine::AddEltwisSumNode(struct ir_node* ir_node)
+bool VXEngine::AddInterpNode(struct ir_node* ir_node)
 {
-    TLOG_INFO("Tengine TIM-VX: Support OP(%d) OP_RELU.\n", ir_node->idx);
+    TLOG_INFO("Tengine TIM-VX: Support OP(%d) OP_INTERP.\n", ir_node->idx);
     struct ir_graph* ir_graph = ir_node->graph;
+
+    struct ir_tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    struct ir_tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+
+    struct interp_param* param = (struct interp_param*)ir_node->op.param_mem;
+
+    tim::vx::ResizeType resize_type;
+    if (param->resize_type == 1)
+        resize_type = tim::vx::ResizeType::NEAREST_NEIGHBOR;
+    else if(param->resize_type == 2)
+        resize_type = tim::vx::ResizeType::BILINEAR;
+    else
+        fprintf(stderr," Not support this resize type(%d)\n",resize_type);
 
     std::vector<std::shared_ptr<tim::vx::Tensor> > add_in_tensor(ir_node->input_num);
     for (int i = 0; i < ir_node->input_num; i++)
     {
         struct ir_tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[i]);
         add_in_tensor[i] = this->vx_tensor_map[input_tensor->idx];
-        fprintf(stderr,"\nadd_in_tensor.shape()\n");
-        for (int j = 0; j < 4; j++)
-        {
-            fprintf(stderr,"%d ",add_in_tensor[i]->GetShape()[j]);
-        }
-    }
-    struct ir_tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    fprintf(stderr,"\nadd_out_tensor.shape()\n");
-    for (int j = 0; j < 4; j++)
-    {
-        fprintf(stderr,"%d ",this->vx_tensor_map[output_tensor->idx]->GetShape()[j]);
     }
 
-    eltwise_param* param = (eltwise_param*)ir_node->op.param_mem;
+    auto resize = graph->CreateOperation<tim::vx::ops::Resize>(resize_type, 0.0f, false, false, param->output_height, param->output_width);
+    vx_node_map[ir_node->idx] = resize;
 
-    switch (param->type)
-    {
-        case ELT_SUM:
-        {
-            auto eltsum = graph->CreateOperation<tim::vx::ops::Add>();
-            (*eltsum)
-                .BindInputs(add_in_tensor)
-                .BindOutputs({ this->vx_tensor_map[output_tensor->idx] });
-            break;
-        }
-        default:
-            break;
-    }
+    (*resize)
+        .BindInputs(add_in_tensor)
+        .BindOutputs({ this->vx_tensor_map[output_tensor->idx] });
+
+    return true;
 }

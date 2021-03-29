@@ -79,11 +79,13 @@ option(TENGINE_STANDALONE_HCL "build standalone hcl lib" OFF)
 option(TENGINE_STANDALONE_HCL_AUTO_LOAD "auto load standalone hcl lib" ON)
 
 # some plugin options
-option(TENGINE_ENABLE_ACL "Build with Arm Compute Library(ACL) support" OFF)
-option(TENGINE_ENABLE_VULKAN "Build with Vulkan GPU compute support" OFF)
-option(TENGINE_ENABLE_TENSORRT "Build with nVIDIA TensorRT support" OFF)
-option(TENGINE_ENABLE_CUDABACKEND "Build with nVIDIA cuda support" OFF)
-option(TENGINE_ENABLE_TIM_VX "Build with VSI Tensor Interface Module for OpenVX support" OFF)
+option(TENGINE_ENABLE_ACL           "Build with Arm Compute Library(ACL) support" OFF)
+option(TENGINE_ENABLE_VULKAN        "Build with Vulkan GPU compute support" OFF)
+option(TENGINE_ENABLE_TENSORRT      "Build with nVIDIA TensorRT support" OFF)
+option(TENGINE_ENABLE_CUDABACKEND   "Build with nVIDIA cuda support" OFF)
+option(TENGINE_ENABLE_OPENCL        "Build with OpenCL support" OFF)
+option(TENGINE_ENABLE_TIM_VX        "Build with VSI Tensor Interface Module for OpenVX support" OFF)
+option(TENGINE_ENABLE_NNIE          "Build with HiSilicon NNIE support" OFF)
 
 # add_definitions(-DCONFIG_DISABLE_PARAM_ACCESS)
 # add_definitions(-DCONFIG_INTERN_ALLOCATOR)

@@ -123,5 +123,7 @@
 #define OP_SHAPE_NAME "Shape"
 #define OP_SCATTER_NAME "Scatter"
 #define OP_WHERE_NAME "Where"
+#define OP_SOFTPLUS_NAME "Softplus"
+#define OP_RECIPROCAL_NAME "Reciprocal"
 
 #endif

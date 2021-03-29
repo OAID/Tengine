@@ -18,12 +18,12 @@ jobs:
     - name: models
       run: |
         cd build
-        wget http://139.180.196.82/lite/models.zip
+        wget http://198.55.120.234/lite/models.zip
         unzip models.zip
-        wget http://139.180.196.82/lite/x86_data.zip
+        wget http://198.55.120.234/lite/x86_data.zip
         unzip x86_data.zip
         mv x86_data data
-        wget http://139.180.196.82/lite/images.zip
+        wget http://198.55.120.234/lite/images.zip
         unzip images.zip
     - name: test
       run: |
@@ -68,12 +68,12 @@ jobs:
     - name: models
       run: |
         cd build
-        wget http://139.180.196.82/lite/models.zip
+        wget http://198.55.120.234/lite/models.zip
         unzip models.zip
-        wget http://139.180.196.82/lite/arm32_data.zip
+        wget http://198.55.120.234/lite/arm32_data.zip
         unzip arm32_data.zip
         mv arm32_data data
-        wget http://139.180.196.82/lite/images.zip
+        wget http://198.55.120.234/lite/images.zip
         unzip images.zip
     - name: test
       run: |
@@ -119,12 +119,12 @@ jobs:
     - name: models
       run: |
         cd build
-        wget http://139.180.196.82/lite/models.zip
+        wget http://198.55.120.234/lite/models.zip
         unzip models.zip
-        wget http://139.180.196.82/lite/arm64_data.zip
+        wget http://198.55.120.234/lite/arm64_data.zip
         unzip arm64_data.zip
         mv arm64_data data
-        wget http://139.180.196.82/lite/images.zip
+        wget http://198.55.120.234/lite/images.zip
         unzip images
     - name: test
       run: |
@@ -144,14 +144,22 @@ jobs:
     - name: tim-vx
       run: |
         git clone https://github.com/VeriSilicon/TIM-VX.git
+        cd  TIM-VX
+        mkdir build && cd build && cmake .. && make -j2
+        cd ../.. 
+        export LD_LIBRARY_PATH=${PWD}/3rdparty/tim-vx/lib/x86_64
         mkdir -p ./3rdparty/tim-vx/lib/x86_64
         mkdir -p ./3rdparty/tim-vx/include
-        cp -rf ./TIM-VX/include/*    ./3rdparty/tim-vx/include/
-        cp -rf ./TIM-VX/src    ./src/dev/tim-vx/
-        cp -rf ./TIM-VX/prebuilt-sdk/x86_64_linux/include/*    ./3rdparty/tim-vx/include/
-        cp -rf ./TIM-VX/prebuilt-sdk/x86_64_linux/lib/*    ./3rdparty/tim-vx/lib/x86_64/
+        cp -rvf ./TIM-VX/include/*    ./3rdparty/tim-vx/include/
+        cp -rvf ./TIM-VX/src    ./src/dev/tim-vx/
+        cp -rvf ./TIM-VX/prebuilt-sdk/x86_64_linux/include/*    ./3rdparty/tim-vx/include/
+        cp -rvf ./TIM-VX/prebuilt-sdk/x86_64_linux/lib/*    ./3rdparty/tim-vx/lib/x86_64/
+        rm ./src/dev/tim-vx/src/tim/vx/context_test.cc
+        rm ./src/dev/tim-vx/src/tim/vx/graph_test.cc
+        cp -rvf ./TIM-VX/build/src/tim/vx/libtim-vx.so   ./3rdparty/tim-vx/lib/x86_64/
+        export 
     - name: configure
-      run: mkdir build && cd build && cmake -DTENGINE_ENABLE_TIM_VX=ON -DTENGINE_ENABLE_TIM_VX_INTEGRATION=ON ..
+      run: mkdir build && cd build && cmake -DTENGINE_ENABLE_TIM_VX=ON ..
     - name: build
       run: cmake --build build -j 2
 

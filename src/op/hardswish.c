@@ -31,28 +31,22 @@
 #include "tengine_log.h"
 #include "tengine_op.h"
 #include "parameter.h"
-#include "hardswish_param.h"
 
-DEFINE_PARM_PARSE_ENTRY(hardswish_param, alpha, beta);
+static int infer_shape(struct ir_node* node)
+{
+    struct ir_graph* ir_graph = node->graph;
+    struct ir_tensor* input = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
+    struct ir_tensor* output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
+
+    set_ir_tensor_shape(output, input->dims, input->dim_num);
+
+    return 0;
+}
 
 static int init_op(struct ir_op* op)
 {
-    struct hardswish_param* hardswish_param = ( struct hardswish_param* )sys_malloc(sizeof(struct hardswish_param));
-
-    if (hardswish_param == NULL)
-    {
-        set_tengine_errno(ENOMEM);
-        return -1;
-    }
-
-    /*set the param default value */
-    hardswish_param->alpha = 1.f;
-    hardswish_param->beta = 0.f;
-
-    op->param_mem = hardswish_param;
-    op->param_size = sizeof(struct hardswish_param);
-    op->same_shape = 1;
-    op->infer_shape = NULL;
+    op->same_shape = 0;
+    op->infer_shape = infer_shape;
 
     return 0;
 }
@@ -69,14 +63,12 @@ static int register_hardswish_op(void* arg)
     m.op_version = 1;
     m.init_op = init_op;
     m.release_op = release_op;
-    m.access_param_entry = access_param_entry;
 
     return register_op(OP_HARDSWISH, OP_HARDSWISH_NAME, &m);
 }
 
 static int unregister_hardswish_op(void* arg)
 {
-    sys_free(GET_PARAM_PARSE_MAP(hardswish_param));
     return unregister_op(OP_HARDSWISH, 1);
 }
 

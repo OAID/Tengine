@@ -33,7 +33,6 @@
 #include "tengine_serializer.h"
 #include "tm2_serializer.h"
 #include "tengine_op.h"
-#include "hardswish_param.h"
 
 static int gather_op_map(int op)
 {
@@ -43,14 +42,6 @@ static int gather_op_map(int op)
 static int tm2_load_hardswish(struct ir_graph* ir_graph, struct ir_node* ir_node, const TM2_Node* tm_node,
                               const TM2_Operator* tm_op)
 {
-    struct hardswish_param* gather_param = ( struct hardswish_param* )ir_node->op.param_mem;
-    const struct tm2_priv* tm2_priv = ( struct tm2_priv* )ir_graph->serializer_priv;
-    const char* mem_base = tm2_priv->base;
-    const TM2_HardSwishParam* tm_param = ( TM2_HardSwishParam* )(mem_base + tm_op->offset_t_param);
-
-    gather_param->alpha = tm_param->alpha;
-    gather_param->beta = tm_param->beta;
-
     return 0;
 }
 

@@ -96,7 +96,7 @@ static int ref_deconv_fp32(const float* input, float* output, const float* kerne
     int kernel_offset = 0;
     int output_offset = 0;
 
-    memset(( void* )output, 0, output_h * output_w * output_c * batch * group * sizeof(float));
+    memset(( void* )output, 0, (unsigned long)output_h * output_w * output_c * batch * group * sizeof(float));
 
     for (n = 0; n < batch; ++n)
     {
