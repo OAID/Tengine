@@ -19,16 +19,47 @@
 
 /*
  * Copyright (c) 2020, OPEN AI LAB
- * Author: haitao@openailab.com
+ * Author: bsun@openailab.com
  */
 
-#ifndef __HARDSWISH_PARAM_H__
-#define __HARDSWISH_PARAM_H__
+#ifndef __NNIE_SERIALIZER_H__
+#define __NNIE_SERIALIZER_H__
 
-struct hardswish_param
+#include <stdbool.h>
+#include "tengine_c_api.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "tengine_ir.h"
+#include "tengine_serializer.h"
+
+#ifdef STANDLONE_MODE
+void init_nnie_serializer(void);
+#endif
+#ifdef __cplusplus
+}
+#endif
+
+#include "nnie_param.h"
+
+#include "sample_comm_nnie.h"
+
+typedef struct te_NNIE_CONTEXT_S
 {
-    float alpha;
-    float beta;
+    SAMPLE_SVP_NNIE_CFG_S stNnieCfg;
+    SAMPLE_SVP_NNIE_PARAM_S stCnnNnieParam;
+    SAMPLE_SVP_NNIE_MODEL_S stCnnModel;
+} TE_NNIE_CONTEXT_S;
+
+struct nnie_serializer
+{
+    struct serializer base;
+    int nnieContextCount;
+    bool segNet;
 };
+
+const char * get_nnie_tensor_layout(SVP_NNIE_NODE_S* pstNode);
+int get_nnie_tensor_size(SVP_NNIE_NODE_S *pstDstNode);
 
 #endif

@@ -117,7 +117,7 @@ static int do_RNN_step(const float* input, float* init_h, const float* kernel, c
 
 static int ref_rnn_fp32(float* input, float* output, struct rnn_ref_param* param)
 {
-    float* init_h = ( float* )malloc(param->batch_size * param->hidden_size * sizeof(float));
+    float* init_h = ( float* )malloc((unsigned long )param->batch_size * param->hidden_size * sizeof(float));
     if (param->init_h_data)
     {
         for (int i = 0; i < param->batch_size; i++)
@@ -127,7 +127,7 @@ static int ref_rnn_fp32(float* input, float* output, struct rnn_ref_param* param
     }
     else
     {
-        memset(init_h, 0x0, sizeof(param->batch_size * param->hidden_size * sizeof(float)));
+        memset(init_h, 0x0, sizeof((unsigned long )param->batch_size * param->hidden_size * sizeof(float)));
     }
 
     for (int i = 0; i < param->seq_lens; i++)
@@ -141,7 +141,7 @@ static int ref_rnn_fp32(float* input, float* output, struct rnn_ref_param* param
         // final_state [batch_size,hidden_size]
         if (i + param->output_len >= param->seq_lens)
         {
-            memcpy(output, init_h, param->batch_size * param->hidden_size * sizeof(float));
+            memcpy(output, init_h, (unsigned long )param->batch_size * param->hidden_size * sizeof(float));
             output += param->batch_size * param->hidden_size;
         }
     }
@@ -217,7 +217,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     int batch_size = input_tensor->dims[1];
     int output_len = rnn_param->output_len;
 
-    float* init_h = ( float* )malloc(batch_size * hidden_size * sizeof(float));
+    float* init_h = ( float* )malloc((unsigned long )batch_size * hidden_size * sizeof(float));
     if (init_h == NULL)
     {
         set_tengine_errno(ENOMEM);

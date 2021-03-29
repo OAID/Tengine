@@ -19,259 +19,409 @@
 
 /*
  * Copyright (c) 2020, OPEN AI LAB
- * Author: bhu@openailab.com
+ * Author: xwwang@openailab.com
  */
 
 #include <math.h>
-#include <stdbool.h>
 #include "sys_port.h"
 #include "module.h"
-#include "tengine_errno.h"
-#include "tengine_log.h"
 #include "tengine_ir.h"
 #include "../../cpu_node_ops.h"
 #include "tengine_op.h"
 #include "gru_param.h"
-#include "vector.h"
-#include "gru_kernel_ref.h"
-#include "string.h"
 
-int ref_gru_fp32(float* input, float* output, struct gru_param_ref* param)
-{
-    float* init_h = ( float* )malloc(param->batch_size * param->hidden_size * sizeof(float));
-
-    if (param->init_h_data)
-    {
-        for (int i = 0; i < param->batch_size; i++)
-        {
-            memcpy(init_h + i * param->hidden_size, param->init_h_data, param->hidden_size * sizeof(float));
-        }
-    }
-    else
-    {
-        memset(init_h, 0x0, sizeof(param->batch_size * param->hidden_size * sizeof(float)));
-    }
-    for (int i = 0; i < param->seq_lens; i++)
-    {
-        const float* seq_input = input + i * param->batch_size * param->input_size;
-        if (!do_GRU_step(seq_input, init_h, param->kernel, param->bias, param->candidate_kernel, param->candidate_bias,
-                         param->batch_size, param->input_size, param->hidden_size, param->mxnet_flag))
-        {
-            return -1;
-        }
-
-        if (i + param->output_len >= param->seq_lens)
-        {
-            memcpy(output, init_h, param->batch_size * param->hidden_size * sizeof(float));
-            output += param->batch_size * param->hidden_size;
-        }
-    }
-    free(init_h);
-    return 0;
-    return 0;
-}
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    // exec_node->inplace_map[0] = 0;
-    // exec_node->inplace_map[1] = 0;
-    // exec_node->inplace_map_num = 1;
-    struct gru_priv_info* gru_priv_info = ( struct gru_priv_info* )sys_malloc(sizeof(struct gru_priv_info));
-
-    if (gru_priv_info == NULL)
-    {
-        set_tengine_errno(ENOMEM);
-        return -1;
-    }
-
-    memset(gru_priv_info, 0, sizeof(struct gru_priv_info));
-
-    /* get shared memory size */
-    exec_node->ops_priv = gru_priv_info;
-
     return 0;
 }
 
 static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    // exec_node->inplace_map_num = 0;
-    struct gru_priv_info* gru_priv_info = ( struct gru_priv_info* )exec_node->ops_priv;
+    return 0;
+}
 
-    sys_free(gru_priv_info);
+int ref_gru_default_fp32(struct ir_tensor* input_tensor, struct ir_tensor* w, struct ir_tensor* r, struct ir_tensor* output_tensor, struct gru_param* param)
+{
+    int batch_size = input_tensor->dims[1];
+    int size = input_tensor->dims[2];
+    int hidden_size = param->hidden_size;
 
-    exec_node->ops_priv = NULL;
+    float* x_data = input_tensor->data;
+    float* w_data = w->data;
+    float* r_data = r->data;
+    float* output_data = output_tensor->data;
+
+    /* initial_h_data buffers */
+    float* initial_h_data = (float*)malloc((unsigned long)hidden_size * batch_size * sizeof(float));
+    float* output_h_data  = (float*)malloc((unsigned long)hidden_size * batch_size * sizeof(float));
+    float* h_0            = (float*)malloc((unsigned long)hidden_size * batch_size * sizeof(float));
+    memset(initial_h_data, 0, (unsigned long)hidden_size*batch_size * sizeof(float));
+    memset(output_h_data,  0, (unsigned long)hidden_size*batch_size * sizeof(float));
+    memset(h_0,            0, (unsigned long)hidden_size*batch_size * sizeof(float));
+
+    float* Z_data = ( float* )malloc(hidden_size * sizeof(float));
+    float* R_data = ( float* )malloc(hidden_size * sizeof(float));
+    float* H_data = ( float* )malloc(hidden_size * sizeof(float));
+
+    int T = input_tensor->dims[1];
+    
+    for(int seq = 0; seq < input_tensor->dims[0]; seq++)
+    {
+        for(int t = 0; t < T; t++)
+        {
+            for (int q = 0; q < hidden_size; q++)
+            {
+                float Z = 0;
+                float R = 0;
+                float w_H = 0;
+                float r_H = 0;
+                for (int m = 0; m < size; m++)
+                {
+                    float x_i = x_data[seq * input_tensor->dims[1] * input_tensor->dims[2] + t * input_tensor->dims[2] + m];
+                    Z += x_i * w_data[(hidden_size * 0 + q) * input_tensor->dims[2] + m];
+                    R += x_i * w_data[(hidden_size * 1 + q) * input_tensor->dims[2] + m];
+                    w_H += x_i * w_data[(hidden_size * 2 + q) * input_tensor->dims[2] + m];
+                }
+
+                for (int h = 0; h < hidden_size; h++)
+                {
+                    if(seq == 0)
+                    {
+                        float h_i = initial_h_data[t * hidden_size + h];
+                        Z += h_i * r_data[(hidden_size * 0 + q) * hidden_size + h];
+                        R += h_i * r_data[(hidden_size * 1 + q) * hidden_size + h];
+                    }
+                    else
+                    {
+                        float h_i = output_h_data[t * hidden_size + h];
+                        Z += h_i * r_data[(hidden_size * 0 + q) * hidden_size + h];
+                        R += h_i * r_data[(hidden_size * 1 + q) * hidden_size + h];
+                    }
+                }
+
+                float r_tmp = 1.f / (1.f + exp(-R));
+                for (int k = 0; k < hidden_size; k++)
+                {
+                    if(seq == 0)
+                    {
+                        r_H += r_tmp * initial_h_data[t * hidden_size + k] * r_data[(hidden_size * 2 + q) * hidden_size + k];
+                    }
+                    else
+                    {
+                        r_H += r_tmp * output_h_data[t * hidden_size + k] * r_data[(hidden_size * 2 + q) * hidden_size + k];
+                    }
+                }
+
+                Z_data[q] = Z;
+                R_data[q] = R;
+                H_data[q] = w_H + r_H;
+            }
+
+            for (int h = 0; h < hidden_size; h++)
+            {
+                if(seq == 0)
+                {
+                    float Z = 1.f / (1.f + exp(-Z_data[h]));
+                    float H = tanh(H_data[h]);
+                    float out = (1 - Z) * H + Z * h_0[h];
+                    output_data[t * hidden_size + h] = out;
+                    output_h_data[t * hidden_size + h] = out;
+                }
+                else
+                {
+                    float Z = 1.f / (1.f + exp(-Z_data[h]));
+                    float H = tanh(H_data[h]);
+                    float out = (1 - Z) * H + Z * output_h_data[t * hidden_size + h];
+                    output_data[t * hidden_size + h] = out;
+                    output_h_data[t * hidden_size + h] = out;
+                }
+            }
+        }
+    }
+
+    free(initial_h_data);
+    free(output_h_data);
+    free(h_0);
+    free(Z_data);
+    free(R_data);
+    free(H_data);
 
     return 0;
 }
 
-static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
+int ref_gru_with_bias_fp32(struct ir_tensor* input_tensor, struct ir_tensor* w, struct ir_tensor* r, struct ir_tensor* b, struct ir_tensor* output_tensor, struct gru_param* param)
 {
-    struct ir_node* ir_node = exec_node->ir_node;
-    struct ir_graph* ir_graph = ir_node->graph;
-    int in_num = ir_node->input_num;
-    struct gru_priv_info* gru_priv_info = ( struct gru_priv_info* )exec_node->ops_priv;
-    for (int i = 0; i < in_num; i++)
+    int batch_size = input_tensor->dims[1];
+    int size = input_tensor->dims[2];
+    int hidden_size = param->hidden_size;
+    
+    float* x_data = input_tensor->data;
+    float* w_data = w->data;
+    float* r_data = r->data;
+    float* b_data = b->data;
+    float* output_data = output_tensor->data;
+
+    /* initial_h_data buffers */
+    float* initial_h_data = (float*)malloc((unsigned long)hidden_size * batch_size * sizeof(float));
+    float* output_h_data  = (float*)malloc((unsigned long)hidden_size * batch_size * sizeof(float));
+    float* h_0            = (float*)malloc((unsigned long)hidden_size * batch_size * sizeof(float));
+    memset(initial_h_data, 0, (unsigned long)hidden_size*batch_size * sizeof(float));
+    memset(output_h_data,  0, (unsigned long)hidden_size*batch_size * sizeof(float));
+    memset(h_0,            0, (unsigned long)hidden_size*batch_size * sizeof(float));
+
+    float* Z_data = ( float* )malloc(hidden_size * sizeof(float));
+    float* R_data = ( float* )malloc(hidden_size * sizeof(float));
+    float* H_data = ( float* )malloc(hidden_size * sizeof(float));
+
+    int T = input_tensor->dims[1];
+    
+    for(int seq = 0; seq < input_tensor->dims[0]; seq++)
     {
-        struct ir_tensor* tmp_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[i]);
-        char* name = tmp_tensor->name;
-        if (strstr(name, "gates/kernel") != NULL)
+        for(int t = 0; t < T; t++)
         {
-            gru_priv_info->kernel_tensor = tmp_tensor;
-        }
-        if (strstr(name, "init_h") != NULL)
-        {
-            gru_priv_info->init_h_tensor = tmp_tensor;
-        }
-        if (strstr(name, "gates/bias") != NULL)
-        {
-            gru_priv_info->bias_tensor = tmp_tensor;
-        }
-        if (strstr(name, "candidate/kernel") != NULL)
-        {
-            gru_priv_info->candidate_kernel_tensor = tmp_tensor;
-        }
-        if (strstr(name, "candidate/bias") != NULL)
-        {
-            gru_priv_info->candidate_bias_tensor = tmp_tensor;
-        }
-        if (strstr(name, "i2h_weight") != NULL)
-        {
-            gru_priv_info->kernel_tensor = tmp_tensor;
-        }
-        if (strstr(name, "i2h_bias") != NULL)
-        {
-            gru_priv_info->bias_tensor = tmp_tensor;
-        }
-        if (strstr(name, "h2h_weight") != NULL)
-        {
-            gru_priv_info->candidate_kernel_tensor = tmp_tensor;
-        }
-        if (strstr(name, "h2h_bias") != NULL)
-        {
-            gru_priv_info->candidate_bias_tensor = tmp_tensor;
-        }
-        if (strstr(name, "parameters") != NULL)
-        {
-            gru_priv_info->fused_kernel_tensor = tmp_tensor;
+            for (int q = 0; q < hidden_size; q++)
+            {
+                float Z = 0;
+                float R = 0;
+                float w_H = 0;
+                float r_H = 0;
+                float H = 0;
+                for (int m = 0; m < size; m++)
+                {
+                    float x_i = x_data[seq * input_tensor->dims[1] * input_tensor->dims[2] + t * input_tensor->dims[2] + m];
+                    Z += x_i * w_data[(hidden_size * 0 + q) * input_tensor->dims[2] + m];
+                    R += x_i * w_data[(hidden_size * 1 + q) * input_tensor->dims[2] + m];
+                    w_H += x_i * w_data[(hidden_size * 2 + q) * input_tensor->dims[2] + m];
+                }
+
+                Z += b_data[hidden_size * 0 + q];
+                R += b_data[hidden_size * 1 + q];
+                w_H += b_data[hidden_size * 2 + q];
+
+                for (int h = 0; h < hidden_size; h++)
+                {
+                    if(seq == 0)
+                    {
+                        float h_i = initial_h_data[t * hidden_size + h];
+                        Z += h_i * r_data[(hidden_size * 0 + q) * hidden_size + h];
+                        R += h_i * r_data[(hidden_size * 1 + q) * hidden_size + h];
+                    }
+                    else
+                    {
+                        float h_i = output_h_data[t * hidden_size + h];
+                        Z += h_i * r_data[(hidden_size * 0 + q) * hidden_size + h];
+                        R += h_i * r_data[(hidden_size * 1 + q) * hidden_size + h];
+                    }
+                }
+
+                Z += b_data[hidden_size * 3 + hidden_size * 0 + q];
+                R += b_data[hidden_size * 3 + hidden_size * 1 + q];
+
+                float r_tmp = 1.f / (1.f + exp(-R));
+                for (int k = 0; k < hidden_size; k++)
+                {
+                    if(seq == 0)
+                    {
+                        r_H += r_tmp * initial_h_data[t * hidden_size + k] * r_data[(hidden_size * 2 + q) * hidden_size + k];
+                    }
+                    else
+                    {
+                        r_H += r_tmp * output_h_data[t * hidden_size + k] * r_data[(hidden_size * 2 + q) * hidden_size + k];
+                    }
+                }
+                r_H += b_data[hidden_size * 3 + hidden_size * 2 + q];
+                Z_data[q] = Z;
+                R_data[q] = R;
+                H_data[q] = w_H + r_H;
+            }
+
+            for (int h = 0; h < hidden_size; h++)
+            {
+                if(seq == 0)
+                {
+                    float Z = 1.f / (1.f + exp(-Z_data[h]));
+                    float H = tanh(H_data[h]);
+                    float out = (1 - Z) * H + Z * h_0[h];
+                    output_data[t * hidden_size + h] = out;
+                    output_h_data[t * hidden_size + h] = out;
+                }
+                else
+                {
+                    float Z = 1.f / (1.f + exp(-Z_data[h]));
+                    float H = tanh(H_data[h]);
+                    float out = (1 - Z) * H + Z * output_h_data[t * hidden_size + h];
+                    output_data[t * hidden_size + h] = out;
+                    output_h_data[t * hidden_size + h] = out;
+                }
+            }
         }
     }
+
+    free(initial_h_data);
+    free(output_h_data);
+    free(h_0);
+    free(Z_data);
+    free(R_data);
+    free(H_data);
+
+    return 0;
+}
+
+int ref_gru_case1_fp32(struct ir_tensor* input_tensor, struct ir_tensor* w, struct ir_tensor* r, struct ir_tensor* b, struct ir_tensor* output_tensor, struct gru_param* param)
+{
+    int batch_size = input_tensor->dims[1];
+    int hidden_size = param->hidden_size;
+    float* x_data = input_tensor->data;
+    float* w_data = w->data;
+    float* r_data = r->data;
+    float* b_data = b->data;
+
+    /* initial_h_data buffers */
+    float* initial_h_data = (float*)malloc((unsigned long)hidden_size * batch_size * sizeof(float));
+    float* output_h_data  = (float*)malloc((unsigned long)hidden_size * batch_size * sizeof(float));
+    float* h_0            = (float*)malloc((unsigned long)hidden_size * batch_size * sizeof(float));
+    memset(initial_h_data, 0, (unsigned long)hidden_size * batch_size * sizeof(float));
+    memset(output_h_data,  0, (unsigned long)hidden_size * batch_size * sizeof(float));
+    memset(h_0,            0, (unsigned long)hidden_size * batch_size * sizeof(float));
+
+    float* Z_data = ( float* )malloc(hidden_size * sizeof(float));
+    float* R_data = ( float* )malloc(hidden_size * sizeof(float));
+    float* H_data = ( float* )malloc(hidden_size * sizeof(float));
+
+    float* output_data = output_tensor->data;
+    int T = input_tensor->dims[1];
+    int size = input_tensor->dims[2];
+
+    for(int seq = 0; seq < input_tensor->dims[0]; seq++)
+    {
+        for(int t = 0; t < T; t++)
+        {
+            for (int q = 0; q < hidden_size; q++)
+            {
+                float Z = 0;
+                float R = 0;
+                float w_H = 0;
+                float r_H = 0;
+                for (int m = 0; m < size; m++)
+                {
+                    float x_i = x_data[seq * input_tensor->dims[1] * input_tensor->dims[2] + t * input_tensor->dims[2] + m];
+                    Z += x_i * w_data[(hidden_size * 0 + q) * input_tensor->dims[2] + m];
+                    R += x_i * w_data[(hidden_size * 1 + q) * input_tensor->dims[2] + m];
+                    w_H += x_i * w_data[(hidden_size * 2 + q) * input_tensor->dims[2] + m];
+                }
+
+                Z += b_data[hidden_size * 0 + q];
+                R += b_data[hidden_size * 1 + q];
+                w_H += b_data[hidden_size * 2 + q];
+
+                for (int h = 0; h < hidden_size; h++)
+                {
+                    if(seq == 0)
+                    {
+                        float h_i = initial_h_data[t * hidden_size + h];
+                        Z += h_i * r_data[(hidden_size * 0 + q) * hidden_size + h];
+                        R += h_i * r_data[(hidden_size * 1 + q) * hidden_size + h];
+                        r_H += h_i * r_data[(hidden_size * 2 + q) * hidden_size + h];
+                    }
+                    else
+                    {
+                        float h_i = output_h_data[t * hidden_size + h];
+                        Z += h_i * r_data[(hidden_size * 0 + q) * hidden_size + h];
+                        R += h_i * r_data[(hidden_size * 1 + q) * hidden_size + h];
+                        r_H += h_i * r_data[(hidden_size * 2 + q) * hidden_size + h];
+                    }
+                }
+
+                Z += b_data[hidden_size * 3 + hidden_size * 0 + q];
+                R += b_data[hidden_size * 3 + hidden_size * 1 + q];
+                r_H += b_data[hidden_size * 3 + hidden_size * 2 + q];
+
+                float r_tmp = 1.f / (1.f + exp(-R));
+                Z_data[q] = Z;
+                R_data[q] = R;
+                H_data[q] = w_H + r_tmp * r_H;
+            }
+
+            for (int h = 0; h < hidden_size; h++)
+            {
+                if(seq == 0)
+                {
+                    float Z = 1.f / (1.f + exp(-Z_data[h]));
+                    float H = tanh(H_data[h]);
+                    float out = (1 - Z) * H + Z * h_0[h];
+                    output_data[seq * hidden_size * batch_size + t * hidden_size + h] = out;
+                    output_h_data[t * hidden_size + h] = out;
+                }
+                else
+                {
+                    float Z = 1.f / (1.f + exp(-Z_data[h]));
+                    float H = tanh(H_data[h]);
+                    float out = (1 - Z) * H + Z * output_h_data[t * hidden_size + h];
+                    output_data[seq * hidden_size * batch_size + t * hidden_size + h] = out;
+                    output_h_data[t * hidden_size + h] = out;
+                }
+            }
+        }
+    }
+
+    free(initial_h_data);
+    free(output_h_data);
+    free(h_0);
+    free(Z_data);
+    free(R_data);
+    free(H_data);
 
     return 0;
 }
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
+    // add by wangxinwei for gru op
     struct ir_node* ir_node = exec_node->ir_node;
-    gru_param_t* _param = ( struct gru_param* )(ir_node->op.param_mem);
     struct ir_graph* ir_graph = ir_node->graph;
+
     struct ir_tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    struct ir_tensor* w = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
+    struct ir_tensor* r = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[2]);
+    struct ir_tensor* b = NULL;
     struct ir_tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    struct gru_param_ref op_param;
 
-    int hidden_size = _param->hidden_size;
-    int input_size = 0;
+    if (ir_node->input_num > 3)
+        b = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[3]);
 
-    int seq_lens = input_tensor->dims[1];
-    int batch_size = input_tensor->dims[0];
-    int output_len = _param->output_len;
-    int mxnet_flag = _param->mxnet_flag;
+    struct gru_param* param = ( struct gru_param* )(ir_node->op.param_mem);
 
-    if (mxnet_flag == 1)
+    /* only support one way */
+    if (w->dim_num == 4 && w->dims[0] == 2)
     {
-        seq_lens = input_tensor->dims[0];
-        batch_size = input_tensor->dims[1];
-        input_size = input_tensor->dims[2];
-    }
-    else
-    {
-        input_size = _param->input_size;
-    }
-    float* output = ( float* )output_tensor->data;
-    float* input = ( float* )input_tensor->data;
-    float* init_h = ( float* )malloc(batch_size * hidden_size * sizeof(float));
-
-    struct gru_priv_info* gru_priv_info = ( struct gru_priv_info* )exec_node->ops_priv;
-
-    struct ir_tensor* init_h_data_tensor = gru_priv_info->init_h_tensor;
-    float* init_h_data = ( float* )init_h_data_tensor->data;
-    if (init_h_data_tensor->data)
-    {
-        for (int i = 0; i < batch_size; i++)
-        {
-            memcpy(init_h + i * hidden_size, ( float* )init_h_data_tensor->data, hidden_size * sizeof(float));
-        }
-    }
-    else
-    {
-        memset(init_h, 0x0, sizeof(batch_size * hidden_size * sizeof(float)));
-    }
-    float* kernel = NULL;
-    float* bias = NULL;
-    float* fused_kernel = NULL;
-    float* candidate_kernel = NULL;
-    float* candidate_bias = NULL;
-
-    if (gru_priv_info->kernel_tensor)
-    {
-        struct ir_tensor* kernel_tensor = gru_priv_info->kernel_tensor;
-        kernel = ( float* )kernel_tensor->data;
-    }
-    if (gru_priv_info->bias_tensor)
-    {
-        struct ir_tensor* bias_tensor = gru_priv_info->bias_tensor;
-        bias = ( float* )bias_tensor->data;
-    }
-
-    if (gru_priv_info->candidate_kernel_tensor)
-    {
-        struct ir_tensor* candidate_kernel_tensor = gru_priv_info->candidate_kernel_tensor;
-        candidate_kernel = ( float* )candidate_kernel_tensor->data;
-    }
-
-    if (gru_priv_info->candidate_bias_tensor)
-    {
-        struct ir_tensor* candidate_bias_tensor = gru_priv_info->candidate_bias_tensor;
-        candidate_bias = ( float* )candidate_bias_tensor->data;
-    }
-
-    // int bsize=2*cell_size*4;
-
-    if (gru_priv_info->fused_kernel_tensor)
-    {
-        struct ir_tensor* fused_kernel_tensor = gru_priv_info->fused_kernel_tensor;
-        fused_kernel = ( float* )fused_kernel_tensor->data;
-        // int kernel_size = fused_kernel_tensor->elem_size / sizeof(float);
-        kernel = fused_kernel;
-        candidate_kernel = kernel + input_size * hidden_size * 3;
-        bias = candidate_kernel + hidden_size * hidden_size * 3;
-        candidate_bias = bias + hidden_size * 3;
-    }
-
-    op_param.init_h_data = init_h_data;
-    op_param.bias = bias;
-    op_param.kernel = kernel;
-    op_param.candidate_kernel = candidate_kernel;
-    op_param.candidate_bias = candidate_bias;
-    op_param.fused_kernel = fused_kernel;
-    op_param.seq_lens = seq_lens;
-    op_param.batch_size = batch_size;
-    op_param.input_size = input_size;
-    op_param.output_len = output_len;
-    op_param.hidden_size = hidden_size;
-    op_param.mxnet_flag = mxnet_flag;
-    if (ref_gru_fp32(input, output, &op_param) < 0)
-    {
+        printf("GRU only support one way.\n");
         return -1;
     }
 
-    return 0;
+    int ret = -1;
+    if (ir_node->input_num == 3)
+    {
+        ret = ref_gru_default_fp32(input_tensor, w, r, output_tensor, param);
+    }
+    else if (ir_node->input_num == 5)
+    {
+        ret = ref_gru_case1_fp32(input_tensor, w, r, b, output_tensor, param);
+    }
+    else
+    {
+        b = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[3]);
+        ret = ref_gru_with_bias_fp32(input_tensor, w, r, b, output_tensor, param);
+    }
+
+    return ret;
 }
 
 static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struct ir_node* exec_node)
 {
-    return OPS_SCORE_BEST;
+    return OPS_SCORE_CANDO;
 }
 
-static struct node_ops gru_node_ops = {.prerun = prerun,
+static struct node_ops gru_node_ops = {.prerun = NULL,
                                        .run = run,
                                        .reshape = NULL,
                                        .postrun = NULL,

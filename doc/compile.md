@@ -150,7 +150,7 @@ make
 make install
 ```
 
-## 4. GPU 版本
+## 4. 异构计算 版本
 
 #### 4.1 ACL
 
@@ -167,6 +167,10 @@ make install
 #### 4.4 TensoRT
 
 请参考 [Tengine Lite TensorRT GPU 使用说明](gpu_trt_user_manual.md)。
+
+#### 4.5 TIM-VX
+
+请参考 [Tengine Lite VeriSilicon NPU 使用说明](npu_tim-vx_user_manual.md)。
 
 ## 5. 交叉编译 Arm64 OHOS（鸿蒙系统） 版本
 
@@ -202,26 +206,34 @@ Arm64 OHOS 编译脚本如下（Windows）
 
 `build/ohos-arm64-v8a.bat`:
 ```bash
-@echo off
+@ECHO OFF
+@SETLOCAL
 
-set OHOS_NDK=E:/soft/Huawei/sdk/native/3.0.0.80
-set TOOLCHAIN=%OHOS_NDK%/build/cmake/ohos.toolchain.cmake
+:: Set OHOS native toolchain root
+@SET OHOS_NDK=<your-ndk-root_path, such as D:/Program/DevEcoStudio/SDK/native/2.0.1.93>
 
-set BUILD_DIR=ohos-arm64-v8a
-if not exist %BUILD_DIR% md %BUILD_DIR%
-cd %BUILD_DIR%
 
-cmake -G Ninja \
-    -DCMAKE_TOOLCHAIN_FILE=%TOOLCHAIN% \
-    -DOHOS_ARCH="arm64-v8a" \
-    -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
-    ../..
+:: Set ninja.exe and cmake.exe
+@SET NINJA_EXE=%OHOS_NDK%/build-tools/cmake/bin/ninja.exe
+@SET CMAKE_EXE=%OHOS_NDK%/build-tools/cmake/bin/cmake.exe
+@SET PATH=%OHOS_NDK%/llvm/bin;%OHOS_NDK%/build-tools/cmake/bin;%PATH%
 
-::ninja
-cmake --build .
+mkdir build-ohos-armeabi-v7a
+pushd build-ohos-armeabi-v7a
+%CMAKE_EXE% -G Ninja -DCMAKE_TOOLCHAIN_FILE="%OHOS_NDK%/build/cmake/ohos.toolchain.cmake"  -DCMAKE_MAKE_PROGRAM=%NINJA_EXE%  -DOHOS_ARCH="armeabi-v7a" -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON .. 
+%CMAKE_EXE% --build . --parallel %NUMBER_OF_PROCESSORS%
+%CMAKE_EXE% --build . --target install
+popd
 
-cd ..
+mkdir build-ohos-arm64-v8a
+pushd build-ohos-arm64-v8a
+%CMAKE_EXE% -G Ninja -DCMAKE_TOOLCHAIN_FILE="%OHOS_NDK%/build/cmake/ohos.toolchain.cmake"  -DCMAKE_MAKE_PROGRAM=%NINJA_EXE%  -DOHOS_ARCH="arm64-v8a" -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON .. 
+%CMAKE_EXE% --build . --parallel %NUMBER_OF_PROCESSORS%
+%CMAKE_EXE% --build . --target install
+popd
+
+
+@ENDLOCAL
 ```
 
 ## 6. 总结

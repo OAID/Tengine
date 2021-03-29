@@ -27,8 +27,8 @@
 extern "C"
 {
 #include "tengine_op.h"
+#include "relu_param.h"
 }
-
 
 bool VXEngine::AddReluNode(struct ir_node* ir_node)
 {
@@ -38,9 +38,21 @@ bool VXEngine::AddReluNode(struct ir_node* ir_node)
     struct ir_tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     struct ir_tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    auto relu = this->graph->CreateOperation<tim::vx::ops::Relu>();
-    (*relu).BindInput( this->vx_tensor_map[input_tensor->idx] )
-        .BindOutput({ this->vx_tensor_map[output_tensor->idx] });
+    struct relu_param* param = (struct relu_param*)ir_node->op.param_mem;
+
+    if (param->negative_slope > 0.000001)
+    {
+        auto leaky_relu = this->graph->CreateOperation<tim::vx::ops::LeakyRelu>(param->negative_slope);
+        (*leaky_relu).BindInput( this->vx_tensor_map[input_tensor->idx] )
+            .BindOutput({ this->vx_tensor_map[output_tensor->idx] });
+    }
+    else
+    {
+        auto relu = this->graph->CreateOperation<tim::vx::ops::Relu>();
+        (*relu).BindInput( this->vx_tensor_map[input_tensor->idx] )
+            .BindOutput({ this->vx_tensor_map[output_tensor->idx] });
+    }
 
     return true;
 }
+

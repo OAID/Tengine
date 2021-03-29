@@ -42,14 +42,14 @@ bool VXEngine::AddConvolutionNode(struct ir_node* ir_node)
     struct ir_tensor* weight_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
     struct ir_tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    tim::vx::PadType padtype;
+    tim::vx::PadType padtype = tim::vx::PadType::SAME;
 
     int h = input_tensor->dims[2];
     int out_h = (h - 1) / param->stride_h + 1;
     int total_len_h = (out_h - 1) * param->stride_h + param->kernel_h;
     int pad_num_h = total_len_h - h;
-    int pad_h0 = 0;
-    if (param->pad_h0 == pad_num_h / 2 && param->pad_h1 == pad_num_h - pad_num_h / 2)
+    int pad_h0 = param->pad_h0;
+    if (param->pad_h0 == pad_num_h / 2 && param->pad_h1 == pad_num_h - pad_num_h / 2 && param->pad_h0 != 0)
     {
         pad_h0 = -1;
     }
@@ -58,31 +58,33 @@ bool VXEngine::AddConvolutionNode(struct ir_node* ir_node)
     int out_w = (w - 1) / param->stride_w + 1;
     int total_len_w = (out_w - 1) * param->stride_w + param->kernel_w;
     int pad_num_w = total_len_w - w;
-    int pad_w0 = 0;
-    if (param->pad_w0 == pad_num_w / 2 && param->pad_w1 == pad_num_w - pad_num_w / 2)
+    int pad_w0 = param->pad_w0;
+    if (param->pad_w0 == pad_num_w / 2 && param->pad_w1 == pad_num_w - pad_num_w / 2 && param->pad_w0 != 0)
     {
         pad_w0 = -1;
     }
 
-    if (pad_h0 == -1 && pad_w0 == -1)
-    {
-        TLOG_INFO("Log:tim::vx::PadType::SAME\n");
-        padtype = tim::vx::PadType::SAME;
-    }
-    else if(param->pad_h0 == 0 && param->pad_w0 == 0)
+    if(pad_h0 == 0 && pad_w0 == 0)
     {
         TLOG_INFO("Log:tim::vx::PadType::VALID\n");
         padtype = tim::vx::PadType::VALID;
+    }
+    else
+    {
+        TLOG_INFO("Log:tim::vx::PadType::SAME\n");
+        padtype = tim::vx::PadType::SAME;
     }
 
     int multiplier = 0;
     if (param->group == weight_tensor->dims[0])
         multiplier = 1;
     auto conv = this->graph->CreateOperation<tim::vx::ops::Conv2d>(
-        weight_tensor->dims[0], padtype,
+        weight_tensor->dims[0], tim::vx::PadType::AUTO,
         std::array<uint32_t, 2>({ (unsigned int)param->kernel_h, (unsigned int)param->kernel_w }),
         std::array<uint32_t, 2>({ (unsigned int)param->stride_h, (unsigned int)param->stride_w }),
         std::array<uint32_t, 2>({ (unsigned int)param->dilation_h, (unsigned int)param->dilation_w }),
+        std::array<uint32_t, 4>({ (unsigned int)param->pad_h0, (unsigned int)param->pad_h1,
+                                            (unsigned int)param->pad_w0, (unsigned int)param->pad_w1 }),
         multiplier);
 
     if (param->activation >= 0)
@@ -116,7 +118,7 @@ bool VXEngine::AddConvolutionNode(struct ir_node* ir_node)
                 .BindInputs({ this->vx_tensor_map[input_tensor->idx], this->vx_tensor_map[weight_tensor->idx] })
                 .BindOutputs({ tmp_output });
         }
-//        this->vx_tensor_map[output_tensor->idx] = tmp_output;
+        this->vx_tensor_map[output_tensor->idx + ir_graph->tensor_num] = tmp_output;
         if (param->activation == 0)
         {
             TLOG_INFO("Log:1.1append relu\n");

@@ -221,8 +221,8 @@ void qsort_descent_inplace(std::vector<Face2f>& face_objects)
 
 std::vector<Box2f> generate_anchors(int base_size, const std::vector<float>& ratios, const std::vector<float>& scales)
 {
-    int num_ratio = ratios.size();
-    int num_scale = scales.size();
+    size_t num_ratio = ratios.size();
+    size_t num_scale = scales.size();
 
     std::vector<Box2f> anchors(num_ratio * num_scale);
 

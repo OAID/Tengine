@@ -89,7 +89,7 @@ static int init_op(struct ir_op* op)
     }
 
     /*set the param default value */
-    eltwise_param->type = 0;
+    eltwise_param->type = ELT_SUM;
 
     op->param_mem = eltwise_param;
     op->param_size = sizeof(struct eltwise_param);

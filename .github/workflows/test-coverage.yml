@@ -20,12 +20,12 @@ jobs:
     - name: models
       run: |
         cd build
-        wget http://139.180.196.82/lite/models.zip
+        wget http://198.55.120.234/lite/models.zip
         unzip models.zip
-        wget http://139.180.196.82/lite/x86_data.zip
+        wget http://198.55.120.234/lite/x86_data.zip
         unzip x86_data.zip
         mv x86_data data
-        wget http://139.180.196.82/lite/images.zip
+        wget http://198.55.120.234/lite/images.zip
         unzip images.zip
     - name: test-cpu
       run: |
@@ -62,7 +62,9 @@ jobs:
         cp -rf ./TIM-VX/include/*    ./3rdparty/tim-vx/include/
         cp -rf ./TIM-VX/src    ./src/dev/tim-vx/
         cp -rf ./TIM-VX/prebuilt-sdk/x86_64_linux/include/*    ./3rdparty/tim-vx/include/
-        cp -rf ./TIM-VX/prebuilt-sdk/x86_64_linux/lib/*    ./3rdparty/tim-vx/lib/x86_64/      
+        cp -rf ./TIM-VX/prebuilt-sdk/x86_64_linux/lib/*    ./3rdparty/tim-vx/lib/x86_64/
+        rm ./src/dev/tim-vx/src/tim/vx/context_test.cc
+        rm ./src/dev/tim-vx/src/tim/vx/graph_test.cc
     - name: configure
       run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=debug -DTENGINE_ENABLE_TIM_VX=ON -DTENGINE_ENABLE_TIM_VX_INTEGRATION=ON -DTENGINE_COVERAGE=ON ..
     - name: build
@@ -70,7 +72,7 @@ jobs:
     - name: models
       run: |
         cd build
-        wget http://139.180.196.82/lite/images.zip
+        wget http://198.55.120.234/lite/images.zip
         unzip images.zip
         git clone https://github.com/BUG1989/tengine_test_data.git
     - name: test-timvx-simulator

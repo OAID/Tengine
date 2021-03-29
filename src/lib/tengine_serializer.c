@@ -60,6 +60,11 @@ struct serializer* find_serializer(const char* name)
 
 int register_serializer(struct serializer* serializer)
 {
+    if (NULL == serializer_list)
+    {
+        init_serializer_registry();
+    }
+
     if (find_serializer(serializer->get_name(serializer)) != NULL)
     {
         set_tengine_errno(EEXIST);
@@ -89,12 +94,15 @@ int unregister_serializer(struct serializer* serializer)
 
 int init_serializer_registry(void)
 {
-    serializer_list = create_vector(sizeof(struct serializer*), NULL);
-
-    if (serializer_list == NULL)
+    if (NULL == serializer_list)
     {
-        set_tengine_errno(ENOMEM);
-        return -1;
+        serializer_list = create_vector(sizeof(struct serializer*), NULL);
+
+        if (serializer_list == NULL)
+        {
+            set_tengine_errno(ENOMEM);
+            return -1;
+        }
     }
 
     return 0;

@@ -104,7 +104,7 @@ void remove_vector_data_not_tail(struct vector* v, int idx)
     ptr = ( char* )v->mem + idx * v->entry_size;
     cpy_number = v->elem_num - 1 - idx;
 
-    memmove(ptr, ( char* )ptr + v->entry_size, cpy_number * v->entry_size);
+    memmove(ptr, ( char* )ptr + v->entry_size, (size_t)cpy_number * v->entry_size);
 
     v->elem_num--;
 

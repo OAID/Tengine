@@ -45,9 +45,10 @@ bool VXEngine::AddDropoutNode(struct ir_node* ir_node)
         perm.push_back(output_tensor->dims[i]);
     }
 
-    auto flatten = graph->CreateOperation<tim::vx::ops::Reshape>(perm);
+    auto dropout = graph->CreateOperation<tim::vx::ops::Reshape>(perm);
+    vx_node_map[ir_node->idx] = dropout;
 
-    (*flatten)
+    (*dropout)
         .BindInputs({ this->vx_tensor_map[input_tensor->idx] })
         .BindOutputs({ this->vx_tensor_map[output_tensor->idx] });
 

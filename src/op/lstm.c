@@ -49,12 +49,13 @@ static int infer_shape(struct ir_node* node)
     {
         batch_size = input->dims[0];
     }
-    int dims[3];
+    int dims[4];
     if (lstm_param->mxnet_flag == 0)
     {
-        dims[0] = batch_size;
-        dims[1] = input->dims[0];
-        dims[2] = lstm_param->hidden_size;
+        dims[0] = input->dims[0];
+        dims[1] = 1;
+        dims[2] = input->dims[1];
+        dims[3] = lstm_param->hidden_size;
     }
     else
     {
@@ -63,7 +64,7 @@ static int infer_shape(struct ir_node* node)
         dims[2] = lstm_param->hidden_size;
     }
 
-    set_ir_tensor_shape(output, dims, 3);
+    set_ir_tensor_shape(output, dims, 4);
 
     return 0;
 }

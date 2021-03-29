@@ -51,7 +51,7 @@ int ref_split_fp32(struct ir_tensor* input_tensor, struct ir_tensor* output_tens
         {
             int in_offset = (n * in_slice + *slice_index) * slice_size;
             int out_offset = n * out_slice * slice_size;
-            memcpy(output_data + out_offset, input_data + in_offset, slice_size * out_slice * sizeof(float));
+            memcpy(output_data + out_offset, input_data + in_offset, (size_t)slice_size * out_slice * sizeof(float));
         }
 
         *slice_index += out_slice;
@@ -79,7 +79,7 @@ int ref_split_uint8(struct ir_tensor* input_tensor, struct ir_tensor* output_ten
         {
             int in_offset = (n * in_slice + *slice_index) * slice_size;
             int out_offset = n * out_slice * slice_size;
-            memcpy(output_data + out_offset, input_data + in_offset, slice_size * out_slice * sizeof(uint8_t));
+            memcpy(output_data + out_offset, input_data + in_offset, (size_t)slice_size * out_slice * sizeof(uint8_t));
         }
 
         *slice_index += out_slice;

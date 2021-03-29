@@ -47,7 +47,7 @@ static int ref_swap_axis_common(struct ir_tensor* input_tensor, struct ir_tensor
                     int in_index = i * dims[1] * dims[2] * dims[3] * dims[4] + q * dims[2] * dims[3] * dims[4] +
                                    p * dims[3] * dims[4] + j * dims[4];
                     memcpy(out_data + out_index * element_size, in_data + in_index * element_size,
-                           dims[4] * element_size);
+                           (size_t)dims[4] * element_size);
                 }
     return 0;
 }
@@ -67,7 +67,7 @@ static int ref_swap_axis_uint8(struct ir_tensor* input_tensor, struct ir_tensor*
                     int in_index = i * dims[1] * dims[2] * dims[3] * dims[4] + q * dims[2] * dims[3] * dims[4] +
                                    p * dims[3] * dims[4] + j * dims[4];
                     memcpy(out_data + out_index * element_size, in_data + in_index * element_size,
-                           dims[4] * element_size);
+                           (size_t)dims[4] * element_size);
                 }
     return 0;
 }

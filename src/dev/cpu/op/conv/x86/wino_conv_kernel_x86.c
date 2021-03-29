@@ -49,7 +49,7 @@ static int get_private_mem_size(struct ir_tensor* filter, struct conv_param* par
 {
     int output_c = filter->dims[0];
     int input_c = filter->dims[1];
-    int trans_ker_size = output_c * input_c * ELEM_SIZE * sizeof(float);
+    int trans_ker_size = (unsigned long)output_c * input_c * ELEM_SIZE * sizeof(float);
     return trans_ker_size + 128;    // caution
 }
 
@@ -58,7 +58,7 @@ static void pad_0_align_2D(float* dst, float* src, int m, int n, int m_align, in
     int i;
     if (n >= n_align && m >= m_align)
     {
-        memcpy(dst, src, m * n * sizeof(float));
+        memcpy(dst, src, (unsigned long)m * n * sizeof(float));
         return;
     }
     for (i = 0; i < m; ++i)
@@ -73,7 +73,7 @@ static void pad_0_align_3D(float* dst, float* src, int m, int n, int m_align, in
     int i;
     if (n >= n_align && m >= m_align)
     {
-        memcpy(dst, src, c * m * n * sizeof(float));
+        memcpy(dst, src, (unsigned long)c * m * n * sizeof(float));
         return;
     }
     for (i = 0; i < c; ++i)
@@ -87,7 +87,7 @@ static void delete_0_2D(float* dst, float* src, int m_align, int n_align, int m,
     int i;
     if (n >= n_align && m >= m_align)
     {
-        memcpy(dst, src, m * n * sizeof(float));
+        memcpy(dst, src, (unsigned long)m * n * sizeof(float));
         return;
     }
     for (i = 0; i < m; ++i)
@@ -102,7 +102,7 @@ static void delete_0_3D(float* dst, float* src, int m_align, int n_align, int m,
     int i;
     if (n >= n_align && m >= m_align)
     {
-        memcpy(dst, src, c * m * n * sizeof(float));
+        memcpy(dst, src, (unsigned long)c * m * n * sizeof(float));
         return;
     }
     for (i = 0; i < c; ++i)
@@ -1106,7 +1106,7 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
 
 void conv3x3s1_winograd43_transform_kernel_sse(const float* kernel, float* kernel_wino, int inch, int outch)
 {
-    float* kernel_tm = ( float* )sys_malloc(6 * 6 * inch * outch * sizeof(float));
+    float* kernel_tm = ( float* )sys_malloc((unsigned long)6 * 6 * inch * outch * sizeof(float));
 
     // G
     const float ktm[6][3] = {
@@ -1313,14 +1313,14 @@ int wino_conv_hcl_prerun(struct ir_tensor* input_tensor, struct ir_tensor* filte
 
     int outw = block_w * TILE;
     int outh = block_h * TILE;
-    priv_info->input_pad = ( float* )sys_malloc(batch * input_c * pad_inhw * sizeof(float));
-    memset(priv_info->input_pad, 0, batch * input_c * pad_inhw * sizeof(float));
-    priv_info->dot_block = ( float* )sys_malloc(ELEM_SIZE * block * output_c * sizeof(float));
-    priv_info->transform_input = ( float* )sys_malloc(ELEM_SIZE * block * input_c * sizeof(float));
+    priv_info->input_pad = ( float* )sys_malloc((unsigned long)batch * input_c * pad_inhw * sizeof(float));
+    memset(priv_info->input_pad, 0, (unsigned long)batch * input_c * pad_inhw * sizeof(float));
+    priv_info->dot_block = ( float* )sys_malloc(ELEM_SIZE * (unsigned long)block * output_c * sizeof(float));
+    priv_info->transform_input = ( float* )sys_malloc(ELEM_SIZE * (unsigned long)block * input_c * sizeof(float));
     priv_info->output_bordered = NULL;
     if (outw != output_w || outh != output_h)
     {
-        priv_info->output_bordered = ( float* )sys_malloc(outw * outh * output_c * sizeof(float));
+        priv_info->output_bordered = ( float* )sys_malloc((unsigned long)outw * outh * output_c * sizeof(float));
     }
 
     conv3x3s1_winograd43_transform_kernel_sse(kernel, ( float* )priv_info->interleave_buffer, input_c, output_c);
