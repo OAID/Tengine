@@ -45,7 +45,7 @@ enum
 {
     YOLOV3 = 0,
     YOLO_FASTEST = 1,
-	YOLO_FASTEST_XL = 2
+    YOLO_FASTEST_XL = 2
 };
 
 using namespace std;
