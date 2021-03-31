@@ -68,6 +68,12 @@
 // x11~ x13  temp output save address
 // x14       output_xy * 4
 // x7~8 x15  not used
+// x9       t1
+// x10      t2
+// x11      t3
+// x12      t4
+// x13      t5
+// x14      t6
 //
 // v0~1 4S data of input0   {i3   i2   i1   i0}
 // v2~3 not used
@@ -100,291 +106,567 @@
     .global sgemm_4x16_a72
     .hidden sgemm_4x16_a72
 sgemm_4x16_a72:
-    // bring some code ahead to reduce dependency
-#     prfm    pldl1keep, [x1]
-#     cmp     x3, 0x4
-
+    vsetvli         t0, t1, e32
 #     // biases_initial
-#     cbz     x0, none_biases
-#     ld4r    {v16.4s,v17.4s,v18.4s,v19.4s}, [x0], 0x10
-#     ld4r    {v20.4s,v21.4s,v22.4s,v23.4s}, [x0], 0x10
-#     ld4r    {v24.4s,v25.4s,v26.4s,v27.4s}, [x0], 0x10
-#     ld4r    {v28.4s,v29.4s,v30.4s,v31.4s}, [x0]
-#     b       convolution_start
+    beqz            a0, none_biases
+    vlw.v           v16, (a0)
+    vmv.v.v         v17, v16
+    vmv.v.v         v18, v16
+    vmv.v.v         v19, v16
+    addi            a0, a0, 0x10
+    vlw.v           v20, (a0)
+    vmv.v.v         v21, v20
+    vmv.v.v         v22, v20
+    vmv.v.v         v23, v20
+    addi            a0, a0, 0x10
+    vlw.v           v24, (a0)
+    vmv.v.v         v25, v24
+    vmv.v.v         v26, v24
+    vmv.v.v         v27, v24
+    addi            a0, a0, 0x10
+    vlw.v           v28, (a0)
+    vmv.v.v         v29, v28
+    vmv.v.v         v30, v28
+    vmv.v.v         v31, v28
 
-# none_biases:
-#     movi    d16, 0x0
-#     movi    d17, 0x0
-#     movi    d18, 0x0
-#     movi    d19, 0x0
-#     movi    d20, 0x0
-#     movi    d21, 0x0
-#     movi    d22, 0x0
-#     movi    d23, 0x0
-#     movi    d24, 0x0
-#     movi    d25, 0x0
-#     movi    d26, 0x0
-#     movi    d27, 0x0
-#     movi    d28, 0x0
-#     movi    d29, 0x0
-#     movi    d30, 0x0
-#     movi    d31, 0x0
+    j               convolution_start
 
-# convolution_start:
-#     ldr     q0, [x1]            // q0=i[3-0]
-#     ldp     q4, q5, [x2]            // q4=k[3-0] q5=k[7-4] 
-#     and     x10,x3, 0x3
-#     lsl     x5, x5, 2           // x5  = output_xy
-#     b.lt    loop4_end
-#     lsr     x9, x3, 0x2
+none_biases:
+    vmv.v.x         v16, x0
+    vmv.v.x         v17, x0
+    vmv.v.x         v18, x0
+    vmv.v.x         v19, x0
+    vmv.v.x         v20, x0
+    vmv.v.x         v21, x0
+    vmv.v.x         v22, x0
+    vmv.v.x         v23, x0
+    vmv.v.x         v24, x0
+    vmv.v.x         v25, x0
+    vmv.v.x         v26, x0
+    vmv.v.x         v27, x0
+    vmv.v.x         v28, x0
+    vmv.v.x         v29, x0
+    vmv.v.x         v30, x0
+    vmv.v.x         v31, x0
 
-# // main loop     each loop generate dot prodcut for 4x16x4SP
-# loop4:  
-#     fmla    v16.4s, v0.4s,  v4.s[0]     // i[3-0]k[0]
-#     ldp     q6, q7, [x2, 0x20]      // q6=k[b-8] q7=k[f-c]
-#     fmla    v17.4s, v0.4s,  v4.s[1]     // i[3-0]k[1]
-#     subs    x9, x9, 0x1
-#     fmla    v18.4s, v0.4s,  v4.s[2]     // i[3-0]k[2]
-#     fmla    v19.4s, v0.4s,  v4.s[3]     // i[3-0]k[3]
-#     ldr     q1, [x1, 0x10]          // q1=i[3-0]
-#     fmla    v20.4s, v0.4s,  v5.s[0]     // i[3-0]k[4]
-#     fmla    v21.4s, v0.4s,  v5.s[1]     // i[3-0]k[5]
-#     fmla    v22.4s, v0.4s,  v5.s[2]     // i[3-0]k[6]
-#     fmla    v23.4s, v0.4s,  v5.s[3]     // i[3-0]k[7]
-#     ldp     q4, q5, [x2, 0x40]      // q4=k[3-0] q5=k[7-4] 
-#     fmla    v24.4s, v0.4s,  v6.s[0]     // i[3-0]k[8]
-#     fmla    v25.4s, v0.4s,  v6.s[1]     // i[3-0]k[9]
-#     fmla    v26.4s, v0.4s,  v6.s[2]     // i[3-0]k[a]
-#     fmla    v27.4s, v0.4s,  v6.s[3]     // i[3-0]k[b]
-#     prfm    pldl1keep, [x1, 0x80]
-#     fmla    v28.4s, v0.4s,  v7.s[0]     // i[3-0]k[c]
-#     fmla    v29.4s, v0.4s,  v7.s[1]     // i[3-0]k[d]
-#     prfm    pldl1keep, [x2, 0x140]
-#     fmla    v30.4s, v0.4s,  v7.s[2]     // i[3-0]k[e]
-#     fmla    v31.4s, v0.4s,  v7.s[3]     // i[3-0]k[f]
+convolution_start:
+    vlw.v           v0, (a1)
+    addi            t0, a2, 0
+    vlw.v           v4, (t0)
+    addi            t0, a2, 0x10
+    vlw.v           v5, (t0)
 
-#     ldp     q6, q7, [x2, 0x60]      // q6=k[b-8] q7=k[f-c]
-#     fmla    v16.4s, v1.4s,  v4.s[0]     // i[3-0]k[0]
-#     fmla    v17.4s, v1.4s,  v4.s[1]     // i[3-0]k[1]
-#     fmla    v18.4s, v1.4s,  v4.s[2]     // i[3-0]k[2]
-#     fmla    v19.4s, v1.4s,  v4.s[3]     // i[3-0]k[3]
-#     ldr     q0, [x1, 0x20]          // q1=i[3-0]
-#     fmla    v20.4s, v1.4s,  v5.s[0]     // i[3-0]k[4]
-#     fmla    v21.4s, v1.4s,  v5.s[1]     // i[3-0]k[5]
-#     fmla    v22.4s, v1.4s,  v5.s[2]     // i[3-0]k[6]
-#     fmla    v23.4s, v1.4s,  v5.s[3]     // i[3-0]k[7]
-#     ldp     q4, q5, [x2, 0x80]      // q4=k[3-0] q5=k[7-4] 
-#     fmla    v24.4s, v1.4s,  v6.s[0]     // i[3-0]k[8]
-#     fmla    v25.4s, v1.4s,  v6.s[1]     // i[3-0]k[9]
-#     fmla    v26.4s, v1.4s,  v6.s[2]     // i[3-0]k[a]
-#     fmla    v27.4s, v1.4s,  v6.s[3]     // i[3-0]k[b]
-#     prfm    pldl1keep, [x2, 0x180]
-#     fmla    v28.4s, v1.4s,  v7.s[0]     // i[3-0]k[c]
-#     fmla    v29.4s, v1.4s,  v7.s[1]     // i[3-0]k[d]
-#     prfm    pldl1keep, [x2, 0x1c0]
-#     fmla    v30.4s, v1.4s,  v7.s[2]     // i[3-0]k[e]
-#     fmla    v31.4s, v1.4s,  v7.s[3]     // i[3-0]k[f]
+    andi             t2, a3, 0x3
+    slli            a5, a5, 0x2
+    bltz            t2, loop4_end
+    srli            t1, a3, 0x2
 
-#     ldp     q6, q7, [x2, 0xa0]      // q6=k[b-8] q7=k[f-c]
-#     fmla    v16.4s, v0.4s,  v4.s[0]     // i[3-0]k[0]
-#     fmla    v17.4s, v0.4s,  v4.s[1]     // i[3-0]k[1]
-#     fmla    v18.4s, v0.4s,  v4.s[2]     // i[3-0]k[2]
-#     fmla    v19.4s, v0.4s,  v4.s[3]     // i[3-0]k[3]
-#     ldr     q1, [x1, 0x30]          // q1=i[3-0]
-#     fmla    v20.4s, v0.4s,  v5.s[0]     // i[3-0]k[4]
-#     fmla    v21.4s, v0.4s,  v5.s[1]     // i[3-0]k[5]
-#     add     x1, x1, 0x40
-#     fmla    v22.4s, v0.4s,  v5.s[2]     // i[3-0]k[6]
-#     fmla    v23.4s, v0.4s,  v5.s[3]     // i[3-0]k[7]
-#     ldp     q4, q5, [x2, 0xc0]      // q4=k[3-0] q5=k[7-4] 
-#     fmla    v24.4s, v0.4s,  v6.s[0]     // i[3-0]k[8]
-#     fmla    v25.4s, v0.4s,  v6.s[1]     // i[3-0]k[9]
-#     fmla    v26.4s, v0.4s,  v6.s[2]     // i[3-0]k[a]
-#     fmla    v27.4s, v0.4s,  v6.s[3]     // i[3-0]k[b]
-#     prfm    pldl1keep, [x2, 0x200]
-#     fmla    v28.4s, v0.4s,  v7.s[0]     // i[3-0]k[c]
-#     fmla    v29.4s, v0.4s,  v7.s[1]     // i[3-0]k[d]
-#     fmla    v30.4s, v0.4s,  v7.s[2]     // i[3-0]k[e]
-#     fmla    v31.4s, v0.4s,  v7.s[3]     // i[3-0]k[f]
+// main loop     each loop generate dot prodcut for 4x16x4SP
+loop4:  
+    addi            t1, t1, -1
+    addi            t0, a2, 0x20
+    vlw.v           v6, (t0)
+    addi            t0, a2, 0x30
+    vlw.v           v7, (t0)
 
-#     ldp     q6, q7, [x2, 0xe0]      // q6=k[b-8] q7=k[f-c]
-#     fmla    v16.4s, v1.4s,  v4.s[0]     // i[3-0]k[0]
-#     fmla    v17.4s, v1.4s,  v4.s[1]     // i[3-0]k[1]
-#     add     x2, x2, 0x100
-#     fmla    v18.4s, v1.4s,  v4.s[2]     // i[3-0]k[2]
-#     fmla    v19.4s, v1.4s,  v4.s[3]     // i[3-0]k[3]
-#     ldr     q0, [x1]            // q0=i[3-0]
-#     fmla    v20.4s, v1.4s,  v5.s[0]     // i[3-0]k[4]
-#     fmla    v21.4s, v1.4s,  v5.s[1]     // i[3-0]k[5]
-#     fmla    v22.4s, v1.4s,  v5.s[2]     // i[3-0]k[6]
-#     fmla    v23.4s, v1.4s,  v5.s[3]     // i[3-0]k[7]
-#     ldp     q4, q5, [x2]            // q4=k[3-0] q5=k[7-4] 
-#     fmla    v24.4s, v1.4s,  v6.s[0]     // i[3-0]k[8]
-#     fmla    v25.4s, v1.4s,  v6.s[1]     // i[3-0]k[9]
-#     fmla    v26.4s, v1.4s,  v6.s[2]     // i[3-0]k[a]
-#     fmla    v27.4s, v1.4s,  v6.s[3]     // i[3-0]k[b]
-#     fmla    v28.4s, v1.4s,  v7.s[0]     // i[3-0]k[c]
-#     fmla    v29.4s, v1.4s,  v7.s[1]     // i[3-0]k[d]
-#     fmla    v30.4s, v1.4s,  v7.s[2]     // i[3-0]k[e]
-#     fmla    v31.4s, v1.4s,  v7.s[3]     // i[3-0]k[f]
-#     b.ne    loop4
-
-
-# loop4_end:
-#     lsl     x14,x5, 2           // x14 = output_xy * 4
-#     cbz     x10, activation
-
-# loop1:
-#     ldp     q6, q7, [x2, 0x20]              // q6=k[b-8] q7=k[f-c]
-#     fmla    v16.4s, v0.4s,  v4.s[0]     // i[3-0]k[0]
-#     fmla    v17.4s, v0.4s,  v4.s[1]     // i[3-0]k[1]
-#     add     x2, x2, 0x40
-#     fmla    v18.4s, v0.4s,  v4.s[2]     // i[3-0]k[2]
-#     fmla    v19.4s, v0.4s,  v4.s[3]     // i[3-0]k[3]
-#     add     x1, x1, 0x10
-#     fmla    v20.4s, v0.4s,  v5.s[0]     // i[3-0]k[4]
-#     fmla    v21.4s, v0.4s,  v5.s[1]     // i[3-0]k[5]
-#     subs    x10, x10 ,0x1
-#     fmla    v22.4s, v0.4s,  v5.s[2]     // i[3-0]k[6]
-#     fmla    v23.4s, v0.4s,  v5.s[3]     // i[3-0]k[7]
-#     ldp     q4, q5, [x2]                    // q4=k[3-0] q5=k[7-4]
-#     fmla    v24.4s, v0.4s,  v6.s[0]     // i[3-0]k[8]
-#     fmla    v25.4s, v0.4s,  v6.s[1]     // i[3-0]k[9]
-#     fmla    v26.4s, v0.4s,  v6.s[2]     // i[3-0]k[a]
-#     fmla    v27.4s, v0.4s,  v6.s[3]     // i[3-0]k[b]
-#     fmla    v28.4s, v0.4s,  v7.s[0]     // i[3-0]k[c]
-#     fmla    v29.4s, v0.4s,  v7.s[1]     // i[3-0]k[d]
-#     fmla    v30.4s, v0.4s,  v7.s[2]     // i[3-0]k[e]
-#     fmla    v31.4s, v0.4s,  v7.s[3]     // i[3-0]k[f]
-#     ldr     q0, [x1]                        // q0=i[3-0]
-
-#     b.ne    loop1
-
-
-# activation:
-#     add     x11,x4, x5          // x11 = output + ouput_xy
-#     cmp     w6,0
-#     blt     save_result
-
-#     movi    d0, 0
-#     scvtf   s1,w6
+    vrgather.vi     v8, v4, 0
+    vrgather.vi     v9, v4, 1
+    vrgather.vi     v10, v4, 2
+    vrgather.vi     v11, v4, 3
+    vfmacc.vv       v16, v0, v8
+    vfmacc.vv       v17, v0, v9
+    vfmacc.vv       v18, v0, v10
+    vfmacc.vv       v19, v0, v11
     
-#     fmax    v16.4s, v16.4s, v0.4s
-#     fmax    v17.4s, v17.4s, v0.4s
-#     fmax    v18.4s, v18.4s, v0.4s
-#     fmax    v19.4s, v19.4s, v0.4s
-#     fmax    v20.4s, v20.4s, v0.4s
-#     fmax    v21.4s, v21.4s, v0.4s
-#     fmax    v22.4s, v22.4s, v0.4s
-#     fmax    v23.4s, v23.4s, v0.4s
-#     fmax    v24.4s, v24.4s, v0.4s
-#     fmax    v25.4s, v25.4s, v0.4s
-#     fmax    v26.4s, v26.4s, v0.4s
-#     fmax    v27.4s, v27.4s, v0.4s
-#     fmax    v28.4s, v28.4s, v0.4s
-#     fmax    v29.4s, v29.4s, v0.4s
-#     fmax    v30.4s, v30.4s, v0.4s
-#     fmax    v31.4s, v31.4s, v0.4s
+    addi            t0, a1, 0x10
+    vlw.v           v1, (t0)
+    
+    vrgather.vi     v8,  v5, 0
+    vrgather.vi     v9,  v5, 1
+    vrgather.vi     v10, v5, 2
+    vrgather.vi     v11, v5, 3
+    vfmacc.vv       v20, v0, v8
+    vfmacc.vv       v21, v0, v9
+    vfmacc.vv       v22, v0, v10
+    vfmacc.vv       v23, v0, v11
+    
+    addi            t0, a2, 0x40
+    vlw.v           v4, (t0)
+    addi            t0, a2, 0x50
+    vlw.v           v5, (t0)
+    
+    vrgather.vi     v8,  v6, 0
+    vrgather.vi     v9,  v6, 1
+    vrgather.vi     v10, v6, 2
+    vrgather.vi     v11, v6, 3
+    vfmacc.vv       v24, v0, v8
+    vfmacc.vv       v25, v0, v9
+    vfmacc.vv       v26, v0, v10
+    vfmacc.vv       v27, v0, v11
+    
+    vrgather.vi     v8,  v7, 0
+    vrgather.vi     v9,  v7, 1
+    vrgather.vi     v10, v7, 2
+    vrgather.vi     v11, v7, 3
+    vfmacc.vv       v28, v0, v8
+    vfmacc.vv       v29, v0, v9
+    vfmacc.vv       v30, v0, v10
+    vfmacc.vv       v31, v0, v11
 
-#     beq     save_result
-#     dup     v1.4s,v1.s[0]
+    addi            t0, a2, 0x60
+    vlw.v           v6, (t0)
+    addi            t0, a2, 0x70
+    vlw.v           v7, (t0)
+    
+    vrgather.vi     v8, v4, 0
+    vrgather.vi     v9, v4, 1
+    vrgather.vi     v10, v4, 2
+    vrgather.vi     v11, v4, 3
+    vfmacc.vv       v16, v1, v8
+    vfmacc.vv       v17, v1, v9
+    vfmacc.vv       v18, v1, v10
+    vfmacc.vv       v19, v1, v11
+    
+    addi            t0, a1, 0x20
+    vlw.v           v0, (t0)
+    
+    vrgather.vi     v8,  v5, 0
+    vrgather.vi     v9,  v5, 1
+    vrgather.vi     v10, v5, 2
+    vrgather.vi     v11, v5, 3
+    vfmacc.vv       v20, v1, v8
+    vfmacc.vv       v21, v1, v9
+    vfmacc.vv       v22, v1, v10
+    vfmacc.vv       v23, v1, v11
+    
+    addi            t0, a2, 0x80
+    vlw.v           v4, (t0)
+    addi            t0, a2, 0x90
+    vlw.v           v5, (t0)
+    
+    vrgather.vi     v8,  v6, 0
+    vrgather.vi     v9,  v6, 1
+    vrgather.vi     v10, v6, 2
+    vrgather.vi     v11, v6, 3
+    vfmacc.vv       v24, v1, v8
+    vfmacc.vv       v25, v1, v9
+    vfmacc.vv       v26, v1, v10
+    vfmacc.vv       v27, v1, v11
+    
+    vrgather.vi     v8,  v7, 0
+    vrgather.vi     v9,  v7, 1
+    vrgather.vi     v10, v7, 2
+    vrgather.vi     v11, v7, 3
+    vfmacc.vv       v28, v1, v8
+    vfmacc.vv       v29, v1, v9
+    vfmacc.vv       v30, v1, v10
+    vfmacc.vv       v31, v1, v11
+    
+    addi            t0, a2, 0xa0
+    vlw.v           v6, (t0)
+    addi            t0, a2, 0xb0
+    vlw.v           v7, (t0)
+    
+    vrgather.vi     v8, v4, 0
+    vrgather.vi     v9, v4, 1
+    vrgather.vi     v10, v4, 2
+    vrgather.vi     v11, v4, 3
+    vfmacc.vv       v16, v0, v8
+    vfmacc.vv       v17, v0, v9
+    vfmacc.vv       v18, v0, v10
+    vfmacc.vv       v19, v0, v11
+    
+    addi            t0, a1, 0x30
+    vlw.v           v1, (t0)
+    addi             a1, a1, 0x40
+    
+    vrgather.vi     v8,  v5, 0
+    vrgather.vi     v9,  v5, 1
+    vrgather.vi     v10, v5, 2
+    vrgather.vi     v11, v5, 3
+    vfmacc.vv       v20, v0, v8
+    vfmacc.vv       v21, v0, v9
+    vfmacc.vv       v22, v0, v10
+    vfmacc.vv       v23, v0, v11
+    
+    addi            t0, a2, 0xc0
+    vlw.v           v4, (t0)
+    addi            t0, a2, 0xd0
+    vlw.v           v5, (t0)
+    
+    vrgather.vi     v8,  v6, 0
+    vrgather.vi     v9,  v6, 1
+    vrgather.vi     v10, v6, 2
+    vrgather.vi     v11, v6, 3
+    vfmacc.vv       v24, v0, v8
+    vfmacc.vv       v25, v0, v9
+    vfmacc.vv       v26, v0, v10
+    vfmacc.vv       v27, v0, v11
+    
+    vrgather.vi     v8,  v7, 0
+    vrgather.vi     v9,  v7, 1
+    vrgather.vi     v10, v7, 2
+    vrgather.vi     v11, v7, 3
+    vfmacc.vv       v28, v0, v8
+    vfmacc.vv       v29, v0, v9
+    vfmacc.vv       v30, v0, v10
+    vfmacc.vv       v31, v0, v11
+    
+    addi            t0, a2, 0xe0
+    vlw.v           v6, (t0)
+    addi            t0, a2, 0xf0
+    vlw.v           v7, (t0)
+    addi            a2, a2, 0x100
+    vrgather.vi     v8, v4, 0
+    vrgather.vi     v9, v4, 1
+    vrgather.vi     v10, v4, 2
+    vrgather.vi     v11, v4, 3
+    vfmacc.vv       v16, v1, v8
+    vfmacc.vv       v17, v1, v9
+    vfmacc.vv       v18, v1, v10
+    vfmacc.vv       v19, v1, v11
 
-#     fmin    v16.4s, v16.4s, v1.4s
-#     fmin    v17.4s, v17.4s, v1.4s
-#     fmin    v18.4s, v18.4s, v1.4s
-#     fmin    v19.4s, v19.4s, v1.4s
-#     fmin    v20.4s, v20.4s, v1.4s
-#     fmin    v21.4s, v21.4s, v1.4s
-#     fmin    v22.4s, v22.4s, v1.4s
-#     fmin    v23.4s, v23.4s, v1.4s
-#     fmin    v24.4s, v24.4s, v1.4s
-#     fmin    v25.4s, v25.4s, v1.4s
-#     fmin    v26.4s, v26.4s, v1.4s
-#     fmin    v27.4s, v27.4s, v1.4s
-#     fmin    v28.4s, v28.4s, v1.4s
-#     fmin    v29.4s, v29.4s, v1.4s
-#     fmin    v30.4s, v30.4s, v1.4s
-#     fmin    v31.4s, v31.4s, v1.4s
+    vlw.v           v0, (a1)
+    
+    vrgather.vi     v8,  v5, 0
+    vrgather.vi     v9,  v5, 1
+    vrgather.vi     v10, v5, 2
+    vrgather.vi     v11, v5, 3
+    vfmacc.vv       v20, v1, v8
+    vfmacc.vv       v21, v1, v9
+    vfmacc.vv       v22, v1, v10
+    vfmacc.vv       v23, v1, v11
+    
+    addi            t0, a2, 0x0
+    vlw.v           v4, (t0)
+    addi            t0, a2, 0x10
+    vlw.v           v5, (t0)
+    
+    vrgather.vi     v8,  v6, 0
+    vrgather.vi     v9,  v6, 1
+    vrgather.vi     v10, v6, 2
+    vrgather.vi     v11, v6, 3
+    vfmacc.vv       v24, v1, v8
+    vfmacc.vv       v25, v1, v9
+    vfmacc.vv       v26, v1, v10
+    vfmacc.vv       v27, v1, v11
 
+    vrgather.vi     v8,  v7, 0
+    vrgather.vi     v9,  v7, 1
+    vrgather.vi     v10, v7, 2
+    vrgather.vi     v11, v7, 3
+    vfmacc.vv       v28, v1, v8
+    vfmacc.vv       v29, v1, v9
+    vfmacc.vv       v30, v1, v10
+    vfmacc.vv       v31, v1, v11
+    bnez            t1, loop4
 
-# save_result:
-#     add     x12,x4, x5, LSL 1       // x12 = output + ouput_xy * 2
-#     add     x13,x11,x5, LSL 1       // x13 = output + ouput_xy * 3
+loop4_end:
+    slli            t6, a5, 2
+    beqz            t2, activation
+
+loop1:
+    addi            t0, a2, 0x20
+    vlw.v           v6, (t0)
+    addi            t0, a2, 0x30
+    vlw.v           v7, (t0)
+    addi            a2, a2, 0x40
+    vrgather.vi     v8, v4, 0
+    vrgather.vi     v9, v4, 1
+    vrgather.vi     v10, v4, 2
+    vrgather.vi     v11, v4, 3
+    vfmacc.vv       v16, v0, v8
+    vfmacc.vv       v17, v0, v9
+    vfmacc.vv       v18, v0, v10
+    vfmacc.vv       v19, v0, v11
+    addi            a1, a1, 0x10
+    addi            t2, t2, -1
+    vrgather.vi     v8,  v5, 0
+    vrgather.vi     v9,  v5, 1
+    vrgather.vi     v10, v5, 2
+    vrgather.vi     v11, v5, 3
+    vfmacc.vv       v20, v0, v8
+    vfmacc.vv       v21, v0, v9
+    vfmacc.vv       v22, v0, v10
+    vfmacc.vv       v23, v0, v11
+    addi            t0, a2, 0x0
+    vlw.v           v4, (t0)
+    addi            t0, a2, 0x10
+    vlw.v           v5, (t0)
+    vrgather.vi     v8,  v6, 0
+    vrgather.vi     v9,  v6, 1
+    vrgather.vi     v10, v6, 2
+    vrgather.vi     v11, v6, 3
+    vfmacc.vv       v24, v0, v8
+    vfmacc.vv       v25, v0, v9
+    vfmacc.vv       v26, v0, v10
+    vfmacc.vv       v27, v0, v11
+    vrgather.vi     v8,  v7, 0
+    vrgather.vi     v9,  v7, 1
+    vrgather.vi     v10, v7, 2
+    vrgather.vi     v11, v7, 3
+    vfmacc.vv       v28, v0, v8
+    vfmacc.vv       v29, v0, v9
+    vfmacc.vv       v30, v0, v10
+    vfmacc.vv       v31, v0, v11
+    
+    vlw.v           v0, (a1)
+    bnez            t2, loop1
+
+activation:
+    add             t3, a4, a5
+    bltz            a6, save_result
+    vmv.v.x         v0, x0
+    vmv.v.x         v0, a6          // FIXME: change DataType
+    vfmax.vv        v16, v16, v0
+    vfmax.vv        v17, v17, v0
+    vfmax.vv        v18, v18, v0
+    vfmax.vv        v19, v19, v0
+    vfmax.vv        v20, v20, v0
+    vfmax.vv        v21, v21, v0
+    vfmax.vv        v22, v22, v0
+    vfmax.vv        v23, v23, v0
+    vfmax.vv        v24, v24, v0
+    vfmax.vv        v25, v25, v0
+    vfmax.vv        v26, v26, v0
+    vfmax.vv        v27, v27, v0
+    vfmax.vv        v28, v28, v0
+    vfmax.vv        v29, v29, v0
+    vfmax.vv        v30, v30, v0
+    vfmax.vv        v31, v31, v0
+
+    beqz            a6, save_result
+    vfmin.vv        v16, v16, v1
+    vfmin.vv        v17, v17, v1
+    vfmin.vv        v18, v18, v1
+    vfmin.vv        v19, v19, v1
+    vfmin.vv        v20, v20, v1
+    vfmin.vv        v21, v21, v1
+    vfmin.vv        v22, v22, v1
+    vfmin.vv        v23, v23, v1
+    vfmin.vv        v24, v24, v1
+    vfmin.vv        v25, v25, v1
+    vfmin.vv        v26, v26, v1
+    vfmin.vv        v27, v27, v1
+    vfmin.vv        v28, v28, v1
+    vfmin.vv        v29, v29, v1
+    vfmin.vv        v30, v30, v1
+    vfmin.vv        v31, v31, v1
+
+save_result:
+    slli            t0, a5, 1
+    add             t4, a4, t0
+    add             t5, t3, t0
 #     // store result
-#     // x4 x11 x12 x13 as base address
-#     cmp     w7,0
-#     beq    save_result_nchw
+    beqz            a7, save_result_nchw
+    li              t1, 0
+    vext.x.v        t0, v16, t1
+    sw              t0, 0(a4)
+    vext.x.v        t0, v17, t1
+    sw              t0, 4(a4)
+    vext.x.v        t0, v18, t1
+    sw              t0, 8(a4)
+    vext.x.v        t0, v19, t1
+    sw              t0, 12(a4)
+    add             a4, a4, 0x10
+    
+    li              t1, 1
+    vext.x.v        t0, v16, t1
+    sw              t0, 0(t3)
+    vext.x.v        t0, v17, t1
+    sw              t0, 4(t3)
+    vext.x.v        t0, v18, t1
+    sw              t0, 8(t3)
+    vext.x.v        t0, v19, t1
+    sw              t0, 12(t3)
+    add             t3, t3, 0x10
 
-#     st4     {v16.s,v17.s,v18.s,v19.s}[0], [x4]
-#     add     x4, x4, 0x10
-#     st4     {v16.s,v17.s,v18.s,v19.s}[1], [x11]
-#     add     x11,x11, 0x10
-#     st4     {v16.s,v17.s,v18.s,v19.s}[2], [x12]
-#     add     x12,x12, 0x10
-#     st4     {v16.s,v17.s,v18.s,v19.s}[3], [x13]
-#     add     x13,x13, 0x10
+    li              t1, 2
+    vext.x.v        t0, v16, t1
+    sw              t0, 0(t4)
+    vext.x.v        t0, v17, t1
+    sw              t0, 4(t4)
+    vext.x.v        t0, v18, t1
+    sw              t0, 8(t4)
+    vext.x.v        t0, v19, t1
+    sw              t0, 12(t4)
+    add             t4, t4, 0x10
+    
+    li              t1, 3
+    vext.x.v        t0, v16, t1
+    sw              t0, 0(t5)
+    vext.x.v        t0, v17, t1
+    sw              t0, 4(t5)
+    vext.x.v        t0, v18, t1
+    sw              t0, 8(t5)
+    vext.x.v        t0, v19, t1
+    sw              t0, 12(t5)
+    add             t5, t5, 0x10
+    
+    li              t1, 0
+    vext.x.v        t0, v20, t1
+    sw              t0, 0(a4)
+    vext.x.v        t0, v21, t1
+    sw              t0, 4(a4)
+    vext.x.v        t0, v22, t1
+    sw              t0, 8(a4)
+    vext.x.v        t0, v23, t1
+    sw              t0, 12(a4)
+    add             a4, a4, 0x10
+    
+    li              t1, 1
+    vext.x.v        t0, v20, t1
+    sw              t0, 0(t3)
+    vext.x.v        t0, v21, t1
+    sw              t0, 4(t3)
+    vext.x.v        t0, v22, t1
+    sw              t0, 8(t3)
+    vext.x.v        t0, v23, t1
+    sw              t0, 12(t3)
+    add             t3, t3, 0x10
+    
+    li              t1, 2
+    vext.x.v        t0, v20, t1
+    sw              t0, 0(t4)
+    vext.x.v        t0, v21, t1
+    sw              t0, 4(t4)
+    vext.x.v        t0, v22, t1
+    sw              t0, 8(t4)
+    vext.x.v        t0, v23, t1
+    sw              t0, 12(t4)
+    add             t3, t3, 0x10
+    
+    li              t1, 3
+    vext.x.v        t0, v20, t1
+    sw              t0, 0(t5)
+    vext.x.v        t0, v21, t1
+    sw              t0, 4(t5)
+    vext.x.v        t0, v22, t1
+    sw              t0, 8(t5)
+    vext.x.v        t0, v23, t1
+    sw              t0, 12(t5)
+    add             t5, t5, 0x10
+    
+    li              t1, 0
+    vext.x.v        t0, v24, t1
+    sw              t0, 0(a4)
+    vext.x.v        t0, v25, t1
+    sw              t0, 4(a4)
+    vext.x.v        t0, v26, t1
+    sw              t0, 8(a4)
+    vext.x.v        t0, v27, t1
+    sw              t0, 12(a4)
+    add             a4, a4, 0x10
+    
+    li              t1, 1
+    vext.x.v        t0, v24, t1
+    sw              t0, 0(t3)
+    vext.x.v        t0, v25, t1
+    sw              t0, 4(t3)
+    vext.x.v        t0, v26, t1
+    sw              t0, 8(t3)
+    vext.x.v        t0, v27, t1
+    sw              t0, 12(t3)
+    add             t3, t3, 0x10
+    
+    li              t1, 2
+    vext.x.v        t0, v24, t1
+    sw              t0, 0(t4)
+    vext.x.v        t0, v25, t1
+    sw              t0, 4(t4)
+    vext.x.v        t0, v26, t1
+    sw              t0, 8(t4)
+    vext.x.v        t0, v27, t1
+    sw              t0, 12(t4)
+    add             t3, t3, 0x10
+    
+    li              t1, 3
+    vext.x.v        t0, v24, t1
+    sw              t0, 0(t5)
+    vext.x.v        t0, v25, t1
+    sw              t0, 4(t5)
+    vext.x.v        t0, v26, t1
+    sw              t0, 8(t5)
+    vext.x.v        t0, v27, t1
+    sw              t0, 12(t5)
+    add             t5, t5, 0x10
 
-#     st4     {v20.s,v21.s,v22.s,v23.s}[0], [x4]
-#     add     x4, x4, 0x10
-#     st4     {v20.s,v21.s,v22.s,v23.s}[1], [x11]
-#     add     x11,x11, 0x10
-#     st4     {v20.s,v21.s,v22.s,v23.s}[2], [x12]
-#     add     x12,x12, 0x10
-#     st4     {v20.s,v21.s,v22.s,v23.s}[3], [x13]
-#     add     x13,x13, 0x10
+    li              t1, 0
+    vext.x.v        t0, v28, t1
+    sw              t0, 0(a4)
+    vext.x.v        t0, v29, t1
+    sw              t0, 4(a4)
+    vext.x.v        t0, v30, t1
+    sw              t0, 8(a4)
+    vext.x.v        t0, v31, t1
+    sw              t0, 12(a4)
+    
+    li              t1, 1
+    vext.x.v        t0, v28, t1
+    sw              t0, 0(t3)
+    vext.x.v        t0, v29, t1
+    sw              t0, 4(t3)
+    vext.x.v        t0, v30, t1
+    sw              t0, 8(t3)
+    vext.x.v        t0, v31, t1
+    sw              t0, 12(t3)
+    
+    li              t1, 2
+    vext.x.v        t0, v28, t1
+    sw              t0, 0(t4)
+    vext.x.v        t0, v29, t1
+    sw              t0, 4(t4)
+    vext.x.v        t0, v30, t1
+    sw              t0, 8(t4)
+    vext.x.v        t0, v31, t1
+    sw              t0, 12(t4)
+    
+    li              t1, 3
+    vext.x.v        t0, v28, t1
+    sw              t0, 0(t5)
+    vext.x.v        t0, v29, t1
+    sw              t0, 4(t5)
+    vext.x.v        t0, v30, t1
+    sw              t0, 8(t5)
+    vext.x.v        t0, v31, t1
+    sw              t0, 12(t5)
+    
+    j               end
 
-#     st4     {v24.s,v25.s,v26.s,v27.s}[0], [x4]
-#     add     x4, x4, 0x10
-#     st4     {v24.s,v25.s,v26.s,v27.s}[1], [x11]
-#     add     x11,x11, 0x10
-#     st4     {v24.s,v25.s,v26.s,v27.s}[2], [x12]
-#     add     x12,x12, 0x10
-#     st4     {v24.s,v25.s,v26.s,v27.s}[3], [x13]
-#     add     x13,x13, 0x10
-
-#     st4     {v28.s,v29.s,v30.s,v31.s}[0], [x4]
-#     st4     {v28.s,v29.s,v30.s,v31.s}[1], [x11]
-#     st4     {v28.s,v29.s,v30.s,v31.s}[2], [x12]
-#     st4     {v28.s,v29.s,v30.s,v31.s}[3], [x13]
-#     b       end
-
-# save_result_nchw:
-#     str     q16, [x4]
-#     add     x4, x4, x14
-#     str     q17, [x11]
-#     add     x11,x11, x14
-#     str     q18, [x12]
-#     add     x12,x12, x14
-#     str     q19, [x13]
-#     add     x13,x13, x14
-
-#     str     q20, [x4]
-#     add     x4, x4, x14
-#     str     q21, [x11]
-#     add     x11,x11,x14
-#     str     q22, [x12]
-#     add     x12,x12,x14
-#     str     q23, [x13]
-#     add     x13,x13,x14
-
-#     str     q24, [x4]
-#     add     x4, x4, x14
-#     str     q25, [x11]
-#     add     x11,x11,x14
-#     str     q26, [x12]
-#     add     x12,x12,x14
-#     str     q27, [x13]
-#     add     x13,x13,x14
-
-#     str     q28, [x4]
-#     str     q29, [x11]
-#     str     q30, [x12]
-#     str     q31, [x13]
+save_result_nchw:
+    vsw.v           v16, (a4)
+    add             a4, a4, t6
+    vsw.v           v17, (t3)
+    add             t3, t3, t6
+    vsw.v           v18, (t4)
+    add             t4, t4, t6
+    vsw.v           v19, (t5)
+    add             t5, t5, t6
+    
+    vsw.v           v20, (a4)
+    add             a4, a4, t6
+    vsw.v           v21, (t3)
+    add             t3, t3, t6
+    vsw.v           v22, (t4)
+    add             t4, t4, t6
+    vsw.v           v23, (t5)
+    add             t5, t5, t6
+    
+    vsw.v           v24, (a4)
+    add             a4, a4, t6
+    vsw.v           v25, (t3)
+    add             t3, t3, t6
+    vsw.v           v26, (t4)
+    add             t4, t4, t6
+    vsw.v           v27, (t5)
+    add             t5, t5, t6
+    
+    vsw.v           v28, (a4)
+    vsw.v           v29, (t3)
+    vsw.v           v30, (t4)
+    vsw.v           v31, (t5)
 
 end:
 
     ret
     .end
-
-
-
