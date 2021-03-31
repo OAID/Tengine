@@ -102,10 +102,10 @@
     .section .text,"ax"
     .align 5
 
-    .type sgemm_4x16_a72 STT_FUNC
-    .global sgemm_4x16_a72
-    .hidden sgemm_4x16_a72
-sgemm_4x16_a72:
+    .type sgemm_4x16_rv64 STT_FUNC
+    .global sgemm_4x16_rv64
+    .hidden sgemm_4x16_rv64
+sgemm_4x16_rv64:
     addi            sp, sp, -56
     sd              t0, 0(sp)
     sd              t1, 8(sp)

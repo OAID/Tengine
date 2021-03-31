@@ -27,14 +27,12 @@
 
 #include "conv_kernel_rv64.h"
 // #include "wino_conv_kernel_arm.h"    // FIXME: add wino support
-#ifdef __aarch64__
 // #include "wino_conv_kernel_1_arm.h"  // FIXME: add wino support
-#endif
 
 #define PER_OUT_CHAN 16
-void sgemm_4x16_a72(float* biases, float* input, float* kernel, long kernel_size, float* output, long output_xy,
+void sgemm_4x16_rv64(float* biases, float* input, float* kernel, long kernel_size, float* output, long output_xy,
                     int activation, int layout);
-void sgemm_4x4_a72(float* biases, float* input, float* kernel, long kernel_size, float* output, long output_xy,
+void sgemm_4x4_rv64(float* biases, float* input, float* kernel, long kernel_size, float* output, long output_xy,
                    int activation, int layout);
 
 void im2col_fp32_1x1(float* input, int input_xy, float* col, int col_cnt, int input_chan);
@@ -137,7 +135,8 @@ static void im2col(float* input, float* col, int in_c, int in_w, int in_h, int k
             float* cur_col = col + col_i * kernel_size;
 
             float* cur_input = input + col_i;
-            im2col_fp32_1x1(cur_input, in_xy, cur_col, 4, in_c);         // FIXME: add im2col 1x1
+            im2col_fp32_1x1(cur_input, in_xy, cur_col, 4, in_c);
+
         }
         int col_i = out_xy & -4;
         float* cur_col;
@@ -176,7 +175,7 @@ static void im2col(float* input, float* col, int in_c, int in_w, int in_h, int k
             {
                 float* l0 = input + (imy0 * s_h - pad_h0) * in_w + (imx0 * s_w - pad_w0);
                 {
-                    // im2col_fp32_3x3(l0, in_w, in_h, in_c, cur_col, s_w);         // add im2col 3x3
+                    im2col_fp32_3x3(l0, in_w, in_h, in_c, cur_col, s_w);         // add im2col 3x3
                     cur_col += 4 * kernel_size;
                 }
             }
@@ -322,12 +321,12 @@ static void sgemm_set(float* col, float* kernel, float* biases, float* output, i
             for (col_line = 0; col_line + 3 < output_xy; col_line += 4)
             {
                 float* col_tmp = ( float* )(col + col_line * kernel_size);
-                // sgemm_4x16_a72(biasptr, col_tmp, kernel_tmp, kernel_size, output_tmp + col_line, output_xy, activation, 0);      // FIXME: replace with sgemm_4x16_rv64
+                sgemm_4x16_rv64(biasptr, col_tmp, kernel_tmp, kernel_size, output_tmp + col_line, output_xy, activation, 0);      // FIXME: replace with sgemm_4x16_rv64
             }
             {
                 float result[64];
                 float* col_tmp = ( float* )(col + col_line * kernel_size);
-                // sgemm_4x16_a72(biasptr, col_tmp, kernel_tmp, kernel_size, result, 4, activation, 0);         // FIXME: replace with sgemm_4x16_rv64
+                sgemm_4x16_rv64(biasptr, col_tmp, kernel_tmp, kernel_size, result, 4, activation, 0);         // FIXME: replace with sgemm_4x16_rv64
                 for (int i = 0; i < 16; i++)
                 {
                     for (int j = 0; j < (col_end3); j++)
@@ -350,7 +349,7 @@ static void sgemm_set(float* col, float* kernel, float* biases, float* output, i
             for (int col_line = 0; col_line + 3 < output_xy; col_line += 4)
             {
                 float* col_tmp = ( float* )(col + col_line * kernel_size);
-                // sgemm_4x16_a72(biasptr, col_tmp, kernel_tmp, kernel_size, output_tmp + col_line, output_xy, activation, 0);          // FIXME: replace with sgemm_4x16_rv64
+                sgemm_4x16_rv64(biasptr, col_tmp, kernel_tmp, kernel_size, output_tmp + col_line, output_xy, activation, 0);          // FIXME: replace with sgemm_4x16_rv64
             }
         }
     }
@@ -376,17 +375,12 @@ static void sgemm4x4(float* col, float* kernel, float* biases, float* output, in
         for (col_line = 0; col_line < (output_xy & -4); col_line += 4)
         {
             cur_col = ( float* )(col + col_line * kernel_size);
-            // sgemm_4x4_a72(cur_biases, cur_col, cur_kernel, kernel_size, cur_output + col_line, output_xy, activation, 0);        // FIXME: replace with sgemm_4x16_rv64
+            sgemm_4x4_rv64(cur_biases, cur_col, cur_kernel, kernel_size, cur_output + col_line, output_xy, activation, 0);
         }
         if (col_end3)
         {
             cur_col = ( float* )(col + col_line * kernel_size);
-            // sgemm_4x4_a72(cur_biases, cur_col, cur_kernel, kernel_size, result, 4, activation, 0);       // FIXME: replace with sgemm_4x4_rv64
-            for (int i = 0; i < 4; i++)
-            {
-                for (int j = 0; j < (col_end3); j++)
-                    *(output + (kernel_num + i) * output_xy + col_line + j) = result[(i << 2) + j];
-            }
+            sgemm_4x4_rv64(cur_biases, cur_col, cur_kernel, kernel_size, result, 4, activation, 0);
         }
     }
     if (kernel_end3)
@@ -400,7 +394,7 @@ static void sgemm4x4(float* col, float* kernel, float* biases, float* output, in
         for (int col_line = 0; col_line < (output_xy & -4); col_line += 4)
         {
             float* cur_col = ( float* )(col + col_line * kernel_size);
-            // sgemm_4x4_a72(cur_biases, cur_col, cur_kernel, kernel_size, result, 4, activation, 0);   // FIXME: replace with sgemm_4x4_rv64
+            sgemm_4x4_rv64(cur_biases, cur_col, cur_kernel, kernel_size, result, 4, activation, 0);   
             for (int i = 0; i < kernel_end3; i++)
                 for (int j = 0; j < 4; j++)
                     *(output + (kernel_num + i) * output_xy + col_line + j) = result[(i << 2) + j];
@@ -409,7 +403,7 @@ static void sgemm4x4(float* col, float* kernel, float* biases, float* output, in
         if (col_end3)
         {
             float* cur_col = ( float* )(col + col_line * kernel_size);
-            // sgemm_4x4_a72(cur_biases, cur_col, cur_kernel, kernel_size, result, 4, activation, 0);   // FIXME: replace with sgemm_4x4_rv64
+            sgemm_4x4_rv64(cur_biases, cur_col, cur_kernel, kernel_size, result, 4, activation, 0);   
             for (int i = 0; i < (kernel_end3); i++)
             {
                 for (int j = 0; j < (col_end3); j++)
@@ -509,16 +503,14 @@ int conv_hcl_prerun(struct ir_tensor* input_tensor, struct ir_tensor* filter_ten
     int in_w = input_tensor->dims[3];
 
     /* check winograd implement, only for conv3x3s1 */
-    priv_info->winograd = winograd_support(param, in_h, in_w);
-    if (priv_info->winograd)
-    {
-#ifdef __aarch64__
-        if(in_c >= 256)
-            // return wino_conv_hcl_prerun_1(input_tensor, filter_tensor, output_tensor, priv_info, param); // FIXME: add wino support
-        else
-#endif
-            // return wino_conv_hcl_prerun(input_tensor, filter_tensor, output_tensor, priv_info, param);   // FIXME: add wino support
-    }
+    // priv_info->winograd = winograd_support(param, in_h, in_w);
+    // if (priv_info->winograd)
+    // {
+    //     if(in_c >= 256)
+    //         // return wino_conv_hcl_prerun_1(input_tensor, filter_tensor, output_tensor, priv_info, param); // FIXME: add wino support
+    //     else
+    //         // return wino_conv_hcl_prerun(input_tensor, filter_tensor, output_tensor, priv_info, param);   // FIXME: add wino support
+    // }
 
     /* alloc mem of im2col  */
     if (!priv_info->external_im2col_mem)
@@ -546,10 +538,10 @@ int conv_hcl_prerun(struct ir_tensor* input_tensor, struct ir_tensor* filter_ten
 
 int conv_hcl_postrun(struct conv_priv_info* priv_info)
 {
-    if (priv_info->winograd)
-    {
-        // wino_conv_hcl_postrun(priv_info);        // FIXME: add wino support
-    }
+    // if (priv_info->winograd)
+    // {
+    //     wino_conv_hcl_postrun(priv_info);        // FIXME: add wino support
+    // }
 
     if (!priv_info->external_interleave_mem && priv_info->interleave_buffer != NULL)
     {
@@ -592,15 +584,13 @@ int conv_hcl_run(struct ir_tensor* input_tensor, struct ir_tensor* filter_tensor
     int kernel_size = in_c * kernel_h * kernel_w;
     int input_image_size = input_tensor->dims[1] * input_tensor->dims[2] * input_tensor->dims[3];
 
-    if (priv_info->winograd)
-    {
-#ifdef __aarch64__
-        if(in_c >= 256)
-            // return wino_conv_hcl_run_1(input_tensor, filter_tensor, bias_tensor, output_tensor, priv_info, param, num_thread, cpu_affinity);     // FIXME: add wino support
-        else
-#endif
-            // return wino_conv_hcl_run(input_tensor, filter_tensor, bias_tensor, output_tensor, priv_info, param, num_thread, cpu_affinity);       // FIXME: add wino support
-    }
+    // if (priv_info->winograd)
+    // {
+    //     if(in_c >= 256)
+    //         return wino_conv_hcl_run_1(input_tensor, filter_tensor, bias_tensor, output_tensor, priv_info, param, num_thread, cpu_affinity);     // FIXME: add wino support
+    //     else
+    //         return wino_conv_hcl_run(input_tensor, filter_tensor, bias_tensor, output_tensor, priv_info, param, num_thread, cpu_affinity);       // FIXME: add wino support
+    // }
 
     int out_c = output_tensor->dims[1] / group;
     int out_h = output_tensor->dims[2];
@@ -635,7 +625,6 @@ int conv_hcl_run(struct ir_tensor* input_tensor, struct ir_tensor* filter_tensor
             float* cur_kernel = interleave_buf + g * kernel_size * out_c_align;
             float* cur_output = output_buf + n * output_image_size + g * output_size;
             float* cur_bias = biases_buf ? (biases_buf + g * out_c) : NULL;
-
             sgemm_set(col_buf, cur_kernel, cur_bias, cur_output, kernel_size, 0, sgemm_set_chan, out_hw, act_type,
                       num_thread, cpu_affinity);
             if (sgemm_set_remain)

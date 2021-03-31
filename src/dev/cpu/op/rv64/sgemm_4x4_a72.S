@@ -79,10 +79,10 @@
         .section .text,"ax"
         .align 5
 
-        .type sgemm_4x4_a72 STT_FUNC
-        .global sgemm_4x4_a72
-        .hidden sgemm_4x4_a72
-sgemm_4x4_a72:
+        .type sgemm_4x4_rv64 STT_FUNC
+        .global sgemm_4x4_rv64
+        .hidden sgemm_4x4_rv64
+sgemm_4x4_rv64:
         slli            a5, a5, 0x2
 #       // initial biases
         beqz            a0, non_biases
