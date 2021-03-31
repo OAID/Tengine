@@ -40,6 +40,7 @@ tengine_example(tm_mobilefacenet            tm_mobilefacenet.cpp)
 tengine_example(tm_yolov4                   tm_yolov4.cpp)
 tengine_example(tm_yolov4_tiny              tm_yolov4_tiny.cpp)
 tengine_example(tm_yolov5                   tm_yolov5.cpp)
+tengine_example(tm_yolofastest              tm_yolofastest.cpp)
 tengine_example(tm_ultraface                tm_ultraface.cpp)
 
 
