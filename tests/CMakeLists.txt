@@ -1,4 +1,3 @@
-LINK_DIRECTORIES(${PROJECT_SOURCE_DIR}/build/src)
 # macro for adding test
 macro (tengine_test name file)
     add_executable (${name} ${CMAKE_CURRENT_SOURCE_DIR}/${file} "${PROJECT_SOURCE_DIR}/tests/common/tengine_operations.cpp")
@@ -9,8 +8,8 @@ macro (tengine_test name file)
 endmacro()
 
 # operator level test
-#tengine_test(test_op_prelu              op/test_op_prelu.c)
-tengine_test(test_op_conv              op/test_op_conv.c)
+tengine_test(test_op_prelu              op/test_op_prelu.c)
+tengine_test(test_op_conv               op/test_op_conv.c)
 
 if (TENGINE_ENABLE_TIM_VX)
     tengine_test(test_op_prelu_timvx        op/test_op_prelu_timvx.c)
@@ -100,7 +99,6 @@ tengine_test(test_plugin        utility/test_plugin.c)
 ]]
 
 # model level test
-#[[
 tengine_test(tm_classify           models/test_tm_classification.cpp)
 tengine_test(tm_darknet_yolo       models/test_tm_darknet_yolo.cpp)
 tengine_test(tm_faster_rcnn        models/test_tm_faster_rcnn.cpp)
@@ -116,7 +114,6 @@ tengine_test(tm_yufacedetect       models/test_tm_yufacedetect.cpp)
 tengine_test(test_tm_landmark      models/test_tm_landmark.cpp)
 tengine_test(test_tm_yolact        models/test_tm_yolact.cpp)
 tengine_test(tm_mfn                models/test_tm_mfn.cpp)
-]]
 
 #
 #tengine_test(test_tiny.c tiny_graph_generated.c utility/tiny)
