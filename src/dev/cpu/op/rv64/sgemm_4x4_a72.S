@@ -19,7 +19,7 @@
 
 /*
  * Copyright (c) 2020, OPEN AI LAB
- * Author: xiaowei@openailab.com
+ * Author: ddzhao@openailab.com
  */
 //
 // 4*4 single precise floating point matric multiplication
@@ -83,23 +83,15 @@
         .global sgemm_4x4_a72
         .hidden sgemm_4x4_a72
 sgemm_4x4_a72:
-        // bring some code ahead to reduce dependency
-# 	prfm	        pldl1keep, [x1, 0x40]
-# 	lsl             x5, x5, 2                       // x5  = output_xy
         slli            a5, a5, 0x2
-# 	prfm	        pldl1keep, [x2, 0x40]
-# 	cmp	        x3, 0x4
 #       // initial biases
-# 	cbz	        x0,  non_biases
         beqz            a0, non_biases
-#       ld4r            {v16.4s,v17.4s,v18.4s,v19.4s}, [x0]
         vsetvli         t0, a0, e32
         vlw.v           v16, (a0)
         vmv.v.v         v17, v16
         vmv.v.v         v18, v16
         vmv.v.v         v19, v16
 
-# 	b	        convoluation_start
         j               convoluation_start
 	
 non_biases:
@@ -109,26 +101,18 @@ non_biases:
         vmv.v.x         v19, x0
 
 convoluation_start:
-#       add             x11,x4, x5                      // x11 = output + ouput_xy
         add             t4, a4, a5
         
-# 	and	        x10,x3, 0x3
         andi	        t3, a3, 0x3
 
-# 	b.lt	        loop4_end
         li              t0, 4
         blt             a3, t0, loop4_end
-# 	lsr	        x9 ,x3, 0x2
         srli            t2, a3, 0x2
 
-# // main loop: each loop generate dot prodcut for 4x4SFP
+// main loop: each loop generate dot prodcut for 4x4SFP
 loop4:  
-# 	subs	        x9 ,x9 ,0x1
         addi            t2, t2, -1
-# 	ldr	        q0, [x1]			// q0=i[3-0]
-# 	ldr	        q1, [x1, 0x10]			// q1=i[3-0]
-# 	ldp	        q2, q3, [x1, 0x20]		// q2=i[3-0] q3=i[3-0]
-# 	add	        x1, x1, 0x40
+        
         vlw.v           v0, (a1)
         addi            a1, a1, 16
         vlw.v           v1, (a1)
@@ -137,9 +121,7 @@ loop4:
         addi            a1, a1, 16
         vlw.v           v3, (a1)
         addi            a1, a1, 16
-# 	ldp	        q4, q5, [x2]			// q4=k[3-0] 
-# 	ldp	        q6, q7, [x2, 0x20]		// q6=k[3-0] q7=q7=k[3-0]
-# 	add	        x2, x2, 0x40
+        
         vlw.v           v4, (a2)
         addi            a2, a2, 16
         vlw.v           v5, (a2)
@@ -149,11 +131,7 @@ loop4:
         vlw.v           v7, (a2)
         addi            a2, a2, 16
         
-# 	fmla	        v16.4s, v0.4s,  v4.s[0]		// i[3-0]k[0]
-# 	fmla	        v17.4s, v0.4s,  v4.s[1]		// i[3-0]k[1]
-# 	fmla	        v18.4s, v0.4s,  v4.s[2]		// i[3-0]k[2]
-# 	fmla	        v19.4s, v0.4s,  v4.s[3]		// i[3-0]k[3]
-        vrgather.vi     v20, v4, 0              // FIXME: data type need to be changed
+        vrgather.vi     v20, v4, 0
         vrgather.vi     v21, v4, 1
         vrgather.vi     v22, v4, 2
         vrgather.vi     v23, v4, 3
@@ -161,10 +139,7 @@ loop4:
         vfmacc.vv       v17, v21, v0
         vfmacc.vv       v18, v22, v0
         vfmacc.vv       v19, v23, v0
-# 	fmla	        v16.4s, v1.4s,  v5.s[0]		// i[3-0]k[0]
-# 	fmla	        v17.4s, v1.4s,  v5.s[1]		// i[3-0]k[1]
-# 	fmla	        v18.4s, v1.4s,  v5.s[2]		// i[3-0]k[2]
-# 	fmla	        v19.4s, v1.4s,  v5.s[3]		// i[3-0]k[3]
+        
         vrgather.vi     v20, v5, 0
         vrgather.vi     v21, v5, 1
         vrgather.vi     v22, v5, 2
@@ -174,11 +149,6 @@ loop4:
         vfmacc.vv       v18, v22, v1
         vfmacc.vv       v19, v23, v1
 
-# 	fmla	        v16.4s, v2.4s,  v6.s[0]		// i[3-0]k[0]
-# 	fmla	        v17.4s, v2.4s,  v6.s[1]		// i[3-0]k[1]
-# 	prfm	        pldl1keep, [x1, 0x140]
-# 	fmla	        v18.4s, v2.4s,  v6.s[2]		// i[3-0]k[2]
-# 	fmla	        v19.4s, v2.4s,  v6.s[3]		// i[3-0]k[3]
         vrgather.vi     v20, v6, 0
         vrgather.vi     v21, v6, 1
         vrgather.vi     v22, v6, 2
@@ -188,11 +158,6 @@ loop4:
         vfmacc.vv       v18, v22, v2
         vfmacc.vv       v19, v23, v2
 
-# 	prfm	        pldl1keep, [x2, 0x140]
-# 	fmla	        v16.4s, v3.4s,  v7.s[0]		// i[3-0]k[0]
-# 	fmla	        v17.4s, v3.4s,  v7.s[1]		// i[3-0]k[1]
-# 	fmla	        v18.4s, v3.4s,  v7.s[2]		// i[3-0]k[2]
-# 	fmla	        v19.4s, v3.4s,  v7.s[3]		// i[3-0]k[3]
         vrgather.vi     v20, v7, 0
         vrgather.vi     v21, v7, 1
         vrgather.vi     v22, v7, 2
@@ -202,29 +167,22 @@ loop4:
         vfmacc.vv       v18, v22, v3
         vfmacc.vv       v19, v23, v3
 
-# 	b.ne	        loop4
         bnez            t2, loop4
 
 loop4_end:
-#         add           x12,x4, x5, LSL 1               // x12 = output + ouput_xy * 2
         slli            t0, a5, 1
         add             t5, a4, t0
-# 	cbz	        x10, activation
         beqz            t3, activation
 
 loop1:
-# 	subs	        x10 ,x10 ,0x1
         addi            t3, t3, -1
-# 	ldr             q0, [x1], 0x10                  // q0=i[3-0]
+        
         vlw.v           v0, (a1)
         addi            a1, a1, 16
-#       ldr             q4, [x2], 0x10                  // q4=k[3-0]
+        
         vlw.v           v4, (a2)
         addi            a2, a2, 16
-# 	fmla	        v16.4s, v0.4s,  v4.s[0]		// i[0]k[3-0]
-# 	fmla	        v17.4s, v0.4s,  v4.s[1]		// i[1]k[3-0]
-# 	fmla	        v18.4s, v0.4s,  v4.s[2]		// i[2]k[3-0]
-# 	fmla	        v19.4s, v0.4s,  v4.s[3]		// i[3]k[3-0]
+
         vrgather.vi     v20, v4, 0
         vrgather.vi     v21, v4, 1
         vrgather.vi     v22, v4, 2
@@ -234,41 +192,24 @@ loop1:
         vfmacc.vv       v18, v22, v0
         vfmacc.vv       v19, v23, v0
 
-# 	b.ne	        loop1
         bnez            t3, loop1
 
 
 activation:
-#       add     x13,x11,x5, LSL 1               // x13 = output + ouput_xy * 2
         slli            t0, a5, 1
         add             t6, t4, t0
-# 	cmp             w6,0
-#       blt             save_result
+        
         bltz            a6, save_result
         
-#       movi            d0, 0
         vmv.v.i         v0, 0
-# 	scvtf           s1, w6
-        vmv.v.x         v1, a6                  // FIXME: data type need to be changed
+        vmv.v.x         v1, a6
 
-#       fmax            v16.4s, v16.4s, v0.4s
-#       fmax            v17.4s, v17.4s, v0.4s
-#       fmax            v18.4s, v18.4s, v0.4s
-#       fmax            v19.4s, v19.4s, v0.4s
         vfmax.vv        v16, v16, v0
         vfmax.vv        v17, v17, v0
         vfmax.vv        v18, v18, v0
         vfmax.vv        v19, v19, v0    
 
-#       beq             save_result
         beqz            a6, save_result
-        
-# 	dup             v1.4s,v1.s[0]                   // FIXME: done this before
-
-#       fmin            v16.4s, v16.4s, v1.4s
-#       fmin            v17.4s, v17.4s, v1.4s
-#       fmin            v18.4s, v18.4s, v1.4s
-#       fmin            v19.4s, v19.4s, v1.4s
         vfmin.vv        v16, v16, v1
         vfmin.vv        v17, v17, v1
         vfmin.vv        v18, v18, v1
@@ -276,11 +217,8 @@ activation:
 
 save_result:
 # 	// store result
-#     // x4 x11 x12 13 as base address
-# 	cmp             w7, 0
-#       beq             save_result_nchw
         beqz            a7, save_result_nchw
-#       st4             {v16.s,v17.s,v18.s,v19.s}[0], [x4]
+        
         li              t1, 0
         vext.x.v        t0, v16, t1
         sw              t0, 0(a4)
@@ -290,7 +228,7 @@ save_result:
         sw              t0, 8(a4)
         vext.x.v        t0, v19, t1
         sw              t0, 12(a4)
-#       st4             {v16.s,v17.s,v18.s,v19.s}[1], [x11]
+        
         li              t1, 1
         vext.x.v        t0, v16, t1
         sw              t0, 0(t4)
@@ -300,7 +238,7 @@ save_result:
         sw              t0, 8(t4)
         vext.x.v        t0, v19, t1
         sw              t0, 12(t4)
-#       st4             {v16.s,v17.s,v18.s,v19.s}[2], [x12]
+        
         li              t1, 2
         vext.x.v        t0, v16, t1
         sw              t0, 0(t5)
@@ -310,7 +248,7 @@ save_result:
         sw              t0, 8(t5)
         vext.x.v        t0, v19, t1
         sw              t0, 12(t5)
-#       st4             {v16.s,v17.s,v18.s,v19.s}[3], [x13]
+        
         li              t1, 3
         vext.x.v        t0, v16, t1
         sw              t0, 0(t6)
@@ -320,18 +258,13 @@ save_result:
         sw              t0, 8(t6)
         vext.x.v        t0, v19, t1
         sw              t0, 12(t6)
-#       b               end
         j               end
 
 save_result_nchw:
-#       str     q16, [x4]
-        vsw.v   v16, (a4)
-#       str     q17, [x11]
-        vsw.v   v17, (t4)
-#       str     q18, [x12]
-        vsw.v   v18, (t5)
-#       str     q19, [x13]
-        vsw.v   v19, (t6)
+        vsw.v           v16, (a4)
+        vsw.v           v17, (t4)
+        vsw.v           v18, (t5)
+        vsw.v           v19, (t6)
 
 end:
 	ret
