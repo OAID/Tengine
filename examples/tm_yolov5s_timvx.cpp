@@ -133,8 +133,8 @@ static void nms_sorted_bboxes(const std::vector<Object>& faceobjects, std::vecto
     }
 }
 
-void get_input_data_focas_uint8(const char* image_file, uint8_t* input_data, int img_h, int img_w, const float* mean, const float* scale, float input_scale,
-                                  int zero_point)
+void get_input_data_focas_uint8(const char* image_file, uint8_t* input_data, int img_h, int img_w, const float* mean,
+                                const float* scale, float input_scale, int zero_point)
 {
     cv::Mat sample = cv::imread(image_file, 1);
     cv::Mat img;
@@ -145,44 +145,44 @@ void get_input_data_focas_uint8(const char* image_file, uint8_t* input_data, int
         cv::cvtColor(sample, img, cv::COLOR_BGR2RGB);
 
     /* letterbox process */
-    int letterbox = 640;
-    float lb = (float)letterbox;
-    int h0 = 0;
-    int w0 = 0;
-    if ( img.rows > img.cols)
+    float letterbox_size = 640;
+    int resize_h = 0;
+    int resize_w = 0;
+    if (img.rows > img.cols)
     {
-        h0 = lb;
-        w0 = int(img.cols*(lb/img.rows));
+        resize_h = letterbox_size;
+        resize_w = int(img.cols * (letterbox_size / img.rows));
     }
     else
     {
-        h0 = int(img.rows*(lb/img.cols));
-        w0 = lb;
+        resize_h = int(img.rows * (letterbox_size / img.cols));
+        resize_w = letterbox_size;
     }
 
-    cv::resize(img, img, cv::Size(w0, h0));
+    cv::resize(img, img, cv::Size(resize_w, resize_h));
     img.convertTo(img, CV_32FC3);
-    cv::Mat img_new(lb, lb, CV_32FC3, cv::Scalar(0.5/scale[0]+mean[0], 0.5/scale[1]+mean[1], 0.5/scale[2]+mean[2]));
-    int dh = int((lb - h0) / 2);
-    int dw = int((lb - w0) / 2);
+    cv::Mat img_new(letterbox_size, letterbox_size, CV_32FC3,
+                    cv::Scalar(0.5/scale[0] + mean[0], 0.5/scale[1] + mean[1], 0.5/ scale[2] + mean[2]));
+    int dh = int((letterbox_size - resize_h) / 2);
+    int dw = int((letterbox_size - resize_w) / 2);
 
-    for (int hi = 0; hi < h0; ++hi)
+    for (int h = 0; h < resize_h; h++)
     {
-        for (int wi = 0; wi < w0; ++wi)
+        for (int w = 0; w < resize_w; w++)
         {
-            for (int ci = 0; ci < 3; ++ci)
+            for (int c = 0; c < 3; ++c)
             {
-                int ii = hi*w0*3 + wi*3 + ci;
-                int oo = (dh + hi)*w0*3 + (dw + wi)*3 + ci;
+                int in_index  = h * resize_w * 3 + w * 3 + c;
+                int out_index = (dh + h) * letterbox_size * 3 + (dw + w) * 3 + c;
 
-                ((float*)img_new.data)[oo] = ((float*)img.data)[ii];
+                (( float* )img_new.data)[out_index] = (( float* )img.data)[in_index];
             }
         }
     }
 
     img_new.convertTo(img_new, CV_32FC3);
-    float* img_data = ( float* )img_new.data;
-    float* input_temp = (float*)malloc(3*640*640*sizeof(float));
+    float* img_data   = (float* )img_new.data;
+    float* input_temp = (float* )malloc(3 * 640 * 640 * sizeof(float));
 
     /* nhwc to nchw */
     int hw = img_h * img_w;
@@ -192,15 +192,14 @@ void get_input_data_focas_uint8(const char* image_file, uint8_t* input_data, int
         {
             for (int c = 0; c < 3; c++)
             {
-                input_temp[c * hw + h * img_w + w] = (*img_data - mean[c]) * scale[c];
-                img_data++;
+                int in_index  = h * img_w * 3 + w * 3 + c;
+                int out_index = c * img_h * img_w + h * img_w + w;
+                input_temp[out_index] = (img_data[in_index] - mean[c]) * scale[c];
             }
         }
     }
 
     /* focus process */
-    int new_index = 0;
-    int old_index = 0;
     for (int i = 0; i < 2; i++)
     {
         for (int g = 0; g < 2; g++)
@@ -211,17 +210,21 @@ void get_input_data_focas_uint8(const char* image_file, uint8_t* input_data, int
                 {
                     for (int h = 0; h < 320; h++)
                     {
-                        old_index = i + g * 640 + c * 640 * 640 + w * 2 * 640 + h * 2;
+                        int in_index  = i + g * 640 + c * 640 * 640 + w * 2 * 640 + h * 2;
+                        int out_index = i * 2 * 3 * 320 * 320 +
+                                        g * 3 * 320 * 320 +
+                                        c * 320 * 320 +
+                                        w * 320 +
+                                        h;
 
                         /* quant to uint8 */
-                        int udata = (round)(input_temp[old_index] / input_scale + ( float )zero_point);
+                        int udata = (round)(input_temp[in_index] / input_scale + ( float )zero_point);
                         if (udata > 255)
                             udata = 255;
                         else if (udata < 0)
                             udata = 0;
 
-                        input_data[new_index] = udata;
-                        new_index++;
+                        input_data[out_index] = udata;
                     }
                 }
             }
@@ -234,8 +237,7 @@ void get_input_data_focas_uint8(const char* image_file, uint8_t* input_data, int
 static void generate_proposals(int stride,  const float* feat, float prob_threshold, std::vector<Object>& objects)
 {
     static float anchors[18] = {10, 13, 16, 30, 33, 23, 30, 61, 62, 45, 59, 119, 116, 90, 156, 198, 373, 326};
-    //static float anchor_p16[6] = {30, 61, 62, 45, 59, 119};
-    //static float anchor_p32[6] = {116, 90, 156, 198, 373, 326};
+
     int anchor_num = 3;
     int feat_w = 640 / stride;
     int feat_h = 640 / stride;
@@ -563,10 +565,6 @@ int main(int argc, char* argv[])
     std::vector<Object> objects16;
     std::vector<Object> objects32;
     std::vector<Object> objects;
-
-    static float anchor_p8[6] = {10, 13, 16, 30, 33, 23};
-    static float anchor_p16[6] = {30, 61, 62, 45, 59, 119};
-    static float anchor_p32[6] = {116, 90, 156, 198, 373, 326};
 
     generate_proposals(32, p32_data, prob_threshold, objects32);
     proposals.insert(proposals.end(), objects32.begin(), objects32.end());

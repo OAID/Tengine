@@ -486,7 +486,12 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         // }
     }
 
-    int ret = ref_slice_common(input, out_data_ptrs, sizeof(float), &op_param);
+    int ret = -1;
+    if (input_tensor->data_type == TENGINE_DT_FP32)
+        ret = ref_slice_common(input, out_data_ptrs, sizeof(float), &op_param);
+    else if (input_tensor->data_type == TENGINE_DT_UINT8)
+        ret = ref_slice_common(input, out_data_ptrs, sizeof(uint8_t), &op_param);
+
     sys_free(out_data_ptrs);
     if (ret < 0)
         return -1;
