@@ -532,7 +532,7 @@ static void draw_objects(const cv::Mat& bgr, const std::vector<Object>& objects)
         }
     }
 
-    cv::imwrite("yolact_out.png", image);
+    cv::imwrite("yolact_out.jpg", image);
 }
 
 void show_usage()
