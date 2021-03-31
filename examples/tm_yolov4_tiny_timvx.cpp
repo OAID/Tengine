@@ -19,26 +19,25 @@
 
 /*
  * Copyright (c) 2020, OPEN AI LAB
- * Author: qtang@openailab.com
+ * Author: 942002795@qq.com
  */
 
-#include <cstdlib>
+#include <iostream>
+#include <fstream>
+#include <sstream>
 #include <iomanip>
+#include <string>
 #include <vector>
-
-#ifdef _MSC_VER
-#define NOMINMAX
-#endif
-
+#include <stdlib.h>
 #include <algorithm>
-#include <cmath>
-
 #include "common.h"
 #include "tengine_c_api.h"
 #include "tengine_operations.h"
+#include <math.h>
 
-#define DEFAULT_REPEAT_COUNT 1
-#define DEFAULT_THREAD_COUNT 1
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 
 using namespace std;
 
@@ -72,10 +71,6 @@ typedef struct layer
     float* output;
     int coords;
 } layer;
-
-
-const int yolov3_numAnchors = 6;
-const int yolov2_numAnchors = 5;
 
 // yolov3
 float biases[18] = {10, 13, 16, 30, 33, 23, 30, 61, 62, 45, 59, 119, 116, 90, 156, 198, 373, 326};
@@ -142,7 +137,7 @@ layer make_darknet_layer(int batch, int w, int h, int net_w, int net_h, int n, i
             }
             if (l.w == net_w / 16)
             {
-                int j = 0;
+                int j = 1;
                 for (int i = 0; i < l.n; ++i)
                     l.mask[i] = j++;
             }
@@ -227,7 +222,10 @@ int yolo_num_detections(layer l, float thresh)
             {
                 int obj_index = entry_index(l, b, n * l.w * l.h + i, 4);
                 if (l.output[obj_index] > thresh)
+                {
+                    // printf(".....%d -- %f\n",obj_index, l.output[obj_index]);
                     ++count;
+                }
             }
         }
     }
@@ -247,7 +245,6 @@ int num_detections(vector<layer> layers_params, float thresh)
             s += l.w * l.h * l.n;
     }
 
-    fprintf(stderr, "%s,%d\n", __func__, s);
     return s;
 }
 
@@ -272,16 +269,8 @@ void correct_yolo_boxes(detection* dets, int n, int w, int h, int netw, int neth
     int i;
     int new_w = 0;
     int new_h = 0;
-    if ((( float )netw / w) < (( float )neth / h))
-    {
-        new_w = netw;
-        new_h = (h * netw) / w;
-    }
-    else
-    {
-        new_h = neth;
-        new_w = (w * neth) / h;
-    }
+    new_w = netw;
+    new_h = neth;
     for (i = 0; i < n; ++i)
     {
         box b = dets[i].bbox;
@@ -615,32 +604,122 @@ image letterbox_image(image im, int w, int h)
     return boxed;
 }
 
-void get_input_data_darknet_uint8(const char* image_file, uint8_t* input_data, int net_h, int net_w, float input_scale,
-                                  int zero_point)
+// void get_input_data_darknet_uint8(const char* image_file, uint8_t* input_data, int net_h, int net_w, float input_scale,
+//                                   int zero_point)
+// {
+//     int size = 3 * net_w * net_h;
+//     image sized;
+//     image im = load_image_stb(image_file, 3);
+//     for (int i = 0; i < im.c * im.h * im.w; i++)
+//     {
+//         im.data[i] = im.data[i] / 255;
+//     }
+//     sized = letterbox(im, net_w, net_h);
+
+//     for (int i = 0; i < size; i++)
+//     {
+//         int udata = (round)(sized.data[i] / input_scale + ( float )zero_point);
+//         if (udata > 255)
+//             udata = 255;
+//         else if (udata < 0)
+//             udata = 0;
+
+//         input_data[i] = udata;
+//     }
+
+//     free_image(sized);
+//     free_image(im);
+// }
+
+void get_input_data_darknet_uint8(const char* image_file, uint8_t* input_data, int img_h, int img_w, const float* mean, const float* scale, 
+                                    float input_scale, int zero_point)
 {
-    int size = 3 * net_w * net_h;
-    image sized;
-    image im = load_image_stb(image_file, 3);
-    for (int i = 0; i < im.c * im.h * im.w; i++)
+    cv::Mat sample = cv::imread(image_file, 1);
+    cv::Mat img;
+
+    if (sample.channels() == 1)
+        cv::cvtColor(sample, img, cv::COLOR_GRAY2RGB);
+    else
+        cv::cvtColor(sample, img, cv::COLOR_BGR2RGB);
+
+    /* letterbox process */
+    int letterbox = 416;
+    float lb = (float)letterbox;
+    int h0 = 0;
+    int w0 = 0;
+    if ( img.rows > img.cols)
     {
-        im.data[i] = im.data[i] / 255;
+        h0 = lb;
+        w0 = int(img.cols*(lb/img.rows));
     }
-    sized = letterbox(im, net_w, net_h);
-
-    for (int i = 0; i < size; i++)
+    else
     {
-        int udata = (round)(sized.data[i] / input_scale + ( float )zero_point);
-        if (udata > 255)
-            udata = 255;
-        else if (udata < 0)
-            udata = 0;
-
-        input_data[i] = udata;
+        h0 = int(img.rows*(lb/img.cols));
+        w0 = lb;
     }
 
-    free_image(sized);
-    free_image(im);
+    cv::resize(img, img, cv::Size(w0, h0));
+    img.convertTo(img, CV_32FC3);
+    cv::Mat img_new(lb, lb, CV_32FC3, cv::Scalar(0.5/scale[0]+mean[0], 0.5/scale[1]+mean[1], 0.5/scale[2]+mean[2]));
+    int dh = int((lb - h0) / 2);
+    int dw = int((lb - w0) / 2);
+
+    for (int hi = 0; hi < h0; ++hi)
+    {
+        for (int wi = 0; wi < w0; ++wi)
+        {
+            for (int ci = 0; ci < 3; ++ci)
+            {
+                int ii = hi*w0*3 + wi*3 + ci;
+                int oo = (dh + hi)*w0*3 + (dw + wi)*3 + ci;
+
+                ((float*)img_new.data)[oo] = ((float*)img.data)[ii];
+            }
+        }
+    }
+
+    img_new.convertTo(img_new, CV_32FC3);
+    float* img_data = ( float* )img_new.data;
+
+    /* nhwc to nchw */
+    int hw = img_h * img_w;
+    for (int h = 0; h < img_h; h++)
+    {
+        for (int w = 0; w < img_w; w++)
+        {
+            for (int c = 0; c < 3; c++)
+            {
+                int index = c * hw + h * img_w + w;
+                float input_fp32 = (*img_data - mean[c]) * scale[c];
+                
+                /* quant to uint8 */
+                int udata = (round)(input_fp32 / input_scale + ( float )zero_point);
+                if (udata > 255)
+                    udata = 255;
+                else if (udata < 0)
+                    udata = 0;
+
+                input_data[index] = udata;  
+                img_data++;
+            }
+        }
+    }
 }
+
+static const char* class_names[] = {"person", "bicycle", "car", "motorcycle", "airplane", "bus",
+                                    "train", "truck", "boat", "traffic light", "fire hydrant",
+                                    "stop sign", "parking meter", "bench", "bird", "cat", "dog",
+                                    "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe",
+                                    "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee",
+                                    "skis", "snowboard", "sports ball", "kite", "baseball bat",
+                                    "baseball glove", "skateboard", "surfboard", "tennis racket",
+                                    "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl",
+                                    "banana", "apple", "sandwich", "orange", "broccoli", "carrot",
+                                    "hot dog", "pizza", "donut", "cake", "chair", "couch",
+                                    "potted plant", "bed", "dining table", "toilet", "tv", "laptop",
+                                    "mouse", "remote", "keyboard", "cell phone", "microwave", "oven",
+                                    "toaster", "sink", "refrigerator", "book", "clock", "vase",
+                                    "scissors", "teddy bear", "hair drier", "toothbrush"};
 
 void show_usage()
 {
@@ -649,22 +728,25 @@ void show_usage()
 
 int main(int argc, char* argv[])
 {
-    int repeat_count = DEFAULT_REPEAT_COUNT;
-    int num_thread = DEFAULT_THREAD_COUNT;
-    char* model_file = nullptr;
-    char* image_file = nullptr;
+    const char* model_file = nullptr;
+    const char* image_file = nullptr;
 
     int layer_type = 0;
     int numBBoxes = 3;
-    int total_numAnchors = 9;
-    int net_w = 608;
-    int net_h = 608;
+    int total_numAnchors = 6;
+    int img_w = 416;
+    int img_h = 416;
+    int repeat_count = 1;
+    int num_thread = 1;
 
     const int classes = 80;
-    const float thresh = 0.5;
+    const float thresh = 0.25;
     const float hier_thresh = 0.5;
     const float nms = 0.45;
-    const int relative = 1;    
+    const int relative = 1;
+
+    const float mean[3] = {0, 0, 0};
+    const float scale[3] = {0.003921, 0.003921, 0.003921};    
 
     int res;
     while ((res = getopt(argc, argv, "m:i:r:t:h:")) != -1)
@@ -713,7 +795,7 @@ int main(int argc, char* argv[])
     struct options opt;
     opt.num_thread = num_thread;
     opt.cluster = TENGINE_CLUSTER_ALL;
-    opt.precision = TENGINE_MODE_UINT8;
+    opt.precision = TENGINE_MODE_FP32;
     opt.affinity = 0;
 
     /* inital tengine */
@@ -724,8 +806,17 @@ int main(int argc, char* argv[])
     }
     fprintf(stderr, "tengine-lite library version: %s\n", get_tengine_version());
 
+    /* create VeriSilicon TIM-VX backend */
+    context_t timvx_context = create_context("timvx", 1);
+    int rtt = add_context_device(timvx_context, "TIMVX");
+    if (0 > rtt)
+    {
+        fprintf(stderr, " add_context_device VSI DEVICE failed.\n");
+        return -1;
+    }
+
     /* create graph, load tengine model xxx.tmfile */
-    graph_t graph = create_graph(nullptr, "tengine", model_file);
+    graph_t graph = create_graph(timvx_context, "tengine", model_file);
     if (graph == nullptr)
     {
         fprintf(stderr, "Create graph failed.\n");
@@ -734,8 +825,8 @@ int main(int argc, char* argv[])
     }
 
     /* set the input shape to initial the graph, and prerun graph to infer shape */
-    int img_size = net_h * net_w * 3;
-    int dims[] = {1, 3, net_h, net_w};    // nchw
+    int img_size = img_h * img_w * 3;
+    int dims[] = {1, 3, img_h, img_w};    // nchw
 
     std::vector<uint8_t> input_data(img_size);
 
@@ -769,7 +860,7 @@ int main(int argc, char* argv[])
     float input_scale = 0.f;
     int input_zero_point = 0;
     get_tensor_quant_param(input_tensor, &input_scale, &input_zero_point, 1);
-    get_input_data_darknet_uint8(image_file, input_data.data(), net_h, net_w, input_scale, input_zero_point);
+    get_input_data_darknet_uint8(image_file, input_data.data(), img_h, img_w, mean, scale, input_scale, input_zero_point);
 
     /* run graph */
     double min_time = DBL_MAX;
@@ -807,7 +898,7 @@ int main(int argc, char* argv[])
         layer l_params;
         int out_w = out_dim[3];
         int out_h = out_dim[2];
-        l_params = make_darknet_layer(1, out_w, out_h, net_w, net_h, numBBoxes, total_numAnchors, classes, layer_type);
+        l_params = make_darknet_layer(1, out_w, out_h, img_w, img_h, numBBoxes, total_numAnchors, classes, layer_type);
         layers_params.push_back(l_params);
 
         /* dequant output data */
@@ -829,7 +920,7 @@ int main(int argc, char* argv[])
     int nboxes = 0;
     // get network boxes
     detection* dets =
-        get_network_boxes(layers_params, img.w, img.h, net_w, net_h, thresh, hier_thresh, 0, relative, &nboxes);
+        get_network_boxes(layers_params, img.w, img.h, img_w, img_h, thresh, hier_thresh, 0, relative, &nboxes);
 
     if (nms != 0)
     {
@@ -840,15 +931,13 @@ int main(int argc, char* argv[])
     for (i = 0; i < nboxes; ++i)
     {
         int cls = -1;
+        float best_class_prob = thresh;
         for (j = 0; j < classes; ++j)
         {
-            if (dets[i].prob[j] > 0.5)
+            if (dets[i].prob[j] > best_class_prob)
             {
-                if (cls < 0)
-                {
-                    cls = j;
-                }
-                fprintf(stderr, "%d: %.0f%%\n", cls, dets[i].prob[j] * 100);
+                cls = j;
+                best_class_prob = dets[i].prob[j];
             }
         }
         if (cls >= 0)
@@ -859,7 +948,7 @@ int main(int argc, char* argv[])
             int top = (b.y - b.h / 2.) * img.h;
             int bot = (b.y + b.h / 2.) * img.h;
             draw_box(img, left, top, right, bot, 2, 125, 0, 125);
-            fprintf(stderr, "left = %d,right = %d,top = %d,bot = %d\n", left, right, top, bot);
+            fprintf(stderr, "%2d: %3.0f%%, [%4d,%4d,%4d,%4d], %s\n", cls, best_class_prob * 100, left, top, right, bot, class_names[cls]);
         }
 
         if (dets[i].mask)
@@ -868,7 +957,7 @@ int main(int argc, char* argv[])
             free(dets[i].prob);
     }
     free(dets);
-    save_image(img, "yolov3_tiny_uint8");
+    save_image(img, "yolov4_tiny_uint8_out");
 
     /* release tengine */
     for (int i = 0; i < output_node_num; ++i)
