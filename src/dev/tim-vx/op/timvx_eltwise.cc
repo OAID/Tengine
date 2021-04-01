@@ -41,18 +41,8 @@ bool VXEngine::AddEltwiseNode(struct ir_node* ir_node)
     {
         struct ir_tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[i]);
         add_in_tensor[i] = this->vx_tensor_map[input_tensor->idx];
-        fprintf(stderr,"\nadd_in_tensor.shape()\n");
-        for (int j = 0; j < 4; j++)
-        {
-            fprintf(stderr,"%d ",add_in_tensor[i]->GetShape()[j]);
-        }
     }
     struct ir_tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    fprintf(stderr,"\nadd_out_tensor.shape()\n");
-    for (int j = 0; j < 4; j++)
-    {
-        fprintf(stderr,"%d ",this->vx_tensor_map[output_tensor->idx]->GetShape()[j]);
-    }
 
     eltwise_param* param = (eltwise_param*)ir_node->op.param_mem;
 
@@ -78,3 +68,4 @@ bool VXEngine::AddEltwiseNode(struct ir_node* ir_node)
             break;
     }
 }
+

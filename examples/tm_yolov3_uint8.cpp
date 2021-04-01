@@ -73,12 +73,7 @@ typedef struct layer
     int coords;
 } layer;
 
-const int classes = 80;
-const float thresh = 0.5;
-const float hier_thresh = 0.5;
-const float nms = 0.45;
-const int numBBoxes = 5;
-const int relative = 1;
+
 const int yolov3_numAnchors = 6;
 const int yolov2_numAnchors = 5;
 
@@ -163,7 +158,7 @@ layer make_darknet_layer(int batch, int w, int h, int net_w, int net_h, int n, i
     }
     l.layer_type = layer_type;
     l.outputs = l.inputs;
-    l.output = ( float* )calloc(batch * l.outputs, sizeof(float));
+    l.output = ( float* )calloc((size_t)batch * l.outputs, sizeof(float));
 
     return l;
 }
@@ -665,6 +660,12 @@ int main(int argc, char* argv[])
     int net_w = 608;
     int net_h = 608;
 
+    const int classes = 80;
+    const float thresh = 0.5;
+    const float hier_thresh = 0.5;
+    const float nms = 0.45;
+    const int relative = 1;    
+
     int res;
     while ((res = getopt(argc, argv, "m:i:r:t:h:")) != -1)
     {
@@ -867,7 +868,7 @@ int main(int argc, char* argv[])
             free(dets[i].prob);
     }
     free(dets);
-    save_image(img, "tengine_example_out");
+    save_image(img, "yolov3_tiny_uint8");
 
     /* release tengine */
     for (int i = 0; i < output_node_num; ++i)

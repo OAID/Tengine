@@ -594,6 +594,7 @@ typedef struct
     int32_t isonnx;
     int32_t begin;
     int32_t end;
+    int32_t step;
 } TM2_SliceParam;
 
 typedef struct

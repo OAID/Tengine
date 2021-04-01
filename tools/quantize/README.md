@@ -32,7 +32,7 @@ $ ./quant_tool_int8 -h
 -m    input model     path to input float32 tmfile
 -i    image dir       path to calibration images folder
 -o    output model    path to output int8 tmfile
--a    algorithm       the type of quant algorithm(0:min-max, 1:kl, default is 1)
+-a    algorithm       the type of quant algorithm(0:min-max, 1:kl, default is 0)
 -g    size            the size of input image(using the resize the original image,default is 3,224,224
 -w    mean            value of mean (mean value, default is 104.0,117.0,123.0
 -s    scale           value of normalize (scale value, default is 1.0,1.0,1.0)
@@ -51,7 +51,7 @@ $ .quant_tool_int8  -m ./mobilenet_fp32.tmfile -i ./dataset -o ./mobilenet_int8.
 
 ---- Tengine Post Training Quantization Tool ----
 
-Version     : v1.0, 17:32:30 Dec 24 2020
+Version     : v1.1, 15:46:24 Mar 14 2021
 Status      : int8, per-channel, symmetric
 Input model : ./mobilenet_fp32.tmfile
 Output model: ./mobilenet_int8.tmfile
@@ -106,13 +106,13 @@ Currently, only provide the per-compiled file, you can get it from [quant_tool_u
 ## 2.3 Description params
 
 ```
-$ ./quant_tool_int8 -h
+$ ./quant_tool_uint8 -h
 [Quant Tools Info]: optional arguments:
 -h    help            show this help message and exit
 -m    input model     path to input float32 tmfile
 -i    image dir       path to calibration images folder
 -o    output model    path to output int8 tmfile
--a    algorithm       the type of quant algorithm(0:min-max, 1:kl, default is 1)
+-a    algorithm       the type of quant algorithm(0:min-max, 1:kl, default is 0)
 -g    size            the size of input image(using the resize the original image,default is 3,224,224
 -w    mean            value of mean (mean value, default is 104.0,117.0,123.0
 -s    scale           value of normalize (scale value, default is 1.0,1.0,1.0)
@@ -131,7 +131,7 @@ $ .quant_tool_uint8  -m ./mobilenet_fp32.tmfile -i ./dataset -o ./mobilenet_uint
 
 ---- Tengine Post Training Quantization Tool ----
 
-Version     : v1.0, 18:06:10 Mar  4 2021
+Version     : v1.1, 15:46:22 Mar 14 2021
 Status      : uint8, per-layer, asymmetric
 Input model : ./mobilenet_fp32.tmfile
 Output model: ./mobilenet_uint8.tmfile

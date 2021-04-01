@@ -74,12 +74,6 @@ typedef struct layer
     int coords;
 } layer;
 
-const int classes = 80;
-const float thresh = 0.55;
-const float hier_thresh = 0.5;
-const float nms = 0.45;
-const int relative = 1;
-
 // yolov3
 float biases[18] = {10, 13, 16, 30, 33, 23, 30, 61, 62, 45, 59, 119, 116, 90, 156, 198, 373, 326};
 // tiny
@@ -161,7 +155,7 @@ layer make_darknet_layer(int batch, int w, int h, int net_w, int net_h, int n, i
     }
     l.layer_type = layer_type;
     l.outputs = l.inputs;
-    l.output = ( float* )calloc(batch * l.outputs, sizeof(float));
+    l.output = ( float* )calloc((size_t)batch * l.outputs, sizeof(float));
 
     return l;
 }
@@ -651,6 +645,12 @@ int main(int argc, char* argv[])
     int total_numAnchors = 6;
     int net_w = 416;
     int net_h = 416;
+
+    const int classes = 80;
+    const float thresh = 0.55;
+    const float hier_thresh = 0.5;
+    const float nms = 0.45;
+    const int relative = 1;    
 
     int res;
     while ((res = getopt(argc, argv, "m:i:r:t:h:")) != -1)
