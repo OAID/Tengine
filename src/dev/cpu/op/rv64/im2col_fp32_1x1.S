@@ -49,6 +49,14 @@
         .global im2col_fp32_1x1
         .hidden im2col_fp32_1x1
 im2col_fp32_1x1:
+	addi    sp, sp, -56
+	sd      t0, 0(sp)
+	sd      t1, 8(sp)
+	sd      t2, 16(sp)
+	sd      t3, 24(sp)
+	sd      t4, 32(sp)
+	sd      t5, 40(sp)
+	sd      t6, 48(sp)
 	vsetvli	t0, a0, e32
 	li 		t0, 4
 	blt 	a3, t0, col_end
@@ -94,6 +102,13 @@ channel_loop_end:
 	bnez	a3, col_loop
 
 col_end:
-
+	ld      t0, 0(sp)
+	ld      t1, 8(sp)
+	ld      t2, 16(sp)
+	ld      t3, 24(sp)
+	ld      t4, 32(sp)
+	ld      t5, 40(sp)
+	ld      t6, 48(sp)
+	addi    sp, sp, 56
 	ret
 	.end

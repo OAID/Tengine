@@ -51,10 +51,18 @@
 
 .balign 16
 mask_32b:
-  .byte 0x00, 0x00, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, \
-        0x00, 0x00, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01
+  .byte 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, \
+        0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff
 
 im2col_fp32_3x3:
+        addi            sp, sp, -56
+        sd              t0, 0(sp)
+        sd              t1, 8(sp)
+        sd              t2, 16(sp)
+        sd              t3, 24(sp)
+        sd              t4, 32(sp)
+        sd              t5, 40(sp)
+        sd              t6, 48(sp)
         vsetvli         t0, a0, e32
 	// initial
         beqz            a3, finish
@@ -64,6 +72,7 @@ im2col_fp32_3x3:
         add             t5, a0, a1
         slli	        t1, a1, 1
         add             t6, a0, t1
+        li              t2, 8
         beq             a5, t0, stride2_channel_loop
 
 stride1_channel_loop:
@@ -121,55 +130,55 @@ stride2_channel_loop:
         la              t0, mask_32b
         vlw.v           v0, (t0)
         addi            t0, a0, 0
-        vlw.v           v16, (t0)
-        addi            t0, a0, 16
-        vlw.v           v17, (t0)
+        vlsw.v          v16, (t0), t2
+        addi            t0, a0, 0x4
+        vlsw.v          v17, (t0), t2
         addi            t0, a0, 32
         vlw.v           v18, (t0)
-        vslidedown.vi   v1, v16, 4
-        vslideup.vi     v18, v18, 4
-        vmerge.vvm      v18, v1, v18, v0
+        vslidedown.vi   v1, v16, 1
+        vslideup.vi     v2, v18, 3
+        vmerge.vvm      v18, v1, v2, v0
         
         addi            t0, t5, 0
-        vlw.v           v19, (t0)
-        addi            t0, t5, 16
-        vlw.v           v20, (t0)
-        addi            t0, t5, 32
+        vlsw.v           v19, (t0), t2
+        addi            t0, t5, 0x4
+        vlsw.v           v20, (t0), t2
+        addi            t0, t5, 0x20
         vlw.v           v21, (t0)
-        vslidedown.vi   v1, v19, 4
-        vslideup.vi     v21, v21, 4
-        vmerge.vvm      v21, v1, v21, v0
+        vslidedown.vi   v1, v19, 1
+        vslideup.vi     v2, v21, 3
+        vmerge.vvm      v21, v1, v2, v0
         
-        addi            t0, t5, 0
-        vlw.v           v19, (t0)
-        addi            t0, t5, 16
-        vlw.v           v20, (t0)
-        addi            t0, t5, 32
-        vlw.v           v21, (t0)
-        vslidedown.vi   v1, v19, 4
-        vslideup.vi     v21, v21, 4
-        vmerge.vvm      v21, v1, v21, v0
+        addi            t0, t6, 0
+        vlsw.v           v22, (t0), t2
+        addi            t0, t6, 0x4
+        vlsw.v           v23, (t0), t2
+        addi            t0, t6, 0x20
+        vlw.v           v24, (t0)
+        vslidedown.vi   v1, v22, 1
+        vslideup.vi     v2, v24, 3
+        vmerge.vvm      v24, v1, v2, v0
         
         addi            a3, a3, -1
         
         vsw.v           v16, (a4)
-        addi            a4, a4, 16
+        addi            a4, a4, 0x10
         vsw.v           v17, (a4)
-        addi            a4, a4, 16
+        addi            a4, a4, 0x10
         vsw.v           v18, (a4)
-        addi            a4, a4, 16
+        addi            a4, a4, 0x10
         vsw.v           v19, (a4)
-        addi            a4, a4, 16
+        addi            a4, a4, 0x10
         vsw.v           v20, (a4)
-        addi            a4, a4, 16
+        addi            a4, a4, 0x10
         vsw.v           v21, (a4)
-        addi            a4, a4, 16
+        addi            a4, a4, 0x10
         vsw.v           v22, (a4)
-        addi            a4, a4, 16
+        addi            a4, a4, 0x10
         vsw.v           v23, (a4)
-        addi            a4, a4, 16
+        addi            a4, a4, 0x10
         vsw.v           v24, (a4)
-        addi            a4, a4, 16
+        addi            a4, a4, 0x10
         
 	add	        a0, a0, a2
         add	        t5, t5, a2
@@ -177,5 +186,13 @@ stride2_channel_loop:
         
         bnez            a3, stride2_channel_loop
 finish:
+        ld              t0, 0(sp)
+        ld              t1, 8(sp)
+        ld              t2, 16(sp)
+        ld              t3, 24(sp)
+        ld              t4, 32(sp)
+        ld              t5, 40(sp)
+        ld              t6, 48(sp)
+        addi            sp, sp, 56
 	ret
 	.end

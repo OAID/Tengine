@@ -117,25 +117,29 @@ sgemm_4x16_rv64:
     vsetvli         t0, t1, e32
 #     // biases_initial
     beqz            a0, none_biases
-    vlw.v           v16, (a0)
-    vmv.v.v         v17, v16
-    vmv.v.v         v18, v16
-    vmv.v.v         v19, v16
+    vlw.v           v0, (a0)
+    vrgather.vi     v16, v0, 0
+    vrgather.vi     v17, v0, 1
+    vrgather.vi     v18, v0, 2
+    vrgather.vi     v19, v0, 3
     addi            a0, a0, 0x10
-    vlw.v           v20, (a0)
-    vmv.v.v         v21, v20
-    vmv.v.v         v22, v20
-    vmv.v.v         v23, v20
+    vlw.v           v0, (a0)
+    vrgather.vi     v20, v0, 0
+    vrgather.vi     v21, v0, 1
+    vrgather.vi     v22, v0, 2
+    vrgather.vi     v23, v0, 3
     addi            a0, a0, 0x10
-    vlw.v           v24, (a0)
-    vmv.v.v         v25, v24
-    vmv.v.v         v26, v24
-    vmv.v.v         v27, v24
+    vlw.v           v0, (a0)
+    vrgather.vi     v24, v0, 0
+    vrgather.vi     v25, v0, 1
+    vrgather.vi     v26, v0, 2
+    vrgather.vi     v27, v0, 3
     addi            a0, a0, 0x10
-    vlw.v           v28, (a0)
-    vmv.v.v         v29, v28
-    vmv.v.v         v30, v28
-    vmv.v.v         v31, v28
+    vlw.v           v0, (a0)
+    vrgather.vi     v28, v0, 0
+    vrgather.vi     v29, v0, 1
+    vrgather.vi     v30, v0, 2
+    vrgather.vi     v31, v0, 3
 
     j               convolution_start
 
