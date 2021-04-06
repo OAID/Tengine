@@ -52,9 +52,9 @@ bool VXEngine::AddTransposeNode(struct ir_node* ir_node)
     }
     else if (output_tensor->dim_num == 4)
     {
-        perm[0] = (uint32_t )param->tr_shape[3];
+        perm[0] = (uint32_t )param->tr_shape[1];
         perm[1] = (uint32_t )param->tr_shape[0];
-        perm[2] = (uint32_t )param->tr_shape[1];
+        perm[2] = (uint32_t )param->tr_shape[3];
         perm[3] = (uint32_t )param->tr_shape[2];
     }
 
