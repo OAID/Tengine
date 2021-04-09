@@ -52,7 +52,6 @@ static int init_op(struct ir_op* op)
 
 static void release_op(struct ir_op* op)
 {
-    // sys_free(op->param_mem);
 }
 
 static int register_sigmoid_op(void* arg)
@@ -62,14 +61,12 @@ static int register_sigmoid_op(void* arg)
     m.op_version = 1;
     m.init_op = init_op;
     m.release_op = release_op;
-    // m.access_param_entry = access_param_entry;
 
     return register_op(OP_SIGMOID, OP_SIGMOID_NAME, &m);
 }
 
 static int unregister_sigmoid_op(void* arg)
 {
-    // sys_free(GET_PARAM_PARSE_MAP(sigmoid_param));
     return unregister_op(OP_SIGMOID, 1);
 }
 

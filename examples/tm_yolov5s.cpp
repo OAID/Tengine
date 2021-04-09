@@ -185,7 +185,6 @@ void get_input_data_focas(const char* image_file, float* input_data, int img_h, 
     float* input_temp = (float* )malloc(3 * 640 * 640 * sizeof(float));
 
     /* nhwc to nchw */
-    int hw = img_h * img_w;
     for (int h = 0; h < img_h; h++)
     {
         for (int w = 0; w < img_w; w++)
@@ -357,7 +356,7 @@ int main(int argc, char* argv[])
     int img_w = 640;
     int img_c = 3;
     const float mean[3] = {0, 0, 0};
-    const float scale[] = {0.003921, 0.003921, 0.003921};
+    const float scale[3] = {0.003921, 0.003921, 0.003921};
 
     int repeat_count = 1;
     int num_thread = 1;
