@@ -86,10 +86,11 @@ sgemm_4x4_rv64:
 #       // initial biases
         beqz            a0, non_biases
         vsetvli         t0, a0, e32
-        vlw.v           v16, (a0)
-        vmv.v.v         v17, v16
-        vmv.v.v         v18, v16
-        vmv.v.v         v19, v16
+        vlw.v           v0, (a0)
+        vrgather.vi     v16, v0, 0
+        vrgather.vi     v17, v0, 1
+        vrgather.vi     v18, v0, 2
+        vrgather.vi     v19, v0, 3
 
         j               convoluation_start
 	
