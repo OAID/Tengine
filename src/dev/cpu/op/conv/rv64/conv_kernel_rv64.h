@@ -18,8 +18,8 @@
  */
 
 /*
- * Copyright (c) 2020, Martin Han
- * Author: hansh-sz@hotmail.com
+ * Copyright (c) 2021, OPEN AI LAB
+ * Author: ddzhao@openailab.com
  */
 
 #ifndef _CONV_KERNEL_RV64_H_

@@ -18,9 +18,10 @@
  */
 
 /*
- * Copyright (c) 2020, OPEN AI LAB
- * Author: haoluo@openailab.com
+ * Copyright (c) 2021, OPEN AI LAB
+ * Author: ddzhao@openailab.com
  */
+
 #include <stdint.h>
 #include <stdlib.h>
 #include <math.h>
@@ -381,6 +382,11 @@ static void sgemm4x4(float* col, float* kernel, float* biases, float* output, in
         {
             cur_col = ( float* )(col + col_line * kernel_size);
             sgemm_4x4_rv64(cur_biases, cur_col, cur_kernel, kernel_size, result, 4, activation, 0);
+            for (int i = 0; i < 4; i++)
+            {
+                for (int j = 0; j < (col_end3); j++)
+                    *(output + (kernel_num + i) * output_xy + col_line + j) = result[(i << 2) + j];
+            }
         }
     }
     if (kernel_end3)

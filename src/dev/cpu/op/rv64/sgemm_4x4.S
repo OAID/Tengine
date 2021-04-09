@@ -36,7 +36,6 @@
 //      input 4 x p             kernel p x 4             biases 4 x 4                 output 4 x 4         p = kernel size
 //
 //
-// optimised for Cortex-A72 pipeline 18 cycle per loop (4*4*4 dot product)
 //
 // input:  
 //         x0 arg0  biases address {b0,b1,b2,b3}  nullptr means no biases 
