@@ -36,7 +36,6 @@
 //      input 4 x p             kernel p x 16            biases 4 x 16                 output 4 x 16           p = kernel size
 //
 //
-// optimised for Cortex-A72 pipeline  64 cycle per loop (4*16*4 dot product)
 // load 4 more input and 8 more kernel to improve loop performance
 //
 // input: 

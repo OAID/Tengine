@@ -17,6 +17,10 @@
  * under the License.
  */
 
+/*
+ * Copyright (c) 2021, OPEN AI LAB
+ * Author: ddzhao@openailab.com
+ */
 
 #include "sys_port.h"
 #include "module.h"
@@ -92,7 +96,6 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    fprintf(stderr, "conv hcl start\n");
     struct ir_node* ir_node = exec_node->ir_node;
     struct ir_graph* ir_graph = ir_node->graph;
     struct ir_tensor* input_tensor;
