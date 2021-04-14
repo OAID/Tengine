@@ -255,8 +255,7 @@ void show_usage()
 {
     fprintf(
             stderr,
-            "[Usage]:  [-h]\n    [-m model_file] [-i image_file] [-r repeat_count] [-t thread_count] "
-            "[-s letterbox_rows] [-c letterbox_cols], ]\n");
+            "[Usage]:  [-h]\n    [-m model_file] [-i image_file] [-r repeat_count] [-t thread_count]\n");
 }
 
 void get_input_data_focus(const char* image_file, float* input_data, int letterbox_rows, int letterbox_cols, const float* mean, const float* scale)
@@ -345,9 +344,6 @@ int main(int argc, char* argv[])
 {
     const char* model_file = nullptr;
     const char* image_file = nullptr;
-    int letterbox_size = 640;
-    int img_h = letterbox_size;
-    int img_w = letterbox_size;
 
     int img_c = 3;
     const float mean[3] = {0, 0, 0};
@@ -361,7 +357,7 @@ int main(int argc, char* argv[])
     int num_thread = 1;
 
     int res;
-    while ((res = getopt(argc, argv, "m:i:r:t:h:s:c:")) != -1)
+    while ((res = getopt(argc, argv, "m:i:r:t:h:")) != -1)
     {
         switch (res)
         {
@@ -376,12 +372,6 @@ int main(int argc, char* argv[])
                 break;
             case 't':
                 num_thread = std::strtoul(optarg, nullptr, 10);
-                break;
-            case 's':
-                letterbox_rows = atoi(optarg);
-                break;
-            case 'c':
-                letterbox_cols = atoi(optarg);
                 break;
             case 'h':
                 show_usage();
