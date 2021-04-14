@@ -145,7 +145,7 @@ void get_input_data_focas(const char* image_file, float* input_data, int img_h, 
         cv::cvtColor(sample, img, cv::COLOR_BGR2RGB);
 
     /* letterbox process */
-    float letterbox_size = 640;
+    float letterbox_size = img_h;
     int resize_h = 0;
     int resize_w = 0;
     if (img.rows > img.cols)
@@ -161,7 +161,7 @@ void get_input_data_focas(const char* image_file, float* input_data, int img_h, 
 
     cv::resize(img, img, cv::Size(resize_w, resize_h));
     img.convertTo(img, CV_32FC3);
-    cv::Mat img_new(letterbox_size, letterbox_size, CV_32FC3,
+    cv::Mat resize_img(letterbox_size, letterbox_size, CV_32FC3,
                     cv::Scalar(0.5/scale[0] + mean[0], 0.5/scale[1] + mean[1], 0.5/ scale[2] + mean[2]));
     int dh = int((letterbox_size - resize_h) / 2);
     int dw = int((letterbox_size - resize_w) / 2);
@@ -175,17 +175,16 @@ void get_input_data_focas(const char* image_file, float* input_data, int img_h, 
                 int in_index  = h * resize_w * 3 + w * 3 + c;
                 int out_index = (dh + h) * letterbox_size * 3 + (dw + w) * 3 + c;
 
-                (( float* )img_new.data)[out_index] = (( float* )img.data)[in_index];
+                (( float* )resize_img.data)[out_index] = (( float* )img.data)[in_index];
             }
         }
     }
 
-    img_new.convertTo(img_new, CV_32FC3);
-    float* img_data   = (float* )img_new.data;
-    float* input_temp = (float* )malloc(3 * 640 * 640 * sizeof(float));
+    resize_img.convertTo(resize_img, CV_32FC3);
+    float* img_data   = (float* )resize_img.data;
+    float* input_temp = (float* )malloc(3 * letterbox_size * letterbox_size * sizeof(float));
 
     /* nhwc to nchw */
-    int hw = img_h * img_w;
     for (int h = 0; h < img_h; h++)
     {
         for (int w = 0; w < img_w; w++)
@@ -200,21 +199,22 @@ void get_input_data_focas(const char* image_file, float* input_data, int img_h, 
     }
 
     /* focus process */
+    int input_size = letterbox_size / 2;
     for (int i = 0; i < 2; i++)
     {
         for (int g = 0; g < 2; g++)
         {
             for (int c = 0; c < 3; c++)
             {
-                for (int w = 0; w < 320; w++)
+                for (int w = 0; w < input_size; w++)
                 {
-                    for (int h = 0; h < 320; h++)
+                    for (int h = 0; h < input_size; h++)
                     {
-                        int in_index  = i + g * 640 + c * 640 * 640 + w * 2 * 640 + h * 2;
-                        int out_index = i * 2 * 3 * 320 * 320 +
-                                        g * 3 * 320 * 320 +
-                                        c * 320 * 320 +
-                                        w * 320 +
+                        int in_index  = i + g * letterbox_size + c * letterbox_size * letterbox_size + w * 2 * letterbox_size + h * 2;
+                        int out_index = i * 2 * 3 * input_size * input_size +
+                                        g * 3 * input_size * input_size +
+                                        c * input_size * input_size +
+                                        w * input_size +
                                         h;
                         input_data[out_index] = input_temp[in_index];
                     }
@@ -353,11 +353,12 @@ int main(int argc, char* argv[])
 {
     const char* model_file = nullptr;
     const char* image_file = nullptr;
-    int img_h = 640;
-    int img_w = 640;
+    int letterbox_size = 640;
+    int img_h = letterbox_size;
+    int img_w = letterbox_size;
     int img_c = 3;
     const float mean[3] = {0, 0, 0};
-    const float scale[] = {0.003921, 0.003921, 0.003921};
+    const float scale[3] = {0.003921, 0.003921, 0.003921};
 
     int repeat_count = 1;
     int num_thread = 1;
@@ -528,7 +529,7 @@ int main(int argc, char* argv[])
     int raw_h = img.rows;
     int raw_w = img.cols;
 
-    float lb = 640;
+    float lb = letterbox_size;
     int h0 = 0;
     int w0 = 0;
     if ( img.rows > img.cols)
