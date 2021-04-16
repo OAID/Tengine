@@ -66,7 +66,7 @@ $ mv aarch64_A311D_D312513_A294074_R311680_T312233_O312045 prebuild-sdk-a311d
 ```bash
 $ cd <TIM-VX-root-dir>
 $ mkdir build && cd build
-$ cmake --config A311D ..
+$ cmake -DCONFIG=A311D ..
 $ make -j4
 ```
 
