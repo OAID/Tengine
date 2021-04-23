@@ -36,6 +36,17 @@
 
 DEFINE_PARM_PARSE_ENTRY(logsoftmax_param, axis);
 
+static int infer_shape(struct ir_node* node)
+{
+    struct ir_graph* ir_graph = node->graph;
+    struct ir_tensor* input = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
+    struct ir_tensor* output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
+
+    set_ir_tensor_shape(output, input->dims, input->dim_num);
+
+    return 0;
+}
+
 static int init_op(struct ir_op* op)
 {
     struct logsoftmax_param* logsoftmax_param = ( struct logsoftmax_param* )sys_malloc(sizeof(struct logsoftmax_param));
@@ -46,6 +57,11 @@ static int init_op(struct ir_op* op)
     }
 
     logsoftmax_param->axis = 0;
+
+    op->param_mem = logsoftmax_param;
+    op->param_size = sizeof(struct logsoftmax_param);
+    op->same_shape = 0;
+    op->infer_shape = infer_shape;
     return 0;
 }
 
