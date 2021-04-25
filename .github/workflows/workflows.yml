@@ -27,6 +27,7 @@ jobs:
         unzip images.zip
     - name: test
       run: |
+        chmod +x ./tests/test.sh
         cd build
         ../tests/test.sh
 
@@ -78,6 +79,7 @@ jobs:
     - name: test
       run: |
         export PATH=$GITHUB_WORKSPACE/qemu-install/bin:$PATH
+        chmod +x ./tests/test_arm32.sh
         cd build
         ../tests/test_arm32.sh
 
@@ -129,6 +131,7 @@ jobs:
     - name: test
       run: |
         export PATH=$GITHUB_WORKSPACE/qemu-install/bin:$PATH
+        chmod +x ./tests/test_arm64.sh
         cd build
         ../tests/test_arm64.sh
         
