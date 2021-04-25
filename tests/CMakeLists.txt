@@ -1,7 +1,15 @@
+# generate tengine header file
+FILE (MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/tengine)
+FILE (COPY ${CMAKE_SOURCE_DIR}/source/api/c_api.h DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/tengine)
+
+
 # macro for adding test
 macro (tengine_test name file)
     add_executable (${name} ${CMAKE_CURRENT_SOURCE_DIR}/${file} "${PROJECT_SOURCE_DIR}/tests/common/tengine_operations.cpp")
+
     target_link_libraries (${name} ${CMAKE_PROJECT_NAME})
+
+    include_directories("${CMAKE_CURRENT_BINARY_DIR}")
     include_directories("${PROJECT_SOURCE_DIR}/tests/common")
 
     add_test (${name} ${name})

@@ -8,7 +8,7 @@
 #include <time.h>
 
 #include "compiler_fp16.h"
-#include "tengine_c_api.h"
+#include "tengine/c_api.h"
 #include "tengine_ir.h"
 
 #define TENSOR_SHOW_LEADING_BLANK "    "

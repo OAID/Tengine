@@ -29,7 +29,7 @@
 #include <string.h>
 #include <iomanip>
 #include "tengine_operations.h"
-#include "tengine_c_api.h"
+#include "tengine/c_api.h"
 #include "common.hpp"
 
 #define NMS_UNION 1
