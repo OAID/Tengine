@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "utility/float.h"
+#include "float.h"
 #include "tengine/c_api.h"
 
 #include "graph/graph.h"
@@ -47,7 +47,7 @@ void dump_tensor_line(void* data_ptr, int offset, int data_type, int w)
         }
         case TENGINE_DT_FP16:
         {
-            __fp16* p = ( __fp16* )data_ptr;
+            fp16_t* p = ( fp16_t* )data_ptr;
 
 #ifdef __ARM_ARCH
             for(int i = 0; i < w - 1; i++)
@@ -725,18 +725,13 @@ int compare_tensor(tensor_t a, tensor_t b)
         }
         case TENGINE_DT_FP16:
         {
-            __fp16* a_data_ptr = (__fp16*)get_tensor_buffer(a);
-            __fp16* b_data_ptr = (__fp16*)get_tensor_buffer(b);
+            fp16_t* a_data_ptr = (fp16_t*)get_tensor_buffer(a);
+            fp16_t* b_data_ptr = (fp16_t*)get_tensor_buffer(b);
 
             for (int i = 0; i < element_size; i++)
             {
-#ifdef __ARM_ARCH
-                if (fabsf((float)a_data_ptr[i] - (float)b_data_ptr[i]) < TENSOR_FLOAT_EPSILON)
+                if (fabsf((float)fp16_to_fp32(a_data_ptr[i]) - (float)fp16_to_fp32(b_data_ptr[i])) < TENSOR_FLOAT_EPSILON)
                     return -1;
-#else
-                if (fabsf(fp16_to_fp32(a_data_ptr[i]) - fp16_to_fp32(b_data_ptr[i])) < TENSOR_FLOAT_EPSILON)
-                    return -1;
-#endif
             }
 
             break;
