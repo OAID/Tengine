@@ -49,7 +49,7 @@ IF (NOT CMAKE_BUILD_TYPE)
 ENDIF()
 
 # Module options
-OPTION (TENGINE_BUILD_BENCHMARK             "Build benchmark" 			                ON)
+OPTION (TENGINE_BUILD_BENCHMARK             "Build benchmark"                           ON)
 OPTION (TENGINE_BUILD_EXAMPLES              "Build examples"                            ON)
 OPTION (TENGINE_BUILD_TESTS                 "Build tests"                               OFF)
 OPTION (TENGINE_BUILD_CPP_API               "Build C++ API"                             OFF)
