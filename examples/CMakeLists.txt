@@ -45,7 +45,6 @@ ENDIF()
 
 # add c api examples
 TENGINE_EXAMPLE (tm_classification           tm_classification.c)
-TENGINE_EXAMPLE (tm_classification_fp16      tm_classification_fp16.c)
 TENGINE_EXAMPLE (tm_classification_int8      tm_classification_int8.c)
 TENGINE_EXAMPLE (tm_classification_uint8     tm_classification_uint8.c)
 TENGINE_EXAMPLE (tm_classification_vulkan    tm_classification_vulkan.c)
@@ -66,6 +65,10 @@ TENGINE_EXAMPLE (tm_yolov4                   tm_yolov4.cpp)
 TENGINE_EXAMPLE (tm_yolov5                   tm_yolov5.cpp)
 TENGINE_EXAMPLE (tm_yolofastest              tm_yolofastest.cpp)
 TENGINE_EXAMPLE (tm_ultraface                tm_ultraface.cpp)
+
+IF (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM" AND TENGINE_TARGET_PROCESSOR_64Bit)
+    TENGINE_EXAMPLE (tm_classification_fp16      tm_classification_fp16.c)
+ENDIF()
 
 
 # add examples with opencv
