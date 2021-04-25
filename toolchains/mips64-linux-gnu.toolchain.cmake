@@ -1,16 +1,18 @@
-set(CMAKE_SYSTEM_NAME Linux)
-set(CMAKE_SYSTEM_PROCESSOR mips64r2)
+# set cross-compiled system type, it's better not use the type which cmake cannot recognized.
+SET (CMAKE_SYSTEM_NAME Linux)
+SET (CMAKE_SYSTEM_PROCESSOR mips64r2)
 
-set(CMAKE_C_COMPILER "mips-linux-gnu-gcc")
-set(CMAKE_CXX_COMPILER "mips-linux-gnu-g++")
+# when mips-linux-gnu-gcc was installed, toolchain was available as below:
+SET (CMAKE_C_COMPILER   "mips-linux-gnu-gcc")
+SET (CMAKE_CXX_COMPILER "mips-linux-gnu-g++")
 
-set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
-set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
-set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+# set searching rules for cross-compiler
+SET (CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+SET (CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+SET (CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 
-set(CMAKE_C_FLAGS "-march=mips64r2 -mabi=64 -mmsa -mhard-float -mfp64")
-set(CMAKE_CXX_FLAGS "-march=mips64r2 -mabi=64 -mmsa -mhard-float -mfp64")
+# other needed options
+SET (TENGINE_TOOLCHAIN_FLAG -march=mips64r2 -mabi=64 -mmsa -mhard-float -mfp64)
 
-# cache flags
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}" CACHE STRING "c flags")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}" CACHE STRING "c++ flags")
+# do not skip OpenMP check as default
+SET (TENGINE_FORCE_SKIP_OPENMP OFF)

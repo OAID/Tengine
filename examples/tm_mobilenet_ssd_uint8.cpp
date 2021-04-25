@@ -26,7 +26,7 @@
 #include <string>
 #include <vector>
 #include "tengine_operations.h"
-#include "tengine_c_api.h"
+#include "tengine/c_api.h"
 #include "common.h"
 
 #define DEFAULT_REPEAT_COUNT 1
