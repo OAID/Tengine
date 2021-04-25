@@ -154,7 +154,7 @@ if(OpenCV_FOUND)
         endif()
     endfunction()
 
-    tengine_test_cv(test_tm_yolact_cv      models/test_tm_yolact_cv.cpp)
+    #tengine_test_cv(test_tm_yolact_cv      models/test_tm_yolact_cv.cpp)
 else()
     message(WARNING "OpenCV not found, some examples won't be built")
 endif()
