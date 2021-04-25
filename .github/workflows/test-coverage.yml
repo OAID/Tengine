@@ -35,7 +35,7 @@ jobs:
     - name: lcov-collect
       run: |
         cd build
-        lcov -d ./src -c -o lcov.info
+        lcov -d ./source -c -o lcov.info
         lcov -r lcov.info '/usr/*' -o lcov.info
         lcov --list lcov.info
     - name: codecov
@@ -84,10 +84,10 @@ jobs:
     - name: lcov-collect
       run: |
         cd build
-        lcov -d ./src -c -o lcov.info
+        lcov -d ./source -c -o lcov.info
         lcov -r lcov.info '*3rdparty*' -o lcov.info
-        lcov -r lcov.info '*/src/dev/cpu/*' -o lcov.info
-        lcov -r lcov.info '*/src/dev/tim-vx/src/*' -o lcov.info
+        lcov -r lcov.info '*/source/device/cpu/*' -o lcov.info
+        lcov -r lcov.info '*/source/device/tim-vx/src/*' -o lcov.info
         lcov -r lcov.info '/usr/*' -o lcov.info
         lcov --list lcov.info        
     - name: codecov
