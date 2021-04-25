@@ -97,7 +97,7 @@ int main(int argc, char* argv[])
     }
 
     // check the result
-    struct ir_tensor* output_tensor = get_graph_output_tensor(graph, 0, 0);
+    struct tensor* output_tensor = get_graph_output_tensor(graph, 0, 0);
     int out_c = output_tensor->dims[1];
     int cstep = output_tensor->dims[2] * output_tensor->dims[3];
 

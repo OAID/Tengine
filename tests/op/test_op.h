@@ -7,9 +7,13 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "compiler_fp16.h"
+#include "utility/float.h"
 #include "tengine/c_api.h"
-#include "tengine_ir.h"
+
+#include "graph/graph.h"
+#include "graph/subgraph.h"
+#include "graph/node.h"
+#include "graph/tensor.h"
 
 #define TENSOR_SHOW_LEADING_BLANK "    "
 #define TENSOR_FLOAT_EPSILON 0.0001f
