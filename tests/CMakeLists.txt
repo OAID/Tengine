@@ -24,8 +24,10 @@ function (tengine_test name file)
 endfunction()
 
 # operator level test
-tengine_test(test_op_prelu              op/test_op_prelu.c)
 tengine_test(test_op_conv               op/test_op_conv.c)
+tengine_test(test_op_prelu              op/test_op_prelu.c)
+tengine_test(test_op_relu               op/test_op_relu.c)
+tengine_test(test_op_relu6              op/test_op_relu6.c)
 
 if (TENGINE_ENABLE_TIM_VX)
     tengine_test(test_op_prelu_timvx        op/test_op_prelu_timvx.c)
