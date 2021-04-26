@@ -17,21 +17,21 @@
 
 ## Introduction
 
-**Tengine Lite** is developed by **[OPEN AI LAB](http://www.openailab.com)**. This project meet the demand of **fast** and **efficient** deployment of deep learning neural network models on embedded devices. In order to achieve cross-platform deployment in many **AIoT** applications, this project is based on the original Tengine project using **C language** for reconstruction, and deep frame tailoring for the characteristics of limited embedded device resources. Also, it adopts a completely separated front-end/back-end design, which makes it possible to be transplanted and deployed onto CPU, GPU, NPU and other heterogeneous computing units rapidly, conveniently. At the same time, it is compatible with the original API and model format `tmfile` of **Tengine**, which reduces the cost of evaluation and migration.
+**Tengine** is developed by **[OPEN AI LAB](http://www.openailab.com)**. This project meet the demand of **fast** and **efficient** deployment of deep learning neural network models on embedded devices. In order to achieve cross-platform deployment in many **AIoT** applications, this project is based on the original Tengine project using **C language** for reconstruction, and deep frame tailoring for the characteristics of limited embedded device resources. Also, it adopts a completely separated front-end/back-end design, which makes it possible to be transplanted and deployed onto CPU, GPU, NPU and other heterogeneous computing units rapidly, conveniently. At the same time, it is compatible with the original API and model format `tmfile` of **Tengine**, which reduces the cost of evaluation and migration.
 
 
 
 The core code of Tengine Lite consists of 4 modules:
 
-- [**dev**](src/dev): NN Operators back-end module, currently provides CPU code, and gradually open source GPU and NPU reference code;
-- [**lib**](src/lib): core components of the framework, including NNIR, Computational Graphs, Hardware Resources, and the scheduling and execution modules of model serializer;
-- [**op**](src/op): NN Operators front-end module, which realizes registration and initialization of NN Operators;
-- [**serializer**](src/serializer): Model decoder, which decodes binary tmfile format into serialized model parameter.
+- [**device**](source/device): NN Operators back-end module, currently provides CPU code, and gradually open source GPU and NPU reference code;
+- [**scheduler**](source/scheduler): core components of the framework, including NNIR, Computational Graphs, Hardware Resources, and the scheduling and execution modules of model serializer;
+- [**operator**](source/operator): NN Operators front-end module, which realizes registration and initialization of NN Operators;
+- [**serializer**](source/serializer): Model decoder, which decodes binary tmfile format into serialized model parameter.
 
 
 ## Architecture
 
-![Tengine Lite 架构](doc/architecture.png)
+![Tengine Architecture](doc/architecture.png)
 
 
 ## How to use
