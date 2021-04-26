@@ -111,6 +111,16 @@ private:
     float m_nms_threshold;
 };
 
+const char* class_name[] = {
+ 	"person",	"bicycle",	"car",	"motorbike",	"aeroplane",	"bus",	"train",	"truck",	"boat",	"traffic light",	
+ 	"fire hydrant",	"stop sign",	"parking meter",	"bench",	"bird",	"cat",	"dog",	"horse",	"sheep",	"cow",	
+ 	"elephant",	"bear",	"zebra",	"giraffe",	"backpack",	"umbrella",	"handbag",	"tie",	"suitcase",	"frisbee",	
+ 	"skis",	"snowboard",	"sports ball",	"kite",	"baseball bat",	"baseball glove",	"skateboard",	"surfboard",	"tennis racket",	"bottle",	
+  	"wine glass",	"cup",	"fork",	"knife",	"spoon",	"bowl",	"banana",	"apple",	"sandwich",	"orange",	"broccoli",	"carrot",	"hot dog",	
+	"pizza",	"donut",	"cake",	"chair",	"sofa",	"pottedplant",	"bed",	"diningtable",	"toilet",	"tvmonitor",	"laptop",	"mouse",	
+	"remote",	"keyboard",	"cell phone",	"microwave",	"oven",	"toaster",	"sink",	"refrigerator",	"book",	"clock",	"vase",	"scissors",	
+    "teddy bear",	"hair drier",	"toothbrush"
+};
 int Yolov3DetectionOutput::init(int version)
 {
     memset(this, 0, sizeof(*this));
@@ -635,7 +645,7 @@ int main(int argc, char* argv[])
     {
         BBoxRect b = boxes[i];
         draw_box(img, b.xmin, b.ymin, b.xmax, b.ymax, 2, 125, 0, 125);
-        fprintf(stderr, "class=%2d score=%.2f left = %.2f,right = %.2f,top = %.2f,bot = %.2f\n", b.label, b.score, b.xmin, b.xmax, b.ymin, b.ymax);
+        fprintf(stderr, "class=%2d score=%.2f left = %.2f,right = %.2f,top = %.2f,bot = %.2f, name = %s\n", b.label, b.score, b.xmin, b.xmax, b.ymin, b.ymax,class_name[b.label]);
     }
     save_image(img, "tengine_example_out");
 
