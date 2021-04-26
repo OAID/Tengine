@@ -1,13 +1,49 @@
-link_directories(${TENGINE_COMMON_LIB_DIRS})
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# License); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# AS IS BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+#
+# Copyright (c) 2021, OPEN AI LAB
+# Author: lswang@openailab.com
+#
 
-# macro for adding test
-macro (tengine_example name file)
-    add_executable(${name} ${CMAKE_CURRENT_SOURCE_DIR}/${file})
-    target_link_libraries(${name} ${CMAKE_PROJECT_NAME})
-    include_directories("${PROJECT_SOURCE_DIR}/examples/common")
-    install (TARGETS ${name} DESTINATION bin)
-    add_test(NAME ${name} WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/benchmark COMMAND ${name} )
-endmacro()
+# generate tengine header file
+FILE (MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/tengine)
+FILE (COPY ${CMAKE_SOURCE_DIR}/source/api/c_api.h DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/tengine)
+
+
+# examples function
+FUNCTION (TENGINE_BENCHMARK name)
+    ADD_EXECUTABLE (${name})
+
+    # add common source file
+    TARGET_SOURCES (${name} PRIVATE common/timer.cc)
+
+    # add source files
+    FOREACH (_VAR ${ARGN})
+        TARGET_SOURCES (${name} PRIVATE ${_VAR})
+    ENDFOREACH()
+
+    # header file path
+    TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+    TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+
+    # add linking library
+    TARGET_LINK_LIBRARIES (${name} PRIVATE ${CMAKE_PROJECT_NAME})
+ENDFUNCTION()
+
 
 # add benchmark
-tengine_example(tm_benchmark      tm_benchmark.c)
+TENGINE_BENCHMARK (tm_benchmark      tm_benchmark.cc)

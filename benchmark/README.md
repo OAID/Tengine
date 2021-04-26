@@ -197,6 +197,7 @@ tengine-lite library version: 1.0-dev
          yolov3_tiny  min =  297.31 ms   max =  298.04 ms   avg =  297.62 ms
       mobilefacenets  min =   53.09 ms   max =   53.18 ms   avg =   53.14 ms
 ALL TEST DONE
+
 ```
 
 EAIDK610 (Cortex-A72 1.8GHz x 2 + Cortex-A53 1.4GHz x 4)

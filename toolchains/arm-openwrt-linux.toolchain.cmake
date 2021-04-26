@@ -1,18 +1,18 @@
 # set cross-compiled system type, it's better not use the type which cmake cannot recognized.
-SET ( CMAKE_SYSTEM_NAME Linux )
-SET ( CMAKE_SYSTEM_PROCESSOR arm )
+SET (CMAKE_SYSTEM_NAME Linux)
+SET (CMAKE_SYSTEM_PROCESSOR arm)
 
-# when gcc-arm-linux-gnueabi was installed, toolchain was available as below:
-SET ( CMAKE_C_COMPILER "arm-openwrt-linux-gcc" )
-SET ( CMAKE_CXX_COMPILER "arm-openwrt-linux-g++" )
+# when arm-openwrt-linux-gcc was installed, toolchain was available as below:
+SET (CMAKE_C_COMPILER   "arm-openwrt-linux-gcc")
+SET (CMAKE_CXX_COMPILER "arm-openwrt-linux-g++")
 
 # set searching rules for cross-compiler
-SET ( CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER )
-SET ( CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY )
-SET ( CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY )
+SET (CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+SET (CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+SET (CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 
 # other needed options
-SET (TENGINE_TOOLCHIN_FLAG "-march=armv7-a -mfloat-abi=hard -mfpu=neon-vfpv4")
-SET (TENGINE_FORCE_SKIP_OPENMP OFF)
+SET (TENGINE_TOOLCHAIN_FLAG -march=armv7-a -mfloat-abi=hard -mfpu=neon-vfpv4)
 
-add_definitions(-DV831)
+# do not skip OpenMP check as default
+SET (TENGINE_FORCE_SKIP_OPENMP OFF)

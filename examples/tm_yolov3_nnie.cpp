@@ -37,7 +37,7 @@
 #include <float.h>
 
 #include "common.h"
-#include "tengine_c_api.h"
+#include "tengine/c_api.h"
 #include "tengine_operations.h"
 #include "tengine_nnie_plugin.h"
 #include "test_nnie_all.hpp"

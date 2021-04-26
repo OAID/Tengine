@@ -46,7 +46,7 @@
 
 #include "common.hpp"
 #include <sys/time.h>
-#include "tengine_c_api.h"
+#include "tengine/c_api.h"
 #include "tengine_operations.h"
 
 #define DEFAULT_REPEAT_COUNT 1

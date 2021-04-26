@@ -1,30 +1,46 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# License); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# AS IS BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+#
+# Copyright (c) 2021, OPEN AI LAB
+# Author: lswang@openailab.com
+#
+
 # Compilers:
 #
-# - TENGINE_GCC                   - GNU compiler (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-# - TENGINE_CLANG                 - Clang-compatible compiler (CMAKE_CXX_COMPILER_ID MATCHES "Clang" - Clang or AppleClang, see CMP0025)
-# - TENGINE_ICC                   - Intel compiler
-# - TENGINE_MSVC                  - MSVC, Microsoft Visual Compiler (CMake variable)
-# - TENGINE_MINGW TENGINE_CYGWIN  - MINGW / CYGWIN / CMAKE_COMPILER_IS_MINGW / CMAKE_COMPILER_IS_CYGWIN (CMake original variables)
+# - TENGINE_COMPILER_GCC                    - GNU compiler (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+# - TENGINE_COMPILER_CLANG                  - Clang-compatible compiler (CMAKE_CXX_COMPILER_ID MATCHES "Clang" - Clang or AppleClang, see CMP0025)
+# - TENGINE_COMPILER_ICC                    - Intel compiler
+# - TENGINE_COMPILER_MSVC                   - MSVC, Microsoft Visual Compiler (CMake variable)
+# - TENGINE_COMPILER_MINGW TENGINE_COMPILER_CYGWIN  - MINGW / CYGWIN / CMAKE_COMPILER_IS_MINGW / CMAKE_COMPILER_IS_CYGWIN (CMake original variables)
 #
-# CPU Platforms:
-# - X86 / X86_64
-# - ARM - ARM CPU, not defined for AArch64
-# - AARCH64 - ARMv8+ (64-bit)
-# - PPC64 / PPC64LE - PowerPC
-# - MIPS
+# CPU Platforms String:
+# - X86                                     - world wide architecture, u know who, x86 or amd64
+# - ARM                                     - Advanced RISC Machine architecture, a.k.a ARM architecture
+# - PPC64                                   - PowerPC
+# - PPC64LE                                 - PowerPC Little Edition
+# - MIPS                                    - Million Instructions Per Second architecture, a.k.a MIPS architecture
 #
 # OS:
-# - WIN32 - Windows | MINGW
-# - UNIX - Linux | MacOSX | ANDROID
-# - ANDROID
-# - IOS
-# - APPLE - MacOSX | iOS
-
-
-# use relative file path for microsoft visual studio
-IF (MSVC)
-  SET (CMAKE_USE_RELATIVE_PATHS ON CACHE INTERNAL "" FORCE)
-ENDIF()
+# - TENGINE_SYSTEM_WINDOWS                  - Windows |  MinGW
+# - TENGINE_SYSTEM_LINUX                    -  Linux  | Android
+# - TENGINE_SYSTEM_ANDROID                  - Android
+# - TENGINE_SYSTEM_IOS                      -   iOS
+# - TENGINE_SYSTEM_APPLE    - MacOSX | iOS
+# - TENGINE_SYSTEM_OHOS                     - Harmony OS
 
 
 # check target cpu
@@ -91,139 +107,97 @@ IF ((CMAKE_SIZEOF_VOID_P EQUAL 4) AND (TENGINE_TARGET_PROCESSOR MATCHES "ARM") A
 ENDIF()
 
 
-# system is Linux
-IF (CMAKE_SYSTEM_NAME MATCHES "Linux")
-    IF (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM" AND TENGINE_TARGET_PROCESSOR_32Bit)
-        SET (TENGINE_THIRD_PARTY_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/linux/armv7-a" CACHE INTERNAL "" FORCE)
-    ENDIF()
-
-    IF (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM" AND TENGINE_TARGET_PROCESSOR_64Bit)
-        SET (TENGINE_THIRD_PARTY_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/linux/armv8-a" CACHE INTERNAL "" FORCE)
-    ENDIF()
-
-    IF (${TENGINE_TARGET_PROCESSOR} MATCHES "X86" AND TENGINE_TARGET_PROCESSOR_32Bit)
-        SET (TENGINE_THIRD_PARTY_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/linux/x86" CACHE INTERNAL "" FORCE)
-    ENDIF()
-
-    IF (${TENGINE_TARGET_PROCESSOR} MATCHES "X86" AND TENGINE_TARGET_PROCESSOR_64Bit)
-        SET (TENGINE_THIRD_PARTY_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/linux/x86_64" CACHE INTERNAL "" FORCE)
-    ENDIF()
-# system is Windows
-ELSEIF (CMAKE_SYSTEM_NAME MATCHES "Windows")
-    IF (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM" AND TENGINE_TARGET_PROCESSOR_32Bit)
-        SET (TENGINE_THIRD_PARTY_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/windows/armv7-a" CACHE INTERNAL "" FORCE)
-    ENDIF()
-
-    IF (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM" AND TENGINE_TARGET_PROCESSOR_64Bit)
-        SET (TENGINE_THIRD_PARTY_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/windows/armv8-a" CACHE INTERNAL "" FORCE)
-    ENDIF()
-
-    IF (${TENGINE_TARGET_PROCESSOR} MATCHES "X86" AND TENGINE_TARGET_PROCESSOR_32Bit)
-        SET (TENGINE_THIRD_PARTY_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/windows/x86" CACHE INTERNAL "" FORCE)
-    ENDIF()
-
-    IF (${TENGINE_TARGET_PROCESSOR} MATCHES "X86" AND TENGINE_TARGET_PROCESSOR_64Bit)
-        SET (TENGINE_THIRD_PARTY_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/windows/x86_64" CACHE INTERNAL "" FORCE)
-    ENDIF()
-
-    # microsoft virtual c++ builder version
-    IF (MSVC_VERSION LESS 1900)
-        IF     (MSVC_VERSION EQUAL 1400)
-            SET (TENGINE_VC_RUNTIME vc8)
-        ELSEIF (MSVC_VERSION EQUAL 1500)
-            SET (TENGINE_VC_RUNTIME vc9)
-        ELSEIF (MSVC_VERSION EQUAL 1600)
-            SET (TENGINE_VC_RUNTIME vc10)
-        ELSEIF (MSVC_VERSION EQUAL 1700)
-            SET (TENGINE_VC_RUNTIME vc11)
-        ELSEIF (MSVC_VERSION EQUAL 1800)
-            SET (TENGINE_VC_RUNTIME vc12)
-        ENDIF()
-        MESSAGE (FATAL_ERROR "${PROJECT_NAME}: The version of MS VC++ is too old(${TENGINE_VC_RUNTIME}).")
-    ELSEIF (MSVC_VERSION EQUAL 1900)
-        SET (TENGINE_VC_RUNTIME vc14)
-    ELSEIF (MSVC_VERSION MATCHES "^191[0-9]$")
-        SET (TENGINE_VC_RUNTIME vc15)
-    ELSEIF (MSVC_VERSION MATCHES "^192[0-9]$")
-        SET (TENGINE_VC_RUNTIME vc16)
-    ELSEIF (MINGW)
-        SET (TENGINE_VC_RUNTIME mingw)
-    ELSE()
-        MESSAGE (FATAL_ERROR "${PROJECT_NAME}: The version of MS VC++ is too high(${TENGINE_VC_RUNTIME}).")
-    ENDIF()
-
-    SET (TENGINE_THIRD_PARTY_ROOT "${TENGINE_THIRD_PARTY_ROOT}/${TENGINE_VC_RUNTIME}" CACHE INTERNAL "" FORCE)
-# system is FreeBSD
-ELSEIF (CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
-    MESSAGE(STATUS "Current platform: FreeBSD")
-    MESSAGE (FATAL_ERROR "${PROJECT_NAME}: Do not support FreeBSD for new.")
-
-# system is Android
-ELSEIF (CMAKE_SYSTEM_NAME MATCHES "Android")
-    IF (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM" AND TENGINE_TARGET_PROCESSOR_32Bit)
-        SET (TENGINE_THIRD_PARTY_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/android/armv7-a" CACHE INTERNAL "" FORCE)
-    ENDIF()
-
-    IF (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM" AND TENGINE_TARGET_PROCESSOR_64Bit)
-        SET (TENGINE_THIRD_PARTY_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/android/armv8-a" CACHE INTERNAL "" FORCE)
-    ENDIF()
-
-    IF (${TENGINE_TARGET_PROCESSOR} MATCHES "X86" AND TENGINE_TARGET_PROCESSOR_32Bit)
-        SET (TENGINE_THIRD_PARTY_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/android/x86" CACHE INTERNAL "" FORCE)
-    ENDIF()
-
-    IF (${TENGINE_TARGET_PROCESSOR} MATCHES "X86" AND TENGINE_TARGET_PROCESSOR_64Bit)
-        SET (TENGINE_THIRD_PARTY_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/android/x86_64" CACHE INTERNAL "" FORCE)
-    ENDIF()
-ENDIF()
-
 
 # Check which compiler
 # GCC, the GNU Compiler Collection
 IF (NOT DEFINED TENGINE_COMPILER_GCC AND CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-    SET (TENGINE_COMPILER_GCC TRUE)
+    SET (TENGINE_COMPILER_GCC   TRUE CACHE INTERNAL "" FORCE)
 ENDIF()
 
 # Clang, C Language Family Frontend for LLVM
-if(NOT DEFINED TENGINE_COMPILER_CLANG AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")  # Clang or AppleClang (see CMP0025)
-    SET (TENGINE_COMPILER_CLANG TRUE)
+IF(NOT DEFINED TENGINE_COMPILER_CLANG AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")  # Clang or AppleClang (see CMP0025)
+    SET (TENGINE_COMPILER_CLANG TRUE CACHE INTERNAL "" FORCE)
 ENDIF()
 
 # ICC, Intel C++ Compiler
 IF (UNIX)
     IF     (__ICL)
-        SET (TENGINE_COMPILER_ICC   __ICL)
+        SET (TENGINE_COMPILER_ICC   __ICL                   CACHE INTERNAL "" FORCE)
     ELSEIF (__ICC)
-        SET (TENGINE_COMPILER_ICC   __ICC)
+        SET (TENGINE_COMPILER_ICC   __ICC                   CACHE INTERNAL "" FORCE)
     ELSEIF (__ECL)
-        SET (TENGINE_COMPILER_ICC   __ECL)
+        SET (TENGINE_COMPILER_ICC   __ECL                   CACHE INTERNAL "" FORCE)
     ELSEIF (__ECC)
-        SET (TENGINE_COMPILER_ICC   __ECC)
+        SET (TENGINE_COMPILER_ICC   __ECC                   CACHE INTERNAL "" FORCE)
     ELSEIF (__INTEL_COMPILER)
         SET (TENGINE_COMPILER_ICC   __INTEL_COMPILER)
     ELSEIF (CMAKE_C_COMPILER MATCHES "icc")
-        SET (TENGINE_COMPILER_ICC   icc_matches_c_compiler)
+        SET (TENGINE_COMPILER_ICC   icc_matches_c_compiler  CACHE INTERNAL "" FORCE)
     ENDIF()
 ENDIF()
 
 IF (MSVC AND CMAKE_C_COMPILER MATCHES "icc|icl")
-    SET (TENGINE_COMPILER_ICC   __INTEL_COMPILER_FOR_WINDOWS)
+    SET (TENGINE_COMPILER_ICC  __INTEL_COMPILER_FOR_WINDOWS CACHE INTERNAL "" FORCE)
 ENDIF()
 
 # MSVC, Microsoft Visual C++ Compiler
 IF (MSVC)
-    SET (TENGINE_COMPILER_MSVC TRUE)
+    SET (TENGINE_COMPILER_MSVC      TRUE CACHE INTERNAL "" FORCE)
 ENDIF()
 
 # MinGW, Minimalist GNU for Windows
 IF (MINGW OR CMAKE_COMPILER_IS_MINGW)
-    SET (TENGINE_COMPILER_MINGW TRUE)
+    SET (TENGINE_COMPILER_GCC       TRUE CACHE INTERNAL "" FORCE)
+    SET (TENGINE_COMPILER_MINGW     TRUE CACHE INTERNAL "" FORCE)
 ENDIF()
 
 # Cygwin
 IF (CYGWIN OR CMAKE_COMPILER_IS_CYGWIN)
-    SET (TENGINE_COMPILER_CYGWIN TRUE)
+    SET (TENGINE_COMPILER_GCC       TRUE CACHE INTERNAL "" FORCE)
+    SET (TENGINE_COMPILER_CYGWIN    TRUE CACHE INTERNAL "" FORCE)
 ENDIF()
+
+
+
+# check system
+IF (CMAKE_SYSTEM_NAME MATCHES "Windows")
+    SET (TENGINE_SYSTEM     "Windows"           CACHE INTERNAL "" FORCE)
+ELSEIF(UNIX AND NOT APPLE)
+    IF(CMAKE_SYSTEM_NAME MATCHES "Android")
+        SET (TENGINE_SYSTEM "Android"           CACHE INTERNAL "" FORCE)
+    ELSEIF(OHOS)
+        SET (TENGINE_SYSTEM "Harmony OS"        CACHE INTERNAL "" FORCE)
+    ELSEIF(CMAKE_SYSTEM_NAME MATCHES ".*Linux")
+        SET (TENGINE_SYSTEM "Linux"             CACHE INTERNAL "" FORCE)
+    ELSEIF(CMAKE_SYSTEM_NAME MATCHES "kFreeBSD.*")
+        SET (TENGINE_SYSTEM "FreeBSD"           CACHE INTERNAL "" FORCE)
+    ELSEIF(CMAKE_SYSTEM_NAME MATCHES "DragonFly.*|FreeBSD")
+        SET (TENGINE_SYSTEM "FreeBSD"           CACHE INTERNAL "" FORCE)
+    ELSEIF(CMAKE_SYSTEM_NAME MATCHES "kNetBSD.*|NetBSD.*")
+        SET (TENGINE_SYSTEM "NetBSD"            CACHE INTERNAL "" FORCE)
+    ELSEIF(CMAKE_SYSTEM_NAME MATCHES "kOpenBSD.*|OpenBSD.*")
+        SET (TENGINE_SYSTEM "OpenBSD"           CACHE INTERNAL "" FORCE)
+    ELSEIF(CMAKE_SYSTEM_NAME MATCHES "SYSV5.*")
+        SET (TENGINE_SYSTEM "System V"          CACHE INTERNAL "" FORCE)
+    ELSEIF(CMAKE_SYSTEM_NAME MATCHES "Solaris.*")
+        SET (TENGINE_SYSTEM "Solaris"           CACHE INTERNAL "" FORCE)
+    ELSEIF(CMAKE_SYSTEM_NAME MATCHES "HP-UX.*")
+        SET (TENGINE_SYSTEM "HP-UX"             CACHE INTERNAL "" FORCE)
+    ELSEIF(CMAKE_SYSTEM_NAME MATCHES "AIX.*")
+        SET (TENGINE_SYSTEM "AIX"               CACHE INTERNAL "" FORCE)
+    ELSEIF(CMAKE_SYSTEM_NAME MATCHES "Minix.*")
+        SET (TENGINE_SYSTEM "Minix"             CACHE INTERNAL "" FORCE)
+    ENDIF()
+ELSEIF(APPLE)
+    IF(CMAKE_SYSTEM_NAME MATCHES ".*Darwin.*")
+        SET (TENGINE_SYSTEM "Darwin"            CACHE INTERNAL "" FORCE)
+    ELSEIF(CMAKE_SYSTEM_NAME MATCHES ".*MacOS.*")
+        SET (TENGINE_SYSTEM "MacOS"             CACHE INTERNAL "" FORCE)
+    ELSE()
+        SET (TENGINE_SYSTEM "Apple"             CACHE INTERNAL "" FORCE)
+    ENDIF()
+ENDIF ()
+
 
 
 # Check C/C++ standard support
@@ -244,6 +218,7 @@ IF (TENGINE_USE_LASTEST_C_STANDARD OR TENGINE_USE_LASTEST_STANDARD)
         SET (CMAKE_C_STANDARD 11)
     ENDIF()
 ENDIF()
+
 
 
 # C++11 is the base required standard

@@ -1,11 +1,27 @@
+# generate tengine header file
+FILE (MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/tengine)
+FILE (COPY ${CMAKE_SOURCE_DIR}/source/api/c_api.h DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/tengine)
+FILE (COPY ${CMAKE_SOURCE_DIR}/source/api/c_api_ex.h DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/tengine)
+
+
 # macro for adding test
-macro (tengine_test name file)
+function (tengine_test name file)
     add_executable (${name} ${CMAKE_CURRENT_SOURCE_DIR}/${file} "${PROJECT_SOURCE_DIR}/tests/common/tengine_operations.cpp")
-    target_link_libraries (${name} ${CMAKE_PROJECT_NAME})
-    include_directories("${PROJECT_SOURCE_DIR}/tests/common")
+
+    target_link_libraries (${name} PRIVATE ${CMAKE_PROJECT_NAME})
+
+    target_include_directories (${name} PRIVATE "${PROJECT_SOURCE_DIR}/source")
+    target_include_directories (${name} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
+    target_include_directories (${name} PRIVATE "${PROJECT_BINARY_DIR}")
+    target_include_directories (${name} PRIVATE "${PROJECT_BINARY_DIR}/source")
+    target_include_directories (${name} PRIVATE "${PROJECT_SOURCE_DIR}/tests/common")
+
+    if (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM" AND (NOT ANDROID AND NOT OHOS) AND TENGINE_TARGET_PROCESSOR_32Bit)
+        target_compile_options (${name} PRIVATE "-mfp16-format=ieee")
+    endif()
 
     add_test (${name} ${name})
-endmacro()
+endfunction()
 
 # operator level test
 tengine_test(test_op_prelu              op/test_op_prelu.c)
@@ -119,17 +135,26 @@ tengine_test(tm_mfn                models/test_tm_mfn.cpp)
 #tengine_test(test_tiny.c tiny_graph_generated.c utility/tiny)
 
 find_package(OpenCV QUIET)
+
 if(OpenCV_FOUND)
     # macro for adding cv tests
-    macro (tengine_test_cv name file)
-        add_executable(${name}
-                "${CMAKE_CURRENT_SOURCE_DIR}/${file}"
-                "${CMAKE_CURRENT_SOURCE_DIR}/common/tengine_operations.cpp")
-        target_link_libraries(${name} ${CMAKE_PROJECT_NAME} ${OpenCV_LIBS})
-        install (TARGETS ${name} DESTINATION bin)
-    endmacro()
+    function (tengine_test_cv name file)
+        add_executable (${name} ${CMAKE_CURRENT_SOURCE_DIR}/${file} "${PROJECT_SOURCE_DIR}/tests/common/tengine_operations.cpp")
 
-    tengine_test_cv(test_tm_yolact_cv      models/test_tm_yolact_cv.cpp)
+        target_link_libraries (${name} PRIVATE ${CMAKE_PROJECT_NAME} ${OpenCV_LIBS})
+    
+        target_include_directories (${name} PRIVATE "${PROJECT_SOURCE_DIR}/source")
+        target_include_directories (${name} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
+        target_include_directories (${name} PRIVATE "${PROJECT_BINARY_DIR}")
+        target_include_directories (${name} PRIVATE "${PROJECT_BINARY_DIR}/source")
+        target_include_directories (${name} PRIVATE "${PROJECT_SOURCE_DIR}/tests/common")
+    
+        if (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM" AND (NOT ANDROID AND NOT OHOS) AND TENGINE_TARGET_PROCESSOR_32Bit)
+            target_compile_options (${name} PRIVATE "-mfp16-format=ieee")
+        endif()
+    endfunction()
+
+    #tengine_test_cv(test_tm_yolact_cv      models/test_tm_yolact_cv.cpp)
 else()
     message(WARNING "OpenCV not found, some examples won't be built")
 endif()
