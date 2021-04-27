@@ -26,7 +26,6 @@
 #include "fc_param.h"
 
 #include "fc_kernel_arm.h"
-#include "hybrid_fc_kernel_arm.h"
 #include "fc_kernel_int8_arm.h"
 
 #include "graph/tensor.h"
@@ -93,15 +92,6 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
         }
     }
 #endif
-    /* hybrid int8 prerun */
-    else if (exec_graph->mode == TENGINE_MODE_HYBRID_INT8)
-    {
-        if(hybrid_fc_kernel_prerun(input_tensor, filter_tensor, output_tensor, priv_info, fc_param) < 0)
-        {
-            TLOG_ERR("hcl hybrid int8 fc prerun failed\n");
-            return -1;
-        }
-    }
     else if(exec_graph->mode == TENGINE_MODE_INT8)
 	{
         if (int8_fc_kernel_prerun(input_tensor, filter_tensor, output_tensor, priv_info, fc_param) < 0)
@@ -167,15 +157,6 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         }
     }
 #endif
-    /* hybrid int8 run */
-    else if (exec_graph->mode == TENGINE_MODE_HYBRID_INT8)
-    {
-        if (hybrid_fc_kernel_run(input_tensor, weight_tensor, bias_tensor, output_tensor, priv_info, fc_param, num_thread, cpu_affinity) < 0)
-        {
-            TLOG_ERR("hcl hybrid int8 fc run failed\n");
-            return -1;
-        }
-    }
     else if (exec_graph->mode == TENGINE_MODE_INT8) 
 	{
         if (int8_fc_kernel_run(input_tensor, weight_tensor, bias_tensor, output_tensor, priv_info,fc_param,num_thread,cpu_affinity) < 0)
@@ -290,19 +271,6 @@ static int postrun(struct node_ops* node_ops, struct exec_node* exec_node, struc
             TLOG_ERR("hcl fc postrun failed\n");
             return -1;
         }
-    }
-    /* hybrid int8 postrun */
-    else if (exec_graph->mode == TENGINE_MODE_HYBRID_INT8)
-    {
-        #if MACOS
-        TLOG_ERR("HYBRID not support under mac os");
-        #else
-        if (hybrid_fc_kernel_postrun(priv_info) < 0)
-        {
-            TLOG_ERR("hcl fc hybrid int8 postrun failed\n");
-            return -1;
-        }
-        #endif
     }
     else
     {

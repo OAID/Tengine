@@ -34,13 +34,9 @@
 
 
 #ifdef __aarch64__
-void sgemv_1x8_a53(float* biases, float* input, float* kernel, long kernel_size, float* output);
-void sgemv_1x2_a53(float* biases, float* input, float* kernel, long kernel_size, float* output);
 void sgemv_1x8_a72(float* biases, float* input, float* kernel, long kernel_size, float* output);
 void sgemv_1x2_a72(float* biases, float* input, float* kernel, long kernel_size, float* output);
 #else
-void sgemv_1x8_a7(float* biases, float* input, float* kernel, int kernel_size, float* output);
-void sgemv_1x2_a7(float* biases, float* input, float* kernel, int kernel_size, float* output);
 void sgemv_1x8_a17(float* biases, float* input, float* kernel, int kernel_size, float* output);
 void sgemv_1x2_a17(float* biases, float* input, float* kernel, int kernel_size, float* output);
 #endif
@@ -185,26 +181,14 @@ int fc_kernel_run(struct tensor* input_tensor, struct tensor* filter_tensor, str
     /* set cpu affinity sgemv kernel */
     kernel_t kernel_1x8;
     kernel_t kernel_1x2;
-    if (cpu_affinity == TENGINE_CLUSTER_LITTLE)
-    {
+
 #ifdef __aarch64__
-        kernel_1x8 = (kernel_t)sgemv_1x8_a53;
-        kernel_1x2 = (kernel_t)sgemv_1x2_a53;
+    kernel_1x8 = (kernel_t)sgemv_1x8_a72;
+    kernel_1x2 = (kernel_t)sgemv_1x2_a72;
 #else
-        kernel_1x8 = (kernel_t)sgemv_1x8_a7;
-        kernel_1x2 = (kernel_t)sgemv_1x2_a7;
+    kernel_1x8 = (kernel_t)sgemv_1x8_a17;
+    kernel_1x2 = (kernel_t)sgemv_1x2_a17;
 #endif
-    }
-    else
-    {
-#ifdef __aarch64__
-        kernel_1x8 = (kernel_t)sgemv_1x8_a72;
-        kernel_1x2 = (kernel_t)sgemv_1x2_a72;
-#else
-        kernel_1x8 = (kernel_t)sgemv_1x8_a17;
-        kernel_1x2 = (kernel_t)sgemv_1x2_a17;
-#endif
-    }
 
     /* process */
     for (int i = 0; i < input_tensor->dims[0]; i++)

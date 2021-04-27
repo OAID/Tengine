@@ -79,7 +79,7 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
     conv_priv_info->cpu_type = exec_graph->cpu_affinity;
 
     /* fp32 prerun */
-    if (exec_graph->mode == TENGINE_MODE_FP32 || exec_graph->mode == TENGINE_MODE_UINT8 || exec_graph->mode == TENGINE_MODE_HYBRID_INT8)
+    if (exec_graph->mode == TENGINE_MODE_FP32 || exec_graph->mode == TENGINE_MODE_UINT8)
     {
         /* do prerun */
         if (conv_dw_prerun(input_tensor, filter_tensor, output_tensor, conv_priv_info, conv_param) < 0)
@@ -131,7 +131,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 #endif
 
     /* fp32 run */
-    if (exec_graph->mode == TENGINE_MODE_FP32 || exec_graph->mode == TENGINE_MODE_HYBRID_INT8)
+    if (exec_graph->mode == TENGINE_MODE_FP32)
     {
         if (conv_dw_run(input_tensor, weight_tensor, bias_tensor, output_tensor, conv_priv_info, conv_param, num_thread, cpu_affinity) < 0)
         {

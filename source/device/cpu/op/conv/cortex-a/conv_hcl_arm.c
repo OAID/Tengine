@@ -119,19 +119,6 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
         }
     }
 #endif
-    /* hybrid int8 prerun */
-    else if (exec_graph->mode == TENGINE_MODE_HYBRID_INT8)
-    {
-        #if MACOS
-        TLOG_ERR("HYBRID not support under mac os");
-        #else
-        if (hybrid_conv_hcl_prerun(input_tensor, filter_tensor, output_tensor, conv_priv_info, conv_param) < 0)
-        {
-            TLOG_ERR("hcl conv hybrid int8 prerun failed\n");
-            return -1;
-        }
-        #endif
-    }
     /* int8 prerun */
     else if (exec_graph->mode == TENGINE_MODE_INT8)
     {
@@ -207,20 +194,6 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         }        
     }
 #endif
-    /* hybrid int8 run */
-    else if (exec_graph->mode == TENGINE_MODE_HYBRID_INT8)
-    {
-        #if MACOS
-        TLOG_ERR("HYBRID not support under mac os");
-        return -1;
-        #else
-        if (hybrid_conv_hcl_run(input_tensor, weight_tensor, bias_tensor, output_tensor, conv_priv_info, conv_param, num_thread, cpu_affinity) < 0)
-        {
-            TLOG_ERR("hcl conv hybrid int8 run failed\n");
-            return -1;
-        }
-        #endif
-    }
     /* int8 run */
     else if (exec_graph->mode == TENGINE_MODE_INT8)
     {
@@ -422,19 +395,6 @@ static int postrun(struct node_ops* node_ops, struct exec_node* exec_node, struc
         }
     }
 #endif
-    /* hybrid int8 postrun */
-    else if (exec_graph->mode == TENGINE_MODE_HYBRID_INT8)
-    {
-        #if MACOS
-        TLOG_ERR("HYBRID not support under mac os");
-        #else
-        if (hybrid_conv_hcl_postrun(conv_priv_info) < 0)
-        {
-            TLOG_ERR("hcl conv hybrid int8 postrun failed\n");
-            return -1;
-        }
-        #endif
-    }
     /* int8 postrun */
     else if (exec_graph->mode == TENGINE_MODE_INT8)
     {
@@ -488,14 +448,6 @@ static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, str
         exec_node->shared_mem_size = fp16_conv_hcl_get_shared_mem_size(input_tensor, output_tensor, conv_param);
     }
 #endif
-    else if (exec_graph->mode == TENGINE_MODE_HYBRID_INT8)
-    {
-        #if MACOS
-        TLOG_ERR("HYBRID not support under mac os");
-        #else
-        exec_node->shared_mem_size = hybrid_conv_hcl_get_shared_mem_size(input_tensor, output_tensor, conv_param);
-        #endif
-    }
     /* int8 prerun */
     else if (exec_graph->mode == TENGINE_MODE_INT8)
     {
@@ -545,8 +497,6 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
 #endif
     if (group > 1 && in_c == 1 && out_c == 1)
         return 0;
-    if(exec_graph->mode == TENGINE_MODE_HYBRID_INT8 && input_tensor->dims[1] == 1280 && output_tensor->dims[1] == 1000)
-        return  0;  //<fsq> , avoid EAIDK610-A53 result error. TENGINE_MODE_HYBRID_INT8 tengine_mobilenet_v2_caffe_tmfile node [type:Convolution name:fc7] Channel 992~999
     return OPS_SCORE_PREFER;
 }
 

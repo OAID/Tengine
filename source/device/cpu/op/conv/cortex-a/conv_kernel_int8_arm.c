@@ -38,10 +38,6 @@ void i8gemm_4x16_a72_int8(int* biases, int8_t* input, int8_t* kernel, long kerne
                                 int* multi, long output_xy, int* shift, int activation_min, int activation_max);
 void i8gemm_4x4_a72_int8(int* biases, int8_t* input, int8_t* kernel, long kernel_size, int8_t* output,
                                 int* multi, long output_xy, int* shift, int activation_min, int activation_max);
-void i8gemm_4x16_a53_int8(int* biases, int8_t* input, int8_t* kernel, long kernel_size, int8_t* output,
-                                int* multi, long output_xy, int* shift, int activation_min, int activation_max);
-void i8gemm_4x4_a53_int8(int* biases, int8_t* input, int8_t* kernel, long kernel_size, int8_t* output,
-                                int* multi, long output_xy, int* shift, int activation_min, int activation_max);
 void im2col_int8_1x1(int8_t* input, long input_xy, int8_t* col, long col_cnt, long input_chan);
 void im2col_int8_3x3(int8_t* input, long input_x, long input_y, long input_chan, int8_t* col, long stride);
 // col_start and col_end need to be 16 aligned
@@ -74,11 +70,8 @@ static void i8gemm4x16(int8_t* col, int8_t* kernel, bool bias_term, int* biases,
         for(int col_line = (col_start & -4); col_line < (col_end & -4); col_line += 4)
         {
             int8_t* cur_col = col + col_line * kernel_size_aligned2;
-            if(cpu_affinity == TENGINE_CLUSTER_LITTLE)
-                i8gemm_4x16_a53_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, output_result + col_line, pmulti,
-                                output_xy, pq_shift, activation_min, activation_max);
-            else
-                i8gemm_4x16_a72_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, output_result + col_line, pmulti,
+            
+            i8gemm_4x16_a72_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, output_result + col_line, pmulti,
                               output_xy, pq_shift, activation_min, activation_max);
         }
 
@@ -86,10 +79,8 @@ static void i8gemm4x16(int8_t* col, int8_t* kernel, bool bias_term, int* biases,
         {
             int col_line = col_end & -4;
             int8_t* cur_col = col + col_line * kernel_size_aligned2;
-            if(cpu_affinity == TENGINE_CLUSTER_LITTLE)
-                i8gemm_4x16_a53_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, (int8_t*)result, pmulti, 0, pq_shift, activation_min, activation_max);
-            else
-                i8gemm_4x16_a72_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, (int8_t*)result, pmulti, 0, pq_shift, activation_min, activation_max);
+
+            i8gemm_4x16_a72_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, (int8_t*)result, pmulti, 0, pq_shift, activation_min, activation_max);
 
             for(int i = 0; i < 4; i++)
             {
@@ -152,21 +143,16 @@ static void i8gemm4x4(int8_t* col, int8_t* kernel, bool bias_term, int* biases, 
         for(int col_line = (col_start & -4); col_line < (col_end & -4); col_line += 4)
         {
             int8_t* cur_col = col + col_line * kernel_size_aligned2;
-            if(cpu_affinity == TENGINE_CLUSTER_LITTLE)
-                i8gemm_4x4_a53_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, output_result + col_line, pmulti,
-                                output_xy, pq_shift, activation_min, activation_max);
-            else
-                i8gemm_4x4_a72_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, output_result + col_line, pmulti,
+
+            i8gemm_4x4_a72_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, output_result + col_line, pmulti,
                               output_xy, pq_shift, activation_min, activation_max);
         }
         if(col_end3)
         {
             int col_line = col_end & -4;
             int8_t* cur_col = col + col_line * kernel_size_aligned2;
-            if(cpu_affinity == TENGINE_CLUSTER_LITTLE)
-                i8gemm_4x4_a53_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, (int8_t*)result, pmulti, 0, pq_shift, activation_min, activation_max);
-            else
-                i8gemm_4x4_a72_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, (int8_t*)result, pmulti, 0, pq_shift, activation_min, activation_max);
+
+            i8gemm_4x4_a72_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, (int8_t*)result, pmulti, 0, pq_shift, activation_min, activation_max);
 
             for(int j = 0; j < 4; j++)
             {
@@ -213,10 +199,9 @@ static void i8gemm4x4(int8_t* col, int8_t* kernel, bool bias_term, int* biases, 
         for(int col_line = (col_start & -4); col_line < (col_end & -4); col_line += 4)
         {
             int8_t* cur_col = col + col_line * kernel_size_aligned2;
-            if(cpu_affinity == TENGINE_CLUSTER_LITTLE)
-                i8gemm_4x4_a53_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, (int8_t*)result, pmulti, 0, pq_shift, activation_min, activation_max);
-            else
-                i8gemm_4x4_a72_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, (int8_t*)result, pmulti, 0, pq_shift, activation_min, activation_max);
+
+            i8gemm_4x4_a72_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, (int8_t*)result, pmulti, 0, pq_shift, activation_min, activation_max);
+
             for(int j = 0; j < 4; j++)
             {
                 output_line[j] = output + (kernel_num + j) * output_xy + col_line;
@@ -246,10 +231,8 @@ static void i8gemm4x4(int8_t* col, int8_t* kernel, bool bias_term, int* biases, 
         {
             int col_line = col_end & -4;
             int8_t* cur_col = col + col_line * kernel_size_aligned2;
-            if(cpu_affinity == TENGINE_CLUSTER_LITTLE)
-                i8gemm_4x4_a53_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, (int8_t*)result, pmulti, 0, pq_shift, activation_min, activation_max);
-            else
-                i8gemm_4x4_a72_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, (int8_t*)result, pmulti, 0, pq_shift, activation_min, activation_max);
+
+            i8gemm_4x4_a72_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, (int8_t*)result, pmulti, 0, pq_shift, activation_min, activation_max);
 
             for(int j = 0; j < 4; j++)
             {
@@ -286,12 +269,8 @@ void i8gemm_4x4_a17_int8(int* biases, int8_t* input, int8_t* kernel, int kernel_
                          int* multi, int output_xy, int* shift, int activation_min, int activation_max);
 void i8gemm_4x8_a17_int8(int* biases, int8_t* input, int8_t* kernel, int kernel_size, int8_t* output,
                          int* multi, int output_xy, int* shift, int activation_min, int activation_max);
-void i8gemm_4x4_a7_int8(int* biases, int8_t* input, int8_t* kernel, int kernel_size, int8_t* output,
-                        int* multi, int output_xy, int* shift, int activation_min, int activation_max);
-void i8gemm_4x8_a7_int8(int* biases, int8_t* input, int8_t* kernel, int kernel_size, int8_t* output,
-                                   int* multi, int output_xy, int* shift, int activation_min, int activation_max);
-// col_start and col_end need to be 8 aligned
-// kernel_start need to be 4 aligned
+
+// col_start and col_end need to be 8 aligned kernel_start need to be 4 aligned
 static void i8gemm4x8(int8_t* col, int8_t* kernel, bool bias_term, int* biases, int8_t* output, int* multi,
                       int kernel_size, int output_xy, int col_start, int col_end, int kernel_start, int kernel_end,
                       int activation_min, int activation_max, int* q_shift, int num_thread, int cpu_affinity)
@@ -320,21 +299,16 @@ static void i8gemm4x8(int8_t* col, int8_t* kernel, bool bias_term, int* biases, 
         for(int col_line = (col_start & -4); col_line < (col_end & -4); col_line += 4)
         {
             int8_t* cur_col = col + col_line * kernel_size_aligned2;
-            if(cpu_affinity == TENGINE_CLUSTER_LITTLE)
-                i8gemm_4x8_a7_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, output_result + col_line, pmulti,
-                              output_xy, pq_shift, activation_min, activation_max);
-            else
-                i8gemm_4x8_a17_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, output_result + col_line, pmulti,
+
+            i8gemm_4x8_a17_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, output_result + col_line, pmulti,
                                output_xy, pq_shift, activation_min, activation_max);
         }
         if(col_end3)
         {
             int col_line = col_end & -4;
             int8_t* cur_col = col + col_line * kernel_size_aligned2;
-            if(cpu_affinity == TENGINE_CLUSTER_LITTLE)
-                i8gemm_4x8_a7_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, (int8_t*)result, pmulti, 0, pq_shift, activation_min, activation_max);
-            else
-                i8gemm_4x8_a17_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, (int8_t*)result, pmulti, 0, pq_shift, activation_min, activation_max);
+
+            i8gemm_4x8_a17_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, (int8_t*)result, pmulti, 0, pq_shift, activation_min, activation_max);
 
             for(int i = 0; i < 2; i++)
             {
@@ -398,11 +372,8 @@ static void i8gemm4x4(int8_t* col, int8_t* kernel, bool bias_term, int* biases, 
         for(int col_line = (col_start & -4); col_line < (col_end & -4); col_line += 4)
         {
             int8_t* cur_col = col + col_line * kernel_size_aligned2;
-            if(cpu_affinity == TENGINE_CLUSTER_LITTLE)
-                i8gemm_4x4_a7_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, output_result + col_line, pmulti,
-                              output_xy, pq_shift, activation_min, activation_max);
-            else
-                i8gemm_4x4_a17_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, output_result + col_line, pmulti,
+
+            i8gemm_4x4_a17_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, output_result + col_line, pmulti,
                                output_xy, pq_shift, activation_min, activation_max);
         }
 
@@ -410,10 +381,8 @@ static void i8gemm4x4(int8_t* col, int8_t* kernel, bool bias_term, int* biases, 
         {
             int col_line = col_end & -4;
             int8_t* cur_col = col + col_line * kernel_size_aligned2;
-            if(cpu_affinity == TENGINE_CLUSTER_LITTLE)
-                i8gemm_4x4_a7_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, (int8_t*)result, pmulti, 0, pq_shift, activation_min, activation_max);
-            else
-                i8gemm_4x4_a17_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, (int8_t*)result, pmulti, 0, pq_shift, activation_min, activation_max);
+
+            i8gemm_4x4_a17_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, (int8_t*)result, pmulti, 0, pq_shift, activation_min, activation_max);
 
             for(int j = 0; j < 4; j++)
             {
@@ -460,10 +429,8 @@ static void i8gemm4x4(int8_t* col, int8_t* kernel, bool bias_term, int* biases, 
         for(int col_line = (col_start & -4); col_line < (col_end & -4); col_line += 4)
         {
             int8_t* cur_col = col + col_line * kernel_size_aligned2;
-            if(cpu_affinity == TENGINE_CLUSTER_LITTLE)
-                i8gemm_4x4_a7_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, (int8_t*)result, pmulti, 0, pq_shift, activation_min, activation_max);
-            else
-                i8gemm_4x4_a17_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, (int8_t*)result, pmulti, 0, pq_shift, activation_min, activation_max);
+
+            i8gemm_4x4_a17_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, (int8_t*)result, pmulti, 0, pq_shift, activation_min, activation_max);
 
             for(int j = 0; j < 4; j++)
             {
@@ -494,10 +461,8 @@ static void i8gemm4x4(int8_t* col, int8_t* kernel, bool bias_term, int* biases, 
         {
             int col_line = col_end & -4;
             int8_t* cur_col = col + col_line * kernel_size_aligned2;
-            if(cpu_affinity == TENGINE_CLUSTER_LITTLE)
-                i8gemm_4x4_a7_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, (int8_t*)result, pmulti, 0, pq_shift, activation_min, activation_max);
-            else
-                i8gemm_4x4_a17_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, (int8_t*)result, pmulti, 0, pq_shift, activation_min, activation_max);
+
+            i8gemm_4x4_a17_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, (int8_t*)result, pmulti, 0, pq_shift, activation_min, activation_max);
 
             for(int j = 0; j < 4; j++)
             {
