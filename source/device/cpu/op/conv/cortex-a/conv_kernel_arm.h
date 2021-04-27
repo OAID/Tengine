@@ -65,20 +65,6 @@ int fp16_conv_hcl_run(struct tensor* input_tensor , struct tensor* filter_tensor
 int fp16_conv_hcl_get_shared_mem_size(struct tensor*  input_tensor ,struct tensor*  output_tensor , struct conv_param* param) ;
 #endif
 
-/* hybrid int8 */
-int hybrid_conv_hcl_prerun(struct tensor* input_tensor, struct tensor* filter_tensor,
-                           struct tensor* output_tensor, struct conv_priv_info* info, struct conv_param* param)
-   ;
-
-int hybrid_conv_hcl_postrun(struct conv_priv_info* info);
-
-int hybrid_conv_hcl_run(struct tensor* input_tensor, struct tensor* filter_tensor, struct tensor* bias_tensor,
-                        struct tensor* output_tensor, struct conv_priv_info* conv_info, struct conv_param* param,
-                        int num_thread, int cpu_affinity);
-
-int hybrid_conv_hcl_get_shared_mem_size(struct tensor* input_tensor, struct tensor* output_tensor,
-                                        struct conv_param* param);
-
 /* int8 */
 int int8_conv_hcl_get_shared_mem_size(struct tensor* input_tensor, struct tensor* output_tensor,
                                  struct conv_param* param);

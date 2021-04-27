@@ -52,10 +52,6 @@ struct conv_priv_info
     int external_interleave_pack4_mem;    // flag
     int cpu_type;
     int winograd;
-
-    /* hybrid int8 params */
-    void* p_input_max;
-    void* p_kernel_max;
 };
 
 /* float32 */

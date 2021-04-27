@@ -52,8 +52,6 @@
 void tran_inp_4(float*, float*, float*, int, int, int);
 void wino_sgemm_4x16_A72(float* output, const float* input, const float* kernel, long cin, short stride_save);
 void wino_sgemm_4x4_A72(float* output, const float* input, const float* kernel, long cin, short stride_save);
-void wino_sgemm_4x16_A53(float* output, const float* input, const float* kernel, long cin, short stride_save);
-void wino_sgemm_4x4_A53(float* output, const float* input, const float* kernel, long cin, short stride_save);
 void wino_sgemm_1x16(float* output, const float* input, const float* kernel, long cin);
 void wino_sgemm_1x4(float* output, const float* input, const float* kernel, long cin);
 void tran_out_4(float*, float*, int, float*, float*, int);
@@ -1075,10 +1073,8 @@ static void wino_sgemm_4x16_1(const float* ker, const float* inp, float* output,
             int offset = s * block_hw * cin + i * cin;
             int offset_ker = s * cin * out_c + p * cin;
 
-            if (cpu_affinity == TENGINE_CLUSTER_LITTLE)
-                wino_sgemm_4x16_A53(out_ptr1 + s * BLOCK_HW_UNIT, inp + offset, ker + offset_ker, cin, 1);
-            else
-                wino_sgemm_4x16_A72(out_ptr1 + s * BLOCK_HW_UNIT, inp + offset, ker + offset_ker, cin, 1);
+//#ifdef __aarch64__
+            wino_sgemm_4x16_A72(out_ptr1 + s * BLOCK_HW_UNIT, inp + offset, ker + offset_ker, cin, 1);
         }
         
         for(; i < block_hw ;i++)
@@ -1111,11 +1107,8 @@ void wino_sgemm_4x4_1(const float* ker, const float* inp, float* output, int cin
             float* out_ptr1 = out_ptr + i * ELEM_SIZE * KER_COUT_UNIT4;
             int offset = s * block_hw * cin + i * cin;
             int offset_ker = s * cin * out_c + p * cin;
-
-            if (cpu_affinity == TENGINE_CLUSTER_LITTLE)
-                wino_sgemm_4x4_A53(out_ptr1 + s * BLOCK_HW_UNIT, inp + offset, ker + offset_ker, cin, 1);
-            else
-                wino_sgemm_4x4_A72(out_ptr1 + s * BLOCK_HW_UNIT, inp + offset, ker + offset_ker, cin, 1);
+//#ifdef __aarch64__
+            wino_sgemm_4x4_A72(out_ptr1 + s * BLOCK_HW_UNIT, inp + offset, ker + offset_ker, cin, 1);
         }
         for(; i < block_end; i++)
         {
@@ -1152,7 +1145,8 @@ void wino_sgemm_4x4_1(const float* ker, const float* inp, float* output, int cin
             out_ptr1[2] = sum2;
             out_ptr1[3] = sum3;
         }
-        for(; i < block_end; i++){
+        for(; i < block_end; i++)
+		{
             float* out_ptr1 = out_ptr + i * ELEM_SIZE + s;
             float* inp_ = (float*)(inp + s * block_hw * cin + i*cin);
             float sum0 = 0;

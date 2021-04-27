@@ -47,8 +47,6 @@
 void tran_inp_4(float*, float*, float*, int, int, int);
 void wino_sgemm_4x16_A72(float* output, const float* input, const float* kernel, long cin, short stride_save);
 void wino_sgemm_4x4_A72(float* output, const float* input, const float* kernel, long cin, short stride_save);
-void wino_sgemm_4x16_A53(float* output, const float* input, const float* kernel, long cin, short stride_save);
-void wino_sgemm_4x4_A53(float* output, const float* input, const float* kernel, long cin, short stride_save);
 void wino_sgemm_1x16(float* output, const float* input, const float* kernel, long cin);
 void wino_sgemm_1x4(float* output, const float* input, const float* kernel, long cin);
 void tran_out_4(float*, float*, int, float*, float*, int);
@@ -59,9 +57,6 @@ void tran_out_4(float*, float*, int, float*, float*, int);
 void wino_sgemm_4x12_A17(float* output, const float* input, const float* kernel, long cin);
 void wino_sgemm_4x4_A17(float* output, const float* input, const float* kernel, long cin);
 void wino_sgemm_1x12_A17(float* output, const float* input, const float* kernel, long cin);
-void wino_sgemm_4x12_A7(float* output, const float* input, const float* kernel, long cin);
-void wino_sgemm_4x4_A7(float* output, const float* input, const float* kernel, long cin);
-void wino_sgemm_1x12_A7(float* output, const float* input, const float* kernel, long cin);
 
 // need to be optimized by neon
 static inline void wino_sgemm_1x4_cpu(float* output, const float* input, const float* kernel, long cin)
@@ -1042,12 +1037,7 @@ static void wino_sgemm_set(const float* ker, const float* inp, float* output, co
 
             for (int s = 0; s < ELEM_SIZE; s++)
             {
-                if (cpu_affinity == TENGINE_CLUSTER_LITTLE)
-                    wino_sgemm_4x16_A53(out_buffer + s * 4 * mulitplier, inp_ptr + s * 4 * cin,
-                                        ker_ptr + s * PER_OUT_CHAN * cin, cin, wino_out_4_tiles);
-                else
-                    wino_sgemm_4x16_A72(out_buffer + s * 4 * mulitplier, inp_ptr + s * 4 * cin,
-                                        ker_ptr + s * PER_OUT_CHAN * cin, cin, wino_out_4_tiles);
+                wino_sgemm_4x16_A72(out_buffer + s * 4 * mulitplier, inp_ptr + s * 4 * cin, ker_ptr + s * PER_OUT_CHAN * cin, cin, wino_out_4_tiles);
             }
             if (wino_out_4_tiles == 1)
             {
@@ -1128,12 +1118,7 @@ static void wino_sgemm_set(const float* ker, const float* inp, float* output, co
 #else
             for (int s = 0; s < ELEM_SIZE; s++)
             {
-                if (cpu_affinity == TENGINE_CLUSTER_LITTLE)
-                    wino_sgemm_4x12_A7(out_buffer + s * 4 * PER_OUT_CHAN, inp_ptr + s * 4 * cin,
-                                       ker_ptr + s * PER_OUT_CHAN * cin, cin);
-                else
-                    wino_sgemm_4x12_A17(out_buffer + s * 4 * PER_OUT_CHAN, inp_ptr + s * 4 * cin,
-                                        ker_ptr + s * PER_OUT_CHAN * cin, cin);
+                wino_sgemm_4x12_A17(out_buffer + s * 4 * PER_OUT_CHAN, inp_ptr + s * 4 * cin, ker_ptr + s * PER_OUT_CHAN * cin, cin);
             }
             float buffer[PER_OUT_CHAN * 4 * ELEM_SIZE];
             float* buffer_ptr0 = buffer;
@@ -1162,12 +1147,7 @@ static void wino_sgemm_set(const float* ker, const float* inp, float* output, co
 #ifdef __aarch64__
                 wino_sgemm_1x16(out_buffer + s * PER_OUT_CHAN, inp_ptr + s * cin, ker_ptr + s * PER_OUT_CHAN * cin, cin);
 #else
-                if (cpu_affinity == TENGINE_CLUSTER_LITTLE)
-                    wino_sgemm_1x12_A7(out_buffer + s * PER_OUT_CHAN, inp_ptr + s * cin,
-                                       ker_ptr + s * PER_OUT_CHAN * cin, cin);
-                else
-                    wino_sgemm_1x12_A17(out_buffer + s * PER_OUT_CHAN, inp_ptr + s * cin,
-                                        ker_ptr + s * PER_OUT_CHAN * cin, cin);
+                wino_sgemm_1x12_A17(out_buffer + s * PER_OUT_CHAN, inp_ptr + s * cin, ker_ptr + s * PER_OUT_CHAN * cin, cin);
 #endif
             }
             // interleave
@@ -1233,12 +1213,8 @@ void wino_sgemm_4x4(const float* ker, const float* inp, float* output, const flo
             for (int s = 0; s < ELEM_SIZE; s++)
             {
                 {
-                    if (cpu_affinity == TENGINE_CLUSTER_LITTLE)
-                        wino_sgemm_4x4_A53(out_buffer + s * 4 * mulitplier, inp_ptr + s * 4 * cin,
-                                           ker_ptr + s * 4 * cin, cin, wino_out_4_tiles);
-                    else
-                        wino_sgemm_4x4_A72(out_buffer + s * 4 * mulitplier, inp_ptr + s * 4 * cin,
-                                           ker_ptr + s * 4 * cin, cin, wino_out_4_tiles);
+                    wino_sgemm_4x4_A72(out_buffer + s * 4 * mulitplier, inp_ptr + s * 4 * cin, ker_ptr + s * 4 * cin,
+                                       cin, wino_out_4_tiles);
                 }
             }
             if (wino_out_4_tiles == 1)
@@ -1329,10 +1305,7 @@ void wino_sgemm_4x4(const float* ker, const float* inp, float* output, const flo
 #else
             for (int s = 0; s < ELEM_SIZE; s++)
             {
-                if (cpu_affinity == TENGINE_CLUSTER_LITTLE)
-                    wino_sgemm_4x4_A7(out_buffer + s * 4 * 4, inp_ptr + s * 4 * cin, ker_ptr + s * 4 * cin, cin);
-                else
-                    wino_sgemm_4x4_A17(out_buffer + s * 4 * 4, inp_ptr + s * 4 * cin, ker_ptr + s * 4 * cin, cin);
+                wino_sgemm_4x4_A17(out_buffer + s * 4 * 4, inp_ptr + s * 4 * cin, ker_ptr + s * 4 * cin, cin);
             }
             // interleave
             float buffer[4 * 4 * ELEM_SIZE];

@@ -66,9 +66,7 @@ struct conv_priv_info
     int winograd;
     int wino_off;
 
-    /* hybrid int8 params */
-    void* p_input_max;
-    void* p_kernel_max;
+    /* int8 params */
     int* q_shift;
     int* multi;
     int activation_min;

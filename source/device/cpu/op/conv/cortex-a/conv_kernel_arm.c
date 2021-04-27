@@ -43,20 +43,12 @@ void sgemm_4x16_a72(float* biases, float* input, float* kernel, long kernel_size
                     int activation, int layout);
 void sgemm_4x4_a72(float* biases, float* input, float* kernel, long kernel_size, float* output, long output_xy,
                    int activation, int layout);
-void sgemm_4x16_a53(float* biases, float* input, float* kernel, long kernel_size, float* output, long output_xy,
-                    int activation, int layout);
-void sgemm_4x4_a53(float* biases, float* input, float* kernel, long kernel_size, float* output, long output_xy,
-                    int activation, int layout);
 #else
 #define PER_OUT_CHAN 12
-void sgemm_4x12_a17(float* biases, float* input, float* kernel, int kernel_size, float* output,
-                 int output_xy, int activation, int layout);
-void sgemm_4x4_a17(float* biases, float* input, float* kernel, int kernel_size, float* output,
-                 int output_xy, int activation, int layout);
-void sgemm_4x12_a7(float* biases, float* input, float* kernel, int kernel_size, float* output,
-                 int output_xy, int activation, int layout);
-void sgemm_4x4_a7(float* biases, float* input, float* kernel, int kernel_size, float* output,
-                 int output_xy, int activation, int layout);
+void sgemm_4x12_a17(float* biases, float* input, float* kernel, int kernel_size, float* output, int output_xy,
+                    int activation, int layout);
+void sgemm_4x4_a17(float* biases, float* input, float* kernel, int kernel_size, float* output, int output_xy,
+                   int activation, int layout);
 #endif
 
 void im2col_fp32_1x1(float* input, int input_xy, float* col, int col_cnt, int input_chan);
@@ -343,11 +335,7 @@ static void sgemm_set(float* col, float* kernel, float* biases, float* output, i
 #ifdef __aarch64__
         {
             float* col_tmp = ( float* )(col + col_line * kernel_size);
-
-            if (cpu_affinity == TENGINE_CLUSTER_LITTLE)
-                sgemm_4x16_a53(biasptr, col_tmp, kernel_tmp, kernel_size, output_tmp + col_line, output_xy, activation, 0);
-            else
-                sgemm_4x16_a72(biasptr, col_tmp, kernel_tmp, kernel_size, output_tmp + col_line, output_xy, activation, 0);
+            sgemm_4x16_a72(biasptr, col_tmp, kernel_tmp, kernel_size, output_tmp + col_line, output_xy, activation, 0);
         }
         if (col_end3)
         {
@@ -355,10 +343,7 @@ static void sgemm_set(float* col, float* kernel, float* biases, float* output, i
             float result[4 * PER_OUT_CHAN];
             float* col_tmp = ( float* )(col + col_line * kernel_size);
 
-            if (cpu_affinity == TENGINE_CLUSTER_LITTLE)
-                sgemm_4x16_a53(biasptr, col_tmp, kernel_tmp, kernel_size, result, 4, activation, 0);
-            else
-                sgemm_4x16_a72(biasptr, col_tmp, kernel_tmp, kernel_size, result, 4, activation, 0);
+            sgemm_4x16_a72(biasptr, col_tmp, kernel_tmp, kernel_size, result, 4, activation, 0);
 
             for (int i = 0; i < 16; i++)
             {
@@ -371,11 +356,7 @@ static void sgemm_set(float* col, float* kernel, float* biases, float* output, i
 #else
         {
             float* col_tmp = ( float* )(col + col_line * kernel_size);
-
-            if (cpu_affinity == TENGINE_CLUSTER_LITTLE)
-                sgemm_4x12_a7(biasptr, col_tmp, kernel_tmp, kernel_size, output_tmp + col_line, output_xy, activation, 0);
-            else
-                sgemm_4x12_a17(biasptr, col_tmp, kernel_tmp, kernel_size, output_tmp + col_line, output_xy, activation, 0);
+            sgemm_4x12_a17(biasptr, col_tmp, kernel_tmp, kernel_size, output_tmp + col_line, output_xy, activation, 0);
         }
         if (col_end3)
         {
@@ -383,10 +364,7 @@ static void sgemm_set(float* col, float* kernel, float* biases, float* output, i
             float result[4 * PER_OUT_CHAN];
             float* col_tmp = ( float* )(col + col_line * kernel_size);
 
-            if (cpu_affinity == TENGINE_CLUSTER_LITTLE)
-                sgemm_4x12_a7(biasptr, col_tmp, kernel_tmp, kernel_size, result, 4, activation, 0);
-            else
-                sgemm_4x12_a17(biasptr, col_tmp, kernel_tmp, kernel_size, result, 4, activation, 0);
+            sgemm_4x12_a17(biasptr, col_tmp, kernel_tmp, kernel_size, result, 4, activation, 0);
 
             for (int i = 0; i < PER_OUT_CHAN; i++)
             {
@@ -418,15 +396,9 @@ static void sgemm4x4(float* col, float* kernel, float* biases, float* output, in
         {
             cur_col = ( float* )(col + col_line * kernel_size);
 #ifdef __aarch64__
-            if (cpu_affinity == TENGINE_CLUSTER_LITTLE)
-                sgemm_4x4_a53(cur_biases, cur_col, cur_kernel, kernel_size, cur_output + col_line, output_xy, activation, 0);
-            else
-                sgemm_4x4_a72(cur_biases, cur_col, cur_kernel, kernel_size, cur_output + col_line, output_xy, activation, 0);
+            sgemm_4x4_a72(cur_biases, cur_col, cur_kernel, kernel_size, cur_output + col_line, output_xy, activation, 0);
 #else
-            if (cpu_affinity == TENGINE_CLUSTER_LITTLE)
-                sgemm_4x4_a7(cur_biases, cur_col, cur_kernel, kernel_size, cur_output + col_line, output_xy, activation, 0);
-            else
-                sgemm_4x4_a17(cur_biases, cur_col, cur_kernel, kernel_size, cur_output + col_line, output_xy, activation, 0);
+            sgemm_4x4_a17(cur_biases, cur_col, cur_kernel, kernel_size, cur_output + col_line, output_xy, activation, 0);
 #endif
         }
         if (col_end3)
@@ -435,15 +407,9 @@ static void sgemm4x4(float* col, float* kernel, float* biases, float* output, in
             int col_line = col_end & -4;
             cur_col = ( float* )(col + col_line * kernel_size);
 #ifdef __aarch64__
-            if (cpu_affinity == TENGINE_CLUSTER_LITTLE)
-                sgemm_4x4_a53(cur_biases, cur_col, cur_kernel, kernel_size, result, 4, activation, 0);
-            else
-                sgemm_4x4_a72(cur_biases, cur_col, cur_kernel, kernel_size, result, 4, activation, 0);
+            sgemm_4x4_a72(cur_biases, cur_col, cur_kernel, kernel_size, result, 4, activation, 0);
 #else
-            if (cpu_affinity == TENGINE_CLUSTER_LITTLE)
-                sgemm_4x4_a7(cur_biases, cur_col, cur_kernel, kernel_size, result, 4, activation, 0);
-            else
-                sgemm_4x4_a17(cur_biases, cur_col, cur_kernel, kernel_size, result, 4, activation, 0);
+            sgemm_4x4_a17(cur_biases, cur_col, cur_kernel, kernel_size, result, 4, activation, 0);
 #endif
             for (int i = 0; i < 4; i++)
             {
@@ -464,15 +430,9 @@ static void sgemm4x4(float* col, float* kernel, float* biases, float* output, in
             float result[16];
             float* cur_col = ( float* )(col + col_line * kernel_size);
 #ifdef __aarch64__
-            if (cpu_affinity == TENGINE_CLUSTER_LITTLE)
-                sgemm_4x4_a53(cur_biases, cur_col, cur_kernel, kernel_size, result, 4, activation, 0);
-            else
-                sgemm_4x4_a72(cur_biases, cur_col, cur_kernel, kernel_size, result, 4, activation, 0);
+            sgemm_4x4_a72(cur_biases, cur_col, cur_kernel, kernel_size, result, 4, activation, 0);
 #else
-            if (cpu_affinity == TENGINE_CLUSTER_LITTLE)
-                sgemm_4x4_a7(cur_biases, cur_col, cur_kernel, kernel_size, result, 4, activation, 0);
-            else
-                sgemm_4x4_a17(cur_biases, cur_col, cur_kernel, kernel_size, result, 4, activation, 0);
+            sgemm_4x4_a17(cur_biases, cur_col, cur_kernel, kernel_size, result, 4, activation, 0);
 #endif
             for (int i = 0; i < kernel_end3; i++)
                 for (int j = 0; j < 4; j++)
@@ -485,15 +445,9 @@ static void sgemm4x4(float* col, float* kernel, float* biases, float* output, in
             int col_line = col_end & -4;
             float* cur_col = ( float* )(col + col_line * kernel_size);
 #ifdef __aarch64__
-            if (cpu_affinity == TENGINE_CLUSTER_LITTLE)
-                sgemm_4x4_a53(cur_biases, cur_col, cur_kernel, kernel_size, result, 4, activation, 0);
-            else
-                sgemm_4x4_a72(cur_biases, cur_col, cur_kernel, kernel_size, result, 4, activation, 0);
+            sgemm_4x4_a72(cur_biases, cur_col, cur_kernel, kernel_size, result, 4, activation, 0);
 #else
-            if (cpu_affinity == TENGINE_CLUSTER_LITTLE)
-                sgemm_4x4_a7(cur_biases, cur_col, cur_kernel, kernel_size, result, 4, activation, 0);
-            else
-                sgemm_4x4_a17(cur_biases, cur_col, cur_kernel, kernel_size, result, 4, activation, 0);
+            sgemm_4x4_a17(cur_biases, cur_col, cur_kernel, kernel_size, result, 4, activation, 0);
 #endif
             for (int i = 0; i < (kernel_end3); i++)
             {

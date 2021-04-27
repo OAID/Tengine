@@ -96,10 +96,6 @@ static void delete_0_3D(float* dst, float* src, int m_align, int n_align, int m,
 }
 
 #ifdef __aarch64__
-void dw_k3s2p1_a53(float* data, int h, int w, float* kernel, float* output, float* bias, int act);
-void dw_k3s1p1_a53(float* input, float* kernel, float* output, long chan, long input_width,
-                                      long input_height, float* bias, int act);
-
 void dw_k3s2p0(float* data, int h, int w, float* kernel, float* output, float* bias, int out_w, int act);
 void dw_k3s2p0p1(float* data, int h, int w, float* kernel, float* output, float* bias, int out_w, int act);
 void dw_k3s1p1_a72(float* data, int h, int w, float* kernel, float* output, float* bias, int act);
@@ -124,10 +120,7 @@ static void DirectConv(float* input_buf, int input_h, int input_w, float* output
             float* bias_tmp = NULL;
             if (bias)
                 bias_tmp = bias + i;
-            if (cpu_affinity == TENGINE_CLUSTER_LITTLE)
-                dw_k3s1p1_a53(cur_input, weight_buf + i * 9, cur_output, 1, input_w, input_h, bias_tmp, activation);
-            else
-                dw_k3s1p1_a72(cur_input, input_h, input_w, weight_buf + i * 9, cur_output, bias_tmp, activation);
+            dw_k3s1p1_a72(cur_input, input_h, input_w, weight_buf + i * 9, cur_output, bias_tmp, activation);
         }
     }
     else if (pad_h0 == 0)
@@ -158,10 +151,7 @@ static void DirectConv(float* input_buf, int input_h, int input_w, float* output
             float* bias_tmp = NULL;
             if (bias)
                 bias_tmp = bias + i;
-            if (cpu_affinity == TENGINE_CLUSTER_LITTLE)
-                dw_k3s2p1_a53(cur_input, input_h, input_w, weight_buf + i * 9, cur_output, bias_tmp, activation);
-            else
-                dw_k3s2p1_a72(cur_input, input_h, input_w, weight_buf + i * 9, cur_output, bias_tmp, activation);
+            dw_k3s2p1_a72(cur_input, input_h, input_w, weight_buf + i * 9, cur_output, bias_tmp, activation);
         }
     }
 }
