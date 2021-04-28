@@ -185,7 +185,7 @@ void stat_free(void* ptr)
 
     mem_stat_skipped = 1;
 
-    remove_vector_by_idx(block_list, idx);
+    remove_vector_via_index(block_list, idx);
 
     mem_stat_skipped = 0;
 
