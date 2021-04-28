@@ -138,7 +138,7 @@ float iou(const Face2f& a, const Face2f& b)
     float xx1 = std::max(a.rect.x, b.rect.x);
     float yy1 = std::max(a.rect.y, b.rect.y);
     float xx2 = std::min(a.rect.x + a.rect.w, b.rect.x + b.rect.w);
-    float yy2 = std::min(a.rect.y + a.rect.w, b.rect.y + b.rect.h);
+    float yy2 = std::min(a.rect.y + a.rect.h, b.rect.y + b.rect.h);
 
     float w = std::max(float(0), xx2 - xx1 + 1);
     float h = std::max(float(0), yy2 - yy1 + 1);
