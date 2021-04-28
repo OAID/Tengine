@@ -633,7 +633,7 @@ int main(int argc, char** argv)
     cv::Mat m = cv::imread(image_file, 1);
     if (m.empty())
     {
-        fprintf(stderr, "cv::imread %s failed\n", image_file);
+        fprintf(stderr, "cv::imread %s failed\n", image_file.c_str());
         return -1;
     }
 
