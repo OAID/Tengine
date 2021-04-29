@@ -36,11 +36,6 @@
 #include "device/cpu/cpu_graph.h"
 #include "device/cpu/cpu_module.h"
 
-#ifdef CONFIG_AUTH_DEVICE
-#include <sys/time.h>
-#include "auth.h"
-#endif
-
 
 static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
@@ -57,15 +52,6 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
     struct deconv_param* deconv_param = ( struct deconv_param* )ir_node->op.param_mem;
-
-#ifdef CONFIG_AUTH_DEVICE
-    node_ops->InitTimeLimited(node_ops);
-    bool float_enabled = get_auth_float_enabled();
-    if (!float_enabled)
-    {
-        return -1;
-    }
-#endif
 
     /* prerun now */
     if (deconv_hcl_prerun(input_tensor, filter_tensor, output_tensor, deconv_priv_info, deconv_param) < 0)
@@ -98,11 +84,6 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct deconv_param* deconv_param = ( struct deconv_param* )ir_node->op.param_mem;
     struct deconv_priv_info* deconv_priv_info = ( struct deconv_priv_info* )exec_node->ops_priv;
 
-#ifdef CONFIG_AUTH_DEVICE
-    if (node_ops->skip_run)
-        return -1;
-#endif
-
     if (deconv_hcl_run(input_tensor, weight_tensor, bias_tensor, output_tensor, deconv_priv_info, deconv_param,
                        num_thread, cpu_affinity) < 0)
     {
@@ -110,20 +91,6 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         set_tengine_errno(EFAULT);
         return -1;
     }
-
-#ifdef CONFIG_AUTH_DEVICE
-    if (node_ops->time_limited && (!(node_ops->run_count & IGNORE_AUTH_TIMES)))
-    {
-        struct timeval tv;
-        gettimeofday(&tv, NULL);
-
-        if ((tv.tv_sec - node_ops->tv_start) >= node_ops->time_limited)
-        {
-            node_ops->skip_run = true;
-        }
-    }
-    node_ops->run_count++;
-#endif
 
     return 0;
 }
@@ -184,16 +151,6 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_PREFER;
 }
 
-#ifdef CONFIG_AUTH_DEVICE
-static void InitTimeLimited(struct node_ops* node_ops)
-{
-    node_ops->time_limited = get_auth_time_limited();
-    node_ops->run_count = 0;
-    node_ops->skip_run = get_auth_skip_run();
-    node_ops->tv_start = get_auth_time_start();
-}
-#endif
-
 static struct node_ops hcl_node_ops = {.prerun = prerun,
                                        .run = run,
                                        .reshape = reshape,
@@ -201,10 +158,6 @@ static struct node_ops hcl_node_ops = {.prerun = prerun,
                                        .init_node = init_node,
                                        .release_node = release_node,
                                        .score = score
-#ifdef CONFIG_AUTH_DEVICE
-                                       ,
-                                       .InitTimeLimited = InitTimeLimited
-#endif
 };
 
 int register_deconv_hcl_arm_op(void* arg)

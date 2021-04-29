@@ -82,14 +82,6 @@ struct node_ops
 
     /* score */
     int (*score)(struct node_ops*, struct exec_graph*, struct node*);
-
-#ifdef CONFIG_AUTH_DEVICE
-    void (*InitTimeLimited)(struct node_ops*);
-    unsigned long time_limited;
-    bool skip_run;
-    int run_count;
-    unsigned long tv_start;
-#endif
 };
 
 int init_exec_node(struct exec_graph* exec_graph, struct exec_node* exec_node, struct node* ir_node, struct node_ops* node_ops);
