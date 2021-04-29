@@ -385,6 +385,12 @@ IF (TENGINE_ENABLE_CUDA)
     ENDIF()
 ENDIF()
 
+# deal with depends
+
+FOREACH(_var ${TENGINE_DEVICE_DEPENDS_FORWARD})
+    ADD_DEPENDENCIES(${TENGINE_LITE_NAME}-static ${_var})
+    ADD_DEPENDENCIES(${TENGINE_LITE_NAME}        ${_var})
+ENDFOREACH()
 
 # debug macro information
 IF (TENGINE_DEBUG_MEM_STAT)
