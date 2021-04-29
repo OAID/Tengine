@@ -38,19 +38,8 @@
 
 #include <string.h>
 
-
-#ifdef CONFIG_AUTH_DEVICE
-#include <sys/time.h>
-#include "auth.h"
-#endif
-
 #if __ARM_FEATURE_FP16_VECTOR_ARITHMETIC
 #include "cortex_a/conv_dw_kernel_fp16_arm82.h"
-#endif
-
-#ifdef CONFIG_AUTH_DEVICE
-#include <sys/time.h>
-#include "auth.h"
 #endif
 
 static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
@@ -63,17 +52,6 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
 
     struct conv_param* conv_param = ( struct conv_param* )ir_node->op.param_mem;
     struct conv_priv_info* conv_priv_info = ( struct conv_priv_info* )exec_node->ops_priv;
-
-#ifdef CONFIG_AUTH_DEVICE
-    node_ops->InitTimeLimited(node_ops);
-
-    bool float_enabled = get_auth_float_enabled();
-    bool int8_enabled = get_auth_int8_enabled();
-    if (!float_enabled || !int8_enabled)
-    {
-        return -1;
-    }
-#endif
 
     /* get cpu affinity */
     conv_priv_info->cpu_type = exec_graph->cpu_affinity;
@@ -125,11 +103,6 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct conv_param* conv_param = ( struct conv_param* )ir_node->op.param_mem;
     struct conv_priv_info* conv_priv_info = ( struct conv_priv_info* )exec_node->ops_priv;
 
-#ifdef CONFIG_AUTH_DEVICE
-    if (node_ops->skip_run)
-        return -1;
-#endif
-
     /* fp32 run */
     if (exec_graph->mode == TENGINE_MODE_FP32)
     {
@@ -166,20 +139,6 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         TLOG_ERR("Tengine work node not support %d\n", exec_graph->mode);
         return -1;
     }
-
-#ifdef CONFIG_AUTH_DEVICE
-    if (node_ops->time_limited && (!(node_ops->run_count & IGNORE_AUTH_TIMES)))
-    {
-        struct timeval tv;
-        gettimeofday(&tv, NULL);
-
-        if ((tv.tv_sec - node_ops->tv_start) >= node_ops->time_limited)
-        {
-            node_ops->skip_run = true;
-        }
-    }
-    node_ops->run_count++;
-#endif
 
     return 0;
 }
@@ -288,16 +247,6 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
         return 0;
 }
 
-#ifdef CONFIG_AUTH_DEVICE
-static void InitTimeLimited(struct node_ops* node_ops)
-{
-    node_ops->time_limited = get_auth_time_limited();
-    node_ops->run_count = 0;
-    node_ops->skip_run = get_auth_skip_run();
-    node_ops->tv_start = get_auth_time_start();
-}
-#endif
-
 static struct node_ops hcl_node_ops = {.prerun = prerun,
         .run = run,
         .reshape = NULL,
@@ -305,10 +254,6 @@ static struct node_ops hcl_node_ops = {.prerun = prerun,
         .init_node = init_node,
         .release_node = release_node,
         .score = score
-#ifdef CONFIG_AUTH_DEVICE
-        ,
-                                       .InitTimeLimited = InitTimeLimited
-#endif
 };
 
 int register_conv_dw_hcl_arm_op(void* arg)

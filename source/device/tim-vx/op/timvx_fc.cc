@@ -39,8 +39,16 @@ bool VXEngine::AddFullyConnectionNode(struct node* ir_node)
     struct tensor* weight_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
+    int fc_dim_nim = 2;
+    auto fc_shape_size = this->vx_tensor_map[input_tensor->index].get()->GetShape().size();
+    if (fc_shape_size == 2)
+    {
+        fc_dim_nim = 0;
+    }
+
     auto fc = graph->CreateOperation<tim::vx::ops::FullyConnected>(
-        2, weight_tensor->dims[0]);
+            fc_dim_nim, weight_tensor->dims[0]);
+    vx_node_map[ir_node->index] = fc;
 
     if (ir_node->input_num > 2)
     {

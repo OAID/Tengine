@@ -35,6 +35,13 @@ cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/aarch64-linux-gnu.toolchain.cmake ..
 cmake --build . --parallel `nproc` && cmake --build . --target install
 popd
 
+##### linux for rv64-c906 toolchain
+mkdir -p build-aarch64-linux-gnu
+pushd build-aarch64-linux-gnu
+cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/rv64-c906.toolchain.cmake ..
+cmake --build . --parallel `nproc` && cmake --build . --target install
+popd
+
 ##### linux of hisiv200
 mkdir -p build-hisiv200-linux
 pushd build-hisiv200-linux

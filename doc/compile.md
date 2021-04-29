@@ -236,6 +236,7 @@ popd
 @ENDLOCAL
 ```
 
-## 6. 总结
+## 6.  使用 Microsoft Visual Studio 编译
 
-本文档只是简单指导如何编译对应的 Tengine Lite 版本，有需要可以参考 ` Tengine-Lite/build.sh` 文件。
+请参考 [Visual Studio 使用说明](visual_sudio_user_manual.md)。
+
