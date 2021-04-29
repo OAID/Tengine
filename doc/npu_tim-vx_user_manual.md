@@ -32,10 +32,10 @@ $ cd <tengine-lite-root-dir>
 $ mkdir -p ./3rdparty/tim-vx/lib/x86_64
 $ mkdir -p ./3rdparty/tim-vx/include
 $ cp -rf ../TIM-VX/include/*    ./3rdparty/tim-vx/include/
-$ cp -rf ../TIM-VX/src    ./src/dev/tim-vx/
+$ cp -rf ../TIM-VX/src    ./source/device/tim-vx/
 $ cp -rf ../TIM-VX/prebuilt-sdk/x86_64_linux/include/*    ./3rdparty/tim-vx/include/
 $ cp -rf ../TIM-VX/prebuilt-sdk/x86_64_linux/lib/*    ./3rdparty/tim-vx/lib/x86_64/
-$ rm ./src/dev/tim-vx/src/tim/vx/*_test.cc
+$ rm ./source/device/tim-vx/src/tim/vx/*_test.cc
 ```
 
 Build Tengine
@@ -62,10 +62,10 @@ $ cd <tengine-lite-root-dir>
 $ mkdir -p ./3rdparty/tim-vx/lib/aarch64
 $ mkdir -p ./3rdparty/tim-vx/include
 $ cp -rf ../TIM-VX/include/*    ./3rdparty/tim-vx/include/
-$ cp -rf ../TIM-VX/src    ./src/dev/tim-vx/
+$ cp -rf ../TIM-VX/src    ./source/device/tim-vx/
 $ cp -rf ../prebuild-sdk-a311d/include/*    ./3rdparty/tim-vx/include/
 $ cp -rf ../prebuild-sdk-a311d/lib/*    ./3rdparty/tim-vx/lib/aarch64/
-$ rm ./src/dev/tim-vx/src/tim/vx/*_test.cc
+$ rm ./source/device/tim-vx/src/tim/vx/*_test.cc
 ```
 
 **2.2.1 cross-compilation**
