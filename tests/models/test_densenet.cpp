@@ -30,7 +30,7 @@
 #include <fstream>
 #include <iomanip>
 
-#include "tengine_c_api.h"
+#include "tengine/c_api.h"
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
 

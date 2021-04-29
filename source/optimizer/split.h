@@ -1,0 +1,40 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * License); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * AS IS BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+/*
+ * Copyright (c) 2021, OPEN AI LAB
+ * Author: lswang@openailab.com
+ */
+
+#pragma once
+
+struct graph;
+struct subgraph;
+struct vector;
+
+
+int check_sub_info(struct graph* ir_graph);
+
+struct vector* get_graph_blocked_nodes(const struct graph* ir_graph, struct vector* blocked_ops, struct vector* allowed_precision);
+
+void split_graph_node_to_sub_graph(struct graph* ir_graph, struct vector* allowed_ops, struct vector* blocked_ops, struct vector* allowed_precision);
+
+void add_sub_graph_to_ir_graph(struct graph* ir_graph);
+
+void generate_sub_graph_io(struct graph* ir_graph);

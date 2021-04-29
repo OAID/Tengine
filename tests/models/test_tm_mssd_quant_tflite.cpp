@@ -32,7 +32,7 @@
 #include <algorithm>
 #include <math.h>
 #include "tengine_operations.h"
-#include "tengine_c_api.h"
+#include "tengine/c_api.h"
 
 #define DEF_MODEL "models/detect_tflite.tmfile"
 #define DEF_IMAGE "images/ssd_dog.jpg"

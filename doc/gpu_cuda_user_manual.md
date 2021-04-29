@@ -10,18 +10,13 @@ Todo
 
 On Ubuntu
 
-### setup nvcc enva
-```
-$ export CUDACXX=/usr/local/cuda/bin/nvcc
-```
 ### build
 ```bash
 $ cd <tengine-lite-root-dir>
 $ mkdir -p build-linux-cuda
-$ cmake -DTENGINE_ENABLE_CUDABACKEND=ON ..
+$ cmake -DTENGINE_ENABLE_CUDA=ON ..
 
 $ make -j4
-$ make install
 ```
 
 ## Demo

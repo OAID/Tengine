@@ -33,7 +33,7 @@
 #include <algorithm>
 
 #include "common.h"
-#include "tengine_c_api.h"
+#include "tengine/c_api.h"
 #include "tengine_operations.h"
 
 float s_anchors[] = {12, 16, 19, 36, 40, 28, 36, 75, 76, 55, 72, 146, 142, 110, 192, 243, 459, 401};

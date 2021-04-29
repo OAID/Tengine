@@ -1,0 +1,57 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * License); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * AS IS BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+/*
+ * Copyright (c) 2021, OPEN AI LAB
+ * Author: lswang@openailab.com
+ */
+
+#pragma once
+
+
+#define TE_ENABLE_MEMORY_CHECK
+
+#define TE_COMMON_ALIGN_SIZE        8
+#define TE_VECTOR_ALIGN_SIZE        TE_COMMON_ALIGN_SIZE
+
+#define TE_MAX_CONSUMER_NUM         8
+#define TE_MAX_SHAPE_DIM_NUM        8
+
+#define TE_COMPILER_HAS_FP16        0
+#define TE_COMPILER_HAS_BP16        0
+
+#define MODEL_FORMAT_UNKNOWN        0
+#define MODEL_FORMAT_TENGINE        1
+#define MODEL_FORMAT_CAFFE          2
+#define MODEL_FORMAT_ONNX           3
+#define MODEL_FORMAT_MXNET          4
+#define MODEL_FORMAT_TENSORFLOW     5
+#define MODEL_FORMAT_TFLITE         6
+#define MODEL_FORMAT_DLA            7
+
+#define TE_NODE_TYPE_INTER          1
+#define TE_NODE_TYPE_INPUT          2
+#define TE_NODE_TYPE_OUTPUT         4
+
+#define TE_DEFAULT_LOG_LEVEL        LOG_DEBUG
+#define TE_MAX_LOG_LENGTH           256
+
+#cmakedefine TENGINE_HAS_LIB_POSIX_THREAD
+#cmakedefine TENGINE_HAS_INC_SYSLOG
+#cmakedefine TENGINE_ENABLE_ENV_VAR

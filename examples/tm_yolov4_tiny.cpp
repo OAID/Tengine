@@ -34,7 +34,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 
 #include "common.h"
-#include "tengine_c_api.h"
+#include "tengine/c_api.h"
 #include "tengine_operations.h"
 
 struct Object

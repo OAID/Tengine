@@ -27,6 +27,7 @@ jobs:
         unzip images.zip
     - name: test
       run: |
+        chmod +x ./tests/test.sh
         cd build
         ../tests/test.sh
 
@@ -78,6 +79,7 @@ jobs:
     - name: test
       run: |
         export PATH=$GITHUB_WORKSPACE/qemu-install/bin:$PATH
+        chmod +x ./tests/test_arm32.sh
         cd build
         ../tests/test_arm32.sh
 
@@ -129,6 +131,7 @@ jobs:
     - name: test
       run: |
         export PATH=$GITHUB_WORKSPACE/qemu-install/bin:$PATH
+        chmod +x ./tests/test_arm64.sh
         cd build
         ../tests/test_arm64.sh
         
@@ -144,20 +147,13 @@ jobs:
     - name: tim-vx
       run: |
         git clone https://github.com/VeriSilicon/TIM-VX.git
-        cd  TIM-VX
-        mkdir build && cd build && cmake .. && make -j2
-        cd ../.. 
         export LD_LIBRARY_PATH=${PWD}/3rdparty/tim-vx/lib/x86_64
-        mkdir -p ./3rdparty/tim-vx/lib/x86_64
         mkdir -p ./3rdparty/tim-vx/include
-        cp -rvf ./TIM-VX/include/*    ./3rdparty/tim-vx/include/
-        cp -rvf ./TIM-VX/src    ./src/dev/tim-vx/
-        cp -rvf ./TIM-VX/prebuilt-sdk/x86_64_linux/include/*    ./3rdparty/tim-vx/include/
-        cp -rvf ./TIM-VX/prebuilt-sdk/x86_64_linux/lib/*    ./3rdparty/tim-vx/lib/x86_64/
-        rm ./src/dev/tim-vx/src/tim/vx/context_test.cc
-        rm ./src/dev/tim-vx/src/tim/vx/graph_test.cc
-        cp -rvf ./TIM-VX/build/src/tim/vx/libtim-vx.so   ./3rdparty/tim-vx/lib/x86_64/
-        export 
+        mkdir -p ./3rdparty/tim-vx/lib/x86_64
+        cp -rvf ./TIM-VX/prebuilt-sdk/x86_64_linux/include/*  ./3rdparty/tim-vx/include/
+        cp -rvf ./TIM-VX/prebuilt-sdk/x86_64_linux/lib/*      ./3rdparty/tim-vx/lib/x86_64/
+        cp -rvf ./TIM-VX/include  ./source/device/tim-vx/
+        cp -rvf ./TIM-VX/src      ./source/device/tim-vx/
     - name: configure
       run: mkdir build && cd build && cmake -DTENGINE_ENABLE_TIM_VX=ON ..
     - name: build

@@ -28,7 +28,7 @@
 #include <string>
 #include <vector>
 #include "tengine_operations.h"
-#include "tengine_c_api.h"
+#include "tengine/c_api.h"
 #include <sys/time.h>
 #include "common.hpp"
 #include <fstream>
