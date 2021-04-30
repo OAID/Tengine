@@ -100,7 +100,7 @@ static void release_op(struct op* op)
 }
 
 
-int register_swap_axis_op(void* arg)
+int register_swap_axis_op()
 {
     struct method m;
 
@@ -112,7 +112,7 @@ int register_swap_axis_op(void* arg)
 }
 
 
-int unregister_swap_axis_op(void* arg)
+int unregister_swap_axis_op()
 {
     return unregister_op(OP_SWAP_AXIS, 1);
 }

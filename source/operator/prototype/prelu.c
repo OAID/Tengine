@@ -52,7 +52,7 @@ static int init_op(struct op* op)
 static void release_op(struct op* op) {}
 
 
-int register_prelu_op(void* arg)
+int register_prelu_op()
 {
     struct method m;
 
@@ -65,7 +65,7 @@ int register_prelu_op(void* arg)
 }
 
 
-int unregister_prelu_op(void* arg)
+int unregister_prelu_op()
 {
     return unregister_op(OP_PRELU, 1);
 }

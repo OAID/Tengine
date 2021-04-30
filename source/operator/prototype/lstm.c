@@ -105,7 +105,7 @@ static void release_op(struct op* op)
 }
 
 
-int register_lstm_op(void* arg)
+int register_lstm_op()
 {
     struct method m;
 
@@ -117,7 +117,7 @@ int register_lstm_op(void* arg)
 }
 
 
-int unregister_lstm_op(void* arg)
+int unregister_lstm_op()
 {
     return unregister_op(OP_LSTM, 1);
 }

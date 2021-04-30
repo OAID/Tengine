@@ -52,7 +52,7 @@ static int init_op(struct op* op)
 static void release_op(struct op* op) {}
 
 
-int register_mish_op(void* arg)
+int register_mish_op()
 {
     struct method m;
 
@@ -64,7 +64,7 @@ int register_mish_op(void* arg)
 }
 
 
-int unregister_mish_op(void* arg)
+int unregister_mish_op()
 {
     return unregister_op(OP_MISH, 1);
 }

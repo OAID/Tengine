@@ -409,12 +409,12 @@ static struct node_ops detection_output_node_ops = {.prerun = NULL,
                                                     .release_node = release_node,
                                                     .score = score};
 
-int register_detection_output_ref_op(void* arg)
+int register_detection_output_ref_op()
 {
     return register_builtin_node_ops(OP_DETECTION_OUTPUT, &detection_output_node_ops);
 }
 
-int unregister_detection_output_ref_op(void* arg)
+int unregister_detection_output_ref_op()
 {
     return unregister_builtin_node_ops(OP_DETECTION_OUTPUT, &detection_output_node_ops);
 }

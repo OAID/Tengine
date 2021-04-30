@@ -95,7 +95,7 @@ static void release_op(struct op* op)
 }
 
 
-int register_resize_op(void* arg)
+int register_resize_op()
 {
     struct method m;
 
@@ -107,7 +107,7 @@ int register_resize_op(void* arg)
 }
 
 
-int unregister_resize_op(void* arg)
+int unregister_resize_op()
 {
     return unregister_op(OP_RESIZE, 1);
 }

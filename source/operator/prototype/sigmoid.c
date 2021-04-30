@@ -56,7 +56,7 @@ static void release_op(ir_op_t* op)
 }
 
 
-int register_sigmoid_op(void* arg)
+int register_sigmoid_op()
 {
     ir_method_t m;
 
@@ -69,7 +69,7 @@ int register_sigmoid_op(void* arg)
 }
 
 
-int unregister_sigmoid_op(void* arg)
+int unregister_sigmoid_op()
 {
     // sys_free(GET_PARAM_PARSE_MAP(sigmoid_param));
     return unregister_op(OP_SIGMOID, 1);

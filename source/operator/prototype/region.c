@@ -59,7 +59,7 @@ static void release_op(struct op* op)
 }
 
 
-int register_region_op(void* arg)
+int register_region_op()
 {
     struct method m;
 
@@ -71,7 +71,7 @@ int register_region_op(void* arg)
 }
 
 
-int unregister_region_op(void* arg)
+int unregister_region_op()
 {
     return unregister_op(OP_REGION, 1);
 }

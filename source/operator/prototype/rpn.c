@@ -176,7 +176,7 @@ static void release_op(struct op* op)
 }
 
 
-int register_rpn_op(void* arg)
+int register_rpn_op()
 {
     struct method m;
 
@@ -189,7 +189,7 @@ int register_rpn_op(void* arg)
 }
 
 
-int unregister_rpn_op(void* arg)
+int unregister_rpn_op()
 {
     return unregister_op(OP_RPN, 1);
 }

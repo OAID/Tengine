@@ -131,12 +131,12 @@ static struct node_ops minimum_node_ops = {.prerun = prerun,
                                            .release_node = release_node,
                                            .score = score};
 
-int register_minimum_ref_op(void* arg)
+int register_minimum_ref_op()
 {
     return register_builtin_node_ops(OP_MINIMUM, &minimum_node_ops);
 }
 
-int unregister_minimum_ref_op(void* arg)
+int unregister_minimum_ref_op()
 {
     return unregister_builtin_node_ops(OP_MINIMUM, &minimum_node_ops);
 }

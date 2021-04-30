@@ -205,12 +205,12 @@ static struct node_ops argmin_node_ops = {.prerun = prerun,
                                           .release_node = release_node,
                                           .score = score};
 
-int register_argmin_ref_op(void* arg)
+int register_argmin_ref_op()
 {
     return register_builtin_node_ops(OP_ARGMIN, &argmin_node_ops);
 }
 
-int unregister_argmin_ref_op(void* arg)
+int unregister_argmin_ref_op()
 {
     return unregister_builtin_node_ops(OP_ARGMIN, &argmin_node_ops);
 }

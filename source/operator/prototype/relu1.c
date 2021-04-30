@@ -56,7 +56,7 @@ static int init_op(ir_op_t* op)
 static void release_op(ir_op_t* op) {}
 
 
-int register_relu1_op(void* arg)
+int register_relu1_op()
 {
     ir_method_t m;
 
@@ -68,7 +68,7 @@ int register_relu1_op(void* arg)
 }
 
 
-int unregister_relu1_op(void* arg)
+int unregister_relu1_op()
 {
     return unregister_op(OP_RELU1, 1);
 }

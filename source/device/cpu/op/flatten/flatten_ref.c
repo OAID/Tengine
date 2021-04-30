@@ -102,12 +102,12 @@ static struct node_ops flatten_node_ops = {.prerun = NULL,
                                            .release_node = release_node,
                                            .score = score};
 
-int register_flatten_ref_op(void* arg)
+int register_flatten_ref_op()
 {
     return register_builtin_node_ops(OP_FLATTEN, &flatten_node_ops);
 }
 
-int unregister_flatten_ref_op(void* arg)
+int unregister_flatten_ref_op()
 {
     return unregister_builtin_node_ops(OP_FLATTEN, &flatten_node_ops);
 }

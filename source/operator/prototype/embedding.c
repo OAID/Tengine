@@ -82,7 +82,7 @@ static void release_op(struct op* op)
 }
 
 
-int register_embedding_op(void* arg)
+int register_embedding_op()
 {
     struct method m;
 
@@ -95,7 +95,7 @@ int register_embedding_op(void* arg)
 }
 
 
-int unregister_embedding_op(void* arg)
+int unregister_embedding_op()
 {
     return unregister_op(OP_EMBEDDING, 1);
 }

@@ -51,7 +51,7 @@ static int init_op(struct op* op)
 static void release_op(struct op* op) {}
 
 
-int register_ceil_op(void* arg)
+int register_ceil_op()
 {
     struct method m;
 
@@ -63,7 +63,7 @@ int register_ceil_op(void* arg)
 }
 
 
-int unregister_ceil_op(void* arg)
+int unregister_ceil_op()
 {
     return unregister_op(OP_CEIL, 1);
 }

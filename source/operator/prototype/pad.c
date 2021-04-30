@@ -96,7 +96,7 @@ static void release_op(ir_op_t* op)
 }
 
 
-int register_pad_op(void* arg)
+int register_pad_op()
 {
     ir_method_t m;
 
@@ -108,7 +108,7 @@ int register_pad_op(void* arg)
 }
 
 
-int unregister_pad_op(void* arg)
+int unregister_pad_op()
 {
     return unregister_op(OP_PAD, 1);
 }

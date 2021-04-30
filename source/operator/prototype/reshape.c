@@ -193,7 +193,7 @@ static void release_op(struct op* op)
 }
 
 
-int register_reshape_op(void* arg)
+int register_reshape_op()
 {
     struct method m;
 
@@ -205,7 +205,7 @@ int register_reshape_op(void* arg)
 }
 
 
-int unregister_reshape_op(void* arg)
+int unregister_reshape_op()
 {
     return unregister_op(OP_RESHAPE, 1);
 }

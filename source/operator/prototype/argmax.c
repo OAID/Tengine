@@ -114,7 +114,7 @@ static void release_op(struct op* op)
 }
 
 
-int register_argmax_op(void* arg)
+int register_argmax_op()
 {
     struct method m;
     m.version = 1;
@@ -125,7 +125,7 @@ int register_argmax_op(void* arg)
 }
 
 
-int unregister_argmax_op(void* arg)
+int unregister_argmax_op()
 {
     return unregister_op(OP_ARGMAX, 1);
 }

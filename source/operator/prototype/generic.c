@@ -87,7 +87,7 @@ static void release_op(struct op* op)
 }
 
 
-int register_generic_op(void* arg)
+int register_generic_op()
 {
     struct method m;
 
@@ -99,7 +99,7 @@ int register_generic_op(void* arg)
 }
 
 
-int unregister_generic_op(void* arg)
+int unregister_generic_op()
 {
     return unregister_op(OP_GENERIC, 1);
 }

@@ -50,7 +50,7 @@ static int init_op(struct op* op)
 
 static void release_op(struct op* op) {}
 
-int register_reciprocal_op(void* arg)
+int register_reciprocal_op()
 {
     struct method m;
 
@@ -61,7 +61,7 @@ int register_reciprocal_op(void* arg)
     return register_op(OP_RECIPROCAL, OP_RECIPROCAL_NAME, &m);
 }
 
-int unregister_reciprocal_op(void* arg)
+int unregister_reciprocal_op()
 {
     return unregister_op(OP_RECIPROCAL, 1);
 }

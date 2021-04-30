@@ -41,7 +41,7 @@ static int init_op(struct op* op)
 static void release_op(struct op* op) {}
 
 
-int register_dropout_op(void* arg)
+int register_dropout_op()
 {
     struct method m;
 
@@ -53,7 +53,7 @@ int register_dropout_op(void* arg)
 }
 
 
-int unregister_dropout_op(void* arg)
+int unregister_dropout_op()
 {
     return unregister_op(OP_DROPOUT, 1);
 }

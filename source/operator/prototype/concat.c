@@ -132,7 +132,7 @@ static void release_op(ir_op_t* op)
 }
 
 
-int register_concat_op(void* arg)
+int register_concat_op()
 {
     ir_method_t m;
 
@@ -144,7 +144,7 @@ int register_concat_op(void* arg)
 }
 
 
-int unregister_concat_op(void* arg)
+int unregister_concat_op()
 {
     return unregister_op(OP_CONCAT, 1);
 }

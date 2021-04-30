@@ -75,7 +75,7 @@ static void release_op(struct op* op)
 }
 
 
-int register_lrn_op(void* arg)
+int register_lrn_op()
 {
     struct method m;
 
@@ -88,7 +88,7 @@ int register_lrn_op(void* arg)
 }
 
 
-int unregister_lrn_op(void* arg)
+int unregister_lrn_op()
 {
     return unregister_op(OP_LRN, 1);
 }

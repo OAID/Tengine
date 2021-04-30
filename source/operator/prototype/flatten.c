@@ -88,7 +88,7 @@ static void release_op(struct op* op)
 }
 
 
-int register_flatten_op(void* arg)
+int register_flatten_op()
 {
     struct method m;
 
@@ -101,7 +101,7 @@ int register_flatten_op(void* arg)
 }
 
 
-int unregister_flatten_op(void* arg)
+int unregister_flatten_op()
 {
     return unregister_op(OP_FLATTEN, 1);
 }

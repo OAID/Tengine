@@ -73,7 +73,7 @@ static void release_op(ir_op_t* op)
 }
 
 
-int register_softmax_op(void* arg)
+int register_softmax_op()
 {
     ir_method_t m;
 
@@ -85,7 +85,7 @@ int register_softmax_op(void* arg)
 }
 
 
-int unregister_softmax_op(void* arg)
+int unregister_softmax_op()
 {
     return unregister_op(OP_SOFTMAX, 1);
 }

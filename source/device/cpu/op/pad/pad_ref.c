@@ -236,12 +236,12 @@ static struct node_ops pad_node_ops = {.prerun = NULL,
         .score = score
 };
 
-int register_pad_ref_op(void* arg)
+int register_pad_ref_op()
 {
     return register_builtin_node_ops(OP_PAD, &pad_node_ops);
 }
 
-int unregister_pad_ref_op(void* arg)
+int unregister_pad_ref_op()
 {
     return unregister_builtin_node_ops(OP_PAD, &pad_node_ops);
 }

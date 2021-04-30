@@ -41,7 +41,7 @@ static int init_op(ir_op_t* op)
 static void release_op(ir_op_t* op) {}
 
 
-int register_input_op(void* arg)
+int register_input_op()
 {
     ir_method_t m;
 
@@ -53,7 +53,7 @@ int register_input_op(void* arg)
 }
 
 
-int unregister_input_op(void* arg)
+int unregister_input_op()
 {
     return unregister_op(OP_INPUT, 1);
 }

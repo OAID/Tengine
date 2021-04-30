@@ -71,7 +71,7 @@ static void release_op(struct op* op)
 }
 
 
-int register_logsoftmax_op(void* arg)
+int register_logsoftmax_op()
 {
     struct method m;
     m.version = 1;
@@ -82,7 +82,7 @@ int register_logsoftmax_op(void* arg)
 }
 
 
-int unregister_logsoftmax_op(void* arg)
+int unregister_logsoftmax_op()
 {
     return unregister_op(OP_LOGSOFTMAX,1);
 }

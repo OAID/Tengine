@@ -55,7 +55,7 @@ static int init_op(struct op* op)
 static void release_op(struct op* op) {}
 
 
-int register_where_op(void* arg)
+int register_where_op()
 {
     struct method m;
 
@@ -67,7 +67,7 @@ int register_where_op(void* arg)
 }
 
 
-int unregister_where_op(void* arg)
+int unregister_where_op()
 {
     return unregister_op(OP_WHERE, 1);
 }

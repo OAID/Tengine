@@ -87,7 +87,7 @@ static void release_op(struct op* op)
 }
 
 
-int register_batchtospacend_op(void* arg)
+int register_batchtospacend_op()
 {
     struct method m;
 
@@ -100,7 +100,7 @@ int register_batchtospacend_op(void* arg)
 }
 
 
-int unregister_batchtospacend_op(void* arg)
+int unregister_batchtospacend_op()
 {
     return unregister_op(OP_BATCHTOSPACEND, 1);
 }

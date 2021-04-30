@@ -57,7 +57,7 @@ static int tm2_load_fc(struct graph* ir_graph, struct node* ir_node, const TM2_N
 }
 
 
-int register_tm2_fc_op(void* arg)
+int register_tm2_fc_op()
 {
     struct serializer* tm2_s = find_serializer_via_name("tengine");
 
@@ -73,7 +73,7 @@ int register_tm2_fc_op(void* arg)
 }
 
 
-int unregister_tm2_fc_op(void* arg)
+int unregister_tm2_fc_op()
 {
     struct serializer* tm2_s = find_serializer_via_name("tengine");
 

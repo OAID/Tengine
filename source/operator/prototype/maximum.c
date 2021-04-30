@@ -37,7 +37,7 @@ static int init_op(struct op* op)
 }
 
 
-int register_maximum_op(void* arg)
+int register_maximum_op()
 {
     struct method m;
     m.version = 1;
@@ -48,7 +48,7 @@ int register_maximum_op(void* arg)
 }
 
 
-int unregister_maximum_op(void* arg)
+int unregister_maximum_op()
 {
     return unregister_op(OP_MAXIMUM, 1);
 }

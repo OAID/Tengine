@@ -162,7 +162,7 @@ static void release_op(ir_op_t* op)
 }
 
 
-int register_pooling_op(void* arg)
+int register_pooling_op()
 {
     ir_method_t m;
 
@@ -174,7 +174,7 @@ int register_pooling_op(void* arg)
 }
 
 
-int unregister_pooling_op(void* arg)
+int unregister_pooling_op()
 {
     return unregister_op(OP_POOL, 1);
 }

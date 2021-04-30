@@ -59,7 +59,7 @@ static void release_op(struct op* op)
 }
 
 
-int register_normalize_op(void* arg)
+int register_normalize_op()
 {
     struct method m;
 
@@ -71,7 +71,7 @@ int register_normalize_op(void* arg)
 }
 
 
-int unregister_normalize_op(void* arg)
+int unregister_normalize_op()
 {
     return unregister_op(OP_NORMALIZE, 1);
 }

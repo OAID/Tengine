@@ -136,7 +136,7 @@ static void release_op(struct op* op)
     sys_free(op->param_mem);
 }
 
-int register_deconvolution_op(void* arg)
+int register_deconvolution_op()
 {
     struct method m;
 
@@ -148,7 +148,7 @@ int register_deconvolution_op(void* arg)
     return register_op(OP_DECONV, OP_DECONV_NAME, &m);
 }
 
-int unregister_deconvolution_op(void* arg)
+int unregister_deconvolution_op()
 {
     return unregister_op(OP_DECONV, 1);
 }

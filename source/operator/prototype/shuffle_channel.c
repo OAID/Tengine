@@ -73,7 +73,7 @@ static void release_op(struct op* op)
 }
 
 
-int register_shuffle_channel_op(void* arg)
+int register_shuffle_channel_op()
 {
     struct method m;
 
@@ -85,7 +85,7 @@ int register_shuffle_channel_op(void* arg)
 }
 
 
-int unregister_shuffle_channel_op(void* arg)
+int unregister_shuffle_channel_op()
 {
     return unregister_op(OP_SHUFFLECHANNEL, 1);
 }

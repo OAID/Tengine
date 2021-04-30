@@ -139,12 +139,12 @@ static struct node_ops hcl_node_ops = {.prerun = prerun,
                                        .release_node = release_node,
                                        .score = score};
 
-int register_round_ref_op(void* arg)
+int register_round_ref_op()
 {
     return register_builtin_node_ops(OP_ROUND, &hcl_node_ops);
 }
 
-int unregister_round_ref_op(void* arg)
+int unregister_round_ref_op()
 {
     return unregister_builtin_node_ops(OP_ROUND, &hcl_node_ops);
 }

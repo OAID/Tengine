@@ -57,7 +57,7 @@ static void release_op(ir_op_t* op)
 }
 
 
-int register_cast_op(void* arg)
+int register_cast_op()
 {
     ir_method_t m;
 
@@ -69,7 +69,7 @@ int register_cast_op(void* arg)
 }
 
 
-int unregister_cast_op(void* arg)
+int unregister_cast_op()
 {
     return unregister_op(OP_CAST, 1);
 }

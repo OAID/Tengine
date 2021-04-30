@@ -127,12 +127,12 @@ static struct node_ops reducel2_node_ops = {.prerun = NULL,
                                             .release_node = release_node,
                                             .score = score};
 
-int register_reducel2_ref_op(void* arg)
+int register_reducel2_ref_op()
 {
     return register_builtin_node_ops(OP_REDUCEL2, &reducel2_node_ops);
 }
 
-int unregister_reducel2_ref_op(void* arg)
+int unregister_reducel2_ref_op()
 {
     return unregister_builtin_node_ops(OP_REDUCEL2, &reducel2_node_ops);
 }

@@ -100,7 +100,7 @@ static void release_op(struct op* op)
 }
 
 
-int register_strided_slice_op(void* arg)
+int register_strided_slice_op()
 {
     struct method m;
 
@@ -112,7 +112,7 @@ int register_strided_slice_op(void* arg)
 }
 
 
-int unregister_strided_slice_op(void* arg)
+int unregister_strided_slice_op()
 {
     return unregister_op(OP_STRIDED_SLICE, 1);
 }

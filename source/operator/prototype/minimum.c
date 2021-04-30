@@ -39,7 +39,7 @@ static int init_op(struct op* op)
 }
 
 
-int register_minimum_op(void* arg)
+int register_minimum_op()
 {
     struct method m;
     m.version = 1;
@@ -50,7 +50,7 @@ int register_minimum_op(void* arg)
 }
 
 
-int unregister_minimum_op(void* arg)
+int unregister_minimum_op()
 {
     return unregister_op(OP_MINIMUM, 1);
 }

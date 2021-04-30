@@ -71,7 +71,7 @@ static void release_op(ir_op_t* op)
 }
 
 
-int register_elu_op(void* arg)
+int register_elu_op()
 {
     ir_method_t m;
 
@@ -83,7 +83,7 @@ int register_elu_op(void* arg)
 }
 
 
-int unregister_elu_op(void* arg)
+int unregister_elu_op()
 {
     return unregister_op(OP_ELU, 1);
 }
