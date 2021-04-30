@@ -86,7 +86,7 @@ static void release_op(struct op* op)
 }
 
 
-int register_reorg_op(void* arg)
+int register_reorg_op()
 {
     struct method m;
 
@@ -98,7 +98,7 @@ int register_reorg_op(void* arg)
 }
 
 
-int unregister_reorg_op(void* arg)
+int unregister_reorg_op()
 {
     return unregister_op(OP_REORG, 1);
 }

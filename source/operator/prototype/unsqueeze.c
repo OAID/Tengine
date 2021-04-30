@@ -131,7 +131,7 @@ static void release_op(struct op* op)
 }
 
 
-int register_unsqueeze_op(void* arg)
+int register_unsqueeze_op()
 {
     struct method m;
 
@@ -143,7 +143,7 @@ int register_unsqueeze_op(void* arg)
 }
 
 
-int unregister_unsqueeze_op(void* arg)
+int unregister_unsqueeze_op()
 {
     return unregister_op(OP_UNSQUEEZE, 1);
 }

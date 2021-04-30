@@ -92,7 +92,7 @@ static void release_op(struct op* op)
 }
 
 
-int register_logical_op(void* arg)
+int register_logical_op()
 {
     struct method m;
 
@@ -104,7 +104,7 @@ int register_logical_op(void* arg)
 }
 
 
-int unregister_logical_op(void* arg)
+int unregister_logical_op()
 {
     return unregister_op(OP_LOGICAL, 1);
 }

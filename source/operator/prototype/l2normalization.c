@@ -55,7 +55,7 @@ static int init_op(struct op* op)
 static void release_op(struct op* op) {}
 
 
-int register_l2normalization_op(void* arg)
+int register_l2normalization_op()
 {
     struct method m;
 
@@ -67,7 +67,7 @@ int register_l2normalization_op(void* arg)
 }
 
 
-int unregister_l2normalization_op(void* arg)
+int unregister_l2normalization_op()
 {
     return unregister_op(OP_L2NORMALIZATION, 1);
 }

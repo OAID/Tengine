@@ -71,7 +71,7 @@ static void release_op(struct op* op)
 }
 
 
-int register_threshold_op(void* arg)
+int register_threshold_op()
 {
     struct method m;
 
@@ -83,7 +83,7 @@ int register_threshold_op(void* arg)
 }
 
 
-int unregister_threshold_op(void* arg)
+int unregister_threshold_op()
 {
     return unregister_op(OP_THRESHOLD, 1);
 }

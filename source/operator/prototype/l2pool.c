@@ -89,7 +89,7 @@ static void release_op(struct op* op)
 }
 
 
-int register_l2pool_op(void* arg)
+int register_l2pool_op()
 {
     struct method m;
     m.version = 1;
@@ -102,7 +102,7 @@ int register_l2pool_op(void* arg)
 }
 
 
-int unregister_l2pool_op(void* arg)
+int unregister_l2pool_op()
 {
     return unregister_op(OP_L2POOL,1);
 }

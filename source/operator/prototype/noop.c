@@ -44,7 +44,7 @@ static void release_op(struct op* op)
 }
 
 
-int register_noop_op(void* arg)
+int register_noop_op()
 {
     struct method m;
 
@@ -56,7 +56,7 @@ int register_noop_op(void* arg)
 }
 
 
-int unregister_noop_op(void* arg)
+int unregister_noop_op()
 {
     return unregister_op(OP_NOOP, 1);
 }

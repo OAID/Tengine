@@ -73,7 +73,7 @@ static void release_op(struct op* op)
 }
 
 
-int register_unary_op(void* arg)
+int register_unary_op()
 {
     struct method m;
 
@@ -86,7 +86,7 @@ int register_unary_op(void* arg)
 }
 
 
-int unregister_unary_op(void* arg)
+int unregister_unary_op()
 {
     return unregister_op(OP_UNARY, 1);
 }

@@ -240,12 +240,12 @@ static struct node_ops hcl_node_ops = {.prerun = prerun,
                                        .release_node = release_node,
                                        .score = score};
 
-int register_topkv2_ref_op(void* arg)
+int register_topkv2_ref_op()
 {
     return register_builtin_node_ops(OP_TOPKV2, &hcl_node_ops);
 }
 
-int unregister_topkv2_ref_op(void* arg)
+int unregister_topkv2_ref_op()
 {
     return unregister_builtin_node_ops(OP_TOPKV2, &hcl_node_ops);
 }

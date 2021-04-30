@@ -38,7 +38,7 @@ static int init_op(struct op* op)
 }
 
 
-int register_add_n_op(void* arg)
+int register_add_n_op()
 {
     struct method m;
     m.version = 1;
@@ -50,7 +50,7 @@ int register_add_n_op(void* arg)
 }
 
 
-int unregister_add_n_op(void* arg)
+int unregister_add_n_op()
 {
     return unregister_op(OP_ADD_N, 1);
 }

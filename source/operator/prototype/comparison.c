@@ -114,7 +114,7 @@ static void release_op(struct op* op)
 }
 
 
-int register_comparison_op(void* arg)
+int register_comparison_op()
 {
     struct method m;
 
@@ -127,7 +127,7 @@ int register_comparison_op(void* arg)
 }
 
 
-int unregister_comparison_op(void* arg)
+int unregister_comparison_op()
 {
     return unregister_op(OP_COMPARISON, 1);
 }

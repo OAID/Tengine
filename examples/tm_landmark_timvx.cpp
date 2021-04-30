@@ -120,15 +120,28 @@ int main(int argc, char* argv[])
     opt.affinity = 0;
 
     /* inital tengine */
-    init_tengine();
+    if (init_tengine() != 0)
+    {
+        fprintf(stderr, "Initial tengine failed.\n");
+        return -1;
+    }
     fprintf(stderr, "tengine-lite library version: %s\n", get_tengine_version());
 
-    /* create graph, load tengine model xxx.tmfile */
-    graph_t graph = create_graph(nullptr, "tengine", model_file);
-    if (graph == nullptr)
+    /* create VeriSilicon TIM-VX backend */
+    context_t timvx_context = create_context("timvx", 1);
+    int rtt = add_context_device(timvx_context, "TIMVX");
+    if (0 > rtt)
     {
-        std::cout << "Create graph0 failed\n";
-        std::cout << "errno: " << get_tengine_errno() << "\n";
+        fprintf(stderr, " add_context_device VSI DEVICE failed.\n");
+        return -1;
+    }
+
+    /* create graph, load tengine model xxx.tmfile */
+    graph_t graph = create_graph(timvx_context, "tengine", model_file);
+    if (NULL == graph)
+    {
+        fprintf(stderr, "Create graph failed.\n");
+        fprintf(stderr, "errno: %d \n", get_tengine_errno());
         return -1;
     }
 
@@ -209,7 +222,7 @@ int main(int argc, char* argv[])
         draw_circle(img_out, x, y, 2, 0, 255, 0);
     }
 
-    save_image(img_out, "landmarkout_uint8");
+    save_image(img_out, "landmarkout_timvx");
 
     postrun_graph(graph);
     destroy_graph(graph);

@@ -58,7 +58,7 @@ static void release_op(struct op* op)
 }
 
 
-int register_mvn_op(void* arg)
+int register_mvn_op()
 {
     struct method m;
 
@@ -70,7 +70,7 @@ int register_mvn_op(void* arg)
 }
 
 
-int unregister_mvn_op(void* arg)
+int unregister_mvn_op()
 {
     return unregister_op(OP_MVN, 1);
 }

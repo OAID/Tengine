@@ -56,7 +56,7 @@ static int init_op(struct op* op)
 static void release_op(struct op* op) {}
 
 
-int register_broadmul_op(void* arg)
+int register_broadmul_op()
 {
     struct method m;
 
@@ -68,7 +68,7 @@ int register_broadmul_op(void* arg)
 }
 
 
-int unregister_broadmul_op(void* arg)
+int unregister_broadmul_op()
 {
     return unregister_op(OP_BROADMUL, 1);
 }

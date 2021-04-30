@@ -523,12 +523,12 @@ static struct node_ops detection_postprocess_node_ops = {.prerun = prerun,
                                        .release_node = release_node,
                                        .score = score};
 
-int register_detection_postprocess_ref_op(void* arg)
+int register_detection_postprocess_ref_op()
 {
     return register_builtin_node_ops(OP_DETECTION_POSTPROCESS, &detection_postprocess_node_ops);
 }
 
-int unregister_detection_postprocess_ref_op(void* arg)
+int unregister_detection_postprocess_ref_op()
 {
     unregister_builtin_node_ops(OP_DETECTION_POSTPROCESS, &detection_postprocess_node_ops);
     return 0;

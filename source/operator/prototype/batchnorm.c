@@ -69,7 +69,7 @@ static void release_op(struct op* op)
 }
 
 
-int register_batchnorm_op(void* arg)
+int register_batchnorm_op()
 {
     struct method m;
 
@@ -81,7 +81,7 @@ int register_batchnorm_op(void* arg)
     return register_op(OP_BATCHNORM, OP_BATCHNORM_NAME, &m);
 }
 
-int unregister_batchnorm_op(void* arg)
+int unregister_batchnorm_op()
 {
     return unregister_op(OP_BATCHNORM, 1);
 }

@@ -115,7 +115,7 @@ static void release_op(struct op* op)
 }
 
 
-int register_argmin_op(void* arg)
+int register_argmin_op()
 {
     struct method m;
     m.version = 1;
@@ -126,7 +126,7 @@ int register_argmin_op(void* arg)
 }
 
 
-int unregister_argmin_op(void* arg)
+int unregister_argmin_op()
 {
     return unregister_op(OP_ARGMIN, 1);
 }

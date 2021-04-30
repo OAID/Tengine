@@ -128,7 +128,7 @@ static void release_op(ir_op_t* op)
     sys_free(op->param_mem);
 }
 
-int register_fc_op(void* arg)
+int register_fc_op()
 {
     ir_method_t m;
 
@@ -139,7 +139,7 @@ int register_fc_op(void* arg)
     return register_op(OP_FC, OP_FC_NAME, &m);
 }
 
-int unregister_fc_op(void* arg)
+int unregister_fc_op()
 {
     return unregister_op(OP_FC, 1);
 }

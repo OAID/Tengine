@@ -79,7 +79,7 @@ static void release_op(struct op* op)
 }
 
 
-int register_roipooling_op(void* arg)
+int register_roipooling_op()
 {
     struct method m;
 
@@ -90,7 +90,7 @@ int register_roipooling_op(void* arg)
     return register_op(OP_ROIPOOLING, OP_ROIPOOLING_NAME, &m);
 }
 
-int unregister_roipooling_op(void* arg)
+int unregister_roipooling_op()
 {
     return unregister_op(OP_ROIPOOLING, 1);
 }

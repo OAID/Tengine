@@ -52,7 +52,7 @@ static int init_op(ir_op_t* op)
 static void release_op(ir_op_t* op) {}
 
 
-int register_shape_op(void* arg)
+int register_shape_op()
 {
     ir_method_t m;
 
@@ -64,7 +64,7 @@ int register_shape_op(void* arg)
 }
 
 
-int unregister_shape_op(void* arg)
+int unregister_shape_op()
 {
     return unregister_op(OP_SHAPE, 1);
 }

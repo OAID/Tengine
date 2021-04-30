@@ -98,7 +98,7 @@ static void release_op(struct op* op)
 }
 
 
-int register_gru_op(void* arg)
+int register_gru_op()
 {
     struct method m;
 
@@ -111,7 +111,7 @@ int register_gru_op(void* arg)
 }
 
 
-int unregister_gru_op(void* arg)
+int unregister_gru_op()
 {
     return unregister_op(OP_GRU, 1);
 }

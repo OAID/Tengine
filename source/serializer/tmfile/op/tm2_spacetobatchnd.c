@@ -60,7 +60,7 @@ static int tm2_load_spacetobatchnd(struct graph* ir_graph, struct node* ir_node,
 }
 
 
-int register_tm2_spacetobatchnd_op(void* arg)
+int register_tm2_spacetobatchnd_op()
 {
     struct serializer* tm2_s = find_serializer_via_name("tengine");
 
@@ -76,7 +76,7 @@ int register_tm2_spacetobatchnd_op(void* arg)
 }
 
 
-int unregister_tm2_spacetobatchnd_op(void* arg)
+int unregister_tm2_spacetobatchnd_op()
 {
     struct serializer* tm2_s = find_serializer_via_name("tengine");
 

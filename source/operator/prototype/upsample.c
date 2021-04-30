@@ -83,7 +83,7 @@ static void release_op(struct op* op)
 }
 
 
-int register_upsample_op(void* arg)
+int register_upsample_op()
 {
     struct method m;
 
@@ -95,7 +95,7 @@ int register_upsample_op(void* arg)
 }
 
 
-int unregister_upsample_op(void* arg)
+int unregister_upsample_op()
 {
     return unregister_op(OP_UPSAMPLE, 1);
 }

@@ -82,7 +82,7 @@ static void release_op(struct op* op)
 }
 
 
-int register_gemm_op(void* arg)
+int register_gemm_op()
 {
     struct method m;
 
@@ -94,7 +94,7 @@ int register_gemm_op(void* arg)
 }
 
 
-int unregister_gemm_op(void* arg)
+int unregister_gemm_op()
 {
     return unregister_op(OP_GEMM, 1);
 }

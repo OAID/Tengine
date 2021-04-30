@@ -89,7 +89,7 @@ static void release_op(struct op* op)
 }
 
 
-int register_topkv2_op(void* arg)
+int register_topkv2_op()
 {
     struct method m;
 
@@ -102,7 +102,7 @@ int register_topkv2_op(void* arg)
 }
 
 
-int unregister_topkv2_op(void* arg)
+int unregister_topkv2_op()
 {
     return unregister_op(OP_TOPKV2, 1);
 }

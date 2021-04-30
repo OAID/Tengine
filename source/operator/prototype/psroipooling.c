@@ -89,7 +89,7 @@ static void release_op(struct op* op)
 }
 
 
-int register_psroipooling_op(void* arg)
+int register_psroipooling_op()
 {
     struct method m;
 
@@ -101,7 +101,7 @@ int register_psroipooling_op(void* arg)
 }
 
 
-int unregister_psroipooling_op(void* arg)
+int unregister_psroipooling_op()
 {
     return unregister_op(OP_PSROIPOOLING, 1);
 }

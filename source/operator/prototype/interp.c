@@ -104,7 +104,7 @@ static void release_op(struct op* op)
 }
 
 
-int register_interp_op(void* arg)
+int register_interp_op()
 {
     struct method m;
 
@@ -116,7 +116,7 @@ int register_interp_op(void* arg)
 }
 
 
-int unregister_interp_op(void* arg)
+int unregister_interp_op()
 {
     return unregister_op(OP_INTERP, 1);
 }

@@ -90,7 +90,7 @@ static void release_op(struct op* op)
 }
 
 
-int register_transpose_op(void* arg)
+int register_transpose_op()
 {
     struct method m;
 
@@ -103,7 +103,7 @@ int register_transpose_op(void* arg)
 }
 
 
-int unregister_transpose_op(void* arg)
+int unregister_transpose_op()
 {
     return unregister_op(OP_TRANSPOSE, 1);
 }

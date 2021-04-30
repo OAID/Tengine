@@ -37,7 +37,7 @@ static int init_op(struct op* op)
 }
 
 
-int register_mean_op(void* arg)
+int register_mean_op()
 {
     struct method m;
     m.version = 1;
@@ -48,7 +48,7 @@ int register_mean_op(void* arg)
 }
 
 
-int unregister_mean_op(void* arg)
+int unregister_mean_op()
 {
     return unregister_op(OP_MEAN, 1);
 }

@@ -95,7 +95,7 @@ static void release_op(struct op* op)
 }
 
 
-int register_reducel2_op(void* arg)
+int register_reducel2_op()
 {
     struct method m;
 
@@ -107,7 +107,7 @@ int register_reducel2_op(void* arg)
 }
 
 
-int unregister_reducel2_op(void* arg)
+int unregister_reducel2_op()
 {
     return unregister_op(OP_REDUCEL2, 1);
 }

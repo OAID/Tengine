@@ -203,7 +203,7 @@ static void release_op(ir_op_t* op)
 }
 
 
-int register_convolution_op(void* arg)
+int register_convolution_op()
 {
     ir_method_t m;
 
@@ -215,7 +215,7 @@ int register_convolution_op(void* arg)
 }
 
 
-int unregister_convolution_op(void* arg)
+int unregister_convolution_op()
 {
     return unregister_op(OP_CONV, 1);
 }

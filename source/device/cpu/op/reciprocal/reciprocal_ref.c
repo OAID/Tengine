@@ -103,12 +103,12 @@ static struct node_ops hcl_node_ops = {
         .release_node = release_node,
         .score = score};
 
-int register_reciprocal_ref_op(void* arg)
+int register_reciprocal_ref_op()
 {
     return register_builtin_node_ops(OP_RECIPROCAL, &hcl_node_ops);
 }
 
-int unregister_reciprocal_ref_op(void* arg)
+int unregister_reciprocal_ref_op()
 {
     return unregister_builtin_node_ops(OP_RECIPROCAL, &hcl_node_ops);
 }

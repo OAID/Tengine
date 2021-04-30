@@ -51,7 +51,7 @@ static int init_op(struct op* op)
 
 static void release_op(struct op* op) {}
 
-int register_softplus_op(void* arg)
+int register_softplus_op()
 {
     struct method m;
 
@@ -62,7 +62,7 @@ int register_softplus_op(void* arg)
     return register_op(OP_SOFTPLUS, OP_SOFTPLUS_NAME, &m);
 }
 
-int unregister_softplus_op(void* arg)
+int unregister_softplus_op()
 {
     return unregister_op(OP_SOFTPLUS, 1);
 }

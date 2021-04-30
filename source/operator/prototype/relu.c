@@ -71,7 +71,7 @@ static void release_op(ir_op_t* op)
 }
 
 
-int register_relu_op(void* arg)
+int register_relu_op()
 {
     ir_method_t m;
 
@@ -83,7 +83,7 @@ int register_relu_op(void* arg)
 }
 
 
-int unregister_relu_op(void* arg)
+int unregister_relu_op()
 {
     return unregister_op(OP_RELU, 1);
 }

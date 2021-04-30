@@ -227,7 +227,7 @@ static void release_op(struct op* op)
 }
 
 
-int register_reduction_op(void* arg)
+int register_reduction_op()
 {
     struct method m;
 
@@ -240,7 +240,7 @@ int register_reduction_op(void* arg)
 }
 
 
-int unregister_reduction_op(void* arg)
+int unregister_reduction_op()
 {
     return unregister_op(OP_REDUCTION, 1);
 }

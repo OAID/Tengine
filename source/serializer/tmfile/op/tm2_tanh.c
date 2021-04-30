@@ -46,7 +46,7 @@ static int tm2_load_tanh(struct graph* ir_graph, struct node* ir_node, const TM2
 }
 
 
-int register_tm2_tanh_op(void* arg)
+int register_tm2_tanh_op()
 {
     struct serializer* tm2_s = find_serializer_via_name("tengine");
 
@@ -62,7 +62,7 @@ int register_tm2_tanh_op(void* arg)
 }
 
 
-int unregister_tm2_tanh_op(void* arg)
+int unregister_tm2_tanh_op()
 {
     struct serializer* tm2_s = find_serializer_via_name("tengine");
 

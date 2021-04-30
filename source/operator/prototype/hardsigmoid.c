@@ -71,7 +71,7 @@ static void release_op(struct op* op)
 }
 
 
-int register_hardsigmoid_op(void* arg)
+int register_hardsigmoid_op()
 {
     struct method m;
 
@@ -83,7 +83,7 @@ int register_hardsigmoid_op(void* arg)
 }
 
 
-int unregister_hardsigmoid_op(void* arg)
+int unregister_hardsigmoid_op()
 {
     return unregister_op(OP_HARDSIGMOID, 1);
 }

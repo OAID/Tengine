@@ -169,13 +169,13 @@ static struct node_ops hcl_node_ops = {.prerun = prerun,
                                        .score = score};
 
 
-int register_pooling_hcl_arm_op(void* arg)
+int register_pooling_hcl_arm_op()
 {
     return register_builtin_node_ops(OP_POOL, &hcl_node_ops);
 }
 
 
-int unregister_pooling_hcl_arm_op(void* arg)
+int unregister_pooling_hcl_arm_op()
 {
     return unregister_builtin_node_ops(OP_POOL, &hcl_node_ops);
 }

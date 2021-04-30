@@ -152,7 +152,7 @@ static void release_op(struct op* op)
 }
 
 
-int register_tile_op(void* arg)
+int register_tile_op()
 {
     struct method m;
     m.version = 1;
@@ -165,7 +165,7 @@ int register_tile_op(void* arg)
 }
 
 
-int unregister_tile_op(void* arg)
+int unregister_tile_op()
 {
     return unregister_op(OP_TILE,1);
 }

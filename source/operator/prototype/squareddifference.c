@@ -64,7 +64,7 @@ static int init_op(struct op* op)
 static void release_op(struct op* op) {}
 
 
-int register_squareddifference_op(void* arg)
+int register_squareddifference_op()
 {
     struct method m;
 
@@ -76,7 +76,7 @@ int register_squareddifference_op(void* arg)
 }
 
 
-int unregister_squareddifference_op(void* arg)
+int unregister_squareddifference_op()
 {
     return unregister_op(OP_SQUAREDDIFFERENCE, 1);
 }

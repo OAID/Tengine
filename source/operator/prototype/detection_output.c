@@ -84,7 +84,7 @@ static void release_op(struct op* op)
 }
 
 
-int register_detection_output_op(void* arg)
+int register_detection_output_op()
 {
     struct method m;
 
@@ -97,7 +97,7 @@ int register_detection_output_op(void* arg)
 }
 
 
-int unregister_detection_output_op(void* arg)
+int unregister_detection_output_op()
 {
     return unregister_op(OP_DETECTION_OUTPUT, 1);
 }

@@ -226,12 +226,12 @@ static struct node_ops priorbox_node_ops = {.prerun = NULL,
                                             .release_node = release_node,
                                             .score = score};
 
-int register_priorbox_ref_op(void* arg)
+int register_priorbox_ref_op()
 {
     return register_builtin_node_ops(OP_PRIORBOX, &priorbox_node_ops);
 }
 
-int unregister_priorbox_ref_op(void* arg)
+int unregister_priorbox_ref_op()
 {
     return unregister_builtin_node_ops(OP_PRIORBOX, &priorbox_node_ops);
 }

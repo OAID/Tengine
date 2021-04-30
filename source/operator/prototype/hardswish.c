@@ -61,7 +61,7 @@ static void release_op(struct op* op)
 }
 
 
-int register_hardswish_op(void* arg)
+int register_hardswish_op()
 {
     struct method m;
 
@@ -73,7 +73,7 @@ int register_hardswish_op(void* arg)
 }
 
 
-int unregister_hardswish_op(void* arg)
+int unregister_hardswish_op()
 {
     return unregister_op(OP_HARDSWISH, 1);
 }

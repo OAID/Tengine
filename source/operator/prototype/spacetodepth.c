@@ -83,7 +83,7 @@ static void release_op(struct op* op)
 }
 
 
-int register_spacetodepth_op(void* arg)
+int register_spacetodepth_op()
 {
     struct method m;
 
@@ -96,7 +96,7 @@ int register_spacetodepth_op(void* arg)
 }
 
 
-int unregister_spacetodepth_op(void* arg)
+int unregister_spacetodepth_op()
 {
     return unregister_op(OP_SPACETODEPTH, 1);
 }

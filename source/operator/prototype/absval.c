@@ -58,7 +58,7 @@ static void release_op(struct op* op)
 }
 
 
-int register_absval_op(void* arg)
+int register_absval_op()
 {
     struct method m;
 
@@ -71,7 +71,7 @@ int register_absval_op(void* arg)
 }
 
 
-int unregister_absval_op(void* arg)
+int unregister_absval_op()
 {
     return unregister_op(OP_ABSVAL, 1);
 }

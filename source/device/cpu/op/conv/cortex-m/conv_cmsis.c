@@ -144,12 +144,12 @@ static struct node_ops cmsis_node_ops = {.prerun = NULL,
         .release_node = release_node,
         .score = score};
 
-int register_conv_cmsis_op(void* arg)
+int register_conv_cmsis_op()
 {
     return register_builtin_node_ops(OP_CONV, &cmsis_node_ops);
 }
 
-int unregister_conv_cmsis_op(void* arg)
+int unregister_conv_cmsis_op()
 {
     unregister_builtin_node_ops(OP_CONV, &cmsis_node_ops);
     return 0;

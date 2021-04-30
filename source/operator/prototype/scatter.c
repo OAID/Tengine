@@ -70,7 +70,7 @@ static void release_op(struct op* op)
 }
 
 
-int register_scatter_op(void* arg)
+int register_scatter_op()
 {
     struct method m;
     m.version = 1;
@@ -82,7 +82,7 @@ int register_scatter_op(void* arg)
 }
 
 
-int unregister_scatter_op(void* arg)
+int unregister_scatter_op()
 {
     return unregister_op(OP_SCATTER,1);
 }

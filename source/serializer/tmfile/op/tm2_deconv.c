@@ -75,7 +75,7 @@ static int tm2_load_deconv(struct graph* ir_graph, struct node* ir_node, const T
 }
 
 
-int register_tm2_deconv_op(void* arg)
+int register_tm2_deconv_op()
 {
     struct serializer* tm2_s = find_serializer_via_name("tengine");
 
@@ -91,7 +91,7 @@ int register_tm2_deconv_op(void* arg)
 }
 
 
-int unregister_tm2_deconv_op(void* arg)
+int unregister_tm2_deconv_op()
 {
     struct serializer* tm2_s = find_serializer_via_name("tengine");
 

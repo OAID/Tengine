@@ -98,7 +98,7 @@ static void release_op(struct op* op)
 }
 
 
-int register_permute_op(void* arg)
+int register_permute_op()
 {
     struct method m;
 
@@ -110,7 +110,7 @@ int register_permute_op(void* arg)
 }
 
 
-int unregister_permute_op(void* arg)
+int unregister_permute_op()
 {
     return unregister_op(OP_PERMUTE, 1);
 }

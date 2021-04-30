@@ -782,12 +782,12 @@ static struct node_ops lstm_node_ops = {.prerun = NULL,
                                         .release_node = release_node,
                                         .score = score};
 
-int register_lstm_ref_op(void* arg)
+int register_lstm_ref_op()
 {
     return register_builtin_node_ops(OP_LSTM, &lstm_node_ops);
 }
 
-int unregister_lstm_ref_op(void* arg)
+int unregister_lstm_ref_op()
 {
     return unregister_builtin_node_ops(OP_LSTM, &lstm_node_ops);
 }

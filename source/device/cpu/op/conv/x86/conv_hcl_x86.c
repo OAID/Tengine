@@ -384,12 +384,12 @@ static struct node_ops hcl_node_ops = {.prerun = prerun,
                                        .score = score
 };
 
-int register_conv_hcl_x86_op(void* arg)
+int register_conv_hcl_x86_op()
 {
     return register_builtin_node_ops(OP_CONV, &hcl_node_ops);
 }
 
-int unregister_conv_hcl_x86_op(void* arg)
+int unregister_conv_hcl_x86_op()
 {
     unregister_builtin_node_ops(OP_CONV, &hcl_node_ops);
     return 0;
