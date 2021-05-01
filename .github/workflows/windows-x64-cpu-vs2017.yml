@@ -10,5 +10,5 @@ jobs:
     - name: build
       run: |
         mkdir build; cd build
-        cmake -T v141,host=x64 -A x64 ..
+        cmake -T v141,host=x64 -A x64 -DTENGINE_OPENMP=OFF ..
         cmake --build . --config Release -j 2
