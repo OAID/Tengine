@@ -1,0 +1,28 @@
+name: linux-x64-cpu-timvx-gcc
+
+on: [push, pull_request]
+
+jobs:
+  linux-x64-cpu-timvx-gcc:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: update
+      run: sudo apt-get update
+    - name: protobuf
+      run: sudo apt-get install libopencv-dev
+    - name: tim-vx
+      run: |
+        git clone https://github.com/VeriSilicon/TIM-VX.git
+        export LD_LIBRARY_PATH=${PWD}/3rdparty/tim-vx/lib/x86_64
+        mkdir -p ./3rdparty/tim-vx/include
+        mkdir -p ./3rdparty/tim-vx/lib/x86_64
+        cp -rvf ./TIM-VX/prebuilt-sdk/x86_64_linux/include/*  ./3rdparty/tim-vx/include/
+        cp -rvf ./TIM-VX/prebuilt-sdk/x86_64_linux/lib/*      ./3rdparty/tim-vx/lib/x86_64/
+        cp -rvf ./TIM-VX/include  ./source/device/tim-vx/
+        cp -rvf ./TIM-VX/src      ./source/device/tim-vx/
+    - name: configure
+      run: mkdir build && cd build && cmake -DTENGINE_ENABLE_TIM_VX=ON ..
+    - name: build
+      run: cmake --build build -j 2
+

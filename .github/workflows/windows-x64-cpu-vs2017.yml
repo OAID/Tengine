@@ -1,0 +1,14 @@
+name: windows-x64-cpu-vs2017
+
+on: [push, pull_request]
+
+jobs:
+  windows-x64-cpu-vs2017:
+    runs-on: windows-2016
+    steps:
+    - uses: actions/checkout@v1
+    - name: build
+      run: |
+        mkdir build; cd build
+        cmake -T v141,host=x64 -A x64 -DTENGINE_OPENMP=OFF -DTENGINE_BUILD_EXAMPLES=OFF ..
+        cmake --build . --config Release -j 2

@@ -1,0 +1,14 @@
+name: windows-x86-cpu-vs2019
+
+on: [push, pull_request]
+
+jobs:
+  windows-x86-cpu-vs2019:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: build
+      run: |
+        mkdir build; cd build
+        cmake -T v142,host=x64 -A Win32 -DTENGINE_OPENMP=OFF -DTENGINE_BUILD_EXAMPLES=OFF ..
+        cmake --build . --config Release -j 2

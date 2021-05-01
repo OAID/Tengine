@@ -1,0 +1,36 @@
+name: linux-x64-cpu-clang
+
+on: [push, pull_request]
+
+jobs:
+  linux-x64-cpu-clang:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: update
+      run: sudo apt-get update
+    - name: protobuf
+      run: sudo apt-get install libopencv-dev
+    - name: configure
+      env:
+        CC: clang
+        CXX: clang++    
+      run: mkdir build && cd build && cmake -DTENGINE_BUILD_TESTS=ON ..
+    - name: build
+      run: cmake --build build -j 2
+    - name: models
+      run: |
+        cd build
+        wget http://198.55.120.234/lite/models.zip
+        unzip models.zip
+        wget http://198.55.120.234/lite/x86_data.zip
+        unzip x86_data.zip
+        mv x86_data data
+        wget http://198.55.120.234/lite/images.zip
+        unzip images.zip
+    - name: test
+      run: |
+        chmod +x ./tests/test.sh
+        cd build
+        ../tests/test.sh
+        
