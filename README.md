@@ -31,8 +31,11 @@ Tengine 核心代码由 4 个模块组成：
 
 ![Tengine 架构](doc/architecture.png)
 
+## 快速上手
 
-## 如何使用
+### 在线文档
+
+- [Tengine 用户使用手册](https://tengine-docs.readthedocs.io/zh_CN/latest/)
 
 ### 编译
 

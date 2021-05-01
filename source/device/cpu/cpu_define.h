@@ -39,7 +39,7 @@
 
 #define TENGINE_DUMP_DIR            "TG_DEBUG_DUMP_DIR"
 #define TENGINE_PRINT_LAYER_COST    "TG_DEBUG_TIME"
-#define TENGINE_FORCE_USE_REF_OP    "TG_DEBUG_SCORE"
+#define TENGINE_FORCE_USE_REF_OP    "TG_DEBUG_REF"
 
 
 typedef struct cpu_option
