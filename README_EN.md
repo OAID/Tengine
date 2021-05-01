@@ -36,6 +36,10 @@ The core code of Tengine Lite consists of 4 modules:
 
 ## How to use
 
+### Documentation
+
+- [Tengine User Manual](https://tengine-docs.readthedocs.io/en/latest/)
+
 ### Compile
 
 - [Quick Compilation](doc/compile.md) Simple cross-platform compilation based on cmake.
