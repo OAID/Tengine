@@ -1,6 +1,11 @@
-<p align="center"><img width="40%" src="logo-Tengine.png" /></p>
+<div align="center">
+  <img width="40%" src="logo-Tengine.png">
+  <h3> <a href="https://tengine-docs.readthedocs.io/en/latest/"> Documentation </a> | <a href="https://tengine-docs.readthedocs.io/zh_CN/latest/"> 中文文档 </a>  </h3>
+</div>
 
-# Tengine Lite
+简体中文 | [English](./README_EN.md)
+
+# Tengine
 
 [![GitHub license](http://OAID.github.io/pics/apache_2.0.svg)](./LICENSE)
 [![Build Status](https://img.shields.io/github/workflow/status/OAID/Tengine/Tengine-Lite-Actions/tengine-lite)](https://github.com/OAID/Tengine/actions?query=workflow%3ATengine-Lite-Actions)
@@ -8,11 +13,6 @@
 [![Test Status](https://img.shields.io/travis/OAID/Tengine/tengine-lite?label=test)](https://travis-ci.org/OAID/Tengine)
 [![codecov](https://codecov.io/gh/OAID/Tengine/branch/tengine-lite/graph/badge.svg?token=kz9NcQPRrk)](https://codecov.io/gh/OAID/Tengine)
 [![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/OAID/Tengine.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/OAID/Tengine/context:cpp)
-
-
-
-[**English Version**](README_EN.md)
-
 
 
 ## 简介
@@ -32,10 +32,6 @@ Tengine 核心代码由 4 个模块组成：
 ![Tengine 架构](doc/architecture.png)
 
 ## 快速上手
-
-### 在线文档
-
-- [Tengine 用户使用手册](https://tengine-docs.readthedocs.io/zh_CN/latest/)
 
 ### 编译
 
