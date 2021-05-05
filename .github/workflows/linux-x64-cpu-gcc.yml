@@ -15,6 +15,12 @@ jobs:
       run: mkdir build && cd build && cmake -DTENGINE_BUILD_TESTS=ON ..
     - name: build
       run: cmake --build build -j 2
+    - name: optest
+      run: |
+        cd build
+        git clone https://github.com/BUG1989/onnx_op_test_data.git
+        mv onnx_op_test_data onnx_node
+        ctest
     - name: models
       run: |
         cd build
@@ -25,7 +31,7 @@ jobs:
         mv x86_data data
         wget http://198.55.120.234/lite/images.zip
         unzip images.zip
-    - name: test
+    - name: model-test
       run: |
         chmod +x ./tests/test.sh
         cd build

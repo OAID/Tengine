@@ -552,17 +552,17 @@ void extract_feature_from_tensor(const char* comment, const char* layer_name, co
     }
     else
     {
-        TLOG_WARNING("Tengine: Env var \"TENGINE_DUMP_DIR\" is too long(%d vs. 254). Using default path.\n", strlen(env_path));
+//        TLOG_WARNING("Tengine: Env var \"TENGINE_DUMP_DIR\" is too long(%d vs. 254). Using default path.\n", strlen(env_path));
         sprintf(save_dir, "./output/");
 #ifdef _MSC_VER
         CreateDirectoryA(save_dir, NULL);
 #else
         int ret = mkdir(save_dir, S_IRWXU | S_IRGRP | S_IWGRP | S_IROTH);
-        if (0 != ret)
-        {
-            TLOG_WARNING("Tengine: Create saving folder failed(%d), skip dump.\n", ret);
-            return;
-        }
+//        if (0 != ret)
+//        {
+//            TLOG_WARNING("Tengine: Create saving folder failed(%d), skip dump.\n", ret);
+//            return;
+//        }
 #endif
     }
 
