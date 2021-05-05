@@ -21,7 +21,7 @@ jobs:
         git clone https://github.com/BUG1989/onnx_op_test_data.git
         mv onnx_op_test_data onnx_node
         export TG_DEBUG_REF=1
-        ctest
+        ctest --output-on-failure
     - name: models
       run: |
         cd build
