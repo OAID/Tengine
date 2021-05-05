@@ -10,11 +10,18 @@ jobs:
     - name: update
       run: sudo apt-get update
     - name: protobuf
-      run: sudo apt-get install libopencv-dev    
+      run: sudo apt-get install libprotobuf-dev protobuf-compiler libopencv-dev
     - name: configure
       run: mkdir build && cd build && cmake -DTENGINE_BUILD_TESTS=ON ..
     - name: build
       run: cmake --build build -j 2
+    - name: optest
+      run: |
+        cd build
+        git clone https://github.com/BUG1989/onnx_op_test_data.git
+        mv onnx_op_test_data onnx_node
+        export TG_DEBUG_REF=1
+        ctest --output-on-failure
     - name: models
       run: |
         cd build
@@ -25,8 +32,9 @@ jobs:
         mv x86_data data
         wget http://198.55.120.234/lite/images.zip
         unzip images.zip
-    - name: test
+    - name: model-test
       run: |
         chmod +x ./tests/test.sh
         cd build
+        unset TG_DEBUG_REF
         ../tests/test.sh

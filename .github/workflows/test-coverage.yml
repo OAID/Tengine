@@ -10,14 +10,14 @@ jobs:
     - name: update
       run: sudo apt-get update
     - name: protobuf
-      run: sudo apt-get install libopencv-dev
+      run: sudo apt-get install libprotobuf-dev protobuf-compiler libopencv-dev
     - name: lcov
       run: sudo apt-get install lcov
     - name: configure
       run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=debug -DTENGINE_BUILD_TESTS=ON -DTENGINE_COVERAGE=ON ..
     - name: build
       run: cmake --build build -j 2
-    - name: models
+    - name: test-data
       run: |
         cd build
         wget http://198.55.120.234/lite/models.zip
@@ -27,11 +27,18 @@ jobs:
         mv x86_data data
         wget http://198.55.120.234/lite/images.zip
         unzip images.zip
-    - name: test-cpu
+        git clone https://github.com/BUG1989/onnx_op_test_data.git
+        mv onnx_op_test_data onnx_node        
+    - name: test-models
       run: |
         chmod +x ./tests/test.sh
         cd build
         ../tests/test.sh
+    - name: test-op
+      run: |
+        cd build
+        export TG_DEBUG_REF=1
+        ctest --output-on-failure
     - name: lcov-collect
       run: |
         cd build

@@ -1,5 +1,5 @@
 #!/bin/bash -
-export  NumThreadLite=1
+export NumThreadLite=1
 export NumClusterLite=1
 
 function classify_cat()
