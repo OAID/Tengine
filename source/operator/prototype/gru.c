@@ -35,30 +35,18 @@
 
 static int infer_shape(struct node* node)
 {
-    struct gru_param* gru_param = (struct gru_param*)(node->op.param_mem);
-
     struct graph* ir_graph = node->graph;
     struct tensor* input = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
+    struct tensor* weight = get_ir_graph_tensor(ir_graph, node->input_tensors[1]);
     struct tensor* output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
-
-    int batch_size = input->dims[0];
-    int dims[3];
-
-    if (gru_param->mxnet_flag == 1)
-    {
-        batch_size = input->dims[1];
-        dims[0] = input->dims[0];
-        dims[1] = batch_size;
-        dims[2] = gru_param->hidden_size;
-    }
-    else
-    {
-        dims[1] = input->dims[0];
-        dims[0] = batch_size;
-        dims[2] = gru_param->hidden_size;
-    }
-
-    set_ir_tensor_shape(output, dims, 3);
+    struct gru_param* gru_param = ( struct gru_param* )(node->op.param_mem);
+    int batch_size = input->dims[1];
+    int dims[4];
+    dims[0] = input->dims[0];
+    dims[1] = weight->dims[0];
+    dims[2] = input->dims[1];
+    dims[3] = gru_param->hidden_size;
+    set_ir_tensor_shape(output, dims, 4);
 
     return 0;
 }

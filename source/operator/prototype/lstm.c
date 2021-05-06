@@ -35,25 +35,22 @@
 
 static int infer_shape(struct node* node)
 {
-    struct lstm_param* lstm_param = ( struct lstm_param* )(node->op.param_mem);
-
     struct graph* ir_graph = node->graph;
     struct tensor* input = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
     struct tensor* output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
-
+    struct lstm_param* lstm_param = ( struct lstm_param* )(node->op.param_mem);
     int batch_size = input->dims[1];
-    int dims[3];
-
     if (lstm_param->mxnet_flag == 0)
     {
         batch_size = input->dims[0];
     }
-
+    int dims[4];
     if (lstm_param->mxnet_flag == 0)
     {
-        dims[0] = batch_size;
-        dims[1] = input->dims[0];
-        dims[2] = lstm_param->hidden_size;
+        dims[0] = input->dims[0];
+        dims[1] = 1;
+        dims[2] = input->dims[1];
+        dims[3] = lstm_param->hidden_size;
     }
     else
     {
@@ -62,7 +59,7 @@ static int infer_shape(struct node* node)
         dims[2] = lstm_param->hidden_size;
     }
 
-    set_ir_tensor_shape(output, dims, 3);
+    set_ir_tensor_shape(output, dims, 4);
 
     return 0;
 }
