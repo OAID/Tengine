@@ -46,6 +46,13 @@
 #define DEFAULT_CPU_AFFINITY 255
 #define DEFAULT_CONF_THRESHOLD 0.5f
 
+/**
+ * unet model are tested based on https://github.com/milesial/Pytorch-UNet
+ * pretrained model can be downloaded from https://github.com/milesial/Pytorch-UNet/releases/tag/v1.0
+ * tmfile can be converted using the pretrained model
+ * because of the onnx->tmfile convertion problem, keep the network input size dividable by 16 (256,512) 
+ */
+
 int draw_segmentation(const int32_t* data, int h, int w) {
     static std::map<int32_t, cv::Vec3b> color_table = {{0, cv::Vec3b(0,0,0)},
                                                        {1, cv::Vec3b(20,59,255)},
@@ -71,7 +78,7 @@ int draw_segmentation(const int32_t* data, int h, int w) {
     return 0;
 }
 
-int tengine_classify(const char* model_file, const char* image_file, int img_h, int img_w, const float* mean,
+int tengine_segment(const char* model_file, const char* image_file, int img_h, int img_w, const float* mean,
                      const float* scale, int loop_count, int num_thread, int affinity, float conf_thresh)
 {
     /* set runtime options */
@@ -326,7 +333,7 @@ int main(int argc, char* argv[])
         fprintf(stderr, "Mean value not specified, use default   %.5f, %.5f, %.5f\n", mean[0], mean[1], mean[2]);
     }
 
-    if (tengine_classify(model_file, image_file, img_h, img_w, mean, scale, loop_count, num_thread, cpu_affinity, conf_thresh) < 0)
+    if (tengine_segment(model_file, image_file, img_h, img_w, mean, scale, loop_count, num_thread, cpu_affinity, conf_thresh) < 0)
         return -1;
 
     return 0;
