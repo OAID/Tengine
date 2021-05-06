@@ -125,7 +125,7 @@ static int run(struct device* dev, struct subgraph* subgraph)
 
         /* TODO: add dynamic skip feature */
 #ifdef DEBUG_TIME
-        double start = get_cur_time();
+        double start = get_current_time();
 #endif
         double st_time, end_time;
         if (exec_graph->timer)
@@ -139,8 +139,8 @@ static int run(struct device* dev, struct subgraph* subgraph)
         }
         char* name = node->ir_node->name;
 #ifdef DEBUG_TIME
-        double end = get_cur_time();
-        fprintf(stderr, "%-20s  %8.2f ms  %s\n", get_op_name(node->ir_node->op.op_type), end - start, name);
+        double end = get_current_time();
+        fprintf(stderr, "%-20s  %8.2f ms  %s\n", get_op_name_from_type(node->ir_node->op.type), end - start, name);
 #endif
         if (exec_graph->timer)
         {

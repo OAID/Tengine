@@ -109,23 +109,6 @@ if(PROTOBUF_FOUND)
 else()
     message(WARNING "Protobuf not found, onnx op test won't be built")
 endif()
-# macro for adding test
-function (tengine_onnx_op_test name file)
-
-    target_link_libraries (${name} PRIVATE ${CMAKE_PROJECT_NAME})
-
-    target_include_directories (${name} PRIVATE "${PROJECT_SOURCE_DIR}/source")
-    target_include_directories (${name} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
-    target_include_directories (${name} PRIVATE "${PROJECT_BINARY_DIR}")
-    target_include_directories (${name} PRIVATE "${PROJECT_BINARY_DIR}/source")
-    target_include_directories (${name} PRIVATE "${PROJECT_SOURCE_DIR}/tests/common")
-
-    if (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM" AND (NOT ANDROID AND NOT OHOS) AND TENGINE_TARGET_PROCESSOR_32Bit)
-        target_compile_options (${name} PRIVATE "-mfp16-format=ieee")
-    endif()
-
-    add_test (${name} ${name})
-endfunction()
 
 
 # operator level test using opencv
