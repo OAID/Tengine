@@ -25,12 +25,12 @@ jobs:
     - name: models
       run: |
         cd build
-        wget http://198.55.120.234/lite/models.zip
+        wget ftp://219.139.34.182/tengine/ci_test/models.zip
         unzip models.zip
-        wget http://198.55.120.234/lite/x86_data.zip
+        wget ftp://219.139.34.182/tengine/ci_test/x86_data.zip
         unzip x86_data.zip
         mv x86_data data
-        wget http://198.55.120.234/lite/images.zip
+        wget ftp://219.139.34.182/tengine/ci_test/images.zip
         unzip images.zip
     - name: model-test
       run: |

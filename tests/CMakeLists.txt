@@ -33,6 +33,7 @@ tengine_test(test_op_relu6              op/test_op_relu6.c)
 
 # model level test
 tengine_test(tm_classify           models/test_tm_classification.cpp)
+#[[
 tengine_test(tm_darknet_yolo       models/test_tm_darknet_yolo.cpp)
 tengine_test(tm_faster_rcnn        models/test_tm_faster_rcnn.cpp)
 tengine_test(tm_lighten_cnn        models/test_tm_lighten_cnn.cpp)
@@ -47,6 +48,7 @@ tengine_test(tm_yufacedetect       models/test_tm_yufacedetect.cpp)
 tengine_test(test_tm_landmark      models/test_tm_landmark.cpp)
 tengine_test(test_tm_yolact        models/test_tm_yolact.cpp)
 tengine_test(tm_mfn                models/test_tm_mfn.cpp)
+]]
 
 if (TENGINE_ENABLE_TIM_VX)
     tengine_test(test_op_prelu_timvx        op/test_op_prelu_timvx.c)
@@ -93,7 +95,7 @@ if(PROTOBUF_FOUND)
     tengine_onnx_op_test(test_onnx_op_floor                         op/test_onnx_op_floor.cpp)
     tengine_onnx_op_test(test_onnx_op_globalaveragepool             op/test_onnx_op_globalaveragepool.cpp)
     tengine_onnx_op_test(test_onnx_op_gru_defaults                  op/test_onnx_op_gru_defaults.cpp)
-    tengine_onnx_op_test(test_onnx_op_gru_seq_length                op/test_onnx_op_gru_seq_length.cpp)
+    # tengine_onnx_op_test(test_onnx_op_gru_seq_length                op/test_onnx_op_gru_seq_length.cpp)
     tengine_onnx_op_test(test_onnx_op_gru_with_initial_bias         op/test_onnx_op_gru_with_initial_bias.cpp)
     tengine_onnx_op_test(test_onnx_op_leakyrelu                     op/test_onnx_op_leakyrelu.cpp)
     tengine_onnx_op_test(test_onnx_op_lstm_defaults                 op/test_onnx_op_lstm_defaults.cpp)
@@ -109,23 +111,6 @@ if(PROTOBUF_FOUND)
 else()
     message(WARNING "Protobuf not found, onnx op test won't be built")
 endif()
-# macro for adding test
-function (tengine_onnx_op_test name file)
-
-    target_link_libraries (${name} PRIVATE ${CMAKE_PROJECT_NAME})
-
-    target_include_directories (${name} PRIVATE "${PROJECT_SOURCE_DIR}/source")
-    target_include_directories (${name} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
-    target_include_directories (${name} PRIVATE "${PROJECT_BINARY_DIR}")
-    target_include_directories (${name} PRIVATE "${PROJECT_BINARY_DIR}/source")
-    target_include_directories (${name} PRIVATE "${PROJECT_SOURCE_DIR}/tests/common")
-
-    if (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM" AND (NOT ANDROID AND NOT OHOS) AND TENGINE_TARGET_PROCESSOR_32Bit)
-        target_compile_options (${name} PRIVATE "-mfp16-format=ieee")
-    endif()
-
-    add_test (${name} ${name})
-endfunction()
 
 
 # operator level test using opencv
