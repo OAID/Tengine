@@ -17,7 +17,7 @@
 
 mkdir build-msvc16-tensorrt
 pushd build-msvc16-tensorrt
-%CMAKE_EXE% -G "Visual Studio 16 2019 Win64"        ^
+%CMAKE_EXE% -G "Visual Studio 16 2019" -A x86_64    ^
     -DTENGINE_OPENMP=OFF                            ^
     -DTENGINE_ENABLE_TENSORRT=ON                    ^
     -DCUDA_INCLUDE_DIR=%CUDA_ROOT%/include          ^
