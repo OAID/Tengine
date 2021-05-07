@@ -27,7 +27,7 @@ function classify_bike()
 }
 
 
-classify_models=(squeezenet mobilenet mobilenet_v2 alexnet googlenet inception_v3 inception_v4 resnet50 vgg16 mnasnet shufflenet_1xg3 shufflenet_v2 resnet18_v2_mx )
+classify_models=(squeezenet mobilenet mobilenet_v2 googlenet inception_v3 inception_v4 resnet50 mnasnet shufflenet_1xg3 shufflenet_v2 resnet18_v2_mx )
 
 failed_models=()
 pass_model_count=0
