@@ -30,7 +30,8 @@ SET (_SRL_BIN_ROOT                  "${CMAKE_BINARY_DIR}/source/serializer")
 
 
 # set header searching path
-LIST (APPEND _SRL_HEADER_PATH       "${CMAKE_SOURCE_DIR}/source/serializer")
+LIST (APPEND _SRL_HEADER_PATH       "${_SRL_SRC_ROOT}")
+LIST (APPEND _SRL_HEADER_PATH       "${_SRL_BIN_ROOT}")
 
 
 # gather all serializer
@@ -44,7 +45,7 @@ GENERATE_REGISTER_HEADER_FILE("register_" "unregister_" "" "${_SRL_SRC_ROOT}/reg
 
 # generator ops for serializer
 AUX_SOURCE_DIRECTORY("${_SRL_SRC_ROOT}/tmfile/op" _TENGINE_TM2_OPS_SOURCE)
-GENERATE_REGISTER_HEADER_FILE("register_" "unregister_" "_op" "${_SRL_SRC_ROOT}/tmfile/tm2_ops.h.in" "${_SRL_SRC_ROOT}/tmfile/tm2_ops.h" "${_SRL_TM2_OPS_SOURCE}")
+GENERATE_REGISTER_HEADER_FILE("register_" "unregister_" "_op" "${_SRL_SRC_ROOT}/tmfile/tm2_ops.h.in" "${_SRL_BIN_ROOT}/tmfile/tm2_ops.h" "${_SRL_TM2_OPS_SOURCE}")
 
 
 # gather
