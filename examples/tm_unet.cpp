@@ -246,7 +246,7 @@ int main(int argc, char* argv[])
     float scale[3] = {0.f, 0.f, 0.f};
 
     int res;
-    while ((res = getopt(argc, argv, "m:i:l:g:s:w:r:t:a:h")) != -1)
+    while ((res = getopt(argc, argv, "m:i:l:g:s:w:r:t:a:c:h")) != -1)
     {
         switch (res)
         {
