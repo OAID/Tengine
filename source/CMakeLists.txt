@@ -287,13 +287,15 @@ ENDIF()
 UNSET (_has_openmp)
 
 # pthread
-INCLUDE (${PROJECT_SOURCE_DIR}/cmake/libraries/pthread.cmake)
-TENGINE_CHECK_LIB_PTHREAD (_has_pthread)
-IF (_has_pthread)
-    TENGINE_USE_LIB_PTHREAD (${TENGINE_LITE_NAME}-static ON)
-    TENGINE_USE_LIB_PTHREAD (${TENGINE_LITE_NAME}        OFF)
+IF (NOT OHOS)
+	INCLUDE (${PROJECT_SOURCE_DIR}/cmake/libraries/pthread.cmake)
+	TENGINE_CHECK_LIB_PTHREAD (_has_pthread)
+	IF (_has_pthread)
+		TENGINE_USE_LIB_PTHREAD (${TENGINE_LITE_NAME}-static ON)
+		TENGINE_USE_LIB_PTHREAD (${TENGINE_LITE_NAME}        OFF)
+	ENDIF()
+	UNSET (_has_pthread)
 ENDIF()
-UNSET (_has_pthread)
 
 
 #
