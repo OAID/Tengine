@@ -42,13 +42,13 @@ jobs:
     - name: models
       run: |
         cd build
-        wget http://198.55.120.234/lite/models.zip
+        wget ftp://219.139.34.182/tengine/ci_test/models.zip
         unzip models.zip
-        wget http://198.55.120.234/lite/arm64_data.zip
+        wget ftp://219.139.34.182/tengine/ci_test/arm64_data.zip
         unzip arm64_data.zip
         mv arm64_data data
-        wget http://198.55.120.234/lite/images.zip
-        unzip images
+        wget ftp://219.139.34.182/tengine/ci_test/images.zip
+        unzip images.zip
     - name: test
       run: |
         export PATH=$GITHUB_WORKSPACE/qemu-install/bin:$PATH

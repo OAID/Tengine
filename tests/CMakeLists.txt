@@ -33,6 +33,7 @@ tengine_test(test_op_relu6              op/test_op_relu6.c)
 
 # model level test
 tengine_test(tm_classify           models/test_tm_classification.cpp)
+#[[
 tengine_test(tm_darknet_yolo       models/test_tm_darknet_yolo.cpp)
 tengine_test(tm_faster_rcnn        models/test_tm_faster_rcnn.cpp)
 tengine_test(tm_lighten_cnn        models/test_tm_lighten_cnn.cpp)
@@ -47,6 +48,7 @@ tengine_test(tm_yufacedetect       models/test_tm_yufacedetect.cpp)
 tengine_test(test_tm_landmark      models/test_tm_landmark.cpp)
 tengine_test(test_tm_yolact        models/test_tm_yolact.cpp)
 tengine_test(tm_mfn                models/test_tm_mfn.cpp)
+]]
 
 if (TENGINE_ENABLE_TIM_VX)
     tengine_test(test_op_prelu_timvx        op/test_op_prelu_timvx.c)
