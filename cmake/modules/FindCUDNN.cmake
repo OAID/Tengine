@@ -84,7 +84,7 @@ FIND_PATH (CUDNN_INCLUDE_DIR cudnn.h PATHS ${_INC_SEARCH_PATH} DOC "location of 
 
 # extract version from the include
 IF (CUDNN_INCLUDE_DIR)
-    FIND_PATH (_VERSION_PATH cudnn.h PATHS ${CUDNN_INCLUDE_DIR} DOC "location of cudnn_version.h" NO_DEFAULT_PATH)
+    FIND_PATH (_VERSION_PATH cudnn_version.h PATHS ${CUDNN_INCLUDE_DIR} DOC "location of cudnn_version.h" NO_DEFAULT_PATH)
     IF (_VERSION_PATH)
         FILE (READ "${CUDNN_INCLUDE_DIR}/cudnn_version.h" CUDNN_H_CONTENTS)
         UNSET (_VERSION_PATH)
