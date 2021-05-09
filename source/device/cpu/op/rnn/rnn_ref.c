@@ -223,7 +223,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     int batch_size = input_tensor->dims[1];
     int output_len = rnn_param->output_len;
 
-    float* init_h = ( float* )malloc(batch_size * hidden_size * sizeof(float));
+    float* init_h = ( float* )malloc((size_t)batch_size * hidden_size * sizeof(float));
     if (init_h == NULL)
     {
         return -1;

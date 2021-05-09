@@ -1716,7 +1716,7 @@ static void pack4(float* input, float* input_buffer, int in_h, int in_w)
         {
             for (int c = 0; c < PACK4; c++)
             {
-                input_buffer[i * in_w * PACK4 + j * PACK4 + c] = input[c * in_w * in_h + i * in_w + j];
+                input_buffer[i * in_w * PACK4 + j * PACK4 + c] = input[(unsigned long)c * in_w * in_h + i * in_w + j];
             }
         }
     }
