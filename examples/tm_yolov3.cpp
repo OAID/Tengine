@@ -160,7 +160,7 @@ layer make_darknet_layer(int batch, int w, int h, int net_w, int net_h, int n, i
     }
     l.layer_type = layer_type;
     l.outputs = l.inputs;
-    l.output = ( float* )calloc(batch * l.outputs, sizeof(float));
+    l.output = ( float* )calloc((size_t)batch * l.outputs, sizeof(float));
 
     return l;
 }

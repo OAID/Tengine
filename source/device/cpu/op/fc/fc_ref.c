@@ -252,7 +252,7 @@ static int ref_fc_int8(struct tensor* input_tensor, struct tensor* output_tensor
                         output_i32 += (int32_t)input_i8 * (int32_t)weight_i8;
                     }
                 }
-                int data_i32 = round(output_i32 * requant_scales[i]);
+                int data_i32 = roundf(output_i32 * requant_scales[i]);
                 if (data_i32 > 127)
                     data_i32 = 127;
                 else if (data_i32 < -127)
@@ -284,7 +284,7 @@ static int ref_fc_int8(struct tensor* input_tensor, struct tensor* output_tensor
                         output_i32 += (int32_t)input_i8 * (int32_t)weight_i8;
                     }
                 }
-                int data_i32 = round(output_i32 * requant_scales[i]);
+                int data_i32 = roundf(output_i32 * requant_scales[i]);
                 if (data_i32 > 127)
                     data_i32 = 127;
                 else if (data_i32 < -127)

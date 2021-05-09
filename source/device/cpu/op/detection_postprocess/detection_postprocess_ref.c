@@ -201,7 +201,7 @@ int ref_dpp_fp32(const float* input_f, const float* score_f, const float* anchor
     const int num_boxes = param->num_boxes;
     const int max_detections = param->max_detections;
 
-    struct Dpp_Box* all_boxes = ( struct Dpp_Box* )malloc(num_classes * num_boxes * sizeof(struct Dpp_Box));
+    struct Dpp_Box* all_boxes = ( struct Dpp_Box* )malloc((unsigned long)num_classes * num_boxes * sizeof(struct Dpp_Box));
     memset(all_boxes, 0, sizeof(struct Dpp_Box) * num_classes * num_boxes);
 
     get_all_boxes_rect(all_boxes, input_f, score_f, anchor_f, num_boxes, num_classes, param->scales);
@@ -290,7 +290,7 @@ int ref_dpp_uint8(const uint8_t* input, const uint8_t* score, const uint8_t* anc
     for(int i=0; i<input_size; i++)
         anchor_f[i] = (anchor[i] - param->zero[2]) * param->quant_scale[2];
 
-    struct Dpp_Box* all_boxes = (struct Dpp_Box* )malloc(num_classes * num_boxes * sizeof(struct Dpp_Box));
+    struct Dpp_Box* all_boxes = (struct Dpp_Box* )malloc((unsigned long)num_classes * num_boxes * sizeof(struct Dpp_Box));
     memset(all_boxes, 0, sizeof(struct Dpp_Box) * num_classes * num_boxes);
 
     get_all_boxes_rect(all_boxes, input_f, score_f, anchor_f, num_boxes, num_classes, param->scales);

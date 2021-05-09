@@ -137,7 +137,7 @@ static int convdw3x3s1_int8_sse(struct tensor* input_tensor, struct tensor* weig
         input_tmp = input_int8;
     else
     {
-        input_tmp = ( int8_t* )sys_malloc(inh_tmp * inw_tmp * inch * sizeof(int8_t));
+        input_tmp = ( int8_t* )sys_malloc((size_t)inh_tmp * inw_tmp * inch * sizeof(int8_t));
 #pragma omp parallel for num_threads(num_thread)
         for (int g = 0; g < inch; g++)
         {
@@ -312,7 +312,7 @@ static int convdw3x3s2_int8_sse(struct tensor* input_tensor, struct tensor* weig
         input_tmp = input_int8;
     else
     {
-        input_tmp = ( int8_t* )sys_malloc(inh_tmp * inw_tmp * inch * sizeof(int8_t));
+        input_tmp = ( int8_t* )sys_malloc((size_t)inh_tmp * inw_tmp * inch * sizeof(int8_t));
 #pragma omp parallel for num_threads(num_thread)        
         for (int g = 0; g < inch; g++)
         {

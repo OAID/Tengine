@@ -99,8 +99,8 @@ static void get_boxes(Box_t* boxes, int num_prior, float* loc_ptr, float* prior_
         // loc []
         float bbox_cx = pvar[0] * loc[0] * pbox_w + pbox_cx;
         float bbox_cy = pvar[1] * loc[1] * pbox_h + pbox_cy;
-        float bbox_w = pbox_w * exp(pvar[2] * loc[2]);
-        float bbox_h = pbox_h * exp(pvar[3] * loc[3]);
+        float bbox_w = pbox_w * expf(pvar[2] * loc[2]);
+        float bbox_h = pbox_h * expf(pvar[3] * loc[3]);
         // bbox [xmin,ymin,xmax,ymax]
         boxes[i].x0 = bbox_cx - bbox_w * 0.5f;
         boxes[i].y0 = bbox_cy - bbox_h * 0.5f;

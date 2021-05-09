@@ -1726,7 +1726,7 @@ static void sgemm_uint8(struct tensor* input, struct tensor* filter, struct tens
 
     float* filter_sgemm = interleave_fp32;
     float* input_sgemm_pack4 = im2col_pack4_fp32;
-    float* output_sgemm = (float*)sys_malloc(outchan_g * out_h * out_w * sizeof(float));
+    float* output_sgemm = (float*)sys_malloc((unsigned long)outchan_g * out_h * out_w * sizeof(float));
 
     sgemm_fp(outchan_g, out_h * out_w, kernel_size, filter_sgemm, input_sgemm_pack4, output_sgemm, num_thread);
 
@@ -1819,8 +1819,8 @@ static void sgemm_int8(struct tensor* input, struct tensor* filter, struct tenso
 
     int8_t* filter_sgemm = interleave_int8;
     int8_t* input_sgemm_pack4 = im2col_pack4_int8;
-    int32_t* output_sgemm_int32 = (int32_t*)sys_malloc(outchan_g * out_h * out_w * sizeof(int32_t));
-    float* output_sgemm_fp32 = (float*)sys_malloc(outchan_g * out_h * out_w * sizeof(float));
+    int32_t* output_sgemm_int32 = (int32_t*)sys_malloc((unsigned long)outchan_g * out_h * out_w * sizeof(int32_t));
+    float* output_sgemm_fp32 = (float*)sys_malloc((unsigned long)outchan_g * out_h * out_w * sizeof(float));
 
     sgemm_i8(outchan_g, out_h * out_w, kernel_size, filter_sgemm, input_sgemm_pack4, output_sgemm_int32, num_thread);
 

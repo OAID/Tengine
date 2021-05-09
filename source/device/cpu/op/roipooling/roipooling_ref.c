@@ -64,10 +64,10 @@ static int ref_roipooling_fp32(struct tensor* input_tensor, struct tensor* roi_t
     {
         float* roi_ptr = roi + n * 4;
 
-        int roi_x0 = round(roi_ptr[0] * param->spatial_scale);
-        int roi_y0 = round(roi_ptr[1] * param->spatial_scale);
-        int roi_x1 = round(roi_ptr[2] * param->spatial_scale);
-        int roi_y1 = round(roi_ptr[3] * param->spatial_scale);
+        int roi_x0 = round((double)roi_ptr[0] * param->spatial_scale);
+        int roi_y0 = round((double)roi_ptr[1] * param->spatial_scale);
+        int roi_x1 = round((double)roi_ptr[2] * param->spatial_scale);
+        int roi_y1 = round((double)roi_ptr[3] * param->spatial_scale);
 
         int roi_w = MAX(roi_x1 - roi_x0 + 1, 1);
         int roi_h = MAX(roi_y1 - roi_y0 + 1, 1);
@@ -83,10 +83,10 @@ static int ref_roipooling_fp32(struct tensor* input_tensor, struct tensor* roi_t
             {
                 for (int w = 0; w < out_w; ++w)
                 {
-                    int h0 = roi_y0 + ( int )floor(( float )( h )*bin_h);
-                    int h1 = roi_y0 + ( int )ceil(( float )(h + 1) * bin_h);
-                    int w0 = roi_x0 + ( int )floor(( float )( w )*bin_w);
-                    int w1 = roi_x0 + ( int )ceil(( float )(w + 1) * bin_w);
+                    int h0 = roi_y0 + ( int )floor((double)( h )*bin_h);
+                    int h1 = roi_y0 + ( int )ceil((double)(h + 1) * bin_h);
+                    int w0 = roi_x0 + ( int )floor((double)( w )*bin_w);
+                    int w1 = roi_x0 + ( int )ceil((double)(w + 1) * bin_w);
 
                     h0 = MIN(MAX(h0, 0), in_h);
                     h1 = MIN(MAX(h1, 0), in_h);

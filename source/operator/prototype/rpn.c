@@ -79,8 +79,8 @@ void ratio_enum(const Anchor_t anchor, const struct vector* ratios_, struct vect
     {
         float size_ratio = area / *( float* )(get_vector_data(( struct vector* )ratios_, i));
         Anchor_t tmp;
-        float new_w = round(sqrt(size_ratio));
-        float new_h = round(new_w * *( float* )(get_vector_data(( struct vector* )ratios_, i)));
+        float new_w = roundf(sqrt(size_ratio));
+        float new_h = roundf(new_w * *( float* )(get_vector_data(( struct vector* )ratios_, i)));
         mkanchor(new_w, new_h, tmp_box.cx, tmp_box.cy, &tmp);
         push_vector_data(result, &tmp);
     }

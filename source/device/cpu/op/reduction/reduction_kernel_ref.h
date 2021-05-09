@@ -3202,7 +3202,7 @@ void l2_4d_ax0(int dim0, int dim1, int dim2, int dim3, float* data, float* tmp)
         for (int n = 0; n < dim0; n++)
         {
             int offset = n * dim1 * dim2 * dim3 + j;
-            tmp[j] += sqrt(data[offset] * data[offset]);
+            tmp[j] += sqrt((double )data[offset] * data[offset]);
         }
     }
 }
@@ -3215,7 +3215,7 @@ void l2_4d_ax1(int dim0, int dim1, int dim2, int dim3, float* data, float* tmp)
             for (int h = 0; h < dim1; h++)
             {
                 int offset = n * dim1 * dim2 * dim3 + h * dim2 * dim3 + cw;
-                tmp[n * dim2 * dim3 + cw] += sqrt(data[offset] * data[offset]);
+                tmp[n * dim2 * dim3 + cw] += sqrt((double )data[offset] * data[offset]);
             }
         }
     }
@@ -3231,7 +3231,7 @@ void l2_4d_ax2(int dim0, int dim1, int dim2, int dim3, float* data, float* tmp)
                 for (int w = 0; w < dim2; w++)
                 {
                     int offset = n * dim1 * dim2 * dim3 + h * dim2 * dim3 + w * dim3 + c;
-                    tmp[n * dim1 * dim3 + h * dim3 + c] += sqrt(data[offset] * data[offset]);
+                    tmp[n * dim1 * dim3 + h * dim3 + c] += sqrt((double )data[offset] * data[offset]);
                 }
             }
         }
@@ -3248,7 +3248,7 @@ void l2_4d_ax3(int dim0, int dim1, int dim2, int dim3, float* data, float* tmp)
                 for (int c = 0; c < dim3; c++)
                 {
                     int offset = n * dim1 * dim2 * dim3 + h * dim2 * dim3 + w * dim3 + c;
-                    tmp[n * dim1 * dim2 + h * dim2 + w] += sqrt(data[offset] * data[offset]);
+                    tmp[n * dim1 * dim2 + h * dim2 + w] += sqrt((double )data[offset] * data[offset]);
                 }
             }
         }
@@ -3261,7 +3261,7 @@ void l2_3d_ax0(int dim1, int dim2, int dim3, float* tmp, float* tmp_01)
         for (int h = 0; h < dim1; h++)
         {
             int index = h * dim2 * dim3 + wc;
-            tmp[wc] += sqrt(tmp_01[index] * tmp_01[index]);
+            tmp[wc] += sqrt((double )tmp_01[index] * tmp_01[index]);
         }
     }
 }
@@ -3274,7 +3274,7 @@ void l2_3d_ax1(int dim1, int dim2, int dim3, float* tmp, float* tmp_02)
             for (int w = 0; w < dim2; w++)
             {
                 int index = h * dim2 * dim3 + w * dim3 + c;
-                tmp[h * dim3 + c] += sqrt(tmp_02[index] * tmp_02[index]);
+                tmp[h * dim3 + c] += sqrt((double )tmp_02[index] * tmp_02[index]);
             }
         }
     }
@@ -3288,7 +3288,7 @@ void l2_3d_ax2(int dim1, int dim2, int dim3, float* tmp, float* tmp_03)
             for (int c = 0; c < dim3; c++)
             {
                 int index = h * dim2 * dim3 + w * dim3 + c;
-                tmp[h * dim2 + w] += sqrt(tmp_03[index] * tmp_03[index]);
+                tmp[h * dim2 + w] += sqrt((double )tmp_03[index] * tmp_03[index]);
             }
         }
     }
@@ -3300,7 +3300,7 @@ void l2_2d_ax0(int dim1, int dim2, float* tmp, float* tmp_0)
         for (int h = 0; h < dim1; h++)
         {
             int index = h * dim2 + w;
-            tmp[w] += sqrt(tmp_0[index] * tmp_0[index]);
+            tmp[w] += sqrt((double )tmp_0[index] * tmp_0[index]);
         }
     }
 }
@@ -3311,7 +3311,7 @@ void l2_2d_ax1(int dim1, int dim2, float* tmp, float* tmp_1)
         for (int w = 0; w < dim2; w++)
         {
             int index = h * dim2 + w;
-            tmp[h] += sqrt(tmp_1[index] * tmp_1[index]);
+            tmp[h] += sqrt((double )tmp_1[index] * tmp_1[index]);
         }
     }
 }

@@ -59,7 +59,7 @@ static int ref_logistic_uint8(uint8_t* input, uint8_t* output, struct logical_pa
     {
         /* get max */
         output[i] =
-            (1.f / (1.f + exp(-(input[i] - op_param->zero_point[0]) * op_param->scale[0]))) / op_param->scale[1] +
+            (1.f / (1.f + exp(-(input[i] - (double )op_param->zero_point[0]) * op_param->scale[0]))) / op_param->scale[1] +
             op_param->zero_point[1];
     }
 
