@@ -2565,7 +2565,7 @@ int conv_dw_run(struct tensor* input_tensor, struct tensor* weight_tensor, struc
         input_tmp = input;
     else
     {
-        input_tmp = ( float* )sys_malloc(inh_tmp * inw_tmp * group * sizeof(float));
+        input_tmp = ( float* )sys_malloc((size_t)inh_tmp * inw_tmp * group * sizeof(float));
 #pragma omp parallel for num_threads(num_thread)        
         for (int g = 0; g < group; g++)
         {

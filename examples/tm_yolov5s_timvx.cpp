@@ -294,7 +294,7 @@ void get_input_data_focus_uint8(const char* image_file, uint8_t* input_data, int
 
     img_new.convertTo(img_new, CV_32FC3);
     float* img_data   = (float* )img_new.data;
-    float* input_temp = (float* )malloc(3 * letterbox_cols * letterbox_rows * sizeof(float));
+    float* input_temp = (float* )malloc(3 * (size_t)letterbox_cols * letterbox_rows * sizeof(float));
 
     /* nhwc to nchw */
     for (int h = 0; h < letterbox_rows; h++)
