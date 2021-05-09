@@ -109,6 +109,8 @@ private:
     bool AddReluNode(struct node* ir_node);
     bool AddRelu1Node(struct node* ir_node);
     bool AddReshapeNode(struct node* ir_node);
+    bool AddResizeNode(struct node* ir_node);
+    bool AddScaleNode(struct node* ir_node);
     bool AddSigmoidNode(struct node* ir_node);
     bool AddSliceNode(struct node* ir_node);
     bool AddSoftmaxNode(struct node* ir_node);

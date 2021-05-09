@@ -230,6 +230,12 @@ int VXEngine::Build(struct subgraph* subgraph)
             case OP_RESHAPE:
                 this->AddReshapeNode(ir_node);
                 break;
+            case OP_RESIZE:
+                this->AddResizeNode(ir_node);
+                break;
+            case OP_SCALE:
+                this->AddScaleNode(ir_node);
+                break;
             case OP_SIGMOID:
                 this->AddSigmoidNode(ir_node);
                 break;
