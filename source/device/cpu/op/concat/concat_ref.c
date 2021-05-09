@@ -202,7 +202,7 @@ static int ref_concat_uint8(const uint8_t** in_data, uint8_t* out_data, const st
                 float t_scale = scale / out_scale;
                 for (int ii = 0; ii < cp_size; ++ii)
                 {
-                    output_ptr[ii] = round((input_ptr[ii] - input_zero) * t_scale) + out_zero;
+                    output_ptr[ii] = roundf((input_ptr[ii] - (float )input_zero) * t_scale) + (float )out_zero;
                 }
             }
             output_ptr += cp_size;
@@ -265,7 +265,7 @@ static int ref_concat_int8(const int8_t** in_data, int8_t* out_data, const struc
                 float requant_scale = input_scale / output_scale;
                 for (int ii = 0; ii < cp_size; ++ii)
                 {
-                    int data_i32 = (int)roundf((float )input_ptr[ii] * requant_scale);
+                    int data_i32 = round((float )input_ptr[ii] * requant_scale);
                     if (data_i32 > 127)
                         data_i32 = 127;
                     else if (data_i32 < -127)

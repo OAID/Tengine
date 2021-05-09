@@ -1773,8 +1773,8 @@ static int pooling_kernel_perf_run(struct tensor* input, struct tensor* output, 
     else
     {
         int packc4 = c >> 2;
-        float* input_buffer = ( float* )calloc(sizeof(float), PACK4 * in_h * in_w);
-        float* output_buffer = ( float* )calloc(sizeof(float), PACK4 * out_h * out_w);
+        float* input_buffer = ( float* )calloc(sizeof(float), PACK4 * (size_t)in_h * in_w);
+        float* output_buffer = ( float* )calloc(sizeof(float), PACK4 * (size_t)out_h * out_w);
         for (int n = 0; n < batch; n++)
         {
             for (int pck = 0; pck < packc4; pck++)

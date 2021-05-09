@@ -57,7 +57,7 @@ int ref_split_fp32(struct tensor* input_tensor, struct tensor* output_tensor, st
         {
             int in_offset = (n * in_slice + *slice_index) * slice_size;
             int out_offset = n * out_slice * slice_size;
-            memcpy(output_data + out_offset, input_data + in_offset, slice_size * out_slice * sizeof(float));
+            memcpy(output_data + out_offset, input_data + in_offset, (size_t)slice_size * out_slice * sizeof(float));
         }
 
         *slice_index += out_slice;

@@ -69,7 +69,7 @@ static inline void remove_vector_data_not_tail(vector_t* v, int idx)
     start_data_ptr = (char*)v->mem + idx * v->entry_size;
     remaining_elements_count = v->elem_num - 1 - idx;
 
-    memmove(start_data_ptr, (char*)start_data_ptr + v->entry_size, remaining_elements_count * v->entry_size);
+    memmove(start_data_ptr, (char*)start_data_ptr + v->entry_size, (size_t)remaining_elements_count * v->entry_size);
 
     v->elem_num--;
 

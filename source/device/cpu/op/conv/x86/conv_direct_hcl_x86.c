@@ -71,7 +71,7 @@ static void pad_int8(int8_t* input, int8_t* output, int in_h, int in_w, int out_
         }
         else
         {
-            memcpy(outptr + left, ptr, in_w * sizeof(int8_t));
+            memcpy(outptr + left, ptr, (size_t)in_w * sizeof(int8_t));
             x += in_w;
         }
         for (; x < out_w; x++)
@@ -135,7 +135,7 @@ static int conv3x3s1_int8_sse(struct tensor* input_tensor, struct tensor* weight
         input_tmp = input_int8;
     else
     {
-        input_tmp = ( int8_t* )sys_malloc(inh_tmp * inw_tmp * inch * sizeof(int8_t));
+        input_tmp = ( int8_t* )sys_malloc((size_t)inh_tmp * inw_tmp * inch * sizeof(int8_t));
 #pragma omp parallel for num_threads(num_thread)        
         for (int g = 0; g < inch; g++)
         {
@@ -312,7 +312,7 @@ static int conv3x3s2_int8_sse(struct tensor* input_tensor, struct tensor* weight
         input_tmp = input_int8;
     else
     {
-        input_tmp = ( int8_t* )sys_malloc(inh_tmp * inw_tmp * inch * sizeof(int8_t));
+        input_tmp = ( int8_t* )sys_malloc((size_t)inh_tmp * inw_tmp * inch * sizeof(int8_t));
 #pragma omp parallel for num_threads(num_thread)        
         for (int g = 0; g < inch; g++)
         {

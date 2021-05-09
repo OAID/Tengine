@@ -1043,13 +1043,13 @@ static struct tm2_serializer tm2_serializer = {
 };
 
 
-int register_tm2_serializer(void* arg)
+int register_tm2_serializer()
 {
     return register_serializer((struct serializer*)&tm2_serializer);
 }
 
 
-int unregister_tm2_serializer(void* arg)
+int unregister_tm2_serializer()
 {
     return unregister_serializer((struct serializer*)&tm2_serializer);
 }
