@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export ANDROID_NDK=<your-ndk-root_path, such as /home/i/wls/libraries/android-ndk-r15c>
+export ANDROID_NDK=<your-ndk-root_path, such as /home/user/libraries/android-ndk-r15c>
 
 
 ##### android armv7

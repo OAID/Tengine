@@ -34,6 +34,10 @@
 #include <time.h>
 #include <stdarg.h>
 
+#ifdef ANDROID
+#include <android/log.h>
+#endif
+
 
 static mutex_t log_locker;
 static const char* map_table[] = {"EMERG", "ALERT", "CRIT", "ERROR", "WARN", "NOTICE", "INFO", "DEBUG"};
@@ -58,7 +62,49 @@ static void do_log(struct logger* logger, enum log_level level, const char* fmt,
     {
         return;
     }
+#ifdef ANDROID
+    va_list _ap;
+    va_start(_ap, fmt);
 
+    switch (level)
+    {
+        case LOG_EMERG:
+        case LOG_ALERT:
+        case LOG_CRIT:
+        {
+            __android_log_print(ANDROID_LOG_FATAL, "Tengine", fmt, _ap);
+            break;
+        }
+        case LOG_ERR:
+        {
+            __android_log_print(ANDROID_LOG_ERROR, "Tengine", fmt, _ap);
+            break;
+        }
+        case LOG_WARNING:
+        {
+            __android_log_print(ANDROID_LOG_WARN, "Tengine", fmt, _ap);
+            break;
+        }
+        case LOG_NOTICE:
+        case LOG_INFO:
+        {
+            __android_log_print(ANDROID_LOG_INFO, "Tengine", fmt, _ap);
+            break;
+        }
+        case LOG_DEBUG:
+        {
+            __android_log_print(ANDROID_LOG_DEBUG, "Tengine", fmt, _ap);
+            break;
+        }
+        default:
+        {
+            __android_log_print(ANDROID_LOG_VERBOSE, "Tengine", fmt, _ap);
+        }
+    }
+    va_end(_ap);
+
+    return;
+#else
     va_list ap;
     char msg[TE_MAX_LOG_LENGTH] = { 0 };
     int  max_len = TE_MAX_LOG_LENGTH;
@@ -108,6 +154,7 @@ static void do_log(struct logger* logger, enum log_level level, const char* fmt,
     va_end(ap);
 
     return safety_log(logger, msg);
+#endif
 }
 
 
