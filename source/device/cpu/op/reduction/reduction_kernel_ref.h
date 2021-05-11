@@ -140,7 +140,7 @@ struct reduce_param_ref
 };
 
 static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int dim2, int dim3, int out_size,
-                           struct reduce_param_ref* param)
+                           struct reduce_param_ref* param, int dim_num)
 {
     int offset = 0;
     // TLOG_ERR("out_size:%d\n",out_size);
