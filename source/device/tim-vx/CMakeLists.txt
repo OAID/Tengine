@@ -139,6 +139,7 @@ IF (TENGINE_ENABLE_TIM_VX_INTEGRATION)
     LIST (APPEND      _VX_SRC ${_VX_BASE_SRC} ${_VX_OPS_SRC})
     LIST (REMOVE_ITEM _VX_SRC ${_VX_ROOT}/tim/vx/context_test.cc)
     LIST (REMOVE_ITEM _VX_SRC ${_VX_ROOT}/tim/vx/graph_test.cc)
+    LIST (REMOVE_ITEM _VX_SRC ${_VX_ROOT}/tim/vx/ops/reorg_test.cc)
 
     # build
     ADD_LIBRARY (${_TIM_VX_NAME} STATIC ${_VX_SRC})
