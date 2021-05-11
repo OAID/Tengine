@@ -33,6 +33,8 @@
 #define FLOAT_MAX 3.4028235E38
 #define FLOAT_MIN -3.4028235E38
 
+void sum_5d_ax1(int* dims, int dim_num, float* data, float* tmp);
+
 void sum_4d_ax0(int dim0, int dim1, int dim2, int dim3, float* data, float* tmp);
 void sum_4d_ax1(int dim0, int dim1, int dim2, int dim3, float* data, float* tmp);
 void sum_4d_ax2(int dim0, int dim1, int dim2, int dim3, float* data, float* tmp);
@@ -140,21 +142,16 @@ struct reduce_param_ref
 };
 
 static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int dim2, int dim3, int out_size,
-                           struct reduce_param_ref* param, int dim_num)
+                           struct reduce_param_ref* param, int dim_num, int* dims)
 {
     int offset = 0;
-    // TLOG_ERR("out_size:%d\n",out_size);
-    // TLOG_ERR("dim0:%d,dim1:%d,dim2:%d,dim3:%d\n",dim0,dim1,dim2,dim3);
     float* tmp = ( float* )sys_malloc(sizeof(float) * out_size);
-    // TLOG_ERR("tmp:%p\n",tmp);
     memset(tmp, 0, sizeof(float) * out_size);
     int param_dim0 = param->param_dim[0];
     int param_dim1 = param->param_dim[1];
     int param_dim2 = param->param_dim[2];
     int param_dim3 = param->param_dim[3];
-    // TLOG_ERR("param_dim0:%d,param_dim1:%d,param_dim2:%d,param_dim3:%d\n",param_dim0,param_dim1,param_dim2,param_dim3);
-    // TLOG_ERR("%d, %d, %d, %d, %d\n",param_dim0, param_dim1, param_dim2, param_dim3, param->type);
-    // reduce sum
+
     if (param->type == 0)
     {
         if ((param_dim0 == -2 && param_dim1 == -2 && param_dim2 == -2 && param_dim3 == -2) ||
@@ -176,12 +173,19 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
                 }
             }
         }
+        else if(param_dim0 == 1 && param_dim1 == -2 && param_dim2 == -2 && param_dim3 == -2 && (dim_num > 4))
+        {
+            if(dim_num == 5){
+                sum_5d_ax1(dims, dim_num, data, tmp);
+            }
+        }
         else if (param_dim0 == 0 && param_dim1 == -2 && param_dim2 == -2 && param_dim3 == -2)
         {
             sum_4d_ax0(dim0, dim1, dim2, dim3, data, tmp);
         }
-        else if (param_dim0 == 1 && param_dim1 == -2 && param_dim2 == -2 && param_dim3 == -2)
+        else if (param_dim0 == 1 && param_dim1 == -2 && param_dim2 == -2 && param_dim3 == -2 && (dim_num <= 4) )
         {
+            fprintf(stderr, "wrond dim_num %d \n", dim_num);
             sum_4d_ax1(dim0, dim1, dim2, dim3, data, tmp);
         }
         else if (param_dim0 == 2 && param_dim1 == -2 && param_dim2 == -2 && param_dim3 == -2)
@@ -2393,6 +2397,23 @@ void mean_2d_ax1(int dim1, int dim2, float* tmp, float* tmp_1)
 }
 
 // sum
+void sum_5d_ax1(int* dims, int dim_num, float* data, float* tmp)
+{
+    int dim0 = dims[0];
+    int dim1 = dims[1];
+    int dim2 = dims[2];
+    int dim3 = dims[3];
+    int dim4 = dims[4];
+    int chw = dim2*dim3*dim4;
+    for(int j = 0; j < dim0; j++){
+        for(int n = 0; n < dim1; n++){
+            for(int size = 0; size < chw; size++){
+                tmp[size] += data[n*chw + size];
+            }
+        }
+    }
+}
+
 void sum_4d_ax0(int dim0, int dim1, int dim2, int dim3, float* data, float* tmp)
 {
     for (int j = 0; j < dim1 * dim2 * dim3; j++)
