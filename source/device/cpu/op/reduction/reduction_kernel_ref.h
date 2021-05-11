@@ -28,6 +28,7 @@
 
 #include <string.h>
 #include <math.h>
+#include <stdio.h>
 
 
 #define FLOAT_MAX 3.4028235E38
