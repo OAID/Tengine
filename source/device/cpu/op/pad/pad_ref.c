@@ -52,7 +52,6 @@ static void ref_pad_fp32(float* input, float* output, int in_h, int in_w, int ou
 {
     float* ptr = input;
     float* outptr = output;
-
     int y = 0;
     // fill top
     for (; y < top; y++)
@@ -83,10 +82,11 @@ static void ref_pad_fp32(float* input, float* output, int in_h, int in_w, int ou
         {
             //            memcpy(outptr + left, ptr, in_w * sizeof(float));
             //            x += in_w;
-            for (; x < in_w; x++)
+            for (x = 0; x < in_w; x++)
             {
                 outptr[left + x] = ptr[x];
             }
+            x++;
         }
         for (; x < out_w; x++)
         {

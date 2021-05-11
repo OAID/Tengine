@@ -88,9 +88,9 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     param.param_dim[2] = reduction_param->dim_2;
     param.param_dim[3] = reduction_param->dim_3;
     param.type = reduction_param->type;
-
+    int in_dim_num = input_tensor->dim_num;
     int ret = ref_reduce_fp32(( float* )input_tensor->data, ( float* )output_tensor->data, dim0, dim1, dim2, dim3,
-                              out_tensor_size, &param);
+                              out_tensor_size, &param, in_dim_num);
     if (ret < 0)
         return -1;
     else
