@@ -7,7 +7,7 @@
 #include <iomanip>
 #include <sys/time.h>
 
-#include "tengine_c_api.h"
+#include "tengine/c_api.h"
 #include "common.hpp"
 #include "tengine_operations.h"
 

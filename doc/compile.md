@@ -21,16 +21,14 @@
 
 ### 1.1 下载 Tengine Lite 源码
 
-下载 Tengine Lite 源码，位于 Tengine 的分支 tengine-lite 上：
-
 ```bash
-git clone -b tengine-lite https://github.com/OAID/Tengine.git  Tengine-Lite
+git clone https://github.com/OAID/Tengine.git  tengine-lite
 ```
 
 ### 1.2 编译 Tengine Lite
 
 ```bash
-cd Tengine-Lite
+cd tengine-lite
 mkdir build 
 cd build
 cmake ..
@@ -57,7 +55,7 @@ install
 ### 2.1 下载源码
 
 ```bash
-git clone -b tengine-lite https://github.com/OAID/Tengine.git  Tengine-Lite
+git clone https://github.com/OAID/Tengine.git  tengine-lite
 ```
 
 ### 2.2 安装交叉编译工具链
@@ -104,9 +102,12 @@ make install
 
 ### 3.1 安装 Android NDK
 
-传送门 http://developer.android.com/ndk/downloads/index.html
+下载 Android NDK http://developer.android.com/ndk/downloads/index.html 并安装，例如：
 
-比如我把 android-ndk 解压到 /home/openailab/android-ndk-r18b
+```
+unzip android-ndk-r21d-linux-x86_64.zip
+export ANDROID_NDK=<your-ndk-root-path>
+```
 
 ### 3.2 准备 android toolchain 文件
 
@@ -125,7 +126,7 @@ list(APPEND ANDROID_COMPILER_FLAGS
 ### 3.3 下载 Tengine Lite 源码
 
 ```bash
-git clone -b tengine-lite https://github.com/OAID/Tengine.git Tengine-Lite
+git clone https://github.com/OAID/Tengine.git tengine-lite
 ```
 
 ### 3.4 编译 Tengine Lite
@@ -135,7 +136,7 @@ Arm64 Android 编译命令如下：
 ```bash
 mkdir build-android-aarch64
 cd build-android-aarch64
-cmake -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build-android-aarch64/cmake/android.toolchain.cmake -DANDROID_ABI="arm64-v8a" -DANDROID_PLATFORM=android-21 ..
+cmake -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake -DANDROID_ABI="arm64-v8a" -DANDROID_PLATFORM=android-21 ..
 make
 make install
 ```
@@ -197,7 +198,7 @@ list(APPEND ANDROID_COMPILER_FLAGS
 ### 5.3 下载 Tengine Lite 源码
 
 ```bash
-git clone -b tengine-lite https://github.com/OAID/Tengine.git Tengine-Lite
+git clone https://github.com/OAID/Tengine.git tengine-lite
 ```
 
 ### 5.4 编译 Tengine Lite
@@ -236,6 +237,7 @@ popd
 @ENDLOCAL
 ```
 
-## 6. 总结
+## 6.  使用 Microsoft Visual Studio 编译
 
-本文档只是简单指导如何编译对应的 Tengine Lite 版本，有需要可以参考 ` Tengine-Lite/build.sh` 文件。
+请参考 [Visual Studio 使用说明](visual_sudio_user_manual.md)。
+

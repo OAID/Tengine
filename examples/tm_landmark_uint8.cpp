@@ -24,10 +24,9 @@
 
 #include <iostream>
 #include <functional>
-#include <algorithm>
 
 #include "common.h"
-#include "tengine_c_api.h"
+#include "tengine/c_api.h"
 #include "tengine_operations.h"
 
 #define DEFAULT_REPEAT_COUNT 1

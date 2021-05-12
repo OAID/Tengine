@@ -10,31 +10,39 @@ jobs:
     - name: update
       run: sudo apt-get update
     - name: protobuf
-      run: sudo apt-get install libopencv-dev
+      run: sudo apt-get install libprotobuf-dev protobuf-compiler libopencv-dev
     - name: lcov
       run: sudo apt-get install lcov
     - name: configure
       run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=debug -DTENGINE_BUILD_TESTS=ON -DTENGINE_COVERAGE=ON ..
     - name: build
       run: cmake --build build -j 2
-    - name: models
+    - name: test-data
       run: |
         cd build
-        wget http://198.55.120.234/lite/models.zip
+        wget ftp://219.139.34.182/tengine/ci_test/models.zip
         unzip models.zip
-        wget http://198.55.120.234/lite/x86_data.zip
+        wget ftp://219.139.34.182/tengine/ci_test/x86_data.zip
         unzip x86_data.zip
         mv x86_data data
-        wget http://198.55.120.234/lite/images.zip
+        wget ftp://219.139.34.182/tengine/ci_test/images.zip
         unzip images.zip
-    - name: test-cpu
+        git clone https://github.com/BUG1989/onnx_op_test_data.git
+        mv onnx_op_test_data onnx_node        
+    - name: test-models
       run: |
+        chmod +x ./tests/test.sh
         cd build
         ../tests/test.sh
+    - name: test-op
+      run: |
+        cd build
+        export TG_DEBUG_REF=1
+        ctest --output-on-failure
     - name: lcov-collect
       run: |
         cd build
-        lcov -d ./src -c -o lcov.info
+        lcov -d ./source -c -o lcov.info
         lcov -r lcov.info '/usr/*' -o lcov.info
         lcov --list lcov.info
     - name: codecov
@@ -57,14 +65,13 @@ jobs:
     - name: tim-vx
       run: |
         git clone https://github.com/VeriSilicon/TIM-VX.git
-        mkdir -p ./3rdparty/tim-vx/lib/x86_64
+        export LD_LIBRARY_PATH=${PWD}/3rdparty/tim-vx/lib/x86_64
         mkdir -p ./3rdparty/tim-vx/include
-        cp -rf ./TIM-VX/include/*    ./3rdparty/tim-vx/include/
-        cp -rf ./TIM-VX/src    ./src/dev/tim-vx/
-        cp -rf ./TIM-VX/prebuilt-sdk/x86_64_linux/include/*    ./3rdparty/tim-vx/include/
-        cp -rf ./TIM-VX/prebuilt-sdk/x86_64_linux/lib/*    ./3rdparty/tim-vx/lib/x86_64/
-        rm ./src/dev/tim-vx/src/tim/vx/context_test.cc
-        rm ./src/dev/tim-vx/src/tim/vx/graph_test.cc
+        mkdir -p ./3rdparty/tim-vx/lib/x86_64
+        cp -rvf ./TIM-VX/prebuilt-sdk/x86_64_linux/include/*  ./3rdparty/tim-vx/include/
+        cp -rvf ./TIM-VX/prebuilt-sdk/x86_64_linux/lib/*      ./3rdparty/tim-vx/lib/x86_64/
+        cp -rvf ./TIM-VX/include  ./source/device/tim-vx/
+        cp -rvf ./TIM-VX/src      ./source/device/tim-vx/
     - name: configure
       run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=debug -DTENGINE_ENABLE_TIM_VX=ON -DTENGINE_ENABLE_TIM_VX_INTEGRATION=ON -DTENGINE_COVERAGE=ON ..
     - name: build
@@ -72,7 +79,7 @@ jobs:
     - name: models
       run: |
         cd build
-        wget http://198.55.120.234/lite/images.zip
+        wget ftp://219.139.34.182/tengine/ci_test/images.zip
         unzip images.zip
         git clone https://github.com/BUG1989/tengine_test_data.git
     - name: test-timvx-simulator
@@ -84,10 +91,10 @@ jobs:
     - name: lcov-collect
       run: |
         cd build
-        lcov -d ./src -c -o lcov.info
+        lcov -d ./source -c -o lcov.info
         lcov -r lcov.info '*3rdparty*' -o lcov.info
-        lcov -r lcov.info '*/src/dev/cpu/*' -o lcov.info
-        lcov -r lcov.info '*/src/dev/tim-vx/src/*' -o lcov.info
+        lcov -r lcov.info '*/source/device/cpu/*' -o lcov.info
+        lcov -r lcov.info '*/source/device/tim-vx/src/*' -o lcov.info
         lcov -r lcov.info '/usr/*' -o lcov.info
         lcov --list lcov.info        
     - name: codecov

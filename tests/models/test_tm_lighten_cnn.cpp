@@ -26,7 +26,7 @@
 #include <string>
 #include <vector>
 #include <sys/time.h>
-#include "tengine_c_api.h"
+#include "tengine/c_api.h"
 #include "common.hpp"
 
 #ifndef MAX

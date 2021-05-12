@@ -1,0 +1,40 @@
+name: linux-x64-cpu-gcc
+
+on: [push, pull_request]
+
+jobs:
+  linux-x64-cpu-gcc:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: update
+      run: sudo apt-get update
+    - name: protobuf
+      run: sudo apt-get install libprotobuf-dev protobuf-compiler libopencv-dev
+    - name: configure
+      run: mkdir build && cd build && cmake -DTENGINE_BUILD_TESTS=ON ..
+    - name: build
+      run: cmake --build build -j 2
+    - name: optest
+      run: |
+        cd build
+        git clone https://github.com/BUG1989/onnx_op_test_data.git
+        mv onnx_op_test_data onnx_node
+        export TG_DEBUG_REF=1
+        ctest --output-on-failure
+    - name: models
+      run: |
+        cd build
+        wget ftp://219.139.34.182/tengine/ci_test/models.zip
+        unzip models.zip
+        wget ftp://219.139.34.182/tengine/ci_test/x86_data.zip
+        unzip x86_data.zip
+        mv x86_data data
+        wget ftp://219.139.34.182/tengine/ci_test/images.zip
+        unzip images.zip
+    - name: model-test
+      run: |
+        chmod +x ./tests/test.sh
+        cd build
+        unset TG_DEBUG_REF
+        ../tests/test.sh

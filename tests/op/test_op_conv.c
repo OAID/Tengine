@@ -26,8 +26,8 @@
 #include <string.h>
 #include <malloc.h>           
 
-#include "tengine_c_api.h"
-#include "tengine_c_api_ex.h"
+#include "tengine/c_api.h"
+#include "tengine/c_api_ex.h"
 
 int allocated_num = 0;
 void** record_ptr = NULL;
