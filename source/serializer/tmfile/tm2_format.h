@@ -146,7 +146,8 @@ typedef uint8_t tm_bool_t;                      /* bool is 1-byte unsigned integ
 #define TM2_OPSTR_SCATTER                       "Scatter"
 #define TM2_OPSTR_TILE                          "Tile"
 #define TM2_OPSTR_L2POOL                        "L2Pool"
-
+#define TM2_OPSTR_SOFTPLUS 						"Softplus"
+#define TM2_OPSTR_RECIPROCAL 					"Reciprocal"
 /* Operator types */
 #define TM2_OPTYPE_ACCURACY                       0 /* No Param                 */
 #define TM2_OPTYPE_BATCHNORMALIZATION             1 /* TM2_BatchNormParam       */
@@ -250,7 +251,9 @@ typedef uint8_t tm_bool_t;                      /* bool is 1-byte unsigned integ
 #define TM2_OPTYPE_LOGSOFTMAX                    99
 #define TM2_OPTYPE_RELU1                        100
 #define TM2_OPTYPE_L2NORMALIZATION              101
-#define TM2_OPTYPE_NUM                          102
+#define TM2_OPTYPE_SOFTPLUS 					102
+#define TM2_OPTYPE_RECIPROCAL 					103
+#define TM2_OPTYPE_NUM 							104
 
 /* --------------------- -------- TM objects -------------------------------- */
 
