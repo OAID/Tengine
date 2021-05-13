@@ -83,7 +83,7 @@ void VXEngine::VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_t
                 datatype = tim::vx::DataType::INT32;
                 break;
             default:
-                TLOG_INFO("FP32 tensor: Tensor_name(%s) tensor_index(%d) .\n",ir_tensor->name, ir_tensor->index);
+                TLOG_ERR("Tensor: Tensor_name(%s) tensor_index(%d) tensor_data_type(%d) .\n",ir_tensor->name, ir_tensor->index, ir_tensor->data_type);
                 break;
         }
 
