@@ -67,7 +67,6 @@ static int infer_shape(ir_node_t* node)
 
         pool_param->kernel_h = input_h;
         pool_param->kernel_w = input_w;
-        pool_param->pad_h0 = pool_param->pad_h1 = pool_param->pad_w0 = pool_param->pad_w1 = 0;
         pool_param->stride_h = pool_param->stride_w = 1;
 
         output_h = 1;
@@ -139,11 +138,11 @@ static int init_op(ir_op_t* op)
     pool_param->pad_h0 = 0;
     pool_param->pad_h1 = 0;
     pool_param->pad_w0 = 0;
-    pool_param->pad_h1 = 0;
+    pool_param->pad_w1 = 0;
     pool_param->pad_h0_org = 0;
     pool_param->pad_h1_org = 0;
     pool_param->pad_w0_org = 0;
-    pool_param->pad_h1_org = 0;
+    pool_param->pad_w1_org = 0;
     pool_param->caffe_flavor = 0;
     pool_param->funct = NULL;
 
