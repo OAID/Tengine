@@ -43,15 +43,26 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 {
     struct node* ir_node = exec_node->ir_node;
     struct graph* ir_graph = ir_node->graph;
-    struct tensor* input_tensor;
-    struct tensor* output_tensor;
+    struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
     struct pool_param* pool_param = ( struct pool_param* )ir_node->op.param_mem;
 
-    input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-
-    pooling_kernel_ref_run(input_tensor, output_tensor, pool_param, exec_graph->num_thread);
+    int ret = -1;
+    if (input_tensor->data_type == TENGINE_DT_FP32)
+        ret = ref_pooling_fp32(input_tensor, output_tensor, pool_param, exec_graph->num_thread);
+    else if (input_tensor->data_type == TENGINE_DT_FP16)
+        #if MACOS
+        TLOG_ERR("FP16 not support mac os");
+        #else
+        ret = ref_pooling_fp16(input_tensor, output_tensor, pool_param, exec_graph->num_thread);
+        #endif
+    else if (input_tensor->data_type == TENGINE_DT_UINT8)
+        ret = ref_pooling_uint8(input_tensor, output_tensor, pool_param, exec_graph->num_thread);
+    else if (input_tensor->data_type == TENGINE_DT_INT8)
+        ret = ref_pooling_int8(input_tensor, output_tensor, pool_param, exec_graph->num_thread);
+    else
+        TLOG_ERR("Input data type %d not to be supported.\n", input_tensor->data_type);    
 
     return 0;
 }

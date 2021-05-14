@@ -22,26 +22,36 @@
  * Author:
  */
 
-#ifndef __POOLING_KERNEL_REF_H__
-#define __POOLING_KERNEL_REF_H__
-
-#include "pooling_param.h"
+#include "clip_kernel_ref.h"
 
 #include "graph/tensor.h"
 #include "graph/node.h"
 #include "graph/graph.h"
+#include "module/module.h"
+#include "operator/op.h"
+#include "utility/float.h"
+#include "utility/sys_port.h"
+#include "utility/log.h"
+#include "device/cpu/cpu_node.h"
+#include "device/cpu/cpu_graph.h"
+#include "device/cpu/cpu_module.h"
 
 
-int ref_pooling_fp32(struct tensor* input_tensor, struct tensor* output_tensor,
-                           struct pool_param* pool_param, int num_thread);
+int ref_clip_fp32(struct tensor* input_tensor, struct tensor* output_tensor, float max, float min)
+{
+    int total_size = input_tensor->elem_num;
+    float* input_data = input_tensor->data;
+    float* out_data = output_tensor->data;
 
-int ref_pooling_fp16(struct tensor* input_tensor, struct tensor* output_tensor,
-                           struct pool_param* pool_param, int num_thread);
+    for (int i = 0; i < total_size; i++)
+    {
+        out_data[i] = input_data[i];
 
-int ref_pooling_uint8(struct tensor* input_tensor, struct tensor* output_tensor,
-                           struct pool_param* pool_param, int num_thread);
+        if (out_data[i] > max)
+            out_data[i] = max;
+        if (out_data[i] < min)
+            out_data[i] = min;
+    }
 
-int ref_pooling_int8(struct tensor* input_tensor, struct tensor* output_tensor,
-                           struct pool_param* pool_param, int num_thread);
-
-#endif
+    return 0;
+}

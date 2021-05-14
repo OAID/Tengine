@@ -22,7 +22,7 @@
  * Author: 1091545398@qq.com
  */
 
-#include "pooling_pack_hcl_x86.h"
+#include "pooling_hcl_x86.h"
 
 #include "graph/tensor.h"
 #include "graph/node.h"
@@ -111,12 +111,6 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     struct node* ir_node = exec_node;
     struct graph* ir_graph = ir_node->graph;
     struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    int in_c = input_tensor->dims[1];
-    /* not global only support pack4 */
-    if (global != 1 && in_c % 4 != 0)
-    {
-        return 0;
-    }
 
     /* todo support uint8 */
     if (input_tensor->data_type != TENGINE_DT_FP32)
@@ -125,7 +119,7 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     /* filter perf global pooling case */
     if (global)
         return OPS_SCORE_BEST;
-    /* filter perf general pooling case */
+        /* filter perf general pooling case */
     else
     {
         if (stride_h == 2 && stride_w == 2)
@@ -142,9 +136,9 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
         /* general max pooling, k2s2, k2k2p1, k3s1p1, k3s2, k3s2p1 */
         if (type == POOL_MAX && (pad_h0 == pad_w0) && (pad_h1 == pad_w1) && pad_tf != -1)
         {
-            if (pad_h0 == 0 && (pool_size == POOL_K3S2 || pool_size == POOL_K2S2))
+            if (pad_h0 == 0 && (pool_size == POOL_K2S2 || pool_size == POOL_K3S2))
                 return 0;
-            if (pad_h0 == 1 && (pool_size == POOL_K3S1 || pool_size == POOL_K2S2 || pool_size == POOL_K3S2))
+            if (pad_h0 == 1 && (pool_size == POOL_K2S2 || pool_size == POOL_K3S2 || pool_size == POOL_K3S1))
                 return 0;
         }
 
@@ -152,29 +146,33 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
         if (type == POOL_AVG && (pad_h0 == pad_w0) && (pad_h1 == pad_w1))
         {
             if (pad_h0 == 0 && pad_h1 == 0 && (pool_size == POOL_K2S2 || pool_size == POOL_K3S2))
-                return OPS_SCORE_BEST;
+                return 0;
             if (pad_h0 == 1 && pad_h1 == 1 && (pool_size == POOL_K2S2 || pool_size == POOL_K3S2))
-                return OPS_SCORE_BEST;
+                return 0;
         }
     }
 
     return 0;
 }
 
-static struct node_ops hcl_node_ops = {.prerun = prerun,
-                                       .run = run,
-                                       .reshape = NULL,
-                                       .postrun = postrun,
-                                       .init_node = init_node,
-                                       .release_node = release_node,
-                                       .score = score};
 
-int register_pooling_pack_hcl_x86_op()
+static struct node_ops hcl_node_ops = {.prerun = prerun,
+        .run = run,
+        .reshape = NULL,
+        .postrun = postrun,
+        .init_node = init_node,
+        .release_node = release_node,
+        .score = score};
+
+
+int register_pooling_hcl_x86_op()
 {
     return register_builtin_node_ops(OP_POOL, &hcl_node_ops);
 }
 
-int unregister_pooling_pack_hcl_x86_op()
+
+int unregister_pooling_hcl_x86_op()
 {
-    return unregister_builtin_node_ops(OP_POOL, &hcl_node_ops);
+    unregister_builtin_node_ops(OP_POOL, &hcl_node_ops);
+    return 0;
 }
