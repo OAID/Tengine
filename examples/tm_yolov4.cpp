@@ -437,7 +437,6 @@ int main(int argc, char* argv[])
     if (graph == nullptr)
     {
         fprintf(stderr, "Create graph failed.\n");
-        fprintf(stderr, "errno: %d \n", get_tengine_errno());
         return -1;
     }
 
