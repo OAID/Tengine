@@ -32,6 +32,18 @@
 #include "utility/sys_port.h"
 
 
+static int infer_shape(ir_node_t* node)
+{
+    ir_graph_t* ir_graph = node->graph;
+    ir_tensor_t* input = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
+    ir_tensor_t* output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
+
+    set_ir_tensor_shape(output, input->dims, input->dim_num);
+
+    return 0;
+}
+
+
 static int init_op(struct op* op)
 {
     struct selu_param* selu_param = ( struct selu_param* )sys_malloc(sizeof(struct selu_param));
@@ -42,8 +54,8 @@ static int init_op(struct op* op)
     }
 
     /*set the param default value */
-    selu_param->alpha = 1.f;
-    selu_param->lambda = 1.f;
+    selu_param->alpha = 1.67326319f;
+    selu_param->lambda = 1.05070102f;
 
     op->param_mem = selu_param;
     op->param_size = sizeof(struct selu_param);

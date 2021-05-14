@@ -44,7 +44,6 @@ static int ref_unary_fp32(struct tensor* input_tensor, struct tensor* output_ten
     float* out_data = output_tensor->data;
 
     int size = input_tensor->elem_num;
-
     int type = param->type;
 
     switch (type)
@@ -322,11 +321,9 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 {
     struct node* ir_node = exec_node->ir_node;
     struct graph* ir_graph = ir_node->graph;
-    struct tensor* input_tensor;
-    struct tensor* output_tensor;
+    struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
     struct unary_param* unary_param = ( struct unary_param* )ir_node->op.param_mem;
 
 	int ret = -1;
