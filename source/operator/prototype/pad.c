@@ -51,7 +51,7 @@ static int infer_shape(ir_node_t* node)
     }
     else
     {
-        return 0;
+        return -1;
     }
 
     set_ir_tensor_shape(output, dims, input->dim_num);
