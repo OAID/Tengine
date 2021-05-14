@@ -62,7 +62,7 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
 	
     /* create NVIDIA TensorRT backend */
     context_t trt_context = create_context("trt", 1);
-    int rtt = add_context_device(trt_context, "TRT");
+    int rtt = add_context_device(trt_context, "TensorRT");
     if (0 > rtt)
     {
         fprintf(stderr, " add_context_device NV TensorRT DEVICE failed.\n");
