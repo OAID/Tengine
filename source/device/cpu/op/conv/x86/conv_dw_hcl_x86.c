@@ -469,19 +469,16 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 {
     struct node* ir_node = exec_node->ir_node;
     struct graph* ir_graph = ir_node->graph;
-    struct tensor* input_tensor;
-    struct tensor* weight_tensor;
+    struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    struct tensor* weight_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
     struct tensor* bias_tensor = NULL;
-    struct tensor* output_tensor = NULL;
+    struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
     int num_thread = exec_graph->num_thread;
     int cpu_affinity = exec_graph->cpu_affinity;
 
     /* set the input data and shape again, in case of reshape or dynamic shape */
-    input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    weight_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
     if (ir_node->input_num > 2)
         bias_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[2]);
-    output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
     struct conv_param* conv_param = ( struct conv_param* )ir_node->op.param_mem;
     struct conv_priv_info* conv_priv_info = ( struct conv_priv_info* )exec_node->ops_priv;
@@ -516,8 +513,8 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     struct node* ir_node = exec_node;
     struct graph* ir_graph = ir_node->graph;
 
-    struct tensor* input_tensor;
-    struct tensor* output_tensor;
+    struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
     int group = param->group;
     int kernel_h = param->kernel_h;
@@ -530,9 +527,6 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     int pad_w0 = param->pad_w0;
     int pad_h1 = param->pad_h1;
     int pad_w1 = param->pad_w1;
-
-    input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
     int in_c = input_tensor->dims[1] / group;
     int out_c = output_tensor->dims[1] / group;

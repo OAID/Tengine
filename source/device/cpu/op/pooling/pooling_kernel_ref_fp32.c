@@ -50,10 +50,7 @@ static inline float calc_sum_fp32(const float* input, int layout, int c, int h, 
     {
         for (int j = start_w; j < end_w; j++)
         {
-            if (layout == 0)
-                sum += input[cur_ch * h * w + i * w + j];
-            else
-                sum += input[i * w * c + j * c + cur_ch];
+            sum += input[cur_ch * h * w + i * w + j];
         }
     }
 
@@ -64,24 +61,15 @@ static inline float calc_max_fp32(const float* input, int layout, int c, int h, 
                                   int start_w, int end_h, int end_w)
 {
     float max = 0.0f;
-    if (layout == 0)
-    {
-        max = input[cur_ch * h * w + start_h * w + start_w];
-    }
-    else
-        max = input[start_h * w * c + start_w * c + cur_ch];
+
+    max = input[cur_ch * h * w + start_h * w + start_w];
 
     float tmp = 0.0f;
     for (int i = start_h; i < end_h; i++)
     {
         for (int j = start_w; j < end_w; j++)
         {
-            if (layout == 0)
-            {
-                tmp = input[cur_ch * h * w + i * w + j];
-            }
-            else
-                tmp = input[i * w * c + j * c + cur_ch];
+            tmp = input[cur_ch * h * w + i * w + j];
             max = max > tmp ? max : tmp;
         }
     }
