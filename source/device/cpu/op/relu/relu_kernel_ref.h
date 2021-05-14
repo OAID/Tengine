@@ -22,26 +22,21 @@
  * Author:
  */
 
-#ifndef __POOLING_KERNEL_REF_H__
-#define __POOLING_KERNEL_REF_H__
+#ifndef __RELU_KERNEL_REF_H__
+#define __RELU_KERNEL_REF_H__
 
-#include "pooling_param.h"
 
 #include "graph/tensor.h"
 #include "graph/node.h"
 #include "graph/graph.h"
 
 
-int ref_pooling_fp32(struct tensor* input_tensor, struct tensor* output_tensor,
-                           struct pool_param* pool_param, int num_thread);
+int ref_relu_fp32(struct tensor* input_tensor, struct tensor* output_tensor, float negative_slope);
 
-int ref_pooling_fp16(struct tensor* input_tensor, struct tensor* output_tensor,
-                           struct pool_param* pool_param, int num_thread);
+int ref_relu_fp16(struct tensor* input_tensor, struct tensor* output_tensor, float negative_slope);
 
-int ref_pooling_uint8(struct tensor* input_tensor, struct tensor* output_tensor,
-                           struct pool_param* pool_param, int num_thread);
+int ref_relu_int8(struct tensor* input_tensor, struct tensor* output_tensor, float negative_slope);
 
-int ref_pooling_int8(struct tensor* input_tensor, struct tensor* output_tensor,
-                           struct pool_param* pool_param, int num_thread);
+int ref_relu_uint8(struct tensor* input_tensor, struct tensor* output_tensor, float negative_slope);
 
 #endif

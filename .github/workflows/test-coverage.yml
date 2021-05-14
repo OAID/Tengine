@@ -44,6 +44,9 @@ jobs:
         cd build
         lcov -d ./source -c -o lcov.info
         lcov -r lcov.info '/usr/*' -o lcov.info
+        lcov -r lcov.info '*fp16*' -o lcov.info
+        lcov -r lcov.info '*int8*' -o lcov.info
+        lcov -r lcov.info '*uint8*' -o lcov.info
         lcov --list lcov.info
     - name: codecov
       uses: codecov/codecov-action@v1.0.11
