@@ -58,11 +58,9 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct graph* ir_graph = ir_node->graph;
     struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    int layout = ir_graph->graph_layout;
 
     struct clip_param* clip_param = ( struct clip_param* )ir_node->op.param_mem;
 
-    int in_size = input_tensor->elem_num;
     float max = clip_param->max;
     float min = clip_param->min;
 

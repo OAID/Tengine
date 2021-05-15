@@ -39,36 +39,34 @@ struct ref_matmul_data
 {
     int batch;
     int c;
-    int h;
-    int w;
+    int m;
+    int n;
     int k;
-    int zero[3];    // input, kernel, output
-    float scale[3];    // input, kernel, output
 };
 
-static int ref_matmul_fp32(const float* input0, float* input1, float* output, struct ref_matmul_data* param)
+static int ref_matmul_fp32(float* input0, float* input1, float* output, struct ref_matmul_data* param)
 {
     int batch = param->batch;
     int c = param->c;
-    int h = param->h;
-    int w = param->w;
+    int m = param->m;
+    int n = param->n;
     int k = param->k;
 
-    for (int n = 0; n < batch; ++n)
+    for (int b = 0; b < batch; ++b)
     {
         for (int in_c = 0; in_c < c; in_c++)
         {
-            const float* data0 = input0 + n * c * h * w + in_c * h * w;
-            float* data1 = input1 + n * c * w * k + in_c * w * k;
-            for (int in_h = 0; in_h < h; in_h++)
+            float* data0 = input0 + b * c * m * k + in_c * m * k;
+            float* data1 = input1 + b * c * n * k + in_c * n * k;
+            for (int in_m = 0; in_m < m; in_m++)
             {
-                for (int in_k = 0; in_k < k; in_k++)
+                for (int in_n = 0; in_n < n; in_n++)
                 {
                     float tmp = 0;
-                    for (int in_w = 0; in_w < w; in_w++)
+                    for (int in_k = 0; in_k < k; in_k++)
                     {
-                        int index0 = in_h * w + in_w;
-                        int index1 = in_w * k + in_k;
+                        int index0 = in_m * k + in_k;
+                        int index1 = n * in_k + in_n;
                         tmp += data0[index0] * data1[index1];
                     }
                     *output = tmp;
@@ -77,7 +75,6 @@ static int ref_matmul_fp32(const float* input0, float* input1, float* output, st
             }
         }
     }
-
     return 0;
 }
 
@@ -105,27 +102,27 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     {
         param.batch = input_tensor->dims[0];
         param.c = input_tensor->dims[1];
-        param.h = input_tensor->dims[2];
-        param.w = input_tensor->dims[3];
+        param.m = input_tensor->dims[2];
+        param.n = input_tensor1->dims[3];
         param.k = input_tensor->dims[3];
     }
     else if (dim_size == 3)
     {
         param.batch = 1;
         param.c = input_tensor->dims[0];
-        param.h = input_tensor->dims[1];
-        param.w = input_tensor->dims[2];
+        param.m = input_tensor->dims[1];
+        param.n = input_tensor1->dims[2];
         param.k = input_tensor->dims[2];
     }
     else if (dim_size == 2)
     {
         param.batch = 1;
         param.c = 1;    // input0->Getse().Shape(0);
-        param.h = input_tensor->dims[0];
-        param.w = input_tensor->dims[2];
-        param.k = input_tensor->dims[2];
+        param.m = input_tensor->dims[0];
+        param.n = input_tensor1->dims[1];
+        param.k = input_tensor->dims[1];
     }
-    const void* input_data0 = input_tensor->data;
+    void* input_data0 = input_tensor->data;
     void* input_data1 = input_tensor1->data;
     void* output_data = output_tensor->data;
 

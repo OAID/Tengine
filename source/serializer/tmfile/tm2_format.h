@@ -240,8 +240,8 @@ typedef uint8_t tm_bool_t;                      /* bool is 1-byte unsigned integ
 #define TM2_OPTYPE_UNSQUEEZE                     88
 #define TM2_OPTYPE_REDUCEL2                      89
 #define TM2_OPTYPE_MEAN                          90
-#define TM2_OPTYPE_EXPAND                        91
-#define TM2_OPTYPE_MATMUL                        92
+#define TM2_OPTYPE_MATMUL                        91
+#define TM2_OPTYPE_EXPAND                        92
 #define TM2_OPTYPE_SCATTER                       93
 #define TM2_OPTYPE_SHAPE                         94
 #define TM2_OPTYPE_WHERE                         95
