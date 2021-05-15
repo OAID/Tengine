@@ -14,7 +14,7 @@ jobs:
     - name: lcov
       run: sudo apt-get install lcov
     - name: configure
-      run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=debug -DTENGINE_BUILD_TESTS=ON -DTENGINE_COVERAGE=ON ..
+      run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=debug -DTENGINE_BUILD_EXAMPLES=OFF -DTENGINE_BUILD_TESTS=ON -DTENGINE_COVERAGE=ON ..
     - name: build
       run: cmake --build build -j 2
     - name: test-data
