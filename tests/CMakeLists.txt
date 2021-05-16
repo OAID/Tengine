@@ -50,26 +50,25 @@ tengine_test(test_tm_yolact        models/test_tm_yolact.cpp)
 tengine_test(tm_mfn                models/test_tm_mfn.cpp)
 ]]
 
-
-function (tengine_timvx_op_test name file)
-    add_executable (${name} ${CMAKE_CURRENT_SOURCE_DIR}/${file} "${PROJECT_SOURCE_DIR}/tests/common/tengine_operations.cpp")
-
-    target_link_libraries (${name} PRIVATE ${CMAKE_PROJECT_NAME})
-
-    target_include_directories (${name} PRIVATE "${PROJECT_SOURCE_DIR}/source")
-    target_include_directories (${name} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
-    target_include_directories (${name} PRIVATE "${PROJECT_BINARY_DIR}")
-    target_include_directories (${name} PRIVATE "${PROJECT_BINARY_DIR}/source")
-    target_include_directories (${name} PRIVATE "${PROJECT_SOURCE_DIR}/tests/common")
-
-    if (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM" AND (NOT ANDROID AND NOT OHOS) AND TENGINE_TARGET_PROCESSOR_32Bit)
-        target_compile_options (${name} PRIVATE "-mfp16-format=ieee")
-    endif()
-
-    add_test (${name} ${name})
-endfunction()
-
 if (TENGINE_ENABLE_TIM_VX)
+    function (tengine_timvx_op_test name file)
+        add_executable (${name} ${CMAKE_CURRENT_SOURCE_DIR}/${file} "${PROJECT_SOURCE_DIR}/tests/common/tengine_operations.cpp")
+
+        target_link_libraries (${name} PRIVATE ${CMAKE_PROJECT_NAME})
+
+        target_include_directories (${name} PRIVATE "${PROJECT_SOURCE_DIR}/source")
+        target_include_directories (${name} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
+        target_include_directories (${name} PRIVATE "${PROJECT_BINARY_DIR}")
+        target_include_directories (${name} PRIVATE "${PROJECT_BINARY_DIR}/source")
+        target_include_directories (${name} PRIVATE "${PROJECT_SOURCE_DIR}/tests/common")
+
+        if (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM" AND (NOT ANDROID AND NOT OHOS) AND TENGINE_TARGET_PROCESSOR_32Bit)
+            target_compile_options (${name} PRIVATE "-mfp16-format=ieee")
+        endif()
+
+        add_test (${name} ${name})
+    endfunction()
+
     tengine_timvx_op_test(test_timvx_op_dropout      op/test_timvx_op_dropout.cpp)
     tengine_timvx_op_test(test_timvx_op_pooling      op/test_timvx_op_pooling.cpp)
     tengine_timvx_op_test(test_timvx_op_prelu        op/test_timvx_op_prelu.cpp)
