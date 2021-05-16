@@ -478,7 +478,7 @@ int main(int argc, char* argv[])
     graph_t graph = create_graph(NULL, "tengine", model_file);
     if (graph == nullptr)
     {
-        printf("Load model to graph failed(%d).\n", get_tengine_errno());
+        printf("Load model to graph failed.\n");
         return -1;
     }
 

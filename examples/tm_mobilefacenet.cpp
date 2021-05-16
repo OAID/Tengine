@@ -50,7 +50,7 @@ void init(const char* modelfile)
     graph = create_graph(NULL, "tengine", modelfile);
     if (graph == NULL)
     {
-        fprintf(stderr, "grph nullptr %d\n", get_tengine_errno());
+        fprintf(stderr, "grph nullptr\n");
     }
     else
     {

@@ -36,7 +36,7 @@ int create_test_prelu_node(graph_t graph, const char* input_name, const char* no
 
     if(NULL == input_tensor)
     {
-        fprintf(stderr, "create test node failed. ERRNO: %d.\n", get_tengine_errno());
+        fprintf(stderr, "create test node failed.\n");
         return -1;
     }
 
@@ -72,8 +72,8 @@ float result_value[3] = {-1.f, -2.f, -3.f};
  */
 float input_scale = 0.039216f;
 int input_zero_point = 255;
-float output_scale = 0.007843f;
-int output_zero_point = 382;
+float output_scale = 0.011764f;
+int output_zero_point = 255;
 
 int main(int argc, char* argv[])
 {
@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
     // init
     int ret = test_graph_init();
     if (0 != ret)
-        fprintf(stderr, "Tengine init failed. ERRNO: %d.", get_tengine_errno());
+        fprintf(stderr, "Tengine init failed.\n");
 
     // create
     graph_t graph = create_timvx_test_graph(test_node_name, data_type, layout, n, c, h, w, &create_test_prelu_node);
@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
     fill_input_uint8_tensor_by_index(graph, 0, 0, -10.0f);
 
     // set slope data, need cost fp32 to fp16
-    __fp16* slope_fp16 = (__fp16*)sys_malloc(3 * sizeof(__fp16));
+    __fp16* slope_fp16 = (__fp16*)malloc(3 * sizeof(__fp16));
     for (int k = 0; k < 3; k++)
         slope_fp16[k] = fp32_to_fp16(slope_value[k]);
 
@@ -118,7 +118,7 @@ int main(int argc, char* argv[])
     }
 
     // get output and dequant
-    struct ir_tensor* output_tensor = get_graph_output_tensor(graph, 0, 0);
+    struct tensor* output_tensor = (struct tensor*)get_graph_output_tensor(graph, 0, 0);
     uint8_t* output_u8 = ( uint8_t* )output_tensor->data;
     int output_size = output_tensor->elem_num;
     int out_c = output_tensor->dims[1];

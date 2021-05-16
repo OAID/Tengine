@@ -51,7 +51,7 @@ tengine_test(tm_mfn                models/test_tm_mfn.cpp)
 ]]
 
 if (TENGINE_ENABLE_TIM_VX)
-    tengine_test(test_op_prelu_timvx        op/test_op_prelu_timvx.c)
+    tengine_test(test_timvx_op_prelu        op/test_timvx_op_prelu.cpp)
 endif()
 
 
