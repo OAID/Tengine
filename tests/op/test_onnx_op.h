@@ -143,7 +143,7 @@ int float_mismatch(float* current, float* reference, int size)
         float tmp = fabs(current[i]) - fabs(reference[i]);
         if(fabs(tmp) > 0.0001)
         {
-            fprintf(stderr,"test failed, index:%d, a:%f, b:%f\n", i, current[i], reference[i]);
+            fprintf(stderr, "test failed, index:%d, a:%f, b:%f\n", i, current[i], reference[i]);
             return -1;
         }
     }
