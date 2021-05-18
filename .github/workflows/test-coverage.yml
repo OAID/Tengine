@@ -76,6 +76,7 @@ jobs:
         cp -rvf ./TIM-VX/include  ./source/device/tim-vx/
         cp -rvf ./TIM-VX/src      ./source/device/tim-vx/
         rm ./source/device/tim-vx/src/tim/vx/*_test.cc
+        rm ./source/device/tim-vx/src/tim/vx/ops/*_test.cc
     - name: configure
       run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=debug -DTENGINE_ENABLE_TIM_VX=ON -DTENGINE_ENABLE_TIM_VX_INTEGRATION=ON -DTENGINE_COVERAGE=ON -DTENGINE_BUILD_TESTS=ON ..
     - name: build
