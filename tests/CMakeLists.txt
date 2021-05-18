@@ -69,6 +69,7 @@ if (TENGINE_ENABLE_TIM_VX)
         add_test (${name} ${name})
     endfunction()
 
+    tengine_timvx_op_test(test_timvx_op_convolution  op/test_timvx_op_convolution.cpp)
     tengine_timvx_op_test(test_timvx_op_dropout      op/test_timvx_op_dropout.cpp)
     tengine_timvx_op_test(test_timvx_op_pooling      op/test_timvx_op_pooling.cpp)
     tengine_timvx_op_test(test_timvx_op_prelu        op/test_timvx_op_prelu.cpp)
