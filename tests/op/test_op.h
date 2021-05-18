@@ -7,7 +7,8 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "float.h"
+//#include "float.h"
+#include "compiler_fp16.h"
 #include "tengine/c_api.h"
 
 #include "graph/graph.h"
@@ -47,7 +48,7 @@ void dump_tensor_line(void* data_ptr, int offset, int data_type, int w)
         }
         case TENGINE_DT_FP16:
         {
-            fp16_t* p = ( fp16_t* )data_ptr;
+            __fp16* p = ( __fp16* )data_ptr;
 
 #ifdef __ARM_ARCH
             for(int i = 0; i < w - 1; i++)
@@ -107,7 +108,7 @@ void dump_tensor(tensor_t tensor, const char* message)
     int dim_array[MAX_SHAPE_DIM_NUM] = { 0 };
     int dim_count = get_tensor_shape(tensor, dim_array, MAX_SHAPE_DIM_NUM);
     if (0 >= dim_count)
-        fprintf(stderr, "Cannot get tensor shape. ERRNO: %d", get_tengine_errno());
+        fprintf(stderr, "Cannot get tensor shape.");
 
     int line_count = 1;
     for (int i = 0; i < dim_count - 1; i++)
@@ -144,7 +145,7 @@ void dump_tensor(tensor_t tensor, const char* message)
             break;
         }
         default:
-            fprintf(stderr, "Cannot found the type of tensor. ERRNO: %d.\n", get_tengine_errno());
+            fprintf(stderr, "Cannot found the type of tensor.\n");
     }
 
     // print leader
@@ -186,7 +187,7 @@ void dump_node_input(node_t test_node, int index)
     tensor_t tensor = get_node_input_tensor(test_node, index);
     if(NULL == tensor)
     {
-        fprintf(stderr, "Get input tensor(%d) from the node failed. ERRNO: %d.\n", index, get_tengine_errno());
+        fprintf(stderr, "Get input tensor(%d) from the node failed.\n", index);
         return;
     }
 
@@ -204,7 +205,7 @@ void dump_node_output(node_t test_node, int index)
     tensor_t tensor = get_node_output_tensor(test_node, index);
     if(NULL == tensor)
     {
-        fprintf(stderr, "Get output tensor from the node failed. ERRNO: %d.\n", get_tengine_errno());
+        fprintf(stderr, "Get output tensor from the node failed.\n");
         return;
     }
 
@@ -222,7 +223,7 @@ int create_node(graph_t graph, const char* node_name, int n, int c, int h, int w
     node_t node = create_graph_node(graph, node_name, "InputOp");
     if (NULL == node)
     {
-        fprintf(stderr, "Create node(%s) with shape [n c h w] = [%d %d %d %d] failed. ERRNO: %d.\n", node_name, n, c, h, w, get_tengine_errno());
+        fprintf(stderr, "Create node(%s) with shape [n c h w] = [%d %d %d %d] failed.\n", node_name, n, c, h, w);
         return -1;
     }
 
@@ -231,7 +232,7 @@ int create_node(graph_t graph, const char* node_name, int n, int c, int h, int w
     {
         release_graph_node(node);
 
-        fprintf(stderr, "Create tensor from node(%s) with shape [n c h w] = [%d %d %d %d] failed. ERRNO: %d.\n", node_name, n, c, h, w, get_tengine_errno());
+        fprintf(stderr, "Create tensor from node(%s) with shape [n c h w] = [%d %d %d %d] failed.\n", node_name, n, c, h, w);
         return -1;
     }
 
@@ -272,7 +273,6 @@ int create_input_node(graph_t graph, const char* node_name, int data_type, int l
     if (NULL == node)
     {
         fprintf(stderr, "Create %d dims node(%s) failed. ", dims_count, node_name);
-        fprintf(stderr, "ERRNO: %d.\n", get_tengine_errno());
         return -1;
     }
 
@@ -282,7 +282,6 @@ int create_input_node(graph_t graph, const char* node_name, int data_type, int l
         release_graph_node(node);
 
         fprintf(stderr, "Create %d dims tensor for node(%s) failed. ", dims_count, node_name);
-        fprintf(stderr, "ERRNO: %d.\n", get_tengine_errno());
 
         return -1;
     }
@@ -294,7 +293,6 @@ int create_input_node(graph_t graph, const char* node_name, int data_type, int l
         release_graph_node(node);
 
         fprintf(stderr, "Set %d dims output tensor for node(%s) failed. ", dims_count, node_name);
-        fprintf(stderr, "ERRNO: %d.\n", get_tengine_errno());
 
         return -1;
     }
@@ -346,7 +344,7 @@ int create_input_node(graph_t graph, const char* node_name, int data_type, int l
             }
         }
         default:
-            fprintf(stderr, "Cannot support %d dims tensor. ERRNO: %d.\n", dims_count, get_tengine_errno());
+            fprintf(stderr, "Cannot support %d dims tensor.\n", dims_count);
     }
 
     release_graph_tensor(tensor);
@@ -421,7 +419,7 @@ void fill_input_float_tensor_by_index(graph_t graph, int input_node_index, int t
 {
     tensor_t tensor = get_graph_input_tensor(graph, input_node_index, tensor_index);
     if(NULL == tensor)
-        fprintf(stderr, "Cannot find the %dth tensor via node index(%d). ERRNO: %d.\n", tensor_index, input_node_index, get_tengine_errno());
+        fprintf(stderr, "Cannot find the %dth tensor via node index(%d).\n", tensor_index, input_node_index);
 
     int buf_size = get_tensor_buffer_size(tensor);
     float* data = (float* )malloc(buf_size);
@@ -431,11 +429,11 @@ void fill_input_float_tensor_by_index(graph_t graph, int input_node_index, int t
 
     int ret = set_tensor_buffer(tensor, (void* )data, buf_size);
     if(0 != ret)
-        fprintf(stderr, "Set buffer for tensor failed. ERRNO: %d.\n", get_tengine_errno());
+        fprintf(stderr, "Set buffer for tensor failed.\n");
 
     ret = fill_fp32_tensor(tensor, value);
     if(0 != ret)
-        fprintf(stderr, "Fill buffer for tensor failed. ERRNO: %d.\n", get_tengine_errno());
+        fprintf(stderr, "Fill buffer for tensor failed.\n");
 }
 
 
@@ -443,18 +441,18 @@ void fill_input_uint8_tensor_by_index(graph_t graph, int input_node_index, int t
 {
     tensor_t tensor = get_graph_input_tensor(graph, input_node_index, tensor_index);
     if(NULL == tensor)
-        fprintf(stderr, "Cannot find the %dth tensor via node index(%d). ERRNO: %d.\n", tensor_index, input_node_index, get_tengine_errno());
+        fprintf(stderr, "Cannot find the %dth tensor via node index(%d).\n", tensor_index, input_node_index);
 
     int buf_size = get_tensor_buffer_size(tensor);
     uint8_t* data = (uint8_t* )malloc(buf_size);
 
     int ret = set_tensor_buffer(tensor, (void* )data, buf_size);
     if(0 != ret)
-        fprintf(stderr, "Set buffer for tensor failed. ERRNO: %d.\n", get_tengine_errno());
+        fprintf(stderr, "Set buffer for tensor failed.\n");
 
     ret = fill_uint8_tensor(tensor, value);
     if(0 != ret)
-        fprintf(stderr, "Fill buffer for tensor failed. ERRNO: %d.\n", get_tengine_errno());
+        fprintf(stderr, "Fill buffer for tensor failed.\n");
 }
 
 
@@ -462,11 +460,11 @@ void fill_input_float_tensor_by_name(graph_t graph, const char* node_name, int t
 {
     node_t node = get_graph_node(graph, node_name);
     if(NULL == node)
-        fprintf(stderr, "Cannot get node via node name(%s). ERRNO: %d.\n", node_name, get_tengine_errno());
+        fprintf(stderr, "Cannot get node via node name(%s).\n", node_name);
 
     tensor_t tensor = get_node_input_tensor(node, tensor_index);
     if(NULL == tensor)
-        fprintf(stderr, "Cannot find the %dth tensor via node name(%s). ERRNO: %d.\n", tensor_index, node_name, get_tengine_errno());
+        fprintf(stderr, "Cannot find the %dth tensor via node name(%s)\n", tensor_index, node_name);
 
     int buf_size = get_tensor_buffer_size(tensor);
     float* data = (float* )malloc(buf_size);
@@ -480,7 +478,7 @@ void fill_input_float_tensor_by_name(graph_t graph, const char* node_name, int t
 
     ret = fill_fp32_tensor(tensor, value);
     if(0 != ret)
-        fprintf(stderr, "Fill buffer for tensor failed. ERRNO: %d.\n", get_tengine_errno());
+        fprintf(stderr, "Fill buffer for tensor failed.\n");
 }
 
 
@@ -488,11 +486,11 @@ void fill_input_float_buffer_tensor_by_name(graph_t graph, const char* node_name
 {
     node_t node = get_graph_node(graph, node_name);
     if(NULL == node)
-        fprintf(stderr, "Cannot get node via node name(%s). ERRNO: %d.\n", node_name, get_tengine_errno());
+        fprintf(stderr, "Cannot get node via node name(%s).\n", node_name);
 
     tensor_t tensor = get_node_input_tensor(node, tensor_index);
     if(NULL == tensor)
-        fprintf(stderr, "Cannot find the %dth tensor via node name(%s). ERRNO: %d.\n", tensor_index, node_name, get_tengine_errno());
+        fprintf(stderr, "Cannot find the %dth tensor via node name(%s).\n", tensor_index, node_name);
 
     int ret = set_tensor_buffer(tensor, value, buf_size);
     if(0 != ret)
@@ -505,14 +503,14 @@ void fill_input_integer_tensor_by_name(graph_t graph, const char* node_name, int
     node_t node = get_graph_node(graph, node_name);
     if(NULL == node)
     {
-        fprintf(stderr, "Cannot get node via node name(%s). ERRNO: %d.\n", node_name, get_tengine_errno());
+        fprintf(stderr, "Cannot get node via node name(%s).\n", node_name);
         return;
     }
 
     tensor_t tensor = get_node_input_tensor(node, tensor_index);
     if(NULL == tensor)
     {
-        fprintf(stderr, "Cannot find the %dth tensor via node name(%s). ERRNO: %d.\n", tensor_index, node_name, get_tengine_errno());
+        fprintf(stderr, "Cannot find the %dth tensor via node name(%s).\n", tensor_index, node_name);
         return;
     }
 
@@ -534,14 +532,6 @@ int test_graph_init()
     // TODO: fix this fatal issue
     init_tengine();
 
-    int ret = clr_tengine_errno();
-    if (0 != ret)
-    {
-        fprintf(stderr, "Graph init error. ERRNO: %d.\n", ret);
-        // disable this -1 state for now
-        //return -1;
-    }
-
     return 0;
 }
 
@@ -550,17 +540,15 @@ int test_graph_run(graph_t graph)
 {
     if(prerun_graph(graph) < 0)
     {
-        fprintf(stderr, "Pre-run graph failed. ERRNO: %d.\n", get_tengine_errno());
+        fprintf(stderr, "Pre-run graph failed.\n");
         return -1;
     }
 
     dump_graph(graph);
-    if (0 != get_tengine_errno())
-        fprintf(stderr, "Dump graph error. But ignored this for now. ERRNO: %d.\n", get_tengine_errno());
 
     if (0 != run_graph(graph, 1))
     {
-        fprintf(stderr, "Run graph error. ERRNO: %d.\n", get_tengine_errno());
+        fprintf(stderr, "Run graph error.\n");
         return -1;
     }
 
@@ -581,26 +569,26 @@ graph_t create_common_test_graph(const char* test_node_name, int data_type, int 
     graph_t graph = create_graph(NULL, NULL, NULL);
     if(NULL == graph)
     {
-        fprintf(stderr, "get graph failed. ERRNO: %d.\n", get_tengine_errno());
+        fprintf(stderr, "get graph failed.\n");
         return NULL;
     }
 
     if(set_graph_layout(graph, layout) < 0)
     {
-        fprintf(stderr, "set layout failed. ERRNO: %d.\n", get_tengine_errno());
+        fprintf(stderr, "set layout failed.\n");
         return NULL;
     }
 
     const char* input_name = "input_node";
     if(create_input_node(graph, input_name, data_type, layout, n, c, h, w) < 0)
     {
-        fprintf(stderr, "create input node failed. ERRNO: %d.\n", get_tengine_errno());
+        fprintf(stderr, "create input node failed.\n");
         return NULL;
     }
 
     if(test_func(graph, input_name, test_node_name, data_type, layout, n, c, h ,w) < 0)
     {
-        fprintf(stderr, "create test node failed. ERRNO: %d.\n", get_tengine_errno());
+        fprintf(stderr, "create test node failed.\n");
         return NULL;
     }
 
@@ -610,13 +598,13 @@ graph_t create_common_test_graph(const char* test_node_name, int data_type, int 
 
     if(set_graph_input_node(graph, inputs, sizeof(inputs) / sizeof(char*)) < 0)
     {
-        fprintf(stderr, "set inputs failed. ERRNO: %d.\n", get_tengine_errno());
+        fprintf(stderr, "set inputs failed.\n");
         return NULL;
     }
 
     if(set_graph_output_node(graph, outputs, sizeof(outputs) / sizeof(char*)) < 0)
     {
-        fprintf(stderr, "set outputs failed. ERRNO: %d.\n", get_tengine_errno());
+        fprintf(stderr, "set outputs failed.\n");
         return NULL;
     }
 
@@ -638,26 +626,26 @@ graph_t create_timvx_test_graph(const char* test_node_name, int data_type, int l
     graph_t graph = create_graph(timvx_context, NULL, NULL);
     if(NULL == graph)
     {
-        fprintf(stderr, "get graph failed. ERRNO: %d.\n", get_tengine_errno());
+        fprintf(stderr, "get graph failed.\n");
         return NULL;
     }
 
     if(set_graph_layout(graph, layout) < 0)
     {
-        fprintf(stderr, "set layout failed. ERRNO: %d.\n", get_tengine_errno());
+        fprintf(stderr, "set layout failed.\n");
         return NULL;
     }
 
     const char* input_name = "input_node";
     if(create_input_node(graph, input_name, data_type, layout, n, c, h, w) < 0)
     {
-        fprintf(stderr, "create input node failed. ERRNO: %d.\n", get_tengine_errno());
+        fprintf(stderr, "create input node failed.\n");
         return NULL;
     }
 
     if(test_func(graph, input_name, test_node_name, data_type, layout, n, c, h ,w) < 0)
     {
-        fprintf(stderr, "create test node failed. ERRNO: %d.\n", get_tengine_errno());
+        fprintf(stderr, "create test node failed.\n");
         return NULL;
     }
 
@@ -667,13 +655,13 @@ graph_t create_timvx_test_graph(const char* test_node_name, int data_type, int l
 
     if(set_graph_input_node(graph, inputs, sizeof(inputs) / sizeof(char*)) < 0)
     {
-        fprintf(stderr, "set inputs failed. ERRNO: %d.\n", get_tengine_errno());
+        fprintf(stderr, "set inputs failed.\n");
         return NULL;
     }
 
     if(set_graph_output_node(graph, outputs, sizeof(outputs) / sizeof(char*)) < 0)
     {
-        fprintf(stderr, "set outputs failed. ERRNO: %d.\n", get_tengine_errno());
+        fprintf(stderr, "set outputs failed.\n");
         return NULL;
     }
 
@@ -725,8 +713,8 @@ int compare_tensor(tensor_t a, tensor_t b)
         }
         case TENGINE_DT_FP16:
         {
-            fp16_t* a_data_ptr = (fp16_t*)get_tensor_buffer(a);
-            fp16_t* b_data_ptr = (fp16_t*)get_tensor_buffer(b);
+            __fp16* a_data_ptr = (__fp16*)get_tensor_buffer(a);
+            __fp16* b_data_ptr = (__fp16*)get_tensor_buffer(b);
 
             for (int i = 0; i < element_size; i++)
             {

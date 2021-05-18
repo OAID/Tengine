@@ -75,8 +75,10 @@ jobs:
         cp -rvf ./TIM-VX/prebuilt-sdk/x86_64_linux/lib/*      ./3rdparty/tim-vx/lib/x86_64/
         cp -rvf ./TIM-VX/include  ./source/device/tim-vx/
         cp -rvf ./TIM-VX/src      ./source/device/tim-vx/
+        rm ./source/device/tim-vx/src/tim/vx/*_test.cc
+        rm ./source/device/tim-vx/src/tim/vx/ops/*_test.cc
     - name: configure
-      run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=debug -DTENGINE_ENABLE_TIM_VX=ON -DTENGINE_ENABLE_TIM_VX_INTEGRATION=ON -DTENGINE_COVERAGE=ON ..
+      run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=debug -DTENGINE_ENABLE_TIM_VX=ON -DTENGINE_ENABLE_TIM_VX_INTEGRATION=ON -DTENGINE_COVERAGE=ON -DTENGINE_BUILD_TESTS=ON ..
     - name: build
       run: cmake --build build -j 2
     - name: models
@@ -85,12 +87,20 @@ jobs:
         wget ftp://219.139.34.182/tengine/ci_test/images.zip
         unzip images.zip
         git clone https://github.com/BUG1989/tengine_test_data.git
+        git clone https://github.com/BUG1989/onnx_op_test_data.git
+        mv onnx_op_test_data onnx_node        
     - name: test-timvx-simulator
       run: |
         cd build
-        export LD_LIBRARY_PATH=../3rdparty/tim-vx/lib/x86_64/
+        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../3rdparty/tim-vx/lib/x86_64/
+        cp -v ../3rdparty/tim-vx/include/CL/cl_viv_vx_ext.h ./tests/
         ./examples/tm_classification_timvx -m ./tengine_test_data/mobilenet_uint8.tmfile -i ./images/cat.jpg -g 224,224, -s 0.017,0.017,0.017
         ./examples/tm_classification_timvx -m ./tengine_test_data/squeezenet_uint8.tmfile -i ./images/cat.jpg -g 227,227, -s 0.017,0.017,0.017
+    - name: test-op
+      run: |
+        cd build
+        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../../3rdparty/tim-vx/lib/x86_64/
+        ctest --output-on-failure
     - name: lcov-collect
       run: |
         cd build

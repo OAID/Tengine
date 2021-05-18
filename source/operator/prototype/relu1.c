@@ -22,7 +22,6 @@
  * Author: bzhang@openailab.com
  */
 
-#include "relu_param.h"
 
 #include "api/c_api.h"
 #include "graph/tensor.h"
