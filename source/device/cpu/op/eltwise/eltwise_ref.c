@@ -211,15 +211,15 @@ static int ref_eltwise_fp32(void* output, void* input0, void* input1, int type, 
         case ELT_POW:
             if(input_count4 == 1){
                 for(int i = 0; i < input1_count4; i++){
-                    *out_ptr++ = pow(in0[0], in1[i]);
+                    *out_ptr++ = powf(in0[0], in1[i]);
                 }
             } else if (input1_count4 == 1){
                 for(int i = 0; i < input1_count4; i++){
-                    *out_ptr++ = pow(in0[0], in1[i]);
+                    *out_ptr++ = powf(in0[0], in1[i]);
                 }
             } else if (input_count4 == input1_count4){
                 for(int i = 0; i < input_count4; i++){
-                    *out_ptr++ = pow(in0[i], in1[i]);
+                    *out_ptr++ = powf(in0[i], in1[i]);
                 }
             } else {
                 TLOG_ERR("Case not support \n");
@@ -227,7 +227,7 @@ static int ref_eltwise_fp32(void* output, void* input0, void* input1, int type, 
             break;
         case ELT_POWER:
             for(int i = 0; i < input_count4; i++){
-                *out_ptr++ = pow((eltwise_param->shift + eltwise_param->scale * in0[i]), eltwise_param->power);
+                *out_ptr++ = powf((eltwise_param->shift + eltwise_param->scale * in0[i]), eltwise_param->power);
             }
             break;
         case ELT_LOG:

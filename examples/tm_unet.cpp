@@ -101,7 +101,6 @@ int tengine_segment(const char* model_file, const char* image_file, int img_h, i
     if (NULL == graph)
     {
         fprintf(stderr, "Create graph failed.\n");
-        fprintf(stderr, "errno: %d \n", get_tengine_errno());
         return -1;
     }
 

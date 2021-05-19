@@ -309,10 +309,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     /* input quant param */
     int ret = ref_deconv_fp32(input_data, output_data, kernel, bias, op_param);
 
-    if (ret < 0)
-        return -1;
-
-    return 0;
+    return ret;
 }
 
 static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)

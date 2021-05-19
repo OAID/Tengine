@@ -21,6 +21,8 @@ jobs:
         cp -rvf ./TIM-VX/prebuilt-sdk/x86_64_linux/lib/*      ./3rdparty/tim-vx/lib/x86_64/
         cp -rvf ./TIM-VX/include  ./source/device/tim-vx/
         cp -rvf ./TIM-VX/src      ./source/device/tim-vx/
+        rm ./source/device/tim-vx/src/tim/vx/*_test.cc
+        rm ./source/device/tim-vx/src/tim/vx/ops/*_test.cc
     - name: configure
       run: mkdir build && cd build && cmake -DTENGINE_ENABLE_TIM_VX=ON ..
     - name: build

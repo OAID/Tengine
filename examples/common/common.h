@@ -47,7 +47,7 @@
 #endif    // _WIN32
 
 #ifdef _WIN32
-double get_current_time()
+static double get_current_time()
 {
     LARGE_INTEGER freq;
     LARGE_INTEGER pc;
@@ -58,7 +58,7 @@ double get_current_time()
 }
 #else    // _WIN32
 
-double get_current_time()
+static double get_current_time()
 {
     struct timeval tv;
     gettimeofday(&tv, NULL);
@@ -67,7 +67,7 @@ double get_current_time()
 }
 #endif    // _WIN32
 
-void split(float* array, char* str, const char* del)
+static void split(float* array, char* str, const char* del)
 {
     char* s = NULL;
     s = strtok(str, del);

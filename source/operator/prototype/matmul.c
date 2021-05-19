@@ -37,17 +37,44 @@ static int infer_shape(struct node* node)
     struct tensor* input1 = get_ir_graph_tensor(graph, node->input_tensors[1]);
     struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
 
-    int output_number;
-
     if (input1->dim_num != input0->dim_num)
     {
         TLOG_ERR("dim's size of inputs must be qual for operator matmul\n");
         return -1;
     }
 
-    set_ir_tensor_shape(output, input0->dims, input0->dim_num);
+    if (input0->dim_num == 2)
+    {
+        int dims[2];
+        dims[0] = input0->dims[0];
+        dims[1] = input1->dims[1];
+        set_ir_tensor_shape(output, dims, 2);
 
-    return 0;
+        return 0;
+    }
+    else if (input0->dim_num == 3)
+    {
+        int dims[3];
+        dims[0] = input0->dims[0];
+        dims[1] = input0->dims[1];
+        dims[2] = input1->dims[2];
+        set_ir_tensor_shape(output, dims, 3);
+
+        return 0;
+    }
+    else if (input0->dim_num == 4)
+    {
+        int dims[4];
+        dims[0] = input0->dims[0];
+        dims[1] = input0->dims[1];
+        dims[2] = input0->dims[2];
+        dims[3] = input1->dims[3];
+        set_ir_tensor_shape(output, dims, 4);
+
+        return 0;
+    }        
+
+    return -1;
 }
 
 

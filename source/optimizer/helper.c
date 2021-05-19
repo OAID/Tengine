@@ -33,7 +33,7 @@
 
 int is_index_in_array(const uint16_t* array, const uint16_t array_size, const uint16_t index)
 {
-    for (uint8_t i = 0; i < array_size; i++)
+    for (uint16_t i = 0; i < array_size; i++)
     {
         const uint16_t selected_index = array[i];
 

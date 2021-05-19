@@ -61,14 +61,12 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
     struct tensor* input_tensor = get_ir_graph_tensor(graph, node->input_tensors[0]);
     struct tensor* input_tensor1 = get_ir_graph_tensor(graph, node->input_tensors[1]);
-
     struct tensor* output_tensor = get_ir_graph_tensor(graph, node->output_tensors[0]);
 
     struct comparison_param* param = ( struct comparison_param* )node->op.param_mem;
 
     void* input0 = input_tensor->data;
     void* input1 = input_tensor1->data;
-
     void* output = output_tensor->data;
 
     _comparison_param op_param;

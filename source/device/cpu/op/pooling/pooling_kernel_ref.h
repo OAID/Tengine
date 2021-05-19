@@ -32,7 +32,16 @@
 #include "graph/graph.h"
 
 
-int pooling_kernel_ref_run(struct tensor* input_tensor, struct tensor* output_tensor,
+int ref_pooling_fp32(struct tensor* input_tensor, struct tensor* output_tensor,
+                           struct pool_param* pool_param, int num_thread);
+
+int ref_pooling_fp16(struct tensor* input_tensor, struct tensor* output_tensor,
+                           struct pool_param* pool_param, int num_thread);
+
+int ref_pooling_uint8(struct tensor* input_tensor, struct tensor* output_tensor,
+                           struct pool_param* pool_param, int num_thread);
+
+int ref_pooling_int8(struct tensor* input_tensor, struct tensor* output_tensor,
                            struct pool_param* pool_param, int num_thread);
 
 #endif

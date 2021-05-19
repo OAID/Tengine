@@ -321,7 +321,7 @@ static void convdw5x5s1(float* output, float* input, float* _kernel, float* _bia
     const int group = channel;
     const float* kernel = _kernel;    
 
-#pragma omp parallel for num_threads(opt.num_threads)
+#pragma omp parallel for num_threads(num_thread)
     for (int g = 0; g < group; g++)
     {
         float* out = output + g * c_step_out;
@@ -513,7 +513,7 @@ static void convdw5x5s2(float* output, float* input, float* _kernel, float* _bia
     const int tailstep = w - 2 * outw + w;
     const float* kernel = _kernel;
 
-#pragma omp parallel for num_threads(opt.num_threads)
+#pragma omp parallel for num_threads(num_thread)
     for (int g = 0; g < group; g++)
     {
         float* out = output + g * c_step_out;

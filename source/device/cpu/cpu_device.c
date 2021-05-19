@@ -172,7 +172,7 @@ static int run(struct device* dev, struct subgraph* subgraph)
 
                 if (NULL != input_tensor->data)
                 {
-                    extract_feature_blob_f32(dir_str, name, input_tensor);
+                    extract_feature_from_tensor(dir_str, name, input_tensor);
                 }
             }
         }
@@ -186,7 +186,7 @@ static int run(struct device* dev, struct subgraph* subgraph)
                 char dir_str[32] = { 0 };
                 sprintf(dir_str, "out[%d]", j);
 
-                extract_feature_blob_f32(dir_str, name, output_tensor);
+                extract_feature_from_tensor(dir_str, name, output_tensor);
             }
         }
 #endif
