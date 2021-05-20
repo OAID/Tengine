@@ -49,7 +49,7 @@
 #define TE_NODE_TYPE_INPUT          2
 #define TE_NODE_TYPE_OUTPUT         4
 
-#define TE_DEFAULT_LOG_LEVEL        LOG_DEBUG
+#define TE_DEFAULT_LOG_LEVEL        LOG_ERR
 #define TE_MAX_LOG_LENGTH           256
 
 #cmakedefine TENGINE_HAS_LIB_POSIX_THREAD
