@@ -289,7 +289,7 @@ int init_tengine(void)
         return 0;
     }
 
-    set_log_level(LOG_ERR);
+    //set_log_level(LOG_ERR);
 
     int ret = register_all_op_prototype();
     if (0 != ret)
