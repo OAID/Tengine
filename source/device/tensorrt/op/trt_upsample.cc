@@ -31,7 +31,7 @@ EXPORT_FINISH
 #include <NvInferRuntime.h>
 
 
-bool TensorRTEngine::AddUpsampleNode(struct graph* ir_graph, struct node* node)
+bool TensorRTEngine::AddUpSampleNode(struct graph* ir_graph, struct node* node)
 {
     struct tensor* upsample_input = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
     struct tensor* upsample_output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);

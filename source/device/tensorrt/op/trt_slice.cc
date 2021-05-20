@@ -37,14 +37,14 @@ bool TensorRTEngine::AddSliceNode(struct graph* ir_graph, struct node* node)
     struct tensor* slice_output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
     if (nullptr == slice_input || nullptr == slice_output)
     {
-        fprintf(stderr, "Tengine: Get input & output for Flatten(id: %d, name: %s) layer failed.\n", node->index,
+        fprintf(stderr, "Tengine: Get input & output for Slice(id: %d, name: %s) layer failed.\n", node->index,
                 node->name);
         return false;
     }
 
     if (!check_if_input_in_map(slice_input->index, this->tensor_swap_map))
     {
-        fprintf(stderr, "Tengine: Query input for Flatten(id: %d, name: %s) layer failed.\n", node->index, node->name);
+        fprintf(stderr, "Tengine: Query input for Slice(id: %d, name: %s) layer failed.\n", node->index, node->name);
         return false;
     }
 
@@ -79,7 +79,7 @@ bool TensorRTEngine::AddSliceNode(struct graph* ir_graph, struct node* node)
     nvinfer1::ISliceLayer* layer = this->network->addSlice(*trt_tensor, start, size, stride);
     if (nullptr == layer)
     {
-        fprintf(stderr, "Tengine: Add Flatten(id: %d, name: %s) layer failed.\n", node->index, node->name);
+        fprintf(stderr, "Tengine: Add Slice(id: %d, name: %s) layer failed.\n", node->index, node->name);
         return false;
     }
 
