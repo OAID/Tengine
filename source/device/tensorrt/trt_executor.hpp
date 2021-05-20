@@ -82,6 +82,8 @@ private:
 
 private:
     bool AddTensor(struct graph* ir_graph, struct tensor* ir_tensor);
+    bool AddAbsVal(struct graph* ir_graph, struct node* node);
+    bool AddAddN(struct graph* ir_graph, struct node* node);
     bool AddBatchNormNode(struct graph* ir_graph, struct node* node);
     bool AddConcatNode(struct graph* ir_graph, struct node* node);
     bool AddConvolutionNode(struct graph* ir_graph, struct node* node);
@@ -91,14 +93,17 @@ private:
     bool AddEltwiseLayer(struct graph* ir_graph, struct node* node);
     bool AddFlattenNode(struct graph* ir_graph, struct node* node);
     bool AddFullyConnectedNode(struct graph* ir_graph, struct node* node);
+    bool AddHardSwishNode(struct graph* ir_graph, struct node* node);
     bool AddInterpNode(struct graph* ir_graph, struct node* node);
+    bool AddMishNode(struct graph* ir_graph, struct node* node);
     bool AddPermuteNode(struct graph* ir_graph, struct node* node);
     bool AddPoolingNode(struct graph* ir_graph, struct node* node);
     bool addReLUNode(struct graph* ir_graph, struct node* node);
     bool AddReshapeNode(struct graph* ir_graph, struct node* node);
+    bool AddTranspose(struct graph* ir_graph, struct node* node);
     bool AddSliceNode(struct graph* ir_graph, struct node* node);
     bool AddSoftmaxNode(struct graph* ir_graph, struct node* node);
-    bool AddUpsampleNode(struct graph* ir_graph, struct node* node);
+    bool AddUpSampleNode(struct graph* ir_graph, struct node* node);
 
 private:
     nvinfer1::IBuilder* builder;
