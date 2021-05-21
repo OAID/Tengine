@@ -56,10 +56,14 @@ bool TensorRTEngine::AddMishNode(struct graph* ir_graph, struct node* node)
 
     auto ex_output = ex_layer->getOutput(0);
 
+    float* param_buffer = (float*)sys_malloc(3 * sizeof(float));
+    this->host_buffer.push_back(param_buffer);
+
+    param_buffer[0] = 1.f, param_buffer[1] = -1.f, param_buffer[2] = 2.f;
+
     // get (1 + e^x)^2
-    int8_t ex_pos_1 = 1, ex_neg_1 = -1, ex_2 = 2;
-    nvinfer1::Weights ex_pos_1_param{nvinfer1::DataType::kINT8, &ex_pos_1, 1};
-    nvinfer1::Weights ex_2_param{nvinfer1::DataType::kINT8, &ex_2, 1};
+    nvinfer1::Weights ex_pos_1_param{nvinfer1::DataType::kFLOAT, &param_buffer[0], 1};
+    nvinfer1::Weights ex_2_param{nvinfer1::DataType::kFLOAT, &param_buffer[2], 1};
     nvinfer1::IScaleLayer* ex_scaled_layer = this->network->addScale(*ex_output, nvinfer1::ScaleMode::kUNIFORM, ex_pos_1_param, ex_pos_1_param, ex_2_param);
 
     std::string ex_scaled_layer_name = std::string(node->name) + "_scale";
@@ -68,7 +72,7 @@ bool TensorRTEngine::AddMishNode(struct graph* ir_graph, struct node* node)
     auto ex_scaled_output = ex_scaled_layer->getOutput(0);
 
     // get (1 + e^x)^2 + 1, (1 + e^x)^2 - 1
-    nvinfer1::Weights ex_neg_1_param{nvinfer1::DataType::kINT8, &ex_neg_1, 1};
+    nvinfer1::Weights ex_neg_1_param{nvinfer1::DataType::kFLOAT, &param_buffer[1], 1};
     nvinfer1::IScaleLayer* numerator_layer = this->network->addScale(*ex_scaled_output, nvinfer1::ScaleMode::kUNIFORM, ex_pos_1_param, ex_pos_1_param, ex_pos_1_param);
     nvinfer1::IScaleLayer* denominator_layer = this->network->addScale(*ex_scaled_output, nvinfer1::ScaleMode::kUNIFORM, ex_pos_1_param, ex_neg_1_param, ex_pos_1_param);
 
