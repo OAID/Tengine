@@ -135,8 +135,12 @@ IF (TENGINE_ENABLE_TIM_VX_INTEGRATION)
     FILE (GLOB _VX_OPS_REMOVE_SRC  ${_VX_ROOT}/tim/vx/ops/*_test.cc)
 
     # remove test files for tim-vx
-    FILE (REMOVE ${_VX_BASE_REMOVE_SRC})
-    FILE (REMOVE ${_VX_OPS_REMOVE_SRC})
+    IF(_VX_BASE_REMOVE_SRC)
+        FILE (REMOVE ${_VX_BASE_REMOVE_SRC})
+    ENDIF()
+    IF(_VX_OPS_REMOVE_SRC)
+        FILE (REMOVE ${_VX_OPS_REMOVE_SRC})
+    ENDIF()
 
     # collect all source files for tim-vx
     AUX_SOURCE_DIRECTORY (${_VX_ROOT}/tim/vx      _VX_BASE_SRC)
