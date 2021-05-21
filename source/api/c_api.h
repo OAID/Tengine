@@ -55,7 +55,7 @@
 extern "C" {
 #endif
 
-#define MAX_SHAPE_DIM_NUM           4
+#define MAX_SHAPE_DIM_NUM           8
 
 /* the data type of the tensor */
 #define TENGINE_DT_FP32             0

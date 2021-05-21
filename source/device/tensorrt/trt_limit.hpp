@@ -89,7 +89,7 @@ const int trt_supported_ops[] = {
         OP_GRU,
 #endif
         OP_HARDSIGMOID,
-        //OP_HARDSWISH,                 // Not supported, last checked version 7.1.3
+        OP_HARDSWISH,                   // Not supported, last checked version 7.1.3
         OP_INPUT,
         OP_INSTANCENORM,
         OP_INTERP,                      // should be as UpSample
@@ -157,7 +157,7 @@ const int trt_supported_ops[] = {
         OP_UNSQUEEZE,
         OP_UPSAMPLE,
         //OP_ZEROSLIKE,                 // Not supported, last checked version 7.1.3
-        //OP_MISH,
+        OP_MISH,
         OP_LOGSOFTMAX,
 #if NV_TENSORRT_MAJOR >= 6
         OP_RELU1,

@@ -190,7 +190,7 @@ static int run(struct device* dev, struct subgraph* subgraph)
             }
         }
 #endif
-        const char* env = getenv("TG_DEBUG_DATA");
+        const char* env = getenv(TENGINE_DUMP_LAYER);
         if (env && env[0] == '1')
         {
             struct graph* ir_graph = node->ir_node->graph;

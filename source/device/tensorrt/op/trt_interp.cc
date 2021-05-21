@@ -52,7 +52,7 @@ bool TensorRTEngine::AddInterpNode(struct graph* ir_graph, struct node* node)
     nvinfer1::IResizeLayer* layer = this->network->addResize(*interp_input_tensor);
     if (nullptr == layer)
     {
-        fprintf(stderr, "Tengine: Add Flatten(id: %d, name: %s) layer failed.\n", node->index, node->name);
+        fprintf(stderr, "Tengine: Add Interp(id: %d, name: %s) layer failed.\n", node->index, node->name);
         return false;
     }
 

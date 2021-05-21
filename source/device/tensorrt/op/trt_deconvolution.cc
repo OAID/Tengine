@@ -40,13 +40,13 @@ bool TensorRTEngine::AddDeConvolutionNode(struct graph* ir_graph, struct node *n
 
     if (nullptr == deconv_data || nullptr == deconv_weight)
     {
-        fprintf(stderr, "Tengine: Get input data & weight for deconv(id: %d, name: %s).\n", deconv_weight->index, deconv_weight->name);
+        fprintf(stderr, "Tengine: Get input data & weight for DeConvolution(id: %d, name: %s).\n", deconv_weight->index, deconv_weight->name);
         return false;
     }
 
     if (!check_if_input_in_map(deconv_data->index, this->tensor_swap_map))
     {
-        fprintf(stderr, "Tengine: Query input for Deconv(id: %d, name: %s) layer failed.\n", node->index, node->name);
+        fprintf(stderr, "Tengine: Query input for DeConvolution(id: %d, name: %s) layer failed.\n", node->index, node->name);
         return false;
     }
 

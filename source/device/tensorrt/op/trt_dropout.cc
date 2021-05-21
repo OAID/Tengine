@@ -41,7 +41,7 @@ bool TensorRTEngine::AddDropoutNode(struct graph* ir_graph, struct node* node)
     nvinfer1::IShuffleLayer* layer = this->network->addShuffle(*drop_input_tensor);
     if (nullptr == layer)
     {
-        fprintf(stderr, "Tengine: Add Reshape(id: %d, name: %s) layer failed.\n", node->index, node->name);
+        fprintf(stderr, "Tengine: Add Dropout(id: %d, name: %s) layer failed.\n", node->index, node->name);
         return false;
     }
 
