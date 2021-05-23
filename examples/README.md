@@ -20,7 +20,11 @@ Tengine Lite 兼容 Tengine 原有的 C API 供用户使用，这里我们使用
 
 ![lu mao](https://github.com/OAID/Tengine/blob/master/tests/images/cat.jpg)
 
-模型在此处可以找到：[Tengine model zoo](https://pan.baidu.com/s/1Ar9334MPeIV1eq4pM1eI-Q) 兼容原有 Tengine 的模型示例仓库（密码：hhgc）。
+### 模型仓库
+
+- [百度网盘](https://pan.baidu.com/s/1JsitkY6FVV87Kao6h5yAmg) （提取码：7ke5）
+
+- [Google Drive](https://drive.google.com/drive/folders/1hunePCa0x_R-Txv7kWqgx02uTCH3QWdS?usp=sharing)
 
 ### 源码参考
 
@@ -294,8 +298,9 @@ KeyPoints Coordinate:
 
 ## 汉字识别任务 - [tm_crnn.cpp](tm_crnn.cpp)
 
-目录结构: 在根目录下新建model文件夹, 并从[Tengine model zoo](https://pan.baidu.com/s/1Ar9334MPeIV1eq4pM1eI-Q) ( 密码：hhgc ) 中下载对应的模型文件和测试图片放入其中, 这里是: `crnn_lite_dense.tmfile`模型文件, `o2_resize.jpg`测试图片, 以及`keys.txt`字库文件. 在以上步骤的基础上, 输入如下命令行
-
+模型文件：`crnn_lite_dense.tmfile`
+测试图片：`o2_resize.jpg`
+字库文件：`keys.txt`
 测试图片：
 
 ![](https://s1.ax1x.com/2020/10/20/BSlFPS.jpg)
