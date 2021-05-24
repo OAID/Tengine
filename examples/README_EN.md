@@ -21,8 +21,11 @@ Tengine Lite is compatible with original Tengine's C API. Here we demonstrate ho
 
 ![lu mao](https://github.com/OAID/Tengine/blob/master/tests/images/cat.jpg)
 
-Model files can be found here: [Tengine model zoo](https://pan.baidu.com/s/1Ar9334MPeIV1eq4pM1eI-Q), which are compatible with original Tengine example models（password：_hhgc_）。
+### Model Zoo
 
+- [Baidu Netdisk](https://pan.baidu.com/s/1JsitkY6FVV87Kao6h5yAmg) (password: 7ke5)
+
+- [Google Drive](https://drive.google.com/drive/folders/1hunePCa0x_R-Txv7kWqgx02uTCH3QWdS?usp=sharing)
 
 
 ### Reference Code
@@ -303,7 +306,9 @@ The result of human pose estimation will be saved as images, whose names are: `O
 
 ## Chinese character recognition task - [tm_crnn.cpp](tm_crnn.cpp)
 
-Folder structure: create `model` directory under project root directory, and download corresponding model and testing image files from [Tengine model zoo](https://pan.baidu.com/s/1Ar9334MPeIV1eq4pM1eI-Q) ( password：_hhgc_ ) there. Specifically, `crnn_lite_dense.tmfile` as model file, `o2_resize.jpg` as testing image, `keys.txt` as font file. Then we execute:
+model file:`crnn_lite_dense.tmfile`
+image file:`o2_resize.jpg`
+font file:`keys.txt`
 
 ![](https://s1.ax1x.com/2020/10/20/BSlFPS.jpg)
 

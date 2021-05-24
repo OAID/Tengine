@@ -43,7 +43,9 @@ Tengine 核心代码由 4 个模块组成：
 
 ### 模型仓库
 
-- [Tengine model zoo](https://pan.baidu.com/s/1Ar9334MPeIV1eq4pM1eI-Q) 兼容原有 Tengine 的模型示例仓库（密码：_hhgc_）。
+- [百度网盘](https://pan.baidu.com/s/1JsitkY6FVV87Kao6h5yAmg) （提取码：7ke5）
+
+- [Google Drive](https://drive.google.com/drive/folders/1hunePCa0x_R-Txv7kWqgx02uTCH3QWdS?usp=sharing)
 
 ### 转换工具
 

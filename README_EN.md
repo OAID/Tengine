@@ -46,7 +46,9 @@ The core code of Tengine Lite consists of 4 modules:
 
 ### Model Zoo
 
-- [Tengine model zoo](https://pan.baidu.com/s/1Ar9334MPeIV1eq4pM1eI-Q) Model zoo samples are compatible with the original Tengine (password: _hhgc_).
+- [Baidu Netdisk](https://pan.baidu.com/s/1JsitkY6FVV87Kao6h5yAmg) (password: 7ke5)
+
+- [Google Drive](https://drive.google.com/drive/folders/1hunePCa0x_R-Txv7kWqgx02uTCH3QWdS?usp=sharing)
 
 ### Model Convert tool
 
