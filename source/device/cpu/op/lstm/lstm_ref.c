@@ -37,6 +37,9 @@
 #include <math.h>
 #include <string.h>
 
+#ifdef __APPLE__
+#include <stdio.h>
+#endif
 
 int ref_lstm_default_fp32(struct tensor* input_tensor, struct tensor* w, struct tensor* r, struct tensor* output_tensor, struct lstm_param* param)
 {
