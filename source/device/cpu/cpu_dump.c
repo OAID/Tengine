@@ -622,7 +622,7 @@ void extract_node_executed_time(struct subgraph* subgraph, int node_id)
         sum_of_min_time += timer[j];
     }
 
-    fprintf(stdout, "%2d [%5.2f%% : %4.1f ms] %13s idx: %2d ", i, timer[i] / sum_of_min_time * 100,
+    fprintf(stdout, "%4d [%5.2f%% : %6.1f ms] %13s idx: %4d ", i, timer[i] / sum_of_min_time * 100,
             timer[i], get_op_name_from_type(node->ir_node->op.type), node->ir_node->index);
 
     struct tensor* input_tensor = get_ir_graph_tensor(subgraph->graph, node->ir_node->input_tensors[0]);
