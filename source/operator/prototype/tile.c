@@ -33,6 +33,10 @@
 
 #include <string.h>
 
+#ifdef __APPLE__
+#include <stdio.h>
+#endif
+
 
 static int infer_shape(struct node* node)
 {

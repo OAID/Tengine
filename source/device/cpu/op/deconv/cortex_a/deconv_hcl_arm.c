@@ -57,7 +57,7 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
     if (deconv_hcl_prerun(input_tensor, filter_tensor, output_tensor, deconv_priv_info, deconv_param) < 0)
     {
         TLOG_ERR("hcl deconv prerun failed\n");
-        set_tengine_errno(EFAULT);
+        // set_tengine_errno(EFAULT);
         return -1;
     }
 
@@ -88,7 +88,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
                        num_thread, cpu_affinity) < 0)
     {
         TLOG_ERR("hcl deconv run failed\n");
-        set_tengine_errno(EFAULT);
+        // set_tengine_errno(EFAULT);
         return -1;
     }
 
@@ -107,7 +107,7 @@ static int postrun(struct node_ops* node_ops, struct exec_node* exec_node, struc
     if (deconv_hcl_postrun(deconv_priv_info) < 0)
     {
         TLOG_ERR("hcl deconv prerun failed\n");
-        set_tengine_errno(EFAULT);
+        // set_tengine_errno(EFAULT);
         return -1;
     }
     return 0;
@@ -128,7 +128,7 @@ static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, str
 
     if (deconv_priv_info == NULL)
     {
-        set_tengine_errno(ENOMEM);
+        // set_tengine_errno(ENOMEM);
         return -1;
     }
 

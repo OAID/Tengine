@@ -226,7 +226,7 @@ static int set_sched_affinity(size_t thread_affinity_mask)
     pid_t pid = getpid();
 #else
 
-#ifdef MACOS
+#ifdef __APPLE__
     uint64_t tid64;
     pthread_threadid_np(NULL, &tid64);
     pid_t pid = (pid_t)tid64;
@@ -243,7 +243,7 @@ static int set_sched_affinity(size_t thread_affinity_mask)
         if (thread_affinity_mask & (1 << i))
             CPU_SET(i, &mask);
     }
-#if MACOS
+#if __APPLE__
     int syscallret = syscall(set_sched_affinity, pid, sizeof(mask), &mask);
 #else
     int syscallret = syscall(__NR_sched_setaffinity, pid, sizeof(mask), &mask);
