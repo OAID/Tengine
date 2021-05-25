@@ -38,6 +38,7 @@ char* strdup(const char*);
 #else
 #if __APPLE__
 #include <sys/malloc.h>
+#include <sys/errno.h>
 #else
 #include <malloc.h>
 #endif

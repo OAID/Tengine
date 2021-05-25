@@ -39,7 +39,7 @@
 #include <string.h>
 
 #if __ARM_FEATURE_FP16_VECTOR_ARITHMETIC
-#include "cortex_a/conv_dw_kernel_fp16_arm82.h"
+#include "cortex_a/armv8.2/conv_dw_kernel_fp16_arm82.h"
 #endif
 
 static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
@@ -119,7 +119,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         if (conv_dw_fp16_run(input_tensor, weight_tensor, bias_tensor, output_tensor, conv_param, num_thread, cpu_affinity) < 0)
         {
             TLOG_ERR("hcl conv fp16 run failed\n");
-            set_tengine_errno(EFAULT);
+            // set_tengine_errno(EFAULT);
             return -1;
         }
     }
