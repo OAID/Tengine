@@ -516,7 +516,7 @@ int prerun_graph_multithread(graph_t graph, struct options option)
         mask = get_cpu_cluster_mask(option.cluster);
     }
 
-    int count = get_mask_count(mask);
+    int count = get_cpu_mask_count(mask);
     if (0 < option.num_thread && count > option.num_thread)
     {
         count = option.num_thread;
@@ -537,7 +537,7 @@ int prerun_graph_multithread(graph_t graph, struct options option)
     opt->num_thread   = count;
     opt->cluster      = TENGINE_CLUSTER_BIG;
     opt->precision    = precision;
-    opt->affinity     = mask;
+    opt->affinity     = option.affinity;
 
     struct scheduler* scheduler = ctx->scheduler;
     ret = scheduler->prerun(scheduler, ir_graph);
