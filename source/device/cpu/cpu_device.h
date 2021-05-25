@@ -42,3 +42,5 @@ struct cpu_device
 
 
 int register_cpu_device(void);
+
+int cpu_support_x86_avx2(void);

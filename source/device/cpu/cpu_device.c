@@ -47,6 +47,11 @@
 
 #include <string.h>
 
+#ifdef _MSC_VER
+#include <intrin.h>    // __cpuid()
+#include <immintrin.h> // _xgetbv()
+#endif
+
 
 int init_cpu(struct device* device)
 {
@@ -460,4 +465,42 @@ int unregister_cpu_device(void)
 
     TLOG_INFO("Tengine plugin device %s is unregistered.\n", cpu_dev.base.name);
     return 0;
+}
+
+int cpu_support_x86_avx2(void)
+{
+    #ifdef __TENGINE_ARCH_X86_AVX__
+    #ifdef __clang__
+        #if __clang_major__ >= 6
+            __builtin_cpu_init();
+        #endif
+        return __builtin_cpu_supports("avx2");
+    #elif defined(_MSC_VER)
+        int cpu_info[4];
+        __cpuid(cpu_info, 0);
+
+        int nIds = cpu_info[0];
+        if (nIds < 7)
+            return 0;
+
+        __cpuid(cpu_info, 1);
+        // check AVX XSAVE OSXSAVE
+        if (!(cpu_info[2] & 0x10000000) || !(cpu_info[2] & 0x04000000) || !(cpu_info[2] & 0x08000000))
+            return 0;
+
+        // check XSAVE enabled by kernel
+        if ((_xgetbv(0) & 6) != 6)
+            return 0;
+
+        __cpuid(cpu_info, 7);
+        return cpu_info[1] & 0x00000020;
+    #elif __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8)
+        __builtin_cpu_init();
+        return __builtin_cpu_supports("avx2");
+    #else
+        return 0;
+    #endif
+    #else
+    return 0;
+    #endif
 }
