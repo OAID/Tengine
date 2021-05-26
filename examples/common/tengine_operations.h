@@ -156,10 +156,10 @@ image imread2tflite(image im, int img_w, int img_h, float* means, float* scale);
 /*
  * resize the image, and then return the image type
  * @param [in] im : input image
- * @param [in] h: resized height
  * @param [in] w: resied width
+ * @param [in] h: resized height
  */
-image resize_image(image im, int h, int w);
+image resize_image(image im, int w, int h);
 
 /**
  * load image, support JPG, PNG, BMP, TGA formats
