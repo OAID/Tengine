@@ -366,8 +366,9 @@ The TIM-VX NPU backend needs the uint8 tmfile as it's input model file, you can 
 
 
 ## FAQ
-* Q：如何查看 NPU 驱动已经加载？
-* A：用 lsmod 命令查看相关的驱动模块加载情况；以 VIM3 为例，检查 Galcore 内核驱动是否正确加载：
+Q：如何查看 NPU 驱动已经加载？  
+A：用 lsmod 命令查看相关的驱动模块加载情况；以 VIM3 为例，检查 Galcore 内核驱动是否正确加载：  
+
 ``` bash
 khadas@Khadas:~$ sudo lsmod
 Module                  Size  Used by
@@ -389,25 +390,30 @@ khadas@Khadas:~$
 ```
 可以看到，`galcore 663552  0` 的打印说明了 galcore.ko 已经成功加载。
 
-* Q：如何查看 Galcore 的版本？
-* A：使用 dmesg 命令打印驱动加载信息，由于信息较多，可以通过 grep 命令进行过滤。
+Q：如何查看 Galcore 的版本？  
+A：使用 dmesg 命令打印驱动加载信息，由于信息较多，可以通过 grep 命令进行过滤。  
 Linux 系统典型命令和打印如下：
+
 ``` bash
 khadas@Khadas:~$ sudo dmesg | grep Galcore
 [sudo] password for khadas: 
 [   17.817600] Galcore version 6.4.3.p0.286725
 khadas@Khadas:~$
 ```
+
 Android 典型命令打印如下：
+
 ``` bash
 kvim3:/ $ dmesg | grep Galcore
 [   25.253842] <6>[   25.253842@0] Galcore version 6.4.3.279124+1
 kvim3:/ $
 ```
+
 可以看出，这个 linux 的 A311D 板卡加载的 galcore.ko 版本是 6.4.3.p0.286725，满足 linux 的版本最低要求。
 
-* Q：如何替换 galcore.ko？
-* A：在 SDK 和内核版本升级过程中，有可能有需要升级对应的 NPU 部分的驱动，尽管推荐这一部分由板卡厂商完成，但实际上也有可能有测试或其他需求，需要直接使用最新的 NPU 版本进行测试。这时需要注意的是首先卸载 galcore.ko，然后再加载新的版本。具体命令为(假设新版本的 galcore.ko 就在当前目录)：
+Q：如何替换 galcore.ko？  
+A：在 SDK 和内核版本升级过程中，有可能有需要升级对应的 NPU 部分的驱动，尽管推荐这一部分由板卡厂商完成，但实际上也有可能有测试或其他需求，需要直接使用最新的 NPU 版本进行测试。这时需要注意的是首先卸载 galcore.ko，然后再加载新的版本。具体命令为(假设新版本的 galcore.ko 就在当前目录)：  
+
 ``` bash
 khadas@Khadas:~$ ls
 galcore.ko
@@ -417,8 +423,10 @@ khadas@Khadas:~$ sudo dmesg | grep Galcore
 [   17.817600] Galcore version 6.4.3.p0.286725
 khadas@Khadas:~$
 ```
+
 这样完成的是临时替换，临时替换在下次系统启动后就会加载回系统集成的版本；想要直接替换集成的版本可以通过 `sudo find /usr/lib -name galcore.ko` 查找一下默认位置，一个典型的路径是 `/usr/lib/modules/4.9.241/kernel/drivers/amlogic/npu/galcore.ko`，将 galcore.ko 替换到这个路径即可。
 替换完成后，还需要替换用户态的相关驱动文件，一般有：
+
 ``` bash
 libGAL.so
 libNNGPUBinary.so
@@ -432,12 +440,14 @@ libOpenVX.so
 libOvx12VXCBinary.so
 libarchmodelSw.so
 ```
+
 其中部分文件大小写、文件名、版本扩展名等可能不尽相同，需要保证替换前后旧版本的库及其软连接清理干净，新版本的库和软连接正确建立不疏失(有一两个 so 可能在不同的版本间是多出来或少掉的，是正常情况)。
 这些文件一般在 `/usr/lib/` 文件夹里面(一些板卡可能没有预置用户态的驱动和内核驱动，这时自行添加后增加启动脚本加载内核驱动即可)。
 
-* Q：替换 galcore.ko 后，怎么检查细节状态？
-* A：有时 insmod galcore.ko 后，lsmod 时还是有 galcore 模块的，但确实没加载成功。此时可以用 dmesg 命令确认下返回值等信息，核查是否有其他错误发生。
+Q：替换 galcore.ko 后，怎么检查细节状态？  
+A：有时 insmod galcore.ko 后，lsmod 时还是有 galcore 模块的，但确实没加载成功。此时可以用 dmesg 命令确认下返回值等信息，核查是否有其他错误发生。  
 Linux 典型打印如下：
+
 ``` bash
 khadas@Khadas:~$ sudo dmesg | grep galcore
 [    0.000000] OF: reserved mem: initialized node linux,galcore, compatible id shared-dma-pool
@@ -446,7 +456,9 @@ khadas@Khadas:~$ sudo dmesg | grep galcore
 [   17.817595] galcore irq number is 37.
 khadas@Khadas:~$
 ```
+
 Android 典型打印如下：
+
 ``` bash
 kvim3:/ $ dmesg | grep galcore
 [    0.000000] <0>[    0.000000@0]      c6c00000 - c7c00000,    16384 KB, linux,galcore
@@ -454,12 +466,13 @@ kvim3:/ $ dmesg | grep galcore
 kvim3:/ $
 ```
 
-* Q：打印提示依赖库是未识别的 ELF 格式？
-* A：
+Q：打印提示依赖库是未识别的 ELF 格式？  
+A：目前 3rdparty 目录下的 include 目录几乎是通用的，lib 目录和平台有关；提示这个问题有可能是解压缩或复制过程中软连接断掉了(windows 系统下常见)，或者是准备的相关库文件和平台不匹配。  
 
-* Q：为什么我的 Android 跑不起来对应的 APK，但 ADB Shell 跑测试程序却可以？
-* A：Android 系统不同于 Linux 系统，可以很方便的通过 GDB Server 进行远程调试，所以建议 APP 里面的集成算法部分，先在 ADB Shell 里验证一下正确性后再进行 APK 的集成。
+Q：为什么我的 Android 跑不起来对应的 APK，但 ADB Shell 跑测试程序却可以？  
+A：Android 系统不同于 Linux 系统，可以很方便的通过 GDB Server 进行远程调试，所以建议 APP 里面的集成算法部分，先在 ADB Shell 里验证一下正确性后再进行 APK 的集成。  
 如果已经在 ADB Shell 里验证了典型的用例是正确的，APK 里面的 JNI 部分也没有其他问题，那么 APP 运行不了可以检查一下对应的 NPU 用户态驱动是否已经放行。许可文件路径是 `/vendor/etc/public.libraries.txt` 。许可没有放行一般提示包含有 `java.lang.UnsatisfiedLinkError` 错误。已经放行的 Android 许可文件大致如下图所示，libCLC.so 等已经包含进来：
+
 ``` bash
 kvim3:/vendor/etc $ cat public.libraries.txt
 libsystemcontrol_jni.so
@@ -484,15 +497,15 @@ vi /vendor/etc/public.libraries.txt   # 编辑许可文件
 如果对 vi 和相关命令不熟悉，可以考虑 `adb pull /vendor/etc/public.libraries.txt` 拉到 PC 上进行修改，然后再 `adb push public.libraries.txt /vendor/etc/` 推送回板卡。
 
 ## 附：部分支持的板卡链接
-A311D:  [Khadas VIM3](https://www.khadas.com/vim3)
-S905D3: [Khadas VIM3L](https://www.khadas.com/vim3l)
-i.MX 8M Plus: [8MPLUSLPD4-EVK](https://www.nxp.com/design/development-boards/i-mx-evaluation-and-development-boards/evaluation-kit-for-the-i-mx-8m-plus-applications-processor:8MPLUSLPD4-EVK)
-C308X: [桐烨 C308X AI IPC](https://item.taobao.com/item.htm?id=628474396097)
+A311D:  [Khadas VIM3](https://www.khadas.com/vim3)  
+S905D3: [Khadas VIM3L](https://www.khadas.com/vim3l)  
+i.MX 8M Plus: [8MPLUSLPD4-EVK](https://www.nxp.com/design/development-boards/i-mx-evaluation-and-development-boards/evaluation-kit-for-the-i-mx-8m-plus-applications-processor:8MPLUSLPD4-EVK)  
+C308X: [桐烨 C308X AI IPC](https://item.taobao.com/item.htm?id=628474396097)  
 
 ## 附：其他
-* 限于许可，Tengine-Lite 不能二次分发已经准备好的 3rdparty，请谅解。
-* 如果本文档描述的过程和 FAQ 没有覆盖您的问题，也欢迎加入 QQ 群 829565581 进一步咨询。
-* 不同版本的 TIM-VX 和 Tengine 对 OP 支持的情况有一定区别，请尽可能拉取最新代码进行测试评估。
-* 如果已有 OP 没有满足您的应用需求，可以分别在 TIM-VX 和 Tengine 的 issue 里创建一个新的 issue 要求支持；紧急或商业需求可以加入 QQ 群联系管理员申请商业支持。
-* Tengine 和 OPEN AI LAB 对文档涉及的板卡和芯片不做单独的保证，诸如芯片或板卡工作温度、系统定制、配置细节、价格等请与各自芯片或板卡供应商协商。
-* 如果贵司有板卡想要合作，可以加入 OPEN AI LAB 的 QQ 群联系管理员进一步沟通。
+* 限于许可，Tengine-Lite 不能二次分发已经准备好的 3rdparty，请谅解。  
+* 如果本文档描述的过程和 FAQ 没有覆盖您的问题，也欢迎加入 QQ 群 829565581 进一步咨询。  
+* 不同版本的 TIM-VX 和 Tengine 对 OP 支持的情况有一定区别，请尽可能拉取最新代码进行测试评估。  
+* 如果已有 OP 没有满足您的应用需求，可以分别在 TIM-VX 和 Tengine 的 issue 里创建一个新的 issue 要求支持；紧急或商业需求可以加入 QQ 群联系管理员申请商业支持。  
+* Tengine 和 OPEN AI LAB 对文档涉及的板卡和芯片不做单独的保证，诸如芯片或板卡工作温度、系统定制、配置细节、价格等请与各自芯片或板卡供应商协商。  
+* 如果贵司有板卡想要合作，可以加入 OPEN AI LAB 的 QQ 群联系管理员进一步沟通。  
