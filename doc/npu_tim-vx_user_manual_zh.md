@@ -469,7 +469,7 @@ kvim3:/ $
 Q：打印提示依赖库是未识别的 ELF 格式？  
 A：目前 3rdparty 目录下的 include 目录几乎是通用的，lib 目录和平台有关；提示这个问题有可能是解压缩或复制过程中软连接断掉了(windows 系统下常见)，或者是准备的相关库文件和平台不匹配。  
 
-Q：为什么我的 Android 跑不起来对应的 APK，但 ADB Shell 跑测试程序却可以？  
+Q：为什么我的 Android 跑不起来对应的 APK，但 ADB Shell 跑测试程序却可以(ADB Shell 现在没放行也不可以了)？  
 A：Android 系统不同于 Linux 系统，可以很方便的通过 GDB Server 进行远程调试，所以建议 APP 里面的集成算法部分，先在 ADB Shell 里验证一下正确性后再进行 APK 的集成。  
 如果已经在 ADB Shell 里验证了典型的用例是正确的，APK 里面的 JNI 部分也没有其他问题，那么 APP 运行不了可以检查一下对应的 NPU 用户态驱动是否已经放行。许可文件路径是 `/vendor/etc/public.libraries.txt` 。许可没有放行一般提示包含有 `java.lang.UnsatisfiedLinkError` 错误。已经放行的 Android 许可文件大致如下图所示，libCLC.so 等已经包含进来：
 
