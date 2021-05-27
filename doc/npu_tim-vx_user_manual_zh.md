@@ -90,7 +90,7 @@ WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
 aml-npu/now 6.4.3CB-2 arm64
 khadas@Khadas:~$ 
 ```
-对于 `6.4.3CB-2` 的版本，推荐进行联网执行升级，当前的升级版本是 `6.4.4.3AAA`，升级后编译时不需要准备 3rdparty 的对应 so，系统默认的版本就可以满足要求。下面针对这两种情况，分别会进行讨论；然而新的 npu 驱动版本支持更多的 OP，升级总是没错的(如果烧录的是较早的镜像，NPU 版本可能是 `6.4.2`，和 `6.4.3CB-2` 一样不支持 TIM-VX，视同 `6.4.3CB-2` 进行编译即可，或进行推荐的升级按 `6.4.4` 及以上版本的流程进行编译)。
+对于 `6.4.3CB-2` 的版本(galcore 内核打印为 `6.4.3.279124CB`)，推荐进行联网执行升级，当前的升级版本是 `6.4.4.3AAA`(galcore 的内核打印是 `6.4.4.3.310723AAA`)，升级后编译时不需要准备 3rdparty 的对应 so，系统默认的版本就可以满足要求。下面针对这两种情况，分别会进行讨论；然而新的 npu 驱动版本支持更多的 OP，升级总是没错的(如果烧录的是较早的镜像，NPU 版本可能是 `6.4.2`，和 `6.4.3CB-2` 一样不支持 TIM-VX，视同 `6.4.3CB-2` 进行编译即可，或进行推荐的升级按 `6.4.4` 及以上版本的流程进行编译)。
 
 #### 2.5.1 准备代码
 准备代码环节不用考虑 VIM3/VIM3L 的 NPU 版本，参考命令如下：
@@ -199,6 +199,8 @@ $ cp -rf ../TIM-VX/src      ./source/device/tim-vx/
 ```
 
 #### 2.6.2 准备 3rdparty 依赖
+准备过程和 VIM3/VIM3L 本地编译 NPU 最新版本相同，只需要准备 3rdparty 的 include 文件夹即可。
+
 ``` bash
 $ wget -c https://github.com/VeriSilicon/TIM-VX/releases/download/v1.1.28/aarch64_S905D3_D312513_A294074_R311680_T312233_O312045.tgz
 $ tar zxvf aarch64_S905D3_D312513_A294074_R311680_T312233_O312045.tgz
@@ -208,7 +210,6 @@ $ mkdir -p ./3rdparty/tim-vx/include
 $ mkdir -p ./3rdparty/tim-vx/lib/aarch64
 $ cp -rf ../prebuild-sdk-s905d3/include/*  ./3rdparty/tim-vx/include/
 ```
-准备过程和 VIM3/VIM3L 本地编译 NPU 最新版本相同，只需要准备 3rdparty 的 include 文件夹即可。
 
 #### 2.6.3 编译
 ```bash
@@ -220,17 +221,65 @@ $ make -j`nproc` && make install
 完成编译后，即可考虑测试一下 example 的内容，或进行其他相关开发工作了。
 
 ### 2.7 编译 Rockchip RV1109/RV1126 buildroot 平台
-RV1109/RV1126 只有 buildroot，没有完整系统的概念，所以不能进行本地编译，只能交叉编译。
-解压缩 Rockchip 提供(或板卡厂商代为提供)的 RV1109/RV1126 SDK 后，找到
+瑞芯微的 RV1109/RV1126 芯片只有 buildroot，没有完整系统的概念，所以不能进行本地编译，只能交叉编译。
+解压缩 RockChip 提供(或板卡厂商代为提供)的 RV1109/RV1126 SDK 后，在 prebuilt 目录里面可以找到交叉编译的工具链 gcc-arm-8.3-2019.03-x86_64-arm-linux-gnueabihf (另一套 linaro 的不是用来编译应用的，忽略)。
+在 SDK 的 `external/rknpu/drivers/linux-armhf-puma/usr/lib` 目录下的文件，就是我们需要的 NPU 编译依赖库。
+
+#### 2.7.1 准备代码
+和前面 VIM3/VIM3L 的本地编译准备过程相同，参考命令如下：
+
+```bash
+$ cd <tengine-lite-root-dir>
+$ cp -rf ../TIM-VX/include  ./source/device/tim-vx/
+$ cp -rf ../TIM-VX/src      ./source/device/tim-vx/
+```
+
+#### 2.7.2 准备3rdparty 依赖
+准备的 `include` 目录和 VIM3/VIM3L 本地编译 NPU 最新版本相同，下载一份 perbuild SDK，将其中的 `include` 文件夹复制到 `3rdparty/tim-vx` 目录。
+依赖的 lib 目录下的文件需要从前面 SDK 中解压出来的 `external/rknpu/drivers/linux-armhf-puma/usr/lib` 目录提取。将该目录下的文件全部(实际上不需要全部复制，FAQ 有文件列表)复制到 `3rdparty/tim-vx/lib/aarch32` 文件夹下即可。
+完整过程的参考命令如下：
+
+```bash
+$ wget -c https://github.com/VeriSilicon/TIM-VX/releases/download/v1.1.28/aarch64_S905D3_D312513_A294074_R311680_T312233_O312045.tgz
+$ tar zxvf aarch64_S905D3_D312513_A294074_R311680_T312233_O312045.tgz
+$ mv aarch64_S905D3_D312513_A294074_R311680_T312233_O312045 prebuild-sdk-s905d3
+$ cd <tengine-lite-root-dir>
+$ mkdir -p ./3rdparty/tim-vx/include
+$ mkdir -p ./3rdparty/tim-vx/lib/aarch64
+$ cp -rf ../prebuild-sdk-s905d3/include/*   ./3rdparty/tim-vx/include/
+$ cp -rf <rk_sdk_npu_lib>/*                 ./3rdparty/tim-vx/lib/aarch32/
+```
+注意，`<rk_sdk_npu_lib>` 是指 SDK 解压出来的 `external/rknpu/drivers/linux-armhf-puma/usr/lib` 的完整路径，需要按实际情况进行修改。
+
+
+#### 2.7.3 编译
+准备交叉编译工具链，需要设置环境变量 `PATH` 使其能够找到工具链的 gcc/g++，参考命令如下：
+
+``` bash
+export PATH=<cross_tool_chain>/bin:$PATH
+```
+需要注意，`<cross_tool_chain>` 是指工具链 gcc-arm-8.3-2019.03-x86_64-arm-linux-gnueabihf 从 SDK 解压后的实际位置，需按实际情况修改。
+开发板上不一定有 OpenMP 的运行时库 libgomp.so，因此在 CMake 配置时需要给 CMake关闭 OpenMP 选项。完整编译过程参考命令如下：
+
+```bash
+$ cd <tengine-lite-root-dir>
+$ mkdir build && cd build
+$ export PATH=<cross_tool_chain>/bin:$PATH
+$ ln -s ../3rdparty/tim-vx/lib/aarch32/libOpenVX.so.1.2 ../3rdparty/tim-vx/lib/aarch32/libOpenVX.so
+$ cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/arm-linux-gnueabihf.toolchain.cmake  -DTENGINE_ENABLE_TIM_VX=ON -DTENGINE_OPENMP=OFF ..
+$ make -j`nproc` && make install
+```
+编译完成后，提取 install 目录下的文件到板子上测试即可。需要注意的是，部分 OpenCV 依赖的 example 在这个过程中不会编译，需要先准备好交叉编译的 OpenCV，并正确设置 OpenCV_DIR 到环境变量中方可打开这部分 example 的编译。
+
 
 ### 2.8 编译 Amlogic C305X/C308X buildroot 平台
-TODO：还没拿到最新的 SDK...
+TODO：还没拿到最新的 SDK(如果您有欢迎提供我们测试，自行测试请参考 RV1109/RV1126 的编译过程)...
 
 ### 2.9 编译 Android 32bit 平台
 目前只有 VIM3/VIM3L 和 i.MX 8M Plus 的 EVK 正式支持 Android 系统，编译时需要使用 NDK 进行编译。编译之前需要准备 3rdparty 的全部文件。
 3rdparty 的结构同前面 Linux 的情况一致，但此时提取到的 so 放置的目录是 `3rdparty/tim-vx/lib/android`。
 
-#### 2.9.2 准备代码
+#### 2.9.1 准备代码
 代码准备和前面典型的 Linux 准备过程相同，参考代码如下：
 ``` bash
 $ cd <tengine-lite-root-dir>
@@ -252,7 +301,7 @@ $ cp -rf ../prebuild-sdk-android/lib/*      ./3rdparty/tim-vx/lib/aarch64/
 ```
 使用的 Android 系统内置的 NPU 驱动版本和相关的 so 不一定和下载到的 `6.4.3` 版本匹配，只需要保证不低于这个版本即可。如果确有问题，可以根据下载到的压缩包解压缩出来的 lib 目录里面的文件做列表，从板卡中用 adb pull 命令从 `/vendor/lib/` 目录中提取一套出来，放入 3rdparty 的相应目录里。
 
-#### 2.9.2 编译
+#### 2.9.3 编译
 ```bash
 $ export ANDROID_NDK=<your-ndk-root-dir>
 $ cd <tengine-lite-root-dir>
@@ -383,7 +432,7 @@ libOpenVX.so
 libOvx12VXCBinary.so
 libarchmodelSw.so
 ```
-其中部分文件大小写、文件名、版本扩展名等可能不尽相同，需要保证替换前后旧版本的库及其软连接清理干净，新版本的库和软连接正确建立不疏失(有几个 so 可能在不同的版本间是多出来或少掉的，是正常情况)。
+其中部分文件大小写、文件名、版本扩展名等可能不尽相同，需要保证替换前后旧版本的库及其软连接清理干净，新版本的库和软连接正确建立不疏失(有一两个 so 可能在不同的版本间是多出来或少掉的，是正常情况)。
 这些文件一般在 `/usr/lib/` 文件夹里面(一些板卡可能没有预置用户态的驱动和内核驱动，这时自行添加后增加启动脚本加载内核驱动即可)。
 
 Q：替换 galcore.ko 后，怎么检查细节状态？
@@ -434,11 +483,16 @@ vi /vendor/etc/public.libraries.txt   # 编辑许可文件
 ```
 如果对 vi 和相关命令不熟悉，可以考虑 `adb pull /vendor/etc/public.libraries.txt` 拉到 PC 上进行修改，然后再 `adb push public.libraries.txt /vendor/etc/` 推送回板卡。
 
-### 附：部分支持的板卡链接
+## 附：部分支持的板卡链接
+A311D:  [Khadas VIM3](https://www.khadas.com/vim3)
+S905D3: [Khadas VIM3L](https://www.khadas.com/vim3l)
+i.MX 8M Plus: [8MPLUSLPD4-EVK](https://www.nxp.com/design/development-boards/i-mx-evaluation-and-development-boards/evaluation-kit-for-the-i-mx-8m-plus-applications-processor:8MPLUSLPD4-EVK)
+C308X: [桐烨 C308X AI IPC](https://item.taobao.com/item.htm?id=628474396097)
 
-*限于许可，Tengine-Lite 不能二次分发已经准备好的 3rdparty，请谅解。*
-*如果本文档描述的过程和 FAQ 没有覆盖您的问题，也欢迎加入 QQ 群 829565581 进一步咨询。*
-*不同版本的 TIM-VX 和 Tengine 对 OP 支持的情况有一定区别，请尽可能拉取最新代码进行测试评估。*
-*如果已有 OP 没有满足您的应用需求，可以分别在 TIM-VX 和 Tengine 的 issue 里创建一个新的 issue 要求支持；紧急或商业需求可以加入 QQ 群联系管理员申请商业支持。*
-*Tengine 和 OPEN AI LAB 对文档涉及的板卡和芯片不做单独的保证，诸如芯片或板卡工作温度、系统定制、配置细节、价格等请与各自芯片或板卡供应商协商。*
-*如果贵司有板卡想要合作，可以加入 OPEN AI LAB 的 QQ 群联系管理员进一步沟通。*
+## 附：其他
+* 限于许可，Tengine-Lite 不能二次分发已经准备好的 3rdparty，请谅解。
+* 如果本文档描述的过程和 FAQ 没有覆盖您的问题，也欢迎加入 QQ 群 829565581 进一步咨询。
+* 不同版本的 TIM-VX 和 Tengine 对 OP 支持的情况有一定区别，请尽可能拉取最新代码进行测试评估。
+* 如果已有 OP 没有满足您的应用需求，可以分别在 TIM-VX 和 Tengine 的 issue 里创建一个新的 issue 要求支持；紧急或商业需求可以加入 QQ 群联系管理员申请商业支持。
+* Tengine 和 OPEN AI LAB 对文档涉及的板卡和芯片不做单独的保证，诸如芯片或板卡工作温度、系统定制、配置细节、价格等请与各自芯片或板卡供应商协商。
+* 如果贵司有板卡想要合作，可以加入 OPEN AI LAB 的 QQ 群联系管理员进一步沟通。
