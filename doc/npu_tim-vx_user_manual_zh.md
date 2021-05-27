@@ -359,15 +359,15 @@ Repeat 10 times, thread 1, avg time 2.95 ms, max_time 3.42 ms, min_time 2.76 ms
 30.780502, 282
 ```
 
-### 4. The uint8 quantization model
+## 4. The uint8 quantization model
 The TIM-VX NPU backend needs the uint8 tmfile as it's input model file, you can **quantize** the tmfile from **float32** to **uint8** from here. 
 - [Tengine Post Training Quantization Tools](../tools/quantize/README.md)
 - [Download the uint8 quant tool](https://github.com/OAID/Tengine/releases/download/lite-v1.3/quant_tool_uint8)
 
 
-### FAQ
-Q：如何查看 NPU 驱动已经加载？
-A：用 lsmod 命令查看相关的驱动模块加载情况；以 VIM3 为例，检查 Galcore 内核驱动是否正确加载：
+## FAQ
+* Q：如何查看 NPU 驱动已经加载？
+* A：用 lsmod 命令查看相关的驱动模块加载情况；以 VIM3 为例，检查 Galcore 内核驱动是否正确加载：
 ``` bash
 khadas@Khadas:~$ sudo lsmod
 Module                  Size  Used by
@@ -389,8 +389,8 @@ khadas@Khadas:~$
 ```
 可以看到，`galcore 663552  0` 的打印说明了 galcore.ko 已经成功加载。
 
-Q：如何查看 Galcore 的版本？
-A：使用 dmesg 命令打印驱动加载信息，由于信息较多，可以通过 grep 命令进行过滤。
+* Q：如何查看 Galcore 的版本？
+* A：使用 dmesg 命令打印驱动加载信息，由于信息较多，可以通过 grep 命令进行过滤。
 Linux 系统典型命令和打印如下：
 ``` bash
 khadas@Khadas:~$ sudo dmesg | grep Galcore
@@ -406,8 +406,8 @@ kvim3:/ $
 ```
 可以看出，这个 linux 的 A311D 板卡加载的 galcore.ko 版本是 6.4.3.p0.286725，满足 linux 的版本最低要求。
 
-Q：如何替换 galcore.ko？
-A：在 SDK 和内核版本升级过程中，有可能有需要升级对应的 NPU 部分的驱动，尽管推荐这一部分由板卡厂商完成，但实际上也有可能有测试或其他需求，需要直接使用最新的 NPU 版本进行测试。这时需要注意的是首先卸载 galcore.ko，然后再加载新的版本。具体命令为(假设新版本的 galcore.ko 就在当前目录)：
+* Q：如何替换 galcore.ko？
+* A：在 SDK 和内核版本升级过程中，有可能有需要升级对应的 NPU 部分的驱动，尽管推荐这一部分由板卡厂商完成，但实际上也有可能有测试或其他需求，需要直接使用最新的 NPU 版本进行测试。这时需要注意的是首先卸载 galcore.ko，然后再加载新的版本。具体命令为(假设新版本的 galcore.ko 就在当前目录)：
 ``` bash
 khadas@Khadas:~$ ls
 galcore.ko
@@ -435,8 +435,8 @@ libarchmodelSw.so
 其中部分文件大小写、文件名、版本扩展名等可能不尽相同，需要保证替换前后旧版本的库及其软连接清理干净，新版本的库和软连接正确建立不疏失(有一两个 so 可能在不同的版本间是多出来或少掉的，是正常情况)。
 这些文件一般在 `/usr/lib/` 文件夹里面(一些板卡可能没有预置用户态的驱动和内核驱动，这时自行添加后增加启动脚本加载内核驱动即可)。
 
-Q：替换 galcore.ko 后，怎么检查细节状态？
-A：有时 insmod galcore.ko 后，lsmod 时还是有 galcore 模块的，但确实没加载成功。此时可以用 dmesg 命令确认下返回值等信息，核查是否有其他错误发生。
+* Q：替换 galcore.ko 后，怎么检查细节状态？
+* A：有时 insmod galcore.ko 后，lsmod 时还是有 galcore 模块的，但确实没加载成功。此时可以用 dmesg 命令确认下返回值等信息，核查是否有其他错误发生。
 Linux 典型打印如下：
 ``` bash
 khadas@Khadas:~$ sudo dmesg | grep galcore
@@ -454,11 +454,11 @@ kvim3:/ $ dmesg | grep galcore
 kvim3:/ $
 ```
 
-Q：打印提示依赖库是未识别的 ELF 格式？
-A：
+* Q：打印提示依赖库是未识别的 ELF 格式？
+* A：
 
-Q：为什么我的 Android 跑不起来对应的 APK，但 ADB Shell 跑测试程序却可以？
-A：Android 系统不同于 Linux 系统，可以很方便的通过 GDB Server 进行远程调试，所以建议 APP 里面的集成算法部分，先在 ADB Shell 里验证一下正确性后再进行 APK 的集成。
+* Q：为什么我的 Android 跑不起来对应的 APK，但 ADB Shell 跑测试程序却可以？
+* A：Android 系统不同于 Linux 系统，可以很方便的通过 GDB Server 进行远程调试，所以建议 APP 里面的集成算法部分，先在 ADB Shell 里验证一下正确性后再进行 APK 的集成。
 如果已经在 ADB Shell 里验证了典型的用例是正确的，APK 里面的 JNI 部分也没有其他问题，那么 APP 运行不了可以检查一下对应的 NPU 用户态驱动是否已经放行。许可文件路径是 `/vendor/etc/public.libraries.txt` 。许可没有放行一般提示包含有 `java.lang.UnsatisfiedLinkError` 错误。已经放行的 Android 许可文件大致如下图所示，libCLC.so 等已经包含进来：
 ``` bash
 kvim3:/vendor/etc $ cat public.libraries.txt
