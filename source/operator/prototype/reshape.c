@@ -30,6 +30,7 @@
 #include "module/module.h"
 #include "utility/sys_port.h"
 #include "utility/vector.h"
+#include "utility/log.h"
 
 #include <string.h>
 
@@ -114,6 +115,11 @@ static int infer_shape(struct node* node)
             idx = i;
         else
             new_size *= temp;
+    }
+    // check input and reshaped size
+    if (new_size != size) {
+        TLOG_ERR("Error: input elem num(%d) != reshaped elem num(%d)\n", size, new_size);
+        return -1;
     }
 
     if (idx >= 0)
