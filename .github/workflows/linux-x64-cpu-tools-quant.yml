@@ -12,7 +12,7 @@ jobs:
     - name: opencv
       run: sudo apt-get install libopencv-dev
     - name: configure
-      run: mkdir build && cd build && cmake -DTENGINE_BUILD_QUANT_TOOL=ON ..
+      run: mkdir build && cd build && cmake -DTENGINE_BUILD_EXAMPLES=ON -DTENGINE_BUILD_QUANT_TOOL=ON ..
     - name: build
       run: cmake --build build -j 2
     - name: depends
