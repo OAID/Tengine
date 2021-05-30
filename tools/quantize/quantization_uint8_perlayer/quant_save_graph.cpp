@@ -22,6 +22,9 @@
  * Author: hhchen@openailab.com
  */
 
+
+#include <algorithm>
+
 #include "quant_save_graph.hpp"
 #include "compiler_fp16.h"
 

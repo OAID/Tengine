@@ -22,8 +22,8 @@
  * Author: hhchen@openailab.com
  */
 
-#include <stdlib.h>
-#include <stdio.h>
+#include <cstdlib>
+#include <cstdio>
 #include <sys/stat.h>
 #include <dirent.h>
 

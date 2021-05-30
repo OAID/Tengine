@@ -22,7 +22,9 @@
  * Author: hhchen@openailab.com
  */
 
-#include "quant_tool.hpp"
+#include "common.hpp"
+#include "quant_tool_uint8.hpp"
+#include "quant_save_graph.hpp"
 
 
 QuantTool::QuantTool()
@@ -60,56 +62,6 @@ QuantTool::QuantTool()
     this->focus = 0;
     this->inplace = true;
     this->algorithm_type = ALGORITHM_MIN_MAX;
-#if 0
-    // basic messge
-    this->img_size = 0;
-    this->cosin_max = -9999.999f;
-    this->scale_acc = 1.f;
-
-    // ir graph variable
-    this->fp32_out.clear();
-    this->fake_quant_out.clear();
-    this->input_datas_fp32.clear();
-    this->input_datas_fake_quant.clear();
-    this->out_imgs_fp32.clear();
-    this->out_imgs_fake_quant.clear();
-
-    this->graphn_fp32 = nullptr;
-    this->graphn_fake_quant = nullptr;
-    this->exec_graph_fp32 = nullptr;
-    this->exec_graph_fake_quant = nullptr;
-    this->exec_node_num = 0;
-
-    // temp variable
-    this->node_fp32 = nullptr;
-    this->node_fake_quant = nullptr;
-    this->node_ops_fp32 = nullptr;
-    this->node_ops_fake_quant = nullptr;
-
-    this->input_tensor_fp32 = nullptr;
-    this->input_tensor_fake_quant = nullptr;
-    this->weight_tensor_fp32 = nullptr;
-    this->weight_tensor_fake_quant = nullptr;
-    this->bias_tensor_fp32 = nullptr;
-    this->bias_tensor_fake_quant = nullptr;
-    this->output_tensor_fp32 = nullptr;
-    this->output_tensor_fake_quant = nullptr;
-
-    this->weight_data_fp32 = nullptr;
-    this->weight_data_fake_quant = nullptr;
-    this->weight_size = 0;
-    this->interleave_buffer_fp32 = nullptr;
-    this->interleave_buffer_fake_quant = nullptr;
-    this->interleave_size_fake = 0;
-    this->bias_data_fp32 = nullptr;
-    this->bias_data_fake_quant = nullptr;
-    this->bias_size = 0;
-
-    this->conv_priv_info_fp32 = nullptr;
-    this->conv_priv_info_fake_quant = nullptr;
-    this->conv_param_fp32 = nullptr;
-    this->conv_param_fake_quant = nullptr;
-#endif
 }
 
 QuantTool::~QuantTool()
@@ -117,128 +69,6 @@ QuantTool::~QuantTool()
     /* release tengine */
     release_tengine();
 }
-#if 0
-int QuantTool::init()
-{
-    // ir graph variable
-    this->fp32_out.clear();
-    this->fake_quant_out.clear();
-
-    /* load fp32 graph and fake quant graph */
-    this->graphn_fp32 = ( struct graph* )create_graph(nullptr, "tengine", this->model_file.c_str());
-    this->graphn_fake_quant = ( struct graph* )create_graph(nullptr, "tengine", this->model_file.c_str());
-
-    if (this->graphn_fp32 == nullptr || this->graphn_fake_quant == nullptr)
-    {
-        fprintf(stderr, "Create graph failed.\n");
-        fprintf(stderr, "errno: %d \n", get_tengine_errno());
-        return -1;
-    }
-
-    /* load activation scale to ir_tensor */
-    this->load_activation_scale(this->graphn_fp32, this->scale_file.c_str(), this->inplace);
-    this->load_activation_scale(this->graphn_fake_quant, this->scale_file.c_str(), this->inplace);
-
-    /* get graph input tensor */
-    this->graph_input_tensor_fp32 = ( struct tensor* )get_graph_input_tensor(( void* )this->graphn_fp32, 0, 0);
-    this->graph_input_tensor_fake_quant =
-        ( struct tensor* )get_graph_input_tensor(( void* )this->graphn_fake_quant, 0, 0);
-    if (this->graph_input_tensor_fp32 == nullptr || this->graph_input_tensor_fake_quant == nullptr)
-    {
-        fprintf(stderr, "Get input tensor failed\n");
-        return -1;
-    }
-
-    /* generate images list */
-    std::vector<std::string> imgs_list;
-    if (!this->image_dir.empty())
-        readFileList(this->image_dir, imgs_list);
-    else
-        imgs_list.push_back(image_file);
-    uint32_t img_num = imgs_list.size();
-//    printf("### img_num %d\n", img_num);
-    if (img_num < this->max_search_img_num)
-        this->max_search_img_num = img_num;
-
-    /* set the shape, data buffer of input_tensor of the graph */
-    this->img_size = this->img_h * this->img_w * this->img_c;
-    int dims[] = {1, img_c, img_h, img_w};    // nchw
-    float* input_data_fp32 = ( float* )malloc(this->img_size * sizeof(float));
-    float* input_data_fake_quant = ( float* )malloc(this->img_size * sizeof(float));
-
-    /* prepare process input data, set the data mem to input tensor */
-    float scale_graph_input = this->graph_input_tensor_fake_quant->scale;
-    int zero_point_graph_input = this->graph_input_tensor_fake_quant->zero_point;
-//    fprintf(stderr, "scale zp %f %d\n", scale_graph_input, zero_point_graph_input);
-
-    this->input_datas_fp32.resize(this->max_search_img_num);
-    this->input_datas_fake_quant.resize(this->max_search_img_num);
-    cv::Mat m;
-    for (int i = 0; i < this->max_search_img_num; i++)
-    {
-        this->input_datas_fp32[i].resize(this->img_size);
-        this->input_datas_fake_quant[i].resize(this->img_size);
-
-        get_input_data_cv(imgs_list[i].c_str(), this->input_datas_fp32[i].data(), this->img_h, this->img_w, this->mean, this->scale,
-                          this->img_c, this->sw_RGB, this->center_crop, this->letterbox_rows, this->letterbox_cols, this->focus);
-
-        this->input_datas_fake_quant[i] = this->input_datas_fp32[i];
-        this->activation_requant(this->input_datas_fake_quant[i].data(), this->img_size, 8, 1, scale_graph_input,
-                                 zero_point_graph_input);
-    }
-
-    /* set graph input shape */
-    int ret_fp32 = set_tensor_shape(this->graph_input_tensor_fp32, dims, 4);
-    int ret_fake_quant = set_tensor_shape(this->graph_input_tensor_fake_quant, dims, 4);
-    if (ret_fp32 < 0 || ret_fake_quant < 0)
-    {
-        fprintf(stderr, "Set input tensor shape failed\n");
-        return -1;
-    }
-
-    /* set graph input buffer */
-    ret_fp32 = set_tensor_buffer(this->graph_input_tensor_fp32, input_data_fp32, this->img_size * 4);
-    ret_fake_quant = set_tensor_buffer(this->graph_input_tensor_fake_quant, input_data_fake_quant, this->img_size * 4);
-    if (ret_fp32 < 0 || ret_fake_quant < 0)
-    {
-        fprintf(stderr, "Set input tensor buffer failed\n");
-        return -1;
-    }
-
-    /* prerun graph, set work options(num_thread, cluster, precision) */
-    ret_fp32 = this->prerun_for_get_ir_tensor(( void* )this->graphn_fp32, this->opt);
-    ret_fake_quant = this->prerun_for_get_ir_tensor(( void* )this->graphn_fake_quant, this->opt);
-    if (ret_fp32 < 0 || ret_fake_quant < 0)
-    {
-        fprintf(stderr, "Prerun multithread graph failed.\n");
-        return -1;
-    }
-
-    /* get exec graph */
-    this->exec_graph_fp32 = this->get_exec_graph(this->graphn_fp32);
-    this->exec_graph_fake_quant = this->get_exec_graph(this->graphn_fake_quant);
-    this->exec_node_num = get_vector_num(this->exec_graph_fp32->exec_node_list);
-
-    /* ir idx <<<->>> exec idx */
-    for (int i = 0; i < this->exec_node_num; i++)
-    {
-        this->node_fp32 = ( struct exec_node* )get_vector_data(this->exec_graph_fp32->exec_node_list, i);
-        this->node_fake_quant = ( struct exec_node* )get_vector_data(this->exec_graph_fake_quant->exec_node_list, i);
-
-        int out_t = node_fp32->ir_node->output_tensors[0];
-        this->ir_exec[graphn_fp32->tensor_list[out_t]->producer] = i;    // ir idx --> exec idx
-        this->exec_ir[i] = graphn_fp32->tensor_list[out_t]->producer;    // exec idx --> ir idx
-//        printf(" %d : %d\n", graphn_fp32->tensor_list[out_t]->producer, i);
-    }
-
-    /* check for free node*/
-    this->check_for_free();
-
-    return 0;
-}
-
-
-#endif
 
 int QuantTool::activation_quant_tool(const char* model_file, const char* image_dir,
                                      int img_c, int img_h, int img_w, const float* mean, const float* scale,
@@ -437,6 +267,162 @@ int QuantTool::activation_quant_tool(const char* model_file, const char* image_d
     free(input_data);
     postrun_graph(graph);
     destroy_graph(graph);
+
+    return 0;
+}
+
+const char* help_params = "[Quant Tools Info]: optional arguments:\n"
+                          "\t-h    help            show this help message and exit\n"
+                          "\t-m    input model     path to input float32 tmfile\n"
+                          "\t-i    image dir       path to calibration images folder\n"
+                          "\t-f    scale file      path to calibration scale file\n"
+                          "\t-o    output model    path to output uint8 tmfile\n"
+                          "\t-a    algorithm       the type of quant algorithm(0:min-max, 1:kl, default is 0)\n"
+                          "\t-g    size            the size of input image(using the resize the original image,default is 3,224,224)\n"
+                          "\t-w    mean            value of mean (mean value, default is 104.0,117.0,123.0)\n"
+                          "\t-s    scale           value of normalize (scale value, default is 1.0,1.0,1.0)\n"
+                          "\t-b    swapRB          flag which indicates that swap first and last channels in 3-channel image is necessary(0:OFF, 1:ON, default is 1)\n"
+                          "\t-c    center crop     flag which indicates that center crop process image is necessary(0:OFF, 1:ON, default is 0)\n"
+                          "\t-y    letter box      flag which indicates that letter box process image is necessary(maybe using for YOLOv3/v4, 0:OFF, 1:ON, default is 0)\n"
+                          "\t-k    focus           flag which indicates that focus process image is necessary(maybe using for YOLOv5, 0:OFF, 1:ON, default is 0)\n"
+                          "\t-t    num thread      count of processing threads(default is 1)\n";
+
+const char* example_params = "[Quant Tools Info]: example arguments:\n"
+                             "\t./quant_tool_uint8 -m ./mobilenet_fp32.tmfile -i ./dataset -o ./mobilenet_uint8.tmfile -g 3,224,224 -w 104.007,116.669,122.679 -s 0.017,0.017,0.017\n";
+
+void show_usage()
+{
+    fprintf(stderr, "%s\n", help_params);
+    fprintf(stderr, "%s\n", example_params);
+}
+
+int main(int argc, char* argv[])
+{
+    QuantTool quant_tool;
+
+    int res;
+    while ((res = getopt(argc, argv, "m:a:f:o:i:g:s:w:b:c:y:k:t:h")) != -1)
+    {
+        switch (res)
+        {
+            case 'm':
+                quant_tool.model_file = optarg;
+                break;
+            case 'a':
+                quant_tool.algorithm_type = atoi(optarg);
+                break;
+            case 'f':
+                quant_tool.scale_file = optarg;
+                break;
+            case 'o':
+                quant_tool.output_file = optarg;
+                break;
+            case 'i':
+                quant_tool.image_dir = optarg;
+                break;
+            case 'g':
+                split(quant_tool.img_chw, optarg, ",");
+                quant_tool.img_c = ( int )quant_tool.img_chw[0];
+                quant_tool.img_h = ( int )quant_tool.img_chw[1];
+                quant_tool.img_w = ( int )quant_tool.img_chw[2];
+                break;
+            case 'w':
+                split(quant_tool.mean, optarg, ",");
+                break;
+            case 's':
+                split(quant_tool.scale, optarg, ",");
+                break;
+            case 'b':
+                quant_tool.sw_RGB = atoi(optarg);
+                break;
+            case 'c':
+                quant_tool.center_crop = atoi(optarg);
+                break;
+            case 'y':
+                split(quant_tool.letterboxs, optarg, ",");
+                quant_tool.letterbox_rows = ( int )quant_tool.letterboxs[0];
+                quant_tool.letterbox_cols = ( int )quant_tool.letterboxs[1];
+                break;
+            case 'k':
+                quant_tool.focus = atoi(optarg);
+                break;                
+            case 't':
+                quant_tool.num_thread = atoi(optarg);
+                break;
+            case 'h':
+                show_usage();
+                return 0;
+            default:
+                break;
+        }
+    }
+
+    /* version */
+    fprintf(stderr, "\n---- Tengine Post Training Quantization Tool ---- \n");
+    fprintf(stderr, "\nVersion     : v1.1, %s %s\n", __TIME__, __DATE__);
+    fprintf(stderr, "Status      : uint8, per-layer, asymmetric\n");
+
+    /* check input params */
+    if (quant_tool.model_file.empty())
+    {
+        fprintf(stderr,"[Quant Tools Info]: The input file of Float32 tmfile file not specified!\n");
+        show_usage();
+        return -1;
+    }
+
+    if (quant_tool.image_dir.empty())
+    {
+        fprintf(stderr,"[Quant Tools Info]: The input dir of Calibration image not specified!\n");
+        show_usage();
+        return -1;
+    }
+
+    if (quant_tool.output_file.empty())
+    {
+        fprintf(stderr,"[Quant Tools Info]: The output file of Int8 tmfile not specified!\n");
+        show_usage();
+        return -1;
+    }
+
+    /* debug info : input params */
+    fprintf(stderr, "Input model : %s\n", quant_tool.model_file.c_str());
+    fprintf(stderr, "Output model: %s\n", quant_tool.output_file.c_str());
+    fprintf(stderr, "Calib images: %s\n", quant_tool.image_dir.c_str());
+    fprintf(stderr, "Scale file  : %s\n", quant_tool.scale_file.empty()?"NULL":quant_tool.scale_file.c_str());
+    fprintf(stderr, "Algorithm   : %s\n", quant_tool.algorithm_type?"KL":"MIN MAX");
+    fprintf(stderr, "Dims        : %d %d %d\n", quant_tool.img_c, quant_tool.img_h, quant_tool.img_w);
+    fprintf(stderr, "Mean        : %.3f %.3f %.3f\n", quant_tool.mean[0], quant_tool.mean[1], quant_tool.mean[2]);
+    fprintf(stderr, "Scale       : %.3f %.3f %.3f\n", quant_tool.scale[0], quant_tool.scale[1], quant_tool.scale[2]);
+    fprintf(stderr, "BGR2RGB     : %s\n", quant_tool.sw_RGB?"ON":"OFF");
+    fprintf(stderr, "Center crop : %s\n", quant_tool.center_crop?"ON":"OFF");
+    fprintf(stderr, "Letter box  : %.0f %.0f\n", quant_tool.letterboxs[0], quant_tool.letterboxs[1]);
+    fprintf(stderr, "YOLOv5 focus: %s\n", quant_tool.focus?"ON":"OFF");
+    fprintf(stderr, "Thread num  : %d\n\n", quant_tool.num_thread);
+
+    /* quantize activation */
+    quant_tool.activation_quant_tool(quant_tool.model_file.c_str(), quant_tool.image_dir.c_str(), quant_tool.img_c, quant_tool.img_h, quant_tool.img_w, quant_tool.mean, quant_tool.scale,
+                                     quant_tool.num_thread, quant_tool.sw_RGB, quant_tool.center_crop, quant_tool.letterbox_rows, quant_tool.letterbox_cols, quant_tool.focus);
+
+    /* using 3rd calibration table file */
+    if (quant_tool.scale_file.empty())
+    {
+        /* select algorithm */
+        if (quant_tool.algorithm_type == ALGORITHM_MIN_MAX)
+            quant_tool.scale_file = "table_minmax.scale";
+        else if  (quant_tool.algorithm_type == ALGORITHM_KL)
+            quant_tool.scale_file = "table_kl.scale";
+        else
+        {
+            fprintf(stderr,"[Quant Tools Info]: algorithm not specified, using default type MIN MAX\n");
+            quant_tool.scale_file = "table_kl.scale";
+        }
+    }
+
+    /* quantize weight/bias and save into uint8 tmfile */
+    fprintf(stderr,"[Quant Tools Info]: Calibration file is using %s\n", quant_tool.scale_file.c_str());
+    save_graph_u8_perlayer(quant_tool.model_file.c_str(), quant_tool.scale_file.c_str(), quant_tool.output_file, quant_tool.inplace, quant_tool.num_thread, false);
+
+    fprintf(stderr, "\n---- Tengine Int8 tmfile create success, best wish for your INT8 inference has a low accuracy loss...\\(^0^)/ ----\n");
 
     return 0;
 }

@@ -18,7 +18,7 @@
  */
 
 /*
- * Copyright (c) 2019, Open AI Lab
+ * Copyright (c) 2019, OPEN AI LAB
  * Author: jingyou@openailab.com
  */
 #ifndef __TM2_FORMAT_H__

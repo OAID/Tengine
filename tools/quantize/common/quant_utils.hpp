@@ -23,46 +23,31 @@
  */
 #pragma once
 
-#include <stdlib.h>
-#include <stdio.h>
+#include <cstdlib>
+#include <cstdio>
 #include <sys/stat.h>
-
-#include <dirent.h>
-
+#include <vector>
 #include <string>
 #include <cmath>
+//
+//#include "common.hpp"
+//
+//#include <tr1/unordered_map>
+//
+//#include "tengine/c_api.h"
+//extern "C"
+//{
+//    #include "graph/graph.h"
+//    #include "graph/subgraph.h"
+//    #include "graph/node.h"
+//    #include "graph/tensor.h"
+//}
 
-#include "common.hpp"
+//#include "operator/prototype/convolution_param.h"
 
-#include <tr1/unordered_map>
 
-#include "tengine/c_api.h"
-extern "C" 
-{
-    #include "graph/graph.h"
-    #include "graph/subgraph.h"
-    #include "graph/node.h"
-    #include "graph/tensor.h"
-}
-
-#include "operator/prototype/convolution_param.h"
-
-#include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
 
 void get_input_data_cv(const char* image_file, float* input_data, int img_h, int img_w, const float* mean,
                        const float* scale, int img_c, int sw_RGB, int center_crop, int letterbox_rows, int letterbox_cols, int focus);
 
 void readFileList(std::string basePath, std::vector<std::string>& imgs);
-
-double cosin_similarity(float** in_a,float** in_b, uint32_t imgs_num, uint32_t output_num);
-
-std::vector<uint32_t> histCount_int(float *data, uint32_t elem_num, float max_val, float min_val);
-std::vector<uint32_t> histCount(float *data, uint32_t elem_num, float max_val, float min_val);
-
-float compute_kl_divergence(std::vector<float> &dist_a, std::vector<float> &dist_b);
-
-std::vector<float> normalize_histogram(std::vector<uint32_t> &histogram);
-
-int threshold_distribution(std::vector<uint32_t> &distribution_in, const int target_bin);

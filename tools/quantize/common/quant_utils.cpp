@@ -22,7 +22,15 @@
  * Author: hhchen@openailab.com
  */
 
+
+#include <dirent.h>
+
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+
 #include "quant_utils.hpp"
+
 
 void get_input_data_cv(const char* image_file, float* input_data, int img_h, int img_w, const float* mean,
                        const float* scale, int img_c = 1, int sw_RGB = 0, int center_crop = 0, int letterbox_rows = 0, int letterbox_cols = 0, int focus = 0)
@@ -35,32 +43,26 @@ void get_input_data_cv(const char* image_file, float* input_data, int img_h, int
 
         if (sample.channels() == 4)
         {
-            // printf(" ---> 4chan to BGR <---\n");
             cv::cvtColor(sample, img, cv::COLOR_BGRA2BGR);
         }
         else if (sample.channels() == 1 && img_c == 3 && sw_RGB == 0)
         {
-            // printf(" ---> GRAY2BGR <---\n");
             cv::cvtColor(sample, img, cv::COLOR_GRAY2BGR);
         }
         else if (sample.channels() == 1 && img_c == 3 && sw_RGB == 1)
         {
-            // printf(" ---> GRAY2RGB <---\n");
             cv::cvtColor(sample, img, cv::COLOR_GRAY2RGB);
         }
         else if (sample.channels() == 3 && sw_RGB == 1 && img_c != 1)
         {
-            // printf(" ---> BGR2RGB <---\n");
             cv::cvtColor(sample, img, cv::COLOR_BGR2RGB);
         }
         else if (sample.channels() == 3 && img_c == 1)
         {
-            // printf(" ---> to GRAY <---\n");
             cv::cvtColor(sample, img, cv::COLOR_BGR2GRAY);
         }
         else
         {
-            // printf(" ---> Ori BGR <---\n");
             img = sample;
         }
 
@@ -319,7 +321,6 @@ void readFileList(std::string basePath, std::vector<std::string>& imgs)
         else if(ptr->d_type == 8)    ///file
         {
             base = basePath + "/" + ptr->d_name;
-//            printf("str %s \n",base.c_str());
             imgs.push_back(base);
         }
         else if(ptr->d_type == 4)    ///dir
@@ -328,252 +329,4 @@ void readFileList(std::string basePath, std::vector<std::string>& imgs)
         }
     }
     closedir(dir);
-}
-
-double cosin_similarity(float** in_a,float** in_b, uint32_t imgs_num, uint32_t output_num)
-{
-    double norm_a=0;
-    double norm_b=0;
-    double a_b=0;
-
-    uint32_t fnum = (output_num >> 4) << 4;
-    uint32_t rnum = output_num - fnum;
-
-    for (int i = 0; i < imgs_num; i++)
-    {
-        for (int j = 0; j < fnum; j=j+8)
-        {
-            for (int k = 0; k < 8; k=k+1)
-            {
-                norm_a += in_a[i][j+k] * in_a[i][j+k];
-
-                norm_b += in_b[i][j+k] * in_b[i][j+k];
-
-                a_b += in_a[i][j+k] * in_b[i][j+k];
-            }
-        }
-    }
-
-    for (int j = fnum; j < output_num; j++)
-    {
-        for (int i = 0; i < imgs_num; i++)
-        {
-            norm_a += in_a[i][j] * in_a[i][j];
-            norm_b += in_b[i][j] * in_b[i][j];
-            a_b += in_a[i][j] * in_b[i][j];
-        }
-    }
-
-    
-    double cosin;
-    double _a_b_ = sqrt(norm_a) * sqrt(norm_b);
-    if(_a_b_ < 0.0000001f && _a_b_ > -0.0000001f)
-        cosin = a_b;
-    else
-        cosin = a_b/_a_b_;
-    if (cosin < -999999 || cosin > 999999)
-        cosin = 0;
-    return cosin;
-}
-
-std::vector<uint32_t> histCount_int(float *data, uint32_t elem_num, float max_val, float min_val)
-{
-    float bin_scale = 1;
-    if (abs(max_val) > abs(min_val))
-        bin_scale = abs(max_val) / 2047.f;
-    else
-        bin_scale = abs(min_val) / 2047.f;
-    int bin_zp = 0;
-    std::vector<uint32_t> hist(2048);
-    for (int i = 0; i < elem_num; i++)
-        if (data[i] != 0)
-        {
-            uint32_t hist_idx = floor(abs(data[i]) / bin_scale);
-            hist[hist_idx] ++;
-        }
-    return hist;
-}
-
-std::vector<uint32_t> histCount(float *data, uint32_t elem_num, float max_val, float min_val)
-{
-    float bin_scale = (max_val - min_val) / 2047.f;
-    int bin_zp = int(-min_val / bin_scale);
-    std::vector<uint32_t> hist(2048);
-    for (int i = 0; i < elem_num; i++)
-        if (data[i] != 0)
-            hist[uint32_t(data[i] / bin_scale + bin_zp)] ++;
-    return hist;
-}
-
-float compute_kl_divergence(std::vector<float> &dist_a, std::vector<float> &dist_b)
-{
-    const size_t length = dist_a.size();
-    float result = 0;
-
-    for (size_t i = 0; i < length; i++)
-    {
-        if (dist_a[i] != 0)
-        {
-            if (dist_b[i] == 0)
-            {
-                result += 1;
-            }
-            else
-            {
-                result += dist_a[i] * log(dist_a[i] / dist_b[i]);
-            }
-        }
-    }
-
-    return result;
-}
-
-std::vector<float> normalize_histogram(std::vector<uint32_t> &histogram)
-{
-    std::vector<float> histogram_out(histogram.size());
-    const size_t length = histogram.size();
-    float sum = 0;
-
-    for (size_t i = 1; i < length; i++)
-        sum += histogram[i];
-
-    for (size_t i = 1; i < length; i++)
-        histogram_out[i] = float(histogram[i] / sum);
-
-    return histogram_out;
-}
-
-int threshold_distribution(std::vector<uint32_t> &distribution_in, const int target_bin) 
-{
-    int target_threshold = target_bin;
-    float min_kl_divergence = 99999999999.9f;
-    const int length = static_cast<int>(distribution_in.size());
-
-    std::vector<float> distribution(distribution_in.size());
-    std::vector<float> quantize_distribution(target_bin);
-    distribution = normalize_histogram(distribution_in);
-
-    float threshold_sum = 0;
-    for (int threshold = target_bin; threshold < length; threshold++)
-    {
-        threshold_sum += distribution[threshold];
-    }
-
-    for (int threshold = target_bin; threshold < length; threshold++)
-    {
-
-        std::vector<float> t_distribution(distribution.begin(), distribution.begin() + threshold);
-
-        t_distribution[threshold - 1] += threshold_sum;
-        threshold_sum -= distribution[threshold];
-
-        // get P
-        fill(quantize_distribution.begin(), quantize_distribution.end(), 0.0f);
-
-        const float num_per_bin = static_cast<float>(threshold) / static_cast<float>(target_bin);
-
-        for (int i = 0; i < target_bin; i++)
-        {
-            const float start = static_cast<float>(i) * num_per_bin;
-            const float end = start + num_per_bin;
-
-            const int left_upper = static_cast<int>(ceil(start));
-            if (static_cast<float>(left_upper) > start)
-            {
-                const float left_scale = static_cast<float>(left_upper) - start;
-                quantize_distribution[i] += left_scale * distribution[left_upper - 1];
-            }
-
-            const int right_lower = static_cast<int>(floor(end));
-
-            if (static_cast<float>(right_lower) < end)
-            {
-
-                const float right_scale = end - static_cast<float>(right_lower);
-                quantize_distribution[i] += right_scale * distribution[right_lower];
-            }
-
-            for (int j = left_upper; j < right_lower; j++)
-            {
-                quantize_distribution[i] += distribution[j];
-            }
-        }
-
-
-        // get Q
-        std::vector<float> expand_distribution(threshold, 0);
-
-        for (int i = 0; i < target_bin; i++)
-        {
-            const float start = static_cast<float>(i) * num_per_bin;
-            const float end = start + num_per_bin;
-
-            float count = 0;
-
-            const int left_upper = static_cast<int>(ceil(start));
-            float left_scale = 0;
-            if (static_cast<float>(left_upper) > start)
-            {
-                left_scale = static_cast<float>(left_upper) - start;
-                if (distribution[left_upper - 1] != 0)
-                {
-                    count += left_scale;
-                }
-            }
-
-            const int right_lower = static_cast<int>(floor(end));
-            float right_scale = 0;
-            if (static_cast<float>(right_lower) < end)
-            {
-                right_scale = end - static_cast<float>(right_lower);
-                if (distribution[right_lower] != 0)
-                {
-                    count += right_scale;
-                }
-            }
-
-            for (int j = left_upper; j < right_lower; j++)
-            {
-                if (distribution[j] != 0)
-                {
-                    count++;
-                }
-            }
-
-            const float expand_value = quantize_distribution[i] / count;
-
-            if (static_cast<float>(left_upper) > start)
-            {
-                if (distribution[left_upper - 1] != 0)
-                {
-                    expand_distribution[left_upper - 1] += expand_value * left_scale;
-                }
-            }
-            if (static_cast<float>(right_lower) < end)
-            {
-                if (distribution[right_lower] != 0)
-                {
-                    expand_distribution[right_lower] += expand_value * right_scale;
-                }
-            }
-            for (int j = left_upper; j < right_lower; j++)
-            {
-                if (distribution[j] != 0)
-                {
-                    expand_distribution[j] += expand_value;
-                }
-            }
-        }
-
-        const float kl_divergence = compute_kl_divergence(t_distribution, expand_distribution);
-
-        // the best num of bin
-        if (kl_divergence < min_kl_divergence)
-        {
-            min_kl_divergence = kl_divergence;
-            target_threshold = threshold;
-        }
-    }
-
-    return target_threshold;
 }

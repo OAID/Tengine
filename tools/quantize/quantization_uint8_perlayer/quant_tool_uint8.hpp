@@ -22,9 +22,9 @@
  * Author: hhchen@openailab.com
  */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
+#include <cstdlib>
+#include <cstdio>
+#include <cmath>
 #include <sys/stat.h>
 #include <dirent.h>
 #include <tr1/unordered_map>
@@ -34,8 +34,8 @@
 #include <cmath>
 #include <vector>
 
-#include "common.hpp"
-#include "quant_utils.hpp"
+
+
 
 #include "tengine/c_api.h"
 
@@ -53,7 +53,9 @@ extern "C" {
 #include "operator/prototype/pooling_param.h"
 #include "operator/prototype/relu_param.h"
 
-#include "save_graph.hpp"
+//#include "quant_utils.hpp"
+//#include "save_graph.hpp"
+
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
