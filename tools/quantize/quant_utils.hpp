@@ -29,25 +29,13 @@
 #include <vector>
 #include <string>
 #include <cmath>
-//
-//#include "common.hpp"
-//
-//#include <tr1/unordered_map>
-//
-//#include "tengine/c_api.h"
-//extern "C"
-//{
-//    #include "graph/graph.h"
-//    #include "graph/subgraph.h"
-//    #include "graph/node.h"
-//    #include "graph/tensor.h"
-//}
-
-//#include "operator/prototype/convolution_param.h"
 
 
+double get_current_time();
 
-void get_input_data_cv(const char* image_file, float* input_data, int img_h, int img_w, const float* mean,
-                       const float* scale, int img_c, int sw_RGB, int center_crop, int letterbox_rows, int letterbox_cols, int focus);
+void split(float* array, char* str, const char* del);
+
+void get_input_data_cv(const char* image_file, float* input_data, int img_c, int img_h, int img_w, const float* mean,
+                       const float* scale, int sw_RGB, int center_crop, int letterbox_rows, int letterbox_cols, int focus);
 
 void readFileList(std::string basePath, std::vector<std::string>& imgs);

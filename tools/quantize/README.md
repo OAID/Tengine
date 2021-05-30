@@ -108,18 +108,23 @@ Currently, only provide the per-compiled file, you can get it from [quant_tool_u
 ```
 $ ./quant_tool_uint8 -h
 [Quant Tools Info]: optional arguments:
--h    help            show this help message and exit
--m    input model     path to input float32 tmfile
--i    image dir       path to calibration images folder
--o    output model    path to output int8 tmfile
--a    algorithm       the type of quant algorithm(0:min-max, 1:kl, default is 0)
--g    size            the size of input image(using the resize the original image,default is 3,224,224
--w    mean            value of mean (mean value, default is 104.0,117.0,123.0
--s    scale           value of normalize (scale value, default is 1.0,1.0,1.0)
--b    swapRB          flag which indicates that swap first and last channels in 3-channel image is necessary(0:OFF, 1:ON, default is 1)
--c    center crop     flag which indicates that center crop process image is necessary(0:OFF, 1:ON, default is 0)
--y    letter box      flag which indicates that letter box process image is necessary(maybe using for YOLO, 0:OFF, 1:ON, default is 0)
--t    num thread      count of processing threads(default is 4)
+        -h    help            show this help message and exit
+        -m    input model     path to input float32 tmfile
+        -i    image dir       path to calibration images folder
+        -f    scale file      path to calibration scale file
+        -o    output model    path to output uint8 tmfile
+        -a    algorithm       the type of quant algorithm(0:min-max, 1:kl, default is 0)
+        -g    size            the size of input image(using the resize the original image,default is 3,224,224)
+        -w    mean            value of mean (mean value, default is 104.0,117.0,123.0)
+        -s    scale           value of normalize (scale value, default is 1.0,1.0,1.0)
+        -b    swapRB          flag which indicates that swap first and last channels in 3-channel image is necessary(0:OFF, 1:ON, default is 1)
+        -c    center crop     flag which indicates that center crop process image is necessary(0:OFF, 1:ON, default is 0)
+        -y    letter box      the size of letter box process image is necessary([rows, cols], default is [0, 0])
+        -k    focus           flag which indicates that focus process image is necessary(maybe using for YOLOv5, 0:OFF, 1:ON, default is 0)
+        -t    num thread      count of processing threads(default is 1)
+
+[Quant Tools Info]: example arguments:
+        ./quant_tool_uint8 -m ./mobilenet_fp32.tmfile -i ./dataset -o ./mobilenet_uint8.tmfile -g 3,224,224 -w 104.007,116.669,122.679 -s 0.017,0.017,0.017
 ```
 
 ## 2.4 Demo
@@ -131,31 +136,30 @@ $ .quant_tool_uint8  -m ./mobilenet_fp32.tmfile -i ./dataset -o ./mobilenet_uint
 
 ---- Tengine Post Training Quantization Tool ----
 
-Version     : v1.1, 15:46:22 Mar 14 2021
+Version     : v1.2, 18:32:53 May 30 2021
 Status      : uint8, per-layer, asymmetric
 Input model : ./mobilenet_fp32.tmfile
 Output model: ./mobilenet_uint8.tmfile
 Calib images: ./dataset
+Scale file  : NULL
 Algorithm   : MIN MAX
 Dims        : 3 224 224
-Mean        : 104.007 116.669 122.679
+Mean        : 104.000 117.000 123.000
 Scale       : 0.017 0.017 0.017
 BGR2RGB     : ON
 Center crop : OFF
-Letter box  : OFF
-Thread num  : 1
+Letter box  : 0 0
+YOLOv5 focus: OFF
+Thread num  : 4
 
 [Quant Tools Info]: Step 0, load FP32 tmfile.
 [Quant Tools Info]: Step 0, load FP32 tmfile done.
 [Quant Tools Info]: Step 0, load calibration image files.
-[Quant Tools Info]: Step 0, load calibration image files done, image num is 55.
+[Quant Tools Info]: Step 0, load calibration image files done, image num is 5.
 [Quant Tools Info]: Step 1, find original calibration table.
-[Quant Tools Info]: Step 1, images 00055 / 00055
+[Quant Tools Info]: Step 1, images 00005 / 00005
 [Quant Tools Info]: Step 1, find original calibration table done, output ./table_minmax.scale
-[Quant Tools Info]: Step 2, find calibration table.
-[Quant Tools Info]: Step 2, images 00001 / 00055
-[Quant Tools Info]: Step 2, find calibration table done, output ./table_kl.scale
-[Quant Tools Info]: Thread 1, image nums 55, total time 1195.07 ms, avg time 21.73 ms
+[Quant Tools Info]: Thread 4, image nums 5, total time 37.23 ms, avg time 87.45 ms
 [Quant Tools Info]: Calibration file is using table_minmax.scale
 [Quant Tools Info]: Step 3, load FP32 tmfile once again
 [Quant Tools Info]: Step 3, load FP32 tmfile once again done.
@@ -163,7 +167,7 @@ Thread num  : 1
 [Quant Tools Info]: Step 4, optimize the calibration table.
 [Quant Tools Info]: Step 4, quantize activation tensor done.
 [Quant Tools Info]: Step 5, quantize weight tensor done.
-[Quant Tools Info]: Step 6, save Int8 tmfile done, ./mobilenet_uint8.tmfile
+[Quant Tools Info]: Step 6, save Int8 tmfile done, mobilenet_uint8.tmfile
 
 ---- Tengine Int8 tmfile create success, best wish for your INT8 inference has a low accuracy loss...\(^0^)/ ----
 ```

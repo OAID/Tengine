@@ -28,11 +28,16 @@
 #include "quant_save_graph.hpp"
 #include "compiler_fp16.h"
 
+#include "operator/prototype/convolution_param.h"
+#include "operator/prototype/pooling_param.h"
+#include "operator/prototype/relu_param.h"
+
+
 void recursion_pass_through(struct graph* graphn, const char* layer_name, struct tensor* t,
-                            std::tr1::unordered_map<std::string, int> &layer_used, std::tr1::unordered_map<std::string,float> &layer_scale,
-                            std::tr1::unordered_map<std::string,float> &layer_zeropoint, std::tr1::unordered_map<std::string, int> &layer_pass)
+                            std::tr1::unordered_map<std::string, int> &layer_used, std::tr1::unordered_map<std::string, float> &layer_scale,
+                            std::tr1::unordered_map<std::string, float> &layer_zeropoint, std::tr1::unordered_map<std::string, bool> &layer_pass)
 {
-    if (layer_pass[t->name] == 0 && layer_used[t->name] < 2)
+    if (layer_pass[t->name] == false && layer_used[t->name] < 2)
     {
         t->scale = layer_scale[layer_name];
         t->zero_point = layer_zeropoint[layer_name];
@@ -63,23 +68,23 @@ void recursion_pass_through(struct graph* graphn, const char* layer_name, struct
             struct tensor* t_in_tensor = graphn->tensor_list[t_node->input_tensors[0]];
             if (layer_scale[t->name] != 0)
             {
-                if (t_in_tensor->tensor_type == 1 || t_in_tensor->tensor_type == 3)
+                if (t_in_tensor->tensor_type == TENSOR_TYPE_VAR || t_in_tensor->tensor_type == TENSOR_TYPE_INPUT)
                 {
                     recursion_pass_through(graphn, t->name, t_in_tensor, layer_used, layer_scale, layer_zeropoint, layer_pass);
                 }
             }
         }
-        layer_pass[t->name] = 1;
+        layer_pass[t->name] = true;
     }
 }
 
-int save_graph_u8_perlayer(const char* model_file, const char* scale_file, const std::string& output_file, int inplace, int num_thread, bool internal)
+int save_graph_u8_perlayer(const char* model_file, const char* scale_file, const std::string& output_file, int inplace, bool internal)
 {
     fprintf(stderr, "[Quant Tools Info]: Step 3, load FP32 tmfile once again\n");
 
     /* Step 1 : create graph, load tengine model xxx.tmfile */
-    graph_t graph = create_graph(nullptr, "tengine", model_file);
-    if (nullptr == graph)
+    struct graph* ir_graph = (struct graph*)create_graph(nullptr, "tengine", model_file);
+    if (nullptr == ir_graph)
     {
         fprintf(stderr, "Create graph failed.\n");
         return -1;
@@ -88,7 +93,6 @@ int save_graph_u8_perlayer(const char* model_file, const char* scale_file, const
 
     std::tr1::unordered_map<std::string,float> layer_scale;
     std::tr1::unordered_map<std::string,float> layer_zeropoint;
-    bool parse_from_file = false;
 
     fprintf(stderr, "[Quant Tools Info]: Step 3, load calibration table file %s.\n", scale_file);
     /* Step 2 : set activation quant scale value into ir_tensor */
@@ -102,8 +106,8 @@ int save_graph_u8_perlayer(const char* model_file, const char* scale_file, const
             float scale_val = 0.f;
             float zero_point = 0.f;
             size_t last = 0;
-            size_t index = line.find_first_of(" ", last);
-            size_t idx = line.find_last_of(" ", line.size());
+            size_t index = line.find_first_of(' ', last);
+            size_t idx = line.find_last_of(' ', line.size());
             layer_name = line.substr(last, index - last);
             last = index + 1;
             scale_val = atof((line.substr(last, line.size() - last)).c_str());
@@ -116,15 +120,13 @@ int save_graph_u8_perlayer(const char* model_file, const char* scale_file, const
         }
     }
 
-    struct graph* graphn = (struct graph*)graph;
-
     std::tr1::unordered_map<std::string,int> layer_used;
-    for (int i = 0; i < graphn->node_num; i++)
+    for (int i = 0; i < ir_graph->node_num; i++)
     {
-        struct node* noden = graphn->node_list[i];
-        for (int j = 0; j < noden->input_num; j++ )
+        struct node* ir_node = ir_graph->node_list[i];
+        for (int j = 0; j < ir_node->input_num; j++ )
         {
-            std::string layern = graphn->tensor_list[noden->input_tensors[j]]->name;
+            std::string layern = ir_graph->tensor_list[ir_node->input_tensors[j]]->name;
             layer_used[layern] ++;
         }
     }
@@ -133,28 +135,28 @@ int save_graph_u8_perlayer(const char* model_file, const char* scale_file, const
     /* process the inplace quant scale of activation in some types of op, such as max pooling, ReLU, Flatten, Reshape, Clip .... */
     if (inplace == 0)
     {
-        for (int i = 0; i < graphn->tensor_num; i++)
+        for (int i = 0; i < ir_graph->tensor_num; i++)
         {
-            struct tensor* t = graphn->tensor_list[i];
-            if (t->tensor_type == TENSOR_TYPE_VAR || t->tensor_type == TENSOR_TYPE_INPUT)
+            struct tensor* ir_tensor = ir_graph->tensor_list[i];
+            if (ir_tensor->tensor_type == TENSOR_TYPE_VAR || ir_tensor->tensor_type == TENSOR_TYPE_INPUT)
             {
-                t->scale = layer_scale[t->name];
-                t->zero_point = layer_zeropoint[t->name];
+                ir_tensor->scale      = layer_scale[ir_tensor->name];
+                ir_tensor->zero_point = layer_zeropoint[ir_tensor->name];
             }
         }
     }
     else
     {
-        std::tr1::unordered_map<std::string, int> layer_pass;
-        for (int i = graphn->tensor_num-1; i >= 0; i--)
+        std::tr1::unordered_map<std::string, bool> layer_pass;
+        for (int i = ir_graph->tensor_num-1; i >= 0; i--)
         {
-            struct tensor* t = graphn->tensor_list[i];
-            if (t->tensor_type == TENSOR_TYPE_VAR || t->tensor_type == TENSOR_TYPE_INPUT)
+            struct tensor* ir_tensor = ir_graph->tensor_list[i];
+            if (ir_tensor->tensor_type == TENSOR_TYPE_VAR || ir_tensor->tensor_type == TENSOR_TYPE_INPUT)
             {
-                if (layer_pass[t->name] == 0)
+                if (layer_pass[ir_tensor->name] == false)
                 {
-                    uint32_t ir_node_idx = t->producer;
-                    struct node* t_node = graphn->node_list[ir_node_idx];
+                    uint32_t ir_node_idx = ir_tensor->producer;
+                    struct node* t_node = ir_graph->node_list[ir_node_idx];
 
                     std::string op_name = get_op_name_from_type(t_node->op.type);
 
@@ -176,24 +178,24 @@ int save_graph_u8_perlayer(const char* model_file, const char* scale_file, const
                     if (op_name == "Flatten" || op_name == "Reshape" || op_name == "Squeeze" || op_name == "Clip" ||
                         poolTrue || reluTrue)
                     {
-                        struct tensor* t_in_tensor = graphn->tensor_list[t_node->input_tensors[0]];
-                        if (layer_scale[t->name] != 0)
+                        struct tensor* t_in_tensor = ir_graph->tensor_list[t_node->input_tensors[0]];
+                        if (layer_scale[ir_tensor->name] != 0)
                         {
-                            t->scale = layer_scale[t->name];
-                            t->zero_point = layer_zeropoint[t->name];
+                            ir_tensor->scale      = layer_scale[ir_tensor->name];
+                            ir_tensor->zero_point = layer_zeropoint[ir_tensor->name];
 
                             if (t_in_tensor->tensor_type == TENSOR_TYPE_VAR || t_in_tensor->tensor_type == TENSOR_TYPE_INPUT)
                             {
-                                recursion_pass_through(graphn, t->name, t_in_tensor, layer_used, layer_scale, layer_zeropoint, layer_pass);
+                                recursion_pass_through(ir_graph, ir_tensor->name, t_in_tensor, layer_used, layer_scale, layer_zeropoint, layer_pass);
                             }
                         }
                     }
                     else
                     {
-                        t->scale = layer_scale[t->name];
-                        t->zero_point = layer_zeropoint[t->name];
+                        ir_tensor->scale = layer_scale[ir_tensor->name];
+                        ir_tensor->zero_point = layer_zeropoint[ir_tensor->name];
                     }
-                    layer_pass[t->name] = 1;
+                    layer_pass[ir_tensor->name] = true;
                 }
             }
         }
@@ -202,31 +204,31 @@ int save_graph_u8_perlayer(const char* model_file, const char* scale_file, const
     fprintf(stderr, "[Quant Tools Info]: Step 4, quantize activation tensor done.\n");
 
     /* Set the params of acitvation ir_tensor */
-    for (int i = 0; i < graphn->tensor_num; i++)
+    for (int i = 0; i < ir_graph->tensor_num; i++)
     {
-        struct tensor* t = graphn->tensor_list[i];
-        if (t->tensor_type == TENSOR_TYPE_VAR || t->tensor_type == TENSOR_TYPE_INPUT)
+        struct tensor* ir_tensor = ir_graph->tensor_list[i];
+        if (ir_tensor->tensor_type == TENSOR_TYPE_VAR || ir_tensor->tensor_type == TENSOR_TYPE_INPUT)
         {
-            t->data_type = TENGINE_DT_UINT8;
-            t->elem_size = sizeof(uint8_t);
+            ir_tensor->data_type = TENGINE_DT_UINT8;
+            ir_tensor->elem_size = sizeof(uint8_t);
         }
-        t->quant_param_num = 1;
+        ir_tensor->quant_param_num = 1;
     }
 
     /* Step 3 : set weight/bias quant scale value into ir_tensor, quant the weight params from Float32 to Int8 */
-    for (int i = 0; i < graphn->node_num; i++)
+    for (int i = 0; i < ir_graph->node_num; i++)
     {
-        struct node* noden = graphn->node_list[i];
+        struct node* noden = ir_graph->node_list[i];
         std::string op_name = get_op_name_from_type(noden->op.type);
 
         /* quantize the tensor data from fp32 to uint8 */
         if (op_name == "Convolution" || op_name == "FullyConnected")
         {
             /* Step 3.1 : quant weight */
-            struct tensor* weight_tensor = graphn->tensor_list[noden->input_tensors[1]];
+            struct tensor* weight_tensor = ir_graph->tensor_list[noden->input_tensors[1]];
 
             uint8_t * u8_weight_data = (uint8_t*)sys_malloc(weight_tensor->elem_num * sizeof(uint8_t));
-            float* weight_data = (float*)weight_tensor->data;
+            float* weight_data       = (float*)weight_tensor->data;
 
             /* calculate the quant scale value of weight perchannel, scale = (min-max / 255) */
             float weight_max = 0;
@@ -251,7 +253,7 @@ int save_graph_u8_perlayer(const char* model_file, const char* scale_file, const
             /* quantize the value of weight from Float32 to UInt8, value_u8 = (value_fp32 / scale).round().clip(0, 255) */
             for (int wi = 0; wi < weight_tensor->elem_num; wi++)
             {
-                weight_data[wi] = round(weight_data[wi] / weight_scale + (float )weight_zero_point);
+                weight_data[wi] = roundf(weight_data[wi] / weight_scale + (float )weight_zero_point);
                 weight_data[wi] = weight_data[wi] > 255.f ? 255.f : weight_data[wi];
                 weight_data[wi] = weight_data[wi] < 0.f   ?   0.f : weight_data[wi];
                 u8_weight_data[wi] = uint8_t(weight_data[wi]);
@@ -266,11 +268,11 @@ int save_graph_u8_perlayer(const char* model_file, const char* scale_file, const
             /* step 3.2 : quant bias */
             if (noden->input_num > 2)
             {
-                struct tensor* input_tensor = graphn->tensor_list[noden->input_tensors[0]];
-                struct tensor* bias_tensor = graphn->tensor_list[noden->input_tensors[2]];
+                struct tensor* input_tensor = ir_graph->tensor_list[noden->input_tensors[0]];
+                struct tensor* bias_tensor = ir_graph->tensor_list[noden->input_tensors[2]];
 
                 int* int32_bias_data = (int*)sys_malloc(bias_tensor->elem_num * bias_tensor->elem_size);
-                float* bias_data = (float*)bias_tensor->data;
+                float* bias_data     = (float*)bias_tensor->data;
 
                 /* calculate the quant scale value of bias perchannel, scale = scale_weight * scale_in */
                 float bias_scale = input_tensor->scale * weight_tensor->scale;
@@ -282,7 +284,7 @@ int save_graph_u8_perlayer(const char* model_file, const char* scale_file, const
                         int32_bias_data[bi] = 0;
                     else
                     {
-                        bias_data[bi] = round(bias_data[bi] / bias_scale);
+                        bias_data[bi] = roundf(bias_data[bi] / bias_scale);
                         int32_bias_data[bi] = int(bias_data[bi]);
                     }
                 }
@@ -299,7 +301,7 @@ int save_graph_u8_perlayer(const char* model_file, const char* scale_file, const
         {
             for (int j = 0; j < noden->input_num; j++)
             {
-                struct tensor* in_tensor = graphn->tensor_list[noden->input_tensors[j]];
+                struct tensor* in_tensor = ir_graph->tensor_list[noden->input_tensors[j]];
                 if (in_tensor->tensor_type == TENSOR_TYPE_CONST)
                 {
                     float* fp32_data =  (float*) in_tensor->data;
@@ -322,7 +324,7 @@ int save_graph_u8_perlayer(const char* model_file, const char* scale_file, const
 
     fprintf(stderr, "[Quant Tools Info]: Step 5, quantize weight tensor done.\n");
 
-    if (!save_graph(graph, output_file.c_str()))
+    if (!save_graph(ir_graph, output_file.c_str()))
     {
         fprintf(stderr, "save graph failed.\n");
         return -1;

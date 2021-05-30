@@ -32,7 +32,6 @@
 #include <cmath>
 #include <tr1/unordered_map>
 
-#include "common.hpp"
 #include "quant_utils.hpp"
 #include "save_graph.hpp"
 
@@ -47,8 +46,4 @@ extern "C" {
     #include "utility/utils.h"
 }
 
-#include "operator/prototype/convolution_param.h"
-#include "operator/prototype/pooling_param.h"
-#include "operator/prototype/relu_param.h"
-
-int save_graph_u8_perlayer(const char* model_file, const char* scale_file, const std::string& output_file, int inplace, int num_thread, bool internal);
+int save_graph_u8_perlayer(const char* model_file, const char* scale_file, const std::string& output_file, int inplace, bool internal);

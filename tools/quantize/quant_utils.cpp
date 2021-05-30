@@ -24,16 +24,62 @@
 
 
 #include <dirent.h>
+#include <string.h>
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
+#ifdef _MSC_VER
+#include "getopt.h"
+#else
+#include <unistd.h>
+#endif
+
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#else    // _WIN32
+#include <sys/time.h>
+#endif    // _WIN32
+
 #include "quant_utils.hpp"
 
 
-void get_input_data_cv(const char* image_file, float* input_data, int img_h, int img_w, const float* mean,
-                       const float* scale, int img_c = 1, int sw_RGB = 0, int center_crop = 0, int letterbox_rows = 0, int letterbox_cols = 0, int focus = 0)
+#ifdef _WIN32
+double get_current_time()
+{
+    LARGE_INTEGER freq;
+    LARGE_INTEGER pc;
+    QueryPerformanceFrequency(&freq);
+    QueryPerformanceCounter(&pc);
+
+    return pc.QuadPart * 1000.0 / freq.QuadPart;
+}
+#else    // _WIN32
+
+double get_current_time()
+{
+    struct timeval tv;
+    gettimeofday(&tv, nullptr);
+
+    return tv.tv_sec * 1000.0 + tv.tv_usec / 1000.0;
+}
+#endif    // _WIN32
+
+void split(float* array, char* str, const char* del)
+{
+    char* s = nullptr;
+    s = strtok(str, del);
+    while (s != nullptr)
+    {
+        *array++ = atof(s);
+        s = strtok(nullptr, del);
+    }
+}
+
+void get_input_data_cv(const char* image_file, float* input_data, int img_c, int img_h, int img_w, const float* mean,
+                       const float* scale, int sw_RGB = 0, int center_crop = 0, int letterbox_rows = 0, int letterbox_cols = 0, int focus = 0)
 {
     /* only for yolov5s */
     if (focus == 1 && letterbox_rows > 0 && letterbox_cols > 0)
@@ -148,38 +194,31 @@ void get_input_data_cv(const char* image_file, float* input_data, int img_h, int
 
     if (sample.channels() == 4)
     {
-        // printf(" ---> 4chan to BGR <---\n");
         cv::cvtColor(sample, img, cv::COLOR_BGRA2BGR);
     }
     else if (sample.channels() == 1 && img_c == 3 && sw_RGB == 0)
     {
-        // printf(" ---> GRAY2BGR <---\n");
         cv::cvtColor(sample, img, cv::COLOR_GRAY2BGR);
     }
     else if (sample.channels() == 1 && img_c == 3 && sw_RGB == 1)
     {
-        // printf(" ---> GRAY2RGB <---\n");
         cv::cvtColor(sample, img, cv::COLOR_GRAY2RGB);
     }
     else if (sample.channels() == 3 && sw_RGB == 1 && img_c != 1)
     {
-        // printf(" ---> BGR2RGB <---\n");
         cv::cvtColor(sample, img, cv::COLOR_BGR2RGB);
     }
     else if (sample.channels() == 3 && img_c == 1)
     {
-        // printf(" ---> to GRAY <---\n");
         cv::cvtColor(sample, img, cv::COLOR_BGR2GRAY);
     }
     else
     {
-        // printf(" ---> Ori BGR <---\n");
         img = sample;
     }
 
     if (center_crop == 1)
     {
-        // printf("h:%d  w:%d\n",img.rows,img.cols);
         int h0 = 0;
         int w0 = 0;
         if ( img.rows < img.cols)
@@ -197,7 +236,6 @@ void get_input_data_cv(const char* image_file, float* input_data, int img_h, int
 
         float* img_data = nullptr;
 
-        // printf("h w %d %d\n",h0,w0);
         cv::resize(img, img, cv::Size(w0, h0));
         cv::Rect img_roi_box(center_w - 112, center_h - 112, 224, 224);
         cv::Mat img_crop = img(img_roi_box).clone();

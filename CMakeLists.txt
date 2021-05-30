@@ -119,7 +119,7 @@ IF (TENGINE_BUILD_TESTS)
 ENDIF()
 
 IF (TENGINE_BUILD_QUANT_TOOL)
-    ADD_SUBDIRECTORY(tools/quantize/quantization_uint8_perlayer)
+    ADD_SUBDIRECTORY(tools/quantize)
 ENDIF()
 
 # Report summary
