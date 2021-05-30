@@ -1,4 +1,4 @@
-name: linux-x64-cpu-gcc
+name: linux-x64-cpu-tools-quant
 
 on: [push, pull_request]
 
