@@ -54,6 +54,10 @@ OPTION (TENGINE_BUILD_EXAMPLES              "Build examples"                    
 OPTION (TENGINE_BUILD_TESTS                 "Build tests"                               OFF)
 OPTION (TENGINE_BUILD_CPP_API               "Build C++ API"                             OFF)
 
+# Tools options
+# Tools
+OPTION (TENGINE_BUILD_QUANT_TOOL            "Build quantization tool"                   ON)
+
 # Multithreading option
 OPTION (TENGINE_OPENMP                      "Build with OpenMP support"                 ON)
 
@@ -112,6 +116,10 @@ ENDIF()
 
 IF (TENGINE_BUILD_TESTS)
     ADD_SUBDIRECTORY(tests)
+ENDIF()
+
+IF (TENGINE_BUILD_QUANT_TOOL)
+    ADD_SUBDIRECTORY(tools/quantize/quantization_uint8_perlayer)
 ENDIF()
 
 # Report summary
