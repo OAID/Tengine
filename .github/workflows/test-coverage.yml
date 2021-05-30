@@ -62,7 +62,7 @@ jobs:
     - name: update
       run: sudo apt-get update
     - name: opencv
-      run: sudo apt-get libopencv-dev
+      run: sudo apt-get install libopencv-dev
     - name: lcov
       run: sudo apt-get install lcov
     - name: configure
