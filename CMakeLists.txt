@@ -56,7 +56,7 @@ OPTION (TENGINE_BUILD_CPP_API               "Build C++ API"                     
 
 # Tools options
 # Tools
-OPTION (TENGINE_BUILD_QUANT_TOOL            "Build quantization tool"                   ON)
+OPTION (TENGINE_BUILD_QUANT_TOOL            "Build quantization tool"                   OFF)
 
 # Multithreading option
 OPTION (TENGINE_OPENMP                      "Build with OpenMP support"                 ON)
