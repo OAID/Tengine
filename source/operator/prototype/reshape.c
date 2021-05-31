@@ -116,11 +116,6 @@ static int infer_shape(struct node* node)
         else
             new_size *= temp;
     }
-    // check input and reshaped size
-    if (new_size != size) {
-        TLOG_ERR("Error: input elem num(%d) != reshaped elem num(%d)\n", size, new_size);
-        return -1;
-    }
 
     if (idx >= 0)
     {
@@ -149,12 +144,19 @@ static int infer_shape(struct node* node)
         }
     }
 
+    new_size = 1;
     int* new_shape_temp = ( int* )sys_malloc(get_vector_num(new_shape) * sizeof(int));
 
     for (int i = 0; i < get_vector_num(new_shape); i++)
     {
         int* a = ( int* )get_vector_data(new_shape, i);
         new_shape_temp[i] = *a;
+        new_size *= new_shape_temp[i];
+    }
+    // check input and reshaped size
+    if (new_size != size) {
+        TLOG_ERR("Error: input elem num(%d) != reshaped elem num(%d)\n", size, new_size);
+        return -1;
     }
 
     output->layout = input->layout;
