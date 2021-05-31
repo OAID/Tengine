@@ -25,3 +25,4 @@
 #pragma once
 
 #define TIMVX_DEV_NAME "TIMVX"
+#cmakedefine TIMVX_MODEL_CACHE

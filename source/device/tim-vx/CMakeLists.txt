@@ -29,6 +29,14 @@ UNSET (_DEV_TIM_VX_COMPILER_OPTIONS)
 UNSET (_DEV_TIM_VX_LINKER_OPTIONS)
 UNSET (_DEV_TIM_VX_LINK_LIBRARIES)
 
+# 0. npu kernel cache file option, in experimental
+IF (TENGINE_ENABLE_MODEL_CACHE)
+    SET (TIMVX_MODEL_CACHE ON)
+ENDIF()
+
+# 0. config file
+CONFIGURE_FILE(timvx_define.h.in ${CMAKE_CURRENT_BINARY_DIR}/timvx_define.h)
+
 
 # 1. integrate TIM-VX for default
 IF (NOT (DEFINED TENGINE_ENABLE_TIM_VX_INTEGRATION))
@@ -187,6 +195,7 @@ SET(_TIM_VX_ROOT ${CMAKE_SOURCE_DIR}/source/device/tim-vx)
 
 # 5.  add header file path
 LIST (APPEND _DEV_TIM_VX_HEADER_PATH        ${_TIM_VX_ROOT})
+LIST (APPEND _DEV_TIM_VX_HEADER_PATH        ${CMAKE_CURRENT_BINARY_DIR})
 LIST (APPEND _DEV_TIM_VX_HEADER_PATH        ${CMAKE_SOURCE_DIR}/3rdparty/tim-vx/include)
 LIST (APPEND _DEV_TIM_VX_HEADER_PATH        ${CMAKE_SOURCE_DIR}/source/device/tim-vx/include)
 
@@ -236,4 +245,4 @@ SET (TENGINE_TIM_VX_LINK_LIBRARIES    ${_DEV_TIM_VX_LINK_LIBRARIES}     CACHE IN
 
 
 # 12. install device option
-INSTALL (FILES ${_TIM_VX_ROOT}/timvx_define.h DESTINATION include/tengine RENAME timvx_device.h)
+INSTALL (FILES ${CMAKE_CURRENT_BINARY_DIR}/timvx_define.h DESTINATION include/tengine RENAME timvx_device.h)
