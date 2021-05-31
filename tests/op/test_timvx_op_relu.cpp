@@ -22,37 +22,27 @@
  * Author: qtang@openailab.com
  */
 
+
 #include "test_op.h"
 
 
-int create_test_prelu_node(graph_t graph, const char* input_name, const char* node_name, int data_type, int layout, int n, int c, int h, int w)
+int create_test_relu_node(graph_t graph, const char* input_name, const char* node_name, int data_type, int layout, int n, int c, int h, int w)
 {
     (void)layout; (void)n; (void)c; (void)h; (void)w;
 
     /* create the test node */
-    node_t test_node = create_graph_node(graph, node_name, "PReLU");
+    node_t test_node = create_graph_node(graph, node_name, "ReLU");
 
     tensor_t input_tensor = get_graph_tensor(graph, input_name);
 
     if(NULL == input_tensor)
     {
-        fprintf(stderr, "create test node failed. ERRNO: %d.\n", get_tengine_errno());
+        fprintf(stderr, "create test node failed.\n");
         return -1;
     }
 
-    /* create the sub node to product another input tensors which the test node is needed, such as weight/bias/slope tensor. */
-    node_t slope_node = create_graph_node(graph, "slope", "Const");
-    tensor_t slope_tensor = create_graph_tensor(graph, "slope", TENGINE_DT_FP16);
-    set_node_output_tensor(slope_node, 0, slope_tensor, TENSOR_TYPE_CONST);
-
-    int dims[4];
-    get_tensor_shape(input_tensor, dims, 4);
-    int slope_dims[1] = {dims[1]};  // channel num
-    set_tensor_shape(slope_tensor, slope_dims, 1);
-
     /* input tensors of test node */
     set_node_input_tensor(test_node, 0, input_tensor);
-    set_node_input_tensor(test_node, 1, slope_tensor);
 
     /* output tensors of test node */
     tensor_t output_tensor = create_graph_tensor(graph, node_name, data_type);
@@ -61,8 +51,7 @@ int create_test_prelu_node(graph_t graph, const char* input_name, const char* no
     return 0;
 }
 
-float slope_value[3] = {0.1f, 0.2f, 0.3f};
-float result_value[3] = {-1.f, -2.f, -3.f};
+float reference_out[3] = {0.f, 0.f, 0.f};
 
 /*
  * scale = (max - min) / 255
@@ -72,23 +61,23 @@ float result_value[3] = {-1.f, -2.f, -3.f};
  */
 float input_scale = 0.039216f;
 int input_zero_point = 255;
-float output_scale = 0.007843f;
-int output_zero_point = 382;
+float output_scale = 0.039216f;
+int output_zero_point = 255;
 
 int main(int argc, char* argv[])
 {
-    int n = 1, c = 3, h = 6, w = 6;
-    const char* test_node_name = "prelu";
+    int n = 1, c = 3, h = 4, w = 5;
+    const char* test_node_name = "relu";
     int data_type = TENGINE_DT_UINT8;
     int layout = TENGINE_LAYOUT_NCHW;
 
     // init
     int ret = test_graph_init();
     if (0 != ret)
-        fprintf(stderr, "Tengine init failed. ERRNO: %d.", get_tengine_errno());
+        fprintf(stderr, "Tengine init failed.\n");
 
     // create
-    graph_t graph = create_timvx_test_graph(test_node_name, data_type, layout, n, c, h, w, &create_test_prelu_node);
+    graph_t graph = create_timvx_test_graph(test_node_name, data_type, layout, n, c, h, w, &create_test_relu_node);
     if(NULL == graph)
         return -1;
 
@@ -101,13 +90,6 @@ int main(int argc, char* argv[])
     // set input data
     fill_input_uint8_tensor_by_index(graph, 0, 0, -10.0f);
 
-    // set slope data, need cost fp32 to fp16
-    __fp16* slope_fp16 = (__fp16*)sys_malloc(3 * sizeof(__fp16));
-    for (int k = 0; k < 3; k++)
-        slope_fp16[k] = fp32_to_fp16(slope_value[k]);
-
-    fill_input_float_buffer_tensor_by_name(graph, test_node_name, 1, (void*)slope_fp16, 3 * sizeof(__fp16));
-
     // graph run
     ret = test_graph_run(graph);
     if (0 != ret)
@@ -118,7 +100,7 @@ int main(int argc, char* argv[])
     }
 
     // get output and dequant
-    struct ir_tensor* output_tensor = get_graph_output_tensor(graph, 0, 0);
+    struct tensor* output_tensor = (struct tensor*)get_graph_output_tensor(graph, 0, 0);
     uint8_t* output_u8 = ( uint8_t* )output_tensor->data;
     int output_size = output_tensor->elem_num;
     int out_c = output_tensor->dims[1];
@@ -136,11 +118,10 @@ int main(int argc, char* argv[])
         float* output_value =  (float *)output_data + i * cstep;
         for (int j = 0; j < cstep; j++)
         {
-            if (fabsf(output_value[j] - result_value[i]) > 0.01)
+            if (fabsf(output_value[j] - reference_out[i]) > 0.01)
             {
-                fprintf(stderr, "Check result failed, current %f, expect %f\n", output_value[j], result_value[i]);
+                fprintf(stderr, "index:%d, a:%f, b:%f\n", j, output_value[j], reference_out[i]);
                 ret = -1;
-                break;
             }
         }
     }

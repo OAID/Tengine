@@ -74,7 +74,7 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
         if(fp16_fc_kernel_prerun(input_tensor, filter_tensor, output_tensor, priv_info, fc_param) < 0)
         {
             TLOG_ERR("hcl fp16 fc prerun failed\n");
-            set_tengine_errno(EFAULT);
+            // set_tengine_errno(EFAULT);
             return -1;
         }
     }
@@ -134,7 +134,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         if (fp16_fc_kernel_run(input_tensor, weight_tensor, bias_tensor, output_tensor, priv_info, fc_param, num_thread, cpu_affinity) < 0)
         {
             TLOG_ERR("hcl fp16 fc run failed\n");
-            set_tengine_errno(EFAULT);
+            // set_tengine_errno(EFAULT);
             return -1;
         }
     }

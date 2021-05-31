@@ -88,6 +88,54 @@ int get_pb_data(float* float_data, const std::string& filepath)
     return 0;
 }
 
+int get_pb_data_i32(int32_t* i32_data, const std::string& filepath)
+{
+    std::ifstream fs(filepath.c_str(), std::ifstream::in | std::ifstream::binary);
+    if (!fs.is_open())
+    {
+        fprintf(stderr, "open failed %s\n", filepath.c_str());
+        return -1;
+    }
+
+    google::protobuf::io::IstreamInputStream input(&fs);
+    google::protobuf::io::CodedInputStream codedstr(&input);
+
+#if GOOGLE_PROTOBUF_VERSION >= 3011000
+    codedstr.SetTotalBytesLimit(INT_MAX);
+#else
+    codedstr.SetTotalBytesLimit(INT_MAX, INT_MAX / 2);
+#endif
+
+    onnx::TensorProto tp;
+    tp.ParseFromCodedStream(&codedstr);
+
+    /* current, only support the type of data is int32 */
+    if (tp.data_type() == 6)
+    {
+        if (tp.has_raw_data())
+        {
+            int size = (int)tp.raw_data().size() / 4;
+            const int32_t* data = (int32_t*)tp.raw_data().c_str();
+            for (int i = 0; i < size; i++)
+                i32_data[i] = data[i];
+        }
+        else
+        {
+            int size = tp.int32_data_size();
+            const int32_t* data = tp.int32_data().data();
+            for (int i = 0; i < size; i++)
+                i32_data[i] = data[i];
+        }
+    }
+    else
+    {
+        fprintf(stderr, "not support the type of data is %d\n", tp.data_type());
+        return -1;
+    }
+
+    return 0;
+}
+
 int float_mismatch(float* current, float* reference, int size)
 {
     for(int i=0;i<size;i++)
@@ -95,7 +143,7 @@ int float_mismatch(float* current, float* reference, int size)
         float tmp = fabs(current[i]) - fabs(reference[i]);
         if(fabs(tmp) > 0.0001)
         {
-            fprintf(stderr,"test failed, index:%d, a:%f, b:%f\n", i, current[i], reference[i]);
+            fprintf(stderr, "test failed, index:%d, a:%f, b:%f\n", i, current[i], reference[i]);
             return -1;
         }
     }

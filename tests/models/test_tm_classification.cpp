@@ -176,7 +176,6 @@ bool run_tengine_library(const char* model_name, const char* tm_file, const char
     if(graph == nullptr)
     {
         std::cerr << "Create graph failed.\n";
-        std::cerr << "errno: " << get_tengine_errno() << "\n";
         return false;
     }
 
@@ -222,7 +221,7 @@ bool run_tengine_library(const char* model_name, const char* tm_file, const char
 
     if(prerun_graph_multithread(graph, opt) < 0)
     {
-        std::cout << "Prerun graph failed, errno: " << get_tengine_errno() << "\n";
+        std::cout << "Prerun graph failed, errno: \n";
         return -1;
     }
 

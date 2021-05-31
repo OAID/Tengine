@@ -64,12 +64,6 @@ static int infer_shape(ir_node_t* node)
         h = input->dims[2];
         w = input->dims[3];
     }
-    else if (graph->graph_layout == TENGINE_LAYOUT_NHWC)
-    {
-        h = input->dims[1];
-        w = input->dims[2];
-        conv_param->input_channel = input->dims[1];
-    }
     else
     {
         TLOG_ERR("convolution infer shape: unknown graph layout: %d\n", graph->graph_layout);
@@ -135,19 +129,9 @@ static int infer_shape(ir_node_t* node)
     int dims[4];
 
     dims[0] = n;
-
-    if (graph->graph_layout == TENGINE_LAYOUT_NCHW)
-    {
-        dims[1] = out_c;
-        dims[2] = out_h;
-        dims[3] = out_w;
-    }
-    else
-    {
-        dims[1] = out_h;
-        dims[2] = out_w;
-        dims[3] = out_c;
-    }
+    dims[1] = out_c;
+    dims[2] = out_h;
+    dims[3] = out_w;
 
     for (int i=0; i<4; i++)
     {

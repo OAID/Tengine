@@ -19,9 +19,40 @@
 
 /*
  * Copyright (c) 2021, OPEN AI LAB
- * Author: lswang@openailab.com
+ * Author:
  */
 
-#pragma once
+#ifndef __BATCHNORM_KERNEL_REF_H__
+#define __BATCHNORM_KERNEL_REF_H__
 
-#define TIMVX_DEV_NAME "TIMVX"
+
+#include "graph/tensor.h"
+#include "graph/node.h"
+#include "graph/graph.h"
+
+#include <stdbool.h>
+#include <math.h>
+
+struct ref_batchnorm_param
+{
+    int input_n;
+    int input_h;
+    int input_w;
+    int input_c;
+    int layout;
+    bool iscaffe;
+    float* scale_mean;
+    float* scale_var_inv;
+    float* gamma;
+    float* beta;
+    float in_scale;
+    int in_zero;
+    float out_scale;
+    int out_zero;
+};
+
+int ref_batchnorm_fp32(float* input, float* output, const struct ref_batchnorm_param* param);
+
+int ref_batchnorm_uint8(struct tensor* input_tensor, struct tensor* output_tensor, const struct ref_batchnorm_param* param);
+
+#endif

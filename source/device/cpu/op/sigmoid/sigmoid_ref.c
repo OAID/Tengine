@@ -40,17 +40,43 @@
 
 int ref_sigmoid_fp32(struct tensor* input_tensor, struct tensor* output_tensor, int num_thread)
 {
+    int dim_num = input_tensor->dim_num;
 
-    uint32_t elem_num = input_tensor->elem_num;
-    float* input_data = input_tensor->data;
-	float* output_data = output_tensor->data;
-	
-    for (int i = 0; i < elem_num; i++)
+    if (dim_num == 4)
     {
-        output_data[i] = SIGMOID_MIN(input_data[i], 30.0f);
-        output_data[i] = SIGMOID_MAX(input_data[i], -30.0f);
+        int batch   = input_tensor->dims[0];
+        int channel = input_tensor->dims[1];
+        int cstep   = input_tensor->dims[2] * input_tensor->dims[3];
+        int bstep   = channel * cstep;
 
-        output_data[i] = 1 / (1 + exp(-output_data[i]));
+        for (int n=0; n<batch; n++)
+        {
+#pragma omp parallel for num_threads(num_thread)
+            for (int c=0; c<channel; c++)
+            {
+                float* input_data  = (float*)input_tensor->data + n * bstep + c * cstep;
+                float* output_data = (float*)output_tensor->data + n * bstep + c * cstep;
+                for (int i=0; i<cstep; i++)
+                {
+                    output_data[i] = SIGMOID_MIN(input_data[i], 30.0f);
+                    output_data[i] = SIGMOID_MAX(input_data[i], -30.0f);
+                    output_data[i] = 1.f / (1 + expf(-output_data[i]));
+                }
+            }
+        }
+    }
+    else
+    {
+        uint32_t elem_num = input_tensor->elem_num;
+        float* input_data = input_tensor->data;
+        float* output_data = output_tensor->data;
+
+        for (int i = 0; i < elem_num; i++)
+        {
+            output_data[i] = SIGMOID_MIN(input_data[i], 30.0f);
+            output_data[i] = SIGMOID_MAX(input_data[i], -30.0f);
+            output_data[i] = 1.f / (1 + expf(-output_data[i]));
+        }
     }
 	
     return 0;
@@ -139,11 +165,8 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 {
     struct node* ir_node = exec_node->ir_node;
     struct graph* ir_graph = ir_node->graph;
-    struct tensor* input_tensor;
-    struct tensor* output_tensor;
-
-    input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+    struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
 	int ret = -1;
     if (input_tensor->data_type == TENGINE_DT_FP32)

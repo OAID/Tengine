@@ -24,7 +24,7 @@
 #ifndef __CONV_DW_KERNEL_FP16_ARM82_H_
 #define __CONV_DW_KERNEL_FP16_ARM82_H_
 
-#include "tengine_ir.h"
+// #include "tengine_ir.h"
 #include "convolution_param.h"
 
 int conv_dw_fp16_run(struct tensor* input_tensor, struct tensor* filter_tensor, struct tensor* bias_tensor,

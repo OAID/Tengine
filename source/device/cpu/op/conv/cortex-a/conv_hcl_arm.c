@@ -98,7 +98,7 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
         if (fp16_conv_hcl_prerun(input_tensor, filter_tensor, output_tensor, conv_priv_info, conv_param) < 0)
         {
             TLOG_ERR("hcl conv fp16 prerun failed\n");
-            set_tengine_errno(EFAULT);
+            // set_tengine_errno(EFAULT);
             return -1;
         }
     }
@@ -168,7 +168,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         if (fp16_conv_hcl_run(input_tensor, weight_tensor, bias_tensor, output_tensor, conv_priv_info, conv_param, num_thread, cpu_affinity) < 0)
         {
             TLOG_ERR("hcl conv fp16 run failed\n");
-            set_tengine_errno(EFAULT);
+            // set_tengine_errno(EFAULT);
             return -1;
         }        
     }
@@ -355,7 +355,7 @@ static int postrun(struct node_ops* node_ops, struct exec_node* exec_node, struc
         if (fp16_conv_hcl_postrun(conv_priv_info) < 0)
         {
             TLOG_ERR("hcl conv fp16 postrun failed\n");
-            set_tengine_errno(EFAULT);
+            // set_tengine_errno(EFAULT);
             return -1;
         }
     }

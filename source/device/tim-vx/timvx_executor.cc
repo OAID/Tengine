@@ -24,6 +24,18 @@
 
 #include "timvx_executor.hpp"
 
+#include "timvx_define.h"
+
+#ifdef TIMVX_MODEL_CACHE
+#include "defines.h"
+#include "cstdlib"
+#endif
+
+#ifdef TIMVX_MODEL_CACHE
+#include "tim/vx/ops/nbg.h"
+#include <fstream>
+#endif
+
 
 void dump_sub_graph(struct subgraph* sub_graph)
 {
@@ -83,7 +95,7 @@ void VXEngine::VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_t
                 datatype = tim::vx::DataType::INT32;
                 break;
             default:
-                TLOG_ERR("Tengine: TIM-VX is not supported date type(%d).\n",ir_tensor->data_type);
+                TLOG_ERR("Tensor: Tensor_name(%s) tensor_index(%d) tensor_data_type(%d) .\n",ir_tensor->name, ir_tensor->index, ir_tensor->data_type);
                 break;
         }
 
@@ -271,54 +283,186 @@ int VXEngine::VXEnginePreRun(struct subgraph* subgraph)
 {
     struct graph* ir_graph = subgraph->graph;
 
-    /* Add TIM-VX Tensor */
-    for (uint8_t i = 0; i < subgraph->output_num; i++)
-    {
-        int ir_tensor_idx = subgraph->output_tensor_list[i];
-        this->VXTensorMap(ir_graph, ir_tensor_idx, SPEC_TYPE_OUTPUT);
-    }
+#ifdef TIMVX_MODEL_CACHE
+    auto graph_node_count = subgraph->graph->node_num;
+    auto graph_tensor_count = subgraph->graph->tensor_num;
+
+    auto subgraph_node_count = subgraph->node_num;
+    auto subgraph_tensor_count = 0;
+
+    auto subgraph_input_count = subgraph->input_num;
+    auto subgraph_output_count = subgraph->output_num;
+
     for (int i = 0; i < subgraph->node_num; i++)
     {
         uint16_t node_id = subgraph->node_list[i];
         struct node* ir_node = get_ir_graph_node(ir_graph, node_id);
-        if (ir_node->op.type == OP_CONV)
-        {
-            auto conv_param = (struct conv_param*)ir_node->op.param_mem;
-            if (conv_param->group == conv_param->output_channel)
-            {
-                this->VXTensorMap(ir_graph, ir_node->input_tensors[1], SPEC_TYPE_DWCONV);
-            }       
-        }
-        else if (ir_node->op.type == OP_PRELU)
-        {
-            this->VXTensorMap(ir_graph, ir_node->input_tensors[1], SPEC_TYPE_PRELU);
-        }
-    }
-    for (int i = 0; i < subgraph->node_num; i++)
-    {
-        uint16_t node_id = subgraph->node_list[i];
-        struct node* ir_node = get_ir_graph_node(ir_graph, node_id);
-        for (int j = 0; j < ir_node->input_num; j++)
-        {
-            int ir_tensor_idx = ir_node->input_tensors[j];
-            this->VXTensorMap(ir_graph, ir_tensor_idx, 0);
-        }
-        for (int j = 0; j < ir_node->output_num; j++)
-        {
-            int ir_tensor_idx = ir_node->output_tensors[j];
-            this->VXTensorMap(ir_graph, ir_tensor_idx, 0);
-        }
+        subgraph_tensor_count += ir_node->input_num;
+        subgraph_tensor_count += ir_node->output_num;
     }
 
-    /* Add TIM-VX Node */
-    this->Build(subgraph);
+    std::string graph_name_field = std::to_string(graph_node_count) + "_" + std::to_string(graph_tensor_count);
+    std::string subgraph_name_field = std::to_string(subgraph_node_count) + "_"
+                                    + std::to_string(subgraph_input_count) + "_"
+                                    + std::to_string(subgraph_output_count);
 
-    // fprintf(stderr,"subgraph->node_num %d\n",subgraph->node_num);
-    if (subgraph->node_num > 0)
+    std::string cache_file_name = "tm_" + graph_name_field + "_" + subgraph_name_field + ".tmcache";
+    std::string full_cache_file_path;
+
+    const char *env_cache_path = getenv(TE_MODEL_CACHE_PATH);
+    if (nullptr != env_cache_path)
     {
-        if (!this->graph->Compile()) {
+        full_cache_file_path = std::string(env_cache_path) + "/" + full_cache_file_path;
+    }
+    else
+    {
+        full_cache_file_path = "./" + cache_file_name;
+    }
+
+    TLOG_INFO("Tengine: Model cache file for compiled is %s.", full_cache_file_path.c_str());
+
+    bool cache_saved = false;
+    std::ifstream read_stream;
+    read_stream.open(full_cache_file_path, std::ios::in | std::ios::binary);
+    if (read_stream.is_open())
+    {
+        cache_saved = true;
+    }
+
+    if (cache_saved)
+    {
+        /* Add TIM-VX Tensor */
+        for (uint8_t i = 0; i < subgraph->output_num; i++)
+        {
+            int ir_tensor_idx = subgraph->output_tensor_list[i];
+            this->VXTensorMap(ir_graph, ir_tensor_idx, SPEC_TYPE_OUTPUT);
+        }
+
+        /* Add TIM-VX Tensor */
+        for (uint8_t i = 0; i < subgraph->input_num; i++)
+        {
+            int ir_tensor_idx = subgraph->input_tensor_list[i];
+            this->VXTensorMap(ir_graph, ir_tensor_idx, 0);
+        }
+
+        read_stream.seekg(0, std::ifstream::beg);
+        const auto start_length = read_stream.tellg();
+        read_stream.seekg(0, std::ifstream::end);
+        const auto end_length = read_stream.tellg();
+
+        read_stream.seekg(0, std::ifstream::beg);
+
+        auto file_size = end_length - start_length;
+
+        nbg_buffer.reserve(file_size);
+        nbg_buffer.insert(nbg_buffer.begin(), std::istreambuf_iterator<char>(read_stream), std::istreambuf_iterator<char>());
+        read_stream.close();
+
+        auto nbg_node = this->graph->CreateOperation<tim::vx::ops::NBG>(nbg_buffer.data(), subgraph_input_count, subgraph_output_count);
+
+        std::vector<std::shared_ptr<tim::vx::Tensor>> inputs, outputs;
+        for (uint8_t i = 0; i < subgraph->input_num; i++)
+        {
+            int ir_tensor_idx = subgraph->input_tensor_list[i];
+            auto iter = this->vx_tensor_map[ir_tensor_idx];
+            inputs.push_back(iter);
+        }
+        for (uint8_t i = 0; i < subgraph->output_num; i++)
+        {
+            int ir_tensor_idx = subgraph->output_tensor_list[i];
+            auto iter = this->vx_tensor_map[ir_tensor_idx];
+            outputs.push_back(iter);
+        }
+        (*nbg_node).BindInputs(inputs);
+        (*nbg_node).BindOutputs(outputs);
+
+        auto ret = this->graph->Compile();
+        if (!ret)
+        {
+            TLOG_ERR("Tengine: Model compile from bin failed.");
             return -1;
         }
+    }
+    else
+#endif
+    {
+        /* Add TIM-VX Tensor */
+        for (uint8_t i = 0; i < subgraph->output_num; i++)
+        {
+            int ir_tensor_idx = subgraph->output_tensor_list[i];
+            this->VXTensorMap(ir_graph, ir_tensor_idx, SPEC_TYPE_OUTPUT);
+        }
+        for (int i = 0; i < subgraph->node_num; i++)
+        {
+            uint16_t node_id = subgraph->node_list[i];
+            struct node* ir_node = get_ir_graph_node(ir_graph, node_id);
+            if (ir_node->op.type == OP_CONV)
+            {
+                auto conv_param = (struct conv_param*)ir_node->op.param_mem;
+                if (conv_param->group == conv_param->output_channel)
+                {
+                    this->VXTensorMap(ir_graph, ir_node->input_tensors[1], SPEC_TYPE_DWCONV);
+                }
+            }
+            else if (ir_node->op.type == OP_PRELU)
+            {
+                this->VXTensorMap(ir_graph, ir_node->input_tensors[1], SPEC_TYPE_PRELU);
+            }
+        }
+        for (int i = 0; i < subgraph->node_num; i++)
+        {
+            uint16_t node_id = subgraph->node_list[i];
+            struct node* ir_node = get_ir_graph_node(ir_graph, node_id);
+            for (int j = 0; j < ir_node->input_num; j++)
+            {
+                int ir_tensor_idx = ir_node->input_tensors[j];
+                this->VXTensorMap(ir_graph, ir_tensor_idx, 0);
+            }
+            for (int j = 0; j < ir_node->output_num; j++)
+            {
+                int ir_tensor_idx = ir_node->output_tensors[j];
+                this->VXTensorMap(ir_graph, ir_tensor_idx, 0);
+            }
+        }
+
+        /* Add TIM-VX Node */
+        this->Build(subgraph);
+
+#ifdef TIMVX_MODEL_CACHE
+        size_t bin_size = -1;
+        auto ret = graph->CompileToBinary(nullptr, &bin_size);
+        if (-1 == bin_size || !ret)
+        {
+            TLOG_ERR("Tengine: Model compile to bin failed.");
+            return -1;
+        }
+
+        this->nbg_buffer.resize(bin_size);
+        ret = graph->CompileToBinary(nbg_buffer.data(), &bin_size);
+        if (!ret)
+        {
+            TLOG_ERR("Tengine: Model compile to bin failed.");
+            return -1;
+        }
+
+        std::ofstream nbg_stream;
+        nbg_stream.open(full_cache_file_path, std::ios::out | std::ios::binary);
+        if (nbg_stream.is_open())
+        {
+            TLOG_INFO("Tengine: Save compiled model to %s.", full_cache_file_path.c_str());
+        }
+        nbg_stream.write(this->nbg_buffer.data(), this->nbg_buffer.size());
+        nbg_stream.close();
+#else
+        // fprintf(stderr,"subgraph->node_num %d\n",subgraph->node_num);
+        if (subgraph->node_num > 0)
+        {
+            if (!this->graph->Compile()) {
+                return -1;
+            }
+        }
+#endif
+
     }
 
     return 0;

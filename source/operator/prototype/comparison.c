@@ -47,44 +47,32 @@
 static int infer_shape(struct node* node)
 {
     struct graph* graph = node->graph;
-    struct tensor* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
+    struct tensor* input_0 = get_ir_graph_tensor(graph, node->input_tensors[0]);
     struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
 
     if (node->input_num == 1)
     {
-        set_ir_tensor_shape(output, input->dims, 1);
+        set_ir_tensor_shape(output, input_0->dims, input_0->dim_num);
         return 0;
     }
 
     if (node->input_num != 2)
     {
-        return 1;
+        return -1;
     }
 
     struct tensor* input_1 = get_ir_graph_tensor(graph, node->input_tensors[1]);
-    int i0_size = 1;
-    int i1_size = 1;
 
-    CALC_TENSOR_SHAPE_SIZE(i0_size, input);
-    CALC_TENSOR_SHAPE_SIZE(i1_size, input_1);
-
-    int dims[2] = {0};
-    dims[0] = 1;
-    for (int ii = 0; ii < input->dim_num; ++ii)
+    if (input_0->dim_num >= input_1->dim_num)
     {
-        dims[0] *= input->dims[ii];
+        set_ir_tensor_shape(output, input_0->dims, input_0->dim_num);
+        return 0;
     }
-
-    if (i0_size >= i1_size)
+    else
     {
-        output->dims[0] = input->dims[0];
+        set_ir_tensor_shape(output, input_1->dims, input_1->dim_num);
+        return 0;
     }
-    else if (i0_size < i1_size)
-    {
-        output->dims[0] = input_1->dims[0];
-    }
-
-    return 0;
 }
 
 

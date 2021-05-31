@@ -243,7 +243,6 @@ printf("img:%d %d\n", img_w, img_h);
     if (NULL == graph)
     {
         fprintf(stderr, "Create graph failed.\n");
-        fprintf(stderr, "errno: %d \n", get_tengine_errno());
         return -1;
     }
 

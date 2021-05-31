@@ -29,6 +29,14 @@ UNSET (_DEV_TIM_VX_COMPILER_OPTIONS)
 UNSET (_DEV_TIM_VX_LINKER_OPTIONS)
 UNSET (_DEV_TIM_VX_LINK_LIBRARIES)
 
+# 0. npu kernel cache file option, in experimental
+IF (TENGINE_ENABLE_MODEL_CACHE)
+    SET (TIMVX_MODEL_CACHE ON)
+ENDIF()
+
+# 0. config file
+CONFIGURE_FILE(timvx_define.h.in ${CMAKE_CURRENT_BINARY_DIR}/timvx_define.h)
+
 
 # 1. integrate TIM-VX for default
 IF (NOT (DEFINED TENGINE_ENABLE_TIM_VX_INTEGRATION))
@@ -130,16 +138,25 @@ IF (TENGINE_ENABLE_TIM_VX_INTEGRATION)
 
     TARGET_COMPILE_OPTIONS     (${_TIM_OVX_NAME} PRIVATE $<$<OR:$<COMPILE_LANGUAGE:C>,$<COMPILE_LANGUAGE:CXX>>:-fPIC>)
 
-    # for TIM-VX
-    AUX_SOURCE_DIRECTORY (${_VX_ROOT}/tim/vx                    _VX_BASE_SRC)
-    AUX_SOURCE_DIRECTORY (${_VX_ROOT}/tim/vx/ops                _VX_OPS_SRC)
+    # collect tim-vx test files
+    FILE (GLOB _VX_BASE_REMOVE_SRC ${_VX_ROOT}/tim/vx/*_test.cc)
+    FILE (GLOB _VX_OPS_REMOVE_SRC  ${_VX_ROOT}/tim/vx/ops/*_test.cc)
+
+    # remove test files for tim-vx
+    IF(_VX_BASE_REMOVE_SRC)
+        FILE (REMOVE ${_VX_BASE_REMOVE_SRC})
+    ENDIF()
+    IF(_VX_OPS_REMOVE_SRC)
+        FILE (REMOVE ${_VX_OPS_REMOVE_SRC})
+    ENDIF()
+
+    # collect all source files for tim-vx
+    AUX_SOURCE_DIRECTORY (${_VX_ROOT}/tim/vx      _VX_BASE_SRC)
+    AUX_SOURCE_DIRECTORY (${_VX_ROOT}/tim/vx/ops  _VX_OPS_SRC)
 
     # TIM-VX source
     SET (_VX_SRC)
     LIST (APPEND      _VX_SRC ${_VX_BASE_SRC} ${_VX_OPS_SRC})
-    LIST (REMOVE_ITEM _VX_SRC ${_VX_ROOT}/tim/vx/context_test.cc)
-    LIST (REMOVE_ITEM _VX_SRC ${_VX_ROOT}/tim/vx/graph_test.cc)
-    LIST (REMOVE_ITEM _VX_SRC ${_VX_ROOT}/tim/vx/ops/reorg_test.cc)
 
     # build
     ADD_LIBRARY (${_TIM_VX_NAME} STATIC ${_VX_SRC})
@@ -178,6 +195,7 @@ SET(_TIM_VX_ROOT ${CMAKE_SOURCE_DIR}/source/device/tim-vx)
 
 # 5.  add header file path
 LIST (APPEND _DEV_TIM_VX_HEADER_PATH        ${_TIM_VX_ROOT})
+LIST (APPEND _DEV_TIM_VX_HEADER_PATH        ${CMAKE_CURRENT_BINARY_DIR})
 LIST (APPEND _DEV_TIM_VX_HEADER_PATH        ${CMAKE_SOURCE_DIR}/3rdparty/tim-vx/include)
 LIST (APPEND _DEV_TIM_VX_HEADER_PATH        ${CMAKE_SOURCE_DIR}/source/device/tim-vx/include)
 
@@ -227,4 +245,4 @@ SET (TENGINE_TIM_VX_LINK_LIBRARIES    ${_DEV_TIM_VX_LINK_LIBRARIES}     CACHE IN
 
 
 # 12. install device option
-INSTALL (FILES ${_TIM_VX_ROOT}/timvx_define.h DESTINATION include/tengine RENAME timvx_device.h)
+INSTALL (FILES ${CMAKE_CURRENT_BINARY_DIR}/timvx_define.h DESTINATION include/tengine RENAME timvx_device.h)

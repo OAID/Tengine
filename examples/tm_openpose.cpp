@@ -187,7 +187,6 @@ int main(int argc, char* argv[])
     if (graph == nullptr)
     {
         std::cout << "Create graph0 failed\n";
-        std::cout << "errno: " << get_tengine_errno() << "\n";
         return -1;
     }
 
@@ -256,8 +255,7 @@ int main(int argc, char* argv[])
 
     if (get_tensor_shape(out_tensor, out_dim, 4) <= 0)
     {
-        std::cout << "get tensor shape failed, errno: " << get_tengine_errno() << "\n";
-        return 1;
+        return -1;
     }
 
     float* outdata = ( float* )get_tensor_buffer(out_tensor);
