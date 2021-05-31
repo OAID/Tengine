@@ -120,18 +120,10 @@ static int infer_shape(ir_node_t* node)
                 if (slice_end > 0)
                 {
                     out_dims[i] = slice_end - slice_param->begin;
-                    if (slice_param->step > 1)
-                    {
-                        out_dims[i] = (out_dims[i] - 1) / slice_param->step + 1;
-                    }
                 }
                 else
                 {
                     out_dims[i] = dims_in[i] + (slice_end - slice_param->begin);
-                    if (slice_param->step > 1)
-                    {
-                        out_dims[i] = (out_dims[i] - 1) / slice_param->step + 1;
-                    }
                 }
                 if (0 == out_dims[i])
                     out_dims[i] = dims_in[i];
@@ -174,6 +166,7 @@ static int init_op(ir_op_t* op)
     slice_param->iscaffe = 0;
     slice_param->ismxnet = 0;
     slice_param->isonnx = 0;
+    slice_param->step = 1;
 
     op->param_mem = slice_param;
     op->param_size = sizeof(struct slice_param);

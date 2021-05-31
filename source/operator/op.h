@@ -151,7 +151,7 @@ typedef struct op
 {
     uint16_t type;                          //!< the type of a operator
     uint8_t  version;                       //!< the version of a operator
-    uint8_t  same_shape;                    //!< the flag of weather the operator will keep shape
+    uint8_t  same_shape;                    //!< the flag of whether the operator will keep shape
     uint16_t param_size;                    //!< size of parameter memory buffer
     void* param_mem;                        //!< parameter memory buffer
     int (*infer_shape)(struct node*);       //!< infer(or broadcast) the shape from input to output(s)
