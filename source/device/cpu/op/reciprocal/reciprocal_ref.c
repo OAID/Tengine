@@ -34,6 +34,9 @@
 
 #include <math.h>
 
+#ifdef __APPLE__
+#include <stdio.h>
+#endif
 
 int ref_reciprocal_fp32(struct tensor* input_tensor, struct tensor* output_tensor, int num_thread)
 {

@@ -139,7 +139,7 @@ int TensorRTEngine::Build(struct subgraph* subgraph)
             {
                 if(!AddTensor(ir_graph, ir_tensor))
                 {
-                    TLOG_ERR("Cannot add input tensor(id: %d, name: %s) from node(id: %d, name: %s).\n", ir_tensor->index, ir_tensor->name, ir_node->index, ir_node->name);
+                    TLOG_ERR("Tengine: Cannot add input tensor(id: %d, name: %s) from node(id: %d, name: %s).\n", ir_tensor->index, ir_tensor->name, ir_node->index, ir_node->name);
                     return -5;
                 }
             }
@@ -154,6 +154,20 @@ int TensorRTEngine::Build(struct subgraph* subgraph)
 
         switch (op_type)
         {
+            case OP_ABSVAL:
+                if (!AddAbsVal(ir_graph, ir_node))
+                {
+                    TLOG_ERR("Tengine: Cannot add AbsVal op(%d).\n", ir_node->index);
+                    return -6;
+                }
+                break;
+            case OP_ADD_N:
+                if (!AddAddN(ir_graph, ir_node))
+                {
+                    TLOG_ERR("Tengine: Cannot add AddN op(%d).\n", ir_node->index);
+                    return -6;
+                }
+                break;
             case OP_BATCHNORM:
                 if (!AddBatchNormNode(ir_graph, ir_node))
                 {
@@ -224,10 +238,30 @@ int TensorRTEngine::Build(struct subgraph* subgraph)
                 }
                 break;
             }
+            case OP_HARDSWISH:
+            {
+                if (!AddHardSwishNode(ir_graph, ir_node))
+                {
+                    TLOG_ERR("Tengine: Cannot add HardSwish op(%d).\n", ir_node->index);
+                    return -6;
+                }
+                break;
+            }
+            case OP_INPUT:
+                continue;
             case OP_INTERP: {
                 if (!AddInterpNode(ir_graph, ir_node))
                 {
                     TLOG_ERR("Tengine: Cannot add FullyConnected op(%d).\n", ir_node->index);
+                    return -6;
+                }
+                break;
+            }
+            case OP_MISH:
+            {
+                if (!AddMishNode(ir_graph, ir_node))
+                {
+                    TLOG_ERR("Tengine: Cannot add Mish op(%d).\n", ir_node->index);
                     return -6;
                 }
                 break;
@@ -274,8 +308,6 @@ int TensorRTEngine::Build(struct subgraph* subgraph)
                     return -6;
                 }
             }
-            case OP_INPUT:
-                continue;
             case OP_SOFTMAX:
             {
                 if(!AddSoftmaxNode(ir_graph, ir_node))
@@ -285,9 +317,18 @@ int TensorRTEngine::Build(struct subgraph* subgraph)
                 }
                 break;
             }
+            case OP_TRANSPOSE:
+            {
+                if(!AddTranspose(ir_graph, ir_node))
+                {
+                    TLOG_ERR("Tengine: Cannot add Softmax op(%d).\n", ir_node->index);
+                    return -6;
+                }
+                break;
+            }
             case OP_UPSAMPLE:
             {
-                if(!AddUpsampleNode(ir_graph, ir_node))
+                if(!AddUpSampleNode(ir_graph, ir_node))
                 {
                     TLOG_ERR("Tengine: Cannot add Upsample op(%d).\n", ir_node->index);
                     return -6;
@@ -347,9 +388,21 @@ bool TensorRTEngine::AddTensor(struct graph* ir_graph, struct tensor *ir_tensor)
             trt_tensor = this->network->addInput(ir_tensor->name, nvinfer1::DataType::kFLOAT, dim4);
             break;
         }
+        case 5:
+        {
+            nvinfer1::Dims dim5;
+            dim5.nbDims = 5;
+            dim5.d[0] = dims[0];
+            dim5.d[1] = dims[1];
+            dim5.d[2] = dims[2];
+            dim5.d[3] = dims[3];
+            dim5.d[4] = dims[4];
+            trt_tensor = this->network->addInput(ir_tensor->name, nvinfer1::DataType::kFLOAT, dim5);
+            break;
+        }
         default:
         {
-            TLOG_ERR("Tengine: Tensor data type(%d) cannot supported.\n", ir_tensor->data_type);
+            TLOG_ERR("Tengine: Tensor dimension(%d) cannot supported.\n", dim);
             return false;
         }
     }

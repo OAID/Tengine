@@ -126,6 +126,7 @@ public:
     std::shared_ptr<tim::vx::Context> context;
     std::shared_ptr<tim::vx::Graph> graph;
     std::shared_ptr<tim::vx::Operation> ops;
+    std::vector<char> nbg_buffer;
 
 private:
     dict_irt2vxt     vx_tensor_map;

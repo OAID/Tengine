@@ -60,7 +60,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         0)
     {
         TLOG_ERR("hcl conv run failed\n");
-        set_tengine_errno(EFAULT);
+        // set_tengine_errno(EFAULT);
         return -1;
     }
 

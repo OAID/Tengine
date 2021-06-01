@@ -41,13 +41,13 @@ bool TensorRTEngine::AddConvolutionNode(struct graph* ir_graph, struct node *nod
 
     if (nullptr == conv_data || nullptr == conv_weight)
     {
-        fprintf(stderr, "Tengine: Get input data & weight for conv(id: %d, name: %s).\n", conv_weight->index, conv_weight->name);
+        fprintf(stderr, "Tengine: Get input data & weight for Convolution(id: %d, name: %s).\n", conv_weight->index, conv_weight->name);
         return false;
     }
 
     if (!check_if_input_in_map(conv_data->index, this->tensor_swap_map))
     {
-        fprintf(stderr, "Tengine: Query input for Concat(id: %d, name: %s) layer failed.\n", node->index, node->name);
+        fprintf(stderr, "Tengine: Query input for Convolution(id: %d, name: %s) layer failed.\n", node->index, node->name);
         return false;
     }
 

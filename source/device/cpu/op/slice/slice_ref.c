@@ -453,7 +453,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         if (input_tensor->dims[0] == out_tensor->dims[0] && input_tensor->dims[1] == out_tensor->dims[1] &&
             input_tensor->dims[2] == out_tensor->dims[2] && input_tensor->dims[3] == out_tensor->dims[3])
         {
-            memcpy(( void* )(out_data_ptrs[0]), ( void* )input, mem_size);
+            memcpy(( void* )(out_data_ptrs[0]), ( void* )input, mem_size*input_tensor->elem_num);
             sys_free(out_data_ptrs);
             return true;
         }

@@ -36,8 +36,9 @@ extern "C" {
 #ifdef CONFIG_ARCH_CORTEX_M
 char* strdup(const char*);
 #else
-#if MACOS
+#if __APPLE__
 #include <sys/malloc.h>
+#include <sys/errno.h>
 #else
 #include <malloc.h>
 #endif
