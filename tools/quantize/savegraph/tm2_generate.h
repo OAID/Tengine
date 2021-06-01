@@ -18,10 +18,24 @@
  */
 
 /*
- * Copyright (c) 2021, OPEN AI LAB
- * Author: lswang@openailab.com
+ * Copyright (c) 2018, Open AI Lab
+ * Author: jingyou@openailab.com
  */
+#ifndef __TM_GENERATE_H__
+#define __TM_GENERATE_H__
 
-#pragma once
+#include <stdint.h>
 
-#define TIMVX_DEV_NAME "TIMVX"
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+uint32_t WriteTmFileAlign1(void* const start_ptr, uint32_t* cur_pos, const void* buf, const uint32_t buf_size);
+uint32_t WriteTmFileAlign4(void* const start_ptr, uint32_t* cur_pos, const void* buf, const uint32_t buf_size);
+uint32_t WriteTmObject(void* const start_ptr, uint32_t* cur_pos, const void* buf, const uint32_t buf_size);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

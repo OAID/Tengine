@@ -52,6 +52,8 @@
 #define TE_DEFAULT_LOG_LEVEL        LOG_ERR
 #define TE_MAX_LOG_LENGTH           256
 
+#define TE_MODEL_CACHE_PATH         "TENGINE_CACHE_DIR"
+
 #cmakedefine TENGINE_HAS_LIB_POSIX_THREAD
 #cmakedefine TENGINE_HAS_INC_SYSLOG
 #cmakedefine TENGINE_ENABLE_ENV_VAR
