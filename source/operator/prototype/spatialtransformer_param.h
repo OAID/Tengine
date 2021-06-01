@@ -30,6 +30,5 @@ struct spatialtransformer_param
     int sampler_type;
     int transformer_type;
     int* target_shape;
-}spatialtransformer_param_t;
-
+};
 #endif
