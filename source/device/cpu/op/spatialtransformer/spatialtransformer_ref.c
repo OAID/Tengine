@@ -49,7 +49,6 @@ int BilinearSampling(int o_n, int o_c, int o_h, int o_w, int i_c, int i_h, int i
     float* tmp_out = out_data;
     for(int n = 0; n < o_n; n++){
         for(int c = 0; c < o_c; c++){
-            // float* grid_data = grid_total + c * o_h * o_w;
             for(int h = 0; h < o_h; h++){
                 for(int w = 0; w < o_w; w++){
                     int out_index = n*o_c*o_h*o_w + c*o_h*o_w + h*o_w + w;
@@ -145,7 +144,7 @@ int ref_spatialtransformer_fp32(struct tensor* input_tensor,struct tensor* input
         int i_w = input_tensor->dims[3];
         int ret=BilinearSampling(o_n, o_c, o_h, o_w, i_c, i_h, i_w, in_data, out_data, grid_src);
     } else {
-        fprintf(stderr, "Extra type not support yet\n");
+        TLOG_ERR("Extra type not support yet\n");
     }
 
     free(grid_src);

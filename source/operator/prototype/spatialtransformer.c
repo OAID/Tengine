@@ -61,7 +61,6 @@ static int infer_shape(struct node* node)
         new_shape_temp[1] = input->dims[1];
     }
 
-    // printf("%d %d %d %d \n", new_shape_temp[0], new_shape_temp[1], new_shape_temp[2], new_shape_temp[3]);
     output->layout  = input->layout;
     int ret = set_ir_tensor_shape(output, new_shape_temp, out_dim_size);
 
