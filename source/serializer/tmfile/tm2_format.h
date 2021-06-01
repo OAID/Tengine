@@ -252,10 +252,10 @@ typedef uint8_t tm_bool_t;                      /* bool is 1-byte unsigned integ
 #define TM2_OPTYPE_LOGSOFTMAX                    99
 #define TM2_OPTYPE_RELU1                        100
 #define TM2_OPTYPE_L2NORMALIZATION              101
-#define TM2_OPTYPE_SOFTPLUS 					102
-#define TM2_OPTYPE_RECIPROCAL 					103
+#define TM2_OPTYPE_SOFTPLUS                     102
+#define TM2_OPTYPE_RECIPROCAL                   103
 #define TM2_OPTYPE_SPATIALTRANSFORMER           105
-#define TM2_OPTYPE_NUM 							106
+#define TM2_OPTYPE_NUM                          106
 
 /* --------------------- -------- TM objects -------------------------------- */
 
