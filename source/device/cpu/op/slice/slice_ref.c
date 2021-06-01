@@ -408,11 +408,12 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         // set the output
         for (int i = 0; i < op_param.out_num; ++i)
         {
+            struct tensor* out_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[i]);
             for (int j = 0; j < op_param.dim_num; ++j)
             {
-                op_param.output_shape[i].dims[j] = output_tensor->dims[j];
+                op_param.output_shape[i].dims[j] = out_tensor->dims[j];
             }
-            out_data_ptrs[i] = ( int8_t* )output_tensor->data;
+            out_data_ptrs[i] = ( int8_t* )out_tensor->data;
         }
     }
     else if (op_param.ismxnet || op_param.isonnx)
@@ -437,7 +438,8 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
                 op_param.in_shape_2[idx] = input_tensor->dims[idx];
             }
         }
-        out_data_ptrs[0] = ( int8_t* )output_tensor->data;
+        struct tensor* out_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+        out_data_ptrs[0] = ( int8_t* )out_tensor->data;
 
         if (input_tensor->dims[0] == output_tensor->dims[0] && input_tensor->dims[1] == output_tensor->dims[1] &&
             input_tensor->dims[2] == output_tensor->dims[2] && input_tensor->dims[3] == output_tensor->dims[3])
@@ -468,7 +470,8 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
                 dim_idx++;
             }
         }
-        out_data_ptrs[0] = ( int8_t* )output_tensor->data;
+        struct tensor* out_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+        out_data_ptrs[0] = ( int8_t* )out_tensor->data;
     }
 
     int ret = -1;
@@ -476,6 +479,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         ret = ref_slice_common(input, out_data_ptrs, sizeof(float), &op_param);
     else if (input_tensor->data_type == TENGINE_DT_UINT8) // ugly implement, need to refactor !
     {
+        struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
         /* dequant to fp32 */
         uint8_t* input_uint8 = input_tensor->data;
         uint8_t* output_uint8 = output_tensor->data;
