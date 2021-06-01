@@ -37,21 +37,16 @@
 
 int ref_l2normalization_fp32(float* input_data, float* output_data, int size, int channel_size)
 {
-    for(int i = 0; i < size; i++)
+    float sq_l2_norm = 0;
+    for(int j = 0; j < channel_size; j++)
     {
-        float sq_l2_norm = 0;
-        for(int j = 0; j < channel_size; j++)
-        {
-            const float val = input_data[j];
-            sq_l2_norm += val * val;
-        }
-        const float l2_norm = sqrt(sq_l2_norm);
-        for(int j = 0; j < channel_size; j++)
-        {
-            *output_data = *input_data / l2_norm;
-            output_data++;
-            input_data++;
-        }
+        const float val = input_data[j];
+        sq_l2_norm += val * val;
+    }
+    const float l2_norm = sqrt(sq_l2_norm);
+    for(int j = 0; j < channel_size; j++)
+    {
+        output_data[j] = input_data[j] / l2_norm;
     }
     return 0;
 }
@@ -77,7 +72,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
     int input_size = 1;
-    int channel_size = input_tensor->dims[input_tensor->dim_num-1];
+    int channel_size = input_tensor->dims[1];
 
     for(int i = 0; i < input_tensor->dim_num; i++){
         input_size *= input_tensor->dims[i];

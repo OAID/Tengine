@@ -92,15 +92,8 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     int ret = ref_reduce_fp32(( float* )input_tensor->data, ( float* )output_tensor->data, dim0, dim1, dim2, dim3,
                               out_tensor_size, &param, in_dim_num, dims);
     free(dims);
-<<<<<<< HEAD
-    if (ret < 0)
-        return -1;
-    else
-        return 0;
-=======
 
     return ret;
->>>>>>> upstream/tengine-lite
 }
 
 static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struct node* exec_node)
