@@ -121,11 +121,6 @@ IF (OpenCV_FOUND)
     TENGINE_EXAMPLE_CV (tm_crnn                  tm_crnn.cpp)
     TENGINE_EXAMPLE_CV (tm_alphapose             tm_alphapose.cpp)
     TENGINE_EXAMPLE_CV (tm_yolov4_tiny           tm_yolov4_tiny.cpp)
-<<<<<<< HEAD
-    TENGINE_EXAMPLE_CV (tm_yolov4_tiny_uint8     tm_yolov4_tiny_uint8.cpp)
-    TENGINE_EXAMPLE_CV (tm_yolov4_tiny_timvx     tm_yolov4_tiny_timvx.cpp)
-=======
->>>>>>> bd9ebff0a25bf8841d89cc3bc74cbd3334fc091e
     TENGINE_EXAMPLE_CV (tm_yolov5s               tm_yolov5s.cpp)
     TENGINE_EXAMPLE_CV (tm_unet                  tm_unet.cpp)
     IF(TENGINE_ENABLE_TIM_VX)
