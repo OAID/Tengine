@@ -18,7 +18,7 @@
  */
 
 /*
- * Copyright (c) 2021, Open AI Lab
+ * Copyright (c) 2021, OPEN AI LAB
  * Author: hhchen@openailab.com
  */
 
@@ -27,41 +27,20 @@
 extern "C"
 {
 #include "operator/op.h"
-#include "slice_param.h"
 }
 
-bool VXEngine::AddSliceNode(struct node* ir_node)
+
+bool VXEngine::AddMishNode(struct node* ir_node)
 {
     struct graph* ir_graph = ir_node->graph;
+
     struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    struct slice_param* param = (struct slice_param*)ir_node->op.param_mem;
-
-    uint32_t axis = output_tensor->dim_num - 1 - param->axis;
-
-    std::vector<int32_t> start;
-    for (int i = 0; i < output_tensor->dim_num; i++)
-    {
-        if (axis == i)
-            start.push_back(param->begin);
-        else
-            start.push_back(0);
-    }
-
-    std::vector<int32_t> length;
-    for (int i = 0; i < output_tensor->dim_num; i++)
-    {
-        if (axis == i)
-            length.push_back(param->end - param->begin);
-        else
-            length.push_back(output_tensor->dims[output_tensor->dim_num - 1 - i]);
-    }
-
-    auto slice = this->graph->CreateOperation<tim::vx::ops::Slice>(output_tensor->dim_num, start, length);
-    (*slice).BindInput( this->vx_tensor_map[input_tensor->index] )
-        .BindOutput({ this->vx_tensor_map[output_tensor->index] });
+    auto mish = graph->CreateOperation<tim::vx::ops::Mish>();
+    (*mish)
+            .BindInputs({ this->vx_tensor_map[input_tensor->index] })
+            .BindOutputs({ this->vx_tensor_map[output_tensor->index] });
 
     return true;
 }
-

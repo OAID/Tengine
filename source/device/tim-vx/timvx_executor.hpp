@@ -103,6 +103,7 @@ private:
     bool AddGatherNode(struct node* node);
     bool AddHardSwishNode(struct node* node);
     bool AddInterpNode(struct node* ir_node);
+    bool AddMishNode(struct node* ir_node);
     bool AddPermuteNode(struct node* ir_node);
     bool AddPoolingNode(struct node* ir_node);
     bool AddPReluNode(struct node* ir_node);
