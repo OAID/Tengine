@@ -94,7 +94,7 @@ IF(TENGINE_ENABLE_VULKAN)
     TENGINE_EXAMPLE (tm_classification_vulkan       tm_classification_vulkan.c)
 ENDIF()
 
-IF (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM" AND TENGINE_TARGET_PROCESSOR_64Bit)
+IF (TENGINE_ARCH_ARM_82)
     TENGINE_EXAMPLE (tm_classification_fp16      tm_classification_fp16.c)
 ENDIF()
 
