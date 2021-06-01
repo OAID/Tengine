@@ -80,6 +80,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     int dim1 = dims[1];
     int dim2 = dims[2];
     int dim3 = dims[3];
+    
 
     param.param_dim[0] = reduction_param->dim_0;
     param.param_dim[1] = reduction_param->dim_1;
