@@ -121,7 +121,7 @@ const int timvx_supported_ops[] = {
 //    OP_UNSQUEEZE,
     OP_UPSAMPLE,
 //    OP_ZEROSLIKE,
-//    OP_MISH,
+    OP_MISH,
 //    OP_LOGSOFTMAX,
 //    OP_RELU1,
 //    OP_L2NORMALIZATION,

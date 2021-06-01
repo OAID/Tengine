@@ -224,6 +224,9 @@ int VXEngine::Build(struct subgraph* subgraph)
             case OP_INTERP:
                 this->AddInterpNode(ir_node);
                 break;
+            case OP_MISH:
+                this->AddMishNode(ir_node);
+                break;
             case OP_PERMUTE:
                 this->AddPermuteNode(ir_node);
                 break;
