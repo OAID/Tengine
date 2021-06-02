@@ -485,6 +485,10 @@ static int ref_eltwise_uint8(struct tensor* output_tensor, struct tensor* input_
     for (int i = 0; i < output_tensor->elem_num; i++)
     {
         int output_data = round(out_ptr[i] / out_scale) + out_zero;
+        if (output_data > 255)
+            output_data = 255;
+        else if (output_data < 0)
+            output_data = 0;
         output_uint8[i] = output_data; // adjust for QA Models test case(mobilenet_v2_1.0_quant_tfile.tmfile)
     }
 

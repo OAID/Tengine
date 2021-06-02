@@ -39,3 +39,11 @@ void get_input_data_cv(const char* image_file, float* input_data, int img_c, int
                        const float* scale, int sw_RGB, int center_crop, int letterbox_rows, int letterbox_cols, int focus);
 
 void readFileList(std::string basePath, std::vector<std::string>& imgs);
+
+std::vector<uint32_t> histCount(float *data, uint32_t elem_num, float max_val, float min_val);
+
+float compute_kl_divergence(std::vector<float> &dist_a, std::vector<float> &dist_b);
+
+std::vector<float> normalize_histogram(std::vector<uint32_t> &histogram);
+
+int threshold_distribution(std::vector<uint32_t> &distribution_in, const int target_bin);
