@@ -80,7 +80,7 @@ jobs:
     - name: test-tools-quant
       run: |
         cd build
-        ./tools/quantize/quant_tool_uint8 -m mobilenet.tmfile -o mobilenet_uint8.tmfile -i ./dataset -g 3,224,224 -s 0.017,0.017,0.017 -c 1
+        ./tools/quantize/quant_tool_uint8 -m mobilenet.tmfile -o mobilenet_uint8.tmfile -i ./dataset -g 3,224,224 -s 0.017,0.017,0.017 -c 1 -a 1
         ./examples/tm_classification_uint8 -m mobilenet_uint8.tmfile -i images/cat.jpg -g 224,224 -s 0.017,0.017,0.017
     - name: lcov-collect
       run: |
