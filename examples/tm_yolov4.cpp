@@ -19,358 +19,295 @@
 
 /*
  * Copyright (c) 2021, OPEN AI LAB
+ * Author: xwwang@openailab.com
  */
 
-#include <cstdio>
-
-#include <cstdlib>
-#include <cstdio>
+#include <math.h>
 #include <vector>
-
-#ifdef _MSC_VER
-#define NOMINMAX
-#endif
+#include <string>
 #include <algorithm>
+#include <cmath>
+#include <stdlib.h>
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 
 #include "common.h"
 #include "tengine/c_api.h"
 #include "tengine_operations.h"
 
-float s_anchors[] = {12, 16, 19, 36, 40, 28, 36, 75, 76, 55, 72, 146, 142, 110, 192, 243, 459, 401};
-
-typedef struct layer
+struct Object
 {
-    int total_anchor;
-    int box, c, h, w;
-    int out_n, out_c, out_h, out_w;
-    int classes;
-    int inputs;
-    int outputs;
-    int* anchor_mask;
-    float* anchors;
-    float* output;
-    int coords;
-} layer;
+    cv::Rect_<float> rect;
+    int label;
+    float prob;
+};
 
-typedef struct
+static inline float sigmoid(float x)
 {
-    float x, y, w, h;
-} box;
+    return static_cast<float>(1.f / (1.f + exp(-x)));
+}
 
-typedef struct
+static inline float intersection_area(const Object& a, const Object& b)
 {
-    box bbox;
-    float x, y, w, h;
-    int classes;
-    float* prob;
-    float objectness;
-    int sort_class;
-} detection;
+    cv::Rect_<float> inter = a.rect & b.rect;
+    return inter.area();
+}
 
-layer make_darknet_layer(int w, int h, int net_w, int net_h, int n, int total, int classes)
+static void qsort_descent_inplace(std::vector<Object>& faceobjects, int left, int right)
 {
-    layer l = {0};
-    l.box = n;
-    l.total_anchor = total;
-    l.h = h;
-    l.w = w;
-    l.c = n * (classes + 4 + 1);
-    l.out_w = l.w;
-    l.out_h = l.h;
-    l.out_c = l.c;
-    l.classes = classes;
-    l.inputs = l.w * l.h * l.c;
+    int i = left;
+    int j = right;
+    float p = faceobjects[(left + right) / 2].prob;
 
-    l.anchors = ( float* )calloc(total * 2, sizeof(float));
-    l.anchor_mask = ( int* )calloc(n, sizeof(int));
-    if (9 == total)
+    while (i <= j)
     {
-        for (int i = 0; i < total * 2; ++i)
+        while (faceobjects[i].prob > p)
+            i++;
+
+        while (faceobjects[j].prob < p)
+            j--;
+
+        if (i <= j)
         {
-            l.anchors[i] = s_anchors[i];
-        }
-        if (l.w == net_w / 32)
-        {
-            int j = 6;
-            for (int i = 0; i < l.box; ++i)
-                l.anchor_mask[i] = j++;
-        }
-        if (l.w == net_w / 16)
-        {
-            int j = 3;
-            for (int i = 0; i < l.box; ++i)
-                l.anchor_mask[i] = j++;
-        }
-        if (l.w == net_w / 8)
-        {
-            int j = 0;
-            for (int i = 0; i < l.box; ++i)
-                l.anchor_mask[i] = j++;
+            // swap
+            std::swap(faceobjects[i], faceobjects[j]);
+
+            i++;
+            j--;
         }
     }
-    l.outputs = l.inputs;
-    l.output = ( float* )calloc(l.outputs, sizeof(float));
 
-    return l;
-}
-
-int entry_index(layer l, int box, int channel, int loc)
-{
-    return box * l.w * l.h * (4 + l.classes + 1) + channel * l.w * l.h + loc;
-}
-
-inline void logistic_cpu(float* input, int size)
-{
-    for (int i = 0; i < size; ++i)
+#pragma omp parallel sections
     {
-        input[i] = 1.f / (1.f + expf(-input[i]));
+#pragma omp section
+        {
+            if (left < j) qsort_descent_inplace(faceobjects, left, j);
+        }
+#pragma omp section
+        {
+            if (i < right) qsort_descent_inplace(faceobjects, i, right);
+        }
     }
 }
 
-inline float logistic_cpu(float input)
+static void qsort_descent_inplace(std::vector<Object>& faceobjects)
 {
-    return 1.f / (1.f + expf(-input));
+    if (faceobjects.empty())
+        return;
+
+    qsort_descent_inplace(faceobjects, 0, faceobjects.size() - 1);
 }
 
-void decodebox(layer l, box& b, int box_index, int row, int col, int input_w, int input_h)
+static void nms_sorted_bboxes(const std::vector<Object>& faceobjects, std::vector<int>& picked, float nms_threshold)
 {
-    b.x = (col + logistic_cpu(b.x)) / l.w;
-    b.y = (row + logistic_cpu(b.y)) / l.h;
-    b.w = exp(b.w) * l.anchors[2 * l.anchor_mask[box_index]] / input_w;
-    b.h = exp(b.h) * l.anchors[2 * l.anchor_mask[box_index] + 1] / input_h;
-}
+    picked.clear();
 
-void correct_yolo_boxes(std::vector<detection*>& dets, int n, int w, int h, int netw, int neth)
-{
-    int i;
-    int new_w = 0;
-    int new_h = 0;
-    if ((( float )netw / w) < (( float )neth / h))
+    const int n = faceobjects.size();
+
+    std::vector<float> areas(n);
+    for (int i = 0; i < n; i++)
     {
-        new_w = netw;
-        new_h = (h * netw) / w;
+        areas[i] = faceobjects[i].rect.area();
     }
+
+    for (int i = 0; i < n; i++)
+    {
+        const Object& a = faceobjects[i];
+
+        int keep = 1;
+        for (int j = 0; j < (int)picked.size(); j++)
+        {
+            const Object& b = faceobjects[picked[j]];
+
+            // intersection over union
+            float inter_area = intersection_area(a, b);
+            float union_area = areas[i] + areas[picked[j]] - inter_area;
+            // float IoU = inter_area / union_area
+            if (inter_area / union_area > nms_threshold)
+                keep = 0;
+        }
+
+        if (keep)
+            picked.push_back(i);
+    }
+}
+
+void get_input_data_yolov4(const char* image_file, float* input_data, int img_h, int img_w, const float* mean, const float* scale)
+{
+    cv::Mat sample = cv::imread(image_file, 1);
+    cv::Mat img;
+
+    if (sample.channels() == 1)
+        cv::cvtColor(sample, img, cv::COLOR_GRAY2RGB);
     else
-    {
-        new_h = neth;
-        new_w = (w * neth) / h;
-    }
-    for (i = 0; i < n; ++i)
-    {
-        box b = dets[i]->bbox;
-        b.x = (b.x - (netw - new_w) / 2. / netw) / (( float )new_w / netw);
-        b.y = (b.y - (neth - new_h) / 2. / neth) / (( float )new_h / neth);
-        b.w *= ( float )netw / new_w;
-        b.h *= ( float )neth / new_h;
+        cv::cvtColor(sample, img, cv::COLOR_BGR2RGB);
 
-        dets[i]->bbox = b;
-    }
-}
+    /* resize process */
+    cv::resize(img, img, cv::Size(img_w, img_h));
+    img.convertTo(img, CV_32FC3);
+    float* img_data = (float* )img.data;
 
-std::vector<detection*> forward_darknet_layer_cpu(const float* input, layer l, int img_w, int img_h, int net_w,
-                                                  int net_h, const float s_thresh)
-{
-    std::vector<detection*> dets;
-    memcpy(( void* )l.output, ( void* )input, sizeof(float) * l.inputs);
-
-    for (int i = 0; i < l.box; i++)
-    {
-        int index = entry_index(l, i, 4, 0);
-        logistic_cpu(l.output + index, l.w * l.h);
-        for (size_t loc = 0; loc < (size_t)l.w * l.h; loc++)
+    /* nhwc to nchw */
+    for (int h = 0; h < img_h; h++)
+    {   for (int w = 0; w < img_w; w++)
         {
-            if (l.output[index + loc] > s_thresh)
+            for (int c = 0; c < 3; c++)
             {
-                /* row col */
-                int row = loc / l.w;
-                int col = loc % l.w;
-
-                detection* temp_detection = ( detection* )calloc(1, sizeof(detection));
-
-                /* objectness */
-                temp_detection->objectness = l.output[index + loc];
-
-                /* bbox */
-                temp_detection->bbox.x = l.output[entry_index(l, i, 0, loc)];
-                temp_detection->bbox.y = l.output[entry_index(l, i, 1, loc)];
-                temp_detection->bbox.w = l.output[entry_index(l, i, 2, loc)];
-                temp_detection->bbox.h = l.output[entry_index(l, i, 3, loc)];
-                decodebox(l, temp_detection->bbox, i, row, col, net_w, net_h);
-
-                /* classes_prob */
-                temp_detection->prob = ( float* )calloc(l.classes, sizeof(float));
-                for (int j = 5; j < l.classes + 5; j++)
-                {
-                    int grid_index = entry_index(l, i, j, loc);
-                    logistic_cpu(l.output + grid_index, 1);
-                    temp_detection->prob[j - 5] = l.output[grid_index] > s_thresh ? l.output[grid_index] : 0;
-                }
-
-                /* classes_num */
-                temp_detection->classes = l.classes;
-
-                dets.push_back(temp_detection);
+                int in_index  = h * img_w * 3 + w * 3 + c;
+                int out_index = c * img_h * img_w + h * img_w + w;
+                input_data[out_index] = (img_data[in_index] - mean[c]) * scale[c];
             }
         }
     }
+}
 
-    if (dets.size() > 0)
+static void generate_proposals(int stride,  const float* feat, float prob_threshold, std::vector<Object>& objects)
+{
+    static float anchors[18] = {12, 16, 19, 36, 40, 28, 36, 75, 76, 55, 72, 146, 142, 110, 192, 243, 459, 401};
+    int anchor_num = 3;
+    int feat_w = 416 / stride;
+    int feat_h = 416 / stride;
+    int cls_num = 80;
+    int anchor_group = 0;
+    if(stride == 8)
+        anchor_group = 1;
+    if(stride == 16)
+        anchor_group = 2;
+    if(stride == 32)
+        anchor_group = 3;
+
+    for (int h = 0; h <= feat_h - 1; h++)
     {
-        correct_yolo_boxes(dets, dets.size(), img_w, img_h, net_w, net_h);
-    }
-
-    return dets;
-}
-
-int nms_comparator(const detection* pa, const detection* pb)
-{
-    float diff = 0;
-    if (pb->sort_class >= 0)
-    {
-        diff = pb->prob[pb->sort_class] - pb->prob[pb->sort_class];
-    }
-    else
-    {
-        diff = pb->objectness - pb->objectness;
-    }
-    if (diff < 0)
-        return -1;
-    else if (diff > 0)
-        return 1;
-    return 0;
-}
-
-float overlap(float x1, float w1, float x2, float w2)
-{
-    float l1 = x1 - w1 / 2;
-    float l2 = x2 - w2 / 2;
-    float left = l1 > l2 ? l1 : l2;
-    float r1 = x1 + w1 / 2;
-    float r2 = x2 + w2 / 2;
-    float right = r1 < r2 ? r1 : r2;
-    return right - left;
-}
-
-float box_intersection(box a, box b)
-{
-    float w = overlap(a.x, a.w, b.x, b.w);
-    float h = overlap(a.y, a.h, b.y, b.h);
-    if (w < 0 || h < 0)
-        return 0;
-    float area = w * h;
-    return area;
-}
-
-float box_union(box a, box b)
-{
-    float i = box_intersection(a, b);
-    float u = a.w * a.h + b.w * b.h - i;
-    return u;
-}
-
-float box_iou(box a, box b)
-{
-    return box_intersection(a, b) / box_union(a, b);
-}
-
-void do_nms_sort(std::vector<detection*>& dets, int total, int classes, float thresh)
-{
-    int i, j, k;
-    k = total - 1;
-    for (i = 0; i <= k; ++i)
-    {
-        if (dets[i]->objectness == 0)
+        for (int w = 0; w <= feat_w - 1; w++)
         {
-            detection* swap = dets[i];
-            dets[i] = dets[k];
-            dets[k] = swap;
-            --k;
-            --i;
-        }
-    }
-    total = k + 1;
-
-    for (k = 0; k < classes; ++k)
-    {
-        for (i = 0; i < total; ++i)
-        {
-            dets[i]->sort_class = k;
-        }
-        std::sort(dets.begin(), dets.end(), nms_comparator);
-        for (i = 0; i < total; ++i)
-        {
-            if (dets[i]->prob[k] == 0)
-                continue;
-            box a = dets[i]->bbox;
-            for (j = i + 1; j < total; ++j)
+            for (int anchor = 0; anchor <= anchor_num - 1; anchor++)
             {
-                box b = dets[j]->bbox;
-                if (box_iou(a, b) > thresh)
+                int class_index = 0;
+                float class_score = -FLT_MAX;
+                int channel_size = feat_h * feat_w;
+                for (int s = 0; s <= cls_num - 1; s++)
                 {
-                    dets[j]->prob[k] = 0;
+                    int score_index = anchor * 85 * channel_size + feat_w * h + w + (s + 5) * channel_size;
+                    float score = feat[score_index];
+                    if(score > class_score)
+                    {
+                        class_index = s;
+                        class_score = score;
+                    }
+                }
+                float box_score = feat[anchor * 85 * channel_size + feat_w * h + w + 4 * channel_size];
+                float final_score = sigmoid(box_score) * sigmoid(class_score);
+                if(final_score >= prob_threshold)
+                {
+                    int dx_index = anchor * 85 * channel_size + feat_w * h + w + 0 * channel_size;
+                    int dy_index = anchor * 85 * channel_size + feat_w * h + w + 1 * channel_size;
+                    int dw_index = anchor * 85 * channel_size + feat_w * h + w + 2 * channel_size;
+                    int dh_index = anchor * 85 * channel_size + feat_w * h + w + 3 * channel_size;
+
+                    float dx = sigmoid(feat[dx_index]);
+                    float dy = sigmoid(feat[dy_index]);
+
+                    float dw = feat[dw_index];
+                    float dh = feat[dh_index];
+
+                    float anchor_w = anchors[(anchor_group - 1) * 6 + anchor * 2 + 0];
+                    float anchor_h = anchors[(anchor_group - 1) * 6 + anchor * 2 + 1];
+
+                    float pred_x = (w + dx) * stride;
+                    float pred_y = (h + dy) * stride;
+                    float pred_w = exp(dw) * anchor_w ;
+                    float pred_h = exp(dh) * anchor_h ;
+
+                    float x0 = (pred_x - pred_w * 0.5f);
+                    float y0 = (pred_y - pred_h * 0.5f);
+                    float x1 = (pred_x + pred_w * 0.5f);
+                    float y1 = (pred_y + pred_h * 0.5f);
+
+                    Object obj;
+                    obj.rect.x = x0;
+                    obj.rect.y = y0;
+                    obj.rect.width = x1 - x0;
+                    obj.rect.height = y1 - y0;
+                    obj.label = class_index;
+                    obj.prob = final_score;
+                    objects.push_back(obj); 
                 }
             }
         }
     }
 }
 
-void get_input_data_darknet(const char* image_file, float* input_data, int net_h, int net_w)
+static void draw_objects(const cv::Mat& bgr, const std::vector<Object>& objects)
 {
-    int size = 3 * net_w * net_h;
-    image sized;
-    image im = load_image_stb(image_file, 3);
-    for (int i = 0; i < im.c * im.h * im.w; i++)
+    static const char* class_names[] = {
+        "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light",
+        "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat", "dog", "horse", "sheep", "cow",
+        "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee",
+        "skis", "snowboard", "sports ball", "kite", "baseball bat", "baseball glove", "skateboard", "surfboard",
+        "tennis racket", "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl", "banana", "apple",
+        "sandwich", "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake", "chair", "couch",
+        "potted plant", "bed", "dining table", "toilet", "tv", "laptop", "mouse", "remote", "keyboard", "cell phone",
+        "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors", "teddy bear",
+        "hair drier", "toothbrush"
+    };
+
+    cv::Mat image = bgr.clone();
+
+    for (size_t i = 0; i < objects.size(); i++)
     {
-        im.data[i] = im.data[i] / 255;
+        const Object& obj = objects[i];
+
+        fprintf(stderr, "%2d: %3.0f%%, [%4.0f, %4.0f, %4.0f, %4.0f], %s\n", obj.label, obj.prob * 100, obj.rect.x,
+                obj.rect.y, obj.rect.x + obj.rect.width, obj.rect.y + obj.rect.height, class_names[obj.label]);
+
+        cv::rectangle(image, obj.rect, cv::Scalar(255, 0, 0));
+
+        char text[256];
+        sprintf(text, "%s %.1f%%", class_names[obj.label], obj.prob * 100);
+
+        int baseLine = 0;
+        cv::Size label_size = cv::getTextSize(text, cv::FONT_HERSHEY_SIMPLEX, 1, 2, &baseLine);
+
+        int x = obj.rect.x;
+        int y = obj.rect.y - label_size.height - baseLine;
+        if (y < 0)
+            y = 0;
+        if (x + label_size.width > image.cols)
+            x = image.cols - label_size.width;
+
+        cv::rectangle(image, cv::Rect(cv::Point(x, y), cv::Size(label_size.width, label_size.height + baseLine)),
+                      cv::Scalar(255, 255, 255), -1);
+
+        cv::putText(image, text, cv::Point(x, y + label_size.height), cv::FONT_HERSHEY_SIMPLEX, 1,
+                    cv::Scalar(0, 0, 0));
     }
-    sized = letterbox(im, net_w, net_h);
-    memcpy(input_data, sized.data, size * sizeof(float));
 
-    free_image(sized);
-    free_image(im);
+    cv::imwrite("yolov4_out.jpg", image);
 }
-
-static const char* class_names[] = {"person", "bicycle", "car", "motorcycle", "airplane", "bus",
-                                    "train", "truck", "boat", "traffic light", "fire hydrant",
-                                    "stop sign", "parking meter", "bench", "bird", "cat", "dog",
-                                    "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe",
-                                    "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee",
-                                    "skis", "snowboard", "sports ball", "kite", "baseball bat",
-                                    "baseball glove", "skateboard", "surfboard", "tennis racket",
-                                    "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl",
-                                    "banana", "apple", "sandwich", "orange", "broccoli", "carrot",
-                                    "hot dog", "pizza", "donut", "cake", "chair", "couch",
-                                    "potted plant", "bed", "dining table", "toilet", "tv", "laptop",
-                                    "mouse", "remote", "keyboard", "cell phone", "microwave", "oven",
-                                    "toaster", "sink", "refrigerator", "book", "clock", "vase",
-                                    "scissors", "teddy bear", "hair drier", "toothbrush"};
 
 void show_usage()
 {
     fprintf(
         stderr,
-        "[Usage]:  [-h]\n    [-m model_file] [-i image_file] [-r repeat_count] [-t thread_count] [-s size:608:512] \n");
+        "[Usage]:  [-h]\n    [-m model_file] [-i image_file] [-r repeat_count] [-t thread_count] \n");
 }
 
 int main(int argc, char* argv[])
 {
     const char* model_file = nullptr;
     const char* image_file = nullptr;
+    int img_h = 416;
+    int img_w = 416;
+    int img_c = 3;
+    const float mean[3] = {0, 0, 0};
+    const float scale[3] = {0.003921, 0.003921, 0.003921};
 
-    int numBBoxes = 3;
-    int total_numAnchors = 9;
-    int net_h = 608;
-    int net_w = 608;
     int repeat_count = 1;
     int num_thread = 1;
 
-    const int classes = 80;
-    const float s_thresh = 0.5;
-    const float s_hier_thresh = 0.5;
-    const float s_nms = 0.45;    
-
     int res;
-    while ((res = getopt(argc, argv, "m:i:r:t:h:s:")) != -1)
+    while ((res = getopt(argc, argv, "m:i:r:t:h:")) != -1)
     {
         switch (res)
         {
@@ -385,11 +322,6 @@ int main(int argc, char* argv[])
                 break;
             case 't':
                 num_thread = std::strtoul(optarg, nullptr, 10);
-                break;
-            case 's':
-                net_w = std::strtoul(optarg, nullptr, 10);
-                net_h = net_w;
-                fprintf(stderr, "set net input size: %d %d\n", net_h, net_w);
                 break;
             case 'h':
                 show_usage();
@@ -417,12 +349,19 @@ int main(int argc, char* argv[])
     if (!check_file_exist(model_file) || !check_file_exist(image_file))
         return -1;
 
+    cv::Mat img = cv::imread(image_file, 1);
+    if (img.empty())
+    {
+        fprintf(stderr, "cv::imread %s failed\n", image_file);
+        return -1;
+    }    
+
     /* set runtime options */
     struct options opt;
     opt.num_thread = num_thread;
     opt.cluster = TENGINE_CLUSTER_ALL;
     opt.precision = TENGINE_MODE_FP32;
-    opt.affinity = 0;     
+    opt.affinity = 0;
 
     /* inital tengine */
     if (init_tengine() != 0)
@@ -440,11 +379,9 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    /* set the input shape to initial the graph, and prerun graph to infer shape */
-    int img_size = net_h * net_w * 3;
-    int dims[] = {1, 3, net_h, net_w};    // nchw
-
-    std::vector<float> input_data(img_size);
+    int img_size = img_h * img_w * img_c;
+    int dims[] = {1, 3, img_h, img_w};
+    float* input_data = ( float* )malloc(img_size * sizeof(float));
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == nullptr)
@@ -459,11 +396,11 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    if (set_tensor_buffer(input_tensor, input_data.data(), img_size * 4) < 0)
+    if (set_tensor_buffer(input_tensor, input_data, img_size * 4) < 0)
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;
-    }    
+    }
 
     /* prerun graph, set work options(num_thread, cluster, precision) */
     if (prerun_graph_multithread(graph, opt) < 0)
@@ -473,13 +410,13 @@ int main(int argc, char* argv[])
     }
 
     /* prepare process input data, set the data mem to input tensor */
-    get_input_data_darknet(image_file, input_data.data(), net_h, net_w);
+    get_input_data_yolov4(image_file, input_data, img_h, img_w, mean, scale);
 
     /* run graph */
     double min_time = DBL_MAX;
     double max_time = DBL_MIN;
     double total_time = 0.;
-    for (int i = 0; i < 1; i++)
+    for (int i = 0; i < repeat_count; i++)
     {
         double start = get_current_time();
         if (run_graph(graph, 1) < 0)
@@ -493,106 +430,78 @@ int main(int argc, char* argv[])
         min_time = std::min(min_time, cur);
         max_time = std::max(max_time, cur);
     }
-    fprintf(stderr, "Repeat %d times, thread %d, avg time %.2f ms, max_time %.2f ms, min_time %.2f ms\n", 1, 1,
-            total_time, max_time, min_time);
+    fprintf(stderr, "Repeat %d times, thread %d, avg time %.2f ms, max_time %.2f ms, min_time %.2f ms\n", repeat_count, num_thread,
+            total_time/repeat_count, max_time, min_time);
     fprintf(stderr, "--------------------------------------\n");
 
-    image img = imread(image_file);
-    int output_node_num = get_graph_output_node_number(graph);
+    tensor_t p8_output = get_graph_output_tensor(graph, 0, 0);
+    tensor_t p16_output = get_graph_output_tensor(graph, 1, 0);
+    tensor_t p32_output = get_graph_output_tensor(graph, 2, 0);
+    
+    float* p8_data = ( float*)get_tensor_buffer(p8_output);
+    float* p16_data = ( float*)get_tensor_buffer(p16_output);
+    float* p32_data = ( float*)get_tensor_buffer(p32_output);
 
-    /* save layer */
-    std::vector<layer> layers_params;
-    layers_params.clear();
+	/* postprocess */
+    const float prob_threshold = 0.45f;
+    const float nms_threshold = 0.25f;
 
-    /* save detection reslult */
-    std::vector<detection*> detections;
-    detections.clear();
+    std::vector<Object> proposals;
+    std::vector<Object> objects8;
+    std::vector<Object> objects16;
+    std::vector<Object> objects32;
+    std::vector<Object> objects;
 
-    /* decode layer one by one */
-    for (int node = 0; node < output_node_num; ++node)
+    generate_proposals(32, p32_data, prob_threshold, objects32);
+    proposals.insert(proposals.end(), objects32.begin(), objects32.end());
+    generate_proposals(16, p16_data, prob_threshold, objects16);
+    proposals.insert(proposals.end(), objects16.begin(), objects16.end());
+    generate_proposals(8, p8_data, prob_threshold, objects8);
+    proposals.insert(proposals.end(), objects8.begin(), objects8.end());
+    qsort_descent_inplace(proposals);
+
+    std::vector<int> picked;
+    nms_sorted_bboxes(proposals, picked, nms_threshold);
+
+    /* yolov4 tiny draw the result */
+    int raw_h = img.rows;
+    int raw_w = img.cols;
+
+    float ratio_x = (float)raw_w / img_w;
+    float ratio_y = (float)raw_h / img_h;
+
+    int count = picked.size();
+    fprintf(stderr, "detection num: %d\n",count);
+
+    objects.resize(count);
+    for (int i = 0; i < count; i++)
     {
-        tensor_t out_tensor = get_graph_output_tensor(graph, node, 0);
-        int out_dim[4];
-        get_tensor_shape(out_tensor, out_dim, 4);
-        layer l_params;
-        int out_w = out_dim[3];
-        int out_h = out_dim[2];
-        l_params = make_darknet_layer(out_w, out_h, net_w, net_h, numBBoxes, total_numAnchors, classes);
-        layers_params.push_back(l_params);
-        float* out_data = ( float* )get_tensor_buffer(out_tensor);
-        std::vector<detection*> l_dets = forward_darknet_layer_cpu(out_data, l_params, img.w, img.h, net_w, net_h, s_thresh);
-        if (l_dets.empty())
-            continue;
-        detections.insert(detections.end(), l_dets.begin(), l_dets.end());
+        objects[i] = proposals[picked[i]];
+        float x0 = (objects[i].rect.x);
+        float y0 = (objects[i].rect.y);
+        float x1 = (objects[i].rect.x + objects[i].rect.width);
+        float y1 = (objects[i].rect.y + objects[i].rect.height);
+
+        x0 = x0 * ratio_x;
+        y0 = y0 * ratio_y;
+        x1 = x1 * ratio_x;
+        y1 = y1 * ratio_y;
+
+        x0 = std::max(std::min(x0, (float)(raw_w - 1)), 0.f);
+        y0 = std::max(std::min(y0, (float)(raw_h - 1)), 0.f);
+        x1 = std::max(std::min(x1, (float)(raw_w - 1)), 0.f);
+        y1 = std::max(std::min(y1, (float)(raw_h - 1)), 0.f);
+
+        objects[i].rect.x = x0;
+        objects[i].rect.y = y0;
+        objects[i].rect.width = x1 - x0;
+        objects[i].rect.height = y1 - y0;
     }
 
-    if (detections.empty())
-    {
-        fprintf(stderr, "no object detect");
-        return 0;
-    }
-
-    /* do nms */
-    do_nms_sort(detections, detections.size(), classes, s_nms);
-
-    /* print output dectections */
-    int i, j;
-    for (i = 0; i < detections.size(); ++i)
-    {
-        int cls = -1;
-        float best_class_prob = s_thresh;
-        for (j = 0; j < classes; ++j)
-        {
-            if (detections[i]->prob[j] > best_class_prob)
-            {
-                if (cls < 0)
-                {
-                    cls = j;
-                    best_class_prob = detections[i]->prob[j];
-                }
-            }
-        }
-        if (cls >= 0)
-        {
-            box b = detections[i]->bbox;
-            int left = (b.x - b.w / 2.) * img.w;
-            int right = (b.x + b.w / 2.) * img.w;
-            int top = (b.y - b.h / 2.) * img.h;
-            int bot = (b.y + b.h / 2.) * img.h;
-            draw_box(img, left, top, right, bot, 2, 125, 0, 125);
-            fprintf(stderr, "%2d: %3.0f%%, [%4d,%4d,%4d,%4d], %s\n", cls, best_class_prob * 100, left, top, right, bot, class_names[cls]);
-        }
-
-        if (detections[i]->prob)
-            free(detections[i]->prob);
-    }
-
-    save_image(img, "yolov4_out");
-
-    /* free resource */
-    for (int i = 0; i < output_node_num; ++i)
-    {
-        tensor_t out_tensor = get_graph_output_tensor(graph, i, 0);
-        release_graph_tensor(out_tensor);
-    }
-
-    free_image(img);
-
-    for (int i = 0; i < layers_params.size(); i++)
-    {
-        layer l = layers_params[i];
-        if (l.output)
-            free(l.output);
-        if (l.anchors)
-            free(l.anchors);
-        if (l.anchor_mask)
-            free(l.anchor_mask);
-    }
+    draw_objects(img, objects);
 
     /* release tengine */
     postrun_graph(graph);
     destroy_graph(graph);
     release_tengine();
-
-    return 0;
 }

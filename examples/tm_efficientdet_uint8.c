@@ -111,7 +111,7 @@ int nms(const Box_t* boxes, const int num_boxes, int* suppressed, float nms_thre
                 continue;
 
             // iou
-            float intersection = fmaxf(fminf(a.x1, b.x1) - fmaxf(a.x0, b.x0), 0) * fmaxf(fminf(a.y1, b.y1) - fmaxf(a.y0, b.y0), 0);
+            float intersection = fmaxf(fmin(a.x1, b.x1) - fmaxf(a.x0, b.x0), 0) * fmaxf(fminf(a.y1, b.y1) - fmaxf(a.y0, b.y0), 0);
             float total_area = (a.x1 - a.x0) * (a.y1 - a.y0) + (b.x1 - b.x0) * (b.y1 - b.y0) - intersection;
             float iou = fmaxf(intersection / total_area, 0);
 
@@ -220,7 +220,7 @@ int tengine_detect(const char* model_file, const char* image_file, int img_h, in
     struct options opt;
     opt.num_thread = num_thread;
     opt.cluster = TENGINE_CLUSTER_ALL;
-    opt.precision = TENGINE_MODE_FP32;
+    opt.precision = TENGINE_MODE_UINT8;
     opt.affinity = affinity;
 
     /* inital tengine */
@@ -236,14 +236,13 @@ int tengine_detect(const char* model_file, const char* image_file, int img_h, in
     if (NULL == graph)
     {
         fprintf(stderr, "Create graph failed.\n");
-        fprintf(stderr, "errno: %d \n", get_tengine_errno());
         return -1;
     }
 
     /* set the shape, data buffer of input_tensor of the graph */
     int img_size = img_h * img_w * 3;
     int dims[] = {1, 3, img_h, img_w};    // nchw
-    float* input_data = ( float* )malloc(img_size * sizeof(float));
+    uint8_t* input_data = ( uint8_t* )malloc(img_size * sizeof(uint8_t));
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == NULL)
@@ -258,7 +257,7 @@ int tengine_detect(const char* model_file, const char* image_file, int img_h, in
         return -1;
     }
 
-    if (set_tensor_buffer(input_tensor, input_data, img_size * 4) < 0)
+    if (set_tensor_buffer(input_tensor, input_data, img_size) < 0)
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;
@@ -300,7 +299,22 @@ int tengine_detect(const char* model_file, const char* image_file, int img_h, in
     image paddedImg = copyMaker(resImg, 0, img_h - resized_h, 0, img_w - resized_w, 0);
     free_image(resImg);
 
-    memcpy(input_data, paddedImg.data, sizeof(float) * paddedImg.c * img_w * img_h);
+    // memcpy(input_data, paddedImg.data, sizeof(float) * paddedImg.c * img_w * img_h);
+    /* quant fp32 to uint8 */
+    float input_scale = 0.f;
+    int input_zero_point = 0;
+    get_tensor_quant_param(input_tensor, &input_scale, &input_zero_point, 1);
+    for (int i = 0; i < paddedImg.c * img_w * img_h; i++)
+    {
+        int udata = (round)(paddedImg.data[i] / input_scale + input_zero_point);
+        if (udata > 255)
+            udata = 255;
+        else if (udata < 0)
+            udata = 0;
+
+        input_data[i] = udata;
+    }
+
     free_image(paddedImg);
 
     /* run graph */
@@ -333,12 +347,29 @@ int tengine_detect(const char* model_file, const char* image_file, int img_h, in
 
     /* get the result of classification */
     tensor_t output_tensor_regression = get_graph_output_tensor(graph, 0, 0);
-    float* output_data_regression = ( float* )get_tensor_buffer(output_tensor_regression);
-    int num_anchors = get_tensor_buffer_size(output_tensor_regression) / sizeof(float) / 4;
+    uint8_t* output_data_regression_u8 = ( uint8_t* )get_tensor_buffer(output_tensor_regression);
+    int num_anchors_data = get_tensor_buffer_size(output_tensor_regression);
+    int num_anchors = get_tensor_buffer_size(output_tensor_regression) / 4;
 
     tensor_t output_tensor_classification = get_graph_output_tensor(graph, 1, 0);
-    float* output_data_classification = ( float* )get_tensor_buffer(output_tensor_classification);
-    int num_classes = get_tensor_buffer_size(output_tensor_classification) / sizeof(float) / num_anchors;
+    uint8_t* output_data_classification_u8 = ( uint8_t* )get_tensor_buffer(output_tensor_classification);
+    int num_classes_data = get_tensor_buffer_size(output_tensor_classification);
+    int num_classes = get_tensor_buffer_size(output_tensor_classification) / num_anchors;
+
+    /* dequant uint8 to fp32 */
+    float output_scale_regression = 0.f;
+    int output_zero_point_regression = 0;
+    get_tensor_quant_param(output_tensor_regression, &output_scale_regression, &output_zero_point_regression, 1);
+    float* output_data_regression = ( float* )malloc(num_anchors_data * sizeof(float));
+    for (int i = 0; i < num_anchors_data; i++)
+        output_data_regression[i] = (( float )output_data_regression_u8[i] - ( float )output_zero_point_regression) * output_scale_regression;
+
+    float output_scale_classification = 0.f;
+    int output_zero_point_classification = 0;
+    get_tensor_quant_param(output_tensor_classification, &output_scale_classification, &output_zero_point_classification, 1);
+    float* output_data_classification = ( float* )malloc(num_classes_data * sizeof(float));
+    for (int i = 0; i < num_classes_data; i++)
+        output_data_classification[i] = (( float )output_data_classification_u8[i] - ( float )output_zero_point_classification) * output_scale_classification;            
 
     // postprocess
     // generate anchors
@@ -451,10 +482,8 @@ int tengine_detect(const char* model_file, const char* image_file, int img_h, in
     free(anchors_x1);
     free(anchors_y0);
     free(anchors_y1);
-    free(output_data_regression);
-    free(output_data_classification);
 
-    // filter boxes with confidence threshold
+    // filter boxes wiht confidence threshold
     Box_t* proposals_over_threshold = malloc(sizeof(Box_t) * num_proposals_over_threshold);
     int proposals_over_threshold_idx = 0;
     for (int i = 0; i < num_anchors; i++) {
@@ -492,13 +521,15 @@ int tengine_detect(const char* model_file, const char* image_file, int img_h, in
             fprintf(stderr, "BOX:( %d , %d ),( %d , %d )\n", box.x0, box.y0, box.x1, box.y1);
         }
 
-        save_image(im_vis, "efficientdet_out");
+        save_image(im_vis, "efficientdet_uint8_out");
 
         free(proposals_after_nms);
     }
     free(proposals_over_threshold);
 
     /* release tengine */
+    free(output_data_regression);
+    free(output_data_classification);
     free(input_data);
     postrun_graph(graph);
     destroy_graph(graph);
