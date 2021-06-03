@@ -54,12 +54,18 @@ static void relu(float* data, int size, int activation)
 {
     for (int i = 0; i < size; i++)
     {
-        data[i] = max(data[i], ( float )0);
+        if(activation == 1 || activation == 0){
+            data[i] = max(data[i], ( float )0);
 
-        if (activation > 0)
-        {
-            data[i] = min(data[i], ( float )activation);
+            if (activation > 0)
+            {
+                data[i] = min(data[i], ( float )activation);
+            }
         }
+        if(activation == 2){
+            data[i] = data[i] * 0.1f;
+        }
+
     }
 }
 

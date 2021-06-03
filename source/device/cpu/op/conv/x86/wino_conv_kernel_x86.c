@@ -49,11 +49,17 @@ static void relu(float* data, int size, int activation)
 {
     for (int i = 0; i < size; i++)
     {
-        data[i] = WINO_MAX(data[i], ( float )0);
 
-        if (activation > 0)
+        if (activation == 0 || activation == 1)
         {
-            data[i] = WINO_MIN(data[i], ( float )activation);
+            data[i] = WINO_MAX(data[i], ( float )0);
+            if(activation  > 0)
+                data[i] = WINO_MIN(data[i], ( float )activation);
+        }
+        if (activation == 2)
+        {
+            if (data[i] < 0)
+                data[i] = data[i] * 0.1f;
         }
     }
 }

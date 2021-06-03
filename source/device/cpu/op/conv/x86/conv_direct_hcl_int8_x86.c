@@ -227,7 +227,7 @@ static int conv3x3s1_int8_sse(struct tensor* input_tensor, struct tensor* weight
     }
 
     /* process activation relu6 */
-    if (param->activation > 0)
+    if (param->activation == 1)
     {
 #pragma omp parallel for num_threads(num_thread)
         for (int i = 0; i < outch; i++)
@@ -240,6 +240,22 @@ static int conv3x3s1_int8_sse(struct tensor* input_tensor, struct tensor* weight
                     output_fp32[output_off] = 0;
                 if (output_fp32[output_off] > 6)
                     output_fp32[output_off] = 6;
+            }
+        }
+    }
+
+    /* process activation leakyrelu */
+    if (param->activation == 2)
+    {
+#pragma omp parallel for num_threads(num_thread)
+        for (int i = 0; i < outch; i++)
+        {
+            for (int j = 0; j < outh * outw; j++)
+            {
+                int output_off = i * (outh * outw) + j;
+
+                if (output_fp32[output_off] < 0)
+                    output_fp32[output_off] = output_fp32[output_off]*0.1f;
             }
         }
     }
@@ -406,7 +422,7 @@ static int conv3x3s2_int8_sse(struct tensor* input_tensor, struct tensor* weight
     }
 
     /* process activation relu6 */
-    if (param->activation > 0)
+    if (param->activation == 1)
     {
 #pragma omp parallel for num_threads(num_thread)
         for (int i = 0; i < outch; i++)
@@ -419,6 +435,22 @@ static int conv3x3s2_int8_sse(struct tensor* input_tensor, struct tensor* weight
                     output_fp32[output_off] = 0;
                 if (output_fp32[output_off] > 6)
                     output_fp32[output_off] = 6;
+            }
+        }
+    }
+    /* process activation relu6 */
+    if (param->activation == 2)
+    {
+#pragma omp parallel for num_threads(num_thread)
+        for (int i = 0; i < outch; i++)
+        {
+            for (int j = 0; j < outh * outw; j++)
+            {
+                int output_off = i * (outh * outw) + j;
+
+                if (output_fp32[output_off] < 0)
+                    output_fp32[output_off] = output_fp32[output_off] * 0.1f;
+
             }
         }
     }

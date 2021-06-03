@@ -166,7 +166,7 @@ int ref_conv_uint8(struct tensor* input_tensor, struct tensor* output_tensor, st
                         if (bias != NULL)
                             total += bias_fp32[output_c * g + c];
 
-                        if (conv_param->activation >= 0)
+                        if (conv_param->activation == 0 || conv_param->activation == 1)
                         {
                             if (total < 0 && conv_param->activation != 1)
                             {
@@ -185,6 +185,10 @@ int ref_conv_uint8(struct tensor* input_tensor, struct tensor* output_tensor, st
                                 total = -1;
                             }
                         }
+                        if (conv_param->activation == 2){
+                            total = total * 0.1f;
+                        }
+
 
                         int out = round(total / output_scale) + output_zero;
                         if (out > 255)

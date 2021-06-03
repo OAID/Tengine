@@ -151,7 +151,7 @@ int ref_conv_int8(struct tensor* input_tensor, struct tensor* output_tensor, str
 
                         float total = total_i32 * dequant_scales[output_c * g + c];
 
-                        if (conv_param->activation >= 0)
+                        if (conv_param->activation == 0 || conv_param->activation == 1)
                         {
                             if (total < 0 && conv_param->activation != 1)
                             {
@@ -169,6 +169,9 @@ int ref_conv_int8(struct tensor* input_tensor, struct tensor* output_tensor, str
                             {
                                 total = -1;
                             }
+                        }
+                        if (conv_param->activation == 2){
+                            total = total * 0.1f;
                         }
 
                         int out = round(total / output_scale);

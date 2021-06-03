@@ -1684,7 +1684,7 @@ static void sgemm_fp32(struct tensor* input, struct tensor* filter, struct tenso
     }
 
     // process activation relu6
-    if (param->activation > 0)
+    if (param->activation == 1)
     {
         for (int i = 0; i < outchan_g; i++)
         {
@@ -1696,6 +1696,21 @@ static void sgemm_fp32(struct tensor* input, struct tensor* filter, struct tenso
                     output_fp32[output_off] = 0;
                 if (output_fp32[output_off] > 6)
                     output_fp32[output_off] = 6;
+            }
+        }
+    }
+
+    // process activation relu6
+    if (param->activation == 2)
+    {
+        for (int i = 0; i < outchan_g; i++)
+        {
+            for (int j = 0; j < out_h * out_w; j++)
+            {
+                int output_off = i * (out_h * out_w) + j;
+
+                if (output_fp32[output_off] < 0)
+                    output_fp32[output_off] = output_fp32[output_off] * 0.1f;
             }
         }
     }
@@ -1759,7 +1774,7 @@ static void sgemm_uint8(struct tensor* input, struct tensor* filter, struct tens
     }
 
     /* process activation relu6 */
-    if (param->activation > 0)
+    if (param->activation == 1)
     {
         for (int i = 0; i < outchan_g; i++)
         {
@@ -1771,6 +1786,20 @@ static void sgemm_uint8(struct tensor* input, struct tensor* filter, struct tens
                     output_sgemm[output_off] = 0;
                 if (output_sgemm[output_off] > 6)
                     output_sgemm[output_off] = 6;
+            }
+        }
+    }
+
+    if (param->activation == 2)
+    {
+        for (int i = 0; i < outchan_g; i++)
+        {
+            for (int j = 0; j < out_h * out_w; j++)
+            {
+                int output_off = i * (out_h * out_w) + j;
+
+                if (output_sgemm[output_off] < 0)
+                    output_sgemm[output_off] = output_sgemm[output_off] * 0.1f;
             }
         }
     }
@@ -1855,7 +1884,7 @@ static void sgemm_int8(struct tensor* input, struct tensor* filter, struct tenso
     }
 
     /* process activation relu6 */
-    if (param->activation > 0)
+    if (param->activation == 1)
     {
 #pragma omp parallel for num_threads(num_thread)
         for (int i = 0; i < outchan_g; i++)
@@ -1868,6 +1897,22 @@ static void sgemm_int8(struct tensor* input, struct tensor* filter, struct tenso
                     output_sgemm_fp32[output_off] = 0;
                 if (output_sgemm_fp32[output_off] > 6)
                     output_sgemm_fp32[output_off] = 6;
+            }
+        }
+    }
+
+    if (param->activation == 2)
+    {
+#pragma omp parallel for num_threads(num_thread)
+        for (int i = 0; i < outchan_g; i++)
+        {
+            for (int j = 0; j < out_h * out_w; j++)
+            {
+                int output_off = i * (out_h * out_w) + j;
+
+                if (output_sgemm_fp32[output_off] < 0)
+                    output_sgemm_fp32[output_off] = output_sgemm_fp32[output_off] * 0.1f;
+
             }
         }
     }
