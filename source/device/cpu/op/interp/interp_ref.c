@@ -46,7 +46,7 @@ void linear_coeffs(int w, int outw, int* xofs, float* alpha)
 
     for(int dx = 0; dx < outw; dx++)
     {
-        float fx = ( float )((dx + 0.5) * scale - 0.5);
+        float fx = ( float )((dx) * scale);
         int sx = floor(fx);
         fx -= sx;
 
