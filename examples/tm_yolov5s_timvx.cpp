@@ -444,7 +444,7 @@ int main(int argc, char* argv[])
 
     int img_size = letterbox_rows * letterbox_cols * img_c;
     int dims[] = {1, 12, int(letterbox_rows / 2), int(letterbox_cols / 2)};
-    uint8_t* input_data = ( uint8_t* )malloc(img_size * sizeof(uint8_t));
+    std::vector<uint8_t> input_data(img_size);
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == nullptr)
@@ -459,7 +459,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    if (set_tensor_buffer(input_tensor, input_data, img_size) < 0)
+    if (set_tensor_buffer(input_tensor, input_data.data(), img_size) < 0)
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;
@@ -476,7 +476,7 @@ int main(int argc, char* argv[])
     float input_scale = 0.f;
     int input_zero_point = 0;
     get_tensor_quant_param(input_tensor, &input_scale, &input_zero_point, 1);
-    get_input_data_focus_uint8(image_file, input_data, letterbox_rows, letterbox_cols, mean, scale, input_scale, input_zero_point);
+    get_input_data_focus_uint8(image_file, input_data.data(), letterbox_rows, letterbox_cols, mean, scale, input_scale, input_zero_point);
 
     /* run graph */
     double min_time = DBL_MAX;
@@ -524,22 +524,24 @@ int main(int argc, char* argv[])
     int p16_count = get_tensor_buffer_size(p16_output) / sizeof(uint8_t);
     int p32_count = get_tensor_buffer_size(p32_output) / sizeof(uint8_t);
 
-    uint8_t* p8_data_u8 = ( uint8_t* )get_tensor_buffer(p8_output);
-    float* p8_data = ( float* )malloc(sizeof(float) * p8_count);
+    std::vector<float> p8_data(p8_count);
+    std::vector<float> p16_data(p16_count);
+    std::vector<float> p32_data(p32_count);
+
+    uint8_t* p8_data_u8  = ( uint8_t* )get_tensor_buffer(p8_output);
+    uint8_t* p16_data_u8 = ( uint8_t* )get_tensor_buffer(p16_output);
+    uint8_t* p32_data_u8 = ( uint8_t* )get_tensor_buffer(p32_output);
+
     for (int c = 0; c < p8_count; c++)
     {
         p8_data[c] = (( float )p8_data_u8[c] - ( float )p8_zero_point) * p8_scale;
     }
 
-    uint8_t* p16_data_u8 = ( uint8_t* )get_tensor_buffer(p16_output);
-    float* p16_data = ( float* )malloc(sizeof(float) * p16_count);
     for (int c = 0; c < p16_count; c++)
     {
         p16_data[c] = (( float )p16_data_u8[c] - ( float )p16_zero_point) * p16_scale;
     }
 
-    uint8_t* p32_data_u8 = ( uint8_t* )get_tensor_buffer(p32_output);
-    float* p32_data = ( float* )malloc(sizeof(float) * p32_count);
     for (int c = 0; c < p32_count; c++)
     {
         p32_data[c] = (( float )p32_data_u8[c] - ( float )p32_zero_point) * p32_scale;
@@ -555,11 +557,11 @@ int main(int argc, char* argv[])
     std::vector<Object> objects32;
     std::vector<Object> objects;
 
-    generate_proposals(32, p32_data, prob_threshold, objects32, letterbox_cols, letterbox_rows);
+    generate_proposals(32, p32_data.data(), prob_threshold, objects32, letterbox_cols, letterbox_rows);
     proposals.insert(proposals.end(), objects32.begin(), objects32.end());
-    generate_proposals(16, p16_data, prob_threshold, objects16, letterbox_cols, letterbox_rows);
+    generate_proposals(16, p16_data.data(), prob_threshold, objects16, letterbox_cols, letterbox_rows);
     proposals.insert(proposals.end(), objects16.begin(), objects16.end());
-    generate_proposals( 8, p8_data, prob_threshold, objects8, letterbox_cols, letterbox_rows);
+    generate_proposals( 8, p8_data.data(), prob_threshold, objects8, letterbox_cols, letterbox_rows);
     proposals.insert(proposals.end(), objects8.begin(), objects8.end());
 
     qsort_descent_inplace(proposals);
@@ -616,9 +618,6 @@ int main(int argc, char* argv[])
     draw_objects(img, objects);
 
     /* release tengine */
-    free(p8_data);
-    free(p16_data);
-    free(p32_data);
     postrun_graph(graph);
     destroy_graph(graph);
     release_tengine();

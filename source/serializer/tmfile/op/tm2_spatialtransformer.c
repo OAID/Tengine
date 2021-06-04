@@ -32,6 +32,7 @@
 #include "serializer/serializer.h"
 #include "tmfile/tm2_serializer.h"
 #include "device/device.h"
+#include "utility/sys_port.h"
 #include "utility/log.h"
 
 
@@ -55,7 +56,7 @@ static int tm2_load_spatialtransformer(struct graph* ir_graph, struct node* ir_n
     {
         const TM2_Vector_dims* v_ta_shape = ( TM2_Vector_dims* )(mem_base + tm_param->offset_ta_shape);
 
-        param->target_shape = ( int* )malloc(v_ta_shape->v_num * sizeof(int));
+        param->target_shape = ( int* )sys_malloc(v_ta_shape->v_num * sizeof(int));
         for (unsigned int i = 0; i < v_ta_shape->v_num; i++)
         {
             param->target_shape[i] = v_ta_shape->dims[i];

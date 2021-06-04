@@ -119,7 +119,6 @@ int main(int argc, char* argv[])
     if (graph == nullptr)
     {
         std::cout << "Create graph0 failed\n";
-        std::cout << "errno: " << get_tengine_errno() << "\n";
         return -1;
     }
 

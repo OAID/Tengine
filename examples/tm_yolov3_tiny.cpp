@@ -184,7 +184,6 @@ static void generate_proposals(int stride, const float* feat, float prob_thresho
         {
             for (int anchor = 0; anchor <= anchor_num - 1; anchor++)
             {
-
                 int class_index = 0;
                 float class_score = -FLT_MAX;
                 int channel_size = feat_h * feat_w;

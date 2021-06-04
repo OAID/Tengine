@@ -457,8 +457,6 @@ int main(int argc, char* argv[])
     }
 
     free_image(img);
-
-    release_graph_tensor(input_tensor);
     postrun_graph(graph);
     destroy_graph(graph);
     release_tengine();
