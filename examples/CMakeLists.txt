@@ -115,6 +115,7 @@ IF (OpenCV_FOUND)
 
     TENGINE_EXAMPLE_CV (tm_openpose              tm_openpose.cpp)
     TENGINE_EXAMPLE_CV (tm_yolact                tm_yolact.cpp)
+    TENGINE_EXAMPLE_CV (tm_yolact_uint8          tm_yolact_uint8.cpp)
     TENGINE_EXAMPLE_CV (tm_crnn                  tm_crnn.cpp)
     TENGINE_EXAMPLE_CV (tm_alphapose             tm_alphapose.cpp)
     TENGINE_EXAMPLE_CV (tm_yolov3                tm_yolov3.cpp)

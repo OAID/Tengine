@@ -439,11 +439,9 @@ int main(int argc, char* argv[])
             total_time/repeat_count, max_time, min_time);
     fprintf(stderr, "--------------------------------------\n");
 
-    //tensor_t p8_output  = get_graph_output_tensor(graph, 2, 0);
     tensor_t p16_output = get_graph_output_tensor(graph, 1, 0);
     tensor_t p32_output = get_graph_output_tensor(graph, 0, 0);
     
-    //float* p8_data  = ( float*)get_tensor_buffer(p8_output);
     float* p16_data = ( float*)get_tensor_buffer(p16_output);
     float* p32_data = ( float*)get_tensor_buffer(p32_output);
 
@@ -461,8 +459,6 @@ int main(int argc, char* argv[])
     proposals.insert(proposals.end(), objects32.begin(), objects32.end());
     generate_proposals(16, p16_data, prob_threshold, objects16);
     proposals.insert(proposals.end(), objects16.begin(), objects16.end());
-    //generate_proposals(8, p8_data, prob_threshold, objects8);
-    //proposals.insert(proposals.end(), objects8.begin(), objects8.end());
 
     qsort_descent_inplace(proposals);
 

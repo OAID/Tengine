@@ -82,10 +82,6 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
 
     maximum_op_param->in_num = in_num;
     maximum_op_param->input_data = ( void* )sys_malloc(sizeof(void*) * in_num);
-    /*for (int i = 0; i < in_num; i++)
-    {
-        maximum_op_param->input_data[i] = (void *)sys_malloc(sizeof(void));
-    }*/
 
     return 0;
 }
@@ -118,11 +114,6 @@ static int postrun(struct node_ops* node_ops, struct exec_node* exec_node, struc
 {
     struct maximum_op_param* maximum_op_param = ( struct maximum_op_param* )exec_node->ops_priv;
 
-    /*for (int i = 0; i < maximum_op_param->in_num; i++)
-    {
-        sys_free(maximum_op_param->input_data[i]);
-    }*/
-
     sys_free(maximum_op_param->input_data);
 
     return 0;
@@ -130,7 +121,7 @@ static int postrun(struct node_ops* node_ops, struct exec_node* exec_node, struc
 
 static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struct node* exec_node)
 {
-    return OPS_SCORE_BEST;
+    return OPS_SCORE_CANDO;
 }
 
 static struct node_ops maximum_node_ops = {.prerun = prerun,
