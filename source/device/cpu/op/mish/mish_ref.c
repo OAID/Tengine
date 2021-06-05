@@ -65,7 +65,7 @@ int ref_mish_uint8(struct tensor *input_tensor, struct tensor *output_tensor, in
 
     for (int n = 0; n < batch; n++)
     {
-//#pragma omp parallel for num_threads(num_thread)
+#pragma omp parallel for num_threads(num_thread)
         for (int q = 0; q < channels; q++)
         {
             float* src = data_fp32 + batch_step * n + c_step * q;
