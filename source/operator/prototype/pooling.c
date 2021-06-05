@@ -92,21 +92,10 @@ static int infer_shape(ir_node_t* node)
     }
 
     int dims[4];
-
     dims[0] = batch;
-
-    if (ir_graph->graph_layout == TENGINE_LAYOUT_NCHW)
-    {
-        dims[1] = channel;
-        dims[2] = output_h;
-        dims[3] = output_w;
-    }
-    else
-    {
-        dims[1] = output_h;
-        dims[2] = output_w;
-        dims[3] = channel;
-    }
+    dims[1] = channel;
+    dims[2] = output_h;
+    dims[3] = output_w;
 
     set_ir_tensor_shape(output, dims, 4);
 

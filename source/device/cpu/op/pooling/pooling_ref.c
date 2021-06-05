@@ -76,25 +76,20 @@ static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struc
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
     struct pool_param* pool_param = ( struct pool_param* )ir_node->op.param_mem;
 
-    int batch, channel, input_h, input_w, output_h, output_w;
     int ret = 0;
 
-    batch = input_tensor->dims[0];
-    if (ir_graph->graph_layout == TENGINE_LAYOUT_NCHW)
-    {
-        channel = input_tensor->dims[1];
-        input_h = input_tensor->dims[2];
-        input_w = input_tensor->dims[3];
-    }
-    else
-    {
-        channel = input_tensor->dims[3];
-        input_h = input_tensor->dims[1];
-        input_w = input_tensor->dims[2];
-    }
+    int batch = input_tensor->dims[0];
+    int channel = input_tensor->dims[1];
+    int input_h = input_tensor->dims[2];
+    int input_w = input_tensor->dims[3];
+    int output_h, output_w;
 
-    if (pool_param->kernel_h == input_h && pool_param->kernel_w == input_w)
+    if (pool_param->kernel_h == input_h && pool_param->kernel_w == input_w &&
+        pool_param->pad_w0 == 0 && pool_param->pad_w1 == 0 &&
+        pool_param->pad_h0 == 0 && pool_param->pad_h1 == 0)
+    {
         pool_param->global = 1;
+    }
 
     if (pool_param->global)
     {
@@ -135,28 +130,15 @@ static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struc
     }
 
     int dims[4];
-    dims[0] = batch;
-    if (ir_graph->graph_layout == TENGINE_LAYOUT_NCHW)
+
+    if (output_tensor->dims[1] != channel || output_tensor->dims[2] != output_h ||
+        output_tensor->dims[3] != output_w)
     {
-        if (output_tensor->dims[1] != channel || output_tensor->dims[2] != output_h ||
-            output_tensor->dims[3] != output_w)
-        {
-            dims[1] = channel;
-            dims[2] = output_h;
-            dims[3] = output_w;
-            ret = set_ir_tensor_shape(output_tensor, dims, 4);
-        }
-    }
-    else
-    {
-        if (output_tensor->dims[1] != output_h || output_tensor->dims[2] != output_w ||
-            output_tensor->dims[3] != channel)
-        {
-            dims[1] = output_h;
-            dims[2] = output_w;
-            dims[3] = channel;
-            ret = set_ir_tensor_shape(output_tensor, dims, 4);
-        }
+        dims[0] = batch;
+        dims[1] = channel;
+        dims[2] = output_h;
+        dims[3] = output_w;
+        ret = set_ir_tensor_shape(output_tensor, dims, 4);
     }
 
     return ret;
