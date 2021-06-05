@@ -87,7 +87,7 @@ int QuantTool::activation_quant_tool()
     /* set the shape, data buffer of input_tensor of the graph */
     int img_size = img_h * img_w * img_c;
     int dims[] = {1, img_c, img_h, img_w};    // nchw
-    float* input_data = ( float* )malloc(img_size * sizeof(float));
+    std::vector<float> input_data(img_size);
 
     tensor_t input_tensor = get_graph_input_tensor(ir_graph, 0, 0);
     if (input_tensor == nullptr)
@@ -102,7 +102,7 @@ int QuantTool::activation_quant_tool()
         return -1;
     }
 
-    if (set_tensor_buffer(input_tensor, input_data, img_size * 4) < 0)
+    if (set_tensor_buffer(input_tensor, input_data.data(), img_size * 4) < 0)
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;
@@ -169,8 +169,7 @@ int QuantTool::activation_quant_tool()
     for (int nums = 0; nums < img_num; nums++)
     {
         fprintf(stderr, "\r[Quant Tools Info]: Step 1, images %.5d / %.5d", nums+1, img_num);
-        // cv::Mat m = cv::imread(imgs_list[nums].c_str(), 1);
-        get_input_data_cv(imgs_list[nums].c_str(), input_data, img_c, img_h, img_w, mean, scale, sw_RGB, center_crop, letterbox_rows, letterbox_cols, focus);
+        get_input_data_cv(imgs_list[nums].c_str(), input_data.data(), img_c, img_h, img_w, mean, scale, sw_RGB, center_crop, letterbox_rows, letterbox_cols, focus);
 
         /* run graph */
         double start = get_current_time();
@@ -179,6 +178,7 @@ int QuantTool::activation_quant_tool()
             fprintf(stderr, "Run graph failed\n");
             return -1;
         }
+
         double end = get_current_time();
         double cur = end - start;
         total_time += cur;
@@ -254,139 +254,141 @@ int QuantTool::activation_quant_tool()
     fclose(fp_minmax);
     fprintf(stderr, "\r\n[Quant Tools Info]: Step 1, find original calibration table done, output ./table_minmax.scale\n");
 
-    /* kl process divergence */
-    fprintf(stderr, "[Quant Tools Info]: Step 2, find calibration table.\n");
-    std::tr1::unordered_map<uint32_t, uint32_t> tensor_hist;
-    std::tr1::unordered_map<uint32_t, uint32_t> hist_tensor;
-    std::vector<std::vector<float>> hist_edge;
-    std::vector<std::vector<uint32_t>> hist_gram;
-
-    /* second loop, create histgram */
-    for (int nums = imgs_list.size()-1; nums >= 0; nums--)
+    if (this->algorithm_type == ALGORITHM_KL)
     {
-        fprintf(stderr, "\r[Quant Tools Info]: Step 2, images %.5d / %.5d", nums+1, img_num);
+        /* kl process divergence */
+        fprintf(stderr, "[Quant Tools Info]: Step 2, find calibration table.\n");
+        std::tr1::unordered_map<uint32_t, uint32_t> tensor_hist;
+        std::tr1::unordered_map<uint32_t, uint32_t> hist_tensor;
+        std::vector<std::vector<float>> hist_edge;
+        std::vector<std::vector<uint32_t>> hist_gram;
 
-        get_input_data_cv(imgs_list[nums].c_str(), input_data, img_c, img_h, img_w, mean, scale, sw_RGB, center_crop, letterbox_rows, letterbox_cols, focus);
-
-        /* run graph */
-        if (run_graph(ir_graph, 1) < 0)
+        /* second loop, create histgram */
+        for (int nums = imgs_list.size()-1; nums >= 0; nums--)
         {
-            fprintf(stderr, "Run graph failed\n");
-            return -1;
-        }
+            fprintf(stderr, "\r[Quant Tools Info]: Step 2, images %.5d / %.5d", nums+1, img_num);
 
-        /* calculate hist */
-        uint32_t inum = 0;
-        for (int i = 0; i < ir_graph->tensor_num; i++)
-        {
-            struct tensor* ir_tensor = ir_graph->tensor_list[i];
-            if (ir_tensor->tensor_type == TENSOR_TYPE_VAR || ir_tensor->tensor_type == TENSOR_TYPE_INPUT)
+            get_input_data_cv(imgs_list[nums].c_str(), input_data.data(), img_c, img_h, img_w, mean, scale, sw_RGB, center_crop, letterbox_rows, letterbox_cols, focus);
+
+            /* run graph */
+            if (run_graph(ir_graph, 1) < 0)
             {
-                float step_max = max_activation[i] - min_activation[i];
-                float step_bin = step_max / 2048.0f;
+                fprintf(stderr, "Run graph failed\n");
+                return -1;
+            }
 
-                std::vector<float> every_edge;
-                if (nums == imgs_list.size() - 1)
+            /* calculate hist */
+            uint32_t inum = 0;
+            for (int i = 0; i < ir_graph->tensor_num; i++)
+            {
+                struct tensor* ir_tensor = ir_graph->tensor_list[i];
+                if (ir_tensor->tensor_type == TENSOR_TYPE_VAR || ir_tensor->tensor_type == TENSOR_TYPE_INPUT)
                 {
-                    for (int j = 0; j < 2048; j++)
-                    {
-                        float edge_float = (step_bin * (j + 0.5f)) + min_activation[i];
-                        every_edge.push_back(edge_float);
-                    }
-                    hist_edge.push_back(every_edge);
-                    hist_gram.push_back(histCount(( float* )ir_tensor->data, ir_tensor->elem_num, max_activation[i], min_activation[i]));
-                }
-                else
-                {
-                    std::vector<uint32_t> hist_tmp;
-                    hist_tmp = histCount(( float* )ir_tensor->data, ir_tensor->elem_num, max_activation[i], min_activation[i]);
-                    for (int j = 0; j < 2048; j++)
-                    {
-                        hist_gram[inum][j] += hist_tmp[j];
-                    }
-                }
+                    float step_max = max_activation[i] - min_activation[i];
+                    float step_bin = step_max / 2048.0f;
 
-                tensor_hist[i] = inum;
-                hist_tensor[inum] = i;
-                inum++;
+                    std::vector<float> every_edge;
+                    if (nums == imgs_list.size() - 1)
+                    {
+                        for (int j = 0; j < 2048; j++)
+                        {
+                            float edge_float = (step_bin * (j + 0.5f)) + min_activation[i];
+                            every_edge.push_back(edge_float);
+                        }
+                        hist_edge.push_back(every_edge);
+                        hist_gram.push_back(histCount(( float* )ir_tensor->data, ir_tensor->elem_num, max_activation[i], min_activation[i]));
+                    }
+                    else
+                    {
+                        std::vector<uint32_t> hist_tmp;
+                        hist_tmp = histCount(( float* )ir_tensor->data, ir_tensor->elem_num, max_activation[i], min_activation[i]);
+                        for (int j = 0; j < 2048; j++)
+                        {
+                            hist_gram[inum][j] += hist_tmp[j];
+                        }
+                    }
+
+                    tensor_hist[i] = inum;
+                    hist_tensor[inum] = i;
+                    inum++;
+                }
             }
         }
-    }
 
-    fprintf(stderr, "\n");
+        fprintf(stderr, "\n");
 
-    /* save the calibration file with min-max algorithm with kl divergence */
-    FILE* fp_kl = fopen("table_kl.scale", "wb");
-    for (int i = 0; i < act_tensor_num; i++)
-    {
-        int threshold_bin = threshold_distribution(hist_gram[i], 256);
-//        fprintf(stderr, " threshold_bin %d \n", threshold_bin);
-
-        std::vector<uint32_t> hist_gram_F(threshold_bin + 1);
-        for (int j = 0; j < threshold_bin+1; j++)
+        /* save the calibration file with min-max algorithm with kl divergence */
+        FILE* fp_kl = fopen("table_kl.scale", "wb");
+        for (int i = 0; i < act_tensor_num; i++)
         {
-            hist_gram_F[j] = hist_gram[i][threshold_bin - j];
-        }
-        int threshold_bin_F = threshold_distribution(hist_gram_F, 256);
-        int threshold_bin_min = threshold_bin - threshold_bin_F + 1;   
+            int threshold_bin = threshold_distribution(hist_gram[i], 256);
+    //        fprintf(stderr, " threshold_bin %d \n", threshold_bin);
 
-        // fprintf(stderr, "### %s : %d   %f   %f & %f   %f\n",ir_graph->tensor_list[hist_tensor[i]]->name, threshold_bin, min_activation[hist_tensor[i]],\
-        //                                        hist_edge[i][threshold_bin_min], hist_edge[i][threshold_bin],  max_activation[hist_tensor[i]]);
-
-        float kl_min = hist_edge[i][threshold_bin_min];
-        float kl_max = hist_edge[i][threshold_bin];
-
-        float act_scale = 1.0f;
-        int act_zero_point = 0;
-        if (kl_max < 0)
-        {
-            act_scale = (0 - kl_min) / 255.f;
-            act_zero_point = int(-kl_min / act_scale);
-        }
-        else if (kl_min > 0)
-        {
-            act_scale = (kl_max - 0) / 255.f;
-            act_zero_point = 0;
-        }
-        else
-        {
-            act_scale = (kl_max - kl_min) / 255.f;
-            act_zero_point = int(-kl_min / act_scale);
-        }
-
-        if (act_scale == 0)
-            act_zero_point = 0;
-
-        /* the scale of softmax always is scale = 1 / 255.f */
-        for (int j = 0; j < ir_graph->node_num; j++)
-        {
-            struct node* ir_node = ir_graph->node_list[j];
-            struct tensor* ir_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-
-            if (!(ir_tensor->tensor_type == TENSOR_TYPE_INPUT || ir_tensor->tensor_type == TENSOR_TYPE_VAR))
-                continue;
-
-            std::string tmp_op_name = get_op_name_from_type(ir_node->op.type);
-            std::string cur_name = ir_graph->tensor_list[hist_tensor[i]]->name;
-            std::string tmp_name = ir_tensor->name;
-
-            if ((cur_name == tmp_name) && tmp_op_name == "Softmax")
+            std::vector<uint32_t> hist_gram_F(threshold_bin + 1);
+            for (int j = 0; j < threshold_bin+1; j++)
             {
-                act_scale = 1 / 255.f;
+                hist_gram_F[j] = hist_gram[i][threshold_bin - j];
+            }
+            int threshold_bin_F = threshold_distribution(hist_gram_F, 256);
+            int threshold_bin_min = threshold_bin - threshold_bin_F + 1;   
+
+            // fprintf(stderr, "### %s : %d   %f   %f & %f   %f\n",ir_graph->tensor_list[hist_tensor[i]]->name, threshold_bin, min_activation[hist_tensor[i]],\
+            //                                        hist_edge[i][threshold_bin_min], hist_edge[i][threshold_bin],  max_activation[hist_tensor[i]]);
+
+            float kl_min = hist_edge[i][threshold_bin_min];
+            float kl_max = hist_edge[i][threshold_bin];
+
+            float act_scale = 1.0f;
+            int act_zero_point = 0;
+            if (kl_max < 0)
+            {
+                act_scale = (0 - kl_min) / 255.f;
+                act_zero_point = int(-kl_min / act_scale);
+            }
+            else if (kl_min > 0)
+            {
+                act_scale = (kl_max - 0) / 255.f;
                 act_zero_point = 0;
-                break;
             }
-        }
+            else
+            {
+                act_scale = (kl_max - kl_min) / 255.f;
+                act_zero_point = int(-kl_min / act_scale);
+            }
 
-        fprintf(fp_kl, "%s %f %d\n", ir_graph->tensor_list[hist_tensor[i]]->name, act_scale, act_zero_point);
+            if (act_scale == 0)
+                act_zero_point = 0;
+
+            /* the scale of softmax always is scale = 1 / 255.f */
+            for (int j = 0; j < ir_graph->node_num; j++)
+            {
+                struct node* ir_node = ir_graph->node_list[j];
+                struct tensor* ir_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+
+                if (!(ir_tensor->tensor_type == TENSOR_TYPE_INPUT || ir_tensor->tensor_type == TENSOR_TYPE_VAR))
+                    continue;
+
+                std::string tmp_op_name = get_op_name_from_type(ir_node->op.type);
+                std::string cur_name = ir_graph->tensor_list[hist_tensor[i]]->name;
+                std::string tmp_name = ir_tensor->name;
+
+                if ((cur_name == tmp_name) && tmp_op_name == "Softmax")
+                {
+                    act_scale = 1 / 255.f;
+                    act_zero_point = 0;
+                    break;
+                }
+            }
+
+            fprintf(fp_kl, "%s %f %d\n", ir_graph->tensor_list[hist_tensor[i]]->name, act_scale, act_zero_point);
+        }
+        fclose(fp_kl);
+        fprintf(stderr, "[Quant Tools Info]: Step 2, find calibration table done, output ./table_kl.scale\n");   
     }
-    fclose(fp_kl);
-    fprintf(stderr, "[Quant Tools Info]: Step 2, find calibration table done, output ./table_kl.scale\n");   
 
     fprintf(stderr, "[Quant Tools Info]: Thread %d, image nums %d, total time %.2f ms, avg time %.2f ms\n", num_thread, img_num, total_time, total_time / img_num);
 
     /* release tengine */
-    free(input_data);
     postrun_graph(ir_graph);
     destroy_graph(ir_graph);
 
@@ -472,6 +474,7 @@ int main(int argc, char* argv[])
                 break;                
             case 't':
                 quant_tool.num_thread = atoi(optarg);
+                quant_tool.opt.num_thread = atoi(optarg);
                 break;
             case 'h':
                 show_usage();

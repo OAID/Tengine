@@ -431,7 +431,7 @@ int main(int argc, char* argv[])
 
     int img_size = letterbox_rows * letterbox_cols * img_c;
     int dims[] = {1, 12, int(letterbox_rows / 2), int(letterbox_cols / 2)};
-    float* input_data = ( float* )malloc(img_size * sizeof(float));
+    std::vector<float> input_data(img_size);
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == nullptr)
@@ -446,7 +446,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    if (set_tensor_buffer(input_tensor, input_data, img_size * 4) < 0)
+    if (set_tensor_buffer(input_tensor, input_data.data(), img_size * 4) < 0)
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;
@@ -460,7 +460,7 @@ int main(int argc, char* argv[])
     }
 
     /* prepare process input data, set the data mem to input tensor */
-    get_input_data_focus(image_file, input_data, letterbox_rows, letterbox_cols, mean, scale);
+    get_input_data_focus(image_file, input_data.data(), letterbox_rows, letterbox_cols, mean, scale);
 
     /* run graph */
     double min_time = DBL_MAX;

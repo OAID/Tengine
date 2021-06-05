@@ -32,6 +32,8 @@
 #include "utility/sys_port.h"
 #include "utility/vector.h"
 
+#include <string.h>
+
 
 static int infer_shape(struct node* node)
 {
