@@ -1,6 +1,7 @@
 #ifndef __TEST_COMMON_H__
 #define __TEST_COMMON_H__
 
+#include <vector>
 #include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
