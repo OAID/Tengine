@@ -34,16 +34,7 @@ extern "C"
 #include "operator/op.h"
 #include "utility/log.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#ifdef _MSC_VER
-#include <windows.h>
-#else
-#include <sys/stat.h>
-#include <sys/time.h>
-#endif
+#include "timvx_dump.h"
 }
 
 #include <map>
@@ -85,8 +76,6 @@ extern "C"
 #define SPEC_TYPE_INTERP    4
 #define SPEC_TYPE_RESHAPE   5
 
-#define TENGINE_DUMP_DIR            "TG_DEBUG_DUMP_DIR"
-#define TENGINE_DUMP_LAYER          "TG_DEBUG_DATA"
 
 typedef std::map<uint32_t, std::shared_ptr<tim::vx::Tensor>> dict_irt2vxt;
 typedef std::map<uint32_t, std::shared_ptr<tim::vx::Operation>> dict_irt2vxo;
