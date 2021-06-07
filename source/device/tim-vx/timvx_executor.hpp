@@ -33,6 +33,8 @@ extern "C"
 #include "graph/subgraph.h"
 #include "operator/op.h"
 #include "utility/log.h"
+
+#include "timvx_dump.h"
 }
 
 #include <map>
@@ -62,6 +64,7 @@ extern "C"
 #include "tim/vx/ops/pool2d.h"
 #include "tim/vx/ops/reshape.h"
 #include "tim/vx/ops/resize.h"
+#include "tim/vx/ops/simple_operations.h"
 #include "tim/vx/ops/slice.h"
 #include "tim/vx/ops/softmax.h"
 #include "tim/vx/ops/space2depth.h"
@@ -72,6 +75,7 @@ extern "C"
 #define SPEC_TYPE_PRELU     3
 #define SPEC_TYPE_INTERP    4
 #define SPEC_TYPE_RESHAPE   5
+
 
 typedef std::map<uint32_t, std::shared_ptr<tim::vx::Tensor>> dict_irt2vxt;
 typedef std::map<uint32_t, std::shared_ptr<tim::vx::Operation>> dict_irt2vxo;
@@ -89,7 +93,7 @@ public:
 
 private:
     int Build(struct subgraph* subgraph);
-    void VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_type);
+    int VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_type);
 
     bool AddClipNode(struct node* ir_node);
     bool AddConcatNode(struct node* ir_node);
