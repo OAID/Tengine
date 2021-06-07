@@ -97,6 +97,10 @@ extern "C" {
 #include "reduction_param.h"
 #include "scale_param.h"
 #include "strided_slice_param.h"
+#include "logsoftmax_param.h"
+#include "scatter_param.h"
+#include "hardsigmoid_param.h"
+#include "tile_param.h"
 
 #ifdef __cplusplus
 }

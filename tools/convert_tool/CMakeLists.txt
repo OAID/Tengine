@@ -21,8 +21,11 @@ FILE (MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/tengine)
 FILE (COPY ${CMAKE_SOURCE_DIR}/source/api/c_api.h DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/tengine)
 
 # add protobuf
-find_package(Protobuf 3.0.0 REQUIRED)
+find_package(Protobuf 3.10.0)
 include_directories(${Protobuf_INCLUDE_DIR})
+if (${Protobuf_VERSION} VERSION_LESS "3.10.0")
+    message(WARNING "protobuf version is ${Protobuf_VERSION}, need 3.10.0+, may make failed.")
+endif()
 
 # ONNX
 FILE(GLOB_RECURSE ONNX_SERIALIZER_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/onnx/*.cpp")
@@ -41,7 +44,7 @@ include_directories(${ONNX_PROTO_OUT_PATH})
 list(APPEND ONNX_SERIALIZER_SRCS ${ONNX_PROTO_SRC})
 
 # SAVE GRAPH
-FILE(GLOB_RECURSE SAVE_GRAPH_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/utils/savegraph/*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/utils/savegraph/*.c")
+FILE(GLOB_RECURSE SAVE_GRAPH_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/utils/save_graph/*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/utils/save_graph/*.c")
 
 # CONVERT TOOL
 FILE(GLOB_RECURSE CONVERT_TOOL_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/convert_tool.cpp")

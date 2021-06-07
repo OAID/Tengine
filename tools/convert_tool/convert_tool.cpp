@@ -27,7 +27,7 @@
 #include <unistd.h>
 
 #include "tengine/c_api.h"
-#include "utils/savegraph/save_graph.hpp"
+#include "utils/save_graph/save_graph.hpp"
 #include "onnx/onnx2tengine.hpp"
 
 const char* help_params = "[Convert Tools Info]: optional arguments:\n"
@@ -160,12 +160,17 @@ int main(int argc, char* argv[])
     
     init_tengine();
     
-    graph_t graph = nullptr;
+    graph_t graph = NULL;
     if (file_format == "onnx")
         graph = onnx2tengine(model_file);
     else
     {
         fprintf(stderr, "Convert model failed: support onnx only...\n");
+        return -1;
+    }
+    if (graph == NULL)
+    {
+        fprintf(stderr, "Convert model failed.\n");
         return -1;
     }
     
