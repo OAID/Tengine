@@ -73,7 +73,7 @@ VXEngine::VXEngine()
 };
 
 
-void VXEngine::VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_type)
+int VXEngine::VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_type)
 {
     auto iter = this->vx_tensor_map.find(ir_tensor_idx);
 
@@ -95,8 +95,8 @@ void VXEngine::VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_t
                 datatype = tim::vx::DataType::INT32;
                 break;
             default:
-                TLOG_ERR("Tensor: Tensor_name(%s) tensor_index(%d) tensor_data_type(%d) .\n",ir_tensor->name, ir_tensor->index, ir_tensor->data_type);
-                break;
+                TLOG_ERR("FP32 Tensor: Tensor_name(%s) tensor_index(%d) tensor_data_type(%d) .\n",ir_tensor->name, ir_tensor->index, ir_tensor->data_type);
+                return -1;
         }
 
         tim::vx::ShapeType vx_shape;
@@ -170,6 +170,8 @@ void VXEngine::VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_t
         }
         this->vx_tensor_map[ir_tensor_idx] = vx_tensor;
     }
+
+    return 0;
 }
 
 int VXEngine::Build(struct subgraph* subgraph)
