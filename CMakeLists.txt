@@ -53,7 +53,7 @@ OPTION (TENGINE_BUILD_BENCHMARK             "Build benchmark"                   
 OPTION (TENGINE_BUILD_EXAMPLES              "Build examples"                            ON)
 OPTION (TENGINE_BUILD_TESTS                 "Build tests"                               OFF)
 OPTION (TENGINE_BUILD_CPP_API               "Build C++ API"                             OFF)
-OPTION (TENGINE_BUILD_CONVERT_TOOL          "Build convert tool"                        ON)
+OPTION (TENGINE_BUILD_CONVERT_TOOL          "Build convert tool"                        OFF)
 
 # Tools options
 # Tools
