@@ -57,6 +57,9 @@ int VXEngine::VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_ty
         tim::vx::DataType datatype;
         switch(ir_tensor->data_type)
         {
+            case (0):
+                datatype = tim::vx::DataType::FLOAT32;
+                break;
             case (1):
                 datatype = tim::vx::DataType::FLOAT16;
                 break;
@@ -67,8 +70,8 @@ int VXEngine::VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_ty
                 datatype = tim::vx::DataType::INT32;
                 break;
             default:
-                TLOG_ERR("FP32 Tensor: Tensor_name(%s) tensor_index(%d) tensor_data_type(%d) .\n",ir_tensor->name, ir_tensor->index, ir_tensor->data_type);
-                return -1;
+                TLOG_ERR("Tensor date type: Tensor_name(%s) tensor_index(%d) tensor_data_type(%d) .\n",ir_tensor->name, ir_tensor->index, ir_tensor->data_type);
+                break;
         }
 
         tim::vx::ShapeType vx_shape;
@@ -107,6 +110,13 @@ int VXEngine::VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_ty
             tim::vx::TensorSpec vx_spec(datatype, vx_shape,
                                         tim::vx::TensorAttribute::OUTPUT, vx_quant);
             vx_tensor = this->graph->CreateTensor(vx_spec);
+        }
+        else if (ir_tensor->data_type == TENGINE_DT_FP32)
+        {
+            tim::vx::Quantization none_quant(tim::vx::QuantType::NONE, 1, 0);
+            tim::vx::TensorSpec vx_spec(datatype, vx_shape,
+                                        tim::vx::TensorAttribute::CONSTANT, none_quant);
+            vx_tensor = this->graph->CreateTensor(vx_spec, ir_tensor->data);
         }
         else if (spec_type == SPEC_TYPE_DWCONV)
         {
@@ -169,6 +179,9 @@ int VXEngine::Build(struct subgraph* subgraph)
 
         switch (op_type)
         {
+            case OP_BATCHNORM:
+                this->AddBatchNormNode(ir_node);
+                break;
             case OP_CLIP:
                 this->AddClipNode(ir_node);
                 break;
@@ -496,6 +509,10 @@ int VXEngine::VXEngineRun(struct subgraph* subgraph)
                 TLOG_INFO("Tengine: Copy output data from VX tensor to CPU failed.\n");
                 return -1;
             }
+
+
+            char dir_str[32] = { 0 };
+            extract_feature_from_tensor_timvx(dir_str, ir_tensor->name, ir_tensor);
         }
 
 
