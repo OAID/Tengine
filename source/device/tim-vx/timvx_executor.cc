@@ -23,7 +23,6 @@
  */
 
 #include "timvx_executor.hpp"
-
 #include "timvx_define.h"
 
 #ifdef TIMVX_MODEL_CACHE
@@ -36,7 +35,6 @@
 #include <fstream>
 #endif
 
-///////////////////////////////////////////////////////////////////////////////////////
 
 VXEngine::VXEngine()
 {
