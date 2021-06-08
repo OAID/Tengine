@@ -105,6 +105,8 @@ int VXEngine::VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_ty
         /* create the vx tesnor */
         std::shared_ptr<tim::vx::Tensor> vx_tensor;
 
+        fprintf(stderr,"tensor name %s\n",ir_tensor->name);
+
         if (spec_type == SPEC_TYPE_OUTPUT)
         {
             tim::vx::TensorSpec vx_spec(datatype, vx_shape,
@@ -120,8 +122,9 @@ int VXEngine::VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_ty
         }
         else if (spec_type == SPEC_TYPE_DWCONV)
         {
+            auto tmpvx = vx_shape[ir_tensor->dim_num - 2];
             vx_shape[ir_tensor->dim_num - 2] = vx_shape[ir_tensor->dim_num - 1];
-            vx_shape[ir_tensor->dim_num - 1] = 1;
+            vx_shape[ir_tensor->dim_num - 1] = tmpvx;
             tim::vx::TensorSpec vx_spec(datatype, vx_shape,
                                         tim::vx::TensorAttribute::CONSTANT, vx_quant);
             vx_tensor = this->graph->CreateTensor(vx_spec, ir_tensor->data);
@@ -156,6 +159,7 @@ int VXEngine::VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_ty
         }
         else if (ir_tensor->tensor_type == TENSOR_TYPE_CONST)
         {
+            fprintf(stderr," vx_shape %d %d %d %d\n", vx_shape[0], vx_shape[1], vx_shape[2], vx_shape[3]);
             tim::vx::TensorSpec vx_spec(datatype, vx_shape,
                                         tim::vx::TensorAttribute::CONSTANT, vx_quant);
             vx_tensor = this->graph->CreateTensor(vx_spec, ir_tensor->data);
@@ -399,7 +403,7 @@ int VXEngine::VXEnginePreRun(struct subgraph* subgraph)
             if (ir_node->op.type == OP_CONV)
             {
                 auto conv_param = (struct conv_param*)ir_node->op.param_mem;
-                if (conv_param->group == conv_param->output_channel)
+                if ((conv_param->group == conv_param->output_channel) && (conv_param->output_channel != 1))
                 {
                     this->VXTensorMap(ir_graph, ir_node->input_tensors[1], SPEC_TYPE_DWCONV);
                 }
