@@ -36,35 +36,7 @@
 #include <fstream>
 #endif
 
-
-void dump_sub_graph(struct subgraph* sub_graph)
-{
-    TLOG_INFO("Sub graph[%d]: {%8s } has %d nodes, %d input tensors, %d output tensors.\n", sub_graph->index, sub_graph->device->name, sub_graph->node_num, sub_graph->input_num, sub_graph->output_num);
-    TLOG_INFO("\tSub nodes: [ ");
-
-    for (int j = 0; j < sub_graph->node_num - 1; j++)
-    {
-        int node_id = sub_graph->node_list[j];
-        TLOG_INFO("%d, ", node_id);
-    }
-    TLOG_INFO("%d ].\n", sub_graph->node_list[sub_graph->node_num - 1]);
-
-    TLOG_INFO("\tSub input tensors: [ ");
-    for (int j = 0; j < sub_graph->input_num - 1; j++)
-    {
-        int tensor_id = sub_graph->input_tensor_list[j];
-        TLOG_INFO("%d, ", tensor_id);
-    }
-    TLOG_INFO("%d ].\n", sub_graph->input_tensor_list[sub_graph->input_num - 1]);
-
-    TLOG_INFO("\tSub output tensors: [ ");
-    for (int j = 0; j < sub_graph->output_num - 1; j++)
-    {
-        int tensor_id = sub_graph->output_tensor_list[j];
-        TLOG_INFO("%d, ", tensor_id);
-    }
-    TLOG_INFO("%d ].\n", sub_graph->output_tensor_list[sub_graph->output_num - 1]);
-}
+///////////////////////////////////////////////////////////////////////////////////////
 
 VXEngine::VXEngine()
 {
@@ -73,7 +45,7 @@ VXEngine::VXEngine()
 };
 
 
-void VXEngine::VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_type)
+int VXEngine::VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_type)
 {
     auto iter = this->vx_tensor_map.find(ir_tensor_idx);
 
@@ -95,8 +67,8 @@ void VXEngine::VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_t
                 datatype = tim::vx::DataType::INT32;
                 break;
             default:
-                TLOG_ERR("Tensor: Tensor_name(%s) tensor_index(%d) tensor_data_type(%d) .\n",ir_tensor->name, ir_tensor->index, ir_tensor->data_type);
-                break;
+                TLOG_ERR("FP32 Tensor: Tensor_name(%s) tensor_index(%d) tensor_data_type(%d) .\n",ir_tensor->name, ir_tensor->index, ir_tensor->data_type);
+                return -1;
         }
 
         tim::vx::ShapeType vx_shape;
@@ -158,9 +130,19 @@ void VXEngine::VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_t
         }
         else if (ir_tensor->tensor_type == TENSOR_TYPE_VAR)
         {
-            tim::vx::TensorSpec vx_spec(datatype, vx_shape,
-                                        tim::vx::TensorAttribute::TRANSIENT, vx_quant);
-            vx_tensor = this->graph->CreateTensor(vx_spec);
+            const char* env = getenv(TENGINE_DUMP_LAYER);
+            if (env && env[0] == '1')
+            {
+                tim::vx::TensorSpec vx_spec(datatype, vx_shape,
+                                            tim::vx::TensorAttribute::OUTPUT, vx_quant);
+                vx_tensor = this->graph->CreateTensor(vx_spec);
+            }
+            else
+            {
+                tim::vx::TensorSpec vx_spec(datatype, vx_shape,
+                                            tim::vx::TensorAttribute::TRANSIENT, vx_quant);
+                vx_tensor = this->graph->CreateTensor(vx_spec);
+            }
         }
         else if (ir_tensor->tensor_type == TENSOR_TYPE_CONST)
         {
@@ -170,6 +152,8 @@ void VXEngine::VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_t
         }
         this->vx_tensor_map[ir_tensor_idx] = vx_tensor;
     }
+
+    return 0;
 }
 
 int VXEngine::Build(struct subgraph* subgraph)
@@ -513,6 +497,44 @@ int VXEngine::VXEngineRun(struct subgraph* subgraph)
                 return -1;
             }
         }
+
+
+        const char* env = getenv(TENGINE_DUMP_LAYER);
+        if (env && env[0] == '1')
+        {
+            for (uint8_t i = 0; i < ir_graph->tensor_num; i++)
+            {
+                if (ir_graph->tensor_list[i]->tensor_type == TENSOR_TYPE_VAR)
+                {
+                    if (ir_graph->tensor_list[i]->data == NULL)
+                    {
+                        TLOG_INFO("Log:download data is NULL\n");
+                        uint8_t* u8data = (uint8_t*)malloc(ir_graph->tensor_list[i]->elem_size * ir_graph->tensor_list[i]->elem_num);
+                        ir_graph->tensor_list[i]->data = u8data;
+                    }
+                    if (!this->vx_tensor_map[i]->CopyDataFromTensor(ir_graph->tensor_list[i]->data))
+                    {
+                        TLOG_INFO("Log:Copy output data fail\n");
+                        return -1;
+                    }
+                }
+            }
+
+            for (uint8_t i = 0; i < ir_graph->tensor_num; i++)
+            {
+                fprintf(stderr,"tensor type %d\n",ir_graph->tensor_list[i]->tensor_type);
+                if (ir_graph->tensor_list[i]->tensor_type == TENSOR_TYPE_VAR)
+                {
+                    char dir_str[32] = { 0 };
+                    sprintf(dir_str, "out[%d]", i);
+
+                    if (NULL != ir_graph->tensor_list[i]->data)
+                    {
+                        extract_feature_from_tensor_timvx(dir_str, ir_graph->tensor_list[i]->name, ir_graph->tensor_list[i]);
+                    }
+                }
+            }
+        }// End TENGINE_DUMP_LAYER
     }
 
     return 0;
