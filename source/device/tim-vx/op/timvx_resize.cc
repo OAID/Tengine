@@ -61,8 +61,8 @@ bool VXEngine::AddResizeNode(struct node* ir_node)
     vx_node_map[ir_node->index] = resize;
 
     (*resize)
-            .BindInput(add_in_tensor)
-            .BindOutputs({ this->vx_tensor_map[output_tensor->index] });
+        .BindInput(add_in_tensor)
+        .BindOutputs({ this->vx_tensor_map[output_tensor->index] });
 
     return true;
 }
