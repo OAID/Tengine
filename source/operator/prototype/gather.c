@@ -37,6 +37,7 @@ static int infer_shape(struct node* node)
 {
     struct graph* graph   = node->graph;
     struct tensor* input  = get_ir_graph_tensor(graph, node->input_tensors[0]);
+    struct tensor* input1  = get_ir_graph_tensor(graph, node->input_tensors[1]);
     struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
 
     struct gather_param* _param = ( struct gather_param* )(node->op.param_mem);
@@ -50,6 +51,7 @@ static int infer_shape(struct node* node)
         {
             for(int i = 0; i < input->dim_num  - 1; i++)
             {
+                push_vector_data(new_shape_temp, (void* )&input1->dims[i]);
                 push_vector_data(new_shape_temp, (void* )&input->dims[i+1]);
             }
         }

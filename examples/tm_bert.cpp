@@ -71,6 +71,7 @@ void init(const char* modelfile)
 
 
     int rc = prerun_graph(graph);
+    dump_graph(graph);
     unique_ids = get_graph_output_tensor(graph, 0, 0);
     unstack_1 = get_graph_output_tensor(graph, 1, 0);
     unstack_0 = get_graph_output_tensor(graph, 2, 0);
@@ -88,7 +89,7 @@ int getResult()
     std::vector<float> input_data3(256,1);
     std::vector<float> input_data4(256,1);
     //get_input_data(imagefile, input_data.data(), height, width, means, scales);
-    set_tensor_buffer(unique_ids, input_data1.data(), 1 * sizeof(float));
+    set_tensor_buffer(unique_ids_raw_output, input_data1.data(), 1 * sizeof(float));
     set_tensor_buffer(segment_ids, input_data2.data(), 256 * sizeof(float));
     set_tensor_buffer(input_mask, input_data3.data(), 256 * sizeof(float));
     set_tensor_buffer(input_ids, input_data4.data(), 256 * sizeof(float));

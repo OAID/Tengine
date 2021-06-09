@@ -59,9 +59,28 @@ static int infer_shape(struct node* node)
 
     int i0_size = input0->elem_num;
     int i1_size = input1->elem_num;
-    int dim_num = 0;
+    //int dim_num = 0;
+    int dim_num = input0->dim_num >= input1->dim_num ? input0->dim_num:input1->dim_num;
+    int dims[dim_num];
+    if (input0->dim_num>=input1->dim_num){
+        for (int i=0; i<input1->dim_num;i++){
+            dims[input0->dim_num-i-1]=(input0->dims[input0->dim_num-i-1] >= input1->dims[input1->dim_num-i-1] ? input0->dims[input0->dim_num-i-1]:input1->dims[input1->dim_num-i-1]);
+        }
+        for (int i=0; i<input0->dim_num-input1->dim_num;i++){
+            dims[i]=input0->dims[i];
+        }
+    }
+    else{
+        for (int i=0; i<input0->dim_num;i++){
+            dims[input1->dim_num-i-1]=(input0->dims[input0->dim_num-i-1] >= input1->dims[input1->dim_num-i-1] ? input0->dims[input0->dim_num-i-1]:input1->dims[input1->dim_num-i-1]);
+        }
+        for (int i=0; i<input1->dim_num-input0->dim_num;i++){
+            dims[i]=input1->dims[i];
+        }
+    }
 
-    if (i0_size >= i1_size)
+
+   /*  if (i0_size >= i1_size)
     {
         memcpy(output->dims, input0->dims, input0->dim_num * sizeof(int));
         dim_num = input0->dim_num;
@@ -70,9 +89,9 @@ static int infer_shape(struct node* node)
     {
         memcpy(output->dims, input1->dims, input1->dim_num * sizeof(int));
         dim_num = input1->dim_num;
-    }
+    } */
 
-    set_ir_tensor_shape(output, output->dims, dim_num);
+    set_ir_tensor_shape(output, dims, dim_num);
 
     return 0;
 }
