@@ -508,12 +508,9 @@ int VXEngine::VXEngineRun(struct subgraph* subgraph)
 
             if (!this->vx_tensor_map[ir_tensor_idx]->CopyDataFromTensor(ir_tensor->data)) 
             {
-                TLOG_INFO("Tengine: Copy output data from VX tensor to CPU failed.\n");
+                TLOG_INFO("TIM-VX: Copy output data from VX tensor to CPU failed.\n");
                 return -1;
             }
-
-            char dir_str[32] = { 0 };
-            extract_feature_from_tensor_timvx(dir_str, ir_tensor->name, ir_tensor);
         }
 
 
@@ -524,15 +521,15 @@ int VXEngine::VXEngineRun(struct subgraph* subgraph)
             {
                 if (ir_graph->tensor_list[i]->tensor_type == TENSOR_TYPE_VAR)
                 {
-                    if (ir_graph->tensor_list[i]->data == NULL)
+                    if (ir_graph->tensor_list[i]->data == nullptr)
                     {
-                        TLOG_INFO("Log:download data is NULL\n");
+                        TLOG_INFO("TIM-VX: Data pointer is nullptr.\n");
                         uint8_t* u8data = (uint8_t*)malloc(ir_graph->tensor_list[i]->elem_size * ir_graph->tensor_list[i]->elem_num);
                         ir_graph->tensor_list[i]->data = u8data;
                     }
                     if (!this->vx_tensor_map[i]->CopyDataFromTensor(ir_graph->tensor_list[i]->data))
                     {
-                        TLOG_INFO("Log:Copy output data fail\n");
+                        TLOG_INFO("TIM-VX: Copy output data failed.\n");
                         return -1;
                     }
                 }
@@ -540,7 +537,7 @@ int VXEngine::VXEngineRun(struct subgraph* subgraph)
 
             for (uint8_t i = 0; i < ir_graph->tensor_num; i++)
             {
-                fprintf(stderr,"tensor type %d\n",ir_graph->tensor_list[i]->tensor_type);
+                TLOG_INFO("TIM-VX: Tensor type %d\n",ir_graph->tensor_list[i]->tensor_type);
                 if (ir_graph->tensor_list[i]->tensor_type == TENSOR_TYPE_VAR)
                 {
                     char dir_str[32] = { 0 };
