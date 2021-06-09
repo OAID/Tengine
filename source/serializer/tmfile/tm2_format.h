@@ -963,6 +963,11 @@ typedef struct
 
 typedef struct
 {
+     tm_uoffset_t offset_v_shape;
+}TM2_ExpandParam;
+
+typedef struct
+{
     int32_t axis;
 } TM2_LogSoftmaxParam;
 
