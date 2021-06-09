@@ -48,6 +48,8 @@ ENDFUNCTION()
 IF (TENGINE_BUILD_CPP_API)
     TENGINE_EXAMPLE (cpp_tm_classification       cpp_tm_classification.cpp)
     TENGINE_EXAMPLE (cpp_tm_mobilenet_ssd        cpp_tm_mobilenet_ssd.cpp)
+    TENGINE_EXAMPLE (cpp_tm_BERT                 cpp_tm_BERT.cpp)
+    
 ENDIF()
 
 # add c api examples
@@ -66,6 +68,7 @@ TENGINE_EXAMPLE (tm_mobilefacenet_uint8      tm_mobilefacenet_uint8.cpp)
 TENGINE_EXAMPLE (tm_yolov5                   tm_yolov5.cpp)
 TENGINE_EXAMPLE (tm_yolofastest              tm_yolofastest.cpp)
 TENGINE_EXAMPLE (tm_ultraface                tm_ultraface.cpp)
+TENGINE_EXAMPLE (tm_bert                     tm_bert.cpp)
 
 
 
