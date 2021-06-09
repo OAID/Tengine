@@ -55,9 +55,10 @@ extern "C"
 #include "tim/vx/operation.h"
 
 #include "tim/vx/ops/activations.h"
-#include "tim/vx/ops/depth2space.h"
+#include "tim/vx/ops/batchnorm.h"
 #include "tim/vx/ops/concat.h"
 #include "tim/vx/ops/conv2d.h"
+#include "tim/vx/ops/depth2space.h"
 #include "tim/vx/ops/elementwise.h"
 #include "tim/vx/ops/fullyconnected.h"
 #include "tim/vx/ops/gather.h"
@@ -95,6 +96,7 @@ private:
     int Build(struct subgraph* subgraph);
     int VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_type);
 
+    bool AddBatchNormNode(struct node* ir_node);
     bool AddClipNode(struct node* ir_node);
     bool AddConcatNode(struct node* ir_node);
     bool AddConvolutionNode(struct node* ir_node);

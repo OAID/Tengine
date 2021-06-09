@@ -73,7 +73,7 @@ bool VXEngine::AddConvolutionNode(struct node* ir_node)
     }
 
     int multiplier = 0;
-    if (param->group == weight_tensor->dims[0])
+    if ( (param->group == weight_tensor->dims[0]) && (param->group != 1) )
         multiplier = 1;
     auto conv = this->graph->CreateOperation<tim::vx::ops::Conv2d>(
         weight_tensor->dims[0], tim::vx::PadType::AUTO,
