@@ -49,6 +49,11 @@ int VXEngine::VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_ty
 
     if (this->vx_tensor_map.end() == iter)
     {
+        if (spec_type == SPEC_TYPE_INTERP)
+        {
+            this->vx_tensor_map[ir_tensor_idx] = nullptr;
+            return 0;
+        }
         struct tensor* ir_tensor = get_ir_graph_tensor(ir_graph, ir_tensor_idx);
         auto Dims = (unsigned int*)ir_tensor->dims;
 
@@ -409,6 +414,11 @@ int VXEngine::VXEnginePreRun(struct subgraph* subgraph)
             else if (ir_node->op.type == OP_PRELU)
             {
                 this->VXTensorMap(ir_graph, ir_node->input_tensors[1], SPEC_TYPE_PRELU);
+            }
+            else if (ir_node->op.type == OP_INTERP)
+            {
+                this->VXTensorMap(ir_graph, ir_node->input_tensors[1], SPEC_TYPE_INTERP);
+                this->VXTensorMap(ir_graph, ir_node->input_tensors[2], SPEC_TYPE_INTERP);
             }
         }
         for (int i = 0; i < subgraph->node_num; i++)
