@@ -85,7 +85,9 @@ int ref_expand_fp32(float* in1_data, float* in2_data, float* out_data, int* in1_
                 i_index++;
             }
         }
-    } else {
+    }
+    else 
+    {
         int i_size = i_n * i_c * i_h * i_w;
         int refreshed = 0;
         for(int n = 0; n < o_n; n++)
