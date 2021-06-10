@@ -42,6 +42,26 @@ static int infer_shape(struct node* node)
     
     expand_param_t* param = ( struct expand_param* )(node->op.param_mem);
 
+    struct graph* graph = node->graph;
+    struct tensor* input1 = get_ir_graph_tensor(graph, node->input_tensors[0]);
+    struct tensor* input2 = get_ir_graph_tensor(graph, node->input_tensors[1]);
+    struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
+
+    int flag = 1;
+    int32_t * input2_data = input2->data;
+    for(int i = 0; i < input2->elem_num; i++)
+    {
+        if(input2_data[i] == 0){
+            flag = 0;
+        }
+    }
+
+    if(flag == 1)
+    {
+        for(int i = 0; i < input2->elem_num; i++)
+            param->ex_shape[i] = input2_data[i];
+    }
+    
     for(int i = 0; i < (int)param->dim_num; i++)
     {
         int temp = param->ex_shape[i];
@@ -49,10 +69,6 @@ static int infer_shape(struct node* node)
     }
     int num = get_vector_num(dims2);
 
-    struct graph* graph = node->graph;
-    struct tensor* input1 = get_ir_graph_tensor(graph, node->input_tensors[0]);
-    struct tensor* input2 = get_ir_graph_tensor(graph, node->input_tensors[1]);
-    struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
 
     int input1_dim_size = input1->dim_num;
     int input2_dim_size = param->dim_num;
