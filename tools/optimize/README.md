@@ -13,7 +13,7 @@ To support **YOLOv5s** detection model deployment on AIoT devices, we provide so
 ## 2.1 Install dependent libraries
 
 ```
-sudo pip install onnx
+sudo pip install onnx onnx-simplifier
 ```
 
 ## 2.2 Description params
