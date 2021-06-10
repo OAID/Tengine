@@ -74,7 +74,7 @@ static int infer_shape(struct node* node)
             }
             for (int i = 0; i < expand_param->shape_size - diff; i++)
             {
-                dims[i + expand_param->shape_size] = expand_param->shape[i + diff] > input->dim_num[i] ? expand_param->shape[i + diff] : expand_param->shape[i];
+                dims[i + expand_param->shape_size] = expand_param->shape[i + diff] > input->dims[i] ? expand_param->shape[i + diff] : expand_param->shape[i];
             }
         }
     }
