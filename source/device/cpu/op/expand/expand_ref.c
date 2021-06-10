@@ -69,7 +69,7 @@ int ref_expand_fp32(float* in1_data, float* in2_data, float* out_data, int* in1_
         TLOG_INFO("output dims overflow!");
         return -1;
     }
-
+    
     int index = 0;
     int i_index = 0;
     if( 1 == i_n && 1 == i_h && 1 == i_w && 1 == o_n && i_c == o_c)
@@ -138,17 +138,21 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
     struct expand_param* param = ( struct expand_param* )ir_node->op.param_mem;
 
+    int dim1_size = input1_tensor->dim_num;
+    int dim2_size = input2_tensor->dim_num;
+
+
     int* input1_dims = (int*)malloc(sizeof(int)*4);
     int* input2_dims = (int*)malloc(sizeof(int)*4);
-
     for(int i = 0; i < 4; i++)
     {
         input1_dims[i] = 0;
-        input2_dims[i] = 0;
     }
 
-    int dim1_size = input1_tensor->dim_num;
-    int dim2_size = input2_tensor->dim_num;
+    for(int i = 0; i < 4; i++)
+    {
+        input2_dims[i] = 0;
+    }
 
     for(int i = 0; i < dim1_size ; i++)
     {
@@ -158,7 +162,6 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     {
         input2_dims[i] = param->ex_shape[i];
     }
-
     ref_expand_fp32(input1_tensor->data, input2_tensor->data, output_tensor->data, input1_dims, input2_dims);
 
     free(input1_dims);
