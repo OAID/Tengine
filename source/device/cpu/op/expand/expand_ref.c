@@ -136,17 +136,23 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct expand_param* param = ( struct expand_param* )ir_node->op.param_mem;
 
 
-    int* input1_dims = (int*)malloc(sizeof(int)*4);
-    int* input2_dims = (int*)malloc(sizeof(int)*4);
-
-    for(int i = 0; i < 4; i++)
-    {
-        input1_dims[i] = 0;
-        input2_dims[i] = 0;
-    }
 
     int dim1_size = input1_tensor->dim_num;
     int dim2_size = input2_tensor->dim_num;
+
+
+    int* input1_dims = (int*)malloc(sizeof(int)*dim1_size);
+    int* input2_dims = (int*)malloc(sizeof(int)*dim2_size);
+
+    for(int i = 0; i < dim1_size; i++)
+    {
+        input1_dims[i] = 0;
+    }
+
+    for(int i = 0; i < dim2_size; i++)
+    {
+        input2_dims[i] = 0;
+    }
 
     for(int i = 0; i < dim1_size ; i++)
     {
