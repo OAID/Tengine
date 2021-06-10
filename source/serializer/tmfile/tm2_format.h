@@ -149,6 +149,7 @@ typedef uint8_t tm_bool_t;                      /* bool is 1-byte unsigned integ
 #define TM2_OPSTR_SOFTPLUS 						"Softplus"
 #define TM2_OPSTR_RECIPROCAL 					"Reciprocal"
 #define TM2_OPSTR_SPATIALTRANSFORMER            "SpatialTransformer"
+#define TM2_OPSTR_EXPAND                        "Expand"
 /* Operator types */
 #define TM2_OPTYPE_ACCURACY                       0 /* No Param                 */
 #define TM2_OPTYPE_BATCHNORMALIZATION             1 /* TM2_BatchNormParam       */
@@ -993,6 +994,12 @@ typedef struct
     int transformer_type;
     tm_uoffset_t offset_ta_shape;
 }TM2_SpatialTransformerParam;
+
+typedef struct 
+{
+    tm_uoffset_t offset_ex_shape;
+    int dim_num;
+}TM2_ExpandParam;
 
 
 #ifdef __cplusplus
