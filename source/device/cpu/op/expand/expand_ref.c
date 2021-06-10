@@ -98,32 +98,32 @@ int ref_expand_fp32(float* in1_data, float* in2_data, float* out_data, int* in1_
                 {
                     for(int w = 0; w < o_w; ++w)
                     {
-						refreshed = 0;
-						if (i_index == i_size)
-							i_index = 0;
-						out_data[index++] = in1_data[i_index];
-						if (i_w != 1) 
+                        refreshed = 0;
+                        if (i_index == i_size)
+                            i_index = 0;
+                        out_data[index++] = in1_data[i_index];
+                        if (i_w != 1) 
                         {
                             i_index++;
-							refreshed = 1;
-						}
+                            refreshed = 1;
+                        }
                     }
-					if (i_h != 1 && refreshed == 0)
-					{
-						i_index++;
-						refreshed = 1;
-					}
+                    if (i_h != 1 && refreshed == 0)
+                    {
+                        i_index++;
+                        refreshed = 1;
+                    }
                 }
-				if (i_c != 1 && refreshed == 0)
-				{
-					i_index++;
-					refreshed = 1;
-				}
+                if (i_c != 1 && refreshed == 0)
+                {
+                    i_index++;
+                    refreshed = 1;
+                }
             }
-			if (i_n != 1 && refreshed == 0)
-			{
-				i_index++;
-			}
+            if (i_n != 1 && refreshed == 0)
+            {
+                i_index++;
+            }
         }
     }
     return 0;
