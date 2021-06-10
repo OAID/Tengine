@@ -36,14 +36,10 @@
 
 
 static int infer_shape(struct node* node)
-{   
-    printf("input_number：%d\n", node->input_num);
-    printf("input_tensor：%d\n", node->input_tensors[0]);
+{
     struct graph* graph = node->graph;
     struct tensor* input0 = get_ir_graph_tensor(graph, node->input_tensors[0]);
-    printf("input0: %s\n",input0->name);
     struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
-    printf("output: %s\n",output->name);
 
     struct eltwise_param* eltwise_param = ( struct eltwise_param* )(node->op.param_mem);
 
@@ -60,32 +56,12 @@ static int infer_shape(struct node* node)
     }
 
     struct tensor* input1 = get_ir_graph_tensor(graph, node->input_tensors[1]);
-    printf("input1: %s\n",input1->name);
 
     int i0_size = input0->elem_num;
     int i1_size = input1->elem_num;
-    //int dim_num = 0;
-    int dim_num = input0->dim_num >= input1->dim_num ? input0->dim_num:input1->dim_num;
-    int dims[dim_num];
-    if (input0->dim_num>=input1->dim_num){
-        for (int i=0; i<input1->dim_num;i++){
-            dims[dim_num-i-1]=(input0->dims[input0->dim_num-i-1] >= input1->dims[input1->dim_num-i-1] ? input0->dims[input0->dim_num-i-1]:input1->dims[input1->dim_num-i-1]);
-        }
-        for (int i=0; i<input0->dim_num-input1->dim_num;i++){
-            dims[i]=input0->dims[i];
-        }
-    }
-    else{
-        for (int i=0; i<input0->dim_num;i++){
-            dims[dim_num-i-1]=(input0->dims[input0->dim_num-i-1] >= input1->dims[input1->dim_num-i-1] ? input0->dims[input0->dim_num-i-1]:input1->dims[input1->dim_num-i-1]);
-        }
-        for (int i=0; i<input1->dim_num-input0->dim_num;i++){
-            dims[i]=input1->dims[i];
-        }
-    }
+    int dim_num = 0;
 
-
-   /*  if (i0_size >= i1_size)
+    if (i0_size >= i1_size)
     {
         memcpy(output->dims, input0->dims, input0->dim_num * sizeof(int));
         dim_num = input0->dim_num;
@@ -94,14 +70,12 @@ static int infer_shape(struct node* node)
     {
         memcpy(output->dims, input1->dims, input1->dim_num * sizeof(int));
         dim_num = input1->dim_num;
-    } */
-
-    /* printf("node: %s\n",node->name);
+    }
+    printf("node: %s\n",node->name);
     for (int i=0; i<dim_num; i++){
-        printf("dims: %d\n",dims[i]);
-    } */
-    
-    set_ir_tensor_shape(output, dims, dim_num);
+        printf("dims: %d\n",output->dims[i]);
+    }
+    set_ir_tensor_shape(output, output->dims, dim_num);
 
     return 0;
 }

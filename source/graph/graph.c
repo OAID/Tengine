@@ -251,7 +251,10 @@ int infer_ir_graph_shape(ir_graph_t* graph)
         }
 
         if (0 != op->same_shape)
-        {
+        {   
+            
+            printf("node_name：%s\n", (char*)(node->name));
+            printf("same_shape\n");
             ir_tensor_t* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
             ir_tensor_t* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
 
@@ -261,7 +264,10 @@ int infer_ir_graph_shape(ir_graph_t* graph)
             memcpy(output->dims, input->dims, sizeof(int32_t) * input->dim_num);
         }
         else
-        {
+        {   
+            
+            printf("node_name：%s\n", (char*)(node->name));
+            printf("not_same_shape\n");
             if (0 != op->infer_shape(node))
             {
                 TLOG_ERR("Tengine FATAL: Infer node(id: %d, op: %s) shape failed.\n", node->index,
