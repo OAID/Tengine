@@ -37,7 +37,7 @@ const int timvx_supported_ops[] = {
 //    OP_ADD_N,
 //    OP_ARGMAX,
 //    OP_ARGMIN,
-//    OP_BATCHNORM,
+    OP_BATCHNORM,
 //    OP_BATCHTOSPACEND,
 //    OP_BIAS,
 //    OP_BROADMUL,

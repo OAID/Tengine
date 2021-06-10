@@ -53,18 +53,15 @@ bool VXEngine::AddResizeNode(struct node* ir_node)
         TLOG_ERR("Tengine: VX does not support resize type(%d).\n", (int)resize_type);
     }
 
-    std::vector<std::shared_ptr<tim::vx::Tensor> > add_in_tensor(ir_node->input_num);
-    for (int i = 0; i < ir_node->input_num; i++)
-    {
-        struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[i]);
-        add_in_tensor[i] = this->vx_tensor_map[input_tensor->index];
-    }
+    std::shared_ptr<tim::vx::Tensor> add_in_tensor;
+    struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    add_in_tensor = this->vx_tensor_map[input_tensor->index];
 
     auto resize = graph->CreateOperation<tim::vx::ops::Resize>(resize_type, 0.0f, false, false, output_tensor->dims[2], output_tensor->dims[3]);
     vx_node_map[ir_node->index] = resize;
 
     (*resize)
-        .BindInputs(add_in_tensor)
+        .BindInput(add_in_tensor)
         .BindOutputs({ this->vx_tensor_map[output_tensor->index] });
 
     return true;
