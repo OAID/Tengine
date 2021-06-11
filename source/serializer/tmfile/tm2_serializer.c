@@ -531,10 +531,14 @@ static int load_graph_nodes(struct tm2_serializer* tm2_s, struct graph* ir_graph
                 }
 
                 struct tensor* ir_tensor = get_ir_graph_tensor(ir_graph, tensor_idx);
-
+                
                 set_ir_node_input_tensor(ir_node, j, ir_tensor);
+                printf("ir_node: %s\n",ir_node->name);
+                printf("tensor_index: %d\n",ir_tensor->index);
+                printf("input_tensors[0]: %d\n",ir_node->input_tensors[0]);
             }
         }
+
 
         if (tm_node->offset_vi_output_tensors == TM2_NOT_SET)
         {

@@ -37,13 +37,13 @@
 
 static int infer_shape(struct node* node)
 {   
-    printf("input_number：%d\n", node->input_num);
-    printf("input_tensor：%d\n", node->input_tensors[0]);
+    //printf("input_number：%d\n", node->input_num);
+    //printf("input_tensor：%d\n", node->input_tensors[0]);
     struct graph* graph = node->graph;
     struct tensor* input0 = get_ir_graph_tensor(graph, node->input_tensors[0]);
-    printf("input0: %s\n",input0->name);
+    //printf("input0: %s\n",input0->name);
     struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
-    printf("output: %s\n",output->name);
+    //printf("output: %s\n",output->name);
 
     struct eltwise_param* eltwise_param = ( struct eltwise_param* )(node->op.param_mem);
 
@@ -60,7 +60,7 @@ static int infer_shape(struct node* node)
     }
 
     struct tensor* input1 = get_ir_graph_tensor(graph, node->input_tensors[1]);
-    printf("input1: %s\n",input1->name);
+    //printf("input1: %s\n",input1->name);
 
     int i0_size = input0->elem_num;
     int i1_size = input1->elem_num;

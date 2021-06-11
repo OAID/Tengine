@@ -71,7 +71,7 @@ void init(const char* modelfile)
 
 
     int rc = prerun_graph(graph);
-    //dump_graph(graph);
+    dump_graph(graph);
     unique_ids = get_graph_output_tensor(graph, 0, 0);
     unstack_1 = get_graph_output_tensor(graph, 1, 0);
     unstack_0 = get_graph_output_tensor(graph, 2, 0);

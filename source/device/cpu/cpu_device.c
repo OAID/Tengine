@@ -115,7 +115,7 @@ static int run(struct device* dev, struct subgraph* subgraph)
     {
         struct exec_node* node = ( struct exec_node* )get_vector_data(exec_graph->exec_node_list, i);
         struct node_ops* node_ops = node->node_ops;
-
+        printf("node: %s\n", node->ir_node->name);
         /* TODO: handle the shape changed  and dynamic shape case */
         if (node_ops->reshape && node_ops->reshape(node_ops, node, exec_graph) < 0)
         {
