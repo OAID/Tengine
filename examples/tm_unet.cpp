@@ -21,6 +21,8 @@
  * Copyright (c) 2020, OPEN AI LAB
  * Author: qtang@openailab.com
  * Author: sudolewis@gmail.com
+ * 
+ * original model: https://github.com/milesial/Pytorch-UNet
  */
 
 #include <stdlib.h>

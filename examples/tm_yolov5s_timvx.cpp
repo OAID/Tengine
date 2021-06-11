@@ -21,6 +21,8 @@
  * Copyright (c) 2021, OPEN AI LAB
  * Author: xwwang@openailab.com
  * Author: stevenwudi@fiture.com
+ * 
+ * original model: https://github.com/ultralytics/yolov5
  */
 
 #include <cmath>

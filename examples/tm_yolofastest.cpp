@@ -20,6 +20,8 @@
 /*
  * Copyright (c) 2020, OPEN AI LAB
  * Author: john2357@163.com
+ * 
+ * original model: https://github.com/dog-qiuqiu/Yolo-Fastest/tree/master/ModelZoo/yolo-fastest-1.1_coco
  */
  
 #include <iostream>

@@ -20,6 +20,8 @@
 /*
  * Copyright (c) 2020, OPEN AI LAB
  * Author: jxyang@openailab.com
+ * 
+ * original model: https://github.com/deepinsight/insightface/tree/master/RetinaFace#retinaface-pretrained-models
  */
 
 /*

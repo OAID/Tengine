@@ -19,6 +19,8 @@
 
 /*
  * Author: zylo117
+ *
+ * original model: https://github.com/zylo117/Yet-Another-EfficientDet-Pytorch
  */
 
 #include <stdlib.h>
