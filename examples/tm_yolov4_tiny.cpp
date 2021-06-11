@@ -21,6 +21,8 @@
  * Copyright (c) 2021, OPEN AI LAB
  * Author: 942002795@qq.com
  * Update: xwwang@openailab.com
+ * 
+ * original model：https://github.com/alexeyab/darknet
  */
 
 #include <math.h>

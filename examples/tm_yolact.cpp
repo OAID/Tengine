@@ -20,6 +20,8 @@
 /*
  * Copyright (c) 2020, OPEN AI LAB
  * Author: qtang@openailab.com
+ * 
+ * original model: https://github.com/dbolya/yolact
  */
 
 /*

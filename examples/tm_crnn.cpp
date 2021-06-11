@@ -20,6 +20,8 @@
 /*
  * Copyright (c) 2020, OPEN AI LAB
  * Author: xwwang@openailab.com
+ * 
+ * original pretrained: https://github.com/meijieru/crnn.pytorch
  */
 
 #include <unistd.h>
