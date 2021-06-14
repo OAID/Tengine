@@ -67,28 +67,37 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     for (int i = 0; i < output_tensor->dim_num; i++)
     {
         out_tensor_size *= output_tensor->dims[i];
+        //printf("output_tensor: %d\n",output_tensor->dims[i] );
     }
     int element_size = output_tensor->elem_size;
-
+    //printf("tensor_size: %d\n",out_tensor_size);
     // int dims[4] = {1, 1, 1, 1};
     int* dims = (int*)malloc(input_tensor->dim_num*sizeof(int));
+    printf("number: %d\n",input_tensor->dim_num );
     for (int i = 0; i < input_tensor->dim_num; i++)
     {
         dims[i] = input_tensor->dims[i];
+        printf("input_tensor: %d\n",input_tensor->dims[i] );
     }
     int dim0 = dims[0];
     int dim1 = dims[1];
     int dim2 = dims[2];
     int dim3 = dims[3];
-    
+    printf("dim3: %d\n",dim3 );
+    int total_size = input_tensor->elem_num;
+    printf("total_size: %d\n",total_size );
 
     param.param_dim[0] = reduction_param->dim_0;
     param.param_dim[1] = reduction_param->dim_1;
     param.param_dim[2] = reduction_param->dim_2;
     param.param_dim[3] = reduction_param->dim_3;
+
+    
     param.type = reduction_param->type;
     int in_dim_num = input_tensor->dim_num;
     // printf("input dims: %d \n", input_tensor->dim_num);
+    //printf("input data: %d \n", ( float* )input_tensor->data);
+ 
     int ret = ref_reduce_fp32(( float* )input_tensor->data, ( float* )output_tensor->data, dim0, dim1, dim2, dim3,
                               out_tensor_size, &param, in_dim_num, dims);
     free(dims);

@@ -94,7 +94,7 @@ int getResult()
     set_tensor_buffer(input_mask, input_data3.data(), 256 * sizeof(float));
     set_tensor_buffer(input_ids, input_data4.data(), 256 * sizeof(float));
 
-
+    //set_graph_layout(graph, 2);
 
     if (run_graph(graph, 1) < 0)
     {

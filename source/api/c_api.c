@@ -638,7 +638,7 @@ int set_graph_layout(graph_t graph, int layout_type)
 {
     struct graph* ir_graph = (struct graph*)graph;
 
-    if ((layout_type != TENGINE_LAYOUT_NCHW) && (layout_type != TENGINE_LAYOUT_NHWC))
+    if ((layout_type != TENGINE_LAYOUT_NCHW) && (layout_type != TENGINE_LAYOUT_NHWC) && (layout_type != TENGINE_LAYOUT_NLP))
     {
         return -1;
     }

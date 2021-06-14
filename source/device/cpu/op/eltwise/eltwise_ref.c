@@ -23,7 +23,7 @@
  */
 
 #include "eltwise_param.h"
-
+#include "api/c_api.h"
 #include "graph/tensor.h"
 #include "graph/node.h"
 #include "graph/graph.h"
@@ -759,13 +759,19 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     input_tensor0 = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
     struct eltwise_param* eltwise_param = ( struct eltwise_param* )ir_node->op.param_mem;
-
+    set_graph_layout(ir_graph, 2);
+    printf("layout:%d\n",ir_graph->graph_layout);
     int layout = ir_graph->graph_layout;
     void* input0 = input_tensor0->data;
     void* input1 = NULL;
     void* output = output_tensor->data;
     int input1_count4 = 0;
     int input_hw_1 = 0;
+    printf("0:%d\n",input_tensor0->dims[0] );
+    printf("1:%d\n",input_tensor0->dims[1] );
+    printf("2:%d\n",input_tensor0->dims[2] );
+    printf("3:%d\n",input_tensor0->dims[3] );
+
 
     if (ir_node->input_num > 1)
     {
@@ -794,6 +800,14 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         {
             input_chan_0 = input_tensor0->dims[3];
             input_hw_0 = input_tensor0->dims[1] * input_tensor0->dims[2];
+        }
+        else if (layout == TENGINE_LAYOUT_NLP)
+        {
+            input_chan_0 = input_tensor0->dims[dim0_size-2];
+            if(input_tensor0->dims[dim0_size-3]){
+                input_chan_0 *= input_tensor0->dims[dim0_size-3];
+            }
+            input_hw_0 = input_tensor0->dims[dim0_size-1];
         }
         else
         {

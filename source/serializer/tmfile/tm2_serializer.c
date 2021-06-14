@@ -535,7 +535,7 @@ static int load_graph_nodes(struct tm2_serializer* tm2_s, struct graph* ir_graph
                 set_ir_node_input_tensor(ir_node, j, ir_tensor);
                 printf("ir_node: %s\n",ir_node->name);
                 printf("tensor_index: %d\n",ir_tensor->index);
-                printf("input_tensors[0]: %d\n",ir_node->input_tensors[0]);
+                //printf("input_tensors[0]: %d\n",ir_node->input_tensors[0]);
             }
         }
 

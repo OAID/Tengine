@@ -44,7 +44,7 @@ static int infer_shape(struct node* node)
     //printf("input0: %s\n",input0->name);
     struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
     //printf("output: %s\n",output->name);
-
+    
     struct eltwise_param* eltwise_param = ( struct eltwise_param* )(node->op.param_mem);
 
     if (node->input_num == 1)

@@ -68,6 +68,7 @@ extern "C" {
 /* layout type, not real layout */
 #define TENGINE_LAYOUT_NCHW         0
 #define TENGINE_LAYOUT_NHWC         1
+#define TENGINE_LAYOUT_NLP          2
 
 /* tensor type: the content changed or not during inference */
 #define TENSOR_TYPE_UNKNOWN         0
