@@ -176,7 +176,7 @@ int save_graph_u8_perlayer(const char* model_file, const char* scale_file, const
                     }
 
                     if (op_name == "Flatten" || op_name == "Reshape" || op_name == "Squeeze" || op_name == "Clip" ||
-                        poolTrue || reluTrue)
+                        op_name == "Slice" || poolTrue || reluTrue)
                     {
                         struct tensor* t_in_tensor = ir_graph->tensor_list[t_node->input_tensors[0]];
                         if (layer_scale[ir_tensor->name] != 0)
@@ -319,6 +319,13 @@ int save_graph_u8_perlayer(const char* model_file, const char* scale_file, const
                     in_tensor->quant_param_num = 0;
                 }
             }
+        }
+        else if (op_name == "Slice")
+        {
+            struct tensor* slice_input_tensor = get_ir_graph_tensor(ir_graph, noden->input_tensors[0]);
+            struct tensor* slice_output_tensor = get_ir_graph_tensor(ir_graph, noden->output_tensors[0]);
+            slice_output_tensor->scale = slice_input_tensor->scale;
+            slice_output_tensor->zero_point = slice_input_tensor->zero_point;
         }
     }
 
