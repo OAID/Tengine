@@ -108,7 +108,7 @@ const int timvx_supported_ops[] = {
 //    OP_SPACETOBATCHND,
     OP_SPACETODEPTH,
 //    OP_SPARSETODENSE,
-//    OP_SPLIT,
+    OP_SPLIT,
 //    OP_SQUAREDDIFFERENCE,
 //    OP_SQUEEZE,
 //    OP_STRIDED_SLICE,
