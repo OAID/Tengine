@@ -127,6 +127,23 @@ int get_pb_data_i32(int32_t* i32_data, const std::string& filepath)
                 i32_data[i] = data[i];
         }
     }
+    else if (tp.data_type() == 7)
+    {
+        if (tp.has_raw_data())
+        {
+            int size = (int)tp.raw_data().size() / 8;
+            const int64_t* data = (int64_t*)tp.raw_data().c_str();
+            for (int i = 0; i < size; i++)
+                i32_data[i] = (int32_t)data[i];
+        }
+        else
+        {
+            int size = tp.int64_data_size();
+            const int64_t* data = tp.int64_data().data();
+            for (int i = 0; i < size; i++)
+                i32_data[i] = (int32_t)data[i];
+        }
+    }
     else
     {
         fprintf(stderr, "not support the type of data is %d\n", tp.data_type());

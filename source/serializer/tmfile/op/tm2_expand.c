@@ -49,16 +49,15 @@ static int tm2_load_expand(struct graph* ir_graph, struct node* ir_node, const T
     const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
     const char* mem_base = tm2_priv->base;
     const TM2_ExpandParam* tm_param = ( TM2_ExpandParam* )(mem_base + tm_op->offset_t_param);
-
     if (tm_param->offset_ex_shape != TM2_NOT_SET)
     {
         const TM2_Vector_dims* v_ex_shape = ( TM2_Vector_dims* )(mem_base + tm_param->offset_ex_shape);
         param->ex_shape = ( int* )sys_malloc(v_ex_shape->v_num * sizeof(int));
 
-        
         for (unsigned int i = 0; i < v_ex_shape->v_num; i++)
         {
             param->ex_shape[i] = v_ex_shape->dims[i];
+            
         }
     }
     param->dim_num = tm_param->dim_num;

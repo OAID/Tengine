@@ -120,10 +120,18 @@ static int infer_shape(ir_node_t* node)
                 if (slice_end > 0)
                 {
                     out_dims[i] = slice_end - slice_param->begin;
+                    if (slice_param->step > 1)
+                    {
+                        out_dims[i] = (out_dims[i] - 1) / slice_param->step + 1;
+                    }
                 }
                 else
                 {
                     out_dims[i] = dims_in[i] + (slice_end - slice_param->begin);
+                    if (slice_param->step > 1)
+                    {
+                        out_dims[i] = (out_dims[i] - 1) / slice_param->step + 1;
+                    }
                 }
                 if (0 == out_dims[i])
                     out_dims[i] = dims_in[i];
