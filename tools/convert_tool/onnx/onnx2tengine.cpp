@@ -20,23 +20,23 @@
 /*
  * Copyright (c) 2021, OPEN AI LAB
  * Author: xlchen@openailab.com
+           bzhang@openailab.com
  */
-
-#include <google/protobuf/io/coded_stream.h>
-#include <google/protobuf/io/zero_copy_stream_impl.h>
-#include <google/protobuf/text_format.h>
-#include <google/protobuf/message.h>
-#include <vector>
 
 #include "onnx2tengine.hpp"
 
 
+/*
+*   SELF DEFINE VARIABLE
+*   FOR ONNX SERIALIZER
+*/
+const int OP_VERSION=1;
 typedef int (*op_load_t)(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node);
 std::unordered_map<std::string, std::pair<int, op_load_t>> op_load_map;
-void register_op_load();
-const int OP_VERSION = 1;
 
-
+/*
+*   ASSIST FUNCTIONS FOR ONNX SERIALIZER START
+*/
 bool find_op_load_method(const std::string& op_name)
 {
     if(op_load_map.count(op_name))
@@ -57,7 +57,44 @@ ir_tensor_t* find_tensor(ir_graph_t* graph, const std::string& tensor_name)
     return nullptr;
 }
 
-static int load_model_file(std::string model_file, onnx::ModelProto &model)
+
+int change_node_op(ir_node_t* node, int new_op_type)
+{
+    sys_free(node->op.param_mem);
+    node->op.type = new_op_type;
+    ir_method_t* ir_method = find_op_method(new_op_type, OP_VERSION);
+    if ((NULL != ir_method) && (NULL != ir_method->init) && (ir_method->init(&node->op) < 0))
+    {
+        return -1;
+    }
+
+    return 0;
+}
+
+onnx::TensorProto get_node_attr_tensor(const onnx::NodeProto& node, const char* key)
+{
+    for (int i = 0; i < node.attribute_size(); i++)
+    {
+        const onnx::AttributeProto& attr = node.attribute(i);
+        if (attr.name() == key)
+        {
+            return attr.t();
+        }
+    }
+
+    return onnx::TensorProto();
+}
+
+
+bool check_tensor(std::string tensor_name)
+{
+    
+}
+/*
+*   ASSIST FUNCTIONS FOR ONNX SERIALIZER END
+*/
+
+int onnx_serializer::load_model_file(std::string model_file, onnx::ModelProto &model)
 {
     std::ifstream is(model_file, std::ios::in | std::ios::binary);
 
@@ -88,22 +125,8 @@ static int load_model_file(std::string model_file, onnx::ModelProto &model)
 
     return 0;
 }
-static onnx::TensorProto get_node_attr_tensor(const onnx::NodeProto& node, const char* key)
-{
-    for (int i = 0; i < node.attribute_size(); i++)
-    {
-        const onnx::AttributeProto& attr = node.attribute(i);
-        if (attr.name() == key)
-        {
-            return attr.t();
-        }
-    }
 
-    return onnx::TensorProto();
-}
-
-
-static int load_constant_tensor(ir_graph_t* graph, const onnx::GraphProto& onnx_graph)
+int onnx_serializer::load_constant_tensor(ir_graph_t* graph, const onnx::GraphProto& onnx_graph)
 {
     std::map<std::string, onnx::TensorProto> node_tensor;
     int node_count = onnx_graph.node_size();
@@ -212,7 +235,7 @@ static int load_constant_tensor(ir_graph_t* graph, const onnx::GraphProto& onnx_
     return 0;
 }
 
-static int load_initializer_tensor(ir_graph_t* graph, const onnx::GraphProto& onnx_graph)
+int onnx_serializer::load_initializer_tensor(ir_graph_t* graph, const onnx::GraphProto& onnx_graph)
 {
     int const_tensor_num = onnx_graph.initializer_size();
     for (int i = 0; i < const_tensor_num; i++)
@@ -298,8 +321,37 @@ static int load_initializer_tensor(ir_graph_t* graph, const onnx::GraphProto& on
     return 0;
 }
 
+int onnx_serializer::check_same_tensor(ir_graph_t* graph, const onnx::GraphProto& onnx_graph)
+{
+    std::vector<std::string> tensor_name_list;
 
-static int set_graph_input(ir_graph_t* graph, const onnx::GraphProto& onnx_graph)
+
+    for(int i = 0; i < onnx_graph.node_size(); i++)
+    {
+        const onnx::NodeProto& onnx_node = onnx_graph.node(i);
+        for(int i = 0; i < onnx_node.input_size(); i++)
+        {
+            const std::string& input_name = onnx_node.input(i);
+            if (input_name == "")
+            {
+                continue;
+            }
+            int tensor_id = get_ir_tensor_index_from_name(graph, input_name.c_str());
+            ir_tensor_t* tensor = get_ir_graph_tensor(graph, tensor_id);
+            ir_tensor_t* new_tensor = nullptr;
+            std::string onnx_tensor_name = input_name;
+            if(tensor != NULL){
+                printf("%s \n", input_name.c_str());
+            }
+
+        }
+    }
+
+    return 0;
+}
+
+
+int onnx_serializer::set_graph_input(ir_graph_t* graph, const onnx::GraphProto& onnx_graph)
 {
     std::vector<int16_t> input_nodes;
     for (int i = 0; i < onnx_graph.input_size(); i++)
@@ -342,7 +394,7 @@ static int set_graph_input(ir_graph_t* graph, const onnx::GraphProto& onnx_graph
     return 0;
 }
 
-static int load_graph_node(ir_graph_t* graph, const onnx::GraphProto& onnx_graph)
+int onnx_serializer::load_graph_node(ir_graph_t* graph, const onnx::GraphProto& onnx_graph)
 {
     int i;
     std::vector<std::string> no_supported_op;
@@ -372,6 +424,7 @@ static int load_graph_node(ir_graph_t* graph, const onnx::GraphProto& onnx_graph
         TLOG_ERR("}\n");
         return -1;
     }
+
 
     for(i = 0; i < onnx_graph.node_size(); i++)
     {
@@ -416,7 +469,7 @@ static int load_graph_node(ir_graph_t* graph, const onnx::GraphProto& onnx_graph
     return 0;
 }
 
-static int set_graph_output(ir_graph_t* graph, const onnx::GraphProto& onnx_graph)
+int onnx_serializer::set_graph_output(ir_graph_t* graph, const onnx::GraphProto& onnx_graph)
 {
     std::vector<int16_t> output_nodes;
     for (int i = 0; i < onnx_graph.output_size(); i++)
@@ -456,7 +509,7 @@ static int set_graph_output(ir_graph_t* graph, const onnx::GraphProto& onnx_grap
     return 0;
 }
 
-static int load_model(ir_graph_t* graph, std::string model_file)
+int onnx_serializer::load_model(ir_graph_t* graph, std::string model_file)
 {
     register_op_load();
     onnx::ModelProto model;
@@ -476,7 +529,7 @@ static int load_model(ir_graph_t* graph, std::string model_file)
     return 0;
 }
 
-graph_t onnx2tengine(std::string model_file)
+graph_t onnx_serializer::onnx2tengine(std::string model_file)
 {
     fprintf(stderr, "----------onnx2tengine begin----------\n");
 
@@ -499,19 +552,6 @@ graph_t onnx2tengine(std::string model_file)
 
     fprintf(stderr, "----------onnx2tengine done.----------\n");
     return ir_graph;
-}
-
-int change_node_op(ir_node_t* node, int new_op_type)
-{
-    sys_free(node->op.param_mem);
-    node->op.type = new_op_type;
-    ir_method_t* ir_method = find_op_method(new_op_type, OP_VERSION);
-    if ((NULL != ir_method) && (NULL != ir_method->init) && (ir_method->init(&node->op) < 0))
-    {
-        return -1;
-    }
-
-    return 0;
 }
 
 int load_conv(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
@@ -1769,7 +1809,12 @@ int load_LSTM(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_no
     return 0;
 }
 
-void register_op_load()
+
+
+/*
+*   OPERAOTR REGISTER FUNCTION DEFINE FOR ONNX SERIALIZER START
+*/
+void onnx_serializer::register_op_load()
 {
     op_load_map["Abs"]                   = std::pair<int, op_load_t>(OP_UNARY,        load_unary);
     op_load_map["Acos"]                  = std::pair<int, op_load_t>(OP_UNARY,        load_unary);
@@ -1850,3 +1895,6 @@ void register_op_load()
     op_load_map["Unsqueeze"]             = std::pair<int, op_load_t>(OP_UNSQUEEZE,    load_unsqueeze);
     op_load_map["Where"]                 = std::pair<int, op_load_t>(OP_WHERE,        load_no_param);
 }
+/*
+*   OPERAOTR REGISTER FUNCTION DEFINE FOR ONNX SERIALIZER END
+*/
