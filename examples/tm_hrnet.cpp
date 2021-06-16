@@ -75,16 +75,19 @@ typedef struct {
     uint64_t timestamp = 0;
 } ai_body_parts_s;
 
-void FindMax2D(float *buf, int width, int height, int *max_idx_width, int *max_idx_height, float *max_value,
-               int c) {
+void FindMax2D(float *buf, int width, int height, int *max_idx_width, int *max_idx_height, float *max_value, int c) 
+{
     float *ptr = buf;
     *max_value = -10.f;
     *max_idx_width = 0;
     *max_idx_height = 0;
-    for (int h = 0; h < height; h++) {
-        for (int w = 0; w < width; w++) {
+    for (int h = 0; h < height; h++) 
+    {
+        for (int w = 0; w < width; w++) 
+        {
             float score = ptr[c * height * width + h * height + w];
-            if (score > *max_value) {
+            if (score > *max_value) 
+            {
                 *max_value = score;
                 *max_idx_height = h;
                 *max_idx_width = w;
@@ -93,15 +96,16 @@ void FindMax2D(float *buf, int width, int height, int *max_idx_width, int *max_i
     }
 }
 
-void PostProcess(float *data, ai_body_parts_s &pose, int img_h, int img_w) {
-
+void PostProcess(float *data, ai_body_parts_s &pose, int img_h, int img_w) 
+{
     int heatmap_width = img_w / 4;
     int heatmap_height = img_h / 4;
     int max_idx_width, max_idx_height;
     float max_score;
 
     ai_point_t kp;
-    for (int c = 0; c < HEATMAP_CHANNEL; ++c) {
+    for (int c = 0; c < HEATMAP_CHANNEL; ++c) 
+    {
         FindMax2D(data, heatmap_width, heatmap_height, &max_idx_width, &max_idx_height, &max_score, c);
         kp.x = (float) max_idx_width / (float) heatmap_width;
         kp.y = (float) max_idx_height / (float) heatmap_height;
@@ -112,32 +116,12 @@ void PostProcess(float *data, ai_body_parts_s &pose, int img_h, int img_w) {
                   << pose.keypoints[c].score << std::endl;
 
     }
-
-//    float sum=0;
-//    FILE *fp = fopen("heatmap.txt", "w");
-//    if (fp) {
-//        float *ptr = data;
-//        for (int c = 0; c < 16; c++) {
-//            for (int i = 0; i < heatmap_width; i++) {
-//                for (int j = 0; j < heatmap_height; j++) {
-//                    fprintf(fp, "%d,", j);
-//                    fprintf(fp, "%d: ", i);
-//                    fprintf(fp, "%f ", *ptr);
-//                    sum += *ptr;
-//                    ptr++;
-//                }
-//                fprintf(fp, "\n", *ptr);
-//            }
-//            fprintf(fp, "\n######################\n ", *ptr);
-//        }
-//    }
-//    fclose(fp);
-//    std::cout<<sum;
-
 }
 
-void draw_result(cv::Mat img_out, ai_body_parts_s &pose) {
-    for (int i = 0; i < HEATMAP_CHANNEL; i++) {
+void draw_result(cv::Mat img_out, ai_body_parts_s &pose) 
+{
+    for (int i = 0; i < HEATMAP_CHANNEL; i++) 
+    {
         int x = (int) (pose.keypoints[i].x * img_out.rows);
         int y = (int) (pose.keypoints[i].y * img_out.cols);
         cv::circle(img_out, cv::Point(x, y), 4, cv::Scalar(0, 255, 0), cv::FILLED);
@@ -146,8 +130,10 @@ void draw_result(cv::Mat img_out, ai_body_parts_s &pose) {
     cv::Scalar color;
     cv::Point pt1;
     cv::Point pt2;
-    for (auto &element: pairs) {
-        switch(element.left_right_neutral){
+    for (auto &element: pairs) 
+    {
+        switch(element.left_right_neutral)
+        {
             case 0:
                 color = cv::Scalar(255, 0, 0);
                 break;
@@ -163,11 +149,10 @@ void draw_result(cv::Mat img_out, ai_body_parts_s &pose) {
                         pose.keypoints[element.connection[1]].y * img_out.cols);
         cv::line(img_out, pt1, pt2, color, 2);
     }
-
 }
 
-void get_input_fp32_data_square(const char *image_file, float *input_data, float *mean, float *scale) {
-
+void get_input_fp32_data_square(const char *image_file, float *input_data, float *mean, float *scale) 
+{
     cv::Mat img = cv::imread(image_file);
 
     /* letterbox process to support different letterbox size */
@@ -175,11 +160,13 @@ void get_input_fp32_data_square(const char *image_file, float *input_data, float
     // Currenty we only support square input.
     int resize_rows;
     int resize_cols;
-    if ((LETTERBOX_ROWS * 1.0 / img.rows) < (LETTERBOX_COLS * 1.0 / img.cols * 1.0)) {
+    if ((LETTERBOX_ROWS * 1.0 / img.rows) < (LETTERBOX_COLS * 1.0 / img.cols * 1.0)) 
+    {
         scale_letterbox = 1.0 * LETTERBOX_ROWS / img.rows;
-    } else {
+    } 
+    else 
+    {
         scale_letterbox = 1.0 * LETTERBOX_COLS / img.cols;
-
     }
     resize_cols = int(scale_letterbox * img.cols);
     resize_rows = int(scale_letterbox * img.rows);
@@ -199,9 +186,12 @@ void get_input_fp32_data_square(const char *image_file, float *input_data, float
     float *img_data = (float *) img_new.data;
 
     /* nhwc to nchw */
-    for (int h = 0; h < LETTERBOX_ROWS; h++) {
-        for (int w = 0; w < LETTERBOX_COLS; w++) {
-            for (int c = 0; c < MODEL_CHANNELS; c++) {
+    for (int h = 0; h < LETTERBOX_ROWS; h++) 
+    {
+        for (int w = 0; w < LETTERBOX_COLS; w++) 
+        {
+            for (int c = 0; c < MODEL_CHANNELS; c++) 
+            {
                 int in_index = h * LETTERBOX_COLS * MODEL_CHANNELS + w * MODEL_CHANNELS + c;
                 int out_index = c * LETTERBOX_ROWS * LETTERBOX_COLS + h * LETTERBOX_COLS + w;
                 input_data[out_index] = (img_data[in_index] - mean[c]) * scale[c];
@@ -210,11 +200,13 @@ void get_input_fp32_data_square(const char *image_file, float *input_data, float
     }
 }
 
-void show_usage() {
+void show_usage() 
+{
     fprintf(stderr, "[Usage]:  [-h]\n    [-m model_file] [-i image_file] [-r repeat_count] [-t thread_count]\n");
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[]) 
+{
     int repeat_count = DEFAULT_REPEAT_COUNT;
     int num_thread = DEFAULT_THREAD_COUNT;
     char *model_file = nullptr;
@@ -227,8 +219,10 @@ int main(int argc, char *argv[]) {
     float scale[3] = {0.017125f, 0.017507f, 0.017429f};
 
     int res;
-    while ((res = getopt(argc, argv, "m:i:r:t:h:")) != -1) {
-        switch (res) {
+    while ((res = getopt(argc, argv, "m:i:r:t:h:")) != -1) 
+    {
+        switch (res) 
+        {
             case 'm':
                 model_file = optarg;
                 break;
@@ -250,13 +244,15 @@ int main(int argc, char *argv[]) {
     }
 
     /* check files */
-    if (model_file == nullptr) {
+    if (model_file == nullptr) 
+    {
         fprintf(stderr, "Error: Tengine model file not specified!\n");
         show_usage();
         return -1;
     }
 
-    if (image_file == nullptr) {
+    if (image_file == nullptr) 
+    {
         fprintf(stderr, "Error: Image file not specified!\n");
         show_usage();
         return -1;
@@ -278,63 +274,63 @@ int main(int argc, char *argv[]) {
 
     /* create graph, load tengine model xxx.tmfile */
     graph_t graph = create_graph(nullptr, "tengine", model_file);
-    if (graph == nullptr) {
+    if (graph == nullptr) 
+    {
         std::cout << "Create graph0 failed\n";
-        std::cout << "errno: " << get_tengine_errno() << "\n";
         return -1;
     }
 
     /* set the input shape to initial the graph, and prerun graph to infer shape */
     int img_size = img_h * img_w * 3;
     int dims[] = {1, 3, img_h, img_w};    // nchw
-    float *input_data = (float *) malloc(img_size * sizeof(float));
+    std::vector<float> input_data(img_size);
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
-    if (input_tensor == nullptr) {
+    if (input_tensor == nullptr) 
+    {
         fprintf(stderr, "Get input tensor failed\n");
         return -1;
     }
 
-    if (set_tensor_shape(input_tensor, dims, 4) < 0) {
+    if (set_tensor_shape(input_tensor, dims, 4) < 0) 
+    {
         fprintf(stderr, "Set input tensor shape failed\n");
         return -1;
     }
 
-    if (set_tensor_buffer(input_tensor, input_data, img_size * 4) < 0) {
+    if (set_tensor_buffer(input_tensor, input_data.data(), img_size * 4) < 0) 
+    {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;
     }
 
     /* prerun graph, set work options(num_thread, cluster, precision) */
-    if (prerun_graph_multithread(graph, opt) < 0) {
+    if (prerun_graph_multithread(graph, opt) < 0) 
+    {
         fprintf(stderr, "Prerun multithread graph failed.\n");
         return -1;
     }
 
-    set_log_level(LOG_INFO);
-    dump_graph(graph);
-
     /* prepare process input data, set the data mem to input tensor */
-    //get_input_data(image_file, input_data, img_h, img_w, mean, scale);
-    get_input_fp32_data_square(image_file, input_data, mean, scale);
+    get_input_fp32_data_square(image_file, input_data.data(), mean, scale);
 
     /* run graph */
     double min_time = DBL_MAX;
     double max_time = DBL_MIN;
     double total_time = 0.;
-    for (int i = 0; i < repeat_count; i++) {
+    for (int i = 0; i < repeat_count; i++) 
+    {
         double start = get_current_time();
-        if (run_graph(graph, 1) < 0) {
+        if (run_graph(graph, 1) < 0) 
+        {
             fprintf(stderr, "Run graph failed\n");
             return -1;
         }
         double end = get_current_time();
         double cur = end - start;
         total_time += cur;
-        if (min_time > cur)
-            min_time = cur;
-        if (max_time < cur)
-            max_time = cur;
+        min_time = std::min(min_time, cur);
+        max_time = std::max(max_time, cur);
     }
     printf("Repeat [%d] min %.3f ms, max %.3f ms, avg %.3f ms\n", repeat_count, min_time, max_time,
            total_time / repeat_count);
