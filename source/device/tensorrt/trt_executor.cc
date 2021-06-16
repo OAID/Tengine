@@ -317,6 +317,15 @@ int TensorRTEngine::Build(struct subgraph* subgraph)
                 }
                 break;
             }
+            case OP_SQUEEZE:
+            {
+                if(!AddSqueezeNode(ir_graph, ir_node))
+                {
+                    TLOG_ERR("Tengine: Cannot add Squeeze op(%d).\n", ir_node->index);
+                    return -6;
+                }
+                break;
+            }
             case OP_TRANSPOSE:
             {
                 if(!AddTranspose(ir_graph, ir_node))
@@ -376,6 +385,12 @@ bool TensorRTEngine::AddTensor(struct graph* ir_graph, struct tensor *ir_tensor)
 
     switch (dim)
     {
+        case 2:
+        {
+            nvinfer1::Dims2 dim2(dims[0],dims[1]);
+            trt_tensor = this->network->addInput(ir_tensor->name, nvinfer1::DataType::kFLOAT, dim2);
+            break;
+        }
         case 3:
         {
             nvinfer1::Dims3 dim3(dims[0],dims[1],dims[2]);
