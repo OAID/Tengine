@@ -71,7 +71,7 @@ void init(const char* modelfile)
 
 
     int rc = prerun_graph(graph);
-    dump_graph(graph);
+    //dump_graph(graph);
     unique_ids = get_graph_output_tensor(graph, 0, 0);
     unstack_1 = get_graph_output_tensor(graph, 1, 0);
     unstack_0 = get_graph_output_tensor(graph, 2, 0);
@@ -104,6 +104,10 @@ int getResult()
     float* data1 = ( float* )get_tensor_buffer(unique_ids);
     float* data2 = ( float* )get_tensor_buffer(unstack_1);
     float* data3 = ( float* )get_tensor_buffer(unstack_0);
+    printf ("data2: %d\n",data2[0]);
+    printf ("data2: %d\n",data2[1]);
+    printf ("data2: %d\n",data2[2]);
+
 }
 
 void release()

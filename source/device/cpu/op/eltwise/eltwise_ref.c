@@ -77,6 +77,12 @@ static int ref_eltwise_fp32(void* output, void* input0, void* input1, int type, 
                     *out_ptr++ = in0[i] - in1[i / input_hw];
                 }
             }
+            else if (input_chan == input_count4){
+                for (int i = 0; i < input_count4; ++i)
+                {
+                    *out_ptr++ = in0[i / input_hw] - in1[i];
+                }
+            }
             else
                 return -1;
             break;
@@ -762,6 +768,9 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     if (input_tensor0->dim_num < 4){
         set_graph_layout(ir_graph, 2);
     }
+   else{
+        set_graph_layout(ir_graph, 0);
+    }
     
     printf("layout:%d\n",ir_graph->graph_layout);
     int layout = ir_graph->graph_layout;
@@ -770,10 +779,10 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     void* output = output_tensor->data;
     int input1_count4 = 0;
     int input_hw_1 = 0;
-    printf("0:%d\n",input_tensor0->dims[0] );
+/*     printf("0:%d\n",input_tensor0->dims[0] );
     printf("1:%d\n",input_tensor0->dims[1] );
     printf("2:%d\n",input_tensor0->dims[2] );
-    printf("3:%d\n",input_tensor0->dims[3] );
+    printf("3:%d\n",input_tensor0->dims[3] ); */
 
 
     if (ir_node->input_num > 1)
@@ -813,7 +822,16 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         }
         else if (layout == TENGINE_LAYOUT_NLP)
         {
-            if (input_tensor0->dim_num==3){
+            if (input_tensor0->dim_num==1){
+                input_chan_0 = input_tensor0->dims[0];
+
+                input_hw_0 = input_tensor0->dims[0];
+            }
+            else if (input_tensor0->dim_num==2){
+                input_chan_0 = input_tensor0->dims[0];
+                input_hw_0 = input_tensor0->dims[1];
+            }
+            else if (input_tensor0->dim_num==3){
                 input_chan_0 = input_tensor0->dims[0]*input_tensor0->dims[1];
                 input_hw_0 = input_tensor0->dims[2];
             }
@@ -866,7 +884,11 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
                 input_hw_0 = input_tensor0->dims[0];
             }
-            if (input_tensor0->dim_num==3){
+            else if (input_tensor0->dim_num==2){
+                input_chan_0 = input_tensor0->dims[0];
+                input_hw_0 = input_tensor0->dims[1];
+            }
+            else if (input_tensor0->dim_num==3){
                 input_chan_0 = input_tensor0->dims[0]*input_tensor0->dims[1];
                 input_hw_0 = input_tensor0->dims[2];
             }

@@ -55,6 +55,8 @@ void mean_3d_ax1(int dim1, int dim2, int dim3, float* tmp, float* tmp_02);
 void mean_3d_ax2(int dim1, int dim2, int dim3, float* tmp, float* tmp_03);
 void mean_2d_ax0(int dim1, int dim2, float* tmp, float* tmp_0);
 void mean_2d_ax1(int dim1, int dim2, float* tmp, float* tmp_1);
+void mean_2d_ax1_1(int dim0, int dim1,  float* data, float* tmp);
+void mean_3d_ax2_1(int dim0, int dim1, int dim2,  float* data, float* tmp);
 
 void asum_4d_ax0(int dim0, int dim1, int dim2, int dim3, float* data, float* tmp);
 void asum_4d_ax1(int dim0, int dim1, int dim2, int dim3, float* data, float* tmp);
@@ -377,13 +379,26 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
         }
         else if (param_dim0 == 1 && param_dim1 == -2 && param_dim2 == -2 && param_dim3 == -2)
         {
-            mean_4d_ax1(dim0, dim1, dim2, dim3, data, tmp);
+            if (dim3 == 32767){
+                mean_2d_ax1_1(dim0, dim1, data, tmp); 
+            }
+            else {
+                mean_4d_ax1(dim0, dim1, dim2, dim3, data, tmp);
+            }
+                
+            
+            
         }
         else if (param_dim0 == 2 && param_dim1 == -2 && param_dim2 == -2 && param_dim3 == -2)
         {
             //mean_4d_ax2(dim0, dim1, dim2, dim3, data, tmp);
             //mean_3d_ax2(dim0, dim1, dim2, data, tmp);
-            mean_3d_ax2_1(dim0, dim1, dim2, data, tmp);
+            if (dim3 == 32767){
+                mean_3d_ax2_1(dim0, dim1, dim2, data, tmp); 
+            }
+            else {
+                mean_4d_ax2(dim0, dim1, dim2, dim3, data, tmp);
+            }
         }
         else if (param_dim0 == 3 && param_dim1 == -2 && param_dim2 == -2 && param_dim3 == -2)
         {
@@ -2326,6 +2341,23 @@ void mean_3d_ax2_1(int dim0, int dim1, int dim2,  float* data, float* tmp)
         }
     }
 }
+
+
+void mean_2d_ax1_1(int dim0, int dim1,  float* data, float* tmp)
+{   
+    for (int h = 0; h < dim0; h++)
+    {
+        float s_tmp = 0.f;
+        for (int w = 0; w < dim1; w++)
+        {
+            int offset = h * dim1 + w;
+            s_tmp += data[offset];
+        }
+        tmp[h] += s_tmp / dim1;
+    }
+}
+
+
 void mean_4d_ax3(int dim0, int dim1, int dim2, int dim3, float* data, float* tmp)
 {
     for (int n = 0; n < dim0; n++)
