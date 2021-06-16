@@ -80,6 +80,14 @@ bool VXEngine::AddEltwiseNode(struct node* ir_node)
 
         switch (param->type)
         {
+            case ELT_PROD:
+            {
+                auto eltmul = graph->CreateOperation<tim::vx::ops::Multiply>(1);
+                (*eltmul)
+                        .BindInputs(add_in_tensor)
+                        .BindOutputs({ this->vx_tensor_map[output_tensor->index] });
+                break;
+            }
             case ELT_SUM:
             {
                 auto eltsum = graph->CreateOperation<tim::vx::ops::Add>();
