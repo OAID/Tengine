@@ -72,23 +72,70 @@ bool TensorRTEngine::AddFullyConnectedNode(struct graph* ir_graph, struct node* 
 
     nvinfer1::ITensor * trt_tensor = tensor_real_map[tensor_swap_map[input_tensor->index]];
 
-    nvinfer1::IFullyConnectedLayer* layer = this->network->addFullyConnected(*trt_tensor, M, kernel, bias);
-    if (nullptr == layer)
+    if (4 > input_tensor->dim_num)
     {
-        fprintf(stderr, "Tengine: Add FullyConnected(id: %d, name: %s) layer failed.\n", node->index, node->name);
-        return false;
+        /* input reshape */
+        nvinfer1::IShuffleLayer* layer_reshape_in = this->network->addShuffle(*trt_tensor);
+        std::string layer_reshape_in_name = std::string(node->name) + "_reshape_in";
+        layer_reshape_in->setName(layer_reshape_in_name.c_str());
+
+        nvinfer1::Dims dims_in{};
+        dims_in.nbDims = 4;
+        for (int i = 0; i < 4; i++)
+            dims_in.d[i] = 1;
+        for (int i = 0; i < input_tensor->dim_num; i++)
+            dims_in.d[i] = input_tensor->dims[i];
+        layer_reshape_in->setReshapeDimensions(dims_in);
+
+        auto tensor_reshape_in = layer_reshape_in->getOutput(0);
+
+        /* fc */
+        nvinfer1::IFullyConnectedLayer* layer_fc = this->network->addFullyConnected(*tensor_reshape_in, M, kernel, bias);
+        layer_fc->setName(node->name);
+        auto tensor_fc = layer_fc->getOutput(0);
+
+        /* output reshape */
+        nvinfer1::IShuffleLayer* layer_reshape_out = this->network->addShuffle(*tensor_fc);
+        std::string layer_reshape_out_name = std::string(node->name) + "_reshape_out";
+        layer_reshape_out->setName(layer_reshape_out_name.c_str());
+
+        nvinfer1::Dims dims_out{};
+        dims_out.nbDims = output_tensor->dim_num;
+        for (int i = 0; i < dims_out.nbDims; i++)
+            dims_out.d[i] = output_tensor->dims[i];
+        layer_reshape_out->setReshapeDimensions(dims_out);
+
+        auto tensor_reshape_out = layer_reshape_out->getOutput(0);
+
+        this->layer_map[node->index] = layer_reshape_out;
+
+        /* tensor map */
+        this->SetRange(output_tensor, tensor_reshape_out);
+
+        this->tensor_real_map[output_tensor->index] = tensor_reshape_out;
+        this->tensor_swap_map[output_tensor->index] = output_tensor->index;
+    }
+    else
+    {
+        nvinfer1::IFullyConnectedLayer* layer = this->network->addFullyConnected(*trt_tensor, M, kernel, bias);
+        if (nullptr == layer)
+        {
+            fprintf(stderr, "Tengine: Add FullyConnected(id: %d, name: %s) layer failed.\n", node->index, node->name);
+            return false;
+        }
+
+        layer->setName(node->name);
+
+        this->layer_map[node->index] = layer;
+
+        trt_tensor = layer->getOutput(0);
+
+        this->SetRange(output_tensor, trt_tensor);
+
+        tensor_real_map[output_tensor->index] = trt_tensor;
+        tensor_swap_map[output_tensor->index] = output_tensor->index;
     }
 
-    layer->setName(node->name);
-
-    this->layer_map[node->index] = layer;
-
-    trt_tensor = layer->getOutput(0);
-
-    this->SetRange(output_tensor, trt_tensor);
-
-    tensor_real_map[output_tensor->index] = trt_tensor;
-    tensor_swap_map[output_tensor->index] = output_tensor->index;
 
     return true;
 }

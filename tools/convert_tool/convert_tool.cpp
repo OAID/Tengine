@@ -162,7 +162,10 @@ int main(int argc, char* argv[])
     
     graph_t graph = NULL;
     if (file_format == "onnx")
-        graph = onnx2tengine(model_file);
+    {
+        onnx_serializer o2t;
+        graph = o2t.onnx2tengine(model_file);
+    }
     else
     {
         fprintf(stderr, "Convert model failed: support onnx only...\n");

@@ -20,6 +20,8 @@
 /*
  * Copyright (c) 2020, OPEN AI LAB
  * Author: john2357@163.com
+ * 
+ * original model: https://github.com/Linzaer/Ultra-Light-Fast-Generic-Face-Detector-1MB
  */
 
 #include <vector>

@@ -49,6 +49,11 @@ int VXEngine::VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_ty
 
     if (this->vx_tensor_map.end() == iter)
     {
+        if (spec_type == SPEC_TYPE_INTERP || spec_type == SPEC_TYPE_SLICE)
+        {
+            this->vx_tensor_map[ir_tensor_idx] = nullptr;
+            return 0;
+        }
         struct tensor* ir_tensor = get_ir_graph_tensor(ir_graph, ir_tensor_idx);
         auto Dims = (unsigned int*)ir_tensor->dims;
 
@@ -103,7 +108,7 @@ int VXEngine::VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_ty
         /* create the vx tesnor */
         std::shared_ptr<tim::vx::Tensor> vx_tensor;
 
-        TLOG_INFO("tensor name %s\n",ir_tensor->name);
+//        TLOG_INFO("tensor name %s\n",ir_tensor->name);
 
         if (spec_type == SPEC_TYPE_OUTPUT)
         {
@@ -157,7 +162,7 @@ int VXEngine::VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_ty
         }
         else if (ir_tensor->tensor_type == TENSOR_TYPE_CONST)
         {
-            TLOG_INFO(" vx_shape %d %d %d %d\n", vx_shape[0], vx_shape[1], vx_shape[2], vx_shape[3]);
+//            TLOG_INFO(" vx_shape %d %d %d %d\n", vx_shape[0], vx_shape[1], vx_shape[2], vx_shape[3]);
             tim::vx::TensorSpec vx_spec(datatype, vx_shape,
                                         tim::vx::TensorAttribute::CONSTANT, vx_quant);
             vx_tensor = this->graph->CreateTensor(vx_spec, ir_tensor->data);
@@ -170,7 +175,6 @@ int VXEngine::VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_ty
 
 int VXEngine::Build(struct subgraph* subgraph)
 {
-//    dump_sub_graph(subgraph);
     struct graph* ir_graph = subgraph->graph;
 
     for (int i = 0; i < subgraph->node_num; i++)
@@ -195,6 +199,9 @@ int VXEngine::Build(struct subgraph* subgraph)
                 continue;
             case OP_CONV:
                 this->AddConvolutionNode(ir_node);
+                break;
+            case OP_DECONV:
+                this->AddDeconvNode(ir_node);
                 break;
             case OP_DEPTHTOSPACE:
                 this->AddDepthToSpaceNode(ir_node);
@@ -261,6 +268,9 @@ int VXEngine::Build(struct subgraph* subgraph)
                 break;
             case OP_SPACETODEPTH:
                 this->AddSpaceToDepthNode(ir_node);
+                break;
+            case OP_SPLIT:
+                this->AddSplitNode(ir_node);
                 break;
             case OP_TANH:
                 this->AddTanhNode(ir_node);
@@ -409,6 +419,28 @@ int VXEngine::VXEnginePreRun(struct subgraph* subgraph)
             else if (ir_node->op.type == OP_PRELU)
             {
                 this->VXTensorMap(ir_graph, ir_node->input_tensors[1], SPEC_TYPE_PRELU);
+            }
+            else if (ir_node->op.type == OP_INTERP)
+            {
+                if (ir_node->input_num == 3)
+                {
+                this->VXTensorMap(ir_graph, ir_node->input_tensors[1], SPEC_TYPE_INTERP);
+                this->VXTensorMap(ir_graph, ir_node->input_tensors[2], SPEC_TYPE_INTERP);
+                }
+                else if (ir_node->input_num == 2)
+                {
+                    this->VXTensorMap(ir_graph, ir_node->input_tensors[1], SPEC_TYPE_INTERP);
+                }
+            }
+            else if (ir_node->op.type == OP_SLICE)
+            {
+                if (ir_node->input_num > 1)
+                {
+                    for (int FI = 1; FI < ir_node->input_num; FI++)
+                    {
+                        this->VXTensorMap(ir_graph, ir_node->input_tensors[FI], SPEC_TYPE_SLICE);
+                    }
+                }
             }
         }
         for (int i = 0; i < subgraph->node_num; i++)

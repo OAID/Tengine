@@ -59,6 +59,7 @@ bool VXEngine::AddSliceNode(struct node* ir_node)
     }
 
     auto slice = this->graph->CreateOperation<tim::vx::ops::Slice>(output_tensor->dim_num, start, length);
+    vx_node_map[ir_node->index] = slice;
     (*slice).BindInput( this->vx_tensor_map[input_tensor->index] )
         .BindOutput({ this->vx_tensor_map[output_tensor->index] });
 

@@ -22,7 +22,7 @@
  * Author: bzhang@openailab.com
  */
 
-#include "spatialtransformer_param.h"
+#include "expand_param.h"
 
 #include "graph/tensor.h"
 #include "graph/node.h"
@@ -36,38 +36,37 @@
 #include "utility/log.h"
 
 
-static int spatialtransformer_op_map(int op)
+static int expand_op_map(int op)
 {
-    return OP_SPATIALTRANSFORMER;
+    return OP_EXPAND;
 }
 
 
-static int tm2_load_spatialtransformer(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
-                                  const TM2_Operator* tm_op)
+static int tm2_load_expand(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
+                            const TM2_Operator* tm_op)
 {
-    struct spatialtransformer_param* param = ( struct spatialtransformer_param* )ir_node->op.param_mem;
+    struct expand_param* param = ( struct expand_param* )ir_node->op.param_mem;
     const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
     const char* mem_base = tm2_priv->base;
-    const TM2_SpatialTransformerParam* tm_param = ( TM2_SpatialTransformerParam* )(mem_base + tm_op->offset_t_param);
-
-    param->sampler_type = tm_param->sampler_type;
-    param->transformer_type = tm_param->transformer_type;
-    int index = 0;
-    if (tm_param->offset_ta_shape != TM2_NOT_SET)
+    const TM2_ExpandParam* tm_param = ( TM2_ExpandParam* )(mem_base + tm_op->offset_t_param);
+    if (tm_param->offset_ex_shape != TM2_NOT_SET)
     {
-        const TM2_Vector_dims* v_ta_shape = ( TM2_Vector_dims* )(mem_base + tm_param->offset_ta_shape);
+        const TM2_Vector_dims* v_ex_shape = ( TM2_Vector_dims* )(mem_base + tm_param->offset_ex_shape);
+        param->ex_shape = ( int* )sys_malloc(v_ex_shape->v_num * sizeof(int));
 
-        param->target_shape = ( int* )sys_malloc(v_ta_shape->v_num * sizeof(int));
-        for (unsigned int i = 0; i < v_ta_shape->v_num; i++)
+        for (unsigned int i = 0; i < v_ex_shape->v_num; i++)
         {
-            param->target_shape[i] = v_ta_shape->dims[i];
+            param->ex_shape[i] = v_ex_shape->dims[i];
+            
         }
     }
+    param->dim_num = tm_param->dim_num;
+
     return 0;
 }
 
 
-int register_tm2_spatialtransformer_op()
+int register_tm2_expand_op()
 {
     struct serializer* tm2_s = find_serializer_via_name("tengine");
 
@@ -77,17 +76,17 @@ int register_tm2_spatialtransformer_op()
         return -1;
     }
 
-    tm2_s->register_op_loader(tm2_s, TM2_OPTYPE_SPATIALTRANSFORMER, 1, tm2_load_spatialtransformer, spatialtransformer_op_map, NULL);
+    tm2_s->register_op_loader(tm2_s, TM2_OPTYPE_EXPAND, 1, tm2_load_expand, expand_op_map, NULL);
 
     return 0;
 }
 
 
-int unregister_tm2_spatialtransformer_op()
+int unregister_tm2_expand_op()
 {
     struct serializer* tm2_s = find_serializer_via_name("tengine");
 
-    tm2_s->unregister_op_loader(tm2_s, TM2_OPTYPE_SPATIALTRANSFORMER, 1, tm2_load_spatialtransformer);
+    tm2_s->unregister_op_loader(tm2_s, TM2_OPTYPE_EXPAND, 1, tm2_load_expand);
 
     return 0;
 }

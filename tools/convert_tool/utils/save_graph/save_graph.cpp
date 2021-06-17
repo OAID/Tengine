@@ -141,6 +141,7 @@ tm_uoffset_t SaveTmTensor(void* const start_ptr, tm_uoffset_t* cur_pos, ir_tenso
 tm_uoffset_t SaveTmNode(void* const start_ptr, tm_uoffset_t* cur_pos, ir_graph_t* graph, ir_node_t* node,
                                        name_map_t& tensor_name_map)
 {
+    
     TM2_Node tm_node;
     memset(&tm_node, 0 , sizeof(TM2_Node));
     tm_node.node_id = node->index;
@@ -227,7 +228,6 @@ tm_uoffset_t SaveTmSubgraph(void* const start_ptr, tm_uoffset_t* cur_pos, ir_gra
     std::vector<unsigned int> buf_sizes;
     name_map_t tensor_name_map; /* map of tensor name and tensor index */
     bool tm_no_data = !IsSaveData();
-
     /* Write the nodes */
     size_t vector_size = sizeof(tm_size_t) + sizeof(tm_uoffset_t) * graph->node_num;
     TM2_Vector_offsets* v_nodes = ( TM2_Vector_offsets* )malloc(vector_size);

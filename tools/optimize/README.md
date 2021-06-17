@@ -13,16 +13,16 @@ To support **YOLOv5s** detection model deployment on AIoT devices, we provide so
 ## 2.1 Install dependent libraries
 
 ```
-sudo pip install onnx
+sudo pip install onnx onnx-simplifier
 ```
 
 ## 2.2 Description params
 
 ```
-$ ./python3 yolov5s-opt.py -h
+$ python3 yolov5s-opt.py -h
 usage: yolov5s-opt.py [-h] [--input INPUT] [--output OUTPUT]
-                      [--in_cut_name IN_CUT_NAME] [--output_num OUTPUT_NUM]
-                      [--out_cut_names OUT_CUT_NAMES]
+                      [--in_tensor IN_TENSOR] [--out_tensor OUT_TENSOR]
+                      [--verbose]
 
 YOLOv5 Optimize Tool Parameters
 
@@ -30,38 +30,44 @@ optional arguments:
   -h, --help            show this help message and exit
   --input INPUT         input model path
   --output OUTPUT       output model path
-  --in_cut_name IN_CUT_NAME
-                        input cut node name
-  --output_num OUTPUT_NUM
-                        output num
-  --out_cut_names OUT_CUT_NAMES
-                        output cut node names
+  --in_tensor IN_TENSOR
+                        input tensor name
+  --out_tensor OUT_TENSOR
+                        output tensor names
+  --verbose             show verbose info
 ```
 
 ## 2.3 Demo
 
-Download the original onnx type YOLOv5s model.
+Download the original YOLOv5s model.
 
 ```
-wget https://github.com/ultralytics/yolov5/releases/download/v4.0/yolov5s.onnx
+wget https://github.com/ultralytics/yolov5/releases/download/v5.0/yolov5s.pt -O yolov5s.v5.pt # yolov5
 ```
+
+Export the original pytorch model to onnx type by official script.
+
+```
+python3 models/export.py --weights yolov5s.v5.pt --simplify
+```
+
 Using this tool.
 
 ```
-$ python3 yolov5s-opt.py --input yolov5s.onnx --output yolov5s-opt.onnx --in_cut_name 167 --out_cut_names 381,420,459 --output_num 3
+$ python3 yolov5s-opt.py --input yolov5s.v5.onnx --output yolov5s.v5.opt.onnx --in_tensor 167 --out_tensor 397,458,519
 ---- Tengine YOLOv5 Optimize Tool ----
 
-Input model      : yolov5s.onnx
-Output model     : yolov5s-opt.onnx
-Input node       : 167
-Output nodes     : 381,420,459
-Output node num  : 3
-
-[Quant Tools Info]: Step 0, load original onnx model from yolov5s.onnx.
+Input model      : yolov5s.v5.onnx
+Output model     : yolov5s.v5.opt.onnx
+Input tensor     : 167
+Output tensor    : 397,458,519
+[Quant Tools Info]: Step 0, load original onnx model from yolov5s.v5.onnx.
+256
 [Quant Tools Info]: Step 1, Remove the focus and postprocess nodes.
 [Quant Tools Info]: Step 2, Using hardswish replace the sigmoid and mul.
-[Quant Tools Info]: Step 3, Rebuild new onnx model.
-[Quant Tools Info]: Step 4, save the new onnx model to yolov5s-opt.onnx
+[Quant Tools Info]: Step 3, Rebuild onnx graph nodes.
+[Quant Tools Info]: Step 4, Update input and output tensor.
+[Quant Tools Info]: Step 5, save the new onnx model to yolov5s.v5.opt.onnx.
 
 ---- Tengine YOLOv5s Optimize onnx create success, best wish for your inference has a high accuracy ...\(^0^)/ ----
 ```

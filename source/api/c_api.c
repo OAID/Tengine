@@ -312,12 +312,6 @@ int init_tengine(void)
         return ret;
     }
 
-#ifdef ENABLE_ONLINE_REPORT
-    hcl_version = get_hcl_version();
-    init_tengine_report_mgr();
-    do_tengine_report(ACTION_INIT);
-#endif
-
     init_flag++;
 
     return ret;
