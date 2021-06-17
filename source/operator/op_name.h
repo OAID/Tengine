@@ -21,7 +21,6 @@
  * Copyright (c) 2021, OPEN AI LAB
  * Author: haitao@openailab.com
  */
-
 #pragma once
 
 #define OP_GENERIC_NAME                             "Generic"
