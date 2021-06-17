@@ -200,6 +200,9 @@ int VXEngine::Build(struct subgraph* subgraph)
             case OP_CONV:
                 this->AddConvolutionNode(ir_node);
                 break;
+            case OP_DECONV:
+                this->AddDeconvNode(ir_node);
+                break;
             case OP_DEPTHTOSPACE:
                 this->AddDepthToSpaceNode(ir_node);
                 break;
