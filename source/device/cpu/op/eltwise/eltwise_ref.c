@@ -772,7 +772,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         set_graph_layout(ir_graph, 0);
     }
     
-    printf("layout:%d\n",ir_graph->graph_layout);
+    //printf("layout:%d\n",ir_graph->graph_layout);
     int layout = ir_graph->graph_layout;
     void* input0 = input_tensor0->data;
     void* input1 = NULL;

@@ -379,7 +379,7 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
         }
         else if (param_dim0 == 1 && param_dim1 == -2 && param_dim2 == -2 && param_dim3 == -2)
         {
-            if (dim3 == 32767){
+            if ( dim2  == 0 ){
                 mean_2d_ax1_1(dim0, dim1, data, tmp); 
             }
             else {
@@ -393,7 +393,7 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
         {
             //mean_4d_ax2(dim0, dim1, dim2, dim3, data, tmp);
             //mean_3d_ax2(dim0, dim1, dim2, data, tmp);
-            if (dim3 == 32767){
+            if (dim3 == 0){
                 mean_3d_ax2_1(dim0, dim1, dim2, data, tmp); 
             }
             else {
@@ -2327,6 +2327,9 @@ void mean_4d_ax2(int dim0, int dim1, int dim2, int dim3, float* data, float* tmp
 }
 void mean_3d_ax2_1(int dim0, int dim1, int dim2,  float* data, float* tmp)
 {   
+    //printf("dim0: %d\n", dim0);
+    //printf("dim1: %d\n", dim1);
+    //printf("dim1: %d\n", dim2);
     for (int h = 0; h < dim0; h++)
     {
         for (int w = 0; w < dim1; w++)
@@ -2345,6 +2348,8 @@ void mean_3d_ax2_1(int dim0, int dim1, int dim2,  float* data, float* tmp)
 
 void mean_2d_ax1_1(int dim0, int dim1,  float* data, float* tmp)
 {   
+    //printf("dim0: %d\n", dim0);
+    //printf("dim1: %d\n", dim1);
     for (int h = 0; h < dim0; h++)
     {
         float s_tmp = 0.f;
@@ -2352,6 +2357,7 @@ void mean_2d_ax1_1(int dim0, int dim1,  float* data, float* tmp)
         {
             int offset = h * dim1 + w;
             s_tmp += data[offset];
+            //printf("offset: %d\n", offset);
         }
         tmp[h] += s_tmp / dim1;
     }

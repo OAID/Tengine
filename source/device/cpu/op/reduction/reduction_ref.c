@@ -71,21 +71,41 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     }
     int element_size = output_tensor->elem_size;
     //printf("tensor_size: %d\n",out_tensor_size);
-    // int dims[4] = {1, 1, 1, 1};
+    //int dims[4] = {1, 1, 1, 1};
     int* dims = (int*)malloc(input_tensor->dim_num*sizeof(int));
-    printf("number: %d\n",input_tensor->dim_num );
+    //printf("number: %d\n",input_tensor->dim_num );
     for (int i = 0; i < input_tensor->dim_num; i++)
     {
         dims[i] = input_tensor->dims[i];
-        printf("input_tensor: %d\n",input_tensor->dims[i] );
+        
     }
-    int dim0 = dims[0];
-    int dim1 = dims[1];
-    int dim2 = dims[2];
-    int dim3 = dims[3];
+    int dim0,dim1,dim2,dim3;
+    if (input_tensor->dim_num == 4){
+        dim0 = dims[0];
+        dim1 = dims[1];
+        dim2 = dims[2];
+        dim3 = dims[3];
+    }
+    if (input_tensor->dim_num == 3){
+        dim0 = dims[0];
+        dim1 = dims[1];
+        dim2 = dims[2];
+        dim3 = 0;
+    }
+    if (input_tensor->dim_num == 2){
+        dim0 = dims[0];
+        dim1 = dims[1];
+        dim2 = 0;
+        dim3 = 0;
+    }
+    
+    
+    printf("dim0: %d\n",dim0 );
+    printf("dim1: %d\n",dim1 );
+    printf("dim2: %d\n",dim2 );
     printf("dim3: %d\n",dim3 );
     int total_size = input_tensor->elem_num;
-    printf("total_size: %d\n",total_size );
+    //printf("total_size: %d\n",total_size );
 
     param.param_dim[0] = reduction_param->dim_0;
     param.param_dim[1] = reduction_param->dim_1;

@@ -71,7 +71,7 @@ void init(const char* modelfile)
 
 
     int rc = prerun_graph(graph);
-    //dump_graph(graph);
+    dump_graph(graph);
     unique_ids = get_graph_output_tensor(graph, 0, 0);
     unstack_1 = get_graph_output_tensor(graph, 1, 0);
     unstack_0 = get_graph_output_tensor(graph, 2, 0);
@@ -84,10 +84,10 @@ void init(const char* modelfile)
 int getResult()
 {
    
-    std::vector<float> input_data1(1,1);
-    std::vector<float> input_data2(256,1);
-    std::vector<float> input_data3(256,1);
-    std::vector<float> input_data4(256,1);
+    std::vector<float> input_data1(1,100.0f);
+    std::vector<float> input_data2(256,100.0f);
+    std::vector<float> input_data3(256,100.0f);
+    std::vector<float> input_data4(256,100.0f);
     //get_input_data(imagefile, input_data.data(), height, width, means, scales);
     set_tensor_buffer(unique_ids_raw_output, input_data1.data(), 1 * sizeof(float));
     set_tensor_buffer(segment_ids, input_data2.data(), 256 * sizeof(float));
@@ -104,9 +104,18 @@ int getResult()
     float* data1 = ( float* )get_tensor_buffer(unique_ids);
     float* data2 = ( float* )get_tensor_buffer(unstack_1);
     float* data3 = ( float* )get_tensor_buffer(unstack_0);
-    printf ("data2: %d\n",data2[0]);
-    printf ("data2: %d\n",data2[1]);
-    printf ("data2: %d\n",data2[2]);
+    
+    printf ("data1: %f\n",*data1);
+    printf ("data1: %f\n",data1[1]);
+    printf ("data1: %f\n",data1[2]);
+
+    printf ("data2: %f\n",*data2);
+    printf ("data2: %f\n",data2[1]);
+    printf ("data2: %f\n",data2[2]);
+
+    printf ("data3: %f\n",data3[0]);
+    printf ("data3: %f\n",data3[1]);
+    printf ("data3: %f\n",data3[2]);
 
 }
 
