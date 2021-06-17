@@ -1870,9 +1870,7 @@ int load_expand(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_
     for (int i = 0; i < size; i++)
     {
         expand_param->ex_shape[i] = data[i];
-        printf("%ld ", data[i]);
     }
-    printf("\n");
     return 0;
 }
 
