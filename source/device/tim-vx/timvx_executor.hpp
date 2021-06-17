@@ -69,13 +69,15 @@ extern "C"
 #include "tim/vx/ops/slice.h"
 #include "tim/vx/ops/softmax.h"
 #include "tim/vx/ops/space2depth.h"
+#include "tim/vx/ops/split.h"
 #include "tim/vx/ops/transpose.h"
 
 #define SPEC_TYPE_OUTPUT    1
 #define SPEC_TYPE_DWCONV    2
 #define SPEC_TYPE_PRELU     3
 #define SPEC_TYPE_INTERP    4
-#define SPEC_TYPE_RESHAPE   5
+#define SPEC_TYPE_SLICE     5
+#define SPEC_TYPE_RESHAPE   6
 
 
 typedef std::map<uint32_t, std::shared_ptr<tim::vx::Tensor>> dict_irt2vxt;
@@ -122,6 +124,7 @@ private:
     bool AddSliceNode(struct node* ir_node);
     bool AddSoftmaxNode(struct node* ir_node);
     bool AddSpaceToDepthNode(struct node* ir_node);
+    bool AddSplitNode(struct node* ir_node);
     bool AddTanhNode(struct node* ir_node);
     bool AddTransposeNode(struct node* ir_node);
     bool AddUpsampleNode(struct node* ir_node);

@@ -32,3 +32,4 @@ struct subgraph;
 
 void extract_feature_from_tensor_timvx(const char* comment, const char* layer_name, const struct tensor* tensor);
 
+void dump_sub_graph_timvx(struct subgraph* sub_graph);

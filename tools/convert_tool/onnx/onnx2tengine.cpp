@@ -37,6 +37,7 @@ std::unordered_map<std::string, std::pair<int, op_load_t>> op_load_map;
 /*
 *   ASSIST FUNCTIONS FOR ONNX SERIALIZER START
 */
+
 bool find_op_load_method(const std::string& op_name)
 {
     if(op_load_map.count(op_name))
@@ -175,6 +176,16 @@ int onnx_serializer::load_model_file(std::string model_file, onnx::ModelProto &m
 
     return 0;
 }
+static onnx::TensorProto get_node_attr_tensor(const onnx::NodeProto& node, const char* key)
+{
+    for (int i = 0; i < node.attribute_size(); i++)
+    {
+        const onnx::AttributeProto& attr = node.attribute(i);
+        if (attr.name() == key)
+        {
+            return attr.t();
+        }
+    }
 
 int onnx_serializer::load_constant_tensor(ir_graph_t* graph, const onnx::GraphProto& onnx_graph)
 {
@@ -232,6 +243,7 @@ int onnx_serializer::load_constant_tensor(ir_graph_t* graph, const onnx::GraphPr
                 int tensor_size = ir_tensor->elem_size * ir_tensor->elem_num;
                 if (onnx_tensor.data_type() == 1) //fp32
                 {
+
                     tensor_data_copy(ir_tensor, onnx_tensor, ir_tensor->elem_num, tensor_size, 0);
                 }
                 else // int32
@@ -239,6 +251,7 @@ int onnx_serializer::load_constant_tensor(ir_graph_t* graph, const onnx::GraphPr
                     tensor_data_copy(ir_tensor, onnx_tensor, ir_tensor->elem_num, tensor_size, 1);
                 }
             }
+
             else
             {
                 int tensor_size = ir_tensor->elem_size * ir_tensor->elem_num;
@@ -438,8 +451,6 @@ int onnx_serializer::load_graph_node(ir_graph_t* graph, const onnx::GraphProto& 
         ir_node_t* ir_node = create_ir_node(graph, node_name.c_str(), op_load_map[op_name].first, OP_VERSION);
         if (ir_node == NULL)
             return -1;
-
-        
         /* set ir node io */
         
         for (int j = 0; j < onnx_node.input_size(); j++)
