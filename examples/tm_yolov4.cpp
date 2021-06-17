@@ -190,7 +190,7 @@ static void generate_proposals(int stride,  const float* feat, float prob_thresh
                 int channel_size = feat_h * feat_w;
                 for (int s = 0; s <= cls_num - 1; s++)
                 {
-                    int score_index = anchor * 85 * channel_size + feat_w * h + w + (s + 5) * channel_size;
+                    int score_index = anchor * (cls_num + 5) * channel_size + feat_w * h + w + (s + 5) * channel_size;
                     float score = feat[score_index];
                     if(score > class_score)
                     {
@@ -198,14 +198,14 @@ static void generate_proposals(int stride,  const float* feat, float prob_thresh
                         class_score = score;
                     }
                 }
-                float box_score = feat[anchor * 85 * channel_size + feat_w * h + w + 4 * channel_size];
+                float box_score = feat[anchor * (cls_num + 5) * channel_size + feat_w * h + w + 4 * channel_size];
                 float final_score = sigmoid(box_score) * sigmoid(class_score);
                 if(final_score >= prob_threshold)
                 {
-                    int dx_index = anchor * 85 * channel_size + feat_w * h + w + 0 * channel_size;
-                    int dy_index = anchor * 85 * channel_size + feat_w * h + w + 1 * channel_size;
-                    int dw_index = anchor * 85 * channel_size + feat_w * h + w + 2 * channel_size;
-                    int dh_index = anchor * 85 * channel_size + feat_w * h + w + 3 * channel_size;
+                    int dx_index = anchor * (cls_num + 5) * channel_size + feat_w * h + w + 0 * channel_size;
+                    int dy_index = anchor * (cls_num + 5) * channel_size + feat_w * h + w + 1 * channel_size;
+                    int dw_index = anchor * (cls_num + 5) * channel_size + feat_w * h + w + 2 * channel_size;
+                    int dh_index = anchor * (cls_num + 5) * channel_size + feat_w * h + w + 3 * channel_size;
 
                     float dx = sigmoid(feat[dx_index]);
                     float dy = sigmoid(feat[dy_index]);

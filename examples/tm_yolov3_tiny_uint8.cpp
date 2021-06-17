@@ -174,7 +174,6 @@ void get_input_data_yolov3_uint8(const char* image_file, uint8_t * input_data, i
 
 static void generate_proposals(int stride, const float* feat, float prob_threshold, std::vector<Object>& objects)
 {
-
     static float anchors[12] = {10, 14, 23, 27, 37, 58, 81, 82, 135, 169, 344, 319};
     int anchor_num = 3;
     int feat_w = 416.0 / stride;
@@ -199,7 +198,7 @@ static void generate_proposals(int stride, const float* feat, float prob_thresho
                 int channel_size = feat_h * feat_w;
                 for (int s = 0; s <= cls_num - 1; s++)
                 {
-                    int score_index = anchor * 85 * channel_size + feat_w * h + w + (s + 5) * channel_size;
+                    int score_index = anchor * (cls_num + 5) * channel_size + feat_w * h + w + (s + 5) * channel_size;
                     float score = feat[score_index];
                     if(score > class_score)
                     {
@@ -207,22 +206,20 @@ static void generate_proposals(int stride, const float* feat, float prob_thresho
                         class_score = score;
                     }
                 }
-                float box_score = feat[anchor * 85 * channel_size + feat_w * h + w + 4 * channel_size];
+                float box_score = feat[anchor * (cls_num + 5) * channel_size + feat_w * h + w + 4 * channel_size];
                 float final_score = sigmoid(box_score) * sigmoid(class_score);
                 if(final_score >= prob_threshold)
                 {
-                    int dx_index = anchor * 85 * channel_size + feat_w * h + w + 0 * channel_size;
-                    int dy_index = anchor * 85 * channel_size + feat_w * h + w + 1 * channel_size;
-                    int dw_index = anchor * 85 * channel_size + feat_w * h + w + 2 * channel_size;
-                    int dh_index = anchor * 85 * channel_size + feat_w * h + w + 3 * channel_size;
+                    int dx_index = anchor * (cls_num + 5) * channel_size + feat_w * h + w + 0 * channel_size;
+                    int dy_index = anchor * (cls_num + 5) * channel_size + feat_w * h + w + 1 * channel_size;
+                    int dw_index = anchor * (cls_num + 5) * channel_size + feat_w * h + w + 2 * channel_size;
+                    int dh_index = anchor * (cls_num + 5) * channel_size + feat_w * h + w + 3 * channel_size;
 
                     float dx = sigmoid(feat[dx_index]);
-                    
                     float dy = sigmoid(feat[dy_index]);
 
                     float dw = feat[dw_index];
                     float dh = feat[dh_index];
-
 
                     float anchor_w = anchors[(anchor_group - 1) * 6 + anchor * 2 + 0];
                     float anchor_h = anchors[(anchor_group - 1) * 6 + anchor * 2 + 1];
@@ -231,8 +228,6 @@ static void generate_proposals(int stride, const float* feat, float prob_thresho
                     float pred_y = (h + dy) * stride;
                     float pred_w = exp(dw) * anchor_w;
                     float pred_h = exp(dh) * anchor_h;
-                    
-
 	           
                     float x0 = (pred_x - pred_w * 0.5f);
                     float y0 = (pred_y - pred_h * 0.5f);
@@ -298,7 +293,7 @@ static void draw_objects(const cv::Mat& bgr, const std::vector<Object>& objects)
                     cv::Scalar(0, 0, 0));
     }
 
-    cv::imwrite("yolov3_tiny_out.jpg", image);
+    cv::imwrite("yolov3_tiny_uint8_out.jpg", image);
 }
 
 void show_usage()

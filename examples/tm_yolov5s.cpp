@@ -162,7 +162,7 @@ static void generate_proposals(int stride,  const float* feat, float prob_thresh
                 float class_score = -FLT_MAX;
                 for (int s = 0; s <= cls_num - 1; s++)
                 {
-                    float score = feat[a * feat_w * feat_h * 85 + h * feat_w * 85 + w * 85 + s + 5];
+                    float score = feat[a * feat_w * feat_h * (cls_num + 5) + h * feat_w * (cls_num + 5) + w * (cls_num + 5) + s + 5];
                     if(score > class_score)
                     {
                         class_index = s;
@@ -170,11 +170,11 @@ static void generate_proposals(int stride,  const float* feat, float prob_thresh
                     }
                 }
                 //process box score
-                float box_score = feat[a * feat_w * feat_h * 85 + (h * feat_w) * 85 + w * 85 + 4];
+                float box_score = feat[a * feat_w * feat_h * (cls_num + 5) + (h * feat_w) * (cls_num + 5) + w * (cls_num + 5) + 4];
                 float final_score = sigmoid(box_score ) * sigmoid(class_score);
                 if (final_score >= prob_threshold)
                 {
-                    int loc_idx = a * feat_h * feat_w * 85 + h * feat_w * 85 + w * 85;
+                    int loc_idx = a * feat_h * feat_w * (cls_num + 5) + h * feat_w * (cls_num + 5) + w * (cls_num + 5);
                     float dx = sigmoid(feat[loc_idx + 0]);
                     float dy = sigmoid(feat[loc_idx + 1]);
                     float dw = sigmoid(feat[loc_idx + 2]);

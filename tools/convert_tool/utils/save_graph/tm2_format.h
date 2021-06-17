@@ -143,6 +143,8 @@ typedef uint8_t tm_bool_t; /* bool is 1-byte unsigned integer */
 #define TM2_OPSTR_SHAPE "Shape"
 #define TM2_OPSTR_WHERE "Where"
 #define TM2_OPSTR_TILE "Tile"
+#define TM2_OPSTR_SPATIALTRANSFORMER "SpatialTransformer"
+
 /* Operator types */
 #define TM2_OPTYPE_ACCURACY 0 /* No Param                 */
 #define TM2_OPTYPE_BATCHNORMALIZATION 1 /* TM2_BatchNormParam       */
@@ -242,7 +244,8 @@ typedef uint8_t tm_bool_t; /* bool is 1-byte unsigned integer */
 #define TM2_OPTYPE_WHERE 95
 #define TM2_OPTYPE_TILE 96
 #define TM2_OPTYPE_MISH 97 /* No param*/
-#define TM2_OPTYPE_NUM 98
+#define TM2_OPTYPE_SPATIALTRANSFORMER 98
+#define TM2_OPTYPE_NUM 99
 
 /* --------------------- -------- TM objects -------------------------------- */
 
@@ -944,6 +947,7 @@ typedef struct
 typedef struct
 {
      tm_uoffset_t offset_v_shape;
+     int dim_num;
 }TM2_ExpandParam;
 
 typedef struct
@@ -957,6 +961,15 @@ typedef struct
      tm_uoffset_t offset_vi_flag;   // caffe: 0, onnx: 1
      tm_uoffset_t offset_vi_reps;
 }TM2_TileParam;
+
+typedef struct 
+{
+    int sampler_type;
+    int transformer_type;
+    tm_uoffset_t offset_ta_shape;
+    int shape_size;
+}TM2_SpatialTransformerParam;
+
 
 #ifdef __cplusplus
 }
