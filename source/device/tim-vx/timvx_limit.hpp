@@ -49,7 +49,7 @@ const int timvx_supported_ops[] = {
     OP_CONST,
     OP_CONV,
 //    OP_CROP,
-//    OP_DECONV,
+    OP_DECONV,
     OP_DEPTHTOSPACE,
 //    OP_DETECTION_OUTPUT,
 //    OP_DETECTION_POSTPROCESS,
