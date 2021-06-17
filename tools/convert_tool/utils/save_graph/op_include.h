@@ -101,6 +101,8 @@ extern "C" {
 #include "scatter_param.h"
 #include "hardsigmoid_param.h"
 #include "tile_param.h"
+#include "expand_param.h"
+#include "spatialtransformer_param.h"
 
 #ifdef __cplusplus
 }

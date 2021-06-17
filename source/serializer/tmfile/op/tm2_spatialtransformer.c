@@ -52,6 +52,7 @@ static int tm2_load_spatialtransformer(struct graph* ir_graph, struct node* ir_n
 
     param->sampler_type = tm_param->sampler_type;
     param->transformer_type = tm_param->transformer_type;
+    int index = 0;
     if (tm_param->offset_ta_shape != TM2_NOT_SET)
     {
         const TM2_Vector_dims* v_ta_shape = ( TM2_Vector_dims* )(mem_base + tm_param->offset_ta_shape);

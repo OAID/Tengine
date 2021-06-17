@@ -1327,6 +1327,67 @@ tm_uoffset_t SaveTmMatMulOp(void* const start_ptr, tm_uoffset_t* cur_pos, ir_nod
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
 }
 
+
+tm_uoffset_t SaveTmExpandOp(void* const start_ptr, tm_uoffset_t* cur_pos,ir_node_t* node)
+{
+    struct expand_param* p = (struct expand_param*)node->op.param_mem;
+    TM2_ExpandParam tm_param;
+    memset(&tm_param, 0, sizeof(TM2_ExpandParam));
+
+    if(p->dim_num)
+    {
+        size_t vector_size = sizeof(tm_size_t) + sizeof(int32_t) * p->dim_num;
+        TM2_Vector_dims* v_axises = ( TM2_Vector_dims* )malloc(vector_size);
+        v_axises->v_num = p->dim_num;
+        for(unsigned int i = 0; i < p->dim_num; i++)
+        {
+            v_axises->dims[i] = p->ex_shape[i];
+        }
+        tm_param.offset_v_shape = WriteTmObject(start_ptr, cur_pos, v_axises, vector_size);
+        free(v_axises);
+    }
+    else
+        tm_param.offset_v_shape = TM2_NOT_SET;
+
+    tm_param.dim_num = p->dim_num;
+    TM2_Operator tm_op;
+    memset(&tm_op, 0, sizeof(TM2_Operator));
+    SetTmOperator(&tm_op, TM2_OPTYPE_EXPAND, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_ExpandParam)));
+
+    return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
+}
+
+tm_uoffset_t SaveTmSpatialTransformerOp(void* const start_ptr, tm_uoffset_t* cur_pos,ir_node_t* node)
+{
+    struct spatialtransformer_param* p = (struct spatialtransformer_param*)node->op.param_mem;
+    TM2_SpatialTransformerParam tm_param;
+    memset(&tm_param, 0, sizeof(TM2_SpatialTransformerParam));
+    tm_param.sampler_type = p->sampler_type;
+    tm_param.transformer_type = p->transformer_type;
+    tm_param.shape_size = sizeof(p->target_shape)/sizeof(p->target_shape[0]);
+    if(tm_param.shape_size)
+    {
+        size_t vector_size = sizeof(tm_size_t) + sizeof(int32_t) * tm_param.shape_size;
+        TM2_Vector_dims* v_ta_shape = ( TM2_Vector_dims* )malloc(vector_size);
+        v_ta_shape->v_num = tm_param.shape_size;
+        for(unsigned int i = 0; i < tm_param.shape_size; i++)
+        {
+            v_ta_shape->dims[i] = p->target_shape[i];
+        }
+        tm_param.offset_ta_shape = WriteTmObject(start_ptr, cur_pos, v_ta_shape, vector_size);
+        free(v_ta_shape);
+    }
+    else{
+        tm_param.offset_ta_shape = TM2_NOT_SET;
+    }
+
+    TM2_Operator tm_op;
+    memset(&tm_op, 0, sizeof(TM2_Operator));
+    SetTmOperator(&tm_op, TM2_OPTYPE_SPATIALTRANSFORMER, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_SpatialTransformerParam)));
+    return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
+
+}
+
 op_save_t SaveTmOpFunc(uint32_t op_type)
 {
     switch(op_type)
@@ -1499,6 +1560,10 @@ op_save_t SaveTmOpFunc(uint32_t op_type)
             return SaveTmMatMulOp;
         case OP_MISH:
             return SaveTmMishOp;
+        case TM2_OPTYPE_SPATIALTRANSFORMER:
+            return SaveTmSpatialTransformerOp;
+        case TM2_OPTYPE_EXPAND:
+            return SaveTmExpandOp;
         default:
             // fprintf(stderr, "Operator #%d not supported in tengine model yet\n",op_type);
             return nullptr;
