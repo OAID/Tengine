@@ -107,6 +107,8 @@ bool TensorRTEngine::AddFullyConnectedNode(struct graph* ir_graph, struct node* 
 
         auto tensor_reshape_out = layer_reshape_out->getOutput(0);
 
+        this->layer_map[node->index] = layer_reshape_out;
+
         /* tensor map */
         this->SetRange(output_tensor, tensor_reshape_out);
 
