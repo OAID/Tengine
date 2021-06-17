@@ -58,6 +58,7 @@ extern "C"
 #include "tim/vx/ops/batchnorm.h"
 #include "tim/vx/ops/concat.h"
 #include "tim/vx/ops/conv2d.h"
+#include "tim/vx/ops/deconv.h"
 #include "tim/vx/ops/depth2space.h"
 #include "tim/vx/ops/elementwise.h"
 #include "tim/vx/ops/fullyconnected.h"
@@ -102,6 +103,7 @@ private:
     bool AddClipNode(struct node* ir_node);
     bool AddConcatNode(struct node* ir_node);
     bool AddConvolutionNode(struct node* ir_node);
+    bool AddDeconvNode(struct node* ir_node);
     bool AddDepthToSpaceNode(struct node* ir_node);
     bool AddDropoutNode(struct node* ir_node);
     bool AddEltwiseNode(struct node* ir_node);
