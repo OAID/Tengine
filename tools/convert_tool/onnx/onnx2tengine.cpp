@@ -57,7 +57,6 @@ ir_tensor_t* find_tensor(ir_graph_t* graph, const std::string& tensor_name)
     return nullptr;
 }
 
-
 int change_node_op(ir_node_t* node, int new_op_type)
 {
     sys_free(node->op.param_mem);
@@ -85,11 +84,62 @@ onnx::TensorProto get_node_attr_tensor(const onnx::NodeProto& node, const char* 
     return onnx::TensorProto();
 }
 
-
-bool check_tensor(std::string tensor_name)
+int tensor_data_copy(ir_tensor_t* ir_tensor, const onnx::TensorProto& onnx_tensor, int elem_num, int tensor_size, int type)
 {
-    
+    ir_tensor->data = sys_malloc(tensor_size);
+    if ( 0 == type ) // constant tensor fp32
+    {
+        uint8_t* mem_buf = (uint8_t*)ir_tensor->data;
+        uint8_t* raw_data = (uint8_t*)onnx_tensor.raw_data().c_str();
+        for (int j = 0; j < tensor_size; j++)
+            mem_buf[j] = raw_data[2*j];
+    }
+    else if ( 1 == type) // constant tensor int32
+    {
+        int32_t* mem_buf = (int32_t*)ir_tensor->data;
+        int32_t* raw_data = (int32_t*)onnx_tensor.raw_data().data();
+        for (int j = 0; j < ir_tensor->elem_num; j++)
+            mem_buf[j] = raw_data[2*j];
+    }
+    else if ( 2 == type ) // initializer tensor fp32
+    {
+        uint8_t* mem_buf = (uint8_t*)ir_tensor->data;
+        uint8_t* raw_data = (uint8_t*)onnx_tensor.raw_data().c_str();
+        for (int j = 0; j < ir_tensor->elem_num; j++)
+        {
+            mem_buf[j] = raw_data[j];
+        }
+    }
+    else if ( 3 == type ) // initializer tensor fp32
+    {
+        int32_t* mem_buf = (int32_t*)ir_tensor->data;
+        int32_t* raw_data = (int32_t*)onnx_tensor.raw_data().data();
+        for (int j = 0; j < ir_tensor->elem_num; j++)
+        {
+            mem_buf[j] = raw_data[j];
+        }
+    }
+    else if ( 4 == type ) // initializer tensor fp32
+    {
+        float* mem_buf = (float*)ir_tensor->data;
+        float* raw_data = (float*)onnx_tensor.float_data().data();
+        for (int j = 0; j < ir_tensor->elem_num; j++)
+        {
+            mem_buf[j] = raw_data[j];
+        }
+    }
+    else // initializer tensor int32
+    {
+        int64_t* mem_buf = (int64_t*)ir_tensor->data; 
+        int64_t* raw_data = ( int64_t* )onnx_tensor.int64_data().data();
+        for (int j = 0; j < ir_tensor->elem_num; j++)
+        {
+            mem_buf[j] = raw_data[j];
+        }
+    }
 }
+
+
 /*
 *   ASSIST FUNCTIONS FOR ONNX SERIALIZER END
 */
@@ -156,7 +206,8 @@ int onnx_serializer::load_constant_tensor(ir_graph_t* graph, const onnx::GraphPr
         if ((op == "Reshape" || op == "Gather" || op == "Div" || op == "Resize")  )
         {            
             const onnx::TensorProto& onnx_tensor = node_tensor[node.input(1)];
-            
+            std::pair<std::string, bool> t(node.input(1), 0);
+            tensor_check.insert(t);
             int tensor_date_type = onnx_tensor.data_type() == 1 ? TENGINE_DT_FP32 : TENGINE_DT_INT32;
             const char* name = node.input(1).c_str();
             int dim_num = onnx_tensor.dims_size();
@@ -181,51 +232,25 @@ int onnx_serializer::load_constant_tensor(ir_graph_t* graph, const onnx::GraphPr
                 int tensor_size = ir_tensor->elem_size * ir_tensor->elem_num;
                 if (onnx_tensor.data_type() == 1) //fp32
                 {
-                    ir_tensor->data = sys_malloc(tensor_size);
-                    uint8_t* mem_buf = (uint8_t*)ir_tensor->data;
-                    uint8_t* raw_data = (uint8_t*)onnx_tensor.raw_data().c_str();
-                    for (int j = 0; j < tensor_size; j++)
-                    {
-                        mem_buf[j] = raw_data[2*j];
-                    }
+                    tensor_data_copy(ir_tensor, onnx_tensor, ir_tensor->elem_num, tensor_size, 0);
                 }
                 else // int32
                 {
-                    ir_tensor->data = sys_malloc(tensor_size);
-                    int32_t* mem_buf = (int32_t*)ir_tensor->data;
-                    int32_t* raw_data = (int32_t*)onnx_tensor.raw_data().data();
-                    for (int j = 0; j < ir_tensor->elem_num; j++)
-                    {
-                        mem_buf[j] = raw_data[2*j];
-                    }
+                    tensor_data_copy(ir_tensor, onnx_tensor, ir_tensor->elem_num, tensor_size, 1);
                 }
             }
-            #if 0
             else
             {
                 int tensor_size = ir_tensor->elem_size * ir_tensor->elem_num;
                 if (onnx_tensor.data_type() == 1) //fp32
                 {
-                    ir_tensor->data = sys_malloc(tensor_size);
-                    float* mem_buf = (float*)ir_tensor->data;
-                    float* raw_data = (float*)onnx_tensor.float_data().data();
-                    for (int j = 0; j < ir_tensor->elem_num; j++)
-                    {
-                        mem_buf[j] = raw_data[2*j];
-                    }
+                    tensor_data_copy(ir_tensor, onnx_tensor, ir_tensor->elem_num, tensor_size, 0);
                 }
                 else // int32
                 {
-                    ir_tensor->data = sys_malloc(tensor_size);
-                    int32_t* mem_buf = (int32_t*)ir_tensor->data;
-                    int32_t* raw_data = (int32_t*)onnx_tensor.int32_data().data();
-                    for (int j = 0; j < ir_tensor->elem_num; j++)
-                    {
-                        mem_buf[j] = raw_data[2*j];
-                    }
+                    tensor_data_copy(ir_tensor, onnx_tensor, ir_tensor->elem_num, tensor_size, 1);
                 }
             }
-            #endif
             ir_node_t* ir_node = create_ir_node(graph, name, OP_CONST, OP_VERSION);
             set_ir_node_output_tensor(ir_node, 0, ir_tensor);
         }
@@ -248,6 +273,8 @@ int onnx_serializer::load_initializer_tensor(ir_graph_t* graph, const onnx::Grap
             fprintf(stderr, "onnx_tensor.data_type: %d \n", onnx_tensor.data_type());
             return -1;
         }
+        std::pair<std::string, int> t(onnx_tensor.name(), 0);
+        tensor_check.insert(t);
         int tensor_date_type = onnx_tensor.data_type() == 1 ? TENGINE_DT_FP32 : TENGINE_DT_INT32;
         const char* name = onnx_tensor.name().c_str();
         int dim_num = onnx_tensor.dims_size();
@@ -266,29 +293,18 @@ int onnx_serializer::load_initializer_tensor(ir_graph_t* graph, const onnx::Grap
         }
         set_ir_tensor_shape(ir_tensor, dims, dim_num);
         ir_tensor->tensor_type = TENSOR_TYPE_CONST;
-        // set tensor data
+        
+        // printf("%s \n", ir_tensor->name);
         if (onnx_tensor.has_raw_data())
         {
             int tensor_size = ir_tensor->elem_size * ir_tensor->elem_num;
             if (onnx_tensor.data_type() == 1) //fp32
             {
-                ir_tensor->data = sys_malloc(tensor_size);
-                uint8_t* mem_buf = (uint8_t*)ir_tensor->data;
-                uint8_t* raw_data = (uint8_t*)onnx_tensor.raw_data().c_str();
-                for (int j = 0; j < tensor_size; j++)
-                {
-                    mem_buf[j] = raw_data[j];
-                }
+                tensor_data_copy(ir_tensor, onnx_tensor, ir_tensor->elem_num, tensor_size, 2);
             }
             else // int32
             {
-                ir_tensor->data = sys_malloc(tensor_size);
-                int32_t* mem_buf = (int32_t*)ir_tensor->data;
-                int32_t* raw_data = (int32_t*)onnx_tensor.raw_data().data();
-                for (int j = 0; j < ir_tensor->elem_num; j++)
-                {
-                    mem_buf[j] = raw_data[j];
-                }
+                tensor_data_copy(ir_tensor, onnx_tensor, ir_tensor->elem_num, tensor_size, 3);   
             }
         }
         else
@@ -296,25 +312,14 @@ int onnx_serializer::load_initializer_tensor(ir_graph_t* graph, const onnx::Grap
             int tensor_size = ir_tensor->elem_size * ir_tensor->elem_num;
             if (onnx_tensor.data_type() == 1) //fp32
             {
-                ir_tensor->data = sys_malloc(tensor_size);
-                float* mem_buf = (float*)ir_tensor->data;
-                float* raw_data = (float*)onnx_tensor.float_data().data();
-                for (int j = 0; j < ir_tensor->elem_num; j++)
-                {
-                    mem_buf[j] = raw_data[j];
-                }
+                tensor_data_copy(ir_tensor, onnx_tensor, ir_tensor->elem_num, tensor_size, 4);
             }
             else // int32
             {
-                ir_tensor->data = sys_malloc(tensor_size);
-                int32_t* mem_buf = (int32_t*)ir_tensor->data;
-                int32_t* raw_data = (int32_t*)onnx_tensor.int32_data().data();
-                for (int j = 0; j < ir_tensor->elem_num; j++)
-                {
-                    mem_buf[j] = raw_data[j];
-                }
+                tensor_data_copy(ir_tensor, onnx_tensor, ir_tensor->elem_num, tensor_size, 5);
             }
         }
+        
         ir_node_t* ir_node = create_ir_node(graph, name, OP_CONST, OP_VERSION);
         set_ir_node_output_tensor(ir_node, 0, ir_tensor);
     }
@@ -343,13 +348,10 @@ int onnx_serializer::check_same_tensor(ir_graph_t* graph, const onnx::GraphProto
             if(tensor != NULL){
                 printf("%s \n", input_name.c_str());
             }
-
         }
     }
-
     return 0;
 }
-
 
 int onnx_serializer::set_graph_input(ir_graph_t* graph, const onnx::GraphProto& onnx_graph)
 {
@@ -425,7 +427,6 @@ int onnx_serializer::load_graph_node(ir_graph_t* graph, const onnx::GraphProto& 
         return -1;
     }
 
-
     for(i = 0; i < onnx_graph.node_size(); i++)
     {
         /* create ir node*/
@@ -437,19 +438,55 @@ int onnx_serializer::load_graph_node(ir_graph_t* graph, const onnx::GraphProto& 
         ir_node_t* ir_node = create_ir_node(graph, node_name.c_str(), op_load_map[op_name].first, OP_VERSION);
         if (ir_node == NULL)
             return -1;
+
+        
         /* set ir node io */
+        
         for (int j = 0; j < onnx_node.input_size(); j++)
         {
             const std::string& input_name = onnx_node.input(j);
-            int tensor_id = get_ir_tensor_index_from_name(graph, input_name.c_str());
-            if (tensor_id < 0 || tensor_id >= graph->tensor_num)
+            if (input_name == "")
             {
-                TLOG_ERR("can not find input tensor name: %s for node: %s\n", input_name.c_str(), node_name.c_str());
-                return -1;
+                continue;
             }
-            ir_tensor_t* tensor = get_ir_graph_tensor(graph, tensor_id);
-            set_ir_node_input_tensor(ir_node, j, tensor);
+            int tensor_id = get_ir_tensor_index_from_name(graph, input_name.c_str());
+            ir_tensor_t* tensor = get_ir_graph_tensor(graph, tensor_id);        
+            if(tensor_check[tensor->name] != 0)   // Already in tensor list
+            {
+                if(tensor->dim_num == 1){
+                    if(tensor->data == NULL){
+                        continue;
+                    }
+                }
+                if(tensor->dim_num == 0){
+                    set_ir_node_input_tensor(ir_node, j, tensor);
+                    continue;
+                }
+                
+                std::string new_tensor_name  = input_name + "_" + std::to_string(tensor_check[input_name]);
+                ir_tensor_t* new_ir_tensor = create_ir_tensor(graph, new_tensor_name.c_str(), TENGINE_DT_FP32);
+                int* dims = tensor->dims;
+                int dim_num = tensor->dim_num;
+                set_ir_tensor_shape(new_ir_tensor, dims, dim_num);
+                int ct = 1;
+                for (int n = 0; n < dim_num; n++)
+                {
+                    ct *= dims[n];
+                }
+                uint8_t* mem_buf = (uint8_t*)tensor->data;
+                uint8_t* new_buf = (uint8_t*)new_ir_tensor->data;
+                new_buf = (uint8_t*)malloc(sizeof(uint8_t)*ct);
+                for (int j = 0; j < ct; j++)
+                    new_buf[j] = mem_buf[j];      
+                set_ir_node_input_tensor(ir_node, j, new_ir_tensor);          
+            }
+            else
+            {
+                tensor_check[tensor->name] = tensor_check[tensor->name] + 1;
+                set_ir_node_input_tensor(ir_node, j, tensor);
+            }
         }
+
         for (int j = 0; j < onnx_node.output_size(); j++)
         {
             if (op_name == "Dropout" && j > 0)
@@ -460,6 +497,7 @@ int onnx_serializer::load_graph_node(ir_graph_t* graph, const onnx::GraphProto& 
         }
         /* exec op load func */
         op_load_t loader = op_load_map[op_name].second;
+        // printf("%s \n", op_name.c_str());
         if (loader(graph, ir_node, onnx_node) < 0)
         {
             TLOG_ERR("load op %s func failed in node %s .\n", op_name.c_str(), node_name.c_str());
@@ -1345,6 +1383,7 @@ int load_pad(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_nod
     struct pad_param* pad_param = ( struct pad_param* )node->op.param_mem;
     
     if (onnx_node.attribute_size() == 1){  // since opset 11, 'pads' and 'value' have been moved from attributes to inputs
+        
         const std::string& input_name_pad = onnx_node.input(1);
         ir_tensor_t* tensor_pad = find_tensor(graph, input_name_pad);
         int64_t* data_pad = ( int64_t * )tensor_pad->data;
@@ -1357,10 +1396,14 @@ int load_pad(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_nod
         pad_param->pad_3_h = data_pad[3];
         pad_param->pad_3_w = data_pad[7];
 
-        const std::string& input_name_value = onnx_node.input(2);
-        ir_tensor_t* tensor_value = find_tensor(graph, input_name_value);
-        float* data_value = ( float * )tensor_value->data;
-        pad_param->value = data_value[0];
+        if (onnx_node.input_size() > 2)
+        {
+            const std::string& input_name_value = onnx_node.input(2);
+            ir_tensor_t* tensor_value = find_tensor(graph, input_name_value);
+            float* data_value = ( float * )tensor_value->data;
+            pad_param->value = data_value[0];
+        }
+
     }
     
     for (int k = 0; k < onnx_node.attribute_size(); k++)
@@ -1413,7 +1456,6 @@ int load_pad(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_nod
                 pad_param->pad_3_w = data[7];
         }
     }
-    
     return 0;
 }
 
@@ -1510,7 +1552,6 @@ int load_reduce(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_
             }
         }
     }
-    
     return 0;
 }
 
@@ -1760,6 +1801,14 @@ int load_resize(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_
         interp_param->height_scale = data[2];
         interp_param->width_scale = data[3];
     }
+    else if (onnx_node.input_size() == 4){
+        const std::string& input_name = onnx_node.input(3);
+        ir_tensor_t* tensor = find_tensor(graph, input_name);
+        float* data = ( float* )tensor->data;
+
+        interp_param->height_scale = data[2];
+        interp_param->width_scale = data[3];
+    }
     else
     {
         fprintf(stderr, "Not support the num of inputs > 3, please check the onnx model or update the codes of convert tool\n");
@@ -1797,11 +1846,6 @@ int load_LSTM(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_no
             lstm_type = attr.s();
     }
 
-    // if(lstm_type == "bidirectional")
-    //     lstm_param->algorithm = 0;
-    // else
-    //     lstm_param->algorithm = 0;
-
     lstm_param->mxnet_flag = 0;
     lstm_param->hidden_size = s_size;
     lstm_param->cell_size = s_size;
@@ -1809,6 +1853,28 @@ int load_LSTM(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_no
     return 0;
 }
 
+int load_expand(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
+{
+    struct expand_param* expand_param = ( struct expand_param* )node->op.param_mem;
+
+    ir_tensor_t* shape_tensor = find_tensor(graph, onnx_node.input(1));
+    if (shape_tensor == nullptr)
+    {
+        fprintf(stderr, "find shape tensor of expand node failed.\n");
+        return -1;
+    }
+    int size = shape_tensor->elem_num;
+    expand_param->ex_shape = (int*)sys_malloc(sizeof(int) * size);
+    expand_param->dim_num = size;
+    int64_t* data = (int64_t*)shape_tensor->data;
+    for (int i = 0; i < size; i++)
+    {
+        expand_param->ex_shape[i] = data[i];
+        printf("%ld ", data[i]);
+    }
+    printf("\n");
+    return 0;
+}
 
 
 /*
@@ -1858,7 +1924,7 @@ void onnx_serializer::register_op_load()
     op_load_map["Max"]                   = std::pair<int, op_load_t>(OP_MAXIMUM,      load_no_param);
     op_load_map["Min"]                   = std::pair<int, op_load_t>(OP_MINIMUM,      load_no_param);
     op_load_map["Mean"]                  = std::pair<int, op_load_t>(OP_MEAN,         load_no_param);
-    op_load_map["Matmul"]                = std::pair<int, op_load_t>(OP_MATMUL,       load_matmul);
+    op_load_map["MatMul"]                = std::pair<int, op_load_t>(OP_MATMUL,       load_matmul);
     op_load_map["MaxPool"]               = std::pair<int, op_load_t>(OP_POOL,         load_pool);
     op_load_map["Neg"]                   = std::pair<int, op_load_t>(OP_UNARY,        load_unary);
     op_load_map["Or"]                    = std::pair<int, op_load_t>(OP_LOGICAL,      load_logical);
@@ -1876,6 +1942,7 @@ void onnx_serializer::register_op_load()
     op_load_map["ReduceMin"]             = std::pair<int, op_load_t>(OP_REDUCTION,    load_reduce);
     op_load_map["ReduceProd"]            = std::pair<int, op_load_t>(OP_REDUCTION,    load_reduce);
     op_load_map["ReduceSumSquare"]       = std::pair<int, op_load_t>(OP_REDUCTION,    load_reduce);
+    op_load_map["ReduceSum"]             = std::pair<int, op_load_t>(OP_REDUCTION,    load_reduce);
     op_load_map["Reciprocal"]            = std::pair<int, op_load_t>(OP_RECIPROCAL,   load_no_param);
     op_load_map["Sub"]                   = std::pair<int, op_load_t>(OP_ELTWISE,      load_eltwise);
     op_load_map["Selu"]                  = std::pair<int, op_load_t>(OP_SELU,         load_selu);
@@ -1894,6 +1961,7 @@ void onnx_serializer::register_op_load()
     op_load_map["Upsample"]              = std::pair<int, op_load_t>(OP_INTERP,       load_interp);
     op_load_map["Unsqueeze"]             = std::pair<int, op_load_t>(OP_UNSQUEEZE,    load_unsqueeze);
     op_load_map["Where"]                 = std::pair<int, op_load_t>(OP_WHERE,        load_no_param);
+    op_load_map["Expand"]                = std::pair<int, op_load_t>(OP_EXPAND,       load_expand);
 }
 /*
 *   OPERAOTR REGISTER FUNCTION DEFINE FOR ONNX SERIALIZER END

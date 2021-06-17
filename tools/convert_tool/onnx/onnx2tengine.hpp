@@ -37,8 +37,6 @@
 #include <google/protobuf/text_format.h>
 #include <google/protobuf/message.h>
 
-
-
 extern "C" 
 {
     #include "tengine/c_api.h"
@@ -70,7 +68,7 @@ private:
     int load_model_file(std::string model_file, onnx::ModelProto &model);
     void register_op_load();
 
-    std::vector<std::string> tensor_check;
+    std::unordered_map<std::string, int> tensor_check;
 };
 
 
