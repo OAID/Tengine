@@ -382,7 +382,7 @@ int main(int argc, char* argv[])
 
     /* create VeriSilicon TIM-VX backend */
     context_t timvx_context = create_context("timvx", 1);
-    int rtt = add_context_device(timvx_context, "TIMVX");
+    int rtt = set_context_device(timvx_context, "TIMVX", nullptr, 0);
     if (0 > rtt)
     {
         fprintf(stderr, " add_context_device VSI DEVICE failed.\n");
