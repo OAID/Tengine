@@ -21,6 +21,8 @@
  * Copyright (c) 2021, OPEN AI LAB
  * Author: qtang@openailab.com
  * Author: stevenwudi@fiture.com
+ *
+ * original model: https://mmpose.readthedocs.io/en/latest/papers/backbones.html#div-align-center-hrnet-cvpr-2019-div
  */
 
 #include <iostream>
