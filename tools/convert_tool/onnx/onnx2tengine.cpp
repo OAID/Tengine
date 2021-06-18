@@ -176,16 +176,6 @@ int onnx_serializer::load_model_file(std::string model_file, onnx::ModelProto &m
 
     return 0;
 }
-static onnx::TensorProto get_node_attr_tensor(const onnx::NodeProto& node, const char* key)
-{
-    for (int i = 0; i < node.attribute_size(); i++)
-    {
-        const onnx::AttributeProto& attr = node.attribute(i);
-        if (attr.name() == key)
-        {
-            return attr.t();
-        }
-    }
 
 int onnx_serializer::load_constant_tensor(ir_graph_t* graph, const onnx::GraphProto& onnx_graph)
 {
