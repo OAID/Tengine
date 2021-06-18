@@ -48,7 +48,7 @@ typedef struct
     int is_onnx;
 } gather_param_t;
 
-static int ref_gather_fp32(float* input, int* input_indices, float* output, gather_param_t* param, int num_thread)
+static int ref_gather_fp32(float* input, float* input_indices, float* output, gather_param_t* param, int num_thread)
 {
     float* out_ptr = output;
     float* in_ptr = input;
@@ -56,6 +56,7 @@ static int ref_gather_fp32(float* input, int* input_indices, float* output, gath
     int outer_size = 1;
     int inner_size = 1;
     int axis_size = param->in_shape[axis];
+    float* indices = input_indices;
 
     for (int i = 0; i < axis; i++)
     {
@@ -80,11 +81,11 @@ static int ref_gather_fp32(float* input, int* input_indices, float* output, gath
         } */
     if(param->is_onnx){
 
-        for (int i = 0; i < 256; i++)
+        for (int i = 0; i < param->indices_num; i++)
         {
-
+            //printf("input_indices: %d\n", ( int )input_indices[i]);
             memcpy(out_ptr + i * inner_size,
-                    in_ptr + ( int )input_indices[i]* inner_size,  inner_size *sizeof(float));
+                    in_ptr + (int)indices[i]* inner_size,  inner_size *sizeof(float));
                 
         }
         
@@ -142,9 +143,10 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
     struct gather_param* gather_param = ( struct gather_param* )ir_node->op.param_mem;
     gather_param_t* op_priv_info = ( gather_param_t* )exec_node->ops_priv;
     struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-
+    
     op_priv_info->axis = gather_param->axis;
     op_priv_info->indices_num = gather_param->indices_num;
+    //printf("op_priv_info: %d\n", op_priv_info->indices_num);
     op_priv_info->is_onnx = gather_param->is_onnx;
     op_priv_info->in_shape = (int*)sys_malloc(input_tensor->dim_num*sizeof(int));
     /* prerun now */
@@ -158,7 +160,8 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
     struct tensor* indices_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
-
+    float* x = input_tensor->data;
+    printf("input_indices: %f\n", x[0] );
     gather_param_t* op_priv_info = ( gather_param_t* )exec_node->ops_priv;
 
     int out_size = input_tensor->elem_num;

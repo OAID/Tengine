@@ -41,7 +41,11 @@ static int infer_shape(struct node* node)
     struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
 
     struct gather_param* _param = ( struct gather_param* )(node->op.param_mem);
-  
+    printf("input1->elem_num: %d\n", input1->elem_num);
+    if (_param->indices_num ==0){
+        _param->indices_num=input1->elem_num;
+    }
+    printf("_param->indices_num: %d\n", _param->indices_num);
     int indices_size = _param->indices_num;
     
     struct vector* new_shape_temp = create_vector(sizeof(int), NULL);
