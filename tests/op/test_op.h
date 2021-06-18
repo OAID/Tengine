@@ -617,7 +617,7 @@ graph_t create_timvx_test_graph(const char* test_node_name, int data_type, int l
 {
     /* create VeriSilicon TIM-VX backend */
     context_t timvx_context = create_context("timvx", 1);
-    int rtt = add_context_device(timvx_context, "TIMVX");
+    int rtt = set_context_device(timvx_context, "TIMVX", NULL, 0);
     if (0 > rtt)
     {
         fprintf(stderr, " add_context_device VSI DEVICE failed.\n");
