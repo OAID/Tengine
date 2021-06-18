@@ -67,14 +67,27 @@ static int ref_gather_fp32(float* input, int* input_indices, float* output, gath
         inner_size *= param->in_shape[i];
         // TLOG_ERR("inner_size size: %d %d \n", inner_size, param->in_shape[i]);
     }
-    
+    printf("out: %d\n", outer_size);
+    printf("inner: %d\n", inner_size);
+    printf("axis_size: %d\n", axis_size);
+    printf("indices: %d\n", param->indices_num);
 	// #pragma omp parallel for num_threads(num_thread)
-    if(param->is_onnx){
+/*     if(param->is_onnx){
         for (int outer = 0; outer < outer_size; ++outer)
         {
             memcpy(out_ptr + (outer * param->indices_num ) * inner_size,
             in_ptr + (outer* axis_size + param->indices_num) * inner_size, inner_size* sizeof(float));
+        } */
+    if(param->is_onnx){
+
+        for (int i = 0; i < 256; i++)
+        {
+
+            memcpy(out_ptr + i * inner_size,
+                    in_ptr + ( int )input_indices[i]* inner_size,  inner_size *sizeof(float));
+                
         }
+        
     } else {
         for (int outer = 0; outer < outer_size; ++outer)
         {
