@@ -768,7 +768,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     if (input_tensor0->dim_num < 4){
         set_graph_layout(ir_graph, 2);
     }
-   else{
+    else{
         set_graph_layout(ir_graph, 0);
     }
     
@@ -791,11 +791,11 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         input1 = input_tensor1->data;
         input1_count4 = input_tensor1->elem_num;
         int dim1_size = input_tensor1->dim_num;
-        if (dim1_size >=2)
+        if (dim1_size ==4)
         {
             input_hw_1 = input_tensor1->dims[dim1_size-2]*input_tensor1->dims[dim1_size-1];
         }
-        if (dim1_size ==1 )
+        else 
         {
             input_hw_1 = input_tensor1->dims[dim1_size-1];
         }

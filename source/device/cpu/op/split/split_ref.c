@@ -40,6 +40,7 @@
 
 int ref_split_fp32(struct tensor* input_tensor, struct tensor* output_tensor, struct split_param* split_param, int* slice_index, int num_slices, int slice_size, int in_slice, int slice_axis)
 {
+    printf("num_slices: %d\n",num_slices);
     float* input_data = input_tensor->data;
     float* output_data = output_tensor->data;
 
@@ -125,9 +126,10 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     int num_slices = 1;
     int slice_size = 1;
 
-    for (int i = 0; i < slice_axis; i++)
-        num_slices = num_slices * input_tensor->dims[i];
-
+    num_slices=ir_node->output_num;
+ /*    for (int i = 0; i < slice_axis; i++)
+        num_slices = num_slices * input_tensor->dims[i]; */
+ 
     for (int i = slice_axis + 1; i < input_tensor->dim_num; i++)
         slice_size = slice_size * input_tensor->dims[i];
 

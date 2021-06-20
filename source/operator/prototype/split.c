@@ -80,7 +80,8 @@ static int infer_shape(ir_node_t* node)
         }
         else
         {
-            int split_dim = split_param->split_dim;
+            //int split_dim = split_param->split_dim;
+            int split_dim = node->output_num;
             int split_shape = 0;
 
             if (input_dim[axis] % split_dim != 0)
@@ -106,15 +107,15 @@ static int infer_shape(ir_node_t* node)
                 for (int i = 0; i < node->output_num; i++)
                 {
                     ir_tensor_t* output = get_ir_graph_tensor(graph, node->output_tensors[i]);
-                    set_ir_tensor_shape(output, input->dims, input->dim_num - 1);
+                    set_ir_tensor_shape(output, input_dim, input->dim_num);
                 }
             }
 
-            for (int i = 0; i < node->output_num; i++)
+/*             for (int i = 0; i < node->output_num; i++)
             {
                 ir_tensor_t* output = get_ir_graph_tensor(graph, node->output_tensors[i]);
                 set_ir_tensor_shape(output, input->dims, input->dim_num);
-            }
+            } */
         }
     }
 
