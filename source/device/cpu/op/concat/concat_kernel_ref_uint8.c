@@ -449,5 +449,7 @@ int ref_concat_uint8(struct graph* ir_graph, struct node* ir_node, int axis)
                 }
             }
         }
-    }    
+    }
+
+    return 0;
 }

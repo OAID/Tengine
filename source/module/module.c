@@ -350,6 +350,8 @@ int release_device_registry()
 
     release_vector(internal_device_registry);
     internal_device_registry = NULL;
+
+    return 0;
 }
 
 
@@ -424,6 +426,8 @@ int release_op_name_registry()
 
     release_vector(internal_op_name_registry);
     internal_op_name_registry = NULL;
+
+    return 0;
 }
 
 
@@ -579,6 +583,8 @@ int unregister_op(int type, int version)
     }
 
     unregister_op_name(type);
+
+    return 0;
 }
 
 
