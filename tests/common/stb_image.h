@@ -1381,7 +1381,7 @@ static stbi__uint16* stbi__convert_format16(stbi__uint16* data, int img_n, int r
         return data;
     STBI_ASSERT(req_comp >= 1 && req_comp <= 4);
 
-    good = ( stbi__uint16* )stbi__malloc(req_comp * x * y * 2);
+    good = ( stbi__uint16* )stbi__malloc((size_t)req_comp * x * y * 2);
     if(good == NULL)
     {
         STBI_FREE(data);
@@ -1526,7 +1526,7 @@ static stbi_uc* stbi__hdr_to_ldr(float* data, int x, int y, int comp)
     {
         for(k = 0; k < n; ++k)
         {
-            float z = ( float )pow(data[i * comp + k] * stbi__h2l_scale_i, stbi__h2l_gamma_i) * 255 + 0.5f;
+            float z = ( float )pow((double)data[i * comp + k] * stbi__h2l_scale_i, stbi__h2l_gamma_i) * 255 + 0.5f;
             if(z < 0)
                 z = 0;
             if(z > 255)
@@ -6549,7 +6549,7 @@ static void* stbi__psd_load(stbi__context* s, int* x, int* y, int* comp, int req
         ri->bits_per_channel = 16;
     }
     else
-        out = ( stbi_uc* )stbi__malloc(4 * w * h);
+        out = ( stbi_uc* )stbi__malloc(4 * (size_t)w * h);
 
     if(!out)
         return stbi__errpuc("outofmem", "Out of memory");
@@ -6922,7 +6922,7 @@ static void* stbi__pic_load(stbi__context* s, int* px, int* py, int* comp, int r
 
     // intermediate buffer is RGBA
     result = ( stbi_uc* )stbi__malloc_mad3(x, y, 4, 0);
-    memset(result, 0xff, x * y * 4);
+    memset(result, 0xff, (size_t)x * y * 4);
 
     if(!stbi__pic_load_core(s, x, y, comp, result))
     {
@@ -7218,18 +7218,18 @@ static stbi_uc* stbi__gif_load_next(stbi__context* s, stbi__gif* g, int* comp, i
     {
         if(!stbi__gif_header(s, g, comp, 0))
             return 0;    // stbi__g_failure_reason set by stbi__gif_header
-        g->out = ( stbi_uc* )stbi__malloc(4 * g->w * g->h);
-        g->background = ( stbi_uc* )stbi__malloc(4 * g->w * g->h);
-        g->history = ( stbi_uc* )stbi__malloc(g->w * g->h);
+        g->out = ( stbi_uc* )stbi__malloc(4 * (size_t)(g->w) * g->h);
+        g->background = ( stbi_uc* )stbi__malloc(4 * (size_t)(g->w) * g->h);
+        g->history = ( stbi_uc* )stbi__malloc((size_t)(g->w) * g->h);
         if(g->out == 0)
             return stbi__errpuc("outofmem", "Out of memory");
 
         // image is treated as "tranparent" at the start - ie, nothing overwrites the current background;
         // background colour is only used for pixels that are not rendered first frame, after that "background"
         // color refers to teh color that was there the previous frame.
-        memset(g->out, 0x00, 4 * g->w * g->h);
-        memset(g->background, 0x00, 4 * g->w * g->h);    // state of the background (starts transparent)
-        memset(g->history, 0x00, g->w * g->h);    // pixels that were affected previous frame
+        memset(g->out, 0x00, 4 * (size_t)(g->w) * g->h);
+        memset(g->background, 0x00, 4 * (size_t)(g->w) * g->h);    // state of the background (starts transparent)
+        memset(g->history, 0x00, (size_t)(g->w) * g->h);    // pixels that were affected previous frame
         first_frame = 1;
     }
     else
@@ -7273,11 +7273,11 @@ static stbi_uc* stbi__gif_load_next(stbi__context* s, stbi__gif* g, int* comp, i
         }
 
         // background is what out is after the undoing of the previou frame;
-        memcpy(g->background, g->out, 4 * g->w * g->h);
+        memcpy(g->background, g->out, 4 * (size_t)(g->w) * g->h);
     }
 
     // clear my history;
-    memset(g->history, 0x00, g->w * g->h);    // pixels that were affected previous frame
+    memset(g->history, 0x00, (size_t)(g->w) * g->h);    // pixels that were affected previous frame
 
     for(;;)
     {
@@ -7438,7 +7438,7 @@ static void* stbi__load_gif_main(stbi__context* s, int** delays, int* x, int* y,
 
                 if(out)
                 {
-                    out = ( stbi_uc* )STBI_REALLOC(out, layers * stride);
+                    out = ( stbi_uc* )STBI_REALLOC(out, (size_t)layers * stride);
                     if(delays)
                     {
                         *delays = ( int* )STBI_REALLOC(*delays, sizeof(int) * layers);
@@ -7446,7 +7446,7 @@ static void* stbi__load_gif_main(stbi__context* s, int** delays, int* x, int* y,
                 }
                 else
                 {
-                    out = ( stbi_uc* )stbi__malloc(layers * stride);
+                    out = ( stbi_uc* )stbi__malloc((size_t)layers * stride);
                     if(delays)
                     {
                         *delays = ( int* )stbi__malloc(layers * sizeof(int));
