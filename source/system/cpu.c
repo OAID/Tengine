@@ -369,6 +369,8 @@ int set_cpu_affine(size_t mask)
 
 	return 0;
 #endif
+
+    return 0;
 }
 
 size_t get_cpu_cluster_mask(int cluster)

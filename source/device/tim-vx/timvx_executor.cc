@@ -175,9 +175,6 @@ int VXEngine::VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_ty
 
 int VXEngine::Build(struct subgraph* subgraph)
 {
-    set_log_level(LOG_INFO);
-    dump_sub_graph_timvx(subgraph);
-	
     struct graph* ir_graph = subgraph->graph;
 
     for (int i = 0; i < subgraph->node_num; i++)
@@ -202,6 +199,9 @@ int VXEngine::Build(struct subgraph* subgraph)
                 continue;
             case OP_CONV:
                 this->AddConvolutionNode(ir_node);
+                break;
+            case OP_DECONV:
+                this->AddDeconvNode(ir_node);
                 break;
             case OP_DEPTHTOSPACE:
                 this->AddDepthToSpaceNode(ir_node);

@@ -222,7 +222,7 @@ int save_graph_u8_perlayer(const char* model_file, const char* scale_file, const
         std::string op_name = get_op_name_from_type(noden->op.type);
 
         /* quantize the tensor data from fp32 to uint8 */
-        if (op_name == "Convolution" || op_name == "FullyConnected")
+        if (op_name == "Convolution" || op_name == "FullyConnected" || op_name == "Deconvolution")
         {
             /* Step 3.1 : quant weight */
             struct tensor* weight_tensor = ir_graph->tensor_list[noden->input_tensors[1]];
