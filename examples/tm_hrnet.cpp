@@ -18,13 +18,17 @@
  */
 
 /*
- * Copyright (c) 2020, OPEN AI LAB
+ * Copyright (c) 2021, OPEN AI LAB
  * Author: qtang@openailab.com
  * Author: stevenwudi@fiture.com
+ *
+ * original model: https://mmpose.readthedocs.io/en/latest/papers/backbones.html#div-align-center-hrnet-cvpr-2019-div
  */
 
 #include <iostream>
 #include <vector>
+#include <algorithm>
+#include <cmath>
 #include "common.h"
 #include "tengine/c_api.h"
 #include "tengine_operations.h"
@@ -118,19 +122,42 @@ void PostProcess(float *data, ai_body_parts_s &pose, int img_h, int img_w)
     }
 }
 
-void draw_result(cv::Mat img_out, ai_body_parts_s &pose) 
+void draw_result(cv::Mat img, ai_body_parts_s &pose)
 {
-    for (int i = 0; i < HEATMAP_CHANNEL; i++) 
+    /* recover process to draw */
+    float scale_letterbox;
+    int resize_rows;
+    int resize_cols;
+
+    if ((LETTERBOX_ROWS * 1.0 / img.rows) < (LETTERBOX_COLS * 1.0 / img.cols))
+        scale_letterbox = LETTERBOX_ROWS * 1.0 / img.rows;
+    else
+        scale_letterbox = LETTERBOX_COLS * 1.0 / img.cols;
+
+    resize_cols = int(scale_letterbox * img.cols);
+    resize_rows = int(scale_letterbox * img.rows);
+
+    int tmp_h = (LETTERBOX_ROWS - resize_rows) / 2;
+    int tmp_w = (LETTERBOX_COLS - resize_cols) / 2;
+
+    float ratio_x = (float)img.rows / resize_rows;
+    float ratio_y = (float)img.cols / resize_cols;
+
+    for (int i = 0; i < HEATMAP_CHANNEL; i++)
     {
-        int x = (int) (pose.keypoints[i].x * img_out.rows);
-        int y = (int) (pose.keypoints[i].y * img_out.cols);
-        cv::circle(img_out, cv::Point(x, y), 4, cv::Scalar(0, 255, 0), cv::FILLED);
+        int x = (int) ((pose.keypoints[i].x * LETTERBOX_COLS - tmp_w) * ratio_x);
+        int y = (int) ((pose.keypoints[i].y * LETTERBOX_ROWS - tmp_h) * ratio_y);
+
+        x = std::max(std::min(x, (img.cols - 1)), 0);
+        y = std::max(std::min(y, (img.rows - 1)), 0);
+
+        cv::circle(img, cv::Point(x, y), 4, cv::Scalar(0, 255, 0), cv::FILLED);
     }
 
     cv::Scalar color;
     cv::Point pt1;
     cv::Point pt2;
-    for (auto &element: pairs) 
+    for (auto &element: pairs)
     {
         switch(element.left_right_neutral)
         {
@@ -143,11 +170,20 @@ void draw_result(cv::Mat img_out, ai_body_parts_s &pose)
             default:
                 color = cv::Scalar(0, 255, 0);
         }
-        pt1 = cv::Point(pose.keypoints[element.connection[0]].x * img_out.rows,
-                        pose.keypoints[element.connection[0]].y * img_out.cols);
-        pt2 = cv::Point(pose.keypoints[element.connection[1]].x * img_out.rows,
-                        pose.keypoints[element.connection[1]].y * img_out.cols);
-        cv::line(img_out, pt1, pt2, color, 2);
+
+        int x1 = (int) ((pose.keypoints[element.connection[0]].x * LETTERBOX_COLS - tmp_w) * ratio_x);
+        int y1 = (int) ((pose.keypoints[element.connection[0]].y * LETTERBOX_ROWS - tmp_h) * ratio_y);
+        int x2 = (int) ((pose.keypoints[element.connection[1]].x * LETTERBOX_COLS - tmp_w) * ratio_x);
+        int y2 = (int) ((pose.keypoints[element.connection[1]].y * LETTERBOX_ROWS - tmp_h) * ratio_y);
+
+        x1 = std::max(std::min(x1, (img.cols - 1)), 0);
+        y1 = std::max(std::min(y1, (img.rows - 1)), 0);
+        x2 = std::max(std::min(x2, (img.cols - 1)), 0);
+        y2 = std::max(std::min(y2, (img.rows - 1)), 0);
+
+        pt1 = cv::Point(x1, y1);
+        pt2 = cv::Point(x2, y2);
+        cv::line(img, pt1, pt2, color, 2);
     }
 }
 
@@ -160,14 +196,11 @@ void get_input_fp32_data_square(const char *image_file, float *input_data, float
     // Currenty we only support square input.
     int resize_rows;
     int resize_cols;
-    if ((LETTERBOX_ROWS * 1.0 / img.rows) < (LETTERBOX_COLS * 1.0 / img.cols * 1.0)) 
-    {
+    if ((LETTERBOX_ROWS * 1.0 / img.rows) < (LETTERBOX_COLS * 1.0 / img.cols * 1.0))
         scale_letterbox = 1.0 * LETTERBOX_ROWS / img.rows;
-    } 
-    else 
-    {
+    else
         scale_letterbox = 1.0 * LETTERBOX_COLS / img.cols;
-    }
+
     resize_cols = int(scale_letterbox * img.cols);
     resize_rows = int(scale_letterbox * img.rows);
     cv::resize(img, img, cv::Size(resize_cols, resize_rows));
@@ -182,7 +215,7 @@ void get_input_fp32_data_square(const char *image_file, float *input_data, float
     int right = (LETTERBOX_COLS - resize_cols + 1) / 2;
     // Letterbox filling
     cv::copyMakeBorder(img, img_new, top, bot, left, right, cv::BORDER_CONSTANT, cv::Scalar(0, 0, 0));
-    cv::imwrite("hrnet_lb_image.jpg", img_new);
+//    cv::imwrite("hrnet_lb_image.jpg", img_new); // for letterbox test
     float *img_data = (float *) img_new.data;
 
     /* nhwc to nchw */
@@ -269,14 +302,18 @@ int main(int argc, char *argv[])
     opt.affinity = 0;
 
     /* inital tengine */
-    init_tengine();
+    if (init_tengine() != 0)
+    {
+        fprintf(stderr, "Initial tengine failed.\n");
+        return -1;
+    }
     fprintf(stderr, "tengine-lite library version: %s\n", get_tengine_version());
 
     /* create graph, load tengine model xxx.tmfile */
     graph_t graph = create_graph(nullptr, "tengine", model_file);
     if (graph == nullptr) 
     {
-        std::cout << "Create graph0 failed\n";
+        fprintf(stderr, "Create graph failed.\n");
         return -1;
     }
 
@@ -332,18 +369,17 @@ int main(int argc, char *argv[])
         min_time = std::min(min_time, cur);
         max_time = std::max(max_time, cur);
     }
-    printf("Repeat [%d] min %.3f ms, max %.3f ms, avg %.3f ms\n", repeat_count, min_time, max_time,
+    fprintf(stderr, "Repeat [%d] min %.3f ms, max %.3f ms, avg %.3f ms\n", repeat_count, min_time, max_time,
            total_time / repeat_count);
 
     /* get output tensor */
     tensor_t output_tensor = get_graph_output_tensor(graph, 0, 0);
     float *data = (float *) (get_tensor_buffer(output_tensor));
-    int output_size = get_tensor_buffer_size(output_tensor)/ sizeof(float);
 
     PostProcess(data, pose, img_h, img_w);
 
     /* write some visualisation  */
-    cv::Mat img_out = cv::imread("hrnet_lb_image.jpg");
+    cv::Mat img_out = cv::imread(image_file);
     draw_result(img_out, pose);
     cv::imwrite("hrnet_out.jpg", img_out);
 

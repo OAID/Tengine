@@ -294,7 +294,7 @@ void get_input_data_focus(const char* image_file, float* input_data, int letterb
 
     img_new.convertTo(img_new, CV_32FC3);
     float* img_data   = (float* )img_new.data;
-    float* input_temp = (float* )malloc(3 * letterbox_cols * letterbox_rows * sizeof(float));
+    std::vector<float> input_temp(3 * letterbox_cols * letterbox_rows);
 
     /* nhwc to nchw */
     for (int h = 0; h < letterbox_rows; h++)
@@ -336,8 +336,6 @@ void get_input_data_focus(const char* image_file, float* input_data, int letterb
             }
         }
     }
-
-    free(input_temp);
 }
 
 
