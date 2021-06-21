@@ -6,7 +6,9 @@ FILE (COPY ${CMAKE_SOURCE_DIR}/source/api/c_api_ex.h DESTINATION ${CMAKE_CURRENT
 
 if (TENGINE_ENABLE_TIM_VX)
     function (tengine_timvx_op_test name file)
-        add_executable (${name} ${CMAKE_CURRENT_SOURCE_DIR}/${file} "${PROJECT_SOURCE_DIR}/tests/common/tengine_operations.c")
+        file(GLOB TENGINE_UTIL_SOURCE_FILES      ${PROJECT_SOURCE_DIR}/tests/common/util/*.c)
+
+        add_executable (${name} ${CMAKE_CURRENT_SOURCE_DIR}/${file} "${TENGINE_UTIL_SOURCE_FILES}" "${PROJECT_SOURCE_DIR}/tests/common/tengine_operations.cpp")
 
         target_link_libraries (${name} PRIVATE ${CMAKE_PROJECT_NAME})
 
@@ -15,6 +17,7 @@ if (TENGINE_ENABLE_TIM_VX)
         target_include_directories (${name} PRIVATE "${PROJECT_BINARY_DIR}")
         target_include_directories (${name} PRIVATE "${PROJECT_BINARY_DIR}/source")
         target_include_directories (${name} PRIVATE "${PROJECT_SOURCE_DIR}/tests/common")
+        target_include_directories (${name} PRIVATE "${PROJECT_SOURCE_DIR}/tests/common/util")
 
         if (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM" AND (NOT ANDROID AND NOT OHOS) AND TENGINE_TARGET_PROCESSOR_32Bit)
             target_compile_options (${name} PRIVATE "-mfp16-format=ieee")
@@ -36,6 +39,21 @@ if (TENGINE_ENABLE_TIM_VX)
     # tengine_timvx_op_test(test_timvx_op_relu1        op/test_timvx_op_relu1.cpp)
     tengine_timvx_op_test(test_timvx_op_sigmoid      op/test_timvx_op_sigmoid.cpp)
     tengine_timvx_op_test(test_timvx_op_tanh         op/test_timvx_op_tanh.cpp)
+    tengine_timvx_op_test(test_timvx_op_deconv          op/test_timvx_op_deconv.cpp)
+    tengine_timvx_op_test(test_timvx_op_concat          op/test_timvx_op_concat.cpp)
+    tengine_timvx_op_test(test_timvx_op_eltwise_sum     op/test_timvx_op_eltwise_sum.cpp)
+    tengine_timvx_op_test(test_timvx_op_eltwise_mul     op/test_timvx_op_eltwise_mul.cpp)
+    tengine_timvx_op_test(test_timvx_op_fc              op/test_timvx_op_fc.cpp)
+    tengine_timvx_op_test(test_timvx_op_flatten         op/test_timvx_op_flatten.cpp)
+    tengine_timvx_op_test(test_timvx_op_gather          op/test_timvx_op_gather.cpp)
+    tengine_timvx_op_test(test_timvx_op_softmax         op/test_timvx_op_softmax.cpp)
+    tengine_timvx_op_test(test_timvx_op_interp          op/test_timvx_op_interp.cpp)
+    tengine_timvx_op_test(test_timvx_op_resize          op/test_timvx_op_resize.cpp)
+    tengine_timvx_op_test(test_timvx_op_upsampling      op/test_timvx_op_upsampling.cpp)
+    tengine_timvx_op_test(test_timvx_op_permute         op/test_timvx_op_permute.cpp)
+    tengine_timvx_op_test(test_timvx_op_reshape         op/test_timvx_op_reshape.cpp)
+    tengine_timvx_op_test(test_timvx_op_slice           op/test_timvx_op_slice.cpp)
+    tengine_timvx_op_test(test_timvx_op_split           op/test_timvx_op_split.cpp)
 
     # timvx model test, need opencv
     FIND_PACKAGE(OpenCV QUIET)
