@@ -76,8 +76,8 @@ int create_test_deconv_node(graph_t graph, const char* input_name, const char* n
     deconv_param->num_output = 1;
     deconv_param->kernel_h = 3;
     deconv_param->kernel_w = 3;
-    deconv_param->stride_h = 1;
-    deconv_param->stride_w = 1;
+    deconv_param->stride_h = 2;
+    deconv_param->stride_w = 2;
     deconv_param->pad_h0 = 0;
     deconv_param->pad_w0 = 0;
     deconv_param->pad_h1 = 0;
@@ -86,8 +86,8 @@ int create_test_deconv_node(graph_t graph, const char* input_name, const char* n
     deconv_param->dilation_w = 1;
     deconv_param->group = 1;
     deconv_param->activation = -1;
-    deconv_param->output_pad_h0 = 1;
-    deconv_param->output_pad_w0 = 1;
+    deconv_param->output_pad_h0 = 0;
+    deconv_param->output_pad_w0 = 0;
 
     return 0;
 }
@@ -106,9 +106,55 @@ float weight_fp32[9] = {9.0f, 0.0f, 3.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 2.0f,};
 float weight_scale = 1;
 int weight_zero_point = 0;
 
-float reference_out[25] = {27.0f, 72.0f, 18.0f, 24.0f, 3.0f,  81.0f, 45.0f, 90.0f, 15.0f,
-                          21.0f, 30.0f, 26.0f, 43.0f, 22.0f, 11.0f, 9.0f,  5.0f,  25.0f,
-                          10.0f, 14.0f, 3.0f,  2.0f,  9.0f,  4.0f,  6.0f,};
+float reference_out[49] = {27.000000,
+                           0.000000,
+                           81.000000,
+                           0.000000,
+                           33.000000,
+                           0.000000,
+                           3.000000,
+                           0.000000,
+                           0.000000,
+                           0.000000,
+                           0.000000,
+                           0.000000,
+                           0.000000,
+                           0.000000,
+                           84.000000,
+                           0.000000,
+                           86.000000,
+                           0.000000,
+                           95.000000,
+                           0.000000,
+                           23.000000,
+                           0.000000,
+                           0.000000,
+                           0.000000,
+                           0.000000,
+                           0.000000,
+                           0.000000,
+                           0.000000,
+                           36.000000,
+                           0.000000,
+                           50.000000,
+                           0.000000,
+                           50.000000,
+                           0.000000,
+                           23.000000,
+                           0.000000,
+                           0.000000,
+                           0.000000,
+                           0.000000,
+                           0.000000,
+                           0.000000,
+                           0.000000,
+                           3.000000,
+                           0.000000,
+                           8.000000,
+                           0.000000,
+                           7.000000,
+                           0.000000,
+                           6.000000, };
 float output_scale = 1;
 int output_zero_point = 0;
 
