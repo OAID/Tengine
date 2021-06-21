@@ -8,7 +8,7 @@ if (TENGINE_ENABLE_TIM_VX)
     function (tengine_timvx_op_test name file)
         file(GLOB TENGINE_UTIL_SOURCE_FILES      ${PROJECT_SOURCE_DIR}/tests/common/util/*.c)
 
-        add_executable (${name} ${CMAKE_CURRENT_SOURCE_DIR}/${file} "${TENGINE_UTIL_SOURCE_FILES}" "${PROJECT_SOURCE_DIR}/tests/common/tengine_operations.cpp")
+        add_executable (${name} ${CMAKE_CURRENT_SOURCE_DIR}/${file} "${TENGINE_UTIL_SOURCE_FILES}" "${PROJECT_SOURCE_DIR}/tests/common/tengine_operations.c")
 
         target_link_libraries (${name} PRIVATE ${CMAKE_PROJECT_NAME})
 
