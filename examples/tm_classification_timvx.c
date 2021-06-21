@@ -82,7 +82,7 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
 
     /* create VeriSilicon TIM-VX backend */
     context_t timvx_context = create_context("timvx", 1);
-    int rtt = add_context_device(timvx_context, "TIMVX");
+    int rtt = set_context_device(timvx_context, "TIMVX", NULL, 0);
     if (0 > rtt)
     {
         fprintf(stderr, " add_context_device VSI DEVICE failed.\n");

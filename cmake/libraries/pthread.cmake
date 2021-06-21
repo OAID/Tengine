@@ -13,7 +13,9 @@ ENDFUNCTION()
 
 FUNCTION(TENGINE_COMPILE_LIB_PTHREAD _target)
     # common compile option settings
-    TARGET_COMPILE_OPTIONS(${_target} PRIVATE $<$<COMPILE_LANG_AND_ID:CUDA,NVIDIA>:SHELL:-Xcompiler -pthread> $<$<NOT:$<COMPILE_LANG_AND_ID:CUDA,NVIDIA>>:-pthread>)
+    IF (TENGINE_ENABLE_CUDA OR TENGINE_ENABLE_TENSORRT)
+        TARGET_COMPILE_OPTIONS(${_target} PRIVATE $<$<COMPILE_LANG_AND_ID:CUDA,NVIDIA>:SHELL:-Xcompiler -pthread> $<$<NOT:$<COMPILE_LANG_AND_ID:CUDA,NVIDIA>>:-pthread>)
+    ENDIF()
 
     # accoding to EMSCRIPTEN doc, compile & link option "-pthread" was needed.
     # if settings worked, macro "__EMSCRIPTEN_PTHREADS__" will be defined. 
