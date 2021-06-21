@@ -64,11 +64,8 @@ static int infer_shape(struct node* node)
 
     // TLOG_ERR("   out c: %d  \n", out_c);
 
-    int kernel_extent_w = 0;
-    int kernel_extent_h = 0;
-
-    kernel_extent_w = deconv_param->dilation_w * (deconv_param->kernel_w - 1) + 1;
-    kernel_extent_h = deconv_param->dilation_h * (deconv_param->kernel_h - 1) + 1;
+    int kernel_extent_w = deconv_param->dilation_w * (deconv_param->kernel_w - 1) + 1;
+    int kernel_extent_h = deconv_param->dilation_h * (deconv_param->kernel_h - 1) + 1;
 
     int output_h = (h - 1) * deconv_param->stride_h + kernel_extent_h - deconv_param->pad_h0 - deconv_param->pad_h1 + deconv_param->output_pad_h0;
     int output_w = (w - 1) * deconv_param->stride_w + kernel_extent_w - deconv_param->pad_w0 - deconv_param->pad_w1 + deconv_param->output_pad_w0;
