@@ -520,8 +520,7 @@ int onnx_serializer::set_graph_output(ir_graph_t* graph, const onnx::GraphProto&
         ir_tensor_t* tensor = get_ir_graph_tensor(graph, tensor_id);
         if (has_shape)
             set_ir_tensor_shape(tensor, dims, shape.dim_size());
-        ir_node_t* node = create_ir_node(graph, val.name().c_str(), OP_CONST, OP_VERSION);
-        set_ir_node_output_tensor(node, 0, tensor);
+        ir_node_t* node = get_ir_graph_node(graph, tensor->producer);
         output_nodes.push_back(node->index);
     }
     int16_t* node_idx = (int16_t*)sys_malloc(sizeof(int16_t) * output_nodes.size());
