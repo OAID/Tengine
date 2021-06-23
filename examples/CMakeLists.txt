@@ -42,6 +42,9 @@ FUNCTION (TENGINE_EXAMPLE name file)
     ENDIF()
 
     INSTALL (TARGETS ${name} DESTINATION bin)
+
+    # add to a virtual project group
+    SET_PROPERTY(TARGET ${name} PROPERTY FOLDER "examples")
 ENDFUNCTION()
 
 # add c++ api examples
@@ -111,6 +114,9 @@ IF (OpenCV_FOUND)
 
         TARGET_LINK_LIBRARIES (${name} ${CMAKE_PROJECT_NAME} ${OpenCV_LIBS})
         INSTALL (TARGETS ${name} DESTINATION bin)
+
+        # add to a virtual project group
+        SET_PROPERTY(TARGET ${name} PROPERTY FOLDER "examples")
     ENDFUNCTION()
 
     TENGINE_EXAMPLE_CV (tm_openpose              tm_openpose.cpp)

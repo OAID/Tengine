@@ -57,6 +57,9 @@ IF (OpenCV_FOUND AND ${TENGINE_TARGET_PROCESSOR} MATCHES "X86")
         TARGET_LINK_LIBRARIES (${name} PRIVATE ${CMAKE_PROJECT_NAME}-static ${OpenCV_LIBS} ${TENGINE_TOOL_LINK_LIBRARIES})
 
         INSTALL (TARGETS ${name} DESTINATION bin)
+
+        # add to a virtual project group
+        SET_PROPERTY(TARGET ${name} PROPERTY FOLDER "tools/quant_tool")
     ENDFUNCTION()
 
     TENGINE_QUANT_TOOL(quant_tool_uint8 quant_tool_uint8.cpp)
