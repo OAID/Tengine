@@ -31,14 +31,11 @@
 *   FOR ONNX SERIALIZER
 */
 const int OP_VERSION=1;
-typedef int (*op_load_t)(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node);
-std::unordered_map<std::string, std::pair<int, op_load_t>> op_load_map;
 
 /*
 *   ASSIST FUNCTIONS FOR ONNX SERIALIZER START
 */
-
-bool find_op_load_method(const std::string& op_name)
+bool onnx_serializer::find_op_load_method(const std::string& op_name)
 {
     if(op_load_map.count(op_name))
         return true;
