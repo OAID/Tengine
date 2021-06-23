@@ -313,33 +313,6 @@ int onnx_serializer::load_initializer_tensor(ir_graph_t* graph, const onnx::Grap
     return 0;
 }
 
-int onnx_serializer::check_same_tensor(ir_graph_t* graph, const onnx::GraphProto& onnx_graph)
-{
-    std::vector<std::string> tensor_name_list;
-
-
-    for(int i = 0; i < onnx_graph.node_size(); i++)
-    {
-        const onnx::NodeProto& onnx_node = onnx_graph.node(i);
-        for(int i = 0; i < onnx_node.input_size(); i++)
-        {
-            const std::string& input_name = onnx_node.input(i);
-            if (input_name == "")
-            {
-                continue;
-            }
-            int tensor_id = get_ir_tensor_index_from_name(graph, input_name.c_str());
-            ir_tensor_t* tensor = get_ir_graph_tensor(graph, tensor_id);
-            ir_tensor_t* new_tensor = nullptr;
-            std::string onnx_tensor_name = input_name;
-            if(tensor != NULL){
-                printf("%s \n", input_name.c_str());
-            }
-        }
-    }
-    return 0;
-}
-
 int onnx_serializer::set_graph_input(ir_graph_t* graph, const onnx::GraphProto& onnx_graph)
 {
     std::vector<int16_t> input_nodes;

@@ -64,7 +64,6 @@ private:
     int set_graph_output(ir_graph_t* graph, const onnx::GraphProto& onnx_graph);
     int load_graph_node(ir_graph_t* graph, const onnx::GraphProto& onnx_graph);
     int set_graph_input(ir_graph_t* graph, const onnx::GraphProto& onnx_graph);
-    int check_same_tensor(ir_graph_t* graph, const onnx::GraphProto& onnx_graph);
     int load_initializer_tensor(ir_graph_t* graph, const onnx::GraphProto& onnx_graph);
     int load_constant_tensor(ir_graph_t* graph, const onnx::GraphProto& onnx_graph);
     int load_model_file(std::string model_file, onnx::ModelProto &model);
