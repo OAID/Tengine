@@ -31,14 +31,11 @@
 *   FOR ONNX SERIALIZER
 */
 const int OP_VERSION=1;
-typedef int (*op_load_t)(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node);
-std::unordered_map<std::string, std::pair<int, op_load_t>> op_load_map;
 
 /*
 *   ASSIST FUNCTIONS FOR ONNX SERIALIZER START
 */
-
-bool find_op_load_method(const std::string& op_name)
+bool onnx_serializer::find_op_load_method(const std::string& op_name)
 {
     if(op_load_map.count(op_name))
         return true;
@@ -316,32 +313,6 @@ int onnx_serializer::load_initializer_tensor(ir_graph_t* graph, const onnx::Grap
     return 0;
 }
 
-int onnx_serializer::check_same_tensor(ir_graph_t* graph, const onnx::GraphProto& onnx_graph)
-{
-    std::vector<std::string> tensor_name_list;
-
-
-    for(int i = 0; i < onnx_graph.node_size(); i++)
-    {
-        const onnx::NodeProto& onnx_node = onnx_graph.node(i);
-        for(int i = 0; i < onnx_node.input_size(); i++)
-        {
-            const std::string& input_name = onnx_node.input(i);
-            if (input_name == "")
-            {
-                continue;
-            }
-            int tensor_id = get_ir_tensor_index_from_name(graph, input_name.c_str());
-            ir_tensor_t* tensor = get_ir_graph_tensor(graph, tensor_id);
-            ir_tensor_t* new_tensor = nullptr;
-            std::string onnx_tensor_name = input_name;
-            if(tensor != NULL){
-                printf("%s \n", input_name.c_str());
-            }
-        }
-    }
-    return 0;
-}
 
 int onnx_serializer::set_graph_input(ir_graph_t* graph, const onnx::GraphProto& onnx_graph)
 {
