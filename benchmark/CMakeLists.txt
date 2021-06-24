@@ -42,6 +42,9 @@ FUNCTION (TENGINE_BENCHMARK name)
 
     # add linking library
     TARGET_LINK_LIBRARIES (${name} PRIVATE ${CMAKE_PROJECT_NAME})
+
+    # add to a virtual project group
+    SET_PROPERTY(TARGET ${name} PROPERTY FOLDER "benchmark")
 ENDFUNCTION()
 
 

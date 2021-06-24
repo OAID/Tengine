@@ -24,6 +24,9 @@ if (TENGINE_ENABLE_TIM_VX)
         endif()
 
         add_test (${name} ${name})
+
+        # add to a virtual project group
+        SET_PROPERTY(TARGET ${name} PROPERTY FOLDER "tests/test_timvx")
     endfunction()
 
     tengine_timvx_op_test(test_timvx_op_clip            op/test_timvx_op_clip.cpp)
@@ -96,6 +99,9 @@ if(PROTOBUF_FOUND)
         target_include_directories (${name} PRIVATE "${PROJECT_BINARY_DIR}/source")
 
         add_test (${name} ${name})
+
+        # add to a virtual project group
+        SET_PROPERTY(TARGET ${name} PROPERTY FOLDER "tests/test_onnx")
     endfunction()
 
     tengine_onnx_op_test(test_onnx_op_abs                           op/test_onnx_op_abs.cpp)
@@ -178,6 +184,9 @@ FUNCTION (TENGINE_MODEL_TEST name file)
 
     TARGET_LINK_LIBRARIES (${name} PRIVATE ${CMAKE_PROJECT_NAME})
     TARGET_LINK_LIBRARIES (${name} PRIVATE m)
+
+    # add to a virtual project group
+    SET_PROPERTY(TARGET ${name} PROPERTY FOLDER "tests/test_model")
 
 ENDFUNCTION()
 

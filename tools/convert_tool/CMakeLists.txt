@@ -63,3 +63,7 @@ TARGET_INCLUDE_DIRECTORIES (convert_tool PRIVATE "${CMAKE_SOURCE_DIR}/source")
 TARGET_INCLUDE_DIRECTORIES (convert_tool PRIVATE "${CMAKE_BINARY_DIR}/source")
 TARGET_INCLUDE_DIRECTORIES (convert_tool PRIVATE "${CMAKE_SOURCE_DIR}/source/operator/prototype")
 install(TARGETS convert_tool DESTINATION bin)
+
+# add to a virtual project group
+SET_PROPERTY(TARGET ONNX_SERIALIZER_TARGET PROPERTY FOLDER "tools/convert_tool")
+SET_PROPERTY(TARGET convert_tool PROPERTY FOLDER "tools/convert_tool")
