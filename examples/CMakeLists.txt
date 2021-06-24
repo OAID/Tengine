@@ -32,8 +32,9 @@ FUNCTION (TENGINE_EXAMPLE name file)
     TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
     TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
     TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE "${PROJECT_SOURCE_DIR}/examples/common")
+    TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE ${utf8proc_INCLUDE_DIRS})
 
-    TARGET_LINK_LIBRARIES (${name} PRIVATE ${CMAKE_PROJECT_NAME})
+    TARGET_LINK_LIBRARIES (${name} PRIVATE ${CMAKE_PROJECT_NAME} ${utf8proc_STATIC_LIBRARIES})
 
     IF(MSVC)
         TARGET_COMPILE_DEFINITIONS (${name} PRIVATE $<$<OR:$<COMPILE_LANGUAGE:C>,$<COMPILE_LANGUAGE:CXX>>:NOMINMAX>)
@@ -69,6 +70,8 @@ TENGINE_EXAMPLE (tm_yolov5                   tm_yolov5.cpp)
 TENGINE_EXAMPLE (tm_yolofastest              tm_yolofastest.cpp)
 TENGINE_EXAMPLE (tm_ultraface                tm_ultraface.cpp)
 TENGINE_EXAMPLE (tm_bert                     tm_bert.cpp)
+TENGINE_EXAMPLE (tm_bert_tf                  tm_bert_tf.cpp)
+
 
 
 
