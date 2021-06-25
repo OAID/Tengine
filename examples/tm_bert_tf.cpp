@@ -50,6 +50,55 @@ tensor_t unstack_1;
 tensor_t unstack_0;
 int feature_len;
 
+void write_predictions (int idx, std::map<int,int> feature, 
+cuBERT::FullTokenizer* tokenizer,const char* text_b,int start_index, int end_index,size_t max_seq_length)
+{
+    std::vector<std::string> tokens_b;
+    tokens_b.reserve(max_seq_length);
+    tokenizer->tokenize(text_b, &tokens_b, max_seq_length);
+    int start_origin = feature[start_index];
+    int end_origin = feature[end_index];
+    std::string answer;
+    int length = end_origin - start_origin;
+    for (int i = 0; i< length; i++){
+        answer = answer+tokens_b[start_origin+i] +" ";
+    }
+    printf("Question %d 's answer is:  %s\n", idx+1, answer);
+
+}
+
+int* get_best_indexes(float* logits, int n_best_size){
+    
+    int best_indexes[256];
+    for (int m = 0; m < 256; m++)
+	{
+		best_indexes[m] = m;
+	}
+ 
+	for (int i = 0; i < 256; i++)
+	{
+		for (int j = 0; j < 256- i - 1; j++)
+		{
+			if (logits[j] < logits[j + 1])
+			{
+				float temp = logits[j];
+				logits[j] = logits[j + 1];
+				logits[j + 1] = temp;
+ 
+				int ind_temp = best_indexes[j];
+				best_indexes[j] = best_indexes[j + 1];
+				best_indexes[j + 1] = ind_temp;
+			}
+		}
+	}
+    int best_index [n_best_size];
+    for (int i=0; i<n_best_size; i++){
+        best_index[i]=best_indexes[i];
+    }
+    return best_index;
+
+}
+
 void _truncate_seq_pair(std::vector<std::string>* tokens_a,
                         std::vector<std::string>* tokens_b,
                         size_t max_length) {
@@ -70,11 +119,12 @@ void _truncate_seq_pair(std::vector<std::string>* tokens_a,
     }
 }
 
-void convert_single_example(cuBERT::FullTokenizer* tokenizer,
+std::map<int,int> convert_single_example(cuBERT::FullTokenizer* tokenizer,
                             size_t max_seq_length,
                             const char* text_a, const char* text_b,
                             int *input_ids, int8_t *input_mask, int8_t *segment_ids) {
     std::vector<std::string> tokens_a;
+    std::map<int,int> extra;
     tokens_a.reserve(max_seq_length);
 
     std::vector<std::string> tokens_b;
@@ -137,6 +187,22 @@ void convert_single_example(cuBERT::FullTokenizer* tokenizer,
     std::fill_n(input_ids + len, max_seq_length - len, 0);
     std::fill_n(input_mask + len, max_seq_length - len, 0);
     std::fill_n(segment_ids + len, max_seq_length - len, 0);
+
+    int count = 0;
+    for (int i=0; i< tokens_b.size(); i++)
+    {
+ 
+        if(tokens_b[i][0]<='z'&&tokens_b[i][0]>='a')
+        {
+            extra[tokens_a.size()+2+i]=count;
+            count++;
+        }
+        else{
+            extra[tokens_a.size()+2+i]=count;
+        }
+    }
+    return extra;
+
 }
 
 void* cuBERT_open_tokenizer(const char* vocab_file, int do_lower_case) {
@@ -185,9 +251,9 @@ void init(const char* modelfile)
         fprintf(stderr, "success init graph\n");
     }
     unique_ids_raw_output = get_graph_input_tensor(graph, 0, 0);
-    segment_ids = get_graph_input_tensor(graph, 1, 0);
+    input_ids = get_graph_input_tensor(graph, 1, 0);
     input_mask = get_graph_input_tensor(graph, 2, 0);
-    input_ids = get_graph_input_tensor(graph, 3, 0);
+    segment_ids = get_graph_input_tensor(graph, 3, 0);
 
     set_tensor_shape(unique_ids_raw_output, dims2, 1);
     set_tensor_shape(segment_ids, dims1, 2);
@@ -207,25 +273,25 @@ void init(const char* modelfile)
     fprintf(stderr, "bert prerun %d\n", rc);
 }
 
-int getResult()
+float* getResult(std::vector<float> input_data1,std::vector<float> input_data2,vector<float> input_data3,vector<float> input_data4)
 {
    
-    std::vector<float> input_data1(1,1);
+/*     std::vector<float> input_data1(1,1);
     std::vector<float> input_data2(256,1);
     std::vector<float> input_data3(256,1);
-    std::vector<float> input_data4(256,1);
+    std::vector<float> input_data4(256,1); */
     //get_input_data(imagefile, input_data.data(), height, width, means, scales);
     set_tensor_buffer(unique_ids_raw_output, input_data1.data(), 1 * sizeof(float));
-    set_tensor_buffer(segment_ids, input_data2.data(), 256 * sizeof(float));
+    set_tensor_buffer(input_ids, input_data2.data(), 256 * sizeof(float));
     set_tensor_buffer(input_mask, input_data3.data(), 256 * sizeof(float));
-    set_tensor_buffer(input_ids, input_data4.data(), 256 * sizeof(float));
+    set_tensor_buffer(segment_ids, input_data4.data(), 256 * sizeof(float));
 
     //set_graph_layout(graph, 2);
 
     if (run_graph(graph, 1) < 0)
     {
         fprintf(stderr, "run_graph fail");
-        return -1;
+        //return -1;
     }
     float* data1 = ( float* )get_tensor_buffer(unique_ids);
     float* data2 = ( float* )get_tensor_buffer(unstack_1);
@@ -242,6 +308,7 @@ int getResult()
     printf ("data3: %f\n",data3[0]);
     printf ("data3: %f\n",data3[1]);
     printf ("data3: %f\n",data3[2]);
+    return data1, data2, data3;
 
 }
 
@@ -312,26 +379,44 @@ int main(int argc, char* argv[])
     if (!check_file_exist(model_file))
         return -1;
     void* tokenizer = cuBERT_open_tokenizer(vocab_file, 1);
-
-
+    std::map<int,int> feature;
+    std::vector<std::map<int,int>> features;
     int input_ids[batch_size * max_seq_length];
     int8_t input_mask[batch_size * max_seq_length];
     int8_t segment_ids[batch_size * max_seq_length];
+
     for (int batch_idx = 0; batch_idx < 3; ++batch_idx) {
-        convert_single_example((cuBERT::FullTokenizer *) tokenizer,
+        feature=convert_single_example((cuBERT::FullTokenizer *) tokenizer,
                                max_seq_length,
                                examples[3*batch_idx+1].c_str(),
                                examples[3*batch_idx+2].c_str(),
                                input_ids + max_seq_length * batch_idx,
                                input_mask + max_seq_length * batch_idx,
                                segment_ids + max_seq_length * batch_idx);
+        features.push_back(feature);
     }
 
+    int x =1;
     init(model_file);
+    for (int i=0; i<batch_size; i++)
+    {   
+        float* data1 ;
+        float* data2 ;
+        float* data3 ;
+        vector<float> input_data1 = {i+1};
 
-
-
-    getResult();
+        vector<float> input_data2;
+        vector<float> input_data3;
+        vector<float> input_data4;
+        for (int j=0; j<256; j++)
+        {
+            input_data2.push_back(input_ids[i*256+j]);
+            input_data3.push_back(input_mask[i*256+j]);
+            input_data4.push_back(segment_ids[i*256+j]);
+        }
+        data1,data2,data3 = getResult(input_data1,input_data2,input_data3,input_data4);
+    }
+    
 
 
 
