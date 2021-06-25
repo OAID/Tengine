@@ -82,7 +82,7 @@ IF(TENGINE_ENABLE_CUDA)
 ENDIF()
 
 IF(TENGINE_ENABLE_TENSORRT)
-    TENGINE_EXAMPLE (tm_classification_trt       tm_classification_trt.c)
+    TENGINE_EXAMPLE (tm_classification_trt       tm_classification_trt.cpp)
 ENDIF()
 
 IF(TENGINE_ENABLE_TIM_VX)
