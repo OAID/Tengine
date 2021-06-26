@@ -50,7 +50,7 @@ tensor_t unstack_1;
 tensor_t unstack_0;
 int feature_len;
 
-void write_predictions (int idx, std::map<int,int> feature, 
+void write_predictions (int idx, std::map<int,int> &feature, 
 cuBERT::FullTokenizer* tokenizer,const char* text_b,int start_index, int end_index,size_t max_seq_length)
 {
     std::vector<std::string> tokens_b;
@@ -58,18 +58,61 @@ cuBERT::FullTokenizer* tokenizer,const char* text_b,int start_index, int end_ind
     tokenizer->tokenize(text_b, &tokens_b, max_seq_length);
     int start_origin = feature[start_index];
     int end_origin = feature[end_index];
-    std::string answer;
     int length = end_origin - start_origin;
-    for (int i = 0; i< length; i++){
-        answer = answer+tokens_b[start_origin+i] +" ";
+    int start_point = start_origin;
+    for (int i=0; i<start_point;i++){
+        if ((tokens_b[i][0]<='z'&& tokens_b[i][0]>='a')||(tokens_b[i][0]>='0' && tokens_b[i][0]<='9'))
+        {  
+               
+        }
+        else{
+            start_point++;
+        }
+        
     }
-    printf("Question %d 's answer is:  %s\n", idx+1, answer);
+    std::string answer;
+    int offset=0;
+
+    for (int i = 0; i< length+1; i++){
+        std::string answer_int;
+        printf("size: %d\n",tokens_b[start_point+i+2].size());
+        for (int j = 0; j< tokens_b[start_point+i+2].size(); j++){
+            if ((tokens_b[start_point+i+2][j]<='z'&& tokens_b[start_point+i+2][j]>='a')||(tokens_b[start_point+i+2][j]>='0' && tokens_b[start_point+i+2][j]<='9')){
+                answer_int = answer_int+tokens_b[start_point+i+2][j];
+            }
+            else {
+                offset=1;
+            }
+        }
+        length=length+offset;
+        if (offset==0){
+            answer = answer + " " +answer_int;
+        }
+        else {
+            answer = answer + answer_int;
+        }
+        
+        offset=0;
+        answer_int.clear();
+    }
+    printf("Question %d 's answer is: %s\n", idx, answer.c_str());
 
 }
 
-int* get_best_indexes(float* logits, int n_best_size){
+int get_best_indexes(float* &logits, int n_best_size){
     
-    int best_indexes[256];
+    int best=0;
+    int best_index;
+    for (int i = 0; i < 256; i++){
+        printf ("i:%d\n", i);
+        printf ("logits:%f\n", logits[i]);
+        if (best <= logits[i]){
+            best=logits[i];
+            best_index=i;
+        }
+    }
+    return best_index;
+   /*  int best_indexes[256];
     for (int m = 0; m < 256; m++)
 	{
 		best_indexes[m] = m;
@@ -78,7 +121,9 @@ int* get_best_indexes(float* logits, int n_best_size){
 	for (int i = 0; i < 256; i++)
 	{
 		for (int j = 0; j < 256- i - 1; j++)
-		{
+		{   printf("j:%d\n", j);
+            printf("j_l:%f\n", logits[j]);
+            
 			if (logits[j] < logits[j + 1])
 			{
 				float temp = logits[j];
@@ -95,7 +140,7 @@ int* get_best_indexes(float* logits, int n_best_size){
     for (int i=0; i<n_best_size; i++){
         best_index[i]=best_indexes[i];
     }
-    return best_index;
+    return best_index[0]; */
 
 }
 
@@ -251,9 +296,9 @@ void init(const char* modelfile)
         fprintf(stderr, "success init graph\n");
     }
     unique_ids_raw_output = get_graph_input_tensor(graph, 0, 0);
-    input_ids = get_graph_input_tensor(graph, 1, 0);
+    segment_ids = get_graph_input_tensor(graph, 1, 0);
     input_mask = get_graph_input_tensor(graph, 2, 0);
-    segment_ids = get_graph_input_tensor(graph, 3, 0);
+    input_ids = get_graph_input_tensor(graph, 3, 0);
 
     set_tensor_shape(unique_ids_raw_output, dims2, 1);
     set_tensor_shape(segment_ids, dims1, 2);
@@ -273,7 +318,7 @@ void init(const char* modelfile)
     fprintf(stderr, "bert prerun %d\n", rc);
 }
 
-float* getResult(std::vector<float> input_data1,std::vector<float> input_data2,vector<float> input_data3,vector<float> input_data4)
+std::vector<float*> getResult(std::vector<float> &input_data1,std::vector<float> &input_data2,vector<float> &input_data3,vector<float> &input_data4)
 {
    
 /*     std::vector<float> input_data1(1,1);
@@ -282,9 +327,9 @@ float* getResult(std::vector<float> input_data1,std::vector<float> input_data2,v
     std::vector<float> input_data4(256,1); */
     //get_input_data(imagefile, input_data.data(), height, width, means, scales);
     set_tensor_buffer(unique_ids_raw_output, input_data1.data(), 1 * sizeof(float));
-    set_tensor_buffer(input_ids, input_data2.data(), 256 * sizeof(float));
+    set_tensor_buffer(segment_ids, input_data2.data(), 256 * sizeof(float));
     set_tensor_buffer(input_mask, input_data3.data(), 256 * sizeof(float));
-    set_tensor_buffer(segment_ids, input_data4.data(), 256 * sizeof(float));
+    set_tensor_buffer(input_ids, input_data4.data(), 256 * sizeof(float));
 
     //set_graph_layout(graph, 2);
 
@@ -308,7 +353,12 @@ float* getResult(std::vector<float> input_data1,std::vector<float> input_data2,v
     printf ("data3: %f\n",data3[0]);
     printf ("data3: %f\n",data3[1]);
     printf ("data3: %f\n",data3[2]);
-    return data1, data2, data3;
+    std::vector<float*> results;
+    results.clear();
+
+    results.push_back(data3);
+    results.push_back(data2);
+    return results;
 
 }
 
@@ -400,9 +450,8 @@ int main(int argc, char* argv[])
     init(model_file);
     for (int i=0; i<batch_size; i++)
     {   
-        float* data1 ;
-        float* data2 ;
-        float* data3 ;
+        vector<float*> all_resluts; 
+
         vector<float> input_data1 = {i+1};
 
         vector<float> input_data2;
@@ -410,11 +459,19 @@ int main(int argc, char* argv[])
         vector<float> input_data4;
         for (int j=0; j<256; j++)
         {
-            input_data2.push_back(input_ids[i*256+j]);
+            input_data2.push_back(segment_ids[i*256+j]);
             input_data3.push_back(input_mask[i*256+j]);
-            input_data4.push_back(segment_ids[i*256+j]);
+            input_data4.push_back(input_ids[i*256+j]);
         }
-        data1,data2,data3 = getResult(input_data1,input_data2,input_data3,input_data4);
+        all_resluts = getResult(input_data1,input_data2,input_data3,input_data4);
+        printf("size:%d\n", all_resluts.size());
+ 
+        int start_index = get_best_indexes(all_resluts[0], n_best_size);
+        int end_index = get_best_indexes(all_resluts[1], n_best_size);
+        write_predictions (i+1, features[i], (cuBERT::FullTokenizer *) tokenizer, examples[3*i+2].c_str(),start_index, end_index,max_seq_length);
+        input_data2.clear();
+        input_data3.clear();
+        input_data4.clear();
     }
     
 

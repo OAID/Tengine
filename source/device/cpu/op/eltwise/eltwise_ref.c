@@ -56,7 +56,16 @@ static int ref_eltwise_fp32(void* output, void* input0, void* input1, int type, 
     switch (type)
     {
         case ELT_SUB:
-            if (input1_count4 == 1)
+            if (input1_count4 == 1 && input_hw*input_chan==1)
+            {
+                for (int i = 0; i < input_count4; ++i)
+                {
+                    *out_ptr++ =  in1[0]-(*in0++) ;
+                    //printf ("in0: %f\n",in0[0]);
+                    //printf ("in1: %f\n",in1[i]);
+                }
+            }
+            else if (input1_count4 == 1 && input_hw*input_chan !=1)
             {
                 for (int i = 0; i < input_count4; ++i)
                 {
