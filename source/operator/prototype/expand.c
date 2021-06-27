@@ -32,6 +32,7 @@
 #include "utility/vector.h"
 #include "utility/log.h"
 
+#include <math.h>
 #include <string.h>
 
 static int infer_shape(struct node* node)
