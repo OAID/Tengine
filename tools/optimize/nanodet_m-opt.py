@@ -24,15 +24,16 @@ Preparation:
 $ python tools/export_onnx.py --cfg_path config/nanodet-m.yml --model_path nanodet_m.ckpt
 
 Optimization:
+1. Load onnx model and just simplify it:
+$ python3 nanodet_m-opt.py --input nanodet_m.onnx --output nanodet_m-opt.onnx
+
+Optimization(not recommended):
 1. Updata the output shape in all distance prediction branches from [1, *, 32] to [1, *, 4, 8];
 2. Add additional "Softmax" node in the end of all distance prediction branches with axis=-1;
 3. Update output tensor name(from "dis_pred_stride_*" to "dis_sm_stride_*", in which "sm" is
-short for "softmax") and shape(from [1, *, 32] to [1, *, 4, 8] for later integral).
-$ python3 nanodet_m-opt.py --input nanodet_m.onnx --output nanodet_m-opt.onnx --const 893,915,937
-
-Note:
-  This optimization isn't necessary. One can convert nanodet_m.onnx to tmfile
-directly, and implement final 'softmax' in example by oneself for quick test.
+short for "softmax") and shape(from [1, *, 32] to [1, *, 4, 8] for later integral);
+4. Check and simplify new onnx model.
+$ python3 nanodet_m-opt.py --input nanodet_m.onnx --output nanodet_m-opt.onnx --softmax --const 893,915,937
 
 This tool is based on ONNX Framework.
 
@@ -55,6 +56,7 @@ def parse_args():
     parser.add_argument('--input', type=str, default='nanodet_m.onnx', help='input model path')  
     parser.add_argument('--output', type=str, default='nanodet_m-opt.onnx', help='output model path')
     parser.add_argument('--const', type=str, default='893,915,937', help='constant(nodes) for final reshape node in distance prediction branch')
+    parser.add_argument("--softmax", action='store_true', default=False, help="add additional softmax node to distance prediction branch")
     
     args = parser.parse_args()
     return args
@@ -159,25 +161,25 @@ def main():
 
     print(" Input model path    : %s" % (args.input))
     print("Output model path    : %s" % (args.output))
-    print("Constant shape nodes : %s" % (args.const))
-
-    constant_shape_list = args.const.split(',')
 
     # load original onnx model, graph, nodes
     print("[Opt Tools Info]: Step 0, load original onnx model from %s." % (args.input))
     onnx_model = onnx.load(args.input)
 
-    # update input constant nodes
-    print("[Opt Tools Info]: Step 1, update the output shape in all dis_pred branches.")
-    optimize_node_shape(onnx_model.graph.node, constant_shape_list)
+    if args.softmax:
+        constant_shape_list = args.const.split(',')
 
-    # add additional softmax nodes
-    print("[Opt Tools Info]: Step 2, add Softmax node in the end of all dis_pred branche.")
-    optimize_add_softmax(onnx_model.graph.node)
+        # update input constant nodes
+        print("[Opt Tools Info]: Step 1, update the output shape in all dis_pred branches.")
+        optimize_node_shape(onnx_model.graph.node, constant_shape_list)
 
-    # update output tensor name and shape
-    print("[Opt Tools Info]: Step 3, update output tensor name and shape.")
-    optimize_output_tensor(onnx_model.graph.output)
+        # add additional softmax nodes
+        print("[Opt Tools Info]: Step 2, add Softmax node in the end of all dis_pred branche.")
+        optimize_add_softmax(onnx_model.graph.node)
+
+        # update output tensor name and shape
+        print("[Opt Tools Info]: Step 3, update output tensor name and shape.")
+        optimize_output_tensor(onnx_model.graph.output)
 
     # do check and simplify the onnx model
     print("[Opt Tools Info]: Step 4, check and simplify the new onnx model.")
