@@ -47,3 +47,5 @@ extern "C" {
 }
 
 int save_graph_u8_perlayer(const char* model_file, const char* scale_file, const std::string& output_file, int inplace, bool internal);
+
+int save_graph_i8_perchannel(const char* model_file, const char* scale_file, const std::string& output_file, int inplace, bool internal);
