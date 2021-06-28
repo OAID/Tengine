@@ -18,8 +18,10 @@
 # Copyright (c) 2021, OPEN AI LAB
 # Author: lswang@openailab.com
 #
-
 # generate tengine header file
+
+
+
 FILE (MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/tengine)
 FILE (COPY ${CMAKE_SOURCE_DIR}/source/api/c_api.h DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/tengine)
 #FILE (COPY ${CMAKE_SOURCE_DIR}/source/api/c_api.h DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
@@ -32,9 +34,8 @@ FUNCTION (TENGINE_EXAMPLE name file)
     TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
     TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
     TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE "${PROJECT_SOURCE_DIR}/examples/common")
-    TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE ${utf8proc_INCLUDE_DIRS})
 
-    TARGET_LINK_LIBRARIES (${name} PRIVATE ${CMAKE_PROJECT_NAME} ${utf8proc_STATIC_LIBRARIES})
+    TARGET_LINK_LIBRARIES (${name} PRIVATE ${CMAKE_PROJECT_NAME} )
 
     IF(MSVC)
         TARGET_COMPILE_DEFINITIONS (${name} PRIVATE $<$<OR:$<COMPILE_LANGUAGE:C>,$<COMPILE_LANGUAGE:CXX>>:NOMINMAX>)
@@ -49,7 +50,7 @@ ENDFUNCTION()
 IF (TENGINE_BUILD_CPP_API)
     TENGINE_EXAMPLE (cpp_tm_classification       cpp_tm_classification.cpp)
     TENGINE_EXAMPLE (cpp_tm_mobilenet_ssd        cpp_tm_mobilenet_ssd.cpp)
-    TENGINE_EXAMPLE (cpp_tm_BERT                 cpp_tm_BERT.cpp)
+
     
 ENDIF()
 
@@ -69,8 +70,6 @@ TENGINE_EXAMPLE (tm_mobilefacenet_uint8      tm_mobilefacenet_uint8.cpp)
 TENGINE_EXAMPLE (tm_yolov5                   tm_yolov5.cpp)
 TENGINE_EXAMPLE (tm_yolofastest              tm_yolofastest.cpp)
 TENGINE_EXAMPLE (tm_ultraface                tm_ultraface.cpp)
-TENGINE_EXAMPLE (tm_bert                     tm_bert.cpp)
-TENGINE_EXAMPLE (tm_bert_tf                  tm_bert_tf.cpp)
 
 
 
@@ -105,6 +104,7 @@ ENDIF()
 # add examples with opencv
 # set(OpenCV_DIR /mnt/d/ubuntu/opencv_install/linux-armv7/lib/cmake/opencv4)
 FIND_PACKAGE(OpenCV QUIET)
+
 
 IF (OpenCV_FOUND)
     # macro for adding examples
@@ -143,3 +143,20 @@ IF (OpenCV_FOUND)
 ELSE()
     MESSAGE (WARNING "OpenCV not found, some examples won't be built")
 ENDIF()
+
+
+
+
+FUNCTION (TENGINE_EXAMPLE_BERT name file)
+    ADD_EXECUTABLE (${name} "${CMAKE_CURRENT_SOURCE_DIR}/${file}" "${CMAKE_CURRENT_SOURCE_DIR}/common/tengine_operations.c")
+
+    TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
+    TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
+    TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE "${PROJECT_SOURCE_DIR}/examples/common")
+    TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE "${utf8proc_INCLUDE_DIRS}")
+    TARGET_LINK_LIBRARIES (${name} ${CMAKE_PROJECT_NAME} ${utf8proc_STATIC_LIBRARIES})
+
+    INSTALL (TARGETS ${name} DESTINATION bin)
+ENDFUNCTION()
+
+TENGINE_EXAMPLE_BERT (tm_bert_tf                  tm_bert_tf.cpp)

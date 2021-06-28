@@ -19,6 +19,7 @@
 # Author: lswang@openailab.com
 #
 
+
 SET(CMAKE_BUILD_TYPE "Debug")
 SET(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -g2 -ggdb")
 SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wall")
@@ -91,11 +92,11 @@ OPTION (TENGINE_ENABLE_ALL_SYMBOL           "All symbol visible"                
 
 
 # Do check list
-INCLUDE ("${CMAKE_CURRENT_SOURCE_DIR}/cmake/utf8proc.cmake")
 INCLUDE ("${CMAKE_CURRENT_SOURCE_DIR}/cmake/check.cmake")
 INCLUDE ("${CMAKE_CURRENT_SOURCE_DIR}/cmake/cuda.cmake")
 INCLUDE ("${CMAKE_CURRENT_SOURCE_DIR}/cmake/registry.cmake")
 INCLUDE ("${CMAKE_CURRENT_SOURCE_DIR}/cmake/utility.cmake")
+INCLUDE ("${CMAKE_CURRENT_SOURCE_DIR}/cmake/utf8proc.cmake")
 
 # Project name
 PROJECT (tengine-lite)

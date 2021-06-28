@@ -1,12 +1,12 @@
-#ifndef CUBERT_TOKENIZATION_H
-#define CUBERT_TOKENIZATION_H
+#ifndef BERT_TOKENIZATION_H
+#define BERT_TOKENIZATION_H
 
 #include <string>
 #include <vector>
 #include <unordered_map>
 #include <iostream>
 
-namespace cuBERT {
+namespace BERT {
 
     void load_vocab(const char *vocab_file, std::unordered_map<std::string, uint64_t> *vocab);
 
@@ -152,4 +152,4 @@ namespace cuBERT {
 
 }
 
-#endif //CUBERT_TOKENIZATION_H
+#endif //BERT_TOKENIZATION_H

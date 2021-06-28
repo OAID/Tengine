@@ -100,10 +100,10 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     }
     
     
-    printf("dim0: %d\n",dim0 );
+/*     printf("dim0: %d\n",dim0 );
     printf("dim1: %d\n",dim1 );
     printf("dim2: %d\n",dim2 );
-    printf("dim3: %d\n",dim3 );
+    printf("dim3: %d\n",dim3 ); */
     int total_size = input_tensor->elem_num;
     //printf("total_size: %d\n",total_size );
 

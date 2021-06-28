@@ -40,7 +40,7 @@
 
 int ref_split_fp32(struct tensor* input_tensor, struct tensor* output_tensor, struct split_param* split_param, int* slice_index, int num_slices, int slice_size, int in_slice, int slice_axis)
 {
-    printf("num_slices: %d\n",num_slices);
+    //printf("num_slices: %d\n",num_slices);
     float* input_data = input_tensor->data;
     float* output_data = output_tensor->data;
 

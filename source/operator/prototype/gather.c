@@ -39,24 +39,33 @@ static int infer_shape(struct node* node)
     struct tensor* input  = get_ir_graph_tensor(graph, node->input_tensors[0]);
     struct tensor* input1  = get_ir_graph_tensor(graph, node->input_tensors[1]);
     struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
-
+    int has_param=1;
     struct gather_param* _param = ( struct gather_param* )(node->op.param_mem);
-    printf("input1->elem_num: %d\n", input1->elem_num);
+    //printf("input1->elem_num: %d\n", input1->elem_num);
     if (_param->indices_num ==0){
         _param->indices_num=input1->elem_num;
+        has_param=0;
     }
-    printf("_param->indices_num: %d\n", _param->indices_num);
+    //printf("_param->indices_num: %d\n", _param->indices_num);
     int indices_size = _param->indices_num;
     
     struct vector* new_shape_temp = create_vector(sizeof(int), NULL);
     if(_param->is_onnx)
     {
         if(_param->axis == 0)
-        {
-            for(int i = 0; i < input->dim_num  - 1; i++)
+        {   if (has_param==0)
             {
-                push_vector_data(new_shape_temp, (void* )&input1->dims[i]);
-                push_vector_data(new_shape_temp, (void* )&input->dims[i+1]);
+                for(int i = 0; i < input->dim_num  - 1; i++)
+                {
+                    push_vector_data(new_shape_temp, (void* )&input1->dims[i]);
+                    push_vector_data(new_shape_temp, (void* )&input->dims[i+1]);
+                }
+            }
+            else {
+                for(int i = 0; i < input->dim_num  - 1; i++)
+                {
+                    push_vector_data(new_shape_temp, (void* )&input->dims[i+1]);
+                }   
             }
         }
         else

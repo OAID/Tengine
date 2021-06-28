@@ -68,10 +68,10 @@ static int ref_gather_fp32(float* input, float* input_indices, float* output, ga
         inner_size *= param->in_shape[i];
         // TLOG_ERR("inner_size size: %d %d \n", inner_size, param->in_shape[i]);
     }
-    printf("out: %d\n", outer_size);
+/*     printf("out: %d\n", outer_size);
     printf("inner: %d\n", inner_size);
     printf("axis_size: %d\n", axis_size);
-    printf("indices: %d\n", param->indices_num);
+    printf("indices: %d\n", param->indices_num); */
 	// #pragma omp parallel for num_threads(num_thread)
 /*     if(param->is_onnx){
         for (int outer = 0; outer < outer_size; ++outer)
@@ -161,7 +161,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
     struct tensor* indices_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
     float* x = input_tensor->data;
-    printf("input_indices: %f\n", x[0] );
+    //printf("input_indices: %f\n", x[0] );
     gather_param_t* op_priv_info = ( gather_param_t* )exec_node->ops_priv;
 
     int out_size = input_tensor->elem_num;

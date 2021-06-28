@@ -18,14 +18,13 @@
 */
 
 /*
-* Copyright (c) 2020, OPEN AI LAB
-* Author: qtang@openailab.com
+* Copyright (c) 2021, OPEN AI LAB
+* Author: ycyang@openailab.com
 */
 
 #include <cstdlib>
 #include <cstdio>
 #include <vector>
-
 #include "common.h"
 #include "tengine/c_api.h"
 #include "tengine_operations.h"
@@ -39,6 +38,8 @@
 #include "tokenization.cpp"
 
 using namespace std;
+
+
 graph_t graph;
 tensor_t unique_ids_raw_output;
 tensor_t segment_ids;
@@ -50,8 +51,10 @@ tensor_t unstack_1;
 tensor_t unstack_0;
 int feature_len;
 
+
+
 void write_predictions (int idx, std::map<int,int> &feature, 
-cuBERT::FullTokenizer* tokenizer,const char* text_b,int start_index, int end_index,size_t max_seq_length)
+BERT::FullTokenizer* tokenizer,const char* text_b,int start_index, int end_index,size_t max_seq_length)
 {
     std::vector<std::string> tokens_b;
     tokens_b.reserve(max_seq_length);
@@ -75,7 +78,7 @@ cuBERT::FullTokenizer* tokenizer,const char* text_b,int start_index, int end_ind
 
     for (int i = 0; i< length+1; i++){
         std::string answer_int;
-        printf("size: %d\n",tokens_b[start_point+i+2].size());
+        //printf("size: %d\n",tokens_b[start_point+i+2].size());
         for (int j = 0; j< tokens_b[start_point+i+2].size(); j++){
             if ((tokens_b[start_point+i+2][j]<='z'&& tokens_b[start_point+i+2][j]>='a')||(tokens_b[start_point+i+2][j]>='0' && tokens_b[start_point+i+2][j]<='9')){
                 answer_int = answer_int+tokens_b[start_point+i+2][j];
@@ -104,8 +107,8 @@ int get_best_indexes(float* &logits, int n_best_size){
     int best=0;
     int best_index;
     for (int i = 0; i < 256; i++){
-        printf ("i:%d\n", i);
-        printf ("logits:%f\n", logits[i]);
+        //printf ("i:%d\n", i);
+        //printf ("logits:%f\n", logits[i]);
         if (best <= logits[i]){
             best=logits[i];
             best_index=i;
@@ -147,10 +150,6 @@ int get_best_indexes(float* &logits, int n_best_size){
 void _truncate_seq_pair(std::vector<std::string>* tokens_a,
                         std::vector<std::string>* tokens_b,
                         size_t max_length) {
-// This is a simple heuristic which will always truncate the longer sequence
-// one token at a time. This makes more sense than truncating an equal percent
-// of tokens from each, since if one sequence is very short then each token
-// that's truncated likely contains more information than a longer sequence.
     while (true) {
         size_t total_length = tokens_a->size() + tokens_b->size();
         if (total_length <= max_length) {
@@ -164,7 +163,7 @@ void _truncate_seq_pair(std::vector<std::string>* tokens_a,
     }
 }
 
-std::map<int,int> convert_single_example(cuBERT::FullTokenizer* tokenizer,
+std::map<int,int> convert_single_example(BERT::FullTokenizer* tokenizer,
                             size_t max_seq_length,
                             const char* text_a, const char* text_b,
                             int *input_ids, int8_t *input_mask, int8_t *segment_ids) {
@@ -179,9 +178,6 @@ std::map<int,int> convert_single_example(cuBERT::FullTokenizer* tokenizer,
     if (text_b != nullptr) {
         tokenizer->tokenize(text_b, &tokens_b, max_seq_length);
 
-        // Modifies `tokens_a` and `tokens_b` in place so that the total
-        // length is less than the specified length.
-        // Account for [CLS], [SEP], [SEP] with "- 3"
         _truncate_seq_pair(&tokens_a, &tokens_b, max_seq_length - 3);
     } else {
         if (tokens_a.size() > max_seq_length - 2) {
@@ -189,24 +185,6 @@ std::map<int,int> convert_single_example(cuBERT::FullTokenizer* tokenizer,
         }
     }
 
-    // The convention in BERT is:
-    // (a) For sequence pairs:
-    //  tokens:   [CLS] is this jack ##son ##ville ? [SEP] no it is not . [SEP]
-    //  type_ids: 0     0  0    0    0     0       0 0     1  1  1  1   1 1
-    // (b) For single sequences:
-    //  tokens:   [CLS] the dog is hairy . [SEP]
-    //  type_ids: 0     0   0   0  0     0 0
-    //
-    // Where "type_ids" are used to indicate whether this is the first
-    // sequence or the second sequence. The embedding vectors for `type=0` and
-    // `type=1` were learned during pre-training and are added to the wordpiece
-    // embedding vector (and position vector). This is not *strictly* necessary
-    // since the [SEP] token unambiguously separates the sequences, but it makes
-    // it easier for the model to learn the concept of sequences.
-    //
-    // For classification tasks, the first vector (corresponding to [CLS]) is
-    // used as as the "sentence vector". Note that this only makes sense because
-    // the entire model is fine-tuned.
     input_ids[0] = tokenizer->convert_token_to_id("[CLS]");
     segment_ids[0] = 0;
     for (int i = 0; i < tokens_a.size(); ++i) {
@@ -250,8 +228,8 @@ std::map<int,int> convert_single_example(cuBERT::FullTokenizer* tokenizer,
 
 }
 
-void* cuBERT_open_tokenizer(const char* vocab_file, int do_lower_case) {
-    return new cuBERT::FullTokenizer(vocab_file, do_lower_case);
+void* BERT_open_tokenizer(const char* vocab_file, int do_lower_case) {
+    return new BERT::FullTokenizer(vocab_file, do_lower_case);
 }
 
 std::vector<std::string> read_squad_examples(const char* input_file)
@@ -308,7 +286,7 @@ void init(const char* modelfile)
 
 
     int rc = prerun_graph(graph);
-    dump_graph(graph);
+    //dump_graph(graph);
     unique_ids = get_graph_output_tensor(graph, 0, 0);
     unstack_1 = get_graph_output_tensor(graph, 1, 0);
     unstack_0 = get_graph_output_tensor(graph, 2, 0);
@@ -342,7 +320,7 @@ std::vector<float*> getResult(std::vector<float> &input_data1,std::vector<float>
     float* data2 = ( float* )get_tensor_buffer(unstack_1);
     float* data3 = ( float* )get_tensor_buffer(unstack_0);
     
-    printf ("data1: %f\n",*data1);
+/*     printf ("data1: %f\n",*data1);
     printf ("data1: %f\n",data1[1]);
     printf ("data1: %f\n",data1[2]);
 
@@ -352,7 +330,7 @@ std::vector<float*> getResult(std::vector<float> &input_data1,std::vector<float>
 
     printf ("data3: %f\n",data3[0]);
     printf ("data3: %f\n",data3[1]);
-    printf ("data3: %f\n",data3[2]);
+    printf ("data3: %f\n",data3[2]); */
     std::vector<float*> results;
     results.clear();
 
@@ -376,9 +354,9 @@ void release()
 
 void show_usage()
 {
-    fprintf(stderr, "[Usage]:  [-h]\n    [-m model_file] [-a person_a -b person_b]\n [-t thread_count]\n");
-    fprintf(stderr, "\nmobilefacenet example: \n    ./mobilefacenet -m /path/to/mobilenet.tmfile -a "
-                    "/path/to/person_a.jpg -b /path/to/person_b.jpg\n");
+    fprintf(stderr, "[Usage]:  [-h]\n    [-m model_file] [-v vocab_file]\n [-i input_file]\n");
+    fprintf(stderr, "\nBERT example: \n    ./tm_bert_tf -m /path/to/bert.tmfile -v "
+                    "/path/to/vocab.txt -i predict.txt\n");
 }
 
 int main(int argc, char* argv[])
@@ -428,7 +406,7 @@ int main(int argc, char* argv[])
 
     if (!check_file_exist(model_file))
         return -1;
-    void* tokenizer = cuBERT_open_tokenizer(vocab_file, 1);
+    void* tokenizer = BERT_open_tokenizer(vocab_file, 1);
     std::map<int,int> feature;
     std::vector<std::map<int,int>> features;
     int input_ids[batch_size * max_seq_length];
@@ -436,7 +414,7 @@ int main(int argc, char* argv[])
     int8_t segment_ids[batch_size * max_seq_length];
 
     for (int batch_idx = 0; batch_idx < 3; ++batch_idx) {
-        feature=convert_single_example((cuBERT::FullTokenizer *) tokenizer,
+        feature=convert_single_example((BERT::FullTokenizer *) tokenizer,
                                max_seq_length,
                                examples[3*batch_idx+1].c_str(),
                                examples[3*batch_idx+2].c_str(),
@@ -464,11 +442,11 @@ int main(int argc, char* argv[])
             input_data4.push_back(input_ids[i*256+j]);
         }
         all_resluts = getResult(input_data1,input_data2,input_data3,input_data4);
-        printf("size:%d\n", all_resluts.size());
+        //printf("size:%d\n", all_resluts.size());
  
         int start_index = get_best_indexes(all_resluts[0], n_best_size);
         int end_index = get_best_indexes(all_resluts[1], n_best_size);
-        write_predictions (i+1, features[i], (cuBERT::FullTokenizer *) tokenizer, examples[3*i+2].c_str(),start_index, end_index,max_seq_length);
+        write_predictions (i+1, features[i], (BERT::FullTokenizer *) tokenizer, examples[3*i+2].c_str(),start_index, end_index,max_seq_length);
         input_data2.clear();
         input_data3.clear();
         input_data4.clear();

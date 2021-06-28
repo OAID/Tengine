@@ -7,7 +7,8 @@
 #include "./tokenization.h"
 
 
-namespace cuBERT {
+
+namespace BERT {
 
     void FullTokenizer::convert_tokens_to_ids(const std::vector<std::string> &tokens, uint64_t *ids) {
         for (int i = 0; i < tokens.size(); ++i) {
