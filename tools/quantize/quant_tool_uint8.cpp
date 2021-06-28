@@ -26,7 +26,7 @@
 #include <algorithm>
 #include <cfloat>
 
-#include "quant_tool_uint8.hpp"
+#include "quant_tool.hpp"
 #include "quant_save_graph.hpp"
 
 
@@ -540,7 +540,7 @@ int main(int argc, char* argv[])
         else
         {
             fprintf(stderr,"[Quant Tools Info]: algorithm not specified, using default type MIN MAX\n");
-            quant_tool.scale_file = "table_kl.scale";
+            quant_tool.scale_file = "table_minmax.scale";
         }
     }
 

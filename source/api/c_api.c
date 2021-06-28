@@ -553,6 +553,14 @@ int prerun_graph_multithread(graph_t graph, struct options option)
         set_cpu_affine(mask);
     }
 
+    /* dump graph */
+    const char* env = getenv(TENGINE_DUMP_GRAPH);
+    if (env && env[0] == '1')
+    {
+        set_log_level(LOG_INFO);
+        dump_ir_graph(ir_graph);
+    }        
+
     return 0;
 }
 
