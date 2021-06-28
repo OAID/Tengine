@@ -80,7 +80,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     if (input_tensor->data != output_tensor->data)
     {
         TLOG_ERR("input and output are not the same mem\n");
-        set_tengine_errno(EFAULT);
+        // set_tengine_errno(EFAULT);
         return -1;
     }
 
