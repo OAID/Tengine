@@ -56,6 +56,7 @@ if (TENGINE_ENABLE_TIM_VX)
     tengine_timvx_op_test(test_timvx_op_softmax         op/test_timvx_op_softmax.cpp)
     tengine_timvx_op_test(test_timvx_op_split           op/test_timvx_op_split.cpp)
     tengine_timvx_op_test(test_timvx_op_tanh            op/test_timvx_op_tanh.cpp)
+    tengine_timvx_op_test(test_timvx_op_transpose       op/test_timvx_op_transpose.cpp)
     tengine_timvx_op_test(test_timvx_op_upsampling      op/test_timvx_op_upsampling.cpp)
     
     
