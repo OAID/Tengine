@@ -452,9 +452,7 @@ int main(int argc, char* argv[])
         input_data4.clear();
     }
     
-
-
-
+	
     release();
     return 0;
 }
