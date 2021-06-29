@@ -235,14 +235,14 @@ void* BERT_open_tokenizer(const char* vocab_file, int do_lower_case) {
 std::vector<std::string> read_squad_examples(const char* input_file)
 {
     vector<string> examples;
-    Json::Value root;//定义根节点
+    Json::Value root;
 	Json::Reader reader;
     std::ifstream in;
-    in.open ("/home/yicheng/huozhu/inputs.json", ios::binary);//输入json文件的绝对路径
+    in.open (input_file, ios::binary);
     
 	if (!in.is_open())
 	{
-		cout << "文件打开错误"<<endl;
+		cout << "cant open the file"<<endl;
 	}
     if (reader.parse(in, root))
     {
