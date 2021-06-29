@@ -29,6 +29,7 @@
 #include "tengine/c_api.h"
 #include "utils/save_graph/save_graph.hpp"
 #include "onnx/onnx2tengine.hpp"
+#include "caffe/caffe2tengine.hpp"
 
 const char* help_params = "[Convert Tools Info]: optional arguments:\n"
                       "\t-h    help            show this help message and exit\n"
@@ -159,18 +160,24 @@ int main(int argc, char* argv[])
     }
     
     init_tengine();
-    
+    set_log_level(LOG_INFO);
     graph_t graph = NULL;
     if (file_format == "onnx")
     {
         onnx_serializer o2t;
         graph = o2t.onnx2tengine(model_file);
     }
+    else if (file_format == "caffe")
+    {
+        caffe_serializer c2t;
+        graph = c2t.caffe2tengine(model_file, proto_file);
+    }
     else
     {
         fprintf(stderr, "Convert model failed: support onnx only...\n");
         return -1;
     }
+    // dump_graph(graph);
     if (graph == NULL)
     {
         fprintf(stderr, "Convert model failed.\n");
