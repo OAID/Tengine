@@ -146,8 +146,8 @@ int QuantTool::activation_quant_tool()
     fprintf(stderr, "[Quant Tools Info]: Step 0, load calibration image files done, image num is %d.\n", img_num);
 
     /* init minmax */
-    std::tr1::unordered_map<int, float> max_activation;
-    std::tr1::unordered_map<int, float> min_activation;
+    std::unordered_map<int, float> max_activation;
+    std::unordered_map<int, float> min_activation;
     uint32_t act_tensor_num = 0;
     for (int i = 0; i < ir_graph->tensor_num; i++)
     {
