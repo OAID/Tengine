@@ -9,7 +9,7 @@ import os,shutil
 source = os.getcwd()
 father_path = os.path.abspath(os.path.dirname(source) + os.path.sep + ".")
 dest=os.getcwd()
-src=father_path+'/build-linux/install/lib/libtengine-lite.so'
+src=father_path+'/build/install/lib/libtengine-lite.so'
 dst=dest+'/tengine/libtengine-lite.so'
 shutil.copyfile(src,dst)
 

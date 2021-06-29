@@ -18,3 +18,17 @@ If the directory dose not exist, create it and try again. Note: python3.X must b
 sudo mkdir -p /usr/local/lib/python3.X/{dist-packages,site-packages}
 sudo python3 setup.py install
 ~~~
+
+If the 'libtengine-lite.so' file does not found. Note:After [compilation](https://tengine-docs.readthedocs.io/en/latest/source_compile/compile_linux.html), the build/install/lib directory will generate `libtengine-lite.so` as shown below:
+
+```bash
+install
+├── bin
+│   ├── tm_benchmark
+│   ├── tm_classification
+│   └── tm_mobilenet_ssd
+├── include
+│   └── tengine_c_api.h
+└── lib
+    └── libtengine-lite.so
+```
