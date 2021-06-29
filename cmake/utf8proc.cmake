@@ -14,6 +14,13 @@ ExternalProject_Add(utf8proc
         IF (CMAKE_TOOLCHAIN_FILE)
                 -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
         ENDIF()
+        IF (ANDROID_ABI)
+                -DANDROID_ABI=${ANDROID_ABI}
+        ENDIF()
+        IF (DANDROID_PLATFORM)
+                -DDANDROID_PLATFORM=${DANDROID_PLATFORM}
+        ENDIF()
+        -DANDROID_ARM_NEON=ON
         -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
         -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/utf8proc
         )
