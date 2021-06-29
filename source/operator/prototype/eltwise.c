@@ -64,8 +64,8 @@ static int infer_shape(struct node* node)
 
     int i0_size = input0->elem_num;
     int i1_size = input1->elem_num;
-    //int dim_num = 0;
-    int dim_num = input0->dim_num >= input1->dim_num ? input0->dim_num:input1->dim_num;
+    int dim_num = 1;
+    dim_num = input0->dim_num >= input1->dim_num ? input0->dim_num:input1->dim_num;
     int dims[dim_num];
     if (input0->dim_num>=input1->dim_num){
         for (int i=0; i<input1->dim_num;i++){
