@@ -31,29 +31,6 @@
 #include "graph/node.h"
 #include "graph/graph.h"
 
-
-struct conv_priv_info
-{
-    void* interleave_buffer;    // kernel transform buffer
-    void* interleave_buffer_pack4;    // kernel pack4
-    void* im2col_buffer;    // input data transform buffer
-    void* im2col_buffer_pack4;    // input data transform buffer pack4
-    void* input_pad;
-    void* dot_block;
-    void* transform_input;
-    void* output_bordered;
-    int im2col_buffer_size;    // kernel transform buffer size
-    int im2col_buffer_pack4_size;    // kernel transform buffer size
-    int interleave_buffer_size;    // input data transform buffer size
-    int interleave_buffer_pack4_size;
-    int external_im2col_mem;    // flag
-    int external_im2col_pack4_mem;    // flag
-    int external_interleave_mem;    // flag
-    int external_interleave_pack4_mem;    // flag
-    int cpu_type;
-    int winograd;
-};
-
 /* float32 */
 int conv_hcl_prerun(struct tensor* input_tensor, struct tensor* filter_tensor, struct tensor* output_tensor,
                     struct conv_priv_info* info, struct conv_param* param);

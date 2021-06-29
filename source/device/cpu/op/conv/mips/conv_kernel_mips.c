@@ -26,6 +26,17 @@
 
 #include "wino_conv_kernel_mips.h"
 
+#include "graph/tensor.h"
+#include "graph/node.h"
+#include "graph/graph.h"
+#include "utility/sys_port.h"
+#include "utility/float.h"
+#include "utility/log.h"
+#include "device/cpu/cpu_node.h"
+#include "device/cpu/cpu_graph.h"
+#include "device/cpu/cpu_module.h"
+
+#include <string.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <math.h>

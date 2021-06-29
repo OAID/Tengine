@@ -60,7 +60,7 @@ const int timvx_supported_ops[] = {
 //    OP_EXPANDDIMS,
     OP_FC,
     OP_FLATTEN,
-//    OP_GATHER,
+    OP_GATHER,
 //    OP_GEMM,
 //    OP_GRU,
 //    OP_HARDSIGMOID,

@@ -60,7 +60,7 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
             if (conv_hcl_set_shared_mem(conv_priv_info, exec_graph->shared_mem, exec_graph->shared_mem_size) < 0)
             {
                 TLOG_ERR("hcl conv: set shared memory failed\n");
-                set_tengine_errno(EFAULT);
+                // set_tengine_errno(EFAULT);
                 return -1;
             }
         }
@@ -70,7 +70,7 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
                                               exec_graph->shared_pack4_mem_size) < 0)
             {
                 TLOG_ERR("hcl conv: set shared pack4 memory failed\n");
-                set_tengine_errno(EFAULT);
+                // set_tengine_errno(EFAULT);
                 return -1;
             }
         }
@@ -87,7 +87,7 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
         if (conv_hcl_prerun(input_tensor, filter_tensor, output_tensor, conv_priv_info, conv_param) < 0)
         {
             TLOG_ERR("hcl conv prerun failed\n");
-            set_tengine_errno(EFAULT);
+            // set_tengine_errno(EFAULT);
             return -1;
         }
     }
@@ -129,7 +129,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
                          cpu_affinity) < 0)
         {
             TLOG_ERR("hcl conv run failed\n");
-            set_tengine_errno(EFAULT);
+            // set_tengine_errno(EFAULT);
             return -1;
         }
     }
@@ -157,7 +157,7 @@ static int postrun(struct node_ops* node_ops, struct exec_node* exec_node, struc
         if (conv_hcl_postrun(conv_priv_info) < 0)
         {
             TLOG_ERR("hcl conv postrun failed\n");
-            set_tengine_errno(EFAULT);
+            // set_tengine_errno(EFAULT);
             return -1;
         }
     }
@@ -188,7 +188,7 @@ static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, str
     struct conv_priv_info* conv_priv_info = ( struct conv_priv_info* )sys_malloc(sizeof(struct conv_priv_info));
     if (conv_priv_info == NULL)
     {
-        set_tengine_errno(ENOMEM);
+        // set_tengine_errno(ENOMEM);
         return -1;
     }
     memset(conv_priv_info, 0, sizeof(struct conv_priv_info));
