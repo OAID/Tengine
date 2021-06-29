@@ -430,7 +430,7 @@ int main(int argc, char* argv[])
     {   
         vector<float*> all_resluts; 
 
-        vector<float> input_data1 = {i+1};
+        vector<float> input_data1 = {i+1.0f};
 
         vector<float> input_data2;
         vector<float> input_data3;
@@ -452,9 +452,6 @@ int main(int argc, char* argv[])
         input_data4.clear();
     }
     
-
-
-
     release();
     return 0;
 }

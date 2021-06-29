@@ -14,3 +14,4 @@ ExternalProject_Add(utf8proc
         -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
         -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/utf8proc
         )
+

@@ -146,8 +146,7 @@ ENDIF()
 
 
 
-
-FUNCTION (TENGINE_EXAMPLE_BERT name file)
+FUNCTION (TENGINE_EXAMPLE_NLP name file)
     ADD_EXECUTABLE (${name} "${CMAKE_CURRENT_SOURCE_DIR}/${file}" "${CMAKE_CURRENT_SOURCE_DIR}/common/tengine_operations.c")
 
     TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
@@ -159,4 +158,5 @@ FUNCTION (TENGINE_EXAMPLE_BERT name file)
     INSTALL (TARGETS ${name} DESTINATION bin)
 ENDFUNCTION()
 
-TENGINE_EXAMPLE_BERT (tm_bert_tf                  tm_bert_tf.cpp)
+TENGINE_EXAMPLE_NLP (tm_bert_tf                  tm_bert_tf.cpp)
+add_dependencies(tm_bert_tf utf8proc)
