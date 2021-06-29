@@ -353,7 +353,7 @@ static float get_input_data(const char *path, const float *mean, const float *no
     pad.h = lb.h - h; //(h + 31) / 32 * 32 - h;
     // Generate a gray image using opencv
     cv::Mat img_pad(lb.w, lb.h, CV_32FC3, //cv::Scalar(0));
-        cv::Scalar(0.5/norm[0] + mean[0], 0.5/norm[0] + mean[0], 0.5/norm[2] + mean[2]));
+        cv::Scalar(0.5/norm[0] + mean[0], 0.5/norm[1] + mean[1], 0.5/norm[2] + mean[2]));
     // Letterbox filling
     cv::copyMakeBorder(img, img_pad, pad.h/2, pad.h - pad.h/2, pad.w/2, pad.w - pad.w/2, cv::BORDER_CONSTANT, cv::Scalar(0, 0, 0));
 
