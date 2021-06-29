@@ -125,9 +125,6 @@ int main(int argc, char* argv[])
     if(NULL == ir_graph)
         return -1;
 
-    set_log_level(LOG_INFO);
-    dump_graph(ir_graph);
-
     // set quantize params
     struct tensor* input_tensor = (struct tensor*)get_graph_tensor(ir_graph, "input_node");
     struct tensor* output_tensor = (struct tensor*)get_graph_tensor(ir_graph, "permute");
