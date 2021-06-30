@@ -165,5 +165,5 @@ FUNCTION (TENGINE_EXAMPLE_NLP name file)
     INSTALL (TARGETS ${name} DESTINATION bin)
 ENDFUNCTION()
 
-TENGINE_EXAMPLE_NLP (tm_bert_tf                  tm_bert_tf.cpp)
+TENGINE_EXAMPLE_NLP (tm_bert                  tm_bert.cpp)
 add_dependencies(tm_bert_tf utf8proc)
