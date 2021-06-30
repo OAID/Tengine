@@ -166,4 +166,4 @@ FUNCTION (TENGINE_EXAMPLE_NLP name file)
 ENDFUNCTION()
 
 TENGINE_EXAMPLE_NLP (tm_bert                  tm_bert.cpp)
-add_dependencies(tm_bert_tf utf8proc)
+add_dependencies(tm_bert    utf8proc)
