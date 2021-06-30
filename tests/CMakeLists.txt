@@ -109,6 +109,8 @@ if (TENGINE_ENABLE_TENSORRT)
 
     tengine_tensorrt_op_test(test_tensorrt_op_clip          op/test_tensorrt_op_clip.cpp)
     tengine_tensorrt_op_test(test_tensorrt_op_concat        op/test_tensorrt_op_concat.cpp)
+    tengine_tensorrt_op_test(test_tensorrt_op_deconv        op/test_tensorrt_op_deconv.cpp)
+    tengine_tensorrt_op_test(test_tensorrt_op_dropout       op/test_tensorrt_op_dropout.cpp)
     tengine_tensorrt_op_test(test_tensorrt_op_eltwise       op/test_tensorrt_op_eltwise.cpp)
     tengine_tensorrt_op_test(test_tensorrt_op_fc            op/test_tensorrt_op_fc.cpp)
 

@@ -74,7 +74,7 @@ const int trt_supported_ops[] = {
 //        OP_DEPTHTOSPACE,
         //OP_DETECTION_OUTPUT,          // Not supported, last checked version 7.1.3
         //OP_DETECTION_POSTPROCESS,     // Not supported, last checked version 7.1.3
-//        OP_DROPOUT,
+        OP_DROPOUT,
         OP_ELTWISE,
 //        OP_ELU,
         //OP_EMBEDDING,                 // Not supported, last checked version 7.1.3
