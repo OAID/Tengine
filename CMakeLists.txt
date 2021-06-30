@@ -96,7 +96,6 @@ INCLUDE ("${CMAKE_CURRENT_SOURCE_DIR}/cmake/check.cmake")
 INCLUDE ("${CMAKE_CURRENT_SOURCE_DIR}/cmake/cuda.cmake")
 INCLUDE ("${CMAKE_CURRENT_SOURCE_DIR}/cmake/registry.cmake")
 INCLUDE ("${CMAKE_CURRENT_SOURCE_DIR}/cmake/utility.cmake")
-INCLUDE ("${CMAKE_CURRENT_SOURCE_DIR}/cmake/utf8proc.cmake")
 
 # Project name
 PROJECT (tengine-lite)
