@@ -62,7 +62,7 @@ bool TensorRTEngine::addReLUNode(struct graph *ir_graph, struct node *node)
                 op_type = OP_RELU1;
                 break;
             case 6:
-                op_type = OP_RELU6;
+                op_type = OP_CLIP;
                 break;
             default:
                 fprintf(stderr, "Tengine: Unsupported RelU type(%d).\n", param->activation);
@@ -83,8 +83,8 @@ bool TensorRTEngine::addReLUNode(struct graph *ir_graph, struct node *node)
             case OP_RELU1:
                 op_type = OP_RELU1;
                 break;
-            case OP_RELU6:
-                op_type = OP_RELU6;
+            case OP_CLIP:
+                op_type = OP_CLIP;
                 break;
             default:
                 fprintf(stderr, "Tengine: Unsupported RelU type(%d).\n", node->op.type);
@@ -144,10 +144,15 @@ bool TensorRTEngine::addReLUNode(struct graph *ir_graph, struct node *node)
         this->layer_map[node->index] = layer;
 
         if (OP_RELU1 == op_type)
-            layer->setAlpha(1);
-        if (OP_RELU6 == op_type)
-            layer->setAlpha(6);
-        layer->setBeta(0);
+        {
+            layer->setAlpha(0);
+            layer->setBeta(1);
+        }
+        if (OP_CLIP == op_type)
+        {
+            layer->setAlpha(0);
+            layer->setBeta(6);
+        }
     }
 
     trt_tensor = layer->getOutput(0);
