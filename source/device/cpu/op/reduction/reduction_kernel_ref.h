@@ -2327,9 +2327,7 @@ void mean_4d_ax2(int dim0, int dim1, int dim2, int dim3, float* data, float* tmp
 }
 void mean_3d_ax2_1(int dim0, int dim1, int dim2,  float* data, float* tmp)
 {   
-    //printf("dim0: %d\n", dim0);
-    //printf("dim1: %d\n", dim1);
-    //printf("dim1: %d\n", dim2);
+
     for (int h = 0; h < dim0; h++)
     {
         for (int w = 0; w < dim1; w++)
@@ -2348,8 +2346,7 @@ void mean_3d_ax2_1(int dim0, int dim1, int dim2,  float* data, float* tmp)
 
 void mean_2d_ax1_1(int dim0, int dim1,  float* data, float* tmp)
 {   
-    //printf("dim0: %d\n", dim0);
-    //printf("dim1: %d\n", dim1);
+
     for (int h = 0; h < dim0; h++)
     {
         float s_tmp = 0.f;
@@ -2357,7 +2354,6 @@ void mean_2d_ax1_1(int dim0, int dim1,  float* data, float* tmp)
         {
             int offset = h * dim1 + w;
             s_tmp += data[offset];
-            //printf("offset: %d\n", offset);
         }
         tmp[h] += s_tmp / dim1;
     }

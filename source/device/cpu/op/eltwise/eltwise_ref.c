@@ -61,8 +61,6 @@ static int ref_eltwise_fp32(void* output, void* input0, void* input1, int type, 
                 for (int i = 0; i < input_count4; ++i)
                 {
                     *out_ptr++ =  in1[0]-(*in0++) ;
-                    //printf ("in0: %f\n",in0[0]);
-                    //printf ("in1: %f\n",in1[i]);
                 }
             }
             else if (input1_count4 == 1 && input_hw*input_chan !=1)
@@ -189,17 +187,6 @@ static int ref_eltwise_fp32(void* output, void* input0, void* input1, int type, 
                     *out_ptr++ = (in1[i]) * in0[0];
                 }
             }
-
-/*             else if (input_chan == input1_count4)
-            {
-                for(int j = 0; j <input_chan ; ++j)
-                {   
-                    for (int i = 0; i <input_hw_1; ++i){
-                        *out_ptr++ = in1[j]*in0[j*(input_chan_1-1)+i];
-                    }
-                   
-                }
-            } */
             else if (input_chan == input1_count4)
             {   
                 if (input_chan==input_chan_1)
@@ -846,14 +833,8 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     input_tensor0 = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
     struct eltwise_param* eltwise_param = ( struct eltwise_param* )ir_node->op.param_mem;
-    if (input_tensor0->dim_num < 4){
-        set_graph_layout(ir_graph, 2);
-    }
-    else{
-        set_graph_layout(ir_graph, 0);
-    }
     
-    //printf("layout:%d\n",ir_graph->graph_layout);
+ 
     int layout = ir_graph->graph_layout;
     void* input0 = input_tensor0->data;
     void* input1 = NULL;
@@ -861,11 +842,6 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     int input1_count4 = 0;
     int input_hw_1 = 0;
     int input_chan_1=0;
-/*     printf("0:%d\n",input_tensor0->dims[0] );
-    printf("1:%d\n",input_tensor0->dims[1] );
-    printf("2:%d\n",input_tensor0->dims[2] );
-    printf("3:%d\n",input_tensor0->dims[3] ); */
-
 
     if (ir_node->input_num > 1)
     {
@@ -903,34 +879,38 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         int input0_count4 = input_tensor0->elem_num;
         int dim0_size = input_tensor0->dim_num;
         if (layout == TENGINE_LAYOUT_NCHW)
-        {
-            input_chan_0 = input_tensor0->dims[dim0_size-3];
-            if(input_tensor0->dims[dim0_size-4]){
-                input_chan_0 *= input_tensor0->dims[dim0_size-4];
+        {   
+            if (input_tensor0->dim_num < 4)
+            {
+                if (input_tensor0->dim_num==1){
+                    input_chan_0 = 1;
+                    input_hw_0 = input_tensor0->dims[0];
+                }
+                else if (input_tensor0->dim_num==2)
+                {
+                    input_chan_0 = input_tensor0->dims[0];
+                    input_hw_0 = input_tensor0->dims[1];
+                }
+                else if (input_tensor0->dim_num==3)
+                {
+                    input_chan_0 = input_tensor0->dims[0]*input_tensor0->dims[1];
+                    input_hw_0 = input_tensor0->dims[2];
+                }
             }
-            input_hw_0 = input_tensor0->dims[dim0_size-2] * input_tensor0->dims[dim0_size-1];
+            else 
+            {
+                input_chan_0 = input_tensor0->dims[dim0_size-3];
+                if(input_tensor0->dims[dim0_size-4]){
+                    input_chan_0 *= input_tensor0->dims[dim0_size-4];
+                }
+                input_hw_0 = input_tensor0->dims[dim0_size-2] * input_tensor0->dims[dim0_size-1];
+            }
+ 
         }
         else if (layout == TENGINE_LAYOUT_NHWC)
         {
             input_chan_0 = input_tensor0->dims[3];
             input_hw_0 = input_tensor0->dims[1] * input_tensor0->dims[2];
-        }
-        else if (layout == TENGINE_LAYOUT_NLP)
-        {
-            if (input_tensor0->dim_num==1){
-                input_chan_0 = 1;
-
-                input_hw_0 = input_tensor0->dims[0];
-            }
-            else if (input_tensor0->dim_num==2){
-                input_chan_0 = input_tensor0->dims[0];
-                input_hw_0 = input_tensor0->dims[1];
-            }
-            else if (input_tensor0->dim_num==3){
-                input_chan_0 = input_tensor0->dims[0]*input_tensor0->dims[1];
-                input_hw_0 = input_tensor0->dims[2];
-            }
-
         }
         else
         {
@@ -963,31 +943,33 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         input1_count4 = input_tensor0->elem_num;
 
         if (layout == TENGINE_LAYOUT_NCHW)
-        {
-            input_chan_0 = input_tensor1->dims[1];
-            input_hw_0 = input_tensor1->dims[2] * input_tensor1->dims[3];
+        {   
+            if (input_tensor0->dim_num < 4)
+            {
+                 if (input_tensor0->dim_num==1){
+                    input_chan_0 = 1;
+
+                    input_hw_0 = input_tensor0->dims[0];
+                }
+                else if (input_tensor0->dim_num==2){
+                    input_chan_0 = input_tensor0->dims[0];
+                    input_hw_0 = input_tensor0->dims[1];
+                }
+                else if (input_tensor0->dim_num==3){
+                    input_chan_0 = input_tensor0->dims[0]*input_tensor0->dims[1];
+                    input_hw_0 = input_tensor0->dims[2];
+                }
+            }
+            else {
+                input_chan_0 = input_tensor1->dims[1];
+                input_hw_0 = input_tensor1->dims[2] * input_tensor1->dims[3];
+            }
+ 
         }
         else if (layout == TENGINE_LAYOUT_NHWC)
         {
             input_chan_0 = input_tensor1->dims[3];
             input_hw_0 = input_tensor1->dims[1] * input_tensor1->dims[2];
-        }
-        else if (layout == TENGINE_LAYOUT_NLP)
-        {
-            if (input_tensor0->dim_num==1){
-                input_chan_0 = 1;
-
-                input_hw_0 = input_tensor0->dims[0];
-            }
-            else if (input_tensor0->dim_num==2){
-                input_chan_0 = input_tensor0->dims[0];
-                input_hw_0 = input_tensor0->dims[1];
-            }
-            else if (input_tensor0->dim_num==3){
-                input_chan_0 = input_tensor0->dims[0]*input_tensor0->dims[1];
-                input_hw_0 = input_tensor0->dims[2];
-            }
-            
         }
         else
         {
