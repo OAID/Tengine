@@ -249,7 +249,7 @@ static void draw_objects(const cv::Mat& bgr, const std::vector<Object>& objects)
                     cv::Scalar(0, 0, 0));
     }
 
-    cv::imwrite("yolov5_out.jpg", image);
+    cv::imwrite("yolov5s_out.jpg", image);
 }
 
 void show_usage()

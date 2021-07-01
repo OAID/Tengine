@@ -446,7 +446,7 @@ int main(int argc, char* argv[])
                 det.prob, det.classes);
     }
 
-    save_image(img, "tengine_example_out");
+    save_image(img, "yolov5_out");
 
     /* free resource */
     /* release tengine */
