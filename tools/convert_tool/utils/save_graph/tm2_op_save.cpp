@@ -1560,9 +1560,9 @@ op_save_t SaveTmOpFunc(uint32_t op_type)
             return SaveTmMatMulOp;
         case OP_MISH:
             return SaveTmMishOp;
-        case TM2_OPTYPE_SPATIALTRANSFORMER:
+        case OP_SPATIALTRANSFORMER:
             return SaveTmSpatialTransformerOp;
-        case TM2_OPTYPE_EXPAND:
+        case OP_EXPAND:
             return SaveTmExpandOp;
         default:
             // fprintf(stderr, "Operator #%d not supported in tengine model yet\n",op_type);
