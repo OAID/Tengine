@@ -122,8 +122,8 @@ bool TensorRTEngine::AddEltwiseLayer(struct graph* ir_graph, struct node* node)
 
     this->SetRange(ir_graph, node->output_tensors[0], trt_tensor);
 
-    tensor_real_map[tensor_swap_map[node->output_tensors[0]]] = trt_tensor;
     tensor_swap_map[node->output_tensors[0]] = node->output_tensors[0];
+    tensor_real_map[tensor_swap_map[node->output_tensors[0]]] = trt_tensor;
 
     return true;
 }
