@@ -382,12 +382,13 @@ int main(int argc, char* argv[])
     fprintf(stderr, "YOLOv5 focus: %s\n", quant_tool.focus?"ON":"OFF");
     fprintf(stderr, "Thread num  : %d\n\n", quant_tool.num_thread);
 
-    /* quantize activation */
-    quant_tool.activation_quant_tool();
+   
 
     /* using 3rd calibration table file */
     if (quant_tool.scale_file.empty())
     {
+         /* quantize activation */
+        quant_tool.activation_quant_tool();
         /* select algorithm */
         if (quant_tool.algorithm_type == ALGORITHM_MIN_MAX)
             quant_tool.scale_file = "table_minmax.scale";         
