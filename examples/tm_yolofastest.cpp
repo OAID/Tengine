@@ -650,7 +650,7 @@ int main(int argc, char* argv[])
         draw_box(img, b.xmin, b.ymin, b.xmax, b.ymax, 2, 125, 0, 125);
         fprintf(stderr, "class=%2d score=%.2f left = %.2f,right = %.2f,top = %.2f,bot = %.2f, name = %s\n", b.label, b.score, b.xmin, b.xmax, b.ymin, b.ymax, class_names[b.label]);
     }
-    save_image(img, "tengine_example_out");
+    save_image(img, "yolofastest_out");
 
     /* release tengine */
     free_image(img);
