@@ -165,7 +165,7 @@ static int run(struct device* dev, struct subgraph* subgraph)
             timer[node_num + 1] += cur_time; // sum
         }
 #ifdef DEBUG_DATA
-        struct ir_graph* ir_graph = node->ir_node->graph;
+        struct graph* ir_graph = node->ir_node->graph;
 
         for (uint8_t j = 0; j < node->ir_node->input_num; j++)
         {
@@ -212,7 +212,7 @@ static int run(struct device* dev, struct subgraph* subgraph)
 #ifdef DUMP_NODE_OUTPUT
         /* dump the node output */
         struct node* ir_node = node->ir_node;
-        struct ir_graph* ir_graph = ir_node->graph;
+        struct graph* ir_graph = ir_node->graph;
 
         for (int i = 0; i < ir_node->input_num; i++)
         {

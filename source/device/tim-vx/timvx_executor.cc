@@ -23,36 +23,18 @@
  */
 
 #include "timvx_executor.hpp"
+#include "timvx_define.h"
 
+#ifdef TIMVX_MODEL_CACHE
+#include "defines.h"
+#include "cstdlib"
+#endif
 
-void dump_sub_graph(struct subgraph* sub_graph)
-{
-    TLOG_INFO("Sub graph[%d]: {%8s } has %d nodes, %d input tensors, %d output tensors.\n", sub_graph->index, sub_graph->device->name, sub_graph->node_num, sub_graph->input_num, sub_graph->output_num);
-    TLOG_INFO("\tSub nodes: [ ");
+#ifdef TIMVX_MODEL_CACHE
+#include "tim/vx/ops/nbg.h"
+#include <fstream>
+#endif
 
-    for (int j = 0; j < sub_graph->node_num - 1; j++)
-    {
-        int node_id = sub_graph->node_list[j];
-        TLOG_INFO("%d, ", node_id);
-    }
-    TLOG_INFO("%d ].\n", sub_graph->node_list[sub_graph->node_num - 1]);
-
-    TLOG_INFO("\tSub input tensors: [ ");
-    for (int j = 0; j < sub_graph->input_num - 1; j++)
-    {
-        int tensor_id = sub_graph->input_tensor_list[j];
-        TLOG_INFO("%d, ", tensor_id);
-    }
-    TLOG_INFO("%d ].\n", sub_graph->input_tensor_list[sub_graph->input_num - 1]);
-
-    TLOG_INFO("\tSub output tensors: [ ");
-    for (int j = 0; j < sub_graph->output_num - 1; j++)
-    {
-        int tensor_id = sub_graph->output_tensor_list[j];
-        TLOG_INFO("%d, ", tensor_id);
-    }
-    TLOG_INFO("%d ].\n", sub_graph->output_tensor_list[sub_graph->output_num - 1]);
-}
 
 VXEngine::VXEngine()
 {
@@ -61,18 +43,26 @@ VXEngine::VXEngine()
 };
 
 
-void VXEngine::VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_type)
+int VXEngine::VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_type)
 {
     auto iter = this->vx_tensor_map.find(ir_tensor_idx);
 
     if (this->vx_tensor_map.end() == iter)
     {
+        if (spec_type == SPEC_TYPE_INTERP || spec_type == SPEC_TYPE_SLICE)
+        {
+            this->vx_tensor_map[ir_tensor_idx] = nullptr;
+            return 0;
+        }
         struct tensor* ir_tensor = get_ir_graph_tensor(ir_graph, ir_tensor_idx);
         auto Dims = (unsigned int*)ir_tensor->dims;
 
         tim::vx::DataType datatype;
         switch(ir_tensor->data_type)
         {
+            case (0):
+                datatype = tim::vx::DataType::FLOAT32;
+                break;
             case (1):
                 datatype = tim::vx::DataType::FLOAT16;
                 break;
@@ -83,7 +73,7 @@ void VXEngine::VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_t
                 datatype = tim::vx::DataType::INT32;
                 break;
             default:
-                TLOG_ERR("Tensor: Tensor_name(%s) tensor_index(%d) tensor_data_type(%d) .\n",ir_tensor->name, ir_tensor->index, ir_tensor->data_type);
+                TLOG_ERR("Tensor date type: Tensor_name(%s) tensor_index(%d) tensor_data_type(%d) .\n",ir_tensor->name, ir_tensor->index, ir_tensor->data_type);
                 break;
         }
 
@@ -118,16 +108,26 @@ void VXEngine::VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_t
         /* create the vx tesnor */
         std::shared_ptr<tim::vx::Tensor> vx_tensor;
 
+//        TLOG_INFO("tensor name %s\n",ir_tensor->name);
+
         if (spec_type == SPEC_TYPE_OUTPUT)
         {
             tim::vx::TensorSpec vx_spec(datatype, vx_shape,
                                         tim::vx::TensorAttribute::OUTPUT, vx_quant);
             vx_tensor = this->graph->CreateTensor(vx_spec);
         }
+        else if (ir_tensor->data_type == TENGINE_DT_FP32)
+        {
+            tim::vx::Quantization none_quant(tim::vx::QuantType::NONE, 1, 0);
+            tim::vx::TensorSpec vx_spec(datatype, vx_shape,
+                                        tim::vx::TensorAttribute::CONSTANT, none_quant);
+            vx_tensor = this->graph->CreateTensor(vx_spec, ir_tensor->data);
+        }
         else if (spec_type == SPEC_TYPE_DWCONV)
         {
+            auto tmpvx = vx_shape[ir_tensor->dim_num - 2];
             vx_shape[ir_tensor->dim_num - 2] = vx_shape[ir_tensor->dim_num - 1];
-            vx_shape[ir_tensor->dim_num - 1] = 1;
+            vx_shape[ir_tensor->dim_num - 1] = tmpvx;
             tim::vx::TensorSpec vx_spec(datatype, vx_shape,
                                         tim::vx::TensorAttribute::CONSTANT, vx_quant);
             vx_tensor = this->graph->CreateTensor(vx_spec, ir_tensor->data);
@@ -146,23 +146,35 @@ void VXEngine::VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_t
         }
         else if (ir_tensor->tensor_type == TENSOR_TYPE_VAR)
         {
-            tim::vx::TensorSpec vx_spec(datatype, vx_shape,
-                                        tim::vx::TensorAttribute::TRANSIENT, vx_quant);
-            vx_tensor = this->graph->CreateTensor(vx_spec);
+            const char* env = getenv(TENGINE_DUMP_LAYER);
+            if (env && env[0] == '1')
+            {
+                tim::vx::TensorSpec vx_spec(datatype, vx_shape,
+                                            tim::vx::TensorAttribute::OUTPUT, vx_quant);
+                vx_tensor = this->graph->CreateTensor(vx_spec);
+            }
+            else
+            {
+                tim::vx::TensorSpec vx_spec(datatype, vx_shape,
+                                            tim::vx::TensorAttribute::TRANSIENT, vx_quant);
+                vx_tensor = this->graph->CreateTensor(vx_spec);
+            }
         }
         else if (ir_tensor->tensor_type == TENSOR_TYPE_CONST)
         {
+//            TLOG_INFO(" vx_shape %d %d %d %d\n", vx_shape[0], vx_shape[1], vx_shape[2], vx_shape[3]);
             tim::vx::TensorSpec vx_spec(datatype, vx_shape,
                                         tim::vx::TensorAttribute::CONSTANT, vx_quant);
             vx_tensor = this->graph->CreateTensor(vx_spec, ir_tensor->data);
         }
         this->vx_tensor_map[ir_tensor_idx] = vx_tensor;
     }
+
+    return 0;
 }
 
 int VXEngine::Build(struct subgraph* subgraph)
 {
-//    dump_sub_graph(subgraph);
     struct graph* ir_graph = subgraph->graph;
 
     for (int i = 0; i < subgraph->node_num; i++)
@@ -173,6 +185,9 @@ int VXEngine::Build(struct subgraph* subgraph)
 
         switch (op_type)
         {
+            case OP_BATCHNORM:
+                this->AddBatchNormNode(ir_node);
+                break;
             case OP_CLIP:
                 this->AddClipNode(ir_node);
                 break;
@@ -184,6 +199,9 @@ int VXEngine::Build(struct subgraph* subgraph)
                 continue;
             case OP_CONV:
                 this->AddConvolutionNode(ir_node);
+                break;
+            case OP_DECONV:
+                this->AddDeconvNode(ir_node);
                 break;
             case OP_DEPTHTOSPACE:
                 this->AddDepthToSpaceNode(ir_node);
@@ -211,6 +229,9 @@ int VXEngine::Build(struct subgraph* subgraph)
                 break;
             case OP_INTERP:
                 this->AddInterpNode(ir_node);
+                break;
+            case OP_MISH:
+                this->AddMishNode(ir_node);
                 break;
             case OP_PERMUTE:
                 this->AddPermuteNode(ir_node);
@@ -248,6 +269,9 @@ int VXEngine::Build(struct subgraph* subgraph)
             case OP_SPACETODEPTH:
                 this->AddSpaceToDepthNode(ir_node);
                 break;
+            case OP_SPLIT:
+                this->AddSplitNode(ir_node);
+                break;
             case OP_TANH:
                 this->AddTanhNode(ir_node);
                 break;
@@ -271,54 +295,208 @@ int VXEngine::VXEnginePreRun(struct subgraph* subgraph)
 {
     struct graph* ir_graph = subgraph->graph;
 
-    /* Add TIM-VX Tensor */
-    for (uint8_t i = 0; i < subgraph->output_num; i++)
-    {
-        int ir_tensor_idx = subgraph->output_tensor_list[i];
-        this->VXTensorMap(ir_graph, ir_tensor_idx, SPEC_TYPE_OUTPUT);
-    }
+#ifdef TIMVX_MODEL_CACHE
+    auto graph_node_count = subgraph->graph->node_num;
+    auto graph_tensor_count = subgraph->graph->tensor_num;
+
+    auto subgraph_node_count = subgraph->node_num;
+    auto subgraph_tensor_count = 0;
+
+    auto subgraph_input_count = subgraph->input_num;
+    auto subgraph_output_count = subgraph->output_num;
+
     for (int i = 0; i < subgraph->node_num; i++)
     {
         uint16_t node_id = subgraph->node_list[i];
         struct node* ir_node = get_ir_graph_node(ir_graph, node_id);
-        if (ir_node->op.type == OP_CONV)
-        {
-            auto conv_param = (struct conv_param*)ir_node->op.param_mem;
-            if (conv_param->group == conv_param->output_channel)
-            {
-                this->VXTensorMap(ir_graph, ir_node->input_tensors[1], SPEC_TYPE_DWCONV);
-            }       
-        }
-        else if (ir_node->op.type == OP_PRELU)
-        {
-            this->VXTensorMap(ir_graph, ir_node->input_tensors[1], SPEC_TYPE_PRELU);
-        }
-    }
-    for (int i = 0; i < subgraph->node_num; i++)
-    {
-        uint16_t node_id = subgraph->node_list[i];
-        struct node* ir_node = get_ir_graph_node(ir_graph, node_id);
-        for (int j = 0; j < ir_node->input_num; j++)
-        {
-            int ir_tensor_idx = ir_node->input_tensors[j];
-            this->VXTensorMap(ir_graph, ir_tensor_idx, 0);
-        }
-        for (int j = 0; j < ir_node->output_num; j++)
-        {
-            int ir_tensor_idx = ir_node->output_tensors[j];
-            this->VXTensorMap(ir_graph, ir_tensor_idx, 0);
-        }
+        subgraph_tensor_count += ir_node->input_num;
+        subgraph_tensor_count += ir_node->output_num;
     }
 
-    /* Add TIM-VX Node */
-    this->Build(subgraph);
+    std::string graph_name_field = std::to_string(graph_node_count) + "_" + std::to_string(graph_tensor_count);
+    std::string subgraph_name_field = std::to_string(subgraph_node_count) + "_"
+                                    + std::to_string(subgraph_input_count) + "_"
+                                    + std::to_string(subgraph_output_count);
 
-    // fprintf(stderr,"subgraph->node_num %d\n",subgraph->node_num);
-    if (subgraph->node_num > 0)
+    std::string cache_file_name = "tm_" + graph_name_field + "_" + subgraph_name_field + ".tmcache";
+    std::string full_cache_file_path;
+
+    const char *env_cache_path = getenv(TE_MODEL_CACHE_PATH);
+    if (nullptr != env_cache_path)
     {
-        if (!this->graph->Compile()) {
+        full_cache_file_path = std::string(env_cache_path) + "/" + full_cache_file_path;
+    }
+    else
+    {
+        full_cache_file_path = "./" + cache_file_name;
+    }
+
+    TLOG_INFO("Tengine: Model cache file for compiled is %s.", full_cache_file_path.c_str());
+
+    bool cache_saved = false;
+    std::ifstream read_stream;
+    read_stream.open(full_cache_file_path, std::ios::in | std::ios::binary);
+    if (read_stream.is_open())
+    {
+        cache_saved = true;
+    }
+
+    if (cache_saved)
+    {
+        /* Add TIM-VX Tensor */
+        for (uint8_t i = 0; i < subgraph->output_num; i++)
+        {
+            int ir_tensor_idx = subgraph->output_tensor_list[i];
+            this->VXTensorMap(ir_graph, ir_tensor_idx, SPEC_TYPE_OUTPUT);
+        }
+
+        /* Add TIM-VX Tensor */
+        for (uint8_t i = 0; i < subgraph->input_num; i++)
+        {
+            int ir_tensor_idx = subgraph->input_tensor_list[i];
+            this->VXTensorMap(ir_graph, ir_tensor_idx, 0);
+        }
+
+        read_stream.seekg(0, std::ifstream::beg);
+        const auto start_length = read_stream.tellg();
+        read_stream.seekg(0, std::ifstream::end);
+        const auto end_length = read_stream.tellg();
+
+        read_stream.seekg(0, std::ifstream::beg);
+
+        auto file_size = end_length - start_length;
+
+        nbg_buffer.reserve(file_size);
+        nbg_buffer.insert(nbg_buffer.begin(), std::istreambuf_iterator<char>(read_stream), std::istreambuf_iterator<char>());
+        read_stream.close();
+
+        auto nbg_node = this->graph->CreateOperation<tim::vx::ops::NBG>(nbg_buffer.data(), subgraph_input_count, subgraph_output_count);
+
+        std::vector<std::shared_ptr<tim::vx::Tensor>> inputs, outputs;
+        for (uint8_t i = 0; i < subgraph->input_num; i++)
+        {
+            int ir_tensor_idx = subgraph->input_tensor_list[i];
+            auto iter = this->vx_tensor_map[ir_tensor_idx];
+            inputs.push_back(iter);
+        }
+        for (uint8_t i = 0; i < subgraph->output_num; i++)
+        {
+            int ir_tensor_idx = subgraph->output_tensor_list[i];
+            auto iter = this->vx_tensor_map[ir_tensor_idx];
+            outputs.push_back(iter);
+        }
+        (*nbg_node).BindInputs(inputs);
+        (*nbg_node).BindOutputs(outputs);
+
+        auto ret = this->graph->Compile();
+        if (!ret)
+        {
+            TLOG_ERR("Tengine: Model compile from bin failed.");
             return -1;
         }
+    }
+    else
+#endif
+    {
+        /* Add TIM-VX Tensor */
+        for (uint8_t i = 0; i < subgraph->output_num; i++)
+        {
+            int ir_tensor_idx = subgraph->output_tensor_list[i];
+            this->VXTensorMap(ir_graph, ir_tensor_idx, SPEC_TYPE_OUTPUT);
+        }
+        for (int i = 0; i < subgraph->node_num; i++)
+        {
+            uint16_t node_id = subgraph->node_list[i];
+            struct node* ir_node = get_ir_graph_node(ir_graph, node_id);
+            if (ir_node->op.type == OP_CONV)
+            {
+                auto conv_param = (struct conv_param*)ir_node->op.param_mem;
+                if ((conv_param->group == conv_param->output_channel) && (conv_param->output_channel != 1))
+                {
+                    this->VXTensorMap(ir_graph, ir_node->input_tensors[1], SPEC_TYPE_DWCONV);
+                }
+            }
+            else if (ir_node->op.type == OP_PRELU)
+            {
+                this->VXTensorMap(ir_graph, ir_node->input_tensors[1], SPEC_TYPE_PRELU);
+            }
+            else if (ir_node->op.type == OP_INTERP)
+            {
+                if (ir_node->input_num == 3)
+                {
+                this->VXTensorMap(ir_graph, ir_node->input_tensors[1], SPEC_TYPE_INTERP);
+                this->VXTensorMap(ir_graph, ir_node->input_tensors[2], SPEC_TYPE_INTERP);
+                }
+                else if (ir_node->input_num == 2)
+                {
+                    this->VXTensorMap(ir_graph, ir_node->input_tensors[1], SPEC_TYPE_INTERP);
+                }
+            }
+            else if (ir_node->op.type == OP_SLICE)
+            {
+                if (ir_node->input_num > 1)
+                {
+                    for (int FI = 1; FI < ir_node->input_num; FI++)
+                    {
+                        this->VXTensorMap(ir_graph, ir_node->input_tensors[FI], SPEC_TYPE_SLICE);
+                    }
+                }
+            }
+        }
+        for (int i = 0; i < subgraph->node_num; i++)
+        {
+            uint16_t node_id = subgraph->node_list[i];
+            struct node* ir_node = get_ir_graph_node(ir_graph, node_id);
+            for (int j = 0; j < ir_node->input_num; j++)
+            {
+                int ir_tensor_idx = ir_node->input_tensors[j];
+                this->VXTensorMap(ir_graph, ir_tensor_idx, 0);
+            }
+            for (int j = 0; j < ir_node->output_num; j++)
+            {
+                int ir_tensor_idx = ir_node->output_tensors[j];
+                this->VXTensorMap(ir_graph, ir_tensor_idx, 0);
+            }
+        }
+
+        /* Add TIM-VX Node */
+        this->Build(subgraph);
+
+#ifdef TIMVX_MODEL_CACHE
+        size_t bin_size = -1;
+        auto ret = graph->CompileToBinary(nullptr, &bin_size);
+        if (-1 == bin_size || !ret)
+        {
+            TLOG_ERR("Tengine: Model compile to bin failed.");
+            return -1;
+        }
+
+        this->nbg_buffer.resize(bin_size);
+        ret = graph->CompileToBinary(nbg_buffer.data(), &bin_size);
+        if (!ret)
+        {
+            TLOG_ERR("Tengine: Model compile to bin failed.");
+            return -1;
+        }
+
+        std::ofstream nbg_stream;
+        nbg_stream.open(full_cache_file_path, std::ios::out | std::ios::binary);
+        if (nbg_stream.is_open())
+        {
+            TLOG_INFO("Tengine: Save compiled model to %s.", full_cache_file_path.c_str());
+        }
+        nbg_stream.write(this->nbg_buffer.data(), this->nbg_buffer.size());
+        nbg_stream.close();
+#else
+        // fprintf(stderr,"subgraph->node_num %d\n",subgraph->node_num);
+        if (subgraph->node_num > 0)
+        {
+            if (!this->graph->Compile()) {
+                return -1;
+            }
+        }
+#endif
+
     }
 
     return 0;
@@ -362,10 +540,48 @@ int VXEngine::VXEngineRun(struct subgraph* subgraph)
 
             if (!this->vx_tensor_map[ir_tensor_idx]->CopyDataFromTensor(ir_tensor->data)) 
             {
-                TLOG_INFO("Tengine: Copy output data from VX tensor to CPU failed.\n");
+                TLOG_INFO("TIM-VX: Copy output data from VX tensor to CPU failed.\n");
                 return -1;
             }
         }
+
+
+        const char* env = getenv(TENGINE_DUMP_LAYER);
+        if (env && env[0] == '1')
+        {
+            for (uint8_t i = 0; i < ir_graph->tensor_num; i++)
+            {
+                if (ir_graph->tensor_list[i]->tensor_type == TENSOR_TYPE_VAR)
+                {
+                    if (ir_graph->tensor_list[i]->data == nullptr)
+                    {
+                        TLOG_INFO("TIM-VX: Data pointer is nullptr.\n");
+                        uint8_t* u8data = (uint8_t*)malloc(ir_graph->tensor_list[i]->elem_size * ir_graph->tensor_list[i]->elem_num);
+                        ir_graph->tensor_list[i]->data = u8data;
+                    }
+                    if (!this->vx_tensor_map[i]->CopyDataFromTensor(ir_graph->tensor_list[i]->data))
+                    {
+                        TLOG_INFO("TIM-VX: Copy output data failed.\n");
+                        return -1;
+                    }
+                }
+            }
+
+            for (uint8_t i = 0; i < ir_graph->tensor_num; i++)
+            {
+                TLOG_INFO("TIM-VX: Tensor type %d\n",ir_graph->tensor_list[i]->tensor_type);
+                if (ir_graph->tensor_list[i]->tensor_type == TENSOR_TYPE_VAR)
+                {
+                    char dir_str[32] = { 0 };
+                    sprintf(dir_str, "out[%d]", i);
+
+                    if (NULL != ir_graph->tensor_list[i]->data)
+                    {
+                        extract_feature_from_tensor_timvx(dir_str, ir_graph->tensor_list[i]->name, ir_graph->tensor_list[i]);
+                    }
+                }
+            }
+        }// End TENGINE_DUMP_LAYER
     }
 
     return 0;

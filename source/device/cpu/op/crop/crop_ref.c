@@ -275,11 +275,9 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 {
     struct node* ir_node = exec_node->ir_node;
     struct graph* ir_graph = ir_node->graph;
-    struct tensor* input_tensor;
-    struct tensor* output_tensor;
+    struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
     struct crop_param* crop_param = ( struct crop_param* )ir_node->op.param_mem;
 
     if (input_tensor->data_type == TENGINE_DT_FP32)

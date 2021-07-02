@@ -80,13 +80,10 @@ static void ref_pad_fp32(float* input, float* output, int in_h, int in_w, int ou
         }
         else
         {
-            //            memcpy(outptr + left, ptr, in_w * sizeof(float));
-            //            x += in_w;
             for (x = 0; x < in_w; x++)
             {
                 outptr[left + x] = ptr[x];
             }
-            x++;
         }
         for (; x < out_w; x++)
         {
@@ -140,8 +137,6 @@ static void ref_pad_uint8(uint8_t* input, uint8_t* output, int in_h, int in_w, i
         }
         else
         {
-            //            memcpy(outptr + left, ptr, in_w * sizeof(float));
-            //            x += in_w;
             for (; x < in_w; x++)
             {
                 outptr[left + x] = ptr[x];

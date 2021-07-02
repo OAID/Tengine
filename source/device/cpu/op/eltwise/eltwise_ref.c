@@ -485,6 +485,10 @@ static int ref_eltwise_uint8(struct tensor* output_tensor, struct tensor* input_
     for (int i = 0; i < output_tensor->elem_num; i++)
     {
         int output_data = round(out_ptr[i] / out_scale) + out_zero;
+        if (output_data > 255)
+            output_data = 255;
+        else if (output_data < 0)
+            output_data = 0;
         output_uint8[i] = output_data; // adjust for QA Models test case(mobilenet_v2_1.0_quant_tfile.tmfile)
     }
 
@@ -838,18 +842,18 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         }
 
         int ret = -1;
-        if (input_tensor1->data_type == TENGINE_DT_FP32)
+        if (output_tensor->data_type == TENGINE_DT_FP32)
             ret = ref_eltwise_fp32(output, input1, input0, eltwise_param->type, input0_count4, input_chan_0, input_hw_0,
                                    input1_count4, exec_graph->num_thread, input_hw_1, eltwise_param);
-        else if (input_tensor1->data_type == TENGINE_DT_UINT8)
+        else if (output_tensor->data_type == TENGINE_DT_UINT8)
             ret = ref_eltwise_uint8(output_tensor, input_tensor1, input_tensor0, eltwise_param->type, input0_count4,
                                     input_chan_0, input_hw_0, input1_count4, exec_graph->num_thread, input_hw_1, eltwise_param);
-        else if (input_tensor1->data_type == TENGINE_DT_INT8)
+        else if (output_tensor->data_type == TENGINE_DT_INT8)
             ret = ref_eltwise_int8(output_tensor, input_tensor1, input_tensor0, eltwise_param->type, input0_count4,
                                     input_chan_0, input_hw_0, input1_count4, exec_graph->num_thread, input_hw_1, eltwise_param);
         else
         {
-            TLOG_ERR("Input data type %d not to be supported.\n", input_tensor1->data_type);
+            TLOG_ERR("Input data type %d not to be supported.\n", output_tensor->data_type);
             return -1;
         }
 

@@ -446,7 +446,7 @@ int main(int argc, char* argv[])
                 det.prob, det.classes);
     }
 
-    save_image(img, "tengine_example_out");
+    save_image(img, "yolov5_out");
 
     /* free resource */
     /* release tengine */
@@ -457,8 +457,6 @@ int main(int argc, char* argv[])
     }
 
     free_image(img);
-
-    release_graph_tensor(input_tensor);
     postrun_graph(graph);
     destroy_graph(graph);
     release_tengine();

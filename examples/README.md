@@ -5,23 +5,27 @@
 Tengine Lite 的 examples 将提供简单的、好玩的 demo。
 - [分类任务](#分类任务---tm_classificationc)
 - [人脸关键点检测任务](#人脸关键点检测任务---tm_landmarkcpp)
-- [ssd 目标检测任务](#ssd-目标检测任务---tm_mobilenet_ssdcpp)
-- [retinaface 人脸检测任务](#retinaface-人脸检测任务---tm_refinafacecpp)
+- [ssd 目标检测任务](#ssd-目标检测任务---tm_mobilenet_ssdc)
+- [retinaface 人脸检测任务](#retinaface-人脸检测任务---tm_retinafacecpp)
 - [yolact 实例分割任务](#yolact-实例分割任务---tm_yolactcpp)
+- [unet 图像分割任务](#unet-图像分割任务---tm_unetcpp)
 - [yolov3 目标检测任务](#yolov3-目标检测任务---tm_yolov3cpp)
-- [yolov4-tiny目标检测任务](#yolov4-tiny目标检测任务---tm_yolov4_tinycpp)
-- [openpose人体姿态识别任务](#人体姿态识别任务---tm_openposecpp)
-- [crnn汉字识别任务](#汉字识别任务---tm_crnncpp)
+- [yolov4-tiny 目标检测任务](#yolov4-tiny目标检测任务---tm_yolov4_tinycpp)
+- [yolov5s 目标检测任务](#yolov5s目标检测任务---tm_yolov5scpp)
+- [nanodet 目标检测任务](#nanodet目标检测任务---tm_nanodet_mcpp)
+- [openpose 人体姿态识别任务](#openpose人体姿态识别任务---tm_openposecpp)
+- [hrnet 人体姿态识别任务](#hrnet人体姿态识别任务---tm_hrnetcpp)
+- [crnn 汉字识别任务](#汉字识别任务---tm_crnncpp)
   
 ----------
 ## 分类任务 - [tm_classification.c](tm_classification.c)
 
 Tengine Lite 兼容 Tengine 原有的 C API 供用户使用，这里我们使用 C API 展示如何运行 tm_classification 例程运行 MobileNet v1 分类网络模型，实现指定图片分类的功能。让你快速上手 Tengine Lite C API。这里，我们使用在这个撸猫时代行业从业者大爱的 tiger cat 作为测试图片。
 
-![lu mao](https://github.com/OAID/Tengine/blob/master/tests/images/cat.jpg)
+![](https://z3.ax1x.com/2021/06/30/RBIQIO.jpg)
 
 ### 模型仓库
-
+模型仓库包含了运行examples所需模型、图片和文档。
 - [百度网盘](https://pan.baidu.com/s/1JsitkY6FVV87Kao6h5yAmg) （提取码：7ke5）
 
 - [Google Drive](https://drive.google.com/drive/folders/1hunePCa0x_R-Txv7kWqgx02uTCH3QWdS?usp=sharing)
@@ -38,30 +42,43 @@ build.sh 编译脚本默认配置已实现自动编译 examples 中的 demo 程�
 bug1989@DESKTOP-SGN0H2A:/mnt/d/ubuntu/gitlab/build-linux$ tree install
 install
 ├── bin
-│   ├── cpp_tm_classification
-│   ├── cpp_tm_mobilenet_ssd
-│   ├── tm_benchmark
-│   ├── tm_classification
-│   ├── tm_classification_fp16
-│   ├── tm_classification_uint8
-│   ├── tm_classification_vulkan
-│   ├── tm_crnn
-│   ├── tm_landmark
-│   ├── tm_landmark_uint8
-│   ├── tm_mobilefacenet
-│   ├── tm_mobilenet_ssd
-│   ├── tm_mobilenet_ssd_acl
-│   ├── tm_mobilenet_ssd_uint8
-│   ├── tm_openpose
-│   ├── tm_retinaface
-│   ├── tm_yolact
-│   ├── tm_yolov3_tiny
-│   ├── tm_yolov3_uint8
-│   ├── tm_yolov4
-│   └── tm_yolov4_tiny
+│   ├── tm_alphapose
+│   ├── tm_classification
+│   ├── tm_classification_int8
+│   ├── tm_classification_uint8
+│   ├── tm_crnn
+│   ├── tm_efficientdet
+│   ├── tm_efficientdet_uint8
+│   ├── tm_hrnet
+│   ├── tm_landmark
+│   ├── tm_landmark_uint8
+│   ├── tm_mobilefacenet
+│   ├── tm_mobilefacenet_uint8
+│   ├── tm_mobilenet_ssd
+│   ├── tm_mobilenet_ssd_uint8
+│   ├── tm_nanodet_m
+│   ├── tm_openpose
+│   ├── tm_retinaface
+│   ├── tm_ultraface
+│   ├── tm_unet
+│   ├── tm_yolact
+│   ├── tm_yolact_uint8
+│   ├── tm_yolofastest
+│   ├── tm_yolov3
+│   ├── tm_yolov3_tiny
+│   ├── tm_yolov3_tiny_uint8
+│   ├── tm_yolov3_uint8
+│   ├── tm_yolov4
+│   ├── tm_yolov4_tiny
+│   ├── tm_yolov4_tiny_uint8
+│   ├── tm_yolov4_uint8
+│   ├── tm_yolov5
+│   └── tm_yolov5s
 ├── include
-│   └── tengine_c_api.h
+│   └── tengine
+│       └── c_api.h
 └── lib
+    ├── libtengine-lite-static.a
     └── libtengine-lite.so
 ```
 
@@ -77,19 +94,18 @@ export LD_LIBRARY_PATH=./build/install/lib
 结果如下：
 
 ```bash
-start to run register cpu allocator
-tengine-lite library version: 1.0-dev
+tengine-lite library version: 1.4-dev
 
-model file : ./temp/models/mobilenet.tmfile
-image file : ./temp/images/cat.jpg
+model file : models/mobilenet.tmfile
+image file : images/cat.jpg
 img_h, img_w, scale[3], mean[3] : 224 224 , 0.017 0.017 0.017, 104.0 116.7 122.7
-Repeat 1 times, thread 1, avg time 656.76 ms, max_time 656.76 ms, min_time 656.76 ms
+Repeat 1 times, thread 1, avg time 33.74 ms, max_time 33.74 ms, min_time 33.74 ms
 --------------------------------------
-8.574148, 282
-7.880116, 277
-7.812579, 278
-7.286453, 263
-6.357488, 281
+8.574144, 282
+7.880117, 277
+7.812573, 278
+7.286458, 263
+6.357486, 281
 --------------------------------------
 ```
 
@@ -97,7 +113,7 @@ Repeat 1 times, thread 1, avg time 656.76 ms, max_time 656.76 ms, min_time 656.7
 
 使用图片：
 
-![](https://github.com/OAID/Tengine/blob/master/tests/images/mobileface02.jpg)
+![RB5dC4.jpg](https://z3.ax1x.com/2021/06/30/RB5dC4.jpg)
 
 ```bash
 export LD_LIBRARY_PATH=./build/install/lib
@@ -107,18 +123,17 @@ export LD_LIBRARY_PATH=./build/install/lib
 结果如下：
 
 ```bash
-start to run register cpu allocator
-tengine-lite library version: 1.0-dev
-Repeat [1] min 17.461 ms, max 17.461 ms, avg 17.461 ms
+tengine-lite library version: 1.4-dev
+Repeat [1] min 8.784 ms, max 8.784 ms, avg 8.784 ms
 ```
 
-![](https://s1.ax1x.com/2020/08/28/doZQxO.jpg)
+![](https://z3.ax1x.com/2021/07/01/RrPSuq.jpg)
 
-## ssd 目标检测任务 - [tm_mobilenet_ssd.cpp](tm_mobilenet_ssd.cpp)
+## ssd 目标检测任务 - [tm_mobilenet_ssd.c](tm_mobilenet_ssd.c)
 
 使用图片：
 
-![](https://github.com/OAID/Tengine/blob/master/tests/images/ssd_dog.jpg)
+![](https://z3.ax1x.com/2021/06/30/RBVdq1.jpg)
 
 ```bash
 $ export LD_LIBRARY_PATH=./build/install/lib
@@ -128,29 +143,28 @@ $ ./build/install/bin/tm_mobilenet_ssd -m models/mobilenet_ssd.tmfile -i images/
 结果如下：
 
 ```bash
-start to run register cpu allocator
-tengine-lite library version: 1.0-dev
-Repeat 1 times, thread 1, avg time 206.30 ms, max_time 206.30 ms, min_time 206.30 ms
+tengine-lite library version: 1.4-dev
+Repeat 1 times, thread 1, avg time 78.89 ms, max_time 78.89 ms, min_time 78.89 ms
 --------------------------------------
-detect result num: 3
-dog	:99.8%
+detect result num: 3 
+dog     :99.8%
 BOX:( 138 , 209 ),( 324 , 541 )
-car	:99.7%
+car     :99.7%
 BOX:( 467 , 72 ),( 687 , 171 )
-bicycle	:99.5%
+bicycle :99.5%
 BOX:( 107 , 141 ),( 574 , 415 )
 ======================================
 [DETECTED IMAGE SAVED]:
 ======================================
 ```
 
-![](https://s1.ax1x.com/2020/08/28/doeJ6U.jpg)
+![](https://z3.ax1x.com/2021/07/01/RrPnDx.jpg)
 
-## retinaface 人脸检测任务 - [tm_refinaface.cpp](tm_refinaface.cpp)
+## retinaface 人脸检测任务 - [tm_retinaface.cpp](tm_retinaface.cpp)
 
 使用图片：
 
-![](https://github.com/OAID/Tengine/blob/master/tests/images/mtcnn_face4.jpg)
+![](https://z3.ax1x.com/2021/06/30/RBC311.jpg)
 
 ```bash
 $ export LD_LIBRARY_PATH=./build/install/lib
@@ -160,25 +174,24 @@ $ ./build/install/bin/tm_retinaface -m models/retinaface.tmfile -i images/mtcnn_
 结果如下：
 
 ```bash
-start to run register cpu allocator
-tengine-lite library version: 1.0-dev
+tengine-lite library version: 1.4-dev
 img_h, img_w : 316, 474
-Repeat 1 times, thread 1, avg time 75.72 ms, max_time 75.72 ms, min_time 75.72 ms
+Repeat 1 times, thread 1, avg time 28.78 ms, max_time 28.78 ms, min_time 28.78 ms
 --------------------------------------
 detected face num: 4
-BOX 0.99:( 38.9179 , 86.3346 ),( 45.7028 , 63.2934 )
-BOX 0.99:( 168.12 , 86.14 ),( 37.5249 , 47.7839 )
-BOX 0.98:( 383.673 , 56.4136 ),( 77.176 , 83.8093 )
-BOX 0.98:( 289.365 , 103.773 ),( 38.0025 , 47.6989 )
+BOX 1.00:( 38.4053 , 86.142 ),( 46.3009 , 64.0174 )
+BOX 0.99:( 384.076 , 56.9844 ),( 76.968 , 83.9609 )
+BOX 0.99:( 169.196 , 87.1324 ),( 38.4133 , 46.8504 )
+BOX 0.98:( 290.004 , 104.453 ),( 37.6346 , 46.7777 )
 ```
 
-![](https://s1.ax1x.com/2020/08/28/doeBfx.jpg)
+![](https://z3.ax1x.com/2021/07/01/Rrs6LF.jpg)
 
 ## yolact 实例分割任务 - [tm_yolact.cpp](tm_yolact.cpp)
 
 使用图片：
 
-![](https://github.com/OAID/Tengine/blob/master/tests/images/ssd_car.jpg)
+![](https://z3.ax1x.com/2021/06/30/RBFpTO.jpg)
 
 ```bash
 $ export LD_LIBRARY_PATH=./build/install/lib
@@ -188,71 +201,143 @@ $ ./build/install/bin/tm_yolact -m models/yolact.tmfile -i images/ssd_car.jpg -r
 结果如下：
 
 ```bash
-start to run register cpu allocator
-tengine-lite library version: 1.0-dev
-Repeat 1 times, thread 1, avg time 15833.47 ms, max_time 15833.47 ms, min_time 15833.47 ms
+tengine-lite library version: 1.4-dev
+Repeat 1 times, thread 1, avg time 2064.44 ms, max_time 2064.44 ms, min_time 2064.44 ms
 --------------------------------------
 6 = 0.99966 at 130.82 57.77 340.78 x 237.36
 3 = 0.99675 at 323.39 194.97 175.57 x 132.96
 1 = 0.33431 at 191.24 195.78 103.06 x 179.22
 ```
 
-![](https://s1.ax1x.com/2020/08/28/doe4ht.png)
+![](https://z3.ax1x.com/2021/07/01/RrEbEq.jpg)
+
+## unet 图像分割任务 - [tm_unet.cpp](tm_unet.cpp)
+
+使用图片：
+
+![](https://z3.ax1x.com/2021/07/01/Rse0SK.jpg)
+
+```bash
+$ export LD_LIBRARY_PATH=./build/install/lib
+$ ./build/install/bin/tm_unet -m models/unet_sim3.tmfile -i images/carvana01.jpg -r 1 -t 1
+```
+
+结果如下：
+
+```bash
+Image height not specified, use default 512
+Image width not specified, use default  512
+Scale value not specified, use default  0.00392, 0.00392, 0.00392
+tengine-lite library version: 1.4-dev
+
+model file : models/unet_sim3.tmfile
+image file : images/carvana01.jpg
+img_h, img_w, scale[3], mean[3] : 512 512 , 0.004 0.004 0.004, 0.0 0.0 0.0
+Repeat 1 times, thread 1, avg time 4861.93 ms, max_time 4861.93 ms, min_time 4861.93 ms
+--------------------------------------
+segmentatation result is save as unet_out.png
+```
+
+![](https://z3.ax1x.com/2021/07/01/Rs8YjI.png)
 
 ## yolov3 目标检测任务 - [tm_yolov3.cpp](tm_yolov3.cpp)
 
 使用图片：
 
-![](https://github.com/OAID/Tengine/blob/master/tests/images/ssd_dog.jpg)
+![](https://z3.ax1x.com/2021/06/30/RBVdq1.jpg)
 
 ```bash
 $ export LD_LIBRARY_PATH=./build/install/lib
-$ ./build/install/bin/tm_yolov3_tiny -m models/yolov3_tiny.tmfile -i images/ssd_dog.jpg -r 1 -t 1
+$ ./build/install/bin/tm_yolov3 -m models/yolov3.tmfile -i images/ssd_dog.jpg -r 1 -t 1
 ```
 
 结果如下：
 
 ```bash
-start to run register cpu allocator
-tengine-lite library version: 1.0-dev
-Repeat 1 times, thread 1, avg time 262.52 ms, max_time 262.52 ms, min_time 262.52 ms
+tengine-lite library version: 1.4-dev
+Repeat 1 times, thread 1, avg time 1131.67 ms, max_time 1131.67 ms, min_time 1131.67 ms
 --------------------------------------
-num_detections,4
-16: 57%
-left = 129,right = 369,top = 186,bot = 516
-2: 65%
-left = 465,right = 677,top = 74,bot = 171
-1: 60%
-left = 205,right = 576,top = 153,bot = 447
+detection num: 3
+16: 100%, [ 123,  223,  320,  544], dog
+ 1:  99%, [ 160,  117,  568,  435], bicycle
+ 7:  94%, [ 473,   87,  693,  166], truck
 ```
 
-![](https://s1.ax1x.com/2020/08/28/domYCt.jpg)
+![](https://z3.ax1x.com/2021/06/30/RBJSBT.jpg)
 
 ## yolov4-tiny目标检测任务 - [tm_yolov4_tiny.cpp](tm_yolov4_tiny.cpp)
 
 使用图片：
 
-![](https://github.com/OAID/Tengine/blob/master/tests/images/ssd_dog.jpg)
+![](https://z3.ax1x.com/2021/06/30/RBVdq1.jpg)
 
 ```bash
 $ export LD_LIBRARY_PATH=./build/install/lib
-$ ./build/install/bin/tm_yolov4_tiny -m models/yolov4_tiny.tmfile -i images/ssd_dog.jpg -r 1 -t 1
+$ ./build/install/bin/tm_yolov4_tiny -m models/yolov4-tiny.tmfile -i images/ssd_dog.jpg -r 1 -t 1
 ```
 结果如下：
 
 ```bash
-start to run register cpu allocator
-tengine-lite library version: 1.0-dev
-Repeat 1 times, thread 1, avg time 177.72 ms, max_time 177.72 ms, min_time 177.72 ms
+tengine-lite library version: 1.4-dev
+Repeat 1 times, thread 1, avg time 152.50 ms, max_time 152.50 ms, min_time 152.50 ms
 --------------------------------------
-16: 75%, [ 126, 223, 326, 536], dog
- 7: 84%, [ 455,  77, 703, 168], truck
- 1: 28%, [  56,  85, 603, 496], bicycle
+detection num: 3
+16:  87%, [ 136,  206,  318,  542], dog
+ 7:  81%, [ 463,   79,  703,  170], truck
+ 1:  61%, [  72,  100,  577,  479], bicycle
+```
+![](https://z3.ax1x.com/2021/06/30/RBKqQU.jpg)
+
+## yolov5s目标检测任务 - [tm_yolov5s.cpp](tm_yolov5s.cpp)
+
+使用图片：
+
+![](https://z3.ax1x.com/2021/06/30/RBVdq1.jpg)
+
+```bash
+$ export LD_LIBRARY_PATH=./build/install/lib
+$ ./build/install/bin/tm_yolov5s -m models/yolov5s.tmfile -i images/ssd_dog.jpg -r 1 -t 1
+```
+结果如下：
+
+```bash
+tengine-lite library version: 1.4-dev
+Repeat 1 times, thread 1, avg time 462.94 ms, max_time 462.94 ms, min_time 462.94 ms
+--------------------------------------
+detection num: 3
+16:  89%, [ 135,  218,  313,  558], dog
+ 7:  86%, [ 472,   78,  689,  169], truck
+ 1:  75%, [ 123,  107,  578,  449], bicycle
 ```
 
-![](https://s1.ax1x.com/2020/10/19/0zpvfU.jpg)
+![](https://z3.ax1x.com/2021/06/30/RBl7Wt.jpg)
 
-## 人体姿态识别任务 - [tm_openpose.cpp](tm_openpose.cpp)
+## nanodet目标检测任务 - [tm_nanodet_m.cpp](tm_nanodet_m.cpp)
+
+使用图片：
+
+![](https://z3.ax1x.com/2021/06/30/RBVdq1.jpg)
+
+```bash
+$ export LD_LIBRARY_PATH=./build/install/lib
+$ ./build/install/bin/tm_nanodet_m -m models/nanodet.tmfile -i images/ssd_dog.jpg -r 1 -t 1
+```
+结果如下：
+
+```bash
+tengine-lite library version: 1.4-dev
+Repeat 1 times, thread 1, avg time 35.96 ms, max_time 35.96 ms, min_time 35.96 ms
+--------------------------------------
+detection num: 3
+ 1: 59.313%, [141.945, 160.890, 563.568, 429.829], bicycle
+16: 50.605%, [132.646, 205.861, 312.255, 511.470], dog
+ 2: 48.931%, [462.477,  72.462, 701.777, 170.343], car
+```
+
+![](https://z3.ax1x.com/2021/07/01/RsVkff.jpg)
+
+
+## openpose人体姿态识别任务 - [tm_openpose.cpp](tm_openpose.cpp)
 
 使用图片：
 
@@ -260,15 +345,14 @@ Repeat 1 times, thread 1, avg time 177.72 ms, max_time 177.72 ms, min_time 177.7
 
 ```bash
 $ export LD_LIBRARY_PATH=./build/install/lib
-$ ./build/install/bin/tm_openpose -m models/openpose_coco.tmfile -i image/pose.jpg -r 1 -t 1
+$ ./build/install/bin/tm_openpose -m models/openpose_coco.tmfile -i images/pose.jpg -r 1 -t 1
 ```
 
 结果如下：
 
 ```bash
-start to run register cpu allocator
-tengine-lite library version: 1.0-dev
-Repeat 1 times, thread 1, avg time 15350.25 ms, max_time 15350.25 ms, min_time 15350.25 ms
+tengine-lite library version: 1.4-dev
+Repeat 1 times, thread 1, avg time 7296.71 ms, max_time 7296.71 ms, min_time 7296.71 ms
 --------------------------------------
 KeyPoints Coordinate:
 0:[292.174, 55.6522]
@@ -291,10 +375,47 @@ KeyPoints Coordinate:
 17:[320, 55.6522]
 ```
 
-![](https://s1.ax1x.com/2020/09/01/dvJ2x1.jpg)
-![](https://s1.ax1x.com/2020/09/01/dvJxZ8.jpg)
+![](https://z3.ax1x.com/2021/06/30/RBdWa6.jpg)
+![](https://z3.ax1x.com/2021/06/30/RBdfIK.jpg)
 
 人体姿态识别结果会保存为图片，名称为：`Output-Keypionts.jpg`和`Output-Skeleton.jpg`。
+
+## hrnet人体姿态识别任务 - [tm_hrnet.cpp](tm_hrnet.cpp)
+
+使用图片：
+
+![](https://s1.ax1x.com/2020/09/01/dvJm8A.jpg)
+
+```bash
+$ export LD_LIBRARY_PATH=./build/install/lib
+$ ./build/install/bin/tm_hrnet -m models/hrnet.tmfile -i images/pose.jpg -r 1 -t 1
+```
+
+结果如下：
+
+```bash
+tengine-lite library version: 1.4-dev
+Repeat [1] min 416.223 ms, max 416.223 ms, avg 416.223 ms
+x: 27, y: 58, score: 0.91551
+x: 27, y: 45, score: 0.865156
+x: 28, y: 30, score: 0.831916
+x: 34, y: 29, score: 0.839507
+x: 38, y: 44, score: 0.88559
+x: 35, y: 55, score: 0.891349
+x: 31, y: 30, score: 0.873104
+x: 31, y: 14, score: 0.928233
+x: 30, y: 10, score: 0.948434
+x: 29, y: 1, score: 0.915752
+x: 23, y: 31, score: 0.811694
+x: 24, y: 24, score: 0.935574
+x: 24, y: 14, score: 0.899991
+x: 37, y: 13, score: 0.908696
+x: 41, y: 22, score: 0.902927
+x: 41, y: 29, score: 0.847032
+```
+
+![](https://z3.ax1x.com/2021/07/01/RrSvg1.jpg)
+
 
 ## 汉字识别任务 - [tm_crnn.cpp](tm_crnn.cpp)
 
@@ -306,16 +427,15 @@ KeyPoints Coordinate:
 ![](https://s1.ax1x.com/2020/10/20/BSlFPS.jpg)
 
 ```bash
-export LD_LIBRARY_PATH=./build/install/lib
-./build/install/bin/tm_crnn -m model/crnn_lite_dense.tmfile -i model/o2_resize.jpg -l model/keys.txt
+$ export LD_LIBRARY_PATH=./build/install/lib
+$ ./build/install/bin/tm_crnn -m models/crnn_lite_dense.tmfile -i images/o2_resize.jpg -l files/keys.txt
 ```
 
 结果如下：
 
 ```bash
-start to run register cpu allocator
-tengine-lite library version: 1.0-dev
-Repeat 1 times, thread 1, avg time 43.32 ms, max_time 43.32 ms, min_time 43.32 ms
+tengine-lite library version: 1.4-dev
+Repeat 1 times, thread 1, avg time 23.30 ms, max_time 23.30 ms, min_time 23.30 ms
 --------------------------------------
 如何突破自己的颜值上限
 --------------------------------------

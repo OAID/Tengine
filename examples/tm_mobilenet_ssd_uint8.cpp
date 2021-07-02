@@ -101,7 +101,7 @@ void post_process_ssd(const char* image_file, float threshold, float* outdata, i
         draw_box(im, box.x0, box.y0, box.x1, box.y1, 2, 125, 0, 125);
     }
 
-    save_image(im, "tengine_example_out");
+    save_image(im, "mobilenet_ssd_uint8_out");
     free_image(im);
     std::cout << "======================================\n";
     std::cout << "[DETECTED IMAGE SAVED]:\t"
@@ -188,7 +188,6 @@ int main(int argc, char* argv[])
     if (graph == nullptr)
     {
         std::cout << "Create graph failed\n";
-        std::cout << "errno: " << get_tengine_errno() << "\n";
         return 1;
     }
 

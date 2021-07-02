@@ -53,6 +53,7 @@ static int tm2_load_slice(struct graph* ir_graph, struct node* ir_node, const TM
     slice_param->axis = tm_param->axis;
     slice_param->begin = tm_param->begin;
     slice_param->end = tm_param->end;
+    slice_param->step = tm_param->step;
     slice_param->iscaffe = tm_param->iscaffe;
     slice_param->ismxnet = tm_param->ismxnet;
     slice_param->isonnx = tm_param->isonnx;

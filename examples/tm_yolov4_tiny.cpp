@@ -21,6 +21,8 @@
  * Copyright (c) 2021, OPEN AI LAB
  * Author: 942002795@qq.com
  * Update: xwwang@openailab.com
+ * 
+ * original model：https://github.com/alexeyab/darknet
  */
 
 #include <math.h>
@@ -187,7 +189,7 @@ static void generate_proposals(int stride,  const float* feat, float prob_thresh
                 int channel_size = feat_h * feat_w;
                 for (int s = 0; s <= cls_num - 1; s++)
                 {
-                    int score_index = anchor * 85 * channel_size + feat_w * h + w + (s + 5) * channel_size;
+                    int score_index = anchor * (cls_num + 5) * channel_size + feat_w * h + w + (s + 5) * channel_size;
                     float score = feat[score_index];
                     if(score > class_score)
                     {
@@ -195,14 +197,14 @@ static void generate_proposals(int stride,  const float* feat, float prob_thresh
                         class_score = score;
                     }
                 }
-                float box_score = feat[anchor * 85 * channel_size + feat_w * h + w + 4 * channel_size];
+                float box_score = feat[anchor * (cls_num + 5) * channel_size + feat_w * h + w + 4 * channel_size];
                 float final_score = sigmoid(box_score) * sigmoid(class_score);
                 if(final_score >= prob_threshold)
                 {
-                    int dx_index = anchor * 85 * channel_size + feat_w * h + w + 0 * channel_size;
-                    int dy_index = anchor * 85 * channel_size + feat_w * h + w + 1 * channel_size;
-                    int dw_index = anchor * 85 * channel_size + feat_w * h + w + 2 * channel_size;
-                    int dh_index = anchor * 85 * channel_size + feat_w * h + w + 3 * channel_size;
+                    int dx_index = anchor * (cls_num + 5) * channel_size + feat_w * h + w + 0 * channel_size;
+                    int dy_index = anchor * (cls_num + 5) * channel_size + feat_w * h + w + 1 * channel_size;
+                    int dw_index = anchor * (cls_num + 5) * channel_size + feat_w * h + w + 2 * channel_size;
+                    int dh_index = anchor * (cls_num + 5) * channel_size + feat_w * h + w + 3 * channel_size;
 
                     float dx = sigmoid(feat[dx_index]);
                     float dy = sigmoid(feat[dy_index]);
@@ -266,7 +268,7 @@ static void draw_objects(const cv::Mat& bgr, const std::vector<Object>& objects)
         sprintf(text, "%s %.1f%%", class_names[obj.label], obj.prob * 100);
 
         int baseLine = 0;
-        cv::Size label_size = cv::getTextSize(text, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
+        cv::Size label_size = cv::getTextSize(text, cv::FONT_HERSHEY_SIMPLEX, 1, 2, &baseLine);
 
         int x = obj.rect.x;
         int y = obj.rect.y - label_size.height - baseLine;
@@ -278,7 +280,7 @@ static void draw_objects(const cv::Mat& bgr, const std::vector<Object>& objects)
         cv::rectangle(image, cv::Rect(cv::Point(x, y), cv::Size(label_size.width, label_size.height + baseLine)),
                       cv::Scalar(255, 255, 255), -1);
 
-        cv::putText(image, text, cv::Point(x, y + label_size.height), cv::FONT_HERSHEY_SIMPLEX, 0.5,
+        cv::putText(image, text, cv::Point(x, y + label_size.height), cv::FONT_HERSHEY_SIMPLEX, 1,
                     cv::Scalar(0, 0, 0));
     }
 
@@ -380,7 +382,7 @@ int main(int argc, char* argv[])
 
     int img_size = img_h * img_w * img_c;
     int dims[] = {1, 3, img_h, img_w};
-    float* input_data = ( float* )malloc(img_size * sizeof(float));
+    std::vector<float> input_data(img_size);
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == nullptr)
@@ -395,7 +397,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    if (set_tensor_buffer(input_tensor, input_data, img_size * 4) < 0)
+    if (set_tensor_buffer(input_tensor, input_data.data(), img_size * 4) < 0)
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;
@@ -409,7 +411,7 @@ int main(int argc, char* argv[])
     }
 
     /* prepare process input data, set the data mem to input tensor */
-    get_input_data_yolov4(image_file, input_data, img_h, img_w, mean, scale);
+    get_input_data_yolov4(image_file, input_data.data(), img_h, img_w, mean, scale);
 
     /* run graph */
     double min_time = DBL_MAX;

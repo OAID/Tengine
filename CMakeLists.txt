@@ -53,6 +53,11 @@ OPTION (TENGINE_BUILD_BENCHMARK             "Build benchmark"                   
 OPTION (TENGINE_BUILD_EXAMPLES              "Build examples"                            ON)
 OPTION (TENGINE_BUILD_TESTS                 "Build tests"                               OFF)
 OPTION (TENGINE_BUILD_CPP_API               "Build C++ API"                             OFF)
+OPTION (TENGINE_BUILD_CONVERT_TOOL          "Build convert tool"                        OFF)
+
+# Tools options
+# Tools
+OPTION (TENGINE_BUILD_QUANT_TOOL            "Build quantization tool"                   OFF)
 
 # Multithreading option
 OPTION (TENGINE_OPENMP                      "Build with OpenMP support"                 ON)
@@ -96,6 +101,10 @@ ENABLE_LANGUAGE (ASM)
 # Enable cmake ctest module
 ENABLE_TESTING ()
 
+# Set cmake default folder name
+SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
+SET_PROPERTY(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "cmake")
+
 # Main source files
 ADD_SUBDIRECTORY (source)
 
@@ -112,6 +121,14 @@ ENDIF()
 
 IF (TENGINE_BUILD_TESTS)
     ADD_SUBDIRECTORY(tests)
+ENDIF()
+
+IF (TENGINE_BUILD_QUANT_TOOL)
+    ADD_SUBDIRECTORY(tools/quantize)
+ENDIF()
+
+IF (TENGINE_BUILD_CONVERT_TOOL)
+    ADD_SUBDIRECTORY(tools/convert_tool)
 ENDIF()
 
 # Report summary

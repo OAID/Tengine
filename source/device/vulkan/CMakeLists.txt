@@ -103,6 +103,9 @@ add_layer(Crop)
 
 add_custom_target(generate-spirv DEPENDS ${SHADER_SPV_HEX_FILES})
 
+# add to a virtual project group
+SET_PROPERTY(TARGET generate-spirv PROPERTY FOLDER "libtengine-lite")
+
 # create new registry file
 configure_file(layer_shader_registry.h.in   ${CMAKE_CURRENT_BINARY_DIR}/layer_shader_registry.h)
 configure_file(layer_shader_spv_data.h.in   ${CMAKE_CURRENT_BINARY_DIR}/layer_shader_spv_data.h)

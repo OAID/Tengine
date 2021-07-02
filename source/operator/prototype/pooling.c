@@ -39,24 +39,18 @@ static int infer_shape(ir_node_t* node)
     ir_tensor_t* output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
     struct pool_param* pool_param = ( struct pool_param* )node->op.param_mem;
 
-    int batch, channel, input_h, input_w, output_h, output_w;
+    int batch = input->dims[0];
+    int channel = input->dims[1];
+    int input_h = input->dims[2];
+    int input_w = input->dims[3];
+    int output_h, output_w;
 
-    batch = input->dims[0];
-    if (ir_graph->graph_layout == TENGINE_LAYOUT_NCHW)
+    if (pool_param->kernel_h == input_h && pool_param->kernel_w == input_w &&
+        pool_param->pad_w0 == 0 && pool_param->pad_w1 == 0 &&
+        pool_param->pad_h0 == 0 && pool_param->pad_h1 == 0)
     {
-        channel = input->dims[1];
-        input_h = input->dims[2];
-        input_w = input->dims[3];
-    }
-    else
-    {
-        channel = input->dims[3];
-        input_h = input->dims[1];
-        input_w = input->dims[2];
-    }
-
-    if (pool_param->kernel_h == input_h && pool_param->kernel_w == input_w)
         pool_param->global = 1;
+    }
 
     if (pool_param->global)
     {
@@ -98,21 +92,10 @@ static int infer_shape(ir_node_t* node)
     }
 
     int dims[4];
-
     dims[0] = batch;
-
-    if (ir_graph->graph_layout == TENGINE_LAYOUT_NCHW)
-    {
-        dims[1] = channel;
-        dims[2] = output_h;
-        dims[3] = output_w;
-    }
-    else
-    {
-        dims[1] = output_h;
-        dims[2] = output_w;
-        dims[3] = channel;
-    }
+    dims[1] = channel;
+    dims[2] = output_h;
+    dims[3] = output_w;
 
     set_ir_tensor_shape(output, dims, 4);
 

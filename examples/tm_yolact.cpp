@@ -20,6 +20,8 @@
 /*
  * Copyright (c) 2020, OPEN AI LAB
  * Author: qtang@openailab.com
+ * 
+ * original model: https://github.com/dbolya/yolact
  */
 
 /*
@@ -73,7 +75,7 @@ void get_input_data_cv(const cv::Mat& sample, float* input_data, int img_h, int 
     {
         cv::cvtColor(sample, img, cv::COLOR_GRAY2BGR);
     }
-    else if (sample.channels() == 3 && swapRB == 1)
+    else if (sample.channels() == 3)
     {
         cv::cvtColor(sample, img, cv::COLOR_BGR2RGB);
     }
@@ -251,7 +253,7 @@ static int detect_yolact(const cv::Mat& bgr, std::vector<Object>& objects, const
     /* set the input shape to initial the graph, and prerun graph to infer shape */
     int img_size = target_size * target_size * 3;
     int dims[] = {1, 3, target_size, target_size};    // nchw
-    float* input_data = ( float* )malloc(img_size * sizeof(float));
+    std::vector<float> input_data(img_size);
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == NULL)
@@ -266,7 +268,7 @@ static int detect_yolact(const cv::Mat& bgr, std::vector<Object>& objects, const
         return -1;
     }
 
-    if (set_tensor_buffer(input_tensor, input_data, img_size * sizeof(float)) < 0)
+    if (set_tensor_buffer(input_tensor, input_data.data(), img_size * 4) < 0)
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;
@@ -280,11 +282,11 @@ static int detect_yolact(const cv::Mat& bgr, std::vector<Object>& objects, const
     }
 
     /* prepare process input data, set the data mem to input tensor */
-    get_input_data_cv(bgr, input_data, target_size, target_size, mean_vals, norm_vals, 1);
+    get_input_data_cv(bgr, input_data.data(), target_size, target_size, mean_vals, norm_vals, 1);
 
     /* run graph */
-    double min_time = __DBL_MAX__;
-    double max_time = -__DBL_MAX__;
+    double min_time = DBL_MAX;
+    double max_time = DBL_MIN;
     double total_time = 0.;
     for (int i = 0; i < repeat_count; i++)
     {
@@ -297,10 +299,8 @@ static int detect_yolact(const cv::Mat& bgr, std::vector<Object>& objects, const
         double end = get_current_time();
         double cur = end - start;
         total_time += cur;
-        if (min_time > cur)
-            min_time = cur;
-        if (max_time < cur)
-            max_time = cur;
+        min_time = std::min(min_time, cur);
+        max_time = std::max(max_time, cur);
     }
     fprintf(stderr, "Repeat %d times, thread %d, avg time %.2f ms, max_time %.2f ms, min_time %.2f ms\n", repeat_count,
             num_thread, total_time / repeat_count, max_time, min_time);
@@ -428,7 +428,6 @@ static int detect_yolact(const cv::Mat& bgr, std::vector<Object>& objects, const
     }
 
     /* release tengine */
-    free(input_data);
     postrun_graph(graph);
     destroy_graph(graph);
     release_tengine();
@@ -454,26 +453,88 @@ static void draw_objects(const cv::Mat& bgr, const std::vector<Object>& objects)
                                         "toaster", "sink", "refrigerator", "book", "clock", "vase",
                                         "scissors", "teddy bear", "hair drier", "toothbrush"};
 
-    static const unsigned char colors[19][3] = {
-        {244,  67,  54},
-        {233,  30,  99},
-        {156,  39, 176},
-        {103,  58, 183},
-        { 63,  81, 181},
-        { 33, 150, 243},
-        {  3, 169, 244},
-        {  0, 188, 212},
-        {  0, 150, 136},
-        { 76, 175,  80},
-        {139, 195,  74},
-        {205, 220,  57},
-        {255, 235,  59},
-        {255, 193,   7},
-        {255, 152,   0},
-        {255,  87,  34},
-        {121,  85,  72},
-        {158, 158, 158},
-        { 96, 125, 139}
+    static const unsigned char colors[81][3] = {
+        {56, 0, 255},
+        {226, 255, 0},
+        {0, 94, 255},
+        {0, 37, 255},
+        {0, 255, 94},
+        {255, 226, 0},
+        {0, 18, 255},
+        {255, 151, 0},
+        {170, 0, 255},
+        {0, 255, 56},
+        {255, 0, 75},
+        {0, 75, 255},
+        {0, 255, 169},
+        {255, 0, 207},
+        {75, 255, 0},
+        {207, 0, 255},
+        {37, 0, 255},
+        {0, 207, 255},
+        {94, 0, 255},
+        {0, 255, 113},
+        {255, 18, 0},
+        {255, 0, 56},
+        {18, 0, 255},
+        {0, 255, 226},
+        {170, 255, 0},
+        {255, 0, 245},
+        {151, 255, 0},
+        {132, 255, 0},
+        {75, 0, 255},
+        {151, 0, 255},
+        {0, 151, 255},
+        {132, 0, 255},
+        {0, 255, 245},
+        {255, 132, 0},
+        {226, 0, 255},
+        {255, 37, 0},
+        {207, 255, 0},
+        {0, 255, 207},
+        {94, 255, 0},
+        {0, 226, 255},
+        {56, 255, 0},
+        {255, 94, 0},
+        {255, 113, 0},
+        {0, 132, 255},
+        {255, 0, 132},
+        {255, 170, 0},
+        {255, 0, 188},
+        {113, 255, 0},
+        {245, 0, 255},
+        {113, 0, 255},
+        {255, 188, 0},
+        {0, 113, 255},
+        {255, 0, 0},
+        {0, 56, 255},
+        {255, 0, 113},
+        {0, 255, 188},
+        {255, 0, 94},
+        {255, 0, 18},
+        {18, 255, 0},
+        {0, 255, 132},
+        {0, 188, 255},
+        {0, 245, 255},
+        {0, 169, 255},
+        {37, 255, 0},
+        {255, 0, 151},
+        {188, 0, 255},
+        {0, 255, 37},
+        {0, 255, 0},
+        {255, 0, 170},
+        {255, 0, 37},
+        {255, 75, 0},
+        {0, 0, 255},
+        {255, 207, 0},
+        {255, 0, 226},
+        {255, 245, 0},
+        {188, 255, 0},
+        {0, 255, 18},
+        {0, 255, 75},
+        {0, 255, 151},
+        {255, 56, 0},
+        {245, 255, 0}
     };
 
     cv::Mat image = bgr.clone();
@@ -490,7 +551,8 @@ static void draw_objects(const cv::Mat& bgr, const std::vector<Object>& objects)
         fprintf(stderr, "%d = %.5f at %.2f %.2f %.2f x %.2f\n", obj.label, obj.prob, obj.rect.x, obj.rect.y,
                 obj.rect.width, obj.rect.height);
 
-        const unsigned char* color = colors[color_index++];
+        const unsigned char* color = colors[color_index % 81];
+        color_index++;
 
         cv::rectangle(image, obj.rect, cv::Scalar(color[0], color[1], color[2]));
 

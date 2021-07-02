@@ -4,55 +4,11 @@ FILE (COPY ${CMAKE_SOURCE_DIR}/source/api/c_api.h DESTINATION ${CMAKE_CURRENT_BI
 FILE (COPY ${CMAKE_SOURCE_DIR}/source/api/c_api_ex.h DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/tengine)
 
 
-# macro for adding original test
-function (tengine_test name file)
-    add_executable (${name} ${CMAKE_CURRENT_SOURCE_DIR}/${file} "${PROJECT_SOURCE_DIR}/tests/common/tengine_operations.cpp")
-
-    target_link_libraries (${name} PRIVATE ${CMAKE_PROJECT_NAME})
-
-    target_include_directories (${name} PRIVATE "${PROJECT_SOURCE_DIR}/source")
-    target_include_directories (${name} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
-    target_include_directories (${name} PRIVATE "${PROJECT_BINARY_DIR}")
-    target_include_directories (${name} PRIVATE "${PROJECT_BINARY_DIR}/source")
-    target_include_directories (${name} PRIVATE "${PROJECT_SOURCE_DIR}/tests/common")
-
-    if (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM" AND (NOT ANDROID AND NOT OHOS) AND TENGINE_TARGET_PROCESSOR_32Bit)
-        target_compile_options (${name} PRIVATE "-mfp16-format=ieee")
-    endif()
-
-    # add_test (${name} ${name})
-endfunction()
-
-# operator level test
-#[[
-tengine_test(test_op_conv               op/test_op_conv.c)
-tengine_test(test_op_prelu              op/test_op_prelu.c)
-tengine_test(test_op_relu               op/test_op_relu.c)
-tengine_test(test_op_relu6              op/test_op_relu6.c)
-]]
-
-# model level test
-tengine_test(tm_classify           models/test_tm_classification.cpp)
-#[[
-tengine_test(tm_darknet_yolo       models/test_tm_darknet_yolo.cpp)
-tengine_test(tm_faster_rcnn        models/test_tm_faster_rcnn.cpp)
-tengine_test(tm_lighten_cnn        models/test_tm_lighten_cnn.cpp)
-tengine_test(tm_mssd               models/test_tm_mssd.cpp)
-tengine_test(tm_mssd_quant         models/test_tm_mssd_quant_tflite.cpp)
-tengine_test(tm_mtcnn              models/test_tm_mtcnn.cpp)
-tengine_test(tm_retinaface_mx      models/test_tm_retinafacedetect_mx.cpp)
-tengine_test(tm_squeezenet_ssd     models/test_tm_squeezenet_ssd.cpp)
-tengine_test(tm_ssd                models/test_tm_ssd.cpp)
-tengine_test(tm_yolov2             models/test_tm_yolov2.cpp)
-tengine_test(tm_yufacedetect       models/test_tm_yufacedetect.cpp)
-tengine_test(test_tm_landmark      models/test_tm_landmark.cpp)
-tengine_test(test_tm_yolact        models/test_tm_yolact.cpp)
-tengine_test(tm_mfn                models/test_tm_mfn.cpp)
-]]
-
 if (TENGINE_ENABLE_TIM_VX)
     function (tengine_timvx_op_test name file)
-        add_executable (${name} ${CMAKE_CURRENT_SOURCE_DIR}/${file} "${PROJECT_SOURCE_DIR}/tests/common/tengine_operations.cpp")
+        file(GLOB TENGINE_UTIL_SOURCE_FILES      ${PROJECT_SOURCE_DIR}/tests/common/util/*.c)
+
+        add_executable (${name} ${CMAKE_CURRENT_SOURCE_DIR}/${file} "${TENGINE_UTIL_SOURCE_FILES}" "${PROJECT_SOURCE_DIR}/tests/common/tengine_operations.c")
 
         target_link_libraries (${name} PRIVATE ${CMAKE_PROJECT_NAME})
 
@@ -61,22 +17,105 @@ if (TENGINE_ENABLE_TIM_VX)
         target_include_directories (${name} PRIVATE "${PROJECT_BINARY_DIR}")
         target_include_directories (${name} PRIVATE "${PROJECT_BINARY_DIR}/source")
         target_include_directories (${name} PRIVATE "${PROJECT_SOURCE_DIR}/tests/common")
+        target_include_directories (${name} PRIVATE "${PROJECT_SOURCE_DIR}/tests/common/util")
 
         if (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM" AND (NOT ANDROID AND NOT OHOS) AND TENGINE_TARGET_PROCESSOR_32Bit)
             target_compile_options (${name} PRIVATE "-mfp16-format=ieee")
         endif()
 
         add_test (${name} ${name})
+
+        # add to a virtual project group
+        SET_PROPERTY(TARGET ${name} PROPERTY FOLDER "tests/test_timvx")
     endfunction()
 
-    tengine_timvx_op_test(test_timvx_op_convolution  op/test_timvx_op_convolution.cpp)
-    tengine_timvx_op_test(test_timvx_op_dropout      op/test_timvx_op_dropout.cpp)
-    tengine_timvx_op_test(test_timvx_op_pooling      op/test_timvx_op_pooling.cpp)
-    tengine_timvx_op_test(test_timvx_op_prelu        op/test_timvx_op_prelu.cpp)
-    tengine_timvx_op_test(test_timvx_op_relu         op/test_timvx_op_relu.cpp)
-    # tengine_timvx_op_test(test_timvx_op_relu1        op/test_timvx_op_relu1.cpp)
+    tengine_timvx_op_test(test_timvx_op_clip            op/test_timvx_op_clip.cpp)
+    tengine_timvx_op_test(test_timvx_op_concat          op/test_timvx_op_concat.cpp)
+    tengine_timvx_op_test(test_timvx_op_convolution     op/test_timvx_op_convolution.cpp)
+    tengine_timvx_op_test(test_timvx_op_deconv          op/test_timvx_op_deconv.cpp)
+    tengine_timvx_op_test(test_timvx_op_dropout         op/test_timvx_op_dropout.cpp)
+    tengine_timvx_op_test(test_timvx_op_eltwise_mul     op/test_timvx_op_eltwise_mul.cpp)
+    tengine_timvx_op_test(test_timvx_op_eltwise_sum     op/test_timvx_op_eltwise_sum.cpp)
+    tengine_timvx_op_test(test_timvx_op_elu             op/test_timvx_op_elu.cpp)
+    tengine_timvx_op_test(test_timvx_op_fc              op/test_timvx_op_fc.cpp)
+    tengine_timvx_op_test(test_timvx_op_flatten         op/test_timvx_op_flatten.cpp)
+    tengine_timvx_op_test(test_timvx_op_gather          op/test_timvx_op_gather.cpp)
+    tengine_timvx_op_test(test_timvx_op_hardswish       op/test_timvx_op_hardswish.cpp)
+    tengine_timvx_op_test(test_timvx_op_interp          op/test_timvx_op_interp.cpp)
+    tengine_timvx_op_test(test_timvx_op_leakyrelu       op/test_timvx_op_leakyrelu.cpp)
+    tengine_timvx_op_test(test_timvx_op_mish            op/test_timvx_op_mish.cpp)
+    tengine_timvx_op_test(test_timvx_op_permute         op/test_timvx_op_permute.cpp)
+    tengine_timvx_op_test(test_timvx_op_pooling         op/test_timvx_op_pooling.cpp)
+    tengine_timvx_op_test(test_timvx_op_prelu           op/test_timvx_op_prelu.cpp)
+    tengine_timvx_op_test(test_timvx_op_relu            op/test_timvx_op_relu.cpp)
+    # tengine_timvx_op_test(test_timvx_op_relu1         op/test_timvx_op_relu1.cpp)
+    tengine_timvx_op_test(test_timvx_op_reshape         op/test_timvx_op_reshape.cpp)
+    tengine_timvx_op_test(test_timvx_op_resize          op/test_timvx_op_resize.cpp)
+    tengine_timvx_op_test(test_timvx_op_sigmoid         op/test_timvx_op_sigmoid.cpp)
+    tengine_timvx_op_test(test_timvx_op_slice           op/test_timvx_op_slice.cpp)
+    tengine_timvx_op_test(test_timvx_op_softmax         op/test_timvx_op_softmax.cpp)
+    tengine_timvx_op_test(test_timvx_op_split           op/test_timvx_op_split.cpp)
+    tengine_timvx_op_test(test_timvx_op_tanh            op/test_timvx_op_tanh.cpp)
+    tengine_timvx_op_test(test_timvx_op_transpose       op/test_timvx_op_transpose.cpp)
+    tengine_timvx_op_test(test_timvx_op_upsampling      op/test_timvx_op_upsampling.cpp)
+    
+    
+    # timvx model test, need opencv
+    FIND_PACKAGE(OpenCV QUIET)
+    IF (OpenCV_FOUND)
+        # macro for adding examples
+        FUNCTION (TENGINE_TIMVX_MODEL_TEST name file)
+            ADD_EXECUTABLE (${name} "${CMAKE_CURRENT_SOURCE_DIR}/${file}" "${CMAKE_CURRENT_SOURCE_DIR}/common/tengine_operations.c")
+
+            TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
+            TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
+            TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE "${PROJECT_SOURCE_DIR}/tests/common")
+
+            TARGET_LINK_LIBRARIES (${name} ${CMAKE_PROJECT_NAME} ${OpenCV_LIBS})
+            INSTALL (TARGETS ${name} DESTINATION bin)
+        ENDFUNCTION()
+
+        TENGINE_TIMVX_MODEL_TEST (test_timvx_model_yolov5s     models/test_timvx_model_yolov5s.cpp)
+    ELSE()
+        MESSAGE (WARNING "OpenCV not found, some examples won't be built")
+    ENDIF()    
 endif()
 
+
+if (TENGINE_ENABLE_TENSORRT)
+    function (tengine_tensorrt_op_test name file)
+        file(GLOB TENGINE_UTIL_SOURCE_FILES      ${PROJECT_SOURCE_DIR}/tests/common/util/*.c)
+
+        add_executable (${name} ${CMAKE_CURRENT_SOURCE_DIR}/${file} "${TENGINE_UTIL_SOURCE_FILES}" "${PROJECT_SOURCE_DIR}/tests/common/tengine_operations.c")
+
+        target_link_libraries (${name} PRIVATE ${CMAKE_PROJECT_NAME})
+
+        target_include_directories (${name} PRIVATE "${PROJECT_SOURCE_DIR}/source")
+        target_include_directories (${name} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
+        target_include_directories (${name} PRIVATE "${PROJECT_BINARY_DIR}")
+        target_include_directories (${name} PRIVATE "${PROJECT_BINARY_DIR}/source")
+        target_include_directories (${name} PRIVATE "${PROJECT_SOURCE_DIR}/tests/common")
+        target_include_directories (${name} PRIVATE "${PROJECT_SOURCE_DIR}/tests/common/util")
+
+        if (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM" AND (NOT ANDROID AND NOT OHOS) AND TENGINE_TARGET_PROCESSOR_32Bit)
+            target_compile_options (${name} PRIVATE "-mfp16-format=ieee")
+        endif()
+
+        add_test (${name} ${name})
+
+        # add to a virtual project group
+        SET_PROPERTY(TARGET ${name} PROPERTY FOLDER "tests/test_tensorrt")
+    endfunction()
+
+    tengine_tensorrt_op_test(test_tensorrt_op_clip          op/test_tensorrt_op_clip.cpp)
+    tengine_tensorrt_op_test(test_tensorrt_op_concat        op/test_tensorrt_op_concat.cpp)
+    tengine_tensorrt_op_test(test_tensorrt_op_deconv        op/test_tensorrt_op_deconv.cpp)
+    tengine_tensorrt_op_test(test_tensorrt_op_dropout       op/test_tensorrt_op_dropout.cpp)
+    tengine_tensorrt_op_test(test_tensorrt_op_eltwise       op/test_tensorrt_op_eltwise.cpp)
+    tengine_tensorrt_op_test(test_tensorrt_op_fc            op/test_tensorrt_op_fc.cpp)
+
+
+endif()
 
 # operator level test using onnx test
 find_package(Protobuf)
@@ -96,6 +135,9 @@ if(PROTOBUF_FOUND)
         target_include_directories (${name} PRIVATE "${PROJECT_BINARY_DIR}/source")
 
         add_test (${name} ${name})
+
+        # add to a virtual project group
+        SET_PROPERTY(TARGET ${name} PROPERTY FOLDER "tests/test_onnx")
     endfunction()
 
     tengine_onnx_op_test(test_onnx_op_abs                           op/test_onnx_op_abs.cpp)
@@ -108,6 +150,7 @@ if(PROTOBUF_FOUND)
     tengine_onnx_op_test(test_onnx_op_basic_conv_with_padding       op/test_onnx_op_basic_conv_with_padding.cpp)
     tengine_onnx_op_test(test_onnx_op_basic_conv_without_padding    op/test_onnx_op_basic_conv_without_padding.cpp)
     tengine_onnx_op_test(test_onnx_op_ceil                          op/test_onnx_op_ceil.cpp)
+    tengine_onnx_op_test(test_onnx_op_clip_example                  op/test_onnx_op_clip_example.cpp)
     # tengine_onnx_op_test(test_onnx_op_concat_1d_axis_0              op/test_onnx_op_concat_1d_axis_0.cpp)
     tengine_onnx_op_test(test_onnx_op_concat_2d_axis_0              op/test_onnx_op_concat_2d_axis_0.cpp)
     tengine_onnx_op_test(test_onnx_op_concat_2d_axis_1              op/test_onnx_op_concat_2d_axis_1.cpp)
@@ -126,6 +169,7 @@ if(PROTOBUF_FOUND)
     tengine_onnx_op_test(test_onnx_op_elu                           op/test_onnx_op_elu.cpp)
     tengine_onnx_op_test(test_onnx_op_equal                         op/test_onnx_op_equal.cpp)
     tengine_onnx_op_test(test_onnx_op_exp                           op/test_onnx_op_exp.cpp)
+    # tengine_onnx_op_test(test_onnx_op_expand_dim_unchanged          op/test_onnx_op_expand_dim_unchanged.cpp)
     tengine_onnx_op_test(test_onnx_op_floor                         op/test_onnx_op_floor.cpp)
     tengine_onnx_op_test(test_onnx_op_globalaveragepool             op/test_onnx_op_globalaveragepool.cpp)
     tengine_onnx_op_test(test_onnx_op_greater                       op/test_onnx_op_greater.cpp)
@@ -167,29 +211,20 @@ else()
 endif()
 
 
-# operator level test using opencv
-find_package(OpenCV QUIET)
+FUNCTION (TENGINE_MODEL_TEST name file)
+    ADD_EXECUTABLE (${name} "${CMAKE_CURRENT_SOURCE_DIR}/${file}" "${CMAKE_CURRENT_SOURCE_DIR}/common/tengine_operations.c")
 
-if(OpenCV_FOUND)
-    # macro for adding cv tests
-    function (tengine_test_cv name file)
-        add_executable (${name} ${CMAKE_CURRENT_SOURCE_DIR}/${file} "${PROJECT_SOURCE_DIR}/tests/common/tengine_operations.cpp")
+    TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
+    TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
+    TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE "${PROJECT_SOURCE_DIR}/tests/common")
 
-        target_link_libraries (${name} PRIVATE ${CMAKE_PROJECT_NAME} ${OpenCV_LIBS})
-    
-        target_include_directories (${name} PRIVATE "${PROJECT_SOURCE_DIR}/source")
-        target_include_directories (${name} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
-        target_include_directories (${name} PRIVATE "${PROJECT_BINARY_DIR}")
-        target_include_directories (${name} PRIVATE "${PROJECT_BINARY_DIR}/source")
-        target_include_directories (${name} PRIVATE "${PROJECT_SOURCE_DIR}/tests/common")
-    
-        if (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM" AND (NOT ANDROID AND NOT OHOS) AND TENGINE_TARGET_PROCESSOR_32Bit)
-            target_compile_options (${name} PRIVATE "-mfp16-format=ieee")
-        endif()
-    endfunction()
+    TARGET_LINK_LIBRARIES (${name} PRIVATE ${CMAKE_PROJECT_NAME})
+    TARGET_LINK_LIBRARIES (${name} PRIVATE m)
 
-    #tengine_test_cv(test_tm_yolact_cv      models/test_tm_yolact_cv.cpp)
-else()
-    message(WARNING "OpenCV not found, some model examples won't be built")
-endif()
+    # add to a virtual project group
+    SET_PROPERTY(TARGET ${name} PROPERTY FOLDER "tests/test_model")
 
+ENDFUNCTION()
+
+# add c api examples
+TENGINE_MODEL_TEST (test_model_classification       models/test_model_classification.cpp)

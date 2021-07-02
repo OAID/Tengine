@@ -21,6 +21,8 @@
  * Copyright (c) 2020, OPEN AI LAB
  * Author: qtang@openailab.com
  * Author: sudolewis@gmail.com
+ * 
+ * original model: https://github.com/milesial/Pytorch-UNet
  */
 
 #include <stdlib.h>
@@ -74,7 +76,7 @@ int draw_segmentation(const int32_t* data, int h, int w) {
             img.at<cv::Vec3b>(i, j) = color;
         }
     }
-    cv::imwrite("result.png", img);
+    cv::imwrite("unet_out.png", img);
     return 0;
 }
 
@@ -205,7 +207,7 @@ int tengine_segment(const char* model_file, const char* image_file, int img_h, i
       }
       /* visualization */
       draw_segmentation(label_data, img_h, img_w);
-      fprintf(stderr, "segmentatation result is save as result.png\n");
+      fprintf(stderr, "segmentatation result is save as unet_out.png\n");
       delete[] label_data;
     }
 

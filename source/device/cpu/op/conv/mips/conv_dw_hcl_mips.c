@@ -56,10 +56,11 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
     struct conv_param* conv_param = ( struct conv_param* )ir_node->op.param_mem;
     struct conv_priv_info* conv_priv_info = ( struct conv_priv_info* )exec_node->ops_priv;
+
     if (conv_dw_run(input_tensor, weight_tensor, bias_tensor, output_tensor, conv_priv_info, conv_param, num_thread, cpu_affinity) < 0)
     {
         TLOG_ERR("hcl conv run failed\n");
-        set_tengine_errno(EFAULT);
+        // set_tengine_errno(EFAULT);
         return -1;
     }
 

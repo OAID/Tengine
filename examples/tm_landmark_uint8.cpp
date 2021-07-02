@@ -128,7 +128,6 @@ int main(int argc, char* argv[])
     if (graph == nullptr)
     {
         std::cout << "Create graph0 failed\n";
-        std::cout << "errno: " << get_tengine_errno() << "\n";
         return -1;
     }
 
@@ -209,7 +208,7 @@ int main(int argc, char* argv[])
         draw_circle(img_out, x, y, 2, 0, 255, 0);
     }
 
-    save_image(img_out, "landmarkout_uint8");
+    save_image(img_out, "landmark_out_uint8");
 
     postrun_graph(graph);
     destroy_graph(graph);

@@ -35,9 +35,11 @@ bool VXEngine::AddEltwiseNode(struct node* ir_node)
 {
     struct graph* ir_graph = ir_node->graph;
 
-    struct tensor* const_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
+    struct tensor* const_tensor = nullptr;
+    if (ir_node->input_num > 1)
+        const_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
 
-    if (const_tensor->tensor_type == TENSOR_TYPE_CONST && const_tensor->data_type == TENGINE_DT_FP32)
+    if (nullptr != const_tensor && const_tensor->tensor_type == TENSOR_TYPE_CONST && const_tensor->data_type == TENGINE_DT_FP32)
     {
         float* const_fp32 = ( float* )get_tensor_buffer(const_tensor);
         int const_size = get_tensor_buffer_size(const_tensor) / sizeof(float) ;
@@ -78,6 +80,14 @@ bool VXEngine::AddEltwiseNode(struct node* ir_node)
 
         switch (param->type)
         {
+            case ELT_PROD:
+            {
+                auto eltmul = graph->CreateOperation<tim::vx::ops::Multiply>(1);
+                (*eltmul)
+                        .BindInputs(add_in_tensor)
+                        .BindOutputs({ this->vx_tensor_map[output_tensor->index] });
+                break;
+            }
             case ELT_SUM:
             {
                 auto eltsum = graph->CreateOperation<tim::vx::ops::Add>();
@@ -90,6 +100,14 @@ bool VXEngine::AddEltwiseNode(struct node* ir_node)
             {
                 auto eltsub = graph->CreateOperation<tim::vx::ops::Sub>();
                 (*eltsub)
+                        .BindInputs(add_in_tensor)
+                        .BindOutputs({ this->vx_tensor_map[output_tensor->index] });
+                break;
+            }
+            case ELT_EXP:
+            {
+                auto eltexp = graph->CreateOperation<tim::vx::ops::Exp>();
+                (*eltexp)
                         .BindInputs(add_in_tensor)
                         .BindOutputs({ this->vx_tensor_map[output_tensor->index] });
                 break;

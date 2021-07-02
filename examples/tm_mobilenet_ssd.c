@@ -20,6 +20,8 @@
 /*
  * Copyright (c) 2020, OPEN AI LAB
  * Author: qtang@openailab.com
+ * 
+ * original model: https://github.com/chuanqi305/MobileNet-SSD
  */
 
 #include "common.h"
@@ -86,7 +88,7 @@ void post_process_ssd(const char* image_file, float threshold, const float* outd
 
     free(boxes);
 
-    save_image(im, "tengine_example_out");
+    save_image(im, "mobilenet_ssd_out");
     free_image(im);
     fprintf(stderr, "======================================\n");
     fprintf(stderr, "[DETECTED IMAGE SAVED]:\n");

@@ -22,6 +22,9 @@
  * Author: qtang@openailab.com
  */
 
+
+#include "hardswish_kernel_ref.h"
+
 #include "graph/tensor.h"
 #include "graph/node.h"
 #include "graph/graph.h"
@@ -32,73 +35,6 @@
 #include "device/cpu/cpu_graph.h"
 #include "device/cpu/cpu_module.h"
 
-#include <math.h>
-
-
-int ref_hardswish_fp32(struct tensor* input_tensor, struct tensor* output_tensor)
-{
-    float* input_data = input_tensor->data;
-    float* output_data = output_tensor->data;
-    int size = input_tensor->elem_num;
-
-    for (int i = 0; i < size; i++)
-    {
-        float tmp = input_data[i] + 3.f;
-
-        if (tmp < 0.f)
-            tmp = 0.f;
-        if (tmp > 6.f)
-            tmp = 6.f;
-        
-        output_data[i] = input_data[i] * (tmp / 6.f);
-    }
-
-    return 0;
-}
-
-int ref_hardswish_uint8(struct tensor* input_tensor, struct tensor* output_tensor)
-{
-    int size = input_tensor->elem_num;
-
-    // dequant
-    uint8_t* input_uint8 = input_tensor->data;
-    uint8_t* output_uint8 = output_tensor->data;
-    float input_scale = input_tensor->scale;
-    float output_scale = output_tensor->scale;
-    int32_t input_zero = input_tensor->zero_point;
-    int32_t output_zero = output_tensor->zero_point;
-
-    float* data_fp32 = sys_malloc(size * sizeof(float));
-
-    for(int i = 0; i < size; i++)
-        data_fp32[i] = ((float) input_uint8[i] - (float)input_zero) * input_scale;
-
-    for (int i = 0; i < size; i++)
-    {
-        float tmp = data_fp32[i] + 3.f;
-
-        if (tmp < 0.f)
-            tmp = 0.f;
-        if (tmp > 6.f)
-            tmp = 6.f;
-
-        data_fp32[i] = data_fp32[i] * (tmp / 6.f);
-    }
-
-    // quant
-    for(int i=0; i<size; i++)
-    {
-        int udata = round(data_fp32[i] / output_scale + output_zero);
-        if (udata > 255)
-            udata = 255;
-        else if (udata < 0)
-            udata = 0;
-        output_uint8[i] = udata;
-    }
-    sys_free(data_fp32);
-
-    return 0;
-}
 
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {

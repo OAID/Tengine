@@ -312,12 +312,6 @@ int init_tengine(void)
         return ret;
     }
 
-#ifdef ENABLE_ONLINE_REPORT
-    hcl_version = get_hcl_version();
-    init_tengine_report_mgr();
-    do_tengine_report(ACTION_INIT);
-#endif
-
     init_flag++;
 
     return ret;
@@ -516,7 +510,7 @@ int prerun_graph_multithread(graph_t graph, struct options option)
         mask = get_cpu_cluster_mask(option.cluster);
     }
 
-    int count = get_mask_count(mask);
+    int count = get_cpu_mask_count(mask);
     if (0 < option.num_thread && count > option.num_thread)
     {
         count = option.num_thread;
@@ -537,7 +531,7 @@ int prerun_graph_multithread(graph_t graph, struct options option)
     opt->num_thread   = count;
     opt->cluster      = TENGINE_CLUSTER_BIG;
     opt->precision    = precision;
-    opt->affinity     = mask;
+    opt->affinity     = option.affinity;
 
     struct scheduler* scheduler = ctx->scheduler;
     ret = scheduler->prerun(scheduler, ir_graph);
@@ -558,6 +552,14 @@ int prerun_graph_multithread(graph_t graph, struct options option)
     {
         set_cpu_affine(mask);
     }
+
+    /* dump graph */
+    const char* env = getenv(TENGINE_DUMP_GRAPH);
+    if (env && env[0] == '1')
+    {
+        set_log_level(LOG_INFO);
+        dump_ir_graph(ir_graph);
+    }        
 
     return 0;
 }

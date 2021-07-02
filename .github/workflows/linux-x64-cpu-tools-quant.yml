@@ -1,0 +1,33 @@
+name: linux-x64-cpu-tools-quant
+
+on: [push, pull_request]
+
+jobs:
+  linux-x64-cpu-tools-quant:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: update
+      run: sudo apt-get update
+    - name: opencv
+      run: sudo apt-get install libopencv-dev
+    - name: configure
+      run: mkdir build && cd build && cmake -DTENGINE_BUILD_EXAMPLES=ON -DTENGINE_BUILD_QUANT_TOOL=ON ..
+    - name: build
+      run: cmake --build build -j 2
+    - name: depends
+      run: |
+        cd build
+        git clone https://github.com/BUG1989/tengine_test_data.git
+        cp ./tengine_test_data/mobilenet.tmfile ./
+        cp -rf ./tengine_test_data/dataset ./
+        wget ftp://219.139.34.182/tengine/ci_test/images.zip
+        unzip images.zip
+    - name: quant-tools-test
+      run: |
+        cd build
+        ./tools/quantize/quant_tool_uint8 -m mobilenet.tmfile -o mobilenet_uint8.tmfile -i ./dataset -g 3,224,224 -s 0.017,0.017,0.017 -c 1
+    - name: uint8-model-test
+      run: |
+        cd build
+        ./examples/tm_classification_uint8 -m mobilenet_uint8.tmfile -i images/cat.jpg -g 224,224 -s 0.017,0.017,0.017

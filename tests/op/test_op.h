@@ -1,6 +1,7 @@
 #ifndef __TEST_COMMON_H__
 #define __TEST_COMMON_H__
 
+#include <vector>
 #include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -257,9 +258,8 @@ int create_node(graph_t graph, const char* node_name, int n, int c, int h, int w
 }
 
 
-int create_input_node(graph_t graph, const char* node_name, int data_type, int layout, int n, int c, int h, int w)
+int create_input_node(graph_t graph, const char* node_name, int data_type, int layout, int n, int c, int h, int w, int dims_count = 4)
 {
-    int dims_count = 4;
     if (0 == n) dims_count = 3;
     if (0 == c) dims_count = 2;
     if (0 == h) dims_count = 1;
@@ -339,6 +339,22 @@ int create_input_node(graph_t graph, const char* node_name, int data_type, int l
             if (TENGINE_LAYOUT_NHWC == layout)
             {
                 int dims_array[4] = { n, h, w, c };
+                set_tensor_shape(tensor, dims_array, dims_count);
+                break;
+            }
+        }
+        case 5:
+        {
+            if (TENGINE_LAYOUT_NCHW == layout)
+            {
+                int dims_array[5] = {1, n, c, h, w };
+                set_tensor_shape(tensor, dims_array, dims_count);
+                break;
+            }
+
+            if (TENGINE_LAYOUT_NHWC == layout)
+            {
+                int dims_array[5] = {1, n, h, w, c };
                 set_tensor_shape(tensor, dims_array, dims_count);
                 break;
             }
@@ -564,7 +580,7 @@ void test_graph_release(graph_t graph)
 }
 
 
-graph_t create_common_test_graph(const char* test_node_name, int data_type, int layout, int n, int c, int h, int w, common_test test_func)
+graph_t create_common_test_graph(const char* test_node_name, int data_type, int layout, int n, int c, int h, int w, common_test test_func, int dims_num = 4)
 {
     graph_t graph = create_graph(NULL, NULL, NULL);
     if(NULL == graph)
@@ -580,7 +596,7 @@ graph_t create_common_test_graph(const char* test_node_name, int data_type, int 
     }
 
     const char* input_name = "input_node";
-    if(create_input_node(graph, input_name, data_type, layout, n, c, h, w) < 0)
+    if(create_input_node(graph, input_name, data_type, layout, n, c, h, w, dims_num) < 0)
     {
         fprintf(stderr, "create input node failed.\n");
         return NULL;
@@ -612,11 +628,11 @@ graph_t create_common_test_graph(const char* test_node_name, int data_type, int 
 }
 
 
-graph_t create_timvx_test_graph(const char* test_node_name, int data_type, int layout, int n, int c, int h, int w, common_test test_func)
+graph_t create_timvx_test_graph(const char* test_node_name, int data_type, int layout, int n, int c, int h, int w, common_test test_func, int dims_num = 4)
 {
     /* create VeriSilicon TIM-VX backend */
     context_t timvx_context = create_context("timvx", 1);
-    int rtt = add_context_device(timvx_context, "TIMVX");
+    int rtt = set_context_device(timvx_context, "TIMVX", NULL, 0);
     if (0 > rtt)
     {
         fprintf(stderr, " add_context_device VSI DEVICE failed.\n");
@@ -637,7 +653,7 @@ graph_t create_timvx_test_graph(const char* test_node_name, int data_type, int l
     }
 
     const char* input_name = "input_node";
-    if(create_input_node(graph, input_name, data_type, layout, n, c, h, w) < 0)
+    if(create_input_node(graph, input_name, data_type, layout, n, c, h, w, dims_num) < 0)
     {
         fprintf(stderr, "create input node failed.\n");
         return NULL;
@@ -668,6 +684,108 @@ graph_t create_timvx_test_graph(const char* test_node_name, int data_type, int l
     return graph;
 }
 
+graph_t create_tensorrt_test_graph(const char* test_node_name, int data_type, int layout, int n, int c, int h, int w, common_test test_func, int dims_num = 4)
+{
+    /* create VeriSilicon TIM-VX backend */
+    context_t timvx_context = create_context("tensorrt", 1);
+    int rtt = set_context_device(timvx_context, "TensorRT", NULL, 0);
+    if (0 > rtt)
+    {
+        fprintf(stderr, " add_context_device VSI DEVICE failed.\n");
+        return NULL;
+    }
+
+    graph_t graph = create_graph(timvx_context, NULL, NULL);
+    if(NULL == graph)
+    {
+        fprintf(stderr, "get graph failed.\n");
+        return NULL;
+    }
+
+    if(set_graph_layout(graph, layout) < 0)
+    {
+        fprintf(stderr, "set layout failed.\n");
+        return NULL;
+    }
+
+    const char* input_name = "input_node";
+    if(create_input_node(graph, input_name, data_type, layout, n, c, h, w, dims_num) < 0)
+    {
+        fprintf(stderr, "create input node failed.\n");
+        return NULL;
+    }
+
+    if(test_func(graph, input_name, test_node_name, data_type, layout, n, c, h ,w) < 0)
+    {
+        fprintf(stderr, "create test node failed.\n");
+        return NULL;
+    }
+
+    /* set input/output node */
+    const char* inputs[] = {input_name};
+    const char* outputs[] = {test_node_name};
+
+    if(set_graph_input_node(graph, inputs, sizeof(inputs) / sizeof(char*)) < 0)
+    {
+        fprintf(stderr, "set inputs failed.\n");
+        return NULL;
+    }
+
+    if(set_graph_output_node(graph, outputs, sizeof(outputs) / sizeof(char*)) < 0)
+    {
+        fprintf(stderr, "set outputs failed.\n");
+        return NULL;
+    }
+
+    return graph;
+}
+
+graph_t create_cpu_test_graph(const char* test_node_name, int data_type, int layout, int n, int c, int h, int w, common_test test_func, int dims_num = 4)
+{
+    graph_t graph = create_graph(NULL, NULL, NULL);
+    if(NULL == graph)
+    {
+        fprintf(stderr, "get graph failed.\n");
+        return NULL;
+    }
+
+    if(set_graph_layout(graph, layout) < 0)
+    {
+        fprintf(stderr, "set layout failed.\n");
+        return NULL;
+    }
+
+    const char* input_name = "input_node";
+    if(create_input_node(graph, input_name, data_type, layout, n, c, h, w, dims_num) < 0)
+    {
+        fprintf(stderr, "create input node failed.\n");
+        return NULL;
+    }
+
+    if(test_func(graph, input_name, test_node_name, data_type, layout, n, c, h ,w) < 0)
+    {
+        fprintf(stderr, "create test node failed.\n");
+        return NULL;
+    }
+
+    /* set input/output node */
+    const char* inputs[] = {input_name};
+    const char* outputs[] = {test_node_name};
+
+    if(set_graph_input_node(graph, inputs, sizeof(inputs) / sizeof(char*)) < 0)
+    {
+        fprintf(stderr, "set inputs failed.\n");
+        return NULL;
+    }
+
+    if(set_graph_output_node(graph, outputs, sizeof(outputs) / sizeof(char*)) < 0)
+    {
+        fprintf(stderr, "set outputs failed.\n");
+        return NULL;
+    }
+
+    return graph;
+}
 
 int compare_tensor(tensor_t a, tensor_t b)
 {

@@ -174,6 +174,7 @@ static int init_op(ir_op_t* op)
     slice_param->iscaffe = 0;
     slice_param->ismxnet = 0;
     slice_param->isonnx = 0;
+    slice_param->step = 1;
 
     op->param_mem = slice_param;
     op->param_size = sizeof(struct slice_param);

@@ -124,3 +124,5 @@
 #define OP_WHERE_NAME                               "Where"
 #define OP_SOFTPLUS_NAME                            "Softplus"
 #define OP_RECIPROCAL_NAME                          "Reciprocal"
+#define OP_SPATIALTRANSFORMER_NAME                  "SpatialTransformer"
+#define OP_EXPAND_NAME                              "Expand"

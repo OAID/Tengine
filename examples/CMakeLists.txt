@@ -42,6 +42,9 @@ FUNCTION (TENGINE_EXAMPLE name file)
     ENDIF()
 
     INSTALL (TARGETS ${name} DESTINATION bin)
+
+    # add to a virtual project group
+    SET_PROPERTY(TARGET ${name} PROPERTY FOLDER "examples")
 ENDFUNCTION()
 
 # add c++ api examples
@@ -54,29 +57,44 @@ ENDIF()
 TENGINE_EXAMPLE (tm_classification           tm_classification.c)
 TENGINE_EXAMPLE (tm_classification_int8      tm_classification_int8.c)
 TENGINE_EXAMPLE (tm_classification_uint8     tm_classification_uint8.c)
-TENGINE_EXAMPLE (tm_classification_vulkan    tm_classification_vulkan.c)
-TENGINE_EXAMPLE (tm_classification_acl       tm_classification_acl.c)
-TENGINE_EXAMPLE (tm_classification_timvx     tm_classification_timvx.c)
-TENGINE_EXAMPLE (tm_classification_trt       tm_classification_trt.cpp)
-TENGINE_EXAMPLE (tm_classification_cuda      tm_classification_cuda.cpp)
+TENGINE_EXAMPLE (tm_efficientdet             tm_efficientdet.c)
+TENGINE_EXAMPLE (tm_efficientdet_uint8       tm_efficientdet_uint8.c)
 TENGINE_EXAMPLE (tm_mobilenet_ssd            tm_mobilenet_ssd.c)
 TENGINE_EXAMPLE (tm_mobilenet_ssd_uint8      tm_mobilenet_ssd_uint8.cpp)
-TENGINE_EXAMPLE (tm_mobilenet_ssd_acl        tm_mobilenet_ssd_acl.c)
 TENGINE_EXAMPLE (tm_retinaface               tm_retinaface.cpp)
-TENGINE_EXAMPLE (tm_yolov3                   tm_yolov3.cpp)
-TENGINE_EXAMPLE (tm_yolov3_tiny              tm_yolov3_tiny.cpp)
-TENGINE_EXAMPLE (tm_yolov3_uint8             tm_yolov3_uint8.cpp)
 TENGINE_EXAMPLE (tm_landmark                 tm_landmark.cpp)
 TENGINE_EXAMPLE (tm_landmark_uint8           tm_landmark_uint8.cpp)
-TENGINE_EXAMPLE (tm_landmark_timvx           tm_landmark_timvx.cpp)
 TENGINE_EXAMPLE (tm_mobilefacenet            tm_mobilefacenet.cpp)
 TENGINE_EXAMPLE (tm_mobilefacenet_uint8      tm_mobilefacenet_uint8.cpp)
-TENGINE_EXAMPLE (tm_yolov4                   tm_yolov4.cpp)
 TENGINE_EXAMPLE (tm_yolov5                   tm_yolov5.cpp)
 TENGINE_EXAMPLE (tm_yolofastest              tm_yolofastest.cpp)
 TENGINE_EXAMPLE (tm_ultraface                tm_ultraface.cpp)
 
-IF (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM" AND TENGINE_TARGET_PROCESSOR_64Bit)
+
+
+IF(TENGINE_ENABLE_ACL)
+    TENGINE_EXAMPLE (tm_classification_acl       tm_classification_acl.c)
+    TENGINE_EXAMPLE (tm_mobilenet_ssd_acl        tm_mobilenet_ssd_acl.c)
+ENDIF()
+
+IF(TENGINE_ENABLE_CUDA)
+    TENGINE_EXAMPLE (tm_classification_cuda      tm_classification_cuda.cpp)
+ENDIF()
+
+IF(TENGINE_ENABLE_TENSORRT)
+    TENGINE_EXAMPLE (tm_classification_trt       tm_classification_trt.cpp)
+ENDIF()
+
+IF(TENGINE_ENABLE_TIM_VX)
+    TENGINE_EXAMPLE (tm_classification_timvx     tm_classification_timvx.c)
+    TENGINE_EXAMPLE (tm_landmark_timvx           tm_landmark_timvx.cpp)
+ENDIF()
+
+IF(TENGINE_ENABLE_VULKAN)
+    TENGINE_EXAMPLE (tm_classification_vulkan       tm_classification_vulkan.c)
+ENDIF()
+
+IF (TENGINE_ARCH_ARM_82)
     TENGINE_EXAMPLE (tm_classification_fp16      tm_classification_fp16.c)
 ENDIF()
 
@@ -85,7 +103,7 @@ ENDIF()
 # set(OpenCV_DIR /mnt/d/ubuntu/opencv_install/linux-armv7/lib/cmake/opencv4)
 FIND_PACKAGE(OpenCV QUIET)
 
-IF (OpenCV_FOUND AND ${TENGINE_TARGET_PROCESSOR} MATCHES "X86")
+IF (OpenCV_FOUND)
     # macro for adding examples
     FUNCTION (TENGINE_EXAMPLE_CV name file)
         ADD_EXECUTABLE (${name} "${CMAKE_CURRENT_SOURCE_DIR}/${file}" "${CMAKE_CURRENT_SOURCE_DIR}/common/tengine_operations.c")
@@ -96,36 +114,34 @@ IF (OpenCV_FOUND AND ${TENGINE_TARGET_PROCESSOR} MATCHES "X86")
 
         TARGET_LINK_LIBRARIES (${name} ${CMAKE_PROJECT_NAME} ${OpenCV_LIBS})
         INSTALL (TARGETS ${name} DESTINATION bin)
+
+        # add to a virtual project group
+        SET_PROPERTY(TARGET ${name} PROPERTY FOLDER "examples")
     ENDFUNCTION()
 
     TENGINE_EXAMPLE_CV (tm_openpose              tm_openpose.cpp)
     TENGINE_EXAMPLE_CV (tm_yolact                tm_yolact.cpp)
+    TENGINE_EXAMPLE_CV (tm_yolact_uint8          tm_yolact_uint8.cpp)
     TENGINE_EXAMPLE_CV (tm_crnn                  tm_crnn.cpp)
     TENGINE_EXAMPLE_CV (tm_alphapose             tm_alphapose.cpp)
+    TENGINE_EXAMPLE_CV (tm_yolov3                tm_yolov3.cpp)
+    TENGINE_EXAMPLE_CV (tm_yolov3_uint8          tm_yolov3_uint8.cpp)
+    TENGINE_EXAMPLE_CV (tm_yolov3_tiny           tm_yolov3_tiny.cpp)
+    TENGINE_EXAMPLE_CV (tm_yolov3_tiny_uint8     tm_yolov3_tiny_uint8.cpp)
+    TENGINE_EXAMPLE_CV (tm_yolov4                tm_yolov4.cpp)
+    TENGINE_EXAMPLE_CV (tm_yolov4_uint8          tm_yolov4_uint8.cpp)
     TENGINE_EXAMPLE_CV (tm_yolov4_tiny           tm_yolov4_tiny.cpp)
-    TENGINE_EXAMPLE_CV (tm_yolov4_tiny_timvx     tm_yolov4_tiny_timvx.cpp)
+    TENGINE_EXAMPLE_CV (tm_yolov4_tiny_uint8     tm_yolov4_tiny_uint8.cpp)
     TENGINE_EXAMPLE_CV (tm_yolov5s               tm_yolov5s.cpp)
-    TENGINE_EXAMPLE_CV (tm_yolov5s_timvx         tm_yolov5s_timvx.cpp)
     TENGINE_EXAMPLE_CV (tm_unet                  tm_unet.cpp)
+    TENGINE_EXAMPLE_CV (tm_hrnet                 tm_hrnet.cpp)
+    TENGINE_EXAMPLE_CV (tm_nanodet_m             tm_nanodet_m.cpp)
+    IF(TENGINE_ENABLE_TIM_VX)
+        TENGINE_EXAMPLE_CV (tm_yolov4_tiny_timvx     tm_yolov4_tiny_timvx.cpp)
+        TENGINE_EXAMPLE_CV (tm_yolov5s_timvx         tm_yolov5s_timvx.cpp)
+        TENGINE_EXAMPLE_CV (tm_hrnet_timvx           tm_hrnet_timvx.cpp)
+        TENGINE_EXAMPLE_CV (tm_nanodet_m_timvx       tm_nanodet_m_timvx.cpp)
+    ENDIF()
 ELSE()
     MESSAGE (WARNING "OpenCV not found, some examples won't be built")
 ENDIF()
-
-#if (TENGINE_ENABLE_NNIE)
-#    function (tengine_nnie_example name file)
-#        add_executable(${name}
-#                    "${CMAKE_CURRENT_SOURCE_DIR}/${file}"
-#                    "${CMAKE_CURRENT_SOURCE_DIR}/common/tengine_operations.c")
-#
-#        target_link_libraries(${name} PRIVATE ${CMAKE_PROJECT_NAME})
-#
-#        include_directories("${PROJECT_SOURCE_DIR}/src/dev/nnie/include")
-#        include_directories("${PROJECT_SOURCE_DIR}/src/dev/nnie/common")
-#        include_directories("${PROJECT_SOURCE_DIR}/3rdparty/nnie/include")
-#
-#        install (TARGETS ${name} DESTINATION bin)
-#    endfunction()
-#
-#    # add c api examples
-#    tengine_nnie_example(tm_yolov3_nnie             tm_yolov3_nnie.cpp)
-#endif()

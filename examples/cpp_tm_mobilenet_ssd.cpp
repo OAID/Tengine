@@ -93,7 +93,7 @@ void post_process_ssd(const string image_file, float threshold, const float* out
         draw_box(im, box.x0, box.y0, box.x1, box.y1, 2, 125, 0, 125);
     }
 
-    save_image(im, "tengine_example_out");
+    save_image(im, "mobilenet_ssd_out");
     free_image(im);
     fprintf(stderr, "======================================\n");
     fprintf(stderr, "[DETECTED IMAGE SAVED]:\n");

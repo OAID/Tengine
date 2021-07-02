@@ -20,8 +20,9 @@
 /*
  * Copyright (c) 2021, OPEN AI LAB
  * Author: xwwang@openailab.com
- *
  * Author: stevenwudi@fiture.com
+ * 
+ * original model: https://github.com/ultralytics/yolov5
  */
 
 #include <vector>
@@ -161,7 +162,7 @@ static void generate_proposals(int stride,  const float* feat, float prob_thresh
                 float class_score = -FLT_MAX;
                 for (int s = 0; s <= cls_num - 1; s++)
                 {
-                    float score = feat[a * feat_w * feat_h * 85 + h * feat_w * 85 + w * 85 + s + 5];
+                    float score = feat[a * feat_w * feat_h * (cls_num + 5) + h * feat_w * (cls_num + 5) + w * (cls_num + 5) + s + 5];
                     if(score > class_score)
                     {
                         class_index = s;
@@ -169,11 +170,11 @@ static void generate_proposals(int stride,  const float* feat, float prob_thresh
                     }
                 }
                 //process box score
-                float box_score = feat[a * feat_w * feat_h * 85 + (h * feat_w) * 85 + w * 85 + 4];
+                float box_score = feat[a * feat_w * feat_h * (cls_num + 5) + (h * feat_w) * (cls_num + 5) + w * (cls_num + 5) + 4];
                 float final_score = sigmoid(box_score ) * sigmoid(class_score);
                 if (final_score >= prob_threshold)
                 {
-                    int loc_idx = a * feat_h * feat_w * 85 + h * feat_w * 85 + w * 85;
+                    int loc_idx = a * feat_h * feat_w * (cls_num + 5) + h * feat_w * (cls_num + 5) + w * (cls_num + 5);
                     float dx = sigmoid(feat[loc_idx + 0]);
                     float dy = sigmoid(feat[loc_idx + 1]);
                     float dw = sigmoid(feat[loc_idx + 2]);
@@ -248,7 +249,7 @@ static void draw_objects(const cv::Mat& bgr, const std::vector<Object>& objects)
                     cv::Scalar(0, 0, 0));
     }
 
-    cv::imwrite("yolov5_out.jpg", image);
+    cv::imwrite("yolov5s_out.jpg", image);
 }
 
 void show_usage()
@@ -293,7 +294,7 @@ void get_input_data_focus(const char* image_file, float* input_data, int letterb
 
     img_new.convertTo(img_new, CV_32FC3);
     float* img_data   = (float* )img_new.data;
-    float* input_temp = (float* )malloc(3 * letterbox_cols * letterbox_rows * sizeof(float));
+    std::vector<float> input_temp(3 * letterbox_cols * letterbox_rows);
 
     /* nhwc to nchw */
     for (int h = 0; h < letterbox_rows; h++)
@@ -335,8 +336,6 @@ void get_input_data_focus(const char* image_file, float* input_data, int letterb
             }
         }
     }
-
-    free(input_temp);
 }
 
 
@@ -431,7 +430,7 @@ int main(int argc, char* argv[])
 
     int img_size = letterbox_rows * letterbox_cols * img_c;
     int dims[] = {1, 12, int(letterbox_rows / 2), int(letterbox_cols / 2)};
-    float* input_data = ( float* )malloc(img_size * sizeof(float));
+    std::vector<float> input_data(img_size);
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == nullptr)
@@ -446,7 +445,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    if (set_tensor_buffer(input_tensor, input_data, img_size * 4) < 0)
+    if (set_tensor_buffer(input_tensor, input_data.data(), img_size * 4) < 0)
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;
@@ -460,7 +459,7 @@ int main(int argc, char* argv[])
     }
 
     /* prepare process input data, set the data mem to input tensor */
-    get_input_data_focus(image_file, input_data, letterbox_rows, letterbox_cols, mean, scale);
+    get_input_data_focus(image_file, input_data.data(), letterbox_rows, letterbox_cols, mean, scale);
 
     /* run graph */
     double min_time = DBL_MAX;
