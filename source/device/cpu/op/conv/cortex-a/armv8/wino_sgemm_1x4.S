@@ -32,10 +32,11 @@
 
     .section .text,"ax"
     .align 5
-
-    .type wino_sgemm_1x4 STT_FUNC
     .global wino_sgemm_1x4
+    #ifdef __linux__
+    .type wino_sgemm_1x4 STT_FUNC
     .hidden wino_sgemm_1x4
+    #endif
     
 wino_sgemm_1x4:
     // bring some code ahead to reduce dependency

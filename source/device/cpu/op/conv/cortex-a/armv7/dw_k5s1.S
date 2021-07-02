@@ -55,7 +55,9 @@
     .align 5
     .type KERNEL_NAME STT_FUNC
     .global KERNEL_NAME
-    .hidden KERNEL_NAME
+#ifdef __linux__
+.hidden KERNEL_NAME
+#endif
 KERNEL_NAME:
 	push		{r4 - r12, lr}
 	vpush		{d8 - d15}

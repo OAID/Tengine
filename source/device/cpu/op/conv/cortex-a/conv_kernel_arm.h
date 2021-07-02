@@ -51,7 +51,7 @@ int conv_hcl_set_shared_mem(struct conv_priv_info* priv_info, void* mem, int mem
 int conv_hcl_set_shared_pack4_mem(struct conv_priv_info* priv_info, void* mem, int mem_size);
 
 /* fp16 */
-#if __ARM_FEATURE_FP16_VECTOR_ARITHMETIC
+#if __ARM_FEATURE_FP16_VECTOR_ARITHMETIC && __TENGINE_ARCH_ARM_82__
 int fp16_conv_hcl_prerun(struct tensor*  input_tensor,
                     struct tensor*  filter_tensor,
                     struct tensor*  output_tensor,

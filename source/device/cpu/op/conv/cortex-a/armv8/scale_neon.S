@@ -27,8 +27,10 @@
 .text
 .align 5
 .global scale_neon
+#ifdef __linux__
 .hidden scale_neon
 .type   scale_neon, %function
+#endif
 
 scale_neon:
 
@@ -134,8 +136,10 @@ channel_done:
 
 //scale_neon_bias
 .global scale_neon_bias
+#ifdef __linux__
 .hidden scale_neon_bias
 .type   scale_neon_bias, %function
+#endif
 
 scale_neon_bias:
    //x0 input 

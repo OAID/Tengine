@@ -65,10 +65,11 @@
 
         .section .text,"ax"
         .align 5
-
+		.global sgemv_1x8_a72
+		#ifndef __APPLE__
         .type sgemv_1x8_a72 STT_FUNC
-        .global sgemv_1x8_a72
         .hidden sgemv_1x8_a72
+		#endif
 sgemv_1x8_a72:
 // initial
 	cmp	x3, 0x4

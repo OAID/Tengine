@@ -32,10 +32,11 @@
 
     .section .text,"ax"
     .align 5
-
-    .type tran_out_4 STT_FUNC
     .global tran_out_4
+    #ifdef __linux__
+    .type tran_out_4 STT_FUNC
     .hidden tran_out_4
+    #endif
     
 tran_out_4:
     sub	sp, sp, 0x40

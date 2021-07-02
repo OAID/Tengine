@@ -33,11 +33,11 @@
 
     .section .text,"ax"
     .align 5
-
+	.global wino_sgemm_4x4_A72
+	#ifdef __linux__
     .type wino_sgemm_4x4_A72 STT_FUNC
-    .global wino_sgemm_4x4_A72
     .hidden wino_sgemm_4x4_A72
-    
+    #endif
 wino_sgemm_4x4_A72:
 	cmp	x3, 0x4
 

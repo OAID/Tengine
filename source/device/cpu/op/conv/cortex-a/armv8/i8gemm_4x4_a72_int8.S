@@ -89,10 +89,13 @@
 
         .section .text,"ax"
         .align 5
-
+        #ifdef __linux__
         .type i8gemm_4x4_a72_int8 STT_FUNC
+        #endif
         .global i8gemm_4x4_a72_int8
+        #ifdef __linux__
         .hidden i8gemm_4x4_a72_int8
+        #endif
 i8gemm_4x4_a72_int8:
     // initial
     ldr q0, [x1]        // i3, i2, i1, i0

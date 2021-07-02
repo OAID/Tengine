@@ -75,9 +75,13 @@
 
     .section .text, "ax"
     .align 5
+    #ifdef __linux__
     .type KERNEL_NAME STT_FUNC
+    #endif
     .global KERNEL_NAME
+    #ifdef __linux__
     .hidden KERNEL_NAME
+    #endif
 KERNEL_NAME:
     // context save & load parameter
 	sub	sp, sp, 0x40

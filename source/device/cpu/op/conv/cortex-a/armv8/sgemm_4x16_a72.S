@@ -95,10 +95,11 @@
 
     .section .text,"ax"
     .align 5
-
-    .type sgemm_4x16_a72 STT_FUNC
     .global sgemm_4x16_a72
+    #ifdef __linux__
+    .type sgemm_4x16_a72 STT_FUNC
     .hidden sgemm_4x16_a72
+    #endif
 sgemm_4x16_a72:
     // bring some code ahead to reduce dependency
     prfm    pldl1keep, [x1]

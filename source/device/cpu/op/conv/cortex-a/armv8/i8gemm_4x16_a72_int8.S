@@ -103,10 +103,11 @@
 
         .section .text,"ax"
         .align 5
-
-        .type i8gemm_4x16_a72_int8 STT_FUNC
         .global i8gemm_4x16_a72_int8
+        #ifdef __linux__
+        .type i8gemm_4x16_a72_int8 STT_FUNC
         .hidden i8gemm_4x16_a72_int8
+        #endif
 i8gemm_4x16_a72_int8:
     // initial
     prfm    pldl1keep, [x1]         // preload input data

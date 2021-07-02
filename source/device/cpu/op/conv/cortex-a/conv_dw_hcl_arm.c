@@ -38,7 +38,7 @@
 
 #include <string.h>
 
-#if __ARM_FEATURE_FP16_VECTOR_ARITHMETIC
+#if __ARM_FEATURE_FP16_VECTOR_ARITHMETIC && __TENGINE_ARCH_ARM_82__
 #include "armv8.2/conv_dw_kernel_fp16_arm82.h"
 #endif
 
@@ -113,7 +113,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
             return -1;
         }
     }
-#if __ARM_FEATURE_FP16_VECTOR_ARITHMETIC
+#if __ARM_FEATURE_FP16_VECTOR_ARITHMETIC && __TENGINE_ARCH_ARM_82__
         else if (exec_graph->mode == TENGINE_MODE_FP16)
     {
         if (conv_dw_fp16_run(input_tensor, weight_tensor, bias_tensor, output_tensor, conv_param, num_thread, cpu_affinity) < 0)
@@ -225,7 +225,7 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     int out_c = output_tensor->dims[1] / group;
 
     /* todo support uint8 */
-#if __ARM_FEATURE_FP16_VECTOR_ARITHMETIC
+#if __ARM_FEATURE_FP16_VECTOR_ARITHMETIC && __TENGINE_ARCH_ARM_82__
     if (input_tensor->data_type != TENGINE_DT_FP32 && input_tensor->data_type != TENGINE_DT_FP16)
         return 0;
 #else

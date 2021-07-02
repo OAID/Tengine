@@ -19,6 +19,10 @@ MACRO(TENGINE_CHECK_LIB_OPENMP _has_flag)
     # OpenMP_FOUND: >= 3.9
     IF(OPENMP_FOUND OR OpenMP_FOUND OR OpenMP_C_FOUND OR OpenMP_CXX_FOUND)
         SET(${_has_flag} ON)
+        IF(APPLE)
+            SET(OpenMP_C_FLAGS -Xpreprocessor -fopenmp)
+            SET(OpenMP_CXX_FLAGS -Xpreprocessor -fopenmp)
+        ENDIF()
     ENDIF()
 ENDMACRO()
 

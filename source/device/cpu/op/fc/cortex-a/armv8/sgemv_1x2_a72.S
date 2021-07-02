@@ -65,10 +65,11 @@
 
         .section .text,"ax"
         .align 5
-
+		.global sgemv_1x2_a72
+		#ifndef __APPLE__
         .type sgemv_1x2_a72 STT_FUNC
-        .global sgemv_1x2_a72
         .hidden sgemv_1x2_a72
+		#endif
 sgemv_1x2_a72:
 // initial
 	movi	d30, 0

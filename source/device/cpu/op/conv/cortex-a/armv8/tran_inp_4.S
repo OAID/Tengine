@@ -31,10 +31,11 @@
 //x5: inhw (to prefetch next channel)
     .section .text,"ax"
     .align 5
-
-    .type tran_inp_4 STT_FUNC
     .global tran_inp_4
+    #ifdef __linux__
+    .type tran_inp_4 STT_FUNC
     .hidden tran_inp_4
+    #endif
     
 tran_inp_4:
     sub	sp, sp, 0x40

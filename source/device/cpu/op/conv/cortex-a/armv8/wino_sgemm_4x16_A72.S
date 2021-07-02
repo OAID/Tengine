@@ -32,10 +32,10 @@
 
     .section .text,"ax"
     .align 5
-
+	#ifndef __APPLE__
     .type wino_sgemm_4x16_A72 STT_FUNC
-    .global wino_sgemm_4x16_A72
     .hidden wino_sgemm_4x16_A72
+	#endif
     
 wino_sgemm_4x16_A72:
 	// bring some code ahead to reduce dependency

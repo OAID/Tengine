@@ -44,10 +44,11 @@
 
         .section .text,"ax"
         .align 5
-
+		.global im2col_fp32_3x3
+		#ifdef __linux__
         .type   im2col_fp32_3x3 STT_FUNC
-        .global im2col_fp32_3x3
         .hidden im2col_fp32_3x3
+		#endif
 im2col_fp32_3x3:
 	// initial
 	cbz	x3, finish

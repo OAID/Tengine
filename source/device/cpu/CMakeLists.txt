@@ -173,8 +173,6 @@ ENDFOREACH()
 # 1.6 collect all source files to var
 # 1.6.1 collect operator for Cortex-A source files
 IF (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM")
-    LIST (APPEND _CPU_HCL_SOURCE ${_CPU_CORTEX_A_SOURCE})
-    TENGINE_SOURCE_GROUP ("device/cpu/cortex-a" ${_CPU_CORTEX_A_SOURCE} )
 
     IF (TENGINE_TARGET_PROCESSOR_32Bit)
         LIST (APPEND _CPU_HCL_SOURCE ${_CPU_CORTEX_A_V7_SOURCE})
@@ -195,6 +193,8 @@ IF (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM")
             TENGINE_SOURCE_GROUP ("device/cpu/cortex-a/armv8.2/kernel" ${_CPU_CORTEX_A_V8_2_KERNEL})
         ENDIF()
     ENDIF()
+    LIST (APPEND _CPU_HCL_SOURCE ${_CPU_CORTEX_A_SOURCE})
+    TENGINE_SOURCE_GROUP ("device/cpu/cortex-a" ${_CPU_CORTEX_A_SOURCE} )
 ENDIF()
 
 # 1.6.2 collect operator for Cortex-M source files

@@ -93,8 +93,10 @@
 .text
 .align 5
 .global KERNEL_NAME
+#ifdef __linux__
 .hidden KERNEL_NAME
 .type KERNEL_NAME, %function
+#endif
 
 KERNEL_NAME:
     sub     sp,sp,0x40

@@ -45,10 +45,11 @@
 
         .section .text,"ax"
         .align 5
-
+		.global im2col_int8_1x1
+		#ifdef __linux__
         .type   im2col_int8_1x1 STT_FUNC
-        .global im2col_int8_1x1
         .hidden im2col_int8_1x1
+		#endif
 im2col_int8_1x1:
 	cmp	    x3, 4
 	b.lt	col_end

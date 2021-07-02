@@ -73,10 +73,11 @@
 
         .section .text,"ax"
         .align 5
-
+		.global sgemm_4x4_deconv_a72
+		#ifdef __linux__
         .type sgemm_4x4_deconv_a72 STT_FUNC
-        .global sgemm_4x4_deconv_a72
         .hidden sgemm_4x4_deconv_a72
+		#endif
 sgemm_4x4_deconv_a72:
         // bring some code ahead to reduce dependency
 	prfm	pldl1keep, [x0, 0x40]

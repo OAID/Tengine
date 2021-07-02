@@ -89,10 +89,11 @@
 
         .section .text,"ax"
         .align 5
-
+		.global sgemm_4x16_deconv_a72
+		#ifdef __linux__
         .type sgemm_4x16_deconv_a72 STT_FUNC
-        .global sgemm_4x16_deconv_a72
         .hidden sgemm_4x16_deconv_a72
+		#endif
 sgemm_4x16_deconv_a72:
 	prfm	pldl1keep, [x0]
 	cmp	x2, 0x4

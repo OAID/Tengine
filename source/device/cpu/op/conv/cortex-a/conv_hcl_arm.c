@@ -92,7 +92,7 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
         }
     }
     /* fp16 prerun */
-#if __ARM_FEATURE_FP16_VECTOR_ARITHMETIC
+#if __ARM_FEATURE_FP16_VECTOR_ARITHMETIC && __TENGINE_ARCH_ARM_82__
     else if (exec_graph->mode == TENGINE_MODE_FP16)
     {
         if (fp16_conv_hcl_prerun(input_tensor, filter_tensor, output_tensor, conv_priv_info, conv_param) < 0)
@@ -162,7 +162,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         }
     }
     /* armv8.2 fp16 run */
-#if __ARM_FEATURE_FP16_VECTOR_ARITHMETIC
+#if __ARM_FEATURE_FP16_VECTOR_ARITHMETIC && __TENGINE_ARCH_ARM_82__
     else if (exec_graph->mode == TENGINE_MODE_FP16)
     {
         if (fp16_conv_hcl_run(input_tensor, weight_tensor, bias_tensor, output_tensor, conv_priv_info, conv_param, num_thread, cpu_affinity) < 0)
@@ -349,7 +349,7 @@ static int postrun(struct node_ops* node_ops, struct exec_node* exec_node, struc
         }
     }
     /* fp16 postrun */
-#if __ARM_FEATURE_FP16_VECTOR_ARITHMETIC
+#if __ARM_FEATURE_FP16_VECTOR_ARITHMETIC && __TENGINE_ARCH_ARM_82__
     else if (exec_graph->mode == TENGINE_MODE_FP16)
     {
         if (fp16_conv_hcl_postrun(conv_priv_info) < 0)
@@ -407,7 +407,7 @@ static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, str
         exec_node->shared_mem_size = conv_hcl_get_shared_mem_size(input_tensor, output_tensor, conv_param);
         exec_node->shared_pack4_mem_size = conv_hcl_get_shared_pack4_mem_size(filter_tensor, output_tensor, conv_param);
     }
-#if __ARM_FEATURE_FP16_VECTOR_ARITHMETIC
+#if __ARM_FEATURE_FP16_VECTOR_ARITHMETIC && __TENGINE_ARCH_ARM_82__
     else if (exec_graph->mode == TENGINE_MODE_FP16)
     {
         exec_node->shared_mem_size = fp16_conv_hcl_get_shared_mem_size(input_tensor, output_tensor, conv_param);
@@ -450,7 +450,7 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     int out_c = output_tensor->dims[1] / group;
 
     /* todo support int8/fp16 */
-#if __ARM_FEATURE_FP16_VECTOR_ARITHMETIC    
+#if __ARM_FEATURE_FP16_VECTOR_ARITHMETIC && __TENGINE_ARCH_ARM_82__    
     if (input_tensor->data_type != TENGINE_DT_FP32 && input_tensor->data_type != TENGINE_DT_FP16)
         return 0;
 
