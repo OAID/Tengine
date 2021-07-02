@@ -128,7 +128,6 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
     struct gather_param* gather_param = ( struct gather_param* )ir_node->op.param_mem;
     gather_param_t* op_priv_info = ( gather_param_t* )exec_node->ops_priv;
     struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    
     op_priv_info->axis = gather_param->axis;
     op_priv_info->indices_num = gather_param->indices_num;
     op_priv_info->is_onnx = gather_param->is_onnx;
