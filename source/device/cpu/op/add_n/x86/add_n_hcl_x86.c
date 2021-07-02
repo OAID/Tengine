@@ -56,17 +56,18 @@ static int ref_add_n_fp32(const float** input, float* output, int size, const st
     #if __AVX__
     int count = size % 64;
     int sse_size = size - count;
+    float** inputs = (float**)input;
     TOMP(num_thread)
     for (int i = 0; i < sse_size; i += 64)
     {
-        __m256 _sum0 = _mm256_set1_ps(input[0]+i);
-        __m256 _sum1 = _mm256_set1_ps(input[0]+i+8);
-        __m256 _sum2 = _mm256_set1_ps(input[0]+i+16);
-        __m256 _sum3 = _mm256_set1_ps(input[0]+i+24);
-        __m256 _sum4 = _mm256_set1_ps(input[0]+i+32);
-        __m256 _sum5 = _mm256_set1_ps(input[0]+i+40);
-        __m256 _sum6 = _mm256_set1_ps(input[0]+i+48);
-        __m256 _sum7 = _mm256_set1_ps(input[0]+i+56);
+        __m256 _sum0 = _mm256_set1_ps(inputs[0][i]);
+        __m256 _sum1 = _mm256_set1_ps(inputs[0][i+8]);
+        __m256 _sum2 = _mm256_set1_ps(inputs[0][i+16]);
+        __m256 _sum3 = _mm256_set1_ps(inputs[0][i+24]);
+        __m256 _sum4 = _mm256_set1_ps(inputs[0][i+32]);
+        __m256 _sum5 = _mm256_set1_ps(inputs[0][i+40]);
+        __m256 _sum6 = _mm256_set1_ps(inputs[0][i+48]);
+        __m256 _sum7 = _mm256_set1_ps(inputs[0][i+56]);
         float* output0 = output + i;
         float* output1 = output + i + 8;
         float* output2 = output + i + 16;
@@ -77,14 +78,14 @@ static int ref_add_n_fp32(const float** input, float* output, int size, const st
         float* output7 = output + i + 56;
         for (int n = 1; n < in_num; n++)
         {
-            __m256 _op0 = _mm256_set1_ps(input[n]+i);
-            __m256 _op1 = _mm256_set1_ps(input[n]+i+8);
-            __m256 _op2 = _mm256_set1_ps(input[n]+i+16);
-            __m256 _op3 = _mm256_set1_ps(input[n]+i+24);
-            __m256 _op4 = _mm256_set1_ps(input[n]+i+32);
-            __m256 _op5 = _mm256_set1_ps(input[n]+i+40);
-            __m256 _op6 = _mm256_set1_ps(input[n]+i+48);
-            __m256 _op7 = _mm256_set1_ps(input[n]+i+56);
+            __m256 _op0 = _mm256_set1_ps(inputs[n][i]);
+            __m256 _op1 = _mm256_set1_ps(inputs[n][i+8]);
+            __m256 _op2 = _mm256_set1_ps(inputs[n][i+16]);
+            __m256 _op3 = _mm256_set1_ps(inputs[n][i+24]);
+            __m256 _op4 = _mm256_set1_ps(inputs[n][i+32]);
+            __m256 _op5 = _mm256_set1_ps(inputs[n][i+40]);
+            __m256 _op6 = _mm256_set1_ps(inputs[n][i+48]);
+            __m256 _op7 = _mm256_set1_ps(inputs[n][i+56]);
             _sum0 = _mm256_add_ps(_sum0,_op0);
             _sum1 = _mm256_add_ps(_sum1,_op1);
             _sum2 = _mm256_add_ps(_sum2,_op2);
@@ -115,17 +116,18 @@ static int ref_add_n_fp32(const float** input, float* output, int size, const st
     #elif __SSE__
     int count = size % 32;
     int sse_size = size - count;
+    float** inputs = (float**)input;
     TOMP(num_thread)
     for (int i = 0; i < sse_size; i += 32)
     {
-        __m128 _sum0 = _mm_set1_ps(input[0]+i);
-        __m128 _sum1 = _mm_set1_ps(input[0]+i+4);
-        __m128 _sum2 = _mm_set1_ps(input[0]+i+8);
-        __m128 _sum3 = _mm_set1_ps(input[0]+i+12);
-        __m128 _sum4 = _mm_set1_ps(input[0]+i+16);
-        __m128 _sum5 = _mm_set1_ps(input[0]+i+20);
-        __m128 _sum6 = _mm_set1_ps(input[0]+i+24);
-        __m128 _sum7 = _mm_set1_ps(input[0]+i+28);
+        __m128 _sum0 = _mm_set1_ps(inputs[0][i]);
+        __m128 _sum1 = _mm_set1_ps(inputs[0][i+4]);
+        __m128 _sum2 = _mm_set1_ps(inputs[0][i+8]);
+        __m128 _sum3 = _mm_set1_ps(inputs[0][i+12]);
+        __m128 _sum4 = _mm_set1_ps(inputs[0][i+16]);
+        __m128 _sum5 = _mm_set1_ps(inputs[0][i+20]);
+        __m128 _sum6 = _mm_set1_ps(inputs[0][i+24]);
+        __m128 _sum7 = _mm_set1_ps(inputs[0][i+28]);
         float* output0 = output + i;
         float* output1 = output + i + 4;
         float* output2 = output + i + 8;
@@ -136,14 +138,14 @@ static int ref_add_n_fp32(const float** input, float* output, int size, const st
         float* output7 = output + i + 28;
         for (int n = 1; n < in_num; n++)
         {
-            __m128 _op0 = _mm_set1_ps(input[n]+i);
-            __m128 _op1 = _mm_set1_ps(input[n]+i+4);
-            __m128 _op2 = _mm_set1_ps(input[n]+i+8);
-            __m128 _op3 = _mm_set1_ps(input[n]+i+12);
-            __m128 _op4 = _mm_set1_ps(input[n]+i+16);
-            __m128 _op5 = _mm_set1_ps(input[n]+i+20);
-            __m128 _op6 = _mm_set1_ps(input[n]+i+24);
-            __m128 _op7 = _mm_set1_ps(input[n]+i+28);
+            __m128 _op0 = _mm_set1_ps(inputs[n]+i);
+            __m128 _op1 = _mm_set1_ps(inputs[n]+i+4);
+            __m128 _op2 = _mm_set1_ps(inputs[n]+i+8);
+            __m128 _op3 = _mm_set1_ps(inputs[n]+i+12);
+            __m128 _op4 = _mm_set1_ps(inputs[n]+i+16);
+            __m128 _op5 = _mm_set1_ps(inputs[n]+i+20);
+            __m128 _op6 = _mm_set1_ps(inputs[n]+i+24);
+            __m128 _op7 = _mm_set1_ps(inputs[n]+i+28);
             _sum0 = _mm_add_ps(_sum0,_op0);
             _sum1 = _mm_add_ps(_sum1,_op1);
             _sum2 = _mm_add_ps(_sum2,_op2);
@@ -268,3 +270,4 @@ int register_add_n_hcl_x86_op()
 int unregister_add_n_hcl_x86_op()
 {
     return unregister_builtin_node_ops(OP_ADD_N, &add_n_node_ops);
+}

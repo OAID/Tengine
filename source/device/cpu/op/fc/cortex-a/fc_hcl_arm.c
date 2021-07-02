@@ -43,7 +43,7 @@
 
 
 #if __ARM_FEATURE_FP16_VECTOR_ARITHMETIC
-#include "cortex_a/fc_kernel_fp16_arm82.h"
+#include "armv8.2/fc_kernel_fp16_arm82.h"
 #endif
 
 
