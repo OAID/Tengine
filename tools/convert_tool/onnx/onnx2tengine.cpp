@@ -255,6 +255,11 @@ int onnx_serializer::load_initializer_tensor(ir_graph_t* graph, const onnx::Grap
         }
         set_ir_tensor_shape(ir_tensor, dims, dim_num);
         ir_tensor->tensor_type = TENSOR_TYPE_CONST;
+        if (ir_tensor->dim_num == 0)
+        {
+            ir_tensor->dim_num = 1;
+            ir_tensor->dims[0] = 1;
+        }
         
         if (onnx_tensor.has_raw_data())
         {
@@ -395,7 +400,9 @@ int onnx_serializer::load_graph_node(ir_graph_t* graph, const onnx::GraphProto& 
         const std::string& op_name = onnx_node.op_type();
         if (op_name == "Constant")
             continue;
-        const std::string node_name = onnx_node.name();
+        std::string node_name = onnx_node.name();
+        if (node_name.empty())
+            node_name = std::to_string(i);
         ir_node_t* ir_node = create_ir_node(graph, node_name.c_str(), op_load_map[op_name].first, OP_VERSION);
         if (ir_node == NULL)
             return -1;
@@ -409,40 +416,8 @@ int onnx_serializer::load_graph_node(ir_graph_t* graph, const onnx::GraphProto& 
             }
             int tensor_id = get_ir_tensor_index_from_name(graph, input_name.c_str());
             ir_tensor_t* tensor = get_ir_graph_tensor(graph, tensor_id);        
-            if(tensor_check[tensor->name] != 0)   // Already in tensor list
-            {
-                if(tensor->dim_num == 1){
-                    if(tensor->data == NULL){
-                        continue;
-                    }
-                }
-                if(tensor->dim_num == 0){
-                    set_ir_node_input_tensor(ir_node, j, tensor);
-                    continue;
-                }
-                
-                std::string new_tensor_name  = input_name + "_" + std::to_string(tensor_check[input_name]);
-                ir_tensor_t* new_ir_tensor = create_ir_tensor(graph, new_tensor_name.c_str(), TENGINE_DT_FP32);
-                int* dims = tensor->dims;
-                int dim_num = tensor->dim_num;
-                set_ir_tensor_shape(new_ir_tensor, dims, dim_num);
-                int ct = 1;
-                for (int n = 0; n < dim_num; n++)
-                {
-                    ct *= dims[n];
-                }
-                uint8_t* mem_buf = (uint8_t*)tensor->data;
-                uint8_t* new_buf = (uint8_t*)new_ir_tensor->data;
-                new_buf = (uint8_t*)malloc(sizeof(uint8_t)*ct);
-                for (int j = 0; j < ct; j++)
-                    new_buf[j] = mem_buf[j];      
-                set_ir_node_input_tensor(ir_node, j, new_ir_tensor);          
-            }
-            else
-            {
-                tensor_check[tensor->name] = tensor_check[tensor->name] + 1;
-                set_ir_node_input_tensor(ir_node, j, tensor);
-            }
+            tensor_check[tensor->name] = tensor_check[tensor->name] + 1;
+            set_ir_node_input_tensor(ir_node, j, tensor);
         }
 
         for (int j = 0; j < onnx_node.output_size(); j++)
@@ -795,31 +770,9 @@ int load_eltwise(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx
     if (op_name == "Add")
         eltwise_param->type = ELT_SUM;
     else if (op_name == "Mul")
-    {
         eltwise_param->type = ELT_PROD;
-        for(int i = 0; i < onnx_node.input().size(); ++i)
-        {
-            ir_tensor_t* tensor = find_tensor(graph, onnx_node.input(i));
-            if(tensor->dim_num == 0)
-            {
-                tensor->dim_num = 1;
-                tensor->dims[0] = 1;
-            }
-        }
-    }
     else if (op_name == "Div")
-    {
         eltwise_param->type = ELT_DIV;
-        for(int i = 0; i < onnx_node.input().size(); ++i)
-        {
-            ir_tensor_t* tensor = find_tensor(graph, onnx_node.input(i));
-            if(tensor->dim_num == 0)
-            {
-                tensor->dim_num = 1;
-                tensor->dims[0] = 1;
-            }
-        }
-    }
     else if (op_name == "Floor")
         eltwise_param->type = ELT_FLOOR;
     else if (op_name == "Exp")
@@ -866,6 +819,16 @@ int load_clip(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_no
         {
             clip_param->min = attr.f();
         }
+    }
+    if (node->input_num == 3)
+    {
+        ir_tensor_t* min = find_tensor(graph, onnx_node.input(1));
+        ir_tensor_t* max = find_tensor(graph, onnx_node.input(2));
+        float* min_data = (float*)min->data;
+        float* max_data = (float*)max->data;
+        clip_param->min = min_data[0];
+        clip_param->max = max_data[0];
+        node->input_num = 1;
     }
 
     return 0;
@@ -1858,6 +1821,7 @@ void onnx_serializer::register_op_load()
     op_load_map["Div"]                   = std::pair<int, op_load_t>(OP_ELTWISE,      load_eltwise);
     op_load_map["Elu"]                   = std::pair<int, op_load_t>(OP_ELU,          load_elu);
     op_load_map["Exp"]                   = std::pair<int, op_load_t>(OP_ELTWISE,      load_eltwise);
+    op_load_map["Expand"]                = std::pair<int, op_load_t>(OP_EXPAND,       load_expand);
     op_load_map["Equal"]                 = std::pair<int, op_load_t>(OP_COMPARISON,   load_comparison);
     op_load_map["Flatten"]               = std::pair<int, op_load_t>(OP_FLATTEN,      load_flatten);
     op_load_map["Floor"]                 = std::pair<int, op_load_t>(OP_ELTWISE,      load_eltwise);
@@ -1915,7 +1879,6 @@ void onnx_serializer::register_op_load()
     op_load_map["Upsample"]              = std::pair<int, op_load_t>(OP_INTERP,       load_interp);
     op_load_map["Unsqueeze"]             = std::pair<int, op_load_t>(OP_UNSQUEEZE,    load_unsqueeze);
     op_load_map["Where"]                 = std::pair<int, op_load_t>(OP_WHERE,        load_no_param);
-    op_load_map["Expand"]                = std::pair<int, op_load_t>(OP_EXPAND,       load_expand);
 }
 /*
 *   OPERAOTR REGISTER FUNCTION DEFINE FOR ONNX SERIALIZER END

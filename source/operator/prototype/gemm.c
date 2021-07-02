@@ -67,6 +67,11 @@ static int init_op(struct op* op)
     {
         return -1;
     }
+    
+    /*set the param default value */
+    gemm_param->transA = 0;
+    gemm_param->transB = 0;
+
     op->param_mem = gemm_param;
     op->param_size = sizeof(struct gemm_param);
     op->same_shape = 0;
