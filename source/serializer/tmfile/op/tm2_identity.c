@@ -46,23 +46,18 @@ static int tm2_load_identity(struct graph* ir_graph, struct node* ir_node, const
 int register_tm2_identity_op()
 {
     struct serializer* tm2_s = find_serializer_via_name("tengine");
-
     if (tm2_s == NULL)
     {
         TLOG_ERR("tengine serializer has not been registered yet\n");
         return -1;
     }
-
     tm2_s->register_op_loader(tm2_s, TM2_OPTYPE_IDENTITY, 1, tm2_load_identity, identity_op_map, NULL);
-
     return 0;
 }
 
 int unregister_tm2_identity_op()
 {
     struct serializer* tm2_s = find_serializer_via_name("tengine");
-
     tm2_s->unregister_op_loader(tm2_s, TM2_OPTYPE_IDENTITY, 1, tm2_load_identity);
-
     return 0;
 }

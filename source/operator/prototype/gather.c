@@ -41,12 +41,11 @@ static int infer_shape(struct node* node)
     struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
     int has_param=1;
     struct gather_param* _param = ( struct gather_param* )(node->op.param_mem);
-    
-    if (_param->indices_num ==0){
+    if (_param->indices_num ==0)
+    {
         _param->indices_num=input1->elem_num;
         has_param=0;
     }
-    
     int indices_size = _param->indices_num;
     
     struct vector* new_shape_temp = create_vector(sizeof(int), NULL);
@@ -150,7 +149,6 @@ int register_gather_op()
 
     return register_op(OP_GATHER, OP_GATHER_NAME, &m);
 }
-
 
 int unregister_gather_op()
 {

@@ -72,13 +72,10 @@ static int ref_eltwise_fp32(void* output, void* input0, void* input1, int type, 
             }
             else if (input_count4 == input1_count4)
             {   
-                
                 for (int i = 0; i < input_count4; ++i)
                 {
                     *out_ptr++ = (*in0++) - (*in1++);
                 }
-                
-
             }
             else if (input_chan == input1_count4)
             {
@@ -105,10 +102,8 @@ static int ref_eltwise_fp32(void* output, void* input0, void* input1, int type, 
                             {
                                 *out_ptr++ = in1[i]-in0[j*(input_hw)+i];
                             } 
-                        
                     } 
                 }
-                
             }
             else
                 return -1;
@@ -174,11 +169,9 @@ static int ref_eltwise_fp32(void* output, void* input0, void* input1, int type, 
                     {   
                         for (int j = 0; j < input_count4; ++j){
                             *out_ptr++ = in0[i] * in1[j];
-                        }
-                        
+                        } 
                     }
                 }
-                
             }
             else if(input_count4 == 1)
             {
@@ -202,10 +195,8 @@ static int ref_eltwise_fp32(void* output, void* input0, void* input1, int type, 
                                 else 
                                 {
                                     *out_ptr++ = in1[j]*in0[j*(input_hw_1)+i];
-                                }
-                                
+                                }          
                             }
-                            
                         }
                 }
                 else 
@@ -216,11 +207,8 @@ static int ref_eltwise_fp32(void* output, void* input0, void* input1, int type, 
                             {
                             *out_ptr++ = in1[j]*in0[j*(input_hw-1)+i];
                             }
-                   
                         }
-                     
                 }
-                
             }
             else if (input_chan == input_count4){
                 for(int j = 0; j < input1_count4; j++)
@@ -829,12 +817,9 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct tensor* input_tensor0;
     struct tensor* input_tensor1 = NULL;
     struct tensor* output_tensor;
-
     input_tensor0 = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
     struct eltwise_param* eltwise_param = ( struct eltwise_param* )ir_node->op.param_mem;
-    
- 
     int layout = ir_graph->graph_layout;
     void* input0 = input_tensor0->data;
     void* input1 = NULL;

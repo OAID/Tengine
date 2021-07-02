@@ -70,14 +70,11 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         
     }
     int element_size = output_tensor->elem_size;
-    
-    
     int* dims = (int*)malloc(input_tensor->dim_num*sizeof(int));
     
     for (int i = 0; i < input_tensor->dim_num; i++)
     {
         dims[i] = input_tensor->dims[i];
-        
     }
     int dim0,dim1,dim2,dim3;
     if (input_tensor->dim_num == 4){
@@ -112,12 +109,9 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     
     param.type = reduction_param->type;
     int in_dim_num = input_tensor->dim_num;
-    
- 
     int ret = ref_reduce_fp32(( float* )input_tensor->data, ( float* )output_tensor->data, dim0, dim1, dim2, dim3,
                               out_tensor_size, &param, in_dim_num, dims);
     free(dims);
-
     return ret;
 }
 

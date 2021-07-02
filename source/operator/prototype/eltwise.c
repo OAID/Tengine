@@ -56,10 +56,8 @@ static int infer_shape(struct node* node)
     }
 
     struct tensor* input1 = get_ir_graph_tensor(graph, node->input_tensors[1]);
-    
     int i0_size = input0->elem_num;
     int i1_size = input1->elem_num;
-
     int dim_num = input0->dim_num >= input1->dim_num ? input0->dim_num:input1->dim_num;
     int* dims=(int*) malloc(sizeof(int)*dim_num);
     if (input0->dim_num>=input1->dim_num){
@@ -78,26 +76,7 @@ static int infer_shape(struct node* node)
             dims[i]=input1->dims[i];
         }
     }
-
-
-   /*  if (i0_size >= i1_size)
-    {
-        memcpy(output->dims, input0->dims, input0->dim_num * sizeof(int));
-        dim_num = input0->dim_num;
-    }
-    else
-    {
-        memcpy(output->dims, input1->dims, input1->dim_num * sizeof(int));
-        dim_num = input1->dim_num;
-    } */
-
-    /* printf("node: %s\n",node->name);
-    for (int i=0; i<dim_num; i++){
-        printf("dims: %d\n",dims[i]);
-    } */
-    
     set_ir_tensor_shape(output, dims, dim_num);
-
     return 0;
 }
 

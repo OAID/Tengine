@@ -506,14 +506,12 @@ static int load_graph_nodes(struct tm2_serializer* tm2_s, struct graph* ir_graph
         {
             break;
         }
-
         if (tm_node->offset_s_nname != TM2_NOT_SET)
         {
             const TM2_String* str = ( TM2_String* )(mem_base + tm_node->offset_s_nname);
             // TODO: update with new tm2
             ir_node->name = strdup_name(mem_base + str->offset_data, str->size);
         }
-
         /* node inputs */
         if (tm_node->offset_vi_input_tensors != TM2_NOT_SET)
         {
@@ -523,29 +521,20 @@ static int load_graph_nodes(struct tm2_serializer* tm2_s, struct graph* ir_graph
             for (int j = 0; j < v_input_tensors->v_num; j++)
             {
                 int tensor_idx = v_input_tensors->indices[j];
-
                 if (tensor_idx < 0 || tensor_idx >= ir_graph->tensor_num)
                 {
                     TLOG_ERR("invalid input tensor slot: %d idx: %d for node: %d\n", j, tensor_idx, ir_node->index);
                     break;
                 }
-
                 struct tensor* ir_tensor = get_ir_graph_tensor(ir_graph, tensor_idx);
-                
                 set_ir_node_input_tensor(ir_node, j, ir_tensor);
-                printf("ir_node: %s\n",ir_node->name);
-                printf("tensor_index: %d\n",ir_tensor->index);
-                
             }
         }
-
-
         if (tm_node->offset_vi_output_tensors == TM2_NOT_SET)
         {
             TLOG_ERR("node: %d has no output\n", ir_node->index);
             break;
         }
-
         const TM2_Vector_indices* v_output_tensors =
                 ( TM2_Vector_indices* )(mem_base + tm_node->offset_vi_output_tensors);
 

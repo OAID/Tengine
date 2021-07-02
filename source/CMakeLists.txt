@@ -441,5 +441,3 @@ INSTALL (FILES ${CMAKE_SOURCE_DIR}/source/api/c_api.h DESTINATION include/tengin
 IF (TENGINE_BUILD_CPP_API)
     INSTALL (FILES ${CMAKE_SOURCE_DIR}/source/api/cpp_api.h DESTINATION include/tengine)
 ENDIF()
-
-add_definitions("-Wall -g")

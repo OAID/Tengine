@@ -385,9 +385,6 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
             else {
                 mean_4d_ax1(dim0, dim1, dim2, dim3, data, tmp);
             }
-                
-            
-            
         }
         else if (param_dim0 == 2 && param_dim1 == -2 && param_dim2 == -2 && param_dim3 == -2)
         {
@@ -589,7 +586,6 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
         else if (param_dim0 == 2 && param_dim1 == -2 && param_dim2 == -2 && param_dim3 == -2)
         {
             asum_4d_ax2(dim0, dim1, dim2, dim3, data, tmp);
-            //mean_3d_ax2(dim0, dim1, dim2, data, tmp);
         }
         else if (param_dim0 == 3 && param_dim1 == -2 && param_dim2 == -2 && param_dim3 == -2)
         {
@@ -2306,7 +2302,7 @@ void mean_4d_ax1(int dim0, int dim1, int dim2, int dim3, float* data, float* tmp
     }
 }
 void mean_4d_ax2(int dim0, int dim1, int dim2, int dim3, float* data, float* tmp)
-{   
+{
     for (int n = 0; n < dim0; n++)
     {
         for (int h = 0; h < dim1; h++)

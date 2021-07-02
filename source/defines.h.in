@@ -49,7 +49,7 @@
 #define TE_NODE_TYPE_INPUT          2
 #define TE_NODE_TYPE_OUTPUT         4
 
-#define TE_DEFAULT_LOG_LEVEL        LOG_DEBUG
+#define TE_DEFAULT_LOG_LEVEL        LOG_ERR
 #define TE_MAX_LOG_LENGTH           256
 
 #define TE_MODEL_CACHE_PATH         "TENGINE_CACHE_DIR"

@@ -251,15 +251,11 @@ int infer_ir_graph_shape(ir_graph_t* graph)
         }
 
         if (0 != op->same_shape)
-        {   
-            
-            
+        {
             ir_tensor_t* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
             ir_tensor_t* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
-
             output->dim_num = input->dim_num;
             output->elem_num = input->elem_num;
-
             memcpy(output->dims, input->dims, sizeof(int32_t) * input->dim_num);
         }
         else
@@ -271,11 +267,9 @@ int infer_ir_graph_shape(ir_graph_t* graph)
                 return -1;
             }
         }
-
         for (int j = 0; j < node->output_num; j++)
         {
             ir_tensor_t* tensor = get_ir_graph_tensor(graph, j);
-
             tensor->reshaped = 0;
         }
     }

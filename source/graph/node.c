@@ -192,7 +192,6 @@ int set_ir_node_input_tensor(ir_node_t* node, int input_idx, ir_tensor_t* tensor
 
         if (NULL == new_tensor)
         {
-            printf("return -1");
             return -1;
         }
 
@@ -204,7 +203,6 @@ int set_ir_node_input_tensor(ir_node_t* node, int input_idx, ir_tensor_t* tensor
         node->input_tensors = new_tensor;
         node->input_num = input_idx + 1;
     }
-
     node->input_tensors[input_idx] = tensor->index;
     tensor->consumer[tensor->consumer_num] = node->index;
     tensor->consumer_num++;
