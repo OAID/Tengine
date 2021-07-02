@@ -509,6 +509,9 @@ static int fuse_conv_relu_common(ir_graph_t* graph)
         ir_node_t* conv_node = get_ir_graph_node(graph, conv_tensor->producer);
         if (conv_node->op.type != OP_CONV)
             continue;
+        if (conv_tensor->consumer_num != 1)
+            continue;
+
         conv_relu_v.push_back(std::make_pair(conv_node, relu_node));
     }
 
@@ -743,7 +746,7 @@ static int fuse_conv_unsqueeze(ir_graph_t* graph)
         if (elt_node->op.type != OP_ELTWISE)
             continue;
         struct eltwise_param* param = (struct eltwise_param*)elt_node->op.param_mem;
-        if (elt_node->input_num != 2 && param->type != ELT_SUM) // unsqueeze and conv|fc
+        if (elt_node->input_num != 2 || param->type != ELT_SUM) // unsqueeze and conv|fc
             continue;
         
         /* Check if it is a  (unsqueeze conv|fc) + eltwise */
@@ -751,7 +754,7 @@ static int fuse_conv_unsqueeze(ir_graph_t* graph)
         ir_tensor_t* unsq_tensor = get_ir_graph_tensor(graph, elt_node->input_tensors[1]);
         ir_node_t* conv_or_fc_node = get_ir_graph_node(graph, conv_tensor->producer);
         ir_node_t* unsq_node = get_ir_graph_node(graph, unsq_tensor->producer);
-        if (unsq_node->op.type != OP_UNSQUEEZE && (conv_or_fc_node->op.type != OP_CONV || conv_or_fc_node->op.type != OP_FC))
+        if (unsq_node->op.type != OP_UNSQUEEZE || (conv_or_fc_node->op.type != OP_CONV && conv_or_fc_node->op.type != OP_FC))
             continue;
         std::vector<ir_node_t*> nodes{conv_or_fc_node, unsq_node, elt_node};
         fused_nodes.push_back(nodes);
@@ -787,54 +790,6 @@ static int fuse_conv_unsqueeze(ir_graph_t* graph)
     return 0;
 }
 
-static int fuse_sigmoid_mul(ir_graph_t* graph)
-{
-    /* get all conv sigmoid mul chain */
-    std::vector<std::vector<ir_node_t*>> fused_nodes;
-    for (size_t i = 0; i < graph->node_num; i++)
-    {
-        ir_node_t* elt_node = get_ir_graph_node(graph, i);
-        if (elt_node->op.type != OP_ELTWISE)
-            continue;
-        struct eltwise_param* param = (struct eltwise_param*)elt_node->op.param_mem;
-        if (elt_node->input_num != 2 && param->type != ELT_PROD) 
-            continue;
-        
-        /* Check if it is conv sigmoid mul */
-        ir_tensor_t* conv_tensor = get_ir_graph_tensor(graph, elt_node->input_tensors[0]);
-        ir_tensor_t* sigmoid_tensor = get_ir_graph_tensor(graph, elt_node->input_tensors[1]);
-        ir_node_t* conv_node = get_ir_graph_node(graph, conv_tensor->producer);
-        ir_node_t* sigmoid_node = get_ir_graph_node(graph, sigmoid_tensor->producer);
-        if (sigmoid_node->op.type != OP_SIGMOID && conv_node->op.type != OP_CONV)
-            continue;
-        std::vector<ir_node_t*> nodes{conv_node, sigmoid_node, elt_node};
-        fused_nodes.push_back(nodes);
-    }
-
-    /* fused */
-    for (int i = 0; i < fused_nodes.size(); i++)
-    {
-        ir_node_t* conv_node = fused_nodes[i][0];
-        ir_node_t* sigmoid_node = fused_nodes[i][1];
-        ir_node_t* elt_node = fused_nodes[i][2];
-        
-        /* delete sigomid node */
-        if (delete_node(graph, conv_node->index, sigmoid_node->index) < 0)
-        {
-            fprintf(stderr, "delete sigomid node:%s failed.\n", sigmoid_node->name);
-            return -1;
-        }
-
-        ir_tensor_t* conv_output = get_ir_graph_tensor(graph, conv_node->output_tensors[0]);
-        conv_output->consumer_num = 1;
-        elt_node->input_num = 1;
-        if (change_node_op(elt_node, OP_HARDSWISH) < 0)
-            return -1;
-    }
-    
-    return 0;
-}
-
 int graph_opt(graph_t graph)
 {
     fprintf(stderr, "graph opt begin\n");
@@ -842,8 +797,6 @@ int graph_opt(graph_t graph)
     ir_graph_t* ir_graph = (ir_graph_t*)graph;
 
     if (fuse_conv_unsqueeze(ir_graph) < 0)
-        return -1;
-    if (fuse_sigmoid_mul(ir_graph) < 0)
         return -1;
     if (fuse_relu_eltwise(ir_graph) < 0)
         return -1;
