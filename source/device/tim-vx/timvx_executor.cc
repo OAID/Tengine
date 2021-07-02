@@ -66,6 +66,9 @@ int VXEngine::VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_ty
             case (1):
                 datatype = tim::vx::DataType::FLOAT16;
                 break;
+            case (2):
+                datatype = tim::vx::DataType::INT8;
+                break;
             case (3):
                 datatype = tim::vx::DataType::UINT8;
                 break;
@@ -105,6 +108,7 @@ int VXEngine::VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_ty
         tim::vx::Quantization vx_quant(tim::vx::QuantType::ASYMMETRIC, ir_tensor->scale,
                                        ir_tensor->zero_point);
 
+
         /* create the vx tesnor */
         std::shared_ptr<tim::vx::Tensor> vx_tensor;
 
@@ -128,8 +132,59 @@ int VXEngine::VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_ty
             auto tmpvx = vx_shape[ir_tensor->dim_num - 2];
             vx_shape[ir_tensor->dim_num - 2] = vx_shape[ir_tensor->dim_num - 1];
             vx_shape[ir_tensor->dim_num - 1] = tmpvx;
+            if (ir_tensor->data_type == TENGINE_DT_UINT8)
+            {
+                tim::vx::TensorSpec vx_spec(datatype, vx_shape,
+                                            tim::vx::TensorAttribute::CONSTANT, vx_quant);
+                vx_tensor = this->graph->CreateTensor(vx_spec, ir_tensor->data);
+            }
+            else if(ir_tensor->data_type == TENGINE_DT_INT8)
+            {
+
+                for (int i = 0; i < Dims[0]; i++)
+                {
+                    scale_list.push_back(ir_tensor->scale_list[i]);
+                    zp_list.push_back(ir_tensor->zp_list[i]);
+                }
+
+                tim::vx::Quantization vx_quant_perchannel(tim::vx::QuantType::SYMMETRIC_PER_CHANNEL, 2,
+                                                            scale_list, zp_list);
+
+                tim::vx::TensorSpec vx_spec(datatype, vx_shape,
+                                            tim::vx::TensorAttribute::CONSTANT, vx_quant_perchannel);
+                vx_tensor = this->graph->CreateTensor(vx_spec, ir_tensor->data);
+            }
+        }
+        else if(ir_tensor->data_type == TENGINE_DT_INT8 && ir_tensor->tensor_type == TENSOR_TYPE_CONST)
+        {
+            for (int i = 0; i < Dims[0]; i++)
+            {
+                scale_list.push_back(ir_tensor->scale_list[i]);
+                zp_list.push_back(ir_tensor->zp_list[i]);
+            }
+
+            tim::vx::Quantization vx_quant_perchannel(tim::vx::QuantType::SYMMETRIC_PER_CHANNEL, 2,
+                                                      scale_list, zp_list);
+
             tim::vx::TensorSpec vx_spec(datatype, vx_shape,
-                                        tim::vx::TensorAttribute::CONSTANT, vx_quant);
+                                        tim::vx::TensorAttribute::CONSTANT, vx_quant_perchannel);
+            vx_tensor = this->graph->CreateTensor(vx_spec, ir_tensor->data);
+        }
+        else if(ir_tensor->data_type == TENGINE_DT_INT32 && ir_tensor->tensor_type == TENSOR_TYPE_CONST)
+        {
+            std::vector<float> scale_list;
+            std::vector<int32_t> zp_list;
+            for (int i = 0; i < Dims[0]; i++)
+            {
+                scale_list.push_back(ir_tensor->scale_list[i]);
+                zp_list.push_back(ir_tensor->zp_list[i]);
+            }
+
+            tim::vx::Quantization vx_quant_perchannel(tim::vx::QuantType::SYMMETRIC_PER_CHANNEL, 0,
+                                                      scale_list, zp_list);
+
+            tim::vx::TensorSpec vx_spec(datatype, vx_shape,
+                                        tim::vx::TensorAttribute::CONSTANT, vx_quant_perchannel);
             vx_tensor = this->graph->CreateTensor(vx_spec, ir_tensor->data);
         }
         else if (spec_type == SPEC_TYPE_PRELU)

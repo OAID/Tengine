@@ -58,6 +58,10 @@ if (TENGINE_ENABLE_TIM_VX)
     tengine_timvx_op_test(test_timvx_op_tanh            op/test_timvx_op_tanh.cpp)
     tengine_timvx_op_test(test_timvx_op_transpose       op/test_timvx_op_transpose.cpp)
     tengine_timvx_op_test(test_timvx_op_upsampling      op/test_timvx_op_upsampling.cpp)
+
+    tengine_timvx_op_test(test_timvx_op_convolution_perchannel      op/test_timvx_op_convolution_perchannel.cpp)
+    tengine_timvx_op_test(test_timvx_op_dwconv_perchannel           op/test_timvx_op_dwconv_perchannel.cpp)
+
     
     
     # timvx model test, need opencv
