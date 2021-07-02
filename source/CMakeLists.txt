@@ -437,6 +437,7 @@ ENDIF()
 
 # install header files
 INSTALL (FILES ${CMAKE_SOURCE_DIR}/source/api/c_api.h DESTINATION include/tengine)
+INSTALL (FILES ${CMAKE_CURRENT_BINARY_DIR}/defines.h  DESTINATION include/tengine)
 
 IF (TENGINE_BUILD_CPP_API)
     INSTALL (FILES ${CMAKE_SOURCE_DIR}/source/api/cpp_api.h DESTINATION include/tengine)

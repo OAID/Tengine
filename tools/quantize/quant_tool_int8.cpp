@@ -146,8 +146,8 @@ int QuantTool::activation_quant_tool()
     fprintf(stderr, "[Quant Tools Info]: Step 0, load calibration image files done, image num is %d.\n", img_num);
 
     /* init minmax */
-    std::tr1::unordered_map<int, float> max_activation;
-    std::tr1::unordered_map<int, float> min_activation;
+    std::unordered_map<int, float> max_activation;
+    std::unordered_map<int, float> min_activation;
     uint32_t act_tensor_num = 0;
     for (int i = 0; i < ir_graph->tensor_num; i++)
     {
@@ -382,12 +382,12 @@ int main(int argc, char* argv[])
     fprintf(stderr, "YOLOv5 focus: %s\n", quant_tool.focus?"ON":"OFF");
     fprintf(stderr, "Thread num  : %d\n\n", quant_tool.num_thread);
 
-    /* quantize activation */
-    quant_tool.activation_quant_tool();
-
     /* using 3rd calibration table file */
     if (quant_tool.scale_file.empty())
     {
+        /* quantize activation */
+        quant_tool.activation_quant_tool();
+        
         /* select algorithm */
         if (quant_tool.algorithm_type == ALGORITHM_MIN_MAX)
             quant_tool.scale_file = "table_minmax.scale";         

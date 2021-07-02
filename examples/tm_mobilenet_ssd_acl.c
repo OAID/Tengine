@@ -86,7 +86,7 @@ void post_process_ssd(const char* image_file, float threshold, const float* outd
 
     free(boxes);
 
-    save_image(im, "tengine_example_out");
+    save_image(im, "mobilenet_ssd_acl_out");
     free_image(im);
     fprintf(stderr, "======================================\n");
     fprintf(stderr, "[DETECTED IMAGE SAVED]:\n");
