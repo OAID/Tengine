@@ -71,7 +71,7 @@ static int ref_eltwise_fp32(void* output, void* input0, void* input1, int type, 
                 }
             }
             else if (input_count4 == input1_count4)
-            {   
+            {
                 for (int i = 0; i < input_count4; ++i)
                 {
                     *out_ptr++ = (*in0++) - (*in1++);
