@@ -140,9 +140,6 @@ public:
     std::shared_ptr<tim::vx::Operation> ops;
     std::vector<char> nbg_buffer;
 
-    std::vector<float> scale_list;
-    std::vector<int32_t> zp_list;
-
 private:
     dict_irt2vxt     vx_tensor_map;
     dict_irt2vxo     vx_node_map;

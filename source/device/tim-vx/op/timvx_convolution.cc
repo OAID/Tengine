@@ -139,11 +139,8 @@ bool VXEngine::AddConvolutionNode(struct node* ir_node)
         else
         {
             (*conv)
-                    .BindInput(this->vx_tensor_map[input_tensor->index])
-                    .BindInput(this->vx_tensor_map[weight_tensor->index])
-                    .BindOutput(this->vx_tensor_map[output_tensor->index]);
-//                .BindInputs({ this->vx_tensor_map[input_tensor->index], this->vx_tensor_map[weight_tensor->index] })
-//                .BindOutputs({ this->vx_tensor_map[output_tensor->index] });
+               .BindInputs({ this->vx_tensor_map[input_tensor->index], this->vx_tensor_map[weight_tensor->index] })
+               .BindOutputs({ this->vx_tensor_map[output_tensor->index] });
         }
     }
 

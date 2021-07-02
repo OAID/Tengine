@@ -140,7 +140,8 @@ int VXEngine::VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_ty
             }
             else if(ir_tensor->data_type == TENGINE_DT_INT8)
             {
-
+                std::vector<float> scale_list;
+                std::vector<int32_t> zp_list;
                 for (int i = 0; i < Dims[0]; i++)
                 {
                     scale_list.push_back(ir_tensor->scale_list[i]);
@@ -157,6 +158,8 @@ int VXEngine::VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_ty
         }
         else if(ir_tensor->data_type == TENGINE_DT_INT8 && ir_tensor->tensor_type == TENSOR_TYPE_CONST)
         {
+            std::vector<float> scale_list;
+            std::vector<int32_t> zp_list;
             for (int i = 0; i < Dims[0]; i++)
             {
                 scale_list.push_back(ir_tensor->scale_list[i]);
