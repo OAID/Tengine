@@ -171,7 +171,7 @@ int VXEngine::VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_ty
                     zp_list.push_back(ir_tensor->zp_list[i]);
                 }
 
-                tim::vx::Quantization vx_quant_perchannel(tim::vx::QuantType::SYMMETRIC_PER_CHANNEL, 2,
+                tim::vx::Quantization vx_quant_perchannel(tim::vx::QuantType::SYMMETRIC_PER_CHANNEL, 3,
                                                           scale_list, zp_list);
 
                 tim::vx::TensorSpec vx_spec(datatype, vx_shape,
