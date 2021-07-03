@@ -12,7 +12,7 @@ SET (CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
 SET (CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 
 # other needed options
-SET (TENGINE_TOOLCHAIN_FLAG "-march=mips64r6 -mmsa -mhard-float -mfp64 -mnan=2008")
+SET (TENGINE_TOOLCHAIN_FLAG -march=mips64r6 -mmsa -mhard-float -mfp64 -mnan=2008)
 
 # do not skip OpenMP check as default
 SET (TENGINE_FORCE_SKIP_OPENMP OFF)
