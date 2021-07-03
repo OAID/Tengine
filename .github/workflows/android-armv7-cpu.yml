@@ -1,6 +1,42 @@
 name: android-armv7-cpu
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [tengine-lite]
+    paths:
+    - '.github/workflows/android-armv7-cpu.yml'
+    - 'CMakeLists.txt'
+    - 'cmake/**'
+    - 'source/*'
+    - 'source/api/*'
+    - 'source/executer/*'
+    - 'source/graph/*'
+    - 'source/module/*'
+    - 'source/operator/*'
+    - 'source/optimizer/*'
+    - 'source/scheduler/*'
+    - 'source/serializer/*'
+    - 'source/system/*'
+    - 'source/utility/*'
+    - 'source/device/cpu/**'
+  pull_request:
+    branches: [tengine-lite]
+    paths:
+    - '.github/workflows/android-armv7-cpu.yml'
+    - 'CMakeLists.txt'
+    - 'cmake/**'
+    - 'source/*'
+    - 'source/api/*'
+    - 'source/executer/*'
+    - 'source/graph/*'
+    - 'source/module/*'
+    - 'source/operator/*'
+    - 'source/optimizer/*'
+    - 'source/scheduler/*'
+    - 'source/serializer/*'
+    - 'source/system/*'
+    - 'source/utility/*'
+    - 'source/device/cpu/**'
 
 jobs:
   android-armv7-cpu:

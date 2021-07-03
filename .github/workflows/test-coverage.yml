@@ -1,6 +1,26 @@
 name: test-coverage
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [tengine-lite]
+    paths:
+    - '.github/workflows/test-coverage.yml'
+    - 'CMakeLists.txt'
+    - 'cmake/**'
+    - 'source/**'
+    - 'tests/**'
+    - 'toolchains/**'
+    - 'tools/**'
+  pull_request:
+    branches: [tengine-lite]
+    paths:
+    - '.github/workflows/test-coverage.yml'
+    - 'CMakeLists.txt'
+    - 'cmake/**'
+    - 'source/**'
+    - 'tests/**'
+    - 'toolchains/**'
+    - 'tools/**'
 
 jobs:
   linux-x64-cpu-gcc:
@@ -61,7 +81,7 @@ jobs:
     - uses: actions/checkout@v1
     - name: update
       run: sudo apt-get update
-    - name: opencv
+    - name: depends
       run: sudo apt-get install libopencv-dev
     - name: lcov
       run: sudo apt-get install lcov
@@ -103,7 +123,7 @@ jobs:
     - uses: actions/checkout@v1
     - name: update
       run: sudo apt-get update
-    - name: protobuf
+    - name: depends
       run: sudo apt-get install libopencv-dev
     - name: lcov
       run: sudo apt-get install lcov
