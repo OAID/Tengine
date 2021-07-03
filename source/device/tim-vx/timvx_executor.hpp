@@ -134,16 +134,12 @@ private:
     bool AddUpsampleNode(struct node* ir_node);
 
 
-
-
 public:
     std::shared_ptr<tim::vx::Context> context;
     std::shared_ptr<tim::vx::Graph> graph;
     std::shared_ptr<tim::vx::Operation> ops;
     std::vector<char> nbg_buffer;
 
-    std::vector<float> scale_list;
-    std::vector<int32_t> zp_list;
 
 private:
     dict_irt2vxt     vx_tensor_map;
