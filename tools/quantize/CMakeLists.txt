@@ -64,6 +64,7 @@ IF (OpenCV_FOUND AND ${TENGINE_TARGET_PROCESSOR} MATCHES "X86")
 
     TENGINE_QUANT_TOOL(quant_tool_int8      quant_tool_int8.cpp)
     TENGINE_QUANT_TOOL(quant_tool_uint8     quant_tool_uint8.cpp)
+    TENGINE_QUANT_TOOL(quant_tool_uint8_perchannel     quant_tool_uint8_perchannel.cpp)
 ELSE()
     MESSAGE (WARNING "OpenCV not found, quantization tool won't be built")
 ENDIF()
