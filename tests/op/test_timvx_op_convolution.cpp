@@ -55,16 +55,16 @@ int create_test_convolution_node(graph_t graph, const char* input_name, const ch
     set_tensor_shape(weight_tensor, weight_dims, 4);
 
     /* bias */
-    // node_t bias_node = create_graph_node(graph, "bias", "Const");
-    // tensor_t bias_tensor = create_graph_tensor(graph, "bias", TENGINE_DT_INT32);
-    // set_node_output_tensor(bias_node, 0, bias_tensor, TENSOR_TYPE_CONST);
-    // int bias_dims[1] = {1};  // channel num
-    // set_tensor_shape(bias_tensor, bias_dims, 1); 
+     node_t bias_node = create_graph_node(graph, "bias", "Const");
+     tensor_t bias_tensor = create_graph_tensor(graph, "bias", TENGINE_DT_INT32);
+     set_node_output_tensor(bias_node, 0, bias_tensor, TENSOR_TYPE_CONST);
+     int bias_dims[1] = {1};  // channel num
+     set_tensor_shape(bias_tensor, bias_dims, 1);
 
     /* input tensors of test node */
     set_node_input_tensor(test_node, 0, input_tensor);
     set_node_input_tensor(test_node, 1, weight_tensor);
-    // set_node_input_tensor(test_node, 2, bias_tensor);
+    set_node_input_tensor(test_node, 2, bias_tensor);
 
     /* output tensors of test node */
     tensor_t output_tensor = create_graph_tensor(graph, node_name, data_type);
@@ -109,6 +109,10 @@ float weight_fp32[9] = {1, 1, 1,
 float weight_scale = 0.0039216f;
 int weight_zero_point = 0;
 
+int bias_int32[2] = {0, };
+float bias_scale = 0.0039216f * 0.0196078f;
+int bias_zero_point = 0;
+
 float reference_out[9] = {-4, -1, 1,
                           -2,  2, 3,
                            3,  6, 4};
@@ -152,12 +156,14 @@ int main(int argc, char* argv[])
 
     // set quantize params
     struct tensor* input_tensor = (struct tensor*)get_graph_tensor(ir_graph, "input_node");
-    struct tensor* weight_tensor = (struct tensor*)get_graph_tensor(ir_graph, "weight");
+    struct tensor* weight_tensor = (struct tensor*)get_graph_tensor(ir_graph, "weight");\
+    struct tensor* bias_tensor = (struct tensor*)get_graph_tensor(ir_graph, "bias");
     struct tensor* output_tensor = (struct tensor*)get_graph_tensor(ir_graph, "conv");
 
 //    tensor_t weight_tesnor = get_graph_input_tensor(ir_graph, 1, 0);
     set_tensor_quant_param(input_tensor, &input_scale, &input_zero_point, 1);
     set_tensor_quant_param(weight_tensor, &weight_scale, &weight_zero_point, 1);
+    set_tensor_quant_param(bias_tensor, &bias_scale, &bias_zero_point, 1);
     set_tensor_quant_param(output_tensor, &output_scale, &output_zero_point, 1);
 
     // set input data
@@ -171,7 +177,7 @@ int main(int argc, char* argv[])
     set_tensor_buffer(weight_tensor, weight_u8, 9);
 
     // set bias data
-    // fill_input_uint8_tensor_by_index(graph, 0, 0, 0.0f);
+    set_tensor_buffer(bias_tensor, bias_int32, 1 * 4);
 
     // graph run
     ret = test_graph_run(ir_graph);
