@@ -83,13 +83,13 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         dim2 = dims[2];
         dim3 = dims[3];
     }
-    if (input_tensor->dim_num == 3){
+    else if (input_tensor->dim_num == 3){
         dim0 = dims[0];
         dim1 = dims[1];
         dim2 = dims[2];
         dim3 = 0;
     }
-    if (input_tensor->dim_num == 2){
+    else if (input_tensor->dim_num == 2){
         dim0 = dims[0];
         dim1 = dims[1];
         dim2 = 0;

@@ -52,7 +52,8 @@ static int infer_shape(struct node* node)
     if(_param->is_onnx)
     {
         if(_param->axis == 0)
-        {   if (has_param==0)
+        {   
+            if (has_param==0)
             {
                 for(int i = 0; i < input->dim_num  - 1; i++)
                 {

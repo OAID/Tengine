@@ -71,10 +71,6 @@ static int infer_shape(struct node* node)
         memcpy(output->dims, input1->dims, input1->dim_num * sizeof(int));
         dim_num = input1->dim_num;
     }
-    printf("node: %s\n",node->name);
-    for (int i=0; i<dim_num; i++){
-        printf("dims: %d\n",output->dims[i]);
-    }
     set_ir_tensor_shape(output, output->dims, dim_num);
 
     return 0;

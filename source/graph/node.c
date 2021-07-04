@@ -181,8 +181,7 @@ int get_ir_node_index_from_name(struct graph* ir_graph, const char* node_name)
 int set_ir_node_input_tensor(ir_node_t* node, int input_idx, ir_tensor_t* tensor)
 {
     if (TE_MAX_CONSUMER_NUM <= tensor->consumer_num)
-    {   
-        printf("consumer_num: %d\n", tensor->consumer_num);
+    {           
         return -1;
     }
 
@@ -206,8 +205,6 @@ int set_ir_node_input_tensor(ir_node_t* node, int input_idx, ir_tensor_t* tensor
     node->input_tensors[input_idx] = tensor->index;
     tensor->consumer[tensor->consumer_num] = node->index;
     tensor->consumer_num++;
-    printf("node: %s\n",node->name);
-    printf("input[0]: %d\n",node->input_tensors[input_idx]);
     return 0;
 }
 
