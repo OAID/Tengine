@@ -23,12 +23,15 @@ FILE (MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/tengine)
 FILE (COPY ${CMAKE_SOURCE_DIR}/source/api/c_api.h DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/tengine)
 #FILE (COPY ${CMAKE_SOURCE_DIR}/source/api/c_api.h DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 #FILE (RENAME ${CMAKE_CURRENT_BINARY_DIR}/c_api.h ${CMAKE_CURRENT_BINARY_DIR}/tengine_c_api.h)
+
 # macro for adding test
 FUNCTION (TENGINE_EXAMPLE name file)
     ADD_EXECUTABLE (${name} "${CMAKE_CURRENT_SOURCE_DIR}/${file}" "${CMAKE_CURRENT_SOURCE_DIR}/common/tengine_operations.c")
+
     TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
     TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
     TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE "${PROJECT_SOURCE_DIR}/examples/common")
+
     TARGET_LINK_LIBRARIES (${name} PRIVATE ${CMAKE_PROJECT_NAME})
 
     IF(MSVC)
@@ -98,7 +101,6 @@ ENDIF()
 # add examples with opencv
 # set(OpenCV_DIR /mnt/d/ubuntu/opencv_install/linux-armv7/lib/cmake/opencv4)
 FIND_PACKAGE(OpenCV QUIET)
-
 
 IF (OpenCV_FOUND)
     # macro for adding examples

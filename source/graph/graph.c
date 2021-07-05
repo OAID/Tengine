@@ -254,12 +254,14 @@ int infer_ir_graph_shape(ir_graph_t* graph)
         {
             ir_tensor_t* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
             ir_tensor_t* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
+
             output->dim_num = input->dim_num;
             output->elem_num = input->elem_num;
+
             memcpy(output->dims, input->dims, sizeof(int32_t) * input->dim_num);
         }
         else
-        {   
+        {
             if (0 != op->infer_shape(node))
             {
                 TLOG_ERR("Tengine FATAL: Infer node(id: %d, op: %s) shape failed.\n", node->index,
@@ -267,9 +269,11 @@ int infer_ir_graph_shape(ir_graph_t* graph)
                 return -1;
             }
         }
+        
         for (int j = 0; j < node->output_num; j++)
         {
             ir_tensor_t* tensor = get_ir_graph_tensor(graph, j);
+
             tensor->reshaped = 0;
         }
     }

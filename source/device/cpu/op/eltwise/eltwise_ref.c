@@ -130,9 +130,12 @@ static int ref_eltwise_fp32(void* output, void* input0, void* input1, int type, 
                     *out_ptr++ = in0[i] + in1[i / input_hw];
                 }
             }
-            else if(input_hw == input_hw_1){
-                for( int i = 0; i < input_chan; i++){
-                    for(int j = 0; j < input_hw; j++){
+            else if(input_hw == input_hw_1)
+            {
+                for( int i = 0; i < input_chan; i++)
+                {
+                    for(int j = 0; j < input_hw; j++)
+                    {
                         *out_ptr++ = in0[i*input_hw + j] + in1[j];
                     }
                 }
@@ -167,7 +170,8 @@ static int ref_eltwise_fp32(void* output, void* input0, void* input1, int type, 
                 {
                     for (int i = 0; i < input_count4; ++i)
                     {   
-                        for (int j = 0; j < input_count4; ++j){
+                        for (int j = 0; j < input_count4; ++j)
+                        {
                             *out_ptr++ = in0[i] * in1[j];
                         } 
                     }
@@ -205,14 +209,15 @@ static int ref_eltwise_fp32(void* output, void* input0, void* input1, int type, 
                         {   
                             for (int i = 0; i <input_hw_1; i++)
                             {
-                            *out_ptr++ = in1[j]*in0[j*(input_hw-1)+i];
+                                *out_ptr++ = in1[j]*in0[j*(input_hw-1)+i];
                             }
                         }
                 }
             }
             else if (input_chan == input_count4){
                 for(int j = 0; j < input1_count4; j++)
-                {   for (int i = 0; i < input_chan; i++)
+                {   
+                    for (int i = 0; i < input_chan; i++)
                     *out_ptr++ = in0[i] * in1[j];
                 }
             }
@@ -272,48 +277,63 @@ static int ref_eltwise_fp32(void* output, void* input0, void* input1, int type, 
             break;
         case ELT_POW:
             if(input_count4 == 1){
-                for(int i = 0; i < input1_count4; i++){
+                for(int i = 0; i < input1_count4; i++)
+                {
                     *out_ptr++ = powf(in0[0], in1[i]);
                 }
-            } else if (input1_count4 == 1){
-                for(int i = 0; i < input_count4; i++){
+            } 
+            else if (input1_count4 == 1)
+            {
+                for(int i = 0; i < input_count4; i++)
+                {
                     *out_ptr++ = powf(in0[i], in1[0]);
                 }
-            } else if (input_count4 == input1_count4){
-                for(int i = 0; i < input_count4; i++){
+            } 
+            else if (input_count4 == input1_count4)
+            {
+                for(int i = 0; i < input_count4; i++)
+                {
                     *out_ptr++ = powf(in0[i], in1[i]);
                 }
-            } else {
+            } 
+            else
+            {
                 TLOG_ERR("Case not support \n");
             }
             break;
         case ELT_POWER:
-            for(int i = 0; i < input_count4; i++){
+            for(int i = 0; i < input_count4; i++)
+            {
                 *out_ptr++ = powf((eltwise_param->shift + eltwise_param->scale * in0[i]), eltwise_param->power);
             }
             break;
         case ELT_LOG:
-            for(int i = 0; i < input_count4; i++){
+            for(int i = 0; i < input_count4; i++)
+            {
                 *out_ptr++ = log(in0[i]);
             }
             break;
         case ELT_EXP:
-            for(int i = 0; i < input_count4; i++){
+            for(int i = 0; i < input_count4; i++)
+            {
                 *out_ptr++ = exp(in0[i]);
             }
             break;
         case ELT_SQRT:
-            for(int i = 0; i < input_count4; i++){
+            for(int i = 0; i < input_count4; i++)
+            {
                 *out_ptr++ = sqrt(in0[i]);
             }
             break;
         case ELT_FLOOR:
-            for(int i = 0; i < input_count4; i++){
+            for(int i = 0; i < input_count4; i++)
+            {
                 *out_ptr++ = floor(in0[i]);
             }
             break;
         case ELT_SQUARE:
-            for(int i = 0; i < input_count4; i++){
+            for(int i = 0; i < input_count4; i++)
+            {
                 *out_ptr++ = pow(in0[i], 2);
             }
             break;
@@ -867,7 +887,8 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         {   
             if (input_tensor0->dim_num < 4)
             {
-                if (input_tensor0->dim_num==1){
+                if (input_tensor0->dim_num==1)
+                {
                     input_chan_0 = 1;
                     input_hw_0 = input_tensor0->dims[0];
                 }
@@ -885,7 +906,8 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
             else 
             {
                 input_chan_0 = input_tensor0->dims[dim0_size-3];
-                if(input_tensor0->dims[dim0_size-4]){
+                if(input_tensor0->dims[dim0_size-4])
+                {
                     input_chan_0 *= input_tensor0->dims[dim0_size-4];
                 }
                 input_hw_0 = input_tensor0->dims[dim0_size-2] * input_tensor0->dims[dim0_size-1];
@@ -931,21 +953,25 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         {   
             if (input_tensor0->dim_num < 4)
             {
-                 if (input_tensor0->dim_num==1){
+                if (input_tensor0->dim_num==1)
+                {
                     input_chan_0 = 1;
 
                     input_hw_0 = input_tensor0->dims[0];
                 }
-                else if (input_tensor0->dim_num==2){
+                else if (input_tensor0->dim_num==2)
+                {
                     input_chan_0 = input_tensor0->dims[0];
                     input_hw_0 = input_tensor0->dims[1];
                 }
-                else if (input_tensor0->dim_num==3){
+                else if (input_tensor0->dim_num==3)
+                {
                     input_chan_0 = input_tensor0->dims[0]*input_tensor0->dims[1];
                     input_hw_0 = input_tensor0->dims[2];
                 }
             }
-            else {
+            else
+            {
                 input_chan_0 = input_tensor1->dims[1];
                 input_hw_0 = input_tensor1->dims[2] * input_tensor1->dims[3];
             }

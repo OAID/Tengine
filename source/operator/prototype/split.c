@@ -110,12 +110,6 @@ static int infer_shape(ir_node_t* node)
                     set_ir_tensor_shape(output, input_dim, input->dim_num);
                 }
             }
-
-/*             for (int i = 0; i < node->output_num; i++)
-            {
-                ir_tensor_t* output = get_ir_graph_tensor(graph, node->output_tensors[i]);
-                set_ir_tensor_shape(output, input->dims, input->dim_num);
-            } */
         }
     }
 
