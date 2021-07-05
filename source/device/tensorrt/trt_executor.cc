@@ -301,14 +301,6 @@ int TensorRTEngine::Build(struct subgraph* subgraph)
                 }
                 break;
             }
-            case OP_SHUFFLECHANNEL:
-            {
-                if (!AddShuffleNode(ir_graph, ir_node))
-                {
-                    TLOG_ERR("Tengine: Cannot add Slice op(%d).\n", ir_node->index);
-                    return -6;
-                }
-            }
             case OP_SLICE:
             {
                 if (!AddSliceNode(ir_graph, ir_node))
