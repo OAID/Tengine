@@ -284,6 +284,7 @@ int TensorRTEngine::Build(struct subgraph* subgraph)
             }
             case OP_RELU:
             case OP_RELU1:
+            case OP_RELU6:
             case OP_CLIP: {
                 if (!addReLUNode(ir_graph, ir_node))
                 {
