@@ -284,6 +284,7 @@ int TensorRTEngine::Build(struct subgraph* subgraph)
             }
             case OP_RELU:
             case OP_RELU1:
+            case OP_RELU6:
             case OP_CLIP: {
                 if (!addReLUNode(ir_graph, ir_node))
                 {
@@ -299,6 +300,14 @@ int TensorRTEngine::Build(struct subgraph* subgraph)
                     return -6;
                 }
                 break;
+            }
+            case OP_SHUFFLECHANNEL:
+            {
+                if (!AddShuffleNode(ir_graph, ir_node))
+                {
+                    TLOG_ERR("Tengine: Cannot add Slice op(%d).\n", ir_node->index);
+                    return -6;
+                }
             }
             case OP_SLICE:
             {
