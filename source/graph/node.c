@@ -182,7 +182,7 @@ int set_ir_node_input_tensor(ir_node_t* node, int input_idx, ir_tensor_t* tensor
 {
     if (TE_MAX_CONSUMER_NUM <= tensor->consumer_num)
     {
-        return -1;
+        set_ir_tensor_consumer_num(tensor, tensor->consumer_num + 1);
     }
 
     if (input_idx >= node->input_num)
