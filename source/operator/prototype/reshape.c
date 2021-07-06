@@ -38,7 +38,8 @@
 static int infer_shape(struct node* node)
 {
     reshape_param_t* param = ( struct reshape_param* )(node->op.param_mem);
-
+    int x = node->input_tensors[0];
+    int y = node->input_tensors[1];
     struct graph* graph = node->graph;
     struct tensor* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
     struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
