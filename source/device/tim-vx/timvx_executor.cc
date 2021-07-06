@@ -112,8 +112,6 @@ int VXEngine::VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_ty
         /* create the vx tesnor */
         std::shared_ptr<tim::vx::Tensor> vx_tensor;
 
-//        TLOG_INFO("tensor name %s\n",ir_tensor->name);
-
         if (spec_type == SPEC_TYPE_OUTPUT)
         {
             tim::vx::TensorSpec vx_spec(datatype, vx_shape,
@@ -238,7 +236,6 @@ int VXEngine::VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_ty
         }
         else if (ir_tensor->tensor_type == TENSOR_TYPE_CONST)
         {
-//            TLOG_INFO(" vx_shape %d %d %d %d\n", vx_shape[0], vx_shape[1], vx_shape[2], vx_shape[3]);
             tim::vx::TensorSpec vx_spec(datatype, vx_shape,
                                         tim::vx::TensorAttribute::CONSTANT, vx_quant);
             vx_tensor = this->graph->CreateTensor(vx_spec, ir_tensor->data);
@@ -251,9 +248,6 @@ int VXEngine::VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_ty
 
 int VXEngine::Build(struct subgraph* subgraph)
 {
-    set_log_level(LOG_INFO);
-    dump_sub_graph_timvx(subgraph);
-
     struct graph* ir_graph = subgraph->graph;
 
     for (int i = 0; i < subgraph->node_num; i++)
@@ -262,15 +256,9 @@ int VXEngine::Build(struct subgraph* subgraph)
         struct node* ir_node = get_ir_graph_node(ir_graph, node_id);
         auto op_type = ir_node->op.type;
 
-//        if (op_type == OP_INPUT || op_type == OP_CONST)
-//            continue;
-//        else
-//            this->AddUpsampleNode(ir_node);
-
         switch (op_type)
         {
             case OP_BATCHNORM:
-//                this->AddDropoutNode(ir_node);
                 this->AddBatchNormNode(ir_node);
                 break;
             case OP_CLIP:
@@ -283,11 +271,9 @@ int VXEngine::Build(struct subgraph* subgraph)
             case OP_INPUT:
                 continue;
             case OP_CONV:
-//                this->AddUpsampleNode(ir_node);
                 this->AddConvolutionNode(ir_node);
                 break;
             case OP_DECONV:
-//                this->AddUpsampleNode(ir_node);
                 this->AddDeconvNode(ir_node);
                 break;
             case OP_DEPTHTOSPACE:
@@ -330,7 +316,6 @@ int VXEngine::Build(struct subgraph* subgraph)
                 this->AddPReluNode(ir_node);
                 break;
             case OP_RELU:
-//                this->AddUpsampleNode(ir_node);
                 this->AddReluNode(ir_node);
                 break;
             case OP_RELU1:
@@ -346,7 +331,6 @@ int VXEngine::Build(struct subgraph* subgraph)
                 this->AddScaleNode(ir_node);
                 break;
             case OP_SIGMOID:
-//                this->AddUpsampleNode(ir_node);
                 this->AddSigmoidNode(ir_node);
                 break;
             case OP_SLICE:
