@@ -66,6 +66,9 @@ int VXEngine::VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_ty
             case (1):
                 datatype = tim::vx::DataType::FLOAT16;
                 break;
+            case (2):
+                datatype = tim::vx::DataType::INT8;
+                break;
             case (3):
                 datatype = tim::vx::DataType::UINT8;
                 break;
@@ -105,6 +108,7 @@ int VXEngine::VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_ty
         tim::vx::Quantization vx_quant(tim::vx::QuantType::ASYMMETRIC, ir_tensor->scale,
                                        ir_tensor->zero_point);
 
+
         /* create the vx tesnor */
         std::shared_ptr<tim::vx::Tensor> vx_tensor;
 
@@ -123,14 +127,86 @@ int VXEngine::VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_ty
                                         tim::vx::TensorAttribute::CONSTANT, none_quant);
             vx_tensor = this->graph->CreateTensor(vx_spec, ir_tensor->data);
         }
+        else if (spec_type == SPEC_TYPE_CONV_BIAS)
+        {
+            if (ir_tensor->quant_param_num == 1)
+            {
+                tim::vx::TensorSpec vx_spec(datatype, vx_shape,
+                                            tim::vx::TensorAttribute::CONSTANT, vx_quant);
+                vx_tensor = this->graph->CreateTensor(vx_spec, ir_tensor->data);
+            }
+            else if(ir_tensor->quant_param_num > 1)
+            {
+                std::vector<float> scale_list;
+                std::vector<int32_t> zp_list;
+                for (int i = 0; i < Dims[0]; i++)
+                {
+                    scale_list.push_back(ir_tensor->scale_list[i]);
+                    zp_list.push_back(ir_tensor->zp_list[i]);
+                }
+
+                tim::vx::Quantization vx_quant_perchannel(tim::vx::QuantType::SYMMETRIC_PER_CHANNEL, 0,
+                                                          scale_list, zp_list);
+
+                tim::vx::TensorSpec vx_spec(datatype, vx_shape,
+                                            tim::vx::TensorAttribute::CONSTANT, vx_quant_perchannel);
+                vx_tensor = this->graph->CreateTensor(vx_spec, ir_tensor->data);
+            }
+        }
+        else if (spec_type == SPEC_TYPE_CONV)
+        {
+            if (ir_tensor->quant_param_num == 1)
+            {
+                tim::vx::TensorSpec vx_spec(datatype, vx_shape,
+                                            tim::vx::TensorAttribute::CONSTANT, vx_quant);
+                vx_tensor = this->graph->CreateTensor(vx_spec, ir_tensor->data);
+            }
+            else if(ir_tensor->quant_param_num > 1)
+            {
+                std::vector<float> scale_list;
+                std::vector<int32_t> zp_list;
+                for (int i = 0; i < Dims[0]; i++)
+                {
+                    scale_list.push_back(ir_tensor->scale_list[i]);
+                    zp_list.push_back(ir_tensor->zp_list[i]);
+                }
+
+                tim::vx::Quantization vx_quant_perchannel(tim::vx::QuantType::SYMMETRIC_PER_CHANNEL, 3,
+                                                          scale_list, zp_list);
+
+                tim::vx::TensorSpec vx_spec(datatype, vx_shape,
+                                            tim::vx::TensorAttribute::CONSTANT, vx_quant_perchannel);
+                vx_tensor = this->graph->CreateTensor(vx_spec, ir_tensor->data);
+            }
+        }
         else if (spec_type == SPEC_TYPE_DWCONV)
         {
             auto tmpvx = vx_shape[ir_tensor->dim_num - 2];
             vx_shape[ir_tensor->dim_num - 2] = vx_shape[ir_tensor->dim_num - 1];
             vx_shape[ir_tensor->dim_num - 1] = tmpvx;
-            tim::vx::TensorSpec vx_spec(datatype, vx_shape,
-                                        tim::vx::TensorAttribute::CONSTANT, vx_quant);
-            vx_tensor = this->graph->CreateTensor(vx_spec, ir_tensor->data);
+            if (ir_tensor->quant_param_num == 1)
+            {
+                tim::vx::TensorSpec vx_spec(datatype, vx_shape,
+                                            tim::vx::TensorAttribute::CONSTANT, vx_quant);
+                vx_tensor = this->graph->CreateTensor(vx_spec, ir_tensor->data);
+            }
+            else if(ir_tensor->quant_param_num > 1)
+            {
+                std::vector<float> scale_list;
+                std::vector<int32_t> zp_list;
+                for (int i = 0; i < Dims[0]; i++)
+                {
+                    scale_list.push_back(ir_tensor->scale_list[i]);
+                    zp_list.push_back(ir_tensor->zp_list[i]);
+                }
+
+                tim::vx::Quantization vx_quant_perchannel(tim::vx::QuantType::SYMMETRIC_PER_CHANNEL, 2,
+                                                            scale_list, zp_list);
+
+                tim::vx::TensorSpec vx_spec(datatype, vx_shape,
+                                            tim::vx::TensorAttribute::CONSTANT, vx_quant_perchannel);
+                vx_tensor = this->graph->CreateTensor(vx_spec, ir_tensor->data);
+            }
         }
         else if (spec_type == SPEC_TYPE_PRELU)
         {
@@ -175,6 +251,9 @@ int VXEngine::VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_ty
 
 int VXEngine::Build(struct subgraph* subgraph)
 {
+    set_log_level(LOG_INFO);
+    dump_sub_graph_timvx(subgraph);
+
     struct graph* ir_graph = subgraph->graph;
 
     for (int i = 0; i < subgraph->node_num; i++)
@@ -183,9 +262,15 @@ int VXEngine::Build(struct subgraph* subgraph)
         struct node* ir_node = get_ir_graph_node(ir_graph, node_id);
         auto op_type = ir_node->op.type;
 
+//        if (op_type == OP_INPUT || op_type == OP_CONST)
+//            continue;
+//        else
+//            this->AddUpsampleNode(ir_node);
+
         switch (op_type)
         {
             case OP_BATCHNORM:
+//                this->AddDropoutNode(ir_node);
                 this->AddBatchNormNode(ir_node);
                 break;
             case OP_CLIP:
@@ -198,9 +283,11 @@ int VXEngine::Build(struct subgraph* subgraph)
             case OP_INPUT:
                 continue;
             case OP_CONV:
+//                this->AddUpsampleNode(ir_node);
                 this->AddConvolutionNode(ir_node);
                 break;
             case OP_DECONV:
+//                this->AddUpsampleNode(ir_node);
                 this->AddDeconvNode(ir_node);
                 break;
             case OP_DEPTHTOSPACE:
@@ -243,6 +330,7 @@ int VXEngine::Build(struct subgraph* subgraph)
                 this->AddPReluNode(ir_node);
                 break;
             case OP_RELU:
+//                this->AddUpsampleNode(ir_node);
                 this->AddReluNode(ir_node);
                 break;
             case OP_RELU1:
@@ -258,6 +346,7 @@ int VXEngine::Build(struct subgraph* subgraph)
                 this->AddScaleNode(ir_node);
                 break;
             case OP_SIGMOID:
+//                this->AddUpsampleNode(ir_node);
                 this->AddSigmoidNode(ir_node);
                 break;
             case OP_SLICE:
@@ -414,6 +503,14 @@ int VXEngine::VXEnginePreRun(struct subgraph* subgraph)
                 if ((conv_param->group == conv_param->output_channel) && (conv_param->output_channel != 1))
                 {
                     this->VXTensorMap(ir_graph, ir_node->input_tensors[1], SPEC_TYPE_DWCONV);
+                }
+                else
+                {
+                    this->VXTensorMap(ir_graph, ir_node->input_tensors[1], SPEC_TYPE_CONV);
+                }
+                if (ir_node->input_num > 2)
+                {
+                    this->VXTensorMap(ir_graph, ir_node->input_tensors[2], SPEC_TYPE_CONV_BIAS);
                 }
             }
             else if (ir_node->op.type == OP_PRELU)
