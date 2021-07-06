@@ -50,18 +50,63 @@ bool VXEngine::AddFullyConnectionNode(struct node* ir_node)
             fc_dim_nim, weight_tensor->dims[0]);
     vx_node_map[ir_node->index] = fc;
 
-    if (ir_node->input_num > 2)
+    if (output_tensor->dim_num == 2)
     {
-        struct tensor* bias_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[2]);
-        (*fc)
-            .BindInputs({this->vx_tensor_map[input_tensor->index], this->vx_tensor_map[weight_tensor->index], this->vx_tensor_map[bias_tensor->index]})
-            .BindOutputs({ this->vx_tensor_map[output_tensor->index] });
+        if (ir_node->input_num > 2)
+        {
+            struct tensor* bias_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[2]);
+            (*fc)
+                    .BindInputs({this->vx_tensor_map[input_tensor->index], this->vx_tensor_map[weight_tensor->index], this->vx_tensor_map[bias_tensor->index]})
+                    .BindOutputs({ this->vx_tensor_map[output_tensor->index] });
+        }
+        else
+        {
+            (*fc)
+                    .BindInputs({ this->vx_tensor_map[input_tensor->index], this->vx_tensor_map[weight_tensor->index] })
+                    .BindOutputs({ this->vx_tensor_map[output_tensor->index] });
+        }
     }
-    else
+    else if (output_tensor->dim_num == 4)
     {
-        (*fc)
-            .BindInputs({ this->vx_tensor_map[input_tensor->index], this->vx_tensor_map[weight_tensor->index] })
-            .BindOutputs({ this->vx_tensor_map[output_tensor->index] });
+        tim::vx::Quantization tmp_quant(tim::vx::QuantType::ASYMMETRIC,
+                                        output_tensor->scale, output_tensor->zero_point);
+        tim::vx::ShapeType vx_shape;
+        std::vector<uint32_t> perm;
+        for (int i = output_tensor->dim_num - 1; i >= 0; i--)
+        {
+            vx_shape.push_back(output_tensor->dims[i]);
+            perm.push_back(output_tensor->dims[i]);
+        }
+        tim::vx::TensorSpec tmp_spec(tim::vx::DataType::UINT8, vx_shape, tim::vx::TensorAttribute::TRANSIENT, tmp_quant);
+        auto tmp_output = this->graph->CreateTensor(tmp_spec);
+
+        if (ir_node->input_num > 2)
+        {
+            struct tensor* bias_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[2]);
+            (*fc)
+                    .BindInputs({this->vx_tensor_map[input_tensor->index], this->vx_tensor_map[weight_tensor->index], this->vx_tensor_map[bias_tensor->index]})
+                    .BindOutputs({ tmp_output });
+        }
+        else
+        {
+            (*fc)
+                    .BindInputs({ this->vx_tensor_map[input_tensor->index], this->vx_tensor_map[weight_tensor->index] })
+                    .BindOutputs({ tmp_output });
+        }
+
+        std::vector<uint32_t> perm_shape;
+        for (int i = output_tensor->dim_num - 1; i >= 0; i--)
+        {
+            perm_shape.push_back(output_tensor->dims[i]);
+        }
+
+        auto reshape = graph->CreateOperation<tim::vx::ops::Reshape>(perm_shape);
+        vx_node_map[ir_node->index + ir_graph->node_num] = reshape;
+
+        (*reshape)
+                .BindInputs({ tmp_output })
+                .BindOutputs({ this->vx_tensor_map[output_tensor->index] });
+
     }
 
     return true;
