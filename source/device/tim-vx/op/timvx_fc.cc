@@ -101,7 +101,7 @@ bool VXEngine::AddFullyConnectionNode(struct node* ir_node)
         }
 
         auto reshape = graph->CreateOperation<tim::vx::ops::Reshape>(perm_shape);
-        vx_node_map[ir_node->index] = reshape;
+        vx_node_map[ir_node->index + ir_graph->node_num] = reshape;
 
         (*reshape)
                 .BindInputs({ tmp_output })
