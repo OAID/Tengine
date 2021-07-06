@@ -23,7 +23,6 @@
  */
 
 #include "eltwise_param.h"
-#include "api/c_api.h"
 #include "graph/tensor.h"
 #include "graph/node.h"
 #include "graph/graph.h"
