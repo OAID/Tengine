@@ -51,7 +51,6 @@ ENDFUNCTION()
 IF (TENGINE_BUILD_CPP_API)
     TENGINE_EXAMPLE (cpp_tm_classification       cpp_tm_classification.cpp)
     TENGINE_EXAMPLE (cpp_tm_mobilenet_ssd        cpp_tm_mobilenet_ssd.cpp)
-
 ENDIF()
 
 # add c api examples
