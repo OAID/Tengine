@@ -73,12 +73,14 @@ extern "C"
 #include "tim/vx/ops/split.h"
 #include "tim/vx/ops/transpose.h"
 
-#define SPEC_TYPE_OUTPUT    1
-#define SPEC_TYPE_DWCONV    2
-#define SPEC_TYPE_PRELU     3
-#define SPEC_TYPE_INTERP    4
-#define SPEC_TYPE_SLICE     5
-#define SPEC_TYPE_RESHAPE   6
+#define SPEC_TYPE_CONV           1
+#define SPEC_TYPE_CONV_BIAS      2
+#define SPEC_TYPE_DWCONV         3
+#define SPEC_TYPE_INTERP         4
+#define SPEC_TYPE_OUTPUT         5
+#define SPEC_TYPE_PRELU          6
+#define SPEC_TYPE_SLICE          7
+#define SPEC_TYPE_RESHAPE        8
 
 
 typedef std::map<uint32_t, std::shared_ptr<tim::vx::Tensor>> dict_irt2vxt;
@@ -132,13 +134,12 @@ private:
     bool AddUpsampleNode(struct node* ir_node);
 
 
-
-
 public:
     std::shared_ptr<tim::vx::Context> context;
     std::shared_ptr<tim::vx::Graph> graph;
     std::shared_ptr<tim::vx::Operation> ops;
     std::vector<char> nbg_buffer;
+
 
 private:
     dict_irt2vxt     vx_tensor_map;
