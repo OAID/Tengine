@@ -19,7 +19,7 @@
 
 /*
  * Copyright (c) 2021, OPEN AI LAB
- * Author: qtang@openailab.com
+ * Author: ycyang@openailab.com
  */
 
 #include "graph/tensor.h"
