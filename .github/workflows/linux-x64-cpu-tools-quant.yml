@@ -1,6 +1,44 @@
 name: linux-x64-cpu-tools-quant
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [tengine-lite]
+    paths:
+    - '.github/workflows/linux-x64-cpu-tools-quant.yml'
+    - 'CMakeLists.txt'
+    - 'cmake/**'
+    - 'source/*'
+    - 'source/api/*'
+    - 'source/executer/*'
+    - 'source/graph/*'
+    - 'source/module/*'
+    - 'source/operator/*'
+    - 'source/optimizer/*'
+    - 'source/scheduler/*'
+    - 'source/serializer/*'
+    - 'source/system/*'
+    - 'source/utility/*'
+    - 'source/device/cpu/**'
+    - 'tools/quantize/**'
+  pull_request:
+    branches: [tengine-lite]
+    paths:
+    - '.github/workflows/linux-x64-cpu-tools-quant.yml'
+    - 'CMakeLists.txt'
+    - 'cmake/**'
+    - 'source/*'
+    - 'source/api/*'
+    - 'source/executer/*'
+    - 'source/graph/*'
+    - 'source/module/*'
+    - 'source/operator/*'
+    - 'source/optimizer/*'
+    - 'source/scheduler/*'
+    - 'source/serializer/*'
+    - 'source/system/*'
+    - 'source/utility/*'
+    - 'source/device/cpu/**'
+    - 'tools/quantize/**'
 
 jobs:
   linux-x64-cpu-tools-quant:

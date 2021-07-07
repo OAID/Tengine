@@ -53,6 +53,8 @@
 #include <stdarg.h>
 #include <string.h>
 
+#define STR_VERSION2(a) #a
+#define STR_VERSION(a) STR_VERSION2(a)
 
 #ifdef TENGINE_LITE_VERSION
 static const char* tengine_lite_version = STR_VERSION(TENGINE_LITE_VERSION);

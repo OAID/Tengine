@@ -1,6 +1,42 @@
 name: linux-x64-cpu-gcc
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [tengine-lite]
+    paths:
+    - '.github/workflows/linux-x64-cpu-gcc.yml'
+    - 'CMakeLists.txt'
+    - 'cmake/**'
+    - 'source/*'
+    - 'source/api/*'
+    - 'source/executer/*'
+    - 'source/graph/*'
+    - 'source/module/*'
+    - 'source/operator/*'
+    - 'source/optimizer/*'
+    - 'source/scheduler/*'
+    - 'source/serializer/*'
+    - 'source/system/*'
+    - 'source/utility/*'
+    - 'source/device/cpu/**'
+  pull_request:
+    branches: [tengine-lite]
+    paths:
+    - '.github/workflows/linux-x64-cpu-gcc.yml'
+    - 'CMakeLists.txt'
+    - 'cmake/**'
+    - 'source/*'
+    - 'source/api/*'
+    - 'source/executer/*'
+    - 'source/graph/*'
+    - 'source/module/*'
+    - 'source/operator/*'
+    - 'source/optimizer/*'
+    - 'source/scheduler/*'
+    - 'source/serializer/*'
+    - 'source/system/*'
+    - 'source/utility/*'
+    - 'source/device/cpu/**'
 
 jobs:
   linux-x64-cpu-gcc:
@@ -9,7 +45,7 @@ jobs:
     - uses: actions/checkout@v1
     - name: update
       run: sudo apt-get update
-    - name: protobuf
+    - name: depends
       run: sudo apt-get install libprotobuf-dev protobuf-compiler libopencv-dev
     - name: configure
       run: mkdir build && cd build && cmake -DTENGINE_BUILD_TESTS=ON ..
@@ -22,7 +58,7 @@ jobs:
         mv onnx_op_test_data onnx_node
         export TG_DEBUG_REF=1
         ctest --output-on-failure
-    - name: models
+    - name: test-data
       run: |
         cd build
         wget ftp://219.139.34.182/tengine/ci_test/models.zip
@@ -32,9 +68,15 @@ jobs:
         mv x86_data data
         wget ftp://219.139.34.182/tengine/ci_test/images.zip
         unzip images.zip
-    - name: model-test
+        git clone https://github.com/BUG1989/onnx_op_test_data.git
+        mv onnx_op_test_data onnx_node            
+    - name: test-models
       run: |
         chmod +x ./tests/test.sh
         cd build
-        unset TG_DEBUG_REF
         ../tests/test.sh
+    - name: test-op
+      run: |
+        cd build
+        export TG_DEBUG_REF=1
+        ctest --output-on-failure       

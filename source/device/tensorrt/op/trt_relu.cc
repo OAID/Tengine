@@ -27,6 +27,7 @@
 EXPORT_BEGIN
 #include "relu_param.h"
 #include "convolution_param.h"
+#include "clip_param.h"
 EXPORT_FINISH
 
 #include <cmath>
@@ -82,6 +83,9 @@ bool TensorRTEngine::addReLUNode(struct graph *ir_graph, struct node *node)
                 break;
             case OP_RELU1:
                 op_type = OP_RELU1;
+                break;
+            case OP_RELU6:
+                op_type = OP_RELU6;
                 break;
             case OP_CLIP:
                 op_type = OP_CLIP;
@@ -148,10 +152,17 @@ bool TensorRTEngine::addReLUNode(struct graph *ir_graph, struct node *node)
             layer->setAlpha(0);
             layer->setBeta(1);
         }
-        if (OP_CLIP == op_type)
+        if (OP_RELU6 == op_type)
         {
             layer->setAlpha(0);
             layer->setBeta(6);
+        }
+        if (OP_CLIP == op_type)
+        {
+            auto clip_param = (struct clip_param*)node->op.param_mem;
+
+            layer->setAlpha(clip_param->min);
+            layer->setBeta(clip_param->max);
         }
     }
 

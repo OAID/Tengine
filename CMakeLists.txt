@@ -109,7 +109,7 @@ SET_PROPERTY(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "cmake")
 ADD_SUBDIRECTORY (source)
 
 # Internal modules, not for open source part
-INCLUDE (internal/exend.cmake OPTIONAL)
+INCLUDE (internal/extension.cmake OPTIONAL)
 
 IF (TENGINE_BUILD_BENCHMARK)
     ADD_SUBDIRECTORY(benchmark)
