@@ -35,6 +35,7 @@
 #define FLOAT_MIN -3.4028235E38
 
 void sum_5d_ax1(int* dims, int dim_num, float* data, float* tmp);
+void sum_5d_ax1_uint8(int* dims, int dim_num, uint8_t* data, uint8_t* out_data, float in_scale, int in_zp, float out_scale, int out_zp);
 
 void sum_4d_ax0(int dim0, int dim1, int dim2, int dim3, float* data, float* tmp);
 void sum_4d_ax1(int dim0, int dim1, int dim2, int dim3, float* data, float* tmp);
@@ -140,7 +141,37 @@ struct reduce_param_ref
     int layout;
     int type;
     int param_dim[4];
+    float input_scale;
+    int input_zp;
+    float output_scale;
+    int output_zp;
 };
+
+static int ref_reduce_uint8(uint8_t* data, uint8_t* out_data, int dim0, int dim1, int dim2, int dim3, int out_size,
+                           struct reduce_param_ref* param, int dim_num, int* dims)
+{
+    int offset = 0;
+    int param_dim0 = param->param_dim[0];
+    int param_dim1 = param->param_dim[1];
+    int param_dim2 = param->param_dim[2];
+    int param_dim3 = param->param_dim[3];
+    float in_scale = param->input_scale;
+    int in_zp = param->input_zp;
+    float out_scale = param->output_scale;
+    int out_zp = param->output_zp;
+
+    if (param->type == 0)
+    {
+        if (param_dim0 == 1 && param_dim1 == -2 && param_dim2 == -2 && param_dim3 == -2 && (dim_num > 4))
+        {
+            if(dim_num == 5)
+            {
+                sum_5d_ax1_uint8(dims, dim_num, data, out_data, in_scale, in_zp, out_scale, out_zp);
+            }
+        }
+    }
+    return 0;
+}
 
 static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int dim2, int dim3, int out_size,
                            struct reduce_param_ref* param, int dim_num, int* dims)
@@ -2413,6 +2444,39 @@ void sum_5d_ax1(int* dims, int dim_num, float* data, float* tmp)
             }
         }
     }
+}
+
+void sum_5d_ax1_uint8(int* dims, int dim_num, uint8_t* data, uint8_t* out_data, float in_scale, int in_zp, float out_scale, int out_zp)
+{
+    int dim0 = dims[0];
+    int dim1 = dims[1];
+    int dim2 = dims[2];
+    int dim3 = dims[3];
+    int dim4 = dims[4];
+    int chw = dim2*dim3*dim4;
+
+    float* tmp = ( float* )malloc(sizeof(float) * chw);
+    memset(tmp, 0, sizeof(float) * chw);
+
+    for(int j = 0; j < dim0; j++){
+        for(int n = 0; n < dim1; n++){
+            for(int size = 0; size < chw; size++){
+                float tmp_in_data = in_scale * (data[n*chw + size] - in_zp);
+                tmp[size] += tmp_in_data;
+            }
+        }
+    }
+    for(int size = 0; size < chw; size++){
+        int32_t data_i32 = round(tmp[size] / out_scale + out_zp);
+        if (data_i32 > 255)
+            data_i32 = 255;
+        else if (data_i32 < 0)
+            data_i32 = 0;
+        out_data[size] = (uint8_t)(data_i32);
+    }
+
+    free(tmp);
+    tmp = NULL;
 }
 
 void sum_4d_ax0(int dim0, int dim1, int dim2, int dim3, float* data, float* tmp)
