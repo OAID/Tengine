@@ -40,6 +40,8 @@
 #define DEFAULT_LOOP_COUNT 1
 #define DEFAULT_THREAD_COUNT 1
 
+char* devices = NULL;
+
 void get_input_uint8_data(const char* image_file, uint8_t* input_data, int img_h, int img_w, float* mean, float* scale,
                           float input_scale, int zero_point)
 {
@@ -79,8 +81,19 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
     }
     fprintf(stderr, "tengine-lite library version: %s\n", get_tengine_version());
 
-    /* create graph, load tengine model xxx.tmfile */
-    graph_t graph = create_graph(NULL, "tengine", model_file);
+    context_t timvx_context = NULL;
+    if(devices != NULL)
+    {
+        /* create VeriSilicon TIM-VX backend */
+        timvx_context = create_context("timvx", 1);
+        int rtt = set_context_device(timvx_context, "TIMVX", NULL, 0);
+        if (0 > rtt)
+        {
+            fprintf(stderr, " add_context_device VSI DEVICE failed.\n");
+            return -1;
+        }
+    }
+    graph_t graph = create_graph(timvx_context, "tengine", model_file);
     if (NULL == graph)
     {
         fprintf(stderr, "Create graph failed.\n");
@@ -203,7 +216,7 @@ int main(int argc, char* argv[])
     float scale[3] = {0.f, 0.f, 0.f};
 
     int res;
-    while ((res = getopt(argc, argv, "m:i:l:g:s:w:r:t:h")) != -1)
+    while ((res = getopt(argc, argv, "m:i:l:g:s:w:r:t:d:h")) != -1)
     {
         switch (res)
         {
@@ -212,6 +225,9 @@ int main(int argc, char* argv[])
                 break;
             case 'i':
                 image_file = optarg;
+                break;
+            case 'd':
+                devices = optarg;
                 break;
             case 'g':
                 split(img_hw, optarg, ",");
