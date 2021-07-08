@@ -14,6 +14,7 @@ Tengine Lite's examples providing simple yet fancy demos.
   - [YoloV4-tiny Object Detection Task](#yolov4-tiny-object-detection-task---tm_yolov4_tinycpp)
   - [YoloV5s Object Detection Task](#yolov5s-object-detection-task---tm_yolov5scpp)
   - [NanoDet Object Detection Task](#nanodet-object-detection-task---tm_nanodet_mcpp)
+  - [EfficientDet Object Detection Task](#efficientdet-object-detection-task---tm_efficientdetc)
   - [OpenPose Human Pose Estimation Task](#openpose-human-pose-estimation-task---tm_openposecpp)
   - [HRNet Human Pose Estimation Task](#hrnet-human-pose-estimation-task---tm_hrnetcpp)
   - [CRNN Chinese character recognition](#chinese-character-recognition-task---tm_crnncpp)
@@ -339,6 +340,34 @@ detection num: 3
 ```
 
 ![](https://z3.ax1x.com/2021/07/01/RsVkff.jpg)
+
+## EfficientDet Object Detection Task - [tm_efficientdet.c](tm_efficientdet.c)
+
+We use this image:
+
+![](https://z3.ax1x.com/2021/06/30/RBVdq1.jpg)
+
+```bash
+$ export LD_LIBRARY_PATH=./build/install/lib
+$ ./build/install/bin/tm_efficientdet -m ../models/efficientdet.tmfile -i ../images/ssd_dog.jpg -r 1 -t 1
+```
+output：
+
+```bash
+tengine-lite library version: 1.4-dev
+model file : ../models/efficientdet.tmfile
+image file : ../images/ssd_dog.jpg
+img_h, img_w, scale[3], mean[3] : 512 512 , 0.017 0.018 0.017, 123.7 116.3 103.5
+Repeat 1 times, thread 1, avg time 598.86 ms, max_time 598.86 ms, min_time 598.86 ms
+--------------------------------------
+17:  80%, [ 132,  222,  315,  535], dog
+ 7:  73%, [ 467,   74,  694,  169], truck
+ 1:  42%, [ 103,  119,  555,  380], bicycle
+ 2:  29%, [ 687,  113,  724,  156], car
+ 2:  25%, [  57,   77,  111,  124], car
+```
+
+![](https://z3.ax1x.com/2021/07/08/RqxsmR.jpg)
 
 ## OpenPose Human Pose Estimation Task - [tm_openpose.cpp](tm_openpose.cpp)
 
