@@ -480,7 +480,7 @@ image copyMaker(image im, int top, int bottom, int left, int right, float value)
 
 void save_image(image im, const char* name)
 {
-    char buff[256];
+    char buff[256] = { 0 };
     unsigned char* data = ( unsigned char* )calloc((size_t)im.w * im.h * im.c, sizeof(char));
     int i, k;
     for (k = 0; k < im.c; ++k)
@@ -493,32 +493,31 @@ void save_image(image im, const char* name)
 
     int success = 0;
     int f = 0;
-    int len = strlen(name);
-    if (name[len - 2] == 'j' && name[len - 1] == 'p' && name[len] == 'g')
-        f = 0;
-    if (name[len - 2] == 'p' && name[len - 1] == 'n' && name[len] == 'g')
+    int len = name ? strlen(name) : 0;
+    if (3 < len && 0 == strcmp(name + len - 4, ".jpg"))
         f = 1;
-    if (name[len - 2] == 't' && name[len - 1] == 'g' && name[len] == 'a')
+    if (3 < len && 0 == strcmp(name + len - 4, ".png"))
         f = 2;
-    if (name[len - 2] == 'b' && name[len - 1] == 'm' && name[len] == 'p')
+    if (3 < len && 0 == strcmp(name + len - 4, ".tga"))
         f = 3;
+    if (3 < len && 0 == strcmp(name + len - 4, ".bmp"))
+        f = 4;
+    sprintf(buff, "%s", name ? name : "null");
 
     switch (f)
     {
         case 0:
-            sprintf(buff, "%s.jpg", name);
+            strcat(buff, ".jpg");
+        case 1:
             success = stbi_write_jpg(buff, im.w, im.h, im.c, data, 80);
             break;
-        case 1:
-            sprintf(buff, "%s.png", name);
+        case 2:
             success = stbi_write_png(buff, im.w, im.h, im.c, data, im.w * im.c);
             break;
-        case 2:
-            sprintf(buff, "%s.tga", name);
+        case 3:
             success = stbi_write_tga(buff, im.w, im.h, im.c, data);
             break;
-        case 3:
-            sprintf(buff, "%s.bmp", name);
+        case 4:
             success = stbi_write_bmp(buff, im.w, im.h, im.c, data);
             break;
         default:

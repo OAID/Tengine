@@ -44,7 +44,7 @@ int ref_softmax_int8(struct tensor* input_tensor, struct tensor* output_tensor, 
     int element_size = input_tensor->elem_size;
     int type = input_tensor->data_type;
 
-    int dims[4];
+    int* dims = ( int* )sys_malloc(input_tensor->dim_num * sizeof(int));
     for (int i = 0; i < input_tensor->dim_num; i++)
     {
         dims[i] = input_tensor->dims[i];
@@ -113,5 +113,6 @@ int ref_softmax_int8(struct tensor* input_tensor, struct tensor* output_tensor, 
     sys_free(max_array);
     sys_free(sum_array);
 
+    sys_free(dims);
     return 0;
 }

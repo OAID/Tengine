@@ -101,11 +101,15 @@ ENABLE_LANGUAGE (ASM)
 # Enable cmake ctest module
 ENABLE_TESTING ()
 
+# Set cmake default folder name
+SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
+SET_PROPERTY(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "cmake")
+
 # Main source files
 ADD_SUBDIRECTORY (source)
 
 # Internal modules, not for open source part
-INCLUDE (internal/exend.cmake OPTIONAL)
+INCLUDE (internal/extension.cmake OPTIONAL)
 
 IF (TENGINE_BUILD_BENCHMARK)
     ADD_SUBDIRECTORY(benchmark)

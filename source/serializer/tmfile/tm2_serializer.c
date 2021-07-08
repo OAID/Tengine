@@ -541,7 +541,7 @@ static int load_graph_nodes(struct tm2_serializer* tm2_s, struct graph* ir_graph
             TLOG_ERR("node: %d has no output\n", ir_node->index);
             break;
         }
-
+        
         const TM2_Vector_indices* v_output_tensors =
                 ( TM2_Vector_indices* )(mem_base + tm_node->offset_vi_output_tensors);
 

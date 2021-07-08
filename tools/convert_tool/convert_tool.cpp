@@ -30,6 +30,7 @@
 #include "utils/save_graph/save_graph.hpp"
 #include "onnx/onnx2tengine.hpp"
 #include "caffe/caffe2tengine.hpp"
+#include "utils/graph_optimizer/graph_opt.hpp"
 
 const char* help_params = "[Convert Tools Info]: optional arguments:\n"
                       "\t-h    help            show this help message and exit\n"
@@ -181,6 +182,12 @@ int main(int argc, char* argv[])
     if (graph == NULL)
     {
         fprintf(stderr, "Convert model failed.\n");
+        return -1;
+    }
+
+    if (graph_opt(graph) < 0)
+    {
+        fprintf(stderr, "optimize graph failed! \n");
         return -1;
     }
     
