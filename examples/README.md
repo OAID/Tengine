@@ -13,6 +13,7 @@ Tengine Lite 的 examples 将提供简单的、好玩的 demo。
 - [yolov4-tiny 目标检测任务](#yolov4-tiny目标检测任务---tm_yolov4_tinycpp)
 - [yolov5s 目标检测任务](#yolov5s目标检测任务---tm_yolov5scpp)
 - [nanodet 目标检测任务](#nanodet目标检测任务---tm_nanodet_mcpp)
+- [efficientdet 目标检测任务](#efficientdet目标检测任务---tm_efficientdetc)
 - [openpose 人体姿态识别任务](#openpose人体姿态识别任务---tm_openposecpp)
 - [hrnet 人体姿态识别任务](#hrnet人体姿态识别任务---tm_hrnetcpp)
 - [crnn 汉字识别任务](#汉字识别任务---tm_crnncpp)
@@ -87,8 +88,8 @@ install
 将测试图片和模型文件放在 Tengine-Lite 根目录下，运行：
 
 ```bash
-export LD_LIBRARY_PATH=./build/install/lib
-./build/install/bin/tm_classification -m models/mobilenet.tmfile -i images/cat.jpg -g 224,224 -s 0.017,0.017,0.017 -w 104.007,116.669,122.679
+$ export LD_LIBRARY_PATH=./build/install/lib
+$ ./build/install/bin/tm_classification -m models/mobilenet.tmfile -i images/cat.jpg -g 224,224 -s 0.017,0.017,0.017 -w 104.007,116.669,122.679
 ```
 
 结果如下：
@@ -113,11 +114,11 @@ Repeat 1 times, thread 1, avg time 33.74 ms, max_time 33.74 ms, min_time 33.74 m
 
 使用图片：
 
-![RB5dC4.jpg](https://z3.ax1x.com/2021/06/30/RB5dC4.jpg)
+![](https://z3.ax1x.com/2021/06/30/RB5dC4.jpg)
 
 ```bash
-export LD_LIBRARY_PATH=./build/install/lib
-./build/install/bin/tm_landmark -m models/landmark.tmfile -i images/mobileface02.jpg -r 1 -t 1
+$ export LD_LIBRARY_PATH=./build/install/lib
+$ ./build/install/bin/tm_landmark -m models/landmark.tmfile -i images/mobileface02.jpg -r 1 -t 1
 ```
 
 结果如下：
@@ -335,6 +336,34 @@ detection num: 3
 ```
 
 ![](https://z3.ax1x.com/2021/07/01/RsVkff.jpg)
+
+## efficientdet目标检测任务 - [tm_efficientdet.c](tm_efficientdet.c)
+
+使用图片：
+
+![](https://z3.ax1x.com/2021/06/30/RBVdq1.jpg)
+
+```bash
+$ export LD_LIBRARY_PATH=./build/install/lib
+$ ./build/install/bin/tm_efficientdet -m ../models/efficientdet.tmfile -i ../images/ssd_dog.jpg -r 1 -t 1
+```
+结果如下：
+
+```bash
+tengine-lite library version: 1.4-dev
+model file : ../models/efficientdet.tmfile
+image file : ../images/ssd_dog.jpg
+img_h, img_w, scale[3], mean[3] : 512 512 , 0.017 0.018 0.017, 123.7 116.3 103.5
+Repeat 1 times, thread 1, avg time 598.86 ms, max_time 598.86 ms, min_time 598.86 ms
+--------------------------------------
+17:  80%, [ 132,  222,  315,  535], dog
+ 7:  73%, [ 467,   74,  694,  169], truck
+ 1:  42%, [ 103,  119,  555,  380], bicycle
+ 2:  29%, [ 687,  113,  724,  156], car
+ 2:  25%, [  57,   77,  111,  124], car
+```
+
+![](https://z3.ax1x.com/2021/07/08/RqxsmR.jpg)
 
 
 ## openpose人体姿态识别任务 - [tm_openpose.cpp](tm_openpose.cpp)
