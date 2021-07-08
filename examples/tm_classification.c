@@ -29,11 +29,11 @@
 #include "tengine/c_api.h"
 #include "tengine_operations.h"
 
-#define DEFAULT_IMG_H 227
-#define DEFAULT_IMG_W 227
-#define DEFAULT_SCALE1 1.f
-#define DEFAULT_SCALE2 1.f
-#define DEFAULT_SCALE3 1.f
+#define DEFAULT_IMG_H 224
+#define DEFAULT_IMG_W 224
+#define DEFAULT_SCALE1 0.017f
+#define DEFAULT_SCALE2 0.017f
+#define DEFAULT_SCALE3 0.017f
 #define DEFAULT_MEAN1 104.007
 #define DEFAULT_MEAN2 116.669
 #define DEFAULT_MEAN3 122.679

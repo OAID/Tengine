@@ -129,7 +129,7 @@ void draw_target(const std::vector<Face2f>& all_pred_boxes, image img)
             draw_circle(img, box.landmark[l].x, box.landmark[l].y, 1, 0, 128, 128);
         }
     }
-    save_image(img, "tengine_example_out");
+    save_image(img, "retinaface_out");
 }
 
 float iou(const Face2f& a, const Face2f& b)

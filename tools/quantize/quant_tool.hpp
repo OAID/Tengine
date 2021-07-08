@@ -25,6 +25,7 @@
 
 #include <string>
 #include <vector>
+#include <unordered_map>
 
 extern "C"
 {
@@ -53,7 +54,7 @@ public:
 
     std::string model_file; // path to input float32 tmfile
     std::string scale_file; // path to calibration scale file
-    std::string output_file;// path to output uint8 tmfile
+    std::string output_file;// path to output int8/uint8 tmfile
     std::string image_dir;  // path to calibration images folder
 
     int num_thread;

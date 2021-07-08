@@ -43,6 +43,23 @@ ADD_CUSTOM_TARGET(ONNX_SERIALIZER_TARGET DEPENDS ${ONNX_PROTO_SRC})
 include_directories(${ONNX_PROTO_OUT_PATH})
 list(APPEND ONNX_SERIALIZER_SRCS ${ONNX_PROTO_SRC})
 
+# CAFFE
+file(GLOB_RECURSE CAFFE_SERIALIZER_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/caffe/*.cpp")
+# the generated caffe.pb.cc
+set(CAFFE_PROTO_SRC        ${CMAKE_CURRENT_BINARY_DIR}/caffe/te_caffe.pb.cc)
+set(CAFFE_PROTO_PATH       ${CMAKE_CURRENT_SOURCE_DIR}/caffe)
+set(CAFFE_PROTO_OUT_PATH   ${CMAKE_CURRENT_BINARY_DIR}/caffe)
+
+add_custom_command(OUTPUT  ${CAFFE_PROTO_SRC}
+                   COMMAND mkdir -p ${CAFFE_PROTO_OUT_PATH}
+                   COMMAND ${Protobuf_PROTOC_EXECUTABLE} --cpp_out=${CAFFE_PROTO_OUT_PATH} --proto_path=${CAFFE_PROTO_PATH} ${CAFFE_PROTO_PATH}/te_caffe.proto
+                   #COMMAND mv ${CAFFE_PROTO_OUT_PATH}/te_caffe.pb.h ${CAFFE_PROTO_PATH}/../include/
+                   DEPENDS ${CAFFE_PROTO_PATH}/te_caffe.proto)
+
+add_custom_target(CAFFE_SERIALIZER_TARGET DEPENDS ${CAFFE_PROTO_SRC})
+include_directories(${CAFFE_PROTO_OUT_PATH})
+list(APPEND CAFFE_SERIALIZER_SRCS ${CAFFE_PROTO_SRC})
+
 # SAVE GRAPH
 FILE(GLOB_RECURSE SAVE_GRAPH_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/utils/save_graph/*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/utils/save_graph/*.c")
 
@@ -52,8 +69,11 @@ FILE(GLOB_RECURSE GRAPH_OPT_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/utils/graph_optimi
 # CONVERT TOOL
 FILE(GLOB_RECURSE CONVERT_TOOL_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/convert_tool.cpp")
 list(APPEND CONVERT_TOOL_SRCS ${ONNX_SERIALIZER_SRCS})
+list(APPEND CONVERT_TOOL_SRCS ${CAFFE_SERIALIZER_SRCS})
 list(APPEND CONVERT_TOOL_SRCS ${SAVE_GRAPH_SRCS})
 list(APPEND CONVERT_TOOL_SRCS ${GRAPH_OPT_SRCS})
+
+message("===================${CONVERT_TOOL_SRCS}=========================")
 
 add_executable(convert_tool ${CONVERT_TOOL_SRCS})
 target_link_libraries(convert_tool ${CMAKE_PROJECT_NAME}-static pthread dl m)

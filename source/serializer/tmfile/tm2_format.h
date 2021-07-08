@@ -146,8 +146,9 @@ typedef uint8_t tm_bool_t;                      /* bool is 1-byte unsigned integ
 #define TM2_OPSTR_SCATTER                       "Scatter"
 #define TM2_OPSTR_TILE                          "Tile"
 #define TM2_OPSTR_L2POOL                        "L2Pool"
-#define TM2_OPSTR_SOFTPLUS 						"Softplus"
-#define TM2_OPSTR_RECIPROCAL 					"Reciprocal"
+#define TM2_OPSTR_SOFTPLUS                      "Softplus"
+#define TM2_OPSTR_RECIPROCAL                    "Reciprocal"
+#define TM2_OPSTR_IDENTITY                      "Identity"
 #define TM2_OPSTR_SPATIALTRANSFORMER            "SpatialTransformer"
 #define TM2_OPSTR_EXPAND                        "Expand"
 /* Operator types */
@@ -256,7 +257,8 @@ typedef uint8_t tm_bool_t;                      /* bool is 1-byte unsigned integ
 #define TM2_OPTYPE_SOFTPLUS                     102
 #define TM2_OPTYPE_RECIPROCAL                   103
 #define TM2_OPTYPE_SPATIALTRANSFORMER           105
-#define TM2_OPTYPE_NUM                          106
+#define TM2_OPTYPE_IDENTITY                     106
+#define TM2_OPTYPE_NUM                          107
 
 /* --------------------- -------- TM objects -------------------------------- */
 

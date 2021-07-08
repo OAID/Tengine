@@ -6,22 +6,28 @@ Tengine Lite's examples providing simple yet fancy demos.
 
   - [Classification](#classification-task---tm_classificationc)
   - [Facial Landmark Detection](#facial-landmark-detection-task---tm_landmarkcpp)
-  - [SSD Object Detection](#ssd-object-detection-task---tm_mobilenet_ssdcpp)
+  - [SSD Object Detection](#ssd-object-detection-task---tm_mobilenet_ssdc)
   - [RetinaFace Face Detection](#retinaface-face-detection-task---tm_refinafacecpp)
   - [Yolact Instance Segmentation](#yolact-instance-segmentation-task---tm_yolactcpp)
+  - [U-Net Image Segmentation](#u-net-image-segmentation-task---tm_unetcpp)
   - [YoloV3 Object Detection Task](#yolov3-object-detection-task---tm_yolov3cpp)
-  - [Yolov4-tiny Object Detection Task](#yolov4-tiny-object-detection-task---tm_yolov4_tinycpp)
-  - [Human Pose Estimation Task](#human-pose-estimation-task---tm_openposecpp)
-  - [Chinese character recognition](#chinese-character-recognition-task---tm_crnncpp)
+  - [YoloV4-tiny Object Detection Task](#yolov4-tiny-object-detection-task---tm_yolov4_tinycpp)
+  - [YoloV5s Object Detection Task](#yolov5s-object-detection-task---tm_yolov5scpp)
+  - [NanoDet Object Detection Task](#nanodet-object-detection-task---tm_nanodet_mcpp)
+  - [EfficientDet Object Detection Task](#efficientdet-object-detection-task---tm_efficientdetc)
+  - [OpenPose Human Pose Estimation Task](#openpose-human-pose-estimation-task---tm_openposecpp)
+  - [HRNet Human Pose Estimation Task](#hrnet-human-pose-estimation-task---tm_hrnetcpp)
+  - [CRNN Chinese character recognition](#chinese-character-recognition-task---tm_crnncpp)
   
 ----------
 ## Classification task - [tm_classification.c](tm_classification.c)
 
 Tengine Lite is compatible with original Tengine's C API. Here we demonstrate how to run MobileNet v1 via tm_classification example code, providing image classification functionality. This would help you get involve with Tengine Lite C API. We use the popular tiger cat image for test.
 
-![lu mao](https://github.com/OAID/Tengine/blob/master/tests/images/cat.jpg)
+![](https://z3.ax1x.com/2021/06/30/RBIQIO.jpg)
 
 ### Model Zoo
+The model zoo contains the models, images, and files needed to run examples
 
 - [Baidu Netdisk](https://pan.baidu.com/s/1JsitkY6FVV87Kao6h5yAmg) (password: 7ke5)
 
@@ -40,30 +46,43 @@ build.sh compiles example folders demo programs on default. Take x86 platform as
 bug1989@DESKTOP-SGN0H2A:/mnt/d/ubuntu/gitlab/build-linux$ tree install
 install
 ├── bin
-│   ├── cpp_tm_classification
-│   ├── cpp_tm_mobilenet_ssd
-│   ├── tm_benchmark
-│   ├── tm_classification
-│   ├── tm_classification_fp16
-│   ├── tm_classification_uint8
-│   ├── tm_classification_vulkan
-│   ├── tm_crnn
-│   ├── tm_landmark
-│   ├── tm_landmark_uint8
-│   ├── tm_mobilefacenet
-│   ├── tm_mobilenet_ssd
-│   ├── tm_mobilenet_ssd_acl
-│   ├── tm_mobilenet_ssd_uint8
-│   ├── tm_openpose
-│   ├── tm_retinaface
-│   ├── tm_yolact
-│   ├── tm_yolov3_tiny
-│   ├── tm_yolov3_uint8
-│   ├── tm_yolov4
-│   └── tm_yolov4_tiny
+│   ├── tm_alphapose
+│   ├── tm_classification
+│   ├── tm_classification_int8
+│   ├── tm_classification_uint8
+│   ├── tm_crnn
+│   ├── tm_efficientdet
+│   ├── tm_efficientdet_uint8
+│   ├── tm_hrnet
+│   ├── tm_landmark
+│   ├── tm_landmark_uint8
+│   ├── tm_mobilefacenet
+│   ├── tm_mobilefacenet_uint8
+│   ├── tm_mobilenet_ssd
+│   ├── tm_mobilenet_ssd_uint8
+│   ├── tm_nanodet_m
+│   ├── tm_openpose
+│   ├── tm_retinaface
+│   ├── tm_ultraface
+│   ├── tm_unet
+│   ├── tm_yolact
+│   ├── tm_yolact_uint8
+│   ├── tm_yolofastest
+│   ├── tm_yolov3
+│   ├── tm_yolov3_tiny
+│   ├── tm_yolov3_tiny_uint8
+│   ├── tm_yolov3_uint8
+│   ├── tm_yolov4
+│   ├── tm_yolov4_tiny
+│   ├── tm_yolov4_tiny_uint8
+│   ├── tm_yolov4_uint8
+│   ├── tm_yolov5
+│   └── tm_yolov5s
 ├── include
-│   └── tengine_c_api.h
+│   └── tengine
+│       └── c_api.h
 └── lib
+    ├── libtengine-lite-static.a
     └── libtengine-lite.so
 ```
 
@@ -72,26 +91,25 @@ install
 Put testing images and models under root folder of Tengine-Lite project, and run it:
 
 ```bash
-export LD_LIBRARY_PATH=./build/install/lib
-./build/install/bin/tm_classification -m models/mobilenet.tmfile -i images/cat.jpg -g 224,224 -s 0.017,0.017,0.017 -w 104.007,116.669,122.679
+$ export LD_LIBRARY_PATH=./build/install/lib
+$ ./build/install/bin/tm_classification -m models/mobilenet.tmfile -i images/cat.jpg -g 224,224 -s 0.017,0.017,0.017 -w 104.007,116.669,122.679
 ```
 
 output:
 
 ```bash
-start to run register cpu allocator
-tengine-lite library version: 1.0-dev
+tengine-lite library version: 1.4-dev
 
-model file : ./temp/models/mobilenet.tmfile
-image file : ./temp/images/cat.jpg
+model file : models/mobilenet.tmfile
+image file : images/cat.jpg
 img_h, img_w, scale[3], mean[3] : 224 224 , 0.017 0.017 0.017, 104.0 116.7 122.7
-Repeat 1 times, thread 1, avg time 656.76 ms, max_time 656.76 ms, min_time 656.76 ms
+Repeat 1 times, thread 1, avg time 33.74 ms, max_time 33.74 ms, min_time 33.74 ms
 --------------------------------------
-8.574148, 282
-7.880116, 277
-7.812579, 278
-7.286453, 263
-6.357488, 281
+8.574144, 282
+7.880117, 277
+7.812573, 278
+7.286458, 263
+6.357486, 281
 --------------------------------------
 ```
 
@@ -99,184 +117,275 @@ Repeat 1 times, thread 1, avg time 656.76 ms, max_time 656.76 ms, min_time 656.7
 
 We use this image:
 
-![](https://github.com/OAID/Tengine/blob/master/tests/images/mobileface02.jpg)
+![](https://z3.ax1x.com/2021/06/30/RB5dC4.jpg)
 
 Run it with:
 ```bash
-export LD_LIBRARY_PATH=./build/install/lib
-./build/install/bin/tm_landmark -m models/landmark.tmfile -i images/mobileface02.jpg -r 1 -t 1
+$ export LD_LIBRARY_PATH=./build/install/lib
+$ ./build/install/bin/tm_landmark -m models/landmark.tmfile -i images/mobileface02.jpg -r 1 -t 1
 ```
 
 output:
 
 ```bash
-start to run register cpu allocator
-tengine-lite library version: 1.0-dev
-Repeat [1] min 17.461 ms, max 17.461 ms, avg 17.461 ms
+tengine-lite library version: 1.4-dev
+Repeat [1] min 8.784 ms, max 8.784 ms, avg 8.784 ms
 ```
 
-![](https://s1.ax1x.com/2020/08/28/doZQxO.jpg)
+![](https://z3.ax1x.com/2021/07/01/RrPSuq.jpg)
 
-## SSD Object Detection Task - [tm_mobilenet_ssd.cpp](tm_mobilenet_ssd.cpp)
+## SSD Object Detection Task - [tm_mobilenet_ssd.c](tm_mobilenet_ssd.c)
 
 We use this image:
 
-![](https://github.com/OAID/Tengine/blob/master/tests/images/ssd_dog.jpg)
+![](https://z3.ax1x.com/2021/06/30/RBVdq1.jpg)
 
 ```bash
-export LD_LIBRARY_PATH=./build/install/lib
-./build/install/bin/tm_mobilenet_ssd -m models/mobilenet_ssd.tmfile -i images/ssd_dog.jpg -r 1 -t 1
+$ export LD_LIBRARY_PATH=./build/install/lib
+$ ./build/install/bin/tm_mobilenet_ssd -m models/mobilenet_ssd.tmfile -i images/ssd_dog.jpg -r 1 -t 1
 ```
 
 output:
 
 ```bash
-start to run register cpu allocator
-tengine-lite library version: 1.0-dev
-Repeat 1 times, thread 1, avg time 206.30 ms, max_time 206.30 ms, min_time 206.30 ms
+tengine-lite library version: 1.4-dev
+Repeat 1 times, thread 1, avg time 78.89 ms, max_time 78.89 ms, min_time 78.89 ms
 --------------------------------------
-detect result num: 3
-dog	:99.8%
+detect result num: 3 
+dog     :99.8%
 BOX:( 138 , 209 ),( 324 , 541 )
-car	:99.7%
+car     :99.7%
 BOX:( 467 , 72 ),( 687 , 171 )
-bicycle	:99.5%
+bicycle :99.5%
 BOX:( 107 , 141 ),( 574 , 415 )
 ======================================
 [DETECTED IMAGE SAVED]:
 ======================================
 ```
 
-![](https://s1.ax1x.com/2020/08/28/doeJ6U.jpg)
+![](https://z3.ax1x.com/2021/07/01/RrPnDx.jpg)
 
 ## RetinaFace Face Detection Task - [tm_refinaface.cpp](tm_refinaface.cpp)
 
 We use this image:
 
-![](https://github.com/OAID/Tengine/blob/master/tests/images/mtcnn_face4.jpg)
+![](https://z3.ax1x.com/2021/06/30/RBC311.jpg)
 
 ```bash
-export LD_LIBRARY_PATH=./build/install/lib
-./build/install/bin/tm_retinaface -m models/retinaface.tmfile -i images/mtcnn_face4.jpg -r 1 -t 1
+$ export LD_LIBRARY_PATH=./build/install/lib
+$ ./build/install/bin/tm_retinaface -m models/retinaface.tmfile -i images/mtcnn_face4.jpg -r 1 -t 1
 ```
 
 output：
 
 ```bash
-start to run register cpu allocator
-tengine-lite library version: 1.0-dev
+tengine-lite library version: 1.4-dev
 img_h, img_w : 316, 474
-Repeat 1 times, thread 1, avg time 75.72 ms, max_time 75.72 ms, min_time 75.72 ms
+Repeat 1 times, thread 1, avg time 28.78 ms, max_time 28.78 ms, min_time 28.78 ms
 --------------------------------------
 detected face num: 4
-BOX 0.99:( 38.9179 , 86.3346 ),( 45.7028 , 63.2934 )
-BOX 0.99:( 168.12 , 86.14 ),( 37.5249 , 47.7839 )
-BOX 0.98:( 383.673 , 56.4136 ),( 77.176 , 83.8093 )
-BOX 0.98:( 289.365 , 103.773 ),( 38.0025 , 47.6989 )
+BOX 1.00:( 38.4053 , 86.142 ),( 46.3009 , 64.0174 )
+BOX 0.99:( 384.076 , 56.9844 ),( 76.968 , 83.9609 )
+BOX 0.99:( 169.196 , 87.1324 ),( 38.4133 , 46.8504 )
+BOX 0.98:( 290.004 , 104.453 ),( 37.6346 , 46.7777 )
 ```
 
-![](https://s1.ax1x.com/2020/08/28/doeBfx.jpg)
+![](https://z3.ax1x.com/2021/07/01/Rrs6LF.jpg)
 
 ## Yolact Instance Segmentation Task - [tm_yolact.cpp](tm_yolact.cpp)
 
 We use this image:
 
-![](https://github.com/OAID/Tengine/blob/master/tests/images/ssd_car.jpg)
+![](https://z3.ax1x.com/2021/06/30/RBFpTO.jpg)
 
 ```bash
-export LD_LIBRARY_PATH=./build/install/lib
-./build/install/bin/tm_yolact -m models/yolact.tmfile -i images/ssd_car.jpg -r 1 -t 1
+$ export LD_LIBRARY_PATH=./build/install/lib
+$ ./build/install/bin/tm_yolact -m models/yolact.tmfile -i images/ssd_car.jpg -r 1 -t 1
 ```
 
 output:
 
 ```bash
-start to run register cpu allocator
-tengine-lite library version: 1.0-dev
-Repeat 1 times, thread 1, avg time 15833.47 ms, max_time 15833.47 ms, min_time 15833.47 ms
+tengine-lite library version: 1.4-dev
+Repeat 1 times, thread 1, avg time 2064.44 ms, max_time 2064.44 ms, min_time 2064.44 ms
 --------------------------------------
 6 = 0.99966 at 130.82 57.77 340.78 x 237.36
 3 = 0.99675 at 323.39 194.97 175.57 x 132.96
 1 = 0.33431 at 191.24 195.78 103.06 x 179.22
 ```
 
-![](https://s1.ax1x.com/2020/08/28/doe4ht.png)
+![](https://z3.ax1x.com/2021/07/01/RrEbEq.jpg)
+
+## U-Net Image Segmentation Task - [tm_unet.cpp](tm_unet.cpp)
+
+We use this image:
+
+![](https://z3.ax1x.com/2021/07/01/Rse0SK.jpg)
+
+```bash
+$ export LD_LIBRARY_PATH=./build/install/lib
+$ ./build/install/bin/tm_unet -m models/unet_sim3.tmfile -i images/carvana01.jpg -r 1 -t 1
+```
+
+output:
+
+```bash
+Image height not specified, use default 512
+Image width not specified, use default  512
+Scale value not specified, use default  0.00392, 0.00392, 0.00392
+tengine-lite library version: 1.4-dev
+
+model file : models/unet_sim3.tmfile
+image file : images/carvana01.jpg
+img_h, img_w, scale[3], mean[3] : 512 512 , 0.004 0.004 0.004, 0.0 0.0 0.0
+Repeat 1 times, thread 1, avg time 4861.93 ms, max_time 4861.93 ms, min_time 4861.93 ms
+--------------------------------------
+segmentatation result is save as unet_out.png
+```
+
+![](https://z3.ax1x.com/2021/07/01/Rs8YjI.png)
 
 ## YoloV3 Object Detection Task - [tm_yolov3.cpp](tm_yolov3.cpp)
 
 We use this image:
 
-![](https://github.com/OAID/Tengine/blob/master/tests/images/ssd_dog.jpg)
-
-```bash
-export LD_LIBRARY_PATH=./build/install/lib
-./build/install/bin/tm_yolact -m models/yolov3_tiny.tmfile -i images/ssd_dog.jpg -r 1 -t 1
-```
-
-output：
-
-```bash
-start to run register cpu allocator
-tengine-lite library version: 1.0-dev
-Repeat 1 times, thread 1, avg time 262.52 ms, max_time 262.52 ms, min_time 262.52 ms
---------------------------------------
-num_detections,4
-16: 57%
-left = 129,right = 369,top = 186,bot = 516
-2: 65%
-left = 465,right = 677,top = 74,bot = 171
-1: 60%
-left = 205,right = 576,top = 153,bot = 447
-```
-
-![](https://s1.ax1x.com/2020/08/28/domYCt.jpg)
-
-## Yolov4-tiny Object Detection Task - [tm_yolov4_tiny.cpp](tm_yolov4_tiny.cpp)
-
-We use this image:
-
-![](https://github.com/OAID/Tengine/blob/master/tests/images/ssd_dog.jpg)
+![](https://z3.ax1x.com/2021/06/30/RBVdq1.jpg)
 
 ```bash
 $ export LD_LIBRARY_PATH=./build/install/lib
-$ ./build/install/bin/tm_yolov4_tiny -m models/yolov4_tiny.tmfile -i images/ssd_dog.jpg -r 1 -t 1
+$ ./build/install/bin/tm_yolov3 -m models/yolov3.tmfile -i images/ssd_dog.jpg -r 1 -t 1
+```
+
+output：
+
+```bash
+tengine-lite library version: 1.4-dev
+Repeat 1 times, thread 1, avg time 1131.67 ms, max_time 1131.67 ms, min_time 1131.67 ms
+--------------------------------------
+detection num: 3
+16: 100%, [ 123,  223,  320,  544], dog
+ 1:  99%, [ 160,  117,  568,  435], bicycle
+ 7:  94%, [ 473,   87,  693,  166], truck
+```
+
+![](https://z3.ax1x.com/2021/06/30/RBJSBT.jpg)
+
+## YoloV4-tiny Object Detection Task - [tm_yolov4_tiny.cpp](tm_yolov4_tiny.cpp)
+
+We use this image:
+
+![](https://z3.ax1x.com/2021/06/30/RBVdq1.jpg)
+
+```bash
+$ export LD_LIBRARY_PATH=./build/install/lib
+$ ./build/install/bin/tm_yolov4_tiny -m models/yolov4-tiny.tmfile -i images/ssd_dog.jpg -r 1 -t 1
 ```
 output：
 
 ```bash
-start to run register cpu allocator
-tengine-lite library version: 1.0-dev
-Repeat 1 times, thread 1, avg time 177.72 ms, max_time 177.72 ms, min_time 177.72 ms
+tengine-lite library version: 1.4-dev
+Repeat 1 times, thread 1, avg time 152.50 ms, max_time 152.50 ms, min_time 152.50 ms
 --------------------------------------
-num_detections,10
-16: 74%
-left = 125,right = 327,top = 221,bot = 537
-2: 40%
-7: 84%
-left = 455,right = 703,top = 77,bot = 168
-1: 28%
-left = 56,right = 603,top = 85,bot = 496
+detection num: 3
+16:  87%, [ 136,  206,  318,  542], dog
+ 7:  81%, [ 463,   79,  703,  170], truck
+ 1:  61%, [  72,  100,  577,  479], bicycle
+```
+![](https://z3.ax1x.com/2021/06/30/RBKqQU.jpg)
+
+## YoloV5s Object Detection Task - [tm_yolov5s.cpp](tm_yolov5s.cpp)
+
+We use this image:
+
+![](https://z3.ax1x.com/2021/06/30/RBVdq1.jpg)
+
+```bash
+$ export LD_LIBRARY_PATH=./build/install/lib
+$ ./build/install/bin/tm_yolov5s -m models/yolov5s.tmfile -i images/ssd_dog.jpg -r 1 -t 1
+```
+output：
+
+```bash
+tengine-lite library version: 1.4-dev
+Repeat 1 times, thread 1, avg time 462.94 ms, max_time 462.94 ms, min_time 462.94 ms
+--------------------------------------
+detection num: 3
+16:  89%, [ 135,  218,  313,  558], dog
+ 7:  86%, [ 472,   78,  689,  169], truck
+ 1:  75%, [ 123,  107,  578,  449], bicycle
 ```
 
-![](https://s1.ax1x.com/2020/10/19/0zpvfU.jpg)
+![](https://z3.ax1x.com/2021/06/30/RBl7Wt.jpg)
 
-## Human Pose Estimation Task - [tm_openpose.cpp](tm_openpose.cpp)
+## NanoDet Object Detection Task - [tm_nanodet_m.cpp](tm_nanodet_m.cpp)
+
+We use this image:
+
+![](https://z3.ax1x.com/2021/06/30/RBVdq1.jpg)
+
+```bash
+$ export LD_LIBRARY_PATH=./build/install/lib
+$ ./build/install/bin/tm_nanodet_m -m models/nanodet.tmfile -i images/ssd_dog.jpg -r 1 -t 1
+```
+output：
+
+```bash
+tengine-lite library version: 1.4-dev
+Repeat 1 times, thread 1, avg time 35.96 ms, max_time 35.96 ms, min_time 35.96 ms
+--------------------------------------
+detection num: 3
+ 1: 59.313%, [141.945, 160.890, 563.568, 429.829], bicycle
+16: 50.605%, [132.646, 205.861, 312.255, 511.470], dog
+ 2: 48.931%, [462.477,  72.462, 701.777, 170.343], car
+```
+
+![](https://z3.ax1x.com/2021/07/01/RsVkff.jpg)
+
+## EfficientDet Object Detection Task - [tm_efficientdet.c](tm_efficientdet.c)
+
+We use this image:
+
+![](https://z3.ax1x.com/2021/06/30/RBVdq1.jpg)
+
+```bash
+$ export LD_LIBRARY_PATH=./build/install/lib
+$ ./build/install/bin/tm_efficientdet -m ../models/efficientdet.tmfile -i ../images/ssd_dog.jpg -r 1 -t 1
+```
+output：
+
+```bash
+tengine-lite library version: 1.4-dev
+model file : ../models/efficientdet.tmfile
+image file : ../images/ssd_dog.jpg
+img_h, img_w, scale[3], mean[3] : 512 512 , 0.017 0.018 0.017, 123.7 116.3 103.5
+Repeat 1 times, thread 1, avg time 598.86 ms, max_time 598.86 ms, min_time 598.86 ms
+--------------------------------------
+17:  80%, [ 132,  222,  315,  535], dog
+ 7:  73%, [ 467,   74,  694,  169], truck
+ 1:  42%, [ 103,  119,  555,  380], bicycle
+ 2:  29%, [ 687,  113,  724,  156], car
+ 2:  25%, [  57,   77,  111,  124], car
+```
+
+![](https://z3.ax1x.com/2021/07/08/RqxsmR.jpg)
+
+## OpenPose Human Pose Estimation Task - [tm_openpose.cpp](tm_openpose.cpp)
 
 We use this image:
 
 ![](https://s1.ax1x.com/2020/09/01/dvJm8A.jpg)
 
 ```bash
-export LD_LIBRARY_PATH=./build/install/lib
-./build/install/bin/tm_openpose -m models/openpose_coco.tmfile -i image/pose.jpg -r 1 -t 1
+$ export LD_LIBRARY_PATH=./build/install/lib
+$ ./build/install/bin/tm_openpose -m models/openpose_coco.tmfile -i images/pose.jpg -r 1 -t 1
 ```
 
 output:
 
+
 ```bash
-start to run register cpu allocator
-tengine-lite library version: 1.0-dev
-Repeat 1 times, thread 1, avg time 15350.25 ms, max_time 15350.25 ms, min_time 15350.25 ms
+tengine-lite library version: 1.4-dev
+Repeat 1 times, thread 1, avg time 7296.71 ms, max_time 7296.71 ms, min_time 7296.71 ms
 --------------------------------------
 KeyPoints Coordinate:
 0:[292.174, 55.6522]
@@ -299,10 +408,47 @@ KeyPoints Coordinate:
 17:[320, 55.6522]
 ```
 
-![](https://s1.ax1x.com/2020/09/01/dvJ2x1.jpg)
-![](https://s1.ax1x.com/2020/09/01/dvJxZ8.jpg)
+![](https://z3.ax1x.com/2021/06/30/RBdWa6.jpg)
+![](https://z3.ax1x.com/2021/06/30/RBdfIK.jpg)
 
 The result of human pose estimation will be saved as images, whose names are: `Output-Keypionts.jpg` and `Output-Skeleton.jpg`.
+
+## HRNet Human Pose Estimation Task - [tm_hrnet.cpp](tm_hrnet.cpp)
+
+We use this image:
+
+![](https://s1.ax1x.com/2020/09/01/dvJm8A.jpg)
+
+```bash
+$ export LD_LIBRARY_PATH=./build/install/lib
+$ ./build/install/bin/tm_hrnet -m models/hrnet.tmfile -i images/pose.jpg -r 1 -t 1
+```
+
+output:
+
+```bash
+tengine-lite library version: 1.4-dev
+Repeat [1] min 416.223 ms, max 416.223 ms, avg 416.223 ms
+x: 27, y: 58, score: 0.91551
+x: 27, y: 45, score: 0.865156
+x: 28, y: 30, score: 0.831916
+x: 34, y: 29, score: 0.839507
+x: 38, y: 44, score: 0.88559
+x: 35, y: 55, score: 0.891349
+x: 31, y: 30, score: 0.873104
+x: 31, y: 14, score: 0.928233
+x: 30, y: 10, score: 0.948434
+x: 29, y: 1, score: 0.915752
+x: 23, y: 31, score: 0.811694
+x: 24, y: 24, score: 0.935574
+x: 24, y: 14, score: 0.899991
+x: 37, y: 13, score: 0.908696
+x: 41, y: 22, score: 0.902927
+x: 41, y: 29, score: 0.847032
+```
+
+![](https://z3.ax1x.com/2021/07/01/RrSvg1.jpg)
+
 
 ## Chinese character recognition task - [tm_crnn.cpp](tm_crnn.cpp)
 
@@ -313,16 +459,15 @@ font file:`keys.txt`
 ![](https://s1.ax1x.com/2020/10/20/BSlFPS.jpg)
 
 ```bash
-export LD_LIBRARY_PATH=./build/install/lib
-./build/install/bin/tm_crnn -m model/crnn_lite_dense.tmfile -i model/o2_resize.jpg -l model/keys.txt
+$ export LD_LIBRARY_PATH=./build/install/lib
+$ ./build/install/bin/tm_crnn -m models/crnn_lite_dense.tmfile -i images/o2_resize.jpg -l files/keys.txt
 ```
 
 result:
 
 ```bash
-start to run register cpu allocator
-tengine-lite library version: 1.0-dev
-Repeat 1 times, thread 1, avg time 43.32 ms, max_time 43.32 ms, min_time 43.32 ms
+tengine-lite library version: 1.4-dev
+Repeat 1 times, thread 1, avg time 23.30 ms, max_time 23.30 ms, min_time 23.30 ms
 --------------------------------------
 如何突破自己的颜值上限
 --------------------------------------

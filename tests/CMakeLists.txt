@@ -56,6 +56,7 @@ if (TENGINE_ENABLE_TIM_VX)
     tengine_timvx_op_test(test_timvx_op_softmax         op/test_timvx_op_softmax.cpp)
     tengine_timvx_op_test(test_timvx_op_split           op/test_timvx_op_split.cpp)
     tengine_timvx_op_test(test_timvx_op_tanh            op/test_timvx_op_tanh.cpp)
+    # tengine_timvx_op_test(test_timvx_op_transpose       op/test_timvx_op_transpose.cpp)
     tengine_timvx_op_test(test_timvx_op_upsampling      op/test_timvx_op_upsampling.cpp)
     
     
@@ -80,6 +81,41 @@ if (TENGINE_ENABLE_TIM_VX)
     ENDIF()    
 endif()
 
+
+if (TENGINE_ENABLE_TENSORRT)
+    function (tengine_tensorrt_op_test name file)
+        file(GLOB TENGINE_UTIL_SOURCE_FILES      ${PROJECT_SOURCE_DIR}/tests/common/util/*.c)
+
+        add_executable (${name} ${CMAKE_CURRENT_SOURCE_DIR}/${file} "${TENGINE_UTIL_SOURCE_FILES}" "${PROJECT_SOURCE_DIR}/tests/common/tengine_operations.c")
+
+        target_link_libraries (${name} PRIVATE ${CMAKE_PROJECT_NAME})
+
+        target_include_directories (${name} PRIVATE "${PROJECT_SOURCE_DIR}/source")
+        target_include_directories (${name} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
+        target_include_directories (${name} PRIVATE "${PROJECT_BINARY_DIR}")
+        target_include_directories (${name} PRIVATE "${PROJECT_BINARY_DIR}/source")
+        target_include_directories (${name} PRIVATE "${PROJECT_SOURCE_DIR}/tests/common")
+        target_include_directories (${name} PRIVATE "${PROJECT_SOURCE_DIR}/tests/common/util")
+
+        if (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM" AND (NOT ANDROID AND NOT OHOS) AND TENGINE_TARGET_PROCESSOR_32Bit)
+            target_compile_options (${name} PRIVATE "-mfp16-format=ieee")
+        endif()
+
+        add_test (${name} ${name})
+
+        # add to a virtual project group
+        SET_PROPERTY(TARGET ${name} PROPERTY FOLDER "tests/test_tensorrt")
+    endfunction()
+
+    tengine_tensorrt_op_test(test_tensorrt_op_clip          op/test_tensorrt_op_clip.cpp)
+    tengine_tensorrt_op_test(test_tensorrt_op_concat        op/test_tensorrt_op_concat.cpp)
+    tengine_tensorrt_op_test(test_tensorrt_op_deconv        op/test_tensorrt_op_deconv.cpp)
+    tengine_tensorrt_op_test(test_tensorrt_op_dropout       op/test_tensorrt_op_dropout.cpp)
+    tengine_tensorrt_op_test(test_tensorrt_op_eltwise       op/test_tensorrt_op_eltwise.cpp)
+    tengine_tensorrt_op_test(test_tensorrt_op_fc            op/test_tensorrt_op_fc.cpp)
+
+
+endif()
 
 # operator level test using onnx test
 find_package(Protobuf)

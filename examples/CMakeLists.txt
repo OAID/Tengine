@@ -71,7 +71,6 @@ TENGINE_EXAMPLE (tm_yolofastest              tm_yolofastest.cpp)
 TENGINE_EXAMPLE (tm_ultraface                tm_ultraface.cpp)
 
 
-
 IF(TENGINE_ENABLE_ACL)
     TENGINE_EXAMPLE (tm_classification_acl       tm_classification_acl.c)
     TENGINE_EXAMPLE (tm_mobilenet_ssd_acl        tm_mobilenet_ssd_acl.c)
@@ -107,14 +106,14 @@ IF (OpenCV_FOUND)
     # macro for adding examples
     FUNCTION (TENGINE_EXAMPLE_CV name file)
         ADD_EXECUTABLE (${name} "${CMAKE_CURRENT_SOURCE_DIR}/${file}" "${CMAKE_CURRENT_SOURCE_DIR}/common/tengine_operations.c")
-
+        
         TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
         TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
         TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE "${PROJECT_SOURCE_DIR}/examples/common")
-
+        
         TARGET_LINK_LIBRARIES (${name} ${CMAKE_PROJECT_NAME} ${OpenCV_LIBS})
         INSTALL (TARGETS ${name} DESTINATION bin)
-
+        
         # add to a virtual project group
         SET_PROPERTY(TARGET ${name} PROPERTY FOLDER "examples")
     ENDFUNCTION()
@@ -135,10 +134,12 @@ IF (OpenCV_FOUND)
     TENGINE_EXAMPLE_CV (tm_yolov5s               tm_yolov5s.cpp)
     TENGINE_EXAMPLE_CV (tm_unet                  tm_unet.cpp)
     TENGINE_EXAMPLE_CV (tm_hrnet                 tm_hrnet.cpp)
+    TENGINE_EXAMPLE_CV (tm_nanodet_m             tm_nanodet_m.cpp)
     IF(TENGINE_ENABLE_TIM_VX)
         TENGINE_EXAMPLE_CV (tm_yolov4_tiny_timvx     tm_yolov4_tiny_timvx.cpp)
         TENGINE_EXAMPLE_CV (tm_yolov5s_timvx         tm_yolov5s_timvx.cpp)
         TENGINE_EXAMPLE_CV (tm_hrnet_timvx           tm_hrnet_timvx.cpp)
+        TENGINE_EXAMPLE_CV (tm_nanodet_m_timvx       tm_nanodet_m_timvx.cpp)
     ENDIF()
 ELSE()
     MESSAGE (WARNING "OpenCV not found, some examples won't be built")

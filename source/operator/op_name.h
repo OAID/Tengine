@@ -125,4 +125,5 @@
 #define OP_SOFTPLUS_NAME                            "Softplus"
 #define OP_RECIPROCAL_NAME                          "Reciprocal"
 #define OP_SPATIALTRANSFORMER_NAME                  "SpatialTransformer"
+#define OP_IDENTITY_NAME                            "Identity"
 #define OP_EXPAND_NAME                              "Expand"

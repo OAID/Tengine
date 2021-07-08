@@ -53,6 +53,8 @@
 #include <stdarg.h>
 #include <string.h>
 
+#define STR_VERSION2(a) #a
+#define STR_VERSION(a) STR_VERSION2(a)
 
 #ifdef TENGINE_LITE_VERSION
 static const char* tengine_lite_version = STR_VERSION(TENGINE_LITE_VERSION);
@@ -552,6 +554,14 @@ int prerun_graph_multithread(graph_t graph, struct options option)
     {
         set_cpu_affine(mask);
     }
+
+    /* dump graph */
+    const char* env = getenv(TENGINE_DUMP_GRAPH);
+    if (env && env[0] == '1')
+    {
+        set_log_level(LOG_INFO);
+        dump_ir_graph(ir_graph);
+    }        
 
     return 0;
 }

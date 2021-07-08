@@ -125,9 +125,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     int num_slices = 1;
     int slice_size = 1;
 
-    for (int i = 0; i < slice_axis; i++)
-        num_slices = num_slices * input_tensor->dims[i];
-
+    num_slices=ir_node->output_num;
     for (int i = slice_axis + 1; i < input_tensor->dim_num; i++)
         slice_size = slice_size * input_tensor->dims[i];
 
