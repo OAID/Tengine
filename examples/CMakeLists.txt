@@ -118,6 +118,8 @@ IF (OpenCV_FOUND)
         SET_PROPERTY(TARGET ${name} PROPERTY FOLDER "examples")
     ENDFUNCTION()
 
+    TENGINE_EXAMPLE_CV (tm_classification_accuracy         tm_classification_accuracy.cpp)
+    TENGINE_EXAMPLE_CV (tm_classification_accuracy_uint8    tm_classification_accuracy_uint8.cpp)
     TENGINE_EXAMPLE_CV (tm_openpose              tm_openpose.cpp)
     TENGINE_EXAMPLE_CV (tm_yolact                tm_yolact.cpp)
     TENGINE_EXAMPLE_CV (tm_yolact_uint8          tm_yolact_uint8.cpp)
