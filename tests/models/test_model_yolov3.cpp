@@ -58,7 +58,7 @@ void show_usage()
 
 int main(int argc, char* argv[])
 {
-    const char* model_file = nullptr;
+    const char* model_file ="./models/yolov3_dk.tmfile";
     int img_h = 416;
     int img_w = 416;
     int img_c = 3;
@@ -90,7 +90,6 @@ int main(int argc, char* argv[])
         }
     }
     std::string model_name="yolov3_dk";
-    model_file = "./models/yolov3_dk.tmfile";
     /* check files */
     if (nullptr == model_file)
     {
