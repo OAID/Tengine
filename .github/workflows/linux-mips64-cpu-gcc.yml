@@ -47,7 +47,7 @@ jobs:
       uses: styfle/cancel-workflow-action@0.9.0
       with:
         access_token: ${{ secrets.GITHUB_TOKEN }}
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v2.3.4
 
     - name: cache-qemu
       id: cache-qemu
@@ -57,7 +57,7 @@ jobs:
         key: qemu-mips64el-install-1
     - name: checkout-qemu
       if: steps.cache-qemu.outputs.cache-hit != 'true'
-      uses: actions/checkout@v2
+      uses: actions/checkout@v2.3.4
       with:
         repository: qemu/qemu
         path: qemu

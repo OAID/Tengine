@@ -26,7 +26,7 @@ jobs:
   linux-x64-cpu-gcc:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2.3.4
     - name: update
       run: sudo apt-get update
     - name: depends
@@ -69,7 +69,7 @@ jobs:
         lcov -r lcov.info '*uint8*' -o lcov.info
         lcov --list lcov.info
     - name: codecov
-      uses: codecov/codecov-action@v1.0.11
+      uses: codecov/codecov-action@v1.5.2
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         file: build/lcov.info
@@ -78,7 +78,7 @@ jobs:
   linux-x64-cpu-tools-quant:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2.3.4
     - name: update
       run: sudo apt-get update
     - name: depends
@@ -111,7 +111,7 @@ jobs:
         lcov -r lcov.info '/usr/*' -o lcov.info
         lcov --list lcov.info
     - name: codecov
-      uses: codecov/codecov-action@v1.0.11
+      uses: codecov/codecov-action@v1.5.2
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         file: build/lcov.info        
@@ -120,7 +120,7 @@ jobs:
   linux-gcc-x86-timvx-simulator:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2.3.4
     - name: update
       run: sudo apt-get update
     - name: depends
@@ -175,7 +175,7 @@ jobs:
         lcov -r lcov.info '/usr/*' -o lcov.info
         lcov --list lcov.info        
     - name: codecov
-      uses: codecov/codecov-action@v1.0.11
+      uses: codecov/codecov-action@v1.5.2
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         file: build/lcov.info
