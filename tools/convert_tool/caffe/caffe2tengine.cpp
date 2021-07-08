@@ -31,73 +31,6 @@
 const int OP_VERSION=1;
 
 
-// Check if NetParameter uses old style V0LayerParameter
-int NetNeedsV0ToV1Upgrade(const te_caffe::NetParameter& caffe_net)
-{
-    for (int i = 0; i < caffe_net.layers_size(); ++i)
-    {
-        if (caffe_net.layers(i).has_layer())
-            return true;
-    }
-    return false;
-}
-
-// Check if NetParameter uses old style V1LayerParameter
-int NetNeedsV1ToV2Upgrade(const te_caffe::NetParameter& caffe_net)
-{
-    return (caffe_net.layers_size() > 0);
-}
-
-// Check if NetParameter uses old style input fields
-int NetNeedsInputUpgrade(const te_caffe::NetParameter& caffe_net)
-{
-    return (caffe_net.input_size() > 0);
-}
-
-// Check if NetParameter uses old style data transformation fields
-int NetNeedsDataUpgrade(const te_caffe::NetParameter& caffe_net)
-{
-    for (int i = 0; i < caffe_net.layers_size(); ++i)
-    {
-        if (caffe_net.layers(i).type() == te_caffe::V1LayerParameter_LayerType_DATA)
-        {
-            te_caffe::DataParameter layer_param = caffe_net.layers(i).data_param();
-            if (layer_param.has_scale() || layer_param.has_mean_file() || layer_param.has_crop_size() ||
-                layer_param.has_mirror())
-                return true;
-        }
-        if (caffe_net.layers(i).type() == te_caffe::V1LayerParameter_LayerType_IMAGE_DATA)
-        {
-            te_caffe::ImageDataParameter layer_param = caffe_net.layers(i).image_data_param();
-            if (layer_param.has_scale() || layer_param.has_mean_file() || layer_param.has_crop_size() ||
-                layer_param.has_mirror())
-                return true;
-        }
-        if (caffe_net.layers(i).type() == te_caffe::V1LayerParameter_LayerType_WINDOW_DATA)
-        {
-            te_caffe::WindowDataParameter layer_param = caffe_net.layers(i).window_data_param();
-            if (layer_param.has_scale() || layer_param.has_mean_file() || layer_param.has_crop_size() ||
-                layer_param.has_mirror())
-                return 0;
-        }
-    }
-    return -1;
-}
-
-
-int NetNeedsUpgrade(const char* fname, const te_caffe::NetParameter& caffe_net)
-{
-    if (NetNeedsV0ToV1Upgrade(caffe_net) || NetNeedsV1ToV2Upgrade(caffe_net) || NetNeedsInputUpgrade(caffe_net) ||
-        NetNeedsDataUpgrade(caffe_net))
-    {
-        TLOG_ERR("Please upgrade the input file by using caffe tools(upgrade_net_proto_text/upgrade_net_proto_binary). \n");
-        return 0;
-    }
-    return -1;
-}
-
-
-
 int caffe_serializer::load_text_file(std::string model_file, te_caffe::NetParameter& caffe_net)
 {
     std::ifstream is(model_file.c_str(), std::ios::in);
@@ -114,10 +47,6 @@ int caffe_serializer::load_text_file(std::string model_file, te_caffe::NetParame
     if (!ret)
         TLOG_ERR("model file:  %s failed\n", model_file.c_str());
 
-    // if (NetNeedsUpgrade(model_file.c_str(), caffe_net))
-    // {
-    //     return -1;
-    // }
     return 0;
 }
 
@@ -149,10 +78,6 @@ int caffe_serializer::load_binary_file(std::string model_file, te_caffe::NetPara
     if (!ret)
         TLOG_ERR("parse file:  %s failed\n", model_file.c_str());
 
-    // if (NetNeedsUpgrade(model_file.c_str(), caffe_net))
-    // {
-    //     return -1;
-    // }
     return 0;
 }
 bool caffe_serializer::find_op_load_method(const std::string& op_name)
@@ -229,7 +154,7 @@ int caffe_serializer::load_graph_node(ir_graph_t* graph, const te_caffe::NetPara
         ir_node_t* ir_node = create_ir_node(graph, caffe_op_name.c_str(), op_load_map[caffe_op_name].first, OP_VERSION);
         // if (ir_node == NULL)
         //     return -1;
-        fprintf(stderr, "layer_param.bottom_size() %d n", layer_param.bottom_size());
+        // fprintf(stderr, "layer_param.bottom_size: %d \n", layer_param.bottom_size());
         for (int i = 0; i < layer_param.bottom_size(); i++)
         {
             const std::string& orig_name = layer_param.bottom(i);
@@ -241,38 +166,34 @@ int caffe_serializer::load_graph_node(ir_graph_t* graph, const te_caffe::NetPara
 
             int tensor_id = get_ir_tensor_index_from_name(graph, orig_name.c_str());
             ir_tensor_t* tensor = get_ir_graph_tensor(graph, tensor_id);        
-            fprintf(stderr, "input tensor : %s \n", tensor->name);
+            // fprintf(stderr, "input tensor : %s \n", tensor->name);
 
             set_ir_node_input_tensor(ir_node, i, tensor);
+
+            if(train_name_map.count(layer_param.name()))
+            {
+                // printf("train data copy in: %s \n", layer_param.name().c_str());
+
+                // fprintf(stderr, "train_name_map : %s \n", layer_param.name().c_str());
+                const te_caffe::LayerParameter* p_train;
+
+                p_train = train_name_map[layer_param.name()];
+                // printf("train_set : %s \n", layer_param.name().c_str());
+                if (p_train->blobs_size())
+                {
+                    blob_load_t func = blob_load_map[caffe_op_name];
+                    if (!func(graph, ir_node, *p_train)){
+                        break;
+                    }
+                }
+            }
             // printf("finish tensor input\n");
             // output_tensors.push_back(tensor);
             // fprintf(stderr, "output_tensors num: %d %s\n", (int)output_tensors.size(), output_tensors[(int)output_tensors.size()-1]->name);
         }
-        #if 1
-        op_load_t loader = op_load_map[caffe_op_name].second;
-        if (loader(graph, ir_node, layer_param) < 0)
-        {
-            TLOG_ERR("load op %s func failed in node %s .\n", caffe_op_name.c_str(), ir_node->name);
-            return -1;
-        }
+       
 
-        if(train_name_map.count(layer_param.name()))
-        {
-            // fprintf(stderr, "train_name_map : %s \n", layer_param.name().c_str());
-            const te_caffe::LayerParameter* p_train;
-
-            p_train = train_name_map[layer_param.name()];
-            // printf("train_set : %s \n", layer_param.name().c_str());
-            if (p_train->blobs_size())
-            {
-                blob_load_t func = blob_load_map[caffe_op_name];
-                if (!func(graph, ir_node, *p_train)){
-                    break;
-                }
-            }
-        }
-        #endif
-        fprintf(stderr, "layer_param.top_size() %d %s \n", layer_param.top_size(), caffe_op_name.c_str());
+        // fprintf(stderr, "layer_param.top_size() %d %s \n", layer_param.top_size(), caffe_op_name.c_str());
         for (int i = 0; i < layer_param.top_size(); i++)
         {
             const std::string& orig_name = layer_param.top(i);
@@ -297,7 +218,29 @@ int caffe_serializer::load_graph_node(ir_graph_t* graph, const te_caffe::NetPara
             // record the name mapping
             // printf("output_tensors num: %d %s\n", (int)output_tensors.size(), output_tensors[(int)output_tensors.size()-1]->name);
         }
-        
+        op_load_t loader = op_load_map[caffe_op_name].second;
+        if (loader(graph, ir_node, layer_param) < 0)
+        {
+            TLOG_ERR("load op %s func failed in node %s .\n", caffe_op_name.c_str(), ir_node->name);
+            return -1;
+        }
+        #if 0
+        if(train_name_map.count(layer_param.name()))
+        {
+            // fprintf(stderr, "train_name_map : %s \n", layer_param.name().c_str());
+            const te_caffe::LayerParameter* p_train;
+
+            p_train = train_name_map[layer_param.name()];
+            // printf("train_set : %s \n", layer_param.name().c_str());
+            if (p_train->blobs_size())
+            {
+                blob_load_t func = blob_load_map[caffe_op_name];
+                if (!func(graph, ir_node, *p_train)){
+                    break;
+                }
+            }
+        }
+        #endif
 
     }
     // printf("tensor \n");
@@ -336,6 +279,7 @@ int caffe_serializer::load_tensor_data(ir_graph_t* graph, const te_caffe::NetPar
 
         if(train_name_map.count(layer_param.name()))
         {
+       
             const te_caffe::LayerParameter* p_train;
 
             p_train = train_name_map[layer_param.name()];
@@ -518,7 +462,7 @@ static void CreatePresetNode(ir_graph_t* graph, ir_node_t* ir_node, const char* 
 
 bool load_batchnorm_blob(ir_graph_t* graph, ir_node_t* node, const te_caffe::LayerParameter& layer_param)
 {
-    const te_caffe::BlobProto& rescale_blob = layer_param.blobs(2);
+   const te_caffe::BlobProto& rescale_blob = layer_param.blobs(2);
 
 
     struct batchnorm_param* batchnorm_param = ( struct batchnorm_param* )node->op.param_mem;
@@ -542,7 +486,7 @@ bool load_batchnorm_blob(ir_graph_t* graph, ir_node_t* node, const te_caffe::Lay
         std::vector<std::string> layout_list = {"W", "W"};
 
         LoadCaffeBlob(graph, node, name_list, layout_list, layer_param);
-    }
+    } 
     return 0;
 }
 
@@ -959,6 +903,7 @@ int load_input(ir_graph_t* graph, ir_node_t* ir_node, const te_caffe::LayerParam
     ir_node_t* node = create_ir_node(graph, val.c_str(), OP_INPUT, OP_VERSION);
     set_ir_node_output_tensor(node, 0, tensor);
     input_nodes.push_back(node->index);
+
     int16_t* node_idx = (int16_t*)sys_malloc(sizeof(int16_t) * input_nodes.size());
     for (int i = 0; i < input_nodes.size(); i++)
     {
