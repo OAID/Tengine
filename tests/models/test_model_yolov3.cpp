@@ -58,7 +58,7 @@ void show_usage()
 
 int main(int argc, char* argv[])
 {
-    const char* model_file ="./models/yolov3_dk.tmfile";
+    const char* model_file ="./models/yolov3.tmfile";
     int img_h = 416;
     int img_w = 416;
     int img_c = 3;
@@ -89,11 +89,11 @@ int main(int argc, char* argv[])
                 break;
         }
     }
-    std::string model_name="yolov3_dk";
+    std::string model_name="yolov3";
     /* check files */
     if (nullptr == model_file)
     {
-        fprintf(stderr, "Error: Tengine model yolov3_dk.tmfile not specified!\n");
+        fprintf(stderr, "Error: Tengine model yolov3.tmfile not specified!\n");
         show_usage();
         return -1;
     }
