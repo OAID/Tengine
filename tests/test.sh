@@ -10,3 +10,6 @@
 ./tests/test_model_classification -m mnasnet        -i images/cat.jpg   -g 224,224 -w 104.007,116.669,122.679 -s 0.017,0.017,0.017
 ./tests/test_model_classification -m shufflenet_1xg3 -i images/cat.jpg  -g 224,224 -w 103.940,116.780,123.680 -s 0.017,0.017,0.017
 ./tests/test_model_classification -m shufflenet_v2  -i images/cat.jpg   -g 224,224 -w 103.940,116.780,123.680 -s 0.00392156,0.00392156,0.00392156
+
+# detection
+./tests/test_model_yolov3
