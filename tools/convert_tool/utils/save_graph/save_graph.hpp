@@ -18,7 +18,7 @@ extern "C"
 #include "graph/tensor.h"
 #include "utility/log.h"
 #include "operator/op.h"
-#include "tm2_format.h"
+#include "serializer/tmfile/tm2_format.h"
 }
 
 
