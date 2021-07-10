@@ -56,7 +56,7 @@ if (TENGINE_ENABLE_TIM_VX)
     tengine_timvx_op_test(test_timvx_op_softmax         op/test_timvx_op_softmax.cpp)
     tengine_timvx_op_test(test_timvx_op_split           op/test_timvx_op_split.cpp)
     tengine_timvx_op_test(test_timvx_op_tanh            op/test_timvx_op_tanh.cpp)
-    tengine_timvx_op_test(test_timvx_op_transpose       op/test_timvx_op_transpose.cpp)
+    # tengine_timvx_op_test(test_timvx_op_transpose       op/test_timvx_op_transpose.cpp)
     tengine_timvx_op_test(test_timvx_op_upsampling      op/test_timvx_op_upsampling.cpp)
     
     
@@ -228,3 +228,4 @@ ENDFUNCTION()
 
 # add c api examples
 TENGINE_MODEL_TEST (test_model_classification       models/test_model_classification.cpp)
+TENGINE_MODEL_TEST (test_model_yolov3               models/test_model_yolov3.cpp)

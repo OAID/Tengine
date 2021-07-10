@@ -201,16 +201,15 @@ static void sgemm(int M, int N, int K, float* pA_t, float* pB_t, float* pC, int 
             for (int k = 0; k < K; k++)
             {
                 // k0
+                __builtin_prefetch(vb + 32);
+                __builtin_prefetch(va + 32);
                 v4f32 _vb = (v4f32)__msa_ld_w(vb, 0);
-                v4f32 _va0 = {va[0], va[0], va[0], va[0]};
-                v4f32 _va1 = {va[1], va[1], va[1], va[1]};
-                v4f32 _va2 = {va[2], va[2], va[2], va[2]};
-                v4f32 _va3 = {va[3], va[3], va[3], va[3]};
+                v4i32 _va0123 = __msa_ld_w(va, 0);
 
-                _sum0 = __msa_fadd_w(_sum0, __msa_fmul_w(_vb, _va0));    // sum0 = (a00-a03) * k00
-                _sum1 = __msa_fadd_w(_sum1, __msa_fmul_w(_vb, _va1));    // sum1 = (a00-a03) * k10
-                _sum2 = __msa_fadd_w(_sum2, __msa_fmul_w(_vb, _va2));    // sum2 = (a00-a03) * k20
-                _sum3 = __msa_fadd_w(_sum3, __msa_fmul_w(_vb, _va3));    // sum3 = (a00-a03) * k30
+                _sum0 = __msa_fadd_w(_sum0, __msa_fmul_w(_vb, (v4f32)__msa_splati_w(_va0123, 0)));    // sum0 = (a00-a03) * k00
+                _sum1 = __msa_fadd_w(_sum1, __msa_fmul_w(_vb, (v4f32)__msa_splati_w(_va0123, 1)));    // sum1 = (a00-a03) * k10
+                _sum2 = __msa_fadd_w(_sum2, __msa_fmul_w(_vb, (v4f32)__msa_splati_w(_va0123, 2)));    // sum2 = (a00-a03) * k20
+                _sum3 = __msa_fadd_w(_sum3, __msa_fmul_w(_vb, (v4f32)__msa_splati_w(_va0123, 3)));    // sum3 = (a00-a03) * k30
 
                 va += 4;
                 vb += 4;
@@ -268,19 +267,18 @@ static void sgemm(int M, int N, int K, float* pA_t, float* pB_t, float* pC, int 
             int k = 0;
             for (; k + 3 < K; k = k + 4)
             {
-                v4f32 _vb0 = {vb[0], vb[0], vb[0], vb[0]};
-                v4f32 _vb1 = {vb[1], vb[1], vb[1], vb[1]};
-                v4f32 _vb2 = {vb[2], vb[2], vb[2], vb[2]};
-                v4f32 _vb3 = {vb[3], vb[3], vb[3], vb[3]};
+                __builtin_prefetch(vb + 32);
+                __builtin_prefetch(va + 128);
+                v4i32 _vb0123 = __msa_ld_w(vb, 0);
                 v4f32 _va0 = (v4f32)__msa_ld_w(va, 0);
                 v4f32 _va1 = (v4f32)__msa_ld_w(va + 4, 0);
                 v4f32 _va2 = (v4f32)__msa_ld_w(va + 8, 0);
                 v4f32 _va3 = (v4f32)__msa_ld_w(va + 12, 0);
 
-                _sum0 = __msa_fadd_w(_sum0, __msa_fmul_w(_va0, _vb0));    // sum0 += (k00-k30) * a00
-                _sum1 = __msa_fadd_w(_sum1, __msa_fmul_w(_va1, _vb1));    // sum1 += (k01-k31) * a10
-                _sum2 = __msa_fadd_w(_sum2, __msa_fmul_w(_va2, _vb2));    // sum2 += (k02-k32) * a20
-                _sum3 = __msa_fadd_w(_sum3, __msa_fmul_w(_va3, _vb3));    // sum3 += (k03-k33) * a30
+                _sum0 = __msa_fadd_w(_sum0, __msa_fmul_w(_va0, (v4f32)__msa_splati_w(_vb0123, 0)));    // sum0 += (k00-k30) * a00
+                _sum1 = __msa_fadd_w(_sum1, __msa_fmul_w(_va1, (v4f32)__msa_splati_w(_vb0123, 1)));    // sum1 += (k01-k31) * a10
+                _sum2 = __msa_fadd_w(_sum2, __msa_fmul_w(_va2, (v4f32)__msa_splati_w(_vb0123, 2)));    // sum2 += (k02-k32) * a20
+                _sum3 = __msa_fadd_w(_sum3, __msa_fmul_w(_va3, (v4f32)__msa_splati_w(_vb0123, 3)));    // sum3 += (k03-k33) * a30
 
                 va += 16;
                 vb += 4;
@@ -351,19 +349,18 @@ static void sgemm(int M, int N, int K, float* pA_t, float* pB_t, float* pC, int 
             for (; k + 3 < K; k = k + 4)
             {
                 // k0
-                v4f32 _va0 = {va[0], va[0], va[0], va[0]};
-                v4f32 _va1 = {va[1], va[1], va[1], va[1]};
-                v4f32 _va2 = {va[2], va[2], va[2], va[2]};
-                v4f32 _va3 = {va[3], va[3], va[3], va[3]};
+                __builtin_prefetch(va + 32);
+                __builtin_prefetch(vb + 128);
+                v4i32 _va0123 = __msa_ld_w(va, 0);
                 v4f32 _vb0 = (v4f32)__msa_ld_w(vb, 0);
                 v4f32 _vb1 = (v4f32)__msa_ld_w(vb + 4, 0);
                 v4f32 _vb2 = (v4f32)__msa_ld_w(vb + 8, 0);
                 v4f32 _vb3 = (v4f32)__msa_ld_w(vb + 12, 0);
 
-                _sum0 = __msa_fadd_w(_sum0, __msa_fmul_w(_vb0, _va0));    // sum0 = (a00-a03) * k00
-                _sum0 = __msa_fadd_w(_sum0, __msa_fmul_w(_vb1, _va1));    // sum0 += (a10-a13) * k01
-                _sum0 = __msa_fadd_w(_sum0, __msa_fmul_w(_vb2, _va2));    // sum0 += (a20-a23) * k02
-                _sum0 = __msa_fadd_w(_sum0, __msa_fmul_w(_vb3, _va3));    // sum0 += (a30-a33) * k03
+                _sum0 = __msa_fadd_w(_sum0, __msa_fmul_w(_vb0, (v4f32)__msa_splati_w(_va0123, 0)));    // sum0 = (a00-a03) * k00
+                _sum0 = __msa_fadd_w(_sum0, __msa_fmul_w(_vb1, (v4f32)__msa_splati_w(_va0123, 1)));    // sum0 += (a10-a13) * k01
+                _sum0 = __msa_fadd_w(_sum0, __msa_fmul_w(_vb2, (v4f32)__msa_splati_w(_va0123, 2)));    // sum0 += (a20-a23) * k02
+                _sum0 = __msa_fadd_w(_sum0, __msa_fmul_w(_vb3, (v4f32)__msa_splati_w(_va0123, 3)));    // sum0 += (a30-a33) * k03
 
                 va += 4;
                 vb += 16;
@@ -414,6 +411,8 @@ static void sgemm(int M, int N, int K, float* pA_t, float* pB_t, float* pC, int 
 
             for (; k + 3 < K; k += 4)
             {
+                __builtin_prefetch(vb + 32);
+                __builtin_prefetch(va + 32);
                 v4f32 _p0 = (v4f32)__msa_ld_w(vb, 0);
                 v4f32 _k0 = (v4f32)__msa_ld_w(va, 0);
                 _sum0 = __msa_fadd_w(_sum0, __msa_fmul_w(_p0, _k0));

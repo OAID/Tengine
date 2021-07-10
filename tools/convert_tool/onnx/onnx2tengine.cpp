@@ -318,7 +318,6 @@ int onnx_serializer::load_initializer_tensor(ir_graph_t* graph, const onnx::Grap
     return 0;
 }
 
-
 int onnx_serializer::set_graph_input(ir_graph_t* graph, const onnx::GraphProto& onnx_graph)
 {
     std::vector<int16_t> input_nodes;

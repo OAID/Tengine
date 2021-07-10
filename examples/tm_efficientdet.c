@@ -452,8 +452,6 @@ int tengine_detect(const char* model_file, const char* image_file, int img_h, in
     free(anchors_x1);
     free(anchors_y0);
     free(anchors_y1);
-    free(output_data_regression);
-    free(output_data_classification);
 
     // filter boxes with confidence threshold
     Box_t* proposals_over_threshold = malloc(sizeof(Box_t) * num_proposals_over_threshold);
@@ -489,8 +487,8 @@ int tengine_detect(const char* model_file, const char* image_file, int img_h, in
         {
             Box_t box = proposals_after_nms[i];
             draw_box(im_vis, box.x0, box.y0, box.x1, box.y1, 2, 125, 0, 125);
-            fprintf(stderr, "%s\t:%.1f%%\n", CLASSES_NAME[box.class_idx], box.score * 100);
-            fprintf(stderr, "BOX:( %d , %d ),( %d , %d )\n", box.x0, box.y0, box.x1, box.y1);
+            fprintf(stderr, "%2d: %3.0f%%, [%4d, %4d, %4d, %4d], %s\n", box.class_idx, box.score * 100, box.x0,
+                    box.y0, box.x1, box.y1, CLASSES_NAME[box.class_idx]);
         }
 
         save_image(im_vis, "efficientdet_out");
