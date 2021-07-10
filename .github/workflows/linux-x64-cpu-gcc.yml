@@ -19,6 +19,7 @@ on:
     - 'source/system/*'
     - 'source/utility/*'
     - 'source/device/cpu/**'
+    - 'tests/**'
   pull_request:
     branches: [tengine-lite]
     paths:
@@ -37,6 +38,7 @@ on:
     - 'source/system/*'
     - 'source/utility/*'
     - 'source/device/cpu/**'
+    - 'tests/**'
 
 jobs:
   linux-x64-cpu-gcc:
