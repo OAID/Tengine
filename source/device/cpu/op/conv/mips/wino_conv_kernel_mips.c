@@ -392,14 +392,14 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
                         v4f32 _k6 = (v4f32)__msa_ld_w(kptr + 24, 0);
                         v4f32 _k7 = (v4f32)__msa_ld_w(kptr + 28, 0);
 
-                        _sum0 = __msa_fadd_w(_sum0, __msa_fmul_w(_r0, _k0));
-                        _sum1 = __msa_fadd_w(_sum1, __msa_fmul_w(_r0, _k1));
-                        _sum2 = __msa_fadd_w(_sum2, __msa_fmul_w(_r0, _k2));
-                        _sum3 = __msa_fadd_w(_sum3, __msa_fmul_w(_r0, _k3));
-                        _sum4 = __msa_fadd_w(_sum4, __msa_fmul_w(_r0, _k4));
-                        _sum5 = __msa_fadd_w(_sum5, __msa_fmul_w(_r0, _k5));
-                        _sum6 = __msa_fadd_w(_sum6, __msa_fmul_w(_r0, _k6));
-                        _sum7 = __msa_fadd_w(_sum7, __msa_fmul_w(_r0, _k7));
+                        _sum0 = __msa_fmadd_w(_sum0, _r0, _k0);
+                        _sum1 = __msa_fmadd_w(_sum1, _r0, _k1);
+                        _sum2 = __msa_fmadd_w(_sum2, _r0, _k2);
+                        _sum3 = __msa_fmadd_w(_sum3, _r0, _k3);
+                        _sum4 = __msa_fmadd_w(_sum4, _r0, _k4);
+                        _sum5 = __msa_fmadd_w(_sum5, _r0, _k5);
+                        _sum6 = __msa_fmadd_w(_sum6, _r0, _k6);
+                        _sum7 = __msa_fmadd_w(_sum7, _r0, _k7);
 
                         kptr += 32;
                         _k0 = (v4f32)__msa_ld_w(kptr, 0);
@@ -411,14 +411,14 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
                         _k6 = (v4f32)__msa_ld_w(kptr + 24, 0);
                         _k7 = (v4f32)__msa_ld_w(kptr + 28, 0);
 
-                        _sum0 = __msa_fadd_w(_sum0, __msa_fmul_w(_r1, _k0));
-                        _sum1 = __msa_fadd_w(_sum1, __msa_fmul_w(_r1, _k1));
-                        _sum2 = __msa_fadd_w(_sum2, __msa_fmul_w(_r1, _k2));
-                        _sum3 = __msa_fadd_w(_sum3, __msa_fmul_w(_r1, _k3));
-                        _sum4 = __msa_fadd_w(_sum4, __msa_fmul_w(_r1, _k4));
-                        _sum5 = __msa_fadd_w(_sum5, __msa_fmul_w(_r1, _k5));
-                        _sum6 = __msa_fadd_w(_sum6, __msa_fmul_w(_r1, _k6));
-                        _sum7 = __msa_fadd_w(_sum7, __msa_fmul_w(_r1, _k7));
+                        _sum0 = __msa_fmadd_w(_sum0, _r1, _k0);
+                        _sum1 = __msa_fmadd_w(_sum1, _r1, _k1);
+                        _sum2 = __msa_fmadd_w(_sum2, _r1, _k2);
+                        _sum3 = __msa_fmadd_w(_sum3, _r1, _k3);
+                        _sum4 = __msa_fmadd_w(_sum4, _r1, _k4);
+                        _sum5 = __msa_fmadd_w(_sum5, _r1, _k5);
+                        _sum6 = __msa_fmadd_w(_sum6, _r1, _k6);
+                        _sum7 = __msa_fmadd_w(_sum7, _r1, _k7);
 
                         kptr += 32;
                         _k0 = (v4f32)__msa_ld_w(kptr, 0);
@@ -430,14 +430,14 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
                         _k6 = (v4f32)__msa_ld_w(kptr + 24, 0);
                         _k7 = (v4f32)__msa_ld_w(kptr + 28, 0);
 
-                        _sum0 = __msa_fadd_w(_sum0, __msa_fmul_w(_r2, _k0));
-                        _sum1 = __msa_fadd_w(_sum1, __msa_fmul_w(_r2, _k1));
-                        _sum2 = __msa_fadd_w(_sum2, __msa_fmul_w(_r2, _k2));
-                        _sum3 = __msa_fadd_w(_sum3, __msa_fmul_w(_r2, _k3));
-                        _sum4 = __msa_fadd_w(_sum4, __msa_fmul_w(_r2, _k4));
-                        _sum5 = __msa_fadd_w(_sum5, __msa_fmul_w(_r2, _k5));
-                        _sum6 = __msa_fadd_w(_sum6, __msa_fmul_w(_r2, _k6));
-                        _sum7 = __msa_fadd_w(_sum7, __msa_fmul_w(_r2, _k7));
+                        _sum0 = __msa_fmadd_w(_sum0, _r2, _k0);
+                        _sum1 = __msa_fmadd_w(_sum1, _r2, _k1);
+                        _sum2 = __msa_fmadd_w(_sum2, _r2, _k2);
+                        _sum3 = __msa_fmadd_w(_sum3, _r2, _k3);
+                        _sum4 = __msa_fmadd_w(_sum4, _r2, _k4);
+                        _sum5 = __msa_fmadd_w(_sum5, _r2, _k5);
+                        _sum6 = __msa_fmadd_w(_sum6, _r2, _k6);
+                        _sum7 = __msa_fmadd_w(_sum7, _r2, _k7);
 
                         kptr += 32;
                         _k0 = (v4f32)__msa_ld_w(kptr, 0);
@@ -449,14 +449,14 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
                         _k6 = (v4f32)__msa_ld_w(kptr + 24, 0);
                         _k7 = (v4f32)__msa_ld_w(kptr + 28, 0);
 
-                        _sum0 = __msa_fadd_w(_sum0, __msa_fmul_w(_r3, _k0));
-                        _sum1 = __msa_fadd_w(_sum1, __msa_fmul_w(_r3, _k1));
-                        _sum2 = __msa_fadd_w(_sum2, __msa_fmul_w(_r3, _k2));
-                        _sum3 = __msa_fadd_w(_sum3, __msa_fmul_w(_r3, _k3));
-                        _sum4 = __msa_fadd_w(_sum4, __msa_fmul_w(_r3, _k4));
-                        _sum5 = __msa_fadd_w(_sum5, __msa_fmul_w(_r3, _k5));
-                        _sum6 = __msa_fadd_w(_sum6, __msa_fmul_w(_r3, _k6));
-                        _sum7 = __msa_fadd_w(_sum7, __msa_fmul_w(_r3, _k7));
+                        _sum0 = __msa_fmadd_w(_sum0, _r3, _k0);
+                        _sum1 = __msa_fmadd_w(_sum1, _r3, _k1);
+                        _sum2 = __msa_fmadd_w(_sum2, _r3, _k2);
+                        _sum3 = __msa_fmadd_w(_sum3, _r3, _k3);
+                        _sum4 = __msa_fmadd_w(_sum4, _r3, _k4);
+                        _sum5 = __msa_fmadd_w(_sum5, _r3, _k5);
+                        _sum6 = __msa_fmadd_w(_sum6, _r3, _k6);
+                        _sum7 = __msa_fmadd_w(_sum7, _r3, _k7);
 
                         kptr += 32;
                         r0 += 16;
@@ -474,14 +474,14 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
                         v4f32 _k6 = (v4f32)__msa_ld_w(kptr + 24, 0);
                         v4f32 _k7 = (v4f32)__msa_ld_w(kptr + 28, 0);
 
-                        _sum0 = __msa_fadd_w(_sum0, __msa_fmul_w(_r0, _k0));
-                        _sum1 = __msa_fadd_w(_sum1, __msa_fmul_w(_r0, _k1));
-                        _sum2 = __msa_fadd_w(_sum2, __msa_fmul_w(_r0, _k2));
-                        _sum3 = __msa_fadd_w(_sum3, __msa_fmul_w(_r0, _k3));
-                        _sum4 = __msa_fadd_w(_sum4, __msa_fmul_w(_r0, _k4));
-                        _sum5 = __msa_fadd_w(_sum5, __msa_fmul_w(_r0, _k5));
-                        _sum6 = __msa_fadd_w(_sum6, __msa_fmul_w(_r0, _k6));
-                        _sum7 = __msa_fadd_w(_sum7, __msa_fmul_w(_r0, _k7));
+                        _sum0 = __msa_fmadd_w(_sum0, _r0, _k0);
+                        _sum1 = __msa_fmadd_w(_sum1, _r0, _k1);
+                        _sum2 = __msa_fmadd_w(_sum2, _r0, _k2);
+                        _sum3 = __msa_fmadd_w(_sum3, _r0, _k3);
+                        _sum4 = __msa_fmadd_w(_sum4, _r0, _k4);
+                        _sum5 = __msa_fmadd_w(_sum5, _r0, _k5);
+                        _sum6 = __msa_fmadd_w(_sum6, _r0, _k6);
+                        _sum7 = __msa_fmadd_w(_sum7, _r0, _k7);
 
                         kptr += 32;
                         r0 += 4;
@@ -578,10 +578,10 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
                         v4f32 _k2 = (v4f32)__msa_ld_w(kptr + 8, 0);
                         v4f32 _k3 = (v4f32)__msa_ld_w(kptr + 12, 0);
 
-                        _sum0 = __msa_fadd_w(_sum0, __msa_fmul_w(_r0, _k0));
-                        _sum1 = __msa_fadd_w(_sum1, __msa_fmul_w(_r0, _k1));
-                        _sum2 = __msa_fadd_w(_sum2, __msa_fmul_w(_r0, _k2));
-                        _sum3 = __msa_fadd_w(_sum3, __msa_fmul_w(_r0, _k3));
+                        _sum0 = __msa_fmadd_w(_sum0, _r0, _k0);
+                        _sum1 = __msa_fmadd_w(_sum1, _r0, _k1);
+                        _sum2 = __msa_fmadd_w(_sum2, _r0, _k2);
+                        _sum3 = __msa_fmadd_w(_sum3, _r0, _k3);
 
                         kptr += 16;
                         r0 += 4;
@@ -645,7 +645,7 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
                         v4f32 _r0 = (v4f32)__msa_ld_w(r0, 0);
                         v4f32 _k0 = (v4f32)__msa_ld_w(kptr, 0);
 
-                        _sum0 = __msa_fadd_w(_sum0, __msa_fmul_w(_r0, _k0));
+                        _sum0 = __msa_fmadd_w(_sum0, _r0, _k0);
 
                         kptr += 16;
                         r0 += 4;

@@ -81,6 +81,7 @@ extern "C"
 #define SPEC_TYPE_PRELU          6
 #define SPEC_TYPE_SLICE          7
 #define SPEC_TYPE_RESHAPE        8
+#define SPEC_TYPE_INPUT          9
 
 
 typedef std::map<uint32_t, std::shared_ptr<tim::vx::Tensor>> dict_irt2vxt;
