@@ -1,0 +1,53 @@
+name: macos-arm64-cpu
+
+on:
+  push:
+    branches: [tengine-lite]
+    paths:
+    - '.github/workflows/macos-arm64-cpu.yml'
+    - 'CMakeLists.txt'
+    - 'cmake/**'
+    - 'source/*'
+    - 'source/api/*'
+    - 'source/executer/*'
+    - 'source/graph/*'
+    - 'source/module/*'
+    - 'source/operator/*'
+    - 'source/optimizer/*'
+    - 'source/scheduler/*'
+    - 'source/serializer/*'
+    - 'source/system/*'
+    - 'source/utility/*'
+    - 'source/device/cpu/**'
+  pull_request:
+    branches: [tengine-lite]
+    paths:
+    - '.github/workflows/macos-arm64-cpu.yml'
+    - 'CMakeLists.txt'
+    - 'cmake/**'
+    - 'source/*'
+    - 'source/api/*'
+    - 'source/executer/*'
+    - 'source/graph/*'
+    - 'source/module/*'
+    - 'source/operator/*'
+    - 'source/optimizer/*'
+    - 'source/scheduler/*'
+    - 'source/serializer/*'
+    - 'source/system/*'
+    - 'source/utility/*'
+    - 'source/device/cpu/**'
+
+jobs:
+  android-armv7-cpu:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v2.3.4
+    - name: brew install
+      run: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    - name: install omp
+      run: brew install libomp
+    - name: configure
+      run: mkdir build && cd build && cmake -DCMAKE_SYSTEM_PROCESSOR=arm64 -DCMAKE_OSX_ARCHITECTURES=arm64 ..
+    - name: build
+      run: cmake --build build -j 2

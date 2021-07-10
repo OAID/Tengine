@@ -55,6 +55,7 @@
 
 #if __APPLE__
 #include "TargetConditionals.h"
+#include <pthread.h>
 #if TARGET_OS_IPHONE
 #include <sys/types.h>
 #include <sys/sysctl.h>

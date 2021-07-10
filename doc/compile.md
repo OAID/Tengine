@@ -50,6 +50,15 @@ install
     └── libtengine-lite.so
 ```
 
+### 1.3动态库静态库切换
+
+默认编译静态库
+
+若要编译动态库
+```
+cmake -DTENGINE_SHARD_LIB=ON ..
+```
+
 ## 2 交叉编译 Arm32/64 Linux 版本
 
 ### 2.1 下载源码
@@ -240,4 +249,17 @@ popd
 ## 6.  使用 Microsoft Visual Studio 编译
 
 请参考 [Visual Studio 使用说明](visual_sudio_user_manual.md)。
+
+## 7.  MacOS编译
+
+MacOS目前只支持CPU加速
+
+```bash
+cd tengine-lite
+mkdir build 
+cd build
+cmake ..
+make
+make install
+```
 

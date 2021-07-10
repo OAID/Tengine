@@ -54,6 +54,7 @@ OPTION (TENGINE_BUILD_EXAMPLES              "Build examples"                    
 OPTION (TENGINE_BUILD_TESTS                 "Build tests"                               OFF)
 OPTION (TENGINE_BUILD_CPP_API               "Build C++ API"                             OFF)
 OPTION (TENGINE_BUILD_CONVERT_TOOL          "Build convert tool"                        OFF)
+OPTION (TENGINE_SHARD_LIB                   "Build shard library"                       OFF)
 
 # Tools options
 # Tools
@@ -123,11 +124,11 @@ IF (TENGINE_BUILD_TESTS)
     ADD_SUBDIRECTORY(tests)
 ENDIF()
 
-IF (TENGINE_BUILD_QUANT_TOOL)
+IF (TENGINE_BUILD_QUANT_TOOL AND (NOT TENGINE_SHARD_LIB))
     ADD_SUBDIRECTORY(tools/quantize)
 ENDIF()
 
-IF (TENGINE_BUILD_CONVERT_TOOL)
+IF (TENGINE_BUILD_CONVERT_TOOL AND (NOT TENGINE_SHARD_LIB))
     ADD_SUBDIRECTORY(tools/convert_tool)
 ENDIF()
 
