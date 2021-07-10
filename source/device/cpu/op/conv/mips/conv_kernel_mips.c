@@ -201,6 +201,8 @@ static void sgemm(int M, int N, int K, float* pA_t, float* pB_t, float* pC, int 
             for (int k = 0; k < K; k++)
             {
                 // k0
+                __builtin_prefetch(vb + 32);
+                __builtin_prefetch(va + 32);
                 v4f32 _vb = (v4f32)__msa_ld_w(vb, 0);
                 v4i32 _va0123 = __msa_ld_w(va, 0);
 
@@ -265,6 +267,8 @@ static void sgemm(int M, int N, int K, float* pA_t, float* pB_t, float* pC, int 
             int k = 0;
             for (; k + 3 < K; k = k + 4)
             {
+                __builtin_prefetch(vb + 32);
+                __builtin_prefetch(va + 128);
                 v4i32 _vb0123 = __msa_ld_w(vb, 0);
                 v4f32 _va0 = (v4f32)__msa_ld_w(va, 0);
                 v4f32 _va1 = (v4f32)__msa_ld_w(va + 4, 0);
@@ -345,6 +349,8 @@ static void sgemm(int M, int N, int K, float* pA_t, float* pB_t, float* pC, int 
             for (; k + 3 < K; k = k + 4)
             {
                 // k0
+                __builtin_prefetch(va + 32);
+                __builtin_prefetch(vb + 128);
                 v4i32 _va0123 = __msa_ld_w(va, 0);
                 v4f32 _vb0 = (v4f32)__msa_ld_w(vb, 0);
                 v4f32 _vb1 = (v4f32)__msa_ld_w(vb + 4, 0);
@@ -405,6 +411,8 @@ static void sgemm(int M, int N, int K, float* pA_t, float* pB_t, float* pC, int 
 
             for (; k + 3 < K; k += 4)
             {
+                __builtin_prefetch(vb + 32);
+                __builtin_prefetch(va + 32);
                 v4f32 _p0 = (v4f32)__msa_ld_w(vb, 0);
                 v4f32 _k0 = (v4f32)__msa_ld_w(va, 0);
                 _sum0 = __msa_fadd_w(_sum0, __msa_fmul_w(_p0, _k0));
