@@ -263,6 +263,11 @@ int main(int argc, char* argv[])
     std::vector<float> reference_data(output_size);
     FILE *fp;
     fp = fopen(reference_file.c_str(), "rb");
+    if (!fp)
+    {
+        fprintf(stderr, "read reference %s failed!\n",reference_file.c_str());
+        return -1;        
+    }    
     if (fread(reference_data.data(), sizeof(float), output_size, fp) == 0)
     {
         fprintf(stderr, "read reference data file failed!\n");
