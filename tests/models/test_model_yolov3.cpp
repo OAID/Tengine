@@ -38,7 +38,7 @@ int float_mismatch(float* current, float* reference, int size)
     for(int i=0;i<size;i++)
     {
         float tmp = fabs(current[i]) - fabs(reference[i]);
-        if(fabs(tmp) > 0.0001)
+        if(fabs(tmp) > 0.001)
         {
             fprintf(stderr, "test failed, index:%d, a:%f, b:%f\n", i, current[i], reference[i]);
             return -1;
@@ -49,61 +49,23 @@ int float_mismatch(float* current, float* reference, int size)
     return 0;
 }
 
-void show_usage()
-{
-    fprintf(
-        stderr,
-        "[Usage]:  [-h]\n    [-m model_file]  [-r repeat_count] [-t thread_count] \n");
-}
-
 int main(int argc, char* argv[])
 {
-    const char* model_file ="./models/yolov3.tmfile";
+    std::string model_file = "./models/yolov3.tmfile";
+    std::string model_name = "yolov3";
     int img_h = 416;
     int img_w = 416;
     int img_c = 3;
     const float mean[3] = {0, 0, 0};
     const float scale[3] = {0.003921, 0.003921, 0.003921};
 
-    int repeat_count = 1;
-    int num_thread = 1;
-
-    int res;
-    while ((res = getopt(argc, argv, "m:i:r:t:h:")) != -1)
-    {
-        switch (res)
-        {
-            case 'm':
-                model_file = optarg;
-                break;
-            case 'r':
-                repeat_count = std::strtoul(optarg, nullptr, 10);
-                break;
-            case 't':
-                num_thread = std::strtoul(optarg, nullptr, 10);
-                break;
-            case 'h':
-                show_usage();
-                return 0;
-            default:
-                break;
-        }
-    }
-    std::string model_name="yolov3";
     /* check files */
-    if (nullptr == model_file)
-    {
-        fprintf(stderr, "Error: Tengine model yolov3.tmfile not specified!\n");
-        show_usage();
-        return -1;
-    }
-
-    if (!check_file_exist(model_file))
+    if (!check_file_exist(model_file.c_str()));
         return -1;
 
     /* set runtime options */
     struct options opt;
-    opt.num_thread = num_thread;
+    opt.num_thread = 1;
     opt.cluster = TENGINE_CLUSTER_ALL;
     opt.precision = TENGINE_MODE_FP32;
     opt.affinity = 0;
@@ -117,7 +79,7 @@ int main(int argc, char* argv[])
     fprintf(stderr, "tengine-lite library version: %s\n", get_tengine_version());
 
     /* create graph, load tengine model xxx.tmfile */
-    graph_t graph = create_graph(nullptr, "tengine", model_file);
+    graph_t graph = create_graph(nullptr, "tengine", model_file.c_str());
     if (graph == nullptr)
     {
         fprintf(stderr, "Create graph failed.\n");
@@ -167,25 +129,15 @@ int main(int argc, char* argv[])
     fclose(fp);
 
     /* run graph */
-    double min_time = DBL_MAX;
-    double max_time = DBL_MIN;
-    double total_time = 0.;
-    for (int i = 0; i < repeat_count; i++)
+    double start = get_current_time();
+    if (run_graph(graph, 1) < 0)
     {
-        double start = get_current_time();
-        if (run_graph(graph, 1) < 0)
-        {
-            fprintf(stderr, "Run graph failed\n");
-            return -1;
-        }
-        double end = get_current_time();
-        double cur = end - start;
-        total_time += cur;
-        min_time = std::min(min_time, cur);
-        max_time = std::max(max_time, cur);
+        fprintf(stderr, "Run graph failed\n");
+        return -1;
     }
-    fprintf(stderr, "Repeat %d times, thread %d, avg time %.2f ms, max_time %.2f ms, min_time %.2f ms\n", repeat_count, num_thread,
-            total_time/repeat_count, max_time, min_time);
+    double end = get_current_time();
+
+    fprintf(stderr, "Inference time %.2f ms\n", end - start);
     fprintf(stderr, "--------------------------------------\n");
 
     tensor_t p8_output  = get_graph_output_tensor(graph, 2, 0);
@@ -231,10 +183,12 @@ int main(int argc, char* argv[])
     int ret2 = float_mismatch(p16_data, reference_data2.data(), output_size2);
     int ret3 = float_mismatch(p32_data, reference_data3.data(), output_size3);
 
-    /* postprocess */
+    int ret = (ret1 | ret2 | ret3);
 
     /* release tengine */
     postrun_graph(graph);
     destroy_graph(graph);
     release_tengine();
+
+    return ret;
 }
