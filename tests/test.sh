@@ -1,6 +1,6 @@
 #!/bin/bash -
 
-set -ex
+# set -ex
 
 test_models=(
 "./tests/test_model_classification -m squeezenet     -i images/cat.jpg   -g 227,227 -w 104.007,116.669,122.679 -s 1,1,1"
