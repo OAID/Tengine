@@ -60,8 +60,8 @@ int main(int argc, char* argv[])
     const float scale[3] = {0.003921, 0.003921, 0.003921};
 
     /* check files */
-    if (!check_file_exist(model_file.c_str()));
-        return -1;
+    // if (!check_file_exist(model_file.c_str()));
+    //     return -1;
 
     /* set runtime options */
     struct options opt;
