@@ -212,7 +212,7 @@ int VXEngine::VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_ty
                                         tim::vx::TensorAttribute::CONSTANT);
             vx_tensor = this->graph->CreateTensor(vx_spec, ir_tensor->data);
         }
-        else if (ir_tensor->tensor_type == TENSOR_TYPE_INPUT )
+        else if (ir_tensor->tensor_type == TENSOR_TYPE_INPUT || spec_type == SPEC_TYPE_INPUT)
         {
             tim::vx::TensorSpec vx_spec(datatype, vx_shape,
                                         tim::vx::TensorAttribute::INPUT, vx_quant);
@@ -476,6 +476,11 @@ int VXEngine::VXEnginePreRun(struct subgraph* subgraph)
         {
             int ir_tensor_idx = subgraph->output_tensor_list[i];
             this->VXTensorMap(ir_graph, ir_tensor_idx, SPEC_TYPE_OUTPUT);
+        }
+        for (uint8_t i = 0; i < subgraph->input_num; i++)
+        {
+            int ir_tensor_idx = subgraph->input_tensor_list[i];
+            this->VXTensorMap(ir_graph, ir_tensor_idx, SPEC_TYPE_INPUT);
         }
         for (int i = 0; i < subgraph->node_num; i++)
         {
