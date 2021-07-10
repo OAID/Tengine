@@ -51,3 +51,5 @@ jobs:
       run: mkdir build && cd build && cmake -DCMAKE_SYSTEM_PROCESSOR=arm64 -DCMAKE_OSX_ARCHITECTURES=arm64 ..
     - name: build
       run: cmake --build build -j 2
+
+      
