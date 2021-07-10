@@ -267,7 +267,7 @@ int main(int argc, char* argv[])
     {
         fprintf(stderr, "read reference %s failed!\n",reference_file.c_str());
         return -1;        
-    }    
+    }
     if (fread(reference_data.data(), sizeof(float), output_size, fp) == 0)
     {
         fprintf(stderr, "read reference data file failed!\n");
