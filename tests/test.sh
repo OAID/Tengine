@@ -13,11 +13,22 @@ test_models=(
 "./tests/test_model_classification -m mnasnet        -i images/cat.jpg   -g 224,224 -w 104.007,116.669,122.679 -s 0.017,0.017,0.017"
 "./tests/test_model_classification -m shufflenet_1xg3 -i images/cat.jpg  -g 224,224 -w 103.940,116.780,123.680 -s 0.017,0.017,0.017"
 "./tests/test_model_classification -m shufflenet_v2  -i images/cat.jpg   -g 224,224 -w 103.940,116.780,123.680 -s 0.00392156,0.00392156,0.00392156"
+"./tests/test_model_crnn"
+"./tests/test_model_efficientdet"
+"./tests/test_model_hrnet"
+"./tests/test_model_landmark"
+"./tests/test_model_mobilefacenet"
+"./tests/test_model_mobilenet_ssd"
+"./tests/test_model_nanodet_m"
 "./tests/test_model_yolov3"
+"./tests/test_model_yolov3_tiny"
+"./tests/test_model_yolov4"
+"./tests/test_model_yolov4_tiny"
 )
 
 for (( i = 0 ; i < ${#test_models[@]} ; i++ ))
 do
+    echo "----> ${test_models[$i]}"
     echo ${test_models[$i]} | xargs -i sh -c "{}"
 
     if [ "$?" != 0 ]; then
