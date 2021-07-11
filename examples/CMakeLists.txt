@@ -71,6 +71,7 @@ TENGINE_EXAMPLE (tm_yolofastest              tm_yolofastest.cpp)
 TENGINE_EXAMPLE (tm_ultraface                tm_ultraface.cpp)
 
 
+
 IF(TENGINE_ENABLE_ACL)
     TENGINE_EXAMPLE (tm_classification_acl       tm_classification_acl.c)
     TENGINE_EXAMPLE (tm_mobilenet_ssd_acl        tm_mobilenet_ssd_acl.c)
@@ -106,14 +107,14 @@ IF (OpenCV_FOUND)
     # macro for adding examples
     FUNCTION (TENGINE_EXAMPLE_CV name file)
         ADD_EXECUTABLE (${name} "${CMAKE_CURRENT_SOURCE_DIR}/${file}" "${CMAKE_CURRENT_SOURCE_DIR}/common/tengine_operations.c")
-        
+
         TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
         TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
         TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE "${PROJECT_SOURCE_DIR}/examples/common")
-        
+
         TARGET_LINK_LIBRARIES (${name} ${CMAKE_PROJECT_NAME} ${OpenCV_LIBS})
         INSTALL (TARGETS ${name} DESTINATION bin)
-        
+
         # add to a virtual project group
         SET_PROPERTY(TARGET ${name} PROPERTY FOLDER "examples")
     ENDFUNCTION()
