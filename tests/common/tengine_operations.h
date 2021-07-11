@@ -107,7 +107,7 @@ image imread2post(const char* filename);
  * src: origin image
  * return: converted image
  */
-image rgb2bgr_premute(image src);
+image rgb2bgr_permute(image src);
 
 /**
  * convert image pixels from GRAY to BGR formats

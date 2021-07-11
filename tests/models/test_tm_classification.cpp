@@ -135,7 +135,7 @@ void get_input_data_onnx(const char* image_file, float* input_data, int img_h, i
     float tmp_means[3] = {0, 0, 0};
     // for some reaseon, wo use Tengine imread API to read image with CAFFE param, but do not normalize data.
     image img = imread(image_file, img_w, img_h, tmp_means, tmp_scale, CAFFE);
-    img = rgb2bgr_premute(img);
+    img = rgb2bgr_permute(img);
 
     // normalize image data use mean & scale
     float scale_img[3] = {0.229, 0.224, 0.225}; 

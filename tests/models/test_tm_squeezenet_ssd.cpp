@@ -51,7 +51,7 @@ void get_input_data_ssd(std::string& image_file, float* input_data, int img_h, i
     float mean[3] = {104, 117, 123};
     float scales[3] = {1, 1, 1};
     image img = imread(image_file.c_str(), img_w, img_h, mean, scales, CAFFE); 
-    img = rgb2bgr_premute(img);   
+    img = rgb2bgr_permute(img);   
     memcpy(input_data, img.data, sizeof(float)*3*img_w*img_h);  
     free_image(img);    
 }

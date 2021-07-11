@@ -160,11 +160,11 @@ static int load_graph_tensors(struct tm2_serializer* tm2_s, struct ir_graph* gra
     graph->graph_layout = tm_graph->graph_layout;
     graph->model_layout = tm_graph->model_layout;
 
-    // premute layout from NHWC to HCHW
+    // permute layout from NHWC to HCHW
     if (graph->graph_layout == TENGINE_LAYOUT_NHWC)
     {
         graph->graph_layout = TENGINE_LAYOUT_NCHW;
-        TLOG_DEBUG("premute layout: graph_layout from nhwc to nchw\n");
+        TLOG_DEBUG("permute layout: graph_layout from nhwc to nchw\n");
     }
 
     for (int i = 0; i < v_tensors->v_num; i++)

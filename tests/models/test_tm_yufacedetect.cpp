@@ -143,7 +143,7 @@ int main(int argc, char* argv[])
     int img_w = 320;
     int img_h = 240;
     image resImage = resize_image(im, img_w, img_h);
-    resImage = rgb2bgr_premute(resImage);
+    resImage = rgb2bgr_permute(resImage);
     float* input_data = ( float* )malloc(sizeof(float) * img_h * img_w * 3);
     get_input_data(resImage, input_data, img_h, img_w);
     free_image(resImage);

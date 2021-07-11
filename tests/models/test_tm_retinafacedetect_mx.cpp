@@ -418,7 +418,7 @@ int main(int argc, char* argv[])
     }
 
     image img = imread(image_file.c_str());
-    img = rgb2bgr_premute(img);
+    img = rgb2bgr_permute(img);
 
     init_tengine();
 
