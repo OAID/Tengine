@@ -352,7 +352,7 @@ int main(int argc, char* argv[])
     swaprgb_img.w = g_tensor_in_w;
     swaprgb_img.h = g_tensor_in_h;
     swaprgb_img.data = input_data;
-    rgb2bgr_premute(swaprgb_img);
+    rgb2bgr_permute(swaprgb_img);
 
     /* run graph */
     double min_time = DBL_MAX;
