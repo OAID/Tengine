@@ -132,7 +132,7 @@ image imread_process(const char* filename, int img_w, int img_h, float* means, f
             out = rgb2gray(out);
             break;
         case 2:
-            out = rgb2bgr_premute(out);
+            out = rgb2bgr_permute(out);
             break;
         default:
             break;
@@ -649,7 +649,7 @@ image imread2post(const char* filename)
     return im;
 }
 
-image rgb2bgr_premute(image src)
+image rgb2bgr_permute(image src)
 {
     const int len = src.c * src.h * src.w;
     float* GRB = ( float* )malloc(sizeof(float) * len);
@@ -672,7 +672,7 @@ image rgb2bgr_premute(image src)
     return src;
 }
 
-image image_premute(image src)
+image image_permute(image src)
 {
     float* GRB = ( float* )malloc(sizeof(float) * src.c * src.h * src.w);
     for (int c = 0; c < src.c; c++)

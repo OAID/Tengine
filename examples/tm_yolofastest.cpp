@@ -421,7 +421,7 @@ static void get_input_data_darknet(const char* image_file, float* input_data, in
     swaprgb_img.w = net_w;
     swaprgb_img.h = net_h;
     swaprgb_img.data = input_data;
-    rgb2bgr_premute(swaprgb_img);
+    rgb2bgr_permute(swaprgb_img);
 }
 
 static void show_usage()

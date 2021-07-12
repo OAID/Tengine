@@ -56,13 +56,13 @@ int ref_instancenorm_fp32(float* input_data, float* output_data, float* gamma_da
                           int channels, int n, float eps, float scale, float zero_point, int layout)
 {
     int image_size = channels * size;
-    float sum = 0.f;
-    float sqsum = 0.f;
-    int offset = 0;
     for (int s = 0; s < n; s++)
     {
         for (int i = 0; i < channels; i++)
         {
+            float sum = 0.f;
+            float sqsum = 0.f;
+            int offset = 0;
             for (int j = 0; j < size; j++)
             {
                 if (TENGINE_LAYOUT_NCHW == layout)

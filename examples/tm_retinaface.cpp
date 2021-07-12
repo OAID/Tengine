@@ -353,7 +353,7 @@ int get_input_data(const char* image_file, const int& max_size, const int& targe
     ori_size.width = img.w;
     ori_size.height = img.h;
 
-    img = image_premute(img);
+    img = image_permute(img);
 
     int im_size_min = std::min(img.h, img.w);
     int im_size_max = std::max(img.h, img.w);
@@ -388,7 +388,7 @@ int get_input_data(const char* image_file, std::vector<float>& image_data, Size2
 
     int img_size = img.w * img.h * img.c;
 
-    img = image_premute(img);
+    img = image_permute(img);
 
     image_data.resize(img_size);
 
