@@ -272,7 +272,7 @@ int infer_ir_graph_shape(ir_graph_t* graph)
 
         for (int j = 0; j < node->output_num; j++)
         {
-            ir_tensor_t* tensor = get_ir_graph_tensor(graph, j);
+            ir_tensor_t* tensor = get_ir_graph_tensor(graph, node->output_tensors[j]);
 
             tensor->reshaped = 0;
         }

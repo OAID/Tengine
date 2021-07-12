@@ -4,7 +4,7 @@
 #include <functional>
 extern "C" {
     #include "utility/vector.h"
-    #include "tm2_format.h"
+    #include "serializer/tmfile/tm2_format.h"
     #include "tm2_generate.h"
     #include "graph/node.h"
     

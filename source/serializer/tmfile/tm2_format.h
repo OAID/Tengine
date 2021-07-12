@@ -994,6 +994,7 @@ typedef struct
 {
     int sampler_type;
     int transformer_type;
+    int shape_size;
     tm_uoffset_t offset_ta_shape;
 }TM2_SpatialTransformerParam;
 
