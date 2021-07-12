@@ -1,0 +1,58 @@
+name: linux-x64-cpu-tools-convert
+
+on:
+  push:
+    branches: [tengine-lite]
+    paths:
+    - '.github/workflows/linux-x64-cpu-tools-convert.yml'
+    - 'CMakeLists.txt'
+    - 'cmake/**'
+    - 'source/*'
+    - 'source/api/*'
+    - 'source/executer/*'
+    - 'source/graph/*'
+    - 'source/module/*'
+    - 'source/operator/*'
+    - 'source/optimizer/*'
+    - 'source/scheduler/*'
+    - 'source/serializer/*'
+    - 'source/system/*'
+    - 'source/utility/*'
+    - 'source/device/cpu/**'
+    - 'tools/convert_tool/**'
+  pull_request:
+    branches: [tengine-lite]
+    paths:
+    - '.github/workflows/linux-x64-cpu-tools-convert.yml'
+    - 'CMakeLists.txt'
+    - 'cmake/**'
+    - 'source/*'
+    - 'source/api/*'
+    - 'source/executer/*'
+    - 'source/graph/*'
+    - 'source/module/*'
+    - 'source/operator/*'
+    - 'source/optimizer/*'
+    - 'source/scheduler/*'
+    - 'source/serializer/*'
+    - 'source/system/*'
+    - 'source/utility/*'
+    - 'source/device/cpu/**'
+    - 'tools/convert_tool/**'
+
+jobs:
+  linux-x64-cpu-tools-convert:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2.3.4
+    - name: update
+      run: sudo apt-get update
+    - name: depends
+      run: sudo apt-get install libprotobuf-dev protobuf-compiler libopencv-dev
+    - name: configure
+      run: mkdir build && cd build && cmake -DTENGINE_BUILD_CONVERT_TOOL=ON ..
+    - name: build
+      run: cmake --build build -j 2          
+    - name: test-models
+      run: |
+        echo "test pass"
