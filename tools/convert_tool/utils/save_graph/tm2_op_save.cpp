@@ -516,13 +516,13 @@ tm_uoffset_t SaveTmSliceOp(void* const start_ptr, tm_uoffset_t* cur_pos, ir_node
     TM2_SliceParam tm_param;
 
     tm_param.axis = p->axis;
+    tm_param.begin = p->begin;
+    tm_param.end = p->end;
+    tm_param.step = p->step;
     tm_param.iscaffe = p->iscaffe;
     tm_param.isonnx = p->isonnx;
     tm_param.ismxnet = p->ismxnet;
-    if(!tm_param.iscaffe){
-        tm_param.begin = p->begin;
-        tm_param.end = p->end;
-    }
+
     if(p->slice_point_ && p->slice_point_->elem_num)
     {
         size_t vector_size = sizeof(tm_size_t) + sizeof(int32_t) * p->slice_point_->elem_num;

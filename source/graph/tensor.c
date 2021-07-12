@@ -45,6 +45,7 @@ void init_ir_tensor(ir_tensor_t* ir_tensor, int tensor_index, int data_type)
     ir_tensor->index                = tensor_index;
     ir_tensor->producer             = -1;
 
+    ir_tensor->consumer = ( int16_t* )sys_malloc(sizeof(int16_t) * TE_MAX_CONSUMER_NUM);
     for (int i = 0; i < TE_MAX_CONSUMER_NUM; i++)
     {
         ir_tensor->consumer[i] = -1;
@@ -155,6 +156,11 @@ void destroy_ir_tensor(ir_graph_t* ir_graph, ir_tensor_t* ir_tensor)
     if (NULL != ir_tensor->name)
     {
         sys_free(ir_tensor->name);
+    }
+
+    if (NULL != ir_tensor->consumer)
+    {
+        sys_free(ir_tensor->consumer);
     }
 
     sys_free(ir_tensor);
@@ -344,3 +350,22 @@ void dump_ir_tensor(ir_graph_t* g, ir_tensor_t* t)
 
     TLOG_INFO("\n");
 }
+
+int set_ir_tensor_consumer(ir_tensor_t* ir_tensor, const int index)
+{
+    if (TE_MAX_CONSUMER_NUM <= ir_tensor->consumer_num)
+    {
+        int16_t* new_consumer = ( int16_t* )sys_realloc(ir_tensor->consumer, sizeof(int16_t) * (ir_tensor->consumer_num + 1));
+        if (NULL == new_consumer)
+        {
+            return -1;
+        }
+
+        ir_tensor->consumer = new_consumer;
+    }
+
+    ir_tensor->consumer[ir_tensor->consumer_num] = index;
+    ir_tensor->consumer_num++;
+
+    return 0;
+} 
