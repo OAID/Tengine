@@ -224,12 +224,7 @@ void show_usage()
 {
     fprintf(
         stderr,
-        "[Usage]:  [-h]\n    [-m model_file] [-i image_file]\n [-g img_h,img_w] [-s scale[0],scale[1],scale[2]] [-w "
-        "mean[0],mean[1],mean[2]] [-r loop_count] [-t thread_count] [-a cpu_affinity] [-c conf_thresh]\n");
-    fprintf(
-        stderr,
-        "\nmobilenet example: \n    ./classification -m /path/to/mobilenet.tmfile -i /path/to/img.jpg -g 224,224 -s "
-        "0.017,0.017,0.017 -w 104.007,116.669,122.679\n");
+        "[Usage]:  [-h]\n    [-m model_file] [-i image_file] [-r repeat_count] [-t thread_count] [-a cpu_affinity] \n");
 }
 
 int main(int argc, char* argv[])
