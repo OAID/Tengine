@@ -1411,7 +1411,7 @@ int load_LRN(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_nod
         const onnx::AttributeProto& attr = onnx_node.attribute(k);
         if (attr.name() == "alpha")
         {
-            lrn_param->alpha = attr.f();    // TODO:Support muti axis
+            lrn_param->alpha = attr.f();    // TODO:Support multi axis
         }
         if (attr.name() == "beta")
         {
