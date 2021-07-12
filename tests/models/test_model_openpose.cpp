@@ -20,35 +20,24 @@
 /*
  * Copyright (c) 2021, OPEN AI LAB
  * Author: sqfu@openailab.com
- *
- * original model: https://mmpose.readthedocs.io/en/latest/papers/backbones.html#div-align-center-hrnet-cvpr-2019-div
+ * 
+ * original model: https://github.com/CMU-Perceptual-Computing-Lab/openpose
  */
 
+#include <unistd.h>
 #include <iostream>
+#include <iomanip>
+#include <string>
 #include <vector>
 #include <algorithm>
-#include <cmath>
 #include "common.h"
 #include "tengine/c_api.h"
 #include "tengine_operations.h"
 
+#define COCO
 #define DEFAULT_REPEAT_COUNT 1
 #define DEFAULT_THREAD_COUNT 1
-#define LETTERBOX_ROWS 256
-#define LETTERBOX_COLS 256
-#define MODEL_CHANNELS 3
-#define HEATMAP_CHANNEL 16
 
-typedef struct {
-    float x;
-    float y;
-    float score;
-} ai_point_t;
-
-struct skeleton {
-    int connection[2];
-    int left_right_neutral;
-};
 int float_mismatch(float* current, float* reference, int size)
 {
     for(int i=0;i<size;i++)
@@ -66,25 +55,20 @@ int float_mismatch(float* current, float* reference, int size)
 
 void show_usage()
 {
-    fprintf(stderr, "[Usage]:  [-h]\n    [-m model_file]  [-r repeat_count] [-t thread_count]\n");
+    fprintf(stderr, "[Usage]:  [-h]\n    [-m model_file] [-r repeat_count] [-t thread_count]\n");
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
+    const char* model_file = "./models/openpose_coco.tmfile";
+    const char* image_file = nullptr;
     int repeat_count = DEFAULT_REPEAT_COUNT;
     int num_thread = DEFAULT_THREAD_COUNT;
-    char model_string[] = "./models/hrnet.tmfile";
-    char *model_file = model_string;
-    char *image_file = nullptr;
-    int img_h = LETTERBOX_COLS;
-    int img_w = LETTERBOX_ROWS;
-    // ai_body_parts_s pose;
-
-    float mean[3] = {123.67f, 116.28f, 103.53f};
-    float scale[3] = {0.017125f, 0.017507f, 0.017429f};
+    int img_h = 368;
+    int img_w = 368;
 
     int res;
-    while ((res = getopt(argc, argv, "m:r:t:h:")) != -1)
+    while ((res = getopt(argc, argv, "m:i:r:t:h:")) != -1)
     {
         switch (res)
         {
@@ -116,7 +100,6 @@ int main(int argc, char *argv[])
     if (!check_file_exist(model_file))
         return -1;
 
-
     /* set runtime options */
     struct options opt;
     opt.num_thread = num_thread;
@@ -125,25 +108,23 @@ int main(int argc, char *argv[])
     opt.affinity = 0;
 
     /* inital tengine */
-    if (init_tengine() != 0)
-    {
-        fprintf(stderr, "Initial tengine failed.\n");
-        return -1;
-    }
+    init_tengine();
     fprintf(stderr, "tengine-lite library version: %s\n", get_tengine_version());
 
     /* create graph, load tengine model xxx.tmfile */
     graph_t graph = create_graph(nullptr, "tengine", model_file);
     if (graph == nullptr)
     {
-        fprintf(stderr, "Create graph failed.\n");
+        std::cout << "Create graph0 failed\n";
         return -1;
     }
 
     /* set the input shape to initial the graph, and prerun graph to infer shape */
-    int img_size = img_h * img_w * 3;
-    int dims[] = {1, 3, img_h, img_w};    // nchw
-    std::vector<float> input_data(img_size);
+    int channel = 3;
+    int img_size = img_h * img_w * channel;
+    int dims[] = {1, channel, img_h, img_w};    // nchw
+
+    float* input_data = ( float* )malloc(sizeof(float) * img_size);
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == nullptr)
@@ -158,25 +139,25 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    if (set_tensor_buffer(input_tensor, input_data.data(), img_size * 4) < 0)
+    if (set_tensor_buffer(input_tensor, input_data, img_size * 4) < 0)
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;
-    }
+    }    
 
     /* prerun graph, set work options(num_thread, cluster, precision) */
     if (prerun_graph_multithread(graph, opt) < 0)
     {
-        fprintf(stderr, "Prerun multithread graph failed.\n");
+        fprintf(stderr, "Prerun graph failed\n");
         return -1;
     }
 
     /* prepare process input data, set the data mem to input tensor */
-    std::string model_name = "hrnet";
+    std::string model_name = "openpose_coco";
     std::string input_file = "./data/" + model_name + "_in.bin";
     FILE *fp;
     fp = fopen(input_file.c_str(), "rb");
-    if (fread(input_data.data(), sizeof(float), img_size, fp) == 0)
+    if (fread(input_data, sizeof(float), img_size, fp) == 0)
     {
         fprintf(stderr, "read input data file failed!\n");
         return -1;
@@ -184,10 +165,10 @@ int main(int argc, char *argv[])
     fclose(fp);
 
     /* run graph */
-    double min_time = DBL_MAX;
-    double max_time = DBL_MIN;
+    double min_time = __DBL_MAX__;
+    double max_time = -__DBL_MAX__;
     double total_time = 0.;
-    for (int i = 0; i < repeat_count; i++)
+    for (int i = 0; i < 1; i++)
     {
         double start = get_current_time();
         if (run_graph(graph, 1) < 0)
@@ -201,16 +182,26 @@ int main(int argc, char *argv[])
         min_time = std::min(min_time, cur);
         max_time = std::max(max_time, cur);
     }
-    fprintf(stderr, "Repeat [%d] min %.3f ms, max %.3f ms, avg %.3f ms\n", repeat_count, min_time, max_time,
-            total_time / repeat_count);
+    fprintf(stderr, "Repeat %d times, thread %d, avg time %.2f ms, max_time %.2f ms, min_time %.2f ms\n", 1, 1,
+            total_time, max_time, min_time);
+    fprintf(stderr, "--------------------------------------\n");
 
-    /* get output tensor */
-    tensor_t output_tensor = get_graph_output_tensor(graph, 0, 0);
+    /* get the result of classification */
+    tensor_t out_tensor = get_graph_output_tensor(graph, 0, 0);
+    int out_dim[4];
 
-    float *data = (float *) (get_tensor_buffer(output_tensor));
-    int output_size1 = get_tensor_buffer_size(output_tensor) / (sizeof(float));
+    if (get_tensor_shape(out_tensor, out_dim, 4) <= 0)
+    {
+        return -1;
+    }
+
+    float* outdata = ( float* )get_tensor_buffer(out_tensor);
+    int H = out_dim[2];
+    int W = out_dim[3];
+    float show_threshold = 0.1;
 
     std::string reference_file1 = "./data/" + model_name + "_out.bin";
+    int output_size1 = get_tensor_buffer_size(out_tensor) / (sizeof(float));
     std::vector<float> reference_data1(output_size1);
     FILE *fp1;
     fp1 = fopen(reference_file1.c_str(), "rb");
@@ -220,11 +211,14 @@ int main(int argc, char *argv[])
         return -1;
     }
     fclose(fp1);
-    int ret1 = float_mismatch(data, reference_data1.data(), output_size1);
-    
+    int ret1 = float_mismatch(outdata, reference_data1.data(), output_size1);
+
+    /* release tengine */
+    free(input_data);
     postrun_graph(graph);
     destroy_graph(graph);
     release_tengine();
 
     return ret1;
 }
+

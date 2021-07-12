@@ -79,7 +79,8 @@ int main(int argc, char* argv[])
 {
     int repeat_count = DEFAULT_REPEAT_COUNT;
     int num_thread = DEFAULT_THREAD_COUNT;
-    char* model_file = "./models/crnn_lite_dense.tmfile";
+    char model_string[] = "./models/crnn_lite_dense.tmfile";
+    char* model_file = model_string;
     char* image_file = nullptr;
     char* label_file = nullptr;
     int img_h = 32;

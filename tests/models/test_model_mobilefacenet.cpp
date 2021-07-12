@@ -186,7 +186,8 @@ void show_usage()
 
 int main(int argc, char* argv[])
 {
-    char* model_file = "./models/mobilefacenet.tmfile";
+    char model_string[] = "./models/mobilefacenet.tmfile";
+    char* model_file = model_string;
     char* person_a = NULL;
     char* person_b = NULL;
 
