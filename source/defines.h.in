@@ -30,7 +30,7 @@
 #define TE_COMMON_ALIGN_SIZE        8
 #define TE_VECTOR_ALIGN_SIZE        TE_COMMON_ALIGN_SIZE
 
-#define TE_MAX_CONSUMER_NUM         16
+#define TE_MAX_CONSUMER_NUM         8
 #define TE_MAX_SHAPE_DIM_NUM        8
 
 #define TE_COMPILER_HAS_FP16        0
