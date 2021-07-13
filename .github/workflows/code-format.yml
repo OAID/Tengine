@@ -1,14 +1,12 @@
 name: code-format
 
-on: [push, pull_request, pull_request_target]
+on: [push]
 
 jobs:
   code-format:
     runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v2
-      with:
-        ref: ${{ github.head_ref }}
 
     - name: cache-clang-format
       id: cache-clang-format
