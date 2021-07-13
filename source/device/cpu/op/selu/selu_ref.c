@@ -56,12 +56,12 @@ int ref_selu_fp32(struct tensor* output_tensor, struct tensor* input_tensor, str
         float* input_data = ( float* )input_tensor->data + i * chan_size;
         float* output_data = ( float* )output_tensor->data + i * chan_size;
 
-        for (int i = 0; i < chan_size; i++)
+        for (int j = 0; j < chan_size; j++)
         {
-            if (input_data[i] < 0.f)
-                output_data[i] = (exp(input_data[i]) - 1.f) * alpha_lambda;
+            if (input_data[j] < 0.f)
+                output_data[j] = (exp(input_data[j]) - 1.f) * alpha_lambda;
             else
-                output_data[i] = input_data[i] * lambda;
+                output_data[j] = input_data[j] * lambda;
         }
     }
 
@@ -100,15 +100,15 @@ int ref_selu_uint8(struct tensor* output_tensor, struct tensor* input_tensor, st
     for (int i = 0; i < chan_num; i++)
     {
         int offset = i * chan_size;
-        float* input_data = ( float* )input_tensor->data + i * chan_size;
-        float* output_data = ( float* )output_tensor->data + i * chan_size;
+        input_data = ( float* )input_tensor->data + i * chan_size;
+        output_data = ( float* )output_tensor->data + i * chan_size;
 
-        for (int i = 0; i < chan_size; i++)
+        for (int j = 0; j < chan_size; j++)
         {
-            if (input_data[i] < 0.f)
-                output_data[i] = (exp(input_data[i]) - 1.f) * alpha_lambda;
+            if (input_data[j] < 0.f)
+                output_data[j] = (exp(input_data[j]) - 1.f) * alpha_lambda;
             else
-                output_data[i] = input_data[i] * lambda;
+                output_data[j] = input_data[j] * lambda;
         }
     }
 
