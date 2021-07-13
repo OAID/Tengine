@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <vector>
+#include <string>
 #include <unordered_map>
 #include <fcntl.h>
 #include <functional>
