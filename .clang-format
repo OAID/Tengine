@@ -102,7 +102,7 @@ IndentRequires:             true
 IndentWidth:                4
 IndentWrappedFunctionNames: false
 
-InsertTrailingCommas:       Wrapped
+InsertTrailingCommas:       None
 
 KeepEmptyLinesAtTheStartOfBlocks:   false
 
