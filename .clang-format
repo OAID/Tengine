@@ -132,7 +132,7 @@ PointerAlignment:   Left
 
 ReflowComments:     false
 
-SortIncludes:           Never
+SortIncludes:           false
 SortUsingDeclarations:  false
 
 SpaceAfterCStyleCast:               false
