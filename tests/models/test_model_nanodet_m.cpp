@@ -203,14 +203,14 @@ int main(int argc, char* argv[]) {
         FILE *fp1;
         //read
         fp1 = fopen(reference_file1.c_str(), "rb");
-        if (fread(reference_data1.data(), sizeof(float), output_size1, fp1) == 0)
+        if (!fp || fread(reference_data1.data(), sizeof(float), output_size1, fp1) == 0)
         {
             fprintf(stderr, "read reference data file1 failed!\n");
             return -1;
         }
         fclose(fp1);
         fp1 = fopen(reference_file2.c_str(), "rb");
-        if (fread(reference_data2.data(), sizeof(float), output_size2, fp1) == 0)
+        if (!fp || fread(reference_data2.data(), sizeof(float), output_size2, fp1) == 0)
         {
             fprintf(stderr, "read reference data file1 failed!\n");
             return -1;
