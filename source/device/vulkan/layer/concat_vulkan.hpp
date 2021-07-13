@@ -45,18 +45,18 @@
 
 #include "concat_param.h"
 
-namespace TEngine{
-
-class Concat_vulkan : public Layer
+namespace TEngine
 {
+class Concat_vulkan : public Layer {
 public:
     Concat_vulkan();
     Concat_vulkan(ir_graph_t* graph, ir_node_t* ir_node);
 
     virtual int create_pipeline(const Option& opt);
     virtual int destroy_pipeline(const Option& opt);
-    
-    virtual int record_pipeline(const std::vector<VkTensor>& bottom_blobs, std::vector<VkTensor>& top_blobs, VkCompute& cmd, const Option& opt) const;
+
+    virtual int record_pipeline(const std::vector<VkTensor>& bottom_blobs, std::vector<VkTensor>& top_blobs,
+                                VkCompute& cmd, const Option& opt) const;
 
 public:
     Pipeline* pipeline_concat[2];
@@ -76,6 +76,6 @@ public:
     int axis;
 };
 
-}   // namespace TEngine
+}    // namespace TEngine
 
 #endif

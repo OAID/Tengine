@@ -34,11 +34,11 @@ struct graph;
 
 struct tm2_priv
 {
-    int fd; /* for file load */
-    int mem_len;
-    const char* base; /* mem base for model */
-    const TM2_Header* header; /* file header */
-    const TM2_Model* model; /* model header */
+    int                 fd; /* for file load */
+    int                 mem_len;
+    const char*         base;     /* mem base for model */
+    const TM2_Header*   header;   /* file header */
+    const TM2_Model*    model;    /* model header */
     const TM2_Subgraph* subgraph; /* subgraph */
 };
 

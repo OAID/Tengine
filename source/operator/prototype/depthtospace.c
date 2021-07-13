@@ -35,20 +35,20 @@
 
 static int infer_shape(struct node* node)
 {
-    struct graph* graph = node->graph;
-    struct tensor* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
-    struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
+    struct graph*  graph                          = node->graph;
+    struct tensor* input                          = get_ir_graph_tensor(graph, node->input_tensors[0]);
+    struct tensor* output                         = get_ir_graph_tensor(graph, node->output_tensors[0]);
 
-    struct depthtospace_param* depthtospace_param = ( struct depthtospace_param* )(node->op.param_mem);
+    struct depthtospace_param* depthtospace_param = (struct depthtospace_param*)(node->op.param_mem);
 
     /* todo reshape */
     int dims[4];
     int block_size = depthtospace_param->block_size;
 
-    dims[0] = input->dims[0];    // batch
-    dims[1] = input->dims[1] / (block_size * block_size);    // channel
-    dims[2] = input->dims[2] * block_size;    // height
-    dims[3] = input->dims[3] * block_size;    // width
+    dims[0]        = input->dims[0];                                // batch
+    dims[1]        = input->dims[1] / (block_size * block_size);    // channel
+    dims[2]        = input->dims[2] * block_size;                   // height
+    dims[3]        = input->dims[3] * block_size;                   // width
 
     set_ir_tensor_shape(output, dims, 4);
 
@@ -59,7 +59,7 @@ static int infer_shape(struct node* node)
 static int init_op(struct op* op)
 {
     struct depthtospace_param* depthtospace_param =
-        ( struct depthtospace_param* )sys_malloc(sizeof(struct depthtospace_param));
+        (struct depthtospace_param*)sys_malloc(sizeof(struct depthtospace_param));
 
     if (depthtospace_param == NULL)
     {
@@ -69,10 +69,10 @@ static int init_op(struct op* op)
     /*set the param default value */
     depthtospace_param->block_size = 1;
 
-    op->param_mem = depthtospace_param;
-    op->param_size = sizeof(struct depthtospace_param);
-    op->same_shape = 0;
-    op->infer_shape = infer_shape;
+    op->param_mem                  = depthtospace_param;
+    op->param_size                 = sizeof(struct depthtospace_param);
+    op->same_shape                 = 0;
+    op->infer_shape                = infer_shape;
 
     return 0;
 }
@@ -89,7 +89,7 @@ int register_depthtospace_op()
     struct method m;
 
     m.version = 1;
-    m.init = init_op;
+    m.init    = init_op;
     m.release = release_op;
 
 

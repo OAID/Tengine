@@ -44,7 +44,6 @@ struct tab
     float32x4_t a7;
 };
 
-int lrn_run(struct tensor* output_tensor, struct tensor* input_tensor, struct lrn_param* lrn_param,
-            int num_thread);
+int lrn_run(struct tensor* output_tensor, struct tensor* input_tensor, struct lrn_param* lrn_param, int num_thread);
 
 #endif

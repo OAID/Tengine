@@ -35,25 +35,25 @@ struct exec_graph;
 struct mem_block_entry
 {
     void* addr;
-    int block_size;
-    int max_req_size;
-    int alloc_count;
-    int free_count;
+    int   block_size;
+    int   max_req_size;
+    int   alloc_count;
+    int   free_count;
 };
 
 struct mem_pool
 {
-    uint8_t align_size; /* must be 2^n */
+    uint8_t        align_size; /* must be 2^n */
     struct vector* block_list;
 
-    int   (*get_backend_mem)(struct mem_pool*);
+    int (*get_backend_mem)(struct mem_pool*);
     void* (*get_mem_block)(struct mem_pool*, int block_id);
-    int   (*allocate)(struct mem_pool*, int size);
-    void  (*free)(struct mem_pool*, int block_id);
-    void  (*dump)(struct mem_pool*);
+    int (*allocate)(struct mem_pool*, int size);
+    void (*free)(struct mem_pool*, int block_id);
+    void (*dump)(struct mem_pool*);
 };
 
 
 void release_mem_pool(struct mem_pool* mem_pool);
-int alloc_exec_graph_mem(struct exec_graph* exec_graph);
+int  alloc_exec_graph_mem(struct exec_graph* exec_graph);
 void free_exec_graph_mem(struct exec_graph* graph);

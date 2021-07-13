@@ -35,11 +35,11 @@
 
 static int infer_shape(ir_node_t* node)
 {
-    ir_graph_t* graph = node->graph;
-    ir_tensor_t* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
-    struct split_param* split_param = ( struct split_param* )(node->op.param_mem);
+    ir_graph_t*         graph       = node->graph;
+    ir_tensor_t*        input       = get_ir_graph_tensor(graph, node->input_tensors[0]);
+    struct split_param* split_param = (struct split_param*)(node->op.param_mem);
 
-    int axis = split_param->axis;
+    int axis                        = split_param->axis;
 
     int input_dim[4];
     for (int i = 0; i < input->dim_num; i++)
@@ -57,12 +57,12 @@ static int infer_shape(ir_node_t* node)
     {
         if (get_vector_num(split_param->split_sizes_) != 0)
         {
-            int sum_check = 0;
+            int sum_check       = 0;
             int input_slice_num = input_dim[axis];
 
             for (int i = 0; i < get_vector_num(split_param->split_sizes_); i++)
             {
-                sum_check += (( int* )get_vector_data(split_param->split_sizes_, i))[0];
+                sum_check += ((int*)get_vector_data(split_param->split_sizes_, i))[0];
             }
 
             if (sum_check != input_slice_num)
@@ -73,23 +73,25 @@ static int infer_shape(ir_node_t* node)
 
             for (int i = 0; i < get_vector_num(split_param->split_sizes_); i++)
             {
-                input_dim[axis] = (( int* )get_vector_data(split_param->split_sizes_, i))[0];
+                input_dim[axis]     = ((int*)get_vector_data(split_param->split_sizes_, i))[0];
                 ir_tensor_t* output = get_ir_graph_tensor(graph, node->output_tensors[i]);
                 set_ir_tensor_shape(output, input_dim, input->dim_num);
             }
         }
         else
         {
-            int split_dim = split_param->split_dim;
+            int split_dim   = split_param->split_dim;
             int split_shape = 0;
 
             if (input_dim[axis] % split_dim != 0)
             {
-                TLOG_ERR("Tengine Fatal: Infer shape for Split failed, input dim can not be divided by split dim with no remainder(%d %% %d).\n", input_dim[axis], split_dim);
+                TLOG_ERR(
+                    "Tengine Fatal: Infer shape for Split failed, input dim can not be divided by split dim with no remainder(%d %% %d).\n",
+                    input_dim[axis], split_dim);
                 return -1;
             }
 
-            split_shape = input_dim[axis] / split_dim;
+            split_shape     = input_dim[axis] / split_dim;
             input_dim[axis] = split_shape;
 
             if (split_shape == 1)
@@ -124,7 +126,7 @@ static int infer_shape(ir_node_t* node)
 
 static int init_op(ir_op_t* op)
 {
-    struct split_param* split_param = ( struct split_param* )sys_malloc(sizeof(struct split_param));
+    struct split_param* split_param = (struct split_param*)sys_malloc(sizeof(struct split_param));
 
     if (split_param == NULL)
     {
@@ -132,16 +134,16 @@ static int init_op(ir_op_t* op)
     }
 
     /*set the param default value */
-    split_param->axis = 0;
-    split_param->split_dim = 1;
-    split_param->is_caffe = 0;
-    split_param->is_onnx = 0;
+    split_param->axis         = 0;
+    split_param->split_dim    = 1;
+    split_param->is_caffe     = 0;
+    split_param->is_onnx      = 0;
     split_param->split_sizes_ = NULL;
 
-    op->param_mem = split_param;
-    op->param_size = sizeof(struct split_param);
-    op->same_shape = 0;
-    op->infer_shape = infer_shape;
+    op->param_mem             = split_param;
+    op->param_size            = sizeof(struct split_param);
+    op->same_shape            = 0;
+    op->infer_shape           = infer_shape;
 
     return 0;
 }
@@ -149,7 +151,7 @@ static int init_op(ir_op_t* op)
 
 static void release_op(ir_op_t* op)
 {
-    struct split_param* split_param = ( struct split_param* )op->param_mem;
+    struct split_param* split_param = (struct split_param*)op->param_mem;
 
     if (split_param->split_sizes_)
         release_vector(split_param->split_sizes_);
@@ -163,7 +165,7 @@ int register_split_op()
     ir_method_t m;
 
     m.version = 1;
-    m.init = init_op;
+    m.init    = init_op;
     m.release = release_op;
 
     return register_op(OP_SPLIT, OP_SPLIT_NAME, &m);

@@ -26,27 +26,27 @@
 #define __LSTM_PARAM_H__
 
 #define LSTM_ACT_SIGMOID 1
-#define LSTM_ACT_TANH 2
+#define LSTM_ACT_TANH    2
 typedef struct lstm_param
 {
     float forget_bias;
     float clip;
-    int output_len;
-    int sequence_len;
-    int input_size;
-    int hidden_size;
-    int cell_size;
-    int has_peephole;
-    int has_projection;
-    int has_clip;
-    int has_bias;
-    int has_init_state;
-    int forget_act;
-    int input_act;
-    int output_act;
-    int cellin_act;
-    int cellout_act;
-    int mxnet_flag;
+    int   output_len;
+    int   sequence_len;
+    int   input_size;
+    int   hidden_size;
+    int   cell_size;
+    int   has_peephole;
+    int   has_projection;
+    int   has_clip;
+    int   has_bias;
+    int   has_init_state;
+    int   forget_act;
+    int   input_act;
+    int   output_act;
+    int   cellin_act;
+    int   cellout_act;
+    int   mxnet_flag;
 } lstm_param_t;
 
 #endif

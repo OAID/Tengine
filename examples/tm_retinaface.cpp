@@ -43,7 +43,7 @@
 #include <string>
 
 #ifdef _MSC_VER
-#define NOMINMAX
+    #define NOMINMAX
 #endif
 
 #include <algorithm>
@@ -58,23 +58,24 @@
 #define DEFAULT_REPEAT_COUNT 1
 #define DEFAULT_THREAD_COUNT 1
 
-#define MODEL_PATH "models/retinaface.tmfile"
-#define IMAGE_PATH "images/selfie_960.jpg"
+#define MODEL_PATH           "models/retinaface.tmfile"
+#define IMAGE_PATH           "images/selfie_960.jpg"
 
-const float CONF_THRESH = 0.8f;
-const float NMS_THRESH = 0.4f;
+const float CONF_THRESH      = 0.8f;
+const float NMS_THRESH       = 0.4f;
 
-const char* input_name = "data";
+const char* input_name       = "data";
 
-const char* bbox_name[3] = {"face_rpn_bbox_pred_stride32", "face_rpn_bbox_pred_stride16", "face_rpn_bbox_pred_stride8"};
-const char* score_name[3] = {"face_rpn_cls_prob_reshape_stride32", "face_rpn_cls_prob_reshape_stride16",
-                             "face_rpn_cls_prob_reshape_stride8"};
-const char* landmark_name[3] = {"face_rpn_landmark_pred_stride32", "face_rpn_landmark_pred_stride16",
-                                "face_rpn_landmark_pred_stride8"};
+const char* bbox_name[3]     = { "face_rpn_bbox_pred_stride32", "face_rpn_bbox_pred_stride16",
+                             "face_rpn_bbox_pred_stride8" };
+const char* score_name[3]    = { "face_rpn_cls_prob_reshape_stride32", "face_rpn_cls_prob_reshape_stride16",
+                              "face_rpn_cls_prob_reshape_stride8" };
+const char* landmark_name[3] = { "face_rpn_landmark_pred_stride32", "face_rpn_landmark_pred_stride16",
+                                 "face_rpn_landmark_pred_stride8" };
 
-const int stride[3] = {32, 16, 8};
+const int stride[3]          = { 32, 16, 8 };
 
-const float scales[3][2] = {{32.f, 16.f}, {8.f, 4.f}, {2.f, 1.f}};
+const float scales[3][2]     = { { 32.f, 16.f }, { 8.f, 4.f }, { 2.f, 1.f } };
 
 struct Size2i
 {
@@ -106,17 +107,17 @@ struct Rect2f
 
 struct Face2f
 {
-    float score;
-    Rect2f rect;
+    float   score;
+    Rect2f  rect;
     Point2f landmark[5];
 };
 
 void draw_target(const std::vector<Face2f>& all_pred_boxes, image img)
 {
-    const char* class_names[] = {"faces"};
+    const char* class_names[] = { "faces" };
 
     fprintf(stdout, "detected face num: %zu\n", all_pred_boxes.size());
-    for (int b = 0; b < ( int )all_pred_boxes.size(); b++)
+    for (int b = 0; b < (int)all_pred_boxes.size(); b++)
     {
         Face2f box = all_pred_boxes[b];
 
@@ -137,16 +138,16 @@ float iou(const Face2f& a, const Face2f& b)
     float area_a = a.rect.w * a.rect.h;
     float area_b = b.rect.w * b.rect.h;
 
-    float xx1 = std::max(a.rect.x, b.rect.x);
-    float yy1 = std::max(a.rect.y, b.rect.y);
-    float xx2 = std::min(a.rect.x + a.rect.w, b.rect.x + b.rect.w);
-    float yy2 = std::min(a.rect.y + a.rect.h, b.rect.y + b.rect.h);
+    float xx1    = std::max(a.rect.x, b.rect.x);
+    float yy1    = std::max(a.rect.y, b.rect.y);
+    float xx2    = std::min(a.rect.x + a.rect.w, b.rect.x + b.rect.w);
+    float yy2    = std::min(a.rect.y + a.rect.h, b.rect.y + b.rect.h);
 
-    float w = std::max(float(0), xx2 - xx1 + 1);
-    float h = std::max(float(0), yy2 - yy1 + 1);
+    float w      = std::max(float(0), xx2 - xx1 + 1);
+    float h      = std::max(float(0), yy2 - yy1 + 1);
 
-    float inter = w * h;
-    float ovr = inter / (area_a + area_b - inter);
+    float inter  = w * h;
+    float ovr    = inter / (area_a + area_b - inter);
     return ovr;
 }
 
@@ -166,8 +167,8 @@ void nms_sorted_boxes(const std::vector<Face2f>& face_objects, std::vector<int>&
     {
         const Face2f& a = face_objects[i];
 
-        int keep = 1;
-        for (int j = 0; j < ( int )picked.size(); j++)
+        int keep        = 1;
+        for (int j = 0; j < (int)picked.size(); j++)
         {
             const Face2f& b = face_objects[picked[j]];
 
@@ -184,8 +185,8 @@ void nms_sorted_boxes(const std::vector<Face2f>& face_objects, std::vector<int>&
 
 void qsort_descent_inplace(std::vector<Face2f>& face_objects, const int& left, const int& right)
 {
-    int i = left;
-    int j = right;
+    int i   = left;
+    int j   = right;
 
     float p = face_objects[(left + right) / 2].score;
 
@@ -228,29 +229,29 @@ std::vector<Box2f> generate_anchors(int base_size, const std::vector<float>& rat
 
     std::vector<Box2f> anchors(num_ratio * num_scale);
 
-    const float cx = ( float )base_size * 0.5f;
-    const float cy = ( float )base_size * 0.5f;
+    const float cx = (float)base_size * 0.5f;
+    const float cy = (float)base_size * 0.5f;
 
     for (int i = 0; i < num_ratio; i++)
     {
         float ar = ratios[i];
 
-        int r_w = ( int )round(( float )base_size / sqrt(ar));
-        int r_h = ( int )round(( float )r_w * ar);    // round(base_size * sqrt(ar));
+        int r_w  = (int)round((float)base_size / sqrt(ar));
+        int r_h  = (int)round((float)r_w * ar);    // round(base_size * sqrt(ar));
 
         for (int j = 0; j < num_scale; j++)
         {
-            float scale = scales[j];
+            float scale   = scales[j];
 
-            float rs_w = ( float )r_w * scale;
-            float rs_h = ( float )r_h * scale;
+            float rs_w    = (float)r_w * scale;
+            float rs_h    = (float)r_h * scale;
 
             Box2f& anchor = anchors[i * num_scale + j];
 
-            anchor.x1 = cx - rs_w * 0.5f;
-            anchor.y1 = cy - rs_h * 0.5f;
-            anchor.x2 = cx + rs_w * 0.5f;
-            anchor.y2 = cy + rs_h * 0.5f;
+            anchor.x1     = cx - rs_w * 0.5f;
+            anchor.y1     = cy - rs_h * 0.5f;
+            anchor.x2     = cx + rs_w * 0.5f;
+            anchor.y2     = cy + rs_h * 0.5f;
         }
     }
 
@@ -262,8 +263,8 @@ static void generate_proposals(std::vector<Box2f>& anchors, int feat_stride, con
                                const float* landmark_blob, const int landmark_dims[], const float& prob_threshold,
                                std::vector<Face2f>& faces)
 {
-    int w = bbox_dims[3];
-    int h = bbox_dims[2];
+    int w      = bbox_dims[3];
+    int h      = bbox_dims[2];
     int offset = w * h;
 
     // generate face proposal from bbox deltas and shifted anchors
@@ -271,10 +272,10 @@ static void generate_proposals(std::vector<Box2f>& anchors, int feat_stride, con
 
     for (int q = 0; q < num_anchors; q++)
     {
-        const Box2f& anchor = anchors[q];
+        const Box2f& anchor   = anchors[q];
 
-        const float* score = score_blob + (q + num_anchors) * offset;
-        const float* bbox = bbox_blob + (q * 4) * offset;
+        const float* score    = score_blob + (q + num_anchors) * offset;
+        const float* bbox     = bbox_blob + (q * 4) * offset;
         const float* landmark = landmark_blob + (q * 10) * offset;
 
         // shifted anchor
@@ -289,37 +290,37 @@ static void generate_proposals(std::vector<Box2f>& anchors, int feat_stride, con
 
             for (int j = 0; j < w; j++)
             {
-                int index = i * w + j;
+                int index  = i * w + j;
 
                 float prob = score[index];
 
                 if (prob >= prob_threshold)
                 {
                     // apply center size
-                    float dx = bbox[index + offset * 0];
-                    float dy = bbox[index + offset * 1];
-                    float dw = bbox[index + offset * 2];
-                    float dh = bbox[index + offset * 3];
+                    float dx    = bbox[index + offset * 0];
+                    float dy    = bbox[index + offset * 1];
+                    float dw    = bbox[index + offset * 2];
+                    float dh    = bbox[index + offset * 3];
 
-                    float cx = anchor_x + anchor_w * 0.5f;
-                    float cy = anchor_y + anchor_h * 0.5f;
+                    float cx    = anchor_x + anchor_w * 0.5f;
+                    float cy    = anchor_y + anchor_h * 0.5f;
 
                     float pb_cx = cx + anchor_w * dx;
                     float pb_cy = cy + anchor_h * dy;
 
-                    float pb_w = anchor_w * exp(dw);
-                    float pb_h = anchor_h * exp(dh);
+                    float pb_w  = anchor_w * exp(dw);
+                    float pb_h  = anchor_h * exp(dh);
 
-                    float x0 = pb_cx - pb_w * 0.5f;
-                    float y0 = pb_cy - pb_h * 0.5f;
-                    float x1 = pb_cx + pb_w * 0.5f;
-                    float y1 = pb_cy + pb_h * 0.5f;
+                    float x0    = pb_cx - pb_w * 0.5f;
+                    float y0    = pb_cy - pb_h * 0.5f;
+                    float x1    = pb_cx + pb_w * 0.5f;
+                    float y1    = pb_cy + pb_h * 0.5f;
 
-                    Face2f obj{};
-                    obj.rect.x = x0;
-                    obj.rect.y = y0;
-                    obj.rect.w = x1 - x0 + 1;
-                    obj.rect.h = y1 - y0 + 1;
+                    Face2f obj {};
+                    obj.rect.x        = x0;
+                    obj.rect.y        = y0;
+                    obj.rect.w        = x1 - x0 + 1;
+                    obj.rect.h        = y1 - y0 + 1;
 
                     obj.landmark[0].x = cx + (anchor_w + 1) * landmark[index + offset * 0];
                     obj.landmark[0].y = cy + (anchor_h + 1) * landmark[index + offset * 1];
@@ -332,15 +333,15 @@ static void generate_proposals(std::vector<Box2f>& anchors, int feat_stride, con
                     obj.landmark[4].x = cx + (anchor_w + 1) * landmark[index + offset * 8];
                     obj.landmark[4].y = cy + (anchor_h + 1) * landmark[index + offset * 9];
 
-                    obj.score = prob;
+                    obj.score         = prob;
 
                     faces.push_back(obj);
                 }
 
-                anchor_x += ( float )feat_stride;
+                anchor_x += (float)feat_stride;
             }
 
-            anchor_y += ( float )feat_stride;
+            anchor_y += (float)feat_stride;
         }
     }
 }
@@ -348,26 +349,26 @@ static void generate_proposals(std::vector<Box2f>& anchors, int feat_stride, con
 int get_input_data(const char* image_file, const int& max_size, const int& target_size, std::vector<float>& image_data,
                    Size2i& ori_size, Size2i& dst_size, float& scale)
 {
-    image img = imread(image_file);
+    image img       = imread(image_file);
 
-    ori_size.width = img.w;
+    ori_size.width  = img.w;
     ori_size.height = img.h;
 
-    img = image_permute(img);
+    img             = image_permute(img);
 
     int im_size_min = std::min(img.h, img.w);
     int im_size_max = std::max(img.h, img.w);
 
-    scale = float(target_size) / float(im_size_min);
+    scale           = float(target_size) / float(im_size_min);
 
-    if (scale * ( float )im_size_max > ( float )max_size)
+    if (scale * (float)im_size_max > (float)max_size)
         scale = float(max_size) / float(im_size_max);
 
-    dst_size.width = ( int )round(( float )img.w * scale);
-    dst_size.height = ( int )round(( float )img.h * scale);
+    dst_size.width  = (int)round((float)img.w * scale);
+    dst_size.height = (int)round((float)img.h * scale);
 
-    image resImg = resize_image(img, dst_size.width, dst_size.height);
-    int img_size = dst_size.height * dst_size.width * 3;
+    image resImg    = resize_image(img, dst_size.width, dst_size.height);
+    int   img_size  = dst_size.height * dst_size.width * 3;
 
     image_data.resize(img_size);
 
@@ -381,14 +382,14 @@ int get_input_data(const char* image_file, const int& max_size, const int& targe
 
 int get_input_data(const char* image_file, std::vector<float>& image_data, Size2i& size)
 {
-    image img = imread(image_file);
+    image img    = imread(image_file);
 
-    size.width = img.w;
-    size.height = img.h;
+    size.width   = img.w;
+    size.height  = img.h;
 
     int img_size = img.w * img.h * img.c;
 
-    img = image_permute(img);
+    img          = image_permute(img);
 
     image_data.resize(img_size);
 
@@ -401,16 +402,17 @@ int get_input_data(const char* image_file, std::vector<float>& image_data, Size2
 
 void show_usage()
 {
-    printf("[Usage]:  [-h]\n    [-m model_file] [-i image_file] [-r repeat_count] [-t thread_count] [-n device_name]\n");
+    printf(
+        "[Usage]:  [-h]\n    [-m model_file] [-i image_file] [-r repeat_count] [-t thread_count] [-n device_name]\n");
 }
 
 int main(int argc, char* argv[])
 {
-    int repeat_count = DEFAULT_REPEAT_COUNT;
-    int num_thread = DEFAULT_THREAD_COUNT;
+    int repeat_count        = DEFAULT_REPEAT_COUNT;
+    int num_thread          = DEFAULT_THREAD_COUNT;
 
-    const char* model_file = MODEL_PATH;
-    const char* image_file = IMAGE_PATH;
+    const char* model_file  = MODEL_PATH;
+    const char* image_file  = IMAGE_PATH;
     const char* device_name = "";
 
     int res;
@@ -418,26 +420,26 @@ int main(int argc, char* argv[])
     {
         switch (res)
         {
-            case 'm':
-                model_file = optarg;
-                break;
-            case 'i':
-                image_file = optarg;
-                break;
-            case 'r':
-                repeat_count = atoi(optarg);
-                break;
-            case 't':
-                num_thread = atoi(optarg);
-                break;
-            case 'n':
-                device_name = optarg;
-                break;
-            case 'h':
-                show_usage();
-                return 0;
-            default:
-                break;
+        case 'm':
+            model_file = optarg;
+            break;
+        case 'i':
+            image_file = optarg;
+            break;
+        case 'r':
+            repeat_count = atoi(optarg);
+            break;
+        case 't':
+            num_thread = atoi(optarg);
+            break;
+        case 'n':
+            device_name = optarg;
+            break;
+        case 'h':
+            show_usage();
+            return 0;
+        default:
+            break;
         }
     }
 
@@ -462,9 +464,9 @@ int main(int argc, char* argv[])
     /* set runtime options */
     struct options opt;
     opt.num_thread = num_thread;
-    opt.cluster = TENGINE_CLUSTER_ALL;
-    opt.precision = TENGINE_MODE_FP32;
-    opt.affinity = 0;       
+    opt.cluster    = TENGINE_CLUSTER_ALL;
+    opt.precision  = TENGINE_MODE_FP32;
+    opt.affinity   = 0;
 
     /* inital tengine */
     int ret = init_tengine();
@@ -486,7 +488,7 @@ int main(int argc, char* argv[])
 
     /* prepare process input data */
     int target_size = 1024;
-    int max_size = 1980;
+    int max_size    = 1980;
 
     std::vector<float> image_data;
 
@@ -498,7 +500,7 @@ int main(int argc, char* argv[])
     int img_size = get_input_data(image_file, image_data, image_size);
 
     /* set the input shape to initial the graph, and pre-run graph to infer shape */
-    int dims[] = {1, 3, image_size.height, image_size.width};
+    int dims[]            = { 1, 3, image_size.height, image_size.width };
 
     tensor_t input_tensor = get_graph_tensor(graph, input_name);
     if (nullptr == input_tensor)
@@ -518,7 +520,7 @@ int main(int argc, char* argv[])
     {
         printf("Set input tensor buffer failed\n");
         return -1;
-    }    
+    }
 
     /* prerun graph, set work options(num_thread, cluster, precision) */
     if (0 != prerun_graph_multithread(graph, opt))
@@ -539,7 +541,7 @@ int main(int argc, char* argv[])
         }
         double end = get_current_time();
 
-        float cur = float(end - start);
+        float cur  = float(end - start);
 
         total_time += cur;
         min_time = std::min(min_time, cur);
@@ -547,7 +549,7 @@ int main(int argc, char* argv[])
     }
     printf("img_h, img_w : %d, %d\n", image_size.height, image_size.width);
     printf("Repeat %d times, thread %d, avg time %.2f ms, max_time %.2f ms, min_time %.2f ms\n", repeat_count,
-           num_thread, total_time / ( float )repeat_count, max_time, min_time);
+           num_thread, total_time / (float)repeat_count, max_time, min_time);
     printf("--------------------------------------\n");
 
     /* process the detection result */
@@ -558,33 +560,33 @@ int main(int argc, char* argv[])
         // ==================================================================
         // ========== This part is to get tensor information ================
         // ==================================================================
-        tensor_t score_blob_tensor = get_graph_tensor(graph, score_name[stride_index]);
-        tensor_t bbox_blob_tensor = get_graph_tensor(graph, bbox_name[stride_index]);
-        tensor_t landmark_blob_tensor = get_graph_tensor(graph, landmark_name[stride_index]);
+        tensor_t score_blob_tensor                = get_graph_tensor(graph, score_name[stride_index]);
+        tensor_t bbox_blob_tensor                 = get_graph_tensor(graph, bbox_name[stride_index]);
+        tensor_t landmark_blob_tensor             = get_graph_tensor(graph, landmark_name[stride_index]);
 
-        int score_blob_dims[MAX_SHAPE_DIM_NUM] = {0};
-        int bbox_blob_dims[MAX_SHAPE_DIM_NUM] = {0};
-        int landmark_blob_dims[MAX_SHAPE_DIM_NUM] = {0};
+        int score_blob_dims[MAX_SHAPE_DIM_NUM]    = { 0 };
+        int bbox_blob_dims[MAX_SHAPE_DIM_NUM]     = { 0 };
+        int landmark_blob_dims[MAX_SHAPE_DIM_NUM] = { 0 };
 
         get_tensor_shape(score_blob_tensor, score_blob_dims, MAX_SHAPE_DIM_NUM);
         get_tensor_shape(bbox_blob_tensor, bbox_blob_dims, MAX_SHAPE_DIM_NUM);
         get_tensor_shape(landmark_blob_tensor, landmark_blob_dims, MAX_SHAPE_DIM_NUM);
 
-        float* score_blob = ( float* )get_tensor_buffer(score_blob_tensor);
-        float* bbox_blob = ( float* )get_tensor_buffer(bbox_blob_tensor);
-        float* landmark_blob = ( float* )get_tensor_buffer(landmark_blob_tensor);
+        float* score_blob     = (float*)get_tensor_buffer(score_blob_tensor);
+        float* bbox_blob      = (float*)get_tensor_buffer(bbox_blob_tensor);
+        float* landmark_blob  = (float*)get_tensor_buffer(landmark_blob_tensor);
 
-        const int base_size = 16;
+        const int base_size   = 16;
         const int feat_stride = stride[stride_index];
 
         std::vector<float> current_ratios(1);
         current_ratios[0] = 1.f;
 
         std::vector<float> current_scales(2);
-        current_scales[0] = scales[stride_index][0];
-        current_scales[1] = scales[stride_index][1];
+        current_scales[0]          = scales[stride_index][0];
+        current_scales[1]          = scales[stride_index][1];
 
-        const float threshold = CONF_THRESH;
+        const float threshold      = CONF_THRESH;
 
         std::vector<Box2f> anchors = generate_anchors(base_size, current_ratios, current_scales);
 
@@ -610,15 +612,15 @@ int main(int argc, char* argv[])
         face_objects[i] = face_proposals[picked[i]];
 
         // clip to image size
-        float x0 = face_objects[i].rect.x;
-        float y0 = face_objects[i].rect.y;
-        float x1 = x0 + face_objects[i].rect.w;
-        float y1 = y0 + face_objects[i].rect.h;
+        float x0               = face_objects[i].rect.x;
+        float y0               = face_objects[i].rect.y;
+        float x1               = x0 + face_objects[i].rect.w;
+        float y1               = y0 + face_objects[i].rect.h;
 
-        x0 = std::max(std::min(x0, ( float )image_size.width - 1), 0.f);
-        y0 = std::max(std::min(y0, ( float )image_size.height - 1), 0.f);
-        x1 = std::max(std::min(x1, ( float )image_size.width - 1), 0.f);
-        y1 = std::max(std::min(y1, ( float )image_size.height - 1), 0.f);
+        x0                     = std::max(std::min(x0, (float)image_size.width - 1), 0.f);
+        y0                     = std::max(std::min(y0, (float)image_size.height - 1), 0.f);
+        x1                     = std::max(std::min(x1, (float)image_size.width - 1), 0.f);
+        y1                     = std::max(std::min(y1, (float)image_size.height - 1), 0.f);
 
         face_objects[i].rect.x = x0;
         face_objects[i].rect.y = y0;

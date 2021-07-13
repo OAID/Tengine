@@ -41,24 +41,24 @@
 static int ref_lrn_fp32(struct tensor* input_tensor, struct tensor* output_tensor, struct lrn_param* param,
                         int num_thread)
 {
-    int n = input_tensor->dims[0];
-    int c = input_tensor->dims[1];
-    int h = input_tensor->dims[2];
-    int w = input_tensor->dims[3];
+    int n               = input_tensor->dims[0];
+    int c               = input_tensor->dims[1];
+    int h               = input_tensor->dims[2];
+    int w               = input_tensor->dims[3];
 
-    float alpha = param->alpha;
-    float beta = param->beta;
-    float bias = param->k;
-    int local_size = param->local_size;
+    float alpha         = param->alpha;
+    float beta          = param->beta;
+    float bias          = param->k;
+    int   local_size    = param->local_size;
 
-    int channel_size = h * w;
-    int img_size = c * channel_size;
+    int channel_size    = h * w;
+    int img_size        = c * channel_size;
 
-    float* in_data = input_tensor->data;
-    float* out_data = output_tensor->data;
+    float* in_data      = input_tensor->data;
+    float* out_data     = output_tensor->data;
 
-    float* square = ( float* )(malloc(img_size * sizeof(float)));
-    float* accum_square = ( float* )(malloc(channel_size * sizeof(float)));
+    float* square       = (float*)(malloc(img_size * sizeof(float)));
+    float* accum_square = (float*)(malloc(channel_size * sizeof(float)));
 
     for (int i = 0; i < n; i++)
     {
@@ -75,7 +75,7 @@ static int ref_lrn_fp32(struct tensor* input_tensor, struct tensor* output_tenso
             for (int j = 0; j < c; j++)
             {
                 int c_start = j - local_size / 2;
-                int c_end = j + local_size / 2;
+                int c_end   = j + local_size / 2;
 
                 memset(accum_square, 0x0, channel_size * sizeof(float));
 
@@ -93,7 +93,7 @@ static int ref_lrn_fp32(struct tensor* input_tensor, struct tensor* output_tenso
                 /* get the output */
                 for (int m = 0; m < channel_size; m++)
                 {
-                    int offset = i * img_size + j * channel_size + m;
+                    int offset       = i * img_size + j * channel_size + m;
                     out_data[offset] = in_data[offset] * pow(1.0f + alpha_over_size * accum_square[m], -beta);
                 }
             }
@@ -123,14 +123,14 @@ static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, 
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node* ir_node = exec_node->ir_node;
-    struct graph* ir_graph = ir_node->graph;
+    struct node*   ir_node  = exec_node->ir_node;
+    struct graph*  ir_graph = ir_node->graph;
     struct tensor* input_tensor;
     struct tensor* output_tensor;
 
-    input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    struct lrn_param* lrn_param = ( struct lrn_param* )ir_node->op.param_mem;
+    input_tensor                = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    output_tensor               = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+    struct lrn_param* lrn_param = (struct lrn_param*)ir_node->op.param_mem;
 
     ref_lrn_fp32(input_tensor, output_tensor, lrn_param, exec_graph->num_thread);
 
@@ -142,13 +142,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_CANDO;
 }
 
-static struct node_ops hcl_node_ops = {.prerun = NULL,
-                                       .run = run,
-                                       .reshape = NULL,
-                                       .postrun = NULL,
-                                       .init_node = init_node,
-                                       .release_node = release_node,
-                                       .score = score};
+static struct node_ops hcl_node_ops = { .prerun       = NULL,
+                                        .run          = run,
+                                        .reshape      = NULL,
+                                        .postrun      = NULL,
+                                        .init_node    = init_node,
+                                        .release_node = release_node,
+                                        .score        = score };
 
 int register_lrn_ref_op()
 {

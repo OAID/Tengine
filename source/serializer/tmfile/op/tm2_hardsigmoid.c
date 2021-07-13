@@ -44,13 +44,13 @@ static int gather_op_map(int op)
 static int tm2_load_hard_sigmoid(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                                  const TM2_Operator* tm_op)
 {
-    struct hard_sigmoid_param* gather_param = ( struct hard_sigmoid_param* )ir_node->op.param_mem;
-    const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
-    const char* mem_base = tm2_priv->base;
-    const TM2_HardsigmoidParam* tm_param = ( TM2_HardsigmoidParam* )(mem_base + tm_op->offset_t_param);
+    struct hard_sigmoid_param*  gather_param = (struct hard_sigmoid_param*)ir_node->op.param_mem;
+    const struct tm2_priv*      tm2_priv     = (struct tm2_priv*)ir_graph->serializer_privacy;
+    const char*                 mem_base     = tm2_priv->base;
+    const TM2_HardsigmoidParam* tm_param     = (TM2_HardsigmoidParam*)(mem_base + tm_op->offset_t_param);
 
-    gather_param->alpha = tm_param->alpha;
-    gather_param->beta = tm_param->beta;
+    gather_param->alpha                      = tm_param->alpha;
+    gather_param->beta                       = tm_param->beta;
 
     return 0;
 }

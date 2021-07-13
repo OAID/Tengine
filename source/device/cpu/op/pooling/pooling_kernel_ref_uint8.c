@@ -89,50 +89,50 @@ static inline float calc_max_fp32(const float* input, int layout, int c, int h, 
     return max;
 }
 
-int ref_pooling_uint8(struct tensor* input_tensor, struct tensor* output_tensor,
-                           struct pool_param* pool_param, int num_thread)
+int ref_pooling_uint8(struct tensor* input_tensor, struct tensor* output_tensor, struct pool_param* pool_param,
+                      int num_thread)
 {
-    int layout = input_tensor->layout;
-    int type = input_tensor->data_type;
+    int layout            = input_tensor->layout;
+    int type              = input_tensor->data_type;
 
-    int batch = input_tensor->dims[0];
-    int channel = input_tensor->dims[1];
-    int in_h = input_tensor->dims[2];
-    int in_w = input_tensor->dims[3];
-    int out_h = output_tensor->dims[2];
-    int out_w = output_tensor->dims[3];
+    int batch             = input_tensor->dims[0];
+    int channel           = input_tensor->dims[1];
+    int in_h              = input_tensor->dims[2];
+    int in_w              = input_tensor->dims[3];
+    int out_h             = output_tensor->dims[2];
+    int out_w             = output_tensor->dims[3];
 
-    int input_chw = channel * in_h * in_w;
-    int output_chw = channel * out_h * out_w;
+    int input_chw         = channel * in_h * in_w;
+    int output_chw        = channel * out_h * out_w;
 
-    int stride_h = pool_param->stride_h;
-    int stride_w = pool_param->stride_w;
+    int stride_h          = pool_param->stride_h;
+    int stride_w          = pool_param->stride_w;
 
-    int pad_h = pool_param->pad_h0;
-    int pad_w = pool_param->pad_w0;
+    int pad_h             = pool_param->pad_h0;
+    int pad_w             = pool_param->pad_w0;
 
-    int kernel_h = pool_param->kernel_h;
-    int kernel_w = pool_param->kernel_w;
+    int kernel_h          = pool_param->kernel_h;
+    int kernel_w          = pool_param->kernel_w;
 
-    int caffe_flavor = pool_param->caffe_flavor;
-    int method = pool_param->pool_method;
+    int caffe_flavor      = pool_param->caffe_flavor;
+    int method            = pool_param->pool_method;
 
-    uint8_t* input_uint8 = ( uint8_t* )input_tensor->data;
-    uint8_t* output_uint8 = ( uint8_t* )output_tensor->data;
+    uint8_t* input_uint8  = (uint8_t*)input_tensor->data;
+    uint8_t* output_uint8 = (uint8_t*)output_tensor->data;
 
-    float input_scale = input_tensor->scale;
-    float output_scale = output_tensor->scale;
-    int input_zero = input_tensor->zero_point;
-    int output_zero = output_tensor->zero_point;
+    float input_scale     = input_tensor->scale;
+    float output_scale    = output_tensor->scale;
+    int   input_zero      = input_tensor->zero_point;
+    int   output_zero     = output_tensor->zero_point;
 
     /* input dequant */
-    float* input_fp32 = ( float* )sys_malloc(input_tensor->elem_num * sizeof(float));
-    float* output_fp32 = ( float* )sys_malloc(output_tensor->elem_num * sizeof(float));
+    float* input_fp32  = (float*)sys_malloc(input_tensor->elem_num * sizeof(float));
+    float* output_fp32 = (float*)sys_malloc(output_tensor->elem_num * sizeof(float));
 
     for (int i = 0; i < input_tensor->elem_num; i++)
         input_fp32[i] = (input_uint8[i] - input_zero) * input_scale;
 
-    float* input = input_fp32;
+    float* input  = input_fp32;
     float* output = output_fp32;
 
     for (int n = 0; n < batch; n++)
@@ -145,14 +145,14 @@ int ref_pooling_uint8(struct tensor* input_tensor, struct tensor* output_tensor,
                 for (int pw = 0; pw < out_w; pw++)
                 {
                     int pool_size = 1;
-                    int offset = 0;
-                    int h_start = ph * stride_h - pad_h;
-                    int h_end = h_start + kernel_h;
+                    int offset    = 0;
+                    int h_start   = ph * stride_h - pad_h;
+                    int h_end     = h_start + kernel_h;
 
                     if (h_end > in_h + pad_h)
                         h_end = in_h + pad_h;
                     int w_start = pw * stride_w - pad_w;
-                    int w_end = w_start + kernel_w;
+                    int w_end   = w_start + kernel_w;
 
                     if (w_end > in_w + pad_w)
                         w_end = in_w + pad_w;
@@ -162,8 +162,8 @@ int ref_pooling_uint8(struct tensor* input_tensor, struct tensor* output_tensor,
 
                     h_start = h_start > 0 ? h_start : 0;
                     w_start = w_start > 0 ? w_start : 0;
-                    h_end = h_end < in_h ? h_end : in_h;
-                    w_end = w_end < in_w ? w_end : in_w;
+                    h_end   = h_end < in_h ? h_end : in_h;
+                    w_end   = w_end < in_w ? w_end : in_w;
 
                     if (!caffe_flavor)
                         pool_size = (h_end - h_start) * (w_end - w_start);
@@ -174,14 +174,14 @@ int ref_pooling_uint8(struct tensor* input_tensor, struct tensor* output_tensor,
 
                     if (method == HCL_POOL_MAX)
                     {
-                        float max = calc_max_fp32(input_cur, layout, channel, in_h, in_w, c, h_start, w_start,
-                                                    h_end, w_end);
+                        float max =
+                            calc_max_fp32(input_cur, layout, channel, in_h, in_w, c, h_start, w_start, h_end, w_end);
                         output[offset] = max;
                     }
                     else if (method == HCL_POOL_AVG)
                     {
-                        float sum = calc_sum_fp32(input_cur, layout, channel, in_h, in_w, c, h_start, w_start,
-                                                    h_end, w_end);
+                        float sum =
+                            calc_sum_fp32(input_cur, layout, channel, in_h, in_w, c, h_start, w_start, h_end, w_end);
                         output[offset] = sum / pool_size;
                     }
                     else

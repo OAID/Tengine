@@ -44,15 +44,15 @@ static int squeeze_op_map(int op)
 static int tm2_load_squeeze(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                             const TM2_Operator* tm_op)
 {
-    struct squeeze_param* squeeze_param = ( struct squeeze_param* )ir_node->op.param_mem;
-    const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
-    const char* mem_base = tm2_priv->base;
-    const TM2_SqueezeParam* tm_param = ( TM2_SqueezeParam* )(mem_base + tm_op->offset_t_param);
+    struct squeeze_param*   squeeze_param = (struct squeeze_param*)ir_node->op.param_mem;
+    const struct tm2_priv*  tm2_priv      = (struct tm2_priv*)ir_graph->serializer_privacy;
+    const char*             mem_base      = tm2_priv->base;
+    const TM2_SqueezeParam* tm_param      = (TM2_SqueezeParam*)(mem_base + tm_op->offset_t_param);
 
-    squeeze_param->dim_0 = tm_param->dim_0;
-    squeeze_param->dim_1 = tm_param->dim_1;
-    squeeze_param->dim_2 = tm_param->dim_2;
-    squeeze_param->dim_3 = tm_param->dim_3;
+    squeeze_param->dim_0                  = tm_param->dim_0;
+    squeeze_param->dim_1                  = tm_param->dim_1;
+    squeeze_param->dim_2                  = tm_param->dim_2;
+    squeeze_param->dim_3                  = tm_param->dim_3;
 
     return 0;
 }

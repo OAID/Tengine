@@ -43,23 +43,23 @@
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node* ir_node = exec_node->ir_node;
-    struct graph* ir_graph = ir_node->graph;
-    struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    struct node*   ir_node       = exec_node->ir_node;
+    struct graph*  ir_graph      = ir_node->graph;
+    struct tensor* input_tensor  = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     struct tensor* weight_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
-    struct tensor* bias_tensor = NULL;
+    struct tensor* bias_tensor   = NULL;
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    int num_thread = exec_graph->num_thread;
-    int cpu_affinity = exec_graph->cpu_affinity;
+    int            num_thread    = exec_graph->num_thread;
+    int            cpu_affinity  = exec_graph->cpu_affinity;
 
     if (ir_node->input_num > 2)
     {
         bias_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[2]);
     }
 
-    struct conv_param* conv_param = ( struct conv_param* )ir_node->op.param_mem;
+    struct conv_param* conv_param = (struct conv_param*)ir_node->op.param_mem;
 
-    int ret = 0;
+    int ret                       = 0;
     if (input_tensor->data_type == TENGINE_DT_FP32)
         ret = ref_conv_fp32(input_tensor, output_tensor, weight_tensor, bias_tensor, conv_param);
     else if (input_tensor->data_type == TENGINE_DT_FP16)
@@ -79,26 +79,26 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
 static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node* ir_node = exec_node->ir_node;
-    struct graph* ir_graph = ir_node->graph;
+    struct node*   ir_node  = exec_node->ir_node;
+    struct graph*  ir_graph = ir_node->graph;
     struct tensor* input_tensor;
     struct tensor* output_tensor;
 
-    input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    struct conv_param* conv_param = ( struct conv_param* )ir_node->op.param_mem;
+    input_tensor                  = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    output_tensor                 = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+    struct conv_param* conv_param = (struct conv_param*)ir_node->op.param_mem;
 
     /* dynamic get the shape of output tensor */
-    int n = input_tensor->dims[0];
-    int h = input_tensor->dims[2];
-    int w = input_tensor->dims[3]; 
+    int n   = input_tensor->dims[0];
+    int h   = input_tensor->dims[2];
+    int w   = input_tensor->dims[3];
     int ret = 0;
 
     if (conv_param->kernel_w == 0)
     {
         conv_param->kernel_w = 1;
-        conv_param->pad_w0 = 0;
-        conv_param->pad_w1 = 0;
+        conv_param->pad_w0   = 0;
+        conv_param->pad_w1   = 0;
     }
     if (conv_param->kernel_h == 0)
         conv_param->kernel_h = 1;
@@ -115,10 +115,10 @@ static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struc
 
     if (conv_param->pad_h0 < 0)
     {
-        out_h = (h - 1) / conv_param->stride_h + 1;
+        out_h         = (h - 1) / conv_param->stride_h + 1;
 
         int total_len = (out_h - 1) * conv_param->stride_h + conv_param->kernel_h;
-        int pad_num = total_len - h;
+        int pad_num   = total_len - h;
 
         if (conv_param->pad_h0 == -1)
         {
@@ -133,18 +133,17 @@ static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struc
     }
     else
     {
-        out_h =
-                (h - conv_param->dilation_h * (conv_param->kernel_h - 1) - 1 + conv_param->pad_h0 + conv_param->pad_h1) /
-                conv_param->stride_h +
-                1;
+        out_h = (h - conv_param->dilation_h * (conv_param->kernel_h - 1) - 1 + conv_param->pad_h0 + conv_param->pad_h1)
+                    / conv_param->stride_h
+                + 1;
     }
 
     if (conv_param->pad_w0 < 0)
     {
-        out_w = (w - 1) / conv_param->stride_w + 1;
+        out_w         = (w - 1) / conv_param->stride_w + 1;
 
         int total_len = (out_w - 1) * conv_param->stride_w + conv_param->kernel_w;
-        int pad_num = total_len - w;
+        int pad_num   = total_len - w;
 
         if (conv_param->pad_w0 == -1)
         {
@@ -159,10 +158,9 @@ static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struc
     }
     else
     {
-        out_w =
-                (w - conv_param->dilation_w * (conv_param->kernel_w - 1) - 1 + conv_param->pad_w0 + conv_param->pad_w1) /
-                conv_param->stride_w +
-                1;
+        out_w = (w - conv_param->dilation_w * (conv_param->kernel_w - 1) - 1 + conv_param->pad_w0 + conv_param->pad_w1)
+                    / conv_param->stride_w
+                + 1;
     }
 
     int dims[4];
@@ -206,13 +204,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_CANDO;
 }
 
-static struct node_ops hcl_node_ops = {.prerun = NULL,
-        .run = run,
-        .reshape = reshape,
-        .postrun = NULL,
-        .init_node = init_node,
-        .release_node = release_node,
-        .score = score};
+static struct node_ops hcl_node_ops = { .prerun       = NULL,
+                                        .run          = run,
+                                        .reshape      = reshape,
+                                        .postrun      = NULL,
+                                        .init_node    = init_node,
+                                        .release_node = release_node,
+                                        .score        = score };
 
 int register_conv_ref_op()
 {

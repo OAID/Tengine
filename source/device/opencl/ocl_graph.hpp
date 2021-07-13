@@ -30,9 +30,9 @@ extern "C"
 #include "graph/subgraph.h"
 
 
-int ocl_dev_init(struct device* dev);
-int ocl_dev_prerun(struct device* dev, struct subgraph* subgraph, void* options);
-int ocl_dev_run(struct device* dev, struct subgraph* subgraph);
-int ocl_dev_postrun(struct device* dev, struct subgraph* subgraph);
-int ocl_dev_release(struct device* dev);
+    int ocl_dev_init(struct device* dev);
+    int ocl_dev_prerun(struct device* dev, struct subgraph* subgraph, void* options);
+    int ocl_dev_run(struct device* dev, struct subgraph* subgraph);
+    int ocl_dev_postrun(struct device* dev, struct subgraph* subgraph);
+    int ocl_dev_release(struct device* dev);
 }

@@ -47,10 +47,9 @@
 
 #include "fc_param.h"
 
-namespace TEngine {
-
-class InnerProduct_vulkan : public Layer
+namespace TEngine
 {
+class InnerProduct_vulkan : public Layer {
 public:
     InnerProduct_vulkan();
     InnerProduct_vulkan(ir_graph_t* ir_graph, ir_node_t* ir_node);
@@ -58,8 +57,9 @@ public:
     virtual int create_pipeline(const Option& opt);
     virtual int destroy_pipeline(const Option& opt);
     virtual int upload_model(VkTransfer& cmd, const Option& opt);
-    
-    virtual int record_pipeline(const VkTensor& bottom_blob, VkTensor& top_blob, VkCompute& cmd, const Option& opt) const;
+
+    virtual int record_pipeline(const VkTensor& bottom_blob, VkTensor& top_blob, VkCompute& cmd,
+                                const Option& opt) const;
 
 public:
     Flatten_vulkan* flatten;
@@ -87,7 +87,7 @@ public:
     int int8_scale_term;
 
     // 0=none 1=relu 2=leakyrelu 3=clip 4=sigmoid
-    int activation_type;
+    int    activation_type;
     Tensor activation_params;
 
     int input_c;
@@ -98,6 +98,6 @@ public:
     int output_w;
 };
 
-}   // namespace TEngine
+}    // namespace TEngine
 
-#endif  // LAYER_INNERPRODUCT_VULKAN_H
+#endif    // LAYER_INNERPRODUCT_VULKAN_H

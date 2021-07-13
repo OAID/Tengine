@@ -43,7 +43,7 @@ int register_minimum_op()
 {
     struct method m;
     m.version = 1;
-    m.init = init_op;
+    m.init    = init_op;
     m.release = NULL;
 
     return register_op(OP_MINIMUM, OP_MINIMUM_NAME, &m);

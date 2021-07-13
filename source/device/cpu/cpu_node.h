@@ -38,12 +38,12 @@ struct exec_graph;
 
 struct exec_node
 {
-    struct node*        ir_node;
-    struct node_ops*    node_ops;
-    void*               ops_priv; /* priv data for ops */
+    struct node*     ir_node;
+    struct node_ops* node_ops;
+    void*            ops_priv; /* priv data for ops */
 
-    int8_t              inplace_map_num;
-    int8_t              output_num;
+    int8_t inplace_map_num;
+    int8_t output_num;
 
     union
     {
@@ -84,5 +84,6 @@ struct node_ops
     int (*score)(struct node_ops*, struct exec_graph*, struct node*);
 };
 
-int init_exec_node(struct exec_graph* exec_graph, struct exec_node* exec_node, struct node* ir_node, struct node_ops* node_ops);
+int  init_exec_node(struct exec_graph* exec_graph, struct exec_node* exec_node, struct node* ir_node,
+                    struct node_ops* node_ops);
 void release_exec_node(struct exec_graph* exec_graph, struct exec_node* exec_node, struct node_ops* node_ops);

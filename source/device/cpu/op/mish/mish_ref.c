@@ -51,30 +51,30 @@ static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, 
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node* ir_node = exec_node->ir_node;
-    struct graph* ir_graph = ir_node->graph;
-    struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    struct node*   ir_node       = exec_node->ir_node;
+    struct graph*  ir_graph      = ir_node->graph;
+    struct tensor* input_tensor  = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    int ret = -1;
-    if(input_tensor->data_type == TENGINE_DT_FP32)
+    int ret                      = -1;
+    if (input_tensor->data_type == TENGINE_DT_FP32)
         ret = ref_mish_fp32(input_tensor, output_tensor, exec_graph->num_thread);
-    else if(input_tensor->data_type == TENGINE_DT_UINT8)
+    else if (input_tensor->data_type == TENGINE_DT_UINT8)
         ret = ref_mish_uint8(input_tensor, output_tensor, exec_graph->num_thread);
     else
-        TLOG_ERR("Input data type %d not to be supported.\n", input_tensor->data_type);        
+        TLOG_ERR("Input data type %d not to be supported.\n", input_tensor->data_type);
 
     return ret;
 }
 
 static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node* node = exec_node->ir_node;
-    struct graph* ir_graph = node->graph;
-    struct tensor* input = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
-    struct tensor* output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
+    struct node*   node     = exec_node->ir_node;
+    struct graph*  ir_graph = node->graph;
+    struct tensor* input    = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
+    struct tensor* output   = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
 
-    int ret = set_ir_tensor_shape(output, input->dims, input->dim_num);
+    int ret                 = set_ir_tensor_shape(output, input->dims, input->dim_num);
     return ret;
 }
 
@@ -83,13 +83,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_CANDO;
 }
 
-static struct node_ops hcl_node_ops = {.prerun = NULL,
-                                       .run = run,
-                                       .reshape = reshape,
-                                       .postrun = NULL,
-                                       .init_node = init_node,
-                                       .release_node = release_node,
-                                       .score = score};
+static struct node_ops hcl_node_ops = { .prerun       = NULL,
+                                        .run          = run,
+                                        .reshape      = reshape,
+                                        .postrun      = NULL,
+                                        .init_node    = init_node,
+                                        .release_node = release_node,
+                                        .score        = score };
 
 int register_mish_ref_op()
 {

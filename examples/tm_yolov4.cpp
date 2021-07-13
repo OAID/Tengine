@@ -41,8 +41,8 @@
 struct Object
 {
     cv::Rect_<float> rect;
-    int label;
-    float prob;
+    int              label;
+    float            prob;
 };
 
 static inline float sigmoid(float x)
@@ -58,8 +58,8 @@ static inline float intersection_area(const Object& a, const Object& b)
 
 static void qsort_descent_inplace(std::vector<Object>& faceobjects, int left, int right)
 {
-    int i = left;
-    int j = right;
+    int   i = left;
+    int   j = right;
     float p = faceobjects[(left + right) / 2].prob;
 
     while (i <= j)
@@ -84,11 +84,13 @@ static void qsort_descent_inplace(std::vector<Object>& faceobjects, int left, in
     {
 #pragma omp section
         {
-            if (left < j) qsort_descent_inplace(faceobjects, left, j);
+            if (left < j)
+                qsort_descent_inplace(faceobjects, left, j);
         }
 #pragma omp section
         {
-            if (i < right) qsort_descent_inplace(faceobjects, i, right);
+            if (i < right)
+                qsort_descent_inplace(faceobjects, i, right);
         }
     }
 }
@@ -117,7 +119,7 @@ static void nms_sorted_bboxes(const std::vector<Object>& faceobjects, std::vecto
     {
         const Object& a = faceobjects[i];
 
-        int keep = 1;
+        int keep        = 1;
         for (int j = 0; j < (int)picked.size(); j++)
         {
             const Object& b = faceobjects[picked[j]];
@@ -135,7 +137,8 @@ static void nms_sorted_bboxes(const std::vector<Object>& faceobjects, std::vecto
     }
 }
 
-void get_input_data_yolov4(const char* image_file, float* input_data, int img_h, int img_w, const float* mean, const float* scale)
+void get_input_data_yolov4(const char* image_file, float* input_data, int img_h, int img_w, const float* mean,
+                           const float* scale)
 {
     cv::Mat sample = cv::imread(image_file, 1);
     cv::Mat img;
@@ -148,35 +151,36 @@ void get_input_data_yolov4(const char* image_file, float* input_data, int img_h,
     /* resize process */
     cv::resize(img, img, cv::Size(img_w, img_h));
     img.convertTo(img, CV_32FC3);
-    float* img_data = (float* )img.data;
+    float* img_data = (float*)img.data;
 
     /* nhwc to nchw */
     for (int h = 0; h < img_h; h++)
-    {   for (int w = 0; w < img_w; w++)
+    {
+        for (int w = 0; w < img_w; w++)
         {
             for (int c = 0; c < 3; c++)
             {
-                int in_index  = h * img_w * 3 + w * 3 + c;
-                int out_index = c * img_h * img_w + h * img_w + w;
+                int in_index          = h * img_w * 3 + w * 3 + c;
+                int out_index         = c * img_h * img_w + h * img_w + w;
                 input_data[out_index] = (img_data[in_index] - mean[c]) * scale[c];
             }
         }
     }
 }
 
-static void generate_proposals(int stride,  const float* feat, float prob_threshold, std::vector<Object>& objects)
+static void generate_proposals(int stride, const float* feat, float prob_threshold, std::vector<Object>& objects)
 {
-    static float anchors[18] = {12, 16, 19, 36, 40, 28, 36, 75, 76, 55, 72, 146, 142, 110, 192, 243, 459, 401};
-    int anchor_num = 3;
-    int feat_w = 416 / stride;
-    int feat_h = 416 / stride;
-    int cls_num = 80;
-    int anchor_group = 0;
-    if(stride == 8)
+    static float anchors[18]  = { 12, 16, 19, 36, 40, 28, 36, 75, 76, 55, 72, 146, 142, 110, 192, 243, 459, 401 };
+    int          anchor_num   = 3;
+    int          feat_w       = 416 / stride;
+    int          feat_h       = 416 / stride;
+    int          cls_num      = 80;
+    int          anchor_group = 0;
+    if (stride == 8)
         anchor_group = 1;
-    if(stride == 16)
+    if (stride == 16)
         anchor_group = 2;
-    if(stride == 32)
+    if (stride == 32)
         anchor_group = 3;
 
     for (int h = 0; h <= feat_h - 1; h++)
@@ -185,55 +189,55 @@ static void generate_proposals(int stride,  const float* feat, float prob_thresh
         {
             for (int anchor = 0; anchor <= anchor_num - 1; anchor++)
             {
-                int class_index = 0;
-                float class_score = -FLT_MAX;
-                int channel_size = feat_h * feat_w;
+                int   class_index  = 0;
+                float class_score  = -FLT_MAX;
+                int   channel_size = feat_h * feat_w;
                 for (int s = 0; s <= cls_num - 1; s++)
                 {
-                    int score_index = anchor * (cls_num + 5) * channel_size + feat_w * h + w + (s + 5) * channel_size;
-                    float score = feat[score_index];
-                    if(score > class_score)
+                    int   score_index = anchor * (cls_num + 5) * channel_size + feat_w * h + w + (s + 5) * channel_size;
+                    float score       = feat[score_index];
+                    if (score > class_score)
                     {
                         class_index = s;
                         class_score = score;
                     }
                 }
-                float box_score = feat[anchor * (cls_num + 5) * channel_size + feat_w * h + w + 4 * channel_size];
+                float box_score   = feat[anchor * (cls_num + 5) * channel_size + feat_w * h + w + 4 * channel_size];
                 float final_score = sigmoid(box_score) * sigmoid(class_score);
-                if(final_score >= prob_threshold)
+                if (final_score >= prob_threshold)
                 {
-                    int dx_index = anchor * (cls_num + 5) * channel_size + feat_w * h + w + 0 * channel_size;
-                    int dy_index = anchor * (cls_num + 5) * channel_size + feat_w * h + w + 1 * channel_size;
-                    int dw_index = anchor * (cls_num + 5) * channel_size + feat_w * h + w + 2 * channel_size;
-                    int dh_index = anchor * (cls_num + 5) * channel_size + feat_w * h + w + 3 * channel_size;
+                    int dx_index   = anchor * (cls_num + 5) * channel_size + feat_w * h + w + 0 * channel_size;
+                    int dy_index   = anchor * (cls_num + 5) * channel_size + feat_w * h + w + 1 * channel_size;
+                    int dw_index   = anchor * (cls_num + 5) * channel_size + feat_w * h + w + 2 * channel_size;
+                    int dh_index   = anchor * (cls_num + 5) * channel_size + feat_w * h + w + 3 * channel_size;
 
-                    float dx = sigmoid(feat[dx_index]);
-                    float dy = sigmoid(feat[dy_index]);
+                    float dx       = sigmoid(feat[dx_index]);
+                    float dy       = sigmoid(feat[dy_index]);
 
-                    float dw = feat[dw_index];
-                    float dh = feat[dh_index];
+                    float dw       = feat[dw_index];
+                    float dh       = feat[dh_index];
 
                     float anchor_w = anchors[(anchor_group - 1) * 6 + anchor * 2 + 0];
                     float anchor_h = anchors[(anchor_group - 1) * 6 + anchor * 2 + 1];
 
-                    float pred_x = (w + dx) * stride;
-                    float pred_y = (h + dy) * stride;
-                    float pred_w = exp(dw) * anchor_w ;
-                    float pred_h = exp(dh) * anchor_h ;
+                    float pred_x   = (w + dx) * stride;
+                    float pred_y   = (h + dy) * stride;
+                    float pred_w   = exp(dw) * anchor_w;
+                    float pred_h   = exp(dh) * anchor_h;
 
-                    float x0 = (pred_x - pred_w * 0.5f);
-                    float y0 = (pred_y - pred_h * 0.5f);
-                    float x1 = (pred_x + pred_w * 0.5f);
-                    float y1 = (pred_y + pred_h * 0.5f);
+                    float x0       = (pred_x - pred_w * 0.5f);
+                    float y0       = (pred_y - pred_h * 0.5f);
+                    float x1       = (pred_x + pred_w * 0.5f);
+                    float y1       = (pred_y + pred_h * 0.5f);
 
                     Object obj;
-                    obj.rect.x = x0;
-                    obj.rect.y = y0;
-                    obj.rect.width = x1 - x0;
+                    obj.rect.x      = x0;
+                    obj.rect.y      = y0;
+                    obj.rect.width  = x1 - x0;
                     obj.rect.height = y1 - y0;
-                    obj.label = class_index;
-                    obj.prob = final_score;
-                    objects.push_back(obj); 
+                    obj.label       = class_index;
+                    obj.prob        = final_score;
+                    objects.push_back(obj);
                 }
             }
         }
@@ -242,19 +246,35 @@ static void generate_proposals(int stride,  const float* feat, float prob_thresh
 
 static void draw_objects(const cv::Mat& bgr, const std::vector<Object>& objects)
 {
-    static const char* class_names[] = {
-        "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light",
-        "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat", "dog", "horse", "sheep", "cow",
-        "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee",
-        "skis", "snowboard", "sports ball", "kite", "baseball bat", "baseball glove", "skateboard", "surfboard",
-        "tennis racket", "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl", "banana", "apple",
-        "sandwich", "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake", "chair", "couch",
-        "potted plant", "bed", "dining table", "toilet", "tv", "laptop", "mouse", "remote", "keyboard", "cell phone",
-        "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors", "teddy bear",
-        "hair drier", "toothbrush"
-    };
+    static const char* class_names[] = { "person",        "bicycle",      "car",
+                                         "motorcycle",    "airplane",     "bus",
+                                         "train",         "truck",        "boat",
+                                         "traffic light", "fire hydrant", "stop sign",
+                                         "parking meter", "bench",        "bird",
+                                         "cat",           "dog",          "horse",
+                                         "sheep",         "cow",          "elephant",
+                                         "bear",          "zebra",        "giraffe",
+                                         "backpack",      "umbrella",     "handbag",
+                                         "tie",           "suitcase",     "frisbee",
+                                         "skis",          "snowboard",    "sports ball",
+                                         "kite",          "baseball bat", "baseball glove",
+                                         "skateboard",    "surfboard",    "tennis racket",
+                                         "bottle",        "wine glass",   "cup",
+                                         "fork",          "knife",        "spoon",
+                                         "bowl",          "banana",       "apple",
+                                         "sandwich",      "orange",       "broccoli",
+                                         "carrot",        "hot dog",      "pizza",
+                                         "donut",         "cake",         "chair",
+                                         "couch",         "potted plant", "bed",
+                                         "dining table",  "toilet",       "tv",
+                                         "laptop",        "mouse",        "remote",
+                                         "keyboard",      "cell phone",   "microwave",
+                                         "oven",          "toaster",      "sink",
+                                         "refrigerator",  "book",         "clock",
+                                         "vase",          "scissors",     "teddy bear",
+                                         "hair drier",    "toothbrush" };
 
-    cv::Mat image = bgr.clone();
+    cv::Mat image                    = bgr.clone();
 
     for (size_t i = 0; i < objects.size(); i++)
     {
@@ -268,11 +288,11 @@ static void draw_objects(const cv::Mat& bgr, const std::vector<Object>& objects)
         char text[256];
         sprintf(text, "%s %.1f%%", class_names[obj.label], obj.prob * 100);
 
-        int baseLine = 0;
+        int      baseLine   = 0;
         cv::Size label_size = cv::getTextSize(text, cv::FONT_HERSHEY_SIMPLEX, 1, 2, &baseLine);
 
-        int x = obj.rect.x;
-        int y = obj.rect.y - label_size.height - baseLine;
+        int x               = obj.rect.x;
+        int y               = obj.rect.y - label_size.height - baseLine;
         if (y < 0)
             y = 0;
         if (x + label_size.width > image.cols)
@@ -281,8 +301,7 @@ static void draw_objects(const cv::Mat& bgr, const std::vector<Object>& objects)
         cv::rectangle(image, cv::Rect(cv::Point(x, y), cv::Size(label_size.width, label_size.height + baseLine)),
                       cv::Scalar(255, 255, 255), -1);
 
-        cv::putText(image, text, cv::Point(x, y + label_size.height), cv::FONT_HERSHEY_SIMPLEX, 1,
-                    cv::Scalar(0, 0, 0));
+        cv::putText(image, text, cv::Point(x, y + label_size.height), cv::FONT_HERSHEY_SIMPLEX, 1, cv::Scalar(0, 0, 0));
     }
 
     cv::imwrite("yolov4_out.jpg", image);
@@ -290,46 +309,44 @@ static void draw_objects(const cv::Mat& bgr, const std::vector<Object>& objects)
 
 void show_usage()
 {
-    fprintf(
-        stderr,
-        "[Usage]:  [-h]\n    [-m model_file] [-i image_file] [-r repeat_count] [-t thread_count] \n");
+    fprintf(stderr, "[Usage]:  [-h]\n    [-m model_file] [-i image_file] [-r repeat_count] [-t thread_count] \n");
 }
 
 int main(int argc, char* argv[])
 {
     const char* model_file = nullptr;
     const char* image_file = nullptr;
-    int img_h = 416;
-    int img_w = 416;
-    int img_c = 3;
-    const float mean[3] = {0, 0, 0};
-    const float scale[3] = {0.003921, 0.003921, 0.003921};
+    int         img_h      = 416;
+    int         img_w      = 416;
+    int         img_c      = 3;
+    const float mean[3]    = { 0, 0, 0 };
+    const float scale[3]   = { 0.003921, 0.003921, 0.003921 };
 
-    int repeat_count = 1;
-    int num_thread = 1;
+    int repeat_count       = 1;
+    int num_thread         = 1;
 
     int res;
     while ((res = getopt(argc, argv, "m:i:r:t:h:")) != -1)
     {
         switch (res)
         {
-            case 'm':
-                model_file = optarg;
-                break;
-            case 'i':
-                image_file = optarg;
-                break;
-            case 'r':
-                repeat_count = std::strtoul(optarg, nullptr, 10);
-                break;
-            case 't':
-                num_thread = std::strtoul(optarg, nullptr, 10);
-                break;
-            case 'h':
-                show_usage();
-                return 0;
-            default:
-                break;
+        case 'm':
+            model_file = optarg;
+            break;
+        case 'i':
+            image_file = optarg;
+            break;
+        case 'r':
+            repeat_count = std::strtoul(optarg, nullptr, 10);
+            break;
+        case 't':
+            num_thread = std::strtoul(optarg, nullptr, 10);
+            break;
+        case 'h':
+            show_usage();
+            return 0;
+        default:
+            break;
         }
     }
 
@@ -356,14 +373,14 @@ int main(int argc, char* argv[])
     {
         fprintf(stderr, "cv::imread %s failed\n", image_file);
         return -1;
-    }    
+    }
 
     /* set runtime options */
     struct options opt;
     opt.num_thread = num_thread;
-    opt.cluster = TENGINE_CLUSTER_ALL;
-    opt.precision = TENGINE_MODE_FP32;
-    opt.affinity = 0;
+    opt.cluster    = TENGINE_CLUSTER_ALL;
+    opt.precision  = TENGINE_MODE_FP32;
+    opt.affinity   = 0;
 
     /* inital tengine */
     if (init_tengine() != 0)
@@ -381,8 +398,8 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    int img_size = img_h * img_w * img_c;
-    int dims[] = {1, 3, img_h, img_w};
+    int                img_size = img_h * img_w * img_c;
+    int                dims[]   = { 1, 3, img_h, img_w };
     std::vector<float> input_data(img_size);
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
@@ -415,8 +432,8 @@ int main(int argc, char* argv[])
     get_input_data_yolov4(image_file, input_data.data(), img_h, img_w, mean, scale);
 
     /* run graph */
-    double min_time = DBL_MAX;
-    double max_time = DBL_MIN;
+    double min_time   = DBL_MAX;
+    double max_time   = DBL_MIN;
     double total_time = 0.;
     for (int i = 0; i < repeat_count; i++)
     {
@@ -432,21 +449,21 @@ int main(int argc, char* argv[])
         min_time = std::min(min_time, cur);
         max_time = std::max(max_time, cur);
     }
-    fprintf(stderr, "Repeat %d times, thread %d, avg time %.2f ms, max_time %.2f ms, min_time %.2f ms\n", repeat_count, num_thread,
-            total_time/repeat_count, max_time, min_time);
+    fprintf(stderr, "Repeat %d times, thread %d, avg time %.2f ms, max_time %.2f ms, min_time %.2f ms\n", repeat_count,
+            num_thread, total_time / repeat_count, max_time, min_time);
     fprintf(stderr, "--------------------------------------\n");
 
-    tensor_t p8_output = get_graph_output_tensor(graph, 0, 0);
+    tensor_t p8_output  = get_graph_output_tensor(graph, 0, 0);
     tensor_t p16_output = get_graph_output_tensor(graph, 1, 0);
     tensor_t p32_output = get_graph_output_tensor(graph, 2, 0);
-    
-    float* p8_data = ( float*)get_tensor_buffer(p8_output);
-    float* p16_data = ( float*)get_tensor_buffer(p16_output);
-    float* p32_data = ( float*)get_tensor_buffer(p32_output);
 
-	/* postprocess */
+    float* p8_data      = (float*)get_tensor_buffer(p8_output);
+    float* p16_data     = (float*)get_tensor_buffer(p16_output);
+    float* p32_data     = (float*)get_tensor_buffer(p32_output);
+
+    /* postprocess */
     const float prob_threshold = 0.45f;
-    const float nms_threshold = 0.25f;
+    const float nms_threshold  = 0.25f;
 
     std::vector<Object> proposals;
     std::vector<Object> objects8;
@@ -466,37 +483,37 @@ int main(int argc, char* argv[])
     nms_sorted_bboxes(proposals, picked, nms_threshold);
 
     /* yolov4 tiny draw the result */
-    int raw_h = img.rows;
-    int raw_w = img.cols;
+    int raw_h     = img.rows;
+    int raw_w     = img.cols;
 
     float ratio_x = (float)raw_w / img_w;
     float ratio_y = (float)raw_h / img_h;
 
-    int count = picked.size();
-    fprintf(stderr, "detection num: %d\n",count);
+    int count     = picked.size();
+    fprintf(stderr, "detection num: %d\n", count);
 
     objects.resize(count);
     for (int i = 0; i < count; i++)
     {
-        objects[i] = proposals[picked[i]];
-        float x0 = (objects[i].rect.x);
-        float y0 = (objects[i].rect.y);
-        float x1 = (objects[i].rect.x + objects[i].rect.width);
-        float y1 = (objects[i].rect.y + objects[i].rect.height);
+        objects[i]             = proposals[picked[i]];
+        float x0               = (objects[i].rect.x);
+        float y0               = (objects[i].rect.y);
+        float x1               = (objects[i].rect.x + objects[i].rect.width);
+        float y1               = (objects[i].rect.y + objects[i].rect.height);
 
-        x0 = x0 * ratio_x;
-        y0 = y0 * ratio_y;
-        x1 = x1 * ratio_x;
-        y1 = y1 * ratio_y;
+        x0                     = x0 * ratio_x;
+        y0                     = y0 * ratio_y;
+        x1                     = x1 * ratio_x;
+        y1                     = y1 * ratio_y;
 
-        x0 = std::max(std::min(x0, (float)(raw_w - 1)), 0.f);
-        y0 = std::max(std::min(y0, (float)(raw_h - 1)), 0.f);
-        x1 = std::max(std::min(x1, (float)(raw_w - 1)), 0.f);
-        y1 = std::max(std::min(y1, (float)(raw_h - 1)), 0.f);
+        x0                     = std::max(std::min(x0, (float)(raw_w - 1)), 0.f);
+        y0                     = std::max(std::min(y0, (float)(raw_h - 1)), 0.f);
+        x1                     = std::max(std::min(x1, (float)(raw_w - 1)), 0.f);
+        y1                     = std::max(std::min(y1, (float)(raw_h - 1)), 0.f);
 
-        objects[i].rect.x = x0;
-        objects[i].rect.y = y0;
-        objects[i].rect.width = x1 - x0;
+        objects[i].rect.x      = x0;
+        objects[i].rect.y      = y0;
+        objects[i].rect.width  = x1 - x0;
         objects[i].rect.height = y1 - y0;
     }
 

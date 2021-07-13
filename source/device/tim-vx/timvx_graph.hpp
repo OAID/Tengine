@@ -30,9 +30,9 @@ extern "C"
 #include "graph/subgraph.h"
 
 
-int timvx_dev_init(struct device* dev);
-int timvx_dev_prerun(struct device* dev, struct subgraph* subgraph, void* options);
-int timvx_dev_run(struct device* dev, struct subgraph* subgraph);
-int timvx_dev_postrun(struct device* dev, struct subgraph* subgraph);
-int timvx_dev_release(struct device* dev);
+    int timvx_dev_init(struct device* dev);
+    int timvx_dev_prerun(struct device* dev, struct subgraph* subgraph, void* options);
+    int timvx_dev_run(struct device* dev, struct subgraph* subgraph);
+    int timvx_dev_postrun(struct device* dev, struct subgraph* subgraph);
+    int timvx_dev_release(struct device* dev);
 }

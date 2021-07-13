@@ -28,14 +28,14 @@
 struct rnn_param
 {
     float clip;
-    int output_len;
-    int sequence_len;
-    int input_size;
-    int hidden_size;
-    int has_clip;
-    int has_bias;
-    int has_init_state;
-    int activation;
+    int   output_len;
+    int   sequence_len;
+    int   input_size;
+    int   hidden_size;
+    int   has_clip;
+    int   has_bias;
+    int   has_init_state;
+    int   activation;
     char* inithiddenname;
     char* biasname;
 };

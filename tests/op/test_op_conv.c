@@ -24,69 +24,69 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <malloc.h>           
+#include <malloc.h>
 
 #include "tengine/c_api.h"
 #include "tengine/c_api_ex.h"
 
-int allocated_num = 0;
-void** record_ptr = NULL;
+int    allocated_num = 0;
+void** record_ptr    = NULL;
 
 void record_allocated_buf(void* buf)
 {
     allocated_num++;
-    record_ptr = realloc(record_ptr, sizeof(void*) * allocated_num);
+    record_ptr                    = realloc(record_ptr, sizeof(void*) * allocated_num);
     record_ptr[allocated_num - 1] = buf;
 }
 
 void free_allocated_buf(void)
 {
-    for(int i = 0; i < allocated_num; i++)
+    for (int i = 0; i < allocated_num; i++)
         free(record_ptr[i]);
 
-    if(record_ptr)
+    if (record_ptr)
         free(record_ptr);
 }
 
 void init_buffer(void* buf, int elem_num, int elem_size, int val)
 {
-    for(int i = 0; i < elem_num; i++)
+    for (int i = 0; i < elem_num; i++)
     {
-        float val0;
-        float* fp;
+        float    val0;
+        float*   fp;
         int16_t* i16;
-        char* c;
+        char*    c;
 
-        if(val >= 0)
+        if (val >= 0)
             val0 = val;
         else
-            val0 = i%10;
+            val0 = i % 10;
 
-        switch(elem_size)
+        switch (elem_size)
         {
-            case 4:
-                fp = ( float* )buf;
-                fp[i] = val0;
-                break;
-            case 2:
-                i16 = ( int16_t* )buf;
-                i16[i] = val0;
-                break;
-            case 1:
-                c = ( char* )buf;
-                c[i] = val0;
-                break;
+        case 4:
+            fp    = (float*)buf;
+            fp[i] = val0;
+            break;
+        case 2:
+            i16    = (int16_t*)buf;
+            i16[i] = val0;
+            break;
+        case 1:
+            c    = (char*)buf;
+            c[i] = val0;
+            break;
         }
     }
 }
 
 int create_input_node(graph_t graph, const char* node_name, int c, int h, int w)
 {
-    node_t node = create_graph_node(graph, node_name, "InputOp");
+    node_t   node   = create_graph_node(graph, node_name, "InputOp");
     tensor_t tensor = create_graph_tensor(graph, node_name, TENGINE_DT_FP32);
     set_node_output_tensor(node, 0, tensor, TENSOR_TYPE_INPUT);
 
-    int dims[4] = {1, c, h, w};
+    int dims[4] = { 1, c, h, w };
 
     set_tensor_shape(tensor, dims, 4);
 
@@ -103,11 +103,11 @@ int create_conv_node(graph_t graph, const char* node_name, const char* input_nam
     char* weight_name = malloc(strlen(node_name) + 16);
     sprintf(weight_name, "%s/weight", node_name);
 
-    node_t w_node = create_graph_node(graph, weight_name, "Const");
+    node_t   w_node   = create_graph_node(graph, weight_name, "Const");
     tensor_t w_tensor = create_graph_tensor(graph, weight_name, TENGINE_DT_FP32);
 
     set_node_output_tensor(w_node, 0, w_tensor, TENSOR_TYPE_CONST);
-    int w_dims[] = {out_c, in_c / group, k_size, k_size};
+    int w_dims[] = { out_c, in_c / group, k_size, k_size };
     set_tensor_shape(w_tensor, w_dims, 4);
 
     /* bias */
@@ -115,21 +115,21 @@ int create_conv_node(graph_t graph, const char* node_name, const char* input_nam
     char* bias_name = malloc(strlen(node_name) + 16);
     sprintf(bias_name, "%s/bias", node_name);
 
-    node_t b_node = create_graph_node(graph, bias_name, "Const");
+    node_t   b_node   = create_graph_node(graph, bias_name, "Const");
     tensor_t b_tensor = create_graph_tensor(graph, bias_name, TENGINE_DT_FP32);
 
     set_node_output_tensor(b_node, 0, b_tensor, TENSOR_TYPE_CONST);
-    int b_dims[] = {out_c};
+    int b_dims[] = { out_c };
 
     set_tensor_shape(b_tensor, b_dims, 1);
 
     /* conv */
 
-    node_t conv_node = create_graph_node(graph, node_name, "Convolution");
+    node_t conv_node      = create_graph_node(graph, node_name, "Convolution");
 
     tensor_t input_tensor = get_graph_tensor(graph, input_name);
 
-    if(input_tensor == NULL)
+    if (input_tensor == NULL)
     {
         fprintf(stderr, "errno= %d\n", get_tengine_errno());
         return -1;
@@ -174,11 +174,11 @@ int create_conv_node(graph_t graph, const char* node_name, const char* input_nam
 
 int create_pooling_node(graph_t graph, const char* node_name, const char* input_name)
 {
-    node_t pool_node = create_graph_node(graph, node_name, "Pooling");
+    node_t pool_node      = create_graph_node(graph, node_name, "Pooling");
 
     tensor_t input_tensor = get_graph_tensor(graph, input_name);
 
-    if(input_tensor == NULL)
+    if (input_tensor == NULL)
     {
         fprintf(stderr, "ERRNO: %d\n", get_tengine_errno());
         return -1;
@@ -202,16 +202,16 @@ graph_t create_test_graph(int c, int h, int w, int out_c)
 {
     graph_t graph = create_graph(NULL, NULL, NULL);
 
-    if(graph == NULL)
+    if (graph == NULL)
     {
         fprintf(stderr, "ERRNO: %d\n", get_tengine_errno());
         return NULL;
     }
 
     const char* input_name = "data";
-    const char* conv_name = "conv";
+    const char* conv_name  = "conv";
 
-    if(create_input_node(graph, input_name, c, h, w) < 0)
+    if (create_input_node(graph, input_name, c, h, w) < 0)
     {
         fprintf(stderr, "create input failed\n");
         return NULL;
@@ -219,7 +219,7 @@ graph_t create_test_graph(int c, int h, int w, int out_c)
 
     // int out_c = 4;
     //                                                k  s  p in_c out_c group
-    if(create_conv_node(graph, conv_name, input_name, 1, 1, 0, c, out_c, 1) < 0)
+    if (create_conv_node(graph, conv_name, input_name, 1, 1, 0, c, out_c, 1) < 0)
     {
         fprintf(stderr, "create conv node failed\n");
         return NULL;
@@ -238,18 +238,18 @@ graph_t create_test_graph(int c, int h, int w, int out_c)
     const char* inputs[] = {input_name};
     const char* outputs[] = {pool_name};
 #else
-    const char* inputs[] = {input_name};
-    const char* outputs[] = {conv_name};
+    const char* inputs[]  = { input_name };
+    const char* outputs[] = { conv_name };
 
 #endif
 
-    if(set_graph_input_node(graph, inputs, sizeof(inputs) / sizeof(char*)) < 0)
+    if (set_graph_input_node(graph, inputs, sizeof(inputs) / sizeof(char*)) < 0)
     {
         fprintf(stderr, "set inputs failed: ERRNO: %d\n", get_tengine_errno());
         return NULL;
     }
 
-    if(set_graph_output_node(graph, outputs, sizeof(outputs) / sizeof(char*)) < 0)
+    if (set_graph_output_node(graph, outputs, sizeof(outputs) / sizeof(char*)) < 0)
     {
         fprintf(stderr, "set outputs failed: ERRNO: %d\n", get_tengine_errno());
         return NULL;
@@ -261,12 +261,12 @@ graph_t create_test_graph(int c, int h, int w, int out_c)
 void fill_conv_node(node_t node)
 {
     tensor_t filter = get_node_input_tensor(node, 1);
-    int dims[4];
+    int      dims[4];
 
     get_tensor_shape(filter, dims, 4);
 
-    int elem_num = dims[0] * dims[1] * dims[2] * dims[3];
-    int elem_size = 4;
+    int elem_num     = dims[0] * dims[1] * dims[2] * dims[3];
+    int elem_size    = 4;
 
     void* filter_buf = malloc(elem_num * elem_size);
 
@@ -280,12 +280,12 @@ void fill_conv_node(node_t node)
 
     tensor_t bias = get_node_input_tensor(node, 2);
 
-    if(bias == NULL)
+    if (bias == NULL)
         return;
 
     get_tensor_shape(bias, dims, 1);
 
-    elem_num = dims[0];
+    elem_num       = dims[0];
 
     void* bias_buf = malloc(elem_num * elem_size);
 
@@ -302,13 +302,13 @@ void fill_graph_param(graph_t graph)
 {
     int node_num = get_graph_node_num(graph);
 
-    for(int i = 0; i < node_num; i++)
+    for (int i = 0; i < node_num; i++)
     {
-        node_t node = get_graph_node_by_idx(graph, i);
+        node_t node         = get_graph_node_by_idx(graph, i);
 
         const char* node_op = get_node_op(node);
 
-        if(!strcmp(node_op, "Convolution"))
+        if (!strcmp(node_op, "Convolution"))
         {
             fill_conv_node(node);
         }
@@ -321,16 +321,16 @@ int main(int argc, char* argv[])
 {
     int c, h, w, out_c;
 
-    c = 8;
-    h = 14;
-    w = 14;
+    c     = 8;
+    h     = 14;
+    w     = 14;
     out_c = 16;
 
     init_tengine();
 
     graph_t graph = create_test_graph(c, h, w, out_c);
- 
-    if(graph == NULL)
+
+    if (graph == NULL)
         return 1;
 
     fill_graph_param(graph);
@@ -339,12 +339,12 @@ int main(int argc, char* argv[])
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
 
     int dims[4];
-    int dim_num = get_tensor_shape(input_tensor, dims, 4);
+    int dim_num   = get_tensor_shape(input_tensor, dims, 4);
 
-    int elem_num = 1;
+    int elem_num  = 1;
     int elem_size = 4;
 
-    for(int i = 0; i < dim_num; i++)
+    for (int i = 0; i < dim_num; i++)
         elem_num *= dims[i];
 
     void* input_buf = malloc(elem_num * elem_size);
@@ -363,13 +363,13 @@ int main(int argc, char* argv[])
 
     tensor_t output_tensor = get_graph_output_tensor(graph, 0, 0);
 
-    dim_num = get_tensor_shape(output_tensor, dims, 4);
+    dim_num                = get_tensor_shape(output_tensor, dims, 4);
 
-    elem_num = 1;
+    elem_num               = 1;
 
     printf("output shape: [");
 
-    for(int i = 0; i < dim_num; i++)
+    for (int i = 0; i < dim_num; i++)
     {
         elem_num *= dims[i];
         printf(" %d", dims[i]);
@@ -379,11 +379,11 @@ int main(int argc, char* argv[])
 
     float* output = get_tensor_buffer(output_tensor);
 
-    for(int i = 0; i < elem_num; i++)
+    for (int i = 0; i < elem_num; i++)
     {
         int w = dims[3];
 
-        if((i % w) == 0)
+        if ((i % w) == 0)
             printf("\n%d:\t", i);
 
         printf(" %f", output[i]);

@@ -56,26 +56,25 @@ extern "C"
 #include "vulkan_allocator.hpp"
 #include "vulkan_option.hpp"
 
-namespace TEngine {
-
+namespace TEngine
+{
 class VkTensor;
 class VkImageTensor;
 
-class Tshape
-{
+class Tshape {
 public:
     Tshape()
     {
-        w = 0;
-        h = 0;
-        c = 0;
+        w    = 0;
+        h    = 0;
+        c    = 0;
         dims = 0;
     }
     Tshape(int _w, int _h, int _c)
     {
-        w = _w;
-        h = _h;
-        c = _c;
+        w    = _w;
+        h    = _h;
+        c    = _c;
         dims = 3;
     }
 
@@ -87,8 +86,7 @@ public:
     size_t cstep;
 };
 
-class Tensor
-{
+class Tensor {
 public:
     // empty
     Tensor();
@@ -156,21 +154,23 @@ public:
     // refcount--
     void release();
 
-    bool empty() const;
+    bool   empty() const;
     size_t total() const;
 
     // shape only
     Tensor shape() const;
 
     // data reference
-    Tensor channel(int c);
+    Tensor       channel(int c);
     const Tensor channel(int c) const;
-    float* row(int y);
+    float*       row(int y);
     const float* row(int y) const;
 
     // access raw data
-    template<typename T> operator T*();
-    template<typename T> operator const T*() const;
+    template <typename T>
+    operator T*();
+    template <typename T>
+    operator const T*() const;
 
     // pointer to the data
     void* data;
@@ -207,8 +207,7 @@ public:
 
 
 
-class VkTensor
-{
+class VkTensor {
 public:
     // empty
     VkTensor();
@@ -242,7 +241,7 @@ public:
     ~VkTensor();
     // assign
     VkTensor& operator=(const VkTensor& m);
-        // reshape vec
+    // reshape vec
     VkTensor reshape(int w, Allocator* allocator = 0) const;
     // reshape image
     VkTensor reshape(int w, int h, Allocator* allocator = 0) const;
@@ -285,16 +284,16 @@ public:
     // refcount--
     void release();
 
-    bool empty() const;
+    bool   empty() const;
     size_t total() const;
 
     // shape only
     // Mat shape() const;
-    
+
     // low-level reference
     VkBuffer buffer() const;
-    size_t buffer_offset() const;
-    size_t buffer_capacity() const;
+    size_t   buffer_offset() const;
+    size_t   buffer_capacity() const;
 
     // device buffer
     VkBufferMemory* data;
@@ -334,8 +333,7 @@ public:
     size_t cstep;
 };
 
-class VkImageTensor
-{
+class VkImageTensor {
 public:
     // empty
     VkImageTensor();
@@ -398,27 +396,27 @@ public:
     // refcount--
     void release();
 
-    bool empty() const;
+    bool   empty() const;
     size_t total() const;
 
     // shape only
     ///Mat shape() const;
 
     // low-level reference
-    VkImage image() const;
+    VkImage     image() const;
     VkImageView imageview() const;
 
 #if __ANDROID_API__ >= 26
     // convenient construct from android hardware buffer
     static VkImageMat from_android_hardware_buffer(VkAndroidHardwareBufferImageAllocator* allocator);
-#endif // __ANDROID_API__ >= 26
+#endif    // __ANDROID_API__ >= 26
 
     // device image
     VkImageMemory* data;
 
     // pointer to the reference counter
     // when points to user-allocated data, the pointer is NULL
-    
+
     int* refcount;
 
     // element size in bytes
@@ -447,8 +445,7 @@ public:
 
 inline VkTensor::VkTensor()
     : data(0), refcount(0), elemsize(0), elempack(0), allocator(0), dims(0), w(0), h(0), c(0), cstep(0)
-{
-}
+{}
 
 inline VkTensor::VkTensor(int _w, size_t _elemsize, VkAllocator* _allocator)
     : data(0), refcount(0), elemsize(0), elempack(0), allocator(0), dims(0), w(0), h(0), c(0), cstep(0)
@@ -487,7 +484,8 @@ inline VkTensor::VkTensor(int _w, int _h, int _c, size_t _elemsize, int _elempac
 }
 
 inline VkTensor::VkTensor(const VkTensor& m)
-    : data(m.data), refcount(m.refcount), elemsize(m.elemsize), elempack(m.elempack), allocator(m.allocator), dims(m.dims), w(m.w), h(m.h), c(m.c)
+    : data(m.data), refcount(m.refcount), elemsize(m.elemsize), elempack(m.elempack), allocator(m.allocator),
+      dims(m.dims), w(m.w), h(m.h), c(m.c)
 {
     if (refcount)
         TENGINE_XADD(refcount, 1);
@@ -514,19 +512,24 @@ inline VkTensor::VkTensor(int _w, int _h, int _c, VkBufferMemory* _data, size_t 
 }
 
 inline VkTensor::VkTensor(int _w, VkBufferMemory* _data, size_t _elemsize, int _elempack, VkAllocator* _allocator)
-    : data(_data), refcount(0), elemsize(_elemsize), elempack(_elempack), allocator(_allocator), dims(1), w(_w), h(1), c(1)
+    : data(_data), refcount(0), elemsize(_elemsize), elempack(_elempack), allocator(_allocator), dims(1), w(_w), h(1),
+      c(1)
 {
     cstep = w;
 }
 
-inline VkTensor::VkTensor(int _w, int _h, VkBufferMemory* _data, size_t _elemsize, int _elempack, VkAllocator* _allocator)
-    : data(_data), refcount(0), elemsize(_elemsize), elempack(_elempack), allocator(_allocator), dims(2), w(_w), h(_h), c(1)
+inline VkTensor::VkTensor(int _w, int _h, VkBufferMemory* _data, size_t _elemsize, int _elempack,
+                          VkAllocator* _allocator)
+    : data(_data), refcount(0), elemsize(_elemsize), elempack(_elempack), allocator(_allocator), dims(2), w(_w), h(_h),
+      c(1)
 {
     cstep = w * h;
 }
 
-inline VkTensor::VkTensor(int _w, int _h, int _c, VkBufferMemory* _data, size_t _elemsize, int _elempack, VkAllocator* _allocator)
-    : data(_data), refcount(0), elemsize(_elemsize), elempack(_elempack), allocator(_allocator), dims(3), w(_w), h(_h), c(_c)
+inline VkTensor::VkTensor(int _w, int _h, int _c, VkBufferMemory* _data, size_t _elemsize, int _elempack,
+                          VkAllocator* _allocator)
+    : data(_data), refcount(0), elemsize(_elemsize), elempack(_elempack), allocator(_allocator), dims(3), w(_w), h(_h),
+      c(_c)
 {
     cstep = alignSize(w * h * elemsize, 16) / elemsize;
 }
@@ -546,18 +549,18 @@ inline VkTensor& VkTensor::operator=(const VkTensor& m)
 
     release();
 
-    data = m.data;
-    refcount = m.refcount;
-    elemsize = m.elemsize;
-    elempack = m.elempack;
+    data      = m.data;
+    refcount  = m.refcount;
+    elemsize  = m.elemsize;
+    elempack  = m.elempack;
     allocator = m.allocator;
 
-    dims = m.dims;
-    w = m.w;
-    h = m.h;
-    c = m.c;
+    dims      = m.dims;
+    w         = m.w;
+    h         = m.h;
+    c         = m.c;
 
-    cstep = m.cstep;
+    cstep     = m.cstep;
 
     return *this;
 }
@@ -569,25 +572,25 @@ inline void VkTensor::create(int _w, size_t _elemsize, VkAllocator* _allocator)
 
     release();
 
-    elemsize = _elemsize;
-    elempack = 1;
+    elemsize  = _elemsize;
+    elempack  = 1;
     allocator = _allocator;
 
-    dims = 1;
-    w = _w;
-    h = 1;
-    c = 1;
+    dims      = 1;
+    w         = _w;
+    h         = 1;
+    c         = 1;
 
-    cstep = w;
+    cstep     = w;
 
     if (total() > 0)
     {
         size_t totalsize = alignSize(total() * elemsize, 4);
 
-        data = allocator->fastMalloc(totalsize);
+        data             = allocator->fastMalloc(totalsize);
 
-        refcount = (int*)((unsigned char*)data + offsetof(VkBufferMemory, refcount));
-        *refcount = 1;
+        refcount         = (int*)((unsigned char*)data + offsetof(VkBufferMemory, refcount));
+        *refcount        = 1;
     }
 }
 
@@ -598,25 +601,25 @@ inline void VkTensor::create(int _w, int _h, size_t _elemsize, VkAllocator* _all
 
     release();
 
-    elemsize = _elemsize;
-    elempack = 1;
+    elemsize  = _elemsize;
+    elempack  = 1;
     allocator = _allocator;
 
-    dims = 2;
-    w = _w;
-    h = _h;
-    c = 1;
+    dims      = 2;
+    w         = _w;
+    h         = _h;
+    c         = 1;
 
-    cstep = w * h;
+    cstep     = w * h;
 
     if (total() > 0)
     {
         size_t totalsize = alignSize(total() * elemsize, 4);
 
-        data = allocator->fastMalloc(totalsize);
+        data             = allocator->fastMalloc(totalsize);
 
-        refcount = (int*)((unsigned char*)data + offsetof(VkBufferMemory, refcount));
-        *refcount = 1;
+        refcount         = (int*)((unsigned char*)data + offsetof(VkBufferMemory, refcount));
+        *refcount        = 1;
     }
 }
 
@@ -627,25 +630,25 @@ inline void VkTensor::create(int _w, int _h, int _c, size_t _elemsize, VkAllocat
 
     release();
 
-    elemsize = _elemsize;
-    elempack = 1;
+    elemsize  = _elemsize;
+    elempack  = 1;
     allocator = _allocator;
 
-    dims = 3;
-    w = _w;
-    h = _h;
-    c = _c;
+    dims      = 3;
+    w         = _w;
+    h         = _h;
+    c         = _c;
 
-    cstep = alignSize(w * h * elemsize, 16) / elemsize;
+    cstep     = alignSize(w * h * elemsize, 16) / elemsize;
 
     if (total() > 0)
     {
         size_t totalsize = alignSize(total() * elemsize, 4);
 
-        data = allocator->fastMalloc(totalsize);
+        data             = allocator->fastMalloc(totalsize);
 
-        refcount = (int*)((unsigned char*)data + offsetof(VkBufferMemory, refcount));
-        *refcount = 1;
+        refcount         = (int*)((unsigned char*)data + offsetof(VkBufferMemory, refcount));
+        *refcount        = 1;
     }
 }
 
@@ -656,25 +659,25 @@ inline void VkTensor::create(int _w, size_t _elemsize, int _elempack, VkAllocato
 
     release();
 
-    elemsize = _elemsize;
-    elempack = _elempack;
+    elemsize  = _elemsize;
+    elempack  = _elempack;
     allocator = _allocator;
 
-    dims = 1;
-    w = _w;
-    h = 1;
-    c = 1;
+    dims      = 1;
+    w         = _w;
+    h         = 1;
+    c         = 1;
 
-    cstep = w;
+    cstep     = w;
 
     if (total() > 0)
     {
         size_t totalsize = alignSize(total() * elemsize, 4);
 
-        data = allocator->fastMalloc(totalsize);
+        data             = allocator->fastMalloc(totalsize);
 
-        refcount = (int*)((unsigned char*)data + offsetof(VkBufferMemory, refcount));
-        *refcount = 1;
+        refcount         = (int*)((unsigned char*)data + offsetof(VkBufferMemory, refcount));
+        *refcount        = 1;
     }
 }
 
@@ -685,43 +688,44 @@ inline void VkTensor::create(int _w, int _h, size_t _elemsize, int _elempack, Vk
 
     release();
 
-    elemsize = _elemsize;
-    elempack = _elempack;
+    elemsize  = _elemsize;
+    elempack  = _elempack;
     allocator = _allocator;
 
-    dims = 2;
-    w = _w;
-    h = _h;
-    c = 1;
+    dims      = 2;
+    w         = _w;
+    h         = _h;
+    c         = 1;
 
-    cstep = w * h;
+    cstep     = w * h;
 
     if (total() > 0)
     {
         size_t totalsize = alignSize(total() * elemsize, 4);
 
-        data = allocator->fastMalloc(totalsize);
+        data             = allocator->fastMalloc(totalsize);
 
-        refcount = (int*)((unsigned char*)data + offsetof(VkBufferMemory, refcount));
-        *refcount = 1;
+        refcount         = (int*)((unsigned char*)data + offsetof(VkBufferMemory, refcount));
+        *refcount        = 1;
     }
 }
 
 inline void VkTensor::create(int _w, int _h, int _c, size_t _elemsize, int _elempack, VkAllocator* _allocator)
 {
-    if (dims == 3 && w == _w && h == _h && c == _c && elemsize == _elemsize && elempack == _elempack && allocator == _allocator)
+    if (dims == 3 && w == _w && h == _h && c == _c && elemsize == _elemsize && elempack == _elempack
+        && allocator == _allocator)
         return;
 
     release();
 
-    elemsize = _elemsize;
-    elempack = _elempack;
+    elemsize  = _elemsize;
+    elempack  = _elempack;
     allocator = _allocator;
 
-    dims = 3;
-    w = _w;
-    h = _h;
-    c = _c;
+    dims      = 3;
+    w         = _w;
+    h         = _h;
+    c         = _c;
 
     // cstep = alignSize(w * h * elemsize, 16) / elemsize;
     cstep = w * h;
@@ -730,20 +734,20 @@ inline void VkTensor::create(int _w, int _h, int _c, size_t _elemsize, int _elem
     {
         size_t totalsize = alignSize(total() * elemsize, 4);
 
-        data = allocator->fastMalloc(totalsize);
+        data             = allocator->fastMalloc(totalsize);
 
-        refcount = (int*)((unsigned char*)data + offsetof(VkBufferMemory, refcount));
-        *refcount = 1;
+        refcount         = (int*)((unsigned char*)data + offsetof(VkBufferMemory, refcount));
+        *refcount        = 1;
     }
 }
 
 inline void VkTensor::create_like(const tensor* m, VkAllocator* _allocator)
 {
-    int _c = m->dims[1];
-    int _h = m->dims[2];
-    int _w = m->dims[3];
+    int    _c        = m->dims[1];
+    int    _h        = m->dims[2];
+    int    _w        = m->dims[3];
     size_t _elemsize = m->data_type == 0 ? 4 : 1;
-    int _elempack = 1;
+    int    _elempack = 1;
 
     if (_c == 0 && _h == 0 && _w != 0)
         create(_w, _elemsize, _elempack, _allocator);
@@ -799,17 +803,17 @@ inline void VkTensor::release()
         }
     }
 
-    data = 0;
+    data     = 0;
 
     elemsize = 0;
     elempack = 0;
 
-    dims = 0;
-    w = 0;
-    h = 0;
-    c = 0;
+    dims     = 0;
+    w        = 0;
+    h        = 0;
+    c        = 0;
 
-    cstep = 0;
+    cstep    = 0;
 
     refcount = 0;
 }
@@ -855,8 +859,7 @@ inline size_t VkTensor::buffer_capacity() const
 // VkImageTensor
 inline VkImageTensor::VkImageTensor()
     : data(0), refcount(0), elemsize(0), elempack(0), allocator(0), dims(0), w(0), h(0), c(0)
-{
-}
+{}
 
 inline VkImageTensor::VkImageTensor(int _w, size_t _elemsize, VkAllocator* _allocator)
     : data(0), refcount(0), elemsize(0), elempack(0), allocator(0), dims(0), w(0), h(0), c(0)
@@ -895,7 +898,8 @@ inline VkImageTensor::VkImageTensor(int _w, int _h, int _c, size_t _elemsize, in
 }
 
 inline VkImageTensor::VkImageTensor(const VkImageTensor& m)
-    : data(m.data), refcount(m.refcount), elemsize(m.elemsize), elempack(m.elempack), allocator(m.allocator), dims(m.dims), w(m.w), h(m.h), c(m.c)
+    : data(m.data), refcount(m.refcount), elemsize(m.elemsize), elempack(m.elempack), allocator(m.allocator),
+      dims(m.dims), w(m.w), h(m.h), c(m.c)
 {
     if (refcount)
         TENGINE_XADD(refcount, 1);
@@ -903,33 +907,34 @@ inline VkImageTensor::VkImageTensor(const VkImageTensor& m)
 
 inline VkImageTensor::VkImageTensor(int _w, VkImageMemory* _data, size_t _elemsize, VkAllocator* _allocator)
     : data(_data), refcount(0), elemsize(_elemsize), elempack(1), allocator(_allocator), dims(1), w(_w), h(1), c(1)
-{
-}
+{}
 
 inline VkImageTensor::VkImageTensor(int _w, int _h, VkImageMemory* _data, size_t _elemsize, VkAllocator* _allocator)
     : data(_data), refcount(0), elemsize(_elemsize), elempack(1), allocator(_allocator), dims(2), w(_w), h(_h), c(1)
-{
-}
+{}
 
-inline VkImageTensor::VkImageTensor(int _w, int _h, int _c, VkImageMemory* _data, size_t _elemsize, VkAllocator* _allocator)
+inline VkImageTensor::VkImageTensor(int _w, int _h, int _c, VkImageMemory* _data, size_t _elemsize,
+                                    VkAllocator* _allocator)
     : data(_data), refcount(0), elemsize(_elemsize), elempack(1), allocator(_allocator), dims(3), w(_w), h(_h), c(_c)
-{
-}
+{}
 
-inline VkImageTensor::VkImageTensor(int _w, VkImageMemory* _data, size_t _elemsize, int _elempack, VkAllocator* _allocator)
-    : data(_data), refcount(0), elemsize(_elemsize), elempack(_elempack), allocator(_allocator), dims(1), w(_w), h(1), c(1)
-{
-}
+inline VkImageTensor::VkImageTensor(int _w, VkImageMemory* _data, size_t _elemsize, int _elempack,
+                                    VkAllocator* _allocator)
+    : data(_data), refcount(0), elemsize(_elemsize), elempack(_elempack), allocator(_allocator), dims(1), w(_w), h(1),
+      c(1)
+{}
 
-inline VkImageTensor::VkImageTensor(int _w, int _h, VkImageMemory* _data, size_t _elemsize, int _elempack, VkAllocator* _allocator)
-    : data(_data), refcount(0), elemsize(_elemsize), elempack(_elempack), allocator(_allocator), dims(2), w(_w), h(_h), c(1)
-{
-}
+inline VkImageTensor::VkImageTensor(int _w, int _h, VkImageMemory* _data, size_t _elemsize, int _elempack,
+                                    VkAllocator* _allocator)
+    : data(_data), refcount(0), elemsize(_elemsize), elempack(_elempack), allocator(_allocator), dims(2), w(_w), h(_h),
+      c(1)
+{}
 
-inline VkImageTensor::VkImageTensor(int _w, int _h, int _c, VkImageMemory* _data, size_t _elemsize, int _elempack, VkAllocator* _allocator)
-    : data(_data), refcount(0), elemsize(_elemsize), elempack(_elempack), allocator(_allocator), dims(3), w(_w), h(_h), c(_c)
-{
-}
+inline VkImageTensor::VkImageTensor(int _w, int _h, int _c, VkImageMemory* _data, size_t _elemsize, int _elempack,
+                                    VkAllocator* _allocator)
+    : data(_data), refcount(0), elemsize(_elemsize), elempack(_elempack), allocator(_allocator), dims(3), w(_w), h(_h),
+      c(_c)
+{}
 
 inline VkImageTensor::~VkImageTensor()
 {
@@ -946,16 +951,16 @@ inline VkImageTensor& VkImageTensor::operator=(const VkImageTensor& m)
 
     release();
 
-    data = m.data;
-    refcount = m.refcount;
-    elemsize = m.elemsize;
-    elempack = m.elempack;
+    data      = m.data;
+    refcount  = m.refcount;
+    elemsize  = m.elemsize;
+    elempack  = m.elempack;
     allocator = m.allocator;
 
-    dims = m.dims;
-    w = m.w;
-    h = m.h;
-    c = m.c;
+    dims      = m.dims;
+    w         = m.w;
+    h         = m.h;
+    c         = m.c;
 
     return *this;
 }
@@ -967,14 +972,14 @@ inline void VkImageTensor::create(int _w, size_t _elemsize, VkAllocator* _alloca
 
     release();
 
-    elemsize = _elemsize;
-    elempack = 1;
+    elemsize  = _elemsize;
+    elempack  = 1;
     allocator = _allocator;
 
-    dims = 1;
-    w = _w;
-    h = 1;
-    c = 1;
+    dims      = 1;
+    w         = _w;
+    h         = 1;
+    c         = 1;
 
     if (total() > 0)
     {
@@ -982,7 +987,7 @@ inline void VkImageTensor::create(int _w, size_t _elemsize, VkAllocator* _alloca
         if (!data)
             return;
 
-        refcount = (int*)((unsigned char*)data + offsetof(VkImageMemory, refcount));
+        refcount  = (int*)((unsigned char*)data + offsetof(VkImageMemory, refcount));
         *refcount = 1;
     }
 }
@@ -994,14 +999,14 @@ inline void VkImageTensor::create(int _w, int _h, size_t _elemsize, VkAllocator*
 
     release();
 
-    elemsize = _elemsize;
-    elempack = 1;
+    elemsize  = _elemsize;
+    elempack  = 1;
     allocator = _allocator;
 
-    dims = 2;
-    w = _w;
-    h = _h;
-    c = 1;
+    dims      = 2;
+    w         = _w;
+    h         = _h;
+    c         = 1;
 
     if (total() > 0)
     {
@@ -1009,7 +1014,7 @@ inline void VkImageTensor::create(int _w, int _h, size_t _elemsize, VkAllocator*
         if (!data)
             return;
 
-        refcount = (int*)((unsigned char*)data + offsetof(VkImageMemory, refcount));
+        refcount  = (int*)((unsigned char*)data + offsetof(VkImageMemory, refcount));
         *refcount = 1;
     }
 }
@@ -1021,14 +1026,14 @@ inline void VkImageTensor::create(int _w, int _h, int _c, size_t _elemsize, VkAl
 
     release();
 
-    elemsize = _elemsize;
-    elempack = 1;
+    elemsize  = _elemsize;
+    elempack  = 1;
     allocator = _allocator;
 
-    dims = 3;
-    w = _w;
-    h = _h;
-    c = _c;
+    dims      = 3;
+    w         = _w;
+    h         = _h;
+    c         = _c;
 
     if (total() > 0)
     {
@@ -1036,7 +1041,7 @@ inline void VkImageTensor::create(int _w, int _h, int _c, size_t _elemsize, VkAl
         if (!data)
             return;
 
-        refcount = (int*)((unsigned char*)data + offsetof(VkImageMemory, refcount));
+        refcount  = (int*)((unsigned char*)data + offsetof(VkImageMemory, refcount));
         *refcount = 1;
     }
 }
@@ -1048,14 +1053,14 @@ inline void VkImageTensor::create(int _w, size_t _elemsize, int _elempack, VkAll
 
     release();
 
-    elemsize = _elemsize;
-    elempack = _elempack;
+    elemsize  = _elemsize;
+    elempack  = _elempack;
     allocator = _allocator;
 
-    dims = 1;
-    w = _w;
-    h = 1;
-    c = 1;
+    dims      = 1;
+    w         = _w;
+    h         = 1;
+    c         = 1;
 
     if (total() > 0)
     {
@@ -1063,7 +1068,7 @@ inline void VkImageTensor::create(int _w, size_t _elemsize, int _elempack, VkAll
         if (!data)
             return;
 
-        refcount = (int*)((unsigned char*)data + offsetof(VkImageMemory, refcount));
+        refcount  = (int*)((unsigned char*)data + offsetof(VkImageMemory, refcount));
         *refcount = 1;
     }
 }
@@ -1075,14 +1080,14 @@ inline void VkImageTensor::create(int _w, int _h, size_t _elemsize, int _elempac
 
     release();
 
-    elemsize = _elemsize;
-    elempack = _elempack;
+    elemsize  = _elemsize;
+    elempack  = _elempack;
     allocator = _allocator;
 
-    dims = 2;
-    w = _w;
-    h = _h;
-    c = 1;
+    dims      = 2;
+    w         = _w;
+    h         = _h;
+    c         = 1;
 
     if (total() > 0)
     {
@@ -1090,26 +1095,27 @@ inline void VkImageTensor::create(int _w, int _h, size_t _elemsize, int _elempac
         if (!data)
             return;
 
-        refcount = (int*)((unsigned char*)data + offsetof(VkImageMemory, refcount));
+        refcount  = (int*)((unsigned char*)data + offsetof(VkImageMemory, refcount));
         *refcount = 1;
     }
 }
 
 inline void VkImageTensor::create(int _w, int _h, int _c, size_t _elemsize, int _elempack, VkAllocator* _allocator)
 {
-    if (dims == 3 && w == _w && h == _h && c == _c && elemsize == _elemsize && elempack == _elempack && allocator == _allocator)
+    if (dims == 3 && w == _w && h == _h && c == _c && elemsize == _elemsize && elempack == _elempack
+        && allocator == _allocator)
         return;
 
     release();
 
-    elemsize = _elemsize;
-    elempack = _elempack;
+    elemsize  = _elemsize;
+    elempack  = _elempack;
     allocator = _allocator;
 
-    dims = 3;
-    w = _w;
-    h = _h;
-    c = _c;
+    dims      = 3;
+    w         = _w;
+    h         = _h;
+    c         = _c;
 
     if (total() > 0)
     {
@@ -1117,19 +1123,19 @@ inline void VkImageTensor::create(int _w, int _h, int _c, size_t _elemsize, int 
         if (!data)
             return;
 
-        refcount = (int*)((unsigned char*)data + offsetof(VkImageMemory, refcount));
+        refcount  = (int*)((unsigned char*)data + offsetof(VkImageMemory, refcount));
         *refcount = 1;
     }
 }
 
 inline void VkImageTensor::create_like(const tensor* m, VkAllocator* _allocator)
 {
-    int _c = m->dims[1];
-    int _h = m->dims[2];
-    int _w = m->dims[3];
+    int    _c        = m->dims[1];
+    int    _h        = m->dims[2];
+    int    _w        = m->dims[3];
     size_t _elemsize = m->data_type == 0 ? 4 : 1;
-    int _elempack = 1;
-    int _dims = m->dim_num;
+    int    _elempack = 1;
+    int    _dims     = m->dim_num;
 
     if (_dims == 1)
         create(_w, _elemsize, _elempack, _allocator);
@@ -1203,15 +1209,15 @@ inline void VkImageTensor::release()
         }
     }
 
-    data = 0;
+    data     = 0;
 
     elemsize = 0;
     elempack = 0;
 
-    dims = 0;
-    w = 0;
-    h = 0;
-    c = 0;
+    dims     = 0;
+    w        = 0;
+    h        = 0;
+    c        = 0;
 
     refcount = 0;
 }
@@ -1254,17 +1260,19 @@ inline VkImageView VkImageTensor::imageview() const
 
 inline Tensor::Tensor()
     : data(0), refcount(0), elemsize(0), elempack(0), allocator(0), dims(0), w(0), h(0), c(0), cstep(0)
-{
-}   
+{}
 
 inline Tensor::Tensor(int _w, size_t _elemsize, Allocator* _allocator)
     : data(0), refcount(0), elemsize(0), elempack(0), allocator(0), dims(0), w(0), h(0), c(0), cstep(0)
 {
     create(_w, _elemsize, _allocator);
-}   
+}
 
-inline Tensor::Tensor(int _w, int _h, size_t _elemsize, Allocator* _allocator)     : data(0), refcount(0), elemsize(0), elempack(0), allocator(0), dims(0), w(0), h(0), c(0), cstep(0){
-    create(_w, _h, _elemsize, _allocator);}
+inline Tensor::Tensor(int _w, int _h, size_t _elemsize, Allocator* _allocator)
+    : data(0), refcount(0), elemsize(0), elempack(0), allocator(0), dims(0), w(0), h(0), c(0), cstep(0)
+{
+    create(_w, _h, _elemsize, _allocator);
+}
 inline Tensor::Tensor(int _w, int _h, int _c, size_t _elemsize, Allocator* _allocator)
     : data(0), refcount(0), elemsize(0), elempack(0), allocator(0), dims(0), w(0), h(0), c(0), cstep(0)
 {
@@ -1290,7 +1298,8 @@ inline Tensor::Tensor(int _w, int _h, int _c, size_t _elemsize, int _elempack, A
 }
 
 inline Tensor::Tensor(const Tensor& m)
-    : data(m.data), refcount(m.refcount), elemsize(m.elemsize), elempack(m.elempack), allocator(m.allocator), dims(m.dims), w(m.w), h(m.h), c(m.c), cstep(m.cstep)
+    : data(m.data), refcount(m.refcount), elemsize(m.elemsize), elempack(m.elempack), allocator(m.allocator),
+      dims(m.dims), w(m.w), h(m.h), c(m.c), cstep(m.cstep)
 {
     if (refcount)
         TENGINE_XADD(refcount, 1);
@@ -1299,25 +1308,25 @@ inline Tensor::Tensor(const Tensor& m)
 inline Tensor::Tensor(struct tensor* m)
     : data(m->data), refcount(0), elemsize(0), elempack(1), allocator(0), dims(0), w(0), h(0), c(0)
 {
-    if(m->layout == 0)
+    if (m->layout == 0)
     {
-        c = m->dims[1];
-        h = m->dims[2];
-        w = m->dims[3];
+        c        = m->dims[1];
+        h        = m->dims[2];
+        w        = m->dims[3];
         elemsize = m->elem_size;
         elempack = 1;
-        dims = 3;
-        cstep = w * h;
+        dims     = 3;
+        cstep    = w * h;
     }
     else
     {
-        c = m->dims[3];
-        h = m->dims[2];
-        w = m->dims[1];
+        c        = m->dims[3];
+        h        = m->dims[2];
+        w        = m->dims[1];
         elemsize = m->elem_size;
         elempack = 1;
-        dims = 3;
-        cstep = w * h;
+        dims     = 3;
+        cstep    = w * h;
     }
 }
 inline Tensor::Tensor(int _w, void* _data, size_t _elemsize, Allocator* _allocator)
@@ -1339,19 +1348,22 @@ inline Tensor::Tensor(int _w, int _h, int _c, void* _data, size_t _elemsize, All
 }
 
 inline Tensor::Tensor(int _w, void* _data, size_t _elemsize, int _elempack, Allocator* _allocator)
-    : data(_data), refcount(0), elemsize(_elemsize), elempack(_elempack), allocator(_allocator), dims(1), w(_w), h(1), c(1)
+    : data(_data), refcount(0), elemsize(_elemsize), elempack(_elempack), allocator(_allocator), dims(1), w(_w), h(1),
+      c(1)
 {
     cstep = w;
 }
 
 inline Tensor::Tensor(int _w, int _h, void* _data, size_t _elemsize, int _elempack, Allocator* _allocator)
-    : data(_data), refcount(0), elemsize(_elemsize), elempack(_elempack), allocator(_allocator), dims(2), w(_w), h(_h), c(1)
+    : data(_data), refcount(0), elemsize(_elemsize), elempack(_elempack), allocator(_allocator), dims(2), w(_w), h(_h),
+      c(1)
 {
     cstep = w * h;
 }
 
 inline Tensor::Tensor(int _w, int _h, int _c, void* _data, size_t _elemsize, int _elempack, Allocator* _allocator)
-    : data(_data), refcount(0), elemsize(_elemsize), elempack(_elempack), allocator(_allocator), dims(3), w(_w), h(_h), c(_c)
+    : data(_data), refcount(0), elemsize(_elemsize), elempack(_elempack), allocator(_allocator), dims(3), w(_w), h(_h),
+      c(_c)
 {
     cstep = alignSize(w * h * elemsize, 16) / elemsize;
 }
@@ -1371,18 +1383,18 @@ inline Tensor& Tensor::operator=(const Tensor& m)
 
     release();
 
-    data = m.data;
-    refcount = m.refcount;
-    elemsize = m.elemsize;
-    elempack = m.elempack;
+    data      = m.data;
+    refcount  = m.refcount;
+    elemsize  = m.elemsize;
+    elempack  = m.elempack;
     allocator = m.allocator;
 
-    dims = m.dims;
-    w = m.w;
-    h = m.h;
-    c = m.c;
+    dims      = m.dims;
+    w         = m.w;
+    h         = m.h;
+    c         = m.c;
 
-    cstep = m.cstep;
+    cstep     = m.cstep;
 
     return *this;
 }
@@ -1398,10 +1410,10 @@ inline Tensor Tensor::reshape(int _w, Allocator* _allocator) const
         m.create(_w, elemsize, elempack, _allocator);
 
         // flatten
-        for (int i=0; i<c; i++)
+        for (int i = 0; i < c; i++)
         {
-            const void* ptr = (unsigned char*)data + i * cstep * elemsize;
-            void* mptr = (unsigned char*)m.data + i * w * h * elemsize;
+            const void* ptr  = (unsigned char*)data + i * cstep * elemsize;
+            void*       mptr = (unsigned char*)m.data + i * w * h * elemsize;
             memcpy(mptr, ptr, w * h * elemsize);
         }
 
@@ -1410,12 +1422,12 @@ inline Tensor Tensor::reshape(int _w, Allocator* _allocator) const
 
     Tensor m = *this;
 
-    m.dims = 1;
-    m.w = _w;
-    m.h = 1;
-    m.c = 1;
+    m.dims   = 1;
+    m.w      = _w;
+    m.h      = 1;
+    m.c      = 1;
 
-    m.cstep = _w;
+    m.cstep  = _w;
 
     return m;
 }
@@ -1431,10 +1443,10 @@ inline Tensor Tensor::reshape(int _w, int _h, Allocator* _allocator) const
         m.create(_w, _h, elemsize, elempack, _allocator);
 
         // flatten
-        for (int i=0; i<c; i++)
+        for (int i = 0; i < c; i++)
         {
-            const void* ptr = (unsigned char*)data + i * cstep * elemsize;
-            void* mptr = (unsigned char*)m.data + i * w * h * elemsize;
+            const void* ptr  = (unsigned char*)data + i * cstep * elemsize;
+            void*       mptr = (unsigned char*)m.data + i * w * h * elemsize;
             memcpy(mptr, ptr, w * h * elemsize);
         }
 
@@ -1443,12 +1455,12 @@ inline Tensor Tensor::reshape(int _w, int _h, Allocator* _allocator) const
 
     Tensor m = *this;
 
-    m.dims = 2;
-    m.w = _w;
-    m.h = _h;
-    m.c = 1;
+    m.dims   = 2;
+    m.w      = _w;
+    m.h      = _h;
+    m.c      = 1;
 
-    m.cstep = _w * _h;
+    m.cstep  = _w * _h;
 
     return m;
 }
@@ -1466,10 +1478,10 @@ inline Tensor Tensor::reshape(int _w, int _h, int _c, Allocator* _allocator) con
             m.create(_w, _h, _c, elemsize, elempack, _allocator);
 
             // align channel
-            for (int i=0; i<_c; i++)
+            for (int i = 0; i < _c; i++)
             {
-                const void* ptr = (unsigned char*)data + i * _w * _h * elemsize;
-                void* mptr = (unsigned char*)m.data + i * m.cstep * m.elemsize;
+                const void* ptr  = (unsigned char*)data + i * _w * _h * elemsize;
+                void*       mptr = (unsigned char*)m.data + i * m.cstep * m.elemsize;
                 memcpy(mptr, ptr, _w * _h * elemsize);
             }
 
@@ -1485,12 +1497,12 @@ inline Tensor Tensor::reshape(int _w, int _h, int _c, Allocator* _allocator) con
 
     Tensor m = *this;
 
-    m.dims = 3;
-    m.w = _w;
-    m.h = _h;
-    m.c = _c;
+    m.dims   = 3;
+    m.w      = _w;
+    m.h      = _h;
+    m.c      = _c;
 
-    m.cstep = alignSize(_w * _h * elemsize, 16) / elemsize;
+    m.cstep  = alignSize(_w * _h * elemsize, 16) / elemsize;
 
     return m;
 }
@@ -1502,16 +1514,16 @@ inline void Tensor::create(int _w, size_t _elemsize, Allocator* _allocator)
 
     release();
 
-    elemsize = _elemsize;
-    elempack = 1;
+    elemsize  = _elemsize;
+    elempack  = 1;
     allocator = _allocator;
 
-    dims = 1;
-    w = _w;
-    h = 1;
-    c = 1;
+    dims      = 1;
+    w         = _w;
+    h         = 1;
+    c         = 1;
 
-    cstep = w;
+    cstep     = w;
 
     if (total() > 0)
     {
@@ -1520,7 +1532,7 @@ inline void Tensor::create(int _w, size_t _elemsize, Allocator* _allocator)
             data = allocator->fastMalloc(totalsize + (int)sizeof(*refcount));
         else
             data = fastMalloc(totalsize + (int)sizeof(*refcount));
-        refcount = (int*)(((unsigned char*)data) + totalsize);
+        refcount  = (int*)(((unsigned char*)data) + totalsize);
         *refcount = 1;
     }
 }
@@ -1532,16 +1544,16 @@ inline void Tensor::create(int _w, int _h, size_t _elemsize, Allocator* _allocat
 
     release();
 
-    elemsize = _elemsize;
-    elempack = 1;
+    elemsize  = _elemsize;
+    elempack  = 1;
     allocator = _allocator;
 
-    dims = 2;
-    w = _w;
-    h = _h;
-    c = 1;
+    dims      = 2;
+    w         = _w;
+    h         = _h;
+    c         = 1;
 
-    cstep = w * h;
+    cstep     = w * h;
 
     if (total() > 0)
     {
@@ -1550,7 +1562,7 @@ inline void Tensor::create(int _w, int _h, size_t _elemsize, Allocator* _allocat
             data = allocator->fastMalloc(totalsize + (int)sizeof(*refcount));
         else
             data = fastMalloc(totalsize + (int)sizeof(*refcount));
-        refcount = (int*)(((unsigned char*)data) + totalsize);
+        refcount  = (int*)(((unsigned char*)data) + totalsize);
         *refcount = 1;
     }
 }
@@ -1562,16 +1574,16 @@ inline void Tensor::create(int _w, int _h, int _c, size_t _elemsize, Allocator* 
 
     release();
 
-    elemsize = _elemsize;
-    elempack = 1;
+    elemsize  = _elemsize;
+    elempack  = 1;
     allocator = _allocator;
 
-    dims = 3;
-    w = _w;
-    h = _h;
-    c = _c;
+    dims      = 3;
+    w         = _w;
+    h         = _h;
+    c         = _c;
 
-    cstep = alignSize(w * h * elemsize, 16) / elemsize;
+    cstep     = alignSize(w * h * elemsize, 16) / elemsize;
 
     if (total() > 0)
     {
@@ -1580,7 +1592,7 @@ inline void Tensor::create(int _w, int _h, int _c, size_t _elemsize, Allocator* 
             data = allocator->fastMalloc(totalsize + (int)sizeof(*refcount));
         else
             data = fastMalloc(totalsize + (int)sizeof(*refcount));
-        refcount = (int*)(((unsigned char*)data) + totalsize);
+        refcount  = (int*)(((unsigned char*)data) + totalsize);
         *refcount = 1;
     }
 }
@@ -1592,16 +1604,16 @@ inline void Tensor::create(int _w, size_t _elemsize, int _elempack, Allocator* _
 
     release();
 
-    elemsize = _elemsize;
-    elempack = _elempack;
+    elemsize  = _elemsize;
+    elempack  = _elempack;
     allocator = _allocator;
 
-    dims = 1;
-    w = _w;
-    h = 1;
-    c = 1;
+    dims      = 1;
+    w         = _w;
+    h         = 1;
+    c         = 1;
 
-    cstep = w;
+    cstep     = w;
 
     if (total() > 0)
     {
@@ -1610,7 +1622,7 @@ inline void Tensor::create(int _w, size_t _elemsize, int _elempack, Allocator* _
             data = allocator->fastMalloc(totalsize + (int)sizeof(*refcount));
         else
             data = fastMalloc(totalsize + (int)sizeof(*refcount));
-        refcount = (int*)(((unsigned char*)data) + totalsize);
+        refcount  = (int*)(((unsigned char*)data) + totalsize);
         *refcount = 1;
     }
 }
@@ -1622,16 +1634,16 @@ inline void Tensor::create(int _w, int _h, size_t _elemsize, int _elempack, Allo
 
     release();
 
-    elemsize = _elemsize;
-    elempack = _elempack;
+    elemsize  = _elemsize;
+    elempack  = _elempack;
     allocator = _allocator;
 
-    dims = 2;
-    w = _w;
-    h = _h;
-    c = 1;
+    dims      = 2;
+    w         = _w;
+    h         = _h;
+    c         = 1;
 
-    cstep = w * h;
+    cstep     = w * h;
 
     if (total() > 0)
     {
@@ -1640,28 +1652,29 @@ inline void Tensor::create(int _w, int _h, size_t _elemsize, int _elempack, Allo
             data = allocator->fastMalloc(totalsize + (int)sizeof(*refcount));
         else
             data = fastMalloc(totalsize + (int)sizeof(*refcount));
-        refcount = (int*)(((unsigned char*)data) + totalsize);
+        refcount  = (int*)(((unsigned char*)data) + totalsize);
         *refcount = 1;
     }
 }
 
 inline void Tensor::create(int _w, int _h, int _c, size_t _elemsize, int _elempack, Allocator* _allocator)
 {
-    if (dims == 3 && w == _w && h == _h && c == _c && elemsize == _elemsize && elempack == _elempack && allocator == _allocator)
+    if (dims == 3 && w == _w && h == _h && c == _c && elemsize == _elemsize && elempack == _elempack
+        && allocator == _allocator)
         return;
 
     release();
 
-    elemsize = _elemsize;
-    elempack = _elempack;
+    elemsize  = _elemsize;
+    elempack  = _elempack;
     allocator = _allocator;
 
-    dims = 3;
-    w = _w;
-    h = _h;
-    c = _c;
+    dims      = 3;
+    w         = _w;
+    h         = _h;
+    c         = _c;
 
-    cstep = w * h;    //alignSize(w * h * elemsize, 16) / elemsize;
+    cstep     = w * h;    //alignSize(w * h * elemsize, 16) / elemsize;
 
     if (total() > 0)
     {
@@ -1670,7 +1683,7 @@ inline void Tensor::create(int _w, int _h, int _c, size_t _elemsize, int _elempa
             data = allocator->fastMalloc(totalsize + (int)sizeof(*refcount));
         else
             data = fastMalloc(totalsize + (int)sizeof(*refcount));
-        refcount = (int*)(((unsigned char*)data) + totalsize);
+        refcount  = (int*)(((unsigned char*)data) + totalsize);
         *refcount = 1;
     }
 }
@@ -1735,17 +1748,17 @@ inline void Tensor::release()
             fastFree(data);
     }
 
-    data = 0;
+    data     = 0;
 
     elemsize = 0;
     elempack = 0;
 
-    dims = 0;
-    w = 0;
-    h = 0;
-    c = 0;
+    dims     = 0;
+    w        = 0;
+    h        = 0;
+    c        = 0;
 
-    cstep = 0;
+    cstep    = 0;
 
     refcount = 0;
 }
@@ -1805,13 +1818,12 @@ inline Tensor::operator const T*() const
 }
 
 void convert_packing(const Tensor& src, Tensor& dst, int elempack, const Option& opt = Option());
-void convert_packing(tensor* src, Tensor&dst, int elempack, const Option& opt = Option());
+void convert_packing(tensor* src, Tensor& dst, int elempack, const Option& opt = Option());
 void cast_float32_to_float16(const Tensor& src, Tensor& dst, const Option& opt = Option());
 void cast_float16_to_float32(const Tensor& src, Tensor& dst, const Option& opt = Option());
 
 
-} // namespace TEngine
+}    // namespace TEngine
 
 
-#endif // VULKAN_TENSOR_HPP
-
+#endif    // VULKAN_TENSOR_HPP

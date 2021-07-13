@@ -26,17 +26,18 @@
 
 static int erase_tensor_id(ir_graph_t* graph, int16_t id)
 {
-    ir_tensor_t* tensor_del = get_ir_graph_tensor(graph, id);
+    ir_tensor_t*               tensor_del = get_ir_graph_tensor(graph, id);
     std::map<int16_t, int16_t> old_new_id;
-    int16_t j = 0;
+    int16_t                    j = 0;
     for (size_t i = 0; i < graph->tensor_num; i++)
     {
-        if (i == id) continue;
+        if (i == id)
+            continue;
 
-        ir_tensor_t* tensor = get_ir_graph_tensor(graph, i);
-        tensor->index = j;
+        ir_tensor_t* tensor   = get_ir_graph_tensor(graph, i);
+        tensor->index         = j;
         graph->tensor_list[j] = graph->tensor_list[i];
-        old_new_id[i] = j++;
+        old_new_id[i]         = j++;
     }
     for (size_t i = 0; i < graph->node_num; i++)
     {
@@ -50,8 +51,9 @@ static int erase_tensor_id(ir_graph_t* graph, int16_t id)
             node->output_tensors[j] = old_new_id[node->output_tensors[j]];
         }
     }
-    
-    ir_tensor_t** new_tensor_list = (ir_tensor_t**)sys_realloc(graph->tensor_list, sizeof(ir_tensor_t*) * (graph->tensor_num - 1));
+
+    ir_tensor_t** new_tensor_list =
+        (ir_tensor_t**)sys_realloc(graph->tensor_list, sizeof(ir_tensor_t*) * (graph->tensor_num - 1));
     graph->tensor_list = new_tensor_list;
     graph->tensor_num--;
 
@@ -64,21 +66,22 @@ static int erase_node_id(ir_graph_t* graph, int16_t id)
     ir_node_t* node_del = get_ir_graph_node(graph, id);
 
     std::map<int16_t, int16_t> old_new_id;
-    int16_t j = 0;
+    int16_t                    j = 0;
     for (size_t i = 0; i < graph->node_num; i++)
     {
-        if (i == id) continue;
-        
-        ir_node_t* node = get_ir_graph_node(graph, i);
-        node->index = j;
+        if (i == id)
+            continue;
+
+        ir_node_t* node     = get_ir_graph_node(graph, i);
+        node->index         = j;
         graph->node_list[j] = graph->node_list[i];
-        old_new_id[i] = j++;
+        old_new_id[i]       = j++;
     }
 
     for (size_t i = 0; i < graph->tensor_num; i++)
     {
         ir_tensor_t* tensor = get_ir_graph_tensor(graph, i);
-        tensor->producer = old_new_id[tensor->producer];
+        tensor->producer    = old_new_id[tensor->producer];
         for (size_t j = 0; j < tensor->consumer_num; j++)
         {
             tensor->consumer[j] = old_new_id[tensor->consumer[j]];
@@ -93,9 +96,9 @@ static int erase_node_id(ir_graph_t* graph, int16_t id)
     {
         graph->output_nodes[i] = old_new_id[graph->output_nodes[i]];
     }
-    
+
     ir_node_t** new_node_list = (ir_node_t**)sys_realloc(graph->node_list, sizeof(ir_node_t*) * (graph->node_num - 1));
-    graph->node_list = new_node_list;
+    graph->node_list          = new_node_list;
     graph->node_num--;
 
     destroy_ir_node(graph, node_del);
@@ -113,9 +116,9 @@ static int delete_node(ir_graph_t* graph, int16_t pre_node_id, int16_t del_node_
     ir_tensor_t* del_output_tensor = get_ir_graph_tensor(graph, del_node->output_tensors[0]);
     for (size_t i = 0; i < del_output_tensor->consumer_num; i++)
     {
-        int16_t consumer_id = del_output_tensor->consumer[i];
+        int16_t consumer_id            = del_output_tensor->consumer[i];
         pre_output_tensor->consumer[i] = consumer_id;
-        ir_node_t* consumer_node = get_ir_graph_node(graph, consumer_id);
+        ir_node_t* consumer_node       = get_ir_graph_node(graph, consumer_id);
         for (size_t j = 0; j < consumer_node->input_num; j++)
         {
             ir_tensor_t* input = get_ir_graph_tensor(graph, consumer_node->input_tensors[j]);
@@ -124,7 +127,7 @@ static int delete_node(ir_graph_t* graph, int16_t pre_node_id, int16_t del_node_
         }
     }
     pre_output_tensor->consumer_num = del_output_tensor->consumer_num;
-    
+
     /* delete node */
     if (erase_tensor_id(graph, del_node->output_tensors[0]) < 0 || erase_node_id(graph, del_node->index) < 0)
     {
@@ -140,13 +143,13 @@ static int insert_node_id(ir_graph_t* graph, int16_t insert_node_id, int16_t ins
 
     /* insert node id */
     std::map<int16_t, int16_t> old_new_id;
-    int16_t j = graph->node_num - 1;
+    int16_t                    j = graph->node_num - 1;
     for (int i = graph->node_num - 2; i >= 0; i--)
     {
-        ir_node_t* node = get_ir_graph_node(graph, i);
-        node->index = j;
+        ir_node_t* node     = get_ir_graph_node(graph, i);
+        node->index         = j;
         graph->node_list[j] = node;
-        old_new_id[i] = j--;
+        old_new_id[i]       = j--;
         if (i == inserted_node_id)
         {
             old_new_id[add_node->index] = i;
@@ -154,12 +157,12 @@ static int insert_node_id(ir_graph_t* graph, int16_t insert_node_id, int16_t ins
         }
     }
     graph->node_list[inserted_node_id] = add_node;
-    add_node->index = inserted_node_id;
+    add_node->index                    = inserted_node_id;
 
     for (size_t i = 0; i < graph->tensor_num; i++)
     {
         ir_tensor_t* tensor = get_ir_graph_tensor(graph, i);
-        tensor->producer = old_new_id[tensor->producer];
+        tensor->producer    = old_new_id[tensor->producer];
         for (size_t j = 0; j < tensor->consumer_num; j++)
         {
             tensor->consumer[j] = old_new_id[tensor->consumer[j]];
@@ -173,7 +176,7 @@ static int insert_node_id(ir_graph_t* graph, int16_t insert_node_id, int16_t ins
     {
         graph->output_nodes[i] = old_new_id[graph->output_nodes[i]];
     }
-    
+
     return 0;
 }
 
@@ -187,10 +190,10 @@ static int insert_tensor_id(ir_graph_t* graph, int16_t insert_tensor_id, int16_t
     int j = graph->tensor_num - 1;
     for (int i = graph->tensor_num - 2; i >= 0; i--)
     {
-        ir_tensor_t* tensor = get_ir_graph_tensor(graph, i);
-        tensor->index = j;
+        ir_tensor_t* tensor   = get_ir_graph_tensor(graph, i);
+        tensor->index         = j;
         graph->tensor_list[j] = tensor;
-        old_new_id[i] = j--;
+        old_new_id[i]         = j--;
         if (i == inserted_tensor_id)
         {
             old_new_id[add_tensor->index] = i;
@@ -198,7 +201,7 @@ static int insert_tensor_id(ir_graph_t* graph, int16_t insert_tensor_id, int16_t
         }
     }
     graph->tensor_list[inserted_tensor_id] = add_tensor;
-    add_tensor->index = inserted_tensor_id;
+    add_tensor->index                      = inserted_tensor_id;
     for (size_t i = 0; i < graph->node_num; i++)
     {
         ir_node_t* node = get_ir_graph_node(graph, i);
@@ -218,7 +221,7 @@ static int insert_tensor_id(ir_graph_t* graph, int16_t insert_tensor_id, int16_t
 static int add_node(ir_graph_t* graph, int16_t down_node_id, int add_node_type, const char* name)
 {
     /* get all up nodes */
-    ir_node_t* down_node = get_ir_graph_node(graph, down_node_id);
+    ir_node_t*           down_node = get_ir_graph_node(graph, down_node_id);
     std::vector<int16_t> up_nodes;
     for (size_t i = 0; i < down_node->input_num; i++)
     {
@@ -226,7 +229,7 @@ static int add_node(ir_graph_t* graph, int16_t down_node_id, int add_node_type, 
         if (tensor->tensor_type == TENSOR_TYPE_VAR)
             up_nodes.push_back(tensor->producer);
     }
-    
+
     /* create node and its own tensor */
     ir_node_t* add_node = create_ir_node(graph, name, add_node_type, 1);
     if (add_node == nullptr)
@@ -240,9 +243,9 @@ static int add_node(ir_graph_t* graph, int16_t down_node_id, int add_node_type, 
     /* setup new connection */
     for (int i = 0; i < up_nodes.size(); i++)
     {
-        ir_node_t* up_node = get_ir_graph_node(graph, up_nodes[i]);
+        ir_node_t*   up_node               = get_ir_graph_node(graph, up_nodes[i]);
         ir_tensor_t* up_node_output_tensor = get_ir_graph_tensor(graph, up_node->output_tensors[0]);
-        for (size_t i = 0; i <up_node_output_tensor->consumer_num; i++)
+        for (size_t i = 0; i < up_node_output_tensor->consumer_num; i++)
         {
             if (up_node_output_tensor->consumer[i] == down_node_id)
                 up_node_output_tensor->consumer[i] = add_node->index;
@@ -250,9 +253,9 @@ static int add_node(ir_graph_t* graph, int16_t down_node_id, int add_node_type, 
         set_ir_node_input_tensor(add_node, i, up_node_output_tensor);
     }
     down_node->input_tensors[0] = add_tensor->index;
-    add_tensor->consumer[0] = down_node_id;
-    add_tensor->consumer_num = 1;
-    
+    add_tensor->consumer[0]     = down_node_id;
+    add_tensor->consumer_num    = 1;
+
     /* insert node id */
     if (insert_node_id(graph, add_node->index, down_node_id) < 0)
         return -1;
@@ -264,26 +267,26 @@ static int add_node(ir_graph_t* graph, int16_t down_node_id, int add_node_type, 
     return add_node->index;
 }
 
-static int weight_bn(ir_graph_t* graph, ir_node_t* conv_node, float* mean, float* var, float* gamma, float* beta, float eps,
-                      float rescale_factor, ir_tensor_t* bias_tensor)
+static int weight_bn(ir_graph_t* graph, ir_node_t* conv_node, float* mean, float* var, float* gamma, float* beta,
+                     float eps, float rescale_factor, ir_tensor_t* bias_tensor)
 {
-    ir_tensor_t* kernel_tensor = get_ir_graph_tensor(graph, conv_node->input_tensors[1]);
-    struct conv_param* param = (struct conv_param*)conv_node->op.param_mem;
+    ir_tensor_t*       kernel_tensor = get_ir_graph_tensor(graph, conv_node->input_tensors[1]);
+    struct conv_param* param         = (struct conv_param*)conv_node->op.param_mem;
 
-    int group = param->group;
-    int input_chan = kernel_tensor->dims[1];
-    int output_chan = kernel_tensor->dims[0] / group;
-    int kernel_x = param->kernel_w;
-    int kernel_y = param->kernel_h;
-    int kernel_size = input_chan * kernel_x * kernel_y;
-    float* kernel_data = (float*)kernel_tensor->data;
-    int channel_num = kernel_tensor->dims[0];
-    
-    float* scale_mean = ( float* )malloc(channel_num * sizeof(float));
-    float* scale_var_inv = ( float* )malloc(channel_num * sizeof(float));
+    int    group                     = param->group;
+    int    input_chan                = kernel_tensor->dims[1];
+    int    output_chan               = kernel_tensor->dims[0] / group;
+    int    kernel_x                  = param->kernel_w;
+    int    kernel_y                  = param->kernel_h;
+    int    kernel_size               = input_chan * kernel_x * kernel_y;
+    float* kernel_data               = (float*)kernel_tensor->data;
+    int    channel_num               = kernel_tensor->dims[0];
 
-    float rescale_factor_tmp = rescale_factor;
-    float* bias = NULL;
+    float* scale_mean                = (float*)malloc(channel_num * sizeof(float));
+    float* scale_var_inv             = (float*)malloc(channel_num * sizeof(float));
+
+    float  rescale_factor_tmp        = rescale_factor;
+    float* bias                      = NULL;
     if (bias_tensor != nullptr)
         bias = (float*)bias_tensor->data;
 
@@ -291,7 +294,7 @@ static int weight_bn(ir_graph_t* graph, ir_node_t* conv_node, float* mean, float
     if (bias_tensor == nullptr)
     {
         std::string name = conv_node->name;
-        name = name + ".bias.bn";
+        name             = name + ".bias.bn";
         /* create */
         ir_node_t* bias_node = create_ir_node(graph, name.c_str(), OP_CONST, 1);
         if (bias_node == nullptr)
@@ -301,10 +304,10 @@ static int weight_bn(ir_graph_t* graph, ir_node_t* conv_node, float* mean, float
             return -1;
 
         bias_tensor->tensor_type = TENSOR_TYPE_CONST;
-        int dim_num = 1;
-        int* dims = (int*)sys_malloc(sizeof(int) * dim_num);
-        dims[0] = channel_num;
-        bias_tensor->data = (void*)sys_malloc(sizeof(float) * channel_num);
+        int  dim_num             = 1;
+        int* dims                = (int*)sys_malloc(sizeof(int) * dim_num);
+        dims[0]                  = channel_num;
+        bias_tensor->data        = (void*)sys_malloc(sizeof(float) * channel_num);
 
         set_ir_tensor_shape(bias_tensor, dims, dim_num);
         set_ir_node_output_tensor(bias_node, 0, bias_tensor);
@@ -313,7 +316,7 @@ static int weight_bn(ir_graph_t* graph, ir_node_t* conv_node, float* mean, float
         insert_node_id(graph, bias_node->index, kernel_tensor->producer);
         insert_tensor_id(graph, bias_tensor->index, kernel_tensor->index);
     }
-    
+
     rescale_factor_tmp = rescale_factor_tmp ? 1 / rescale_factor_tmp : 0;
 
     if (NULL == bias)
@@ -321,7 +324,7 @@ static int weight_bn(ir_graph_t* graph, ir_node_t* conv_node, float* mean, float
         for (int c = 0; c < channel_num; c++)
         {
             scale_var_inv[c] = 1.f / sqrt(var[c] * rescale_factor_tmp + eps);
-            scale_mean[c] = -mean[c] * rescale_factor_tmp * scale_var_inv[c];
+            scale_mean[c]    = -mean[c] * rescale_factor_tmp * scale_var_inv[c];
         }
     }
     else
@@ -329,7 +332,7 @@ static int weight_bn(ir_graph_t* graph, ir_node_t* conv_node, float* mean, float
         for (int c = 0; c < channel_num; c++)
         {
             scale_var_inv[c] = 1.f / sqrt(var[c] * rescale_factor_tmp + eps);
-            scale_mean[c] = (bias[c] - mean[c] * rescale_factor_tmp) * scale_var_inv[c];
+            scale_mean[c]    = (bias[c] - mean[c] * rescale_factor_tmp) * scale_var_inv[c];
         }
     }
 
@@ -338,7 +341,7 @@ static int weight_bn(ir_graph_t* graph, ir_node_t* conv_node, float* mean, float
         for (int c = 0; c < channel_num; c++)
         {
             scale_var_inv[c] = gamma[c] * scale_var_inv[c];
-            scale_mean[c] = gamma[c] * scale_mean[c];
+            scale_mean[c]    = gamma[c] * scale_mean[c];
         }
     }
     if (NULL != beta)
@@ -361,7 +364,7 @@ static int weight_bn(ir_graph_t* graph, ir_node_t* conv_node, float* mean, float
         }
     }
 
-    bias_tensor = get_ir_graph_tensor(graph, conv_node->input_tensors[2]);
+    bias_tensor      = get_ir_graph_tensor(graph, conv_node->input_tensors[2]);
     float* bias_data = (float*)bias_tensor->data;
     for (int i = 0; i < channel_num; i++)
     {
@@ -374,23 +377,23 @@ static int weight_bn(ir_graph_t* graph, ir_node_t* conv_node, float* mean, float
     return 0;
 }
 
-static int fc_weight_bn(ir_graph_t* graph, ir_node_t* fc_node, float* mean, float* var, float* gamma, float* beta, float eps,
-                        float rescale_factor, ir_tensor_t* bias_tensor)
+static int fc_weight_bn(ir_graph_t* graph, ir_node_t* fc_node, float* mean, float* var, float* gamma, float* beta,
+                        float eps, float rescale_factor, ir_tensor_t* bias_tensor)
 {
-    ir_tensor_t* kernel_tensor = get_ir_graph_tensor(graph, fc_node->input_tensors[1]);
-    struct fc_param* param = (struct fc_param*)fc_node->op.param_mem;
+    ir_tensor_t*     kernel_tensor = get_ir_graph_tensor(graph, fc_node->input_tensors[1]);
+    struct fc_param* param         = (struct fc_param*)fc_node->op.param_mem;
 
-    int output_chan = param->num_output;
-    float* kernel_data = (float*)kernel_tensor->data;
-    int channel_num = kernel_tensor->dims[0];
-    int total_size = kernel_tensor->dims[1];
-    int kernel_size = total_size;
-    
-    float* scale_mean = ( float* )malloc(channel_num * sizeof(float));
-    float* scale_var_inv = ( float* )malloc(channel_num * sizeof(float));
+    int    output_chan             = param->num_output;
+    float* kernel_data             = (float*)kernel_tensor->data;
+    int    channel_num             = kernel_tensor->dims[0];
+    int    total_size              = kernel_tensor->dims[1];
+    int    kernel_size             = total_size;
 
-    float rescale_factor_tmp = rescale_factor;
-    float* bias = NULL;
+    float* scale_mean              = (float*)malloc(channel_num * sizeof(float));
+    float* scale_var_inv           = (float*)malloc(channel_num * sizeof(float));
+
+    float  rescale_factor_tmp      = rescale_factor;
+    float* bias                    = NULL;
     if (bias_tensor != nullptr)
         bias = (float*)bias_tensor->data;
 
@@ -398,7 +401,7 @@ static int fc_weight_bn(ir_graph_t* graph, ir_node_t* fc_node, float* mean, floa
     if (bias_tensor == nullptr)
     {
         std::string name = fc_node->name;
-        name = name + ".bias.bn";
+        name             = name + ".bias.bn";
         /* create */
         ir_node_t* bias_node = create_ir_node(graph, name.c_str(), OP_CONST, 1);
         if (bias_node == nullptr)
@@ -408,10 +411,10 @@ static int fc_weight_bn(ir_graph_t* graph, ir_node_t* fc_node, float* mean, floa
             return -1;
 
         bias_tensor->tensor_type = TENSOR_TYPE_CONST;
-        int dim_num = 1;
-        int* dims = (int*)sys_malloc(sizeof(int) * dim_num);
-        dims[0] = channel_num;
-        bias_tensor->data = (void*)sys_malloc(sizeof(float) * channel_num);
+        int  dim_num             = 1;
+        int* dims                = (int*)sys_malloc(sizeof(int) * dim_num);
+        dims[0]                  = channel_num;
+        bias_tensor->data        = (void*)sys_malloc(sizeof(float) * channel_num);
 
         set_ir_tensor_shape(bias_tensor, dims, dim_num);
         set_ir_node_output_tensor(bias_node, 0, bias_tensor);
@@ -420,7 +423,7 @@ static int fc_weight_bn(ir_graph_t* graph, ir_node_t* fc_node, float* mean, floa
         insert_node_id(graph, bias_node->index, kernel_tensor->producer);
         insert_tensor_id(graph, bias_tensor->index, kernel_tensor->index);
     }
-    
+
     rescale_factor_tmp = rescale_factor_tmp ? 1 / rescale_factor_tmp : 0;
 
     if (NULL == bias)
@@ -428,7 +431,7 @@ static int fc_weight_bn(ir_graph_t* graph, ir_node_t* fc_node, float* mean, floa
         for (int c = 0; c < channel_num; c++)
         {
             scale_var_inv[c] = 1.f / sqrt(var[c] * rescale_factor_tmp + eps);
-            scale_mean[c] = -mean[c] * rescale_factor_tmp * scale_var_inv[c];
+            scale_mean[c]    = -mean[c] * rescale_factor_tmp * scale_var_inv[c];
         }
     }
     else
@@ -436,7 +439,7 @@ static int fc_weight_bn(ir_graph_t* graph, ir_node_t* fc_node, float* mean, floa
         for (int c = 0; c < channel_num; c++)
         {
             scale_var_inv[c] = 1.f / sqrt(var[c] * rescale_factor_tmp + eps);
-            scale_mean[c] = (bias[c] - mean[c] * rescale_factor_tmp) * scale_var_inv[c];
+            scale_mean[c]    = (bias[c] - mean[c] * rescale_factor_tmp) * scale_var_inv[c];
         }
     }
 
@@ -445,7 +448,7 @@ static int fc_weight_bn(ir_graph_t* graph, ir_node_t* fc_node, float* mean, floa
         for (int c = 0; c < channel_num; c++)
         {
             scale_var_inv[c] = gamma[c] * scale_var_inv[c];
-            scale_mean[c] = gamma[c] * scale_mean[c];
+            scale_mean[c]    = gamma[c] * scale_mean[c];
         }
     }
     if (NULL != beta)
@@ -460,11 +463,11 @@ static int fc_weight_bn(ir_graph_t* graph, ir_node_t* fc_node, float* mean, floa
         float w_scale = scale_var_inv[o_c];
         for (int i = 0; i < kernel_size; i++)
         {
-            kernel_data[o_c * kernel_size + i] = kernel_data[o_c * kernel_size + i] * w_scale ;
+            kernel_data[o_c * kernel_size + i] = kernel_data[o_c * kernel_size + i] * w_scale;
         }
     }
 
-    bias_tensor = get_ir_graph_tensor(graph, fc_node->input_tensors[2]);
+    bias_tensor      = get_ir_graph_tensor(graph, fc_node->input_tensors[2]);
     float* bias_data = (float*)bias_tensor->data;
     for (int i = 0; i < channel_num; i++)
     {
@@ -480,7 +483,7 @@ static int fc_weight_bn(ir_graph_t* graph, ir_node_t* fc_node, float* mean, floa
 static int change_node_op(ir_node_t* node, int new_op_type)
 {
     sys_free(node->op.param_mem);
-    node->op.type = new_op_type;
+    node->op.type          = new_op_type;
     ir_method_t* ir_method = find_op_method(new_op_type, 1);
     if ((NULL != ir_method) && (NULL != ir_method->init) && (ir_method->init(&node->op) < 0))
     {
@@ -501,12 +504,12 @@ static int fuse_conv_relu_common(ir_graph_t* graph)
             continue;
         if (relu_node->op.type == OP_RELU)
         {
-            struct relu_param* relu_param =(struct relu_param*)relu_node->op.param_mem;
+            struct relu_param* relu_param = (struct relu_param*)relu_node->op.param_mem;
             if (relu_param->negative_slope != 0.f)
                 continue;
         }
         ir_tensor_t* conv_tensor = get_ir_graph_tensor(graph, relu_node->input_tensors[0]);
-        ir_node_t* conv_node = get_ir_graph_node(graph, conv_tensor->producer);
+        ir_node_t*   conv_node   = get_ir_graph_node(graph, conv_tensor->producer);
         if (conv_node->op.type != OP_CONV)
             continue;
         if (conv_tensor->consumer_num != 1)
@@ -516,16 +519,16 @@ static int fuse_conv_relu_common(ir_graph_t* graph)
     }
 
     /* fused */
-    for (auto& conv_relu:conv_relu_v)
+    for (auto& conv_relu : conv_relu_v)
     {
-        ir_node_t* conv_node = conv_relu.first;
-        ir_node_t* relu_node = conv_relu.second;
+        ir_node_t*         conv_node  = conv_relu.first;
+        ir_node_t*         relu_node  = conv_relu.second;
         struct conv_param* conv_param = (struct conv_param*)conv_node->op.param_mem;
         if (relu_node->op.type == OP_RELU)
             conv_param->activation = 0;
         if (relu_node->op.type == OP_RELU6)
             conv_param->activation = 6;
-        
+
         /* delete relu node */
         if (delete_node(graph, conv_node->index, relu_node->index) < 0)
         {
@@ -533,7 +536,7 @@ static int fuse_conv_relu_common(ir_graph_t* graph)
             return -1;
         }
     }
-    
+
     return 0;
 }
 
@@ -548,23 +551,23 @@ static int fuse_relu_eltwise(ir_graph_t* graph)
             continue;
         struct eltwise_param* elt_param = (struct eltwise_param*)elt_node->op.param_mem;
         if (elt_param->type != ELT_MIN_SCALAR)
-            continue;       // todo: verify 6
-        
+            continue;    // todo: verify 6
+
         /*Check if it is a  relu + minimum*/
         ir_tensor_t* relu_tensor = get_ir_graph_tensor(graph, elt_node->input_tensors[0]);
-        ir_node_t* relu_node = get_ir_graph_node(graph, relu_tensor->producer);
+        ir_node_t*   relu_node   = get_ir_graph_node(graph, relu_tensor->producer);
         if (relu_node->op.type != OP_RELU)
             continue;
         relu_eltwise_v.push_back(std::make_pair(relu_node, elt_node));
     }
 
     /* fused */
-    for (auto& relu_elt:relu_eltwise_v)
+    for (auto& relu_elt : relu_eltwise_v)
     {
         ir_node_t* relu_node = relu_elt.first;
-        ir_node_t* elt_node = relu_elt.second;
-        relu_node->op.type = OP_RELU6;
-        
+        ir_node_t* elt_node  = relu_elt.second;
+        relu_node->op.type   = OP_RELU6;
+
         /* delete elt node */
         if (delete_node(graph, relu_node->index, elt_node->index) < 0)
         {
@@ -572,7 +575,7 @@ static int fuse_relu_eltwise(ir_graph_t* graph)
             return -1;
         }
     }
-    
+
     return 0;
 }
 
@@ -585,32 +588,32 @@ static int fuse_bn_scale(ir_graph_t* graph)
         ir_node_t* scale_node = get_ir_graph_node(graph, i);
         if (scale_node->op.type != OP_SCALE)
             continue;
-        
+
         /*Check if it is a  bn + scale*/
         ir_tensor_t* bn_tensor = get_ir_graph_tensor(graph, scale_node->input_tensors[0]);
-        ir_node_t* bn_node = get_ir_graph_node(graph, bn_tensor->producer);
+        ir_node_t*   bn_node   = get_ir_graph_node(graph, bn_tensor->producer);
         if (bn_node->op.type != OP_BATCHNORM)
             continue;
         bn_scale_v.push_back(std::make_pair(bn_node, scale_node));
     }
 
     /* fused */
-    for (auto& bn_scale:bn_scale_v)
+    for (auto& bn_scale : bn_scale_v)
     {
-        ir_node_t* bn_node = bn_scale.first;
+        ir_node_t* bn_node    = bn_scale.first;
         ir_node_t* scale_node = bn_scale.second;
 
         /* exchange gamma beta */
-        int16_t tmp = bn_node->input_tensors[1];
-        bn_node->input_tensors[1] = scale_node->input_tensors[1];
-        scale_node->input_tensors[1] = tmp;
-        tmp = bn_node->input_tensors[2];
-        bn_node->input_tensors[2] = scale_node->input_tensors[2];
-        scale_node->input_tensors[2] = tmp;
+        int16_t tmp                   = bn_node->input_tensors[1];
+        bn_node->input_tensors[1]     = scale_node->input_tensors[1];
+        scale_node->input_tensors[1]  = tmp;
+        tmp                           = bn_node->input_tensors[2];
+        bn_node->input_tensors[2]     = scale_node->input_tensors[2];
+        scale_node->input_tensors[2]  = tmp;
 
         struct batchnorm_param* param = (struct batchnorm_param*)bn_node->op.param_mem;
-        param->caffe_flavor = 0;
-        
+        param->caffe_flavor           = 0;
+
         /* delete scale node */
         if (delete_node(graph, bn_node->index, scale_node->index) < 0)
         {
@@ -618,7 +621,7 @@ static int fuse_bn_scale(ir_graph_t* graph)
             return -1;
         }
     }
-    
+
     return 0;
 }
 
@@ -631,43 +634,43 @@ static int fuse_conv_bn(ir_graph_t* graph)
         ir_node_t* bn_node = get_ir_graph_node(graph, i);
         if (bn_node->op.type != OP_BATCHNORM)
             continue;
-        
+
         /*Check if it is a  conv + bn*/
         ir_tensor_t* conv_tensor = get_ir_graph_tensor(graph, bn_node->input_tensors[0]);
-        ir_node_t* conv_node = get_ir_graph_node(graph, conv_tensor->producer);
+        ir_node_t*   conv_node   = get_ir_graph_node(graph, conv_tensor->producer);
         if (conv_node->op.type != OP_CONV)
             continue;
         conv_bn_v.push_back(std::make_pair(conv_node, bn_node));
     }
 
     /* fused */
-    for (auto& conv_bn:conv_bn_v)
+    for (auto& conv_bn : conv_bn_v)
     {
-        ir_node_t* conv_node = conv_bn.first;
-        ir_node_t* bn_node = conv_bn.second;
-        struct batchnorm_param* bn_param = (struct batchnorm_param*)bn_node->op.param_mem;
-        ir_tensor_t* bn_mean = get_ir_graph_tensor(graph, bn_node->input_tensors[3]);
-        ir_tensor_t* bn_var  = get_ir_graph_tensor(graph, bn_node->input_tensors[4]);
+        ir_node_t*              conv_node = conv_bn.first;
+        ir_node_t*              bn_node   = conv_bn.second;
+        struct batchnorm_param* bn_param  = (struct batchnorm_param*)bn_node->op.param_mem;
+        ir_tensor_t*            bn_mean   = get_ir_graph_tensor(graph, bn_node->input_tensors[3]);
+        ir_tensor_t*            bn_var    = get_ir_graph_tensor(graph, bn_node->input_tensors[4]);
 
-        float* mean = (float*)bn_mean->data;
-        float* var = (float*)bn_var->data;
-        float* gamma = NULL;
-        float* beta = NULL;
+        float* mean                       = (float*)bn_mean->data;
+        float* var                        = (float*)bn_var->data;
+        float* gamma                      = NULL;
+        float* beta                       = NULL;
 
-        if(!bn_param->caffe_flavor)
+        if (!bn_param->caffe_flavor)
         {
             ir_tensor_t* bn_gamma = get_ir_graph_tensor(graph, bn_node->input_tensors[1]);
             ir_tensor_t* bn_beta  = get_ir_graph_tensor(graph, bn_node->input_tensors[2]);
-            gamma = (float*)bn_gamma->data;
-            beta = (float*)bn_beta->data;
+            gamma                 = (float*)bn_gamma->data;
+            beta                  = (float*)bn_beta->data;
         }
 
         ir_tensor_t* bias_tensor = nullptr;
         if (conv_node->input_num > 2)
             bias_tensor = get_ir_graph_tensor(graph, conv_node->input_tensors[2]);
-        
+
         weight_bn(graph, conv_node, mean, var, gamma, beta, bn_param->eps, bn_param->rescale_factor, bias_tensor);
-        
+
         /* delete elt node */
         if (delete_node(graph, conv_node->index, bn_node->index) < 0)
         {
@@ -675,7 +678,7 @@ static int fuse_conv_bn(ir_graph_t* graph)
             return -1;
         }
     }
-    
+
     return 0;
 }
 
@@ -688,41 +691,41 @@ static int fuse_fc_bn(ir_graph_t* graph)
         ir_node_t* bn_node = get_ir_graph_node(graph, i);
         if (bn_node->op.type != OP_BATCHNORM)
             continue;
-        
+
         /*Check if it is a  fc + bn*/
         ir_tensor_t* fc_tensor = get_ir_graph_tensor(graph, bn_node->input_tensors[0]);
-        ir_node_t* fc_node = get_ir_graph_node(graph, fc_tensor->producer);
+        ir_node_t*   fc_node   = get_ir_graph_node(graph, fc_tensor->producer);
         if (fc_node->op.type != OP_FC)
             continue;
         fc_bn_v.push_back(std::make_pair(fc_node, bn_node));
     }
 
     /* fused */
-    for (auto& fc_bn:fc_bn_v)
+    for (auto& fc_bn : fc_bn_v)
     {
-        ir_node_t* fc_node = fc_bn.first;
-        ir_node_t* bn_node = fc_bn.second;
+        ir_node_t*              fc_node  = fc_bn.first;
+        ir_node_t*              bn_node  = fc_bn.second;
         struct batchnorm_param* bn_param = (struct batchnorm_param*)bn_node->op.param_mem;
-        ir_tensor_t* bn_mean = get_ir_graph_tensor(graph, bn_node->input_tensors[3]);
-        ir_tensor_t* bn_var  = get_ir_graph_tensor(graph, bn_node->input_tensors[4]);
+        ir_tensor_t*            bn_mean  = get_ir_graph_tensor(graph, bn_node->input_tensors[3]);
+        ir_tensor_t*            bn_var   = get_ir_graph_tensor(graph, bn_node->input_tensors[4]);
 
-        float* mean = (float*)bn_mean->data;
-        float* var = (float*)bn_var->data;
-        float* gamma = NULL;
-        float* beta = NULL;
+        float* mean                      = (float*)bn_mean->data;
+        float* var                       = (float*)bn_var->data;
+        float* gamma                     = NULL;
+        float* beta                      = NULL;
 
-        if(!bn_param->caffe_flavor)
+        if (!bn_param->caffe_flavor)
         {
             ir_tensor_t* bn_gamma = get_ir_graph_tensor(graph, bn_node->input_tensors[1]);
             ir_tensor_t* bn_beta  = get_ir_graph_tensor(graph, bn_node->input_tensors[2]);
-            gamma = (float*)bn_gamma->data;
-            beta = (float*)bn_beta->data;
+            gamma                 = (float*)bn_gamma->data;
+            beta                  = (float*)bn_beta->data;
         }
 
         ir_tensor_t* bias_tensor = nullptr;
         if (fc_node->input_num > 2)
             bias_tensor = get_ir_graph_tensor(graph, fc_node->input_tensors[2]);
-        
+
         fc_weight_bn(graph, fc_node, mean, var, gamma, beta, bn_param->eps, bn_param->rescale_factor, bias_tensor);
 
         /* delete bn node */
@@ -732,7 +735,7 @@ static int fuse_fc_bn(ir_graph_t* graph)
             return -1;
         }
     }
-    
+
     return 0;
 }
 
@@ -746,17 +749,18 @@ static int fuse_conv_unsqueeze(ir_graph_t* graph)
         if (elt_node->op.type != OP_ELTWISE)
             continue;
         struct eltwise_param* param = (struct eltwise_param*)elt_node->op.param_mem;
-        if (elt_node->input_num != 2 || param->type != ELT_SUM) // unsqueeze and conv|fc
+        if (elt_node->input_num != 2 || param->type != ELT_SUM)    // unsqueeze and conv|fc
             continue;
-        
+
         /* Check if it is a  (unsqueeze conv|fc) + eltwise */
-        ir_tensor_t* conv_tensor = get_ir_graph_tensor(graph, elt_node->input_tensors[0]);
-        ir_tensor_t* unsq_tensor = get_ir_graph_tensor(graph, elt_node->input_tensors[1]);
-        ir_node_t* conv_or_fc_node = get_ir_graph_node(graph, conv_tensor->producer);
-        ir_node_t* unsq_node = get_ir_graph_node(graph, unsq_tensor->producer);
-        if (unsq_node->op.type != OP_UNSQUEEZE || (conv_or_fc_node->op.type != OP_CONV && conv_or_fc_node->op.type != OP_FC))
+        ir_tensor_t* conv_tensor     = get_ir_graph_tensor(graph, elt_node->input_tensors[0]);
+        ir_tensor_t* unsq_tensor     = get_ir_graph_tensor(graph, elt_node->input_tensors[1]);
+        ir_node_t*   conv_or_fc_node = get_ir_graph_node(graph, conv_tensor->producer);
+        ir_node_t*   unsq_node       = get_ir_graph_node(graph, unsq_tensor->producer);
+        if (unsq_node->op.type != OP_UNSQUEEZE
+            || (conv_or_fc_node->op.type != OP_CONV && conv_or_fc_node->op.type != OP_FC))
             continue;
-        std::vector<ir_node_t*> nodes{conv_or_fc_node, unsq_node, elt_node};
+        std::vector<ir_node_t*> nodes { conv_or_fc_node, unsq_node, elt_node };
         fused_nodes.push_back(nodes);
     }
 
@@ -764,10 +768,10 @@ static int fuse_conv_unsqueeze(ir_graph_t* graph)
     for (int i = 0; i < fused_nodes.size(); i++)
     {
         ir_node_t* conv_or_fc_node = fused_nodes[i][0];
-        ir_node_t* unsq_node = fused_nodes[i][1];
-        ir_node_t* elt_node = fused_nodes[i][2];
-        
-        ir_tensor_t* bias_tensor = get_ir_graph_tensor(graph, unsq_node->input_tensors[0]);
+        ir_node_t* unsq_node       = fused_nodes[i][1];
+        ir_node_t* elt_node        = fused_nodes[i][2];
+
+        ir_tensor_t* bias_tensor   = get_ir_graph_tensor(graph, unsq_node->input_tensors[0]);
         set_ir_node_input_tensor(conv_or_fc_node, conv_or_fc_node->input_num, bias_tensor);
         bias_tensor->consumer[0] = conv_or_fc_node->index;
         bias_tensor->consumer_num--;
@@ -778,7 +782,7 @@ static int fuse_conv_unsqueeze(ir_graph_t* graph)
             fprintf(stderr, "delete node:%s failed.\n", unsq_node->name);
             return -1;
         }
-        
+
         /* delete elt node */
         if (delete_node(graph, conv_or_fc_node->index, elt_node->index) < 0)
         {
@@ -786,7 +790,7 @@ static int fuse_conv_unsqueeze(ir_graph_t* graph)
             return -1;
         }
     }
-    
+
     return 0;
 }
 

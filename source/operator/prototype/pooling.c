@@ -34,44 +34,43 @@
 
 static int infer_shape(ir_node_t* node)
 {
-    ir_graph_t* ir_graph = node->graph;
-    ir_tensor_t* input = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
-    ir_tensor_t* output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
-    struct pool_param* pool_param = ( struct pool_param* )node->op.param_mem;
+    ir_graph_t*        ir_graph   = node->graph;
+    ir_tensor_t*       input      = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
+    ir_tensor_t*       output     = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
+    struct pool_param* pool_param = (struct pool_param*)node->op.param_mem;
 
-    int batch = input->dims[0];
-    int channel = input->dims[1];
-    int input_h = input->dims[2];
-    int input_w = input->dims[3];
+    int batch                     = input->dims[0];
+    int channel                   = input->dims[1];
+    int input_h                   = input->dims[2];
+    int input_w                   = input->dims[3];
     int output_h, output_w;
 
-    if (pool_param->kernel_h == input_h && pool_param->kernel_w == input_w &&
-        pool_param->pad_w0 == 0 && pool_param->pad_w1 == 0 &&
-        pool_param->pad_h0 == 0 && pool_param->pad_h1 == 0)
+    if (pool_param->kernel_h == input_h && pool_param->kernel_w == input_w && pool_param->pad_w0 == 0
+        && pool_param->pad_w1 == 0 && pool_param->pad_h0 == 0 && pool_param->pad_h1 == 0)
     {
         pool_param->global = 1;
     }
 
     if (pool_param->global)
     {
-        pool_param->pad_h0 = 0;
-        pool_param->pad_h1 = 0;
-        pool_param->pad_w0 = 0;
-        pool_param->pad_w1 = 0;
+        pool_param->pad_h0   = 0;
+        pool_param->pad_h1   = 0;
+        pool_param->pad_w0   = 0;
+        pool_param->pad_w1   = 0;
 
         pool_param->kernel_h = input_h;
         pool_param->kernel_w = input_w;
         pool_param->stride_h = pool_param->stride_w = 1;
 
-        output_h = 1;
-        output_w = 1;
+        output_h                                    = 1;
+        output_w                                    = 1;
     }
     else
     {
         int caffe = pool_param->caffe_flavor & ~(COUNT_INCLUDE_PAD_MSK);
-        output_h = calc_output_size(input_h, pool_param->kernel_h, pool_param->stride_h, pool_param->pad_h0_org,
+        output_h  = calc_output_size(input_h, pool_param->kernel_h, pool_param->stride_h, pool_param->pad_h0_org,
                                     pool_param->caffe_flavor);
-        output_w = calc_output_size(input_w, pool_param->kernel_w, pool_param->stride_w, pool_param->pad_w0_org,
+        output_w  = calc_output_size(input_w, pool_param->kernel_w, pool_param->stride_w, pool_param->pad_w0_org,
                                     pool_param->caffe_flavor);
         if (2 != caffe)
         {
@@ -82,8 +81,8 @@ static int infer_shape(ir_node_t* node)
         }
         else
         {
-            int pad_w0 = pool_param->pad_w0_org;
-            int pad_h0 = pool_param->pad_h0_org;
+            int pad_w0         = pool_param->pad_w0_org;
+            int pad_h0         = pool_param->pad_h0_org;
             pool_param->pad_w0 = pad_w0 / 2;
             pool_param->pad_h0 = pad_h0 / 2;
             pool_param->pad_w1 = pad_w0 - pad_w0 / 2;
@@ -105,34 +104,34 @@ static int infer_shape(ir_node_t* node)
 
 static int init_op(ir_op_t* op)
 {
-    struct pool_param* pool_param = ( struct pool_param* )sys_malloc(sizeof(struct pool_param));
+    struct pool_param* pool_param = (struct pool_param*)sys_malloc(sizeof(struct pool_param));
 
     if (pool_param == NULL)
     {
         return -1;
     }
 
-    pool_param->pool_method = POOL_MAX;
-    pool_param->global = 0;
-    pool_param->kernel_h = 2;
-    pool_param->kernel_w = 2;
-    pool_param->stride_h = 2;
-    pool_param->stride_w = 2;
-    pool_param->pad_h0 = 0;
-    pool_param->pad_h1 = 0;
-    pool_param->pad_w0 = 0;
-    pool_param->pad_w1 = 0;
-    pool_param->pad_h0_org = 0;
-    pool_param->pad_h1_org = 0;
-    pool_param->pad_w0_org = 0;
-    pool_param->pad_w1_org = 0;
+    pool_param->pool_method  = POOL_MAX;
+    pool_param->global       = 0;
+    pool_param->kernel_h     = 2;
+    pool_param->kernel_w     = 2;
+    pool_param->stride_h     = 2;
+    pool_param->stride_w     = 2;
+    pool_param->pad_h0       = 0;
+    pool_param->pad_h1       = 0;
+    pool_param->pad_w0       = 0;
+    pool_param->pad_w1       = 0;
+    pool_param->pad_h0_org   = 0;
+    pool_param->pad_h1_org   = 0;
+    pool_param->pad_w0_org   = 0;
+    pool_param->pad_w1_org   = 0;
     pool_param->caffe_flavor = 0;
-    pool_param->funct = NULL;
+    pool_param->funct        = NULL;
 
-    op->param_mem = pool_param;
-    op->param_size = sizeof(struct pool_param);
-    op->same_shape = 0;
-    op->infer_shape = infer_shape;
+    op->param_mem            = pool_param;
+    op->param_size           = sizeof(struct pool_param);
+    op->same_shape           = 0;
+    op->infer_shape          = infer_shape;
 
     return 0;
 }
@@ -149,7 +148,7 @@ int register_pooling_op()
     ir_method_t m;
 
     m.version = 1;
-    m.init = init_op;
+    m.init    = init_op;
     m.release = release_op;
 
     return register_op(OP_POOL, OP_POOL_NAME, &m);

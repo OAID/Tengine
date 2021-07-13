@@ -31,12 +31,12 @@
 #include "tengine/c_api.h"
 #include "tengine_operations.h"
 
-#define DEFAULT_REPEAT_COUNT    1
-#define DEFAULT_THREAD_COUNT    1
-#define num_featuremap 4
-#define hard_nms 1
-#define blending_nms 2 /* mix nms was been proposaled in paper blaze face, aims to minimize the temporal jitter*/
-#define clip(x, y) (x < 0 ? 0 : (x > y ? y : x))
+#define DEFAULT_REPEAT_COUNT 1
+#define DEFAULT_THREAD_COUNT 1
+#define num_featuremap       4
+#define hard_nms             1
+#define blending_nms         2 /* mix nms was been proposaled in paper blaze face, aims to minimize the temporal jitter*/
+#define clip(x, y)           (x < 0 ? 0 : (x > y ? y : x))
 
 typedef struct FaceInfo
 {
@@ -48,13 +48,13 @@ typedef struct FaceInfo
 } FaceInfo;
 
 //input image size
-const int g_tensor_in_w = 320;
-const int g_tensor_in_h = 240;
+const int g_tensor_in_w       = 320;
+const int g_tensor_in_h       = 240;
 
 const float g_score_threshold = 0.7f;
-const float g_iou_threshold = 0.3f;
+const float g_iou_threshold   = 0.3f;
 const float g_center_variance = 0.1f;
-const float g_size_variance = 0.2f;
+const float g_size_variance   = 0.2f;
 
 static void nms(std::vector<FaceInfo>& input, std::vector<FaceInfo>& output, int type = blending_nms)
 {
@@ -71,10 +71,10 @@ static void nms(std::vector<FaceInfo>& input, std::vector<FaceInfo>& output, int
         std::vector<FaceInfo> buf;
 
         buf.push_back(input[i]);
-        merged[i] = 1;
+        merged[i]   = 1;
 
-        float h0 = input[i].y2 - input[i].y1 + 1;
-        float w0 = input[i].x2 - input[i].x1 + 1;
+        float h0    = input[i].y2 - input[i].y1 + 1;
+        float w0    = input[i].x2 - input[i].x1 + 1;
 
         float area0 = h0 * w0;
 
@@ -89,18 +89,18 @@ static void nms(std::vector<FaceInfo>& input, std::vector<FaceInfo>& output, int
             float inner_x1 = input[i].x2 < input[j].x2 ? input[i].x2 : input[j].x2;
             float inner_y1 = input[i].y2 < input[j].y2 ? input[i].y2 : input[j].y2;
 
-            float inner_h = inner_y1 - inner_y0 + 1;
-            float inner_w = inner_x1 - inner_x0 + 1;
+            float inner_h  = inner_y1 - inner_y0 + 1;
+            float inner_w  = inner_x1 - inner_x0 + 1;
 
             if (inner_h <= 0 || inner_w <= 0)
                 continue;
 
             float inner_area = inner_h * inner_w;
 
-            float h1 = input[j].y2 - input[j].y1 + 1;
-            float w1 = input[j].x2 - input[j].x1 + 1;
+            float h1         = input[j].y2 - input[j].y1 + 1;
+            float w1         = input[j].x2 - input[j].x1 + 1;
 
-            float area1 = h1 * w1;
+            float area1      = h1 * w1;
 
             float score;
 
@@ -114,11 +114,13 @@ static void nms(std::vector<FaceInfo>& input, std::vector<FaceInfo>& output, int
         }
         switch (type)
         {
-            case hard_nms: {
+        case hard_nms:
+            {
                 output.push_back(buf[0]);
                 break;
             }
-            case blending_nms: {
+        case blending_nms:
+            {
                 float total = 0;
                 for (int i = 0; i < buf.size(); i++)
                 {
@@ -138,7 +140,8 @@ static void nms(std::vector<FaceInfo>& input, std::vector<FaceInfo>& output, int
                 output.push_back(rects);
                 break;
             }
-            default: {
+        default:
+            {
                 fprintf(stderr, "wrong type of nms.");
                 exit(-1);
             }
@@ -146,19 +149,20 @@ static void nms(std::vector<FaceInfo>& input, std::vector<FaceInfo>& output, int
     }
 }
 
-static void post_process_ultraface(const char* image_file, float *boxs_data, float *scores_data)
+static void post_process_ultraface(const char* image_file, float* boxs_data, float* scores_data)
 {
-    image im = imread(image_file);
-    int image_h = im.h;
-    int image_w = im.w;
+    image im                                        = imread(image_file);
+    int   image_h                                   = im.h;
+    int   image_w                                   = im.w;
 
     const std::vector<std::vector<float>> min_boxes = {
-        {10.0f, 16.0f, 24.0f}, {32.0f, 48.0f}, {64.0f, 96.0f}, {128.0f, 192.0f, 256.0f}};
+        { 10.0f, 16.0f, 24.0f }, { 32.0f, 48.0f }, { 64.0f, 96.0f }, { 128.0f, 192.0f, 256.0f }
+    };
     std::vector<std::vector<float>> shrinkage_size;
     std::vector<std::vector<float>> priors = {};
     std::vector<std::vector<float>> featuremap_size;
-    const std::vector<float> strides = {8.0, 16.0, 32.0, 64.0};
-    std::vector<int> w_h_list = {g_tensor_in_w, g_tensor_in_h};
+    const std::vector<float>        strides  = { 8.0, 16.0, 32.0, 64.0 };
+    std::vector<int>                w_h_list = { g_tensor_in_w, g_tensor_in_h };
 
     for (auto size : w_h_list)
     {
@@ -190,30 +194,30 @@ static void post_process_ultraface(const char* image_file, float *boxs_data, flo
                 {
                     float w = k / g_tensor_in_w;
                     float h = k / g_tensor_in_h;
-                    priors.push_back({clip(x_center, 1), clip(y_center, 1), clip(w, 1), clip(h, 1)});
+                    priors.push_back({ clip(x_center, 1), clip(y_center, 1), clip(w, 1), clip(h, 1) });
                 }
             }
         }
     }
     /* generate prior anchors finished */
     std::vector<FaceInfo> bbox_collection;
-    const int num_anchors = priors.size();
+    const int             num_anchors = priors.size();
 
     for (int i = 0; i < num_anchors; i++)
     {
         if (scores_data[i * 2 + 1] > g_score_threshold)
         {
             FaceInfo rects;
-            float x_center = boxs_data[i * 4] * g_center_variance * priors[i][2] + priors[i][0];
-            float y_center = boxs_data[i * 4 + 1] * g_center_variance * priors[i][3] + priors[i][1];
-            float w = exp(boxs_data[i * 4 + 2] * g_size_variance) * priors[i][2];
-            float h = exp(boxs_data[i * 4 + 3] * g_size_variance) * priors[i][3];
+            float    x_center = boxs_data[i * 4] * g_center_variance * priors[i][2] + priors[i][0];
+            float    y_center = boxs_data[i * 4 + 1] * g_center_variance * priors[i][3] + priors[i][1];
+            float    w        = exp(boxs_data[i * 4 + 2] * g_size_variance) * priors[i][2];
+            float    h        = exp(boxs_data[i * 4 + 3] * g_size_variance) * priors[i][3];
 
-            rects.x1 = clip(x_center - w / 2.0, 1) * image_w;
-            rects.y1 = clip(y_center - h / 2.0, 1) * image_h;
-            rects.x2 = clip(x_center + w / 2.0, 1) * image_w;
-            rects.y2 = clip(y_center + h / 2.0, 1) * image_h;
-            rects.score = clip(scores_data[i * 2 + 1], 1);
+            rects.x1          = clip(x_center - w / 2.0, 1) * image_w;
+            rects.y1          = clip(y_center - h / 2.0, 1) * image_h;
+            rects.x2          = clip(x_center + w / 2.0, 1) * image_w;
+            rects.y2          = clip(y_center + h / 2.0, 1) * image_h;
+            rects.score       = clip(scores_data[i * 2 + 1], 1);
             bbox_collection.push_back(rects);
         }
     }
@@ -244,35 +248,35 @@ void show_usage()
 
 int main(int argc, char* argv[])
 {
-    int repeat_count = DEFAULT_REPEAT_COUNT;
-    int num_thread = DEFAULT_THREAD_COUNT;
-    char* model_file = NULL;
-    char* image_file = NULL;
-    float mean[3] = {127.f, 127.f, 127.f};
-    float scale[3] = {1.0f / 128, 1.0f / 128, 1.0f / 128};
+    int   repeat_count = DEFAULT_REPEAT_COUNT;
+    int   num_thread   = DEFAULT_THREAD_COUNT;
+    char* model_file   = NULL;
+    char* image_file   = NULL;
+    float mean[3]      = { 127.f, 127.f, 127.f };
+    float scale[3]     = { 1.0f / 128, 1.0f / 128, 1.0f / 128 };
 
     int res;
     while ((res = getopt(argc, argv, "m:i:r:t:h:")) != -1)
     {
         switch (res)
         {
-            case 'm':
-                model_file = optarg;
-                break;
-            case 'i':
-                image_file = optarg;
-                break;
-            case 'r':
-                repeat_count = atoi(optarg);
-                break;
-            case 't':
-                num_thread = atoi(optarg);
-                break;
-            case 'h':
-                show_usage();
-                return 0;
-            default:
-                break;
+        case 'm':
+            model_file = optarg;
+            break;
+        case 'i':
+            image_file = optarg;
+            break;
+        case 'r':
+            repeat_count = atoi(optarg);
+            break;
+        case 't':
+            num_thread = atoi(optarg);
+            break;
+        case 'h':
+            show_usage();
+            return 0;
+        default:
+            break;
         }
     }
 
@@ -297,9 +301,9 @@ int main(int argc, char* argv[])
     /* set runtime options */
     struct options opt;
     opt.num_thread = num_thread;
-    opt.cluster = TENGINE_CLUSTER_ALL;
-    opt.precision = TENGINE_MODE_FP32;
-    opt.affinity = 0;
+    opt.cluster    = TENGINE_CLUSTER_ALL;
+    opt.precision  = TENGINE_MODE_FP32;
+    opt.affinity   = 0;
 
     /* inital tengine */
     init_tengine();
@@ -314,9 +318,9 @@ int main(int argc, char* argv[])
     }
 
     /* set the input shape to initial the graph, and prerun graph to infer shape */
-    int img_size = g_tensor_in_h * g_tensor_in_w * 3;
-    int dims[] = {1, 3, g_tensor_in_h, g_tensor_in_w};    // nchw
-    float* input_data = ( float* )malloc(img_size * sizeof(float));
+    int    img_size       = g_tensor_in_h * g_tensor_in_w * 3;
+    int    dims[]         = { 1, 3, g_tensor_in_h, g_tensor_in_w };    // nchw
+    float* input_data     = (float*)malloc(img_size * sizeof(float));
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == NULL)
@@ -335,7 +339,7 @@ int main(int argc, char* argv[])
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;
-    }    
+    }
 
     /* prerun graph, set work options(num_thread, cluster, precision) */
     if (prerun_graph_multithread(graph, opt) < 0)
@@ -347,16 +351,16 @@ int main(int argc, char* argv[])
     /* prepare process input data, set the data mem to input tensor */
     get_input_data(image_file, input_data, g_tensor_in_h, g_tensor_in_w, mean, scale);
     // input rgb
-    image swaprgb_img = {0};
-    swaprgb_img.c = 3;
-    swaprgb_img.w = g_tensor_in_w;
-    swaprgb_img.h = g_tensor_in_h;
-    swaprgb_img.data = input_data;
+    image swaprgb_img = { 0 };
+    swaprgb_img.c     = 3;
+    swaprgb_img.w     = g_tensor_in_w;
+    swaprgb_img.h     = g_tensor_in_h;
+    swaprgb_img.data  = input_data;
     rgb2bgr_permute(swaprgb_img);
 
     /* run graph */
-    double min_time = DBL_MAX;
-    double max_time = DBL_MIN;
+    double min_time   = DBL_MAX;
+    double max_time   = DBL_MIN;
     double total_time = 0.;
     for (int i = 0; i < repeat_count; i++)
     {
@@ -379,11 +383,11 @@ int main(int argc, char* argv[])
     fprintf(stderr, "--------------------------------------\n");
 
     /* process the detection result */
-    tensor_t boxs_tensor = get_graph_output_tensor(graph, 0, 0);
+    tensor_t boxs_tensor   = get_graph_output_tensor(graph, 0, 0);
     tensor_t scores_tensor = get_graph_output_tensor(graph, 1, 0);
 
-    float* boxs_data = (float* )get_tensor_buffer(boxs_tensor);
-    float* scores_data = (float* )get_tensor_buffer(scores_tensor);
+    float* boxs_data       = (float*)get_tensor_buffer(boxs_tensor);
+    float* scores_data     = (float*)get_tensor_buffer(scores_tensor);
 
     post_process_ultraface(image_file, boxs_data, scores_data);
 

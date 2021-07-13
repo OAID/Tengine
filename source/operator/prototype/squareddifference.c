@@ -30,7 +30,7 @@
 
 static int infer_shape(struct node* node)
 {
-    struct graph* graph = node->graph;
+    struct graph*  graph  = node->graph;
     struct tensor* input0 = get_ir_graph_tensor(graph, node->input_tensors[0]);
     struct tensor* input1 = get_ir_graph_tensor(graph, node->input_tensors[1]);
     struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
@@ -54,7 +54,7 @@ static int infer_shape(struct node* node)
 
 static int init_op(struct op* op)
 {
-    op->same_shape = 0;
+    op->same_shape  = 0;
     op->infer_shape = infer_shape;
 
     return 0;
@@ -69,7 +69,7 @@ int register_squareddifference_op()
     struct method m;
 
     m.version = 1;
-    m.init = init_op;
+    m.init    = init_op;
     m.release = release_op;
 
     return register_op(OP_SQUAREDDIFFERENCE, OP_SQUAREDDIFFERENCE_NAME, &m);

@@ -40,17 +40,17 @@
 static int ref_crop_fp32(struct tensor* input_tensor, struct tensor* output_tensor, struct crop_param* param,
                          int num_thread)
 {
-    float* input = input_tensor->data;
+    float* input  = input_tensor->data;
     float* output = output_tensor->data;
 
-    int iDataC = input_tensor->dims[1];
-    int iDataH = input_tensor->dims[2];
-    int iDataW = input_tensor->dims[3];
+    int iDataC    = input_tensor->dims[1];
+    int iDataH    = input_tensor->dims[2];
+    int iDataW    = input_tensor->dims[3];
 
-    int oDataN = output_tensor->dims[0];
-    int oDataC = output_tensor->dims[1];
-    int oDataH = output_tensor->dims[2];
-    int oDataW = output_tensor->dims[3];
+    int oDataN    = output_tensor->dims[0];
+    int oDataC    = output_tensor->dims[1];
+    int oDataH    = output_tensor->dims[2];
+    int oDataW    = output_tensor->dims[3];
 
     // MXNet
     if (param->flag == 1)
@@ -150,19 +150,19 @@ static int ref_crop_fp32(struct tensor* input_tensor, struct tensor* output_tens
 }
 
 static int ref_crop_uint8(struct tensor* input_tensor, struct tensor* output_tensor, struct crop_param* param,
-                         int num_thread)
+                          int num_thread)
 {
-    uint8_t* input = input_tensor->data;
+    uint8_t* input  = input_tensor->data;
     uint8_t* output = output_tensor->data;
 
-    int iDataC = input_tensor->dims[1];
-    int iDataH = input_tensor->dims[2];
-    int iDataW = input_tensor->dims[3];
+    int iDataC      = input_tensor->dims[1];
+    int iDataH      = input_tensor->dims[2];
+    int iDataW      = input_tensor->dims[3];
 
-    int oDataN = output_tensor->dims[0];
-    int oDataC = output_tensor->dims[1];
-    int oDataH = output_tensor->dims[2];
-    int oDataW = output_tensor->dims[3];
+    int oDataN      = output_tensor->dims[0];
+    int oDataC      = output_tensor->dims[1];
+    int oDataH      = output_tensor->dims[2];
+    int oDataW      = output_tensor->dims[3];
 
     // MXNet
     if (param->flag == 1)
@@ -273,16 +273,16 @@ static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, 
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node* ir_node = exec_node->ir_node;
-    struct graph* ir_graph = ir_node->graph;
-    struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+    struct node*   ir_node        = exec_node->ir_node;
+    struct graph*  ir_graph       = ir_node->graph;
+    struct tensor* input_tensor   = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    struct tensor* output_tensor  = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    struct crop_param* crop_param = ( struct crop_param* )ir_node->op.param_mem;
+    struct crop_param* crop_param = (struct crop_param*)ir_node->op.param_mem;
 
     if (input_tensor->data_type == TENGINE_DT_FP32)
         ref_crop_fp32(input_tensor, output_tensor, crop_param, exec_graph->num_thread);
-    else if(input_tensor->data_type == TENGINE_DT_UINT8)
+    else if (input_tensor->data_type == TENGINE_DT_UINT8)
         ref_crop_uint8(input_tensor, output_tensor, crop_param, exec_graph->num_thread);
 
     return 0;
@@ -293,13 +293,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_BEST;
 }
 
-static struct node_ops hcl_node_ops = {.prerun = NULL,
-                                       .run = run,
-                                       .reshape = NULL,
-                                       .postrun = NULL,
-                                       .init_node = init_node,
-                                       .release_node = release_node,
-                                       .score = score};
+static struct node_ops hcl_node_ops = { .prerun       = NULL,
+                                        .run          = run,
+                                        .reshape      = NULL,
+                                        .postrun      = NULL,
+                                        .init_node    = init_node,
+                                        .release_node = release_node,
+                                        .score        = score };
 
 int register_crop_ref_op()
 {

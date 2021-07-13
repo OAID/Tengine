@@ -42,10 +42,10 @@ int register_const_op()
     ir_method_t m;
 
     m.version = 1;
-    m.init = init_op;
+    m.init    = init_op;
     m.release = release_op;
 
-    return register_op(OP_CONST, OP_CONST_NAME , &m);
+    return register_op(OP_CONST, OP_CONST_NAME, &m);
 }
 
 

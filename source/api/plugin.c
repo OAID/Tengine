@@ -33,13 +33,13 @@
 #include <string.h>
 
 #ifdef _MSC_VER
-#include <windows.h>
+    #include <windows.h>
 #else
-#include <dlfcn.h>
+    #include <dlfcn.h>
 #endif
 
 #ifdef _MSC_VER
-typedef int(*fun_ptr)(void);
+typedef int (*fun_ptr)(void);
 typedef HINSTANCE so_handle_t;
 #else
 typedef void* so_handle_t;
@@ -48,8 +48,8 @@ typedef void* so_handle_t;
 
 struct plugin_header
 {
-    char* name;
-    char* fname;
+    char*       name;
+    char*       fname;
     so_handle_t handle;
 };
 
@@ -138,7 +138,6 @@ int load_tengine_plugin(const char* plugin_name, const char* file_name, const ch
     /* execute the init function */
     if (init_func_name && exec_so_func(header.handle, init_func_name) < 0)
     {
-
 #ifdef _MSC_VER
         FreeLibrary(header.handle);
 #else
@@ -149,10 +148,10 @@ int load_tengine_plugin(const char* plugin_name, const char* file_name, const ch
     }
 
     size_t plugin_name_length = strlen(plugin_name);
-    size_t file_name_length = strlen(file_name);
+    size_t file_name_length   = strlen(file_name);
 
-    header.name = sys_malloc(plugin_name_length);
-    header.fname = sys_malloc(file_name_length);
+    header.name               = sys_malloc(plugin_name_length);
+    header.fname              = sys_malloc(file_name_length);
 
     memcpy(header.name, plugin_name, plugin_name_length);
     memcpy(header.fname, file_name, file_name_length);
@@ -168,8 +167,8 @@ int unload_tengine_plugin(const char* plugin_name, const char* rel_func_name)
     if (plugin_list == NULL)
         return -1;
 
-    int list_num = get_vector_num(plugin_list);
-    struct plugin_header* target = NULL;
+    int                   list_num = get_vector_num(plugin_list);
+    struct plugin_header* target   = NULL;
 
     for (int i = 0; i < list_num; i++)
     {

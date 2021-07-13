@@ -37,10 +37,10 @@ typedef struct scheduler
 {
     char* name;
 
-    int  (*prerun)(struct scheduler*, struct graph*);
-    int  (*run)(struct scheduler*, struct graph*, int block);
-    int  (*wait)(struct scheduler*, struct graph*);
-    int  (*postrun)(struct scheduler*, struct graph*);
+    int (*prerun)(struct scheduler*, struct graph*);
+    int (*run)(struct scheduler*, struct graph*, int block);
+    int (*wait)(struct scheduler*, struct graph*);
+    int (*postrun)(struct scheduler*, struct graph*);
     void (*release)(struct scheduler*);
 } ir_scheduler_t;
 

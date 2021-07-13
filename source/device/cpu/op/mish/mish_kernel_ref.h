@@ -31,8 +31,8 @@
 #include "graph/graph.h"
 
 
-int ref_mish_fp32(struct tensor *input_tensor, struct tensor *output_tensor, int num_thread);
+int ref_mish_fp32(struct tensor* input_tensor, struct tensor* output_tensor, int num_thread);
 
-int ref_mish_uint8(struct tensor *input_tensor, struct tensor *output_tensor, int num_thread);
+int ref_mish_uint8(struct tensor* input_tensor, struct tensor* output_tensor, int num_thread);
 
 #endif

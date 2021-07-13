@@ -40,31 +40,31 @@ struct attribute;
  */
 typedef struct graph
 {
-    struct tensor** tensor_list;            //!< the tensor list of a graph
-    struct node**   node_list;              //!< the node list of a graph
-    int16_t* input_nodes;                   //!< input nodes index array of a graph
-    int16_t* output_nodes;                  //!< output nodes index array of a graph
+    struct tensor** tensor_list;     //!< the tensor list of a graph
+    struct node**   node_list;       //!< the node list of a graph
+    int16_t*        input_nodes;     //!< input nodes index array of a graph
+    int16_t*        output_nodes;    //!< output nodes index array of a graph
 
-    uint16_t tensor_num;                    //!< the count of all graph tensor
-    uint16_t node_num;                      //!< the count of all graph node
-    uint16_t input_num;                     //!< input nodes index count of a graph
-    uint16_t output_num;                    //!< input nodes index count of a graph
+    uint16_t tensor_num;    //!< the count of all graph tensor
+    uint16_t node_num;      //!< the count of all graph node
+    uint16_t input_num;     //!< input nodes index count of a graph
+    uint16_t output_num;    //!< input nodes index count of a graph
 
-    int8_t   graph_layout;                  //!< the data layout of a graph
-    int8_t   model_layout;                  //!< model layout of graph source model
-    int8_t   model_format;                  //!< model format of graph source model
+    int8_t graph_layout;    //!< the data layout of a graph
+    int8_t model_layout;    //!< model layout of graph source model
+    int8_t model_format;    //!< model format of graph source model
 
-    uint8_t  status;                        //!< the status of graph
+    uint8_t status;    //!< the status of graph
 
-    struct   serializer* serializer;        //!< serializer of graph
-    void*    serializer_privacy;            //!< privacy data of serializer
+    struct serializer* serializer;            //!< serializer of graph
+    void*              serializer_privacy;    //!< privacy data of serializer
 
-    struct   device* device;                //!< assigned nn_device for this graph
-    void*    device_privacy;                //!< privacy data of device
+    struct device* device;            //!< assigned nn_device for this graph
+    void*          device_privacy;    //!< privacy data of device
 
-    struct   attribute*  attribute;         //<! attribute of graph
+    struct attribute* attribute;    //<! attribute of graph
 
-    struct vector* subgraph_list;           //!< subgraph list of this graph
+    struct vector* subgraph_list;    //!< subgraph list of this graph
 } ir_graph_t;
 
 

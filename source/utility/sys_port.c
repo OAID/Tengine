@@ -28,7 +28,7 @@
 
 #ifdef CONFIG_MEM_STAT
 
-#include "mem_stat.h"
+    #include "mem_stat.h"
 
 void* sys_malloc(size_t size)
 {
@@ -80,9 +80,9 @@ char* strdup(const char* src)
     if (src == NULL)
         return NULL;
 
-    int n = strlen(src);
+    int n         = strlen(src);
 
-    char* new_str = ( char* )sys_malloc(n + 1);
+    char* new_str = (char*)sys_malloc(n + 1);
 
     if (new_str == NULL)
         return NULL;

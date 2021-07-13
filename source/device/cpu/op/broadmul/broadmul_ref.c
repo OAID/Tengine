@@ -51,20 +51,20 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
 
 typedef struct __ref_broadmul_param
 {
-    int out_size;
-    int on_size;
-    int in_size;
+    int   out_size;
+    int   on_size;
+    int   in_size;
     float in0_scale;
     float in1_scale;
-    int in0_zero;
-    int in1_zero;
+    int   in0_zero;
+    int   in1_zero;
 } ref_broadmul_param, *p_ref_broadmul_param;
 
 static int ref_broadmul_fp32(float* in0, float* in1, float* out, p_ref_broadmul_param param)
 {
     int out_size = param->out_size;
-    int in_size = param->in_size;
-    int on_size = param->on_size;
+    int in_size  = param->in_size;
+    int on_size  = param->on_size;
 
     for (int o = 0; o < out_size; o++)
     {
@@ -73,7 +73,7 @@ static int ref_broadmul_fp32(float* in0, float* in1, float* out, p_ref_broadmul_
             float data1 = in1[j];
             for (int i = 0; i < in_size; i++)
             {
-                int index = (o * on_size + j) * in_size + i;
+                int index  = (o * on_size + j) * in_size + i;
                 out[index] = in0[index] * data1;
             }
         }
@@ -84,19 +84,19 @@ static int ref_broadmul_fp32(float* in0, float* in1, float* out, p_ref_broadmul_
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node* node = exec_node->ir_node;
-    struct graph* graph = node->graph;
+    struct node*  node    = exec_node->ir_node;
+    struct graph* graph   = node->graph;
 
     struct tensor* input0 = get_ir_graph_tensor(graph, node->input_tensors[0]);
     struct tensor* input1 = get_ir_graph_tensor(graph, node->input_tensors[1]);
 
     struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
 
-    int in_size = 1;
-    int on_size = 1;
-    int out_size = 1;
+    int in_size           = 1;
+    int on_size           = 1;
+    int out_size          = 1;
 
-    int axis = 0;
+    int axis              = 0;
     for (int ii = 0; ii < input1->dim_num; ++ii)
     {
         if (input1->dims[ii] == 1)
@@ -116,11 +116,11 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     }
 
     ref_broadmul_param param;
-    param.in_size = in_size;
+    param.in_size  = in_size;
     param.out_size = out_size;
-    param.on_size = on_size;
+    param.on_size  = on_size;
 
-    int ret = -1;
+    int ret        = -1;
     if (input0->data_type == TENGINE_DT_FP32)
         ret = ref_broadmul_fp32(input0->data, input1->data, output->data, &param);
     else
@@ -134,13 +134,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_BEST;
 }
 
-static struct node_ops hcl_node_ops = {.prerun = NULL,
-                                       .run = run,
-                                       .reshape = NULL,
-                                       .postrun = NULL,
-                                       .init_node = init_node,
-                                       .release_node = release_node,
-                                       .score = score};
+static struct node_ops hcl_node_ops = { .prerun       = NULL,
+                                        .run          = run,
+                                        .reshape      = NULL,
+                                        .postrun      = NULL,
+                                        .init_node    = init_node,
+                                        .release_node = release_node,
+                                        .score        = score };
 
 int register_broadmul_ref_op()
 {
@@ -151,4 +151,3 @@ int unregister_broadmul_ref_op()
 {
     return unregister_builtin_node_ops(OP_BROADMUL, &hcl_node_ops);
 }
-

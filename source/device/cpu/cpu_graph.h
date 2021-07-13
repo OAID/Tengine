@@ -32,18 +32,18 @@
 
 struct exec_graph
 {
-    struct vector*      exec_node_list;
-    struct mem_pool*    mem_pool;
-    struct cpu_device*  dev;
+    struct vector*     exec_node_list;
+    struct mem_pool*   mem_pool;
+    struct cpu_device* dev;
 
-    void*   shared_mem;
-    int     shared_mem_size;
-    void*   shared_pack4_mem;
-    int     shared_pack4_mem_size;
-    int     num_thread;
-    int     mode;
-    size_t  cpu_affinity;
-    void*   timer;
+    void*  shared_mem;
+    int    shared_mem_size;
+    void*  shared_pack4_mem;
+    int    shared_pack4_mem_size;
+    int    num_thread;
+    int    mode;
+    size_t cpu_affinity;
+    void*  timer;
 };
 
 

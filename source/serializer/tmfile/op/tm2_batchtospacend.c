@@ -41,19 +41,20 @@ static int batchtospacend_op_map(int op)
 }
 
 
-static int tm2_load_batchtospacend(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node, const TM2_Operator* tm_op)
+static int tm2_load_batchtospacend(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
+                                   const TM2_Operator* tm_op)
 {
-    struct batchtospacend_param* batchtospacend_param = ( struct batchtospacend_param* )ir_node->op.param_mem;
-    const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
-    const char* mem_base = tm2_priv->base;
-    const TM2_BatchToSpaceNDParam* tm_param = ( TM2_BatchToSpaceNDParam* )(mem_base + tm_op->offset_t_param);
+    struct batchtospacend_param*   batchtospacend_param = (struct batchtospacend_param*)ir_node->op.param_mem;
+    const struct tm2_priv*         tm2_priv             = (struct tm2_priv*)ir_graph->serializer_privacy;
+    const char*                    mem_base             = tm2_priv->base;
+    const TM2_BatchToSpaceNDParam* tm_param             = (TM2_BatchToSpaceNDParam*)(mem_base + tm_op->offset_t_param);
 
-    batchtospacend_param->dilation_x = tm_param->dilation_x;
-    batchtospacend_param->dilation_y = tm_param->dilation_y;
-    batchtospacend_param->crop_top = tm_param->crop_top;
-    batchtospacend_param->crop_bottom = tm_param->crop_bottom;
-    batchtospacend_param->crop_left = tm_param->crop_left;
-    batchtospacend_param->crop_right = tm_param->crop_right;
+    batchtospacend_param->dilation_x                    = tm_param->dilation_x;
+    batchtospacend_param->dilation_y                    = tm_param->dilation_y;
+    batchtospacend_param->crop_top                      = tm_param->crop_top;
+    batchtospacend_param->crop_bottom                   = tm_param->crop_bottom;
+    batchtospacend_param->crop_left                     = tm_param->crop_left;
+    batchtospacend_param->crop_right                    = tm_param->crop_right;
 
     return 0;
 }
@@ -69,7 +70,8 @@ int register_tm2_batchtospacend_op()
         return -1;
     }
 
-    tm2_s->register_op_loader(tm2_s, TM2_OPTYPE_BATCHTOSPACEND, 1, tm2_load_batchtospacend, batchtospacend_op_map, NULL);
+    tm2_s->register_op_loader(tm2_s, TM2_OPTYPE_BATCHTOSPACEND, 1, tm2_load_batchtospacend, batchtospacend_op_map,
+                              NULL);
 
     return 0;
 }

@@ -46,19 +46,18 @@ static int tm2_load_detection_postprocess(struct graph* ir_graph, struct node* i
                                           const TM2_Operator* tm_op)
 {
     struct detection_postprocess_param* detection_postprocess_param =
-        ( struct detection_postprocess_param* )ir_node->op.param_mem;
-    const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
-    const char* mem_base = tm2_priv->base;
-    const TM2_DetectionPostProcessParam* tm_param =
-        ( TM2_DetectionPostProcessParam* )(mem_base + tm_op->offset_t_param);
+        (struct detection_postprocess_param*)ir_node->op.param_mem;
+    const struct tm2_priv*               tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
+    const char*                          mem_base = tm2_priv->base;
+    const TM2_DetectionPostProcessParam* tm_param = (TM2_DetectionPostProcessParam*)(mem_base + tm_op->offset_t_param);
 
-    detection_postprocess_param->max_detections = tm_param->max_detections;
+    detection_postprocess_param->max_detections   = tm_param->max_detections;
     detection_postprocess_param->max_classes_per_detection = tm_param->max_classes_per_detection;
-    detection_postprocess_param->nms_score_threshold = tm_param->nms_score_threshold;
-    detection_postprocess_param->nms_iou_threshold = tm_param->nms_iou_threshold;
-    detection_postprocess_param->num_classes = tm_param->num_classes;
+    detection_postprocess_param->nms_score_threshold       = tm_param->nms_score_threshold;
+    detection_postprocess_param->nms_iou_threshold         = tm_param->nms_iou_threshold;
+    detection_postprocess_param->num_classes               = tm_param->num_classes;
 
-    const TM2_Vector_floats* vf_scales = (TM2_Vector_floats*)(mem_base + tm_param->offset_vf_scales);
+    const TM2_Vector_floats* vf_scales  = (TM2_Vector_floats*)(mem_base + tm_param->offset_vf_scales);
     detection_postprocess_param->scales = (float*)sys_malloc(vf_scales->v_num * sizeof(float));
 
     for (unsigned int i = 0; i < vf_scales->v_num;

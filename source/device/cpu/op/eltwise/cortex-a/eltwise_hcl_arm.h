@@ -35,12 +35,12 @@
 int perf_eltwise_fp32(struct tensor* output_tensor, struct tensor* input_tensor0, struct tensor* input_tensor1,
                       struct eltwise_param* eltwise_param, int num_thread)
 {
-    int batch = input_tensor0->dims[0] ? input_tensor0->dims[0] : 1;
+    int batch   = input_tensor0->dims[0] ? input_tensor0->dims[0] : 1;
     int channel = input_tensor0->dims[1] ? input_tensor0->dims[1] : 1;
-    int in_h = input_tensor0->dims[2] ? input_tensor0->dims[2] : 1;
-    int in_w = input_tensor0->dims[3] ? input_tensor0->dims[3] : 1;
-    int c_step = in_h * in_w;
-    int b_step = channel * in_h * in_w;
+    int in_h    = input_tensor0->dims[2] ? input_tensor0->dims[2] : 1;
+    int in_w    = input_tensor0->dims[3] ? input_tensor0->dims[3] : 1;
+    int c_step  = in_h * in_w;
+    int b_step  = channel * in_h * in_w;
 
     for (int n = 0; n < batch; n++)
     {
@@ -56,7 +56,7 @@ int perf_eltwise_fp32(struct tensor* output_tensor, struct tensor* input_tensor0
             float* output_data = output + q * c_step;
 
 #if __ARM_NEON
-            int nn = c_step >> 2;
+            int nn     = c_step >> 2;
             int remain = c_step - (nn << 2);
 #else
             int remain = c_step;
@@ -67,7 +67,7 @@ int perf_eltwise_fp32(struct tensor* output_tensor, struct tensor* input_tensor0
             {
                 float32x4_t data0 = vld1q_f32(input0_data);
                 float32x4_t data1 = vld1q_f32(input1_data);
-                float32x4_t sum = vaddq_f32(data0, data1);
+                float32x4_t sum   = vaddq_f32(data0, data1);
                 vst1q_f32(output_data, sum);
 
                 input0_data += 4;

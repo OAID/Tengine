@@ -44,40 +44,40 @@ static int conv_op_map(int op)
 static int tm2_load_conv(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                          const TM2_Operator* tm_op)
 {
-    struct conv_param* conv_param = ( struct conv_param* )ir_node->op.param_mem;
-    const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
-    const char* mem_base = tm2_priv->base;
-    const TM2_ConvParam* tm_param = ( TM2_ConvParam* )(mem_base + tm_op->offset_t_param);
+    struct conv_param*     conv_param = (struct conv_param*)ir_node->op.param_mem;
+    const struct tm2_priv* tm2_priv   = (struct tm2_priv*)ir_graph->serializer_privacy;
+    const char*            mem_base   = tm2_priv->base;
+    const TM2_ConvParam*   tm_param   = (TM2_ConvParam*)(mem_base + tm_op->offset_t_param);
 
-    conv_param->kernel_h = tm_param->kernel_h;
-    conv_param->kernel_w = tm_param->kernel_w;
-    conv_param->stride_h = tm_param->stride_h;
-    conv_param->stride_w = tm_param->stride_w;
+    conv_param->kernel_h              = tm_param->kernel_h;
+    conv_param->kernel_w              = tm_param->kernel_w;
+    conv_param->stride_h              = tm_param->stride_h;
+    conv_param->stride_w              = tm_param->stride_w;
 
     /* todo: using new TM2 model definition*/
 
-    conv_param->pad_h0 = tm_param->pad_h0;
-    conv_param->pad_h1 = tm_param->pad_h1;
-    conv_param->pad_w0 = tm_param->pad_w0;
-    conv_param->pad_w1 = tm_param->pad_w1;
+    conv_param->pad_h0         = tm_param->pad_h0;
+    conv_param->pad_h1         = tm_param->pad_h1;
+    conv_param->pad_w0         = tm_param->pad_w0;
+    conv_param->pad_w1         = tm_param->pad_w1;
 
-    conv_param->dilation_h = tm_param->dilation_h;
-    conv_param->dilation_w = tm_param->dilation_w;
+    conv_param->dilation_h     = tm_param->dilation_h;
+    conv_param->dilation_w     = tm_param->dilation_w;
     conv_param->output_channel = tm_param->output_channel;
-    conv_param->activation = tm_param->activation;
+    conv_param->activation     = tm_param->activation;
 
-    conv_param->group = tm_param->group;
+    conv_param->group          = tm_param->group;
 
     /* TODO: get input_channel from tm_param */
 
-    struct tensor* weight = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
+    struct tensor* weight     = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
 
     conv_param->input_channel = weight->dims[1] * conv_param->group;
 
     if (ir_node->input_num > 2)
     {
-        struct tensor* bias = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[2]);
-        int shape = bias->elem_num;
+        struct tensor* bias  = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[2]);
+        int            shape = bias->elem_num;
 
         set_ir_tensor_shape(bias, &shape, 1);
     }

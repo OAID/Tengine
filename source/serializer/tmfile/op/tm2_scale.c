@@ -44,14 +44,14 @@ static int scale_op_map(int op)
 static int tm2_load_scale(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                           const TM2_Operator* tm_op)
 {
-    struct scale_param* scale_param = ( struct scale_param* )ir_node->op.param_mem;
-    const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
-    const char* mem_base = tm2_priv->base;
-    const TM2_ScaleParam* tm_param = ( TM2_ScaleParam* )(mem_base + tm_op->offset_t_param);
+    struct scale_param*    scale_param = (struct scale_param*)ir_node->op.param_mem;
+    const struct tm2_priv* tm2_priv    = (struct tm2_priv*)ir_graph->serializer_privacy;
+    const char*            mem_base    = tm2_priv->base;
+    const TM2_ScaleParam*  tm_param    = (TM2_ScaleParam*)(mem_base + tm_op->offset_t_param);
 
-    scale_param->axis = tm_param->axis;
-    scale_param->num_axes = tm_param->num_axes;
-    scale_param->bias_term = tm_param->bias_term;
+    scale_param->axis                  = tm_param->axis;
+    scale_param->num_axes              = tm_param->num_axes;
+    scale_param->bias_term             = tm_param->bias_term;
 
     return 0;
 }

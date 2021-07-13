@@ -32,15 +32,15 @@
  */
 typedef struct vector
 {
-    int elem_size;                  //!< elements size which will be pushed into vector
-    int elem_num;                   //!< current counter of inserted elements
+    int elem_size;    //!< elements size which will be pushed into vector
+    int elem_num;     //!< current counter of inserted elements
 
-    int entry_size;                 //!< size of inside vector header entry
-    int space_num;                  //!< the allocated elements counter, which should greater equal to 'elem_num'
-    int ahead_num;                  //!< allocated step when vector is full
-    void* real_mem;                 //!< real aligned memory address which point to vector entry
-    void* mem;                      //!< visual aligned address which point to the very begging of elements
-    void (*free_func)(void*);       //!< elements free function, will be called when release elements or vector
+    int   entry_size;            //!< size of inside vector header entry
+    int   space_num;             //!< the allocated elements counter, which should greater equal to 'elem_num'
+    int   ahead_num;             //!< allocated step when vector is full
+    void* real_mem;              //!< real aligned memory address which point to vector entry
+    void* mem;                   //!< visual aligned address which point to the very begging of elements
+    void (*free_func)(void*);    //!< elements free function, will be called when release elements or vector
 } vector_t;
 
 

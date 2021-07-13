@@ -35,12 +35,12 @@
 
 static int infer_shape(struct node* node)
 {
-    struct graph* ir_graph = node->graph;
-    struct tensor* input = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
-    struct tensor* output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
-    struct squeeze_param* squeeze_param = ( struct squeeze_param* )node->op.param_mem;
+    struct graph*         ir_graph      = node->graph;
+    struct tensor*        input         = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
+    struct tensor*        output        = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
+    struct squeeze_param* squeeze_param = (struct squeeze_param*)node->op.param_mem;
 
-    int in_size = input->dim_num;
+    int in_size                         = input->dim_num;
 
     int new_shape[4];
     int dim_size = 0;
@@ -66,9 +66,9 @@ static int infer_shape(struct node* node)
     }
 
     int8_t should_squeeze[4] = { 0 };
-    int squeezeddim = 0;
-    int newshape_size = dim_size;
-    int real_shape[4] = {0, 2, 3, 1};
+    int    squeezeddim       = 0;
+    int    newshape_size     = dim_size;
+    int    real_shape[4]     = { 0, 2, 3, 1 };
 
     if (newshape_size)
     {
@@ -92,7 +92,7 @@ static int infer_shape(struct node* node)
                     idx = real_shape[idx];
                 if (input->dims[idx] == 1 && idx > 0 && idx < 3)
                 {
-                    int current = input->dim_num + idx;
+                    int current             = input->dim_num + idx;
                     should_squeeze[current] = 1;
                     ++squeezeddim;
                 }
@@ -111,8 +111,8 @@ static int infer_shape(struct node* node)
         }
     }
 
-    int* odim = ( int* )sys_malloc((in_size - squeezeddim) * sizeof(int));
-    int o_idx = 0;
+    int* odim  = (int*)sys_malloc((in_size - squeezeddim) * sizeof(int));
+    int  o_idx = 0;
     for (int i_idx = 0; i_idx < in_size; i_idx++)
     {
         if (!should_squeeze[i_idx])
@@ -128,7 +128,7 @@ static int infer_shape(struct node* node)
 
 static int init_op(struct op* op)
 {
-    struct squeeze_param* squeeze_param = ( struct squeeze_param* )sys_malloc(sizeof(struct squeeze_param));
+    struct squeeze_param* squeeze_param = (struct squeeze_param*)sys_malloc(sizeof(struct squeeze_param));
 
     if (squeeze_param == NULL)
     {
@@ -140,10 +140,10 @@ static int init_op(struct op* op)
     squeeze_param->dim_2 = -2;
     squeeze_param->dim_3 = -2;
 
-    op->param_mem = squeeze_param;
-    op->param_size = sizeof(struct squeeze_param);
-    op->same_shape = 0;
-    op->infer_shape = infer_shape;
+    op->param_mem        = squeeze_param;
+    op->param_size       = sizeof(struct squeeze_param);
+    op->same_shape       = 0;
+    op->infer_shape      = infer_shape;
 
     return 0;
 }
@@ -160,7 +160,7 @@ int register_squeeze_op()
     struct method m;
 
     m.version = 1;
-    m.init = init_op;
+    m.init    = init_op;
     m.release = release_op;
 
     return register_op(OP_SQUEEZE, OP_SQUEEZE_NAME, &m);

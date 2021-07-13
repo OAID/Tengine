@@ -49,15 +49,14 @@ bool CHECK_ENQUEUE_KERNEL_STATUS(cl_int status);
 bool CHECK_ENQUEUE_BUFFER_STATUS(cl_int status);
 
 /** convert the kernel file into a string */
-int convertToString(const char *filename, std::string& s);
+int convertToString(const char* filename, std::string& s);
 
 /**Getting platforms and choose an available one.*/
-int getPlatform(cl_platform_id &platform);
+int getPlatform(cl_platform_id& platform);
 
 /**Step 2:Query the platform and choose the first GPU device if has one.*/
-cl_device_id *getCl_device_id(cl_platform_id &platform);
+cl_device_id* getCl_device_id(cl_platform_id& platform);
 
 void get_device_message();
 
 void dump_sub_graph(struct subgraph* sub_graph);
-

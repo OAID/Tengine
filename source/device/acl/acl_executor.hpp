@@ -55,31 +55,30 @@ extern "C"
 
 
 #define MAX_TENGINE_DATA_TYPE_NUM 6
-static const int gs32TengineDataElemetSize[MAX_TENGINE_DATA_TYPE_NUM] = {4, 2, 1, 1, 4, 2};
+static const int gs32TengineDataElemetSize[MAX_TENGINE_DATA_TYPE_NUM] = { 4, 2, 1, 1, 4, 2 };
 
 using namespace arm_compute;
 
 #define USE_CPU_CONVERT
 //#define ACL_EXTENSTION
 #ifdef __ANDROID__
-#define dynamic_cast static_cast
+    #define dynamic_cast static_cast
 #endif
 
 template <typename T>
 inline void _PermuteDataLayoutNCHWToNHWCInter(T* pvData, int n, int c, int h, int w, T* pvOutputData);
-void _PermuteDataLayoutNCHWToNHWC(void* pvData, int n, int c, int h, int w, void* pvOutputData, int DataEleSize);
-void copy_buffer(void* dest, const void* src, const int src_len, DataType dest_type, DataType src_type);
+void        _PermuteDataLayoutNCHWToNHWC(void* pvData, int n, int c, int h, int w, void* pvOutputData, int DataEleSize);
+void        copy_buffer(void* dest, const void* src, const int src_len, DataType dest_type, DataType src_type);
 
-class CLGraph
-{
+class CLGraph {
 public:
     CLGraph();
     ~CLGraph();
 
     void init(std::string name, DataType type);
-    int prerun(struct subgraph *subgraph, struct acl_option* option);
-    int run(struct subgraph *subgraph);
-    int postrun(struct subgraph *subgraph);
+    int  prerun(struct subgraph* subgraph, struct acl_option* option);
+    int  run(struct subgraph* subgraph);
+    int  postrun(struct subgraph* subgraph);
 
 
 private:
@@ -105,14 +104,14 @@ private:
     CLTensor* GetCLTensor(std::string name);
 
 public:
-    std::string name_;
-    std::vector<std::shared_ptr<IFunction>> functions_map_;
+    std::string                                name_;
+    std::vector<std::shared_ptr<IFunction>>    functions_map_;
     std::unordered_map<std::string, CLTensor*> tensors_map_;
-    DataType data_type_;
+    DataType                                   data_type_;
 
-    int nCnt_ = 0;
-    bool bForcedNHWCMode_;
+    int   nCnt_ = 0;
+    bool  bForcedNHWCMode_;
     char* pcScratchMem_;
-    int l32ScratchMemSize_;
-    bool l32AclNHWCOptimizeFlag_;
+    int   l32ScratchMemSize_;
+    bool  l32AclNHWCOptimizeFlag_;
 };
