@@ -23,9 +23,6 @@ test_model mbv3 3 224 224
 test_model shufflenet_v2 3 224 224
 test_model squeezenet1.0-9 3 224 224
 test_model retinanet_sim 3 480 640
-test_model centerface_0603_sim 3 384 640
-test_model mbv3_sim 3 256 256
-test_model last 3 384 640
 test_model yolov5-face-sim 3 384 640
 test_model version-RFB-640_sim 3 480 640
 test_model mobilenetv2-7_sim 3 224 224
