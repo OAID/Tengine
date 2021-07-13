@@ -44,14 +44,14 @@ static int roialign_op_map(int op)
 static int tm2_load_roialign(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                              const TM2_Operator* tm_op)
 {
-    struct roialign_param* roialign_param = ( struct roialign_param* )ir_node->op.param_mem;
-    const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
-    const char* mem_base = tm2_priv->base;
-    const TM2_RoialignParam* tm_param = ( TM2_RoialignParam* )(mem_base + tm_op->offset_t_param);
+    struct roialign_param*   roialign_param = (struct roialign_param*)ir_node->op.param_mem;
+    const struct tm2_priv*   tm2_priv       = (struct tm2_priv*)ir_graph->serializer_privacy;
+    const char*              mem_base       = tm2_priv->base;
+    const TM2_RoialignParam* tm_param       = (TM2_RoialignParam*)(mem_base + tm_op->offset_t_param);
 
-    roialign_param->pooled_width = tm_param->pooled_width;
-    roialign_param->pooled_height = tm_param->pooled_height;
-    roialign_param->spatial_scale = tm_param->spatial_scale;
+    roialign_param->pooled_width            = tm_param->pooled_width;
+    roialign_param->pooled_height           = tm_param->pooled_height;
+    roialign_param->spatial_scale           = tm_param->spatial_scale;
 
     return 0;
 }

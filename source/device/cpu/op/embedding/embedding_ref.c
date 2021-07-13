@@ -62,7 +62,7 @@ int ref_embed_fp32(float* in_data, float* out_data, float* weight_data, float* b
             word_index = 0;
         if (word_index >= input_dim)
             word_index = input_dim - 1;
-        const float* embed = ( const float* )weight_data + num_output * word_index;
+        const float* embed = (const float*)weight_data + num_output * word_index;
         for (int z = 0; z < num_output; z++)
         {
             out_data[i * num_output + z] = embed[z];
@@ -76,16 +76,16 @@ int ref_embed_fp32(float* in_data, float* out_data, float* weight_data, float* b
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node* node = exec_node->ir_node;
-    struct graph* graph = node->graph;
+    struct node*  node            = exec_node->ir_node;
+    struct graph* graph           = node->graph;
 
-    struct tensor* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
-    struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
+    struct tensor* input          = get_ir_graph_tensor(graph, node->input_tensors[0]);
+    struct tensor* output         = get_ir_graph_tensor(graph, node->output_tensors[0]);
 
-    struct embedding_param* param = ( struct embedding_param* )node->op.param_mem;
+    struct embedding_param* param = (struct embedding_param*)node->op.param_mem;
 
-    struct tensor* weight_tensor = get_ir_graph_tensor(graph, node->input_tensors[1]);
-    struct tensor* bias_tensor = NULL;
+    struct tensor* weight_tensor  = get_ir_graph_tensor(graph, node->input_tensors[1]);
+    struct tensor* bias_tensor    = NULL;
     if (param->bias_term)
     {
         bias_tensor = get_ir_graph_tensor(graph, node->input_tensors[2]);
@@ -100,13 +100,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_BEST;
 }
 
-static struct node_ops hcl_node_ops = {.prerun = NULL,
-                                       .run = run,
-                                       .reshape = NULL,
-                                       .postrun = NULL,
-                                       .init_node = init_node,
-                                       .release_node = release_node,
-                                       .score = score};
+static struct node_ops hcl_node_ops = { .prerun       = NULL,
+                                        .run          = run,
+                                        .reshape      = NULL,
+                                        .postrun      = NULL,
+                                        .init_node    = init_node,
+                                        .release_node = release_node,
+                                        .score        = score };
 
 int register_embedding_ref_op()
 {

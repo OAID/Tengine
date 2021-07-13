@@ -45,10 +45,9 @@
 
 #include "priorbox_param.h"
 
-namespace TEngine{
-
-class PriorBox_vulkan : public Layer
+namespace TEngine
 {
+class PriorBox_vulkan : public Layer {
 public:
     PriorBox_vulkan();
     PriorBox_vulkan(ir_graph_t* ir_graph, ir_node_t* ir_node);
@@ -56,8 +55,9 @@ public:
     virtual int create_pipeline(const Option& opt);
     virtual int destroy_pipeline(const Option& opt);
     virtual int upload_model(VkTransfer& cmd, const Option& opt);
-    
-    virtual int record_pipeline(const std::vector<VkTensor>& bottom_blobs, std::vector<VkTensor>& top_blobs, VkCompute& cmd, const Option& opt) const;
+
+    virtual int record_pipeline(const std::vector<VkTensor>& bottom_blobs, std::vector<VkTensor>& top_blobs,
+                                VkCompute& cmd, const Option& opt) const;
 
 public:
     Pipeline* pipeline_priorbox;
@@ -72,25 +72,25 @@ public:
     int output_w;
 
     float variances[4];
-    int flip;
-    int clip;
-    int image_width;
-    int image_height;
+    int   flip;
+    int   clip;
+    int   image_width;
+    int   image_height;
     float step_width;
     float step_height;
     float offset;
-    int num_priors;
-    bool step_mmdetection;
-    bool center_mmdetection;
+    int   num_priors;
+    bool  step_mmdetection;
+    bool  center_mmdetection;
 
-    Tensor min_sizes;
-    Tensor max_sizes;
-    Tensor aspect_ratios;
+    Tensor   min_sizes;
+    Tensor   max_sizes;
+    Tensor   aspect_ratios;
     VkTensor min_sizes_gpu;
     VkTensor max_sizes_gpu;
     VkTensor aspect_ratios_gpu;
 };
 
-}   // namespace TEngine
+}    // namespace TEngine
 
 #endif

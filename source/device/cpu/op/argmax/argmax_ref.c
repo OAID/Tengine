@@ -49,10 +49,10 @@ struct argmax_op_param
 static int ref_argmax_fp32(float* input, int* output, const struct argmax_op_param* param)
 {
     float max_value;
-    int max_value_index;
+    int   max_value_index;
     float current;
 
-    int axis_size = param->axis_size;
+    int axis_size  = param->axis_size;
     int outer_size = param->outer_size;
     int inner_size = param->inner_size;
 
@@ -60,14 +60,14 @@ static int ref_argmax_fp32(float* input, int* output, const struct argmax_op_par
     {
         for (int inner = 0; inner < inner_size; ++inner)
         {
-            max_value = input[outer * axis_size * inner_size + inner];
+            max_value       = input[outer * axis_size * inner_size + inner];
             max_value_index = 0;
             for (int i = 1; i < axis_size; ++i)
             {
                 current = input[(outer * axis_size + i) * inner_size + inner];
                 if (current > max_value)
                 {
-                    max_value = current;
+                    max_value       = current;
                     max_value_index = i;
                 }
             }
@@ -81,10 +81,10 @@ static int ref_argmax_fp32(float* input, int* output, const struct argmax_op_par
 static int ref_argmax_uint8(uint8_t* input, int* output, const struct argmax_op_param* param)
 {
     uint8_t max_value;
-    int max_value_index;
+    int     max_value_index;
     uint8_t current;
 
-    int axis_size = param->axis_size;
+    int axis_size  = param->axis_size;
     int outer_size = param->outer_size;
     int inner_size = param->inner_size;
 
@@ -92,14 +92,14 @@ static int ref_argmax_uint8(uint8_t* input, int* output, const struct argmax_op_
     {
         for (int inner = 0; inner < inner_size; ++inner)
         {
-            max_value = input[outer * axis_size * inner_size + inner];
+            max_value       = input[outer * axis_size * inner_size + inner];
             max_value_index = 0;
             for (int i = 1; i < axis_size; ++i)
             {
                 current = input[(outer * axis_size + i) * inner_size + inner];
                 if (current > max_value)
                 {
-                    max_value = current;
+                    max_value       = current;
                     max_value_index = i;
                 }
             }
@@ -112,13 +112,13 @@ static int ref_argmax_uint8(uint8_t* input, int* output, const struct argmax_op_
 
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct argmax_op_param* argmax_op_param = ( struct argmax_op_param* )sys_malloc(sizeof(struct argmax_op_param));
-    argmax_op_param->axis = 0;
-    argmax_op_param->axis_size = 1;
-    argmax_op_param->inner_size = 1;
-    argmax_op_param->outer_size = 1;
-    argmax_op_param->keepdims = 1;
-    exec_node->ops_priv = argmax_op_param;
+    struct argmax_op_param* argmax_op_param = (struct argmax_op_param*)sys_malloc(sizeof(struct argmax_op_param));
+    argmax_op_param->axis                   = 0;
+    argmax_op_param->axis_size              = 1;
+    argmax_op_param->inner_size             = 1;
+    argmax_op_param->outer_size             = 1;
+    argmax_op_param->keepdims               = 1;
+    exec_node->ops_priv                     = argmax_op_param;
     return 0;
 }
 
@@ -130,26 +130,26 @@ static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, 
 
 static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node* ir_node = exec_node->ir_node;
-    struct graph* ir_graph = ir_node->graph;
+    struct node*   ir_node  = exec_node->ir_node;
+    struct graph*  ir_graph = ir_node->graph;
     struct tensor* output_tensor;
 
-    struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+    struct tensor* input_tensor             = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    output_tensor                           = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    struct argmax_op_param* argmax_op_param = ( struct argmax_op_param* )exec_node->ops_priv;
-    struct argmax_param* argmax_param = ( struct argmax_param* )ir_node->op.param_mem;
-    argmax_op_param->axis = argmax_param->axis;
-    argmax_op_param->keepdims = argmax_param->keepdims;
-    argmax_op_param->axis_size = input_tensor->dims[argmax_param->axis];
+    struct argmax_op_param* argmax_op_param = (struct argmax_op_param*)exec_node->ops_priv;
+    struct argmax_param*    argmax_param    = (struct argmax_param*)ir_node->op.param_mem;
+    argmax_op_param->axis                   = argmax_param->axis;
+    argmax_op_param->keepdims               = argmax_param->keepdims;
+    argmax_op_param->axis_size              = input_tensor->dims[argmax_param->axis];
 
-    int outer_size = 1;
+    int outer_size                          = 1;
     for (int i = 0; i < argmax_param->axis; ++i)
     {
         outer_size *= input_tensor->dims[i];
     }
 
-    int inner_size = 1;
+    int       inner_size = 1;
     const int dims_count = argmax_param->keepdims;
     for (int i = argmax_param->axis + 1; i < 3; i++)
     {
@@ -164,25 +164,25 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node* ir_node = exec_node->ir_node;
-    struct graph* ir_graph = ir_node->graph;
+    struct node*   ir_node  = exec_node->ir_node;
+    struct graph*  ir_graph = ir_node->graph;
     struct tensor* input_tensor;
     struct tensor* output_tensor;
 
-    input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    void* in_data = input_tensor->data;
-    void* out_data = output_tensor->data;
+    input_tensor                            = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    output_tensor                           = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+    void* in_data                           = input_tensor->data;
+    void* out_data                          = output_tensor->data;
 
-    struct argmax_op_param* argmax_op_param = ( struct argmax_op_param* )exec_node->ops_priv;
+    struct argmax_op_param* argmax_op_param = (struct argmax_op_param*)exec_node->ops_priv;
 
     TLOG_ERR("output_tensor->elem_num:%d\n", output_tensor->elem_num);
     TLOG_ERR("output_tensor->elem_size:%d\n", output_tensor->elem_size);
 
     if (input_tensor->data_type == TENGINE_DT_FP32)
-        ref_argmax_fp32(( float* )in_data, out_data, argmax_op_param);
-    else if(input_tensor->data_type == TENGINE_DT_UINT8)
-        ref_argmax_uint8(( uint8_t* )in_data, out_data, argmax_op_param);
+        ref_argmax_fp32((float*)in_data, out_data, argmax_op_param);
+    else if (input_tensor->data_type == TENGINE_DT_UINT8)
+        ref_argmax_uint8((uint8_t*)in_data, out_data, argmax_op_param);
 
     return 0;
 }
@@ -197,13 +197,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_BEST;
 }
 
-static struct node_ops argmax_node_ops = {.prerun = prerun,
-                                          .run = run,
-                                          .reshape = NULL,
-                                          .postrun = postrun,
-                                          .init_node = init_node,
-                                          .release_node = release_node,
-                                          .score = score};
+static struct node_ops argmax_node_ops = { .prerun       = prerun,
+                                           .run          = run,
+                                           .reshape      = NULL,
+                                           .postrun      = postrun,
+                                           .init_node    = init_node,
+                                           .release_node = release_node,
+                                           .score        = score };
 
 int register_argmax_ref_op()
 {

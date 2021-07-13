@@ -42,51 +42,90 @@
 
 #include <pthread.h>
 
-namespace TEngine {
-
-class Mutex
+namespace TEngine
 {
+class Mutex {
 public:
-    Mutex() { pthread_mutex_init(&mutex, 0); }
-    ~Mutex() { pthread_mutex_destroy(&mutex); }
-    void lock() { pthread_mutex_lock(&mutex); }
-    void unlock() { pthread_mutex_unlock(&mutex); }
+    Mutex()
+    {
+        pthread_mutex_init(&mutex, 0);
+    }
+    ~Mutex()
+    {
+        pthread_mutex_destroy(&mutex);
+    }
+    void lock()
+    {
+        pthread_mutex_lock(&mutex);
+    }
+    void unlock()
+    {
+        pthread_mutex_unlock(&mutex);
+    }
+
 private:
     friend class ConditionVariable;
     pthread_mutex_t mutex;
 };
 
-class MutexLockGuard
-{
+class MutexLockGuard {
 public:
-    MutexLockGuard(Mutex& _mutex) : mutex(_mutex) { mutex.lock(); }
-    ~MutexLockGuard() { mutex.unlock(); }
+    MutexLockGuard(Mutex& _mutex) : mutex(_mutex)
+    {
+        mutex.lock();
+    }
+    ~MutexLockGuard()
+    {
+        mutex.unlock();
+    }
+
 private:
     Mutex& mutex;
 };
 
-class ConditionVariable
-{
+class ConditionVariable {
 public:
-    ConditionVariable() { pthread_cond_init(&cond, 0); }
-    ~ConditionVariable() { pthread_cond_destroy(&cond); }
-    void wait(Mutex& mutex) { pthread_cond_wait(&cond, &mutex.mutex); }
-    void broadcast() { pthread_cond_broadcast(&cond); }
-    void signal() { pthread_cond_signal(&cond); }
+    ConditionVariable()
+    {
+        pthread_cond_init(&cond, 0);
+    }
+    ~ConditionVariable()
+    {
+        pthread_cond_destroy(&cond);
+    }
+    void wait(Mutex& mutex)
+    {
+        pthread_cond_wait(&cond, &mutex.mutex);
+    }
+    void broadcast()
+    {
+        pthread_cond_broadcast(&cond);
+    }
+    void signal()
+    {
+        pthread_cond_signal(&cond);
+    }
+
 private:
     pthread_cond_t cond;
 };
 
-class Thread
-{
+class Thread {
 public:
-    Thread(void* (*start)(void*), void* args = 0) { pthread_create(&t, 0, start, args); }
+    Thread(void* (*start)(void*), void* args = 0)
+    {
+        pthread_create(&t, 0, start, args);
+    }
     ~Thread() {}
-    void join() { pthread_join(t, 0); }
+    void join()
+    {
+        pthread_join(t, 0);
+    }
+
 private:
     pthread_t t;
 };
 
-} // namespace TEngine
+}    // namespace TEngine
 
 #endif

@@ -44,10 +44,10 @@ static int sched_prerun(ir_scheduler_t* scheduler, ir_graph_t* ir_graph)
     for (int i = 0; i < subgraph_num; i++)
     {
         struct subgraph* subgraph = get_ir_graph_subgraph(ir_graph, i);
-        ir_device_t* device = subgraph->device;
-        void* opt = NULL;
+        ir_device_t*     device   = subgraph->device;
+        void*            opt      = NULL;
 
-        char* default_name = *(char**)(ir_graph->attribute->context->default_options);
+        char* default_name        = *(char**)(ir_graph->attribute->context->default_options);
         if (0 == strcmp(device->name, default_name))
         {
             opt = ir_graph->attribute->context->default_options;
@@ -107,14 +107,14 @@ static int sched_run(ir_scheduler_t* scheduler, ir_graph_t* ir_graph, int block)
     while (1)
     {
         int ready_num = 0;
-        int wait_num = get_vector_num(wait_list);
+        int wait_num  = get_vector_num(wait_list);
 
         if (wait_num == 0)
             break;
 
         for (int i = 0; i < wait_num; i++)
         {
-            struct subgraph* subgraph = *( struct subgraph** )get_vector_data(wait_list, i);
+            struct subgraph* subgraph = *(struct subgraph**)get_vector_data(wait_list, i);
 
             if (subgraph->input_ready_count == subgraph->input_wait_count)
                 ready_list[ready_num++] = i;
@@ -128,10 +128,10 @@ static int sched_run(ir_scheduler_t* scheduler, ir_graph_t* ir_graph, int block)
 
         for (int i = 0; i < ready_num; i++)
         {
-            struct subgraph* subgraph = *( struct subgraph** )get_vector_data(wait_list, ready_list[i]);
-            ir_device_t* nn_dev = subgraph->device;
+            struct subgraph* subgraph = *(struct subgraph**)get_vector_data(wait_list, ready_list[i]);
+            ir_device_t*     nn_dev   = subgraph->device;
 
-            subgraph->status = GRAPH_STAT_RUNNING;
+            subgraph->status          = GRAPH_STAT_RUNNING;
 
             if (nn_dev->interface->run(nn_dev, subgraph) < 0)
             {
@@ -173,7 +173,7 @@ static int sched_run(ir_scheduler_t* scheduler, ir_graph_t* ir_graph, int block)
 
     for (int i = 0; i < subgraph_num; i++)
     {
-        struct subgraph* subgraph = get_ir_graph_subgraph(ir_graph, i);
+        struct subgraph* subgraph   = get_ir_graph_subgraph(ir_graph, i);
         subgraph->input_ready_count = 0;
     }
 
@@ -193,19 +193,19 @@ static int sched_wait(ir_scheduler_t* scheduler, ir_graph_t* ir_graph)
 static int sched_postrun(ir_scheduler_t* scheduler, ir_graph_t* ir_graph)
 {
     int subgraph_num = get_vector_num(ir_graph->subgraph_list);
-    int has_error = 0;
+    int has_error    = 0;
 
     for (int i = 0; i < subgraph_num; i++)
     {
         struct subgraph* subgraph = get_ir_graph_subgraph(ir_graph, i);
-        ir_device_t* nn_dev = subgraph->device;
+        ir_device_t*     nn_dev   = subgraph->device;
 
-        subgraph->status = GRAPH_STAT_DONE;
+        subgraph->status          = GRAPH_STAT_DONE;
 
         if (nn_dev->interface->post_run(nn_dev, subgraph) < 0)
         {
             subgraph->status = GRAPH_STAT_ERROR;
-            has_error = 1;
+            has_error        = 1;
             TLOG_ERR("sched %d prerun failed\n", subgraph->index);
         }
     }
@@ -218,12 +218,12 @@ static int sched_postrun(ir_scheduler_t* scheduler, ir_graph_t* ir_graph)
 
 
 static ir_scheduler_t sync_scheduler = {
-        .name   = "sync",
-        .prerun = sched_prerun,
-        .run = sched_run,
-        .wait = sched_wait,
-        .postrun = sched_postrun,
-        .release = NULL,
+    .name    = "sync",
+    .prerun  = sched_prerun,
+    .run     = sched_run,
+    .wait    = sched_wait,
+    .postrun = sched_postrun,
+    .release = NULL,
 };
 
 

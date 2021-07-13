@@ -34,56 +34,57 @@
 
 void relu(float* data, int size, int activation)
 {
-    for(int i = 0; i < size; i++)
+    for (int i = 0; i < size; i++)
     {
-        data[i] = max(data[i], ( float )0);
+        data[i] = max(data[i], (float)0);
 
-        if(activation > 0)
+        if (activation > 0)
         {
-            data[i] = min(data[i], ( float )activation);
+            data[i] = min(data[i], (float)activation);
         }
     }
 }
 
-void convdw3x3s1(float* output, float* input, float* _kernel, float* _bias, int channel, int in_h, int in_w, int out_h, int out_w, int num_thread)
+void convdw3x3s1(float* output, float* input, float* _kernel, float* _bias, int channel, int in_h, int in_w, int out_h,
+                 int out_w, int num_thread)
 {
-    int w = in_w;
-    int h = in_h;
-    int c_step_in = w * h;
+    int w               = in_w;
+    int h               = in_h;
+    int c_step_in       = w * h;
 
-    int outw = out_w;
-    int outh = out_h;
-    int c_step_out = outw * outh;
+    int outw            = out_w;
+    int outh            = out_h;
+    int c_step_out      = outw * outh;
 
-    const int group = channel;
+    const int    group  = channel;
     const float* kernel = _kernel;
 
-    #pragma omp parallel for num_threads(num_thread)
-    for (int g=0; g<group; g++)
+#pragma omp parallel for num_threads(num_thread)
+    for (int g = 0; g < group; g++)
     {
-        float* out = output + g * c_step_out;
-        float* outptr = out;
-        float* outptr2 = outptr + outw;
+        float* out           = output + g * c_step_out;
+        float* outptr        = out;
+        float* outptr2       = outptr + outw;
 
-        const float bias0 = _bias ? _bias[g] : 0.f;
-        const float* kernel0 = kernel + g*9;
+        const float  bias0   = _bias ? _bias[g] : 0.f;
+        const float* kernel0 = kernel + g * 9;
 
-        const float* img0 = input + g * c_step_in;
-        const float* r0 = img0;
-        const float* r1 = img0 + w;
-        const float* r2 = img0 + w*2;
-        const float* r3 = img0 + w*3;
+        const float* img0    = input + g * c_step_in;
+        const float* r0      = img0;
+        const float* r1      = img0 + w;
+        const float* r2      = img0 + w * 2;
+        const float* r3      = img0 + w * 3;
 
-        const float* k0 = kernel0;
-        const float* k1 = kernel0 + 3;
-        const float* k2 = kernel0 + 6;
+        const float* k0      = kernel0;
+        const float* k1      = kernel0 + 3;
+        const float* k2      = kernel0 + 6;
 
-        int i = 0;
-        for (; i+1 < outh; i+=2)
+        int i                = 0;
+        for (; i + 1 < outh; i += 2)
         {
             int remain = outw;
 
-            for (; remain>0; remain--)
+            for (; remain > 0; remain--)
             {
                 float sum = bias0;
                 sum += r0[0] * k0[0];
@@ -107,7 +108,7 @@ void convdw3x3s1(float* output, float* input, float* _kernel, float* _bias, int 
                 sum2 += r3[1] * k2[1];
                 sum2 += r3[2] * k2[2];
 
-                *outptr = sum;
+                *outptr  = sum;
                 *outptr2 = sum2;
 
                 r0++;
@@ -131,7 +132,7 @@ void convdw3x3s1(float* output, float* input, float* _kernel, float* _bias, int 
         {
             int remain = outw;
 
-            for (; remain>0; remain--)
+            for (; remain > 0; remain--)
             {
                 float sum = bias0;
                 sum += r0[0] * k0[0];
@@ -159,44 +160,45 @@ void convdw3x3s1(float* output, float* input, float* _kernel, float* _bias, int 
     }
 }
 
-void convdw3x3s2(float* output, float* input, float* _kernel, float* _bias, int channel, int in_h, int in_w, int out_h, int out_w, int num_thread)
+void convdw3x3s2(float* output, float* input, float* _kernel, float* _bias, int channel, int in_h, int in_w, int out_h,
+                 int out_w, int num_thread)
 {
-    int w = in_w;
-    int h = in_h;
-    int c_step_in = w * h;
+    int w                 = in_w;
+    int h                 = in_h;
+    int c_step_in         = w * h;
 
-    int outw = out_w;
-    int outh = out_h;
-    int c_step_out = outw * outh;
+    int outw              = out_w;
+    int outh              = out_h;
+    int c_step_out        = outw * outh;
 
-    const int group = channel;
+    const int group       = channel;
 
-    const int tailstep = w - 2*outw + w;
-    const float* kernel = _kernel;
+    const int    tailstep = w - 2 * outw + w;
+    const float* kernel   = _kernel;
 
-    #pragma omp parallel for num_threads(num_thread)
-    for (int g=0; g<group; g++)
+#pragma omp parallel for num_threads(num_thread)
+    for (int g = 0; g < group; g++)
     {
-        float* out = output + g * c_step_out;
-        float* outptr = out;
+        float* out           = output + g * c_step_out;
+        float* outptr        = out;
 
-        const float* kernel0 = kernel + g*9;
-        const float bias0 = _bias ? _bias[g] : 0.f;
+        const float* kernel0 = kernel + g * 9;
+        const float  bias0   = _bias ? _bias[g] : 0.f;
 
-        const float* img0 = input + g * c_step_in;
-        const float* r0 = img0;
-        const float* r1 = img0 + w;
-        const float* r2 = img0 + w*2;
+        const float* img0    = input + g * c_step_in;
+        const float* r0      = img0;
+        const float* r1      = img0 + w;
+        const float* r2      = img0 + w * 2;
 
-        const float* k0 = kernel0;
-        const float* k1 = kernel0 + 3;
-        const float* k2 = kernel0 + 6;
+        const float* k0      = kernel0;
+        const float* k1      = kernel0 + 3;
+        const float* k2      = kernel0 + 6;
 
-        int i = 0;
+        int i                = 0;
         for (; i < outh; i++)
         {
             int remain = outw;
-            for (; remain>0; remain--)
+            for (; remain > 0; remain--)
             {
                 float sum = bias0;
                 sum += r0[0] * k0[0];
@@ -221,15 +223,15 @@ void convdw3x3s2(float* output, float* input, float* _kernel, float* _bias, int 
             r1 += tailstep;
             r2 += tailstep;
         }
-    }    
+    }
 }
 
 void pad(float* input, float* output, int in_h, int in_w, int out_h, int out_w, int top, int left, float v)
 {
-    float* ptr = input;
+    float* ptr    = input;
     float* outptr = output;
 
-    int y = 0;
+    int y         = 0;
     // fill top
     for (; y < top; y++)
     {
@@ -280,50 +282,51 @@ void pad(float* input, float* output, int in_h, int in_w, int out_h, int out_w, 
 }
 
 int conv_dw_run(struct tensor* input_tensor, struct tensor* weight_tensor, struct tensor* bias_tensor,
-                struct tensor* output_tensor, struct conv_priv_info* conv_info, struct conv_param* param, int num_thread, int cpu_affinity)
+                struct tensor* output_tensor, struct conv_priv_info* conv_info, struct conv_param* param,
+                int num_thread, int cpu_affinity)
 {
-    float* input  = ( float* )input_tensor->data;
-    float* output = ( float* )output_tensor->data;
-    float* kernel = ( float* )weight_tensor->data;
+    float* input  = (float*)input_tensor->data;
+    float* output = (float*)output_tensor->data;
+    float* kernel = (float*)weight_tensor->data;
     float* biases = NULL;
     if (bias_tensor)
         biases = (float*)bias_tensor->data;
 
     int batch_number = input_tensor->dims[0];
-    int inc = input_tensor->dims[1];
-    int inh = input_tensor->dims[2];
-    int inw = input_tensor->dims[3];
-    int in_chw = inc * inh * inw;
+    int inc          = input_tensor->dims[1];
+    int inh          = input_tensor->dims[2];
+    int inw          = input_tensor->dims[3];
+    int in_chw       = inc * inh * inw;
 
-    int outc = output_tensor->dims[1];
-    int outh = output_tensor->dims[2];
-    int outw = output_tensor->dims[3];
-    int out_hw  = outh * outw;
-    int out_chw = out_hw * outc;
+    int outc         = output_tensor->dims[1];
+    int outh         = output_tensor->dims[2];
+    int outw         = output_tensor->dims[3];
+    int out_hw       = outh * outw;
+    int out_chw      = out_hw * outc;
 
-    int ksize_h = param->kernel_h;
-    int ksize_w = param->kernel_w;
-    int pad_w = param->pad_w0;
-    int pad_h = param->pad_h0;
+    int ksize_h      = param->kernel_h;
+    int ksize_w      = param->kernel_w;
+    int pad_w        = param->pad_w0;
+    int pad_h        = param->pad_h0;
 
-    int stride_w = param->stride_w;
-    int stride_h = param->stride_h;
-    int dilation_w = param->dilation_w;
-    int dilation_h = param->dilation_h;
-    int group = param->group;
+    int stride_w     = param->stride_w;
+    int stride_h     = param->stride_h;
+    int dilation_w   = param->dilation_w;
+    int dilation_h   = param->dilation_h;
+    int group        = param->group;
 
-    int activation = param->activation;
+    int activation   = param->activation;
 
     /* pading */
-    int inh_tmp = inh + pad_h + pad_h;
-    int inw_tmp = inw + pad_w + pad_w;
+    int    inh_tmp   = inh + pad_h + pad_h;
+    int    inw_tmp   = inw + pad_w + pad_w;
     float* input_tmp = NULL;
     if (inh_tmp == inh && inw_tmp == inw)
         input_tmp = input;
     else
     {
         input_tmp = (float*)malloc(inh_tmp * inw_tmp * group * sizeof(float));
-        for (int g=0; g<group; g++)
+        for (int g = 0; g < group; g++)
         {
             float* pad_in  = input + g * inh * inw;
             float* pad_out = input_tmp + g * inh_tmp * inw_tmp;
@@ -332,7 +335,7 @@ int conv_dw_run(struct tensor* input_tensor, struct tensor* weight_tensor, struc
     }
 
     /* process */
-    for(int i = 0; i < batch_number; i++)
+    for (int i = 0; i < batch_number; i++)
     {
         if (stride_h == 1)
             convdw3x3s1(output, input_tmp, kernel, biases, group, inh_tmp, inw_tmp, outh, outw, num_thread);

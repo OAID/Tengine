@@ -50,7 +50,7 @@ int get_pb_data(float* float_data, const std::string& filepath)
     }
 
     google::protobuf::io::IstreamInputStream input(&fs);
-    google::protobuf::io::CodedInputStream codedstr(&input);
+    google::protobuf::io::CodedInputStream   codedstr(&input);
 
 #if GOOGLE_PROTOBUF_VERSION >= 3011000
     codedstr.SetTotalBytesLimit(INT_MAX);
@@ -66,14 +66,14 @@ int get_pb_data(float* float_data, const std::string& filepath)
     {
         if (tp.has_raw_data())
         {
-            int size = (int)tp.raw_data().size() / 4;
+            int          size = (int)tp.raw_data().size() / 4;
             const float* data = (float*)tp.raw_data().c_str();
             for (int i = 0; i < size; i++)
                 float_data[i] = data[i];
         }
         else
         {
-            int size = tp.float_data_size();
+            int          size = tp.float_data_size();
             const float* data = tp.float_data().data();
             for (int i = 0; i < size; i++)
                 float_data[i] = data[i];
@@ -98,7 +98,7 @@ int get_pb_data_i32(int32_t* i32_data, const std::string& filepath)
     }
 
     google::protobuf::io::IstreamInputStream input(&fs);
-    google::protobuf::io::CodedInputStream codedstr(&input);
+    google::protobuf::io::CodedInputStream   codedstr(&input);
 
 #if GOOGLE_PROTOBUF_VERSION >= 3011000
     codedstr.SetTotalBytesLimit(INT_MAX);
@@ -114,14 +114,14 @@ int get_pb_data_i32(int32_t* i32_data, const std::string& filepath)
     {
         if (tp.has_raw_data())
         {
-            int size = (int)tp.raw_data().size() / 4;
+            int            size = (int)tp.raw_data().size() / 4;
             const int32_t* data = (int32_t*)tp.raw_data().c_str();
             for (int i = 0; i < size; i++)
                 i32_data[i] = data[i];
         }
         else
         {
-            int size = tp.int32_data_size();
+            int            size = tp.int32_data_size();
             const int32_t* data = tp.int32_data().data();
             for (int i = 0; i < size; i++)
                 i32_data[i] = data[i];
@@ -131,14 +131,14 @@ int get_pb_data_i32(int32_t* i32_data, const std::string& filepath)
     {
         if (tp.has_raw_data())
         {
-            int size = (int)tp.raw_data().size() / 8;
+            int            size = (int)tp.raw_data().size() / 8;
             const int64_t* data = (int64_t*)tp.raw_data().c_str();
             for (int i = 0; i < size; i++)
                 i32_data[i] = (int32_t)data[i];
         }
         else
         {
-            int size = tp.int64_data_size();
+            int            size = tp.int64_data_size();
             const int64_t* data = tp.int64_data().data();
             for (int i = 0; i < size; i++)
                 i32_data[i] = (int32_t)data[i];
@@ -155,16 +155,16 @@ int get_pb_data_i32(int32_t* i32_data, const std::string& filepath)
 
 int float_mismatch(float* current, float* reference, int size)
 {
-    for(int i=0;i<size;i++)
+    for (int i = 0; i < size; i++)
     {
         float tmp = fabs(current[i]) - fabs(reference[i]);
-        if(fabs(tmp) > 0.0001)
+        if (fabs(tmp) > 0.0001)
         {
             fprintf(stderr, "test failed, index:%d, a:%f, b:%f\n", i, current[i], reference[i]);
             return -1;
         }
     }
-    fprintf(stderr,"test pass\n");
+    fprintf(stderr, "test pass\n");
 
     return 0;
 }

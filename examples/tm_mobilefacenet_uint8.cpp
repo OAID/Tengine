@@ -30,31 +30,31 @@
 #include "tengine/c_api.h"
 #include "tengine_operations.h"
 
-#define DEFAULT_MEAN1 127.5
-#define DEFAULT_MEAN2 127.5
-#define DEFAULT_MEAN3 127.5
-#define DEFAULT_SCALE1 0.0078
-#define DEFAULT_SCALE2 0.0078
-#define DEFAULT_SCALE3 0.0078
+#define DEFAULT_MEAN1      127.5
+#define DEFAULT_MEAN2      127.5
+#define DEFAULT_MEAN3      127.5
+#define DEFAULT_SCALE1     0.0078
+#define DEFAULT_SCALE2     0.0078
+#define DEFAULT_SCALE3     0.0078
 
 #define MOBILE_FACE_HEIGHT 112
-#define MOBILE_FACE_WIDTH 112
+#define MOBILE_FACE_WIDTH  112
 
-graph_t graph;
+graph_t  graph;
 tensor_t input_tensor;
 tensor_t output_tensor;
-int feature_len;
+int      feature_len;
 
 void init(const char* modelfile)
 {
     /* set runtime options */
     struct options opt;
     opt.num_thread = 1;
-    opt.cluster = TENGINE_CLUSTER_ALL;
-    opt.precision = TENGINE_MODE_UINT8;
-    opt.affinity = 0x01;    
+    opt.cluster    = TENGINE_CLUSTER_ALL;
+    opt.precision  = TENGINE_MODE_UINT8;
+    opt.affinity   = 0x01;
 
-    int dims[4] = {1, 3, MOBILE_FACE_HEIGHT, MOBILE_FACE_WIDTH};
+    int dims[4]    = { 1, 3, MOBILE_FACE_HEIGHT, MOBILE_FACE_WIDTH };
     init_tengine();
     fprintf(stderr, "tengine version: %s\n", get_tengine_version());
     graph = create_graph(NULL, "tengine", modelfile);
@@ -69,7 +69,7 @@ void init(const char* modelfile)
     input_tensor = get_graph_input_tensor(graph, 0, 0);
     set_tensor_shape(input_tensor, dims, 4);
     /* prerun graph, set work options(num_thread, cluster, precision) */
-    int rc = prerun_graph_multithread(graph, opt);
+    int rc        = prerun_graph_multithread(graph, opt);
 
     output_tensor = get_graph_output_tensor(graph, 0, 0);
     get_tensor_shape(output_tensor, dims, 4);
@@ -81,9 +81,9 @@ void init(const char* modelfile)
 void get_input_uint8_data(const char* image_file, uint8_t* input_data, int img_h, int img_w, float* mean, float* scale,
                           float input_scale, int zero_point)
 {
-    image img = imread_process(image_file, img_w, img_h, mean, scale);
+    image img         = imread_process(image_file, img_w, img_h, mean, scale);
 
-    float* image_data = ( float* )img.data;
+    float* image_data = (float*)img.data;
 
     for (int i = 0; i < img_w * img_h * 3; i++)
     {
@@ -101,17 +101,17 @@ void get_input_uint8_data(const char* image_file, uint8_t* input_data, int img_h
 
 int getFeature(const char* imagefile, float* feature)
 {
-    int height = MOBILE_FACE_HEIGHT;
-    int width = MOBILE_FACE_WIDTH;
-    int img_size = height * width * 3;
-    int dims[] = {1, 3, height, width};
-    float means[3] = {DEFAULT_MEAN1, DEFAULT_MEAN2, DEFAULT_MEAN3};
-    float scales[3] = {DEFAULT_SCALE1, DEFAULT_SCALE2, DEFAULT_SCALE3};
+    int                  height    = MOBILE_FACE_HEIGHT;
+    int                  width     = MOBILE_FACE_WIDTH;
+    int                  img_size  = height * width * 3;
+    int                  dims[]    = { 1, 3, height, width };
+    float                means[3]  = { DEFAULT_MEAN1, DEFAULT_MEAN2, DEFAULT_MEAN3 };
+    float                scales[3] = { DEFAULT_SCALE1, DEFAULT_SCALE2, DEFAULT_SCALE3 };
     std::vector<uint8_t> input_data(img_size);
 
-    float input_scale = 0.f;
-    int input_zero_point = 0;
-    get_tensor_quant_param(input_tensor, &input_scale, &input_zero_point, 1);    
+    float input_scale      = 0.f;
+    int   input_zero_point = 0;
+    get_tensor_quant_param(input_tensor, &input_scale, &input_zero_point, 1);
     get_input_uint8_data(imagefile, input_data.data(), height, width, means, scales, input_scale, input_zero_point);
 
     set_tensor_buffer(input_tensor, input_data.data(), img_size * sizeof(uint8_t));
@@ -123,15 +123,15 @@ int getFeature(const char* imagefile, float* feature)
 
     /* get the result of classification */
     tensor_t output_tensor = get_graph_output_tensor(graph, 0, 0);
-    uint8_t* output_u8 = ( uint8_t* )get_tensor_buffer(output_tensor);
-    int output_size = get_tensor_buffer_size(output_tensor);
+    uint8_t* output_u8     = (uint8_t*)get_tensor_buffer(output_tensor);
+    int      output_size   = get_tensor_buffer_size(output_tensor);
 
     /* dequant */
-    float output_scale = 0.f;
-    int output_zero_point = 0;
+    float output_scale      = 0.f;
+    int   output_zero_point = 0;
     get_tensor_quant_param(output_tensor, &output_scale, &output_zero_point, 1);
     for (int i = 0; i < output_size; i++)
-        feature[i] = (( float )output_u8[i] - ( float )output_zero_point) * output_scale;
+        feature[i] = ((float)output_u8[i] - (float)output_zero_point) * output_scale;
 
     return output_size;
 }
@@ -166,28 +166,28 @@ void show_usage()
 int main(int argc, char* argv[])
 {
     char* model_file = NULL;
-    char* person_a = NULL;
-    char* person_b = NULL;
+    char* person_a   = NULL;
+    char* person_b   = NULL;
 
     int res;
     while ((res = getopt(argc, argv, "m:a:b:h")) != -1)
     {
         switch (res)
         {
-            case 'm':
-                model_file = optarg;
-                break;
-            case 'a':
-                person_a = optarg;
-                break;
-            case 'b':
-                person_b = optarg;
-                break;
-            case 'h':
-                show_usage();
-                return 0;
-            default:
-                break;
+        case 'm':
+            model_file = optarg;
+            break;
+        case 'a':
+            person_a = optarg;
+            break;
+        case 'b':
+            person_b = optarg;
+            break;
+        case 'h':
+            show_usage();
+            return 0;
+        default:
+            break;
         }
     }
 

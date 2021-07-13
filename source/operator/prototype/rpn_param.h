@@ -45,12 +45,12 @@ typedef struct rpn_param
 {
     struct vector* ratios;
     struct vector* anchor_scales;
-    int feat_stride;
-    int basesize;
-    int min_size;
-    int per_nms_topn;
-    int post_nms_topn;
-    float nms_thresh;
+    int            feat_stride;
+    int            basesize;
+    int            min_size;
+    int            per_nms_topn;
+    int            post_nms_topn;
+    float          nms_thresh;
     struct vector* anchors_;
 } rpn_param_t;
 

@@ -9,7 +9,7 @@
 #include <fcntl.h>
 #include <functional>
 
-extern "C" 
+extern "C"
 {
 #include "tengine/c_api.h"
 #include "graph/graph.h"

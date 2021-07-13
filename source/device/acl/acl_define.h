@@ -30,5 +30,5 @@
 typedef struct acl_option
 {
     char* dev_name;
-    int precision;      //!< precision of calculation
+    int   precision;    //!< precision of calculation
 } acl_opt_t;

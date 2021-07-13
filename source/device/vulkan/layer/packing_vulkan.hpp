@@ -43,17 +43,17 @@
 #include "../vulkan_layer.hpp"
 #include "../vulkan_command.hpp"
 
-namespace TEngine {
-
-class Packing_vulkan : public Layer
+namespace TEngine
 {
+class Packing_vulkan : public Layer {
 public:
     Packing_vulkan();
 
     virtual int create_pipeline(const Option& opt);
     virtual int destroy_pipeline(const Option& opt);
-    
-    virtual int record_pipeline(const VkTensor& bottom_blob, VkTensor& top_blob, VkCompute& cmd, const Option& opt) const;
+
+    virtual int record_pipeline(const VkTensor& bottom_blob, VkTensor& top_blob, VkCompute& cmd,
+                                const Option& opt) const;
 
 public:
     int out_shape_packed_dims;
@@ -90,7 +90,7 @@ public:
     Pipeline* pipeline_packing_pack8to1;
 };
 
-} // namespace TEngine
+}    // namespace TEngine
 
 
 #endif

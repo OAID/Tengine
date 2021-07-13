@@ -45,47 +45,47 @@ static int slice_op_map(int op)
 static int tm2_load_slice(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                           const TM2_Operator* tm_op)
 {
-    struct slice_param* slice_param = ( struct slice_param* )ir_node->op.param_mem;
-    const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
-    const char* mem_base = tm2_priv->base;
-    const TM2_SliceParam* tm_param = (TM2_SliceParam*)(mem_base + tm_op->offset_t_param);
+    struct slice_param*    slice_param = (struct slice_param*)ir_node->op.param_mem;
+    const struct tm2_priv* tm2_priv    = (struct tm2_priv*)ir_graph->serializer_privacy;
+    const char*            mem_base    = tm2_priv->base;
+    const TM2_SliceParam*  tm_param    = (TM2_SliceParam*)(mem_base + tm_op->offset_t_param);
 
-    slice_param->axis = tm_param->axis;
-    slice_param->begin = tm_param->begin;
-    slice_param->end = tm_param->end;
-    slice_param->step = tm_param->step;
-    slice_param->iscaffe = tm_param->iscaffe;
-    slice_param->ismxnet = tm_param->ismxnet;
-    slice_param->isonnx = tm_param->isonnx;
+    slice_param->axis                  = tm_param->axis;
+    slice_param->begin                 = tm_param->begin;
+    slice_param->end                   = tm_param->end;
+    slice_param->step                  = tm_param->step;
+    slice_param->iscaffe               = tm_param->iscaffe;
+    slice_param->ismxnet               = tm_param->ismxnet;
+    slice_param->isonnx                = tm_param->isonnx;
 
-    slice_param->begin_ = create_vector(sizeof(uint32_t), NULL);
-    slice_param->size_ = create_vector(sizeof(uint32_t), NULL);
-    slice_param->slice_point_ = create_vector(sizeof(uint32_t), NULL);
+    slice_param->begin_                = create_vector(sizeof(uint32_t), NULL);
+    slice_param->size_                 = create_vector(sizeof(uint32_t), NULL);
+    slice_param->slice_point_          = create_vector(sizeof(uint32_t), NULL);
 
     if (tm_param->offset_vi_begins != TM2_NOT_SET)
     {
-        const TM2_Vector_indices* v_begins = ( TM2_Vector_indices* )(mem_base + tm_param->offset_vi_begins);
+        const TM2_Vector_indices* v_begins = (TM2_Vector_indices*)(mem_base + tm_param->offset_vi_begins);
         for (unsigned int i = 0; i < v_begins->v_num; i++)
         {
-            push_vector_data(slice_param->begin_, ( void* )&v_begins->indices[i]);
+            push_vector_data(slice_param->begin_, (void*)&v_begins->indices[i]);
         }
     }
 
     if (tm_param->offset_vi_sizes != TM2_NOT_SET)
     {
-        const TM2_Vector_indices* v_size = ( TM2_Vector_indices* )(mem_base + tm_param->offset_vi_sizes);
+        const TM2_Vector_indices* v_size = (TM2_Vector_indices*)(mem_base + tm_param->offset_vi_sizes);
         for (unsigned int i = 0; i < v_size->v_num; i++)
         {
-            push_vector_data(slice_param->size_, ( void* )&v_size->indices[i]);
+            push_vector_data(slice_param->size_, (void*)&v_size->indices[i]);
         }
     }
 
     if (tm_param->offset_vi_slice_points != TM2_NOT_SET)
     {
-        const TM2_Vector_indices* v_slice_point = ( TM2_Vector_indices* )(mem_base + tm_param->offset_vi_slice_points);
+        const TM2_Vector_indices* v_slice_point = (TM2_Vector_indices*)(mem_base + tm_param->offset_vi_slice_points);
         for (unsigned int i = 0; i < v_slice_point->v_num; i++)
         {
-            push_vector_data(slice_param->slice_point_, ( void* )&v_slice_point->indices[i]);
+            push_vector_data(slice_param->slice_point_, (void*)&v_slice_point->indices[i]);
         }
     }
 

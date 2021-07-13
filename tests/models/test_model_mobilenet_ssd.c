@@ -29,15 +29,15 @@
 #include "tengine_operations.h"
 
 #define DEFAULT_MAX_BOX_COUNT 100
-#define DEFAULT_REPEAT_COUNT    1
-#define DEFAULT_THREAD_COUNT    1
+#define DEFAULT_REPEAT_COUNT  1
+#define DEFAULT_THREAD_COUNT  1
 
 int float_mismatch(float* current, float* reference, int size)
 {
-    for(int i=0;i<size;i++)
+    for (int i = 0; i < size; i++)
     {
         float tmp = fabs(current[i]) - fabs(reference[i]);
-        if(fabs(tmp) > 0.0001)
+        if (fabs(tmp) > 0.0001)
         {
             fprintf(stderr, "test failed, index:%d, a:%f, b:%f\n", i, current[i], reference[i]);
             return -1;
@@ -54,13 +54,13 @@ void show_usage()
 
 int main(int argc, char* argv[])
 {
-    int repeat_count = DEFAULT_REPEAT_COUNT;
-    int num_thread = DEFAULT_THREAD_COUNT;
-    char* model_file = "./models/mobilenet_ssd.tmfile";
-    int img_h = 300;
-    int img_w = 300;
-    float mean[3] = {127.5f, 127.5f, 127.5f};
-    float scale[3] = {0.007843f, 0.007843f, 0.007843f};
+    int   repeat_count   = DEFAULT_REPEAT_COUNT;
+    int   num_thread     = DEFAULT_THREAD_COUNT;
+    char* model_file     = "./models/mobilenet_ssd.tmfile";
+    int   img_h          = 300;
+    int   img_w          = 300;
+    float mean[3]        = { 127.5f, 127.5f, 127.5f };
+    float scale[3]       = { 0.007843f, 0.007843f, 0.007843f };
     float show_threshold = 0.5f;
 
     int res;
@@ -68,20 +68,20 @@ int main(int argc, char* argv[])
     {
         switch (res)
         {
-            case 'm':
-                model_file = optarg;
-                break;
-            case 'r':
-                repeat_count = atoi(optarg);
-                break;
-            case 't':
-                num_thread = atoi(optarg);
-                break;
-            case 'h':
-                show_usage();
-                return 0;
-            default:
-                break;
+        case 'm':
+            model_file = optarg;
+            break;
+        case 'r':
+            repeat_count = atoi(optarg);
+            break;
+        case 't':
+            num_thread = atoi(optarg);
+            break;
+        case 'h':
+            show_usage();
+            return 0;
+        default:
+            break;
         }
     }
 
@@ -99,9 +99,9 @@ int main(int argc, char* argv[])
     /* set runtime options */
     struct options opt;
     opt.num_thread = num_thread;
-    opt.cluster = TENGINE_CLUSTER_ALL;
-    opt.precision = TENGINE_MODE_FP32;
-    opt.affinity = 0;
+    opt.cluster    = TENGINE_CLUSTER_ALL;
+    opt.precision  = TENGINE_MODE_FP32;
+    opt.affinity   = 0;
 
     /* inital tengine */
     init_tengine();
@@ -116,9 +116,9 @@ int main(int argc, char* argv[])
     }
 
     /* set the input shape to initial the graph, and prerun graph to infer shape */
-    int img_size = img_h * img_w * 3;
-    int dims[] = {1, 3, img_h, img_w};    // nchw
-    float* input_data = ( float* )malloc(img_size * sizeof(float));
+    int    img_size       = img_h * img_w * 3;
+    int    dims[]         = { 1, 3, img_h, img_w };    // nchw
+    float* input_data     = (float*)malloc(img_size * sizeof(float));
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == NULL)
@@ -137,7 +137,7 @@ int main(int argc, char* argv[])
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;
-    }    
+    }
 
     /* prerun graph, set work options(num_thread, cluster, precision) */
     if (prerun_graph_multithread(graph, opt) < 0)
@@ -147,9 +147,9 @@ int main(int argc, char* argv[])
     }
 
     /* prepare process input data, set the data mem to input tensor */
-    char *model_name="mobilenet_ssd";
+    char* model_name = "mobilenet_ssd";
     char* input_file = "./data/mobilenet_ssd_in.bin";
-    FILE *fp;
+    FILE* fp;
     fp = fopen(input_file, "rb");
     if (fread(input_data, sizeof(float), img_size, fp) == 0)
     {
@@ -159,8 +159,8 @@ int main(int argc, char* argv[])
     fclose(fp);
 
     /* run graph */
-    double min_time = DBL_MAX;
-    double max_time = DBL_MIN;
+    double min_time   = DBL_MAX;
+    double max_time   = DBL_MIN;
     double total_time = 0.;
     for (int i = 0; i < repeat_count; i++)
     {
@@ -184,14 +184,14 @@ int main(int argc, char* argv[])
 
     /* process the detection result */
     tensor_t output_tensor = get_graph_output_tensor(graph, 0, 0);    //"detection_out"
-    int out_dim[4];
+    int      out_dim[4];
     get_tensor_shape(output_tensor, out_dim, 4);
-    float* output_data = ( float* )get_tensor_buffer(output_tensor);
+    float* output_data     = (float*)get_tensor_buffer(output_tensor);
 
-    int output_size1 = get_tensor_buffer_size(output_tensor) / sizeof(float);
-    char* reference_file1 = "./data/mobilenet_ssd_out.bin";
-    float* reference_data1=(float* )malloc(output_size1*4);
-    FILE *fp1;
+    int    output_size1    = get_tensor_buffer_size(output_tensor) / sizeof(float);
+    char*  reference_file1 = "./data/mobilenet_ssd_out.bin";
+    float* reference_data1 = (float*)malloc(output_size1 * 4);
+    FILE*  fp1;
     //read
     fp1 = fopen(reference_file1, "rb");
     if (fread(reference_data1, sizeof(float), output_size1, fp1) == 0)

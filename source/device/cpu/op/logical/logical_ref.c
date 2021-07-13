@@ -111,26 +111,26 @@ void logical_or(int input_hw, int input_hw_1, int input_count4, int input1_count
 static int ref_logical_fp32(float* input0, float* input1, float* output, struct logical_param_ref* param,
                             int num_thread)
 {
-    int input_hw = param->shape0[2] * param->shape0[3];
-    int input_hw_1 = param->shape1[2] * param->shape1[3];
-    int input_count4 = param->shape0[0] * param->shape0[1] * input_hw;
+    int input_hw      = param->shape0[2] * param->shape0[3];
+    int input_hw_1    = param->shape1[2] * param->shape1[3];
+    int input_count4  = param->shape0[0] * param->shape0[1] * input_hw;
     int input1_count4 = param->shape1[0] * param->shape1[1] * input_hw_1;
 
     switch (param->type)
     {
-        case 0:    // LogicalAnd
+    case 0:    // LogicalAnd
         {
             logical_and(input_hw, input_hw_1, input_count4, input1_count4, input0, input1, output);
             break;
         }
-        case 1:    // LogicalOr
+    case 1:    // LogicalOr
         {
             logical_or(input_hw, input_hw_1, input_count4, input1_count4, input0, input1, output);
             break;
         }
-        default:
-            return -1;
-            ;
+    default:
+        return -1;
+        ;
     }
     return 0;
 }
@@ -152,12 +152,12 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node* ir_node = exec_node->ir_node;
-    struct graph* ir_graph = ir_node->graph;
+    struct node*   ir_node  = exec_node->ir_node;
+    struct graph*  ir_graph = ir_node->graph;
     struct tensor* input_tensor0;
     struct tensor* input_tensor1;
     struct tensor* output_tensor;
-    int layout = ir_graph->graph_layout;
+    int            layout = ir_graph->graph_layout;
 
     if (ir_node->input_num != 2)
     {
@@ -165,11 +165,11 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         return -1;
     }
 
-    input_tensor0 = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    input_tensor1 = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
-    output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+    input_tensor0                          = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    input_tensor1                          = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
+    output_tensor                          = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    struct logical_param* logical_param = ( struct logical_param* )ir_node->op.param_mem;
+    struct logical_param*    logical_param = (struct logical_param*)ir_node->op.param_mem;
     struct logical_param_ref logical_param_ref;
 
     logical_param_ref.shape0[0] = 1;
@@ -182,22 +182,22 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     logical_param_ref.shape1[2] = 1;
     logical_param_ref.shape1[3] = 1;
 
-    if (input_tensor0->dims[0] !=0)
+    if (input_tensor0->dims[0] != 0)
         logical_param_ref.shape0[0] = input_tensor0->dims[0];
-    if (input_tensor0->dims[1] !=0)
+    if (input_tensor0->dims[1] != 0)
         logical_param_ref.shape0[1] = input_tensor0->dims[1];
-    if (input_tensor0->dims[2] !=0)
+    if (input_tensor0->dims[2] != 0)
         logical_param_ref.shape0[2] = input_tensor0->dims[2];
-    if (input_tensor0->dims[3] !=0)
+    if (input_tensor0->dims[3] != 0)
         logical_param_ref.shape0[3] = input_tensor0->dims[3];
 
-    if (input_tensor1->dims[0] !=0)
+    if (input_tensor1->dims[0] != 0)
         logical_param_ref.shape1[0] = input_tensor1->dims[0];
-    if (input_tensor1->dims[1] !=0)
+    if (input_tensor1->dims[1] != 0)
         logical_param_ref.shape1[1] = input_tensor1->dims[1];
-    if (input_tensor1->dims[2] !=0)
+    if (input_tensor1->dims[2] != 0)
         logical_param_ref.shape1[2] = input_tensor1->dims[2];
-    if (input_tensor1->dims[3] !=0)
+    if (input_tensor1->dims[3] != 0)
         logical_param_ref.shape1[3] = input_tensor1->dims[3];
 
     logical_param_ref.type = logical_param->type;
@@ -215,13 +215,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_CANDO;
 }
 
-static struct node_ops hcl_node_ops = {.prerun = prerun,
-                                       .run = run,
-                                       .reshape = NULL,
-                                       .postrun = NULL,
-                                       .init_node = init_node,
-                                       .release_node = release_node,
-                                       .score = score};
+static struct node_ops hcl_node_ops = { .prerun       = prerun,
+                                        .run          = run,
+                                        .reshape      = NULL,
+                                        .postrun      = NULL,
+                                        .init_node    = init_node,
+                                        .release_node = release_node,
+                                        .score        = score };
 
 int register_logical_ref_op()
 {

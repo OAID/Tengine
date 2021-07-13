@@ -36,7 +36,7 @@
 #include "utility/sys_port.h"
 
 #ifdef TENGINE_ENABLE_ENV_VAR
-#include <stdlib.h>
+    #include <stdlib.h>
 #endif
 
 
@@ -44,12 +44,12 @@ void init_memory_block(memory_block_t* memory_block, uint16_t index)
 {
     if (NULL != memory_block)
     {
-        memory_block->index = index;
-        memory_block->size  = 0;
+        memory_block->index        = index;
+        memory_block->size         = 0;
         memory_block->tensor_count = 0;
         memory_block->tensor_list  = NULL;
         memory_block->tensor_index = 0;
-        memory_block->inuse = 0;
+        memory_block->inuse        = 0;
     }
 }
 
@@ -76,14 +76,14 @@ memory_block_t* get_usable_memory_block(struct vector* memory_blocks)
 
     if (NULL == memory_block)
     {
-        int memory_blocks_count = get_vector_num(memory_blocks);
+        int            memory_blocks_count = get_vector_num(memory_blocks);
         memory_block_t new_memory_block;
         init_memory_block(&new_memory_block, memory_blocks_count);
 
         push_vector_data(memory_blocks, &new_memory_block);
 
         memory_blocks_count = get_vector_num(memory_blocks);
-        memory_block = (memory_block_t*)get_vector_data(memory_blocks, memory_blocks_count - 1);
+        memory_block        = (memory_block_t*)get_vector_data(memory_blocks, memory_blocks_count - 1);
     }
 
     return memory_block;
@@ -95,13 +95,13 @@ int mark_memory_block_with_tensor(ir_graph_t* graph, memory_block_t* memory_bloc
     ir_tensor_t* tensor = get_ir_graph_tensor(graph, index);
 
     memory_block->tensor_count += 1;
-    memory_block->tensor_list  = sys_realloc(memory_block->tensor_list, memory_block->tensor_count * sizeof(uint16_t));
-    memory_block->inuse = 1;
+    memory_block->tensor_list   = sys_realloc(memory_block->tensor_list, memory_block->tensor_count * sizeof(uint16_t));
+    memory_block->inuse         = 1;
 
     uint32_t tensor_buffer_size = tensor->elem_num * tensor->elem_size;
     if (tensor_buffer_size > memory_block->size)
     {
-        memory_block->size = tensor_buffer_size;
+        memory_block->size         = tensor_buffer_size;
         memory_block->tensor_index = index;
     }
 
@@ -118,14 +118,14 @@ int estimate_subgraph_memory_blocks(struct subgraph* subgraph, struct vector* me
 
     for (uint16_t i = 0; i < subgraph->node_num; i++)
     {
-        uint16_t node_index = subgraph->node_list[i];
-        ir_node_t* node = get_ir_graph_node(subgraph->graph, node_index);
+        uint16_t   node_index = subgraph->node_list[i];
+        ir_node_t* node       = get_ir_graph_node(subgraph->graph, node_index);
 
         if (OP_CONST != node->op.type)
         {
             for (uint8_t j = 0; j < node->output_num; j++)
             {
-                uint16_t index = node->output_tensors[j];
+                uint16_t index               = node->output_tensors[j];
 
                 memory_block_t* memory_block = get_usable_memory_block(memory_blocks);
                 if (NULL != memory_block)

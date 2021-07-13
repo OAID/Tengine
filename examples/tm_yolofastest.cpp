@@ -23,13 +23,13 @@
  * 
  * original model: https://github.com/dog-qiuqiu/Yolo-Fastest/tree/master/ModelZoo/yolo-fastest-1.1_coco
  */
- 
+
 #include <iostream>
 #include <iomanip>
 #include <vector>
 
 #ifdef _MSC_VER
-#define NOMINMAX
+    #define NOMINMAX
 #endif
 
 #include <algorithm>
@@ -45,8 +45,8 @@
 
 enum
 {
-    YOLOV3 = 0,
-    YOLO_FASTEST = 1,
+    YOLOV3          = 0,
+    YOLO_FASTEST    = 1,
     YOLO_FASTEST_XL = 2
 };
 
@@ -60,7 +60,7 @@ struct BBoxRect
     float xmax;
     float ymax;
     float area;
-    int label;
+    int   label;
 };
 
 struct TMat
@@ -70,20 +70,20 @@ struct TMat
         return (const float*)data;
     }
 
-    float *row(int row) const
+    float* row(int row) const
     {
-        return (float *)data + w * row;
+        return (float*)data + w * row;
     }
 
-    TMat channel_range(int start, int chn_num) const 
+    TMat channel_range(int start, int chn_num) const
     {
-        TMat mat = { 0 };
+        TMat mat  = { 0 };
 
         mat.batch = 1;
-        mat.c = chn_num;
-        mat.h = h;
-        mat.w = w;
-        mat.data = (float *)data + start * h * w;
+        mat.c     = chn_num;
+        mat.h     = h;
+        mat.w     = w;
+        mat.data  = (float*)data + start * h * w;
 
         return mat;
     }
@@ -93,53 +93,55 @@ struct TMat
         return channel_range(channel, 1);
     }
 
-    int batch, c, h, w;
-    void *data;
+    int   batch, c, h, w;
+    void* data;
 };
 
-class Yolov3DetectionOutput
-{
+class Yolov3DetectionOutput {
 public:
     int init(int version);
     int forward(const std::vector<TMat>& bottom_blobs, std::vector<TMat>& top_blobs);
-private:
 
-    int m_num_box;
-    int m_num_class;
+private:
+    int   m_num_box;
+    int   m_num_class;
     float m_anchors_scale[32];
     float m_biases[32];
-    int m_mask[32];
+    int   m_mask[32];
     float m_confidence_threshold;
     float m_nms_threshold;
 };
 
 static const char* class_names[] = {
-    "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light",
-    "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat", "dog", "horse", "sheep", "cow",
-    "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee",
-    "skis", "snowboard", "sports ball", "kite", "baseball bat", "baseball glove", "skateboard", "surfboard",
-    "tennis racket", "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl", "banana", "apple",
-    "sandwich", "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake", "chair", "couch",
-    "potted plant", "bed", "dining table", "toilet", "tv", "laptop", "mouse", "remote", "keyboard", "cell phone",
-    "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors", "teddy bear",
-    "hair drier", "toothbrush"
+    "person",         "bicycle",    "car",           "motorcycle",    "airplane",     "bus",           "train",
+    "truck",          "boat",       "traffic light", "fire hydrant",  "stop sign",    "parking meter", "bench",
+    "bird",           "cat",        "dog",           "horse",         "sheep",        "cow",           "elephant",
+    "bear",           "zebra",      "giraffe",       "backpack",      "umbrella",     "handbag",       "tie",
+    "suitcase",       "frisbee",    "skis",          "snowboard",     "sports ball",  "kite",          "baseball bat",
+    "baseball glove", "skateboard", "surfboard",     "tennis racket", "bottle",       "wine glass",    "cup",
+    "fork",           "knife",      "spoon",         "bowl",          "banana",       "apple",         "sandwich",
+    "orange",         "broccoli",   "carrot",        "hot dog",       "pizza",        "donut",         "cake",
+    "chair",          "couch",      "potted plant",  "bed",           "dining table", "toilet",        "tv",
+    "laptop",         "mouse",      "remote",        "keyboard",      "cell phone",   "microwave",     "oven",
+    "toaster",        "sink",       "refrigerator",  "book",          "clock",        "vase",          "scissors",
+    "teddy bear",     "hair drier", "toothbrush"
 };
 
 int Yolov3DetectionOutput::init(int version)
 {
     memset(this, 0, sizeof(*this));
-    m_num_box = 3;
+    m_num_box   = 3;
     m_num_class = 80;
-	
-	fprintf(stderr, "Yolov3DetectionOutput init param[%d]\n", version);
-	
+
+    fprintf(stderr, "Yolov3DetectionOutput init param[%d]\n", version);
+
     if (version == YOLOV3)
     {
         m_anchors_scale[0] = 32;
         m_anchors_scale[1] = 16;
         m_anchors_scale[2] = 8;
 
-        float bias[] = { 10,13,  16,30,  33,23,  30,61,  62,45,  59,119,  116,90,  156,198,  373,326 };
+        float bias[]       = { 10, 13, 16, 30, 33, 23, 30, 61, 62, 45, 59, 119, 116, 90, 156, 198, 373, 326 };
         memcpy(m_biases, bias, sizeof(bias));
 
         m_mask[0] = 6;
@@ -159,7 +161,7 @@ int Yolov3DetectionOutput::init(int version)
         m_anchors_scale[0] = 32;
         m_anchors_scale[1] = 16;
 
-        float bias[] = { 12, 18,  37, 49,  52,132, 115, 73, 119,199, 242,238 };
+        float bias[]       = { 12, 18, 37, 49, 52, 132, 115, 73, 119, 199, 242, 238 };
         memcpy(m_biases, bias, sizeof(bias));
 
         m_mask[0] = 3;
@@ -172,7 +174,7 @@ int Yolov3DetectionOutput::init(int version)
     }
 
     m_confidence_threshold = 0.48f;
-    m_nms_threshold = 0.45f;
+    m_nms_threshold        = 0.45f;
 
     return 0;
 }
@@ -185,7 +187,7 @@ static inline float intersection_area(const BBoxRect& a, const BBoxRect& b)
         return 0.f;
     }
 
-    float inter_width = std::min(a.xmax, b.xmax) - std::max(a.xmin, b.xmin);
+    float inter_width  = std::min(a.xmax, b.xmax) - std::max(a.xmin, b.xmin);
     float inter_height = std::min(a.ymax, b.ymax) - std::max(a.ymin, b.ymin);
 
     return inter_width * inter_height;
@@ -193,8 +195,8 @@ static inline float intersection_area(const BBoxRect& a, const BBoxRect& b)
 
 static void qsort_descent_inplace(std::vector<BBoxRect>& datas, int left, int right)
 {
-    int i = left;
-    int j = right;
+    int   i = left;
+    int   j = right;
     float p = datas[(left + right) / 2].score;
 
     while (i <= j)
@@ -240,7 +242,7 @@ static void nms_sorted_bboxes(std::vector<BBoxRect>& bboxes, std::vector<size_t>
     {
         const BBoxRect& a = bboxes[i];
 
-        int keep = 1;
+        int keep          = 1;
         for (int j = 0; j < (int)picked.size(); j++)
         {
             const BBoxRect& b = bboxes[picked[j]];
@@ -273,13 +275,13 @@ int Yolov3DetectionOutput::forward(const std::vector<TMat>& bottom_blobs, std::v
 
     for (size_t b = 0; b < bottom_blobs.size(); b++)
     {
-        std::vector<std::vector<BBoxRect> > all_box_bbox_rects;
+        std::vector<std::vector<BBoxRect>> all_box_bbox_rects;
         all_box_bbox_rects.resize(m_num_box);
         const TMat& bottom_top_blobs = bottom_blobs[b];
 
-        int w = bottom_top_blobs.w;
-        int h = bottom_top_blobs.h;
-        int channels = bottom_top_blobs.c;
+        int w                        = bottom_top_blobs.w;
+        int h                        = bottom_top_blobs.h;
+        int channels                 = bottom_top_blobs.c;
         //printf("%d %d %d\n", w, h, channels);
         const int channels_per_box = channels / m_num_box;
 
@@ -287,23 +289,23 @@ int Yolov3DetectionOutput::forward(const std::vector<TMat>& bottom_blobs, std::v
         if (channels_per_box != 4 + 1 + m_num_class)
             return -1;
         size_t mask_offset = b * m_num_box;
-        int net_w = (int)(m_anchors_scale[b] * w);
-        int net_h = (int)(m_anchors_scale[b] * h);
+        int    net_w       = (int)(m_anchors_scale[b] * w);
+        int    net_h       = (int)(m_anchors_scale[b] * h);
         //printf("%d %d\n", net_w, net_h);
 
         //printf("%d %d %d\n", w, h, channels);
         for (int pp = 0; pp < m_num_box; pp++)
         {
-            int p = pp * channels_per_box;
+            int p            = pp * channels_per_box;
             int biases_index = (int)(m_mask[pp + mask_offset]);
             //printf("%d\n", biases_index);
             const float bias_w = m_biases[biases_index * 2];
             const float bias_h = m_biases[biases_index * 2 + 1];
             //printf("%f %f\n", bias_w, bias_h);
-            const float* xptr = bottom_top_blobs.channel(p);
-            const float* yptr = bottom_top_blobs.channel(p + 1);
-            const float* wptr = bottom_top_blobs.channel(p + 2);
-            const float* hptr = bottom_top_blobs.channel(p + 3);
+            const float* xptr          = bottom_top_blobs.channel(p);
+            const float* yptr          = bottom_top_blobs.channel(p + 1);
+            const float* wptr          = bottom_top_blobs.channel(p + 2);
+            const float* hptr          = bottom_top_blobs.channel(p + 3);
 
             const float* box_score_ptr = bottom_top_blobs.channel(p + 4);
 
@@ -316,7 +318,7 @@ int Yolov3DetectionOutput::forward(const std::vector<TMat>& bottom_blobs, std::v
                 for (int j = 0; j < w; j++)
                 {
                     // find class index with max class score
-                    int class_index = 0;
+                    int   class_index = 0;
                     float class_score = -FLT_MAX;
                     for (int q = 0; q < m_num_class; q++)
                     {
@@ -333,19 +335,19 @@ int Yolov3DetectionOutput::forward(const std::vector<TMat>& bottom_blobs, std::v
                     if (confidence >= m_confidence_threshold)
                     {
                         // region box
-                        float bbox_cx = (j + sigmoid(xptr[0])) / w;
-                        float bbox_cy = (i + sigmoid(yptr[0])) / h;
-                        float bbox_w = (float)(exp(wptr[0]) * bias_w / net_w);
-                        float bbox_h = (float)(exp(hptr[0]) * bias_h / net_h);
+                        float bbox_cx   = (j + sigmoid(xptr[0])) / w;
+                        float bbox_cy   = (i + sigmoid(yptr[0])) / h;
+                        float bbox_w    = (float)(exp(wptr[0]) * bias_w / net_w);
+                        float bbox_h    = (float)(exp(hptr[0]) * bias_h / net_h);
 
                         float bbox_xmin = bbox_cx - bbox_w * 0.5f;
                         float bbox_ymin = bbox_cy - bbox_h * 0.5f;
                         float bbox_xmax = bbox_cx + bbox_w * 0.5f;
                         float bbox_ymax = bbox_cy + bbox_h * 0.5f;
 
-                        float area = bbox_w * bbox_h;
+                        float area      = bbox_w * bbox_h;
 
-                        BBoxRect c = { confidence, bbox_xmin, bbox_ymin, bbox_xmax, bbox_ymax, area, class_index };
+                        BBoxRect c      = { confidence, bbox_xmin, bbox_ymin, bbox_xmax, bbox_ymax, area, class_index };
                         all_box_bbox_rects[pp].push_back(c);
                     }
 
@@ -392,16 +394,16 @@ int Yolov3DetectionOutput::forward(const std::vector<TMat>& bottom_blobs, std::v
 
     for (int i = 0; i < num_detected; i++)
     {
-        const BBoxRect& r = bbox_rects[i];
-        float score = r.score;
-        float* outptr = top_blob.row(i);
+        const BBoxRect& r      = bbox_rects[i];
+        float           score  = r.score;
+        float*          outptr = top_blob.row(i);
 
-        outptr[0] = (float)(r.label + 1); // +1 for prepend background class
-        outptr[1] = score;
-        outptr[2] = r.xmin;
-        outptr[3] = r.ymin;
-        outptr[4] = r.xmax;
-        outptr[5] = r.ymax;
+        outptr[0]              = (float)(r.label + 1);    // +1 for prepend background class
+        outptr[1]              = score;
+        outptr[2]              = r.xmin;
+        outptr[3]              = r.ymin;
+        outptr[4]              = r.xmax;
+        outptr[5]              = r.ymax;
     }
     top_blob.h = num_detected;
 
@@ -410,17 +412,17 @@ int Yolov3DetectionOutput::forward(const std::vector<TMat>& bottom_blobs, std::v
 
 static void get_input_data_darknet(const char* image_file, float* input_data, int net_h, int net_w)
 {
-    float mean[3] = { 0.f, 0.f, 0.f };
+    float mean[3]  = { 0.f, 0.f, 0.f };
     float scale[3] = { 1.0f / 255, 1.0f / 255, 1.0f / 255 };
 
     //no letter box by default
     get_input_data(image_file, input_data, net_h, net_w, mean, scale);
     // input rgb
     image swaprgb_img = { 0 };
-    swaprgb_img.c = 3;
-    swaprgb_img.w = net_w;
-    swaprgb_img.h = net_h;
-    swaprgb_img.data = input_data;
+    swaprgb_img.c     = 3;
+    swaprgb_img.w     = net_w;
+    swaprgb_img.h     = net_h;
+    swaprgb_img.data  = input_data;
     rgb2bgr_permute(swaprgb_img);
 }
 
@@ -429,11 +431,11 @@ static void show_usage()
     fprintf(stderr, "[Usage]:  [-h]\n    [-m model_file] [-i image_file] [-r repeat_count] [-t thread_count]\n");
 }
 
-static void run_yolo(graph_t graph, std::vector<BBoxRect> &boxes, int img_width, int img_height)
+static void run_yolo(graph_t graph, std::vector<BBoxRect>& boxes, int img_width, int img_height)
 {
     Yolov3DetectionOutput yolo;
-    std::vector<TMat> yolo_inputs, yolo_outputs;
-    
+    std::vector<TMat>     yolo_inputs, yolo_outputs;
+
     yolo.init(YOLO_FASTEST);
 
     int output_node_num = get_graph_output_node_number(graph);
@@ -443,29 +445,29 @@ static void run_yolo(graph_t graph, std::vector<BBoxRect> &boxes, int img_width,
     for (int i = 0; i < output_node_num; ++i)
     {
         tensor_t out_tensor = get_graph_output_tensor(graph, i, 0);    //"detection_out"
-        int out_dim[4] = { 0 };
+        int      out_dim[4] = { 0 };
         get_tensor_shape(out_tensor, out_dim, 4);
 
         yolo_inputs[i].batch = out_dim[0];
-        yolo_inputs[i].c = out_dim[1];
-        yolo_inputs[i].h = out_dim[2];
-        yolo_inputs[i].w = out_dim[3];
-        yolo_inputs[i].data = get_tensor_buffer(out_tensor);
+        yolo_inputs[i].c     = out_dim[1];
+        yolo_inputs[i].h     = out_dim[2];
+        yolo_inputs[i].w     = out_dim[3];
+        yolo_inputs[i].data  = get_tensor_buffer(out_tensor);
     }
 
     std::vector<float> output_buf;
 
     output_buf.resize(1000 * 6, 0);
     yolo_outputs[0].batch = 1;
-    yolo_outputs[0].c = 1;
-    yolo_outputs[0].h = 1000;
-    yolo_outputs[0].w = 6;
-    yolo_outputs[0].data = output_buf.data();
+    yolo_outputs[0].c     = 1;
+    yolo_outputs[0].h     = 1000;
+    yolo_outputs[0].w     = 6;
+    yolo_outputs[0].data  = output_buf.data();
 
     yolo.forward(yolo_inputs, yolo_outputs);
 
     //image roi on net input
-    bool letterbox = false;
+    bool  letterbox = false;
     float roi_left = 0.f, roi_top = 0.f, roi_width = 1.f, roi_height = 1.f;
 
     if (letterbox)
@@ -473,27 +475,27 @@ static void run_yolo(graph_t graph, std::vector<BBoxRect> &boxes, int img_width,
         if (img_width > img_height)
         {
             roi_height = img_height / (float)img_width;
-            roi_top = (1 - roi_height) / 2;
+            roi_top    = (1 - roi_height) / 2;
         }
         else
         {
             roi_width = img_width / (float)img_height;
-            roi_left = (1 - roi_width) / 2;
+            roi_left  = (1 - roi_width) / 2;
         }
     }
 
     //rect correct
     for (int i = 0; i < yolo_outputs[0].h; i++)
     {
-        float *data_row = yolo_outputs[0].row(i);
+        float* data_row = yolo_outputs[0].row(i);
 
-        BBoxRect box = { 0 };
-        box.score = data_row[1];
-        box.label = data_row[0];
-        box.xmin = (data_row[2] - roi_left) / roi_width * img_width;
-        box.ymin = (data_row[3] - roi_top) / roi_height * img_height;
-        box.xmax = (data_row[4] - roi_left) / roi_width * img_width;
-        box.ymax = (data_row[5] - roi_top) / roi_height * img_height;
+        BBoxRect box    = { 0 };
+        box.score       = data_row[1];
+        box.label       = data_row[0];
+        box.xmin        = (data_row[2] - roi_left) / roi_width * img_width;
+        box.ymin        = (data_row[3] - roi_top) / roi_height * img_height;
+        box.xmax        = (data_row[4] - roi_left) / roi_width * img_width;
+        box.ymax        = (data_row[5] - roi_top) / roi_height * img_height;
 
         boxes.push_back(box);
     }
@@ -508,13 +510,13 @@ static void run_yolo(graph_t graph, std::vector<BBoxRect> &boxes, int img_width,
 
 int main(int argc, char* argv[])
 {
-    int repeat_count = DEFAULT_REPEAT_COUNT;
-    int num_thread = DEFAULT_THREAD_COUNT;
-    char* model_file = nullptr;
-    char* image_file = nullptr;
+    int   repeat_count = DEFAULT_REPEAT_COUNT;
+    int   num_thread   = DEFAULT_THREAD_COUNT;
+    char* model_file   = nullptr;
+    char* image_file   = nullptr;
 
-    int net_w = 320;
-    int net_h = 320;
+    int net_w          = 320;
+    int net_h          = 320;
 
     int res;
     while ((res = getopt(argc, argv, "m:i:r:t:h:")) != -1)
@@ -562,9 +564,9 @@ int main(int argc, char* argv[])
     /* set runtime options */
     struct options opt;
     opt.num_thread = num_thread;
-    opt.cluster = TENGINE_CLUSTER_ALL;
-    opt.precision = TENGINE_MODE_FP32;
-    opt.affinity = 0;
+    opt.cluster    = TENGINE_CLUSTER_ALL;
+    opt.precision  = TENGINE_MODE_FP32;
+    opt.affinity   = 0;
 
     /* inital tengine */
     if (init_tengine() != 0)
@@ -584,7 +586,7 @@ int main(int argc, char* argv[])
 
     /* set the input shape to initial the graph, and prerun graph to infer shape */
     int img_size = net_h * net_w * 3;
-    int dims[] = { 1, 3, net_h, net_w };    // nchw
+    int dims[]   = { 1, 3, net_h, net_w };    // nchw
 
     std::vector<float> input_data(img_size);
 
@@ -618,8 +620,8 @@ int main(int argc, char* argv[])
     get_input_data_darknet(image_file, input_data.data(), net_h, net_w);
 
     /* run graph */
-    double min_time = DBL_MAX;
-    double max_time = DBL_MIN;
+    double min_time   = DBL_MAX;
+    double max_time   = DBL_MIN;
     double total_time = 0.;
     for (int i = 0; i < repeat_count; i++)
     {
@@ -636,11 +638,11 @@ int main(int argc, char* argv[])
         max_time = std::max(max_time, cur);
     }
     fprintf(stderr, "Repeat %d times, thread %d, avg time %.2f ms, max_time %.2f ms, min_time %.2f ms\n", repeat_count,
-        num_thread, total_time / repeat_count, max_time, min_time);
+            num_thread, total_time / repeat_count, max_time, min_time);
     fprintf(stderr, "--------------------------------------\n");
 
     /* process the detection result */
-    image img = imread(image_file);
+    image                 img = imread(image_file);
     std::vector<BBoxRect> boxes;
     run_yolo(graph, boxes, img.w, img.h);
 
@@ -648,7 +650,8 @@ int main(int argc, char* argv[])
     {
         BBoxRect b = boxes[i];
         draw_box(img, b.xmin, b.ymin, b.xmax, b.ymax, 2, 125, 0, 125);
-        fprintf(stderr, "class=%2d score=%.2f left = %.2f,right = %.2f,top = %.2f,bot = %.2f, name = %s\n", b.label, b.score, b.xmin, b.xmax, b.ymin, b.ymax, class_names[b.label]);
+        fprintf(stderr, "class=%2d score=%.2f left = %.2f,right = %.2f,top = %.2f,bot = %.2f, name = %s\n", b.label,
+                b.score, b.xmin, b.xmax, b.ymin, b.ymax, class_names[b.label]);
     }
     save_image(img, "yolofastest_out");
 

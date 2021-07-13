@@ -46,18 +46,18 @@
 
 static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node* ir_node = exec_node->ir_node;
-    struct graph* ir_graph = ir_node->graph;
+    struct node*   ir_node  = exec_node->ir_node;
+    struct graph*  ir_graph = ir_node->graph;
     struct tensor* input_tensor;
     struct tensor* output_tensor;
-    int ret = 0;
+    int            ret = 0;
 
-    input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+    input_tensor       = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    output_tensor      = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    if (input_tensor->dims[0] != output_tensor->dims[0] || input_tensor->dims[1] != output_tensor->dims[1] || input_tensor->dims[2] != output_tensor->dims[2] ||
-        input_tensor->dims[3] != output_tensor->dims[3])
-    ret = set_ir_tensor_shape(output_tensor, input_tensor->dims, input_tensor->dim_num);
+    if (input_tensor->dims[0] != output_tensor->dims[0] || input_tensor->dims[1] != output_tensor->dims[1]
+        || input_tensor->dims[2] != output_tensor->dims[2] || input_tensor->dims[3] != output_tensor->dims[3])
+        ret = set_ir_tensor_shape(output_tensor, input_tensor->dims, input_tensor->dim_num);
 
     return ret;
 }
@@ -66,12 +66,12 @@ void arm_softmax_q7(const q7_t* vec_in, const uint16_t dim_vec, q7_t* p_out);
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node* ir_node = exec_node->ir_node;
-    struct graph* ir_graph = ir_node->graph;
+    struct node*   ir_node  = exec_node->ir_node;
+    struct graph*  ir_graph = ir_node->graph;
     struct tensor* input_tensor;
     struct tensor* output_tensor;
 
-    input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    input_tensor  = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
     arm_softmax_q7(input_tensor->data, input_tensor->elem_num, output_tensor->data);
@@ -84,13 +84,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_BEST;
 }
 
-static struct node_ops cmsis_node_ops = {.prerun = NULL,
-                                         .run = run,
-                                         .reshape = reshape,
-                                         .postrun = NULL,
-                                         .init_node = NULL,
-                                         .release_node = NULL,
-                                         .score = score};
+static struct node_ops cmsis_node_ops = { .prerun       = NULL,
+                                          .run          = run,
+                                          .reshape      = reshape,
+                                          .postrun      = NULL,
+                                          .init_node    = NULL,
+                                          .release_node = NULL,
+                                          .score        = score };
 
 int register_softmax_cmsis_op()
 {

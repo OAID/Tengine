@@ -44,14 +44,14 @@ static int gather_op_map(int op)
 static int tm2_load_embedding(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                               const TM2_Operator* tm_op)
 {
-    struct embedding_param* gather_param = ( struct embedding_param* )ir_node->op.param_mem;
-    const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
-    const char* mem_base = tm2_priv->base;
-    const TM2_EmbedParam* tm_param = ( TM2_EmbedParam* )(mem_base + tm_op->offset_t_param);
+    struct embedding_param* gather_param = (struct embedding_param*)ir_node->op.param_mem;
+    const struct tm2_priv*  tm2_priv     = (struct tm2_priv*)ir_graph->serializer_privacy;
+    const char*             mem_base     = tm2_priv->base;
+    const TM2_EmbedParam*   tm_param     = (TM2_EmbedParam*)(mem_base + tm_op->offset_t_param);
 
     // gather_param->bias_term = tm_param->bias_term;
-    gather_param->input_dim = tm_param->input_dim;
-    gather_param->num_output = tm_param->num_output;
+    gather_param->input_dim        = tm_param->input_dim;
+    gather_param->num_output       = tm_param->num_output;
     gather_param->weight_data_size = tm_param->weight_data_size;
 
     return 0;

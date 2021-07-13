@@ -45,10 +45,9 @@
 
 #include "interp_param.h"
 
-namespace TEngine{
-
-class Interp_vulkan : public Layer
+namespace TEngine
 {
+class Interp_vulkan : public Layer {
 public:
     Interp_vulkan();
     Interp_vulkan(ir_graph_t* ir_graph, ir_node_t* ir_node);
@@ -56,8 +55,9 @@ public:
     virtual int create_pipeline(const Option& opt);
     virtual int destroy_pipeline(const Option& opt);
     // virtual int upload_model(VkTransfer& cmd, const Option& opt);
-    
-    virtual int record_pipeline(const VkTensor& bottom_blob, VkTensor& top_blob, VkCompute& cmd, const Option& opt) const;
+
+    virtual int record_pipeline(const VkTensor& bottom_blob, VkTensor& top_blob, VkCompute& cmd,
+                                const Option& opt) const;
 
 public:
     Pipeline* pipeline_interp;
@@ -78,15 +78,13 @@ public:
     int output_h;
     int output_w;
 
-    int resize_type;    //1=nearest  2=bilinear  3=bicubic
-    int output_height;
-    int output_width;
+    int   resize_type;    //1=nearest  2=bilinear  3=bicubic
+    int   output_height;
+    int   output_width;
     float height_scale;
     float width_scale;
-
-
 };
 
-}   // namespace TEngine
+}    // namespace TEngine
 
 #endif

@@ -26,7 +26,8 @@
 #define __OP_INCLUDE_H__
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 #include "operator/op.h"

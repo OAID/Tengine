@@ -27,14 +27,14 @@
 
 struct region_param
 {
-    int num_classes;
-    int side;
-    int num_box;
-    int coords;
+    int   num_classes;
+    int   side;
+    int   num_box;
+    int   coords;
     float confidence_threshold;
     float nms_threshold;
 
-    int biases_num;
+    int    biases_num;
     float* biases;
 };
 

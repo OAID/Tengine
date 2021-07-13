@@ -49,7 +49,7 @@ int conv_hcl_run(struct tensor* input_tensor, struct tensor* filter_tensor, stru
                  int num_thread, int cpu_affinity) __attribute__((weak));
 
 int conv_hcl_get_shared_mem_size_rv64(struct tensor* input_tensor, struct tensor* output_tensor,
-                                 struct conv_param* param);
+                                      struct conv_param* param);
 int conv_hcl_get_shared_pack4_mem_size(struct tensor* input_tensor, struct tensor* output_tensor,
                                        struct conv_param* param) __attribute__((weak));
 

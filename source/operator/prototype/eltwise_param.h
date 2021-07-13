@@ -49,8 +49,8 @@ enum EltType
 
 struct eltwise_param
 {
-    int type;
-    int caffe_flavor;
+    int   type;
+    int   caffe_flavor;
     float shift;
     float power;
     float scale;

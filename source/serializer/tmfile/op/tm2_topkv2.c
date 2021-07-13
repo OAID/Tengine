@@ -44,12 +44,12 @@ static int topkv2_op_map(int op)
 static int tm2_load_topkv2(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                            const TM2_Operator* tm_op)
 {
-    struct topkv2_param* topkv2_param = ( struct topkv2_param* )ir_node->op.param_mem;
-    const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
-    const char* mem_base = tm2_priv->base;
-    const TM2_TopKV2Param* tm_param = ( TM2_TopKV2Param* )(mem_base + tm_op->offset_t_param);
+    struct topkv2_param*   topkv2_param = (struct topkv2_param*)ir_node->op.param_mem;
+    const struct tm2_priv* tm2_priv     = (struct tm2_priv*)ir_graph->serializer_privacy;
+    const char*            mem_base     = tm2_priv->base;
+    const TM2_TopKV2Param* tm_param     = (TM2_TopKV2Param*)(mem_base + tm_op->offset_t_param);
 
-    topkv2_param->k = tm_param->k;
+    topkv2_param->k                     = tm_param->k;
     if (tm_param->sorted)
         topkv2_param->sorted = true;
     else

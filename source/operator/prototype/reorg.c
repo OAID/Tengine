@@ -34,17 +34,17 @@
 
 static int infer_shape(struct node* node)
 {
-    struct graph* graph = node->graph;
-    struct tensor* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
-    struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
-    struct reorg_param* reorg_param = ( struct reorg_param* )(node->op.param_mem);
+    struct graph*       graph       = node->graph;
+    struct tensor*      input       = get_ir_graph_tensor(graph, node->input_tensors[0]);
+    struct tensor*      output      = get_ir_graph_tensor(graph, node->output_tensors[0]);
+    struct reorg_param* reorg_param = (struct reorg_param*)(node->op.param_mem);
 
-    int stride = reorg_param->stride;
+    int stride                      = reorg_param->stride;
 
-    int in_n = input->dims[0];
-    int in_c = input->dims[1];
-    int in_h = input->dims[2];
-    int in_w = input->dims[3];
+    int in_n                        = input->dims[0];
+    int in_c                        = input->dims[1];
+    int in_h                        = input->dims[2];
+    int in_w                        = input->dims[3];
 
     int dims[4];
 
@@ -61,7 +61,7 @@ static int infer_shape(struct node* node)
 
 static int init_op(struct op* op)
 {
-    struct reorg_param* reorg_param = ( struct reorg_param* )sys_malloc(sizeof(struct reorg_param));
+    struct reorg_param* reorg_param = (struct reorg_param*)sys_malloc(sizeof(struct reorg_param));
 
     if (reorg_param == NULL)
     {
@@ -71,10 +71,10 @@ static int init_op(struct op* op)
     /*set the param default value */
     reorg_param->stride = 1;
 
-    op->param_mem = reorg_param;
-    op->param_size = sizeof(struct reorg_param);
-    op->same_shape = 0;
-    op->infer_shape = infer_shape;
+    op->param_mem       = reorg_param;
+    op->param_size      = sizeof(struct reorg_param);
+    op->same_shape      = 0;
+    op->infer_shape     = infer_shape;
 
     return 0;
 }
@@ -91,7 +91,7 @@ int register_reorg_op()
     struct method m;
 
     m.version = 1;
-    m.init = init_op;
+    m.init    = init_op;
     m.release = release_op;
 
     return register_op(OP_REORG, OP_REORG_NAME, &m);

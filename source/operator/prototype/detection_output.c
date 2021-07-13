@@ -34,19 +34,19 @@
 
 static int infer_shape(struct node* node)
 {
-    struct graph* ir_graph = node->graph;
-    struct tensor* input = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
-    struct tensor* output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
-    struct detection_output_param* param = ( struct detection_output_param* )node->op.param_mem;
+    struct graph*                  ir_graph = node->graph;
+    struct tensor*                 input    = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
+    struct tensor*                 output   = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
+    struct detection_output_param* param    = (struct detection_output_param*)node->op.param_mem;
 
-    int dims[TE_MAX_SHAPE_DIM_NUM] = {0};
+    int dims[TE_MAX_SHAPE_DIM_NUM]          = { 0 };
 
-    dims[0] = input->dims[0];
-    dims[1] = param->keep_top_k;
-    dims[2] = 6;
-    dims[3] = 1;
+    dims[0]                                 = input->dims[0];
+    dims[1]                                 = param->keep_top_k;
+    dims[2]                                 = 6;
+    dims[3]                                 = 1;
 
-    output->layout = TENGINE_LAYOUT_NHWC;
+    output->layout                          = TENGINE_LAYOUT_NHWC;
 
     set_ir_tensor_shape(output, dims, 4);
     return 0;
@@ -56,23 +56,23 @@ static int infer_shape(struct node* node)
 static int init_op(struct op* op)
 {
     struct detection_output_param* detection_output_param =
-        ( struct detection_output_param* )sys_malloc(sizeof(struct detection_output_param));
+        (struct detection_output_param*)sys_malloc(sizeof(struct detection_output_param));
 
     if (detection_output_param == NULL)
     {
         return -1;
     }
 
-    detection_output_param->num_classes = 21;
-    detection_output_param->keep_top_k = 100;
-    detection_output_param->nms_top_k = 100;
+    detection_output_param->num_classes          = 21;
+    detection_output_param->keep_top_k           = 100;
+    detection_output_param->nms_top_k            = 100;
     detection_output_param->confidence_threshold = 0.25f;
-    detection_output_param->nms_threshold = 0.45f;
+    detection_output_param->nms_threshold        = 0.45f;
 
-    op->param_mem = detection_output_param;
-    op->param_size = sizeof(struct detection_output_param);
-    op->same_shape = 0;
-    op->infer_shape = infer_shape;
+    op->param_mem                                = detection_output_param;
+    op->param_size                               = sizeof(struct detection_output_param);
+    op->same_shape                               = 0;
+    op->infer_shape                              = infer_shape;
 
     return 0;
 }
@@ -89,7 +89,7 @@ int register_detection_output_op()
     struct method m;
 
     m.version = 1;
-    m.init = init_op;
+    m.init    = init_op;
     m.release = release_op;
 
 

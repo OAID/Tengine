@@ -49,7 +49,7 @@ extern "C"
 // bool CHECK_ENQUEUE_BUFFER_STATUS(cl_int status);
 
 /** convert the kernel file into a string */
-int convertToString(const char *filename, std::string& s);
+int convertToString(const char* filename, std::string& s);
 
 /**Getting platforms and choose an available one.*/
 // int getPlatform(cl_platform_id &platform);
@@ -60,4 +60,3 @@ int convertToString(const char *filename, std::string& s);
 void get_device_message();
 
 void dump_sub_graph(struct subgraph* sub_graph);
-

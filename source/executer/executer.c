@@ -33,13 +33,13 @@
 
 void init_attribute(ir_attribute_t* attribute, ir_context_t* context)
 {
-    attribute->status               = GRAPH_STAT_CREATED;
-    attribute->priority             = 0;
-    attribute->policy               = DEFAULT_POLICY;
-    attribute->private_context      = 0;
-    attribute->context              = context;
-    attribute->device_privacy       = NULL;
-    attribute->scheduler_privacy    = NULL;
+    attribute->status            = GRAPH_STAT_CREATED;
+    attribute->priority          = 0;
+    attribute->policy            = DEFAULT_POLICY;
+    attribute->private_context   = 0;
+    attribute->context           = context;
+    attribute->device_privacy    = NULL;
+    attribute->scheduler_privacy = NULL;
 }
 
 
@@ -76,11 +76,11 @@ void init_ir_context(ir_context_t* context, const char* name)
     }
     else
     {
-        context->name           = NULL;
+        context->name = NULL;
     }
 
-    context->scheduler          = NULL;
-    context->device             = NULL;
-    context->default_options    = NULL;
-    context->device_options     = NULL;
+    context->scheduler       = NULL;
+    context->device          = NULL;
+    context->default_options = NULL;
+    context->device_options  = NULL;
 }

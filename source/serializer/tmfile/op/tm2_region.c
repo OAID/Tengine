@@ -45,21 +45,21 @@ static int region_op_map(int op)
 static int tm2_load_region(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                            const TM2_Operator* tm_op)
 {
-    struct region_param* region_param = ( struct region_param* )ir_node->op.param_mem;
-    const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
-    const char* mem_base = tm2_priv->base;
-    const TM2_RegionParam* tm_param = ( TM2_RegionParam* )(mem_base + tm_op->offset_t_param);
-    const TM2_Vector_floats* v_biases = (TM2_Vector_floats*)(mem_base + tm_param->offset_vf_biases);
+    struct region_param*     region_param = (struct region_param*)ir_node->op.param_mem;
+    const struct tm2_priv*   tm2_priv     = (struct tm2_priv*)ir_graph->serializer_privacy;
+    const char*              mem_base     = tm2_priv->base;
+    const TM2_RegionParam*   tm_param     = (TM2_RegionParam*)(mem_base + tm_op->offset_t_param);
+    const TM2_Vector_floats* v_biases     = (TM2_Vector_floats*)(mem_base + tm_param->offset_vf_biases);
 
-    region_param->num_classes = tm_param->num_classes;
-    region_param->side = tm_param->side;
-    region_param->num_box = tm_param->num_box;
-    region_param->coords = tm_param->coords;
-    region_param->confidence_threshold = tm_param->confidence_threshold;
-    region_param->nms_threshold = tm_param->nms_threshold;
+    region_param->num_classes             = tm_param->num_classes;
+    region_param->side                    = tm_param->side;
+    region_param->num_box                 = tm_param->num_box;
+    region_param->coords                  = tm_param->coords;
+    region_param->confidence_threshold    = tm_param->confidence_threshold;
+    region_param->nms_threshold           = tm_param->nms_threshold;
 
-    region_param->biases_num = v_biases->v_num;
-    region_param->biases = (float*)sys_malloc(v_biases->v_num * sizeof(float));
+    region_param->biases_num              = v_biases->v_num;
+    region_param->biases                  = (float*)sys_malloc(v_biases->v_num * sizeof(float));
 
     for (unsigned int i = 0; i < v_biases->v_num; i++)
         region_param->biases[i] = v_biases->data[i];

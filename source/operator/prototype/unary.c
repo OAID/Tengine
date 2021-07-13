@@ -34,11 +34,11 @@
 
 static int infer_shape(struct node* node)
 {
-    struct graph* ir_graph = node->graph;
-    struct tensor* input = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
-    struct tensor* output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
+    struct graph*  ir_graph = node->graph;
+    struct tensor* input    = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
+    struct tensor* output   = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
 
-    output->layout = input->layout;
+    output->layout          = input->layout;
 
     set_ir_tensor_shape(output, input->dims, input->dim_num);
 
@@ -48,7 +48,7 @@ static int infer_shape(struct node* node)
 
 static int init_op(struct op* op)
 {
-    struct unary_param* unary_param = ( struct unary_param* )sys_malloc(sizeof(struct unary_param));
+    struct unary_param* unary_param = (struct unary_param*)sys_malloc(sizeof(struct unary_param));
 
     if (unary_param == NULL)
     {
@@ -58,10 +58,10 @@ static int init_op(struct op* op)
     /*set the param default value */
     unary_param->type = 0;
 
-    op->param_mem = unary_param;
-    op->param_size = sizeof(struct unary_param);
-    op->same_shape = 0;
-    op->infer_shape = infer_shape;
+    op->param_mem     = unary_param;
+    op->param_size    = sizeof(struct unary_param);
+    op->same_shape    = 0;
+    op->infer_shape   = infer_shape;
 
     return 0;
 }
@@ -78,7 +78,7 @@ int register_unary_op()
     struct method m;
 
     m.version = 1;
-    m.init = init_op;
+    m.init    = init_op;
     m.release = release_op;
 
 

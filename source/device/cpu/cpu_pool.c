@@ -41,12 +41,13 @@
 struct mem_record
 {
     struct tensor* ir_tensor;
-    int used;
-    int block_id;
+    int            used;
+    int            block_id;
 };
 
 
-static int find_inplace_input(struct exec_node* exec_node, int output_slot, struct node* ir_node, struct graph* ir_graph)
+static int find_inplace_input(struct exec_node* exec_node, int output_slot, struct node* ir_node,
+                              struct graph* ir_graph)
 {
     if (exec_node->inplace_map_num == 0)
         return -1;
@@ -69,7 +70,7 @@ static int find_inplace_input(struct exec_node* exec_node, int output_slot, stru
     if (i == 2 * exec_node->inplace_map_num)
         return -1;
 
-    int input_slot = inplace_map[i + 1];
+    int input_slot        = inplace_map[i + 1];
 
     struct tensor* tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[input_slot]);
 
@@ -86,7 +87,7 @@ static int find_tensor_mem_list(struct vector* tensor_mem_list, const struct ten
 
     for (int i = 0; i < rec_number; i++)
     {
-        struct mem_record* rec = ( struct mem_record* )get_vector_data(tensor_mem_list, i);
+        struct mem_record* rec = (struct mem_record*)get_vector_data(tensor_mem_list, i);
 
         if (rec->ir_tensor == ir_tensor)
             return i;
@@ -102,14 +103,14 @@ void free_exec_graph_mem(struct exec_graph* graph)
     if (graph->shared_mem)
     {
         sys_free(graph->shared_mem);
-        graph->shared_mem = NULL;
+        graph->shared_mem      = NULL;
         graph->shared_mem_size = 0;
     }
     /* free the shared pack4 memory */
     if (graph->shared_pack4_mem)
     {
         sys_free(graph->shared_pack4_mem);
-        graph->shared_pack4_mem = NULL;
+        graph->shared_pack4_mem      = NULL;
         graph->shared_pack4_mem_size = 0;
     }
 
@@ -130,7 +131,7 @@ static void mem_pool_dump(struct mem_pool* mem_pool)
 
     for (int i = 0; i < block_number; i++)
     {
-        struct mem_block_entry* entry = ( struct mem_block_entry* )get_vector_data(mem_pool->block_list, i);
+        struct mem_block_entry* entry = (struct mem_block_entry*)get_vector_data(mem_pool->block_list, i);
 
         TLOG_INFO("Tengine: %d: %p (%d) used: %d free: %d\n", i, entry->addr, entry->block_size, entry->alloc_count,
                   entry->free_count);
@@ -139,12 +140,12 @@ static void mem_pool_dump(struct mem_pool* mem_pool)
 
 static void* mem_pool_get_mem_block(struct mem_pool* mem_pool, int block_id)
 {
-    struct mem_block_entry* entry = ( struct mem_block_entry* )get_vector_data(mem_pool->block_list, block_id);
+    struct mem_block_entry* entry = (struct mem_block_entry*)get_vector_data(mem_pool->block_list, block_id);
 
-    size_t addr = (size_t)(entry->addr);
-    size_t aligned_addr = (addr + 4 + mem_pool->align_size) & (~(mem_pool->align_size - 1));
+    size_t addr                   = (size_t)(entry->addr);
+    size_t aligned_addr           = (addr + 4 + mem_pool->align_size) & (~(mem_pool->align_size - 1));
 
-    return ( void* )aligned_addr;
+    return (void*)aligned_addr;
 }
 
 static int mem_pool_get_backend_mem(struct mem_pool* mem_pool)
@@ -153,11 +154,11 @@ static int mem_pool_get_backend_mem(struct mem_pool* mem_pool)
 
     for (int i = 0; i < block_num; i++)
     {
-        struct mem_block_entry* entry = ( struct mem_block_entry* )get_vector_data(mem_pool->block_list, i);
+        struct mem_block_entry* entry = (struct mem_block_entry*)get_vector_data(mem_pool->block_list, i);
 
-        entry->block_size = entry->max_req_size + mem_pool->align_size + 128;
+        entry->block_size             = entry->max_req_size + mem_pool->align_size + 128;
 
-        entry->addr = sys_malloc(entry->block_size);
+        entry->addr                   = sys_malloc(entry->block_size);
 
         if (entry->addr == NULL)
             return -1;
@@ -173,7 +174,7 @@ static int mem_pool_allocate(struct mem_pool* mem_pool, int size)
 
     for (int i = 0; i < block_num; i++)
     {
-        struct mem_block_entry* entry = ( struct mem_block_entry* )get_vector_data(mem_pool->block_list, i);
+        struct mem_block_entry* entry = (struct mem_block_entry*)get_vector_data(mem_pool->block_list, i);
 
         if (entry->free_count != entry->alloc_count)
             continue;
@@ -192,10 +193,10 @@ static int mem_pool_allocate(struct mem_pool* mem_pool, int size)
 
     struct mem_block_entry e;
 
-    e.addr = NULL;
+    e.addr         = NULL;
     e.max_req_size = size;
-    e.alloc_count = 1;
-    e.free_count = 0;
+    e.alloc_count  = 1;
+    e.free_count   = 0;
 
     push_vector_data(mem_pool->block_list, &e);
 
@@ -205,7 +206,7 @@ static int mem_pool_allocate(struct mem_pool* mem_pool, int size)
 
 static void mem_pool_free(struct mem_pool* mem_pool, int block_id)
 {
-    struct mem_block_entry* block = ( struct mem_block_entry* )get_vector_data(mem_pool->block_list, block_id);
+    struct mem_block_entry* block = (struct mem_block_entry*)get_vector_data(mem_pool->block_list, block_id);
 
     block->free_count++;
 }
@@ -219,7 +220,7 @@ void release_mem_pool(struct mem_pool* mem_pool)
 
         for (int i = 0; i < block_num; i++)
         {
-            struct mem_block_entry* entry = ( struct mem_block_entry* )get_vector_data(mem_pool->block_list, i);
+            struct mem_block_entry* entry = (struct mem_block_entry*)get_vector_data(mem_pool->block_list, i);
 
             sys_free(entry->addr);
         }
@@ -233,7 +234,7 @@ void release_mem_pool(struct mem_pool* mem_pool)
 
 static struct mem_pool* create_mem_pool(void)
 {
-    struct mem_pool* mem_pool = ( struct mem_pool* )sys_malloc(sizeof(struct mem_pool));
+    struct mem_pool* mem_pool = (struct mem_pool*)sys_malloc(sizeof(struct mem_pool));
 
     if (mem_pool == NULL)
         return NULL;
@@ -244,15 +245,15 @@ static struct mem_pool* create_mem_pool(void)
     if (mem_pool->block_list == NULL)
         goto error;
 
-    mem_pool->allocate = mem_pool_allocate;
-    mem_pool->free = mem_pool_free;
-    mem_pool->dump = mem_pool_dump;
+    mem_pool->allocate        = mem_pool_allocate;
+    mem_pool->free            = mem_pool_free;
+    mem_pool->dump            = mem_pool_dump;
     mem_pool->get_backend_mem = mem_pool_get_backend_mem;
-    mem_pool->get_mem_block = mem_pool_get_mem_block;
+    mem_pool->get_mem_block   = mem_pool_get_mem_block;
 
     return mem_pool;
 
-    error:
+error:
 
     release_mem_pool(mem_pool);
 
@@ -262,12 +263,12 @@ static struct mem_pool* create_mem_pool(void)
 int alloc_exec_graph_mem(struct exec_graph* exec_graph)
 {
     struct mem_pool* mem_pool;
-    int max_shared_mem_size = 0;
-    int max_shared_pack4_mem_size = 0;
+    int              max_shared_mem_size       = 0;
+    int              max_shared_pack4_mem_size = 0;
 
-    int node_num = get_vector_num(exec_graph->exec_node_list);
+    int node_num                               = get_vector_num(exec_graph->exec_node_list);
 
-    struct vector* tensor_mem_list = create_vector(sizeof(struct mem_record), NULL);
+    struct vector* tensor_mem_list             = create_vector(sizeof(struct mem_record), NULL);
 
     if (tensor_mem_list == NULL)
         return -1;
@@ -281,9 +282,9 @@ int alloc_exec_graph_mem(struct exec_graph* exec_graph)
 
     for (int i = 0; i < node_num; i++)
     {
-        struct exec_node* exec_node = ( struct exec_node* )get_vector_data(exec_graph->exec_node_list, i);
-        struct node* ir_node = exec_node->ir_node;
-        struct graph* ir_graph = ir_node->graph;
+        struct exec_node* exec_node = (struct exec_node*)get_vector_data(exec_graph->exec_node_list, i);
+        struct node*      ir_node   = exec_node->ir_node;
+        struct graph*     ir_graph  = ir_node->graph;
 
         int8_t* block_id;
 
@@ -305,17 +306,17 @@ int alloc_exec_graph_mem(struct exec_graph* exec_graph)
             {
                 struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[inplace_input]);
 
-                int idx = find_tensor_mem_list(tensor_mem_list, input_tensor);
+                int idx                     = find_tensor_mem_list(tensor_mem_list, input_tensor);
 
                 /* if the input is from outside buffer, input_r should be NULL */
                 if (idx < 0)
                     continue;
 
-                struct mem_record* input_r = ( struct mem_record* )get_vector_data(tensor_mem_list, idx);
+                struct mem_record* input_r = (struct mem_record*)get_vector_data(tensor_mem_list, idx);
 
-                input_r->ir_tensor = ir_tensor;
-                input_r->used = ir_tensor->consumer_num;
-                block_id[j] = INPLACE_BLOCK_FLAG | inplace_input;
+                input_r->ir_tensor         = ir_tensor;
+                input_r->used              = ir_tensor->consumer_num;
+                block_id[j]                = INPLACE_BLOCK_FLAG | inplace_input;
                 continue;
             }
 
@@ -325,8 +326,8 @@ int alloc_exec_graph_mem(struct exec_graph* exec_graph)
             struct mem_record r;
 
             r.ir_tensor = ir_tensor;
-            r.block_id = mem_pool->allocate(mem_pool, mem_size);
-            r.used = ir_tensor->consumer_num;
+            r.block_id  = mem_pool->allocate(mem_pool, mem_size);
+            r.used      = ir_tensor->consumer_num;
 
             block_id[j] = r.block_id;
 
@@ -346,7 +347,7 @@ int alloc_exec_graph_mem(struct exec_graph* exec_graph)
             if (idx < 0)
                 continue;
 
-            struct mem_record* input_r = ( struct mem_record* )get_vector_data(tensor_mem_list, idx);
+            struct mem_record* input_r = (struct mem_record*)get_vector_data(tensor_mem_list, idx);
 
             input_r->used--;
 
@@ -368,7 +369,7 @@ int alloc_exec_graph_mem(struct exec_graph* exec_graph)
 
     release_vector(tensor_mem_list);
 
-    exec_graph->shared_mem_size = max_shared_mem_size;
+    exec_graph->shared_mem_size       = max_shared_mem_size;
     exec_graph->shared_pack4_mem_size = max_shared_pack4_mem_size;
 
     if (max_shared_mem_size > 0)
@@ -406,10 +407,10 @@ int alloc_exec_graph_mem(struct exec_graph* exec_graph)
     /* now, the real allocate */
     for (int i = 0; i < node_num; i++)
     {
-        struct exec_node* exec_node = ( struct exec_node* )get_vector_data(exec_graph->exec_node_list, i);
-        struct node* ir_node = exec_node->ir_node;
-        struct graph* ir_graph = ir_node->graph;
-        struct mem_pool* local_mem_pool = exec_graph->mem_pool;
+        struct exec_node* exec_node      = (struct exec_node*)get_vector_data(exec_graph->exec_node_list, i);
+        struct node*      ir_node        = exec_node->ir_node;
+        struct graph*     ir_graph       = ir_node->graph;
+        struct mem_pool*  local_mem_pool = exec_graph->mem_pool;
 
         int8_t* block_id;
 
@@ -427,18 +428,18 @@ int alloc_exec_graph_mem(struct exec_graph* exec_graph)
 
             if (block_id[j] & INPLACE_BLOCK_FLAG)
             {
-                int input_idx = block_id[j] & (INPLACE_BLOCK_FLAG - 1);
+                int input_idx                 = block_id[j] & (INPLACE_BLOCK_FLAG - 1);
 
-                struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[input_idx]);
-                ir_tensor->data = input_tensor->data;
-                ir_tensor->free_host_mem = 0;
+                struct tensor* input_tensor   = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[input_idx]);
+                ir_tensor->data               = input_tensor->data;
+                ir_tensor->free_host_mem      = 0;
                 ir_tensor->internal_allocated = MEM_POOL_ALLOCATED;
             }
             else
             {
                 ir_tensor->data = local_mem_pool->get_mem_block(local_mem_pool, block_id[j]);
                 // ir_tensor->data = sys_malloc(ir_tensor->elem_size * ir_tensor->elem_num);
-                ir_tensor->free_host_mem = 0;
+                ir_tensor->free_host_mem      = 0;
                 ir_tensor->internal_allocated = MEM_POOL_ALLOCATED;
             }
         }

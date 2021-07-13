@@ -54,7 +54,7 @@
 #include <string.h>
 
 #define STR_VERSION2(a) #a
-#define STR_VERSION(a) STR_VERSION2(a)
+#define STR_VERSION(a)  STR_VERSION2(a)
 
 #ifdef TENGINE_LITE_VERSION
 static const char* tengine_lite_version = STR_VERSION(TENGINE_LITE_VERSION);
@@ -65,13 +65,13 @@ static const char* tengine_lite_version = "1.4";
 #ifdef TENGINE_VERSION_POSTFIX
 static const char* ver_postfix = STR_VERSION(TENGINE_VERSION_POSTFIX);
 #else
-static const char* ver_postfix = "dev";
+static const char* ver_postfix          = "dev";
 #endif
 
 static char* hcl_version = NULL;
 
 
-static int init_flag = 0;
+static int init_flag     = 0;
 
 
 //////////////////////////////////////////////////// context about  ////////////////////////////////////////////////////
@@ -377,7 +377,7 @@ graph_t create_graph(context_t context, const char* model_format, const char* fi
 
     if (context == NULL)
     {
-        context = create_context(NULL, 1);
+        context        = create_context(NULL, 1);
         is_new_context = 1;
     }
 
@@ -397,7 +397,7 @@ graph_t create_graph(context_t context, const char* model_format, const char* fi
 
     if (NULL != model_format)
     {
-        int ret = 0;
+        int                ret    = 0;
         struct serializer* loader = find_serializer_via_name(model_format);
         if (loader == NULL)
         {
@@ -431,7 +431,7 @@ graph_t create_graph(context_t context, const char* model_format, const char* fi
 
             int size = va_arg(ap, int);
 
-            ret = loader->load_mem(loader, ir_graph, (void*)file_name, size, ap);
+            ret      = loader->load_mem(loader, ir_graph, (void*)file_name, size, ap);
         }
 
         va_end(ap);
@@ -451,10 +451,10 @@ graph_t create_graph(context_t context, const char* model_format, const char* fi
 int prerun_graph(graph_t graph)
 {
     struct options option;
-    option.num_thread   =  1;
-    option.precision    = -1;
-    option.affinity     = -1;
-    option.cluster      = TENGINE_CLUSTER_BIG;
+    option.num_thread = 1;
+    option.precision  = -1;
+    option.affinity   = -1;
+    option.cluster    = TENGINE_CLUSTER_BIG;
 
     return prerun_graph_multithread(graph, option);
 }
@@ -464,7 +464,7 @@ int prerun_graph_multithread(graph_t graph, struct options option)
 {
     struct graph* ir_graph = (struct graph*)graph;
 
-    int ret = infer_ir_graph_shape(ir_graph);
+    int ret                = infer_ir_graph_shape(ir_graph);
     if (0 != ret)
     {
         ir_graph->status = GRAPH_STAT_ERROR;
@@ -473,7 +473,7 @@ int prerun_graph_multithread(graph_t graph, struct options option)
     }
 
     struct context* ctx = get_ir_graph_context(ir_graph);
-    struct device* dev = ctx->device;
+    struct device*  dev = ctx->device;
 
     if (NULL == dev)
     {
@@ -519,24 +519,25 @@ int prerun_graph_multithread(graph_t graph, struct options option)
     }
 
     int precision = TENGINE_MODE_FP32;
-    if (0 <= option.precision && (TENGINE_MODE_FP32 == option.precision || TENGINE_MODE_FP16 == option.precision
-        || TENGINE_MODE_HYBRID_INT8== option.precision ||  TENGINE_MODE_UINT8 == option.precision
-        || TENGINE_MODE_INT8== option.precision))
+    if (0 <= option.precision
+        && (TENGINE_MODE_FP32 == option.precision || TENGINE_MODE_FP16 == option.precision
+            || TENGINE_MODE_HYBRID_INT8 == option.precision || TENGINE_MODE_UINT8 == option.precision
+            || TENGINE_MODE_INT8 == option.precision))
     {
         precision = option.precision;
     }
 
-    ctx->default_options = sys_malloc(sizeof(struct cpu_option));
+    ctx->default_options        = sys_malloc(sizeof(struct cpu_option));
 
-    struct cpu_option* opt = (struct cpu_option*)ctx->default_options;
-    opt->dev_name     = CPU_DEVICE_NAME;
-    opt->num_thread   = count;
-    opt->cluster      = TENGINE_CLUSTER_BIG;
-    opt->precision    = precision;
-    opt->affinity     = option.affinity;
+    struct cpu_option* opt      = (struct cpu_option*)ctx->default_options;
+    opt->dev_name               = CPU_DEVICE_NAME;
+    opt->num_thread             = count;
+    opt->cluster                = TENGINE_CLUSTER_BIG;
+    opt->precision              = precision;
+    opt->affinity               = option.affinity;
 
     struct scheduler* scheduler = ctx->scheduler;
-    ret = scheduler->prerun(scheduler, ir_graph);
+    ret                         = scheduler->prerun(scheduler, ir_graph);
     if (0 != ret)
     {
         ir_graph->status = GRAPH_STAT_ERROR;
@@ -561,7 +562,7 @@ int prerun_graph_multithread(graph_t graph, struct options option)
     {
         set_log_level(LOG_INFO);
         dump_ir_graph(ir_graph);
-    }        
+    }
 
     return 0;
 }
@@ -569,11 +570,11 @@ int prerun_graph_multithread(graph_t graph, struct options option)
 
 int run_graph(graph_t graph, int block)
 {
-    struct graph* ir_graph = (struct graph*)graph;
-    struct context* context = get_ir_graph_context(ir_graph);
+    struct graph*     ir_graph  = (struct graph*)graph;
+    struct context*   context   = get_ir_graph_context(ir_graph);
     struct scheduler* scheduler = context->scheduler;
 
-    ir_graph->status = GRAPH_STAT_RUNNING;
+    ir_graph->status            = GRAPH_STAT_RUNNING;
 
     if (scheduler->run(scheduler, ir_graph, block) < 0)
     {
@@ -592,8 +593,8 @@ int run_graph(graph_t graph, int block)
 
 int wait_graph(graph_t graph, int try_wait)
 {
-    struct graph* ir_graph = (struct graph*)graph;
-    struct context* context = get_ir_graph_context(ir_graph);
+    struct graph*     ir_graph  = (struct graph*)graph;
+    struct context*   context   = get_ir_graph_context(ir_graph);
     struct scheduler* scheduler = context->scheduler;
 
     if (GRAPH_STAT_RUNNING != ir_graph->status || GRAPH_STAT_READY != ir_graph->status)
@@ -617,8 +618,8 @@ int wait_graph(graph_t graph, int try_wait)
 
 int postrun_graph(graph_t graph)
 {
-    struct graph* ir_graph = (struct graph*)graph;
-    struct context* context = get_ir_graph_context(ir_graph);
+    struct graph*     ir_graph  = (struct graph*)graph;
+    struct context*   context   = get_ir_graph_context(ir_graph);
     struct scheduler* scheduler = context->scheduler;
 
     if (scheduler->postrun(scheduler, ir_graph) < 0)
@@ -698,8 +699,8 @@ void dump_graph(graph_t graph)
 
 int set_graph_device(graph_t graph, const char* dev_name)
 {
-    struct graph* ir_graph = (struct graph*)graph;
-    struct device* nn_dev = find_device_via_name(dev_name);
+    struct graph*  ir_graph = (struct graph*)graph;
+    struct device* nn_dev   = find_device_via_name(dev_name);
 
     if (NULL == nn_dev)
     {
@@ -717,9 +718,9 @@ int set_graph_device(graph_t graph, const char* dev_name)
 int set_graph_input_node(graph_t graph, const char* input_nodes[], int input_number)
 {
     struct graph* ir_graph = (struct graph*)graph;
-    int16_t* input_node_indexes;
+    int16_t*      input_node_indexes;
 
-    input_node_indexes = ( int16_t* )sys_malloc(sizeof(int16_t) * input_number);
+    input_node_indexes = (int16_t*)sys_malloc(sizeof(int16_t) * input_number);
 
     if (input_node_indexes == NULL)
     {
@@ -753,7 +754,7 @@ int set_graph_output_node(graph_t graph, const char* output_nodes[], int output_
 
     int16_t* output_node_indexes;
 
-    output_node_indexes = ( int16_t* )sys_malloc(sizeof(int16_t) * output_number);
+    output_node_indexes = (int16_t*)sys_malloc(sizeof(int16_t) * output_number);
 
     if (output_node_indexes == NULL)
     {
@@ -783,7 +784,7 @@ int set_graph_output_node(graph_t graph, const char* output_nodes[], int output_
 
 int get_graph_input_node_number(graph_t graph)
 {
-    struct graph* ir_graph = ( struct graph* )graph;
+    struct graph* ir_graph = (struct graph*)graph;
 
     return ir_graph->input_num;
 }
@@ -791,7 +792,7 @@ int get_graph_input_node_number(graph_t graph)
 
 node_t get_graph_input_node(graph_t graph, int idx)
 {
-    struct graph* ir_graph = ( struct graph* )graph;
+    struct graph* ir_graph = (struct graph*)graph;
 
     if (idx < 0 || idx >= ir_graph->input_num)
     {
@@ -804,7 +805,7 @@ node_t get_graph_input_node(graph_t graph, int idx)
 
 int get_graph_output_node_number(graph_t graph)
 {
-    struct graph* ir_graph = ( struct graph* )graph;
+    struct graph* ir_graph = (struct graph*)graph;
 
     return ir_graph->output_num;
 }
@@ -812,7 +813,7 @@ int get_graph_output_node_number(graph_t graph)
 
 node_t get_graph_output_node(graph_t graph, int idx)
 {
-    struct graph* ir_graph = ( struct graph* )graph;
+    struct graph* ir_graph = (struct graph*)graph;
 
     if (idx < 0 || idx >= ir_graph->output_num)
     {
@@ -825,14 +826,14 @@ node_t get_graph_output_node(graph_t graph, int idx)
 
 tensor_t get_graph_input_tensor(graph_t graph, int input_idx, int tensor_idx)
 {
-    struct graph* ir_graph = ( struct graph* )graph;
+    struct graph* ir_graph = (struct graph*)graph;
 
     if (input_idx < 0 || input_idx >= ir_graph->input_num)
     {
         return NULL;
     }
 
-    int input_node_idx = ir_graph->input_nodes[input_idx];
+    int input_node_idx   = ir_graph->input_nodes[input_idx];
 
     struct node* ir_node = ir_graph->node_list[input_node_idx];
 
@@ -847,14 +848,14 @@ tensor_t get_graph_input_tensor(graph_t graph, int input_idx, int tensor_idx)
 
 tensor_t get_graph_output_tensor(graph_t graph, int output_idx, int tensor_idx)
 {
-    struct graph* ir_graph = ( struct graph* )graph;
+    struct graph* ir_graph = (struct graph*)graph;
 
     if (output_idx < 0 || output_idx >= ir_graph->output_num)
     {
         return NULL;
     }
 
-    int output_node_idx = ir_graph->output_nodes[output_idx];
+    int output_node_idx  = ir_graph->output_nodes[output_idx];
 
     struct node* ir_node = ir_graph->node_list[output_node_idx];
 
@@ -869,9 +870,9 @@ tensor_t get_graph_output_tensor(graph_t graph, int output_idx, int tensor_idx)
 
 node_t create_graph_node(graph_t graph, const char* node_name, const char* op_name)
 {
-    struct graph* ir_graph = ( struct graph* )graph;
+    struct graph* ir_graph = (struct graph*)graph;
 
-    int node_idx = get_ir_node_index_from_name(ir_graph, node_name);
+    int node_idx           = get_ir_node_index_from_name(ir_graph, node_name);
 
     if (node_idx >= 0)
     {
@@ -891,9 +892,9 @@ node_t create_graph_node(graph_t graph, const char* node_name, const char* op_na
 
 node_t get_graph_node(graph_t graph, const char* node_name)
 {
-    struct graph* ir_graph = ( struct graph* )graph;
+    struct graph* ir_graph = (struct graph*)graph;
 
-    int node_idx = get_ir_node_index_from_name(ir_graph, node_name);
+    int node_idx           = get_ir_node_index_from_name(ir_graph, node_name);
 
     if (node_idx < 0)
     {
@@ -906,7 +907,7 @@ node_t get_graph_node(graph_t graph, const char* node_name)
 
 node_t get_graph_node_by_idx(graph_t graph, int idx)
 {
-    struct graph* ir_graph = ( struct graph* )graph;
+    struct graph* ir_graph = (struct graph*)graph;
 
     if (idx < 0 || idx >= ir_graph->node_num)
         return NULL;
@@ -917,7 +918,7 @@ node_t get_graph_node_by_idx(graph_t graph, int idx)
 
 int get_graph_node_num(graph_t graph)
 {
-    struct graph* ir_graph = ( struct graph* )graph;
+    struct graph* ir_graph = (struct graph*)graph;
 
     return ir_graph->node_num;
 }
@@ -925,7 +926,7 @@ int get_graph_node_num(graph_t graph)
 
 int get_node_output_number(node_t node)
 {
-    struct node* ir_node = ( struct node* )node;
+    struct node* ir_node = (struct node*)node;
 
     return ir_node->output_num;
 }
@@ -933,7 +934,7 @@ int get_node_output_number(node_t node)
 
 int get_node_input_number(node_t node)
 {
-    struct node* ir_node = ( struct node* )node;
+    struct node* ir_node = (struct node*)node;
 
     return ir_node->input_num;
 }
@@ -941,7 +942,7 @@ int get_node_input_number(node_t node)
 
 const char* get_node_name(node_t node)
 {
-    struct node* ir_node = ( struct node* )node;
+    struct node* ir_node = (struct node*)node;
 
     if (ir_node->name)
     {
@@ -956,9 +957,9 @@ const char* get_node_name(node_t node)
 
 const char* get_node_op(node_t node)
 {
-    struct node* ir_node = ( struct node* )node;
+    struct node* ir_node = (struct node*)node;
 
-    int op_type = ir_node->op.type;
+    int op_type          = ir_node->op.type;
 
     return get_op_name_from_type(op_type);
 }
@@ -966,10 +967,10 @@ const char* get_node_op(node_t node)
 
 const char* get_node_device(node_t node)
 {
-    struct node* ir_node = (struct node*)node;
-    struct graph* graph = ir_node->graph;
+    struct node*  ir_node = (struct node*)node;
+    struct graph* graph   = ir_node->graph;
 
-    int subgraph_count = get_vector_num(graph->subgraph_list);
+    int subgraph_count    = get_vector_num(graph->subgraph_list);
     if (subgraph_count > 0)
     {
         if (0 <= ir_node->subgraph_idx)
@@ -1046,7 +1047,7 @@ int add_node_attr(node_t node, const char* attr_name, const char* type_name, int
 
 void release_graph_node(node_t node)
 {
-    ( void )node;
+    (void)node;
     // NOTHING NEEDS TO DO
 }
 
@@ -1056,7 +1057,7 @@ void release_graph_node(node_t node)
 
 tensor_t get_node_input_tensor(node_t node, int input_idx)
 {
-    struct node* ir_node = ( struct node* )node;
+    struct node* ir_node = (struct node*)node;
 
     if (input_idx < 0 || input_idx >= ir_node->input_num)
     {
@@ -1068,7 +1069,7 @@ tensor_t get_node_input_tensor(node_t node, int input_idx)
 
 tensor_t get_node_output_tensor(node_t node, int output_idx)
 {
-    struct node* ir_node = ( struct node* )node;
+    struct node* ir_node = (struct node*)node;
 
     if (output_idx < 0 || output_idx >= ir_node->output_num)
     {
@@ -1081,7 +1082,7 @@ tensor_t get_node_output_tensor(node_t node, int output_idx)
 
 int set_node_input_tensor(node_t node, int input_idx, tensor_t tensor)
 {
-    struct node* ir_node = ( struct node* )node;
+    struct node*   ir_node   = (struct node*)node;
     struct tensor* ir_tensor = (struct tensor*)tensor;
 
     return set_ir_node_input_tensor(ir_node, input_idx, ir_tensor);
@@ -1090,10 +1091,10 @@ int set_node_input_tensor(node_t node, int input_idx, tensor_t tensor)
 
 int set_node_output_tensor(node_t node, int output_idx, tensor_t tensor, int tensor_type)
 {
-    struct node* ir_node = ( struct node* )node;
+    struct node*   ir_node   = (struct node*)node;
     struct tensor* ir_tensor = (struct tensor*)tensor;
 
-    ir_tensor->tensor_type = tensor_type;
+    ir_tensor->tensor_type   = tensor_type;
 
     return set_ir_node_output_tensor(ir_node, output_idx, ir_tensor);
 }
@@ -1101,7 +1102,7 @@ int set_node_output_tensor(node_t node, int output_idx, tensor_t tensor, int ten
 
 tensor_t create_graph_tensor(graph_t graph, const char* tensor_name, int data_type)
 {
-    struct graph* ir_graph = ( struct graph* )graph;
+    struct graph* ir_graph = (struct graph*)graph;
 
     return create_ir_tensor(ir_graph, tensor_name, data_type);
 }
@@ -1109,7 +1110,7 @@ tensor_t create_graph_tensor(graph_t graph, const char* tensor_name, int data_ty
 
 tensor_t get_graph_tensor(graph_t graph, const char* tensor_name)
 {
-    struct graph* ir_graph = ( struct graph* )graph;
+    struct graph* ir_graph = (struct graph*)graph;
 
     for (int i = 0; i < ir_graph->node_num; i++)
     {
@@ -1124,14 +1125,14 @@ tensor_t get_graph_tensor(graph_t graph, const char* tensor_name)
             {
                 struct tensor* ir_tensor = get_ir_graph_tensor(ir_node->graph, ir_node->input_tensors[j]);
                 if (ir_tensor && ir_tensor->name && !strcmp(ir_tensor->name, tensor_name))
-                    return ( tensor_t )ir_tensor;
+                    return (tensor_t)ir_tensor;
             }
 
             for (int j = 0; j < ir_node->output_num; j++)
             {
                 struct tensor* ir_tensor = get_ir_graph_tensor(ir_node->graph, ir_node->output_tensors[j]);
                 if (ir_tensor && ir_tensor->name && !strcmp(ir_tensor->name, tensor_name))
-                    return ( tensor_t )ir_tensor;
+                    return (tensor_t)ir_tensor;
             }
         }
     }
@@ -1201,8 +1202,8 @@ void* get_tensor_buffer(tensor_t tensor)
 
 int set_tensor_buffer(tensor_t tensor, void* buffer, int buffer_size)
 {
-    struct tensor* ir_tensor = (struct tensor*)tensor;
-    int tensor_size = get_tensor_buffer_size(tensor);
+    struct tensor* ir_tensor   = (struct tensor*)tensor;
+    int            tensor_size = get_tensor_buffer_size(tensor);
 
     if (tensor_size != buffer_size)
     {
@@ -1213,9 +1214,9 @@ int set_tensor_buffer(tensor_t tensor, void* buffer, int buffer_size)
     if (ir_tensor->data && ir_tensor->free_host_mem)
         sys_free(ir_tensor->data);
 
-    ir_tensor->free_host_mem = 0;
+    ir_tensor->free_host_mem      = 0;
     ir_tensor->internal_allocated = 0;
-    ir_tensor->data = buffer;
+    ir_tensor->data               = buffer;
 
     return 0;
 }
@@ -1223,8 +1224,8 @@ int set_tensor_buffer(tensor_t tensor, void* buffer, int buffer_size)
 
 int get_tensor_data(tensor_t tensor, void* output_data, int data_size)
 {
-    struct tensor* ir_tensor = (struct tensor*)tensor;
-    int tensor_size = get_tensor_buffer_size(tensor);
+    struct tensor* ir_tensor   = (struct tensor*)tensor;
+    int            tensor_size = get_tensor_buffer_size(tensor);
 
     if (data_size < tensor_size)
     {
@@ -1250,8 +1251,8 @@ int get_tensor_data(tensor_t tensor, void* output_data, int data_size)
 
 int set_tensor_data(tensor_t tensor, const void* input_data, int data_size)
 {
-    struct tensor* ir_tensor = (struct tensor*)tensor;
-    int tensor_size = get_tensor_buffer_size(tensor);
+    struct tensor* ir_tensor   = (struct tensor*)tensor;
+    int            tensor_size = get_tensor_buffer_size(tensor);
 
     if (data_size > tensor_size)
     {
@@ -1281,7 +1282,7 @@ int set_tensor_data_type(tensor_t tensor, int data_type)
 {
     struct tensor* ir_tensor = (struct tensor*)tensor;
 
-    ir_tensor->data_type = data_type;
+    ir_tensor->data_type     = data_type;
 
     return 0;
 }
@@ -1299,7 +1300,7 @@ int set_tensor_layout(tensor_t tensor, int layout)
 {
     struct tensor* ir_tensor = (struct tensor*)tensor;
 
-    ir_tensor->layout = layout;
+    ir_tensor->layout        = layout;
 
     return 0;
 }

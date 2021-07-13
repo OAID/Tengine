@@ -39,15 +39,15 @@ void arm_maxpool_q7_HWC_nonsquare(q7_t* Im_in, const uint16_t dim_im_in_x, const
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node* ir_node = exec_node->ir_node;
-    struct graph* ir_graph = ir_node->graph;
+    struct node*   ir_node  = exec_node->ir_node;
+    struct graph*  ir_graph = ir_node->graph;
     struct tensor* input_tensor;
     struct tensor* output_tensor;
 
-    struct pool_param* pool_param = ( struct pool_param* )ir_node->op.param_mem;
+    struct pool_param* pool_param = (struct pool_param*)ir_node->op.param_mem;
 
-    input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+    input_tensor                  = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    output_tensor                 = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
     arm_maxpool_q7_HWC_nonsquare(input_tensor->data, input_tensor->dims[2], input_tensor->dims[1],
                                  input_tensor->dims[3], pool_param->kernel_h, pool_param->pad_h0, pool_param->stride_h,
@@ -66,13 +66,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_BEST;
 }
 
-static struct node_ops cmsis_node_ops = {.prerun = NULL,
-                                         .run = run,
-                                         .reshape = reshape,
-                                         .postrun = NULL,
-                                         .init_node = NULL,
-                                         .release_node = NULL,
-                                         .score = score};
+static struct node_ops cmsis_node_ops = { .prerun       = NULL,
+                                          .run          = run,
+                                          .reshape      = reshape,
+                                          .postrun      = NULL,
+                                          .init_node    = NULL,
+                                          .release_node = NULL,
+                                          .score        = score };
 
 int register_pooling_cmsis_op()
 {

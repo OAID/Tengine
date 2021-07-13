@@ -85,12 +85,12 @@ static int do_RNN_step(const float* input, float* init_h, const float* kernel, c
                        int input_size, int hidden_size)
 {
     int input_total_size = input_size + hidden_size;
-    int batch_cell_size = hidden_size * batch_size;
+    int batch_cell_size  = hidden_size * batch_size;
 
-    float* ig = ( float* )malloc(batch_cell_size * sizeof(float));
+    float* ig            = (float*)malloc(batch_cell_size * sizeof(float));
 
-    float* merged_input = ( float* )malloc(sizeof(float) * batch_size * (input_total_size));
-    float* matmul_result = ( float* )malloc(sizeof(float) * batch_size * hidden_size);
+    float* merged_input  = (float*)malloc(sizeof(float) * batch_size * (input_total_size));
+    float* matmul_result = (float*)malloc(sizeof(float) * batch_size * hidden_size);
 
     // merge input
     concat_axis_1_rnn(input, init_h, merged_input, batch_size, input_size, hidden_size);
@@ -109,7 +109,7 @@ static int do_RNN_step(const float* input, float* init_h, const float* kernel, c
     // activation
     for (int i = 0; i < batch_cell_size; i++)
     {
-        ig[i] = tanh(matmul_result[i]);
+        ig[i]     = tanh(matmul_result[i]);
         init_h[i] = ig[i];
     }
 
@@ -123,7 +123,7 @@ static int do_RNN_step(const float* input, float* init_h, const float* kernel, c
 
 static int ref_rnn_fp32(float* input, float* output, struct rnn_ref_param* param)
 {
-    float* init_h = ( float* )malloc((unsigned long )param->batch_size * param->hidden_size * sizeof(float));
+    float* init_h = (float*)malloc((unsigned long)param->batch_size * param->hidden_size * sizeof(float));
     if (param->init_h_data)
     {
         for (int i = 0; i < param->batch_size; i++)
@@ -133,7 +133,7 @@ static int ref_rnn_fp32(float* input, float* output, struct rnn_ref_param* param
     }
     else
     {
-        memset(init_h, 0x0, sizeof((unsigned long )param->batch_size * param->hidden_size * sizeof(float)));
+        memset(init_h, 0x0, sizeof((unsigned long)param->batch_size * param->hidden_size * sizeof(float)));
     }
 
     for (int i = 0; i < param->seq_lens; i++)
@@ -147,7 +147,7 @@ static int ref_rnn_fp32(float* input, float* output, struct rnn_ref_param* param
         // final_state [batch_size,hidden_size]
         if (i + param->output_len >= param->seq_lens)
         {
-            memcpy(output, init_h, (unsigned long )param->batch_size * param->hidden_size * sizeof(float));
+            memcpy(output, init_h, (unsigned long)param->batch_size * param->hidden_size * sizeof(float));
             output += param->batch_size * param->hidden_size;
         }
     }
@@ -166,18 +166,18 @@ static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, 
 }
 
 static struct tensor* bias_tensor;
-static float* init_h_data;
+static float*         init_h_data;
 
 static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node* ir_node = exec_node->ir_node;
-    struct graph* ir_graph = ir_node->graph;
+    struct node*   ir_node  = exec_node->ir_node;
+    struct graph*  ir_graph = ir_node->graph;
     struct tensor* input_tensor;
     struct tensor* output_tensor;
-    output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    int in_num = ir_node->input_num;
-    struct rnn_param* rnn_param = ( struct rnn_param* )ir_node->op.param_mem;
-    struct tensor* init_h_tensor;
+    output_tensor               = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+    int               in_num    = ir_node->input_num;
+    struct rnn_param* rnn_param = (struct rnn_param*)ir_node->op.param_mem;
+    struct tensor*    init_h_tensor;
 
     for (int count = 0; count < in_num; count++)
     {
@@ -201,29 +201,29 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node* ir_node = exec_node->ir_node;
-    struct graph* ir_graph = ir_node->graph;
-    struct tensor* input_tensor;
-    struct tensor* kernel_tensor;
-    struct tensor* output_tensor;
+    struct node*         ir_node  = exec_node->ir_node;
+    struct graph*        ir_graph = ir_node->graph;
+    struct tensor*       input_tensor;
+    struct tensor*       kernel_tensor;
+    struct tensor*       output_tensor;
     struct rnn_ref_param rnn_ref_param;
 
-    input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    kernel_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
-    output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    struct rnn_param* rnn_param = ( struct rnn_param* )ir_node->op.param_mem;
+    input_tensor                = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    kernel_tensor               = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
+    output_tensor               = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+    struct rnn_param* rnn_param = (struct rnn_param*)ir_node->op.param_mem;
 
-    int input_size = rnn_param->input_size;
-    int hidden_size = rnn_param->hidden_size;
+    int input_size              = rnn_param->input_size;
+    int hidden_size             = rnn_param->hidden_size;
 
-    float* output = output_tensor->data;
-    float* input = input_tensor->data;
+    float* output               = output_tensor->data;
+    float* input                = input_tensor->data;
 
-    int seq_lens = input_tensor->dims[0];
-    int batch_size = input_tensor->dims[1];
-    int output_len = rnn_param->output_len;
+    int seq_lens                = input_tensor->dims[0];
+    int batch_size              = input_tensor->dims[1];
+    int output_len              = rnn_param->output_len;
 
-    float* init_h = ( float* )malloc((size_t)batch_size * hidden_size * sizeof(float));
+    float* init_h               = (float*)malloc((size_t)batch_size * hidden_size * sizeof(float));
     if (init_h == NULL)
     {
         return -1;
@@ -240,18 +240,18 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         memset(init_h, 0x0, sizeof(batch_size * hidden_size * sizeof(float)));
     }
     float* kernel = kernel_tensor->data;
-    float* bias = NULL;
+    float* bias   = NULL;
 
     if (bias_tensor)
         bias = bias_tensor->data;
 
     rnn_ref_param.init_h_data = init_h_data;
-    rnn_ref_param.bias = bias;
-    rnn_ref_param.kernel = kernel;
-    rnn_ref_param.seq_lens = seq_lens;
-    rnn_ref_param.batch_size = batch_size;
-    rnn_ref_param.input_size = input_size;
-    rnn_ref_param.output_len = output_len;
+    rnn_ref_param.bias        = bias;
+    rnn_ref_param.kernel      = kernel;
+    rnn_ref_param.seq_lens    = seq_lens;
+    rnn_ref_param.batch_size  = batch_size;
+    rnn_ref_param.input_size  = input_size;
+    rnn_ref_param.output_len  = output_len;
     rnn_ref_param.hidden_size = hidden_size;
 
     if (ref_rnn_fp32(input, output, &rnn_ref_param) < 0)
@@ -265,13 +265,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_CANDO;
 }
 
-static struct node_ops hcl_node_ops = {.prerun = prerun,
-                                       .run = run,
-                                       .reshape = NULL,
-                                       .postrun = NULL,
-                                       .init_node = init_node,
-                                       .release_node = release_node,
-                                       .score = score};
+static struct node_ops hcl_node_ops = { .prerun       = prerun,
+                                        .run          = run,
+                                        .reshape      = NULL,
+                                        .postrun      = NULL,
+                                        .init_node    = init_node,
+                                        .release_node = release_node,
+                                        .score        = score };
 
 int register_rnn_ref_op()
 {

@@ -39,7 +39,8 @@ static int l2normalization_op_map(int op)
 }
 
 
-static int tm2_load_l2normalization(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node, const TM2_Operator* tm_op)
+static int tm2_load_l2normalization(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
+                                    const TM2_Operator* tm_op)
 {
     return 0;
 }
@@ -55,7 +56,8 @@ int register_tm2_l2normalization_op()
         return -1;
     }
 
-    tm2_s->register_op_loader(tm2_s, TM2_OPTYPE_L2NORMALIZATION, 1, tm2_load_l2normalization, l2normalization_op_map, NULL);
+    tm2_s->register_op_loader(tm2_s, TM2_OPTYPE_L2NORMALIZATION, 1, tm2_load_l2normalization, l2normalization_op_map,
+                              NULL);
 
     return 0;
 }

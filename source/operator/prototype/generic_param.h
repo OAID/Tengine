@@ -28,8 +28,8 @@
 struct generic_param
 {
     const char* op_name;    // what real action?
-    int max_input_num;
-    int max_output_num;
+    int         max_input_num;
+    int         max_output_num;
 };
 
 #endif

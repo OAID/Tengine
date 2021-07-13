@@ -38,31 +38,31 @@
 #include "conv_kernel_ref.h"
 
 
-int ref_conv_fp16(struct tensor* input_tensor, struct tensor* output_tensor, struct tensor* kernel,
-                         struct tensor* bias, struct conv_param* conv_param)
+int ref_conv_fp16(struct tensor* input_tensor, struct tensor* output_tensor, struct tensor* kernel, struct tensor* bias,
+                  struct conv_param* conv_param)
 {
 #if MACOS
     TLOG_ERR("FP16 not support under mac os");
 #else
-    int batch = input_tensor->dims[0];
-    int group = conv_param->group;
-    int input_c = conv_param->input_channel / group;
-    int input_h = input_tensor->dims[2];
-    int input_w = input_tensor->dims[3];
-    int output_c = output_tensor->dims[1] / group;
-    int output_h = output_tensor->dims[2];
-    int output_w = output_tensor->dims[3];
+    int batch       = input_tensor->dims[0];
+    int group       = conv_param->group;
+    int input_c     = conv_param->input_channel / group;
+    int input_h     = input_tensor->dims[2];
+    int input_w     = input_tensor->dims[3];
+    int output_c    = output_tensor->dims[1] / group;
+    int output_h    = output_tensor->dims[2];
+    int output_w    = output_tensor->dims[3];
 
     int kernel_size = input_c * conv_param->kernel_h * conv_param->kernel_w;
     int n, g, c, h, w, kc, kh, kw;
-    int input_offset = 0;
-    int kernel_offset = 0;
-    int output_offset = 0;
+    int input_offset    = 0;
+    int kernel_offset   = 0;
+    int output_offset   = 0;
 
-    fp16_t* input_data = input_tensor->data;
+    fp16_t* input_data  = input_tensor->data;
     fp16_t* output_data = output_tensor->data;
     fp16_t* kernel_data = kernel->data;
-    fp16_t* bias_data = NULL;
+    fp16_t* bias_data   = NULL;
     if (bias != NULL)
         bias_data = bias->data;
 
@@ -85,17 +85,17 @@ int ref_conv_fp16(struct tensor* input_tensor, struct tensor* output_tensor, str
                     {
                         const int h_start = (h * conv_param->stride_h) - conv_param->pad_h0;
                         const int w_start = (w * conv_param->stride_w) - conv_param->pad_w0;
-                        float total = 0.f;
+                        float     total   = 0.f;
                         if (input_tensor->layout == 0)
                         {
-                            output_offset = n * group * output_c * output_h * output_w +
-                                            g * output_c * output_h * output_w + c * output_h * output_w +
-                                            h * output_w + w;
+                            output_offset = n * group * output_c * output_h * output_w
+                                            + g * output_c * output_h * output_w + c * output_h * output_w
+                                            + h * output_w + w;
                         }
                         else
                         {
-                            output_offset = n * group * output_c * output_h * output_w +
-                                            h * output_w * group * output_c + w * group * output_c + output_c * g + c;
+                            output_offset = n * group * output_c * output_h * output_w + h * output_w * group * output_c
+                                            + w * group * output_c + output_c * g + c;
                         }
                         for (kc = 0; kc < input_c; ++kc)
                         {
@@ -111,25 +111,25 @@ int ref_conv_fp16(struct tensor* input_tensor, struct tensor* output_tensor, str
                                     {
                                         if (input_tensor->layout == 0)
                                         {
-                                            input_offset = n * group * input_c * input_h * input_w +
-                                                           g * input_c * input_h * input_w + kc * input_h * input_w +
-                                                           cur_y * input_w + cur_x;
-                                            kernel_offset = g * output_c * kernel_size + c * kernel_size +
-                                                            kc * conv_param->kernel_h * conv_param->kernel_w +
-                                                            kh * conv_param->kernel_w + kw;
+                                            input_offset = n * group * input_c * input_h * input_w
+                                                           + g * input_c * input_h * input_w + kc * input_h * input_w
+                                                           + cur_y * input_w + cur_x;
+                                            kernel_offset = g * output_c * kernel_size + c * kernel_size
+                                                            + kc * conv_param->kernel_h * conv_param->kernel_w
+                                                            + kh * conv_param->kernel_w + kw;
                                         }
                                         else
                                         {
-                                            input_offset = n * group * input_c * input_h * input_w +
-                                                           cur_y * input_w * input_c * group + cur_x * input_c * group +
-                                                           g * input_c + kc;
-                                            kernel_offset = c * group * kernel_size +
-                                                            kh * conv_param->kernel_w * input_c * group +
-                                                            kw * input_c * group + g * input_c + kc;
+                                            input_offset = n * group * input_c * input_h * input_w
+                                                           + cur_y * input_w * input_c * group + cur_x * input_c * group
+                                                           + g * input_c + kc;
+                                            kernel_offset = c * group * kernel_size
+                                                            + kh * conv_param->kernel_w * input_c * group
+                                                            + kw * input_c * group + g * input_c + kc;
                                         }
 
-                                        total += fp16_to_fp32(input_data[input_offset]) *
-                                                 fp16_to_fp32(kernel_data[kernel_offset]);
+                                        total += fp16_to_fp32(input_data[input_offset])
+                                                 * fp16_to_fp32(kernel_data[kernel_offset]);
                                     }
                                 }
                             }

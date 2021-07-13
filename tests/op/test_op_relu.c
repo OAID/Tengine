@@ -25,9 +25,14 @@
 #include "test_op.h"
 
 
-int create_test_relu_node(graph_t graph, const char* input_name, const char* node_name, int data_type, int layout, int n, int c, int h, int w)
+int create_test_relu_node(graph_t graph, const char* input_name, const char* node_name, int data_type, int layout,
+                          int n, int c, int h, int w)
 {
-    (void)layout; (void)n; (void)c; (void)h; (void)w;
+    (void)layout;
+    (void)n;
+    (void)c;
+    (void)h;
+    (void)w;
 
     /* create the test node */
     node_t test_node = create_graph_node(graph, node_name, "ReLU");
@@ -69,10 +74,10 @@ int create_test_relu_node(graph_t graph, const char* input_name, const char* nod
 
 int main(int argc, char* argv[])
 {
-    int n = 1, c = 3, h = 12, w = 12;
+    int         n = 1, c = 3, h = 12, w = 12;
     const char* test_node_name = "relu";
-    int data_type = TENGINE_DT_FP32;
-    int layout = TENGINE_LAYOUT_NCHW;
+    int         data_type      = TENGINE_DT_FP32;
+    int         layout         = TENGINE_LAYOUT_NCHW;
 
     // init
     int ret = test_graph_init();
@@ -81,7 +86,7 @@ int main(int argc, char* argv[])
 
     // create
     graph_t graph = create_common_test_graph(test_node_name, data_type, layout, n, c, h, w, &create_test_relu_node);
-    if(NULL == graph)
+    if (NULL == graph)
         return -1;
 
     // set input data
@@ -98,7 +103,7 @@ int main(int argc, char* argv[])
 
     // dump input node
     int input_node_count = get_graph_input_node_number(graph);
-    for(int i = 0; i < input_node_count; i++)
+    for (int i = 0; i < input_node_count; i++)
     {
         node_t input = get_graph_input_node(graph, i);
         dump_node_output(input, 0);
@@ -106,7 +111,7 @@ int main(int argc, char* argv[])
 
     // dump output node
     int output_node_count = get_graph_output_node_number(graph);
-    for(int i = 0; i < output_node_count; i++)
+    for (int i = 0; i < output_node_count; i++)
     {
         node_t output = get_graph_output_node(graph, i);
         dump_node_output(output, 0);

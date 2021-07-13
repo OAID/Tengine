@@ -37,20 +37,20 @@
 
 static int infer_shape(struct node* node)
 {
-    reshape_param_t* param = ( struct reshape_param* )(node->op.param_mem);
+    reshape_param_t* param        = (struct reshape_param*)(node->op.param_mem);
 
-    struct graph* graph = node->graph;
-    struct tensor* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
-    struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
+    struct graph*  graph          = node->graph;
+    struct tensor* input          = get_ir_graph_tensor(graph, node->input_tensors[0]);
+    struct tensor* output         = get_ir_graph_tensor(graph, node->output_tensors[0]);
 
-    const int size = input->elem_num;
+    const int size                = input->elem_num;
 
-    int new_size = 1;
-    int new_shape_size = param->dim_size;
-    int in_idx = 0;
+    int new_size                  = 1;
+    int new_shape_size            = param->dim_size;
+    int in_idx                    = 0;
 
-    struct vector* new_shape = create_vector(sizeof(int), NULL);
-    int input_dim_size = input->dim_num;
+    struct vector* new_shape      = create_vector(sizeof(int), NULL);
+    int            input_dim_size = input->dim_num;
 
     for (int i = 0; i < new_shape_size; ++i)
     {
@@ -59,13 +59,13 @@ static int infer_shape(struct node* node)
             if (param->is_mxnet)
             {
                 int temp = input->dims[in_idx];
-                push_vector_data(new_shape, ( void* )&temp);
+                push_vector_data(new_shape, (void*)&temp);
             }
             else
             {
                 int temp = 1;
                 if (i == 0)
-                    push_vector_data(new_shape, ( void* )&temp);
+                    push_vector_data(new_shape, (void*)&temp);
             }
 
             in_idx++;
@@ -73,20 +73,20 @@ static int infer_shape(struct node* node)
         else if (-1 == param->re_shape[i])
         {
             int temp = -1;
-            push_vector_data(new_shape, ( void* )&temp);
+            push_vector_data(new_shape, (void*)&temp);
             in_idx++;
         }
         else if (-2 == param->re_shape[i])
         {
             for (; in_idx < input_dim_size; ++in_idx)
             {
-                push_vector_data(new_shape, ( void* )&input->dims[in_idx]);
+                push_vector_data(new_shape, (void*)&input->dims[in_idx]);
             }
         }
         else if (-3 == param->re_shape[i])
         {
             int temp = input->dims[in_idx] * input->dims[in_idx + 1];
-            push_vector_data(new_shape, ( void* )&temp);
+            push_vector_data(new_shape, (void*)&temp);
             in_idx = in_idx + 2;
         }
         else if (-4 == param->re_shape[i])
@@ -94,23 +94,23 @@ static int infer_shape(struct node* node)
             int muti_val = param->re_shape[i + 1];
             if (muti_val == -1)
                 muti_val = 1;
-            push_vector_data(new_shape, ( void* )&muti_val);
-            push_vector_data(new_shape, ( void* )&param->re_shape[i + 2]);
+            push_vector_data(new_shape, (void*)&muti_val);
+            push_vector_data(new_shape, (void*)&param->re_shape[i + 2]);
             i = i + 2;
             in_idx++;
         }
         else
         {
-            push_vector_data(new_shape, ( void* )&param->re_shape[i]);
+            push_vector_data(new_shape, (void*)&param->re_shape[i]);
             in_idx++;
         }
     }
 
-    int idx = -1;
+    int idx      = -1;
     int dim_size = get_vector_num(new_shape);
     for (int i = 0; i < dim_size; i++)
     {
-        int temp = (( int* )get_vector_data(new_shape, i))[0];
+        int temp = ((int*)get_vector_data(new_shape, i))[0];
         if (temp == -1)
             idx = i;
         else
@@ -120,12 +120,12 @@ static int infer_shape(struct node* node)
     if (idx >= 0)
     {
         int temp = size / new_size;
-        set_vector_data(new_shape, idx, ( void* )&temp);
+        set_vector_data(new_shape, idx, (void*)&temp);
     }
 
-    if ((( int* )get_vector_data(new_shape, 0))[0] == -1 && get_vector_num(new_shape) == 1)
+    if (((int*)get_vector_data(new_shape, 0))[0] == -1 && get_vector_num(new_shape) == 1)
     {
-        set_vector_data(new_shape, 0, ( void* )&size);
+        set_vector_data(new_shape, 0, (void*)&size);
     }
 
     if (param->reverse)
@@ -144,24 +144,25 @@ static int infer_shape(struct node* node)
         }
     }
 
-    new_size = 1;
-    int* new_shape_temp = ( int* )sys_malloc(get_vector_num(new_shape) * sizeof(int));
+    new_size            = 1;
+    int* new_shape_temp = (int*)sys_malloc(get_vector_num(new_shape) * sizeof(int));
 
     for (int i = 0; i < get_vector_num(new_shape); i++)
     {
-        int* a = ( int* )get_vector_data(new_shape, i);
+        int* a            = (int*)get_vector_data(new_shape, i);
         new_shape_temp[i] = *a;
         new_size *= new_shape_temp[i];
     }
     // check input and reshaped size
-    if (new_size != size) {
+    if (new_size != size)
+    {
         TLOG_ERR("Error: input elem num(%d) != reshaped elem num(%d)\n", size, new_size);
         return -1;
     }
 
     output->layout = input->layout;
 
-    int ret = set_ir_tensor_shape(output, new_shape_temp, get_vector_num(new_shape));
+    int ret        = set_ir_tensor_shape(output, new_shape_temp, get_vector_num(new_shape));
 
     sys_free(new_shape_temp);
     release_vector(new_shape);
@@ -172,7 +173,7 @@ static int infer_shape(struct node* node)
 
 static int init_op(struct op* op)
 {
-    struct reshape_param* reshape_param = ( struct reshape_param* )sys_malloc(sizeof(struct reshape_param));
+    struct reshape_param* reshape_param = (struct reshape_param*)sys_malloc(sizeof(struct reshape_param));
 
     if (reshape_param == NULL)
     {
@@ -181,9 +182,9 @@ static int init_op(struct op* op)
 
     /*set the param default value */
     memset(reshape_param, 0, sizeof(struct reshape_param));
-    op->param_mem = reshape_param;
-    op->param_size = sizeof(struct reshape_param);
-    op->same_shape = 0;
+    op->param_mem   = reshape_param;
+    op->param_size  = sizeof(struct reshape_param);
+    op->same_shape  = 0;
     op->infer_shape = infer_shape;
 
     return 0;
@@ -192,7 +193,7 @@ static int init_op(struct op* op)
 
 static void release_op(struct op* op)
 {
-    struct reshape_param* reshape_param = ( struct reshape_param* )op->param_mem;
+    struct reshape_param* reshape_param = (struct reshape_param*)op->param_mem;
 
     if (reshape_param->re_shape)
         sys_free(reshape_param->re_shape);
@@ -206,7 +207,7 @@ int register_reshape_op()
     struct method m;
 
     m.version = 1;
-    m.init = init_op;
+    m.init    = init_op;
     m.release = release_op;
 
     return register_op(OP_RESHAPE, OP_RESHAPE_NAME, &m);

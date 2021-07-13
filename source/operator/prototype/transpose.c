@@ -35,13 +35,13 @@
 
 static int infer_shape(struct node* node)
 {
-    struct graph* graph = node->graph;
-    struct tensor* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
-    struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
-    struct transpose_param* param = ( struct transpose_param* )(node->op.param_mem);
+    struct graph*           graph  = node->graph;
+    struct tensor*          input  = get_ir_graph_tensor(graph, node->input_tensors[0]);
+    struct tensor*          output = get_ir_graph_tensor(graph, node->output_tensors[0]);
+    struct transpose_param* param  = (struct transpose_param*)(node->op.param_mem);
 
-    int new_shape_size = param->tr_shape_size;
-    int* out_dims = ( int* )sys_malloc(new_shape_size * sizeof(int));
+    int  new_shape_size            = param->tr_shape_size;
+    int* out_dims                  = (int*)sys_malloc(new_shape_size * sizeof(int));
 
     for (int i = 0; i < new_shape_size; i++)
     {
@@ -57,7 +57,7 @@ static int infer_shape(struct node* node)
 
 static int init_op(struct op* op)
 {
-    struct transpose_param* transpose_param = ( struct transpose_param* )sys_malloc(sizeof(struct transpose_param));
+    struct transpose_param* transpose_param = (struct transpose_param*)sys_malloc(sizeof(struct transpose_param));
 
     if (transpose_param == NULL)
     {
@@ -70,10 +70,10 @@ static int init_op(struct op* op)
     transpose_param->dim_2 = -2;
     transpose_param->dim_3 = -2;
 
-    op->param_mem = transpose_param;
-    op->param_size = sizeof(struct transpose_param);
-    op->same_shape = 0;
-    op->infer_shape = infer_shape;
+    op->param_mem          = transpose_param;
+    op->param_size         = sizeof(struct transpose_param);
+    op->same_shape         = 0;
+    op->infer_shape        = infer_shape;
 
     return 0;
 }
@@ -81,7 +81,7 @@ static int init_op(struct op* op)
 
 static void release_op(struct op* op)
 {
-    struct transpose_param* transpose_param = ( struct transpose_param* )op->param_mem;
+    struct transpose_param* transpose_param = (struct transpose_param*)op->param_mem;
 
     if (transpose_param->tr_shape)
         sys_free(transpose_param->tr_shape);
@@ -95,7 +95,7 @@ int register_transpose_op()
     struct method m;
 
     m.version = 1;
-    m.init = init_op;
+    m.init    = init_op;
     m.release = release_op;
 
 

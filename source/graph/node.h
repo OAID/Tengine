@@ -43,20 +43,20 @@ struct graph;
  */
 typedef struct node
 {
-    uint16_t  index;            //!< the index of a node
-    uint8_t   dynamic_shape;    //!< flag of dynamic shape
-    uint8_t   input_num;        //!< count of input tensor
-    uint8_t   output_num;       //!< count of output tensor
-    uint8_t   node_type;        //!< type of node: { input, output, intermediate }
-    int8_t    subgraph_idx;     //!< id of the owner subgraph
+    uint16_t index;            //!< the index of a node
+    uint8_t  dynamic_shape;    //!< flag of dynamic shape
+    uint8_t  input_num;        //!< count of input tensor
+    uint8_t  output_num;       //!< count of output tensor
+    uint8_t  node_type;        //!< type of node: { input, output, intermediate }
+    int8_t   subgraph_idx;     //!< id of the owner subgraph
 
-    uint16_t* input_tensors;    //!< id array of input tensor
-    uint16_t* output_tensors;   //!< id array of output tensor
+    uint16_t* input_tensors;     //!< id array of input tensor
+    uint16_t* output_tensors;    //!< id array of output tensor
 
-    char* name;                 //!< name of a node
+    char* name;    //!< name of a node
 
-    struct op op;               //!< operator of a node
-    struct graph* graph;        //!< pointer of the related graph
+    struct op     op;       //!< operator of a node
+    struct graph* graph;    //!< pointer of the related graph
 } ir_node_t;
 
 

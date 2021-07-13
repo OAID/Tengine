@@ -32,15 +32,17 @@
 #include "caffe/caffe2tengine.hpp"
 #include "utils/graph_optimizer/graph_opt.hpp"
 
-const char* help_params = "[Convert Tools Info]: optional arguments:\n"
-                      "\t-h    help            show this help message and exit\n"
-                      "\t-f    input type      path to input float32 tmfile\n"
-                      "\t-p    input structure path to the network structure of input model(*.prototxt, *.symbol, *.cfg, *.pdmodel)\n"
-                      "\t-m    input params    path to the network params of input model(*.caffemodel, *.params, *.weight, *.pb, *.onnx, *.tflite, *.pdiparams)\n"
-                      "\t-o    output model    path to output fp32 tmfile\n";
+const char* help_params =
+    "[Convert Tools Info]: optional arguments:\n"
+    "\t-h    help            show this help message and exit\n"
+    "\t-f    input type      path to input float32 tmfile\n"
+    "\t-p    input structure path to the network structure of input model(*.prototxt, *.symbol, *.cfg, *.pdmodel)\n"
+    "\t-m    input params    path to the network params of input model(*.caffemodel, *.params, *.weight, *.pb, *.onnx, *.tflite, *.pdiparams)\n"
+    "\t-o    output model    path to output fp32 tmfile\n";
 
-const char* example_params = "[Convert Tools Info]: example arguments:\n"
-                             "\t./convert_tool -f caffe -p ./mobilenet.prototxt -m ./mobilenet.caffemodel -o ./mobilenet.tmfile\n";
+const char* example_params =
+    "[Convert Tools Info]: example arguments:\n"
+    "\t./convert_tool -f caffe -p ./mobilenet.prototxt -m ./mobilenet.caffemodel -o ./mobilenet.tmfile\n";
 
 void show_usage()
 {
@@ -54,33 +56,33 @@ int main(int argc, char* argv[])
     std::string proto_file;
     std::string model_file;
     std::string output_tmfile;
-    bool proto_file_needed = false;
-    bool model_file_needed = false;
-    int input_file_number = 0;
+    bool        proto_file_needed = false;
+    bool        model_file_needed = false;
+    int         input_file_number = 0;
 
     int res;
     while ((res = getopt(argc, argv, "f:p:m:o:h")) != -1)
     {
         switch (res)
         {
-            case 'f':
-                file_format = optarg;
-                break;
-            case 'p':
-                proto_file = optarg;
-                break;
-            case 'm':
-                model_file = optarg;
-                break;
-            case 'o':
-                output_tmfile = optarg;
-                break;
-            case 'h':
-                show_usage();
-                return 0;
-            default:
-                show_usage();
-                break;
+        case 'f':
+            file_format = optarg;
+            break;
+        case 'p':
+            proto_file = optarg;
+            break;
+        case 'm':
+            model_file = optarg;
+            break;
+        case 'o':
+            output_tmfile = optarg;
+            break;
+        case 'h':
+            show_usage();
+            return 0;
+        default:
+            show_usage();
+            break;
         }
     }
 
@@ -98,21 +100,23 @@ int main(int argc, char* argv[])
     }
     else
     {
-        if (file_format == "caffe" || file_format == "mxnet" || file_format == "darknet" || file_format == "ncnn" || file_format == "oneflow" || file_format == "paddle")
+        if (file_format == "caffe" || file_format == "mxnet" || file_format == "darknet" || file_format == "ncnn"
+            || file_format == "oneflow" || file_format == "paddle")
         {
             proto_file_needed = true;
             model_file_needed = true;
             input_file_number = 2;
         }
-        else if (file_format == "caffe_single" || file_format == "onnx" || file_format == "tensorflow" ||
-                 file_format == "tflite")
+        else if (file_format == "caffe_single" || file_format == "onnx" || file_format == "tensorflow"
+                 || file_format == "tflite")
         {
             model_file_needed = true;
             input_file_number = 1;
         }
         else
         {
-            std::cout << "Allowed input file format: caffe, caffe_single, onnx, oneflow, mxnet, tensorflow, darknet, ncnn, paddle\n";
+            std::cout
+                << "Allowed input file format: caffe, caffe_single, onnx, oneflow, mxnet, tensorflow, darknet, ncnn, paddle\n";
             return -1;
         }
     }
@@ -159,7 +163,7 @@ int main(int argc, char* argv[])
             return -1;
         }
     }
-    
+
     init_tengine();
     set_log_level(LOG_INFO);
     graph_t graph = NULL;
@@ -190,7 +194,7 @@ int main(int argc, char* argv[])
         fprintf(stderr, "optimize graph failed! \n");
         return -1;
     }
-    
+
     if (save_graph(graph, output_tmfile.c_str()) < 0)
     {
         fprintf(stderr, "save graph failed! \n");

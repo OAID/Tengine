@@ -145,8 +145,8 @@ struct reduce_param_ref
 static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int dim2, int dim3, int out_size,
                            struct reduce_param_ref* param, int dim_num, int* dims)
 {
-    int offset = 0;
-    float* tmp = ( float* )sys_malloc(sizeof(float) * out_size);
+    int    offset = 0;
+    float* tmp    = (float*)sys_malloc(sizeof(float) * out_size);
     memset(tmp, 0, sizeof(float) * out_size);
     int param_dim0 = param->param_dim[0];
     int param_dim1 = param->param_dim[1];
@@ -155,8 +155,8 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
 
     if (param->type == 0)
     {
-        if ((param_dim0 == -2 && param_dim1 == -2 && param_dim2 == -2 && param_dim3 == -2) ||
-            (param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 2 && param_dim3 == 3))
+        if ((param_dim0 == -2 && param_dim1 == -2 && param_dim2 == -2 && param_dim3 == -2)
+            || (param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 2 && param_dim3 == 3))
         {
             for (int n = 0; n < dim0; n++)
             {
@@ -174,9 +174,10 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
                 }
             }
         }
-        else if(param_dim0 == 1 && param_dim1 == -2 && param_dim2 == -2 && param_dim3 == -2 && (dim_num > 4))
+        else if (param_dim0 == 1 && param_dim1 == -2 && param_dim2 == -2 && param_dim3 == -2 && (dim_num > 4))
         {
-            if(dim_num == 5){
+            if (dim_num == 5)
+            {
                 sum_5d_ax1(dims, dim_num, data, tmp);
             }
         }
@@ -184,7 +185,7 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
         {
             sum_4d_ax0(dim0, dim1, dim2, dim3, data, tmp);
         }
-        else if (param_dim0 == 1 && param_dim1 == -2 && param_dim2 == -2 && param_dim3 == -2 && (dim_num <= 4) )
+        else if (param_dim0 == 1 && param_dim1 == -2 && param_dim2 == -2 && param_dim3 == -2 && (dim_num <= 4))
         {
             fprintf(stderr, "wrond dim_num %d \n", dim_num);
             sum_4d_ax1(dim0, dim1, dim2, dim3, data, tmp);
@@ -197,83 +198,84 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
         {
             sum_4d_ax3(dim0, dim1, dim2, dim3, data, tmp);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 1 && param_dim1 == 0) || (param_dim0 == 0 && param_dim1 == 1)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 1 && param_dim1 == 0) || (param_dim0 == 0 && param_dim1 == 1)))
         {
             // reduce on axis0
-            float* tmp_01 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_01 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_01, 0, sizeof(float) * dim1 * dim2 * dim3);
             sum_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_01);
             sum_3d_ax0(dim1, dim2, dim3, tmp, tmp_01);
 
             free(tmp_01);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 0 && param_dim1 == 2) || (param_dim0 == 2 && param_dim1 == 0)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 2) || (param_dim0 == 2 && param_dim1 == 0)))
         {
             // reduce on axis0
-            float* tmp_02 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_02 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_02, 0, sizeof(float) * dim1 * dim2 * dim3);
             sum_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_02);
             sum_3d_ax1(dim1, dim2, dim3, tmp, tmp_02);
 
             free(tmp_02);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 0 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 0)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 0)))
         {
             // reduce on axis0
-            float* tmp_03 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_03 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_03, 0, sizeof(float) * dim1 * dim2 * dim3);
             sum_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_03);
             sum_3d_ax2(dim1, dim2, dim3, tmp, tmp_03);
             free(tmp_03);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 1 && param_dim1 == 2) || (param_dim0 == 2 && param_dim1 == 1)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 1 && param_dim1 == 2) || (param_dim0 == 2 && param_dim1 == 1)))
         {
             // reduce on axis1
-            float* tmp_12 = ( float* )malloc(sizeof(float) * dim0 * dim2 * dim3);
+            float* tmp_12 = (float*)malloc(sizeof(float) * dim0 * dim2 * dim3);
             memset(tmp_12, 0, sizeof(float) * dim0 * dim2 * dim3);
             sum_4d_ax1(dim0, dim1, dim2, dim3, data, tmp_12);
             sum_3d_ax1(dim0, dim2, dim3, tmp, tmp_12);
 
             free(tmp_12);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 1 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 1)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 1 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 1)))
         {
             // reduce on axis1
-            float* tmp_13 = ( float* )malloc(sizeof(float) * dim0 * dim2 * dim3);
+            float* tmp_13 = (float*)malloc(sizeof(float) * dim0 * dim2 * dim3);
             memset(tmp_13, 0, sizeof(float) * dim0 * dim2 * dim3);
             sum_4d_ax1(dim0, dim1, dim2, dim3, data, tmp_13);
             sum_3d_ax2(dim0, dim2, dim3, tmp, tmp_13);
 
             free(tmp_13);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 2 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 2)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 2 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 2)))
         {
             // reduce on axis2
-            float* tmp_23 = ( float* )malloc(sizeof(float) * dim0 * dim1 * dim3);
+            float* tmp_23 = (float*)malloc(sizeof(float) * dim0 * dim1 * dim3);
             memset(tmp_23, 0, sizeof(float) * dim0 * dim1 * dim3);
             sum_4d_ax2(dim0, dim1, dim2, dim3, data, tmp_23);
             sum_3d_ax2(dim0, dim1, dim3, tmp, tmp_23);
 
             free(tmp_23);
         }
-        else if (param_dim3 == -2 && ((param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 2) ||
-                                      (param_dim0 == 0 && param_dim1 == 2 && param_dim2 == 1) ||
-                                      (param_dim0 == 1 && param_dim1 == 0 && param_dim2 == 2) ||
-                                      (param_dim0 == 1 && param_dim1 == 2 && param_dim2 == 0) ||
-                                      (param_dim0 == 2 && param_dim1 == 0 && param_dim2 == 1) ||
-                                      (param_dim0 == 2 && param_dim1 == 1 && param_dim2 == 0)))
+        else if (param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 2)
+                     || (param_dim0 == 0 && param_dim1 == 2 && param_dim2 == 1)
+                     || (param_dim0 == 1 && param_dim1 == 0 && param_dim2 == 2)
+                     || (param_dim0 == 1 && param_dim1 == 2 && param_dim2 == 0)
+                     || (param_dim0 == 2 && param_dim1 == 0 && param_dim2 == 1)
+                     || (param_dim0 == 2 && param_dim1 == 1 && param_dim2 == 0)))
         {
             // reduce on axis0
-            float* tmp_01 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_01 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_01, 0, sizeof(float) * dim1 * dim2 * dim3);
 
-            float* tmp_0 = ( float* )malloc(sizeof(float) * dim2 * dim3);
+            float* tmp_0 = (float*)malloc(sizeof(float) * dim2 * dim3);
             memset(tmp_0, 0, sizeof(float) * dim2 * dim3);
 
             sum_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_01);
@@ -283,18 +285,19 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
             free(tmp_01);
             free(tmp_0);
         }
-        else if (param_dim3 == -2 && ((param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 3) ||
-                                      (param_dim0 == 0 && param_dim1 == 3 && param_dim2 == 1) ||
-                                      (param_dim0 == 1 && param_dim1 == 0 && param_dim2 == 3) ||
-                                      (param_dim0 == 1 && param_dim1 == 3 && param_dim2 == 0) ||
-                                      (param_dim0 == 3 && param_dim1 == 0 && param_dim2 == 1) ||
-                                      (param_dim0 == 3 && param_dim1 == 1 && param_dim2 == 0)))
+        else if (param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 3)
+                     || (param_dim0 == 0 && param_dim1 == 3 && param_dim2 == 1)
+                     || (param_dim0 == 1 && param_dim1 == 0 && param_dim2 == 3)
+                     || (param_dim0 == 1 && param_dim1 == 3 && param_dim2 == 0)
+                     || (param_dim0 == 3 && param_dim1 == 0 && param_dim2 == 1)
+                     || (param_dim0 == 3 && param_dim1 == 1 && param_dim2 == 0)))
         {
             // reduce on axis0
-            float* tmp_01 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_01 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_01, 0, sizeof(float) * dim1 * dim2 * dim3);
 
-            float* tmp_1 = ( float* )malloc(sizeof(float) * dim2 * dim3);
+            float* tmp_1 = (float*)malloc(sizeof(float) * dim2 * dim3);
             memset(tmp_1, 0, sizeof(float) * dim2 * dim3);
 
             sum_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_01);
@@ -304,18 +307,19 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
             free(tmp_01);
             free(tmp_1);
         }
-        else if (param_dim3 == -2 && ((param_dim0 == 0 && param_dim1 == 2 && param_dim2 == 3) ||
-                                      (param_dim0 == 0 && param_dim1 == 3 && param_dim2 == 2) ||
-                                      (param_dim0 == 2 && param_dim1 == 0 && param_dim2 == 3) ||
-                                      (param_dim0 == 2 && param_dim1 == 3 && param_dim2 == 0) ||
-                                      (param_dim0 == 3 && param_dim1 == 0 && param_dim2 == 2) ||
-                                      (param_dim0 == 3 && param_dim1 == 2 && param_dim2 == 0)))
+        else if (param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 2 && param_dim2 == 3)
+                     || (param_dim0 == 0 && param_dim1 == 3 && param_dim2 == 2)
+                     || (param_dim0 == 2 && param_dim1 == 0 && param_dim2 == 3)
+                     || (param_dim0 == 2 && param_dim1 == 3 && param_dim2 == 0)
+                     || (param_dim0 == 3 && param_dim1 == 0 && param_dim2 == 2)
+                     || (param_dim0 == 3 && param_dim1 == 2 && param_dim2 == 0)))
         {
             // reduce on axis0
-            float* tmp_02 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_02 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_02, 0, sizeof(float) * dim1 * dim2 * dim3);
 
-            float* tmp_1 = ( float* )malloc(sizeof(float) * dim1 * dim3);
+            float* tmp_1 = (float*)malloc(sizeof(float) * dim1 * dim3);
             memset(tmp_1, 0, sizeof(float) * dim1 * dim3);
 
             sum_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_02);
@@ -325,18 +329,19 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
             free(tmp_02);
             free(tmp_1);
         }
-        else if (param_dim3 == -2 && ((param_dim0 == 1 && param_dim1 == 2 && param_dim2 == 3) ||
-                                      (param_dim0 == 1 && param_dim1 == 3 && param_dim2 == 2) ||
-                                      (param_dim0 == 2 && param_dim1 == 1 && param_dim2 == 3) ||
-                                      (param_dim0 == 2 && param_dim1 == 3 && param_dim2 == 1) ||
-                                      (param_dim0 == 3 && param_dim1 == 1 && param_dim2 == 2) ||
-                                      (param_dim0 == 3 && param_dim1 == 2 && param_dim2 == 1)))
+        else if (param_dim3 == -2
+                 && ((param_dim0 == 1 && param_dim1 == 2 && param_dim2 == 3)
+                     || (param_dim0 == 1 && param_dim1 == 3 && param_dim2 == 2)
+                     || (param_dim0 == 2 && param_dim1 == 1 && param_dim2 == 3)
+                     || (param_dim0 == 2 && param_dim1 == 3 && param_dim2 == 1)
+                     || (param_dim0 == 3 && param_dim1 == 1 && param_dim2 == 2)
+                     || (param_dim0 == 3 && param_dim1 == 2 && param_dim2 == 1)))
         {
             // reduce on axis0
-            float* tmp_12 = ( float* )malloc(sizeof(float) * dim0 * dim2 * dim3);
+            float* tmp_12 = (float*)malloc(sizeof(float) * dim0 * dim2 * dim3);
             memset(tmp_12, 0, sizeof(float) * dim0 * dim2 * dim3);
 
-            float* tmp_1 = ( float* )malloc(sizeof(float) * dim0 * dim3);
+            float* tmp_1 = (float*)malloc(sizeof(float) * dim0 * dim3);
             memset(tmp_1, 0, sizeof(float) * dim0 * dim3);
 
             sum_4d_ax1(dim0, dim1, dim2, dim3, data, tmp_12);
@@ -350,8 +355,8 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
     // reduce mean
     else if (param->type == 1)
     {
-        if ((param_dim0 == -2 && param_dim1 == -2 && param_dim2 == -2 && param_dim3 == -2) ||
-            (param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 2 && param_dim3 == 3))
+        if ((param_dim0 == -2 && param_dim1 == -2 && param_dim2 == -2 && param_dim3 == -2)
+            || (param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 2 && param_dim3 == 3))
         {
             float s_tmp = 0.f;
             for (int n = 0; n < dim0; n++)
@@ -387,83 +392,84 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
         {
             mean_4d_ax3(dim0, dim1, dim2, dim3, data, tmp);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 1 && param_dim1 == 0) || (param_dim0 == 0 && param_dim1 == 1)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 1 && param_dim1 == 0) || (param_dim0 == 0 && param_dim1 == 1)))
         {
             // reduce on axis0
-            float* tmp_01 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_01 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_01, 0, sizeof(float) * dim1 * dim2 * dim3);
             mean_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_01);
             mean_3d_ax0(dim1, dim2, dim3, tmp, tmp_01);
 
             free(tmp_01);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 0 && param_dim1 == 2) || (param_dim0 == 2 && param_dim1 == 0)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 2) || (param_dim0 == 2 && param_dim1 == 0)))
         {
             // reduce on axis0
-            float* tmp_02 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_02 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_02, 0, sizeof(float) * dim1 * dim2 * dim3);
             mean_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_02);
             mean_3d_ax1(dim1, dim2, dim3, tmp, tmp_02);
 
             free(tmp_02);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 0 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 0)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 0)))
         {
             // reduce on axis0
-            float* tmp_03 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_03 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_03, 0, sizeof(float) * dim1 * dim2 * dim3);
             mean_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_03);
             mean_3d_ax2(dim1, dim2, dim3, tmp, tmp_03);
             free(tmp_03);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 1 && param_dim1 == 2) || (param_dim0 == 2 && param_dim1 == 1)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 1 && param_dim1 == 2) || (param_dim0 == 2 && param_dim1 == 1)))
         {
             // reduce on axis1
-            float* tmp_12 = ( float* )malloc(sizeof(float) * dim0 * dim2 * dim3);
+            float* tmp_12 = (float*)malloc(sizeof(float) * dim0 * dim2 * dim3);
             memset(tmp_12, 0, sizeof(float) * dim0 * dim2 * dim3);
             mean_4d_ax1(dim0, dim1, dim2, dim3, data, tmp_12);
             mean_3d_ax1(dim0, dim2, dim3, tmp, tmp_12);
 
             free(tmp_12);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 1 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 1)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 1 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 1)))
         {
             // reduce on axis1
-            float* tmp_13 = ( float* )malloc(sizeof(float) * dim0 * dim2 * dim3);
+            float* tmp_13 = (float*)malloc(sizeof(float) * dim0 * dim2 * dim3);
             memset(tmp_13, 0, sizeof(float) * dim0 * dim2 * dim3);
             mean_4d_ax1(dim0, dim1, dim2, dim3, data, tmp_13);
             mean_3d_ax2(dim0, dim2, dim3, tmp, tmp_13);
 
             free(tmp_13);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 2 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 2)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 2 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 2)))
         {
             // reduce on axis2
-            float* tmp_23 = ( float* )malloc(sizeof(float) * dim0 * dim1 * dim3);
+            float* tmp_23 = (float*)malloc(sizeof(float) * dim0 * dim1 * dim3);
             memset(tmp_23, 0, sizeof(float) * dim0 * dim1 * dim3);
             mean_4d_ax2(dim0, dim1, dim2, dim3, data, tmp_23);
             mean_3d_ax2(dim0, dim1, dim3, tmp, tmp_23);
 
             free(tmp_23);
         }
-        else if (param_dim3 == -2 && ((param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 2) ||
-                                      (param_dim0 == 0 && param_dim1 == 2 && param_dim2 == 1) ||
-                                      (param_dim0 == 1 && param_dim1 == 0 && param_dim2 == 2) ||
-                                      (param_dim0 == 1 && param_dim1 == 2 && param_dim2 == 0) ||
-                                      (param_dim0 == 2 && param_dim1 == 0 && param_dim2 == 1) ||
-                                      (param_dim0 == 2 && param_dim1 == 1 && param_dim2 == 0)))
+        else if (param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 2)
+                     || (param_dim0 == 0 && param_dim1 == 2 && param_dim2 == 1)
+                     || (param_dim0 == 1 && param_dim1 == 0 && param_dim2 == 2)
+                     || (param_dim0 == 1 && param_dim1 == 2 && param_dim2 == 0)
+                     || (param_dim0 == 2 && param_dim1 == 0 && param_dim2 == 1)
+                     || (param_dim0 == 2 && param_dim1 == 1 && param_dim2 == 0)))
         {
             // reduce on axis0
-            float* tmp_01 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_01 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_01, 0, sizeof(float) * dim1 * dim2 * dim3);
 
-            float* tmp_0 = ( float* )malloc(sizeof(float) * dim2 * dim3);
+            float* tmp_0 = (float*)malloc(sizeof(float) * dim2 * dim3);
             memset(tmp_0, 0, sizeof(float) * dim2 * dim3);
 
             mean_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_01);
@@ -473,18 +479,19 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
             free(tmp_01);
             free(tmp_0);
         }
-        else if (param_dim3 == -2 && ((param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 3) ||
-                                      (param_dim0 == 0 && param_dim1 == 3 && param_dim2 == 1) ||
-                                      (param_dim0 == 1 && param_dim1 == 0 && param_dim2 == 3) ||
-                                      (param_dim0 == 1 && param_dim1 == 3 && param_dim2 == 0) ||
-                                      (param_dim0 == 3 && param_dim1 == 0 && param_dim2 == 1) ||
-                                      (param_dim0 == 3 && param_dim1 == 1 && param_dim2 == 0)))
+        else if (param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 3)
+                     || (param_dim0 == 0 && param_dim1 == 3 && param_dim2 == 1)
+                     || (param_dim0 == 1 && param_dim1 == 0 && param_dim2 == 3)
+                     || (param_dim0 == 1 && param_dim1 == 3 && param_dim2 == 0)
+                     || (param_dim0 == 3 && param_dim1 == 0 && param_dim2 == 1)
+                     || (param_dim0 == 3 && param_dim1 == 1 && param_dim2 == 0)))
         {
             // reduce on axis0
-            float* tmp_01 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_01 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_01, 0, sizeof(float) * dim1 * dim2 * dim3);
 
-            float* tmp_1 = ( float* )malloc(sizeof(float) * dim2 * dim3);
+            float* tmp_1 = (float*)malloc(sizeof(float) * dim2 * dim3);
             memset(tmp_1, 0, sizeof(float) * dim2 * dim3);
 
             mean_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_01);
@@ -494,18 +501,19 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
             free(tmp_01);
             free(tmp_1);
         }
-        else if (param_dim3 == -2 && ((param_dim0 == 0 && param_dim1 == 2 && param_dim2 == 3) ||
-                                      (param_dim0 == 0 && param_dim1 == 3 && param_dim2 == 2) ||
-                                      (param_dim0 == 2 && param_dim1 == 0 && param_dim2 == 3) ||
-                                      (param_dim0 == 2 && param_dim1 == 3 && param_dim2 == 0) ||
-                                      (param_dim0 == 3 && param_dim1 == 0 && param_dim2 == 2) ||
-                                      (param_dim0 == 3 && param_dim1 == 2 && param_dim2 == 0)))
+        else if (param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 2 && param_dim2 == 3)
+                     || (param_dim0 == 0 && param_dim1 == 3 && param_dim2 == 2)
+                     || (param_dim0 == 2 && param_dim1 == 0 && param_dim2 == 3)
+                     || (param_dim0 == 2 && param_dim1 == 3 && param_dim2 == 0)
+                     || (param_dim0 == 3 && param_dim1 == 0 && param_dim2 == 2)
+                     || (param_dim0 == 3 && param_dim1 == 2 && param_dim2 == 0)))
         {
             // reduce on axis0
-            float* tmp_02 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_02 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_02, 0, sizeof(float) * dim1 * dim2 * dim3);
 
-            float* tmp_1 = ( float* )malloc(sizeof(float) * dim1 * dim3);
+            float* tmp_1 = (float*)malloc(sizeof(float) * dim1 * dim3);
             memset(tmp_1, 0, sizeof(float) * dim1 * dim3);
 
             mean_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_02);
@@ -515,18 +523,19 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
             free(tmp_02);
             free(tmp_1);
         }
-        else if (param_dim3 == -2 && ((param_dim0 == 1 && param_dim1 == 2 && param_dim2 == 3) ||
-                                      (param_dim0 == 1 && param_dim1 == 3 && param_dim2 == 2) ||
-                                      (param_dim0 == 2 && param_dim1 == 1 && param_dim2 == 3) ||
-                                      (param_dim0 == 2 && param_dim1 == 3 && param_dim2 == 1) ||
-                                      (param_dim0 == 3 && param_dim1 == 1 && param_dim2 == 2) ||
-                                      (param_dim0 == 3 && param_dim1 == 2 && param_dim2 == 1)))
+        else if (param_dim3 == -2
+                 && ((param_dim0 == 1 && param_dim1 == 2 && param_dim2 == 3)
+                     || (param_dim0 == 1 && param_dim1 == 3 && param_dim2 == 2)
+                     || (param_dim0 == 2 && param_dim1 == 1 && param_dim2 == 3)
+                     || (param_dim0 == 2 && param_dim1 == 3 && param_dim2 == 1)
+                     || (param_dim0 == 3 && param_dim1 == 1 && param_dim2 == 2)
+                     || (param_dim0 == 3 && param_dim1 == 2 && param_dim2 == 1)))
         {
             // reduce on axis0
-            float* tmp_12 = ( float* )malloc(sizeof(float) * dim0 * dim2 * dim3);
+            float* tmp_12 = (float*)malloc(sizeof(float) * dim0 * dim2 * dim3);
             memset(tmp_12, 0, sizeof(float) * dim0 * dim2 * dim3);
 
-            float* tmp_1 = ( float* )malloc(sizeof(float) * dim0 * dim3);
+            float* tmp_1 = (float*)malloc(sizeof(float) * dim0 * dim3);
             memset(tmp_1, 0, sizeof(float) * dim0 * dim3);
 
             mean_4d_ax1(dim0, dim1, dim2, dim3, data, tmp_12);
@@ -540,8 +549,8 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
     // reduce asum
     else if (param->type == 2)
     {
-        if ((param_dim0 == -2 && param_dim1 == -2 && param_dim2 == -2 && param_dim3 == -2) ||
-            (param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 2 && param_dim3 == 3))
+        if ((param_dim0 == -2 && param_dim1 == -2 && param_dim2 == -2 && param_dim3 == -2)
+            || (param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 2 && param_dim3 == 3))
         {
             float s_tmp = 0.f;
             for (int n = 0; n < dim0; n++)
@@ -577,83 +586,84 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
         {
             asum_4d_ax3(dim0, dim1, dim2, dim3, data, tmp);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 1 && param_dim1 == 0) || (param_dim0 == 0 && param_dim1 == 1)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 1 && param_dim1 == 0) || (param_dim0 == 0 && param_dim1 == 1)))
         {
             // reduce on axis0
-            float* tmp_01 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_01 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_01, 0, sizeof(float) * dim1 * dim2 * dim3);
             asum_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_01);
             sum_3d_ax0(dim1, dim2, dim3, tmp, tmp_01);
 
             free(tmp_01);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 0 && param_dim1 == 2) || (param_dim0 == 2 && param_dim1 == 0)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 2) || (param_dim0 == 2 && param_dim1 == 0)))
         {
             // reduce on axis0
-            float* tmp_02 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_02 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_02, 0, sizeof(float) * dim1 * dim2 * dim3);
             asum_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_02);
             sum_3d_ax1(dim1, dim2, dim3, tmp, tmp_02);
 
             free(tmp_02);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 0 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 0)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 0)))
         {
             // reduce on axis0
-            float* tmp_03 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_03 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_03, 0, sizeof(float) * dim1 * dim2 * dim3);
             asum_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_03);
             sum_3d_ax2(dim1, dim2, dim3, tmp, tmp_03);
             free(tmp_03);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 1 && param_dim1 == 2) || (param_dim0 == 2 && param_dim1 == 1)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 1 && param_dim1 == 2) || (param_dim0 == 2 && param_dim1 == 1)))
         {
             // reduce on axis1
-            float* tmp_12 = ( float* )malloc(sizeof(float) * dim0 * dim2 * dim3);
+            float* tmp_12 = (float*)malloc(sizeof(float) * dim0 * dim2 * dim3);
             memset(tmp_12, 0, sizeof(float) * dim0 * dim2 * dim3);
             asum_4d_ax1(dim0, dim1, dim2, dim3, data, tmp_12);
             sum_3d_ax1(dim0, dim2, dim3, tmp, tmp_12);
 
             free(tmp_12);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 1 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 1)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 1 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 1)))
         {
             // reduce on axis1
-            float* tmp_13 = ( float* )malloc(sizeof(float) * dim0 * dim2 * dim3);
+            float* tmp_13 = (float*)malloc(sizeof(float) * dim0 * dim2 * dim3);
             memset(tmp_13, 0, sizeof(float) * dim0 * dim2 * dim3);
             asum_4d_ax1(dim0, dim1, dim2, dim3, data, tmp_13);
             sum_3d_ax2(dim0, dim2, dim3, tmp, tmp_13);
 
             free(tmp_13);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 2 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 2)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 2 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 2)))
         {
             // reduce on axis2
-            float* tmp_23 = ( float* )malloc(sizeof(float) * dim0 * dim1 * dim3);
+            float* tmp_23 = (float*)malloc(sizeof(float) * dim0 * dim1 * dim3);
             memset(tmp_23, 0, sizeof(float) * dim0 * dim1 * dim3);
             asum_4d_ax2(dim0, dim1, dim2, dim3, data, tmp_23);
             sum_3d_ax2(dim0, dim1, dim3, tmp, tmp_23);
 
             free(tmp_23);
         }
-        else if (param_dim3 == -2 && ((param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 2) ||
-                                      (param_dim0 == 0 && param_dim1 == 2 && param_dim2 == 1) ||
-                                      (param_dim0 == 1 && param_dim1 == 0 && param_dim2 == 2) ||
-                                      (param_dim0 == 1 && param_dim1 == 2 && param_dim2 == 0) ||
-                                      (param_dim0 == 2 && param_dim1 == 0 && param_dim2 == 1) ||
-                                      (param_dim0 == 2 && param_dim1 == 1 && param_dim2 == 0)))
+        else if (param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 2)
+                     || (param_dim0 == 0 && param_dim1 == 2 && param_dim2 == 1)
+                     || (param_dim0 == 1 && param_dim1 == 0 && param_dim2 == 2)
+                     || (param_dim0 == 1 && param_dim1 == 2 && param_dim2 == 0)
+                     || (param_dim0 == 2 && param_dim1 == 0 && param_dim2 == 1)
+                     || (param_dim0 == 2 && param_dim1 == 1 && param_dim2 == 0)))
         {
             // reduce on axis0
-            float* tmp_01 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_01 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_01, 0, sizeof(float) * dim1 * dim2 * dim3);
 
-            float* tmp_0 = ( float* )malloc(sizeof(float) * dim2 * dim3);
+            float* tmp_0 = (float*)malloc(sizeof(float) * dim2 * dim3);
             memset(tmp_0, 0, sizeof(float) * dim2 * dim3);
 
             asum_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_01);
@@ -663,18 +673,19 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
             free(tmp_01);
             free(tmp_0);
         }
-        else if (param_dim3 == -2 && ((param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 3) ||
-                                      (param_dim0 == 0 && param_dim1 == 3 && param_dim2 == 1) ||
-                                      (param_dim0 == 1 && param_dim1 == 0 && param_dim2 == 3) ||
-                                      (param_dim0 == 1 && param_dim1 == 3 && param_dim2 == 0) ||
-                                      (param_dim0 == 3 && param_dim1 == 0 && param_dim2 == 1) ||
-                                      (param_dim0 == 3 && param_dim1 == 1 && param_dim2 == 0)))
+        else if (param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 3)
+                     || (param_dim0 == 0 && param_dim1 == 3 && param_dim2 == 1)
+                     || (param_dim0 == 1 && param_dim1 == 0 && param_dim2 == 3)
+                     || (param_dim0 == 1 && param_dim1 == 3 && param_dim2 == 0)
+                     || (param_dim0 == 3 && param_dim1 == 0 && param_dim2 == 1)
+                     || (param_dim0 == 3 && param_dim1 == 1 && param_dim2 == 0)))
         {
             // reduce on axis0
-            float* tmp_01 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_01 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_01, 0, sizeof(float) * dim1 * dim2 * dim3);
 
-            float* tmp_1 = ( float* )malloc(sizeof(float) * dim2 * dim3);
+            float* tmp_1 = (float*)malloc(sizeof(float) * dim2 * dim3);
             memset(tmp_1, 0, sizeof(float) * dim2 * dim3);
 
             asum_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_01);
@@ -684,18 +695,19 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
             free(tmp_01);
             free(tmp_1);
         }
-        else if (param_dim3 == -2 && ((param_dim0 == 0 && param_dim1 == 2 && param_dim2 == 3) ||
-                                      (param_dim0 == 0 && param_dim1 == 3 && param_dim2 == 2) ||
-                                      (param_dim0 == 2 && param_dim1 == 0 && param_dim2 == 3) ||
-                                      (param_dim0 == 2 && param_dim1 == 3 && param_dim2 == 0) ||
-                                      (param_dim0 == 3 && param_dim1 == 0 && param_dim2 == 2) ||
-                                      (param_dim0 == 3 && param_dim1 == 2 && param_dim2 == 0)))
+        else if (param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 2 && param_dim2 == 3)
+                     || (param_dim0 == 0 && param_dim1 == 3 && param_dim2 == 2)
+                     || (param_dim0 == 2 && param_dim1 == 0 && param_dim2 == 3)
+                     || (param_dim0 == 2 && param_dim1 == 3 && param_dim2 == 0)
+                     || (param_dim0 == 3 && param_dim1 == 0 && param_dim2 == 2)
+                     || (param_dim0 == 3 && param_dim1 == 2 && param_dim2 == 0)))
         {
             // reduce on axis0
-            float* tmp_02 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_02 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_02, 0, sizeof(float) * dim1 * dim2 * dim3);
 
-            float* tmp_1 = ( float* )malloc(sizeof(float) * dim1 * dim3);
+            float* tmp_1 = (float*)malloc(sizeof(float) * dim1 * dim3);
             memset(tmp_1, 0, sizeof(float) * dim1 * dim3);
 
             asum_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_02);
@@ -705,18 +717,19 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
             free(tmp_02);
             free(tmp_1);
         }
-        else if (param_dim3 == -2 && ((param_dim0 == 1 && param_dim1 == 2 && param_dim2 == 3) ||
-                                      (param_dim0 == 1 && param_dim1 == 3 && param_dim2 == 2) ||
-                                      (param_dim0 == 2 && param_dim1 == 1 && param_dim2 == 3) ||
-                                      (param_dim0 == 2 && param_dim1 == 3 && param_dim2 == 1) ||
-                                      (param_dim0 == 3 && param_dim1 == 1 && param_dim2 == 2) ||
-                                      (param_dim0 == 3 && param_dim1 == 2 && param_dim2 == 1)))
+        else if (param_dim3 == -2
+                 && ((param_dim0 == 1 && param_dim1 == 2 && param_dim2 == 3)
+                     || (param_dim0 == 1 && param_dim1 == 3 && param_dim2 == 2)
+                     || (param_dim0 == 2 && param_dim1 == 1 && param_dim2 == 3)
+                     || (param_dim0 == 2 && param_dim1 == 3 && param_dim2 == 1)
+                     || (param_dim0 == 3 && param_dim1 == 1 && param_dim2 == 2)
+                     || (param_dim0 == 3 && param_dim1 == 2 && param_dim2 == 1)))
         {
             // reduce on axis0
-            float* tmp_12 = ( float* )malloc(sizeof(float) * dim0 * dim2 * dim3);
+            float* tmp_12 = (float*)malloc(sizeof(float) * dim0 * dim2 * dim3);
             memset(tmp_12, 0, sizeof(float) * dim0 * dim2 * dim3);
 
-            float* tmp_1 = ( float* )malloc(sizeof(float) * dim0 * dim3);
+            float* tmp_1 = (float*)malloc(sizeof(float) * dim0 * dim3);
             memset(tmp_1, 0, sizeof(float) * dim0 * dim3);
 
             asum_4d_ax1(dim0, dim1, dim2, dim3, data, tmp_12);
@@ -730,8 +743,8 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
     // reduce sqsum
     else if (param->type == 3)
     {
-        if ((param_dim0 == -2 && param_dim1 == -2 && param_dim2 == -2 && param_dim3 == -2) ||
-            (param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 2 && param_dim3 == 3))
+        if ((param_dim0 == -2 && param_dim1 == -2 && param_dim2 == -2 && param_dim3 == -2)
+            || (param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 2 && param_dim3 == 3))
         {
             float s_tmp = 0.f;
             for (int n = 0; n < dim0; n++)
@@ -767,83 +780,84 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
         {
             sqsum_4d_ax3(dim0, dim1, dim2, dim3, data, tmp);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 1 && param_dim1 == 0) || (param_dim0 == 0 && param_dim1 == 1)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 1 && param_dim1 == 0) || (param_dim0 == 0 && param_dim1 == 1)))
         {
             // reduce on axis0
-            float* tmp_01 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_01 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_01, 0, sizeof(float) * dim1 * dim2 * dim3);
             sqsum_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_01);
             sum_3d_ax0(dim1, dim2, dim3, tmp, tmp_01);
 
             free(tmp_01);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 0 && param_dim1 == 2) || (param_dim0 == 2 && param_dim1 == 0)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 2) || (param_dim0 == 2 && param_dim1 == 0)))
         {
             // reduce on axis0
-            float* tmp_02 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_02 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_02, 0, sizeof(float) * dim1 * dim2 * dim3);
             sqsum_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_02);
             sum_3d_ax1(dim1, dim2, dim3, tmp, tmp_02);
 
             free(tmp_02);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 0 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 0)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 0)))
         {
             // reduce on axis0
-            float* tmp_03 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_03 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_03, 0, sizeof(float) * dim1 * dim2 * dim3);
             sqsum_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_03);
             sum_3d_ax2(dim1, dim2, dim3, tmp, tmp_03);
             free(tmp_03);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 1 && param_dim1 == 2) || (param_dim0 == 2 && param_dim1 == 1)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 1 && param_dim1 == 2) || (param_dim0 == 2 && param_dim1 == 1)))
         {
             // reduce on axis1
-            float* tmp_12 = ( float* )malloc(sizeof(float) * dim0 * dim2 * dim3);
+            float* tmp_12 = (float*)malloc(sizeof(float) * dim0 * dim2 * dim3);
             memset(tmp_12, 0, sizeof(float) * dim0 * dim2 * dim3);
             sqsum_4d_ax1(dim0, dim1, dim2, dim3, data, tmp_12);
             sum_3d_ax1(dim0, dim2, dim3, tmp, tmp_12);
 
             free(tmp_12);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 1 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 1)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 1 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 1)))
         {
             // reduce on axis1
-            float* tmp_13 = ( float* )malloc(sizeof(float) * dim0 * dim2 * dim3);
+            float* tmp_13 = (float*)malloc(sizeof(float) * dim0 * dim2 * dim3);
             memset(tmp_13, 0, sizeof(float) * dim0 * dim2 * dim3);
             sqsum_4d_ax1(dim0, dim1, dim2, dim3, data, tmp_13);
             sum_3d_ax2(dim0, dim2, dim3, tmp, tmp_13);
 
             free(tmp_13);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 2 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 2)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 2 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 2)))
         {
             // reduce on axis2
-            float* tmp_23 = ( float* )malloc(sizeof(float) * dim0 * dim1 * dim3);
+            float* tmp_23 = (float*)malloc(sizeof(float) * dim0 * dim1 * dim3);
             memset(tmp_23, 0, sizeof(float) * dim0 * dim1 * dim3);
             sqsum_4d_ax2(dim0, dim1, dim2, dim3, data, tmp_23);
             sum_3d_ax2(dim0, dim1, dim3, tmp, tmp_23);
 
             free(tmp_23);
         }
-        else if (param_dim3 == -2 && ((param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 2) ||
-                                      (param_dim0 == 0 && param_dim1 == 2 && param_dim2 == 1) ||
-                                      (param_dim0 == 1 && param_dim1 == 0 && param_dim2 == 2) ||
-                                      (param_dim0 == 1 && param_dim1 == 2 && param_dim2 == 0) ||
-                                      (param_dim0 == 2 && param_dim1 == 0 && param_dim2 == 1) ||
-                                      (param_dim0 == 2 && param_dim1 == 1 && param_dim2 == 0)))
+        else if (param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 2)
+                     || (param_dim0 == 0 && param_dim1 == 2 && param_dim2 == 1)
+                     || (param_dim0 == 1 && param_dim1 == 0 && param_dim2 == 2)
+                     || (param_dim0 == 1 && param_dim1 == 2 && param_dim2 == 0)
+                     || (param_dim0 == 2 && param_dim1 == 0 && param_dim2 == 1)
+                     || (param_dim0 == 2 && param_dim1 == 1 && param_dim2 == 0)))
         {
             // reduce on axis0
-            float* tmp_01 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_01 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_01, 0, sizeof(float) * dim1 * dim2 * dim3);
 
-            float* tmp_0 = ( float* )malloc(sizeof(float) * dim2 * dim3);
+            float* tmp_0 = (float*)malloc(sizeof(float) * dim2 * dim3);
             memset(tmp_0, 0, sizeof(float) * dim2 * dim3);
 
             sqsum_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_01);
@@ -853,18 +867,19 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
             free(tmp_01);
             free(tmp_0);
         }
-        else if (param_dim3 == -2 && ((param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 3) ||
-                                      (param_dim0 == 0 && param_dim1 == 3 && param_dim2 == 1) ||
-                                      (param_dim0 == 1 && param_dim1 == 0 && param_dim2 == 3) ||
-                                      (param_dim0 == 1 && param_dim1 == 3 && param_dim2 == 0) ||
-                                      (param_dim0 == 3 && param_dim1 == 0 && param_dim2 == 1) ||
-                                      (param_dim0 == 3 && param_dim1 == 1 && param_dim2 == 0)))
+        else if (param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 3)
+                     || (param_dim0 == 0 && param_dim1 == 3 && param_dim2 == 1)
+                     || (param_dim0 == 1 && param_dim1 == 0 && param_dim2 == 3)
+                     || (param_dim0 == 1 && param_dim1 == 3 && param_dim2 == 0)
+                     || (param_dim0 == 3 && param_dim1 == 0 && param_dim2 == 1)
+                     || (param_dim0 == 3 && param_dim1 == 1 && param_dim2 == 0)))
         {
             // reduce on axis0
-            float* tmp_01 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_01 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_01, 0, sizeof(float) * dim1 * dim2 * dim3);
 
-            float* tmp_1 = ( float* )malloc(sizeof(float) * dim2 * dim3);
+            float* tmp_1 = (float*)malloc(sizeof(float) * dim2 * dim3);
             memset(tmp_1, 0, sizeof(float) * dim2 * dim3);
 
             sqsum_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_01);
@@ -874,18 +889,19 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
             free(tmp_01);
             free(tmp_1);
         }
-        else if (param_dim3 == -2 && ((param_dim0 == 0 && param_dim1 == 2 && param_dim2 == 3) ||
-                                      (param_dim0 == 0 && param_dim1 == 3 && param_dim2 == 2) ||
-                                      (param_dim0 == 2 && param_dim1 == 0 && param_dim2 == 3) ||
-                                      (param_dim0 == 2 && param_dim1 == 3 && param_dim2 == 0) ||
-                                      (param_dim0 == 3 && param_dim1 == 0 && param_dim2 == 2) ||
-                                      (param_dim0 == 3 && param_dim1 == 2 && param_dim2 == 0)))
+        else if (param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 2 && param_dim2 == 3)
+                     || (param_dim0 == 0 && param_dim1 == 3 && param_dim2 == 2)
+                     || (param_dim0 == 2 && param_dim1 == 0 && param_dim2 == 3)
+                     || (param_dim0 == 2 && param_dim1 == 3 && param_dim2 == 0)
+                     || (param_dim0 == 3 && param_dim1 == 0 && param_dim2 == 2)
+                     || (param_dim0 == 3 && param_dim1 == 2 && param_dim2 == 0)))
         {
             // reduce on axis0
-            float* tmp_02 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_02 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_02, 0, sizeof(float) * dim1 * dim2 * dim3);
 
-            float* tmp_1 = ( float* )malloc(sizeof(float) * dim1 * dim3);
+            float* tmp_1 = (float*)malloc(sizeof(float) * dim1 * dim3);
             memset(tmp_1, 0, sizeof(float) * dim1 * dim3);
 
             sqsum_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_02);
@@ -895,18 +911,19 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
             free(tmp_02);
             free(tmp_1);
         }
-        else if (param_dim3 == -2 && ((param_dim0 == 1 && param_dim1 == 2 && param_dim2 == 3) ||
-                                      (param_dim0 == 1 && param_dim1 == 3 && param_dim2 == 2) ||
-                                      (param_dim0 == 2 && param_dim1 == 1 && param_dim2 == 3) ||
-                                      (param_dim0 == 2 && param_dim1 == 3 && param_dim2 == 1) ||
-                                      (param_dim0 == 3 && param_dim1 == 1 && param_dim2 == 2) ||
-                                      (param_dim0 == 3 && param_dim1 == 2 && param_dim2 == 1)))
+        else if (param_dim3 == -2
+                 && ((param_dim0 == 1 && param_dim1 == 2 && param_dim2 == 3)
+                     || (param_dim0 == 1 && param_dim1 == 3 && param_dim2 == 2)
+                     || (param_dim0 == 2 && param_dim1 == 1 && param_dim2 == 3)
+                     || (param_dim0 == 2 && param_dim1 == 3 && param_dim2 == 1)
+                     || (param_dim0 == 3 && param_dim1 == 1 && param_dim2 == 2)
+                     || (param_dim0 == 3 && param_dim1 == 2 && param_dim2 == 1)))
         {
             // reduce on axis0
-            float* tmp_12 = ( float* )malloc(sizeof(float) * dim0 * dim2 * dim3);
+            float* tmp_12 = (float*)malloc(sizeof(float) * dim0 * dim2 * dim3);
             memset(tmp_12, 0, sizeof(float) * dim0 * dim2 * dim3);
 
-            float* tmp_1 = ( float* )malloc(sizeof(float) * dim0 * dim3);
+            float* tmp_1 = (float*)malloc(sizeof(float) * dim0 * dim3);
             memset(tmp_1, 0, sizeof(float) * dim0 * dim3);
 
             sqsum_4d_ax1(dim0, dim1, dim2, dim3, data, tmp_12);
@@ -920,8 +937,8 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
     // reduce max
     else if (param->type == 4)
     {
-        if ((param_dim0 == -2 && param_dim1 == -2 && param_dim2 == -2 && param_dim3 == -2) ||
-            (param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 2 && param_dim3 == 3))
+        if ((param_dim0 == -2 && param_dim1 == -2 && param_dim2 == -2 && param_dim3 == -2)
+            || (param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 2 && param_dim3 == 3))
         {
             float s_tmp = FLOAT_MIN;
             for (int n = 0; n < dim0; n++)
@@ -958,83 +975,84 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
         {
             max_4d_ax3(dim0, dim1, dim2, dim3, data, tmp);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 1 && param_dim1 == 0) || (param_dim0 == 0 && param_dim1 == 1)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 1 && param_dim1 == 0) || (param_dim0 == 0 && param_dim1 == 1)))
         {
             // reduce on axis0
-            float* tmp_01 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_01 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_01, 0, sizeof(float) * dim1 * dim2 * dim3);
             max_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_01);
             max_3d_ax0(dim1, dim2, dim3, tmp, tmp_01);
 
             free(tmp_01);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 0 && param_dim1 == 2) || (param_dim0 == 2 && param_dim1 == 0)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 2) || (param_dim0 == 2 && param_dim1 == 0)))
         {
             // reduce on axis0
-            float* tmp_02 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_02 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_02, 0, sizeof(float) * dim1 * dim2 * dim3);
             max_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_02);
             max_3d_ax1(dim1, dim2, dim3, tmp, tmp_02);
 
             free(tmp_02);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 0 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 0)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 0)))
         {
             // reduce on axis0
-            float* tmp_03 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_03 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_03, 0, sizeof(float) * dim1 * dim2 * dim3);
             max_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_03);
             max_3d_ax2(dim1, dim2, dim3, tmp, tmp_03);
             free(tmp_03);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 1 && param_dim1 == 2) || (param_dim0 == 2 && param_dim1 == 1)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 1 && param_dim1 == 2) || (param_dim0 == 2 && param_dim1 == 1)))
         {
             // reduce on axis1
-            float* tmp_12 = ( float* )malloc(sizeof(float) * dim0 * dim2 * dim3);
+            float* tmp_12 = (float*)malloc(sizeof(float) * dim0 * dim2 * dim3);
             memset(tmp_12, 0, sizeof(float) * dim0 * dim2 * dim3);
             max_4d_ax1(dim0, dim1, dim2, dim3, data, tmp_12);
             max_3d_ax1(dim0, dim2, dim3, tmp, tmp_12);
 
             free(tmp_12);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 1 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 1)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 1 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 1)))
         {
             // reduce on axis1
-            float* tmp_13 = ( float* )malloc(sizeof(float) * dim0 * dim2 * dim3);
+            float* tmp_13 = (float*)malloc(sizeof(float) * dim0 * dim2 * dim3);
             memset(tmp_13, 0, sizeof(float) * dim0 * dim2 * dim3);
             max_4d_ax1(dim0, dim1, dim2, dim3, data, tmp_13);
             max_3d_ax2(dim0, dim2, dim3, tmp, tmp_13);
 
             free(tmp_13);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 2 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 2)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 2 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 2)))
         {
             // reduce on axis2
-            float* tmp_23 = ( float* )malloc(sizeof(float) * dim0 * dim1 * dim3);
+            float* tmp_23 = (float*)malloc(sizeof(float) * dim0 * dim1 * dim3);
             memset(tmp_23, 0, sizeof(float) * dim0 * dim1 * dim3);
             max_4d_ax2(dim0, dim1, dim2, dim3, data, tmp_23);
             max_3d_ax2(dim0, dim1, dim3, tmp, tmp_23);
 
             free(tmp_23);
         }
-        else if (param_dim3 == -2 && ((param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 2) ||
-                                      (param_dim0 == 0 && param_dim1 == 2 && param_dim2 == 1) ||
-                                      (param_dim0 == 1 && param_dim1 == 0 && param_dim2 == 2) ||
-                                      (param_dim0 == 1 && param_dim1 == 2 && param_dim2 == 0) ||
-                                      (param_dim0 == 2 && param_dim1 == 0 && param_dim2 == 1) ||
-                                      (param_dim0 == 2 && param_dim1 == 1 && param_dim2 == 0)))
+        else if (param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 2)
+                     || (param_dim0 == 0 && param_dim1 == 2 && param_dim2 == 1)
+                     || (param_dim0 == 1 && param_dim1 == 0 && param_dim2 == 2)
+                     || (param_dim0 == 1 && param_dim1 == 2 && param_dim2 == 0)
+                     || (param_dim0 == 2 && param_dim1 == 0 && param_dim2 == 1)
+                     || (param_dim0 == 2 && param_dim1 == 1 && param_dim2 == 0)))
         {
             // reduce on axis0
-            float* tmp_01 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_01 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_01, 0, sizeof(float) * dim1 * dim2 * dim3);
 
-            float* tmp_0 = ( float* )malloc(sizeof(float) * dim2 * dim3);
+            float* tmp_0 = (float*)malloc(sizeof(float) * dim2 * dim3);
             memset(tmp_0, 0, sizeof(float) * dim2 * dim3);
 
             max_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_01);
@@ -1044,18 +1062,19 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
             free(tmp_01);
             free(tmp_0);
         }
-        else if (param_dim3 == -2 && ((param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 3) ||
-                                      (param_dim0 == 0 && param_dim1 == 3 && param_dim2 == 1) ||
-                                      (param_dim0 == 1 && param_dim1 == 0 && param_dim2 == 3) ||
-                                      (param_dim0 == 1 && param_dim1 == 3 && param_dim2 == 0) ||
-                                      (param_dim0 == 3 && param_dim1 == 0 && param_dim2 == 1) ||
-                                      (param_dim0 == 3 && param_dim1 == 1 && param_dim2 == 0)))
+        else if (param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 3)
+                     || (param_dim0 == 0 && param_dim1 == 3 && param_dim2 == 1)
+                     || (param_dim0 == 1 && param_dim1 == 0 && param_dim2 == 3)
+                     || (param_dim0 == 1 && param_dim1 == 3 && param_dim2 == 0)
+                     || (param_dim0 == 3 && param_dim1 == 0 && param_dim2 == 1)
+                     || (param_dim0 == 3 && param_dim1 == 1 && param_dim2 == 0)))
         {
             // reduce on axis0
-            float* tmp_01 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_01 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_01, 0, sizeof(float) * dim1 * dim2 * dim3);
 
-            float* tmp_1 = ( float* )malloc(sizeof(float) * dim2 * dim3);
+            float* tmp_1 = (float*)malloc(sizeof(float) * dim2 * dim3);
             memset(tmp_1, 0, sizeof(float) * dim2 * dim3);
 
             max_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_01);
@@ -1065,18 +1084,19 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
             free(tmp_01);
             free(tmp_1);
         }
-        else if (param_dim3 == -2 && ((param_dim0 == 0 && param_dim1 == 2 && param_dim2 == 3) ||
-                                      (param_dim0 == 0 && param_dim1 == 3 && param_dim2 == 2) ||
-                                      (param_dim0 == 2 && param_dim1 == 0 && param_dim2 == 3) ||
-                                      (param_dim0 == 2 && param_dim1 == 3 && param_dim2 == 0) ||
-                                      (param_dim0 == 3 && param_dim1 == 0 && param_dim2 == 2) ||
-                                      (param_dim0 == 3 && param_dim1 == 2 && param_dim2 == 0)))
+        else if (param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 2 && param_dim2 == 3)
+                     || (param_dim0 == 0 && param_dim1 == 3 && param_dim2 == 2)
+                     || (param_dim0 == 2 && param_dim1 == 0 && param_dim2 == 3)
+                     || (param_dim0 == 2 && param_dim1 == 3 && param_dim2 == 0)
+                     || (param_dim0 == 3 && param_dim1 == 0 && param_dim2 == 2)
+                     || (param_dim0 == 3 && param_dim1 == 2 && param_dim2 == 0)))
         {
             // reduce on axis0
-            float* tmp_02 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_02 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_02, 0, sizeof(float) * dim1 * dim2 * dim3);
 
-            float* tmp_1 = ( float* )malloc(sizeof(float) * dim1 * dim3);
+            float* tmp_1 = (float*)malloc(sizeof(float) * dim1 * dim3);
             memset(tmp_1, 0, sizeof(float) * dim1 * dim3);
 
             max_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_02);
@@ -1086,18 +1106,19 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
             free(tmp_02);
             free(tmp_1);
         }
-        else if (param_dim3 == -2 && ((param_dim0 == 1 && param_dim1 == 2 && param_dim2 == 3) ||
-                                      (param_dim0 == 1 && param_dim1 == 3 && param_dim2 == 2) ||
-                                      (param_dim0 == 2 && param_dim1 == 1 && param_dim2 == 3) ||
-                                      (param_dim0 == 2 && param_dim1 == 3 && param_dim2 == 1) ||
-                                      (param_dim0 == 3 && param_dim1 == 1 && param_dim2 == 2) ||
-                                      (param_dim0 == 3 && param_dim1 == 2 && param_dim2 == 1)))
+        else if (param_dim3 == -2
+                 && ((param_dim0 == 1 && param_dim1 == 2 && param_dim2 == 3)
+                     || (param_dim0 == 1 && param_dim1 == 3 && param_dim2 == 2)
+                     || (param_dim0 == 2 && param_dim1 == 1 && param_dim2 == 3)
+                     || (param_dim0 == 2 && param_dim1 == 3 && param_dim2 == 1)
+                     || (param_dim0 == 3 && param_dim1 == 1 && param_dim2 == 2)
+                     || (param_dim0 == 3 && param_dim1 == 2 && param_dim2 == 1)))
         {
             // reduce on axis0
-            float* tmp_12 = ( float* )malloc(sizeof(float) * dim0 * dim2 * dim3);
+            float* tmp_12 = (float*)malloc(sizeof(float) * dim0 * dim2 * dim3);
             memset(tmp_12, 0, sizeof(float) * dim0 * dim2 * dim3);
 
-            float* tmp_1 = ( float* )malloc(sizeof(float) * dim0 * dim3);
+            float* tmp_1 = (float*)malloc(sizeof(float) * dim0 * dim3);
             memset(tmp_1, 0, sizeof(float) * dim0 * dim3);
 
             max_4d_ax1(dim0, dim1, dim2, dim3, data, tmp_12);
@@ -1111,8 +1132,8 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
     // reduce min
     else if (param->type == 5)
     {
-        if ((param_dim0 == -2 && param_dim1 == -2 && param_dim2 == -2 && param_dim3 == -2) ||
-            (param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 2 && param_dim3 == 3))
+        if ((param_dim0 == -2 && param_dim1 == -2 && param_dim2 == -2 && param_dim3 == -2)
+            || (param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 2 && param_dim3 == 3))
         {
             float s_tmp = FLOAT_MAX;
             for (int n = 0; n < dim0; n++)
@@ -1149,83 +1170,84 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
         {
             min_4d_ax3(dim0, dim1, dim2, dim3, data, tmp);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 1 && param_dim1 == 0) || (param_dim0 == 0 && param_dim1 == 1)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 1 && param_dim1 == 0) || (param_dim0 == 0 && param_dim1 == 1)))
         {
             // reduce on axis0
-            float* tmp_01 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_01 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_01, 0, sizeof(float) * dim1 * dim2 * dim3);
             min_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_01);
             min_3d_ax0(dim1, dim2, dim3, tmp, tmp_01);
 
             free(tmp_01);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 0 && param_dim1 == 2) || (param_dim0 == 2 && param_dim1 == 0)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 2) || (param_dim0 == 2 && param_dim1 == 0)))
         {
             // reduce on axis0
-            float* tmp_02 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_02 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_02, 0, sizeof(float) * dim1 * dim2 * dim3);
             min_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_02);
             min_3d_ax1(dim1, dim2, dim3, tmp, tmp_02);
 
             free(tmp_02);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 0 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 0)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 0)))
         {
             // reduce on axis0
-            float* tmp_03 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_03 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_03, 0, sizeof(float) * dim1 * dim2 * dim3);
             min_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_03);
             min_3d_ax2(dim1, dim2, dim3, tmp, tmp_03);
             free(tmp_03);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 1 && param_dim1 == 2) || (param_dim0 == 2 && param_dim1 == 1)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 1 && param_dim1 == 2) || (param_dim0 == 2 && param_dim1 == 1)))
         {
             // reduce on axis1
-            float* tmp_12 = ( float* )malloc(sizeof(float) * dim0 * dim2 * dim3);
+            float* tmp_12 = (float*)malloc(sizeof(float) * dim0 * dim2 * dim3);
             memset(tmp_12, 0, sizeof(float) * dim0 * dim2 * dim3);
             min_4d_ax1(dim0, dim1, dim2, dim3, data, tmp_12);
             min_3d_ax1(dim0, dim2, dim3, tmp, tmp_12);
 
             free(tmp_12);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 1 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 1)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 1 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 1)))
         {
             // reduce on axis1
-            float* tmp_13 = ( float* )malloc(sizeof(float) * dim0 * dim2 * dim3);
+            float* tmp_13 = (float*)malloc(sizeof(float) * dim0 * dim2 * dim3);
             memset(tmp_13, 0, sizeof(float) * dim0 * dim2 * dim3);
             min_4d_ax1(dim0, dim1, dim2, dim3, data, tmp_13);
             min_3d_ax2(dim0, dim2, dim3, tmp, tmp_13);
 
             free(tmp_13);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 2 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 2)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 2 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 2)))
         {
             // reduce on axis2
-            float* tmp_23 = ( float* )malloc(sizeof(float) * dim0 * dim1 * dim3);
+            float* tmp_23 = (float*)malloc(sizeof(float) * dim0 * dim1 * dim3);
             memset(tmp_23, 0, sizeof(float) * dim0 * dim1 * dim3);
             min_4d_ax2(dim0, dim1, dim2, dim3, data, tmp_23);
             min_3d_ax2(dim0, dim1, dim3, tmp, tmp_23);
 
             free(tmp_23);
         }
-        else if (param_dim3 == -2 && ((param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 2) ||
-                                      (param_dim0 == 0 && param_dim1 == 2 && param_dim2 == 1) ||
-                                      (param_dim0 == 1 && param_dim1 == 0 && param_dim2 == 2) ||
-                                      (param_dim0 == 1 && param_dim1 == 2 && param_dim2 == 0) ||
-                                      (param_dim0 == 2 && param_dim1 == 0 && param_dim2 == 1) ||
-                                      (param_dim0 == 2 && param_dim1 == 1 && param_dim2 == 0)))
+        else if (param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 2)
+                     || (param_dim0 == 0 && param_dim1 == 2 && param_dim2 == 1)
+                     || (param_dim0 == 1 && param_dim1 == 0 && param_dim2 == 2)
+                     || (param_dim0 == 1 && param_dim1 == 2 && param_dim2 == 0)
+                     || (param_dim0 == 2 && param_dim1 == 0 && param_dim2 == 1)
+                     || (param_dim0 == 2 && param_dim1 == 1 && param_dim2 == 0)))
         {
             // reduce on axis0
-            float* tmp_01 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_01 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_01, 0, sizeof(float) * dim1 * dim2 * dim3);
 
-            float* tmp_0 = ( float* )malloc(sizeof(float) * dim2 * dim3);
+            float* tmp_0 = (float*)malloc(sizeof(float) * dim2 * dim3);
             memset(tmp_0, 0, sizeof(float) * dim2 * dim3);
 
             min_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_01);
@@ -1235,18 +1257,19 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
             free(tmp_01);
             free(tmp_0);
         }
-        else if (param_dim3 == -2 && ((param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 3) ||
-                                      (param_dim0 == 0 && param_dim1 == 3 && param_dim2 == 1) ||
-                                      (param_dim0 == 1 && param_dim1 == 0 && param_dim2 == 3) ||
-                                      (param_dim0 == 1 && param_dim1 == 3 && param_dim2 == 0) ||
-                                      (param_dim0 == 3 && param_dim1 == 0 && param_dim2 == 1) ||
-                                      (param_dim0 == 3 && param_dim1 == 1 && param_dim2 == 0)))
+        else if (param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 3)
+                     || (param_dim0 == 0 && param_dim1 == 3 && param_dim2 == 1)
+                     || (param_dim0 == 1 && param_dim1 == 0 && param_dim2 == 3)
+                     || (param_dim0 == 1 && param_dim1 == 3 && param_dim2 == 0)
+                     || (param_dim0 == 3 && param_dim1 == 0 && param_dim2 == 1)
+                     || (param_dim0 == 3 && param_dim1 == 1 && param_dim2 == 0)))
         {
             // reduce on axis0
-            float* tmp_01 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_01 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_01, 0, sizeof(float) * dim1 * dim2 * dim3);
 
-            float* tmp_1 = ( float* )malloc(sizeof(float) * dim2 * dim3);
+            float* tmp_1 = (float*)malloc(sizeof(float) * dim2 * dim3);
             memset(tmp_1, 0, sizeof(float) * dim2 * dim3);
 
             min_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_01);
@@ -1256,18 +1279,19 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
             free(tmp_01);
             free(tmp_1);
         }
-        else if (param_dim3 == -2 && ((param_dim0 == 0 && param_dim1 == 2 && param_dim2 == 3) ||
-                                      (param_dim0 == 0 && param_dim1 == 3 && param_dim2 == 2) ||
-                                      (param_dim0 == 2 && param_dim1 == 0 && param_dim2 == 3) ||
-                                      (param_dim0 == 2 && param_dim1 == 3 && param_dim2 == 0) ||
-                                      (param_dim0 == 3 && param_dim1 == 0 && param_dim2 == 2) ||
-                                      (param_dim0 == 3 && param_dim1 == 2 && param_dim2 == 0)))
+        else if (param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 2 && param_dim2 == 3)
+                     || (param_dim0 == 0 && param_dim1 == 3 && param_dim2 == 2)
+                     || (param_dim0 == 2 && param_dim1 == 0 && param_dim2 == 3)
+                     || (param_dim0 == 2 && param_dim1 == 3 && param_dim2 == 0)
+                     || (param_dim0 == 3 && param_dim1 == 0 && param_dim2 == 2)
+                     || (param_dim0 == 3 && param_dim1 == 2 && param_dim2 == 0)))
         {
             // reduce on axis0
-            float* tmp_02 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_02 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_02, 0, sizeof(float) * dim1 * dim2 * dim3);
 
-            float* tmp_1 = ( float* )malloc(sizeof(float) * dim1 * dim3);
+            float* tmp_1 = (float*)malloc(sizeof(float) * dim1 * dim3);
             memset(tmp_1, 0, sizeof(float) * dim1 * dim3);
 
             min_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_02);
@@ -1277,18 +1301,19 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
             free(tmp_02);
             free(tmp_1);
         }
-        else if (param_dim3 == -2 && ((param_dim0 == 1 && param_dim1 == 2 && param_dim2 == 3) ||
-                                      (param_dim0 == 1 && param_dim1 == 3 && param_dim2 == 2) ||
-                                      (param_dim0 == 2 && param_dim1 == 1 && param_dim2 == 3) ||
-                                      (param_dim0 == 2 && param_dim1 == 3 && param_dim2 == 1) ||
-                                      (param_dim0 == 3 && param_dim1 == 1 && param_dim2 == 2) ||
-                                      (param_dim0 == 3 && param_dim1 == 2 && param_dim2 == 1)))
+        else if (param_dim3 == -2
+                 && ((param_dim0 == 1 && param_dim1 == 2 && param_dim2 == 3)
+                     || (param_dim0 == 1 && param_dim1 == 3 && param_dim2 == 2)
+                     || (param_dim0 == 2 && param_dim1 == 1 && param_dim2 == 3)
+                     || (param_dim0 == 2 && param_dim1 == 3 && param_dim2 == 1)
+                     || (param_dim0 == 3 && param_dim1 == 1 && param_dim2 == 2)
+                     || (param_dim0 == 3 && param_dim1 == 2 && param_dim2 == 1)))
         {
             // reduce on axis0
-            float* tmp_12 = ( float* )malloc(sizeof(float) * dim0 * dim2 * dim3);
+            float* tmp_12 = (float*)malloc(sizeof(float) * dim0 * dim2 * dim3);
             memset(tmp_12, 0, sizeof(float) * dim0 * dim2 * dim3);
 
-            float* tmp_1 = ( float* )malloc(sizeof(float) * dim0 * dim3);
+            float* tmp_1 = (float*)malloc(sizeof(float) * dim0 * dim3);
             memset(tmp_1, 0, sizeof(float) * dim0 * dim3);
 
             min_4d_ax1(dim0, dim1, dim2, dim3, data, tmp_12);
@@ -1302,8 +1327,8 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
     // reduce prod
     else if (param->type == 6)
     {
-        if ((param_dim0 == -2 && param_dim1 == -2 && param_dim2 == -2 && param_dim3 == -2) ||
-            (param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 2 && param_dim3 == 3))
+        if ((param_dim0 == -2 && param_dim1 == -2 && param_dim2 == -2 && param_dim3 == -2)
+            || (param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 2 && param_dim3 == 3))
         {
             float s_tmp = 1.f;
             for (int n = 0; n < dim0; n++)
@@ -1339,83 +1364,84 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
         {
             prod_4d_ax3(dim0, dim1, dim2, dim3, data, tmp);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 1 && param_dim1 == 0) || (param_dim0 == 0 && param_dim1 == 1)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 1 && param_dim1 == 0) || (param_dim0 == 0 && param_dim1 == 1)))
         {
             // reduce on axis0
-            float* tmp_01 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_01 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_01, 0, sizeof(float) * dim1 * dim2 * dim3);
             prod_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_01);
             prod_3d_ax0(dim1, dim2, dim3, tmp, tmp_01);
 
             free(tmp_01);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 0 && param_dim1 == 2) || (param_dim0 == 2 && param_dim1 == 0)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 2) || (param_dim0 == 2 && param_dim1 == 0)))
         {
             // reduce on axis0
-            float* tmp_02 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_02 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_02, 0, sizeof(float) * dim1 * dim2 * dim3);
             prod_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_02);
             prod_3d_ax1(dim1, dim2, dim3, tmp, tmp_02);
 
             free(tmp_02);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 0 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 0)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 0)))
         {
             // reduce on axis0
-            float* tmp_03 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_03 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_03, 0, sizeof(float) * dim1 * dim2 * dim3);
             prod_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_03);
             prod_3d_ax2(dim1, dim2, dim3, tmp, tmp_03);
             free(tmp_03);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 1 && param_dim1 == 2) || (param_dim0 == 2 && param_dim1 == 1)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 1 && param_dim1 == 2) || (param_dim0 == 2 && param_dim1 == 1)))
         {
             // reduce on axis1
-            float* tmp_12 = ( float* )malloc(sizeof(float) * dim0 * dim2 * dim3);
+            float* tmp_12 = (float*)malloc(sizeof(float) * dim0 * dim2 * dim3);
             memset(tmp_12, 0, sizeof(float) * dim0 * dim2 * dim3);
             prod_4d_ax1(dim0, dim1, dim2, dim3, data, tmp_12);
             prod_3d_ax1(dim0, dim2, dim3, tmp, tmp_12);
 
             free(tmp_12);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 1 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 1)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 1 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 1)))
         {
             // reduce on axis1
-            float* tmp_13 = ( float* )malloc(sizeof(float) * dim0 * dim2 * dim3);
+            float* tmp_13 = (float*)malloc(sizeof(float) * dim0 * dim2 * dim3);
             memset(tmp_13, 0, sizeof(float) * dim0 * dim2 * dim3);
             prod_4d_ax1(dim0, dim1, dim2, dim3, data, tmp_13);
             prod_3d_ax2(dim0, dim2, dim3, tmp, tmp_13);
 
             free(tmp_13);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 2 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 2)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 2 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 2)))
         {
             // reduce on axis2
-            float* tmp_23 = ( float* )malloc(sizeof(float) * dim0 * dim1 * dim3);
+            float* tmp_23 = (float*)malloc(sizeof(float) * dim0 * dim1 * dim3);
             memset(tmp_23, 0, sizeof(float) * dim0 * dim1 * dim3);
             prod_4d_ax2(dim0, dim1, dim2, dim3, data, tmp_23);
             prod_3d_ax2(dim0, dim1, dim3, tmp, tmp_23);
 
             free(tmp_23);
         }
-        else if (param_dim3 == -2 && ((param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 2) ||
-                                      (param_dim0 == 0 && param_dim1 == 2 && param_dim2 == 1) ||
-                                      (param_dim0 == 1 && param_dim1 == 0 && param_dim2 == 2) ||
-                                      (param_dim0 == 1 && param_dim1 == 2 && param_dim2 == 0) ||
-                                      (param_dim0 == 2 && param_dim1 == 0 && param_dim2 == 1) ||
-                                      (param_dim0 == 2 && param_dim1 == 1 && param_dim2 == 0)))
+        else if (param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 2)
+                     || (param_dim0 == 0 && param_dim1 == 2 && param_dim2 == 1)
+                     || (param_dim0 == 1 && param_dim1 == 0 && param_dim2 == 2)
+                     || (param_dim0 == 1 && param_dim1 == 2 && param_dim2 == 0)
+                     || (param_dim0 == 2 && param_dim1 == 0 && param_dim2 == 1)
+                     || (param_dim0 == 2 && param_dim1 == 1 && param_dim2 == 0)))
         {
             // reduce on axis0
-            float* tmp_01 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_01 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_01, 0, sizeof(float) * dim1 * dim2 * dim3);
 
-            float* tmp_0 = ( float* )malloc(sizeof(float) * dim2 * dim3);
+            float* tmp_0 = (float*)malloc(sizeof(float) * dim2 * dim3);
             memset(tmp_0, 0, sizeof(float) * dim2 * dim3);
 
             prod_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_01);
@@ -1425,18 +1451,19 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
             free(tmp_01);
             free(tmp_0);
         }
-        else if (param_dim3 == -2 && ((param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 3) ||
-                                      (param_dim0 == 0 && param_dim1 == 3 && param_dim2 == 1) ||
-                                      (param_dim0 == 1 && param_dim1 == 0 && param_dim2 == 3) ||
-                                      (param_dim0 == 1 && param_dim1 == 3 && param_dim2 == 0) ||
-                                      (param_dim0 == 3 && param_dim1 == 0 && param_dim2 == 1) ||
-                                      (param_dim0 == 3 && param_dim1 == 1 && param_dim2 == 0)))
+        else if (param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 3)
+                     || (param_dim0 == 0 && param_dim1 == 3 && param_dim2 == 1)
+                     || (param_dim0 == 1 && param_dim1 == 0 && param_dim2 == 3)
+                     || (param_dim0 == 1 && param_dim1 == 3 && param_dim2 == 0)
+                     || (param_dim0 == 3 && param_dim1 == 0 && param_dim2 == 1)
+                     || (param_dim0 == 3 && param_dim1 == 1 && param_dim2 == 0)))
         {
             // reduce on axis0
-            float* tmp_01 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_01 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_01, 0, sizeof(float) * dim1 * dim2 * dim3);
 
-            float* tmp_1 = ( float* )malloc(sizeof(float) * dim2 * dim3);
+            float* tmp_1 = (float*)malloc(sizeof(float) * dim2 * dim3);
             memset(tmp_1, 0, sizeof(float) * dim2 * dim3);
 
             prod_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_01);
@@ -1446,18 +1473,19 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
             free(tmp_01);
             free(tmp_1);
         }
-        else if (param_dim3 == -2 && ((param_dim0 == 0 && param_dim1 == 2 && param_dim2 == 3) ||
-                                      (param_dim0 == 0 && param_dim1 == 3 && param_dim2 == 2) ||
-                                      (param_dim0 == 2 && param_dim1 == 0 && param_dim2 == 3) ||
-                                      (param_dim0 == 2 && param_dim1 == 3 && param_dim2 == 0) ||
-                                      (param_dim0 == 3 && param_dim1 == 0 && param_dim2 == 2) ||
-                                      (param_dim0 == 3 && param_dim1 == 2 && param_dim2 == 0)))
+        else if (param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 2 && param_dim2 == 3)
+                     || (param_dim0 == 0 && param_dim1 == 3 && param_dim2 == 2)
+                     || (param_dim0 == 2 && param_dim1 == 0 && param_dim2 == 3)
+                     || (param_dim0 == 2 && param_dim1 == 3 && param_dim2 == 0)
+                     || (param_dim0 == 3 && param_dim1 == 0 && param_dim2 == 2)
+                     || (param_dim0 == 3 && param_dim1 == 2 && param_dim2 == 0)))
         {
             // reduce on axis0
-            float* tmp_02 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_02 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_02, 0, sizeof(float) * dim1 * dim2 * dim3);
 
-            float* tmp_1 = ( float* )malloc(sizeof(float) * dim1 * dim3);
+            float* tmp_1 = (float*)malloc(sizeof(float) * dim1 * dim3);
             memset(tmp_1, 0, sizeof(float) * dim1 * dim3);
 
             prod_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_02);
@@ -1467,18 +1495,19 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
             free(tmp_02);
             free(tmp_1);
         }
-        else if (param_dim3 == -2 && ((param_dim0 == 1 && param_dim1 == 2 && param_dim2 == 3) ||
-                                      (param_dim0 == 1 && param_dim1 == 3 && param_dim2 == 2) ||
-                                      (param_dim0 == 2 && param_dim1 == 1 && param_dim2 == 3) ||
-                                      (param_dim0 == 2 && param_dim1 == 3 && param_dim2 == 1) ||
-                                      (param_dim0 == 3 && param_dim1 == 1 && param_dim2 == 2) ||
-                                      (param_dim0 == 3 && param_dim1 == 2 && param_dim2 == 1)))
+        else if (param_dim3 == -2
+                 && ((param_dim0 == 1 && param_dim1 == 2 && param_dim2 == 3)
+                     || (param_dim0 == 1 && param_dim1 == 3 && param_dim2 == 2)
+                     || (param_dim0 == 2 && param_dim1 == 1 && param_dim2 == 3)
+                     || (param_dim0 == 2 && param_dim1 == 3 && param_dim2 == 1)
+                     || (param_dim0 == 3 && param_dim1 == 1 && param_dim2 == 2)
+                     || (param_dim0 == 3 && param_dim1 == 2 && param_dim2 == 1)))
         {
             // reduce on axis0
-            float* tmp_12 = ( float* )malloc(sizeof(float) * dim0 * dim2 * dim3);
+            float* tmp_12 = (float*)malloc(sizeof(float) * dim0 * dim2 * dim3);
             memset(tmp_12, 0, sizeof(float) * dim0 * dim2 * dim3);
 
-            float* tmp_1 = ( float* )malloc(sizeof(float) * dim0 * dim3);
+            float* tmp_1 = (float*)malloc(sizeof(float) * dim0 * dim3);
             memset(tmp_1, 0, sizeof(float) * dim0 * dim3);
 
             prod_4d_ax1(dim0, dim1, dim2, dim3, data, tmp_12);
@@ -1492,8 +1521,8 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
     // reduce l1
     else if (param->type == 7)
     {
-        if ((param_dim0 == -2 && param_dim1 == -2 && param_dim2 == -2 && param_dim3 == -2) ||
-            (param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 2 && param_dim3 == 3))
+        if ((param_dim0 == -2 && param_dim1 == -2 && param_dim2 == -2 && param_dim3 == -2)
+            || (param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 2 && param_dim3 == 3))
         {
             float s_tmp = 0.f;
             for (int n = 0; n < dim0; n++)
@@ -1529,83 +1558,84 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
         {
             asum_4d_ax3(dim0, dim1, dim2, dim3, data, tmp);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 1 && param_dim1 == 0) || (param_dim0 == 0 && param_dim1 == 1)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 1 && param_dim1 == 0) || (param_dim0 == 0 && param_dim1 == 1)))
         {
             // reduce on axis0
-            float* tmp_01 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_01 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_01, 0, sizeof(float) * dim1 * dim2 * dim3);
             asum_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_01);
             sum_3d_ax0(dim1, dim2, dim3, tmp, tmp_01);
 
             free(tmp_01);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 0 && param_dim1 == 2) || (param_dim0 == 2 && param_dim1 == 0)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 2) || (param_dim0 == 2 && param_dim1 == 0)))
         {
             // reduce on axis0
-            float* tmp_02 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_02 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_02, 0, sizeof(float) * dim1 * dim2 * dim3);
             asum_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_02);
             sum_3d_ax1(dim1, dim2, dim3, tmp, tmp_02);
 
             free(tmp_02);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 0 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 0)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 0)))
         {
             // reduce on axis0
-            float* tmp_03 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_03 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_03, 0, sizeof(float) * dim1 * dim2 * dim3);
             asum_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_03);
             sum_3d_ax2(dim1, dim2, dim3, tmp, tmp_03);
             free(tmp_03);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 1 && param_dim1 == 2) || (param_dim0 == 2 && param_dim1 == 1)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 1 && param_dim1 == 2) || (param_dim0 == 2 && param_dim1 == 1)))
         {
             // reduce on axis1
-            float* tmp_12 = ( float* )malloc(sizeof(float) * dim0 * dim2 * dim3);
+            float* tmp_12 = (float*)malloc(sizeof(float) * dim0 * dim2 * dim3);
             memset(tmp_12, 0, sizeof(float) * dim0 * dim2 * dim3);
             asum_4d_ax1(dim0, dim1, dim2, dim3, data, tmp_12);
             sum_3d_ax1(dim0, dim2, dim3, tmp, tmp_12);
 
             free(tmp_12);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 1 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 1)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 1 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 1)))
         {
             // reduce on axis1
-            float* tmp_13 = ( float* )malloc(sizeof(float) * dim0 * dim2 * dim3);
+            float* tmp_13 = (float*)malloc(sizeof(float) * dim0 * dim2 * dim3);
             memset(tmp_13, 0, sizeof(float) * dim0 * dim2 * dim3);
             asum_4d_ax1(dim0, dim1, dim2, dim3, data, tmp_13);
             sum_3d_ax2(dim0, dim2, dim3, tmp, tmp_13);
 
             free(tmp_13);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 2 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 2)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 2 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 2)))
         {
             // reduce on axis2
-            float* tmp_23 = ( float* )malloc(sizeof(float) * dim0 * dim1 * dim3);
+            float* tmp_23 = (float*)malloc(sizeof(float) * dim0 * dim1 * dim3);
             memset(tmp_23, 0, sizeof(float) * dim0 * dim1 * dim3);
             asum_4d_ax2(dim0, dim1, dim2, dim3, data, tmp_23);
             sum_3d_ax2(dim0, dim1, dim3, tmp, tmp_23);
 
             free(tmp_23);
         }
-        else if (param_dim3 == -2 && ((param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 2) ||
-                                      (param_dim0 == 0 && param_dim1 == 2 && param_dim2 == 1) ||
-                                      (param_dim0 == 1 && param_dim1 == 0 && param_dim2 == 2) ||
-                                      (param_dim0 == 1 && param_dim1 == 2 && param_dim2 == 0) ||
-                                      (param_dim0 == 2 && param_dim1 == 0 && param_dim2 == 1) ||
-                                      (param_dim0 == 2 && param_dim1 == 1 && param_dim2 == 0)))
+        else if (param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 2)
+                     || (param_dim0 == 0 && param_dim1 == 2 && param_dim2 == 1)
+                     || (param_dim0 == 1 && param_dim1 == 0 && param_dim2 == 2)
+                     || (param_dim0 == 1 && param_dim1 == 2 && param_dim2 == 0)
+                     || (param_dim0 == 2 && param_dim1 == 0 && param_dim2 == 1)
+                     || (param_dim0 == 2 && param_dim1 == 1 && param_dim2 == 0)))
         {
             // reduce on axis0
-            float* tmp_01 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_01 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_01, 0, sizeof(float) * dim1 * dim2 * dim3);
 
-            float* tmp_0 = ( float* )malloc(sizeof(float) * dim2 * dim3);
+            float* tmp_0 = (float*)malloc(sizeof(float) * dim2 * dim3);
             memset(tmp_0, 0, sizeof(float) * dim2 * dim3);
 
             asum_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_01);
@@ -1615,18 +1645,19 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
             free(tmp_01);
             free(tmp_0);
         }
-        else if (param_dim3 == -2 && ((param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 3) ||
-                                      (param_dim0 == 0 && param_dim1 == 3 && param_dim2 == 1) ||
-                                      (param_dim0 == 1 && param_dim1 == 0 && param_dim2 == 3) ||
-                                      (param_dim0 == 1 && param_dim1 == 3 && param_dim2 == 0) ||
-                                      (param_dim0 == 3 && param_dim1 == 0 && param_dim2 == 1) ||
-                                      (param_dim0 == 3 && param_dim1 == 1 && param_dim2 == 0)))
+        else if (param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 3)
+                     || (param_dim0 == 0 && param_dim1 == 3 && param_dim2 == 1)
+                     || (param_dim0 == 1 && param_dim1 == 0 && param_dim2 == 3)
+                     || (param_dim0 == 1 && param_dim1 == 3 && param_dim2 == 0)
+                     || (param_dim0 == 3 && param_dim1 == 0 && param_dim2 == 1)
+                     || (param_dim0 == 3 && param_dim1 == 1 && param_dim2 == 0)))
         {
             // reduce on axis0
-            float* tmp_01 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_01 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_01, 0, sizeof(float) * dim1 * dim2 * dim3);
 
-            float* tmp_1 = ( float* )malloc(sizeof(float) * dim2 * dim3);
+            float* tmp_1 = (float*)malloc(sizeof(float) * dim2 * dim3);
             memset(tmp_1, 0, sizeof(float) * dim2 * dim3);
 
             asum_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_01);
@@ -1636,18 +1667,19 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
             free(tmp_01);
             free(tmp_1);
         }
-        else if (param_dim3 == -2 && ((param_dim0 == 0 && param_dim1 == 2 && param_dim2 == 3) ||
-                                      (param_dim0 == 0 && param_dim1 == 3 && param_dim2 == 2) ||
-                                      (param_dim0 == 2 && param_dim1 == 0 && param_dim2 == 3) ||
-                                      (param_dim0 == 2 && param_dim1 == 3 && param_dim2 == 0) ||
-                                      (param_dim0 == 3 && param_dim1 == 0 && param_dim2 == 2) ||
-                                      (param_dim0 == 3 && param_dim1 == 2 && param_dim2 == 0)))
+        else if (param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 2 && param_dim2 == 3)
+                     || (param_dim0 == 0 && param_dim1 == 3 && param_dim2 == 2)
+                     || (param_dim0 == 2 && param_dim1 == 0 && param_dim2 == 3)
+                     || (param_dim0 == 2 && param_dim1 == 3 && param_dim2 == 0)
+                     || (param_dim0 == 3 && param_dim1 == 0 && param_dim2 == 2)
+                     || (param_dim0 == 3 && param_dim1 == 2 && param_dim2 == 0)))
         {
             // reduce on axis0
-            float* tmp_02 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_02 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_02, 0, sizeof(float) * dim1 * dim2 * dim3);
 
-            float* tmp_1 = ( float* )malloc(sizeof(float) * dim1 * dim3);
+            float* tmp_1 = (float*)malloc(sizeof(float) * dim1 * dim3);
             memset(tmp_1, 0, sizeof(float) * dim1 * dim3);
 
             asum_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_02);
@@ -1657,18 +1689,19 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
             free(tmp_02);
             free(tmp_1);
         }
-        else if (param_dim3 == -2 && ((param_dim0 == 1 && param_dim1 == 2 && param_dim2 == 3) ||
-                                      (param_dim0 == 1 && param_dim1 == 3 && param_dim2 == 2) ||
-                                      (param_dim0 == 2 && param_dim1 == 1 && param_dim2 == 3) ||
-                                      (param_dim0 == 2 && param_dim1 == 3 && param_dim2 == 1) ||
-                                      (param_dim0 == 3 && param_dim1 == 1 && param_dim2 == 2) ||
-                                      (param_dim0 == 3 && param_dim1 == 2 && param_dim2 == 1)))
+        else if (param_dim3 == -2
+                 && ((param_dim0 == 1 && param_dim1 == 2 && param_dim2 == 3)
+                     || (param_dim0 == 1 && param_dim1 == 3 && param_dim2 == 2)
+                     || (param_dim0 == 2 && param_dim1 == 1 && param_dim2 == 3)
+                     || (param_dim0 == 2 && param_dim1 == 3 && param_dim2 == 1)
+                     || (param_dim0 == 3 && param_dim1 == 1 && param_dim2 == 2)
+                     || (param_dim0 == 3 && param_dim1 == 2 && param_dim2 == 1)))
         {
             // reduce on axis0
-            float* tmp_12 = ( float* )malloc(sizeof(float) * dim0 * dim2 * dim3);
+            float* tmp_12 = (float*)malloc(sizeof(float) * dim0 * dim2 * dim3);
             memset(tmp_12, 0, sizeof(float) * dim0 * dim2 * dim3);
 
-            float* tmp_1 = ( float* )malloc(sizeof(float) * dim0 * dim3);
+            float* tmp_1 = (float*)malloc(sizeof(float) * dim0 * dim3);
             memset(tmp_1, 0, sizeof(float) * dim0 * dim3);
 
             asum_4d_ax1(dim0, dim1, dim2, dim3, data, tmp_12);
@@ -1682,8 +1715,8 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
     // reduce l2
     else if (param->type == 8)
     {
-        if ((param_dim0 == -2 && param_dim1 == -2 && param_dim2 == -2 && param_dim3 == -2) ||
-            (param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 2 && param_dim3 == 3))
+        if ((param_dim0 == -2 && param_dim1 == -2 && param_dim2 == -2 && param_dim3 == -2)
+            || (param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 2 && param_dim3 == 3))
         {
             float s_tmp = 0.f;
             for (int n = 0; n < dim0; n++)
@@ -1719,83 +1752,84 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
         {
             l2_4d_ax3(dim0, dim1, dim2, dim3, data, tmp);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 1 && param_dim1 == 0) || (param_dim0 == 0 && param_dim1 == 1)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 1 && param_dim1 == 0) || (param_dim0 == 0 && param_dim1 == 1)))
         {
             // reduce on axis0
-            float* tmp_01 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_01 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_01, 0, sizeof(float) * dim1 * dim2 * dim3);
             l2_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_01);
             sum_3d_ax0(dim1, dim2, dim3, tmp, tmp_01);
 
             free(tmp_01);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 0 && param_dim1 == 2) || (param_dim0 == 2 && param_dim1 == 0)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 2) || (param_dim0 == 2 && param_dim1 == 0)))
         {
             // reduce on axis0
-            float* tmp_02 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_02 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_02, 0, sizeof(float) * dim1 * dim2 * dim3);
             l2_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_02);
             sum_3d_ax1(dim1, dim2, dim3, tmp, tmp_02);
 
             free(tmp_02);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 0 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 0)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 0)))
         {
             // reduce on axis0
-            float* tmp_03 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_03 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_03, 0, sizeof(float) * dim1 * dim2 * dim3);
             l2_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_03);
             sum_3d_ax2(dim1, dim2, dim3, tmp, tmp_03);
             free(tmp_03);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 1 && param_dim1 == 2) || (param_dim0 == 2 && param_dim1 == 1)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 1 && param_dim1 == 2) || (param_dim0 == 2 && param_dim1 == 1)))
         {
             // reduce on axis1
-            float* tmp_12 = ( float* )malloc(sizeof(float) * dim0 * dim2 * dim3);
+            float* tmp_12 = (float*)malloc(sizeof(float) * dim0 * dim2 * dim3);
             memset(tmp_12, 0, sizeof(float) * dim0 * dim2 * dim3);
             l2_4d_ax1(dim0, dim1, dim2, dim3, data, tmp_12);
             sum_3d_ax1(dim0, dim2, dim3, tmp, tmp_12);
 
             free(tmp_12);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 1 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 1)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 1 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 1)))
         {
             // reduce on axis1
-            float* tmp_13 = ( float* )malloc(sizeof(float) * dim0 * dim2 * dim3);
+            float* tmp_13 = (float*)malloc(sizeof(float) * dim0 * dim2 * dim3);
             memset(tmp_13, 0, sizeof(float) * dim0 * dim2 * dim3);
             l2_4d_ax1(dim0, dim1, dim2, dim3, data, tmp_13);
             sum_3d_ax2(dim0, dim2, dim3, tmp, tmp_13);
 
             free(tmp_13);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 2 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 2)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 2 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 2)))
         {
             // reduce on axis2
-            float* tmp_23 = ( float* )malloc(sizeof(float) * dim0 * dim1 * dim3);
+            float* tmp_23 = (float*)malloc(sizeof(float) * dim0 * dim1 * dim3);
             memset(tmp_23, 0, sizeof(float) * dim0 * dim1 * dim3);
             l2_4d_ax2(dim0, dim1, dim2, dim3, data, tmp_23);
             sum_3d_ax2(dim0, dim1, dim3, tmp, tmp_23);
 
             free(tmp_23);
         }
-        else if (param_dim3 == -2 && ((param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 2) ||
-                                      (param_dim0 == 0 && param_dim1 == 2 && param_dim2 == 1) ||
-                                      (param_dim0 == 1 && param_dim1 == 0 && param_dim2 == 2) ||
-                                      (param_dim0 == 1 && param_dim1 == 2 && param_dim2 == 0) ||
-                                      (param_dim0 == 2 && param_dim1 == 0 && param_dim2 == 1) ||
-                                      (param_dim0 == 2 && param_dim1 == 1 && param_dim2 == 0)))
+        else if (param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 2)
+                     || (param_dim0 == 0 && param_dim1 == 2 && param_dim2 == 1)
+                     || (param_dim0 == 1 && param_dim1 == 0 && param_dim2 == 2)
+                     || (param_dim0 == 1 && param_dim1 == 2 && param_dim2 == 0)
+                     || (param_dim0 == 2 && param_dim1 == 0 && param_dim2 == 1)
+                     || (param_dim0 == 2 && param_dim1 == 1 && param_dim2 == 0)))
         {
             // reduce on axis0
-            float* tmp_01 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_01 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_01, 0, sizeof(float) * dim1 * dim2 * dim3);
 
-            float* tmp_0 = ( float* )malloc(sizeof(float) * dim2 * dim3);
+            float* tmp_0 = (float*)malloc(sizeof(float) * dim2 * dim3);
             memset(tmp_0, 0, sizeof(float) * dim2 * dim3);
 
             l2_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_01);
@@ -1805,18 +1839,19 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
             free(tmp_01);
             free(tmp_0);
         }
-        else if (param_dim3 == -2 && ((param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 3) ||
-                                      (param_dim0 == 0 && param_dim1 == 3 && param_dim2 == 1) ||
-                                      (param_dim0 == 1 && param_dim1 == 0 && param_dim2 == 3) ||
-                                      (param_dim0 == 1 && param_dim1 == 3 && param_dim2 == 0) ||
-                                      (param_dim0 == 3 && param_dim1 == 0 && param_dim2 == 1) ||
-                                      (param_dim0 == 3 && param_dim1 == 1 && param_dim2 == 0)))
+        else if (param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 3)
+                     || (param_dim0 == 0 && param_dim1 == 3 && param_dim2 == 1)
+                     || (param_dim0 == 1 && param_dim1 == 0 && param_dim2 == 3)
+                     || (param_dim0 == 1 && param_dim1 == 3 && param_dim2 == 0)
+                     || (param_dim0 == 3 && param_dim1 == 0 && param_dim2 == 1)
+                     || (param_dim0 == 3 && param_dim1 == 1 && param_dim2 == 0)))
         {
             // reduce on axis0
-            float* tmp_01 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_01 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_01, 0, sizeof(float) * dim1 * dim2 * dim3);
 
-            float* tmp_1 = ( float* )malloc(sizeof(float) * dim2 * dim3);
+            float* tmp_1 = (float*)malloc(sizeof(float) * dim2 * dim3);
             memset(tmp_1, 0, sizeof(float) * dim2 * dim3);
 
             l2_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_01);
@@ -1826,18 +1861,19 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
             free(tmp_01);
             free(tmp_1);
         }
-        else if (param_dim3 == -2 && ((param_dim0 == 0 && param_dim1 == 2 && param_dim2 == 3) ||
-                                      (param_dim0 == 0 && param_dim1 == 3 && param_dim2 == 2) ||
-                                      (param_dim0 == 2 && param_dim1 == 0 && param_dim2 == 3) ||
-                                      (param_dim0 == 2 && param_dim1 == 3 && param_dim2 == 0) ||
-                                      (param_dim0 == 3 && param_dim1 == 0 && param_dim2 == 2) ||
-                                      (param_dim0 == 3 && param_dim1 == 2 && param_dim2 == 0)))
+        else if (param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 2 && param_dim2 == 3)
+                     || (param_dim0 == 0 && param_dim1 == 3 && param_dim2 == 2)
+                     || (param_dim0 == 2 && param_dim1 == 0 && param_dim2 == 3)
+                     || (param_dim0 == 2 && param_dim1 == 3 && param_dim2 == 0)
+                     || (param_dim0 == 3 && param_dim1 == 0 && param_dim2 == 2)
+                     || (param_dim0 == 3 && param_dim1 == 2 && param_dim2 == 0)))
         {
             // reduce on axis0
-            float* tmp_02 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_02 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_02, 0, sizeof(float) * dim1 * dim2 * dim3);
 
-            float* tmp_1 = ( float* )malloc(sizeof(float) * dim1 * dim3);
+            float* tmp_1 = (float*)malloc(sizeof(float) * dim1 * dim3);
             memset(tmp_1, 0, sizeof(float) * dim1 * dim3);
 
             l2_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_02);
@@ -1847,18 +1883,19 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
             free(tmp_02);
             free(tmp_1);
         }
-        else if (param_dim3 == -2 && ((param_dim0 == 1 && param_dim1 == 2 && param_dim2 == 3) ||
-                                      (param_dim0 == 1 && param_dim1 == 3 && param_dim2 == 2) ||
-                                      (param_dim0 == 2 && param_dim1 == 1 && param_dim2 == 3) ||
-                                      (param_dim0 == 2 && param_dim1 == 3 && param_dim2 == 1) ||
-                                      (param_dim0 == 3 && param_dim1 == 1 && param_dim2 == 2) ||
-                                      (param_dim0 == 3 && param_dim1 == 2 && param_dim2 == 1)))
+        else if (param_dim3 == -2
+                 && ((param_dim0 == 1 && param_dim1 == 2 && param_dim2 == 3)
+                     || (param_dim0 == 1 && param_dim1 == 3 && param_dim2 == 2)
+                     || (param_dim0 == 2 && param_dim1 == 1 && param_dim2 == 3)
+                     || (param_dim0 == 2 && param_dim1 == 3 && param_dim2 == 1)
+                     || (param_dim0 == 3 && param_dim1 == 1 && param_dim2 == 2)
+                     || (param_dim0 == 3 && param_dim1 == 2 && param_dim2 == 1)))
         {
             // reduce on axis0
-            float* tmp_12 = ( float* )malloc(sizeof(float) * dim0 * dim2 * dim3);
+            float* tmp_12 = (float*)malloc(sizeof(float) * dim0 * dim2 * dim3);
             memset(tmp_12, 0, sizeof(float) * dim0 * dim2 * dim3);
 
-            float* tmp_1 = ( float* )malloc(sizeof(float) * dim0 * dim3);
+            float* tmp_1 = (float*)malloc(sizeof(float) * dim0 * dim3);
             memset(tmp_1, 0, sizeof(float) * dim0 * dim3);
 
             l2_4d_ax1(dim0, dim1, dim2, dim3, data, tmp_12);
@@ -1872,8 +1909,8 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
     // reduce log sum
     else if (param->type == 9)
     {
-        if ((param_dim0 == -2 && param_dim1 == -2 && param_dim2 == -2 && param_dim3 == -2) ||
-            (param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 2 && param_dim3 == 3))
+        if ((param_dim0 == -2 && param_dim1 == -2 && param_dim2 == -2 && param_dim3 == -2)
+            || (param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 2 && param_dim3 == 3))
         {
             float s_tmp = 0.f;
             for (int n = 0; n < dim0; n++)
@@ -1909,83 +1946,84 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
         {
             logsum_4d_ax3(dim0, dim1, dim2, dim3, data, tmp);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 1 && param_dim1 == 0) || (param_dim0 == 0 && param_dim1 == 1)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 1 && param_dim1 == 0) || (param_dim0 == 0 && param_dim1 == 1)))
         {
             // reduce on axis0
-            float* tmp_01 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_01 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_01, 0, sizeof(float) * dim1 * dim2 * dim3);
             sum_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_01);
             logsum_3d_ax0(dim1, dim2, dim3, tmp, tmp_01);
 
             free(tmp_01);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 0 && param_dim1 == 2) || (param_dim0 == 2 && param_dim1 == 0)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 2) || (param_dim0 == 2 && param_dim1 == 0)))
         {
             // reduce on axis0
-            float* tmp_02 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_02 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_02, 0, sizeof(float) * dim1 * dim2 * dim3);
             sum_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_02);
             logsum_3d_ax1(dim1, dim2, dim3, tmp, tmp_02);
 
             free(tmp_02);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 0 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 0)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 0)))
         {
             // reduce on axis0
-            float* tmp_03 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_03 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_03, 0, sizeof(float) * dim1 * dim2 * dim3);
             sum_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_03);
             logsum_3d_ax2(dim1, dim2, dim3, tmp, tmp_03);
             free(tmp_03);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 1 && param_dim1 == 2) || (param_dim0 == 2 && param_dim1 == 1)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 1 && param_dim1 == 2) || (param_dim0 == 2 && param_dim1 == 1)))
         {
             // reduce on axis1
-            float* tmp_12 = ( float* )malloc(sizeof(float) * dim0 * dim2 * dim3);
+            float* tmp_12 = (float*)malloc(sizeof(float) * dim0 * dim2 * dim3);
             memset(tmp_12, 0, sizeof(float) * dim0 * dim2 * dim3);
             sum_4d_ax1(dim0, dim1, dim2, dim3, data, tmp_12);
             logsum_3d_ax1(dim0, dim2, dim3, tmp, tmp_12);
 
             free(tmp_12);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 1 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 1)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 1 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 1)))
         {
             // reduce on axis1
-            float* tmp_13 = ( float* )malloc(sizeof(float) * dim0 * dim2 * dim3);
+            float* tmp_13 = (float*)malloc(sizeof(float) * dim0 * dim2 * dim3);
             memset(tmp_13, 0, sizeof(float) * dim0 * dim2 * dim3);
             sum_4d_ax1(dim0, dim1, dim2, dim3, data, tmp_13);
             logsum_3d_ax2(dim0, dim2, dim3, tmp, tmp_13);
 
             free(tmp_13);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 2 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 2)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 2 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 2)))
         {
             // reduce on axis2
-            float* tmp_23 = ( float* )malloc(sizeof(float) * dim0 * dim1 * dim3);
+            float* tmp_23 = (float*)malloc(sizeof(float) * dim0 * dim1 * dim3);
             memset(tmp_23, 0, sizeof(float) * dim0 * dim1 * dim3);
             sum_4d_ax2(dim0, dim1, dim2, dim3, data, tmp_23);
             logsum_3d_ax2(dim0, dim1, dim3, tmp, tmp_23);
 
             free(tmp_23);
         }
-        else if (param_dim3 == -2 && ((param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 2) ||
-                                      (param_dim0 == 0 && param_dim1 == 2 && param_dim2 == 1) ||
-                                      (param_dim0 == 1 && param_dim1 == 0 && param_dim2 == 2) ||
-                                      (param_dim0 == 1 && param_dim1 == 2 && param_dim2 == 0) ||
-                                      (param_dim0 == 2 && param_dim1 == 0 && param_dim2 == 1) ||
-                                      (param_dim0 == 2 && param_dim1 == 1 && param_dim2 == 0)))
+        else if (param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 2)
+                     || (param_dim0 == 0 && param_dim1 == 2 && param_dim2 == 1)
+                     || (param_dim0 == 1 && param_dim1 == 0 && param_dim2 == 2)
+                     || (param_dim0 == 1 && param_dim1 == 2 && param_dim2 == 0)
+                     || (param_dim0 == 2 && param_dim1 == 0 && param_dim2 == 1)
+                     || (param_dim0 == 2 && param_dim1 == 1 && param_dim2 == 0)))
         {
             // reduce on axis0
-            float* tmp_01 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_01 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_01, 0, sizeof(float) * dim1 * dim2 * dim3);
 
-            float* tmp_0 = ( float* )malloc(sizeof(float) * dim2 * dim3);
+            float* tmp_0 = (float*)malloc(sizeof(float) * dim2 * dim3);
             memset(tmp_0, 0, sizeof(float) * dim2 * dim3);
 
             sum_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_01);
@@ -1995,18 +2033,19 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
             free(tmp_01);
             free(tmp_0);
         }
-        else if (param_dim3 == -2 && ((param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 3) ||
-                                      (param_dim0 == 0 && param_dim1 == 3 && param_dim2 == 1) ||
-                                      (param_dim0 == 1 && param_dim1 == 0 && param_dim2 == 3) ||
-                                      (param_dim0 == 1 && param_dim1 == 3 && param_dim2 == 0) ||
-                                      (param_dim0 == 3 && param_dim1 == 0 && param_dim2 == 1) ||
-                                      (param_dim0 == 3 && param_dim1 == 1 && param_dim2 == 0)))
+        else if (param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 3)
+                     || (param_dim0 == 0 && param_dim1 == 3 && param_dim2 == 1)
+                     || (param_dim0 == 1 && param_dim1 == 0 && param_dim2 == 3)
+                     || (param_dim0 == 1 && param_dim1 == 3 && param_dim2 == 0)
+                     || (param_dim0 == 3 && param_dim1 == 0 && param_dim2 == 1)
+                     || (param_dim0 == 3 && param_dim1 == 1 && param_dim2 == 0)))
         {
             // reduce on axis0
-            float* tmp_01 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_01 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_01, 0, sizeof(float) * dim1 * dim2 * dim3);
 
-            float* tmp_1 = ( float* )malloc(sizeof(float) * dim2 * dim3);
+            float* tmp_1 = (float*)malloc(sizeof(float) * dim2 * dim3);
             memset(tmp_1, 0, sizeof(float) * dim2 * dim3);
 
             sum_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_01);
@@ -2016,18 +2055,19 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
             free(tmp_01);
             free(tmp_1);
         }
-        else if (param_dim3 == -2 && ((param_dim0 == 0 && param_dim1 == 2 && param_dim2 == 3) ||
-                                      (param_dim0 == 0 && param_dim1 == 3 && param_dim2 == 2) ||
-                                      (param_dim0 == 2 && param_dim1 == 0 && param_dim2 == 3) ||
-                                      (param_dim0 == 2 && param_dim1 == 3 && param_dim2 == 0) ||
-                                      (param_dim0 == 3 && param_dim1 == 0 && param_dim2 == 2) ||
-                                      (param_dim0 == 3 && param_dim1 == 2 && param_dim2 == 0)))
+        else if (param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 2 && param_dim2 == 3)
+                     || (param_dim0 == 0 && param_dim1 == 3 && param_dim2 == 2)
+                     || (param_dim0 == 2 && param_dim1 == 0 && param_dim2 == 3)
+                     || (param_dim0 == 2 && param_dim1 == 3 && param_dim2 == 0)
+                     || (param_dim0 == 3 && param_dim1 == 0 && param_dim2 == 2)
+                     || (param_dim0 == 3 && param_dim1 == 2 && param_dim2 == 0)))
         {
             // reduce on axis0
-            float* tmp_02 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_02 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_02, 0, sizeof(float) * dim1 * dim2 * dim3);
 
-            float* tmp_1 = ( float* )malloc(sizeof(float) * dim1 * dim3);
+            float* tmp_1 = (float*)malloc(sizeof(float) * dim1 * dim3);
             memset(tmp_1, 0, sizeof(float) * dim1 * dim3);
 
             sum_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_02);
@@ -2037,18 +2077,19 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
             free(tmp_02);
             free(tmp_1);
         }
-        else if (param_dim3 == -2 && ((param_dim0 == 1 && param_dim1 == 2 && param_dim2 == 3) ||
-                                      (param_dim0 == 1 && param_dim1 == 3 && param_dim2 == 2) ||
-                                      (param_dim0 == 2 && param_dim1 == 1 && param_dim2 == 3) ||
-                                      (param_dim0 == 2 && param_dim1 == 3 && param_dim2 == 1) ||
-                                      (param_dim0 == 3 && param_dim1 == 1 && param_dim2 == 2) ||
-                                      (param_dim0 == 3 && param_dim1 == 2 && param_dim2 == 1)))
+        else if (param_dim3 == -2
+                 && ((param_dim0 == 1 && param_dim1 == 2 && param_dim2 == 3)
+                     || (param_dim0 == 1 && param_dim1 == 3 && param_dim2 == 2)
+                     || (param_dim0 == 2 && param_dim1 == 1 && param_dim2 == 3)
+                     || (param_dim0 == 2 && param_dim1 == 3 && param_dim2 == 1)
+                     || (param_dim0 == 3 && param_dim1 == 1 && param_dim2 == 2)
+                     || (param_dim0 == 3 && param_dim1 == 2 && param_dim2 == 1)))
         {
             // reduce on axis0
-            float* tmp_12 = ( float* )malloc(sizeof(float) * dim0 * dim2 * dim3);
+            float* tmp_12 = (float*)malloc(sizeof(float) * dim0 * dim2 * dim3);
             memset(tmp_12, 0, sizeof(float) * dim0 * dim2 * dim3);
 
-            float* tmp_1 = ( float* )malloc(sizeof(float) * dim0 * dim3);
+            float* tmp_1 = (float*)malloc(sizeof(float) * dim0 * dim3);
             memset(tmp_1, 0, sizeof(float) * dim0 * dim3);
 
             sum_4d_ax1(dim0, dim1, dim2, dim3, data, tmp_12);
@@ -2061,8 +2102,8 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
     }
     else if (param->type == 10)
     {
-        if ((param_dim0 == -2 && param_dim1 == -2 && param_dim2 == -2 && param_dim3 == -2) ||
-            (param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 2 && param_dim3 == 3))
+        if ((param_dim0 == -2 && param_dim1 == -2 && param_dim2 == -2 && param_dim3 == -2)
+            || (param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 2 && param_dim3 == 3))
         {
             float s_tmp = 0.f;
             for (int n = 0; n < dim0; n++)
@@ -2098,83 +2139,84 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
         {
             logsumexp_4d_ax3(dim0, dim1, dim2, dim3, data, tmp);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 1 && param_dim1 == 0) || (param_dim0 == 0 && param_dim1 == 1)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 1 && param_dim1 == 0) || (param_dim0 == 0 && param_dim1 == 1)))
         {
             // reduce on axis0
-            float* tmp_01 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_01 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_01, 0, sizeof(float) * dim1 * dim2 * dim3);
             sumexp_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_01);
             logsum_3d_ax0(dim1, dim2, dim3, tmp, tmp_01);
 
             free(tmp_01);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 0 && param_dim1 == 2) || (param_dim0 == 2 && param_dim1 == 0)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 2) || (param_dim0 == 2 && param_dim1 == 0)))
         {
             // reduce on axis0
-            float* tmp_02 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_02 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_02, 0, sizeof(float) * dim1 * dim2 * dim3);
             sumexp_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_02);
             logsum_3d_ax1(dim1, dim2, dim3, tmp, tmp_02);
 
             free(tmp_02);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 0 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 0)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 0)))
         {
             // reduce on axis0
-            float* tmp_03 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_03 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_03, 0, sizeof(float) * dim1 * dim2 * dim3);
             sumexp_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_03);
             logsum_3d_ax2(dim1, dim2, dim3, tmp, tmp_03);
             free(tmp_03);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 1 && param_dim1 == 2) || (param_dim0 == 2 && param_dim1 == 1)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 1 && param_dim1 == 2) || (param_dim0 == 2 && param_dim1 == 1)))
         {
             // reduce on axis1
-            float* tmp_12 = ( float* )malloc(sizeof(float) * dim0 * dim2 * dim3);
+            float* tmp_12 = (float*)malloc(sizeof(float) * dim0 * dim2 * dim3);
             memset(tmp_12, 0, sizeof(float) * dim0 * dim2 * dim3);
             sumexp_4d_ax1(dim0, dim1, dim2, dim3, data, tmp_12);
             logsum_3d_ax1(dim0, dim2, dim3, tmp, tmp_12);
 
             free(tmp_12);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 1 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 1)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 1 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 1)))
         {
             // reduce on axis1
-            float* tmp_13 = ( float* )malloc(sizeof(float) * dim0 * dim2 * dim3);
+            float* tmp_13 = (float*)malloc(sizeof(float) * dim0 * dim2 * dim3);
             memset(tmp_13, 0, sizeof(float) * dim0 * dim2 * dim3);
             sumexp_4d_ax1(dim0, dim1, dim2, dim3, data, tmp_13);
             logsum_3d_ax2(dim0, dim2, dim3, tmp, tmp_13);
 
             free(tmp_13);
         }
-        else if (param_dim2 == -2 && param_dim3 == -2 &&
-                 ((param_dim0 == 2 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 2)))
+        else if (param_dim2 == -2 && param_dim3 == -2
+                 && ((param_dim0 == 2 && param_dim1 == 3) || (param_dim0 == 3 && param_dim1 == 2)))
         {
             // reduce on axis2
-            float* tmp_23 = ( float* )malloc(sizeof(float) * dim0 * dim1 * dim3);
+            float* tmp_23 = (float*)malloc(sizeof(float) * dim0 * dim1 * dim3);
             memset(tmp_23, 0, sizeof(float) * dim0 * dim1 * dim3);
             sumexp_4d_ax2(dim0, dim1, dim2, dim3, data, tmp_23);
             logsum_3d_ax2(dim0, dim1, dim3, tmp, tmp_23);
 
             free(tmp_23);
         }
-        else if (param_dim3 == -2 && ((param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 2) ||
-                                      (param_dim0 == 0 && param_dim1 == 2 && param_dim2 == 1) ||
-                                      (param_dim0 == 1 && param_dim1 == 0 && param_dim2 == 2) ||
-                                      (param_dim0 == 1 && param_dim1 == 2 && param_dim2 == 0) ||
-                                      (param_dim0 == 2 && param_dim1 == 0 && param_dim2 == 1) ||
-                                      (param_dim0 == 2 && param_dim1 == 1 && param_dim2 == 0)))
+        else if (param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 2)
+                     || (param_dim0 == 0 && param_dim1 == 2 && param_dim2 == 1)
+                     || (param_dim0 == 1 && param_dim1 == 0 && param_dim2 == 2)
+                     || (param_dim0 == 1 && param_dim1 == 2 && param_dim2 == 0)
+                     || (param_dim0 == 2 && param_dim1 == 0 && param_dim2 == 1)
+                     || (param_dim0 == 2 && param_dim1 == 1 && param_dim2 == 0)))
         {
             // reduce on axis0
-            float* tmp_01 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_01 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_01, 0, sizeof(float) * dim1 * dim2 * dim3);
 
-            float* tmp_0 = ( float* )malloc(sizeof(float) * dim2 * dim3);
+            float* tmp_0 = (float*)malloc(sizeof(float) * dim2 * dim3);
             memset(tmp_0, 0, sizeof(float) * dim2 * dim3);
 
             sumexp_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_01);
@@ -2184,18 +2226,19 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
             free(tmp_01);
             free(tmp_0);
         }
-        else if (param_dim3 == -2 && ((param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 3) ||
-                                      (param_dim0 == 0 && param_dim1 == 3 && param_dim2 == 1) ||
-                                      (param_dim0 == 1 && param_dim1 == 0 && param_dim2 == 3) ||
-                                      (param_dim0 == 1 && param_dim1 == 3 && param_dim2 == 0) ||
-                                      (param_dim0 == 3 && param_dim1 == 0 && param_dim2 == 1) ||
-                                      (param_dim0 == 3 && param_dim1 == 1 && param_dim2 == 0)))
+        else if (param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 1 && param_dim2 == 3)
+                     || (param_dim0 == 0 && param_dim1 == 3 && param_dim2 == 1)
+                     || (param_dim0 == 1 && param_dim1 == 0 && param_dim2 == 3)
+                     || (param_dim0 == 1 && param_dim1 == 3 && param_dim2 == 0)
+                     || (param_dim0 == 3 && param_dim1 == 0 && param_dim2 == 1)
+                     || (param_dim0 == 3 && param_dim1 == 1 && param_dim2 == 0)))
         {
             // reduce on axis0
-            float* tmp_01 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_01 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_01, 0, sizeof(float) * dim1 * dim2 * dim3);
 
-            float* tmp_1 = ( float* )malloc(sizeof(float) * dim2 * dim3);
+            float* tmp_1 = (float*)malloc(sizeof(float) * dim2 * dim3);
             memset(tmp_1, 0, sizeof(float) * dim2 * dim3);
 
             sumexp_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_01);
@@ -2205,18 +2248,19 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
             free(tmp_01);
             free(tmp_1);
         }
-        else if (param_dim3 == -2 && ((param_dim0 == 0 && param_dim1 == 2 && param_dim2 == 3) ||
-                                      (param_dim0 == 0 && param_dim1 == 3 && param_dim2 == 2) ||
-                                      (param_dim0 == 2 && param_dim1 == 0 && param_dim2 == 3) ||
-                                      (param_dim0 == 2 && param_dim1 == 3 && param_dim2 == 0) ||
-                                      (param_dim0 == 3 && param_dim1 == 0 && param_dim2 == 2) ||
-                                      (param_dim0 == 3 && param_dim1 == 2 && param_dim2 == 0)))
+        else if (param_dim3 == -2
+                 && ((param_dim0 == 0 && param_dim1 == 2 && param_dim2 == 3)
+                     || (param_dim0 == 0 && param_dim1 == 3 && param_dim2 == 2)
+                     || (param_dim0 == 2 && param_dim1 == 0 && param_dim2 == 3)
+                     || (param_dim0 == 2 && param_dim1 == 3 && param_dim2 == 0)
+                     || (param_dim0 == 3 && param_dim1 == 0 && param_dim2 == 2)
+                     || (param_dim0 == 3 && param_dim1 == 2 && param_dim2 == 0)))
         {
             // reduce on axis0
-            float* tmp_02 = ( float* )malloc(sizeof(float) * dim1 * dim2 * dim3);
+            float* tmp_02 = (float*)malloc(sizeof(float) * dim1 * dim2 * dim3);
             memset(tmp_02, 0, sizeof(float) * dim1 * dim2 * dim3);
 
-            float* tmp_1 = ( float* )malloc(sizeof(float) * dim1 * dim3);
+            float* tmp_1 = (float*)malloc(sizeof(float) * dim1 * dim3);
             memset(tmp_1, 0, sizeof(float) * dim1 * dim3);
 
             sumexp_4d_ax0(dim0, dim1, dim2, dim3, data, tmp_02);
@@ -2226,18 +2270,19 @@ static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int
             free(tmp_02);
             free(tmp_1);
         }
-        else if (param_dim3 == -2 && ((param_dim0 == 1 && param_dim1 == 2 && param_dim2 == 3) ||
-                                      (param_dim0 == 1 && param_dim1 == 3 && param_dim2 == 2) ||
-                                      (param_dim0 == 2 && param_dim1 == 1 && param_dim2 == 3) ||
-                                      (param_dim0 == 2 && param_dim1 == 3 && param_dim2 == 1) ||
-                                      (param_dim0 == 3 && param_dim1 == 1 && param_dim2 == 2) ||
-                                      (param_dim0 == 3 && param_dim1 == 2 && param_dim2 == 1)))
+        else if (param_dim3 == -2
+                 && ((param_dim0 == 1 && param_dim1 == 2 && param_dim2 == 3)
+                     || (param_dim0 == 1 && param_dim1 == 3 && param_dim2 == 2)
+                     || (param_dim0 == 2 && param_dim1 == 1 && param_dim2 == 3)
+                     || (param_dim0 == 2 && param_dim1 == 3 && param_dim2 == 1)
+                     || (param_dim0 == 3 && param_dim1 == 1 && param_dim2 == 2)
+                     || (param_dim0 == 3 && param_dim1 == 2 && param_dim2 == 1)))
         {
             // reduce on axis0
-            float* tmp_12 = ( float* )malloc(sizeof(float) * dim0 * dim2 * dim3);
+            float* tmp_12 = (float*)malloc(sizeof(float) * dim0 * dim2 * dim3);
             memset(tmp_12, 0, sizeof(float) * dim0 * dim2 * dim3);
 
-            float* tmp_1 = ( float* )malloc(sizeof(float) * dim0 * dim3);
+            float* tmp_1 = (float*)malloc(sizeof(float) * dim0 * dim3);
             memset(tmp_1, 0, sizeof(float) * dim0 * dim3);
 
             sumexp_4d_ax1(dim0, dim1, dim2, dim3, data, tmp_12);
@@ -2405,11 +2450,14 @@ void sum_5d_ax1(int* dims, int dim_num, float* data, float* tmp)
     int dim2 = dims[2];
     int dim3 = dims[3];
     int dim4 = dims[4];
-    int chw = dim2*dim3*dim4;
-    for(int j = 0; j < dim0; j++){
-        for(int n = 0; n < dim1; n++){
-            for(int size = 0; size < chw; size++){
-                tmp[size] += data[n*chw + size];
+    int chw  = dim2 * dim3 * dim4;
+    for (int j = 0; j < dim0; j++)
+    {
+        for (int n = 0; n < dim1; n++)
+        {
+            for (int size = 0; size < chw; size++)
+            {
+                tmp[size] += data[n * chw + size];
             }
         }
     }
@@ -3224,7 +3272,7 @@ void l2_4d_ax0(int dim0, int dim1, int dim2, int dim3, float* data, float* tmp)
         for (int n = 0; n < dim0; n++)
         {
             int offset = n * dim1 * dim2 * dim3 + j;
-            tmp[j] += sqrt((double )data[offset] * data[offset]);
+            tmp[j] += sqrt((double)data[offset] * data[offset]);
         }
     }
 }
@@ -3237,7 +3285,7 @@ void l2_4d_ax1(int dim0, int dim1, int dim2, int dim3, float* data, float* tmp)
             for (int h = 0; h < dim1; h++)
             {
                 int offset = n * dim1 * dim2 * dim3 + h * dim2 * dim3 + cw;
-                tmp[n * dim2 * dim3 + cw] += sqrt((double )data[offset] * data[offset]);
+                tmp[n * dim2 * dim3 + cw] += sqrt((double)data[offset] * data[offset]);
             }
         }
     }
@@ -3253,7 +3301,7 @@ void l2_4d_ax2(int dim0, int dim1, int dim2, int dim3, float* data, float* tmp)
                 for (int w = 0; w < dim2; w++)
                 {
                     int offset = n * dim1 * dim2 * dim3 + h * dim2 * dim3 + w * dim3 + c;
-                    tmp[n * dim1 * dim3 + h * dim3 + c] += sqrt((double )data[offset] * data[offset]);
+                    tmp[n * dim1 * dim3 + h * dim3 + c] += sqrt((double)data[offset] * data[offset]);
                 }
             }
         }
@@ -3270,7 +3318,7 @@ void l2_4d_ax3(int dim0, int dim1, int dim2, int dim3, float* data, float* tmp)
                 for (int c = 0; c < dim3; c++)
                 {
                     int offset = n * dim1 * dim2 * dim3 + h * dim2 * dim3 + w * dim3 + c;
-                    tmp[n * dim1 * dim2 + h * dim2 + w] += sqrt((double )data[offset] * data[offset]);
+                    tmp[n * dim1 * dim2 + h * dim2 + w] += sqrt((double)data[offset] * data[offset]);
                 }
             }
         }
@@ -3283,7 +3331,7 @@ void l2_3d_ax0(int dim1, int dim2, int dim3, float* tmp, float* tmp_01)
         for (int h = 0; h < dim1; h++)
         {
             int index = h * dim2 * dim3 + wc;
-            tmp[wc] += sqrt((double )tmp_01[index] * tmp_01[index]);
+            tmp[wc] += sqrt((double)tmp_01[index] * tmp_01[index]);
         }
     }
 }
@@ -3296,7 +3344,7 @@ void l2_3d_ax1(int dim1, int dim2, int dim3, float* tmp, float* tmp_02)
             for (int w = 0; w < dim2; w++)
             {
                 int index = h * dim2 * dim3 + w * dim3 + c;
-                tmp[h * dim3 + c] += sqrt((double )tmp_02[index] * tmp_02[index]);
+                tmp[h * dim3 + c] += sqrt((double)tmp_02[index] * tmp_02[index]);
             }
         }
     }
@@ -3310,7 +3358,7 @@ void l2_3d_ax2(int dim1, int dim2, int dim3, float* tmp, float* tmp_03)
             for (int c = 0; c < dim3; c++)
             {
                 int index = h * dim2 * dim3 + w * dim3 + c;
-                tmp[h * dim2 + w] += sqrt((double )tmp_03[index] * tmp_03[index]);
+                tmp[h * dim2 + w] += sqrt((double)tmp_03[index] * tmp_03[index]);
             }
         }
     }
@@ -3322,7 +3370,7 @@ void l2_2d_ax0(int dim1, int dim2, float* tmp, float* tmp_0)
         for (int h = 0; h < dim1; h++)
         {
             int index = h * dim2 + w;
-            tmp[w] += sqrt((double )tmp_0[index] * tmp_0[index]);
+            tmp[w] += sqrt((double)tmp_0[index] * tmp_0[index]);
         }
     }
 }
@@ -3333,7 +3381,7 @@ void l2_2d_ax1(int dim1, int dim2, float* tmp, float* tmp_1)
         for (int w = 0; w < dim2; w++)
         {
             int index = h * dim2 + w;
-            tmp[h] += sqrt((double )tmp_1[index] * tmp_1[index]);
+            tmp[h] += sqrt((double)tmp_1[index] * tmp_1[index]);
         }
     }
 }

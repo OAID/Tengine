@@ -1,4 +1,4 @@
-  /*
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -42,22 +42,22 @@ static int rnn_op_map(int op)
 
 
 static int tm2_load_rnn(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
-                            const TM2_Operator* tm_op)
+                        const TM2_Operator* tm_op)
 {
-    struct rnn_param* rnn_param = (struct rnn_param* )ir_node->op.param_mem;
-    const struct tm2_priv* tm2_priv = (struct tm2_priv* )ir_graph->serializer_privacy;
-    const char* mem_base = tm2_priv->base;
-    const TM2_RnnParam* tm_param = (TM2_RnnParam* )(mem_base + tm_op->offset_t_param);
+    struct rnn_param*      rnn_param = (struct rnn_param*)ir_node->op.param_mem;
+    const struct tm2_priv* tm2_priv  = (struct tm2_priv*)ir_graph->serializer_privacy;
+    const char*            mem_base  = tm2_priv->base;
+    const TM2_RnnParam*    tm_param  = (TM2_RnnParam*)(mem_base + tm_op->offset_t_param);
 
-    rnn_param->clip = tm_param->clip;
-    rnn_param->output_len = tm_param->output_len;
-    rnn_param->sequence_len = tm_param->sequence_len;
-    rnn_param->input_size = tm_param->input_size;
-    rnn_param->hidden_size = tm_param->hidden_size;
-    rnn_param->has_clip = tm_param->has_clip;
-    rnn_param->has_bias = tm_param->has_bias;
-    rnn_param->has_init_state = tm_param->has_init_state;
-    rnn_param->activation = tm_param->activation;
+    rnn_param->clip                  = tm_param->clip;
+    rnn_param->output_len            = tm_param->output_len;
+    rnn_param->sequence_len          = tm_param->sequence_len;
+    rnn_param->input_size            = tm_param->input_size;
+    rnn_param->hidden_size           = tm_param->hidden_size;
+    rnn_param->has_clip              = tm_param->has_clip;
+    rnn_param->has_bias              = tm_param->has_bias;
+    rnn_param->has_init_state        = tm_param->has_init_state;
+    rnn_param->activation            = tm_param->activation;
 
     return 0;
 }
@@ -67,7 +67,7 @@ int register_tm2_rnn_op()
 {
     struct serializer* tm2_s = find_serializer_via_name("tengine");
 
-    if(tm2_s == NULL)
+    if (tm2_s == NULL)
     {
         TLOG_ERR("tengine serializer has not been registered yet\n");
         return -1;

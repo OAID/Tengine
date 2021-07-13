@@ -64,10 +64,11 @@ int is_variable_tensor_in_subgraph(const ir_subgraph_t* subgraph, const uint16_t
     // only each node outputs need to be checked next
     for (uint16_t i = 0; i < subgraph->node_num; i++)
     {
-        uint16_t node_index = subgraph->node_list[i];
-        ir_node_t* node = get_ir_graph_node(subgraph->graph, node_index);
+        uint16_t   node_index = subgraph->node_list[i];
+        ir_node_t* node       = get_ir_graph_node(subgraph->graph, node_index);
 
-        if (OP_CONST != node->op.type && is_index_in_array(node->output_tensors, (uint16_t)node->output_num, tensor_index))
+        if (OP_CONST != node->op.type
+            && is_index_in_array(node->output_tensors, (uint16_t)node->output_num, tensor_index))
         {
             return 1;
         }

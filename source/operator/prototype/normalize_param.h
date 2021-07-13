@@ -27,19 +27,19 @@
 
 typedef struct normalize_param
 {
-    int input_n;
-    int input_h;
-    int input_w;
-    int input_c;
-    int across_spatial;
-    int channel_shared;
-    int layout;
+    int   input_n;
+    int   input_h;
+    int   input_w;
+    int   input_c;
+    int   across_spatial;
+    int   channel_shared;
+    int   layout;
     float in_scale;
-    int in_zero;
+    int   in_zero;
     float out_scale;
-    int out_zero;
+    int   out_zero;
     float scale_scale;
-    int scale_zero;
+    int   scale_zero;
 } normalize_param_t;
 
 #endif

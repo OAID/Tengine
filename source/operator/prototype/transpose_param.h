@@ -33,7 +33,7 @@ struct transpose_param
     int dim_3;
 
     int* tr_shape;
-    int tr_shape_size;
+    int  tr_shape_size;
 };
 
 #endif

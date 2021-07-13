@@ -30,5 +30,5 @@
 typedef struct ocl_option
 {
     char* dev_name;
-    int precision;      //!< precision of calculation
+    int   precision;    //!< precision of calculation
 } ocl_opt_t;

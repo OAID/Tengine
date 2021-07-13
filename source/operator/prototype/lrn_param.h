@@ -27,10 +27,10 @@
 
 struct lrn_param
 {
-    int local_size;
+    int   local_size;
     float alpha;
     float beta;
-    int norm_region;
+    int   norm_region;
     float k;
 };
 

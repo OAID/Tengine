@@ -37,23 +37,23 @@ struct device;
  */
 typedef struct subgraph
 {
-    uint8_t   index;                //!< the index of a subgraph
-    uint8_t   input_ready_count;    //!< the count of all in ready input tensors
-    uint8_t   input_wait_count;     //!< the count of all out of ready input tensors
-    uint8_t   input_num;            //!< the count of input tensors
-    uint8_t   output_num;           //!< the count of output tensors
-    uint8_t   status;               //!< the execution status of subgraph
+    uint8_t index;                //!< the index of a subgraph
+    uint8_t input_ready_count;    //!< the count of all in ready input tensors
+    uint8_t input_wait_count;     //!< the count of all out of ready input tensors
+    uint8_t input_num;            //!< the count of input tensors
+    uint8_t output_num;           //!< the count of output tensors
+    uint8_t status;               //!< the execution status of subgraph
 
-    uint16_t  node_num;             //!< the count of nodes in subgraph
-    uint16_t* node_list;            //!< all nodes index list of subgraph
+    uint16_t  node_num;     //!< the count of nodes in subgraph
+    uint16_t* node_list;    //!< all nodes index list of subgraph
 
-    uint16_t* input_tensor_list;    //!< input tensors index list of subgraph
-    uint16_t* output_tensor_list;   //!< output tensors index list of subgraph
+    uint16_t* input_tensor_list;     //!< input tensors index list of subgraph
+    uint16_t* output_tensor_list;    //!< output tensors index list of subgraph
 
-    struct graph*  graph;           //!< the pointer of the related graph
+    struct graph* graph;    //!< the pointer of the related graph
 
     struct device* device;          //!< the device which will the subgraph running on
-    void*  device_graph;            //!< the related device graph
+    void*          device_graph;    //!< the related device graph
 } ir_subgraph_t;
 
 

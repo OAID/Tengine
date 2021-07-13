@@ -34,15 +34,15 @@
 
 static int infer_shape(ir_node_t* node)
 {
-    ir_graph_t* graph = node->graph;
-    ir_tensor_t* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
-    ir_tensor_t* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
+    ir_graph_t*  graph             = node->graph;
+    ir_tensor_t* input             = get_ir_graph_tensor(graph, node->input_tensors[0]);
+    ir_tensor_t* output            = get_ir_graph_tensor(graph, node->output_tensors[0]);
 
-    struct pad_param* pad_param = ( struct pad_param* )(node->op.param_mem);
+    struct pad_param* pad_param    = (struct pad_param*)(node->op.param_mem);
 
-    int dims[TE_MAX_SHAPE_DIM_NUM] = {0};
-    if (pad_param->pad_0_h != -1 && pad_param->pad_0_w != -1 && pad_param->pad_1_h != -1 && pad_param->pad_1_w != -1 &&
-        pad_param->pad_2_h != -1 && pad_param->pad_2_w != -1 && pad_param->pad_3_h != -1 && pad_param->pad_3_w != -1)
+    int dims[TE_MAX_SHAPE_DIM_NUM] = { 0 };
+    if (pad_param->pad_0_h != -1 && pad_param->pad_0_w != -1 && pad_param->pad_1_h != -1 && pad_param->pad_1_w != -1
+        && pad_param->pad_2_h != -1 && pad_param->pad_2_w != -1 && pad_param->pad_3_h != -1 && pad_param->pad_3_w != -1)
     {
         dims[0] = input->dims[0] + pad_param->pad_0_h + pad_param->pad_0_w;
         dims[1] = input->dims[1] + pad_param->pad_1_h + pad_param->pad_1_w;
@@ -62,14 +62,14 @@ static int infer_shape(ir_node_t* node)
 
 static int init_op(ir_op_t* op)
 {
-    struct pad_param* pad_param = ( struct pad_param* )sys_malloc(sizeof(struct pad_param));
+    struct pad_param* pad_param = (struct pad_param*)sys_malloc(sizeof(struct pad_param));
 
     if (pad_param == NULL)
     {
         return -1;
     }
 
-    pad_param->mode = 0;
+    pad_param->mode    = 0;
     pad_param->pad_0_h = -1;    // n
     pad_param->pad_0_w = -1;
     pad_param->pad_1_h = -1;    // c
@@ -78,12 +78,12 @@ static int init_op(ir_op_t* op)
     pad_param->pad_2_w = -1;
     pad_param->pad_3_h = -1;    // w
     pad_param->pad_3_w = -1;
-    pad_param->value = 0;
+    pad_param->value   = 0;
 
     /*set the param default value */
-    op->param_mem = pad_param;
-    op->param_size = sizeof(struct pad_param);
-    op->same_shape = 0;
+    op->param_mem   = pad_param;
+    op->param_size  = sizeof(struct pad_param);
+    op->same_shape  = 0;
     op->infer_shape = infer_shape;
 
     return 0;
@@ -101,7 +101,7 @@ int register_pad_op()
     ir_method_t m;
 
     m.version = 1;
-    m.init = init_op;
+    m.init    = init_op;
     m.release = release_op;
 
     return register_op(OP_PAD, OP_PAD_NAME, &m);

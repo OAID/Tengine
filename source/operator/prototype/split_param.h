@@ -26,9 +26,9 @@
 
 struct split_param
 {
-    int axis;
-    int split_dim;
-    unsigned char is_caffe;
-    unsigned char is_onnx;
+    int            axis;
+    int            split_dim;
+    unsigned char  is_caffe;
+    unsigned char  is_onnx;
     struct vector* split_sizes_;
 };

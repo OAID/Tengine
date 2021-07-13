@@ -30,10 +30,10 @@
 
 extern "C"
 {
-struct cuda_device
-{
-    struct device base;
-};
+    struct cuda_device
+    {
+        struct device base;
+    };
 
-int register_cuda_device(void);
+    int register_cuda_device(void);
 }

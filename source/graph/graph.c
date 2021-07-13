@@ -58,29 +58,29 @@ ir_graph_t* create_ir_graph(struct context* context)
 
 void init_ir_graph(ir_graph_t* graph, struct context* context)
 {
-    graph->tensor_list          = NULL;
-    graph->node_list            = NULL;
-    graph->input_nodes          = NULL;
-    graph->output_nodes         = NULL;
+    graph->tensor_list        = NULL;
+    graph->node_list          = NULL;
+    graph->input_nodes        = NULL;
+    graph->output_nodes       = NULL;
 
-    graph->tensor_num           = 0;
-    graph->node_num             = 0;
-    graph->input_num            = 0;
-    graph->output_num           = 0;
+    graph->tensor_num         = 0;
+    graph->node_num           = 0;
+    graph->input_num          = 0;
+    graph->output_num         = 0;
 
-    graph->subgraph_list        = create_vector(sizeof(struct subgraph*), NULL);
+    graph->subgraph_list      = create_vector(sizeof(struct subgraph*), NULL);
 
-    graph->graph_layout         = TENGINE_LAYOUT_NCHW;
-    graph->model_layout         = TENGINE_LAYOUT_NCHW;
-    graph->model_format         = MODEL_FORMAT_TENGINE;
+    graph->graph_layout       = TENGINE_LAYOUT_NCHW;
+    graph->model_layout       = TENGINE_LAYOUT_NCHW;
+    graph->model_format       = MODEL_FORMAT_TENGINE;
 
-    graph->serializer           = NULL;
-    graph->serializer_privacy   = NULL;
+    graph->serializer         = NULL;
+    graph->serializer_privacy = NULL;
 
-    graph->device               = NULL;
-    graph->device_privacy       = NULL;
+    graph->device             = NULL;
+    graph->device_privacy     = NULL;
 
-    graph->status               = GRAPH_STAT_CREATED;
+    graph->status             = GRAPH_STAT_CREATED;
 
     init_attribute(graph->attribute, context);
 }
@@ -142,7 +142,7 @@ int set_ir_graph_input_node(ir_graph_t* graph, int16_t input_nodes[], int input_
         return -1;
     }
 
-    int16_t* new_input_nodes = ( int16_t* )sys_malloc(input_number * sizeof(int16_t));
+    int16_t* new_input_nodes = (int16_t*)sys_malloc(input_number * sizeof(int16_t));
     if (NULL == new_input_nodes)
     {
         return -1;
@@ -155,12 +155,12 @@ int set_ir_graph_input_node(ir_graph_t* graph, int16_t input_nodes[], int input_
     }
 
     graph->input_nodes = new_input_nodes;
-    graph->input_num = input_number;
+    graph->input_num   = input_number;
 
     for (int i = 0; i < input_number; i++)
     {
-        ir_node_t* node = get_ir_graph_node(graph, input_nodes[i]);
-        node->node_type = TE_NODE_TYPE_INPUT;
+        ir_node_t* node       = get_ir_graph_node(graph, input_nodes[i]);
+        node->node_type       = TE_NODE_TYPE_INPUT;
         graph->input_nodes[i] = input_nodes[i];
     }
 
@@ -187,12 +187,12 @@ int set_ir_graph_output_node(ir_graph_t* graph, int16_t output_nodes[], int outp
     }
 
     graph->output_nodes = new_output_nodes;
-    graph->output_num = output_number;
+    graph->output_num   = output_number;
 
     for (int i = 0; i < output_number; i++)
     {
-        ir_node_t* node = get_ir_graph_node(graph, output_nodes[i]);
-        node->node_type = TE_NODE_TYPE_OUTPUT;
+        ir_node_t* node        = get_ir_graph_node(graph, output_nodes[i]);
+        node->node_type        = TE_NODE_TYPE_OUTPUT;
 
         graph->output_nodes[i] = output_nodes[i];
     }
@@ -226,7 +226,7 @@ int infer_ir_graph_shape(ir_graph_t* graph)
     for (int i = 0; i < node_num; i++)
     {
         ir_node_t* node = get_ir_graph_node(graph, i);
-        ir_op_t* op = &node->op;
+        ir_op_t*   op   = &node->op;
 
         if (node->input_num == 0)
             continue;
@@ -242,7 +242,7 @@ int infer_ir_graph_shape(ir_graph_t* graph)
 
                 for (int l = 0; l < tensor->consumer_num; l++)
                 {
-                    ir_node_t* child_node = get_ir_graph_node(graph, l);
+                    ir_node_t* child_node     = get_ir_graph_node(graph, l);
                     child_node->dynamic_shape = 1;
                 }
             }
@@ -252,11 +252,11 @@ int infer_ir_graph_shape(ir_graph_t* graph)
 
         if (0 != op->same_shape)
         {
-            ir_tensor_t* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
+            ir_tensor_t* input  = get_ir_graph_tensor(graph, node->input_tensors[0]);
             ir_tensor_t* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
 
-            output->dim_num = input->dim_num;
-            output->elem_num = input->elem_num;
+            output->dim_num     = input->dim_num;
+            output->elem_num    = input->elem_num;
 
             memcpy(output->dims, input->dims, sizeof(int32_t) * input->dim_num);
         }
@@ -274,7 +274,7 @@ int infer_ir_graph_shape(ir_graph_t* graph)
         {
             ir_tensor_t* tensor = get_ir_graph_tensor(graph, node->output_tensors[j]);
 
-            tensor->reshaped = 0;
+            tensor->reshaped    = 0;
         }
     }
 

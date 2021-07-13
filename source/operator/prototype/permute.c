@@ -34,20 +34,20 @@
 
 static int infer_shape(struct node* node)
 {
-    struct graph* graph = node->graph;
-    struct tensor* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
-    struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
-    permute_param_t* param = ( struct permute_param* )(node->op.param_mem);
+    struct graph*    graph         = node->graph;
+    struct tensor*   input         = get_ir_graph_tensor(graph, node->input_tensors[0]);
+    struct tensor*   output        = get_ir_graph_tensor(graph, node->output_tensors[0]);
+    permute_param_t* param         = (struct permute_param*)(node->op.param_mem);
 
-    int dims[TE_MAX_SHAPE_DIM_NUM] = {0};
-    int dim_size = input->dim_num;
+    int dims[TE_MAX_SHAPE_DIM_NUM] = { 0 };
+    int dim_size                   = input->dim_num;
 
     if ((param->order0 == 0) && (param->order1 == 2) && (param->order2 == 3) && (param->order3 == 1))
     {
-        dims[0] = input->dims[0];
-        dims[1] = input->dims[2];
-        dims[2] = input->dims[3];
-        dims[3] = input->dims[1];
+        dims[0]        = input->dims[0];
+        dims[1]        = input->dims[2];
+        dims[2]        = input->dims[3];
+        dims[3]        = input->dims[1];
 
         output->layout = TENGINE_LAYOUT_NHWC;
     }
@@ -70,7 +70,7 @@ static int infer_shape(struct node* node)
 
 static int init_op(struct op* op)
 {
-    struct permute_param* permute_param = ( struct permute_param* )sys_malloc(sizeof(struct permute_param));
+    struct permute_param* permute_param = (struct permute_param*)sys_malloc(sizeof(struct permute_param));
 
     if (permute_param == NULL)
     {
@@ -78,15 +78,15 @@ static int init_op(struct op* op)
     }
 
     /*set the param default value */
-    permute_param->flag = 0;
+    permute_param->flag   = 0;
     permute_param->order0 = 0;
     permute_param->order1 = 1;
     permute_param->order2 = 2;
     permute_param->order3 = 3;
-    op->param_mem = permute_param;
-    op->param_size = sizeof(struct permute_param);
-    op->same_shape = 0;
-    op->infer_shape = infer_shape;
+    op->param_mem         = permute_param;
+    op->param_size        = sizeof(struct permute_param);
+    op->same_shape        = 0;
+    op->infer_shape       = infer_shape;
 
     return 0;
 }
@@ -103,7 +103,7 @@ int register_permute_op()
     struct method m;
 
     m.version = 1;
-    m.init = init_op;
+    m.init    = init_op;
     m.release = release_op;
 
     return register_op(OP_PERMUTE, OP_PERMUTE_NAME, &m);

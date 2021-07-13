@@ -28,8 +28,8 @@ struct gemm_param
 {
     float alpha;
     float beta;
-    int transA;
-    int transB;
+    int   transA;
+    int   transB;
 };
 
 #endif

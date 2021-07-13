@@ -35,20 +35,20 @@
 
 static int infer_shape(struct node* node)
 {
-    struct graph* graph = node->graph;
-    struct tensor* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
+    struct graph*  graph  = node->graph;
+    struct tensor* input  = get_ir_graph_tensor(graph, node->input_tensors[0]);
     struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
 
-    int dims[2] = {0};
-    dims[0] = 1;
+    int dims[2]           = { 0 };
+    dims[0]               = 1;
     for (int ii = 0; ii < input->dim_num; ++ii)
     {
         dims[0] *= input->dims[ii];
     }
 
-    struct embedding_param* param = ( struct embedding_param* )node->op.param_mem;
+    struct embedding_param* param = (struct embedding_param*)node->op.param_mem;
 
-    dims[1] = param->num_output;
+    dims[1]                       = param->num_output;
 
     set_ir_tensor_shape(output, dims, 2);
 
@@ -58,7 +58,7 @@ static int infer_shape(struct node* node)
 
 static int init_op(struct op* op)
 {
-    struct embedding_param* param = ( struct embedding_param* )sys_malloc(sizeof(struct embedding_param));
+    struct embedding_param* param = (struct embedding_param*)sys_malloc(sizeof(struct embedding_param));
 
     if (param == NULL)
     {
@@ -67,9 +67,9 @@ static int init_op(struct op* op)
 
     /*set the param default value */
     memset(param, 0, sizeof(struct embedding_param));
-    op->param_mem = param;
-    op->param_size = sizeof(struct embedding_param);
-    op->same_shape = 0;
+    op->param_mem   = param;
+    op->param_size  = sizeof(struct embedding_param);
+    op->same_shape  = 0;
     op->infer_shape = infer_shape;
 
     return 0;
@@ -87,7 +87,7 @@ int register_embedding_op()
     struct method m;
 
     m.version = 1;
-    m.init = init_op;
+    m.init    = init_op;
     m.release = release_op;
 
 

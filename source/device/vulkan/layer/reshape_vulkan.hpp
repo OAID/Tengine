@@ -45,18 +45,18 @@
 
 #include "reshape_param.h"
 
-namespace TEngine{
-
-class Reshape_vulkan : public Layer
+namespace TEngine
 {
+class Reshape_vulkan : public Layer {
 public:
     Reshape_vulkan();
     Reshape_vulkan(ir_graph_t* ir_graph, ir_node_t* ir_node);
 
     virtual int create_pipeline(const Option& opt);
     virtual int destroy_pipeline(const Option& opt);
-    
-    virtual int record_pipeline(const VkTensor& bottom_blob, VkTensor& top_blob, VkCompute& cmd, const Option& opt) const;
+
+    virtual int record_pipeline(const VkTensor& bottom_blob, VkTensor& top_blob, VkCompute& cmd,
+                                const Option& opt) const;
 
 public:
     TEngine::Layer* permute_hwc;
@@ -90,9 +90,8 @@ public:
     int permute;
 
     int ndim;
-
 };
 
-}   // namespace TEngine
+}    // namespace TEngine
 
 #endif

@@ -40,21 +40,21 @@
 
 static void init_ir_node(ir_node_t* ir_node, int op_type, int op_version, int node_index)
 {
-    ir_node->index             = node_index;
-    ir_node->dynamic_shape     = 0;
-    ir_node->input_num         = 0;
-    ir_node->output_num        = 0;
-    ir_node->node_type         = TE_NODE_TYPE_INTER;
-    ir_node->input_tensors     = NULL;
-    ir_node->output_tensors    = NULL;
-    ir_node->name              = NULL;
-    ir_node->op.type           = op_type;
-    ir_node->op.version        = op_version;
-    ir_node->op.same_shape     = 1;
-    ir_node->op.param_size     = 0;
-    ir_node->op.param_mem      = NULL;
-    ir_node->op.infer_shape    = NULL;
-    ir_node->subgraph_idx      = -1;
+    ir_node->index          = node_index;
+    ir_node->dynamic_shape  = 0;
+    ir_node->input_num      = 0;
+    ir_node->output_num     = 0;
+    ir_node->node_type      = TE_NODE_TYPE_INTER;
+    ir_node->input_tensors  = NULL;
+    ir_node->output_tensors = NULL;
+    ir_node->name           = NULL;
+    ir_node->op.type        = op_type;
+    ir_node->op.version     = op_version;
+    ir_node->op.same_shape  = 1;
+    ir_node->op.param_size  = 0;
+    ir_node->op.param_mem   = NULL;
+    ir_node->op.infer_shape = NULL;
+    ir_node->subgraph_idx   = -1;
 }
 
 
@@ -69,7 +69,7 @@ ir_node_t* create_ir_node(struct graph* ir_graph, const char* node_name, int op_
     init_ir_node(node, op_type, op_version, ir_graph->node_num);
 
     // check if any op param should be set
-    ir_method_t * method = find_op_method(op_type, op_version);
+    ir_method_t* method = find_op_method(op_type, op_version);
     if ((NULL != method) && (NULL != method->init) && (method->init(&node->op) < 0))
     {
         sys_free(node);
@@ -92,7 +92,7 @@ ir_node_t* create_ir_node(struct graph* ir_graph, const char* node_name, int op_
 
     new_node_list[ir_graph->node_num] = node;
 
-    ir_graph->node_list = new_node_list;
+    ir_graph->node_list               = new_node_list;
     ir_graph->node_num++;
 
     return node;
@@ -132,7 +132,7 @@ void destroy_ir_node(struct graph* ir_graph, ir_node_t* ir_node)
 
 char* create_ir_node_name_from_index(int index)
 {
-    char* name = ( char* )sys_malloc(16);
+    char* name = (char*)sys_malloc(16);
     if (NULL == name)
     {
         return NULL;
@@ -182,7 +182,7 @@ int set_ir_node_input_tensor(ir_node_t* node, int input_idx, ir_tensor_t* tensor
 {
     if (input_idx >= node->input_num)
     {
-        int16_t* new_tensor = ( int16_t* )sys_realloc(node->input_tensors, sizeof(int16_t) * (input_idx + 1));
+        int16_t* new_tensor = (int16_t*)sys_realloc(node->input_tensors, sizeof(int16_t) * (input_idx + 1));
 
         if (NULL == new_tensor)
         {
@@ -195,7 +195,7 @@ int set_ir_node_input_tensor(ir_node_t* node, int input_idx, ir_tensor_t* tensor
         }
 
         node->input_tensors = new_tensor;
-        node->input_num = input_idx + 1;
+        node->input_num     = input_idx + 1;
     }
 
     node->input_tensors[input_idx] = tensor->index;
@@ -219,11 +219,11 @@ int set_ir_node_output_tensor(ir_node_t* node, int output_idx, ir_tensor_t* tens
         }
 
         node->output_tensors = new_tensor;
-        node->output_num = output_idx + 1;
+        node->output_num     = output_idx + 1;
     }
 
     node->output_tensors[output_idx] = tensor->index;
-    tensor->producer = node->index;
+    tensor->producer                 = node->index;
 
     return 0;
 }
@@ -233,11 +233,13 @@ void dump_ir_node(struct graph* ir_graph, ir_node_t* ir_node)
 {
     if (NULL != ir_node->name)
     {
-        TLOG_INFO("\nnode: %d op: %s name: %s\n", ir_node->index, get_op_name_from_type(ir_node->op.type), ir_node->name);
+        TLOG_INFO("\nnode: %d op: %s name: %s\n", ir_node->index, get_op_name_from_type(ir_node->op.type),
+                  ir_node->name);
     }
     else
     {
-        TLOG_INFO("\nnode: %d op: %s name: node_%d\n", ir_node->index, get_op_name_from_type(ir_node->op.type), ir_node->index);
+        TLOG_INFO("\nnode: %d op: %s name: node_%d\n", ir_node->index, get_op_name_from_type(ir_node->op.type),
+                  ir_node->index);
     }
 
     if (0 < ir_node->input_num)

@@ -47,10 +47,9 @@
 
 #include "convolution_param.h"
 
-namespace TEngine {
-
-class Convolution_vulkan : public Layer
+namespace TEngine
 {
+class Convolution_vulkan : public Layer {
 public:
     Convolution_vulkan();
     // Convolution_vulkan(ir_node* node);
@@ -61,7 +60,8 @@ public:
     virtual int upload_model(VkTransfer& cmd, const Option& opt);
 
     // virtual int record_pipeline(VkCompute& cmd, const Option& opt) const;
-    virtual int record_pipeline(const VkTensor& bottom_blob, VkTensor& top_blob, VkCompute& cmd, const Option& opt) const;
+    virtual int record_pipeline(const VkTensor& bottom_blob, VkTensor& top_blob, VkCompute& cmd,
+                                const Option& opt) const;
 
 
 public:
@@ -69,10 +69,10 @@ public:
     int input_c;
     int input_h;
     int input_w;
-    int pad_w0;  // left padding columns
-    int pad_w1;  // right padding columns
-    int pad_h0;  // top padding rows
-    int pad_h1;  // bottom padding rows
+    int pad_w0;    // left padding columns
+    int pad_w1;    // right padding columns
+    int pad_h0;    // top padding rows
+    int pad_h1;    // bottom padding rows
     int stride_h;
     int stride_w;
     int dilation_h;
@@ -87,12 +87,12 @@ public:
     int weight_data_size;
 
 public:
-    Padding_vulkan* padding;
+    Padding_vulkan*      padding;
     InnerProduct_vulkan* innerproduct;
 
-    VkTensor weight_data_gpu;
+    VkTensor      weight_data_gpu;
     VkImageTensor weight_data_gpu_image;
-    VkTensor bias_data_gpu;
+    VkTensor      bias_data_gpu;
 
     Pipeline* pipeline_convolution;
     Pipeline* pipeline_convolution_pack4;
@@ -109,7 +109,7 @@ public:
     Pipeline* pipeline_convolution_pack8_1x1s1d1;
 };
 
-} // namespace TEngine
+}    // namespace TEngine
 
 
 #endif

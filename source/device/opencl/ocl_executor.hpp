@@ -54,29 +54,28 @@ typedef std::map<uint32_t, cl_mem> dict_uint2clmem;
 struct OCLqueue
 {
     std::string name;
-    int dims;
-    cl_kernel queue_kernel;
-    cl_event enentPoint;
-    size_t *queue_global_work_size;
-    size_t *queue_local_work_size;
+    int         dims;
+    cl_kernel   queue_kernel;
+    cl_event    enentPoint;
+    size_t*     queue_global_work_size;
+    size_t*     queue_local_work_size;
 };
 
-class OCLEngine
-{
+class OCLEngine {
 public:
-//    OCLEngine();
-//    ~OCLEngine() = default;
+    //    OCLEngine();
+    //    ~OCLEngine() = default;
 
-    int OCLEnginePreRun(struct subgraph* subgraph);
-    int OCLEngineRun(struct subgraph* subgraph);
+    int  OCLEnginePreRun(struct subgraph* subgraph);
+    int  OCLEngineRun(struct subgraph* subgraph);
     void OCLEnginePostRun();
 
 private:
     bool init();
-    bool build_kernel(const char *filename, const char *kernel_name);
+    bool build_kernel(const char* filename, const char* kernel_name);
     bool OCLTensorMap(struct graph* ir_graph, int ir_tensor_idx, cl_mem_flags flag);
-    int BuildTensor(struct subgraph* subgraph);
-    int BuildKernel(struct subgraph* subgraph);
+    int  BuildTensor(struct subgraph* subgraph);
+    int  BuildKernel(struct subgraph* subgraph);
 
 
     bool AddClipNode(struct node* ir_node);
@@ -93,23 +92,19 @@ private:
 
 
 private:
-    cl_int    status;
-    cl_platform_id platform;
-    cl_device_id *devices;
-    cl_context context;
+    cl_int           status;
+    cl_platform_id   platform;
+    cl_device_id*    devices;
+    cl_context       context;
     cl_command_queue commandQueue;
 
     cl_program program;
-    cl_kernel kernel;
+    cl_kernel  kernel;
 
 public:
-    dict_uint2clmem             ocl_tensor_map;
-    std::vector<struct OCLqueue>    queue_list;
+    dict_uint2clmem              ocl_tensor_map;
+    std::vector<struct OCLqueue> queue_list;
 
 public:
     int bin_num;
-
 };
-
-
-
