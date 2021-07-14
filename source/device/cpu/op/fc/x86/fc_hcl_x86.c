@@ -91,7 +91,7 @@ static int innerproduct(int inn, int inc, int inh, int inw, int outc, const floa
 #endif
             for (; q < inc * size; q++)
             {
-                float tmp = input1[q] * weight1[q];
+                tmp = input1[q] * weight1[q];
                 sum = sum + tmp;
             }
 
