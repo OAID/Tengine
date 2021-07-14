@@ -487,7 +487,7 @@ int main(int argc, char* argv[])
     /* version */
     fprintf(stderr, "\n---- Tengine Post Training Quantization Tool ---- \n");
     fprintf(stderr, "\nVersion     : v1.2, %s %s\n", __TIME__, __DATE__);
-    fprintf(stderr, "Status      : uint8, per-layer, asymmetric\n");
+    fprintf(stderr, "Status      : uint8, per-channel, asymmetric\n");
 
     /* check input params */
     if (quant_tool.model_file.empty())
