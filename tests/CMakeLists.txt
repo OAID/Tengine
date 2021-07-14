@@ -241,6 +241,7 @@ TENGINE_MODEL_TEST (test_model_retinaface           models/test_model_retinaface
 TENGINE_MODEL_TEST (test_model_ultraface            models/test_model_ultraface.cpp)
 TENGINE_MODEL_TEST (test_model_unet                 models/test_model_unet.cpp)
 TENGINE_MODEL_TEST (test_model_yolact               models/test_model_yolact.cpp)
+TENGINE_MODEL_TEST (test_model_yolofastest          models/test_model_yolofastest.cpp)
 TENGINE_MODEL_TEST (test_model_yolov3               models/test_model_yolov3.cpp)
 TENGINE_MODEL_TEST (test_model_yolov3_tiny          models/test_model_yolov3_tiny.cpp)
 TENGINE_MODEL_TEST (test_model_yolov4               models/test_model_yolov4.cpp)
