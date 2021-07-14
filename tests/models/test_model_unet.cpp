@@ -174,13 +174,6 @@ int tengine_segment(const char* model_file, const char* image_file, int img_h, i
     std::string reference_file1 = "./data/" + model_name + "_out.bin";
     std::vector<float> reference_data1(output_size);
     FILE *fp1;
-    fp1 = fopen(reference_file1.c_str(), "wb");
-    if (!fp || fwrite(output_data, sizeof(float), output_size, fp1) == 0)
-    {
-        fprintf(stderr, "write reference data file failed!\n");
-        return -1;
-    }
-    fclose(fp1);
     fp1 = fopen(reference_file1.c_str(), "rb");
     if (!fp || fread(reference_data1.data(), sizeof(float), output_size, fp1) == 0)
     {
