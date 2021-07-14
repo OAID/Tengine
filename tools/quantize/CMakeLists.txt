@@ -34,9 +34,12 @@ IF (OpenCV_FOUND AND ${TENGINE_TARGET_PROCESSOR} MATCHES "X86")
             ${name}
             ./quant_save_graph.cpp
             ./quant_utils.cpp
-            ./savegraph/save_graph.cpp 
-            ./savegraph/tm2_op_save.cpp 
-            ./savegraph/tm2_generate.c     
+            ./savegraph/save_graph.cpp
+            ./savegraph/tm2_op_save.cpp
+            ./savegraph/tm2_generate.c
+#            ../convert_tool/utils/save_graph/save_graph.cpp
+#            ../convert_tool/utils/save_graph/tm2_op_save.cpp
+#            ../convert_tool/utils/save_graph/tm2_generate.c
             "${CMAKE_CURRENT_SOURCE_DIR}/${file}")
         TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
         TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})       
@@ -64,6 +67,7 @@ IF (OpenCV_FOUND AND ${TENGINE_TARGET_PROCESSOR} MATCHES "X86")
 
     TENGINE_QUANT_TOOL(quant_tool_int8      quant_tool_int8.cpp)
     TENGINE_QUANT_TOOL(quant_tool_uint8     quant_tool_uint8.cpp)
+    TENGINE_QUANT_TOOL(quant_tool_uint8_perchannel     quant_tool_uint8_perchannel.cpp)
 ELSE()
     MESSAGE (WARNING "OpenCV not found, quantization tool won't be built")
 ENDIF()

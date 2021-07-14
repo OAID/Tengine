@@ -526,12 +526,12 @@ int main(int argc, char* argv[])
     fprintf(stderr, "YOLOv5 focus: %s\n", quant_tool.focus?"ON":"OFF");
     fprintf(stderr, "Thread num  : %d\n\n", quant_tool.num_thread);
 
+    /* quantize activation */
+    quant_tool.activation_quant_tool();
+
     /* using 3rd calibration table file */
     if (quant_tool.scale_file.empty())
     {
-        /* quantize activation */
-        quant_tool.activation_quant_tool();
-        
         /* select algorithm */
         if (quant_tool.algorithm_type == ALGORITHM_MIN_MAX)
             quant_tool.scale_file = "table_minmax.scale";
@@ -548,7 +548,7 @@ int main(int argc, char* argv[])
     fprintf(stderr,"[Quant Tools Info]: Calibration file is using %s\n", quant_tool.scale_file.c_str());
     save_graph_u8_perlayer(quant_tool.model_file.c_str(), quant_tool.scale_file.c_str(), quant_tool.output_file, quant_tool.inplace, false);
 
-    fprintf(stderr, "\n---- Tengine Int8 tmfile create success, best wish for your UInt8 inference has a low accuracy loss...\\(^0^)/ ----\n");
+    fprintf(stderr, "\n---- Tengine Int8 tmfile create success, best wish for your INT8 inference has a low accuracy loss...\\(^0^)/ ----\n");
 
     return 0;
 }
