@@ -266,6 +266,14 @@ int TensorRTEngine::Build(struct subgraph* subgraph)
                 }
                 break;
             }
+            case OP_PAD: {
+                if (!AddPadNode(ir_graph, ir_node))
+                {
+                    TLOG_ERR("Tengine: Cannot add Pad op(%d).\n", ir_node->index);
+                    return -6;
+                }
+                break;
+            }
             case OP_PERMUTE: {
                 if (!AddPermuteNode(ir_graph, ir_node))
                 {
@@ -289,6 +297,14 @@ int TensorRTEngine::Build(struct subgraph* subgraph)
                 if (!addReLUNode(ir_graph, ir_node))
                 {
                     TLOG_ERR("Tengine: Cannot add ReLU op(%d).\n", ir_node->index);
+                    return -6;
+                }
+                break;
+            }
+            case OP_REDUCTION: {
+                if (!AddReductionNode(ir_graph, ir_node))
+                {
+                    TLOG_ERR("Tengine: Cannot add Reduction op(%d).\n", ir_node->index);
                     return -6;
                 }
                 break;
@@ -468,7 +484,6 @@ bool TensorRTEngine::AddTensor(struct graph* ir_graph, struct tensor *ir_tensor)
 
     return true;
 }
-
 
 int TensorRTEngine::PreRun(struct subgraph* subgraph, struct trt_option* options)
 {
