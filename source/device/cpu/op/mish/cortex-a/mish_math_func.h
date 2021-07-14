@@ -83,29 +83,16 @@ static inline float32x4_t exp_ps(float32x4_t x)
     x = vsubq_f32(x, tmp);
     x = vsubq_f32(x, z);
 
-    static const float cephes_exp_p[6] = {c_cephes_exp_p0, c_cephes_exp_p1, c_cephes_exp_p2, c_cephes_exp_p3, c_cephes_exp_p4, c_cephes_exp_p5};
-    float32x4_t y = vld1q_dup_f32(cephes_exp_p + 0);
-    float32x4_t c1 = vld1q_dup_f32(cephes_exp_p + 1);
-    float32x4_t c2 = vld1q_dup_f32(cephes_exp_p + 2);
-    float32x4_t c3 = vld1q_dup_f32(cephes_exp_p + 3);
-    float32x4_t c4 = vld1q_dup_f32(cephes_exp_p + 4);
-    float32x4_t c5 = vld1q_dup_f32(cephes_exp_p + 5);
-
-    y = vmulq_f32(y, x);
     z = vmulq_f32(x, x);
 
-    y = vaddq_f32(y, c1);
-    y = vmulq_f32(y, x);
-    y = vaddq_f32(y, c2);
-    y = vmulq_f32(y, x);
-    y = vaddq_f32(y, c3);
-    y = vmulq_f32(y, x);
-    y = vaddq_f32(y, c4);
-    y = vmulq_f32(y, x);
-    y = vaddq_f32(y, c5);
+    float32x4_t y = vdupq_n_f32(c_cephes_exp_p0);
+    y = vmlaq_f32(vdupq_n_f32(c_cephes_exp_p1), y, x);
+    y = vmlaq_f32(vdupq_n_f32(c_cephes_exp_p2), y, x);
+    y = vmlaq_f32(vdupq_n_f32(c_cephes_exp_p3), y, x);
+    y = vmlaq_f32(vdupq_n_f32(c_cephes_exp_p4), y, x);
+    y = vmlaq_f32(vdupq_n_f32(c_cephes_exp_p5), y, x);
 
-    y = vmulq_f32(y, z);
-    y = vaddq_f32(y, x);
+    y = vmlaq_f32(x, y, z);
     y = vaddq_f32(y, one);
 
     /* build 2^n */
@@ -247,35 +234,24 @@ static inline float32x4_t log_ps(float32x4_t x)
     float32x4_t z = vmulq_f32(x, x);
 
     float32x4_t y = vdupq_n_f32(c_cephes_log_p0);
-    y = vmulq_f32(y, x);
-    y = vaddq_f32(y, vdupq_n_f32(c_cephes_log_p1));
-    y = vmulq_f32(y, x);
-    y = vaddq_f32(y, vdupq_n_f32(c_cephes_log_p2));
-    y = vmulq_f32(y, x);
-    y = vaddq_f32(y, vdupq_n_f32(c_cephes_log_p3));
-    y = vmulq_f32(y, x);
-    y = vaddq_f32(y, vdupq_n_f32(c_cephes_log_p4));
-    y = vmulq_f32(y, x);
-    y = vaddq_f32(y, vdupq_n_f32(c_cephes_log_p5));
-    y = vmulq_f32(y, x);
-    y = vaddq_f32(y, vdupq_n_f32(c_cephes_log_p6));
-    y = vmulq_f32(y, x);
-    y = vaddq_f32(y, vdupq_n_f32(c_cephes_log_p7));
-    y = vmulq_f32(y, x);
-    y = vaddq_f32(y, vdupq_n_f32(c_cephes_log_p8));
+    y = vmlaq_f32(vdupq_n_f32(c_cephes_log_p1), y, x);
+    y = vmlaq_f32(vdupq_n_f32(c_cephes_log_p2), y, x);
+    y = vmlaq_f32(vdupq_n_f32(c_cephes_log_p3), y, x);
+    y = vmlaq_f32(vdupq_n_f32(c_cephes_log_p4), y, x);
+    y = vmlaq_f32(vdupq_n_f32(c_cephes_log_p5), y, x);
+    y = vmlaq_f32(vdupq_n_f32(c_cephes_log_p6), y, x);
+    y = vmlaq_f32(vdupq_n_f32(c_cephes_log_p7), y, x);
+    y = vmlaq_f32(vdupq_n_f32(c_cephes_log_p8), y, x);
     y = vmulq_f32(y, x);
 
     y = vmulq_f32(y, z);
 
-    tmp = vmulq_f32(e, vdupq_n_f32(c_cephes_log_q1));
-    y = vaddq_f32(y, tmp);
+    y = vmlaq_f32(y, e, vdupq_n_f32(c_cephes_log_q1));
 
-    tmp = vmulq_f32(z, vdupq_n_f32(0.5f));
-    y = vsubq_f32(y, tmp);
+    y = vmlsq_f32(y, z, vdupq_n_f32(0.5f));
 
-    tmp = vmulq_f32(e, vdupq_n_f32(c_cephes_log_q2));
     x = vaddq_f32(x, y);
-    x = vaddq_f32(x, tmp);
+    x = vmlaq_f32(x, e, vdupq_n_f32(c_cephes_log_q2));
     x = vreinterpretq_f32_u32(vorrq_u32(vreinterpretq_u32_f32(x), invalid_mask)); // negative arg will be NAN
     return x;
 }
