@@ -5,6 +5,7 @@
 #include <map>
 #include "stdio.h"
 #include "string.h"
+#include <string>
 #include "math.h"
 extern "C" 
 {
