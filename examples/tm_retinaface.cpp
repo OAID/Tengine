@@ -74,7 +74,7 @@ const char* landmark_name[3] = {"face_rpn_landmark_pred_stride32", "face_rpn_lan
 
 const int stride[3] = {32, 16, 8};
 
-const float scales[3][2] = {{32.f, 16.f}, {8.f, 4.f}, {2.f, 1.f}};
+const float g_scales[3][2] = {{32.f, 16.f}, {8.f, 4.f}, {2.f, 1.f}};
 
 struct Size2i
 {
@@ -581,8 +581,8 @@ int main(int argc, char* argv[])
         current_ratios[0] = 1.f;
 
         std::vector<float> current_scales(2);
-        current_scales[0] = scales[stride_index][0];
-        current_scales[1] = scales[stride_index][1];
+        current_scales[0] = g_scales[stride_index][0];
+        current_scales[1] = g_scales[stride_index][1];
 
         const float threshold = CONF_THRESH;
 
