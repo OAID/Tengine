@@ -48,6 +48,16 @@ public:
 
     double rate = cap.get(CV_CAP_PROP_FPS);
     fprintf(stdout, "rate %lf\n", rate);
+    fprintf(stdout, "pan %lf\n", cap.get(CV_CAP_PROP_PAN));
+    fprintf(stdout, "width = %.2f\n",cap.get(CV_CAP_PROP_FRAME_WIDTH));
+    fprintf(stdout, "height = %.2f\n",cap.get(CV_CAP_PROP_FRAME_HEIGHT));
+    fprintf(stdout, "fbs = %.2f\n",cap.get(CV_CAP_PROP_FPS));
+    fprintf(stdout, "brightness = %.2f\n",cap.get(CV_CAP_PROP_BRIGHTNESS));
+    fprintf(stdout, "contrast = %.2f\n",cap.get(CV_CAP_PROP_CONTRAST));
+    fprintf(stdout, "saturation = %.2f\n",cap.get(CV_CAP_PROP_SATURATION));
+    fprintf(stdout, "hue = %.2f\n",cap.get(CV_CAP_PROP_HUE));
+    fprintf(stdout, "exposure = %.2f\n",cap.get(CV_CAP_PROP_EXPOSURE));
+
     while (true) {
       cv::Mat mat;
       if (not cap.read(mat)) {

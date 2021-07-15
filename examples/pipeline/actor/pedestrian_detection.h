@@ -41,7 +41,7 @@ struct Box_t {
   float score;
 };
 
-class PedestrianDetection : public Node<Param<cv::Mat>, Param<cv::Mat>> {
+class PedestrianDetection : public Node<Param<cv::Mat>, Param<std::tuple<cv::Mat, cv::Rect>>> {
 public:
   PedestrianDetection(std::string model_path) {
     /* inital tengine */
@@ -56,7 +56,7 @@ public:
 
     /* set runtime options */
     struct options opt;
-    opt.num_thread = 1;
+    opt.num_thread = 2;
     opt.cluster = TENGINE_CLUSTER_ALL;
     opt.precision = TENGINE_MODE_FP32;
     opt.affinity = 0;
@@ -208,8 +208,11 @@ public:
       rect.width = std::min(rect.width, mat.cols - rect.x - 1);
       rect.height = std::min(rect.height, mat.rows - rect.y - 1);
       cv::rectangle(mat, rect, cv::Scalar(255, 255, 255), 3);
+
+      output<0>()->try_push(std::move(std::make_tuple(mat, rect)));
+    } else {
+      output<0>()->try_push(std::move(std::make_tuple(mat, cv::Rect(0, 0, 0, 0))));
     }
-    output<0>()->try_push(std::move(mat));
   }
 
   ~PedestrianDetection() {
