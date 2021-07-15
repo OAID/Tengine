@@ -41,33 +41,27 @@ static int infer_shape(struct node* node)
     struct tensor* output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
 
     int kd = reduction_param->keepdim;
-
     int* in_dim = ( int* )sys_malloc(input->dim_num * sizeof(int));
 
     for (int i = 0; i < input->dim_num; i++)
     {
         in_dim[i] = input->dims[i];
     }
-    // int new_shape[]={0};
     int count = 0;
     if (reduction_param->dim_0 != -2)
     {
-        // new_shape[count]=reduction_param->dim_0;
         count++;
     }
     if (reduction_param->dim_1 != -2)
     {
-        // new_shape[count]=reduction_param->dim_1;
         count++;
     }
     if (reduction_param->dim_2 != -2)
     {
-        // new_shape[count]=reduction_param->dim_2;
         count++;
     }
     if (reduction_param->dim_3 != -2)
     {
-        // new_shape[count]=reduction_param->dim_3;
         count++;
     }
     int* new_shape = ( int* )sys_malloc(count * sizeof(int));
@@ -93,10 +87,10 @@ static int infer_shape(struct node* node)
         size++;
     }
 
-    int8_t should_reduced[4] = { 0, 0, 0, 0 };
+    int8_t should_reduced[5] = { 0, 0, 0, 0, 0};
 
     int reduceddim = 0;
-    int real_shape[4] = {0, 1, 2, 3};
+    int real_shape[5] = {0, 1, 2, 3, 4};
     int newshape_size = size;
 
     if (newshape_size)
@@ -108,7 +102,7 @@ static int infer_shape(struct node* node)
                 int idx = new_shape[i];
                 if (input->layout == TENGINE_LAYOUT_NHWC)
                     idx = real_shape[idx];
-                if (idx >= 0 && idx < 4)
+                if (idx >= 0 && idx < 5)
                 {
                     should_reduced[idx] = 1;
                     ++reduceddim;
@@ -149,9 +143,6 @@ static int infer_shape(struct node* node)
             {
                 odim[o_idx++] = 1;
             }
-            // TShape shape;
-            // shape.SetDim(odim);
-
             set_ir_tensor_shape(output, odim, input->dim_num);
             sys_free(odim);
             sys_free(in_dim);
@@ -172,21 +163,19 @@ static int infer_shape(struct node* node)
         {
             o_size = input->dim_num;
         }
-
-        // std::vector<int> odim(o_size);
         int* odim = ( int* )sys_malloc(o_size * sizeof(int));
         for (int i_idx = 0, o_idx = 0; i_idx < input->dim_num; i_idx++)
         {
             if (!should_reduced[i_idx])
             {
-                odim[o_idx++] = in_dim[i_idx];
+                odim[o_idx] = in_dim[i_idx];
+                o_idx++;
             }
             else if (should_reduced[i_idx] && kd == 1)
             {
                 odim[o_idx++] = 1;
-            }
+            }            
         }
-
         set_ir_tensor_shape(output, odim, o_size);
         sys_free(odim);
         sys_free(in_dim);
