@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -22,8 +21,6 @@
  * Copyright (c) 2021
  * Author: tpoisonooo
  */
-=======
->>>>>>> feat(examples): add pipeline tool and pedestrian distance estimation demo
 #pragma once
 
 #include "edge.h"
