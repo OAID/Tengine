@@ -30,7 +30,7 @@ using namespace pipe;
 
 int main() {
   Graph g;
-  auto cam = g.add_node<VideoCamera>();
+  auto cam = g.add_node<VideoCamera, std::string>("");
   auto draw = g.add_node<DrawVideo>();
 
   auto cam_draw = g.add_edge<InstantEdge<cv::Mat>>(100);
