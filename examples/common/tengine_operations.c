@@ -533,7 +533,6 @@ void draw_box(image im, int x1, int y1, int x2, int y2, int w, float r, float g,
     int i;
     for (i = 0; i < w; ++i)
     {
-        int i;
         if (x1 < 0)
             x1 = 0;
         if (x1 >= im.w)

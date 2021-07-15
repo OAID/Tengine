@@ -122,7 +122,7 @@ int getFeature(const char* imagefile, float* feature)
     }
 
     /* get the result of classification */
-    tensor_t output_tensor = get_graph_output_tensor(graph, 0, 0);
+    output_tensor = get_graph_output_tensor(graph, 0, 0);
     uint8_t* output_u8 = ( uint8_t* )get_tensor_buffer(output_tensor);
     int output_size = get_tensor_buffer_size(output_tensor);
 
