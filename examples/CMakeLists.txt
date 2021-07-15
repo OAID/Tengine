@@ -104,8 +104,11 @@ ENDIF()
 FIND_PACKAGE(OpenCV QUIET)
 
 IF (OpenCV_FOUND)
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+
     # macro for adding examples
     FUNCTION (TENGINE_EXAMPLE_CV name file)
+
         ADD_EXECUTABLE (${name} "${CMAKE_CURRENT_SOURCE_DIR}/${file}" "${CMAKE_CURRENT_SOURCE_DIR}/common/tengine_operations.c")
 
         TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
@@ -142,6 +145,9 @@ IF (OpenCV_FOUND)
         TENGINE_EXAMPLE_CV (tm_hrnet_timvx           tm_hrnet_timvx.cpp)
         TENGINE_EXAMPLE_CV (tm_nanodet_m_timvx       tm_nanodet_m_timvx.cpp)
     ENDIF()
+
+    TENGINE_EXAMPLE_CV(tm_pipeline_camera_display   pipeline/test/test_camera_display.cpp)
+    TENGINE_EXAMPLE_CV(tm_pipeline_preview_ped  pipeline/test/test_preview_pedestrian.cpp)
 ELSE()
     MESSAGE (WARNING "OpenCV not found, some examples won't be built")
 ENDIF()
