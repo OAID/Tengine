@@ -7,6 +7,7 @@ on:
     - '.github/workflows/linux-x64-cpu-clang.yml'
     - 'CMakeLists.txt'
     - 'cmake/**'
+    - 'examples/**'
     - 'source/*'
     - 'source/api/*'
     - 'source/executer/*'
@@ -20,13 +21,13 @@ on:
     - 'source/utility/*'
     - 'source/device/cpu/**'
     - 'tests/**'
-    - 'examples/**'
   pull_request:
     branches: [tengine-lite]
     paths:
     - '.github/workflows/linux-x64-cpu-clang.yml'
     - 'CMakeLists.txt'
     - 'cmake/**'
+    - 'examples/**'
     - 'source/*'
     - 'source/api/*'
     - 'source/executer/*'
@@ -40,7 +41,6 @@ on:
     - 'source/utility/*'
     - 'source/device/cpu/**'
     - 'tests/**'
-    - 'examples/**'
 
 jobs:
   linux-x64-cpu-clang:
