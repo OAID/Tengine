@@ -61,6 +61,7 @@ static int innerproduct(int inn, int inc, int inh, int inw, int outc, const floa
 {
     size_t elemsize = sizeof(float);
     int size = inw * inh;
+    float tmp;
 
     for (int n = 0; n < inn; n++)
     {
@@ -83,7 +84,7 @@ static int innerproduct(int inn, int inc, int inh, int inw, int outc, const floa
                 _sum0 = _mm_add_ps(_sum0, _sum1);
             }
             _mm_storeu_ps(_sum, _sum0);
-            float tmp = _sum[0] + _sum[1] + _sum[2] + _sum[3];
+            tmp = _sum[0] + _sum[1] + _sum[2] + _sum[3];
             sum = sum + tmp;
 #else    //__AVX__
          // TODO
@@ -91,7 +92,7 @@ static int innerproduct(int inn, int inc, int inh, int inw, int outc, const floa
 #endif
             for (; q < inc * size; q++)
             {
-                float tmp = input1[q] * weight1[q];
+                tmp = input1[q] * weight1[q];
                 sum = sum + tmp;
             }
 
