@@ -309,7 +309,7 @@ static void draw_objects(const cv::Mat& bgr, const std::vector<Object>& objects,
 /// @param c_limit channel limitation
 /// @param mean mean values per channel
 /// @param norm norm values per channel
-static void nhwc_to_nchw(float* src, float* dst, int h_limit, int w_limit, int c_limit, float* mean, float* norm)
+static void nhwc_to_nchw(float* src, float* dst, int h_limit, int w_limit, int c_limit, const float* mean, const float* norm)
 {
     for (int h = 0; h < h_limit; h++) {
         for (int w = 0; w < w_limit; w++) {
@@ -333,6 +333,7 @@ static int get_input_data(const char *path, const float *mean, const float *norm
 
     if (img.cols != lb.w || img.rows != lb.h) cv::resize(img, img, cv::Size(lb.w, lb.h));
     img.convertTo(img, CV_32FC3);
+    float *_data = (float *)img.data;
 
     nhwc_to_nchw(_data, lb.data, lb.h, lb.w, 3, mean, norm);
     return 0;
