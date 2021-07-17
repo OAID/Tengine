@@ -319,30 +319,45 @@ int main(int argc, char* argv[])
     float* input_data = ( float* )malloc(img_size * sizeof(float));
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
-    if (input_tensor == NULL)
+
+    int state = 0;
+    do {
+        if (input_tensor == NULL)
+        {
+            fprintf(stderr, "Get input tensor failed\n");
+            state = -1;
+            break;
+        }
+
+        if (set_tensor_shape(input_tensor, dims, 4) < 0)
+        {
+            fprintf(stderr, "Set input tensor shape failed\n");
+            state = -1;
+            break;
+        }
+
+        if (set_tensor_buffer(input_tensor, input_data, img_size * 4) < 0)
+        {
+            fprintf(stderr, "Set input tensor buffer failed\n");
+            state = -1;
+            break;
+        }
+
+        /* prerun graph, set work options(num_thread, cluster, precision) */
+        if (prerun_graph_multithread(graph, opt) < 0)
+        {
+            fprintf(stderr, "Prerun graph failed\n");
+            state = -1;
+            break;
+        }
+    } while (0);
+
+    if (state != 0)
     {
-        fprintf(stderr, "Get input tensor failed\n");
-        return -1;
+        free(input_data);
+        return state;
     }
 
-    if (set_tensor_shape(input_tensor, dims, 4) < 0)
-    {
-        fprintf(stderr, "Set input tensor shape failed\n");
-        return -1;
-    }
-
-    if (set_tensor_buffer(input_tensor, input_data, img_size * 4) < 0)
-    {
-        fprintf(stderr, "Set input tensor buffer failed\n");
-        return -1;
-    }    
-
-    /* prerun graph, set work options(num_thread, cluster, precision) */
-    if (prerun_graph_multithread(graph, opt) < 0)
-    {
-        fprintf(stderr, "Prerun graph failed\n");
-        return -1;
-    }
 
     /* prepare process input data, set the data mem to input tensor */
     get_input_data(image_file, input_data, g_tensor_in_h, g_tensor_in_w, mean, scale);
