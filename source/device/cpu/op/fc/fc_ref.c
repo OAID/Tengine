@@ -294,6 +294,8 @@ static int ref_fc_int8(struct tensor* input_tensor, struct tensor* output_tensor
         }
     }
 
+    free(requant_scales);
+
     return 0;
 }
 
