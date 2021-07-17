@@ -136,13 +136,17 @@ static int ref_rnn_fp32(float* input, float* output, struct rnn_ref_param* param
         memset(init_h, 0x0, sizeof((unsigned long )param->batch_size * param->hidden_size * sizeof(float)));
     }
 
+    int ret = 0;
     for (int i = 0; i < param->seq_lens; i++)
     {
         const float* seq_input = input + i * param->batch_size * param->input_size;
 
         if (!do_RNN_step(seq_input, init_h, param->kernel, param->bias, param->batch_size, param->input_size,
                          param->hidden_size))
-            return -1;
+        {
+            ret = -1;
+            break;
+        }
         // outputs [batch_size,seq_len,hidden_size]
         // final_state [batch_size,hidden_size]
         if (i + param->output_len >= param->seq_lens)
