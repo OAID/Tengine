@@ -72,6 +72,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
     // int dims[4] = {1, 1, 1, 1};
     int* dims = (int*)malloc(input_tensor->dim_num*sizeof(int));
+    memset(dims, 0, input_tensor->dim_num*sizeof(int));
     for (int i = 0; i < input_tensor->dim_num; i++)
     {
         dims[i] = input_tensor->dims[i];
