@@ -115,7 +115,6 @@ void TensorRTEngine::SetRange(struct graph* ir_graph, uint16_t id, nvinfer1::ITe
     }
 }
 
-
 int TensorRTEngine::Build(struct subgraph* subgraph)
 {
     const auto cuda_status = cudaSetDevice(this->option.gpu_index);;
@@ -247,6 +246,15 @@ int TensorRTEngine::Build(struct subgraph* subgraph)
                 }
                 break;
             }
+            case OP_INSTANCENORM:
+            {
+                if (!AddInstanceNormNode(ir_graph, ir_node))
+                {
+                    TLOG_ERR("Tengine: Cannot add InstanceNorm op(%d).\n", ir_node->index);
+                    return -6;
+                }
+                break;
+            }
             case OP_INPUT:
                 continue;
             case OP_INTERP: {
@@ -262,6 +270,14 @@ int TensorRTEngine::Build(struct subgraph* subgraph)
                 if (!AddMishNode(ir_graph, ir_node))
                 {
                     TLOG_ERR("Tengine: Cannot add Mish op(%d).\n", ir_node->index);
+                    return -6;
+                }
+                break;
+            }
+            case OP_PAD: {
+                if (!AddPadNode(ir_graph, ir_node))
+                {
+                    TLOG_ERR("Tengine: Cannot add Pad op(%d).\n", ir_node->index);
                     return -6;
                 }
                 break;
@@ -293,6 +309,14 @@ int TensorRTEngine::Build(struct subgraph* subgraph)
                 }
                 break;
             }
+            case OP_REDUCTION: {
+                if (!AddReductionNode(ir_graph, ir_node))
+                {
+                    TLOG_ERR("Tengine: Cannot add Reduction op(%d).\n", ir_node->index);
+                    return -6;
+                }
+                break;
+            }
             case OP_RESHAPE: {
                 if (!AddReshapeNode(ir_graph, ir_node))
                 {
@@ -314,6 +338,15 @@ int TensorRTEngine::Build(struct subgraph* subgraph)
                 if(!AddSoftmaxNode(ir_graph, ir_node))
                 {
                     TLOG_ERR("Tengine: Cannot add Softmax op(%d).\n", ir_node->index);
+                    return -6;
+                }
+                break;
+            }
+            case OP_SPLIT:
+            {
+                if(!AddSplitNode(ir_graph, ir_node))
+                {
+                    TLOG_ERR("Tengine: Cannot add Split op(%d).\n", ir_node->index);
                     return -6;
                 }
                 break;
@@ -468,7 +501,6 @@ bool TensorRTEngine::AddTensor(struct graph* ir_graph, struct tensor *ir_tensor)
 
     return true;
 }
-
 
 int TensorRTEngine::PreRun(struct subgraph* subgraph, struct trt_option* options)
 {

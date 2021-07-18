@@ -94,15 +94,19 @@ private:
     bool AddFlattenNode(struct graph* ir_graph, struct node* node);
     bool AddFullyConnectedNode(struct graph* ir_graph, struct node* node);
     bool AddHardSwishNode(struct graph* ir_graph, struct node* node);
+    bool AddInstanceNormNode(struct graph* ir_graph, struct node* node);
     bool AddInterpNode(struct graph* ir_graph, struct node* node);
     bool AddMishNode(struct graph* ir_graph, struct node* node);
+    bool AddPadNode(struct graph* ir_graph, struct node* node);
     bool AddPermuteNode(struct graph* ir_graph, struct node* node);
     bool AddPoolingNode(struct graph* ir_graph, struct node* node);
     bool addReLUNode(struct graph* ir_graph, struct node* node);
+    bool AddReductionNode(struct graph* ir_graph, struct node* node);
     bool AddReshapeNode(struct graph* ir_graph, struct node* node);
     bool AddTranspose(struct graph* ir_graph, struct node* node);
     bool AddSliceNode(struct graph* ir_graph, struct node* node);
     bool AddSoftmaxNode(struct graph* ir_graph, struct node* node);
+    bool AddSplitNode(struct graph* ir_graph, struct node* node);
     bool AddSqueezeNode(struct graph* ir_graph, struct node* node);
     bool AddUpSampleNode(struct graph* ir_graph, struct node* node);
 
