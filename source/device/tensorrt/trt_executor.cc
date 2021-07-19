@@ -257,7 +257,8 @@ int TensorRTEngine::Build(struct subgraph* subgraph)
             }
             case OP_INPUT:
                 continue;
-            case OP_INTERP: {
+            case OP_INTERP:
+            {
                 if (!AddInterpNode(ir_graph, ir_node))
                 {
                     TLOG_ERR("Tengine: Cannot add FullyConnected op(%d).\n", ir_node->index);
@@ -321,6 +322,15 @@ int TensorRTEngine::Build(struct subgraph* subgraph)
                 if (!AddReshapeNode(ir_graph, ir_node))
                 {
                     TLOG_ERR("Tengine: Cannot add Reshape op(%d).\n", ir_node->index);
+                    return -6;
+                }
+                break;
+            }
+            case OP_RESIZE:
+            {
+                if (!AddResizeNode(ir_graph, ir_node))
+                {
+                    TLOG_ERR("Tengine: Cannot add Resize op(%d).\n", ir_node->index);
                     return -6;
                 }
                 break;
