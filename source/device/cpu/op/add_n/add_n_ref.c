@@ -121,13 +121,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_BEST;
 }
 
-static struct node_ops add_n_node_ops = {prerun,
-                                         run,
-                                         NULL,
-                                         postrun,
-                                         init_node,
-                                         release_node,
-                                         score};
+static struct node_ops add_n_node_ops = {.prerun = prerun,
+                                         .run = run,
+                                         .reshape = NULL,
+                                         .postrun = postrun,
+                                         .init_node = init_node,
+                                         .release_node = release_node,
+                                         .score = score};
 
 int register_add_n_ref_op()
 {
