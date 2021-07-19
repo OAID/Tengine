@@ -195,7 +195,7 @@ int main(int argc, char* argv[])
     int img_size = img_h * img_w * channel;
     int dims[] = {1, channel, img_h, img_w};    // nchw
 
-    float* input_data = ( float* )malloc(sizeof(float) * img_size);
+    float* input_data = ( float* )malloc(img_size * sizeof(float));
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == nullptr)
@@ -210,7 +210,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    if (set_tensor_buffer(input_tensor, input_data, img_size * 4) < 0)
+    if (set_tensor_buffer(input_tensor, input_data, img_size * sizeof(float)) < 0)
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;

@@ -173,7 +173,7 @@ int main(int argc, char* argv[])
     int height = 1150;
     int width = 2048;
     int img_size = height * width * 3;
-    std::vector<float> image_data(img_size*4);
+    std::vector<float> image_data(img_size * sizeof(float));
 
 
     std::string model_name = "retinaface";
@@ -210,7 +210,7 @@ int main(int argc, char* argv[])
     }
 
     /* set the data mem to input tensor */
-    if (set_tensor_buffer(input_tensor, image_data.data(), img_size * 4) < 0)
+    if (set_tensor_buffer(input_tensor, image_data.data(), img_size * sizeof(float)) < 0)
     {
         printf("Set input tensor buffer failed\n");
         return -1;
