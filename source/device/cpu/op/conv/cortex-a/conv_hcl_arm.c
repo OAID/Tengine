@@ -170,7 +170,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
             TLOG_ERR("hcl conv fp16 run failed\n");
             // set_tengine_errno(EFAULT);
             return -1;
-        }        
+        }
     }
 #endif
     /* int8 run */

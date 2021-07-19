@@ -561,7 +561,7 @@ int prerun_graph_multithread(graph_t graph, struct options option)
     {
         set_log_level(LOG_INFO);
         dump_ir_graph(ir_graph);
-    }        
+    }
 
     return 0;
 }

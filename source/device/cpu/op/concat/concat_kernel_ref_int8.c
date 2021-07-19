@@ -264,7 +264,7 @@ int ref_concat_int8(struct graph* ir_graph, struct node* ir_node, int axis)
                     }
 
                     output_step += in_w;
-                }                
+                }
             }
         }
     }

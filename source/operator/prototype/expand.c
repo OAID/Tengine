@@ -88,7 +88,7 @@ static int infer_shape(struct node* node)
                 int temp = param->ex_shape[i];
                 push_vector_data(dims, (void*)&temp);
             }
-        }        
+        }
     } else {
         int diff = fabs(input1_dim_size - input2_dim_size);
         if(input1_dim_size > input2_dim_size)
@@ -109,7 +109,7 @@ static int infer_shape(struct node* node)
                 {
                     int temp = param->ex_shape[i];
                     push_vector_data(dims, (void*)&temp);
-                }                
+                }
             }
         } else {
             for(int i = 0; i < input2_dim_size; i++)
@@ -128,7 +128,7 @@ static int infer_shape(struct node* node)
                 {
                     int temp = input1->dims[i];
                     push_vector_data(dims, (void*)&temp);
-                }                
+                }
             }
         }
     }

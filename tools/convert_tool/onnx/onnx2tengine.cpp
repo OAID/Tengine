@@ -245,7 +245,7 @@ int onnx_serializer::load_constant_tensor(ir_graph_t* graph, const onnx::GraphPr
                     {
                         mem_buf[j] = raw_data[j];
                     }
-                }            
+                }
             }
             else
             {

@@ -72,7 +72,7 @@ static int infer_shape(struct node* node)
         set_ir_tensor_shape(output, dims, 4);
 
         return 0;
-    }        
+    }
 
     return -1;
 }
