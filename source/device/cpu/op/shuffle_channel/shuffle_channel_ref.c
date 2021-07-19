@@ -48,8 +48,8 @@ int ref_shuffle_channel_fp32(struct tensor* input_tensor, struct tensor* output_
     int elemsize = input_tensor->elem_size;
     int chs_per_group = c / group;
 
-    float* input_fp32 = input_tensor->data;
-    float* output_fp32 = output_tensor->data;
+    float* input_fp32 = (float*)input_tensor->data;
+    float* output_fp32 = (float*)output_tensor->data;
 
     for (int n = 0; n < batch; n++)
     {
@@ -77,8 +77,8 @@ int ref_shuffle_channel_uint8(struct tensor* input_tensor, struct tensor* output
     int elemsize = input_tensor->elem_size;
     int chs_per_group = c / group;
 
-    uint8_t* input_uint8 = input_tensor->data;
-    uint8_t* output_uint8 = output_tensor->data;
+    uint8_t* input_uint8 = (uint8_t*)input_tensor->data;
+    uint8_t* output_uint8 = (uint8_t*)output_tensor->data;
 
     for (int n = 0; n < batch; n++)
     {
@@ -106,8 +106,8 @@ int ref_shuffle_channel_int8(struct tensor* input_tensor, struct tensor* output_
     int elemsize = input_tensor->elem_size;
     int chs_per_group = c / group;
 
-    int8_t* input_int8 = input_tensor->data;
-    int8_t* output_int8 = output_tensor->data;
+    int8_t* input_int8 = (int8_t*)input_tensor->data;
+    int8_t* output_int8 = (int8_t*)output_tensor->data;
 
     for (int n = 0; n < batch; n++)
     {

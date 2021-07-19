@@ -43,9 +43,9 @@ struct reverse_param
 
 int ref_reverse_fp32(void* input, void* input_axis, void* output, const struct reverse_param* param, int num_thread)
 {
-    float* out_ptr = output;
-    float* in_ptr = input;
-    int* axis_ptr = input_axis;
+    float* out_ptr = (float*)output;
+    float* in_ptr = (float*)input;
+    int* axis_ptr = (int*)input_axis;
     int axis = axis_ptr[0];
 
     int in_w = param->in_shape[3];
@@ -136,9 +136,9 @@ int ref_reverse_fp32(void* input, void* input_axis, void* output, const struct r
 
 int ref_reverse_uint8(void* input, void* input_axis, void* output, const struct reverse_param* param, int num_thread)
 {
-    uint8_t* out_ptr = output;
-    uint8_t* in_ptr = input;
-    int* axis_ptr = input_axis;
+    uint8_t* out_ptr = (uint8_t*)output;
+    uint8_t* in_ptr = (uint8_t*)input;
+    int* axis_ptr = (int*)input_axis;
     int axis = axis_ptr[0];
 
     int in_w = param->in_shape[3];

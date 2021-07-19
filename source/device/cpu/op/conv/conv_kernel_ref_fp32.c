@@ -56,12 +56,12 @@ int ref_conv_fp32(struct tensor* input_tensor, struct tensor* output_tensor, str
     int kernel_offset = 0;
     int output_offset = 0;
 
-    float* input_data = input_tensor->data;
-    float* output_data = output_tensor->data;
-    float* kernel_data = kernel->data;
+    float* input_data = (float*)input_tensor->data;
+    float* output_data = (float*)output_tensor->data;
+    float* kernel_data = (float*)kernel->data;
     float* bias_data = NULL;
     if (bias != NULL)
-        bias_data = bias->data;
+        bias_data = (float*)bias->data;
 
     if (conv_param->kernel_h == 0)
         conv_param->kernel_h = 1;

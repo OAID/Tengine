@@ -40,8 +40,8 @@
 static int ref_crop_fp32(struct tensor* input_tensor, struct tensor* output_tensor, struct crop_param* param,
                          int num_thread)
 {
-    float* input = input_tensor->data;
-    float* output = output_tensor->data;
+    float* input = (float*)input_tensor->data;
+    float* output = (float*)output_tensor->data;
 
     int iDataC = input_tensor->dims[1];
     int iDataH = input_tensor->dims[2];
@@ -152,8 +152,8 @@ static int ref_crop_fp32(struct tensor* input_tensor, struct tensor* output_tens
 static int ref_crop_uint8(struct tensor* input_tensor, struct tensor* output_tensor, struct crop_param* param,
                          int num_thread)
 {
-    uint8_t* input = input_tensor->data;
-    uint8_t* output = output_tensor->data;
+    uint8_t* input = (uint8_t*)input_tensor->data;
+    uint8_t* output = (uint8_t*)output_tensor->data;
 
     int iDataC = input_tensor->dims[1];
     int iDataH = input_tensor->dims[2];

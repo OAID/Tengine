@@ -49,7 +49,7 @@ static int infer_shape(struct node* node)
     struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
 
     int flag = 1;
-    int32_t * input2_data = input2->data;
+    int32_t * input2_data = (int32_t*)input2->data;
     for(int i = 0; i < input2->elem_num; i++)
     {
         if(input2_data[i] == 0){

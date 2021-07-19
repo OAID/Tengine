@@ -77,7 +77,7 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
 
     int in_num = ir_node->input_num;
     add_n_op_param->in_num = in_num;
-    add_n_op_param->input_data = ( void* )sys_malloc(sizeof(void*) * in_num);
+    add_n_op_param->input_data = ( void** )sys_malloc(sizeof(void*) * in_num);
 
     return 0;
 }
@@ -99,7 +99,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     }
     const void** input = ( const void** )add_n_op_param->input_data;
 
-    float* output = output_tensor->data;
+    float* output = (float*)output_tensor->data;
     for (uint32_t i = 0; i < elem_num; i++)
     {
         output[i] = 0;
@@ -121,13 +121,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_BEST;
 }
 
-static struct node_ops add_n_node_ops = {.prerun = prerun,
-                                         .run = run,
-                                         .reshape = NULL,
-                                         .postrun = postrun,
-                                         .init_node = init_node,
-                                         .release_node = release_node,
-                                         .score = score};
+static struct node_ops add_n_node_ops = {prerun,
+                                         run,
+                                         NULL,
+                                         postrun,
+                                         init_node,
+                                         release_node,
+                                         score};
 
 int register_add_n_ref_op()
 {

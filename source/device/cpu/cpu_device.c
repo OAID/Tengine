@@ -101,7 +101,7 @@ static int prerun(struct device* dev, struct subgraph* subgraph, void* option)
 
 static int run(struct device* dev, struct subgraph* subgraph)
 {
-    struct exec_graph* exec_graph = subgraph->device_graph;
+    struct exec_graph* exec_graph = (struct exec_graph*)subgraph->device_graph;
 
     int node_num = get_vector_num(exec_graph->exec_node_list);
 
@@ -228,7 +228,7 @@ static int run(struct device* dev, struct subgraph* subgraph)
 
 static int postrun(struct device* dev, struct subgraph* subgraph)
 {
-    struct exec_graph* exec_graph = subgraph->device_graph;
+    struct exec_graph* exec_graph = (struct exec_graph*)subgraph->device_graph;
 
     int node_num = get_vector_num(exec_graph->exec_node_list);
 
@@ -392,22 +392,22 @@ int cpu_split_graph(struct graph* ir_graph)
 
 
 static struct interface cpu_interface = {
-        .init           = init_cpu,
-        .pre_run        = prerun,
-        .run            = run,
-        .post_run       = postrun,
-        .async_run      = NULL,
-        .async_wait     = NULL,
-        .release_graph  = cpu_dev_release_exec_graph,
-        .release_device = release_cpu,
+        init_cpu,
+        prerun,
+        run,
+        postrun,
+        NULL,
+        NULL,
+        cpu_dev_release_exec_graph,
+        release_cpu,
 };
 
 
 static struct allocator cpu_allocator = {
-        .describe       = cpu_describe,
-        .evaluation     = cpu_evaluation,
-        .allocate       = cpu_allocate,
-        .release        = cpu_release,
+        cpu_describe,
+        cpu_evaluation,
+        cpu_allocate,
+        cpu_release,
 };
 
 

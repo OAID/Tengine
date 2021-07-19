@@ -109,7 +109,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     {
         param.dims[i] = 1;
     }
-    int ret = ref_reducel2_fp32(in_data, out_data, &param);
+    int ret = ref_reducel2_fp32((float*)in_data, (float*)out_data, &param);
 
     return ret;
 }

@@ -167,7 +167,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     ref_logsoftmax_param.on_size = on_size;
 
     if (input_tensor->data_type == TENGINE_DT_FP32)
-        ref_logsoftmax_fp32(input_tensor->data, output_tensor->data,max_array,sum_array, &ref_logsoftmax_param);
+        ref_logsoftmax_fp32((float*)input_tensor->data, (float*)output_tensor->data,max_array,sum_array, &ref_logsoftmax_param);
     // else
         // ref_logistic_uint8(input_tensor->data, output_tensor->data, &logical_param);
 

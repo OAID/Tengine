@@ -71,8 +71,8 @@ int ref_softmax_int8(struct tensor* input_tensor, struct tensor* output_tensor, 
     int on_in_size = on_size * in_size;
     int totol_size = on_in_size * out_size;
 
-    int8_t* input = input_tensor->data;
-    int8_t* output = output_tensor->data;
+    int8_t* input = (int8_t*)input_tensor->data;
+    int8_t* output = (int8_t*)output_tensor->data;
     float* input_f = ( float* )sys_malloc(totol_size * 4);
     float* output_f = ( float* )sys_malloc(totol_size * 4);
 

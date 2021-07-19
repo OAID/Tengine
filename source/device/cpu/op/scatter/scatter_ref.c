@@ -332,7 +332,8 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         }
         TLOG_ERR("Indecues %d \n",indicesDimsSize);
         
-        int ret = ref_scatter_fp32(input_tensor->data, output_tensor->data, indices_tensor->data, updates_tensor->data, scatter_op_param);
+        int ret = ref_scatter_fp32((float*)input_tensor->data, (float*)output_tensor->data, 
+            (int*)indices_tensor->data, (float*)updates_tensor->data, scatter_op_param);
         if(ret < 0){
             TLOG_ERR("Scatter reference error \n");
         }

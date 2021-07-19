@@ -39,8 +39,8 @@
 
 int ref_squeeze_fp32(struct tensor* input_tensor, struct tensor* output_tensor)
 {
-    float* input_data = input_tensor->data;
-    float* out_data = output_tensor->data;
+    float* input_data = (float*)input_tensor->data;
+    float* out_data = (float*)output_tensor->data;
 
     for (int i = 0; i < input_tensor->elem_num; i++)
     {
@@ -52,8 +52,8 @@ int ref_squeeze_fp32(struct tensor* input_tensor, struct tensor* output_tensor)
 
 int ref_squeeze_uint8(struct tensor* input_tensor, struct tensor* output_tensor)
 {
-    uint8_t* input_data = input_tensor->data;
-    uint8_t* out_data = output_tensor->data;
+    uint8_t* input_data = (uint8_t*)input_tensor->data;
+    uint8_t* out_data = (uint8_t*)output_tensor->data;
 
     for (int i = 0; i < input_tensor->elem_num; i++)
     {

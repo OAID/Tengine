@@ -68,8 +68,8 @@ int ref_sigmoid_fp32(struct tensor* input_tensor, struct tensor* output_tensor, 
     else
     {
         uint32_t elem_num = input_tensor->elem_num;
-        float* input_data = input_tensor->data;
-        float* output_data = output_tensor->data;
+        float* input_data = (float*)input_tensor->data;
+        float* output_data = (float*)output_tensor->data;
 
         for (int i = 0; i < elem_num; i++)
         {
@@ -86,8 +86,8 @@ int ref_sigmoid_uint8(struct tensor* input_tensor, struct tensor* output_tensor,
 {
 
     /* dequant */
-    uint8_t* input_uint8 = input_tensor->data;
-    uint8_t* output_uint8 = output_tensor->data;
+    uint8_t* input_uint8 = (uint8_t*)input_tensor->data;
+    uint8_t* output_uint8 = (uint8_t*)output_tensor->data;
     float input_scale = input_tensor->scale;
     float output_scale = output_tensor->scale;
     int32_t input_zero = input_tensor->zero_point;

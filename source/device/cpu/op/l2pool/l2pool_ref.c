@@ -198,7 +198,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     op_param->stride_h = l2pool_param_op->stride_h;
     op_param->stride_w = l2pool_param_op->stride_w;
 
-    ref_l2pool_fp32(input_tensor->data, output_tensor->data, op_param);
+    ref_l2pool_fp32((float*)input_tensor->data, (float*)output_tensor->data, op_param);
 
     return 0;
 }
