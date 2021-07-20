@@ -51,8 +51,9 @@ int ref_sigmoid_fp32(struct tensor* input_tensor, struct tensor* output_tensor, 
 
         for (int n=0; n<batch; n++)
         {
+            int c = 0;
 #pragma omp parallel for num_threads(num_thread)
-            for (int c=0; c<channel; c++)
+            for (c=0; c<channel; c++)
             {
                 float* input_data  = (float*)input_tensor->data + n * bstep + c * cstep;
                 float* output_data = (float*)output_tensor->data + n * bstep + c * cstep;

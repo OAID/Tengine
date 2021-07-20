@@ -136,8 +136,9 @@ static int conv3x3s1_int8_sse(struct tensor* input_tensor, struct tensor* weight
     else
     {
         input_tmp = ( int8_t* )sys_malloc((size_t)inh_tmp * inw_tmp * inch * sizeof(int8_t));
+        int g = 0;
 #pragma omp parallel for num_threads(num_thread)        
-        for (int g = 0; g < inch; g++)
+        for (g = 0; g < inch; g++)
         {
             int8_t* pad_in = input_int8 + g * inh * inw;
             int8_t* pad_out = input_tmp + g * inh_tmp * inw_tmp;
@@ -145,8 +146,9 @@ static int conv3x3s1_int8_sse(struct tensor* input_tensor, struct tensor* weight
         }
     }
 
+    int p = 0;
 #pragma omp parallel for num_threads(num_thread)
-    for (int p = 0; p < outch; p++)
+    for (p = 0; p < outch; p++)
     {
         int32_t* out0 = output_int32 + p * out_hw;
         int8_t* kernel0 = (int8_t* )kernel + p * inch * 9;
@@ -197,8 +199,9 @@ static int conv3x3s1_int8_sse(struct tensor* input_tensor, struct tensor* weight
     }
 
     /* process bias and dequant output from int32 to fp32 */
+    int i = 0;
 #pragma omp parallel for num_threads(num_thread)
-    for (int i = 0; i < outch; i++)
+    for (i = 0; i < outch; i++)
     {
         for (int j = 0; j < outh * outw; j++)
         {
@@ -213,8 +216,9 @@ static int conv3x3s1_int8_sse(struct tensor* input_tensor, struct tensor* weight
     /* process activation relu */
     if (param->activation == 0)
     {
+        int i = 0;
 #pragma omp parallel for num_threads(num_thread)
-        for (int i = 0; i < outch; i++)
+        for (i = 0; i < outch; i++)
         {
             for (int j = 0; j < outh * outw; j++)
             {
@@ -229,8 +233,9 @@ static int conv3x3s1_int8_sse(struct tensor* input_tensor, struct tensor* weight
     /* process activation relu6 */
     if (param->activation > 0)
     {
+        int i = 0;
 #pragma omp parallel for num_threads(num_thread)
-        for (int i = 0; i < outch; i++)
+        for (i = 0; i < outch; i++)
         {
             for (int j = 0; j < outh * outw; j++)
             {
@@ -246,7 +251,7 @@ static int conv3x3s1_int8_sse(struct tensor* input_tensor, struct tensor* weight
 
     /* quant from fp32 to int8 */
 #pragma omp parallel for num_threads(num_thread)
-    for (int i = 0; i < outch; i++)
+    for (i = 0; i < outch; i++)
     {
         for (int j = 0; j < outh * outw; j++)
         {
@@ -313,8 +318,9 @@ static int conv3x3s2_int8_sse(struct tensor* input_tensor, struct tensor* weight
     else
     {
         input_tmp = ( int8_t* )sys_malloc((size_t)inh_tmp * inw_tmp * inch * sizeof(int8_t));
+        int g = 0;
 #pragma omp parallel for num_threads(num_thread)        
-        for (int g = 0; g < inch; g++)
+        for (g = 0; g < inch; g++)
         {
             int8_t* pad_in = input_int8 + g * inh * inw;
             int8_t* pad_out = input_tmp + g * inh_tmp * inw_tmp;
@@ -324,8 +330,9 @@ static int conv3x3s2_int8_sse(struct tensor* input_tensor, struct tensor* weight
 
     int tailstep = inw_tmp - 2 * outw + inw_tmp;
 
+    int p = 0;
 #pragma omp parallel for num_threads(num_thread)
-    for (int p = 0; p < outch; p++)
+    for (p = 0; p < outch; p++)
     {
         int32_t* out0 = output_int32 + p * out_hw;
         int8_t* kernel0 = (int8_t* )kernel + p * inch * 9;
@@ -376,8 +383,9 @@ static int conv3x3s2_int8_sse(struct tensor* input_tensor, struct tensor* weight
     }
 
     /* process bias and dequant output from int32 to fp32 */
+    int i = 0;
 #pragma omp parallel for num_threads(num_thread)
-    for (int i = 0; i < outch; i++)
+    for (i = 0; i < outch; i++)
     {
         for (int j = 0; j < outh * outw; j++)
         {
@@ -393,7 +401,7 @@ static int conv3x3s2_int8_sse(struct tensor* input_tensor, struct tensor* weight
     if (param->activation == 0)
     {
 #pragma omp parallel for num_threads(num_thread)
-        for (int i = 0; i < outch; i++)
+        for (i = 0; i < outch; i++)
         {
             for (int j = 0; j < outh * outw; j++)
             {
@@ -409,7 +417,7 @@ static int conv3x3s2_int8_sse(struct tensor* input_tensor, struct tensor* weight
     if (param->activation > 0)
     {
 #pragma omp parallel for num_threads(num_thread)
-        for (int i = 0; i < outch; i++)
+        for (i = 0; i < outch; i++)
         {
             for (int j = 0; j < outh * outw; j++)
             {
@@ -425,7 +433,7 @@ static int conv3x3s2_int8_sse(struct tensor* input_tensor, struct tensor* weight
 
     /* quant from fp32 to int8 */
 #pragma omp parallel for num_threads(num_thread)
-    for (int i = 0; i < outch; i++)
+    for (i = 0; i < outch; i++)
     {
         for (int j = 0; j < outh * outw; j++)
         {

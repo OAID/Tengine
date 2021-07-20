@@ -277,8 +277,9 @@ void input_pack4_fp32(int K, int N, float* pB, float* pB_t, int num_thread)
     int remian_size_start = nn_size << 3;
 
 // [ch00, ch10, ch20, ch30, ch01, ch11, ch21, ch31, ch02, ch12, ch22, ch32, ch03, ch13, ch23, ch33 ....]
+    int ii = 0;
 #pragma omp parallel for num_threads(num_thread)
-    for (int ii = 0; ii < nn_size; ii++)
+    for (ii = 0; ii < nn_size; ii++)
     {
         int i = ii * 8;
         const float* img = pB + i;
@@ -304,8 +305,9 @@ void input_pack4_fp32(int K, int N, float* pB, float* pB_t, int num_thread)
     }
 
 // [ch00, ch01, ch02, ch03 ....]
+    int i = 0;
 #pragma omp parallel for num_threads(num_thread)
-    for (int i = remian_size_start; i < N; i++)
+    for (i = remian_size_start; i < N; i++)
     {
         const float* img = pB + i;
         float* tmp = pB_t + (i / 8 + i % 8) * 8 * K;
@@ -328,8 +330,9 @@ static void sgemm_fp(int M, int N, int K, float* pA_t, float* pB_t, float* pC, i
     nn_outch = M >> 3;
     remain_outch_start = nn_outch << 3;
 
+    int pp = 0;
 #pragma omp parallel for num_threads(num_thread)
-    for (int pp = 0; pp < nn_outch; pp++)
+    for (pp = 0; pp < nn_outch; pp++)
     {
         int i = pp * 8;
 
@@ -967,8 +970,9 @@ void input_pack4_int8(int K, int N, int8_t* pB, int8_t* pB_t, int num_thread)
     int remian_size_start = nn_size << 3;
 
 // [ch00, ch10, ch20, ch30, ch01, ch11, ch21, ch31, ch02, ch12, ch22, ch32, ch03, ch13, ch23, ch33 ....]
+    int ii = 0;
 #pragma omp parallel for num_threads(num_thread)
-    for (int ii = 0; ii < nn_size; ii++)
+    for (ii = 0; ii < nn_size; ii++)
     {
         int i = ii * 8;
         const int8_t* img = pB + i;
@@ -991,8 +995,9 @@ void input_pack4_int8(int K, int N, int8_t* pB, int8_t* pB_t, int num_thread)
     }
 
 // [ch00, ch01, ch02, ch03 ....]
+    int i = 0;
 #pragma omp parallel for num_threads(num_thread)
-    for (int i = remian_size_start; i < N; i++)
+    for (i = remian_size_start; i < N; i++)
     {
         const int8_t* img = pB + i;
         int8_t* tmp = pB_t + (i / 8 + i % 8) * 8 * K;
@@ -1014,8 +1019,9 @@ static void sgemm_i8(int M, int N, int K, int8_t* pA_t, int8_t* pB_t, int32_t* p
     nn_outch = M >> 3;
     remain_outch_start = nn_outch << 3;
 
+    int pp = 0;
 #pragma omp parallel for num_threads(num_thread)
-    for (int pp = 0; pp < nn_outch; pp++)
+    for (pp = 0; pp < nn_outch; pp++)
     {
         int i = pp * 8;
 
@@ -1825,8 +1831,9 @@ static void sgemm_int8(struct tensor* input, struct tensor* filter, struct tenso
     sgemm_i8(outchan_g, out_h * out_w, kernel_size, filter_sgemm, input_sgemm_pack4, output_sgemm_int32, num_thread);
 
     /* process bias and dequant output from int32 to fp32 */
+    int i = 0;
 #pragma omp parallel for num_threads(num_thread)
-    for (int i = 0; i < outchan_g; i++)
+    for (i = 0; i < outchan_g; i++)
     {
         for (int j = 0; j < out_h * out_w; j++)
         {
@@ -1842,7 +1849,7 @@ static void sgemm_int8(struct tensor* input, struct tensor* filter, struct tenso
     if (param->activation == 0)
     {
 #pragma omp parallel for num_threads(num_thread)
-        for (int i = 0; i < outchan_g; i++)
+        for (i = 0; i < outchan_g; i++)
         {
             for (int j = 0; j < out_h * out_w; j++)
             {
@@ -1858,7 +1865,7 @@ static void sgemm_int8(struct tensor* input, struct tensor* filter, struct tenso
     if (param->activation > 0)
     {
 #pragma omp parallel for num_threads(num_thread)
-        for (int i = 0; i < outchan_g; i++)
+        for (i = 0; i < outchan_g; i++)
         {
             for (int j = 0; j < out_h * out_w; j++)
             {
@@ -1875,8 +1882,9 @@ static void sgemm_int8(struct tensor* input, struct tensor* filter, struct tenso
     /* quant from fp32 to int8 */
     for (int i = 0; i < outchan_g; i++)
     {
+        int j = 0;
 #pragma omp parallel for num_threads(num_thread)
-        for (int j = 0; j < out_h * out_w; j++)
+        for (j = 0; j < out_h * out_w; j++)
         {
             int output_off = i * (out_h * out_w) + j;
 

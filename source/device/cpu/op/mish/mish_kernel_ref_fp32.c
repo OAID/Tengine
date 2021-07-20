@@ -50,8 +50,9 @@ int ref_mish_fp32(struct tensor* input_tensor, struct tensor* output_tensor, int
     float* input_data = input_tensor->data;
     float* out_data = output_tensor->data;
 
+    int q = 0;
 #pragma omp parallel for num_threads(num_thread)
-    for (int q = 0; q < channels; q++)
+    for (q = 0; q < channels; q++)
     {
         float* src = input_data + c_step * q;
         float* dst = out_data + c_step * q;

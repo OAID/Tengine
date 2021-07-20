@@ -46,8 +46,9 @@ int ref_bias_fp32(struct tensor* input_tensor, struct tensor* output_tensor, str
     float* bias = bias_tensor->data;
     float* out_data = output_tensor->data;
 
+    int c = 0;
 #pragma omp parallel for num_threads(num_thread)
-    for (int c = 0; c < channels; c++)
+    for (c = 0; c < channels; c++)
     {
         float* out_ptr = out_data + c * size;
         float* in_ptr = in_data + c * size;

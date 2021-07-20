@@ -65,8 +65,9 @@ static int innerproduct(int inn, int inc, int inh, int inw, int outc, const floa
 
     for (int n = 0; n < inn; n++)
     {
+        int p = 0;
 #pragma omp parallel for num_threads(num_thread)
-        for (int p = 0; p < outc; p++)
+        for (p = 0; p < outc; p++)
         {
             int q = 0;
             float sum = _bias ? _bias[p] : 0.f;
