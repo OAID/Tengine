@@ -392,22 +392,22 @@ int cpu_split_graph(struct graph* ir_graph)
 
 
 static struct interface cpu_interface = {
-        init_cpu,
-        prerun,
-        run,
-        postrun,
-        NULL,
-        NULL,
-        cpu_dev_release_exec_graph,
-        release_cpu,
+        .init           = init_cpu,
+        .pre_run        = prerun,
+        .run            = run,
+        .post_run       = postrun,
+        .async_run      = NULL,
+        .async_wait     = NULL,
+        .release_graph  = cpu_dev_release_exec_graph,
+        .release_device = release_cpu,
 };
 
 
 static struct allocator cpu_allocator = {
-        cpu_describe,
-        cpu_evaluation,
-        cpu_allocate,
-        cpu_release,
+        .describe       = cpu_describe,
+        .evaluation     = cpu_evaluation,
+        .allocate       = cpu_allocate,
+        .release        = cpu_release,
 };
 
 
