@@ -90,8 +90,21 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     param.type = reduction_param->type;
     int in_dim_num = input_tensor->dim_num;
     // printf("input dims: %d \n", input_tensor->dim_num);
-    int ret = ref_reduce_fp32(( float* )input_tensor->data, ( float* )output_tensor->data, dim0, dim1, dim2, dim3,
-                              out_tensor_size, &param, in_dim_num, dims);
+    int ret = 0;
+    if (input_tensor->data_type == TENGINE_DT_FP32)
+    {
+        ret = ref_reduce_fp32(( float* )input_tensor->data, ( float* )output_tensor->data, dim0, dim1, dim2, dim3,
+                                out_tensor_size, &param, in_dim_num, dims);
+    }
+    else if (input_tensor->data_type == TENGINE_DT_UINT8)
+    {
+        param.input_scale = input_tensor->scale;
+        param.output_scale = output_tensor->scale;
+        param.input_zp = input_tensor->zero_point;
+        param.output_zp = output_tensor->zero_point;
+        ret = ref_reduce_uint8(( uint8_t* )input_tensor->data, ( uint8_t* )output_tensor->data, dim0, dim1, dim2, dim3,
+                                out_tensor_size, &param, in_dim_num, dims);
+    }
     free(dims);
 
     return ret;
