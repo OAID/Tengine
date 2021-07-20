@@ -260,17 +260,17 @@ static int ref_scatter_fp32(float* input, float* output, int* indices, float* up
                                     index = index < 0 ? inW + index + 1: index;
                                     int outIndex = n*inC*inH*inW + c*inH*inW + h*realIndexDims[3] + index;
                                     output[outIndex] = value;
-                                }                            
+                                }
                             }
                         }
                     }
-                }            
+                }
             }
         } else {
             int data_dims[4] = {1};
             for(int i = 0; i < op_param->dim_size; i++){
                 data_dims[3 - i] = op_param->dims[i];
-            }            
+            }
 
             int iCHW = data_dims[1]* data_dims[2]* data_dims[3];
             int iHW = data_dims[2]*data_dims[3];

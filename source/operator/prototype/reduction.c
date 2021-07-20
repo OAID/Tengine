@@ -174,7 +174,7 @@ static int infer_shape(struct node* node)
             else if (should_reduced[i_idx] && kd == 1)
             {
                 odim[o_idx++] = 1;
-            }            
+            }
         }
         set_ir_tensor_shape(output, odim, o_size);
         sys_free(odim);
