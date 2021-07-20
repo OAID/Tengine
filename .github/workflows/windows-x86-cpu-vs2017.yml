@@ -46,5 +46,5 @@ jobs:
     - name: build
       run: |
         mkdir build; cd build
-        cmake -T v141,host=x64 -A Win32 -DTENGINE_OPENMP=OFF -DTENGINE_BUILD_EXAMPLES=OFF ..
+        cmake -T v141,host=x64 -A Win32 -DTENGINE_OPENMP=ON -DTENGINE_BUILD_EXAMPLES=OFF ..
         cmake --build . --config Release -j 2
