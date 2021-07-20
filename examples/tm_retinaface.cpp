@@ -514,7 +514,7 @@ int main(int argc, char* argv[])
     }
 
     /* set the data mem to input tensor */
-    if (set_tensor_buffer(input_tensor, image_data.data(), img_size * 4) < 0)
+    if (set_tensor_buffer(input_tensor, image_data.data(), img_size * sizeof(float)) < 0)
     {
         printf("Set input tensor buffer failed\n");
         return -1;
