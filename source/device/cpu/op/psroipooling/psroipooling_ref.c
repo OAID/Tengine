@@ -43,9 +43,9 @@
 static int ref_psroipooling_fp32(struct tensor* featmap_tensor, struct tensor* roi_tensor,
                                  struct tensor* output_tensor, struct psroipooling_param* param, int num_thread)
 {
-    float* featmap = featmap_tensor->data;
-    float* roi = roi_tensor->data;
-    float* output = output_tensor->data;
+    float* featmap = (float*)featmap_tensor->data;
+    float* roi = (float*)roi_tensor->data;
+    float* output = (float*)output_tensor->data;
 
     float spatial_scale = param->spatial_scale;
     int out_h = param->pooled_h;
@@ -90,7 +90,7 @@ static int ref_psroipooling_fp32(struct tensor* featmap_tensor, struct tensor* r
                     hend = T_MIN(T_MAX(hend, 0), in_h);
                     wend = T_MIN(T_MAX(wend, 0), in_w);
 
-                    _Bool is_empty = (hend <= hstart) || (wend <= wstart);
+                    int is_empty = (hend <= hstart) || (wend <= wstart);
                     int area = (hend - hstart) * (wend - wstart);
 
                     float sum = 0.f;

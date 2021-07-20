@@ -40,8 +40,8 @@
 
 int ref_split_fp32(struct tensor* input_tensor, struct tensor* output_tensor, struct split_param* split_param, int* slice_index, int num_slices, int slice_size, int in_slice, int slice_axis)
 {
-    float* input_data = input_tensor->data;
-    float* output_data = output_tensor->data;
+    float* input_data = (float*)input_tensor->data;
+    float* output_data = (float*)output_tensor->data;
 
     if (split_param->is_caffe)
     {
@@ -68,8 +68,8 @@ int ref_split_fp32(struct tensor* input_tensor, struct tensor* output_tensor, st
 
 int ref_split_uint8(struct tensor* input_tensor, struct tensor* output_tensor, struct split_param* split_param, int* slice_index, int num_slices, int slice_size, int in_slice, int slice_axis)
 {
-    uint8_t* input_data = input_tensor->data;
-    uint8_t* output_data = output_tensor->data;
+    uint8_t* input_data = (uint8_t*)input_tensor->data;
+    uint8_t* output_data = (uint8_t*)output_tensor->data;
 
     if (split_param->is_caffe)
     {

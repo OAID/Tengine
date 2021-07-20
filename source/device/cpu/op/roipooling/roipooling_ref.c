@@ -56,9 +56,9 @@ static int ref_roipooling_fp32(struct tensor* input_tensor, struct tensor* roi_t
 
     int num_rois = output_tensor->dims[0];
 
-    float* featmap = input_tensor->data;
-    float* roi = roi_tensor->data;
-    float* output = output_tensor->data;
+    float* featmap = (float*)input_tensor->data;
+    float* roi = (float*)roi_tensor->data;
+    float* output = (float*)output_tensor->data;
 
     for (int n = 0; n < num_rois; ++n)
     {

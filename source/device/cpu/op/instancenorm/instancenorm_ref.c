@@ -127,7 +127,8 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     float scale = 1.f;
     int zero_point = 0;
 
-    return ref_instancenorm_fp32(in_data, out_data, gamma_data, beta_data, size, c, n, eps, scale, zero_point, 0);
+    return ref_instancenorm_fp32((float*)in_data, (float*)out_data, (float*)gamma_data, 
+        (float*)beta_data, size, c, n, eps, scale, zero_point, 0);
 }
 
 static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struct node* exec_node)
