@@ -40,8 +40,8 @@
 static int ref_batchtospacend_fp32(struct tensor* input_tensor, struct tensor* output_tensor,
                                    struct batchtospacend_param* param, int num_thread)
 {
-    float* in_data = input_tensor->data;
-    float* out_data = output_tensor->data;
+    float* in_data = (float*)input_tensor->data;
+    float* out_data = (float*)output_tensor->data;
 
     int out_dims[4];
     int in_dims[4];

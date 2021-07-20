@@ -210,9 +210,8 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     float eps = param->eps;
     float scale = 1.f;
     int zero_point = 0;
-
+  
     int ret = -1;
-
     if (input_tensor->data_type == TENGINE_DT_FP32)
         ret = ref_instancenorm_fp32(in_data, out_data, gamma_data, beta_data, size, c, n, eps, scale, zero_point, 0);
     else if(input_tensor->data_type == TENGINE_DT_UINT8)

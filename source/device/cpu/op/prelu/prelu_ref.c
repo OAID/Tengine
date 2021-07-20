@@ -43,9 +43,9 @@ static int ref_prelu_fp32(struct tensor* input_tensor, struct tensor* output_ten
     int dim_num = input_tensor->dim_num;
     int slope_num = slope_tensor->elem_num;
 
-    float* input_data = input_tensor->data;
-    float* output_data = output_tensor->data;
-    float* slope = slope_tensor->data;
+    float* input_data = (float*)input_tensor->data;
+    float* output_data = (float*)output_tensor->data;
+    float* slope = (float*)slope_tensor->data;
 
     if (dim_num == 2)
     {
@@ -163,9 +163,9 @@ static int ref_prelu_uint8(struct tensor* input_tensor, struct tensor* output_te
     int dim_num = input_tensor->dim_num;
     int slope_num = slope_tensor->elem_num;
 
-    uint8_t* input_data = input_tensor->data;
-    uint8_t* output_data = output_tensor->data;
-    fp16_t* slope_fp16 = slope_tensor->data;
+    uint8_t* input_data = (uint8_t*)input_tensor->data;
+    uint8_t* output_data = (uint8_t*)output_tensor->data;
+    fp16_t* slope_fp16 = (fp16_t*)slope_tensor->data;
 
     /* dequant */
     float input_scale = input_tensor->scale;
@@ -321,9 +321,9 @@ static int ref_prelu_int8(struct tensor* input_tensor, struct tensor* output_ten
     int dim1 = input_tensor->dims[1];
     int dim2 = input_tensor->dims[2];
     int dim3 = input_tensor->dims[3];
-    int8_t* data = input_tensor->data;
-    int8_t* out_data = output_tensor->data;
-    int8_t* slope = slope_tensor->data;
+    int8_t* data = (int8_t*)input_tensor->data;
+    int8_t* out_data = (int8_t*)output_tensor->data;
+    int8_t* slope = (int8_t*)slope_tensor->data;
 
     /* dequant */
     float input_scale = input_tensor->scale;

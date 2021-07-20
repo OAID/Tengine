@@ -199,7 +199,8 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         bias_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[2]);
         bias_data = bias_tensor->data;
     }
-    if (innerproduct(batch_number, inc, inh, inw, outc, weight_data, input_data, output_data, bias_data, num_thread, cpu_affinity) < 0)
+    if (innerproduct(batch_number, inc, inh, inw, outc, (float*)weight_data, (float*)input_data, 
+        (float*)output_data, (float*)bias_data, num_thread, cpu_affinity) < 0)
         return -1;
 
     return 0;

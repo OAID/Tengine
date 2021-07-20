@@ -75,9 +75,9 @@ static inline float bilinear_interpolate(const float* ptr, int w, int h, float x
 static int ref_roialign_fp32(struct tensor* input_tensor, struct tensor* roi_tensor,
                              struct tensor* output_tensor, struct roialign_param* param, int num_thread)
 {
-    float* data_in = input_tensor->data;
-    float* roi_ptr = roi_tensor->data;
-    float* data_out = output_tensor->data;
+    float* data_in = (float*)input_tensor->data;
+    float* roi_ptr = (float*)roi_tensor->data;
+    float* data_out = (float*)output_tensor->data;
 
     int size = input_tensor->dims[0] * input_tensor->dims[1] * input_tensor->dims[2] * input_tensor->dims[3];
 
@@ -131,7 +131,7 @@ static int ref_roialign_fp32(struct tensor* input_tensor, struct tensor* roi_ten
                 int bin_grid_h = ceil(hend - hstart);
                 int bin_grid_w = ceil(wend - wstart);
 
-                _Bool is_empty = (hend <= hstart) || (wend <= wstart);
+                int is_empty = (hend <= hstart) || (wend <= wstart);
                 int area = bin_grid_h * bin_grid_w;
 
                 float sum = 0.f;

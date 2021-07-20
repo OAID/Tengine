@@ -106,8 +106,8 @@ int ref_pooling_fp32(struct tensor* input_tensor, struct tensor* output_tensor,
     int method = pool_param->pool_method;
 
 
-    float* input = input_tensor->data;
-    float* output = output_tensor->data;
+    float* input = (float*)input_tensor->data;
+    float* output = (float*)output_tensor->data;
 
     for (int n = 0; n < batch; n++)
     {

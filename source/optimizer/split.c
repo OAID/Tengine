@@ -57,7 +57,7 @@ int tensor_in_precision(const struct tensor* tensor, struct vector* allowed_prec
     int count = get_vector_num(allowed_precision);
     for (int i = 0; i < count; i++)
     {
-        const int* const precision = get_vector_data(allowed_precision, i);
+        const int* const precision = (const int* const)get_vector_data(allowed_precision, i);
         if (*precision == (int)tensor->data_type || tensor->quant_param_num > 0)
         {
             return 0;
@@ -112,7 +112,7 @@ int node_in_list(const struct graph* ir_graph, struct vector* ops_list, const ui
 
     for (int i = 0; i < get_vector_num(ops_list); i++)
     {
-        int* loop_op = get_vector_data(ops_list, i);
+        int* loop_op = (int*)get_vector_data(ops_list, i);
         if (node_op_type == *loop_op)
         {
             return 0;
@@ -601,7 +601,7 @@ void add_sub_graph_to_ir_graph(struct graph* ir_graph)
 
                 if (!tensor_mask_as_out_flag)
                 {
-                    uint16_t* new_output_tensor_list = sys_malloc(sizeof(uint16_t) * (target_sub_graph->output_num + 1));
+                    uint16_t* new_output_tensor_list = (uint16_t*)sys_malloc(sizeof(uint16_t) * (target_sub_graph->output_num + 1));
 
                     memcpy(new_output_tensor_list, target_sub_graph->output_tensor_list, sizeof(uint16_t) * target_sub_graph->output_num);
                     new_output_tensor_list[target_sub_graph->output_num] = ir_tensor->index;

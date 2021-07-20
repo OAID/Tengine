@@ -69,7 +69,7 @@ jobs:
         lcov -r lcov.info '*uint8*' -o lcov.info
         lcov --list lcov.info
     - name: codecov
-      uses: codecov/codecov-action@v1.5.2
+      uses: codecov/codecov-action@v2.0.1
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         file: build/lcov.info
@@ -111,7 +111,7 @@ jobs:
         lcov -r lcov.info '/usr/*' -o lcov.info
         lcov --list lcov.info
     - name: codecov
-      uses: codecov/codecov-action@v1.5.2
+      uses: codecov/codecov-action@v2.0.1
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         file: build/lcov.info        
@@ -175,7 +175,7 @@ jobs:
         lcov -r lcov.info '/usr/*' -o lcov.info
         lcov --list lcov.info        
     - name: codecov
-      uses: codecov/codecov-action@v1.5.2
+      uses: codecov/codecov-action@v2.0.1
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         file: build/lcov.info

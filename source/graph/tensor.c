@@ -91,7 +91,7 @@ ir_tensor_t* create_ir_tensor(ir_graph_t* ir_graph, const char* tensor_name, int
 
     ir_tensor->layout = ir_graph->graph_layout;
 
-    ir_tensor_t** new_tensor_list = sys_realloc(ir_graph->tensor_list, sizeof(ir_tensor_t*) * (ir_graph->tensor_num + 1));
+    ir_tensor_t** new_tensor_list = (ir_tensor_t**)sys_realloc(ir_graph->tensor_list, sizeof(ir_tensor_t*) * (ir_graph->tensor_num + 1));
 
     if (NULL == new_tensor_list)
     {

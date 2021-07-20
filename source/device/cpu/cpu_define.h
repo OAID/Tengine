@@ -46,9 +46,9 @@
 
 typedef struct cpu_option
 {
-    char*   dev_name;
-    int     num_thread;     //!< how many threads to run
-    int     cluster;        //!< cpu cluster
-    int     precision;      //!< precision of calculation
-    size_t  affinity;       //!< affinity of cpu core, max 64 cpus
+    const char* dev_name;
+    int         num_thread;     //!< how many threads to run
+    int         cluster;        //!< cpu cluster
+    int         precision;      //!< precision of calculation
+    size_t      affinity;       //!< affinity of cpu core, max 64 cpus
 } cpu_opt_t;

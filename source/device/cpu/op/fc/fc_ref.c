@@ -56,12 +56,12 @@ static int ref_fc_fp32(struct tensor* input_tensor, struct tensor* output_tensor
     int hidden = param->hidden;
     int out_number = param->out_number;
 
-    float* input = input_tensor->data;
-    float* output = output_tensor->data;
-    float* weight = weight_tensor->data;
+    float* input = (float*)input_tensor->data;
+    float* output = (float*)output_tensor->data;
+    float* weight = (float*)weight_tensor->data;
     float* bias = NULL;
     if (bias_tensor)
-        bias = bias_tensor->data;
+        bias = (float*)bias_tensor->data;
 
     int n, i, j;
     for (n = 0; n < batch; n++)
@@ -93,12 +93,12 @@ static int ref_fc_fp16(struct tensor* input_tensor, struct tensor* output_tensor
     int hidden = param->hidden;
     int out_number = param->out_number;
 
-    fp16_t* input = input_tensor->data;
-    fp16_t* output = output_tensor->data;
-    fp16_t* weight = weight_tensor->data;
+    fp16_t* input = (fp16_t*)input_tensor->data;
+    fp16_t* output = (fp16_t*)output_tensor->data;
+    fp16_t* weight = (fp16_t*)weight_tensor->data;
     fp16_t* bias = NULL;
     if (bias_tensor)
-        bias = bias_tensor->data;
+        bias = (fp16_t*)bias_tensor->data;
 
     int n, i, j;
     for (n = 0; n < batch; n++)
@@ -126,9 +126,9 @@ static int ref_fc_uint8(struct tensor* input_tensor, struct tensor* output_tenso
     int hidden = param->hidden;
     int out_number = param->out_number;
 
-    uint8_t* input  = input_tensor->data;
-    uint8_t* output = output_tensor->data;
-    uint8_t* weight = weight_tensor->data;
+    uint8_t* input  = (uint8_t*)input_tensor->data;
+    uint8_t* output = (uint8_t*)output_tensor->data;
+    uint8_t* weight = (uint8_t*)weight_tensor->data;
 
     float input_scale = input_tensor->scale;
     float output_scale = output_tensor->scale;
@@ -139,7 +139,7 @@ static int ref_fc_uint8(struct tensor* input_tensor, struct tensor* output_tenso
 
     if (bias_tensor)
     {
-        int32_t* bias = bias_tensor->data;
+        int32_t* bias = (int32_t*)bias_tensor->data;
         float bias_scale = bias_tensor->scale;
                   
         int n, i, j;
@@ -215,9 +215,9 @@ static int ref_fc_int8(struct tensor* input_tensor, struct tensor* output_tensor
     int hidden = param->hidden;
     int out_number = param->out_number;
 
-    int8_t* input  = input_tensor->data;
-    int8_t* output = output_tensor->data;
-    int8_t* weight = weight_tensor->data;
+    int8_t* input  = (int8_t*)input_tensor->data;
+    int8_t* output = (int8_t*)output_tensor->data;
+    int8_t* weight = (int8_t*)weight_tensor->data;
 
     float input_scale = input_tensor->scale;
     float output_scale = output_tensor->scale;
@@ -229,7 +229,7 @@ static int ref_fc_int8(struct tensor* input_tensor, struct tensor* output_tensor
 
     if (bias_tensor)
     {
-        int32_t* bias_i32 = bias_tensor->data;
+        int32_t* bias_i32 = (int32_t*)bias_tensor->data;
 
         int n, i, j;
         for (n = 0; n < batch; n++)

@@ -41,8 +41,8 @@
 
 int ref_hardswish_fp32(struct tensor* input_tensor, struct tensor* output_tensor)
 {
-    float* input_data = input_tensor->data;
-    float* output_data = output_tensor->data;
+    float* input_data = (float*)input_tensor->data;
+    float* output_data = (float*)output_tensor->data;
     int size = input_tensor->elem_num;
 
     for (int i = 0; i < size; i++)
