@@ -95,9 +95,9 @@ int ref_spatialtransformer_fp32(struct tensor* input_tensor,struct tensor* input
     
     int indices_dim_size = input_tensor->dim_num;
 
-    float* in_data = input_tensor->data;
-    float* out_data = output_tensor->data;
-    float* loc_data = input_tensor1->data; 
+    float* in_data = (float*)input_tensor->data;
+    float* out_data = (float*)output_tensor->data;
+    float* loc_data = (float*)input_tensor1->data;
 
     int batch = input_tensor->dims[1];
 

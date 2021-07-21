@@ -48,8 +48,8 @@ static int ref_reorg_fp32(struct tensor* input_tensor, struct tensor* output_ten
 
     int out_c = c / (stride * stride);
 
-    float* in_data = input_tensor->data;
-    float* out_data = output_tensor->data;
+    float* in_data = (float*)input_tensor->data;
+    float* out_data = (float*)output_tensor->data;
 
     for (int b = 0; b < batch; ++b)
     {

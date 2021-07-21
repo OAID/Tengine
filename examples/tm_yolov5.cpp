@@ -367,7 +367,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    if (set_tensor_buffer(input_tensor, input_data.data(), img_size * 4) < 0)
+    if (set_tensor_buffer(input_tensor, input_data.data(), img_size * sizeof(float)) < 0)
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;
@@ -446,7 +446,7 @@ int main(int argc, char* argv[])
                 det.prob, det.classes);
     }
 
-    save_image(img, "tengine_example_out");
+    save_image(img, "yolov5_out");
 
     /* free resource */
     /* release tengine */

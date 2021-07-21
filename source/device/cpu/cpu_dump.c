@@ -55,7 +55,7 @@
 
 char* replace_string_character(const char* src_str, char* dst_str, const char* target_char, const char* replaced_char)
 {
-    char* p;
+    const char* p;
     char* _out = dst_str;
     const char* _str = src_str;
     const char* _src = target_char;
@@ -158,7 +158,7 @@ int print_tensor_data_value(FILE* file, const struct tensor* tensor, int offset)
     {
         case TENGINE_DT_FP32:
         {
-            float* base_ptr = tensor->data;
+            float* base_ptr = (float*)tensor->data;
             float val = base_ptr[offset];
             if (val < 0)
                 fprintf(file, "%.4f ", val);
@@ -168,7 +168,7 @@ int print_tensor_data_value(FILE* file, const struct tensor* tensor, int offset)
         }
         case TENGINE_DT_FP16:
         {
-            fp16_t* base_ptr = tensor->data;
+            fp16_t* base_ptr = (fp16_t*)tensor->data;
             fp16_t val = base_ptr[offset];
 
             float val_fp32 = fp16_to_fp32(val);
@@ -181,7 +181,7 @@ int print_tensor_data_value(FILE* file, const struct tensor* tensor, int offset)
         }
         case TENGINE_DT_UINT8:
         {
-            uint8_t* base_ptr = tensor->data;
+            uint8_t* base_ptr = (uint8_t*)tensor->data;
             uint8_t val = base_ptr[offset];
 
             float scale = tensor->scale;
@@ -196,7 +196,7 @@ int print_tensor_data_value(FILE* file, const struct tensor* tensor, int offset)
         }
         case TENGINE_DT_INT8:
         {
-            int8_t * base_ptr = tensor->data;
+            int8_t * base_ptr = (int8_t*)tensor->data;
             int8_t val = base_ptr[offset];
 
             float scale = tensor->scale;
@@ -209,7 +209,7 @@ int print_tensor_data_value(FILE* file, const struct tensor* tensor, int offset)
         }
         case TENGINE_DT_INT32:
         {
-            int32_t* base_ptr = tensor->data;
+            int32_t* base_ptr = (int32_t*)tensor->data;
             int8_t val = base_ptr[offset];
 
             float scale = tensor->scale;
@@ -609,7 +609,7 @@ void extract_feature_from_tensor(const char* comment, const char* layer_name, co
 
 void extract_node_executed_time(struct subgraph* subgraph, int node_id)
 {
-    struct exec_graph* exec_graph = subgraph->device_graph;
+    struct exec_graph* exec_graph = (struct exec_graph*)subgraph->device_graph;
     int node_num = get_vector_num(exec_graph->exec_node_list);
     int i = node_id;
     struct exec_node* node = ( struct exec_node* )get_vector_data(exec_graph->exec_node_list, i);

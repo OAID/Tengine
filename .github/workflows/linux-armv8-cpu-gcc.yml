@@ -1,22 +1,60 @@
 name: linux-armv8-cpu-gcc
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [tengine-lite]
+    paths:
+    - '.github/workflows/linux-armv8-cpu-gcc.yml'
+    - 'CMakeLists.txt'
+    - 'cmake/**'
+    - 'source/*'
+    - 'source/api/*'
+    - 'source/executer/*'
+    - 'source/graph/*'
+    - 'source/module/*'
+    - 'source/operator/*'
+    - 'source/optimizer/*'
+    - 'source/scheduler/*'
+    - 'source/serializer/*'
+    - 'source/system/*'
+    - 'source/utility/*'
+    - 'source/device/cpu/**'
+    - 'tests/**'
+  pull_request:
+    branches: [tengine-lite]
+    paths:
+    - '.github/workflows/linux-armv8-cpu-gcc.yml'
+    - 'CMakeLists.txt'
+    - 'cmake/**'
+    - 'source/*'
+    - 'source/api/*'
+    - 'source/executer/*'
+    - 'source/graph/*'
+    - 'source/module/*'
+    - 'source/operator/*'
+    - 'source/optimizer/*'
+    - 'source/scheduler/*'
+    - 'source/serializer/*'
+    - 'source/system/*'
+    - 'source/utility/*'
+    - 'source/device/cpu/**'
+    - 'tests/**'
 
 jobs:
   linux-armv8-cpu-gcc:
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v2.3.4
 
     - name: cache-qemu
       id: cache-qemu
-      uses: actions/cache@v1
+      uses: actions/cache@v2.1.6
       with:
         path: qemu-install
         key: qemu-aarch64-install-1
     - name: checkout-qemu
       if: steps.cache-qemu.outputs.cache-hit != 'true'
-      uses: actions/checkout@v2
+      uses: actions/checkout@v2.3.4
       with:
         repository: qemu/qemu
         path: qemu

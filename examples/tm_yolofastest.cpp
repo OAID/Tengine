@@ -421,7 +421,7 @@ static void get_input_data_darknet(const char* image_file, float* input_data, in
     swaprgb_img.w = net_w;
     swaprgb_img.h = net_h;
     swaprgb_img.data = input_data;
-    rgb2bgr_premute(swaprgb_img);
+    rgb2bgr_permute(swaprgb_img);
 }
 
 static void show_usage()
@@ -601,7 +601,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    if (set_tensor_buffer(input_tensor, input_data.data(), img_size * 4) < 0)
+    if (set_tensor_buffer(input_tensor, input_data.data(), img_size * sizeof(float)) < 0)
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;
@@ -650,7 +650,7 @@ int main(int argc, char* argv[])
         draw_box(img, b.xmin, b.ymin, b.xmax, b.ymax, 2, 125, 0, 125);
         fprintf(stderr, "class=%2d score=%.2f left = %.2f,right = %.2f,top = %.2f,bot = %.2f, name = %s\n", b.label, b.score, b.xmin, b.xmax, b.ymin, b.ymax, class_names[b.label]);
     }
-    save_image(img, "tengine_example_out");
+    save_image(img, "yolofastest_out");
 
     /* release tengine */
     free_image(img);

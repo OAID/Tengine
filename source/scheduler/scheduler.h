@@ -35,7 +35,7 @@ struct vector;
  */
 typedef struct scheduler
 {
-    char* name;
+    const char* name;
 
     int  (*prerun)(struct scheduler*, struct graph*);
     int  (*run)(struct scheduler*, struct graph*, int block);

@@ -110,20 +110,20 @@ static int ref_region_fp32(struct tensor* input_tensor, struct tensor* output_te
     int num_class = param->num_classes;
     int coords = param->coords;
 
-    float* in_data = input_tensor->data;
-    float* out_data = output_tensor->data;
+    float* in_data = (float*)input_tensor->data;
+    float* out_data = (float*)output_tensor->data;
 
     memcpy(out_data, in_data, nchw * sizeof(float));
 
     for (int b = 0; b < batch; b++)
     {
-        for (int n = 0; n < num_box; n++)
+        for (int ni = 0; ni < num_box; ni++)
         {
-            int index = entry_index(b, n * hw, 0, hw, chw, num_class);
+            int index = entry_index(b, ni * hw, 0, hw, chw, num_class);
             logit_activate_array(out_data + index, 2 * hw);
-            index = entry_index(b, n * hw, coords, hw, chw, num_class);
+            index = entry_index(b, ni * hw, coords, hw, chw, num_class);
             logit_activate_array(out_data + index, hw);
-            index = entry_index(b, n * hw, coords + 1, hw, chw, num_class);
+            index = entry_index(b, ni * hw, coords + 1, hw, chw, num_class);
         }
     }
 

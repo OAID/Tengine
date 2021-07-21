@@ -58,12 +58,12 @@ int ref_conv_uint8(struct tensor* input_tensor, struct tensor* output_tensor, st
     int kernel_offset = 0;
     int output_offset = 0;
 
-    uint8_t* input_data = input_tensor->data;
-    uint8_t* output_data = output_tensor->data;
-    uint8_t* kernel_data = kernel->data;
+    uint8_t* input_data = (uint8_t*)input_tensor->data;
+    uint8_t* output_data = (uint8_t*)output_tensor->data;
+    uint8_t* kernel_data = (uint8_t*)kernel->data;
     int32_t* bias_data = NULL;
     if (bias != NULL)
-        bias_data = bias->data;
+        bias_data = (int32_t*)bias->data;
 
     float input_scale = input_tensor->scale;
     float kernel_scale = kernel->scale;

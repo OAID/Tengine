@@ -114,18 +114,18 @@ static int conv3x3s1_int8_sse(struct tensor* input_tensor, struct tensor* weight
     memset(output_int32, 0, out_size * sizeof(int32_t));
     float* output_fp32 = (float*)sys_malloc(out_size * sizeof(float));
 
-    int8_t* output_int8 = output_tensor->data;
-    int8_t* input_int8  = input_tensor->data;
+    int8_t* output_int8 = (int8_t*)output_tensor->data;
+    int8_t* input_int8  = (int8_t*)input_tensor->data;
     int32_t* bias_int32 = NULL;
     if(bias_tensor)
-        bias_int32 = bias_tensor->data;
+        bias_int32 = (int32_t*)bias_tensor->data;
 
     /* get scale value of quantizaiton */
     float input_scale = input_tensor->scale;
     float* kernel_scales = weight_tensor->scale_list;
     float output_scale = output_tensor->scale;
 
-    const signed char* kernel = weight_tensor->data;
+    const signed char* kernel = (const signed char*)weight_tensor->data;
 
     /* pading */
     int inh_tmp = inh + pad_h + pad_h;
@@ -291,18 +291,18 @@ static int conv3x3s2_int8_sse(struct tensor* input_tensor, struct tensor* weight
     memset(output_int32, 0, out_size * sizeof(int32_t));
     float* output_fp32 = (float*)sys_malloc(out_size * sizeof(float));
 
-    int8_t* output_int8 = output_tensor->data;
-    int8_t* input_int8  = input_tensor->data;
+    int8_t* output_int8 = (int8_t*)output_tensor->data;
+    int8_t* input_int8  = (int8_t*)input_tensor->data;
     int32_t* bias_int32 = NULL;
     if(bias_tensor)
-        bias_int32 = bias_tensor->data;
+        bias_int32 = (int32_t*)bias_tensor->data;
 
     /* get scale value of quantizaiton */
     float input_scale = input_tensor->scale;
     float* kernel_scales = weight_tensor->scale_list;
     float output_scale = output_tensor->scale;
 
-    const signed char* kernel = weight_tensor->data;
+    const signed char* kernel = (const signed char*)weight_tensor->data;
 
     /* pading */
     int inh_tmp = inh + pad_h + pad_h;

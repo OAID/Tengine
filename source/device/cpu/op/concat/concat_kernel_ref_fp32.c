@@ -64,7 +64,6 @@ int ref_concat_fp32(struct graph* ir_graph, struct node* ir_node, int axis)
         for (int num = 0; num < ir_node->input_num; num++)
         {
             struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[num]);
-            struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
             int size = input_tensor->elem_num;
 
@@ -87,7 +86,6 @@ int ref_concat_fp32(struct graph* ir_graph, struct node* ir_node, int axis)
         for (int num = 0; num < ir_node->input_num; num++)
         {
             struct tensor* input_tensor  = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[num]);
-            struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
             int size = input_tensor->elem_num;
 
@@ -215,7 +213,7 @@ int ref_concat_fp32(struct graph* ir_graph, struct node* ir_node, int axis)
                     }
 
                     output_step += in_w;
-                }                
+                }
             }
         }
     }

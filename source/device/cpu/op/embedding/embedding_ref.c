@@ -91,8 +91,9 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         bias_tensor = get_ir_graph_tensor(graph, node->input_tensors[2]);
     }
 
-    return ref_embed_fp32(input->data, output->data, weight_tensor->data, bias_tensor ? bias_tensor->data : NULL,
-                          param->input_dim, param->num_output, input->elem_size, param->bias_term, 1.0f, 0.0f);
+    return ref_embed_fp32((float*)input->data, (float*)output->data, (float*)weight_tensor->data, 
+        bias_tensor ? (float*)bias_tensor->data : NULL, param->input_dim, param->num_output, 
+        input->elem_size, param->bias_term, 1.0f, 0.0f);
 }
 
 static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struct node* exec_node)

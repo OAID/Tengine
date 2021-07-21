@@ -53,7 +53,7 @@ int float_mismatch(float* current, float* reference, int size)
     for(int i=0;i<size;i++)
     {
         float tmp = fabs(current[i]) - fabs(reference[i]);
-        if(fabs(tmp) > 0.0001)
+        if(fabs(tmp) > 0.001)
         {
             fprintf(stderr, "test failed, index:%d, a:%f, b:%f\n", i, current[i], reference[i]);
             return -1;
@@ -218,7 +218,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    if (set_tensor_buffer(input_tensor, input_data.data(), img_size * 4) < 0)
+    if (set_tensor_buffer(input_tensor, input_data.data(), img_size * sizeof(float)) < 0)
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;
@@ -263,6 +263,11 @@ int main(int argc, char* argv[])
     std::vector<float> reference_data(output_size);
     FILE *fp;
     fp = fopen(reference_file.c_str(), "rb");
+    if (!fp)
+    {
+        fprintf(stderr, "read reference %s failed!\n",reference_file.c_str());
+        return -1;        
+    }
     if (fread(reference_data.data(), sizeof(float), output_size, fp) == 0)
     {
         fprintf(stderr, "read reference data file failed!\n");

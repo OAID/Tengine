@@ -86,7 +86,7 @@ void post_process_ssd(const char* image_file, float threshold, const float* outd
 
     free(boxes);
 
-    save_image(im, "tengine_example_out");
+    save_image(im, "mobilenet_ssd_acl_out");
     free_image(im);
     fprintf(stderr, "======================================\n");
     fprintf(stderr, "[DETECTED IMAGE SAVED]:\n");
@@ -203,7 +203,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    if (set_tensor_buffer(input_tensor, input_data, img_size * 4) < 0)
+    if (set_tensor_buffer(input_tensor, input_data, img_size * sizeof(float)) < 0)
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;

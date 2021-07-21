@@ -30,11 +30,11 @@ jobs:
 
     steps:
     - name: cancel-previous-runs
-      uses: styfle/cancel-workflow-action@0.7.0
+      uses: styfle/cancel-workflow-action@0.9.0
       with:
         access_token: ${{ secrets.GITHUB_TOKEN }}
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v2.3.4
       with:
         # We must fetch at least the immediate parents so that if this is
         # a pull request then we can checkout the head.

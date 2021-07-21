@@ -29,11 +29,11 @@
 #include "tengine/c_api.h"
 #include "tengine_operations.h"
 
-#define DEFAULT_IMG_H 227
-#define DEFAULT_IMG_W 227
-#define DEFAULT_SCALE1 1.f
-#define DEFAULT_SCALE2 1.f
-#define DEFAULT_SCALE3 1.f
+#define DEFAULT_IMG_H 224
+#define DEFAULT_IMG_W 224
+#define DEFAULT_SCALE1 0.017f
+#define DEFAULT_SCALE2 0.017f
+#define DEFAULT_SCALE3 0.017f
 #define DEFAULT_MEAN1 104.007
 #define DEFAULT_MEAN2 116.669
 #define DEFAULT_MEAN3 122.679
@@ -85,7 +85,7 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
         return -1;
     }
 
-    if (set_tensor_buffer(input_tensor, input_data, img_size * 4) < 0)
+    if (set_tensor_buffer(input_tensor, input_data, img_size * sizeof(float)) < 0)
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;

@@ -167,9 +167,9 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
     int ret = -1;
     if (input_tensor->data_type == TENGINE_DT_FP32)
-        ret = ref_gather_fp32(input, indices_data, output, op_priv_info, exec_graph->num_thread);
+        ret = ref_gather_fp32((float*)input, (int*)indices_data, (float*)output, op_priv_info, exec_graph->num_thread);
     else if(input_tensor->data_type == TENGINE_DT_UINT8)
-        ret = ref_gather_uint8(input, indices_data, output, op_priv_info, exec_graph->num_thread);
+        ret = ref_gather_uint8((uint8_t*)input, (int*)indices_data, (uint8_t*)output, op_priv_info, exec_graph->num_thread);
 
     return ret;
 }

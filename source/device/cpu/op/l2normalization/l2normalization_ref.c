@@ -78,7 +78,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         input_size *= input_tensor->dims[i];
     }
 
-    ref_l2normalization_fp32(input_tensor->data, output_tensor->data, input_size, channel_size);
+    ref_l2normalization_fp32((float*)input_tensor->data, (float*)output_tensor->data, input_size, channel_size);
 
     return 0;
 }

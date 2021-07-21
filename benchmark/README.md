@@ -110,6 +110,47 @@ tengine-lite library version: 1.2-dev
 ALL TEST DONE
 ```
 
+Loongson (Loongson-2K1000 1.0GHz x 2)
+
+```bash
+root@ls2k:~/Tengine/build/benchmark# ./tm_benchmark -r 5 -t 1
+Tengine benchmark:
+  loops:    5
+  threads:  1
+  cluster:  0
+  affinity: 0xFFFFFFFF
+Tengine-lite library version: 1.4-dev
+     squeezenet_v1.1  min =  402.25 ms   max =  403.18 ms   avg =  402.71 ms
+         mobilenetv1  min =  632.06 ms   max =  641.36 ms   avg =  634.23 ms
+         mobilenetv2  min =  672.83 ms   max =  681.23 ms   avg =  676.84 ms
+        shufflenetv2  min =  197.84 ms   max =  198.12 ms   avg =  197.98 ms
+            resnet18  min = 1473.91 ms   max = 1483.56 ms   avg = 1477.90 ms
+           googlenet  min = 1889.65 ms   max = 1974.64 ms   avg = 1909.87 ms
+                mssd  min = 1303.90 ms   max = 1318.38 ms   avg = 1310.04 ms
+          retinaface  min =  239.41 ms   max =  240.55 ms   avg =  239.84 ms
+         yolov3_tiny  min = 2543.42 ms   max = 2899.41 ms   avg = 2622.35 ms
+      mobilefacenets  min =  290.48 ms   max =  291.38 ms   avg =  290.89 ms
+ALL TEST DONE.
+root@ls2k:~/Tengine/build/benchmark# ./tm_benchmark -r 5 -t 2
+Tengine benchmark:
+  loops:    5
+  threads:  2
+  cluster:  0
+  affinity: 0xFFFFFFFF
+Tengine-lite library version: 1.4-dev
+     squeezenet_v1.1  min =  278.58 ms   max =  279.52 ms   avg =  279.30 ms
+         mobilenetv1  min =  390.04 ms   max =  392.53 ms   avg =  391.28 ms
+         mobilenetv2  min =  460.73 ms   max =  499.20 ms   avg =  469.19 ms
+        shufflenetv2  min =  135.67 ms   max =  136.96 ms   avg =  136.15 ms
+            resnet18  min =  875.25 ms   max = 1144.43 ms   avg =  937.75 ms
+           googlenet  min = 1372.72 ms   max = 1470.74 ms   avg = 1398.54 ms
+                mssd  min =  797.70 ms   max =  841.09 ms   avg =  806.83 ms
+          retinaface  min =  163.14 ms   max =  163.74 ms   avg =  163.44 ms
+         yolov3_tiny  min = 1649.77 ms   max = 1687.45 ms   avg = 1661.06 ms
+      mobilefacenets  min =  189.38 ms   max =  190.10 ms   avg =  189.80 ms
+ALL TEST DONE.
+```
+
 Khadas VIM3 (Cortex-A73 2.2GHz x 4 + Cortex-A53 1.8GHz x 2)
 
 ```bash

@@ -479,10 +479,9 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         ret = ref_slice_common(input, out_data_ptrs, sizeof(float), &op_param);
     else if (input_tensor->data_type == TENGINE_DT_UINT8) // ugly implement, need to refactor !
     {
-        struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
         /* dequant to fp32 */
-        uint8_t* input_uint8 = input_tensor->data;
-        uint8_t* output_uint8 = output_tensor->data;
+        uint8_t* input_uint8 = (uint8_t*)input_tensor->data;
+        uint8_t* output_uint8 = (uint8_t*)output_tensor->data;
         float input_scale = input_tensor->scale;
         float output_scale = output_tensor->scale;
         int32_t input_zero = input_tensor->zero_point;

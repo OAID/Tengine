@@ -56,12 +56,12 @@ int ref_selu_fp32(struct tensor* output_tensor, struct tensor* input_tensor, str
         float* input_data = ( float* )input_tensor->data + i * chan_size;
         float* output_data = ( float* )output_tensor->data + i * chan_size;
 
-        for (int i = 0; i < chan_size; i++)
+        for (int j = 0; j < chan_size; j++)
         {
-            if (input_data[i] < 0.f)
-                output_data[i] = (exp(input_data[i]) - 1.f) * alpha_lambda;
+            if (input_data[j] < 0.f)
+                output_data[j] = (exp(input_data[j]) - 1.f) * alpha_lambda;
             else
-                output_data[i] = input_data[i] * lambda;
+                output_data[j] = input_data[j] * lambda;
         }
     }
 
@@ -72,8 +72,8 @@ int ref_selu_uint8(struct tensor* output_tensor, struct tensor* input_tensor, st
                   int num_thread)
 {
     /* dequant */
-    uint8_t* input_uint8 = input_tensor->data;
-    uint8_t* output_uint8 = output_tensor->data;
+    uint8_t* input_uint8 = (uint8_t*)input_tensor->data;
+    uint8_t* output_uint8 = (uint8_t*)output_tensor->data;
     float input_scale = input_tensor->scale;
     float output_scale = output_tensor->scale;
     int32_t input_zero = input_tensor->zero_point;
@@ -100,15 +100,15 @@ int ref_selu_uint8(struct tensor* output_tensor, struct tensor* input_tensor, st
     for (int i = 0; i < chan_num; i++)
     {
         int offset = i * chan_size;
-        float* input_data = ( float* )input_tensor->data + i * chan_size;
-        float* output_data = ( float* )output_tensor->data + i * chan_size;
+        input_data = ( float* )input_tensor->data + i * chan_size;
+        output_data = ( float* )output_tensor->data + i * chan_size;
 
-        for (int i = 0; i < chan_size; i++)
+        for (int j = 0; j < chan_size; j++)
         {
-            if (input_data[i] < 0.f)
-                output_data[i] = (exp(input_data[i]) - 1.f) * alpha_lambda;
+            if (input_data[j] < 0.f)
+                output_data[j] = (exp(input_data[j]) - 1.f) * alpha_lambda;
             else
-                output_data[i] = input_data[i] * lambda;
+                output_data[j] = input_data[j] * lambda;
         }
     }
 

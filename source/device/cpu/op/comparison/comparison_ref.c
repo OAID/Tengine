@@ -85,7 +85,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     op_param.layout = input_tensor->layout;
     op_param.type = param->type;
 
-    return ref_comparison_fp32(input0, input1, output, &op_param);
+    return ref_comparison_fp32((float*)input0, (float*)input1, (float*)output, &op_param);
 }
 
 static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struct node* exec_node)

@@ -140,7 +140,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    if (set_tensor_buffer(input_tensor, input_data, img_size * 4) < 0)
+    if (set_tensor_buffer(input_tensor, input_data, img_size * sizeof(float)) < 0)
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;
@@ -193,7 +193,7 @@ int main(int argc, char* argv[])
         draw_circle(img_out, x, y, 2, 0, 255, 0);
     }
 
-    save_image(img_out, "landmarkout");
+    save_image(img_out, "landmark_out");
 
     postrun_graph(graph);
     destroy_graph(graph);

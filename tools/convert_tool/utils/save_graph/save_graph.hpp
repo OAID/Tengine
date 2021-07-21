@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <vector>
+#include <string>
 #include <unordered_map>
 #include <fcntl.h>
 #include <functional>
@@ -18,7 +19,7 @@ extern "C"
 #include "graph/tensor.h"
 #include "utility/log.h"
 #include "operator/op.h"
-#include "tm2_format.h"
+#include "serializer/tmfile/tm2_format.h"
 }
 
 

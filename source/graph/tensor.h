@@ -25,6 +25,10 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 #include "defines.h"
 
 #include <stdint.h>
@@ -41,7 +45,7 @@ typedef struct tensor
 {
     uint16_t index;                          //!< the index of a tensor
     int16_t  producer;                       //!< node id, '-1' means no producer
-    int16_t  consumer[TE_MAX_CONSUMER_NUM];  //!< consumer nodes array
+    int16_t* consumer;                       //!< consumer nodes array
 
     uint8_t  reshaped;                       //!< the tensor's shape has changed
     uint8_t  consumer_num;                   //!< count of consumer nodes
@@ -188,3 +192,17 @@ int get_ir_tensor_quantization_parameter(ir_tensor_t* ir_tensor, float* scale, i
  * @param [in]  tensor: specific tensor.
  */
 void dump_ir_tensor(struct graph* ir_graph, ir_tensor_t* ir_tensor);
+
+/*!
+ * @brief  Set consumer node for a tensor.
+ *
+ * @param [in]  tensor: specific tensor.
+ * @param [in]  index: node index.
+ *
+ * @return statue value, 0 success, other value failure.
+ */
+int set_ir_tensor_consumer(ir_tensor_t* ir_tensor, const int index); 
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */

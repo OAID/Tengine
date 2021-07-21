@@ -229,7 +229,7 @@ static void post_process_ultraface(const char* image_file, float *boxs_data, flo
         fprintf(stderr, "BOX %.2f:(%.2f, %.2f),(%.2f, %.2f)\n", box.score, box.x1, box.y1, box.x2, box.y2);
     }
 
-    save_image(im, "tengine_example_out");
+    save_image(im, "ultraface_out");
     free_image(im);
     fprintf(stderr, "======================================\n");
     fprintf(stderr, "[DETECTED IMAGE SAVED]:\n");
@@ -331,7 +331,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    if (set_tensor_buffer(input_tensor, input_data, img_size * 4) < 0)
+    if (set_tensor_buffer(input_tensor, input_data, img_size * sizeof(float)) < 0)
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;
@@ -352,7 +352,7 @@ int main(int argc, char* argv[])
     swaprgb_img.w = g_tensor_in_w;
     swaprgb_img.h = g_tensor_in_h;
     swaprgb_img.data = input_data;
-    rgb2bgr_premute(swaprgb_img);
+    rgb2bgr_permute(swaprgb_img);
 
     /* run graph */
     double min_time = DBL_MAX;

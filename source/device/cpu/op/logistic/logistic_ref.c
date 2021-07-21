@@ -99,9 +99,9 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     logical_param.zero_point[1] = output_tensor->zero_point;
 
     if (input_tensor->data_type == TENGINE_DT_FP32)
-        ref_logistic_fp32(input_tensor->data, output_tensor->data, &logical_param);
+        ref_logistic_fp32((float*)input_tensor->data, (float*)output_tensor->data, &logical_param);
     else
-        ref_logistic_uint8(input_tensor->data, output_tensor->data, &logical_param);
+        ref_logistic_uint8((uint8_t*)input_tensor->data, (uint8_t*)output_tensor->data, &logical_param);
 
     return 0;
 }

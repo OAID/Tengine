@@ -111,6 +111,8 @@ tm_uoffset_t SaveTmDeconvOp(void* const start_ptr, tm_uoffset_t* cur_pos, ir_nod
     tm_param.dilation_w = p->dilation_w;
     tm_param.group = p->group;
     tm_param.activation = p->activation;
+    tm_param.output_pad_h0 = p->output_pad_h0;
+    tm_param.output_pad_w0 = p->output_pad_w0;
 
     TM2_Operator tm_op;
     SetTmOperator(&tm_op, TM2_OPTYPE_DECONVOLUTION,
@@ -514,14 +516,14 @@ tm_uoffset_t SaveTmSliceOp(void* const start_ptr, tm_uoffset_t* cur_pos, ir_node
     TM2_SliceParam tm_param;
 
     tm_param.axis = p->axis;
+    tm_param.begin = p->begin;
+    tm_param.end = p->end;
+    tm_param.step = p->step;
     tm_param.iscaffe = p->iscaffe;
     tm_param.isonnx = p->isonnx;
     tm_param.ismxnet = p->ismxnet;
-    if(!tm_param.iscaffe){
-        tm_param.begin = p->begin;
-        tm_param.end = p->end;
-    }
-    if(p->slice_point_->elem_num)
+
+    if(p->slice_point_ && p->slice_point_->elem_num)
     {
         size_t vector_size = sizeof(tm_size_t) + sizeof(int32_t) * p->slice_point_->elem_num;
         TM2_Vector_dims* v_slice_points = ( TM2_Vector_dims* )malloc(vector_size);
@@ -536,7 +538,7 @@ tm_uoffset_t SaveTmSliceOp(void* const start_ptr, tm_uoffset_t* cur_pos, ir_node
     else
         tm_param.offset_vi_slice_points = TM2_NOT_SET;
 
-    if(p->begin_->elem_num)
+    if(p->begin_ && p->begin_->elem_num)
     {
         size_t vector_size = sizeof(tm_size_t) + sizeof(int32_t) * p->begin_->elem_num;
         TM2_Vector_dims* v_begins = ( TM2_Vector_dims* )malloc(vector_size);
@@ -551,7 +553,7 @@ tm_uoffset_t SaveTmSliceOp(void* const start_ptr, tm_uoffset_t* cur_pos, ir_node
     else
         tm_param.offset_vi_begins = TM2_NOT_SET;
 
-    if(p->size_->elem_num)
+    if(p->size_ && p->size_->elem_num)
     {
         size_t vector_size = sizeof(tm_size_t) + sizeof(int32_t) * p->size_->elem_num;
         TM2_Vector_dims* v_sizes = ( TM2_Vector_dims* )malloc(vector_size);
@@ -790,10 +792,10 @@ tm_uoffset_t SaveTmStridedSliceOp(void* const start_ptr, tm_uoffset_t* cur_pos, 
     struct strided_slice_param* p = (struct strided_slice_param*)node->op.param_mem;
     TM2_StridedSliceParam tm_param;
 
-    tm_param.begine_n = p->begin[0];
-    tm_param.begine_c = p->begin[1];
-    tm_param.begine_h = p->begin[2];
-    tm_param.begine_w = p->begin[3];
+    tm_param.begin_n = p->begin[0];
+    tm_param.begin_c = p->begin[1];
+    tm_param.begin_h = p->begin[2];
+    tm_param.begin_w = p->begin[3];
     tm_param.end_n = p->end[0];
     tm_param.end_c = p->end[1];
     tm_param.end_h = p->end[2];
@@ -1115,7 +1117,7 @@ tm_uoffset_t SaveTmSeluOp(void* const start_ptr, tm_uoffset_t* cur_pos, ir_node_
     struct selu_param* p = (struct selu_param*)node->op.param_mem;
     TM2_SeluParam tm_param;
     tm_param.alpha = p->alpha;
-    tm_param.gamma = p->lambda;//gamma
+    tm_param.lambda = p->lambda;
 
     TM2_Operator tm_op;
     SetTmOperator(&tm_op, TM2_OPTYPE_SELU, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_SeluParam)));
@@ -1343,11 +1345,11 @@ tm_uoffset_t SaveTmExpandOp(void* const start_ptr, tm_uoffset_t* cur_pos,ir_node
         {
             v_axises->dims[i] = p->ex_shape[i];
         }
-        tm_param.offset_v_shape = WriteTmObject(start_ptr, cur_pos, v_axises, vector_size);
+        tm_param.offset_ex_shape = WriteTmObject(start_ptr, cur_pos, v_axises, vector_size);
         free(v_axises);
     }
     else
-        tm_param.offset_v_shape = TM2_NOT_SET;
+        tm_param.offset_ex_shape = TM2_NOT_SET;
 
     tm_param.dim_num = p->dim_num;
     TM2_Operator tm_op;

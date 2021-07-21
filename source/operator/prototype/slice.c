@@ -31,7 +31,7 @@
 #include "module/module.h"
 #include "utility/vector.h"
 #include "utility/sys_port.h"
-
+#include "utility/log.h"    // for: TLOG_ERR
 
 static int infer_shape(ir_node_t* node)
 {
@@ -40,6 +40,16 @@ static int infer_shape(ir_node_t* node)
     struct slice_param* slice_param = ( struct slice_param* )(node->op.param_mem);
     int dims_len = input->dim_num;
     int dims_in[TE_MAX_SHAPE_DIM_NUM * 2];
+
+    // Check: axis must be in the range: [-input->dim_num, input->dim_num)
+    // Note: Here we always assume 0 <= input->dim_num
+    if (slice_param->axis < -input->dim_num || input->dim_num <= slice_param->axis) {
+        TLOG_ERR("Input slice axis %d not to be supported.\n", slice_param->axis);
+        return -1;
+    }
+    // In case axis is negative (and is not last dimension -1), add input tensor's dimension
+    slice_param->axis += input->dim_num;
+    slice_param->axis %= input->dim_num;
 
     for (int j = 0; j < dims_len; j++)
     {

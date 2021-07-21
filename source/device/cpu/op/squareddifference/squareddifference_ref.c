@@ -41,9 +41,9 @@ int ref_squareddifference_fp32(struct tensor* input_tensor_0, struct tensor* inp
     // dims size = 2 or 3
     if (input_tensor_0->dim_num < 4)
     {
-        float* input0 = input_tensor_0->data;
-        float* input1 = input_tensor_1->data;
-        float* output = output_tensor->data;
+        float* input0 = (float*)input_tensor_0->data;
+        float* input1 = (float*)input_tensor_1->data;
+        float* output = (float*)output_tensor->data;
         int total_size = output_tensor->elem_num;
 
         for (int i = 0; i < total_size; i++)
@@ -62,9 +62,9 @@ int ref_squareddifference_fp32(struct tensor* input_tensor_0, struct tensor* inp
         int size = h * w;
         int c_step = h * w;
 
-        float* input0 = input_tensor_0->data;
-        float* input1 = input_tensor_1->data;
-        float* output = output_tensor->data;
+        float* input0 = (float*)input_tensor_0->data;
+        float* input1 = (float*)input_tensor_1->data;
+        float* output = (float*)output_tensor->data;
 
 #pragma omp parallel for num_threads(num_thread)
         for (int q = 0; q < channels; q++)
@@ -89,9 +89,9 @@ int ref_squareddifference_uint8(struct tensor* input_tensor_0, struct tensor* in
                                struct tensor* output_tensor, int num_thread)
 {
     /* dequant */
-    uint8_t* input0_uint8 = input_tensor_0->data;
-    uint8_t* input1_uint8 = input_tensor_1->data;
-    uint8_t* output_uint8 = output_tensor->data;
+    uint8_t* input0_uint8 = (uint8_t*)input_tensor_0->data;
+    uint8_t* input1_uint8 = (uint8_t*)input_tensor_1->data;
+    uint8_t* output_uint8 = (uint8_t*)output_tensor->data;
     float input0_scale = input_tensor_0->scale;
     float input1_scale = input_tensor_1->scale;
     float output_scale = output_tensor->scale;

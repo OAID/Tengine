@@ -58,18 +58,29 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
     struct softmax_param* softmax_param = ( struct softmax_param* )ir_node->op.param_mem;
 
+    // Check: axis must be in the range: [-input_tensor->dim_num, input_tensor->dim_num)
+    // Note: Here we always assume 0 <= input_tensor->dim_num
+    int axis = softmax_param->axis;
+    if (axis < -input_tensor->dim_num || input_tensor->dim_num <= axis) {
+        TLOG_ERR("Input softmax axis %d not to be supported.\n", axis);
+        return -1;
+    }
+    // In case axis is negative (and is not last dimension -1), add input tensor's dimension
+    axis += input_tensor->dim_num;
+    axis %= input_tensor->dim_num;
+
     int ret = -1;
     if (input_tensor->data_type == TENGINE_DT_FP32)
     {
-        ret = ref_softmax_fp32(input_tensor, output_tensor, softmax_param->axis);
+        ret = ref_softmax_fp32(input_tensor, output_tensor, axis);
     }
     else if (input_tensor->data_type == TENGINE_DT_UINT8)
     {
-        ret = ref_softmax_uint8(input_tensor, output_tensor, softmax_param->axis);
+        ret = ref_softmax_uint8(input_tensor, output_tensor, axis);
     }
     else if (input_tensor->data_type == TENGINE_DT_INT8)
     {
-        ret = ref_softmax_int8(input_tensor, output_tensor, softmax_param->axis);
+        ret = ref_softmax_int8(input_tensor, output_tensor, axis);
     }
     else
         TLOG_ERR("Input data type %d not to be supported.\n", input_tensor->data_type);
