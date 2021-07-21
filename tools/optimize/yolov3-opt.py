@@ -17,14 +17,25 @@
 
 """
 This tool for optimizing the network structure of YOLOv3 from 
-https://github.com/ultralytics/yolov3/releases/download/v9.5.0/yolov3.pt .
+https://github.com/ultralytics/yolov3/releases/download/v9.5.0/yolov3.pt
+https://github.com/ultralytics/yolov3/releases/download/v9.5.0/yolov3-spp.pt
+https://github.com/ultralytics/yolov3/releases/download/v9.5.0/yolov3-tiny.pt
 
+Preparation:
+1. Export pytorch model to onnx by official models/export.py, e.g.
+$ python models/export.py --weights yolov3.pt
+$ python models/export.py --weights yolov3-spp.pt
+$ python models/export.py --weights yolov3-tiny.pt
+
+Optimization:
 1. Load original model as simplify format;
-2. Cut target nodes;
+2. Cut redundant "output" node;
 3. Update input and output nodes;
-
-Usage:
-$ python3 yolov3-opt.py --input yolov3.onnx --output yolov3-opt.onnx --cut "Conv_156"
+4. Check and save new onnx model.
+Example:
+$ python3 yolov3-opt.py --input yolov3.onnx --output yolov3-opt.onnx --cut "Sigmoid_189,Sigmoid_238,Sigmoid_287"
+$ python3 yolov3-opt.py --input yolov3-spp.onnx --output yolov3-spp-opt.onnx --cut "Sigmoid_195,Sigmoid_244,Sigmoid_293"
+$ python3 yolov3-opt.py --input yolov3-tiny.onnx --output yolov3-tiny-opt.onnx --cut "Sigmoid_62,Sigmoid_111"
 
 This tool is based on ONNX Framework.
 
@@ -32,10 +43,10 @@ Author:
     qinhj@lsec.cc.ac.cn
 
 Histroy:
+2021/06/29  update
 2021/05/19  create
 """
 
-import numpy as np
 import onnx
 import argparse
 
@@ -47,7 +58,7 @@ def parse_args():
     
     parser.add_argument('--input', help='input model path', default='./yolov3.onnx', type=str)  
     parser.add_argument('--output', help='output model path', default='./yolov3-opt.onnx', type=str)
-    parser.add_argument('--cut', help='cut node names', default='Conv_156', type=str)
+    parser.add_argument('--cut', help='cut node names', default='Sigmoid_189,Sigmoid_238,Sigmoid_287', type=str)
     
     args = parser.parse_args()
     return args
@@ -57,7 +68,7 @@ def parse_args():
 Note:
 1) both node.remove and node.pop are not safe during iter;
 """
-def cut_nodes(input_node, cut_names):
+def optimize_node_cut(input_node, cut_names):
     """
     del nodes from input nodes
     Args:
@@ -73,8 +84,8 @@ def cut_nodes(input_node, cut_names):
             del_node_list.append(i)
             del_node_name.add(n.name)
             [del_node_name.add(o) for o in n.output]
-    print("del node name:", del_node_name)
-    print("del node list:", del_node_list)
+    #print("del node name:", del_node_name)
+    #print("del node list:", del_node_list)
 
     ## delete nodes safely: from end to start
     del_node_list.reverse()
@@ -129,8 +140,7 @@ def main():
 
     # cut the target nodes
     print("[Quant Tools Info]: Step 2, cut nodes '%s' node in graph." % (args.cut))
-    cut_node_name = args.cut.split(',')
-    del_node_name = cut_nodes(graph.node, cut_node_name)
+    del_node_name = optimize_node_cut(graph.node, args.cut.split(','))
 
     # update graph input and output nodes
     print("[Quant Tools Info]: Step 3, update the input and output nodes")

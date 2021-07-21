@@ -339,7 +339,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     ref_proposal_local_anchor(featmap_tensor->dims[2], featmap_tensor->dims[3], _param->feat_stride, _param->anchors_,
                               local_anchors);
 
-    int output_num = ref_rpn_fp32(score_org, featmap_org, local_anchors, output_org, &param);
+    int output_num = ref_rpn_fp32((float*)score_org, (float*)featmap_org, local_anchors, (float*)output_org, &param);
     int dims[4];
     dims[0] = featmap_tensor->dims[0];
     dims[1] = output_num;

@@ -27,6 +27,7 @@
 EXPORT_BEGIN
 #include "relu_param.h"
 #include "convolution_param.h"
+#include "clip_param.h"
 EXPORT_FINISH
 
 #include <cmath>
@@ -62,7 +63,7 @@ bool TensorRTEngine::addReLUNode(struct graph *ir_graph, struct node *node)
                 op_type = OP_RELU1;
                 break;
             case 6:
-                op_type = OP_RELU6;
+                op_type = OP_CLIP;
                 break;
             default:
                 fprintf(stderr, "Tengine: Unsupported RelU type(%d).\n", param->activation);
@@ -85,6 +86,9 @@ bool TensorRTEngine::addReLUNode(struct graph *ir_graph, struct node *node)
                 break;
             case OP_RELU6:
                 op_type = OP_RELU6;
+                break;
+            case OP_CLIP:
+                op_type = OP_CLIP;
                 break;
             default:
                 fprintf(stderr, "Tengine: Unsupported RelU type(%d).\n", node->op.type);
@@ -144,10 +148,22 @@ bool TensorRTEngine::addReLUNode(struct graph *ir_graph, struct node *node)
         this->layer_map[node->index] = layer;
 
         if (OP_RELU1 == op_type)
-            layer->setAlpha(1);
+        {
+            layer->setAlpha(0);
+            layer->setBeta(1);
+        }
         if (OP_RELU6 == op_type)
-            layer->setAlpha(6);
-        layer->setBeta(0);
+        {
+            layer->setAlpha(0);
+            layer->setBeta(6);
+        }
+        if (OP_CLIP == op_type)
+        {
+            auto clip_param = (struct clip_param*)node->op.param_mem;
+
+            layer->setAlpha(clip_param->min);
+            layer->setBeta(clip_param->max);
+        }
     }
 
     trt_tensor = layer->getOutput(0);

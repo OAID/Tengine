@@ -74,7 +74,7 @@ const char* landmark_name[3] = {"face_rpn_landmark_pred_stride32", "face_rpn_lan
 
 const int stride[3] = {32, 16, 8};
 
-const float scales[3][2] = {{32.f, 16.f}, {8.f, 4.f}, {2.f, 1.f}};
+const float g_scales[3][2] = {{32.f, 16.f}, {8.f, 4.f}, {2.f, 1.f}};
 
 struct Size2i
 {
@@ -129,7 +129,7 @@ void draw_target(const std::vector<Face2f>& all_pred_boxes, image img)
             draw_circle(img, box.landmark[l].x, box.landmark[l].y, 1, 0, 128, 128);
         }
     }
-    save_image(img, "tengine_example_out");
+    save_image(img, "retinaface_out");
 }
 
 float iou(const Face2f& a, const Face2f& b)
@@ -353,7 +353,7 @@ int get_input_data(const char* image_file, const int& max_size, const int& targe
     ori_size.width = img.w;
     ori_size.height = img.h;
 
-    img = image_premute(img);
+    img = image_permute(img);
 
     int im_size_min = std::min(img.h, img.w);
     int im_size_max = std::max(img.h, img.w);
@@ -388,7 +388,7 @@ int get_input_data(const char* image_file, std::vector<float>& image_data, Size2
 
     int img_size = img.w * img.h * img.c;
 
-    img = image_premute(img);
+    img = image_permute(img);
 
     image_data.resize(img_size);
 
@@ -514,7 +514,7 @@ int main(int argc, char* argv[])
     }
 
     /* set the data mem to input tensor */
-    if (set_tensor_buffer(input_tensor, image_data.data(), img_size * 4) < 0)
+    if (set_tensor_buffer(input_tensor, image_data.data(), img_size * sizeof(float)) < 0)
     {
         printf("Set input tensor buffer failed\n");
         return -1;
@@ -581,8 +581,8 @@ int main(int argc, char* argv[])
         current_ratios[0] = 1.f;
 
         std::vector<float> current_scales(2);
-        current_scales[0] = scales[stride_index][0];
-        current_scales[1] = scales[stride_index][1];
+        current_scales[0] = g_scales[stride_index][0];
+        current_scales[1] = g_scales[stride_index][1];
 
         const float threshold = CONF_THRESH;
 

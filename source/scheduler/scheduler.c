@@ -97,7 +97,7 @@ static int sched_run(ir_scheduler_t* scheduler, ir_graph_t* ir_graph, int block)
         push_vector_data(wait_list, &subgraph);
     }
 
-    int* ready_list = sys_malloc(sizeof(int) * subgraph_num);
+    int* ready_list = (int*)sys_malloc(sizeof(int) * subgraph_num);
 
     if (ready_list == NULL)
     {
@@ -122,7 +122,7 @@ static int sched_run(ir_scheduler_t* scheduler, ir_graph_t* ir_graph, int block)
 
         if (ready_num == 0)
         {
-            TLOG_ERR("no sugraph is ready, while still %d subgraph in wait_list\n", wait_num);
+            TLOG_ERR("no subgraph is ready, while still %d subgraph in wait_list\n", wait_num);
             return -1;
         }
 

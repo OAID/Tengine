@@ -46,9 +46,9 @@ int ref_scale_fp32(struct tensor* input_tensor, struct tensor* gamma_tensor, str
     int nstep = channel * h * w;
     int cstep = h * w;
 
-    float* input_data = input_tensor->data;
-    float* gamma_data = gamma_tensor->data;
-    float* output_data = output_tensor->data;
+    float* input_data = (float*)input_tensor->data;
+    float* gamma_data = (float*)gamma_tensor->data;
+    float* output_data = (float*)output_tensor->data;
 
     if (beta_tensor == NULL)
     {
@@ -66,7 +66,7 @@ int ref_scale_fp32(struct tensor* input_tensor, struct tensor* gamma_tensor, str
     }
     else
     {
-        float* beta_data = beta_tensor->data;
+        float* beta_data = (float*)beta_tensor->data;
 
         for (int b = 0; b < n; b++)
         {

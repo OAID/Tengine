@@ -431,6 +431,8 @@ typedef struct
     int32_t dilation_w;
     int32_t group;
     int32_t activation;
+    int32_t output_pad_h0;
+    int32_t output_pad_w0;
 } TM2_DeconvParam;
 
 typedef struct

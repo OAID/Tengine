@@ -66,7 +66,7 @@ const int timvx_supported_ops[] = {
 //    OP_HARDSIGMOID,
     OP_HARDSWISH,
     OP_INPUT,
-//    OP_INSTANCENORM,
+    OP_INSTANCENORM,
     OP_INTERP,
 //    OP_LOGICAL,
 //    OP_LOGISTIC,

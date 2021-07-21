@@ -132,7 +132,7 @@ image imread_process(const char* filename, int img_w, int img_h, float* means, f
             out = rgb2gray(out);
             break;
         case 2:
-            out = rgb2bgr_premute(out);
+            out = rgb2bgr_permute(out);
             break;
         default:
             break;
@@ -480,7 +480,7 @@ image copyMaker(image im, int top, int bottom, int left, int right, float value)
 
 void save_image(image im, const char* name)
 {
-    char buff[256];
+    char buff[256] = { 0 };
     unsigned char* data = ( unsigned char* )calloc((size_t)im.w * im.h * im.c, sizeof(char));
     int i, k;
     for (k = 0; k < im.c; ++k)
@@ -493,32 +493,31 @@ void save_image(image im, const char* name)
 
     int success = 0;
     int f = 0;
-    int len = strlen(name);
-    if (name[len - 2] == 'j' && name[len - 1] == 'p' && name[len] == 'g')
-        f = 0;
-    if (name[len - 2] == 'p' && name[len - 1] == 'n' && name[len] == 'g')
+    int len = name ? strlen(name) : 0;
+    if (3 < len && 0 == strcmp(name + len - 4, ".jpg"))
         f = 1;
-    if (name[len - 2] == 't' && name[len - 1] == 'g' && name[len] == 'a')
+    if (3 < len && 0 == strcmp(name + len - 4, ".png"))
         f = 2;
-    if (name[len - 2] == 'b' && name[len - 1] == 'm' && name[len] == 'p')
+    if (3 < len && 0 == strcmp(name + len - 4, ".tga"))
         f = 3;
+    if (3 < len && 0 == strcmp(name + len - 4, ".bmp"))
+        f = 4;
+    sprintf(buff, "%s", name ? name : "null");
 
     switch (f)
     {
         case 0:
-            sprintf(buff, "%s.jpg", name);
+            strcat(buff, ".jpg");
+        case 1:
             success = stbi_write_jpg(buff, im.w, im.h, im.c, data, 80);
             break;
-        case 1:
-            sprintf(buff, "%s.png", name);
+        case 2:
             success = stbi_write_png(buff, im.w, im.h, im.c, data, im.w * im.c);
             break;
-        case 2:
-            sprintf(buff, "%s.tga", name);
+        case 3:
             success = stbi_write_tga(buff, im.w, im.h, im.c, data);
             break;
-        case 3:
-            sprintf(buff, "%s.bmp", name);
+        case 4:
             success = stbi_write_bmp(buff, im.w, im.h, im.c, data);
             break;
         default:
@@ -534,7 +533,6 @@ void draw_box(image im, int x1, int y1, int x2, int y2, int w, float r, float g,
     int i;
     for (i = 0; i < w; ++i)
     {
-        int i;
         if (x1 < 0)
             x1 = 0;
         if (x1 >= im.w)
@@ -650,7 +648,7 @@ image imread2post(const char* filename)
     return im;
 }
 
-image rgb2bgr_premute(image src)
+image rgb2bgr_permute(image src)
 {
     const int len = src.c * src.h * src.w;
     float* GRB = ( float* )malloc(sizeof(float) * len);
@@ -673,7 +671,7 @@ image rgb2bgr_premute(image src)
     return src;
 }
 
-image image_premute(image src)
+image image_permute(image src)
 {
     float* GRB = ( float* )malloc(sizeof(float) * src.c * src.h * src.w);
     for (int c = 0; c < src.c; c++)

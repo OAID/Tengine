@@ -80,8 +80,8 @@ int ref_elu_fp32(float* data, float* out_data, int size, p_elu_param param)
 int ref_elu_uint8(struct tensor* input_tensor, struct tensor* output_tensor, int size, p_elu_param param)
 {
     /* dequant */
-    uint8_t* input_uint8 = input_tensor->data;
-    uint8_t* output_uint8 = output_tensor->data;
+    uint8_t* input_uint8 = (uint8_t*)input_tensor->data;
+    uint8_t* output_uint8 = (uint8_t*)output_tensor->data;
     float input_scale = input_tensor->scale;
     float output_scale = output_tensor->scale;
     int32_t input_zero = input_tensor->zero_point;
@@ -149,7 +149,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     op_param.zero_point = zero_point;
 
     if (input_tensor->data_type == TENGINE_DT_FP32)
-        ref_elu_fp32(in_data, out_data, elem_num, &op_param);
+        ref_elu_fp32((float*)in_data, (float*)out_data, elem_num, &op_param);
     else if(input_tensor->data_type == TENGINE_DT_UINT8)
         ref_elu_uint8(input_tensor, output_tensor, elem_num, &op_param);
 

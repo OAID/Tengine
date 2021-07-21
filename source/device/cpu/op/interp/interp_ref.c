@@ -167,8 +167,8 @@ int ref_interp_fp32(struct tensor* input_tensor, struct tensor* output_tensor, s
 {
     if (param->resize_type == 1)
     {
-        float* input = input_tensor->data;
-        float* output = output_tensor->data;
+        float* input = (float*)input_tensor->data;
+        float* output = (float*)output_tensor->data;
 
         int batch = output_tensor->dims[0];
         int channel = output_tensor->dims[1];
@@ -197,8 +197,8 @@ int ref_interp_fp32(struct tensor* input_tensor, struct tensor* output_tensor, s
     }
     else if (param->resize_type == 2)
     {
-        float* input = input_tensor->data;
-        float* output = output_tensor->data;
+        float* input = (float*)input_tensor->data;
+        float* output = (float*)output_tensor->data;
 
         int batch = input_tensor->dims[0];
         int channel = input_tensor->dims[1];
@@ -210,7 +210,7 @@ int ref_interp_fp32(struct tensor* input_tensor, struct tensor* output_tensor, s
         int in_channel_size = in_h * in_w;
         int out_channel_size = out_h * out_w;
 
-        int* buf = sys_malloc((param->output_width + param->output_height + param->output_width*2 + param->output_height*2)*sizeof(float));
+        int* buf = (int*)sys_malloc((param->output_width + param->output_height + param->output_width*2 + param->output_height*2)*sizeof(float));
 
         if (buf == NULL)
         {
@@ -249,8 +249,8 @@ int ref_interp_uint8(struct tensor* input_tensor, struct tensor* output_tensor, 
     int input_total_size = input_tensor->elem_num;
     int output_total_size = output_tensor->elem_num;
 
-    uint8_t* input_uint8 = input_tensor->data;
-    uint8_t* output_uint8 = output_tensor->data;
+    uint8_t* input_uint8 = (uint8_t*)input_tensor->data;
+    uint8_t* output_uint8 = (uint8_t*)output_tensor->data;
     float input_scale = input_tensor->scale;
     float output_scale = output_tensor->scale;
     int32_t input_zero = input_tensor->zero_point;
@@ -304,7 +304,7 @@ int ref_interp_uint8(struct tensor* input_tensor, struct tensor* output_tensor, 
         int in_channel_size = in_h * in_w;
         int out_channel_size = out_h * out_w;
 
-        int* buf = sys_malloc((param->output_width + param->output_height + param->output_width*2 + param->output_height*2)*sizeof(float));
+        int* buf = (int*)sys_malloc((param->output_width + param->output_height + param->output_width*2 + param->output_height*2)*sizeof(float));
 
         if (buf == NULL)
         {

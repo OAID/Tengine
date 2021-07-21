@@ -54,8 +54,8 @@ static int ref_lrn_fp32(struct tensor* input_tensor, struct tensor* output_tenso
     int channel_size = h * w;
     int img_size = c * channel_size;
 
-    float* in_data = input_tensor->data;
-    float* out_data = output_tensor->data;
+    float* in_data = (float*)input_tensor->data;
+    float* out_data = (float*)output_tensor->data;
 
     float* square = ( float* )(malloc(img_size * sizeof(float)));
     float* accum_square = ( float* )(malloc(channel_size * sizeof(float)));
@@ -84,17 +84,17 @@ static int ref_lrn_fp32(struct tensor* input_tensor, struct tensor* output_tenso
                     if (l < 0 || l >= c)
                         continue;
 
-                    for (int n = 0; n < channel_size; n++)
+                    for (int m = 0; m < channel_size; m++)
                     {
-                        accum_square[n] += square[l * channel_size + n];
+                        accum_square[m] += square[l * channel_size + m];
                     }
                 }
 
                 /* get the output */
-                for (int n = 0; n < channel_size; n++)
+                for (int m = 0; m < channel_size; m++)
                 {
-                    int offset = i * img_size + j * channel_size + n;
-                    out_data[offset] = in_data[offset] * pow(1.0f + alpha_over_size * accum_square[n], -beta);
+                    int offset = i * img_size + j * channel_size + m;
+                    out_data[offset] = in_data[offset] * pow(1.0f + alpha_over_size * accum_square[m], -beta);
                 }
             }
         }

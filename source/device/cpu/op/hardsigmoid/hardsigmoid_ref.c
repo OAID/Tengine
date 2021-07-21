@@ -50,8 +50,8 @@ static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, 
 int ref_hardsigmoid_fp32(struct tensor* input_tensor, struct tensor* output_tensor, float alpha, float beta)
 {
     int total_size = input_tensor->elem_num;
-    float* input_data = input_tensor->data;
-    float* out_data = output_tensor->data;
+    float* input_data = (float*)input_tensor->data;
+    float* out_data = (float*)output_tensor->data;
 
     float lower = -beta / alpha;
     float upper = (1.f / alpha) + lower;

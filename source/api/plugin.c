@@ -75,7 +75,7 @@ static int exec_so_func(so_handle_t handle, const char* func_name)
         return -1;
     }
 
-    int (*call_func)(void) = func;
+    int (*call_func)(void) = (int (*)(void))func;
 
     if (call_func() < 0)
     {
@@ -109,7 +109,7 @@ int load_tengine_plugin(const char* plugin_name, const char* file_name, const ch
 
     for (int i = 0; i < list_num; i++)
     {
-        struct plugin_header* h = get_vector_data(plugin_list, i);
+        struct plugin_header* h = (struct plugin_header*)get_vector_data(plugin_list, i);
 
         if (!strcmp(h->name, plugin_name))
         {
@@ -151,8 +151,8 @@ int load_tengine_plugin(const char* plugin_name, const char* file_name, const ch
     size_t plugin_name_length = strlen(plugin_name);
     size_t file_name_length = strlen(file_name);
 
-    header.name = sys_malloc(plugin_name_length);
-    header.fname = sys_malloc(file_name_length);
+    header.name = (char*)sys_malloc(plugin_name_length);
+    header.fname = (char*)sys_malloc(file_name_length);
 
     memcpy(header.name, plugin_name, plugin_name_length);
     memcpy(header.fname, file_name, file_name_length);
@@ -173,7 +173,7 @@ int unload_tengine_plugin(const char* plugin_name, const char* rel_func_name)
 
     for (int i = 0; i < list_num; i++)
     {
-        struct plugin_header* h = get_vector_data(plugin_list, i);
+        struct plugin_header* h = (struct plugin_header*)get_vector_data(plugin_list, i);
 
         if (!strcmp(h->name, plugin_name))
         {
@@ -225,7 +225,7 @@ const char* get_tengine_plugin_name(int idx)
     if (idx >= plugin_num)
         return NULL;
 
-    struct plugin_header* h = get_vector_data(plugin_list, idx);
+    struct plugin_header* h = (struct plugin_header*)get_vector_data(plugin_list, idx);
 
     return h->name;
 }

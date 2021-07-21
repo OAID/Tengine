@@ -53,6 +53,8 @@
 #include <stdarg.h>
 #include <string.h>
 
+#define STR_VERSION2(a) #a
+#define STR_VERSION(a) STR_VERSION2(a)
 
 #ifdef TENGINE_LITE_VERSION
 static const char* tengine_lite_version = STR_VERSION(TENGINE_LITE_VERSION);
@@ -406,7 +408,7 @@ graph_t create_graph(context_t context, const char* model_format, const char* fi
         va_list ap;
         va_start(ap, file_name);
 
-        char* p = strchr(model_format, ':');
+        const char* p = strchr(model_format, ':');
 
         // load from file or memory
         if (NULL == p)
@@ -553,6 +555,14 @@ int prerun_graph_multithread(graph_t graph, struct options option)
         set_cpu_affine(mask);
     }
 
+    /* dump graph */
+    const char* env = getenv(TENGINE_DUMP_GRAPH);
+    if (env && env[0] == '1')
+    {
+        set_log_level(LOG_INFO);
+        dump_ir_graph(ir_graph);
+    }
+
     return 0;
 }
 
@@ -619,7 +629,7 @@ int postrun_graph(graph_t graph)
 
     if (NULL != ir_graph->attribute->device_privacy)
     {
-        release_vector(ir_graph->attribute->device_privacy);
+        release_vector((vector_t*)ir_graph->attribute->device_privacy);
     }
 
     ir_graph->status = GRAPH_STAT_DONE;
@@ -682,7 +692,7 @@ int destroy_graph(graph_t graph)
 
 void dump_graph(graph_t graph)
 {
-    dump_ir_graph(graph);
+    dump_ir_graph((ir_graph_t*)graph);
 }
 
 
@@ -1103,7 +1113,7 @@ tensor_t get_graph_tensor(graph_t graph, const char* tensor_name)
 
     for (int i = 0; i < ir_graph->node_num; i++)
     {
-        struct node* ir_node = get_ir_graph_node(graph, i);
+        struct node* ir_node = get_ir_graph_node((ir_graph_t*)graph, i);
         if (NULL == ir_node)
         {
             continue;

@@ -21,7 +21,7 @@
 
 Tengine 核心代码由 4 个模块组成：
 
-- [**device**](source/device)：NN Operators 后端模块，当前提供 CPU 代码，后续逐步开源 GPU、NPU 参考代码；
+- [**device**](source/device)：NN Operators 后端模块，已提供 CPU、GPU、NPU 参考代码；
 - [**scheduler**](source/scheduler)：框架核心部件，包括 NNIR、计算图、硬件资源、模型解析器的调度和执行模块；
 - [**operator**](source/operator)：NN Operators 前端模块，实现 NN Operators 注册、初始化；
 - [**serializer**](source/serializer)：模型解析器，实现 tmfile 格式的网络模型参数解析。

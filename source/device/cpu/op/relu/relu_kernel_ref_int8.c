@@ -44,8 +44,8 @@ int ref_relu_int8(struct tensor* input_tensor, struct tensor* output_tensor, flo
     int total_size = input_tensor->elem_num;
 
     /* dequant */
-    int8_t* input_int8 = input_tensor->data;
-    int8_t* output_int8 = output_tensor->data;
+    int8_t* input_int8 = (int8_t*)input_tensor->data;
+    int8_t* output_int8 = (int8_t*)output_tensor->data;
     float input_scale = input_tensor->scale;
     float output_scale = output_tensor->scale;
 

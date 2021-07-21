@@ -76,7 +76,7 @@ int draw_segmentation(const int32_t* data, int h, int w) {
             img.at<cv::Vec3b>(i, j) = color;
         }
     }
-    cv::imwrite("result.png", img);
+    cv::imwrite("unet_out.png", img);
     return 0;
 }
 
@@ -124,7 +124,7 @@ int tengine_segment(const char* model_file, const char* image_file, int img_h, i
         return -1;
     }
 
-    if (set_tensor_buffer(input_tensor, input_data, img_size * 4) < 0)
+    if (set_tensor_buffer(input_tensor, input_data, img_size * sizeof(float)) < 0)
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;
@@ -207,7 +207,7 @@ int tengine_segment(const char* model_file, const char* image_file, int img_h, i
       }
       /* visualization */
       draw_segmentation(label_data, img_h, img_w);
-      fprintf(stderr, "segmentatation result is save as result.png\n");
+      fprintf(stderr, "segmentatation result is save as unet_out.png\n");
       delete[] label_data;
     }
 
@@ -224,12 +224,7 @@ void show_usage()
 {
     fprintf(
         stderr,
-        "[Usage]:  [-h]\n    [-m model_file] [-i image_file]\n [-g img_h,img_w] [-s scale[0],scale[1],scale[2]] [-w "
-        "mean[0],mean[1],mean[2]] [-r loop_count] [-t thread_count] [-a cpu_affinity] [-c conf_thresh]\n");
-    fprintf(
-        stderr,
-        "\nmobilenet example: \n    ./classification -m /path/to/mobilenet.tmfile -i /path/to/img.jpg -g 224,224 -s "
-        "0.017,0.017,0.017 -w 104.007,116.669,122.679\n");
+        "[Usage]:  [-h]\n    [-m model_file] [-i image_file] [-r repeat_count] [-t thread_count] [-a cpu_affinity] \n");
 }
 
 int main(int argc, char* argv[])

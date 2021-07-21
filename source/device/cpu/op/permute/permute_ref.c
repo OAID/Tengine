@@ -141,8 +141,8 @@ static void __chw_i8(const int8_t* input, int8_t* output, int hh, int ww, int cc
 
 static int ref_permute_fp32(const struct tensor* input_tensor, const struct tensor* output_tensor, const permute_param_t* param)
 {
-    float* in_data = input_tensor->data;
-    float* out_data = output_tensor->data;
+    float* in_data = (float*)input_tensor->data;
+    float* out_data = (float*)output_tensor->data;
     const int* dims = input_tensor->dims;
     int layout = input_tensor->layout;
 
@@ -223,8 +223,8 @@ static int ref_permute_fp32(const struct tensor* input_tensor, const struct tens
 
 static int ref_permute_uint8(const struct tensor* input_tensor, const struct tensor* output_tensor, const permute_param_t* param)
 {
-    uint8_t* in_data = input_tensor->data;
-    uint8_t* out_data = output_tensor->data;
+    uint8_t* in_data = (uint8_t*)input_tensor->data;
+    uint8_t* out_data = (uint8_t*)output_tensor->data;
     const int* dims = input_tensor->dims;
     int layout = input_tensor->layout;
 
@@ -305,8 +305,8 @@ static int ref_permute_uint8(const struct tensor* input_tensor, const struct ten
 
 static int ref_permute_int8(const struct tensor* input_tensor, const struct tensor* output_tensor, const permute_param_t* param)
 {
-    int8_t* in_data = input_tensor->data;
-    int8_t* out_data = output_tensor->data;
+    int8_t* in_data = (int8_t*)input_tensor->data;
+    int8_t* out_data = (int8_t*)output_tensor->data;
     const int* dims = input_tensor->dims;
     int layout = input_tensor->layout;
 

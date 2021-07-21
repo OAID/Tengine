@@ -46,10 +46,10 @@ int ref_sparsetodense_fp32(struct tensor* input_tensor, struct tensor* output_sh
     int sparse_value_size = sparse_values_tensor->dim_num;
     float default_value = param->default_value;
 
-    int* input = input_tensor->data;
-    int* outout_shape = output_shape_tensor->data;
-    int* sparse_values = sparse_values_tensor->data;
-    float* output = output_tensor->data;
+    int* input = (int*)input_tensor->data;
+    int* outout_shape = (int*)output_shape_tensor->data;
+    int* sparse_values = (int*)sparse_values_tensor->data;
+    float* output = (float*)output_tensor->data;
 
     if (output_dim_size == 1)
     {

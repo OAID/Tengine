@@ -119,8 +119,8 @@ int ref_pooling_fp16(struct tensor* input_tensor, struct tensor* output_tensor,
 #if MACOS
     TLOG_ERR("FP16 not support mac os");
 #else
-    fp16_t* input = input_tensor->data;
-    fp16_t* output = output_tensor->data;
+    fp16_t* input = (fp16_t*)input_tensor->data;
+    fp16_t* output = (fp16_t*)output_tensor->data;
 
     for(int n = 0; n < batch; n++)
     {
