@@ -43,7 +43,7 @@ IF (CMAKE_TOOLCHAIN_FILE)
     FIND_FILE (CMAKE_TOOLCHAIN_FILE ${CMAKE_TOOLCHAIN_FILE_NAME} PATHS ${CMAKE_SOURCE_DIR} NO_DEFAULT_PATH)
     MESSAGE (STATUS "Using CMake tool chain file ${CMAKE_TOOLCHAIN_FILE}")
 ENDIF()
-
+SET  (CMAKE_BUILD_TYPE Debug)
 IF (NOT CMAKE_BUILD_TYPE)
     SET (CMAKE_BUILD_TYPE release CACHE STRING "Choose the type of build" FORCE)
 ENDIF()
@@ -92,6 +92,8 @@ INCLUDE ("${CMAKE_CURRENT_SOURCE_DIR}/cmake/cuda.cmake")
 INCLUDE ("${CMAKE_CURRENT_SOURCE_DIR}/cmake/registry.cmake")
 INCLUDE ("${CMAKE_CURRENT_SOURCE_DIR}/cmake/utility.cmake")
 
+add_definitions(-g)
+add_definitions(-O0)
 # Project name
 PROJECT (tengine-lite)
 
