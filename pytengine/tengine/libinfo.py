@@ -24,7 +24,12 @@ def find_lib_path():
         dll_path.append(path)
         dll_path.append(os.path.join(path,"build"))
         dll_path.append(os.path.join(path, "install/lib"))
-    path = [os.path.join(p,"libtengine-lite.so") for p in dll_path]
+    libtengine = ""
+    if platform.system() == "Windows":
+        libtengine = "tengine-lite.dll"
+    else:
+        libtengine = "libtengine-lite.so"
+    path = [os.path.join(p,libtengine) for p in dll_path]
     lib_path = [p for p in path if os.path.exists(p) and os.path.isfile(p)]
     print('lib_path=',lib_path)
     assert lib_path != [], 'lib_path(libtengine-lite.so) no find.'

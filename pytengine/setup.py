@@ -6,14 +6,22 @@ from setuptools import setup, Extension
 # from distutils.core import setup, Extension
 
 import os,shutil
+import platform
 source = os.getcwd()
 father_path = os.path.abspath(os.path.dirname(source) + os.path.sep + ".")
-dest=os.getcwd()
-src=father_path+'/build/install/lib/libtengine-lite.so'
-dst=dest+'/tengine/libtengine-lite.so'
+dest = os.getcwd()
+
+libtengine = ""
+if platform.system() == "Windows":
+      libtengine = "tengine-lite.dll"
+else:
+      libtengine = "libtengine-lite.so"
+
+src = father_path + "/build/install/lib/" + libtengine
+dst = dest + "/tengine/" + libtengine
 shutil.copyfile(src,dst)
 
-files = ["__init__", "base", "context", "device", "graph", "libinfo", "node", "tengine", "tensor", "libtengine-lite.so"]
+files = ["__init__", "base", "context", "device", "graph", "libinfo", "node", "tengine", "tensor", libtengine]
 
 setup(name="pytengine",
       version="0.9.1",
@@ -22,7 +30,7 @@ setup(name="pytengine",
       author_email="OpenAILab@126.com",
       url="https://github.com/OAID/Tengine",
       packages=["tengine"],
-      package_data={"tengine" : ['libtengine-lite.so']},
+      package_data={"tengine" : [libtengine]},
       install_requires=['numpy>=1.4.0']
       )
 
