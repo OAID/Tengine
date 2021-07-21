@@ -1,13 +1,13 @@
 # coding: utf-8
 """Information about Tengine."""
 import ctypes
-from .base import _LIB,  c_str, node_t, tensor_t, check_call
+from .base import _LIB, c_str, node_t, tensor_t, check_call
 from .tensor import Tensor
 from .base import tensor_dump_header
 
 
 class Node(object):
-    def __init__(self, graph = None,name=None,op=None,node=None):
+    def __init__(self, graph=None, name=None, op=None, node=None):
         """
         Create a node object for the graph.
         :param graph: <graph object>
@@ -19,7 +19,9 @@ class Node(object):
             self.node = node
         else:
             _LIB.create_graph_node.restype = node_t
-            self.node = _LIB.create_graph_node(ctypes.c_void_p(graph.graph), c_str(name), c_str(op))
+            self.node = _LIB.create_graph_node(
+                ctypes.c_void_p(graph.graph), c_str(name), c_str(op)
+            )
         self._attr = {}
         pass
 
@@ -57,7 +59,7 @@ class Node(object):
         :return: The tensor name or None on error
         """
         _LIB.get_node_input_tensor.restype = tensor_t
-        tensor =  _LIB.get_node_input_tensor(ctypes.c_void_p(self.node), idx)
+        tensor = _LIB.get_node_input_tensor(ctypes.c_void_p(self.node), idx)
         return Tensor(tensor=tensor)
 
     def getOutputTensorByIdx(self, idx):
@@ -68,7 +70,7 @@ class Node(object):
         """
         _LIB.get_node_output_tensor.restype = tensor_t
         tensor = _LIB.get_node_output_tensor(ctypes.c_void_p(self.node), idx)
-        return Tensor(tensor = tensor)
+        return Tensor(tensor=tensor)
 
     def setInputTensorByIdx(self, idx, tensor):
         """
@@ -77,7 +79,11 @@ class Node(object):
         :param tensor: <tensor object>
         :return: None
         """
-        check_call(_LIB.set_node_input_tensor(ctypes.c_void_p(self.node), idx, ctypes.c_void_p(tensor.tensor)))
+        check_call(
+            _LIB.set_node_input_tensor(
+                ctypes.c_void_p(self.node), idx, ctypes.c_void_p(tensor.tensor)
+            )
+        )
 
     def setOutputTensorByIdx(self, idx, tensor, type):
         """
@@ -87,7 +93,11 @@ class Node(object):
         :param type: <tensor_type> like: tg.TENSOR_TYPE_UNKNOWN,tg.TENSOR_TYPE_VAR etc.
         :return:None
         """
-        check_call(_LIB.set_node_output_tensor(ctypes.c_void_p(self.node), idx, ctypes.c_void_p(tensor.tensor), type))
+        check_call(
+            _LIB.set_node_output_tensor(
+                ctypes.c_void_p(self.node), idx, ctypes.c_void_p(tensor.tensor), type
+            )
+        )
 
     def getOutputNumber(self):
         """
@@ -114,34 +124,62 @@ class Node(object):
         if type(attr) is int:
             data = ctypes.c_int(0)
             self._attr[attr_name] = ctypes.c_int
-            ret = _LIB.get_node_attr_int(ctypes.c_void_p(self.node), c_str(attr_name), ctypes.pointer(data))
+            ret = _LIB.get_node_attr_int(
+                ctypes.c_void_p(self.node), c_str(attr_name), ctypes.pointer(data)
+            )
             if ret < 0:
-                _LIB.add_node_attr(ctypes.c_void_p(self.node),c_str(attr_name),c_str("int"),ctypes.sizeof(ctypes.c_int))
-            _LIB.set_node_attr_int(ctypes.c_void_p(self.node),c_str(attr_name),ctypes.pointer(ctypes.c_int(attr)))
+                _LIB.add_node_attr(
+                    ctypes.c_void_p(self.node),
+                    c_str(attr_name),
+                    c_str("int"),
+                    ctypes.sizeof(ctypes.c_int),
+                )
+            _LIB.set_node_attr_int(
+                ctypes.c_void_p(self.node),
+                c_str(attr_name),
+                ctypes.pointer(ctypes.c_int(attr)),
+            )
         elif type(attr) is float:
             self._attr[attr_name] = ctypes.c_float
             data = ctypes.c_float(0.0)
-            ret = _LIB.get_node_attr_float(ctypes.c_void_p(self.node), c_str(attr_name), ctypes.pointer(data))
+            ret = _LIB.get_node_attr_float(
+                ctypes.c_void_p(self.node), c_str(attr_name), ctypes.pointer(data)
+            )
             if ret < 0:
-                _LIB.add_node_attr(ctypes.c_void_p(self.node), c_str(attr_name), c_str("float"),
-                                   ctypes.sizeof(ctypes.c_int))
-            _LIB.set_node_attr_float(ctypes.c_void_p(self.node), c_str(attr_name), ctypes.pointer(ctypes.c_float(attr)))
+                _LIB.add_node_attr(
+                    ctypes.c_void_p(self.node),
+                    c_str(attr_name),
+                    c_str("float"),
+                    ctypes.sizeof(ctypes.c_int),
+                )
+            _LIB.set_node_attr_float(
+                ctypes.c_void_p(self.node),
+                c_str(attr_name),
+                ctypes.pointer(ctypes.c_float(attr)),
+            )
 
-
-    def getAttr(self,attr,type=None):
+    def getAttr(self, attr, type=None):
         """
         Get the attribute value (float or int) of a node
         :param attr: <str> The name of the attribute to be retrieval.
         :param type: like: "int" or "float"
         :return: <int> or <float>
         """
-        if (self._attr.has_key(attr) and self._attr[attr] is ctypes.c_int) or type is int:
+        if (
+            self._attr.has_key(attr) and self._attr[attr] is ctypes.c_int
+        ) or type is int:
             data = ctypes.c_int(0)
-            _LIB.get_node_attr_int(ctypes.c_void_p(self.node),c_str(attr),ctypes.pointer(data))
+            _LIB.get_node_attr_int(
+                ctypes.c_void_p(self.node), c_str(attr), ctypes.pointer(data)
+            )
             return data.value
-        elif (self._attr.has_key(attr) and self._attr[attr] is ctypes.c_float) or type is float:
+        elif (
+            self._attr.has_key(attr) and self._attr[attr] is ctypes.c_float
+        ) or type is float:
             data = ctypes.c_float(0.0)
-            _LIB.get_node_attr_float(ctypes.c_void_p(self.node),c_str(attr),ctypes.pointer(data))
+            _LIB.get_node_attr_float(
+                ctypes.c_void_p(self.node), c_str(attr), ctypes.pointer(data)
+            )
             return data.value
 
     def setKernel(self, dev_name, kernel_ops):
@@ -152,7 +190,11 @@ class Node(object):
         :param kernel_ops: <custom_kernel_ops object>
         :return: None
         """
-        check_call(_LIB.set_custom_kernel(ctypes.c_void_p(self.node), c_str(dev_name), ctypes.byref(kernel_ops)))
+        check_call(
+            _LIB.set_custom_kernel(
+                ctypes.c_void_p(self.node), c_str(dev_name), ctypes.byref(kernel_ops)
+            )
+        )
 
     def removeKernel(self, dev_name):
         """
@@ -160,7 +202,9 @@ class Node(object):
         :param dev_name:<str>  The kernel works for which device. None means for default device.
         :return: None
         """
-        check_call(_LIB.remove_custom_kernel(ctypes.c_void_p(self.node), c_str(dev_name)))
+        check_call(
+            _LIB.remove_custom_kernel(ctypes.c_void_p(self.node), c_str(dev_name))
+        )
 
     def setDevice(self, dev_name):
         """
@@ -195,6 +239,7 @@ class Node(object):
         :return: <list> buf list
         """
         buf = (ctypes.POINTER(tensor_dump_header) * size)()
-        ret = _LIB.get_node_dump_buffer(ctypes.c_void_p(self.node), ctypes.byref(buf), size)
+        ret = _LIB.get_node_dump_buffer(
+            ctypes.c_void_p(self.node), ctypes.byref(buf), size
+        )
         return buf[:ret]
-
