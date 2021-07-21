@@ -76,7 +76,7 @@ ir_node_t* create_ir_node(struct graph* ir_graph, const char* node_name, int op_
         return NULL;
     }
 
-    ir_node_t** new_node_list = sys_realloc(ir_graph->node_list, sizeof(ir_node_t*) * (ir_graph->node_num + 1));
+    ir_node_t** new_node_list = (ir_node_t**)sys_realloc(ir_graph->node_list, sizeof(ir_node_t*) * (ir_graph->node_num + 1));
 
     if (NULL == new_node_list)
     {
@@ -147,7 +147,7 @@ int get_ir_node_index_from_name(struct graph* ir_graph, const char* node_name)
     ir_node_t* ir_node;
 
     // first: try to get idx from suffix
-    char* p = strrchr(node_name, '_');
+    const char* p = strrchr(node_name, '_');
     if (p)
     {
         int idx = atoi(++p);
@@ -194,7 +194,7 @@ int set_ir_node_input_tensor(ir_node_t* node, int input_idx, ir_tensor_t* tensor
             new_tensor[i] = -1;
         }
 
-        node->input_tensors = new_tensor;
+        node->input_tensors = (uint16_t*)new_tensor;
         node->input_num = input_idx + 1;
     }
 

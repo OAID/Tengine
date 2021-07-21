@@ -91,7 +91,7 @@ const int trt_supported_ops[] = {
 //        OP_HARDSIGMOID,
 //        OP_HARDSWISH,                   // Not supported, last checked version 7.1.3
         OP_INPUT,
-//        OP_INSTANCENORM,
+        OP_INSTANCENORM,
         OP_INTERP,                      // should be as UpSample
 //        OP_LOGICAL,
 #if NV_TENSORRT_MAJOR >= 7
@@ -115,7 +115,7 @@ const int trt_supported_ops[] = {
         //OP_PRIORBOX,                  // Not supported, last checked version 7.1.3
         //OP_PSROIPOOLING,              // Not supported, last checked version 7.1.3
 //        OP_REDUCEL2,
-//        OP_REDUCTION,
+        OP_REDUCTION,
         //OP_REGION,                    // Not supported, last checked version 7.1.3
         OP_RELU,
         OP_RELU6,
@@ -143,7 +143,7 @@ const int trt_supported_ops[] = {
         //OP_SPACETOBATCHND,            // Not supported, last checked version 7.1.3
 //        OP_SPACETODEPTH,
         //OP_SPARSETODENSE,             // Not supported, last checked version 7.1.3
-//        OP_SPLIT,
+        OP_SPLIT,
         //OP_SQUAREDDIFFERENCE,         // Not supported, last checked version 7.1.3
         OP_SQUEEZE,
         //OP_STRIDED_SLICE,             // Not supported, last checked version 7.1.3
@@ -152,7 +152,7 @@ const int trt_supported_ops[] = {
         //OP_THRESHOLD,                 // Not supported, last checked version 7.1.3
         //OP_THRESHOLD,                 // Not supported, last checked version 7.1.3
 //        OP_TOPKV2,
-//        OP_TRANSPOSE,
+        OP_TRANSPOSE,
 //        OP_UNARY,
 //        OP_UNSQUEEZE,
         OP_UPSAMPLE,

@@ -267,26 +267,33 @@ static int ref_eltwise_uint8(struct tensor* output_tensor, struct tensor* input_
                              int input1_count4, int num_thread, int input_hw_1, struct eltwise_param* eltwise_param)
 {
     uint8_t* input0_uint8 = ( uint8_t* )input_tensor0->data;
-    uint8_t* input1_uint8 = ( uint8_t* )input_tensor1->data;
+    uint8_t* input1_uint8 = NULL;
     uint8_t* output_uint8 = ( uint8_t* )output_tensor->data;
 
     float in_scale0 = input_tensor0->scale;
-    float in_scale1 = input_tensor1->scale;
+    float in_scale1 = 0.f;
     float out_scale = output_tensor->scale;
     int in_zero0 = input_tensor0->zero_point;
-    int in_zero1 = input_tensor1->zero_point;
+    int in_zero1 = 0;
     int out_zero = output_tensor->zero_point;
 
     /* input dequant */
     float* in0 = ( float* )sys_malloc(input_tensor0->elem_num * sizeof(float));
-    float* in1 = ( float* )sys_malloc(input_tensor1->elem_num * sizeof(float));
+    float* in1 = NULL;
     float* out_ptr = ( float* )sys_malloc(output_tensor->elem_num * sizeof(float));
 
     for (int i = 0; i < input_tensor0->elem_num; i++)
         in0[i] = (input0_uint8[i] - in_zero0) * in_scale0;
-    for (int i = 0; i < input_tensor1->elem_num; i++)
-        in1[i] = (input1_uint8[i] - in_zero1) * in_scale1;
 
+    if (input_tensor1 != NULL)
+    {
+        input1_uint8 = ( uint8_t* )input_tensor1->data;
+        in_scale1 = input_tensor1->scale;
+        in_zero1 = input_tensor1->zero_point;
+        in1 = ( float* )sys_malloc(input_tensor1->elem_num * sizeof(float));
+        for (int i = 0; i < input_tensor1->elem_num; i++)
+            in1[i] = (input1_uint8[i] - in_zero1) * in_scale1;
+    }
     /* eltwise operator */
     switch (type)
     {
@@ -493,7 +500,8 @@ static int ref_eltwise_uint8(struct tensor* output_tensor, struct tensor* input_
     }
 
     sys_free(in0);
-    sys_free(in1);
+    if (in1 != NULL)
+        sys_free(in1);
     sys_free(out_ptr);
 
     return 0;
@@ -504,22 +512,29 @@ static int ref_eltwise_int8(struct tensor* output_tensor, struct tensor* input_t
                              int input1_count4, int num_thread, int input_hw_1, struct eltwise_param* eltwise_param)
 {
     int8_t* input0_int8 = ( int8_t* )input_tensor0->data;
-    int8_t* input1_int8 = ( int8_t* )input_tensor1->data;
+    int8_t* input1_int8 = NULL;
     int8_t* output_int8 = ( int8_t* )output_tensor->data;
 
     float in_scale0 = input_tensor0->scale;
-    float in_scale1 = input_tensor1->scale;
+    float in_scale1 = 0.f;
     float out_scale = output_tensor->scale;
 
     /* input dequant */
     float* in0 = ( float* )sys_malloc(input_tensor0->elem_num * sizeof(float));
-    float* in1 = ( float* )sys_malloc(input_tensor1->elem_num * sizeof(float));
+    float* in1 = NULL;
     float* out_ptr = ( float* )sys_malloc(output_tensor->elem_num * sizeof(float));
 
     for (int i = 0; i < input_tensor0->elem_num; i++)
         in0[i] = (float )input0_int8[i] * in_scale0;
-    for (int i = 0; i < input_tensor1->elem_num; i++)
-        in1[i] = (float )input1_int8[i] * in_scale1;
+
+    if (input_tensor1 != NULL)
+    {
+        input1_int8 = ( int8_t* )input_tensor1->data;
+        in_scale1 = input_tensor1->scale;
+        in1 = ( float* )sys_malloc(input_tensor1->elem_num * sizeof(float));
+        for (int i = 0; i < input_tensor1->elem_num; i++)
+            in1[i] = (float )input1_int8[i] * in_scale1;
+    }
 
     /* eltwise operator */
     switch (type)
@@ -727,7 +742,8 @@ static int ref_eltwise_int8(struct tensor* output_tensor, struct tensor* input_t
     }
 
     sys_free(in0);
-    sys_free(in1);
+    if (in1 != NULL)
+        sys_free(in1);
     sys_free(out_ptr);
 
     return 0;
@@ -804,15 +820,15 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         if (input_tensor0->data_type == TENGINE_DT_FP32)
             ret = ref_eltwise_fp32(output, input0, input1, eltwise_param->type, input0_count4, input_chan_0, input_hw_0,
                                    input1_count4, exec_graph->num_thread, input_hw_1, eltwise_param);
-        else if (input_tensor1->data_type == TENGINE_DT_UINT8)
+        else if (input_tensor0->data_type == TENGINE_DT_UINT8)
             ret = ref_eltwise_uint8(output_tensor, input_tensor0, input_tensor1, eltwise_param->type, input0_count4,
                                     input_chan_0, input_hw_0, input1_count4, exec_graph->num_thread, input_hw_1, eltwise_param);
-        else if (input_tensor1->data_type == TENGINE_DT_INT8)
+        else if (input_tensor0->data_type == TENGINE_DT_INT8)
             ret = ref_eltwise_int8(output_tensor, input_tensor0, input_tensor1, eltwise_param->type, input0_count4,
                                     input_chan_0, input_hw_0, input1_count4, exec_graph->num_thread, input_hw_1, eltwise_param);
         else
         {
-            TLOG_ERR("Input data type %d not to be supported.\n", input_tensor1->data_type);
+            TLOG_ERR("Input data type %d not to be supported.\n", input_tensor0->data_type);
             return -1;
         }
 

@@ -24,18 +24,21 @@ except NameError:
 
 integer_types = (int, long, np.int32, np.int64)
 numeric_types = (float, int, long, np.generic)
-string_types = basestring,
+string_types = (basestring,)
 MAX_SHAPE_DIM_NUM = 4
 
 if sys.version_info[0] > 2:
     # this function is needed for python3
     # to convert ctypes.char_p .value back to python str
-    py_str = lambda x: x.decode('utf-8')
+    py_str = lambda x: x.decode("utf-8")
 else:
     py_str = lambda x: x
 
-log_print_t = ctypes.CFUNCTYPE(ctypes.c_void_p,ctypes.c_char_p)
-event_handler_t = ctypes.CFUNCTYPE(ctypes.c_int,ctypes.c_void_p,ctypes.c_int,ctypes.c_void_p)
+log_print_t = ctypes.CFUNCTYPE(ctypes.c_void_p, ctypes.c_char_p)
+event_handler_t = ctypes.CFUNCTYPE(
+    ctypes.c_int, ctypes.c_void_p, ctypes.c_int, ctypes.c_void_p
+)
+
 
 def data_dir_default():
     """
@@ -43,7 +46,7 @@ def data_dir_default():
     :return: default data directory depending on the platform and environment variables
     """
     system = platform.system()
-    return os.path.join(os.path.expanduser("~"), '.tengine')
+    return os.path.join(os.path.expanduser("~"), ".tengine")
 
 
 def data_dir():
@@ -51,14 +54,14 @@ def data_dir():
 
     :return: data directory in the filesystem for storage, for example when downloading models
     """
-    return os.getenv('TENGINE_HOME', data_dir_default())
+    return os.getenv("TENGINE_HOME", data_dir_default())
 
 
 class _NullType(object):
     """Placeholder for arguments"""
 
     def __repr__(self):
-        return '_Null'
+        return "_Null"
 
 
 _Null = _NullType()
@@ -66,15 +69,17 @@ _Null = _NullType()
 
 class TytengineError(Exception):
     """Error that will be throwed by all tengine functions."""
+
     pass
 
 
 class TGCallbackList(ctypes.Structure):
     """Structure that holds Callback information. Passed to CustomOpProp."""
+
     _fields_ = [
-        ('num_callbacks', ctypes.c_int),
-        ('callbacks', ctypes.POINTER(ctypes.CFUNCTYPE(ctypes.c_int))),
-        ('contexts', ctypes.POINTER(ctypes.c_void_p))
+        ("num_callbacks", ctypes.c_int),
+        ("callbacks", ctypes.POINTER(ctypes.CFUNCTYPE(ctypes.c_int))),
+        ("contexts", ctypes.POINTER(ctypes.c_void_p)),
     ]
 
 
@@ -106,27 +111,28 @@ def check_call(ret):
 
 
 if sys.version_info[0] < 3:
+
     def c_str(string):
         if not string:
             return None
         return ctypes.c_char_p(string)
-
 
     def c_str_array(strings):
         arr = (ctypes.c_char_p * len(strings))()
         arr[:] = strings
         return arr
 
+
 else:
+
     def c_str(string):
         if not string:
             return None
-        return ctypes.c_char_p(string.encode('utf-8'))
-
+        return ctypes.c_char_p(string.encode("utf-8"))
 
     def c_str_array(strings):
         arr = (ctypes.c_char_p * len(strings))()
-        arr[:] = [s.encode('utf-8') for s in strings]
+        arr[:] = [s.encode("utf-8") for s in strings]
         return arr
 
 
@@ -148,17 +154,17 @@ def c_handle_array(objs):
 
 def ctypes2buffer(cptr, length):
     if not isinstance(cptr, ctypes.POINTER(ctypes.c_char)):
-        raise TypeError('expected char pointer')
+        raise TypeError("expected char pointer")
     res = bytearray(length)
     rptr = (ctypes.c_char * length).from_buffer(res)
     if not ctypes.memmove(rptr, cptr, length):
-        raise RuntimeError('memmove failed')
+        raise RuntimeError("memmove failed")
     return res
 
 
 def ctypes2numpy_shared(cptr, shape, type=ctypes.c_int):
     if not isinstance(cptr, ctypes.POINTER(type)):
-        raise RuntimeError('expected float pointer')
+        raise RuntimeError("expected float pointer")
     size = 1
     for s in shape:
         size *= s
@@ -175,27 +181,25 @@ def build_param_doc(arg_names, arg_types, arg_descs, remove_dup=True):
     for key, type_info, desc in zip(arg_names, arg_types, arg_descs):
         if key in param_keys and remove_dup:
             continue
-        if key == 'num_args':
+        if key == "num_args":
             continue
         param_keys.add(key)
-        ret = '%s : %s' % (key, type_info)
+        ret = "%s : %s" % (key, type_info)
         if len(desc) != 0:
-            ret += '\n    ' + desc
+            ret += "\n    " + desc
         param_str.append(ret)
-    doc_str = ('Parameters\n' +
-               '----------\n' +
-               '%s\n')
-    doc_str = doc_str % ('\n'.join(param_str))
+    doc_str = "Parameters\n" + "----------\n" + "%s\n"
+    doc_str = doc_str % ("\n".join(param_str))
     return doc_str
 
 
 Tengine_type = [
-    'TENGINE_DT_FP32',
-    'TENGINE_DT_FP16',
-    'TENGINE_DT_INT8',
-    'TENGINE_DT_UINT8',
-    'TENGINE_DT_INT32',
-    'TENGINE_DT_INT16'
+    "TENGINE_DT_FP32",
+    "TENGINE_DT_FP16",
+    "TENGINE_DT_INT8",
+    "TENGINE_DT_UINT8",
+    "TENGINE_DT_INT32",
+    "TENGINE_DT_INT16",
 ]
 Tengine_ctype = [
     ctypes.c_float,
@@ -220,11 +224,11 @@ class DType:
 
 
 graph_exec_stat = [
-    'GRAPH_STAT_CREATED',
-    'GRAPH_STAT_READY',
-    'GRAPH_STAT_RUNNING',
-    'GRAPH_STAT_DONE',
-    'GRAPH_STAT_ERROR'
+    "GRAPH_STAT_CREATED",
+    "GRAPH_STAT_READY",
+    "GRAPH_STAT_RUNNING",
+    "GRAPH_STAT_DONE",
+    "GRAPH_STAT_ERROR",
 ]
 
 
@@ -240,11 +244,11 @@ class Status:
 
 
 graph_exec_event = [
-    'GRAPH_EXEC_START',
-    'GRAPH_EXEC_SUSPEND',
-    'GRAPH_EXEC_RESUME',
-    'GRAPH_EXEC_ABORT',
-    'GRAPH_EXEC_DONE'
+    "GRAPH_EXEC_START",
+    "GRAPH_EXEC_SUSPEND",
+    "GRAPH_EXEC_RESUME",
+    "GRAPH_EXEC_ABORT",
+    "GRAPH_EXEC_DONE",
 ]
 
 
@@ -259,11 +263,7 @@ class Event:
         return "<graph exec event  :%s>" % graph_exec_event[self.enum]
 
 
-device_policy = [
-    'DEFAULT_POLICY',
-    'LATENCY_POLICY',
-    'LOW_POWER_POLICY'
-]
+device_policy = ["DEFAULT_POLICY", "LATENCY_POLICY", "LOW_POWER_POLICY"]
 
 
 class Policy:
@@ -278,98 +278,158 @@ class Policy:
 
 
 class tensor_dump_header(ctypes.Structure):
-    _fields_ = [('elem_size', ctypes.c_int),
-                ('elem_number', ctypes.c_int),
-                ('dim_number', ctypes.c_int),
-                ('dim', ctypes.c_int * 4),
-                ('data', ctypes.c_void_p)]
+    _fields_ = [
+        ("elem_size", ctypes.c_int),
+        ("elem_number", ctypes.c_int),
+        ("dim_number", ctypes.c_int),
+        ("dim", ctypes.c_int * 4),
+        ("data", ctypes.c_void_p),
+    ]
+
 
 class options(ctypes.Structure):
-    _fields_ = [('num_thread', ctypes.c_uint32), ('cluster', ctypes.c_uint32),
-                ('precision', ctypes.c_uint32), ('affinity', ctypes.c_uint64)]
-    
+    _fields_ = [
+        ("num_thread", ctypes.c_uint32),
+        ("cluster", ctypes.c_uint32),
+        ("precision", ctypes.c_uint32),
+        ("affinity", ctypes.c_uint64),
+    ]
+
+
 class perf_info(ctypes.Structure):
-    _fields_ = [('name', ctypes.c_char_p), ('dev_name', ctypes.c_char_p),
-                ('count', ctypes.c_uint32), ('min', ctypes.c_uint32),
-                ('max', ctypes.c_uint32), ('total_time', ctypes.c_uint64),
-                ('base', ctypes.c_uint32)]
+    _fields_ = [
+        ("name", ctypes.c_char_p),
+        ("dev_name", ctypes.c_char_p),
+        ("count", ctypes.c_uint32),
+        ("min", ctypes.c_uint32),
+        ("max", ctypes.c_uint32),
+        ("total_time", ctypes.c_uint64),
+        ("base", ctypes.c_uint32),
+    ]
+
 
 class custom_kernel_tensor(ctypes.Structure):
-    _fields_ = [('dim', (ctypes.c_int * MAX_SHAPE_DIM_NUM)),
-                ('dim_num', ctypes.c_int),
-                ('element_num', ctypes.c_int),
-                ('element_size', ctypes.c_int),
-                ('data_type', ctypes.c_int),
-                ('dev_type', ctypes.c_int),
-                ('layout_type', ctypes.c_int),
-                ('quant_type', ctypes.c_int),
-                ('scale', ctypes.POINTER(ctypes.c_float)),
-                ('zero_point', ctypes.POINTER(ctypes.c_int)),
-                ('quant_number', ctypes.POINTER(ctypes.c_int)),
-                ('data', ctypes.c_void_p),
-                ('dev_mem', ctypes.c_void_p),
-                ('mapped_mem', ctypes.c_void_p)]
+    _fields_ = [
+        ("dim", (ctypes.c_int * MAX_SHAPE_DIM_NUM)),
+        ("dim_num", ctypes.c_int),
+        ("element_num", ctypes.c_int),
+        ("element_size", ctypes.c_int),
+        ("data_type", ctypes.c_int),
+        ("dev_type", ctypes.c_int),
+        ("layout_type", ctypes.c_int),
+        ("quant_type", ctypes.c_int),
+        ("scale", ctypes.POINTER(ctypes.c_float)),
+        ("zero_point", ctypes.POINTER(ctypes.c_int)),
+        ("quant_number", ctypes.POINTER(ctypes.c_int)),
+        ("data", ctypes.c_void_p),
+        ("dev_mem", ctypes.c_void_p),
+        ("mapped_mem", ctypes.c_void_p),
+    ]
 
 
 class custom_kernel_ops(ctypes.Structure):
     pass
 
 
-function_type_infer_shape = ctypes.CFUNCTYPE(ctypes.c_int, ctypes.POINTER(custom_kernel_ops),
-                                             ctypes.POINTER(ctypes.POINTER(ctypes.c_int)),
-                                             ctypes.c_int, ctypes.POINTER(ctypes.POINTER(ctypes.c_int)), ctypes.c_int,
-                                             ctypes.c_int)
-function_type_inplace_info = ctypes.CFUNCTYPE(ctypes.c_int, ctypes.POINTER(custom_kernel_ops), ctypes.c_int)
+function_type_infer_shape = ctypes.CFUNCTYPE(
+    ctypes.c_int,
+    ctypes.POINTER(custom_kernel_ops),
+    ctypes.POINTER(ctypes.POINTER(ctypes.c_int)),
+    ctypes.c_int,
+    ctypes.POINTER(ctypes.POINTER(ctypes.c_int)),
+    ctypes.c_int,
+    ctypes.c_int,
+)
+function_type_inplace_info = ctypes.CFUNCTYPE(
+    ctypes.c_int, ctypes.POINTER(custom_kernel_ops), ctypes.c_int
+)
 
-function_type_bind = ctypes.CFUNCTYPE(ctypes.c_int, ctypes.POINTER(custom_kernel_ops),
-                                      ctypes.POINTER(ctypes.POINTER(custom_kernel_tensor)), ctypes.c_int,
-                                      ctypes.POINTER(ctypes.POINTER(custom_kernel_tensor)), ctypes.c_int)
+function_type_bind = ctypes.CFUNCTYPE(
+    ctypes.c_int,
+    ctypes.POINTER(custom_kernel_ops),
+    ctypes.POINTER(ctypes.POINTER(custom_kernel_tensor)),
+    ctypes.c_int,
+    ctypes.POINTER(ctypes.POINTER(custom_kernel_tensor)),
+    ctypes.c_int,
+)
 
-function_type_prerun = ctypes.CFUNCTYPE(ctypes.c_int, ctypes.POINTER(custom_kernel_ops),
-                                        ctypes.POINTER(ctypes.POINTER(custom_kernel_tensor)),
-                                        ctypes.c_int, ctypes.POINTER(ctypes.POINTER(custom_kernel_tensor)),
-                                        ctypes.c_int, ctypes.c_int)
+function_type_prerun = ctypes.CFUNCTYPE(
+    ctypes.c_int,
+    ctypes.POINTER(custom_kernel_ops),
+    ctypes.POINTER(ctypes.POINTER(custom_kernel_tensor)),
+    ctypes.c_int,
+    ctypes.POINTER(ctypes.POINTER(custom_kernel_tensor)),
+    ctypes.c_int,
+    ctypes.c_int,
+)
 
-function_type_reshape = ctypes.CFUNCTYPE(ctypes.c_int, ctypes.POINTER(custom_kernel_ops),
-                                         ctypes.POINTER(ctypes.POINTER(custom_kernel_tensor)),
-                                         ctypes.c_int, ctypes.POINTER(ctypes.POINTER(custom_kernel_tensor)),
-                                         ctypes.c_int)
+function_type_reshape = ctypes.CFUNCTYPE(
+    ctypes.c_int,
+    ctypes.POINTER(custom_kernel_ops),
+    ctypes.POINTER(ctypes.POINTER(custom_kernel_tensor)),
+    ctypes.c_int,
+    ctypes.POINTER(ctypes.POINTER(custom_kernel_tensor)),
+    ctypes.c_int,
+)
 
-function_type_run = ctypes.CFUNCTYPE(ctypes.c_int, ctypes.POINTER(custom_kernel_ops),
-                                     ctypes.POINTER(ctypes.POINTER(custom_kernel_tensor)),
-                                     ctypes.c_int, ctypes.POINTER(ctypes.POINTER(custom_kernel_tensor)), ctypes.c_int)
+function_type_run = ctypes.CFUNCTYPE(
+    ctypes.c_int,
+    ctypes.POINTER(custom_kernel_ops),
+    ctypes.POINTER(ctypes.POINTER(custom_kernel_tensor)),
+    ctypes.c_int,
+    ctypes.POINTER(ctypes.POINTER(custom_kernel_tensor)),
+    ctypes.c_int,
+)
 
-function_type_postrun = ctypes.CFUNCTYPE(ctypes.c_int, ctypes.POINTER(custom_kernel_ops),
-                                         ctypes.POINTER(ctypes.POINTER(custom_kernel_tensor)),
-                                         ctypes.c_int, ctypes.POINTER(ctypes.POINTER(custom_kernel_tensor)),
-                                         ctypes.c_int)
+function_type_postrun = ctypes.CFUNCTYPE(
+    ctypes.c_int,
+    ctypes.POINTER(custom_kernel_ops),
+    ctypes.POINTER(ctypes.POINTER(custom_kernel_tensor)),
+    ctypes.c_int,
+    ctypes.POINTER(ctypes.POINTER(custom_kernel_tensor)),
+    ctypes.c_int,
+)
 
-function_type_release = ctypes.CFUNCTYPE(ctypes.c_int, ctypes.POINTER(custom_kernel_ops))
+function_type_release = ctypes.CFUNCTYPE(
+    ctypes.c_int, ctypes.POINTER(custom_kernel_ops)
+)
 
-custom_kernel_ops._fields_ = [('kernel_name', ctypes.c_char_p),
-                              ('op', ctypes.c_char_p),
-                              ('force', ctypes.c_int),
-                              ('kernel_param', ctypes.c_void_p),
-                              ('kernel_param_size', ctypes.c_int),
-                              ('infer_shape', function_type_infer_shape),
-                              ('inplace_info', function_type_inplace_info),
-                              ('bind', function_type_bind),
-                              ('prerun', function_type_prerun),
-                              ('reshape', function_type_reshape),
-                              ('run', function_type_run),
-                              ('postrun', function_type_postrun),
-                              ('release', function_type_release)]
+custom_kernel_ops._fields_ = [
+    ("kernel_name", ctypes.c_char_p),
+    ("op", ctypes.c_char_p),
+    ("force", ctypes.c_int),
+    ("kernel_param", ctypes.c_void_p),
+    ("kernel_param_size", ctypes.c_int),
+    ("infer_shape", function_type_infer_shape),
+    ("inplace_info", function_type_inplace_info),
+    ("bind", function_type_bind),
+    ("prerun", function_type_prerun),
+    ("reshape", function_type_reshape),
+    ("run", function_type_run),
+    ("postrun", function_type_postrun),
+    ("release", function_type_release),
+]
 
 
 class cpu_cluster(ctypes.Structure):
-    _fields_ = [('cpu_number', ctypes.c_int), ('max_freq', ctypes.c_int),
-                ('cpu_model', ctypes.c_int), ('cpu_arch', ctypes.c_int),
-                ('l1_size', ctypes.c_int), ('l2_size', ctypes.c_int),
-                ('hw_cpu_id', ctypes.c_int * 8)]
+    _fields_ = [
+        ("cpu_number", ctypes.c_int),
+        ("max_freq", ctypes.c_int),
+        ("cpu_model", ctypes.c_int),
+        ("cpu_arch", ctypes.c_int),
+        ("l1_size", ctypes.c_int),
+        ("l2_size", ctypes.c_int),
+        ("hw_cpu_id", ctypes.c_int * 8),
+    ]
 
 
 class cpu_info(ctypes.Structure):
-    _fields_ = [('cpu_name', ctypes.c_char_p), ('board_name', ctypes.c_char_p),
-                ('cluster_number', ctypes.c_int), ('l3_size', ctypes.c_int),
-                ('cpu_cluster', ctypes.POINTER(cpu_cluster)), ('online_cpu_number', ctypes.c_int),
-                ('online_cpu_list', ctypes.c_int * 4)]
+    _fields_ = [
+        ("cpu_name", ctypes.c_char_p),
+        ("board_name", ctypes.c_char_p),
+        ("cluster_number", ctypes.c_int),
+        ("l3_size", ctypes.c_int),
+        ("cpu_cluster", ctypes.POINTER(cpu_cluster)),
+        ("online_cpu_number", ctypes.c_int),
+        ("online_cpu_list", ctypes.c_int * 4),
+    ]

@@ -37,13 +37,13 @@ bool TensorRTEngine::AddPadNode(struct graph* ir_graph, struct node* node)
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
     if (nullptr == input_tensor || nullptr == output_tensor)
     {
-        fprintf(stderr, "Tengine: Get input & output for Reshape(id: %d, name: %s) layer failed.\n", node->index, node->name);
+        fprintf(stderr, "Tengine: Get input & output for Pad(id: %d, name: %s) layer failed.\n", node->index, node->name);
         return false;
     }
 
     if (!check_if_input_in_map(input_tensor->index, this->tensor_swap_map))
     {
-        fprintf(stderr, "Tengine: Query input for Reshape(id: %d, name: %s) layer failed.\n", node->index, node->name);
+        fprintf(stderr, "Tengine: Query input for Pad(id: %d, name: %s) layer failed.\n", node->index, node->name);
         return false;
     }
 
@@ -62,7 +62,7 @@ bool TensorRTEngine::AddPadNode(struct graph* ir_graph, struct node* node)
     nvinfer1::IPaddingLayer* layer = this->network->addPadding(*trt_tensor, dims_pre, dims_post);
     if (nullptr == layer)
     {
-        fprintf(stderr, "Tengine: Add Reshape(id: %d, name: %s) layer failed.\n", node->index, node->name);
+        fprintf(stderr, "Tengine: Add Pad(id: %d, name: %s) layer failed.\n", node->index, node->name);
         return false;
     }
 

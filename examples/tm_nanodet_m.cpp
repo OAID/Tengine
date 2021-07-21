@@ -301,6 +301,27 @@ static void draw_objects(const cv::Mat& bgr, const std::vector<Object>& objects,
     cv::imwrite(path, image);
 }
 
+/// @brief change layout, from nhwc to nchw
+/// @param src original tensor buffer
+/// @param dst result tensor buffer (should not be same as src)
+/// @param h_limit height limitation
+/// @param w_limit width limitation
+/// @param c_limit channel limitation
+/// @param mean mean values per channel
+/// @param norm norm values per channel
+static void nhwc_to_nchw(float* src, float* dst, int h_limit, int w_limit, int c_limit, const float* mean, const float* norm)
+{
+    for (int h = 0; h < h_limit; h++) {
+        for (int w = 0; w < w_limit; w++) {
+            for (int c = 0; c < 3; c++) {
+                int in_index  = h * w_limit * 3 + w * 3 + c;
+                int out_index = c * h_limit * w_limit + h * w_limit + w;
+                dst[out_index] = (src[in_index] - mean[c]) * norm[c];
+            }
+        }
+    }
+}
+
 // @brief:  get input data and resize to model input shape directly
 static int get_input_data(const char *path, const float *mean, const float *norm, image &lb) {
     // load input image
@@ -312,18 +333,9 @@ static int get_input_data(const char *path, const float *mean, const float *norm
 
     if (img.cols != lb.w || img.rows != lb.h) cv::resize(img, img, cv::Size(lb.w, lb.h));
     img.convertTo(img, CV_32FC3);
-
-    /* nhwc to nchw */
     float *_data = (float *)img.data;
-    for (int h = 0; h < lb.h; h++) {
-        for (int w = 0; w < lb.w; w++) {
-            for (int c = 0; c < 3; c++) {
-                int in_index  = h * lb.w * 3 + w * 3 + c;
-                int out_index = c * lb.h * lb.w + h * lb.w + w;
-                lb.data[out_index] = (_data[in_index] - mean[c]) * norm[c];
-            }
-        }
-    }
+
+    nhwc_to_nchw(_data, lb.data, lb.h, lb.w, 3, mean, norm);
     return 0;
 }
 
@@ -359,16 +371,7 @@ static float get_input_data(const char *path, const float *mean, const float *no
 
     img_pad.convertTo(img_pad, CV_32FC3);
     float *_data = (float *)img_pad.data;
-    /* nhwc to nchw */
-    for (int h = 0; h < lb.h; h++) {
-        for (int w = 0; w < lb.w; w++) {
-            for (int c = 0; c < 3; c++) {
-                int in_index  = h * lb.w * 3 + w * 3 + c;
-                int out_index = c * lb.h * lb.w + h * lb.w + w;
-                lb.data[out_index] = (_data[in_index] - mean[c]) * norm[c];
-            }
-        }
-    }
+    nhwc_to_nchw(_data, lb.data, lb.h, lb.w, 3, mean, norm);
 
     return lb_scale;
 }
@@ -490,7 +493,7 @@ int main(int argc, char* argv[]) {
     double min_time = DBL_MAX;
     double max_time = DBL_MIN;
     double total_time = 0.;
-    for (int i = 0; i < repeat_count; i++) {
+    for (i = 0; i < repeat_count; i++) {
         double start = get_current_time();
         if (run_graph(graph, 1) < 0) {
             fprintf(stderr, "Run graph failed\n");
@@ -534,7 +537,7 @@ int main(int argc, char* argv[]) {
     fprintf(stderr, "detection num: %d\n",count);
 
     objects.resize(count);
-    for (int i = 0; i < count; i++) {
+    for (i = 0; i < count; i++) {
         objects[i] = proposals[picked[i]];
 
 #ifdef TRY_LETTER_BOX

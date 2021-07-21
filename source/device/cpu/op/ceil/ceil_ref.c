@@ -41,8 +41,8 @@ int ref_ceil_fp32(struct tensor* input_tensor, struct tensor* output_tensor, int
     // dims size = 2 or 3
     if (input_tensor->dim_num < 4)
     {
-        float* input_data = input_tensor->data;
-        float* out_data = output_tensor->data;
+        float* input_data = (float*)input_tensor->data;
+        float* out_data = (float*)output_tensor->data;
         int total_size = input_tensor->elem_num;
 
         for (int i = 0; i < total_size; i++)
@@ -61,8 +61,8 @@ int ref_ceil_fp32(struct tensor* input_tensor, struct tensor* output_tensor, int
         int size = h * w;
         int c_step = h * w;
 
-        float* input_data = input_tensor->data;
-        float* out_data = output_tensor->data;
+        float* input_data = (float*)input_tensor->data;
+        float* out_data = (float*)output_tensor->data;
 
 #pragma omp parallel for num_threads(num_thread)
         for (int q = 0; q < channels; q++)
@@ -85,8 +85,8 @@ int ref_ceil_fp32(struct tensor* input_tensor, struct tensor* output_tensor, int
 int ref_ceil_uint8(struct tensor* input_tensor, struct tensor* output_tensor, int num_thread)
 {
      /* dequant */
-    uint8_t* input_uint8 = input_tensor->data;
-    uint8_t* output_uint8 = output_tensor->data;
+    uint8_t* input_uint8 = (uint8_t*)input_tensor->data;
+    uint8_t* output_uint8 = (uint8_t*)output_tensor->data;
     float input_scale = input_tensor->scale;
     float output_scale = output_tensor->scale;
     int32_t input_zero = input_tensor->zero_point;

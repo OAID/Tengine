@@ -30,6 +30,7 @@
 #include "utils/save_graph/save_graph.hpp"
 #include "onnx/onnx2tengine.hpp"
 #include "caffe/caffe2tengine.hpp"
+#include "ncnn/ncnn2tengine.hpp"
 #include "utils/graph_optimizer/graph_opt.hpp"
 
 const char* help_params = "[Convert Tools Info]: optional arguments:\n"
@@ -172,6 +173,11 @@ int main(int argc, char* argv[])
     {
         caffe_serializer c2t;
         graph = c2t.caffe2tengine(model_file, proto_file);
+    }
+    else if (file_format == "ncnn")
+    {
+	ncnn_serializer n2t;
+	graph = n2t.ncnn2tengine(model_file, proto_file);
     }
     else
     {

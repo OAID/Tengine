@@ -73,7 +73,8 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         return -1;
     }
 
-    int ret = ref_where_fp32(input_tensor->data, input_tensor_a->data, input_tensor_b->data, output_tensor->data, elem_num_a);
+    int ret = ref_where_fp32((float*)input_tensor->data, (float*)input_tensor_a->data, 
+        (float*)input_tensor_b->data, (float*)output_tensor->data, elem_num_a);
     if(ret < -1){
         TLOG_ERR("where operator execution error\n");
         return -1;

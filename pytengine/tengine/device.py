@@ -4,6 +4,7 @@
 from .base import _LIB, check_call, c_str
 import ctypes
 
+
 class Device(object):
     def __init__(self, driver_name=None, dev_name=None):
         """
@@ -24,34 +25,70 @@ class Device(object):
             check_call(_LIB.destroy_device(*self.driver))
         self.driver = None
 
-    def getAttr(self, item,size):
-        buf = ctypes.create_string_buffer('',size=size)
-        check_call(_LIB.get_device_attr(c_str(self.driver[1]),c_str(item),ctypes.cast(buf,ctypes.POINTER(ctypes.c_char)),size))
+    def getAttr(self, item, size):
+        buf = ctypes.create_string_buffer("", size=size)
+        check_call(
+            _LIB.get_device_attr(
+                c_str(self.driver[1]),
+                c_str(item),
+                ctypes.cast(buf, ctypes.POINTER(ctypes.c_char)),
+                size,
+            )
+        )
         return buf[:size]
 
-    def setAttr(self,item,obj):
+    def setAttr(self, item, obj):
         if type(obj) is int:
             buf = (ctypes.c_int * 1)(obj)
-            check_call(_LIB.set_device_attr(c_str(self.driver[1]),c_str(item),ctypes.cast(buf,ctypes.POINTER(ctypes.c_int)),ctypes.sizeof(ctypes.c_int)))
+            check_call(
+                _LIB.set_device_attr(
+                    c_str(self.driver[1]),
+                    c_str(item),
+                    ctypes.cast(buf, ctypes.POINTER(ctypes.c_int)),
+                    ctypes.sizeof(ctypes.c_int),
+                )
+            )
         elif type(obj) is float:
             buf = (ctypes.c_float * 1)(obj)
-            check_call(_LIB.set_device_attr(c_str(self.driver[1]),c_str(item),ctypes.cast(buf,ctypes.POINTER(ctypes.c_int)),ctypes.sizeof(ctypes.c_float)))
-        elif type(obj) is str:
-            buf = ctypes.create_string_buffer(obj,len(obj))
             check_call(
-                _LIB.set_device_attr(c_str(self.driver[1]), c_str(item), ctypes.cast(buf, ctypes.POINTER(ctypes.c_char)),
-                                     ctypes.sizeof(ctypes.c_char)*len(obj)))
+                _LIB.set_device_attr(
+                    c_str(self.driver[1]),
+                    c_str(item),
+                    ctypes.cast(buf, ctypes.POINTER(ctypes.c_int)),
+                    ctypes.sizeof(ctypes.c_float),
+                )
+            )
+        elif type(obj) is str:
+            buf = ctypes.create_string_buffer(obj, len(obj))
+            check_call(
+                _LIB.set_device_attr(
+                    c_str(self.driver[1]),
+                    c_str(item),
+                    ctypes.cast(buf, ctypes.POINTER(ctypes.c_char)),
+                    ctypes.sizeof(ctypes.c_char) * len(obj),
+                )
+            )
         elif type(obj) is list:
             if type(obj[0]) is int:
                 buf = (ctypes.c_int * len(obj))(*obj)
-                check_call(_LIB.set_device_attr(c_str(self.driver[1]), c_str(item),
-                                                ctypes.cast(buf, ctypes.POINTER(ctypes.c_int)),
-                                                ctypes.sizeof(ctypes.c_int)*len(obj)))
+                check_call(
+                    _LIB.set_device_attr(
+                        c_str(self.driver[1]),
+                        c_str(item),
+                        ctypes.cast(buf, ctypes.POINTER(ctypes.c_int)),
+                        ctypes.sizeof(ctypes.c_int) * len(obj),
+                    )
+                )
             elif type(obj[0]) is float:
-                buf = (ctypes.c_float*len(obj))(*obj)
-                check_call(_LIB.set_device_attr(c_str(self.driver[1]), c_str(item),
-                                                ctypes.cast(buf, ctypes.POINTER(ctypes.c_float)),
-                                                ctypes.sizeof(ctypes.c_float)*len(obj)))
+                buf = (ctypes.c_float * len(obj))(*obj)
+                check_call(
+                    _LIB.set_device_attr(
+                        c_str(self.driver[1]),
+                        c_str(item),
+                        ctypes.cast(buf, ctypes.POINTER(ctypes.c_float)),
+                        ctypes.sizeof(ctypes.c_float) * len(obj),
+                    )
+                )
         else:
             print("not support type: {} yet.".format(type(obj)))
 

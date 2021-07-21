@@ -63,6 +63,7 @@ extern "C"
 #include "tim/vx/ops/elementwise.h"
 #include "tim/vx/ops/fullyconnected.h"
 #include "tim/vx/ops/gather.h"
+#include "tim/vx/ops/instancenormalization.h"
 #include "tim/vx/ops/pool2d.h"
 #include "tim/vx/ops/reshape.h"
 #include "tim/vx/ops/resize.h"
@@ -115,6 +116,7 @@ private:
     bool AddFullyConnectionNode(struct node* node);
     bool AddGatherNode(struct node* node);
     bool AddHardSwishNode(struct node* node);
+    bool AddInstanceNormNode(struct node* node);
     bool AddInterpNode(struct node* ir_node);
     bool AddMishNode(struct node* ir_node);
     bool AddPermuteNode(struct node* ir_node);

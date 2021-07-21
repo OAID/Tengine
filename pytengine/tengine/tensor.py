@@ -2,12 +2,22 @@
 """Information about Tengine."""
 
 import ctypes
-from .base import _LIB, c_str, tensor_t, ctypes2numpy_shared, ctypes2buffer, DType, check_call, Tengine_ctype
+from .base import (
+    _LIB,
+    c_str,
+    tensor_t,
+    ctypes2numpy_shared,
+    ctypes2buffer,
+    DType,
+    check_call,
+    Tengine_ctype,
+)
 import numpy as np
 import time
 
+
 class Tensor(object):
-    def __init__(self, graph=None, name=None, type=None,tensor=None):
+    def __init__(self, graph=None, name=None, type=None, tensor=None):
         """
         create a tensor object by tensor name or by tensor pointer
         :param graph: <graph object>
@@ -19,7 +29,9 @@ class Tensor(object):
             self.tensor = tensor
         else:
             _LIB.create_graph_tensor.restype = tensor_t
-            self.tensor = _LIB.create_graph_tensor(ctypes.c_void_p(graph.graph), c_str(name), type)
+            self.tensor = _LIB.create_graph_tensor(
+                ctypes.c_void_p(graph.graph), c_str(name), type
+            )
         self._data = None
         self.shape_number = None
         self.length = 4
@@ -58,8 +70,14 @@ class Tensor(object):
         """
         dim = (ctypes.c_int * self.length)(0, 0, 0, 0)
         _LIB.get_tensor_shape.restype = ctypes.c_int
-        self.shape_number = _LIB.get_tensor_shape(ctypes.c_void_p(self.tensor), ctypes.cast(dim, ctypes.POINTER(ctypes.c_int)), 4)
-        return ctypes2numpy_shared(ctypes.cast(dim, ctypes.POINTER(ctypes.c_int)), (1, 4))[0]
+        self.shape_number = _LIB.get_tensor_shape(
+            ctypes.c_void_p(self.tensor),
+            ctypes.cast(dim, ctypes.POINTER(ctypes.c_int)),
+            4,
+        )
+        return ctypes2numpy_shared(
+            ctypes.cast(dim, ctypes.POINTER(ctypes.c_int)), (1, 4)
+        )[0]
 
     @property
     def shape_num(self):
@@ -78,7 +96,13 @@ class Tensor(object):
         """
         self.length = len(dims)
         c_dims = (ctypes.c_int * self.length)(*dims)
-        check_call(_LIB.set_tensor_shape(ctypes.c_void_p(self.tensor), ctypes.cast(c_dims, ctypes.POINTER(ctypes.c_int)), self.length))
+        check_call(
+            _LIB.set_tensor_shape(
+                ctypes.c_void_p(self.tensor),
+                ctypes.cast(c_dims, ctypes.POINTER(ctypes.c_int)),
+                self.length,
+            )
+        )
 
     def getbuffer(self, type=int):
         """
@@ -120,16 +144,24 @@ class Tensor(object):
         :param value: <int list> or <float list> or <str list>
         :return: None
         """
-        _LIB.set_tensor_buffer.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int]
+        _LIB.set_tensor_buffer.argtypes = [
+            ctypes.c_void_p,
+            ctypes.c_void_p,
+            ctypes.c_int,
+        ]
         value_bytes = ctypes.sizeof(Tengine_ctype[self.dtype.enum])
         b = np.copy(value)
-        print("self.dtype.enum:",self.dtype.enum)
-        if(self.dtype.enum == 2):
+        print("self.dtype.enum:", self.dtype.enum)
+        if self.dtype.enum == 2:
             value_c = np.ascontiguousarray(b.astype(np.int8))
             value_c = value_c.astype(np.int8)
         else:
             value_c = np.ascontiguousarray(b)
-        check_call(_LIB.set_tensor_buffer(self.tensor, np.ctypeslib.as_ctypes(value_c), value.size * value_bytes))
+        check_call(
+            _LIB.set_tensor_buffer(
+                self.tensor, np.ctypeslib.as_ctypes(value_c), value.size * value_bytes
+            )
+        )
 
     def getData(self):
         """
@@ -138,18 +170,38 @@ class Tensor(object):
         """
         if self._data[0] == ctypes.c_int:
             c_data = (ctypes.c_int * self._data[1])(0)
-            check_call(_LIB.get_tensor_data(ctypes.c_void_p(self.tensor), ctypes.pointer(c_data), ctypes.sizeof(ctypes.c_int)))
-            return ctypes2numpy_shared(ctypes.cast(c_data, ctypes.POINTER(ctypes.c_int)), (1, self._data[1]))
+            check_call(
+                _LIB.get_tensor_data(
+                    ctypes.c_void_p(self.tensor),
+                    ctypes.pointer(c_data),
+                    ctypes.sizeof(ctypes.c_int),
+                )
+            )
+            return ctypes2numpy_shared(
+                ctypes.cast(c_data, ctypes.POINTER(ctypes.c_int)), (1, self._data[1])
+            )
         elif self._data[0] == ctypes.c_float:
             c_data = (ctypes.c_float * self._data[1])(0.0)
-            check_call(_LIB.get_tensor_data(ctypes.c_void_p(self.tensor), ctypes.cast(c_data, ctypes.c_char_p),
-                                 ctypes.sizeof(ctypes.c_float)))
-            return c_data[:self._data[1]]
+            check_call(
+                _LIB.get_tensor_data(
+                    ctypes.c_void_p(self.tensor),
+                    ctypes.cast(c_data, ctypes.c_char_p),
+                    ctypes.sizeof(ctypes.c_float),
+                )
+            )
+            return c_data[: self._data[1]]
         elif self._data[0] == ctypes.c_char:
             c_data = ctypes.create_string_buffer("", self._data[1])
-            check_call(_LIB.get_tensor_data(ctypes.c_void_p(self.tensor), ctypes.cast(c_data, ctypes.c_void_p),
-                                 ctypes.sizeof(ctypes.c_char) * self._data[1]))
-            return ctypes2buffer(ctypes.cast(c_data, ctypes.POINTER(ctypes.c_char)), self._data[1])
+            check_call(
+                _LIB.get_tensor_data(
+                    ctypes.c_void_p(self.tensor),
+                    ctypes.cast(c_data, ctypes.c_void_p),
+                    ctypes.sizeof(ctypes.c_char) * self._data[1],
+                )
+            )
+            return ctypes2buffer(
+                ctypes.cast(c_data, ctypes.POINTER(ctypes.c_char)), self._data[1]
+            )
         else:
             return None
 
@@ -162,34 +214,56 @@ class Tensor(object):
         if type(data) == type(0):
             self._data = [ctypes.c_int, 1]
             c_data = (ctypes.c_int * 1)(data)
-            check_call(_LIB.set_tensor_data(ctypes.c_void_p(self.tensor), ctypes.cast(c_data, ctypes.POINTER(ctypes.c_int)),
-                                        ctypes.sizeof(ctypes.c_int)))
+            check_call(
+                _LIB.set_tensor_data(
+                    ctypes.c_void_p(self.tensor),
+                    ctypes.cast(c_data, ctypes.POINTER(ctypes.c_int)),
+                    ctypes.sizeof(ctypes.c_int),
+                )
+            )
         elif type(data) == type(0.1):
             self._data = [ctypes.c_float, 1]
             c_data = (ctypes.c_float * 1)(data)
-            check_call(_LIB.set_tensor_data(ctypes.c_void_p(self.tensor),
-                                        ctypes.cast(c_data, ctypes.POINTER(ctypes.c_float)),
-                                        ctypes.sizeof(ctypes.c_float)))
+            check_call(
+                _LIB.set_tensor_data(
+                    ctypes.c_void_p(self.tensor),
+                    ctypes.cast(c_data, ctypes.POINTER(ctypes.c_float)),
+                    ctypes.sizeof(ctypes.c_float),
+                )
+            )
         elif type(data) == type("0"):
             self._data = [ctypes.c_char, len(data)]
             c_data = ctypes.create_string_buffer(data)
-            check_call(_LIB.set_tensor_data(ctypes.c_void_p(self.tensor), ctypes.cast(c_data, ctypes.c_char_p),
-                                        ctypes.sizeof(c_data)))
+            check_call(
+                _LIB.set_tensor_data(
+                    ctypes.c_void_p(self.tensor),
+                    ctypes.cast(c_data, ctypes.c_char_p),
+                    ctypes.sizeof(c_data),
+                )
+            )
         elif type(data) == type([]):
             size = len(data)
             if size:
                 if type(data[0]) == type(0):
                     self._data = [ctypes.c_int, size]
                     c_data = (ctypes.c_int * size)(data)
-                    check_call(_LIB.set_tensor_data(ctypes.c_void_p(self.tensor),
-                                                ctypes.cast(c_data, ctypes.POINTER(ctypes.c_int)),
-                                                ctypes.sizeof(ctypes.c_int) * size))
+                    check_call(
+                        _LIB.set_tensor_data(
+                            ctypes.c_void_p(self.tensor),
+                            ctypes.cast(c_data, ctypes.POINTER(ctypes.c_int)),
+                            ctypes.sizeof(ctypes.c_int) * size,
+                        )
+                    )
                 elif type(data[0]) == type(0.0):
                     self._data = [ctypes.c_float, size]
                     c_data = (ctypes.c_float * size)(data)
-                    check_call(_LIB.set_tensor_data(ctypes.c_void_p(self.tensor),
-                                                ctypes.cast(c_data, ctypes.POINTER(ctypes.c_float)),
-                                                ctypes.sizeof(ctypes.c_float) * size))
+                    check_call(
+                        _LIB.set_tensor_data(
+                            ctypes.c_void_p(self.tensor),
+                            ctypes.cast(c_data, ctypes.POINTER(ctypes.c_float)),
+                            ctypes.sizeof(ctypes.c_float) * size,
+                        )
+                    )
                 else:
                     return -1
             else:
@@ -202,8 +276,8 @@ class Tensor(object):
         Convert the list to an ndarray . And adjust the dimensions.
         return ndarray
         """
-        output=self.buf
-        output=np.array(output)
+        output = self.buf
+        output = np.array(output)
         output.resize(self.shape)
         return output
 
@@ -213,7 +287,7 @@ class Tensor(object):
         Get the data type of the tensor.
         :return: <The tensor type> like: TENGINE_DT_FP32 etc, -1 on error.
         """
-        d =  _LIB.get_tensor_data_type(ctypes.c_void_p(self.tensor))
+        d = _LIB.get_tensor_data_type(ctypes.c_void_p(self.tensor))
         return DType(d)
 
     @dtype.setter
@@ -233,9 +307,20 @@ class Tensor(object):
         :param number: <int> the element number of array
         :return: None
         """
-        _LIB.set_tensor_quant_param.argtypes = [ctypes.c_void_p,ctypes.POINTER(ctypes.c_float),ctypes.POINTER(ctypes.c_int),ctypes.c_int]
-        check_call(_LIB.set_tensor_quant_param(ctypes.c_void_p(self.tensor), np.ctypeslib.as_ctypes(scale),
-                                           np.ctypeslib.as_ctypes(zero_point), number))
+        _LIB.set_tensor_quant_param.argtypes = [
+            ctypes.c_void_p,
+            ctypes.POINTER(ctypes.c_float),
+            ctypes.POINTER(ctypes.c_int),
+            ctypes.c_int,
+        ]
+        check_call(
+            _LIB.set_tensor_quant_param(
+                ctypes.c_void_p(self.tensor),
+                np.ctypeslib.as_ctypes(scale),
+                np.ctypeslib.as_ctypes(zero_point),
+                number,
+            )
+        )
 
     def getQuantParam(self, number):
         """
@@ -243,8 +328,12 @@ class Tensor(object):
         :param number: <int> the element number of array
         :return: (<scale list>,<zero_point list>)
         """
-        scale = (ctypes.c_float*number)(0)
-        zero_point = (ctypes.c_int*number)(0)
-        _LIB.get_tensor_quant_param(ctypes.c_void_p(self.tensor), ctypes.pointer(scale), ctypes.pointer(zero_point),
-                                    number)
+        scale = (ctypes.c_float * number)(0)
+        zero_point = (ctypes.c_int * number)(0)
+        _LIB.get_tensor_quant_param(
+            ctypes.c_void_p(self.tensor),
+            ctypes.pointer(scale),
+            ctypes.pointer(zero_point),
+            number,
+        )
         return scale[:number], zero_point[:number]

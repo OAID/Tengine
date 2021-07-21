@@ -39,7 +39,7 @@
 #include <math.h>
 #include <string.h>
 
-#ifdef __APPLE__
+#if defined(__APPLE__) || defined(_MSC_VER)
 #include <stdio.h>
 #endif
 
@@ -59,10 +59,10 @@ int ref_gru_default_fp32(struct tensor* input_tensor, struct tensor* w, struct t
     int size = input_tensor->dims[2];
     int hidden_size = param->hidden_size;
 
-    float* x_data = input_tensor->data;
-    float* w_data = w->data;
-    float* r_data = r->data;
-    float* output_data = output_tensor->data;
+    float* x_data = (float*)input_tensor->data;
+    float* w_data = (float*)w->data;
+    float* r_data = (float*)r->data;
+    float* output_data = (float*)output_tensor->data;
 
     /* initial_h_data buffers */
     float* initial_h_data = (float*)malloc((unsigned long)hidden_size * batch_size * sizeof(float));
@@ -168,11 +168,11 @@ int ref_gru_with_bias_fp32(struct tensor* input_tensor, struct tensor* w, struct
     int size = input_tensor->dims[2];
     int hidden_size = param->hidden_size;
     
-    float* x_data = input_tensor->data;
-    float* w_data = w->data;
-    float* r_data = r->data;
-    float* b_data = b->data;
-    float* output_data = output_tensor->data;
+    float* x_data = (float*)input_tensor->data;
+    float* w_data = (float*)w->data;
+    float* r_data = (float*)r->data;
+    float* b_data = (float*)b->data;
+    float* output_data = (float*)output_tensor->data;
 
     /* initial_h_data buffers */
     float* initial_h_data = (float*)malloc((unsigned long)hidden_size * batch_size * sizeof(float));
@@ -284,10 +284,10 @@ int ref_gru_case1_fp32(struct tensor* input_tensor, struct tensor* w, struct ten
 {
     int batch_size = input_tensor->dims[1];
     int hidden_size = param->hidden_size;
-    float* x_data = input_tensor->data;
-    float* w_data = w->data;
-    float* r_data = r->data;
-    float* b_data = b->data;
+    float* x_data = (float*)input_tensor->data;
+    float* w_data = (float*)w->data;
+    float* r_data = (float*)r->data;
+    float* b_data = (float*)b->data;
 
     /* initial_h_data buffers */
     float* initial_h_data = (float*)malloc((unsigned long)hidden_size * batch_size * sizeof(float));
@@ -301,7 +301,7 @@ int ref_gru_case1_fp32(struct tensor* input_tensor, struct tensor* w, struct ten
     float* R_data = ( float* )malloc(hidden_size * sizeof(float));
     float* H_data = ( float* )malloc(hidden_size * sizeof(float));
 
-    float* output_data = output_tensor->data;
+    float* output_data = (float*)output_tensor->data;
     int T = input_tensor->dims[1];
     int size = input_tensor->dims[2];
 

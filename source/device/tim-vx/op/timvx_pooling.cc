@@ -80,6 +80,10 @@ bool VXEngine::AddPoolingNode(struct node* ir_node)
     {
         padtype = tim::vx::PadType::VALID;
     }
+    else
+    {
+        padtype = tim::vx::PadType::SAME;
+    }
 
     auto pool = graph->CreateOperation<tim::vx::ops::Pool2d>(
         pooltype, padtype,

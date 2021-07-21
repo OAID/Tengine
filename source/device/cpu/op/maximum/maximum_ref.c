@@ -81,7 +81,7 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
     int in_num = ir_node->input_num;
 
     maximum_op_param->in_num = in_num;
-    maximum_op_param->input_data = ( void* )sys_malloc(sizeof(void*) * in_num);
+    maximum_op_param->input_data = ( void** )sys_malloc(sizeof(void*) * in_num);
 
     return 0;
 }
@@ -103,7 +103,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     }
 
     const void** input = ( const void** )maximum_op_param->input_data;
-    float* output = output_tensor->data;
+    float* output = (float*)output_tensor->data;
 
     ref_maximum_fp32(( const float** )input, output, elem_num, maximum_op_param);
 

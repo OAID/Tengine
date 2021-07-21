@@ -177,7 +177,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     /* quant to uint8 */
     if (output_tensor->data_type == TENGINE_DT_UINT8)
     {
-        uint8_t* output_org = output_tensor->data;
+        uint8_t* output_org = (uint8_t*)output_tensor->data;
 
         for (int i=0; i<output_tensor->elem_num; i++)
         {
@@ -195,7 +195,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     /* quant to int8 */
     if (output_tensor->data_type == TENGINE_DT_INT8)
     {
-        int8_t* output_org = output_tensor->data;
+        int8_t* output_org = (int8_t*)output_tensor->data;
 
         for (int i=0; i<output_tensor->elem_num; i++)
         {

@@ -300,6 +300,9 @@ int VXEngine::Build(struct subgraph* subgraph)
             case OP_HARDSWISH:
                 this->AddHardSwishNode(ir_node);
                 break;
+            case OP_INSTANCENORM:
+                this->AddInstanceNormNode(ir_node);
+                break;
             case OP_INTERP:
                 this->AddInterpNode(ir_node);
                 break;

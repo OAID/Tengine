@@ -25,6 +25,10 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 #include "defines.h"
 
 #include <stdint.h>
@@ -198,3 +202,7 @@ void dump_ir_tensor(struct graph* ir_graph, ir_tensor_t* ir_tensor);
  * @return statue value, 0 success, other value failure.
  */
 int set_ir_tensor_consumer(ir_tensor_t* ir_tensor, const int index); 
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */

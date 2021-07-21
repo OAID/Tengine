@@ -25,6 +25,9 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
 
 /*!
  * @struct vector_t
@@ -138,3 +141,7 @@ int remove_vector_via_pointer(vector_t* v, void* data);
  * @param [in]  index: The index of the element.
  */
 void remove_vector_via_index(vector_t* v, int index);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */

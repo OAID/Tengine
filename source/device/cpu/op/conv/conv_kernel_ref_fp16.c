@@ -59,12 +59,12 @@ int ref_conv_fp16(struct tensor* input_tensor, struct tensor* output_tensor, str
     int kernel_offset = 0;
     int output_offset = 0;
 
-    fp16_t* input_data = input_tensor->data;
-    fp16_t* output_data = output_tensor->data;
-    fp16_t* kernel_data = kernel->data;
+    fp16_t* input_data = (fp16_t*)input_tensor->data;
+    fp16_t* output_data = (fp16_t*)output_tensor->data;
+    fp16_t* kernel_data = (fp16_t*)kernel->data;
     fp16_t* bias_data = NULL;
     if (bias != NULL)
-        bias_data = bias->data;
+        bias_data = (fp16_t*)bias->data;
 
     if (conv_param->kernel_h == 0)
         conv_param->kernel_h = 1;

@@ -307,7 +307,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct deconv_ref_param* op_param = ( struct deconv_ref_param* )exec_node->ops_priv;
 
     /* input quant param */
-    int ret = ref_deconv_fp32(input_data, output_data, kernel, bias, op_param);
+    int ret = ref_deconv_fp32((float*)input_data, (float*)output_data, (float*)kernel, (float*)bias, op_param);
 
     return ret;
 }

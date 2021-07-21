@@ -10,6 +10,7 @@ from .tensor import Tensor
 from .device import Device
 import os
 
+
 class Tengine(object):
     """initialize the tengine"""
 
@@ -55,7 +56,7 @@ class Tengine(object):
         """
         return _LIB.request_tengine_version(c_str(version))
 
-    def setDefaultDevice(self,dev_name):
+    def setDefaultDevice(self, dev_name):
         """
         set The default device.
         :param dev_name: <str> The device name.
@@ -89,15 +90,17 @@ class Tengine(object):
         """
         _LIB.set_log_output(log_print_t(func))
 
-    def get_predefined_cpu(self,name):
+    def get_predefined_cpu(self, name):
         _LIB.get_predefined_cpu.restype = ctypes.POINTER(cpu_info)
         return _LIB.get_predefined_cpu(c_str(name))[0]
 
-    def set_online_cpu(self,cpu_info,cpu_list):
+    def set_online_cpu(self, cpu_info, cpu_list):
         cpu_list = (ctypes.c_int * len(cpu_list))(*cpu_list)
-        return _LIB.set_online_cpu(ctypes.byref(cpu_info), ctypes.byref(cpu_list), len(cpu_list))
+        return _LIB.set_online_cpu(
+            ctypes.byref(cpu_info), ctypes.byref(cpu_list), len(cpu_list)
+        )
 
-    def create_cpu_device(self,name,cpu_info):
+    def create_cpu_device(self, name, cpu_info):
         return _LIB.create_cpu_device(c_str(name), ctypes.byref(cpu_info))
 
     class Plugin(object):
@@ -114,7 +117,9 @@ class Tengine(object):
             :return: None
             """
             self.pluginList.append(name)
-            check_call(_LIB.load_tengine_plugin(c_str(name), c_str(fname), c_str(init_func)))
+            check_call(
+                _LIB.load_tengine_plugin(c_str(name), c_str(fname), c_str(init_func))
+            )
 
         def remove(self, name, del_func):
             """
@@ -155,71 +160,83 @@ tg.Device = Device
 tg.options = options
 
 # /* the data type of the tensor */
-(tg.TENGINE_DT_FP32,
-  tg.TENGINE_DT_FP16,
-  tg.TENGINE_DT_INT8,
-  tg.TENGINE_DT_UINT8,
-  tg.TENGINE_DT_INT32,
-  tg.TENGINE_DT_INT16) = map(int,range(6))
+(
+    tg.TENGINE_DT_FP32,
+    tg.TENGINE_DT_FP16,
+    tg.TENGINE_DT_INT8,
+    tg.TENGINE_DT_UINT8,
+    tg.TENGINE_DT_INT32,
+    tg.TENGINE_DT_INT16,
+) = map(int, range(6))
 
 # /* cluster type: big-LITTLE and DynamIQ defined  */
-(tg.TENGINE_CLUSTER_ALL,
-  tg.TENGINE_CLUSTER_BIG,
-  tg.TENGINE_CLUSTER_MEDIUM,
-  tg.TENGINE_CLUSTER_LITTLE) = map(int,range(4))
+(
+    tg.TENGINE_CLUSTER_ALL,
+    tg.TENGINE_CLUSTER_BIG,
+    tg.TENGINE_CLUSTER_MEDIUM,
+    tg.TENGINE_CLUSTER_LITTLE,
+) = map(int, range(4))
 
-#define TENGINE_MODE_FP32 0
-#define TENGINE_MODE_FP16 1
-#define TENGINE_MODE_HYBRID_INT8 2
-#define TENGINE_MODE_UINT8 3
-#define TENGINE_MODE_INT8 4 // todo
-(tg.TENGINE_MODE_FP32,
-  tg.TENGINE_MODE_FP16,
-  tg.TENGINE_MODE_HYBRID_INT8,
-  tg.TENGINE_MODE_UINT8,
-  tg.TENGINE_MODE_INT8) = map(int,range(5))
+# define TENGINE_MODE_FP32 0
+# define TENGINE_MODE_FP16 1
+# define TENGINE_MODE_HYBRID_INT8 2
+# define TENGINE_MODE_UINT8 3
+# define TENGINE_MODE_INT8 4 // todo
+(
+    tg.TENGINE_MODE_FP32,
+    tg.TENGINE_MODE_FP16,
+    tg.TENGINE_MODE_HYBRID_INT8,
+    tg.TENGINE_MODE_UINT8,
+    tg.TENGINE_MODE_INT8,
+) = map(int, range(5))
 
 # /* layout type, not real layout */
-(tg.TENGINE_LAYOUT_NCHW,
- tg.TENGINE_LAYOUT_NHWC) = map(int, range(2))
+(tg.TENGINE_LAYOUT_NCHW, tg.TENGINE_LAYOUT_NHWC) = map(int, range(2))
 
 # /* tensor type: the content changed or not during inference */
-(tg.TENSOR_TYPE_UNKNOWN,
- tg.TENSOR_TYPE_VAR,
- tg.TENSOR_TYPE_CONST,
- tg.TENSOR_TYPE_INPUT,
- tg.TENSOR_TYPE_DEP) = map(int, range(5))
+(
+    tg.TENSOR_TYPE_UNKNOWN,
+    tg.TENSOR_TYPE_VAR,
+    tg.TENSOR_TYPE_CONST,
+    tg.TENSOR_TYPE_INPUT,
+    tg.TENSOR_TYPE_DEP,
+) = map(int, range(5))
 
 # /* node dump action definition */
-(tg.NODE_DUMP_ACTION_DISABLE,
- tg.NODE_DUMP_ACTION_ENABLE,
- tg.NODE_DUMP_ACTION_START,
- tg.NODE_DUMP_ACTION_STOP,
- tg.NODE_DUMP_ACTION_GET) = map(int, range(5))
+(
+    tg.NODE_DUMP_ACTION_DISABLE,
+    tg.NODE_DUMP_ACTION_ENABLE,
+    tg.NODE_DUMP_ACTION_START,
+    tg.NODE_DUMP_ACTION_STOP,
+    tg.NODE_DUMP_ACTION_GET,
+) = map(int, range(5))
 
 # /* graph perf action definition */
-(tg.GRAPH_PERF_STAT_DISABLE,
- tg.GRAPH_PERF_STAT_ENABLE,
- tg.GRAPH_PERF_STAT_STOP,
- tg.GRAPH_PERF_STAT_START,
- tg.GRAPH_PERF_STAT_RESET,
- tg.GRAPH_PERF_STAT_GET) = map(int, range(6))
+(
+    tg.GRAPH_PERF_STAT_DISABLE,
+    tg.GRAPH_PERF_STAT_ENABLE,
+    tg.GRAPH_PERF_STAT_STOP,
+    tg.GRAPH_PERF_STAT_START,
+    tg.GRAPH_PERF_STAT_RESET,
+    tg.GRAPH_PERF_STAT_GET,
+) = map(int, range(6))
 
 # /* quant mode */
-(tg.TENGINE_QUANT_FP16,
- tg.TENGINE_QUANT_INT8,
- tg.TENGINE_QUANT_UINT8) = map(int, range(3))
+(tg.TENGINE_QUANT_FP16, tg.TENGINE_QUANT_INT8, tg.TENGINE_QUANT_UINT8) = map(
+    int, range(3)
+)
 
 # /*follow the std. UNIX log level definitioin */
-(tg.LOG_EMERG,
- tg.LOG_ALERT,
- tg.LOG_CRIT,
- tg.LOG_ERR,
- tg.LOG_WARNING,
- tg.LOG_NOTICE,
- tg.LOG_INFO,
- tg.LOG_DEBUG
-) = map(int,range(8))
+(
+    tg.LOG_EMERG,
+    tg.LOG_ALERT,
+    tg.LOG_CRIT,
+    tg.LOG_ERR,
+    tg.LOG_WARNING,
+    tg.LOG_NOTICE,
+    tg.LOG_INFO,
+    tg.LOG_DEBUG,
+) = map(int, range(8))
 
 # * todo: should add suspend? */
 (
@@ -227,8 +244,8 @@ tg.options = options
     tg.GRAPH_STAT_READY,
     tg.GRAPH_STAT_RUNNING,
     tg.GRAPH_STAT_DONE,
-    tg.GRAPH_STAT_ERROR
-) = map(int,range(5))
+    tg.GRAPH_STAT_ERROR,
+) = map(int, range(5))
 
 # /* graph_exec_event */
 (
@@ -236,14 +253,8 @@ tg.options = options
     tg.GRAPH_EXEC_SUSPEND,
     tg.GRAPH_EXEC_RESUME,
     tg.GRAPH_EXEC_ABORT,
-    tg.GRAPH_EXEC_DONE
-) = map(int,range(5))
+    tg.GRAPH_EXEC_DONE,
+) = map(int, range(5))
 
 # /* device_policy */
-(
-    tg.DEFAULT_POLICY,
-    tg.LATENCY_POLICY,
-    tg.LOW_POWER_POLICY
-) = map(int,range(3))
-
-
+(tg.DEFAULT_POLICY, tg.LATENCY_POLICY, tg.LOW_POWER_POLICY) = map(int, range(3))

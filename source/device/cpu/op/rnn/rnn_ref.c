@@ -136,13 +136,17 @@ static int ref_rnn_fp32(float* input, float* output, struct rnn_ref_param* param
         memset(init_h, 0x0, sizeof((unsigned long )param->batch_size * param->hidden_size * sizeof(float)));
     }
 
+    int ret = 0;
     for (int i = 0; i < param->seq_lens; i++)
     {
         const float* seq_input = input + i * param->batch_size * param->input_size;
 
         if (!do_RNN_step(seq_input, init_h, param->kernel, param->bias, param->batch_size, param->input_size,
                          param->hidden_size))
-            return -1;
+        {
+            ret = -1;
+            break;
+        }
         // outputs [batch_size,seq_len,hidden_size]
         // final_state [batch_size,hidden_size]
         if (i + param->output_len >= param->seq_lens)
@@ -194,7 +198,7 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
 
     if (init_h_tensor)
     {
-        init_h_data = init_h_tensor->data;
+        init_h_data = (float*)init_h_tensor->data;
     }
     return 0;
 }
@@ -216,8 +220,8 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     int input_size = rnn_param->input_size;
     int hidden_size = rnn_param->hidden_size;
 
-    float* output = output_tensor->data;
-    float* input = input_tensor->data;
+    float* output = (float*)output_tensor->data;
+    float* input = (float*)input_tensor->data;
 
     int seq_lens = input_tensor->dims[0];
     int batch_size = input_tensor->dims[1];
@@ -239,11 +243,11 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     {
         memset(init_h, 0x0, sizeof(batch_size * hidden_size * sizeof(float)));
     }
-    float* kernel = kernel_tensor->data;
+    float* kernel = (float*)kernel_tensor->data;
     float* bias = NULL;
 
     if (bias_tensor)
-        bias = bias_tensor->data;
+        bias = (float*)bias_tensor->data;
 
     rnn_ref_param.init_h_data = init_h_data;
     rnn_ref_param.bias = bias;

@@ -236,7 +236,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     void* in_data = input_tensor->data;
     void* out_data = output_tensor->data;
 
-    return ref_mvn_fp32(in_data, out_data, &op_param);
+    return ref_mvn_fp32((float*)in_data, (float*)out_data, &op_param);
 }
 
 static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struct node* exec_node)

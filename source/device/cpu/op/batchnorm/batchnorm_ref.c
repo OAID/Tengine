@@ -137,7 +137,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     
     int ret = -1;
     if (input_tensor->data_type == TENGINE_DT_FP32)
-        ret = ref_batchnorm_fp32(input, out_data, batchnorm_op_param);
+        ret = ref_batchnorm_fp32((float*)input, (float*)out_data, batchnorm_op_param);
     else if (input_tensor->data_type == TENGINE_DT_UINT8)
         ret = ref_batchnorm_uint8(input_tensor, output_tensor, batchnorm_op_param);
 

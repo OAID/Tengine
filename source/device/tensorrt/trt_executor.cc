@@ -115,7 +115,6 @@ void TensorRTEngine::SetRange(struct graph* ir_graph, uint16_t id, nvinfer1::ITe
     }
 }
 
-
 int TensorRTEngine::Build(struct subgraph* subgraph)
 {
     const auto cuda_status = cudaSetDevice(this->option.gpu_index);;
@@ -247,9 +246,19 @@ int TensorRTEngine::Build(struct subgraph* subgraph)
                 }
                 break;
             }
+            case OP_INSTANCENORM:
+            {
+                if (!AddInstanceNormNode(ir_graph, ir_node))
+                {
+                    TLOG_ERR("Tengine: Cannot add InstanceNorm op(%d).\n", ir_node->index);
+                    return -6;
+                }
+                break;
+            }
             case OP_INPUT:
                 continue;
-            case OP_INTERP: {
+            case OP_INTERP:
+            {
                 if (!AddInterpNode(ir_graph, ir_node))
                 {
                     TLOG_ERR("Tengine: Cannot add FullyConnected op(%d).\n", ir_node->index);
@@ -317,6 +326,15 @@ int TensorRTEngine::Build(struct subgraph* subgraph)
                 }
                 break;
             }
+            case OP_RESIZE:
+            {
+                if (!AddResizeNode(ir_graph, ir_node))
+                {
+                    TLOG_ERR("Tengine: Cannot add Resize op(%d).\n", ir_node->index);
+                    return -6;
+                }
+                break;
+            }
             case OP_SLICE:
             {
                 if (!AddSliceNode(ir_graph, ir_node))
@@ -330,6 +348,15 @@ int TensorRTEngine::Build(struct subgraph* subgraph)
                 if(!AddSoftmaxNode(ir_graph, ir_node))
                 {
                     TLOG_ERR("Tengine: Cannot add Softmax op(%d).\n", ir_node->index);
+                    return -6;
+                }
+                break;
+            }
+            case OP_SPLIT:
+            {
+                if(!AddSplitNode(ir_graph, ir_node))
+                {
+                    TLOG_ERR("Tengine: Cannot add Split op(%d).\n", ir_node->index);
                     return -6;
                 }
                 break;
