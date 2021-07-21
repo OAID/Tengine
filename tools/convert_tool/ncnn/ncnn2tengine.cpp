@@ -47,6 +47,85 @@ bool vstr_is_float(const char vstr[16])
     return false;
 }
 
+static float vstr_to_float(const char vstr[16])
+{
+    double v = 0.0;
+
+    const char* p = vstr;
+
+    // sign
+    bool sign = *p != '-';
+    if (*p == '+' || *p == '-')
+    {
+        p++;
+    }
+
+    // digits before decimal point or exponent
+    unsigned int v1 = 0;
+    while (isdigit(*p))
+    {
+        v1 = v1 * 10 + (*p - '0');
+        p++;
+    }
+
+    v = (double)v1;
+
+    // digits after decimal point
+    if (*p == '.')
+    {
+        p++;
+
+        unsigned int pow10 = 1;
+        unsigned int v2 = 0;
+
+        while (isdigit(*p))
+        {
+            v2 = v2 * 10 + (*p - '0');
+            pow10 *= 10;
+            p++;
+        }
+
+        v += v2 / (double)pow10;
+    }
+
+    // exponent
+    if (*p == 'e' || *p == 'E')
+    {
+        p++;
+
+        // sign of exponent
+        bool fact = *p != '-';
+        if (*p == '+' || *p == '-')
+        {
+            p++;
+        }
+
+        // digits of exponent
+        unsigned int expon = 0;
+        while (isdigit(*p))
+        {
+            expon = expon * 10 + (*p - '0');
+            p++;
+        }
+
+        double scale = 1.0;
+        while (expon >= 8)
+        {
+            scale *= 1e8;
+            expon -= 8;
+        }
+        while (expon > 0)
+        {
+            scale *= 10.0;
+            expon -= 1;
+        }
+
+        v = fact ? v * scale : v / scale;
+    }
+
+    return sign ? (float)v : (float)-v;
+}
+
 int ncnn_serializer::read(void* buf, int size)
 {
     return fread(buf, 1, size, fp);
@@ -184,7 +263,7 @@ int ncnn_serializer::load_model_file(const char* fname, std::vector<NcnnNode>& n
                     if (is_float)
                     {
                         float* ptr = params[id].f_data_array;
-                        nscan = sscanf(vstr, "%f", &ptr[j]);
+                        ptr[j] = vstr_to_float(vstr);
                     }
                     else
                     {
@@ -236,7 +315,7 @@ int ncnn_serializer::load_model_file(const char* fname, std::vector<NcnnNode>& n
                         if (is_float)
                         {
                             float* ptr = params[id].f_data_array;
-                            nscan = sscanf(vstr, "%f", &ptr[j]);
+                            ptr[j] = vstr_to_float(vstr);
                         }
                         else
                         {
@@ -270,7 +349,7 @@ int ncnn_serializer::load_model_file(const char* fname, std::vector<NcnnNode>& n
                     int i_data;
                     if (is_float)
                     {
-                        nscan = sscanf(vstr, "%f", &f_data);
+                        f_data = vstr_to_float(vstr);
                     }
                     else
                     {
