@@ -3,10 +3,22 @@
 
 import ctypes
 import numpy as np
-from .base import _LIB, c_str, graph_t, node_t, tensor_t, Status, perf_info, options, check_call, event_handler_t
+from .base import (
+    _LIB,
+    c_str,
+    graph_t,
+    node_t,
+    tensor_t,
+    Status,
+    perf_info,
+    options,
+    check_call,
+    event_handler_t,
+)
 from .tensor import Tensor
 from .node import Node
 import time
+
 
 class Graph(object):
     def __init__(self, context=None, model=None, *kwarg):
@@ -21,8 +33,10 @@ class Graph(object):
         if context:
             context = context.context
         if model:
-            params = [ c_str(kwarg[i]) for i in range(len(kwarg)) ]
-            self.graph = _LIB.create_graph(ctypes.c_void_p(context), c_str(model), *params)
+            params = [c_str(kwarg[i]) for i in range(len(kwarg))]
+            self.graph = _LIB.create_graph(
+                ctypes.c_void_p(context), c_str(model), *params
+            )
         else:
             self.graph = _LIB.create_graph(ctypes.c_void_p(context), None)
         self.attr = {}
@@ -46,7 +60,7 @@ class Graph(object):
         """
         return self.getNodeByIdx(idx)
 
-    def setEvent(self,event,cb_func,cb_arg):
+    def setEvent(self, event, cb_func, cb_arg):
         """
         set the event hook for graph execution
         :param event: the event to be hooked
@@ -54,7 +68,14 @@ class Graph(object):
         :param cb_arg: the argument will be passed to callback function
         :return: None
         """
-        check_call(_LIB.set_graph_event_hook(ctypes.c_void_p(self.graph),event,event_handler_t(cb_func),ctypes.pointer(cb_arg)))
+        check_call(
+            _LIB.set_graph_event_hook(
+                ctypes.c_void_p(self.graph),
+                event,
+                event_handler_t(cb_func),
+                ctypes.pointer(cb_arg),
+            )
+        )
 
     def save(self, model, *kwarg):
         """
@@ -73,8 +94,15 @@ class Graph(object):
         :param idxs: <list> list of nodes not quant
         :return:
         """
-        _LIB.quant_graph.argtypes = [ctypes.c_void_p,ctypes.c_int,ctypes.POINTER(ctypes.c_int),ctypes.c_int]
-        return _LIB.quant_graph(ctypes.c_void_p(self.graph), mode, np.ctypeslib.as_ctypes(idxs), len(idxs))
+        _LIB.quant_graph.argtypes = [
+            ctypes.c_void_p,
+            ctypes.c_int,
+            ctypes.POINTER(ctypes.c_int),
+            ctypes.c_int,
+        ]
+        return _LIB.quant_graph(
+            ctypes.c_void_p(self.graph), mode, np.ctypeslib.as_ctypes(idxs), len(idxs)
+        )
 
     def setlayout(self, type):
         """
@@ -96,14 +124,18 @@ class Graph(object):
             c_arr_buf = ctypes.c_char_p * num
             input_ = [c_str(item) for item in input_nodes]
             c_arr = c_arr_buf(*input_)
-            check_call(_LIB.set_graph_input_node(ctypes.c_void_p(self.graph), c_arr, num))
+            check_call(
+                _LIB.set_graph_input_node(ctypes.c_void_p(self.graph), c_arr, num)
+            )
             pass
         if len(output_nodes) != 0:
             num = len(output_nodes)
             c_arr_buf = ctypes.c_char_p * num
             output_ = [c_str(item) for item in output_nodes]
             c_arr = c_arr_buf(*output_)
-            check_call(_LIB.set_graph_output_node(ctypes.c_void_p(self.graph), c_arr, num))
+            check_call(
+                _LIB.set_graph_output_node(ctypes.c_void_p(self.graph), c_arr, num)
+            )
             pass
 
     def __add__(self, *other):
@@ -218,20 +250,35 @@ class Graph(object):
         :return: 0: success, -1: fail.
         """
         if type(obj) == type(0):
-            i_inp = (ctypes.c_int*1)(obj)
-            self.attr[attr_name] = {'type': type(obj), 'len': ctypes.sizeof(i_inp)}
-            return _LIB.set_graph_attr(ctypes.c_void_p(self.graph), c_str(attr_name), ctypes.cast(i_inp,ctypes.POINTER(ctypes.c_int)),
-                                ctypes.sizeof(i_inp))
+            i_inp = (ctypes.c_int * 1)(obj)
+            self.attr[attr_name] = {"type": type(obj), "len": ctypes.sizeof(i_inp)}
+            return _LIB.set_graph_attr(
+                ctypes.c_void_p(self.graph),
+                c_str(attr_name),
+                ctypes.cast(i_inp, ctypes.POINTER(ctypes.c_int)),
+                ctypes.sizeof(i_inp),
+            )
         elif type(obj) == type(0.1):
-            f_inp = (ctypes.c_float*1)(obj)
-            self.attr[attr_name] = {'type': type(obj), 'len': ctypes.sizeof(f_inp)}
-            return _LIB.set_graph_attr(ctypes.c_void_p(self.graph), c_str(attr_name), ctypes.cast(f_inp,ctypes.POINTER(ctypes.c_float)),
-                                ctypes.sizeof(f_inp))
+            f_inp = (ctypes.c_float * 1)(obj)
+            self.attr[attr_name] = {"type": type(obj), "len": ctypes.sizeof(f_inp)}
+            return _LIB.set_graph_attr(
+                ctypes.c_void_p(self.graph),
+                c_str(attr_name),
+                ctypes.cast(f_inp, ctypes.POINTER(ctypes.c_float)),
+                ctypes.sizeof(f_inp),
+            )
         elif type(obj) == type(""):
-            self.attr[attr_name] = {'type': type(obj), 'len': ctypes.sizeof(ctypes.c_char('a')) * len(obj)}
+            self.attr[attr_name] = {
+                "type": type(obj),
+                "len": ctypes.sizeof(ctypes.c_char("a")) * len(obj),
+            }
             buf = ctypes.create_string_buffer(obj)
-            return _LIB.set_graph_attr(ctypes.c_void_p(self.graph), c_str(attr_name), buf,
-                                ctypes.sizeof(ctypes.c_char('a')) * len(obj))
+            return _LIB.set_graph_attr(
+                ctypes.c_void_p(self.graph),
+                c_str(attr_name),
+                buf,
+                ctypes.sizeof(ctypes.c_char("a")) * len(obj),
+            )
         pass
 
     def getAttr(self, attr_name):
@@ -240,31 +287,45 @@ class Graph(object):
         :param attr_name: <str> the attribute name
         :return: <int> or <float> or <str>
         """
-        if self.attr[attr_name]['type'] == type(0):
-            buf = (ctypes.c_int*1)(0)
-            _LIB.get_graph_attr(ctypes.c_void_p(self.graph), c_str(attr_name), ctypes.byref(buf),
-                                self.attr[attr_name]['len'])
+        if self.attr[attr_name]["type"] == type(0):
+            buf = (ctypes.c_int * 1)(0)
+            _LIB.get_graph_attr(
+                ctypes.c_void_p(self.graph),
+                c_str(attr_name),
+                ctypes.byref(buf),
+                self.attr[attr_name]["len"],
+            )
             return buf
-        elif self.attr[attr_name]['type'] == type(0.1):
-            buf = (ctypes.c_float*1)(0.0)
-            _LIB.get_graph_attr(ctypes.c_void_p(self.graph), c_str(attr_name), ctypes.cast(buf,ctypes.POINTER(ctypes.c_float)),
-                                self.attr[attr_name]['len'])
+        elif self.attr[attr_name]["type"] == type(0.1):
+            buf = (ctypes.c_float * 1)(0.0)
+            _LIB.get_graph_attr(
+                ctypes.c_void_p(self.graph),
+                c_str(attr_name),
+                ctypes.cast(buf, ctypes.POINTER(ctypes.c_float)),
+                self.attr[attr_name]["len"],
+            )
             return buf
-        elif self.attr[attr_name]['type'] == type("a"):
-            buf = ctypes.create_string_buffer("",self.attr[attr_name]['len'])
-            _LIB.get_graph_attr(ctypes.c_void_p(self.graph), c_str(attr_name), ctypes.byref(buf),
-                                self.attr[attr_name]['len'])
+        elif self.attr[attr_name]["type"] == type("a"):
+            buf = ctypes.create_string_buffer("", self.attr[attr_name]["len"])
+            _LIB.get_graph_attr(
+                ctypes.c_void_p(self.graph),
+                c_str(attr_name),
+                ctypes.byref(buf),
+                self.attr[attr_name]["len"],
+            )
             return buf[:]
         else:
             return None
 
-    def setGdMethod(self, methor,*params):
+    def setGdMethod(self, methor, *params):
         """
         set the gradient descent method
         :param methor: <int>[<int> ...] the gradient descent.
         :return: 0: success, -1 fail.
         """
-        check_call(_LIB.set_graph_gd_method(ctypes.c_void_p(self.graph), methor,*params))
+        check_call(
+            _LIB.set_graph_gd_method(ctypes.c_void_p(self.graph), methor, *params)
+        )
 
     def preRun(self):
         """
@@ -273,7 +334,7 @@ class Graph(object):
         """
         check_call(_LIB.prerun_graph(ctypes.c_void_p(self.graph)))
 
-    def preRunMutithread(self,options):
+    def preRunMutithread(self, options):
         """
         Initialize resource for graph execution
         :return: None
@@ -301,7 +362,7 @@ class Graph(object):
         release the resource for graph execution.
         :return:None
         """
-        check_call( _LIB.postrun_graph(ctypes.c_void_p(self.graph)))
+        check_call(_LIB.postrun_graph(ctypes.c_void_p(self.graph)))
 
     @property
     def __status__(self):
@@ -336,7 +397,7 @@ class Graph(object):
         :param size: <int> the number of record pointer may be stored in buf
         :return: <perf_info list>
         """
-        info = (perf_info*size)(None)
+        info = (perf_info * size)(None)
         _LIB.get_graph_perf_stat(ctypes.c_void_p(self.graph), ctypes.byref(info), size)
         return info
 
@@ -348,7 +409,7 @@ class Graph(object):
         """
         check_call(_LIB.dump_graph(self.graph))
 
-    def set_input(self,image,shape,input_tensor,mean=[0,0,0],scale=1):
+    def set_input(self, image, shape, input_tensor, mean=[0, 0, 0], scale=1):
         """
         set graph input data and shape here. it will do some simple pre-treatment here
         :param image: <list> or <ndarray> : input data
@@ -361,8 +422,8 @@ class Graph(object):
 
         data = image
         if type(data) is np.ndarray:
-            data = data.swapaxes(1,2)
-            data = data.swapaxes(0,1)
+            data = data.swapaxes(1, 2)
+            data = data.swapaxes(0, 1)
             data = data.flatten()
         input_tensor.shape = shape
         input_tensor.buf = data
