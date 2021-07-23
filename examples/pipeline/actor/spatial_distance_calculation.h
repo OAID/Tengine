@@ -57,7 +57,7 @@ public:
     
       auto success = output<0>()->try_push(std::move(mat));
       if (not success) {
-        fprintf(stdout, "abandon\n");
+        fprintf(stdout, "drop " __FILE__ "\n");
       }
     }
   }
