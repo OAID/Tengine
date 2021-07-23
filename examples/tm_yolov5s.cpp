@@ -329,7 +329,6 @@ void get_input_data_focus(const char* image_file, float* input_data, int letterb
                                         h * (letterbox_cols/2) +
                                         w;
 
-                        /* quant to uint8 */
                         input_data[out_index] = input_temp[in_index];
                     }
                 }
