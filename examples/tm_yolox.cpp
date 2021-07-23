@@ -20,9 +20,9 @@
 /*
  * Copyright (c) 2021, OPEN AI LAB
  * Author: xwwang@openailab.com
- * Author: stevenwudi@fiture.com
- * 
- * original model: https://github.com/ultralytics/yolov5
+ * Author: 774074168@qq.com
+ * Author: qtang@openailab.com
+ * original model: https://github.com/Megvii-BaseDetection/YOLOX
  */
 
 #include <vector>
@@ -45,10 +45,6 @@ struct Object
     float prob;
 };
 
-static inline float sigmoid(float x)
-{
-    return static_cast<float>(1.f / (1.f + exp(-x)));
-}
 
 static inline float intersection_area(const Object& a, const Object& b)
 {
@@ -135,75 +131,6 @@ static void nms_sorted_bboxes(const std::vector<Object>& faceobjects, std::vecto
     }
 }
 
-
-static void generate_proposals(int stride,  const float* feat, float prob_threshold, std::vector<Object>& objects,
-                               int letterbox_cols, int letterbox_rows){
-    static float anchors[18] = {10, 13, 16, 30, 33, 23, 30, 61, 62, 45, 59, 119, 116, 90, 156, 198, 373, 326};
-
-    int anchor_num = 3;
-    int feat_w = letterbox_cols / stride;
-    int feat_h = letterbox_rows / stride;
-    int cls_num = 80;
-    int anchor_group;
-    if(stride == 8)
-        anchor_group = 1;
-    if(stride == 16)
-        anchor_group = 2;
-    if(stride == 32)
-        anchor_group = 3;
-    for (int h = 0; h <= feat_h - 1; h++)
-    {
-        for (int w = 0; w <= feat_w - 1; w++)
-        {
-            for (int a = 0; a <= anchor_num - 1; a++)
-            {
-                //process cls score
-                int class_index = 0;
-                float class_score = -FLT_MAX;
-                for (int s = 0; s <= cls_num - 1; s++)
-                {
-                    float score = feat[a * feat_w * feat_h * (cls_num + 5) + h * feat_w * (cls_num + 5) + w * (cls_num + 5) + s + 5];
-                    if(score > class_score)
-                    {
-                        class_index = s;
-                        class_score = score;
-                    }
-                }
-                //process box score
-                float box_score = feat[a * feat_w * feat_h * (cls_num + 5) + (h * feat_w) * (cls_num + 5) + w * (cls_num + 5) + 4];
-                float final_score = sigmoid(box_score ) * sigmoid(class_score);
-                if (final_score >= prob_threshold)
-                {
-                    int loc_idx = a * feat_h * feat_w * (cls_num + 5) + h * feat_w * (cls_num + 5) + w * (cls_num + 5);
-                    float dx = sigmoid(feat[loc_idx + 0]);
-                    float dy = sigmoid(feat[loc_idx + 1]);
-                    float dw = sigmoid(feat[loc_idx + 2]);
-                    float dh = sigmoid(feat[loc_idx + 3]);
-                    float pred_cx = (dx * 2.0f - 0.5f + w) * stride;
-                    float pred_cy = (dy * 2.0f - 0.5f + h) * stride;
-                    float anchor_w = anchors[(anchor_group - 1) * 6 + a * 2 + 0];
-                    float anchor_h = anchors[(anchor_group - 1) * 6 + a * 2 + 1];
-                    float pred_w = dw * dw * 4.0f * anchor_w;
-                    float pred_h = dh * dh * 4.0f * anchor_h;
-                    float x0 = pred_cx - pred_w * 0.5f;
-                    float y0 = pred_cy - pred_h * 0.5f;
-                    float x1 = pred_cx + pred_w * 0.5f;
-                    float y1 = pred_cy + pred_h * 0.5f;
-
-                    Object obj;
-                    obj.rect.x = x0;
-                    obj.rect.y = y0;
-                    obj.rect.width = x1 - x0;
-                    obj.rect.height = y1 - y0;
-                    obj.label = class_index;
-                    obj.prob = final_score;
-                    objects.push_back(obj);
-                }
-            }
-        }
-    }
-}
-
 static void draw_objects(const cv::Mat& bgr, const std::vector<Object>& objects)
 {
     static const char* class_names[] = {
@@ -248,9 +175,84 @@ static void draw_objects(const cv::Mat& bgr, const std::vector<Object>& objects)
         cv::putText(image, text, cv::Point(x, y + label_size.height), cv::FONT_HERSHEY_SIMPLEX, 0.5,
                     cv::Scalar(0, 0, 0));
     }
-
-    cv::imwrite("yolov5s_out.jpg", image);
+    
+    cv::imwrite("yolox_out.jpg", image);
 }
+struct GridAndStride
+{
+    int grid0;
+    int grid1;
+    int stride;
+};
+
+static int generate_grids_and_stride(const int target_size, std::vector<int>& strides, std::vector<GridAndStride>& grid_strides)
+{
+    for (auto stride : strides)
+    {
+        int num_grid = target_size / stride;
+        for (int g1 = 0; g1 < num_grid; g1++)
+        {
+            for (int g0 = 0; g0 < num_grid; g0++)
+            {
+                GridAndStride ss;
+                ss.grid0 = g0;
+                ss.grid1 = g1;
+                ss.stride = stride;
+                grid_strides.push_back(ss);
+            }
+        }
+    }
+
+    return 0;
+}
+
+static void generate_yolox_proposals(std::vector<GridAndStride> grid_strides, float* feat_ptr, float prob_threshold, std::vector<Object>& objects)
+{
+    const int num_grid = 3549;
+    const int num_class = 80;
+    const int num_anchors = grid_strides.size();
+    
+    for (int anchor_idx = 0; anchor_idx < num_anchors; anchor_idx++)
+    {
+       // printf("%d,%d\n",num_anchors,anchor_idx);
+        const int grid0 = grid_strides[anchor_idx].grid0;
+        const int grid1 = grid_strides[anchor_idx].grid1;
+        const int stride = grid_strides[anchor_idx].stride;
+
+        // yolox/models/yolo_head.py decode logic
+        //  outputs[..., :2] = (outputs[..., :2] + grids) * strides
+        //  outputs[..., 2:4] = torch.exp(outputs[..., 2:4]) * strides
+        float x_center = (feat_ptr[0] + grid0) * stride;
+        float y_center = (feat_ptr[1] + grid1) * stride;
+        float w = exp(feat_ptr[2]) * stride;
+        float h = exp(feat_ptr[3]) * stride;
+        float x0 = x_center - w * 0.5f;
+        float y0 = y_center - h * 0.5f;
+        
+        float box_objectness = feat_ptr[4];
+
+        for (int class_idx = 0; class_idx < num_class; class_idx++)
+        {
+            float box_cls_score = feat_ptr[5 + class_idx];
+            float box_prob = box_objectness * box_cls_score;
+            if (box_prob > prob_threshold)
+            {
+                Object obj;
+                obj.rect.x = x0;
+                obj.rect.y = y0;
+                obj.rect.width = w;
+                obj.rect.height = h;
+                obj.label = class_idx;
+                obj.prob = box_prob;
+
+                objects.push_back(obj);
+            }
+
+        } // class loop
+        feat_ptr += 85;
+
+    } // point anchor loop
+}   
 
 void show_usage()
 {
@@ -282,15 +284,16 @@ void get_input_data_focus(const char* image_file, float* input_data, int letterb
     resize_rows = int(scale_letterbox * img.rows);
 
     cv::resize(img, img, cv::Size(resize_cols, resize_rows));
+
     img.convertTo(img, CV_32FC3);
     // Generate a gray image for letterbox using opencv
-    cv::Mat img_new(letterbox_cols, letterbox_rows, CV_32FC3,cv::Scalar(0.5/scale[0] + mean[0], 0.5/scale[1] + mean[1], 0.5/ scale[2] + mean[2]));
-    int top = (letterbox_rows - resize_rows) / 2;
-    int bot = (letterbox_rows - resize_rows + 1) / 2;
-    int left = (letterbox_cols - resize_cols) / 2;
-    int right = (letterbox_cols - resize_cols + 1) / 2;
+    cv::Mat img_new(letterbox_cols, letterbox_rows, CV_32FC3, cv::Scalar(0, 0, 0)/*cv::Scalar(0.5/scale[0] + mean[0], 0.5/scale[1] + mean[1], 0.5/ scale[2] + mean[2])*/);
+    int top = 0;
+    int bot = letterbox_rows - resize_rows;
+    int left = 0;
+    int right = letterbox_cols - resize_cols;
     // Letterbox filling
-    cv::copyMakeBorder(img, img_new, top, bot, left, right, cv::BORDER_CONSTANT, cv::Scalar(0, 0, 0));
+    cv::copyMakeBorder(img, img_new, top, bot, left, right, cv::BORDER_CONSTANT, cv::Scalar(114.f, 114.f, 114.f));
 
     img_new.convertTo(img_new, CV_32FC3);
     float* img_data   = (float* )img_new.data;
@@ -344,12 +347,12 @@ int main(int argc, char* argv[])
     const char* image_file = nullptr;
 
     int img_c = 3;
-    const float mean[3] = {0, 0, 0};
-    const float scale[3] = {0.003921, 0.003921, 0.003921};
+    const float mean[3] = {255.f * 0.485f, 255.f * 0.456, 255.f * 0.406f};
+    const float scale[3] = {1 / (255.f * 0.229f), 1 / (255.f * 0.224f), 1 / (255.f * 0.225f)};
 
     // allow none square letterbox, set default letterbox size
-    int letterbox_rows = 640;
-    int letterbox_cols = 640;
+    int letterbox_rows = 416;
+    int letterbox_cols = 416;
 
     int repeat_count = 1;
     int num_thread = 1;
@@ -432,6 +435,7 @@ int main(int argc, char* argv[])
     std::vector<float> input_data(img_size);
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
+	
     if (input_tensor == nullptr)
     {
         fprintf(stderr, "Get input tensor failed\n");
@@ -444,7 +448,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    if (set_tensor_buffer(input_tensor, input_data.data(), img_size * sizeof(float)) < 0)
+    if (set_tensor_buffer(input_tensor, input_data.data(), img_size * 4) < 0)
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;
@@ -482,41 +486,26 @@ int main(int argc, char* argv[])
             total_time/repeat_count, max_time, min_time);
     fprintf(stderr, "--------------------------------------\n");
 
-    /* yolov5 postprocess */
-    // 0: 1, 3, 20, 20, 85
-    // 1: 1, 3, 40, 40, 85
-    // 2: 1, 3, 80, 80, 85
+    /* yolox postprocess */
     tensor_t p8_output = get_graph_output_tensor(graph, 0, 0);
-    tensor_t p16_output = get_graph_output_tensor(graph, 1, 0);
-    tensor_t p32_output = get_graph_output_tensor(graph, 2, 0);
-
     float* p8_data = ( float*)get_tensor_buffer(p8_output);
-    float* p16_data = ( float*)get_tensor_buffer(p16_output);
-    float* p32_data = ( float*)get_tensor_buffer(p32_output);
 
     /* postprocess */
-    const float prob_threshold = 0.25f;
-    const float nms_threshold = 0.45f;
+	const float prob_threshold = 0.3f;
+	const float nms_threshold = 0.65f;
 
     std::vector<Object> proposals;
-    std::vector<Object> objects8;
-    std::vector<Object> objects16;
-    std::vector<Object> objects32;
     std::vector<Object> objects;
 
-    generate_proposals(32, p32_data, prob_threshold, objects32, letterbox_cols, letterbox_rows);
-    proposals.insert(proposals.end(), objects32.begin(), objects32.end());
-    generate_proposals(16, p16_data, prob_threshold, objects16, letterbox_cols, letterbox_rows);
-    proposals.insert(proposals.end(), objects16.begin(), objects16.end());
-    generate_proposals( 8, p8_data, prob_threshold, objects8, letterbox_cols, letterbox_rows);
-    proposals.insert(proposals.end(), objects8.begin(), objects8.end());
-
+    std::vector<int> strides = {8, 16, 32}; // might have stride=64
+    std::vector<GridAndStride> grid_strides;
+    generate_grids_and_stride(letterbox_rows, strides, grid_strides);
+    generate_yolox_proposals(grid_strides, p8_data, prob_threshold, proposals);
     qsort_descent_inplace(proposals);
     std::vector<int> picked;
     nms_sorted_bboxes(proposals, picked, nms_threshold);
 
-    /* yolov5 draw the result */
-
+    /* yolox draw the result */
     float scale_letterbox;
     int resize_rows;
     int resize_cols;
@@ -525,14 +514,6 @@ int main(int argc, char* argv[])
     } else {
         scale_letterbox = letterbox_cols * 1.0 / img.cols;
     }
-    resize_cols = int(scale_letterbox * img.cols);
-    resize_rows = int(scale_letterbox * img.rows);
-
-    int tmp_h = (letterbox_rows - resize_rows) / 2;
-    int tmp_w = (letterbox_cols - resize_cols) / 2;
-
-    float ratio_x = (float)img.rows / resize_rows;
-    float ratio_y = (float)img.cols / resize_cols;
 
     int count = picked.size();
     fprintf(stderr, "detection num: %d\n",count);
@@ -541,16 +522,10 @@ int main(int argc, char* argv[])
     for (int i = 0; i < count; i++)
     {
         objects[i] = proposals[picked[i]];
-        float x0 = (objects[i].rect.x);
-        float y0 = (objects[i].rect.y);
-        float x1 = (objects[i].rect.x + objects[i].rect.width);
-        float y1 = (objects[i].rect.y + objects[i].rect.height);
-
-        x0 = (x0 - tmp_w) * ratio_x;
-        y0 = (y0 - tmp_h) * ratio_y;
-        x1 = (x1 - tmp_w) * ratio_x;
-        y1 = (y1 - tmp_h) * ratio_y;
-
+        float x0 = (objects[i].rect.x) / scale_letterbox;
+        float y0 = (objects[i].rect.y) / scale_letterbox;
+        float x1 = (objects[i].rect.x + objects[i].rect.width) / scale_letterbox;
+        float y1 = (objects[i].rect.y + objects[i].rect.height) / scale_letterbox;
         x0 = std::max(std::min(x0, (float)(img.cols - 1)), 0.f);
         y0 = std::max(std::min(y0, (float)(img.rows - 1)), 0.f);
         x1 = std::max(std::min(x1, (float)(img.cols - 1)), 0.f);
@@ -569,4 +544,3 @@ int main(int argc, char* argv[])
     destroy_graph(graph);
     release_tengine();
 }
-

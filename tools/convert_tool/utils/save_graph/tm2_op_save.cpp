@@ -1095,7 +1095,7 @@ tm_uoffset_t SaveTmHardSwishOp(void* const start_ptr, tm_uoffset_t* cur_pos, ir_
     tm_param.beta = p->beta;
 
     TM2_Operator tm_op;
-    SetTmOperator(&tm_op, TM2_OPTYPE_CAST, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_HardSwishParam)));
+    SetTmOperator(&tm_op, TM2_OPTYPE_HARDSWISH, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_HardSwishParam)));
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
 }
 tm_uoffset_t SaveTmInterpOp(void* const start_ptr, tm_uoffset_t* cur_pos, ir_node_t* node)
