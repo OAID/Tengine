@@ -21,6 +21,7 @@
  * Copyright (c) 2021, OPEN AI LAB
  * Author: xwwang@openailab.com
  * Author: 774074168@qq.com
+ * Author: qtang@openailab.com
  * original model: https://github.com/Megvii-BaseDetection/YOLOX
  */
 
@@ -130,9 +131,6 @@ static void nms_sorted_bboxes(const std::vector<Object>& faceobjects, std::vecto
     }
 }
 
-
-
-
 static void draw_objects(const cv::Mat& bgr, const std::vector<Object>& objects)
 {
     static const char* class_names[] = {
@@ -211,13 +209,9 @@ static int generate_grids_and_stride(const int target_size, std::vector<int>& st
 static void generate_yolox_proposals(std::vector<GridAndStride> grid_strides, float* feat_ptr, float prob_threshold, std::vector<Object>& objects)
 {
     const int num_grid = 3549;
-    //fprintf(stderr, "output height: %d, width: %d, channels: %d, dims:%d\n", feat_blob.h, feat_blob.w, feat_blob.c, feat_blob.dims);
-
     const int num_class = 80;
-    
     const int num_anchors = grid_strides.size();
     
-    //const float* feat_ptr = feat_blob;
     for (int anchor_idx = 0; anchor_idx < num_anchors; anchor_idx++)
     {
        // printf("%d,%d\n",num_anchors,anchor_idx);
@@ -258,7 +252,6 @@ static void generate_yolox_proposals(std::vector<GridAndStride> grid_strides, fl
         feat_ptr += 85;
 
     } // point anchor loop
-    
 }   
 
 void show_usage()
@@ -304,7 +297,7 @@ void get_input_data_focus(const char* image_file, float* input_data, int letterb
 
     img_new.convertTo(img_new, CV_32FC3);
     float* img_data   = (float* )img_new.data;
-    float* input_temp = (float* )malloc(3 * letterbox_cols * letterbox_rows * sizeof(float));
+    std::vector<float> input_temp(3 * letterbox_cols * letterbox_rows);
 
     /* nhwc to nchw */
     for (int h = 0; h < letterbox_rows; h++)
@@ -339,15 +332,12 @@ void get_input_data_focus(const char* image_file, float* input_data, int letterb
                                         h * (letterbox_cols/2) +
                                         w;
 
-                        /* quant to uint8 */
                         input_data[out_index] = input_temp[in_index];
                     }
                 }
             }
         }
     }
-
-    free(input_temp);
 }
 
 
@@ -498,8 +488,6 @@ int main(int argc, char* argv[])
 
     /* yolox postprocess */
     tensor_t p8_output = get_graph_output_tensor(graph, 0, 0);
-
-
     float* p8_data = ( float*)get_tensor_buffer(p8_output);
 
     /* postprocess */
@@ -518,7 +506,6 @@ int main(int argc, char* argv[])
     nms_sorted_bboxes(proposals, picked, nms_threshold);
 
     /* yolox draw the result */
-
     float scale_letterbox;
     int resize_rows;
     int resize_cols;
@@ -557,4 +544,3 @@ int main(int argc, char* argv[])
     destroy_graph(graph);
     release_tengine();
 }
-
