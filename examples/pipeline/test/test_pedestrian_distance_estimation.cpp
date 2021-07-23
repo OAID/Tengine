@@ -32,7 +32,7 @@ using namespace pipe;
 
 int main() {
   Graph g;
-  auto cam = g.add_node<VideoCamera, std::string>("");
+  auto cam = g.add_node<VideoCamera>();
   auto draw = g.add_node<DrawVideo>();
   auto detect_ped = g.add_node<PedestrianDetection>("mobilenet_ssd.tmfile");
   auto dist_estimate = g.add_node<SpatialDistanceCalc>();
