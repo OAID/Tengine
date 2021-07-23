@@ -7,7 +7,7 @@ on:
     - '.github/workflows/linux-x64-cpu-timvx-gcc.yml'
     - 'CMakeLists.txt'
     - 'cmake/**'
-    - 'example/**'
+    - 'examples/**'
     - 'source/*'
     - 'source/api/*'
     - 'source/executer/*'
