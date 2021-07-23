@@ -532,7 +532,7 @@ int main(int argc, char* argv[])
     std::vector<int> strides = {8, 16, 32}; // might have stride=64
     std::vector<GridAndStride> grid_strides;
     generate_grids_and_stride(letterbox_rows, strides, grid_strides);
-    generate_yolox_proposals(grid_strides, p8_data, prob_threshold, proposals);
+    generate_yolox_proposals(grid_strides, p8_data.data(), prob_threshold, proposals);
     qsort_descent_inplace(proposals);
     std::vector<int> picked;
     nms_sorted_bboxes(proposals, picked, nms_threshold);
