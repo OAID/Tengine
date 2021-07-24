@@ -28,7 +28,7 @@
 struct unsqueeze_param
 {
     int* axises;
-    int  axises_size;
+    int axises_size;
 };
 
 #endif

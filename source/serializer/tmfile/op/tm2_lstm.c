@@ -44,29 +44,29 @@ static int lstm_op_map(int op)
 static int tm2_load_lstm(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                          const TM2_Operator* tm_op)
 {
-    struct lstm_param*     lstm_param = (struct lstm_param*)ir_node->op.param_mem;
-    const struct tm2_priv* tm2_priv   = (struct tm2_priv*)ir_graph->serializer_privacy;
-    const char*            mem_base   = tm2_priv->base;
-    const TM2_LstmParam*   tm_param   = (TM2_LstmParam*)(mem_base + tm_op->offset_t_param);
+    struct lstm_param* lstm_param = ( struct lstm_param* )ir_node->op.param_mem;
+    const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
+    const char* mem_base = tm2_priv->base;
+    const TM2_LstmParam* tm_param = ( TM2_LstmParam* )(mem_base + tm_op->offset_t_param);
 
-    lstm_param->forget_bias           = tm_param->forget_bias;
-    lstm_param->clip                  = tm_param->clip;
-    lstm_param->output_len            = tm_param->output_len;
-    lstm_param->sequence_len          = tm_param->sequence_len;
-    lstm_param->input_size            = tm_param->input_size;
-    lstm_param->hidden_size           = tm_param->hidden_size;
-    lstm_param->cell_size             = tm_param->cell_size;
-    lstm_param->has_peephole          = tm_param->has_peephole;
-    lstm_param->has_projection        = tm_param->has_projection;
-    lstm_param->has_clip              = tm_param->has_clip;
-    lstm_param->has_bias              = tm_param->has_bias;
-    lstm_param->has_init_state        = tm_param->has_init_state;
-    lstm_param->forget_act            = tm_param->forget_act;
-    lstm_param->input_act             = tm_param->input_act;
-    lstm_param->output_act            = tm_param->output_act;
-    lstm_param->cellin_act            = tm_param->cellin_act;
-    lstm_param->cellout_act           = tm_param->cellout_act;
-    lstm_param->mxnet_flag            = tm_param->mxnet_flag;
+    lstm_param->forget_bias = tm_param->forget_bias;
+    lstm_param->clip = tm_param->clip;
+    lstm_param->output_len = tm_param->output_len;
+    lstm_param->sequence_len = tm_param->sequence_len;
+    lstm_param->input_size = tm_param->input_size;
+    lstm_param->hidden_size = tm_param->hidden_size;
+    lstm_param->cell_size = tm_param->cell_size;
+    lstm_param->has_peephole = tm_param->has_peephole;
+    lstm_param->has_projection = tm_param->has_projection;
+    lstm_param->has_clip = tm_param->has_clip;
+    lstm_param->has_bias = tm_param->has_bias;
+    lstm_param->has_init_state = tm_param->has_init_state;
+    lstm_param->forget_act = tm_param->forget_act;
+    lstm_param->input_act = tm_param->input_act;
+    lstm_param->output_act = tm_param->output_act;
+    lstm_param->cellin_act = tm_param->cellin_act;
+    lstm_param->cellout_act = tm_param->cellout_act;
+    lstm_param->mxnet_flag = tm_param->mxnet_flag;
 
     return 0;
 }

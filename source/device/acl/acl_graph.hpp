@@ -33,9 +33,9 @@ extern "C"
 #include "device/device.h"
 
 
-    int acl_dev_init(struct device* dev);
-    int acl_dev_prerun(struct device* dev, struct subgraph* subgraph, void* options);
-    int acl_dev_run(struct device* dev, struct subgraph* subgraph);
-    int acl_dev_postrun(struct device* dev, struct subgraph* subgraph);
-    int acl_dev_release(struct device* dev);
+int acl_dev_init(struct device* dev);
+int acl_dev_prerun(struct device* dev, struct subgraph* subgraph, void* options);
+int acl_dev_run(struct device* dev, struct subgraph* subgraph);
+int acl_dev_postrun(struct device* dev, struct subgraph* subgraph);
+int acl_dev_release(struct device* dev);
 }

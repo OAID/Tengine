@@ -2,14 +2,13 @@
 #define __TM2_OP_SAVE_HPP__
 
 #include <functional>
-extern "C"
-{
-#include "utility/vector.h"
-#include "tm2_format.h"
-#include "tm2_generate.h"
-#include "graph/node.h"
-
-#include "op_include.h"
+extern "C" {
+    #include "utility/vector.h"
+    #include "tm2_format.h"
+    #include "tm2_generate.h"
+    #include "graph/node.h"
+    
+    #include "op_include.h"
 }
 
 

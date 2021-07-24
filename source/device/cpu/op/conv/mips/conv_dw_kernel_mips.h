@@ -32,7 +32,7 @@
 
 
 int conv_dw_run(struct tensor* input_tensor, struct tensor* filter_tensor, struct tensor* bias_tensor,
-                struct tensor* output_tensor, struct conv_priv_info* conv_info, struct conv_param* param,
-                int num_thread, int cpu_affinity);
+                struct tensor* output_tensor, struct conv_priv_info* conv_info, struct conv_param* param, int num_thread, int cpu_affinity)
+   ;
 
 #endif

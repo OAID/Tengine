@@ -30,7 +30,7 @@
 
 static inline void bare_metal_mutex_init(mutex_t* mutex)
 {
-    mutex->locker            = sys_malloc(sizeof(mutex->locker));
+    mutex->locker = sys_malloc(sizeof(mutex->locker));
     *((int*)(mutex->locker)) = 0;
 }
 
@@ -62,8 +62,9 @@ static inline void bare_metal_mutex_free(mutex_t* mutex)
 
 
 
+
 #ifdef TENGINE_HAS_LIB_POSIX_THREAD
-    #include <pthread.h>
+#include <pthread.h>
 
 typedef pthread_mutex_t lock_t;
 
@@ -95,20 +96,20 @@ static inline void posix_thread_mutex_free(mutex_t* mutex)
 
 void init_mutex(mutex_t* mutex)
 {
-    mutex->init   = posix_thread_mutex_init;
-    mutex->lock   = posix_thread_mutex_lock;
+    mutex->init = posix_thread_mutex_init;
+    mutex->lock = posix_thread_mutex_lock;
     mutex->unlock = posix_thread_mutex_unlock;
-    mutex->free   = posix_thread_mutex_free;
+    mutex->free = posix_thread_mutex_free;
 
     return mutex->init(mutex);
 }
 #elif (defined _WIN32 && !(defined __MINGW32__))
-    #include <windows.h>
+#include <windows.h>
 
 typedef CRITICAL_SECTION lock_t;
 
 
-static inline void win_mutex_init(mutex_t* mutex)
+static inline void  win_mutex_init(mutex_t* mutex)
 {
     mutex->locker = sys_malloc(sizeof(lock_t));
     InitializeCriticalSection((lock_t*)mutex->locker);
@@ -141,24 +142,24 @@ static inline void win_mutex_free(mutex_t* mutex)
 
 void init_mutex(mutex_t* mutex)
 {
-    mutex->init   = win_mutex_init;
-    mutex->lock   = win_mutex_lock;
+    mutex->init = win_mutex_init;
+    mutex->lock = win_mutex_lock;
     mutex->unlock = win_mutex_unlock;
-    mutex->free   = win_mutex_free;
+    mutex->free = win_mutex_free;
 
     return mutex->init(mutex);
 }
 #else
 void init_mutex(mutex_t* mutex)
 {
-    mutex->init   = bare_metal_mutex_init;
-    mutex->lock   = bare_metal_mutex_lock;
+    mutex->init = bare_metal_mutex_init;
+    mutex->lock = bare_metal_mutex_lock;
     mutex->unlock = bare_metal_mutex_unlock;
-    mutex->free   = bare_metal_mutex_free;
+    mutex->free = bare_metal_mutex_free;
 
     return mutex->init(mutex);
 }
-#endif    // end TENGINE_HAS_LIB_POSIX_THREAD
+#endif // end TENGINE_HAS_LIB_POSIX_THREAD
 
 
 void lock_mutex(mutex_t* mutex)
@@ -177,3 +178,10 @@ void free_mutex(mutex_t* mutex)
 {
     return mutex->free(mutex);
 }
+
+
+
+
+
+
+

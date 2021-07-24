@@ -35,17 +35,17 @@
 #include "tengine/c_api.h"
 #include "tengine_operations.h"
 
-#define DEFAULT_IMG_H          512
-#define DEFAULT_IMG_W          512
-#define DEFAULT_SCALE1         (1.f / 255.f)
-#define DEFAULT_SCALE2         (1.f / 255.f)
-#define DEFAULT_SCALE3         (1.f / 255.f)
-#define DEFAULT_MEAN1          0
-#define DEFAULT_MEAN2          0
-#define DEFAULT_MEAN3          0
-#define DEFAULT_LOOP_COUNT     1
-#define DEFAULT_THREAD_COUNT   1
-#define DEFAULT_CPU_AFFINITY   255
+#define DEFAULT_IMG_H 512 
+#define DEFAULT_IMG_W 512
+#define DEFAULT_SCALE1 (1.f/255.f)
+#define DEFAULT_SCALE2 (1.f/255.f)
+#define DEFAULT_SCALE3 (1.f/255.f)
+#define DEFAULT_MEAN1 0
+#define DEFAULT_MEAN2 0
+#define DEFAULT_MEAN3 0
+#define DEFAULT_LOOP_COUNT 1
+#define DEFAULT_THREAD_COUNT 1
+#define DEFAULT_CPU_AFFINITY 255
 #define DEFAULT_CONF_THRESHOLD 0.5f
 
 /**
@@ -55,26 +55,22 @@
  * because of the onnx->tmfile convertion problem, keep the network input size dividable by 16 (256,512) 
  */
 
-int draw_segmentation(const int32_t* data, int h, int w)
-{
-    static std::map<int32_t, cv::Vec3b> color_table = {
-        { 0, cv::Vec3b(0, 0, 0) },       { 1, cv::Vec3b(20, 59, 255) }, { 2, cv::Vec3b(120, 59, 200) },
-        { 3, cv::Vec3b(80, 29, 129) },   { 4, cv::Vec3b(210, 99, 12) },    // add more color if needed
-        { -1, cv::Vec3b(255, 255, 255) }                                   // other type
-    };
+int draw_segmentation(const int32_t* data, int h, int w) {
+    static std::map<int32_t, cv::Vec3b> color_table = {{0, cv::Vec3b(0,0,0)},
+                                                       {1, cv::Vec3b(20,59,255)},
+                                                       {2, cv::Vec3b(120,59,200)},
+                                                       {3, cv::Vec3b(80,29,129)},
+                                                       {4, cv::Vec3b(210,99,12)}, // add more color if needed
+                                                       {-1, cv::Vec3b(255,255,255)} // other type
+                                                       };
     cv::Mat img = cv::Mat::zeros(h, w, CV_8UC3);
-    for (int i = 0; i < h; ++i)
-    {
-        for (int j = 0; j < w; ++j)
-        {
+    for (int i = 0; i < h; ++i) {
+        for (int j = 0; j < w; ++j) {
             cv::Vec3b color;
-            int32_t   value = data[i * w + j];
-            if (color_table.count(value) > 0)
-            {
+            int32_t value = data[i * w + j];
+            if (color_table.count(value) > 0) {
                 color = color_table.at(value);
-            }
-            else
-            {
+            } else {
                 color = color_table.at(-1);
             }
             img.at<cv::Vec3b>(i, j) = color;
@@ -85,14 +81,14 @@ int draw_segmentation(const int32_t* data, int h, int w)
 }
 
 int tengine_segment(const char* model_file, const char* image_file, int img_h, int img_w, const float* mean,
-                    const float* scale, int loop_count, int num_thread, int affinity, float conf_thresh)
+                     const float* scale, int loop_count, int num_thread, int affinity, float conf_thresh)
 {
     /* set runtime options */
     struct options opt;
     opt.num_thread = num_thread;
-    opt.cluster    = TENGINE_CLUSTER_ALL;
-    opt.precision  = TENGINE_MODE_FP32;
-    opt.affinity   = affinity;
+    opt.cluster = TENGINE_CLUSTER_ALL;
+    opt.precision = TENGINE_MODE_FP32;
+    opt.affinity = affinity;
 
     /* inital tengine */
     if (init_tengine() != 0)
@@ -111,9 +107,9 @@ int tengine_segment(const char* model_file, const char* image_file, int img_h, i
     }
 
     /* set the shape, data buffer of input_tensor of the graph */
-    int    img_size       = img_h * img_w * 3;
-    int    dims[]         = { 1, 3, img_h, img_w };    // nchw
-    float* input_data     = (float*)malloc(img_size * sizeof(float));
+    int img_size = img_h * img_w * 3;
+    int dims[] = {1, 3, img_h, img_w};    // nchw
+    float* input_data = ( float* )malloc(img_size * sizeof(float));
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == NULL)
@@ -132,7 +128,7 @@ int tengine_segment(const char* model_file, const char* image_file, int img_h, i
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;
-    }
+    }    
 
     /* prerun graph, set work options(num_thread, cluster, precision) */
     if (prerun_graph_multithread(graph, opt) < 0)
@@ -145,8 +141,8 @@ int tengine_segment(const char* model_file, const char* image_file, int img_h, i
     get_input_data(image_file, input_data, img_h, img_w, mean, scale);
 
     /* run graph */
-    double min_time   = DBL_MAX;
-    double max_time   = DBL_MIN;
+    double min_time = DBL_MAX;
+    double max_time = DBL_MIN;
     double total_time = 0.;
     for (int i = 0; i < loop_count; i++)
     {
@@ -174,56 +170,45 @@ int tengine_segment(const char* model_file, const char* image_file, int img_h, i
 
     /* get the result of classification */
     tensor_t output_tensor = get_graph_output_tensor(graph, 0, 0);
-    float*   output_data   = (float*)get_tensor_buffer(output_tensor);
-    int      output_size   = get_tensor_buffer_size(output_tensor) / sizeof(float);
+    float* output_data = ( float* )get_tensor_buffer(output_tensor);
+    int output_size = get_tensor_buffer_size(output_tensor) / sizeof(float);
 
-    int channel            = output_size / img_h / img_w;
-    int res                = output_size % (img_h * img_w);
-    if (res != 0)
-    {
-        fprintf(stderr, "output shape is not supported.\n");
-    }
-    else
-    {
-        int* label_data = new int[img_h * img_w];
-        /* single class segmentation */
-        if (channel == 1)
-        {
-            for (int i = 0; i < img_h; ++i)
-            {
-                for (int j = 0; j < img_w; ++j)
-                {
-                    float conf                = 1 / (1 + std::exp(-output_data[i * img_w + j]));
-                    label_data[i * img_w + j] = conf > conf_thresh ? 1 : 0;
-                }
-            }
+    int channel = output_size / img_h / img_w;
+    int res = output_size % (img_h * img_w);
+    if (res != 0) {
+      fprintf(stderr, "output shape is not supported.\n");
+    } else {
+      int* label_data = new int[img_h * img_w];
+      /* single class segmentation */
+      if (channel == 1) {
+        for (int i=0; i < img_h; ++i) {
+          for (int j=0; j < img_w; ++j) {
+              float conf = 1/(1+std::exp(-output_data[i*img_w + j]));
+              label_data[i*img_w + j] = conf > conf_thresh ? 1 : 0;
+          }
         }
-        /* multi-class segmentation */
-        else
-        {
-            for (int i = 0; i < img_h; ++i)
-            {
-                for (int j = 0; j < img_w; ++j)
-                {
-                    int   argmax_id = -1;
-                    float max_conf  = std::numeric_limits<float>::min();
-                    for (int k = 0; k < channel; ++k)
-                    {
-                        float out_value = output_data[k * img_w * img_h + i * img_w + j];
-                        if (out_value > max_conf)
-                        {
-                            argmax_id = k;
-                            max_conf  = out_value;
-                        }
-                    }
-                    label_data[i * img_w + j] = argmax_id;
-                }
-            }
+      }
+      /* multi-class segmentation */
+      else {
+        for (int i=0; i < img_h; ++i) {
+          for (int j=0; j < img_w; ++j) {
+              int argmax_id = -1;
+              float max_conf = std::numeric_limits<float>::min();
+              for (int k=0; k < channel; ++k) {
+                  float out_value = output_data[k * img_w * img_h + i * img_w + j];
+                  if (out_value > max_conf) {
+                      argmax_id = k;
+                      max_conf = out_value;
+                  }
+              }
+              label_data[i*img_w + j] = argmax_id;
+          }
         }
-        /* visualization */
-        draw_segmentation(label_data, img_h, img_w);
-        fprintf(stderr, "segmentatation result is save as unet_out.png\n");
-        delete[] label_data;
+      }
+      /* visualization */
+      draw_segmentation(label_data, img_h, img_w);
+      fprintf(stderr, "segmentatation result is save as unet_out.png\n");
+      delete[] label_data;
     }
 
     /* release tengine */
@@ -244,57 +229,57 @@ void show_usage()
 
 int main(int argc, char* argv[])
 {
-    int   loop_count   = DEFAULT_LOOP_COUNT;
-    int   num_thread   = DEFAULT_THREAD_COUNT;
-    int   cpu_affinity = DEFAULT_CPU_AFFINITY;
-    float conf_thresh  = DEFAULT_CONF_THRESHOLD;
-    char* model_file   = NULL;
-    char* image_file   = NULL;
-    float img_hw[2]    = { 0.f };
-    int   img_h        = 0;
-    int   img_w        = 0;
-    float mean[3]      = { 0.f, 0.f, 0.f };
-    float scale[3]     = { 0.f, 0.f, 0.f };
+    int loop_count = DEFAULT_LOOP_COUNT;
+    int num_thread = DEFAULT_THREAD_COUNT;
+    int cpu_affinity = DEFAULT_CPU_AFFINITY;
+    float conf_thresh = DEFAULT_CONF_THRESHOLD;
+    char* model_file = NULL;
+    char* image_file = NULL;
+    float img_hw[2] = {0.f};
+    int img_h = 0;
+    int img_w = 0;
+    float mean[3] = {0.f, 0.f, 0.f};
+    float scale[3] = {0.f, 0.f, 0.f};
 
     int res;
     while ((res = getopt(argc, argv, "m:i:l:g:s:w:r:t:a:c:h")) != -1)
     {
         switch (res)
         {
-        case 'm':
-            model_file = optarg;
-            break;
-        case 'i':
-            image_file = optarg;
-            break;
-        case 'g':
-            split(img_hw, optarg, ",");
-            img_h = (int)img_hw[0];
-            img_w = (int)img_hw[1];
-            break;
-        case 's':
-            split(scale, optarg, ",");
-            break;
-        case 'w':
-            split(mean, optarg, ",");
-            break;
-        case 'r':
-            loop_count = atoi(optarg);
-            break;
-        case 't':
-            num_thread = atoi(optarg);
-            break;
-        case 'a':
-            cpu_affinity = atoi(optarg);
-            break;
-        case 'c':
-            conf_thresh = atof(optarg);
-            break;
-        case 'h':
-            show_usage();
-            return 0;
-        default:
-            break;
+            case 'm':
+                model_file = optarg;
+                break;
+            case 'i':
+                image_file = optarg;
+                break;
+            case 'g':
+                split(img_hw, optarg, ",");
+                img_h = ( int )img_hw[0];
+                img_w = ( int )img_hw[1];
+                break;
+            case 's':
+                split(scale, optarg, ",");
+                break;
+            case 'w':
+                split(mean, optarg, ",");
+                break;
+            case 'r':
+                loop_count = atoi(optarg);
+                break;
+            case 't':
+                num_thread = atoi(optarg);
+                break;
+            case 'a':
+                cpu_affinity = atoi(optarg);
+                break;
+            case 'c':
+                conf_thresh = atof(optarg);
+                break;
+            case 'h':
+                show_usage();
+                return 0;
+            default:
+                break;
         }
     }
 
@@ -344,9 +329,7 @@ int main(int argc, char* argv[])
         fprintf(stderr, "Mean value not specified, use default   %.5f, %.5f, %.5f\n", mean[0], mean[1], mean[2]);
     }
 
-    if (tengine_segment(model_file, image_file, img_h, img_w, mean, scale, loop_count, num_thread, cpu_affinity,
-                        conf_thresh)
-        < 0)
+    if (tengine_segment(model_file, image_file, img_h, img_w, mean, scale, loop_count, num_thread, cpu_affinity, conf_thresh) < 0)
         return -1;
 
     return 0;

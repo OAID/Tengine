@@ -33,31 +33,31 @@
 
 static void mish_kernel(int i, int id, void* data, const float* input, float* output)
 {
-    int          step       = ((int*)data)[0];
-    const float* cur_input  = input + id * step;
-    float*       cur_output = output + id * step;
+    int step = (( int* )data)[0];
+    const float* cur_input = input + id * step;
+    float* cur_output = output + id * step;
     for (int i = 0; i < (step & -4); i += 4)
     {
         float32x4_t _input = vld1q_f32(cur_input);
-        float32x4_t out    = vmulq_f32(_input, tanh_ps(log_ps(vaddq_f32(exp_ps(_input), vdupq_n_f32(1.f)))));
+        float32x4_t out = vmulq_f32(_input, tanh_ps(log_ps(vaddq_f32(exp_ps(_input), vdupq_n_f32(1.f)))));
         vst1q_f32(cur_output, out);
         cur_input += 4;
         cur_output += 4;
     }
     for (int i = step & ~3; i < step; i++)
     {
-        float tmp     = *input++;
+        float tmp = *input++;
         *cur_output++ = tanh(log(exp(tmp) + 1.f));
     }
 }
 
 int mish_run(struct tensor* output_tensor, struct tensor* input_tensor, int num_thread)
 {
-    float* data     = (float*)input_tensor->data;
-    float* out_data = (float*)output_tensor->data;
+    float* data = ( float* )input_tensor->data;
+    float* out_data = ( float* )output_tensor->data;
 
-    int chan_num    = (input_tensor->dims[0]) * (input_tensor->dims[1]);
-    int chan_size   = (input_tensor->dims[2]) * (input_tensor->dims[3]);
+    int chan_num = (input_tensor->dims[0]) * (input_tensor->dims[1]);
+    int chan_size = (input_tensor->dims[2]) * (input_tensor->dims[3]);
 
 #pragma omp parallel for num_threads(num_thread)
     for (int i = 0; i < chan_num; i++)

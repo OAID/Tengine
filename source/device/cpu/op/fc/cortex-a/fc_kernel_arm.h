@@ -34,13 +34,13 @@
 
 struct fc_priv_info
 {
-    void*  interleave_buffer;
-    void*  input_buffer;
+    void* interleave_buffer;
+    void* input_buffer;
     float* kernel_max;
-    int    interleave_buffer_size;
-    int    input_buffer_size;
-    int    q_shift;
-    int    multi;
+    int interleave_buffer_size;
+    int input_buffer_size;
+    int q_shift;
+    int multi;
 };
 
 int fc_kernel_prerun(struct tensor* input_tensor, struct tensor* filter_tensor, struct tensor* output_tensor,
@@ -49,7 +49,7 @@ int fc_kernel_prerun(struct tensor* input_tensor, struct tensor* filter_tensor, 
 int fc_kernel_postrun(struct fc_priv_info* priv_info);
 
 int fc_kernel_run(struct tensor* input_tensor, struct tensor* filter_tensor, struct tensor* bias_tensor,
-                  struct tensor* output_tensor, struct fc_priv_info* priv_info, struct fc_param* param, int num_thread,
-                  int cpu_affinity);
+                  struct tensor* output_tensor, struct fc_priv_info* priv_info, struct fc_param* param,
+                  int num_thread, int cpu_affinity);
 
 #endif

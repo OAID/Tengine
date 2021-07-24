@@ -44,21 +44,21 @@ static int gru_op_map(int op)
 static int tm2_load_gru(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                         const TM2_Operator* tm_op)
 {
-    struct gru_param*      gru_param = (struct gru_param*)ir_node->op.param_mem;
-    const struct tm2_priv* tm2_priv  = (struct tm2_priv*)ir_graph->serializer_privacy;
-    const char*            mem_base  = tm2_priv->base;
-    const TM2_GRUParam*    tm_param  = (TM2_GRUParam*)(mem_base + tm_op->offset_t_param);
+    struct gru_param* gru_param = ( struct gru_param* )ir_node->op.param_mem;
+    const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
+    const char* mem_base = tm2_priv->base;
+    const TM2_GRUParam* tm_param = ( TM2_GRUParam* )(mem_base + tm_op->offset_t_param);
 
-    gru_param->clip                  = tm_param->clip;
-    gru_param->output_len            = tm_param->output_len;
-    gru_param->sequence_len          = tm_param->sequence_len;
-    gru_param->input_size            = tm_param->input_size;
-    gru_param->hidden_size           = tm_param->hidden_size;
-    gru_param->has_clip              = tm_param->has_clip;
-    gru_param->has_gate_bias         = tm_param->has_gate_bias;
-    gru_param->has_candidate_bias    = tm_param->has_candidate_bias;
-    gru_param->has_init_state        = tm_param->has_init_state;
-    gru_param->mxnet_flag            = tm_param->mxnet_flag;
+    gru_param->clip = tm_param->clip;
+    gru_param->output_len = tm_param->output_len;
+    gru_param->sequence_len = tm_param->sequence_len;
+    gru_param->input_size = tm_param->input_size;
+    gru_param->hidden_size = tm_param->hidden_size;
+    gru_param->has_clip = tm_param->has_clip;
+    gru_param->has_gate_bias = tm_param->has_gate_bias;
+    gru_param->has_candidate_bias = tm_param->has_candidate_bias;
+    gru_param->has_init_state = tm_param->has_init_state;
+    gru_param->mxnet_flag = tm_param->mxnet_flag;
 
     return 0;
 }

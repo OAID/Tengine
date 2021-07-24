@@ -79,7 +79,7 @@ int node_in_precision(const struct graph* ir_graph, uint16_t node_id, struct vec
 
     for (int8_t i = 0; i < ir_node->output_num; i++)
     {
-        uint16_t             index  = ir_node->output_tensors[i];
+        uint16_t index = ir_node->output_tensors[i];
         const struct tensor* tensor = ir_graph->tensor_list[index];
 
         if (TENSOR_TYPE_VAR == tensor->tensor_type || TENSOR_TYPE_INPUT == tensor->tensor_type)
@@ -123,14 +123,13 @@ int node_in_list(const struct graph* ir_graph, struct vector* ops_list, const ui
 }
 
 
-struct vector* get_graph_blocked_nodes(const struct graph* ir_graph, struct vector* blocked_ops,
-                                       struct vector* allowed_precision)
+struct vector* get_graph_blocked_nodes(const struct graph* ir_graph, struct vector* blocked_ops, struct vector* allowed_precision)
 {
     struct vector* blocked_nodes_list = create_vector(sizeof(uint16_t), NULL);
 
     for (uint16_t i = 0; i < ir_graph->node_num; i++)
     {
-        int is_blocked_op        = node_in_list(ir_graph, blocked_ops, i);
+        int is_blocked_op = node_in_list(ir_graph, blocked_ops, i);
         int is_allowed_precision = node_in_precision(ir_graph, i, allowed_precision);
         if (0 == is_blocked_op || 0 != is_allowed_precision)
         {
@@ -144,12 +143,11 @@ struct vector* get_graph_blocked_nodes(const struct graph* ir_graph, struct vect
 
 
 // policy has some issue, must be fixed
-void split_graph_node_to_sub_graph(struct graph* ir_graph, struct vector* allowed_ops, struct vector* blocked_ops,
-                                   struct vector* allowed_precision)
+void split_graph_node_to_sub_graph(struct graph* ir_graph, struct vector* allowed_ops, struct vector* blocked_ops, struct vector* allowed_precision)
 {
     // get unsupported nodes
-    struct vector* blocked_nodes_list  = get_graph_blocked_nodes(ir_graph, blocked_ops, allowed_precision);
-    const int      blocked_nodes_count = get_vector_num(blocked_nodes_list);
+    struct vector* blocked_nodes_list = get_graph_blocked_nodes(ir_graph, blocked_ops, allowed_precision);
+    const int blocked_nodes_count = get_vector_num(blocked_nodes_list);
     //sort_nodes(blocked_nodes_list);
 
     if (blocked_nodes_count != 0)
@@ -158,6 +156,7 @@ void split_graph_node_to_sub_graph(struct graph* ir_graph, struct vector* allowe
         // scan from back to front
         for (int i = blocked_nodes_count - 1; i >= 0; i--)
         {
+
             // start node id (the blocked one)
             uint16_t first_node_id = *((uint16_t*)get_vector_data(blocked_nodes_list, i));
             // end node id (not including its self; the next blocked one, or the last one)
@@ -187,13 +186,13 @@ void split_graph_node_to_sub_graph(struct graph* ir_graph, struct vector* allowe
                 }
             }
 
-            if (children_nodes_is_complicated < MODEL_COMPLEX_COUNT)    // directly add these nodes to sub graph list
+            if (children_nodes_is_complicated < MODEL_COMPLEX_COUNT)   // directly add these nodes to sub graph list
             {
                 struct subgraph* sub_graph = (struct subgraph*)sys_malloc(sizeof(struct subgraph));
                 init_ir_subgraph((struct graph*)ir_graph, sub_graph, 0);
 
                 // not including the last one
-                sub_graph->node_num  = last_node_id - first_node_id;
+                sub_graph->node_num = last_node_id - first_node_id;
                 sub_graph->node_list = (uint16_t*)sys_malloc(sizeof(uint16_t) * sub_graph->node_num);
 
                 for (uint16_t j = 0; j < sub_graph->node_num; j++)
@@ -211,7 +210,7 @@ void split_graph_node_to_sub_graph(struct graph* ir_graph, struct vector* allowe
                 struct subgraph* sub_device_graph = (struct subgraph*)sys_malloc(sizeof(struct subgraph));
                 init_ir_subgraph((struct graph*)ir_graph, sub_device_graph, 0);
 
-                sub_device_graph->node_num  = last_node_id - (first_node_id + 1);
+                sub_device_graph->node_num = last_node_id - (first_node_id + 1);
                 sub_device_graph->node_list = (uint16_t*)sys_malloc(sizeof(uint16_t) * sub_device_graph->node_num);
 
                 for (uint16_t j = 0; j < sub_device_graph->node_num; j++)
@@ -219,7 +218,7 @@ void split_graph_node_to_sub_graph(struct graph* ir_graph, struct vector* allowe
                     sub_device_graph->node_list[j] = j + first_node_id + 1;
                 }
 
-                struct device* nn_dev    = ir_graph->attribute->context->device;
+                struct device* nn_dev = ir_graph->attribute->context->device;
                 sub_device_graph->device = nn_dev;
 
                 push_vector_data(ir_graph->subgraph_list, &sub_device_graph);
@@ -230,11 +229,11 @@ void split_graph_node_to_sub_graph(struct graph* ir_graph, struct vector* allowe
                 struct subgraph* sub_cpu_graph = (struct subgraph*)sys_malloc(sizeof(struct subgraph));
                 init_ir_subgraph((struct graph*)ir_graph, sub_cpu_graph, 0);
 
-                sub_cpu_graph->node_num     = 1;
-                sub_cpu_graph->node_list    = (uint16_t*)sys_malloc(sizeof(uint16_t) * sub_cpu_graph->node_num);
+                sub_cpu_graph->node_num = 1;
+                sub_cpu_graph->node_list = (uint16_t*)sys_malloc(sizeof(uint16_t) * sub_cpu_graph->node_num);
                 sub_cpu_graph->node_list[0] = first_node_id;
 
-                sub_cpu_graph->device       = find_default_device();
+                sub_cpu_graph->device = find_default_device();
 
                 push_vector_data(ir_graph->subgraph_list, &sub_cpu_graph);
             }
@@ -255,7 +254,7 @@ void split_graph_node_to_sub_graph(struct graph* ir_graph, struct vector* allowe
         stop_node_id = *((uint16_t*)get_vector_data((struct vector*)blocked_nodes_list, 0));
     }
 
-    sub_graph->node_num  = stop_node_id;
+    sub_graph->node_num = stop_node_id;
     sub_graph->node_list = (uint16_t*)sys_malloc(sizeof(uint16_t) * sub_graph->node_num);
 
     for (uint16_t i = 0; i < stop_node_id; i++)
@@ -283,18 +282,15 @@ void split_graph_node_to_sub_graph(struct graph* ir_graph, struct vector* allowe
     while (1)
     {
         int same_sub_graph_found = 0;
-        int sub_graphs_count     = get_vector_num(ir_graph->subgraph_list);
+        int sub_graphs_count = get_vector_num(ir_graph->subgraph_list);
         for (int i = 1; i < sub_graphs_count; i++)
         {
-            struct subgraph* last_sub_graph =
-                *(struct subgraph**)get_vector_data(ir_graph->subgraph_list, (sub_graphs_count - 1) - (i - 1));
-            struct subgraph* current_sub_graph =
-                *(struct subgraph**)get_vector_data(ir_graph->subgraph_list, (sub_graphs_count - 1) - i);
+            struct subgraph* last_sub_graph = *(struct subgraph**)get_vector_data(ir_graph->subgraph_list, (sub_graphs_count - 1) - (i - 1));
+            struct subgraph* current_sub_graph = *(struct subgraph**)get_vector_data(ir_graph->subgraph_list, (sub_graphs_count - 1) - i);
 
             if (current_sub_graph->device == last_sub_graph->device)
             {
-                uint16_t* node_list =
-                    (uint16_t*)sys_malloc(sizeof(uint16_t) * (last_sub_graph->node_num + current_sub_graph->node_num));
+                uint16_t* node_list = (uint16_t*)sys_malloc(sizeof(uint16_t) * (last_sub_graph->node_num + current_sub_graph->node_num));
 
                 for (int j = 0; j < last_sub_graph->node_num; j++)
                 {
@@ -330,12 +326,12 @@ void generate_sub_graph_io(struct graph* ir_graph)
     {
         struct subgraph* sub_graph = *(struct subgraph**)get_vector_data(ir_graph->subgraph_list, index);
 
-        uint16_t random_input_id   = 0;
-        uint16_t random_output_id  = 0;
+        uint16_t random_input_id = 0;
+        uint16_t random_output_id = 0;
 
         for (int i = 0; i < sub_graph->node_num; i++)
         {
-            uint16_t     node_id = sub_graph->node_list[i];
+            uint16_t node_id = sub_graph->node_list[i];
             struct node* ir_node = ir_graph->node_list[node_id];
             if (ir_node->input_num > 0)
             {
@@ -351,18 +347,18 @@ void generate_sub_graph_io(struct graph* ir_graph)
 
         for (int i = 0; i < sub_graph->node_num; i++)
         {
-            uint16_t     node_id = sub_graph->node_list[i];
+            uint16_t node_id = sub_graph->node_list[i];
             struct node* ir_node = ir_graph->node_list[node_id];
             if (ir_node->output_num > 0)
             {
                 struct tensor* tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-                random_output_id      = tensor->index;
+                random_output_id = tensor->index;
                 break;
             }
         }
 
-        uint16_t min_input_tensor_id  = random_input_id;
-        uint16_t max_input_tensor_id  = random_input_id;
+        uint16_t min_input_tensor_id = random_input_id;
+        uint16_t max_input_tensor_id = random_input_id;
         uint16_t min_output_tensor_id = random_output_id;
         uint16_t max_output_tensor_id = random_output_id;
 
@@ -408,8 +404,7 @@ void generate_sub_graph_io(struct graph* ir_graph)
         }
 
         uint16_t* input_tensors = (uint16_t*)malloc(sizeof(uint16_t) * (max_input_tensor_id - min_input_tensor_id + 1));
-        uint16_t* output_tensors =
-            (uint16_t*)malloc(sizeof(uint16_t) * (max_output_tensor_id - min_output_tensor_id + 1));
+        uint16_t* output_tensors = (uint16_t*)malloc(sizeof(uint16_t) * (max_output_tensor_id - min_output_tensor_id + 1));
 
         memset(input_tensors, 0, sizeof(uint16_t) * (max_input_tensor_id - min_input_tensor_id + 1));
         memset(output_tensors, 0, sizeof(uint16_t) * (max_output_tensor_id - min_output_tensor_id + 1));
@@ -465,19 +460,19 @@ void generate_sub_graph_io(struct graph* ir_graph)
         fflush(stdout);*/
 
         uint16_t search_start = min_input_tensor_id > min_output_tensor_id ? min_input_tensor_id : min_output_tensor_id;
-        uint16_t search_end   = max_input_tensor_id < max_output_tensor_id ? max_input_tensor_id : max_output_tensor_id;
+        uint16_t search_end = max_input_tensor_id < max_output_tensor_id ? max_input_tensor_id : max_output_tensor_id;
 
         for (int i = 0; i < (search_end - search_start) + 1; i++)
         {
-            int input_offset  = (search_start - min_input_tensor_id) + i;
+            int input_offset = (search_start - min_input_tensor_id) + i;
             int output_offset = (search_start - min_output_tensor_id) + i;
 
-            int input_flag    = input_tensors[input_offset];
-            int output_flag   = output_tensors[output_offset];
+            int input_flag = input_tensors[input_offset];
+            int output_flag = output_tensors[output_offset];
 
             if (input_flag > 0 && output_flag > 0)
             {
-                input_tensors[input_offset]   = 0;
+                input_tensors[input_offset] = 0;
                 output_tensors[output_offset] = 0;
             }
         }
@@ -518,10 +513,10 @@ void generate_sub_graph_io(struct graph* ir_graph)
             }
         }
 
-        sub_graph->input_tensor_list  = (uint16_t*)sys_malloc(sizeof(uint16_t) * sub_graph->input_num);
+        sub_graph->input_tensor_list = (uint16_t*)sys_malloc(sizeof(uint16_t) * sub_graph->input_num);
         sub_graph->output_tensor_list = (uint16_t*)sys_malloc(sizeof(uint16_t) * sub_graph->output_num);
 
-        uint16_t input_tensor_count   = 0;
+        uint16_t input_tensor_count = 0;
         for (int j = 0; j < max_input_tensor_id - min_input_tensor_id + 1; j++)
         {
             if (input_tensors[j] > 0)
@@ -556,8 +551,7 @@ void add_sub_graph_to_ir_graph(struct graph* ir_graph)
     for (int i = 0; i < sub_graphs_count / 2; i++)
     {
         struct subgraph* sub_graph_front = *(struct subgraph**)get_vector_data(ir_graph->subgraph_list, i);
-        struct subgraph* sub_graph_back =
-            *(struct subgraph**)get_vector_data(ir_graph->subgraph_list, (sub_graphs_count - 1) - i);
+        struct subgraph* sub_graph_back = *(struct subgraph**)get_vector_data(ir_graph->subgraph_list, (sub_graphs_count - 1) - i);
 
         struct subgraph* mid_temp = (struct subgraph*)sys_malloc(sizeof(struct subgraph));
 
@@ -572,7 +566,7 @@ void add_sub_graph_to_ir_graph(struct graph* ir_graph)
     for (int i = 0; i < sub_graphs_count; i++)
     {
         struct subgraph* sub_graph = *(struct subgraph**)get_vector_data(ir_graph->subgraph_list, i);
-        sub_graph->index           = i;
+        sub_graph->index = i;
 
         for (int j = 0; j < sub_graph->node_num; j++)
         {
@@ -590,11 +584,10 @@ void add_sub_graph_to_ir_graph(struct graph* ir_graph)
 
             if (ir_tensor->tensor_type != TENSOR_TYPE_INPUT)
             {
-                uint16_t node_id      = ir_tensor->producer;
-                uint8_t  sub_graph_id = ir_graph->node_list[node_id]->subgraph_idx;
+                uint16_t node_id = ir_tensor->producer;
+                uint8_t sub_graph_id = ir_graph->node_list[node_id]->subgraph_idx;
 
-                struct subgraph* target_sub_graph =
-                    *(struct subgraph**)get_vector_data(ir_graph->subgraph_list, sub_graph_id);
+                struct subgraph* target_sub_graph = *(struct subgraph**)get_vector_data(ir_graph->subgraph_list, sub_graph_id);
 
                 int tensor_mask_as_out_flag = 0;
                 for (int k = 0; k < target_sub_graph->output_num; k++)
@@ -608,11 +601,9 @@ void add_sub_graph_to_ir_graph(struct graph* ir_graph)
 
                 if (!tensor_mask_as_out_flag)
                 {
-                    uint16_t* new_output_tensor_list =
-                        sys_malloc(sizeof(uint16_t) * (target_sub_graph->output_num + 1));
+                    uint16_t* new_output_tensor_list = sys_malloc(sizeof(uint16_t) * (target_sub_graph->output_num + 1));
 
-                    memcpy(new_output_tensor_list, target_sub_graph->output_tensor_list,
-                           sizeof(uint16_t) * target_sub_graph->output_num);
+                    memcpy(new_output_tensor_list, target_sub_graph->output_tensor_list, sizeof(uint16_t) * target_sub_graph->output_num);
                     new_output_tensor_list[target_sub_graph->output_num] = ir_tensor->index;
 
                     sys_free(target_sub_graph->output_tensor_list);
@@ -746,7 +737,7 @@ void add_sub_graph_to_ir_graph(struct graph* ir_graph)
     // fill the wait count
     for (int i = 0; i < sub_graphs_count; i++)
     {
-        struct subgraph* sub_graph  = *(struct subgraph**)get_vector_data(ir_graph->subgraph_list, i);
+        struct subgraph* sub_graph = *(struct subgraph**)get_vector_data(ir_graph->subgraph_list, i);
         sub_graph->input_wait_count = 0;
 
         for (int j = 0; j < sub_graph->input_num; j++)
@@ -762,8 +753,7 @@ void add_sub_graph_to_ir_graph(struct graph* ir_graph)
 
 void dump_sub_graph(struct subgraph* sub_graph)
 {
-    TLOG_INFO("Sub graph[%d]: {%8s } has %d nodes, %d input tensors, %d output tensors.\n", sub_graph->index,
-              sub_graph->device->name, sub_graph->node_num, sub_graph->input_num, sub_graph->output_num);
+    TLOG_INFO("Sub graph[%d]: {%8s } has %d nodes, %d input tensors, %d output tensors.\n", sub_graph->index, sub_graph->device->name, sub_graph->node_num, sub_graph->input_num, sub_graph->output_num);
     TLOG_INFO("\tSub nodes: [ ");
 
     for (int j = 0; j < sub_graph->node_num - 1; j++)

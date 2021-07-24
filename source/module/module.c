@@ -36,10 +36,10 @@
 #include <string.h>
 
 
-static vector_t* internal_serializer_registry = NULL;    //!< registry of model serializer
-static vector_t* internal_device_registry     = NULL;    //!< registry of runnable neural network device
-static vector_t* internal_op_method_registry  = NULL;    //!< registry of operators
-static vector_t* internal_op_name_registry    = NULL;    //!< registry of operators name
+static vector_t* internal_serializer_registry = NULL;   //!< registry of model serializer
+static vector_t* internal_device_registry     = NULL;   //!< registry of runnable neural network device
+static vector_t* internal_op_method_registry  = NULL;   //!< registry of operators
+static vector_t* internal_op_name_registry    = NULL;   //!< registry of operators name
 
 
 /*!
@@ -48,8 +48,8 @@ static vector_t* internal_op_name_registry    = NULL;    //!< registry of operat
  */
 typedef struct op_name_entry
 {
-    int         type;    //!< the type of a operator
-    const char* name;    //!< the name of a operator
+    int type;               //!< the type of a operator
+    const char* name;       //!< the name of a operator
 } ir_op_name_entry_t;
 
 
@@ -86,8 +86,7 @@ int register_serializer(serializer_t* serializer)
         int ret = serializer->init(serializer);
         if (0 != ret)
         {
-            TLOG_CRIT("Tengine: Can not register %s, module init was failed(%d).\n", serializer->get_name(serializer),
-                      ret);
+            TLOG_CRIT("Tengine: Can not register %s, module init was failed(%d).\n", serializer->get_name(serializer), ret);
             return -1;
         }
     }
@@ -396,7 +395,7 @@ int register_op_name(int type, const char* name)
 
 int unregister_op_name(int type)
 {
-    int       i;
+    int i;
     const int op_name_count = get_vector_num(internal_op_name_registry);
     for (i = 0; i < op_name_count; i++)
     {

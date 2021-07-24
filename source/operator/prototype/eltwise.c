@@ -37,11 +37,11 @@
 
 static int infer_shape(struct node* node)
 {
-    struct graph*  graph                = node->graph;
-    struct tensor* input0               = get_ir_graph_tensor(graph, node->input_tensors[0]);
-    struct tensor* output               = get_ir_graph_tensor(graph, node->output_tensors[0]);
+    struct graph* graph = node->graph;
+    struct tensor* input0 = get_ir_graph_tensor(graph, node->input_tensors[0]);
+    struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
 
-    struct eltwise_param* eltwise_param = (struct eltwise_param*)(node->op.param_mem);
+    struct eltwise_param* eltwise_param = ( struct eltwise_param* )(node->op.param_mem);
 
     if (node->input_num == 1)
     {
@@ -57,9 +57,9 @@ static int infer_shape(struct node* node)
 
     struct tensor* input1 = get_ir_graph_tensor(graph, node->input_tensors[1]);
 
-    int i0_size           = input0->elem_num;
-    int i1_size           = input1->elem_num;
-    int dim_num           = 0;
+    int i0_size = input0->elem_num;
+    int i1_size = input1->elem_num;
+    int dim_num = 0;
 
     if (i0_size >= i1_size)
     {
@@ -80,7 +80,7 @@ static int infer_shape(struct node* node)
 
 static int init_op(struct op* op)
 {
-    struct eltwise_param* eltwise_param = (struct eltwise_param*)sys_malloc(sizeof(struct eltwise_param));
+    struct eltwise_param* eltwise_param = ( struct eltwise_param* )sys_malloc(sizeof(struct eltwise_param));
 
     if (eltwise_param == NULL)
     {
@@ -90,10 +90,10 @@ static int init_op(struct op* op)
     /*set the param default value */
     eltwise_param->type = 0;
 
-    op->param_mem       = eltwise_param;
-    op->param_size      = sizeof(struct eltwise_param);
-    op->same_shape      = 0;
-    op->infer_shape     = infer_shape;
+    op->param_mem = eltwise_param;
+    op->param_size = sizeof(struct eltwise_param);
+    op->same_shape = 0;
+    op->infer_shape = infer_shape;
 
     return 0;
 }
@@ -110,7 +110,7 @@ int register_eltwise_op()
     struct method m;
 
     m.version = 1;
-    m.init    = init_op;
+    m.init = init_op;
     m.release = release_op;
 
 

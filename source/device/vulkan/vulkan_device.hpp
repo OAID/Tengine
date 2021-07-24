@@ -31,10 +31,10 @@ extern "C"
 #include "api/c_api.h"
 #include "device/device.h"
 
-    struct vulkan_device
-    {
-        struct device base;
-    };
+struct vulkan_device
+{
+    struct device base;
+};
 
-    DLLEXPORT int register_vulkan_device(void);
+DLLEXPORT int register_vulkan_device(void);
 }

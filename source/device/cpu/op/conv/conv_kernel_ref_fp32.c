@@ -38,28 +38,28 @@
 #include "conv_kernel_ref.h"
 
 
-int ref_conv_fp32(struct tensor* input_tensor, struct tensor* output_tensor, struct tensor* kernel, struct tensor* bias,
-                  struct conv_param* conv_param)
+int ref_conv_fp32(struct tensor* input_tensor, struct tensor* output_tensor, struct tensor* kernel,
+                         struct tensor* bias, struct conv_param* conv_param)
 {
-    int batch       = input_tensor->dims[0];
-    int group       = conv_param->group;
-    int input_c     = conv_param->input_channel / group;
-    int input_h     = input_tensor->dims[2];
-    int input_w     = input_tensor->dims[3];
-    int output_c    = output_tensor->dims[1] / group;
-    int output_h    = output_tensor->dims[2];
-    int output_w    = output_tensor->dims[3];
+    int batch = input_tensor->dims[0];
+    int group = conv_param->group;
+    int input_c = conv_param->input_channel / group;
+    int input_h = input_tensor->dims[2];
+    int input_w = input_tensor->dims[3];
+    int output_c = output_tensor->dims[1] / group;
+    int output_h = output_tensor->dims[2];
+    int output_w = output_tensor->dims[3];
 
     int kernel_size = input_c * conv_param->kernel_h * conv_param->kernel_w;
     int n, g, c, h, w, kc, kh, kw;
-    int input_offset   = 0;
-    int kernel_offset  = 0;
-    int output_offset  = 0;
+    int input_offset = 0;
+    int kernel_offset = 0;
+    int output_offset = 0;
 
-    float* input_data  = input_tensor->data;
+    float* input_data = input_tensor->data;
     float* output_data = output_tensor->data;
     float* kernel_data = kernel->data;
-    float* bias_data   = NULL;
+    float* bias_data = NULL;
     if (bias != NULL)
         bias_data = bias->data;
 
@@ -82,10 +82,11 @@ int ref_conv_fp32(struct tensor* input_tensor, struct tensor* output_tensor, str
                     {
                         const int h_start = (h * conv_param->stride_h) - conv_param->pad_h0;
                         const int w_start = (w * conv_param->stride_w) - conv_param->pad_w0;
-                        float     total   = 0.f;
+                        float total = 0.f;
 
-                        output_offset = n * group * output_c * output_h * output_w + g * output_c * output_h * output_w
-                                        + c * output_h * output_w + h * output_w + w;
+                        output_offset = n * group * output_c * output_h * output_w +
+                                        g * output_c * output_h * output_w + c * output_h * output_w +
+                                        h * output_w + w;
 
                         for (kc = 0; kc < input_c; ++kc)
                         {
@@ -99,12 +100,13 @@ int ref_conv_fp32(struct tensor* input_tensor, struct tensor* output_tensor, str
                                     // use zero as a default value.
                                     if ((cur_x >= 0) && (cur_x < input_w) && (cur_y >= 0) && (cur_y < input_h))
                                     {
-                                        input_offset = n * group * input_c * input_h * input_w
-                                                       + g * input_c * input_h * input_w + kc * input_h * input_w
-                                                       + cur_y * input_w + cur_x;
-                                        kernel_offset = g * output_c * kernel_size + c * kernel_size
-                                                        + kc * conv_param->kernel_h * conv_param->kernel_w
-                                                        + kh * conv_param->kernel_w + kw;
+
+                                        input_offset = n * group * input_c * input_h * input_w +
+                                                        g * input_c * input_h * input_w + kc * input_h * input_w +
+                                                        cur_y * input_w + cur_x;
+                                        kernel_offset = g * output_c * kernel_size + c * kernel_size +
+                                                        kc * conv_param->kernel_h * conv_param->kernel_w +
+                                                        kh * conv_param->kernel_w + kw;
 
                                         total += input_data[input_offset] * kernel_data[kernel_offset];
                                     }

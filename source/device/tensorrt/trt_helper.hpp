@@ -44,64 +44,49 @@
 
 
 #ifdef _MSC_VER
-    #define FN_NAME __FUNCTION__
+#define FN_NAME __FUNCTION__
 #else
-    #define FN_NAME __func__
+#define FN_NAME __func__
 #endif
 
 #if (!defined(__ANDROID__) && defined(__aarch64__)) || defined(__QNX__)
-    #define ENABLE_DLA_API 1
+#define ENABLE_DLA_API 1
 #endif
 
-#define CHECK(status)                                                                                                  \
-    do                                                                                                                 \
-    {                                                                                                                  \
-        auto ret = (status);                                                                                           \
-        if (ret != 0)                                                                                                  \
-        {                                                                                                              \
-            Log(Loglevel, "TensorRT Engine", "Cuda failure: %d", ret);                                                 \
-            abort();                                                                                                   \
-        }                                                                                                              \
-    }                                                                                                                  \
-    while (0)
+#define CHECK(status)                                                       \
+    do                                                                      \
+    {                                                                       \
+        auto ret = (status);                                                \
+        if (ret != 0)                                                       \
+        {                                                                   \
+            Log(Loglevel, "TensorRT Engine",  "Cuda failure: %d", ret);     \
+            abort();                                                        \
+        }                                                                   \
+    } while (0)
 
 
 constexpr long double operator"" _GiB(long double val)
 {
     return val * (1 << 30);
 }
-constexpr long double operator"" _MiB(long double val)
-{
-    return val * (1 << 20);
-}
-constexpr long double operator"" _KiB(long double val)
-{
-    return val * (1 << 10);
-}
+constexpr long double operator"" _MiB(long double val) { return val * (1 << 20); }
+constexpr long double operator"" _KiB(long double val) { return val * (1 << 10); }
 
 // These is necessary if we want to be able to write 1_GiB instead of 1.0_GiB.
 // Since the return type is signed, -1_GiB will work as expected.
-constexpr long long int operator"" _GiB(long long unsigned int val)
-{
-    return val * (1 << 30);
-}
-constexpr long long int operator"" _MiB(long long unsigned int val)
-{
-    return val * (1 << 20);
-}
-constexpr long long int operator"" _KiB(long long unsigned int val)
-{
-    return val * (1 << 10);
-}
+constexpr long long int operator"" _GiB(long long unsigned int val) { return val * (1 << 30); }
+constexpr long long int operator"" _MiB(long long unsigned int val) { return val * (1 << 20); }
+constexpr long long int operator"" _KiB(long long unsigned int val) { return val * (1 << 10); }
 
 
 
-class Logger : public nvinfer1::ILogger {
+class Logger :public nvinfer1::ILogger
+{
 public:
     nvinfer1::ILogger::Severity severity_;
 
 public:
-    Logger(nvinfer1::ILogger::Severity severity = nvinfer1::ILogger::Severity::kINFO) : severity_(severity) {};
+    Logger(nvinfer1::ILogger::Severity severity = nvinfer1::ILogger::Severity::kINFO) :severity_(severity) {};
 
     void log(Severity severity, const char* msg) override
     {
@@ -109,21 +94,21 @@ public:
         {
             switch (severity)
             {
-            case nvinfer1::ILogger::Severity::kINTERNAL_ERROR:
-                fprintf(stderr, "Tengine Fatal: %s\n", msg);
-                break;
-            case nvinfer1::ILogger::Severity::kERROR:
-                fprintf(stderr, "Tengine Error: %s\n", msg);
-                break;
-            case nvinfer1::ILogger::Severity::kWARNING:
-                fprintf(stderr, "Tengine Warning: %s\n", msg);
-                break;
-            case nvinfer1::ILogger::Severity::kINFO:
-                fprintf(stderr, "Tengine Info: %s\n", msg);
-                break;
-            default:
-                fprintf(stderr, "Tengine Normal: %s\n", msg);
-                break;
+                case nvinfer1::ILogger::Severity::kINTERNAL_ERROR:
+                    fprintf(stderr, "Tengine Fatal: %s\n", msg);
+                    break;
+                case nvinfer1::ILogger::Severity::kERROR:
+                    fprintf(stderr, "Tengine Error: %s\n", msg);
+                    break;
+                case nvinfer1::ILogger::Severity::kWARNING:
+                    fprintf(stderr, "Tengine Warning: %s\n", msg);
+                    break;
+                case nvinfer1::ILogger::Severity::kINFO:
+                    fprintf(stderr, "Tengine Info: %s\n", msg);
+                    break;
+                default:
+                    fprintf(stderr, "Tengine Normal: %s\n", msg);
+                    break;
             }
         }
         else
@@ -157,8 +142,7 @@ struct InferDeleter
 };
 
 
-inline void enableDLA(nvinfer1::IBuilder* builder, nvinfer1::IBuilderConfig* config, int useDLACore,
-                      bool allowGPUFallback = true)
+inline void enableDLA(nvinfer1::IBuilder* builder, nvinfer1::IBuilderConfig* config, int useDLACore, bool allowGPUFallback = true)
 {
     if (useDLACore >= 0)
     {
@@ -203,7 +187,7 @@ void setAllTensorScales(nvinfer1::INetworkDefinition* network, float inScales = 
         auto layer = network->getLayer(i);
         for (int j = 0; j < layer->getNbInputs(); j++)
         {
-            nvinfer1::ITensor* input { layer->getInput(j) };
+            nvinfer1::ITensor* input{ layer->getInput(j) };
             // Optional inputs are nullptr here and are from RNN layers.
             if (input != nullptr && !input->dynamicRangeIsSet())
             {
@@ -220,7 +204,7 @@ void setAllTensorScales(nvinfer1::INetworkDefinition* network, float inScales = 
         auto layer = network->getLayer(i);
         for (int j = 0; j < layer->getNbOutputs(); j++)
         {
-            nvinfer1::ITensor* output { layer->getOutput(j) };
+            nvinfer1::ITensor* output{ layer->getOutput(j) };
             // Optional outputs are nullptr here and are from RNN layers.
             if (output != nullptr && !output->dynamicRangeIsSet())
             {

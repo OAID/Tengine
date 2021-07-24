@@ -44,17 +44,17 @@ static int spacetobatchnd_op_map(int op)
 static int tm2_load_spacetobatchnd(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                                    const TM2_Operator* tm_op)
 {
-    struct spacetobatchnd_param*   spacetobatchnd_param = (struct spacetobatchnd_param*)ir_node->op.param_mem;
-    const struct tm2_priv*         tm2_priv             = (struct tm2_priv*)ir_graph->serializer_privacy;
-    const char*                    mem_base             = tm2_priv->base;
-    const TM2_SpaceToBatchNDParam* tm_param             = (TM2_SpaceToBatchNDParam*)(mem_base + tm_op->offset_t_param);
+    struct spacetobatchnd_param* spacetobatchnd_param = ( struct spacetobatchnd_param* )ir_node->op.param_mem;
+    const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
+    const char* mem_base = tm2_priv->base;
+    const TM2_SpaceToBatchNDParam* tm_param = ( TM2_SpaceToBatchNDParam* )(mem_base + tm_op->offset_t_param);
 
-    spacetobatchnd_param->dilation_x                    = tm_param->dilation_x;
-    spacetobatchnd_param->dilation_y                    = tm_param->dilation_y;
-    spacetobatchnd_param->pad_top                       = tm_param->pad_top;
-    spacetobatchnd_param->pad_bottom                    = tm_param->pad_bottom;
-    spacetobatchnd_param->pad_left                      = tm_param->pad_left;
-    spacetobatchnd_param->pad_right                     = tm_param->pad_right;
+    spacetobatchnd_param->dilation_x = tm_param->dilation_x;
+    spacetobatchnd_param->dilation_y = tm_param->dilation_y;
+    spacetobatchnd_param->pad_top = tm_param->pad_top;
+    spacetobatchnd_param->pad_bottom = tm_param->pad_bottom;
+    spacetobatchnd_param->pad_left = tm_param->pad_left;
+    spacetobatchnd_param->pad_right = tm_param->pad_right;
 
     return 0;
 }
@@ -70,8 +70,7 @@ int register_tm2_spacetobatchnd_op()
         return -1;
     }
 
-    tm2_s->register_op_loader(tm2_s, TM2_OPTYPE_SPACETOBATCHND, 1, tm2_load_spacetobatchnd, spacetobatchnd_op_map,
-                              NULL);
+    tm2_s->register_op_loader(tm2_s, TM2_OPTYPE_SPACETOBATCHND, 1, tm2_load_spacetobatchnd, spacetobatchnd_op_map, NULL);
 
     return 0;
 }

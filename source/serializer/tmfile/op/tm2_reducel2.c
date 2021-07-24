@@ -44,13 +44,13 @@ static int reducel2_op_map(int op)
 static int tm2_load_reducel2(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                              const TM2_Operator* tm_op)
 {
-    struct reducel2_param*   reducel2_param = (struct reducel2_param*)ir_node->op.param_mem;
-    const struct tm2_priv*   tm2_priv       = (struct tm2_priv*)ir_graph->serializer_privacy;
-    const char*              mem_base       = tm2_priv->base;
-    const TM2_ReduceL2Param* tm_param       = (TM2_ReduceL2Param*)(mem_base + tm_op->offset_t_param);
+    struct reducel2_param* reducel2_param = ( struct reducel2_param* )ir_node->op.param_mem;
+    const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
+    const char* mem_base = tm2_priv->base;
+    const TM2_ReduceL2Param* tm_param = ( TM2_ReduceL2Param* )(mem_base + tm_op->offset_t_param);
 
-    reducel2_param->axis                    = tm_param->axis;
-    reducel2_param->keepdim                 = tm_param->keepdim;
+    reducel2_param->axis = tm_param->axis;
+    reducel2_param->keepdim = tm_param->keepdim;
 
     return 0;
 }

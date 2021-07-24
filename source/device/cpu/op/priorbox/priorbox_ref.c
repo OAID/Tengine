@@ -52,24 +52,24 @@ static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, 
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node*      ir_node        = exec_node->ir_node;
-    struct graph*     ir_graph       = ir_node->graph;
-    struct tensor*    featmap_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    struct tensor*    data_tensor    = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
-    struct tensor*    output_tensor  = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    priorbox_param_t* param          = (priorbox_param_t*)(ir_node->op.param_mem);
+    struct node* ir_node = exec_node->ir_node;
+    struct graph* ir_graph = ir_node->graph;
+    struct tensor* featmap_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    struct tensor* data_tensor    = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
+    struct tensor* output_tensor  = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+    priorbox_param_t* param = ( priorbox_param_t* )(ir_node->op.param_mem);
 
-    float* output_fp32               = NULL;
+    float* output_fp32 = NULL;
     if (output_tensor->data_type == TENGINE_DT_FP32)
-        output_fp32 = (float*)output_tensor->data;
+        output_fp32 = ( float* )output_tensor->data;
     else if (output_tensor->data_type == TENGINE_DT_UINT8 || output_tensor->data_type == TENGINE_DT_INT8)
-        output_fp32 = (float*)sys_malloc(output_tensor->elem_num * sizeof(float));
+        output_fp32 = ( float* )sys_malloc(output_tensor->elem_num * sizeof(float ));
 
     const int data_height = data_tensor->dims[2];
-    const int data_width  = data_tensor->dims[3];
+    const int data_width = data_tensor->dims[3];
     const int feat_height = featmap_tensor->dims[2];
-    const int feat_width  = featmap_tensor->dims[3];
-    int       image_w, image_h;
+    const int feat_width = featmap_tensor->dims[3];
+    int image_w, image_h;
     if (param->image_h == 0 || param->image_w == 0)
     {
         image_w = data_width;
@@ -83,8 +83,8 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     float step_w, step_h;
     if (param->step_h == 0 || param->step_w == 0)
     {
-        step_w = (float)(image_w) / feat_width;
-        step_h = (float)(image_h) / feat_height;
+        step_w = ( float )(image_w) / feat_width;
+        step_h = ( float )(image_h) / feat_height;
     }
     else
     {
@@ -105,15 +105,15 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
             float center_x = (w + offset_) * step_w;
             float center_y = (h + offset_) * step_h;
             float box_width, box_height;
-            for (int s = 0; s < (int)param->min_size_num; ++s)
+            for (int s = 0; s < ( int )param->min_size_num; ++s)
             {
                 int min_size_ = param->min_size[s];
                 // first prior: aspect_ratio = 1, size = min_size
                 box_width = box_height = min_size_;
-                box[0]                 = (center_x - box_width * 0.5f) / image_w;
-                box[1]                 = (center_y - box_height * 0.5f) / image_h;
-                box[2]                 = (center_x + box_width * 0.5f) / image_w;
-                box[3]                 = (center_y + box_height * 0.5f) / image_h;
+                box[0] = (center_x - box_width * 0.5f) / image_w;
+                box[1] = (center_y - box_height * 0.5f) / image_h;
+                box[2] = (center_x + box_width * 0.5f) / image_w;
+                box[3] = (center_y + box_height * 0.5f) / image_h;
                 box += 4;
 
                 // default：len(max_size)=len(min_size)
@@ -122,24 +122,24 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
                     int max_size_ = param->max_size[s];
                     // second prior: aspect_ratio = 1, size = sqrt(min_size * max_size)
                     box_width = box_height = sqrt(min_size_ * max_size_);
-                    box[0]                 = (center_x - box_width * 0.5f) / image_w;
-                    box[1]                 = (center_y - box_height * 0.5f) / image_h;
-                    box[2]                 = (center_x + box_width * 0.5f) / image_w;
-                    box[3]                 = (center_y + box_height * 0.5f) / image_h;
+                    box[0] = (center_x - box_width * 0.5f) / image_w;
+                    box[1] = (center_y - box_height * 0.5f) / image_h;
+                    box[2] = (center_x + box_width * 0.5f) / image_w;
+                    box[3] = (center_y + box_height * 0.5f) / image_h;
                     box += 4;
                 }
 
                 // rest of priors
-                for (int r = 0; r < (int)param->aspect_ratio_size; ++r)
+                for (int r = 0; r < ( int )param->aspect_ratio_size; ++r)
                 {
-                    float ar   = param->aspect_ratio[r];
+                    float ar = param->aspect_ratio[r];
 
-                    box_width  = min_size_ * sqrt(ar);
+                    box_width = min_size_ * sqrt(ar);
                     box_height = min_size_ / sqrt(ar);
-                    box[0]     = (center_x - box_width * 0.5f) / image_w;
-                    box[1]     = (center_y - box_height * 0.5f) / image_h;
-                    box[2]     = (center_x + box_width * 0.5f) / image_w;
-                    box[3]     = (center_y + box_height * 0.5f) / image_h;
+                    box[0] = (center_x - box_width * 0.5f) / image_w;
+                    box[1] = (center_y - box_height * 0.5f) / image_h;
+                    box[2] = (center_x + box_width * 0.5f) / image_w;
+                    box[3] = (center_y + box_height * 0.5f) / image_h;
                     box += 4;
                     if (param->flip)
                     {
@@ -164,7 +164,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     }
     // set the variance.
     float* output_ptr = output_fp32 + dim;
-    int    size       = dim / 4;
+    int size = dim / 4;
     for (int i = 0; i < size; i++)
     {
         output_ptr[0] = param->variance[0];
@@ -179,7 +179,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     {
         uint8_t* output_org = output_tensor->data;
 
-        for (int i = 0; i < output_tensor->elem_num; i++)
+        for (int i=0; i<output_tensor->elem_num; i++)
         {
             int udata = (int)(output_fp32[i] / output_tensor->scale + output_tensor->zero_point);
             if (udata > 255)
@@ -197,7 +197,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     {
         int8_t* output_org = output_tensor->data;
 
-        for (int i = 0; i < output_tensor->elem_num; i++)
+        for (int i=0; i<output_tensor->elem_num; i++)
         {
             int data_i32 = round(output_fp32[i] / output_tensor->scale);
             if (data_i32 > 127)
@@ -218,13 +218,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_BEST;
 }
 
-static struct node_ops priorbox_node_ops = { .prerun       = NULL,
-                                             .run          = run,
-                                             .reshape      = NULL,
-                                             .postrun      = NULL,
-                                             .init_node    = init_node,
-                                             .release_node = release_node,
-                                             .score        = score };
+static struct node_ops priorbox_node_ops = {.prerun = NULL,
+                                            .run = run,
+                                            .reshape = NULL,
+                                            .postrun = NULL,
+                                            .init_node = init_node,
+                                            .release_node = release_node,
+                                            .score = score};
 
 int register_priorbox_ref_op()
 {

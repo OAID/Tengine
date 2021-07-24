@@ -34,11 +34,11 @@
 
 static int infer_shape(struct node* node)
 {
-    struct graph*     graph     = node->graph;
-    struct tensor*    input     = get_ir_graph_tensor(graph, node->input_tensors[0]);
-    struct tensor*    output    = get_ir_graph_tensor(graph, node->output_tensors[0]);
-    struct rnn_param* rnn_param = (struct rnn_param*)(node->op.param_mem);
-    int               dims[3];
+    struct graph* graph = node->graph;
+    struct tensor* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
+    struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
+    struct rnn_param* rnn_param = ( struct rnn_param* )(node->op.param_mem);
+    int dims[3];
 
     // input tensors:
     // 0 --- input: [seq_length, batch_size,input_size]
@@ -48,9 +48,9 @@ static int infer_shape(struct node* node)
     // output tensor: [output_len,batch_size,hidden_size]
     int batch_size = input->dims[1];
 
-    dims[0]        = rnn_param->output_len;
-    dims[1]        = batch_size;
-    dims[2]        = rnn_param->hidden_size;
+    dims[0] = rnn_param->output_len;
+    dims[1] = batch_size;
+    dims[2] = rnn_param->hidden_size;
 
     set_ir_tensor_shape(output, dims, 3);
 
@@ -60,7 +60,7 @@ static int infer_shape(struct node* node)
 
 static int init_op(struct op* op)
 {
-    struct rnn_param* rnn_param = (struct rnn_param*)sys_malloc(sizeof(struct rnn_param));
+    struct rnn_param* rnn_param = ( struct rnn_param* )sys_malloc(sizeof(struct rnn_param));
 
     if (rnn_param == NULL)
     {
@@ -69,10 +69,10 @@ static int init_op(struct op* op)
     rnn_param->inithiddenname = "init_h";
     rnn_param->inithiddenname = "bias";
 
-    op->param_mem             = rnn_param;
-    op->param_size            = sizeof(struct rnn_param);
-    op->same_shape            = 0;
-    op->infer_shape           = infer_shape;
+    op->param_mem = rnn_param;
+    op->param_size = sizeof(struct rnn_param);
+    op->same_shape = 0;
+    op->infer_shape = infer_shape;
 
     return 0;
 }
@@ -89,7 +89,7 @@ int register_rnn_op()
     struct method m;
 
     m.version = 1;
-    m.init    = init_op;
+    m.init = init_op;
     m.release = release_op;
 
     return register_op(OP_RNN, OP_RNN_NAME, &m);

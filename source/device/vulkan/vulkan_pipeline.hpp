@@ -46,28 +46,27 @@
 #include "vulkan_platform.hpp"
 #include "vulkan_option.hpp"
 
-namespace TEngine
-{
+namespace TEngine {
+
 class Option;
-class Pipeline {
+class Pipeline
+{
 public:
     Pipeline(const GPUDevice* vkdev);
     virtual ~Pipeline();
 
 public:
     void set_optimal_local_size_xyz(int w = 4, int h = 4, int c = 4);
-
+    
     void set_optimal_local_size_xyz(const VkTensor& local_size_xyz);
     void set_optimal_local_size_xyz(const Tensor& local_size_xyz);
     void set_local_size_xyz(int w, int h, int c);
 
-    int create(const uint32_t* spv_data, size_t spv_data_size,
-               const std::vector<vk_specialization_type>& specializations);
+    int create(const uint32_t* spv_data, size_t spv_data_size, const std::vector<vk_specialization_type>& specializations);
 
     int create(int shader_type_index, const Option& opt, const std::vector<vk_specialization_type>& specializations);
 
-    int create(VkShaderModule shader_module, const ShaderInfo& si,
-               const std::vector<vk_specialization_type>& specializations);
+    int create(VkShaderModule shader_module, const ShaderInfo& si, const std::vector<vk_specialization_type>& specializations);
 
     void destroy();
 
@@ -84,7 +83,7 @@ public:
     VkShaderModule local_shader_module;
 
     VkDescriptorSetLayout descriptorset_layout;
-    VkPipelineLayout      pipeline_layout;
+    VkPipelineLayout pipeline_layout;
 
     // op forward TODO use pipeline cache ?
     VkPipeline pipeline;
@@ -100,15 +99,14 @@ public:
 
 #if __ANDROID_API__ >= 26
 class VkCompute;
-class ImportAndroidHardwareBufferPipeline : private Pipeline {
+class ImportAndroidHardwareBufferPipeline : private Pipeline
+{
 public:
     ImportAndroidHardwareBufferPipeline(const GPUDevice* vkdev);
     ~ImportAndroidHardwareBufferPipeline();
 
-    int  create(VkAndroidHardwareBufferImageAllocator* ahb_im_allocator, int type_to, int rotate_from,
-                const Option& opt);
-    int  create(VkAndroidHardwareBufferImageAllocator* ahb_im_allocator, int type_to, int rotate_from, int target_width,
-                int target_height, const Option& opt);
+    int create(VkAndroidHardwareBufferImageAllocator* ahb_im_allocator, int type_to, int rotate_from, const Option& opt);
+    int create(VkAndroidHardwareBufferImageAllocator* ahb_im_allocator, int type_to, int rotate_from, int target_width, int target_height, const Option& opt);
     void destroy();
 
     friend class VkCompute;
@@ -119,14 +117,14 @@ protected:
     int create_descriptor_update_template();
 
 public:
-    int  type_to;
-    int  rotate_from;
+    int type_to;
+    int rotate_from;
     bool need_resize;
 
     VkSampler sampler;
 };
-#endif    // __ANDROID_API__ >= 26
+#endif // __ANDROID_API__ >= 26
 
-}    // namespace TEngine
+} // namespace TEngine
 
-#endif    // VULKAN_PIPELINE_HPP
+#endif // VULKAN_PIPELINE_HPP

@@ -42,11 +42,13 @@
 #include "tengine_operations.h"
 
 // tengine output tensor names
-const char* cls_pred_name[] = { "cls_pred_stride_8", "cls_pred_stride_16", "cls_pred_stride_32" };
-const char* dis_pred_name[] = {
+const char *cls_pred_name[] = {
+    "cls_pred_stride_8", "cls_pred_stride_16", "cls_pred_stride_32"
+};
+const char *dis_pred_name[] = {
 #ifdef TRY_POST_SOFTMAX
     "dis_pred_stride_8", "dis_pred_stride_16", "dis_pred_stride_32"
-#else  /* !TRY_POST_SOFTMAX */
+#else /* !TRY_POST_SOFTMAX */
     "dis_sm_stride_8", "dis_sm_stride_16", "dis_sm_stride_32"
 #endif /* TRY_POST_SOFTMAX */
 };
@@ -54,35 +56,30 @@ const char* dis_pred_name[] = {
 struct Object
 {
     cv::Rect_<float> rect;
-    int              label;
-    float            prob;
+    int label;
+    float prob;
 };
 
-static __inline float fast_exp(float x)
-{
-    union
-    {
+static __inline float fast_exp(float x) {
+    union {
         uint32_t i;
-        float    f;
-    } v {};
+        float f;
+    } v{};
     v.i = (1 << 23) * (1.4426950409 * x + 126.93490512f);
     return v.f;
 }
 
-template <typename _Tp>
-static int softmax(const _Tp* src, _Tp* dst, int length)
-{
+template<typename _Tp>
+static int softmax(const _Tp* src, _Tp* dst, int length) {
     const _Tp max_value = *std::max_element(src, src + length);
-    _Tp       denominator { 0 };
-
-    for (int i = 0; i < length; ++i)
-    {
-        dst[i] = std::exp /*fast_exp*/ (src[i] - max_value);
+    _Tp denominator{ 0 };
+ 
+    for (int i = 0; i < length; ++i) {
+        dst[i] = std::exp/*fast_exp*/(src[i] - max_value);
         denominator += dst[i];
     }
-
-    for (int i = 0; i < length; ++i)
-    {
+ 
+    for (int i = 0; i < length; ++i) {
         dst[i] /= denominator;
     }
 
@@ -97,8 +94,8 @@ static inline float intersection_area(const Object& a, const Object& b)
 
 static void qsort_descent_inplace(std::vector<Object>& faceobjects, int left, int right)
 {
-    int   i = left;
-    int   j = right;
+    int i = left;
+    int j = right;
     float p = faceobjects[(left + right) / 2].prob;
 
     while (i <= j)
@@ -123,13 +120,11 @@ static void qsort_descent_inplace(std::vector<Object>& faceobjects, int left, in
     {
 #pragma omp section
         {
-            if (left < j)
-                qsort_descent_inplace(faceobjects, left, j);
+            if (left < j) qsort_descent_inplace(faceobjects, left, j);
         }
 #pragma omp section
         {
-            if (i < right)
-                qsort_descent_inplace(faceobjects, i, right);
+            if (i < right) qsort_descent_inplace(faceobjects, i, right);
         }
     }
 }
@@ -158,7 +153,7 @@ static void nms_sorted_bboxes(const std::vector<Object>& faceobjects, std::vecto
     {
         const Object& a = faceobjects[i];
 
-        int keep        = 1;
+        int keep = 1;
         for (int j = 0; j < (int)picked.size(); j++)
         {
             const Object& b = faceobjects[picked[j]];
@@ -183,55 +178,47 @@ static void nms_sorted_bboxes(const std::vector<Object>& faceobjects, std::vecto
 // @param:  in_pad[in]   as letter box's shape
 // @param:  prob_threshold[in]
 // @param:  objects[out] output detected objects
-static void generate_proposals(const float* cls_pred, const float* dis_pred, int stride, const image& in_pad,
-                               float prob_threshold, std::vector<Object>& objects)
-{
+static void generate_proposals(const float *cls_pred, const float *dis_pred, int stride,
+    const image &in_pad, float prob_threshold, std::vector<Object>& objects) {
     const int num_grid_x = in_pad.w / stride;
     const int num_grid_y = in_pad.h / stride;
     // Note: Here, we hard coded some model parameters for simplicity.
     // Call api "get_tensor_shape" to get more model information if necessary.
-    const int num_class = 80;    // coco dataset
+    const int num_class = 80; // coco dataset
     // Discrete distribution parameter, see the following resources for more details:
     // [nanodet-m.yml](https://github.com/RangiLyu/nanodet/blob/main/config/nanodet-m.yml)
     // [GFL](https://arxiv.org/pdf/2006.04388.pdf)
-    const int reg_max_1 = 8;    // 32 / 4;
+    const int reg_max_1 = 8;  // 32 / 4;
 
-    for (int i = 0; i < num_grid_y; i++)
-    {
-        for (int j = 0; j < num_grid_x; j++)
-        {
-            const int idx       = i * num_grid_x + j;
+    for (int i = 0; i < num_grid_y; i++) {
+        for (int j = 0; j < num_grid_x; j++) {
+            const int idx = i * num_grid_x + j;
 
-            const float* scores = cls_pred + idx * num_class;
+            const float *scores = cls_pred + idx * num_class;
 
             // find label with max score
-            int   label = -1;
+            int label = -1;
             float score = -FLT_MAX;
-            for (int k = 0; k < num_class; k++)
-            {
-                if (scores[k] > score)
-                {
+            for (int k = 0; k < num_class; k++) {
+                if (scores[k] > score) {
                     label = k;
                     score = scores[k];
                 }
             }
 
-            if (score >= prob_threshold)
-            {
+            if (score >= prob_threshold) {
                 float pred_ltrb[4];
-                for (int k = 0; k < 4; k++)
-                {
+                for (int k = 0; k < 4; k++) {
                     float dis = 0.f;
                     // predicted distance distribution after softmax
 #ifdef TRY_POST_SOFTMAX
                     float dis_after_sm[8] = { 0. };
                     softmax(dis_pred + idx * reg_max_1 * 4 + k * reg_max_1, dis_after_sm, 8);
-#else  /* !TRY_POST_SOFTMAX */
-                    const float* dis_after_sm = dis_pred + idx * reg_max_1 * 4 + k * reg_max_1;
+#else /* !TRY_POST_SOFTMAX */
+                    const float *dis_after_sm = dis_pred + idx * reg_max_1 * 4 + k * reg_max_1;
 #endif /* TRY_POST_SOFTMAX */
                     // integral on predicted discrete distribution
-                    for (int l = 0; l < reg_max_1; l++)
-                    {
+                    for (int l = 0; l < reg_max_1; l++) {
                         dis += l * dis_after_sm[l];
                         //printf("%2.6f ", dis_after_sm[l]);
                     }
@@ -244,18 +231,18 @@ static void generate_proposals(const float* cls_pred, const float* dis_pred, int
                 float pb_cx = (j + 0.5f) * stride;
                 float pb_cy = (i + 0.5f) * stride;
 
-                float x0    = pb_cx - pred_ltrb[0];    // left
-                float y0    = pb_cy - pred_ltrb[1];    // top
-                float x1    = pb_cx + pred_ltrb[2];    // right
-                float y1    = pb_cy + pred_ltrb[3];    // bottom
+                float x0 = pb_cx - pred_ltrb[0]; // left
+                float y0 = pb_cy - pred_ltrb[1]; // top
+                float x1 = pb_cx + pred_ltrb[2]; // right
+                float y1 = pb_cy + pred_ltrb[3]; // bottom
 
                 Object obj;
-                obj.rect.x      = x0;
-                obj.rect.y      = y0;
-                obj.rect.width  = x1 - x0;
+                obj.rect.x = x0;
+                obj.rect.y = y0;
+                obj.rect.width = x1 - x0;
                 obj.rect.height = y1 - y0;
-                obj.label       = label;
-                obj.prob        = score;
+                obj.label = label;
+                obj.prob = score;
 
                 objects.push_back(obj);
             }
@@ -263,55 +250,40 @@ static void generate_proposals(const float* cls_pred, const float* dis_pred, int
     }
 }
 
-static void draw_objects(const cv::Mat& bgr, const std::vector<Object>& objects, const char* path)
+static void draw_objects(const cv::Mat& bgr, const std::vector<Object>& objects, const char *path)
 {
-    static const char* class_names[] = { "person",        "bicycle",      "car",
-                                         "motorcycle",    "airplane",     "bus",
-                                         "train",         "truck",        "boat",
-                                         "traffic light", "fire hydrant", "stop sign",
-                                         "parking meter", "bench",        "bird",
-                                         "cat",           "dog",          "horse",
-                                         "sheep",         "cow",          "elephant",
-                                         "bear",          "zebra",        "giraffe",
-                                         "backpack",      "umbrella",     "handbag",
-                                         "tie",           "suitcase",     "frisbee",
-                                         "skis",          "snowboard",    "sports ball",
-                                         "kite",          "baseball bat", "baseball glove",
-                                         "skateboard",    "surfboard",    "tennis racket",
-                                         "bottle",        "wine glass",   "cup",
-                                         "fork",          "knife",        "spoon",
-                                         "bowl",          "banana",       "apple",
-                                         "sandwich",      "orange",       "broccoli",
-                                         "carrot",        "hot dog",      "pizza",
-                                         "donut",         "cake",         "chair",
-                                         "couch",         "potted plant", "bed",
-                                         "dining table",  "toilet",       "tv",
-                                         "laptop",        "mouse",        "remote",
-                                         "keyboard",      "cell phone",   "microwave",
-                                         "oven",          "toaster",      "sink",
-                                         "refrigerator",  "book",         "clock",
-                                         "vase",          "scissors",     "teddy bear",
-                                         "hair drier",    "toothbrush" };
+    static const char* class_names[] = {
+            "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light",
+            "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat", "dog", "horse", "sheep", "cow",
+            "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee",
+            "skis", "snowboard", "sports ball", "kite", "baseball bat", "baseball glove", "skateboard", "surfboard",
+            "tennis racket", "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl", "banana", "apple",
+            "sandwich", "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake", "chair", "couch",
+            "potted plant", "bed", "dining table", "toilet", "tv", "laptop", "mouse", "remote", "keyboard", "cell phone",
+            "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors", "teddy bear",
+            "hair drier", "toothbrush"
+    };
 
-    cv::Mat image                    = bgr.clone();
+    cv::Mat image = bgr.clone();
 
     for (size_t i = 0; i < objects.size(); i++)
     {
         const Object& obj = objects[i];
 
-        fprintf(stderr, "%2d: %3.3f%%, [%7.3f, %7.3f, %7.3f, %7.3f], %s\n", obj.label, obj.prob * 100, obj.rect.x,
-                obj.rect.y, obj.rect.x + obj.rect.width, obj.rect.y + obj.rect.height, class_names[obj.label]);
+        fprintf(stderr, "%2d: %3.3f%%, [%7.3f, %7.3f, %7.3f, %7.3f], %s\n",
+            obj.label, obj.prob * 100, obj.rect.x, obj.rect.y,
+            obj.rect.x + obj.rect.width, obj.rect.y + obj.rect.height, class_names[obj.label]);
 
         cv::rectangle(image, obj.rect, cv::Scalar(255, 0, 0));
 
         char text[256];
         sprintf(text, "%s %.1f%%", class_names[obj.label], obj.prob * 100);
 
-        int      baseLine   = 0;
+        int baseLine = 0;
         cv::Size label_size = cv::getTextSize(text, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
 
-        int x               = obj.rect.x;
-        int y               = obj.rect.y - label_size.height - baseLine;
+        int x = obj.rect.x;
+        int y = obj.rect.y - label_size.height - baseLine;
         if (y < 0)
             y = 0;
         if (x + label_size.width > image.cols)
@@ -320,8 +292,8 @@ static void draw_objects(const cv::Mat& bgr, const std::vector<Object>& objects,
         cv::rectangle(image, cv::Rect(cv::Point(x, y), cv::Size(label_size.width, label_size.height + baseLine)),
                       cv::Scalar(255, 255, 255), -1);
 
-        cv::putText(image, text, cv::Point(x, y + label_size.height), cv::FONT_HERSHEY_SIMPLEX, 0.5,
-                    cv::Scalar(0, 0, 0));
+        cv::putText(image, text, cv::Point(x, y + label_size.height),
+                    cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 0));
     }
 
     //cv::imshow("image", image);
@@ -330,30 +302,24 @@ static void draw_objects(const cv::Mat& bgr, const std::vector<Object>& objects,
 }
 
 // @brief:  get input data and resize to model input shape directly
-static int get_input_data(const char* path, const float* mean, const float* norm, image& lb)
-{
+static int get_input_data(const char *path, const float *mean, const float *norm, image &lb) {
     // load input image
     cv::Mat img = cv::imread(path, 1);
-    if (img.empty())
-    {
+    if (img.empty()) {
         fprintf(stderr, "cv::imread %s failed\n", path);
         return -1;
     }
 
-    if (img.cols != lb.w || img.rows != lb.h)
-        cv::resize(img, img, cv::Size(lb.w, lb.h));
+    if (img.cols != lb.w || img.rows != lb.h) cv::resize(img, img, cv::Size(lb.w, lb.h));
     img.convertTo(img, CV_32FC3);
 
     /* nhwc to nchw */
-    float* _data = (float*)img.data;
-    for (int h = 0; h < lb.h; h++)
-    {
-        for (int w = 0; w < lb.w; w++)
-        {
-            for (int c = 0; c < 3; c++)
-            {
-                int in_index       = h * lb.w * 3 + w * 3 + c;
-                int out_index      = c * lb.h * lb.w + h * lb.w + w;
+    float *_data = (float *)img.data;
+    for (int h = 0; h < lb.h; h++) {
+        for (int w = 0; w < lb.w; w++) {
+            for (int c = 0; c < 3; c++) {
+                int in_index  = h * lb.w * 3 + w * 3 + c;
+                int out_index = c * lb.h * lb.w + h * lb.w + w;
                 lb.data[out_index] = (_data[in_index] - mean[c]) * norm[c];
             }
         }
@@ -365,12 +331,10 @@ static int get_input_data(const char* path, const float* mean, const float* norm
 // @param:  lb[in/out]  letter box image inst
 // @param:  pad[out]    top and left pad size
 // @return: resize scale from origin image to letter box
-static float get_input_data(const char* path, const float* mean, const float* norm, image& lb, image& pad)
-{
+static float get_input_data(const char *path, const float *mean, const float *norm, image &lb, image &pad) {
     // load input image
     cv::Mat img = cv::imread(path, 1);
-    if (img.empty())
-    {
+    if (img.empty()) {
         fprintf(stderr, "cv::imread %s failed\n", path);
         return -1.;
     }
@@ -378,34 +342,29 @@ static float get_input_data(const char* path, const float* mean, const float* no
     /* letterbox process to support different letterbox size */
     float lb_scale_w = lb.w * 1. / img.cols, lb_scale_h = lb.h * 1. / img.rows;
     float lb_scale = lb_scale_w < lb_scale_h ? lb_scale_w : lb_scale_h;
-    int   w        = lb_scale * img.cols;
-    int   h        = lb_scale * img.rows;
+    int w = lb_scale * img.cols;
+    int h = lb_scale * img.rows;
 
-    if (w != lb.w || h != lb.h)
-        cv::resize(img, img, cv::Size(w, h));
+    if (w != lb.w || h != lb.h) cv::resize(img, img, cv::Size(w, h));
     img.convertTo(img, CV_32FC3);
 
     // Pad to letter box rectangle
-    pad.w = lb.w - w;    //(w + 31) / 32 * 32 - w;
-    pad.h = lb.h - h;    //(h + 31) / 32 * 32 - h;
+    pad.w = lb.w - w; //(w + 31) / 32 * 32 - w;
+    pad.h = lb.h - h; //(h + 31) / 32 * 32 - h;
     // Generate a gray image using opencv
-    cv::Mat img_pad(lb.w, lb.h, CV_32FC3,    //cv::Scalar(0));
-                    cv::Scalar(0.5 / norm[0] + mean[0], 0.5 / norm[1] + mean[1], 0.5 / norm[2] + mean[2]));
+    cv::Mat img_pad(lb.w, lb.h, CV_32FC3, //cv::Scalar(0));
+        cv::Scalar(0.5/norm[0] + mean[0], 0.5/norm[1] + mean[1], 0.5/norm[2] + mean[2]));
     // Letterbox filling
-    cv::copyMakeBorder(img, img_pad, pad.h / 2, pad.h - pad.h / 2, pad.w / 2, pad.w - pad.w / 2, cv::BORDER_CONSTANT,
-                       cv::Scalar(0, 0, 0));
+    cv::copyMakeBorder(img, img_pad, pad.h/2, pad.h - pad.h/2, pad.w/2, pad.w - pad.w/2, cv::BORDER_CONSTANT, cv::Scalar(0, 0, 0));
 
     img_pad.convertTo(img_pad, CV_32FC3);
-    float* _data = (float*)img_pad.data;
+    float *_data = (float *)img_pad.data;
     /* nhwc to nchw */
-    for (int h = 0; h < lb.h; h++)
-    {
-        for (int w = 0; w < lb.w; w++)
-        {
-            for (int c = 0; c < 3; c++)
-            {
-                int in_index       = h * lb.w * 3 + w * 3 + c;
-                int out_index      = c * lb.h * lb.w + h * lb.w + w;
+    for (int h = 0; h < lb.h; h++) {
+        for (int w = 0; w < lb.w; w++) {
+            for (int c = 0; c < 3; c++) {
+                int in_index  = h * lb.w * 3 + w * 3 + c;
+                int out_index = c * lb.h * lb.w + h * lb.w + w;
                 lb.data[out_index] = (_data[in_index] - mean[c]) * norm[c];
             }
         }
@@ -414,77 +373,70 @@ static float get_input_data(const char* path, const float* mean, const float* no
     return lb_scale;
 }
 
-static void show_usage()
-{
+static void show_usage() {
     fprintf(stderr, "[Usage]: [-h]\n");
     fprintf(stderr, "   [-m model_file] [-i image_file] [-r repeat_count] [-t thread_count] [-o output_file]\n");
 }
 
-int main(int argc, char* argv[])
-{
-    const char* model_file     = nullptr;
-    const char* image_file     = nullptr;
-    const char* output_file    = "nanodet_m_out.jpg";
+int main(int argc, char* argv[]) {
+    const char* model_file = nullptr;
+    const char* image_file = nullptr;
+    const char* output_file = "nanodet_m_out.jpg";
 
-    const float mean[3]        = { 103.53f, 116.28f, 123.675f };    // bgr
-    const float norm[3]        = { 0.017429f, 0.017507f, 0.017125f };
+    const float mean[3] = { 103.53f, 116.28f, 123.675f }; // bgr
+    const float norm[3] = { 0.017429f, 0.017507f, 0.017125f };
 
-    int repeat_count           = 1;
-    int num_thread             = 1;
+    int repeat_count = 1;
+    int num_thread = 1;
 
     const float prob_threshold = 0.4f;
-    const float nms_threshold  = 0.5f;
+    const float nms_threshold = 0.5f;
 
     int res;
-    while ((res = getopt(argc, argv, "m:i:o:r:t:h:")) != -1)
-    {
-        switch (res)
-        {
-        case 'm':
-            model_file = optarg;
-            break;
-        case 'i':
-            image_file = optarg;
-            break;
-        case 'o':
-            output_file = optarg;
-            break;
-        case 'r':
-            repeat_count = std::strtoul(optarg, nullptr, 10);
-            break;
-        case 't':
-            num_thread = std::strtoul(optarg, nullptr, 10);
-            break;
-        case 'h':
-            show_usage();
-            return 0;
-        default:
-            break;
+    while ((res = getopt(argc, argv, "m:i:o:r:t:h:")) != -1) {
+        switch (res) {
+            case 'm':
+                model_file = optarg;
+                break;
+            case 'i':
+                image_file = optarg;
+                break;
+            case 'o':
+                output_file = optarg;
+                break;
+            case 'r':
+                repeat_count = std::strtoul(optarg, nullptr, 10);
+                break;
+            case 't':
+                num_thread = std::strtoul(optarg, nullptr, 10);
+                break;
+            case 'h':
+                show_usage();
+                return 0;
+            default:
+                break;
         }
     }
 
     /* check files */
-    if (nullptr == model_file || nullptr == image_file)
-    {
+    if (nullptr == model_file || nullptr == image_file) {
         fprintf(stderr, "Error: Tengine model file not specified!\n");
         show_usage();
         return -1;
     }
-    if (!check_file_exist(model_file) || !check_file_exist(image_file))
-    {
+    if (!check_file_exist(model_file) || !check_file_exist(image_file)) {
         return -1;
     }
 
     /* set runtime options */
     struct options opt;
     opt.num_thread = num_thread;
-    opt.cluster    = TENGINE_CLUSTER_ALL;
-    opt.precision  = TENGINE_MODE_FP32;
-    opt.affinity   = 0;
+    opt.cluster = TENGINE_CLUSTER_ALL;
+    opt.precision = TENGINE_MODE_FP32;
+    opt.affinity = 0;
 
     /* inital tengine */
-    if (0 != init_tengine())
-    {
+    if (0 != init_tengine()) {
         fprintf(stderr, "Initial tengine failed.\n");
         return -1;
     }
@@ -492,62 +444,55 @@ int main(int argc, char* argv[])
 
     /* create graph, load tengine model xxx.tmfile */
     graph_t graph = create_graph(nullptr, "tengine", model_file);
-    if (nullptr == graph)
-    {
+    if (nullptr == graph) {
         fprintf(stderr, "Create graph failed.\n");
         return -1;
     }
 
     /* get input tensor of graph */
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
-    if (nullptr == input_tensor)
-    {
+    if (nullptr == input_tensor) {
         fprintf(stderr, "Get input tensor failed\n");
         return -1;
     }
 
     /* get shape of input tensor */
-    int i, dims[4];    // nchw
+    int i, dims[4]; // nchw
     int dim_num = get_tensor_shape(input_tensor, dims, 4);
-    if (4 != dim_num)
-    {
+    if (4 != dim_num) {
         fprintf(stderr, "Get input tensor shape error\n");
         return -1;
     }
 
-    image lb       = make_image(dims[3], dims[2], dims[1]);
-    int   img_size = lb.w * lb.h * lb.c;
+    image lb = make_image(dims[3], dims[2], dims[1]);
+    int img_size = lb.w * lb.h * lb.c;
 
 #ifdef TRY_LETTER_BOX
-    image pad      = make_empty_image(lb.w, lb.h, lb.c);
+    image pad = make_empty_image(lb.w, lb.h, lb.c);
     float lb_scale = get_input_data(image_file, mean, norm, lb, pad);
-#else  /* !TRY_LETTER_BOX */
+#else /* !TRY_LETTER_BOX */
     get_input_data(image_file, mean, norm, lb);
 #endif /* TRY_LETTER_BOX */
 
     /* set the data mem to input tensor */
-    if (set_tensor_buffer(input_tensor, lb.data, img_size * sizeof(float)) < 0)
-    {
+    if (set_tensor_buffer(input_tensor, lb.data, img_size * sizeof(float)) < 0) {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;
     }
 
     /* prerun graph to infer shape, and set work options(num_thread, cluster, precision) */
-    if (prerun_graph_multithread(graph, opt) < 0)
-    {
+    if (prerun_graph_multithread(graph, opt) < 0) {
         fprintf(stderr, "Prerun multithread graph failed.\n");
         return -1;
     }
 
     /* run graph */
-    double min_time   = DBL_MAX;
-    double max_time   = DBL_MIN;
+    double min_time = DBL_MAX;
+    double max_time = DBL_MIN;
     double total_time = 0.;
-    for (int i = 0; i < repeat_count; i++)
-    {
+    for (int i = 0; i < repeat_count; i++) {
         double start = get_current_time();
-        if (run_graph(graph, 1) < 0)
-        {
+        if (run_graph(graph, 1) < 0) {
             fprintf(stderr, "Run graph failed\n");
             return -1;
         }
@@ -557,24 +502,23 @@ int main(int argc, char* argv[])
         min_time = std::min(min_time, cur);
         max_time = std::max(max_time, cur);
     }
-    fprintf(stderr, "Repeat %d times, thread %d, avg time %.2f ms, max_time %.2f ms, min_time %.2f ms\n", repeat_count,
-            num_thread, total_time / repeat_count, max_time, min_time);
+    fprintf(stderr, "Repeat %d times, thread %d, avg time %.2f ms, max_time %.2f ms, min_time %.2f ms\n", repeat_count, num_thread,
+            total_time/repeat_count, max_time, min_time);
     fprintf(stderr, "--------------------------------------\n");
 
     /* nanodet_m postprocess */
     std::vector<Object> proposals, objects;
-    for (int stride_index = 0; stride_index < 3; stride_index++)
-    {
+    for (int stride_index = 0; stride_index < 3; stride_index++) {
         tensor_t cls_tensor = get_graph_tensor(graph, cls_pred_name[stride_index]);
         tensor_t dis_tensor = get_graph_tensor(graph, dis_pred_name[stride_index]);
-        if (NULL == cls_tensor || NULL == dis_tensor)
-        {
+        if (NULL == cls_tensor || NULL ==dis_tensor) {
             fprintf(stderr, "get graph tensor failed\n");
             return -1;
         }
-        const float* cls_pred = (const float*)get_tensor_buffer(cls_tensor);
-        const float* dis_pred = (const float*)get_tensor_buffer(dis_tensor);
-        generate_proposals(cls_pred, dis_pred, 1 << (stride_index + 3), lb, prob_threshold, objects);
+        const float *cls_pred = (const float *)get_tensor_buffer(cls_tensor);
+        const float *dis_pred = (const float *)get_tensor_buffer(dis_tensor);
+        generate_proposals(cls_pred, dis_pred, 1 << (stride_index + 3),
+            lb, prob_threshold, objects);
         proposals.insert(proposals.end(), objects.begin(), objects.end());
     }
 
@@ -585,13 +529,12 @@ int main(int argc, char* argv[])
     std::vector<int> picked;
     nms_sorted_bboxes(proposals, picked, nms_threshold);
 
-    cv::Mat img   = cv::imread(image_file);
-    int     count = picked.size();
-    fprintf(stderr, "detection num: %d\n", count);
+    cv::Mat img = cv::imread(image_file);
+    int count = picked.size();
+    fprintf(stderr, "detection num: %d\n",count);
 
     objects.resize(count);
-    for (int i = 0; i < count; i++)
-    {
+    for (int i = 0; i < count; i++) {
         objects[i] = proposals[picked[i]];
 
 #ifdef TRY_LETTER_BOX
@@ -600,7 +543,7 @@ int main(int argc, char* argv[])
         float y0 = (objects[i].rect.y - (pad.h / 2)) / lb_scale;
         float x1 = (objects[i].rect.x + objects[i].rect.width - (pad.w / 2)) / lb_scale;
         float y1 = (objects[i].rect.y + objects[i].rect.height - (pad.h / 2)) / lb_scale;
-#else  /* !TRY_LETTER_BOX */
+#else /* !TRY_LETTER_BOX */
         // adjust offset to original unresized
         static float lb_scale_w = 1. * lb.w / img.cols;
         static float lb_scale_h = 1. * lb.h / img.rows;
@@ -611,14 +554,14 @@ int main(int argc, char* argv[])
 #endif /* TRY_LETTER_BOX */
 
         // clip
-        x0                     = std::max(std::min(x0, (float)(img.cols - 1)), 0.f);
-        y0                     = std::max(std::min(y0, (float)(img.rows - 1)), 0.f);
-        x1                     = std::max(std::min(x1, (float)(img.cols - 1)), 0.f);
-        y1                     = std::max(std::min(y1, (float)(img.rows - 1)), 0.f);
+        x0 = std::max(std::min(x0, (float)(img.cols - 1)), 0.f);
+        y0 = std::max(std::min(y0, (float)(img.rows - 1)), 0.f);
+        x1 = std::max(std::min(x1, (float)(img.cols - 1)), 0.f);
+        y1 = std::max(std::min(y1, (float)(img.rows - 1)), 0.f);
 
-        objects[i].rect.x      = x0;
-        objects[i].rect.y      = y0;
-        objects[i].rect.width  = x1 - x0;
+        objects[i].rect.x = x0;
+        objects[i].rect.y = y0;
+        objects[i].rect.width = x1 - x0;
         objects[i].rect.height = y1 - y0;
     }
 
@@ -630,3 +573,4 @@ int main(int argc, char* argv[])
     release_tengine();
     return 0;
 }
+

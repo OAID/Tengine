@@ -36,13 +36,13 @@ static int infer_shape(struct node* node)
 {
     struct reduction_param* reduction_param = (struct reduction_param*)node->op.param_mem;
 
-    struct graph*  ir_graph                 = node->graph;
-    struct tensor* input                    = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
-    struct tensor* output                   = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
+    struct graph* ir_graph = node->graph;
+    struct tensor* input = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
+    struct tensor* output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
 
-    int kd                                  = reduction_param->keepdim;
+    int kd = reduction_param->keepdim;
 
-    int* in_dim                             = (int*)sys_malloc(input->dim_num * sizeof(int));
+    int* in_dim = ( int* )sys_malloc(input->dim_num * sizeof(int));
 
     for (int i = 0; i < input->dim_num; i++)
     {
@@ -70,8 +70,8 @@ static int infer_shape(struct node* node)
         // new_shape[count]=reduction_param->dim_3;
         count++;
     }
-    int* new_shape = (int*)sys_malloc(count * sizeof(int));
-    int  size      = 0;
+    int* new_shape = ( int* )sys_malloc(count * sizeof(int));
+    int size = 0;
     if (reduction_param->dim_0 != -2)
     {
         new_shape[size] = reduction_param->dim_0;
@@ -95,9 +95,9 @@ static int infer_shape(struct node* node)
 
     int8_t should_reduced[4] = { 0, 0, 0, 0 };
 
-    int reduceddim           = 0;
-    int real_shape[4]        = { 0, 1, 2, 3 };
-    int newshape_size        = size;
+    int reduceddim = 0;
+    int real_shape[4] = {0, 1, 2, 3};
+    int newshape_size = size;
 
     if (newshape_size)
     {
@@ -138,13 +138,13 @@ static int infer_shape(struct node* node)
     {
         if (kd == 0)
         {
-            int odim[1] = { 1 };
+            int odim[1] = {1};
             set_ir_tensor_shape(output, odim, 1);
             return 0;
         }
         else
         {
-            int* odim = (int*)sys_malloc(input->dim_num * sizeof(int));
+            int* odim = ( int* )sys_malloc(input->dim_num * sizeof(int));
             for (int i_idx = 0, o_idx = 0; i_idx < input->dim_num; i_idx++)
             {
                 odim[o_idx++] = 1;
@@ -174,7 +174,7 @@ static int infer_shape(struct node* node)
         }
 
         // std::vector<int> odim(o_size);
-        int* odim = (int*)sys_malloc(o_size * sizeof(int));
+        int* odim = ( int* )sys_malloc(o_size * sizeof(int));
         for (int i_idx = 0, o_idx = 0; i_idx < input->dim_num; i_idx++)
         {
             if (!should_reduced[i_idx])
@@ -198,24 +198,24 @@ static int infer_shape(struct node* node)
 
 static int init_op(struct op* op)
 {
-    struct reduction_param* reduction_param = (struct reduction_param*)sys_malloc(sizeof(struct reduction_param));
+    struct reduction_param* reduction_param = ( struct reduction_param* )sys_malloc(sizeof(struct reduction_param));
 
     if (reduction_param == NULL)
     {
         return -1;
     }
 
-    reduction_param->dim_0   = -2;
-    reduction_param->dim_1   = -2;
-    reduction_param->dim_2   = -2;
-    reduction_param->dim_3   = -2;
+    reduction_param->dim_0 = -2;
+    reduction_param->dim_1 = -2;
+    reduction_param->dim_2 = -2;
+    reduction_param->dim_3 = -2;
     reduction_param->keepdim = 0;
-    reduction_param->type    = 0;
+    reduction_param->type = 0;
 
-    op->param_mem            = reduction_param;
-    op->param_size           = sizeof(struct reduction_param);
-    op->same_shape           = 0;
-    op->infer_shape          = infer_shape;
+    op->param_mem = reduction_param;
+    op->param_size = sizeof(struct reduction_param);
+    op->same_shape = 0;
+    op->infer_shape = infer_shape;
 
     return 0;
 }
@@ -232,7 +232,7 @@ int register_reduction_op()
     struct method m;
 
     m.version = 1;
-    m.init    = init_op;
+    m.init = init_op;
     m.release = release_op;
 
 

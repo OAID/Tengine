@@ -39,25 +39,25 @@
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node*   ir_node  = exec_node->ir_node;
-    struct graph*  ir_graph = ir_node->graph;
+    struct node* ir_node = exec_node->ir_node;
+    struct graph* ir_graph = ir_node->graph;
     struct tensor* input_tensor;
     struct tensor* weight_tensor;
-    struct tensor* bias_tensor   = NULL;
+    struct tensor* bias_tensor = NULL;
     struct tensor* output_tensor = NULL;
-    int            num_thread    = exec_graph->num_thread;
-    int            cpu_affinity  = exec_graph->cpu_affinity;
+    int num_thread = exec_graph->num_thread;
+    int cpu_affinity = exec_graph->cpu_affinity;
 
-    input_tensor                 = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    weight_tensor                = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
+    input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    weight_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
     if (ir_node->input_num > 2)
         bias_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[2]);
-    output_tensor                     = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+    output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    struct deconv_param* deconv_param = (struct deconv_param*)ir_node->op.param_mem;
+    struct deconv_param* deconv_param = ( struct deconv_param* )ir_node->op.param_mem;
 
-    if (deconv_dw_run(input_tensor, weight_tensor, bias_tensor, output_tensor, deconv_param, num_thread, cpu_affinity)
-        < 0)
+    if (deconv_dw_run(input_tensor, weight_tensor, bias_tensor, output_tensor, deconv_param, num_thread, cpu_affinity) <
+        0)
     {
         TLOG_ERR("hcl conv run failed\n");
         // set_tengine_errno(EFAULT);
@@ -79,31 +79,31 @@ static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, 
 
 static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struct node* exec_node)
 {
-    struct deconv_param* param    = (struct deconv_param*)exec_node->op.param_mem;
-    struct node*         ir_node  = exec_node;
-    struct graph*        ir_graph = ir_node->graph;
+    struct deconv_param* param = ( struct deconv_param* )exec_node->op.param_mem;
+    struct node* ir_node = exec_node;
+    struct graph* ir_graph = ir_node->graph;
 
     struct tensor* input_tensor;
     struct tensor* output_tensor;
 
     int pads[4];
-    int group      = param->group;
-    int kernel_h   = param->kernel_h;
-    int kernel_w   = param->kernel_w;
-    int stride_h   = param->stride_h;
-    int stride_w   = param->stride_w;
+    int group = param->group;
+    int kernel_h = param->kernel_h;
+    int kernel_w = param->kernel_w;
+    int stride_h = param->stride_h;
+    int stride_w = param->stride_w;
     int dilation_h = param->dilation_h;
     int dilation_w = param->dilation_w;
-    pads[0]        = param->pad_h0;
-    pads[1]        = param->pad_w0;
-    pads[2]        = param->pad_h1;
-    pads[3]        = param->pad_w1;
+    pads[0] = param->pad_h0;
+    pads[1] = param->pad_w0;
+    pads[2] = param->pad_h1;
+    pads[3] = param->pad_w1;
 
-    input_tensor   = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    output_tensor  = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+    input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    int in_c       = input_tensor->dims[1] / group;
-    int out_c      = output_tensor->dims[1] / group;
+    int in_c = input_tensor->dims[1] / group;
+    int out_c = output_tensor->dims[1] / group;
 
     if (param->group > 1 && in_c == 1 && out_c == 1)
         return OPS_SCORE_BEST;
@@ -111,13 +111,14 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
         return 0;
 }
 
-static struct node_ops hcl_node_ops = { .prerun       = NULL,
-                                        .run          = run,
-                                        .reshape      = NULL,
-                                        .postrun      = NULL,
-                                        .init_node    = init_node,
-                                        .release_node = release_node,
-                                        .score        = score };
+static struct node_ops hcl_node_ops = {.prerun = NULL,
+                                       .run = run,
+                                       .reshape = NULL,
+                                       .postrun = NULL,
+                                       .init_node = init_node,
+                                       .release_node = release_node,
+                                       .score = score
+};
 
 int register_deconv_dw_hcl_arm_op()
 {

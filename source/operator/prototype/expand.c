@@ -37,116 +37,111 @@
 
 static int infer_shape(struct node* node)
 {
-    struct vector* dims   = create_vector(sizeof(int), NULL);
-    struct vector* dims1  = create_vector(sizeof(int), NULL);
-    struct vector* dims2  = create_vector(sizeof(int), NULL);
+    struct vector* dims = create_vector(sizeof(int), NULL);
+    struct vector* dims1 = create_vector(sizeof(int), NULL);
+    struct vector* dims2 = create_vector(sizeof(int), NULL);
+    
+    expand_param_t* param = ( struct expand_param* )(node->op.param_mem);
 
-    expand_param_t* param = (struct expand_param*)(node->op.param_mem);
-
-    struct graph*  graph  = node->graph;
+    struct graph* graph = node->graph;
     struct tensor* input1 = get_ir_graph_tensor(graph, node->input_tensors[0]);
     struct tensor* input2 = get_ir_graph_tensor(graph, node->input_tensors[1]);
     struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
 
-    int      flag         = 1;
-    int32_t* input2_data  = input2->data;
-    for (int i = 0; i < input2->elem_num; i++)
+    int flag = 1;
+    int32_t * input2_data = input2->data;
+    for(int i = 0; i < input2->elem_num; i++)
     {
-        if (input2_data[i] == 0)
-        {
+        if(input2_data[i] == 0){
             flag = 0;
         }
     }
 
-    if (flag == 1)
+    if(flag == 1)
     {
-        for (int i = 0; i < input2->elem_num; i++)
+        for(int i = 0; i < input2->elem_num; i++)
             param->ex_shape[i] = input2_data[i];
     }
-
-    for (int i = 0; i < (int)param->dim_num; i++)
+    
+    for(int i = 0; i < (int)param->dim_num; i++)
     {
         int temp = param->ex_shape[i];
         push_vector_data(dims2, (void*)&temp);
     }
-    int num             = get_vector_num(dims2);
+    int num = get_vector_num(dims2);
 
 
     int input1_dim_size = input1->dim_num;
     int input2_dim_size = param->dim_num;
-
-    if (input1_dim_size == input2_dim_size)
+    
+    if(input1_dim_size == input2_dim_size)
     {
-        for (int i = 0; i < input2_dim_size; i++)
+        for(int i = 0; i < input2_dim_size; i++)
         {
-            if (input1->dims[i] >= param->ex_shape[i])
+            if(input1->dims[i] >= param->ex_shape[i])
             {
                 int temp = input1->dims[i];
                 push_vector_data(dims, (void*)&temp);
-            }
+            } 
             else
             {
                 int temp = param->ex_shape[i];
                 push_vector_data(dims, (void*)&temp);
             }
-        }
-    }
-    else
-    {
+        }        
+    } else {
         int diff = fabs(input1_dim_size - input2_dim_size);
-        if (input1_dim_size > input2_dim_size)
+        if(input1_dim_size > input2_dim_size)
         {
-            for (int i = 0; i < input1_dim_size; i++)
+            for(int i = 0; i < input1_dim_size; i++)
             {
                 int temp = input1->dims[i];
                 push_vector_data(dims, (void*)&temp);
             }
-            for (int i = 0; i < input1_dim_size - diff; i++)
+            for(int i = 0; i < input1_dim_size - diff; i++)
             {
-                if (input1->dims[i + diff] > param->ex_shape[i])
+                if(input1->dims[i+diff] > param->ex_shape[i])
                 {
-                    int temp = input1->dims[i + diff];
+                    int temp = input1->dims[i+diff];
                     push_vector_data(dims, (void*)&temp);
-                }
-                else
+                } 
+                else 
                 {
                     int temp = param->ex_shape[i];
                     push_vector_data(dims, (void*)&temp);
-                }
+                }                
             }
-        }
-        else
-        {
-            for (int i = 0; i < input2_dim_size; i++)
+        } else {
+            for(int i = 0; i < input2_dim_size; i++)
             {
                 int temp = param->ex_shape[i];
                 push_vector_data(dims, (void*)&temp);
             }
-            for (int i = 0; i < input2_dim_size - diff; i++)
+            for(int i = 0; i < input2_dim_size - diff; i++)
             {
-                if (param->ex_shape[i + diff] > input1->dims[i])
+                if(param->ex_shape[i+diff] > input1->dims[i])
                 {
-                    int temp = param->ex_shape[i + diff];
+                    int temp = param->ex_shape[i+diff];
                     push_vector_data(dims, (void*)&temp);
-                }
-                else
+                } 
+                else 
                 {
                     int temp = input1->dims[i];
                     push_vector_data(dims, (void*)&temp);
-                }
+                }                
             }
         }
     }
-    int  new_size       = 1;
-    int* new_shape_temp = (int*)sys_malloc(get_vector_num(dims) * sizeof(int));
-    for (int i = 0; i < get_vector_num(dims); i++)
+    int new_size = 1;
+    int* new_shape_temp = (int*)sys_malloc(get_vector_num(dims)*sizeof(int));
+    for(int i = 0; i < get_vector_num(dims); i++)
     {
-        int* a            = (int*)get_vector_data(dims, i);
+        int* a = (int*)get_vector_data(dims, i);
         new_shape_temp[i] = *a;
     }
 
     output->layout = input1->layout;
-    int ret        = set_ir_tensor_shape(output, new_shape_temp, get_vector_num(dims));
+    int ret = set_ir_tensor_shape(output, new_shape_temp, get_vector_num(dims));
 
     sys_free(new_shape_temp);
     release_vector(dims);
@@ -158,7 +153,7 @@ static int infer_shape(struct node* node)
 
 static int init_op(struct op* op)
 {
-    struct expand_param* expand_param = (struct expand_param*)sys_malloc(sizeof(struct expand_param));
+    struct expand_param* expand_param = ( struct expand_param* )sys_malloc(sizeof(struct expand_param));
 
     if (expand_param == NULL)
     {
@@ -167,9 +162,9 @@ static int init_op(struct op* op)
 
     /*set the param default value */
     memset(expand_param, 0, sizeof(struct expand_param));
-    op->param_mem   = expand_param;
-    op->param_size  = sizeof(struct expand_param);
-    op->same_shape  = 0;
+    op->param_mem = expand_param;
+    op->param_size = sizeof(struct expand_param);
+    op->same_shape = 0;
     op->infer_shape = infer_shape;
 
     return 0;
@@ -178,7 +173,7 @@ static int init_op(struct op* op)
 
 static void release_op(struct op* op)
 {
-    struct expand_param* expand_param = (struct expand_param*)op->param_mem;
+    struct expand_param* expand_param = ( struct expand_param* )op->param_mem;
 
     if (expand_param->ex_shape)
         sys_free(expand_param->ex_shape);
@@ -192,7 +187,7 @@ int register_expand_op()
     struct method m;
 
     m.version = 1;
-    m.init    = init_op;
+    m.init = init_op;
     m.release = release_op;
 
     return register_op(OP_EXPAND, OP_EXPAND_NAME, &m);

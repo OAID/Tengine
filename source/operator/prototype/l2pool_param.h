@@ -25,8 +25,7 @@
 #ifndef __L2POOL_H__
 #define __L2POOL_H__
 
-enum
-{
+enum{
     kNone = 0,
     kSame,
     kValid
@@ -34,7 +33,7 @@ enum
 
 struct l2pool_param
 {
-    int paddingType;    // 0: kNone, 1: kSame, 2: kValid
+    int paddingType; // 0: kNone, 1: kSame, 2: kValid
     int kernel_h;
     int kernel_w;
     int stride_h;

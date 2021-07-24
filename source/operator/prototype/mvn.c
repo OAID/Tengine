@@ -35,7 +35,7 @@
 
 static int init_op(struct op* op)
 {
-    struct mvn_param* param = (struct mvn_param*)sys_malloc(sizeof(struct mvn_param));
+    struct mvn_param* param = ( struct mvn_param* )sys_malloc(sizeof(struct mvn_param));
 
     if (param == NULL)
     {
@@ -43,9 +43,9 @@ static int init_op(struct op* op)
     }
 
     /*set the param default value */
-    op->param_mem   = param;
-    op->param_size  = sizeof(struct mvn_param);
-    op->same_shape  = 1;
+    op->param_mem = param;
+    op->param_size = sizeof(struct mvn_param);
+    op->same_shape = 1;
     op->infer_shape = NULL;
 
     return 0;
@@ -63,7 +63,7 @@ int register_mvn_op()
     struct method m;
 
     m.version = 1;
-    m.init    = init_op;
+    m.init = init_op;
     m.release = release_op;
 
     return register_op(OP_MVN, OP_MVN_NAME, &m);

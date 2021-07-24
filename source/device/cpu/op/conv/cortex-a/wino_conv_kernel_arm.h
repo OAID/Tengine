@@ -31,8 +31,9 @@
 #include "graph/graph.h"
 
 
-int wino_conv_hcl_prerun(struct tensor* input_tensor, struct tensor* filter_tensor, struct tensor* output_tensor,
-                         struct conv_priv_info* info, struct conv_param* param);
+int wino_conv_hcl_prerun(struct tensor* input_tensor, struct tensor* filter_tensor,
+                         struct tensor* output_tensor, struct conv_priv_info* info, struct conv_param* param)
+   ;
 
 int wino_conv_hcl_postrun(struct conv_priv_info* info);
 

@@ -36,10 +36,10 @@ typedef struct reshape_param
     int axis;
     */
     int* re_shape;
-    int  reverse;
-    int  is_mxnet;
-    int  is_onnx;
-    int  dim_size;
+    int reverse;
+    int is_mxnet;
+    int is_onnx;
+    int dim_size;
 } reshape_param_t;
 
 #endif

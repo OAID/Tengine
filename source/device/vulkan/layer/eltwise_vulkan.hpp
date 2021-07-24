@@ -45,18 +45,18 @@
 
 #include "eltwise_param.h"
 
-namespace TEngine
+namespace TEngine{
+
+class Eltwise_vulkan : public Layer
 {
-class Eltwise_vulkan : public Layer {
 public:
     Eltwise_vulkan();
     Eltwise_vulkan(ir_graph_t* ir_graph, ir_node_t* ir_node);
 
     virtual int create_pipeline(const Option& opt);
     virtual int destroy_pipeline(const Option& opt);
-
-    virtual int record_pipeline(const std::vector<VkTensor>& bottom_blobs, std::vector<VkTensor>& top_blobs,
-                                VkCompute& cmd, const Option& opt) const;
+    
+    virtual int record_pipeline(const std::vector<VkTensor>& bottom_blobs, std::vector<VkTensor>& top_blobs, VkCompute& cmd, const Option& opt) const;
 
 public:
     Pipeline* pipeline_eltwise[2];
@@ -94,6 +94,6 @@ public:
     int output_w;
 };
 
-}    // namespace TEngine
+}   // namespace TEngine
 
 #endif

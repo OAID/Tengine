@@ -41,15 +41,14 @@ static int logsoftmax_op_map(int op)
 }
 
 
-static int tm2_load_logsoftmax(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
-                               const TM2_Operator* tm_op)
+static int tm2_load_logsoftmax(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node, const TM2_Operator* tm_op)
 {
     struct logsoftmax_param* logsoftmax_param = (struct logsoftmax_param*)ir_node->op.param_mem;
-    const struct tm2_priv*   tm2_priv         = (struct tm2_priv*)ir_graph->serializer_privacy;
-    const char*              mem_base         = tm2_priv->base;
+    const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
+    const char* mem_base = tm2_priv->base;
 
-    const TM2_LogSoftmaxParam* tm_param       = (TM2_LogSoftmaxParam*)(mem_base + tm_op->offset_t_param);
-    logsoftmax_param->axis                    = tm_param->axis;
+    const TM2_LogSoftmaxParam* tm_param = (TM2_LogSoftmaxParam*)(mem_base + tm_op->offset_t_param);
+    logsoftmax_param->axis = tm_param->axis;
 
     return 0;
 }

@@ -44,15 +44,15 @@ static int gemm_op_map(int op)
 static int tm2_load_gemm(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                          const TM2_Operator* tm_op)
 {
-    struct gemm_param*     gemm_param = (struct gemm_param*)ir_node->op.param_mem;
-    const struct tm2_priv* tm2_priv   = (struct tm2_priv*)ir_graph->serializer_privacy;
-    const char*            mem_base   = tm2_priv->base;
-    const TM2_GemmParam*   tm_param   = (TM2_GemmParam*)(mem_base + tm_op->offset_t_param);
+    struct gemm_param* gemm_param = ( struct gemm_param* )ir_node->op.param_mem;
+    const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
+    const char* mem_base = tm2_priv->base;
+    const TM2_GemmParam* tm_param = ( TM2_GemmParam* )(mem_base + tm_op->offset_t_param);
 
-    gemm_param->alpha                 = tm_param->alpha;
-    gemm_param->beta                  = tm_param->beta;
-    gemm_param->transA                = tm_param->transA;
-    gemm_param->transB                = tm_param->transB;
+    gemm_param->alpha = tm_param->alpha;
+    gemm_param->beta = tm_param->beta;
+    gemm_param->transA = tm_param->transA;
+    gemm_param->transB = tm_param->transB;
 
     return 0;
 }

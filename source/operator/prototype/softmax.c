@@ -34,11 +34,11 @@
 
 static int infer_shape(ir_node_t* node)
 {
-    ir_graph_t*  ir_graph = node->graph;
-    ir_tensor_t* input    = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
-    ir_tensor_t* output   = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
+    ir_graph_t* ir_graph = node->graph;
+    ir_tensor_t* input = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
+    ir_tensor_t* output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
 
-    output->layout        = input->layout;
+    output->layout = input->layout;
 
     set_ir_tensor_shape(output, input->dims, input->dim_num);
 
@@ -48,7 +48,7 @@ static int infer_shape(ir_node_t* node)
 
 static int init_op(ir_op_t* op)
 {
-    struct softmax_param* softmax_param = (struct softmax_param*)sys_malloc(sizeof(struct softmax_param));
+    struct softmax_param* softmax_param = ( struct softmax_param* )sys_malloc(sizeof(struct softmax_param));
 
     if (softmax_param == NULL)
     {
@@ -58,10 +58,10 @@ static int init_op(ir_op_t* op)
     /*set the param default value */
     softmax_param->axis = 1;
 
-    op->param_mem       = softmax_param;
-    op->param_size      = sizeof(struct softmax_param);
-    op->same_shape      = 0;
-    op->infer_shape     = infer_shape;
+    op->param_mem = softmax_param;
+    op->param_size = sizeof(struct softmax_param);
+    op->same_shape = 0;
+    op->infer_shape = infer_shape;
 
     return 0;
 }
@@ -78,7 +78,7 @@ int register_softmax_op()
     ir_method_t m;
 
     m.version = 1;
-    m.init    = init_op;
+    m.init = init_op;
     m.release = release_op;
 
     return register_op(OP_SOFTMAX, OP_SOFTMAX_NAME, &m);

@@ -59,9 +59,10 @@ extern "C"
 #include "utility/log.h"
 }
 
-namespace TEngine
+namespace TEngine {
+
+class Layer
 {
-class Layer {
 public:
     // empty
     Layer();
@@ -81,11 +82,9 @@ public:
 
     // virtual int record_pipeline(VkCompute& cmd, const Option& opt) const;
     virtual int record_pipeline(VkTensor& bottom_top_blob, VkCompute& cmd, const Option& opt) const;
-    virtual int record_pipeline(const VkTensor& bottom_blob, VkTensor& top_blob, VkCompute& cmd,
-                                const Option& opt) const;
+    virtual int record_pipeline(const VkTensor& bottom_blob, VkTensor& top_blob, VkCompute& cmd, const Option& opt) const;
 
-    virtual int record_pipeline(const std::vector<VkTensor>& bottom_blobs, std::vector<VkTensor>& top_blobs,
-                                VkCompute& cmd, const Option& opt) const;
+    virtual int record_pipeline(const std::vector<VkTensor>& bottom_blobs, std::vector<VkTensor>& top_blobs, VkCompute& cmd, const Option& opt) const;
 
 public:
     // support vulkan compute
@@ -101,7 +100,7 @@ public:
     bool support_image_storage;
 
 public:
-    const GPUDevice*         vkdev;
+    const GPUDevice* vkdev;
     std::vector<std::string> bottoms;
     std::vector<std::string> tops;
 
@@ -110,11 +109,11 @@ public:
     std::string name;
     // Node* node;
     ir_graph_t* graph;
-    ir_node_t*  node;
+    ir_node_t* node;
 };
 
 Layer* create_layer(std::string type);
 
-}    // namespace TEngine
+} // TEngine
 
-#endif    // VULKAN_LAYER_HPP
+#endif // VULKAN_LAYER_HPP

@@ -41,15 +41,14 @@ static int threshold_op_map(int op)
 }
 
 
-static int tm2_load_threshold(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
-                              const TM2_Operator* tm_op)
+static int tm2_load_threshold(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node, const TM2_Operator* tm_op)
 {
-    struct threshold_param*   param    = (struct threshold_param*)ir_node->op.param_mem;
-    const struct tm2_priv*    tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
-    const char*               mem_base = tm2_priv->base;
-    const TM2_ThresholdParam* tm_param = (TM2_ThresholdParam*)(mem_base + tm_op->offset_t_param);
+    struct threshold_param* param = ( struct threshold_param* )ir_node->op.param_mem;
+    const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
+    const char* mem_base = tm2_priv->base;
+    const TM2_ThresholdParam* tm_param = ( TM2_ThresholdParam* )(mem_base + tm_op->offset_t_param);
 
-    param->threshold                   = tm_param->threshold;
+    param->threshold = tm_param->threshold;
 
     return 0;
 }

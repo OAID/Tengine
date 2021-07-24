@@ -34,9 +34,9 @@
 
 static int infer_shape(ir_node_t* node)
 {
-    ir_graph_t*  ir_graph = node->graph;
-    ir_tensor_t* input    = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
-    ir_tensor_t* output   = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
+    ir_graph_t* ir_graph = node->graph;
+    ir_tensor_t* input = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
+    ir_tensor_t* output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
 
     set_ir_tensor_shape(output, input->dims, input->dim_num);
 
@@ -46,7 +46,7 @@ static int infer_shape(ir_node_t* node)
 
 static int init_op(struct op* op)
 {
-    struct selu_param* selu_param = (struct selu_param*)sys_malloc(sizeof(struct selu_param));
+    struct selu_param* selu_param = ( struct selu_param* )sys_malloc(sizeof(struct selu_param));
 
     if (selu_param == NULL)
     {
@@ -54,13 +54,13 @@ static int init_op(struct op* op)
     }
 
     /*set the param default value */
-    selu_param->alpha  = 1.67326319f;
+    selu_param->alpha = 1.67326319f;
     selu_param->lambda = 1.05070102f;
 
-    op->param_mem      = selu_param;
-    op->param_size     = sizeof(struct selu_param);
-    op->same_shape     = 1;
-    op->infer_shape    = NULL;
+    op->param_mem = selu_param;
+    op->param_size = sizeof(struct selu_param);
+    op->same_shape = 1;
+    op->infer_shape = NULL;
 
     return 0;
 }
@@ -77,7 +77,7 @@ int register_selu_op()
     struct method m;
 
     m.version = 1;
-    m.init    = init_op;
+    m.init = init_op;
     m.release = release_op;
 
     return register_op(OP_SELU, OP_SELU_NAME, &m);

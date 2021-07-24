@@ -34,11 +34,11 @@
 
 static int infer_shape(struct node* node)
 {
-    priorbox_param_t* priorbox_param = (priorbox_param_t*)node->op.param_mem;
+    priorbox_param_t* priorbox_param = ( priorbox_param_t* )node->op.param_mem;
 
-    struct graph*  ir_graph          = node->graph;
-    struct tensor* input             = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
-    struct tensor* output            = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
+    struct graph* ir_graph = node->graph;
+    struct tensor* input = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
+    struct tensor* output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
 
     // out shape [feat_width,feat_height,num_priors_ * 4,2]
     int len_aspect_ratio = 1;
@@ -61,8 +61,7 @@ static int infer_shape(struct node* node)
         }
     }
 
-    priorbox_param->num_priors =
-        (priorbox_param->aspect_ratio_size * len_aspect_ratio + 1 + len_max) * priorbox_param->min_size_num;
+    priorbox_param->num_priors = (priorbox_param->aspect_ratio_size * len_aspect_ratio + 1 + len_max) * priorbox_param->min_size_num;
 
     priorbox_param->out_dim = input->dims[2] * input->dims[3] * priorbox_param->num_priors * 4;
 
@@ -80,7 +79,7 @@ static int infer_shape(struct node* node)
 
 static int init_op(struct op* op)
 {
-    struct priorbox_param* priorbox_param = (struct priorbox_param*)sys_malloc(sizeof(struct priorbox_param));
+    struct priorbox_param* priorbox_param = ( struct priorbox_param* )sys_malloc(sizeof(struct priorbox_param));
 
     if (priorbox_param == NULL)
     {
@@ -89,10 +88,10 @@ static int init_op(struct op* op)
 
     priorbox_param->offset = 0.5f;
 
-    op->param_mem          = priorbox_param;
-    op->param_size         = sizeof(struct priorbox_param);
-    op->same_shape         = 0;
-    op->infer_shape        = infer_shape;
+    op->param_mem = priorbox_param;
+    op->param_size = sizeof(struct priorbox_param);
+    op->same_shape = 0;
+    op->infer_shape = infer_shape;
 
     return 0;
 }
@@ -100,7 +99,7 @@ static int init_op(struct op* op)
 
 static void release_op(struct op* op)
 {
-    struct priorbox_param* priorbox_param = (struct priorbox_param*)op->param_mem;
+    struct priorbox_param* priorbox_param = ( struct priorbox_param* )op->param_mem;
 
     if (priorbox_param->aspect_ratio)
         sys_free(priorbox_param->aspect_ratio);
@@ -120,7 +119,7 @@ int register_priorbox_op()
     struct method m;
 
     m.version = 1;
-    m.init    = init_op;
+    m.init = init_op;
     m.release = release_op;
 
 

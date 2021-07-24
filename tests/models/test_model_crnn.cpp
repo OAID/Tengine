@@ -40,10 +40,10 @@
 
 int float_mismatch(float* current, float* reference, int size)
 {
-    for (int i = 0; i < size; i++)
+    for(int i=0;i<size;i++)
     {
         float tmp = fabs(current[i]) - fabs(reference[i]);
-        if (fabs(tmp) > 0.0001)
+        if(fabs(tmp) > 0.0001)
         {
             fprintf(stderr, "test failed, index:%d, a:%f, b:%f\n", i, current[i], reference[i]);
             return -1;
@@ -59,13 +59,13 @@ std::string read_txt(const std::string& filename, int line)
     std::ifstream fin;
     fin.open(filename, std::ios::in);
     std::string strVec[5530];
-    int         i = 0;
+    int i = 0;
     while (!fin.eof())
     {
         std::string inbuf;
         getline(fin, inbuf, '\n');
         strVec[i] = inbuf;
-        i         = i + 1;
+        i = i + 1;
     }
     return strVec[line - 1];
 }
@@ -77,39 +77,39 @@ void show_usage()
 
 int main(int argc, char* argv[])
 {
-    int   repeat_count   = DEFAULT_REPEAT_COUNT;
-    int   num_thread     = DEFAULT_THREAD_COUNT;
-    char  model_string[] = "./models/crnn_lite_dense.tmfile";
-    char* model_file     = model_string;
-    char* image_file     = nullptr;
-    char* label_file     = nullptr;
-    int   img_h          = 32;
-    int   img_w          = 277;
-    float mean[3]        = { 127.5, 127.5, 127.5 };
-    float scale[3]       = { 0.007843, 0.007843, 0.007843 };
+    int repeat_count = DEFAULT_REPEAT_COUNT;
+    int num_thread = DEFAULT_THREAD_COUNT;
+    char model_string[] = "./models/crnn_lite_dense.tmfile";
+    char* model_file = model_string;
+    char* image_file = nullptr;
+    char* label_file = nullptr;
+    int img_h = 32;
+    int img_w = 277;
+    float mean[3] = {127.5, 127.5, 127.5};
+    float scale[3] = {0.007843, 0.007843, 0.007843};
 
     int res;
     while ((res = getopt(argc, argv, "m:i:l:r:t:h:")) != -1)
     {
         switch (res)
         {
-        case 'm':
-            model_file = optarg;
-            break;
-        case 'r':
-            repeat_count = atoi(optarg);
-            break;
-        case 't':
-            num_thread = atoi(optarg);
-            break;
-        case 'h':
-            show_usage();
-            return 0;
-        default:
-            break;
+            case 'm':
+                model_file = optarg;
+                break;
+            case 'r':
+                repeat_count = atoi(optarg);
+                break;
+            case 't':
+                num_thread = atoi(optarg);
+                break;
+            case 'h':
+                show_usage();
+                return 0;
+            default:
+                break;
         }
     }
-    std::string model_name = "crnn_lite_dense";
+    std::string model_name="crnn_lite_dense";
     /* check files */
     if (model_file == nullptr)
     {
@@ -123,9 +123,9 @@ int main(int argc, char* argv[])
     /* set runtime options */
     struct options opt;
     opt.num_thread = num_thread;
-    opt.cluster    = TENGINE_CLUSTER_ALL;
-    opt.precision  = TENGINE_MODE_FP32;
-    opt.affinity   = 0;
+    opt.cluster = TENGINE_CLUSTER_ALL;
+    opt.precision = TENGINE_MODE_FP32;
+    opt.affinity = 0;
 
     /* inital tengine */
     if (init_tengine() != 0)
@@ -143,9 +143,9 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    int    img_size       = img_h * img_w * 1;
-    int    dims[]         = { 1, 1, img_h, img_w };
-    float* input_data     = (float*)malloc(img_size * sizeof(float));
+    int img_size = img_h * img_w * 1;
+    int dims[] = {1, 1, img_h, img_w};
+    float* input_data = ( float* )malloc(img_size * sizeof(float));
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == nullptr)
@@ -175,7 +175,7 @@ int main(int argc, char* argv[])
 
     /* prepare process input data, set the data mem to input tensor */
     std::string input_file = "./data/" + model_name + "_in.bin";
-    FILE*       fp;
+    FILE *fp;
     fp = fopen(input_file.c_str(), "rb");
     if (fread(input_data, sizeof(float), img_size, fp) == 0)
     {
@@ -185,8 +185,8 @@ int main(int argc, char* argv[])
     fclose(fp);
 
     /* run graph */
-    double min_time   = __DBL_MAX__;
-    double max_time   = -__DBL_MAX__;
+    double min_time = __DBL_MAX__;
+    double max_time = -__DBL_MAX__;
     double total_time = 0.;
     for (int i = 0; i < repeat_count; i++)
     {
@@ -208,13 +208,13 @@ int main(int argc, char* argv[])
 
     /* process the crnn result */
     tensor_t output_tensor = get_graph_output_tensor(graph, 0, 0);
-    float*   ocr_data      = (float*)get_tensor_buffer(output_tensor);
+    float* ocr_data = ( float* )get_tensor_buffer(output_tensor);
 
     /* check the result */
-    int                output_size    = get_tensor_buffer_size(output_tensor) / sizeof(float);
-    std::string        reference_file = "./data/" + model_name + "_out.bin";
+    int output_size = get_tensor_buffer_size(output_tensor) / sizeof(float);
+    std::string reference_file = "./data/" + model_name + "_out.bin";
     std::vector<float> reference_data(output_size);
-    FILE*              fp1;
+    FILE *fp1;
     fp1 = fopen(reference_file.c_str(), "rb");
     if (fread(reference_data.data(), sizeof(float), output_size, fp1) == 0)
     {
@@ -225,7 +225,7 @@ int main(int argc, char* argv[])
 
     int ret = float_mismatch(ocr_data, reference_data.data(), output_size);
 
-    //    process_crnn_result(ocr_data, label_file);
+//    process_crnn_result(ocr_data, label_file);
 
     free(input_data);
     postrun_graph(graph);

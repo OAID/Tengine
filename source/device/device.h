@@ -92,8 +92,8 @@ typedef struct allocator
  */
 typedef struct optimizer
 {
-    int (*split_graph)(struct graph* ir_graph);                      //!< interface of split graph delegation
-    int (*optimize_graph)(struct graph* ir_graph, int precision);    //!< interface of optimizing graph delegation
+    int (*split_graph)(struct graph* ir_graph);                    //!< interface of split graph delegation
+    int (*optimize_graph)(struct graph* ir_graph, int precision);  //!< interface of optimizing graph delegation
 } ir_optimizer_t;
 
 
@@ -103,12 +103,12 @@ typedef struct optimizer
  */
 typedef struct device
 {
-    const char*       name;
-    struct interface* interface;    //!< device scheduler operation interface
-    struct allocator* allocator;    //!< device allocation operation interface
-    struct optimizer* optimizer;    //!< device optimizer operation interface
-    struct scheduler* scheduler;    //!< device scheduler
-    void*             privacy;      //!< device privacy data
+    const char* name;
+    struct interface* interface;      //!< device scheduler operation interface
+    struct allocator* allocator;      //!< device allocation operation interface
+    struct optimizer* optimizer;      //!< device optimizer operation interface
+    struct scheduler* scheduler;      //!< device scheduler
+    void*  privacy;                   //!< device privacy data
 } ir_device_t;
 
 

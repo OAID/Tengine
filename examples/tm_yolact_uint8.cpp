@@ -54,15 +54,15 @@
 
 struct Object
 {
-    cv::Rect_<float>   rect;
-    int                label;
-    float              prob;
+    cv::Rect_<float> rect;
+    int label;
+    float prob;
     std::vector<float> maskdata;
-    cv::Mat            mask;
+    cv::Mat mask;
 };
 
-void get_input_data_cv_uint8(const cv::Mat& sample, uint8_t* input_data, int img_h, int img_w, const float* mean,
-                             const float* scale, float input_scale, int zero_point)
+void get_input_data_cv_uint8(const cv::Mat& sample, uint8_t* input_data, int img_h, int img_w, const float* mean, const float* scale, 
+                       float input_scale, int zero_point)
 {
     cv::Mat img;
     if (sample.channels() == 4)
@@ -84,21 +84,20 @@ void get_input_data_cv_uint8(const cv::Mat& sample, uint8_t* input_data, int img
 
     cv::resize(img, img, cv::Size(img_h, img_w));
     img.convertTo(img, CV_32FC3);
-    float* img_data = (float*)img.data;
+    float* img_data = (float* )img.data;
 
     /* nhwc to nchw */
     for (int h = 0; h < img_h; h++)
-    {
-        for (int w = 0; w < img_w; w++)
+    {   for (int w = 0; w < img_w; w++)
         {
             for (int c = 0; c < 3; c++)
             {
-                int   in_index   = h * img_w * 3 + w * 3 + c;
-                int   out_index  = c * img_h * img_w + h * img_w + w;
+                int in_index  = h * img_w * 3 + w * 3 + c;
+                int out_index = c * img_h * img_w + h * img_w + w;
                 float input_fp32 = (img_data[in_index] - mean[c]) * scale[c];
 
                 /* quant to uint8 */
-                int udata = (round)(input_fp32 / input_scale + (float)zero_point);
+                int udata = (round)(input_fp32 / input_scale + ( float )zero_point);
                 if (udata > 255)
                     udata = 255;
                 else if (udata < 0)
@@ -122,19 +121,19 @@ static std::vector<Box2f> generate_priorbox(int num_priores)
 {
     std::vector<Box2f> priorboxs(num_priores);
 
-    const int conv_ws[5]         = { 69, 35, 18, 9, 5 };
-    const int conv_hs[5]         = { 69, 35, 18, 9, 5 };
+    const int conv_ws[5] = {69, 35, 18, 9, 5};
+    const int conv_hs[5] = {69, 35, 18, 9, 5};
 
-    const float aspect_ratios[3] = { 1.f, 0.5f, 2.f };
-    const float scales[5]        = { 24.f, 48.f, 96.f, 192.f, 384.f };
+    const float aspect_ratios[3] = {1.f, 0.5f, 2.f};
+    const float scales[5] = {24.f, 48.f, 96.f, 192.f, 384.f};
 
-    int index                    = 0;
+    int index = 0;
 
     for (int i = 0; i < 5; i++)
     {
         int conv_w = conv_ws[i];
         int conv_h = conv_hs[i];
-        int scale  = scales[i];
+        int scale = scales[i];
         for (int ii = 0; ii < conv_h; ii++)
         {
             for (int j = 0; j < conv_w; j++)
@@ -144,21 +143,21 @@ static std::vector<Box2f> generate_priorbox(int num_priores)
 
                 for (int k = 0; k < 3; k++)
                 {
-                    float ar        = aspect_ratios[k];
+                    float ar = aspect_ratios[k];
 
-                    ar              = sqrt(ar);
+                    ar = sqrt(ar);
 
-                    float w         = scale * ar / 550;
-                    float h         = scale / ar / 550;
+                    float w = scale * ar / 550;
+                    float h = scale / ar / 550;
 
-                    h               = w;
+                    h = w;
 
                     Box2f& priorbox = priorboxs[index];
 
-                    priorbox.cx     = cx;
-                    priorbox.cy     = cy;
-                    priorbox.w      = w;
-                    priorbox.h      = h;
+                    priorbox.cx = cx;
+                    priorbox.cy = cy;
+                    priorbox.w = w;
+                    priorbox.h = h;
 
                     index += 1;
                 }
@@ -178,7 +177,7 @@ static inline float intersection_area(const Object& a, const Object& b)
 static void fast_nms(std::vector<std::vector<Object>>& class_candidates, std::vector<Object>& objects,
                      const float iou_thresh, const int nms_top_k, const int keep_top_k)
 {
-    for (int i = 0; i < (int)class_candidates.size(); i++)
+    for (int i = 0; i < ( int )class_candidates.size(); i++)
     {
         std::vector<Object>& candidate = class_candidates[i];
         std::sort(candidate.begin(), candidate.end(), [](const Object& a, const Object& b) { return a.prob > b.prob; });
@@ -191,9 +190,9 @@ static void fast_nms(std::vector<std::vector<Object>>& class_candidates, std::ve
         }
 
         objects.push_back(candidate[0]);
-        const int          n = candidate.size();
+        const int n = candidate.size();
         std::vector<float> areas(n);
-        std::vector<int>   keep(n);
+        std::vector<int> keep(n);
         for (int j = 0; j < n; j++)
         {
             areas[j] = candidate[j].rect.area();
@@ -206,7 +205,7 @@ static void fast_nms(std::vector<std::vector<Object>>& class_candidates, std::ve
             {
                 float inter_area = intersection_area(candidate[j], candidate[k]);
                 float union_area = areas[j] + areas[k] - inter_area;
-                iou_row[k]       = inter_area / union_area;
+                iou_row[k] = inter_area / union_area;
             }
             iou_matrix.push_back(iou_row);
         }
@@ -231,9 +230,9 @@ static int detect_yolact(const cv::Mat& bgr, std::vector<Object>& objects, const
     /* set runtime options */
     struct options opt;
     opt.num_thread = num_thread;
-    opt.cluster    = TENGINE_CLUSTER_ALL;
-    opt.precision  = TENGINE_MODE_FP32;
-    opt.affinity   = 0;
+    opt.cluster = TENGINE_CLUSTER_ALL;
+    opt.precision = TENGINE_MODE_FP32;
+    opt.affinity = 0;
 
     /* inital tengine */
     if (init_tengine() != 0)
@@ -243,13 +242,13 @@ static int detect_yolact(const cv::Mat& bgr, std::vector<Object>& objects, const
     }
     fprintf(stderr, "tengine-lite library version: %s\n", get_tengine_version());
 
-    const int target_size    = 550;
+    const int target_size = 550;
 
-    int img_w                = bgr.cols;
-    int img_h                = bgr.rows;
+    int img_w = bgr.cols;
+    int img_h = bgr.rows;
 
-    const float mean_vals[3] = { 123.68f, 116.78f, 103.94f };
-    const float norm_vals[3] = { 1.0 / 58.40f, 1.0 / 57.12f, 1.0 / 57.38f };
+    const float mean_vals[3] = {123.68f, 116.78f, 103.94f};
+    const float norm_vals[3] = {1.0 / 58.40f, 1.0 / 57.12f, 1.0 / 57.38f};
 
     /* create graph, load tengine model xxx.tmfile */
     graph_t graph = create_graph(NULL, "tengine", model_file);
@@ -260,8 +259,8 @@ static int detect_yolact(const cv::Mat& bgr, std::vector<Object>& objects, const
     }
 
     /* set the input shape to initial the graph, and prerun graph to infer shape */
-    int                  img_size = target_size * target_size * 3;
-    int                  dims[]   = { 1, 3, target_size, target_size };    // nchw
+    int img_size = target_size * target_size * 3;
+    int dims[] = {1, 3, target_size, target_size};    // nchw
     std::vector<uint8_t> input_data(img_size);
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
@@ -281,7 +280,7 @@ static int detect_yolact(const cv::Mat& bgr, std::vector<Object>& objects, const
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;
-    }
+    }    
 
     /* prerun graph, set work options(num_thread, cluster, precision) */
     if (prerun_graph_multithread(graph, opt) < 0)
@@ -291,15 +290,14 @@ static int detect_yolact(const cv::Mat& bgr, std::vector<Object>& objects, const
     }
 
     /* prepare process input data, set the data mem to input tensor */
-    float input_scale      = 0.f;
-    int   input_zero_point = 0;
-    get_tensor_quant_param(input_tensor, &input_scale, &input_zero_point, 1);
-    get_input_data_cv_uint8(bgr, input_data.data(), target_size, target_size, mean_vals, norm_vals, input_scale,
-                            input_zero_point);
+    float input_scale = 0.f;
+    int input_zero_point = 0;
+    get_tensor_quant_param(input_tensor, &input_scale, &input_zero_point, 1);    
+    get_input_data_cv_uint8(bgr, input_data.data(), target_size, target_size, mean_vals, norm_vals, input_scale, input_zero_point);
 
     /* run graph */
-    double min_time   = DBL_MAX;
-    double max_time   = DBL_MIN;
+    double min_time = DBL_MAX;
+    double max_time = DBL_MIN;
     double total_time = 0.;
     for (int i = 0; i < repeat_count; i++)
     {
@@ -325,30 +323,30 @@ static int detect_yolact(const cv::Mat& bgr, std::vector<Object>& objects, const
     tensor_t mask_tensor       = get_graph_output_tensor(graph, 3, 0);
     tensor_t confidence_tensor = get_graph_output_tensor(graph, 4, 0);
 
-    float maskmaps_scale       = 0.f;
-    float location_scale       = 0.f;
-    float mask_scale           = 0.f;
-    float confidence_scale     = 0.f;
+    float maskmaps_scale = 0.f;
+    float location_scale = 0.f;
+    float mask_scale     = 0.f;
+    float confidence_scale = 0.f;
 
-    int maskmaps_zero_point    = 0;
-    int location_zero_point    = 0;
-    int mask_zero_point        = 0;
-    int confidence_zero_point  = 0;
+    int maskmaps_zero_point = 0;
+    int location_zero_point = 0;
+    int mask_zero_point     = 0;
+    int confidence_zero_point = 0;
 
     get_tensor_quant_param(maskmaps_tensor, &maskmaps_scale, &maskmaps_zero_point, 1);
     get_tensor_quant_param(location_tensor, &location_scale, &location_zero_point, 1);
     get_tensor_quant_param(mask_tensor, &mask_scale, &mask_zero_point, 1);
     get_tensor_quant_param(confidence_tensor, &confidence_scale, &confidence_zero_point, 1);
 
-    int maskmaps_count     = get_tensor_buffer_size(maskmaps_tensor) / sizeof(uint8_t);
-    int location_count     = get_tensor_buffer_size(location_tensor) / sizeof(uint8_t);
-    int mask_count         = get_tensor_buffer_size(mask_tensor) / sizeof(uint8_t);
-    int confidence_count   = get_tensor_buffer_size(confidence_tensor) / sizeof(uint8_t);
+    int maskmaps_count   = get_tensor_buffer_size(maskmaps_tensor) / sizeof(uint8_t);
+    int location_count   = get_tensor_buffer_size(location_tensor) / sizeof(uint8_t);
+    int mask_count       = get_tensor_buffer_size(mask_tensor) / sizeof(uint8_t);
+    int confidence_count = get_tensor_buffer_size(confidence_tensor) / sizeof(uint8_t);
 
-    uint8_t* maskmaps_u8   = (uint8_t*)get_tensor_buffer(maskmaps_tensor);
-    uint8_t* location_u8   = (uint8_t*)get_tensor_buffer(location_tensor);
-    uint8_t* mask_u8       = (uint8_t*)get_tensor_buffer(mask_tensor);
-    uint8_t* confidence_u8 = (uint8_t*)get_tensor_buffer(confidence_tensor);
+    uint8_t* maskmaps_u8   = ( uint8_t* )get_tensor_buffer(maskmaps_tensor);
+    uint8_t* location_u8   = ( uint8_t* )get_tensor_buffer(location_tensor);
+    uint8_t* mask_u8       = ( uint8_t* )get_tensor_buffer(mask_tensor);
+    uint8_t* confidence_u8 = ( uint8_t* )get_tensor_buffer(confidence_tensor);
 
     std::vector<float> maskmaps(maskmaps_count);
     std::vector<float> location(location_count);
@@ -357,44 +355,44 @@ static int detect_yolact(const cv::Mat& bgr, std::vector<Object>& objects, const
 
     for (int c = 0; c < maskmaps_count; c++)
     {
-        maskmaps[c] = ((float)maskmaps_u8[c] - (float)maskmaps_zero_point) * maskmaps_scale;
+        maskmaps[c] = (( float )maskmaps_u8[c] - ( float )maskmaps_zero_point) * maskmaps_scale;
     }
 
     for (int c = 0; c < location_count; c++)
     {
-        location[c] = ((float)location_u8[c] - (float)location_zero_point) * location_scale;
+        location[c] = (( float )location_u8[c] - ( float )location_zero_point) * location_scale;
     }
 
     for (int c = 0; c < mask_count; c++)
     {
-        mask[c] = ((float)mask_u8[c] - (float)mask_zero_point) * mask_scale;
+        mask[c] = (( float )mask_u8[c] - ( float )mask_zero_point) * mask_scale;
     }
 
     for (int c = 0; c < confidence_count; c++)
     {
-        confidence[c] = ((float)confidence_u8[c] - (float)confidence_zero_point) * confidence_scale;
-    }
+        confidence[c] = (( float )confidence_u8[c] - ( float )confidence_zero_point) * confidence_scale;
+    }    
 
     /* postprocess */
-    int                num_class         = 81;
-    int                num_priors        = 19248;
-    std::vector<Box2f> priorboxes        = generate_priorbox(num_priors);
-    const float        confidence_thresh = 0.05f;
-    const float        nms_thresh        = 0.5f;
-    const int          keep_top_k        = 200;
+    int num_class = 81;
+    int num_priors = 19248;
+    std::vector<Box2f> priorboxes = generate_priorbox(num_priors);
+    const float confidence_thresh = 0.05f;
+    const float nms_thresh = 0.5f;
+    const int keep_top_k = 200;
 
     std::vector<std::vector<Object>> class_candidates;
     class_candidates.resize(num_class);
 
     for (int i = 0; i < num_priors; i++)
     {
-        const float* conf     = confidence.data() + i * 81;
-        const float* loc      = location.data() + i * 4;
+        const float* conf = confidence.data() + i * 81;
+        const float* loc = location.data() + i * 4;
         const float* maskdata = mask.data() + i * 32;
-        Box2f&       priorbox = priorboxes[i];
+        Box2f& priorbox = priorboxes[i];
 
-        int   label           = 0;
-        float score           = 0.f;
+        int label = 0;
+        float score = 0.f;
         for (int j = 1; j < num_class; j++)
         {
             float class_score = conf[j];
@@ -408,27 +406,27 @@ static int detect_yolact(const cv::Mat& bgr, std::vector<Object>& objects, const
         if (label == 0 || score <= confidence_thresh)
             continue;
 
-        float var[4]  = { 0.1f, 0.1f, 0.2f, 0.2f };
+        float var[4] = {0.1f, 0.1f, 0.2f, 0.2f};
 
         float bbox_cx = var[0] * loc[0] * priorbox.w + priorbox.cx;
         float bbox_cy = var[1] * loc[1] * priorbox.h + priorbox.cy;
-        float bbox_w  = (float)(exp(var[2] * loc[2]) * priorbox.w);
-        float bbox_h  = (float)(exp(var[3] * loc[3]) * priorbox.h);
+        float bbox_w = ( float )(exp(var[2] * loc[2]) * priorbox.w);
+        float bbox_h = ( float )(exp(var[3] * loc[3]) * priorbox.h);
 
-        float obj_x1  = bbox_cx - bbox_w * 0.5f;
-        float obj_y1  = bbox_cy - bbox_h * 0.5f;
-        float obj_x2  = bbox_cx + bbox_w * 0.5f;
-        float obj_y2  = bbox_cy + bbox_h * 0.5f;
+        float obj_x1 = bbox_cx - bbox_w * 0.5f;
+        float obj_y1 = bbox_cy - bbox_h * 0.5f;
+        float obj_x2 = bbox_cx + bbox_w * 0.5f;
+        float obj_y2 = bbox_cy + bbox_h * 0.5f;
 
-        obj_x1        = std::max(std::min(obj_x1 * bgr.cols, (float)(bgr.cols - 1)), 0.f);
-        obj_y1        = std::max(std::min(obj_y1 * bgr.rows, (float)(bgr.rows - 1)), 0.f);
-        obj_x2        = std::max(std::min(obj_x2 * bgr.cols, (float)(bgr.cols - 1)), 0.f);
-        obj_y2        = std::max(std::min(obj_y2 * bgr.rows, (float)(bgr.rows - 1)), 0.f);
+        obj_x1 = std::max(std::min(obj_x1 * bgr.cols, ( float )(bgr.cols - 1)), 0.f);
+        obj_y1 = std::max(std::min(obj_y1 * bgr.rows, ( float )(bgr.rows - 1)), 0.f);
+        obj_x2 = std::max(std::min(obj_x2 * bgr.cols, ( float )(bgr.cols - 1)), 0.f);
+        obj_y2 = std::max(std::min(obj_y2 * bgr.rows, ( float )(bgr.rows - 1)), 0.f);
 
         Object obj;
-        obj.rect     = cv::Rect_<float>(obj_x1, obj_y1, obj_x2 - obj_x1 + 1, obj_y2 - obj_y1 + 1);
-        obj.label    = label;
-        obj.prob     = score;
+        obj.rect = cv::Rect_<float>(obj_x1, obj_y1, obj_x2 - obj_x1 + 1, obj_y2 - obj_y1 + 1);
+        obj.label = label;
+        obj.prob = score;
 
         obj.maskdata = std::vector<float>(maskdata, maskdata + 32);
 
@@ -449,8 +447,8 @@ static int detect_yolact(const cv::Mat& bgr, std::vector<Object>& objects, const
             for (int p = 0; p < 32; p++)
             {
                 const float* maskmap = maskmaps.data() + p;
-                float        coeff   = obj.maskdata[p];
-                float*       mp      = (float*)mask1.data;
+                float coeff = obj.maskdata[p];
+                float* mp = ( float* )mask1.data;
 
                 // mask += m * coeff
                 for (int j = 0; j < 138 * 138; j++)
@@ -474,7 +472,7 @@ static int detect_yolact(const cv::Mat& bgr, std::vector<Object>& objects, const
                     continue;
 
                 const float* mp2 = mask2.ptr<const float>(y);
-                uchar*       bmp = obj.mask.ptr<uchar>(y);
+                uchar* bmp = obj.mask.ptr<uchar>(y);
 
                 for (int x = 0; x < img_w; x++)
                 {
@@ -497,106 +495,107 @@ static int detect_yolact(const cv::Mat& bgr, std::vector<Object>& objects, const
 
 static void draw_objects(const cv::Mat& bgr, const std::vector<Object>& objects)
 {
-    static const char* class_names[]         = { "background",
-                                         "person",
-                                         "bicycle",
-                                         "car",
-                                         "motorcycle",
-                                         "airplane",
-                                         "bus",
-                                         "train",
-                                         "truck",
-                                         "boat",
-                                         "traffic light",
-                                         "fire hydrant",
-                                         "stop sign",
-                                         "parking meter",
-                                         "bench",
-                                         "bird",
-                                         "cat",
-                                         "dog",
-                                         "horse",
-                                         "sheep",
-                                         "cow",
-                                         "elephant",
-                                         "bear",
-                                         "zebra",
-                                         "giraffe",
-                                         "backpack",
-                                         "umbrella",
-                                         "handbag",
-                                         "tie",
-                                         "suitcase",
-                                         "frisbee",
-                                         "skis",
-                                         "snowboard",
-                                         "sports ball",
-                                         "kite",
-                                         "baseball bat",
-                                         "baseball glove",
-                                         "skateboard",
-                                         "surfboard",
-                                         "tennis racket",
-                                         "bottle",
-                                         "wine glass",
-                                         "cup",
-                                         "fork",
-                                         "knife",
-                                         "spoon",
-                                         "bowl",
-                                         "banana",
-                                         "apple",
-                                         "sandwich",
-                                         "orange",
-                                         "broccoli",
-                                         "carrot",
-                                         "hot dog",
-                                         "pizza",
-                                         "donut",
-                                         "cake",
-                                         "chair",
-                                         "couch",
-                                         "potted plant",
-                                         "bed",
-                                         "dining table",
-                                         "toilet",
-                                         "tv",
-                                         "laptop",
-                                         "mouse",
-                                         "remote",
-                                         "keyboard",
-                                         "cell phone",
-                                         "microwave",
-                                         "oven",
-                                         "toaster",
-                                         "sink",
-                                         "refrigerator",
-                                         "book",
-                                         "clock",
-                                         "vase",
-                                         "scissors",
-                                         "teddy bear",
-                                         "hair drier",
-                                         "toothbrush" };
+    static const char* class_names[] = {"background",
+                                        "person", "bicycle", "car", "motorcycle", "airplane", "bus",
+                                        "train", "truck", "boat", "traffic light", "fire hydrant",
+                                        "stop sign", "parking meter", "bench", "bird", "cat", "dog",
+                                        "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe",
+                                        "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee",
+                                        "skis", "snowboard", "sports ball", "kite", "baseball bat",
+                                        "baseball glove", "skateboard", "surfboard", "tennis racket",
+                                        "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl",
+                                        "banana", "apple", "sandwich", "orange", "broccoli", "carrot",
+                                        "hot dog", "pizza", "donut", "cake", "chair", "couch",
+                                        "potted plant", "bed", "dining table", "toilet", "tv", "laptop",
+                                        "mouse", "remote", "keyboard", "cell phone", "microwave", "oven",
+                                        "toaster", "sink", "refrigerator", "book", "clock", "vase",
+                                        "scissors", "teddy bear", "hair drier", "toothbrush"};
 
     static const unsigned char colors[81][3] = {
-        { 56, 0, 255 },  { 226, 255, 0 }, { 0, 94, 255 },  { 0, 37, 255 },  { 0, 255, 94 },  { 255, 226, 0 },
-        { 0, 18, 255 },  { 255, 151, 0 }, { 170, 0, 255 }, { 0, 255, 56 },  { 255, 0, 75 },  { 0, 75, 255 },
-        { 0, 255, 169 }, { 255, 0, 207 }, { 75, 255, 0 },  { 207, 0, 255 }, { 37, 0, 255 },  { 0, 207, 255 },
-        { 94, 0, 255 },  { 0, 255, 113 }, { 255, 18, 0 },  { 255, 0, 56 },  { 18, 0, 255 },  { 0, 255, 226 },
-        { 170, 255, 0 }, { 255, 0, 245 }, { 151, 255, 0 }, { 132, 255, 0 }, { 75, 0, 255 },  { 151, 0, 255 },
-        { 0, 151, 255 }, { 132, 0, 255 }, { 0, 255, 245 }, { 255, 132, 0 }, { 226, 0, 255 }, { 255, 37, 0 },
-        { 207, 255, 0 }, { 0, 255, 207 }, { 94, 255, 0 },  { 0, 226, 255 }, { 56, 255, 0 },  { 255, 94, 0 },
-        { 255, 113, 0 }, { 0, 132, 255 }, { 255, 0, 132 }, { 255, 170, 0 }, { 255, 0, 188 }, { 113, 255, 0 },
-        { 245, 0, 255 }, { 113, 0, 255 }, { 255, 188, 0 }, { 0, 113, 255 }, { 255, 0, 0 },   { 0, 56, 255 },
-        { 255, 0, 113 }, { 0, 255, 188 }, { 255, 0, 94 },  { 255, 0, 18 },  { 18, 255, 0 },  { 0, 255, 132 },
-        { 0, 188, 255 }, { 0, 245, 255 }, { 0, 169, 255 }, { 37, 255, 0 },  { 255, 0, 151 }, { 188, 0, 255 },
-        { 0, 255, 37 },  { 0, 255, 0 },   { 255, 0, 170 }, { 255, 0, 37 },  { 255, 75, 0 },  { 0, 0, 255 },
-        { 255, 207, 0 }, { 255, 0, 226 }, { 255, 245, 0 }, { 188, 255, 0 }, { 0, 255, 18 },  { 0, 255, 75 },
-        { 0, 255, 151 }, { 255, 56, 0 },  { 245, 255, 0 }
+        {56, 0, 255},
+        {226, 255, 0},
+        {0, 94, 255},
+        {0, 37, 255},
+        {0, 255, 94},
+        {255, 226, 0},
+        {0, 18, 255},
+        {255, 151, 0},
+        {170, 0, 255},
+        {0, 255, 56},
+        {255, 0, 75},
+        {0, 75, 255},
+        {0, 255, 169},
+        {255, 0, 207},
+        {75, 255, 0},
+        {207, 0, 255},
+        {37, 0, 255},
+        {0, 207, 255},
+        {94, 0, 255},
+        {0, 255, 113},
+        {255, 18, 0},
+        {255, 0, 56},
+        {18, 0, 255},
+        {0, 255, 226},
+        {170, 255, 0},
+        {255, 0, 245},
+        {151, 255, 0},
+        {132, 255, 0},
+        {75, 0, 255},
+        {151, 0, 255},
+        {0, 151, 255},
+        {132, 0, 255},
+        {0, 255, 245},
+        {255, 132, 0},
+        {226, 0, 255},
+        {255, 37, 0},
+        {207, 255, 0},
+        {0, 255, 207},
+        {94, 255, 0},
+        {0, 226, 255},
+        {56, 255, 0},
+        {255, 94, 0},
+        {255, 113, 0},
+        {0, 132, 255},
+        {255, 0, 132},
+        {255, 170, 0},
+        {255, 0, 188},
+        {113, 255, 0},
+        {245, 0, 255},
+        {113, 0, 255},
+        {255, 188, 0},
+        {0, 113, 255},
+        {255, 0, 0},
+        {0, 56, 255},
+        {255, 0, 113},
+        {0, 255, 188},
+        {255, 0, 94},
+        {255, 0, 18},
+        {18, 255, 0},
+        {0, 255, 132},
+        {0, 188, 255},
+        {0, 245, 255},
+        {0, 169, 255},
+        {37, 255, 0},
+        {255, 0, 151},
+        {188, 0, 255},
+        {0, 255, 37},
+        {0, 255, 0},
+        {255, 0, 170},
+        {255, 0, 37},
+        {255, 75, 0},
+        {0, 0, 255},
+        {255, 207, 0},
+        {255, 0, 226},
+        {255, 245, 0},
+        {188, 255, 0},
+        {0, 255, 18},
+        {0, 255, 75},
+        {0, 255, 151},
+        {255, 56, 0},
+        {245, 255, 0}
     };
 
-    cv::Mat image   = bgr.clone();
+    cv::Mat image = bgr.clone();
 
     int color_index = 0;
 
@@ -618,11 +617,11 @@ static void draw_objects(const cv::Mat& bgr, const std::vector<Object>& objects)
         char text[256];
         sprintf(text, "%s %.1f%%", class_names[obj.label], obj.prob * 100);
 
-        int      baseLine   = 0;
+        int baseLine = 0;
         cv::Size label_size = cv::getTextSize(text, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
 
-        int x               = obj.rect.x;
-        int y               = obj.rect.y - label_size.height - baseLine;
+        int x = obj.rect.x;
+        int y = obj.rect.y - label_size.height - baseLine;
         if (y < 0)
             y = 0;
         if (x + label_size.width > image.cols)
@@ -638,7 +637,7 @@ static void draw_objects(const cv::Mat& bgr, const std::vector<Object>& objects)
         for (int y = 0; y < image.rows; y++)
         {
             const uchar* mp = obj.mask.ptr(y);
-            uchar*       p  = image.ptr(y);
+            uchar* p = image.ptr(y);
             for (int x = 0; x < image.cols; x++)
             {
                 if (mp[x] == 255)
@@ -662,33 +661,33 @@ void show_usage()
 
 int main(int argc, char** argv)
 {
-    int   repeat_count = DEFAULT_REPEAT_COUNT;
-    int   num_thread   = DEFAULT_THREAD_COUNT;
-    char* model_file   = nullptr;
-    char* image_file   = nullptr;
+    int repeat_count = DEFAULT_REPEAT_COUNT;
+    int num_thread = DEFAULT_THREAD_COUNT;
+    char* model_file = nullptr;
+    char* image_file = nullptr;
 
     int res;
     while ((res = getopt(argc, argv, "m:i:r:t:h:")) != -1)
     {
         switch (res)
         {
-        case 'm':
-            model_file = optarg;
-            break;
-        case 'i':
-            image_file = optarg;
-            break;
-        case 'r':
-            repeat_count = std::strtoul(optarg, nullptr, 10);
-            break;
-        case 't':
-            num_thread = std::strtoul(optarg, nullptr, 10);
-            break;
-        case 'h':
-            show_usage();
-            return 0;
-        default:
-            break;
+            case 'm':
+                model_file = optarg;
+                break;
+            case 'i':
+                image_file = optarg;
+                break;
+            case 'r':
+                repeat_count = std::strtoul(optarg, nullptr, 10);
+                break;
+            case 't':
+                num_thread = std::strtoul(optarg, nullptr, 10);
+                break;
+            case 'h':
+                show_usage();
+                return 0;
+            default:
+                break;
         }
     }
 

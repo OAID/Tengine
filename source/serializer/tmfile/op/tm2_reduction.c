@@ -44,17 +44,17 @@ static int reduction_op_map(int op)
 static int tm2_load_reduction(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                               const TM2_Operator* tm_op)
 {
-    struct reduction_param*   reduction_param = (struct reduction_param*)ir_node->op.param_mem;
-    const struct tm2_priv*    tm2_priv        = (struct tm2_priv*)ir_graph->serializer_privacy;
-    const char*               mem_base        = tm2_priv->base;
-    const TM2_ReductionParam* tm_param        = (TM2_ReductionParam*)(mem_base + tm_op->offset_t_param);
+    struct reduction_param* reduction_param = ( struct reduction_param* )ir_node->op.param_mem;
+    const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
+    const char* mem_base = tm2_priv->base;
+    const TM2_ReductionParam* tm_param = ( TM2_ReductionParam* )(mem_base + tm_op->offset_t_param);
 
-    reduction_param->dim_0                    = tm_param->dim_0;
-    reduction_param->dim_1                    = tm_param->dim_1;
-    reduction_param->dim_2                    = tm_param->dim_2;
-    reduction_param->dim_3                    = tm_param->dim_3;
-    reduction_param->type                     = tm_param->type;
-    reduction_param->keepdim                  = tm_param->keepdim;
+    reduction_param->dim_0 = tm_param->dim_0;
+    reduction_param->dim_1 = tm_param->dim_1;
+    reduction_param->dim_2 = tm_param->dim_2;
+    reduction_param->dim_3 = tm_param->dim_3;
+    reduction_param->type = tm_param->type;
+    reduction_param->keepdim = tm_param->keepdim;
 
     return 0;
 }

@@ -44,16 +44,16 @@ static int interp_op_map(int op)
 static int tm2_load_interp(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                            const TM2_Operator* tm_op)
 {
-    struct interp_param*   param    = (struct interp_param*)ir_node->op.param_mem;
+    struct interp_param* param = ( struct interp_param* )ir_node->op.param_mem;
     const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
-    const char*            mem_base = tm2_priv->base;
-    const TM2_InterpParam* tm_param = (TM2_InterpParam*)(mem_base + tm_op->offset_t_param);
+    const char* mem_base = tm2_priv->base;
+    const TM2_InterpParam* tm_param = ( TM2_InterpParam* )(mem_base + tm_op->offset_t_param);
 
-    param->resize_type              = tm_param->resize_type;
-    param->width_scale              = tm_param->width_scale;
-    param->height_scale             = tm_param->height_scale;
-    param->output_width             = tm_param->output_width;
-    param->output_height            = tm_param->output_height;
+    param->resize_type = tm_param->resize_type;
+    param->width_scale = tm_param->width_scale;
+    param->height_scale = tm_param->height_scale;
+    param->output_width = tm_param->output_width;
+    param->output_height = tm_param->output_height;
 
     return 0;
 }

@@ -42,7 +42,7 @@ int register_add_n_op()
 {
     struct method m;
     m.version = 1;
-    m.init    = init_op;
+    m.init = init_op;
     m.release = NULL;
 
 

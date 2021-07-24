@@ -42,29 +42,28 @@
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node*   ir_node       = exec_node->ir_node;
-    struct graph*  ir_graph      = ir_node->graph;
-    struct tensor* input_tensor  = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    struct node* ir_node = exec_node->ir_node;
+    struct graph* ir_graph = ir_node->graph;
+    struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     struct tensor* weight_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
-    struct tensor* bias_tensor   = NULL;
+    struct tensor* bias_tensor = NULL;
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    int            num_thread    = exec_graph->num_thread;
-    int            cpu_affinity  = exec_graph->cpu_affinity;
+    int num_thread = exec_graph->num_thread;
+    int cpu_affinity = exec_graph->cpu_affinity;
 
     if (ir_node->input_num > 2)
         bias_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[2]);
 
-    struct conv_param*     conv_param     = (struct conv_param*)ir_node->op.param_mem;
-    struct conv_priv_info* conv_priv_info = (struct conv_priv_info*)exec_node->ops_priv;
+    struct conv_param* conv_param = ( struct conv_param* )ir_node->op.param_mem;
+    struct conv_priv_info* conv_priv_info = ( struct conv_priv_info* )exec_node->ops_priv;
 
-    int ret                               = -1;
+    int ret = -1;
     if (exec_graph->mode == TENGINE_MODE_FP32)
-        ret = conv_dw_run(input_tensor, weight_tensor, bias_tensor, output_tensor, conv_priv_info, conv_param,
-                          num_thread, cpu_affinity);
+        ret = conv_dw_run(input_tensor, weight_tensor, bias_tensor, output_tensor, conv_priv_info, conv_param, num_thread, cpu_affinity);
     else
     {
-        TLOG_ERR("hcl conv run failed\n");
-        return -1;
+            TLOG_ERR("hcl conv run failed\n");
+            return -1;
     }
 
     return ret;
@@ -82,30 +81,30 @@ static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, 
 
 static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struct node* exec_node)
 {
-    struct conv_param* param    = (struct conv_param*)exec_node->op.param_mem;
-    struct node*       ir_node  = exec_node;
-    struct graph*      ir_graph = ir_node->graph;
+    struct conv_param* param = ( struct conv_param* )exec_node->op.param_mem;
+    struct node* ir_node = exec_node;
+    struct graph* ir_graph = ir_node->graph;
 
     struct tensor* input_tensor;
     struct tensor* output_tensor;
 
-    int group      = param->group;
-    int kernel_h   = param->kernel_h;
-    int kernel_w   = param->kernel_w;
-    int stride_h   = param->stride_h;
-    int stride_w   = param->stride_w;
+    int group = param->group;
+    int kernel_h = param->kernel_h;
+    int kernel_w = param->kernel_w;
+    int stride_h = param->stride_h;
+    int stride_w = param->stride_w;
     int dilation_h = param->dilation_h;
     int dilation_w = param->dilation_w;
-    int pad_h0     = param->pad_h0;
-    int pad_w0     = param->pad_w0;
-    int pad_h1     = param->pad_h1;
-    int pad_w1     = param->pad_w1;
+    int pad_h0 = param->pad_h0;
+    int pad_w0 = param->pad_w0;
+    int pad_h1 = param->pad_h1;
+    int pad_w1 = param->pad_w1;
 
-    input_tensor   = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    output_tensor  = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+    input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    int in_c       = input_tensor->dims[1] / group;
-    int out_c      = output_tensor->dims[1] / group;
+    int in_c = input_tensor->dims[1] / group;
+    int out_c = output_tensor->dims[1] / group;
 
     /* todo support uint8 */
     if (!(input_tensor->data_type == TENGINE_DT_FP32))
@@ -114,25 +113,23 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     if (kernel_h != kernel_w || input_tensor->dims[0] > 1)
         return 0;
 
-    if (param->group > 1 && in_c == 1 && out_c == 1 && pad_h0 == pad_h1 && pad_w0 == pad_w1 && dilation_h == 1
-        && dilation_w == 1 && kernel_h == 3 && kernel_w == 3
-        && ((stride_h == 1 && stride_w == 1) || (stride_h == 2 && stride_w == 2)))
+    if (param->group > 1 && in_c == 1 && out_c == 1 && pad_h0 == pad_h1 && pad_w0 == pad_w1 && dilation_h == 1 && dilation_w == 1 && kernel_h == 3 && kernel_w == 3 &&
+        ((stride_h == 1 && stride_w == 1) || (stride_h == 2 && stride_w == 2)))
         return OPS_SCORE_BEST;
-    else if (param->group > 1 && in_c == 1 && out_c == 1 && pad_h0 == pad_h1 && pad_w0 == pad_w1 && dilation_h == 1
-             && dilation_w == 1 && kernel_h == 5 && kernel_w == 5
-             && ((stride_h == 1 && stride_w == 1) || (stride_h == 2 && stride_w == 2)))
-        return OPS_SCORE_BEST;
+    else if (param->group > 1 && in_c == 1 && out_c == 1 && pad_h0 == pad_h1 && pad_w0 == pad_w1 && dilation_h == 1 && dilation_w == 1 && kernel_h == 5 && kernel_w == 5 &&
+        ((stride_h == 1 && stride_w == 1) || (stride_h == 2 && stride_w == 2)))
+        return OPS_SCORE_BEST;        
     else
         return 0;
 }
 
-static struct node_ops hcl_node_ops = { .prerun       = NULL,
-                                        .run          = run,
-                                        .reshape      = NULL,
-                                        .postrun      = NULL,
-                                        .init_node    = init_node,
-                                        .release_node = release_node,
-                                        .score        = score };
+static struct node_ops hcl_node_ops = {.prerun = NULL,
+                                       .run = run,
+                                       .reshape = NULL,
+                                       .postrun = NULL,
+                                       .init_node = init_node,
+                                       .release_node = release_node,
+                                       .score = score};
 
 int register_conv_dw_hcl_rv64_op()
 {

@@ -39,37 +39,37 @@
 
 typedef struct _ref_mvn_param
 {
-    int   input_n;
-    int   input_h;
-    int   input_w;
-    int   input_c;
-    int   across_channels;
-    int   normalize_variance;
+    int input_n;
+    int input_h;
+    int input_w;
+    int input_c;
+    int across_channels;
+    int normalize_variance;
     float eps;
-    int   layout;
+    int layout;
     float in_scale;
-    int   in_zero;
+    int in_zero;
     float out_scale;
-    int   out_zero;
+    int out_zero;
     float scale_scale;
-    int   scale_zero;
+    int scale_zero;
 } ref_mvn_param, *p_ref_mvn_param;
 
 int ref_mvn_fp32(float* in_data, float* out_data, p_ref_mvn_param param)
 {
-    int   batch_num          = param->input_n;
-    int   in_h               = param->input_h;
-    int   in_w               = param->input_w;
-    int   in_c               = param->input_c;
-    int   in_size            = in_h * in_w;
-    int   image_size         = in_size * in_c;
-    int   offset             = 0;
-    int   layout             = param->layout;
-    int   across_channels    = param->across_channels;
-    int   normalize_variance = param->normalize_variance;
-    float eps                = param->eps;
+    int batch_num = param->input_n;
+    int in_h = param->input_h;
+    int in_w = param->input_w;
+    int in_c = param->input_c;
+    int in_size = in_h * in_w;
+    int image_size = in_size * in_c;
+    int offset = 0;
+    int layout = param->layout;
+    int across_channels = param->across_channels;
+    int normalize_variance = param->normalize_variance;
+    float eps = param->eps;
 
-    float* sum               = (float*)malloc(in_c * sizeof(float));
+    float* sum = ( float* )malloc(in_c * sizeof(float));
 
     if (NULL == sum)
         return -100;
@@ -130,7 +130,7 @@ int ref_mvn_fp32(float* in_data, float* out_data, p_ref_mvn_param param)
 
         if (normalize_variance)
         {
-            float* sqsum = (float*)malloc(in_c * sizeof(float));
+            float* sqsum = ( float* )malloc(in_c * sizeof(float));
             if (NULL == sqsum)
                 return -100;
 
@@ -155,7 +155,7 @@ int ref_mvn_fp32(float* in_data, float* out_data, p_ref_mvn_param param)
                 {
                     sqmean += sqsum[c];
                 }
-                sqmean         = sqmean / (in_c * in_size);
+                sqmean = sqmean / (in_c * in_size);
 
                 float norm_var = sqrt(sqmean) + eps;
 
@@ -175,7 +175,7 @@ int ref_mvn_fp32(float* in_data, float* out_data, p_ref_mvn_param param)
             {
                 for (int c = 0; c < in_c; c++)
                 {
-                    float sqmean   = sqsum[c] / in_size;
+                    float sqmean = sqsum[c] / in_size;
                     float norm_var = sqrt(sqmean) + eps;
                     for (int i = 0; i < in_size; i++)
                     {
@@ -214,27 +214,27 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node*  node           = exec_node->ir_node;
-    struct graph* graph          = node->graph;
+    struct node* node = exec_node->ir_node;
+    struct graph* graph = node->graph;
 
-    struct tensor* input_tensor  = get_ir_graph_tensor(graph, node->input_tensors[0]);
+    struct tensor* input_tensor = get_ir_graph_tensor(graph, node->input_tensors[0]);
     struct tensor* output_tensor = get_ir_graph_tensor(graph, node->output_tensors[0]);
 
     ref_mvn_param op_param;
 
-    op_param.input_n            = input_tensor->dims[0];
-    op_param.input_c            = input_tensor->dims[1];
-    op_param.input_h            = input_tensor->dims[2];
-    op_param.input_w            = input_tensor->dims[3];
+    op_param.input_n = input_tensor->dims[0];
+    op_param.input_c = input_tensor->dims[1];
+    op_param.input_h = input_tensor->dims[2];
+    op_param.input_w = input_tensor->dims[3];
 
-    struct mvn_param* param     = (struct mvn_param*)node->op.param_mem;
+    struct mvn_param* param = ( struct mvn_param* )node->op.param_mem;
     op_param.normalize_variance = param->normalize_variance;
-    op_param.across_channels    = param->across_channels;
-    op_param.eps                = param->eps;
-    op_param.layout             = graph->graph_layout;
+    op_param.across_channels = param->across_channels;
+    op_param.eps = param->eps;
+    op_param.layout = graph->graph_layout;
 
-    void* in_data               = input_tensor->data;
-    void* out_data              = output_tensor->data;
+    void* in_data = input_tensor->data;
+    void* out_data = output_tensor->data;
 
     return ref_mvn_fp32(in_data, out_data, &op_param);
 }
@@ -244,13 +244,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_BEST;
 }
 
-static struct node_ops hcl_node_ops = { .prerun       = NULL,
-                                        .run          = run,
-                                        .reshape      = NULL,
-                                        .postrun      = NULL,
-                                        .init_node    = init_node,
-                                        .release_node = release_node,
-                                        .score        = score };
+static struct node_ops hcl_node_ops = {.prerun = NULL,
+                                       .run = run,
+                                       .reshape = NULL,
+                                       .postrun = NULL,
+                                       .init_node = init_node,
+                                       .release_node = release_node,
+                                       .score = score};
 
 int register_mvn_ref_op()
 {

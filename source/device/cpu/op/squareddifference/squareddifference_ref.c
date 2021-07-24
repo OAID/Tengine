@@ -41,10 +41,10 @@ int ref_squareddifference_fp32(struct tensor* input_tensor_0, struct tensor* inp
     // dims size = 2 or 3
     if (input_tensor_0->dim_num < 4)
     {
-        float* input0     = input_tensor_0->data;
-        float* input1     = input_tensor_1->data;
-        float* output     = output_tensor->data;
-        int    total_size = output_tensor->elem_num;
+        float* input0 = input_tensor_0->data;
+        float* input1 = input_tensor_1->data;
+        float* output = output_tensor->data;
+        int total_size = output_tensor->elem_num;
 
         for (int i = 0; i < total_size; i++)
         {
@@ -56,11 +56,11 @@ int ref_squareddifference_fp32(struct tensor* input_tensor_0, struct tensor* inp
     // dims size 3
     else if (output_tensor->dim_num == 4)
     {
-        int w         = output_tensor->dims[3];
-        int h         = output_tensor->dims[2];
-        int channels  = output_tensor->dims[1];
-        int size      = h * w;
-        int c_step    = h * w;
+        int w = output_tensor->dims[3];
+        int h = output_tensor->dims[2];
+        int channels = output_tensor->dims[1];
+        int size = h * w;
+        int c_step = h * w;
 
         float* input0 = input_tensor_0->data;
         float* input1 = input_tensor_1->data;
@@ -71,7 +71,7 @@ int ref_squareddifference_fp32(struct tensor* input_tensor_0, struct tensor* inp
         {
             float* src0 = input0 + c_step * q;
             float* src1 = input1 + c_step * q;
-            float* dst  = output + c_step * q;
+            float* dst = output + c_step * q;
 
             for (int i = 0; i < size; i++)
             {
@@ -86,33 +86,33 @@ int ref_squareddifference_fp32(struct tensor* input_tensor_0, struct tensor* inp
 }
 
 int ref_squareddifference_uint8(struct tensor* input_tensor_0, struct tensor* input_tensor_1,
-                                struct tensor* output_tensor, int num_thread)
+                               struct tensor* output_tensor, int num_thread)
 {
     /* dequant */
     uint8_t* input0_uint8 = input_tensor_0->data;
     uint8_t* input1_uint8 = input_tensor_1->data;
     uint8_t* output_uint8 = output_tensor->data;
-    float    input0_scale = input_tensor_0->scale;
-    float    input1_scale = input_tensor_1->scale;
-    float    output_scale = output_tensor->scale;
-    int32_t  input0_zero  = input_tensor_0->zero_point;
-    int32_t  input1_zero  = input_tensor_1->zero_point;
-    int32_t  output_zero  = output_tensor->zero_point;
-    int      input0_size  = input_tensor_0->elem_num;
-    int      input1_size  = input_tensor_1->elem_num;
-    int      output_size  = output_tensor->elem_num;
+    float input0_scale = input_tensor_0->scale;
+    float input1_scale = input_tensor_1->scale;
+    float output_scale = output_tensor->scale;
+    int32_t input0_zero = input_tensor_0->zero_point;
+    int32_t input1_zero = input_tensor_1->zero_point;
+    int32_t output_zero = output_tensor->zero_point;
+    int input0_size = input_tensor_0->elem_num;
+    int input1_size = input_tensor_1->elem_num;
+    int output_size = output_tensor->elem_num;
 
-    float* input0         = (float*)sys_malloc(input0_size * sizeof(float));
-    float* input1         = (float*)sys_malloc(input1_size * sizeof(float));
-    float* output         = (float*)sys_malloc(output_size * sizeof(float));
+    float* input0 = ( float* )sys_malloc(input0_size * sizeof(float));
+    float* input1 = ( float* )sys_malloc(input1_size * sizeof(float));
+    float* output = ( float* )sys_malloc(output_size * sizeof(float));
 
     for (int i = 0; i < input0_size; i++)
     {
-        input0[i] = ((float)input0_uint8[i] - (float)input0_zero) * input0_scale;
+        input0[i] = (( float )input0_uint8[i] - ( float )input0_zero) * input0_scale;
     }
     for (int i = 0; i < input1_size; i++)
     {
-        input1[i] = ((float)input1_uint8[i] - (float)input1_zero) * input1_scale;
+        input1[i] = (( float )input1_uint8[i] - ( float )input1_zero) * input1_scale;
     }
 
     // dims size = 2 or 3
@@ -130,18 +130,18 @@ int ref_squareddifference_uint8(struct tensor* input_tensor_0, struct tensor* in
     // dims size 3
     else if (output_tensor->dim_num == 4)
     {
-        int w        = output_tensor->dims[3];
-        int h        = output_tensor->dims[2];
+        int w = output_tensor->dims[3];
+        int h = output_tensor->dims[2];
         int channels = output_tensor->dims[1];
-        int size     = h * w;
-        int c_step   = h * w;
+        int size = h * w;
+        int c_step = h * w;
 
 #pragma omp parallel for num_threads(num_thread)
         for (int q = 0; q < channels; q++)
         {
             float* src0 = input0 + c_step * q;
             float* src1 = input1 + c_step * q;
-            float* dst  = output + c_step * q;
+            float* dst = output + c_step * q;
 
             for (int i = 0; i < size; i++)
             {
@@ -187,21 +187,21 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node*   ir_node  = exec_node->ir_node;
-    struct graph*  ir_graph = ir_node->graph;
+    struct node* ir_node = exec_node->ir_node;
+    struct graph* ir_graph = ir_node->graph;
     struct tensor* input_tensor_0;
     struct tensor* input_tensor_1;
     struct tensor* output_tensor;
-    int            layout = ir_graph->graph_layout;
+    int layout = ir_graph->graph_layout;
 
-    input_tensor_0        = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    input_tensor_1        = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
-    output_tensor         = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+    input_tensor_0 = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    input_tensor_1 = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
+    output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    int ret               = -1;
+    int ret = -1;
     if (input_tensor_0->data_type == TENGINE_DT_FP32)
         ret = ref_squareddifference_fp32(input_tensor_0, input_tensor_1, output_tensor, exec_graph->num_thread);
-    else if (input_tensor_0->data_type == TENGINE_DT_UINT8)
+    else if(input_tensor_0->data_type == TENGINE_DT_UINT8)
         ret = ref_squareddifference_uint8(input_tensor_0, input_tensor_1, output_tensor, exec_graph->num_thread);
 
     return ret;
@@ -212,13 +212,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_CANDO;
 }
 
-static struct node_ops hcl_node_ops = { .prerun       = prerun,
-                                        .run          = run,
-                                        .reshape      = NULL,
-                                        .postrun      = NULL,
-                                        .init_node    = init_node,
-                                        .release_node = release_node,
-                                        .score        = score };
+static struct node_ops hcl_node_ops = {.prerun = prerun,
+                                       .run = run,
+                                       .reshape = NULL,
+                                       .postrun = NULL,
+                                       .init_node = init_node,
+                                       .release_node = release_node,
+                                       .score = score};
 
 int register_squareddifference_ref_op()
 {

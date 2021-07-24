@@ -27,9 +27,9 @@
 
 typedef struct detection_output_param
 {
-    int   num_classes;
-    int   keep_top_k;
-    int   nms_top_k;
+    int num_classes;
+    int keep_top_k;
+    int nms_top_k;
     float confidence_threshold;
     float nms_threshold;
 } detection_output_param_t;

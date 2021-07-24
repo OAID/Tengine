@@ -45,16 +45,17 @@
 
 #include "softmax_param.h"
 
-namespace TEngine
+namespace TEngine{
+
+class Softmax_vulkan : public Layer
 {
-class Softmax_vulkan : public Layer {
 public:
     Softmax_vulkan();
     Softmax_vulkan(ir_graph_t* ir_graph, ir_node_t* ir_node);
 
     virtual int create_pipeline(const Option& opt);
     virtual int destroy_pipeline(const Option& opt);
-
+    
     virtual int record_pipeline(VkTensor& bottom_top_blob, VkCompute& cmd, const Option& opt) const;
 
 public:
@@ -81,8 +82,9 @@ public:
     int output_c;
     int output_h;
     int output_w;
+
 };
 
-}    // namespace TEngine
+}   // namespace TEngine
 
 #endif

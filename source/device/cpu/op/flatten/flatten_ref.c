@@ -49,16 +49,16 @@ static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, 
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node*   ir_node       = exec_node->ir_node;
-    struct graph*  ir_graph      = ir_node->graph;
-    struct tensor* input_tensor  = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    struct node* ir_node = exec_node->ir_node;
+    struct graph* ir_graph = ir_node->graph;
+    struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    int out_size                 = input_tensor->elem_num;
+    int out_size = input_tensor->elem_num;
 
     if (input_tensor->data_type == TENGINE_DT_FP32)
     {
-        float* input_org  = input_tensor->data;
+        float* input_org = input_tensor->data;
         float* output_org = output_tensor->data;
 
         for (int i = 0; i < out_size; i++)
@@ -66,7 +66,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     }
     else if (input_tensor->data_type == TENGINE_DT_UINT8)
     {
-        uint8_t* input_org  = input_tensor->data;
+        uint8_t* input_org = input_tensor->data;
         uint8_t* output_org = output_tensor->data;
 
         for (int i = 0; i < out_size; i++)
@@ -74,7 +74,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     }
     else if (input_tensor->data_type == TENGINE_DT_INT8)
     {
-        int8_t* input_org  = input_tensor->data;
+        int8_t* input_org = input_tensor->data;
         int8_t* output_org = output_tensor->data;
 
         for (int i = 0; i < out_size; i++)
@@ -94,13 +94,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_BEST;
 }
 
-static struct node_ops flatten_node_ops = { .prerun       = NULL,
-                                            .run          = run,
-                                            .reshape      = NULL,
-                                            .postrun      = NULL,
-                                            .init_node    = init_node,
-                                            .release_node = release_node,
-                                            .score        = score };
+static struct node_ops flatten_node_ops = {.prerun = NULL,
+                                           .run = run,
+                                           .reshape = NULL,
+                                           .postrun = NULL,
+                                           .init_node = init_node,
+                                           .release_node = release_node,
+                                           .score = score};
 
 int register_flatten_ref_op()
 {

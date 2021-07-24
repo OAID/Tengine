@@ -43,9 +43,9 @@
 #include <arm_neon.h>
 
 #define POOL_GENERIC 0
-#define POOL_K2S2    1
-#define POOL_K3S2    2
-#define POOL_K3S1    3
+#define POOL_K2S2 1
+#define POOL_K3S2 2
+#define POOL_K3S1 3
 
 
 typedef void (*pooling_kernel_t)(const void* input, void* output, int inc, int inh, int inw, int outh, int outw, int,
@@ -54,7 +54,7 @@ typedef void (*pooling_kernel_t)(const void* input, void* output, int inc, int i
 static void avg_2x2s2(const float* input, float* output, int inc, int inh, int inw, int outh, int outw, int k_h,
                       int k_w, int s_h, int s_w, int pad_h0, int pad_w0, int pad_h1, int pad_w1, int is_caffe)
 {
-    int in_hw  = inw * inh;
+    int in_hw = inw * inh;
     int out_hw = outh * outw;
 
     if (pad_w1 > 0)
@@ -65,32 +65,32 @@ static void avg_2x2s2(const float* input, float* output, int inc, int inh, int i
     {
         outh--;
     }
-    int block_w  = outw >> 2;
+    int block_w = outw >> 2;
     int remain_w = inw - outw * 2;
 
     for (int c = 0; c < inc; c++)
     {
-        const float* line0   = input + c * in_hw;
-        const float* line1   = line0 + inw;
-        float*       out_ptr = output + c * out_hw;
+        const float* line0 = input + c * in_hw;
+        const float* line1 = line0 + inw;
+        float* out_ptr = output + c * out_hw;
 
         for (int i = 0; i < outh; i++)
         {
             for (int j = 0; j < block_w; j++)
             {
-                float32x4_t p00  = vld1q_f32(line0);
-                float32x4_t p10  = vld1q_f32(line1);
+                float32x4_t p00 = vld1q_f32(line0);
+                float32x4_t p10 = vld1q_f32(line1);
                 float32x4_t sum0 = vaddq_f32(p00, p10);
 
-                float32x4_t p01  = vld1q_f32(line0 + 4);
-                float32x4_t p11  = vld1q_f32(line1 + 4);
+                float32x4_t p01 = vld1q_f32(line0 + 4);
+                float32x4_t p11 = vld1q_f32(line1 + 4);
                 float32x4_t sum1 = vaddq_f32(p01, p11);
 #ifdef __aarch64__
                 sum0 = vpaddq_f32(sum0, sum1);
 #else
                 float32x2_t sum0_1 = vpadd_f32(vget_low_f32(sum0), vget_high_f32(sum0));
                 float32x2_t sum0_2 = vpadd_f32(vget_low_f32(sum1), vget_high_f32(sum1));
-                sum0               = vcombine_f32(sum0_1, sum0_2);
+                sum0 = vcombine_f32(sum0_1, sum0_2);
 #endif
                 sum0 = vmulq_n_f32(sum0, 0.25f);
                 vst1q_f32(out_ptr, sum0);
@@ -100,11 +100,11 @@ static void avg_2x2s2(const float* input, float* output, int inc, int inh, int i
             }
             for (int j = block_w * 4; j < outw; j++)
             {
-                float32x2_t p1  = vld1_f32(line0);
-                float32x2_t p2  = vld1_f32(line1);
+                float32x2_t p1 = vld1_f32(line0);
+                float32x2_t p2 = vld1_f32(line1);
                 float32x2_t sum = vadd_f32(p1, p2);
 
-                *out_ptr        = (sum[0] + sum[1]) * 0.25f;
+                *out_ptr = (sum[0] + sum[1]) * 0.25f;
                 out_ptr++;
                 line0 += 2;
                 line1 += 2;
@@ -129,7 +129,7 @@ static void avg_2x2s2(const float* input, float* output, int inc, int inh, int i
 #else
                 float32x2_t sum0_1 = vpadd_f32(vget_low_f32(p00), vget_high_f32(p00));
                 float32x2_t sum0_2 = vpadd_f32(vget_low_f32(p01), vget_high_f32(p01));
-                p00                = vcombine_f32(sum0_1, sum0_2);
+                p00 = vcombine_f32(sum0_1, sum0_2);
 #endif
                 p00 = vmulq_n_f32(p00, 0.5f);
                 vst1q_f32(out_ptr, p00);
@@ -139,7 +139,7 @@ static void avg_2x2s2(const float* input, float* output, int inc, int inh, int i
             for (int j = block_w * 4; j < outw; j++)
             {
                 float32x2_t p1 = vld1_f32(line0);
-                *out_ptr       = (p1[0] + p1[1]) * 0.5f;
+                *out_ptr = (p1[0] + p1[1]) * 0.5f;
                 out_ptr++;
                 line0 += 2;
             }
@@ -155,7 +155,7 @@ static void avg_2x2s2(const float* input, float* output, int inc, int inh, int i
 static void max_2x2s2(const float* input, float* output, int inc, int inh, int inw, int outh, int outw, int k_h,
                       int k_w, int s_h, int s_w, int pad_h0, int pad_w0, int pad_h1, int pad_w1, int is_caffe)
 {
-    int in_hw  = inw * inh;
+    int in_hw = inw * inh;
     int out_hw = outh * outw;
 
     if (pad_w1 > 0)
@@ -166,14 +166,14 @@ static void max_2x2s2(const float* input, float* output, int inc, int inh, int i
     {
         outh--;
     }
-    int block_w  = outw >> 2;
+    int block_w = outw >> 2;
     int remain_w = inw - outw * 2;
 
     for (int c = 0; c < inc; c++)
     {
-        const float* line0   = input + c * in_hw;
-        const float* line1   = line0 + inw;
-        float*       out_ptr = output + c * out_hw;
+        const float* line0 = input + c * in_hw;
+        const float* line1 = line0 + inw;
+        float* out_ptr = output + c * out_hw;
 
         for (int i = 0; i < outh; i++)
         {
@@ -192,12 +192,12 @@ static void max_2x2s2(const float* input, float* output, int inc, int inh, int i
 #else
                 float32x2_t max0_1 = vpmax_f32(vget_low_f32(p00), vget_low_f32(p10));
                 float32x2_t max0_2 = vpmax_f32(vget_high_f32(p00), vget_high_f32(p10));
-                max0_1             = vpmax_f32(max0_1, max0_2);
+                max0_1 = vpmax_f32(max0_1, max0_2);
                 float32x2_t max1_1 = vpmax_f32(vget_low_f32(p01), vget_low_f32(p11));
                 float32x2_t max1_2 = vpmax_f32(vget_high_f32(p01), vget_high_f32(p11));
-                max1_1             = vpmax_f32(max1_1, max1_2);
+                max1_1 = vpmax_f32(max1_1, max1_2);
 
-                float32x4_t _max   = vcombine_f32(max0_1, max1_1);
+                float32x4_t _max = vcombine_f32(max0_1, max1_1);
 #endif
                 vst1q_f32(out_ptr, _max);
                 line0 += 8;
@@ -207,10 +207,10 @@ static void max_2x2s2(const float* input, float* output, int inc, int inh, int i
 
             for (int j = block_w * 4; j < outw; j++)
             {
-                float32x2_t p1   = vld1_f32(line0);
-                float32x2_t p2   = vld1_f32(line1);
+                float32x2_t p1 = vld1_f32(line0);
+                float32x2_t p2 = vld1_f32(line1);
                 float32x2_t _max = vmax_f32(p1, p2);
-                *out_ptr         = fmax(_max[0], _max[1]);
+                *out_ptr = fmax(_max[0], _max[1]);
                 out_ptr++;
                 line0 += 2;
                 line1 += 2;
@@ -236,7 +236,7 @@ static void max_2x2s2(const float* input, float* output, int inc, int inh, int i
 #else
                 float32x2_t max0_1 = vpmax_f32(vget_low_f32(p00), vget_high_f32(p00));
                 float32x2_t max0_2 = vpmax_f32(vget_low_f32(p01), vget_high_f32(p01));
-                p00                = vcombine_f32(max0_1, max0_2);
+                p00 = vcombine_f32(max0_1, max0_2);
 #endif
                 vst1q_f32(out_ptr, p00);
                 line0 += 8;
@@ -245,7 +245,7 @@ static void max_2x2s2(const float* input, float* output, int inc, int inh, int i
             for (int j = block_w * 4; j < outw; j++)
             {
                 float32x2_t p1 = vld1_f32(line0);
-                *out_ptr       = fmax(p1[0], p1[1]);
+                *out_ptr = fmax(p1[0], p1[1]);
                 out_ptr++;
                 line0 += 2;
             }
@@ -261,7 +261,7 @@ static void max_2x2s2(const float* input, float* output, int inc, int inh, int i
 static void avg_3x3s2(const float* input, float* output, int inc, int inh, int inw, int outh, int outw, int k_h,
                       int k_w, int s_h, int s_w, int pad_h0, int pad_w0, int pad_h1, int pad_w1, int is_caffe)
 {
-    int in_hw  = inw * inh;
+    int in_hw = inw * inh;
     int out_hw = outh * outw;
 
     if (pad_w1 > 0)
@@ -272,15 +272,15 @@ static void avg_3x3s2(const float* input, float* output, int inc, int inh, int i
     {
         outh--;
     }
-    int block_w  = outw >> 2;
+    int block_w = outw >> 2;
     int remain_w = inw - outw * 2;
 
     for (int c = 0; c < inc; c++)
     {
-        const float* line0   = input + c * in_hw;
-        const float* line1   = line0 + inw;
-        const float* line2   = line1 + inw;
-        float*       out_ptr = output + c * out_hw;
+        const float* line0 = input + c * in_hw;
+        const float* line1 = line0 + inw;
+        const float* line2 = line1 + inw;
+        float* out_ptr = output + c * out_hw;
         for (int i = 0; i < outh; i++)
         {
             float32x4x2_t p00 = vld2q_f32(line0);
@@ -289,22 +289,22 @@ static void avg_3x3s2(const float* input, float* output, int inc, int inh, int i
             for (int j = 0; j < block_w; j++)
             {
                 float32x4x2_t p00_new = vld2q_f32(line0 + 8);
-                float32x4_t   sum0    = vaddq_f32(p00.val[0], p00.val[1]);
-                float32x4_t   p01     = vextq_f32(p00.val[0], p00_new.val[0], 1);
-                sum0                  = vaddq_f32(sum0, p01);
+                float32x4_t sum0 = vaddq_f32(p00.val[0], p00.val[1]);
+                float32x4_t p01 = vextq_f32(p00.val[0], p00_new.val[0], 1);
+                sum0 = vaddq_f32(sum0, p01);
 
                 float32x4x2_t p10_new = vld2q_f32(line1 + 8);
-                float32x4_t   sum1    = vaddq_f32(p10.val[0], p10.val[1]);
-                float32x4_t   p11     = vextq_f32(p10.val[0], p10_new.val[0], 1);
-                sum1                  = vaddq_f32(sum1, p11);
+                float32x4_t sum1 = vaddq_f32(p10.val[0], p10.val[1]);
+                float32x4_t p11 = vextq_f32(p10.val[0], p10_new.val[0], 1);
+                sum1 = vaddq_f32(sum1, p11);
 
                 float32x4x2_t p20_new = vld2q_f32(line2 + 8);
-                float32x4_t   sum2    = vaddq_f32(p20.val[0], p20.val[1]);
-                float32x4_t   p21     = vextq_f32(p20.val[0], p20_new.val[0], 1);
-                sum2                  = vaddq_f32(sum2, p21);
+                float32x4_t sum2 = vaddq_f32(p20.val[0], p20.val[1]);
+                float32x4_t p21 = vextq_f32(p20.val[0], p20_new.val[0], 1);
+                sum2 = vaddq_f32(sum2, p21);
 
-                sum0                  = vaddq_f32(vaddq_f32(sum0, sum1), sum2);
-                sum0                  = vmulq_n_f32(sum0, 0.11111111f);
+                sum0 = vaddq_f32(vaddq_f32(sum0, sum1), sum2);
+                sum0 = vmulq_n_f32(sum0, 0.11111111f);
                 vst1q_f32(out_ptr, sum0);
 
                 p00 = p00_new;
@@ -319,8 +319,8 @@ static void avg_3x3s2(const float* input, float* output, int inc, int inh, int i
             for (int j = block_w * 4; j < outw; j++)
             {
                 *out_ptr =
-                    (line0[0] + line0[1] + line0[2] + line1[0] + line1[1] + line1[2] + line2[0] + line2[1] + line2[2])
-                    * 0.11111111f;
+                    (line0[0] + line0[1] + line0[2] + line1[0] + line1[1] + line1[2] + line2[0] + line2[1] + line2[2]) *
+                    0.11111111f;
                 out_ptr++;
                 line0 += 2;
                 line1 += 2;
@@ -342,17 +342,17 @@ static void avg_3x3s2(const float* input, float* output, int inc, int inh, int i
             for (int j = 0; j < block_w; j++)
             {
                 float32x4x2_t p00_new = vld2q_f32(line0 + 8);
-                float32x4_t   sum0    = vaddq_f32(p00.val[0], p00.val[1]);
-                float32x4_t   p01     = vextq_f32(p00.val[0], p00_new.val[0], 1);
-                sum0                  = vaddq_f32(sum0, p01);
+                float32x4_t sum0 = vaddq_f32(p00.val[0], p00.val[1]);
+                float32x4_t p01 = vextq_f32(p00.val[0], p00_new.val[0], 1);
+                sum0 = vaddq_f32(sum0, p01);
 
                 float32x4x2_t p10_new = vld2q_f32(line1 + 8);
-                float32x4_t   sum1    = vaddq_f32(p10.val[0], p10.val[1]);
-                float32x4_t   p11     = vextq_f32(p10.val[0], p10_new.val[0], 1);
-                sum1                  = vaddq_f32(sum1, p11);
+                float32x4_t sum1 = vaddq_f32(p10.val[0], p10.val[1]);
+                float32x4_t p11 = vextq_f32(p10.val[0], p10_new.val[0], 1);
+                sum1 = vaddq_f32(sum1, p11);
 
-                sum0                  = vaddq_f32(sum0, sum1);
-                sum0                  = vmulq_n_f32(sum0, 0.16666667f);
+                sum0 = vaddq_f32(sum0, sum1);
+                sum0 = vmulq_n_f32(sum0, 0.16666667f);
                 vst1q_f32(out_ptr, sum0);
 
                 p00 = p00_new;
@@ -386,11 +386,11 @@ static void avg_3x3s2(const float* input, float* output, int inc, int inh, int i
             for (int j = 0; j < block_w; j++)
             {
                 float32x4x2_t p00_new = vld2q_f32(line0 + 8);
-                float32x4_t   sum0    = vaddq_f32(p00.val[0], p00.val[1]);
-                float32x4_t   p01     = vextq_f32(p00.val[0], p00_new.val[0], 1);
-                sum0                  = vaddq_f32(sum0, p01);
+                float32x4_t sum0 = vaddq_f32(p00.val[0], p00.val[1]);
+                float32x4_t p01 = vextq_f32(p00.val[0], p00_new.val[0], 1);
+                sum0 = vaddq_f32(sum0, p01);
 
-                sum0                  = vmulq_n_f32(sum0, 0.3333333f);
+                sum0 = vmulq_n_f32(sum0, 0.3333333f);
                 vst1q_f32(out_ptr, sum0);
 
                 p00 = p00_new;
@@ -422,7 +422,7 @@ static void max_3x3s2(const float* input, float* output, int inc, int inh, int i
                       int k_w, int s_h, int s_w, int pad_h0, int pad_w0, int pad_h1, int pad_w1, int is_caffe)
 
 {
-    int in_hw  = inw * inh;
+    int in_hw = inw * inh;
     int out_hw = outh * outw;
 
     if (pad_w1 > 0)
@@ -433,15 +433,15 @@ static void max_3x3s2(const float* input, float* output, int inc, int inh, int i
     {
         outh--;
     }
-    int block_w  = outw >> 2;
+    int block_w = outw >> 2;
     int remain_w = inw - outw * 2;
 
     for (int c = 0; c < inc; c++)
     {
-        const float* line0   = input + c * in_hw;
-        const float* line1   = line0 + inw;
-        const float* line2   = line1 + inw;
-        float*       out_ptr = output + c * out_hw;
+        const float* line0 = input + c * in_hw;
+        const float* line1 = line0 + inw;
+        const float* line2 = line1 + inw;
+        float* out_ptr = output + c * out_hw;
         for (int i = 0; i < outh; i++)
         {
             float32x4x2_t p00 = vld2q_f32(line0);
@@ -459,21 +459,21 @@ static void max_3x3s2(const float* input, float* output, int inc, int inh, int i
                 max0=max(max0,p01)=[3,5,7,9]
                 */
                 float32x4x2_t p00_new = vld2q_f32(line0 + 8);
-                float32x4_t   max0    = vmaxq_f32(p00.val[0], p00.val[1]);
-                float32x4_t   p01     = vextq_f32(p00.val[0], p00_new.val[0], 1);
-                max0                  = vmaxq_f32(max0, p01);
+                float32x4_t max0 = vmaxq_f32(p00.val[0], p00.val[1]);
+                float32x4_t p01 = vextq_f32(p00.val[0], p00_new.val[0], 1);
+                max0 = vmaxq_f32(max0, p01);
 
                 float32x4x2_t p10_new = vld2q_f32(line1 + 8);
-                float32x4_t   max1    = vmaxq_f32(p10.val[0], p10.val[1]);
-                float32x4_t   p11     = vextq_f32(p10.val[0], p10_new.val[0], 1);
-                max1                  = vmaxq_f32(max1, p11);
+                float32x4_t max1 = vmaxq_f32(p10.val[0], p10.val[1]);
+                float32x4_t p11 = vextq_f32(p10.val[0], p10_new.val[0], 1);
+                max1 = vmaxq_f32(max1, p11);
 
                 float32x4x2_t p20_new = vld2q_f32(line2 + 8);
-                float32x4_t   max2    = vmaxq_f32(p20.val[0], p20.val[1]);
-                float32x4_t   p21     = vextq_f32(p20.val[0], p20_new.val[0], 1);
-                max2                  = vmaxq_f32(max2, p21);
+                float32x4_t max2 = vmaxq_f32(p20.val[0], p20.val[1]);
+                float32x4_t p21 = vextq_f32(p20.val[0], p20_new.val[0], 1);
+                max2 = vmaxq_f32(max2, p21);
 
-                max0                  = vmaxq_f32(vmaxq_f32(max0, max1), max2);
+                max0 = vmaxq_f32(vmaxq_f32(max0, max1), max2);
                 vst1q_f32(out_ptr, max0);
 
                 p00 = p00_new;
@@ -490,7 +490,7 @@ static void max_3x3s2(const float* input, float* output, int inc, int inh, int i
                 float max0 = fmax(fmax(line0[0], line0[1]), line0[2]);
                 float max1 = fmax(fmax(line1[0], line1[1]), line1[2]);
                 float max2 = fmax(fmax(line2[0], line2[1]), line2[2]);
-                *out_ptr   = fmax(fmax(max0, max1), max2);
+                *out_ptr = fmax(fmax(max0, max1), max2);
 
                 out_ptr++;
                 line0 += 2;
@@ -500,7 +500,7 @@ static void max_3x3s2(const float* input, float* output, int inc, int inh, int i
             if (pad_w1 == 1)
             {
                 float max0 = fmax(fmax(line0[0], line0[1]), fmax(line1[0], line1[1]));
-                *out_ptr   = fmax(fmax(line2[0], line2[1]), max0);
+                *out_ptr = fmax(fmax(line2[0], line2[1]), max0);
                 out_ptr++;
             }
             line0 += remain_w + inw;
@@ -514,14 +514,14 @@ static void max_3x3s2(const float* input, float* output, int inc, int inh, int i
             for (int j = 0; j < block_w; j++)
             {
                 float32x4x2_t p00_new = vld2q_f32(line0 + 8);
-                float32x4_t   max0    = vmaxq_f32(p00.val[0], p00.val[1]);
-                float32x4_t   p01     = vextq_f32(p00.val[0], p00_new.val[0], 1);
-                max0                  = vmaxq_f32(max0, p01);
+                float32x4_t max0 = vmaxq_f32(p00.val[0], p00.val[1]);
+                float32x4_t p01 = vextq_f32(p00.val[0], p00_new.val[0], 1);
+                max0 = vmaxq_f32(max0, p01);
 
                 float32x4x2_t p10_new = vld2q_f32(line1 + 8);
-                float32x4_t   max1    = vmaxq_f32(p10.val[0], p10.val[1]);
-                float32x4_t   p11     = vextq_f32(p10.val[0], p10_new.val[0], 1);
-                max1                  = vmaxq_f32(max1, p11);
+                float32x4_t max1 = vmaxq_f32(p10.val[0], p10.val[1]);
+                float32x4_t p11 = vextq_f32(p10.val[0], p10_new.val[0], 1);
+                max1 = vmaxq_f32(max1, p11);
 
                 vst1q_f32(out_ptr, vmaxq_f32(max0, max1));
 
@@ -537,7 +537,7 @@ static void max_3x3s2(const float* input, float* output, int inc, int inh, int i
                 float max0 = fmax(fmax(line0[0], line0[1]), line0[2]);
                 float max1 = fmax(fmax(line1[0], line1[1]), line1[2]);
 
-                *out_ptr   = fmax(max0, max1);
+                *out_ptr = fmax(max0, max1);
 
                 out_ptr++;
                 line0 += 2;
@@ -555,20 +555,20 @@ static void max_3x3s2(const float* input, float* output, int inc, int inh, int i
 static void avg_2x2s2_p1(const float* input, float* output, int inc, int inh, int inw, int outh, int outw, int k_h,
                          int k_w, int s_h, int s_w, int pad_h0, int pad_w0, int pad_h1, int pad_w1, int is_caffe)
 {
-    int in_hw  = inw * inh;
+    int in_hw = inw * inh;
     int out_hw = outh * outw;
 
     if (inw % 2 == 0)
         outw--;
     if (inh % 2 == 0)
         outh--;
-    int block_w  = (outw - 1) >> 2;
+    int block_w = (outw - 1) >> 2;
     int remain_w = inw - outw * 2 + 1;
 
     for (int c = 0; c < inc; c++)
     {
-        const float* line00  = input + c * in_hw;
-        float*       out_ptr = output + c * out_hw;
+        const float* line00 = input + c * in_hw;
+        float* out_ptr = output + c * out_hw;
         // h begin
         if (is_caffe == 0)
             *out_ptr = line00[0];
@@ -631,12 +631,12 @@ static void avg_2x2s2_p1(const float* input, float* output, int inc, int inh, in
             // w center
             for (int j = 0; j < block_w; j++)
             {
-                float32x4_t p00  = vld1q_f32(line0);
-                float32x4_t p10  = vld1q_f32(line1);
+                float32x4_t p00 = vld1q_f32(line0);
+                float32x4_t p10 = vld1q_f32(line1);
                 float32x4_t sum0 = vaddq_f32(p00, p10);
 
-                float32x4_t p01  = vld1q_f32(line0 + 4);
-                float32x4_t p11  = vld1q_f32(line1 + 4);
+                float32x4_t p01 = vld1q_f32(line0 + 4);
+                float32x4_t p11 = vld1q_f32(line1 + 4);
                 float32x4_t sum1 = vaddq_f32(p01, p11);
 
 #ifdef __aarch64__
@@ -725,20 +725,20 @@ static void avg_2x2s2_p1(const float* input, float* output, int inc, int inh, in
 static void max_2x2s2_p1(const float* input, float* output, int inc, int inh, int inw, int outh, int outw, int k_h,
                          int k_w, int s_h, int s_w, int pad_h0, int pad_w0, int pad_h1, int pad_w1, int is_caffe)
 {
-    int in_hw  = inw * inh;
+    int in_hw = inw * inh;
     int out_hw = outh * outw;
 
     if (inw % 2 == 0)
         outw--;
     if (inh % 2 == 0)
         outh--;
-    int block_w  = (outw - 1) >> 2;
+    int block_w = (outw - 1) >> 2;
     int remain_w = inw - outw * 2 + 1;
 
     for (int c = 0; c < inc; c++)
     {
-        const float* line00  = input + c * in_hw;
-        float*       out_ptr = output + c * out_hw;
+        const float* line00 = input + c * in_hw;
+        float* out_ptr = output + c * out_hw;
         // h begin
         *out_ptr = line00[0];
         out_ptr++;
@@ -814,10 +814,10 @@ static void max_2x2s2_p1(const float* input, float* output, int inc, int inh, in
             }
             for (int j = block_w * 4 + 1; j < outw; j++)
             {
-                float32x2_t p1   = vld1_f32(line0);
-                float32x2_t p2   = vld1_f32(line1);
+                float32x2_t p1 = vld1_f32(line0);
+                float32x2_t p2 = vld1_f32(line1);
                 float32x2_t _max = vmax_f32(p1, p2);
-                *out_ptr         = fmax(_max[0], _max[1]);
+                *out_ptr = fmax(_max[0], _max[1]);
                 out_ptr++;
                 line0 += 2;
                 line1 += 2;
@@ -872,21 +872,21 @@ static void max_3x3s2_p1(const float* input, float* output, int inc, int inh, in
 
 {
     // TLOG_ERR("max_3x3s2_p1\n");
-    int in_hw  = inw * inh;
+    int in_hw = inw * inh;
     int out_hw = outh * outw;
 
     if (is_caffe == 1 || inw % 2 == 1)
         outw--;
     if (is_caffe == 1 || inh % 2 == 1)
         outh--;
-    int block_w  = (outw - 1) >> 2;
+    int block_w = (outw - 1) >> 2;
     int remain_w = inw - outw * 2 + 1;
 
     for (int c = 0; c < inc; c++)
     {
-        const float* line1   = input + c * in_hw;
-        const float* line2   = line1 + inw;
-        float*       out_ptr = output + c * out_hw;
+        const float* line1 = input + c * in_hw;
+        const float* line2 = line1 + inw;
+        float* out_ptr = output + c * out_hw;
 
         // h begin ---------------------------------------
         *out_ptr = fmax(fmax(line1[0], line1[1]), fmax(line2[0], line2[1]));
@@ -899,16 +899,16 @@ static void max_3x3s2_p1(const float* input, float* output, int inc, int inh, in
         for (int j = 0; j < block_w; j++)
         {
             float32x4x2_t p10_new = vld2q_f32(line1 + 8);
-            float32x4_t   max1    = vmaxq_f32(p10.val[0], p10.val[1]);
-            float32x4_t   p11     = vextq_f32(p10.val[0], p10_new.val[0], 1);
-            max1                  = vmaxq_f32(max1, p11);
+            float32x4_t max1 = vmaxq_f32(p10.val[0], p10.val[1]);
+            float32x4_t p11 = vextq_f32(p10.val[0], p10_new.val[0], 1);
+            max1 = vmaxq_f32(max1, p11);
 
             float32x4x2_t p20_new = vld2q_f32(line2 + 8);
-            float32x4_t   max2    = vmaxq_f32(p20.val[0], p20.val[1]);
-            float32x4_t   p21     = vextq_f32(p20.val[0], p20_new.val[0], 1);
-            max2                  = vmaxq_f32(max2, p21);
+            float32x4_t max2 = vmaxq_f32(p20.val[0], p20.val[1]);
+            float32x4_t p21 = vextq_f32(p20.val[0], p20_new.val[0], 1);
+            max2 = vmaxq_f32(max2, p21);
 
-            max1                  = vmaxq_f32(max1, max2);
+            max1 = vmaxq_f32(max1, max2);
             vst1q_f32(out_ptr, max1);
 
             p10 = p10_new;
@@ -922,7 +922,7 @@ static void max_3x3s2_p1(const float* input, float* output, int inc, int inh, in
         {
             float max1 = fmax(fmax(line1[0], line1[1]), line1[2]);
             float max2 = fmax(fmax(line2[0], line2[1]), line2[2]);
-            *out_ptr   = fmax(max1, max2);
+            *out_ptr = fmax(max1, max2);
 
             out_ptr++;
             line1 += 2;
@@ -943,13 +943,13 @@ static void max_3x3s2_p1(const float* input, float* output, int inc, int inh, in
 
         // h center ---------------------------------------
         const float* line0 = line1;
-        line1              = line2;
-        line2              = line1 + inw;
+        line1 = line2;
+        line2 = line1 + inw;
         for (int i = 1; i < outh; i++)
         {
             // left
             float max0 = fmax(fmax(line1[0], line1[1]), fmax(line2[0], line2[1]));
-            *out_ptr   = fmax(fmax(line0[0], line0[1]), max0);
+            *out_ptr = fmax(fmax(line0[0], line0[1]), max0);
             out_ptr++;
             line0 += 1;
             line1 += 1;
@@ -961,21 +961,21 @@ static void max_3x3s2_p1(const float* input, float* output, int inc, int inh, in
             for (int j = 0; j < block_w; j++)
             {
                 float32x4x2_t p00_new = vld2q_f32(line0 + 8);
-                float32x4_t   max0    = vmaxq_f32(p00.val[0], p00.val[1]);
-                float32x4_t   p01     = vextq_f32(p00.val[0], p00_new.val[0], 1);
-                max0                  = vmaxq_f32(max0, p01);
+                float32x4_t max0 = vmaxq_f32(p00.val[0], p00.val[1]);
+                float32x4_t p01 = vextq_f32(p00.val[0], p00_new.val[0], 1);
+                max0 = vmaxq_f32(max0, p01);
 
                 float32x4x2_t p10_new = vld2q_f32(line1 + 8);
-                float32x4_t   max1    = vmaxq_f32(p10.val[0], p10.val[1]);
-                float32x4_t   p11     = vextq_f32(p10.val[0], p10_new.val[0], 1);
-                max1                  = vmaxq_f32(max1, p11);
+                float32x4_t max1 = vmaxq_f32(p10.val[0], p10.val[1]);
+                float32x4_t p11 = vextq_f32(p10.val[0], p10_new.val[0], 1);
+                max1 = vmaxq_f32(max1, p11);
 
                 float32x4x2_t p20_new = vld2q_f32(line2 + 8);
-                float32x4_t   max2    = vmaxq_f32(p20.val[0], p20.val[1]);
-                float32x4_t   p21     = vextq_f32(p20.val[0], p20_new.val[0], 1);
-                max2                  = vmaxq_f32(max2, p21);
+                float32x4_t max2 = vmaxq_f32(p20.val[0], p20.val[1]);
+                float32x4_t p21 = vextq_f32(p20.val[0], p20_new.val[0], 1);
+                max2 = vmaxq_f32(max2, p21);
 
-                max0                  = vmaxq_f32(vmaxq_f32(max0, max1), max2);
+                max0 = vmaxq_f32(vmaxq_f32(max0, max1), max2);
                 vst1q_f32(out_ptr, max0);
 
                 p00 = p00_new;
@@ -992,7 +992,7 @@ static void max_3x3s2_p1(const float* input, float* output, int inc, int inh, in
                 float max0 = fmax(fmax(line0[0], line0[1]), line0[2]);
                 float max1 = fmax(fmax(line1[0], line1[1]), line1[2]);
                 float max2 = fmax(fmax(line2[0], line2[1]), line2[2]);
-                *out_ptr   = fmax(fmax(max0, max1), max2);
+                *out_ptr = fmax(fmax(max0, max1), max2);
 
                 out_ptr++;
                 line0 += 2;
@@ -1001,7 +1001,7 @@ static void max_3x3s2_p1(const float* input, float* output, int inc, int inh, in
             }
             if (inw % 2 == 1)
             {
-                max0     = fmax(fmax(line1[0], line1[1]), fmax(line2[0], line2[1]));
+                max0 = fmax(fmax(line1[0], line1[1]), fmax(line2[0], line2[1]));
                 *out_ptr = fmax(fmax(line0[0], line0[1]), max0);
                 out_ptr++;
             }
@@ -1028,16 +1028,16 @@ static void max_3x3s2_p1(const float* input, float* output, int inc, int inh, in
             for (int j = 0; j < block_w; j++)
             {
                 float32x4x2_t p00_new = vld2q_f32(line0 + 8);
-                float32x4_t   max0    = vmaxq_f32(p00.val[0], p00.val[1]);
-                float32x4_t   p01     = vextq_f32(p00.val[0], p00_new.val[0], 1);
-                max0                  = vmaxq_f32(max0, p01);
+                float32x4_t max0 = vmaxq_f32(p00.val[0], p00.val[1]);
+                float32x4_t p01 = vextq_f32(p00.val[0], p00_new.val[0], 1);
+                max0 = vmaxq_f32(max0, p01);
 
                 float32x4x2_t p10_new = vld2q_f32(line1 + 8);
-                float32x4_t   max1    = vmaxq_f32(p10.val[0], p10.val[1]);
-                float32x4_t   p11     = vextq_f32(p10.val[0], p10_new.val[0], 1);
-                max1                  = vmaxq_f32(max1, p11);
+                float32x4_t max1 = vmaxq_f32(p10.val[0], p10.val[1]);
+                float32x4_t p11 = vextq_f32(p10.val[0], p10_new.val[0], 1);
+                max1 = vmaxq_f32(max1, p11);
 
-                max0                  = vmaxq_f32(max0, max1);
+                max0 = vmaxq_f32(max0, max1);
                 vst1q_f32(out_ptr, max0);
 
                 p00 = p00_new;
@@ -1051,7 +1051,7 @@ static void max_3x3s2_p1(const float* input, float* output, int inc, int inh, in
             {
                 float max0 = fmax(fmax(line0[0], line0[1]), line0[2]);
                 float max1 = fmax(fmax(line1[0], line1[1]), line1[2]);
-                *out_ptr   = fmax(max0, max1);
+                *out_ptr = fmax(max0, max1);
 
                 out_ptr++;
                 line0 += 2;
@@ -1078,9 +1078,9 @@ static void max_3x3s2_p1(const float* input, float* output, int inc, int inh, in
             for (int j = 0; j < block_w; j++)
             {
                 float32x4x2_t p00_new = vld2q_f32(line0 + 8);
-                float32x4_t   max0    = vmaxq_f32(p00.val[0], p00.val[1]);
-                float32x4_t   p01     = vextq_f32(p00.val[0], p00_new.val[0], 1);
-                max0                  = vmaxq_f32(max0, p01);
+                float32x4_t max0 = vmaxq_f32(p00.val[0], p00.val[1]);
+                float32x4_t p01 = vextq_f32(p00.val[0], p00_new.val[0], 1);
+                max0 = vmaxq_f32(max0, p01);
 
                 vst1q_f32(out_ptr, max0);
 
@@ -1112,21 +1112,21 @@ static void max_3x3s2_p1(const float* input, float* output, int inc, int inh, in
 static void avg_3x3s2_p1(const float* input, float* output, int inc, int inh, int inw, int outh, int outw, int k_h,
                          int k_w, int s_h, int s_w, int pad_h0, int pad_w0, int pad_h1, int pad_w1, int is_caffe)
 {
-    int in_hw  = inw * inh;
+    int in_hw = inw * inh;
     int out_hw = outh * outw;
 
     if (is_caffe == 1 || inw % 2 == 1)
         outw--;
     if (is_caffe == 1 || inh % 2 == 1)
         outh--;
-    int block_w  = (outw - 1) >> 2;
+    int block_w = (outw - 1) >> 2;
     int remain_w = inw - outw * 2 + 1;
 
     for (int c = 0; c < inc; c++)
     {
-        const float* line1   = input + c * in_hw;
-        const float* line2   = line1 + inw;
-        float*       out_ptr = output + c * out_hw;
+        const float* line1 = input + c * in_hw;
+        const float* line2 = line1 + inw;
+        float* out_ptr = output + c * out_hw;
 
         // h begin ---------------------------------------
         if (is_caffe == 0)
@@ -1142,16 +1142,16 @@ static void avg_3x3s2_p1(const float* input, float* output, int inc, int inh, in
         for (int j = 0; j < block_w; j++)
         {
             float32x4x2_t p10_new = vld2q_f32(line1 + 8);
-            float32x4_t   sum1    = vaddq_f32(p10.val[0], p10.val[1]);
-            float32x4_t   p11     = vextq_f32(p10.val[0], p10_new.val[0], 1);
-            sum1                  = vaddq_f32(sum1, p11);
+            float32x4_t sum1 = vaddq_f32(p10.val[0], p10.val[1]);
+            float32x4_t p11 = vextq_f32(p10.val[0], p10_new.val[0], 1);
+            sum1 = vaddq_f32(sum1, p11);
 
             float32x4x2_t p20_new = vld2q_f32(line2 + 8);
-            float32x4_t   sum2    = vaddq_f32(p20.val[0], p20.val[1]);
-            float32x4_t   p21     = vextq_f32(p20.val[0], p20_new.val[0], 1);
-            sum2                  = vaddq_f32(sum2, p21);
+            float32x4_t sum2 = vaddq_f32(p20.val[0], p20.val[1]);
+            float32x4_t p21 = vextq_f32(p20.val[0], p20_new.val[0], 1);
+            sum2 = vaddq_f32(sum2, p21);
 
-            sum1                  = vaddq_f32(sum1, sum2);
+            sum1 = vaddq_f32(sum1, sum2);
             if (is_caffe == 0)
                 sum1 = vmulq_n_f32(sum1, 0.16666667f);
             else
@@ -1193,8 +1193,8 @@ static void avg_3x3s2_p1(const float* input, float* output, int inc, int inh, in
 
         // h center ---------------------------------------
         const float* line0 = line1;
-        line1              = line2;
-        line2              = line1 + inw;
+        line1 = line2;
+        line2 = line1 + inw;
         for (int i = 1; i < outh; i++)
         {
             // left
@@ -1213,22 +1213,22 @@ static void avg_3x3s2_p1(const float* input, float* output, int inc, int inh, in
             for (int j = 0; j < block_w; j++)
             {
                 float32x4x2_t p00_new = vld2q_f32(line0 + 8);
-                float32x4_t   sum0    = vaddq_f32(p00.val[0], p00.val[1]);
-                float32x4_t   p01     = vextq_f32(p00.val[0], p00_new.val[0], 1);
-                sum0                  = vaddq_f32(sum0, p01);
+                float32x4_t sum0 = vaddq_f32(p00.val[0], p00.val[1]);
+                float32x4_t p01 = vextq_f32(p00.val[0], p00_new.val[0], 1);
+                sum0 = vaddq_f32(sum0, p01);
 
                 float32x4x2_t p10_new = vld2q_f32(line1 + 8);
-                float32x4_t   sum1    = vaddq_f32(p10.val[0], p10.val[1]);
-                float32x4_t   p11     = vextq_f32(p10.val[0], p10_new.val[0], 1);
-                sum1                  = vaddq_f32(sum1, p11);
+                float32x4_t sum1 = vaddq_f32(p10.val[0], p10.val[1]);
+                float32x4_t p11 = vextq_f32(p10.val[0], p10_new.val[0], 1);
+                sum1 = vaddq_f32(sum1, p11);
 
                 float32x4x2_t p20_new = vld2q_f32(line2 + 8);
-                float32x4_t   sum2    = vaddq_f32(p20.val[0], p20.val[1]);
-                float32x4_t   p21     = vextq_f32(p20.val[0], p20_new.val[0], 1);
-                sum2                  = vaddq_f32(sum2, p21);
+                float32x4_t sum2 = vaddq_f32(p20.val[0], p20.val[1]);
+                float32x4_t p21 = vextq_f32(p20.val[0], p20_new.val[0], 1);
+                sum2 = vaddq_f32(sum2, p21);
 
-                sum0                  = vaddq_f32(vaddq_f32(sum0, sum1), sum2);
-                sum0                  = vmulq_n_f32(sum0, 0.11111111f);
+                sum0 = vaddq_f32(vaddq_f32(sum0, sum1), sum2);
+                sum0 = vmulq_n_f32(sum0, 0.11111111f);
                 vst1q_f32(out_ptr, sum0);
 
                 p00 = p00_new;
@@ -1243,8 +1243,8 @@ static void avg_3x3s2_p1(const float* input, float* output, int inc, int inh, in
             for (int j = block_w * 4 + 1; j < outw; j++)
             {
                 *out_ptr =
-                    (line0[0] + line0[1] + line0[2] + line1[0] + line1[1] + line1[2] + line2[0] + line2[1] + line2[2])
-                    * 0.11111111f;
+                    (line0[0] + line0[1] + line0[2] + line1[0] + line1[1] + line1[2] + line2[0] + line2[1] + line2[2]) *
+                    0.11111111f;
                 out_ptr++;
                 line0 += 2;
                 line1 += 2;
@@ -1284,16 +1284,16 @@ static void avg_3x3s2_p1(const float* input, float* output, int inc, int inh, in
             for (int j = 0; j < block_w; j++)
             {
                 float32x4x2_t p00_new = vld2q_f32(line0 + 8);
-                float32x4_t   sum0    = vaddq_f32(p00.val[0], p00.val[1]);
-                float32x4_t   p01     = vextq_f32(p00.val[0], p00_new.val[0], 1);
-                sum0                  = vaddq_f32(sum0, p01);
+                float32x4_t sum0 = vaddq_f32(p00.val[0], p00.val[1]);
+                float32x4_t p01 = vextq_f32(p00.val[0], p00_new.val[0], 1);
+                sum0 = vaddq_f32(sum0, p01);
 
                 float32x4x2_t p10_new = vld2q_f32(line1 + 8);
-                float32x4_t   sum1    = vaddq_f32(p10.val[0], p10.val[1]);
-                float32x4_t   p11     = vextq_f32(p10.val[0], p10_new.val[0], 1);
-                sum1                  = vaddq_f32(sum1, p11);
+                float32x4_t sum1 = vaddq_f32(p10.val[0], p10.val[1]);
+                float32x4_t p11 = vextq_f32(p10.val[0], p10_new.val[0], 1);
+                sum1 = vaddq_f32(sum1, p11);
 
-                sum0                  = vaddq_f32(sum0, sum1);
+                sum0 = vaddq_f32(sum0, sum1);
                 if (is_caffe == 0)
                     sum0 = vmulq_n_f32(sum0, 0.16666667f);
                 else
@@ -1341,11 +1341,11 @@ static void avg_3x3s2_p1(const float* input, float* output, int inc, int inh, in
             for (int j = 0; j < block_w; j++)
             {
                 float32x4x2_t p00_new = vld2q_f32(line0 + 8);
-                float32x4_t   sum0    = vaddq_f32(p00.val[0], p00.val[1]);
-                float32x4_t   p01     = vextq_f32(p00.val[0], p00_new.val[0], 1);
-                sum0                  = vaddq_f32(sum0, p01);
+                float32x4_t sum0 = vaddq_f32(p00.val[0], p00.val[1]);
+                float32x4_t p01 = vextq_f32(p00.val[0], p00_new.val[0], 1);
+                sum0 = vaddq_f32(sum0, p01);
 
-                sum0                  = vmulq_n_f32(sum0, 0.16666667f);
+                sum0 = vmulq_n_f32(sum0, 0.16666667f);
                 vst1q_f32(out_ptr, sum0);
 
                 p00 = p00_new;
@@ -1387,7 +1387,7 @@ static void max_3x3s1_p1(const float* input, float* output, int inc, int inh, in
         const float* line1 = input + c * in_hw;
         const float* line2 = line1 + inw;
 
-        float* out_ptr     = output + c * in_hw;
+        float* out_ptr = output + c * in_hw;
 
         // h begin left----[line1+=0]-----------------------------------
         *out_ptr = fmax(fmax(line1[0], line1[1]), fmax(line2[0], line2[1]));
@@ -1398,7 +1398,7 @@ static void max_3x3s1_p1(const float* input, float* output, int inc, int inh, in
         {
             float max1 = fmax(fmax(line1[0], line1[1]), line1[2]);
             float max2 = fmax(fmax(line2[0], line2[1]), line2[2]);
-            *out_ptr   = fmax(max2, max1);
+            *out_ptr = fmax(max2, max1);
             out_ptr++;
             line1 += 1;
             line2 += 1;
@@ -1416,7 +1416,7 @@ static void max_3x3s1_p1(const float* input, float* output, int inc, int inh, in
         {
             // left
             float max0 = fmax(fmax(line1[0], line1[1]), fmax(line2[0], line2[1]));
-            *out_ptr   = fmax(fmax(line0[0], line0[1]), max0);
+            *out_ptr = fmax(fmax(line0[0], line0[1]), max0);
             out_ptr++;
 
             // mid
@@ -1425,13 +1425,13 @@ static void max_3x3s1_p1(const float* input, float* output, int inc, int inh, in
                 float max0 = fmax(fmax(line0[0], line0[1]), line0[2]);
                 float max1 = fmax(fmax(line1[0], line1[1]), line1[2]);
                 float max2 = fmax(fmax(line2[0], line2[1]), line2[2]);
-                *out_ptr   = fmax(fmax(max0, max1), max2);
+                *out_ptr = fmax(fmax(max0, max1), max2);
                 out_ptr++;
                 line0 += 1;
                 line1 += 1;
                 line2 += 1;
             }
-            max0     = fmax(fmax(line1[0], line1[1]), fmax(line2[0], line2[1]));
+            max0 = fmax(fmax(line1[0], line1[1]), fmax(line2[0], line2[1]));
             *out_ptr = fmax(fmax(line0[0], line0[1]), max0);
             out_ptr++;
             line0 += 2;
@@ -1448,7 +1448,7 @@ static void max_3x3s1_p1(const float* input, float* output, int inc, int inh, in
             float max0 = fmax(fmax(line0[0], line0[1]), line0[2]);
             float max1 = fmax(fmax(line1[0], line1[1]), line1[2]);
 
-            *out_ptr   = fmax(max0, max1);
+            *out_ptr = fmax(max0, max1);
             out_ptr++;
             line0 += 1;
             line1 += 1;
@@ -1472,7 +1472,7 @@ static void avg_3x3s1_p1(const float* input, float* output, int inc, int inh, in
         const float* line1 = input + c * in_hw;
         const float* line2 = line1 + inw;
 
-        float* out_ptr     = output + c * in_hw;
+        float* out_ptr = output + c * in_hw;
 
         // h begin left----[line1+=0]-----------------------------------
         if (is_caffe == 0)
@@ -1517,8 +1517,8 @@ static void avg_3x3s1_p1(const float* input, float* output, int inc, int inh, in
             for (int j = 0; j < mid_w; j++)
             {
                 *out_ptr =
-                    (line0[0] + line0[1] + line0[2] + line1[0] + line1[1] + line1[2] + line2[0] + line2[1] + line2[2])
-                    * 0.11111111f;
+                    (line0[0] + line0[1] + line0[2] + line1[0] + line1[1] + line1[2] + line2[0] + line2[1] + line2[2]) *
+                    0.11111111f;
                 out_ptr++;
                 line0 += 1;
                 line1 += 1;
@@ -1564,18 +1564,18 @@ static void avg_global(const float* input, float* output, int inc, int inh, int 
 {
     int in_hw = inw * inh;
     int block = in_hw >> 3;
-    int tail  = in_hw & ~7;
+    int tail = in_hw & ~7;
 
     for (int c = 0; c < inc; c++)
     {
-        const float* line0   = input + c * in_hw;
-        float*       out_ptr = output + c;
-        float        sum     = 0.f;
+        const float* line0 = input + c * in_hw;
+        float* out_ptr = output + c;
+        float sum = 0.f;
         for (int j = 0; j < block; j++)
         {
             float32x4_t p00 = vld1q_f32(line0);
             float32x4_t p01 = vld1q_f32(line0 + 4);
-            p00             = vaddq_f32(p00, p01);
+            p00 = vaddq_f32(p00, p01);
             // p00=vpaddq_f32(p00,p00);
             // sum+=(p00[0]+p00[1]);
             sum += (p00[0] + p00[1] + p00[2] + p00[3]);
@@ -1595,20 +1595,20 @@ static void max_global(const float* input, float* output, int inc, int inh, int 
 {
     int in_hw = inw * inh;
     int block = in_hw >> 3;
-    int tail  = in_hw & ~7;
+    int tail = in_hw & ~7;
 
     for (int c = 0; c < inc; c++)
     {
-        const float* line0   = input + c * in_hw;
-        float*       out_ptr = output + c;
-        float32x4_t  p00     = vld1q_f32(line0);
-        float32x4_t  res     = p00;
+        const float* line0 = input + c * in_hw;
+        float* out_ptr = output + c;
+        float32x4_t p00 = vld1q_f32(line0);
+        float32x4_t res = p00;
         for (int j = 0; j < block; j++)
         {
-            float32x4_t p00  = vld1q_f32(line0);
-            float32x4_t p01  = vld1q_f32(line0 + 4);
+            float32x4_t p00 = vld1q_f32(line0);
+            float32x4_t p01 = vld1q_f32(line0 + 4);
             float32x4_t max0 = vmaxq_f32(p00, p01);
-            res              = vmaxq_f32(res, max0);
+            res = vmaxq_f32(res, max0);
             line0 += 8;
         }
         float max_ = fmax(fmax(res[0], res[1]), fmax(res[2], res[3]));
@@ -1629,9 +1629,9 @@ int pooling_kernel_perf_prerun(struct tensor* input, struct tensor* out, struct 
     if (param->global)
     {
         if (param->pool_method == POOL_AVG)
-            param->funct = (pooling_kernel_t)avg_global;
+            param->funct = ( pooling_kernel_t )avg_global;
         else if (param->pool_method == POOL_MAX)
-            param->funct = (pooling_kernel_t)max_global;
+            param->funct = ( pooling_kernel_t )max_global;
 
         assert(param->funct != NULL);
         return 0;
@@ -1659,18 +1659,18 @@ int pooling_kernel_perf_prerun(struct tensor* input, struct tensor* out, struct 
             if (param->pad_h0 == 0)
             {
                 if (pool_size == POOL_K2S2)
-                    param->funct = (pooling_kernel_t)max_2x2s2;
+                    param->funct = ( pooling_kernel_t )max_2x2s2;
                 else if (pool_size == POOL_K3S2)
-                    param->funct = (pooling_kernel_t)max_3x3s2;
+                    param->funct = ( pooling_kernel_t )max_3x3s2;
             }
             else if (param->pad_h0 == 1)
             {
                 if (pool_size == POOL_K2S2)
-                    param->funct = (pooling_kernel_t)max_2x2s2_p1;
+                    param->funct = ( pooling_kernel_t )max_2x2s2_p1;
                 else if (pool_size == POOL_K3S2)
-                    param->funct = (pooling_kernel_t)max_3x3s2_p1;
+                    param->funct = ( pooling_kernel_t )max_3x3s2_p1;
                 else if (pool_size == POOL_K3S1)
-                    param->funct = (pooling_kernel_t)max_3x3s1_p1;
+                    param->funct = ( pooling_kernel_t )max_3x3s1_p1;
             }
         }
 
@@ -1691,23 +1691,23 @@ int pooling_kernel_perf_prerun(struct tensor* input, struct tensor* out, struct 
             if (param->pad_h0 == 0 && param->pad_h1 == 0)
             {
                 if (pool_size == POOL_K2S2)
-                    param->funct = (pooling_kernel_t)avg_2x2s2;
+                    param->funct = ( pooling_kernel_t )avg_2x2s2;
                 else if (pool_size == POOL_K3S2)
-                    param->funct = (pooling_kernel_t)avg_3x3s2;
+                    param->funct = ( pooling_kernel_t )avg_3x3s2;
             }
             else if (param->pad_h0 == 1 && param->pad_h1 == 1)
             {
                 if (pool_size == POOL_K2S2)
-                    param->funct = (pooling_kernel_t)avg_2x2s2_p1;
+                    param->funct = ( pooling_kernel_t )avg_2x2s2_p1;
                 else if (pool_size == POOL_K3S2)
-                    param->funct = (pooling_kernel_t)avg_3x3s2_p1;
+                    param->funct = ( pooling_kernel_t )avg_3x3s2_p1;
                 else if (pool_size == POOL_K3S1)
-                    param->funct = (pooling_kernel_t)avg_3x3s1_p1;
+                    param->funct = ( pooling_kernel_t )avg_3x3s1_p1;
             }
             else if (param->pad_h0 == 0 && param->pad_h1 == 1)
             {
                 if (pool_size == POOL_K3S2)
-                    param->funct = (pooling_kernel_t)avg_3x3s2;
+                    param->funct = ( pooling_kernel_t ) avg_3x3s2;
             }
         }
 
@@ -1727,29 +1727,29 @@ int pooling_kernel_perf_prerun(struct tensor* input, struct tensor* out, struct 
 int pooling_kernel_perf_run(struct tensor* input, struct tensor* output, struct pool_param* param, int num_thread)
 {
     // TLOG_ERR("perf pooling_kernel_run\n");
-    int              is_caffe = param->caffe_flavor;
-    pooling_kernel_t kernel   = (pooling_kernel_t)(param->funct);
+    int is_caffe = param->caffe_flavor;
+    pooling_kernel_t kernel = (pooling_kernel_t)(param->funct);
 
-    int batch                 = input->dims[0];
-    int c                     = input->dims[1];
-    int in_h                  = input->dims[2];
-    int in_w                  = input->dims[3];
+    int batch = input->dims[0];
+    int c = input->dims[1];
+    int in_h = input->dims[2];
+    int in_w = input->dims[3];
 
-    int out_h                 = output->dims[2];
-    int out_w                 = output->dims[3];
+    int out_h = output->dims[2];
+    int out_w = output->dims[3];
 
-    int img_size              = c * in_h * in_w;
-    int feature_size          = c * out_h * out_w;
+    int img_size = c * in_h * in_w;
+    int feature_size = c * out_h * out_w;
 
     for (int n = 0; n < batch; n++)
     {
-        void* input_frame  = input->data + n * img_size * input->elem_size;
+        void* input_frame = input->data + n * img_size * input->elem_size;
         void* output_frame = output->data + n * feature_size * output->elem_size;
 
 #pragma omp parallel for num_threads(num_thread)
         for (int ch = 0; ch < c; ch++)
         {
-            void* cur_input  = input_frame + ch * in_h * in_w * input->elem_size;
+            void* cur_input = input_frame + ch * in_h * in_w * input->elem_size;
             void* cur_output = output_frame + ch * out_h * out_w * output->elem_size;
             kernel(cur_input, cur_output, 1, in_h, in_w, out_h, out_w, param->kernel_h, param->kernel_w,
                    param->stride_h, param->stride_w, param->pad_h0, param->pad_w0, param->pad_h1, param->pad_w1,

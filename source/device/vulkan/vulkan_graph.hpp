@@ -40,8 +40,8 @@
 
 extern "C"
 {
-    // #include "device/device.h"
-    // #include "graph/subgraph.h"
+// #include "device/device.h"
+// #include "graph/subgraph.h"
 
 #include "api/c_api.h"
 #include "device/device.h"
@@ -58,77 +58,76 @@ extern "C"
 
 #include "convolution_param.h"
 
-    namespace TEngine
-    {
-    class VulkanDevice;
+namespace TEngine {
 
-    class VulkanGraph {
-        friend VulkanDevice;
+class VulkanDevice;
 
-    public:
-        const std::string& GetName(void) const
-        {
-            return name_;
-        }
+class VulkanGraph {
 
-        VulkanGraph(const std::string& name);
-        VulkanGraph(struct subgraph* graph);
-        ~VulkanGraph();
+friend VulkanDevice;
 
-        int record_convolution(VkCompute& cmd, ir_node_t* node);
+public:
+    const std::string& GetName(void) const {return name_;}
 
-        int UploadConvolutionWeight(VkTransfer& cmd, const Option& opt, ir_node_t* node);
+    VulkanGraph(const std::string& name);
+    VulkanGraph(struct subgraph* graph);
+    ~VulkanGraph();
 
-        bool CreateConvolutionPipeline(ir_node_t* node);
+    int record_convolution(VkCompute& cmd, ir_node_t* node);
 
-        bool CreatePoolingPipeline(ir_node_t* node);
+    int UploadConvolutionWeight(VkTransfer& cmd, const Option& opt, ir_node_t* node);
 
-        std::unordered_map<std::string, tensor*>  tensor_map_;      // tengine lite cpu tensor list
-        std::unordered_map<std::string, Tensor>   tensor_map;       // vulkan cpu tensor list
-        std::unordered_map<std::string, VkTensor> vktensor_map_;    // vulkan gpu tensor list
+    bool CreateConvolutionPipeline(ir_node_t* node);
 
-        bool OpSupported(const std::string& name);
+    bool CreatePoolingPipeline(ir_node_t* node);
 
-        Option    opt;
-        Pipeline* pipeline_convolution;
+    std::unordered_map<std::string, tensor*> tensor_map_;    // tengine lite cpu tensor list
+    std::unordered_map<std::string, Tensor> tensor_map;         // vulkan cpu tensor list
+    std::unordered_map<std::string, VkTensor> vktensor_map_;    // vulkan gpu tensor list
 
-        int record_graph_pipeline();
+    bool OpSupported(const std::string& name);
 
-        int upload_model();
+    Option opt;
+    Pipeline* pipeline_convolution;
+    
+    int record_graph_pipeline();
 
-        int create_pipeline();
+    int upload_model();
 
-        int destory_pipeline();
+    int create_pipeline();
 
-    protected:
-        subgraph*           sgraph;
-        std::vector<Layer*> layers;
+    int destory_pipeline();
 
-        const GPUDevice* vkdev;
+protected:
+    subgraph* sgraph;
+    std::vector<Layer*> layers;
 
-        VkAllocator* weight_vkallocator;
-        VkAllocator* weight_staging_vkallocator;
+    const GPUDevice* vkdev;
 
-    private:
-        VkAllocator* local_blob_vkallocator;
-        VkAllocator* local_staging_vkallocator;
+    VkAllocator* weight_vkallocator;
+    VkAllocator* weight_staging_vkallocator;
+    
+private:
 
-        std::string name_;
+    VkAllocator* local_blob_vkallocator;
+    VkAllocator* local_staging_vkallocator;
+    
+    std::string name_;
 
-        std::vector<void*> gpu_mem_vector_;
-        std::vector<void*> mem_buf_vector_;
+    std::vector<void *> gpu_mem_vector_;
+    std::vector<void *> mem_buf_vector_;
 
-        std::map<std::string, tensor*> iotensor_map_;
-    };
+    std::map<std::string, tensor*> iotensor_map_;
+};
 
-    }    //namespace TEngine
+} //namespace TEngine
 
 
-    int vulkan_dev_init(struct device* dev);
-    int vulkan_dev_prerun(struct device* dev, struct subgraph* subgraph, void* options);
-    int vulkan_dev_run(struct device* dev, struct subgraph* subgraph);
-    int vulkan_dev_postrun(struct device* dev, struct subgraph* subgraph);
-    int vulkan_dev_release(struct device* dev);
+int vulkan_dev_init(struct device* dev);
+int vulkan_dev_prerun(struct device* dev, struct subgraph* subgraph, void* options);
+int vulkan_dev_run(struct device* dev, struct subgraph* subgraph);
+int vulkan_dev_postrun(struct device* dev, struct subgraph* subgraph);
+int vulkan_dev_release(struct device* dev);
 }
 
 

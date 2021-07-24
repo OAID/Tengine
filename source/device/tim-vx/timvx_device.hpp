@@ -31,10 +31,10 @@ extern "C"
 #include "api/c_api.h"
 #include "device/device.h"
 
-    struct timvx_device
-    {
-        struct device base;
-    };
+struct timvx_device
+{
+    struct device base;
+};
 
-    DLLEXPORT int register_timvx_device(void);
+DLLEXPORT int register_timvx_device(void);
 }

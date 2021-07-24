@@ -44,14 +44,14 @@ static int sparsetodense_op_map(int op)
 static int tm2_load_sparsetodense(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                                   const TM2_Operator* tm_op)
 {
-    struct sparsetodense_param*   sparsetodense_param = (struct sparsetodense_param*)ir_node->op.param_mem;
-    const struct tm2_priv*        tm2_priv            = (struct tm2_priv*)ir_graph->serializer_privacy;
-    const char*                   mem_base            = tm2_priv->base;
-    const TM2_SparseToDenseParam* tm_param            = (TM2_SparseToDenseParam*)(mem_base + tm_op->offset_t_param);
+    struct sparsetodense_param* sparsetodense_param = ( struct sparsetodense_param* )ir_node->op.param_mem;
+    const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
+    const char* mem_base = tm2_priv->base;
+    const TM2_SparseToDenseParam* tm_param = ( TM2_SparseToDenseParam* )(mem_base + tm_op->offset_t_param);
 
-    sparsetodense_param->default_value                = tm_param->default_value;
-    sparsetodense_param->output_shape_size0           = tm_param->output_shape_size0;
-    sparsetodense_param->output_shape_size1           = tm_param->output_shape_size1;
+    sparsetodense_param->default_value = tm_param->default_value;
+    sparsetodense_param->output_shape_size0 = tm_param->output_shape_size0;
+    sparsetodense_param->output_shape_size1 = tm_param->output_shape_size1;
 
     return 0;
 }

@@ -47,10 +47,10 @@ struct ref_matmul_data
 static int ref_matmul_fp32(float* input0, float* input1, float* output, struct ref_matmul_data* param)
 {
     int batch = param->batch;
-    int c     = param->c;
-    int m     = param->m;
-    int n     = param->n;
-    int k     = param->k;
+    int c = param->c;
+    int m = param->m;
+    int n = param->n;
+    int k = param->k;
 
     for (int b = 0; b < batch; ++b)
     {
@@ -90,37 +90,37 @@ static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, 
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node*   ir_node          = exec_node->ir_node;
-    struct graph*  ir_graph         = ir_node->graph;
-    struct tensor* input_tensor     = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    struct tensor* input_tensor1    = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
-    struct tensor* output_tensor    = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+    struct node* ir_node = exec_node->ir_node;
+    struct graph* ir_graph = ir_node->graph;
+    struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    struct tensor* input_tensor1 = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
+    struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    int                    dim_size = input_tensor->dim_num;
+    int dim_size = input_tensor->dim_num;
     struct ref_matmul_data param;
     if (dim_size == 4)
     {
         param.batch = input_tensor->dims[0];
-        param.c     = input_tensor->dims[1];
-        param.m     = input_tensor->dims[2];
-        param.n     = input_tensor1->dims[3];
-        param.k     = input_tensor->dims[3];
+        param.c = input_tensor->dims[1];
+        param.m = input_tensor->dims[2];
+        param.n = input_tensor1->dims[3];
+        param.k = input_tensor->dims[3];
     }
     else if (dim_size == 3)
     {
         param.batch = 1;
-        param.c     = input_tensor->dims[0];
-        param.m     = input_tensor->dims[1];
-        param.n     = input_tensor1->dims[2];
-        param.k     = input_tensor->dims[2];
+        param.c = input_tensor->dims[0];
+        param.m = input_tensor->dims[1];
+        param.n = input_tensor1->dims[2];
+        param.k = input_tensor->dims[2];
     }
     else if (dim_size == 2)
     {
         param.batch = 1;
-        param.c     = 1;    // input0->Getse().Shape(0);
-        param.m     = input_tensor->dims[0];
-        param.n     = input_tensor1->dims[1];
-        param.k     = input_tensor->dims[1];
+        param.c = 1;    // input0->Getse().Shape(0);
+        param.m = input_tensor->dims[0];
+        param.n = input_tensor1->dims[1];
+        param.k = input_tensor->dims[1];
     }
     void* input_data0 = input_tensor->data;
     void* input_data1 = input_tensor1->data;
@@ -137,13 +137,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_BEST;
 }
 
-static struct node_ops matmul_node_ops = { .prerun       = NULL,
-                                           .run          = run,
-                                           .reshape      = NULL,
-                                           .postrun      = NULL,
-                                           .init_node    = init_node,
-                                           .release_node = release_node,
-                                           .score        = score };
+static struct node_ops matmul_node_ops = {.prerun = NULL,
+                                          .run = run,
+                                          .reshape = NULL,
+                                          .postrun = NULL,
+                                          .init_node = init_node,
+                                          .release_node = release_node,
+                                          .score = score};
 
 int register_matmul_ref_op()
 {

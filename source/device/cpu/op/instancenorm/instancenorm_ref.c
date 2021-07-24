@@ -60,9 +60,9 @@ int ref_instancenorm_fp32(float* input_data, float* output_data, float* gamma_da
     {
         for (int i = 0; i < channels; i++)
         {
-            float sum    = 0.f;
-            float sqsum  = 0.f;
-            int   offset = 0;
+            float sum = 0.f;
+            float sqsum = 0.f;
+            int offset = 0;
             for (int j = 0; j < size; j++)
             {
                 if (TENGINE_LAYOUT_NCHW == layout)
@@ -72,7 +72,7 @@ int ref_instancenorm_fp32(float* input_data, float* output_data, float* gamma_da
                 sum += input_data[offset];
             }
             float mean = sum / size;
-            float tmp  = 0.f;
+            float tmp = 0.f;
             for (int j = 0; j < size; j++)
             {
                 if (TENGINE_LAYOUT_NCHW == layout)
@@ -84,8 +84,8 @@ int ref_instancenorm_fp32(float* input_data, float* output_data, float* gamma_da
             }
             float var = sqsum / size;
 
-            float a   = gamma_data[i] / (sqrt(var + eps));
-            float b   = -mean * a + beta_data[i];
+            float a = gamma_data[i] / (sqrt(var + eps));
+            float b = -mean * a + beta_data[i];
             for (int j = 0; j < size; j++)
             {
                 if (TENGINE_LAYOUT_NCHW == layout)
@@ -101,31 +101,31 @@ int ref_instancenorm_fp32(float* input_data, float* output_data, float* gamma_da
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node*  node                    = exec_node->ir_node;
-    struct graph* graph                   = node->graph;
+    struct node* node = exec_node->ir_node;
+    struct graph* graph = node->graph;
 
-    struct tensor* input_tensor           = get_ir_graph_tensor(graph, node->input_tensors[0]);
-    struct tensor* gamma_tensor           = get_ir_graph_tensor(graph, node->input_tensors[1]);
-    struct tensor* beta_tensor            = get_ir_graph_tensor(graph, node->input_tensors[2]);
+    struct tensor* input_tensor = get_ir_graph_tensor(graph, node->input_tensors[0]);
+    struct tensor* gamma_tensor = get_ir_graph_tensor(graph, node->input_tensors[1]);
+    struct tensor* beta_tensor = get_ir_graph_tensor(graph, node->input_tensors[2]);
 
-    struct tensor* output_tensor          = get_ir_graph_tensor(graph, node->output_tensors[0]);
+    struct tensor* output_tensor = get_ir_graph_tensor(graph, node->output_tensors[0]);
 
-    int n                                 = input_tensor->dims[0];
-    int c                                 = input_tensor->dims[1];
-    int h                                 = input_tensor->dims[2];
-    int w                                 = input_tensor->dims[3];
+    int n = input_tensor->dims[0];
+    int c = input_tensor->dims[1];
+    int h = input_tensor->dims[2];
+    int w = input_tensor->dims[3];
 
-    int size                              = w * h;
+    int size = w * h;
 
-    void* in_data                         = input_tensor->data;
-    void* out_data                        = output_tensor->data;
-    void* beta_data                       = beta_tensor->data;
-    void* gamma_data                      = gamma_tensor->data;
+    void* in_data = input_tensor->data;
+    void* out_data = output_tensor->data;
+    void* beta_data = beta_tensor->data;
+    void* gamma_data = gamma_tensor->data;
 
-    struct instancenorm_Param* param      = (struct instancenorm_Param*)node->op.param_mem;
-    float                      eps        = param->eps;
-    float                      scale      = 1.f;
-    int                        zero_point = 0;
+    struct instancenorm_Param* param = ( struct instancenorm_Param* )node->op.param_mem;
+    float eps = param->eps;
+    float scale = 1.f;
+    int zero_point = 0;
 
     return ref_instancenorm_fp32(in_data, out_data, gamma_data, beta_data, size, c, n, eps, scale, zero_point, 0);
 }
@@ -135,13 +135,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_BEST;
 }
 
-static struct node_ops hcl_node_ops = { .prerun       = NULL,
-                                        .run          = run,
-                                        .reshape      = NULL,
-                                        .postrun      = NULL,
-                                        .init_node    = init_node,
-                                        .release_node = release_node,
-                                        .score        = score };
+static struct node_ops hcl_node_ops = {.prerun = NULL,
+                                       .run = run,
+                                       .reshape = NULL,
+                                       .postrun = NULL,
+                                       .init_node = init_node,
+                                       .release_node = release_node,
+                                       .score = score};
 
 int register_instancenorm_ref_op()
 {

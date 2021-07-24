@@ -42,9 +42,9 @@
 int ref_softmax_uint8(struct tensor* input_tensor, struct tensor* output_tensor, int axis)
 {
     int element_size = input_tensor->elem_size;
-    int type         = input_tensor->data_type;
+    int type = input_tensor->data_type;
 
-    int* dims        = (int*)sys_malloc(input_tensor->dim_num * sizeof(int));
+    int* dims = ( int* )sys_malloc(input_tensor->dim_num * sizeof(int));
     for (int i = 0; i < input_tensor->dim_num; i++)
     {
         dims[i] = input_tensor->dims[i];
@@ -63,23 +63,23 @@ int ref_softmax_uint8(struct tensor* input_tensor, struct tensor* output_tensor,
     {
         in_size *= dims[i];
     }
-    on_size              = dims[axis];
+    on_size = dims[axis];
 
-    float* max_array     = (float*)sys_malloc(in_size * sizeof(float));
-    float* sum_array     = (float*)sys_malloc(in_size * sizeof(float));
+    float* max_array = ( float* )sys_malloc(in_size * sizeof(float));
+    float* sum_array = ( float* )sys_malloc(in_size * sizeof(float));
 
-    int on_in_size       = on_size * in_size;
-    int totol_size       = on_in_size * out_size;
+    int on_in_size = on_size * in_size;
+    int totol_size = on_in_size * out_size;
 
-    uint8_t* input       = input_tensor->data;
-    uint8_t* output      = output_tensor->data;
-    float*   input_f     = (float*)sys_malloc(totol_size * 4);
-    float*   output_f    = (float*)sys_malloc(totol_size * 4);
+    uint8_t* input = input_tensor->data;
+    uint8_t* output = output_tensor->data;
+    float* input_f = ( float* )sys_malloc(totol_size * 4);
+    float* output_f = ( float* )sys_malloc(totol_size * 4);
 
-    float   input_scale  = input_tensor->scale;
-    float   output_scale = output_tensor->scale;
-    uint8_t input_zero   = input_tensor->zero_point;
-    uint8_t output_zero  = output_tensor->zero_point;
+    float input_scale = input_tensor->scale;
+    float output_scale = output_tensor->scale;
+    uint8_t input_zero = input_tensor->zero_point;
+    uint8_t output_zero = output_tensor->zero_point;
 
     /* dequant to fp32 */
     for (int i = 0; i < out_size; i++)

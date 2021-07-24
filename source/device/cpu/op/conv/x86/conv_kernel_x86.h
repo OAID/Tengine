@@ -42,7 +42,8 @@ int conv_hcl_run(struct tensor* input_tensor, struct tensor* filter_tensor, stru
                  struct tensor* output_tensor, struct conv_priv_info* conv_info, struct conv_param* param,
                  int num_thread, int cpu_affinity);
 
-int conv_hcl_get_shared_mem_size(struct tensor* input_tensor, struct tensor* output_tensor, struct conv_param* param);
+int conv_hcl_get_shared_mem_size(struct tensor* input_tensor, struct tensor* output_tensor,
+                                 struct conv_param* param);
 int conv_hcl_get_shared_pack4_mem_size(struct tensor* input_tensor, struct tensor* output_tensor,
                                        struct conv_param* param);
 

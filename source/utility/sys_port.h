@@ -26,8 +26,7 @@
 #define __SYS_PORT_H__
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 #include <stdint.h>
@@ -35,36 +34,36 @@ extern "C"
 #include <stdlib.h>
 
 #ifdef CONFIG_ARCH_CORTEX_M
-    char* strdup(const char*);
+char* strdup(const char*);
 #else
-    #if __APPLE__
-        #include <sys/malloc.h>
-        #include <sys/errno.h>
-    #else
-        #include <malloc.h>
-    #endif
+#if __APPLE__
+#include <sys/malloc.h>
+#include <sys/errno.h>
+#else
+#include <malloc.h>
+#endif
 #endif
 
 #include "lock.h"
 
-    void* sys_malloc(size_t size);
-    void  sys_free(void* ptr);
-    void* sys_realloc(void* ptr, size_t size);
+void* sys_malloc(size_t size);
+void sys_free(void* ptr);
+void* sys_realloc(void* ptr, size_t size);
 
 #ifdef CONFIG_INTERN_ALLOCATOR
 
-    #define malloc  buddy_malloc
-    #define free    buddy_free
-    #define realloc buddy_realloc
+#define malloc buddy_malloc
+#define free buddy_free
+#define realloc buddy_realloc
 
-    void* buddy_malloc(size_t size);
-    void  buddy_free(void* ptr);
-    void* buddy_realloc(void* ptr, size_t size);
+void* buddy_malloc(size_t size);
+void buddy_free(void* ptr);
+void* buddy_realloc(void* ptr, size_t size);
 
-    /* insert mem block into buddy system,to be called by difference system*/
-    int insert_mem_block(void* ptr, size_t size);
+/* insert mem block into buddy system,to be called by difference system*/
+int insert_mem_block(void* ptr, size_t size);
 
-    void set_buddy_mem_status(int disabled);
+void set_buddy_mem_status(int disabled);
 
 #endif
 

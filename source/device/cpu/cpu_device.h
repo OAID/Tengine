@@ -36,8 +36,8 @@ struct node;
 struct cpu_device
 {
     struct device base;
-    uint8_t       master_cpu;
-    uint8_t       cpu_model;
+    uint8_t master_cpu;
+    uint8_t cpu_model;
 };
 
 

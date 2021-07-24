@@ -40,16 +40,15 @@
 #ifndef LAYER_SHADER_TYPE_H
 #define LAYER_SHADER_TYPE_H
 
-namespace TEngine
-{
-namespace LayerShaderType
-{
+namespace TEngine {
+
+namespace LayerShaderType {
 enum LayerShaderType
 {
 #include "layer_shader_type_enum.h"
 };
-}    // namespace LayerShaderType
+} // namespace LayerType
 
-}    // namespace TEngine
+} // namespace TEngine
 
-#endif    // LAYER_SHADER_TYPE_H
+#endif // LAYER_SHADER_TYPE_H

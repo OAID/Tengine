@@ -48,10 +48,10 @@
 
 // #include "tengine_log.h"
 
-namespace TEngine
-{
+namespace TEngine {
+
 // instance
-int  create_gpu_instance();
+int create_gpu_instance();
 void destroy_gpu_instance();
 
 // instance extension capability
@@ -62,41 +62,42 @@ extern int support_VK_KHR_surface;
 extern int support_VK_EXT_debug_utils;
 #if __ANDROID_API__ >= 26
 extern int support_VK_KHR_android_surface;
-#endif    // __ANDROID_API__ >= 26
+#endif // __ANDROID_API__ >= 26
 
 // VK_KHR_external_memory_capabilities
 extern PFN_vkGetPhysicalDeviceExternalBufferPropertiesKHR vkGetPhysicalDeviceExternalBufferPropertiesKHR;
 
 // VK_KHR_get_physical_device_properties2
-extern PFN_vkGetPhysicalDeviceFeatures2KHR                    vkGetPhysicalDeviceFeatures2KHR;
-extern PFN_vkGetPhysicalDeviceProperties2KHR                  vkGetPhysicalDeviceProperties2KHR;
-extern PFN_vkGetPhysicalDeviceFormatProperties2KHR            vkGetPhysicalDeviceFormatProperties2KHR;
-extern PFN_vkGetPhysicalDeviceImageFormatProperties2KHR       vkGetPhysicalDeviceImageFormatProperties2KHR;
-extern PFN_vkGetPhysicalDeviceQueueFamilyProperties2KHR       vkGetPhysicalDeviceQueueFamilyProperties2KHR;
-extern PFN_vkGetPhysicalDeviceMemoryProperties2KHR            vkGetPhysicalDeviceMemoryProperties2KHR;
+extern PFN_vkGetPhysicalDeviceFeatures2KHR vkGetPhysicalDeviceFeatures2KHR;
+extern PFN_vkGetPhysicalDeviceProperties2KHR vkGetPhysicalDeviceProperties2KHR;
+extern PFN_vkGetPhysicalDeviceFormatProperties2KHR vkGetPhysicalDeviceFormatProperties2KHR;
+extern PFN_vkGetPhysicalDeviceImageFormatProperties2KHR vkGetPhysicalDeviceImageFormatProperties2KHR;
+extern PFN_vkGetPhysicalDeviceQueueFamilyProperties2KHR vkGetPhysicalDeviceQueueFamilyProperties2KHR;
+extern PFN_vkGetPhysicalDeviceMemoryProperties2KHR vkGetPhysicalDeviceMemoryProperties2KHR;
 extern PFN_vkGetPhysicalDeviceSparseImageFormatProperties2KHR vkGetPhysicalDeviceSparseImageFormatProperties2KHR;
 
 // VK_KHR_get_surface_capabilities2
 extern PFN_vkGetPhysicalDeviceSurfaceCapabilities2KHR vkGetPhysicalDeviceSurfaceCapabilities2KHR;
-extern PFN_vkGetPhysicalDeviceSurfaceFormats2KHR      vkGetPhysicalDeviceSurfaceFormats2KHR;
+extern PFN_vkGetPhysicalDeviceSurfaceFormats2KHR vkGetPhysicalDeviceSurfaceFormats2KHR;
 
 // VK_KHR_surface
-extern PFN_vkDestroySurfaceKHR                       vkDestroySurfaceKHR;
-extern PFN_vkGetPhysicalDeviceSurfaceSupportKHR      vkGetPhysicalDeviceSurfaceSupportKHR;
+extern PFN_vkDestroySurfaceKHR vkDestroySurfaceKHR;
+extern PFN_vkGetPhysicalDeviceSurfaceSupportKHR vkGetPhysicalDeviceSurfaceSupportKHR;
 extern PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR vkGetPhysicalDeviceSurfaceCapabilitiesKHR;
-extern PFN_vkGetPhysicalDeviceSurfaceFormatsKHR      vkGetPhysicalDeviceSurfaceFormatsKHR;
+extern PFN_vkGetPhysicalDeviceSurfaceFormatsKHR vkGetPhysicalDeviceSurfaceFormatsKHR;
 extern PFN_vkGetPhysicalDeviceSurfacePresentModesKHR vkGetPhysicalDeviceSurfacePresentModesKHR;
 
 #if __ANDROID_API__ >= 26
 // VK_KHR_android_surface
 extern PFN_vkCreateAndroidSurfaceKHR vkCreateAndroidSurfaceKHR;
-#endif    // __ANDROID_API__ >= 26
+#endif // __ANDROID_API__ >= 26
 
 // get info
 int get_gpu_count();
 int get_default_gpu_index();
 
-class GpuInfo {
+class GpuInfo
+{
 public:
     // vulkan physical device
     VkPhysicalDevice physical_device;
@@ -109,7 +110,7 @@ public:
     uint32_t driver_version;
     uint32_t vendor_id;
     uint32_t device_id;
-    uint8_t  pipeline_cache_uuid[VK_UUID_SIZE];
+    uint8_t pipeline_cache_uuid[VK_UUID_SIZE];
 
     // 0 = discrete gpu
     // 1 = integrated gpu
@@ -122,14 +123,14 @@ public:
     uint32_t max_workgroup_count[3];
     uint32_t max_workgroup_invocations;
     uint32_t max_workgroup_size[3];
-    size_t   memory_map_alignment;
-    size_t   buffer_offset_alignment;
-    size_t   non_coherent_atom_size;
-    size_t   buffer_image_granularity;
+    size_t memory_map_alignment;
+    size_t buffer_offset_alignment;
+    size_t non_coherent_atom_size;
+    size_t buffer_image_granularity;
     uint32_t max_image_dimension_1d;
     uint32_t max_image_dimension_2d;
     uint32_t max_image_dimension_3d;
-    float    timestamp_period;
+    float timestamp_period;
 
     // runtime
     uint32_t compute_queue_family_index;
@@ -177,7 +178,7 @@ public:
     int support_VK_EXT_queue_family_foreign;
 #if __ANDROID_API__ >= 26
     int support_VK_ANDROID_external_memory_android_hardware_buffer;
-#endif    // __ANDROID_API__ >= 26
+#endif // __ANDROID_API__ >= 26
 };
 
 const GpuInfo& get_gpu_info(int device_index = get_default_gpu_index());
@@ -187,47 +188,42 @@ class VkCompute;
 class Layer;
 class Packing_vulkan;
 class Option;
-class GPUDevice {
+class GPUDevice
+{
 public:
     GPUDevice(int device_index = get_default_gpu_index());
     ~GPUDevice();
 
     const GpuInfo& info;
 
-    VkDevice vkdevice() const
-    {
-        return device;
-    }
+    VkDevice vkdevice() const { return device; }
 
     VkShaderModule get_shader_module(int shader_type_index) const;
 
     // with fixed workgroup size
-    VkShaderModule create_shader_module(int shader_type_index, uint32_t local_size_x, uint32_t local_size_y,
-                                        uint32_t local_size_z) const;
+    VkShaderModule create_shader_module(int shader_type_index, uint32_t local_size_x, uint32_t local_size_y, uint32_t local_size_z) const;
 
     VkShaderModule compile_shader_module(const uint32_t* spv_data, size_t spv_data_size) const;
 
     // with fixed workgroup size
-    VkShaderModule compile_shader_module(const uint32_t* spv_data, size_t spv_data_size, uint32_t local_size_x,
-                                         uint32_t local_size_y, uint32_t local_size_z) const;
+    VkShaderModule compile_shader_module(const uint32_t* spv_data, size_t spv_data_size, uint32_t local_size_x, uint32_t local_size_y, uint32_t local_size_z) const;
 
-    uint32_t find_memory_index(uint32_t memory_type_bits, VkFlags required, VkFlags preferred,
-                               VkFlags preferred_not) const;
-    bool     is_mappable(uint32_t memory_type_index) const;
-    bool     is_coherent(uint32_t memory_type_index) const;
+    uint32_t find_memory_index(uint32_t memory_type_bits, VkFlags required, VkFlags preferred, VkFlags preferred_not) const;
+    bool is_mappable(uint32_t memory_type_index) const;
+    bool is_coherent(uint32_t memory_type_index) const;
 
     VkQueue acquire_queue(uint32_t queue_family_index) const;
-    void    reclaim_queue(uint32_t queue_family_index, VkQueue queue) const;
+    void reclaim_queue(uint32_t queue_family_index, VkQueue queue) const;
 
     // allocator on this device
     VkAllocator* acquire_blob_allocator() const;
-    void         reclaim_blob_allocator(VkAllocator* allocator) const;
+    void reclaim_blob_allocator(VkAllocator* allocator) const;
 
     VkAllocator* acquire_staging_allocator() const;
-    void         reclaim_staging_allocator(VkAllocator* allocator) const;
+    void reclaim_staging_allocator(VkAllocator* allocator) const;
 
     // dummy buffer image
-    VkTensor      get_dummy_buffer() const;
+    VkTensor get_dummy_buffer() const;
     VkImageTensor get_dummy_image() const;
 
     // utility operator
@@ -238,16 +234,16 @@ public:
 
     // VK_KHR_bind_memory2
     PFN_vkBindBufferMemory2KHR vkBindBufferMemory2KHR;
-    PFN_vkBindImageMemory2KHR  vkBindImageMemory2KHR;
+    PFN_vkBindImageMemory2KHR vkBindImageMemory2KHR;
 
     // VK_KHR_descriptor_update_template
-    PFN_vkCreateDescriptorUpdateTemplateKHR  vkCreateDescriptorUpdateTemplateKHR;
+    PFN_vkCreateDescriptorUpdateTemplateKHR vkCreateDescriptorUpdateTemplateKHR;
     PFN_vkDestroyDescriptorUpdateTemplateKHR vkDestroyDescriptorUpdateTemplateKHR;
     PFN_vkUpdateDescriptorSetWithTemplateKHR vkUpdateDescriptorSetWithTemplateKHR;
 
     // VK_KHR_get_memory_requirements2
-    PFN_vkGetImageMemoryRequirements2KHR       vkGetImageMemoryRequirements2KHR;
-    PFN_vkGetBufferMemoryRequirements2KHR      vkGetBufferMemoryRequirements2KHR;
+    PFN_vkGetImageMemoryRequirements2KHR vkGetImageMemoryRequirements2KHR;
+    PFN_vkGetBufferMemoryRequirements2KHR vkGetBufferMemoryRequirements2KHR;
     PFN_vkGetImageSparseMemoryRequirements2KHR vkGetImageSparseMemoryRequirements2KHR;
 
     // VK_KHR_maintenance1
@@ -255,65 +251,65 @@ public:
 
     // VK_KHR_push_descriptor
     PFN_vkCmdPushDescriptorSetWithTemplateKHR vkCmdPushDescriptorSetWithTemplateKHR;
-    PFN_vkCmdPushDescriptorSetKHR             vkCmdPushDescriptorSetKHR;
+    PFN_vkCmdPushDescriptorSetKHR vkCmdPushDescriptorSetKHR;
 
     // VK_KHR_sampler_ycbcr_conversion
-    PFN_vkCreateSamplerYcbcrConversionKHR  vkCreateSamplerYcbcrConversionKHR;
+    PFN_vkCreateSamplerYcbcrConversionKHR vkCreateSamplerYcbcrConversionKHR;
     PFN_vkDestroySamplerYcbcrConversionKHR vkDestroySamplerYcbcrConversionKHR;
 
     // VK_KHR_swapchain
-    PFN_vkCreateSwapchainKHR    vkCreateSwapchainKHR;
-    PFN_vkDestroySwapchainKHR   vkDestroySwapchainKHR;
+    PFN_vkCreateSwapchainKHR vkCreateSwapchainKHR;
+    PFN_vkDestroySwapchainKHR vkDestroySwapchainKHR;
     PFN_vkGetSwapchainImagesKHR vkGetSwapchainImagesKHR;
-    PFN_vkAcquireNextImageKHR   vkAcquireNextImageKHR;
-    PFN_vkQueuePresentKHR       vkQueuePresentKHR;
+    PFN_vkAcquireNextImageKHR vkAcquireNextImageKHR;
+    PFN_vkQueuePresentKHR vkQueuePresentKHR;
 
 #if __ANDROID_API__ >= 26
     // VK_ANDROID_external_memory_android_hardware_buffer
     PFN_vkGetAndroidHardwareBufferPropertiesANDROID vkGetAndroidHardwareBufferPropertiesANDROID;
-    PFN_vkGetMemoryAndroidHardwareBufferANDROID     vkGetMemoryAndroidHardwareBufferANDROID;
-#endif    // __ANDROID_API__ >= 26
+    PFN_vkGetMemoryAndroidHardwareBufferANDROID vkGetMemoryAndroidHardwareBufferANDROID;
+#endif // __ANDROID_API__ >= 26
 
 protected:
     // shader management
-    int  create_shader_module();
+    int create_shader_module();
     void destroy_shader_module();
 
     // device extension
     int init_device_extension();
 
     // dummy buffer and image
-    int  create_dummy_buffer_image();
+    int create_dummy_buffer_image();
     void destroy_dummy_buffer_image();
 
     // utility operator
-    int  create_utility_operator();
+    int create_utility_operator();
     void destroy_utility_operator();
 
 private:
-    VkDevice                    device;
+    VkDevice device;
     std::vector<VkShaderModule> shader_modules;
 
     // hardware queue
     mutable std::vector<VkQueue> compute_queues;
     mutable std::vector<VkQueue> graphics_queues;
     mutable std::vector<VkQueue> transfer_queues;
-
+    
     mutable Mutex queue_lock;
 
     // default blob allocator for each queue
     mutable std::vector<VkAllocator*> blob_allocators;
-
+    
     mutable Mutex blob_allocator_lock;
 
     // default staging allocator for each queue
     mutable std::vector<VkAllocator*> staging_allocators;
-
+    
     mutable Mutex staging_allocator_lock;
 
     // dummy buffer and image
-    VkAllocator*  dummy_allocator;
-    VkTensor      dummy_buffer;
+    VkAllocator* dummy_allocator;
+    VkTensor dummy_buffer;
     VkImageTensor dummy_image;
 
     // utility operator
@@ -328,7 +324,8 @@ private:
 GPUDevice* get_gpu_device(int device_index = get_default_gpu_index());
 
 // info from spirv
-class ShaderInfo {
+class ShaderInfo
+{
 public:
     int specialization_count;
     int binding_count;
@@ -338,24 +335,15 @@ public:
     // 1 = storage buffer
     // 2 = storage image
     // 3 = combined image sampler
-    int binding_types[16];    // 16 is large enough(maybe)
+    int binding_types[16];// 16 is large enough(maybe)
 };
 
 const ShaderInfo& get_shader_info(int shader_type_index);
-int               resolve_shader_info(const uint32_t* spv_data, size_t spv_data_size, ShaderInfo& shader_info);
+int resolve_shader_info(const uint32_t* spv_data, size_t spv_data_size, ShaderInfo& shader_info);
 
-union vk_specialization_type
-{
-    int      i;
-    float    f;
-    uint32_t u32;
-};
-union vk_constant_type
-{
-    int   i;
-    float f;
-};
+union vk_specialization_type { int i; float f; uint32_t u32; };
+union vk_constant_type { int i; float f; };
 
-}    // namespace TEngine
+}
 
-#endif    // VULKAN_GPU_HPP
+#endif // VULKAN_GPU_HPP

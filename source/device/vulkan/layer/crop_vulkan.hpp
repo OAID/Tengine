@@ -45,22 +45,20 @@
 
 #include "crop_param.h"
 
-namespace TEngine
+namespace TEngine{
+
+class Crop_vulkan : public Layer
 {
-class Crop_vulkan : public Layer {
 public:
     Crop_vulkan();
     Crop_vulkan(ir_graph_t* ir_graph, ir_node_t* ir_node);
 
     virtual int create_pipeline(const Option& opt);
     virtual int destroy_pipeline(const Option& opt);
-
-    void        resolve_crop_roi(const Tensor& bottom_blob, int& _woffset, int& _hoffset, int& _coffset, int& _outw,
-                                 int& _outh, int& _outc) const;
-    virtual int record_pipeline(const VkTensor& bottom_blob, VkTensor& top_blob, VkCompute& cmd,
-                                const Option& opt) const;
-    virtual int record_pipeline(const std::vector<VkTensor>& bottom_blobs, std::vector<VkTensor>& top_blobs,
-                                VkCompute& cmd, const Option& opt) const;
+    
+    void resolve_crop_roi(const Tensor& bottom_blob, int& _woffset, int& _hoffset, int& _coffset, int& _outw, int& _outh, int& _outc) const;
+    virtual int record_pipeline(const VkTensor& bottom_blob, VkTensor& top_blob, VkCompute& cmd, const Option& opt) const;
+    virtual int record_pipeline(const std::vector<VkTensor>& bottom_blobs, std::vector<VkTensor>& top_blobs, VkCompute& cmd, const Option& opt) const;
 
 public:
     Pipeline* pipeline_crop;
@@ -80,7 +78,7 @@ public:
     int output_c;
     int output_h;
     int output_w;
-
+    
     int num_args;
     int offset_c;
     int offset_h;
@@ -92,6 +90,6 @@ public:
     int flag;
 };
 
-}    // namespace TEngine
+}   // namespace TEngine
 
 #endif

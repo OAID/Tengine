@@ -41,7 +41,7 @@
 typedef struct __elu_param
 {
     float scale;
-    int   zero_point;
+    int zero_point;
     float alpha;
 } _elu_param, *p_elu_param;
 
@@ -80,21 +80,21 @@ int ref_elu_fp32(float* data, float* out_data, int size, p_elu_param param)
 int ref_elu_uint8(struct tensor* input_tensor, struct tensor* output_tensor, int size, p_elu_param param)
 {
     /* dequant */
-    uint8_t* input_uint8  = input_tensor->data;
+    uint8_t* input_uint8 = input_tensor->data;
     uint8_t* output_uint8 = output_tensor->data;
-    float    input_scale  = input_tensor->scale;
-    float    output_scale = output_tensor->scale;
-    int32_t  input_zero   = input_tensor->zero_point;
-    int32_t  output_zero  = output_tensor->zero_point;
-    int      input_size   = input_tensor->elem_num;
-    int      output_size  = output_tensor->elem_num;
+    float input_scale = input_tensor->scale;
+    float output_scale = output_tensor->scale;
+    int32_t input_zero = input_tensor->zero_point;
+    int32_t output_zero = output_tensor->zero_point;
+    int input_size = input_tensor->elem_num;
+    int output_size = output_tensor->elem_num;
 
-    float* data           = (float*)sys_malloc(input_size * sizeof(float));
-    float* out_data       = (float*)sys_malloc(output_size * sizeof(float));
+    float* data = ( float* )sys_malloc(input_size * sizeof(float));
+    float* out_data = ( float* )sys_malloc(output_size * sizeof(float));
 
     for (int i = 0; i < input_size; i++)
     {
-        data[i] = ((float)input_uint8[i] - (float)input_zero) * input_scale;
+        data[i] = (( float )input_uint8[i] - ( float )input_zero) * input_scale;
     }
 
     for (int i = 0; i < size; i++)
@@ -108,7 +108,7 @@ int ref_elu_uint8(struct tensor* input_tensor, struct tensor* output_tensor, int
             out_data[i] = data[i];
         }
     }
-
+    
     /* quant */
     for (int i = 0; i < output_size; i++)
     {
@@ -128,29 +128,29 @@ int ref_elu_uint8(struct tensor* input_tensor, struct tensor* output_tensor, int
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node*  node           = exec_node->ir_node;
-    struct graph* graph          = node->graph;
+    struct node* node = exec_node->ir_node;
+    struct graph* graph = node->graph;
 
-    struct tensor* input_tensor  = get_ir_graph_tensor(graph, node->input_tensors[0]);
+    struct tensor* input_tensor = get_ir_graph_tensor(graph, node->input_tensors[0]);
     struct tensor* output_tensor = get_ir_graph_tensor(graph, node->output_tensors[0]);
 
-    struct elu_param* param      = (struct elu_param*)node->op.param_mem;
+    struct elu_param* param = ( struct elu_param* )node->op.param_mem;
 
-    int   elem_num               = input_tensor->elem_num;
-    void* in_data                = input_tensor->data;
-    void* out_data               = output_tensor->data;
+    int elem_num = input_tensor->elem_num;
+    void* in_data = input_tensor->data;
+    void* out_data = output_tensor->data;
 
-    float scale                  = 1.f;
-    int   zero_point             = 0;
+    float scale = 1.f;
+    int zero_point = 0;
 
     _elu_param op_param;
-    op_param.alpha      = param->alpha;
-    op_param.scale      = scale;
+    op_param.alpha = param->alpha;
+    op_param.scale = scale;
     op_param.zero_point = zero_point;
 
     if (input_tensor->data_type == TENGINE_DT_FP32)
         ref_elu_fp32(in_data, out_data, elem_num, &op_param);
-    else if (input_tensor->data_type == TENGINE_DT_UINT8)
+    else if(input_tensor->data_type == TENGINE_DT_UINT8)
         ref_elu_uint8(input_tensor, output_tensor, elem_num, &op_param);
 
     return 0;
@@ -161,13 +161,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_CANDO;
 }
 
-static struct node_ops hcl_node_ops = { .prerun       = NULL,
-                                        .run          = run,
-                                        .reshape      = NULL,
-                                        .postrun      = NULL,
-                                        .init_node    = init_node,
-                                        .release_node = release_node,
-                                        .score        = score };
+static struct node_ops hcl_node_ops = {.prerun = NULL,
+                                       .run = run,
+                                       .reshape = NULL,
+                                       .postrun = NULL,
+                                       .init_node = init_node,
+                                       .release_node = release_node,
+                                       .score = score};
 
 int register_elu_ref_op()
 {

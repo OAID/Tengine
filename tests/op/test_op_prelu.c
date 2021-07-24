@@ -25,34 +25,29 @@
 #include "test_op.h"
 
 
-int create_test_prelu_node(graph_t graph, const char* input_name, const char* node_name, int data_type, int layout,
-                           int n, int c, int h, int w)
+int create_test_prelu_node(graph_t graph, const char* input_name, const char* node_name, int data_type, int layout, int n, int c, int h, int w)
 {
-    (void)layout;
-    (void)n;
-    (void)c;
-    (void)h;
-    (void)w;
+    (void)layout; (void)n; (void)c; (void)h; (void)w;
 
     /* create the test node */
-    node_t test_node      = create_graph_node(graph, node_name, "PReLU");
+    node_t test_node = create_graph_node(graph, node_name, "PReLU");
 
     tensor_t input_tensor = get_graph_tensor(graph, input_name);
 
-    if (NULL == input_tensor)
+    if(NULL == input_tensor)
     {
         fprintf(stderr, "create test node failed. ERRNO: %d.\n", get_tengine_errno());
         return -1;
     }
 
     /* create the sub node to product another input tensors which the test node is needed, such as weight/bias/slope tensor. */
-    node_t   slope_node   = create_graph_node(graph, "slope", "Const");
+    node_t slope_node = create_graph_node(graph, "slope", "Const");
     tensor_t slope_tensor = create_graph_tensor(graph, "slope", TENGINE_DT_FP32);
     set_node_output_tensor(slope_node, 0, slope_tensor, TENSOR_TYPE_CONST);
 
     int dims[4];
     get_tensor_shape(input_tensor, dims, 4);
-    int slope_dims[1] = { dims[1] };    // channel num
+    int slope_dims[1] = {dims[1]};  // channel num
     set_tensor_shape(slope_tensor, slope_dims, 1);
 
     /* input tensors of test node */
@@ -66,15 +61,15 @@ int create_test_prelu_node(graph_t graph, const char* input_name, const char* no
     return 0;
 }
 
-float slope_value[3]  = { 0.1f, 0.2f, 0.3f };
-float result_value[3] = { -1.f, -2.f, -3.f };
+float slope_value[3] = {0.1f, 0.2f, 0.3f};
+float result_value[3] = {-1.f, -2.f, -3.f};
 
 int main(int argc, char* argv[])
 {
-    int         n = 1, c = 3, h = 6, w = 6;
+    int n = 1, c = 3, h = 6, w = 6;
     const char* test_node_name = "prelu";
-    int         data_type      = TENGINE_DT_FP32;
-    int         layout         = TENGINE_LAYOUT_NCHW;
+    int data_type = TENGINE_DT_FP32;
+    int layout = TENGINE_LAYOUT_NCHW;
 
     // init
     int ret = test_graph_init();
@@ -83,7 +78,7 @@ int main(int argc, char* argv[])
 
     // create
     graph_t graph = create_common_test_graph(test_node_name, data_type, layout, n, c, h, w, &create_test_prelu_node);
-    if (NULL == graph)
+    if(NULL == graph)
         return -1;
 
     // set input data
@@ -103,13 +98,13 @@ int main(int argc, char* argv[])
 
     // check the result
     struct tensor* output_tensor = get_graph_output_tensor(graph, 0, 0);
-    int            out_c         = output_tensor->dims[1];
-    int            cstep         = output_tensor->dims[2] * output_tensor->dims[3];
+    int out_c = output_tensor->dims[1];
+    int cstep = output_tensor->dims[2] * output_tensor->dims[3];
 
-    ret                          = 0;
-    for (int i = 0; i < out_c; i++)
+    ret = 0;
+    for (int i = 0; i< out_c; i++)
     {
-        float* output_data = (float*)output_tensor->data + i * cstep;
+        float* output_data =  (float *)output_tensor->data + i * cstep;
         for (int j = 0; j < cstep; j++)
         {
             if (output_data[j] != result_value[i])

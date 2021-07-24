@@ -27,9 +27,9 @@
 
 struct tile_param
 {
-    int  frame_flag;
+    int frame_flag;
     int* reps;
-    int  reps_size;
+    int reps_size;
 };
 
 #endif

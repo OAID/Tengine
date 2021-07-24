@@ -31,11 +31,9 @@ struct vector;
 
 int check_sub_info(struct graph* ir_graph);
 
-struct vector* get_graph_blocked_nodes(const struct graph* ir_graph, struct vector* blocked_ops,
-                                       struct vector* allowed_precision);
+struct vector* get_graph_blocked_nodes(const struct graph* ir_graph, struct vector* blocked_ops, struct vector* allowed_precision);
 
-void split_graph_node_to_sub_graph(struct graph* ir_graph, struct vector* allowed_ops, struct vector* blocked_ops,
-                                   struct vector* allowed_precision);
+void split_graph_node_to_sub_graph(struct graph* ir_graph, struct vector* allowed_ops, struct vector* blocked_ops, struct vector* allowed_precision);
 
 void add_sub_graph_to_ir_graph(struct graph* ir_graph);
 

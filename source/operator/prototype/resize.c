@@ -35,23 +35,23 @@
 
 static int infer_shape(struct node* node)
 {
-    struct graph*        graph        = node->graph;
-    struct tensor*       input        = get_ir_graph_tensor(graph, node->input_tensors[0]);
-    struct tensor*       output       = get_ir_graph_tensor(graph, node->output_tensors[0]);
-    struct resize_param* resize_param = (struct resize_param*)(node->op.param_mem);
+    struct graph* graph = node->graph;
+    struct tensor* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
+    struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
+    struct resize_param* resize_param = ( struct resize_param* )(node->op.param_mem);
 
     int dims[4];
     dims[0] = input->dims[0];
     if (graph->graph_layout == TENGINE_LAYOUT_NCHW)
     {
         dims[1] = input->dims[1];
-        dims[2] = (int)(input->dims[2] * resize_param->scale_h);
-        dims[3] = (int)(input->dims[3] * resize_param->scale_w);
+        dims[2] = ( int )(input->dims[2] * resize_param->scale_h);
+        dims[3] = ( int )(input->dims[3] * resize_param->scale_w);
     }
     else if (graph->graph_layout == TENGINE_LAYOUT_NHWC)
     {
-        dims[1] = (int)(input->dims[1] * resize_param->scale_h);
-        dims[2] = (int)(input->dims[2] * resize_param->scale_w);
+        dims[1] = ( int )(input->dims[1] * resize_param->scale_h);
+        dims[2] = ( int )(input->dims[2] * resize_param->scale_w);
         dims[3] = input->dims[3];
     }
     else
@@ -68,7 +68,7 @@ static int infer_shape(struct node* node)
 
 static int init_op(struct op* op)
 {
-    struct resize_param* resize_param = (struct resize_param*)sys_malloc(sizeof(struct resize_param));
+    struct resize_param* resize_param = ( struct resize_param* )sys_malloc(sizeof(struct resize_param));
 
     if (resize_param == NULL)
     {
@@ -78,12 +78,12 @@ static int init_op(struct op* op)
     /*set the param default value */
     resize_param->scale_h = 1.0;
     resize_param->scale_w = 1.0;
-    resize_param->type    = 0;
+    resize_param->type = 0;
 
-    op->param_mem         = resize_param;
-    op->param_size        = sizeof(struct resize_param);
-    op->same_shape        = 0;
-    op->infer_shape       = infer_shape;
+    op->param_mem = resize_param;
+    op->param_size = sizeof(struct resize_param);
+    op->same_shape = 0;
+    op->infer_shape = infer_shape;
 
     return 0;
 }
@@ -100,7 +100,7 @@ int register_resize_op()
     struct method m;
 
     m.version = 1;
-    m.init    = init_op;
+    m.init = init_op;
     m.release = release_op;
 
     return register_op(OP_RESIZE, OP_RESIZE_NAME, &m);

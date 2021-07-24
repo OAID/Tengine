@@ -24,7 +24,8 @@
 
 #pragma once
 
-class Timer {
+class Timer
+{
 private:
     double start_time_, end_time_;
 

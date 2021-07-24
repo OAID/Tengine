@@ -34,10 +34,10 @@
 
 static int infer_shape(struct node* node)
 {
-    struct graph*           ir_graph        = node->graph;
-    struct tensor*          input           = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
-    struct tensor*          output          = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
-    struct swap_axis_param* swap_axis_param = (struct swap_axis_param*)node->op.param_mem;
+    struct graph* ir_graph = node->graph;
+    struct tensor* input = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
+    struct tensor* output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
+    struct swap_axis_param* swap_axis_param = ( struct swap_axis_param* )node->op.param_mem;
 
     if (swap_axis_param->dim_0 == swap_axis_param->dim_1)
     {
@@ -59,7 +59,7 @@ static int infer_shape(struct node* node)
     if (swap_axis_param->dim_0 >= in_size || swap_axis_param->dim_1 >= in_size)
         return -1;
 
-    int* newdim = (int*)sys_malloc(in_size * sizeof(int));
+    int* newdim = ( int* )sys_malloc(in_size * sizeof(int));
     for (int i = 0; i < in_size; i++)
     {
         newdim[i] = input->dims[i];
@@ -75,7 +75,7 @@ static int infer_shape(struct node* node)
 
 static int init_op(struct op* op)
 {
-    struct swap_axis_param* swap_axis_param = (struct swap_axis_param*)sys_malloc(sizeof(struct swap_axis_param));
+    struct swap_axis_param* swap_axis_param = ( struct swap_axis_param* )sys_malloc(sizeof(struct swap_axis_param));
 
     if (swap_axis_param == NULL)
     {
@@ -85,10 +85,10 @@ static int init_op(struct op* op)
     swap_axis_param->dim_0 = 0;
     swap_axis_param->dim_1 = 1;
 
-    op->param_mem          = swap_axis_param;
-    op->param_size         = sizeof(struct swap_axis_param);
-    op->same_shape         = 0;
-    op->infer_shape        = infer_shape;
+    op->param_mem = swap_axis_param;
+    op->param_size = sizeof(struct swap_axis_param);
+    op->same_shape = 0;
+    op->infer_shape = infer_shape;
 
     return 0;
 }
@@ -105,7 +105,7 @@ int register_swap_axis_op()
     struct method m;
 
     m.version = 1;
-    m.init    = init_op;
+    m.init = init_op;
     m.release = release_op;
 
     return register_op(OP_SWAP_AXIS, OP_SWAP_AXIS_NAME, &m);

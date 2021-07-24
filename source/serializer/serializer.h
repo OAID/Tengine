@@ -48,8 +48,7 @@ typedef struct serializer
     int (*unload_graph)(struct serializer*, struct graph*, void* s_priv, void* dev_priv);
 
     //!< interface exposed for register operator extension
-    int (*register_op_loader)(struct serializer*, int op_type, int op_ver, void* op_load_func, void* op_type_map_func,
-                              void* op_ver_map_func);
+    int (*register_op_loader)(struct serializer*, int op_type, int op_ver, void* op_load_func, void* op_type_map_func, void* op_ver_map_func);
 
     //!< interface exposed for register operator extension
     int (*unregister_op_loader)(struct serializer*, int op_type, int op_ver, void* op_load_func);

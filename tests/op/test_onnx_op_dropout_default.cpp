@@ -37,9 +37,9 @@ int main(int argc, char* argv[])
     /* set runtime options */
     struct options opt;
     opt.num_thread = 1;
-    opt.cluster    = TENGINE_CLUSTER_ALL;
-    opt.precision  = TENGINE_MODE_FP32;
-    opt.affinity   = 0;
+    opt.cluster = TENGINE_CLUSTER_ALL;
+    opt.precision = TENGINE_MODE_FP32;
+    opt.affinity = 0;
 
     /* inital tengine */
     if (init_tengine() != 0)
@@ -57,8 +57,8 @@ int main(int argc, char* argv[])
     }
 
     /* set the shape, data buffer of input_tensor of the graph */
-    int                input_size = w;
-    int                dims[]     = { w };
+    int input_size = w;
+    int dims[] = {w};
     std::vector<float> feature_in(input_size);
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
@@ -78,7 +78,7 @@ int main(int argc, char* argv[])
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;
-    }
+    }    
 
     /* prerun graph, set work options(num_thread, cluster, precision) */
     if (prerun_graph_multithread(graph, opt) < 0)
@@ -99,8 +99,8 @@ int main(int argc, char* argv[])
 
     /* get the current result of inference */
     tensor_t output_tensor = get_graph_output_tensor(graph, 0, 0);
-    float*   output_data   = (float*)get_tensor_buffer(output_tensor);
-    int      output_size   = get_tensor_buffer_size(output_tensor) / sizeof(float);
+    float* output_data = ( float* )get_tensor_buffer(output_tensor);
+    int output_size = get_tensor_buffer_size(output_tensor) / sizeof(float);
 
     /* get the reference result of inference */
     std::vector<float> reference_out(output_size);

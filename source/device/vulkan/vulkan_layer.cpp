@@ -39,14 +39,16 @@
 
 #include "vulkan_layer.hpp"
 
-namespace TEngine
-{
+namespace TEngine {
+
 Layer::Layer()
 {
     support_vulkan = false;
 }
 
-Layer::~Layer() {}
+Layer::~Layer()
+{
+}
 
 int Layer::create_pipeline(const Option& /*opt*/)
 {
@@ -73,11 +75,10 @@ int Layer::record_pipeline(VkTensor& bottom_top_blob, VkCompute& cmd, const Opti
     return 0;
 }
 
-int Layer::record_pipeline(const std::vector<VkTensor>& bottom_blobs, std::vector<VkTensor>& top_blobs, VkCompute& cmd,
-                           const Option& opt) const
+int Layer::record_pipeline(const std::vector<VkTensor>& bottom_blobs, std::vector<VkTensor>& top_blobs, VkCompute& cmd, const Option& opt) const
 {
     printf("run layer record_pipeline VkTensors\n");
     return 0;
 }
 
-}    // namespace TEngine
+} // TEngine

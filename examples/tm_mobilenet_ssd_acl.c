@@ -27,33 +27,33 @@
 #include "tengine_operations.h"
 
 #define DEFAULT_MAX_BOX_COUNT 100
-#define DEFAULT_REPEAT_COUNT  1
-#define DEFAULT_THREAD_COUNT  1
+#define DEFAULT_REPEAT_COUNT    1
+#define DEFAULT_THREAD_COUNT    1
 
 typedef struct Box
 {
-    int   x0;
-    int   y0;
-    int   x1;
-    int   y1;
-    int   class_idx;
+    int x0;
+    int y0;
+    int x1;
+    int y1;
+    int class_idx;
     float score;
 } Box_t;
 
 void post_process_ssd(const char* image_file, float threshold, const float* outdata, int num)
 {
-    const char* class_names[] = { "background", "aeroplane", "bicycle",   "bird",   "boat",        "bottle",
-                                  "bus",        "car",       "cat",       "chair",  "cow",         "diningtable",
-                                  "dog",        "horse",     "motorbike", "person", "pottedplant", "sheep",
-                                  "sofa",       "train",     "tvmonitor" };
+    const char* class_names[] = {"background", "aeroplane", "bicycle",   "bird",   "boat",        "bottle",
+                                 "bus",        "car",       "cat",       "chair",  "cow",         "diningtable",
+                                 "dog",        "horse",     "motorbike", "person", "pottedplant", "sheep",
+                                 "sofa",       "train",     "tvmonitor"};
 
-    image im                  = imread(image_file);
+    image im = imread(image_file);
 
-    int raw_h                 = im.h;
-    int raw_w                 = im.w;
+    int raw_h = im.h;
+    int raw_w = im.w;
 
-    Box_t* boxes              = malloc(sizeof(Box_t) * DEFAULT_MAX_BOX_COUNT);
-    int    box_count          = 0;
+    Box_t* boxes = malloc(sizeof(Box_t) * DEFAULT_MAX_BOX_COUNT);
+    int box_count = 0;
 
     fprintf(stderr, "detect result num: %d \n", num);
     for (int i = 0; i < num; i++)
@@ -62,14 +62,14 @@ void post_process_ssd(const char* image_file, float threshold, const float* outd
         {
             Box_t box;
 
-            box.class_idx    = outdata[0];
-            box.score        = outdata[1];
-            box.x0           = outdata[2] * raw_w;
-            box.y0           = outdata[3] * raw_h;
-            box.x1           = outdata[4] * raw_w;
-            box.y1           = outdata[5] * raw_h;
+            box.class_idx = outdata[0];
+            box.score = outdata[1];
+            box.x0 = outdata[2] * raw_w;
+            box.y0 = outdata[3] * raw_h;
+            box.x1 = outdata[4] * raw_w;
+            box.y1 = outdata[5] * raw_h;
 
-            boxes            = realloc(boxes, sizeof(Box_t) * (box_count + 1));
+            boxes = realloc(boxes, sizeof(Box_t) * (box_count + 1));
             boxes[box_count] = box;
             box_count++;
 
@@ -100,14 +100,14 @@ void show_usage()
 
 int main(int argc, char* argv[])
 {
-    int   repeat_count   = DEFAULT_REPEAT_COUNT;
-    int   num_thread     = DEFAULT_THREAD_COUNT;
-    char* model_file     = NULL;
-    char* image_file     = NULL;
-    int   img_h          = 300;
-    int   img_w          = 300;
-    float mean[3]        = { 127.5f, 127.5f, 127.5f };
-    float scale[3]       = { 0.007843f, 0.007843f, 0.007843f };
+    int repeat_count = DEFAULT_REPEAT_COUNT;
+    int num_thread = DEFAULT_THREAD_COUNT;
+    char* model_file = NULL;
+    char* image_file = NULL;
+    int img_h = 300;
+    int img_w = 300;
+    float mean[3] = {127.5f, 127.5f, 127.5f};
+    float scale[3] = {0.007843f, 0.007843f, 0.007843f};
     float show_threshold = 0.5f;
 
     int res;
@@ -115,23 +115,23 @@ int main(int argc, char* argv[])
     {
         switch (res)
         {
-        case 'm':
-            model_file = optarg;
-            break;
-        case 'i':
-            image_file = optarg;
-            break;
-        case 'r':
-            repeat_count = atoi(optarg);
-            break;
-        case 't':
-            num_thread = atoi(optarg);
-            break;
-        case 'h':
-            show_usage();
-            return 0;
-        default:
-            break;
+            case 'm':
+                model_file = optarg;
+                break;
+            case 'i':
+                image_file = optarg;
+                break;
+            case 'r':
+                repeat_count = atoi(optarg);
+                break;
+            case 't':
+                num_thread = atoi(optarg);
+                break;
+            case 'h':
+                show_usage();
+                return 0;
+            default:
+                break;
         }
     }
 
@@ -156,9 +156,9 @@ int main(int argc, char* argv[])
     /* set runtime options */
     struct options opt;
     opt.num_thread = num_thread;
-    opt.cluster    = TENGINE_CLUSTER_ALL;
-    opt.precision  = TENGINE_MODE_FP32;
-    opt.affinity   = 0;
+    opt.cluster = TENGINE_CLUSTER_ALL;
+    opt.precision = TENGINE_MODE_FP32;
+    opt.affinity = 0;
 
     /* inital tengine */
     if (init_tengine() != 0)
@@ -170,7 +170,7 @@ int main(int argc, char* argv[])
 
     /* create arm ACL backend */
     context_t acl_context = create_context("acl", 1);
-    int       rtt         = add_context_device(acl_context, "ACL");
+    int rtt = add_context_device(acl_context, "ACL");
     if (0 > rtt)
     {
         fprintf(stderr, " add_context_device ACL DEVICE failed.\n");
@@ -186,9 +186,9 @@ int main(int argc, char* argv[])
     }
 
     /* set the input shape to initial the graph, and prerun graph to infer shape */
-    int    img_size       = img_h * img_w * 3;
-    int    dims[]         = { 1, 3, img_h, img_w };    // nchw
-    float* input_data     = (float*)malloc(img_size * sizeof(float));
+    int img_size = img_h * img_w * 3;
+    int dims[] = {1, 3, img_h, img_w};    // nchw
+    float* input_data = ( float* )malloc(img_size * sizeof(float));
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == NULL)
@@ -207,7 +207,7 @@ int main(int argc, char* argv[])
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;
-    }
+    }    
 
     /* prerun graph, set work options(num_thread, cluster, precision) */
     if (prerun_graph_multithread(graph, opt) < 0)
@@ -220,8 +220,8 @@ int main(int argc, char* argv[])
     get_input_data(image_file, input_data, img_h, img_w, mean, scale);
 
     /* run graph */
-    double min_time   = DBL_MAX;
-    double max_time   = DBL_MIN;
+    double min_time = DBL_MAX;
+    double max_time = DBL_MIN;
     double total_time = 0.;
     for (int i = 0; i < repeat_count; i++)
     {
@@ -245,9 +245,9 @@ int main(int argc, char* argv[])
 
     /* process the detection result */
     tensor_t output_tensor = get_graph_output_tensor(graph, 0, 0);    //"detection_out"
-    int      out_dim[4];
+    int out_dim[4];
     get_tensor_shape(output_tensor, out_dim, 4);
-    float* output_data = (float*)get_tensor_buffer(output_tensor);
+    float* output_data = ( float* )get_tensor_buffer(output_tensor);
     post_process_ssd(image_file, show_threshold, output_data, out_dim[1]);
 
     /* release tengine */

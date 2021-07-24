@@ -44,12 +44,12 @@ static int logical_op_map(int op)
 static int tm2_load_logical(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                             const TM2_Operator* tm_op)
 {
-    struct logical_param*   logical_param = (struct logical_param*)ir_node->op.param_mem;
-    const struct tm2_priv*  tm2_priv      = (struct tm2_priv*)ir_graph->serializer_privacy;
-    const char*             mem_base      = tm2_priv->base;
-    const TM2_LogicalParam* tm_param      = (TM2_LogicalParam*)(mem_base + tm_op->offset_t_param);
+    struct logical_param* logical_param = ( struct logical_param* )ir_node->op.param_mem;
+    const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
+    const char* mem_base = tm2_priv->base;
+    const TM2_LogicalParam* tm_param = ( TM2_LogicalParam* )(mem_base + tm_op->offset_t_param);
 
-    logical_param->type                   = tm_param->type;
+    logical_param->type = tm_param->type;
 
     return 0;
 }

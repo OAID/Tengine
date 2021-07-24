@@ -45,18 +45,18 @@
 
 #include "permute_param.h"
 
-namespace TEngine
+namespace TEngine{
+
+class Permute_vulkan : public Layer
 {
-class Permute_vulkan : public Layer {
 public:
     Permute_vulkan();
     Permute_vulkan(ir_graph_t* ir_graph, ir_node_t* ir_node);
 
     virtual int create_pipeline(const Option& opt);
     virtual int destroy_pipeline(const Option& opt);
-
-    virtual int record_pipeline(const VkTensor& bottom_blob, VkTensor& top_blob, VkCompute& cmd,
-                                const Option& opt) const;
+    
+    virtual int record_pipeline(const VkTensor& bottom_blob, VkTensor& top_blob, VkCompute& cmd, const Option& opt) const;
 
 public:
     Pipeline* pipeline_permute;
@@ -79,6 +79,6 @@ public:
     int order_type;
 };
 
-}    // namespace TEngine
+}   // namespace TEngine
 
 #endif

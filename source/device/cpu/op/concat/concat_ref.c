@@ -51,12 +51,12 @@ static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, 
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node*         ir_node       = exec_node->ir_node;
-    struct graph*        ir_graph      = ir_node->graph;
-    struct tensor*       output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    struct concat_param* concat_param  = (struct concat_param*)ir_node->op.param_mem;
-
-    int ret                            = -1;
+    struct node* ir_node = exec_node->ir_node;
+    struct graph* ir_graph = ir_node->graph;
+    struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+    struct concat_param* concat_param = ( struct concat_param* )ir_node->op.param_mem;
+    
+    int ret = -1;
     if (output_tensor->data_type == TENGINE_DT_FP32)
     {
         ret = ref_concat_fp32(ir_graph, ir_node, concat_param->axis);
@@ -80,13 +80,14 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_CANDO;
 }
 
-static struct node_ops hcl_node_ops = { .prerun       = NULL,
-                                        .run          = run,
-                                        .reshape      = NULL,
-                                        .postrun      = NULL,
-                                        .init_node    = init_node,
-                                        .release_node = release_node,
-                                        .score        = score };
+static struct node_ops hcl_node_ops = {
+        .prerun = NULL,
+        .run = run,
+        .reshape = NULL,
+        .postrun = NULL,
+        .init_node = init_node,
+        .release_node = release_node,
+        .score = score};
 
 int register_concat_ref_op()
 {

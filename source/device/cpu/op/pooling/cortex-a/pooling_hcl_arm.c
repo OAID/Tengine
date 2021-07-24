@@ -43,15 +43,15 @@
 
 static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node*   ir_node  = exec_node->ir_node;
-    struct graph*  ir_graph = ir_node->graph;
+    struct node* ir_node = exec_node->ir_node;
+    struct graph* ir_graph = ir_node->graph;
     struct tensor* input_tensor;
     struct tensor* output_tensor;
 
-    struct pool_param* pool_param = (struct pool_param*)ir_node->op.param_mem;
+    struct pool_param* pool_param = ( struct pool_param* )ir_node->op.param_mem;
 
-    input_tensor                  = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    output_tensor                 = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+    input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
     pooling_kernel_perf_prerun(input_tensor, output_tensor, pool_param);
 
@@ -60,15 +60,15 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node*   ir_node  = exec_node->ir_node;
-    struct graph*  ir_graph = ir_node->graph;
+    struct node* ir_node = exec_node->ir_node;
+    struct graph* ir_graph = ir_node->graph;
     struct tensor* input_tensor;
     struct tensor* output_tensor;
 
-    struct pool_param* pool_param = (struct pool_param*)ir_node->op.param_mem;
+    struct pool_param* pool_param = ( struct pool_param* )ir_node->op.param_mem;
 
-    input_tensor                  = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    output_tensor                 = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+    input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
     pooling_kernel_perf_run(input_tensor, output_tensor, pool_param, exec_graph->num_thread);
 
@@ -92,25 +92,25 @@ static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, 
 
 static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struct node* exec_node)
 {
-    struct pool_param* pool_param = (struct pool_param*)exec_node->op.param_mem;
+    struct pool_param* pool_param = ( struct pool_param* )exec_node->op.param_mem;
 
-    int global                    = pool_param->global;
-    int type                      = pool_param->pool_method;
-    int kernel_h                  = pool_param->kernel_h;
-    int kernel_w                  = pool_param->kernel_w;
-    int stride_h                  = pool_param->stride_h;
-    int stride_w                  = pool_param->stride_w;
-    int pad_h0                    = pool_param->pad_h0;
-    int pad_h1                    = pool_param->pad_h1;
-    int pad_w0                    = pool_param->pad_w0;
-    int pad_w1                    = pool_param->pad_w1;
-    int pad_tf                    = pool_param->pad_h0_org;    // maybe there is a bug.
+    int global = pool_param->global;
+    int type = pool_param->pool_method;
+    int kernel_h = pool_param->kernel_h;
+    int kernel_w = pool_param->kernel_w;
+    int stride_h = pool_param->stride_h;
+    int stride_w = pool_param->stride_w;
+    int pad_h0 = pool_param->pad_h0;
+    int pad_h1 = pool_param->pad_h1;
+    int pad_w0 = pool_param->pad_w0;
+    int pad_w1 = pool_param->pad_w1;
+    int pad_tf = pool_param->pad_h0_org;    // maybe there is a bug.
 
-    int pool_size                 = 0;
+    int pool_size = 0;
 
-    struct node*   ir_node        = exec_node;
-    struct graph*  ir_graph       = ir_node->graph;
-    struct tensor* input_tensor   = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    struct node* ir_node = exec_node;
+    struct graph* ir_graph = ir_node->graph;
+    struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
 
     /* todo support uint8 */
     if (input_tensor->data_type != TENGINE_DT_FP32)
@@ -136,8 +136,8 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
         /* general max pooling, k2s2, k2k2p1, k3s1p1, k3s2, k3s2p1 */
         if (type == POOL_MAX && (pad_h0 == pad_w0) && (pad_h1 == pad_w1) && pad_tf != -1)
         {
-            if (pad_h0 == 0 && (pool_size == POOL_K2S2))
-                return 0;
+			if (pad_h0 == 0 && (pool_size == POOL_K2S2))
+				return 0;
             if (pad_h0 == 0 && (pool_size == POOL_K3S2))
                 return OPS_SCORE_BEST;
             if (pad_h0 == 1 && (pool_size == POOL_K2S2 || pool_size == POOL_K3S2 || pool_size == POOL_K3S1))
@@ -149,10 +149,9 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
         {
             if (pad_h0 == 0 && pad_h1 == 0 && (pool_size == POOL_K2S2 || pool_size == POOL_K3S2))
                 return OPS_SCORE_BEST;
-            if (pad_h0 == 1 && pad_h1 == 1
-                && (pool_size == POOL_K2S2 || pool_size == POOL_K3S2 || pool_size == POOL_K3S1))
+            if (pad_h0 == 1 && pad_h1 == 1 && (pool_size == POOL_K2S2 || pool_size == POOL_K3S2 || pool_size == POOL_K3S1))
                 return OPS_SCORE_BEST;
-            else if (pad_h0 == 0 && pad_h1 == 1 && (pool_size == POOL_K3S2))
+            else if(pad_h0 == 0 && pad_h1 == 1 && (pool_size == POOL_K3S2))
                 return OPS_SCORE_BEST;
         }
     }
@@ -161,13 +160,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
 }
 
 
-static struct node_ops hcl_node_ops = { .prerun       = prerun,
-                                        .run          = run,
-                                        .reshape      = NULL,
-                                        .postrun      = postrun,
-                                        .init_node    = init_node,
-                                        .release_node = release_node,
-                                        .score        = score };
+static struct node_ops hcl_node_ops = {.prerun = prerun,
+                                       .run = run,
+                                       .reshape = NULL,
+                                       .postrun = postrun,
+                                       .init_node = init_node,
+                                       .release_node = release_node,
+                                       .score = score};
 
 
 int register_pooling_hcl_arm_op()

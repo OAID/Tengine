@@ -46,9 +46,10 @@
 
 #include "convolution_param.h"
 
-namespace TEngine
+namespace TEngine {
+
+class ConvolutionDepthWise_vulkan : public Layer
 {
-class ConvolutionDepthWise_vulkan : public Layer {
 public:
     ConvolutionDepthWise_vulkan();
     ConvolutionDepthWise_vulkan(ir_graph_t* ir_graph, ir_node_t* node);
@@ -57,18 +58,17 @@ public:
     virtual int destroy_pipeline(const Option& opt);
     virtual int upload_model(VkTransfer& cmd, const Option& opt);
 
-    virtual int record_pipeline(const VkTensor& bottom_blob, VkTensor& top_blob, VkCompute& cmd,
-                                const Option& opt) const;
+    virtual int record_pipeline(const VkTensor& bottom_blob, VkTensor& top_blob, VkCompute& cmd, const Option& opt) const;
 
 public:
     int group;
     int input_c;
     int input_h;
     int input_w;
-    int pad_w0;    // left padding columns
-    int pad_w1;    // right padding columns
-    int pad_h0;    // top padding rows
-    int pad_h1;    // bottom padding rows
+    int pad_w0;  // left padding columns
+    int pad_w1;  // right padding columns
+    int pad_h0;  // top padding rows
+    int pad_h1;  // bottom padding rows
     int stride_h;
     int stride_w;
     int dilation_h;
@@ -90,7 +90,7 @@ public:
     Pipeline* pipeline_convolutiondepthwise_pack8;
 };
 
-}    // namespace TEngine
+} // namespace TEngine
 
 
 #endif

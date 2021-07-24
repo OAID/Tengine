@@ -40,12 +40,12 @@
 
 static int ref_prelu_fp32(struct tensor* input_tensor, struct tensor* output_tensor, struct tensor* slope_tensor)
 {
-    int dim_num        = input_tensor->dim_num;
-    int slope_num      = slope_tensor->elem_num;
+    int dim_num = input_tensor->dim_num;
+    int slope_num = slope_tensor->elem_num;
 
-    float* input_data  = input_tensor->data;
+    float* input_data = input_tensor->data;
     float* output_data = output_tensor->data;
-    float* slope       = slope_tensor->data;
+    float* slope = slope_tensor->data;
 
     if (dim_num == 2)
     {
@@ -58,7 +58,7 @@ static int ref_prelu_fp32(struct tensor* input_tensor, struct tensor* output_ten
             {
                 for (int k = 0; k < w; k++)
                 {
-                    int offset          = i * w + k;
+                    int offset = i * w + k;
                     output_data[offset] = MAX(input_data[offset], 0) + slope[k] * MIN(input_data[offset], 0.f);
                 }
             }
@@ -69,7 +69,7 @@ static int ref_prelu_fp32(struct tensor* input_tensor, struct tensor* output_ten
             {
                 for (int k = 0; k < w; k++)
                 {
-                    int offset          = i * w + k;
+                    int offset = i * w + k;
                     output_data[offset] = MAX(input_data[offset], 0) + slope[0] * MIN(input_data[offset], 0.f);
                 }
             }
@@ -90,7 +90,7 @@ static int ref_prelu_fp32(struct tensor* input_tensor, struct tensor* output_ten
                 {
                     for (int k = 0; k < w; k++)
                     {
-                        int offset          = i * c * w + j * w + k;
+                        int offset = i * c * w + j * w + k;
                         output_data[offset] = MAX(input_data[offset], 0) + slope[j] * MIN(input_data[offset], 0.f);
                     }
                 }
@@ -104,7 +104,7 @@ static int ref_prelu_fp32(struct tensor* input_tensor, struct tensor* output_ten
                 {
                     for (int k = 0; k < w; k++)
                     {
-                        int offset          = i * c * w + j * w + k;
+                        int offset = i * c * w + j * w + k;
                         output_data[offset] = MAX(input_data[offset], 0) + slope[0] * MIN(input_data[offset], 0.f);
                     }
                 }
@@ -129,7 +129,7 @@ static int ref_prelu_fp32(struct tensor* input_tensor, struct tensor* output_ten
                     {
                         for (int k = 0; k < w; k++)
                         {
-                            int offset          = i * c * h * w + j * h * w + l * w + k;
+                            int offset = i * c * h * w + j * h * w + l * w + k;
                             output_data[offset] = MAX(input_data[offset], 0) + slope[j] * MIN(input_data[offset], 0.f);
                         }
                     }
@@ -146,7 +146,7 @@ static int ref_prelu_fp32(struct tensor* input_tensor, struct tensor* output_ten
                     {
                         for (int k = 0; k < w; k++)
                         {
-                            int offset          = i * c * h * w + j * h * w + l * w + k;
+                            int offset = i * c * h * w + j * h * w + l * w + k;
                             output_data[offset] = MAX(input_data[offset], 0) + slope[0] * MIN(input_data[offset], 0.f);
                         }
                     }
@@ -155,34 +155,34 @@ static int ref_prelu_fp32(struct tensor* input_tensor, struct tensor* output_ten
         }
     }
 
-    return 0;
+    return 0; 
 }
 
 static int ref_prelu_uint8(struct tensor* input_tensor, struct tensor* output_tensor, struct tensor* slope_tensor)
 {
-    int dim_num          = input_tensor->dim_num;
-    int slope_num        = slope_tensor->elem_num;
+    int dim_num = input_tensor->dim_num;
+    int slope_num = slope_tensor->elem_num;
 
-    uint8_t* input_data  = input_tensor->data;
+    uint8_t* input_data = input_tensor->data;
     uint8_t* output_data = output_tensor->data;
-    fp16_t*  slope_fp16  = slope_tensor->data;
+    fp16_t* slope_fp16 = slope_tensor->data;
 
     /* dequant */
-    float    input_scale  = input_tensor->scale;
-    float    output_scale = output_tensor->scale;
-    uint32_t input_zero   = input_tensor->zero_point;
-    uint32_t output_zero  = output_tensor->zero_point;
-    int      input_size   = input_tensor->elem_num;
-    int      output_size  = output_tensor->elem_num;
-    int      slope_size   = slope_tensor->elem_num;
+    float input_scale = input_tensor->scale;
+    float output_scale = output_tensor->scale;
+    uint32_t input_zero = input_tensor->zero_point;
+    uint32_t output_zero = output_tensor->zero_point;
+    int input_size = input_tensor->elem_num;
+    int output_size = output_tensor->elem_num;
+    int slope_size = slope_tensor->elem_num;
 
-    float* input_fp32     = (float*)sys_malloc(input_size * sizeof(float));
-    float* output_fp32    = (float*)sys_malloc(output_size * sizeof(float));
-    float* slope_fp32     = (float*)sys_malloc(slope_size * sizeof(float));
+    float* input_fp32 = ( float* )sys_malloc(input_size * sizeof(float));
+    float* output_fp32 = ( float* )sys_malloc(output_size * sizeof(float));
+    float* slope_fp32 = ( float* )sys_malloc(slope_size * sizeof(float));
 
     for (int i = 0; i < input_size; i++)
     {
-        input_fp32[i] = ((float)input_data[i] - (float)input_zero) * input_scale;
+        input_fp32[i] = (( float )input_data[i] - ( float )input_zero) * input_scale;
     }
     for (int i = 0; i < slope_size; i++)
     {
@@ -200,7 +200,7 @@ static int ref_prelu_uint8(struct tensor* input_tensor, struct tensor* output_te
             {
                 for (int k = 0; k < w; k++)
                 {
-                    int offset          = i * w + k;
+                    int offset = i * w + k;
                     output_fp32[offset] = MAX(input_fp32[offset], 0) + slope_fp32[k] * MIN(input_fp32[offset], 0.f);
                 }
             }
@@ -211,7 +211,7 @@ static int ref_prelu_uint8(struct tensor* input_tensor, struct tensor* output_te
             {
                 for (int k = 0; k < w; k++)
                 {
-                    int offset          = i * w + k;
+                    int offset = i * w + k;
                     output_fp32[offset] = MAX(input_fp32[offset], 0) + slope_fp32[0] * MIN(input_fp32[offset], 0.f);
                 }
             }
@@ -232,7 +232,7 @@ static int ref_prelu_uint8(struct tensor* input_tensor, struct tensor* output_te
                 {
                     for (int k = 0; k < w; k++)
                     {
-                        int offset          = i * c * w + j * w + k;
+                        int offset = i * c * w + j * w + k;
                         output_fp32[offset] = MAX(input_fp32[offset], 0) + slope_fp32[j] * MIN(input_fp32[offset], 0.f);
                     }
                 }
@@ -246,7 +246,7 @@ static int ref_prelu_uint8(struct tensor* input_tensor, struct tensor* output_te
                 {
                     for (int k = 0; k < w; k++)
                     {
-                        int offset          = i * c * w + j * w + k;
+                        int offset = i * c * w + j * w + k;
                         output_fp32[offset] = MAX(input_fp32[offset], 0) + slope_fp32[0] * MIN(input_fp32[offset], 0.f);
                     }
                 }
@@ -272,8 +272,7 @@ static int ref_prelu_uint8(struct tensor* input_tensor, struct tensor* output_te
                         for (int k = 0; k < w; k++)
                         {
                             int offset = i * c * h * w + j * h * w + l * w + k;
-                            output_fp32[offset] =
-                                MAX(input_fp32[offset], 0) + slope_fp32[j] * MIN(input_fp32[offset], 0.f);
+                            output_fp32[offset] = MAX(input_fp32[offset], 0) + slope_fp32[j] * MIN(input_fp32[offset], 0.f);
                         }
                     }
                 }
@@ -290,8 +289,7 @@ static int ref_prelu_uint8(struct tensor* input_tensor, struct tensor* output_te
                         for (int k = 0; k < w; k++)
                         {
                             int offset = i * c * h * w + j * h * w + l * w + k;
-                            output_fp32[offset] =
-                                MAX(input_fp32[offset], 0) + slope_fp32[0] * MIN(input_fp32[offset], 0.f);
+                            output_fp32[offset] = MAX(input_fp32[offset], 0) + slope_fp32[0] * MIN(input_fp32[offset], 0.f);
                         }
                     }
                 }
@@ -319,33 +317,33 @@ static int ref_prelu_uint8(struct tensor* input_tensor, struct tensor* output_te
 
 static int ref_prelu_int8(struct tensor* input_tensor, struct tensor* output_tensor, struct tensor* slope_tensor)
 {
-    int     dim0     = input_tensor->dims[0];
-    int     dim1     = input_tensor->dims[1];
-    int     dim2     = input_tensor->dims[2];
-    int     dim3     = input_tensor->dims[3];
-    int8_t* data     = input_tensor->data;
+    int dim0 = input_tensor->dims[0];
+    int dim1 = input_tensor->dims[1];
+    int dim2 = input_tensor->dims[2];
+    int dim3 = input_tensor->dims[3];
+    int8_t* data = input_tensor->data;
     int8_t* out_data = output_tensor->data;
-    int8_t* slope    = slope_tensor->data;
+    int8_t* slope = slope_tensor->data;
 
     /* dequant */
-    float input_scale  = input_tensor->scale;
+    float input_scale = input_tensor->scale;
     float output_scale = output_tensor->scale;
-    float slope_scale  = slope_tensor->scale;
-    int   input_size   = input_tensor->elem_num;
-    int   output_size  = output_tensor->elem_num;
-    int   slope_size   = slope_tensor->elem_num;
+    float slope_scale = slope_tensor->scale;
+    int input_size = input_tensor->elem_num;
+    int output_size = output_tensor->elem_num;
+    int slope_size = slope_tensor->elem_num;
 
-    float* input_fp32  = (float*)sys_malloc(input_size * sizeof(float));
-    float* output_fp32 = (float*)sys_malloc(output_size * sizeof(float));
-    float* slope_fp32  = (float*)sys_malloc(slope_size * sizeof(float));
+    float* input_fp32 = ( float* )sys_malloc(input_size * sizeof(float));
+    float* output_fp32 = ( float* )sys_malloc(output_size * sizeof(float));
+    float* slope_fp32 = ( float* )sys_malloc(slope_size * sizeof(float));
 
     for (int i = 0; i < input_size; i++)
     {
-        input_fp32[i] = (float)data[i] * input_scale;
+        input_fp32[i] = ( float )data[i] * input_scale;
     }
     for (int i = 0; i < slope_size; i++)
     {
-        slope_fp32[i] = (float)slope[i] * slope_scale;
+        slope_fp32[i] = ( float )slope[i] * slope_scale;
     }
 
     int offset = 0;
@@ -359,7 +357,7 @@ static int ref_prelu_int8(struct tensor* input_tensor, struct tensor* output_ten
                 for (int k = 0; k < dim3; k++)
                 {
                     // nchw
-                    offset              = i * dim1 * dim2 * dim3 + c * dim2 * dim3 + l * dim3 + k;
+                    offset = i * dim1 * dim2 * dim3 + c * dim2 * dim3 + l * dim3 + k;
                     output_fp32[offset] = MAX(input_fp32[offset], 0) + slope_fp32[c] * MIN(input_fp32[offset], 0.f);
                 }
             }
@@ -401,17 +399,17 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
 
 static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node*   ir_node  = exec_node->ir_node;
-    struct graph*  ir_graph = ir_node->graph;
+    struct node* ir_node = exec_node->ir_node;
+    struct graph* ir_graph = ir_node->graph;
     struct tensor* input_tensor;
     struct tensor* output_tensor;
-    int            ret = 0;
+    int ret = 0;
 
-    input_tensor       = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    output_tensor      = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+    input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    if (input_tensor->dims[1] != output_tensor->dims[1] || input_tensor->dims[2] != output_tensor->dims[2]
-        || input_tensor->dims[3] != output_tensor->dims[3])
+    if (input_tensor->dims[1] != output_tensor->dims[1] || input_tensor->dims[2] != output_tensor->dims[2] ||
+        input_tensor->dims[3] != output_tensor->dims[3])
         ret = set_ir_tensor_shape(output_tensor, input_tensor->dims, input_tensor->dim_num);
 
     return ret;
@@ -419,22 +417,22 @@ static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struc
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node*   ir_node  = exec_node->ir_node;
-    struct graph*  ir_graph = ir_node->graph;
+    struct node* ir_node = exec_node->ir_node;
+    struct graph* ir_graph = ir_node->graph;
     struct tensor* input_tensor;
     struct tensor* output_tensor;
     struct tensor* slope_tensor;
 
-    input_tensor  = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    slope_tensor  = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
+    slope_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
 
-    int ret       = -1;
+    int ret = -1;
     if (input_tensor->data_type == TENGINE_DT_FP32)
         ret = ref_prelu_fp32(input_tensor, output_tensor, slope_tensor);
-    else if (input_tensor->data_type == TENGINE_DT_UINT8)
+    else if(input_tensor->data_type == TENGINE_DT_UINT8)
         ret = ref_prelu_uint8(input_tensor, output_tensor, slope_tensor);
-    else if (input_tensor->data_type == TENGINE_DT_INT8)
+    else if(input_tensor->data_type == TENGINE_DT_INT8)
         ret = ref_prelu_int8(input_tensor, output_tensor, slope_tensor);
     else
         TLOG_ERR("Input data type %d not to be supported.\n", input_tensor->data_type);
@@ -447,13 +445,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_CANDO;
 }
 
-static struct node_ops hcl_node_ops = { .prerun       = prerun,
-                                        .run          = run,
-                                        .reshape      = reshape,
-                                        .postrun      = NULL,
-                                        .init_node    = init_node,
-                                        .release_node = release_node,
-                                        .score        = score };
+static struct node_ops hcl_node_ops = {.prerun = prerun,
+                                       .run = run,
+                                       .reshape = reshape,
+                                       .postrun = NULL,
+                                       .init_node = init_node,
+                                       .release_node = release_node,
+                                       .score = score};
 
 int register_prelu_ref_op()
 {

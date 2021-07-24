@@ -39,24 +39,24 @@ struct graph;
  */
 typedef struct tensor
 {
-    uint16_t index;       //!< the index of a tensor
-    int16_t  producer;    //!< node id, '-1' means no producer
-    int16_t* consumer;    //!< consumer nodes array
+    uint16_t index;                          //!< the index of a tensor
+    int16_t  producer;                       //!< node id, '-1' means no producer
+    int16_t* consumer;                       //!< consumer nodes array
 
-    uint8_t reshaped;              //!< the tensor's shape has changed
-    uint8_t consumer_num;          //!< count of consumer nodes
-    uint8_t tensor_type;           //!< tensor_type: { const, input, var, dep }
-    uint8_t data_type;             //!< data_type: { int8, uint8, fp32, fp16, int32 }
-    uint8_t dim_num;               //!< count of dimensions
-    uint8_t elem_size;             //!< size of single element
-    uint8_t subgraph_num;          //!< count of all subgraph those will waiting this tensor ready
-    uint8_t free_host_mem;         //!< should free host memory?
-    uint8_t internal_allocated;    //!< how memory is allocated?
-    uint8_t layout;                //!< tensor layout: { TENGINE_LAYOUT_NCHW, TENGINE_LAYOUT_NHWC }
+    uint8_t  reshaped;                       //!< the tensor's shape has changed
+    uint8_t  consumer_num;                   //!< count of consumer nodes
+    uint8_t  tensor_type;                    //!< tensor_type: { const, input, var, dep }
+    uint8_t  data_type;                      //!< data_type: { int8, uint8, fp32, fp16, int32 }
+    uint8_t  dim_num;                        //!< count of dimensions
+    uint8_t  elem_size;                      //!< size of single element
+    uint8_t  subgraph_num;                   //!< count of all subgraph those will waiting this tensor ready
+    uint8_t  free_host_mem;                  //!< should free host memory?
+    uint8_t  internal_allocated;             //!< how memory is allocated?
+    uint8_t  layout;                         //!< tensor layout: { TENGINE_LAYOUT_NCHW, TENGINE_LAYOUT_NHWC }
 
-    uint16_t quant_param_num;               //!< quantization dimension
-    uint32_t elem_num;                      //!< count of total elements
-    int      dims[TE_MAX_SHAPE_DIM_NUM];    //!< shape dimensions
+    uint16_t quant_param_num;                //!< quantization dimension
+    uint32_t elem_num;                       //!< count of total elements
+    int dims[TE_MAX_SHAPE_DIM_NUM];          //!< shape dimensions
 
     /*!
      * @union anonymity data pointer
@@ -64,15 +64,15 @@ typedef struct tensor
      */
     union
     {
-        void*     data;
-        int8_t*   i8;
-        uint8_t*  u8;
+        void*    data;
+        int8_t*    i8;
+        uint8_t*   u8;
         float*    f32;
-        uint16_t* f16;
+        uint16_t*   f16;
         int32_t*  i32;
     };
 
-    char* name;    //!< tensor name
+    char* name;                             //!< tensor name
 
     /*!
      * @union anonymity quantization scale union
@@ -95,7 +95,7 @@ typedef struct tensor
     };
 
     struct dev_mem* dev_mem;
-    uint8_t*        subgraph_list;    //!< subgraph index list of those subgraph will waiting this tensor ready
+    uint8_t* subgraph_list;                 //!< subgraph index list of those subgraph will waiting this tensor ready
 } ir_tensor_t;
 
 
@@ -197,4 +197,4 @@ void dump_ir_tensor(struct graph* ir_graph, ir_tensor_t* ir_tensor);
  *
  * @return statue value, 0 success, other value failure.
  */
-int set_ir_tensor_consumer(ir_tensor_t* ir_tensor, const int index);
+int set_ir_tensor_consumer(ir_tensor_t* ir_tensor, const int index); 

@@ -38,8 +38,7 @@ static int add_n_op_map(int op)
 }
 
 
-static int tm2_load_add_n(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
-                          const TM2_Operator* tm_op)
+static int tm2_load_add_n(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node, const TM2_Operator* tm_op)
 {
     return 0;
 }

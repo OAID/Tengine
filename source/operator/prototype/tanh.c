@@ -31,12 +31,12 @@
 
 static int infer_shape(ir_node_t* node)
 {
-    ir_graph_t*  ir_graph = node->graph;
-    ir_tensor_t* input    = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
-    ir_tensor_t* output   = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
+    ir_graph_t* ir_graph = node->graph;
+    ir_tensor_t* input = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
+    ir_tensor_t* output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
 
-    output->layout        = input->layout;
-
+    output->layout = input->layout;
+    
     set_ir_tensor_shape(output, input->dims, input->dim_num);
 
     return 0;
@@ -45,7 +45,7 @@ static int infer_shape(ir_node_t* node)
 
 static int init_op(ir_op_t* op)
 {
-    op->same_shape  = 0;
+    op->same_shape = 0;
     op->infer_shape = infer_shape;
 
     return 0;
@@ -63,7 +63,7 @@ int register_tanh_op()
     ir_method_t m;
 
     m.version = 1;
-    m.init    = init_op;
+    m.init = init_op;
     m.release = release_op;
     //
 

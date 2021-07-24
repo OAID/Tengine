@@ -36,7 +36,6 @@ struct hcl_batchnorm_param
     float* scale_var_inv;
 };
 
-int batchnorm_run(struct tensor* output_tensor, struct tensor* input_tensor, float* scale_mean, float* scale_var_inv,
-                  int num_thread);
+int batchnorm_run(struct tensor* output_tensor, struct tensor* input_tensor, float* scale_mean, float* scale_var_inv, int num_thread);
 
 #endif

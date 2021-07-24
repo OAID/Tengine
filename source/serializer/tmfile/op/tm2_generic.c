@@ -44,14 +44,14 @@ static int generic_op_map(int op)
 static int tm2_load_generic(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                             const TM2_Operator* tm_op)
 {
-    struct generic_param*   generic_param = (struct generic_param*)ir_node->op.param_mem;
-    const struct tm2_priv*  tm2_priv      = (struct tm2_priv*)ir_graph->serializer_privacy;
-    const char*             mem_base      = tm2_priv->base;
-    const TM2_GenericParam* tm_param      = (TM2_GenericParam*)(mem_base + tm_op->offset_t_param);
+    struct generic_param* generic_param = ( struct generic_param* )ir_node->op.param_mem;
+    const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
+    const char* mem_base = tm2_priv->base;
+    const TM2_GenericParam* tm_param = ( TM2_GenericParam* )(mem_base + tm_op->offset_t_param);
 
-    generic_param->max_input_num          = tm_param->max_input_num;
-    generic_param->max_output_num         = tm_param->max_output_num;
-    generic_param->op_name                = (char*)&tm_param->offset_s_opname;    // TODO: Need to check .
+    generic_param->max_input_num = tm_param->max_input_num;
+    generic_param->max_output_num = tm_param->max_output_num;
+    generic_param->op_name = ( char* )&tm_param->offset_s_opname;    // TODO: Need to check .
 
     return 0;
 }

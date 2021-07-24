@@ -34,11 +34,11 @@
 
 static int infer_shape(struct node* node)
 {
-    struct graph*  graph                  = node->graph;
-    struct tensor* input                  = get_ir_graph_tensor(graph, node->input_tensors[0]);
-    struct tensor* output                 = get_ir_graph_tensor(graph, node->output_tensors[0]);
+    struct graph* graph = node->graph;
+    struct tensor* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
+    struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
 
-    struct roialign_param* roialign_param = (struct roialign_param*)(node->op.param_mem);
+    struct roialign_param* roialign_param = ( struct roialign_param* )(node->op.param_mem);
 
     int out_dim[4];
 
@@ -55,7 +55,7 @@ static int infer_shape(struct node* node)
 
 static int init_op(struct op* op)
 {
-    struct roialign_param* roialign_param = (struct roialign_param*)sys_malloc(sizeof(struct roialign_param));
+    struct roialign_param* roialign_param = ( struct roialign_param* )sys_malloc(sizeof(struct roialign_param));
 
     if (roialign_param == NULL)
     {
@@ -63,14 +63,14 @@ static int init_op(struct op* op)
     }
 
     /*set the param default value */
-    roialign_param->pooled_width  = 0;
+    roialign_param->pooled_width = 0;
     roialign_param->pooled_height = 0;
     roialign_param->spatial_scale = 0.f;
 
-    op->param_mem                 = roialign_param;
-    op->param_size                = sizeof(struct roialign_param);
-    op->same_shape                = 0;
-    op->infer_shape               = infer_shape;
+    op->param_mem = roialign_param;
+    op->param_size = sizeof(struct roialign_param);
+    op->same_shape = 0;
+    op->infer_shape = infer_shape;
 
     return 0;
 }
@@ -87,7 +87,7 @@ int register_roialign_op()
     struct method m;
 
     m.version = 1;
-    m.init    = init_op;
+    m.init = init_op;
     m.release = release_op;
 
 

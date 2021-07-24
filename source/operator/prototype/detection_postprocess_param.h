@@ -27,11 +27,11 @@
 
 struct detection_postprocess_param
 {
-    int    max_detections;
-    int    max_classes_per_detection;
-    float  nms_score_threshold;
-    float  nms_iou_threshold;
-    int    num_classes;
+    int max_detections;
+    int max_classes_per_detection;
+    float nms_score_threshold;
+    float nms_iou_threshold;
+    int num_classes;
     float* scales;    // y_scale, x_scale, h_scale, w_scale
 };
 

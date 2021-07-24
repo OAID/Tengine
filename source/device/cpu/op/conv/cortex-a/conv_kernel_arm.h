@@ -42,7 +42,8 @@ int conv_hcl_run(struct tensor* input_tensor, struct tensor* filter_tensor, stru
                  struct tensor* output_tensor, struct conv_priv_info* conv_info, struct conv_param* param,
                  int num_thread, int cpu_affinity);
 
-int conv_hcl_get_shared_mem_size(struct tensor* input_tensor, struct tensor* output_tensor, struct conv_param* param);
+int conv_hcl_get_shared_mem_size(struct tensor* input_tensor, struct tensor* output_tensor,
+                                 struct conv_param* param);
 int conv_hcl_get_shared_pack4_mem_size(struct tensor* input_tensor, struct tensor* output_tensor,
                                        struct conv_param* param);
 
@@ -51,29 +52,29 @@ int conv_hcl_set_shared_pack4_mem(struct conv_priv_info* priv_info, void* mem, i
 
 /* fp16 */
 #if __ARM_FEATURE_FP16_VECTOR_ARITHMETIC
-int fp16_conv_hcl_prerun(struct tensor* input_tensor, struct tensor* filter_tensor, struct tensor* output_tensor,
-                         struct conv_priv_info* info, struct conv_param* param);
+int fp16_conv_hcl_prerun(struct tensor*  input_tensor,
+                    struct tensor*  filter_tensor,
+                    struct tensor*  output_tensor,
+                    struct conv_priv_info* info,     
+                    struct conv_param* param) ;
 
 int fp16_conv_hcl_postrun(struct conv_priv_info* info);
 
-int fp16_conv_hcl_run(struct tensor* input_tensor, struct tensor* filter_tensor, struct tensor* bias_tensor,
-                      struct tensor* output_tensor, struct conv_priv_info* conv_info, struct conv_param* param,
-                      int num_thread, int cpu_affinity);
+int fp16_conv_hcl_run(struct tensor* input_tensor , struct tensor* filter_tensor ,struct tensor* bias_tensor ,  struct tensor* output_tensor , struct conv_priv_info*  conv_info ,struct conv_param* param, int num_thread, int cpu_affinity) ;
 
-int fp16_conv_hcl_get_shared_mem_size(struct tensor* input_tensor, struct tensor* output_tensor,
-                                      struct conv_param* param);
+int fp16_conv_hcl_get_shared_mem_size(struct tensor*  input_tensor ,struct tensor*  output_tensor , struct conv_param* param) ;
 #endif
 
 /* int8 */
 int int8_conv_hcl_get_shared_mem_size(struct tensor* input_tensor, struct tensor* output_tensor,
-                                      struct conv_param* param);
+                                 struct conv_param* param);
 int int8_conv_hcl_set_shared_mem(struct conv_priv_info* priv_info, void* mem, int mem_size);
 int int8_conv_hcl_set_shared_pack4_mem(struct conv_priv_info* priv_info, void* mem, int mem_size);
 
 int int8_conv_hcl_prerun(struct tensor* input_tensor, struct tensor* filter_tensor, struct tensor* output_tensor,
-                         struct conv_priv_info* priv_info, struct conv_param* param);
+                    struct conv_priv_info* priv_info, struct conv_param* param);
 int int8_conv_hcl_postrun(struct conv_priv_info* priv_info);
 int int8_conv_hcl_run(struct tensor* input_tensor, struct tensor* filter_tensor, struct tensor* bias_tensor,
-                      struct tensor* output_tensor, struct conv_priv_info* priv_info, struct conv_param* param,
-                      int num_thread, int cpu_affinity);
+                 struct tensor* output_tensor, struct conv_priv_info* priv_info, struct conv_param* param,
+                 int num_thread, int cpu_affinity);
 #endif

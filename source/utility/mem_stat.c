@@ -52,12 +52,12 @@ struct mem_stat
 struct block_stat
 {
     void* ptr;
-    int   size;
+    int size;
 };
 
-static int             mem_stat_skipped = 1;
+static int mem_stat_skipped = 1;
 static struct mem_stat mem_stat;
-static struct vector*  block_list;
+static struct vector* block_list;
 
 DECLARE_AUTO_INIT_FUNC(init_mem_stat);
 DECLARE_AUTO_EXIT_FUNC(release_mem_stat);
@@ -69,7 +69,7 @@ static int find_block_list(void* ptr)
 
     for (i = 0; i < n; i++)
     {
-        struct block_stat* block_stat = (struct block_stat*)get_vector_data(block_list, i);
+        struct block_stat* block_stat = ( struct block_stat* )get_vector_data(block_list, i);
 
         if (block_stat->ptr == ptr)
             break;
@@ -96,10 +96,10 @@ static void init_mem_stat(void)
     memset(&mem_stat, 0x0, sizeof(mem_stat));
     mem_stat.min_block_size = 1 << 20;
 
-    block_list              = create_vector(sizeof(struct block_stat), NULL);
+    block_list = create_vector(sizeof(struct block_stat), NULL);
 
-    enable_mem_stat         = real_enable_mem_stat;
-    disable_mem_stat        = real_disable_mem_stat;
+    enable_mem_stat = real_enable_mem_stat;
+    disable_mem_stat = real_disable_mem_stat;
 }
 
 void dump_mem_stat(void)
@@ -157,7 +157,7 @@ void* stat_malloc(int size)
 
     struct block_stat block_stat;
 
-    block_stat.ptr  = ptr;
+    block_stat.ptr = ptr;
     block_stat.size = size;
 
     push_vector_data(block_list, &block_stat);
@@ -178,7 +178,7 @@ void stat_free(void* ptr)
         return;
     }
 
-    struct block_stat* block_stat = (struct block_stat*)get_vector_data(block_list, idx);
+    struct block_stat* block_stat = ( struct block_stat* )get_vector_data(block_list, idx);
 
     mem_stat.free_count++;
     mem_stat.cur_mem_size -= block_stat->size;
@@ -202,9 +202,9 @@ void* stat_realloc(void* ptr, size_t size)
     if (idx < 0)
         return realloc(ptr, size);
 
-    void* new_ptr                 = realloc(ptr, size);
+    void* new_ptr = realloc(ptr, size);
 
-    struct block_stat* block_stat = (struct block_stat*)get_vector_data(block_list, idx);
+    struct block_stat* block_stat = ( struct block_stat* )get_vector_data(block_list, idx);
 
     if (new_ptr == NULL)
     {
@@ -225,7 +225,7 @@ void* stat_realloc(void* ptr, size_t size)
     if (mem_stat.cur_mem_size > mem_stat.peak_mem_size)
         mem_stat.peak_mem_size = mem_stat.cur_mem_size;
 
-    block_stat->ptr  = new_ptr;
+    block_stat->ptr = new_ptr;
     block_stat->size = size;
 
     return new_ptr;

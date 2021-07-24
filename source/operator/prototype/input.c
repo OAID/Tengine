@@ -31,7 +31,7 @@
 
 static int init_op(ir_op_t* op)
 {
-    op->same_shape  = 1;
+    op->same_shape = 1;
     op->infer_shape = NULL;
 
     return 0;
@@ -46,10 +46,10 @@ int register_input_op()
     ir_method_t m;
 
     m.version = 1;
-    m.init    = init_op;
+    m.init = init_op;
     m.release = release_op;
 
-    return register_op(OP_INPUT, OP_INPUT_NAME, &m);
+    return register_op(OP_INPUT, OP_INPUT_NAME , &m);
 }
 
 

@@ -36,17 +36,17 @@ static int infer_shape(struct node* node)
 {
     struct spacetobatchnd_param* spacetobatchnd_param = (struct spacetobatchnd_param*)(node->op.param_mem);
 
-    struct graph*  graph                              = node->graph;
-    struct tensor* input                              = get_ir_graph_tensor(graph, node->input_tensors[0]);
-    struct tensor* output                             = get_ir_graph_tensor(graph, node->output_tensors[0]);
+    struct graph* graph = node->graph;
+    struct tensor* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
+    struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
 
     int out_dim[4];
 
     out_dim[0] = input->dims[0] * (spacetobatchnd_param->dilation_x) * (spacetobatchnd_param->dilation_y);
-    out_dim[1] = (input->dims[1] + spacetobatchnd_param->pad_top + spacetobatchnd_param->pad_bottom)
-                 / spacetobatchnd_param->dilation_y;
-    out_dim[2] = (input->dims[2] + spacetobatchnd_param->pad_left + spacetobatchnd_param->pad_right)
-                 / spacetobatchnd_param->dilation_x;
+    out_dim[1] = (input->dims[1] + spacetobatchnd_param->pad_top + spacetobatchnd_param->pad_bottom) /
+                 spacetobatchnd_param->dilation_y;
+    out_dim[2] = (input->dims[2] + spacetobatchnd_param->pad_left + spacetobatchnd_param->pad_right) /
+                 spacetobatchnd_param->dilation_x;
     out_dim[3] = input->dims[3];
 
     set_ir_tensor_shape(output, out_dim, 4);
@@ -58,7 +58,7 @@ static int infer_shape(struct node* node)
 static int init_op(struct op* op)
 {
     struct spacetobatchnd_param* spacetobatchnd_param =
-        (struct spacetobatchnd_param*)sys_malloc(sizeof(struct spacetobatchnd_param));
+        ( struct spacetobatchnd_param* )sys_malloc(sizeof(struct spacetobatchnd_param));
 
     if (spacetobatchnd_param == NULL)
     {
@@ -68,15 +68,15 @@ static int init_op(struct op* op)
     /*set the param default value */
     spacetobatchnd_param->dilation_x = 0;
     spacetobatchnd_param->dilation_y = 0;
-    spacetobatchnd_param->pad_top    = 0;
+    spacetobatchnd_param->pad_top = 0;
     spacetobatchnd_param->pad_bottom = 0;
-    spacetobatchnd_param->pad_left   = 0;
-    spacetobatchnd_param->pad_right  = 0;
+    spacetobatchnd_param->pad_left = 0;
+    spacetobatchnd_param->pad_right = 0;
 
-    op->param_mem                    = spacetobatchnd_param;
-    op->param_size                   = sizeof(struct spacetobatchnd_param);
-    op->same_shape                   = 0;
-    op->infer_shape                  = infer_shape;
+    op->param_mem = spacetobatchnd_param;
+    op->param_size = sizeof(struct spacetobatchnd_param);
+    op->same_shape = 0;
+    op->infer_shape = infer_shape;
 
     return 0;
 }
@@ -93,7 +93,7 @@ int register_spacetobatchnd_op()
     struct method m;
 
     m.version = 1;
-    m.init    = init_op;
+    m.init = init_op;
     m.release = release_op;
 
     return register_op(OP_SPACETOBATCHND, OP_SPACETOBATCHND_NAME, &m);

@@ -30,5 +30,5 @@
 typedef struct vulkan_option
 {
     char* dev_name;
-    int   precision;    //!< precision of calculation
+    int precision;      //!< precision of calculation
 } vulkan_opt_t;

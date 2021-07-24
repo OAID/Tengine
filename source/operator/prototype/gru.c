@@ -35,13 +35,13 @@
 
 static int infer_shape(struct node* node)
 {
-    struct graph*     ir_graph   = node->graph;
-    struct tensor*    input      = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
-    struct tensor*    weight     = get_ir_graph_tensor(ir_graph, node->input_tensors[1]);
-    struct tensor*    output     = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
-    struct gru_param* gru_param  = (struct gru_param*)(node->op.param_mem);
-    int               batch_size = input->dims[1];
-    int               dims[4];
+    struct graph* ir_graph = node->graph;
+    struct tensor* input = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
+    struct tensor* weight = get_ir_graph_tensor(ir_graph, node->input_tensors[1]);
+    struct tensor* output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
+    struct gru_param* gru_param = ( struct gru_param* )(node->op.param_mem);
+    int batch_size = input->dims[1];
+    int dims[4];
     dims[0] = input->dims[0];
     dims[1] = weight->dims[0];
     dims[2] = input->dims[1];
@@ -54,27 +54,27 @@ static int infer_shape(struct node* node)
 
 static int init_op(struct op* op)
 {
-    gru_param_t* gru_param = (gru_param_t*)sys_malloc(sizeof(gru_param_t));
+    gru_param_t* gru_param = ( gru_param_t* )sys_malloc(sizeof(gru_param_t));
 
     if (gru_param == NULL)
     {
         return -1;
     }
 
-    gru_param->clip               = 0;
-    gru_param->output_len         = 1;
-    gru_param->sequence_len       = 1;
-    gru_param->input_size         = 1;
-    gru_param->hidden_size        = 1;
-    gru_param->has_clip           = 0;
-    gru_param->has_gate_bias      = 0;
+    gru_param->clip = 0;
+    gru_param->output_len = 1;
+    gru_param->sequence_len = 1;
+    gru_param->input_size = 1;
+    gru_param->hidden_size = 1;
+    gru_param->has_clip = 0;
+    gru_param->has_gate_bias = 0;
     gru_param->has_candidate_bias = 0;
-    gru_param->has_init_state     = 0;
+    gru_param->has_init_state = 0;
 
-    op->param_mem                 = gru_param;
-    op->param_size                = sizeof(gru_param_t);
-    op->same_shape                = 0;
-    op->infer_shape               = infer_shape;
+    op->param_mem = gru_param;
+    op->param_size = sizeof(gru_param_t);
+    op->same_shape = 0;
+    op->infer_shape = infer_shape;
 
     return 0;
 }
@@ -91,7 +91,7 @@ int register_gru_op()
     struct method m;
 
     m.version = 1;
-    m.init    = init_op;
+    m.init = init_op;
     m.release = release_op;
 
 

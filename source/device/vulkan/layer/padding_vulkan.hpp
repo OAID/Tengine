@@ -43,31 +43,31 @@
 #include "../vulkan_layer.hpp"
 #include "../vulkan_command.hpp"
 
-namespace TEngine
+namespace TEngine {
+
+class Padding_vulkan : public Layer
 {
-class Padding_vulkan : public Layer {
 public:
     Padding_vulkan();
 
     virtual int create_pipeline(const Option& opt);
     virtual int destroy_pipeline(const Option& opt);
-
-    virtual int record_pipeline(const VkTensor& bottom_blob, VkTensor& top_blob, VkCompute& cmd,
-                                const Option& opt) const;
+    
+    virtual int record_pipeline(const VkTensor& bottom_blob, VkTensor& top_blob, VkCompute& cmd, const Option& opt) const;
 
 public:
-    int   top;
-    int   bottom;
-    int   left;
-    int   right;
-    int   type;    // 0=CONSTANT 1=REPLICATE 2=REFLECT
+    int top;
+    int bottom;
+    int left;
+    int right;
+    int type;// 0=CONSTANT 1=REPLICATE 2=REFLECT
     float value;
-    int   input_w;
-    int   input_h;
-    int   input_c;
-    int   output_w;
-    int   output_h;
-    int   output_c;
+    int input_w;
+    int input_h;
+    int input_c;
+    int output_w;
+    int output_h;
+    int output_c;
 
 public:
     Pipeline* pipeline_padding;
@@ -75,7 +75,7 @@ public:
     Pipeline* pipeline_padding_pack8;
 };
 
-}    // namespace TEngine
+} // namespace TEngine
 
 
 #endif

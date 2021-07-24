@@ -41,16 +41,15 @@ static int normalize_op_map(int op)
 }
 
 
-static int tm2_load_normalize(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
-                              const TM2_Operator* tm_op)
+static int tm2_load_normalize(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node, const TM2_Operator* tm_op)
 {
-    struct normalize_param*   normalize_param = (struct normalize_param*)ir_node->op.param_mem;
-    const struct tm2_priv*    tm2_priv        = (struct tm2_priv*)ir_graph->serializer_privacy;
-    const char*               mem_base        = tm2_priv->base;
-    const TM2_NormalizeParam* tm_param        = (TM2_NormalizeParam*)(mem_base + tm_op->offset_t_param);
+    struct normalize_param* normalize_param = ( struct normalize_param* )ir_node->op.param_mem;
+    const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
+    const char* mem_base = tm2_priv->base;
+    const TM2_NormalizeParam* tm_param = ( TM2_NormalizeParam* )(mem_base + tm_op->offset_t_param);
 
-    normalize_param->across_spatial           = tm_param->across_spatial;
-    normalize_param->channel_shared           = tm_param->channel_shared;
+    normalize_param->across_spatial = tm_param->across_spatial;
+    normalize_param->channel_shared = tm_param->channel_shared;
 
     return 0;
 }

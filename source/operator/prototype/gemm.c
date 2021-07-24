@@ -35,12 +35,12 @@
 
 static int infer_shape(struct node* node)
 {
-    struct graph*  graph          = node->graph;
-    struct tensor* input          = get_ir_graph_tensor(graph, node->input_tensors[0]);
-    struct tensor* output         = get_ir_graph_tensor(graph, node->output_tensors[0]);
-    struct tensor* weight         = get_ir_graph_tensor(graph, node->input_tensors[1]);
+    struct graph* graph = node->graph;
+    struct tensor* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
+    struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
+    struct tensor* weight = get_ir_graph_tensor(graph, node->input_tensors[1]);
 
-    struct gemm_param* gemm_param = (struct gemm_param*)(node->op.param_mem);
+    struct gemm_param* gemm_param = ( struct gemm_param* )(node->op.param_mem);
 
     int dims[2];
     if (gemm_param->transA)
@@ -61,21 +61,21 @@ static int infer_shape(struct node* node)
 
 static int init_op(struct op* op)
 {
-    struct gemm_param* gemm_param = (struct gemm_param*)sys_malloc(sizeof(struct gemm_param));
+    struct gemm_param* gemm_param = ( struct gemm_param* )sys_malloc(sizeof(struct gemm_param));
 
     if (gemm_param == NULL)
     {
         return -1;
     }
-
+    
     /*set the param default value */
     gemm_param->transA = 0;
     gemm_param->transB = 0;
 
-    op->param_mem      = gemm_param;
-    op->param_size     = sizeof(struct gemm_param);
-    op->same_shape     = 0;
-    op->infer_shape    = infer_shape;
+    op->param_mem = gemm_param;
+    op->param_size = sizeof(struct gemm_param);
+    op->same_shape = 0;
+    op->infer_shape = infer_shape;
 
     return 0;
 }
@@ -92,7 +92,7 @@ int register_gemm_op()
     struct method m;
 
     m.version = 1;
-    m.init    = init_op;
+    m.init = init_op;
     m.release = release_op;
 
     return register_op(OP_GEMM, OP_GEMM_NAME, &m);

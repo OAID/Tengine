@@ -40,32 +40,31 @@ static int pooling_op_map(int op)
     return OP_POOL;
 }
 
-static int tm2_load_pooling(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
-                            const TM2_Operator* tm_op)
+static int tm2_load_pooling(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node, const TM2_Operator* tm_op)
 {
-    struct pool_param*     pool_param = (struct pool_param*)ir_node->op.param_mem;
-    const struct tm2_priv* tm2_priv   = (struct tm2_priv*)ir_graph->serializer_privacy;
-    const char*            mem_base   = tm2_priv->base;
-    const TM2_PoolParam*   tm_param   = (TM2_PoolParam*)(mem_base + tm_op->offset_t_param);
+    struct pool_param* pool_param = ( struct pool_param* )ir_node->op.param_mem;
+    const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
+    const char* mem_base = tm2_priv->base;
+    const TM2_PoolParam* tm_param = ( TM2_PoolParam* )(mem_base + tm_op->offset_t_param);
 
-    pool_param->kernel_h              = tm_param->kernel_h;
-    pool_param->kernel_w              = tm_param->kernel_w;
-    pool_param->stride_h              = tm_param->stride_h;
-    pool_param->stride_w              = tm_param->stride_w;
-    pool_param->global                = tm_param->global;
-    pool_param->caffe_flavor          = tm_param->caffe_flavor;
+    pool_param->kernel_h = tm_param->kernel_h;
+    pool_param->kernel_w = tm_param->kernel_w;
+    pool_param->stride_h = tm_param->stride_h;
+    pool_param->stride_w = tm_param->stride_w;
+    pool_param->global = tm_param->global;
+    pool_param->caffe_flavor = tm_param->caffe_flavor;
 
-    pool_param->pad_h0                = tm_param->pad_h0;
-    pool_param->pad_h1                = tm_param->pad_h1;
-    pool_param->pad_w0                = tm_param->pad_w0;
-    pool_param->pad_w1                = tm_param->pad_w1;
+    pool_param->pad_h0 = tm_param->pad_h0;
+    pool_param->pad_h1 = tm_param->pad_h1;
+    pool_param->pad_w0 = tm_param->pad_w0;
+    pool_param->pad_w1 = tm_param->pad_w1;
 
-    pool_param->pad_h0_org            = tm_param->pad_h0;
-    pool_param->pad_h1_org            = tm_param->pad_h1;
-    pool_param->pad_w0_org            = tm_param->pad_w0;
-    pool_param->pad_w1_org            = tm_param->pad_w1;
+    pool_param->pad_h0_org = tm_param->pad_h0;
+    pool_param->pad_h1_org = tm_param->pad_h1;
+    pool_param->pad_w0_org = tm_param->pad_w0;
+    pool_param->pad_w1_org = tm_param->pad_w1;
 
-    pool_param->pool_method           = tm_param->alg;
+    pool_param->pool_method = tm_param->alg;
 
     return 0;
 }
