@@ -36,7 +36,6 @@
 #include "utility/log.h"
 #include "device/cpu/cpu_node.h"
 
-
 static void pad_0_align_2D(float* dst, float* src, int m, int n, int m_align, int n_align, int pad_h, int pad_w)
 {
     int i;
@@ -105,19 +104,19 @@ static void DirectConv(float* input_buf, int input_h, int input_w, float* output
                        float* weight_buf, int channel_num, int stride, float* bias, int* pads, int activation,
                        int num_thread, int cpu_affinity)
 {
-    int channel_size     = input_h * input_w;
+    int channel_size = input_h * input_w;
     int channel_size_out = output_h * output_w;
-    int pad_h0           = pads[0];
-    int pad_h1           = pads[2];
+    int pad_h0 = pads[0];
+    int pad_h1 = pads[2];
 
     if (stride == 1)
     {
-    #pragma omp parallel for num_threads(num_thread)
+#pragma omp parallel for num_threads(num_thread)
         for (int i = 0; i < channel_num; i++)
         {
-            float* cur_input  = input_buf + i * channel_size;
+            float* cur_input = input_buf + i * channel_size;
             float* cur_output = output_buf + i * channel_size_out;
-            float* bias_tmp   = NULL;
+            float* bias_tmp = NULL;
             if (bias)
                 bias_tmp = bias + i;
             dw_k3s1p1_a72(cur_input, input_h, input_w, weight_buf + i * 9, cur_output, bias_tmp, activation);
@@ -125,12 +124,12 @@ static void DirectConv(float* input_buf, int input_h, int input_w, float* output
     }
     else if (pad_h0 == 0)
     {
-    #pragma omp parallel for num_threads(num_thread)
+#pragma omp parallel for num_threads(num_thread)
         for (int i = 0; i < channel_num; i++)
         {
-            float* cur_input  = input_buf + i * channel_size;
+            float* cur_input = input_buf + i * channel_size;
             float* cur_output = output_buf + i * channel_size_out;
-            float* bias_tmp   = NULL;
+            float* bias_tmp = NULL;
             if (bias)
                 bias_tmp = bias + i;
 
@@ -143,12 +142,12 @@ static void DirectConv(float* input_buf, int input_h, int input_w, float* output
     }
     else
     {
-    #pragma omp parallel for num_threads(num_thread)
+#pragma omp parallel for num_threads(num_thread)
         for (int i = 0; i < channel_num; i++)
         {
-            float* cur_input  = input_buf + i * channel_size;
+            float* cur_input = input_buf + i * channel_size;
             float* cur_output = output_buf + i * channel_size_out;
-            float* bias_tmp   = NULL;
+            float* bias_tmp = NULL;
             if (bias)
                 bias_tmp = bias + i;
             dw_k3s2p1_a72(cur_input, input_h, input_w, weight_buf + i * 9, cur_output, bias_tmp, activation);
@@ -174,13 +173,13 @@ static void DirectConv(float* input_buf, int input_h, int input_w, float* output
 
     if (stride == 1)
     {
-    #pragma omp parallel for num_threads(num_thread)
+#pragma omp parallel for num_threads(num_thread)
         for (int c = 0; c < channel_num; c++)
         {
-            float* cur_input  = input_buf + c * input_h * input_w;
+            float* cur_input = input_buf + c * input_h * input_w;
             float* cur_output = output_buf + c * output_h * output_w;
             float* cur_weight = weight_buf + c * 9;
-            float* cur_bias   = bias ? bias + c : bias;
+            float* cur_bias = bias ? bias + c : bias;
             if (activation >= 0)
             {
                 if (activation == 0)
@@ -196,13 +195,13 @@ static void DirectConv(float* input_buf, int input_h, int input_w, float* output
     }
     else if (stride == 2)
     {
-    #pragma omp parallel for num_threads(num_thread)
+#pragma omp parallel for num_threads(num_thread)
         for (int c = 0; c < channel_num; c++)
         {
-            float* cur_input  = input_buf + c * input_h * input_w;
+            float* cur_input = input_buf + c * input_h * input_w;
             float* cur_output = output_buf + c * output_h * output_w;
             float* cur_weight = weight_buf + c * 9;
-            float* cur_bias   = bias ? bias + c : bias;
+            float* cur_bias = bias ? bias + c : bias;
             if (activation >= 0)
             {
                 if (activation == 0)
@@ -222,18 +221,18 @@ static void DirectConv(float* input_buf, int input_h, int input_w, float* output
 int conv_dw_prerun(struct tensor* input_tensor, struct tensor* filter_tensor, struct tensor* output_tensor,
                    struct conv_priv_info* priv_info, struct conv_param* param)
 {
-    int batch            = input_tensor->dims[0];
-    int input_c          = input_tensor->dims[1];
-    int input_h          = input_tensor->dims[2];
-    int input_w          = input_tensor->dims[3];
+    int batch = input_tensor->dims[0];
+    int input_c = input_tensor->dims[1];
+    int input_h = input_tensor->dims[2];
+    int input_w = input_tensor->dims[3];
 
-    int pad_h0           = param->pad_h0;
-    int pad_w0           = param->pad_w0;
-    int pad_h1           = param->pad_h1;
-    int pad_w1           = param->pad_w1;
+    int pad_h0 = param->pad_h0;
+    int pad_w0 = param->pad_w0;
+    int pad_h1 = param->pad_h1;
+    int pad_w1 = param->pad_w1;
 
-    int padded_in_h      = input_h + pad_h0 + pad_h1;
-    int padded_in_w      = input_w + pad_w0 + pad_w1;
+    int padded_in_h = input_h + pad_h0 + pad_h1;
+    int padded_in_w = input_w + pad_w0 + pad_w1;
 
     priv_info->input_pad = sys_malloc(batch * input_c * padded_in_h * padded_in_w * sizeof(float));
     memset(priv_info->input_pad, 0, batch * input_c * padded_in_h * padded_in_w * sizeof(float));
@@ -247,47 +246,47 @@ int conv_dw_run(struct tensor* input_tensor, struct tensor* filter_tensor, struc
 {
     /* param */
     int pads[4];
-    int group      = param->group;
-    int kernel_h   = param->kernel_h;
-    int kernel_w   = param->kernel_w;
-    int stride_h   = param->stride_h;
-    int stride_w   = param->stride_w;
+    int group = param->group;
+    int kernel_h = param->kernel_h;
+    int kernel_w = param->kernel_w;
+    int stride_h = param->stride_h;
+    int stride_w = param->stride_w;
     int dilation_h = param->dilation_h;
     int dilation_w = param->dilation_w;
-    pads[0]        = param->pad_h0;
-    pads[1]        = param->pad_w0;
-    pads[2]        = param->pad_h1;
-    pads[3]        = param->pad_w1;
+    pads[0] = param->pad_h0;
+    pads[1] = param->pad_w0;
+    pads[2] = param->pad_h1;
+    pads[3] = param->pad_w1;
 
     if (stride_h != stride_w)
         return -1;
 
-    int act_type    = param->activation;
-    int batch       = input_tensor->dims[0];
-    int in_c        = input_tensor->dims[1] / group;
-    int in_h        = input_tensor->dims[2];
-    int in_w        = input_tensor->dims[3];
-    int input_size  = in_c * in_h * in_w;
+    int act_type = param->activation;
+    int batch = input_tensor->dims[0];
+    int in_c = input_tensor->dims[1] / group;
+    int in_h = input_tensor->dims[2];
+    int in_w = input_tensor->dims[3];
+    int input_size = in_c * in_h * in_w;
 
-    int out_c       = output_tensor->dims[1] / group;
-    int out_h       = output_tensor->dims[2];
-    int out_w       = output_tensor->dims[3];
+    int out_c = output_tensor->dims[1] / group;
+    int out_h = output_tensor->dims[2];
+    int out_w = output_tensor->dims[3];
     int output_size = out_c * out_h * out_w;
 
     int padded_in_h = in_h + param->pad_h0 + param->pad_h1;
     int padded_in_w = in_w + param->pad_w0 + param->pad_w1;
 
     /* buffer addr */
-    float* input_buf  = (float*)input_tensor->data;
+    float* input_buf = (float*)input_tensor->data;
     float* kernel_buf = (float*)filter_tensor->data;
     float* output_buf = (float*)output_tensor->data;
     float* biases_buf = NULL;
     if (bias_tensor)
         biases_buf = (float*)bias_tensor->data;
 
-    for (int n = 0; n < batch; n++)    // batch size
+    for (int n = 0; n < batch; n++) // batch size
     {
-        float* cur_input  = input_buf + n * input_size * group;
+        float* cur_input = input_buf + n * input_size * group;
         float* cur_output = output_buf + n * output_size * group;
 
         if (dilation_h != 1 && dilation_w != 1 && dilation_h == pads[0])

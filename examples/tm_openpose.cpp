@@ -17,25 +17,19 @@
 #define DEFAULT_THREAD_COUNT 1
 
 #ifdef MPI
-const int POSE_PAIRS[14][2] = { { 0, 1 },  { 1, 2 },  { 2, 3 }, { 3, 4 },  { 1, 5 },   { 5, 6 },   { 6, 7 },
-                                { 1, 14 }, { 14, 8 }, { 8, 9 }, { 9, 10 }, { 14, 11 }, { 11, 12 }, { 12, 13 } };
+const int POSE_PAIRS[14][2] = {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {1, 5}, {5, 6}, {6, 7}, {1, 14}, {14, 8}, {8, 9}, {9, 10}, {14, 11}, {11, 12}, {12, 13}};
 // std::string model_file = "models/openpose_mpi.tmfile";
 int nPoints = 15;
 #endif
 
 #ifdef COCO
-const int POSE_PAIRS[17][2] = { { 1, 2 }, { 1, 5 },  { 2, 3 },   { 3, 4 },  { 5, 6 },   { 6, 7 },
-                                { 1, 8 }, { 8, 9 },  { 9, 10 },  { 1, 11 }, { 11, 12 }, { 12, 13 },
-                                { 1, 0 }, { 0, 14 }, { 14, 16 }, { 0, 15 }, { 15, 17 } };
+const int POSE_PAIRS[17][2] = {{1, 2}, {1, 5}, {2, 3}, {3, 4}, {5, 6}, {6, 7}, {1, 8}, {8, 9}, {9, 10}, {1, 11}, {11, 12}, {12, 13}, {1, 0}, {0, 14}, {14, 16}, {0, 15}, {15, 17}};
 // std::string model_file = "models/openpose_coco.tmfile";
 int nPoints = 18;
 #endif
 
 #ifdef BODY25
-const int POSE_PAIRS[24][2] = { { 1, 2 },   { 1, 5 },  { 2, 3 },   { 3, 4 },   { 5, 6 },   { 6, 7 },
-                                { 1, 8 },   { 8, 9 },  { 9, 10 },  { 10, 11 }, { 11, 24 }, { 11, 22 },
-                                { 22, 23 }, { 8, 12 }, { 12, 13 }, { 13, 14 }, { 14, 21 }, { 14, 19 },
-                                { 19, 20 }, { 1, 0 },  { 0, 15 },  { 16, 18 }, { 0, 16 },  { 15, 17 } };
+const int POSE_PAIRS[24][2] = {{1, 2}, {1, 5}, {2, 3}, {3, 4}, {5, 6}, {6, 7}, {1, 8}, {8, 9}, {9, 10}, {10, 11}, {11, 24}, {11, 22}, {22, 23}, {8, 12}, {12, 13}, {13, 14}, {14, 21}, {14, 19}, {19, 20}, {1, 0}, {0, 15}, {16, 18}, {0, 16}, {15, 17}};
 // std::string model_file = "models/openpose_body25.tmfile"
 int nPoints = 25;
 #endif
@@ -45,10 +39,10 @@ void get_input_data_pose(cv::Mat img, float* input_data, int img_h, int img_w)
     cv::resize(img, img, cv::Size(img_h, img_w));
     img.convertTo(img, CV_32FC3);
 
-    float* img_data    = (float*)img.data;
-    int    hw          = img_h * img_w;
+    float* img_data = (float*)img.data;
+    int hw = img_h * img_w;
     double scalefactor = 1.0 / 255;
-    float  mean[3]     = { 0, 0, 0 };
+    float mean[3] = {0, 0, 0};
 
     for (int h = 0; h < img_h; h++)
     {
@@ -67,19 +61,19 @@ void post_process_pose(cv::Mat img, cv::Mat frameCopy, float threshold, float* o
 {
     std::vector<cv::Point> points(nPoints);
 
-    int frameWidth  = img.rows;
+    int frameWidth = img.rows;
     int frameHeight = img.cols;
     std::cout << "KeyPoints Coordinate:" << std::endl;
     for (int n = 0; n < num; n++)
     {
         cv::Point maxloc;
-        int       piexlNums = H * W;
-        double    prob      = -1;
+        int piexlNums = H * W;
+        double prob = -1;
         for (int piexl = 0; piexl < piexlNums; ++piexl)
         {
             if (outdata[piexl] > prob)
             {
-                prob     = outdata[piexl];
+                prob = outdata[piexl];
                 maxloc.y = (int)piexl / H;
                 maxloc.x = (int)piexl % W;
             }
@@ -123,12 +117,12 @@ void show_usage()
 
 int main(int argc, char* argv[])
 {
-    const char* model_file   = nullptr;
-    const char* image_file   = nullptr;
-    int         repeat_count = DEFAULT_REPEAT_COUNT;
-    int         num_thread   = DEFAULT_THREAD_COUNT;
-    int         img_h        = 368;
-    int         img_w        = 368;
+    const char* model_file = nullptr;
+    const char* image_file = nullptr;
+    int repeat_count = DEFAULT_REPEAT_COUNT;
+    int num_thread = DEFAULT_THREAD_COUNT;
+    int img_h = 368;
+    int img_w = 368;
 
     int res;
     while ((res = getopt(argc, argv, "m:i:r:t:h:")) != -1)
@@ -176,9 +170,9 @@ int main(int argc, char* argv[])
     /* set runtime options */
     struct options opt;
     opt.num_thread = num_thread;
-    opt.cluster    = TENGINE_CLUSTER_ALL;
-    opt.precision  = TENGINE_MODE_FP32;
-    opt.affinity   = 0;
+    opt.cluster = TENGINE_CLUSTER_ALL;
+    opt.precision = TENGINE_MODE_FP32;
+    opt.affinity = 0;
 
     /* inital tengine */
     init_tengine();
@@ -193,11 +187,11 @@ int main(int argc, char* argv[])
     }
 
     /* set the input shape to initial the graph, and prerun graph to infer shape */
-    int channel           = 3;
-    int img_size          = img_h * img_w * channel;
-    int dims[]            = { 1, channel, img_h, img_w };    // nchw
+    int channel = 3;
+    int img_size = img_h * img_w * channel;
+    int dims[] = {1, channel, img_h, img_w}; // nchw
 
-    float* input_data     = (float*)malloc(sizeof(float) * img_size);
+    float* input_data = (float*)malloc(sizeof(float) * img_size);
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == nullptr)
@@ -230,8 +224,8 @@ int main(int argc, char* argv[])
     get_input_data_pose(frame, input_data, img_h, img_w);
 
     /* run graph */
-    double min_time   = __DBL_MAX__;
-    double max_time   = -__DBL_MAX__;
+    double min_time = __DBL_MAX__;
+    double max_time = -__DBL_MAX__;
     double total_time = 0.;
     for (int i = 0; i < 1; i++)
     {
@@ -253,19 +247,19 @@ int main(int argc, char* argv[])
 
     /* get the result of classification */
     tensor_t out_tensor = get_graph_output_tensor(graph, 0, 0);
-    int      out_dim[4];
+    int out_dim[4];
 
     if (get_tensor_shape(out_tensor, out_dim, 4) <= 0)
     {
         return -1;
     }
 
-    float*  outdata        = (float*)get_tensor_buffer(out_tensor);
-    int     num            = nPoints;
-    int     H              = out_dim[2];
-    int     W              = out_dim[3];
-    float   show_threshold = 0.1;
-    cv::Mat frameCopy      = frame.clone();
+    float* outdata = (float*)get_tensor_buffer(out_tensor);
+    int num = nPoints;
+    int H = out_dim[2];
+    int W = out_dim[3];
+    float show_threshold = 0.1;
+    cv::Mat frameCopy = frame.clone();
 
     post_process_pose(frame, frameCopy, show_threshold, outdata, num, H, W);
 

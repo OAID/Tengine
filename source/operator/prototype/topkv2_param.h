@@ -29,7 +29,7 @@
 
 struct topkv2_param
 {
-    int  k;
+    int k;
     bool sorted;
 };
 

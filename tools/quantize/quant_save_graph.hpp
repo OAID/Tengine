@@ -37,8 +37,7 @@
 
 #include "tengine/c_api.h"
 
-extern "C"
-{
+extern "C" {
 #include "graph/graph.h"
 #include "graph/subgraph.h"
 #include "graph/node.h"

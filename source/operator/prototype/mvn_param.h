@@ -27,8 +27,8 @@
 
 struct mvn_param
 {
-    int   normalize_variance;
-    int   across_channels;
+    int normalize_variance;
+    int across_channels;
     float eps;
 };
 

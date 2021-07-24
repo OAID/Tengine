@@ -45,9 +45,9 @@
 
 #include "permute_param.h"
 
-namespace TEngine
+namespace TEngine {
+class Permute_vulkan : public Layer
 {
-class Permute_vulkan : public Layer {
 public:
     Permute_vulkan();
     Permute_vulkan(ir_graph_t* ir_graph, ir_node_t* ir_node);
@@ -79,6 +79,6 @@ public:
     int order_type;
 };
 
-}    // namespace TEngine
+} // namespace TEngine
 
 #endif

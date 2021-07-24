@@ -35,7 +35,6 @@
 #include <math.h>
 #include <string.h>
 
-
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     return 0;
@@ -48,9 +47,9 @@ static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, 
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node*   ir_node       = exec_node->ir_node;
-    struct graph*  ir_graph      = ir_node->graph;
-    struct tensor* input_tensor  = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    struct node* ir_node = exec_node->ir_node;
+    struct graph* ir_graph = ir_node->graph;
+    struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
     if (input_tensor->data == output_tensor->data)
@@ -64,22 +63,22 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     {
     case TENGINE_DT_FP32:
     case TENGINE_DT_INT32:
-        {
-            size *= 4;
-            break;
-        }
+    {
+        size *= 4;
+        break;
+    }
     case TENGINE_DT_FP16:
     case TENGINE_DT_INT16:
-        {
-            size *= 2;
-            break;
-        }
+    {
+        size *= 2;
+        break;
+    }
     case TENGINE_DT_UINT8:
     case TENGINE_DT_INT8:
-        {
-            size *= 1;
-            break;
-        }
+    {
+        size *= 1;
+        break;
+    }
     default:
         return -1;
     }
@@ -100,19 +99,19 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
             {
                 if (output_tensor->dim_num == 4)
                 {
-                    int in_ch             = input_tensor->dims[1];
-                    int in_h              = input_tensor->dims[2];
-                    int in_w              = input_tensor->dims[3];
+                    int in_ch = input_tensor->dims[1];
+                    int in_h = input_tensor->dims[2];
+                    int in_w = input_tensor->dims[3];
 
-                    int out_ch            = output_tensor->dims[1];
-                    int out_h             = output_tensor->dims[2];
-                    int out_w             = output_tensor->dims[3];
+                    int out_ch = output_tensor->dims[1];
+                    int out_h = output_tensor->dims[2];
+                    int out_w = output_tensor->dims[3];
 
-                    float* input_fp32     = input_tensor->data;
-                    float* output_fp32    = output_tensor->data;
+                    float* input_fp32 = input_tensor->data;
+                    float* output_fp32 = output_tensor->data;
                     float* data_fp32_temp = (float*)malloc(size);
 
-                    int index             = 0;
+                    int index = 0;
                     for (int h = 0; h < in_h; h++)
                         for (int w = 0; w < in_w; w++)
                             for (int c = 0; c < in_ch; c++)
@@ -133,18 +132,18 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
                 }
                 else if (output_tensor->dim_num == 3)
                 {
-                    int in_ch             = input_tensor->dims[1];
-                    int in_h              = input_tensor->dims[2];
-                    int in_w              = input_tensor->dims[3];
+                    int in_ch = input_tensor->dims[1];
+                    int in_h = input_tensor->dims[2];
+                    int in_w = input_tensor->dims[3];
 
-                    int out_ch            = output_tensor->dims[1];
-                    int out_w             = output_tensor->dims[2];
+                    int out_ch = output_tensor->dims[1];
+                    int out_w = output_tensor->dims[2];
 
-                    float* input_fp32     = input_tensor->data;
-                    float* output_fp32    = output_tensor->data;
+                    float* input_fp32 = input_tensor->data;
+                    float* output_fp32 = output_tensor->data;
                     float* data_fp32_temp = (float*)malloc(size);
 
-                    int index             = 0;
+                    int index = 0;
                     for (int h = 0; h < in_h; h++)
                         for (int w = 0; w < in_w; w++)
                             for (int c = 0; c < in_ch; c++)
@@ -164,14 +163,14 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
                 }
                 else if (output_tensor->dim_num == 2)
                 {
-                    int in_ch          = input_tensor->dims[1];
-                    int in_h           = input_tensor->dims[2];
-                    int in_w           = input_tensor->dims[3];
+                    int in_ch = input_tensor->dims[1];
+                    int in_h = input_tensor->dims[2];
+                    int in_w = input_tensor->dims[3];
 
-                    float* input_fp32  = input_tensor->data;
+                    float* input_fp32 = input_tensor->data;
                     float* output_fp32 = output_tensor->data;
 
-                    int index          = 0;
+                    int index = 0;
                     for (int h = 0; h < in_h; h++)
                     {
                         for (int w = 0; w < in_w; w++)
@@ -190,19 +189,19 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
             {
                 if (output_tensor->dim_num == 4)
                 {
-                    int in_ch                = input_tensor->dims[1];
-                    int in_h                 = input_tensor->dims[2];
-                    int in_w                 = input_tensor->dims[3];
+                    int in_ch = input_tensor->dims[1];
+                    int in_h = input_tensor->dims[2];
+                    int in_w = input_tensor->dims[3];
 
-                    int out_ch               = output_tensor->dims[1];
-                    int out_h                = output_tensor->dims[2];
-                    int out_w                = output_tensor->dims[3];
+                    int out_ch = output_tensor->dims[1];
+                    int out_h = output_tensor->dims[2];
+                    int out_w = output_tensor->dims[3];
 
-                    uint8_t* input_uint8     = input_tensor->data;
-                    uint8_t* output_uint8    = output_tensor->data;
+                    uint8_t* input_uint8 = input_tensor->data;
+                    uint8_t* output_uint8 = output_tensor->data;
                     uint8_t* data_uint8_temp = (uint8_t*)malloc(size);
 
-                    int index                = 0;
+                    int index = 0;
                     for (int h = 0; h < in_h; h++)
                         for (int w = 0; w < in_w; w++)
                             for (int c = 0; c < in_ch; c++)
@@ -223,18 +222,18 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
                 }
                 else if (output_tensor->dim_num == 3)
                 {
-                    int in_ch                = input_tensor->dims[1];
-                    int in_h                 = input_tensor->dims[2];
-                    int in_w                 = input_tensor->dims[3];
+                    int in_ch = input_tensor->dims[1];
+                    int in_h = input_tensor->dims[2];
+                    int in_w = input_tensor->dims[3];
 
-                    int out_ch               = output_tensor->dims[1];
-                    int out_w                = output_tensor->dims[2];
+                    int out_ch = output_tensor->dims[1];
+                    int out_w = output_tensor->dims[2];
 
-                    uint8_t* input_uint8     = input_tensor->data;
-                    uint8_t* output_uint8    = output_tensor->data;
+                    uint8_t* input_uint8 = input_tensor->data;
+                    uint8_t* output_uint8 = output_tensor->data;
                     uint8_t* data_uint8_temp = (uint8_t*)malloc(size);
 
-                    int index                = 0;
+                    int index = 0;
                     for (int h = 0; h < in_h; h++)
                         for (int w = 0; w < in_w; w++)
                             for (int c = 0; c < in_ch; c++)
@@ -257,19 +256,19 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
             {
                 if (output_tensor->dim_num == 4)
                 {
-                    int in_ch              = input_tensor->dims[1];
-                    int in_h               = input_tensor->dims[2];
-                    int in_w               = input_tensor->dims[3];
+                    int in_ch = input_tensor->dims[1];
+                    int in_h = input_tensor->dims[2];
+                    int in_w = input_tensor->dims[3];
 
-                    int out_ch             = output_tensor->dims[1];
-                    int out_h              = output_tensor->dims[2];
-                    int out_w              = output_tensor->dims[3];
+                    int out_ch = output_tensor->dims[1];
+                    int out_h = output_tensor->dims[2];
+                    int out_w = output_tensor->dims[3];
 
-                    int8_t* input_int8     = input_tensor->data;
-                    int8_t* output_int8    = output_tensor->data;
+                    int8_t* input_int8 = input_tensor->data;
+                    int8_t* output_int8 = output_tensor->data;
                     int8_t* data_int8_temp = (int8_t*)malloc(size);
 
-                    int index              = 0;
+                    int index = 0;
                     for (int h = 0; h < in_h; h++)
                         for (int w = 0; w < in_w; w++)
                             for (int c = 0; c < in_ch; c++)
@@ -290,18 +289,18 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
                 }
                 else if (output_tensor->dim_num == 3)
                 {
-                    int in_ch              = input_tensor->dims[1];
-                    int in_h               = input_tensor->dims[2];
-                    int in_w               = input_tensor->dims[3];
+                    int in_ch = input_tensor->dims[1];
+                    int in_h = input_tensor->dims[2];
+                    int in_w = input_tensor->dims[3];
 
-                    int out_ch             = output_tensor->dims[1];
-                    int out_w              = output_tensor->dims[2];
+                    int out_ch = output_tensor->dims[1];
+                    int out_w = output_tensor->dims[2];
 
-                    int8_t* input_int8     = input_tensor->data;
-                    int8_t* output_int8    = output_tensor->data;
+                    int8_t* input_int8 = input_tensor->data;
+                    int8_t* output_int8 = output_tensor->data;
                     int8_t* data_int8_temp = (int8_t*)malloc(size);
 
-                    int index              = 0;
+                    int index = 0;
                     for (int h = 0; h < in_h; h++)
                         for (int w = 0; w < in_w; w++)
                             for (int c = 0; c < in_ch; c++)
@@ -333,13 +332,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_BEST;
 }
 
-static struct node_ops reshape_node_ops = { .prerun       = NULL,
-                                            .run          = run,
-                                            .reshape      = NULL,
-                                            .postrun      = NULL,
-                                            .init_node    = init_node,
-                                            .release_node = release_node,
-                                            .score        = score };
+static struct node_ops reshape_node_ops = {.prerun = NULL,
+                                           .run = run,
+                                           .reshape = NULL,
+                                           .postrun = NULL,
+                                           .init_node = init_node,
+                                           .release_node = release_node,
+                                           .score = score};
 
 int register_reshape_ref_op()
 {

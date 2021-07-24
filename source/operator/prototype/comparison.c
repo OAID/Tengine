@@ -33,22 +33,20 @@
 
 #include <string.h>
 
-
-#define CALC_TENSOR_SHAPE_SIZE(outval, IR_TENSOR)                                                                      \
-    {                                                                                                                  \
-        outval = 1;                                                                                                    \
-        for (int ii = 0; ii < IR_TENSOR->dim_num; ++ii)                                                                \
-        {                                                                                                              \
-            outval *= IR_TENSOR->dims[ii];                                                                             \
-        }                                                                                                              \
+#define CALC_TENSOR_SHAPE_SIZE(outval, IR_TENSOR)       \
+    {                                                   \
+        outval = 1;                                     \
+        for (int ii = 0; ii < IR_TENSOR->dim_num; ++ii) \
+        {                                               \
+            outval *= IR_TENSOR->dims[ii];              \
+        }                                               \
     }
-
 
 static int infer_shape(struct node* node)
 {
-    struct graph*  graph   = node->graph;
+    struct graph* graph = node->graph;
     struct tensor* input_0 = get_ir_graph_tensor(graph, node->input_tensors[0]);
-    struct tensor* output  = get_ir_graph_tensor(graph, node->output_tensors[0]);
+    struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
 
     if (node->input_num == 1)
     {
@@ -75,7 +73,6 @@ static int infer_shape(struct node* node)
     }
 }
 
-
 static int init_op(struct op* op)
 {
     struct comparison_param* param = (struct comparison_param*)sys_malloc(sizeof(struct comparison_param));
@@ -87,33 +84,29 @@ static int init_op(struct op* op)
 
     /*set the param default value */
     memset(param, 0, sizeof(struct comparison_param));
-    op->param_mem   = param;
-    op->param_size  = sizeof(struct comparison_param);
-    op->same_shape  = 0;
+    op->param_mem = param;
+    op->param_size = sizeof(struct comparison_param);
+    op->same_shape = 0;
     op->infer_shape = infer_shape;
 
     return 0;
 }
-
 
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
 
-
 int register_comparison_op()
 {
     struct method m;
 
     m.version = 1;
-    m.init    = init_op;
+    m.init = init_op;
     m.release = release_op;
-
 
     return register_op(OP_COMPARISON, OP_COMPARISON_NAME, &m);
 }
-
 
 int unregister_comparison_op()
 {

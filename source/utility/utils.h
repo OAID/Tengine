@@ -27,7 +27,6 @@
 
 #include <stddef.h>
 
-
 /*!
  * @brief Convert tensor type to char array.
  *
@@ -36,7 +35,6 @@
  * @return  Tensor type char array.
  */
 const char* get_tensor_type_string(int tensor_type);
-
 
 /*!
  * @brief Convert tensor layout to char array.
@@ -47,7 +45,6 @@ const char* get_tensor_type_string(int tensor_type);
  */
 const char* get_tensor_layout_string(int tensor_layout);
 
-
 /*!
  * @brief Convert model format to char array.
  *
@@ -56,7 +53,6 @@ const char* get_tensor_layout_string(int tensor_layout);
  * @return  Model format char array.
  */
 const char* get_model_format_string(int model_format);
-
 
 /*!
  * @brief Convert operator name char array to enumeration value.
@@ -67,7 +63,6 @@ const char* get_model_format_string(int model_format);
  */
 int get_op_type_from_name(const char* name);
 
-
 /*!
  * @brief Convert operator enumeration value to char array.
  *
@@ -76,7 +71,6 @@ int get_op_type_from_name(const char* name);
  * @return  Operator name char array.
  */
 const char* get_op_name_from_type(int op_type);
-
 
 /*!
  * @brief Get single element size of the tensor data type.
@@ -87,7 +81,6 @@ const char* get_op_name_from_type(int op_type);
  */
 int get_tenser_element_size(int data_type);
 
-
 /*!
  * @brief Convert tensor data type to char array.
  *
@@ -96,7 +89,6 @@ int get_tenser_element_size(int data_type);
  * @return  Tensor data type char array.
  */
 const char* get_tensor_data_type_string(int data_type);
-
 
 /*!
  * @brief Convert tensor data type single letter char array.
@@ -107,11 +99,8 @@ const char* get_tensor_data_type_string(int data_type);
  */
 const char* data_type_typeinfo_name(int data_type);
 
-
 void dump_float(const char* file_name, float* data, int number);
 
-
 int get_mask_count(size_t mask);
-
 
 int get_mask_index(size_t mask);

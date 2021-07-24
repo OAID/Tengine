@@ -41,7 +41,6 @@
 #define HCL_POOL_MAX 0 /* Max pooling     */
 #define HCL_POOL_AVG 1 /* Average pooling */
 
-
 #if MACOS
 
 #else
@@ -66,7 +65,7 @@ static inline void calc_max_fp16(const fp16_t* input, fp16_t* max, int layout, i
                                  int start_h, int start_w, int end_h, int end_w)
 {
     float max_f = 0.0f;
-    float tmp   = 0.0f;
+    float tmp = 0.0f;
     if (layout == 0)
         max_f = fp16_to_fp32(input[cur_ch * h * w + start_h * w + start_w]);
     else
@@ -91,35 +90,35 @@ static inline void calc_max_fp16(const fp16_t* input, fp16_t* max, int layout, i
 int ref_pooling_fp16(struct tensor* input_tensor, struct tensor* output_tensor, struct pool_param* pool_param,
                      int num_thread)
 {
-    int layout       = input_tensor->layout;
-    int type         = input_tensor->data_type;
+    int layout = input_tensor->layout;
+    int type = input_tensor->data_type;
 
-    int batch        = input_tensor->dims[0];
-    int channel      = input_tensor->dims[1];
-    int in_h         = input_tensor->dims[2];
-    int in_w         = input_tensor->dims[3];
-    int out_h        = output_tensor->dims[2];
-    int out_w        = output_tensor->dims[3];
+    int batch = input_tensor->dims[0];
+    int channel = input_tensor->dims[1];
+    int in_h = input_tensor->dims[2];
+    int in_w = input_tensor->dims[3];
+    int out_h = output_tensor->dims[2];
+    int out_w = output_tensor->dims[3];
 
-    int input_chw    = channel * in_h * in_w;
-    int output_chw   = channel * out_h * out_w;
+    int input_chw = channel * in_h * in_w;
+    int output_chw = channel * out_h * out_w;
 
-    int stride_h     = pool_param->stride_h;
-    int stride_w     = pool_param->stride_w;
+    int stride_h = pool_param->stride_h;
+    int stride_w = pool_param->stride_w;
 
-    int pad_h        = pool_param->pad_h0;
-    int pad_w        = pool_param->pad_w0;
+    int pad_h = pool_param->pad_h0;
+    int pad_w = pool_param->pad_w0;
 
-    int kernel_h     = pool_param->kernel_h;
-    int kernel_w     = pool_param->kernel_w;
+    int kernel_h = pool_param->kernel_h;
+    int kernel_w = pool_param->kernel_w;
 
     int caffe_flavor = pool_param->caffe_flavor;
-    int method       = pool_param->pool_method;
+    int method = pool_param->pool_method;
 
 #if MACOS
     TLOG_ERR("FP16 not support mac os");
 #else
-    fp16_t* input  = input_tensor->data;
+    fp16_t* input = input_tensor->data;
     fp16_t* output = output_tensor->data;
 
     for (int n = 0; n < batch; n++)
@@ -132,13 +131,13 @@ int ref_pooling_fp16(struct tensor* input_tensor, struct tensor* output_tensor, 
                 for (int pw = 0; pw < out_w; pw++)
                 {
                     int pool_size = 1;
-                    int offset    = 0;
-                    int h_start   = ph * stride_h - pad_h;
-                    int h_end     = h_start + kernel_h;
+                    int offset = 0;
+                    int h_start = ph * stride_h - pad_h;
+                    int h_end = h_start + kernel_h;
                     if (h_end > in_h + pad_h)
                         h_end = in_h + pad_h;
                     int w_start = pw * stride_w - pad_w;
-                    int w_end   = w_start + kernel_w;
+                    int w_end = w_start + kernel_w;
                     if (w_end > in_w + pad_w)
                         w_end = in_w + pad_w;
 
@@ -147,12 +146,12 @@ int ref_pooling_fp16(struct tensor* input_tensor, struct tensor* output_tensor, 
 
                     h_start = h_start > 0 ? h_start : 0;
                     w_start = w_start > 0 ? w_start : 0;
-                    h_end   = h_end < in_h ? h_end : in_h;
-                    w_end   = w_end < in_w ? w_end : in_w;
+                    h_end = h_end < in_h ? h_end : in_h;
+                    w_end = w_end < in_w ? w_end : in_w;
 
                     if (!caffe_flavor)
                         pool_size = (h_end - h_start) * (w_end - w_start);
-                    if (layout == 0)    // nchw
+                    if (layout == 0) // nchw
                         offset = n * output_chw + c * out_h * out_w + ph * out_w + pw;
                     else
                         offset = n * output_chw + ph * out_w * channel + pw * channel + c;

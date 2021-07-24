@@ -29,7 +29,7 @@ typedef struct batchnorm_param
 {
     float rescale_factor;
     float eps;
-    int   caffe_flavor;
+    int caffe_flavor;
 } batchnorm_param_t;
 
 #endif

@@ -44,20 +44,20 @@
 #include <math.h>
 #include <algorithm>
 
-namespace TEngine
+namespace TEngine {
+Pipeline::Pipeline(const GPUDevice* _vkdev)
+    : vkdev(_vkdev)
 {
-Pipeline::Pipeline(const GPUDevice* _vkdev) : vkdev(_vkdev)
-{
-    local_shader_module        = 0;
+    local_shader_module = 0;
 
-    descriptorset_layout       = 0;
-    pipeline_layout            = 0;
-    pipeline                   = 0;
+    descriptorset_layout = 0;
+    pipeline_layout = 0;
+    pipeline = 0;
     descriptor_update_template = 0;
 
-    local_size_x               = 1;
-    local_size_y               = 1;
-    local_size_z               = 1;
+    local_size_x = 1;
+    local_size_y = 1;
+    local_size_z = 1;
 }
 
 Pipeline::~Pipeline()
@@ -69,7 +69,7 @@ int Pipeline::create(const uint32_t* spv_data, size_t spv_data_size,
                      const std::vector<vk_specialization_type>& specializations)
 {
     ShaderInfo si;
-    int        ret = resolve_shader_info(spv_data, spv_data_size, si);
+    int ret = resolve_shader_info(spv_data, spv_data_size, si);
     if (ret != 0)
     {
         printf("resolve_shader_info failed %d", ret);
@@ -87,8 +87,7 @@ int Pipeline::create(const uint32_t* spv_data, size_t spv_data_size,
 
     if (vkdev->info.bug_local_size_spec_const)
     {
-        local_shader_module =
-            vkdev->compile_shader_module(spv_data, spv_data_size, local_size_x, local_size_y, local_size_z);
+        local_shader_module = vkdev->compile_shader_module(spv_data, spv_data_size, local_size_x, local_size_y, local_size_z);
     }
     else
     {
@@ -266,7 +265,7 @@ void Pipeline::set_optimal_local_size_xyz(const VkTensor& local_size_xyz)
 
     int max_local_size_xy = (int)vkdev->info.max_workgroup_invocations / c;
 
-    int wh_max            = std::max(1, (int)sqrt(max_local_size_xy));
+    int wh_max = std::max(1, (int)sqrt(max_local_size_xy));
     while (w * h >= wh_max)
     {
         w = std::max(1, w / 2);
@@ -301,7 +300,7 @@ void Pipeline::set_optimal_local_size_xyz(const Tensor& local_size_xyz)
 
     int max_local_size_xy = (int)vkdev->info.max_workgroup_invocations / c;
 
-    int wh_max            = std::max(1, (int)sqrt(max_local_size_xy));
+    int wh_max = std::max(1, (int)sqrt(max_local_size_xy));
     while (w * h >= wh_max)
     {
         w = std::max(1, w / 2);
@@ -333,15 +332,15 @@ int Pipeline::create_descriptorset_layout()
     std::vector<VkDescriptorSetLayoutBinding> descriptorSetLayoutBindings(binding_count);
     for (int i = 0; i < binding_count; i++)
     {
-        int binding_type                               = shader_info.binding_types[i];
+        int binding_type = shader_info.binding_types[i];
 
-        descriptorSetLayoutBindings[i].binding         = i;
+        descriptorSetLayoutBindings[i].binding = i;
         descriptorSetLayoutBindings[i].descriptorCount = 1;
-        descriptorSetLayoutBindings[i].stageFlags      = VK_SHADER_STAGE_COMPUTE_BIT;
+        descriptorSetLayoutBindings[i].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
 
         if (binding_type == 1)
         {
-            descriptorSetLayoutBindings[i].descriptorType     = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+            descriptorSetLayoutBindings[i].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
             descriptorSetLayoutBindings[i].pImmutableSamplers = 0;
         }
         else
@@ -361,19 +360,18 @@ int Pipeline::create_descriptorset_layout()
     }
 
     VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo;
-    descriptorSetLayoutCreateInfo.sType        = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-    descriptorSetLayoutCreateInfo.pNext        = 0;
-    descriptorSetLayoutCreateInfo.flags        = 0;
+    descriptorSetLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    descriptorSetLayoutCreateInfo.pNext = 0;
+    descriptorSetLayoutCreateInfo.flags = 0;
     descriptorSetLayoutCreateInfo.bindingCount = binding_count;
-    descriptorSetLayoutCreateInfo.pBindings    = descriptorSetLayoutBindings.data();
+    descriptorSetLayoutCreateInfo.pBindings = descriptorSetLayoutBindings.data();
 
     if (vkdev->info.support_VK_KHR_push_descriptor)
     {
         descriptorSetLayoutCreateInfo.flags |= VK_DESCRIPTOR_SET_LAYOUT_CREATE_PUSH_DESCRIPTOR_BIT_KHR;
     }
 
-    VkResult ret =
-        vkCreateDescriptorSetLayout(vkdev->vkdevice(), &descriptorSetLayoutCreateInfo, 0, &descriptorset_layout);
+    VkResult ret = vkCreateDescriptorSetLayout(vkdev->vkdevice(), &descriptorSetLayoutCreateInfo, 0, &descriptorset_layout);
     if (ret != VK_SUCCESS)
     {
         printf("vkCreateDescriptorSetLayout failed %d", ret);
@@ -389,8 +387,8 @@ int Pipeline::create_pipeline_layout()
 
     VkPushConstantRange pushConstantRange;
     pushConstantRange.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-    pushConstantRange.offset     = 0;
-    pushConstantRange.size       = sizeof(vk_constant_type) * push_constant_count;
+    pushConstantRange.offset = 0;
+    pushConstantRange.size = sizeof(vk_constant_type) * push_constant_count;
 
     VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo;
     pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -400,23 +398,23 @@ int Pipeline::create_pipeline_layout()
     if (descriptorset_layout)
     {
         pipelineLayoutCreateInfo.setLayoutCount = 1;
-        pipelineLayoutCreateInfo.pSetLayouts    = &descriptorset_layout;
+        pipelineLayoutCreateInfo.pSetLayouts = &descriptorset_layout;
     }
     else
     {
         pipelineLayoutCreateInfo.setLayoutCount = 0;
-        pipelineLayoutCreateInfo.pSetLayouts    = 0;
+        pipelineLayoutCreateInfo.pSetLayouts = 0;
     }
 
     if (push_constant_count > 0)
     {
         pipelineLayoutCreateInfo.pushConstantRangeCount = 1;
-        pipelineLayoutCreateInfo.pPushConstantRanges    = &pushConstantRange;
+        pipelineLayoutCreateInfo.pPushConstantRanges = &pushConstantRange;
     }
     else
     {
         pipelineLayoutCreateInfo.pushConstantRangeCount = 0;
-        pipelineLayoutCreateInfo.pPushConstantRanges    = 0;
+        pipelineLayoutCreateInfo.pPushConstantRanges = 0;
     }
 
     VkResult ret = vkCreatePipelineLayout(vkdev->vkdevice(), &pipelineLayoutCreateInfo, 0, &pipeline_layout);
@@ -429,7 +427,6 @@ int Pipeline::create_pipeline_layout()
     return 0;
 }
 
-
 int Pipeline::create_pipeline(VkShaderModule shader_module, const std::vector<vk_specialization_type>& specializations)
 {
     const int specialization_count = specializations.size();
@@ -441,8 +438,8 @@ int Pipeline::create_pipeline(VkShaderModule shader_module, const std::vector<vk
     for (int i = 0; i < specialization_count; i++)
     {
         specializationMapEntries[i].constantID = i;
-        specializationMapEntries[i].offset     = i * sizeof(vk_specialization_type);
-        specializationMapEntries[i].size       = sizeof(vk_specialization_type);
+        specializationMapEntries[i].offset = i * sizeof(vk_specialization_type);
+        specializationMapEntries[i].size = sizeof(vk_specialization_type);
     }
 
     std::vector<vk_specialization_type> specialization_data = specializations;
@@ -452,17 +449,17 @@ int Pipeline::create_pipeline(VkShaderModule shader_module, const std::vector<vk
     {
         VkSpecializationMapEntry* local_size_xyz_entries = specializationMapEntries.data() + specialization_count;
 
-        local_size_xyz_entries[0].constantID             = 233;
-        local_size_xyz_entries[0].offset                 = (specialization_count + 0) * sizeof(vk_specialization_type);
-        local_size_xyz_entries[0].size                   = sizeof(vk_specialization_type);
+        local_size_xyz_entries[0].constantID = 233;
+        local_size_xyz_entries[0].offset = (specialization_count + 0) * sizeof(vk_specialization_type);
+        local_size_xyz_entries[0].size = sizeof(vk_specialization_type);
 
-        local_size_xyz_entries[1].constantID             = 234;
-        local_size_xyz_entries[1].offset                 = (specialization_count + 1) * sizeof(vk_specialization_type);
-        local_size_xyz_entries[1].size                   = sizeof(vk_specialization_type);
+        local_size_xyz_entries[1].constantID = 234;
+        local_size_xyz_entries[1].offset = (specialization_count + 1) * sizeof(vk_specialization_type);
+        local_size_xyz_entries[1].size = sizeof(vk_specialization_type);
 
-        local_size_xyz_entries[2].constantID             = 235;
-        local_size_xyz_entries[2].offset                 = (specialization_count + 2) * sizeof(vk_specialization_type);
-        local_size_xyz_entries[2].size                   = sizeof(vk_specialization_type);
+        local_size_xyz_entries[2].constantID = 235;
+        local_size_xyz_entries[2].offset = (specialization_count + 2) * sizeof(vk_specialization_type);
+        local_size_xyz_entries[2].size = sizeof(vk_specialization_type);
 
         specialization_data.resize(specialization_count + 3);
         specialization_data[specialization_count + 0].u32 = local_size_x;
@@ -472,27 +469,27 @@ int Pipeline::create_pipeline(VkShaderModule shader_module, const std::vector<vk
 
     VkSpecializationInfo specializationInfo;
     specializationInfo.mapEntryCount = specializationMapEntries.size();
-    specializationInfo.pMapEntries   = specializationMapEntries.data();
-    specializationInfo.dataSize      = specialization_data.size() * sizeof(vk_specialization_type);
-    specializationInfo.pData         = specialization_data.data();
+    specializationInfo.pMapEntries = specializationMapEntries.data();
+    specializationInfo.dataSize = specialization_data.size() * sizeof(vk_specialization_type);
+    specializationInfo.pData = specialization_data.data();
 
     VkPipelineShaderStageCreateInfo pipelineShaderStageCreateInfo;
-    pipelineShaderStageCreateInfo.sType               = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    pipelineShaderStageCreateInfo.pNext               = 0;
-    pipelineShaderStageCreateInfo.flags               = 0;
-    pipelineShaderStageCreateInfo.stage               = VK_SHADER_STAGE_COMPUTE_BIT;
-    pipelineShaderStageCreateInfo.module              = shader_module;
-    pipelineShaderStageCreateInfo.pName               = "main";
+    pipelineShaderStageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    pipelineShaderStageCreateInfo.pNext = 0;
+    pipelineShaderStageCreateInfo.flags = 0;
+    pipelineShaderStageCreateInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
+    pipelineShaderStageCreateInfo.module = shader_module;
+    pipelineShaderStageCreateInfo.pName = "main";
     pipelineShaderStageCreateInfo.pSpecializationInfo = &specializationInfo;
 
     VkComputePipelineCreateInfo computePipelineCreateInfo;
-    computePipelineCreateInfo.sType              = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
-    computePipelineCreateInfo.pNext              = 0;
-    computePipelineCreateInfo.flags              = 0;
-    computePipelineCreateInfo.stage              = pipelineShaderStageCreateInfo;
-    computePipelineCreateInfo.layout             = pipeline_layout;
+    computePipelineCreateInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
+    computePipelineCreateInfo.pNext = 0;
+    computePipelineCreateInfo.flags = 0;
+    computePipelineCreateInfo.stage = pipelineShaderStageCreateInfo;
+    computePipelineCreateInfo.layout = pipeline_layout;
     computePipelineCreateInfo.basePipelineHandle = 0;
-    computePipelineCreateInfo.basePipelineIndex  = 0;
+    computePipelineCreateInfo.basePipelineIndex = 0;
 
     VkResult ret = vkCreateComputePipelines(vkdev->vkdevice(), 0, 1, &computePipelineCreateInfo, 0, &pipeline);
     if (ret != VK_SUCCESS)
@@ -515,30 +512,30 @@ int Pipeline::create_descriptor_update_template()
     }
 
     std::vector<VkDescriptorUpdateTemplateEntryKHR> descriptorUpdateTemplateEntries(binding_count);
-    size_t                                          offset = 0;
-    for (int i = 0; i < binding_count; i++)    // TODO do not update weights
+    size_t offset = 0;
+    for (int i = 0; i < binding_count; i++) // TODO do not update weights
     {
-        int binding_type                                   = shader_info.binding_types[i];
+        int binding_type = shader_info.binding_types[i];
 
-        descriptorUpdateTemplateEntries[i].dstBinding      = i;
+        descriptorUpdateTemplateEntries[i].dstBinding = i;
         descriptorUpdateTemplateEntries[i].dstArrayElement = 0;
         descriptorUpdateTemplateEntries[i].descriptorCount = 1;
-        descriptorUpdateTemplateEntries[i].offset          = offset;
+        descriptorUpdateTemplateEntries[i].offset = offset;
 
         if (binding_type == 1)
         {
             descriptorUpdateTemplateEntries[i].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-            descriptorUpdateTemplateEntries[i].stride         = sizeof(VkDescriptorBufferInfo);
+            descriptorUpdateTemplateEntries[i].stride = sizeof(VkDescriptorBufferInfo);
         }
         else if (binding_type == 2)
         {
             descriptorUpdateTemplateEntries[i].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-            descriptorUpdateTemplateEntries[i].stride         = sizeof(VkDescriptorImageInfo);
+            descriptorUpdateTemplateEntries[i].stride = sizeof(VkDescriptorImageInfo);
         }
-        else    // if (binding_type == 3)
+        else // if (binding_type == 3)
         {
             descriptorUpdateTemplateEntries[i].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-            descriptorUpdateTemplateEntries[i].stride         = sizeof(VkDescriptorImageInfo);
+            descriptorUpdateTemplateEntries[i].stride = sizeof(VkDescriptorImageInfo);
         }
 
         offset += descriptorUpdateTemplateEntries[i].stride;
@@ -548,8 +545,8 @@ int Pipeline::create_descriptor_update_template()
     descriptorUpdateTemplateCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_UPDATE_TEMPLATE_CREATE_INFO_KHR;
     descriptorUpdateTemplateCreateInfo.pNext = 0;
     descriptorUpdateTemplateCreateInfo.flags = 0;
-    descriptorUpdateTemplateCreateInfo.descriptorUpdateEntryCount = binding_count;    // TODO do not update weights
-    descriptorUpdateTemplateCreateInfo.pDescriptorUpdateEntries   = descriptorUpdateTemplateEntries.data();
+    descriptorUpdateTemplateCreateInfo.descriptorUpdateEntryCount = binding_count; // TODO do not update weights
+    descriptorUpdateTemplateCreateInfo.pDescriptorUpdateEntries = descriptorUpdateTemplateEntries.data();
     if (vkdev->info.support_VK_KHR_push_descriptor)
     {
         descriptorUpdateTemplateCreateInfo.templateType = VK_DESCRIPTOR_UPDATE_TEMPLATE_TYPE_PUSH_DESCRIPTORS_KHR;
@@ -561,9 +558,9 @@ int Pipeline::create_descriptor_update_template()
     // descriptorSetLayout should be ignored if VK_DESCRIPTOR_UPDATE_TEMPLATE_TYPE_PUSH_DESCRIPTORS_KHR
     // FIXME HACK WARNING TODO NOTE but crash on radv if set NULL  :(
     descriptorUpdateTemplateCreateInfo.descriptorSetLayout = descriptorset_layout;
-    descriptorUpdateTemplateCreateInfo.pipelineBindPoint   = VK_PIPELINE_BIND_POINT_COMPUTE;
-    descriptorUpdateTemplateCreateInfo.pipelineLayout      = pipeline_layout;
-    descriptorUpdateTemplateCreateInfo.set                 = 0;
+    descriptorUpdateTemplateCreateInfo.pipelineBindPoint = VK_PIPELINE_BIND_POINT_COMPUTE;
+    descriptorUpdateTemplateCreateInfo.pipelineLayout = pipeline_layout;
+    descriptorUpdateTemplateCreateInfo.set = 0;
 
     VkResult ret = vkdev->vkCreateDescriptorUpdateTemplateKHR(vkdev->vkdevice(), &descriptorUpdateTemplateCreateInfo, 0,
                                                               &descriptor_update_template);
@@ -576,5 +573,4 @@ int Pipeline::create_descriptor_update_template()
     return 0;
 }
 
-
-}    // namespace TEngine
+} // namespace TEngine

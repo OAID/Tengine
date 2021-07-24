@@ -37,12 +37,11 @@
 #include <math.h>
 #include <string.h>
 
-
 static int entry_index(int batch, int location, int entry, int hw, int chw, int classes)
 {
     int coords = 4;
-    int n      = location / hw;
-    int loc    = location % hw;
+    int n = location / hw;
+    int loc = location % hw;
     return batch * chw + n * hw * (coords + classes + 1) + entry * hw + loc;
 }
 
@@ -62,8 +61,8 @@ static void logit_activate_array(float* x, const int n)
 
 static void softmax(const float* input, int n, int stride, float* output)
 {
-    int   i;
-    float sum     = 0;
+    int i;
+    float sum = 0;
     float largest = input[0];
     for (i = 0; i < n; ++i)
     {
@@ -97,20 +96,20 @@ static void softmax_cpu(const float* input, int n, int batch, int batch_offset, 
 static int ref_region_fp32(struct tensor* input_tensor, struct tensor* output_tensor, struct region_param* param,
                            int num_thread)
 {
-    int n           = input_tensor->dims[0];
-    int c           = input_tensor->dims[1];
-    int h           = input_tensor->dims[2];
-    int w           = input_tensor->dims[3];
+    int n = input_tensor->dims[0];
+    int c = input_tensor->dims[1];
+    int h = input_tensor->dims[2];
+    int w = input_tensor->dims[3];
 
-    int batch       = n;
-    int hw          = h * w;
-    int chw         = c * hw;
-    int nchw        = n * chw;
-    int num_box     = param->num_box;
-    int num_class   = param->num_classes;
-    int coords      = param->coords;
+    int batch = n;
+    int hw = h * w;
+    int chw = c * hw;
+    int nchw = n * chw;
+    int num_box = param->num_box;
+    int num_class = param->num_classes;
+    int coords = param->coords;
 
-    float* in_data  = input_tensor->data;
+    float* in_data = input_tensor->data;
     float* out_data = output_tensor->data;
 
     memcpy(out_data, in_data, nchw * sizeof(float));
@@ -150,13 +149,13 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node*   ir_node  = exec_node->ir_node;
-    struct graph*  ir_graph = ir_node->graph;
+    struct node* ir_node = exec_node->ir_node;
+    struct graph* ir_graph = ir_node->graph;
     struct tensor* input_tensor;
     struct tensor* output_tensor;
 
-    input_tensor                      = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    output_tensor                     = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+    input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
     struct region_param* region_param = (struct region_param*)ir_node->op.param_mem;
 
     ref_region_fp32(input_tensor, output_tensor, region_param, exec_graph->num_thread);
@@ -169,13 +168,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_BEST;
 }
 
-static struct node_ops hcl_node_ops = { .prerun       = prerun,
-                                        .run          = run,
-                                        .reshape      = NULL,
-                                        .postrun      = NULL,
-                                        .init_node    = init_node,
-                                        .release_node = release_node,
-                                        .score        = score };
+static struct node_ops hcl_node_ops = {.prerun = prerun,
+                                       .run = run,
+                                       .reshape = NULL,
+                                       .postrun = NULL,
+                                       .init_node = init_node,
+                                       .release_node = release_node,
+                                       .score = score};
 
 int register_region_ref_op()
 {

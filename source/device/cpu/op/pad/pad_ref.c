@@ -37,7 +37,6 @@
 
 #include <math.h>
 
-
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     return 0;
@@ -51,9 +50,9 @@ static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, 
 static void ref_pad_fp32(float* input, float* output, int in_h, int in_w, int out_h, int out_w, int top, int left,
                          float v)
 {
-    float* ptr    = input;
+    float* ptr = input;
     float* outptr = output;
-    int    y      = 0;
+    int y = 0;
     // fill top
     for (; y < top; y++)
     {
@@ -108,10 +107,10 @@ static void ref_pad_fp32(float* input, float* output, int in_h, int in_w, int ou
 static void ref_pad_uint8(uint8_t* input, uint8_t* output, int in_h, int in_w, int out_h, int out_w, int top, int left,
                           float v)
 {
-    uint8_t* ptr    = input;
+    uint8_t* ptr = input;
     uint8_t* outptr = output;
 
-    int y           = 0;
+    int y = 0;
     // fill top
     for (; y < top; y++)
     {
@@ -165,29 +164,29 @@ static void ref_pad_uint8(uint8_t* input, uint8_t* output, int in_h, int in_w, i
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node*   ir_node       = exec_node->ir_node;
-    struct graph*  ir_graph      = ir_node->graph;
-    struct tensor* input_tensor  = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    struct node* ir_node = exec_node->ir_node;
+    struct graph* ir_graph = ir_node->graph;
+    struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    struct pad_param* param      = (struct pad_param*)ir_node->op.param_mem;
+    struct pad_param* param = (struct pad_param*)ir_node->op.param_mem;
 
-    int batch                    = input_tensor->dims[0];
-    int channel                  = input_tensor->dims[1];
-    int in_h                     = input_tensor->dims[2];
-    int in_w                     = input_tensor->dims[3];
-    int in_cstep                 = in_h * in_w;
-    int in_size                  = channel * in_h * in_w;
+    int batch = input_tensor->dims[0];
+    int channel = input_tensor->dims[1];
+    int in_h = input_tensor->dims[2];
+    int in_w = input_tensor->dims[3];
+    int in_cstep = in_h * in_w;
+    int in_size = channel * in_h * in_w;
 
-    int out_h                    = output_tensor->dims[2];
-    int out_w                    = output_tensor->dims[3];
-    int out_cstep                = out_h * out_w;
-    int out_size                 = channel * out_h * out_w;
+    int out_h = output_tensor->dims[2];
+    int out_w = output_tensor->dims[3];
+    int out_cstep = out_h * out_w;
+    int out_size = channel * out_h * out_w;
 
-    int pad_top                  = param->pad_2_h;
-    int pad_bottom               = param->pad_2_w;
-    int pad_left                 = param->pad_3_h;
-    int pad_right                = param->pad_3_w;
+    int pad_top = param->pad_2_h;
+    int pad_bottom = param->pad_2_w;
+    int pad_left = param->pad_3_h;
+    int pad_right = param->pad_3_w;
 
     if (param->mode == 0)
     {
@@ -197,13 +196,13 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
             {
                 if (input_tensor->data_type == TENGINE_DT_FP32)
                 {
-                    float* input_data  = (float*)input_tensor->data + n * in_size + c * in_cstep;
+                    float* input_data = (float*)input_tensor->data + n * in_size + c * in_cstep;
                     float* output_data = (float*)output_tensor->data + n * out_size + c * out_cstep;
                     ref_pad_fp32(input_data, output_data, in_h, in_w, out_h, out_w, pad_top, pad_left, param->value);
                 }
                 else if (input_tensor->data_type == TENGINE_DT_UINT8)
                 {
-                    uint8_t* input_data  = (uint8_t*)input_tensor->data + n * in_size + c * in_cstep;
+                    uint8_t* input_data = (uint8_t*)input_tensor->data + n * in_size + c * in_cstep;
                     uint8_t* output_data = (uint8_t*)output_tensor->data + n * out_size + c * out_cstep;
                     ref_pad_uint8(input_data, output_data, in_h, in_w, out_h, out_w, pad_top, pad_left, param->value);
                 }
@@ -224,13 +223,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_BEST;
 }
 
-static struct node_ops pad_node_ops = { .prerun       = NULL,
-                                        .run          = run,
-                                        .reshape      = NULL,
-                                        .postrun      = NULL,
-                                        .init_node    = init_node,
-                                        .release_node = release_node,
-                                        .score        = score };
+static struct node_ops pad_node_ops = {.prerun = NULL,
+                                       .run = run,
+                                       .reshape = NULL,
+                                       .postrun = NULL,
+                                       .init_node = init_node,
+                                       .release_node = release_node,
+                                       .score = score};
 
 int register_pad_ref_op()
 {

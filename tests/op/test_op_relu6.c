@@ -24,7 +24,6 @@
 
 #include "test_op.h"
 
-
 int create_test_relu6_node(graph_t graph, const char* input_name, const char* node_name, int data_type, int layout,
                            int n, int c, int h, int w)
 {
@@ -71,13 +70,12 @@ int create_test_relu6_node(graph_t graph, const char* input_name, const char* no
     return 0;
 }
 
-
 int main(int argc, char* argv[])
 {
-    int         n = 1, c = 3, h = 12, w = 12;
+    int n = 1, c = 3, h = 12, w = 12;
     const char* test_node_name = "relu6";
-    int         data_type      = TENGINE_DT_FP32;
-    int         layout         = TENGINE_LAYOUT_NCHW;
+    int data_type = TENGINE_DT_FP32;
+    int layout = TENGINE_LAYOUT_NCHW;
 
     // init
     int ret = test_graph_init();

@@ -45,9 +45,9 @@
 
 #include "flatten_param.h"
 
-namespace TEngine
+namespace TEngine {
+class Flatten_vulkan : public Layer
 {
-class Flatten_vulkan : public Layer {
 public:
     Flatten_vulkan();
     Flatten_vulkan(ir_graph_t* ir_graph, ir_node_t* ir_node);
@@ -76,6 +76,6 @@ public:
     int output_size;
 };
 
-}    // namespace TEngine
+} // namespace TEngine
 
 #endif

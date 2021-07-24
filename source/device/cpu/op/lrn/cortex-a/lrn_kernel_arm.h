@@ -31,7 +31,6 @@
 
 #include <arm_neon.h>
 
-
 struct tab
 {
     float32x4_t a0;

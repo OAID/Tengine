@@ -34,7 +34,6 @@
 #include "device/cpu/cpu_graph.h"
 #include "device/cpu/cpu_module.h"
 
-
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     return 0;
@@ -47,16 +46,16 @@ static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, 
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node*   ir_node  = exec_node->ir_node;
-    struct graph*  ir_graph = ir_node->graph;
+    struct node* ir_node = exec_node->ir_node;
+    struct graph* ir_graph = ir_node->graph;
     struct tensor* input_tensor0;
     struct tensor* output_tensor;
 
-    input_tensor0                       = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    output_tensor                       = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+    input_tensor0 = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
     struct eltwise_param* eltwise_param = (struct eltwise_param*)ir_node->op.param_mem;
 
-    struct tensor* input_tensor1        = NULL;
+    struct tensor* input_tensor1 = NULL;
     if (ir_node->input_num > 1)
     {
         input_tensor1 = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
@@ -69,16 +68,16 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
 static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struct node* exec_node)
 {
-    struct node*   ir_node  = exec_node;
-    struct graph*  ir_graph = ir_node->graph;
+    struct node* ir_node = exec_node;
+    struct graph* ir_graph = ir_node->graph;
     struct tensor* input_tensor_0;
     struct tensor* input_tensor_1;
 
     if (ir_node->input_num != 2)
         return 0;
 
-    input_tensor_0                      = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    input_tensor_1                      = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
+    input_tensor_0 = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    input_tensor_1 = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
     struct eltwise_param* eltwise_param = (struct eltwise_param*)ir_node->op.param_mem;
 
     if (input_tensor_0->data_type != TENGINE_DT_FP32 || ir_graph->graph_layout != TENGINE_LAYOUT_NCHW)
@@ -89,13 +88,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_BEST;
 }
 
-static struct node_ops hcl_node_ops = { .prerun       = NULL,
-                                        .run          = run,
-                                        .reshape      = NULL,
-                                        .postrun      = NULL,
-                                        .init_node    = init_node,
-                                        .release_node = release_node,
-                                        .score        = score };
+static struct node_ops hcl_node_ops = {.prerun = NULL,
+                                       .run = run,
+                                       .reshape = NULL,
+                                       .postrun = NULL,
+                                       .init_node = init_node,
+                                       .release_node = release_node,
+                                       .score = score};
 
 int register_eltwise_hcl_arm_op()
 {

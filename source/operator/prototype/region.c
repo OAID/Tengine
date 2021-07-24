@@ -31,7 +31,6 @@
 #include "module/module.h"
 #include "utility/sys_port.h"
 
-
 static int init_op(struct op* op)
 {
     struct region_param* region_param = (struct region_param*)sys_malloc(sizeof(struct region_param));
@@ -44,32 +43,29 @@ static int init_op(struct op* op)
     /*set the param default value */
     region_param->num_classes = 1;
 
-    op->param_mem             = region_param;
-    op->param_size            = sizeof(struct region_param);
-    op->same_shape            = 1;
-    op->infer_shape           = NULL;
+    op->param_mem = region_param;
+    op->param_size = sizeof(struct region_param);
+    op->same_shape = 1;
+    op->infer_shape = NULL;
 
     return 0;
 }
-
 
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
 
-
 int register_region_op()
 {
     struct method m;
 
     m.version = 1;
-    m.init    = init_op;
+    m.init = init_op;
     m.release = release_op;
 
     return register_op(OP_REGION, OP_REGION_NAME, &m);
 }
-
 
 int unregister_region_op()
 {

@@ -31,16 +31,15 @@
 #include "graph/node.h"
 #include "graph/graph.h"
 
-
 struct fc_priv_info
 {
-    void*  interleave_buffer;
-    void*  input_buffer;
+    void* interleave_buffer;
+    void* input_buffer;
     float* kernel_max;
-    int    interleave_buffer_size;
-    int    input_buffer_size;
-    int    q_shift;
-    int    multi;
+    int interleave_buffer_size;
+    int input_buffer_size;
+    int q_shift;
+    int multi;
 };
 
 int fc_kernel_prerun(struct tensor* input_tensor, struct tensor* filter_tensor, struct tensor* output_tensor,

@@ -36,8 +36,7 @@
 #include <google/protobuf/text_format.h>
 #include <google/protobuf/message.h>
 
-extern "C"
-{
+extern "C" {
 #include "tengine/c_api.h"
 #include "graph/graph.h"
 #include "graph/subgraph.h"
@@ -58,7 +57,8 @@ enum PoolArg
     kPoolRand
 };
 
-class caffe_serializer {
+class caffe_serializer
+{
 public:
     graph_t caffe2tengine(std::string model_file, std::string proto_file);
     typedef int (*op_load_t)(ir_graph_t* graph, ir_node_t* node, const te_caffe::LayerParameter& layer_param);
@@ -66,21 +66,20 @@ public:
     using name_map_t = std::unordered_map<std::string, std::string>;
 
 private:
-    std::unordered_map<std::string, std::pair<int, op_load_t>> op_load_map;
-    std::unordered_map<std::string, blob_load_t>               blob_load_map;
-    int  load_model(ir_graph_t* graph, std::string model_file, std::string proto_file);
-    int  load_graph_node(ir_graph_t* graph, const te_caffe::NetParameter test_net,
+    std::unordered_map<std::string, std::pair<int, op_load_t> > op_load_map;
+    std::unordered_map<std::string, blob_load_t> blob_load_map;
+    int load_model(ir_graph_t* graph, std::string model_file, std::string proto_file);
+    int load_graph_node(ir_graph_t* graph, const te_caffe::NetParameter test_net,
+                        const te_caffe::NetParameter train_net);
+    int load_tensor_data(ir_graph_t* graph, const te_caffe::NetParameter test_net,
                          const te_caffe::NetParameter train_net);
-    int  load_tensor_data(ir_graph_t* graph, const te_caffe::NetParameter test_net,
-                          const te_caffe::NetParameter train_net);
-    int  load_text_file(std::string model_file, te_caffe::NetParameter& caffe_net);
-    int  load_binary_file(std::string model_file, te_caffe::NetParameter& caffe_net);
+    int load_text_file(std::string model_file, te_caffe::NetParameter& caffe_net);
+    int load_binary_file(std::string model_file, te_caffe::NetParameter& caffe_net);
     bool find_op_load_method(const std::string& op_name);
     void register_op_load();
 
     std::unordered_map<std::string, const te_caffe::LayerParameter*> train_name_map;
-    std::vector<ir_tensor_t*>                                        output_tensors;
+    std::vector<ir_tensor_t*> output_tensors;
 };
-
 
 #endif

@@ -34,20 +34,20 @@
 
 typedef struct Box
 {
-    int   x0;
-    int   y0;
-    int   x1;
-    int   y1;
-    int   class_idx;
+    int x0;
+    int y0;
+    int x1;
+    int y1;
+    int class_idx;
     float score;
 } Box_t;
 
 void get_input_uint_data_ssd(const char* image_file, uint8_t* input_data, int img_h, int img_w, float input_scale,
                              int zero_point)
 {
-    float mean[3]     = { 127.5f, 127.5f, 127.5f };
-    float scales[3]   = { 1 / 127.5f, 1 / 127.5f, 1 / 127.5f };
-    image img         = imread_process(image_file, img_w, img_h, mean, scales);
+    float mean[3] = {127.5f, 127.5f, 127.5f};
+    float scales[3] = {1 / 127.5f, 1 / 127.5f, 1 / 127.5f};
+    image img = imread_process(image_file, img_w, img_h, mean, scales);
 
     float* image_data = (float*)img.data;
 
@@ -67,15 +67,15 @@ void get_input_uint_data_ssd(const char* image_file, uint8_t* input_data, int im
 
 void post_process_ssd(const char* image_file, float threshold, float* outdata, int num)
 {
-    const char* class_names[] = { "background", "aeroplane", "bicycle",   "bird",   "boat",        "bottle",
-                                  "bus",        "car",       "cat",       "chair",  "cow",         "diningtable",
-                                  "dog",        "horse",     "motorbike", "person", "pottedplant", "sheep",
-                                  "sofa",       "train",     "tvmonitor" };
+    const char* class_names[] = {"background", "aeroplane", "bicycle", "bird", "boat", "bottle",
+                                 "bus", "car", "cat", "chair", "cow", "diningtable",
+                                 "dog", "horse", "motorbike", "person", "pottedplant", "sheep",
+                                 "sofa", "train", "tvmonitor"};
 
-    image im                  = imread(image_file);
+    image im = imread(image_file);
 
-    int              raw_h    = im.h;
-    int              raw_w    = im.w;
+    int raw_h = im.h;
+    int raw_w = im.w;
     std::vector<Box> boxes;
     printf("detect result num: %d \n", num);
     for (int i = 0; i < num; i++)
@@ -84,11 +84,11 @@ void post_process_ssd(const char* image_file, float threshold, float* outdata, i
         {
             Box box;
             box.class_idx = round(outdata[0]);
-            box.score     = outdata[1];
-            box.x0        = outdata[2] * raw_w;
-            box.y0        = outdata[3] * raw_h;
-            box.x1        = outdata[4] * raw_w;
-            box.y1        = outdata[5] * raw_h;
+            box.score = outdata[1];
+            box.x0 = outdata[2] * raw_w;
+            box.y0 = outdata[3] * raw_h;
+            box.x1 = outdata[4] * raw_w;
+            box.y1 = outdata[5] * raw_h;
             boxes.push_back(box);
             printf("%s\t:%.2f\n", class_names[box.class_idx], box.score * 100.f);
             printf("BOX:( %d , %d ),( %d , %d )\n", (int)box.x0, (int)box.y0, (int)box.x1, (int)box.y1);
@@ -117,16 +117,16 @@ void show_usage()
 
 int main(int argc, char* argv[])
 {
-    int   repeat_count   = DEFAULT_REPEAT_COUNT;
-    int   num_thread     = DEFAULT_THREAD_COUNT;
-    char* model_file     = nullptr;
-    char* image_file     = nullptr;
-    int   img_h          = 300;
-    int   img_w          = 300;
-    float mean[3]        = { 127.5f, 127.5f, 127.5f };
-    float scale[3]       = { 0.007843f, 0.007843f, 0.007843f };
+    int repeat_count = DEFAULT_REPEAT_COUNT;
+    int num_thread = DEFAULT_THREAD_COUNT;
+    char* model_file = nullptr;
+    char* image_file = nullptr;
+    int img_h = 300;
+    int img_w = 300;
+    float mean[3] = {127.5f, 127.5f, 127.5f};
+    float scale[3] = {0.007843f, 0.007843f, 0.007843f};
     float show_threshold = 0.5f;
-    int   ret;
+    int ret;
     while ((ret = getopt(argc, argv, "m:i:r:t:h:")) != -1)
     {
         switch (ret)
@@ -172,9 +172,9 @@ int main(int argc, char* argv[])
     /* set runtime options */
     struct options opt;
     opt.num_thread = num_thread;
-    opt.cluster    = TENGINE_CLUSTER_ALL;
-    opt.precision  = TENGINE_MODE_UINT8;
-    opt.affinity   = 0;
+    opt.cluster = TENGINE_CLUSTER_ALL;
+    opt.precision = TENGINE_MODE_UINT8;
+    opt.affinity = 0;
 
     // init tengine
     if (init_tengine() < 0)
@@ -192,9 +192,9 @@ int main(int argc, char* argv[])
     }
 
     /* set the input shape to initial the graph, and prerun graph to infer shape */
-    int      img_size     = img_h * img_w * 3;
-    int      dims[]       = { 1, 3, img_h, img_w };    // nchw
-    uint8_t* input_data   = (uint8_t*)malloc(img_size * sizeof(uint8_t));
+    int img_size = img_h * img_w * 3;
+    int dims[] = {1, 3, img_h, img_w}; // nchw
+    uint8_t* input_data = (uint8_t*)malloc(img_size * sizeof(uint8_t));
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == NULL)
@@ -223,14 +223,14 @@ int main(int argc, char* argv[])
     }
 
     /* prepare process input data, set the data mem to input tensor */
-    float input_scale      = 0.f;
-    int   input_zero_point = 0;
+    float input_scale = 0.f;
+    int input_zero_point = 0;
     get_tensor_quant_param(input_tensor, &input_scale, &input_zero_point, 1);
     get_input_uint_data_ssd(image_file, input_data, img_h, img_w, input_scale, input_zero_point);
 
     /* run graph */
-    double min_time   = DBL_MAX;
-    double max_time   = DBL_MIN;
+    double min_time = DBL_MAX;
+    double max_time = DBL_MIN;
     double total_time = 0.;
     for (int i = 0; i < repeat_count; i++)
     {
@@ -253,16 +253,16 @@ int main(int argc, char* argv[])
     fprintf(stderr, "--------------------------------------\n");
 
     /* process the detection result */
-    tensor_t output_tensor = get_graph_output_tensor(graph, 0, 0);    //"detection_out"
-    int      out_dim[4];
+    tensor_t output_tensor = get_graph_output_tensor(graph, 0, 0); //"detection_out"
+    int out_dim[4];
     get_tensor_shape(output_tensor, out_dim, 4);
-    int      output_size = get_tensor_buffer_size(output_tensor);
-    uint8_t* output_u8   = (uint8_t*)get_tensor_buffer(output_tensor);
-    float*   output_data = (float*)malloc(output_size * sizeof(float));
+    int output_size = get_tensor_buffer_size(output_tensor);
+    uint8_t* output_u8 = (uint8_t*)get_tensor_buffer(output_tensor);
+    float* output_data = (float*)malloc(output_size * sizeof(float));
 
     /* dequant */
-    float output_scale      = 0.f;
-    int   output_zero_point = 0;
+    float output_scale = 0.f;
+    int output_zero_point = 0;
     get_tensor_quant_param(output_tensor, &output_scale, &output_zero_point, 1);
     for (int i = 0; i < output_size; i++)
         output_data[i] = ((float)output_u8[i] - (float)output_zero_point) * output_scale;

@@ -35,7 +35,7 @@
 void get_input_uint8_data(const char* image_file, uint8_t* input_data, int img_h, int img_w, float* mean, float* scale,
                           float input_scale, int zero_point)
 {
-    image img         = imread_process(image_file, img_w, img_h, mean, scale);
+    image img = imread_process(image_file, img_w, img_h, mean, scale);
 
     float* image_data = (float*)img.data;
 
@@ -60,14 +60,14 @@ void show_usage()
 
 int main(int argc, char* argv[])
 {
-    int   repeat_count = DEFAULT_REPEAT_COUNT;
-    int   num_thread   = DEFAULT_THREAD_COUNT;
-    char* model_file   = nullptr;
-    char* image_file   = nullptr;
-    int   img_h        = 144;
-    int   img_w        = 144;
-    float mean[3]      = { 128.f, 128.f, 128.f };
-    float scale[3]     = { 0.0039, 0.0039, 0.0039 };
+    int repeat_count = DEFAULT_REPEAT_COUNT;
+    int num_thread = DEFAULT_THREAD_COUNT;
+    char* model_file = nullptr;
+    char* image_file = nullptr;
+    int img_h = 144;
+    int img_w = 144;
+    float mean[3] = {128.f, 128.f, 128.f};
+    float scale[3] = {0.0039, 0.0039, 0.0039};
 
     int res;
     while ((res = getopt(argc, argv, "m:i:r:t:h:")) != -1)
@@ -115,9 +115,9 @@ int main(int argc, char* argv[])
     /* set runtime options */
     struct options opt;
     opt.num_thread = num_thread;
-    opt.cluster    = TENGINE_CLUSTER_ALL;
-    opt.precision  = TENGINE_MODE_UINT8;
-    opt.affinity   = 0;
+    opt.cluster = TENGINE_CLUSTER_ALL;
+    opt.precision = TENGINE_MODE_UINT8;
+    opt.affinity = 0;
 
     /* inital tengine */
     if (init_tengine() != 0)
@@ -129,7 +129,7 @@ int main(int argc, char* argv[])
 
     /* create VeriSilicon TIM-VX backend */
     context_t timvx_context = create_context("timvx", 1);
-    int       rtt           = set_context_device(timvx_context, "TIMVX", nullptr, 0);
+    int rtt = set_context_device(timvx_context, "TIMVX", nullptr, 0);
     if (0 > rtt)
     {
         fprintf(stderr, " add_context_device VSI DEVICE failed.\n");
@@ -145,9 +145,9 @@ int main(int argc, char* argv[])
     }
 
     /* set the input shape to initial the graph, and prerun graph to infer shape */
-    int      img_size     = img_h * img_w * 3;
-    int      dims[]       = { 1, 3, img_h, img_w };    // nchw
-    uint8_t* input_data   = (uint8_t*)malloc(img_size);
+    int img_size = img_h * img_w * 3;
+    int dims[] = {1, 3, img_h, img_w}; // nchw
+    uint8_t* input_data = (uint8_t*)malloc(img_size);
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == nullptr)
@@ -176,14 +176,14 @@ int main(int argc, char* argv[])
     }
 
     /* prepare process input data, set the data mem to input tensor, quantize fp32 to uint8 */
-    float input_scale      = 0.f;
-    int   input_zero_point = 0;
+    float input_scale = 0.f;
+    int input_zero_point = 0;
     get_tensor_quant_param(input_tensor, &input_scale, &input_zero_point, 1);
     get_input_uint8_data(image_file, input_data, img_h, img_w, mean, scale, input_scale, input_zero_point);
 
     /* run graph */
-    double min_time   = DBL_MAX;
-    double max_time   = DBL_MIN;
+    double min_time = DBL_MAX;
+    double max_time = DBL_MIN;
     double total_time = 0.;
     for (int i = 0; i < repeat_count; i++)
     {
@@ -207,13 +207,13 @@ int main(int argc, char* argv[])
     /* get output tensor */
     tensor_t output_tensor = get_graph_output_tensor(graph, 0, 0);
 
-    float output_scale     = 0.f;
-    int   output_zp        = 0;
+    float output_scale = 0.f;
+    int output_zp = 0;
     get_tensor_quant_param(output_tensor, &output_scale, &output_zp, 1);
-    uint8_t* data      = (uint8_t*)(get_tensor_buffer(output_tensor));
-    int      data_size = get_tensor_buffer_size(output_tensor) / sizeof(uint8_t);
+    uint8_t* data = (uint8_t*)(get_tensor_buffer(output_tensor));
+    int data_size = get_tensor_buffer_size(output_tensor) / sizeof(uint8_t);
 
-    image img_out      = imread(image_file);
+    image img_out = imread(image_file);
     for (int i = 0; i < data_size / 2; i++)
     {
         int x = (int)(((float)data[2 * i] - (float)output_zp) * output_scale * (float)img_out.w / 144.f);

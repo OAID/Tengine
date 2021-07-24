@@ -58,9 +58,8 @@
 int draw_segmentation(const int32_t* data, int h, int w)
 {
     static std::map<int32_t, cv::Vec3b> color_table = {
-        { 0, cv::Vec3b(0, 0, 0) },       { 1, cv::Vec3b(20, 59, 255) }, { 2, cv::Vec3b(120, 59, 200) },
-        { 3, cv::Vec3b(80, 29, 129) },   { 4, cv::Vec3b(210, 99, 12) },    // add more color if needed
-        { -1, cv::Vec3b(255, 255, 255) }                                   // other type
+        {0, cv::Vec3b(0, 0, 0)}, {1, cv::Vec3b(20, 59, 255)}, {2, cv::Vec3b(120, 59, 200)}, {3, cv::Vec3b(80, 29, 129)}, {4, cv::Vec3b(210, 99, 12)}, // add more color if needed
+        {-1, cv::Vec3b(255, 255, 255)}                                                                                                                // other type
     };
     cv::Mat img = cv::Mat::zeros(h, w, CV_8UC3);
     for (int i = 0; i < h; ++i)
@@ -68,7 +67,7 @@ int draw_segmentation(const int32_t* data, int h, int w)
         for (int j = 0; j < w; ++j)
         {
             cv::Vec3b color;
-            int32_t   value = data[i * w + j];
+            int32_t value = data[i * w + j];
             if (color_table.count(value) > 0)
             {
                 color = color_table.at(value);
@@ -90,9 +89,9 @@ int tengine_segment(const char* model_file, const char* image_file, int img_h, i
     /* set runtime options */
     struct options opt;
     opt.num_thread = num_thread;
-    opt.cluster    = TENGINE_CLUSTER_ALL;
-    opt.precision  = TENGINE_MODE_FP32;
-    opt.affinity   = affinity;
+    opt.cluster = TENGINE_CLUSTER_ALL;
+    opt.precision = TENGINE_MODE_FP32;
+    opt.affinity = affinity;
 
     /* inital tengine */
     if (init_tengine() != 0)
@@ -111,9 +110,9 @@ int tengine_segment(const char* model_file, const char* image_file, int img_h, i
     }
 
     /* set the shape, data buffer of input_tensor of the graph */
-    int    img_size       = img_h * img_w * 3;
-    int    dims[]         = { 1, 3, img_h, img_w };    // nchw
-    float* input_data     = (float*)malloc(img_size * sizeof(float));
+    int img_size = img_h * img_w * 3;
+    int dims[] = {1, 3, img_h, img_w}; // nchw
+    float* input_data = (float*)malloc(img_size * sizeof(float));
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == NULL)
@@ -145,8 +144,8 @@ int tengine_segment(const char* model_file, const char* image_file, int img_h, i
     get_input_data(image_file, input_data, img_h, img_w, mean, scale);
 
     /* run graph */
-    double min_time   = DBL_MAX;
-    double max_time   = DBL_MIN;
+    double min_time = DBL_MAX;
+    double max_time = DBL_MIN;
     double total_time = 0.;
     for (int i = 0; i < loop_count; i++)
     {
@@ -174,11 +173,11 @@ int tengine_segment(const char* model_file, const char* image_file, int img_h, i
 
     /* get the result of classification */
     tensor_t output_tensor = get_graph_output_tensor(graph, 0, 0);
-    float*   output_data   = (float*)get_tensor_buffer(output_tensor);
-    int      output_size   = get_tensor_buffer_size(output_tensor) / sizeof(float);
+    float* output_data = (float*)get_tensor_buffer(output_tensor);
+    int output_size = get_tensor_buffer_size(output_tensor) / sizeof(float);
 
-    int channel            = output_size / img_h / img_w;
-    int res                = output_size % (img_h * img_w);
+    int channel = output_size / img_h / img_w;
+    int res = output_size % (img_h * img_w);
     if (res != 0)
     {
         fprintf(stderr, "output shape is not supported.\n");
@@ -193,7 +192,7 @@ int tengine_segment(const char* model_file, const char* image_file, int img_h, i
             {
                 for (int j = 0; j < img_w; ++j)
                 {
-                    float conf                = 1 / (1 + std::exp(-output_data[i * img_w + j]));
+                    float conf = 1 / (1 + std::exp(-output_data[i * img_w + j]));
                     label_data[i * img_w + j] = conf > conf_thresh ? 1 : 0;
                 }
             }
@@ -205,15 +204,15 @@ int tengine_segment(const char* model_file, const char* image_file, int img_h, i
             {
                 for (int j = 0; j < img_w; ++j)
                 {
-                    int   argmax_id = -1;
-                    float max_conf  = std::numeric_limits<float>::min();
+                    int argmax_id = -1;
+                    float max_conf = std::numeric_limits<float>::min();
                     for (int k = 0; k < channel; ++k)
                     {
                         float out_value = output_data[k * img_w * img_h + i * img_w + j];
                         if (out_value > max_conf)
                         {
                             argmax_id = k;
-                            max_conf  = out_value;
+                            max_conf = out_value;
                         }
                     }
                     label_data[i * img_w + j] = argmax_id;
@@ -244,17 +243,17 @@ void show_usage()
 
 int main(int argc, char* argv[])
 {
-    int   loop_count   = DEFAULT_LOOP_COUNT;
-    int   num_thread   = DEFAULT_THREAD_COUNT;
-    int   cpu_affinity = DEFAULT_CPU_AFFINITY;
-    float conf_thresh  = DEFAULT_CONF_THRESHOLD;
-    char* model_file   = NULL;
-    char* image_file   = NULL;
-    float img_hw[2]    = { 0.f };
-    int   img_h        = 0;
-    int   img_w        = 0;
-    float mean[3]      = { 0.f, 0.f, 0.f };
-    float scale[3]     = { 0.f, 0.f, 0.f };
+    int loop_count = DEFAULT_LOOP_COUNT;
+    int num_thread = DEFAULT_THREAD_COUNT;
+    int cpu_affinity = DEFAULT_CPU_AFFINITY;
+    float conf_thresh = DEFAULT_CONF_THRESHOLD;
+    char* model_file = NULL;
+    char* image_file = NULL;
+    float img_hw[2] = {0.f};
+    int img_h = 0;
+    int img_w = 0;
+    float mean[3] = {0.f, 0.f, 0.f};
+    float scale[3] = {0.f, 0.f, 0.f};
 
     int res;
     while ((res = getopt(argc, argv, "m:i:l:g:s:w:r:t:a:c:h")) != -1)

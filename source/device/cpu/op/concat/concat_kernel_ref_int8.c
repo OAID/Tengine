@@ -38,18 +38,17 @@
 
 #include <math.h>
 
-
 int ref_concat_int8(struct graph* ir_graph, struct node* ir_node, int axis)
 {
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    float          output_scale  = output_tensor->scale;
+    float output_scale = output_tensor->scale;
 
     if (ir_node->input_num == 1)
     {
         struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
 
-        int8_t* input_data          = (int8_t*)input_tensor->data;
-        int8_t* output_data         = (int8_t*)output_tensor->data;
+        int8_t* input_data = (int8_t*)input_tensor->data;
+        int8_t* output_data = (int8_t*)output_tensor->data;
 
         for (int i = 0; i < input_tensor->elem_num; i++)
             output_data[i] = input_data[i];
@@ -57,7 +56,7 @@ int ref_concat_int8(struct graph* ir_graph, struct node* ir_node, int axis)
         return 0;
     }
 
-    int dims          = output_tensor->dim_num;
+    int dims = output_tensor->dim_num;
     int positive_axis = axis < 0 ? dims + axis : axis;
 
     /* 1d */
@@ -68,13 +67,13 @@ int ref_concat_int8(struct graph* ir_graph, struct node* ir_node, int axis)
         {
             struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[num]);
 
-            float intput_scale          = input_tensor->scale;
-            float rescale               = intput_scale / output_scale;
+            float intput_scale = input_tensor->scale;
+            float rescale = intput_scale / output_scale;
 
-            int size                    = input_tensor->elem_num;
+            int size = input_tensor->elem_num;
 
-            int8_t* input_data          = (int8_t*)input_tensor->data;
-            int8_t* output_data         = (int8_t*)output_tensor->data + output_step;
+            int8_t* input_data = (int8_t*)input_tensor->data;
+            int8_t* output_data = (int8_t*)output_tensor->data + output_step;
 
             for (int i = 0; i < size; i++)
             {
@@ -98,13 +97,13 @@ int ref_concat_int8(struct graph* ir_graph, struct node* ir_node, int axis)
         {
             struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[num]);
 
-            float intput_scale          = input_tensor->scale;
-            float rescale               = intput_scale / output_scale;
+            float intput_scale = input_tensor->scale;
+            float rescale = intput_scale / output_scale;
 
-            int size                    = input_tensor->elem_num;
+            int size = input_tensor->elem_num;
 
-            int8_t* input_data          = (int8_t*)input_tensor->data;
-            int8_t* output_data         = (int8_t*)output_tensor->data + output_step;
+            int8_t* input_data = (int8_t*)input_tensor->data;
+            int8_t* output_data = (int8_t*)output_tensor->data + output_step;
 
             for (int i = 0; i < size; i++)
             {
@@ -132,14 +131,14 @@ int ref_concat_int8(struct graph* ir_graph, struct node* ir_node, int axis)
             {
                 struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[num]);
 
-                float intput_scale          = input_tensor->scale;
-                float rescale               = intput_scale / output_scale;
+                float intput_scale = input_tensor->scale;
+                float rescale = intput_scale / output_scale;
 
-                int in_n                    = input_tensor->dims[0];
-                int in_w                    = input_tensor->dims[1];
+                int in_n = input_tensor->dims[0];
+                int in_w = input_tensor->dims[1];
 
-                int8_t* input_data          = (int8_t*)input_tensor->data + n * in_w;
-                int8_t* output_data         = (int8_t*)output_tensor->data + n * out_w + output_step;
+                int8_t* input_data = (int8_t*)input_tensor->data + n * in_w;
+                int8_t* output_data = (int8_t*)output_tensor->data + n * out_w + output_step;
 
                 for (int i = 0; i < in_w; i++)
                 {
@@ -164,13 +163,13 @@ int ref_concat_int8(struct graph* ir_graph, struct node* ir_node, int axis)
         {
             struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[num]);
 
-            float intput_scale          = input_tensor->scale;
-            float rescale               = intput_scale / output_scale;
+            float intput_scale = input_tensor->scale;
+            float rescale = intput_scale / output_scale;
 
-            int size                    = input_tensor->elem_num;
+            int size = input_tensor->elem_num;
 
-            int8_t* input_data          = (int8_t*)input_tensor->data;
-            int8_t* output_data         = (int8_t*)output_tensor->data + output_step;
+            int8_t* input_data = (int8_t*)input_tensor->data;
+            int8_t* output_data = (int8_t*)output_tensor->data + output_step;
 
             for (int i = 0; i < size; i++)
             {
@@ -188,9 +187,9 @@ int ref_concat_int8(struct graph* ir_graph, struct node* ir_node, int axis)
 
     if (dims == 3 && positive_axis == 1)
     {
-        int out_n     = output_tensor->dims[0];
-        int out_h     = output_tensor->dims[1];
-        int out_w     = output_tensor->dims[2];
+        int out_n = output_tensor->dims[0];
+        int out_h = output_tensor->dims[1];
+        int out_w = output_tensor->dims[2];
         int out_nstep = out_h * out_w;
 
         for (int n = 0; n < out_n; n++)
@@ -200,16 +199,16 @@ int ref_concat_int8(struct graph* ir_graph, struct node* ir_node, int axis)
             {
                 struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[num]);
 
-                float intput_scale          = input_tensor->scale;
-                float rescale               = intput_scale / output_scale;
+                float intput_scale = input_tensor->scale;
+                float rescale = intput_scale / output_scale;
 
-                int in_n                    = input_tensor->dims[0];
-                int in_h                    = input_tensor->dims[1];
-                int in_w                    = input_tensor->dims[2];
-                int in_nstep                = in_h * in_w;
+                int in_n = input_tensor->dims[0];
+                int in_h = input_tensor->dims[1];
+                int in_w = input_tensor->dims[2];
+                int in_nstep = in_h * in_w;
 
-                int8_t* input_data          = (int8_t*)input_tensor->data + n * in_nstep;
-                int8_t* output_data         = (int8_t*)output_tensor->data + n * out_nstep + output_step;
+                int8_t* input_data = (int8_t*)input_tensor->data + n * in_nstep;
+                int8_t* output_data = (int8_t*)output_tensor->data + n * out_nstep + output_step;
 
                 for (int i = 0; i < in_nstep; i++)
                 {
@@ -228,9 +227,9 @@ int ref_concat_int8(struct graph* ir_graph, struct node* ir_node, int axis)
 
     if (dims == 3 && positive_axis == 2)
     {
-        int out_n     = output_tensor->dims[0];
-        int out_h     = output_tensor->dims[1];
-        int out_w     = output_tensor->dims[2];
+        int out_n = output_tensor->dims[0];
+        int out_h = output_tensor->dims[1];
+        int out_w = output_tensor->dims[2];
         int out_nstep = out_h * out_w;
 
         for (int n = 0; n < out_n; n++)
@@ -242,15 +241,15 @@ int ref_concat_int8(struct graph* ir_graph, struct node* ir_node, int axis)
                 {
                     struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[num]);
 
-                    float intput_scale          = input_tensor->scale;
-                    float rescale               = intput_scale / output_scale;
+                    float intput_scale = input_tensor->scale;
+                    float rescale = intput_scale / output_scale;
 
-                    int in_n                    = input_tensor->dims[0];
-                    int in_h                    = input_tensor->dims[1];
-                    int in_w                    = input_tensor->dims[2];
-                    int in_nstep                = in_h * in_w;
+                    int in_n = input_tensor->dims[0];
+                    int in_h = input_tensor->dims[1];
+                    int in_w = input_tensor->dims[2];
+                    int in_nstep = in_h * in_w;
 
-                    int8_t* input_data          = (int8_t*)input_tensor->data + n * in_nstep + h * in_w;
+                    int8_t* input_data = (int8_t*)input_tensor->data + n * in_nstep + h * in_w;
                     int8_t* output_data = (int8_t*)output_tensor->data + n * out_nstep + h * out_w + output_step;
 
                     for (int i = 0; i < in_w; i++)
@@ -277,13 +276,13 @@ int ref_concat_int8(struct graph* ir_graph, struct node* ir_node, int axis)
         {
             struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[num]);
 
-            float intput_scale          = input_tensor->scale;
-            float rescale               = intput_scale / output_scale;
+            float intput_scale = input_tensor->scale;
+            float rescale = intput_scale / output_scale;
 
-            int size                    = input_tensor->elem_num;
+            int size = input_tensor->elem_num;
 
-            int8_t* input_data          = (int8_t*)input_tensor->data;
-            int8_t* output_data         = (int8_t*)output_tensor->data + output_step;
+            int8_t* input_data = (int8_t*)input_tensor->data;
+            int8_t* output_data = (int8_t*)output_tensor->data + output_step;
 
             for (int i = 0; i < size; i++)
             {
@@ -301,10 +300,10 @@ int ref_concat_int8(struct graph* ir_graph, struct node* ir_node, int axis)
 
     if (dims == 4 && positive_axis == 1)
     {
-        int out_n     = output_tensor->dims[0];
-        int out_c     = output_tensor->dims[1];
-        int out_h     = output_tensor->dims[2];
-        int out_w     = output_tensor->dims[3];
+        int out_n = output_tensor->dims[0];
+        int out_c = output_tensor->dims[1];
+        int out_h = output_tensor->dims[2];
+        int out_w = output_tensor->dims[3];
         int out_cstep = out_h * out_w;
         int out_nstep = out_c * out_cstep;
 
@@ -315,18 +314,18 @@ int ref_concat_int8(struct graph* ir_graph, struct node* ir_node, int axis)
             {
                 struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[num]);
 
-                float intput_scale          = input_tensor->scale;
-                float rescale               = intput_scale / output_scale;
+                float intput_scale = input_tensor->scale;
+                float rescale = intput_scale / output_scale;
 
-                int in_n                    = input_tensor->dims[0];
-                int in_c                    = input_tensor->dims[1];
-                int in_h                    = input_tensor->dims[2];
-                int in_w                    = input_tensor->dims[3];
-                int in_cstep                = in_h * in_w;
-                int in_nstep                = in_c * in_cstep;
+                int in_n = input_tensor->dims[0];
+                int in_c = input_tensor->dims[1];
+                int in_h = input_tensor->dims[2];
+                int in_w = input_tensor->dims[3];
+                int in_cstep = in_h * in_w;
+                int in_nstep = in_c * in_cstep;
 
-                int8_t* input_data          = (int8_t*)input_tensor->data + n * in_nstep;
-                int8_t* output_data         = (int8_t*)output_tensor->data + n * out_nstep + output_step;
+                int8_t* input_data = (int8_t*)input_tensor->data + n * in_nstep;
+                int8_t* output_data = (int8_t*)output_tensor->data + n * out_nstep + output_step;
 
                 for (int i = 0; i < in_nstep; i++)
                 {
@@ -345,10 +344,10 @@ int ref_concat_int8(struct graph* ir_graph, struct node* ir_node, int axis)
 
     if (dims == 4 && positive_axis == 2)
     {
-        int out_n     = output_tensor->dims[0];
-        int out_c     = output_tensor->dims[1];
-        int out_h     = output_tensor->dims[2];
-        int out_w     = output_tensor->dims[3];
+        int out_n = output_tensor->dims[0];
+        int out_c = output_tensor->dims[1];
+        int out_h = output_tensor->dims[2];
+        int out_w = output_tensor->dims[3];
         int out_cstep = out_h * out_w;
         int out_nstep = out_c * out_cstep;
 
@@ -361,17 +360,17 @@ int ref_concat_int8(struct graph* ir_graph, struct node* ir_node, int axis)
                 {
                     struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[num]);
 
-                    float intput_scale          = input_tensor->scale;
-                    float rescale               = intput_scale / output_scale;
+                    float intput_scale = input_tensor->scale;
+                    float rescale = intput_scale / output_scale;
 
-                    int in_n                    = input_tensor->dims[0];
-                    int in_c                    = input_tensor->dims[1];
-                    int in_h                    = input_tensor->dims[2];
-                    int in_w                    = input_tensor->dims[3];
-                    int in_cstep                = in_h * in_w;
-                    int in_nstep                = in_c * in_cstep;
+                    int in_n = input_tensor->dims[0];
+                    int in_c = input_tensor->dims[1];
+                    int in_h = input_tensor->dims[2];
+                    int in_w = input_tensor->dims[3];
+                    int in_cstep = in_h * in_w;
+                    int in_nstep = in_c * in_cstep;
 
-                    int8_t* input_data          = (int8_t*)input_tensor->data + n * in_nstep + c * in_cstep;
+                    int8_t* input_data = (int8_t*)input_tensor->data + n * in_nstep + c * in_cstep;
                     int8_t* output_data = (int8_t*)output_tensor->data + n * out_nstep + c * out_cstep + output_step;
 
                     for (int i = 0; i < in_cstep; i++)
@@ -392,10 +391,10 @@ int ref_concat_int8(struct graph* ir_graph, struct node* ir_node, int axis)
 
     if (dims == 4 && positive_axis == 3)
     {
-        int out_n     = output_tensor->dims[0];
-        int out_c     = output_tensor->dims[1];
-        int out_h     = output_tensor->dims[2];
-        int out_w     = output_tensor->dims[3];
+        int out_n = output_tensor->dims[0];
+        int out_c = output_tensor->dims[1];
+        int out_h = output_tensor->dims[2];
+        int out_w = output_tensor->dims[3];
         int out_cstep = out_h * out_w;
         int out_nstep = out_c * out_cstep;
 
@@ -410,19 +409,18 @@ int ref_concat_int8(struct graph* ir_graph, struct node* ir_node, int axis)
                     {
                         struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[num]);
 
-                        float intput_scale          = input_tensor->scale;
-                        float rescale               = intput_scale / output_scale;
+                        float intput_scale = input_tensor->scale;
+                        float rescale = intput_scale / output_scale;
 
-                        int in_n                    = input_tensor->dims[0];
-                        int in_c                    = input_tensor->dims[1];
-                        int in_h                    = input_tensor->dims[2];
-                        int in_w                    = input_tensor->dims[3];
-                        int in_cstep                = in_h * in_w;
-                        int in_nstep                = in_c * in_cstep;
+                        int in_n = input_tensor->dims[0];
+                        int in_c = input_tensor->dims[1];
+                        int in_h = input_tensor->dims[2];
+                        int in_w = input_tensor->dims[3];
+                        int in_cstep = in_h * in_w;
+                        int in_nstep = in_c * in_cstep;
 
                         int8_t* input_data = (int8_t*)input_tensor->data + n * in_nstep + c * in_cstep + h * in_w;
-                        int8_t* output_data =
-                            (int8_t*)output_tensor->data + n * out_nstep + c * out_cstep + h * out_w + output_step;
+                        int8_t* output_data = (int8_t*)output_tensor->data + n * out_nstep + c * out_cstep + h * out_w + output_step;
 
                         for (int i = 0; i < in_w; i++)
                         {

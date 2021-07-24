@@ -35,26 +35,24 @@
 #include "utility/sys_port.h"
 #include "utility/log.h"
 
-
 static int transpose_op_map(int op)
 {
     return OP_TRANSPOSE;
 }
 
-
 static int tm2_load_transpose(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                               const TM2_Operator* tm_op)
 {
-    struct transpose_param*   transpose_param = (struct transpose_param*)ir_node->op.param_mem;
-    const struct tm2_priv*    tm2_priv        = (struct tm2_priv*)ir_graph->serializer_privacy;
-    const char*               mem_base        = tm2_priv->base;
-    const TM2_TransposeParam* tm_param        = (TM2_TransposeParam*)(mem_base + tm_op->offset_t_param);
+    struct transpose_param* transpose_param = (struct transpose_param*)ir_node->op.param_mem;
+    const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
+    const char* mem_base = tm2_priv->base;
+    const TM2_TransposeParam* tm_param = (TM2_TransposeParam*)(mem_base + tm_op->offset_t_param);
 
     if (tm_param->offset_tr_shape != TM2_NOT_SET)
     {
         const TM2_Vector_dims* v_re_shape = (TM2_Vector_dims*)(mem_base + tm_param->offset_tr_shape);
-        transpose_param->tr_shape         = (int*)sys_malloc(v_re_shape->v_num * sizeof(int));
-        transpose_param->tr_shape_size    = v_re_shape->v_num;
+        transpose_param->tr_shape = (int*)sys_malloc(v_re_shape->v_num * sizeof(int));
+        transpose_param->tr_shape_size = v_re_shape->v_num;
 
         for (unsigned int i = 0; i < v_re_shape->v_num; i++)
         {
@@ -64,7 +62,6 @@ static int tm2_load_transpose(struct graph* ir_graph, struct node* ir_node, cons
 
     return 0;
 }
-
 
 int register_tm2_transpose_op()
 {
@@ -80,7 +77,6 @@ int register_tm2_transpose_op()
 
     return 0;
 }
-
 
 int unregister_tm2_transpose_op()
 {

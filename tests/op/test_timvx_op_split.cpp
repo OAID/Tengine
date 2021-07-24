@@ -22,7 +22,6 @@
  * Author: qtang@openailab.com
  */
 
-
 #include "test_op.h"
 
 #include "graph/graph.h"
@@ -30,8 +29,7 @@
 #include "graph/tensor.h"
 #include "operator/prototype/split_param.h"
 
-extern "C"
-{
+extern "C" {
 #include "vector.h"
 }
 
@@ -47,7 +45,7 @@ int create_test_split_node(graph_t graph, const char* input_name, const char* no
     /* create the test node */
     struct node* test_node = (struct node*)create_graph_node(graph, node_name, "Split");
 
-    tensor_t input_tensor  = get_graph_tensor(graph, input_name);
+    tensor_t input_tensor = get_graph_tensor(graph, input_name);
 
     if (NULL == input_tensor)
     {
@@ -68,12 +66,12 @@ int create_test_split_node(graph_t graph, const char* input_name, const char* no
     /* set params */
     struct split_param* param = (struct split_param*)(struct node*)test_node->op.param_mem;
 
-    param->axis               = 1;
-    param->split_dim          = 2;
+    param->axis = 1;
+    param->split_dim = 2;
 
-    param->split_sizes_       = create_vector(sizeof(int), nullptr);
+    param->split_sizes_ = create_vector(sizeof(int), nullptr);
 
-    int tmp                   = 1;
+    int tmp = 1;
     push_vector_data(param->split_sizes_, &tmp);
     push_vector_data(param->split_sizes_, &tmp);
 
@@ -87,27 +85,31 @@ int create_test_split_node(graph_t graph, const char* input_name, const char* no
  * float32 = (uint8 - zero_point) * scale
  */
 float input_fp32[6] = {
-    1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f,
+    1.0f,
+    2.0f,
+    3.0f,
+    4.0f,
+    5.0f,
+    6.0f,
 };
-float input_scale      = 1;
-int   input_zero_point = 0;
+float input_scale = 1;
+int input_zero_point = 0;
 
 float reference_out[3] = {
     1.0f,
     2.0f,
     3.0f,
 };
-float output_scale      = 1;
-int   output_zero_point = 0;
+float output_scale = 1;
+int output_zero_point = 0;
 
 float reference_out1[3] = {
     4.0f,
     5.0f,
     6.0f,
 };
-float output_scale1      = 1;
-int   output_zero_point1 = 0;
-
+float output_scale1 = 1;
+int output_zero_point1 = 0;
 
 void get_uint8_data(float* data_fp32, uint8_t* date_u8, int size, float scale, int zero_point)
 {
@@ -125,10 +127,10 @@ void get_uint8_data(float* data_fp32, uint8_t* date_u8, int size, float scale, i
 
 int main(int argc, char* argv[])
 {
-    int         n = 1, c = 2, h = 1, w = 3;
+    int n = 1, c = 2, h = 1, w = 3;
     const char* test_node_name = "split";
-    int         data_type      = TENGINE_DT_UINT8;
-    int         layout         = TENGINE_LAYOUT_NCHW;
+    int data_type = TENGINE_DT_UINT8;
+    int layout = TENGINE_LAYOUT_NCHW;
 
     // init
     int ret = test_graph_init();
@@ -136,8 +138,7 @@ int main(int argc, char* argv[])
         fprintf(stderr, "Tengine init failed.\n");
 
     // create
-    struct graph* ir_graph =
-        (struct graph*)create_timvx_test_graph(test_node_name, data_type, layout, n, c, h, w, &create_test_split_node);
+    struct graph* ir_graph = (struct graph*)create_timvx_test_graph(test_node_name, data_type, layout, n, c, h, w, &create_test_split_node);
     if (NULL == ir_graph)
         return -1;
 
@@ -145,8 +146,8 @@ int main(int argc, char* argv[])
     dump_graph(ir_graph);
 
     // set quantize params
-    struct tensor* input_tensor   = (struct tensor*)get_graph_tensor(ir_graph, "input_node");
-    struct tensor* output_tensor  = (struct tensor*)get_graph_tensor(ir_graph, "split");
+    struct tensor* input_tensor = (struct tensor*)get_graph_tensor(ir_graph, "input_node");
+    struct tensor* output_tensor = (struct tensor*)get_graph_tensor(ir_graph, "split");
     struct tensor* output_tensor1 = (struct tensor*)get_graph_tensor(ir_graph, "out1");
 
     //    tensor_t weight_tesnor = get_graph_input_tensor(ir_graph, 1, 0);
@@ -155,10 +156,9 @@ int main(int argc, char* argv[])
     set_tensor_quant_param(output_tensor1, &output_scale1, &output_zero_point1, 1);
 
     // set input data
-    uint8_t input_u8[6] = { 0 };
+    uint8_t input_u8[6] = {0};
     get_uint8_data(input_fp32, input_u8, 6, input_scale, input_zero_point);
     set_tensor_buffer(input_tensor, input_u8, 6);
-
 
     // set bias data
     // fill_input_uint8_tensor_by_index(graph, 0, 0, 0.0f);
@@ -173,17 +173,16 @@ int main(int argc, char* argv[])
     }
 
     // get output and dequant
-    uint8_t* output_u8   = (uint8_t*)output_tensor->data;
-    int      output_size = output_tensor->elem_num;
+    uint8_t* output_u8 = (uint8_t*)output_tensor->data;
+    int output_size = output_tensor->elem_num;
 
     get_tensor_quant_param(output_tensor, &output_scale, &output_zero_point, 1);
     float* output_data = (float*)malloc(output_size * sizeof(float));
     for (int i = 0; i < output_size; i++)
         output_data[i] = ((float)output_u8[i] - (float)output_zero_point) * output_scale;
 
-
-    uint8_t* output1_u8   = (uint8_t*)output_tensor1->data;
-    int      output_size1 = output_tensor1->elem_num;
+    uint8_t* output1_u8 = (uint8_t*)output_tensor1->data;
+    int output_size1 = output_tensor1->elem_num;
 
     get_tensor_quant_param(output_tensor1, &output_scale1, &output_zero_point1, 1);
     float* output_data1 = (float*)malloc(output_size1 * sizeof(float));

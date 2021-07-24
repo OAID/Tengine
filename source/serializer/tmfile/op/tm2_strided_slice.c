@@ -34,37 +34,34 @@
 #include "device/device.h"
 #include "utility/log.h"
 
-
 static int strided_slice_op_map(int op)
 {
     return OP_STRIDED_SLICE;
 }
 
-
 static int tm2_load_strided_slice(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                                   const TM2_Operator* tm_op)
 {
-    struct strided_slice_param*  strided_slice_param = (struct strided_slice_param*)ir_node->op.param_mem;
-    const struct tm2_priv*       tm2_priv            = (struct tm2_priv*)ir_graph->serializer_privacy;
-    const char*                  mem_base            = tm2_priv->base;
-    const TM2_StridedSliceParam* tm_param            = (TM2_StridedSliceParam*)(mem_base + tm_op->offset_t_param);
+    struct strided_slice_param* strided_slice_param = (struct strided_slice_param*)ir_node->op.param_mem;
+    const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
+    const char* mem_base = tm2_priv->base;
+    const TM2_StridedSliceParam* tm_param = (TM2_StridedSliceParam*)(mem_base + tm_op->offset_t_param);
 
-    strided_slice_param->begin[0]                    = tm_param->begin_n;
-    strided_slice_param->begin[1]                    = tm_param->begin_c;
-    strided_slice_param->begin[2]                    = tm_param->begin_h;
-    strided_slice_param->begin[3]                    = tm_param->begin_w;
-    strided_slice_param->end[0]                      = tm_param->end_n;
-    strided_slice_param->end[1]                      = tm_param->end_c;
-    strided_slice_param->end[2]                      = tm_param->end_h;
-    strided_slice_param->end[3]                      = tm_param->end_w;
-    strided_slice_param->stride[0]                   = tm_param->stride_n;
-    strided_slice_param->stride[1]                   = tm_param->stride_c;
-    strided_slice_param->stride[2]                   = tm_param->stride_h;
-    strided_slice_param->stride[3]                   = tm_param->stride_w;
+    strided_slice_param->begin[0] = tm_param->begin_n;
+    strided_slice_param->begin[1] = tm_param->begin_c;
+    strided_slice_param->begin[2] = tm_param->begin_h;
+    strided_slice_param->begin[3] = tm_param->begin_w;
+    strided_slice_param->end[0] = tm_param->end_n;
+    strided_slice_param->end[1] = tm_param->end_c;
+    strided_slice_param->end[2] = tm_param->end_h;
+    strided_slice_param->end[3] = tm_param->end_w;
+    strided_slice_param->stride[0] = tm_param->stride_n;
+    strided_slice_param->stride[1] = tm_param->stride_c;
+    strided_slice_param->stride[2] = tm_param->stride_h;
+    strided_slice_param->stride[3] = tm_param->stride_w;
 
     return 0;
 }
-
 
 int register_tm2_strided_slice_op()
 {
@@ -80,7 +77,6 @@ int register_tm2_strided_slice_op()
 
     return 0;
 }
-
 
 int unregister_tm2_strided_slice_op()
 {

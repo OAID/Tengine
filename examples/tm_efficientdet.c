@@ -42,22 +42,20 @@
 #define DEFAULT_THREAD_COUNT 1
 #define DEFAULT_CPU_AFFINITY 255
 
-
 typedef struct Box
 {
-    int   x0;
-    int   y0;
-    int   x1;
-    int   y1;
-    int   class_idx;
+    int x0;
+    int y0;
+    int x1;
+    int y1;
+    int class_idx;
     float score;
 } Box_t;
 
-
 void qsort_descent_inplace(Box_t* boxes, int left, int right)
 {
-    int   i = left;
-    int   j = right;
+    int i = left;
+    int j = right;
     float p = boxes[(left + right) / 2].score;
 
     while (i <= j)
@@ -72,8 +70,8 @@ void qsort_descent_inplace(Box_t* boxes, int left, int right)
         {
             // swap
             Box_t tmp = boxes[i];
-            boxes[i]  = boxes[j];
-            boxes[j]  = tmp;
+            boxes[i] = boxes[j];
+            boxes[j] = tmp;
 
             i++;
             j--;
@@ -95,12 +93,11 @@ void qsort_descent_inplace(Box_t* boxes, int left, int right)
     }
 }
 
-
 int nms(const Box_t* boxes, const int num_boxes, int* suppressed, float nms_threshold)
 {
     int num_outputs = num_boxes;
 
-    float* areas    = malloc(num_boxes * sizeof(float));
+    float* areas = malloc(num_boxes * sizeof(float));
 
     for (int i = 0; i < num_boxes; i++)
     {
@@ -122,10 +119,9 @@ int nms(const Box_t* boxes, const int num_boxes, int* suppressed, float nms_thre
                 continue;
 
             // iou
-            float intersection =
-                fmaxf(fminf(a.x1, b.x1) - fmaxf(a.x0, b.x0), 0) * fmaxf(fminf(a.y1, b.y1) - fmaxf(a.y0, b.y0), 0);
+            float intersection = fmaxf(fminf(a.x1, b.x1) - fmaxf(a.x0, b.x0), 0) * fmaxf(fminf(a.y1, b.y1) - fmaxf(a.y0, b.y0), 0);
             float total_area = (a.x1 - a.x0) * (a.y1 - a.y0) + (b.x1 - b.x0) * (b.y1 - b.y0) - intersection;
-            float iou        = fmaxf(intersection / total_area, 0);
+            float iou = fmaxf(intersection / total_area, 0);
 
             if (iou > nms_threshold)
             {
@@ -143,13 +139,12 @@ int nms(const Box_t* boxes, const int num_boxes, int* suppressed, float nms_thre
     return num_outputs;
 }
 
-
 float* arange(int start, int end, float stride)
 {
-    int    length = (int)((float)ceilf((float)(end - start) / stride));
+    int length = (int)((float)ceilf((float)(end - start) / stride));
     float* result = malloc(length * sizeof(float));
 
-    result[0]     = (float)start;
+    result[0] = (float)start;
     for (int i = 1; i < length; i++)
     {
         result[i] = result[i - 1] + stride;
@@ -157,14 +152,13 @@ float* arange(int start, int end, float stride)
     return result;
 }
 
-
 void tile(const float* arr, int arr_length, int times, float offset, float* result, int arr_starts_from, int arr_stride)
 {
     int length = arr_length * times;
 
     if (result == NULL)
     {
-        result          = malloc(length * sizeof(float));
+        result = malloc(length * sizeof(float));
         arr_starts_from = 0;
     }
 
@@ -181,7 +175,7 @@ void repeat(const float* arr, int arr_length, int times, float offset, float* re
 
     if (result == NULL)
     {
-        result          = malloc(length * sizeof(float));
+        result = malloc(length * sizeof(float));
         arr_starts_from = 0;
     }
 
@@ -191,142 +185,140 @@ void repeat(const float* arr, int arr_length, int times, float offset, float* re
     }
 }
 
-
 int argmax(const float* arr, int arr_starts_from, int arr_length)
 {
     float max_value = arr[arr_starts_from];
-    int   max_idx   = 0;
+    int max_idx = 0;
     for (int i = 1; i < arr_length; i++)
     {
         float this_value = arr[arr_starts_from + i];
         if (this_value > max_value)
         {
             max_value = this_value;
-            max_idx   = i;
+            max_idx = i;
         }
     }
     return max_idx;
 }
 
-
 int tengine_detect(const char* model_file, const char* image_file, int img_h, int img_w, const float* mean,
                    const float* scale, int loop_count, int num_thread, int affinity)
 {
     /* setup network */
-    const char* CLASSES_NAME[] = { "person",
-                                   "bicycle",
-                                   "car",
-                                   "motorcycle",
-                                   "airplane",
-                                   "bus",
-                                   "train",
-                                   "truck",
-                                   "boat",
-                                   "traffic light",
-                                   "fire hydrant",
-                                   "",
-                                   "stop sign",
-                                   "parking meter",
-                                   "bench",
-                                   "bird",
-                                   "cat",
-                                   "dog",
-                                   "horse",
-                                   "sheep",
-                                   "cow",
-                                   "elephant",
-                                   "bear",
-                                   "zebra",
-                                   "giraffe",
-                                   "",
-                                   "backpack",
-                                   "umbrella",
-                                   "",
-                                   "",
-                                   "handbag",
-                                   "tie",
-                                   "suitcase",
-                                   "frisbee",
-                                   "skis",
-                                   "snowboard",
-                                   "sports ball",
-                                   "kite",
-                                   "baseball bat",
-                                   "baseball glove",
-                                   "skateboard",
-                                   "surfboard",
-                                   "tennis racket",
-                                   "bottle",
-                                   "",
-                                   "wine glass",
-                                   "cup",
-                                   "fork",
-                                   "knife",
-                                   "spoon",
-                                   "bowl",
-                                   "banana",
-                                   "apple",
-                                   "sandwich",
-                                   "orange",
-                                   "broccoli",
-                                   "carrot",
-                                   "hot dog",
-                                   "pizza",
-                                   "donut",
-                                   "cake",
-                                   "chair",
-                                   "couch",
-                                   "potted plant",
-                                   "bed",
-                                   "",
-                                   "dining table",
-                                   "",
-                                   "",
-                                   "toilet",
-                                   "",
-                                   "tv",
-                                   "laptop",
-                                   "mouse",
-                                   "remote",
-                                   "keyboard",
-                                   "cell phone",
-                                   "microwave",
-                                   "oven",
-                                   "toaster",
-                                   "sink",
-                                   "refrigerator",
-                                   "",
-                                   "book",
-                                   "clock",
-                                   "vase",
-                                   "scissors",
-                                   "teddy bear",
-                                   "hair drier",
-                                   "toothbrush" };
+    const char* CLASSES_NAME[] = {"person",
+                                  "bicycle",
+                                  "car",
+                                  "motorcycle",
+                                  "airplane",
+                                  "bus",
+                                  "train",
+                                  "truck",
+                                  "boat",
+                                  "traffic light",
+                                  "fire hydrant",
+                                  "",
+                                  "stop sign",
+                                  "parking meter",
+                                  "bench",
+                                  "bird",
+                                  "cat",
+                                  "dog",
+                                  "horse",
+                                  "sheep",
+                                  "cow",
+                                  "elephant",
+                                  "bear",
+                                  "zebra",
+                                  "giraffe",
+                                  "",
+                                  "backpack",
+                                  "umbrella",
+                                  "",
+                                  "",
+                                  "handbag",
+                                  "tie",
+                                  "suitcase",
+                                  "frisbee",
+                                  "skis",
+                                  "snowboard",
+                                  "sports ball",
+                                  "kite",
+                                  "baseball bat",
+                                  "baseball glove",
+                                  "skateboard",
+                                  "surfboard",
+                                  "tennis racket",
+                                  "bottle",
+                                  "",
+                                  "wine glass",
+                                  "cup",
+                                  "fork",
+                                  "knife",
+                                  "spoon",
+                                  "bowl",
+                                  "banana",
+                                  "apple",
+                                  "sandwich",
+                                  "orange",
+                                  "broccoli",
+                                  "carrot",
+                                  "hot dog",
+                                  "pizza",
+                                  "donut",
+                                  "cake",
+                                  "chair",
+                                  "couch",
+                                  "potted plant",
+                                  "bed",
+                                  "",
+                                  "dining table",
+                                  "",
+                                  "",
+                                  "toilet",
+                                  "",
+                                  "tv",
+                                  "laptop",
+                                  "mouse",
+                                  "remote",
+                                  "keyboard",
+                                  "cell phone",
+                                  "microwave",
+                                  "oven",
+                                  "toaster",
+                                  "sink",
+                                  "refrigerator",
+                                  "",
+                                  "book",
+                                  "clock",
+                                  "vase",
+                                  "scissors",
+                                  "teddy bear",
+                                  "hair drier",
+                                  "toothbrush"};
 
-    int   PYRAMID_LEVELS[]     = { 3, 4, 5, 6, 7 };
-    int   STRIDES[]            = { 8, 16, 32, 64, 128 };
-    float SCALES[]             = {
+    int PYRAMID_LEVELS[] = {3, 4, 5, 6, 7};
+    int STRIDES[] = {8, 16, 32, 64, 128};
+    float SCALES[] = {
         (float)pow(2, 0.),
         (float)pow(2, 1. / 3.),
         (float)pow(2, 2. / 3.),
     };
-    float RATIOS_X[]           = { 1.f, 1.4f, 0.7f };
-    float RATIOS_Y[]           = { 1.f, 0.7f, 1.4f };
-    float ANCHOR_SCALE         = 4.f;
+    float RATIOS_X[] = {1.f, 1.4f, 0.7f};
+    float RATIOS_Y[] = {1.f, 0.7f, 1.4f};
+    float ANCHOR_SCALE = 4.f;
     float CONFIDENCE_THRESHOLD = 0.2f;
-    float NMS_THRESHOLD        = 0.2f;
+    float NMS_THRESHOLD = 0.2f;
 
-    int num_levels             = sizeof(PYRAMID_LEVELS) / sizeof(int);
-    int num_scales             = sizeof(SCALES) / sizeof(float);
-    int num_ratios             = sizeof(RATIOS_X) / sizeof(float);
+    int num_levels = sizeof(PYRAMID_LEVELS) / sizeof(int);
+    int num_scales = sizeof(SCALES) / sizeof(float);
+    int num_ratios = sizeof(RATIOS_X) / sizeof(float);
 
     /* set runtime options */
     struct options opt;
     opt.num_thread = num_thread;
-    opt.cluster    = TENGINE_CLUSTER_ALL;
-    opt.precision  = TENGINE_MODE_FP32;
-    opt.affinity   = affinity;
+    opt.cluster = TENGINE_CLUSTER_ALL;
+    opt.precision = TENGINE_MODE_FP32;
+    opt.affinity = affinity;
 
     /* inital tengine */
     if (init_tengine() != 0)
@@ -345,9 +337,9 @@ int tengine_detect(const char* model_file, const char* image_file, int img_h, in
     }
 
     /* set the shape, data buffer of input_tensor of the graph */
-    int    img_size       = img_h * img_w * 3;
-    int    dims[]         = { 1, 3, img_h, img_w };    // nchw
-    float* input_data     = (float*)malloc(img_size * sizeof(float));
+    int img_size = img_h * img_w * 3;
+    int dims[] = {1, 3, img_h, img_w}; // nchw
+    float* input_data = (float*)malloc(img_size * sizeof(float));
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == NULL)
@@ -376,30 +368,30 @@ int tengine_detect(const char* model_file, const char* image_file, int img_h, in
     }
 
     /* prepare process input data, set the data mem to input tensor */
-    float means[3]  = { mean[0], mean[1], mean[2] };
-    float scales[3] = { scale[0], scale[1], scale[2] };
-    image im        = imread(image_file);
-    image im_vis    = copy_image(im);
+    float means[3] = {mean[0], mean[1], mean[2]};
+    float scales[3] = {scale[0], scale[1], scale[2]};
+    image im = imread(image_file);
+    image im_vis = copy_image(im);
 
-    im              = imread2caffe(im, img_w, img_h, means, scales);
+    im = imread2caffe(im, img_w, img_h, means, scales);
 
-    int   raw_h     = im.h;
-    int   raw_w     = im.w;
-    int   resized_h, resized_w;
+    int raw_h = im.h;
+    int raw_w = im.w;
+    int resized_h, resized_w;
     float resize_scale;
     image resImg;
     if (raw_h > raw_w)
     {
-        resized_h    = img_h;
-        resized_w    = (int)((float)img_h / raw_h * raw_w);
-        resImg       = resize_image(im, resized_w, img_h);
+        resized_h = img_h;
+        resized_w = (int)((float)img_h / raw_h * raw_w);
+        resImg = resize_image(im, resized_w, img_h);
         resize_scale = (float)raw_h / img_h;
     }
     else
     {
-        resized_w    = img_w;
-        resized_h    = (int)((float)img_w / raw_w * raw_h);
-        resImg       = resize_image(im, img_w, resized_h);
+        resized_w = img_w;
+        resized_h = (int)((float)img_w / raw_w * raw_h);
+        resImg = resize_image(im, img_w, resized_h);
         resize_scale = (float)raw_w / img_w;
     }
     free_image(im);
@@ -411,8 +403,8 @@ int tengine_detect(const char* model_file, const char* image_file, int img_h, in
     free_image(paddedImg);
 
     /* run graph */
-    double min_time   = DBL_MAX;
-    double max_time   = DBL_MIN;
+    double min_time = DBL_MAX;
+    double max_time = DBL_MIN;
     double total_time = 0.;
     for (int i = 0; i < loop_count; i++)
     {
@@ -439,13 +431,13 @@ int tengine_detect(const char* model_file, const char* image_file, int img_h, in
     fprintf(stderr, "--------------------------------------\n");
 
     /* get the result of classification */
-    tensor_t output_tensor_regression     = get_graph_output_tensor(graph, 0, 0);
-    float*   output_data_regression       = (float*)get_tensor_buffer(output_tensor_regression);
-    int      num_anchors                  = get_tensor_buffer_size(output_tensor_regression) / sizeof(float) / 4;
+    tensor_t output_tensor_regression = get_graph_output_tensor(graph, 0, 0);
+    float* output_data_regression = (float*)get_tensor_buffer(output_tensor_regression);
+    int num_anchors = get_tensor_buffer_size(output_tensor_regression) / sizeof(float) / 4;
 
     tensor_t output_tensor_classification = get_graph_output_tensor(graph, 1, 0);
-    float*   output_data_classification   = (float*)get_tensor_buffer(output_tensor_classification);
-    int      num_classes = get_tensor_buffer_size(output_tensor_classification) / sizeof(float) / num_anchors;
+    float* output_data_classification = (float*)get_tensor_buffer(output_tensor_classification);
+    int num_classes = get_tensor_buffer_size(output_tensor_classification) / sizeof(float) / num_anchors;
 
     // postprocess
     // generate anchors
@@ -454,27 +446,27 @@ int tengine_detect(const char* model_file, const char* image_file, int img_h, in
     float* anchors_y0 = malloc(num_anchors * sizeof(float));
     float* anchors_y1 = malloc(num_anchors * sizeof(float));
 
-    int anchor_idx    = 0;
+    int anchor_idx = 0;
     for (int stride_idx = 0; stride_idx < num_levels; stride_idx++)
     {
-        int    stride        = STRIDES[stride_idx];
-        float  arange_stride = powf(2, (float)PYRAMID_LEVELS[stride_idx]);
-        int    length_x      = (int)ceilf(((float)img_w - (float)stride / 2) / (float)arange_stride);
-        int    length_y      = (int)ceilf(((float)img_h - (float)stride / 2) / (float)arange_stride);
-        float* x             = arange(stride / 2, img_w, arange_stride);
-        float* y             = arange(stride / 2, img_h, arange_stride);
+        int stride = STRIDES[stride_idx];
+        float arange_stride = powf(2, (float)PYRAMID_LEVELS[stride_idx]);
+        int length_x = (int)ceilf(((float)img_w - (float)stride / 2) / (float)arange_stride);
+        int length_y = (int)ceilf(((float)img_h - (float)stride / 2) / (float)arange_stride);
+        float* x = arange(stride / 2, img_w, arange_stride);
+        float* y = arange(stride / 2, img_h, arange_stride);
 
-        int start_idx        = anchor_idx;
+        int start_idx = anchor_idx;
         int num_anchor_types = num_scales * num_ratios;
         for (int i = 0; i < num_scales; i++)
         {
-            float anchor_scale     = SCALES[i];
+            float anchor_scale = SCALES[i];
             float base_anchor_size = ANCHOR_SCALE * (float)stride * anchor_scale;
 
             for (int j = 0; j < num_ratios; j++)
             {
-                float ratio_x         = RATIOS_X[j];
-                float ratio_y         = RATIOS_Y[j];
+                float ratio_x = RATIOS_X[j];
+                float ratio_y = RATIOS_Y[j];
 
                 float anchor_size_x_2 = base_anchor_size * ratio_x / 2.f;
                 float anchor_size_y_2 = base_anchor_size * ratio_y / 2.f;
@@ -496,8 +488,8 @@ int tengine_detect(const char* model_file, const char* image_file, int img_h, in
     }
 
     // loop over anchors
-    Box_t* proposals                    = malloc(sizeof(Box_t) * num_anchors);
-    int    num_proposals_over_threshold = 0;
+    Box_t* proposals = malloc(sizeof(Box_t) * num_anchors);
+    int num_proposals_over_threshold = 0;
 
 #pragma omp parallel for num_threads(opt.num_thread)
     for (int i = 0; i < num_anchors; i++)
@@ -505,7 +497,7 @@ int tengine_detect(const char* model_file, const char* image_file, int img_h, in
         // loop over anchors
 
         // confidence
-        int   max_idx   = argmax(output_data_classification, i * num_classes, num_classes);
+        int max_idx = argmax(output_data_classification, i * num_classes, num_classes);
         float max_score = output_data_classification[i * num_classes + max_idx];
 
         if (isinf(max_score) || max_score < CONFIDENCE_THRESHOLD)
@@ -515,23 +507,23 @@ int tengine_detect(const char* model_file, const char* image_file, int img_h, in
         }
 
         proposals[i].class_idx = max_idx;
-        proposals[i].score     = max_score;
+        proposals[i].score = max_score;
 
         // box transform
-        float ha         = anchors_y1[i] - anchors_y0[i];
-        float wa         = anchors_x1[i] - anchors_x0[i];
+        float ha = anchors_y1[i] - anchors_y0[i];
+        float wa = anchors_x1[i] - anchors_x0[i];
         float y_center_a = (anchors_y1[i] + anchors_y0[i]) / 2;
         float x_center_a = (anchors_x1[i] + anchors_x0[i]) / 2;
 
-        float w          = expf(output_data_regression[i * 4 + 3]) * wa;
-        float h          = expf(output_data_regression[i * 4 + 2]) * ha;
-        float y_center   = output_data_regression[i * 4] * ha + y_center_a;
-        float x_center   = output_data_regression[i * 4 + 1] * wa + x_center_a;
+        float w = expf(output_data_regression[i * 4 + 3]) * wa;
+        float h = expf(output_data_regression[i * 4 + 2]) * ha;
+        float y_center = output_data_regression[i * 4] * ha + y_center_a;
+        float x_center = output_data_regression[i * 4 + 1] * wa + x_center_a;
 
-        float ymin       = y_center - h / 2;
-        float xmin       = x_center - w / 2;
-        float ymax       = y_center + h / 2;
-        float xmax       = x_center + w / 2;
+        float ymin = y_center - h / 2;
+        float xmin = x_center - w / 2;
+        float ymax = y_center + h / 2;
+        float xmax = x_center + w / 2;
 
         // scaling
         ymin *= resize_scale;
@@ -566,8 +558,8 @@ int tengine_detect(const char* model_file, const char* image_file, int img_h, in
     free(anchors_y1);
 
     // filter boxes with confidence threshold
-    Box_t* proposals_over_threshold     = malloc(sizeof(Box_t) * num_proposals_over_threshold);
-    int    proposals_over_threshold_idx = 0;
+    Box_t* proposals_over_threshold = malloc(sizeof(Box_t) * num_proposals_over_threshold);
+    int proposals_over_threshold_idx = 0;
     for (int i = 0; i < num_anchors; i++)
     {
         Box_t box = proposals[i];
@@ -584,10 +576,10 @@ int tengine_detect(const char* model_file, const char* image_file, int img_h, in
         qsort_descent_inplace(proposals_over_threshold, 0, num_proposals_over_threshold - 1);
 
         // nms
-        int*   suppressed  = calloc(num_proposals_over_threshold, sizeof(int));
-        int    num_outputs = nms(proposals_over_threshold, num_proposals_over_threshold, suppressed, NMS_THRESHOLD);
-        Box_t* proposals_after_nms     = malloc(num_outputs * sizeof(Box_t));
-        int    proposals_after_nms_idx = 0;
+        int* suppressed = calloc(num_proposals_over_threshold, sizeof(int));
+        int num_outputs = nms(proposals_over_threshold, num_proposals_over_threshold, suppressed, NMS_THRESHOLD);
+        Box_t* proposals_after_nms = malloc(num_outputs * sizeof(Box_t));
+        int proposals_after_nms_idx = 0;
         for (int i = 0; i < num_proposals_over_threshold; i++)
         {
             Box_t box = proposals_over_threshold[i];
@@ -635,16 +627,16 @@ void show_usage()
 
 int main(int argc, char* argv[])
 {
-    int   loop_count   = DEFAULT_LOOP_COUNT;
-    int   num_thread   = DEFAULT_THREAD_COUNT;
-    int   cpu_affinity = DEFAULT_CPU_AFFINITY;
-    char* model_file   = NULL;
-    char* image_file   = NULL;
-    float img_hw[2]    = { 0.f };
-    int   img_h        = 0;
-    int   img_w        = 0;
-    float mean[3]      = { -1.f, -1.f, -1.f };
-    float scale[3]     = { 0.f, 0.f, 0.f };
+    int loop_count = DEFAULT_LOOP_COUNT;
+    int num_thread = DEFAULT_THREAD_COUNT;
+    int cpu_affinity = DEFAULT_CPU_AFFINITY;
+    char* model_file = NULL;
+    char* image_file = NULL;
+    float img_hw[2] = {0.f};
+    int img_h = 0;
+    int img_w = 0;
+    float mean[3] = {-1.f, -1.f, -1.f};
+    float scale[3] = {0.f, 0.f, 0.f};
 
     int res;
     while ((res = getopt(argc, argv, "m:i:l:g:s:w:r:t:a:h")) != -1)

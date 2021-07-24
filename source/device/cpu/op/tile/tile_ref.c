@@ -37,7 +37,6 @@
 
 #include <math.h>
 
-
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     return 0;
@@ -52,7 +51,7 @@ static int ref_tile_fp32(float* data, float* output, int* repeat, int* inDim, in
 {
     int index = 0;
 
-    if (flag == 0)    // caffe
+    if (flag == 0) // caffe
     {
         for (int in = 0; in < inDim[0]; in++)
         {
@@ -83,21 +82,21 @@ static int ref_tile_fp32(float* data, float* output, int* repeat, int* inDim, in
             }
         }
     }
-    else if (flag == 1)    // onnx
+    else if (flag == 1) // onnx
     {
-        int n    = inDim[0];
-        int c    = inDim[1];
-        int h    = inDim[2];
-        int w    = inDim[3];
-        int rn   = repeat[3];
-        int rc   = repeat[2];
-        int rh   = repeat[1];
-        int rw   = repeat[0];
+        int n = inDim[0];
+        int c = inDim[1];
+        int h = inDim[2];
+        int w = inDim[3];
+        int rn = repeat[3];
+        int rc = repeat[2];
+        int rh = repeat[1];
+        int rw = repeat[0];
 
-        int n1   = n * rn;
-        int c1   = c * rc;
-        int h1   = h * rh;
-        int w1   = w * rw;
+        int n1 = n * rn;
+        int c1 = c * rc;
+        int h1 = h * rh;
+        int w1 = w * rw;
 
         int size = outDim[0] * outDim[1] * outDim[2] * outDim[3];
         for (int i = 0; i < size; ++i)
@@ -117,24 +116,24 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node*   ir_node       = exec_node->ir_node;
-    struct graph*  ir_graph      = ir_node->graph;
-    struct tensor* input_tensor  = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    struct tensor* reps_tensor   = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
+    struct node* ir_node = exec_node->ir_node;
+    struct graph* ir_graph = ir_node->graph;
+    struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    struct tensor* reps_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    float*     input_reps        = (float*)reps_tensor->data;
-    const int* input_reps_shape  = reps_tensor->dims;
-    int*       inDim             = input_tensor->dims;
-    int*       outDim            = output_tensor->dims;
-    int        reps_size         = reps_tensor->dims[0];
+    float* input_reps = (float*)reps_tensor->data;
+    const int* input_reps_shape = reps_tensor->dims;
+    int* inDim = input_tensor->dims;
+    int* outDim = output_tensor->dims;
+    int reps_size = reps_tensor->dims[0];
 
-    struct tile_param* param     = (struct tile_param*)(ir_node->op.param_mem);
+    struct tile_param* param = (struct tile_param*)(ir_node->op.param_mem);
 
-    int            frame_flag    = param->frame_flag;
-    struct vector* repeat        = create_vector(sizeof(int), NULL);
-    int            size          = 0;
-    int            default_value = 1;
+    int frame_flag = param->frame_flag;
+    struct vector* repeat = create_vector(sizeof(int), NULL);
+    int size = 0;
+    int default_value = 1;
 
     if (frame_flag == 0)
     {
@@ -160,7 +159,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     int* repeat_data = (int*)sys_malloc(get_vector_num(repeat) * sizeof(int));
     for (int i = 0; i < get_vector_num(repeat); i++)
     {
-        int* a         = (int*)get_vector_data(repeat, i);
+        int* a = (int*)get_vector_data(repeat, i);
         repeat_data[i] = *a;
     }
 
@@ -176,14 +175,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_CANDO;
 }
 
-static struct node_ops hcl_node_ops = { .prerun       = prerun,
-                                        .run          = run,
-                                        .reshape      = NULL,
-                                        .postrun      = NULL,
-                                        .init_node    = init_node,
-                                        .release_node = release_node,
-                                        .score        = score };
-
+static struct node_ops hcl_node_ops = {.prerun = prerun,
+                                       .run = run,
+                                       .reshape = NULL,
+                                       .postrun = NULL,
+                                       .init_node = init_node,
+                                       .release_node = release_node,
+                                       .score = score};
 
 int register_tile_ref_op()
 {

@@ -26,15 +26,14 @@
 
 #include "acl_define.h"
 
-extern "C"
-{
+extern "C" {
 #include "api/c_api.h"
 #include "device/device.h"
 
-    struct acl_device
-    {
-        struct device base;
-    };
+struct acl_device
+{
+    struct device base;
+};
 
-    DLLEXPORT int register_acl_device(void);
+DLLEXPORT int register_acl_device(void);
 }

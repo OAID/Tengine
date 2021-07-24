@@ -29,7 +29,7 @@
 #include <vector>
 
 #ifdef _MSC_VER
-    #define NOMINMAX
+#define NOMINMAX
 #endif
 
 #include <algorithm>
@@ -45,25 +45,25 @@ using namespace std;
 
 typedef struct Box
 {
-    int   x0;
-    int   y0;
-    int   x1;
-    int   y1;
-    int   class_idx;
+    int x0;
+    int y0;
+    int x1;
+    int y1;
+    int class_idx;
     float score;
 } Box_t;
 
 void post_process_ssd(const string image_file, float threshold, const float* outdata, int num)
 {
-    const char* class_names[] = { "background", "aeroplane", "bicycle",   "bird",   "boat",        "bottle",
-                                  "bus",        "car",       "cat",       "chair",  "cow",         "diningtable",
-                                  "dog",        "horse",     "motorbike", "person", "pottedplant", "sheep",
-                                  "sofa",       "train",     "tvmonitor" };
+    const char* class_names[] = {"background", "aeroplane", "bicycle", "bird", "boat", "bottle",
+                                 "bus", "car", "cat", "chair", "cow", "diningtable",
+                                 "dog", "horse", "motorbike", "person", "pottedplant", "sheep",
+                                 "sofa", "train", "tvmonitor"};
 
-    image im                  = imread(image_file.c_str());
+    image im = imread(image_file.c_str());
 
-    int raw_h                 = im.h;
-    int raw_w                 = im.w;
+    int raw_h = im.h;
+    int raw_w = im.w;
     //    struct vector* boxes = create_vector(sizeof(Box_t), nullptr);
     std::vector<Box_t> boxes;
 
@@ -75,11 +75,11 @@ void post_process_ssd(const string image_file, float threshold, const float* out
             Box_t box;
 
             box.class_idx = (int)outdata[0];
-            box.score     = outdata[1];
-            box.x0        = outdata[2] * raw_w;
-            box.y0        = outdata[3] * raw_h;
-            box.x1        = outdata[4] * raw_w;
-            box.y1        = outdata[5] * raw_h;
+            box.score = outdata[1];
+            box.x0 = outdata[2] * raw_w;
+            box.y0 = outdata[3] * raw_h;
+            box.x1 = outdata[4] * raw_w;
+            box.y1 = outdata[5] * raw_h;
 
             boxes.push_back(box);
             fprintf(stderr, "%s\t:%.1f%%\n", class_names[box.class_idx], box.score * 100);
@@ -107,15 +107,15 @@ void show_usage()
 
 int main(int argc, char* argv[])
 {
-    int    repeat_count = DEFAULT_REPEAT_COUNT;
-    int    num_thread   = DEFAULT_THREAD_COUNT;
+    int repeat_count = DEFAULT_REPEAT_COUNT;
+    int num_thread = DEFAULT_THREAD_COUNT;
     string model_file;
     string image_file;
-    int    img_h          = 300;
-    int    img_w          = 300;
-    float  mean[3]        = { 127.5f, 127.5f, 127.5f };
-    float  scale[3]       = { 0.007843f, 0.007843f, 0.007843f };
-    float  show_threshold = 0.5f;
+    int img_h = 300;
+    int img_w = 300;
+    float mean[3] = {127.5f, 127.5f, 127.5f};
+    float scale[3] = {0.007843f, 0.007843f, 0.007843f};
+    float show_threshold = 0.5f;
 
     int res;
     while ((res = getopt(argc, argv, "m:i:r:t:h:")) != -1)
@@ -170,14 +170,14 @@ int main(int argc, char* argv[])
 
     /* net inference */
     {
-        tengine::Net    somenet;
+        tengine::Net somenet;
         tengine::Tensor input_tensor;
         tengine::Tensor output_tensor;
 
         /* set runtime options of Net */
         somenet.opt.num_thread = num_thread;
-        somenet.opt.cluster    = TENGINE_CLUSTER_ALL;
-        somenet.opt.precision  = TENGINE_MODE_FP32;
+        somenet.opt.cluster = TENGINE_CLUSTER_ALL;
+        somenet.opt.precision = TENGINE_MODE_FP32;
 
         /* load model */
         somenet.load_model(nullptr, "tengine", model_file.c_str());
@@ -190,8 +190,8 @@ int main(int argc, char* argv[])
         somenet.input_tensor("data", input_tensor);
 
         double min_time, max_time, total_time;
-        min_time   = DBL_MAX;
-        max_time   = DBL_MIN;
+        min_time = DBL_MAX;
+        max_time = DBL_MIN;
         total_time = 0;
         for (int i = 0; i < repeat_count; i++)
         {

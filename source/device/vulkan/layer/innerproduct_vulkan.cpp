@@ -40,20 +40,19 @@
 #include "innerproduct_vulkan.hpp"
 #include "../layer_shader_type.h"
 
-namespace TEngine
-{
+namespace TEngine {
 InnerProduct_vulkan::InnerProduct_vulkan()
 {
-    support_vulkan                 = true;
-    support_image_storage          = true;
+    support_vulkan = true;
+    support_image_storage = true;
 
-    flatten                        = 0;
+    flatten = 0;
 
-    pipeline_innerproduct          = 0;
-    pipeline_innerproduct_pack4    = 0;
+    pipeline_innerproduct = 0;
+    pipeline_innerproduct_pack4 = 0;
     pipeline_innerproduct_pack1to4 = 0;
     pipeline_innerproduct_pack4to1 = 0;
-    pipeline_innerproduct_pack8    = 0;
+    pipeline_innerproduct_pack8 = 0;
     pipeline_innerproduct_pack1to8 = 0;
     pipeline_innerproduct_pack4to8 = 0;
     pipeline_innerproduct_pack8to4 = 0;
@@ -62,55 +61,53 @@ InnerProduct_vulkan::InnerProduct_vulkan()
 
 InnerProduct_vulkan::InnerProduct_vulkan(ir_graph_t* ir_graph, ir_node_t* ir_node)
 {
-    support_vulkan                 = true;
-    support_image_storage          = false;
+    support_vulkan = true;
+    support_image_storage = false;
 
-    flatten                        = 0;
+    flatten = 0;
 
-    pipeline_innerproduct          = 0;
-    pipeline_innerproduct_pack4    = 0;
+    pipeline_innerproduct = 0;
+    pipeline_innerproduct_pack4 = 0;
     pipeline_innerproduct_pack1to4 = 0;
     pipeline_innerproduct_pack4to1 = 0;
-    pipeline_innerproduct_pack8    = 0;
+    pipeline_innerproduct_pack8 = 0;
     pipeline_innerproduct_pack1to8 = 0;
     pipeline_innerproduct_pack4to8 = 0;
     pipeline_innerproduct_pack8to4 = 0;
     pipeline_innerproduct_pack8to1 = 0;
 
-    graph                          = ir_graph;
-    node                           = ir_node;
+    graph = ir_graph;
+    node = ir_node;
 
-    struct tensor* input           = get_ir_graph_tensor(graph, node->input_tensors[0]);
-    std::string    name            = input->name;
+    struct tensor* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
+    std::string name = input->name;
     bottoms.push_back(name);
 
     struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
-    name                  = output->name;
+    name = output->name;
     tops.push_back(name);
 
     struct fc_param* param = (struct fc_param*)ir_node->op.param_mem;
 
-    num_output             = param->num_output;
-    input_c                = input->dims[1];    // param->input_channel;
-    input_h                = input->dims[2];
-    input_w                = input->dims[3];
-    output_c               = output->dims[1];    // param->output_channel;
-    output_h               = output->dims[2];
-    output_w               = output->dims[3];
+    num_output = param->num_output;
+    input_c = input->dims[1]; // param->input_channel;
+    input_h = input->dims[2];
+    input_w = input->dims[3];
+    output_c = output->dims[1]; // param->output_channel;
+    output_h = output->dims[2];
+    output_w = output->dims[3];
 
-    struct tensor* weight  = get_ir_graph_tensor(graph, node->input_tensors[1]);
-    weight_data_size       = weight->elem_num;
+    struct tensor* weight = get_ir_graph_tensor(graph, node->input_tensors[1]);
+    weight_data_size = weight->elem_num;
 
-    activation_type        = -1;
+    activation_type = -1;
 }
 
 int InnerProduct_vulkan::create_pipeline(const Option& _opt)
 {
-    Option        opt = _opt;
-    const Tensor& shape =
-        Tensor(input_w, input_h, input_c, (void*)0);    // bottom_shapes.empty() ? Tensor() : bottom_shapes[0];
-    const Tensor& out_shape =
-        Tensor(output_w, output_h, output_c, (void*)0);    // top_shapes.empty() ? Tensor() : top_shapes[0];
+    Option opt = _opt;
+    const Tensor& shape = Tensor(input_w, input_h, input_c, (void*)0);        // bottom_shapes.empty() ? Tensor() : bottom_shapes[0];
+    const Tensor& out_shape = Tensor(output_w, output_h, output_c, (void*)0); // top_shapes.empty() ? Tensor() : top_shapes[0];
 
     Tensor shape_flatten;
     if (shape.dims != 0)
@@ -118,26 +115,28 @@ int InnerProduct_vulkan::create_pipeline(const Option& _opt)
         shape_flatten = Tensor(shape.w * shape.h * shape.c, (void*)0);
     }
 
-    int num_input    = weight_data_size / num_output;
+    int num_input = weight_data_size / num_output;
 
-    int elempack     = opt.use_shader_pack8 && num_input % 8 == 0 ? 8 : num_input % 4 == 0 ? 4 : 1;
-    int out_elempack = opt.use_shader_pack8 && num_output % 8 == 0 ? 8 : num_output % 4 == 0 ? 4 : 1;
+    int elempack = opt.use_shader_pack8 && num_input % 8 == 0 ? 8 : num_input % 4 == 0 ? 4
+                                                                                       : 1;
+    int out_elempack = opt.use_shader_pack8 && num_output % 8 == 0 ? 8 : num_output % 4 == 0 ? 4
+                                                                                             : 1;
 
     size_t elemsize;
     size_t out_elemsize;
     if (opt.use_fp16_storage)
     {
-        elemsize     = elempack * 2u;
+        elemsize = elempack * 2u;
         out_elemsize = out_elempack * 2u;
     }
     else if (opt.use_fp16_packed)
     {
-        elemsize     = elempack == 1 ? 4u : elempack * 2u;
+        elemsize = elempack == 1 ? 4u : elempack * 2u;
         out_elemsize = out_elempack == 1 ? 4u : out_elempack * 2u;
     }
     else
     {
-        elemsize     = elempack * 4u;
+        elemsize = elempack * 4u;
         out_elemsize = out_elempack * 4u;
     }
 
@@ -155,36 +154,35 @@ int InnerProduct_vulkan::create_pipeline(const Option& _opt)
     }
 
     {
-        flatten              = new Flatten_vulkan();
-        flatten->vkdev       = vkdev;
+        flatten = new Flatten_vulkan();
+        flatten->vkdev = vkdev;
 
-        flatten->input_w     = shape.w;
-        flatten->input_h     = shape.h;
-        flatten->input_c     = shape.c;
-        flatten->output_w    = shape_flatten.w;
-        flatten->output_h    = shape_flatten.h;
-        flatten->output_c    = shape_flatten.c;
+        flatten->input_w = shape.w;
+        flatten->input_h = shape.h;
+        flatten->input_c = shape.c;
+        flatten->output_w = shape_flatten.w;
+        flatten->output_h = shape_flatten.h;
+        flatten->output_c = shape_flatten.c;
         flatten->output_size = shape_flatten.w * shape_flatten.h * shape_flatten.c;
 
         flatten->create_pipeline(opt);
     }
 
-
     std::vector<vk_specialization_type> specializations(4 + 10);
-    specializations[0].i     = bias_term;
-    specializations[1].i     = activation_type;
-    specializations[2].f     = 0.f;    // activation_params.w >= 1 ? activation_params[0] : 0.f;
-    specializations[3].f     = 0.f;    // activation_params.w == 2 ? activation_params[1] : 0.f;
-    specializations[4 + 0].i = 0;      // shape_flatten_packed.dims;
-    specializations[4 + 1].i = 0;      // shape_flatten_packed.w;
-    specializations[4 + 2].i = 0;      // shape_flatten_packed.h;
-    specializations[4 + 3].i = 0;      // shape_flatten_packed.c;
-    specializations[4 + 4].i = 0;      // shape_flatten_packed.cstep;
-    specializations[4 + 5].i = 0;      // out_shape_packed.dims;
-    specializations[4 + 6].i = 0;      // out_shape_packed.w;
-    specializations[4 + 7].i = 0;      // out_shape_packed.h;
-    specializations[4 + 8].i = 0;      // out_shape_packed.c;
-    specializations[4 + 9].i = 0;      // out_shape_packed.cstep;
+    specializations[0].i = bias_term;
+    specializations[1].i = activation_type;
+    specializations[2].f = 0.f;   // activation_params.w >= 1 ? activation_params[0] : 0.f;
+    specializations[3].f = 0.f;   // activation_params.w == 2 ? activation_params[1] : 0.f;
+    specializations[4 + 0].i = 0; // shape_flatten_packed.dims;
+    specializations[4 + 1].i = 0; // shape_flatten_packed.w;
+    specializations[4 + 2].i = 0; // shape_flatten_packed.h;
+    specializations[4 + 3].i = 0; // shape_flatten_packed.c;
+    specializations[4 + 4].i = 0; // shape_flatten_packed.cstep;
+    specializations[4 + 5].i = 0; // out_shape_packed.dims;
+    specializations[4 + 6].i = 0; // out_shape_packed.w;
+    specializations[4 + 7].i = 0; // out_shape_packed.h;
+    specializations[4 + 8].i = 0; // out_shape_packed.c;
+    specializations[4 + 9].i = 0; // out_shape_packed.cstep;
 
     Tensor local_size_xyz(std::min(64, num_output / out_elempack), 1, 1, (void*)0);
     if (out_shape_packed.dims != 0)
@@ -310,16 +308,18 @@ int InnerProduct_vulkan::destroy_pipeline(const Option& opt)
 
 int InnerProduct_vulkan::upload_model(VkTransfer& cmd, const Option& opt)
 {
-    int num_input    = weight_data_size / num_output;
+    int num_input = weight_data_size / num_output;
 
-    int elempack     = opt.use_shader_pack8 && num_input % 8 == 0 ? 8 : num_input % 4 == 0 ? 4 : 1;
-    int out_elempack = opt.use_shader_pack8 && num_output % 8 == 0 ? 8 : num_output % 4 == 0 ? 4 : 1;
+    int elempack = opt.use_shader_pack8 && num_input % 8 == 0 ? 8 : num_input % 4 == 0 ? 4
+                                                                                       : 1;
+    int out_elempack = opt.use_shader_pack8 && num_output % 8 == 0 ? 8 : num_output % 4 == 0 ? 4
+                                                                                             : 1;
 
     // src = inch-outch
     // dst = pa-pb-inch/pa-outch/pb
     tensor* weight_tensor = get_ir_graph_tensor(graph, node->input_tensors[1]);
-    Tensor  weight_data   = Tensor(weight_tensor->elem_num, weight_tensor->data);
-    Tensor  weight_data_packed;
+    Tensor weight_data = Tensor(weight_tensor->elem_num, weight_tensor->data);
+    Tensor weight_data_packed;
     {
         Tensor weight_data_r2 = weight_data.reshape(num_input, num_output);
 
@@ -360,8 +360,8 @@ int InnerProduct_vulkan::upload_model(VkTransfer& cmd, const Option& opt)
     if (bias_term)
     {
         tensor* bias_tensor = get_ir_graph_tensor(graph, node->input_tensors[2]);
-        Tensor  bias_data   = Tensor(bias_tensor->elem_num, bias_tensor->data);
-        Tensor  bias_data_packed;
+        Tensor bias_data = Tensor(bias_tensor->elem_num, bias_tensor->data);
+        Tensor bias_data_packed;
         convert_packing(bias_data, bias_data_packed, out_elempack);
 
         if (support_image_storage && opt.use_image_storage)
@@ -382,16 +382,17 @@ int InnerProduct_vulkan::record_pipeline(const VkTensor& bottom_blob, VkTensor& 
     // flatten
     VkTensor bottom_blob_flattened = bottom_blob;
     {
-        Option opt_flatten           = opt;
+        Option opt_flatten = opt;
         opt_flatten.blob_vkallocator = opt.workspace_vkallocator;
 
         flatten->record_pipeline(bottom_blob, bottom_blob_flattened, cmd, opt_flatten);
     }
 
-    size_t elemsize     = bottom_blob_flattened.elemsize;
-    int    elempack     = bottom_blob_flattened.elempack;
+    size_t elemsize = bottom_blob_flattened.elemsize;
+    int elempack = bottom_blob_flattened.elempack;
 
-    int    out_elempack = opt.use_shader_pack8 && num_output % 8 == 0 ? 8 : num_output % 4 == 0 ? 4 : 1;
+    int out_elempack = opt.use_shader_pack8 && num_output % 8 == 0 ? 8 : num_output % 4 == 0 ? 4
+                                                                                             : 1;
     size_t out_elemsize = elemsize / elempack * out_elempack;
 
     if (opt.use_fp16_packed && !opt.use_fp16_storage)
@@ -415,16 +416,16 @@ int InnerProduct_vulkan::record_pipeline(const VkTensor& bottom_blob, VkTensor& 
     bindings[3] = bias_data_gpu;
 
     std::vector<vk_constant_type> constants(10);
-    constants[0].i           = bottom_blob_flattened.dims;
-    constants[1].i           = bottom_blob_flattened.w;
-    constants[2].i           = bottom_blob_flattened.h;
-    constants[3].i           = bottom_blob_flattened.c;
-    constants[4].i           = bottom_blob_flattened.cstep;
-    constants[5].i           = top_blob.dims;
-    constants[6].i           = top_blob.w;
-    constants[7].i           = top_blob.h;
-    constants[8].i           = top_blob.c;
-    constants[9].i           = top_blob.cstep;
+    constants[0].i = bottom_blob_flattened.dims;
+    constants[1].i = bottom_blob_flattened.w;
+    constants[2].i = bottom_blob_flattened.h;
+    constants[3].i = bottom_blob_flattened.c;
+    constants[4].i = bottom_blob_flattened.cstep;
+    constants[5].i = top_blob.dims;
+    constants[6].i = top_blob.w;
+    constants[7].i = top_blob.h;
+    constants[8].i = top_blob.c;
+    constants[9].i = top_blob.cstep;
 
     const Pipeline* pipeline = 0;
     if (elempack == 1 && out_elempack == 1)
@@ -469,4 +470,4 @@ int InnerProduct_vulkan::record_pipeline(const VkTensor& bottom_blob, VkTensor& 
     return 0;
 }
 
-}    // namespace TEngine
+} // namespace TEngine

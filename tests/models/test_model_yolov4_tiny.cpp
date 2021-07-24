@@ -50,7 +50,6 @@ int float_mismatch(float* current, float* reference, int size)
     return 0;
 }
 
-
 void show_usage()
 {
     fprintf(stderr, "[Usage]:  [-h]\n    [-m model_file]  [-r repeat_count] [-t thread_count] \n");
@@ -59,14 +58,14 @@ void show_usage()
 int main(int argc, char* argv[])
 {
     const char* model_file = "./models/yolov4-tiny.tmfile";
-    int         img_h      = 416;
-    int         img_w      = 416;
-    int         img_c      = 3;
-    const float mean[3]    = { 0, 0, 0 };
-    const float scale[3]   = { 0.003921, 0.003921, 0.003921 };
+    int img_h = 416;
+    int img_w = 416;
+    int img_c = 3;
+    const float mean[3] = {0, 0, 0};
+    const float scale[3] = {0.003921, 0.003921, 0.003921};
 
-    int repeat_count       = 1;
-    int num_thread         = 1;
+    int repeat_count = 1;
+    int num_thread = 1;
 
     int res;
     while ((res = getopt(argc, argv, "m:i:r:t:h:")) != -1)
@@ -98,17 +97,15 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-
     if (!check_file_exist(model_file))
         return -1;
-
 
     /* set runtime options */
     struct options opt;
     opt.num_thread = num_thread;
-    opt.cluster    = TENGINE_CLUSTER_ALL;
-    opt.precision  = TENGINE_MODE_FP32;
-    opt.affinity   = 0;
+    opt.cluster = TENGINE_CLUSTER_ALL;
+    opt.precision = TENGINE_MODE_FP32;
+    opt.affinity = 0;
 
     /* inital tengine */
     if (init_tengine() != 0)
@@ -126,8 +123,8 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    int                img_size = img_h * img_w * img_c;
-    int                dims[]   = { 1, 3, img_h, img_w };
+    int img_size = img_h * img_w * img_c;
+    int dims[] = {1, 3, img_h, img_w};
     std::vector<float> input_data(img_size);
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
@@ -159,7 +156,7 @@ int main(int argc, char* argv[])
     /* prepare process input data, set the data mem to input tensor */
     // save input_data
     std::string input_file = "./data/" + model_name + "_in.bin";
-    FILE*       fp;
+    FILE* fp;
 
     fp = fopen(input_file.c_str(), "rb");
     if (!fp || fread(input_data.data(), sizeof(float), img_size, fp) == 0)
@@ -170,8 +167,8 @@ int main(int argc, char* argv[])
     fclose(fp);
 
     /* run graph */
-    double min_time   = DBL_MAX;
-    double max_time   = DBL_MIN;
+    double min_time = DBL_MAX;
+    double max_time = DBL_MIN;
     double total_time = 0.;
     for (int i = 0; i < repeat_count; i++)
     {
@@ -191,19 +188,18 @@ int main(int argc, char* argv[])
             num_thread, total_time / repeat_count, max_time, min_time);
     fprintf(stderr, "--------------------------------------\n");
 
+    tensor_t p16_output = get_graph_output_tensor(graph, 1, 0);
+    tensor_t p32_output = get_graph_output_tensor(graph, 0, 0);
 
-    tensor_t p16_output                = get_graph_output_tensor(graph, 1, 0);
-    tensor_t p32_output                = get_graph_output_tensor(graph, 0, 0);
+    float* p16_data = (float*)get_tensor_buffer(p16_output);
+    float* p32_data = (float*)get_tensor_buffer(p32_output);
 
-    float* p16_data                    = (float*)get_tensor_buffer(p16_output);
-    float* p32_data                    = (float*)get_tensor_buffer(p32_output);
-
-    int                output_size2    = get_tensor_buffer_size(p16_output) / sizeof(float);
-    int                output_size3    = get_tensor_buffer_size(p32_output) / sizeof(float);
-    std::string        reference_file2 = "./data/" + model_name + "_out1.bin";
-    std::string        reference_file3 = "./data/" + model_name + "_out2.bin";
+    int output_size2 = get_tensor_buffer_size(p16_output) / sizeof(float);
+    int output_size3 = get_tensor_buffer_size(p32_output) / sizeof(float);
+    std::string reference_file2 = "./data/" + model_name + "_out1.bin";
+    std::string reference_file3 = "./data/" + model_name + "_out2.bin";
     std::vector<float> reference_data2(output_size2), reference_data3(output_size3);
-    FILE*              fp1;
+    FILE* fp1;
     fp1 = fopen(reference_file2.c_str(), "rb");
     if (fread(reference_data2.data(), sizeof(float), output_size2, fp1) == 0)
     {
@@ -222,7 +218,6 @@ int main(int argc, char* argv[])
     int ret3 = float_mismatch(p32_data, reference_data3.data(), output_size3);
 
     /* postprocess */
-
 
     /* release tengine */
     postrun_graph(graph);

@@ -45,9 +45,9 @@
 
 #include "softmax_param.h"
 
-namespace TEngine
+namespace TEngine {
+class Softmax_vulkan : public Layer
 {
-class Softmax_vulkan : public Layer {
 public:
     Softmax_vulkan();
     Softmax_vulkan(ir_graph_t* ir_graph, ir_node_t* ir_node);
@@ -83,6 +83,6 @@ public:
     int output_w;
 };
 
-}    // namespace TEngine
+} // namespace TEngine
 
 #endif

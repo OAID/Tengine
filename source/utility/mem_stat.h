@@ -27,7 +27,7 @@
 #include "stddef.h"
 
 void* stat_malloc(int size);
-void  stat_free(void* ptr);
+void stat_free(void* ptr);
 void* stat_realloc(void* ptr, size_t size);
-int   skip_stat(void);
-void  set_skip_stat(int skip);
+int skip_stat(void);
+void set_skip_stat(int skip);

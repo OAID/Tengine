@@ -28,7 +28,6 @@
 struct graph;
 struct vector;
 
-
 /*!
  * @struct ir_scheduler_t
  * @brief  Abstract scheduler intermediate representation
@@ -43,7 +42,6 @@ typedef struct scheduler
     int (*postrun)(struct scheduler*, struct graph*);
     void (*release)(struct scheduler*);
 } ir_scheduler_t;
-
 
 /*!
  * @brief  Dump the node.

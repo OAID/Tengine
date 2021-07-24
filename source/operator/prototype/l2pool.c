@@ -31,19 +31,18 @@
 #include "module/module.h"
 #include "utility/sys_port.h"
 
-
 static int infer_shape(struct node* node)
 {
-    struct graph*  graph              = node->graph;
-    struct tensor* input_tensor       = get_ir_graph_tensor(graph, node->input_tensors[0]);
-    struct tensor* output_tensor      = get_ir_graph_tensor(graph, node->output_tensors[0]);
+    struct graph* graph = node->graph;
+    struct tensor* input_tensor = get_ir_graph_tensor(graph, node->input_tensors[0]);
+    struct tensor* output_tensor = get_ir_graph_tensor(graph, node->output_tensors[0]);
 
     struct l2pool_param* l2pool_param = (struct l2pool_param*)(node->op.param_mem);
 
-    int input_h                       = input_tensor->dims[1];
-    int input_w                       = input_tensor->dims[2];
-    int output_h                      = 0;
-    int output_w                      = 0;
+    int input_h = input_tensor->dims[1];
+    int input_w = input_tensor->dims[2];
+    int output_h = 0;
+    int output_w = 0;
 
     if (l2pool_param->paddingType == 1)
     {
@@ -66,7 +65,6 @@ static int infer_shape(struct node* node)
     return 0;
 }
 
-
 static int init_op(struct op* op)
 {
     struct l2pool_param* l2pool_param = (struct l2pool_param*)sys_malloc(sizeof(struct l2pool_param));
@@ -77,31 +75,27 @@ static int init_op(struct op* op)
     }
 
     l2pool_param->paddingType = 0;
-    l2pool_param->kernel_h    = 0;
-    l2pool_param->kernel_w    = 0;
-    l2pool_param->stride_h    = 0;
-    l2pool_param->stride_w    = 0;
+    l2pool_param->kernel_h = 0;
+    l2pool_param->kernel_w = 0;
+    l2pool_param->stride_h = 0;
+    l2pool_param->stride_w = 0;
     return 0;
 }
-
 
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
 
-
 int register_l2pool_op()
 {
     struct method m;
     m.version = 1;
-    m.init    = init_op;
+    m.init = init_op;
     m.release = release_op;
-
 
     return register_op(OP_L2POOL, OP_L2POOL_NAME, &m);
 }
-
 
 int unregister_l2pool_op()
 {

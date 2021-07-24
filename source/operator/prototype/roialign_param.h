@@ -27,8 +27,8 @@
 
 struct roialign_param
 {
-    int   pooled_width;
-    int   pooled_height;
+    int pooled_width;
+    int pooled_height;
     float spatial_scale;
 };
 

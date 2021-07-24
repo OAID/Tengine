@@ -45,9 +45,9 @@
 
 #include "relu_param.h"
 
-namespace TEngine
+namespace TEngine {
+class ReLU_vulkan : public Layer
 {
-class ReLU_vulkan : public Layer {
 public:
     ReLU_vulkan();
     ReLU_vulkan(ir_graph_t* ir_graph, ir_node_t* ir_node);
@@ -65,15 +65,15 @@ public:
     Pipeline* pipeline_relu_pack8;
 
 public:
-    int   input_c;
-    int   input_h;
-    int   input_w;
-    int   output_c;
-    int   output_h;
-    int   output_w;
+    int input_c;
+    int input_h;
+    int input_w;
+    int output_c;
+    int output_h;
+    int output_w;
     float negative_slope;
 };
 
-}    // namespace TEngine
+} // namespace TEngine
 
 #endif

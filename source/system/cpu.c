@@ -47,30 +47,30 @@
 #include <stdint.h>
 
 #ifndef _MSC_VER
-    #include <pthread.h>
-    #include <sys/syscall.h>
-    #include <sched.h>
-    #include <unistd.h>
+#include <pthread.h>
+#include <sys/syscall.h>
+#include <sched.h>
+#include <unistd.h>
 #endif
 
 #if __APPLE__
-    #include "TargetConditionals.h"
-    #if TARGET_OS_IPHONE
-        #include <sys/types.h>
-        #include <sys/sysctl.h>
-        #include <mach/machine.h>
-        #define __APPLE_IOS__ 1
-    #endif
+#include "TargetConditionals.h"
+#if TARGET_OS_IPHONE
+#include <sys/types.h>
+#include <sys/sysctl.h>
+#include <mach/machine.h>
+#define __APPLE_IOS__ 1
+#endif
 #endif
 
 #ifdef _OPENMP
-    #include <omp.h>
+#include <omp.h>
 #endif
 
-static size_t core_count                   = 0;
+static size_t core_count = 0;
 
-static size_t affinity_mask_all_cluster    = 0;
-static size_t affinity_mask_big_cluster    = 0;
+static size_t affinity_mask_all_cluster = 0;
+static size_t affinity_mask_big_cluster = 0;
 static size_t affinity_mask_medium_cluster = 0;
 static size_t affinity_mask_little_cluster = 0;
 
@@ -105,11 +105,11 @@ int init_cpu_count()
     };
 #else
     {
-    #ifdef _OPENMP
+#ifdef _OPENMP
         core_count = omp_get_max_threads();
-    #else
+#else
         core_count = 1;
-    #endif
+#endif
     }
 #endif
 
@@ -144,7 +144,7 @@ static int get_max_freq_khz(int cpuid)
             while (!feof(fp))
             {
                 int freq_khz = 0;
-                int nscan    = fscanf(fp, "%d %*d", &freq_khz);
+                int nscan = fscanf(fp, "%d %*d", &freq_khz);
                 if (nscan != 1)
                     break;
 
@@ -170,7 +170,7 @@ static int get_max_freq_khz(int cpuid)
                 return -1;
 
             int max_freq_khz = -1;
-            int ret          = fscanf(fp, "%d", &max_freq_khz);
+            int ret = fscanf(fp, "%d", &max_freq_khz);
 
             fclose(fp);
 
@@ -185,7 +185,7 @@ static int get_max_freq_khz(int cpuid)
     while (!feof(fp))
     {
         int freq_khz = 0;
-        int nscan    = fscanf(fp, "%d %*d", &freq_khz);
+        int nscan = fscanf(fp, "%d %*d", &freq_khz);
         if (nscan != 1)
             break;
 
@@ -200,41 +200,41 @@ static int get_max_freq_khz(int cpuid)
 
 static int set_sched_affinity(size_t thread_affinity_mask)
 {
-    // cpu_set_t definition
-    // ref http://stackoverflow.com/questions/16319725/android-set-thread-affinity
-    #ifndef CPU_SETSIZE
-        #define CPU_SETSIZE 1024
-    #endif
-    #ifndef __NCPUBITS
-        #define __NCPUBITS (8 * sizeof(unsigned long))
-    #endif
+// cpu_set_t definition
+// ref http://stackoverflow.com/questions/16319725/android-set-thread-affinity
+#ifndef CPU_SETSIZE
+#define CPU_SETSIZE 1024
+#endif
+#ifndef __NCPUBITS
+#define __NCPUBITS (8 * sizeof(unsigned long))
+#endif
 
     typedef struct
     {
         unsigned long __bits[CPU_SETSIZE / __NCPUBITS];
     } cpu_set_t;
 
-    #define CPU_SET(cpu, cpusetp) ((cpusetp)->__bits[(cpu) / __NCPUBITS] |= (1UL << ((cpu) % __NCPUBITS)))
+#define CPU_SET(cpu, cpusetp) ((cpusetp)->__bits[(cpu) / __NCPUBITS] |= (1UL << ((cpu) % __NCPUBITS)))
 
-    #define CPU_ZERO(cpusetp)     memset((cpusetp), 0, sizeof(cpu_set_t))
+#define CPU_ZERO(cpusetp) memset((cpusetp), 0, sizeof(cpu_set_t))
 
-    // set affinity for threads
-    #if (defined __GLIBC__) || (defined _OHOS_) || (defined V831)
+// set affinity for threads
+#if (defined __GLIBC__) || (defined _OHOS_) || (defined V831)
     pid_t pid = syscall(SYS_gettid);
-    #else
-        #ifdef PI3
-    pid_t pid        = getpid();
-        #else
+#else
+#ifdef PI3
+    pid_t pid = getpid();
+#else
 
-            #ifdef __APPLE__
+#ifdef __APPLE__
     uint64_t tid64;
     pthread_threadid_np(NULL, &tid64);
     pid_t pid = (pid_t)tid64;
-            #else
+#else
     pid_t pid = gettid();
-            #endif
-        #endif
-    #endif
+#endif
+#endif
+#endif
     cpu_set_t mask;
     CPU_ZERO(&mask);
     //    for (int i = 0; i < ( int )sizeof(size_t) * 8; i++)
@@ -243,11 +243,11 @@ static int set_sched_affinity(size_t thread_affinity_mask)
         if (thread_affinity_mask & (1 << i))
             CPU_SET(i, &mask);
     }
-    #if __APPLE__
+#if __APPLE__
     int syscallret = syscall(set_sched_affinity, pid, sizeof(mask), &mask);
-    #else
-    int   syscallret = syscall(__NR_sched_setaffinity, pid, sizeof(mask), &mask);
-    #endif
+#else
+    int syscallret = syscall(__NR_sched_setaffinity, pid, sizeof(mask), &mask);
+#endif
 
     if (syscallret)
     {
@@ -289,7 +289,7 @@ int init_cluster_mask()
 
     if (max_freq_max_val == max_freq_min_val)
     {
-        affinity_mask_big_cluster    = affinity_mask_all_cluster;
+        affinity_mask_big_cluster = affinity_mask_all_cluster;
         affinity_mask_medium_cluster = 0;
         affinity_mask_little_cluster = 0;
     }
@@ -337,12 +337,12 @@ int set_cpu_affine(size_t mask)
 #if defined __ANDROID__ || defined __linux__
     int count = get_cpu_mask_count(mask);
 
-    #ifdef _OPENMP
+#ifdef _OPENMP
     // set affinity for each threads
     omp_set_num_threads(count);
 
-    int status[sizeof(size_t) * 8] = { 0 };
-        #pragma omp parallel for num_threads(count)
+    int status[sizeof(size_t) * 8] = {0};
+#pragma omp parallel for num_threads(count)
     for (int i = 0; i < count; i++)
     {
         status[i] = set_sched_affinity(mask);
@@ -353,11 +353,11 @@ int set_cpu_affine(size_t mask)
         if (status[i] != 0)
             return -1;
     }
-    #else
-    int   status     = set_sched_affinity(mask);
+#else
+    int status = set_sched_affinity(mask);
     if (0 != status)
         return -1;
-    #endif
+#endif
 
 #elif __APPLE_IOS__ || _MSC_VER
     // threads affinity not supported on ios

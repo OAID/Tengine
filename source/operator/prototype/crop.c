@@ -31,18 +31,17 @@
 #include "module/module.h"
 #include "utility/sys_port.h"
 
-
 static int infer_shape(struct node* node)
 {
-    struct graph*      graph      = node->graph;
-    struct tensor*     input      = get_ir_graph_tensor(graph, node->input_tensors[1]);    // Don't try to modify !
-    struct tensor*     output     = get_ir_graph_tensor(graph, node->output_tensors[0]);
+    struct graph* graph = node->graph;
+    struct tensor* input = get_ir_graph_tensor(graph, node->input_tensors[1]); // Don't try to modify !
+    struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
     struct crop_param* crop_param = (struct crop_param*)(node->op.param_mem);
 
-    int input_h                   = input->dims[2];
-    int input_w                   = input->dims[3];
-    int output_h                  = 0;
-    int output_w                  = 0;
+    int input_h = input->dims[2];
+    int input_w = input->dims[3];
+    int output_h = 0;
+    int output_w = 0;
 
     // MXNet
     if (crop_param->flag == 1)
@@ -78,7 +77,6 @@ static int infer_shape(struct node* node)
     return 0;
 }
 
-
 static int init_op(struct op* op)
 {
     struct crop_param* crop_param = (struct crop_param*)sys_malloc(sizeof(struct crop_param));
@@ -89,43 +87,39 @@ static int init_op(struct op* op)
     }
 
     /*set the param default value */
-    crop_param->num_args    = 0;
-    crop_param->offset_c    = 0;
-    crop_param->offset_h    = 0;
-    crop_param->offset_w    = 0;
-    crop_param->crop_h      = 0;
-    crop_param->crop_w      = 0;
+    crop_param->num_args = 0;
+    crop_param->offset_c = 0;
+    crop_param->offset_h = 0;
+    crop_param->offset_w = 0;
+    crop_param->crop_h = 0;
+    crop_param->crop_w = 0;
     crop_param->center_crop = 0;
-    crop_param->axis        = 2;
-    crop_param->flag        = 0;
+    crop_param->axis = 2;
+    crop_param->flag = 0;
 
-    op->param_mem           = crop_param;
-    op->param_size          = sizeof(struct crop_param);
-    op->same_shape          = 0;
-    op->infer_shape         = infer_shape;
+    op->param_mem = crop_param;
+    op->param_size = sizeof(struct crop_param);
+    op->same_shape = 0;
+    op->infer_shape = infer_shape;
 
     return 0;
 }
-
 
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
 
-
 int register_crop_op()
 {
     struct method m;
 
     m.version = 1;
-    m.init    = init_op;
+    m.init = init_op;
     m.release = release_op;
-
 
     return register_op(OP_CROP, OP_CROP_NAME, &m);
 }
-
 
 int unregister_crop_op()
 {

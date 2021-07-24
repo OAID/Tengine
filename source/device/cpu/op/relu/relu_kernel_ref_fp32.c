@@ -36,11 +36,10 @@
 #include "device/cpu/cpu_graph.h"
 #include "device/cpu/cpu_module.h"
 
-
 int ref_relu_fp32(struct tensor* input_tensor, struct tensor* output_tensor, float negative_slope)
 {
-    int    total_size  = input_tensor->elem_num;
-    float* input_data  = input_tensor->data;
+    int total_size = input_tensor->elem_num;
+    float* input_data = input_tensor->data;
     float* output_data = output_tensor->data;
 
     if (negative_slope == 0)

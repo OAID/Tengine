@@ -28,30 +28,28 @@
 #include "graph/graph.h"
 #include "module/module.h"
 
-
 static int init_op(struct op* op)
 {
-    op->same_shape  = 1;
+    op->same_shape = 1;
     op->infer_shape = NULL;
 
     return 0;
 }
 
-
-static void release_op(struct op* op) {}
-
+static void release_op(struct op* op)
+{
+}
 
 int register_dropout_op()
 {
     struct method m;
 
     m.version = 1;
-    m.init    = init_op;
+    m.init = init_op;
     m.release = release_op;
 
     return register_op(OP_DROPOUT, OP_DROPOUT_NAME, &m);
 }
-
 
 int unregister_dropout_op()
 {

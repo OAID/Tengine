@@ -40,12 +40,12 @@
 #ifndef VULKAN_OPTION_HPP
 #define VULKAN_OPTION_HPP
 
-namespace TEngine
-{
+namespace TEngine {
 class VkAllocator;
 
 class Allocator;
-class Option {
+class Option
+{
 public:
     // default option
     Option();
@@ -122,6 +122,6 @@ public:
     bool use_bf16_storage;
 };
 
-}    // namespace TEngine
+} // namespace TEngine
 
-#endif    // VULKAN_OPTION_HPP
+#endif // VULKAN_OPTION_HPP

@@ -37,11 +37,10 @@
 #include <math.h>
 #include <string.h>
 
-
 int ref_split_fp32(struct tensor* input_tensor, struct tensor* output_tensor, struct split_param* split_param,
                    int* slice_index, int num_slices, int slice_size, int in_slice, int slice_axis)
 {
-    float* input_data  = input_tensor->data;
+    float* input_data = input_tensor->data;
     float* output_data = output_tensor->data;
 
     if (split_param->is_caffe)
@@ -52,11 +51,11 @@ int ref_split_fp32(struct tensor* input_tensor, struct tensor* output_tensor, st
     {
         int out_slice = 0;
 
-        out_slice     = output_tensor->dims[slice_axis];
+        out_slice = output_tensor->dims[slice_axis];
 
         for (int n = 0; n < num_slices; n++)
         {
-            int in_offset  = (n * in_slice + *slice_index) * slice_size;
+            int in_offset = (n * in_slice + *slice_index) * slice_size;
             int out_offset = n * out_slice * slice_size;
             memcpy(output_data + out_offset, input_data + in_offset, (size_t)slice_size * out_slice * sizeof(float));
         }
@@ -70,7 +69,7 @@ int ref_split_fp32(struct tensor* input_tensor, struct tensor* output_tensor, st
 int ref_split_uint8(struct tensor* input_tensor, struct tensor* output_tensor, struct split_param* split_param,
                     int* slice_index, int num_slices, int slice_size, int in_slice, int slice_axis)
 {
-    uint8_t* input_data  = input_tensor->data;
+    uint8_t* input_data = input_tensor->data;
     uint8_t* output_data = output_tensor->data;
 
     if (split_param->is_caffe)
@@ -81,11 +80,11 @@ int ref_split_uint8(struct tensor* input_tensor, struct tensor* output_tensor, s
     {
         int out_slice = 0;
 
-        out_slice     = output_tensor->dims[slice_axis];
+        out_slice = output_tensor->dims[slice_axis];
 
         for (int n = 0; n < num_slices; n++)
         {
-            int in_offset  = (n * in_slice + *slice_index) * slice_size;
+            int in_offset = (n * in_slice + *slice_index) * slice_size;
             int out_offset = n * out_slice * slice_size;
             memcpy(output_data + out_offset, input_data + in_offset, (size_t)slice_size * out_slice * sizeof(uint8_t));
         }
@@ -113,8 +112,8 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node*   ir_node  = exec_node->ir_node;
-    struct graph*  ir_graph = ir_node->graph;
+    struct node* ir_node = exec_node->ir_node;
+    struct graph* ir_graph = ir_node->graph;
     struct tensor* input_tensor;
     // struct tensor* output_tensor;
 
@@ -133,11 +132,11 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     for (int i = slice_axis + 1; i < input_tensor->dim_num; i++)
         slice_size = slice_size * input_tensor->dims[i];
 
-    int in_slice    = input_tensor->dims[slice_axis];
+    int in_slice = input_tensor->dims[slice_axis];
     int slice_index = 0;
-    int out_num     = ir_node->output_num;
+    int out_num = ir_node->output_num;
 
-    int ret         = -1;
+    int ret = -1;
     for (int i = 0; i < out_num; i++)
     {
         struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[i]);
@@ -158,13 +157,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_BEST;
 }
 
-static struct node_ops hcl_node_ops = { .prerun       = prerun,
-                                        .run          = run,
-                                        .reshape      = NULL,
-                                        .postrun      = NULL,
-                                        .init_node    = init_node,
-                                        .release_node = release_node,
-                                        .score        = score };
+static struct node_ops hcl_node_ops = {.prerun = prerun,
+                                       .run = run,
+                                       .reshape = NULL,
+                                       .postrun = NULL,
+                                       .init_node = init_node,
+                                       .release_node = release_node,
+                                       .score = score};
 
 int register_split_ref_op()
 {

@@ -37,32 +37,31 @@
 
 #include "conv_kernel_ref.h"
 
-
 int ref_conv_fp16(struct tensor* input_tensor, struct tensor* output_tensor, struct tensor* kernel, struct tensor* bias,
                   struct conv_param* conv_param)
 {
 #if MACOS
     TLOG_ERR("FP16 not support under mac os");
 #else
-    int batch       = input_tensor->dims[0];
-    int group       = conv_param->group;
-    int input_c     = conv_param->input_channel / group;
-    int input_h     = input_tensor->dims[2];
-    int input_w     = input_tensor->dims[3];
-    int output_c    = output_tensor->dims[1] / group;
-    int output_h    = output_tensor->dims[2];
-    int output_w    = output_tensor->dims[3];
+    int batch = input_tensor->dims[0];
+    int group = conv_param->group;
+    int input_c = conv_param->input_channel / group;
+    int input_h = input_tensor->dims[2];
+    int input_w = input_tensor->dims[3];
+    int output_c = output_tensor->dims[1] / group;
+    int output_h = output_tensor->dims[2];
+    int output_w = output_tensor->dims[3];
 
     int kernel_size = input_c * conv_param->kernel_h * conv_param->kernel_w;
     int n, g, c, h, w, kc, kh, kw;
-    int input_offset    = 0;
-    int kernel_offset   = 0;
-    int output_offset   = 0;
+    int input_offset = 0;
+    int kernel_offset = 0;
+    int output_offset = 0;
 
-    fp16_t* input_data  = input_tensor->data;
+    fp16_t* input_data = input_tensor->data;
     fp16_t* output_data = output_tensor->data;
     fp16_t* kernel_data = kernel->data;
-    fp16_t* bias_data   = NULL;
+    fp16_t* bias_data = NULL;
     if (bias != NULL)
         bias_data = bias->data;
 
@@ -85,7 +84,7 @@ int ref_conv_fp16(struct tensor* input_tensor, struct tensor* output_tensor, str
                     {
                         const int h_start = (h * conv_param->stride_h) - conv_param->pad_h0;
                         const int w_start = (w * conv_param->stride_w) - conv_param->pad_w0;
-                        float     total   = 0.f;
+                        float total = 0.f;
                         if (input_tensor->layout == 0)
                         {
                             output_offset = n * group * output_c * output_h * output_w

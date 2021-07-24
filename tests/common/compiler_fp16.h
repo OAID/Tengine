@@ -28,73 +28,72 @@
 #ifdef MACOS
 
 #else
-    #ifdef __cplusplus
-extern "C"
-{
-    #endif
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-    #if defined __ARM_ARCH || defined __riscv
+#if defined __ARM_ARCH || defined __riscv
 
-        #define fp16_to_fp32(data)                                                                                     \
-            ({                                                                                                         \
-                float f = data;                                                                                        \
-                f;                                                                                                     \
-            })
+#define fp16_to_fp32(data) \
+    ({                     \
+        float f = data;    \
+        f;                 \
+    })
 
-        #define fp32_to_fp16(data)                                                                                     \
-            ({                                                                                                         \
-                __fp16 f = data;                                                                                       \
-                f;                                                                                                     \
-            })
+#define fp32_to_fp16(data) \
+    ({                     \
+        __fp16 f = data;   \
+        f;                 \
+    })
 
-    #else
-        #ifdef _MSC_VER
-            #pragma pack(push, 1)
+#else
+#ifdef _MSC_VER
+#pragma pack(push, 1)
 struct fp16_pack
 {
     unsigned short frac : 10;
-    unsigned char  exp  : 5;
-    unsigned char  sign : 1;
+    unsigned char exp : 5;
+    unsigned char sign : 1;
 };
 
 struct fp32_pack
 {
-    unsigned int  frac : 23;
-    unsigned char exp  : 8;
+    unsigned int frac : 23;
+    unsigned char exp : 8;
     unsigned char sign : 1;
 };
-            #pragma pack(pop)
-        #else
+#pragma pack(pop)
+#else
 struct fp16_pack
 {
     unsigned short frac : 10;
-    unsigned char  exp  : 5;
-    unsigned char  sign : 1;
+    unsigned char exp : 5;
+    unsigned char sign : 1;
 } __attribute__((packed));
 
 struct fp32_pack
 {
-    unsigned int  frac : 23;
-    unsigned char exp  : 8;
+    unsigned int frac : 23;
+    unsigned char exp : 8;
     unsigned char sign : 1;
 } __attribute__((packed));
-        #endif
+#endif
 
 typedef struct fp16_pack __fp16;
 
 static inline float fp16_to_fp32(__fp16 data)
 {
-    float             f;
+    float f;
     struct fp32_pack* fp32 = (struct fp32_pack*)&f;
     struct fp16_pack* fp16 = &data;
 
-    int exp                = fp16->exp;
+    int exp = fp16->exp;
 
     if (exp == 31 && fp16->frac != 0)
     {
         // return __builtin_inf()-__builtin_inf();
         fp32->sign = fp16->sign;
-        fp32->exp  = 255;
+        fp32->exp = 255;
         fp32->frac = 1;
 
         return f;
@@ -107,7 +106,7 @@ static inline float fp16_to_fp32(__fp16 data)
     else
         exp = (exp - 15) + 127;
 
-    fp32->exp  = exp;
+    fp32->exp = exp;
     fp32->sign = fp16->sign;
     fp32->frac = ((int)fp16->frac) << 13;
 
@@ -117,14 +116,14 @@ static inline float fp16_to_fp32(__fp16 data)
 static inline __fp16 fp32_to_fp16(float data)
 {
     struct fp32_pack* fp32 = (struct fp32_pack*)&data;
-    struct fp16_pack  fp16;
+    struct fp16_pack fp16;
 
     int exp = fp32->exp;
 
     if (fp32->exp == 255 && fp32->frac != 0)
     {
         // NaN
-        fp16.exp  = 31;
+        fp16.exp = 31;
         fp16.frac = 1;
         fp16.sign = fp32->sign;
 
@@ -138,13 +137,13 @@ static inline __fp16 fp32_to_fp16(float data)
     else
         exp = exp - 127 + 15;
 
-    fp16.exp  = exp;
+    fp16.exp = exp;
     fp16.frac = fp32->frac >> 13;
     fp16.sign = fp32->sign;
 
     return fp16;
 }
-    #endif
+#endif
 
 #endif
 

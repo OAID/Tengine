@@ -27,7 +27,6 @@
 
 #include "api/c_api.h"
 
-
 struct log_option
 {
     int print_prefix;
@@ -35,11 +34,10 @@ struct log_option
     int print_level;
 };
 
-
 struct logger
 {
-    const char*       prefix;
-    int               log_level;
+    const char* prefix;
+    int log_level;
     struct log_option option;
 
     void (*output_func)(const char*);
@@ -49,65 +47,56 @@ struct logger
     void (*set_output_func)(struct logger*, void (*func)(const char*));
 };
 
-
 struct logger* get_default_logger(void);
 
+#define SET_LOG_OUTPUT(func)                          \
+    do                                                \
+    {                                                 \
+        struct logger* logger = get_default_logger(); \
+        logger->set_output_func(logger, func);        \
+    } while (0)
 
-#define SET_LOG_OUTPUT(func)                                                                                           \
-    do                                                                                                                 \
-    {                                                                                                                  \
-        struct logger* logger = get_default_logger();                                                                  \
-        logger->set_output_func(logger, func);                                                                         \
-    }                                                                                                                  \
-    while (0)
+#define SET_LOG_LEVEL(level)                          \
+    do                                                \
+    {                                                 \
+        struct logger* logger = get_default_logger(); \
+        logger->set_log_level(logger, level);         \
+    } while (0)
 
-#define SET_LOG_LEVEL(level)                                                                                           \
-    do                                                                                                                 \
-    {                                                                                                                  \
-        struct logger* logger = get_default_logger();                                                                  \
-        logger->set_log_level(logger, level);                                                                          \
-    }                                                                                                                  \
-    while (0)
+#define SET_LOG_PRINT_TIME(val)                       \
+    do                                                \
+    {                                                 \
+        struct logger* logger = get_default_logger(); \
+        logger->option.print_time = val;              \
+    } while (0)
 
-#define SET_LOG_PRINT_TIME(val)                                                                                        \
-    do                                                                                                                 \
-    {                                                                                                                  \
-        struct logger* logger     = get_default_logger();                                                              \
-        logger->option.print_time = val;                                                                               \
-    }                                                                                                                  \
-    while (0)
+#define SET_LOG_PRINT_LEVEL(val)                      \
+    do                                                \
+    {                                                 \
+        struct logger* logger = get_default_logger(); \
+        logger->option.print_level = val;             \
+    } while (0)
 
-#define SET_LOG_PRINT_LEVEL(val)                                                                                       \
-    do                                                                                                                 \
-    {                                                                                                                  \
-        struct logger* logger      = get_default_logger();                                                             \
-        logger->option.print_level = val;                                                                              \
-    }                                                                                                                  \
-    while (0)
+#define SET_LOG_PRINT_PREFIX(val)                     \
+    do                                                \
+    {                                                 \
+        struct logger* logger = get_default_logger(); \
+        logger->option.print_prefix = val;            \
+    } while (0)
 
-#define SET_LOG_PRINT_PREFIX(val)                                                                                      \
-    do                                                                                                                 \
-    {                                                                                                                  \
-        struct logger* logger       = get_default_logger();                                                            \
-        logger->option.print_prefix = val;                                                                             \
-    }                                                                                                                  \
-    while (0)
+#define SET_LOG_PREFIX(prefix)                        \
+    do                                                \
+    {                                                 \
+        struct logger* logger = get_default_logger(); \
+        logger->prefix = prefix;                      \
+    } while (0)
 
-#define SET_LOG_PREFIX(prefix)                                                                                         \
-    do                                                                                                                 \
-    {                                                                                                                  \
-        struct logger* logger = get_default_logger();                                                                  \
-        logger->prefix        = prefix;                                                                                \
-    }                                                                                                                  \
-    while (0)
-
-#define LOG(level, fmt, ...)                                                                                           \
-    do                                                                                                                 \
-    {                                                                                                                  \
-        struct logger* logger = get_default_logger();                                                                  \
-        logger->log(logger, level, fmt, ##__VA_ARGS__);                                                                \
-    }                                                                                                                  \
-    while (0)
+#define LOG(level, fmt, ...)                            \
+    do                                                  \
+    {                                                   \
+        struct logger* logger = get_default_logger();   \
+        logger->log(logger, level, fmt, ##__VA_ARGS__); \
+    } while (0)
 
 #define TLOG_EMERG(fmt, ...)   LOG(LOG_EMERG, fmt, ##__VA_ARGS__)
 #define TLOG_ALERT(fmt, ...)   LOG(LOG_ALERT, fmt, ##__VA_ARGS__)
@@ -118,6 +107,6 @@ struct logger* get_default_logger(void);
 #define TLOG_INFO(fmt, ...)    LOG(LOG_INFO, fmt, ##__VA_ARGS__)
 #define TLOG_DEBUG(fmt, ...)   LOG(LOG_DEBUG, fmt, ##__VA_ARGS__)
 
-#define XLOG(level, fmt, ...)                                                                                          \
-    LOG(level, "%s:%d ", __FILE__, __LINE__);                                                                          \
+#define XLOG(level, fmt, ...)                 \
+    LOG(level, "%s:%d ", __FILE__, __LINE__); \
     LOG(level, fmt, ##__VA_ARGS__)

@@ -25,14 +25,12 @@
 #ifndef __SOFTMAX_KERNEL_REF_H__
 #define __SOFTMAX_KERNEL_REF_H__
 
-
 #include "graph/tensor.h"
 #include "graph/node.h"
 #include "graph/graph.h"
 
 #include <math.h>
 #include <string.h>
-
 
 static void GetMaxArray(void* input, void* array, int in_size, int on_size)
 {
@@ -53,9 +51,9 @@ static void GetMaxArray(void* input, void* array, int in_size, int on_size)
 
 static void GetOutResult(void* input, void* output, void* array, void* sum_array, int in_size, int on_size)
 {
-    float* input_ptr     = (float*)input;
-    float* output_ptr    = (float*)output;
-    float* array_ptr     = (float*)array;
+    float* input_ptr = (float*)input;
+    float* output_ptr = (float*)output;
+    float* array_ptr = (float*)array;
     float* sum_array_ptr = (float*)sum_array;
 
     memset(sum_array, 0x0, in_size * sizeof(float));
@@ -65,7 +63,7 @@ static void GetOutResult(void* input, void* output, void* array, void* sum_array
     {
         for (int l = 0; l < in_size; l++)
         {
-            int index         = j * in_size + l;
+            int index = j * in_size + l;
             output_ptr[index] = exp(input_ptr[index] - array_ptr[l]);
             sum_array_ptr[l] += output_ptr[index];
         }

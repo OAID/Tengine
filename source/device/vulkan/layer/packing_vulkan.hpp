@@ -43,9 +43,9 @@
 #include "../vulkan_layer.hpp"
 #include "../vulkan_command.hpp"
 
-namespace TEngine
+namespace TEngine {
+class Packing_vulkan : public Layer
 {
-class Packing_vulkan : public Layer {
 public:
     Packing_vulkan();
 
@@ -90,7 +90,6 @@ public:
     Pipeline* pipeline_packing_pack8to1;
 };
 
-}    // namespace TEngine
-
+} // namespace TEngine
 
 #endif

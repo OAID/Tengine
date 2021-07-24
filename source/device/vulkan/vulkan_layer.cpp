@@ -39,14 +39,15 @@
 
 #include "vulkan_layer.hpp"
 
-namespace TEngine
-{
+namespace TEngine {
 Layer::Layer()
 {
     support_vulkan = false;
 }
 
-Layer::~Layer() {}
+Layer::~Layer()
+{
+}
 
 int Layer::create_pipeline(const Option& /*opt*/)
 {
@@ -80,4 +81,4 @@ int Layer::record_pipeline(const std::vector<VkTensor>& bottom_blobs, std::vecto
     return 0;
 }
 
-}    // namespace TEngine
+} // namespace TEngine

@@ -38,24 +38,23 @@
 #include <math.h>
 #include <string.h>
 
-
 typedef struct
 {
-    int* in_shape;    // the dim of the input
-    int  axis;
-    int  indices_num;
-    int  dim_size;
-    int  is_onnx;
+    int* in_shape; // the dim of the input
+    int axis;
+    int indices_num;
+    int dim_size;
+    int is_onnx;
 } gather_param_t;
 
 static int ref_gather_fp32(float* input, int* input_indices, float* output, gather_param_t* param, int num_thread)
 {
-    float* out_ptr    = output;
-    float* in_ptr     = input;
-    int    axis       = param->axis;
-    int    outer_size = 1;
-    int    inner_size = 1;
-    int    axis_size  = param->in_shape[axis];
+    float* out_ptr = output;
+    float* in_ptr = input;
+    int axis = param->axis;
+    int outer_size = 1;
+    int inner_size = 1;
+    int axis_size = param->in_shape[axis];
 
     for (int i = 0; i < axis; i++)
     {
@@ -93,12 +92,12 @@ static int ref_gather_fp32(float* input, int* input_indices, float* output, gath
 
 static int ref_gather_uint8(uint8_t* input, int* input_indices, uint8_t* output, gather_param_t* param, int num_thread)
 {
-    uint8_t* out_ptr    = output;
-    uint8_t* in_ptr     = input;
-    int      axis       = param->axis;
-    int      outer_size = 1;
-    int      inner_size = 1;
-    int      axis_size  = param->in_shape[axis];
+    uint8_t* out_ptr = output;
+    uint8_t* in_ptr = input;
+    int axis = param->axis;
+    int outer_size = 1;
+    int inner_size = 1;
+    int axis_size = param->in_shape[axis];
 
     for (int i = 0; i < axis; i++)
     {
@@ -125,36 +124,36 @@ static int ref_gather_uint8(uint8_t* input, int* input_indices, uint8_t* output,
 
 static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node*         ir_node      = exec_node->ir_node;
-    struct graph*        ir_graph     = ir_node->graph;
+    struct node* ir_node = exec_node->ir_node;
+    struct graph* ir_graph = ir_node->graph;
     struct gather_param* gather_param = (struct gather_param*)ir_node->op.param_mem;
-    gather_param_t*      op_priv_info = (gather_param_t*)exec_node->ops_priv;
-    struct tensor*       input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    gather_param_t* op_priv_info = (gather_param_t*)exec_node->ops_priv;
+    struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
 
-    op_priv_info->axis                = gather_param->axis;
-    op_priv_info->indices_num         = gather_param->indices_num;
-    op_priv_info->is_onnx             = gather_param->is_onnx;
-    op_priv_info->in_shape            = (int*)sys_malloc(input_tensor->dim_num * sizeof(int));
+    op_priv_info->axis = gather_param->axis;
+    op_priv_info->indices_num = gather_param->indices_num;
+    op_priv_info->is_onnx = gather_param->is_onnx;
+    op_priv_info->in_shape = (int*)sys_malloc(input_tensor->dim_num * sizeof(int));
     /* prerun now */
     return 0;
 }
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node*   ir_node        = exec_node->ir_node;
-    struct graph*  ir_graph       = ir_node->graph;
-    struct tensor* input_tensor   = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    struct tensor* output_tensor  = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+    struct node* ir_node = exec_node->ir_node;
+    struct graph* ir_graph = ir_node->graph;
+    struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
     struct tensor* indices_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
 
-    gather_param_t* op_priv_info  = (gather_param_t*)exec_node->ops_priv;
+    gather_param_t* op_priv_info = (gather_param_t*)exec_node->ops_priv;
 
-    int out_size                  = input_tensor->elem_num;
+    int out_size = input_tensor->elem_num;
 
     // auto in_dim = input_tensor->GetShape().GetDim();
-    void* input            = input_tensor->data;
+    void* input = input_tensor->data;
 
-    void* indices_data     = indices_tensor->data;
+    void* indices_data = indices_tensor->data;
 
     op_priv_info->dim_size = input_tensor->dim_num;
     for (int i = 0; i < op_priv_info->dim_size; i++)
@@ -166,7 +165,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     // int indices_num = op_param.indices_num;
     void* output = output_tensor->data;
 
-    int ret      = -1;
+    int ret = -1;
     if (input_tensor->data_type == TENGINE_DT_FP32)
         ret = ref_gather_fp32(input, indices_data, output, op_priv_info, exec_graph->num_thread);
     else if (input_tensor->data_type == TENGINE_DT_UINT8)
@@ -177,8 +176,8 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node*  ir_node        = exec_node->ir_node;
-    struct graph* ir_graph       = ir_node->graph;
+    struct node* ir_node = exec_node->ir_node;
+    struct graph* ir_graph = ir_node->graph;
 
     gather_param_t* op_priv_info = (gather_param_t*)sys_malloc(sizeof(gather_param_t));
 
@@ -195,7 +194,7 @@ static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, str
 }
 static int postrun(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node*    ir_node  = exec_node->ir_node;
+    struct node* ir_node = exec_node->ir_node;
     gather_param_t* op_param = (gather_param_t*)exec_node->ops_priv;
 
     sys_free(op_param->in_shape);
@@ -218,13 +217,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_BEST;
 }
 
-static struct node_ops gather_node_ops = { .prerun       = prerun,
-                                           .run          = run,
-                                           .reshape      = NULL,
-                                           .postrun      = NULL,
-                                           .init_node    = init_node,
-                                           .release_node = release_node,
-                                           .score        = score };
+static struct node_ops gather_node_ops = {.prerun = prerun,
+                                          .run = run,
+                                          .reshape = NULL,
+                                          .postrun = NULL,
+                                          .init_node = init_node,
+                                          .release_node = release_node,
+                                          .score = score};
 
 int register_gather_ref_op()
 {

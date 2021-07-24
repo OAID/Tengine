@@ -35,32 +35,30 @@
 #include "utility/vector.h"
 #include "utility/log.h"
 
-
 static int slice_op_map(int op)
 {
     return OP_SLICE;
 }
 
-
 static int tm2_load_slice(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                           const TM2_Operator* tm_op)
 {
-    struct slice_param*    slice_param = (struct slice_param*)ir_node->op.param_mem;
-    const struct tm2_priv* tm2_priv    = (struct tm2_priv*)ir_graph->serializer_privacy;
-    const char*            mem_base    = tm2_priv->base;
-    const TM2_SliceParam*  tm_param    = (TM2_SliceParam*)(mem_base + tm_op->offset_t_param);
+    struct slice_param* slice_param = (struct slice_param*)ir_node->op.param_mem;
+    const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
+    const char* mem_base = tm2_priv->base;
+    const TM2_SliceParam* tm_param = (TM2_SliceParam*)(mem_base + tm_op->offset_t_param);
 
-    slice_param->axis                  = tm_param->axis;
-    slice_param->begin                 = tm_param->begin;
-    slice_param->end                   = tm_param->end;
-    slice_param->step                  = tm_param->step;
-    slice_param->iscaffe               = tm_param->iscaffe;
-    slice_param->ismxnet               = tm_param->ismxnet;
-    slice_param->isonnx                = tm_param->isonnx;
+    slice_param->axis = tm_param->axis;
+    slice_param->begin = tm_param->begin;
+    slice_param->end = tm_param->end;
+    slice_param->step = tm_param->step;
+    slice_param->iscaffe = tm_param->iscaffe;
+    slice_param->ismxnet = tm_param->ismxnet;
+    slice_param->isonnx = tm_param->isonnx;
 
-    slice_param->begin_                = create_vector(sizeof(uint32_t), NULL);
-    slice_param->size_                 = create_vector(sizeof(uint32_t), NULL);
-    slice_param->slice_point_          = create_vector(sizeof(uint32_t), NULL);
+    slice_param->begin_ = create_vector(sizeof(uint32_t), NULL);
+    slice_param->size_ = create_vector(sizeof(uint32_t), NULL);
+    slice_param->slice_point_ = create_vector(sizeof(uint32_t), NULL);
 
     if (tm_param->offset_vi_begins != TM2_NOT_SET)
     {
@@ -92,7 +90,6 @@ static int tm2_load_slice(struct graph* ir_graph, struct node* ir_node, const TM
     return 0;
 }
 
-
 int register_tm2_slice_op()
 {
     struct serializer* tm2_s = find_serializer_via_name("tengine");
@@ -107,7 +104,6 @@ int register_tm2_slice_op()
 
     return 0;
 }
-
 
 int unregister_tm2_slice_op()
 {

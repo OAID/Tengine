@@ -46,23 +46,22 @@
 #include <string.h>
 
 #ifdef _MSC_VER
-    #include <windows.h>
+#include <windows.h>
 #else
-    #include <sys/stat.h>
-    #include <sys/time.h>
+#include <sys/stat.h>
+#include <sys/time.h>
 #endif
-
 
 char* replace_string_character(const char* src_str, char* dst_str, const char* target_char, const char* replaced_char)
 {
-    char*       p;
-    char*       _out     = dst_str;
-    const char* _str     = src_str;
-    const char* _src     = target_char;
-    const char* _dst     = replaced_char;
-    size_t      src_size = strlen(_src);
-    size_t      dst_size = strlen(_dst);
-    size_t      len      = 0;
+    char* p;
+    char* _out = dst_str;
+    const char* _str = src_str;
+    const char* _src = target_char;
+    const char* _dst = replaced_char;
+    size_t src_size = strlen(_src);
+    size_t dst_size = strlen(_dst);
+    size_t len = 0;
 
     do
     {
@@ -77,12 +76,10 @@ char* replace_string_character(const char* src_str, char* dst_str, const char* t
         memcpy(_out + len, _dst, dst_size);
         _str = p + src_size;
         _out = _out + len + dst_size;
-    }
-    while (p);
+    } while (p);
 
     return dst_str;
 }
-
 
 int get_tensor_cv_shape(const struct tensor* tensor, int* n, int* c, int* h, int* w)
 {
@@ -91,10 +88,10 @@ int get_tensor_cv_shape(const struct tensor* tensor, int* n, int* c, int* h, int
         return -1;
     }
 
-    *n              = 0;
-    *c              = 0;
-    *h              = 0;
-    *w              = 0;
+    *n = 0;
+    *c = 0;
+    *h = 0;
+    *w = 0;
     const int* dims = tensor->dims;
 
     switch (tensor->dim_num)
@@ -118,7 +115,6 @@ int get_tensor_cv_shape(const struct tensor* tensor, int* n, int* c, int* h, int
 
     return 0;
 }
-
 
 float get_node_total_flops(struct node* node)
 {
@@ -155,218 +151,134 @@ float get_node_total_flops(struct node* node)
     return flops;
 }
 
-
 int print_tensor_data_value(FILE* file, const struct tensor* tensor, int offset)
 {
     switch (tensor->data_type)
     {
     case TENGINE_DT_FP32:
-        {
-            float* base_ptr = tensor->data;
-            float  val      = base_ptr[offset];
-            if (val < 0)
-                fprintf(file, "%.4f ", val);
-            else
-                fprintf(file, " %.4f ", val);
-            break;
-        }
+    {
+        float* base_ptr = tensor->data;
+        float val = base_ptr[offset];
+        if (val < 0)
+            fprintf(file, "%.4f ", val);
+        else
+            fprintf(file, " %.4f ", val);
+        break;
+    }
     case TENGINE_DT_FP16:
-        {
-            fp16_t* base_ptr = tensor->data;
-            fp16_t  val      = base_ptr[offset];
+    {
+        fp16_t* base_ptr = tensor->data;
+        fp16_t val = base_ptr[offset];
 
-            float val_fp32   = fp16_to_fp32(val);
+        float val_fp32 = fp16_to_fp32(val);
 
-            if (val_fp32 < 0)
-                fprintf(file, "%.4f ", val_fp32);
-            else
-                fprintf(file, " %.4f ", val_fp32);
-            break;
-        }
+        if (val_fp32 < 0)
+            fprintf(file, "%.4f ", val_fp32);
+        else
+            fprintf(file, " %.4f ", val_fp32);
+        break;
+    }
     case TENGINE_DT_UINT8:
-        {
-            uint8_t* base_ptr  = tensor->data;
-            uint8_t  val       = base_ptr[offset];
+    {
+        uint8_t* base_ptr = tensor->data;
+        uint8_t val = base_ptr[offset];
 
-            float   scale      = tensor->scale;
-            int32_t zero_point = tensor->zero_point;
+        float scale = tensor->scale;
+        int32_t zero_point = tensor->zero_point;
 
-            float val_fp32     = (float)((int)val - (int)zero_point) * scale;
-            if (val_fp32 < 0)
-                fprintf(file, "%.4f ", val_fp32);
-            else
-                fprintf(file, " %.4f ", val_fp32);
-            break;
-        }
+        float val_fp32 = (float)((int)val - (int)zero_point) * scale;
+        if (val_fp32 < 0)
+            fprintf(file, "%.4f ", val_fp32);
+        else
+            fprintf(file, " %.4f ", val_fp32);
+        break;
+    }
     case TENGINE_DT_INT8:
-        {
-            int8_t* base_ptr = tensor->data;
-            int8_t  val      = base_ptr[offset];
+    {
+        int8_t* base_ptr = tensor->data;
+        int8_t val = base_ptr[offset];
 
-            float scale      = tensor->scale;
+        float scale = tensor->scale;
 
-            float val_fp32   = (float)val * scale;
-            if (val_fp32 < 0)
-                fprintf(file, "%.4f ", val_fp32);
-            else
-                fprintf(file, " %.4f ", val_fp32);
-        }
+        float val_fp32 = (float)val * scale;
+        if (val_fp32 < 0)
+            fprintf(file, "%.4f ", val_fp32);
+        else
+            fprintf(file, " %.4f ", val_fp32);
+    }
     case TENGINE_DT_INT32:
-        {
-            int32_t* base_ptr = tensor->data;
-            int8_t   val      = base_ptr[offset];
+    {
+        int32_t* base_ptr = tensor->data;
+        int8_t val = base_ptr[offset];
 
-            float scale       = tensor->scale;
-            float val_fp32    = (float)val * scale;
+        float scale = tensor->scale;
+        float val_fp32 = (float)val * scale;
 
-            if (val_fp32 < 0)
-                fprintf(file, "%.6f ", val_fp32);
-            else
-                fprintf(file, " %.6f ", val_fp32);
-        }
+        if (val_fp32 < 0)
+            fprintf(file, "%.6f ", val_fp32);
+        else
+            fprintf(file, " %.6f ", val_fp32);
+    }
     }
 
     return 0;
 }
-
 
 void print_tensor_data_to_file(FILE* file, const struct tensor* tensor)
 {
     switch (tensor->dim_num)
     {
     case 5:
+    {
+        int dim5 = tensor->dims[0], batch = tensor->dims[1], channel = 0, height = 0, width = 0;
+
+        if (TENGINE_LAYOUT_NCHW == tensor->layout)
         {
-            int dim5 = tensor->dims[0], batch = tensor->dims[1], channel = 0, height = 0, width = 0;
-
-            if (TENGINE_LAYOUT_NCHW == tensor->layout)
-            {
-                channel = tensor->dims[2];
-                height  = tensor->dims[3];
-                width   = tensor->dims[4];
-            }
-            if (TENGINE_LAYOUT_NHWC == tensor->layout)
-            {
-                height  = tensor->dims[2];
-                width   = tensor->dims[3];
-                channel = tensor->dims[4];
-            }
-
-            if (TENGINE_DT_FP32 == tensor->data_type)
-            {
-                fprintf(file, "Shape is {%d %d %d %d %d}, data type is fp32\n", dim5, batch, channel, height, width);
-            }
-            else
-            {
-                if (TENGINE_DT_FP16 == tensor->data_type)
-                {
-                    fprintf(file, "Shape is {%d %d %d %d %d}, data type is fp16, cast to fp32\n", dim5, batch, channel,
-                            height, width);
-                }
-                else
-                {
-                    const char* type_name = get_tensor_data_type_string(tensor->data_type);
-                    fprintf(file, "Shape is {%d %d %d %d %d}, data type is %s, inverse quantization to fp32\n", dim5,
-                            batch, channel, height, width, type_name);
-                }
-            }
-
-            for (int d5 = 0; d5 < dim5; d5++)
-            {
-                fprintf(file, "Dim5 %d:\n", d5);
-
-                for (int n = 0; n < batch; n++)
-                {
-                    fprintf(file, "\tBatch %d:\n", n);
-
-                    for (int ch = 0; ch < channel; ch++)
-                    {
-                        fprintf(file, "\t\tChannel %d:\n", ch);
-
-                        for (int h = 0; h < height; h++)
-                        {
-                            fprintf(file, "\t\t\t");
-
-                            for (int w = 0; w < width; w++)
-                            {
-                                int offset = 0;
-
-                                if (TENGINE_LAYOUT_NCHW == tensor->layout)
-                                {
-                                    offset += d5 * batch * channel * height * width;
-                                    offset += n * channel * height * width;
-                                    offset += ch * height * width;
-                                    offset += h * width;
-                                    offset += w;
-                                }
-                                if (TENGINE_LAYOUT_NHWC == tensor->layout)
-                                {
-                                    offset += d5 * batch * channel * height * width;
-                                    offset += n * channel * height * width;
-                                    offset += ch;
-                                    offset += h * width * channel;
-                                    offset += w * channel;
-                                }
-
-                                print_tensor_data_value(file, tensor, offset);
-                            }
-                            fprintf(file, "\n");
-                        }
-                        fprintf(file, "\n");
-                    }
-                    fprintf(file, "\n");
-                }
-                fprintf(file, "\n");
-            }
-
-            break;
+            channel = tensor->dims[2];
+            height = tensor->dims[3];
+            width = tensor->dims[4];
         }
-    case 4:
+        if (TENGINE_LAYOUT_NHWC == tensor->layout)
         {
-            int batch = tensor->dims[0], channel = 0, height = 0, width = 0;
+            height = tensor->dims[2];
+            width = tensor->dims[3];
+            channel = tensor->dims[4];
+        }
 
-            if (TENGINE_LAYOUT_NCHW == tensor->layout)
+        if (TENGINE_DT_FP32 == tensor->data_type)
+        {
+            fprintf(file, "Shape is {%d %d %d %d %d}, data type is fp32\n", dim5, batch, channel, height, width);
+        }
+        else
+        {
+            if (TENGINE_DT_FP16 == tensor->data_type)
             {
-                channel = tensor->dims[1];
-                height  = tensor->dims[2];
-                width   = tensor->dims[3];
-            }
-            if (TENGINE_LAYOUT_NHWC == tensor->layout)
-            {
-                height  = tensor->dims[1];
-                width   = tensor->dims[2];
-                channel = tensor->dims[3];
-            }
-
-            if (TENGINE_DT_FP32 == tensor->data_type)
-            {
-                fprintf(file, "Shape is {%d %d %d %d}, data type is fp32\n", batch, channel, height, width);
+                fprintf(file, "Shape is {%d %d %d %d %d}, data type is fp16, cast to fp32\n", dim5, batch, channel,
+                        height, width);
             }
             else
             {
-                if (TENGINE_DT_FP16 == tensor->data_type)
-                {
-                    fprintf(file, "Shape is {%d %d %d %d}, data type is fp16, cast to fp32\n", batch, channel, height,
-                            width);
-                }
-                else
-                {
-                    const char* type_name = get_tensor_data_type_string(tensor->data_type);
-                    fprintf(file, "Shape is {%d %d %d %d}, data type is %s, inverse quantization to fp32\n", batch,
-                            channel, height, width, type_name);
-                }
+                const char* type_name = get_tensor_data_type_string(tensor->data_type);
+                fprintf(file, "Shape is {%d %d %d %d %d}, data type is %s, inverse quantization to fp32\n", dim5,
+                        batch, channel, height, width, type_name);
             }
+        }
+
+        for (int d5 = 0; d5 < dim5; d5++)
+        {
+            fprintf(file, "Dim5 %d:\n", d5);
 
             for (int n = 0; n < batch; n++)
             {
-                fprintf(file, "Batch %d:\n", n);
+                fprintf(file, "\tBatch %d:\n", n);
 
                 for (int ch = 0; ch < channel; ch++)
                 {
-                    fprintf(file, "\tChannel %d:\n", ch);
+                    fprintf(file, "\t\tChannel %d:\n", ch);
 
                     for (int h = 0; h < height; h++)
                     {
-                        fprintf(file, "\t\t");
+                        fprintf(file, "\t\t\t");
 
                         for (int w = 0; w < width; w++)
                         {
@@ -374,6 +286,7 @@ void print_tensor_data_to_file(FILE* file, const struct tensor* tensor)
 
                             if (TENGINE_LAYOUT_NCHW == tensor->layout)
                             {
+                                offset += d5 * batch * channel * height * width;
                                 offset += n * channel * height * width;
                                 offset += ch * height * width;
                                 offset += h * width;
@@ -381,6 +294,7 @@ void print_tensor_data_to_file(FILE* file, const struct tensor* tensor)
                             }
                             if (TENGINE_LAYOUT_NHWC == tensor->layout)
                             {
+                                offset += d5 * batch * channel * height * width;
                                 offset += n * channel * height * width;
                                 offset += ch;
                                 offset += h * width * channel;
@@ -395,50 +309,58 @@ void print_tensor_data_to_file(FILE* file, const struct tensor* tensor)
                 }
                 fprintf(file, "\n");
             }
-
-            break;
+            fprintf(file, "\n");
         }
-    case 3:
+
+        break;
+    }
+    case 4:
+    {
+        int batch = tensor->dims[0], channel = 0, height = 0, width = 0;
+
+        if (TENGINE_LAYOUT_NCHW == tensor->layout)
         {
-            int batch = 0, height = 0, width = 0;
+            channel = tensor->dims[1];
+            height = tensor->dims[2];
+            width = tensor->dims[3];
+        }
+        if (TENGINE_LAYOUT_NHWC == tensor->layout)
+        {
+            height = tensor->dims[1];
+            width = tensor->dims[2];
+            channel = tensor->dims[3];
+        }
 
-            if (TENGINE_LAYOUT_NCHW == tensor->layout)
+        if (TENGINE_DT_FP32 == tensor->data_type)
+        {
+            fprintf(file, "Shape is {%d %d %d %d}, data type is fp32\n", batch, channel, height, width);
+        }
+        else
+        {
+            if (TENGINE_DT_FP16 == tensor->data_type)
             {
-                batch  = tensor->dims[0];
-                height = tensor->dims[1];
-                width  = tensor->dims[2];
-            }
-            if (TENGINE_LAYOUT_NHWC == tensor->layout)
-            {
-                height = tensor->dims[0];
-                width  = tensor->dims[1];
-                batch  = tensor->dims[2];
-            }
-
-            if (TENGINE_DT_FP32 == tensor->data_type)
-            {
-                fprintf(file, "Shape is {%d %d %d}, data type is fp32\n", batch, height, width);
+                fprintf(file, "Shape is {%d %d %d %d}, data type is fp16, cast to fp32\n", batch, channel, height,
+                        width);
             }
             else
             {
-                if (TENGINE_DT_FP16 == tensor->data_type)
-                {
-                    fprintf(file, "Shape is {%d %d %d}, data type is fp16, cast to fp32\n", batch, height, width);
-                }
-                else
-                {
-                    const char* type_name = get_tensor_data_type_string(tensor->data_type);
-                    fprintf(file, "Shape is {%d %d %d}, data type is %s, inverse quantization to fp32\n", batch, height,
-                            width, type_name);
-                }
+                const char* type_name = get_tensor_data_type_string(tensor->data_type);
+                fprintf(file, "Shape is {%d %d %d %d}, data type is %s, inverse quantization to fp32\n", batch,
+                        channel, height, width, type_name);
             }
+        }
 
-            for (int n = 0; n < batch; n++)
+        for (int n = 0; n < batch; n++)
+        {
+            fprintf(file, "Batch %d:\n", n);
+
+            for (int ch = 0; ch < channel; ch++)
             {
+                fprintf(file, "\tChannel %d:\n", ch);
+
                 for (int h = 0; h < height; h++)
                 {
-                    fprintf(file, "Channel %d:\n", h);
-                    fprintf(file, "\t");
+                    fprintf(file, "\t\t");
 
                     for (int w = 0; w < width; w++)
                     {
@@ -446,15 +368,17 @@ void print_tensor_data_to_file(FILE* file, const struct tensor* tensor)
 
                         if (TENGINE_LAYOUT_NCHW == tensor->layout)
                         {
-                            offset += n * height * width;
+                            offset += n * channel * height * width;
+                            offset += ch * height * width;
                             offset += h * width;
                             offset += w;
                         }
                         if (TENGINE_LAYOUT_NHWC == tensor->layout)
                         {
-                            offset += h;
-                            offset += n * width * height;
-                            offset += w * height;
+                            offset += n * channel * height * width;
+                            offset += ch;
+                            offset += h * width * channel;
+                            offset += w * channel;
                         }
 
                         print_tensor_data_value(file, tensor, offset);
@@ -463,77 +387,145 @@ void print_tensor_data_to_file(FILE* file, const struct tensor* tensor)
                 }
                 fprintf(file, "\n");
             }
-
-            break;
+            fprintf(file, "\n");
         }
-    case 2:
+
+        break;
+    }
+    case 3:
+    {
+        int batch = 0, height = 0, width = 0;
+
+        if (TENGINE_LAYOUT_NCHW == tensor->layout)
         {
-            int batch = 0, width = 0;
+            batch = tensor->dims[0];
+            height = tensor->dims[1];
+            width = tensor->dims[2];
+        }
+        if (TENGINE_LAYOUT_NHWC == tensor->layout)
+        {
+            height = tensor->dims[0];
+            width = tensor->dims[1];
+            batch = tensor->dims[2];
+        }
 
-            if (TENGINE_LAYOUT_NCHW == tensor->layout)
+        if (TENGINE_DT_FP32 == tensor->data_type)
+        {
+            fprintf(file, "Shape is {%d %d %d}, data type is fp32\n", batch, height, width);
+        }
+        else
+        {
+            if (TENGINE_DT_FP16 == tensor->data_type)
             {
-                batch = tensor->dims[0];
-                width = tensor->dims[1];
-            }
-            if (TENGINE_LAYOUT_NHWC == tensor->layout)
-            {
-                batch = tensor->dims[0];
-                width = tensor->dims[1];
-            }
-
-            if (TENGINE_DT_FP32 == tensor->data_type)
-            {
-                fprintf(file, "Shape is {%d %d}, data type is fp32\n", batch, width);
+                fprintf(file, "Shape is {%d %d %d}, data type is fp16, cast to fp32\n", batch, height, width);
             }
             else
             {
-                if (TENGINE_DT_FP16 == tensor->data_type)
-                {
-                    fprintf(file, "Shape is {%d %d}, data type is fp16, cast to fp32\n", batch, width);
-                }
-                else
-                {
-                    const char* type_name = get_tensor_data_type_string(tensor->data_type);
-                    fprintf(file, "Shape is {%d %d}, data type is %s, inverse quantization to fp32\n", batch, width,
-                            type_name);
-                }
+                const char* type_name = get_tensor_data_type_string(tensor->data_type);
+                fprintf(file, "Shape is {%d %d %d}, data type is %s, inverse quantization to fp32\n", batch, height,
+                        width, type_name);
             }
+        }
 
-            for (int n = 0; n < batch; n++)
+        for (int n = 0; n < batch; n++)
+        {
+            for (int h = 0; h < height; h++)
             {
+                fprintf(file, "Channel %d:\n", h);
+                fprintf(file, "\t");
+
                 for (int w = 0; w < width; w++)
                 {
                     int offset = 0;
 
-                    offset += n * width;
-                    offset += w;
+                    if (TENGINE_LAYOUT_NCHW == tensor->layout)
+                    {
+                        offset += n * height * width;
+                        offset += h * width;
+                        offset += w;
+                    }
+                    if (TENGINE_LAYOUT_NHWC == tensor->layout)
+                    {
+                        offset += h;
+                        offset += n * width * height;
+                        offset += w * height;
+                    }
 
                     print_tensor_data_value(file, tensor, offset);
                 }
                 fprintf(file, "\n");
             }
-
-            break;
+            fprintf(file, "\n");
         }
-    case 1:
+
+        break;
+    }
+    case 2:
+    {
+        int batch = 0, width = 0;
+
+        if (TENGINE_LAYOUT_NCHW == tensor->layout)
         {
-            int width = tensor->dims[0];
+            batch = tensor->dims[0];
+            width = tensor->dims[1];
+        }
+        if (TENGINE_LAYOUT_NHWC == tensor->layout)
+        {
+            batch = tensor->dims[0];
+            width = tensor->dims[1];
+        }
 
-            fprintf(file, "Shape is {%d}, data type is fp32\n", width);
+        if (TENGINE_DT_FP32 == tensor->data_type)
+        {
+            fprintf(file, "Shape is {%d %d}, data type is fp32\n", batch, width);
+        }
+        else
+        {
+            if (TENGINE_DT_FP16 == tensor->data_type)
+            {
+                fprintf(file, "Shape is {%d %d}, data type is fp16, cast to fp32\n", batch, width);
+            }
+            else
+            {
+                const char* type_name = get_tensor_data_type_string(tensor->data_type);
+                fprintf(file, "Shape is {%d %d}, data type is %s, inverse quantization to fp32\n", batch, width,
+                        type_name);
+            }
+        }
 
-
+        for (int n = 0; n < batch; n++)
+        {
             for (int w = 0; w < width; w++)
             {
-                print_tensor_data_value(file, tensor, w);
-            }
+                int offset = 0;
 
-            break;
+                offset += n * width;
+                offset += w;
+
+                print_tensor_data_value(file, tensor, offset);
+            }
+            fprintf(file, "\n");
         }
+
+        break;
+    }
+    case 1:
+    {
+        int width = tensor->dims[0];
+
+        fprintf(file, "Shape is {%d}, data type is fp32\n", width);
+
+        for (int w = 0; w < width; w++)
+        {
+            print_tensor_data_value(file, tensor, w);
+        }
+
+        break;
+    }
     default:
         printf("Input dimension %d not to be supported.\n", tensor->dim_num);
     }
 }
-
 
 /*
  * Extract the blob feature map
@@ -541,7 +533,7 @@ void print_tensor_data_to_file(FILE* file, const struct tensor* tensor)
 void extract_feature_from_tensor(const char* comment, const char* layer_name, const struct tensor* tensor)
 {
     // 1. deal with saving path
-    char save_dir[256]   = { '0' };
+    char save_dir[256] = {'0'};
 
     const char* env_path = getenv(TENGINE_DUMP_DIR);
 
@@ -552,10 +544,10 @@ void extract_feature_from_tensor(const char* comment, const char* layer_name, co
         if ('/' == save_dir[strlen(env_path)] || '\\' == save_dir[strlen(env_path)])
         {
 #ifdef _MSC_VER
-            save_dir[strlen(env_path)]     = '\\';
+            save_dir[strlen(env_path)] = '\\';
             save_dir[strlen(env_path) + 1] = 0;
 #else
-            save_dir[strlen(env_path)]     = '/';
+            save_dir[strlen(env_path)] = '/';
             save_dir[strlen(env_path) + 1] = 0;
 #endif
         }
@@ -592,7 +584,7 @@ void extract_feature_from_tensor(const char* comment, const char* layer_name, co
     replace_string_character(layer_short_name, layer_legal_name, "/", "-");
 
     // 3. join path
-    char output_file_path[512] = { '0' };
+    char output_file_path[512] = {'0'};
 
     if (strlen(layer_legal_name) + strlen(save_dir) + strlen(comment) > 256 - 16)
     {
@@ -617,17 +609,16 @@ void extract_feature_from_tensor(const char* comment, const char* layer_name, co
     file = NULL;
 }
 
-
 void extract_node_executed_time(struct subgraph* subgraph, int node_id)
 {
     struct exec_graph* exec_graph = subgraph->device_graph;
-    int                node_num   = get_vector_num(exec_graph->exec_node_list);
-    int                i          = node_id;
-    struct exec_node*  node       = (struct exec_node*)get_vector_data(exec_graph->exec_node_list, i);
+    int node_num = get_vector_num(exec_graph->exec_node_list);
+    int i = node_id;
+    struct exec_node* node = (struct exec_node*)get_vector_data(exec_graph->exec_node_list, i);
 
-    double* timer                 = (double*)exec_graph->timer;
+    double* timer = (double*)exec_graph->timer;
 
-    double sum_of_min_time        = 0.0;
+    double sum_of_min_time = 0.0;
     for (int j = 0; j < node_num; j++)
     {
         sum_of_min_time += timer[j];
@@ -636,14 +627,14 @@ void extract_node_executed_time(struct subgraph* subgraph, int node_id)
     fprintf(stdout, "%4d [%5.2f%% : %6.1f ms] %13s idx: %4d ", i, timer[i] / sum_of_min_time * 100, timer[i],
             get_op_name_from_type(node->ir_node->op.type), node->ir_node->index);
 
-    struct tensor* input_tensor  = get_ir_graph_tensor(subgraph->graph, node->ir_node->input_tensors[0]);
+    struct tensor* input_tensor = get_ir_graph_tensor(subgraph->graph, node->ir_node->input_tensors[0]);
     struct tensor* output_tensor = get_ir_graph_tensor(subgraph->graph, node->ir_node->output_tensors[0]);
-    int            in_n, in_c, in_h, in_w, out_n, out_c, out_h, out_w;
+    int in_n, in_c, in_h, in_w, out_n, out_c, out_h, out_w;
 
     get_tensor_cv_shape(input_tensor, &in_n, &in_c, &in_h, &in_w);
     get_tensor_cv_shape(output_tensor, &out_n, &out_c, &out_h, &out_w);
 
-    const char* in_data_type  = get_tensor_data_type_string(input_tensor->data_type);
+    const char* in_data_type = get_tensor_data_type_string(input_tensor->data_type);
     const char* out_data_type = get_tensor_data_type_string(input_tensor->data_type);
     fprintf(stdout, "shape: {%d %3d %3d %3d} -> {%d %3d %3d %3d}\t %5s -> %5s ", in_n, in_c, in_h, in_w, out_n, out_c,
             out_h, out_w, in_data_type, out_data_type);
@@ -651,50 +642,50 @@ void extract_node_executed_time(struct subgraph* subgraph, int node_id)
     switch (node->ir_node->op.type)
     {
     case OP_CONV:
+    {
+        struct conv_param* param = (struct conv_param*)node->ir_node->op.param_mem;
+        fprintf(stdout, "K: %dx%d | S: %dx%d | P: %d %d %d %d", param->kernel_h, param->kernel_w, param->stride_h,
+                param->stride_w, param->pad_h0, param->pad_h1, param->pad_w0, param->pad_w1);
+        if (param->group != 1)
         {
-            struct conv_param* param = (struct conv_param*)node->ir_node->op.param_mem;
-            fprintf(stdout, "K: %dx%d | S: %dx%d | P: %d %d %d %d", param->kernel_h, param->kernel_w, param->stride_h,
-                    param->stride_w, param->pad_h0, param->pad_h1, param->pad_w0, param->pad_w1);
-            if (param->group != 1)
-            {
-                fprintf(stdout, " DW(%3d) ", param->group);
-            }
-            else
-            {
-                fprintf(stdout, "         ");
-            }
-            break;
+            fprintf(stdout, " DW(%3d) ", param->group);
         }
+        else
+        {
+            fprintf(stdout, "         ");
+        }
+        break;
+    }
     case OP_DECONV:
+    {
+        struct deconv_param* param = (struct deconv_param*)node->ir_node->op.param_mem;
+        fprintf(stdout, "K: %dx%d | S: %dx%d | P: %d %d %d %d", param->kernel_h, param->kernel_w, param->stride_h,
+                param->stride_w, param->pad_h0, param->pad_h1, param->pad_w0, param->pad_w1);
+        if (param->group != 1)
         {
-            struct deconv_param* param = (struct deconv_param*)node->ir_node->op.param_mem;
-            fprintf(stdout, "K: %dx%d | S: %dx%d | P: %d %d %d %d", param->kernel_h, param->kernel_w, param->stride_h,
-                    param->stride_w, param->pad_h0, param->pad_h1, param->pad_w0, param->pad_w1);
-            if (param->group != 1)
-            {
-                fprintf(stdout, " DW(%3d) ", param->group);
-            }
-            else
-            {
-                fprintf(stdout, "         ");
-            }
-            break;
+            fprintf(stdout, " DW(%3d) ", param->group);
         }
+        else
+        {
+            fprintf(stdout, "         ");
+        }
+        break;
+    }
     case OP_POOL:
+    {
+        struct pool_param* param = (struct pool_param*)node->ir_node->op.param_mem;
+        fprintf(stdout, "K: %dx%d | S: %dx%d | P: %d %d %d %d", param->kernel_h, param->kernel_w, param->stride_h,
+                param->stride_w, param->pad_h0, param->pad_h1, param->pad_w0, param->pad_w1);
+        if (param->pool_method == 0)
         {
-            struct pool_param* param = (struct pool_param*)node->ir_node->op.param_mem;
-            fprintf(stdout, "K: %dx%d | S: %dx%d | P: %d %d %d %d", param->kernel_h, param->kernel_w, param->stride_h,
-                    param->stride_w, param->pad_h0, param->pad_h1, param->pad_w0, param->pad_w1);
-            if (param->pool_method == 0)
-            {
-                fprintf(stdout, "         Max");
-            }
-            else
-            {
-                fprintf(stdout, "         Avg");
-            }
-            break;
+            fprintf(stdout, "         Max");
         }
+        else
+        {
+            fprintf(stdout, "         Avg");
+        }
+        break;
+    }
     }
 
     if (OP_CONV == node->ir_node->op.type || OP_DECONV == node->ir_node->op.type)
@@ -711,8 +702,6 @@ void extract_node_executed_time(struct subgraph* subgraph, int node_id)
                 timer[node_num + 1] / timer[node_num], sum_of_min_time);
     }
 }
-
-
 
 double get_current_time(void)
 {

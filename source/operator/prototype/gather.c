@@ -32,16 +32,15 @@
 #include "utility/sys_port.h"
 #include "utility/vector.h"
 
-
 static int infer_shape(struct node* node)
 {
-    struct graph*  graph          = node->graph;
-    struct tensor* input          = get_ir_graph_tensor(graph, node->input_tensors[0]);
-    struct tensor* output         = get_ir_graph_tensor(graph, node->output_tensors[0]);
+    struct graph* graph = node->graph;
+    struct tensor* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
+    struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
 
-    struct gather_param* _param   = (struct gather_param*)(node->op.param_mem);
+    struct gather_param* _param = (struct gather_param*)(node->op.param_mem);
 
-    int indices_size              = _param->indices_num;
+    int indices_size = _param->indices_num;
 
     struct vector* new_shape_temp = create_vector(sizeof(int), NULL);
     if (_param->is_onnx)
@@ -68,7 +67,7 @@ static int infer_shape(struct node* node)
 
         for (int i = 0; i < get_vector_num(new_shape_temp); i++)
         {
-            int* a        = (int*)get_vector_data(new_shape_temp, i);
+            int* a = (int*)get_vector_data(new_shape_temp, i);
             shape_temp[i] = *a;
         }
         set_ir_tensor_shape(output, shape_temp, get_vector_num(new_shape_temp));
@@ -95,7 +94,6 @@ static int infer_shape(struct node* node)
     return 0;
 }
 
-
 static int init_op(struct op* op)
 {
     struct gather_param* gather_param = (struct gather_param*)sys_malloc(sizeof(struct gather_param));
@@ -106,36 +104,32 @@ static int init_op(struct op* op)
     }
 
     /*set the param default value */
-    gather_param->axis        = 0;
+    gather_param->axis = 0;
     gather_param->indices_num = 0;
 
-    op->param_mem             = gather_param;
-    op->param_size            = sizeof(struct gather_param);
-    op->same_shape            = 0;
-    op->infer_shape           = infer_shape;
+    op->param_mem = gather_param;
+    op->param_size = sizeof(struct gather_param);
+    op->same_shape = 0;
+    op->infer_shape = infer_shape;
 
     return 0;
 }
-
 
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
 
-
 int register_gather_op()
 {
     struct method m;
 
     m.version = 1;
-    m.init    = init_op;
+    m.init = init_op;
     m.release = release_op;
-
 
     return register_op(OP_GATHER, OP_GATHER_NAME, &m);
 }
-
 
 int unregister_gather_op()
 {

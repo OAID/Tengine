@@ -22,14 +22,11 @@
  * Author: hhchen@openailab.com
  */
 
-
 #pragma once
 
-extern "C"
-{
+extern "C" {
 #include "operator/op.h"
 }
-
 
 const int vulkan_supported_ops[] = {
 
@@ -37,7 +34,6 @@ const int vulkan_supported_ops[] = {
     ////        OP_PERMUTE,
     OP_POOL, OP_RELU, OP_RESHAPE, OP_SLICE,
     ////        OP_SOFTMAX
-
 
     //        OP_BIAS,
 
@@ -144,6 +140,5 @@ const int vulkan_supported_ops[] = {
     ////        OP_SCATTER,
     ////        OP_WHERE,
     ////        OP_BUILTIN_LAST
-
 
 };

@@ -36,7 +36,6 @@
 
 #include <math.h>
 
-
 static void __hwc(const float* input, float* output, int hh, int ww, int cc, int wc, int hw)
 {
     for (int h = 0; h < hh; ++h)
@@ -58,12 +57,12 @@ static void __chw(const float* input, float* output, int hh, int ww, int cc, int
 {
     for (int c = 0; c < cc; ++c)
     {
-        float* output_ptr = output + c * hw;    // chw
+        float* output_ptr = output + c * hw; // chw
         for (int h = 0; h < hh; ++h)
         {
             for (int w = 0; w < ww; ++w)
             {
-                const float* input_ptr = input + h * wc + w * cc;    // input hwc + wc
+                const float* input_ptr = input + h * wc + w * cc; // input hwc + wc
                 // hw + w = input_ptr[c]
                 output_ptr[h * ww + w] = input_ptr[c];
             }
@@ -82,7 +81,7 @@ static void __hwc_u8(const uint8_t* input, uint8_t* output, int hh, int ww, int 
             for (int c = 0; c < cc; ++c)
             {
                 const uint8_t* in_ptr = input + c * hw + h * ww;
-                out_ptr[w * cc + c]   = in_ptr[w];
+                out_ptr[w * cc + c] = in_ptr[w];
             }
         }
     }
@@ -92,12 +91,12 @@ static void __chw_u8(const uint8_t* input, uint8_t* output, int hh, int ww, int 
 {
     for (int c = 0; c < cc; ++c)
     {
-        uint8_t* output_ptr = output + c * hw;    // chw
+        uint8_t* output_ptr = output + c * hw; // chw
         for (int h = 0; h < hh; ++h)
         {
             for (int w = 0; w < ww; ++w)
             {
-                const uint8_t* input_ptr = input + h * wc + w * cc;    // input hwc + wc
+                const uint8_t* input_ptr = input + h * wc + w * cc; // input hwc + wc
                 // hw + w = input_ptr[c]
                 output_ptr[h * ww + w] = input_ptr[c];
             }
@@ -116,7 +115,7 @@ static void __hwc_i8(const int8_t* input, int8_t* output, int hh, int ww, int cc
             for (int c = 0; c < cc; ++c)
             {
                 const int8_t* in_ptr = input + c * hw + h * ww;
-                out_ptr[w * cc + c]  = in_ptr[w];
+                out_ptr[w * cc + c] = in_ptr[w];
             }
         }
     }
@@ -126,12 +125,12 @@ static void __chw_i8(const int8_t* input, int8_t* output, int hh, int ww, int cc
 {
     for (int c = 0; c < cc; ++c)
     {
-        int8_t* output_ptr = output + c * hw;    // chw
+        int8_t* output_ptr = output + c * hw; // chw
         for (int h = 0; h < hh; ++h)
         {
             for (int w = 0; w < ww; ++w)
             {
-                const int8_t* input_ptr = input + h * wc + w * cc;    // input hwc + wc
+                const int8_t* input_ptr = input + h * wc + w * cc; // input hwc + wc
                 // hw + w = input_ptr[c]
                 output_ptr[h * ww + w] = input_ptr[c];
             }
@@ -142,10 +141,10 @@ static void __chw_i8(const int8_t* input, int8_t* output, int hh, int ww, int cc
 static int ref_permute_fp32(const struct tensor* input_tensor, const struct tensor* output_tensor,
                             const permute_param_t* param)
 {
-    float*     in_data  = input_tensor->data;
-    float*     out_data = output_tensor->data;
-    const int* dims     = input_tensor->dims;
-    int        layout   = input_tensor->layout;
+    float* in_data = input_tensor->data;
+    float* out_data = output_tensor->data;
+    const int* dims = input_tensor->dims;
+    int layout = input_tensor->layout;
 
     int n;
     int c;
@@ -166,12 +165,12 @@ static int ref_permute_fp32(const struct tensor* input_tensor, const struct tens
         c = dims[3];
     }
 
-    int wc              = w * c;
-    int hw              = h * w;
-    int chw             = c * hw;
+    int wc = w * c;
+    int hw = h * w;
+    int chw = c * hw;
 
-    const float* input  = in_data;
-    float*       output = out_data;
+    const float* input = in_data;
+    float* output = out_data;
     if (param->order0 == 0 && param->order1 == 2 && param->order2 == 3 && param->order3 == 1)
     {
         for (int ii = 0; ii < n; ++ii)
@@ -195,10 +194,10 @@ static int ref_permute_fp32(const struct tensor* input_tensor, const struct tens
     else if ((param->order0 == 1) && (param->order1 == 0) && (param->order2 == 2))
     {
         int channel = dims[0];
-        int width   = dims[2];
-        int height  = dims[1];
-        int _hw     = height * width;
-        int _cw     = channel * width;
+        int width = dims[2];
+        int height = dims[1];
+        int _hw = height * width;
+        int _cw = channel * width;
         for (int q = 0; q < height; q++)
         {
             float* outptr = output + q * _cw;
@@ -225,10 +224,10 @@ static int ref_permute_fp32(const struct tensor* input_tensor, const struct tens
 static int ref_permute_uint8(const struct tensor* input_tensor, const struct tensor* output_tensor,
                              const permute_param_t* param)
 {
-    uint8_t*   in_data  = input_tensor->data;
-    uint8_t*   out_data = output_tensor->data;
-    const int* dims     = input_tensor->dims;
-    int        layout   = input_tensor->layout;
+    uint8_t* in_data = input_tensor->data;
+    uint8_t* out_data = output_tensor->data;
+    const int* dims = input_tensor->dims;
+    int layout = input_tensor->layout;
 
     int n;
     int c;
@@ -249,12 +248,12 @@ static int ref_permute_uint8(const struct tensor* input_tensor, const struct ten
         c = dims[3];
     }
 
-    int wc                = w * c;
-    int hw                = h * w;
-    int chw               = c * hw;
+    int wc = w * c;
+    int hw = h * w;
+    int chw = c * hw;
 
-    const uint8_t* input  = in_data;
-    uint8_t*       output = out_data;
+    const uint8_t* input = in_data;
+    uint8_t* output = out_data;
     if (param->order0 == 0 && param->order1 == 2 && param->order2 == 3 && param->order3 == 1)
     {
         for (int ii = 0; ii < n; ++ii)
@@ -278,10 +277,10 @@ static int ref_permute_uint8(const struct tensor* input_tensor, const struct ten
     else if ((param->order0 == 1) && (param->order1 == 0) && (param->order2 == 2))
     {
         int channel = dims[0];
-        int width   = dims[2];
-        int height  = dims[1];
-        int _hw     = height * width;
-        int _cw     = channel * width;
+        int width = dims[2];
+        int height = dims[1];
+        int _hw = height * width;
+        int _cw = channel * width;
         for (int q = 0; q < height; q++)
         {
             uint8_t* outptr = output + q * _cw;
@@ -308,10 +307,10 @@ static int ref_permute_uint8(const struct tensor* input_tensor, const struct ten
 static int ref_permute_int8(const struct tensor* input_tensor, const struct tensor* output_tensor,
                             const permute_param_t* param)
 {
-    int8_t*    in_data  = input_tensor->data;
-    int8_t*    out_data = output_tensor->data;
-    const int* dims     = input_tensor->dims;
-    int        layout   = input_tensor->layout;
+    int8_t* in_data = input_tensor->data;
+    int8_t* out_data = output_tensor->data;
+    const int* dims = input_tensor->dims;
+    int layout = input_tensor->layout;
 
     int n;
     int c;
@@ -332,12 +331,12 @@ static int ref_permute_int8(const struct tensor* input_tensor, const struct tens
         c = dims[3];
     }
 
-    int wc               = w * c;
-    int hw               = h * w;
-    int chw              = c * hw;
+    int wc = w * c;
+    int hw = h * w;
+    int chw = c * hw;
 
-    const int8_t* input  = in_data;
-    int8_t*       output = out_data;
+    const int8_t* input = in_data;
+    int8_t* output = out_data;
     if (param->order0 == 0 && param->order1 == 2 && param->order2 == 3 && param->order3 == 1)
     {
         for (int ii = 0; ii < n; ++ii)
@@ -361,10 +360,10 @@ static int ref_permute_int8(const struct tensor* input_tensor, const struct tens
     else if ((param->order0 == 1) && (param->order1 == 0) && (param->order2 == 2))
     {
         int channel = dims[0];
-        int width   = dims[2];
-        int height  = dims[1];
-        int _hw     = height * width;
-        int _cw     = channel * width;
+        int width = dims[2];
+        int height = dims[1];
+        int _hw = height * width;
+        int _cw = channel * width;
         for (int q = 0; q < height; q++)
         {
             int8_t* outptr = output + q * _cw;
@@ -400,13 +399,13 @@ static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, 
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node*     ir_node       = exec_node->ir_node;
-    struct graph*    ir_graph      = ir_node->graph;
-    struct tensor*   input_tensor  = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    struct tensor*   output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    permute_param_t* param         = (struct permute_param*)(ir_node->op.param_mem);
+    struct node* ir_node = exec_node->ir_node;
+    struct graph* ir_graph = ir_node->graph;
+    struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+    permute_param_t* param = (struct permute_param*)(ir_node->op.param_mem);
 
-    int ret                        = -1;
+    int ret = -1;
     if (input_tensor->data_type == TENGINE_DT_FP32)
         ret = ref_permute_fp32(input_tensor, output_tensor, param);
     else if (input_tensor->data_type == TENGINE_DT_UINT8)
@@ -424,13 +423,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_BEST;
 }
 
-static struct node_ops permute_node_ops = { .prerun       = NULL,
-                                            .run          = run,
-                                            .reshape      = NULL,
-                                            .postrun      = NULL,
-                                            .init_node    = init_node,
-                                            .release_node = release_node,
-                                            .score        = score };
+static struct node_ops permute_node_ops = {.prerun = NULL,
+                                           .run = run,
+                                           .reshape = NULL,
+                                           .postrun = NULL,
+                                           .init_node = init_node,
+                                           .release_node = release_node,
+                                           .score = score};
 
 int register_permute_ref_op()
 {

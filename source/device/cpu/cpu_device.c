@@ -47,20 +47,17 @@
 
 #include <string.h>
 
-
 int init_cpu(struct device* device)
 {
     (void)device;
     return register_all_cpu_ops();
 }
 
-
 int release_cpu(struct device* device)
 {
     (void)device;
     return unregister_all_cpu_ops();
 }
-
 
 static int prerun(struct device* dev, struct subgraph* subgraph, void* option)
 {
@@ -82,9 +79,9 @@ static int prerun(struct device* dev, struct subgraph* subgraph, void* option)
     const char* env = getenv(TENGINE_PRINT_LAYER_COST);
     if (env && env[0] == '1')
     {
-        int     node_num = get_vector_num(exec_graph->exec_node_list);
-        double* time     = (double*)sys_malloc(sizeof(double)
-                                           * (node_num + 2));    // 0~num-1 for node, num for repeat, num + 1 for sum
+        int node_num = get_vector_num(exec_graph->exec_node_list);
+        double* time = (double*)sys_malloc(sizeof(double)
+                                           * (node_num + 2)); // 0~num-1 for node, num for repeat, num + 1 for sum
         memset(time, 0, sizeof(double) * (node_num + 2));
         exec_graph->timer = time;
     }
@@ -93,29 +90,27 @@ static int prerun(struct device* dev, struct subgraph* subgraph, void* option)
         exec_graph->timer = NULL;
     }
 
-
     subgraph->device_graph = exec_graph;
 
     return 0;
 }
 
-
 static int run(struct device* dev, struct subgraph* subgraph)
 {
     struct exec_graph* exec_graph = subgraph->device_graph;
 
-    int node_num                  = get_vector_num(exec_graph->exec_node_list);
+    int node_num = get_vector_num(exec_graph->exec_node_list);
 
     if (exec_graph->timer)
     {
         double* timer = (double*)exec_graph->timer;
-        timer[node_num] += 1.0;    // repeat
+        timer[node_num] += 1.0; // repeat
     }
 
     for (int i = 0; i < node_num; i++)
     {
-        struct exec_node* node     = (struct exec_node*)get_vector_data(exec_graph->exec_node_list, i);
-        struct node_ops*  node_ops = node->node_ops;
+        struct exec_node* node = (struct exec_node*)get_vector_data(exec_graph->exec_node_list, i);
+        struct node_ops* node_ops = node->node_ops;
 
         /* TODO: handle the shape changed  and dynamic shape case */
         if (node_ops->reshape && node_ops->reshape(node_ops, node, exec_graph) < 0)
@@ -145,9 +140,9 @@ static int run(struct device* dev, struct subgraph* subgraph)
 #endif
         if (exec_graph->timer)
         {
-            end_time         = get_current_time();
-            double* timer    = (double*)exec_graph->timer;
-            double  cur_time = end_time - st_time;
+            end_time = get_current_time();
+            double* timer = (double*)exec_graph->timer;
+            double cur_time = end_time - st_time;
 
             // save min time
             if (timer[node_num] < 2.0)
@@ -158,7 +153,7 @@ static int run(struct device* dev, struct subgraph* subgraph)
             {
                 timer[i] = cur_time < timer[i] ? cur_time : timer[i];
             }
-            timer[node_num + 1] += cur_time;    // sum
+            timer[node_num + 1] += cur_time; // sum
         }
 #ifdef DEBUG_DATA
         struct graph* ir_graph = node->ir_node->graph;
@@ -168,7 +163,7 @@ static int run(struct device* dev, struct subgraph* subgraph)
             struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, node->ir_node->input_tensors[j]);
             if (input_tensor->dim_num <= 5)
             {
-                char dir_str[32] = { 0 };
+                char dir_str[32] = {0};
                 sprintf(dir_str, "in[%d]", j);
 
                 if (NULL != input_tensor->data)
@@ -184,7 +179,7 @@ static int run(struct device* dev, struct subgraph* subgraph)
             /* debug */
             if (output_tensor->dim_num <= 5)
             {
-                char dir_str[32] = { 0 };
+                char dir_str[32] = {0};
                 sprintf(dir_str, "out[%d]", j);
 
                 extract_feature_from_tensor(dir_str, name, output_tensor);
@@ -194,8 +189,8 @@ static int run(struct device* dev, struct subgraph* subgraph)
         const char* env = getenv(TENGINE_DUMP_LAYER);
         if (env && env[0] == '1')
         {
-            struct graph*  ir_graph      = node->ir_node->graph;
-            struct tensor* input_tensor  = get_ir_graph_tensor(ir_graph, node->ir_node->input_tensors[0]);
+            struct graph* ir_graph = node->ir_node->graph;
+            struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, node->ir_node->input_tensors[0]);
             struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, node->ir_node->output_tensors[0]);
             /* debug */
             if (input_tensor->dim_num <= 5)
@@ -207,12 +202,12 @@ static int run(struct device* dev, struct subgraph* subgraph)
 //#define DUMP_NODE_OUTPUT
 #ifdef DUMP_NODE_OUTPUT
         /* dump the node output */
-        struct node*  ir_node  = node->ir_node;
+        struct node* ir_node = node->ir_node;
         struct graph* ir_graph = ir_node->graph;
 
         for (int i = 0; i < ir_node->input_num; i++)
         {
-            char           fname[128];
+            char fname[128];
             struct tensor* ir_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[i]);
 
             sprintf(fname, "/tmp/dump/node%s%d.%d", (ir_node->idx < 10 ? "0" : ""), ir_node->idx, i);
@@ -226,17 +221,16 @@ static int run(struct device* dev, struct subgraph* subgraph)
     return 0;
 }
 
-
 static int postrun(struct device* dev, struct subgraph* subgraph)
 {
     struct exec_graph* exec_graph = subgraph->device_graph;
 
-    int node_num                  = get_vector_num(exec_graph->exec_node_list);
+    int node_num = get_vector_num(exec_graph->exec_node_list);
 
     for (int i = 0; i < node_num; i++)
     {
-        struct exec_node* node     = (struct exec_node*)get_vector_data(exec_graph->exec_node_list, i);
-        struct node_ops*  node_ops = node->node_ops;
+        struct exec_node* node = (struct exec_node*)get_vector_data(exec_graph->exec_node_list, i);
+        struct node_ops* node_ops = node->node_ops;
 
         if (exec_graph->timer)
         {
@@ -256,7 +250,6 @@ static int postrun(struct device* dev, struct subgraph* subgraph)
     return 0;
 }
 
-
 static int cpu_dev_release_exec_graph(struct device* dev, void* exec_graph)
 {
     if (NULL != exec_graph)
@@ -266,7 +259,6 @@ static int cpu_dev_release_exec_graph(struct device* dev, void* exec_graph)
 
     return 0;
 }
-
 
 static int cpu_allocate(struct device* device, struct subgraph* sub_graph)
 {
@@ -283,7 +275,6 @@ static int cpu_allocate(struct device* device, struct subgraph* sub_graph)
 
     return 0;
 }
-
 
 static int cpu_describe(struct device* device, struct vector* allowed_ops, struct vector* blocked_ops,
                         struct vector* precision)
@@ -319,7 +310,6 @@ static int cpu_describe(struct device* device, struct vector* allowed_ops, struc
     return 0;
 }
 
-
 static int cpu_evaluation(struct device* device, struct subgraph* sub_graph, struct vector* tensor, struct vector* node)
 {
     if (NULL == device)
@@ -334,7 +324,6 @@ static int cpu_evaluation(struct device* device, struct subgraph* sub_graph, str
     return 0;
 }
 
-
 static int cpu_release(struct device* device, struct subgraph* sub_graph)
 {
     if (NULL == device)
@@ -347,20 +336,19 @@ static int cpu_release(struct device* device, struct subgraph* sub_graph)
     return 0;
 }
 
-
 int cpu_split_graph(struct graph* ir_graph)
 {
     struct device* default_device = find_default_device();
 
-    struct subgraph* cpu_graph    = (struct subgraph*)sys_malloc(sizeof(struct subgraph));
+    struct subgraph* cpu_graph = (struct subgraph*)sys_malloc(sizeof(struct subgraph));
 
     init_ir_subgraph(ir_graph, cpu_graph, 0);
 
-    cpu_graph->input_num  = (uint8_t)ir_graph->input_num;
+    cpu_graph->input_num = (uint8_t)ir_graph->input_num;
     cpu_graph->output_num = (uint8_t)ir_graph->output_num;
 
-    cpu_graph->node_num   = ir_graph->node_num;
-    cpu_graph->node_list  = (uint16_t*)sys_malloc(sizeof(uint16_t) * cpu_graph->node_num);
+    cpu_graph->node_num = ir_graph->node_num;
+    cpu_graph->node_list = (uint16_t*)sys_malloc(sizeof(uint16_t) * cpu_graph->node_num);
 
     for (uint16_t i = 0; i < cpu_graph->node_num; i++)
     {
@@ -379,12 +367,12 @@ int cpu_split_graph(struct graph* ir_graph)
     for (int i = 0; i < (uint16_t)get_vector_num(ir_graph->subgraph_list); i++)
     {
         struct subgraph* sub_graph = *(struct subgraph**)get_vector_data(ir_graph->subgraph_list, i);
-        sub_graph->index           = i;
+        sub_graph->index = i;
 
         for (uint16_t j = 0; j < sub_graph->node_num; j++)
         {
-            uint16_t     node_id  = sub_graph->node_list[j];
-            struct node* ir_node  = get_ir_graph_node(ir_graph, node_id);
+            uint16_t node_id = sub_graph->node_list[j];
+            struct node* ir_node = get_ir_graph_node(ir_graph, node_id);
             ir_node->subgraph_idx = sub_graph->index;
         }
     }
@@ -392,46 +380,41 @@ int cpu_split_graph(struct graph* ir_graph)
     return 0;
 }
 
-
 static struct interface cpu_interface = {
-    .init           = init_cpu,
-    .pre_run        = prerun,
-    .run            = run,
-    .post_run       = postrun,
-    .async_run      = NULL,
-    .async_wait     = NULL,
-    .release_graph  = cpu_dev_release_exec_graph,
+    .init = init_cpu,
+    .pre_run = prerun,
+    .run = run,
+    .post_run = postrun,
+    .async_run = NULL,
+    .async_wait = NULL,
+    .release_graph = cpu_dev_release_exec_graph,
     .release_device = release_cpu,
 };
 
-
 static struct allocator cpu_allocator = {
-    .describe   = cpu_describe,
+    .describe = cpu_describe,
     .evaluation = cpu_evaluation,
-    .allocate   = cpu_allocate,
-    .release    = cpu_release,
+    .allocate = cpu_allocate,
+    .release = cpu_release,
 };
 
-
 static struct optimizer cpu_optimizer = {
-    .split_graph    = cpu_split_graph,
+    .split_graph = cpu_split_graph,
     .optimize_graph = NULL,
 };
 
-
 static struct cpu_device cpu_dev = {
-        .base = {
-                .name       = CPU_DEVICE_NAME,
-                .interface  = &cpu_interface,
-                .allocator  = &cpu_allocator,
-                .optimizer  = &cpu_optimizer,
-                .scheduler  = NULL,
-                .privacy    = NULL,
-        },
-        .master_cpu         = 0,
-        .cpu_model          = 0,
+    .base = {
+        .name = CPU_DEVICE_NAME,
+        .interface = &cpu_interface,
+        .allocator = &cpu_allocator,
+        .optimizer = &cpu_optimizer,
+        .scheduler = NULL,
+        .privacy = NULL,
+    },
+    .master_cpu = 0,
+    .cpu_model = 0,
 };
-
 
 int register_cpu_device(void)
 {
@@ -449,7 +432,6 @@ int register_cpu_device(void)
     TLOG_INFO("Tengine plugin device %s is registered.\n", cpu_dev.base.name);
     return 0;
 }
-
 
 int unregister_cpu_device(void)
 {

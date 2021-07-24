@@ -34,12 +34,11 @@
 
 #include <math.h>
 
-
 struct logical_param
 {
-    int   out_size;
-    float scale[2];         // scale[0]: input scale, scale[1]: output scale
-    int   zero_point[2];    // zero_point[0]: input zero_point, zero_point[1]: output zero_point
+    int out_size;
+    float scale[2];    // scale[0]: input scale, scale[1]: output scale
+    int zero_point[2]; // zero_point[0]: input zero_point, zero_point[1]: output zero_point
 };
 
 static int ref_logistic_fp32(float* input_data, float* output_data, struct logical_param* op_param)
@@ -58,9 +57,8 @@ static int ref_logistic_uint8(uint8_t* input, uint8_t* output, struct logical_pa
     for (int i = 0; i < op_param->out_size; i++)
     {
         /* get max */
-        output[i] =
-            (1.f / (1.f + exp(-(input[i] - (double)op_param->zero_point[0]) * op_param->scale[0]))) / op_param->scale[1]
-            + op_param->zero_point[1];
+        output[i] = (1.f / (1.f + exp(-(input[i] - (double)op_param->zero_point[0]) * op_param->scale[0]))) / op_param->scale[1]
+                    + op_param->zero_point[1];
     }
 
     return 0;
@@ -83,18 +81,18 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node*         ir_node  = exec_node->ir_node;
-    struct graph*        ir_graph = ir_node->graph;
-    struct tensor*       input_tensor;
-    struct tensor*       output_tensor;
+    struct node* ir_node = exec_node->ir_node;
+    struct graph* ir_graph = ir_node->graph;
+    struct tensor* input_tensor;
+    struct tensor* output_tensor;
     struct logical_param logical_param;
 
-    input_tensor                = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    output_tensor               = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+    input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    logical_param.out_size      = input_tensor->elem_num;
-    logical_param.scale[0]      = input_tensor->scale;
-    logical_param.scale[1]      = output_tensor->scale;
+    logical_param.out_size = input_tensor->elem_num;
+    logical_param.scale[0] = input_tensor->scale;
+    logical_param.scale[1] = output_tensor->scale;
     logical_param.zero_point[0] = input_tensor->zero_point;
     logical_param.zero_point[1] = output_tensor->zero_point;
 
@@ -111,13 +109,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_CANDO;
 }
 
-static struct node_ops hcl_node_ops = { .prerun       = prerun,
-                                        .run          = run,
-                                        .reshape      = NULL,
-                                        .postrun      = NULL,
-                                        .init_node    = init_node,
-                                        .release_node = release_node,
-                                        .score        = score };
+static struct node_ops hcl_node_ops = {.prerun = prerun,
+                                       .run = run,
+                                       .reshape = NULL,
+                                       .postrun = NULL,
+                                       .init_node = init_node,
+                                       .release_node = release_node,
+                                       .score = score};
 
 int register_logistic_ref_op()
 {

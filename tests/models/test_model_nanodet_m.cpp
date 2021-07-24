@@ -36,7 +36,7 @@
 #include "tengine_operations.h"
 
 // tengine output tensor names
-const char* cls_pred_name[] = { "cls_pred_stride_8", "cls_pred_stride_16", "cls_pred_stride_32" };
+const char* cls_pred_name[] = {"cls_pred_stride_8", "cls_pred_stride_16", "cls_pred_stride_32"};
 const char* dis_pred_name[] = {
 #ifdef TRY_POST_SOFTMAX
     "dis_pred_stride_8", "dis_pred_stride_16", "dis_pred_stride_32"
@@ -67,15 +67,15 @@ static void show_usage()
 
 int main(int argc, char* argv[])
 {
-    const char* model_file     = "./models/nanodet.tmfile";
-    const float mean[3]        = { 103.53f, 116.28f, 123.675f };    // bgr
-    const float norm[3]        = { 0.017429f, 0.017507f, 0.017125f };
+    const char* model_file = "./models/nanodet.tmfile";
+    const float mean[3] = {103.53f, 116.28f, 123.675f}; // bgr
+    const float norm[3] = {0.017429f, 0.017507f, 0.017125f};
 
-    int repeat_count           = 1;
-    int num_thread             = 1;
+    int repeat_count = 1;
+    int num_thread = 1;
 
     const float prob_threshold = 0.4f;
-    const float nms_threshold  = 0.5f;
+    const float nms_threshold = 0.5f;
 
     int res;
     while ((res = getopt(argc, argv, "m:i:o:r:t:h:")) != -1)
@@ -114,9 +114,9 @@ int main(int argc, char* argv[])
     /* set runtime options */
     struct options opt;
     opt.num_thread = num_thread;
-    opt.cluster    = TENGINE_CLUSTER_ALL;
-    opt.precision  = TENGINE_MODE_FP32;
-    opt.affinity   = 0;
+    opt.cluster = TENGINE_CLUSTER_ALL;
+    opt.precision = TENGINE_MODE_FP32;
+    opt.affinity = 0;
 
     /* inital tengine */
     if (0 != init_tengine())
@@ -142,10 +142,10 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    int img_size                  = 320 * 320 * 3;    // lb.w * lb.h * lb.c;
+    int img_size = 320 * 320 * 3; // lb.w * lb.h * lb.c;
 
-    std::string        model_name = "nanodet";
-    std::string        input_file = "./data/" + model_name + "_in.bin";
+    std::string model_name = "nanodet";
+    std::string input_file = "./data/" + model_name + "_in.bin";
     std::vector<float> input_data(img_size * sizeof(float));
 
     FILE* fp;
@@ -170,8 +170,8 @@ int main(int argc, char* argv[])
     }
 
     /* run graph */
-    double min_time   = DBL_MAX;
-    double max_time   = DBL_MIN;
+    double min_time = DBL_MAX;
+    double max_time = DBL_MIN;
     double total_time = 0.;
     for (int i = 0; i < repeat_count; i++)
     {
@@ -207,13 +207,13 @@ int main(int argc, char* argv[])
         float* dis_pred = (float*)get_tensor_buffer(dis_tensor);
 
         // save output_data
-        int         output_size1    = get_tensor_buffer_size(cls_tensor) / sizeof(float);
-        int         output_size2    = get_tensor_buffer_size(dis_tensor) / sizeof(float);
+        int output_size1 = get_tensor_buffer_size(cls_tensor) / sizeof(float);
+        int output_size2 = get_tensor_buffer_size(dis_tensor) / sizeof(float);
         std::string reference_file1 = "./data/" + model_name + "_out" + std::to_string(stride_index * 2 + 1) + ".bin";
         std::string reference_file2 = "./data/" + model_name + "_out" + std::to_string(stride_index * 2 + 2) + ".bin";
         std::vector<float> reference_data1(output_size1);
         std::vector<float> reference_data2(output_size2);
-        FILE*              fp1;
+        FILE* fp1;
         //read
         fp1 = fopen(reference_file1.c_str(), "rb");
         if (fread(reference_data1.data(), sizeof(float), output_size1, fp1) == 0)
@@ -231,7 +231,7 @@ int main(int argc, char* argv[])
         fclose(fp1);
         int ret1 = float_mismatch(cls_pred, reference_data1.data(), output_size1);
         int ret2 = float_mismatch(dis_pred, reference_data2.data(), output_size2);
-        ret      = ret | (ret1 | ret2);
+        ret = ret | (ret1 | ret2);
     }
 
     /* release tengine */

@@ -30,7 +30,6 @@
 #include <math.h>
 #include <stdio.h>
 
-
 #define FLOAT_MAX 3.4028235E38
 #define FLOAT_MIN -3.4028235E38
 
@@ -145,8 +144,8 @@ struct reduce_param_ref
 static int ref_reduce_fp32(float* data, float* out_data, int dim0, int dim1, int dim2, int dim3, int out_size,
                            struct reduce_param_ref* param, int dim_num, int* dims)
 {
-    int    offset = 0;
-    float* tmp    = (float*)sys_malloc(sizeof(float) * out_size);
+    int offset = 0;
+    float* tmp = (float*)sys_malloc(sizeof(float) * out_size);
     memset(tmp, 0, sizeof(float) * out_size);
     int param_dim0 = param->param_dim[0];
     int param_dim1 = param->param_dim[1];
@@ -2450,7 +2449,7 @@ void sum_5d_ax1(int* dims, int dim_num, float* data, float* tmp)
     int dim2 = dims[2];
     int dim3 = dims[3];
     int dim4 = dims[4];
-    int chw  = dim2 * dim3 * dim4;
+    int chw = dim2 * dim3 * dim4;
     for (int j = 0; j < dim0; j++)
     {
         for (int n = 0; n < dim1; n++)

@@ -35,20 +35,18 @@
 #include "utility/vector.h"
 #include "utility/log.h"
 
-
 static int split_op_map(int op)
 {
     return OP_SPLIT;
 }
 
-
 static int tm2_load_split(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                           const TM2_Operator* tm_op)
 {
-    struct split_param*    split_param = (struct split_param*)ir_node->op.param_mem;
-    const struct tm2_priv* tm2_priv    = (struct tm2_priv*)ir_graph->serializer_privacy;
-    const char*            mem_base    = tm2_priv->base;
-    const TM2_SplitParam*  tm_param    = (TM2_SplitParam*)(mem_base + tm_op->offset_t_param);
+    struct split_param* split_param = (struct split_param*)ir_node->op.param_mem;
+    const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
+    const char* mem_base = tm2_priv->base;
+    const TM2_SplitParam* tm_param = (TM2_SplitParam*)(mem_base + tm_op->offset_t_param);
 
     if (tm_param->is_caffe)
         split_param->is_caffe = true;
@@ -68,7 +66,7 @@ static int tm2_load_split(struct graph* ir_graph, struct node* ir_node, const TM
         if (tm_param->offset_split_sizes != TM2_NOT_SET)
         {
             const TM2_Vector_dims* v_split_sizes = (TM2_Vector_dims*)(mem_base + tm_param->offset_split_sizes);
-            split_param->split_sizes_            = create_vector(sizeof(int), NULL);
+            split_param->split_sizes_ = create_vector(sizeof(int), NULL);
 
             for (int i = 0; i < v_split_sizes->v_num; i++)
             {
@@ -80,7 +78,6 @@ static int tm2_load_split(struct graph* ir_graph, struct node* ir_node, const TM
 
     return 0;
 }
-
 
 int register_tm2_split_op()
 {
@@ -96,7 +93,6 @@ int register_tm2_split_op()
 
     return 0;
 }
-
 
 int unregister_tm2_split_op()
 {

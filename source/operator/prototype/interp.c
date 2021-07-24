@@ -31,16 +31,15 @@
 #include "module/module.h"
 #include "utility/sys_port.h"
 
-
 static int infer_shape(struct node* node)
 {
-    struct graph*  graph       = node->graph;
-    struct tensor* input       = get_ir_graph_tensor(graph, node->input_tensors[0]);
-    struct tensor* output      = get_ir_graph_tensor(graph, node->output_tensors[0]);
-    int            in_n        = input->dims[0];
-    int            in_c        = input->dims[1];
-    int            in_h        = input->dims[2];
-    int            in_w        = input->dims[3];
+    struct graph* graph = node->graph;
+    struct tensor* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
+    struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
+    int in_n = input->dims[0];
+    int in_c = input->dims[1];
+    int in_h = input->dims[2];
+    int in_w = input->dims[3];
 
     struct interp_param* param = (struct interp_param*)(node->op.param_mem);
 
@@ -52,26 +51,25 @@ static int infer_shape(struct node* node)
     if (param->height_scale != 0 && param->width_scale != 0)
     {
         param->output_height = in_h * param->height_scale;
-        param->output_width  = in_w * param->width_scale;
+        param->output_width = in_w * param->width_scale;
     }
     else
     {
         param->height_scale = (float)param->output_height / (float)in_h;
-        param->width_scale  = (float)param->output_width / (float)in_w;
+        param->width_scale = (float)param->output_width / (float)in_w;
     }
 
-    int dim[4] = { 0 };
+    int dim[4] = {0};
 
-    dim[0]     = in_n;
-    dim[1]     = in_c;
-    dim[2]     = param->output_height;
-    dim[3]     = param->output_width;
+    dim[0] = in_n;
+    dim[1] = in_c;
+    dim[2] = param->output_height;
+    dim[3] = param->output_width;
 
     set_ir_tensor_shape(output, dim, 4);
 
     return 0;
 }
-
 
 static int init_op(struct op* op)
 {
@@ -83,38 +81,35 @@ static int init_op(struct op* op)
     }
 
     /*set the param default value */
-    interp_param->resize_type   = 1;
+    interp_param->resize_type = 1;
     interp_param->output_height = 0;
-    interp_param->output_width  = 0;
-    interp_param->height_scale  = 1.f;
-    interp_param->width_scale   = 1.f;
+    interp_param->output_width = 0;
+    interp_param->height_scale = 1.f;
+    interp_param->width_scale = 1.f;
 
-    op->param_mem               = interp_param;
-    op->param_size              = sizeof(struct interp_param);
-    op->same_shape              = 0;
-    op->infer_shape             = infer_shape;
+    op->param_mem = interp_param;
+    op->param_size = sizeof(struct interp_param);
+    op->same_shape = 0;
+    op->infer_shape = infer_shape;
 
     return 0;
 }
-
 
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
 
-
 int register_interp_op()
 {
     struct method m;
 
     m.version = 1;
-    m.init    = init_op;
+    m.init = init_op;
     m.release = release_op;
 
     return register_op(OP_INTERP, OP_INTERP_NAME, &m);
 }
-
 
 int unregister_interp_op()
 {

@@ -43,9 +43,9 @@
 #include "../vulkan_layer.hpp"
 #include "../vulkan_command.hpp"
 
-namespace TEngine
+namespace TEngine {
+class Dropout_vulkan : public Layer
 {
-class Dropout_vulkan : public Layer {
 public:
     Dropout_vulkan();
     Dropout_vulkan(ir_graph_t* ir_graph, ir_node_t* ir_node);
@@ -62,15 +62,15 @@ public:
     Pipeline* pipeline_dropout_pack8;
 
 public:
-    int   input_c;
-    int   input_h;
-    int   input_w;
-    int   output_c;
-    int   output_h;
-    int   output_w;
+    int input_c;
+    int input_h;
+    int input_w;
+    int output_c;
+    int output_h;
+    int output_w;
     float scale;
 };
 
-}    // namespace TEngine
+} // namespace TEngine
 
 #endif

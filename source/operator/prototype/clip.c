@@ -32,23 +32,22 @@
 
 #include "float.h"
 
-
 static int infer_shape(struct node* node)
 {
-    struct graph*  ir_graph = node->graph;
-    struct tensor* input    = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
-    struct tensor* output   = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
+    struct graph* ir_graph = node->graph;
+    struct tensor* input = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
+    struct tensor* output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
 
     if (node->input_num == 3)
     {
-        struct tensor* clip_min       = get_ir_graph_tensor(ir_graph, node->input_tensors[1]);
-        struct tensor* clip_max       = get_ir_graph_tensor(ir_graph, node->input_tensors[2]);
+        struct tensor* clip_min = get_ir_graph_tensor(ir_graph, node->input_tensors[1]);
+        struct tensor* clip_max = get_ir_graph_tensor(ir_graph, node->input_tensors[2]);
 
         struct clip_param* clip_param = (struct clip_param*)node->op.param_mem;
-        float*             min        = (float*)clip_min->data;
-        float*             max        = (float*)clip_max->data;
-        clip_param->min               = min[0];
-        clip_param->max               = max[0];
+        float* min = (float*)clip_min->data;
+        float* max = (float*)clip_max->data;
+        clip_param->min = min[0];
+        clip_param->max = max[0];
     }
 
     set_ir_tensor_shape(output, input->dims, input->dim_num);
@@ -69,32 +68,29 @@ static int init_op(struct op* op)
     clip_param->max = FLT_MAX;
     clip_param->min = -FLT_MAX;
 
-    op->param_mem   = clip_param;
-    op->param_size  = sizeof(struct clip_param);
-    op->same_shape  = 0;
+    op->param_mem = clip_param;
+    op->param_size = sizeof(struct clip_param);
+    op->same_shape = 0;
     op->infer_shape = infer_shape;
 
     return 0;
 }
-
 
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
 
-
 int register_clip_op()
 {
     struct method m;
 
     m.version = 1;
-    m.init    = init_op;
+    m.init = init_op;
     m.release = release_op;
 
     return register_op(OP_CLIP, OP_CLIP_NAME, &m);
 }
-
 
 int unregister_clip_op()
 {

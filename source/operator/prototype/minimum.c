@@ -30,7 +30,6 @@
 #include "utility/sys_port.h"
 #include "utility/log.h"
 
-
 static int init_op(struct op* op)
 {
     op->same_shape = 1;
@@ -38,17 +37,15 @@ static int init_op(struct op* op)
     return 0;
 }
 
-
 int register_minimum_op()
 {
     struct method m;
     m.version = 1;
-    m.init    = init_op;
+    m.init = init_op;
     m.release = NULL;
 
     return register_op(OP_MINIMUM, OP_MINIMUM_NAME, &m);
 }
-
 
 int unregister_minimum_op()
 {

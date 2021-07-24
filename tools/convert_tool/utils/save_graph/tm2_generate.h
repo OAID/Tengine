@@ -27,13 +27,12 @@
 #include <stdint.h>
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
-    uint32_t WriteTmFileAlign1(void* const start_ptr, uint32_t* cur_pos, const void* buf, const uint32_t buf_size);
-    uint32_t WriteTmFileAlign4(void* const start_ptr, uint32_t* cur_pos, const void* buf, const uint32_t buf_size);
-    uint32_t WriteTmObject(void* const start_ptr, uint32_t* cur_pos, const void* buf, const uint32_t buf_size);
+uint32_t WriteTmFileAlign1(void* const start_ptr, uint32_t* cur_pos, const void* buf, const uint32_t buf_size);
+uint32_t WriteTmFileAlign4(void* const start_ptr, uint32_t* cur_pos, const void* buf, const uint32_t buf_size);
+uint32_t WriteTmObject(void* const start_ptr, uint32_t* cur_pos, const void* buf, const uint32_t buf_size);
 
 #ifdef __cplusplus
 }

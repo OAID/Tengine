@@ -32,20 +32,19 @@
 #include "utility/sys_port.h"
 #include "utility/log.h"
 
-
 static int infer_shape(ir_node_t* node)
 {
-    ir_graph_t*  graph  = node->graph;
-    ir_tensor_t* input  = get_ir_graph_tensor(graph, node->input_tensors[0]);
+    ir_graph_t* graph = node->graph;
+    ir_tensor_t* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
     ir_tensor_t* weight = get_ir_graph_tensor(graph, node->input_tensors[1]);
     ir_tensor_t* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
 
     int dim[4];
 
-    int n       = weight->dims[0];
-    int k       = weight->dims[1];
+    int n = weight->dims[0];
+    int k = weight->dims[1];
 
-    int m       = input->dims[0];
+    int m = input->dims[0];
     int input_k = input->dims[1];
 
     if (input->dim_num == 2)
@@ -115,10 +114,10 @@ static int init_op(ir_op_t* op)
     /*set the param default value */
     fc_param->num_output = 1;
 
-    op->param_mem        = fc_param;
-    op->param_size       = sizeof(struct fc_param);
-    op->same_shape       = 0;
-    op->infer_shape      = infer_shape;
+    op->param_mem = fc_param;
+    op->param_size = sizeof(struct fc_param);
+    op->same_shape = 0;
+    op->infer_shape = infer_shape;
 
     return 0;
 }
@@ -133,7 +132,7 @@ int register_fc_op()
     ir_method_t m;
 
     m.version = 1;
-    m.init    = init_op;
+    m.init = init_op;
     m.release = release_op;
 
     return register_op(OP_FC, OP_FC_NAME, &m);

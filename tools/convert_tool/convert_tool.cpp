@@ -32,17 +32,15 @@
 #include "caffe/caffe2tengine.hpp"
 #include "utils/graph_optimizer/graph_opt.hpp"
 
-const char* help_params =
-    "[Convert Tools Info]: optional arguments:\n"
-    "\t-h    help            show this help message and exit\n"
-    "\t-f    input type      path to input float32 tmfile\n"
-    "\t-p    input structure path to the network structure of input model(*.prototxt, *.symbol, *.cfg, *.pdmodel)\n"
-    "\t-m    input params    path to the network params of input model(*.caffemodel, *.params, *.weight, *.pb, *.onnx, *.tflite, *.pdiparams)\n"
-    "\t-o    output model    path to output fp32 tmfile\n";
+const char* help_params = "[Convert Tools Info]: optional arguments:\n"
+                          "\t-h    help            show this help message and exit\n"
+                          "\t-f    input type      path to input float32 tmfile\n"
+                          "\t-p    input structure path to the network structure of input model(*.prototxt, *.symbol, *.cfg, *.pdmodel)\n"
+                          "\t-m    input params    path to the network params of input model(*.caffemodel, *.params, *.weight, *.pb, *.onnx, *.tflite, *.pdiparams)\n"
+                          "\t-o    output model    path to output fp32 tmfile\n";
 
-const char* example_params =
-    "[Convert Tools Info]: example arguments:\n"
-    "\t./convert_tool -f caffe -p ./mobilenet.prototxt -m ./mobilenet.caffemodel -o ./mobilenet.tmfile\n";
+const char* example_params = "[Convert Tools Info]: example arguments:\n"
+                             "\t./convert_tool -f caffe -p ./mobilenet.prototxt -m ./mobilenet.caffemodel -o ./mobilenet.tmfile\n";
 
 void show_usage()
 {
@@ -56,9 +54,9 @@ int main(int argc, char* argv[])
     std::string proto_file;
     std::string model_file;
     std::string output_tmfile;
-    bool        proto_file_needed = false;
-    bool        model_file_needed = false;
-    int         input_file_number = 0;
+    bool proto_file_needed = false;
+    bool model_file_needed = false;
+    int input_file_number = 0;
 
     int res;
     while ((res = getopt(argc, argv, "f:p:m:o:h")) != -1)

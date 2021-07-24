@@ -29,7 +29,6 @@
 #include <math.h>
 #include <arm_neon.h>
 
-
 void hgemv_1x8_a55(__fp16* biases, __fp16* input, __fp16* kernel, long kernel_size, __fp16* output);
 void hgemv_1x2_a55(__fp16* biases, __fp16* input, __fp16* kernel, long kernel_size, __fp16* output);
 
@@ -37,7 +36,7 @@ void hgemv_1x2_a55(__fp16* biases, __fp16* input, __fp16* kernel, long kernel_si
 void hgemv1x8(const __fp16* input, const __fp16* output, __fp16* weight_interleaved, const __fp16* biases,
               int kernel_size, int start_channel, int end_channel, int num_thread, int cpu_affinity)
 {
-    int     ch = 0;
+    int ch = 0;
     __fp16 *cur_kernel, *cur_biases, *cur_result;
 
     // #pragma omp parallel for num_threads(num_thread)
@@ -46,7 +45,7 @@ void hgemv1x8(const __fp16* input, const __fp16* output, __fp16* weight_interlea
         cur_kernel = (__fp16*)(weight_interleaved + kernel_size * ch);
         cur_result = (__fp16*)(output + ch);
         cur_biases = biases ? (__fp16*)(biases + ch) : NULL;
-        hgemv_1x8_a55(cur_biases, (__fp16*)input, cur_kernel, kernel_size, cur_result);    // todo implement with A76
+        hgemv_1x8_a55(cur_biases, (__fp16*)input, cur_kernel, kernel_size, cur_result); // todo implement with A76
     }
 }
 
@@ -54,8 +53,8 @@ void hgemv1x8(const __fp16* input, const __fp16* output, __fp16* weight_interlea
 void hgemv1x2(const __fp16* input, const __fp16* output, __fp16* weight_interleaved, const __fp16* biases,
               int kernel_size, int start_channel, int end_channel, int num_thread, int cpu_affinity)
 {
-    __fp16  sum;
-    int     ch = 0;
+    __fp16 sum;
+    int ch = 0;
     __fp16 *cur_kernel, *cur_biases, *cur_result;
 
     for (ch = start_channel; ch < (end_channel & -2); ch += 2)
@@ -70,17 +69,16 @@ void hgemv1x2(const __fp16* input, const __fp16* output, __fp16* weight_interlea
     {
         cur_kernel = (__fp16*)(weight_interleaved + kernel_size * ch);
         cur_result = (__fp16*)(output + ch);
-        sum        = biases ? *(biases + ch) : 0.f;
+        sum = biases ? *(biases + ch) : 0.f;
         for (int j = 0; j < kernel_size; j++)
             sum = sum + input[j] * cur_kernel[j];
         *cur_result = sum;
     }
 }
 
-
 static void interleave_kernel(const __fp16* kernel, __fp16* kernel_interleaved, int out_chan, int kernel_size)
 {
-    int     i, j, k;
+    int i, j, k;
     __fp16* cur_kernel[8];
     __fp16* cur_kernel_interleaved;
 
@@ -109,7 +107,7 @@ static void interleave_kernel(const __fp16* kernel, __fp16* kernel_interleaved, 
     // copy last kernel
     if (out_chan & 0x1)
     {
-        cur_kernel[0]          = (__fp16*)kernel + kernel_size * i;
+        cur_kernel[0] = (__fp16*)kernel + kernel_size * i;
         cur_kernel_interleaved = (__fp16*)kernel_interleaved + kernel_size * i;
         for (k = 0; k < kernel_size; k++)
             cur_kernel_interleaved[k] = *(cur_kernel[0] + k);
@@ -121,22 +119,22 @@ static void interleave_kernel(const __fp16* kernel, __fp16* kernel_interleaved, 
 int fp16_fc_kernel_prerun(struct tensor* input_tensor, struct tensor* filter_tensor, struct tensor* output_tensor,
                           struct fc_priv_info* priv_info, struct fc_param* param)
 {
-    int num_output   = param->num_output;
-    int kernel_size  = filter_tensor->dims[1];
+    int num_output = param->num_output;
+    int kernel_size = filter_tensor->dims[1];
     int kernel_align = ((kernel_size + 1) & -2);
 
     if (!priv_info->interleave_buffer)
     {
-        int   mem_size                    = sizeof(__fp16) * num_output * kernel_align;
-        void* mem                         = sys_malloc(mem_size);
-        priv_info->interleave_buffer      = mem;
+        int mem_size = sizeof(__fp16) * num_output * kernel_align;
+        void* mem = sys_malloc(mem_size);
+        priv_info->interleave_buffer = mem;
         priv_info->interleave_buffer_size = mem_size;
     }
     if (!priv_info->input_buffer)
     {
-        int   mem_size               = sizeof(__fp16) * kernel_align;
-        void* mem                    = sys_malloc(mem_size);
-        priv_info->input_buffer      = mem;
+        int mem_size = sizeof(__fp16) * kernel_align;
+        void* mem = sys_malloc(mem_size);
+        priv_info->input_buffer = mem;
         priv_info->input_buffer_size = mem_size;
     }
 
@@ -147,18 +145,17 @@ int fp16_fc_kernel_prerun(struct tensor* input_tensor, struct tensor* filter_ten
     return 0;
 }
 
-
 int fp16_fc_kernel_run(struct tensor* input_tensor, struct tensor* filter_tensor, struct tensor* bias_tensor,
                        struct tensor* output_tensor, struct fc_priv_info* priv_info, struct fc_param* param,
                        int num_thread, int cpu_affinity)
 {
-    int out_num     = param->num_output;
+    int out_num = param->num_output;
     int kernel_size = filter_tensor->dims[1];
 
-    __fp16* input   = (__fp16*)input_tensor->data;
-    __fp16* output  = (__fp16*)output_tensor->data;
-    __fp16* weight  = (__fp16*)priv_info->interleave_buffer;
-    __fp16* biases  = NULL;
+    __fp16* input = (__fp16*)input_tensor->data;
+    __fp16* output = (__fp16*)output_tensor->data;
+    __fp16* weight = (__fp16*)priv_info->interleave_buffer;
+    __fp16* biases = NULL;
     if (bias_tensor)
         biases = (__fp16*)bias_tensor->data;
 
@@ -166,7 +163,7 @@ int fp16_fc_kernel_run(struct tensor* input_tensor, struct tensor* filter_tensor
 
     for (int i = 0; i < input_tensor->dims[0]; i++)
     {
-        __fp16* cur_input  = input + i * kernel_size;
+        __fp16* cur_input = input + i * kernel_size;
         __fp16* cur_output = output + i * out_num;
 
         hgemv1x8(cur_input, cur_output, weight, biases, kernel_size, 0, out_num_8, num_thread, cpu_affinity);

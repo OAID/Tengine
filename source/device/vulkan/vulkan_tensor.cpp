@@ -39,8 +39,7 @@
 
 #include "vulkan_tensor.hpp"
 
-namespace TEngine
-{
+namespace TEngine {
 void convert_packing(tensor* src, Tensor& dst, int elempack, const Option& opt)
 {
     const Tensor _src = Tensor(src);
@@ -49,7 +48,7 @@ void convert_packing(tensor* src, Tensor& dst, int elempack, const Option& opt)
 
 void convert_packing(const Tensor& src, Tensor& dst, int _elempack, const Option& opt)
 {
-    int elempack     = src.elempack;
+    int elempack = src.elempack;
     int out_elempack = _elempack;
 
     if (elempack == out_elempack)
@@ -58,25 +57,25 @@ void convert_packing(const Tensor& src, Tensor& dst, int _elempack, const Option
         return;
     }
 
-    int    w        = src.w;
-    int    h        = src.h;
-    int    channels = src.c;
-    int    dims     = src.dims;
+    int w = src.w;
+    int h = src.h;
+    int channels = src.c;
+    int dims = src.dims;
     size_t elemsize = src.elemsize;
 
     if (dims == 1)
     {
         if (out_elempack == 1)
         {
-            dst          = src;
-            dst.w        = w * elempack;
-            dst.cstep    = w * elempack;
+            dst = src;
+            dst.w = w * elempack;
+            dst.cstep = w * elempack;
             dst.elemsize = elemsize / elempack;
             dst.elempack = out_elempack;
             return;
         }
 
-        int    outw         = (w * elempack + out_elempack - 1) / out_elempack;
+        int outw = (w * elempack + out_elempack - 1) / out_elempack;
         size_t out_elemsize = elemsize / elempack * out_elempack;
 
         dst.create(outw, out_elemsize, out_elempack, opt.blob_allocator);
@@ -90,9 +89,9 @@ void convert_packing(const Tensor& src, Tensor& dst, int _elempack, const Option
 
     if (dims == 2)
     {
-        int    outh         = (h * elempack + out_elempack - 1) / out_elempack;
+        int outh = (h * elempack + out_elempack - 1) / out_elempack;
         size_t out_elemsize = elemsize / elempack * out_elempack;
-        size_t lane_size    = out_elemsize / out_elempack;
+        size_t lane_size = out_elemsize / out_elempack;
 
         dst.create(w, outh, out_elemsize, out_elempack, opt.blob_allocator);
         if (dst.empty())
@@ -113,9 +112,9 @@ void convert_packing(const Tensor& src, Tensor& dst, int _elempack, const Option
                     if (srcy >= h)
                         break;
 
-                    int srck                      = (i * out_elempack + k) % elempack;
+                    int srck = (i * out_elempack + k) % elempack;
 
-                    const unsigned char* ptr      = (const unsigned char*)src + srcy * w * elemsize;
+                    const unsigned char* ptr = (const unsigned char*)src + srcy * w * elemsize;
                     const unsigned char* elem_ptr = ptr + j * elemsize;
                     memcpy(out_elem_ptr + k * lane_size, elem_ptr + srck * lane_size, lane_size);
                 }
@@ -127,9 +126,9 @@ void convert_packing(const Tensor& src, Tensor& dst, int _elempack, const Option
 
     if (dims == 3)
     {
-        int    outc         = (channels * elempack + out_elempack - 1) / out_elempack;
+        int outc = (channels * elempack + out_elempack - 1) / out_elempack;
         size_t out_elemsize = elemsize / elempack * out_elempack;
-        size_t lane_size    = out_elemsize / out_elempack;
+        size_t lane_size = out_elemsize / out_elempack;
 
         dst.create(w, h, outc, out_elemsize, out_elempack, opt.blob_allocator);
         if (dst.empty())
@@ -154,10 +153,10 @@ void convert_packing(const Tensor& src, Tensor& dst, int _elempack, const Option
                         if (srcq >= channels)
                             break;
 
-                        int srck                      = (q * out_elempack + k) % elempack;
+                        int srck = (q * out_elempack + k) % elempack;
 
-                        const Tensor         m        = src.channel(srcq);
-                        const unsigned char* ptr      = (const unsigned char*)m + i * w * elemsize;
+                        const Tensor m = src.channel(srcq);
+                        const unsigned char* ptr = (const unsigned char*)m + i * w * elemsize;
                         const unsigned char* elem_ptr = ptr + j * elemsize;
                         memcpy(out_elem_ptr + k * lane_size, elem_ptr + srck * lane_size, lane_size);
                     }
@@ -175,15 +174,15 @@ unsigned short float32_to_float16(float value)
     union
     {
         unsigned int u;
-        float        f;
+        float f;
     } tmp;
 
     tmp.f = value;
 
     // 1 : 8 : 23
-    unsigned short sign        = (tmp.u & 0x80000000) >> 31;
-    unsigned short exponent    = (tmp.u & 0x7F800000) >> 23;
-    unsigned int   significand = tmp.u & 0x7FFFFF;
+    unsigned short sign = (tmp.u & 0x80000000) >> 31;
+    unsigned short exponent = (tmp.u & 0x7F800000) >> 23;
+    unsigned int significand = tmp.u & 0x7FFFFF;
 
     //     TLOG_INFO("%d %d %d", sign, exponent, significand);
 
@@ -215,7 +214,7 @@ unsigned short float32_to_float16(float value)
             {
                 // denormal half-precision
                 unsigned short sig = (significand | 0x800000) >> (14 - newexp);
-                fp16               = (sign << 15) | (0x00 << 10) | sig;
+                fp16 = (sign << 15) | (0x00 << 10) | sig;
             }
             else
             {
@@ -235,8 +234,8 @@ unsigned short float32_to_float16(float value)
 float float16_to_float32(unsigned short value)
 {
     // 1 : 5 : 10
-    unsigned short sign        = (value & 0x8000) >> 15;
-    unsigned short exponent    = (value & 0x7c00) >> 10;
+    unsigned short sign = (value & 0x8000) >> 15;
+    unsigned short exponent = (value & 0x7c00) >> 10;
     unsigned short significand = value & 0x03FF;
 
     //     TLOG_INFO("%d %d %d", sign, exponent, significand);
@@ -245,7 +244,7 @@ float float16_to_float32(unsigned short value)
     union
     {
         unsigned int u;
-        float        f;
+        float f;
     } tmp;
     if (exponent == 0)
     {
@@ -287,12 +286,12 @@ void cast_float32_to_float16(const Tensor& src, Tensor& dst, const Option& opt)
 {
     // printf("function cast_float32_to_float16 not done, fix me\n!!!!!");
 
-    int    w            = src.w;
-    int    h            = src.h;
-    int    channels     = src.c;
-    int    dims         = src.dims;
-    size_t elemsize     = src.elemsize;
-    int    elempack     = src.elempack;
+    int w = src.w;
+    int h = src.h;
+    int channels = src.c;
+    int dims = src.dims;
+    size_t elemsize = src.elemsize;
+    int elempack = src.elempack;
 
     size_t out_elemsize = 2 * elempack;
 
@@ -316,7 +315,7 @@ void cast_float32_to_float16(const Tensor& src, Tensor& dst, const Option& opt)
 #pragma omp parallel for
     for (int q = 0; q < channels; q++)
     {
-        const float*    ptr    = src.channel(q);
+        const float* ptr = src.channel(q);
         unsigned short* outptr = dst.channel(q);
 
         for (int i = 0; i < size; i++)
@@ -330,12 +329,12 @@ void cast_float16_to_float32(const Tensor& src, Tensor& dst, const Option& opt)
 {
     // printf("function cast_float16_to_float32 not done, fix me\n!!!!!");
 
-    int    w            = src.w;
-    int    h            = src.h;
-    int    channels     = src.c;
-    int    dims         = src.dims;
-    size_t elemsize     = src.elemsize;
-    int    elempack     = src.elempack;
+    int w = src.w;
+    int h = src.h;
+    int channels = src.c;
+    int dims = src.dims;
+    size_t elemsize = src.elemsize;
+    int elempack = src.elempack;
 
     size_t out_elemsize = 4 * elempack;
 
@@ -359,8 +358,8 @@ void cast_float16_to_float32(const Tensor& src, Tensor& dst, const Option& opt)
 #pragma omp parallel for
     for (int q = 0; q < channels; q++)
     {
-        const unsigned short* ptr    = src.channel(q);
-        float*                outptr = dst.channel(q);
+        const unsigned short* ptr = src.channel(q);
+        float* outptr = dst.channel(q);
 
         for (int i = 0; i < size; i++)
         {
@@ -369,4 +368,4 @@ void cast_float16_to_float32(const Tensor& src, Tensor& dst, const Option& opt)
     }
 }
 
-}    // namespace TEngine
+} // namespace TEngine

@@ -42,9 +42,8 @@ EXPORT_FINISH
 
 #include <NvInfer.h>
 
-
 #if NV_TENSORRT_MAJOR < 5
-    #error "Tengine: The minimum supported version of TensorRT is 5.\n"
+#error "Tengine: The minimum supported version of TensorRT is 5.\n"
 #endif
 
 const int trt_supported_ops[] = {
@@ -92,7 +91,7 @@ const int trt_supported_ops[] = {
     //        OP_HARDSWISH,                   // Not supported, last checked version 7.1.3
     OP_INPUT,
     //        OP_INSTANCENORM,
-    OP_INTERP,    // should be as UpSample
+    OP_INTERP, // should be as UpSample
 //        OP_LOGICAL,
 #if NV_TENSORRT_MAJOR >= 7
 //        OP_LOGISTIC,

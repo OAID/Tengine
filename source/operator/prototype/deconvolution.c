@@ -32,16 +32,15 @@
 #include "utility/sys_port.h"
 #include "utility/log.h"
 
-
 static int infer_shape(struct node* node)
 {
-    struct graph*  graph              = node->graph;
-    struct tensor* input              = get_ir_graph_tensor(graph, node->input_tensors[0]);
-    struct tensor* output             = get_ir_graph_tensor(graph, node->output_tensors[0]);
+    struct graph* graph = node->graph;
+    struct tensor* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
+    struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
 
     struct deconv_param* deconv_param = (struct deconv_param*)(node->op.param_mem);
 
-    int n                             = input->dims[0];
+    int n = input->dims[0];
     int h, w;
 
     if (graph->graph_layout == TENGINE_LAYOUT_NCHW)
@@ -109,26 +108,26 @@ static int init_op(struct op* op)
     }
 
     /*set the param default value */
-    deconv_param->num_output    = 1;
-    deconv_param->kernel_h      = 1;
-    deconv_param->kernel_w      = 1;
-    deconv_param->stride_h      = 1;
-    deconv_param->stride_w      = 1;
-    deconv_param->pad_h0        = 0;
-    deconv_param->pad_h1        = 0;
-    deconv_param->pad_w0        = 0;
-    deconv_param->pad_w1        = 0;
-    deconv_param->dilation_h    = 1;
-    deconv_param->dilation_w    = 1;
-    deconv_param->group         = 1;
-    deconv_param->activation    = -1;
+    deconv_param->num_output = 1;
+    deconv_param->kernel_h = 1;
+    deconv_param->kernel_w = 1;
+    deconv_param->stride_h = 1;
+    deconv_param->stride_w = 1;
+    deconv_param->pad_h0 = 0;
+    deconv_param->pad_h1 = 0;
+    deconv_param->pad_w0 = 0;
+    deconv_param->pad_w1 = 0;
+    deconv_param->dilation_h = 1;
+    deconv_param->dilation_w = 1;
+    deconv_param->group = 1;
+    deconv_param->activation = -1;
     deconv_param->output_pad_h0 = 0;
     deconv_param->output_pad_w0 = 0;
 
-    op->param_mem               = deconv_param;
-    op->param_size              = sizeof(struct deconv_param);
-    op->same_shape              = 0;
-    op->infer_shape             = infer_shape;
+    op->param_mem = deconv_param;
+    op->param_size = sizeof(struct deconv_param);
+    op->same_shape = 0;
+    op->infer_shape = infer_shape;
 
     return 0;
 }
@@ -143,9 +142,8 @@ int register_deconvolution_op()
     struct method m;
 
     m.version = 1;
-    m.init    = init_op;
+    m.init = init_op;
     m.release = release_op;
-
 
     return register_op(OP_DECONV, OP_DECONV_NAME, &m);
 }

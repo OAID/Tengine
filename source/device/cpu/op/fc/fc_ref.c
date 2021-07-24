@@ -39,28 +39,27 @@
 #include <math.h>
 #include <string.h>
 
-
 struct fc_data
 {
-    int   need_trans;
-    int   batch;         // N
-    int   out_number;    // OUT
-    int   hidden;        // hidden
-    int   zero[3];       // input, kernel, output
-    float scale[3];      // input, kernel, output
+    int need_trans;
+    int batch;      // N
+    int out_number; // OUT
+    int hidden;     // hidden
+    int zero[3];    // input, kernel, output
+    float scale[3]; // input, kernel, output
 };
 
 static int ref_fc_fp32(struct tensor* input_tensor, struct tensor* output_tensor, struct tensor* weight_tensor,
                        struct tensor* bias_tensor, struct fc_data* param)
 {
-    int batch      = param->batch;
-    int hidden     = param->hidden;
+    int batch = param->batch;
+    int hidden = param->hidden;
     int out_number = param->out_number;
 
-    float* input   = input_tensor->data;
-    float* output  = output_tensor->data;
-    float* weight  = weight_tensor->data;
-    float* bias    = NULL;
+    float* input = input_tensor->data;
+    float* output = output_tensor->data;
+    float* weight = weight_tensor->data;
+    float* bias = NULL;
     if (bias_tensor)
         bias = bias_tensor->data;
 
@@ -84,21 +83,20 @@ static int ref_fc_fp32(struct tensor* input_tensor, struct tensor* output_tensor
     return 0;
 }
 
-
 static int ref_fc_fp16(struct tensor* input_tensor, struct tensor* output_tensor, struct tensor* weight_tensor,
                        struct tensor* bias_tensor, struct fc_data* param)
 {
 #if MACOS
 
 #else
-    int batch      = param->batch;
-    int hidden     = param->hidden;
+    int batch = param->batch;
+    int hidden = param->hidden;
     int out_number = param->out_number;
 
-    fp16_t* input  = input_tensor->data;
+    fp16_t* input = input_tensor->data;
     fp16_t* output = output_tensor->data;
     fp16_t* weight = weight_tensor->data;
-    fp16_t* bias   = NULL;
+    fp16_t* bias = NULL;
     if (bias_tensor)
         bias = bias_tensor->data;
 
@@ -125,25 +123,25 @@ static int ref_fc_fp16(struct tensor* input_tensor, struct tensor* output_tensor
 static int ref_fc_uint8(struct tensor* input_tensor, struct tensor* output_tensor, struct tensor* weight_tensor,
                         struct tensor* bias_tensor, struct fc_data* param)
 {
-    int batch            = param->batch;
-    int hidden           = param->hidden;
-    int out_number       = param->out_number;
+    int batch = param->batch;
+    int hidden = param->hidden;
+    int out_number = param->out_number;
 
-    uint8_t* input       = input_tensor->data;
-    uint8_t* output      = output_tensor->data;
-    uint8_t* weight      = weight_tensor->data;
+    uint8_t* input = input_tensor->data;
+    uint8_t* output = output_tensor->data;
+    uint8_t* weight = weight_tensor->data;
 
-    float   input_scale  = input_tensor->scale;
-    float   output_scale = output_tensor->scale;
-    float   weight_scale = weight_tensor->scale;
-    int32_t input_zero   = input_tensor->zero_point;
-    int32_t output_zero  = output_tensor->zero_point;
-    int32_t weight_zero  = weight_tensor->zero_point;
+    float input_scale = input_tensor->scale;
+    float output_scale = output_tensor->scale;
+    float weight_scale = weight_tensor->scale;
+    int32_t input_zero = input_tensor->zero_point;
+    int32_t output_zero = output_tensor->zero_point;
+    int32_t weight_zero = weight_tensor->zero_point;
 
     if (bias_tensor)
     {
-        int32_t* bias       = bias_tensor->data;
-        float    bias_scale = bias_tensor->scale;
+        int32_t* bias = bias_tensor->data;
+        float bias_scale = bias_tensor->scale;
 
         int n, i, j;
         for (n = 0; n < batch; n++)
@@ -155,13 +153,13 @@ static int ref_fc_uint8(struct tensor* input_tensor, struct tensor* output_tenso
                 {
                     if (param->need_trans == 0)
                     {
-                        float input_fp32  = ((float)input[n * hidden + j] - (float)input_zero) * input_scale;
+                        float input_fp32 = ((float)input[n * hidden + j] - (float)input_zero) * input_scale;
                         float weight_fp32 = ((float)weight[i * hidden + j] - (float)weight_zero) * weight_scale;
                         data += input_fp32 * weight_fp32;
                     }
                     else
                     {
-                        float input_fp32  = ((float)input[n * hidden + j] - (float)input_zero) * input_scale;
+                        float input_fp32 = ((float)input[n * hidden + j] - (float)input_zero) * input_scale;
                         float weight_fp32 = ((float)weight[i + j * out_number] - (float)weight_zero) * weight_scale;
                         data += input_fp32 * weight_fp32;
                     }
@@ -187,13 +185,13 @@ static int ref_fc_uint8(struct tensor* input_tensor, struct tensor* output_tenso
                 {
                     if (param->need_trans == 0)
                     {
-                        float input_fp32  = ((float)input[n * hidden + j] - (float)input_zero) * input_scale;
+                        float input_fp32 = ((float)input[n * hidden + j] - (float)input_zero) * input_scale;
                         float weight_fp32 = ((float)weight[i * hidden + j] - (float)weight_zero) * weight_scale;
                         data += input_fp32 * weight_fp32;
                     }
                     else
                     {
-                        float input_fp32  = ((float)input[n * hidden + j] - (float)input_zero) * input_scale;
+                        float input_fp32 = ((float)input[n * hidden + j] - (float)input_zero) * input_scale;
                         float weight_fp32 = ((float)weight[i + j * out_number] - (float)weight_zero) * weight_scale;
                         data += input_fp32 * weight_fp32;
                     }
@@ -211,21 +209,20 @@ static int ref_fc_uint8(struct tensor* input_tensor, struct tensor* output_tenso
     return 0;
 }
 
-
 static int ref_fc_int8(struct tensor* input_tensor, struct tensor* output_tensor, struct tensor* weight_tensor,
                        struct tensor* bias_tensor, struct fc_data* param)
 {
-    int batch             = param->batch;
-    int hidden            = param->hidden;
-    int out_number        = param->out_number;
+    int batch = param->batch;
+    int hidden = param->hidden;
+    int out_number = param->out_number;
 
-    int8_t* input         = input_tensor->data;
-    int8_t* output        = output_tensor->data;
-    int8_t* weight        = weight_tensor->data;
+    int8_t* input = input_tensor->data;
+    int8_t* output = output_tensor->data;
+    int8_t* weight = weight_tensor->data;
 
-    float  input_scale    = input_tensor->scale;
-    float  output_scale   = output_tensor->scale;
-    float* weight_scales  = weight_tensor->scale_list;
+    float input_scale = input_tensor->scale;
+    float output_scale = output_tensor->scale;
+    float* weight_scales = weight_tensor->scale_list;
     float* requant_scales = (float*)malloc(out_number * sizeof(float));
 
     for (int i = 0; i < out_number; i++)
@@ -245,13 +242,13 @@ static int ref_fc_int8(struct tensor* input_tensor, struct tensor* output_tensor
                 {
                     if (param->need_trans == 0)
                     {
-                        int8_t input_i8  = input[n * hidden + j];
+                        int8_t input_i8 = input[n * hidden + j];
                         int8_t weight_i8 = weight[i * hidden + j];
                         output_i32 += (int32_t)input_i8 * (int32_t)weight_i8;
                     }
                     else
                     {
-                        int8_t input_i8  = input[n * hidden + j];
+                        int8_t input_i8 = input[n * hidden + j];
                         int8_t weight_i8 = weight[i + j * out_number];
                         output_i32 += (int32_t)input_i8 * (int32_t)weight_i8;
                     }
@@ -277,13 +274,13 @@ static int ref_fc_int8(struct tensor* input_tensor, struct tensor* output_tensor
                 {
                     if (param->need_trans == 0)
                     {
-                        int8_t input_i8  = input[n * hidden + j];
+                        int8_t input_i8 = input[n * hidden + j];
                         int8_t weight_i8 = weight[i * hidden + j];
                         output_i32 += (int32_t)input_i8 * (int32_t)weight_i8;
                     }
                     else
                     {
-                        int8_t input_i8  = input[n * hidden + j];
+                        int8_t input_i8 = input[n * hidden + j];
                         int8_t weight_i8 = weight[i + j * out_number];
                         output_i32 += (int32_t)input_i8 * (int32_t)weight_i8;
                     }
@@ -317,18 +314,18 @@ static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, 
 
 static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node*   ir_node  = exec_node->ir_node;
-    struct graph*  ir_graph = ir_node->graph;
+    struct node* ir_node = exec_node->ir_node;
+    struct graph* ir_graph = ir_node->graph;
     struct tensor* input_tensor;
     struct tensor* weight_tensor;
     struct tensor* output_tensor;
 
-    input_tensor              = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    weight_tensor             = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
-    output_tensor             = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+    input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    weight_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
+    output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    struct fc_param* param    = (struct fc_param*)ir_node->op.param_mem;
-    struct fc_data*  op_param = (struct fc_data*)exec_node->ops_priv;
+    struct fc_param* param = (struct fc_param*)ir_node->op.param_mem;
+    struct fc_data* op_param = (struct fc_data*)exec_node->ops_priv;
 
     if (ir_graph->graph_layout == TENGINE_LAYOUT_NCHW)
     {
@@ -350,10 +347,10 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
             hidden = input_tensor->dims[1] * input_tensor->dims[2] * input_tensor->dims[3];
         op_param->hidden = hidden;
     }
-    op_param->batch      = input_tensor->dims[0];
+    op_param->batch = input_tensor->dims[0];
     op_param->out_number = param->num_output;
 
-    int weight_out       = weight_tensor->dims[0];
+    int weight_out = weight_tensor->dims[0];
 
     if (weight_out == op_param->out_number)
         op_param->need_trans = 0;
@@ -365,19 +362,19 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node*   ir_node  = exec_node->ir_node;
-    struct graph*  ir_graph = ir_node->graph;
+    struct node* ir_node = exec_node->ir_node;
+    struct graph* ir_graph = ir_node->graph;
     struct tensor* input_tensor;
     struct tensor* weight_tensor;
     struct tensor* bias_tensor = NULL;
     struct tensor* output_tensor;
 
-    input_tensor              = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    weight_tensor             = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
-    output_tensor             = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+    input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    weight_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
+    output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    struct fc_param* param    = (struct fc_param*)ir_node->op.param_mem;
-    struct fc_data*  op_param = (struct fc_data*)exec_node->ops_priv;
+    struct fc_param* param = (struct fc_param*)ir_node->op.param_mem;
+    struct fc_data* op_param = (struct fc_data*)exec_node->ops_priv;
 
     if (ir_node->input_num > 2)
         bias_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[2]);
@@ -406,18 +403,18 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
 static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node*   node   = exec_node->ir_node;
-    struct graph*  graph  = node->graph;
-    struct tensor* input  = get_ir_graph_tensor(graph, node->input_tensors[0]);
+    struct node* node = exec_node->ir_node;
+    struct graph* graph = node->graph;
+    struct tensor* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
     struct tensor* weight = get_ir_graph_tensor(graph, node->input_tensors[1]);
     struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
 
     int dim[4];
 
-    int n       = weight->dims[0];
-    int k       = weight->dims[1];
+    int n = weight->dims[0];
+    int k = weight->dims[1];
 
-    int m       = input->dims[0];
+    int m = input->dims[0];
     int input_k = input->dims[1];
 
     if (input->dim_num == 2)
@@ -480,13 +477,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_CANDO;
 }
 
-static struct node_ops hcl_node_ops = { .prerun       = prerun,
-                                        .run          = run,
-                                        .reshape      = reshape,
-                                        .postrun      = NULL,
-                                        .init_node    = init_node,
-                                        .release_node = release_node,
-                                        .score        = score };
+static struct node_ops hcl_node_ops = {.prerun = prerun,
+                                       .run = run,
+                                       .reshape = reshape,
+                                       .postrun = NULL,
+                                       .init_node = init_node,
+                                       .release_node = release_node,
+                                       .score = score};
 
 int register_fc_ref_op()
 {

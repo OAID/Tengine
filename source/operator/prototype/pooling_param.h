@@ -35,24 +35,24 @@ enum
 
 struct pool_param
 {
-    int   pool_method;    // 0:max    1:avg
-    int   kernel_h;
-    int   kernel_w;
-    int   stride_h;
-    int   stride_w;
-    int   pad_h0;
-    int   pad_h1;
-    int   pad_w0;
-    int   pad_w1;
-    int   global;    // 0:general    1:global
-    int   caffe_flavor;
+    int pool_method; // 0:max    1:avg
+    int kernel_h;
+    int kernel_w;
+    int stride_h;
+    int stride_w;
+    int pad_h0;
+    int pad_h1;
+    int pad_w0;
+    int pad_w1;
+    int global; // 0:general    1:global
+    int caffe_flavor;
     void* funct;
 
     /* to support dynamic shape, need to save the original pad values*/
-    int   pad_h0_org;
-    int   pad_h1_org;
-    int   pad_w0_org;
-    int   pad_w1_org;
+    int pad_h0_org;
+    int pad_h1_org;
+    int pad_w0_org;
+    int pad_w1_org;
     void* input_pad;
 };
 
@@ -83,7 +83,7 @@ static int calc_output_size(int input, int kernel, int stride, int pad, int caff
 
 static void calc_real_pads(int out, int in, int kernel, int stride, const int pad_org, int* pad0, int* pad1)
 {
-    int total   = (out - 1) * stride + kernel;
+    int total = (out - 1) * stride + kernel;
     int pad_num = total - in;
 
     if (pad_num < 0)

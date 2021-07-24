@@ -27,8 +27,8 @@
 
 struct roipooling_param
 {
-    int   pooled_h;
-    int   pooled_w;
+    int pooled_h;
+    int pooled_w;
     float spatial_scale;
 };
 

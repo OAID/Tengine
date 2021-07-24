@@ -37,15 +37,14 @@
 #include <math.h>
 #include <string.h>
 
-
 struct ref_logsoftmax_param
 {
-    int   axis;
-    int   in_size;
-    int   on_size;
-    int   out_size;
-    float scale[2];         // scale[0]: input scale, scale[1]: output scale
-    int   zero_point[2];    // zero_point[0]: input zero_point, zero_point[1]: output zero_point
+    int axis;
+    int in_size;
+    int on_size;
+    int out_size;
+    float scale[2];    // scale[0]: input scale, scale[1]: output scale
+    int zero_point[2]; // zero_point[0]: input zero_point, zero_point[1]: output zero_point
 };
 
 static void GetMaxArray(float* input, float* array, int in_size, int on_size)
@@ -64,8 +63,7 @@ static void GetMaxArray(float* input, float* array, int in_size, int on_size)
 
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct ref_logsoftmax_param* logsoftmax_op_param =
-        (struct ref_logsoftmax_param*)sys_malloc(sizeof(struct ref_logsoftmax_param));
+    struct ref_logsoftmax_param* logsoftmax_op_param = (struct ref_logsoftmax_param*)sys_malloc(sizeof(struct ref_logsoftmax_param));
     memset(logsoftmax_op_param, 0, sizeof(struct ref_logsoftmax_param));
     exec_node->ops_priv = logsoftmax_op_param;
     return 0;
@@ -79,9 +77,9 @@ static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, 
 
 static void GetOutResult(float* input, float* output, float* array, float* sum_array, int in_size, int on_size)
 {
-    float* input_ptr     = (float*)input;
-    float* output_ptr    = (float*)output;
-    float* array_ptr     = (float*)array;
+    float* input_ptr = (float*)input;
+    float* output_ptr = (float*)output;
+    float* array_ptr = (float*)array;
     float* sum_array_ptr = (float*)sum_array;
 
     memset(sum_array, 0x0, in_size * sizeof(float));
@@ -91,7 +89,7 @@ static void GetOutResult(float* input, float* output, float* array, float* sum_a
     for (int j = 0; j < on_size; j++)
         for (int l = 0; l < in_size; l++)
         {
-            int index         = j * in_size + l;
+            int index = j * in_size + l;
             output_ptr[index] = exp(input_ptr[index] - array_ptr[l]);
             sum_array_ptr[l] += output_ptr[index];
         }
@@ -127,29 +125,29 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node*                ir_node  = exec_node->ir_node;
-    struct graph*               ir_graph = ir_node->graph;
-    struct tensor*              input_tensor;
-    struct tensor*              output_tensor;
+    struct node* ir_node = exec_node->ir_node;
+    struct graph* ir_graph = ir_node->graph;
+    struct tensor* input_tensor;
+    struct tensor* output_tensor;
     struct ref_logsoftmax_param ref_logsoftmax_param;
-    float*                      max_array;
-    float*                      sum_array;
+    float* max_array;
+    float* sum_array;
 
-    input_tensor                       = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    output_tensor                      = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+    input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    ref_logsoftmax_param.out_size      = input_tensor->elem_num;
-    ref_logsoftmax_param.scale[0]      = input_tensor->scale;
-    ref_logsoftmax_param.scale[1]      = output_tensor->scale;
+    ref_logsoftmax_param.out_size = input_tensor->elem_num;
+    ref_logsoftmax_param.scale[0] = input_tensor->scale;
+    ref_logsoftmax_param.scale[1] = output_tensor->scale;
     ref_logsoftmax_param.zero_point[0] = input_tensor->zero_point;
     ref_logsoftmax_param.zero_point[1] = output_tensor->zero_point;
 
-    struct logsoftmax_param* param_    = (struct logsoftmax_param*)(ir_node->op.param_mem);
+    struct logsoftmax_param* param_ = (struct logsoftmax_param*)(ir_node->op.param_mem);
 
     // const std::vector<int>& dims = input_tensor->GetShape().GetDim();
     const int* dims = input_tensor->dims;
     //
-    int axis     = param_->axis;
+    int axis = param_->axis;
     int out_size = 1;
     for (int i = 0; i < axis; i++)
     {
@@ -160,10 +158,10 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     {
         in_size *= dims[i];
     }
-    int on_size                  = dims[axis];
+    int on_size = dims[axis];
 
-    max_array                    = (float*)sys_malloc(in_size * sizeof(float));
-    sum_array                    = (float*)sys_malloc(in_size * sizeof(float));
+    max_array = (float*)sys_malloc(in_size * sizeof(float));
+    sum_array = (float*)sys_malloc(in_size * sizeof(float));
 
     ref_logsoftmax_param.in_size = in_size;
     ref_logsoftmax_param.on_size = on_size;
@@ -181,13 +179,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_CANDO;
 }
 
-static struct node_ops hcl_node_ops = { .prerun       = prerun,
-                                        .run          = run,
-                                        .reshape      = NULL,
-                                        .postrun      = NULL,
-                                        .init_node    = init_node,
-                                        .release_node = release_node,
-                                        .score        = score };
+static struct node_ops hcl_node_ops = {.prerun = prerun,
+                                       .run = run,
+                                       .reshape = NULL,
+                                       .postrun = NULL,
+                                       .init_node = init_node,
+                                       .release_node = release_node,
+                                       .score = score};
 
 int register_logsoftmax_ref_op()
 {

@@ -22,14 +22,12 @@
  * Author: qtang@openailab.com
  */
 
-
 #include "test_op.h"
 
 #include "graph/graph.h"
 #include "graph/node.h"
 #include "graph/tensor.h"
 #include "operator/prototype/eltwise_param.h"
-
 
 int create_test_concat_node(graph_t graph, const char* input_name0, const char* node_name, int data_type, int layout,
                             int n, int c, int h, int w)
@@ -51,10 +49,10 @@ int create_test_concat_node(graph_t graph, const char* input_name0, const char* 
         return -1;
     }
 
-    node_t   input1_node   = create_graph_node(graph, "input1", "InputOp");
+    node_t input1_node = create_graph_node(graph, "input1", "InputOp");
     tensor_t input1_tensor = create_graph_tensor(graph, "input1", TENGINE_DT_FP32);
     set_node_output_tensor(input1_node, 0, input1_tensor, TENSOR_TYPE_INPUT);
-    int input1_dims[4] = { 1, 1, 3, 3 };    // channel num
+    int input1_dims[4] = {1, 1, 3, 3}; // channel num
     set_tensor_shape(input1_tensor, input1_dims, 4);
 
     /* input tensors of test node */
@@ -68,11 +66,11 @@ int create_test_concat_node(graph_t graph, const char* input_name0, const char* 
     /* set params */
     struct eltwise_param* param = (struct eltwise_param*)(struct node*)test_node->op.param_mem;
 
-    param->type                 = 2;
-    param->caffe_flavor         = 1;
-    param->shift                = NULL;
-    param->power                = NULL;
-    param->scale                = NULL;
+    param->type = 2;
+    param->caffe_flavor = 1;
+    param->shift = NULL;
+    param->power = NULL;
+    param->scale = NULL;
 
     return 0;
 }
@@ -84,25 +82,47 @@ int create_test_concat_node(graph_t graph, const char* input_name0, const char* 
  * float32 = (uint8 - zero_point) * scale
  */
 float input0_fp32[9] = {
-    3.0f, 8.0f, 1.0f, 9.0f, 5.0f, 7.0f, 3.0f, 2.0f, 3.0f,
+    3.0f,
+    8.0f,
+    1.0f,
+    9.0f,
+    5.0f,
+    7.0f,
+    3.0f,
+    2.0f,
+    3.0f,
 };
 
 float input1_fp32[9] = {
-    9.0f, 0.0f, 3.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 2.0f,
+    9.0f,
+    0.0f,
+    3.0f,
+    0.0f,
+    0.0f,
+    0.0f,
+    1.0f,
+    0.0f,
+    2.0f,
 };
 
 float reference_out[9] = {
-    12.0f, 8.0f, 4.0f, 9.0f, 5.0f, 7.0f, 4.0f, 2.0f, 5.0f,
+    12.0f,
+    8.0f,
+    4.0f,
+    9.0f,
+    5.0f,
+    7.0f,
+    4.0f,
+    2.0f,
+    5.0f,
 };
-
-
 
 int main(int argc, char* argv[])
 {
-    int         n = 1, c = 1, h = 3, w = 3;
+    int n = 1, c = 1, h = 3, w = 3;
     const char* test_node_name = "eltwise";
-    int         data_type      = TENGINE_DT_FP32;
-    int         layout         = TENGINE_LAYOUT_NCHW;
+    int data_type = TENGINE_DT_FP32;
+    int layout = TENGINE_LAYOUT_NCHW;
 
     // init
     int ret = test_graph_init();
@@ -122,7 +142,6 @@ int main(int argc, char* argv[])
     struct tensor* input0_tensor = (struct tensor*)get_graph_tensor(ir_graph, "input_node");
     struct tensor* input1_tensor = (struct tensor*)get_graph_tensor(ir_graph, "input1");
     struct tensor* output_tensor = (struct tensor*)get_graph_tensor(ir_graph, "eltwise");
-
 
     // set input data
     set_tensor_buffer(input0_tensor, input0_fp32, 9 * 4);
@@ -144,7 +163,7 @@ int main(int argc, char* argv[])
 
     // get output and dequant
     float* output_data = (float*)output_tensor->data;
-    int    output_size = output_tensor->elem_num;
+    int output_size = output_tensor->elem_num;
 
     // check the result
     ret = 0;

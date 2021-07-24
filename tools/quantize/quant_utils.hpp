@@ -30,7 +30,6 @@
 #include <string>
 #include <cmath>
 
-
 double get_current_time();
 
 void split(float* array, char* str, const char* del);

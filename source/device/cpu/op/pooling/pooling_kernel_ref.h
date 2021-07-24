@@ -31,7 +31,6 @@
 #include "graph/node.h"
 #include "graph/graph.h"
 
-
 int ref_pooling_fp32(struct tensor* input_tensor, struct tensor* output_tensor, struct pool_param* pool_param,
                      int num_thread);
 

@@ -32,13 +32,12 @@
 #include "utility/sys_port.h"
 #include "utility/log.h"
 
-
 static int infer_shape(struct node* node)
 {
     if (node->input_num == 1)
     {
-        struct graph*  graph  = node->graph;
-        struct tensor* input  = get_ir_graph_tensor(graph, node->input_tensors[0]);
+        struct graph* graph = node->graph;
+        struct tensor* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
         struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
 
         set_ir_tensor_shape(output, input->dims, input->dim_num);
@@ -48,7 +47,7 @@ static int infer_shape(struct node* node)
 
     if (node->input_num == 2)
     {
-        struct graph*  graph  = node->graph;
+        struct graph* graph = node->graph;
         struct tensor* input0 = get_ir_graph_tensor(graph, node->input_tensors[0]);
         struct tensor* input1 = get_ir_graph_tensor(graph, node->input_tensors[1]);
         struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
@@ -64,7 +63,6 @@ static int infer_shape(struct node* node)
     return -1;
 }
 
-
 static int init_op(struct op* op)
 {
     struct logical_param* logical_param = (struct logical_param*)sys_malloc(sizeof(struct logical_param));
@@ -77,32 +75,29 @@ static int init_op(struct op* op)
     /*set the param default value */
     logical_param->type = 0;
 
-    op->param_mem       = logical_param;
-    op->param_size      = sizeof(struct logical_param);
-    op->same_shape      = 0;
-    op->infer_shape     = infer_shape;
+    op->param_mem = logical_param;
+    op->param_size = sizeof(struct logical_param);
+    op->same_shape = 0;
+    op->infer_shape = infer_shape;
 
     return 0;
 }
-
 
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
 
-
 int register_logical_op()
 {
     struct method m;
 
     m.version = 1;
-    m.init    = init_op;
+    m.init = init_op;
     m.release = release_op;
 
     return register_op(OP_LOGICAL, OP_LOGICAL_NAME, &m);
 }
-
 
 int unregister_logical_op()
 {

@@ -47,9 +47,9 @@
 
 #include "fc_param.h"
 
-namespace TEngine
+namespace TEngine {
+class InnerProduct_vulkan : public Layer
 {
-class InnerProduct_vulkan : public Layer {
 public:
     InnerProduct_vulkan();
     InnerProduct_vulkan(ir_graph_t* ir_graph, ir_node_t* ir_node);
@@ -87,7 +87,7 @@ public:
     int int8_scale_term;
 
     // 0=none 1=relu 2=leakyrelu 3=clip 4=sigmoid
-    int    activation_type;
+    int activation_type;
     Tensor activation_params;
 
     int input_c;
@@ -98,6 +98,6 @@ public:
     int output_w;
 };
 
-}    // namespace TEngine
+} // namespace TEngine
 
-#endif    // LAYER_INNERPRODUCT_VULKAN_H
+#endif // LAYER_INNERPRODUCT_VULKAN_H

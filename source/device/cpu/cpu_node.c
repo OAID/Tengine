@@ -28,25 +28,24 @@
 #include "graph/node.h"
 #include "utility/sys_port.h"
 
-
 int init_exec_node(struct exec_graph* exec_graph, struct exec_node* exec_node, struct node* ir_node,
                    struct node_ops* node_ops)
 {
-    exec_node->ir_node               = ir_node;
-    exec_node->node_ops              = node_ops;
-    exec_node->ops_priv              = NULL;
-    exec_node->inplace_map_num       = 0;
-    exec_node->inplace_map_ptr       = NULL;
-    exec_node->shared_mem_size       = 0;
+    exec_node->ir_node = ir_node;
+    exec_node->node_ops = node_ops;
+    exec_node->ops_priv = NULL;
+    exec_node->inplace_map_num = 0;
+    exec_node->inplace_map_ptr = NULL;
+    exec_node->shared_mem_size = 0;
     exec_node->shared_pack4_mem_size = 0;
-    exec_node->output_num            = ir_node->output_num;
+    exec_node->output_num = ir_node->output_num;
 
-    int8_t* block_id                 = exec_node->block_id;
+    int8_t* block_id = exec_node->block_id;
 
     if (exec_node->output_num > 4)
     {
         exec_node->block_id_ptr = (int8_t*)sys_malloc(sizeof(int8_t) * exec_node->output_num);
-        block_id                = exec_node->block_id_ptr;
+        block_id = exec_node->block_id_ptr;
     }
 
     for (int i = 0; i < exec_node->output_num; i++)
@@ -57,7 +56,6 @@ int init_exec_node(struct exec_graph* exec_graph, struct exec_node* exec_node, s
 
     return 0;
 }
-
 
 void release_exec_node(struct exec_graph* exec_graph, struct exec_node* exec_node, struct node_ops* node_ops)
 {

@@ -36,11 +36,10 @@
 
 #include <math.h>
 
-
 struct eltwise_op_param
 {
     float scale[3];
-    int   zero[3];
+    int zero[3];
 };
 
 #define ELT_MAX(a, b) ((a) > (b) ? (a) : (b))
@@ -51,8 +50,8 @@ static int ref_eltwise_fp32(void* output, void* input0, void* input1, int type, 
                             struct eltwise_param* eltwise_param)
 {
     float* out_ptr = (float*)output;
-    float* in0     = (float*)input0;
-    float* in1     = (float*)input1;
+    float* in0 = (float*)input0;
+    float* in1 = (float*)input1;
 
     switch (type)
     {
@@ -291,16 +290,16 @@ static int ref_eltwise_uint8(struct tensor* output_tensor, struct tensor* input_
     uint8_t* input1_uint8 = (uint8_t*)input_tensor1->data;
     uint8_t* output_uint8 = (uint8_t*)output_tensor->data;
 
-    float in_scale0       = input_tensor0->scale;
-    float in_scale1       = input_tensor1->scale;
-    float out_scale       = output_tensor->scale;
-    int   in_zero0        = input_tensor0->zero_point;
-    int   in_zero1        = input_tensor1->zero_point;
-    int   out_zero        = output_tensor->zero_point;
+    float in_scale0 = input_tensor0->scale;
+    float in_scale1 = input_tensor1->scale;
+    float out_scale = output_tensor->scale;
+    int in_zero0 = input_tensor0->zero_point;
+    int in_zero1 = input_tensor1->zero_point;
+    int out_zero = output_tensor->zero_point;
 
     /* input dequant */
-    float* in0     = (float*)sys_malloc(input_tensor0->elem_num * sizeof(float));
-    float* in1     = (float*)sys_malloc(input_tensor1->elem_num * sizeof(float));
+    float* in0 = (float*)sys_malloc(input_tensor0->elem_num * sizeof(float));
+    float* in1 = (float*)sys_malloc(input_tensor1->elem_num * sizeof(float));
     float* out_ptr = (float*)sys_malloc(output_tensor->elem_num * sizeof(float));
 
     for (int i = 0; i < input_tensor0->elem_num; i++)
@@ -520,7 +519,6 @@ static int ref_eltwise_uint8(struct tensor* output_tensor, struct tensor* input_
         break;
     }
 
-
     /* output quant */
     for (int i = 0; i < output_tensor->elem_num; i++)
     {
@@ -529,7 +527,7 @@ static int ref_eltwise_uint8(struct tensor* output_tensor, struct tensor* input_
             output_data = 255;
         else if (output_data < 0)
             output_data = 0;
-        output_uint8[i] = output_data;    // adjust for QA Models test case(mobilenet_v2_1.0_quant_tfile.tmfile)
+        output_uint8[i] = output_data; // adjust for QA Models test case(mobilenet_v2_1.0_quant_tfile.tmfile)
     }
 
     sys_free(in0);
@@ -547,13 +545,13 @@ static int ref_eltwise_int8(struct tensor* output_tensor, struct tensor* input_t
     int8_t* input1_int8 = (int8_t*)input_tensor1->data;
     int8_t* output_int8 = (int8_t*)output_tensor->data;
 
-    float in_scale0     = input_tensor0->scale;
-    float in_scale1     = input_tensor1->scale;
-    float out_scale     = output_tensor->scale;
+    float in_scale0 = input_tensor0->scale;
+    float in_scale1 = input_tensor1->scale;
+    float out_scale = output_tensor->scale;
 
     /* input dequant */
-    float* in0     = (float*)sys_malloc(input_tensor0->elem_num * sizeof(float));
-    float* in1     = (float*)sys_malloc(input_tensor1->elem_num * sizeof(float));
+    float* in0 = (float*)sys_malloc(input_tensor0->elem_num * sizeof(float));
+    float* in1 = (float*)sys_malloc(input_tensor1->elem_num * sizeof(float));
     float* out_ptr = (float*)sys_malloc(output_tensor->elem_num * sizeof(float));
 
     for (int i = 0; i < input_tensor0->elem_num; i++)
@@ -773,7 +771,6 @@ static int ref_eltwise_int8(struct tensor* output_tensor, struct tensor* input_t
         break;
     }
 
-
     /* output quant */
     for (int i = 0; i < output_tensor->elem_num; i++)
     {
@@ -809,38 +806,38 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node*   ir_node  = exec_node->ir_node;
-    struct graph*  ir_graph = ir_node->graph;
+    struct node* ir_node = exec_node->ir_node;
+    struct graph* ir_graph = ir_node->graph;
     struct tensor* input_tensor0;
     struct tensor* input_tensor1 = NULL;
     struct tensor* output_tensor;
 
-    input_tensor0                       = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    output_tensor                       = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+    input_tensor0 = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
     struct eltwise_param* eltwise_param = (struct eltwise_param*)ir_node->op.param_mem;
 
-    int   layout                        = ir_graph->graph_layout;
-    void* input0                        = input_tensor0->data;
-    void* input1                        = NULL;
-    void* output                        = output_tensor->data;
-    int   input1_count4                 = 0;
-    int   input_hw_1                    = 0;
+    int layout = ir_graph->graph_layout;
+    void* input0 = input_tensor0->data;
+    void* input1 = NULL;
+    void* output = output_tensor->data;
+    int input1_count4 = 0;
+    int input_hw_1 = 0;
 
     if (ir_node->input_num > 1)
     {
         input_tensor1 = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
-        input1        = input_tensor1->data;
+        input1 = input_tensor1->data;
         input1_count4 = input_tensor1->elem_num;
         int dim1_size = input_tensor1->dim_num;
-        input_hw_1    = input_tensor1->dims[dim1_size - 2] * input_tensor1->dims[dim1_size - 1];
+        input_hw_1 = input_tensor1->dims[dim1_size - 2] * input_tensor1->dims[dim1_size - 1];
     }
 
     if (!input_tensor1 || input_tensor0->elem_num >= input_tensor1->elem_num)
     {
-        int input_chan_0  = 0;
-        int input_hw_0    = 0;
+        int input_chan_0 = 0;
+        int input_hw_0 = 0;
         int input0_count4 = input_tensor0->elem_num;
-        int dim0_size     = input_tensor0->dim_num;
+        int dim0_size = input_tensor0->dim_num;
         if (layout == TENGINE_LAYOUT_NCHW)
         {
             input_chan_0 = input_tensor0->dims[dim0_size - 3];
@@ -853,7 +850,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         else if (layout == TENGINE_LAYOUT_NHWC)
         {
             input_chan_0 = input_tensor0->dims[3];
-            input_hw_0   = input_tensor0->dims[1] * input_tensor0->dims[2];
+            input_hw_0 = input_tensor0->dims[1] * input_tensor0->dims[2];
         }
         else
         {
@@ -882,20 +879,20 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     }
     else
     {
-        int input_chan_0  = 0;
-        int input_hw_0    = 0;
+        int input_chan_0 = 0;
+        int input_hw_0 = 0;
         int input0_count4 = input_tensor1->elem_num;
-        input1_count4     = input_tensor0->elem_num;
+        input1_count4 = input_tensor0->elem_num;
 
         if (layout == TENGINE_LAYOUT_NCHW)
         {
             input_chan_0 = input_tensor1->dims[1];
-            input_hw_0   = input_tensor1->dims[2] * input_tensor1->dims[3];
+            input_hw_0 = input_tensor1->dims[2] * input_tensor1->dims[3];
         }
         else if (layout == TENGINE_LAYOUT_NHWC)
         {
             input_chan_0 = input_tensor1->dims[3];
-            input_hw_0   = input_tensor1->dims[1] * input_tensor1->dims[2];
+            input_hw_0 = input_tensor1->dims[1] * input_tensor1->dims[2];
         }
         else
         {
@@ -930,13 +927,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_CANDO;
 }
 
-static struct node_ops hcl_node_ops = { .prerun       = prerun,
-                                        .run          = run,
-                                        .reshape      = NULL,
-                                        .postrun      = NULL,
-                                        .init_node    = init_node,
-                                        .release_node = release_node,
-                                        .score        = score };
+static struct node_ops hcl_node_ops = {.prerun = prerun,
+                                       .run = run,
+                                       .reshape = NULL,
+                                       .postrun = NULL,
+                                       .init_node = init_node,
+                                       .release_node = release_node,
+                                       .score = score};
 
 int register_eltwise_ref_op()
 {

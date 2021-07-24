@@ -44,8 +44,7 @@
 #include "vulkan_command.hpp"
 #include "vulkan_pipeline.hpp"
 
-extern "C"
-{
+extern "C" {
 #include "api/c_api.h"
 #include "device/device.h"
 #include "graph/tensor.h"
@@ -59,9 +58,9 @@ extern "C"
 #include "utility/log.h"
 }
 
-namespace TEngine
+namespace TEngine {
+class Layer
 {
-class Layer {
 public:
     // empty
     Layer();
@@ -101,7 +100,7 @@ public:
     bool support_image_storage;
 
 public:
-    const GPUDevice*         vkdev;
+    const GPUDevice* vkdev;
     std::vector<std::string> bottoms;
     std::vector<std::string> tops;
 
@@ -110,11 +109,11 @@ public:
     std::string name;
     // Node* node;
     ir_graph_t* graph;
-    ir_node_t*  node;
+    ir_node_t* node;
 };
 
 Layer* create_layer(std::string type);
 
-}    // namespace TEngine
+} // namespace TEngine
 
-#endif    // VULKAN_LAYER_HPP
+#endif // VULKAN_LAYER_HPP

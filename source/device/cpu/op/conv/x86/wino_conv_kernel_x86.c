@@ -39,8 +39,8 @@
 #include <string.h>
 #include <math.h>
 
-#define TILE           4
-#define ELEM_SIZE      ((TILE + 2) * (TILE + 2))
+#define TILE      4
+#define ELEM_SIZE ((TILE + 2) * (TILE + 2))
 
 #define WINO_MAX(a, b) ((a) > (b) ? (a) : (b))
 #define WINO_MIN(a, b) ((a) < (b) ? (a) : (b))
@@ -59,10 +59,10 @@ static void relu(float* data, int size, int activation)
 }
 static int get_private_mem_size(struct tensor* filter, struct conv_param* param)
 {
-    int output_c       = filter->dims[0];
-    int input_c        = filter->dims[1];
+    int output_c = filter->dims[0];
+    int input_c = filter->dims[1];
     int trans_ker_size = (unsigned long)output_c * input_c * ELEM_SIZE * sizeof(float);
-    return trans_ker_size + 128;    // caution
+    return trans_ker_size + 128; // caution
 }
 
 static void pad_0_align_2D(float* dst, float* src, int m, int n, int m_align, int n_align, int pad_h, int pad_w)
@@ -127,30 +127,30 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
                               float* transform_input, float* output_bordered, float* _bias, int w, int h, int inch,
                               int outw, int outh, int outch, int num_thread)
 {
-    size_t       elemsize = sizeof(float);
-    const float* bias     = _bias;
+    size_t elemsize = sizeof(float);
+    const float* bias = _bias;
 
     // pad to 4n+2, winograd F(4,3)
     float* bottom_blob_bordered = bottom_blob;
-    int    outw_align           = (outw + 3) / 4 * 4;
-    int    outh_align           = (outh + 3) / 4 * 4;
+    int outw_align = (outw + 3) / 4 * 4;
+    int outh_align = (outh + 3) / 4 * 4;
 
-    w                           = outw_align + 2;
-    h                           = outh_align + 2;
+    w = outw_align + 2;
+    h = outh_align + 2;
 
     // BEGIN transform input
     float* bottom_blob_tm = NULL;
     {
-        int w_tm          = outw_align / 4 * 6;
-        int h_tm          = outh_align / 4 * 6;
+        int w_tm = outw_align / 4 * 6;
+        int h_tm = outh_align / 4 * 6;
 
-        int nColBlocks    = h_tm / 6;    // may be the block num in Feathercnn
-        int nRowBlocks    = w_tm / 6;
+        int nColBlocks = h_tm / 6; // may be the block num in Feathercnn
+        int nRowBlocks = w_tm / 6;
 
-        const int tiles   = nColBlocks * nRowBlocks;
+        const int tiles = nColBlocks * nRowBlocks;
         const int tiles_n = 4 * inch * tiles;
 
-        bottom_blob_tm    = transform_input;
+        bottom_blob_tm = transform_input;
 
         // BT
         // const float itm[4][4] = {
@@ -253,7 +253,7 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
                     _w5 = _mm256_fmadd_ps(_d3, _5_n, _w5);
                     _w5 = _mm256_add_ps(_w5, _d5);
                     // transpose d to d_t
-    #ifdef _WIN32
+#ifdef _WIN32
                     {
                         _t0.m256_f32[0] = _w0.m256_f32[0];
                         _t1.m256_f32[0] = _w0.m256_f32[1];
@@ -292,7 +292,7 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
                         _t4.m256_f32[5] = _w5.m256_f32[4];
                         _t5.m256_f32[5] = _w5.m256_f32[5];
                     }
-    #else
+#else
                     {
                         _t0[0] = _w0[0];
                         _t1[0] = _w0[1];
@@ -331,7 +331,7 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
                         _t4[5] = _w5[4];
                         _t5[5] = _w5[5];
                     }
-    #endif
+#endif
                     // d = B_t * d_t
                     _n0 = _mm256_mul_ps(_t0, _4_p);
                     _n0 = _mm256_fmadd_ps(_t2, _5_n, _n0);
@@ -361,17 +361,17 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
                     _n5 = _mm256_fmadd_ps(_t3, _5_n, _n5);
                     _n5 = _mm256_add_ps(_n5, _t5);
                     // save to out_tm
-                    float output_n0[8] = { 0.f };
+                    float output_n0[8] = {0.f};
                     _mm256_storeu_ps(output_n0, _n0);
-                    float output_n1[8] = { 0.f };
+                    float output_n1[8] = {0.f};
                     _mm256_storeu_ps(output_n1, _n1);
-                    float output_n2[8] = { 0.f };
+                    float output_n2[8] = {0.f};
                     _mm256_storeu_ps(output_n2, _n2);
-                    float output_n3[8] = { 0.f };
+                    float output_n3[8] = {0.f};
                     _mm256_storeu_ps(output_n3, _n3);
-                    float output_n4[8] = { 0.f };
+                    float output_n4[8] = {0.f};
                     _mm256_storeu_ps(output_n4, _n4);
-                    float output_n5[8] = { 0.f };
+                    float output_n5[8] = {0.f};
                     _mm256_storeu_ps(output_n5, _n5);
 
                     out_tm0[0] = output_n0[0];
@@ -527,7 +527,7 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
                         out_tm8[2] = d5[4];
                         out_tm8[3] = d5[5];
                     }
-#endif    // __AVX__
+#endif // __AVX__
                     r0 += 4;
                     r1 += 4;
                     r2 += 4;
@@ -542,29 +542,29 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
     // BEGIN dot
     float* top_blob_tm = NULL;
     {
-        int w_tm          = outw_align / 4 * 6;
-        int h_tm          = outh_align / 4 * 6;
+        int w_tm = outw_align / 4 * 6;
+        int h_tm = outh_align / 4 * 6;
 
-        int nColBlocks    = h_tm / 6;    // may be the block num in Feathercnn
-        int nRowBlocks    = w_tm / 6;
+        int nColBlocks = h_tm / 6; // may be the block num in Feathercnn
+        int nRowBlocks = w_tm / 6;
 
-        const int tiles   = nColBlocks * nRowBlocks;
+        const int tiles = nColBlocks * nRowBlocks;
         const int tiles_n = 36 * tiles;
 
-        top_blob_tm       = dot_block;
+        top_blob_tm = dot_block;
 
 #pragma omp parallel for num_threads(num_thread)
         for (int r = 0; r < 9; r++)
         {
-            int nn_outch           = 0;
+            int nn_outch = 0;
             int remain_outch_start = 0;
 
-            nn_outch               = outch >> 3;
-            remain_outch_start     = nn_outch << 3;
+            nn_outch = outch >> 3;
+            remain_outch_start = nn_outch << 3;
 
             for (int pp = 0; pp < nn_outch; pp++)
             {
-                int p             = pp << 3;
+                int p = pp << 3;
 
                 float* output0_tm = top_blob_tm + tiles_n * p;
                 float* output1_tm = top_blob_tm + tiles_n * (p + 1);
@@ -575,31 +575,31 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
                 float* output6_tm = top_blob_tm + tiles_n * (p + 6);
                 float* output7_tm = top_blob_tm + tiles_n * (p + 7);
 
-                output0_tm        = output0_tm + r * 4;
-                output1_tm        = output1_tm + r * 4;
-                output2_tm        = output2_tm + r * 4;
-                output3_tm        = output3_tm + r * 4;
-                output4_tm        = output4_tm + r * 4;
-                output5_tm        = output5_tm + r * 4;
-                output6_tm        = output6_tm + r * 4;
-                output7_tm        = output7_tm + r * 4;
+                output0_tm = output0_tm + r * 4;
+                output1_tm = output1_tm + r * 4;
+                output2_tm = output2_tm + r * 4;
+                output3_tm = output3_tm + r * 4;
+                output4_tm = output4_tm + r * 4;
+                output5_tm = output5_tm + r * 4;
+                output6_tm = output6_tm + r * 4;
+                output7_tm = output7_tm + r * 4;
 
                 for (int i = 0; i < tiles; i++)
                 {
                     const float* kptr = kernel_tm_test + 4 * r * inch * outch + p / 8 * inch * 32;
-                    const float* r0   = bottom_blob_tm + 4 * inch * (tiles * r + i);
+                    const float* r0 = bottom_blob_tm + 4 * inch * (tiles * r + i);
 #if __AVX__ || __SSE__
-    #if __AVX__
-                    float  zero_val = 0.f;
-                    __m128 _sum0    = _mm_broadcast_ss(&zero_val);
-                    __m128 _sum1    = _mm_broadcast_ss(&zero_val);
-                    __m128 _sum2    = _mm_broadcast_ss(&zero_val);
-                    __m128 _sum3    = _mm_broadcast_ss(&zero_val);
-                    __m128 _sum4    = _mm_broadcast_ss(&zero_val);
-                    __m128 _sum5    = _mm_broadcast_ss(&zero_val);
-                    __m128 _sum6    = _mm_broadcast_ss(&zero_val);
-                    __m128 _sum7    = _mm_broadcast_ss(&zero_val);
-    #else
+#if __AVX__
+                    float zero_val = 0.f;
+                    __m128 _sum0 = _mm_broadcast_ss(&zero_val);
+                    __m128 _sum1 = _mm_broadcast_ss(&zero_val);
+                    __m128 _sum2 = _mm_broadcast_ss(&zero_val);
+                    __m128 _sum3 = _mm_broadcast_ss(&zero_val);
+                    __m128 _sum4 = _mm_broadcast_ss(&zero_val);
+                    __m128 _sum5 = _mm_broadcast_ss(&zero_val);
+                    __m128 _sum6 = _mm_broadcast_ss(&zero_val);
+                    __m128 _sum7 = _mm_broadcast_ss(&zero_val);
+#else
                     __m128 _sum0 = _mm_set1_ps(0.f);
                     __m128 _sum1 = _mm_set1_ps(0.f);
                     __m128 _sum2 = _mm_set1_ps(0.f);
@@ -608,7 +608,7 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
                     __m128 _sum5 = _mm_set1_ps(0.f);
                     __m128 _sum6 = _mm_set1_ps(0.f);
                     __m128 _sum7 = _mm_set1_ps(0.f);
-    #endif
+#endif
                     int q = 0;
                     for (; q + 3 < inch; q = q + 4)
                     {
@@ -625,7 +625,7 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
                         __m128 _k5 = _mm_loadu_ps(kptr + 20);
                         __m128 _k6 = _mm_loadu_ps(kptr + 24);
                         __m128 _k7 = _mm_loadu_ps(kptr + 28);
-    #if __AVX__
+#if __AVX__
                         _sum0 = _mm_fmadd_ps(_r0, _k0, _sum0);
                         _sum1 = _mm_fmadd_ps(_r0, _k1, _sum1);
                         _sum2 = _mm_fmadd_ps(_r0, _k2, _sum2);
@@ -634,7 +634,7 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
                         _sum5 = _mm_fmadd_ps(_r0, _k5, _sum5);
                         _sum6 = _mm_fmadd_ps(_r0, _k6, _sum6);
                         _sum7 = _mm_fmadd_ps(_r0, _k7, _sum7);
-    #else
+#else
                         _sum0 = _mm_add_ps(_sum0, _mm_mul_ps(_r0, _k0));
                         _sum1 = _mm_add_ps(_sum1, _mm_mul_ps(_r0, _k1));
                         _sum2 = _mm_add_ps(_sum2, _mm_mul_ps(_r0, _k2));
@@ -643,7 +643,7 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
                         _sum5 = _mm_add_ps(_sum5, _mm_mul_ps(_r0, _k5));
                         _sum6 = _mm_add_ps(_sum6, _mm_mul_ps(_r0, _k6));
                         _sum7 = _mm_add_ps(_sum7, _mm_mul_ps(_r0, _k7));
-    #endif
+#endif
                         kptr += 32;
                         _k0 = _mm_loadu_ps(kptr);
                         _k1 = _mm_loadu_ps(kptr + 4);
@@ -653,7 +653,7 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
                         _k5 = _mm_loadu_ps(kptr + 20);
                         _k6 = _mm_loadu_ps(kptr + 24);
                         _k7 = _mm_loadu_ps(kptr + 28);
-    #if __AVX__
+#if __AVX__
                         _sum0 = _mm_fmadd_ps(_r1, _k0, _sum0);
                         _sum1 = _mm_fmadd_ps(_r1, _k1, _sum1);
                         _sum2 = _mm_fmadd_ps(_r1, _k2, _sum2);
@@ -662,7 +662,7 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
                         _sum5 = _mm_fmadd_ps(_r1, _k5, _sum5);
                         _sum6 = _mm_fmadd_ps(_r1, _k6, _sum6);
                         _sum7 = _mm_fmadd_ps(_r1, _k7, _sum7);
-    #else
+#else
                         _sum0 = _mm_add_ps(_sum0, _mm_mul_ps(_r1, _k0));
                         _sum1 = _mm_add_ps(_sum1, _mm_mul_ps(_r1, _k1));
                         _sum2 = _mm_add_ps(_sum2, _mm_mul_ps(_r1, _k2));
@@ -671,7 +671,7 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
                         _sum5 = _mm_add_ps(_sum5, _mm_mul_ps(_r1, _k5));
                         _sum6 = _mm_add_ps(_sum6, _mm_mul_ps(_r1, _k6));
                         _sum7 = _mm_add_ps(_sum7, _mm_mul_ps(_r1, _k7));
-    #endif
+#endif
 
                         kptr += 32;
                         _k0 = _mm_loadu_ps(kptr);
@@ -682,7 +682,7 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
                         _k5 = _mm_loadu_ps(kptr + 20);
                         _k6 = _mm_loadu_ps(kptr + 24);
                         _k7 = _mm_loadu_ps(kptr + 28);
-    #if __AVX__
+#if __AVX__
                         _sum0 = _mm_fmadd_ps(_r2, _k0, _sum0);
                         _sum1 = _mm_fmadd_ps(_r2, _k1, _sum1);
                         _sum2 = _mm_fmadd_ps(_r2, _k2, _sum2);
@@ -691,7 +691,7 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
                         _sum5 = _mm_fmadd_ps(_r2, _k5, _sum5);
                         _sum6 = _mm_fmadd_ps(_r2, _k6, _sum6);
                         _sum7 = _mm_fmadd_ps(_r2, _k7, _sum7);
-    #else
+#else
                         _sum0 = _mm_add_ps(_sum0, _mm_mul_ps(_r2, _k0));
                         _sum1 = _mm_add_ps(_sum1, _mm_mul_ps(_r2, _k1));
                         _sum2 = _mm_add_ps(_sum2, _mm_mul_ps(_r2, _k2));
@@ -700,7 +700,7 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
                         _sum5 = _mm_add_ps(_sum5, _mm_mul_ps(_r2, _k5));
                         _sum6 = _mm_add_ps(_sum6, _mm_mul_ps(_r2, _k6));
                         _sum7 = _mm_add_ps(_sum7, _mm_mul_ps(_r2, _k7));
-    #endif
+#endif
                         kptr += 32;
                         _k0 = _mm_loadu_ps(kptr);
                         _k1 = _mm_loadu_ps(kptr + 4);
@@ -710,7 +710,7 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
                         _k5 = _mm_loadu_ps(kptr + 20);
                         _k6 = _mm_loadu_ps(kptr + 24);
                         _k7 = _mm_loadu_ps(kptr + 28);
-    #if __AVX__
+#if __AVX__
                         _sum0 = _mm_fmadd_ps(_r3, _k0, _sum0);
                         _sum1 = _mm_fmadd_ps(_r3, _k1, _sum1);
                         _sum2 = _mm_fmadd_ps(_r3, _k2, _sum2);
@@ -719,7 +719,7 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
                         _sum5 = _mm_fmadd_ps(_r3, _k5, _sum5);
                         _sum6 = _mm_fmadd_ps(_r3, _k6, _sum6);
                         _sum7 = _mm_fmadd_ps(_r3, _k7, _sum7);
-    #else
+#else
                         _sum0 = _mm_add_ps(_sum0, _mm_mul_ps(_r3, _k0));
                         _sum1 = _mm_add_ps(_sum1, _mm_mul_ps(_r3, _k1));
                         _sum2 = _mm_add_ps(_sum2, _mm_mul_ps(_r3, _k2));
@@ -728,7 +728,7 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
                         _sum5 = _mm_add_ps(_sum5, _mm_mul_ps(_r3, _k5));
                         _sum6 = _mm_add_ps(_sum6, _mm_mul_ps(_r3, _k6));
                         _sum7 = _mm_add_ps(_sum7, _mm_mul_ps(_r3, _k7));
-    #endif
+#endif
                         kptr += 32;
                         r0 += 16;
                     }
@@ -745,7 +745,7 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
                         __m128 _k6 = _mm_loadu_ps(kptr + 24);
                         __m128 _k7 = _mm_loadu_ps(kptr + 28);
 
-    #if __AVX__
+#if __AVX__
                         _sum0 = _mm_fmadd_ps(_r0, _k0, _sum0);
                         _sum1 = _mm_fmadd_ps(_r0, _k1, _sum1);
                         _sum2 = _mm_fmadd_ps(_r0, _k2, _sum2);
@@ -754,7 +754,7 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
                         _sum5 = _mm_fmadd_ps(_r0, _k5, _sum5);
                         _sum6 = _mm_fmadd_ps(_r0, _k6, _sum6);
                         _sum7 = _mm_fmadd_ps(_r0, _k7, _sum7);
-    #else
+#else
                         _sum0 = _mm_add_ps(_sum0, _mm_mul_ps(_r0, _k0));
                         _sum1 = _mm_add_ps(_sum1, _mm_mul_ps(_r0, _k1));
                         _sum2 = _mm_add_ps(_sum2, _mm_mul_ps(_r0, _k2));
@@ -763,7 +763,7 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
                         _sum5 = _mm_add_ps(_sum5, _mm_mul_ps(_r0, _k5));
                         _sum6 = _mm_add_ps(_sum6, _mm_mul_ps(_r0, _k6));
                         _sum7 = _mm_add_ps(_sum7, _mm_mul_ps(_r0, _k7));
-    #endif
+#endif
 
                         kptr += 32;
                         r0 += 4;
@@ -778,14 +778,14 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
                     _mm_storeu_ps(output6_tm, _sum6);
                     _mm_storeu_ps(output7_tm, _sum7);
 #else
-                    float sum0[4] = { 0 };
-                    float sum1[4] = { 0 };
-                    float sum2[4] = { 0 };
-                    float sum3[4] = { 0 };
-                    float sum4[4] = { 0 };
-                    float sum5[4] = { 0 };
-                    float sum6[4] = { 0 };
-                    float sum7[4] = { 0 };
+                    float sum0[4] = {0};
+                    float sum1[4] = {0};
+                    float sum2[4] = {0};
+                    float sum3[4] = {0};
+                    float sum4[4] = {0};
+                    float sum5[4] = {0};
+                    float sum6[4] = {0};
+                    float sum7[4] = {0};
 
                     for (int q = 0; q < inch; q++)
                     {
@@ -815,7 +815,7 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
                         output6_tm[n] = sum6[n];
                         output7_tm[n] = sum7[n];
                     }
-#endif    // __AVX__
+#endif // __AVX__
                     output0_tm += 36;
                     output1_tm += 36;
                     output2_tm += 36;
@@ -830,35 +830,35 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
             nn_outch = (outch - remain_outch_start) >> 2;
             for (int pp = 0; pp < nn_outch; pp++)
             {
-                int p             = remain_outch_start + pp * 4;
+                int p = remain_outch_start + pp * 4;
 
                 float* output0_tm = top_blob_tm + tiles_n * p;
                 float* output1_tm = top_blob_tm + tiles_n * (p + 1);
                 float* output2_tm = top_blob_tm + tiles_n * (p + 2);
                 float* output3_tm = top_blob_tm + tiles_n * (p + 3);
 
-                output0_tm        = output0_tm + r * 4;
-                output1_tm        = output1_tm + r * 4;
-                output2_tm        = output2_tm + r * 4;
-                output3_tm        = output3_tm + r * 4;
+                output0_tm = output0_tm + r * 4;
+                output1_tm = output1_tm + r * 4;
+                output2_tm = output2_tm + r * 4;
+                output3_tm = output3_tm + r * 4;
 
                 for (int i = 0; i < tiles; i++)
                 {
                     const float* kptr = kernel_tm_test + 4 * r * inch * outch + (p / 8 + (p % 8) / 4) * inch * 16;
-                    const float* r0   = bottom_blob_tm + 4 * inch * (tiles * r + i);
+                    const float* r0 = bottom_blob_tm + 4 * inch * (tiles * r + i);
 #if __AVX__ || __SSE__
-    #if __AVX__
-                    float  zero_val = 0.f;
-                    __m128 _sum0    = _mm_broadcast_ss(&zero_val);
-                    __m128 _sum1    = _mm_broadcast_ss(&zero_val);
-                    __m128 _sum2    = _mm_broadcast_ss(&zero_val);
-                    __m128 _sum3    = _mm_broadcast_ss(&zero_val);
-    #else
+#if __AVX__
+                    float zero_val = 0.f;
+                    __m128 _sum0 = _mm_broadcast_ss(&zero_val);
+                    __m128 _sum1 = _mm_broadcast_ss(&zero_val);
+                    __m128 _sum2 = _mm_broadcast_ss(&zero_val);
+                    __m128 _sum3 = _mm_broadcast_ss(&zero_val);
+#else
                     __m128 _sum0 = _mm_set1_ps(0.f);
                     __m128 _sum1 = _mm_set1_ps(0.f);
                     __m128 _sum2 = _mm_set1_ps(0.f);
                     __m128 _sum3 = _mm_set1_ps(0.f);
-    #endif
+#endif
                     for (int q = 0; q < inch; q++)
                     {
                         __m128 _r0 = _mm_loadu_ps(r0);
@@ -866,17 +866,17 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
                         __m128 _k1 = _mm_loadu_ps(kptr + 4);
                         __m128 _k2 = _mm_loadu_ps(kptr + 8);
                         __m128 _k3 = _mm_loadu_ps(kptr + 12);
-    #if __AVX__
+#if __AVX__
                         _sum0 = _mm_fmadd_ps(_r0, _k0, _sum0);
                         _sum1 = _mm_fmadd_ps(_r0, _k1, _sum1);
                         _sum2 = _mm_fmadd_ps(_r0, _k2, _sum2);
                         _sum3 = _mm_fmadd_ps(_r0, _k3, _sum3);
-    #else
+#else
                         _sum0 = _mm_add_ps(_sum0, _mm_mul_ps(_r0, _k0));
                         _sum1 = _mm_add_ps(_sum1, _mm_mul_ps(_r0, _k1));
                         _sum2 = _mm_add_ps(_sum2, _mm_mul_ps(_r0, _k2));
                         _sum3 = _mm_add_ps(_sum3, _mm_mul_ps(_r0, _k3));
-    #endif
+#endif
                         kptr += 16;
                         r0 += 4;
                     }
@@ -886,10 +886,10 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
                     _mm_storeu_ps(output2_tm, _sum2);
                     _mm_storeu_ps(output3_tm, _sum3);
 #else
-                    float sum0[4] = { 0 };
-                    float sum1[4] = { 0 };
-                    float sum2[4] = { 0 };
-                    float sum3[4] = { 0 };
+                    float sum0[4] = {0};
+                    float sum1[4] = {0};
+                    float sum2[4] = {0};
+                    float sum3[4] = {0};
 
                     for (int q = 0; q < inch; q++)
                     {
@@ -911,7 +911,7 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
                         output2_tm[n] = sum2[n];
                         output3_tm[n] = sum3[n];
                     }
-#endif    // __AVX__
+#endif // __AVX__
                     output0_tm += 36;
                     output1_tm += 36;
                     output2_tm += 36;
@@ -925,36 +925,35 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
             {
                 float* output0_tm = top_blob_tm + 36 * tiles * p;
 
-                output0_tm        = output0_tm + r * 4;
+                output0_tm = output0_tm + r * 4;
 
                 for (int i = 0; i < tiles; i++)
                 {
-                    const float* kptr =
-                        kernel_tm_test + 4 * r * inch * outch + (p / 8 + (p % 8) / 4 + p % 4) * inch * 4;
+                    const float* kptr = kernel_tm_test + 4 * r * inch * outch + (p / 8 + (p % 8) / 4 + p % 4) * inch * 4;
                     const float* r0 = bottom_blob_tm + 4 * inch * (tiles * r + i);
 #if __AVX__ || __SSE__
-    #if __AVX__
-                    float  zero_val = 0.f;
-                    __m128 _sum0    = _mm_broadcast_ss(&zero_val);
-    #else
+#if __AVX__
+                    float zero_val = 0.f;
+                    __m128 _sum0 = _mm_broadcast_ss(&zero_val);
+#else
                     __m128 _sum0 = _mm_set1_ps(0.f);
-    #endif
+#endif
 
                     for (int q = 0; q < inch; q++)
                     {
                         __m128 _r0 = _mm_loadu_ps(r0);
                         __m128 _k0 = _mm_loadu_ps(kptr);
-    #if __AVX__
+#if __AVX__
                         _sum0 = _mm_fmadd_ps(_r0, _k0, _sum0);
-    #else
+#else
                         _sum0 = _mm_add_ps(_sum0, _mm_mul_ps(_r0, _k0));
-    #endif
+#endif
                         kptr += 4;
                         r0 += 4;
                     }
                     _mm_storeu_ps(output0_tm, _sum0);
 #else
-                    float sum0[4] = { 0 };
+                    float sum0[4] = {0};
 
                     for (int q = 0; q < inch; q++)
                     {
@@ -970,7 +969,7 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
                     {
                         output0_tm[n] = sum0[n];
                     }
-#endif    // __AVX__ || __SSE__
+#endif // __AVX__ || __SSE__
                     output0_tm += 36;
                 }
             }
@@ -1002,22 +1001,22 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
         // 2 =		  r01 + r02 + 4 * (r03 + r04)
         // 3 =		  r01 - r02 + 8 * (r03 - r04)  + r05
 
-        int w_tm        = outw_align / 4 * 6;
-        int h_tm        = outh_align / 4 * 6;
+        int w_tm = outw_align / 4 * 6;
+        int h_tm = outh_align / 4 * 6;
 
-        int nColBlocks  = h_tm / 6;    // may be the block num in Feathercnn
-        int nRowBlocks  = w_tm / 6;
+        int nColBlocks = h_tm / 6; // may be the block num in Feathercnn
+        int nRowBlocks = w_tm / 6;
 
         const int tiles = nColBlocks * nRowBlocks;
 
 #pragma omp parallel for num_threads(num_thread)
         for (int p = 0; p < outch; p++)
         {
-            float* out_tile   = top_blob_tm + 36 * tiles * p;
-            float* outRow0    = top_blob_bordered + outw_align * outh_align * p;
-            float* outRow1    = outRow0 + outw_align;
-            float* outRow2    = outRow0 + outw_align * 2;
-            float* outRow3    = outRow0 + outw_align * 3;
+            float* out_tile = top_blob_tm + 36 * tiles * p;
+            float* outRow0 = top_blob_bordered + outw_align * outh_align * p;
+            float* outRow1 = outRow0 + outw_align;
+            float* outRow2 = outRow0 + outw_align * 2;
+            float* outRow3 = outRow0 + outw_align * 3;
 
             const float bias0 = bias ? bias[p] : 0.f;
 
@@ -1122,17 +1121,15 @@ void conv3x3s1_winograd43_transform_kernel_sse(const float* kernel, float* kerne
 
     // G
     const float ktm[6][3] = {
-        { 1.0f / 4, 0.0f, 0.0f },           { -1.0f / 6, -1.0f / 6, -1.0f / 6 }, { -1.0f / 6, 1.0f / 6, -1.0f / 6 },
-        { 1.0f / 24, 1.0f / 12, 1.0f / 6 }, { 1.0f / 24, -1.0f / 12, 1.0f / 6 }, { 0.0f, 0.0f, 1.0f }
-    };
+        {1.0f / 4, 0.0f, 0.0f}, {-1.0f / 6, -1.0f / 6, -1.0f / 6}, {-1.0f / 6, 1.0f / 6, -1.0f / 6}, {1.0f / 24, 1.0f / 12, 1.0f / 6}, {1.0f / 24, -1.0f / 12, 1.0f / 6}, {0.0f, 0.0f, 1.0f}};
 
 #pragma omp parallel for
     for (int p = 0; p < outch; p++)
     {
         for (int q = 0; q < inch; q++)
         {
-            const float* kernel0    = kernel + p * inch * 9 + q * 9;
-            float*       kernel_tm0 = kernel_tm + p * inch * 36 + q * 36;
+            const float* kernel0 = kernel + p * inch * 9 + q * 9;
+            float* kernel_tm0 = kernel_tm + p * inch * 36 + q * 36;
 
             // transform kernel
             const float* k0 = kernel0;
@@ -1140,7 +1137,7 @@ void conv3x3s1_winograd43_transform_kernel_sse(const float* kernel, float* kerne
             const float* k2 = kernel0 + 6;
 
             // h
-            float tmp[6][3] = { 0 };
+            float tmp[6][3] = {0};
             for (int i = 0; i < 6; i++)
             {
                 tmp[i][0] = k0[0] * ktm[i][0] + k0[1] * ktm[i][1] + k0[2] * ktm[i][2];
@@ -1176,22 +1173,22 @@ void conv3x3s1_winograd43_transform_kernel_sse(const float* kernel, float* kerne
             const float* kernel6 = (const float*)kernel_tm + (p + 6) * inch * 36;
             const float* kernel7 = (const float*)kernel_tm + (p + 7) * inch * 36;
 
-            float* ktmp          = kernel_tm_test + p / 8 * inch * 32;
+            float* ktmp = kernel_tm_test + p / 8 * inch * 32;
 
             for (int q = 0; q < inch; q++)
             {
-                ktmp[0]  = kernel0[r * 4 + 0];
-                ktmp[1]  = kernel0[r * 4 + 1];
-                ktmp[2]  = kernel0[r * 4 + 2];
-                ktmp[3]  = kernel0[r * 4 + 3];
+                ktmp[0] = kernel0[r * 4 + 0];
+                ktmp[1] = kernel0[r * 4 + 1];
+                ktmp[2] = kernel0[r * 4 + 2];
+                ktmp[3] = kernel0[r * 4 + 3];
 
-                ktmp[4]  = kernel1[r * 4 + 0];
-                ktmp[5]  = kernel1[r * 4 + 1];
-                ktmp[6]  = kernel1[r * 4 + 2];
-                ktmp[7]  = kernel1[r * 4 + 3];
+                ktmp[4] = kernel1[r * 4 + 0];
+                ktmp[5] = kernel1[r * 4 + 1];
+                ktmp[6] = kernel1[r * 4 + 2];
+                ktmp[7] = kernel1[r * 4 + 3];
 
-                ktmp[8]  = kernel2[r * 4 + 0];
-                ktmp[9]  = kernel2[r * 4 + 1];
+                ktmp[8] = kernel2[r * 4 + 0];
+                ktmp[9] = kernel2[r * 4 + 1];
                 ktmp[10] = kernel2[r * 4 + 2];
                 ktmp[11] = kernel2[r * 4 + 3];
 
@@ -1239,21 +1236,21 @@ void conv3x3s1_winograd43_transform_kernel_sse(const float* kernel, float* kerne
             const float* kernel2 = (const float*)kernel_tm + (p + 2) * inch * 36;
             const float* kernel3 = (const float*)kernel_tm + (p + 3) * inch * 36;
 
-            float* ktmp          = kernel_tm_test + (p / 8 + (p % 8) / 4) * inch * 16;
+            float* ktmp = kernel_tm_test + (p / 8 + (p % 8) / 4) * inch * 16;
             for (int q = 0; q < inch; q++)
             {
-                ktmp[0]  = kernel0[r * 4 + 0];
-                ktmp[1]  = kernel0[r * 4 + 1];
-                ktmp[2]  = kernel0[r * 4 + 2];
-                ktmp[3]  = kernel0[r * 4 + 3];
+                ktmp[0] = kernel0[r * 4 + 0];
+                ktmp[1] = kernel0[r * 4 + 1];
+                ktmp[2] = kernel0[r * 4 + 2];
+                ktmp[3] = kernel0[r * 4 + 3];
 
-                ktmp[4]  = kernel1[r * 4 + 0];
-                ktmp[5]  = kernel1[r * 4 + 1];
-                ktmp[6]  = kernel1[r * 4 + 2];
-                ktmp[7]  = kernel1[r * 4 + 3];
+                ktmp[4] = kernel1[r * 4 + 0];
+                ktmp[5] = kernel1[r * 4 + 1];
+                ktmp[6] = kernel1[r * 4 + 2];
+                ktmp[7] = kernel1[r * 4 + 3];
 
-                ktmp[8]  = kernel2[r * 4 + 0];
-                ktmp[9]  = kernel2[r * 4 + 1];
+                ktmp[8] = kernel2[r * 4 + 0];
+                ktmp[9] = kernel2[r * 4 + 1];
                 ktmp[10] = kernel2[r * 4 + 2];
                 ktmp[11] = kernel2[r * 4 + 3];
 
@@ -1273,7 +1270,7 @@ void conv3x3s1_winograd43_transform_kernel_sse(const float* kernel, float* kerne
         for (; p < outch; p++)
         {
             const float* kernel0 = (const float*)kernel_tm + p * inch * 36;
-            float*       ktmp    = kernel_tm_test + (p / 8 + (p % 8) / 4 + p % 4) * inch * 4;
+            float* ktmp = kernel_tm_test + (p / 8 + (p % 8) / 4 + p % 4) * inch * 4;
 
             for (int q = 0; q < inch; q++)
             {
@@ -1294,41 +1291,41 @@ void conv3x3s1_winograd43_transform_kernel_sse(const float* kernel, float* kerne
 int wino_conv_hcl_prerun(struct tensor* input_tensor, struct tensor* filter_tensor, struct tensor* output_tensor,
                          struct conv_priv_info* priv_info, struct conv_param* param)
 {
-    int batch     = input_tensor->dims[0];
-    int input_c   = input_tensor->dims[1];
-    int input_h   = input_tensor->dims[2];
-    int input_w   = input_tensor->dims[3];
+    int batch = input_tensor->dims[0];
+    int input_c = input_tensor->dims[1];
+    int input_h = input_tensor->dims[2];
+    int input_w = input_tensor->dims[3];
 
-    int output_c  = output_tensor->dims[1];
-    int output_h  = output_tensor->dims[2];
-    int output_w  = output_tensor->dims[3];
+    int output_c = output_tensor->dims[1];
+    int output_h = output_tensor->dims[2];
+    int output_w = output_tensor->dims[3];
 
-    int pad_h     = param->pad_h0;
-    int pad_w     = param->pad_w0;
+    int pad_h = param->pad_h0;
+    int pad_w = param->pad_w0;
 
     float* kernel = (float*)filter_tensor->data;
 
     if (!priv_info->external_interleave_mem)
     {
-        int   mem_size                    = get_private_mem_size(filter_tensor, param);
-        void* mem                         = sys_malloc(mem_size);
-        priv_info->interleave_buffer      = mem;
+        int mem_size = get_private_mem_size(filter_tensor, param);
+        void* mem = sys_malloc(mem_size);
+        priv_info->interleave_buffer = mem;
         priv_info->interleave_buffer_size = mem_size;
     }
 
-    int block_h          = (output_h + TILE - 1) / TILE;
-    int block_w          = (output_w + TILE - 1) / TILE;
-    int block            = block_h * block_w;
+    int block_h = (output_h + TILE - 1) / TILE;
+    int block_w = (output_w + TILE - 1) / TILE;
+    int block = block_h * block_w;
 
-    int padded_inh       = TILE * block_h + 2;
-    int padded_inw       = TILE * block_w + 2;
-    int pad_inhw         = padded_inh * padded_inw;
+    int padded_inh = TILE * block_h + 2;
+    int padded_inw = TILE * block_w + 2;
+    int pad_inhw = padded_inh * padded_inw;
 
-    int outw             = block_w * TILE;
-    int outh             = block_h * TILE;
+    int outw = block_w * TILE;
+    int outh = block_h * TILE;
     priv_info->input_pad = (float*)sys_malloc((unsigned long)batch * input_c * pad_inhw * sizeof(float));
     memset(priv_info->input_pad, 0, (unsigned long)batch * input_c * pad_inhw * sizeof(float));
-    priv_info->dot_block       = (float*)sys_malloc(ELEM_SIZE * (unsigned long)block * output_c * sizeof(float));
+    priv_info->dot_block = (float*)sys_malloc(ELEM_SIZE * (unsigned long)block * output_c * sizeof(float));
     priv_info->transform_input = (float*)sys_malloc(ELEM_SIZE * (unsigned long)block * input_c * sizeof(float));
     priv_info->output_bordered = NULL;
     if (outw != output_w || outh != output_h)
@@ -1381,43 +1378,43 @@ int wino_conv_hcl_run(struct tensor* input_tensor, struct tensor* filter_tensor,
                       int num_thread, int cpu_affinity)
 {
     /* param */
-    int kernel_h     = param->kernel_h;
-    int kernel_w     = param->kernel_w;
-    int stride_h     = param->stride_h;
-    int stride_w     = param->stride_w;
-    int dilation_h   = param->dilation_h;
-    int dilation_w   = param->dilation_w;
-    int pad_h0       = param->pad_h0;
-    int pad_w0       = param->pad_w0;
-    int act_type     = param->activation;
-    int group        = param->group;
+    int kernel_h = param->kernel_h;
+    int kernel_w = param->kernel_w;
+    int stride_h = param->stride_h;
+    int stride_w = param->stride_w;
+    int dilation_h = param->dilation_h;
+    int dilation_w = param->dilation_w;
+    int pad_h0 = param->pad_h0;
+    int pad_w0 = param->pad_w0;
+    int act_type = param->activation;
+    int group = param->group;
 
-    int batch        = input_tensor->dims[0];
-    int in_c         = input_tensor->dims[1];
-    int in_c_g       = input_tensor->dims[1] / group;
-    int in_h         = input_tensor->dims[2];
-    int in_w         = input_tensor->dims[3];
-    int input_size   = in_c * in_h * in_w;
+    int batch = input_tensor->dims[0];
+    int in_c = input_tensor->dims[1];
+    int in_c_g = input_tensor->dims[1] / group;
+    int in_h = input_tensor->dims[2];
+    int in_w = input_tensor->dims[3];
+    int input_size = in_c * in_h * in_w;
     int input_size_g = in_c_g * in_h * in_w;
-    int kernel_size  = in_c * kernel_h * kernel_w;
+    int kernel_size = in_c * kernel_h * kernel_w;
 
-    int out_c        = output_tensor->dims[1];
-    int out_h        = output_tensor->dims[2];
-    int out_w        = output_tensor->dims[3];
-    int out_hw       = out_h * out_w;
-    int output_size  = out_c * out_h * out_w;
-    int out_c_align  = ((out_c + 3) & -4);
+    int out_c = output_tensor->dims[1];
+    int out_h = output_tensor->dims[2];
+    int out_w = output_tensor->dims[3];
+    int out_hw = out_h * out_w;
+    int output_size = out_c * out_h * out_w;
+    int out_c_align = ((out_c + 3) & -4);
 
     /* wino param */
-    int block_h      = (out_h + TILE - 1) / TILE;
-    int block_w      = (out_w + TILE - 1) / TILE;
-    int block_hw     = block_h * block_w;
-    int padded_in_h  = block_h * TILE + 2;
-    int padded_in_w  = block_w * TILE + 2;
+    int block_h = (out_h + TILE - 1) / TILE;
+    int block_w = (out_w + TILE - 1) / TILE;
+    int block_hw = block_h * block_w;
+    int padded_in_h = block_h * TILE + 2;
+    int padded_in_w = block_w * TILE + 2;
     int padded_in_hw = padded_in_h * padded_in_w;
 
     /* buffer addr */
-    float* input  = (float*)input_tensor->data;
+    float* input = (float*)input_tensor->data;
     float* output = (float*)output_tensor->data;
     float* biases = NULL;
     if (bias_tensor != NULL)

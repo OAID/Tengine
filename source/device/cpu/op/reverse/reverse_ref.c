@@ -34,23 +34,22 @@
 
 #include <math.h>
 
-
 struct reverse_param
 {
-    int in_shape[4];    // the dim of the input
+    int in_shape[4]; // the dim of the input
     int dim_size;
 };
 
 int ref_reverse_fp32(void* input, void* input_axis, void* output, const struct reverse_param* param, int num_thread)
 {
-    float* out_ptr  = output;
-    float* in_ptr   = input;
-    int*   axis_ptr = input_axis;
-    int    axis     = axis_ptr[0];
+    float* out_ptr = output;
+    float* in_ptr = input;
+    int* axis_ptr = input_axis;
+    int axis = axis_ptr[0];
 
-    int in_w        = param->in_shape[3];
-    int in_hw       = param->in_shape[2] * in_w;
-    int in_chw      = param->in_shape[1] * in_hw;
+    int in_w = param->in_shape[3];
+    int in_hw = param->in_shape[2] * in_w;
+    int in_chw = param->in_shape[1] * in_hw;
 
     if (param->dim_size == 4)
     {
@@ -64,8 +63,7 @@ int ref_reverse_fp32(void* input, void* input_axis, void* output, const struct r
                     {
                         for (int x = 0; x < param->in_shape[3]; x++)
                         {
-                            out_ptr[i * in_chw + j * in_hw + y * in_w + x] =
-                                in_ptr[(param->in_shape[0] - 1 - i) * in_chw + j * in_hw + y * in_w + x];
+                            out_ptr[i * in_chw + j * in_hw + y * in_w + x] = in_ptr[(param->in_shape[0] - 1 - i) * in_chw + j * in_hw + y * in_w + x];
                         }
                     }
                 }
@@ -82,8 +80,7 @@ int ref_reverse_fp32(void* input, void* input_axis, void* output, const struct r
                     {
                         for (int x = 0; x < param->in_shape[3]; x++)
                         {
-                            out_ptr[i * in_chw + j * in_hw + y * in_w + x] =
-                                in_ptr[i * in_chw + (param->in_shape[1] - 1 - j) * in_hw + y * in_w + x];
+                            out_ptr[i * in_chw + j * in_hw + y * in_w + x] = in_ptr[i * in_chw + (param->in_shape[1] - 1 - j) * in_hw + y * in_w + x];
                         }
                     }
                 }
@@ -100,8 +97,7 @@ int ref_reverse_fp32(void* input, void* input_axis, void* output, const struct r
                     {
                         for (int x = 0; x < param->in_shape[3]; x++)
                         {
-                            out_ptr[i * in_chw + j * in_hw + y * in_w + x] =
-                                in_ptr[i * in_chw + j * in_hw + (param->in_shape[2] - 1 - y) * in_w + x];
+                            out_ptr[i * in_chw + j * in_hw + y * in_w + x] = in_ptr[i * in_chw + j * in_hw + (param->in_shape[2] - 1 - y) * in_w + x];
                         }
                     }
                 }
@@ -118,8 +114,7 @@ int ref_reverse_fp32(void* input, void* input_axis, void* output, const struct r
                     {
                         for (int x = 0; x < param->in_shape[3]; x++)
                         {
-                            out_ptr[i * in_chw + j * in_hw + y * in_w + x] =
-                                in_ptr[i * in_chw + j * in_hw + y * in_w + (param->in_shape[3] - 1 - x)];
+                            out_ptr[i * in_chw + j * in_hw + y * in_w + x] = in_ptr[i * in_chw + j * in_hw + y * in_w + (param->in_shape[3] - 1 - x)];
                         }
                     }
                 }
@@ -136,14 +131,14 @@ int ref_reverse_fp32(void* input, void* input_axis, void* output, const struct r
 
 int ref_reverse_uint8(void* input, void* input_axis, void* output, const struct reverse_param* param, int num_thread)
 {
-    uint8_t* out_ptr  = output;
-    uint8_t* in_ptr   = input;
-    int*     axis_ptr = input_axis;
-    int      axis     = axis_ptr[0];
+    uint8_t* out_ptr = output;
+    uint8_t* in_ptr = input;
+    int* axis_ptr = input_axis;
+    int axis = axis_ptr[0];
 
-    int in_w          = param->in_shape[3];
-    int in_hw         = param->in_shape[2] * in_w;
-    int in_chw        = param->in_shape[1] * in_hw;
+    int in_w = param->in_shape[3];
+    int in_hw = param->in_shape[2] * in_w;
+    int in_chw = param->in_shape[1] * in_hw;
 
     if (param->dim_size == 4)
     {
@@ -157,8 +152,7 @@ int ref_reverse_uint8(void* input, void* input_axis, void* output, const struct 
                     {
                         for (int x = 0; x < param->in_shape[3]; x++)
                         {
-                            out_ptr[i * in_chw + j * in_hw + y * in_w + x] =
-                                in_ptr[(param->in_shape[0] - 1 - i) * in_chw + j * in_hw + y * in_w + x];
+                            out_ptr[i * in_chw + j * in_hw + y * in_w + x] = in_ptr[(param->in_shape[0] - 1 - i) * in_chw + j * in_hw + y * in_w + x];
                         }
                     }
                 }
@@ -175,8 +169,7 @@ int ref_reverse_uint8(void* input, void* input_axis, void* output, const struct 
                     {
                         for (int x = 0; x < param->in_shape[3]; x++)
                         {
-                            out_ptr[i * in_chw + j * in_hw + y * in_w + x] =
-                                in_ptr[i * in_chw + (param->in_shape[1] - 1 - j) * in_hw + y * in_w + x];
+                            out_ptr[i * in_chw + j * in_hw + y * in_w + x] = in_ptr[i * in_chw + (param->in_shape[1] - 1 - j) * in_hw + y * in_w + x];
                         }
                     }
                 }
@@ -193,8 +186,7 @@ int ref_reverse_uint8(void* input, void* input_axis, void* output, const struct 
                     {
                         for (int x = 0; x < param->in_shape[3]; x++)
                         {
-                            out_ptr[i * in_chw + j * in_hw + y * in_w + x] =
-                                in_ptr[i * in_chw + j * in_hw + (param->in_shape[2] - 1 - y) * in_w + x];
+                            out_ptr[i * in_chw + j * in_hw + y * in_w + x] = in_ptr[i * in_chw + j * in_hw + (param->in_shape[2] - 1 - y) * in_w + x];
                         }
                     }
                 }
@@ -211,8 +203,7 @@ int ref_reverse_uint8(void* input, void* input_axis, void* output, const struct 
                     {
                         for (int x = 0; x < param->in_shape[3]; x++)
                         {
-                            out_ptr[i * in_chw + j * in_hw + y * in_w + x] =
-                                in_ptr[i * in_chw + j * in_hw + y * in_w + (param->in_shape[3] - 1 - x)];
+                            out_ptr[i * in_chw + j * in_hw + y * in_w + x] = in_ptr[i * in_chw + j * in_hw + y * in_w + (param->in_shape[3] - 1 - x)];
                         }
                     }
                 }
@@ -244,16 +235,16 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node*   ir_node  = exec_node->ir_node;
-    struct graph*  ir_graph = ir_node->graph;
+    struct node* ir_node = exec_node->ir_node;
+    struct graph* ir_graph = ir_node->graph;
     struct tensor* input_tensor;
     struct tensor* axis_tensor;
     struct tensor* output_tensor;
-    int            layout = ir_graph->graph_layout;
+    int layout = ir_graph->graph_layout;
 
-    input_tensor          = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    axis_tensor           = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
-    output_tensor         = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+    input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    axis_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
+    output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
     struct reverse_param reverse_param;
     reverse_param.dim_size = input_tensor->dim_num;
@@ -279,13 +270,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_CANDO;
 }
 
-static struct node_ops hcl_node_ops = { .prerun       = prerun,
-                                        .run          = run,
-                                        .reshape      = NULL,
-                                        .postrun      = NULL,
-                                        .init_node    = init_node,
-                                        .release_node = release_node,
-                                        .score        = score };
+static struct node_ops hcl_node_ops = {.prerun = prerun,
+                                       .run = run,
+                                       .reshape = NULL,
+                                       .postrun = NULL,
+                                       .init_node = init_node,
+                                       .release_node = release_node,
+                                       .score = score};
 
 int register_reverse_ref_op()
 {

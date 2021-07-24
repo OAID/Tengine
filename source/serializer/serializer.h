@@ -29,7 +29,6 @@
 
 struct graph;
 
-
 /*!
  * @struct serializer_t
  * @brief  Abstract serializer
@@ -60,7 +59,6 @@ typedef struct serializer
     //!< interface exposed for release serializer
     int (*release)(struct serializer*);
 } serializer_t;
-
 
 /*!
  * @brief Initialize serializer

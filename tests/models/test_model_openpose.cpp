@@ -60,12 +60,12 @@ void show_usage()
 
 int main(int argc, char* argv[])
 {
-    const char* model_file   = "./models/openpose_coco.tmfile";
-    const char* image_file   = nullptr;
-    int         repeat_count = DEFAULT_REPEAT_COUNT;
-    int         num_thread   = DEFAULT_THREAD_COUNT;
-    int         img_h        = 368;
-    int         img_w        = 368;
+    const char* model_file = "./models/openpose_coco.tmfile";
+    const char* image_file = nullptr;
+    int repeat_count = DEFAULT_REPEAT_COUNT;
+    int num_thread = DEFAULT_THREAD_COUNT;
+    int img_h = 368;
+    int img_w = 368;
 
     int res;
     while ((res = getopt(argc, argv, "m:i:r:t:h:")) != -1)
@@ -103,9 +103,9 @@ int main(int argc, char* argv[])
     /* set runtime options */
     struct options opt;
     opt.num_thread = num_thread;
-    opt.cluster    = TENGINE_CLUSTER_ALL;
-    opt.precision  = TENGINE_MODE_FP32;
-    opt.affinity   = 0;
+    opt.cluster = TENGINE_CLUSTER_ALL;
+    opt.precision = TENGINE_MODE_FP32;
+    opt.affinity = 0;
 
     /* inital tengine */
     init_tengine();
@@ -120,11 +120,11 @@ int main(int argc, char* argv[])
     }
 
     /* set the input shape to initial the graph, and prerun graph to infer shape */
-    int channel           = 3;
-    int img_size          = img_h * img_w * channel;
-    int dims[]            = { 1, channel, img_h, img_w };    // nchw
+    int channel = 3;
+    int img_size = img_h * img_w * channel;
+    int dims[] = {1, channel, img_h, img_w}; // nchw
 
-    float* input_data     = (float*)malloc(sizeof(float) * img_size);
+    float* input_data = (float*)malloc(sizeof(float) * img_size);
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == nullptr)
@@ -155,7 +155,7 @@ int main(int argc, char* argv[])
     /* prepare process input data, set the data mem to input tensor */
     std::string model_name = "openpose_coco";
     std::string input_file = "./data/" + model_name + "_in.bin";
-    FILE*       fp;
+    FILE* fp;
     fp = fopen(input_file.c_str(), "rb");
     if (fread(input_data, sizeof(float), img_size, fp) == 0)
     {
@@ -165,8 +165,8 @@ int main(int argc, char* argv[])
     fclose(fp);
 
     /* run graph */
-    double min_time   = __DBL_MAX__;
-    double max_time   = -__DBL_MAX__;
+    double min_time = __DBL_MAX__;
+    double max_time = -__DBL_MAX__;
     double total_time = 0.;
     for (int i = 0; i < 1; i++)
     {
@@ -188,22 +188,22 @@ int main(int argc, char* argv[])
 
     /* get the result of classification */
     tensor_t out_tensor = get_graph_output_tensor(graph, 0, 0);
-    int      out_dim[4];
+    int out_dim[4];
 
     if (get_tensor_shape(out_tensor, out_dim, 4) <= 0)
     {
         return -1;
     }
 
-    float* outdata                     = (float*)get_tensor_buffer(out_tensor);
-    int    H                           = out_dim[2];
-    int    W                           = out_dim[3];
-    float  show_threshold              = 0.1;
+    float* outdata = (float*)get_tensor_buffer(out_tensor);
+    int H = out_dim[2];
+    int W = out_dim[3];
+    float show_threshold = 0.1;
 
-    std::string        reference_file1 = "./data/" + model_name + "_out.bin";
-    int                output_size1    = get_tensor_buffer_size(out_tensor) / (sizeof(float));
+    std::string reference_file1 = "./data/" + model_name + "_out.bin";
+    int output_size1 = get_tensor_buffer_size(out_tensor) / (sizeof(float));
     std::vector<float> reference_data1(output_size1);
-    FILE*              fp1;
+    FILE* fp1;
     fp1 = fopen(reference_file1.c_str(), "rb");
     if (fread(reference_data1.data(), sizeof(float), output_size1, fp1) == 0)
     {

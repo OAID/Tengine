@@ -49,7 +49,7 @@ int float_mismatch(float* current, float* reference, int size)
 }
 void get_input_fp32_data(const char* image_file, float* input_data, int img_h, int img_w, float* mean, float* scale)
 {
-    image img         = imread_process(image_file, img_w, img_h, mean, scale);
+    image img = imread_process(image_file, img_w, img_h, mean, scale);
 
     float* image_data = (float*)img.data;
 
@@ -66,14 +66,14 @@ void show_usage()
 
 int main(int argc, char* argv[])
 {
-    int   repeat_count   = DEFAULT_REPEAT_COUNT;
-    int   num_thread     = DEFAULT_THREAD_COUNT;
-    char  model_string[] = "./models/landmark.tmfile";
-    char* model_file     = model_string;
-    int   img_h          = 144;
-    int   img_w          = 144;
-    float mean[3]        = { 128.f, 128.f, 128.f };
-    float scale[3]       = { 0.0039, 0.0039, 0.0039 };
+    int repeat_count = DEFAULT_REPEAT_COUNT;
+    int num_thread = DEFAULT_THREAD_COUNT;
+    char model_string[] = "./models/landmark.tmfile";
+    char* model_file = model_string;
+    int img_h = 144;
+    int img_w = 144;
+    float mean[3] = {128.f, 128.f, 128.f};
+    float scale[3] = {0.0039, 0.0039, 0.0039};
 
     int res;
     while ((res = getopt(argc, argv, "m:i:r:t:h:")) != -1)
@@ -111,9 +111,9 @@ int main(int argc, char* argv[])
     /* set runtime options */
     struct options opt;
     opt.num_thread = num_thread;
-    opt.cluster    = TENGINE_CLUSTER_ALL;
-    opt.precision  = TENGINE_MODE_FP32;
-    opt.affinity   = 0;
+    opt.cluster = TENGINE_CLUSTER_ALL;
+    opt.precision = TENGINE_MODE_FP32;
+    opt.affinity = 0;
 
     /* inital tengine */
     init_tengine();
@@ -128,9 +128,9 @@ int main(int argc, char* argv[])
     }
 
     /* set the input shape to initial the graph, and prerun graph to infer shape */
-    int    img_size       = img_h * img_w * 3;
-    int    dims[]         = { 1, 3, img_h, img_w };    // nchw
-    float* input_data     = (float*)malloc(img_size * sizeof(float));
+    int img_size = img_h * img_w * 3;
+    int dims[] = {1, 3, img_h, img_w}; // nchw
+    float* input_data = (float*)malloc(img_size * sizeof(float));
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == nullptr)
@@ -162,7 +162,7 @@ int main(int argc, char* argv[])
     std::string model_name = "landmark";
     // get_input_fp32_data(image_file, input_data, img_h, img_w, mean, scale);
     std::string input_file = "./data/" + model_name + "_in.bin";
-    FILE*       fp;
+    FILE* fp;
     fp = fopen(input_file.c_str(), "rb");
     if (fread(input_data, sizeof(float), img_size, fp) == 0)
     {
@@ -172,8 +172,8 @@ int main(int argc, char* argv[])
     fclose(fp);
 
     /* run graph */
-    double min_time   = DBL_MAX;
-    double max_time   = DBL_MIN;
+    double min_time = DBL_MAX;
+    double max_time = DBL_MIN;
     double total_time = 0.;
     for (int i = 0; i < repeat_count; i++)
     {
@@ -197,13 +197,13 @@ int main(int argc, char* argv[])
     /* get output tensor */
     tensor_t output_tensor = get_graph_output_tensor(graph, 0, 0);
 
-    float* output_data     = (float*)(get_tensor_buffer(output_tensor));
-    int    data_size       = get_tensor_buffer_size(output_tensor) / sizeof(float);
+    float* output_data = (float*)(get_tensor_buffer(output_tensor));
+    int data_size = get_tensor_buffer_size(output_tensor) / sizeof(float);
     // save output_data
 
-    std::string        reference_file1 = "./data/" + model_name + "_out.bin";
+    std::string reference_file1 = "./data/" + model_name + "_out.bin";
     std::vector<float> reference_data(data_size);
-    FILE*              fp1;
+    FILE* fp1;
     //read
     fp1 = fopen(reference_file1.c_str(), "rb");
     if (fread(reference_data.data(), sizeof(float), data_size, fp1) == 0)

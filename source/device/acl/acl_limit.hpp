@@ -22,11 +22,9 @@
  * Author: hhchen@openailab.com
  */
 
-
 #pragma once
 
-extern "C"
-{
+extern "C" {
 #include "operator/op.h"
 }
 

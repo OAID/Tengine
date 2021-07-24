@@ -32,19 +32,16 @@
 #include "device/device.h"
 #include "utility/log.h"
 
-
 static int dropout_op_map(int op)
 {
     return OP_DROPOUT;
 }
-
 
 static int tm2_load_dropout(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                             const TM2_Operator* tm_op)
 {
     return 0;
 }
-
 
 int register_tm2_dropout_op()
 {
@@ -60,7 +57,6 @@ int register_tm2_dropout_op()
 
     return 0;
 }
-
 
 int unregister_tm2_dropout_op()
 {

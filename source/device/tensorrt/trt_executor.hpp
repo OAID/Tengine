@@ -42,8 +42,8 @@ EXPORT_FINISH
 #include <map>
 #include <vector>
 
-
-class TensorRTEngine {
+class TensorRTEngine
+{
 public:
     TensorRTEngine();
     ~TensorRTEngine() = default;
@@ -59,14 +59,14 @@ private:
     void SetRange(struct tensor* ir_tensor, nvinfer1::ITensor* trt_tensor);
 
     bool check_if_input_in_map(uint16_t& id, std::map<uint16_t, uint16_t>& map);
-    int  get_type(int mode, nvinfer1::DataType& type);
+    int get_type(int mode, nvinfer1::DataType& type);
 
 private:
-    size_t   card_id;
+    size_t card_id;
     uint16_t tensor_swap_count;
 
     std::map<uint16_t, nvinfer1::ITensor*> tensor_real_map;
-    std::map<uint16_t, uint16_t>           tensor_swap_map;
+    std::map<uint16_t, uint16_t> tensor_swap_map;
 
     std::map<uint16_t, nvinfer1::ILayer*> layer_map;
 
@@ -106,9 +106,9 @@ private:
     bool AddUpSampleNode(struct graph* ir_graph, struct node* node);
 
 private:
-    nvinfer1::IBuilder*           builder;
+    nvinfer1::IBuilder* builder;
     nvinfer1::INetworkDefinition* network;
-    nvinfer1::IBuilderConfig*     config;
-    nvinfer1::ICudaEngine*        engine;
-    nvinfer1::IExecutionContext*  context;
+    nvinfer1::IBuilderConfig* config;
+    nvinfer1::ICudaEngine* engine;
+    nvinfer1::IExecutionContext* context;
 };
