@@ -350,8 +350,8 @@ int main(int argc, char* argv[])
     const float scale[3] = {0.003921, 0.003921, 0.003921};
 
     // set default letterbox size
-    int letterbox_rows = 416;
-    int letterbox_cols = 416;
+    int letterbox_rows = 640;
+    int letterbox_cols = 640;
 
     int repeat_count = 1;
     int num_thread = 1;
