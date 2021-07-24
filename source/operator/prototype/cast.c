@@ -29,7 +29,6 @@
 #include "utility/sys_port.h"
 #include "utility/log.h"
 
-
 static int init_op(ir_op_t* op)
 {
     struct cast_param* cast_param = (struct cast_param*)sys_malloc(sizeof(struct cast_param));
@@ -50,12 +49,10 @@ static int init_op(ir_op_t* op)
     return 0;
 }
 
-
 static void release_op(ir_op_t* op)
 {
     sys_free(op->param_mem);
 }
-
 
 int register_cast_op()
 {
@@ -67,7 +64,6 @@ int register_cast_op()
 
     return register_op(OP_CAST, OP_CAST_NAME, &m);
 }
-
 
 int unregister_cast_op()
 {

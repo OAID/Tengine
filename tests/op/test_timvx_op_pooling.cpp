@@ -22,21 +22,23 @@
  * Author: qtang@openailab.com
  */
 
-
 #include "test_op.h"
 #include "operator/prototype/pooling_param.h"
 
-
 int create_test_pool_node(graph_t graph, const char* input_name, const char* node_name, int data_type, int layout, int n, int c, int h, int w)
 {
-    (void)layout; (void)n; (void)c; (void)h; (void)w;
+    (void)layout;
+    (void)n;
+    (void)c;
+    (void)h;
+    (void)w;
 
     /* create the test node */
-    struct node* test_node = (struct node* )create_graph_node(graph, node_name, "Pooling");
+    struct node* test_node = (struct node*)create_graph_node(graph, node_name, "Pooling");
 
     tensor_t input_tensor = get_graph_tensor(graph, input_name);
 
-    if(NULL == input_tensor)
+    if (NULL == input_tensor)
     {
         fprintf(stderr, "create test node failed.\n");
         return -1;
@@ -50,7 +52,7 @@ int create_test_pool_node(graph_t graph, const char* input_name, const char* nod
     set_node_output_tensor(test_node, 0, output_tensor, TENSOR_TYPE_VAR);
 
     /* set params */
-    struct pool_param* pool_param = ( struct pool_param* )(struct node* )test_node->op.param_mem;
+    struct pool_param* pool_param = (struct pool_param*)(struct node*)test_node->op.param_mem;
 
     pool_param->pool_method = POOL_MAX;
     pool_param->global = 0;
@@ -99,7 +101,7 @@ int main(int argc, char* argv[])
 
     // create
     graph_t graph = create_timvx_test_graph(test_node_name, data_type, layout, n, c, h, w, &create_test_pool_node);
-    if(NULL == graph)
+    if (NULL == graph)
         return -1;
 
     // set quantize params
@@ -122,21 +124,21 @@ int main(int argc, char* argv[])
 
     // get output and dequant
     struct tensor* output_tensor = (struct tensor*)get_graph_output_tensor(graph, 0, 0);
-    uint8_t* output_u8 = ( uint8_t* )output_tensor->data;
+    uint8_t* output_u8 = (uint8_t*)output_tensor->data;
     int output_size = output_tensor->elem_num;
     int out_c = output_tensor->dims[1];
     int cstep = output_tensor->dims[2] * output_tensor->dims[3];
 
     get_tensor_quant_param(output_tensor, &output_scale, &output_zero_point, 1);
-    float* output_data = ( float* )malloc(output_size * sizeof(float));
+    float* output_data = (float*)malloc(output_size * sizeof(float));
     for (int i = 0; i < output_size; i++)
-        output_data[i] = (( float )output_u8[i] - ( float )output_zero_point) * output_scale;
+        output_data[i] = ((float)output_u8[i] - (float)output_zero_point) * output_scale;
 
     // check the result
     ret = 0;
-    for (int i = 0; i< out_c; i++)
+    for (int i = 0; i < out_c; i++)
     {
-        float* output_value =  (float *)output_data + i * cstep;
+        float* output_value = (float*)output_data + i * cstep;
         for (int j = 0; j < cstep; j++)
         {
             if (fabsf(output_value[j] - reference_out[i]) > 0.01)

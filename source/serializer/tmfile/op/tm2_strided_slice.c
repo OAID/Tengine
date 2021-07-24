@@ -34,20 +34,18 @@
 #include "device/device.h"
 #include "utility/log.h"
 
-
 static int strided_slice_op_map(int op)
 {
     return OP_STRIDED_SLICE;
 }
 
-
 static int tm2_load_strided_slice(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                                   const TM2_Operator* tm_op)
 {
-    struct strided_slice_param* strided_slice_param = ( struct strided_slice_param* )ir_node->op.param_mem;
+    struct strided_slice_param* strided_slice_param = (struct strided_slice_param*)ir_node->op.param_mem;
     const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
     const char* mem_base = tm2_priv->base;
-    const TM2_StridedSliceParam* tm_param = ( TM2_StridedSliceParam* )(mem_base + tm_op->offset_t_param);
+    const TM2_StridedSliceParam* tm_param = (TM2_StridedSliceParam*)(mem_base + tm_op->offset_t_param);
 
     strided_slice_param->begin[0] = tm_param->begin_n;
     strided_slice_param->begin[1] = tm_param->begin_c;
@@ -65,7 +63,6 @@ static int tm2_load_strided_slice(struct graph* ir_graph, struct node* ir_node, 
     return 0;
 }
 
-
 int register_tm2_strided_slice_op()
 {
     struct serializer* tm2_s = find_serializer_via_name("tengine");
@@ -80,7 +77,6 @@ int register_tm2_strided_slice_op()
 
     return 0;
 }
-
 
 int unregister_tm2_strided_slice_op()
 {

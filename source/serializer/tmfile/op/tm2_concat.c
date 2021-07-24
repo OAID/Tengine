@@ -34,26 +34,23 @@
 #include "device/device.h"
 #include "utility/log.h"
 
-
 static int concat_op_map(int op)
 {
     return OP_CONCAT;
 }
 
-
 static int tm2_load_concat(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                            const TM2_Operator* tm_op)
 {
-    struct concat_param* concat_param = ( struct concat_param* )ir_node->op.param_mem;
+    struct concat_param* concat_param = (struct concat_param*)ir_node->op.param_mem;
     const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
     const char* mem_base = tm2_priv->base;
-    const TM2_ConcatParam* tm_param = ( TM2_ConcatParam* )(mem_base + tm_op->offset_t_param);
+    const TM2_ConcatParam* tm_param = (TM2_ConcatParam*)(mem_base + tm_op->offset_t_param);
 
     concat_param->axis = tm_param->axis;
 
     return 0;
 }
-
 
 int register_tm2_concat_op()
 {
@@ -69,7 +66,6 @@ int register_tm2_concat_op()
 
     return 0;
 }
-
 
 int unregister_tm2_concat_op()
 {

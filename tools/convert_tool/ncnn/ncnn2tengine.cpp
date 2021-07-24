@@ -28,7 +28,7 @@
 *   SELF DEFINE VARIABLE
 *   FOR ONNX SERIALIZER
 */
-const int OP_VERSION=1;
+const int OP_VERSION = 1;
 
 /*
 *   ASSIST FUNCTIONS FOR NCNN SERIALIZER START
@@ -130,21 +130,30 @@ int ncnn_serializer::read(void* buf, int size)
 {
     return fread(buf, 1, size, fp);
 }
-void remove_ncnn_split(std::vector<NcnnNode>& nodelist){
-    for(auto &curr_node : nodelist){
-        if(curr_node.op == "Split"){
-            for(auto &in_node : nodelist){
-                if(in_node.output_name[0] == curr_node.inputs_name[0]){
+void remove_ncnn_split(std::vector<NcnnNode>& nodelist)
+{
+    for (auto& curr_node : nodelist)
+    {
+        if (curr_node.op == "Split")
+        {
+            for (auto& in_node : nodelist)
+            {
+                if (in_node.output_name[0] == curr_node.inputs_name[0])
+                {
                     auto out_name = in_node.output_name[0];
-                    for(auto &out_node : nodelist){
-                        for(auto &out_node_inbound_name : out_node.inputs_name){
-                            for(auto &curr_node_outbound_name : curr_node.output_name){
-                                if(out_node_inbound_name == curr_node_outbound_name){
+                    for (auto& out_node : nodelist)
+                    {
+                        for (auto& out_node_inbound_name : out_node.inputs_name)
+                        {
+                            for (auto& curr_node_outbound_name : curr_node.output_name)
+                            {
+                                if (out_node_inbound_name == curr_node_outbound_name)
+                                {
                                     out_node.inputs_name.erase(std::remove(
-                                        out_node.inputs_name.begin(),
-                                        out_node.inputs_name.end(),
-                                        out_node_inbound_name
-                                    ), out_node.inputs_name.end());
+                                                                   out_node.inputs_name.begin(),
+                                                                   out_node.inputs_name.end(),
+                                                                   out_node_inbound_name),
+                                                               out_node.inputs_name.end());
                                     out_node.inputs_name.push_back(in_node.output_name[0]);
                                 }
                             }
@@ -154,7 +163,7 @@ void remove_ncnn_split(std::vector<NcnnNode>& nodelist){
             }
         }
     }
-    nodelist.erase(std::remove_if(nodelist.begin(), nodelist.end(), [&](NcnnNode& n){return n.op == "Split";}), nodelist.end());
+    nodelist.erase(std::remove_if(nodelist.begin(), nodelist.end(), [&](NcnnNode& n) { return n.op == "Split"; }), nodelist.end());
 }
 int ncnn_serializer::load_model_file(const char* fname, std::vector<NcnnNode>& nodelist)
 {
@@ -169,10 +178,10 @@ int ncnn_serializer::load_model_file(const char* fname, std::vector<NcnnNode>& n
     int res = 0;
     int magic = 0;
     res = fscanf(fp, "%d=", &magic);
-    fprintf(stderr, "%s magic: %d \n",fname, magic);
+    fprintf(stderr, "%s magic: %d \n", fname, magic);
     if (magic != 7767517)
     {
-         TLOG_ERR("param is too old, please regenerate \n");
+        TLOG_ERR("param is too old, please regenerate \n");
     }
     int layer_count = 0;
     int blob_count = 0;
@@ -196,7 +205,6 @@ int ncnn_serializer::load_model_file(const char* fname, std::vector<NcnnNode>& n
         node.optimized = 0;
         node.name = layer_name;
 
-
         for (int j = 0; j < bottom_count; j++)
         {
             char bottom_name[256];
@@ -213,7 +221,7 @@ int ncnn_serializer::load_model_file(const char* fname, std::vector<NcnnNode>& n
 
         if (res < 0)
         {
-             TLOG_ERR( "Read Param file data failed\n");
+            TLOG_ERR("Read Param file data failed\n");
             return false;
         }
         while (fscanf(fp, "%d=", &id) == 1)
@@ -238,8 +246,8 @@ int ncnn_serializer::load_model_file(const char* fname, std::vector<NcnnNode>& n
                     return false;
                 }
 
-                params[id].f_data_array = ( float* )malloc(sizeof(float) * len);
-                params[id].i_data_array = ( int* )malloc(sizeof(int) * len);
+                params[id].f_data_array = (float*)malloc(sizeof(float) * len);
+                params[id].i_data_array = (int*)malloc(sizeof(int) * len);
                 // std::vector<std::string> opt_str;
                 std::string str = "";
                 for (int j = 0; j < len; j++)
@@ -292,8 +300,8 @@ int ncnn_serializer::load_model_file(const char* fname, std::vector<NcnnNode>& n
                         return false;
                     }
                     std::string str = "";
-                    params[id].f_data_array = ( float* )malloc(sizeof(float) * len);
-                    params[id].i_data_array = ( int* )malloc(sizeof(int) * len);
+                    params[id].f_data_array = (float*)malloc(sizeof(float) * len);
+                    params[id].i_data_array = (int*)malloc(sizeof(int) * len);
                     for (int j = 0; j < len; j++)
                     {
                         char vstr[16];
@@ -376,16 +384,15 @@ int ncnn_serializer::load_binary_file(const char* fname, std::vector<NcnnParam>&
     fp = fopen(fname, "rb");
     if (!fp)
     {
-         TLOG_ERR("Cannot open the bin file: %d\n ");
+        TLOG_ERR("Cannot open the bin file: %d\n ");
         return false;
     }
 
     float magic = 0;
     int nscan = 0;
-    for (int i = 0; i < ( int )nodelist.size(); i++)
+    for (int i = 0; i < (int)nodelist.size(); i++)
     {
-        if (nodelist[i].op == "Convolution" || nodelist[i].op == "DeconvolutionDepthWise" ||
-            nodelist[i].op == "Deconvolution" || nodelist[i].op == "ConvolutionDepthWise")
+        if (nodelist[i].op == "Convolution" || nodelist[i].op == "DeconvolutionDepthWise" || nodelist[i].op == "Deconvolution" || nodelist[i].op == "ConvolutionDepthWise")
         {
             NcnnParam weight;
             nscan = read(&magic, sizeof(float));
@@ -398,7 +405,7 @@ int ncnn_serializer::load_binary_file(const char* fname, std::vector<NcnnParam>&
             iter = nodelist[i].attrs.find(0);
             int output_channel = std::atoi(iter->second.c_str());
 
-            weight.data = ( float* )malloc(sizeof(float) * weight.data_len);
+            weight.data = (float*)malloc(sizeof(float) * weight.data_len);
             read(weight.data, sizeof(float) * weight.data_len);
             // printf("%f %f \n", weight.data, weight.data);
             iter = nodelist[i].attrs.find(1);
@@ -410,8 +417,8 @@ int ncnn_serializer::load_binary_file(const char* fname, std::vector<NcnnParam>&
             weight.dims.push_back(kernel_size);
             iter = nodelist[i].attrs.find(5);
             int biasTerm = 0;
-            
-            if(!iter->second.empty())
+
+            if (!iter->second.empty())
                 biasTerm = std::atoi(iter->second.c_str());
 
             paramlist.push_back(weight);
@@ -420,7 +427,7 @@ int ncnn_serializer::load_binary_file(const char* fname, std::vector<NcnnParam>&
                 NcnnParam bias;
                 bias.name = nodelist[i].name + "_b";
                 bias.data_len = output_channel;
-                bias.data = ( float* )malloc(sizeof(float) * output_channel);
+                bias.data = (float*)malloc(sizeof(float) * output_channel);
                 read(bias.data, sizeof(float) * output_channel);
                 bias.dims.push_back(output_channel);
                 paramlist.push_back(bias);
@@ -442,10 +449,10 @@ int ncnn_serializer::load_binary_file(const char* fname, std::vector<NcnnParam>&
             variance.data_len = std::atoi(iter->second.c_str());
             bias.data_len = std::atoi(iter->second.c_str());
 
-            bias.data = ( float* )malloc(sizeof(float) * slope.data_len);
-            variance.data = ( float* )malloc(sizeof(float) * slope.data_len);
-            slope.data = ( float* )malloc(sizeof(float) * slope.data_len);
-            mean.data = ( float* )malloc(sizeof(float) * slope.data_len);
+            bias.data = (float*)malloc(sizeof(float) * slope.data_len);
+            variance.data = (float*)malloc(sizeof(float) * slope.data_len);
+            slope.data = (float*)malloc(sizeof(float) * slope.data_len);
+            mean.data = (float*)malloc(sizeof(float) * slope.data_len);
 
             read(slope.data, sizeof(float) * slope.data_len);
             read(mean.data, sizeof(float) * slope.data_len);
@@ -474,8 +481,8 @@ int ncnn_serializer::load_binary_file(const char* fname, std::vector<NcnnParam>&
             iter = nodelist[i].attrs.find(0);
             bias.data_len = std::atoi(iter->second.c_str());
 
-            weight.data = ( float* )malloc(sizeof(float) * weight.data_len);
-            bias.data = ( float* )malloc(sizeof(float) * bias.data_len);
+            weight.data = (float*)malloc(sizeof(float) * weight.data_len);
+            bias.data = (float*)malloc(sizeof(float) * bias.data_len);
             read(weight.data, sizeof(float) * weight.data_len);
             read(bias.data, sizeof(float) * bias.data_len);
             weight.dims.push_back(weight.data_len);
@@ -494,7 +501,7 @@ int ncnn_serializer::load_binary_file(const char* fname, std::vector<NcnnParam>&
             iter = nodelist[i].attrs.find(2);
             weight.data_len = std::atoi(iter->second.c_str());
 
-            weight.data = ( float* )malloc(sizeof(float) * weight.data_len);
+            weight.data = (float*)malloc(sizeof(float) * weight.data_len);
             read(weight.data, sizeof(float) * weight.data_len);
             weight.dims.push_back(output_num);
             weight.dims.push_back(weight.data_len / output_num);
@@ -506,7 +513,7 @@ int ncnn_serializer::load_binary_file(const char* fname, std::vector<NcnnParam>&
                 NcnnParam bias;
                 bias.name = nodelist[i].name + "_b";
                 bias.data_len = output_num;
-                bias.data = ( float* )malloc(sizeof(float) * output_num);
+                bias.data = (float*)malloc(sizeof(float) * output_num);
                 read(bias.data, sizeof(float) * output_num);
                 bias.dims.push_back(output_num);
                 paramlist.push_back(bias);
@@ -520,7 +527,7 @@ int ncnn_serializer::load_binary_file(const char* fname, std::vector<NcnnParam>&
             std::map<int, std::string>::iterator iter;
             iter = nodelist[i].attrs.find(3);
             scale.data_len = std::atoi(iter->second.c_str());
-            scale.data = ( float* )malloc(sizeof(float) * scale.data_len);
+            scale.data = (float*)malloc(sizeof(float) * scale.data_len);
             read(scale.data, sizeof(float) * scale.data_len);
             scale.dims.push_back(scale.data_len);
             paramlist.push_back(scale);
@@ -533,7 +540,7 @@ int ncnn_serializer::load_binary_file(const char* fname, std::vector<NcnnParam>&
             std::map<int, std::string>::iterator iter;
             iter = nodelist[i].attrs.find(0);
             slope.data_len = std::atoi(iter->second.c_str());
-            slope.data = ( float* )malloc(sizeof(float) * slope.data_len);
+            slope.data = (float*)malloc(sizeof(float) * slope.data_len);
             read(slope.data, sizeof(float) * slope.data_len);
             slope.dims.push_back(slope.data_len);
             paramlist.push_back(slope);
@@ -546,7 +553,7 @@ int ncnn_serializer::load_binary_file(const char* fname, std::vector<NcnnParam>&
             std::map<int, std::string>::iterator iter;
             iter = nodelist[i].attrs.find(0);
             scale.data_len = std::atoi(iter->second.c_str());
-            scale.data = ( float* )malloc(sizeof(float) * scale.data_len);
+            scale.data = (float*)malloc(sizeof(float) * scale.data_len);
             read(scale.data, sizeof(float) * scale.data_len);
             scale.dims.push_back(scale.data_len);
             paramlist.push_back(scale);
@@ -558,36 +565,37 @@ int ncnn_serializer::load_binary_file(const char* fname, std::vector<NcnnParam>&
                 NcnnParam bias;
                 bias.name = nodelist[i].name + "_b";
                 bias.data_len = scale.data_len;
-                bias.data = ( float* )malloc(sizeof(float) * scale.data_len);
+                bias.data = (float*)malloc(sizeof(float) * scale.data_len);
                 read(bias.data, sizeof(float) * scale.data_len);
                 bias.dims.push_back(scale.data_len);
                 paramlist.push_back(bias);
-            }   
+            }
         }
-        else if(nodelist[i].op == "MemoryData"){
+        else if (nodelist[i].op == "MemoryData")
+        {
             NcnnParam const_data;
             std::map<int, std::string>::iterator iter;
             int data_len = 1;
             int size = (int)nodelist[i].attrs.size();
             std::vector<int> dims(size);
-            for(iter = nodelist[i].attrs.begin(); iter != nodelist[i].attrs.end(); iter++)
+            for (iter = nodelist[i].attrs.begin(); iter != nodelist[i].attrs.end(); iter++)
             {
                 std::pair<int, std::string> pair = *iter;
                 data_len *= atoi(pair.second.c_str());
                 dims[pair.first] = atoi(pair.second.c_str());
             }
             const_data.name = nodelist[i].name;
-            const_data.dim_size = (int) dims.size();
+            const_data.dim_size = (int)dims.size();
             const_data.dims = dims;
             const_data.data_len = data_len;
-            const_data.data = (float*)malloc(sizeof(float)*data_len);
-            read(const_data.data, sizeof(float)* data_len);
+            const_data.data = (float*)malloc(sizeof(float) * data_len);
+            read(const_data.data, sizeof(float) * data_len);
             paramlist.push_back(const_data);
         }
     }
     if (nscan < 0)
     {
-       TLOG_ERR( "Cannot read the binary file: %s \n " , fname );
+        TLOG_ERR("Cannot read the binary file: %s \n ", fname);
     }
 #if 0
     printf("total size: %d \n", totalSize);
@@ -619,7 +627,7 @@ int ncnn_serializer::load_constant_tensor(ir_graph_t* graph, const std::vector<N
 #endif
         std::vector<int> dims = ncnn_tensor.dims;
         ir_tensor_t* ir_tensor = create_ir_tensor(graph, ncnn_tensor.name.c_str(), TENGINE_DT_FP32);
-        int *tensor_dims = new int[(int)dims.size()];
+        int* tensor_dims = new int[(int)dims.size()];
         for (int j = 0; j < (int)dims.size(); j++)
         {
             tensor_dims[j] = ncnn_tensor.dims[j];
@@ -629,8 +637,8 @@ int ncnn_serializer::load_constant_tensor(ir_graph_t* graph, const std::vector<N
         int tensor_size = ncnn_tensor.data_len * sizeof(float);
         ir_tensor->data = (float*)malloc(tensor_size);
 
-        float* mem_buf = ( float* )ir_tensor->data;
-        float* raw_data = ( float* )ncnn_tensor.data;
+        float* mem_buf = (float*)ir_tensor->data;
+        float* raw_data = (float*)ncnn_tensor.data;
         /* load data */
         for (int k = 0; k < ncnn_tensor.data_len; k++)
         {
@@ -639,7 +647,7 @@ int ncnn_serializer::load_constant_tensor(ir_graph_t* graph, const std::vector<N
         ir_node_t* ir_node = create_ir_node(graph, ncnn_tensor.name.c_str(), OP_CONST, OP_VERSION);
         set_ir_node_output_tensor(ir_node, 0, ir_tensor);
     }
-    
+
     return 0;
 }
 
@@ -673,7 +681,8 @@ float ParseNumber(const char* s, float d)
         bNegtiveBase = true;
         s++;
     }
-    for (; '0' == *s; nPreZero++, s++);
+    for (; '0' == *s; nPreZero++, s++)
+        ;
     for (; *s != '.' && *s != 'e' && *s != 'E' && *s != '\0'; s++)
     {
         if (*s < '0' || *s > '9')
@@ -775,7 +784,7 @@ int ncnn_serializer::set_graph_input(ir_graph_t* graph, const std::vector<NcnnNo
     for (unsigned int i = 0; i < nodelist.size(); i++)
     {
         const NcnnNode& ncnn_node = nodelist.at(i);
-        if(ncnn_node.op == "Input")
+        if (ncnn_node.op == "Input")
         {
             std::string input_name = ncnn_node.name;
 
@@ -785,13 +794,14 @@ int ncnn_serializer::set_graph_input(ir_graph_t* graph, const std::vector<NcnnNo
             if (GetParam(input_name, paramlist, param))
             {
                 std::vector<int> ir_dims = param.dims;
-                int *tensor_dims = new int[ir_dims.size()];
+                int* tensor_dims = new int[ir_dims.size()];
                 for (int j = 0; j < ir_dims.size(); j++)
                 {
                     tensor_dims[j] = ir_dims[j];
                 }
-                if (ir_dims.size() > 0);
-                    set_ir_tensor_shape(ir_tensor, tensor_dims, ir_dims.size());
+                if (ir_dims.size() > 0)
+                    ;
+                set_ir_tensor_shape(ir_tensor, tensor_dims, ir_dims.size());
             }
             ir_node_t* node = create_ir_node(graph, input_name.c_str(), OP_INPUT, OP_VERSION);
             set_ir_node_output_tensor(node, 0, ir_tensor);
@@ -820,19 +830,20 @@ int ncnn_serializer::set_graph_output(ir_graph_t* graph, const std::vector<NcnnN
         int tensor_id = get_ir_tensor_index_from_name(graph, input_name.c_str());
         ir_tensor_t* ir_tensor = get_ir_graph_tensor(graph, tensor_id);
 
-        if(ir_tensor->consumer_num == 0){
-
+        if (ir_tensor->consumer_num == 0)
+        {
             NcnnParam param;
             if (GetParam(input_name, paramlist, param))
             {
                 std::vector<int> ir_dims = param.dims;
-                int *tensor_dims = new int[ir_dims.size()];
+                int* tensor_dims = new int[ir_dims.size()];
                 for (int j = 0; j < ir_dims.size(); j++)
                 {
                     tensor_dims[j] = ir_dims[j];
                 }
-                if (ir_dims.size() > 0);
-                    set_ir_tensor_shape(ir_tensor, tensor_dims, ir_dims.size());
+                if (ir_dims.size() > 0)
+                    ;
+                set_ir_tensor_shape(ir_tensor, tensor_dims, ir_dims.size());
             }
 
             ir_node_t* node = create_ir_node(graph, input_name.c_str(), OP_INPUT, OP_VERSION);
@@ -851,7 +862,7 @@ int ncnn_serializer::set_graph_output(ir_graph_t* graph, const std::vector<NcnnN
 
 bool ncnn_serializer::find_op_load_method(const std::string& op_name)
 {
-    if(op_load_map.count(op_name))
+    if (op_load_map.count(op_name))
         return true;
 
     return false;
@@ -864,7 +875,7 @@ ir_tensor_t* ncnn_serializer::find_tensor(ir_graph_t* graph, const std::string& 
         if (tensor->name == tensor_name)
             return tensor;
     }
-    
+
     return nullptr;
 }
 int ncnn_serializer::load_graph_node(ir_graph_t* graph, const std::vector<NcnnNode>& nodelist, const std::vector<NcnnParam>& paramlist)
@@ -875,8 +886,8 @@ int ncnn_serializer::load_graph_node(ir_graph_t* graph, const std::vector<NcnnNo
     for (i = 0; i < nodelist.size(); i++)
     {
         NcnnNode ncnn_node = nodelist.at(i);
-		if(ncnn_node.op == "Noop" && ncnn_node.output_name.size() == 0)
-		            node_to_remove.push_back(i);
+        if (ncnn_node.op == "Noop" && ncnn_node.output_name.size() == 0)
+            node_to_remove.push_back(i);
         if (!find_op_load_method(ncnn_node.op))
         {
             auto it = find(no_supported_op.begin(), no_supported_op.end(), ncnn_node.op);
@@ -887,10 +898,10 @@ int ncnn_serializer::load_graph_node(ir_graph_t* graph, const std::vector<NcnnNo
     for (i = 0; i < nodelist.size(); i++)
     {
         NcnnNode ncnn_node = nodelist.at(i);
-        if(ncnn_node.op == "Input" || ncnn_node.op == "MemoryData")
+        if (ncnn_node.op == "Input" || ncnn_node.op == "MemoryData")
             continue;
 
-        if(ncnn_node.op == "Noop" && ncnn_node.output_name.size() == 0)
+        if (ncnn_node.op == "Noop" && ncnn_node.output_name.size() == 0)
             continue;
 
         ir_node_t* ir_node = nullptr;
@@ -901,35 +912,35 @@ int ncnn_serializer::load_graph_node(ir_graph_t* graph, const std::vector<NcnnNo
             return -1;
         }
         int input_number = ncnn_node.inputs_name.size();
-        int size = ( int )nodelist.size();
+        int size = (int)nodelist.size();
         int in_num = 0;
         for (in_num = 0; in_num < input_number; in_num++)
         {
             std::string input_name = ncnn_node.inputs_name[in_num];
-            
+
             int tensor_id = get_ir_tensor_index_from_name(graph, input_name.c_str());
             ir_tensor_t* ir_tensor = get_ir_graph_tensor(graph, tensor_id);
             if (ir_tensor == NULL)
             {
                 fprintf(stderr, "Can not find tensor : %s \n", input_name.c_str());
             }
-            set_ir_node_input_tensor(ir_node, in_num, ir_tensor);     
-            size = ( int )paramlist.size();
+            set_ir_node_input_tensor(ir_node, in_num, ir_tensor);
+            size = (int)paramlist.size();
             int tensor_idx = 0;
-            for (int j = 0 ; j < size; j++)
+            for (int j = 0; j < size; j++)
             {
                 std::string input_name = paramlist[j].name;
                 std::string name = input_name.substr(0, input_name.length() - 2);
                 if (name == ncnn_node.name)
                 {
-                    tensor_idx++; 
+                    tensor_idx++;
                     ir_tensor_t* tensor = find_tensor(graph, paramlist[j].name);
-                    set_ir_node_input_tensor(ir_node, tensor_idx, tensor);   
+                    set_ir_node_input_tensor(ir_node, tensor_idx, tensor);
                 }
-            } 
+            }
         }
 
-        int out_size = ( int )ncnn_node.output_name.size();
+        int out_size = (int)ncnn_node.output_name.size();
         for (int j = 0; j < out_size; j++)
         {
             const std::string& output_name = ncnn_node.output_name[j];
@@ -972,7 +983,7 @@ int ncnn_serializer::load_model(ir_graph_t* graph, std::string bin_file, std::st
     if (load_constant_tensor(graph, nodelist, paramlist) < 0)
         return -1;
     fprintf(stderr, "Process 3: Finish load tensor data \n");
-    if (set_graph_input(graph, nodelist,paramlist ) < 0)
+    if (set_graph_input(graph, nodelist, paramlist) < 0)
         return -1;
     fprintf(stderr, "Process 4: Finish load graph input node \n");
     if (load_graph_node(graph, nodelist, paramlist) < 0)
@@ -1009,12 +1020,10 @@ graph_t ncnn_serializer::ncnn2tengine(std::string model_file, std::string proto_
     return ir_graph;
 }
 
-
-
 typedef std::map<int, std::string>::const_iterator const_iterator;
 int load_conv(ir_graph_t* graph, ir_node_t* node, const NcnnNode& ncnn_node)
 {
-    struct conv_param* param = ( struct conv_param* )node->op.param_mem;
+    struct conv_param* param = (struct conv_param*)node->op.param_mem;
 
     const_iterator iter;
 
@@ -1082,7 +1091,7 @@ int load_conv(ir_graph_t* graph, ir_node_t* node, const NcnnNode& ncnn_node)
 }
 int load_pool(ir_graph_t* graph, ir_node_t* node, const NcnnNode& ncnn_node)
 {
-    struct pool_param* param = ( struct pool_param* )node->op.param_mem;
+    struct pool_param* param = (struct pool_param*)node->op.param_mem;
     const_iterator iter;
     iter = ncnn_node.attrs.find(0);
     if (iter != ncnn_node.attrs.end())
@@ -1128,13 +1137,13 @@ int load_pool(ir_graph_t* graph, ir_node_t* node, const NcnnNode& ncnn_node)
 }
 int load_relu(ir_graph_t* graph, ir_node_t* node, const NcnnNode& ncnn_node)
 {
-    struct relu_param* relu_param = ( struct relu_param* )node->op.param_mem;
+    struct relu_param* relu_param = (struct relu_param*)node->op.param_mem;
 
     return 0;
 }
 int load_concat(ir_graph_t* graph, ir_node_t* node, const NcnnNode& ncnn_node)
 {
-    struct concat_param* param = ( struct concat_param* )node->op.param_mem;
+    struct concat_param* param = (struct concat_param*)node->op.param_mem;
     const_iterator iter;
     iter = ncnn_node.attrs.find(0);
     if (iter != ncnn_node.attrs.end())
@@ -1144,7 +1153,7 @@ int load_concat(ir_graph_t* graph, ir_node_t* node, const NcnnNode& ncnn_node)
 }
 int load_softmax(ir_graph_t* graph, ir_node_t* node, const NcnnNode& ncnn_node)
 {
-    struct softmax_param* param = ( struct softmax_param* )node->op.param_mem;
+    struct softmax_param* param = (struct softmax_param*)node->op.param_mem;
     const_iterator iter;
 
     iter = ncnn_node.attrs.find(0);
@@ -1164,7 +1173,7 @@ int load_no_param(ir_graph_t* graph, ir_node_t* node, const NcnnNode& ncnn_node)
 }
 int load_bn(ir_graph_t* graph, ir_node_t* node, const NcnnNode& ncnn_node)
 {
-    struct batchnorm_param* param = ( struct batchnorm_param* )node->op.param_mem;
+    struct batchnorm_param* param = (struct batchnorm_param*)node->op.param_mem;
 
     const_iterator iter;
 
@@ -1176,7 +1185,7 @@ int load_bn(ir_graph_t* graph, ir_node_t* node, const NcnnNode& ncnn_node)
 }
 int load_scale(ir_graph_t* graph, ir_node_t* node, const NcnnNode& ncnn_node)
 {
-    struct scale_param* param = ( struct scale_param* )node->op.param_mem;
+    struct scale_param* param = (struct scale_param*)node->op.param_mem;
 
     const_iterator iter;
 
@@ -1188,7 +1197,7 @@ int load_scale(ir_graph_t* graph, ir_node_t* node, const NcnnNode& ncnn_node)
 }
 int load_clip(ir_graph_t* graph, ir_node_t* node, const NcnnNode& ncnn_node)
 {
-    struct clip_param* param = ( struct clip_param* )node->op.param_mem;
+    struct clip_param* param = (struct clip_param*)node->op.param_mem;
     const_iterator iter;
 
     iter = ncnn_node.attrs.find(1);
@@ -1203,7 +1212,7 @@ int load_clip(ir_graph_t* graph, ir_node_t* node, const NcnnNode& ncnn_node)
 }
 int load_fc(ir_graph_t* graph, ir_node_t* node, const NcnnNode& ncnn_node)
 {
-    struct fc_param* param = ( struct fc_param* )node->op.param_mem;
+    struct fc_param* param = (struct fc_param*)node->op.param_mem;
 
     const_iterator iter;
 
@@ -1215,8 +1224,7 @@ int load_fc(ir_graph_t* graph, ir_node_t* node, const NcnnNode& ncnn_node)
 }
 int load_flatten(ir_graph_t* graph, ir_node_t* node, const NcnnNode& ncnn_node)
 {
-    struct flatten_param* param = ( struct flatten_param* )node->op.param_mem;
-
+    struct flatten_param* param = (struct flatten_param*)node->op.param_mem;
 
     param->axis = 1;
 
@@ -1224,7 +1232,7 @@ int load_flatten(ir_graph_t* graph, ir_node_t* node, const NcnnNode& ncnn_node)
 }
 int load_reshape(ir_graph_t* graph, ir_node_t* node, const NcnnNode& ncnn_node)
 {
-    struct reshape_param* param = ( struct reshape_param* )node->op.param_mem;
+    struct reshape_param* param = (struct reshape_param*)node->op.param_mem;
     std::vector<int> dim_shape;
     const_iterator iter;
     iter = ncnn_node.attrs.find(3);
@@ -1246,8 +1254,10 @@ int load_reshape(ir_graph_t* graph, ir_node_t* node, const NcnnNode& ncnn_node)
         {
             dim_shape.push_back(std::atoi(iter->second.c_str()));
         }
-    }else {
-       dim_shape.push_back(0);    
+    }
+    else
+    {
+        dim_shape.push_back(0);
     }
     iter = ncnn_node.attrs.find(1);
     if (iter != ncnn_node.attrs.end())
@@ -1270,7 +1280,7 @@ int load_reshape(ir_graph_t* graph, ir_node_t* node, const NcnnNode& ncnn_node)
     param->re_shape = (int*)sys_malloc(sizeof(int) * size);
     param->dim_size = size;
     for (int i = 0; i < size; i++)
-    { 
+    {
         param->re_shape[i] = dim_shape[i];
     }
 
@@ -1278,7 +1288,7 @@ int load_reshape(ir_graph_t* graph, ir_node_t* node, const NcnnNode& ncnn_node)
 }
 int load_eltwise(ir_graph_t* graph, ir_node_t* node, const NcnnNode& ncnn_node)
 {
-    struct eltwise_param* param = ( struct eltwise_param* )node->op.param_mem;
+    struct eltwise_param* param = (struct eltwise_param*)node->op.param_mem;
     const_iterator iter;
 
     std::vector<float> coef;
@@ -1309,7 +1319,7 @@ int load_eltwise(ir_graph_t* graph, ir_node_t* node, const NcnnNode& ncnn_node)
 }
 int load_resize(ir_graph_t* graph, ir_node_t* node, const NcnnNode& ncnn_node)
 {
-    struct interp_param* param = ( struct interp_param* )node->op.param_mem;
+    struct interp_param* param = (struct interp_param*)node->op.param_mem;
 
     std::vector<float> v1, v2;
     const_iterator iter;
@@ -1323,7 +1333,9 @@ int load_resize(ir_graph_t* graph, ir_node_t* node, const NcnnNode& ncnn_node)
     {
         ParseAttr_n(iter->second, v1);
         param->width_scale = v1.at(0);
-    } else {
+    }
+    else
+    {
         param->width_scale = 0;
     }
     iter = ncnn_node.attrs.find(2);
@@ -1331,16 +1343,20 @@ int load_resize(ir_graph_t* graph, ir_node_t* node, const NcnnNode& ncnn_node)
     {
         ParseAttr_n(iter->second, v2);
         param->height_scale = v2.at(0);
-    } else {
+    }
+    else
+    {
         param->height_scale = 0;
     }
     iter = ncnn_node.attrs.find(3);
-    if(iter != ncnn_node.attrs.end()){
+    if (iter != ncnn_node.attrs.end())
+    {
         ParseAttr_n(iter->second, v2);
         param->output_width = v2.at(0);
     }
     iter = ncnn_node.attrs.find(4);
-    if(iter != ncnn_node.attrs.end()){
+    if (iter != ncnn_node.attrs.end())
+    {
         ParseAttr_n(iter->second, v2);
         param->output_height = v2.at(0);
     }
@@ -1348,7 +1364,7 @@ int load_resize(ir_graph_t* graph, ir_node_t* node, const NcnnNode& ncnn_node)
 }
 int load_slice(ir_graph_t* graph, ir_node_t* node, const NcnnNode& ncnn_node)
 {
-    struct slice_param* param = ( struct slice_param* )node->op.param_mem;
+    struct slice_param* param = (struct slice_param*)node->op.param_mem;
     // param->isncnn= true;
     param->iscaffe = false;
     param->ismxnet = false;
@@ -1357,75 +1373,78 @@ int load_slice(ir_graph_t* graph, ir_node_t* node, const NcnnNode& ncnn_node)
     const_iterator iter;
     iter = ncnn_node.attrs.find(0);
     std::vector<float> v1;
-    if(iter != ncnn_node.attrs.end()){
+    if (iter != ncnn_node.attrs.end())
+    {
         ParseAttr_n(iter->second, v1);
         std::vector<int> slice_shape;
-        for(int i = 0; i < (int)v1.size(); i++){
+        for (int i = 0; i < (int)v1.size(); i++)
+        {
             // param->slice_point_.push_back((int)v1.at(i));
         }
     }
     iter = ncnn_node.attrs.find(1);
-    if(iter != ncnn_node.attrs.end()){
-        param->axis = std::atoi(iter->second.c_str())+1;
+    if (iter != ncnn_node.attrs.end())
+    {
+        param->axis = std::atoi(iter->second.c_str()) + 1;
     }
     return 0;
 }
 
 int load_unary(ir_graph_t* graph, ir_node_t* node, const NcnnNode& ncnn_node)
 {
-    struct unary_param* param = ( struct unary_param* )node->op.param_mem;
+    struct unary_param* param = (struct unary_param*)node->op.param_mem;
     const_iterator iter;
     iter = ncnn_node.attrs.find(0);
-    if(iter != ncnn_node.attrs.end())
+    if (iter != ncnn_node.attrs.end())
         param->type = std::atoi(iter->second.c_str());
-    
+
     return 0;
 }
 int load_deconv(ir_graph_t* graph, ir_node_t* node, const NcnnNode& ncnn_node)
 {
-    struct deconv_param* param = ( struct deconv_param* )node->op.param_mem;
+    struct deconv_param* param = (struct deconv_param*)node->op.param_mem;
     const_iterator iter;
     std::vector<float> v1;
     iter = ncnn_node.attrs.find(0);
-    if(iter != ncnn_node.attrs.end())
+    if (iter != ncnn_node.attrs.end())
     {
         param->num_output = std::atoi(iter->second.c_str());
     }
     iter = ncnn_node.attrs.find(1);
-    if(iter != ncnn_node.attrs.end())
+    if (iter != ncnn_node.attrs.end())
     {
         param->kernel_w = std::atoi(iter->second.c_str());
         param->kernel_h = std::atoi(iter->second.c_str());
     }
     iter = ncnn_node.attrs.find(11);
-    if(iter != ncnn_node.attrs.end())
+    if (iter != ncnn_node.attrs.end())
     {
         param->kernel_h = std::atoi(iter->second.c_str());
     }
     iter = ncnn_node.attrs.find(2);
-    if(iter != ncnn_node.attrs.end())
+    if (iter != ncnn_node.attrs.end())
     {
         param->dilation_w = std::atoi(iter->second.c_str());
         param->dilation_h = std::atoi(iter->second.c_str());
     }
     iter = ncnn_node.attrs.find(12);
-    if(iter != ncnn_node.attrs.end())
+    if (iter != ncnn_node.attrs.end())
     {
         param->dilation_h = std::atoi(iter->second.c_str());
     }
     iter = ncnn_node.attrs.find(3);
-    if(iter != ncnn_node.attrs.end())
+    if (iter != ncnn_node.attrs.end())
     {
         param->stride_h = std::atoi(iter->second.c_str());
         param->stride_w = std::atoi(iter->second.c_str());
     }
     iter = ncnn_node.attrs.find(13);
-    if(iter != ncnn_node.attrs.end())
+    if (iter != ncnn_node.attrs.end())
     {
         param->stride_w = std::atoi(iter->second.c_str());
-    }   
+    }
     iter = ncnn_node.attrs.find(4);
-    if(iter != ncnn_node.attrs.end())
+    if (iter != ncnn_node.attrs.end())
     {
         param->pad_w0 = std::atoi(iter->second.c_str());
         param->pad_w1 = std::atoi(iter->second.c_str());
@@ -1433,22 +1452,22 @@ int load_deconv(ir_graph_t* graph, ir_node_t* node, const NcnnNode& ncnn_node)
         param->pad_h1 = std::atoi(iter->second.c_str());
     }
     iter = ncnn_node.attrs.find(15);
-    if(iter != ncnn_node.attrs.end())
+    if (iter != ncnn_node.attrs.end())
     {
         param->pad_w1 = std::atoi(iter->second.c_str());
-    }   
+    }
     iter = ncnn_node.attrs.find(16);
-    if(iter != ncnn_node.attrs.end())
+    if (iter != ncnn_node.attrs.end())
     {
         param->pad_h0 = std::atoi(iter->second.c_str());
-    }   
+    }
     iter = ncnn_node.attrs.find(17);
-    if(iter != ncnn_node.attrs.end())
+    if (iter != ncnn_node.attrs.end())
     {
         param->pad_h1 = std::atoi(iter->second.c_str());
     }
     iter = ncnn_node.attrs.find(7);
-    if(iter != ncnn_node.attrs.end())
+    if (iter != ncnn_node.attrs.end())
     {
         param->group = std::atoi(iter->second.c_str());
     }
@@ -1460,26 +1479,26 @@ int load_deconv(ir_graph_t* graph, ir_node_t* node, const NcnnNode& ncnn_node)
 */
 void ncnn_serializer::register_op_load()
 {
-    op_load_map["Convolution"]                          = std::pair<int, op_load_t>(OP_CONV,            load_conv);
-    op_load_map["ConvolutionDepthWise"]                 = std::pair<int, op_load_t>(OP_CONV,            load_conv);
-    op_load_map["Pooling"]                              = std::pair<int, op_load_t>(OP_POOL,            load_pool);
-    op_load_map["ReLU"]                                 = std::pair<int, op_load_t>(OP_RELU,            load_relu);
-    op_load_map["Concat"]                               = std::pair<int, op_load_t>(OP_CONCAT,          load_concat);
-    op_load_map["Softmax"]                              = std::pair<int, op_load_t>(OP_SOFTMAX,         load_softmax);
-    op_load_map["Dropout"]                              = std::pair<int, op_load_t>(OP_DROPOUT,         load_no_param);
-    op_load_map["BatchNorm"]                            = std::pair<int, op_load_t>(OP_BATCHNORM,       load_bn);
-    op_load_map["Scale"]                                = std::pair<int, op_load_t>(OP_SCALE,           load_scale);
-    op_load_map["Clip"]                                 = std::pair<int, op_load_t>(OP_CLIP,            load_clip);
-    op_load_map["InnerProduct"]                         = std::pair<int, op_load_t>(OP_FC,              load_fc);
+    op_load_map["Convolution"] = std::pair<int, op_load_t>(OP_CONV, load_conv);
+    op_load_map["ConvolutionDepthWise"] = std::pair<int, op_load_t>(OP_CONV, load_conv);
+    op_load_map["Pooling"] = std::pair<int, op_load_t>(OP_POOL, load_pool);
+    op_load_map["ReLU"] = std::pair<int, op_load_t>(OP_RELU, load_relu);
+    op_load_map["Concat"] = std::pair<int, op_load_t>(OP_CONCAT, load_concat);
+    op_load_map["Softmax"] = std::pair<int, op_load_t>(OP_SOFTMAX, load_softmax);
+    op_load_map["Dropout"] = std::pair<int, op_load_t>(OP_DROPOUT, load_no_param);
+    op_load_map["BatchNorm"] = std::pair<int, op_load_t>(OP_BATCHNORM, load_bn);
+    op_load_map["Scale"] = std::pair<int, op_load_t>(OP_SCALE, load_scale);
+    op_load_map["Clip"] = std::pair<int, op_load_t>(OP_CLIP, load_clip);
+    op_load_map["InnerProduct"] = std::pair<int, op_load_t>(OP_FC, load_fc);
     // op_load_map["PriorBox"]                          = std::pair<int, op_load_t>();
-    op_load_map["Flatten"]                              = std::pair<int, op_load_t>(OP_FLATTEN,         load_flatten);
-    op_load_map["Reshape"]                              = std::pair<int, op_load_t>(OP_RESHAPE,         load_reshape);
-    op_load_map["Eltwise"]                              = std::pair<int, op_load_t>(OP_ELTWISE,         load_eltwise);
-    op_load_map["Interp"]                               = std::pair<int, op_load_t>(OP_INTERP,          load_resize);
-    op_load_map["Slice"]                                = std::pair<int, op_load_t>(OP_SLICE,           load_slice);
-    op_load_map["Sigmoid"]                              = std::pair<int, op_load_t>(OP_SIGMOID,         load_no_param);
-    op_load_map["UnaryOp"]                              = std::pair<int, op_load_t>(OP_UNARY,           load_unary);
-    op_load_map["DeconvolutionDepthWise"]               = std::pair<int, op_load_t>(OP_DECONV,          load_deconv);
+    op_load_map["Flatten"] = std::pair<int, op_load_t>(OP_FLATTEN, load_flatten);
+    op_load_map["Reshape"] = std::pair<int, op_load_t>(OP_RESHAPE, load_reshape);
+    op_load_map["Eltwise"] = std::pair<int, op_load_t>(OP_ELTWISE, load_eltwise);
+    op_load_map["Interp"] = std::pair<int, op_load_t>(OP_INTERP, load_resize);
+    op_load_map["Slice"] = std::pair<int, op_load_t>(OP_SLICE, load_slice);
+    op_load_map["Sigmoid"] = std::pair<int, op_load_t>(OP_SIGMOID, load_no_param);
+    op_load_map["UnaryOp"] = std::pair<int, op_load_t>(OP_UNARY, load_unary);
+    op_load_map["DeconvolutionDepthWise"] = std::pair<int, op_load_t>(OP_DECONV, load_deconv);
 }
 /*
 *   OPERAOTR REGISTER FUNCTION DEFINE FOR NCNN SERIALIZER END

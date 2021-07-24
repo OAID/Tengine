@@ -31,7 +31,8 @@
 
 namespace TEngine {
 
-VkCompute::VkCompute(const GPUDevice* _vkdev) : vkdev(_vkdev)
+VkCompute::VkCompute(const GPUDevice* _vkdev)
+    : vkdev(_vkdev)
 {
     compute_command_pool = 0;
     compute_command_buffer = 0;
@@ -40,10 +41,9 @@ VkCompute::VkCompute(const GPUDevice* _vkdev) : vkdev(_vkdev)
     init();
 }
 
-
 VkCompute::~VkCompute()
 {
-    for (size_t i=0; i<image_blocks_to_destroy.size(); i++)
+    for (size_t i = 0; i < image_blocks_to_destroy.size(); i++)
     {
         VkImageMemory* ptr = image_blocks_to_destroy[i];
 
@@ -65,7 +65,7 @@ VkCompute::~VkCompute()
 
     if (!vkdev->info.support_VK_KHR_push_descriptor)
     {
-        for (size_t i=0; i<descriptorsets.size(); i++)
+        for (size_t i = 0; i < descriptorsets.size(); i++)
         {
             vkFreeDescriptorSets(vkdev->vkdevice(), descriptor_pools[i], 1, &descriptorsets[i]);
             vkDestroyDescriptorPool(vkdev->vkdevice(), descriptor_pools[i], 0);
@@ -82,76 +82,76 @@ void VkCompute::record_upload(tensor* src, VkTensor& dst, const Option& opt)
 {
     Tensor src_tensor = Tensor(src);
     record_upload(src_tensor, dst, opt);
-//     // const ir_tensor* src_fp16;
-//     // if (src.elemsize == src.elempack * 4u)
-//     if(src->elem_size == opt.elempack * 4u)
-//     {
-//         // cpu cast to fp16 (discrete gpu)
-//         if (vkdev->info.type == 0 && (opt.use_fp16_storage || (opt.use_fp16_packed && opt.elempack % 4 == 0)))
-//         {
-//             // ncnn::cast_float32_to_float16(src, src_fp16, opt);
-//             printf("need to add cast_float32_to_float16 here, fix me!\n");
-//         }
-//         else
-//         {
-//             // src_fp16 = src;
-//         }
-//     }
-//     else
-//     {
-//         // src_fp16 = src;
-//     }
+    //     // const ir_tensor* src_fp16;
+    //     // if (src.elemsize == src.elempack * 4u)
+    //     if(src->elem_size == opt.elempack * 4u)
+    //     {
+    //         // cpu cast to fp16 (discrete gpu)
+    //         if (vkdev->info.type == 0 && (opt.use_fp16_storage || (opt.use_fp16_packed && opt.elempack % 4 == 0)))
+    //         {
+    //             // ncnn::cast_float32_to_float16(src, src_fp16, opt);
+    //             printf("need to add cast_float32_to_float16 here, fix me!\n");
+    //         }
+    //         else
+    //         {
+    //             // src_fp16 = src;
+    //         }
+    //     }
+    //     else
+    //     {
+    //         // src_fp16 = src;
+    //     }
 
-//     // upload
-//     VkTensor dst_staging;
-//     if (opt.blob_vkallocator->mappable)
-//     {
-//         // dst_staging.create_like(src_fp16, opt.blob_vkallocator);
-//         dst_staging.create_like(src, opt.blob_vkallocator);
-//     }
-//     else
-//     {
-//         // dst_staging.create_like(src_fp16, opt.staging_vkallocator);
-//         dst_staging.create_like(src, opt.staging_vkallocator);
-//     }
-//     if (dst_staging.empty())
-//         return;
+    //     // upload
+    //     VkTensor dst_staging;
+    //     if (opt.blob_vkallocator->mappable)
+    //     {
+    //         // dst_staging.create_like(src_fp16, opt.blob_vkallocator);
+    //         dst_staging.create_like(src, opt.blob_vkallocator);
+    //     }
+    //     else
+    //     {
+    //         // dst_staging.create_like(src_fp16, opt.staging_vkallocator);
+    //         dst_staging.create_like(src, opt.staging_vkallocator);
+    //     }
+    //     if (dst_staging.empty())
+    //         return;
 
-//     // stash staging
-//     upload_staging_buffers.push_back(dst_staging);
+    //     // stash staging
+    //     upload_staging_buffers.push_back(dst_staging);
 
-// //     TLOG_INFO("upload_staging_buffer %p  ->   %p +%d ~%d", src_fp16.data, dst_staging.buffer(), dst_staging.buffer_offset(), dst_staging.buffer_capacity());
+    // //     TLOG_INFO("upload_staging_buffer %p  ->   %p +%d ~%d", src_fp16.data, dst_staging.buffer(), dst_staging.buffer_offset(), dst_staging.buffer_capacity());
 
-//     // memcpy src to device
-//     // memcpy(dst_staging.mapped_ptr(), src_fp16->data, src_fp16->elem_size * src_fp16->elem_num);
-//     memcpy(dst_staging.mapped_ptr(), src->data, src->elem_size * src->elem_num);
-//     dst_staging.allocator->flush(dst_staging.data);
+    //     // memcpy src to device
+    //     // memcpy(dst_staging.mapped_ptr(), src_fp16->data, src_fp16->elem_size * src_fp16->elem_num);
+    //     memcpy(dst_staging.mapped_ptr(), src->data, src->elem_size * src->elem_num);
+    //     dst_staging.allocator->flush(dst_staging.data);
 
-//     // mark device host-write @ null
-//     dst_staging.data->access_flags = VK_ACCESS_HOST_WRITE_BIT;
-//     dst_staging.data->stage_flags = VK_PIPELINE_STAGE_HOST_BIT;
+    //     // mark device host-write @ null
+    //     dst_staging.data->access_flags = VK_ACCESS_HOST_WRITE_BIT;
+    //     dst_staging.data->stage_flags = VK_PIPELINE_STAGE_HOST_BIT;
 
-//     // TODO
-//     // not use pack for now------------------------
-//     // // resolve dst_elempack
-//     int dims = src->dim_num;
-//     int elemcount = 0;
-//     // src dims[0-3]  n c h w
-//     // if (dims == 1) elemcount = opt.elempack * src_fp16.w;
-//     // if (dims == 2) elemcount = opt.elempack * src_fp16.h;
-//     // if (dims == 3) elemcount = opt.elempack * src_fp16.c;
-//     if(dims == 4) 
-//         elemcount = opt.elempack * src->dims[1];
-//     else 
-//         elemcount = opt.elempack * src->dims[0];
+    //     // TODO
+    //     // not use pack for now------------------------
+    //     // // resolve dst_elempack
+    //     int dims = src->dim_num;
+    //     int elemcount = 0;
+    //     // src dims[0-3]  n c h w
+    //     // if (dims == 1) elemcount = opt.elempack * src_fp16.w;
+    //     // if (dims == 2) elemcount = opt.elempack * src_fp16.h;
+    //     // if (dims == 3) elemcount = opt.elempack * src_fp16.c;
+    //     if(dims == 4)
+    //         elemcount = opt.elempack * src->dims[1];
+    //     else
+    //         elemcount = opt.elempack * src->dims[0];
 
-//     int dst_elempack = 1;
-//     if (opt.use_shader_pack8)
-//         dst_elempack = elemcount % 8 == 0 ? 8 : elemcount % 4 == 0 ? 4 : 1;
-//     else
-//         dst_elempack = elemcount % 4 == 0 ? 4 : 1;
+    //     int dst_elempack = 1;
+    //     if (opt.use_shader_pack8)
+    //         dst_elempack = elemcount % 8 == 0 ? 8 : elemcount % 4 == 0 ? 4 : 1;
+    //     else
+    //         dst_elempack = elemcount % 4 == 0 ? 4 : 1;
 
-//     vkdev->convert_packing(dst_staging, dst, dst_elempack, *this, opt);
+    //     vkdev->convert_packing(dst_staging, dst, dst_elempack, *this, opt);
 }
 
 void VkCompute::record_upload(const Tensor& src, VkTensor& dst, const Option& opt)
@@ -193,7 +193,7 @@ void VkCompute::record_upload(const Tensor& src, VkTensor& dst, const Option& op
     // stash staging
     upload_staging_buffers.push_back(dst_staging);
 
-//     TLOG_INFO("upload_staging_buffer %p  ->   %p +%d ~%d", src_fp16.data, dst_staging.buffer(), dst_staging.buffer_offset(), dst_staging.buffer_capacity());
+    //     TLOG_INFO("upload_staging_buffer %p  ->   %p +%d ~%d", src_fp16.data, dst_staging.buffer(), dst_staging.buffer_offset(), dst_staging.buffer_capacity());
 
     // memcpy src to device
     memcpy(dst_staging.mapped_ptr(), src_fp16.data, src_fp16.total() * src_fp16.elemsize);
@@ -212,10 +212,11 @@ void VkCompute::record_upload(const Tensor& src, VkTensor& dst, const Option& op
 
     int dst_elempack = 1;
     if (opt.use_shader_pack8)
-        dst_elempack = elemcount % 8 == 0 ? 8 : elemcount % 4 == 0 ? 4 : 1;
+        dst_elempack = elemcount % 8 == 0 ? 8 : elemcount % 4 == 0 ? 4
+                                                                   : 1;
     else
         dst_elempack = elemcount % 4 == 0 ? 4 : 1;
-    
+
     // gpu cast to fp16 on the fly (integrated gpu)
     vkdev->convert_packing(dst_staging, dst, dst_elempack, *this, opt);
 }
@@ -384,71 +385,71 @@ int VkCompute::submit_and_wait()
         // printf("delayed_records count:%d\n", record_count);
 
         // handle delayed records
-        for (size_t i=0; i<record_count; i++)
+        for (size_t i = 0; i < record_count; i++)
         {
             const record& r = delayed_records[i];
 
             switch (r.type)
             {
-                case record::TYPE_copy_buffer:
-                {
-                    // TODO
-                    break;
-                }
-                case record::TYPE_copy_image:
-                {
-                    // TODO
-                    break;
-                }
-                case record::TYPE_copy_buffer_to_image:
-                {
-                    // TODO
-                    break;
-                }
-                case record::TYPE_copy_image_to_buffer:
-                {
-                    // TODO
-                    break;
-                }
-                case record::TYPE_bind_pipeline:
-                {
-                    // TODO
-                    break;
-                }
-                case record::TYPE_bind_descriptorsets:
-                {
-                    // TODO
-                    break;
-                }
-                case record::TYPE_push_constants:
-                {
-                    // TODO
-                    break;
-                }
-                case record::TYPE_dispatch:
-                {
-                    // TODO
-                    break;
-                }
-                case record::TYPE_memory_barrers:
-                {
-                    // TODO
-                    break;
-                }
-                case record::TYPE_buffer_barrers:
-                {
-                    // TODO
-                    break;
-                }
-                case record::TYPE_image_barrers:
-                {
-                    // TODO
-                    break;
-                }
-                case record::TYPE_post_download:
-                case record::TYPE_post_cast_float16_to_float32:
-                default:
-                    break;	
+            case record::TYPE_copy_buffer:
+            {
+                // TODO
+                break;
+            }
+            case record::TYPE_copy_image:
+            {
+                // TODO
+                break;
+            }
+            case record::TYPE_copy_buffer_to_image:
+            {
+                // TODO
+                break;
+            }
+            case record::TYPE_copy_image_to_buffer:
+            {
+                // TODO
+                break;
+            }
+            case record::TYPE_bind_pipeline:
+            {
+                // TODO
+                break;
+            }
+            case record::TYPE_bind_descriptorsets:
+            {
+                // TODO
+                break;
+            }
+            case record::TYPE_push_constants:
+            {
+                // TODO
+                break;
+            }
+            case record::TYPE_dispatch:
+            {
+                // TODO
+                break;
+            }
+            case record::TYPE_memory_barrers:
+            {
+                // TODO
+                break;
+            }
+            case record::TYPE_buffer_barrers:
+            {
+                // TODO
+                break;
+            }
+            case record::TYPE_image_barrers:
+            {
+                // TODO
+                break;
+            }
+            case record::TYPE_post_download:
+            case record::TYPE_post_cast_float16_to_float32:
+            default:
+                break;
             }
         }
     }
@@ -500,32 +501,32 @@ int VkCompute::submit_and_wait()
     }
 
     // handle delayed post records
-    for (size_t i=0; i<delayed_records.size(); i++)
+    for (size_t i = 0; i < delayed_records.size(); i++)
     {
         const record& r = delayed_records[i];
 
         switch (r.type)
         {
-            case record::TYPE_post_download:
-            {
-                const VkTensor& src = download_post_buffers[r.post_download.download_post_buffer_mat_offset];
-                Tensor dst = download_post_tensors_fp16[r.post_download.download_post_mat_fp16_offset];
+        case record::TYPE_post_download:
+        {
+            const VkTensor& src = download_post_buffers[r.post_download.download_post_buffer_mat_offset];
+            Tensor dst = download_post_tensors_fp16[r.post_download.download_post_mat_fp16_offset];
 
-    //             TLOG_INFO("post_download  %p +%d ~%d  -> %p", src.buffer(), src.buffer_offset(), src.buffer_capacity(), dst.data);
+            //             TLOG_INFO("post_download  %p +%d ~%d  -> %p", src.buffer(), src.buffer_offset(), src.buffer_capacity(), dst.data);
 
-                src.allocator->invalidate(src.data);
-                // memcpy(dst.data, src.mapped_ptr(), dst.elem_size * dst.elem_num);
-                memcpy(dst.data, src.mapped_ptr(), dst.total() * dst.elemsize);
-                break;
-            }
-            case record::TYPE_post_cast_float16_to_float32:
-            {
-                // TODO
-                printf("submit delayed_records TYPE_post_cast_float16_to_float32, Do nothing, fix me\n");
-                break;
-            }
-            default:
-                break;
+            src.allocator->invalidate(src.data);
+            // memcpy(dst.data, src.mapped_ptr(), dst.elem_size * dst.elem_num);
+            memcpy(dst.data, src.mapped_ptr(), dst.total() * dst.elemsize);
+            break;
+        }
+        case record::TYPE_post_cast_float16_to_float32:
+        {
+            // TODO
+            printf("submit delayed_records TYPE_post_cast_float16_to_float32, Do nothing, fix me\n");
+            break;
+        }
+        default:
+            break;
         }
     }
 
@@ -533,7 +534,6 @@ int VkCompute::submit_and_wait()
 
     return 0;
 }
-
 
 int VkCompute::init()
 {
@@ -664,7 +664,7 @@ void VkCompute::record_pipeline(const Pipeline* pipeline, const std::vector<VkTe
 
     int buffer_index = 0;
     int image_index = 0;
-    for (int i=0; i<binding_count; i++)
+    for (int i = 0; i < binding_count; i++)
     {
         int binding_type = pipeline->shader_info.binding_types[i];
 
@@ -673,7 +673,7 @@ void VkCompute::record_pipeline(const Pipeline* pipeline, const std::vector<VkTe
             const VkTensor& binding = buffer_bindings[buffer_index].empty() ? vkdev->get_dummy_buffer() : buffer_bindings[buffer_index];
             buffer_index++;
 
-//             TLOG_INFO("binding #%d buffer = %d %d %d %d @ %lu %d = %p +%ld ~%ld", i, binding.dims, binding.w, binding.h, binding.c, binding.elemsize, binding.elempack, binding.buffer(), binding.buffer_offset(), binding.buffer_capacity());
+            //             TLOG_INFO("binding #%d buffer = %d %d %d %d @ %lu %d = %p +%ld ~%ld", i, binding.dims, binding.w, binding.h, binding.c, binding.elemsize, binding.elempack, binding.buffer(), binding.buffer_offset(), binding.buffer_capacity());
 
             if (binding.data->access_flags & VK_ACCESS_SHADER_WRITE_BIT || binding.data->stage_flags != VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT)
             {
@@ -719,7 +719,7 @@ void VkCompute::record_pipeline(const Pipeline* pipeline, const std::vector<VkTe
             const VkImageTensor& binding = image_bindings[image_index].empty() ? vkdev->get_dummy_image() : image_bindings[image_index];
             image_index++;
 
-//             TLOG_INFO("binding #%d image = %d %d %d %d @ %lu %d = %p +%ld ~%ld %p", i, binding.dims, binding.w, binding.h, binding.c, binding.elemsize, binding.elempack, binding.image(), binding.data->bind_offset, binding.data->bind_capacity, binding.imageview());
+            //             TLOG_INFO("binding #%d image = %d %d %d %d @ %lu %d = %p +%ld ~%ld %p", i, binding.dims, binding.w, binding.h, binding.c, binding.elemsize, binding.elempack, binding.image(), binding.data->bind_offset, binding.data->bind_capacity, binding.imageview());
 
             if (binding.data->access_flags & VK_ACCESS_SHADER_WRITE_BIT || binding.data->image_layout != VK_IMAGE_LAYOUT_GENERAL || binding.data->stage_flags != VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT)
             {
@@ -775,11 +775,11 @@ void VkCompute::record_pipeline(const Pipeline* pipeline, const std::vector<VkTe
             const VkImageTensor& binding = image_bindings[image_index].empty() ? vkdev->get_dummy_image() : image_bindings[image_index];
             image_index++;
 
-//             TLOG_INFO("binding #%d sampler = %d %d %d %d @ %lu %d = %p +%ld ~%ld %p", i, binding.dims, binding.w, binding.h, binding.c, binding.elemsize, binding.elempack, binding.image(), binding.data->bind_offset, binding.data->bind_capacity, binding.imageview());
+            //             TLOG_INFO("binding #%d sampler = %d %d %d %d @ %lu %d = %p +%ld ~%ld %p", i, binding.dims, binding.w, binding.h, binding.c, binding.elemsize, binding.elempack, binding.image(), binding.data->bind_offset, binding.data->bind_capacity, binding.imageview());
 
             // if the same image used for both storage image and combined image sampler
             // only apply image layout transition to general
-            for (int j=0; j<image_binding_count; j++)
+            for (int j = 0; j < image_binding_count; j++)
             {
                 if (pipeline->shader_info.binding_types[j] == 2 && binding.data == image_bindings[j].data)
                 {
@@ -865,7 +865,7 @@ void VkCompute::record_pipeline(const Pipeline* pipeline, const std::vector<VkTe
             unsigned char* p_descriptorInfos = descriptorInfos.data();
             int descriptorBufferInfo_index = 0;
             int descriptorImageInfo_index = 0;
-            for (int i=0; i<binding_count; i++)
+            for (int i = 0; i < binding_count; i++)
             {
                 int binding_type = pipeline->shader_info.binding_types[i];
 
@@ -910,7 +910,7 @@ void VkCompute::record_pipeline(const Pipeline* pipeline, const std::vector<VkTe
             {
                 int image_binding_count = 0;
                 int sampler_binding_count = 0;
-                for (int i=0; i<binding_count; i++)
+                for (int i = 0; i < binding_count; i++)
                 {
                     int binding_type = pipeline->shader_info.binding_types[i];
 
@@ -972,7 +972,7 @@ void VkCompute::record_pipeline(const Pipeline* pipeline, const std::vector<VkTe
                 std::vector<VkWriteDescriptorSet> writeDescriptorSets(binding_count);
                 {
                     const unsigned char* p_descriptorInfos = descriptorInfos.data();
-                    for (int i=0; i<binding_count; i++)
+                    for (int i = 0; i < binding_count; i++)
                     {
                         int binding_type = pipeline->shader_info.binding_types[i];
 
@@ -1072,7 +1072,8 @@ void VkCompute::record_pipeline(const Pipeline* pipeline, const std::vector<VkTe
     }
 }
 
-VkTransfer::VkTransfer(const GPUDevice* _vkdev) : vkdev(_vkdev)
+VkTransfer::VkTransfer(const GPUDevice* _vkdev)
+    : vkdev(_vkdev)
 {
     compute_command_pool = 0;
     transfer_command_pool = 0;
@@ -1153,7 +1154,7 @@ int VkTransfer::init()
         {
             printf("vkCreateFence failed %d", ret);
             return -1;
-        } 
+        }
     }
 
     if (!vkdev->info.unified_compute_transfer_queue)
@@ -1174,8 +1175,8 @@ int VkTransfer::init()
             }
         }
 
-    // upload_command_buffer
-    {
+        // upload_command_buffer
+        {
             VkCommandBufferAllocateInfo commandBufferAllocateInfo;
             commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
             commandBufferAllocateInfo.pNext = 0;
@@ -1189,10 +1190,10 @@ int VkTransfer::init()
                 printf("vkAllocateCommandBuffers failed %d", ret);
                 return -1;
             }
-    }
+        }
 
-    // upload_compute_semaphore
-    {
+        // upload_compute_semaphore
+        {
             VkSemaphoreCreateInfo semaphoreCreateInfo;
             semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
             semaphoreCreateInfo.pNext = 0;
@@ -1200,15 +1201,15 @@ int VkTransfer::init()
 
             VkResult ret = vkCreateSemaphore(vkdev->vkdevice(), &semaphoreCreateInfo, 0, &upload_compute_semaphore);
 
-        if (ret != VK_SUCCESS)
-        {
+            if (ret != VK_SUCCESS)
+            {
                 printf("vkCreateSemaphore failed %d", ret);
-        return -1;
+                return -1;
+            }
         }
-    }
 
-    // upload_command_fence
-    {
+        // upload_command_fence
+        {
             VkFenceCreateInfo fenceCreateInfo;
             fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
             fenceCreateInfo.pNext = 0;
@@ -1216,12 +1217,12 @@ int VkTransfer::init()
 
             VkResult ret = vkCreateFence(vkdev->vkdevice(), &fenceCreateInfo, 0, &upload_command_fence);
 
-        if (ret != VK_SUCCESS)
+            if (ret != VK_SUCCESS)
             {
                 printf("vkCreateFence failed %d", ret);
                 return -1;
+            }
         }
-    }
     }
 
     begin_command_buffer();
@@ -1265,7 +1266,6 @@ int VkTransfer::begin_command_buffer()
     }
     return 0;
 }
-
 
 int VkTransfer::end_command_buffer()
 {
@@ -1362,9 +1362,9 @@ int VkTransfer::submit_and_wait()
                 return -1;
             }
         }
-        
+
         {
-            VkPipelineStageFlags wait_dst_stage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;// FIXME
+            VkPipelineStageFlags wait_dst_stage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT; // FIXME
             VkSubmitInfo submitInfo;
             submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
             submitInfo.pNext = 0;
@@ -1386,11 +1386,11 @@ int VkTransfer::submit_and_wait()
                 return -1;
             }
         }
-        
+
         vkdev->reclaim_queue(vkdev->info.transfer_queue_family_index, transfer_queue);
     }
     vkdev->reclaim_queue(vkdev->info.compute_queue_family_index, compute_queue);
-    
+
     // wait
     if (vkdev->info.unified_compute_transfer_queue)
     {
@@ -1403,7 +1403,7 @@ int VkTransfer::submit_and_wait()
     }
     else
     {
-        VkFence fences[2] = { upload_command_fence, compute_command_fence };
+        VkFence fences[2] = {upload_command_fence, compute_command_fence};
 
         VkResult ret = vkWaitForFences(vkdev->vkdevice(), 2, fences, VK_TRUE, UINT64_MAX);
         if (ret != VK_SUCCESS)
@@ -1417,7 +1417,7 @@ int VkTransfer::submit_and_wait()
 
 void VkTransfer::record_upload(const Tensor& src, VkTensor& dst, const Option& opt)
 {
-//     TLOG_INFO("record_upload src = %d | %d %d %d @ %d", src.dims, src.w, src.h, src.c, src.elempack);
+    //     TLOG_INFO("record_upload src = %d | %d %d %d @ %d", src.dims, src.w, src.h, src.c, src.elempack);
 
     // NOTE keep the hack here ?
     if (src.elemsize == src.elempack * 4u)
@@ -1596,7 +1596,7 @@ void VkTransfer::record_upload(const Tensor& src, VkTensor& dst, const Option& o
 
 void VkTransfer::record_upload(const tensor* src, VkTensor& dst, const Option& opt)
 {
-//     TLOG_INFO("record_upload src = %d | %d %d %d @ %d", src.dims, src.w, src.h, src.c, src.elempack);
+    //     TLOG_INFO("record_upload src = %d | %d %d %d @ %d", src.dims, src.w, src.h, src.c, src.elempack);
 
     // NOTE keep the hack here ?
     // printf("elem size: %d, elempack:%d\n", src.elemsize, src.elempack);

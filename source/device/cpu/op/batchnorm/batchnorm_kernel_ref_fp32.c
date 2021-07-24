@@ -36,7 +36,6 @@
 #include "device/cpu/cpu_graph.h"
 #include "device/cpu/cpu_module.h"
 
-
 int ref_batchnorm_fp32(float* input, float* output, const struct ref_batchnorm_param* param)
 {
     float* scale_mean = param->scale_mean;

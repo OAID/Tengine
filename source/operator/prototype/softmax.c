@@ -31,7 +31,6 @@
 #include "utility/vector.h"
 #include "utility/sys_port.h"
 
-
 static int infer_shape(ir_node_t* node)
 {
     ir_graph_t* ir_graph = node->graph;
@@ -45,10 +44,9 @@ static int infer_shape(ir_node_t* node)
     return 0;
 }
 
-
 static int init_op(ir_op_t* op)
 {
-    struct softmax_param* softmax_param = ( struct softmax_param* )sys_malloc(sizeof(struct softmax_param));
+    struct softmax_param* softmax_param = (struct softmax_param*)sys_malloc(sizeof(struct softmax_param));
 
     if (softmax_param == NULL)
     {
@@ -66,12 +64,10 @@ static int init_op(ir_op_t* op)
     return 0;
 }
 
-
 static void release_op(ir_op_t* op)
 {
     sys_free(op->param_mem);
 }
-
 
 int register_softmax_op()
 {
@@ -83,7 +79,6 @@ int register_softmax_op()
 
     return register_op(OP_SOFTMAX, OP_SOFTMAX_NAME, &m);
 }
-
 
 int unregister_softmax_op()
 {

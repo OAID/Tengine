@@ -38,7 +38,6 @@
 
 #include <math.h>
 
-
 int ref_hardswish_fp32(struct tensor* input_tensor, struct tensor* output_tensor)
 {
     float* input_data = (float*)input_tensor->data;
@@ -53,7 +52,7 @@ int ref_hardswish_fp32(struct tensor* input_tensor, struct tensor* output_tensor
             tmp = 0.f;
         if (tmp > 6.f)
             tmp = 6.f;
-        
+
         output_data[i] = input_data[i] * (tmp / 6.f);
     }
 

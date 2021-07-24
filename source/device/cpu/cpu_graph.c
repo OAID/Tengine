@@ -39,10 +39,9 @@
 #include "utility/log.h"
 #include "serializer/serializer.h"
 
-
 static struct exec_graph* new_exec_graph(void)
 {
-    struct exec_graph* exec_graph = ( struct exec_graph* )sys_malloc(sizeof(struct exec_graph));
+    struct exec_graph* exec_graph = (struct exec_graph*)sys_malloc(sizeof(struct exec_graph));
 
     if (exec_graph == NULL)
         return NULL;
@@ -65,16 +64,15 @@ static struct exec_graph* new_exec_graph(void)
     return exec_graph;
 }
 
-
 void release_exec_graph(void* exec_graph)
 {
-    struct exec_graph* graph = ( struct exec_graph* )exec_graph;
+    struct exec_graph* graph = (struct exec_graph*)exec_graph;
 
     int node_num = get_vector_num(graph->exec_node_list);
 
     for (int i = 0; i < node_num; i++)
     {
-        struct exec_node* exec_node = ( struct exec_node* )get_vector_data(graph->exec_node_list, i);
+        struct exec_node* exec_node = (struct exec_node*)get_vector_data(graph->exec_node_list, i);
         struct node_ops* node_ops = exec_node->node_ops;
 
         release_exec_node(graph, exec_node, node_ops);
@@ -86,7 +84,6 @@ void release_exec_graph(void* exec_graph)
 
     sys_free(graph);
 }
-
 
 struct exec_graph* create_exec_graph(struct subgraph* subgraph, int num_thread, int mode, size_t cpu_affinity)
 {
@@ -138,11 +135,10 @@ struct exec_graph* create_exec_graph(struct subgraph* subgraph, int num_thread, 
 
     return exec_graph;
 
-    error:
+error:
     release_exec_graph(exec_graph);
     return NULL;
 }
-
 
 int prerun_exec_graph(struct exec_graph* exec_graph)
 {
@@ -150,7 +146,7 @@ int prerun_exec_graph(struct exec_graph* exec_graph)
 
     for (int i = 0; i < node_num; i++)
     {
-        struct exec_node* exec_node = ( struct exec_node* )get_vector_data(exec_graph->exec_node_list, i);
+        struct exec_node* exec_node = (struct exec_node*)get_vector_data(exec_graph->exec_node_list, i);
         struct node_ops* node_ops = exec_node->node_ops;
 
         if (node_ops->prerun && node_ops->prerun(node_ops, exec_node, exec_graph) < 0)

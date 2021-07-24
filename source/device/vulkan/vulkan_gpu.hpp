@@ -196,7 +196,10 @@ public:
 
     const GpuInfo& info;
 
-    VkDevice vkdevice() const { return device; }
+    VkDevice vkdevice() const
+    {
+        return device;
+    }
 
     VkShaderModule get_shader_module(int shader_type_index) const;
 
@@ -294,17 +297,17 @@ private:
     mutable std::vector<VkQueue> compute_queues;
     mutable std::vector<VkQueue> graphics_queues;
     mutable std::vector<VkQueue> transfer_queues;
-    
+
     mutable Mutex queue_lock;
 
     // default blob allocator for each queue
     mutable std::vector<VkAllocator*> blob_allocators;
-    
+
     mutable Mutex blob_allocator_lock;
 
     // default staging allocator for each queue
     mutable std::vector<VkAllocator*> staging_allocators;
-    
+
     mutable Mutex staging_allocator_lock;
 
     // dummy buffer and image
@@ -335,15 +338,24 @@ public:
     // 1 = storage buffer
     // 2 = storage image
     // 3 = combined image sampler
-    int binding_types[16];// 16 is large enough(maybe)
+    int binding_types[16]; // 16 is large enough(maybe)
 };
 
 const ShaderInfo& get_shader_info(int shader_type_index);
 int resolve_shader_info(const uint32_t* spv_data, size_t spv_data_size, ShaderInfo& shader_info);
 
-union vk_specialization_type { int i; float f; uint32_t u32; };
-union vk_constant_type { int i; float f; };
+union vk_specialization_type
+{
+    int i;
+    float f;
+    uint32_t u32;
+};
+union vk_constant_type
+{
+    int i;
+    float f;
+};
 
-}
+} // namespace TEngine
 
 #endif // VULKAN_GPU_HPP

@@ -27,8 +27,6 @@
 // #include "utility/log.h"
 // #include "tengine_ir.h"
 
-
-
 inline void SetTmOperator(TM2_Operator* tm_op, const uint32_t op_type, const tm_uoffset_t offset)
 {
     tm_op->op_ver = TM2_OP_VER;
@@ -272,9 +270,9 @@ tm_uoffset_t SaveTmPriorBoxOp(void* const start_ptr, tm_uoffset_t* cur_pos, ir_n
     TM2_PriorBoxParam tm_param;
 
     size_t vector_size = sizeof(tm_size_t) + sizeof(float) * p->min_size_num;
-    TM2_Vector_floats* v_minsizes = ( TM2_Vector_floats* )malloc(vector_size);
+    TM2_Vector_floats* v_minsizes = (TM2_Vector_floats*)malloc(vector_size);
     v_minsizes->v_num = p->min_size_num;
-    for(unsigned int i = 0; i < p->min_size_num; i++)
+    for (unsigned int i = 0; i < p->min_size_num; i++)
     {
         v_minsizes->data[i] = p->min_size[i];
     }
@@ -282,9 +280,9 @@ tm_uoffset_t SaveTmPriorBoxOp(void* const start_ptr, tm_uoffset_t* cur_pos, ir_n
     free(v_minsizes);
 
     vector_size = sizeof(tm_size_t) + sizeof(float) * p->max_size_num;
-    TM2_Vector_floats* v_maxsizes = ( TM2_Vector_floats* )malloc(vector_size);
+    TM2_Vector_floats* v_maxsizes = (TM2_Vector_floats*)malloc(vector_size);
     v_maxsizes->v_num = p->max_size_num;
-    for(unsigned int i = 0; i < p->max_size_num; i++)
+    for (unsigned int i = 0; i < p->max_size_num; i++)
     {
         v_maxsizes->data[i] = p->max_size[i];
     }
@@ -293,9 +291,9 @@ tm_uoffset_t SaveTmPriorBoxOp(void* const start_ptr, tm_uoffset_t* cur_pos, ir_n
 
     int variance_num = 4; // tengine lite does not set the variable.
     vector_size = sizeof(tm_size_t) + sizeof(float) * variance_num;
-    TM2_Vector_floats* v_variance = ( TM2_Vector_floats* )malloc(vector_size);
+    TM2_Vector_floats* v_variance = (TM2_Vector_floats*)malloc(vector_size);
     v_variance->v_num = variance_num;
-    for(unsigned int i = 0; i < variance_num; i++)
+    for (unsigned int i = 0; i < variance_num; i++)
     {
         v_variance->data[i] = p->variance[i];
     }
@@ -303,9 +301,9 @@ tm_uoffset_t SaveTmPriorBoxOp(void* const start_ptr, tm_uoffset_t* cur_pos, ir_n
     free(v_variance);
 
     vector_size = sizeof(tm_size_t) + sizeof(float) * p->aspect_ratio_size;
-    TM2_Vector_floats* v_ratios = ( TM2_Vector_floats* )malloc(vector_size);
+    TM2_Vector_floats* v_ratios = (TM2_Vector_floats*)malloc(vector_size);
     v_ratios->v_num = p->aspect_ratio_size;
-    for(unsigned int i = 0; i < p->aspect_ratio_size; i++)
+    for (unsigned int i = 0; i < p->aspect_ratio_size; i++)
     {
         v_ratios->data[i] = p->aspect_ratio[i];
     }
@@ -340,9 +338,9 @@ tm_uoffset_t SaveTmRegionOp(void* const start_ptr, tm_uoffset_t* cur_pos, ir_nod
     tm_param.nms_threshold = p->nms_threshold;
 
     size_t vector_size = sizeof(tm_size_t) + sizeof(float) * p->biases_num;
-    TM2_Vector_floats* v_biases = ( TM2_Vector_floats* )malloc(vector_size);
+    TM2_Vector_floats* v_biases = (TM2_Vector_floats*)malloc(vector_size);
     v_biases->v_num = p->biases_num;
-    for(unsigned int i = 0; i < p->biases_num; i++)
+    for (unsigned int i = 0; i < p->biases_num; i++)
     {
         v_biases->data[i] = p->biases[i];
     }
@@ -387,36 +385,35 @@ tm_uoffset_t SaveTmReshapeOp(void* const start_ptr, tm_uoffset_t* cur_pos, ir_no
 {
     struct reshape_param* p = (struct reshape_param*)node->op.param_mem;
     TM2_ReshapeParam tm_param;
-    if(p->reverse)
+    if (p->reverse)
         tm_param.reverse = 1;
     else
         tm_param.reverse = 0;
-    if(p->is_mxnet)
+    if (p->is_mxnet)
         tm_param.is_mxnet = 1;
     else
         tm_param.is_mxnet = 0;
 
-    if(p->dim_size)
+    if (p->dim_size)
     {
         size_t vector_size = sizeof(tm_size_t) + sizeof(int32_t) * p->dim_size;
-        TM2_Vector_dims* v_re_shape = ( TM2_Vector_dims* )malloc(vector_size);
+        TM2_Vector_dims* v_re_shape = (TM2_Vector_dims*)malloc(vector_size);
         v_re_shape->v_num = p->dim_size;
-        for(unsigned int i = 0; i < p->dim_size; i++)
+        for (unsigned int i = 0; i < p->dim_size; i++)
         {
             v_re_shape->dims[i] = p->re_shape[i];
         }
         tm_param.offset_re_shape = WriteTmObject(start_ptr, cur_pos, v_re_shape, vector_size);
         free(v_re_shape);
     }
-    else{
+    else
+    {
         tm_param.offset_re_shape = TM2_NOT_SET;
     }
-
 
     TM2_Operator tm_op;
     SetTmOperator(&tm_op, TM2_OPTYPE_RESHAPE, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_ReshapeParam)));
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
-
 }
 
 tm_uoffset_t SaveTmResizeOp(void* const start_ptr, tm_uoffset_t* cur_pos, ir_node_t* node)
@@ -453,9 +450,9 @@ tm_uoffset_t SaveTmRPNOp(void* const start_ptr, tm_uoffset_t* cur_pos, ir_node_t
     TM2_RPNParam tm_param;
 
     size_t vector_size = sizeof(tm_size_t) + sizeof(float) * p->ratios->elem_num;
-    TM2_Vector_floats* v_ratios = ( TM2_Vector_floats* )malloc(vector_size);
+    TM2_Vector_floats* v_ratios = (TM2_Vector_floats*)malloc(vector_size);
     v_ratios->v_num = p->ratios->elem_num;
-    for(unsigned int i = 0; i < p->ratios->elem_num; i++)
+    for (unsigned int i = 0; i < p->ratios->elem_num; i++)
     {
         v_ratios->data[i] = *(float*)get_vector_data(p->ratios, i);
     }
@@ -463,9 +460,9 @@ tm_uoffset_t SaveTmRPNOp(void* const start_ptr, tm_uoffset_t* cur_pos, ir_node_t
     free(v_ratios);
 
     vector_size = sizeof(tm_size_t) + sizeof(float) * p->anchor_scales->elem_num;
-    TM2_Vector_floats* v_scales = ( TM2_Vector_floats* )malloc(vector_size);
+    TM2_Vector_floats* v_scales = (TM2_Vector_floats*)malloc(vector_size);
     v_scales->v_num = p->anchor_scales->elem_num;
-    for(unsigned int i = 0; i < p->anchor_scales->elem_num; i++)
+    for (unsigned int i = 0; i < p->anchor_scales->elem_num; i++)
     {
         v_scales->data[i] = *(float*)get_vector_data(p->anchor_scales, i);
     }
@@ -473,9 +470,9 @@ tm_uoffset_t SaveTmRPNOp(void* const start_ptr, tm_uoffset_t* cur_pos, ir_node_t
     free(v_scales);
 
     vector_size = sizeof(tm_size_t) + sizeof(float) * p->anchors_->elem_num * 4;
-    TM2_Vector_anchors* v_anchors = ( TM2_Vector_anchors* )malloc(vector_size);
+    TM2_Vector_anchors* v_anchors = (TM2_Vector_anchors*)malloc(vector_size);
     v_anchors->v_num = p->anchors_->elem_num;
-    for(unsigned int i = 0; i < p->anchors_->elem_num; i++)
+    for (unsigned int i = 0; i < p->anchors_->elem_num; i++)
     {
         v_anchors->data[i][0] = ((Anchor_t*)get_vector_data(p->anchors_, i))->x0;
         v_anchors->data[i][1] = ((Anchor_t*)get_vector_data(p->anchors_, i))->y0;
@@ -523,12 +520,12 @@ tm_uoffset_t SaveTmSliceOp(void* const start_ptr, tm_uoffset_t* cur_pos, ir_node
     tm_param.isonnx = p->isonnx;
     tm_param.ismxnet = p->ismxnet;
 
-    if(p->slice_point_ && p->slice_point_->elem_num)
+    if (p->slice_point_ && p->slice_point_->elem_num)
     {
         size_t vector_size = sizeof(tm_size_t) + sizeof(int32_t) * p->slice_point_->elem_num;
-        TM2_Vector_dims* v_slice_points = ( TM2_Vector_dims* )malloc(vector_size);
+        TM2_Vector_dims* v_slice_points = (TM2_Vector_dims*)malloc(vector_size);
         v_slice_points->v_num = p->slice_point_->elem_num;
-        for(unsigned int i = 0; i < p->slice_point_->elem_num; i++)
+        for (unsigned int i = 0; i < p->slice_point_->elem_num; i++)
         {
             v_slice_points->dims[i] = *(int32_t*)get_vector_data(p->slice_point_, i);
         }
@@ -538,12 +535,12 @@ tm_uoffset_t SaveTmSliceOp(void* const start_ptr, tm_uoffset_t* cur_pos, ir_node
     else
         tm_param.offset_vi_slice_points = TM2_NOT_SET;
 
-    if(p->begin_ && p->begin_->elem_num)
+    if (p->begin_ && p->begin_->elem_num)
     {
         size_t vector_size = sizeof(tm_size_t) + sizeof(int32_t) * p->begin_->elem_num;
-        TM2_Vector_dims* v_begins = ( TM2_Vector_dims* )malloc(vector_size);
+        TM2_Vector_dims* v_begins = (TM2_Vector_dims*)malloc(vector_size);
         v_begins->v_num = p->begin_->elem_num;
-        for(unsigned int i = 0; i < p->begin_->elem_num; i++)
+        for (unsigned int i = 0; i < p->begin_->elem_num; i++)
         {
             v_begins->dims[i] = *(int32_t*)get_vector_data(p->begin_, i);
         }
@@ -553,12 +550,12 @@ tm_uoffset_t SaveTmSliceOp(void* const start_ptr, tm_uoffset_t* cur_pos, ir_node
     else
         tm_param.offset_vi_begins = TM2_NOT_SET;
 
-    if(p->size_ && p->size_->elem_num)
+    if (p->size_ && p->size_->elem_num)
     {
         size_t vector_size = sizeof(tm_size_t) + sizeof(int32_t) * p->size_->elem_num;
-        TM2_Vector_dims* v_sizes = ( TM2_Vector_dims* )malloc(vector_size);
+        TM2_Vector_dims* v_sizes = (TM2_Vector_dims*)malloc(vector_size);
         v_sizes->v_num = p->size_->elem_num;
-        for(unsigned int i = 0; i < p->size_->elem_num; i++)
+        for (unsigned int i = 0; i < p->size_->elem_num; i++)
         {
             v_sizes->dims[i] = *(int32_t*)get_vector_data(p->size_, i);
         }
@@ -567,7 +564,6 @@ tm_uoffset_t SaveTmSliceOp(void* const start_ptr, tm_uoffset_t* cur_pos, ir_node
     }
     else
         tm_param.offset_vi_sizes = TM2_NOT_SET;
-
 
     TM2_Operator tm_op;
     SetTmOperator(&tm_op, TM2_OPTYPE_SLICE, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_SliceParam)));
@@ -589,24 +585,27 @@ tm_uoffset_t SaveTmSplitOp(void* const start_ptr, tm_uoffset_t* cur_pos, ir_node
 {
     struct split_param* p = (struct split_param*)node->op.param_mem;
     TM2_SplitParam tm_param;
-    if(p->is_caffe)
+    if (p->is_caffe)
         tm_param.is_caffe = 1;
     else
         tm_param.is_caffe = 0;
 
-    if(p->is_onnx){
+    if (p->is_onnx)
+    {
         tm_param.is_onnx = 1;
-    } else {
+    }
+    else
+    {
         tm_param.is_onnx = 0;
     }
-    if(!p->is_caffe)
+    if (!p->is_caffe)
     {
-        if(p->is_onnx)
+        if (p->is_onnx)
             tm_param.axis = p->axis;
         size_t vector_size = sizeof(tm_size_t) + sizeof(int32_t) * p->split_sizes_->elem_num;
-        TM2_Vector_dims* v_split_sizes = ( TM2_Vector_dims* )malloc(vector_size);
+        TM2_Vector_dims* v_split_sizes = (TM2_Vector_dims*)malloc(vector_size);
         v_split_sizes->v_num = p->split_sizes_->elem_num;
-        for(unsigned int i = 0; i < p->split_sizes_->elem_num; i++)
+        for (unsigned int i = 0; i < p->split_sizes_->elem_num; i++)
         {
             v_split_sizes->dims[i] = *(int32_t*)get_vector_data(p->split_sizes_, i);
         }
@@ -633,9 +632,9 @@ tm_uoffset_t SaveTmDetectionPostProcessOp(void* const start_ptr, tm_uoffset_t* c
 
     int param_scales_num = 4;
     size_t vector_size = sizeof(tm_size_t) + sizeof(float) * param_scales_num;
-    TM2_Vector_floats* v_scales = ( TM2_Vector_floats* )malloc(vector_size);
+    TM2_Vector_floats* v_scales = (TM2_Vector_floats*)malloc(vector_size);
     v_scales->v_num = param_scales_num;
-    for(unsigned int i = 0; i < param_scales_num; i++)
+    for (unsigned int i = 0; i < param_scales_num; i++)
     {
         v_scales->data[i] = p->scales[i];
     }
@@ -777,7 +776,7 @@ tm_uoffset_t SaveTmTopKV2Op(void* const start_ptr, tm_uoffset_t* cur_pos, ir_nod
     TM2_TopKV2Param tm_param;
 
     tm_param.k = p->k;
-    if(p->sorted)
+    if (p->sorted)
         tm_param.sorted = 1;
     else
         tm_param.sorted = 0;
@@ -989,7 +988,7 @@ tm_uoffset_t SaveTmExpanddimsOp(void* const start_ptr, tm_uoffset_t* cur_pos, ir
     struct expanddims_param* p = (struct expanddims_param*)node->op.param_mem;
     TM2_ExpanddimsParam tm_param;
 
-    tm_param.axis= p->axis;
+    tm_param.axis = p->axis;
 
     TM2_Operator tm_op;
     SetTmOperator(&tm_op, TM2_OPTYPE_EXPANDDIMS, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_ExpanddimsParam)));
@@ -1170,19 +1169,20 @@ tm_uoffset_t SaveTmTransposeOp(void* const start_ptr, tm_uoffset_t* cur_pos, ir_
 {
     struct transpose_param* p = (struct transpose_param*)node->op.param_mem;
     TM2_TransposeParam tm_param;
-    if(p->tr_shape_size)
+    if (p->tr_shape_size)
     {
         size_t vector_size = sizeof(tm_size_t) + sizeof(int32_t) * p->tr_shape_size;
-        TM2_Vector_dims* v_re_shape = ( TM2_Vector_dims* )malloc(vector_size);
+        TM2_Vector_dims* v_re_shape = (TM2_Vector_dims*)malloc(vector_size);
         v_re_shape->v_num = p->tr_shape_size;
-        for(unsigned int i = 0; i < p->tr_shape_size; i++)
+        for (unsigned int i = 0; i < p->tr_shape_size; i++)
         {
             v_re_shape->dims[i] = p->tr_shape[i];
         }
         tm_param.offset_tr_shape = WriteTmObject(start_ptr, cur_pos, v_re_shape, vector_size);
         free(v_re_shape);
     }
-    else{
+    else
+    {
         tm_param.offset_tr_shape = TM2_NOT_SET;
     }
     TM2_Operator tm_op;
@@ -1282,12 +1282,12 @@ tm_uoffset_t SaveTmUnsqueezeOp(void* const start_ptr, tm_uoffset_t* cur_pos, ir_
     struct unsqueeze_param* p = (struct unsqueeze_param*)node->op.param_mem;
     TM2_UnsqueezeParam tm_param;
 
-    if(p->axises_size)
+    if (p->axises_size)
     {
         size_t vector_size = sizeof(tm_size_t) + sizeof(int32_t) * p->axises_size;
-        TM2_Vector_dims* v_axises = ( TM2_Vector_dims* )malloc(vector_size);
+        TM2_Vector_dims* v_axises = (TM2_Vector_dims*)malloc(vector_size);
         v_axises->v_num = p->axises_size;
-        for(unsigned int i = 0; i < p->axises_size; i++)
+        for (unsigned int i = 0; i < p->axises_size; i++)
         {
             v_axises->dims[i] = p->axises[i];
         }
@@ -1329,19 +1329,18 @@ tm_uoffset_t SaveTmMatMulOp(void* const start_ptr, tm_uoffset_t* cur_pos, ir_nod
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
 }
 
-
-tm_uoffset_t SaveTmExpandOp(void* const start_ptr, tm_uoffset_t* cur_pos,ir_node_t* node)
+tm_uoffset_t SaveTmExpandOp(void* const start_ptr, tm_uoffset_t* cur_pos, ir_node_t* node)
 {
     struct expand_param* p = (struct expand_param*)node->op.param_mem;
     TM2_ExpandParam tm_param;
     memset(&tm_param, 0, sizeof(TM2_ExpandParam));
 
-    if(p->dim_num)
+    if (p->dim_num)
     {
         size_t vector_size = sizeof(tm_size_t) + sizeof(int32_t) * p->dim_num;
-        TM2_Vector_dims* v_axises = ( TM2_Vector_dims* )malloc(vector_size);
+        TM2_Vector_dims* v_axises = (TM2_Vector_dims*)malloc(vector_size);
         v_axises->v_num = p->dim_num;
-        for(unsigned int i = 0; i < p->dim_num; i++)
+        for (unsigned int i = 0; i < p->dim_num; i++)
         {
             v_axises->dims[i] = p->ex_shape[i];
         }
@@ -1359,27 +1358,28 @@ tm_uoffset_t SaveTmExpandOp(void* const start_ptr, tm_uoffset_t* cur_pos,ir_node
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
 }
 
-tm_uoffset_t SaveTmSpatialTransformerOp(void* const start_ptr, tm_uoffset_t* cur_pos,ir_node_t* node)
+tm_uoffset_t SaveTmSpatialTransformerOp(void* const start_ptr, tm_uoffset_t* cur_pos, ir_node_t* node)
 {
     struct spatialtransformer_param* p = (struct spatialtransformer_param*)node->op.param_mem;
     TM2_SpatialTransformerParam tm_param;
     memset(&tm_param, 0, sizeof(TM2_SpatialTransformerParam));
     tm_param.sampler_type = p->sampler_type;
     tm_param.transformer_type = p->transformer_type;
-    tm_param.shape_size = sizeof(p->target_shape)/sizeof(p->target_shape[0]);
-    if(tm_param.shape_size)
+    tm_param.shape_size = sizeof(p->target_shape) / sizeof(p->target_shape[0]);
+    if (tm_param.shape_size)
     {
         size_t vector_size = sizeof(tm_size_t) + sizeof(int32_t) * tm_param.shape_size;
-        TM2_Vector_dims* v_ta_shape = ( TM2_Vector_dims* )malloc(vector_size);
+        TM2_Vector_dims* v_ta_shape = (TM2_Vector_dims*)malloc(vector_size);
         v_ta_shape->v_num = tm_param.shape_size;
-        for(unsigned int i = 0; i < tm_param.shape_size; i++)
+        for (unsigned int i = 0; i < tm_param.shape_size; i++)
         {
             v_ta_shape->dims[i] = p->target_shape[i];
         }
         tm_param.offset_ta_shape = WriteTmObject(start_ptr, cur_pos, v_ta_shape, vector_size);
         free(v_ta_shape);
     }
-    else{
+    else
+    {
         tm_param.offset_ta_shape = TM2_NOT_SET;
     }
 
@@ -1387,187 +1387,186 @@ tm_uoffset_t SaveTmSpatialTransformerOp(void* const start_ptr, tm_uoffset_t* cur
     memset(&tm_op, 0, sizeof(TM2_Operator));
     SetTmOperator(&tm_op, TM2_OPTYPE_SPATIALTRANSFORMER, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_SpatialTransformerParam)));
     return WriteTmObject(start_ptr, cur_pos, &tm_op, sizeof(TM2_Operator));
-
 }
 
 op_save_t SaveTmOpFunc(uint32_t op_type)
 {
-    switch(op_type)
+    switch (op_type)
     {
-        case OP_BATCHNORM:
-            return SaveTmBatchNormOp;
-        case OP_CONCAT:
-            return SaveTmConcatOp;
-        case OP_CONST:
-            return SaveTmConstOp;
-        case OP_CONV:
-            return SaveTmConvOp;
-        case OP_DECONV:
-            return SaveTmDeconvOp;
-        case OP_DETECTION_OUTPUT:
-            return SaveTmDetectionOutputOp;
-        case OP_DROPOUT:
-            return SaveTmDropoutOp;
-        case OP_ELTWISE:
-            return SaveTmEltwiseOp;
-        case OP_FLATTEN:
-            return SaveTmFlattenOp;
-        case OP_FC:
-            return SaveTmFCOp;
-        case OP_INPUT:
-            return SaveTmInputOp;
-        case OP_LRN:
-            return SaveTmLRNOp;
-        case OP_NORMALIZE:
-            return SaveTmNormalizeOp;
-        case OP_PERMUTE:
-            return SaveTmPermuteOp;
-        case OP_POOL:
-            return SaveTmPoolingOp;
-        case OP_PRELU:
-            return SaveTmPreluOp;
-        case OP_PRIORBOX:
-            return SaveTmPriorBoxOp;
-        case OP_REGION:
-            return SaveTmRegionOp;
-        case OP_RELU:
-            return SaveTmReLuOp;
-        case OP_RELU6:
-            return SaveTmRelu6Op;
-        case OP_REORG:
-            return SaveTmReorgOp;
-        case OP_RESHAPE:
-            return SaveTmReshapeOp;
-        case OP_ROIPOOLING:
-            return SaveTmROIPoolingOp;
-        case OP_RPN:
-            return SaveTmRPNOp;
-        case OP_SCALE:
-            return SaveTmScaleOp;
-        case OP_SLICE:
-            return SaveTmSliceOp;
-        case OP_SOFTMAX:
-            return SaveTmSoftmaxOp;
-        case OP_SPLIT:
-            return SaveTmSplitOp;
-        case OP_DETECTION_POSTPROCESS:
-            return SaveTmDetectionPostProcessOp;
-        case OP_GEMM:
-            return SaveTmGemmOp;
-        case OP_LOGISTIC:
-            return SaveTmLogisticOp;
-        case OP_LSTM:
-            return SaveTmLstmOp;
-        case OP_RNN:
-            return SaveTmRnnOp;
-        case OP_TANH:
-            return SaveTmTanhOp;
-        case OP_SIGMOID:
-            return SaveTmSigmoidOp;
-        case OP_SQUEEZE:
-            return SaveTmSqueezeOp;
-        case OP_SWAP_AXIS:
-            return SaveTmSwapAxisOp;
-        case OP_GRU:
-            return SaveTmGruOp;
-        case OP_ARGMAX:
-            return SaveTmArgMaxOp;
-        case OP_ARGMIN:
-            return SaveTmArgMinOp;
-        case OP_TOPKV2:
-            return SaveTmTopKV2Op;
-        case OP_PAD:
-            return SaveTmPadOp;
-        case OP_STRIDED_SLICE:
-            return SaveTmStridedSliceOp;
-        case OP_REDUCTION:
-            return SaveTmReductionOp;
-        case OP_UPSAMPLE:
-            return SaveTmUpsampleOp;
-        case OP_SHUFFLECHANNEL:
-            return SaveTmShuffleChannelOp;
-        case OP_SPACETOBATCHND:
-            return SaveTmSpaceToBatchNDOp;
-        case OP_BATCHTOSPACEND:
-            return SaveTmBatchToSpaceNDOp;
-        case OP_RESIZE:
-            return SaveTmResizeOp;
-        case OP_CROP:
-            return SaveTmCropOp;
-        case OP_ROIALIGN:
-            return SaveTmRoialignOp;
-        case OP_PSROIPOOLING:
-            return SaveTmPsroipoolingOp;
-        case OP_EXPANDDIMS:
-            return SaveTmExpanddimsOp;
-        case OP_UNARY:
-            return SaveTmUnaryOp;
-        case OP_NOOP:
-            return SaveTmNoopOp;
-        case OP_THRESHOLD:
-            return SaveTmThresholdOp;
-        case OP_HARDSIGMOID:
-            return SaveTmHardsigmoidOp;
-        case OP_EMBEDDING:
-            return SaveTmEmbedOp;
-        case OP_INSTANCENORM:
-            return SaveTmInstanceNormOp;
-        case OP_MVN:
-            return SaveTmMVNOp;
-        case OP_CAST:
-            return SaveTmCastOp;
-        case OP_HARDSWISH:
-            return SaveTmHardSwishOp;
-        case OP_INTERP:
-            return SaveTmInterpOp;
-        case OP_SELU:
-            return SaveTmSeluOp;
-        case OP_ELU:
-            return SaveTmEluOp;
-        case OP_BROADMUL:
-            return SaveTmBroadMulOp;
-        case OP_LOGICAL:
-            return SaveTmLogicalOp;
-        case OP_GATHER:
-            return SaveTmGatherOp;
-        case OP_TRANSPOSE:
-            return SaveTmTransposeOp;
-        case OP_COMPARISON:
-            return SaveTmComparisonOp;
-        case OP_REVERSE:
-            return SaveTmReverseOp;
-        case OP_SPACETODEPTH:
-            return SaveTmSpaceToDepthOp;
-        case OP_DEPTHTOSPACE:
-            return SaveTmDepthToSpaceOp;
-        case OP_SQUAREDDIFFERENCE:
-            return SaveTmSquaredDifferenceOp;
-        case OP_SPARSETODENSE:
-            return SaveTmSparseToDenseOp;
-        case OP_CEIL:
-            return SaveTmCeilOp;
-        case OP_ROUND:
-            return SaveTmRoundOp;
-        case OP_ZEROSLIKE:
-            return SaveTmZerosLikeOp;
-        case OP_CLIP:
-            return SaveTmClipOp;
-        case OP_REDUCEL2:
-            return SaveTmReduceL2Op;
-        case OP_UNSQUEEZE:
-            return SaveTmUnsqueezeOp;
-        case OP_MEAN:
-            return SaveTmMeanOp;
-        case OP_MATMUL:
-            return SaveTmMatMulOp;
-        case OP_MISH:
-            return SaveTmMishOp;
-        case OP_SPATIALTRANSFORMER:
-            return SaveTmSpatialTransformerOp;
-        case OP_EXPAND:
-            return SaveTmExpandOp;
-        default:
-            // fprintf(stderr, "Operator #%d not supported in tengine model yet\n",op_type);
-            return nullptr;
+    case OP_BATCHNORM:
+        return SaveTmBatchNormOp;
+    case OP_CONCAT:
+        return SaveTmConcatOp;
+    case OP_CONST:
+        return SaveTmConstOp;
+    case OP_CONV:
+        return SaveTmConvOp;
+    case OP_DECONV:
+        return SaveTmDeconvOp;
+    case OP_DETECTION_OUTPUT:
+        return SaveTmDetectionOutputOp;
+    case OP_DROPOUT:
+        return SaveTmDropoutOp;
+    case OP_ELTWISE:
+        return SaveTmEltwiseOp;
+    case OP_FLATTEN:
+        return SaveTmFlattenOp;
+    case OP_FC:
+        return SaveTmFCOp;
+    case OP_INPUT:
+        return SaveTmInputOp;
+    case OP_LRN:
+        return SaveTmLRNOp;
+    case OP_NORMALIZE:
+        return SaveTmNormalizeOp;
+    case OP_PERMUTE:
+        return SaveTmPermuteOp;
+    case OP_POOL:
+        return SaveTmPoolingOp;
+    case OP_PRELU:
+        return SaveTmPreluOp;
+    case OP_PRIORBOX:
+        return SaveTmPriorBoxOp;
+    case OP_REGION:
+        return SaveTmRegionOp;
+    case OP_RELU:
+        return SaveTmReLuOp;
+    case OP_RELU6:
+        return SaveTmRelu6Op;
+    case OP_REORG:
+        return SaveTmReorgOp;
+    case OP_RESHAPE:
+        return SaveTmReshapeOp;
+    case OP_ROIPOOLING:
+        return SaveTmROIPoolingOp;
+    case OP_RPN:
+        return SaveTmRPNOp;
+    case OP_SCALE:
+        return SaveTmScaleOp;
+    case OP_SLICE:
+        return SaveTmSliceOp;
+    case OP_SOFTMAX:
+        return SaveTmSoftmaxOp;
+    case OP_SPLIT:
+        return SaveTmSplitOp;
+    case OP_DETECTION_POSTPROCESS:
+        return SaveTmDetectionPostProcessOp;
+    case OP_GEMM:
+        return SaveTmGemmOp;
+    case OP_LOGISTIC:
+        return SaveTmLogisticOp;
+    case OP_LSTM:
+        return SaveTmLstmOp;
+    case OP_RNN:
+        return SaveTmRnnOp;
+    case OP_TANH:
+        return SaveTmTanhOp;
+    case OP_SIGMOID:
+        return SaveTmSigmoidOp;
+    case OP_SQUEEZE:
+        return SaveTmSqueezeOp;
+    case OP_SWAP_AXIS:
+        return SaveTmSwapAxisOp;
+    case OP_GRU:
+        return SaveTmGruOp;
+    case OP_ARGMAX:
+        return SaveTmArgMaxOp;
+    case OP_ARGMIN:
+        return SaveTmArgMinOp;
+    case OP_TOPKV2:
+        return SaveTmTopKV2Op;
+    case OP_PAD:
+        return SaveTmPadOp;
+    case OP_STRIDED_SLICE:
+        return SaveTmStridedSliceOp;
+    case OP_REDUCTION:
+        return SaveTmReductionOp;
+    case OP_UPSAMPLE:
+        return SaveTmUpsampleOp;
+    case OP_SHUFFLECHANNEL:
+        return SaveTmShuffleChannelOp;
+    case OP_SPACETOBATCHND:
+        return SaveTmSpaceToBatchNDOp;
+    case OP_BATCHTOSPACEND:
+        return SaveTmBatchToSpaceNDOp;
+    case OP_RESIZE:
+        return SaveTmResizeOp;
+    case OP_CROP:
+        return SaveTmCropOp;
+    case OP_ROIALIGN:
+        return SaveTmRoialignOp;
+    case OP_PSROIPOOLING:
+        return SaveTmPsroipoolingOp;
+    case OP_EXPANDDIMS:
+        return SaveTmExpanddimsOp;
+    case OP_UNARY:
+        return SaveTmUnaryOp;
+    case OP_NOOP:
+        return SaveTmNoopOp;
+    case OP_THRESHOLD:
+        return SaveTmThresholdOp;
+    case OP_HARDSIGMOID:
+        return SaveTmHardsigmoidOp;
+    case OP_EMBEDDING:
+        return SaveTmEmbedOp;
+    case OP_INSTANCENORM:
+        return SaveTmInstanceNormOp;
+    case OP_MVN:
+        return SaveTmMVNOp;
+    case OP_CAST:
+        return SaveTmCastOp;
+    case OP_HARDSWISH:
+        return SaveTmHardSwishOp;
+    case OP_INTERP:
+        return SaveTmInterpOp;
+    case OP_SELU:
+        return SaveTmSeluOp;
+    case OP_ELU:
+        return SaveTmEluOp;
+    case OP_BROADMUL:
+        return SaveTmBroadMulOp;
+    case OP_LOGICAL:
+        return SaveTmLogicalOp;
+    case OP_GATHER:
+        return SaveTmGatherOp;
+    case OP_TRANSPOSE:
+        return SaveTmTransposeOp;
+    case OP_COMPARISON:
+        return SaveTmComparisonOp;
+    case OP_REVERSE:
+        return SaveTmReverseOp;
+    case OP_SPACETODEPTH:
+        return SaveTmSpaceToDepthOp;
+    case OP_DEPTHTOSPACE:
+        return SaveTmDepthToSpaceOp;
+    case OP_SQUAREDDIFFERENCE:
+        return SaveTmSquaredDifferenceOp;
+    case OP_SPARSETODENSE:
+        return SaveTmSparseToDenseOp;
+    case OP_CEIL:
+        return SaveTmCeilOp;
+    case OP_ROUND:
+        return SaveTmRoundOp;
+    case OP_ZEROSLIKE:
+        return SaveTmZerosLikeOp;
+    case OP_CLIP:
+        return SaveTmClipOp;
+    case OP_REDUCEL2:
+        return SaveTmReduceL2Op;
+    case OP_UNSQUEEZE:
+        return SaveTmUnsqueezeOp;
+    case OP_MEAN:
+        return SaveTmMeanOp;
+    case OP_MATMUL:
+        return SaveTmMatMulOp;
+    case OP_MISH:
+        return SaveTmMishOp;
+    case OP_SPATIALTRANSFORMER:
+        return SaveTmSpatialTransformerOp;
+    case OP_EXPAND:
+        return SaveTmExpandOp;
+    default:
+        // fprintf(stderr, "Operator #%d not supported in tengine model yet\n",op_type);
+        return nullptr;
     }
 }

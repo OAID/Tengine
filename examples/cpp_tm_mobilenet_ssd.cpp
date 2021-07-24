@@ -55,16 +55,16 @@ typedef struct Box
 
 void post_process_ssd(const string image_file, float threshold, const float* outdata, int num)
 {
-    const char* class_names[] = {"background", "aeroplane", "bicycle",   "bird",   "boat",        "bottle",
-                                 "bus",        "car",       "cat",       "chair",  "cow",         "diningtable",
-                                 "dog",        "horse",     "motorbike", "person", "pottedplant", "sheep",
-                                 "sofa",       "train",     "tvmonitor"};
+    const char* class_names[] = {"background", "aeroplane", "bicycle", "bird", "boat", "bottle",
+                                 "bus", "car", "cat", "chair", "cow", "diningtable",
+                                 "dog", "horse", "motorbike", "person", "pottedplant", "sheep",
+                                 "sofa", "train", "tvmonitor"};
 
     image im = imread(image_file.c_str());
 
     int raw_h = im.h;
     int raw_w = im.w;
-//    struct vector* boxes = create_vector(sizeof(Box_t), nullptr);
+    //    struct vector* boxes = create_vector(sizeof(Box_t), nullptr);
     std::vector<Box_t> boxes;
 
     fprintf(stderr, "detect result num: %d \n", num);
@@ -122,23 +122,23 @@ int main(int argc, char* argv[])
     {
         switch (res)
         {
-            case 'm':
-                model_file = optarg;
-                break;
-            case 'i':
-                image_file = optarg;
-                break;
-            case 'r':
-                repeat_count = atoi(optarg);
-                break;
-            case 't':
-                num_thread = atoi(optarg);
-                break;
-            case 'h':
-                show_usage();
-                return 0;
-            default:
-                break;
+        case 'm':
+            model_file = optarg;
+            break;
+        case 'i':
+            image_file = optarg;
+            break;
+        case 'r':
+            repeat_count = atoi(optarg);
+            break;
+        case 't':
+            num_thread = atoi(optarg);
+            break;
+        case 'h':
+            show_usage();
+            return 0;
+        default:
+            break;
         }
     }
 
@@ -150,7 +150,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    if(image_file.empty())
+    if (image_file.empty())
     {
         std::cerr << "Error: Image file not specified!" << std::endl;
         show_usage();
@@ -184,7 +184,7 @@ int main(int argc, char* argv[])
 
         /* prepare input data */
         input_tensor.create(1, 3, img_h, img_w);
-        get_input_data(image_file.c_str(), ( float* )input_tensor.data, img_h, img_w, mean, scale);
+        get_input_data(image_file.c_str(), (float*)input_tensor.data, img_h, img_w, mean, scale);
 
         /* forward */
         somenet.input_tensor("data", input_tensor);
@@ -211,7 +211,7 @@ int main(int argc, char* argv[])
         somenet.extract_tensor("detection_out", output_tensor);
 
         /* SSD process */
-        post_process_ssd(image_file, show_threshold, ( float* )output_tensor.data, output_tensor.h);
+        post_process_ssd(image_file, show_threshold, (float*)output_tensor.data, output_tensor.h);
     }
 
     /* release */

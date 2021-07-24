@@ -36,7 +36,6 @@
 #include "device/cpu/cpu_graph.h"
 #include "device/cpu/cpu_module.h"
 
-
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     struct node* ir_node = exec_node->ir_node;
@@ -54,10 +53,9 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         bias_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[2]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    struct deconv_param* deconv_param = ( struct deconv_param* )ir_node->op.param_mem;
+    struct deconv_param* deconv_param = (struct deconv_param*)ir_node->op.param_mem;
 
-    if (deconv_dw_run(input_tensor, weight_tensor, bias_tensor, output_tensor, deconv_param, num_thread, cpu_affinity) <
-        0)
+    if (deconv_dw_run(input_tensor, weight_tensor, bias_tensor, output_tensor, deconv_param, num_thread, cpu_affinity) < 0)
     {
         TLOG_ERR("hcl conv run failed\n");
         // set_tengine_errno(EFAULT);
@@ -79,7 +77,7 @@ static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, 
 
 static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struct node* exec_node)
 {
-    struct deconv_param* param = ( struct deconv_param* )exec_node->op.param_mem;
+    struct deconv_param* param = (struct deconv_param*)exec_node->op.param_mem;
     struct node* ir_node = exec_node;
     struct graph* ir_graph = ir_node->graph;
 
@@ -117,8 +115,7 @@ static struct node_ops hcl_node_ops = {.prerun = NULL,
                                        .postrun = NULL,
                                        .init_node = init_node,
                                        .release_node = release_node,
-                                       .score = score
-};
+                                       .score = score};
 
 int register_deconv_dw_hcl_arm_op()
 {

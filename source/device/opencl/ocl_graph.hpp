@@ -24,11 +24,9 @@
 
 #pragma once
 
-extern "C"
-{
+extern "C" {
 #include "device/device.h"
 #include "graph/subgraph.h"
-
 
 int ocl_dev_init(struct device* dev);
 int ocl_dev_prerun(struct device* dev, struct subgraph* subgraph, void* options);

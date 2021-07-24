@@ -45,7 +45,7 @@
 
 #include "flatten_param.h"
 
-namespace TEngine{
+namespace TEngine {
 
 class Flatten_vulkan : public Layer
 {
@@ -55,7 +55,7 @@ public:
 
     virtual int create_pipeline(const Option& opt);
     virtual int destroy_pipeline(const Option& opt);
-    
+
     virtual int record_pipeline(const VkTensor& bottom_blob, VkTensor& top_blob, VkCompute& cmd, const Option& opt) const;
 
 public:
@@ -74,9 +74,8 @@ public:
     int output_h;
     int output_w;
     int output_size;
-
 };
 
-}   // namespace TEngine
+} // namespace TEngine
 
 #endif

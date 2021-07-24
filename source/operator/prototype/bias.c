@@ -27,7 +27,6 @@
 #include "graph/graph.h"
 #include "module/module.h"
 
-
 static int infer_shape(ir_node_t* node)
 {
     ir_graph_t* ir_graph = node->graph;
@@ -39,7 +38,6 @@ static int infer_shape(ir_node_t* node)
     return 0;
 }
 
-
 static int init_op(ir_op_t* op)
 {
     op->same_shape = 0;
@@ -48,9 +46,9 @@ static int init_op(ir_op_t* op)
     return 0;
 }
 
-
-static void release_op(ir_op_t* op) {}
-
+static void release_op(ir_op_t* op)
+{
+}
 
 int register_bias_op()
 {
@@ -62,7 +60,6 @@ int register_bias_op()
 
     return register_op(OP_BIAS, OP_BIAS_NAME, &m);
 }
-
 
 int unregister_bias_op()
 {

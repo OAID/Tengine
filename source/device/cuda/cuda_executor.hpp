@@ -28,8 +28,7 @@
 #include <vector>
 #include <functional>
 
-extern "C"
-{
+extern "C" {
 #include "graph/node.h"
 #include "graph/graph.h"
 #include "graph/subgraph.h"
@@ -42,7 +41,7 @@ extern "C"
 
 typedef std::map<uint32_t, uint32_t> dict_uint2uint;
 typedef std::map<uint32_t, void*> dict_uint2voidx;
-typedef std::function< void() >  GPU_kernel;
+typedef std::function<void()> GPU_kernel;
 
 class CUDAEngine
 {
@@ -84,5 +83,5 @@ private:
     cudnnConvolutionFwdAlgo_t algo1;
 
 public:
-    dict_uint2voidx     gpu_addr_map;
+    dict_uint2voidx gpu_addr_map;
 };

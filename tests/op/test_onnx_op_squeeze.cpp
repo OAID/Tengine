@@ -22,13 +22,12 @@
  * Author: qtang@openailab.com
  */
 
-
 #include "test_onnx_op.h"
 
-std::string node      = "test_squeeze";
-std::string input_pb  = "../onnx_node/" + node + "/test_data_set_0/input_0.pb";
+std::string node = "test_squeeze";
+std::string input_pb = "../onnx_node/" + node + "/test_data_set_0/input_0.pb";
 std::string output_pb = "../onnx_node/" + node + "/test_data_set_0/output_0.pb";
-std::string model     = "../onnx_node/" + node + "/onnx.tmfile";
+std::string model = "../onnx_node/" + node + "/onnx.tmfile";
 
 int main(int argc, char* argv[])
 {
@@ -81,7 +80,7 @@ int main(int argc, char* argv[])
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;
-    }    
+    }
 
     /* prerun graph, set work options(num_thread, cluster, precision) */
     if (prerun_graph_multithread(graph, opt) < 0)
@@ -102,7 +101,7 @@ int main(int argc, char* argv[])
 
     /* get the current result of inference */
     tensor_t output_tensor = get_graph_output_tensor(graph, 0, 0);
-    float* output_data = ( float* )get_tensor_buffer(output_tensor);
+    float* output_data = (float*)get_tensor_buffer(output_tensor);
     int output_size = get_tensor_buffer_size(output_tensor) / sizeof(float);
 
     /* get the reference result of inference */

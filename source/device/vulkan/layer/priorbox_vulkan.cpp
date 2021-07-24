@@ -60,28 +60,28 @@ PriorBox_vulkan::PriorBox_vulkan(ir_graph_t* ir_graph, ir_node_t* ir_node)
     graph = ir_graph;
     node = ir_node;
 
-    for(int i = 0; i < ir_node->input_num; i++)
+    for (int i = 0; i < ir_node->input_num; i++)
     {
-        struct tensor *input = get_ir_graph_tensor(graph, node->input_tensors[i]);
+        struct tensor* input = get_ir_graph_tensor(graph, node->input_tensors[i]);
         std::string name = input->name;
         bottoms.push_back(name);
     }
 
-    for(int i = 0; i < ir_node->output_num; i++)
+    for (int i = 0; i < ir_node->output_num; i++)
     {
-        struct tensor *output = get_ir_graph_tensor(graph, node->input_tensors[i]);
+        struct tensor* output = get_ir_graph_tensor(graph, node->input_tensors[i]);
         std::string name = output->name;
         tops.push_back(name);
     }
 
     // params
-    struct tensor *featmap_tensor = get_ir_graph_tensor(graph, node->input_tensors[0]);
-    struct tensor *data_tensor = get_ir_graph_tensor(graph, node->input_tensors[1]);
-    struct tensor *output_tensor = get_ir_graph_tensor(graph, node->output_tensors[0]);
-    input_c = data_tensor->dims[1];   // param->input_channel;
+    struct tensor* featmap_tensor = get_ir_graph_tensor(graph, node->input_tensors[0]);
+    struct tensor* data_tensor = get_ir_graph_tensor(graph, node->input_tensors[1]);
+    struct tensor* output_tensor = get_ir_graph_tensor(graph, node->output_tensors[0]);
+    input_c = data_tensor->dims[1]; // param->input_channel;
     input_h = data_tensor->dims[2];
     input_w = data_tensor->dims[3];
-    output_c = output_tensor->dims[1];  // param->output_channel;
+    output_c = output_tensor->dims[1]; // param->output_channel;
     output_h = output_tensor->dims[2];
     output_w = output_tensor->dims[3];
 
@@ -90,8 +90,8 @@ PriorBox_vulkan::PriorBox_vulkan(ir_graph_t* ir_graph, ir_node_t* ir_node)
     const int feat_height = featmap_tensor->dims[2];
     const int feat_width = featmap_tensor->dims[3];
 
-    struct priorbox_param *param = (struct priorbox_param *)ir_node->op.param_mem;
-    
+    struct priorbox_param* param = (struct priorbox_param*)ir_node->op.param_mem;
+
     variances[0] = (param->variance)[0];
     variances[1] = (param->variance)[1];
     variances[2] = (param->variance)[2];
@@ -112,8 +112,8 @@ PriorBox_vulkan::PriorBox_vulkan(ir_graph_t* ir_graph, ir_node_t* ir_node)
 
     if (param->step_h == 0 || param->step_w == 0)
     {
-        step_width = ( float )(image_width) / feat_width;
-        step_height = ( float )(image_height) / feat_height;
+        step_width = (float)(image_width) / feat_width;
+        step_height = (float)(image_height) / feat_height;
     }
     else
     {
@@ -137,9 +137,12 @@ int PriorBox_vulkan::create_pipeline(const Option& opt)
     const Tensor& shape = Tensor(input_w, input_h, input_c, (void*)0); // bottom_shapes.empty() ? Tensor() : bottom_shapes[0];
 
     int elempack = 1;
-    if (shape.dims == 1) elempack = opt.use_shader_pack8 && shape.w % 8 == 0 ? 8 : shape.w % 4 == 0 ? 4 : 1;
-    if (shape.dims == 2) elempack = opt.use_shader_pack8 && shape.h % 8 == 0 ? 8 : shape.h % 4 == 0 ? 4 : 1;
-    if (shape.dims == 3) elempack = opt.use_shader_pack8 && shape.c % 8 == 0 ? 8 : shape.c % 4 == 0 ? 4 : 1;
+    if (shape.dims == 1) elempack = opt.use_shader_pack8 && shape.w % 8 == 0 ? 8 : shape.w % 4 == 0 ? 4
+                                                                                                    : 1;
+    if (shape.dims == 2) elempack = opt.use_shader_pack8 && shape.h % 8 == 0 ? 8 : shape.h % 4 == 0 ? 4
+                                                                                                    : 1;
+    if (shape.dims == 3) elempack = opt.use_shader_pack8 && shape.c % 8 == 0 ? 8 : shape.c % 4 == 0 ? 4
+                                                                                                    : 1;
 
     size_t elemsize;
     if (opt.use_fp16_storage)
@@ -182,8 +185,8 @@ int PriorBox_vulkan::create_pipeline(const Option& opt)
         specializations[8].i = num_max_size;
         specializations[9].i = num_aspect_ratio;
         specializations[10].i = num_prior;
-        specializations[11 + 0].i = 0;//shape_packed.w;
-        specializations[11 + 1].i = 0;//shape_packed.h;
+        specializations[11 + 0].i = 0; //shape_packed.w;
+        specializations[11 + 1].i = 0; //shape_packed.h;
 
         pipeline_priorbox = new Pipeline(vkdev);
         pipeline_priorbox->set_optimal_local_size_xyz();
@@ -348,4 +351,4 @@ int PriorBox_vulkan::record_pipeline(const std::vector<VkTensor>& bottom_blobs, 
     return 0;
 }
 
-}   // namespace TEngine
+} // namespace TEngine

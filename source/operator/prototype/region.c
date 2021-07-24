@@ -31,10 +31,9 @@
 #include "module/module.h"
 #include "utility/sys_port.h"
 
-
 static int init_op(struct op* op)
 {
-    struct region_param* region_param = ( struct region_param* )sys_malloc(sizeof(struct region_param));
+    struct region_param* region_param = (struct region_param*)sys_malloc(sizeof(struct region_param));
 
     if (region_param == NULL)
     {
@@ -52,12 +51,10 @@ static int init_op(struct op* op)
     return 0;
 }
 
-
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
-
 
 int register_region_op()
 {
@@ -69,7 +66,6 @@ int register_region_op()
 
     return register_op(OP_REGION, OP_REGION_NAME, &m);
 }
-
 
 int unregister_region_op()
 {

@@ -23,7 +23,7 @@
  * 
  * original model: https://github.com/dog-qiuqiu/Yolo-Fastest/tree/master/ModelZoo/yolo-fastest-1.1_coco
  */
- 
+
 #include <iostream>
 #include <iomanip>
 #include <vector>
@@ -70,20 +70,20 @@ struct TMat
         return (const float*)data;
     }
 
-    float *row(int row) const
+    float* row(int row) const
     {
-        return (float *)data + w * row;
+        return (float*)data + w * row;
     }
 
-    TMat channel_range(int start, int chn_num) const 
+    TMat channel_range(int start, int chn_num) const
     {
-        TMat mat = { 0 };
+        TMat mat = {0};
 
         mat.batch = 1;
         mat.c = chn_num;
         mat.h = h;
         mat.w = w;
-        mat.data = (float *)data + start * h * w;
+        mat.data = (float*)data + start * h * w;
 
         return mat;
     }
@@ -94,7 +94,7 @@ struct TMat
     }
 
     int batch, c, h, w;
-    void *data;
+    void* data;
 };
 
 class Yolov3DetectionOutput
@@ -102,8 +102,8 @@ class Yolov3DetectionOutput
 public:
     int init(int version);
     int forward(const std::vector<TMat>& bottom_blobs, std::vector<TMat>& top_blobs);
-private:
 
+private:
     int m_num_box;
     int m_num_class;
     float m_anchors_scale[32];
@@ -122,24 +122,23 @@ static const char* class_names[] = {
     "sandwich", "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake", "chair", "couch",
     "potted plant", "bed", "dining table", "toilet", "tv", "laptop", "mouse", "remote", "keyboard", "cell phone",
     "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors", "teddy bear",
-    "hair drier", "toothbrush"
-};
+    "hair drier", "toothbrush"};
 
 int Yolov3DetectionOutput::init(int version)
 {
     memset(this, 0, sizeof(*this));
     m_num_box = 3;
     m_num_class = 80;
-	
-	fprintf(stderr, "Yolov3DetectionOutput init param[%d]\n", version);
-	
+
+    fprintf(stderr, "Yolov3DetectionOutput init param[%d]\n", version);
+
     if (version == YOLOV3)
     {
         m_anchors_scale[0] = 32;
         m_anchors_scale[1] = 16;
         m_anchors_scale[2] = 8;
 
-        float bias[] = { 10,13,  16,30,  33,23,  30,61,  62,45,  59,119,  116,90,  156,198,  373,326 };
+        float bias[] = {10, 13, 16, 30, 33, 23, 30, 61, 62, 45, 59, 119, 116, 90, 156, 198, 373, 326};
         memcpy(m_biases, bias, sizeof(bias));
 
         m_mask[0] = 6;
@@ -159,7 +158,7 @@ int Yolov3DetectionOutput::init(int version)
         m_anchors_scale[0] = 32;
         m_anchors_scale[1] = 16;
 
-        float bias[] = { 12, 18,  37, 49,  52,132, 115, 73, 119,199, 242,238 };
+        float bias[] = {12, 18, 37, 49, 52, 132, 115, 73, 119, 199, 242, 238};
         memcpy(m_biases, bias, sizeof(bias));
 
         m_mask[0] = 3;
@@ -345,7 +344,7 @@ int Yolov3DetectionOutput::forward(const std::vector<TMat>& bottom_blobs, std::v
 
                         float area = bbox_w * bbox_h;
 
-                        BBoxRect c = { confidence, bbox_xmin, bbox_ymin, bbox_xmax, bbox_ymax, area, class_index };
+                        BBoxRect c = {confidence, bbox_xmin, bbox_ymin, bbox_xmax, bbox_ymax, area, class_index};
                         all_box_bbox_rects[pp].push_back(c);
                     }
 
@@ -410,13 +409,13 @@ int Yolov3DetectionOutput::forward(const std::vector<TMat>& bottom_blobs, std::v
 
 static void get_input_data_darknet(const char* image_file, float* input_data, int net_h, int net_w)
 {
-    float mean[3] = { 0.f, 0.f, 0.f };
-    float scale[3] = { 1.0f / 255, 1.0f / 255, 1.0f / 255 };
+    float mean[3] = {0.f, 0.f, 0.f};
+    float scale[3] = {1.0f / 255, 1.0f / 255, 1.0f / 255};
 
     //no letter box by default
     get_input_data(image_file, input_data, net_h, net_w, mean, scale);
     // input rgb
-    image swaprgb_img = { 0 };
+    image swaprgb_img = {0};
     swaprgb_img.c = 3;
     swaprgb_img.w = net_w;
     swaprgb_img.h = net_h;
@@ -429,11 +428,11 @@ static void show_usage()
     fprintf(stderr, "[Usage]:  [-h]\n    [-m model_file] [-i image_file] [-r repeat_count] [-t thread_count]\n");
 }
 
-static void run_yolo(graph_t graph, std::vector<BBoxRect> &boxes, int img_width, int img_height)
+static void run_yolo(graph_t graph, std::vector<BBoxRect>& boxes, int img_width, int img_height)
 {
     Yolov3DetectionOutput yolo;
     std::vector<TMat> yolo_inputs, yolo_outputs;
-    
+
     yolo.init(YOLO_FASTEST);
 
     int output_node_num = get_graph_output_node_number(graph);
@@ -442,8 +441,8 @@ static void run_yolo(graph_t graph, std::vector<BBoxRect> &boxes, int img_width,
 
     for (int i = 0; i < output_node_num; ++i)
     {
-        tensor_t out_tensor = get_graph_output_tensor(graph, i, 0);    //"detection_out"
-        int out_dim[4] = { 0 };
+        tensor_t out_tensor = get_graph_output_tensor(graph, i, 0); //"detection_out"
+        int out_dim[4] = {0};
         get_tensor_shape(out_tensor, out_dim, 4);
 
         yolo_inputs[i].batch = out_dim[0];
@@ -485,9 +484,9 @@ static void run_yolo(graph_t graph, std::vector<BBoxRect> &boxes, int img_width,
     //rect correct
     for (int i = 0; i < yolo_outputs[0].h; i++)
     {
-        float *data_row = yolo_outputs[0].row(i);
+        float* data_row = yolo_outputs[0].row(i);
 
-        BBoxRect box = { 0 };
+        BBoxRect box = {0};
         box.score = data_row[1];
         box.label = data_row[0];
         box.xmin = (data_row[2] - roi_left) / roi_width * img_width;
@@ -584,7 +583,7 @@ int main(int argc, char* argv[])
 
     /* set the input shape to initial the graph, and prerun graph to infer shape */
     int img_size = net_h * net_w * 3;
-    int dims[] = { 1, 3, net_h, net_w };    // nchw
+    int dims[] = {1, 3, net_h, net_w}; // nchw
 
     std::vector<float> input_data(img_size);
 
@@ -636,7 +635,7 @@ int main(int argc, char* argv[])
         max_time = std::max(max_time, cur);
     }
     fprintf(stderr, "Repeat %d times, thread %d, avg time %.2f ms, max_time %.2f ms, min_time %.2f ms\n", repeat_count,
-        num_thread, total_time / repeat_count, max_time, min_time);
+            num_thread, total_time / repeat_count, max_time, min_time);
     fprintf(stderr, "--------------------------------------\n");
 
     /* process the detection result */

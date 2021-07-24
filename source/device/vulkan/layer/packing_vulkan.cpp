@@ -60,8 +60,6 @@ Packing_vulkan::Packing_vulkan()
 
 int Packing_vulkan::create_pipeline(const Option& _opt)
 {
-    
-
     Option opt = _opt;
     // const Mat& shape = bottom_shapes.empty() ? Mat() : bottom_shapes[0];
     // const Mat& out_shape = top_shapes.empty() ? Mat() : top_shapes[0];
@@ -90,7 +88,6 @@ int Packing_vulkan::create_pipeline(const Option& _opt)
     // if (out_shape.dims == 1) out_shape_packed = Mat(out_shape.w / out_elempack, (void*)0, out_elemsize, out_elempack);
     // if (out_shape.dims == 2) out_shape_packed = Mat(out_shape.w, out_shape.h / out_elempack, (void*)0, out_elemsize, out_elempack);
     // if (out_shape.dims == 3) out_shape_packed = Mat(out_shape.w, out_shape.h, out_shape.c / out_elempack, (void*)0, out_elemsize, out_elempack);
-    
 
     // check blob shape
     // if (!vkdev->shape_support_image_storage(out_shape_packed))
@@ -102,7 +99,7 @@ int Packing_vulkan::create_pipeline(const Option& _opt)
     std::vector<vk_specialization_type> specializations(2 + 10);
     specializations[0].i = storage_type_from;
     specializations[1].i = storage_type_to;
-    specializations[2 + 0].i = 0;// FIXME shape elempack may be dynamic
+    specializations[2 + 0].i = 0; // FIXME shape elempack may be dynamic
     specializations[2 + 1].i = 0;
     specializations[2 + 2].i = 0;
     specializations[2 + 3].i = 0;
@@ -112,11 +109,10 @@ int Packing_vulkan::create_pipeline(const Option& _opt)
     specializations[2 + 7].i = 0; //out_shape_packed_h;
     specializations[2 + 8].i = 0; //out_shape_packed_c;
     specializations[2 + 9].i = 0; //out_shape_packed_cstep;
-    
 
     // printf("out shape dims:%d ---------------------------------\n", out_shape_packed_dims);
 
-    VkTensor local_size_xyz;// TODO more precise group size guessed from out_shape_packed
+    VkTensor local_size_xyz; // TODO more precise group size guessed from out_shape_packed
     if (out_shape_packed_dims == 1)
     {
         local_size_xyz.w = 64;
@@ -486,7 +482,6 @@ int Packing_vulkan::record_pipeline(const VkTensor& bottom_blob, VkTensor& top_b
     {
         cmd.record_pipeline(pipeline_packing_pack8to1, buffer_bindings, image_bindings, constants, bottom_blob);
     }
-
 
     // printf("run packing vulkan record pipeline\n");
     return 0;

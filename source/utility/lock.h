@@ -24,20 +24,18 @@
 
 #pragma once
 
-
 /*!
  * @struct abstract_mutex
  * @brief  Abstract mutex_t, platform independence
  */
 typedef struct abstract_mutex
 {
-    void* locker;                                    //!< platform dependence mutex impl
-    void (*init)(struct abstract_mutex* mutex);      //!< init this mutex
-    void (*lock)(struct abstract_mutex* mutex);      //!< lock this mutex
-    void (*unlock)(struct abstract_mutex* mutex);    //!< unlock this mutex
-    void (*free)(struct abstract_mutex* mutex);      //!< destroy this mutex
+    void* locker;                                 //!< platform dependence mutex impl
+    void (*init)(struct abstract_mutex* mutex);   //!< init this mutex
+    void (*lock)(struct abstract_mutex* mutex);   //!< lock this mutex
+    void (*unlock)(struct abstract_mutex* mutex); //!< unlock this mutex
+    void (*free)(struct abstract_mutex* mutex);   //!< destroy this mutex
 } mutex_t;
-
 
 /*!
  * @brief Init a abstract mutex.
@@ -46,7 +44,6 @@ typedef struct abstract_mutex
  */
 void init_mutex(mutex_t* mutex);
 
-
 /*!
  * @brief Init a abstract mutex.
  *
@@ -54,14 +51,12 @@ void init_mutex(mutex_t* mutex);
  */
 void lock_mutex(mutex_t* mutex);
 
-
 /*!
  * @brief Init a abstract mutex.
  *
  * @param [in]  mutex: the mutex_t.
  */
 void unlock_mutex(mutex_t* mutex);
-
 
 /*!
  * @brief Init a abstract mutex.

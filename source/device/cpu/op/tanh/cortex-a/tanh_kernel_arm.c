@@ -28,7 +28,6 @@
 
 #include <arm_neon.h>
 
-
 #define T_MAX(a, b) ((a) > (b) ? (a) : (b))
 #define T_MIN(a, b) ((a) < (b) ? (a) : (b))
 
@@ -63,7 +62,7 @@ exp(x) = lim(1+x/n)^n       // n=10
 */
 static inline float32x4_t vexpq10_f32(float32x4_t x)
 {
-    x = vmlaq_n_f32(vdupq_n_f32(1.0f), x, 0.0009765625f);    // n = 10
+    x = vmlaq_n_f32(vdupq_n_f32(1.0f), x, 0.0009765625f); // n = 10
     x = vmulq_f32(x, x);
     x = vmulq_f32(x, x);
     x = vmulq_f32(x, x);
@@ -79,7 +78,7 @@ static inline float32x4_t vexpq10_f32(float32x4_t x)
 
 static void tanh_kernel(int i, int id, void* data, const float* input, float* output)
 {
-    int step = (( int* )data)[0];
+    int step = ((int*)data)[0];
     float32x4_t min = vdupq_n_f32(-30.0f);
     float32x4_t max = vdupq_n_f32(30.0f);
     const float* cur_input = input + id * step;
@@ -113,8 +112,8 @@ static void tanh_kernel(int i, int id, void* data, const float* input, float* ou
 
 int tanh_run(struct tensor* output_tensor, struct tensor* input_tensor, int num_thread)
 {
-    float* data = ( float* )input_tensor->data;
-    float* out_data = ( float* )output_tensor->data;
+    float* data = (float*)input_tensor->data;
+    float* out_data = (float*)output_tensor->data;
 
     int chan_num = (input_tensor->dims[0]) * (input_tensor->dims[1]);
     int chan_size = (input_tensor->dims[2]) * (input_tensor->dims[3]);

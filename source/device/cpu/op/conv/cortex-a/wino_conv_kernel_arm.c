@@ -34,8 +34,7 @@
 
 #include <arm_neon.h>
 
-
-#define TILE 4
+#define TILE      4
 #define ELEM_SIZE ((TILE + 2) * (TILE + 2))
 
 #define WINO_MAX(a, b) ((a) > (b) ? (a) : (b))
@@ -93,10 +92,10 @@ static inline void trans_kernel_f43(float* ker, float* trans_ker)
     */
     float tmp[18] = {0};
 
-    float neg_r0_add_r2_x_1_6[6];    // (r0+r2)*1./6
-    float r0_1_4_add_r2_x_1_6[6];    // (r0*1/4 + r2)*1./6
-    float r1_1_6[6];    // r1*1/6
-    float r1_1_12[6];    // r1*1/12
+    float neg_r0_add_r2_x_1_6[6]; // (r0+r2)*1./6
+    float r0_1_4_add_r2_x_1_6[6]; // (r0*1/4 + r2)*1./6
+    float r1_1_6[6];              // r1*1/6
+    float r1_1_12[6];             // r1*1/12
     float s_1_6 = 1. / 6.f;
     for (int j = 0; j < 3; j++)
     {
@@ -142,14 +141,14 @@ static inline void transform_kernel_f43_tile(struct tensor* filter, float* trans
 {
     int outc = filter->dims[0];
     int inc = filter->dims[1];
-    float* kernel = ( float* )filter->data;
+    float* kernel = (float*)filter->data;
     float* ker_ptr = trans_ker;
 
     for (int i = 0; i < outc; i++)
     {
         for (int j = 0; j < inc; j++)
         {
-            trans_kernel_f43(( float* )(kernel + 9 * (j + i * inc)), ker_ptr);
+            trans_kernel_f43((float*)(kernel + 9 * (j + i * inc)), ker_ptr);
             ker_ptr += ELEM_SIZE;
         }
     }
@@ -212,7 +211,7 @@ static inline void pad_input1(const float* input, float* inp_padded, int inc, in
     int padded_hw = padded_h * padded_w;
 
     float* pad_ptr;
-    float* inp_ptr = ( float* )input;
+    float* inp_ptr = (float*)input;
     int resi_h = padded_h - pad0 - inh;
     int resi_w = padded_w - pad1 - inw;
     for (int c = 0; c < inc; c++)
@@ -241,7 +240,7 @@ static inline void pad_input1(const float* input, float* inp_padded, int inc, in
 
 static inline void trans_inp_1tile(float* input, float* inp_ptr, int ih, int jw, int c, int in_hw, int inw)
 {
-    float* inp = ( float* )input + c * in_hw + ih * 4 * inw + jw * 4;
+    float* inp = (float*)input + c * in_hw + ih * 4 * inw + jw * 4;
     float* inp0 = inp;
     float* inp1 = inp0 + inw;
     float* inp2 = inp1 + inw;
@@ -383,19 +382,19 @@ static inline void trans_inp_4_cpu(float* inp, float* inp_ptr, int inw, int s_si
     float32x4_t line0_4 = vld1q_f32(mid + 16);
     float32x4_t line0_5 = vld1q_f32(mid + 20);
 
-    float32x4_t line1_0 = vsubq_f32(r0, r0_);    // mid[(6 + i) * 4 + k]   [1][0]
-    float32x4_t line1_1 = vsubq_f32(r1, r1_);    // mid[(6 + i) * 4 + k]   [1][1]
-    float32x4_t line1_2 = vsubq_f32(r2, r2_);    // mid[(6 + i) * 4 + k]   [1][2]
-    float32x4_t line1_3 = vsubq_f32(r3, r3_);    // mid[(6 + i) * 4 + k]   [1][3]
-    float32x4_t line1_4 = vsubq_f32(r4, r4_);    // mid[(6 + i) * 4 + k]   [1][4]
-    float32x4_t line1_5 = vsubq_f32(r5, r5_);    // mid[(6 + i) * 4 + k]   [1][5]
+    float32x4_t line1_0 = vsubq_f32(r0, r0_); // mid[(6 + i) * 4 + k]   [1][0]
+    float32x4_t line1_1 = vsubq_f32(r1, r1_); // mid[(6 + i) * 4 + k]   [1][1]
+    float32x4_t line1_2 = vsubq_f32(r2, r2_); // mid[(6 + i) * 4 + k]   [1][2]
+    float32x4_t line1_3 = vsubq_f32(r3, r3_); // mid[(6 + i) * 4 + k]   [1][3]
+    float32x4_t line1_4 = vsubq_f32(r4, r4_); // mid[(6 + i) * 4 + k]   [1][4]
+    float32x4_t line1_5 = vsubq_f32(r5, r5_); // mid[(6 + i) * 4 + k]   [1][5]
 
-    float32x4_t line2_0 = vaddq_f32(r0, r0_);    // mid[(12 + i) * 4 + k]  [2][0]
-    float32x4_t line2_1 = vaddq_f32(r1, r1_);    // mid[(12 + i) * 4 + k]  [2][1]
-    float32x4_t line2_2 = vaddq_f32(r2, r2_);    // mid[(12 + i) * 4 + k]  [2][2]
-    float32x4_t line2_3 = vaddq_f32(r3, r3_);    // mid[(12 + i) * 4 + k]  [2][3]
-    float32x4_t line2_4 = vaddq_f32(r4, r4_);    // mid[(12 + i) * 4 + k]  [2][4]
-    float32x4_t line2_5 = vaddq_f32(r5, r5_);    // mid[(12 + i) * 4 + k]  [2][5]
+    float32x4_t line2_0 = vaddq_f32(r0, r0_); // mid[(12 + i) * 4 + k]  [2][0]
+    float32x4_t line2_1 = vaddq_f32(r1, r1_); // mid[(12 + i) * 4 + k]  [2][1]
+    float32x4_t line2_2 = vaddq_f32(r2, r2_); // mid[(12 + i) * 4 + k]  [2][2]
+    float32x4_t line2_3 = vaddq_f32(r3, r3_); // mid[(12 + i) * 4 + k]  [2][3]
+    float32x4_t line2_4 = vaddq_f32(r4, r4_); // mid[(12 + i) * 4 + k]  [2][4]
+    float32x4_t line2_5 = vaddq_f32(r5, r5_); // mid[(12 + i) * 4 + k]  [2][5]
 
     r0 = vld1q_f32(r4_minus_r2);
     r1 = vld1q_f32(r4_minus_r2 + 4);
@@ -418,19 +417,19 @@ static inline void trans_inp_4_cpu(float* inp, float* inp_ptr, int inw, int s_si
     float32x4_t line5_4 = vld1q_f32(mid + 136);
     float32x4_t line5_5 = vld1q_f32(mid + 140);
 
-    float32x4_t line3_0 = vsubq_f32(r0, r0_);    // mid[(18 + i) * 4 + k]   [3][0]
-    float32x4_t line3_1 = vsubq_f32(r1, r1_);    // mid[(18 + i) * 4 + k]   [3][1]
-    float32x4_t line3_2 = vsubq_f32(r2, r2_);    // mid[(18 + i) * 4 + k]   [3][2]
-    float32x4_t line3_3 = vsubq_f32(r3, r3_);    // mid[(18 + i) * 4 + k]   [3][3]
-    float32x4_t line3_4 = vsubq_f32(r4, r4_);    // mid[(18 + i) * 4 + k]   [3][4]
-    float32x4_t line3_5 = vsubq_f32(r5, r5_);    // mid[(18 + i) * 4 + k]   [3][5]
+    float32x4_t line3_0 = vsubq_f32(r0, r0_); // mid[(18 + i) * 4 + k]   [3][0]
+    float32x4_t line3_1 = vsubq_f32(r1, r1_); // mid[(18 + i) * 4 + k]   [3][1]
+    float32x4_t line3_2 = vsubq_f32(r2, r2_); // mid[(18 + i) * 4 + k]   [3][2]
+    float32x4_t line3_3 = vsubq_f32(r3, r3_); // mid[(18 + i) * 4 + k]   [3][3]
+    float32x4_t line3_4 = vsubq_f32(r4, r4_); // mid[(18 + i) * 4 + k]   [3][4]
+    float32x4_t line3_5 = vsubq_f32(r5, r5_); // mid[(18 + i) * 4 + k]   [3][5]
 
-    float32x4_t line4_0 = vaddq_f32(r0, r0_);    // mid[(24 + i) * 4 + k]  [4][0]
-    float32x4_t line4_1 = vaddq_f32(r1, r1_);    // mid[(24 + i) * 4 + k]  [4][1]
-    float32x4_t line4_2 = vaddq_f32(r2, r2_);    // mid[(24 + i) * 4 + k]  [4][2]
-    float32x4_t line4_3 = vaddq_f32(r3, r3_);    // mid[(24 + i) * 4 + k]  [4][3]
-    float32x4_t line4_4 = vaddq_f32(r4, r4_);    // mid[(24 + i) * 4 + k]  [4][4]
-    float32x4_t line4_5 = vaddq_f32(r5, r5_);    // mid[(24 + i) * 4 + k]  [4][5]
+    float32x4_t line4_0 = vaddq_f32(r0, r0_); // mid[(24 + i) * 4 + k]  [4][0]
+    float32x4_t line4_1 = vaddq_f32(r1, r1_); // mid[(24 + i) * 4 + k]  [4][1]
+    float32x4_t line4_2 = vaddq_f32(r2, r2_); // mid[(24 + i) * 4 + k]  [4][2]
+    float32x4_t line4_3 = vaddq_f32(r3, r3_); // mid[(24 + i) * 4 + k]  [4][3]
+    float32x4_t line4_4 = vaddq_f32(r4, r4_); // mid[(24 + i) * 4 + k]  [4][4]
+    float32x4_t line4_5 = vaddq_f32(r5, r5_); // mid[(24 + i) * 4 + k]  [4][5]
 
     // r4_minus_r2[i * 4 + k]   i=0     = mid[0][4]
     r0 = vsubq_f32(line0_4, line0_2);
@@ -455,30 +454,30 @@ static inline void trans_inp_4_cpu(float* inp, float* inp_ptr, int inw, int s_si
     r4_ = vmulq_f32(r4_, const2);
     r5_ = vmulq_f32(r5_, const2);
 
-    vst1q_f32(inp_ptr + s_size * 3, vsubq_f32(r0, r0_));    // inp_ptr[ s_size * (3 + i * 6)]
-    vst1q_f32(inp_ptr + s_size * 9, vsubq_f32(r1, r1_));    // inp_ptr[ s_size * (3 + i * 6)]
-    vst1q_f32(inp_ptr + s_size * 15, vsubq_f32(r2, r2_));    // inp_ptr[ s_size * (3 + i * 6)]
-    vst1q_f32(inp_ptr + s_size * 21, vsubq_f32(r3, r3_));    // inp_ptr[ s_size * (3 + i * 6)]
-    vst1q_f32(inp_ptr + s_size * 27, vsubq_f32(r4, r4_));    // inp_ptr[ s_size * (3 + i * 6)]
-    vst1q_f32(inp_ptr + s_size * 33, vsubq_f32(r5, r5_));    // inp_ptr[ s_size * (3 + i * 6)]
+    vst1q_f32(inp_ptr + s_size * 3, vsubq_f32(r0, r0_));  // inp_ptr[ s_size * (3 + i * 6)]
+    vst1q_f32(inp_ptr + s_size * 9, vsubq_f32(r1, r1_));  // inp_ptr[ s_size * (3 + i * 6)]
+    vst1q_f32(inp_ptr + s_size * 15, vsubq_f32(r2, r2_)); // inp_ptr[ s_size * (3 + i * 6)]
+    vst1q_f32(inp_ptr + s_size * 21, vsubq_f32(r3, r3_)); // inp_ptr[ s_size * (3 + i * 6)]
+    vst1q_f32(inp_ptr + s_size * 27, vsubq_f32(r4, r4_)); // inp_ptr[ s_size * (3 + i * 6)]
+    vst1q_f32(inp_ptr + s_size * 33, vsubq_f32(r5, r5_)); // inp_ptr[ s_size * (3 + i * 6)]
 
-    vst1q_f32(inp_ptr + s_size * 4, vaddq_f32(r0, r0_));    // inp_ptr[ s_size * (4 + i * 6)]
-    vst1q_f32(inp_ptr + s_size * 10, vaddq_f32(r1, r1_));    // inp_ptr[ s_size * (4 + i * 6)]
-    vst1q_f32(inp_ptr + s_size * 16, vaddq_f32(r2, r2_));    // inp_ptr[ s_size * (4 + i * 6)]
-    vst1q_f32(inp_ptr + s_size * 22, vaddq_f32(r3, r3_));    // inp_ptr[ s_size * (4 + i * 6)]
-    vst1q_f32(inp_ptr + s_size * 28, vaddq_f32(r4, r4_));    // inp_ptr[ s_size * (4 + i * 6)]
-    vst1q_f32(inp_ptr + s_size * 34, vaddq_f32(r5, r5_));    // inp_ptr[ s_size * (4 + i * 6)]
+    vst1q_f32(inp_ptr + s_size * 4, vaddq_f32(r0, r0_));  // inp_ptr[ s_size * (4 + i * 6)]
+    vst1q_f32(inp_ptr + s_size * 10, vaddq_f32(r1, r1_)); // inp_ptr[ s_size * (4 + i * 6)]
+    vst1q_f32(inp_ptr + s_size * 16, vaddq_f32(r2, r2_)); // inp_ptr[ s_size * (4 + i * 6)]
+    vst1q_f32(inp_ptr + s_size * 22, vaddq_f32(r3, r3_)); // inp_ptr[ s_size * (4 + i * 6)]
+    vst1q_f32(inp_ptr + s_size * 28, vaddq_f32(r4, r4_)); // inp_ptr[ s_size * (4 + i * 6)]
+    vst1q_f32(inp_ptr + s_size * 34, vaddq_f32(r5, r5_)); // inp_ptr[ s_size * (4 + i * 6)]
 
     float32x4_t const4 = vdupq_n_f32(4.f);
     float32x4_t const5 = vdupq_n_f32(-5.f);
-    r0_ = vmulq_f32(line0_1, const4);    // line 1*4 ========
+    r0_ = vmulq_f32(line0_1, const4); // line 1*4 ========
     r1_ = vmulq_f32(line1_1, const4);
     r2_ = vmulq_f32(line2_1, const4);
     r3_ = vmulq_f32(line3_1, const4);
     r4_ = vmulq_f32(line4_1, const4);
     r5_ = vmulq_f32(line5_1, const4);
 
-    float32x4_t rr0_ = vsubq_f32(r0_, line0_3);    // line1*4-line3
+    float32x4_t rr0_ = vsubq_f32(r0_, line0_3); // line1*4-line3
     float32x4_t rr1_ = vsubq_f32(r1_, line1_3);
     float32x4_t rr2_ = vsubq_f32(r2_, line2_3);
     float32x4_t rr3_ = vsubq_f32(r3_, line3_3);
@@ -492,28 +491,28 @@ static inline void trans_inp_4_cpu(float* inp, float* inp_ptr, int inw, int s_si
     r4 = vmulq_f32(line4_2, const4);
     r5 = vmulq_f32(line5_2, const4);
 
-    r0 = vsubq_f32(line0_4, r0);    // line4 -4*line2
+    r0 = vsubq_f32(line0_4, r0); // line4 -4*line2
     r1 = vsubq_f32(line1_4, r1);
     r2 = vsubq_f32(line2_4, r2);
     r3 = vsubq_f32(line3_4, r3);
     r4 = vsubq_f32(line4_4, r4);
     r5 = vsubq_f32(line5_4, r5);
 
-    vst1q_f32(inp_ptr + s_size * 1, vsubq_f32(r0, rr0_));    // inp_ptr[ s_size * (1 + i * 6)]
-    vst1q_f32(inp_ptr + s_size * 7, vsubq_f32(r1, rr1_));    // inp_ptr[ s_size * (1 + i * 6)]
-    vst1q_f32(inp_ptr + s_size * 13, vsubq_f32(r2, rr2_));    // inp_ptr[ s_size * (1 + i * 6)]
-    vst1q_f32(inp_ptr + s_size * 19, vsubq_f32(r3, rr3_));    // inp_ptr[ s_size * (1 + i * 6)]
-    vst1q_f32(inp_ptr + s_size * 25, vsubq_f32(r4, rr4_));    // inp_ptr[ s_size * (1 + i * 6)]
-    vst1q_f32(inp_ptr + s_size * 31, vsubq_f32(r5, rr5_));    // inp_ptr[ s_size * (1 + i * 6)]
+    vst1q_f32(inp_ptr + s_size * 1, vsubq_f32(r0, rr0_));  // inp_ptr[ s_size * (1 + i * 6)]
+    vst1q_f32(inp_ptr + s_size * 7, vsubq_f32(r1, rr1_));  // inp_ptr[ s_size * (1 + i * 6)]
+    vst1q_f32(inp_ptr + s_size * 13, vsubq_f32(r2, rr2_)); // inp_ptr[ s_size * (1 + i * 6)]
+    vst1q_f32(inp_ptr + s_size * 19, vsubq_f32(r3, rr3_)); // inp_ptr[ s_size * (1 + i * 6)]
+    vst1q_f32(inp_ptr + s_size * 25, vsubq_f32(r4, rr4_)); // inp_ptr[ s_size * (1 + i * 6)]
+    vst1q_f32(inp_ptr + s_size * 31, vsubq_f32(r5, rr5_)); // inp_ptr[ s_size * (1 + i * 6)]
 
-    vst1q_f32(inp_ptr + s_size * 2, vaddq_f32(r0, rr0_));    // inp_ptr[ s_size * (2 + i * 6)]
-    vst1q_f32(inp_ptr + s_size * 8, vaddq_f32(r1, rr1_));    // inp_ptr[ s_size * (2 + i * 6)]
-    vst1q_f32(inp_ptr + s_size * 14, vaddq_f32(r2, rr2_));    // inp_ptr[ s_size * (2 + i * 6)]
-    vst1q_f32(inp_ptr + s_size * 20, vaddq_f32(r3, rr3_));    // inp_ptr[ s_size * (2 + i * 6)]
-    vst1q_f32(inp_ptr + s_size * 26, vaddq_f32(r4, rr4_));    // inp_ptr[ s_size * (2 + i * 6)]
-    vst1q_f32(inp_ptr + s_size * 32, vaddq_f32(r5, rr5_));    // inp_ptr[ s_size * (2 + i * 6)]
+    vst1q_f32(inp_ptr + s_size * 2, vaddq_f32(r0, rr0_));  // inp_ptr[ s_size * (2 + i * 6)]
+    vst1q_f32(inp_ptr + s_size * 8, vaddq_f32(r1, rr1_));  // inp_ptr[ s_size * (2 + i * 6)]
+    vst1q_f32(inp_ptr + s_size * 14, vaddq_f32(r2, rr2_)); // inp_ptr[ s_size * (2 + i * 6)]
+    vst1q_f32(inp_ptr + s_size * 20, vaddq_f32(r3, rr3_)); // inp_ptr[ s_size * (2 + i * 6)]
+    vst1q_f32(inp_ptr + s_size * 26, vaddq_f32(r4, rr4_)); // inp_ptr[ s_size * (2 + i * 6)]
+    vst1q_f32(inp_ptr + s_size * 32, vaddq_f32(r5, rr5_)); // inp_ptr[ s_size * (2 + i * 6)]
 
-    r0_ = vaddq_f32(line0_5, r0_);    // 5 + 1*4
+    r0_ = vaddq_f32(line0_5, r0_); // 5 + 1*4
     r1_ = vaddq_f32(line1_5, r1_);
     r2_ = vaddq_f32(line2_5, r2_);
     r3_ = vaddq_f32(line3_5, r3_);
@@ -526,12 +525,12 @@ static inline void trans_inp_4_cpu(float* inp, float* inp_ptr, int inw, int s_si
     r3 = vmulq_f32(line3_3, const5);
     r4 = vmulq_f32(line4_3, const5);
     r5 = vmulq_f32(line5_3, const5);
-    vst1q_f32(inp_ptr + s_size * 5, vaddq_f32(r0, r0_));    // inp_ptr[ s_size * (5 + i * 6)]
-    vst1q_f32(inp_ptr + s_size * 11, vaddq_f32(r1, r1_));    // inp_ptr[ s_size * (5 + i * 6)]
-    vst1q_f32(inp_ptr + s_size * 17, vaddq_f32(r2, r2_));    // inp_ptr[ s_size * (5 + i * 6)]
-    vst1q_f32(inp_ptr + s_size * 23, vaddq_f32(r3, r3_));    // inp_ptr[ s_size * (5 + i * 6)]
-    vst1q_f32(inp_ptr + s_size * 29, vaddq_f32(r4, r4_));    // inp_ptr[ s_size * (5 + i * 6)]
-    vst1q_f32(inp_ptr + s_size * 35, vaddq_f32(r5, r5_));    // inp_ptr[ s_size * (5 + i * 6)]
+    vst1q_f32(inp_ptr + s_size * 5, vaddq_f32(r0, r0_));  // inp_ptr[ s_size * (5 + i * 6)]
+    vst1q_f32(inp_ptr + s_size * 11, vaddq_f32(r1, r1_)); // inp_ptr[ s_size * (5 + i * 6)]
+    vst1q_f32(inp_ptr + s_size * 17, vaddq_f32(r2, r2_)); // inp_ptr[ s_size * (5 + i * 6)]
+    vst1q_f32(inp_ptr + s_size * 23, vaddq_f32(r3, r3_)); // inp_ptr[ s_size * (5 + i * 6)]
+    vst1q_f32(inp_ptr + s_size * 29, vaddq_f32(r4, r4_)); // inp_ptr[ s_size * (5 + i * 6)]
+    vst1q_f32(inp_ptr + s_size * 35, vaddq_f32(r5, r5_)); // inp_ptr[ s_size * (5 + i * 6)]
 
     r0 = vmulq_f32(line0_0, const4);
     r1 = vmulq_f32(line1_0, const4);
@@ -554,12 +553,12 @@ static inline void trans_inp_4_cpu(float* inp, float* inp_ptr, int inw, int s_si
     r4 = vaddq_f32(r4, line4_4);
     r5 = vaddq_f32(r5, line5_4);
 
-    vst1q_f32(inp_ptr + s_size * 0, vaddq_f32(r0, r0_));    // inp_ptr[ s_size * (1 + i * 6)]
-    vst1q_f32(inp_ptr + s_size * 6, vaddq_f32(r1, r1_));    // inp_ptr[ s_size * (1 + i * 6)]
-    vst1q_f32(inp_ptr + s_size * 12, vaddq_f32(r2, r2_));    // inp_ptr[ s_size * (1 + i * 6)]
-    vst1q_f32(inp_ptr + s_size * 18, vaddq_f32(r3, r3_));    // inp_ptr[ s_size * (1 + i * 6)]
-    vst1q_f32(inp_ptr + s_size * 24, vaddq_f32(r4, r4_));    // inp_ptr[ s_size * (1 + i * 6)]
-    vst1q_f32(inp_ptr + s_size * 30, vaddq_f32(r5, r5_));    // inp_ptr[ s_size * (1 + i * 6)]
+    vst1q_f32(inp_ptr + s_size * 0, vaddq_f32(r0, r0_));  // inp_ptr[ s_size * (1 + i * 6)]
+    vst1q_f32(inp_ptr + s_size * 6, vaddq_f32(r1, r1_));  // inp_ptr[ s_size * (1 + i * 6)]
+    vst1q_f32(inp_ptr + s_size * 12, vaddq_f32(r2, r2_)); // inp_ptr[ s_size * (1 + i * 6)]
+    vst1q_f32(inp_ptr + s_size * 18, vaddq_f32(r3, r3_)); // inp_ptr[ s_size * (1 + i * 6)]
+    vst1q_f32(inp_ptr + s_size * 24, vaddq_f32(r4, r4_)); // inp_ptr[ s_size * (1 + i * 6)]
+    vst1q_f32(inp_ptr + s_size * 30, vaddq_f32(r5, r5_)); // inp_ptr[ s_size * (1 + i * 6)]
 
     // for(int i = 0; i < 6; i++)
     // {
@@ -599,7 +598,7 @@ static inline void tran_input_4block(const float* input, float* trans_inp, int i
     int idxh[4];
     int idxw[4];
 
-#pragma omp parallel for num_threads(num_thread) shared(block_hw,nn_block,in_hw) private(idxh,idxw)
+#pragma omp parallel for num_threads(num_thread) shared(block_hw, nn_block, in_hw) private(idxh, idxw)
     for (int ib = 0; ib < nn_block; ib++)
     {
         float* inp_ptr_4tile = trans_inp + ib * 4 * ELEM_SIZE * inc;
@@ -614,7 +613,7 @@ static inline void tran_input_4block(const float* input, float* trans_inp, int i
 
         if (idxh[0] == idxh[3])
         {
-            float* temp_inp_ptr = ( float* )(input + idxh[0] * 4 * inw + idxw[0] * 4);
+            float* temp_inp_ptr = (float*)(input + idxh[0] * 4 * inw + idxw[0] * 4);
             for (int c = 0; c < inc; c++)
             {
 #ifdef __aarch64__
@@ -634,13 +633,13 @@ static inline void tran_input_4block(const float* input, float* trans_inp, int i
 
             for (int c = 0; c < inc; c++)
             {
-                trans_inp_1tile(( float* )input, buffer, idxh[0], idxw[0], c, in_hw, inw);
+                trans_inp_1tile((float*)input, buffer, idxh[0], idxw[0], c, in_hw, inw);
                 buffer += ELEM_SIZE;
-                trans_inp_1tile(( float* )input, buffer, idxh[1], idxw[1], c, in_hw, inw);
+                trans_inp_1tile((float*)input, buffer, idxh[1], idxw[1], c, in_hw, inw);
                 buffer += ELEM_SIZE;
-                trans_inp_1tile(( float* )input, buffer, idxh[2], idxw[2], c, in_hw, inw);
+                trans_inp_1tile((float*)input, buffer, idxh[2], idxw[2], c, in_hw, inw);
                 buffer += ELEM_SIZE;
-                trans_inp_1tile(( float* )input, buffer, idxh[3], idxw[3], c, in_hw, inw);
+                trans_inp_1tile((float*)input, buffer, idxh[3], idxw[3], c, in_hw, inw);
                 buffer += ELEM_SIZE;
             }
             // interleave
@@ -673,7 +672,7 @@ static inline void tran_input_resi_block(const float* input, float* trans_inp, i
         {
             int ih = ib / block_w;
             int jw = ib % block_w;
-            trans_inp_1tile(( float* )input, buffer, ih, jw, c, in_hw, inw);
+            trans_inp_1tile((float*)input, buffer, ih, jw, c, in_hw, inw);
             buffer += ELEM_SIZE;
         }
         // interleave
@@ -900,8 +899,7 @@ static inline void transform_output_f43_1tile(const float* buffer_ptr, float* ou
         float* out_ptr = out + cout_idx * out_hw;
         int i_h = idx_blockhw / block_w;
         int j_w = idx_blockhw % block_w;
-        if ((resi_h == 0 && resi_w == 0) || (resi_h == 0 && (j_w < block_w - 1)) ||
-            (resi_w == 0 && (i_h < block_h - 1)) || ((j_w < block_w - 1) && (i_h < block_h - 1)))
+        if ((resi_h == 0 && resi_w == 0) || (resi_h == 0 && (j_w < block_w - 1)) || (resi_w == 0 && (i_h < block_h - 1)) || ((j_w < block_w - 1) && (i_h < block_h - 1)))
         {
             trans_output_f43(buffer_ptr, out_ptr + (i_h * TILE * outw + j_w * TILE), outw, bias_ptr, activation);
         }
@@ -955,17 +953,16 @@ static inline void transform_output_f43_4tile(float* buffer_ptr, float* out, int
         float* out_ptr = out + cout_idx * out_hw;
         if (bias)
         {
-            bias_ptr = ( float* )bias + cout_idx;
+            bias_ptr = (float*)bias + cout_idx;
         }
         for (int ii = 0; ii < 4; ii++)
         {
             int i_h = idx_h[ii];
             int j_w = idx_w[ii];
-            if ((resi_h == 0 && resi_w == 0) || (resi_h == 0 && (j_w < block_w - 1)) ||
-                (resi_w == 0 && (i_h < block_h - 1)) || ((j_w < block_w - 1) && (i_h < block_h - 1)))
+            if ((resi_h == 0 && resi_w == 0) || (resi_h == 0 && (j_w < block_w - 1)) || (resi_w == 0 && (i_h < block_h - 1)) || ((j_w < block_w - 1) && (i_h < block_h - 1)))
             {
                 trans_output_f43(buffer_ptr, out_ptr + (i_h * TILE * outw + j_w * TILE), outw, bias_ptr, activation);
-            }    // direct use_out_ptr
+            } // direct use_out_ptr
             else
             {
                 int ret_h = TILE - resi_h;
@@ -985,7 +982,7 @@ static inline void transform_output_f43_4tile(float* buffer_ptr, float* out, int
                         out_pointer[hh * outw + ww] = do_activation(tmp_buffer[hh * 4 + ww], activation);
                     }
                 }
-            }    // end else, tmp_buff
+            } // end else, tmp_buff
             buffer_ptr += ELEM_SIZE;
         }
     }
@@ -1048,7 +1045,7 @@ static void wino_sgemm_set(const float* ker, const float* inp, float* output, co
                     float* out_ptr = output + cout_idx * out_hw + idx_h[0] * TILE * out_w + idx_w[0] * TILE;
                     if (bias)
                     {
-                        bias_ptr = ( float* )(bias + cout_idx);
+                        bias_ptr = (float*)(bias + cout_idx);
                     }
 
                     float ker00[4] = {2, 4, 8, 0};
@@ -1086,11 +1083,10 @@ static void wino_sgemm_set(const float* ker, const float* inp, float* output, co
                         {
                             int i_h = idx_h[ii];
                             int j_w = idx_w[ii];
-                            if ((resi_h == 0 && resi_w == 0) || (resi_h == 0 && (j_w < block_w - 1)) ||
-                                (resi_w == 0 && (i_h < block_h - 1)) || ((j_w < block_w - 1) && (i_h < block_h - 1)))
+                            if ((resi_h == 0 && resi_w == 0) || (resi_h == 0 && (j_w < block_w - 1)) || (resi_w == 0 && (i_h < block_h - 1)) || ((j_w < block_w - 1) && (i_h < block_h - 1)))
                             {
                                 trans_output_f43(buffer + ii * ELEM_SIZE + pss * 36 * 4, out_ptr + (i_h * TILE * out_w + j_w * TILE), out_w, (const float*)bias_ptr, activation);
-                            }    // direct use_out_ptr
+                            } // direct use_out_ptr
                             else
                             {
                                 int ret_h = TILE - resi_h;
@@ -1109,7 +1105,7 @@ static void wino_sgemm_set(const float* ker, const float* inp, float* output, co
                                         out_pointer[hh * out_w + ww] = do_activation(tmp_buffer[hh * 4 + ww], activation);
                                     }
                                 }
-                            }    // end else, tmp_buff
+                            } // end else, tmp_buff
                         }
                     }
                 }
@@ -1163,7 +1159,7 @@ static void wino_sgemm_set(const float* ker, const float* inp, float* output, co
                 }
             }
             // end interleave
-            transform_output_f43_1tile(( const float* )buffer, output, p, i, block_h, block_w, out_hw, out_w, resi_h,
+            transform_output_f43_1tile((const float*)buffer, output, p, i, block_h, block_w, out_hw, out_w, resi_h,
                                        resi_w, PER_OUT_CHAN, bias, activation);
             // end transform
         }
@@ -1177,7 +1173,7 @@ void wino_sgemm_4x4(const float* ker, const float* inp, float* output, const flo
     int flag_outw = 1;
     if (out_w < 16)
         flag_outw = 0;
-    
+
 #pragma omp parallel for num_threads(num_thread)
     for (int p = (cout_start & -4); p < (cout_end & -4); p += 4)
     {
@@ -1226,7 +1222,7 @@ void wino_sgemm_4x4(const float* ker, const float* inp, float* output, const flo
                     float* out_ptr = output + cout_idx * out_hw + idx_h[0] * TILE * out_w + idx_w[0] * TILE;
                     if (bias)
                     {
-                        bias_ptr = ( float* )(bias + cout_idx);
+                        bias_ptr = (float*)(bias + cout_idx);
                     }
                     float ker00[4] = {2, 4, 8, 0};
 
@@ -1268,13 +1264,12 @@ void wino_sgemm_4x4(const float* ker, const float* inp, float* output, const flo
                         {
                             int i_h = idx_h[ii];
                             int j_w = idx_w[ii];
-                            if ((resi_h == 0 && resi_w == 0) || (resi_h == 0 && (j_w < block_w - 1)) ||
-                                (resi_w == 0 && (i_h < block_h - 1)) || ((j_w < block_w - 1) && (i_h < block_h - 1)))
+                            if ((resi_h == 0 && resi_w == 0) || (resi_h == 0 && (j_w < block_w - 1)) || (resi_w == 0 && (i_h < block_h - 1)) || ((j_w < block_w - 1) && (i_h < block_h - 1)))
                             {
                                 trans_output_f43(buffer + ii * ELEM_SIZE + pss * 36 * 4,
                                                  out_ptr + (i_h * TILE * out_w + j_w * TILE), out_w,
-                                                 ( const float* )bias_ptr, activation);
-                            }    // direct use_out_ptr
+                                                 (const float*)bias_ptr, activation);
+                            } // direct use_out_ptr
                             else
                             {
                                 int ret_h = TILE - resi_h;
@@ -1285,18 +1280,17 @@ void wino_sgemm_4x4(const float* ker, const float* inp, float* output, const flo
                                     ret_w = TILE;
                                 // tmp_buffer
                                 trans_output_f43_ordinary(buffer + ii * ELEM_SIZE + pss * 36 * 4, tmp_buffer,
-                                                          ( const float* )bias_ptr);
+                                                          (const float*)bias_ptr);
                                 float* out_pointer = out_ptr + (i_h * TILE * out_w + j_w * TILE);
                                 for (int hh = 0; hh < ret_h; hh++)
                                 {
                                     for (int ww = 0; ww < ret_w; ww++)
                                     {
-                                        out_pointer[hh * out_w + ww] =
-                                            do_activation(tmp_buffer[hh * 4 + ww], activation);
+                                        out_pointer[hh * out_w + ww] = do_activation(tmp_buffer[hh * 4 + ww], activation);
                                     }
                                 }
 
-                            }    // end else, tmp_buff
+                            } // end else, tmp_buff
                         }
                     }
                 }
@@ -1353,7 +1347,7 @@ void wino_sgemm_4x4(const float* ker, const float* inp, float* output, const flo
                 }
             }
             // end interleave
-            transform_output_f43_1tile(( const float* )buffer, output, p, i, block_h, block_w, out_hw, out_w, resi_h,
+            transform_output_f43_1tile((const float*)buffer, output, p, i, block_h, block_w, out_hw, out_w, resi_h,
                                        resi_w, 4, bias, activation);
             // end transform
         }
@@ -1384,8 +1378,8 @@ void wino_sgemm_4x4(const float* ker, const float* inp, float* output, const flo
             // gemm+interleave buffer[4][36]
             for (int s = 0; s < ELEM_SIZE; s++)
             {
-                float* inp_ = ( float* )(inp_ptr + s * 4 * cin);
-                float* ker_ = ( float* )(ker_ptr + s * cin);
+                float* inp_ = (float*)(inp_ptr + s * 4 * cin);
+                float* ker_ = (float*)(ker_ptr + s * cin);
 
                 float sum0 = 0;
                 float sum1 = 0;
@@ -1415,12 +1409,11 @@ void wino_sgemm_4x4(const float* ker, const float* inp, float* output, const flo
             {
                 int i_h = idx_h[ii];
                 int j_w = idx_w[ii];
-                if ((resi_h == 0 && resi_w == 0) || (resi_h == 0 && (j_w < block_w - 1)) ||
-                    (resi_w == 0 && (i_h < block_h - 1)) || ((j_w < block_w - 1) && (i_h < block_h - 1)))
+                if ((resi_h == 0 && resi_w == 0) || (resi_h == 0 && (j_w < block_w - 1)) || (resi_w == 0 && (i_h < block_h - 1)) || ((j_w < block_w - 1) && (i_h < block_h - 1)))
                 {
                     trans_output_f43(buffer + ii * ELEM_SIZE, out_ptr + (i_h * TILE * out_w + j_w * TILE), out_w,
-                                     ( const float* )bias_ptr, activation);
-                }    // direct use_out_ptr
+                                     (const float*)bias_ptr, activation);
+                } // direct use_out_ptr
                 else
                 {
                     int ret_h = TILE - resi_h;
@@ -1430,7 +1423,7 @@ void wino_sgemm_4x4(const float* ker, const float* inp, float* output, const flo
                     if (j_w < block_w - 1)
                         ret_w = TILE;
                     // tmp_buffer
-                    trans_output_f43_ordinary(buffer + ii * ELEM_SIZE, tmp_buffer, ( const float* )bias_ptr);
+                    trans_output_f43_ordinary(buffer + ii * ELEM_SIZE, tmp_buffer, (const float*)bias_ptr);
                     float* out_pointer = out_ptr + (i_h * TILE * out_w + j_w * TILE);
                     for (int hh = 0; hh < ret_h; hh++)
                     {
@@ -1439,8 +1432,8 @@ void wino_sgemm_4x4(const float* ker, const float* inp, float* output, const flo
                             out_pointer[hh * out_w + ww] = do_activation(tmp_buffer[hh * 4 + ww], activation);
                         }
                     }
-                }    // end else, tmp_buff
-            }    // end transform
+                } // end else, tmp_buff
+            }     // end transform
         }
 
         for (; i < block_hw; i++)
@@ -1450,8 +1443,8 @@ void wino_sgemm_4x4(const float* ker, const float* inp, float* output, const flo
             float buffer[ELEM_SIZE];
             for (int s = 0; s < ELEM_SIZE; s++)
             {
-                float* inp_ = ( float* )(inp_ptr + s * cin);
-                float* ker_ = ( float* )(ker_ptr + s * cin);
+                float* inp_ = (float*)(inp_ptr + s * cin);
+                float* ker_ = (float*)(ker_ptr + s * cin);
 
                 float sum = 0;
                 for (int k = 0; k < cin; k++)
@@ -1461,7 +1454,7 @@ void wino_sgemm_4x4(const float* ker, const float* inp, float* output, const flo
                 buffer[s] = sum;
             }
             // end interleave
-            transform_output_f43_1tile(( const float* )buffer, output, p, i, block_h, block_w, out_hw, out_w, resi_h,
+            transform_output_f43_1tile((const float*)buffer, output, p, i, block_h, block_w, out_hw, out_w, resi_h,
                                        resi_w, 1, bias, activation);
             // end transform
         }
@@ -1473,7 +1466,7 @@ static int get_private_mem_size(struct tensor* filter, struct conv_param* param)
     int output_c = filter->dims[0];
     int input_c = filter->dims[1];
     int trans_ker_size = output_c * input_c * ELEM_SIZE * sizeof(float);
-    return trans_ker_size + 128;    // caution
+    return trans_ker_size + 128; // caution
 }
 
 int wino_conv_hcl_prerun(struct tensor* input_tensor, struct tensor* filter_tensor,
@@ -1482,7 +1475,7 @@ int wino_conv_hcl_prerun(struct tensor* input_tensor, struct tensor* filter_tens
     int output_c = filter_tensor->dims[0];
     int input_c = filter_tensor->dims[1];
     int mem_size = get_private_mem_size(filter_tensor, param);
-    float* trans_mem = ( float* )sys_malloc(mem_size);
+    float* trans_mem = (float*)sys_malloc(mem_size);
 
     if (!priv_info->external_interleave_mem)
     {
@@ -1492,7 +1485,7 @@ int wino_conv_hcl_prerun(struct tensor* input_tensor, struct tensor* filter_tens
     }
 
     transform_kernel_f43_tile(filter_tensor, trans_mem);
-    interleave_kernel(trans_mem, ( float* )priv_info->interleave_buffer, output_c, input_c);
+    interleave_kernel(trans_mem, (float*)priv_info->interleave_buffer, output_c, input_c);
 
     sys_free(trans_mem);
 
@@ -1548,16 +1541,16 @@ int wino_conv_hcl_run(struct tensor* input_tensor, struct tensor* filter_tensor,
     int padded_in_hw = padded_in_h * padded_in_w;
 
     /* buffer addr */
-    float* input_buf = ( float* )input_tensor->data;
-    float* output_buf = ( float* )output_tensor->data;
+    float* input_buf = (float*)input_tensor->data;
+    float* output_buf = (float*)output_tensor->data;
     float* biases_buf = NULL;
     if (bias_tensor != NULL)
-        biases_buf = ( float* )bias_tensor->data;
-    float* col_buf = ( float* )priv_info->im2col_buffer;
-    float* interleave_buf = ( float* )priv_info->interleave_buffer;
+        biases_buf = (float*)bias_tensor->data;
+    float* col_buf = (float*)priv_info->im2col_buffer;
+    float* interleave_buf = (float*)priv_info->interleave_buffer;
 
-    float* input_padd_buf = ( float* )sys_malloc(sizeof(float) * padded_in_hw * in_c + 128);
-    float* trans_input_buf = ( float* )sys_malloc(sizeof(float) * block_hw * in_c * ELEM_SIZE + 128);
+    float* input_padd_buf = (float*)sys_malloc(sizeof(float) * padded_in_hw * in_c + 128);
+    float* trans_input_buf = (float*)sys_malloc(sizeof(float) * block_hw * in_c * ELEM_SIZE + 128);
 
     int nn_out_c = out_c / PER_OUT_CHAN * PER_OUT_CHAN;
 

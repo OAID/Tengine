@@ -30,7 +30,6 @@ https://github.com/Tencent/ncnn/blob/master/src/layer/arm/neon_mathfun.h
 
 #include <arm_neon.h>
 
-
 static inline float32x4_t div_ps(float32x4_t a, float32x4_t b)
 {
 #if __aarch64__

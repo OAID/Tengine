@@ -9,8 +9,7 @@
 #include <fcntl.h>
 #include <functional>
 
-extern "C" 
-{
+extern "C" {
 #include "tengine/c_api.h"
 #include "graph/graph.h"
 #include "graph/subgraph.h"
@@ -21,8 +20,6 @@ extern "C"
 #include "tm2_format.h"
 }
 
-
 #include "tm2_op_save.hpp"
-
 
 bool save_graph(graph_t graph, const char* fname);

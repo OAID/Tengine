@@ -27,7 +27,6 @@
 #include "graph/graph.h"
 #include "module/module.h"
 
-
 static int infer_shape(struct node* node)
 {
     struct graph* ir_graph = node->graph;
@@ -39,7 +38,6 @@ static int infer_shape(struct node* node)
     return 0;
 }
 
-
 static int init_op(struct op* op)
 {
     op->same_shape = 0;
@@ -48,12 +46,10 @@ static int init_op(struct op* op)
     return 0;
 }
 
-
 static void release_op(struct op* op)
 {
     // sys_free(op->param_mem);
 }
-
 
 int register_round_op()
 {
@@ -65,7 +61,6 @@ int register_round_op()
 
     return register_op(OP_ROUND, OP_ROUND_NAME, &m);
 }
-
 
 int unregister_round_op()
 {

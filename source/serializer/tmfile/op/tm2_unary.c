@@ -34,25 +34,22 @@
 #include "device/device.h"
 #include "utility/log.h"
 
-
 static int unary_op_map(int op)
 {
     return OP_UNARY;
 }
 
-
 static int tm2_load_unary(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node, const TM2_Operator* tm_op)
 {
-    struct unary_param* unary_param = ( struct unary_param* )ir_node->op.param_mem;
+    struct unary_param* unary_param = (struct unary_param*)ir_node->op.param_mem;
     const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
     const char* mem_base = tm2_priv->base;
-    const TM2_UnaryParam* tm_param = ( TM2_UnaryParam* )(mem_base + tm_op->offset_t_param);
+    const TM2_UnaryParam* tm_param = (TM2_UnaryParam*)(mem_base + tm_op->offset_t_param);
 
     unary_param->type = tm_param->type;
 
     return 0;
 }
-
 
 int register_tm2_unary_op()
 {
@@ -68,7 +65,6 @@ int register_tm2_unary_op()
 
     return 0;
 }
-
 
 int unregister_tm2_unary_op()
 {

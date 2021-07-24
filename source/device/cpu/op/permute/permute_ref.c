@@ -36,7 +36,6 @@
 
 #include <math.h>
 
-
 static void __hwc(const float* input, float* output, int hh, int ww, int cc, int wc, int hw)
 {
     for (int h = 0; h < hh; ++h)
@@ -58,12 +57,12 @@ static void __chw(const float* input, float* output, int hh, int ww, int cc, int
 {
     for (int c = 0; c < cc; ++c)
     {
-        float* output_ptr = output + c * hw;    // chw
+        float* output_ptr = output + c * hw; // chw
         for (int h = 0; h < hh; ++h)
         {
             for (int w = 0; w < ww; ++w)
             {
-                const float* input_ptr = input + h * wc + w * cc;    // input hwc + wc
+                const float* input_ptr = input + h * wc + w * cc; // input hwc + wc
                 // hw + w = input_ptr[c]
                 output_ptr[h * ww + w] = input_ptr[c];
             }
@@ -92,12 +91,12 @@ static void __chw_u8(const uint8_t* input, uint8_t* output, int hh, int ww, int 
 {
     for (int c = 0; c < cc; ++c)
     {
-        uint8_t* output_ptr = output + c * hw;    // chw
+        uint8_t* output_ptr = output + c * hw; // chw
         for (int h = 0; h < hh; ++h)
         {
             for (int w = 0; w < ww; ++w)
             {
-                const uint8_t* input_ptr = input + h * wc + w * cc;    // input hwc + wc
+                const uint8_t* input_ptr = input + h * wc + w * cc; // input hwc + wc
                 // hw + w = input_ptr[c]
                 output_ptr[h * ww + w] = input_ptr[c];
             }
@@ -126,12 +125,12 @@ static void __chw_i8(const int8_t* input, int8_t* output, int hh, int ww, int cc
 {
     for (int c = 0; c < cc; ++c)
     {
-        int8_t* output_ptr = output + c * hw;    // chw
+        int8_t* output_ptr = output + c * hw; // chw
         for (int h = 0; h < hh; ++h)
         {
             for (int w = 0; w < ww; ++w)
             {
-                const int8_t* input_ptr = input + h * wc + w * cc;    // input hwc + wc
+                const int8_t* input_ptr = input + h * wc + w * cc; // input hwc + wc
                 // hw + w = input_ptr[c]
                 output_ptr[h * ww + w] = input_ptr[c];
             }
@@ -401,7 +400,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct graph* ir_graph = ir_node->graph;
     struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    permute_param_t* param = ( struct permute_param* )(ir_node->op.param_mem);
+    permute_param_t* param = (struct permute_param*)(ir_node->op.param_mem);
 
     int ret = -1;
     if (input_tensor->data_type == TENGINE_DT_FP32)

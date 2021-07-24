@@ -33,7 +33,6 @@
 
 #include <math.h>
 
-
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     return 0;
@@ -151,4 +150,3 @@ int unregister_broadmul_ref_op()
 {
     return unregister_builtin_node_ops(OP_BROADMUL, &hcl_node_ops);
 }
-

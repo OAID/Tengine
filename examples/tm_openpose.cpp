@@ -17,23 +17,19 @@
 #define DEFAULT_THREAD_COUNT 1
 
 #ifdef MPI
-const int POSE_PAIRS[14][2] = {{0, 1},  {1, 2},  {2, 3}, {3, 4},  {1, 5},   {5, 6},   {6, 7},
-                               {1, 14}, {14, 8}, {8, 9}, {9, 10}, {14, 11}, {11, 12}, {12, 13}};
+const int POSE_PAIRS[14][2] = {{0, 1}, {1, 2}, {2, 3}, {3, 4}, {1, 5}, {5, 6}, {6, 7}, {1, 14}, {14, 8}, {8, 9}, {9, 10}, {14, 11}, {11, 12}, {12, 13}};
 // std::string model_file = "models/openpose_mpi.tmfile";
 int nPoints = 15;
 #endif
 
 #ifdef COCO
-const int POSE_PAIRS[17][2] = {{1, 2},  {1, 5},   {2, 3},   {3, 4}, {5, 6},  {6, 7},   {1, 8},  {8, 9},  {9, 10},
-                               {1, 11}, {11, 12}, {12, 13}, {1, 0}, {0, 14}, {14, 16}, {0, 15}, {15, 17}};
+const int POSE_PAIRS[17][2] = {{1, 2}, {1, 5}, {2, 3}, {3, 4}, {5, 6}, {6, 7}, {1, 8}, {8, 9}, {9, 10}, {1, 11}, {11, 12}, {12, 13}, {1, 0}, {0, 14}, {14, 16}, {0, 15}, {15, 17}};
 // std::string model_file = "models/openpose_coco.tmfile";
 int nPoints = 18;
 #endif
 
 #ifdef BODY25
-const int POSE_PAIRS[24][2] = {{1, 2},   {1, 5},   {2, 3},   {3, 4},   {5, 6},   {6, 7},   {1, 8},   {8, 9},
-                               {9, 10},  {10, 11}, {11, 24}, {11, 22}, {22, 23}, {8, 12},  {12, 13}, {13, 14},
-                               {14, 21}, {14, 19}, {19, 20}, {1, 0},   {0, 15},  {16, 18}, {0, 16},  {15, 17}};
+const int POSE_PAIRS[24][2] = {{1, 2}, {1, 5}, {2, 3}, {3, 4}, {5, 6}, {6, 7}, {1, 8}, {8, 9}, {9, 10}, {10, 11}, {11, 24}, {11, 22}, {22, 23}, {8, 12}, {12, 13}, {13, 14}, {14, 21}, {14, 19}, {19, 20}, {1, 0}, {0, 15}, {16, 18}, {0, 16}, {15, 17}};
 // std::string model_file = "models/openpose_body25.tmfile"
 int nPoints = 25;
 #endif
@@ -43,7 +39,7 @@ void get_input_data_pose(cv::Mat img, float* input_data, int img_h, int img_w)
     cv::resize(img, img, cv::Size(img_h, img_w));
     img.convertTo(img, CV_32FC3);
 
-    float* img_data = ( float* )img.data;
+    float* img_data = (float*)img.data;
     int hw = img_h * img_w;
     double scalefactor = 1.0 / 255;
     float mean[3] = {0, 0, 0};
@@ -78,19 +74,19 @@ void post_process_pose(cv::Mat img, cv::Mat frameCopy, float threshold, float* o
             if (outdata[piexl] > prob)
             {
                 prob = outdata[piexl];
-                maxloc.y = ( int )piexl / H;
-                maxloc.x = ( int )piexl % W;
+                maxloc.y = (int)piexl / H;
+                maxloc.x = (int)piexl % W;
             }
         }
         cv::Point2f p(-1, -1);
         if (prob > threshold)
         {
             p = maxloc;
-            p.y *= ( float )frameWidth / W;
-            p.x *= ( float )frameHeight / H;
+            p.y *= (float)frameWidth / W;
+            p.x *= (float)frameHeight / H;
 
-            cv::circle(frameCopy, cv::Point(( int )p.x, ( int )p.y), 4, cv::Scalar(255, 255, 0), -1);
-            cv::putText(frameCopy, cv::format("%d", n), cv::Point(( int )p.x, ( int )p.y), cv::FONT_HERSHEY_PLAIN, 2,
+            cv::circle(frameCopy, cv::Point((int)p.x, (int)p.y), 4, cv::Scalar(255, 255, 0), -1);
+            cv::putText(frameCopy, cv::format("%d", n), cv::Point((int)p.x, (int)p.y), cv::FONT_HERSHEY_PLAIN, 2,
                         cv::Scalar(0, 255, 255), 2);
         }
         points[n] = p;
@@ -133,23 +129,23 @@ int main(int argc, char* argv[])
     {
         switch (res)
         {
-            case 'm':
-                model_file = optarg;
-                break;
-            case 'i':
-                image_file = optarg;
-                break;
-            case 'r':
-                repeat_count = atoi(optarg);
-                break;
-            case 't':
-                num_thread = atoi(optarg);
-                break;
-            case 'h':
-                show_usage();
-                return 0;
-            default:
-                break;
+        case 'm':
+            model_file = optarg;
+            break;
+        case 'i':
+            image_file = optarg;
+            break;
+        case 'r':
+            repeat_count = atoi(optarg);
+            break;
+        case 't':
+            num_thread = atoi(optarg);
+            break;
+        case 'h':
+            show_usage();
+            return 0;
+        default:
+            break;
         }
     }
 
@@ -193,9 +189,9 @@ int main(int argc, char* argv[])
     /* set the input shape to initial the graph, and prerun graph to infer shape */
     int channel = 3;
     int img_size = img_h * img_w * channel;
-    int dims[] = {1, channel, img_h, img_w};    // nchw
+    int dims[] = {1, channel, img_h, img_w}; // nchw
 
-    float* input_data = ( float* )malloc(img_size * sizeof(float));
+    float* input_data = (float*)malloc(img_size * sizeof(float));
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == nullptr)
@@ -214,7 +210,7 @@ int main(int argc, char* argv[])
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;
-    }    
+    }
 
     /* prerun graph, set work options(num_thread, cluster, precision) */
     if (prerun_graph_multithread(graph, opt) < 0)
@@ -258,7 +254,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    float* outdata = ( float* )get_tensor_buffer(out_tensor);
+    float* outdata = (float*)get_tensor_buffer(out_tensor);
     int num = nPoints;
     int H = out_dim[2];
     int W = out_dim[3];
@@ -278,4 +274,3 @@ int main(int argc, char* argv[])
 
     return 0;
 }
-

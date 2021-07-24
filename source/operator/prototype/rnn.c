@@ -31,13 +31,12 @@
 #include "module/module.h"
 #include "utility/sys_port.h"
 
-
 static int infer_shape(struct node* node)
 {
     struct graph* graph = node->graph;
     struct tensor* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
     struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
-    struct rnn_param* rnn_param = ( struct rnn_param* )(node->op.param_mem);
+    struct rnn_param* rnn_param = (struct rnn_param*)(node->op.param_mem);
     int dims[3];
 
     // input tensors:
@@ -57,10 +56,9 @@ static int infer_shape(struct node* node)
     return 0;
 }
 
-
 static int init_op(struct op* op)
 {
-    struct rnn_param* rnn_param = ( struct rnn_param* )sys_malloc(sizeof(struct rnn_param));
+    struct rnn_param* rnn_param = (struct rnn_param*)sys_malloc(sizeof(struct rnn_param));
 
     if (rnn_param == NULL)
     {
@@ -77,12 +75,10 @@ static int init_op(struct op* op)
     return 0;
 }
 
-
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
-
 
 int register_rnn_op()
 {
@@ -94,7 +90,6 @@ int register_rnn_op()
 
     return register_op(OP_RNN, OP_RNN_NAME, &m);
 }
-
 
 int unregister_rnn_op()
 {

@@ -34,7 +34,6 @@
 #include "device/device.h"
 #include "utility/log.h"
 
-
 static int pooling_op_map(int op)
 {
     return OP_POOL;
@@ -42,10 +41,10 @@ static int pooling_op_map(int op)
 
 static int tm2_load_pooling(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node, const TM2_Operator* tm_op)
 {
-    struct pool_param* pool_param = ( struct pool_param* )ir_node->op.param_mem;
+    struct pool_param* pool_param = (struct pool_param*)ir_node->op.param_mem;
     const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
     const char* mem_base = tm2_priv->base;
-    const TM2_PoolParam* tm_param = ( TM2_PoolParam* )(mem_base + tm_op->offset_t_param);
+    const TM2_PoolParam* tm_param = (TM2_PoolParam*)(mem_base + tm_op->offset_t_param);
 
     pool_param->kernel_h = tm_param->kernel_h;
     pool_param->kernel_w = tm_param->kernel_w;
@@ -69,7 +68,6 @@ static int tm2_load_pooling(struct graph* ir_graph, struct node* ir_node, const 
     return 0;
 }
 
-
 int register_tm2_pool_op()
 {
     struct serializer* tm2_s = find_serializer_via_name("tengine");
@@ -84,7 +82,6 @@ int register_tm2_pool_op()
 
     return 0;
 }
-
 
 int unregister_tm2_pool_op()
 {

@@ -50,32 +50,31 @@ Padding_vulkan::Padding_vulkan()
     pipeline_padding_pack8 = 0;
 }
 
-
-
 int Padding_vulkan::create_pipeline(const Option& opt)
 {
     int elempack = 1;
-    elempack = opt.use_shader_pack8 && input_c % 8 == 0 ? 8 : input_c % 4 == 0 ? 4 : 1;
+    elempack = opt.use_shader_pack8 && input_c % 8 == 0 ? 8 : input_c % 4 == 0 ? 4
+                                                                               : 1;
     int out_elempack;
-    out_elempack = opt.use_shader_pack8 && output_c % 8 == 0 ? 8 : output_c % 4 == 0 ? 4 : 1;
+    out_elempack = opt.use_shader_pack8 && output_c % 8 == 0 ? 8 : output_c % 4 == 0 ? 4
+                                                                                     : 1;
 
     // printf("create padding pipeline elempack:%d %d \n", elempack, out_elempack);
-
 
     std::vector<vk_specialization_type> specializations(3 + 10);
     specializations[0].i = type;
     specializations[1].f = value;
-    specializations[2].i = 0;   // per_channel_pad_data_size ? 1 : 0;
-    specializations[3 + 0].i = 3;   // shape_packed.dims;                                                                                       
-    specializations[3 + 1].i = input_w;   // shape_packed.w;
-    specializations[3 + 2].i = input_h;   // shape_packed.h;
-    specializations[3 + 3].i = input_c;   // shape_packed.c;
+    specializations[2].i = 0;                       // per_channel_pad_data_size ? 1 : 0;
+    specializations[3 + 0].i = 3;                   // shape_packed.dims;
+    specializations[3 + 1].i = input_w;             // shape_packed.w;
+    specializations[3 + 2].i = input_h;             // shape_packed.h;
+    specializations[3 + 3].i = input_c;             // shape_packed.c;
     specializations[3 + 4].i = input_w * input_h;   // shape_packed.cstep;
-    specializations[3 + 5].i = 3;   // out_shape_packed.dims;
-    specializations[3 + 6].i = output_w;   // out_shape_packed.w;
-    specializations[3 + 7].i = output_h;   // out_shape_packed.h;
-    specializations[3 + 8].i = output_c;   // out_shape_packed.c;
-    specializations[3 + 9].i = output_w * output_h;   // out_shape_packed.cstep;
+    specializations[3 + 5].i = 3;                   // out_shape_packed.dims;
+    specializations[3 + 6].i = output_w;            // out_shape_packed.w;
+    specializations[3 + 7].i = output_h;            // out_shape_packed.h;
+    specializations[3 + 8].i = output_c;            // out_shape_packed.c;
+    specializations[3 + 9].i = output_w * output_h; // out_shape_packed.cstep;
 
     VkTensor local_size_xyz;
     // if (out_shape_packed.dims != 0)
@@ -87,7 +86,7 @@ int Padding_vulkan::create_pipeline(const Option& opt)
 
     // pack1
     // if (shape.dims == 0 || elempack == 1)
-    if(elempack == 1)
+    if (elempack == 1)
     {
         pipeline_padding = new Pipeline(vkdev);
         pipeline_padding->set_optimal_local_size_xyz(local_size_xyz);
@@ -96,7 +95,7 @@ int Padding_vulkan::create_pipeline(const Option& opt)
 
     // pack4
     // if (shape.dims == 0 || elempack == 4)
-    if(elempack == 4)
+    if (elempack == 4)
     {
         pipeline_padding_pack4 = new Pipeline(vkdev);
         pipeline_padding_pack4->set_optimal_local_size_xyz(local_size_xyz);
@@ -111,7 +110,7 @@ int Padding_vulkan::create_pipeline(const Option& opt)
         pipeline_padding_pack8->set_optimal_local_size_xyz(local_size_xyz);
         pipeline_padding_pack8->create(LayerShaderType::padding_pack8, opt, specializations);
     }
-    
+
     return 0;
 }
 
@@ -119,7 +118,6 @@ int Padding_vulkan::destroy_pipeline(const Option& /*opt*/)
 {
     return 0;
 }
-
 
 int Padding_vulkan::record_pipeline(const VkTensor& bottom_blob, VkTensor& top_blob, VkCompute& cmd, const Option& opt) const
 {
@@ -160,11 +158,11 @@ int Padding_vulkan::record_pipeline(const VkTensor& bottom_blob, VkTensor& top_b
     constants[9].i = top_blob.cstep;
     constants[10].i = left;
     constants[11].i = top;
-    
+
     // printf("padding shape:%d %d %d %d %d %d %d %d %d\n", top_blob.c, top_blob.h, top_blob.w, top_blob.cstep, bottom_blob.c, bottom_blob.h, bottom_blob.w, bottom_blob.cstep, elempack);
-    const Pipeline* pipeline = elempack == 8 ? pipeline_padding_pack8
-                             : elempack == 4 ? pipeline_padding_pack4
-                             : pipeline_padding;
+    const Pipeline* pipeline = elempack == 8   ? pipeline_padding_pack8
+                               : elempack == 4 ? pipeline_padding_pack4
+                                               : pipeline_padding;
 
     cmd.record_pipeline(pipeline, bindings, constants, top_blob);
 

@@ -30,10 +30,9 @@
 
 #include <arm_neon.h>
 
-
 static void mish_kernel(int i, int id, void* data, const float* input, float* output)
 {
-    int step = (( int* )data)[0];
+    int step = ((int*)data)[0];
     const float* cur_input = input + id * step;
     float* cur_output = output + id * step;
     for (int i = 0; i < (step & -4); i += 4)
@@ -53,8 +52,8 @@ static void mish_kernel(int i, int id, void* data, const float* input, float* ou
 
 int mish_run(struct tensor* output_tensor, struct tensor* input_tensor, int num_thread)
 {
-    float* data = ( float* )input_tensor->data;
-    float* out_data = ( float* )output_tensor->data;
+    float* data = (float*)input_tensor->data;
+    float* out_data = (float*)output_tensor->data;
 
     int chan_num = (input_tensor->dims[0]) * (input_tensor->dims[1]);
     int chan_size = (input_tensor->dims[2]) * (input_tensor->dims[3]);

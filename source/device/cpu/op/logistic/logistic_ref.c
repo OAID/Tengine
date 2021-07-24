@@ -34,12 +34,11 @@
 
 #include <math.h>
 
-
 struct logical_param
 {
     int out_size;
     float scale[2];    // scale[0]: input scale, scale[1]: output scale
-    int zero_point[2];    // zero_point[0]: input zero_point, zero_point[1]: output zero_point
+    int zero_point[2]; // zero_point[0]: input zero_point, zero_point[1]: output zero_point
 };
 
 static int ref_logistic_fp32(float* input_data, float* output_data, struct logical_param* op_param)
@@ -58,9 +57,7 @@ static int ref_logistic_uint8(uint8_t* input, uint8_t* output, struct logical_pa
     for (int i = 0; i < op_param->out_size; i++)
     {
         /* get max */
-        output[i] =
-            (1.f / (1.f + exp(-(input[i] - (double )op_param->zero_point[0]) * op_param->scale[0]))) / op_param->scale[1] +
-            op_param->zero_point[1];
+        output[i] = (1.f / (1.f + exp(-(input[i] - (double)op_param->zero_point[0]) * op_param->scale[0]))) / op_param->scale[1] + op_param->zero_point[1];
     }
 
     return 0;

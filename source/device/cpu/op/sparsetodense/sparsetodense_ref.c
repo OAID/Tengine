@@ -36,7 +36,6 @@
 
 #include <math.h>
 
-
 int ref_sparsetodense_fp32(struct tensor* input_tensor, struct tensor* output_shape_tensor,
                            struct tensor* sparse_values_tensor, struct tensor* output_tensor,
                            struct sparsetodense_param* param, int num_thread)
@@ -166,7 +165,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     sparse_values_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[2]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    struct sparsetodense_param* sparsetodense_param = ( struct sparsetodense_param* )ir_node->op.param_mem;
+    struct sparsetodense_param* sparsetodense_param = (struct sparsetodense_param*)ir_node->op.param_mem;
 
     int ret = ref_sparsetodense_fp32(input_tensor, output_shape_tensor, sparse_values_tensor, output_tensor,
                                      sparsetodense_param, exec_graph->num_thread);

@@ -37,21 +37,18 @@
 #include <math.h>
 #include <string.h>
 
-
 static int ref_swap_axis_common(struct tensor* input_tensor, struct tensor* output_tensor, const int* dims, int element_size)
 {
-    const float* in_data = ( float* )input_tensor->data;
-    float* out_data = ( float* )output_tensor->data;
+    const float* in_data = (float*)input_tensor->data;
+    float* out_data = (float*)output_tensor->data;
 
     for (int i = 0; i < dims[0]; i++)
         for (int j = 0; j < dims[3]; j++)
             for (int p = 0; p < dims[2]; p++)
                 for (int q = 0; q < dims[1]; q++)
                 {
-                    int out_index = i * dims[1] * dims[2] * dims[3] * dims[4] + j * dims[2] * dims[1] * dims[4] +
-                                    p * dims[1] * dims[4] + q * dims[4];
-                    int in_index = i * dims[1] * dims[2] * dims[3] * dims[4] + q * dims[2] * dims[3] * dims[4] +
-                                   p * dims[3] * dims[4] + j * dims[4];
+                    int out_index = i * dims[1] * dims[2] * dims[3] * dims[4] + j * dims[2] * dims[1] * dims[4] + p * dims[1] * dims[4] + q * dims[4];
+                    int in_index = i * dims[1] * dims[2] * dims[3] * dims[4] + q * dims[2] * dims[3] * dims[4] + p * dims[3] * dims[4] + j * dims[4];
                     memcpy(out_data + out_index * element_size, in_data + in_index * element_size,
                            (size_t)dims[4] * element_size);
                 }
@@ -60,18 +57,16 @@ static int ref_swap_axis_common(struct tensor* input_tensor, struct tensor* outp
 
 static int ref_swap_axis_uint8(struct tensor* input_tensor, struct tensor* output_tensor, const int* dims, int element_size)
 {
-    const uint8_t* in_data = ( uint8_t* )input_tensor->data;
-    uint8_t* out_data = ( uint8_t* )output_tensor->data;
+    const uint8_t* in_data = (uint8_t*)input_tensor->data;
+    uint8_t* out_data = (uint8_t*)output_tensor->data;
 
     for (int i = 0; i < dims[0]; i++)
         for (int j = 0; j < dims[3]; j++)
             for (int p = 0; p < dims[2]; p++)
                 for (int q = 0; q < dims[1]; q++)
                 {
-                    int out_index = i * dims[1] * dims[2] * dims[3] * dims[4] + j * dims[2] * dims[1] * dims[4] +
-                                    p * dims[1] * dims[4] + q * dims[4];
-                    int in_index = i * dims[1] * dims[2] * dims[3] * dims[4] + q * dims[2] * dims[3] * dims[4] +
-                                   p * dims[3] * dims[4] + j * dims[4];
+                    int out_index = i * dims[1] * dims[2] * dims[3] * dims[4] + j * dims[2] * dims[1] * dims[4] + p * dims[1] * dims[4] + q * dims[4];
+                    int in_index = i * dims[1] * dims[2] * dims[3] * dims[4] + q * dims[2] * dims[3] * dims[4] + p * dims[3] * dims[4] + j * dims[4];
                     memcpy(out_data + out_index * element_size, in_data + in_index * element_size,
                            (size_t)dims[4] * element_size);
                 }
@@ -95,7 +90,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    struct swap_axis_param* _param = ( struct swap_axis_param* )(ir_node->op.param_mem);
+    struct swap_axis_param* _param = (struct swap_axis_param*)(ir_node->op.param_mem);
     int in_size = 1;
     for (int i = 0; i < input_tensor->dim_num; i++)
     {
@@ -127,10 +122,10 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     for (int i = dim1 + 1; i < in_size; i++)
         dims[4] *= input_tensor->dims[i];
 
-	int ret = -1;
+    int ret = -1;
     if (input_tensor->data_type == TENGINE_DT_FP32)
         ret = ref_swap_axis_common(input_tensor, output_tensor, dims, sizeof(float));
-    else if(input_tensor->data_type == TENGINE_DT_UINT8)
+    else if (input_tensor->data_type == TENGINE_DT_UINT8)
         ret = ref_swap_axis_uint8(input_tensor, output_tensor, dims, sizeof(uint8_t));
 
     return ret;

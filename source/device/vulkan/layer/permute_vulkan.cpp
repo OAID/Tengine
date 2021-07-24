@@ -76,27 +76,27 @@ Permute_vulkan::Permute_vulkan(ir_graph_t* ir_graph, ir_node_t* ir_node)
     graph = ir_graph;
     node = ir_node;
 
-    struct tensor *input = get_ir_graph_tensor(graph, node->input_tensors[0]);
+    struct tensor* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
     std::string name = input->name;
     bottoms.push_back(name);
 
-    struct tensor *output = get_ir_graph_tensor(graph, node->output_tensors[0]);
+    struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
     name = output->name;
     tops.push_back(name);
 
     // params
-    input_c = input->dims[1];   // param->input_channel;
+    input_c = input->dims[1]; // param->input_channel;
     input_h = input->dims[2];
     input_w = input->dims[3];
-    output_c = output->dims[1];  // param->output_channel;
+    output_c = output->dims[1]; // param->output_channel;
     output_h = output->dims[2];
     output_w = output->dims[3];
 
     // TODO fix order_type value
-    struct permute_param *param = (struct permute_param *)ir_node->op.param_mem;
+    struct permute_param* param = (struct permute_param*)ir_node->op.param_mem;
     if ((param->order0 == 0) && (param->order1 == 2) && (param->order2 == 3) && (param->order3 == 1))
     {
-        order_type = 3; 
+        order_type = 3;
     }
     else if ((param->order0 == 1) && (param->order1 == 0) && (param->order2 == 2) && input->dim_num == 3)
     {
@@ -106,24 +106,29 @@ Permute_vulkan::Permute_vulkan(ir_graph_t* ir_graph, ir_node_t* ir_node)
     {
         order_type = 0;
     }
-    
 }
 
 int Permute_vulkan::create_pipeline(const Option& _opt)
 {
     Option opt = _opt;
-    const Tensor& shape = Tensor(input_w, input_h, input_c, (void*)0); // bottom_shapes.empty() ? Tensor() : bottom_shapes[0];
+    const Tensor& shape = Tensor(input_w, input_h, input_c, (void*)0);        // bottom_shapes.empty() ? Tensor() : bottom_shapes[0];
     const Tensor& out_shape = Tensor(output_w, output_h, output_c, (void*)0); // top_shapes.empty() ? Tensor() : top_shapes[0];
 
     int elempack = 1;
-    if (shape.dims == 1) elempack = opt.use_shader_pack8 && shape.w % 8 == 0 ? 8 : shape.w % 4 == 0 ? 4 : 1;
-    if (shape.dims == 2) elempack = opt.use_shader_pack8 && shape.h % 8 == 0 ? 8 : shape.h % 4 == 0 ? 4 : 1;
-    if (shape.dims == 3) elempack = opt.use_shader_pack8 && shape.c % 8 == 0 ? 8 : shape.c % 4 == 0 ? 4 : 1;
+    if (shape.dims == 1) elempack = opt.use_shader_pack8 && shape.w % 8 == 0 ? 8 : shape.w % 4 == 0 ? 4
+                                                                                                    : 1;
+    if (shape.dims == 2) elempack = opt.use_shader_pack8 && shape.h % 8 == 0 ? 8 : shape.h % 4 == 0 ? 4
+                                                                                                    : 1;
+    if (shape.dims == 3) elempack = opt.use_shader_pack8 && shape.c % 8 == 0 ? 8 : shape.c % 4 == 0 ? 4
+                                                                                                    : 1;
 
     int out_elempack = 1;
-    if (out_shape.dims == 1) out_elempack = opt.use_shader_pack8 && out_shape.w % 8 == 0 ? 8 : out_shape.w % 4 == 0 ? 4 : 1;
-    if (out_shape.dims == 2) out_elempack = opt.use_shader_pack8 && out_shape.h % 8 == 0 ? 8 : out_shape.h % 4 == 0 ? 4 : 1;
-    if (out_shape.dims == 3) out_elempack = opt.use_shader_pack8 && out_shape.c % 8 == 0 ? 8 : out_shape.c % 4 == 0 ? 4 : 1;
+    if (out_shape.dims == 1) out_elempack = opt.use_shader_pack8 && out_shape.w % 8 == 0 ? 8 : out_shape.w % 4 == 0 ? 4
+                                                                                                                    : 1;
+    if (out_shape.dims == 2) out_elempack = opt.use_shader_pack8 && out_shape.h % 8 == 0 ? 8 : out_shape.h % 4 == 0 ? 4
+                                                                                                                    : 1;
+    if (out_shape.dims == 3) out_elempack = opt.use_shader_pack8 && out_shape.c % 8 == 0 ? 8 : out_shape.c % 4 == 0 ? 4
+                                                                                                                    : 1;
 
     size_t elemsize;
     size_t out_elemsize;
@@ -162,16 +167,16 @@ int Permute_vulkan::create_pipeline(const Option& _opt)
 
     std::vector<vk_specialization_type> specializations(1 + 10);
     specializations[0].i = order_type;
-    specializations[1 + 0].i = 0;   // shape_packed.dims;
-    specializations[1 + 1].i = 0;   // shape_packed.w;
-    specializations[1 + 2].i = 0;   // shape_packed.h;
-    specializations[1 + 3].i = 0;   // shape_packed.c;
-    specializations[1 + 4].i = 0;   // shape_packed.cstep;
-    specializations[1 + 5].i = 0;   // out_shape_packed.dims;
-    specializations[1 + 6].i = 0;   // out_shape_packed.w;
-    specializations[1 + 7].i = 0;   // out_shape_packed.h;
-    specializations[1 + 8].i = 0;   // out_shape_packed.c;
-    specializations[1 + 9].i = 0;   // out_shape_packed.cstep;
+    specializations[1 + 0].i = 0; // shape_packed.dims;
+    specializations[1 + 1].i = 0; // shape_packed.w;
+    specializations[1 + 2].i = 0; // shape_packed.h;
+    specializations[1 + 3].i = 0; // shape_packed.c;
+    specializations[1 + 4].i = 0; // shape_packed.cstep;
+    specializations[1 + 5].i = 0; // out_shape_packed.dims;
+    specializations[1 + 6].i = 0; // out_shape_packed.w;
+    specializations[1 + 7].i = 0; // out_shape_packed.h;
+    specializations[1 + 8].i = 0; // out_shape_packed.c;
+    specializations[1 + 9].i = 0; // out_shape_packed.cstep;
 
     Tensor local_size_xyz_bottom; // pack4to1 and pack8to1
     if (shape_packed.dims == 2)
@@ -342,7 +347,8 @@ int Permute_vulkan::record_pipeline(const VkTensor& bottom_blob, VkTensor& top_b
             outh = w;
         }
 
-        out_elempack = opt.use_shader_pack8 && outh % 8 == 0 ? 8 : outh % 4 == 0 ? 4 : 1;
+        out_elempack = opt.use_shader_pack8 && outh % 8 == 0 ? 8 : outh % 4 == 0 ? 4
+                                                                                 : 1;
         out_elemsize = elemsize / elempack * out_elempack;
 
         if (opt.use_fp16_packed && !opt.use_fp16_storage)
@@ -401,7 +407,8 @@ int Permute_vulkan::record_pipeline(const VkTensor& bottom_blob, VkTensor& top_b
             outc = w;
         }
 
-        out_elempack = opt.use_shader_pack8 && outc % 8 == 0 ? 8 : outc % 4 == 0 ? 4 : 1;
+        out_elempack = opt.use_shader_pack8 && outc % 8 == 0 ? 8 : outc % 4 == 0 ? 4
+                                                                                 : 1;
         out_elemsize = elemsize / elempack * out_elempack;
 
         if (opt.use_fp16_packed && !opt.use_fp16_storage)
@@ -472,4 +479,4 @@ int Permute_vulkan::record_pipeline(const VkTensor& bottom_blob, VkTensor& top_b
     return 0;
 }
 
-}   // namespace TEngine
+} // namespace TEngine

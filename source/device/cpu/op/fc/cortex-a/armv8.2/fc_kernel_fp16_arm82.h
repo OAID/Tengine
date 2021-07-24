@@ -27,20 +27,18 @@
 
 #include "../fc_kernel_arm.h"
 
+int fp16_fc_kernel_prerun(struct tensor* input_tensor,
+                          struct tensor* filter_tensor,
+                          struct tensor* output_tensor,
+                          struct fc_priv_info* priv_info,
+                          struct fc_param* param);
 
-int fp16_fc_kernel_prerun(struct tensor*  input_tensor , \
-                    struct tensor*  filter_tensor ,  \
-                    struct tensor*  output_tensor , \
-                    struct fc_priv_info* priv_info ,      \
-                    struct fc_param* param) ;
-
-int fp16_fc_kernel_run(struct tensor* input_tensor , \
-                 struct tensor* filter_tensor ,\
-                 struct tensor* bias_tensor ,  \
-                 struct tensor* output_tensor , \
-                 struct fc_priv_info*  priv_info , \
-                 struct fc_param* param, \
-                 int num_thread, int cpu_affinity) ;
-
+int fp16_fc_kernel_run(struct tensor* input_tensor,
+                       struct tensor* filter_tensor,
+                       struct tensor* bias_tensor,
+                       struct tensor* output_tensor,
+                       struct fc_priv_info* priv_info,
+                       struct fc_param* param,
+                       int num_thread, int cpu_affinity);
 
 #endif

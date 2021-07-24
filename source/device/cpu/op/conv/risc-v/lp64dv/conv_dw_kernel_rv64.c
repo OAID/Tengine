@@ -54,7 +54,6 @@
 #include <string.h>
 #include <math.h>
 
-
 #define max(a, b) ((a) > (b) ? (a) : (b))
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
@@ -62,11 +61,11 @@ static void relu(float* data, int size, int activation)
 {
     for (int i = 0; i < size; i++)
     {
-        data[i] = max(data[i], ( float )0);
+        data[i] = max(data[i], (float)0);
 
         if (activation > 0)
         {
-            data[i] = min(data[i], ( float )activation);
+            data[i] = min(data[i], (float)activation);
         }
     }
 }
@@ -319,7 +318,7 @@ static void convdw5x5s1(float* output, float* input, float* _kernel, float* _bia
     int c_step_out = outw * outh;
 
     const int group = channel;
-    const float* kernel = _kernel;    
+    const float* kernel = _kernel;
 
 #pragma omp parallel for num_threads(num_thread)
     for (int g = 0; g < group; g++)
@@ -597,12 +596,12 @@ static void convdw5x5s2(float* output, float* input, float* _kernel, float* _bia
 int conv_dw_run(struct tensor* input_tensor, struct tensor* weight_tensor, struct tensor* bias_tensor,
                 struct tensor* output_tensor, struct conv_priv_info* conv_info, struct conv_param* param, int num_thread, int cpu_affinity)
 {
-    float* input = ( float* )input_tensor->data;
-    float* output = ( float* )output_tensor->data;
-    float* kernel = ( float* )weight_tensor->data;
+    float* input = (float*)input_tensor->data;
+    float* output = (float*)output_tensor->data;
+    float* kernel = (float*)weight_tensor->data;
     float* biases = NULL;
     if (bias_tensor)
-        biases = ( float* )bias_tensor->data;
+        biases = (float*)bias_tensor->data;
 
     int batch_number = input_tensor->dims[0];
     int inc = input_tensor->dims[1];
@@ -637,8 +636,8 @@ int conv_dw_run(struct tensor* input_tensor, struct tensor* weight_tensor, struc
         input_tmp = input;
     else
     {
-        input_tmp = ( float* )sys_malloc(inh_tmp * inw_tmp * group * sizeof(float));
-#pragma omp parallel for num_threads(num_thread)        
+        input_tmp = (float*)sys_malloc(inh_tmp * inw_tmp * group * sizeof(float));
+#pragma omp parallel for num_threads(num_thread)
         for (int g = 0; g < group; g++)
         {
             float* pad_in = input + g * inh * inw;
@@ -650,13 +649,13 @@ int conv_dw_run(struct tensor* input_tensor, struct tensor* weight_tensor, struc
     /* process */
     for (int i = 0; i < batch_number; i++)
     {
-        if (ksize_h ==3 && stride_h == 1)
+        if (ksize_h == 3 && stride_h == 1)
             convdw3x3s1(output, input_tmp, kernel, biases, group, inh_tmp, inw_tmp, outh, outw, num_thread);
-        else if  (ksize_h ==3 && stride_h == 2)
+        else if (ksize_h == 3 && stride_h == 2)
             convdw3x3s2(output, input_tmp, kernel, biases, group, inh_tmp, inw_tmp, outh, outw, num_thread);
-        else if  (ksize_h ==5 && stride_h == 1)
+        else if (ksize_h == 5 && stride_h == 1)
             convdw5x5s1(output, input_tmp, kernel, biases, group, inh_tmp, inw_tmp, outh, outw, num_thread);
-        else if  (ksize_h ==5 && stride_h == 2)
+        else if (ksize_h == 5 && stride_h == 2)
             convdw5x5s2(output, input_tmp, kernel, biases, group, inh_tmp, inw_tmp, outh, outw, num_thread);
         else
             TLOG_ERR("convdw %d x %d, s %d not support.\n", ksize_h, ksize_w, stride_h);

@@ -35,7 +35,7 @@ enum
 
 struct pool_param
 {
-    int pool_method;    // 0:max    1:avg
+    int pool_method; // 0:max    1:avg
     int kernel_h;
     int kernel_w;
     int stride_h;
@@ -44,7 +44,7 @@ struct pool_param
     int pad_h1;
     int pad_w0;
     int pad_w1;
-    int global;    // 0:general    1:global
+    int global; // 0:general    1:global
     int caffe_flavor;
     void* funct;
 

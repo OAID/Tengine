@@ -28,7 +28,6 @@
 
 #include <arm_neon.h>
 
-
 #define SIGMOID_MAX(a, b) ((a) > (b) ? (a) : (b))
 #define SIGMOID_MIN(a, b) ((a) < (b) ? (a) : (b))
 
@@ -55,9 +54,9 @@ static float fast_exp1(float x)
     float t = x * 1.442695041f;
     float fi = floorf(t);
     float f = t - fi;
-    int i = ( int )fi;
+    int i = (int)fi;
     cvt.f = (0.3371894346f * f + 0.657636276f) * f + 1.00172476f; /* compute 2^f */
-    cvt.i += (i << 23); /* scale by 2^i */
+    cvt.i += (i << 23);                                           /* scale by 2^i */
     return cvt.f;
 }
 
@@ -71,12 +70,10 @@ static float acl_exp(float x)
 
     /* exp(x) = = 2^k * exp(x-k ln2); k = round（x/ln2）*/
     float t = x * 1.4426950408f;
-    float f = x - (( int )t) * 0.6931471805f;
-    int i = ( int )t;
+    float f = x - ((int)t) * 0.6931471805f;
+    int i = (int)t;
     /// cvt.f = (0.3371894346f * f + 0.657636276f) * f + 1.00172476f;       /* compute 2^f */
-    cvt.f =
-        1 + f * 1.00000011921f + (0.0416598916054f + f * 0.00833693705499f) * f * f +
-        ((0.500000596046f + f * 0.166665703058f) + (0.0014122662833f + f * 0.000195780929062f) * f * f) * f * f * f * f;
+    cvt.f = 1 + f * 1.00000011921f + (0.0416598916054f + f * 0.00833693705499f) * f * f + ((0.500000596046f + f * 0.166665703058f) + (0.0014122662833f + f * 0.000195780929062f) * f * f) * f * f * f * f;
     cvt.i += (i << 23); /* scale by 2^i */
     return cvt.f;
 }
@@ -125,8 +122,8 @@ static inline float32x4_t vtaylor_polyq_f32(float32x4_t x, struct tab* coeffs)
 /* ACL exp function impelement */
 static inline float32x4_t vexpq_f32(float32x4_t x)
 {
-    const float32x4_t CONST_LN2 = vdupq_n_f32(0.6931471805f);    // ln(2)
-    const float32x4_t CONST_INV_LN2 = vdupq_n_f32(1.4426950408f);    // 1/ln(2)
+    const float32x4_t CONST_LN2 = vdupq_n_f32(0.6931471805f);     // ln(2)
+    const float32x4_t CONST_INV_LN2 = vdupq_n_f32(1.4426950408f); // 1/ln(2)
     const float32x4_t CONST_0 = vdupq_n_f32(0.f);
     const int32x4_t CONST_NEGATIVE_126 = vdupq_n_s32(-126);
 
@@ -148,7 +145,7 @@ exp(x) = lim(1+x/n)^n       // n=10
 */
 static inline float32x4_t vexpq10_f32(float32x4_t x)
 {
-    x = vmlaq_n_f32(vdupq_n_f32(1.0f), x, 0.0009765625f);    // n = 10
+    x = vmlaq_n_f32(vdupq_n_f32(1.0f), x, 0.0009765625f); // n = 10
     x = vmulq_f32(x, x);
     x = vmulq_f32(x, x);
     x = vmulq_f32(x, x);
@@ -165,8 +162,8 @@ static inline float32x4_t vexpq10_f32(float32x4_t x)
 int sigmoid_run(struct tensor* output_tensor, struct tensor* input_tensor, int num_thread)
 {
     init_tab();
-    float* input = ( float* )input_tensor->data;
-    float* output = ( float* )output_tensor->data;
+    float* input = (float*)input_tensor->data;
+    float* output = (float*)output_tensor->data;
 
     float32x4_t min = vdupq_n_f32(-30.0f);
     float32x4_t max = vdupq_n_f32(30.0f);

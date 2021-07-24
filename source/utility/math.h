@@ -25,7 +25,6 @@
 
 #pragma once
 
-
 /*!
  * @brief  Solve min value
  *
@@ -35,7 +34,6 @@
  * @return  The solved min value
  */
 int imin(int a, int b);
-
 
 /*!
  * @brief  Solve max value
@@ -47,7 +45,6 @@ int imin(int a, int b);
  */
 int imax(int a, int b);
 
-
 /*!
  * @brief  Solve min absolute value
  *
@@ -57,7 +54,6 @@ int imax(int a, int b);
  * @return  The solved min absolute value
  */
 int min_abs(int a, int b);
-
 
 /*!
  * @brief  Solve max absolute value
@@ -69,7 +65,6 @@ int min_abs(int a, int b);
  */
 int max_abs(int a, int b);
 
-
 /*!
  * @brief  Solve greatest common divisor
  *
@@ -79,7 +74,6 @@ int max_abs(int a, int b);
  * @return  The solved GCD
  */
 int gcd(int a, int b);
-
 
 /*!
  * @brief  Solve lowest common multiple
@@ -91,7 +85,6 @@ int gcd(int a, int b);
  */
 int lcm(int a, int b);
 
-
 /*!
  * @brief  Solve min aligned value with the step length
  *
@@ -101,7 +94,6 @@ int lcm(int a, int b);
  * @return  The solved aligned value
  */
 int align(int value, int step);
-
 
 /*!
  * @brief  Get aligned pointer
