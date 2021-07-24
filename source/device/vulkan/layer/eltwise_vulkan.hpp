@@ -45,9 +45,9 @@
 
 #include "eltwise_param.h"
 
-namespace TEngine {
-class Eltwise_vulkan : public Layer
+namespace TEngine
 {
+class Eltwise_vulkan : public Layer {
 public:
     Eltwise_vulkan();
     Eltwise_vulkan(ir_graph_t* ir_graph, ir_node_t* ir_node);
@@ -84,7 +84,7 @@ public:
         ELT_SQUARE,
         ELT_POW
     };
-    int op_type; // Operation_PROD = 0, Operation_SUM = 1, Operation_MAX = 2
+    int op_type;    // Operation_PROD = 0, Operation_SUM = 1, Operation_MAX = 2
 
     int input_c;
     int input_h;
@@ -94,6 +94,6 @@ public:
     int output_w;
 };
 
-} // namespace TEngine
+}    // namespace TEngine
 
 #endif

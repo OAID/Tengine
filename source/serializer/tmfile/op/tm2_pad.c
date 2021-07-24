@@ -34,32 +34,35 @@
 #include "device/device.h"
 #include "utility/log.h"
 
+
 static int pad_op_map(int op)
 {
     return OP_PAD;
 }
 
+
 static int tm2_load_pad(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                         const TM2_Operator* tm_op)
 {
-    struct pad_param* pad_param = (struct pad_param*)ir_node->op.param_mem;
-    const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
-    const char* mem_base = tm2_priv->base;
-    const TM2_PadParam* tm_param = (TM2_PadParam*)(mem_base + tm_op->offset_t_param);
+    struct pad_param*      pad_param = (struct pad_param*)ir_node->op.param_mem;
+    const struct tm2_priv* tm2_priv  = (struct tm2_priv*)ir_graph->serializer_privacy;
+    const char*            mem_base  = tm2_priv->base;
+    const TM2_PadParam*    tm_param  = (TM2_PadParam*)(mem_base + tm_op->offset_t_param);
 
-    pad_param->mode = tm_param->mode;
-    pad_param->value = tm_param->value;
-    pad_param->pad_0_h = tm_param->pad_n_0;
-    pad_param->pad_0_w = tm_param->pad_n_1;
-    pad_param->pad_1_h = tm_param->pad_c_0;
-    pad_param->pad_1_w = tm_param->pad_c_1;
-    pad_param->pad_2_h = tm_param->pad_h_0;
-    pad_param->pad_2_w = tm_param->pad_h_1;
-    pad_param->pad_3_h = tm_param->pad_w_0;
-    pad_param->pad_3_w = tm_param->pad_w_1;
+    pad_param->mode                  = tm_param->mode;
+    pad_param->value                 = tm_param->value;
+    pad_param->pad_0_h               = tm_param->pad_n_0;
+    pad_param->pad_0_w               = tm_param->pad_n_1;
+    pad_param->pad_1_h               = tm_param->pad_c_0;
+    pad_param->pad_1_w               = tm_param->pad_c_1;
+    pad_param->pad_2_h               = tm_param->pad_h_0;
+    pad_param->pad_2_w               = tm_param->pad_h_1;
+    pad_param->pad_3_h               = tm_param->pad_w_0;
+    pad_param->pad_3_w               = tm_param->pad_w_1;
 
     return 0;
 }
+
 
 int register_tm2_pad_op()
 {
@@ -75,6 +78,7 @@ int register_tm2_pad_op()
 
     return 0;
 }
+
 
 int unregister_tm2_pad_op()
 {

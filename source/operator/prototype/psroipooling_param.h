@@ -27,10 +27,10 @@
 
 struct psroipooling_param
 {
-    int pooled_w;
-    int pooled_h;
+    int   pooled_w;
+    int   pooled_h;
     float spatial_scale;
-    int output_dim;
+    int   output_dim;
 };
 
 #endif

@@ -36,19 +36,20 @@
 
 #include <math.h>
 
+
 int ref_sparsetodense_fp32(struct tensor* input_tensor, struct tensor* output_shape_tensor,
                            struct tensor* sparse_values_tensor, struct tensor* output_tensor,
                            struct sparsetodense_param* param, int num_thread)
 {
-    int output_dim_size = output_shape_tensor->dim_num;
-    int indices_dim_size = input_tensor->dim_num;
-    int sparse_value_size = sparse_values_tensor->dim_num;
-    float default_value = param->default_value;
+    int   output_dim_size   = output_shape_tensor->dim_num;
+    int   indices_dim_size  = input_tensor->dim_num;
+    int   sparse_value_size = sparse_values_tensor->dim_num;
+    float default_value     = param->default_value;
 
-    int* input = input_tensor->data;
-    int* outout_shape = output_shape_tensor->data;
-    int* sparse_values = sparse_values_tensor->data;
-    float* output = output_tensor->data;
+    int*   input            = input_tensor->data;
+    int*   outout_shape     = output_shape_tensor->data;
+    int*   sparse_values    = sparse_values_tensor->data;
+    float* output           = output_tensor->data;
 
     if (output_dim_size == 1)
     {
@@ -116,8 +117,8 @@ int ref_sparsetodense_fp32(struct tensor* input_tensor, struct tensor* output_sh
         {
             for (int i = 0; i < input_tensor->dims[0] * 2; i += 2)
             {
-                int x = input[i];
-                int y = input[i + 1];
+                int x                           = input[i];
+                int y                           = input[i + 1];
                 output[outout_shape[1] * x + y] = *sparse_values;
             }
         }
@@ -125,8 +126,8 @@ int ref_sparsetodense_fp32(struct tensor* input_tensor, struct tensor* output_sh
         {
             for (int i = 0; i < input_tensor->dims[0] * 2; i += 2)
             {
-                int x = input[i];
-                int y = input[i + 1];
+                int x                           = input[i];
+                int y                           = input[i + 1];
                 output[outout_shape[1] * x + y] = sparse_values[i / 2];
             }
         }
@@ -152,18 +153,18 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node* ir_node = exec_node->ir_node;
-    struct graph* ir_graph = ir_node->graph;
+    struct node*   ir_node  = exec_node->ir_node;
+    struct graph*  ir_graph = ir_node->graph;
     struct tensor* input_tensor;
     struct tensor* output_shape_tensor;
     struct tensor* sparse_values_tensor;
     struct tensor* output_tensor;
-    int layout = ir_graph->graph_layout;
+    int            layout                           = ir_graph->graph_layout;
 
-    input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    output_shape_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
-    sparse_values_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[2]);
-    output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+    input_tensor                                    = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    output_shape_tensor                             = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
+    sparse_values_tensor                            = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[2]);
+    output_tensor                                   = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
     struct sparsetodense_param* sparsetodense_param = (struct sparsetodense_param*)ir_node->op.param_mem;
 
@@ -180,13 +181,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_CANDO;
 }
 
-static struct node_ops hcl_node_ops = {.prerun = prerun,
-                                       .run = run,
-                                       .reshape = NULL,
-                                       .postrun = NULL,
-                                       .init_node = init_node,
-                                       .release_node = release_node,
-                                       .score = score};
+static struct node_ops hcl_node_ops = { .prerun       = prerun,
+                                        .run          = run,
+                                        .reshape      = NULL,
+                                        .postrun      = NULL,
+                                        .init_node    = init_node,
+                                        .release_node = release_node,
+                                        .score        = score };
 
 int register_sparsetodense_ref_op()
 {

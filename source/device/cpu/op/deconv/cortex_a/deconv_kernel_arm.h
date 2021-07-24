@@ -28,14 +28,15 @@
 
 #include "graph/tensor.h"
 
+
 struct deconv_priv_info
 {
     float* interleave_buffer;
-    int interleave_buffer_size;
+    int    interleave_buffer_size;
     float* col_buffer;
-    int col_buffer_size;
+    int    col_buffer_size;
     float* trans_input_buffer;
-    int trans_input_size;
+    int    trans_input_size;
 };
 
 int deconv_hcl_prerun(struct tensor* input_tensor, struct tensor* filter_tensor, struct tensor* output_tensor,
@@ -46,5 +47,6 @@ int deconv_hcl_postrun(struct deconv_priv_info* info);
 int deconv_hcl_run(struct tensor* input_tensor, struct tensor* filter_tensor, struct tensor* bias_tensor,
                    struct tensor* output_tensor, struct deconv_priv_info* deconv_info, struct deconv_param* param,
                    int num_thread, int cpu_affinity);
+
 
 #endif

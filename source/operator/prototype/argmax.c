@@ -30,15 +30,16 @@
 #include "module/module.h"
 #include "utility/sys_port.h"
 
+
 static int infer_shape(struct node* node)
 {
-    struct graph* graph = node->graph;
-    struct tensor* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
-    struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
+    struct graph*  graph              = node->graph;
+    struct tensor* input              = get_ir_graph_tensor(graph, node->input_tensors[0]);
+    struct tensor* output             = get_ir_graph_tensor(graph, node->output_tensors[0]);
 
     struct argmax_param* argmax_param = (struct argmax_param*)(node->op.param_mem);
 
-    int axis = argmax_param->axis;
+    int axis                          = argmax_param->axis;
 
     if (axis >= input->dim_num)
     {
@@ -48,13 +49,13 @@ static int infer_shape(struct node* node)
     int outdims[TE_MAX_SHAPE_DIM_NUM * 2];
 
     // Change HWC to CHW
-    int tmp = input->dims[2];
+    int tmp        = input->dims[2];
     input->dims[2] = input->dims[1];
     input->dims[1] = input->dims[0];
     input->dims[0] = tmp;
     input->dims[3] = 1;
 
-    if (input->dims[0] != 1) // input 3 keepdimss
+    if (input->dims[0] != 1)    // input 3 keepdimss
     {
         for (int i = 0, j = 0; i < 3; i++)
         {
@@ -62,7 +63,7 @@ static int infer_shape(struct node* node)
                 outdims[j++] = input->dims[i];
         }
     }
-    else // input 2 keepdimss
+    else    // input 2 keepdimss
     {
         for (int i = 0, j = 0; i < 4; i++)
             outdims[j++] = input->dims[i];
@@ -73,7 +74,7 @@ static int infer_shape(struct node* node)
     if (argmax_param->keepdims == 2)
     {
         // Change CHW to HWC
-        tmp = input->dims[0];
+        tmp            = input->dims[0];
         input->dims[0] = input->dims[1];
         input->dims[1] = input->dims[2];
         input->dims[2] = tmp;
@@ -83,6 +84,7 @@ static int infer_shape(struct node* node)
 
     return 0;
 }
+
 
 static int init_op(struct op* op)
 {
@@ -94,31 +96,34 @@ static int init_op(struct op* op)
     }
 
     /*set the param default value */
-    argmax_param->axis = 0;
+    argmax_param->axis     = 0;
     argmax_param->keepdims = 1;
 
-    op->param_mem = argmax_param;
-    op->param_size = sizeof(struct argmax_param);
-    op->same_shape = 0;
-    op->infer_shape = infer_shape;
+    op->param_mem          = argmax_param;
+    op->param_size         = sizeof(struct argmax_param);
+    op->same_shape         = 0;
+    op->infer_shape        = infer_shape;
 
     return 0;
 }
+
 
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
 
+
 int register_argmax_op()
 {
     struct method m;
     m.version = 1;
-    m.init = init_op;
+    m.init    = init_op;
     m.release = release_op;
 
     return register_op(OP_ARGMAX, OP_ARGMAX_NAME, &m);
 }
+
 
 int unregister_argmax_op()
 {

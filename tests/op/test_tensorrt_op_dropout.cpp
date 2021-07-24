@@ -22,11 +22,13 @@
  * Author: qtang@openailab.com
  */
 
+
 #include "test_op.h"
 
 #include "graph/graph.h"
 #include "graph/node.h"
 #include "graph/tensor.h"
+
 
 int create_test_dropout_node(graph_t graph, const char* input_name, const char* node_name, int data_type, int layout,
                              int n, int c, int h, int w)
@@ -40,7 +42,7 @@ int create_test_dropout_node(graph_t graph, const char* input_name, const char* 
     /* create the test node */
     struct node* test_node = (struct node*)create_graph_node(graph, node_name, "Dropout");
 
-    tensor_t input_tensor = get_graph_tensor(graph, input_name);
+    tensor_t input_tensor  = get_graph_tensor(graph, input_name);
 
     if (NULL == input_tensor)
     {
@@ -65,29 +67,20 @@ int create_test_dropout_node(graph_t graph, const char* input_name, const char* 
  * float32 = (uint8 - zero_point) * scale
  */
 float input_fp32[6] = {
-    1.0f,
-    2.0f,
-    3.0f,
-    4.0f,
-    5.0f,
-    6.0f,
+    1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f,
 };
 
 float reference_out[6] = {
-    1.0f,
-    2.0f,
-    3.0f,
-    4.0f,
-    5.0f,
-    6.0f,
+    1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f,
 };
+
 
 int main(int argc, char* argv[])
 {
-    int n = 1, c = 2, h = 1, w = 3;
+    int         n = 1, c = 2, h = 1, w = 3;
     const char* test_node_name = "dropout";
-    int data_type = TENGINE_DT_FP32;
-    int layout = TENGINE_LAYOUT_NCHW;
+    int         data_type      = TENGINE_DT_FP32;
+    int         layout         = TENGINE_LAYOUT_NCHW;
 
     // init
     int ret = test_graph_init();
@@ -104,11 +97,13 @@ int main(int argc, char* argv[])
     dump_graph(ir_graph);
 
     // set quantize params
-    struct tensor* input_tensor = (struct tensor*)get_graph_tensor(ir_graph, "input_node");
+    struct tensor* input_tensor  = (struct tensor*)get_graph_tensor(ir_graph, "input_node");
     struct tensor* output_tensor = (struct tensor*)get_graph_tensor(ir_graph, "dropout");
+
 
     // set input data
     set_tensor_buffer(input_tensor, input_fp32, 6 * 4);
+
 
     // graph run
     ret = test_graph_run(ir_graph);
@@ -121,7 +116,7 @@ int main(int argc, char* argv[])
 
     // get output and dequant
     float* output_data = (float*)output_tensor->data;
-    int output_size = output_tensor->elem_num;
+    int    output_size = output_tensor->elem_num;
 
     // check the result
     ret = 0;

@@ -32,10 +32,11 @@
 #include "device/cpu/cpu_graph.h"
 #include "device/cpu/cpu_module.h"
 
+
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    exec_node->inplace_map[0] = 0;
-    exec_node->inplace_map[1] = 0;
+    exec_node->inplace_map[0]  = 0;
+    exec_node->inplace_map[1]  = 0;
     exec_node->inplace_map_num = 1;
     return 0;
 }
@@ -48,14 +49,14 @@ static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, 
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node* ir_node = exec_node->ir_node;
-    struct graph* ir_graph = ir_node->graph;
-    struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    struct node*   ir_node       = exec_node->ir_node;
+    struct graph*  ir_graph      = ir_node->graph;
+    struct tensor* input_tensor  = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
     if (input_tensor->data_type == TENGINE_DT_UINT8 || input_tensor->data_type == TENGINE_DT_INT8)
     {
-        output_tensor->scale = input_tensor->scale;
+        output_tensor->scale      = input_tensor->scale;
         output_tensor->zero_point = input_tensor->zero_point;
     }
 
@@ -73,13 +74,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_CANDO;
 }
 
-static struct node_ops hcl_node_ops = {.prerun = NULL,
-                                       .run = run,
-                                       .reshape = NULL,
-                                       .postrun = NULL,
-                                       .init_node = init_node,
-                                       .release_node = release_node,
-                                       .score = score};
+static struct node_ops hcl_node_ops = { .prerun       = NULL,
+                                        .run          = run,
+                                        .reshape      = NULL,
+                                        .postrun      = NULL,
+                                        .init_node    = init_node,
+                                        .release_node = release_node,
+                                        .score        = score };
 
 int register_dropout_ref_op()
 {

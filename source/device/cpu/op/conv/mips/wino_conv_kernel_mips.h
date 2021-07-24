@@ -30,8 +30,9 @@
 #include "graph/node.h"
 #include "graph/graph.h"
 
+
 #if __mips_msa
-#include <msa.h>
+    #include <msa.h>
 #endif
 
 int wino_conv_hcl_prerun(struct tensor* input_tensor, struct tensor* filter_tensor, struct tensor* output_tensor,

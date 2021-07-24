@@ -32,7 +32,8 @@
 #include <string>
 #include <fstream>
 
-extern "C" {
+extern "C"
+{
 #include "api/c_api.h"
 #include "graph/tensor.h"
 #include "graph/node.h"

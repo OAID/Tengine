@@ -45,9 +45,9 @@
 
 #include "reshape_param.h"
 
-namespace TEngine {
-class Reshape_vulkan : public Layer
+namespace TEngine
 {
+class Reshape_vulkan : public Layer {
 public:
     Reshape_vulkan();
     Reshape_vulkan(ir_graph_t* ir_graph, ir_node_t* ir_node);
@@ -92,6 +92,6 @@ public:
     int ndim;
 };
 
-} // namespace TEngine
+}    // namespace TEngine
 
 #endif

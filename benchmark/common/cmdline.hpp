@@ -37,19 +37,20 @@
 #include <cstring>
 #include <algorithm>
 #ifdef __GNUC__
-#include <cxxabi.h>
+    #include <cxxabi.h>
 #endif
 #include <cstdlib>
 
-namespace cmdline {
-namespace detail {
-template<typename Target, typename Source, bool Same>
-class lexical_cast_t
+namespace cmdline
 {
+namespace detail
+{
+template <typename Target, typename Source, bool Same>
+class lexical_cast_t {
 public:
     static Target cast(const Source& arg)
     {
-        Target ret;
+        Target            ret;
         std::stringstream ss;
         if (!(ss << arg && ss >> ret && ss.eof()))
             throw std::bad_cast();
@@ -58,9 +59,8 @@ public:
     }
 };
 
-template<typename Target, typename Source>
-class lexical_cast_t<Target, Source, true>
-{
+template <typename Target, typename Source>
+class lexical_cast_t<Target, Source, true> {
 public:
     static Target cast(const Source& arg)
     {
@@ -68,9 +68,8 @@ public:
     }
 };
 
-template<typename Source>
-class lexical_cast_t<std::string, Source, false>
-{
+template <typename Source>
+class lexical_cast_t<std::string, Source, false> {
 public:
     static std::string cast(const Source& arg)
     {
@@ -80,13 +79,12 @@ public:
     }
 };
 
-template<typename Target>
-class lexical_cast_t<Target, std::string, false>
-{
+template <typename Target>
+class lexical_cast_t<Target, std::string, false> {
 public:
     static Target cast(const std::string& arg)
     {
-        Target ret;
+        Target             ret;
         std::istringstream ss(arg);
         if (!(ss >> ret && ss.eof()))
             throw std::bad_cast();
@@ -94,19 +92,19 @@ public:
     }
 };
 
-template<typename T1, typename T2>
+template <typename T1, typename T2>
 struct is_same
 {
     static const bool value = false;
 };
 
-template<typename T>
+template <typename T>
 struct is_same<T, T>
 {
     static const bool value = true;
 };
 
-template<typename Target, typename Source>
+template <typename Target, typename Source>
 Target lexical_cast(const Source& arg)
 {
     return lexical_cast_t<Target, Source, detail::is_same<Target, Source>::value>::cast(arg);
@@ -115,52 +113,46 @@ Target lexical_cast(const Source& arg)
 static inline std::string demangle(const std::string& name)
 {
 #ifdef _MSC_VER
-    return name; // MSVC return name
+    return name;    // MSVC return name
 #elif defined(__GNUC__)
     // 为gcc编译器时还调用原来的代码
-    int status = 0;
-    char* p = abi::__cxa_demangle(name.c_str(), 0, 0, &status);
+    int         status = 0;
+    char*       p      = abi::__cxa_demangle(name.c_str(), 0, 0, &status);
     std::string ret(p);
     free(p);
     return ret;
 #else
-// other compiler need more work
-#error unexpected c complier (msc/gcc), Need to implement this method for demangle
+    // other compiler need more work
+    #error unexpected c complier (msc/gcc), Need to implement this method for demangle
 #endif
 }
 
-template<class T>
+template <class T>
 std::string readable_typename()
 {
     return demangle(typeid(T).name());
 }
 
-template<class T>
+template <class T>
 std::string default_value(T def)
 {
     return detail::lexical_cast<std::string>(def);
 }
 
-template<>
+template <>
 inline std::string readable_typename<std::string>()
 {
     return "string";
 }
 
-} // namespace detail
+}    // namespace detail
 
 //-----
 
-class cmdline_error : public std::exception
-{
+class cmdline_error : public std::exception {
 public:
-    cmdline_error(const std::string& msg)
-        : msg(msg)
-    {
-    }
-    ~cmdline_error() throw()
-    {
-    }
+    cmdline_error(const std::string& msg) : msg(msg) {}
+    ~cmdline_error() throw() {}
     const char* what() const throw()
     {
         return msg.c_str();
@@ -170,7 +162,7 @@ private:
     std::string msg;
 };
 
-template<class T>
+template <class T>
 struct default_reader
 {
     T operator()(const std::string& str)
@@ -179,13 +171,10 @@ struct default_reader
     }
 };
 
-template<class T>
+template <class T>
 struct range_reader
 {
-    range_reader(const T& low, const T& high)
-        : low(low), high(high)
-    {
-    }
+    range_reader(const T& low, const T& high) : low(low), high(high) {}
     T operator()(const std::string& s) const
     {
         T ret = default_reader<T>()(s);
@@ -198,13 +187,13 @@ private:
     T low, high;
 };
 
-template<class T>
+template <class T>
 range_reader<T> range(const T& low, const T& high)
 {
     return range_reader<T>(low, high);
 }
 
-template<class T>
+template <class T>
 struct oneof_reader
 {
     T operator()(const std::string& s)
@@ -223,7 +212,7 @@ private:
     std::vector<T> alt;
 };
 
-template<class T>
+template <class T>
 oneof_reader<T> oneof(T a1)
 {
     oneof_reader<T> ret;
@@ -231,7 +220,7 @@ oneof_reader<T> oneof(T a1)
     return ret;
 }
 
-template<class T>
+template <class T>
 oneof_reader<T> oneof(T a1, T a2)
 {
     oneof_reader<T> ret;
@@ -240,7 +229,7 @@ oneof_reader<T> oneof(T a1, T a2)
     return ret;
 }
 
-template<class T>
+template <class T>
 oneof_reader<T> oneof(T a1, T a2, T a3)
 {
     oneof_reader<T> ret;
@@ -250,7 +239,7 @@ oneof_reader<T> oneof(T a1, T a2, T a3)
     return ret;
 }
 
-template<class T>
+template <class T>
 oneof_reader<T> oneof(T a1, T a2, T a3, T a4)
 {
     oneof_reader<T> ret;
@@ -261,7 +250,7 @@ oneof_reader<T> oneof(T a1, T a2, T a3, T a4)
     return ret;
 }
 
-template<class T>
+template <class T>
 oneof_reader<T> oneof(T a1, T a2, T a3, T a4, T a5)
 {
     oneof_reader<T> ret;
@@ -273,7 +262,7 @@ oneof_reader<T> oneof(T a1, T a2, T a3, T a4, T a5)
     return ret;
 }
 
-template<class T>
+template <class T>
 oneof_reader<T> oneof(T a1, T a2, T a3, T a4, T a5, T a6)
 {
     oneof_reader<T> ret;
@@ -286,7 +275,7 @@ oneof_reader<T> oneof(T a1, T a2, T a3, T a4, T a5, T a6)
     return ret;
 }
 
-template<class T>
+template <class T>
 oneof_reader<T> oneof(T a1, T a2, T a3, T a4, T a5, T a6, T a7)
 {
     oneof_reader<T> ret;
@@ -300,7 +289,7 @@ oneof_reader<T> oneof(T a1, T a2, T a3, T a4, T a5, T a6, T a7)
     return ret;
 }
 
-template<class T>
+template <class T>
 oneof_reader<T> oneof(T a1, T a2, T a3, T a4, T a5, T a6, T a7, T a8)
 {
     oneof_reader<T> ret;
@@ -315,7 +304,7 @@ oneof_reader<T> oneof(T a1, T a2, T a3, T a4, T a5, T a6, T a7, T a8)
     return ret;
 }
 
-template<class T>
+template <class T>
 oneof_reader<T> oneof(T a1, T a2, T a3, T a4, T a5, T a6, T a7, T a8, T a9)
 {
     oneof_reader<T> ret;
@@ -331,7 +320,7 @@ oneof_reader<T> oneof(T a1, T a2, T a3, T a4, T a5, T a6, T a7, T a8, T a9)
     return ret;
 }
 
-template<class T>
+template <class T>
 oneof_reader<T> oneof(T a1, T a2, T a3, T a4, T a5, T a6, T a7, T a8, T a9, T a10)
 {
     oneof_reader<T> ret;
@@ -350,12 +339,9 @@ oneof_reader<T> oneof(T a1, T a2, T a3, T a4, T a5, T a6, T a7, T a8, T a9, T a1
 
 //-----
 
-class parser
-{
+class parser {
 public:
-    parser()
-    {
-    }
+    parser() {}
     ~parser()
     {
         for (std::map<std::string, option_base*>::iterator p = options.begin(); p != options.end(); p++)
@@ -370,14 +356,14 @@ public:
         ordered.push_back(options[name]);
     }
 
-    template<class T>
+    template <class T>
     void add(const std::string& name, char short_name = 0, const std::string& desc = "", bool need = true,
              const T def = T())
     {
         add(name, short_name, desc, need, def, default_reader<T>());
     }
 
-    template<class T, class F>
+    template <class T, class F>
     void add(const std::string& name, char short_name = 0, const std::string& desc = "", bool need = true,
              const T def = T(), F reader = F())
     {
@@ -404,7 +390,7 @@ public:
         return options.find(name)->second->has_set();
     }
 
-    template<class T>
+    template <class T>
     const T& get(const std::string& name) const
     {
         if (options.count(name) == 0)
@@ -425,7 +411,7 @@ public:
         std::vector<std::string> args;
 
         std::string buf;
-        bool in_quote = false;
+        bool        in_quote = false;
         for (std::string::size_type i = 0; i < arg.length(); i++)
         {
             if (arg[i] == '\"')
@@ -471,7 +457,7 @@ public:
 
     bool parse(const std::vector<std::string>& args)
     {
-        int argc = static_cast<int>(args.size());
+        int                      argc = static_cast<int>(args.size());
         std::vector<const char*> argv(argc);
 
         for (int i = 0; i < argc; i++)
@@ -687,8 +673,7 @@ private:
 
         if (!ok)
         {
-            std::cerr << error() << std::endl
-                      << usage();
+            std::cerr << error() << std::endl << usage();
             exit(1);
         }
     }
@@ -721,36 +706,29 @@ private:
         }
     }
 
-    class option_base
-    {
+    class option_base {
     public:
-        virtual ~option_base()
-        {
-        }
+        virtual ~option_base() {}
 
-        virtual bool has_value() const = 0;
-        virtual bool set() = 0;
-        virtual bool set(const std::string& value) = 0;
-        virtual bool has_set() const = 0;
-        virtual bool valid() const = 0;
-        virtual bool must() const = 0;
+        virtual bool has_value() const                       = 0;
+        virtual bool set()                                   = 0;
+        virtual bool set(const std::string& value)           = 0;
+        virtual bool has_set() const                         = 0;
+        virtual bool valid() const                           = 0;
+        virtual bool must() const                            = 0;
 
-        virtual const std::string& name() const = 0;
-        virtual char short_name() const = 0;
-        virtual const std::string& description() const = 0;
-        virtual std::string short_description() const = 0;
+        virtual const std::string& name() const              = 0;
+        virtual char               short_name() const        = 0;
+        virtual const std::string& description() const       = 0;
+        virtual std::string        short_description() const = 0;
     };
 
-    class option_without_value : public option_base
-    {
+    class option_without_value : public option_base {
     public:
         option_without_value(const std::string& name, char short_name, const std::string& desc)
             : nam(name), snam(short_name), desc(desc), has(false)
-        {
-        }
-        ~option_without_value()
-        {
-        }
+        {}
+        ~option_without_value() {}
 
         bool has_value() const
         {
@@ -805,23 +783,20 @@ private:
 
     private:
         std::string nam;
-        char snam;
+        char        snam;
         std::string desc;
-        bool has;
+        bool        has;
     };
 
-    template<class T>
-    class option_with_value : public option_base
-    {
+    template <class T>
+    class option_with_value : public option_base {
     public:
         option_with_value(const std::string& name, char short_name, bool need, const T& def, const std::string& desc)
             : nam(name), snam(short_name), need(need), has(false), def(def), actual(def)
         {
             this->desc = full_description(desc);
         }
-        ~option_with_value()
-        {
-        }
+        ~option_with_value() {}
 
         const T& get() const
         {
@@ -843,7 +818,7 @@ private:
             try
             {
                 actual = read(value);
-                has = true;
+                has    = true;
             }
             catch (const std::exception& e)
             {
@@ -900,24 +875,22 @@ private:
         virtual T read(const std::string& s) = 0;
 
         std::string nam;
-        char snam;
-        bool need;
+        char        snam;
+        bool        need;
         std::string desc;
 
         bool has;
-        T def;
-        T actual;
+        T    def;
+        T    actual;
     };
 
-    template<class T, class F>
-    class option_with_value_with_reader : public option_with_value<T>
-    {
+    template <class T, class F>
+    class option_with_value_with_reader : public option_with_value<T> {
     public:
         option_with_value_with_reader(const std::string& name, char short_name, bool need, const T def,
                                       const std::string& desc, F reader)
             : option_with_value<T>(name, short_name, need, def, desc), reader(reader)
-        {
-        }
+        {}
 
     private:
         T read(const std::string& s)
@@ -929,13 +902,13 @@ private:
     };
 
     std::map<std::string, option_base*> options;
-    std::vector<option_base*> ordered;
-    std::string ftr;
+    std::vector<option_base*>           ordered;
+    std::string                         ftr;
 
-    std::string prog_name;
+    std::string              prog_name;
     std::vector<std::string> others;
 
     std::vector<std::string> errors;
 };
 
-} // namespace cmdline
+}    // namespace cmdline

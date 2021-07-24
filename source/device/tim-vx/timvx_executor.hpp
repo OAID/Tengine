@@ -24,7 +24,8 @@
 
 #pragma once
 
-extern "C" {
+extern "C"
+{
 #include "device/device.h"
 #include "graph/tensor.h"
 #include "graph/node.h"
@@ -43,6 +44,7 @@ extern "C" {
 #include <tuple>
 #include <vector>
 #include <cmath>
+
 
 #include "convolution_param.h"
 
@@ -81,17 +83,18 @@ extern "C" {
 #define SPEC_TYPE_RESHAPE   8
 #define SPEC_TYPE_INPUT     9
 
-typedef std::map<uint32_t, std::shared_ptr<tim::vx::Tensor> > dict_irt2vxt;
-typedef std::map<uint32_t, std::shared_ptr<tim::vx::Operation> > dict_irt2vxo;
 
-class VXEngine
-{
+typedef std::map<uint32_t, std::shared_ptr<tim::vx::Tensor>>    dict_irt2vxt;
+typedef std::map<uint32_t, std::shared_ptr<tim::vx::Operation>> dict_irt2vxo;
+
+
+class VXEngine {
 public:
     VXEngine();
     ~VXEngine() = default;
 
-    int VXEnginePreRun(struct subgraph* subgraph);
-    int VXEngineRun(struct subgraph* subgraph);
+    int  VXEnginePreRun(struct subgraph* subgraph);
+    int  VXEngineRun(struct subgraph* subgraph);
     void VXEnginePostRun();
 
 private:
@@ -130,11 +133,13 @@ private:
     bool AddTransposeNode(struct node* ir_node);
     bool AddUpsampleNode(struct node* ir_node);
 
+
 public:
-    std::shared_ptr<tim::vx::Context> context;
-    std::shared_ptr<tim::vx::Graph> graph;
+    std::shared_ptr<tim::vx::Context>   context;
+    std::shared_ptr<tim::vx::Graph>     graph;
     std::shared_ptr<tim::vx::Operation> ops;
-    std::vector<char> nbg_buffer;
+    std::vector<char>                   nbg_buffer;
+
 
 private:
     dict_irt2vxt vx_tensor_map;

@@ -29,7 +29,9 @@
 
 #include "op_name.h"
 
+
 struct node;
+
 
 /*!
  * @enum  op_type
@@ -142,19 +144,21 @@ enum
     OP_BUILTIN_LAST
 };
 
+
 /*!
  * @struct ir_op_t
  * @brief  Abstract operator intermediate representation
  */
 typedef struct op
 {
-    uint16_t type;                    //!< the type of a operator
-    uint8_t version;                  //!< the version of a operator
-    uint8_t same_shape;               //!< the flag of whether the operator will keep shape
-    uint16_t param_size;              //!< size of parameter memory buffer
-    void* param_mem;                  //!< parameter memory buffer
-    int (*infer_shape)(struct node*); //!< infer(or broadcast) the shape from input to output(s)
+    uint16_t type;                       //!< the type of a operator
+    uint8_t  version;                    //!< the version of a operator
+    uint8_t  same_shape;                 //!< the flag of whether the operator will keep shape
+    uint16_t param_size;                 //!< size of parameter memory buffer
+    void*    param_mem;                  //!< parameter memory buffer
+    int (*infer_shape)(struct node*);    //!< infer(or broadcast) the shape from input to output(s)
 } ir_op_t;
+
 
 /*!
  * @struct ir_op_method_t
@@ -162,12 +166,14 @@ typedef struct op
  */
 typedef struct method
 {
-    int type;    //!< the type of a operator
-    int version; //!< the version of a operator
+    int type;       //!< the type of a operator
+    int version;    //!< the version of a operator
     int (*init)(ir_op_t* op);
     void (*release)(ir_op_t* op);
 } ir_method_t;
 
+
 void init_op_struct(ir_op_t* op);
+
 
 void init_method_struct(ir_method_t* method);

@@ -22,7 +22,9 @@
  * Author: lswang@openailab.com
  */
 
-extern "C" {
+
+extern "C"
+{
 #include "api/c_api.h"
 #include "device/device.h"
 #include "graph/tensor.h"
@@ -52,21 +54,20 @@ extern "C" {
 struct VULKANqueue
 {
     std::string name;
-    int dims;
+    int         dims;
     // cl_kernel queue_kernel;
     // cl_event enentPoint;
     size_t* queue_global_work_size;
     size_t* queue_local_work_size;
 };
 
-class VULKANEngine
-{
+class VULKANEngine {
 public:
     //    VULKANEngine();
     //    ~VULKANEngine() = default;
 
-    int VULKANEnginePreRun(struct subgraph* subgraph);
-    int VULKANEngineRun(struct subgraph* subgraph);
+    int  VULKANEnginePreRun(struct subgraph* subgraph);
+    int  VULKANEngineRun(struct subgraph* subgraph);
     void VULKANEnginePostRun();
 
 private:

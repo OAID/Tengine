@@ -29,6 +29,7 @@
 
 #include <stddef.h>
 
+
 static int init_op(struct op* op)
 {
     op->same_shape = 1;
@@ -36,15 +37,18 @@ static int init_op(struct op* op)
     return 0;
 }
 
+
 int register_add_n_op()
 {
     struct method m;
     m.version = 1;
-    m.init = init_op;
+    m.init    = init_op;
     m.release = NULL;
+
 
     return register_op(OP_ADD_N, OP_ADD_N_NAME, &m);
 }
+
 
 int unregister_add_n_op()
 {

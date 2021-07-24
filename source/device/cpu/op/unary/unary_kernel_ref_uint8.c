@@ -38,20 +38,21 @@
 
 #include <math.h>
 
+
 int ref_unary_uint8(struct tensor* input_tensor, struct tensor* output_tensor, struct unary_param* param)
 {
     /* dequant */
-    uint8_t* input_uint8 = input_tensor->data;
+    uint8_t* input_uint8  = input_tensor->data;
     uint8_t* output_uint8 = output_tensor->data;
-    float input_scale = input_tensor->scale;
-    float output_scale = output_tensor->scale;
-    int32_t input_zero = input_tensor->zero_point;
-    int32_t output_zero = output_tensor->zero_point;
-    int input_size = input_tensor->elem_num;
-    int output_size = output_tensor->elem_num;
+    float    input_scale  = input_tensor->scale;
+    float    output_scale = output_tensor->scale;
+    int32_t  input_zero   = input_tensor->zero_point;
+    int32_t  output_zero  = output_tensor->zero_point;
+    int      input_size   = input_tensor->elem_num;
+    int      output_size  = output_tensor->elem_num;
 
-    float* in_data = (float*)sys_malloc(input_size * sizeof(float));
-    float* out_data = (float*)sys_malloc(output_size * sizeof(float));
+    float* in_data        = (float*)sys_malloc(input_size * sizeof(float));
+    float* out_data       = (float*)sys_malloc(output_size * sizeof(float));
 
     for (int i = 0; i < input_size; i++)
     {

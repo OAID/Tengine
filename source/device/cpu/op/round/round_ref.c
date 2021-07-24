@@ -34,14 +34,15 @@
 
 #include <math.h>
 
+
 int ref_round_fp32(struct tensor* input_tensor, struct tensor* output_tensor, int num_thread)
 {
     // dims size = 2 or 3
     if (input_tensor->dim_num < 4)
     {
         float* input_data = input_tensor->data;
-        float* out_data = output_tensor->data;
-        int total_size = input_tensor->elem_num;
+        float* out_data   = output_tensor->data;
+        int    total_size = input_tensor->elem_num;
 
         for (int i = 0; i < total_size; i++)
         {
@@ -53,14 +54,14 @@ int ref_round_fp32(struct tensor* input_tensor, struct tensor* output_tensor, in
     // dims size 3
     else if (input_tensor->dim_num == 4)
     {
-        int w = input_tensor->dims[3];
-        int h = output_tensor->dims[2];
-        int channels = input_tensor->dims[1];
-        int size = h * w;
-        int c_step = h * w;
+        int w             = input_tensor->dims[3];
+        int h             = output_tensor->dims[2];
+        int channels      = input_tensor->dims[1];
+        int size          = h * w;
+        int c_step        = h * w;
 
         float* input_data = input_tensor->data;
-        float* out_data = output_tensor->data;
+        float* out_data   = output_tensor->data;
 
 #pragma omp parallel for num_threads(num_thread)
         for (int q = 0; q < channels; q++)
@@ -101,14 +102,14 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node* ir_node = exec_node->ir_node;
-    struct graph* ir_graph = ir_node->graph;
+    struct node*   ir_node  = exec_node->ir_node;
+    struct graph*  ir_graph = ir_node->graph;
     struct tensor* input_tensor;
     struct tensor* output_tensor;
-    int layout = ir_graph->graph_layout;
+    int            layout = ir_graph->graph_layout;
 
-    input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+    input_tensor          = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    output_tensor         = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
     // inplace inference
     // if(input_tensor->data != output_tensor->data)
@@ -130,13 +131,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_CANDO;
 }
 
-static struct node_ops hcl_node_ops = {.prerun = prerun,
-                                       .run = run,
-                                       .reshape = NULL,
-                                       .postrun = NULL,
-                                       .init_node = init_node,
-                                       .release_node = release_node,
-                                       .score = score};
+static struct node_ops hcl_node_ops = { .prerun       = prerun,
+                                        .run          = run,
+                                        .reshape      = NULL,
+                                        .postrun      = NULL,
+                                        .init_node    = init_node,
+                                        .release_node = release_node,
+                                        .score        = score };
 
 int register_round_ref_op()
 {

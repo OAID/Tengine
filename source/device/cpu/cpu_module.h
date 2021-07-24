@@ -24,10 +24,12 @@
 
 #pragma once
 
+
 struct node_ops;
 struct exec_graph;
 
-int init_cpu_node_ops_registry(void);
+
+int  init_cpu_node_ops_registry(void);
 void release_cpu_node_ops_registry(void);
 
 int register_builtin_node_ops(int op_type, struct node_ops* node_ops);

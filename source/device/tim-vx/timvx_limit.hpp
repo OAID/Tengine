@@ -24,9 +24,11 @@
 
 #pragma once
 
-extern "C" {
+extern "C"
+{
 #include "operator/op.h"
 }
+
 
 const int timvx_supported_ops[] = {
 

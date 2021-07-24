@@ -28,14 +28,17 @@
 
 #include "device/device.h"
 
+
 struct node_ops;
 struct node;
+
 
 struct cpu_device
 {
     struct device base;
-    uint8_t master_cpu;
-    uint8_t cpu_model;
+    uint8_t       master_cpu;
+    uint8_t       cpu_model;
 };
+
 
 int register_cpu_device(void);

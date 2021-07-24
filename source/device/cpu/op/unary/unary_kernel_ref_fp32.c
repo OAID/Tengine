@@ -38,13 +38,14 @@
 
 #include <math.h>
 
+
 int ref_unary_fp32(struct tensor* input_tensor, struct tensor* output_tensor, struct unary_param* param)
 {
-    float* in_data = input_tensor->data;
+    float* in_data  = input_tensor->data;
     float* out_data = output_tensor->data;
 
-    int size = input_tensor->elem_num;
-    int type = param->type;
+    int size        = input_tensor->elem_num;
+    int type        = param->type;
 
     switch (type)
     {

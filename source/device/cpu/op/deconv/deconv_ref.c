@@ -36,20 +36,21 @@
 
 #include <string.h>
 
+
 struct deconv_ref_param
 {
-    int in_shape[4];  // NCHW
-    int out_shape[3]; // CHW
-    int kernels[2];   // hw
-    int strides[2];   // hw
-    int dilations[2]; // hw
-    int pads[2];
-    int batch;
-    int group;
-    int activation;
-    int layout;
-    int zero[3];    // input, kernel, output
-    float scale[3]; // input, kernel, output
+    int   in_shape[4];     // NCHW
+    int   out_shape[3];    // CHW
+    int   kernels[2];      // hw
+    int   strides[2];      // hw
+    int   dilations[2];    // hw
+    int   pads[2];
+    int   batch;
+    int   group;
+    int   activation;
+    int   layout;
+    int   zero[3];     // input, kernel, output
+    float scale[3];    // input, kernel, output
 };
 
 static inline float activation(float input, int activation)
@@ -70,20 +71,20 @@ static inline float activation(float input, int activation)
 static int ref_deconv_fp32(const float* input, float* output, const float* kernel, const float* bias,
                            const struct deconv_ref_param* param)
 {
-    int batch = param->batch;
-    int group = param->group;
-    int input_c = param->in_shape[0] / group;
-    int input_h = param->in_shape[1];
-    int input_w = param->in_shape[2];
-    int output_c = param->out_shape[0] / group;
-    int output_h = param->out_shape[1];
-    int output_w = param->out_shape[2];
-    int kernel_h = param->kernels[0];
-    int kernel_w = param->kernels[1];
-    int pad_h0 = param->pads[0];
-    int pad_w0 = param->pads[1];
-    int stride_h = param->strides[0];
-    int stride_w = param->strides[1];
+    int batch      = param->batch;
+    int group      = param->group;
+    int input_c    = param->in_shape[0] / group;
+    int input_h    = param->in_shape[1];
+    int input_w    = param->in_shape[2];
+    int output_c   = param->out_shape[0] / group;
+    int output_h   = param->out_shape[1];
+    int output_w   = param->out_shape[2];
+    int kernel_h   = param->kernels[0];
+    int kernel_w   = param->kernels[1];
+    int pad_h0     = param->pads[0];
+    int pad_w0     = param->pads[1];
+    int stride_h   = param->strides[0];
+    int stride_w   = param->strides[1];
     int dilation_h = param->dilations[0];
     int dilation_w = param->dilations[1];
 
@@ -95,9 +96,9 @@ static int ref_deconv_fp32(const float* input, float* output, const float* kerne
 
     float input_val;
     float weight_val;
-    float bias_val = 0;
+    float bias_val    = 0;
 
-    int input_offset = 0;
+    int input_offset  = 0;
     int kernel_offset = 0;
     int output_offset = 0;
 
@@ -210,25 +211,25 @@ static int ref_deconv_fp32(const float* input, float* output, const float* kerne
 
 static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node* ir_node = exec_node->ir_node;
-    struct graph* ir_graph = ir_node->graph;
-    struct graph* graph = ir_node->graph;
+    struct node*  ir_node             = exec_node->ir_node;
+    struct graph* ir_graph            = ir_node->graph;
+    struct graph* graph               = ir_node->graph;
 
-    struct deconv_param* param = (struct deconv_param*)(ir_node->op.param_mem);
+    struct deconv_param*     param    = (struct deconv_param*)(ir_node->op.param_mem);
     struct deconv_ref_param* op_param = (struct deconv_ref_param*)exec_node->ops_priv;
 
-    struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    struct tensor* input_tensor       = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
 
-    if (graph->graph_layout == TENGINE_LAYOUT_NCHW) // nchw
+    if (graph->graph_layout == TENGINE_LAYOUT_NCHW)    // nchw
     {
-        op_param->batch = input_tensor->dims[0];
+        op_param->batch       = input_tensor->dims[0];
         op_param->in_shape[0] = input_tensor->dims[1];
         op_param->in_shape[1] = input_tensor->dims[2];
         op_param->in_shape[2] = input_tensor->dims[3];
     }
-    else // nhwc
+    else    // nhwc
     {
-        op_param->batch = input_tensor->dims[0];
+        op_param->batch       = input_tensor->dims[0];
         op_param->in_shape[0] = input_tensor->dims[3];
         op_param->in_shape[1] = input_tensor->dims[1];
         op_param->in_shape[2] = input_tensor->dims[2];
@@ -238,12 +239,12 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
 
     struct tensor* weight_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
 
-    if (graph->graph_layout == TENGINE_LAYOUT_NCHW) // hw
+    if (graph->graph_layout == TENGINE_LAYOUT_NCHW)    // hw
     {
         op_param->kernels[0] = weight_tensor->dims[2];
         op_param->kernels[1] = weight_tensor->dims[3];
     }
-    else //
+    else    //
     {
         op_param->kernels[0] = weight_tensor->dims[1];
         op_param->kernels[1] = weight_tensor->dims[2];
@@ -253,7 +254,7 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
 
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    if (graph->graph_layout == TENGINE_LAYOUT_NCHW) // chw
+    if (graph->graph_layout == TENGINE_LAYOUT_NCHW)    // chw
     {
         op_param->out_shape[0] = output_tensor->dims[1];
         op_param->out_shape[1] = output_tensor->dims[2];
@@ -266,29 +267,29 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
         op_param->out_shape[2] = output_tensor->dims[2];
     }
 
-    op_param->strides[0] = param->stride_h;
-    op_param->strides[1] = param->stride_w;
+    op_param->strides[0]   = param->stride_h;
+    op_param->strides[1]   = param->stride_w;
 
     op_param->dilations[1] = param->dilation_h;
     op_param->dilations[0] = param->dilation_w;
 
-    op_param->pads[0] = param->pad_h0; // pad_h
-    op_param->pads[1] = param->pad_w0; // pad_w
+    op_param->pads[0]      = param->pad_h0;    // pad_h
+    op_param->pads[1]      = param->pad_w0;    // pad_w
 
-    op_param->group = param->group;
-    op_param->activation = param->activation;
-    op_param->layout = TENGINE_LAYOUT_NCHW;
+    op_param->group        = param->group;
+    op_param->activation   = param->activation;
+    op_param->layout       = TENGINE_LAYOUT_NCHW;
 
     return 0;
 }
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node* ir_node = exec_node->ir_node;
-    struct graph* ir_graph = ir_node->graph;
-    struct tensor* i_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    struct node*   ir_node       = exec_node->ir_node;
+    struct graph*  ir_graph      = ir_node->graph;
+    struct tensor* i_tensor      = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     struct tensor* weight_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
-    struct tensor* bias_tensor = NULL;
+    struct tensor* bias_tensor   = NULL;
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
     if (ir_node->input_num > 2)
@@ -296,11 +297,11 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         bias_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[2]);
     }
 
-    void* output_data = output_tensor->data;
-    const void* input_data = i_tensor->data;
-    const void* kernel = weight_tensor->data;
+    void*       output_data = output_tensor->data;
+    const void* input_data  = i_tensor->data;
+    const void* kernel      = weight_tensor->data;
 
-    const void* bias = NULL;
+    const void* bias        = NULL;
     if (bias_tensor != NULL)
         bias = bias_tensor->data;
 
@@ -325,7 +326,7 @@ static int postrun(struct node_ops* node_ops, struct exec_node* exec_node, struc
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     struct deconv_ref_param* deconv_ref_param = (struct deconv_ref_param*)sys_malloc(sizeof(struct deconv_ref_param));
-    exec_node->ops_priv = deconv_ref_param;
+    exec_node->ops_priv                       = deconv_ref_param;
     return 0;
 }
 
@@ -342,13 +343,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_CANDO;
 }
 
-static struct node_ops hcl_node_ops = {.prerun = prerun,
-                                       .run = run,
-                                       .reshape = reshape,
-                                       .postrun = postrun,
-                                       .init_node = init_node,
-                                       .release_node = release_node,
-                                       .score = score};
+static struct node_ops hcl_node_ops = { .prerun       = prerun,
+                                        .run          = run,
+                                        .reshape      = reshape,
+                                        .postrun      = postrun,
+                                        .init_node    = init_node,
+                                        .release_node = release_node,
+                                        .score        = score };
 
 int register_deconv_ref_op()
 {

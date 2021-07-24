@@ -40,15 +40,16 @@
 #include "packing_vulkan.hpp"
 #include "../layer_shader_type.h"
 
-namespace TEngine {
+namespace TEngine
+{
 Packing_vulkan::Packing_vulkan()
 {
     support_vulkan = true;
     // support_image_storage = true;
 
-    pipeline_packing = 0;
-    pipeline_packing_pack4 = 0;
-    pipeline_packing_pack8 = 0;
+    pipeline_packing          = 0;
+    pipeline_packing_pack4    = 0;
+    pipeline_packing_pack8    = 0;
     pipeline_packing_pack1to4 = 0;
     pipeline_packing_pack4to1 = 0;
     pipeline_packing_pack1to8 = 0;
@@ -88,6 +89,7 @@ int Packing_vulkan::create_pipeline(const Option& _opt)
     // if (out_shape.dims == 2) out_shape_packed = Mat(out_shape.w, out_shape.h / out_elempack, (void*)0, out_elemsize, out_elempack);
     // if (out_shape.dims == 3) out_shape_packed = Mat(out_shape.w, out_shape.h, out_shape.c / out_elempack, (void*)0, out_elemsize, out_elempack);
 
+
     // check blob shape
     // if (!vkdev->shape_support_image_storage(out_shape_packed))
     {
@@ -96,22 +98,23 @@ int Packing_vulkan::create_pipeline(const Option& _opt)
     }
 
     std::vector<vk_specialization_type> specializations(2 + 10);
-    specializations[0].i = storage_type_from;
-    specializations[1].i = storage_type_to;
-    specializations[2 + 0].i = 0; // FIXME shape elempack may be dynamic
+    specializations[0].i     = storage_type_from;
+    specializations[1].i     = storage_type_to;
+    specializations[2 + 0].i = 0;    // FIXME shape elempack may be dynamic
     specializations[2 + 1].i = 0;
     specializations[2 + 2].i = 0;
     specializations[2 + 3].i = 0;
     specializations[2 + 4].i = 0;
-    specializations[2 + 5].i = 0; //out_shape_packed_dims;
-    specializations[2 + 6].i = 0; //out_shape_packed_w;
-    specializations[2 + 7].i = 0; //out_shape_packed_h;
-    specializations[2 + 8].i = 0; //out_shape_packed_c;
-    specializations[2 + 9].i = 0; //out_shape_packed_cstep;
+    specializations[2 + 5].i = 0;    //out_shape_packed_dims;
+    specializations[2 + 6].i = 0;    //out_shape_packed_w;
+    specializations[2 + 7].i = 0;    //out_shape_packed_h;
+    specializations[2 + 8].i = 0;    //out_shape_packed_c;
+    specializations[2 + 9].i = 0;    //out_shape_packed_cstep;
+
 
     // printf("out shape dims:%d ---------------------------------\n", out_shape_packed_dims);
 
-    VkTensor local_size_xyz; // TODO more precise group size guessed from out_shape_packed
+    VkTensor local_size_xyz;    // TODO more precise group size guessed from out_shape_packed
     if (out_shape_packed_dims == 1)
     {
         local_size_xyz.w = 64;
@@ -271,10 +274,10 @@ int Packing_vulkan::record_pipeline(const VkTensor& bottom_blob, VkTensor& top_b
         return 0;
     }
 
-    int w = bottom_blob.w;
-    int h = bottom_blob.h;
-    int channels = bottom_blob.c;
-    int dims = bottom_blob.dims;
+    int    w        = bottom_blob.w;
+    int    h        = bottom_blob.h;
+    int    channels = bottom_blob.c;
+    int    dims     = bottom_blob.dims;
     size_t elemsize = bottom_blob.elemsize;
 
     if (!use_padding)
@@ -331,7 +334,7 @@ int Packing_vulkan::record_pipeline(const VkTensor& bottom_blob, VkTensor& top_b
         if (out_elempack == 1)
             out_elemsize = 4u;
     }
-    else // if (cast_type_to == 3)
+    else    // if (cast_type_to == 3)
     {
         out_elemsize = out_elempack * 2u;
     }
@@ -341,9 +344,9 @@ int Packing_vulkan::record_pipeline(const VkTensor& bottom_blob, VkTensor& top_b
         if (opt.use_fp16_storage && out_elempack == 1 && cast_type_from == cast_type_to
             && bottom_blob.allocator == opt.blob_vkallocator)
         {
-            top_blob = bottom_blob;
-            top_blob.w = w * elempack;
-            top_blob.cstep = w * elempack;
+            top_blob          = bottom_blob;
+            top_blob.w        = w * elempack;
+            top_blob.cstep    = w * elempack;
             top_blob.elemsize = elemsize / elempack;
             top_blob.elempack = out_elempack;
             return 0;
@@ -490,8 +493,9 @@ int Packing_vulkan::record_pipeline(const VkTensor& bottom_blob, VkTensor& top_b
         cmd.record_pipeline(pipeline_packing_pack8to1, buffer_bindings, image_bindings, constants, bottom_blob);
     }
 
+
     // printf("run packing vulkan record pipeline\n");
     return 0;
 }
 
-} // namespace TEngine
+}    // namespace TEngine

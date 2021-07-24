@@ -73,17 +73,17 @@ void show_usage()
 
 int main(int argc, char* argv[])
 {
-    int repeat_count = DEFAULT_REPEAT_COUNT;
-    int num_thread = DEFAULT_THREAD_COUNT;
-    char model_string[] = "./models/hrnet.tmfile";
-    char* model_file = model_string;
-    char* image_file = nullptr;
-    int img_h = LETTERBOX_COLS;
-    int img_w = LETTERBOX_ROWS;
+    int   repeat_count   = DEFAULT_REPEAT_COUNT;
+    int   num_thread     = DEFAULT_THREAD_COUNT;
+    char  model_string[] = "./models/hrnet.tmfile";
+    char* model_file     = model_string;
+    char* image_file     = nullptr;
+    int   img_h          = LETTERBOX_COLS;
+    int   img_w          = LETTERBOX_ROWS;
     // ai_body_parts_s pose;
 
-    float mean[3] = {123.67f, 116.28f, 103.53f};
-    float scale[3] = {0.017125f, 0.017507f, 0.017429f};
+    float mean[3]  = { 123.67f, 116.28f, 103.53f };
+    float scale[3] = { 0.017125f, 0.017507f, 0.017429f };
 
     int res;
     while ((res = getopt(argc, argv, "m:r:t:h:")) != -1)
@@ -118,12 +118,13 @@ int main(int argc, char* argv[])
     if (!check_file_exist(model_file))
         return -1;
 
+
     /* set runtime options */
     struct options opt;
     opt.num_thread = num_thread;
-    opt.cluster = TENGINE_CLUSTER_ALL;
-    opt.precision = TENGINE_MODE_FP32;
-    opt.affinity = 0;
+    opt.cluster    = TENGINE_CLUSTER_ALL;
+    opt.precision  = TENGINE_MODE_FP32;
+    opt.affinity   = 0;
 
     /* inital tengine */
     if (init_tengine() != 0)
@@ -142,8 +143,8 @@ int main(int argc, char* argv[])
     }
 
     /* set the input shape to initial the graph, and prerun graph to infer shape */
-    int img_size = img_h * img_w * 3;
-    int dims[] = {1, 3, img_h, img_w}; // nchw
+    int                img_size = img_h * img_w * 3;
+    int                dims[]   = { 1, 3, img_h, img_w };    // nchw
     std::vector<float> input_data(img_size);
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
@@ -175,7 +176,7 @@ int main(int argc, char* argv[])
     /* prepare process input data, set the data mem to input tensor */
     std::string model_name = "hrnet";
     std::string input_file = "./data/" + model_name + "_in.bin";
-    FILE* fp;
+    FILE*       fp;
     fp = fopen(input_file.c_str(), "rb");
     if (fread(input_data.data(), sizeof(float), img_size, fp) == 0)
     {
@@ -185,8 +186,8 @@ int main(int argc, char* argv[])
     fclose(fp);
 
     /* run graph */
-    double min_time = DBL_MAX;
-    double max_time = DBL_MIN;
+    double min_time   = DBL_MAX;
+    double max_time   = DBL_MIN;
     double total_time = 0.;
     for (int i = 0; i < repeat_count; i++)
     {
@@ -206,14 +207,14 @@ int main(int argc, char* argv[])
             total_time / repeat_count);
 
     /* get output tensor */
-    tensor_t output_tensor = get_graph_output_tensor(graph, 0, 0);
+    tensor_t output_tensor             = get_graph_output_tensor(graph, 0, 0);
 
-    float* data = (float*)(get_tensor_buffer(output_tensor));
-    int output_size1 = get_tensor_buffer_size(output_tensor) / (sizeof(float));
+    float* data                        = (float*)(get_tensor_buffer(output_tensor));
+    int    output_size1                = get_tensor_buffer_size(output_tensor) / (sizeof(float));
 
-    std::string reference_file1 = "./data/" + model_name + "_out.bin";
+    std::string        reference_file1 = "./data/" + model_name + "_out.bin";
     std::vector<float> reference_data1(output_size1);
-    FILE* fp1;
+    FILE*              fp1;
     fp1 = fopen(reference_file1.c_str(), "rb");
     if (fread(reference_data1.data(), sizeof(float), output_size1, fp1) == 0)
     {

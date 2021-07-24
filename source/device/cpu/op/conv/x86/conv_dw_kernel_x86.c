@@ -40,11 +40,12 @@
 #include <math.h>
 
 #if __SSE2__
-#include <emmintrin.h>
+    #include <emmintrin.h>
 #endif
 #if __AVX__
-#include <immintrin.h>
+    #include <immintrin.h>
 #endif
+
 
 #define max(a, b) ((a) > (b) ? (a) : (b))
 #define min(a, b) ((a) < (b) ? (a) : (b))
@@ -64,10 +65,10 @@ static void relu(float* data, int size, int activation)
 
 static void pad(float* input, float* output, int in_h, int in_w, int out_h, int out_w, int top, int left, float v)
 {
-    float* ptr = input;
+    float* ptr    = input;
     float* outptr = output;
 
-    int y = 0;
+    int y         = 0;
     // fill top
     for (; y < top; y++)
     {
@@ -121,18 +122,18 @@ static void pad(float* input, float* output, int in_h, int in_w, int out_h, int 
 static void convdw3x3s1(float* output, float* img_data, float* kernel_data, float* bias_data, int inc, int inh, int inw,
                         int outh, int outw, int num_thread)
 {
-    int inwh = inw * inh;
-    int outwh = outw * outh;
-    int channel_count = inc >> 3;
+    int inwh           = inw * inh;
+    int outwh          = outw * outh;
+    int channel_count  = inc >> 3;
     int channel_remain = inc - (channel_count << 3);
     // generate the image tmp
-    float* img_tmp = (float*)sys_malloc(8 * (unsigned long)inwh * (channel_count + 1) * sizeof(float));
+    float* img_tmp    = (float*)sys_malloc(8 * (unsigned long)inwh * (channel_count + 1) * sizeof(float));
     float* kernel_tmp = (float*)sys_malloc(8 * 9 * (channel_count + 1) * sizeof(float));
-    float* bias_tmp = (float*)sys_malloc(8 * (channel_count + 1) * sizeof(float));
+    float* bias_tmp   = (float*)sys_malloc(8 * (channel_count + 1) * sizeof(float));
     {
         for (int i = 0; i < channel_count; i++)
         {
-            int ii = i * 8;
+            int          ii = i * 8;
             const float* k0 = img_data + (ii + 0) * inwh;
             const float* k1 = img_data + (ii + 1) * inwh;
             const float* k2 = img_data + (ii + 2) * inwh;
@@ -160,9 +161,9 @@ static void convdw3x3s1(float* output, float* img_data, float* kernel_data, floa
             const float* b6 = bias_data + (ii + 6);
             const float* b7 = bias_data + (ii + 7);
 
-            float* tmp0 = img_tmp + ii * inwh;
-            float* tmp1 = kernel_tmp + ii * 9;
-            float* tmp2 = bias_tmp + ii;
+            float* tmp0     = img_tmp + ii * inwh;
+            float* tmp1     = kernel_tmp + ii * 9;
+            float* tmp2     = bias_tmp + ii;
             for (int j = 0; j < inwh; j++)
             {
                 tmp0[0] = k0[0];
@@ -233,21 +234,21 @@ static void convdw3x3s1(float* output, float* img_data, float* kernel_data, floa
         int i = 0;
         for (; i + 3 < channel_remain; i += 4)
         {
-            int ii = channel_count * 8 + i;
-            float* k0 = img_data + (ii + 0) * inwh;
-            float* k1 = img_data + (ii + 1) * inwh;
-            float* k2 = img_data + (ii + 2) * inwh;
-            float* k3 = img_data + (ii + 3) * inwh;
+            int    ii   = channel_count * 8 + i;
+            float* k0   = img_data + (ii + 0) * inwh;
+            float* k1   = img_data + (ii + 1) * inwh;
+            float* k2   = img_data + (ii + 2) * inwh;
+            float* k3   = img_data + (ii + 3) * inwh;
 
-            float* f0 = kernel_data + (ii + 0) * 9;
-            float* f1 = kernel_data + (ii + 1) * 9;
-            float* f2 = kernel_data + (ii + 2) * 9;
-            float* f3 = kernel_data + (ii + 3) * 9;
+            float* f0   = kernel_data + (ii + 0) * 9;
+            float* f1   = kernel_data + (ii + 1) * 9;
+            float* f2   = kernel_data + (ii + 2) * 9;
+            float* f3   = kernel_data + (ii + 3) * 9;
 
-            float* b0 = bias_data + (ii + 0);
-            float* b1 = bias_data + (ii + 1);
-            float* b2 = bias_data + (ii + 2);
-            float* b3 = bias_data + (ii + 3);
+            float* b0   = bias_data + (ii + 0);
+            float* b1   = bias_data + (ii + 1);
+            float* b2   = bias_data + (ii + 2);
+            float* b3   = bias_data + (ii + 3);
 
             float* tmp0 = img_tmp + channel_count * 8 * inwh;
             float* tmp1 = kernel_tmp + channel_count * 8 * 9;
@@ -298,10 +299,10 @@ static void convdw3x3s1(float* output, float* img_data, float* kernel_data, floa
 
         for (; i < channel_remain; i++)
         {
-            int ii = channel_count * 8 + i;
-            float* k0 = img_data + ii * inwh;
-            float* f0 = kernel_data + ii * 9;
-            float* b0 = bias_data + ii;
+            int    ii   = channel_count * 8 + i;
+            float* k0   = img_data + ii * inwh;
+            float* f0   = kernel_data + ii * 9;
+            float* b0   = bias_data + ii;
 
             float* tmp0 = img_tmp + channel_count * 8 * inwh;
             float* tmp1 = kernel_tmp + channel_count * 8 * 9;
@@ -340,12 +341,12 @@ static void convdw3x3s1(float* output, float* img_data, float* kernel_data, floa
         float* btmp = bias_tmp + c * 8;
         for (int i = 0; i < outh; i++)
         {
-            int j = 0;
+            int j        = 0;
 
             float* itmp0 = img_tmp + c * 8 * inwh + 8 * i * inw;
             float* itmp1 = img_tmp + c * 8 * inwh + 8 * (i + 1) * inw;
             float* itmp2 = img_tmp + c * 8 * inwh + 8 * (i + 2) * inw;
-            float* otmp = output_tmp + c * 8 * outwh + 8 * i * outw;
+            float* otmp  = output_tmp + c * 8 * outwh + 8 * i * outw;
             for (; j + 7 < outw; j += 8)
             {
                 __m256 _sum0 = _mm256_loadu_ps(btmp);
@@ -357,125 +358,125 @@ static void convdw3x3s1(float* output, float* img_data, float* kernel_data, floa
                 __m256 _sum6 = _mm256_loadu_ps(btmp);
                 __m256 _sum7 = _mm256_loadu_ps(btmp);
 
-                __m256 _va0 = _mm256_loadu_ps(itmp0);
-                __m256 _va1 = _mm256_loadu_ps(itmp0 + 8);
-                __m256 _va2 = _mm256_loadu_ps(itmp0 + 16);
-                __m256 _va3 = _mm256_loadu_ps(itmp0 + 24);
-                __m256 _va4 = _mm256_loadu_ps(itmp0 + 32);
-                __m256 _va5 = _mm256_loadu_ps(itmp0 + 40);
-                __m256 _va6 = _mm256_loadu_ps(itmp0 + 48);
-                __m256 _va7 = _mm256_loadu_ps(itmp0 + 56);
-                __m256 _va8 = _mm256_loadu_ps(itmp0 + 64);
-                __m256 _va9 = _mm256_loadu_ps(itmp0 + 72);
+                __m256 _va0  = _mm256_loadu_ps(itmp0);
+                __m256 _va1  = _mm256_loadu_ps(itmp0 + 8);
+                __m256 _va2  = _mm256_loadu_ps(itmp0 + 16);
+                __m256 _va3  = _mm256_loadu_ps(itmp0 + 24);
+                __m256 _va4  = _mm256_loadu_ps(itmp0 + 32);
+                __m256 _va5  = _mm256_loadu_ps(itmp0 + 40);
+                __m256 _va6  = _mm256_loadu_ps(itmp0 + 48);
+                __m256 _va7  = _mm256_loadu_ps(itmp0 + 56);
+                __m256 _va8  = _mm256_loadu_ps(itmp0 + 64);
+                __m256 _va9  = _mm256_loadu_ps(itmp0 + 72);
 
-                __m256 _vb0 = _mm256_loadu_ps(ktmp);
-                __m256 _vb1 = _mm256_loadu_ps(ktmp + 8);
-                __m256 _vb2 = _mm256_loadu_ps(ktmp + 16);
+                __m256 _vb0  = _mm256_loadu_ps(ktmp);
+                __m256 _vb1  = _mm256_loadu_ps(ktmp + 8);
+                __m256 _vb2  = _mm256_loadu_ps(ktmp + 16);
 
-                _sum0 = _mm256_fmadd_ps(_va0, _vb0, _sum0);
-                _sum1 = _mm256_fmadd_ps(_va1, _vb0, _sum1);
-                _sum0 = _mm256_fmadd_ps(_va1, _vb1, _sum0);
-                _sum1 = _mm256_fmadd_ps(_va2, _vb1, _sum1);
-                _sum0 = _mm256_fmadd_ps(_va2, _vb2, _sum0);
-                _sum2 = _mm256_fmadd_ps(_va2, _vb0, _sum2);
-                _sum3 = _mm256_fmadd_ps(_va3, _vb0, _sum3);
-                _sum1 = _mm256_fmadd_ps(_va3, _vb2, _sum1);
-                _sum2 = _mm256_fmadd_ps(_va3, _vb1, _sum2);
-                _sum3 = _mm256_fmadd_ps(_va4, _vb1, _sum3);
-                _sum4 = _mm256_fmadd_ps(_va4, _vb0, _sum4);
-                _sum2 = _mm256_fmadd_ps(_va4, _vb2, _sum2);
-                _sum3 = _mm256_fmadd_ps(_va5, _vb2, _sum3);
-                _sum5 = _mm256_fmadd_ps(_va5, _vb0, _sum5);
-                _sum4 = _mm256_fmadd_ps(_va5, _vb1, _sum4);
-                _sum5 = _mm256_fmadd_ps(_va6, _vb1, _sum5);
-                _sum4 = _mm256_fmadd_ps(_va6, _vb2, _sum4);
-                _sum6 = _mm256_fmadd_ps(_va6, _vb0, _sum6);
-                _sum7 = _mm256_fmadd_ps(_va7, _vb0, _sum7);
-                _sum5 = _mm256_fmadd_ps(_va7, _vb2, _sum5);
-                _sum6 = _mm256_fmadd_ps(_va7, _vb1, _sum6);
-                _sum7 = _mm256_fmadd_ps(_va8, _vb1, _sum7);
-                _sum6 = _mm256_fmadd_ps(_va8, _vb2, _sum6);
-                _sum7 = _mm256_fmadd_ps(_va9, _vb2, _sum7);
+                _sum0        = _mm256_fmadd_ps(_va0, _vb0, _sum0);
+                _sum1        = _mm256_fmadd_ps(_va1, _vb0, _sum1);
+                _sum0        = _mm256_fmadd_ps(_va1, _vb1, _sum0);
+                _sum1        = _mm256_fmadd_ps(_va2, _vb1, _sum1);
+                _sum0        = _mm256_fmadd_ps(_va2, _vb2, _sum0);
+                _sum2        = _mm256_fmadd_ps(_va2, _vb0, _sum2);
+                _sum3        = _mm256_fmadd_ps(_va3, _vb0, _sum3);
+                _sum1        = _mm256_fmadd_ps(_va3, _vb2, _sum1);
+                _sum2        = _mm256_fmadd_ps(_va3, _vb1, _sum2);
+                _sum3        = _mm256_fmadd_ps(_va4, _vb1, _sum3);
+                _sum4        = _mm256_fmadd_ps(_va4, _vb0, _sum4);
+                _sum2        = _mm256_fmadd_ps(_va4, _vb2, _sum2);
+                _sum3        = _mm256_fmadd_ps(_va5, _vb2, _sum3);
+                _sum5        = _mm256_fmadd_ps(_va5, _vb0, _sum5);
+                _sum4        = _mm256_fmadd_ps(_va5, _vb1, _sum4);
+                _sum5        = _mm256_fmadd_ps(_va6, _vb1, _sum5);
+                _sum4        = _mm256_fmadd_ps(_va6, _vb2, _sum4);
+                _sum6        = _mm256_fmadd_ps(_va6, _vb0, _sum6);
+                _sum7        = _mm256_fmadd_ps(_va7, _vb0, _sum7);
+                _sum5        = _mm256_fmadd_ps(_va7, _vb2, _sum5);
+                _sum6        = _mm256_fmadd_ps(_va7, _vb1, _sum6);
+                _sum7        = _mm256_fmadd_ps(_va8, _vb1, _sum7);
+                _sum6        = _mm256_fmadd_ps(_va8, _vb2, _sum6);
+                _sum7        = _mm256_fmadd_ps(_va9, _vb2, _sum7);
 
-                _va0 = _mm256_loadu_ps(itmp1);
-                _va1 = _mm256_loadu_ps(itmp1 + 8);
-                _va2 = _mm256_loadu_ps(itmp1 + 16);
-                _va3 = _mm256_loadu_ps(itmp1 + 24);
-                _va4 = _mm256_loadu_ps(itmp1 + 32);
-                _va5 = _mm256_loadu_ps(itmp1 + 40);
-                _va6 = _mm256_loadu_ps(itmp1 + 48);
-                _va7 = _mm256_loadu_ps(itmp1 + 56);
-                _va8 = _mm256_loadu_ps(itmp1 + 64);
-                _va9 = _mm256_loadu_ps(itmp1 + 72);
+                _va0         = _mm256_loadu_ps(itmp1);
+                _va1         = _mm256_loadu_ps(itmp1 + 8);
+                _va2         = _mm256_loadu_ps(itmp1 + 16);
+                _va3         = _mm256_loadu_ps(itmp1 + 24);
+                _va4         = _mm256_loadu_ps(itmp1 + 32);
+                _va5         = _mm256_loadu_ps(itmp1 + 40);
+                _va6         = _mm256_loadu_ps(itmp1 + 48);
+                _va7         = _mm256_loadu_ps(itmp1 + 56);
+                _va8         = _mm256_loadu_ps(itmp1 + 64);
+                _va9         = _mm256_loadu_ps(itmp1 + 72);
 
-                _vb0 = _mm256_loadu_ps(ktmp + 24);
-                _vb1 = _mm256_loadu_ps(ktmp + 32);
-                _vb2 = _mm256_loadu_ps(ktmp + 40);
+                _vb0         = _mm256_loadu_ps(ktmp + 24);
+                _vb1         = _mm256_loadu_ps(ktmp + 32);
+                _vb2         = _mm256_loadu_ps(ktmp + 40);
 
-                _sum0 = _mm256_fmadd_ps(_va0, _vb0, _sum0);
-                _sum1 = _mm256_fmadd_ps(_va1, _vb0, _sum1);
-                _sum0 = _mm256_fmadd_ps(_va1, _vb1, _sum0);
-                _sum1 = _mm256_fmadd_ps(_va2, _vb1, _sum1);
-                _sum0 = _mm256_fmadd_ps(_va2, _vb2, _sum0);
-                _sum2 = _mm256_fmadd_ps(_va2, _vb0, _sum2);
-                _sum3 = _mm256_fmadd_ps(_va3, _vb0, _sum3);
-                _sum1 = _mm256_fmadd_ps(_va3, _vb2, _sum1);
-                _sum2 = _mm256_fmadd_ps(_va3, _vb1, _sum2);
-                _sum3 = _mm256_fmadd_ps(_va4, _vb1, _sum3);
-                _sum4 = _mm256_fmadd_ps(_va4, _vb0, _sum4);
-                _sum2 = _mm256_fmadd_ps(_va4, _vb2, _sum2);
-                _sum3 = _mm256_fmadd_ps(_va5, _vb2, _sum3);
-                _sum5 = _mm256_fmadd_ps(_va5, _vb0, _sum5);
-                _sum4 = _mm256_fmadd_ps(_va5, _vb1, _sum4);
-                _sum5 = _mm256_fmadd_ps(_va6, _vb1, _sum5);
-                _sum4 = _mm256_fmadd_ps(_va6, _vb2, _sum4);
-                _sum6 = _mm256_fmadd_ps(_va6, _vb0, _sum6);
-                _sum7 = _mm256_fmadd_ps(_va7, _vb0, _sum7);
-                _sum5 = _mm256_fmadd_ps(_va7, _vb2, _sum5);
-                _sum6 = _mm256_fmadd_ps(_va7, _vb1, _sum6);
-                _sum7 = _mm256_fmadd_ps(_va8, _vb1, _sum7);
-                _sum6 = _mm256_fmadd_ps(_va8, _vb2, _sum6);
-                _sum7 = _mm256_fmadd_ps(_va9, _vb2, _sum7);
+                _sum0        = _mm256_fmadd_ps(_va0, _vb0, _sum0);
+                _sum1        = _mm256_fmadd_ps(_va1, _vb0, _sum1);
+                _sum0        = _mm256_fmadd_ps(_va1, _vb1, _sum0);
+                _sum1        = _mm256_fmadd_ps(_va2, _vb1, _sum1);
+                _sum0        = _mm256_fmadd_ps(_va2, _vb2, _sum0);
+                _sum2        = _mm256_fmadd_ps(_va2, _vb0, _sum2);
+                _sum3        = _mm256_fmadd_ps(_va3, _vb0, _sum3);
+                _sum1        = _mm256_fmadd_ps(_va3, _vb2, _sum1);
+                _sum2        = _mm256_fmadd_ps(_va3, _vb1, _sum2);
+                _sum3        = _mm256_fmadd_ps(_va4, _vb1, _sum3);
+                _sum4        = _mm256_fmadd_ps(_va4, _vb0, _sum4);
+                _sum2        = _mm256_fmadd_ps(_va4, _vb2, _sum2);
+                _sum3        = _mm256_fmadd_ps(_va5, _vb2, _sum3);
+                _sum5        = _mm256_fmadd_ps(_va5, _vb0, _sum5);
+                _sum4        = _mm256_fmadd_ps(_va5, _vb1, _sum4);
+                _sum5        = _mm256_fmadd_ps(_va6, _vb1, _sum5);
+                _sum4        = _mm256_fmadd_ps(_va6, _vb2, _sum4);
+                _sum6        = _mm256_fmadd_ps(_va6, _vb0, _sum6);
+                _sum7        = _mm256_fmadd_ps(_va7, _vb0, _sum7);
+                _sum5        = _mm256_fmadd_ps(_va7, _vb2, _sum5);
+                _sum6        = _mm256_fmadd_ps(_va7, _vb1, _sum6);
+                _sum7        = _mm256_fmadd_ps(_va8, _vb1, _sum7);
+                _sum6        = _mm256_fmadd_ps(_va8, _vb2, _sum6);
+                _sum7        = _mm256_fmadd_ps(_va9, _vb2, _sum7);
 
-                _va0 = _mm256_loadu_ps(itmp2);
-                _va1 = _mm256_loadu_ps(itmp2 + 8);
-                _va2 = _mm256_loadu_ps(itmp2 + 16);
-                _va3 = _mm256_loadu_ps(itmp2 + 24);
-                _va4 = _mm256_loadu_ps(itmp2 + 32);
-                _va5 = _mm256_loadu_ps(itmp2 + 40);
-                _va6 = _mm256_loadu_ps(itmp2 + 48);
-                _va7 = _mm256_loadu_ps(itmp2 + 56);
-                _va8 = _mm256_loadu_ps(itmp2 + 64);
-                _va9 = _mm256_loadu_ps(itmp2 + 72);
+                _va0         = _mm256_loadu_ps(itmp2);
+                _va1         = _mm256_loadu_ps(itmp2 + 8);
+                _va2         = _mm256_loadu_ps(itmp2 + 16);
+                _va3         = _mm256_loadu_ps(itmp2 + 24);
+                _va4         = _mm256_loadu_ps(itmp2 + 32);
+                _va5         = _mm256_loadu_ps(itmp2 + 40);
+                _va6         = _mm256_loadu_ps(itmp2 + 48);
+                _va7         = _mm256_loadu_ps(itmp2 + 56);
+                _va8         = _mm256_loadu_ps(itmp2 + 64);
+                _va9         = _mm256_loadu_ps(itmp2 + 72);
 
-                _vb0 = _mm256_loadu_ps(ktmp + 48);
-                _vb1 = _mm256_loadu_ps(ktmp + 56);
-                _vb2 = _mm256_loadu_ps(ktmp + 64);
+                _vb0         = _mm256_loadu_ps(ktmp + 48);
+                _vb1         = _mm256_loadu_ps(ktmp + 56);
+                _vb2         = _mm256_loadu_ps(ktmp + 64);
 
-                _sum0 = _mm256_fmadd_ps(_va0, _vb0, _sum0);
-                _sum1 = _mm256_fmadd_ps(_va1, _vb0, _sum1);
-                _sum0 = _mm256_fmadd_ps(_va1, _vb1, _sum0);
-                _sum1 = _mm256_fmadd_ps(_va2, _vb1, _sum1);
-                _sum0 = _mm256_fmadd_ps(_va2, _vb2, _sum0);
-                _sum2 = _mm256_fmadd_ps(_va2, _vb0, _sum2);
-                _sum3 = _mm256_fmadd_ps(_va3, _vb0, _sum3);
-                _sum1 = _mm256_fmadd_ps(_va3, _vb2, _sum1);
-                _sum2 = _mm256_fmadd_ps(_va3, _vb1, _sum2);
-                _sum3 = _mm256_fmadd_ps(_va4, _vb1, _sum3);
-                _sum4 = _mm256_fmadd_ps(_va4, _vb0, _sum4);
-                _sum2 = _mm256_fmadd_ps(_va4, _vb2, _sum2);
-                _sum3 = _mm256_fmadd_ps(_va5, _vb2, _sum3);
-                _sum5 = _mm256_fmadd_ps(_va5, _vb0, _sum5);
-                _sum4 = _mm256_fmadd_ps(_va5, _vb1, _sum4);
-                _sum5 = _mm256_fmadd_ps(_va6, _vb1, _sum5);
-                _sum4 = _mm256_fmadd_ps(_va6, _vb2, _sum4);
-                _sum6 = _mm256_fmadd_ps(_va6, _vb0, _sum6);
-                _sum7 = _mm256_fmadd_ps(_va7, _vb0, _sum7);
-                _sum5 = _mm256_fmadd_ps(_va7, _vb2, _sum5);
-                _sum6 = _mm256_fmadd_ps(_va7, _vb1, _sum6);
-                _sum7 = _mm256_fmadd_ps(_va8, _vb1, _sum7);
-                _sum6 = _mm256_fmadd_ps(_va8, _vb2, _sum6);
-                _sum7 = _mm256_fmadd_ps(_va9, _vb2, _sum7);
+                _sum0        = _mm256_fmadd_ps(_va0, _vb0, _sum0);
+                _sum1        = _mm256_fmadd_ps(_va1, _vb0, _sum1);
+                _sum0        = _mm256_fmadd_ps(_va1, _vb1, _sum0);
+                _sum1        = _mm256_fmadd_ps(_va2, _vb1, _sum1);
+                _sum0        = _mm256_fmadd_ps(_va2, _vb2, _sum0);
+                _sum2        = _mm256_fmadd_ps(_va2, _vb0, _sum2);
+                _sum3        = _mm256_fmadd_ps(_va3, _vb0, _sum3);
+                _sum1        = _mm256_fmadd_ps(_va3, _vb2, _sum1);
+                _sum2        = _mm256_fmadd_ps(_va3, _vb1, _sum2);
+                _sum3        = _mm256_fmadd_ps(_va4, _vb1, _sum3);
+                _sum4        = _mm256_fmadd_ps(_va4, _vb0, _sum4);
+                _sum2        = _mm256_fmadd_ps(_va4, _vb2, _sum2);
+                _sum3        = _mm256_fmadd_ps(_va5, _vb2, _sum3);
+                _sum5        = _mm256_fmadd_ps(_va5, _vb0, _sum5);
+                _sum4        = _mm256_fmadd_ps(_va5, _vb1, _sum4);
+                _sum5        = _mm256_fmadd_ps(_va6, _vb1, _sum5);
+                _sum4        = _mm256_fmadd_ps(_va6, _vb2, _sum4);
+                _sum6        = _mm256_fmadd_ps(_va6, _vb0, _sum6);
+                _sum7        = _mm256_fmadd_ps(_va7, _vb0, _sum7);
+                _sum5        = _mm256_fmadd_ps(_va7, _vb2, _sum5);
+                _sum6        = _mm256_fmadd_ps(_va7, _vb1, _sum6);
+                _sum7        = _mm256_fmadd_ps(_va8, _vb1, _sum7);
+                _sum6        = _mm256_fmadd_ps(_va8, _vb2, _sum6);
+                _sum7        = _mm256_fmadd_ps(_va9, _vb2, _sum7);
 
                 _mm256_storeu_ps(otmp, _sum0);
                 _mm256_storeu_ps(otmp + 8, _sum1);
@@ -499,77 +500,77 @@ static void convdw3x3s1(float* output, float* img_data, float* kernel_data, floa
                 __m256 _sum2 = _mm256_loadu_ps(btmp);
                 __m256 _sum3 = _mm256_loadu_ps(btmp);
 
-                __m256 _va0 = _mm256_loadu_ps(itmp0);
-                __m256 _va1 = _mm256_loadu_ps(itmp0 + 8);
-                __m256 _va2 = _mm256_loadu_ps(itmp0 + 16);
-                __m256 _va3 = _mm256_loadu_ps(itmp0 + 24);
-                __m256 _va4 = _mm256_loadu_ps(itmp0 + 32);
-                __m256 _va5 = _mm256_loadu_ps(itmp0 + 40);
+                __m256 _va0  = _mm256_loadu_ps(itmp0);
+                __m256 _va1  = _mm256_loadu_ps(itmp0 + 8);
+                __m256 _va2  = _mm256_loadu_ps(itmp0 + 16);
+                __m256 _va3  = _mm256_loadu_ps(itmp0 + 24);
+                __m256 _va4  = _mm256_loadu_ps(itmp0 + 32);
+                __m256 _va5  = _mm256_loadu_ps(itmp0 + 40);
 
-                __m256 _vb0 = _mm256_loadu_ps(ktmp);
-                __m256 _vb1 = _mm256_loadu_ps(ktmp + 8);
-                __m256 _vb2 = _mm256_loadu_ps(ktmp + 16);
+                __m256 _vb0  = _mm256_loadu_ps(ktmp);
+                __m256 _vb1  = _mm256_loadu_ps(ktmp + 8);
+                __m256 _vb2  = _mm256_loadu_ps(ktmp + 16);
 
-                _sum0 = _mm256_fmadd_ps(_va0, _vb0, _sum0);
-                _sum1 = _mm256_fmadd_ps(_va1, _vb0, _sum1);
-                _sum0 = _mm256_fmadd_ps(_va1, _vb1, _sum0);
-                _sum1 = _mm256_fmadd_ps(_va2, _vb1, _sum1);
-                _sum0 = _mm256_fmadd_ps(_va2, _vb2, _sum0);
-                _sum2 = _mm256_fmadd_ps(_va2, _vb0, _sum2);
-                _sum3 = _mm256_fmadd_ps(_va3, _vb0, _sum3);
-                _sum1 = _mm256_fmadd_ps(_va3, _vb2, _sum1);
-                _sum2 = _mm256_fmadd_ps(_va3, _vb1, _sum2);
-                _sum3 = _mm256_fmadd_ps(_va4, _vb1, _sum3);
-                _sum2 = _mm256_fmadd_ps(_va4, _vb2, _sum2);
-                _sum3 = _mm256_fmadd_ps(_va5, _vb2, _sum3);
+                _sum0        = _mm256_fmadd_ps(_va0, _vb0, _sum0);
+                _sum1        = _mm256_fmadd_ps(_va1, _vb0, _sum1);
+                _sum0        = _mm256_fmadd_ps(_va1, _vb1, _sum0);
+                _sum1        = _mm256_fmadd_ps(_va2, _vb1, _sum1);
+                _sum0        = _mm256_fmadd_ps(_va2, _vb2, _sum0);
+                _sum2        = _mm256_fmadd_ps(_va2, _vb0, _sum2);
+                _sum3        = _mm256_fmadd_ps(_va3, _vb0, _sum3);
+                _sum1        = _mm256_fmadd_ps(_va3, _vb2, _sum1);
+                _sum2        = _mm256_fmadd_ps(_va3, _vb1, _sum2);
+                _sum3        = _mm256_fmadd_ps(_va4, _vb1, _sum3);
+                _sum2        = _mm256_fmadd_ps(_va4, _vb2, _sum2);
+                _sum3        = _mm256_fmadd_ps(_va5, _vb2, _sum3);
 
-                _va0 = _mm256_loadu_ps(itmp1);
-                _va1 = _mm256_loadu_ps(itmp1 + 8);
-                _va2 = _mm256_loadu_ps(itmp1 + 16);
-                _va3 = _mm256_loadu_ps(itmp1 + 24);
-                _va4 = _mm256_loadu_ps(itmp1 + 32);
-                _va5 = _mm256_loadu_ps(itmp1 + 40);
+                _va0         = _mm256_loadu_ps(itmp1);
+                _va1         = _mm256_loadu_ps(itmp1 + 8);
+                _va2         = _mm256_loadu_ps(itmp1 + 16);
+                _va3         = _mm256_loadu_ps(itmp1 + 24);
+                _va4         = _mm256_loadu_ps(itmp1 + 32);
+                _va5         = _mm256_loadu_ps(itmp1 + 40);
 
-                _vb0 = _mm256_loadu_ps(ktmp + 24);
-                _vb1 = _mm256_loadu_ps(ktmp + 32);
-                _vb2 = _mm256_loadu_ps(ktmp + 40);
+                _vb0         = _mm256_loadu_ps(ktmp + 24);
+                _vb1         = _mm256_loadu_ps(ktmp + 32);
+                _vb2         = _mm256_loadu_ps(ktmp + 40);
 
-                _sum0 = _mm256_fmadd_ps(_va0, _vb0, _sum0);
-                _sum1 = _mm256_fmadd_ps(_va1, _vb0, _sum1);
-                _sum0 = _mm256_fmadd_ps(_va1, _vb1, _sum0);
-                _sum1 = _mm256_fmadd_ps(_va2, _vb1, _sum1);
-                _sum0 = _mm256_fmadd_ps(_va2, _vb2, _sum0);
-                _sum2 = _mm256_fmadd_ps(_va2, _vb0, _sum2);
-                _sum3 = _mm256_fmadd_ps(_va3, _vb0, _sum3);
-                _sum1 = _mm256_fmadd_ps(_va3, _vb2, _sum1);
-                _sum2 = _mm256_fmadd_ps(_va3, _vb1, _sum2);
-                _sum3 = _mm256_fmadd_ps(_va4, _vb1, _sum3);
-                _sum2 = _mm256_fmadd_ps(_va4, _vb2, _sum2);
-                _sum3 = _mm256_fmadd_ps(_va5, _vb2, _sum3);
+                _sum0        = _mm256_fmadd_ps(_va0, _vb0, _sum0);
+                _sum1        = _mm256_fmadd_ps(_va1, _vb0, _sum1);
+                _sum0        = _mm256_fmadd_ps(_va1, _vb1, _sum0);
+                _sum1        = _mm256_fmadd_ps(_va2, _vb1, _sum1);
+                _sum0        = _mm256_fmadd_ps(_va2, _vb2, _sum0);
+                _sum2        = _mm256_fmadd_ps(_va2, _vb0, _sum2);
+                _sum3        = _mm256_fmadd_ps(_va3, _vb0, _sum3);
+                _sum1        = _mm256_fmadd_ps(_va3, _vb2, _sum1);
+                _sum2        = _mm256_fmadd_ps(_va3, _vb1, _sum2);
+                _sum3        = _mm256_fmadd_ps(_va4, _vb1, _sum3);
+                _sum2        = _mm256_fmadd_ps(_va4, _vb2, _sum2);
+                _sum3        = _mm256_fmadd_ps(_va5, _vb2, _sum3);
 
-                _va0 = _mm256_loadu_ps(itmp2);
-                _va1 = _mm256_loadu_ps(itmp2 + 8);
-                _va2 = _mm256_loadu_ps(itmp2 + 16);
-                _va3 = _mm256_loadu_ps(itmp2 + 24);
-                _va4 = _mm256_loadu_ps(itmp2 + 32);
-                _va5 = _mm256_loadu_ps(itmp2 + 40);
+                _va0         = _mm256_loadu_ps(itmp2);
+                _va1         = _mm256_loadu_ps(itmp2 + 8);
+                _va2         = _mm256_loadu_ps(itmp2 + 16);
+                _va3         = _mm256_loadu_ps(itmp2 + 24);
+                _va4         = _mm256_loadu_ps(itmp2 + 32);
+                _va5         = _mm256_loadu_ps(itmp2 + 40);
 
-                _vb0 = _mm256_loadu_ps(ktmp + 48);
-                _vb1 = _mm256_loadu_ps(ktmp + 56);
-                _vb2 = _mm256_loadu_ps(ktmp + 64);
+                _vb0         = _mm256_loadu_ps(ktmp + 48);
+                _vb1         = _mm256_loadu_ps(ktmp + 56);
+                _vb2         = _mm256_loadu_ps(ktmp + 64);
 
-                _sum0 = _mm256_fmadd_ps(_va0, _vb0, _sum0);
-                _sum1 = _mm256_fmadd_ps(_va1, _vb0, _sum1);
-                _sum0 = _mm256_fmadd_ps(_va1, _vb1, _sum0);
-                _sum1 = _mm256_fmadd_ps(_va2, _vb1, _sum1);
-                _sum0 = _mm256_fmadd_ps(_va2, _vb2, _sum0);
-                _sum2 = _mm256_fmadd_ps(_va2, _vb0, _sum2);
-                _sum3 = _mm256_fmadd_ps(_va3, _vb0, _sum3);
-                _sum1 = _mm256_fmadd_ps(_va3, _vb2, _sum1);
-                _sum2 = _mm256_fmadd_ps(_va3, _vb1, _sum2);
-                _sum3 = _mm256_fmadd_ps(_va4, _vb1, _sum3);
-                _sum2 = _mm256_fmadd_ps(_va4, _vb2, _sum2);
-                _sum3 = _mm256_fmadd_ps(_va5, _vb2, _sum3);
+                _sum0        = _mm256_fmadd_ps(_va0, _vb0, _sum0);
+                _sum1        = _mm256_fmadd_ps(_va1, _vb0, _sum1);
+                _sum0        = _mm256_fmadd_ps(_va1, _vb1, _sum0);
+                _sum1        = _mm256_fmadd_ps(_va2, _vb1, _sum1);
+                _sum0        = _mm256_fmadd_ps(_va2, _vb2, _sum0);
+                _sum2        = _mm256_fmadd_ps(_va2, _vb0, _sum2);
+                _sum3        = _mm256_fmadd_ps(_va3, _vb0, _sum3);
+                _sum1        = _mm256_fmadd_ps(_va3, _vb2, _sum1);
+                _sum2        = _mm256_fmadd_ps(_va3, _vb1, _sum2);
+                _sum3        = _mm256_fmadd_ps(_va4, _vb1, _sum3);
+                _sum2        = _mm256_fmadd_ps(_va4, _vb2, _sum2);
+                _sum3        = _mm256_fmadd_ps(_va5, _vb2, _sum3);
 
                 _mm256_storeu_ps(otmp, _sum0);
                 _mm256_storeu_ps(otmp + 8, _sum1);
@@ -587,53 +588,53 @@ static void convdw3x3s1(float* output, float* img_data, float* kernel_data, floa
                 __m256 _sum0 = _mm256_loadu_ps(btmp);
                 __m256 _sum1 = _mm256_loadu_ps(btmp);
 
-                __m256 _va0 = _mm256_loadu_ps(itmp0);
-                __m256 _va1 = _mm256_loadu_ps(itmp0 + 8);
-                __m256 _va2 = _mm256_loadu_ps(itmp0 + 16);
-                __m256 _va3 = _mm256_loadu_ps(itmp0 + 24);
+                __m256 _va0  = _mm256_loadu_ps(itmp0);
+                __m256 _va1  = _mm256_loadu_ps(itmp0 + 8);
+                __m256 _va2  = _mm256_loadu_ps(itmp0 + 16);
+                __m256 _va3  = _mm256_loadu_ps(itmp0 + 24);
 
-                __m256 _vb0 = _mm256_loadu_ps(ktmp);
-                __m256 _vb1 = _mm256_loadu_ps(ktmp + 8);
-                __m256 _vb2 = _mm256_loadu_ps(ktmp + 16);
+                __m256 _vb0  = _mm256_loadu_ps(ktmp);
+                __m256 _vb1  = _mm256_loadu_ps(ktmp + 8);
+                __m256 _vb2  = _mm256_loadu_ps(ktmp + 16);
 
-                _sum0 = _mm256_fmadd_ps(_va0, _vb0, _sum0);
-                _sum1 = _mm256_fmadd_ps(_va1, _vb0, _sum1);
-                _sum0 = _mm256_fmadd_ps(_va1, _vb1, _sum0);
-                _sum1 = _mm256_fmadd_ps(_va2, _vb1, _sum1);
-                _sum0 = _mm256_fmadd_ps(_va2, _vb2, _sum0);
-                _sum1 = _mm256_fmadd_ps(_va3, _vb2, _sum1);
+                _sum0        = _mm256_fmadd_ps(_va0, _vb0, _sum0);
+                _sum1        = _mm256_fmadd_ps(_va1, _vb0, _sum1);
+                _sum0        = _mm256_fmadd_ps(_va1, _vb1, _sum0);
+                _sum1        = _mm256_fmadd_ps(_va2, _vb1, _sum1);
+                _sum0        = _mm256_fmadd_ps(_va2, _vb2, _sum0);
+                _sum1        = _mm256_fmadd_ps(_va3, _vb2, _sum1);
 
-                _va0 = _mm256_loadu_ps(itmp1);
-                _va1 = _mm256_loadu_ps(itmp1 + 8);
-                _va2 = _mm256_loadu_ps(itmp1 + 16);
-                _va3 = _mm256_loadu_ps(itmp1 + 24);
+                _va0         = _mm256_loadu_ps(itmp1);
+                _va1         = _mm256_loadu_ps(itmp1 + 8);
+                _va2         = _mm256_loadu_ps(itmp1 + 16);
+                _va3         = _mm256_loadu_ps(itmp1 + 24);
 
-                _vb0 = _mm256_loadu_ps(ktmp + 24);
-                _vb1 = _mm256_loadu_ps(ktmp + 32);
-                _vb2 = _mm256_loadu_ps(ktmp + 40);
+                _vb0         = _mm256_loadu_ps(ktmp + 24);
+                _vb1         = _mm256_loadu_ps(ktmp + 32);
+                _vb2         = _mm256_loadu_ps(ktmp + 40);
 
-                _sum0 = _mm256_fmadd_ps(_va0, _vb0, _sum0);
-                _sum1 = _mm256_fmadd_ps(_va1, _vb0, _sum1);
-                _sum0 = _mm256_fmadd_ps(_va1, _vb1, _sum0);
-                _sum1 = _mm256_fmadd_ps(_va2, _vb1, _sum1);
-                _sum0 = _mm256_fmadd_ps(_va2, _vb2, _sum0);
-                _sum1 = _mm256_fmadd_ps(_va3, _vb2, _sum1);
+                _sum0        = _mm256_fmadd_ps(_va0, _vb0, _sum0);
+                _sum1        = _mm256_fmadd_ps(_va1, _vb0, _sum1);
+                _sum0        = _mm256_fmadd_ps(_va1, _vb1, _sum0);
+                _sum1        = _mm256_fmadd_ps(_va2, _vb1, _sum1);
+                _sum0        = _mm256_fmadd_ps(_va2, _vb2, _sum0);
+                _sum1        = _mm256_fmadd_ps(_va3, _vb2, _sum1);
 
-                _va0 = _mm256_loadu_ps(itmp2);
-                _va1 = _mm256_loadu_ps(itmp2 + 8);
-                _va2 = _mm256_loadu_ps(itmp2 + 16);
-                _va3 = _mm256_loadu_ps(itmp2 + 24);
+                _va0         = _mm256_loadu_ps(itmp2);
+                _va1         = _mm256_loadu_ps(itmp2 + 8);
+                _va2         = _mm256_loadu_ps(itmp2 + 16);
+                _va3         = _mm256_loadu_ps(itmp2 + 24);
 
-                _vb0 = _mm256_loadu_ps(ktmp + 48);
-                _vb1 = _mm256_loadu_ps(ktmp + 56);
-                _vb2 = _mm256_loadu_ps(ktmp + 64);
+                _vb0         = _mm256_loadu_ps(ktmp + 48);
+                _vb1         = _mm256_loadu_ps(ktmp + 56);
+                _vb2         = _mm256_loadu_ps(ktmp + 64);
 
-                _sum0 = _mm256_fmadd_ps(_va0, _vb0, _sum0);
-                _sum1 = _mm256_fmadd_ps(_va1, _vb0, _sum1);
-                _sum0 = _mm256_fmadd_ps(_va1, _vb1, _sum0);
-                _sum1 = _mm256_fmadd_ps(_va2, _vb1, _sum1);
-                _sum0 = _mm256_fmadd_ps(_va2, _vb2, _sum0);
-                _sum1 = _mm256_fmadd_ps(_va3, _vb2, _sum1);
+                _sum0        = _mm256_fmadd_ps(_va0, _vb0, _sum0);
+                _sum1        = _mm256_fmadd_ps(_va1, _vb0, _sum1);
+                _sum0        = _mm256_fmadd_ps(_va1, _vb1, _sum0);
+                _sum1        = _mm256_fmadd_ps(_va2, _vb1, _sum1);
+                _sum0        = _mm256_fmadd_ps(_va2, _vb2, _sum0);
+                _sum1        = _mm256_fmadd_ps(_va3, _vb2, _sum1);
 
                 _mm256_storeu_ps(otmp, _sum0);
                 _mm256_storeu_ps(otmp + 8, _sum1);
@@ -648,41 +649,41 @@ static void convdw3x3s1(float* output, float* img_data, float* kernel_data, floa
             {
                 __m256 _sum0 = _mm256_loadu_ps(btmp);
 
-                __m256 _va0 = _mm256_loadu_ps(itmp0);
-                __m256 _va1 = _mm256_loadu_ps(itmp0 + 8);
-                __m256 _va2 = _mm256_loadu_ps(itmp0 + 16);
+                __m256 _va0  = _mm256_loadu_ps(itmp0);
+                __m256 _va1  = _mm256_loadu_ps(itmp0 + 8);
+                __m256 _va2  = _mm256_loadu_ps(itmp0 + 16);
 
-                __m256 _vb0 = _mm256_loadu_ps(ktmp);
-                __m256 _vb1 = _mm256_loadu_ps(ktmp + 8);
-                __m256 _vb2 = _mm256_loadu_ps(ktmp + 16);
+                __m256 _vb0  = _mm256_loadu_ps(ktmp);
+                __m256 _vb1  = _mm256_loadu_ps(ktmp + 8);
+                __m256 _vb2  = _mm256_loadu_ps(ktmp + 16);
 
-                _sum0 = _mm256_fmadd_ps(_va0, _vb0, _sum0);
-                _sum0 = _mm256_fmadd_ps(_va1, _vb1, _sum0);
-                _sum0 = _mm256_fmadd_ps(_va2, _vb2, _sum0);
+                _sum0        = _mm256_fmadd_ps(_va0, _vb0, _sum0);
+                _sum0        = _mm256_fmadd_ps(_va1, _vb1, _sum0);
+                _sum0        = _mm256_fmadd_ps(_va2, _vb2, _sum0);
 
-                _va0 = _mm256_loadu_ps(itmp1);
-                _va1 = _mm256_loadu_ps(itmp1 + 8);
-                _va2 = _mm256_loadu_ps(itmp1 + 16);
+                _va0         = _mm256_loadu_ps(itmp1);
+                _va1         = _mm256_loadu_ps(itmp1 + 8);
+                _va2         = _mm256_loadu_ps(itmp1 + 16);
 
-                _vb0 = _mm256_loadu_ps(ktmp + 24);
-                _vb1 = _mm256_loadu_ps(ktmp + 32);
-                _vb2 = _mm256_loadu_ps(ktmp + 40);
+                _vb0         = _mm256_loadu_ps(ktmp + 24);
+                _vb1         = _mm256_loadu_ps(ktmp + 32);
+                _vb2         = _mm256_loadu_ps(ktmp + 40);
 
-                _sum0 = _mm256_fmadd_ps(_va0, _vb0, _sum0);
-                _sum0 = _mm256_fmadd_ps(_va1, _vb1, _sum0);
-                _sum0 = _mm256_fmadd_ps(_va2, _vb2, _sum0);
+                _sum0        = _mm256_fmadd_ps(_va0, _vb0, _sum0);
+                _sum0        = _mm256_fmadd_ps(_va1, _vb1, _sum0);
+                _sum0        = _mm256_fmadd_ps(_va2, _vb2, _sum0);
 
-                _va0 = _mm256_loadu_ps(itmp2);
-                _va1 = _mm256_loadu_ps(itmp2 + 8);
-                _va2 = _mm256_loadu_ps(itmp2 + 16);
+                _va0         = _mm256_loadu_ps(itmp2);
+                _va1         = _mm256_loadu_ps(itmp2 + 8);
+                _va2         = _mm256_loadu_ps(itmp2 + 16);
 
-                _vb0 = _mm256_loadu_ps(ktmp + 48);
-                _vb1 = _mm256_loadu_ps(ktmp + 56);
-                _vb2 = _mm256_loadu_ps(ktmp + 64);
+                _vb0         = _mm256_loadu_ps(ktmp + 48);
+                _vb1         = _mm256_loadu_ps(ktmp + 56);
+                _vb2         = _mm256_loadu_ps(ktmp + 64);
 
-                _sum0 = _mm256_fmadd_ps(_va0, _vb0, _sum0);
-                _sum0 = _mm256_fmadd_ps(_va1, _vb1, _sum0);
-                _sum0 = _mm256_fmadd_ps(_va2, _vb2, _sum0);
+                _sum0        = _mm256_fmadd_ps(_va0, _vb0, _sum0);
+                _sum0        = _mm256_fmadd_ps(_va1, _vb1, _sum0);
+                _sum0        = _mm256_fmadd_ps(_va2, _vb2, _sum0);
 
                 _mm256_storeu_ps(otmp, _sum0);
 
@@ -731,7 +732,7 @@ static void convdw3x3s1(float* output, float* img_data, float* kernel_data, floa
         int i = 0;
         for (; i + 3 < channel_remain; i += 4)
         {
-            int ii = channel_count * 8 + i;
+            int    ii   = channel_count * 8 + i;
             float* otmp = output_tmp + ii * outwh;
 
             float* tmp0 = output + ii * outwh;
@@ -755,7 +756,7 @@ static void convdw3x3s1(float* output, float* img_data, float* kernel_data, floa
 
         for (; i < channel_remain; i++)
         {
-            int ii = channel_count * 8 + i;
+            int    ii   = channel_count * 8 + i;
             float* otmp = output_tmp + channel_count * 8 * outwh;
 
             float* tmp0 = output + ii * outwh;
@@ -777,18 +778,18 @@ static void convdw3x3s1(float* output, float* img_data, float* kernel_data, floa
 static void convdw3x3s2(float* output, float* img_data, float* kernel_data, float* bias_data, int inc, int inh, int inw,
                         int outh, int outw, int num_thread)
 {
-    int inwh = inw * inh;
-    int outwh = outw * outh;
-    int channel_count = inc >> 3;
+    int inwh           = inw * inh;
+    int outwh          = outw * outh;
+    int channel_count  = inc >> 3;
     int channel_remain = inc - (channel_count << 3);
     // generate the image tmp
-    float* img_tmp = (float*)sys_malloc(8 * (unsigned long)inwh * (channel_count + 1) * sizeof(float));
+    float* img_tmp    = (float*)sys_malloc(8 * (unsigned long)inwh * (channel_count + 1) * sizeof(float));
     float* kernel_tmp = (float*)sys_malloc(8 * 9 * (channel_count + 1) * sizeof(float));
-    float* bias_tmp = (float*)sys_malloc(8 * (channel_count + 1) * sizeof(float));
+    float* bias_tmp   = (float*)sys_malloc(8 * (channel_count + 1) * sizeof(float));
     {
         for (int i = 0; i < channel_count; i++)
         {
-            int ii = i * 8;
+            int          ii = i * 8;
             const float* k0 = img_data + (ii + 0) * inwh;
             const float* k1 = img_data + (ii + 1) * inwh;
             const float* k2 = img_data + (ii + 2) * inwh;
@@ -816,9 +817,9 @@ static void convdw3x3s2(float* output, float* img_data, float* kernel_data, floa
             const float* b6 = bias_data + (ii + 6);
             const float* b7 = bias_data + (ii + 7);
 
-            float* tmp0 = img_tmp + ii * inwh;
-            float* tmp1 = kernel_tmp + ii * 9;
-            float* tmp2 = bias_tmp + ii;
+            float* tmp0     = img_tmp + ii * inwh;
+            float* tmp1     = kernel_tmp + ii * 9;
+            float* tmp2     = bias_tmp + ii;
 
             for (int j = 0; j < inwh; j++)
             {
@@ -890,21 +891,21 @@ static void convdw3x3s2(float* output, float* img_data, float* kernel_data, floa
         int i = 0;
         for (; i + 3 < channel_remain; i += 4)
         {
-            int ii = channel_count * 8 + i;
-            float* k0 = img_data + (ii + 0) * inwh;
-            float* k1 = img_data + (ii + 1) * inwh;
-            float* k2 = img_data + (ii + 2) * inwh;
-            float* k3 = img_data + (ii + 3) * inwh;
+            int    ii   = channel_count * 8 + i;
+            float* k0   = img_data + (ii + 0) * inwh;
+            float* k1   = img_data + (ii + 1) * inwh;
+            float* k2   = img_data + (ii + 2) * inwh;
+            float* k3   = img_data + (ii + 3) * inwh;
 
-            float* f0 = kernel_data + (ii + 0) * 9;
-            float* f1 = kernel_data + (ii + 1) * 9;
-            float* f2 = kernel_data + (ii + 2) * 9;
-            float* f3 = kernel_data + (ii + 3) * 9;
+            float* f0   = kernel_data + (ii + 0) * 9;
+            float* f1   = kernel_data + (ii + 1) * 9;
+            float* f2   = kernel_data + (ii + 2) * 9;
+            float* f3   = kernel_data + (ii + 3) * 9;
 
-            float* b0 = bias_data + (ii + 0);
-            float* b1 = bias_data + (ii + 1);
-            float* b2 = bias_data + (ii + 2);
-            float* b3 = bias_data + (ii + 3);
+            float* b0   = bias_data + (ii + 0);
+            float* b1   = bias_data + (ii + 1);
+            float* b2   = bias_data + (ii + 2);
+            float* b3   = bias_data + (ii + 3);
 
             float* tmp0 = img_tmp + channel_count * 8 * inwh;
             float* tmp1 = kernel_tmp + channel_count * 8 * 9;
@@ -957,10 +958,10 @@ static void convdw3x3s2(float* output, float* img_data, float* kernel_data, floa
 
         for (; i < channel_remain; i++)
         {
-            int ii = channel_count * 8 + i;
-            float* k0 = img_data + ii * inwh;
-            float* f0 = kernel_data + ii * 9;
-            float* b0 = bias_data + ii;
+            int    ii   = channel_count * 8 + i;
+            float* k0   = img_data + ii * inwh;
+            float* f0   = kernel_data + ii * 9;
+            float* b0   = bias_data + ii;
 
             float* tmp0 = img_tmp + channel_count * 8 * inwh;
             float* tmp1 = kernel_tmp + channel_count * 8 * 9;
@@ -999,12 +1000,12 @@ static void convdw3x3s2(float* output, float* img_data, float* kernel_data, floa
         float* btmp = bias_tmp + c * 8;
         for (int i = 0; i < outh; i++)
         {
-            int j = 0;
+            int j        = 0;
 
             float* itmp0 = img_tmp + c * 8 * inwh + 8 * i * 2 * inw;
             float* itmp1 = img_tmp + c * 8 * inwh + 8 * (i * 2 + 1) * inw;
             float* itmp2 = img_tmp + c * 8 * inwh + 8 * (i * 2 + 2) * inw;
-            float* otmp = output_tmp + c * 8 * outwh + 8 * i * outw;
+            float* otmp  = output_tmp + c * 8 * outwh + 8 * i * outw;
             for (; j + 3 < outw; j += 4)
             {
                 __m256 _sum0 = _mm256_loadu_ps(btmp);
@@ -1012,86 +1013,86 @@ static void convdw3x3s2(float* output, float* img_data, float* kernel_data, floa
                 __m256 _sum2 = _mm256_loadu_ps(btmp);
                 __m256 _sum3 = _mm256_loadu_ps(btmp);
 
-                __m256 _va0 = _mm256_loadu_ps(itmp0);
-                __m256 _va1 = _mm256_loadu_ps(itmp0 + 8);
-                __m256 _va2 = _mm256_loadu_ps(itmp0 + 16);
-                __m256 _va3 = _mm256_loadu_ps(itmp0 + 24);
-                __m256 _va4 = _mm256_loadu_ps(itmp0 + 32);
-                __m256 _va5 = _mm256_loadu_ps(itmp0 + 40);
-                __m256 _va6 = _mm256_loadu_ps(itmp0 + 48);
-                __m256 _va7 = _mm256_loadu_ps(itmp0 + 56);
-                __m256 _va8 = _mm256_loadu_ps(itmp0 + 64);
+                __m256 _va0  = _mm256_loadu_ps(itmp0);
+                __m256 _va1  = _mm256_loadu_ps(itmp0 + 8);
+                __m256 _va2  = _mm256_loadu_ps(itmp0 + 16);
+                __m256 _va3  = _mm256_loadu_ps(itmp0 + 24);
+                __m256 _va4  = _mm256_loadu_ps(itmp0 + 32);
+                __m256 _va5  = _mm256_loadu_ps(itmp0 + 40);
+                __m256 _va6  = _mm256_loadu_ps(itmp0 + 48);
+                __m256 _va7  = _mm256_loadu_ps(itmp0 + 56);
+                __m256 _va8  = _mm256_loadu_ps(itmp0 + 64);
 
-                __m256 _vb0 = _mm256_loadu_ps(ktmp);
-                __m256 _vb1 = _mm256_loadu_ps(ktmp + 8);
-                __m256 _vb2 = _mm256_loadu_ps(ktmp + 16);
+                __m256 _vb0  = _mm256_loadu_ps(ktmp);
+                __m256 _vb1  = _mm256_loadu_ps(ktmp + 8);
+                __m256 _vb2  = _mm256_loadu_ps(ktmp + 16);
 
-                _sum0 = _mm256_fmadd_ps(_va0, _vb0, _sum0);
-                _sum0 = _mm256_fmadd_ps(_va1, _vb1, _sum0);
-                _sum0 = _mm256_fmadd_ps(_va2, _vb2, _sum0);
-                _sum1 = _mm256_fmadd_ps(_va2, _vb0, _sum1);
-                _sum1 = _mm256_fmadd_ps(_va3, _vb1, _sum1);
-                _sum1 = _mm256_fmadd_ps(_va4, _vb2, _sum1);
-                _sum2 = _mm256_fmadd_ps(_va4, _vb0, _sum2);
-                _sum2 = _mm256_fmadd_ps(_va5, _vb1, _sum2);
-                _sum2 = _mm256_fmadd_ps(_va6, _vb2, _sum2);
-                _sum3 = _mm256_fmadd_ps(_va6, _vb0, _sum3);
-                _sum3 = _mm256_fmadd_ps(_va7, _vb1, _sum3);
-                _sum3 = _mm256_fmadd_ps(_va8, _vb2, _sum3);
+                _sum0        = _mm256_fmadd_ps(_va0, _vb0, _sum0);
+                _sum0        = _mm256_fmadd_ps(_va1, _vb1, _sum0);
+                _sum0        = _mm256_fmadd_ps(_va2, _vb2, _sum0);
+                _sum1        = _mm256_fmadd_ps(_va2, _vb0, _sum1);
+                _sum1        = _mm256_fmadd_ps(_va3, _vb1, _sum1);
+                _sum1        = _mm256_fmadd_ps(_va4, _vb2, _sum1);
+                _sum2        = _mm256_fmadd_ps(_va4, _vb0, _sum2);
+                _sum2        = _mm256_fmadd_ps(_va5, _vb1, _sum2);
+                _sum2        = _mm256_fmadd_ps(_va6, _vb2, _sum2);
+                _sum3        = _mm256_fmadd_ps(_va6, _vb0, _sum3);
+                _sum3        = _mm256_fmadd_ps(_va7, _vb1, _sum3);
+                _sum3        = _mm256_fmadd_ps(_va8, _vb2, _sum3);
 
-                _va0 = _mm256_loadu_ps(itmp1);
-                _va1 = _mm256_loadu_ps(itmp1 + 8);
-                _va2 = _mm256_loadu_ps(itmp1 + 16);
-                _va3 = _mm256_loadu_ps(itmp1 + 24);
-                _va4 = _mm256_loadu_ps(itmp1 + 32);
-                _va5 = _mm256_loadu_ps(itmp1 + 40);
-                _va6 = _mm256_loadu_ps(itmp1 + 48);
-                _va7 = _mm256_loadu_ps(itmp1 + 56);
-                _va8 = _mm256_loadu_ps(itmp1 + 64);
+                _va0         = _mm256_loadu_ps(itmp1);
+                _va1         = _mm256_loadu_ps(itmp1 + 8);
+                _va2         = _mm256_loadu_ps(itmp1 + 16);
+                _va3         = _mm256_loadu_ps(itmp1 + 24);
+                _va4         = _mm256_loadu_ps(itmp1 + 32);
+                _va5         = _mm256_loadu_ps(itmp1 + 40);
+                _va6         = _mm256_loadu_ps(itmp1 + 48);
+                _va7         = _mm256_loadu_ps(itmp1 + 56);
+                _va8         = _mm256_loadu_ps(itmp1 + 64);
 
-                _vb0 = _mm256_loadu_ps(ktmp + 24);
-                _vb1 = _mm256_loadu_ps(ktmp + 32);
-                _vb2 = _mm256_loadu_ps(ktmp + 40);
+                _vb0         = _mm256_loadu_ps(ktmp + 24);
+                _vb1         = _mm256_loadu_ps(ktmp + 32);
+                _vb2         = _mm256_loadu_ps(ktmp + 40);
 
-                _sum0 = _mm256_fmadd_ps(_va0, _vb0, _sum0);
-                _sum0 = _mm256_fmadd_ps(_va1, _vb1, _sum0);
-                _sum0 = _mm256_fmadd_ps(_va2, _vb2, _sum0);
-                _sum1 = _mm256_fmadd_ps(_va2, _vb0, _sum1);
-                _sum1 = _mm256_fmadd_ps(_va3, _vb1, _sum1);
-                _sum1 = _mm256_fmadd_ps(_va4, _vb2, _sum1);
-                _sum2 = _mm256_fmadd_ps(_va4, _vb0, _sum2);
-                _sum2 = _mm256_fmadd_ps(_va5, _vb1, _sum2);
-                _sum2 = _mm256_fmadd_ps(_va6, _vb2, _sum2);
-                _sum3 = _mm256_fmadd_ps(_va6, _vb0, _sum3);
-                _sum3 = _mm256_fmadd_ps(_va7, _vb1, _sum3);
-                _sum3 = _mm256_fmadd_ps(_va8, _vb2, _sum3);
+                _sum0        = _mm256_fmadd_ps(_va0, _vb0, _sum0);
+                _sum0        = _mm256_fmadd_ps(_va1, _vb1, _sum0);
+                _sum0        = _mm256_fmadd_ps(_va2, _vb2, _sum0);
+                _sum1        = _mm256_fmadd_ps(_va2, _vb0, _sum1);
+                _sum1        = _mm256_fmadd_ps(_va3, _vb1, _sum1);
+                _sum1        = _mm256_fmadd_ps(_va4, _vb2, _sum1);
+                _sum2        = _mm256_fmadd_ps(_va4, _vb0, _sum2);
+                _sum2        = _mm256_fmadd_ps(_va5, _vb1, _sum2);
+                _sum2        = _mm256_fmadd_ps(_va6, _vb2, _sum2);
+                _sum3        = _mm256_fmadd_ps(_va6, _vb0, _sum3);
+                _sum3        = _mm256_fmadd_ps(_va7, _vb1, _sum3);
+                _sum3        = _mm256_fmadd_ps(_va8, _vb2, _sum3);
 
-                _va0 = _mm256_loadu_ps(itmp2);
-                _va1 = _mm256_loadu_ps(itmp2 + 8);
-                _va2 = _mm256_loadu_ps(itmp2 + 16);
-                _va3 = _mm256_loadu_ps(itmp2 + 24);
-                _va4 = _mm256_loadu_ps(itmp2 + 32);
-                _va5 = _mm256_loadu_ps(itmp2 + 40);
-                _va6 = _mm256_loadu_ps(itmp2 + 48);
-                _va7 = _mm256_loadu_ps(itmp2 + 56);
-                _va8 = _mm256_loadu_ps(itmp2 + 64);
+                _va0         = _mm256_loadu_ps(itmp2);
+                _va1         = _mm256_loadu_ps(itmp2 + 8);
+                _va2         = _mm256_loadu_ps(itmp2 + 16);
+                _va3         = _mm256_loadu_ps(itmp2 + 24);
+                _va4         = _mm256_loadu_ps(itmp2 + 32);
+                _va5         = _mm256_loadu_ps(itmp2 + 40);
+                _va6         = _mm256_loadu_ps(itmp2 + 48);
+                _va7         = _mm256_loadu_ps(itmp2 + 56);
+                _va8         = _mm256_loadu_ps(itmp2 + 64);
 
-                _vb0 = _mm256_loadu_ps(ktmp + 48);
-                _vb1 = _mm256_loadu_ps(ktmp + 56);
-                _vb2 = _mm256_loadu_ps(ktmp + 64);
+                _vb0         = _mm256_loadu_ps(ktmp + 48);
+                _vb1         = _mm256_loadu_ps(ktmp + 56);
+                _vb2         = _mm256_loadu_ps(ktmp + 64);
 
-                _sum0 = _mm256_fmadd_ps(_va0, _vb0, _sum0);
-                _sum0 = _mm256_fmadd_ps(_va1, _vb1, _sum0);
-                _sum0 = _mm256_fmadd_ps(_va2, _vb2, _sum0);
-                _sum1 = _mm256_fmadd_ps(_va2, _vb0, _sum1);
-                _sum1 = _mm256_fmadd_ps(_va3, _vb1, _sum1);
-                _sum1 = _mm256_fmadd_ps(_va4, _vb2, _sum1);
-                _sum2 = _mm256_fmadd_ps(_va4, _vb0, _sum2);
-                _sum2 = _mm256_fmadd_ps(_va5, _vb1, _sum2);
-                _sum2 = _mm256_fmadd_ps(_va6, _vb2, _sum2);
-                _sum3 = _mm256_fmadd_ps(_va6, _vb0, _sum3);
-                _sum3 = _mm256_fmadd_ps(_va7, _vb1, _sum3);
-                _sum3 = _mm256_fmadd_ps(_va8, _vb2, _sum3);
+                _sum0        = _mm256_fmadd_ps(_va0, _vb0, _sum0);
+                _sum0        = _mm256_fmadd_ps(_va1, _vb1, _sum0);
+                _sum0        = _mm256_fmadd_ps(_va2, _vb2, _sum0);
+                _sum1        = _mm256_fmadd_ps(_va2, _vb0, _sum1);
+                _sum1        = _mm256_fmadd_ps(_va3, _vb1, _sum1);
+                _sum1        = _mm256_fmadd_ps(_va4, _vb2, _sum1);
+                _sum2        = _mm256_fmadd_ps(_va4, _vb0, _sum2);
+                _sum2        = _mm256_fmadd_ps(_va5, _vb1, _sum2);
+                _sum2        = _mm256_fmadd_ps(_va6, _vb2, _sum2);
+                _sum3        = _mm256_fmadd_ps(_va6, _vb0, _sum3);
+                _sum3        = _mm256_fmadd_ps(_va7, _vb1, _sum3);
+                _sum3        = _mm256_fmadd_ps(_va8, _vb2, _sum3);
 
                 _mm256_storeu_ps(otmp, _sum0);
                 _mm256_storeu_ps(otmp + 8, _sum1);
@@ -1109,56 +1110,56 @@ static void convdw3x3s2(float* output, float* img_data, float* kernel_data, floa
                 __m256 _sum0 = _mm256_loadu_ps(btmp);
                 __m256 _sum1 = _mm256_loadu_ps(btmp);
 
-                __m256 _va0 = _mm256_loadu_ps(itmp0);
-                __m256 _va1 = _mm256_loadu_ps(itmp0 + 8);
-                __m256 _va2 = _mm256_loadu_ps(itmp0 + 16);
-                __m256 _va3 = _mm256_loadu_ps(itmp0 + 24);
-                __m256 _va4 = _mm256_loadu_ps(itmp0 + 32);
+                __m256 _va0  = _mm256_loadu_ps(itmp0);
+                __m256 _va1  = _mm256_loadu_ps(itmp0 + 8);
+                __m256 _va2  = _mm256_loadu_ps(itmp0 + 16);
+                __m256 _va3  = _mm256_loadu_ps(itmp0 + 24);
+                __m256 _va4  = _mm256_loadu_ps(itmp0 + 32);
 
-                __m256 _vb0 = _mm256_loadu_ps(ktmp);
-                __m256 _vb1 = _mm256_loadu_ps(ktmp + 8);
-                __m256 _vb2 = _mm256_loadu_ps(ktmp + 16);
+                __m256 _vb0  = _mm256_loadu_ps(ktmp);
+                __m256 _vb1  = _mm256_loadu_ps(ktmp + 8);
+                __m256 _vb2  = _mm256_loadu_ps(ktmp + 16);
 
-                _sum0 = _mm256_fmadd_ps(_va0, _vb0, _sum0);
-                _sum0 = _mm256_fmadd_ps(_va1, _vb1, _sum0);
-                _sum0 = _mm256_fmadd_ps(_va2, _vb2, _sum0);
-                _sum1 = _mm256_fmadd_ps(_va2, _vb0, _sum1);
-                _sum1 = _mm256_fmadd_ps(_va3, _vb1, _sum1);
-                _sum1 = _mm256_fmadd_ps(_va4, _vb2, _sum1);
+                _sum0        = _mm256_fmadd_ps(_va0, _vb0, _sum0);
+                _sum0        = _mm256_fmadd_ps(_va1, _vb1, _sum0);
+                _sum0        = _mm256_fmadd_ps(_va2, _vb2, _sum0);
+                _sum1        = _mm256_fmadd_ps(_va2, _vb0, _sum1);
+                _sum1        = _mm256_fmadd_ps(_va3, _vb1, _sum1);
+                _sum1        = _mm256_fmadd_ps(_va4, _vb2, _sum1);
 
-                _va0 = _mm256_loadu_ps(itmp1);
-                _va1 = _mm256_loadu_ps(itmp1 + 8);
-                _va2 = _mm256_loadu_ps(itmp1 + 16);
-                _va3 = _mm256_loadu_ps(itmp1 + 24);
-                _va4 = _mm256_loadu_ps(itmp1 + 32);
+                _va0         = _mm256_loadu_ps(itmp1);
+                _va1         = _mm256_loadu_ps(itmp1 + 8);
+                _va2         = _mm256_loadu_ps(itmp1 + 16);
+                _va3         = _mm256_loadu_ps(itmp1 + 24);
+                _va4         = _mm256_loadu_ps(itmp1 + 32);
 
-                _vb0 = _mm256_loadu_ps(ktmp + 24);
-                _vb1 = _mm256_loadu_ps(ktmp + 32);
-                _vb2 = _mm256_loadu_ps(ktmp + 40);
+                _vb0         = _mm256_loadu_ps(ktmp + 24);
+                _vb1         = _mm256_loadu_ps(ktmp + 32);
+                _vb2         = _mm256_loadu_ps(ktmp + 40);
 
-                _sum0 = _mm256_fmadd_ps(_va0, _vb0, _sum0);
-                _sum0 = _mm256_fmadd_ps(_va1, _vb1, _sum0);
-                _sum0 = _mm256_fmadd_ps(_va2, _vb2, _sum0);
-                _sum1 = _mm256_fmadd_ps(_va2, _vb0, _sum1);
-                _sum1 = _mm256_fmadd_ps(_va3, _vb1, _sum1);
-                _sum1 = _mm256_fmadd_ps(_va4, _vb2, _sum1);
+                _sum0        = _mm256_fmadd_ps(_va0, _vb0, _sum0);
+                _sum0        = _mm256_fmadd_ps(_va1, _vb1, _sum0);
+                _sum0        = _mm256_fmadd_ps(_va2, _vb2, _sum0);
+                _sum1        = _mm256_fmadd_ps(_va2, _vb0, _sum1);
+                _sum1        = _mm256_fmadd_ps(_va3, _vb1, _sum1);
+                _sum1        = _mm256_fmadd_ps(_va4, _vb2, _sum1);
 
-                _va0 = _mm256_loadu_ps(itmp2);
-                _va1 = _mm256_loadu_ps(itmp2 + 8);
-                _va2 = _mm256_loadu_ps(itmp2 + 16);
-                _va3 = _mm256_loadu_ps(itmp2 + 24);
-                _va4 = _mm256_loadu_ps(itmp2 + 32);
+                _va0         = _mm256_loadu_ps(itmp2);
+                _va1         = _mm256_loadu_ps(itmp2 + 8);
+                _va2         = _mm256_loadu_ps(itmp2 + 16);
+                _va3         = _mm256_loadu_ps(itmp2 + 24);
+                _va4         = _mm256_loadu_ps(itmp2 + 32);
 
-                _vb0 = _mm256_loadu_ps(ktmp + 48);
-                _vb1 = _mm256_loadu_ps(ktmp + 56);
-                _vb2 = _mm256_loadu_ps(ktmp + 64);
+                _vb0         = _mm256_loadu_ps(ktmp + 48);
+                _vb1         = _mm256_loadu_ps(ktmp + 56);
+                _vb2         = _mm256_loadu_ps(ktmp + 64);
 
-                _sum0 = _mm256_fmadd_ps(_va0, _vb0, _sum0);
-                _sum0 = _mm256_fmadd_ps(_va1, _vb1, _sum0);
-                _sum0 = _mm256_fmadd_ps(_va2, _vb2, _sum0);
-                _sum1 = _mm256_fmadd_ps(_va2, _vb0, _sum1);
-                _sum1 = _mm256_fmadd_ps(_va3, _vb1, _sum1);
-                _sum1 = _mm256_fmadd_ps(_va4, _vb2, _sum1);
+                _sum0        = _mm256_fmadd_ps(_va0, _vb0, _sum0);
+                _sum0        = _mm256_fmadd_ps(_va1, _vb1, _sum0);
+                _sum0        = _mm256_fmadd_ps(_va2, _vb2, _sum0);
+                _sum1        = _mm256_fmadd_ps(_va2, _vb0, _sum1);
+                _sum1        = _mm256_fmadd_ps(_va3, _vb1, _sum1);
+                _sum1        = _mm256_fmadd_ps(_va4, _vb2, _sum1);
 
                 _mm256_storeu_ps(otmp, _sum0);
                 _mm256_storeu_ps(otmp + 8, _sum1);
@@ -1173,41 +1174,41 @@ static void convdw3x3s2(float* output, float* img_data, float* kernel_data, floa
             {
                 __m256 _sum0 = _mm256_loadu_ps(btmp);
 
-                __m256 _va0 = _mm256_loadu_ps(itmp0);
-                __m256 _va1 = _mm256_loadu_ps(itmp0 + 8);
-                __m256 _va2 = _mm256_loadu_ps(itmp0 + 16);
+                __m256 _va0  = _mm256_loadu_ps(itmp0);
+                __m256 _va1  = _mm256_loadu_ps(itmp0 + 8);
+                __m256 _va2  = _mm256_loadu_ps(itmp0 + 16);
 
-                __m256 _vb0 = _mm256_loadu_ps(ktmp);
-                __m256 _vb1 = _mm256_loadu_ps(ktmp + 8);
-                __m256 _vb2 = _mm256_loadu_ps(ktmp + 16);
+                __m256 _vb0  = _mm256_loadu_ps(ktmp);
+                __m256 _vb1  = _mm256_loadu_ps(ktmp + 8);
+                __m256 _vb2  = _mm256_loadu_ps(ktmp + 16);
 
-                _sum0 = _mm256_fmadd_ps(_va0, _vb0, _sum0);
-                _sum0 = _mm256_fmadd_ps(_va1, _vb1, _sum0);
-                _sum0 = _mm256_fmadd_ps(_va2, _vb2, _sum0);
+                _sum0        = _mm256_fmadd_ps(_va0, _vb0, _sum0);
+                _sum0        = _mm256_fmadd_ps(_va1, _vb1, _sum0);
+                _sum0        = _mm256_fmadd_ps(_va2, _vb2, _sum0);
 
-                _va0 = _mm256_loadu_ps(itmp1);
-                _va1 = _mm256_loadu_ps(itmp1 + 8);
-                _va2 = _mm256_loadu_ps(itmp1 + 16);
+                _va0         = _mm256_loadu_ps(itmp1);
+                _va1         = _mm256_loadu_ps(itmp1 + 8);
+                _va2         = _mm256_loadu_ps(itmp1 + 16);
 
-                _vb0 = _mm256_loadu_ps(ktmp + 24);
-                _vb1 = _mm256_loadu_ps(ktmp + 32);
-                _vb2 = _mm256_loadu_ps(ktmp + 40);
+                _vb0         = _mm256_loadu_ps(ktmp + 24);
+                _vb1         = _mm256_loadu_ps(ktmp + 32);
+                _vb2         = _mm256_loadu_ps(ktmp + 40);
 
-                _sum0 = _mm256_fmadd_ps(_va0, _vb0, _sum0);
-                _sum0 = _mm256_fmadd_ps(_va1, _vb1, _sum0);
-                _sum0 = _mm256_fmadd_ps(_va2, _vb2, _sum0);
+                _sum0        = _mm256_fmadd_ps(_va0, _vb0, _sum0);
+                _sum0        = _mm256_fmadd_ps(_va1, _vb1, _sum0);
+                _sum0        = _mm256_fmadd_ps(_va2, _vb2, _sum0);
 
-                _va0 = _mm256_loadu_ps(itmp2);
-                _va1 = _mm256_loadu_ps(itmp2 + 8);
-                _va2 = _mm256_loadu_ps(itmp2 + 16);
+                _va0         = _mm256_loadu_ps(itmp2);
+                _va1         = _mm256_loadu_ps(itmp2 + 8);
+                _va2         = _mm256_loadu_ps(itmp2 + 16);
 
-                _vb0 = _mm256_loadu_ps(ktmp + 48);
-                _vb1 = _mm256_loadu_ps(ktmp + 56);
-                _vb2 = _mm256_loadu_ps(ktmp + 64);
+                _vb0         = _mm256_loadu_ps(ktmp + 48);
+                _vb1         = _mm256_loadu_ps(ktmp + 56);
+                _vb2         = _mm256_loadu_ps(ktmp + 64);
 
-                _sum0 = _mm256_fmadd_ps(_va0, _vb0, _sum0);
-                _sum0 = _mm256_fmadd_ps(_va1, _vb1, _sum0);
-                _sum0 = _mm256_fmadd_ps(_va2, _vb2, _sum0);
+                _sum0        = _mm256_fmadd_ps(_va0, _vb0, _sum0);
+                _sum0        = _mm256_fmadd_ps(_va1, _vb1, _sum0);
+                _sum0        = _mm256_fmadd_ps(_va2, _vb2, _sum0);
 
                 _mm256_storeu_ps(otmp, _sum0);
 
@@ -1256,7 +1257,7 @@ static void convdw3x3s2(float* output, float* img_data, float* kernel_data, floa
         int i = 0;
         for (; i + 3 < channel_remain; i += 4)
         {
-            int ii = channel_count * 8 + i;
+            int    ii   = channel_count * 8 + i;
             float* otmp = output_tmp + ii * outwh;
 
             float* tmp0 = output + ii * outwh;
@@ -1280,7 +1281,7 @@ static void convdw3x3s2(float* output, float* img_data, float* kernel_data, floa
 
         for (; i < channel_remain; i++)
         {
-            int ii = channel_count * 8 + i;
+            int    ii   = channel_count * 8 + i;
             float* otmp = output_tmp + channel_count * 8 * outwh;
 
             float* tmp0 = output + ii * outwh;
@@ -1303,33 +1304,33 @@ static void convdw3x3s2(float* output, float* img_data, float* kernel_data, floa
 static void convdw3x3s1(float* output, float* img_data, float* kernel_data, float* bias_data, int inc, int inh, int inw,
                         int outh, int outw, int num_thread)
 {
-    int inwh = inw * inh;
-    int outwh = outw * outh;
-    int channel_count = inc >> 2;
+    int inwh           = inw * inh;
+    int outwh          = outw * outh;
+    int channel_count  = inc >> 2;
     int channel_remain = inc - (channel_count << 2);
 
     // generate the image tmp
-    float* img_tmp = (float*)sys_malloc(4 * inwh * (channel_count + 1) * sizeof(float));
+    float* img_tmp    = (float*)sys_malloc(4 * inwh * (channel_count + 1) * sizeof(float));
     float* kernel_tmp = (float*)sys_malloc(4 * 9 * (channel_count + 1) * sizeof(float));
-    float* bias_tmp = (float*)sys_malloc(4 * (channel_count + 1) * sizeof(float));
+    float* bias_tmp   = (float*)sys_malloc(4 * (channel_count + 1) * sizeof(float));
     {
         for (int i = 0; i < channel_count; i++)
         {
-            int ii = i * 4;
-            float* k0 = img_data + (ii + 0) * inwh;
-            float* k1 = img_data + (ii + 1) * inwh;
-            float* k2 = img_data + (ii + 2) * inwh;
-            float* k3 = img_data + (ii + 3) * inwh;
+            int    ii   = i * 4;
+            float* k0   = img_data + (ii + 0) * inwh;
+            float* k1   = img_data + (ii + 1) * inwh;
+            float* k2   = img_data + (ii + 2) * inwh;
+            float* k3   = img_data + (ii + 3) * inwh;
 
-            float* f0 = kernel_data + (ii + 0) * 9;
-            float* f1 = kernel_data + (ii + 1) * 9;
-            float* f2 = kernel_data + (ii + 2) * 9;
-            float* f3 = kernel_data + (ii + 3) * 9;
+            float* f0   = kernel_data + (ii + 0) * 9;
+            float* f1   = kernel_data + (ii + 1) * 9;
+            float* f2   = kernel_data + (ii + 2) * 9;
+            float* f3   = kernel_data + (ii + 3) * 9;
 
-            float* b0 = bias_data + (ii + 0);
-            float* b1 = bias_data + (ii + 1);
-            float* b2 = bias_data + (ii + 2);
-            float* b3 = bias_data + (ii + 3);
+            float* b0   = bias_data + (ii + 0);
+            float* b1   = bias_data + (ii + 1);
+            float* b2   = bias_data + (ii + 2);
+            float* b3   = bias_data + (ii + 3);
 
             float* tmp0 = img_tmp + ii * inwh;
             float* tmp1 = kernel_tmp + ii * 9;
@@ -1381,10 +1382,10 @@ static void convdw3x3s1(float* output, float* img_data, float* kernel_data, floa
 
         for (int i = 0; i < channel_remain; i++)
         {
-            int ii = channel_count * 4 + i;
-            float* k0 = img_data + ii * inwh;
-            float* f0 = kernel_data + ii * 9;
-            float* b0 = bias_data + ii;
+            int    ii   = channel_count * 4 + i;
+            float* k0   = img_data + ii * inwh;
+            float* f0   = kernel_data + ii * 9;
+            float* b0   = bias_data + ii;
 
             float* tmp0 = img_tmp + channel_count * 4 * inwh;
             float* tmp1 = kernel_tmp + channel_count * 4 * 9;
@@ -1423,15 +1424,15 @@ static void convdw3x3s1(float* output, float* img_data, float* kernel_data, floa
         float* btmp = bias_tmp + c * 4;
         for (int i = 0; i < outh; i++)
         {
-            int j = 0;
+            int j        = 0;
 
             float* itmp0 = img_tmp + c * 4 * inwh + 4 * i * inw;
             float* itmp1 = img_tmp + c * 4 * inwh + 4 * (i + 1) * inw;
             float* itmp2 = img_tmp + c * 4 * inwh + 4 * (i + 2) * inw;
-            float* otmp = output_tmp + c * 4 * outwh + 4 * i * outw;
+            float* otmp  = output_tmp + c * 4 * outwh + 4 * i * outw;
             for (; j + 7 < outw; j += 8)
             {
-#if __SSE__
+    #if __SSE__
                 __m128 _sum0 = _mm_loadu_ps(btmp);
                 __m128 _sum1 = _mm_loadu_ps(btmp);
                 __m128 _sum2 = _mm_loadu_ps(btmp);
@@ -1441,125 +1442,125 @@ static void convdw3x3s1(float* output, float* img_data, float* kernel_data, floa
                 __m128 _sum6 = _mm_loadu_ps(btmp);
                 __m128 _sum7 = _mm_loadu_ps(btmp);
 
-                __m128 _va0 = _mm_loadu_ps(itmp0);
-                __m128 _va1 = _mm_loadu_ps(itmp0 + 4);
-                __m128 _va2 = _mm_loadu_ps(itmp0 + 8);
-                __m128 _va3 = _mm_loadu_ps(itmp0 + 12);
-                __m128 _va4 = _mm_loadu_ps(itmp0 + 16);
-                __m128 _va5 = _mm_loadu_ps(itmp0 + 20);
-                __m128 _va6 = _mm_loadu_ps(itmp0 + 24);
-                __m128 _va7 = _mm_loadu_ps(itmp0 + 28);
-                __m128 _va8 = _mm_loadu_ps(itmp0 + 32);
-                __m128 _va9 = _mm_loadu_ps(itmp0 + 36);
+                __m128 _va0  = _mm_loadu_ps(itmp0);
+                __m128 _va1  = _mm_loadu_ps(itmp0 + 4);
+                __m128 _va2  = _mm_loadu_ps(itmp0 + 8);
+                __m128 _va3  = _mm_loadu_ps(itmp0 + 12);
+                __m128 _va4  = _mm_loadu_ps(itmp0 + 16);
+                __m128 _va5  = _mm_loadu_ps(itmp0 + 20);
+                __m128 _va6  = _mm_loadu_ps(itmp0 + 24);
+                __m128 _va7  = _mm_loadu_ps(itmp0 + 28);
+                __m128 _va8  = _mm_loadu_ps(itmp0 + 32);
+                __m128 _va9  = _mm_loadu_ps(itmp0 + 36);
 
-                __m128 _vb0 = _mm_loadu_ps(ktmp);
-                __m128 _vb1 = _mm_loadu_ps(ktmp + 4);
-                __m128 _vb2 = _mm_loadu_ps(ktmp + 8);
+                __m128 _vb0  = _mm_loadu_ps(ktmp);
+                __m128 _vb1  = _mm_loadu_ps(ktmp + 4);
+                __m128 _vb2  = _mm_loadu_ps(ktmp + 8);
 
-                _sum0 = _mm_add_ps(_mm_mul_ps(_va0, _vb0), _sum0);
-                _sum1 = _mm_add_ps(_mm_mul_ps(_va1, _vb0), _sum1);
-                _sum0 = _mm_add_ps(_mm_mul_ps(_va1, _vb1), _sum0);
-                _sum1 = _mm_add_ps(_mm_mul_ps(_va2, _vb1), _sum1);
-                _sum0 = _mm_add_ps(_mm_mul_ps(_va2, _vb2), _sum0);
-                _sum2 = _mm_add_ps(_mm_mul_ps(_va2, _vb0), _sum2);
-                _sum3 = _mm_add_ps(_mm_mul_ps(_va3, _vb0), _sum3);
-                _sum1 = _mm_add_ps(_mm_mul_ps(_va3, _vb2), _sum1);
-                _sum2 = _mm_add_ps(_mm_mul_ps(_va3, _vb1), _sum2);
-                _sum3 = _mm_add_ps(_mm_mul_ps(_va4, _vb1), _sum3);
-                _sum4 = _mm_add_ps(_mm_mul_ps(_va4, _vb0), _sum4);
-                _sum2 = _mm_add_ps(_mm_mul_ps(_va4, _vb2), _sum2);
-                _sum3 = _mm_add_ps(_mm_mul_ps(_va5, _vb2), _sum3);
-                _sum5 = _mm_add_ps(_mm_mul_ps(_va5, _vb0), _sum5);
-                _sum4 = _mm_add_ps(_mm_mul_ps(_va5, _vb1), _sum4);
-                _sum5 = _mm_add_ps(_mm_mul_ps(_va6, _vb1), _sum5);
-                _sum4 = _mm_add_ps(_mm_mul_ps(_va6, _vb2), _sum4);
-                _sum6 = _mm_add_ps(_mm_mul_ps(_va6, _vb0), _sum6);
-                _sum7 = _mm_add_ps(_mm_mul_ps(_va7, _vb0), _sum7);
-                _sum5 = _mm_add_ps(_mm_mul_ps(_va7, _vb2), _sum5);
-                _sum6 = _mm_add_ps(_mm_mul_ps(_va7, _vb1), _sum6);
-                _sum7 = _mm_add_ps(_mm_mul_ps(_va8, _vb1), _sum7);
-                _sum6 = _mm_add_ps(_mm_mul_ps(_va8, _vb2), _sum6);
-                _sum7 = _mm_add_ps(_mm_mul_ps(_va9, _vb2), _sum7);
+                _sum0        = _mm_add_ps(_mm_mul_ps(_va0, _vb0), _sum0);
+                _sum1        = _mm_add_ps(_mm_mul_ps(_va1, _vb0), _sum1);
+                _sum0        = _mm_add_ps(_mm_mul_ps(_va1, _vb1), _sum0);
+                _sum1        = _mm_add_ps(_mm_mul_ps(_va2, _vb1), _sum1);
+                _sum0        = _mm_add_ps(_mm_mul_ps(_va2, _vb2), _sum0);
+                _sum2        = _mm_add_ps(_mm_mul_ps(_va2, _vb0), _sum2);
+                _sum3        = _mm_add_ps(_mm_mul_ps(_va3, _vb0), _sum3);
+                _sum1        = _mm_add_ps(_mm_mul_ps(_va3, _vb2), _sum1);
+                _sum2        = _mm_add_ps(_mm_mul_ps(_va3, _vb1), _sum2);
+                _sum3        = _mm_add_ps(_mm_mul_ps(_va4, _vb1), _sum3);
+                _sum4        = _mm_add_ps(_mm_mul_ps(_va4, _vb0), _sum4);
+                _sum2        = _mm_add_ps(_mm_mul_ps(_va4, _vb2), _sum2);
+                _sum3        = _mm_add_ps(_mm_mul_ps(_va5, _vb2), _sum3);
+                _sum5        = _mm_add_ps(_mm_mul_ps(_va5, _vb0), _sum5);
+                _sum4        = _mm_add_ps(_mm_mul_ps(_va5, _vb1), _sum4);
+                _sum5        = _mm_add_ps(_mm_mul_ps(_va6, _vb1), _sum5);
+                _sum4        = _mm_add_ps(_mm_mul_ps(_va6, _vb2), _sum4);
+                _sum6        = _mm_add_ps(_mm_mul_ps(_va6, _vb0), _sum6);
+                _sum7        = _mm_add_ps(_mm_mul_ps(_va7, _vb0), _sum7);
+                _sum5        = _mm_add_ps(_mm_mul_ps(_va7, _vb2), _sum5);
+                _sum6        = _mm_add_ps(_mm_mul_ps(_va7, _vb1), _sum6);
+                _sum7        = _mm_add_ps(_mm_mul_ps(_va8, _vb1), _sum7);
+                _sum6        = _mm_add_ps(_mm_mul_ps(_va8, _vb2), _sum6);
+                _sum7        = _mm_add_ps(_mm_mul_ps(_va9, _vb2), _sum7);
 
-                _va0 = _mm_loadu_ps(itmp1);
-                _va1 = _mm_loadu_ps(itmp1 + 4);
-                _va2 = _mm_loadu_ps(itmp1 + 8);
-                _va3 = _mm_loadu_ps(itmp1 + 12);
-                _va4 = _mm_loadu_ps(itmp1 + 16);
-                _va5 = _mm_loadu_ps(itmp1 + 20);
-                _va6 = _mm_loadu_ps(itmp1 + 24);
-                _va7 = _mm_loadu_ps(itmp1 + 28);
-                _va8 = _mm_loadu_ps(itmp1 + 32);
-                _va9 = _mm_loadu_ps(itmp1 + 36);
+                _va0         = _mm_loadu_ps(itmp1);
+                _va1         = _mm_loadu_ps(itmp1 + 4);
+                _va2         = _mm_loadu_ps(itmp1 + 8);
+                _va3         = _mm_loadu_ps(itmp1 + 12);
+                _va4         = _mm_loadu_ps(itmp1 + 16);
+                _va5         = _mm_loadu_ps(itmp1 + 20);
+                _va6         = _mm_loadu_ps(itmp1 + 24);
+                _va7         = _mm_loadu_ps(itmp1 + 28);
+                _va8         = _mm_loadu_ps(itmp1 + 32);
+                _va9         = _mm_loadu_ps(itmp1 + 36);
 
-                _vb0 = _mm_loadu_ps(ktmp + 12);
-                _vb1 = _mm_loadu_ps(ktmp + 16);
-                _vb2 = _mm_loadu_ps(ktmp + 20);
+                _vb0         = _mm_loadu_ps(ktmp + 12);
+                _vb1         = _mm_loadu_ps(ktmp + 16);
+                _vb2         = _mm_loadu_ps(ktmp + 20);
 
-                _sum0 = _mm_add_ps(_mm_mul_ps(_va0, _vb0), _sum0);
-                _sum1 = _mm_add_ps(_mm_mul_ps(_va1, _vb0), _sum1);
-                _sum0 = _mm_add_ps(_mm_mul_ps(_va1, _vb1), _sum0);
-                _sum1 = _mm_add_ps(_mm_mul_ps(_va2, _vb1), _sum1);
-                _sum0 = _mm_add_ps(_mm_mul_ps(_va2, _vb2), _sum0);
-                _sum2 = _mm_add_ps(_mm_mul_ps(_va2, _vb0), _sum2);
-                _sum3 = _mm_add_ps(_mm_mul_ps(_va3, _vb0), _sum3);
-                _sum1 = _mm_add_ps(_mm_mul_ps(_va3, _vb2), _sum1);
-                _sum2 = _mm_add_ps(_mm_mul_ps(_va3, _vb1), _sum2);
-                _sum3 = _mm_add_ps(_mm_mul_ps(_va4, _vb1), _sum3);
-                _sum4 = _mm_add_ps(_mm_mul_ps(_va4, _vb0), _sum4);
-                _sum2 = _mm_add_ps(_mm_mul_ps(_va4, _vb2), _sum2);
-                _sum3 = _mm_add_ps(_mm_mul_ps(_va5, _vb2), _sum3);
-                _sum5 = _mm_add_ps(_mm_mul_ps(_va5, _vb0), _sum5);
-                _sum4 = _mm_add_ps(_mm_mul_ps(_va5, _vb1), _sum4);
-                _sum5 = _mm_add_ps(_mm_mul_ps(_va6, _vb1), _sum5);
-                _sum4 = _mm_add_ps(_mm_mul_ps(_va6, _vb2), _sum4);
-                _sum6 = _mm_add_ps(_mm_mul_ps(_va6, _vb0), _sum6);
-                _sum7 = _mm_add_ps(_mm_mul_ps(_va7, _vb0), _sum7);
-                _sum5 = _mm_add_ps(_mm_mul_ps(_va7, _vb2), _sum5);
-                _sum6 = _mm_add_ps(_mm_mul_ps(_va7, _vb1), _sum6);
-                _sum7 = _mm_add_ps(_mm_mul_ps(_va8, _vb1), _sum7);
-                _sum6 = _mm_add_ps(_mm_mul_ps(_va8, _vb2), _sum6);
-                _sum7 = _mm_add_ps(_mm_mul_ps(_va9, _vb2), _sum7);
+                _sum0        = _mm_add_ps(_mm_mul_ps(_va0, _vb0), _sum0);
+                _sum1        = _mm_add_ps(_mm_mul_ps(_va1, _vb0), _sum1);
+                _sum0        = _mm_add_ps(_mm_mul_ps(_va1, _vb1), _sum0);
+                _sum1        = _mm_add_ps(_mm_mul_ps(_va2, _vb1), _sum1);
+                _sum0        = _mm_add_ps(_mm_mul_ps(_va2, _vb2), _sum0);
+                _sum2        = _mm_add_ps(_mm_mul_ps(_va2, _vb0), _sum2);
+                _sum3        = _mm_add_ps(_mm_mul_ps(_va3, _vb0), _sum3);
+                _sum1        = _mm_add_ps(_mm_mul_ps(_va3, _vb2), _sum1);
+                _sum2        = _mm_add_ps(_mm_mul_ps(_va3, _vb1), _sum2);
+                _sum3        = _mm_add_ps(_mm_mul_ps(_va4, _vb1), _sum3);
+                _sum4        = _mm_add_ps(_mm_mul_ps(_va4, _vb0), _sum4);
+                _sum2        = _mm_add_ps(_mm_mul_ps(_va4, _vb2), _sum2);
+                _sum3        = _mm_add_ps(_mm_mul_ps(_va5, _vb2), _sum3);
+                _sum5        = _mm_add_ps(_mm_mul_ps(_va5, _vb0), _sum5);
+                _sum4        = _mm_add_ps(_mm_mul_ps(_va5, _vb1), _sum4);
+                _sum5        = _mm_add_ps(_mm_mul_ps(_va6, _vb1), _sum5);
+                _sum4        = _mm_add_ps(_mm_mul_ps(_va6, _vb2), _sum4);
+                _sum6        = _mm_add_ps(_mm_mul_ps(_va6, _vb0), _sum6);
+                _sum7        = _mm_add_ps(_mm_mul_ps(_va7, _vb0), _sum7);
+                _sum5        = _mm_add_ps(_mm_mul_ps(_va7, _vb2), _sum5);
+                _sum6        = _mm_add_ps(_mm_mul_ps(_va7, _vb1), _sum6);
+                _sum7        = _mm_add_ps(_mm_mul_ps(_va8, _vb1), _sum7);
+                _sum6        = _mm_add_ps(_mm_mul_ps(_va8, _vb2), _sum6);
+                _sum7        = _mm_add_ps(_mm_mul_ps(_va9, _vb2), _sum7);
 
-                _va0 = _mm_loadu_ps(itmp2);
-                _va1 = _mm_loadu_ps(itmp2 + 4);
-                _va2 = _mm_loadu_ps(itmp2 + 8);
-                _va3 = _mm_loadu_ps(itmp2 + 12);
-                _va4 = _mm_loadu_ps(itmp2 + 16);
-                _va5 = _mm_loadu_ps(itmp2 + 20);
-                _va6 = _mm_loadu_ps(itmp2 + 24);
-                _va7 = _mm_loadu_ps(itmp2 + 28);
-                _va8 = _mm_loadu_ps(itmp2 + 32);
-                _va9 = _mm_loadu_ps(itmp2 + 36);
+                _va0         = _mm_loadu_ps(itmp2);
+                _va1         = _mm_loadu_ps(itmp2 + 4);
+                _va2         = _mm_loadu_ps(itmp2 + 8);
+                _va3         = _mm_loadu_ps(itmp2 + 12);
+                _va4         = _mm_loadu_ps(itmp2 + 16);
+                _va5         = _mm_loadu_ps(itmp2 + 20);
+                _va6         = _mm_loadu_ps(itmp2 + 24);
+                _va7         = _mm_loadu_ps(itmp2 + 28);
+                _va8         = _mm_loadu_ps(itmp2 + 32);
+                _va9         = _mm_loadu_ps(itmp2 + 36);
 
-                _vb0 = _mm_loadu_ps(ktmp + 24);
-                _vb1 = _mm_loadu_ps(ktmp + 28);
-                _vb2 = _mm_loadu_ps(ktmp + 32);
+                _vb0         = _mm_loadu_ps(ktmp + 24);
+                _vb1         = _mm_loadu_ps(ktmp + 28);
+                _vb2         = _mm_loadu_ps(ktmp + 32);
 
-                _sum0 = _mm_add_ps(_mm_mul_ps(_va0, _vb0), _sum0);
-                _sum1 = _mm_add_ps(_mm_mul_ps(_va1, _vb0), _sum1);
-                _sum0 = _mm_add_ps(_mm_mul_ps(_va1, _vb1), _sum0);
-                _sum1 = _mm_add_ps(_mm_mul_ps(_va2, _vb1), _sum1);
-                _sum0 = _mm_add_ps(_mm_mul_ps(_va2, _vb2), _sum0);
-                _sum2 = _mm_add_ps(_mm_mul_ps(_va2, _vb0), _sum2);
-                _sum3 = _mm_add_ps(_mm_mul_ps(_va3, _vb0), _sum3);
-                _sum1 = _mm_add_ps(_mm_mul_ps(_va3, _vb2), _sum1);
-                _sum2 = _mm_add_ps(_mm_mul_ps(_va3, _vb1), _sum2);
-                _sum3 = _mm_add_ps(_mm_mul_ps(_va4, _vb1), _sum3);
-                _sum4 = _mm_add_ps(_mm_mul_ps(_va4, _vb0), _sum4);
-                _sum2 = _mm_add_ps(_mm_mul_ps(_va4, _vb2), _sum2);
-                _sum3 = _mm_add_ps(_mm_mul_ps(_va5, _vb2), _sum3);
-                _sum5 = _mm_add_ps(_mm_mul_ps(_va5, _vb0), _sum5);
-                _sum4 = _mm_add_ps(_mm_mul_ps(_va5, _vb1), _sum4);
-                _sum5 = _mm_add_ps(_mm_mul_ps(_va6, _vb1), _sum5);
-                _sum4 = _mm_add_ps(_mm_mul_ps(_va6, _vb2), _sum4);
-                _sum6 = _mm_add_ps(_mm_mul_ps(_va6, _vb0), _sum6);
-                _sum7 = _mm_add_ps(_mm_mul_ps(_va7, _vb0), _sum7);
-                _sum5 = _mm_add_ps(_mm_mul_ps(_va7, _vb2), _sum5);
-                _sum6 = _mm_add_ps(_mm_mul_ps(_va7, _vb1), _sum6);
-                _sum7 = _mm_add_ps(_mm_mul_ps(_va8, _vb1), _sum7);
-                _sum6 = _mm_add_ps(_mm_mul_ps(_va8, _vb2), _sum6);
-                _sum7 = _mm_add_ps(_mm_mul_ps(_va9, _vb2), _sum7);
+                _sum0        = _mm_add_ps(_mm_mul_ps(_va0, _vb0), _sum0);
+                _sum1        = _mm_add_ps(_mm_mul_ps(_va1, _vb0), _sum1);
+                _sum0        = _mm_add_ps(_mm_mul_ps(_va1, _vb1), _sum0);
+                _sum1        = _mm_add_ps(_mm_mul_ps(_va2, _vb1), _sum1);
+                _sum0        = _mm_add_ps(_mm_mul_ps(_va2, _vb2), _sum0);
+                _sum2        = _mm_add_ps(_mm_mul_ps(_va2, _vb0), _sum2);
+                _sum3        = _mm_add_ps(_mm_mul_ps(_va3, _vb0), _sum3);
+                _sum1        = _mm_add_ps(_mm_mul_ps(_va3, _vb2), _sum1);
+                _sum2        = _mm_add_ps(_mm_mul_ps(_va3, _vb1), _sum2);
+                _sum3        = _mm_add_ps(_mm_mul_ps(_va4, _vb1), _sum3);
+                _sum4        = _mm_add_ps(_mm_mul_ps(_va4, _vb0), _sum4);
+                _sum2        = _mm_add_ps(_mm_mul_ps(_va4, _vb2), _sum2);
+                _sum3        = _mm_add_ps(_mm_mul_ps(_va5, _vb2), _sum3);
+                _sum5        = _mm_add_ps(_mm_mul_ps(_va5, _vb0), _sum5);
+                _sum4        = _mm_add_ps(_mm_mul_ps(_va5, _vb1), _sum4);
+                _sum5        = _mm_add_ps(_mm_mul_ps(_va6, _vb1), _sum5);
+                _sum4        = _mm_add_ps(_mm_mul_ps(_va6, _vb2), _sum4);
+                _sum6        = _mm_add_ps(_mm_mul_ps(_va6, _vb0), _sum6);
+                _sum7        = _mm_add_ps(_mm_mul_ps(_va7, _vb0), _sum7);
+                _sum5        = _mm_add_ps(_mm_mul_ps(_va7, _vb2), _sum5);
+                _sum6        = _mm_add_ps(_mm_mul_ps(_va7, _vb1), _sum6);
+                _sum7        = _mm_add_ps(_mm_mul_ps(_va8, _vb1), _sum7);
+                _sum6        = _mm_add_ps(_mm_mul_ps(_va8, _vb2), _sum6);
+                _sum7        = _mm_add_ps(_mm_mul_ps(_va9, _vb2), _sum7);
 
                 _mm_storeu_ps(otmp, _sum0);
                 _mm_storeu_ps(otmp + 4, _sum1);
@@ -1570,15 +1571,15 @@ static void convdw3x3s1(float* output, float* img_data, float* kernel_data, floa
                 _mm_storeu_ps(otmp + 24, _sum6);
                 _mm_storeu_ps(otmp + 28, _sum7);
 
-#else
-                float sum0[4] = {btmp[0], btmp[1], btmp[2], btmp[3]};
-                float sum1[4] = {btmp[0], btmp[1], btmp[2], btmp[3]};
-                float sum2[4] = {btmp[0], btmp[1], btmp[2], btmp[3]};
-                float sum3[4] = {btmp[0], btmp[1], btmp[2], btmp[3]};
-                float sum4[4] = {btmp[0], btmp[1], btmp[2], btmp[3]};
-                float sum5[4] = {btmp[0], btmp[1], btmp[2], btmp[3]};
-                float sum6[4] = {btmp[0], btmp[1], btmp[2], btmp[3]};
-                float sum7[4] = {btmp[0], btmp[1], btmp[2], btmp[3]};
+    #else
+                float sum0[4] = { btmp[0], btmp[1], btmp[2], btmp[3] };
+                float sum1[4] = { btmp[0], btmp[1], btmp[2], btmp[3] };
+                float sum2[4] = { btmp[0], btmp[1], btmp[2], btmp[3] };
+                float sum3[4] = { btmp[0], btmp[1], btmp[2], btmp[3] };
+                float sum4[4] = { btmp[0], btmp[1], btmp[2], btmp[3] };
+                float sum5[4] = { btmp[0], btmp[1], btmp[2], btmp[3] };
+                float sum6[4] = { btmp[0], btmp[1], btmp[2], btmp[3] };
+                float sum7[4] = { btmp[0], btmp[1], btmp[2], btmp[3] };
                 for (int k = 0; k < 4; k++)
                 {
                     sum0[k] += itmp0[k] * ktmp[k];
@@ -1664,16 +1665,16 @@ static void convdw3x3s1(float* output, float* img_data, float* kernel_data, floa
 
                 for (int k = 0; k < 4; k++)
                 {
-                    otmp[k] = sum0[k];
-                    otmp[k + 4] = sum1[k];
-                    otmp[k + 8] = sum2[k];
+                    otmp[k]      = sum0[k];
+                    otmp[k + 4]  = sum1[k];
+                    otmp[k + 8]  = sum2[k];
                     otmp[k + 12] = sum3[k];
                     otmp[k + 16] = sum4[k];
                     otmp[k + 20] = sum5[k];
                     otmp[k + 24] = sum6[k];
                     otmp[k + 28] = sum7[k];
                 }
-#endif
+    #endif
                 itmp0 += 32;
                 itmp1 += 32;
                 itmp2 += 32;
@@ -1682,94 +1683,94 @@ static void convdw3x3s1(float* output, float* img_data, float* kernel_data, floa
 
             for (; j + 3 < outw; j += 4)
             {
-#if __SSE__
+    #if __SSE__
                 __m128 _sum0 = _mm_loadu_ps(btmp);
                 __m128 _sum1 = _mm_loadu_ps(btmp);
                 __m128 _sum2 = _mm_loadu_ps(btmp);
                 __m128 _sum3 = _mm_loadu_ps(btmp);
 
-                __m128 _va0 = _mm_loadu_ps(itmp0);
-                __m128 _va1 = _mm_loadu_ps(itmp0 + 4);
-                __m128 _va2 = _mm_loadu_ps(itmp0 + 8);
-                __m128 _va3 = _mm_loadu_ps(itmp0 + 12);
-                __m128 _va4 = _mm_loadu_ps(itmp0 + 16);
-                __m128 _va5 = _mm_loadu_ps(itmp0 + 20);
+                __m128 _va0  = _mm_loadu_ps(itmp0);
+                __m128 _va1  = _mm_loadu_ps(itmp0 + 4);
+                __m128 _va2  = _mm_loadu_ps(itmp0 + 8);
+                __m128 _va3  = _mm_loadu_ps(itmp0 + 12);
+                __m128 _va4  = _mm_loadu_ps(itmp0 + 16);
+                __m128 _va5  = _mm_loadu_ps(itmp0 + 20);
 
-                __m128 _vb0 = _mm_loadu_ps(ktmp);
-                __m128 _vb1 = _mm_loadu_ps(ktmp + 4);
-                __m128 _vb2 = _mm_loadu_ps(ktmp + 8);
+                __m128 _vb0  = _mm_loadu_ps(ktmp);
+                __m128 _vb1  = _mm_loadu_ps(ktmp + 4);
+                __m128 _vb2  = _mm_loadu_ps(ktmp + 8);
 
-                _sum0 = _mm_add_ps(_mm_mul_ps(_va0, _vb0), _sum0);
-                _sum1 = _mm_add_ps(_mm_mul_ps(_va1, _vb0), _sum1);
-                _sum0 = _mm_add_ps(_mm_mul_ps(_va1, _vb1), _sum0);
-                _sum1 = _mm_add_ps(_mm_mul_ps(_va2, _vb1), _sum1);
-                _sum0 = _mm_add_ps(_mm_mul_ps(_va2, _vb2), _sum0);
-                _sum2 = _mm_add_ps(_mm_mul_ps(_va2, _vb0), _sum2);
-                _sum3 = _mm_add_ps(_mm_mul_ps(_va3, _vb0), _sum3);
-                _sum1 = _mm_add_ps(_mm_mul_ps(_va3, _vb2), _sum1);
-                _sum2 = _mm_add_ps(_mm_mul_ps(_va3, _vb1), _sum2);
-                _sum3 = _mm_add_ps(_mm_mul_ps(_va4, _vb1), _sum3);
-                _sum2 = _mm_add_ps(_mm_mul_ps(_va4, _vb2), _sum2);
-                _sum3 = _mm_add_ps(_mm_mul_ps(_va5, _vb2), _sum3);
+                _sum0        = _mm_add_ps(_mm_mul_ps(_va0, _vb0), _sum0);
+                _sum1        = _mm_add_ps(_mm_mul_ps(_va1, _vb0), _sum1);
+                _sum0        = _mm_add_ps(_mm_mul_ps(_va1, _vb1), _sum0);
+                _sum1        = _mm_add_ps(_mm_mul_ps(_va2, _vb1), _sum1);
+                _sum0        = _mm_add_ps(_mm_mul_ps(_va2, _vb2), _sum0);
+                _sum2        = _mm_add_ps(_mm_mul_ps(_va2, _vb0), _sum2);
+                _sum3        = _mm_add_ps(_mm_mul_ps(_va3, _vb0), _sum3);
+                _sum1        = _mm_add_ps(_mm_mul_ps(_va3, _vb2), _sum1);
+                _sum2        = _mm_add_ps(_mm_mul_ps(_va3, _vb1), _sum2);
+                _sum3        = _mm_add_ps(_mm_mul_ps(_va4, _vb1), _sum3);
+                _sum2        = _mm_add_ps(_mm_mul_ps(_va4, _vb2), _sum2);
+                _sum3        = _mm_add_ps(_mm_mul_ps(_va5, _vb2), _sum3);
 
-                _va0 = _mm_loadu_ps(itmp1);
-                _va1 = _mm_loadu_ps(itmp1 + 4);
-                _va2 = _mm_loadu_ps(itmp1 + 8);
-                _va3 = _mm_loadu_ps(itmp1 + 12);
-                _va4 = _mm_loadu_ps(itmp1 + 16);
-                _va5 = _mm_loadu_ps(itmp1 + 20);
+                _va0         = _mm_loadu_ps(itmp1);
+                _va1         = _mm_loadu_ps(itmp1 + 4);
+                _va2         = _mm_loadu_ps(itmp1 + 8);
+                _va3         = _mm_loadu_ps(itmp1 + 12);
+                _va4         = _mm_loadu_ps(itmp1 + 16);
+                _va5         = _mm_loadu_ps(itmp1 + 20);
 
-                _vb0 = _mm_loadu_ps(ktmp + 12);
-                _vb1 = _mm_loadu_ps(ktmp + 16);
-                _vb2 = _mm_loadu_ps(ktmp + 20);
+                _vb0         = _mm_loadu_ps(ktmp + 12);
+                _vb1         = _mm_loadu_ps(ktmp + 16);
+                _vb2         = _mm_loadu_ps(ktmp + 20);
 
-                _sum0 = _mm_add_ps(_mm_mul_ps(_va0, _vb0), _sum0);
-                _sum1 = _mm_add_ps(_mm_mul_ps(_va1, _vb0), _sum1);
-                _sum0 = _mm_add_ps(_mm_mul_ps(_va1, _vb1), _sum0);
-                _sum1 = _mm_add_ps(_mm_mul_ps(_va2, _vb1), _sum1);
-                _sum0 = _mm_add_ps(_mm_mul_ps(_va2, _vb2), _sum0);
-                _sum2 = _mm_add_ps(_mm_mul_ps(_va2, _vb0), _sum2);
-                _sum3 = _mm_add_ps(_mm_mul_ps(_va3, _vb0), _sum3);
-                _sum1 = _mm_add_ps(_mm_mul_ps(_va3, _vb2), _sum1);
-                _sum2 = _mm_add_ps(_mm_mul_ps(_va3, _vb1), _sum2);
-                _sum3 = _mm_add_ps(_mm_mul_ps(_va4, _vb1), _sum3);
-                _sum2 = _mm_add_ps(_mm_mul_ps(_va4, _vb2), _sum2);
-                _sum3 = _mm_add_ps(_mm_mul_ps(_va5, _vb2), _sum3);
+                _sum0        = _mm_add_ps(_mm_mul_ps(_va0, _vb0), _sum0);
+                _sum1        = _mm_add_ps(_mm_mul_ps(_va1, _vb0), _sum1);
+                _sum0        = _mm_add_ps(_mm_mul_ps(_va1, _vb1), _sum0);
+                _sum1        = _mm_add_ps(_mm_mul_ps(_va2, _vb1), _sum1);
+                _sum0        = _mm_add_ps(_mm_mul_ps(_va2, _vb2), _sum0);
+                _sum2        = _mm_add_ps(_mm_mul_ps(_va2, _vb0), _sum2);
+                _sum3        = _mm_add_ps(_mm_mul_ps(_va3, _vb0), _sum3);
+                _sum1        = _mm_add_ps(_mm_mul_ps(_va3, _vb2), _sum1);
+                _sum2        = _mm_add_ps(_mm_mul_ps(_va3, _vb1), _sum2);
+                _sum3        = _mm_add_ps(_mm_mul_ps(_va4, _vb1), _sum3);
+                _sum2        = _mm_add_ps(_mm_mul_ps(_va4, _vb2), _sum2);
+                _sum3        = _mm_add_ps(_mm_mul_ps(_va5, _vb2), _sum3);
 
-                _va0 = _mm_loadu_ps(itmp2);
-                _va1 = _mm_loadu_ps(itmp2 + 4);
-                _va2 = _mm_loadu_ps(itmp2 + 8);
-                _va3 = _mm_loadu_ps(itmp2 + 12);
-                _va4 = _mm_loadu_ps(itmp2 + 16);
-                _va5 = _mm_loadu_ps(itmp2 + 20);
+                _va0         = _mm_loadu_ps(itmp2);
+                _va1         = _mm_loadu_ps(itmp2 + 4);
+                _va2         = _mm_loadu_ps(itmp2 + 8);
+                _va3         = _mm_loadu_ps(itmp2 + 12);
+                _va4         = _mm_loadu_ps(itmp2 + 16);
+                _va5         = _mm_loadu_ps(itmp2 + 20);
 
-                _vb0 = _mm_loadu_ps(ktmp + 24);
-                _vb1 = _mm_loadu_ps(ktmp + 28);
-                _vb2 = _mm_loadu_ps(ktmp + 32);
+                _vb0         = _mm_loadu_ps(ktmp + 24);
+                _vb1         = _mm_loadu_ps(ktmp + 28);
+                _vb2         = _mm_loadu_ps(ktmp + 32);
 
-                _sum0 = _mm_add_ps(_mm_mul_ps(_va0, _vb0), _sum0);
-                _sum1 = _mm_add_ps(_mm_mul_ps(_va1, _vb0), _sum1);
-                _sum0 = _mm_add_ps(_mm_mul_ps(_va1, _vb1), _sum0);
-                _sum1 = _mm_add_ps(_mm_mul_ps(_va2, _vb1), _sum1);
-                _sum0 = _mm_add_ps(_mm_mul_ps(_va2, _vb2), _sum0);
-                _sum2 = _mm_add_ps(_mm_mul_ps(_va2, _vb0), _sum2);
-                _sum3 = _mm_add_ps(_mm_mul_ps(_va3, _vb0), _sum3);
-                _sum1 = _mm_add_ps(_mm_mul_ps(_va3, _vb2), _sum1);
-                _sum2 = _mm_add_ps(_mm_mul_ps(_va3, _vb1), _sum2);
-                _sum3 = _mm_add_ps(_mm_mul_ps(_va4, _vb1), _sum3);
-                _sum2 = _mm_add_ps(_mm_mul_ps(_va4, _vb2), _sum2);
-                _sum3 = _mm_add_ps(_mm_mul_ps(_va5, _vb2), _sum3);
+                _sum0        = _mm_add_ps(_mm_mul_ps(_va0, _vb0), _sum0);
+                _sum1        = _mm_add_ps(_mm_mul_ps(_va1, _vb0), _sum1);
+                _sum0        = _mm_add_ps(_mm_mul_ps(_va1, _vb1), _sum0);
+                _sum1        = _mm_add_ps(_mm_mul_ps(_va2, _vb1), _sum1);
+                _sum0        = _mm_add_ps(_mm_mul_ps(_va2, _vb2), _sum0);
+                _sum2        = _mm_add_ps(_mm_mul_ps(_va2, _vb0), _sum2);
+                _sum3        = _mm_add_ps(_mm_mul_ps(_va3, _vb0), _sum3);
+                _sum1        = _mm_add_ps(_mm_mul_ps(_va3, _vb2), _sum1);
+                _sum2        = _mm_add_ps(_mm_mul_ps(_va3, _vb1), _sum2);
+                _sum3        = _mm_add_ps(_mm_mul_ps(_va4, _vb1), _sum3);
+                _sum2        = _mm_add_ps(_mm_mul_ps(_va4, _vb2), _sum2);
+                _sum3        = _mm_add_ps(_mm_mul_ps(_va5, _vb2), _sum3);
 
                 _mm_storeu_ps(otmp, _sum0);
                 _mm_storeu_ps(otmp + 4, _sum1);
                 _mm_storeu_ps(otmp + 8, _sum2);
                 _mm_storeu_ps(otmp + 12, _sum3);
 
-#else
-                float sum0[4] = {btmp[0], btmp[1], btmp[2], btmp[3]};
-                float sum1[4] = {btmp[0], btmp[1], btmp[2], btmp[3]};
-                float sum2[4] = {btmp[0], btmp[1], btmp[2], btmp[3]};
-                float sum3[4] = {btmp[0], btmp[1], btmp[2], btmp[3]};
+    #else
+                float sum0[4] = { btmp[0], btmp[1], btmp[2], btmp[3] };
+                float sum1[4] = { btmp[0], btmp[1], btmp[2], btmp[3] };
+                float sum2[4] = { btmp[0], btmp[1], btmp[2], btmp[3] };
+                float sum3[4] = { btmp[0], btmp[1], btmp[2], btmp[3] };
                 for (int k = 0; k < 4; k++)
                 {
                     sum0[k] += itmp0[k] * ktmp[k];
@@ -1814,12 +1815,12 @@ static void convdw3x3s1(float* output, float* img_data, float* kernel_data, floa
                 }
                 for (int k = 0; k < 4; k++)
                 {
-                    otmp[k] = sum0[k];
-                    otmp[k + 4] = sum1[k];
-                    otmp[k + 8] = sum2[k];
+                    otmp[k]      = sum0[k];
+                    otmp[k + 4]  = sum1[k];
+                    otmp[k + 8]  = sum2[k];
                     otmp[k + 12] = sum3[k];
                 }
-#endif
+    #endif
                 itmp0 += 16;
                 itmp1 += 16;
                 itmp2 += 16;
@@ -1828,48 +1829,48 @@ static void convdw3x3s1(float* output, float* img_data, float* kernel_data, floa
 
             for (; j < outw; j++)
             {
-#if __SSE__
+    #if __SSE__
                 __m128 _sum0 = _mm_loadu_ps(btmp);
 
-                __m128 _va0 = _mm_loadu_ps(itmp0);
-                __m128 _va1 = _mm_loadu_ps(itmp0 + 4);
-                __m128 _va2 = _mm_loadu_ps(itmp0 + 8);
+                __m128 _va0  = _mm_loadu_ps(itmp0);
+                __m128 _va1  = _mm_loadu_ps(itmp0 + 4);
+                __m128 _va2  = _mm_loadu_ps(itmp0 + 8);
 
-                __m128 _vb0 = _mm_loadu_ps(ktmp);
-                __m128 _vb1 = _mm_loadu_ps(ktmp + 4);
-                __m128 _vb2 = _mm_loadu_ps(ktmp + 8);
+                __m128 _vb0  = _mm_loadu_ps(ktmp);
+                __m128 _vb1  = _mm_loadu_ps(ktmp + 4);
+                __m128 _vb2  = _mm_loadu_ps(ktmp + 8);
 
-                _sum0 = _mm_add_ps(_mm_mul_ps(_va0, _vb0), _sum0);
-                _sum0 = _mm_add_ps(_mm_mul_ps(_va1, _vb1), _sum0);
-                _sum0 = _mm_add_ps(_mm_mul_ps(_va2, _vb2), _sum0);
+                _sum0        = _mm_add_ps(_mm_mul_ps(_va0, _vb0), _sum0);
+                _sum0        = _mm_add_ps(_mm_mul_ps(_va1, _vb1), _sum0);
+                _sum0        = _mm_add_ps(_mm_mul_ps(_va2, _vb2), _sum0);
 
-                _va0 = _mm_loadu_ps(itmp1);
-                _va1 = _mm_loadu_ps(itmp1 + 4);
-                _va2 = _mm_loadu_ps(itmp1 + 8);
+                _va0         = _mm_loadu_ps(itmp1);
+                _va1         = _mm_loadu_ps(itmp1 + 4);
+                _va2         = _mm_loadu_ps(itmp1 + 8);
 
-                _vb0 = _mm_loadu_ps(ktmp + 12);
-                _vb1 = _mm_loadu_ps(ktmp + 16);
-                _vb2 = _mm_loadu_ps(ktmp + 20);
+                _vb0         = _mm_loadu_ps(ktmp + 12);
+                _vb1         = _mm_loadu_ps(ktmp + 16);
+                _vb2         = _mm_loadu_ps(ktmp + 20);
 
-                _sum0 = _mm_add_ps(_mm_mul_ps(_va0, _vb0), _sum0);
-                _sum0 = _mm_add_ps(_mm_mul_ps(_va1, _vb1), _sum0);
-                _sum0 = _mm_add_ps(_mm_mul_ps(_va2, _vb2), _sum0);
+                _sum0        = _mm_add_ps(_mm_mul_ps(_va0, _vb0), _sum0);
+                _sum0        = _mm_add_ps(_mm_mul_ps(_va1, _vb1), _sum0);
+                _sum0        = _mm_add_ps(_mm_mul_ps(_va2, _vb2), _sum0);
 
-                _va0 = _mm_loadu_ps(itmp2);
-                _va1 = _mm_loadu_ps(itmp2 + 4);
-                _va2 = _mm_loadu_ps(itmp2 + 8);
+                _va0         = _mm_loadu_ps(itmp2);
+                _va1         = _mm_loadu_ps(itmp2 + 4);
+                _va2         = _mm_loadu_ps(itmp2 + 8);
 
-                _vb0 = _mm_loadu_ps(ktmp + 24);
-                _vb1 = _mm_loadu_ps(ktmp + 28);
-                _vb2 = _mm_loadu_ps(ktmp + 32);
+                _vb0         = _mm_loadu_ps(ktmp + 24);
+                _vb1         = _mm_loadu_ps(ktmp + 28);
+                _vb2         = _mm_loadu_ps(ktmp + 32);
 
-                _sum0 = _mm_add_ps(_mm_mul_ps(_va0, _vb0), _sum0);
-                _sum0 = _mm_add_ps(_mm_mul_ps(_va1, _vb1), _sum0);
-                _sum0 = _mm_add_ps(_mm_mul_ps(_va2, _vb2), _sum0);
+                _sum0        = _mm_add_ps(_mm_mul_ps(_va0, _vb0), _sum0);
+                _sum0        = _mm_add_ps(_mm_mul_ps(_va1, _vb1), _sum0);
+                _sum0        = _mm_add_ps(_mm_mul_ps(_va2, _vb2), _sum0);
 
                 _mm_storeu_ps(otmp, _sum0);
-#else
-                float sum0[4] = {btmp[0], btmp[1], btmp[2], btmp[3]};
+    #else
+                float sum0[4] = { btmp[0], btmp[1], btmp[2], btmp[3] };
                 for (int k = 0; k < 4; k++)
                 {
                     sum0[k] += itmp0[k] * ktmp[k];
@@ -1887,7 +1888,7 @@ static void convdw3x3s1(float* output, float* img_data, float* kernel_data, floa
                 {
                     otmp[k] = sum0[k];
                 }
-#endif
+    #endif
                 itmp0 += 4;
                 itmp1 += 4;
                 itmp2 += 4;
@@ -1921,7 +1922,7 @@ static void convdw3x3s1(float* output, float* img_data, float* kernel_data, floa
 
         for (int i = 0; i < channel_remain; i++)
         {
-            int ii = channel_count * 4 + i;
+            int    ii   = channel_count * 4 + i;
             float* otmp = output_tmp + channel_count * 4 * outwh;
 
             float* tmp0 = output + ii * outwh;
@@ -1945,32 +1946,32 @@ static void convdw3x3s1(float* output, float* img_data, float* kernel_data, floa
 static void convdw3x3s2(float* output, float* img_data, float* kernel_data, float* bias_data, int inc, int inh, int inw,
                         int outh, int outw, int num_thread)
 {
-    int inwh = inw * inh;
-    int outwh = outw * outh;
-    int channel_count = inc >> 2;
+    int inwh           = inw * inh;
+    int outwh          = outw * outh;
+    int channel_count  = inc >> 2;
     int channel_remain = inc - (channel_count << 2);
     // generate the image tmp
-    float* img_tmp = (float*)sys_malloc(4 * inwh * (channel_count + 1) * sizeof(float));
+    float* img_tmp    = (float*)sys_malloc(4 * inwh * (channel_count + 1) * sizeof(float));
     float* kernel_tmp = (float*)sys_malloc(4 * 9 * (channel_count + 1) * sizeof(float));
-    float* bias_tmp = (float*)sys_malloc(4 * (channel_count + 1) * sizeof(float));
+    float* bias_tmp   = (float*)sys_malloc(4 * (channel_count + 1) * sizeof(float));
     {
         for (int i = 0; i < channel_count; i++)
         {
-            int ii = i * 4;
-            float* k0 = img_data + (ii + 0) * inwh;
-            float* k1 = img_data + (ii + 1) * inwh;
-            float* k2 = img_data + (ii + 2) * inwh;
-            float* k3 = img_data + (ii + 3) * inwh;
+            int    ii   = i * 4;
+            float* k0   = img_data + (ii + 0) * inwh;
+            float* k1   = img_data + (ii + 1) * inwh;
+            float* k2   = img_data + (ii + 2) * inwh;
+            float* k3   = img_data + (ii + 3) * inwh;
 
-            float* f0 = kernel_data + (ii + 0) * 9;
-            float* f1 = kernel_data + (ii + 1) * 9;
-            float* f2 = kernel_data + (ii + 2) * 9;
-            float* f3 = kernel_data + (ii + 3) * 9;
+            float* f0   = kernel_data + (ii + 0) * 9;
+            float* f1   = kernel_data + (ii + 1) * 9;
+            float* f2   = kernel_data + (ii + 2) * 9;
+            float* f3   = kernel_data + (ii + 3) * 9;
 
-            float* b0 = bias_data + (ii + 0);
-            float* b1 = bias_data + (ii + 1);
-            float* b2 = bias_data + (ii + 2);
-            float* b3 = bias_data + (ii + 3);
+            float* b0   = bias_data + (ii + 0);
+            float* b1   = bias_data + (ii + 1);
+            float* b2   = bias_data + (ii + 2);
+            float* b3   = bias_data + (ii + 3);
 
             float* tmp0 = img_tmp + ii * inwh;
             float* tmp1 = kernel_tmp + ii * 9;
@@ -2022,10 +2023,10 @@ static void convdw3x3s2(float* output, float* img_data, float* kernel_data, floa
 
         for (int i = 0; i < channel_remain; i++)
         {
-            int ii = channel_count * 4 + i;
-            float* k0 = img_data + ii * inwh;
-            float* f0 = kernel_data + ii * 9;
-            float* b0 = bias_data + ii;
+            int    ii   = channel_count * 4 + i;
+            float* k0   = img_data + ii * inwh;
+            float* f0   = kernel_data + ii * 9;
+            float* b0   = bias_data + ii;
 
             float* tmp0 = img_tmp + channel_count * 4 * inwh;
             float* tmp1 = kernel_tmp + channel_count * 4 * 9;
@@ -2063,111 +2064,111 @@ static void convdw3x3s2(float* output, float* img_data, float* kernel_data, floa
         float* btmp = bias_tmp + c * 4;
         for (int i = 0; i < outh; i++)
         {
-            int j = 0;
+            int j        = 0;
 
             float* itmp0 = img_tmp + c * 4 * inwh + 4 * i * 2 * inw;
             float* itmp1 = img_tmp + c * 4 * inwh + 4 * (i * 2 + 1) * inw;
             float* itmp2 = img_tmp + c * 4 * inwh + 4 * (i * 2 + 2) * inw;
-            float* otmp = output_tmp + c * 4 * outwh + 4 * i * outw;
+            float* otmp  = output_tmp + c * 4 * outwh + 4 * i * outw;
             for (; j + 3 < outw; j += 4)
             {
-#if __SSE__
+    #if __SSE__
                 __m128 _sum0 = _mm_loadu_ps(btmp);
                 __m128 _sum1 = _mm_loadu_ps(btmp);
                 __m128 _sum2 = _mm_loadu_ps(btmp);
                 __m128 _sum3 = _mm_loadu_ps(btmp);
 
-                __m128 _va0 = _mm_loadu_ps(itmp0);
-                __m128 _va1 = _mm_loadu_ps(itmp0 + 4);
-                __m128 _va2 = _mm_loadu_ps(itmp0 + 8);
-                __m128 _va3 = _mm_loadu_ps(itmp0 + 12);
-                __m128 _va4 = _mm_loadu_ps(itmp0 + 16);
-                __m128 _va5 = _mm_loadu_ps(itmp0 + 20);
-                __m128 _va6 = _mm_loadu_ps(itmp0 + 24);
-                __m128 _va7 = _mm_loadu_ps(itmp0 + 28);
-                __m128 _va8 = _mm_loadu_ps(itmp0 + 32);
+                __m128 _va0  = _mm_loadu_ps(itmp0);
+                __m128 _va1  = _mm_loadu_ps(itmp0 + 4);
+                __m128 _va2  = _mm_loadu_ps(itmp0 + 8);
+                __m128 _va3  = _mm_loadu_ps(itmp0 + 12);
+                __m128 _va4  = _mm_loadu_ps(itmp0 + 16);
+                __m128 _va5  = _mm_loadu_ps(itmp0 + 20);
+                __m128 _va6  = _mm_loadu_ps(itmp0 + 24);
+                __m128 _va7  = _mm_loadu_ps(itmp0 + 28);
+                __m128 _va8  = _mm_loadu_ps(itmp0 + 32);
 
-                __m128 _vb0 = _mm_loadu_ps(ktmp);
-                __m128 _vb1 = _mm_loadu_ps(ktmp + 4);
-                __m128 _vb2 = _mm_loadu_ps(ktmp + 8);
+                __m128 _vb0  = _mm_loadu_ps(ktmp);
+                __m128 _vb1  = _mm_loadu_ps(ktmp + 4);
+                __m128 _vb2  = _mm_loadu_ps(ktmp + 8);
 
-                _sum0 = _mm_add_ps(_sum0, _mm_mul_ps(_va0, _vb0));
-                _sum0 = _mm_add_ps(_sum0, _mm_mul_ps(_va1, _vb1));
-                _sum0 = _mm_add_ps(_sum0, _mm_mul_ps(_va2, _vb2));
-                _sum1 = _mm_add_ps(_sum1, _mm_mul_ps(_va2, _vb0));
-                _sum1 = _mm_add_ps(_sum1, _mm_mul_ps(_va3, _vb1));
-                _sum1 = _mm_add_ps(_sum1, _mm_mul_ps(_va4, _vb2));
-                _sum2 = _mm_add_ps(_sum2, _mm_mul_ps(_va4, _vb0));
-                _sum2 = _mm_add_ps(_sum2, _mm_mul_ps(_va5, _vb1));
-                _sum2 = _mm_add_ps(_sum2, _mm_mul_ps(_va6, _vb2));
-                _sum3 = _mm_add_ps(_sum3, _mm_mul_ps(_va6, _vb0));
-                _sum3 = _mm_add_ps(_sum3, _mm_mul_ps(_va7, _vb1));
-                _sum3 = _mm_add_ps(_sum3, _mm_mul_ps(_va8, _vb2));
+                _sum0        = _mm_add_ps(_sum0, _mm_mul_ps(_va0, _vb0));
+                _sum0        = _mm_add_ps(_sum0, _mm_mul_ps(_va1, _vb1));
+                _sum0        = _mm_add_ps(_sum0, _mm_mul_ps(_va2, _vb2));
+                _sum1        = _mm_add_ps(_sum1, _mm_mul_ps(_va2, _vb0));
+                _sum1        = _mm_add_ps(_sum1, _mm_mul_ps(_va3, _vb1));
+                _sum1        = _mm_add_ps(_sum1, _mm_mul_ps(_va4, _vb2));
+                _sum2        = _mm_add_ps(_sum2, _mm_mul_ps(_va4, _vb0));
+                _sum2        = _mm_add_ps(_sum2, _mm_mul_ps(_va5, _vb1));
+                _sum2        = _mm_add_ps(_sum2, _mm_mul_ps(_va6, _vb2));
+                _sum3        = _mm_add_ps(_sum3, _mm_mul_ps(_va6, _vb0));
+                _sum3        = _mm_add_ps(_sum3, _mm_mul_ps(_va7, _vb1));
+                _sum3        = _mm_add_ps(_sum3, _mm_mul_ps(_va8, _vb2));
 
-                _va0 = _mm_loadu_ps(itmp1);
-                _va1 = _mm_loadu_ps(itmp1 + 4);
-                _va2 = _mm_loadu_ps(itmp1 + 8);
-                _va3 = _mm_loadu_ps(itmp1 + 12);
-                _va4 = _mm_loadu_ps(itmp1 + 16);
-                _va5 = _mm_loadu_ps(itmp1 + 20);
-                _va6 = _mm_loadu_ps(itmp1 + 24);
-                _va7 = _mm_loadu_ps(itmp1 + 28);
-                _va8 = _mm_loadu_ps(itmp1 + 32);
+                _va0         = _mm_loadu_ps(itmp1);
+                _va1         = _mm_loadu_ps(itmp1 + 4);
+                _va2         = _mm_loadu_ps(itmp1 + 8);
+                _va3         = _mm_loadu_ps(itmp1 + 12);
+                _va4         = _mm_loadu_ps(itmp1 + 16);
+                _va5         = _mm_loadu_ps(itmp1 + 20);
+                _va6         = _mm_loadu_ps(itmp1 + 24);
+                _va7         = _mm_loadu_ps(itmp1 + 28);
+                _va8         = _mm_loadu_ps(itmp1 + 32);
 
-                _vb0 = _mm_loadu_ps(ktmp + 12);
-                _vb1 = _mm_loadu_ps(ktmp + 16);
-                _vb2 = _mm_loadu_ps(ktmp + 20);
+                _vb0         = _mm_loadu_ps(ktmp + 12);
+                _vb1         = _mm_loadu_ps(ktmp + 16);
+                _vb2         = _mm_loadu_ps(ktmp + 20);
 
-                _sum0 = _mm_add_ps(_sum0, _mm_mul_ps(_va0, _vb0));
-                _sum0 = _mm_add_ps(_sum0, _mm_mul_ps(_va1, _vb1));
-                _sum0 = _mm_add_ps(_sum0, _mm_mul_ps(_va2, _vb2));
-                _sum1 = _mm_add_ps(_sum1, _mm_mul_ps(_va2, _vb0));
-                _sum1 = _mm_add_ps(_sum1, _mm_mul_ps(_va3, _vb1));
-                _sum1 = _mm_add_ps(_sum1, _mm_mul_ps(_va4, _vb2));
-                _sum2 = _mm_add_ps(_sum2, _mm_mul_ps(_va4, _vb0));
-                _sum2 = _mm_add_ps(_sum2, _mm_mul_ps(_va5, _vb1));
-                _sum2 = _mm_add_ps(_sum2, _mm_mul_ps(_va6, _vb2));
-                _sum3 = _mm_add_ps(_sum3, _mm_mul_ps(_va6, _vb0));
-                _sum3 = _mm_add_ps(_sum3, _mm_mul_ps(_va7, _vb1));
-                _sum3 = _mm_add_ps(_sum3, _mm_mul_ps(_va8, _vb2));
+                _sum0        = _mm_add_ps(_sum0, _mm_mul_ps(_va0, _vb0));
+                _sum0        = _mm_add_ps(_sum0, _mm_mul_ps(_va1, _vb1));
+                _sum0        = _mm_add_ps(_sum0, _mm_mul_ps(_va2, _vb2));
+                _sum1        = _mm_add_ps(_sum1, _mm_mul_ps(_va2, _vb0));
+                _sum1        = _mm_add_ps(_sum1, _mm_mul_ps(_va3, _vb1));
+                _sum1        = _mm_add_ps(_sum1, _mm_mul_ps(_va4, _vb2));
+                _sum2        = _mm_add_ps(_sum2, _mm_mul_ps(_va4, _vb0));
+                _sum2        = _mm_add_ps(_sum2, _mm_mul_ps(_va5, _vb1));
+                _sum2        = _mm_add_ps(_sum2, _mm_mul_ps(_va6, _vb2));
+                _sum3        = _mm_add_ps(_sum3, _mm_mul_ps(_va6, _vb0));
+                _sum3        = _mm_add_ps(_sum3, _mm_mul_ps(_va7, _vb1));
+                _sum3        = _mm_add_ps(_sum3, _mm_mul_ps(_va8, _vb2));
 
-                _va0 = _mm_loadu_ps(itmp2);
-                _va1 = _mm_loadu_ps(itmp2 + 4);
-                _va2 = _mm_loadu_ps(itmp2 + 8);
-                _va3 = _mm_loadu_ps(itmp2 + 12);
-                _va4 = _mm_loadu_ps(itmp2 + 16);
-                _va5 = _mm_loadu_ps(itmp2 + 20);
-                _va6 = _mm_loadu_ps(itmp2 + 24);
-                _va7 = _mm_loadu_ps(itmp2 + 28);
-                _va8 = _mm_loadu_ps(itmp2 + 32);
+                _va0         = _mm_loadu_ps(itmp2);
+                _va1         = _mm_loadu_ps(itmp2 + 4);
+                _va2         = _mm_loadu_ps(itmp2 + 8);
+                _va3         = _mm_loadu_ps(itmp2 + 12);
+                _va4         = _mm_loadu_ps(itmp2 + 16);
+                _va5         = _mm_loadu_ps(itmp2 + 20);
+                _va6         = _mm_loadu_ps(itmp2 + 24);
+                _va7         = _mm_loadu_ps(itmp2 + 28);
+                _va8         = _mm_loadu_ps(itmp2 + 32);
 
-                _vb0 = _mm_loadu_ps(ktmp + 24);
-                _vb1 = _mm_loadu_ps(ktmp + 28);
-                _vb2 = _mm_loadu_ps(ktmp + 32);
+                _vb0         = _mm_loadu_ps(ktmp + 24);
+                _vb1         = _mm_loadu_ps(ktmp + 28);
+                _vb2         = _mm_loadu_ps(ktmp + 32);
 
-                _sum0 = _mm_add_ps(_sum0, _mm_mul_ps(_va0, _vb0));
-                _sum0 = _mm_add_ps(_sum0, _mm_mul_ps(_va1, _vb1));
-                _sum0 = _mm_add_ps(_sum0, _mm_mul_ps(_va2, _vb2));
-                _sum1 = _mm_add_ps(_sum1, _mm_mul_ps(_va2, _vb0));
-                _sum1 = _mm_add_ps(_sum1, _mm_mul_ps(_va3, _vb1));
-                _sum1 = _mm_add_ps(_sum1, _mm_mul_ps(_va4, _vb2));
-                _sum2 = _mm_add_ps(_sum2, _mm_mul_ps(_va4, _vb0));
-                _sum2 = _mm_add_ps(_sum2, _mm_mul_ps(_va5, _vb1));
-                _sum2 = _mm_add_ps(_sum2, _mm_mul_ps(_va6, _vb2));
-                _sum3 = _mm_add_ps(_sum3, _mm_mul_ps(_va6, _vb0));
-                _sum3 = _mm_add_ps(_sum3, _mm_mul_ps(_va7, _vb1));
-                _sum3 = _mm_add_ps(_sum3, _mm_mul_ps(_va8, _vb2));
+                _sum0        = _mm_add_ps(_sum0, _mm_mul_ps(_va0, _vb0));
+                _sum0        = _mm_add_ps(_sum0, _mm_mul_ps(_va1, _vb1));
+                _sum0        = _mm_add_ps(_sum0, _mm_mul_ps(_va2, _vb2));
+                _sum1        = _mm_add_ps(_sum1, _mm_mul_ps(_va2, _vb0));
+                _sum1        = _mm_add_ps(_sum1, _mm_mul_ps(_va3, _vb1));
+                _sum1        = _mm_add_ps(_sum1, _mm_mul_ps(_va4, _vb2));
+                _sum2        = _mm_add_ps(_sum2, _mm_mul_ps(_va4, _vb0));
+                _sum2        = _mm_add_ps(_sum2, _mm_mul_ps(_va5, _vb1));
+                _sum2        = _mm_add_ps(_sum2, _mm_mul_ps(_va6, _vb2));
+                _sum3        = _mm_add_ps(_sum3, _mm_mul_ps(_va6, _vb0));
+                _sum3        = _mm_add_ps(_sum3, _mm_mul_ps(_va7, _vb1));
+                _sum3        = _mm_add_ps(_sum3, _mm_mul_ps(_va8, _vb2));
 
                 _mm_storeu_ps(otmp, _sum0);
                 _mm_storeu_ps(otmp + 4, _sum1);
                 _mm_storeu_ps(otmp + 8, _sum2);
                 _mm_storeu_ps(otmp + 12, _sum3);
 
-#else
-                float sum0[4] = {btmp[0], btmp[1], btmp[2], btmp[3]};
-                float sum1[4] = {btmp[0], btmp[1], btmp[2], btmp[3]};
-                float sum2[4] = {btmp[0], btmp[1], btmp[2], btmp[3]};
-                float sum3[4] = {btmp[0], btmp[1], btmp[2], btmp[3]};
+    #else
+                float sum0[4] = { btmp[0], btmp[1], btmp[2], btmp[3] };
+                float sum1[4] = { btmp[0], btmp[1], btmp[2], btmp[3] };
+                float sum2[4] = { btmp[0], btmp[1], btmp[2], btmp[3] };
+                float sum3[4] = { btmp[0], btmp[1], btmp[2], btmp[3] };
                 for (int k = 0; k < 4; k++)
                 {
                     sum0[k] += itmp0[k] * ktmp[k];
@@ -2213,12 +2214,12 @@ static void convdw3x3s2(float* output, float* img_data, float* kernel_data, floa
 
                 for (int k = 0; k < 4; k++)
                 {
-                    otmp[k] = sum0[k];
-                    otmp[k + 4] = sum1[k];
-                    otmp[k + 8] = sum2[k];
+                    otmp[k]      = sum0[k];
+                    otmp[k + 4]  = sum1[k];
+                    otmp[k + 8]  = sum2[k];
                     otmp[k + 12] = sum3[k];
                 }
-#endif
+    #endif
                 itmp0 += 32;
                 itmp1 += 32;
                 itmp2 += 32;
@@ -2227,47 +2228,47 @@ static void convdw3x3s2(float* output, float* img_data, float* kernel_data, floa
 
             for (; j < outw; j++)
             {
-#if __SSE__
+    #if __SSE__
                 __m128 _sum0 = _mm_loadu_ps(btmp);
-                __m128 _va0 = _mm_loadu_ps(itmp0);
-                __m128 _va1 = _mm_loadu_ps(itmp0 + 4);
-                __m128 _va2 = _mm_loadu_ps(itmp0 + 8);
+                __m128 _va0  = _mm_loadu_ps(itmp0);
+                __m128 _va1  = _mm_loadu_ps(itmp0 + 4);
+                __m128 _va2  = _mm_loadu_ps(itmp0 + 8);
 
-                __m128 _vb0 = _mm_loadu_ps(ktmp);
-                __m128 _vb1 = _mm_loadu_ps(ktmp + 4);
-                __m128 _vb2 = _mm_loadu_ps(ktmp + 8);
+                __m128 _vb0  = _mm_loadu_ps(ktmp);
+                __m128 _vb1  = _mm_loadu_ps(ktmp + 4);
+                __m128 _vb2  = _mm_loadu_ps(ktmp + 8);
 
-                _sum0 = _mm_add_ps(_sum0, _mm_mul_ps(_va0, _vb0));
-                _sum0 = _mm_add_ps(_sum0, _mm_mul_ps(_va1, _vb1));
-                _sum0 = _mm_add_ps(_sum0, _mm_mul_ps(_va2, _vb2));
+                _sum0        = _mm_add_ps(_sum0, _mm_mul_ps(_va0, _vb0));
+                _sum0        = _mm_add_ps(_sum0, _mm_mul_ps(_va1, _vb1));
+                _sum0        = _mm_add_ps(_sum0, _mm_mul_ps(_va2, _vb2));
 
-                _va0 = _mm_loadu_ps(itmp1);
-                _va1 = _mm_loadu_ps(itmp1 + 4);
-                _va2 = _mm_loadu_ps(itmp1 + 8);
+                _va0         = _mm_loadu_ps(itmp1);
+                _va1         = _mm_loadu_ps(itmp1 + 4);
+                _va2         = _mm_loadu_ps(itmp1 + 8);
 
-                _vb0 = _mm_loadu_ps(ktmp + 12);
-                _vb1 = _mm_loadu_ps(ktmp + 16);
-                _vb2 = _mm_loadu_ps(ktmp + 20);
+                _vb0         = _mm_loadu_ps(ktmp + 12);
+                _vb1         = _mm_loadu_ps(ktmp + 16);
+                _vb2         = _mm_loadu_ps(ktmp + 20);
 
-                _sum0 = _mm_add_ps(_sum0, _mm_mul_ps(_va0, _vb0));
-                _sum0 = _mm_add_ps(_sum0, _mm_mul_ps(_va1, _vb1));
-                _sum0 = _mm_add_ps(_sum0, _mm_mul_ps(_va2, _vb2));
+                _sum0        = _mm_add_ps(_sum0, _mm_mul_ps(_va0, _vb0));
+                _sum0        = _mm_add_ps(_sum0, _mm_mul_ps(_va1, _vb1));
+                _sum0        = _mm_add_ps(_sum0, _mm_mul_ps(_va2, _vb2));
 
-                _va0 = _mm_loadu_ps(itmp2);
-                _va1 = _mm_loadu_ps(itmp2 + 4);
-                _va2 = _mm_loadu_ps(itmp2 + 8);
+                _va0         = _mm_loadu_ps(itmp2);
+                _va1         = _mm_loadu_ps(itmp2 + 4);
+                _va2         = _mm_loadu_ps(itmp2 + 8);
 
-                _vb0 = _mm_loadu_ps(ktmp + 24);
-                _vb1 = _mm_loadu_ps(ktmp + 28);
-                _vb2 = _mm_loadu_ps(ktmp + 32);
+                _vb0         = _mm_loadu_ps(ktmp + 24);
+                _vb1         = _mm_loadu_ps(ktmp + 28);
+                _vb2         = _mm_loadu_ps(ktmp + 32);
 
-                _sum0 = _mm_add_ps(_sum0, _mm_mul_ps(_va0, _vb0));
-                _sum0 = _mm_add_ps(_sum0, _mm_mul_ps(_va1, _vb1));
-                _sum0 = _mm_add_ps(_sum0, _mm_mul_ps(_va2, _vb2));
+                _sum0        = _mm_add_ps(_sum0, _mm_mul_ps(_va0, _vb0));
+                _sum0        = _mm_add_ps(_sum0, _mm_mul_ps(_va1, _vb1));
+                _sum0        = _mm_add_ps(_sum0, _mm_mul_ps(_va2, _vb2));
 
                 _mm_storeu_ps(otmp, _sum0);
-#else
-                float sum0[4] = {btmp[0], btmp[1], btmp[2], btmp[3]};
+    #else
+                float sum0[4] = { btmp[0], btmp[1], btmp[2], btmp[3] };
                 for (int k = 0; k < 4; k++)
                 {
                     sum0[k] += itmp0[k] * ktmp[k];
@@ -2285,7 +2286,7 @@ static void convdw3x3s2(float* output, float* img_data, float* kernel_data, floa
                 {
                     otmp[k] = sum0[k];
                 }
-#endif
+    #endif
                 itmp0 += 8;
                 itmp1 += 8;
                 itmp2 += 8;
@@ -2319,7 +2320,7 @@ static void convdw3x3s2(float* output, float* img_data, float* kernel_data, floa
 
         for (int i = 0; i < channel_remain; i++)
         {
-            int ii = channel_count * 4 + i;
+            int    ii   = channel_count * 4 + i;
             float* otmp = output_tmp + channel_count * 4 * outwh;
 
             float* tmp0 = output + ii * outwh;
@@ -2342,38 +2343,38 @@ static void convdw3x3s2(float* output, float* img_data, float* kernel_data, floa
 static void convdw3x3s1(float* output, float* input, float* _kernel, float* _bias, int channel, int in_h, int in_w,
                         int out_h, int out_w, int num_thread)
 {
-    int w = in_w;
-    int h = in_h;
-    int c_step_in = w * h;
+    int w               = in_w;
+    int h               = in_h;
+    int c_step_in       = w * h;
 
-    int outw = out_w;
-    int outh = out_h;
-    int c_step_out = outw * outh;
+    int outw            = out_w;
+    int outh            = out_h;
+    int c_step_out      = outw * outh;
 
-    const int group = channel;
+    const int    group  = channel;
     const float* kernel = _kernel;
 
-#pragma omp parallel for num_threads(num_thread)
+    #pragma omp parallel for num_threads(num_thread)
     for (int g = 0; g < group; g++)
     {
-        float* out = output + g * c_step_out;
-        float* outptr = out;
-        float* outptr2 = outptr + outw;
+        float* out           = output + g * c_step_out;
+        float* outptr        = out;
+        float* outptr2       = outptr + outw;
 
-        const float bias0 = _bias ? _bias[g] : 0.f;
+        const float  bias0   = _bias ? _bias[g] : 0.f;
         const float* kernel0 = kernel + g * 9;
 
-        const float* img0 = input + g * c_step_in;
-        const float* r0 = img0;
-        const float* r1 = img0 + w;
-        const float* r2 = img0 + w * 2;
-        const float* r3 = img0 + w * 3;
+        const float* img0    = input + g * c_step_in;
+        const float* r0      = img0;
+        const float* r1      = img0 + w;
+        const float* r2      = img0 + w * 2;
+        const float* r3      = img0 + w * 3;
 
-        const float* k0 = kernel0;
-        const float* k1 = kernel0 + 3;
-        const float* k2 = kernel0 + 6;
+        const float* k0      = kernel0;
+        const float* k1      = kernel0 + 3;
+        const float* k2      = kernel0 + 6;
 
-        int i = 0;
+        int i                = 0;
         for (; i + 1 < outh; i += 2)
         {
             int remain = outw;
@@ -2402,7 +2403,7 @@ static void convdw3x3s1(float* output, float* input, float* _kernel, float* _bia
                 sum2 += r3[1] * k2[1];
                 sum2 += r3[2] * k2[2];
 
-                *outptr = sum;
+                *outptr  = sum;
                 *outptr2 = sum2;
 
                 r0++;
@@ -2457,38 +2458,38 @@ static void convdw3x3s1(float* output, float* input, float* _kernel, float* _bia
 static void convdw3x3s2(float* output, float* input, float* _kernel, float* _bias, int channel, int in_h, int in_w,
                         int out_h, int out_w, int num_thread)
 {
-    int w = in_w;
-    int h = in_h;
-    int c_step_in = w * h;
+    int w                 = in_w;
+    int h                 = in_h;
+    int c_step_in         = w * h;
 
-    int outw = out_w;
-    int outh = out_h;
-    int c_step_out = outw * outh;
+    int outw              = out_w;
+    int outh              = out_h;
+    int c_step_out        = outw * outh;
 
-    const int group = channel;
+    const int group       = channel;
 
-    const int tailstep = w - 2 * outw + w;
-    const float* kernel = _kernel;
+    const int    tailstep = w - 2 * outw + w;
+    const float* kernel   = _kernel;
 
-#pragma omp parallel for num_threads(num_thread)
+    #pragma omp parallel for num_threads(num_thread)
     for (int g = 0; g < group; g++)
     {
-        float* out = output + g * c_step_out;
-        float* outptr = out;
+        float* out           = output + g * c_step_out;
+        float* outptr        = out;
 
         const float* kernel0 = kernel + g * 9;
-        const float bias0 = _bias ? _bias[g] : 0.f;
+        const float  bias0   = _bias ? _bias[g] : 0.f;
 
-        const float* img0 = input + g * c_step_in;
-        const float* r0 = img0;
-        const float* r1 = img0 + w;
-        const float* r2 = img0 + w * 2;
+        const float* img0    = input + g * c_step_in;
+        const float* r0      = img0;
+        const float* r1      = img0 + w;
+        const float* r2      = img0 + w * 2;
 
-        const float* k0 = kernel0;
-        const float* k1 = kernel0 + 3;
-        const float* k2 = kernel0 + 6;
+        const float* k0      = kernel0;
+        const float* k1      = kernel0 + 3;
+        const float* k2      = kernel0 + 6;
 
-        int i = 0;
+        int i                = 0;
         for (; i < outh; i++)
         {
             int remain = outw;
@@ -2525,7 +2526,7 @@ int conv_dw_run(struct tensor* input_tensor, struct tensor* weight_tensor, struc
                 struct tensor* output_tensor, struct conv_priv_info* conv_info, struct conv_param* param,
                 int num_thread, int cpu_affinity)
 {
-    float* input = (float*)input_tensor->data;
+    float* input  = (float*)input_tensor->data;
     float* output = (float*)output_tensor->data;
     float* kernel = (float*)weight_tensor->data;
     float* biases = NULL;
@@ -2533,33 +2534,33 @@ int conv_dw_run(struct tensor* input_tensor, struct tensor* weight_tensor, struc
         biases = (float*)bias_tensor->data;
 
     int batch_number = input_tensor->dims[0];
-    int inc = input_tensor->dims[1];
-    int inh = input_tensor->dims[2];
-    int inw = input_tensor->dims[3];
-    int in_chw = inc * inh * inw;
+    int inc          = input_tensor->dims[1];
+    int inh          = input_tensor->dims[2];
+    int inw          = input_tensor->dims[3];
+    int in_chw       = inc * inh * inw;
 
-    int outc = output_tensor->dims[1];
-    int outh = output_tensor->dims[2];
-    int outw = output_tensor->dims[3];
-    int out_hw = outh * outw;
-    int out_chw = out_hw * outc;
+    int outc         = output_tensor->dims[1];
+    int outh         = output_tensor->dims[2];
+    int outw         = output_tensor->dims[3];
+    int out_hw       = outh * outw;
+    int out_chw      = out_hw * outc;
 
-    int ksize_h = param->kernel_h;
-    int ksize_w = param->kernel_w;
-    int pad_w = param->pad_w0;
-    int pad_h = param->pad_h0;
+    int ksize_h      = param->kernel_h;
+    int ksize_w      = param->kernel_w;
+    int pad_w        = param->pad_w0;
+    int pad_h        = param->pad_h0;
 
-    int stride_w = param->stride_w;
-    int stride_h = param->stride_h;
-    int dilation_w = param->dilation_w;
-    int dilation_h = param->dilation_h;
-    int group = param->group;
+    int stride_w     = param->stride_w;
+    int stride_h     = param->stride_h;
+    int dilation_w   = param->dilation_w;
+    int dilation_h   = param->dilation_h;
+    int group        = param->group;
 
-    int activation = param->activation;
+    int activation   = param->activation;
 
     /* pading */
-    int inh_tmp = inh + pad_h + pad_h;
-    int inw_tmp = inw + pad_w + pad_w;
+    int    inh_tmp   = inh + pad_h + pad_h;
+    int    inw_tmp   = inw + pad_w + pad_w;
     float* input_tmp = NULL;
     if (inh_tmp == inh && inw_tmp == inw)
         input_tmp = input;
@@ -2569,7 +2570,7 @@ int conv_dw_run(struct tensor* input_tensor, struct tensor* weight_tensor, struc
 #pragma omp parallel for num_threads(num_thread)
         for (int g = 0; g < group; g++)
         {
-            float* pad_in = input + g * inh * inw;
+            float* pad_in  = input + g * inh * inw;
             float* pad_out = input_tmp + g * inh_tmp * inw_tmp;
             pad(pad_in, pad_out, inh, inw, inh_tmp, inw_tmp, pad_h, pad_w, 0.f);
         }

@@ -32,19 +32,19 @@
 #include <stdio.h>
 
 #ifdef _MSC_VER
-#include "msc_getopt.h"
+    #include "msc_getopt.h"
 #else
 
-#include <getopt.h>
-#include <unistd.h>
+    #include <getopt.h>
+    #include <unistd.h>
 #endif
 
 #ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#else // _WIN32
-#include <sys/time.h>
-#endif // _WIN32
+    #define WIN32_LEAN_AND_MEAN
+    #include <windows.h>
+#else    // _WIN32
+    #include <sys/time.h>
+#endif    // _WIN32
 
 #ifdef _WIN32
 static double get_current_time()
@@ -56,7 +56,7 @@ static double get_current_time()
 
     return pc.QuadPart * 1000.0 / freq.QuadPart;
 }
-#else  // _WIN32
+#else     // _WIN32
 
 static double get_current_time()
 {
@@ -65,17 +65,17 @@ static double get_current_time()
 
     return tv.tv_sec * 1000.0 + tv.tv_usec / 1000.0;
 }
-#endif // _WIN32
+#endif    // _WIN32
 
 static void split(float* array, char* str, const char* del)
 {
     char* s = NULL;
-    s = strtok(str, del);
+    s       = strtok(str, del);
     while (s != NULL)
     {
         *array++ = atof(s);
-        s = strtok(NULL, del);
+        s        = strtok(NULL, del);
     }
 }
 
-#endif // __COMMON_H__
+#endif    // __COMMON_H__

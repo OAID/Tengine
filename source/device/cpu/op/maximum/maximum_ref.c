@@ -34,9 +34,10 @@
 
 #include <math.h>
 
+
 struct maximum_op_param
 {
-    int in_num;
+    int    in_num;
     void** input_data;
 };
 
@@ -60,7 +61,7 @@ static int ref_maximum_fp32(const float** in_data, float* out_data, int size, co
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     struct maximum_op_param* maximum_op_param = (struct maximum_op_param*)sys_malloc(sizeof(struct maximum_op_param));
-    exec_node->ops_priv = maximum_op_param;
+    exec_node->ops_priv                       = maximum_op_param;
 
     return 0;
 }
@@ -73,36 +74,36 @@ static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, 
 
 static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node* ir_node = exec_node->ir_node;
-    struct graph* ir_graph = ir_node->graph;
+    struct node*             ir_node          = exec_node->ir_node;
+    struct graph*            ir_graph         = ir_node->graph;
     struct maximum_op_param* maximum_op_param = (struct maximum_op_param*)exec_node->ops_priv;
 
-    int in_num = ir_node->input_num;
+    int in_num                                = ir_node->input_num;
 
-    maximum_op_param->in_num = in_num;
-    maximum_op_param->input_data = (void*)sys_malloc(sizeof(void*) * in_num);
+    maximum_op_param->in_num                  = in_num;
+    maximum_op_param->input_data              = (void*)sys_malloc(sizeof(void*) * in_num);
 
     return 0;
 }
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node* ir_node = exec_node->ir_node;
-    struct graph* ir_graph = ir_node->graph;
-    struct tensor* input_tensor_a = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+    struct node*   ir_node                    = exec_node->ir_node;
+    struct graph*  ir_graph                   = ir_node->graph;
+    struct tensor* input_tensor_a             = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    struct tensor* output_tensor              = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    uint32_t elem_num = input_tensor_a->elem_num;
+    uint32_t                 elem_num         = input_tensor_a->elem_num;
     struct maximum_op_param* maximum_op_param = (struct maximum_op_param*)exec_node->ops_priv;
     for (int i = 0; i < maximum_op_param->in_num; i++)
     {
-        struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[i]);
-        void* data = input_tensor->data;
+        struct tensor* input_tensor     = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[i]);
+        void*          data             = input_tensor->data;
         maximum_op_param->input_data[i] = data;
     }
 
-    const void** input = (const void**)maximum_op_param->input_data;
-    float* output = output_tensor->data;
+    const void** input  = (const void**)maximum_op_param->input_data;
+    float*       output = output_tensor->data;
 
     ref_maximum_fp32((const float**)input, output, elem_num, maximum_op_param);
 
@@ -123,13 +124,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_CANDO;
 }
 
-static struct node_ops maximum_node_ops = {.prerun = prerun,
-                                           .run = run,
-                                           .reshape = NULL,
-                                           .postrun = postrun,
-                                           .init_node = init_node,
-                                           .release_node = release_node,
-                                           .score = score};
+static struct node_ops maximum_node_ops = { .prerun       = prerun,
+                                            .run          = run,
+                                            .reshape      = NULL,
+                                            .postrun      = postrun,
+                                            .init_node    = init_node,
+                                            .release_node = release_node,
+                                            .score        = score };
 
 int register_maximum_ref_op()
 {

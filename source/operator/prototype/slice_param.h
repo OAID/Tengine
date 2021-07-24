@@ -26,16 +26,17 @@
 
 #include "stdint.h"
 
+
 typedef struct slice_param
 {
     struct vector* slice_point_;
     struct vector* begin_;
     struct vector* size_;
-    int begin;
-    int end;
-    int axis;
-    int step;
-    int ismxnet;
-    int iscaffe;
-    int isonnx;
+    int            begin;
+    int            end;
+    int            axis;
+    int            step;
+    int            ismxnet;
+    int            iscaffe;
+    int            isonnx;
 } slice_param_t;

@@ -38,6 +38,7 @@
 
 #include <math.h>
 
+
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     return 0;
@@ -55,14 +56,14 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node* ir_node = exec_node->ir_node;
-    struct graph* ir_graph = ir_node->graph;
-    struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+    struct node*   ir_node                  = exec_node->ir_node;
+    struct graph*  ir_graph                 = ir_node->graph;
+    struct tensor* input_tensor             = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    struct tensor* output_tensor            = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
     struct reduction_param* reduction_param = (struct reduction_param*)ir_node->op.param_mem;
     struct reduce_param_ref param;
-    int out_tensor_size = 1;
+    int                     out_tensor_size = 1;
     for (int i = 0; i < output_tensor->dim_num; i++)
     {
         out_tensor_size *= output_tensor->dims[i];
@@ -75,17 +76,18 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     {
         dims[i] = input_tensor->dims[i];
     }
-    int dim0 = dims[0];
-    int dim1 = dims[1];
-    int dim2 = dims[2];
-    int dim3 = dims[3];
+    int dim0           = dims[0];
+    int dim1           = dims[1];
+    int dim2           = dims[2];
+    int dim3           = dims[3];
+
 
     param.param_dim[0] = reduction_param->dim_0;
     param.param_dim[1] = reduction_param->dim_1;
     param.param_dim[2] = reduction_param->dim_2;
     param.param_dim[3] = reduction_param->dim_3;
-    param.type = reduction_param->type;
-    int in_dim_num = input_tensor->dim_num;
+    param.type         = reduction_param->type;
+    int in_dim_num     = input_tensor->dim_num;
     // printf("input dims: %d \n", input_tensor->dim_num);
     int ret = ref_reduce_fp32((float*)input_tensor->data, (float*)output_tensor->data, dim0, dim1, dim2, dim3,
                               out_tensor_size, &param, in_dim_num, dims);
@@ -99,13 +101,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_CANDO;
 }
 
-static struct node_ops hcl_node_ops = {.prerun = prerun,
-                                       .run = run,
-                                       .reshape = NULL,
-                                       .postrun = NULL,
-                                       .init_node = init_node,
-                                       .release_node = release_node,
-                                       .score = score};
+static struct node_ops hcl_node_ops = { .prerun       = prerun,
+                                        .run          = run,
+                                        .reshape      = NULL,
+                                        .postrun      = NULL,
+                                        .init_node    = init_node,
+                                        .release_node = release_node,
+                                        .score        = score };
 
 int register_reduction_ref_op()
 {

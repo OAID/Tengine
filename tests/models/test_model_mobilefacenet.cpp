@@ -31,17 +31,17 @@
 #include "tengine/c_api.h"
 #include "tengine_operations.h"
 
-#define DEFAULT_MEAN1 104.007
-#define DEFAULT_MEAN2 116.669
-#define DEFAULT_MEAN3 122.679
+#define DEFAULT_MEAN1      104.007
+#define DEFAULT_MEAN2      116.669
+#define DEFAULT_MEAN3      122.679
 
 #define MOBILE_FACE_HEIGHT 110
 #define MOBILE_FACE_WIDTH  110
 
-graph_t graph;
+graph_t  graph;
 tensor_t input_tensor;
 tensor_t output_tensor;
-int feature_len;
+int      feature_len;
 
 int float_mismatch(float* current, float* reference, int size)
 {
@@ -59,7 +59,7 @@ int float_mismatch(float* current, float* reference, int size)
 }
 void init(const char* modelfile)
 {
-    int dims[4] = {1, 3, MOBILE_FACE_HEIGHT, MOBILE_FACE_WIDTH};
+    int dims[4] = { 1, 3, MOBILE_FACE_HEIGHT, MOBILE_FACE_WIDTH };
     init_tengine();
     fprintf(stderr, "tengine version: %s\n", get_tengine_version());
     graph = create_graph(NULL, "tengine", modelfile);
@@ -69,7 +69,7 @@ void init(const char* modelfile)
     }
     input_tensor = get_graph_input_tensor(graph, 0, 0);
     set_tensor_shape(input_tensor, dims, 4);
-    int rc = prerun_graph(graph);
+    int rc        = prerun_graph(graph);
     output_tensor = get_graph_output_tensor(graph, 0, 0);
     get_tensor_shape(output_tensor, dims, 4);
     feature_len = dims[1];
@@ -77,16 +77,16 @@ void init(const char* modelfile)
 
 int getFeature_a(const char* imagefile, float* feature)
 {
-    int height = MOBILE_FACE_HEIGHT;
-    int width = MOBILE_FACE_WIDTH;
-    int img_size = height * width * 3;
-    int dims[] = {1, 3, height, width};
-    float means[3] = {DEFAULT_MEAN1, DEFAULT_MEAN2, DEFAULT_MEAN3};
-    float scales[3] = {1, 1, 1};
+    int                height    = MOBILE_FACE_HEIGHT;
+    int                width     = MOBILE_FACE_WIDTH;
+    int                img_size  = height * width * 3;
+    int                dims[]    = { 1, 3, height, width };
+    float              means[3]  = { DEFAULT_MEAN1, DEFAULT_MEAN2, DEFAULT_MEAN3 };
+    float              scales[3] = { 1, 1, 1 };
     std::vector<float> input_data(img_size);
-    std::string model_name = "mobilefacenet";
-    std::string input_file = "./data/" + model_name + "_in1.bin";
-    FILE* fp;
+    std::string        model_name = "mobilefacenet";
+    std::string        input_file = "./data/" + model_name + "_in1.bin";
+    FILE*              fp;
     fp = fopen(input_file.c_str(), "rb");
     if (fread(input_data.data(), sizeof(float), img_size, fp) == 0)
     {
@@ -103,15 +103,15 @@ int getFeature_a(const char* imagefile, float* feature)
         return -1;
     }
     float* data = (float*)get_tensor_buffer(output_tensor);
-    int outsize;
+    int    outsize;
     outsize = get_tensor_buffer_size(output_tensor) / sizeof(float);
     for (int i = 0; i < outsize; i++)
         feature[i] = data[i];
 
     // save output_data
-    std::string reference_file1 = "./data/" + model_name + "_out1.bin";
+    std::string        reference_file1 = "./data/" + model_name + "_out1.bin";
     std::vector<float> reference_data1(outsize);
-    FILE* fp1;
+    FILE*              fp1;
     //read
     fp1 = fopen(reference_file1.c_str(), "rb");
     if (fread(reference_data1.data(), sizeof(float), outsize, fp1) == 0)
@@ -126,16 +126,16 @@ int getFeature_a(const char* imagefile, float* feature)
 
 int getFeature_b(const char* imagefile, float* feature)
 {
-    int height = MOBILE_FACE_HEIGHT;
-    int width = MOBILE_FACE_WIDTH;
-    int img_size = height * width * 3;
-    int dims[] = {1, 3, height, width};
-    float means[3] = {DEFAULT_MEAN1, DEFAULT_MEAN2, DEFAULT_MEAN3};
-    float scales[3] = {1, 1, 1};
+    int                height    = MOBILE_FACE_HEIGHT;
+    int                width     = MOBILE_FACE_WIDTH;
+    int                img_size  = height * width * 3;
+    int                dims[]    = { 1, 3, height, width };
+    float              means[3]  = { DEFAULT_MEAN1, DEFAULT_MEAN2, DEFAULT_MEAN3 };
+    float              scales[3] = { 1, 1, 1 };
     std::vector<float> input_data(img_size);
-    std::string model_name = "mobilefacenet";
-    std::string input_file = "./data/" + model_name + "_in2.bin";
-    FILE* fp;
+    std::string        model_name = "mobilefacenet";
+    std::string        input_file = "./data/" + model_name + "_in2.bin";
+    FILE*              fp;
     fp = fopen(input_file.c_str(), "rb");
     if (fread(input_data.data(), sizeof(float), img_size, fp) == 0)
     {
@@ -150,15 +150,15 @@ int getFeature_b(const char* imagefile, float* feature)
         return -1;
     }
     float* data = (float*)get_tensor_buffer(output_tensor);
-    int outsize;
+    int    outsize;
     outsize = get_tensor_buffer_size(output_tensor) / sizeof(float);
     for (int i = 0; i < outsize; i++)
         feature[i] = data[i];
 
     // save output_data
-    std::string reference_file1 = "./data/" + model_name + "_out2.bin";
+    std::string        reference_file1 = "./data/" + model_name + "_out2.bin";
     std::vector<float> reference_data1(outsize);
-    FILE* fp1;
+    FILE*              fp1;
     //read
     fp1 = fopen(reference_file1.c_str(), "rb");
     if (fread(reference_data1.data(), sizeof(float), outsize, fp1) == 0)
@@ -186,10 +186,10 @@ void show_usage()
 
 int main(int argc, char* argv[])
 {
-    char model_string[] = "./models/mobilefacenet.tmfile";
-    char* model_file = model_string;
-    char* person_a = NULL;
-    char* person_b = NULL;
+    char  model_string[] = "./models/mobilefacenet.tmfile";
+    char* model_file     = model_string;
+    char* person_a       = NULL;
+    char* person_b       = NULL;
 
     int res;
     while ((res = getopt(argc, argv, "m:a:b:h")) != -1)
@@ -226,7 +226,7 @@ int main(int argc, char* argv[])
     int outputsizea = getFeature_a(person_a, featurea.data());
     int outputsizeb = getFeature_b(person_b, featureb.data());
 
-    int ret = (outputsizea | outputsizeb);
+    int ret         = (outputsizea | outputsizeb);
     release();
     return ret;
 }

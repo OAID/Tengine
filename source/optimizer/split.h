@@ -28,6 +28,7 @@ struct graph;
 struct subgraph;
 struct vector;
 
+
 int check_sub_info(struct graph* ir_graph);
 
 struct vector* get_graph_blocked_nodes(const struct graph* ir_graph, struct vector* blocked_ops,

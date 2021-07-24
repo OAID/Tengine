@@ -33,9 +33,9 @@
 #include <string.h>
 
 #ifdef _MSC_VER
-#include <windows.h>
+    #include <windows.h>
 #else
-#include <dlfcn.h>
+    #include <dlfcn.h>
 #endif
 
 #ifdef _MSC_VER
@@ -45,14 +45,16 @@ typedef HINSTANCE so_handle_t;
 typedef void* so_handle_t;
 #endif
 
+
 struct plugin_header
 {
-    char* name;
-    char* fname;
+    char*       name;
+    char*       fname;
     so_handle_t handle;
 };
 
 static struct vector* plugin_list = NULL;
+
 
 static int exec_so_func(so_handle_t handle, const char* func_name)
 {
@@ -84,6 +86,7 @@ static int exec_so_func(so_handle_t handle, const char* func_name)
 
     return 0;
 }
+
 
 int load_tengine_plugin(const char* plugin_name, const char* file_name, const char* init_func_name)
 {
@@ -145,10 +148,10 @@ int load_tengine_plugin(const char* plugin_name, const char* file_name, const ch
     }
 
     size_t plugin_name_length = strlen(plugin_name);
-    size_t file_name_length = strlen(file_name);
+    size_t file_name_length   = strlen(file_name);
 
-    header.name = sys_malloc(plugin_name_length);
-    header.fname = sys_malloc(file_name_length);
+    header.name               = sys_malloc(plugin_name_length);
+    header.fname              = sys_malloc(file_name_length);
 
     memcpy(header.name, plugin_name, plugin_name_length);
     memcpy(header.fname, file_name, file_name_length);
@@ -158,13 +161,14 @@ int load_tengine_plugin(const char* plugin_name, const char* file_name, const ch
     return 0;
 }
 
+
 int unload_tengine_plugin(const char* plugin_name, const char* rel_func_name)
 {
     if (plugin_list == NULL)
         return -1;
 
-    int list_num = get_vector_num(plugin_list);
-    struct plugin_header* target = NULL;
+    int                   list_num = get_vector_num(plugin_list);
+    struct plugin_header* target   = NULL;
 
     for (int i = 0; i < list_num; i++)
     {
@@ -201,6 +205,7 @@ int unload_tengine_plugin(const char* plugin_name, const char* rel_func_name)
     return 0;
 }
 
+
 int get_tengine_plugin_number(void)
 {
     int plugin_num = 0;
@@ -210,6 +215,7 @@ int get_tengine_plugin_number(void)
 
     return plugin_num;
 }
+
 
 const char* get_tengine_plugin_name(int idx)
 {

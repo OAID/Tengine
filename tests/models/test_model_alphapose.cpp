@@ -49,7 +49,7 @@
 #define DEFAULT_THREAD_COUNT 1
 
 const float s_keypoint_thresh = 0.2;
-int float_mismatch(float* current, float* reference, int size)
+int         float_mismatch(float* current, float* reference, int size)
 {
     for (int i = 0; i < size; i++)
     {
@@ -74,10 +74,10 @@ bool tengine_predict(float* input_data, graph_t graph, const int input_dims[4], 
 {
     /* set runtime options */
     struct options opt;
-    opt.num_thread = num_thread;
-    opt.cluster = TENGINE_CLUSTER_ALL;
-    opt.precision = TENGINE_MODE_FP32;
-    opt.affinity = 0;
+    opt.num_thread        = num_thread;
+    opt.cluster           = TENGINE_CLUSTER_ALL;
+    opt.precision         = TENGINE_MODE_FP32;
+    opt.affinity          = 0;
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == NULL)
@@ -92,7 +92,8 @@ bool tengine_predict(float* input_data, graph_t graph, const int input_dims[4], 
         return false;
     }
 
-    size_t input_data_size = (unsigned long)input_dims[0] * input_dims[1] * input_dims[2] * input_dims[3] * sizeof(float);
+    size_t input_data_size =
+        (unsigned long)input_dims[0] * input_dims[1] * input_dims[2] * input_dims[3] * sizeof(float);
     if (set_tensor_buffer(input_tensor, input_data, input_data_size) < 0)
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
@@ -107,8 +108,8 @@ bool tengine_predict(float* input_data, graph_t graph, const int input_dims[4], 
     }
 
     /* run graph */
-    double min_time = __DBL_MAX__;
-    double max_time = -__DBL_MAX__;
+    double min_time   = __DBL_MAX__;
+    double max_time   = -__DBL_MAX__;
     double total_time = 0.;
     for (int i = 0; i < loop_count; i++)
     {
@@ -134,10 +135,10 @@ bool tengine_predict(float* input_data, graph_t graph, const int input_dims[4], 
 
 int main(int argc, char* argv[])
 {
-    const char* model_file = "./models/alphapose.tmfile";
-    const char* image_file = nullptr;
-    int repeat_count = DEFAULT_REPEAT_COUNT;
-    int num_thread = DEFAULT_THREAD_COUNT;
+    const char* model_file   = "./models/alphapose.tmfile";
+    const char* image_file   = nullptr;
+    int         repeat_count = DEFAULT_REPEAT_COUNT;
+    int         num_thread   = DEFAULT_THREAD_COUNT;
 
     int res;
     while ((res = getopt(argc, argv, "m:i:r:t:h:")) != -1)
@@ -188,17 +189,17 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    int img_height = 640;
-    int img_width = 640;
-    int input_dims[] = {1, 3, DEFAULT_IMG_H, DEFAULT_IMG_W}; // nchw
+    int img_height   = 640;
+    int img_width    = 640;
+    int input_dims[] = { 1, 3, DEFAULT_IMG_H, DEFAULT_IMG_W };    // nchw
 
     //read input data
-    int img_size = img_height * img_width * 3;
+    int                img_size = img_height * img_width * 3;
     std::vector<float> input_data1(img_size);
 
     std::string model_name = "alphapose";
     std::string input_file = "./data/" + model_name + "_in.bin";
-    FILE* fp;
+    FILE*       fp;
     fp = fopen(input_file.c_str(), "rb");
     if (fread(input_data1.data(), sizeof(float), img_size, fp) == 0)
     {
@@ -215,15 +216,15 @@ int main(int argc, char* argv[])
     }
 
     //post process
-    tensor_t output_tensor = get_graph_output_tensor(graph, 0, 0);
-    int heatmap_dims[MAX_SHAPE_DIM_NUM] = {0};
+    tensor_t output_tensor                   = get_graph_output_tensor(graph, 0, 0);
+    int      heatmap_dims[MAX_SHAPE_DIM_NUM] = { 0 };
     get_tensor_shape(output_tensor, heatmap_dims, MAX_SHAPE_DIM_NUM);
 
-    float* data = (float*)(get_tensor_buffer(output_tensor));
-    int output_size1 = get_tensor_buffer_size(output_tensor) / (sizeof(float));
-    std::string reference_file1 = "./data/" + model_name + "_out.bin";
+    float*             data            = (float*)(get_tensor_buffer(output_tensor));
+    int                output_size1    = get_tensor_buffer_size(output_tensor) / (sizeof(float));
+    std::string        reference_file1 = "./data/" + model_name + "_out.bin";
     std::vector<float> reference_data1(output_size1);
-    FILE* fp1;
+    FILE*              fp1;
     fp1 = fopen(reference_file1.c_str(), "rb");
     if (fread(reference_data1.data(), sizeof(float), output_size1, fp1) == 0)
     {
@@ -232,6 +233,7 @@ int main(int argc, char* argv[])
     }
     fclose(fp1);
     int ret1 = float_mismatch(data, reference_data1.data(), output_size1);
+
 
     /* release tengine */
     postrun_graph(graph);

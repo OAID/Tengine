@@ -25,9 +25,9 @@
 #include <stdio.h>
 
 #ifndef STANDLONE_MODE
-#ifdef TENGINE_AUTO_LOAD_HCL
-#include <dlfcn.h>
-#endif
+    #ifdef TENGINE_AUTO_LOAD_HCL
+        #include <dlfcn.h>
+    #endif
 #endif
 
 #include "cpu_node.h"
@@ -45,22 +45,25 @@
 #include "utility/log.h"
 #include "serializer/serializer.h"
 
+
 static struct vector** cpu_builtin_ops_registry;
-static struct vector* cpu_custom_ops_registry;
+static struct vector*  cpu_custom_ops_registry;
 
 #ifdef TENGINE_AUTO_LOAD_HCL
 void* hcl_handler = NULL;
 #endif
 
+
 struct custom_reg_entry
 {
-    int op_type;
+    int              op_type;
     struct node_ops* node_ops;
 };
 
+
 static int init_builtin_ops_registry(void)
 {
-    int alloc_num = 0;
+    int alloc_num            = 0;
 
     cpu_builtin_ops_registry = (struct vector**)sys_malloc(sizeof(void*) * OP_BUILTIN_LAST);
 
@@ -134,25 +137,25 @@ int unregister_builtin_node_ops(int op_type, struct node_ops* node_ops)
 
 static inline struct node_ops* find_builtin_node_ops(struct exec_graph* exec_graph, struct node* ir_node)
 {
-    int op_type = ir_node->op.type;
+    int op_type                   = ir_node->op.type;
 
-    struct vector* ops_vector = cpu_builtin_ops_registry[op_type];
+    struct vector* ops_vector     = cpu_builtin_ops_registry[op_type];
 
-    int num = get_vector_num(ops_vector);
+    int num                       = get_vector_num(ops_vector);
 
-    int max_score = 0;
+    int              max_score    = 0;
     struct node_ops* selected_ops = NULL;
 
     for (int i = 0; i < num; i++)
     {
         struct node_ops* node_ops = *(struct node_ops**)get_vector_data(ops_vector, i);
 
-        int score = node_ops->score(node_ops, exec_graph, ir_node);
+        int score                 = node_ops->score(node_ops, exec_graph, ir_node);
 
         if (score > max_score)
         {
             selected_ops = node_ops;
-            max_score = score;
+            max_score    = score;
         }
 
         /* always run with reference op that using the naive c implement */
@@ -160,7 +163,7 @@ static inline struct node_ops* find_builtin_node_ops(struct exec_graph* exec_gra
         if (NULL != env && env[0] == '1' && score == OPS_SCORE_CANDO)
         {
             selected_ops = node_ops;
-            max_score = score;
+            max_score    = score;
 
             return selected_ops;
         }
@@ -207,7 +210,7 @@ int register_custom_node_ops(int op_type, struct node_ops* node_ops)
 
     struct custom_reg_entry e;
 
-    e.op_type = op_type;
+    e.op_type  = op_type;
     e.node_ops = node_ops;
 
     if (push_vector_data(cpu_custom_ops_registry, &e) < 0)
@@ -240,7 +243,7 @@ int unregister_custom_node_ops(int op_type, struct node_ops* node_ops)
 static inline struct node_ops* find_custom_node_ops(struct exec_graph* exec_graph, struct node* ir_node)
 {
     int op_type = ir_node->op.type;
-    int n = get_vector_num(cpu_custom_ops_registry);
+    int n       = get_vector_num(cpu_custom_ops_registry);
 
     for (int i = 0; i < n; i++)
     {
@@ -272,7 +275,7 @@ int init_cpu_node_ops_registry(void)
         return -1;
 
 #ifndef STANDLONE_MODE
-#ifdef TENGINE_AUTO_LOAD_HCL
+    #ifdef TENGINE_AUTO_LOAD_HCL
     hcl_handler = dlopen("libhclcpu.so", RTLD_NOW);
 
     if (NULL == hcl_handler)
@@ -286,7 +289,7 @@ int init_cpu_node_ops_registry(void)
         TLOG_INFO("Tengine: Automation loading HCL was done.\n");
         fflush(stdout);
     }
-#endif
+    #endif
 #endif
 
     return 0;
@@ -298,8 +301,8 @@ void release_cpu_node_ops_registry(void)
     release_custom_ops_registry();
 
 #ifndef STANDLONE_MODE
-#ifdef TENGINE_AUTO_LOAD_HCL
+    #ifdef TENGINE_AUTO_LOAD_HCL
     dlclose(hcl_handler);
-#endif
+    #endif
 #endif
 }

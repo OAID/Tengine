@@ -32,22 +32,23 @@
 #include "utility/sys_port.h"
 #include "utility/log.h"
 
+
 static int infer_shape(ir_node_t* node)
 {
-    ir_graph_t* graph = node->graph;
-    ir_tensor_t* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
-    ir_tensor_t* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
+    ir_graph_t*  graph            = node->graph;
+    ir_tensor_t* input            = get_ir_graph_tensor(graph, node->input_tensors[0]);
+    ir_tensor_t* output           = get_ir_graph_tensor(graph, node->output_tensors[0]);
 
     struct conv_param* conv_param = (struct conv_param*)(node->op.param_mem);
 
-    int n = input->dims[0];
+    int n                         = input->dims[0];
     int h, w;
 
     if (conv_param->kernel_w == 0)
     {
         conv_param->kernel_w = 1;
-        conv_param->pad_w0 = 0;
-        conv_param->pad_w1 = 0;
+        conv_param->pad_w0   = 0;
+        conv_param->pad_w1   = 0;
     }
 
     if (conv_param->kernel_h == 0)
@@ -60,8 +61,8 @@ static int infer_shape(ir_node_t* node)
     if (graph->graph_layout == TENGINE_LAYOUT_NCHW)
     {
         conv_param->input_channel = input->dims[1];
-        h = input->dims[2];
-        w = input->dims[3];
+        h                         = input->dims[2];
+        w                         = input->dims[3];
     }
     else
     {
@@ -77,11 +78,11 @@ static int infer_shape(ir_node_t* node)
 
     if (conv_param->pad_h0 < 0)
     {
-        out_h = (h - 1) / conv_param->stride_h + 1;
+        out_h         = (h - 1) / conv_param->stride_h + 1;
 
         int total_len = (out_h - 1) * conv_param->stride_h + conv_param->kernel_h;
 
-        int pad_num = total_len - h;
+        int pad_num   = total_len - h;
 
         if (conv_param->pad_h0 == -1)
         {
@@ -103,11 +104,11 @@ static int infer_shape(ir_node_t* node)
 
     if (conv_param->pad_w0 < 0)
     {
-        out_w = (w - 1) / conv_param->stride_w + 1;
+        out_w         = (w - 1) / conv_param->stride_w + 1;
 
         int total_len = (out_w - 1) * conv_param->stride_w + conv_param->kernel_w;
 
-        int pad_num = total_len - w;
+        int pad_num   = total_len - w;
 
         if (conv_param->pad_w0 == -1)
         {
@@ -147,6 +148,7 @@ static int infer_shape(ir_node_t* node)
     return 0;
 }
 
+
 static int init_op(ir_op_t* op)
 {
     struct conv_param* conv_param = (struct conv_param*)sys_malloc(sizeof(struct conv_param));
@@ -157,44 +159,47 @@ static int init_op(ir_op_t* op)
     }
 
     /* set the param default value */
-    conv_param->kernel_h = 1;
-    conv_param->kernel_w = 1;
-    conv_param->stride_h = 1;
-    conv_param->stride_w = 1;
-    conv_param->pad_h0 = 0;
-    conv_param->pad_h1 = 0;
-    conv_param->pad_w0 = 0;
-    conv_param->pad_w1 = 0;
-    conv_param->dilation_h = 1;
-    conv_param->dilation_w = 1;
-    conv_param->input_channel = 64;
+    conv_param->kernel_h       = 1;
+    conv_param->kernel_w       = 1;
+    conv_param->stride_h       = 1;
+    conv_param->stride_w       = 1;
+    conv_param->pad_h0         = 0;
+    conv_param->pad_h1         = 0;
+    conv_param->pad_w0         = 0;
+    conv_param->pad_w1         = 0;
+    conv_param->dilation_h     = 1;
+    conv_param->dilation_w     = 1;
+    conv_param->input_channel  = 64;
     conv_param->output_channel = 64;
-    conv_param->group = 1;
-    conv_param->activation = -1;
+    conv_param->group          = 1;
+    conv_param->activation     = -1;
 
-    op->param_mem = conv_param;
-    op->param_size = sizeof(struct conv_param);
-    op->same_shape = 0;
-    op->infer_shape = infer_shape;
+    op->param_mem              = conv_param;
+    op->param_size             = sizeof(struct conv_param);
+    op->same_shape             = 0;
+    op->infer_shape            = infer_shape;
 
     return 0;
 }
+
 
 static void release_op(ir_op_t* op)
 {
     sys_free(op->param_mem);
 }
 
+
 int register_convolution_op()
 {
     ir_method_t m;
 
     m.version = 1;
-    m.init = init_op;
+    m.init    = init_op;
     m.release = release_op;
 
     return register_op(OP_CONV, OP_CONV_NAME, &m);
 }
+
 
 int unregister_convolution_op()
 {

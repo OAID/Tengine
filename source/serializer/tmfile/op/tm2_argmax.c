@@ -34,24 +34,27 @@
 #include "device/device.h"
 #include "utility/log.h"
 
+
 static int argmax_op_map(int op)
 {
     return OP_ARGMAX;
 }
 
+
 static int tm2_load_argmax(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                            const TM2_Operator* tm_op)
 {
-    struct argmax_param* argmax_param = (struct argmax_param*)ir_node->op.param_mem;
-    const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
-    const char* mem_base = tm2_priv->base;
-    const TM2_ArgMaxParam* tm_param = (TM2_ArgMaxParam*)(mem_base + tm_op->offset_t_param);
+    struct argmax_param*   argmax_param = (struct argmax_param*)ir_node->op.param_mem;
+    const struct tm2_priv* tm2_priv     = (struct tm2_priv*)ir_graph->serializer_privacy;
+    const char*            mem_base     = tm2_priv->base;
+    const TM2_ArgMaxParam* tm_param     = (TM2_ArgMaxParam*)(mem_base + tm_op->offset_t_param);
 
-    argmax_param->axis = tm_param->axis;
-    argmax_param->keepdims = tm_param->keepdims;
+    argmax_param->axis                  = tm_param->axis;
+    argmax_param->keepdims              = tm_param->keepdims;
 
     return 0;
 }
+
 
 int register_tm2_argmax_op()
 {
@@ -67,6 +70,7 @@ int register_tm2_argmax_op()
 
     return 0;
 }
+
 
 int unregister_tm2_argmax_op()
 {

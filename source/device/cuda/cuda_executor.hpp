@@ -28,7 +28,8 @@
 #include <vector>
 #include <functional>
 
-extern "C" {
+extern "C"
+{
 #include "graph/node.h"
 #include "graph/graph.h"
 #include "graph/subgraph.h"
@@ -40,17 +41,16 @@ extern "C" {
 #define DEFAULT_DEVICE_ID 0
 
 typedef std::map<uint32_t, uint32_t> dict_uint2uint;
-typedef std::map<uint32_t, void*> dict_uint2voidx;
-typedef std::function<void()> GPU_kernel;
+typedef std::map<uint32_t, void*>    dict_uint2voidx;
+typedef std::function<void()>        GPU_kernel;
 
-class CUDAEngine
-{
+class CUDAEngine {
 public:
     CUDAEngine();
     ~CUDAEngine() = default;
 
-    int CUDAEnginePreRun(struct subgraph* subgraph);
-    int CUDAEngineRun(struct subgraph* subgraph);
+    int  CUDAEnginePreRun(struct subgraph* subgraph);
+    int  CUDAEngineRun(struct subgraph* subgraph);
     void CUDAEnginePostRun();
 
 private:
@@ -70,7 +70,7 @@ private:
 
 private:
     void CUDADataMalloc(struct graph* ir_graph, int ir_tensor_idx);
-    int Build(struct subgraph* subgraph);
+    int  Build(struct subgraph* subgraph);
     void DataUpload(struct graph* ir_graph, int ir_tensor_idx);
     void DataDownload(struct graph* ir_graph, int ir_tensor_idx);
 
@@ -78,8 +78,8 @@ private:
     std::vector<GPU_kernel> ops;
 
 private:
-    cudnnHandle_t cudnn_handle;
-    cublasHandle_t cublas_handle;
+    cudnnHandle_t             cudnn_handle;
+    cublasHandle_t            cublas_handle;
     cudnnConvolutionFwdAlgo_t algo1;
 
 public:

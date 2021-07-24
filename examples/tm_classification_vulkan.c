@@ -46,9 +46,9 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
     /* set runtime options */
     struct options opt;
     opt.num_thread = num_thread;
-    opt.cluster = TENGINE_CLUSTER_ALL;
-    opt.precision = TENGINE_MODE_FP32;
-    opt.affinity = 0;
+    opt.cluster    = TENGINE_CLUSTER_ALL;
+    opt.precision  = TENGINE_MODE_FP32;
+    opt.affinity   = 0;
 
     /* inital tengine */
     if (init_tengine() != 0)
@@ -71,9 +71,9 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
     }
 
     /* set the input shape to initial the graph, and prerun graph to infer shape */
-    int img_size = img_h * img_w * 3;
-    int dims[] = {1, 3, img_h, img_w}; // nchw
-    float* input_data = (float*)malloc(img_size * sizeof(float));
+    int    img_size       = img_h * img_w * 3;
+    int    dims[]         = { 1, 3, img_h, img_w };    // nchw
+    float* input_data     = (float*)malloc(img_size * sizeof(float));
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == NULL)
@@ -103,8 +103,8 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
     }
 
     /* run graph */
-    double min_time = DBL_MAX;
-    double max_time = DBL_MIN;
+    double min_time   = DBL_MAX;
+    double max_time   = DBL_MIN;
     double total_time = 0.;
     for (int i = 0; i < loop_count; i++)
     {
@@ -132,8 +132,8 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
 
     /* get the result of classification */
     tensor_t output_tensor = get_graph_output_tensor(graph, 0, 0);
-    float* output_data = (float*)get_tensor_buffer(output_tensor);
-    int output_size = get_tensor_buffer_size(output_tensor) / sizeof(float);
+    float*   output_data   = (float*)get_tensor_buffer(output_tensor);
+    int      output_size   = get_tensor_buffer_size(output_tensor) / sizeof(float);
 
     print_topk(output_data, output_size, 5);
     fprintf(stderr, "--------------------------------------\n");
@@ -163,15 +163,15 @@ void show_usage()
 
 int main(int argc, char* argv[])
 {
-    int loop_count = DEFAULT_LOOP_COUNT;
-    int num_thread = DEFAULT_THREAD_COUNT;
+    int   loop_count = DEFAULT_LOOP_COUNT;
+    int   num_thread = DEFAULT_THREAD_COUNT;
     char* model_file = NULL;
     char* image_file = NULL;
-    float img_hw[2] = {0.f};
-    int img_h = 0;
-    int img_w = 0;
-    float mean[3] = {-1.f, -1.f, -1.f};
-    float scale[3] = {0.f, 0.f, 0.f};
+    float img_hw[2]  = { 0.f };
+    int   img_h      = 0;
+    int   img_w      = 0;
+    float mean[3]    = { -1.f, -1.f, -1.f };
+    float scale[3]   = { 0.f, 0.f, 0.f };
 
     int res;
     while ((res = getopt(argc, argv, "m:i:l:g:s:w:r:t:h")) != -1)

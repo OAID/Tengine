@@ -29,6 +29,7 @@
 #include "utility/sys_port.h"
 #include "utility/log.h"
 
+
 static int init_op(ir_op_t* op)
 {
     struct cast_param* cast_param = (struct cast_param*)sys_malloc(sizeof(struct cast_param));
@@ -39,31 +40,34 @@ static int init_op(ir_op_t* op)
 
     /*set the param default value */
     cast_param->type_from = 0;
-    cast_param->type_to = 0;
+    cast_param->type_to   = 0;
 
-    op->param_mem = cast_param;
-    op->param_size = sizeof(struct cast_param);
-    op->same_shape = 1;
-    op->infer_shape = NULL;
+    op->param_mem         = cast_param;
+    op->param_size        = sizeof(struct cast_param);
+    op->same_shape        = 1;
+    op->infer_shape       = NULL;
 
     return 0;
 }
+
 
 static void release_op(ir_op_t* op)
 {
     sys_free(op->param_mem);
 }
 
+
 int register_cast_op()
 {
     ir_method_t m;
 
     m.version = 1;
-    m.init = init_op;
+    m.init    = init_op;
     m.release = release_op;
 
     return register_op(OP_CAST, OP_CAST_NAME, &m);
 }
+
 
 int unregister_cast_op()
 {

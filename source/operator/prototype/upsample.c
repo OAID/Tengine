@@ -32,15 +32,16 @@
 #include "utility/sys_port.h"
 #include "utility/log.h"
 
+
 static int infer_shape(struct node* node)
 {
     struct upsample_param* upsample_param = (struct upsample_param*)(node->op.param_mem);
 
-    struct graph* graph = node->graph;
-    struct tensor* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
-    struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
+    struct graph*  graph                  = node->graph;
+    struct tensor* input                  = get_ir_graph_tensor(graph, node->input_tensors[0]);
+    struct tensor* output                 = get_ir_graph_tensor(graph, node->output_tensors[0]);
 
-    float scale = upsample_param->scale;
+    float scale                           = upsample_param->scale;
 
     int out_dim[4];
 
@@ -54,6 +55,7 @@ static int infer_shape(struct node* node)
     return 0;
 }
 
+
 static int init_op(struct op* op)
 {
     struct upsample_param* upsample_param = (struct upsample_param*)sys_malloc(sizeof(struct upsample_param));
@@ -66,29 +68,32 @@ static int init_op(struct op* op)
     /*set the param default value */
     upsample_param->scale = 0.f;
 
-    op->param_mem = upsample_param;
-    op->param_size = sizeof(struct upsample_param);
-    op->same_shape = 0;
-    op->infer_shape = infer_shape;
+    op->param_mem         = upsample_param;
+    op->param_size        = sizeof(struct upsample_param);
+    op->same_shape        = 0;
+    op->infer_shape       = infer_shape;
 
     return 0;
 }
+
 
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
 
+
 int register_upsample_op()
 {
     struct method m;
 
     m.version = 1;
-    m.init = init_op;
+    m.init    = init_op;
     m.release = release_op;
 
     return register_op(OP_UPSAMPLE, OP_UPSAMPLE_NAME, &m);
 }
+
 
 int unregister_upsample_op()
 {

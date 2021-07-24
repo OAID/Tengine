@@ -25,9 +25,11 @@
 #ifndef __CONCAT_KERNEL_REF_H__
 #define __CONCAT_KERNEL_REF_H__
 
+
 #include "graph/tensor.h"
 #include "graph/node.h"
 #include "graph/graph.h"
+
 
 int ref_concat_fp32(struct graph* ir_graph, struct node* ir_node, int axis);
 

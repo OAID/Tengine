@@ -31,16 +31,19 @@
 
 #include <string.h>
 
+
 typedef struct vector_entry
 {
-    int valid;
+    int           valid;
     unsigned char data[];
 } vector_entry_t;
+
 
 static inline vector_entry_t* get_vector_entry(vector_t* v, int idx)
 {
     return (vector_entry_t*)((char*)v->mem + v->entry_size * idx);
 }
+
 
 static inline void free_vector_data_resource(vector_t* v, int idx)
 {
@@ -54,15 +57,16 @@ static inline void free_vector_data_resource(vector_t* v, int idx)
     e->valid = 0;
 }
 
+
 static inline void remove_vector_data_not_tail(vector_t* v, int idx)
 {
     vector_entry_t* entry_ptr = NULL;
-    void* start_data_ptr;
-    int remaining_elements_count;
+    void*           start_data_ptr;
+    int             remaining_elements_count;
 
     free_vector_data_resource(v, idx);
 
-    start_data_ptr = (char*)v->mem + idx * v->entry_size;
+    start_data_ptr           = (char*)v->mem + idx * v->entry_size;
     remaining_elements_count = v->elem_num - 1 - idx;
 
     memmove(start_data_ptr, (char*)start_data_ptr + v->entry_size, (size_t)remaining_elements_count * v->entry_size);
@@ -70,9 +74,10 @@ static inline void remove_vector_data_not_tail(vector_t* v, int idx)
     v->elem_num--;
 
     // clear the valid flag
-    entry_ptr = get_vector_entry(v, v->elem_num);
+    entry_ptr        = get_vector_entry(v, v->elem_num);
     entry_ptr->valid = 0;
 }
+
 
 vector_t* create_vector(int elem_size, void (*free_data)(void*))
 {
@@ -83,26 +88,27 @@ vector_t* create_vector(int elem_size, void (*free_data)(void*))
         return NULL;
     }
 
-    v->elem_num = 0;
-    v->elem_size = elem_size;
-    v->free_func = free_data;
+    v->elem_num   = 0;
+    v->elem_size  = elem_size;
+    v->free_func  = free_data;
     v->entry_size = align(elem_size + (int)sizeof(vector_entry_t), TE_VECTOR_ALIGN_SIZE);
 
-    v->ahead_num = 8;
+    v->ahead_num  = 8;
 
-    v->space_num = v->ahead_num;
+    v->space_num  = v->ahead_num;
 
-    v->real_mem = sys_malloc(v->entry_size * v->space_num + TE_VECTOR_ALIGN_SIZE);
-    v->mem = align_address(v->real_mem, TE_VECTOR_ALIGN_SIZE);
+    v->real_mem   = sys_malloc(v->entry_size * v->space_num + TE_VECTOR_ALIGN_SIZE);
+    v->mem        = align_address(v->real_mem, TE_VECTOR_ALIGN_SIZE);
 
     for (int i = 0; i < v->space_num; i++)
     {
         vector_entry_t* e = get_vector_entry(v, i);
-        e->valid = 0;
+        e->valid          = 0;
     }
 
     return v;
 }
+
 
 void release_vector(vector_t* v)
 {
@@ -115,6 +121,7 @@ void release_vector(vector_t* v)
     sys_free(v);
 }
 
+
 int get_vector_num(vector_t* v)
 {
     if (NULL != v)
@@ -124,6 +131,7 @@ int get_vector_num(vector_t* v)
 
     return 0;
 }
+
 
 int resize_vector(vector_t* v, int new_size)
 {
@@ -154,18 +162,19 @@ int resize_vector(vector_t* v, int new_size)
     }
 
     v->real_mem = new_mem;
-    v->mem = (void*)(((size_t)(v->real_mem)) & (~(TE_VECTOR_ALIGN_SIZE - 1)));
+    v->mem      = (void*)(((size_t)(v->real_mem)) & (~(TE_VECTOR_ALIGN_SIZE - 1)));
 
     for (int i = v->space_num; i < new_size; i++)
     {
         vector_entry_t* e = get_vector_entry(v, i);
-        e->valid = 0;
+        e->valid          = 0;
     }
 
     v->space_num = new_size;
 
     return 0;
 }
+
 
 int push_vector_data(vector_t* v, void* data)
 {
@@ -180,6 +189,7 @@ int push_vector_data(vector_t* v, void* data)
     return 0;
 }
 
+
 int set_vector_data(vector_t* v, int idx, void* data)
 {
     vector_entry_t* e = NULL;
@@ -189,13 +199,14 @@ int set_vector_data(vector_t* v, int idx, void* data)
 
     free_vector_data_resource(v, idx);
 
-    e = get_vector_entry(v, idx);
+    e        = get_vector_entry(v, idx);
     e->valid = 1;
 
     memcpy(e->data, data, v->elem_size);
 
     return 0;
 }
+
 
 void* get_vector_data(vector_t* v, int index)
 {
@@ -209,10 +220,11 @@ void* get_vector_data(vector_t* v, int index)
     return e->data;
 }
 
+
 int remove_vector_via_pointer(vector_t* v, void* data)
 {
     const int count = v->elem_num;
-    int index;
+    int       index;
 
     for (index = 0; index < count; index++)
     {
@@ -232,6 +244,7 @@ int remove_vector_via_pointer(vector_t* v, void* data)
     remove_vector_via_index(v, index);
     return 0;
 }
+
 
 void remove_vector_via_index(vector_t* v, int idx)
 {

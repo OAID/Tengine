@@ -32,16 +32,17 @@
 #include "device/cpu/cpu_graph.h"
 #include "device/cpu/cpu_module.h"
 
+
 int ref_relu1_fp32(struct tensor* input_tensor, struct tensor* output_tensor, int num_thread)
 {
-    int w = input_tensor->dims[3];
-    int h = output_tensor->dims[2];
-    int channels = input_tensor->dims[1];
-    int size = h * w;
-    int c_step = h * w;
+    int w             = input_tensor->dims[3];
+    int h             = output_tensor->dims[2];
+    int channels      = input_tensor->dims[1];
+    int size          = h * w;
+    int c_step        = h * w;
 
     float* input_data = input_tensor->data;
-    float* out_data = output_tensor->data;
+    float* out_data   = output_tensor->data;
 
 #pragma omp parallel for num_threads(num_thread)
     for (int q = 0; q < channels; q++)
@@ -74,12 +75,12 @@ static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, 
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node* ir_node = exec_node->ir_node;
-    struct graph* ir_graph = ir_node->graph;
+    struct node*   ir_node  = exec_node->ir_node;
+    struct graph*  ir_graph = ir_node->graph;
     struct tensor* input_tensor;
     struct tensor* output_tensor;
 
-    input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    input_tensor  = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
     ref_relu1_fp32(input_tensor, output_tensor, exec_graph->num_thread);
@@ -89,12 +90,12 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
 static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node* node = exec_node->ir_node;
-    struct graph* ir_graph = node->graph;
-    struct tensor* input = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
-    struct tensor* output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
+    struct node*   node     = exec_node->ir_node;
+    struct graph*  ir_graph = node->graph;
+    struct tensor* input    = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
+    struct tensor* output   = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
 
-    int ret = set_ir_tensor_shape(output, input->dims, input->dim_num);
+    int ret                 = set_ir_tensor_shape(output, input->dims, input->dim_num);
     return ret;
 }
 
@@ -103,13 +104,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_CANDO;
 }
 
-static struct node_ops hcl_node_ops = {.prerun = NULL,
-                                       .run = run,
-                                       .reshape = reshape,
-                                       .postrun = NULL,
-                                       .init_node = init_node,
-                                       .release_node = release_node,
-                                       .score = score};
+static struct node_ops hcl_node_ops = { .prerun       = NULL,
+                                        .run          = run,
+                                        .reshape      = reshape,
+                                        .postrun      = NULL,
+                                        .init_node    = init_node,
+                                        .release_node = release_node,
+                                        .score        = score };
 
 int register_relu1_ref_op()
 {

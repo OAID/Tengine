@@ -45,9 +45,9 @@
 
 #include "concat_param.h"
 
-namespace TEngine {
-class Concat_vulkan : public Layer
+namespace TEngine
 {
+class Concat_vulkan : public Layer {
 public:
     Concat_vulkan();
     Concat_vulkan(ir_graph_t* graph, ir_node_t* ir_node);
@@ -76,6 +76,6 @@ public:
     int axis;
 };
 
-} // namespace TEngine
+}    // namespace TEngine
 
 #endif

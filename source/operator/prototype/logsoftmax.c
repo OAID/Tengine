@@ -32,16 +32,18 @@
 #include "utility/sys_port.h"
 #include "utility/log.h"
 
+
 static int infer_shape(struct node* node)
 {
-    struct graph* ir_graph = node->graph;
-    struct tensor* input = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
-    struct tensor* output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
+    struct graph*  ir_graph = node->graph;
+    struct tensor* input    = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
+    struct tensor* output   = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
 
     set_ir_tensor_shape(output, input->dims, input->dim_num);
 
     return 0;
 }
+
 
 static int init_op(struct op* op)
 {
@@ -54,28 +56,31 @@ static int init_op(struct op* op)
 
     logsoftmax_param->axis = 0;
 
-    op->param_mem = logsoftmax_param;
-    op->param_size = sizeof(struct logsoftmax_param);
-    op->same_shape = 0;
-    op->infer_shape = infer_shape;
+    op->param_mem          = logsoftmax_param;
+    op->param_size         = sizeof(struct logsoftmax_param);
+    op->same_shape         = 0;
+    op->infer_shape        = infer_shape;
 
     return 0;
 }
+
 
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
 
+
 int register_logsoftmax_op()
 {
     struct method m;
     m.version = 1;
-    m.init = init_op;
+    m.init    = init_op;
     m.release = release_op;
 
     return register_op(OP_LOGSOFTMAX, OP_LOGSOFTMAX_NAME, &m);
 }
+
 
 int unregister_logsoftmax_op()
 {

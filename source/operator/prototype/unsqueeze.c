@@ -31,15 +31,16 @@
 #include "module/module.h"
 #include "utility/sys_port.h"
 
+
 static int infer_shape(struct node* node)
 {
-    struct graph* ir_graph = node->graph;
-    struct tensor* input = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
-    struct tensor* output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
+    struct graph*           ir_graph        = node->graph;
+    struct tensor*          input           = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
+    struct tensor*          output          = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
     struct unsqueeze_param* unsqueeze_param = (struct unsqueeze_param*)node->op.param_mem;
 
-    int axises_size = unsqueeze_param->axises_size;
-    int* out_dim = (int*)sys_malloc((input->dim_num + axises_size) * sizeof(int));
+    int  axises_size                        = unsqueeze_param->axises_size;
+    int* out_dim                            = (int*)sys_malloc((input->dim_num + axises_size) * sizeof(int));
 
     if (axises_size == 1)
     {
@@ -51,7 +52,7 @@ static int infer_shape(struct node* node)
         for (unsigned int j = 0; j < unsqueeze_param->axises_size; j++)
         {
             int dim_size = input->dim_num;
-            int pos = unsqueeze_param->axises[j];
+            int pos      = unsqueeze_param->axises[j];
             if (pos < 0)
             {
                 pos = pos + dim_size;
@@ -68,7 +69,7 @@ static int infer_shape(struct node* node)
             out_dim[pos] = 1;
         }
     }
-    else // test for OneFlow and daquanxian yyds
+    else    // test for OneFlow and daquanxian yyds
     {
         for (int i = 0; i < input->dim_num + axises_size; ++i)
         {
@@ -77,7 +78,7 @@ static int infer_shape(struct node* node)
 
         for (unsigned int j = 0; j < unsqueeze_param->axises_size; j++)
         {
-            int pos = unsqueeze_param->axises[j];
+            int pos      = unsqueeze_param->axises[j];
             out_dim[pos] = 1;
         }
 
@@ -99,6 +100,7 @@ static int infer_shape(struct node* node)
     return 0;
 }
 
+
 static int init_op(struct op* op)
 {
     struct unsqueeze_param* unsqueeze_param = (struct unsqueeze_param*)sys_malloc(sizeof(struct unsqueeze_param));
@@ -110,13 +112,14 @@ static int init_op(struct op* op)
 
     unsqueeze_param->axises_size = 1;
 
-    op->param_mem = unsqueeze_param;
-    op->param_size = sizeof(struct unsqueeze_param);
-    op->same_shape = 0;
-    op->infer_shape = infer_shape;
+    op->param_mem                = unsqueeze_param;
+    op->param_size               = sizeof(struct unsqueeze_param);
+    op->same_shape               = 0;
+    op->infer_shape              = infer_shape;
 
     return 0;
 }
+
 
 static void release_op(struct op* op)
 {
@@ -126,16 +129,18 @@ static void release_op(struct op* op)
     sys_free(op->param_mem);
 }
 
+
 int register_unsqueeze_op()
 {
     struct method m;
 
     m.version = 1;
-    m.init = init_op;
+    m.init    = init_op;
     m.release = release_op;
 
     return register_op(OP_UNSQUEEZE, OP_UNSQUEEZE_NAME, &m);
 }
+
 
 int unregister_unsqueeze_op()
 {

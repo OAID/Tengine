@@ -39,38 +39,39 @@
 
 #include <math.h>
 
+
 int ref_conv_int8(struct tensor* input_tensor, struct tensor* output_tensor, struct tensor* kernel, struct tensor* bias,
                   struct conv_param* conv_param)
 {
-    int batch = input_tensor->dims[0];
-    int group = conv_param->group;
-    int input_c = conv_param->input_channel / group;
-    int input_h = input_tensor->dims[2];
-    int input_w = input_tensor->dims[3];
-    int output_c = output_tensor->dims[1] / group;
-    int output_h = output_tensor->dims[2];
-    int output_w = output_tensor->dims[3];
+    int batch       = input_tensor->dims[0];
+    int group       = conv_param->group;
+    int input_c     = conv_param->input_channel / group;
+    int input_h     = input_tensor->dims[2];
+    int input_w     = input_tensor->dims[3];
+    int output_c    = output_tensor->dims[1] / group;
+    int output_h    = output_tensor->dims[2];
+    int output_w    = output_tensor->dims[3];
 
     int kernel_size = input_c * conv_param->kernel_h * conv_param->kernel_w;
     int n, g, c, h, w, kc, kh, kw;
-    int input_offset = 0;
-    int kernel_offset = 0;
-    int output_offset = 0;
+    int input_offset   = 0;
+    int kernel_offset  = 0;
+    int output_offset  = 0;
 
-    int8_t* input_i8 = input_tensor->data;
-    int8_t* output_i8 = output_tensor->data;
-    int8_t* kernel_i8 = kernel->data;
-    int32_t* bias_i32 = NULL;
+    int8_t*  input_i8  = input_tensor->data;
+    int8_t*  output_i8 = output_tensor->data;
+    int8_t*  kernel_i8 = kernel->data;
+    int32_t* bias_i32  = NULL;
     if (bias != NULL)
         bias_i32 = bias->data;
 
-    float input_scale = input_tensor->scale;
+    float  input_scale   = input_tensor->scale;
     float* kernel_scales = kernel->scale_list;
-    float output_scale = output_tensor->scale;
+    float  output_scale  = output_tensor->scale;
 
     /* input and kernel scales */
-    int dequant_scales_size = group * output_c;
-    float* dequant_scales = (float*)malloc(sizeof(float) * dequant_scales_size);
+    int    dequant_scales_size = group * output_c;
+    float* dequant_scales      = (float*)malloc(sizeof(float) * dequant_scales_size);
 
     for (int i = 0; i < dequant_scales_size; i++)
     {
@@ -94,9 +95,9 @@ int ref_conv_int8(struct tensor* input_tensor, struct tensor* output_tensor, str
                 {
                     for (w = 0; w < output_w; ++w)
                     {
-                        const int h_start = (h * conv_param->stride_h) - conv_param->pad_h0;
-                        const int w_start = (w * conv_param->stride_w) - conv_param->pad_w0;
-                        int32_t total_i32 = 0;
+                        const int h_start   = (h * conv_param->stride_h) - conv_param->pad_h0;
+                        const int w_start   = (w * conv_param->stride_w) - conv_param->pad_w0;
+                        int32_t   total_i32 = 0;
                         if (input_tensor->layout == 0)
                         {
                             output_offset = n * group * output_c * output_h * output_w
@@ -139,7 +140,8 @@ int ref_conv_int8(struct tensor* input_tensor, struct tensor* output_tensor, str
                                                             + kw * input_c * group + g * input_c + kc;
                                         }
 
-                                        total_i32 += (int32_t)input_i8[input_offset] * (int32_t)kernel_i8[kernel_offset];
+                                        total_i32 +=
+                                            (int32_t)input_i8[input_offset] * (int32_t)kernel_i8[kernel_offset];
                                     }
                                 }
                             }

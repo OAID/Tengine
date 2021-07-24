@@ -29,6 +29,7 @@
 
 #include "graph/tensor.h"
 
+
 int elu_run(struct tensor* output_tensor, struct tensor* input_tensor, struct elu_param* elu_param, int num_thread);
 
 #endif

@@ -31,16 +31,18 @@
 #include "module/module.h"
 #include "utility/sys_port.h"
 
+
 static int infer_shape(ir_node_t* node)
 {
-    ir_graph_t* ir_graph = node->graph;
-    ir_tensor_t* input = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
-    ir_tensor_t* output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
+    ir_graph_t*  ir_graph = node->graph;
+    ir_tensor_t* input    = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
+    ir_tensor_t* output   = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
 
     set_ir_tensor_shape(output, input->dims, input->dim_num);
 
     return 0;
 }
+
 
 static int init_op(ir_op_t* op)
 {
@@ -54,29 +56,32 @@ static int init_op(ir_op_t* op)
     /*set the param default value */
     elu_param->alpha = 1.f;
 
-    op->param_mem = elu_param;
-    op->param_size = sizeof(struct elu_param);
-    op->same_shape = 0;
-    op->infer_shape = infer_shape;
+    op->param_mem    = elu_param;
+    op->param_size   = sizeof(struct elu_param);
+    op->same_shape   = 0;
+    op->infer_shape  = infer_shape;
 
     return 0;
 }
+
 
 static void release_op(ir_op_t* op)
 {
     sys_free(op->param_mem);
 }
 
+
 int register_elu_op()
 {
     ir_method_t m;
 
     m.version = 1;
-    m.init = init_op;
+    m.init    = init_op;
     m.release = release_op;
 
     return register_op(OP_ELU, OP_ELU_NAME, &m);
 }
+
 
 int unregister_elu_op()
 {

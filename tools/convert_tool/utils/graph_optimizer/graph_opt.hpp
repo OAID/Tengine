@@ -6,7 +6,8 @@
 #include "stdio.h"
 #include "string.h"
 #include "math.h"
-extern "C" {
+extern "C"
+{
 #include "tengine/c_api.h"
 #include "graph/graph.h"
 #include "graph/node.h"

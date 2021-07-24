@@ -31,14 +31,15 @@
 #include "module/module.h"
 #include "utility/sys_port.h"
 
+
 static int infer_shape(struct node* node)
 {
     struct sparsetodense_param* sparsetodense_param = (struct sparsetodense_param*)(node->op.param_mem);
 
-    struct graph* graph = node->graph;
-    struct tensor* input0 = get_ir_graph_tensor(graph, node->input_tensors[0]);
-    struct tensor* input1 = get_ir_graph_tensor(graph, node->input_tensors[1]);
-    struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
+    struct graph*  graph                            = node->graph;
+    struct tensor* input0                           = get_ir_graph_tensor(graph, node->input_tensors[0]);
+    struct tensor* input1                           = get_ir_graph_tensor(graph, node->input_tensors[1]);
+    struct tensor* output                           = get_ir_graph_tensor(graph, node->output_tensors[0]);
 
     if (input1->dim_num > 2)
         return -1;
@@ -66,9 +67,11 @@ static int infer_shape(struct node* node)
     }
 }
 
+
 static int init_op(struct op* op)
 {
-    struct sparsetodense_param* sparsetodense_param = (struct sparsetodense_param*)sys_malloc(sizeof(struct sparsetodense_param));
+    struct sparsetodense_param* sparsetodense_param =
+        (struct sparsetodense_param*)sys_malloc(sizeof(struct sparsetodense_param));
 
     if (sparsetodense_param == NULL)
     {
@@ -76,33 +79,36 @@ static int init_op(struct op* op)
     }
 
     /*set the param default value */
-    sparsetodense_param->default_value = 0;
+    sparsetodense_param->default_value      = 0;
     sparsetodense_param->output_shape_size0 = 1;
     sparsetodense_param->output_shape_size1 = 0;
 
-    op->param_mem = sparsetodense_param;
-    op->param_size = sizeof(struct sparsetodense_param);
-    op->same_shape = 0;
-    op->infer_shape = infer_shape;
+    op->param_mem                           = sparsetodense_param;
+    op->param_size                          = sizeof(struct sparsetodense_param);
+    op->same_shape                          = 0;
+    op->infer_shape                         = infer_shape;
 
     return 0;
 }
+
 
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
 
+
 int register_sparsetodense_op()
 {
     struct method m;
 
     m.version = 1;
-    m.init = init_op;
+    m.init    = init_op;
     m.release = release_op;
 
     return register_op(OP_SPARSETODENSE, OP_SPARSETODENSE_NAME, &m);
 }
+
 
 int unregister_sparsetodense_op()
 {

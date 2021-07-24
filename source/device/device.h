@@ -33,6 +33,7 @@ struct vector;
 
 #include <stddef.h>
 
+
 /*!
  * @struct ir_interface_t
  * @brief  Abstract neural network runnable device interface struct
@@ -64,6 +65,7 @@ typedef struct interface
     int (*release_device)(struct device* device);
 } ir_interface_t;
 
+
 /*!
  * @struct ir_allocator_t
  * @brief  Abstract neural network runnable device allocator struct
@@ -83,15 +85,17 @@ typedef struct allocator
     int (*release)(struct device*, struct subgraph*);
 } ir_allocator_t;
 
+
 /*!
  * @struct ir_optimizer_t
  * @brief  Abstract neural network runnable device expend optimizer
  */
 typedef struct optimizer
 {
-    int (*split_graph)(struct graph* ir_graph);                   //!< interface of split graph delegation
-    int (*optimize_graph)(struct graph* ir_graph, int precision); //!< interface of optimizing graph delegation
+    int (*split_graph)(struct graph* ir_graph);                      //!< interface of split graph delegation
+    int (*optimize_graph)(struct graph* ir_graph, int precision);    //!< interface of optimizing graph delegation
 } ir_optimizer_t;
+
 
 /*!
  * @struct nn_device_t
@@ -99,13 +103,14 @@ typedef struct optimizer
  */
 typedef struct device
 {
-    const char* name;
-    struct interface* interface; //!< device scheduler operation interface
-    struct allocator* allocator; //!< device allocation operation interface
-    struct optimizer* optimizer; //!< device optimizer operation interface
-    struct scheduler* scheduler; //!< device scheduler
-    void* privacy;               //!< device privacy data
+    const char*       name;
+    struct interface* interface;    //!< device scheduler operation interface
+    struct allocator* allocator;    //!< device allocation operation interface
+    struct optimizer* optimizer;    //!< device optimizer operation interface
+    struct scheduler* scheduler;    //!< device scheduler
+    void*             privacy;      //!< device privacy data
 } ir_device_t;
+
 
 /*!
  * @brief  Initialize a device.
@@ -116,6 +121,7 @@ typedef struct device
  * @param [in]  name: The name of the device.
  */
 void init_ir_device(ir_device_t* device, const char* name);
+
 
 /*!
  * @brief  Size of a device option struct.

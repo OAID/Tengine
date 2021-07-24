@@ -22,11 +22,13 @@
  * Author: hhchen@openailab.com
  */
 
+
 #include <algorithm>
 #include <cfloat>
 
 #include "quant_tool.hpp"
 #include "quant_save_graph.hpp"
+
 
 QuantTool::QuantTool()
 {
@@ -38,27 +40,27 @@ QuantTool::QuantTool()
 
     // system variable
     this->opt.num_thread = 4;
-    this->opt.cluster = TENGINE_CLUSTER_ALL;
-    this->opt.precision = TENGINE_MODE_FP32;
-    this->opt.affinity = 0;
-    this->num_thread = 4;
+    this->opt.cluster    = TENGINE_CLUSTER_ALL;
+    this->opt.precision  = TENGINE_MODE_FP32;
+    this->opt.affinity   = 0;
+    this->num_thread     = 4;
 
     // input variable
-    this->sw_RGB = 1;
-    this->img_c = 3;
-    this->img_h = 224;
-    this->img_w = 224;
-    this->mean[0] = 104.f;
-    this->mean[1] = 117.f;
-    this->mean[2] = 123.f;
-    this->scale[0] = 1.f;
-    this->scale[1] = 1.f;
-    this->scale[2] = 1.f;
-    this->center_crop = 0;
+    this->sw_RGB         = 1;
+    this->img_c          = 3;
+    this->img_h          = 224;
+    this->img_w          = 224;
+    this->mean[0]        = 104.f;
+    this->mean[1]        = 117.f;
+    this->mean[2]        = 123.f;
+    this->scale[0]       = 1.f;
+    this->scale[1]       = 1.f;
+    this->scale[2]       = 1.f;
+    this->center_crop    = 0;
     this->letterbox_rows = 0;
     this->letterbox_cols = 0;
-    this->focus = 0;
-    this->inplace = true;
+    this->focus          = 0;
+    this->inplace        = true;
     this->algorithm_type = ALGORITHM_MIN_MAX;
 }
 
@@ -83,8 +85,8 @@ int QuantTool::activation_quant_tool()
     fprintf(stderr, "[Quant Tools Info]: Step 0, load FP32 tmfile done.\n");
 
     /* set the shape, data buffer of input_tensor of the graph */
-    int img_size = img_h * img_w * img_c;
-    int dims[] = {1, img_c, img_h, img_w}; // nchw
+    int                img_size = img_h * img_w * img_c;
+    int                dims[]   = { 1, img_c, img_h, img_w };    // nchw
     std::vector<float> input_data(img_size);
 
     tensor_t input_tensor = get_graph_input_tensor(ir_graph, 0, 0);
@@ -146,7 +148,7 @@ int QuantTool::activation_quant_tool()
     /* init minmax */
     std::unordered_map<int, float> max_activation;
     std::unordered_map<int, float> min_activation;
-    uint32_t act_tensor_num = 0;
+    uint32_t                       act_tensor_num = 0;
     for (int i = 0; i < ir_graph->tensor_num; i++)
     {
         struct tensor* act_tensor = ir_graph->tensor_list[i];
@@ -161,8 +163,8 @@ int QuantTool::activation_quant_tool()
     fprintf(stderr, "[Quant Tools Info]: Step 1, find original calibration table.\n");
 
     /* first loop, find the min/max value of every activation tensor of the graph */
-    double min_time = DBL_MAX;
-    double max_time = DBL_MIN;
+    double min_time   = DBL_MAX;
+    double max_time   = DBL_MIN;
     double total_time = 0.;
     for (int nums = 0; nums < img_num; nums++)
     {
@@ -191,7 +193,7 @@ int QuantTool::activation_quant_tool()
             if (act_tensor->tensor_type == TENSOR_TYPE_VAR || act_tensor->tensor_type == TENSOR_TYPE_INPUT)
             {
                 float* start_addr = (float*)act_tensor->data;
-                float* end_addr = (float*)act_tensor->data + act_tensor->elem_num;
+                float* end_addr   = (float*)act_tensor->data + act_tensor->elem_num;
                 max_activation[i] = std::max(max_activation[i], *std::max_element(start_addr, end_addr));
                 min_activation[i] = std::min(min_activation[i], *std::min_element(start_addr, end_addr));
             }
@@ -205,23 +207,23 @@ int QuantTool::activation_quant_tool()
         struct tensor* t = ir_graph->tensor_list[i];
         if (t->tensor_type == TENSOR_TYPE_VAR || t->tensor_type == TENSOR_TYPE_INPUT)
         {
-            float act_scale = 1.f;
-            int act_zero_point = 0;
+            float act_scale      = 1.f;
+            int   act_zero_point = 0;
 
-            act_scale = std::max(abs(max_activation[i]), abs(min_activation[i])) / 127.f;
+            act_scale            = std::max(abs(max_activation[i]), abs(min_activation[i])) / 127.f;
 
             /* the scale of softmax always is scale = 1 / 127.f */
             for (int j = 0; j < ir_graph->node_num; j++)
             {
-                struct node* noden = ir_graph->node_list[j];
+                struct node*   noden      = ir_graph->node_list[j];
                 struct tensor* tensor_tmp = get_ir_graph_tensor(ir_graph, noden->output_tensors[0]);
 
                 if (!(tensor_tmp->tensor_type == TENSOR_TYPE_INPUT || tensor_tmp->tensor_type == TENSOR_TYPE_VAR))
                     continue;
 
                 std::string tmp_op_name = get_op_name_from_type(noden->op.type);
-                std::string cur_name = t->name;
-                std::string tmp_name = tensor_tmp->name;
+                std::string cur_name    = t->name;
+                std::string tmp_name    = tensor_tmp->name;
 
                 if ((cur_name == tmp_name) && tmp_op_name == "Softmax")
                 {
@@ -252,24 +254,26 @@ int QuantTool::activation_quant_tool()
     return 0;
 }
 
-const char* help_params = "[Quant Tools Info]: optional arguments:\n"
-                          "\t-h    help            show this help message and exit\n"
-                          "\t-m    input model     path to input float32 tmfile\n"
-                          "\t-i    image dir       path to calibration images folder\n"
-                          "\t-f    scale file      path to calibration scale file\n"
-                          "\t-o    output model    path to output int8 tmfile\n"
-                          "\t-a    algorithm       the type of quant algorithm(0:min-max, 1:kl, default is 0)\n"
-                          "\t-g    size            the size of input image(using the resize the original image,default is 3,224,224)\n"
-                          "\t-w    mean            value of mean (mean value, default is 104.0,117.0,123.0)\n"
-                          "\t-s    scale           value of normalize (scale value, default is 1.0,1.0,1.0)\n"
-                          "\t-b    swapRB          flag which indicates that swap first and last channels in 3-channel image is necessary(0:OFF, 1:ON, default is 1)\n"
-                          "\t-c    center crop     flag which indicates that center crop process image is necessary(0:OFF, 1:ON, default is 0)\n"
-                          "\t-y    letter box      the size of letter box process image is necessary([rows, cols], default is [0, 0])\n"
-                          "\t-k    focus           flag which indicates that focus process image is necessary(maybe using for YOLOv5, 0:OFF, 1:ON, default is 0)\n"
-                          "\t-t    num thread      count of processing threads(default is 1)\n";
+const char* help_params =
+    "[Quant Tools Info]: optional arguments:\n"
+    "\t-h    help            show this help message and exit\n"
+    "\t-m    input model     path to input float32 tmfile\n"
+    "\t-i    image dir       path to calibration images folder\n"
+    "\t-f    scale file      path to calibration scale file\n"
+    "\t-o    output model    path to output int8 tmfile\n"
+    "\t-a    algorithm       the type of quant algorithm(0:min-max, 1:kl, default is 0)\n"
+    "\t-g    size            the size of input image(using the resize the original image,default is 3,224,224)\n"
+    "\t-w    mean            value of mean (mean value, default is 104.0,117.0,123.0)\n"
+    "\t-s    scale           value of normalize (scale value, default is 1.0,1.0,1.0)\n"
+    "\t-b    swapRB          flag which indicates that swap first and last channels in 3-channel image is necessary(0:OFF, 1:ON, default is 1)\n"
+    "\t-c    center crop     flag which indicates that center crop process image is necessary(0:OFF, 1:ON, default is 0)\n"
+    "\t-y    letter box      the size of letter box process image is necessary([rows, cols], default is [0, 0])\n"
+    "\t-k    focus           flag which indicates that focus process image is necessary(maybe using for YOLOv5, 0:OFF, 1:ON, default is 0)\n"
+    "\t-t    num thread      count of processing threads(default is 1)\n";
 
-const char* example_params = "[Quant Tools Info]: example arguments:\n"
-                             "\t./quant_tool_int8 -m ./mobilenet_fp32.tmfile -i ./dataset -o ./mobilenet_int8.tmfile -g 3,224,224 -w 104.007,116.669,122.679 -s 0.017,0.017,0.017\n";
+const char* example_params =
+    "[Quant Tools Info]: example arguments:\n"
+    "\t./quant_tool_int8 -m ./mobilenet_fp32.tmfile -i ./dataset -o ./mobilenet_int8.tmfile -g 3,224,224 -w 104.007,116.669,122.679 -s 0.017,0.017,0.017\n";
 
 void show_usage()
 {
@@ -330,7 +334,7 @@ int main(int argc, char* argv[])
             quant_tool.focus = atoi(optarg);
             break;
         case 't':
-            quant_tool.num_thread = atoi(optarg);
+            quant_tool.num_thread     = atoi(optarg);
             quant_tool.opt.num_thread = atoi(optarg);
             break;
         case 'h':

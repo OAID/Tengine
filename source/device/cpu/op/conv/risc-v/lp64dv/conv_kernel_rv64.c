@@ -41,7 +41,7 @@ void im2col_fp32_3x3(float* input, int w, int h, int channel, float* cur_col, in
 
 static void interleave_kernel(float* kernel, float* kernel_interleaved, int kernel_chan, int kernel_size)
 {
-    int i, j, k;
+    int    i, j, k;
     float* cur_kernel[PER_OUT_CHAN];
     float* cur_kernel_interleaved = kernel_interleaved;
 
@@ -103,19 +103,19 @@ static void interleave_kernel(float* kernel, float* kernel_interleaved, int kern
 /* kernel interleave */
 static void interleave(struct tensor* filter, struct conv_priv_info* priv_info, struct conv_param* param)
 {
-    int group = param->group;
-    int kernel_size = filter->dims[1] * filter->dims[2] * filter->dims[3];
-    int out_chan = filter->dims[0] / group;
-    int out_chan_align4 = (out_chan + 3) / 4 * 4;
+    int group             = param->group;
+    int kernel_size       = filter->dims[1] * filter->dims[2] * filter->dims[3];
+    int out_chan          = filter->dims[0] / group;
+    int out_chan_align4   = (out_chan + 3) / 4 * 4;
 
     int kernel_size_algin = kernel_size * out_chan_align4;
     int kernel_size_group = kernel_size * out_chan;
 
-    float* kernel = filter->data;
+    float* kernel         = filter->data;
     float* interleave_buf = priv_info->interleave_buffer;
     for (int g = 0; g < group; g++)
     {
-        float* cur_kernel = kernel + g * kernel_size_group;
+        float* cur_kernel     = kernel + g * kernel_size_group;
         float* cur_interleave = interleave_buf + g * kernel_size_algin;
         interleave_kernel(cur_kernel, cur_interleave, out_chan, kernel_size);
     }
@@ -127,18 +127,18 @@ static void im2col(float* input, float* col, int in_c, int in_w, int in_h, int k
     if (k_w == 1 && k_h == 1 && s_w == 1 && s_h == 1)
     {
         int kernel_size = k_w * k_h * in_c;
-        int in_xy = in_w * in_h;
-        int out_xy = out_w * out_h;
-        int col_end3 = out_xy & 3;
+        int in_xy       = in_w * in_h;
+        int out_xy      = out_w * out_h;
+        int col_end3    = out_xy & 3;
 #pragma omp parallel for num_threads(num_thread)
         for (int col_i = 0; col_i < out_xy - 3; col_i += 4)
         {
-            float* cur_col = col + col_i * kernel_size;
+            float* cur_col   = col + col_i * kernel_size;
 
             float* cur_input = input + col_i;
             im2col_fp32_1x1(cur_input, in_xy, cur_col, 4, in_c);
         }
-        int col_i = out_xy & -4;
+        int    col_i = out_xy & -4;
         float* cur_col;
         // final 4 input
         if (col_end3)
@@ -159,40 +159,40 @@ static void im2col(float* input, float* col, int in_c, int in_w, int in_h, int k
     else if (d_w == 1 && d_h == 1 && k_w == 3 && k_h == 3 && s_w == s_h)
     {
         int kernel_size = k_w * k_h * in_c;
-        int in_xy = in_w * in_h;
-        int out_xy = out_w * out_h;
-        int col_end3 = out_xy & 3;
-        int is_pad0 = (pad_w0 == 0) && (pad_h0 == 0) && (pad_w1 == 0) && (pad_h1 == 0);
+        int in_xy       = in_w * in_h;
+        int out_xy      = out_w * out_h;
+        int col_end3    = out_xy & 3;
+        int is_pad0     = (pad_w0 == 0) && (pad_h0 == 0) && (pad_w1 == 0) && (pad_h1 == 0);
 #pragma omp parallel for num_threads(num_thread)
         for (int col_i = 0; col_i < (out_xy & -4); col_i += 4)
         {
             float* cur_col = col + col_i * kernel_size;
-            int imy0 = col_i / out_w;
-            int imy3 = (col_i + 3) / out_w;
-            int imx0 = col_i - imy0 * out_w;
-            int imx3 = (col_i + 3) - imy3 * out_w;
+            int    imy0    = col_i / out_w;
+            int    imy3    = (col_i + 3) / out_w;
+            int    imx0    = col_i - imy0 * out_w;
+            int    imx3    = (col_i + 3) - imy3 * out_w;
             if ((imy0 == imy3) && (is_pad0 || (imy0 != 0 && imx0 != 0 && imy0 != (out_h - 1) && imx3 != (out_w - 1))))
             {
                 float* l0 = input + (imy0 * s_h - pad_h0) * in_w + (imx0 * s_w - pad_w0);
                 {
-                    im2col_fp32_3x3(l0, in_w, in_h, in_c, cur_col, s_w); // add im2col 3x3
+                    im2col_fp32_3x3(l0, in_w, in_h, in_c, cur_col, s_w);    // add im2col 3x3
                     cur_col += 4 * kernel_size;
                 }
             }
             else
             {
-                int cnt_y[4] = {imy0, (col_i + 1) / out_w, (col_i + 2) / out_w, imy3};
-                int cnt_x[4] = {imx0, col_i - cnt_y[1] * out_w + 1, col_i - cnt_y[2] * out_w + 2, imx3};
-                int imx_start[4] = {cnt_x[0] * s_w - pad_w0, cnt_x[1] * s_w - pad_w0, cnt_x[2] * s_w - pad_w0,
-                                    cnt_x[3] * s_w - pad_w0};
-                int imy_start[4] = {cnt_y[0] * s_h - pad_h0, cnt_y[1] * s_h - pad_h0, cnt_y[2] * s_h - pad_h0,
-                                    cnt_y[3] * s_h - pad_h0};
+                int cnt_y[4]     = { imy0, (col_i + 1) / out_w, (col_i + 2) / out_w, imy3 };
+                int cnt_x[4]     = { imx0, col_i - cnt_y[1] * out_w + 1, col_i - cnt_y[2] * out_w + 2, imx3 };
+                int imx_start[4] = { cnt_x[0] * s_w - pad_w0, cnt_x[1] * s_w - pad_w0, cnt_x[2] * s_w - pad_w0,
+                                     cnt_x[3] * s_w - pad_w0 };
+                int imy_start[4] = { cnt_y[0] * s_h - pad_h0, cnt_y[1] * s_h - pad_h0, cnt_y[2] * s_h - pad_h0,
+                                     cnt_y[3] * s_h - pad_h0 };
                 for (int kch = 0; kch < in_c; kch++)
                     for (int ky = 0; ky < 3; ky++)
                         for (int kx = 0; kx < 3; kx++)
                         {
-                            int imx[4] = {imx_start[0] + kx, imx_start[1] + kx, imx_start[2] + kx, imx_start[3] + kx};
-                            int imy[4] = {imy_start[0] + ky, imy_start[1] + ky, imy_start[2] + ky, imy_start[3] + ky};
+                            int imx[4] = { imx_start[0] + kx, imx_start[1] + kx, imx_start[2] + kx, imx_start[3] + kx };
+                            int imy[4] = { imy_start[0] + ky, imy_start[1] + ky, imy_start[2] + ky, imy_start[3] + ky };
                             for (int i = 0; i < 4; i++)
                             {
                                 if (imx[i] >= 0 && imx[i] < in_w && imy[i] >= 0 && imy[i] < in_h)
@@ -207,22 +207,22 @@ static void im2col(float* input, float* col, int in_c, int in_w, int in_h, int k
         int col_i = out_xy & -4;
         if (col_end3)
         {
-            float* cur_col = col + col_i * kernel_size;
-            int cnt_y[4] = {col_i / out_w, (col_i + 1) / out_w, (col_i + 2) / out_w, (col_i + 3) / out_w};
-            int cnt_x[4] = {col_i - cnt_y[0] * out_w, col_i - cnt_y[1] * out_w + 1, col_i - cnt_y[2] * out_w + 2,
-                            col_i - cnt_y[3] * out_w + 3};
-            int imx_start[4] = {cnt_x[0] * s_w - pad_w0, cnt_x[1] * s_w - pad_w0, cnt_x[2] * s_w - pad_w0,
-                                cnt_x[3] * s_w - pad_w0};
-            int imy_start[4] = {cnt_y[0] * s_h - pad_h0, cnt_y[1] * s_h - pad_h0, cnt_y[2] * s_h - pad_h0,
-                                cnt_y[3] * s_h - pad_h0};
+            float* cur_col  = col + col_i * kernel_size;
+            int    cnt_y[4] = { col_i / out_w, (col_i + 1) / out_w, (col_i + 2) / out_w, (col_i + 3) / out_w };
+            int    cnt_x[4] = { col_i - cnt_y[0] * out_w, col_i - cnt_y[1] * out_w + 1, col_i - cnt_y[2] * out_w + 2,
+                             col_i - cnt_y[3] * out_w + 3 };
+            int    imx_start[4] = { cnt_x[0] * s_w - pad_w0, cnt_x[1] * s_w - pad_w0, cnt_x[2] * s_w - pad_w0,
+                                 cnt_x[3] * s_w - pad_w0 };
+            int    imy_start[4] = { cnt_y[0] * s_h - pad_h0, cnt_y[1] * s_h - pad_h0, cnt_y[2] * s_h - pad_h0,
+                                 cnt_y[3] * s_h - pad_h0 };
             for (int kch = 0; kch < in_c; kch++)
             {
                 for (int ky = 0; ky < 3; ky++)
                 {
                     for (int kx = 0; kx < 3; kx++)
                     {
-                        int imx[4] = {imx_start[0] + kx, imx_start[1] + kx, imx_start[2] + kx, imx_start[3] + kx};
-                        int imy[4] = {imy_start[0] + ky, imy_start[1] + ky, imy_start[2] + ky, imy_start[3] + ky};
+                        int imx[4] = { imx_start[0] + kx, imx_start[1] + kx, imx_start[2] + kx, imx_start[3] + kx };
+                        int imy[4] = { imy_start[0] + ky, imy_start[1] + ky, imy_start[2] + ky, imy_start[3] + ky };
                         for (int i = 0; i < 4; i++)
                         {
                             if (i < col_end3 && imx[i] >= 0 && imx[i] < in_w && imy[i] >= 0 && imy[i] < in_h)
@@ -241,23 +241,23 @@ static void im2col(float* input, float* col, int in_c, int in_w, int in_h, int k
 #pragma omp parallel for num_threads(num_thread)
         for (int col_i = 0; col_i < out_xy - 3; col_i += 4)
         {
-            int kernel_size = k_w * k_h * in_c;
-            int in_xy = in_w * in_h;
-            int col_end3 = out_xy & 3;
-            float* cur_col = col + col_i * kernel_size;
-            int cnt_y[4] = {col_i / out_w, (col_i + 1) / out_w, (col_i + 2) / out_w, (col_i + 3) / out_w};
-            int cnt_x[4] = {col_i - cnt_y[0] * out_w, col_i - cnt_y[1] * out_w + 1, col_i - cnt_y[2] * out_w + 2,
-                            col_i - cnt_y[3] * out_w + 3};
-            int imx_start[4] = {cnt_x[0] * s_w - pad_w0, cnt_x[1] * s_w - pad_w0, cnt_x[2] * s_w - pad_w0,
-                                cnt_x[3] * s_w - pad_w0};
-            int imy_start[4] = {cnt_y[0] * s_h - pad_h0, cnt_y[1] * s_h - pad_h0, cnt_y[2] * s_h - pad_h0,
-                                cnt_y[3] * s_h - pad_h0};
+            int    kernel_size = k_w * k_h * in_c;
+            int    in_xy       = in_w * in_h;
+            int    col_end3    = out_xy & 3;
+            float* cur_col     = col + col_i * kernel_size;
+            int    cnt_y[4]    = { col_i / out_w, (col_i + 1) / out_w, (col_i + 2) / out_w, (col_i + 3) / out_w };
+            int    cnt_x[4]    = { col_i - cnt_y[0] * out_w, col_i - cnt_y[1] * out_w + 1, col_i - cnt_y[2] * out_w + 2,
+                             col_i - cnt_y[3] * out_w + 3 };
+            int    imx_start[4] = { cnt_x[0] * s_w - pad_w0, cnt_x[1] * s_w - pad_w0, cnt_x[2] * s_w - pad_w0,
+                                 cnt_x[3] * s_w - pad_w0 };
+            int    imy_start[4] = { cnt_y[0] * s_h - pad_h0, cnt_y[1] * s_h - pad_h0, cnt_y[2] * s_h - pad_h0,
+                                 cnt_y[3] * s_h - pad_h0 };
             for (int kch = 0; kch < in_c; kch++)
                 for (int ky = 0; ky < (k_h * d_h); ky += d_h)
                     for (int kx = 0; kx < (k_w * d_w); kx += d_w)
                     {
-                        int imx[4] = {imx_start[0] + kx, imx_start[1] + kx, imx_start[2] + kx, imx_start[3] + kx};
-                        int imy[4] = {imy_start[0] + ky, imy_start[1] + ky, imy_start[2] + ky, imy_start[3] + ky};
+                        int imx[4] = { imx_start[0] + kx, imx_start[1] + kx, imx_start[2] + kx, imx_start[3] + kx };
+                        int imy[4] = { imy_start[0] + ky, imy_start[1] + ky, imy_start[2] + ky, imy_start[3] + ky };
                         for (int i = 0; i < 4; i++)
                         {
                             if (imx[i] >= 0 && imx[i] < in_w && imy[i] >= 0 && imy[i] < in_h)
@@ -267,27 +267,27 @@ static void im2col(float* input, float* col, int in_c, int in_w, int in_h, int k
                         }
                     }
         }
-        int col_i = out_xy & -4;
+        int    col_i = out_xy & -4;
         float* cur_col;
-        int kernel_size = k_w * k_h * in_c;
-        int in_xy = in_w * in_h;
-        int col_end3 = out_xy & 3;
+        int    kernel_size = k_w * k_h * in_c;
+        int    in_xy       = in_w * in_h;
+        int    col_end3    = out_xy & 3;
         if (col_end3)
         {
-            cur_col = col + col_i * kernel_size;
-            int cnt_y[4] = {col_i / out_w, (col_i + 1) / out_w, (col_i + 2) / out_w, (col_i + 3) / out_w};
-            int cnt_x[4] = {col_i - cnt_y[0] * out_w, col_i - cnt_y[1] * out_w + 1, col_i - cnt_y[2] * out_w + 2,
-                            col_i - cnt_y[3] * out_w + 3};
-            int imx_start[4] = {cnt_x[0] * s_w - pad_w0, cnt_x[1] * s_w - pad_w0, cnt_x[2] * s_w - pad_w0,
-                                cnt_x[3] * s_w - pad_w0};
-            int imy_start[4] = {cnt_y[0] * s_h - pad_h0, cnt_y[1] * s_h - pad_h0, cnt_y[2] * s_h - pad_h0,
-                                cnt_y[3] * s_h - pad_h0};
+            cur_col          = col + col_i * kernel_size;
+            int cnt_y[4]     = { col_i / out_w, (col_i + 1) / out_w, (col_i + 2) / out_w, (col_i + 3) / out_w };
+            int cnt_x[4]     = { col_i - cnt_y[0] * out_w, col_i - cnt_y[1] * out_w + 1, col_i - cnt_y[2] * out_w + 2,
+                             col_i - cnt_y[3] * out_w + 3 };
+            int imx_start[4] = { cnt_x[0] * s_w - pad_w0, cnt_x[1] * s_w - pad_w0, cnt_x[2] * s_w - pad_w0,
+                                 cnt_x[3] * s_w - pad_w0 };
+            int imy_start[4] = { cnt_y[0] * s_h - pad_h0, cnt_y[1] * s_h - pad_h0, cnt_y[2] * s_h - pad_h0,
+                                 cnt_y[3] * s_h - pad_h0 };
             for (int kch = 0; kch < in_c; kch++)
                 for (int ky = 0; ky < (k_h * d_h); ky += d_h)
                     for (int kx = 0; kx < (k_w * d_w); kx += d_w)
                     {
-                        int imx[4] = {imx_start[0] + kx, imx_start[1] + kx, imx_start[2] + kx, imx_start[3] + kx};
-                        int imy[4] = {imy_start[0] + ky, imy_start[1] + ky, imy_start[2] + ky, imy_start[3] + ky};
+                        int imx[4] = { imx_start[0] + kx, imx_start[1] + kx, imx_start[2] + kx, imx_start[3] + kx };
+                        int imy[4] = { imy_start[0] + ky, imy_start[1] + ky, imy_start[2] + ky, imy_start[3] + ky };
                         for (int i = 0; i < 4; i++)
                         {
                             if (i < col_end3 && imx[i] >= 0 && imx[i] < in_w && imy[i] >= 0 && imy[i] < in_h)
@@ -311,24 +311,24 @@ static void sgemm_set(float* col, float* kernel, float* biases, float* output, i
 #pragma omp parallel for num_threads(num_thread)
         for (int pp = 0; pp < nn_outch; pp++)
         {
-            int p = pp * PER_OUT_CHAN;
+            int p             = pp * PER_OUT_CHAN;
 
-            float* biasptr = biases ? (float*)(biases + p) : NULL;
+            float* biasptr    = biases ? (float*)(biases + p) : NULL;
             float* kernel_tmp = (float*)(kernel + p * kernel_size);
             float* output_tmp = (float*)(output + p * output_xy);
 
-            int col_line = 0;
+            int col_line      = 0;
             for (col_line = 0; col_line + 3 < output_xy; col_line += 4)
             {
                 float* col_tmp = (float*)(col + col_line * kernel_size);
                 sgemm_4x16_rv64(biasptr, col_tmp, kernel_tmp, kernel_size, output_tmp + col_line, output_xy, activation,
-                                0); // FIXME: replace with sgemm_4x16_rv64
+                                0);    // FIXME: replace with sgemm_4x16_rv64
             }
             {
-                float result[64];
+                float  result[64];
                 float* col_tmp = (float*)(col + col_line * kernel_size);
                 sgemm_4x16_rv64(biasptr, col_tmp, kernel_tmp, kernel_size, result, 4, activation,
-                                0); // FIXME: replace with sgemm_4x16_rv64
+                                0);    // FIXME: replace with sgemm_4x16_rv64
                 for (int i = 0; i < 16; i++)
                 {
                     for (int j = 0; j < (col_end3); j++)
@@ -342,9 +342,9 @@ static void sgemm_set(float* col, float* kernel, float* biases, float* output, i
 #pragma omp parallel for num_threads(num_thread)
         for (int pp = 0; pp < nn_outch; pp++)
         {
-            int p = pp * PER_OUT_CHAN;
+            int p             = pp * PER_OUT_CHAN;
 
-            float* biasptr = biases ? (float*)(biases + p) : NULL;
+            float* biasptr    = biases ? (float*)(biases + p) : NULL;
             float* kernel_tmp = (float*)(kernel + p * kernel_size);
             float* output_tmp = (float*)(output + p * output_xy);
 
@@ -352,7 +352,7 @@ static void sgemm_set(float* col, float* kernel, float* biases, float* output, i
             {
                 float* col_tmp = (float*)(col + col_line * kernel_size);
                 sgemm_4x16_rv64(biasptr, col_tmp, kernel_tmp, kernel_size, output_tmp + col_line, output_xy, activation,
-                                0); // FIXME: replace with sgemm_4x16_rv64
+                                0);    // FIXME: replace with sgemm_4x16_rv64
             }
         }
     }
@@ -362,15 +362,15 @@ static void sgemm4x4(float* col, float* kernel, float* biases, float* output, in
                      int output_xy, int activation, int num_thread, int cpu_affinity)
 {
     float result[16];
-    int col_end3 = output_xy & 0x3;
-    int kernel_end3 = ch_end & 0x3;
+    int   col_end3    = output_xy & 0x3;
+    int   kernel_end3 = ch_end & 0x3;
 
 #pragma omp parallel for num_threads(num_thread) private(result)
     for (int kernel_num = ch_start; kernel_num < ((ch_end & -4) - 3); kernel_num += 4)
     {
         float* cur_biases = NULL;
         float *cur_col, *cur_kernel, *cur_output;
-        int col_line;
+        int    col_line;
         if (biases)
             cur_biases = (float*)(biases + kernel_num);
         cur_kernel = (float*)(kernel + kernel_num * kernel_size);
@@ -394,7 +394,7 @@ static void sgemm4x4(float* col, float* kernel, float* biases, float* output, in
     }
     if (kernel_end3)
     {
-        int kernel_num = (ch_end & -4);
+        int    kernel_num = (ch_end & -4);
         float* cur_biases = NULL;
         if (biases)
             cur_biases = (float*)(biases + kernel_num);
@@ -425,14 +425,14 @@ static void sgemm4x4(float* col, float* kernel, float* biases, float* output, in
 /* check the conv wheather need to be using winograd */
 static int winograd_support(struct conv_param* param, int in_h, int in_w)
 {
-    int kernel_h = param->kernel_h;
-    int kernel_w = param->kernel_w;
-    int stride_h = param->stride_h;
-    int stride_w = param->stride_w;
-    int dilation_h = param->dilation_h;
-    int dilation_w = param->dilation_w;
+    int kernel_h    = param->kernel_h;
+    int kernel_w    = param->kernel_w;
+    int stride_h    = param->stride_h;
+    int stride_w    = param->stride_w;
+    int dilation_h  = param->dilation_h;
+    int dilation_w  = param->dilation_w;
     int output_chan = param->output_channel;
-    int group = param->group;
+    int group       = param->group;
 
     if (in_h < 7 && in_w < 7)
         return 0;
@@ -451,18 +451,18 @@ static int winograd_support(struct conv_param* param, int in_h, int in_w)
  */
 int conv_hcl_get_shared_mem_size_rv64(struct tensor* input, struct tensor* output, struct conv_param* param)
 {
-    int in_h = input->dims[2];
-    int in_w = input->dims[3];
-    int out_h = output->dims[2];
-    int out_w = output->dims[3];
-    int group = param->group;
-    int input_chan = param->input_channel / group;
+    int in_h        = input->dims[2];
+    int in_w        = input->dims[3];
+    int out_h       = output->dims[2];
+    int out_w       = output->dims[3];
+    int group       = param->group;
+    int input_chan  = param->input_channel / group;
     int kernel_size = input_chan * param->kernel_h * param->kernel_w;
-    int out_cstep = out_h * out_w;    // channel cstep, output_h * output_w
-    int elem_size = input->elem_size; // uint8/int8 is 1 byte, fp32 is 4 bytes
+    int out_cstep   = out_h * out_w;       // channel cstep, output_h * output_w
+    int elem_size   = input->elem_size;    // uint8/int8 is 1 byte, fp32 is 4 bytes
 
-    out_cstep = (out_cstep + 3) / 4 * 4;
-    int mem_size = elem_size * kernel_size * out_cstep + 128;
+    out_cstep       = (out_cstep + 3) / 4 * 4;
+    int mem_size    = elem_size * kernel_size * out_cstep + 128;
 
     return mem_size;
 }
@@ -472,11 +472,11 @@ int conv_hcl_get_shared_mem_size_rv64(struct tensor* input, struct tensor* outpu
  */
 static int get_private_mem_size(struct tensor* filter, struct conv_param* param)
 {
-    int group = param->group;
-    int out_chan = filter->dims[0] / group;
+    int group           = param->group;
+    int out_chan        = filter->dims[0] / group;
     int out_chan_align4 = (out_chan + 3) / 4 * 4;
-    int kernel_size = filter->dims[1] * filter->dims[2] * filter->dims[3];
-    int mem_size = kernel_size * filter->elem_size * out_chan_align4 * group + 128; // caution
+    int kernel_size     = filter->dims[1] * filter->dims[2] * filter->dims[3];
+    int mem_size        = kernel_size * filter->elem_size * out_chan_align4 * group + 128;    // caution
 
     return mem_size;
 }
@@ -484,8 +484,8 @@ static int get_private_mem_size(struct tensor* filter, struct conv_param* param)
 int conv_hcl_set_shared_mem(struct conv_priv_info* priv_info, void* mem, int mem_size)
 {
     priv_info->external_im2col_mem = 1;
-    priv_info->im2col_buffer = mem;
-    priv_info->im2col_buffer_size = mem_size;
+    priv_info->im2col_buffer       = mem;
+    priv_info->im2col_buffer_size  = mem_size;
 
     return 0;
 }
@@ -493,8 +493,8 @@ int conv_hcl_set_shared_mem(struct conv_priv_info* priv_info, void* mem, int mem
 int conv_hcl_set_shared_pack4_mem(struct conv_priv_info* priv_info, void* mem, int mem_size)
 {
     priv_info->external_im2col_pack4_mem = 0;
-    priv_info->im2col_buffer_pack4 = NULL;
-    priv_info->im2col_buffer_pack4_size = 0;
+    priv_info->im2col_buffer_pack4       = NULL;
+    priv_info->im2col_buffer_pack4_size  = 0;
 
     return 0;
 }
@@ -524,18 +524,18 @@ int conv_hcl_prerun(struct tensor* input_tensor, struct tensor* filter_tensor, s
     /* alloc mem of im2col  */
     if (!priv_info->external_im2col_mem)
     {
-        int mem_size = conv_hcl_get_shared_mem_size_rv64(input_tensor, output_tensor, param);
-        void* mem = sys_malloc(mem_size);
-        priv_info->im2col_buffer = mem;
+        int   mem_size                = conv_hcl_get_shared_mem_size_rv64(input_tensor, output_tensor, param);
+        void* mem                     = sys_malloc(mem_size);
+        priv_info->im2col_buffer      = mem;
         priv_info->im2col_buffer_size = mem_size;
     }
 
     /* alloc mem of kernel interleave */
     if (!priv_info->external_interleave_mem)
     {
-        int mem_size = get_private_mem_size(filter_tensor, param);
-        void* mem = sys_malloc(mem_size);
-        priv_info->interleave_buffer = mem;
+        int   mem_size                    = get_private_mem_size(filter_tensor, param);
+        void* mem                         = sys_malloc(mem_size);
+        priv_info->interleave_buffer      = mem;
         priv_info->interleave_buffer_size = mem_size;
     }
 
@@ -572,25 +572,25 @@ int conv_hcl_run(struct tensor* input_tensor, struct tensor* filter_tensor, stru
                  int num_thread, int cpu_affinity)
 {
     /* param */
-    int group = param->group;
-    int kernel_h = param->kernel_h;
-    int kernel_w = param->kernel_w;
-    int stride_h = param->stride_h;
-    int stride_w = param->stride_w;
-    int dilation_h = param->dilation_h;
-    int dilation_w = param->dilation_w;
-    int pad_h0 = param->pad_h0;
-    int pad_h1 = param->pad_h1;
-    int pad_w0 = param->pad_w0;
-    int pad_w1 = param->pad_w1;
-    int act_type = param->activation;
+    int group            = param->group;
+    int kernel_h         = param->kernel_h;
+    int kernel_w         = param->kernel_w;
+    int stride_h         = param->stride_h;
+    int stride_w         = param->stride_w;
+    int dilation_h       = param->dilation_h;
+    int dilation_w       = param->dilation_w;
+    int pad_h0           = param->pad_h0;
+    int pad_h1           = param->pad_h1;
+    int pad_w0           = param->pad_w0;
+    int pad_w1           = param->pad_w1;
+    int act_type         = param->activation;
 
-    int batch = input_tensor->dims[0];
-    int in_c = input_tensor->dims[1] / group;
-    int in_h = input_tensor->dims[2];
-    int in_w = input_tensor->dims[3];
-    int input_size = in_c * in_h * in_w;
-    int kernel_size = in_c * kernel_h * kernel_w;
+    int batch            = input_tensor->dims[0];
+    int in_c             = input_tensor->dims[1] / group;
+    int in_h             = input_tensor->dims[2];
+    int in_w             = input_tensor->dims[3];
+    int input_size       = in_c * in_h * in_w;
+    int kernel_size      = in_c * kernel_h * kernel_w;
     int input_image_size = input_tensor->dims[1] * input_tensor->dims[2] * input_tensor->dims[3];
 
     // if (priv_info->winograd)
@@ -601,27 +601,27 @@ int conv_hcl_run(struct tensor* input_tensor, struct tensor* filter_tensor, stru
     //         return wino_conv_hcl_run(input_tensor, filter_tensor, bias_tensor, output_tensor, priv_info, param, num_thread, cpu_affinity);       // FIXME: add wino support
     // }
 
-    int out_c = output_tensor->dims[1] / group;
-    int out_h = output_tensor->dims[2];
-    int out_w = output_tensor->dims[3];
-    int out_hw = out_h * out_w;
-    int output_size = out_c * out_h * out_w;
-    int out_c_align = ((out_c + 3) & -4);
+    int out_c             = output_tensor->dims[1] / group;
+    int out_h             = output_tensor->dims[2];
+    int out_w             = output_tensor->dims[3];
+    int out_hw            = out_h * out_w;
+    int output_size       = out_c * out_h * out_w;
+    int out_c_align       = ((out_c + 3) & -4);
     int output_image_size = output_tensor->dims[1] * output_tensor->dims[2] * output_tensor->dims[3];
 
     /* buffer addr */
-    float* input_buf = (float*)input_tensor->data;
+    float* input_buf  = (float*)input_tensor->data;
     float* output_buf = (float*)output_tensor->data;
     float* biases_buf = NULL;
     if (bias_tensor != NULL)
         biases_buf = (float*)bias_tensor->data;
-    float* col_buf = (float*)priv_info->im2col_buffer;
+    float* col_buf        = (float*)priv_info->im2col_buffer;
     float* interleave_buf = (float*)priv_info->interleave_buffer;
 
-    int sgemm_set_chan = out_c / PER_OUT_CHAN * PER_OUT_CHAN;
-    int sgemm_set_remain = out_c % PER_OUT_CHAN;
+    int sgemm_set_chan    = out_c / PER_OUT_CHAN * PER_OUT_CHAN;
+    int sgemm_set_remain  = out_c % PER_OUT_CHAN;
 
-    for (int n = 0; n < batch; n++) // batch size
+    for (int n = 0; n < batch; n++)    // batch size
     {
         for (int g = 0; g < group; g++)
         {
@@ -633,7 +633,7 @@ int conv_hcl_run(struct tensor* input_tensor, struct tensor* filter_tensor, stru
             /* gemm */
             float* cur_kernel = interleave_buf + g * kernel_size * out_c_align;
             float* cur_output = output_buf + n * output_image_size + g * output_size;
-            float* cur_bias = biases_buf ? (biases_buf + g * out_c) : NULL;
+            float* cur_bias   = biases_buf ? (biases_buf + g * out_c) : NULL;
             sgemm_set(col_buf, cur_kernel, cur_bias, cur_output, kernel_size, 0, sgemm_set_chan, out_hw, act_type,
                       num_thread, cpu_affinity);
             if (sgemm_set_remain)

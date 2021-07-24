@@ -28,6 +28,7 @@
 
 #include <string.h>
 
+
 void init_ir_device(ir_device_t* device, const char* name)
 {
     if (NULL != name)
@@ -44,8 +45,9 @@ void init_ir_device(ir_device_t* device, const char* name)
     device->allocator = NULL;
     device->optimizer = NULL;
     device->scheduler = NULL;
-    device->privacy = NULL;
+    device->privacy   = NULL;
 }
+
 
 int get_device_option_size(ir_device_t* device)
 {

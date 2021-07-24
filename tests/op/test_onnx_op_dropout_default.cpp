@@ -22,12 +22,13 @@
  * Author: qtang@openailab.com
  */
 
+
 #include "test_onnx_op.h"
 
-std::string node = "test_dropout_default";
-std::string input_pb = "../onnx_node/" + node + "/test_data_set_0/input_0.pb";
+std::string node      = "test_dropout_default";
+std::string input_pb  = "../onnx_node/" + node + "/test_data_set_0/input_0.pb";
 std::string output_pb = "../onnx_node/" + node + "/test_data_set_0/output_0.pb";
-std::string model = "../onnx_node/" + node + "/onnx.tmfile";
+std::string model     = "../onnx_node/" + node + "/onnx.tmfile";
 
 int main(int argc, char* argv[])
 {
@@ -36,9 +37,9 @@ int main(int argc, char* argv[])
     /* set runtime options */
     struct options opt;
     opt.num_thread = 1;
-    opt.cluster = TENGINE_CLUSTER_ALL;
-    opt.precision = TENGINE_MODE_FP32;
-    opt.affinity = 0;
+    opt.cluster    = TENGINE_CLUSTER_ALL;
+    opt.precision  = TENGINE_MODE_FP32;
+    opt.affinity   = 0;
 
     /* inital tengine */
     if (init_tengine() != 0)
@@ -56,8 +57,8 @@ int main(int argc, char* argv[])
     }
 
     /* set the shape, data buffer of input_tensor of the graph */
-    int input_size = w;
-    int dims[] = {w};
+    int                input_size = w;
+    int                dims[]     = { w };
     std::vector<float> feature_in(input_size);
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
@@ -98,8 +99,8 @@ int main(int argc, char* argv[])
 
     /* get the current result of inference */
     tensor_t output_tensor = get_graph_output_tensor(graph, 0, 0);
-    float* output_data = (float*)get_tensor_buffer(output_tensor);
-    int output_size = get_tensor_buffer_size(output_tensor) / sizeof(float);
+    float*   output_data   = (float*)get_tensor_buffer(output_tensor);
+    int      output_size   = get_tensor_buffer_size(output_tensor) / sizeof(float);
 
     /* get the reference result of inference */
     std::vector<float> reference_out(output_size);

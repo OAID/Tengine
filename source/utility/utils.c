@@ -23,6 +23,7 @@
  * Revised: lswang@openailab.com
  */
 
+
 #include "utility/utils.h"
 
 #include "defines.h"
@@ -33,6 +34,7 @@
 
 #include <stdio.h>
 #include <string.h>
+
 
 const char* get_tensor_type_string(int tensor_type)
 {
@@ -51,6 +53,7 @@ const char* get_tensor_type_string(int tensor_type)
     }
 }
 
+
 const char* get_tensor_layout_string(int layout)
 {
     if (layout == TENGINE_LAYOUT_NHWC)
@@ -58,6 +61,7 @@ const char* get_tensor_layout_string(int layout)
     else
         return "NCHW";
 }
+
 
 const char* get_model_format_string(int model_format)
 {
@@ -82,13 +86,14 @@ const char* get_model_format_string(int model_format)
     }
 }
 
+
 int get_op_type_from_name(const char* name)
 {
     int count = get_op_method_count();
     for (int i = 0; i < count; i++)
     {
-        ir_method_t* method = find_op_method_via_index(i);
-        const char* op_name = find_op_name(method->type);
+        ir_method_t* method  = find_op_method_via_index(i);
+        const char*  op_name = find_op_name(method->type);
 
         if (0 == strcmp(op_name, name))
         {
@@ -99,10 +104,12 @@ int get_op_type_from_name(const char* name)
     return -1;
 }
 
+
 const char* get_op_name_from_type(int op_type)
 {
     return find_op_name(op_type);
 }
+
 
 int get_tenser_element_size(int data_type)
 {
@@ -121,6 +128,7 @@ int get_tenser_element_size(int data_type)
         return 0;
     }
 }
+
 
 const char* get_tensor_data_type_string(int data_type)
 {
@@ -143,6 +151,7 @@ const char* get_tensor_data_type_string(int data_type)
     }
 }
 
+
 const char* data_type_typeinfo_name(int data_type)
 {
     switch (data_type)
@@ -155,6 +164,7 @@ const char* data_type_typeinfo_name(int data_type)
         return NULL;
     }
 }
+
 
 void dump_float(const char* file_name, float* data, int number)
 {
@@ -174,6 +184,7 @@ void dump_float(const char* file_name, float* data, int number)
     fclose(fp);
 }
 
+
 int get_mask_count(size_t mask)
 {
     int count = 0;
@@ -184,6 +195,7 @@ int get_mask_count(size_t mask)
 
     return count;
 }
+
 
 int get_mask_index(size_t mask)
 {

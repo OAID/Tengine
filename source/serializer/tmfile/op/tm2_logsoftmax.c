@@ -34,23 +34,26 @@
 #include "device/device.h"
 #include "utility/log.h"
 
+
 static int logsoftmax_op_map(int op)
 {
     return OP_LOGSOFTMAX;
 }
 
+
 static int tm2_load_logsoftmax(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                                const TM2_Operator* tm_op)
 {
     struct logsoftmax_param* logsoftmax_param = (struct logsoftmax_param*)ir_node->op.param_mem;
-    const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
-    const char* mem_base = tm2_priv->base;
+    const struct tm2_priv*   tm2_priv         = (struct tm2_priv*)ir_graph->serializer_privacy;
+    const char*              mem_base         = tm2_priv->base;
 
-    const TM2_LogSoftmaxParam* tm_param = (TM2_LogSoftmaxParam*)(mem_base + tm_op->offset_t_param);
-    logsoftmax_param->axis = tm_param->axis;
+    const TM2_LogSoftmaxParam* tm_param       = (TM2_LogSoftmaxParam*)(mem_base + tm_op->offset_t_param);
+    logsoftmax_param->axis                    = tm_param->axis;
 
     return 0;
 }
+
 
 int register_tm2_logsoftmax_op()
 {
@@ -66,6 +69,7 @@ int register_tm2_logsoftmax_op()
 
     return 0;
 }
+
 
 int unregister_tm2_logsoftmax_op()
 {

@@ -26,6 +26,7 @@
 
 #include <arm_neon.h>
 
+
 static void batchnorm_kernel(int i, int id, void* data, const float* input, float* output, float* scale_mean,
                              float* scale_var, int channel_size, int num_thread)
 {
@@ -34,14 +35,14 @@ static void batchnorm_kernel(int i, int id, void* data, const float* input, floa
 #pragma omp parallel for num_threads(num_thread)
     for (int c = 0; c < step; c++)
     {
-        int cur_c = id * step + c;
-        float s_mean = scale_mean[cur_c];
-        float s_var = scale_var[cur_c];
-        float32x4_t _mean = vdupq_n_f32(s_mean);
-        float32x4_t _var = vdupq_n_f32(s_var);
-        int offset = cur_c * channel_size;
-        const float* input_ptr = input + offset;
-        float* output_ptr = output + offset;
+        int          cur_c      = id * step + c;
+        float        s_mean     = scale_mean[cur_c];
+        float        s_var      = scale_var[cur_c];
+        float32x4_t  _mean      = vdupq_n_f32(s_mean);
+        float32x4_t  _var       = vdupq_n_f32(s_var);
+        int          offset     = cur_c * channel_size;
+        const float* input_ptr  = input + offset;
+        float*       output_ptr = output + offset;
 
         for (int l = 0; l < (channel_size & -4); l += 4)
         {
@@ -62,22 +63,22 @@ static void batchnorm_kernel(int i, int id, void* data, const float* input, floa
 int batchnorm_run(struct tensor* output_tensor, struct tensor* input_tensor, float* scale_mean, float* scale_var_inv,
                   int num_thread)
 {
-    int batch_number = input_tensor->dims[0];
-    int channel_num = input_tensor->dims[1];
-    int channel_size = (input_tensor->dims[2]) * (input_tensor->dims[3]);
-    int img_size = channel_num * channel_size;
+    int batch_number       = input_tensor->dims[0];
+    int channel_num        = input_tensor->dims[1];
+    int channel_size       = (input_tensor->dims[2]) * (input_tensor->dims[3]);
+    int img_size           = channel_num * channel_size;
 
-    const float* input = (const float*)input_tensor->data;
-    float* output = (float*)output_tensor->data;
+    const float* input     = (const float*)input_tensor->data;
+    float*       output    = (float*)output_tensor->data;
 
-    float* scale_mean_t = (float*)scale_mean;
+    float* scale_mean_t    = (float*)scale_mean;
     float* scale_var_inv_t = (float*)scale_var_inv;
 
     /* only use mean and var */
     for (int i = 0; i < batch_number; i++)
     {
-        const float* cur_input = input + i * img_size;
-        float* cur_output = output + i * img_size;
+        const float* cur_input  = input + i * img_size;
+        float*       cur_output = output + i * img_size;
 
         batchnorm_kernel(0, 0, &channel_num, cur_input, cur_output, scale_mean_t, scale_var_inv_t, channel_size,
                          num_thread);

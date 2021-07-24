@@ -22,7 +22,9 @@
  * Author: qtang@openailab.com
  */
 
+
 #include "test_op.h"
+
 
 int create_test_clip_node(graph_t graph, const char* input_name, const char* node_name, int data_type, int layout,
                           int n, int c, int h, int w)
@@ -36,7 +38,7 @@ int create_test_clip_node(graph_t graph, const char* input_name, const char* nod
     /* create the test node */
     struct node* test_node = (struct node*)create_graph_node(graph, node_name, "Clip");
 
-    tensor_t input_tensor = get_graph_tensor(graph, input_name);
+    tensor_t input_tensor  = get_graph_tensor(graph, input_name);
 
     if (NULL == input_tensor)
     {
@@ -54,16 +56,17 @@ int create_test_clip_node(graph_t graph, const char* input_name, const char* nod
     return 0;
 }
 
-float input_fp32[5] = {-3.0f, 3.0f, 8.0f, 1.0f, -2.0f};
+float input_fp32[5]    = { -3.0f, 3.0f, 8.0f, 1.0f, -2.0f };
 
-float reference_out[5] = {0.0f, 3.0f, 6.0f, 1.0f, 0.0f};
+float reference_out[5] = { 0.0f, 3.0f, 6.0f, 1.0f, 0.0f };
+
 
 int main(int argc, char* argv[])
 {
-    int n = 1, c = 1, h = 5, w = 1;
+    int         n = 1, c = 1, h = 5, w = 1;
     const char* test_node_name = "clip";
-    int data_type = TENGINE_DT_FP32;
-    int layout = TENGINE_LAYOUT_NCHW;
+    int         data_type      = TENGINE_DT_FP32;
+    int         layout         = TENGINE_LAYOUT_NCHW;
 
     // init
     int ret = test_graph_init();
@@ -79,7 +82,7 @@ int main(int argc, char* argv[])
     dump_graph(graph);
 
     // set quantize params
-    struct tensor* input_tensor = (struct tensor*)get_graph_input_tensor(graph, 0, 0);
+    struct tensor* input_tensor  = (struct tensor*)get_graph_input_tensor(graph, 0, 0);
     struct tensor* output_tensor = (struct tensor*)get_graph_output_tensor(graph, 0, 0);
 
     // set input data
@@ -96,7 +99,7 @@ int main(int argc, char* argv[])
 
     // get output and dequant
     float* output_data = (float*)output_tensor->data;
-    int output_size = output_tensor->elem_num;
+    int    output_size = output_tensor->elem_num;
 
     // check the result
     ret = 0;

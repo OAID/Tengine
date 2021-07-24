@@ -57,21 +57,24 @@ struct skeleton
     int left_right_neutral;
 };
 
-std::vector<skeleton> pairs = {{0, 1, 0}, {1, 2, 0}, {3, 4, 1}, {4, 5, 1}, {2, 6, 0}, {3, 6, 1}, {6, 7, 2}, {7, 8, 2}, {8, 9, 2}, {13, 7, 1}, {10, 11, 0}, {7, 12, 0}, {12, 11, 0}, {13, 14, 1}, {14, 15, 1}};
+std::vector<skeleton> pairs = { { 0, 1, 0 },   { 1, 2, 0 },  { 3, 4, 1 },   { 4, 5, 1 },   { 2, 6, 0 },
+                                { 3, 6, 1 },   { 6, 7, 2 },  { 7, 8, 2 },   { 8, 9, 2 },   { 13, 7, 1 },
+                                { 10, 11, 0 }, { 7, 12, 0 }, { 12, 11, 0 }, { 13, 14, 1 }, { 14, 15, 1 } };
+
 
 typedef struct
 {
     std::vector<ai_point_t> keypoints;
-    int32_t img_width = 0;
-    int32_t img_heigh = 0;
-    uint64_t timestamp = 0;
+    int32_t                 img_width = 0;
+    int32_t                 img_heigh = 0;
+    uint64_t                timestamp = 0;
 } ai_body_parts_s;
 
 void FindMax2D(float* buf, int width, int height, int* max_idx_width, int* max_idx_height, float* max_value, int c)
 {
-    float* ptr = buf;
-    *max_value = -10.f;
-    *max_idx_width = 0;
+    float* ptr      = buf;
+    *max_value      = -10.f;
+    *max_idx_width  = 0;
     *max_idx_height = 0;
     for (int h = 0; h < height; h++)
     {
@@ -80,9 +83,9 @@ void FindMax2D(float* buf, int width, int height, int* max_idx_width, int* max_i
             float score = ptr[c * height * width + h * height + w];
             if (score > *max_value)
             {
-                *max_value = score;
+                *max_value      = score;
                 *max_idx_height = h;
-                *max_idx_width = w;
+                *max_idx_width  = w;
             }
         }
     }
@@ -90,17 +93,17 @@ void FindMax2D(float* buf, int width, int height, int* max_idx_width, int* max_i
 
 void PostProcess(float* data, ai_body_parts_s& pose, int img_h, int img_w)
 {
-    int heatmap_width = img_w / 4;
-    int heatmap_height = img_h / 4;
-    int max_idx_width, max_idx_height;
+    int   heatmap_width  = img_w / 4;
+    int   heatmap_height = img_h / 4;
+    int   max_idx_width, max_idx_height;
     float max_score;
 
     ai_point_t kp;
     for (int c = 0; c < HEATMAP_CHANNEL; ++c)
     {
         FindMax2D(data, heatmap_width, heatmap_height, &max_idx_width, &max_idx_height, &max_score, c);
-        kp.x = (float)max_idx_width / (float)heatmap_width;
-        kp.y = (float)max_idx_height / (float)heatmap_height;
+        kp.x     = (float)max_idx_width / (float)heatmap_width;
+        kp.y     = (float)max_idx_height / (float)heatmap_height;
         kp.score = max_score;
         pose.keypoints.push_back(kp);
 
@@ -113,19 +116,19 @@ void draw_result(cv::Mat img, ai_body_parts_s& pose)
 {
     /* recover process to draw */
     float scale_letterbox;
-    int resize_rows;
-    int resize_cols;
+    int   resize_rows;
+    int   resize_cols;
 
     if ((LETTERBOX_ROWS * 1.0 / img.rows) < (LETTERBOX_COLS * 1.0 / img.cols))
         scale_letterbox = LETTERBOX_ROWS * 1.0 / img.rows;
     else
         scale_letterbox = LETTERBOX_COLS * 1.0 / img.cols;
 
-    resize_cols = int(scale_letterbox * img.cols);
-    resize_rows = int(scale_letterbox * img.rows);
+    resize_cols   = int(scale_letterbox * img.cols);
+    resize_rows   = int(scale_letterbox * img.rows);
 
-    int tmp_h = (LETTERBOX_ROWS - resize_rows) / 2;
-    int tmp_w = (LETTERBOX_COLS - resize_cols) / 2;
+    int tmp_h     = (LETTERBOX_ROWS - resize_rows) / 2;
+    int tmp_w     = (LETTERBOX_COLS - resize_cols) / 2;
 
     float ratio_x = (float)img.rows / resize_rows;
     float ratio_y = (float)img.cols / resize_cols;
@@ -135,15 +138,15 @@ void draw_result(cv::Mat img, ai_body_parts_s& pose)
         int x = (int)((pose.keypoints[i].x * LETTERBOX_COLS - tmp_w) * ratio_x);
         int y = (int)((pose.keypoints[i].y * LETTERBOX_ROWS - tmp_h) * ratio_y);
 
-        x = std::max(std::min(x, (img.cols - 1)), 0);
-        y = std::max(std::min(y, (img.rows - 1)), 0);
+        x     = std::max(std::min(x, (img.cols - 1)), 0);
+        y     = std::max(std::min(y, (img.rows - 1)), 0);
 
         cv::circle(img, cv::Point(x, y), 4, cv::Scalar(0, 255, 0), cv::FILLED);
     }
 
     cv::Scalar color;
-    cv::Point pt1;
-    cv::Point pt2;
+    cv::Point  pt1;
+    cv::Point  pt2;
     for (auto& element : pairs)
     {
         switch (element.left_right_neutral)
@@ -163,13 +166,13 @@ void draw_result(cv::Mat img, ai_body_parts_s& pose)
         int x2 = (int)((pose.keypoints[element.connection[1]].x * LETTERBOX_COLS - tmp_w) * ratio_x);
         int y2 = (int)((pose.keypoints[element.connection[1]].y * LETTERBOX_ROWS - tmp_h) * ratio_y);
 
-        x1 = std::max(std::min(x1, (img.cols - 1)), 0);
-        y1 = std::max(std::min(y1, (img.rows - 1)), 0);
-        x2 = std::max(std::min(x2, (img.cols - 1)), 0);
-        y2 = std::max(std::min(y2, (img.rows - 1)), 0);
+        x1     = std::max(std::min(x1, (img.cols - 1)), 0);
+        y1     = std::max(std::min(y1, (img.rows - 1)), 0);
+        x2     = std::max(std::min(x2, (img.cols - 1)), 0);
+        y2     = std::max(std::min(y2, (img.rows - 1)), 0);
 
-        pt1 = cv::Point(x1, y1);
-        pt2 = cv::Point(x2, y2);
+        pt1    = cv::Point(x1, y1);
+        pt2    = cv::Point(x2, y2);
         cv::line(img, pt1, pt2, color, 2);
     }
 }
@@ -196,9 +199,9 @@ void get_input_fp32_data_square(const char* image_file, float* input_data, float
     cv::Mat img_new(LETTERBOX_COLS, LETTERBOX_ROWS, CV_32FC3,
                     cv::Scalar(0.5 / scale[0] + mean[0], 0.5 / scale[1] + mean[1], 0.5 / scale[2] + mean[2]));
 
-    int top = (LETTERBOX_ROWS - resize_rows) / 2;
-    int bot = (LETTERBOX_ROWS - resize_rows + 1) / 2;
-    int left = (LETTERBOX_COLS - resize_cols) / 2;
+    int top   = (LETTERBOX_ROWS - resize_rows) / 2;
+    int bot   = (LETTERBOX_ROWS - resize_rows + 1) / 2;
+    int left  = (LETTERBOX_COLS - resize_cols) / 2;
     int right = (LETTERBOX_COLS - resize_cols + 1) / 2;
     // Letterbox filling
     cv::copyMakeBorder(img, img_new, top, bot, left, right, cv::BORDER_CONSTANT, cv::Scalar(0, 0, 0));
@@ -212,8 +215,8 @@ void get_input_fp32_data_square(const char* image_file, float* input_data, float
         {
             for (int c = 0; c < MODEL_CHANNELS; c++)
             {
-                int in_index = h * LETTERBOX_COLS * MODEL_CHANNELS + w * MODEL_CHANNELS + c;
-                int out_index = c * LETTERBOX_ROWS * LETTERBOX_COLS + h * LETTERBOX_COLS + w;
+                int in_index          = h * LETTERBOX_COLS * MODEL_CHANNELS + w * MODEL_CHANNELS + c;
+                int out_index         = c * LETTERBOX_ROWS * LETTERBOX_COLS + h * LETTERBOX_COLS + w;
                 input_data[out_index] = (img_data[in_index] - mean[c]) * scale[c];
             }
         }
@@ -227,16 +230,16 @@ void show_usage()
 
 int main(int argc, char* argv[])
 {
-    int repeat_count = DEFAULT_REPEAT_COUNT;
-    int num_thread = DEFAULT_THREAD_COUNT;
-    char* model_file = nullptr;
-    char* image_file = nullptr;
-    int img_h = LETTERBOX_COLS;
-    int img_w = LETTERBOX_ROWS;
+    int             repeat_count = DEFAULT_REPEAT_COUNT;
+    int             num_thread   = DEFAULT_THREAD_COUNT;
+    char*           model_file   = nullptr;
+    char*           image_file   = nullptr;
+    int             img_h        = LETTERBOX_COLS;
+    int             img_w        = LETTERBOX_ROWS;
     ai_body_parts_s pose;
 
-    float mean[3] = {123.67f, 116.28f, 103.53f};
-    float scale[3] = {0.017125f, 0.017507f, 0.017429f};
+    float mean[3]  = { 123.67f, 116.28f, 103.53f };
+    float scale[3] = { 0.017125f, 0.017507f, 0.017429f };
 
     int res;
     while ((res = getopt(argc, argv, "m:i:r:t:h:")) != -1)
@@ -284,9 +287,9 @@ int main(int argc, char* argv[])
     /* set runtime options */
     struct options opt;
     opt.num_thread = num_thread;
-    opt.cluster = TENGINE_CLUSTER_ALL;
-    opt.precision = TENGINE_MODE_FP32;
-    opt.affinity = 0;
+    opt.cluster    = TENGINE_CLUSTER_ALL;
+    opt.precision  = TENGINE_MODE_FP32;
+    opt.affinity   = 0;
 
     /* inital tengine */
     if (init_tengine() != 0)
@@ -305,8 +308,8 @@ int main(int argc, char* argv[])
     }
 
     /* set the input shape to initial the graph, and prerun graph to infer shape */
-    int img_size = img_h * img_w * 3;
-    int dims[] = {1, 3, img_h, img_w}; // nchw
+    int                img_size = img_h * img_w * 3;
+    int                dims[]   = { 1, 3, img_h, img_w };    // nchw
     std::vector<float> input_data(img_size);
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
@@ -339,8 +342,8 @@ int main(int argc, char* argv[])
     get_input_fp32_data_square(image_file, input_data.data(), mean, scale);
 
     /* run graph */
-    double min_time = DBL_MAX;
-    double max_time = DBL_MIN;
+    double min_time   = DBL_MAX;
+    double max_time   = DBL_MIN;
     double total_time = 0.;
     for (int i = 0; i < repeat_count; i++)
     {
@@ -361,7 +364,7 @@ int main(int argc, char* argv[])
 
     /* get output tensor */
     tensor_t output_tensor = get_graph_output_tensor(graph, 0, 0);
-    float* data = (float*)(get_tensor_buffer(output_tensor));
+    float*   data          = (float*)(get_tensor_buffer(output_tensor));
 
     PostProcess(data, pose, img_h, img_w);
 

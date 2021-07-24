@@ -32,6 +32,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+
 #ifdef __aarch64__
 void i8gemm_4x16_a72_int8(int* biases, int8_t* input, int8_t* kernel, long kernel_size, int8_t* output, int* multi,
                           long output_xy, int* shift, int activation_min, int activation_max);
@@ -45,10 +46,10 @@ static void i8gemm4x16(int8_t* col, int8_t* kernel, bool bias_term, int* biases,
                        int kernel_size, int output_xy, int col_start, int col_end, int kernel_start, int kernel_end,
                        int activation_min, int activation_max, int* q_shift, int num_thread, int cpu_affinity)
 {
-    int col_end3 = col_end & 3;
+    int col_end3             = col_end & 3;
     int kernel_size_aligned2 = (kernel_size + 1) & -2;
 
-#pragma omp parallel for num_threads(num_thread)
+    #pragma omp parallel for num_threads(num_thread)
     for (int kernel_num = (kernel_start & -16); kernel_num < (kernel_end & -16); kernel_num += 16)
     {
         int* cur_biases = NULL;
@@ -57,13 +58,13 @@ static void i8gemm4x16(int8_t* col, int8_t* kernel, bool bias_term, int* biases,
             cur_biases = biases + kernel_num;
         }
 
-        int result[64] = {0};
+        int     result[64] = { 0 };
         int8_t* output_line[4];
 
-        int* pmulti = multi + kernel_num;
-        int* pq_shift = q_shift + kernel_num;
+        int* pmulti           = multi + kernel_num;
+        int* pq_shift         = q_shift + kernel_num;
 
-        int8_t* cur_kernel = kernel + kernel_num * kernel_size_aligned2;
+        int8_t* cur_kernel    = kernel + kernel_num * kernel_size_aligned2;
         int8_t* output_result = output + kernel_num * output_xy;
 
         for (int col_line = (col_start & -4); col_line < (col_end & -4); col_line += 4)
@@ -76,8 +77,8 @@ static void i8gemm4x16(int8_t* col, int8_t* kernel, bool bias_term, int* biases,
 
         if (col_end3)
         {
-            int col_line = col_end & -4;
-            int8_t* cur_col = col + col_line * kernel_size_aligned2;
+            int     col_line = col_end & -4;
+            int8_t* cur_col  = col + col_line * kernel_size_aligned2;
 
             i8gemm_4x16_a72_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, (int8_t*)result, pmulti, 0,
                                  pq_shift, activation_min, activation_max);
@@ -118,11 +119,11 @@ static void i8gemm4x4(int8_t* col, int8_t* kernel, bool bias_term, int* biases, 
                       int kernel_size, int output_xy, int col_start, int col_end, int kernel_start, int kernel_end,
                       int activation_min, int activation_max, int* q_shift, int num_thread, int cpu_affinity)
 {
-    int col_end3 = col_end & 3;
-    int kernel_end3 = kernel_end & 3;
+    int col_end3             = col_end & 3;
+    int kernel_end3          = kernel_end & 3;
     int kernel_size_aligned2 = (kernel_size + 1) & -2;
 
-#pragma omp parallel for num_threads(num_thread)
+    #pragma omp parallel for num_threads(num_thread)
     for (int kernel_num = kernel_start & -4; kernel_num < (kernel_end & -4); kernel_num += 4)
     {
         int* cur_biases = NULL;
@@ -131,13 +132,13 @@ static void i8gemm4x4(int8_t* col, int8_t* kernel, bool bias_term, int* biases, 
             cur_biases = biases + kernel_num;
         }
 
-        int result[16] = {0};
+        int     result[16] = { 0 };
         int8_t* output_line[4];
 
-        int* pmulti = multi + kernel_num;
-        int* pq_shift = q_shift + kernel_num;
+        int* pmulti           = multi + kernel_num;
+        int* pq_shift         = q_shift + kernel_num;
 
-        int8_t* cur_kernel = kernel + kernel_num * kernel_size_aligned2;
+        int8_t* cur_kernel    = kernel + kernel_num * kernel_size_aligned2;
         int8_t* output_result = output + kernel_num * output_xy;
 
         for (int col_line = (col_start & -4); col_line < (col_end & -4); col_line += 4)
@@ -149,8 +150,8 @@ static void i8gemm4x4(int8_t* col, int8_t* kernel, bool bias_term, int* biases, 
         }
         if (col_end3)
         {
-            int col_line = col_end & -4;
-            int8_t* cur_col = col + col_line * kernel_size_aligned2;
+            int     col_line = col_end & -4;
+            int8_t* cur_col  = col + col_line * kernel_size_aligned2;
 
             i8gemm_4x4_a72_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, (int8_t*)result, pmulti, 0,
                                 pq_shift, activation_min, activation_max);
@@ -183,18 +184,18 @@ static void i8gemm4x4(int8_t* col, int8_t* kernel, bool bias_term, int* biases, 
     }
     if (kernel_end3)
     {
-        int kernel_num = kernel_end & -4;
+        int  kernel_num = kernel_end & -4;
         int* cur_biases = NULL;
         if (bias_term)
         {
             cur_biases = biases + kernel_num;
         }
 
-        int result[16] = {0};
+        int     result[16] = { 0 };
         int8_t* output_line[4];
 
-        int* pmulti = multi + kernel_num;
-        int* pq_shift = q_shift + kernel_num;
+        int*    pmulti     = multi + kernel_num;
+        int*    pq_shift   = q_shift + kernel_num;
         int8_t* cur_kernel = kernel + kernel_num * kernel_size_aligned2;
 
         for (int col_line = (col_start & -4); col_line < (col_end & -4); col_line += 4)
@@ -231,8 +232,8 @@ static void i8gemm4x4(int8_t* col, int8_t* kernel, bool bias_term, int* biases, 
         }
         if (col_end3)
         {
-            int col_line = col_end & -4;
-            int8_t* cur_col = col + col_line * kernel_size_aligned2;
+            int     col_line = col_end & -4;
+            int8_t* cur_col  = col + col_line * kernel_size_aligned2;
 
             i8gemm_4x4_a72_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, (int8_t*)result, pmulti, 0,
                                 pq_shift, activation_min, activation_max);
@@ -278,10 +279,10 @@ static void i8gemm4x8(int8_t* col, int8_t* kernel, bool bias_term, int* biases, 
                       int kernel_size, int output_xy, int col_start, int col_end, int kernel_start, int kernel_end,
                       int activation_min, int activation_max, int* q_shift, int num_thread, int cpu_affinity)
 {
-    int col_end3 = col_end & 3;
+    int col_end3             = col_end & 3;
     int kernel_size_aligned2 = (kernel_size + 1) & -2;
 
-#pragma omp parallel for num_threads(num_thread)
+    #pragma omp parallel for num_threads(num_thread)
     for (int kernel_num = (kernel_start & -8); kernel_num < (kernel_end & -8); kernel_num += 8)
     {
         int* cur_biases = NULL;
@@ -290,13 +291,13 @@ static void i8gemm4x8(int8_t* col, int8_t* kernel, bool bias_term, int* biases, 
             cur_biases = biases + kernel_num;
         }
 
-        int result[32] = {0};
+        int     result[32] = { 0 };
         int8_t* output_line[4];
 
-        int* pmulti = multi + kernel_num;
-        int* pq_shift = q_shift + kernel_num;
+        int* pmulti           = multi + kernel_num;
+        int* pq_shift         = q_shift + kernel_num;
 
-        int8_t* cur_kernel = kernel + kernel_num * kernel_size_aligned2;
+        int8_t* cur_kernel    = kernel + kernel_num * kernel_size_aligned2;
         int8_t* output_result = output + kernel_num * output_xy;
 
         for (int col_line = (col_start & -4); col_line < (col_end & -4); col_line += 4)
@@ -308,8 +309,8 @@ static void i8gemm4x8(int8_t* col, int8_t* kernel, bool bias_term, int* biases, 
         }
         if (col_end3)
         {
-            int col_line = col_end & -4;
-            int8_t* cur_col = col + col_line * kernel_size_aligned2;
+            int     col_line = col_end & -4;
+            int8_t* cur_col  = col + col_line * kernel_size_aligned2;
 
             i8gemm_4x8_a17_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, (int8_t*)result, pmulti, 0,
                                 pq_shift, activation_min, activation_max);
@@ -351,11 +352,11 @@ static void i8gemm4x4(int8_t* col, int8_t* kernel, bool bias_term, int* biases, 
                       int kernel_size, int output_xy, int col_start, int col_end, int kernel_start, int kernel_end,
                       int activation_min, int activation_max, int* q_shift, int num_thread, int cpu_affinity)
 {
-    int col_end3 = col_end & 3;
-    int kernel_end3 = kernel_end & 3;
+    int col_end3             = col_end & 3;
+    int kernel_end3          = kernel_end & 3;
     int kernel_size_aligned2 = (kernel_size + 1) & -2;
 
-#pragma omp parallel for num_threads(num_thread)
+    #pragma omp parallel for num_threads(num_thread)
     for (int kernel_num = (kernel_start & -4); kernel_num < (kernel_end & -4); kernel_num += 4)
     {
         int* cur_biases = NULL;
@@ -364,13 +365,13 @@ static void i8gemm4x4(int8_t* col, int8_t* kernel, bool bias_term, int* biases, 
             cur_biases = biases + kernel_num;
         }
 
-        int result[16] = {0};
+        int     result[16] = { 0 };
         int8_t* output_line[4];
 
-        int* pmulti = multi + kernel_num;
-        int* pq_shift = q_shift + kernel_num;
+        int* pmulti           = multi + kernel_num;
+        int* pq_shift         = q_shift + kernel_num;
 
-        int8_t* cur_kernel = kernel + kernel_num * kernel_size_aligned2;
+        int8_t* cur_kernel    = kernel + kernel_num * kernel_size_aligned2;
         int8_t* output_result = output + kernel_num * output_xy;
 
         for (int col_line = (col_start & -4); col_line < (col_end & -4); col_line += 4)
@@ -383,8 +384,8 @@ static void i8gemm4x4(int8_t* col, int8_t* kernel, bool bias_term, int* biases, 
 
         if (col_end3)
         {
-            int col_line = col_end & -4;
-            int8_t* cur_col = col + col_line * kernel_size_aligned2;
+            int     col_line = col_end & -4;
+            int8_t* cur_col  = col + col_line * kernel_size_aligned2;
 
             i8gemm_4x4_a17_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, (int8_t*)result, pmulti, 0,
                                 pq_shift, activation_min, activation_max);
@@ -417,18 +418,18 @@ static void i8gemm4x4(int8_t* col, int8_t* kernel, bool bias_term, int* biases, 
     }
     if (kernel_end3)
     {
-        int kernel_num = kernel_end & -4;
+        int  kernel_num = kernel_end & -4;
         int* cur_biases = NULL;
         if (bias_term)
         {
             cur_biases = biases + kernel_num;
         }
 
-        int result[16] = {0};
+        int     result[16] = { 0 };
         int8_t* output_line[4];
 
-        int* pmulti = multi + kernel_num;
-        int* pq_shift = q_shift + kernel_num;
+        int*    pmulti     = multi + kernel_num;
+        int*    pq_shift   = q_shift + kernel_num;
         int8_t* cur_kernel = kernel + kernel_num * kernel_size_aligned2;
 
         for (int col_line = (col_start & -4); col_line < (col_end & -4); col_line += 4)
@@ -465,8 +466,8 @@ static void i8gemm4x4(int8_t* col, int8_t* kernel, bool bias_term, int* biases, 
         }
         if (col_end3)
         {
-            int col_line = col_end & -4;
-            int8_t* cur_col = col + col_line * kernel_size_aligned2;
+            int     col_line = col_end & -4;
+            int8_t* cur_col  = col + col_line * kernel_size_aligned2;
 
             i8gemm_4x4_a17_int8(cur_biases, cur_col, cur_kernel, kernel_size_aligned2, (int8_t*)result, pmulti, 0,
                                 pq_shift, activation_min, activation_max);
@@ -507,19 +508,19 @@ static void i8gemm4x4(int8_t* col, int8_t* kernel, bool bias_term, int* biases, 
  */
 static int get_private_mem_size(struct tensor* filter, struct conv_param* param)
 {
-    int group = param->group;
-    int out_chan = filter->dims[0] / group;
+    int group           = param->group;
+    int out_chan        = filter->dims[0] / group;
     int out_chan_align4 = (out_chan + 3) / 4 * 4;
-    int kernel_size = filter->dims[1] * filter->dims[2] * filter->dims[3];
-    int mem_size = kernel_size * filter->elem_size * out_chan_align4 * group + 128; // caution
+    int kernel_size     = filter->dims[1] * filter->dims[2] * filter->dims[3];
+    int mem_size        = kernel_size * filter->elem_size * out_chan_align4 * group + 128;    // caution
 
     return mem_size;
 }
 int int8_conv_hcl_set_shared_mem(struct conv_priv_info* priv_info, void* mem, int mem_size)
 {
     priv_info->external_im2col_mem = 1;
-    priv_info->im2col_buffer = mem;
-    priv_info->im2col_buffer_size = mem_size;
+    priv_info->im2col_buffer       = mem;
+    priv_info->im2col_buffer_size  = mem_size;
 
     return 0;
 }
@@ -527,27 +528,27 @@ int int8_conv_hcl_set_shared_mem(struct conv_priv_info* priv_info, void* mem, in
 int int8_conv_hcl_set_shared_pack4_mem(struct conv_priv_info* priv_info, void* mem, int mem_size)
 {
     priv_info->external_im2col_pack4_mem = 0;
-    priv_info->im2col_buffer_pack4 = NULL;
-    priv_info->im2col_buffer_pack4_size = 0;
+    priv_info->im2col_buffer_pack4       = NULL;
+    priv_info->im2col_buffer_pack4_size  = 0;
 
     return 0;
 }
 int int8_conv_hcl_get_shared_mem_size(struct tensor* input, struct tensor* output, struct conv_param* param)
 {
-    int in_h = input->dims[2];
-    int in_w = input->dims[3];
-    int out_h = output->dims[2];
-    int out_w = output->dims[3];
-    int group = param->group;
-    int input_chan = param->input_channel / group;
-    int kernel_size = input_chan * param->kernel_h * param->kernel_w;
-    int out_cstep = out_h * out_w;    // channel cstep, output_h * output_w
-    int elem_size = input->elem_size; // uint8/int8 is 1 byte, fp32 is 4 bytes
+    int in_h                 = input->dims[2];
+    int in_w                 = input->dims[3];
+    int out_h                = output->dims[2];
+    int out_w                = output->dims[3];
+    int group                = param->group;
+    int input_chan           = param->input_channel / group;
+    int kernel_size          = input_chan * param->kernel_h * param->kernel_w;
+    int out_cstep            = out_h * out_w;       // channel cstep, output_h * output_w
+    int elem_size            = input->elem_size;    // uint8/int8 is 1 byte, fp32 is 4 bytes
 
-    out_cstep = (out_cstep + 3) / 4 * 4;
+    out_cstep                = (out_cstep + 3) / 4 * 4;
 
     int kernel_size_aligned2 = (kernel_size + 1) & -2;
-    int mem_size = elem_size * kernel_size_aligned2 * out_cstep + 128;
+    int mem_size             = elem_size * kernel_size_aligned2 * out_cstep + 128;
 
     return mem_size;
 }
@@ -557,7 +558,7 @@ void interleave_kernel_int8(int8_t* kernel, int8_t* kernel_int8, int kernel_chan
 #ifdef __aarch64__
     int8_t* cur_kernel[16];
     int8_t* cur_kernel_int8 = kernel_int8;
-    int i, j, k;
+    int     i, j, k;
 
     // interleave 16 kernels
     for (i = 0; i < (kernel_chan & -16); i += 16)
@@ -667,9 +668,9 @@ void interleave_kernel_int8(int8_t* kernel, int8_t* kernel_int8, int kernel_chan
 #else
     int8_t* cur_kernel[8];
     int8_t* cur_kernel_int8 = kernel_int8;
-    int i, j, k;
-    int kernel_chan3 = kernel_chan & 0x3;
-    int kernel_size1 = kernel_size & 0x1;
+    int     i, j, k;
+    int     kernel_chan3 = kernel_chan & 0x3;
+    int     kernel_size1 = kernel_size & 0x1;
 
     // interleave 8 kernels
     for (i = 0; i < (kernel_chan & -8); i += 8)
@@ -760,7 +761,7 @@ void interleave_kernel_int8(int8_t* kernel, int8_t* kernel_int8, int kernel_chan
             }
         }
         else
-        { // kernel_chan & 0x3 == 1
+        {    // kernel_chan & 0x3 == 1
             for (j = 0; j < (kernel_size & -2); j += 2)
             {
                 *(cur_kernel_int8++) = *(cur_kernel[0] + j);
@@ -783,47 +784,48 @@ void interleave_kernel_int8(int8_t* kernel, int8_t* kernel_int8, int kernel_chan
 /* kernel interleave */
 static void interleave_int8(struct tensor* filter, struct conv_priv_info* priv_info, struct conv_param* param)
 {
-    int group = param->group;
-    int kernel_size = filter->dims[1] * filter->dims[2] * filter->dims[3];
-    int out_chan = filter->dims[0] / group;
-    int out_chan_align4 = (out_chan + 3) / 4 * 4;
+    int group              = param->group;
+    int kernel_size        = filter->dims[1] * filter->dims[2] * filter->dims[3];
+    int out_chan           = filter->dims[0] / group;
+    int out_chan_align4    = (out_chan + 3) / 4 * 4;
 
-    int kernel_size_algin = kernel_size * out_chan_align4;
-    int kernel_size_group = kernel_size * out_chan;
+    int kernel_size_algin  = kernel_size * out_chan_align4;
+    int kernel_size_group  = kernel_size * out_chan;
 
-    int8_t* kernel = filter->data;
+    int8_t* kernel         = filter->data;
     int8_t* interleave_buf = priv_info->interleave_buffer;
     for (int g = 0; g < group; g++)
     {
-        int8_t* cur_kernel = kernel + g * kernel_size_group;
+        int8_t* cur_kernel     = kernel + g * kernel_size_group;
         int8_t* cur_interleave = interleave_buf + g * kernel_size_algin;
         interleave_kernel_int8(cur_kernel, cur_interleave, out_chan, kernel_size);
     }
 }
 
+
 static void im2col_int8(int8_t* im, int8_t* col, int input_chan, int input_x, int input_y, int kernel_x, int kernel_y,
                         int stride_x, int stride_y, int dilation_x, int dilation_y, int pad_x0, int pad_x1, int pad_y0,
                         int pad_y1, int output_x, int output_y, int num_thread)
 {
-    int col_start = 0;
-    int col_end = output_x * output_y;
-    int kernel_xy = kernel_x * kernel_y;
-    int kernel_size = kernel_xy * input_chan;
+    int col_start            = 0;
+    int col_end              = output_x * output_y;
+    int kernel_xy            = kernel_x * kernel_y;
+    int kernel_size          = kernel_xy * input_chan;
     int kernel_size_aligned2 = (kernel_size + 1) & -2;
-    int input_xy = input_x * input_y;
+    int input_xy             = input_x * input_y;
 
-    int col_end3 = col_end & 0x3;
-    int kernel_size1 = kernel_size & 0x1;
-    int is_1x1 = (kernel_x == 1) && (kernel_y == 1) && (stride_x == 1) && (stride_y == 1);
-    int is_3x3 = (kernel_x == 3) && (kernel_y == 3) && (dilation_x == 1) && (dilation_y == 1);
-    bool is_pad0 = (pad_x0 == 0) && (pad_y0 == 0) && (pad_x1 == 0) && (pad_y1 == 0);
+    int  col_end3            = col_end & 0x3;
+    int  kernel_size1        = kernel_size & 0x1;
+    int  is_1x1              = (kernel_x == 1) && (kernel_y == 1) && (stride_x == 1) && (stride_y == 1);
+    int  is_3x3              = (kernel_x == 3) && (kernel_y == 3) && (dilation_x == 1) && (dilation_y == 1);
+    bool is_pad0             = (pad_x0 == 0) && (pad_y0 == 0) && (pad_x1 == 0) && (pad_y1 == 0);
 
 #ifdef __aarch64__
     // is 1x1
     if (is_1x1)
     {
         int8_t* cur_col = col + col_start * kernel_size_aligned2;
-        int col_cnt = (col_end & -4) - (col_start & -4);
+        int     col_cnt = (col_end & -4) - (col_start & -4);
         im2col_int8_1x1((int8_t*)im + col_start, input_xy, cur_col, col_cnt, kernel_size);
         cur_col += col_cnt * kernel_size_aligned2;
         int col_i = col_end & -4;
@@ -868,21 +870,21 @@ static void im2col_int8(int8_t* im, int8_t* col, int input_chan, int input_x, in
     // 3x3 non dilation
     else if (is_3x3)
     {
-#pragma omp parallel for num_threads(num_thread)
+    #pragma omp parallel for num_threads(num_thread)
         for (int col_i = (col_start & -4); col_i < (col_end & -4); col_i += 4)
         {
-            int imx[4] = {0};
-            int imy[4] = {0};
-            int cnt_x[4] = {0};
-            int cnt_y[4] = {0};
-            int imx_start[4] = {0};
-            int imy_start[4] = {0};
-            int8_t* cur_col = col + col_i * kernel_size_aligned2;
+            int     imx[4]       = { 0 };
+            int     imy[4]       = { 0 };
+            int     cnt_x[4]     = { 0 };
+            int     cnt_y[4]     = { 0 };
+            int     imx_start[4] = { 0 };
+            int     imy_start[4] = { 0 };
+            int8_t* cur_col      = col + col_i * kernel_size_aligned2;
 
             for (int i = 0; i < 4; i++)
             {
-                cnt_y[i] = (col_i + i) / output_x;
-                cnt_x[i] = col_i + i - cnt_y[i] * output_x;
+                cnt_y[i]     = (col_i + i) / output_x;
+                cnt_x[i]     = col_i + i - cnt_y[i] * output_x;
                 imx_start[i] = cnt_x[i] * stride_x - pad_x0;
                 imy_start[i] = cnt_y[i] * stride_y - pad_y0;
             }
@@ -897,8 +899,8 @@ static void im2col_int8(int8_t* im, int8_t* col, int input_chan, int input_x, in
             else
             {
                 bool odd_line = false;
-                int kchp = 0;
-                int kyp = 0;
+                int  kchp     = 0;
+                int  kyp      = 0;
                 for (int kch = 0; kch < input_chan; kch++)
                 {
                     for (int ky = 0; ky < 3; ky++)
@@ -948,8 +950,8 @@ static void im2col_int8(int8_t* im, int8_t* col, int input_chan, int input_x, in
                                         *cur_col++ = 0;
                                 }
                             }
-                            kchp = kch;
-                            kyp = ky;
+                            kchp     = kch;
+                            kyp      = ky;
                             odd_line = true;
                         }
                     }
@@ -972,23 +974,23 @@ static void im2col_int8(int8_t* im, int8_t* col, int input_chan, int input_x, in
         int col_i = col_end & -4;
         if (col_end3)
         {
-            int imx[4] = {0};
-            int imy[4] = {0};
-            int cnt_x[4] = {0};
-            int cnt_y[4] = {0};
-            int imx_start[4] = {0};
-            int imy_start[4] = {0};
-            int8_t* cur_col = col + col_i * kernel_size_aligned2;
+            int     imx[4]       = { 0 };
+            int     imy[4]       = { 0 };
+            int     cnt_x[4]     = { 0 };
+            int     cnt_y[4]     = { 0 };
+            int     imx_start[4] = { 0 };
+            int     imy_start[4] = { 0 };
+            int8_t* cur_col      = col + col_i * kernel_size_aligned2;
             for (int i = 0; i < 4; i++)
             {
-                cnt_y[i] = (col_i + i) / output_x;
-                cnt_x[i] = col_i + i - cnt_y[i] * output_x;
+                cnt_y[i]     = (col_i + i) / output_x;
+                cnt_x[i]     = col_i + i - cnt_y[i] * output_x;
                 imx_start[i] = cnt_x[i] * stride_x - pad_x0;
                 imy_start[i] = cnt_y[i] * stride_y - pad_y0;
             }
             bool odd_line = false;
-            int kchp = 0;
-            int kyp = 0;
+            int  kchp     = 0;
+            int  kyp      = 0;
             for (int kch = 0; kch < input_chan; kch++)
             {
                 for (int ky = 0; ky < 3; ky++)
@@ -1040,8 +1042,8 @@ static void im2col_int8(int8_t* im, int8_t* col, int input_chan, int input_x, in
                                     *cur_col++ = 0;
                             }
                         }
-                        kchp = kch;
-                        kyp = ky;
+                        kchp     = kch;
+                        kyp      = ky;
                         odd_line = true;
                     }
                 }
@@ -1064,18 +1066,18 @@ static void im2col_int8(int8_t* im, int8_t* col, int input_chan, int input_x, in
     // general case for kernel size <=3
     else if ((kernel_x) < 4 && (kernel_y < 4))
     {
-        int kch[2], kx[2], ky[2], imx[4][2], imy[4][2];
+        int     kch[2], kx[2], ky[2], imx[4][2], imy[4][2];
         int8_t* cur_col = col + col_start * kernel_size_aligned2;
         for (int col_i = (col_start & -4); col_i < (col_end & -4); col_i += 4)
         {
-            int cnt_x[4] = {0};
-            int cnt_y[4] = {0};
-            int imx_start[4] = {0};
-            int imy_start[4] = {0};
+            int cnt_x[4]     = { 0 };
+            int cnt_y[4]     = { 0 };
+            int imx_start[4] = { 0 };
+            int imy_start[4] = { 0 };
             for (int i = 0; i < 4; i++)
             {
-                cnt_y[i] = (col_i + i) / output_x;
-                cnt_x[i] = col_i + i - cnt_y[i] * output_x;
+                cnt_y[i]     = (col_i + i) / output_x;
+                cnt_x[i]     = col_i + i - cnt_y[i] * output_x;
                 imx_start[i] = cnt_x[i] * stride_x - pad_x0;
                 imy_start[i] = cnt_y[i] * stride_y - pad_y0;
             }
@@ -1084,10 +1086,10 @@ static void im2col_int8(int8_t* im, int8_t* col, int input_chan, int input_x, in
                 for (int k = 0; k < 2; k++)
                 {
                     kch[k] = (col_j + k) / kernel_xy;
-                    ky[k] = (col_j + k - kch[k] * kernel_xy) / kernel_x;
-                    kx[k] = (col_j + k - kch[k] * kernel_xy) - ky[k] * kernel_x;
-                    ky[k] = ky[k] * dilation_y;
-                    kx[k] = kx[k] * dilation_x;
+                    ky[k]  = (col_j + k - kch[k] * kernel_xy) / kernel_x;
+                    kx[k]  = (col_j + k - kch[k] * kernel_xy) - ky[k] * kernel_x;
+                    ky[k]  = ky[k] * dilation_y;
+                    kx[k]  = kx[k] * dilation_x;
                     for (int i = 0; i < 4; i++)
                     {
                         imx[i][k] = imx_start[i] + kx[k];
@@ -1109,10 +1111,10 @@ static void im2col_int8(int8_t* im, int8_t* col, int input_chan, int input_x, in
             if (kernel_size1)
             {
                 kch[0] = col_j / kernel_xy;
-                ky[0] = (col_j - kch[0] * kernel_xy) / kernel_x;
-                kx[0] = col_j - kch[0] * kernel_xy - ky[0] * kernel_x;
-                ky[0] = ky[0] * dilation_y;
-                kx[0] = kx[0] * dilation_x;
+                ky[0]  = (col_j - kch[0] * kernel_xy) / kernel_x;
+                kx[0]  = col_j - kch[0] * kernel_xy - ky[0] * kernel_x;
+                ky[0]  = ky[0] * dilation_y;
+                kx[0]  = kx[0] * dilation_x;
                 for (int i = 0; i < 4; i++)
                 {
                     imx[i][0] = imx_start[i] + kx[0];
@@ -1129,14 +1131,14 @@ static void im2col_int8(int8_t* im, int8_t* col, int input_chan, int input_x, in
         // final 4 input
         if (col_end3)
         {
-            int cnt_x[4] = {0};
-            int cnt_y[4] = {0};
-            int imx_start[4] = {0};
-            int imy_start[4] = {0};
+            int cnt_x[4]     = { 0 };
+            int cnt_y[4]     = { 0 };
+            int imx_start[4] = { 0 };
+            int imy_start[4] = { 0 };
             for (int i = 0; i < 4; i++)
             {
-                cnt_y[i] = (col_i + i) / output_x;
-                cnt_x[i] = col_i + i - cnt_y[i] * output_x;
+                cnt_y[i]     = (col_i + i) / output_x;
+                cnt_x[i]     = col_i + i - cnt_y[i] * output_x;
                 imx_start[i] = cnt_x[i] * stride_x - pad_x0;
                 imy_start[i] = cnt_y[i] * stride_y - pad_y0;
             }
@@ -1145,10 +1147,10 @@ static void im2col_int8(int8_t* im, int8_t* col, int input_chan, int input_x, in
                 for (int k = 0; k < 2; k++)
                 {
                     kch[k] = (col_j + k) / kernel_xy;
-                    ky[k] = (col_j + k - kch[k] * kernel_xy) / kernel_x;
-                    kx[k] = (col_j + k - kch[k] * kernel_xy) - ky[k] * kernel_x;
-                    ky[k] = ky[k] * dilation_y;
-                    kx[k] = kx[k] * dilation_x;
+                    ky[k]  = (col_j + k - kch[k] * kernel_xy) / kernel_x;
+                    kx[k]  = (col_j + k - kch[k] * kernel_xy) - ky[k] * kernel_x;
+                    ky[k]  = ky[k] * dilation_y;
+                    kx[k]  = kx[k] * dilation_x;
                     for (int i = 0; i < 4; i++)
                     {
                         imx[i][k] = imx_start[i] + kx[k];
@@ -1171,10 +1173,10 @@ static void im2col_int8(int8_t* im, int8_t* col, int input_chan, int input_x, in
             if (kernel_size1)
             {
                 kch[0] = col_j / kernel_xy;
-                ky[0] = (col_j - kch[0] * kernel_xy) / kernel_x;
-                kx[0] = col_j - kch[0] * kernel_xy - ky[0] * kernel_x;
-                ky[0] = ky[0] * dilation_y;
-                kx[0] = kx[0] * dilation_x;
+                ky[0]  = (col_j - kch[0] * kernel_xy) / kernel_x;
+                kx[0]  = col_j - kch[0] * kernel_xy - ky[0] * kernel_x;
+                ky[0]  = ky[0] * dilation_y;
+                kx[0]  = kx[0] * dilation_x;
                 for (int i = 0; i < 4; i++)
                 {
                     imx[i][0] = imx_start[i] + kx[0];
@@ -1192,25 +1194,25 @@ static void im2col_int8(int8_t* im, int8_t* col, int input_chan, int input_x, in
     // general case for kernel size >=3
     else
     {
-        int kch, kx, ky, kchp, kyp, imx[4], imy[4] = {0};
-        int kernel_x1 = kernel_x & 0x1;
-        int8_t* cur_col = col + col_start * kernel_size_aligned2;
+        int     kch, kx, ky, kchp, kyp, imx[4], imy[4] = { 0 };
+        int     kernel_x1 = kernel_x & 0x1;
+        int8_t* cur_col   = col + col_start * kernel_size_aligned2;
         for (int col_i = (col_start & -4); col_i < (col_end & -4); col_i += 4)
         {
-            int cnt_x[4] = {0};
-            int cnt_y[4] = {0};
-            int imx_start[4] = {0};
-            int imy_start[4] = {0};
+            int cnt_x[4]     = { 0 };
+            int cnt_y[4]     = { 0 };
+            int imx_start[4] = { 0 };
+            int imy_start[4] = { 0 };
             for (int i = 0; i < 4; i++)
             {
-                cnt_y[i] = (col_i + i) / output_x;
-                cnt_x[i] = col_i + i - cnt_y[i] * output_x;
+                cnt_y[i]     = (col_i + i) / output_x;
+                cnt_x[i]     = col_i + i - cnt_y[i] * output_x;
                 imx_start[i] = cnt_x[i] * stride_x - pad_x0;
                 imy_start[i] = cnt_y[i] * stride_y - pad_y0;
             }
             bool odd_line = false;
-            kchp = 0;
-            kyp = 0;
+            kchp          = 0;
+            kyp           = 0;
             for (int kch = 0; kch < input_chan; kch++)
             {
                 for (ky = 0; ky < kernel_y; ky++)
@@ -1267,8 +1269,8 @@ static void im2col_int8(int8_t* im, int8_t* col, int input_chan, int input_x, in
                                 }
                             }
                         }
-                        kchp = kch;
-                        kyp = ky;
+                        kchp     = kch;
+                        kyp      = ky;
                         odd_line = kernel_x1 ? true : false;
                     }
                 }
@@ -1291,20 +1293,20 @@ static void im2col_int8(int8_t* im, int8_t* col, int input_chan, int input_x, in
         // final 4 input
         if (col_end3)
         {
-            int cnt_x[4] = {0};
-            int cnt_y[4] = {0};
-            int imx_start[4] = {0};
-            int imy_start[4] = {0};
+            int cnt_x[4]     = { 0 };
+            int cnt_y[4]     = { 0 };
+            int imx_start[4] = { 0 };
+            int imy_start[4] = { 0 };
             for (int i = 0; i < 4; i++)
             {
-                cnt_y[i] = (col_i + i) / output_x;
-                cnt_x[i] = col_i + i - cnt_y[i] * output_x;
+                cnt_y[i]     = (col_i + i) / output_x;
+                cnt_x[i]     = col_i + i - cnt_y[i] * output_x;
                 imx_start[i] = cnt_x[i] * stride_x - pad_x0;
                 imy_start[i] = cnt_y[i] * stride_y - pad_y0;
             }
             bool odd_line = false;
-            kchp = 0;
-            kyp = 0;
+            kchp          = 0;
+            kyp           = 0;
             for (int kch = 0; kch < input_chan; kch++)
             {
                 for (ky = 0; ky < kernel_y; ky++)
@@ -1363,8 +1365,8 @@ static void im2col_int8(int8_t* im, int8_t* col, int input_chan, int input_x, in
                                 }
                             }
                         }
-                        kchp = kch;
-                        kyp = ky;
+                        kchp     = kch;
+                        kyp      = ky;
                         odd_line = kernel_x1 ? true : false;
                     }
                 }
@@ -1392,17 +1394,17 @@ static void im2col_int8(int8_t* im, int8_t* col, int input_chan, int input_x, in
         // #pragma omp parallel for num_threads(num_thread)
         for (int col_i = (col_start & -4); col_i < (col_end & -4); col_i += 4)
         {
-            int imx[4] = {0};
-            int imy[4] = {0};
-            int cnt_x[4] = {0};
-            int cnt_y[4] = {0};
-            int imx_start[4] = {0};
-            int imy_start[4] = {0};
-            int8_t* cur_col = col + col_i * kernel_size_aligned2;
+            int     imx[4]       = { 0 };
+            int     imy[4]       = { 0 };
+            int     cnt_x[4]     = { 0 };
+            int     cnt_y[4]     = { 0 };
+            int     imx_start[4] = { 0 };
+            int     imy_start[4] = { 0 };
+            int8_t* cur_col      = col + col_i * kernel_size_aligned2;
             for (int i = 0; i < 4; i++)
             {
-                cnt_y[i] = (col_i + i) / output_x;
-                cnt_x[i] = col_i + i - cnt_y[i] * output_x;
+                cnt_y[i]     = (col_i + i) / output_x;
+                cnt_x[i]     = col_i + i - cnt_y[i] * output_x;
                 imx_start[i] = cnt_x[i] * stride_x - pad_x0;
                 imy_start[i] = cnt_y[i] * stride_y - pad_y0;
             }
@@ -1418,16 +1420,16 @@ static void im2col_int8(int8_t* im, int8_t* col, int input_chan, int input_x, in
                 int8_t* l12 = l10 + input_x * 2;
                 for (int kch = 0; kch < (input_chan & -2); kch += 2)
                 {
-                    cur_col[0] = l00[0];
-                    cur_col[1] = l00[1];
-                    cur_col[2] = l00[0 + stride_x];
-                    cur_col[3] = l00[1 + stride_x];
-                    cur_col[4] = l00[0 + stride_x2];
-                    cur_col[5] = l00[1 + stride_x2];
-                    cur_col[6] = l00[0 + stride_x3];
-                    cur_col[7] = l00[1 + stride_x3];
-                    cur_col[8] = l00[2];
-                    cur_col[9] = l01[0];
+                    cur_col[0]  = l00[0];
+                    cur_col[1]  = l00[1];
+                    cur_col[2]  = l00[0 + stride_x];
+                    cur_col[3]  = l00[1 + stride_x];
+                    cur_col[4]  = l00[0 + stride_x2];
+                    cur_col[5]  = l00[1 + stride_x2];
+                    cur_col[6]  = l00[0 + stride_x3];
+                    cur_col[7]  = l00[1 + stride_x3];
+                    cur_col[8]  = l00[2];
+                    cur_col[9]  = l01[0];
                     cur_col[10] = l00[2 + stride_x];
                     cur_col[11] = l01[0 + stride_x];
                     cur_col[12] = l00[2 + stride_x2];
@@ -1500,16 +1502,16 @@ static void im2col_int8(int8_t* im, int8_t* col, int input_chan, int input_x, in
                 }
                 if (input_chan & 0x1)
                 {
-                    cur_col[0] = l00[0];
-                    cur_col[1] = l00[1];
-                    cur_col[2] = l00[0 + stride_x];
-                    cur_col[3] = l00[1 + stride_x];
-                    cur_col[4] = l00[0 + stride_x2];
-                    cur_col[5] = l00[1 + stride_x2];
-                    cur_col[6] = l00[0 + stride_x3];
-                    cur_col[7] = l00[1 + stride_x3];
-                    cur_col[8] = l00[2];
-                    cur_col[9] = l01[0];
+                    cur_col[0]  = l00[0];
+                    cur_col[1]  = l00[1];
+                    cur_col[2]  = l00[0 + stride_x];
+                    cur_col[3]  = l00[1 + stride_x];
+                    cur_col[4]  = l00[0 + stride_x2];
+                    cur_col[5]  = l00[1 + stride_x2];
+                    cur_col[6]  = l00[0 + stride_x3];
+                    cur_col[7]  = l00[1 + stride_x3];
+                    cur_col[8]  = l00[2];
+                    cur_col[9]  = l01[0];
                     cur_col[10] = l00[2 + stride_x];
                     cur_col[11] = l01[0 + stride_x];
                     cur_col[12] = l00[2 + stride_x2];
@@ -1545,8 +1547,8 @@ static void im2col_int8(int8_t* im, int8_t* col, int input_chan, int input_x, in
             else
             {
                 bool odd_line = false;
-                int kchp = 0;
-                int kyp = 0;
+                int  kchp     = 0;
+                int  kyp      = 0;
                 for (int kch = 0; kch < input_chan; kch++)
                 {
                     for (int ky = 0; ky < 3; ky++)
@@ -1596,8 +1598,8 @@ static void im2col_int8(int8_t* im, int8_t* col, int input_chan, int input_x, in
                                         *cur_col++ = 0;
                                 }
                             }
-                            kchp = kch;
-                            kyp = ky;
+                            kchp     = kch;
+                            kyp      = ky;
                             odd_line = true;
                         }
                     }
@@ -1620,23 +1622,23 @@ static void im2col_int8(int8_t* im, int8_t* col, int input_chan, int input_x, in
         int col_i = col_end & -4;
         if (col_end3)
         {
-            int imx[4] = {0};
-            int imy[4] = {0};
-            int cnt_x[4] = {0};
-            int cnt_y[4] = {0};
-            int imx_start[4] = {0};
-            int imy_start[4] = {0};
-            int8_t* cur_col = col + col_i * kernel_size_aligned2;
+            int     imx[4]       = { 0 };
+            int     imy[4]       = { 0 };
+            int     cnt_x[4]     = { 0 };
+            int     cnt_y[4]     = { 0 };
+            int     imx_start[4] = { 0 };
+            int     imy_start[4] = { 0 };
+            int8_t* cur_col      = col + col_i * kernel_size_aligned2;
             for (int i = 0; i < 4; i++)
             {
-                cnt_y[i] = (col_i + i) / output_x;
-                cnt_x[i] = col_i + i - cnt_y[i] * output_x;
+                cnt_y[i]     = (col_i + i) / output_x;
+                cnt_x[i]     = col_i + i - cnt_y[i] * output_x;
                 imx_start[i] = cnt_x[i] * stride_x - pad_x0;
                 imy_start[i] = cnt_y[i] * stride_y - pad_y0;
             }
             bool odd_line = false;
-            int kchp = 0;
-            int kyp = 0;
+            int  kchp     = 0;
+            int  kyp      = 0;
             for (int kch = 0; kch < input_chan; kch++)
             {
                 for (int ky = 0; ky < 3; ky++)
@@ -1688,8 +1690,8 @@ static void im2col_int8(int8_t* im, int8_t* col, int input_chan, int input_x, in
                                     *cur_col++ = 0;
                             }
                         }
-                        kchp = kch;
-                        kyp = ky;
+                        kchp     = kch;
+                        kyp      = ky;
                         odd_line = true;
                     }
                 }
@@ -1715,15 +1717,15 @@ static void im2col_int8(int8_t* im, int8_t* col, int input_chan, int input_x, in
         int kch[2], kx[2], ky[2], imx[4][2], imy[4][2];
         for (int col_i = (col_start & -4); col_i < (col_end & -4); col_i += 4)
         {
-            int cnt_x[4] = {0};
-            int cnt_y[4] = {0};
-            int imx_start[4] = {0};
-            int imy_start[4] = {0};
-            int8_t* cur_col = col + col_i * kernel_size_aligned2;
+            int     cnt_x[4]     = { 0 };
+            int     cnt_y[4]     = { 0 };
+            int     imx_start[4] = { 0 };
+            int     imy_start[4] = { 0 };
+            int8_t* cur_col      = col + col_i * kernel_size_aligned2;
             for (int i = 0; i < 4; i++)
             {
-                cnt_y[i] = (col_i + i) / output_x;
-                cnt_x[i] = col_i + i - cnt_y[i] * output_x;
+                cnt_y[i]     = (col_i + i) / output_x;
+                cnt_x[i]     = col_i + i - cnt_y[i] * output_x;
                 imx_start[i] = cnt_x[i] * stride_x - pad_x0;
                 imy_start[i] = cnt_y[i] * stride_y - pad_y0;
             }
@@ -1732,10 +1734,10 @@ static void im2col_int8(int8_t* im, int8_t* col, int input_chan, int input_x, in
                 for (int k = 0; k < 2; k++)
                 {
                     kch[k] = (col_j + k) / kernel_xy;
-                    ky[k] = (col_j + k - kch[k] * kernel_xy) / kernel_x;
-                    kx[k] = (col_j + k - kch[k] * kernel_xy) - ky[k] * kernel_x;
-                    ky[k] = ky[k] * dilation_y;
-                    kx[k] = kx[k] * dilation_x;
+                    ky[k]  = (col_j + k - kch[k] * kernel_xy) / kernel_x;
+                    kx[k]  = (col_j + k - kch[k] * kernel_xy) - ky[k] * kernel_x;
+                    ky[k]  = ky[k] * dilation_y;
+                    kx[k]  = kx[k] * dilation_x;
                     for (int i = 0; i < 4; i++)
                     {
                         imx[i][k] = imx_start[i] + kx[k];
@@ -1757,10 +1759,10 @@ static void im2col_int8(int8_t* im, int8_t* col, int input_chan, int input_x, in
             if (kernel_size1)
             {
                 kch[0] = col_j / kernel_xy;
-                ky[0] = (col_j - kch[0] * kernel_xy) / kernel_x;
-                kx[0] = col_j - kch[0] * kernel_xy - ky[0] * kernel_x;
-                ky[0] = ky[0] * dilation_y;
-                kx[0] = kx[0] * dilation_x;
+                ky[0]  = (col_j - kch[0] * kernel_xy) / kernel_x;
+                kx[0]  = col_j - kch[0] * kernel_xy - ky[0] * kernel_x;
+                ky[0]  = ky[0] * dilation_y;
+                kx[0]  = kx[0] * dilation_x;
                 for (int i = 0; i < 4; i++)
                 {
                     imx[i][0] = imx_start[i] + kx[0];
@@ -1777,15 +1779,15 @@ static void im2col_int8(int8_t* im, int8_t* col, int input_chan, int input_x, in
         // final 4 input
         if (col_end3)
         {
-            int cnt_x[4] = {0};
-            int cnt_y[4] = {0};
-            int imx_start[4] = {0};
-            int imy_start[4] = {0};
-            int8_t* cur_col = col + col_i * kernel_size_aligned2;
+            int     cnt_x[4]     = { 0 };
+            int     cnt_y[4]     = { 0 };
+            int     imx_start[4] = { 0 };
+            int     imy_start[4] = { 0 };
+            int8_t* cur_col      = col + col_i * kernel_size_aligned2;
             for (int i = 0; i < 4; i++)
             {
-                cnt_y[i] = (col_i + i) / output_x;
-                cnt_x[i] = col_i + i - cnt_y[i] * output_x;
+                cnt_y[i]     = (col_i + i) / output_x;
+                cnt_x[i]     = col_i + i - cnt_y[i] * output_x;
                 imx_start[i] = cnt_x[i] * stride_x - pad_x0;
                 imy_start[i] = cnt_y[i] * stride_y - pad_y0;
             }
@@ -1794,10 +1796,10 @@ static void im2col_int8(int8_t* im, int8_t* col, int input_chan, int input_x, in
                 for (int k = 0; k < 2; k++)
                 {
                     kch[k] = (col_j + k) / kernel_xy;
-                    ky[k] = (col_j + k - kch[k] * kernel_xy) / kernel_x;
-                    kx[k] = (col_j + k - kch[k] * kernel_xy) - ky[k] * kernel_x;
-                    ky[k] = ky[k] * dilation_y;
-                    kx[k] = kx[k] * dilation_x;
+                    ky[k]  = (col_j + k - kch[k] * kernel_xy) / kernel_x;
+                    kx[k]  = (col_j + k - kch[k] * kernel_xy) - ky[k] * kernel_x;
+                    ky[k]  = ky[k] * dilation_y;
+                    kx[k]  = kx[k] * dilation_x;
                     for (int i = 0; i < 4; i++)
                     {
                         imx[i][k] = imx_start[i] + kx[k];
@@ -1820,10 +1822,10 @@ static void im2col_int8(int8_t* im, int8_t* col, int input_chan, int input_x, in
             if (kernel_size1)
             {
                 kch[0] = col_j / kernel_xy;
-                ky[0] = (col_j - kch[0] * kernel_xy) / kernel_x;
-                kx[0] = col_j - kch[0] * kernel_xy - ky[0] * kernel_x;
-                ky[0] = ky[0] * dilation_y;
-                kx[0] = kx[0] * dilation_x;
+                ky[0]  = (col_j - kch[0] * kernel_xy) / kernel_x;
+                kx[0]  = col_j - kch[0] * kernel_xy - ky[0] * kernel_x;
+                ky[0]  = ky[0] * dilation_y;
+                kx[0]  = kx[0] * dilation_x;
                 for (int i = 0; i < 4; i++)
                 {
                     imx[i][0] = imx_start[i] + kx[0];
@@ -1841,25 +1843,25 @@ static void im2col_int8(int8_t* im, int8_t* col, int input_chan, int input_x, in
     // general case for kernel size >=3
     else
     {
-        int kch, kx, ky, kchp, kyp, imx[4], imy[4];
-        int kernel_x1 = kernel_x & 0x1;
-        int8_t* cur_col = col + col_start * kernel_size_aligned2;
+        int     kch, kx, ky, kchp, kyp, imx[4], imy[4];
+        int     kernel_x1 = kernel_x & 0x1;
+        int8_t* cur_col   = col + col_start * kernel_size_aligned2;
         for (int col_i = (col_start & -4); col_i < (col_end & -4); col_i += 4)
         {
-            int cnt_x[4] = {0};
-            int cnt_y[4] = {0};
-            int imx_start[4] = {0};
-            int imy_start[4] = {0};
+            int cnt_x[4]     = { 0 };
+            int cnt_y[4]     = { 0 };
+            int imx_start[4] = { 0 };
+            int imy_start[4] = { 0 };
             for (int i = 0; i < 4; i++)
             {
-                cnt_y[i] = (col_i + i) / output_x;
-                cnt_x[i] = col_i + i - cnt_y[i] * output_x;
+                cnt_y[i]     = (col_i + i) / output_x;
+                cnt_x[i]     = col_i + i - cnt_y[i] * output_x;
                 imx_start[i] = cnt_x[i] * stride_x - pad_x0;
                 imy_start[i] = cnt_y[i] * stride_y - pad_y0;
             }
             bool odd_line = false;
-            kchp = 0;
-            kyp = 0;
+            kchp          = 0;
+            kyp           = 0;
             for (int kch = 0; kch < input_chan; kch++)
             {
                 for (int ky = 0; ky < kernel_y; ky++)
@@ -1916,8 +1918,8 @@ static void im2col_int8(int8_t* im, int8_t* col, int input_chan, int input_x, in
                                 }
                             }
                         }
-                        kchp = kch;
-                        kyp = ky;
+                        kchp     = kch;
+                        kyp      = ky;
                         odd_line = kernel_x1 ? true : false;
                     }
                 }
@@ -1940,20 +1942,20 @@ static void im2col_int8(int8_t* im, int8_t* col, int input_chan, int input_x, in
         // final 4 input
         if (col_end3)
         {
-            int cnt_x[4] = {0};
-            int cnt_y[4] = {0};
-            int imx_start[4] = {0};
-            int imy_start[4] = {0};
+            int cnt_x[4]     = { 0 };
+            int cnt_y[4]     = { 0 };
+            int imx_start[4] = { 0 };
+            int imy_start[4] = { 0 };
             for (int i = 0; i < 4; i++)
             {
-                cnt_y[i] = (col_i + i) / output_x;
-                cnt_x[i] = col_i + i - cnt_y[i] * output_x;
+                cnt_y[i]     = (col_i + i) / output_x;
+                cnt_x[i]     = col_i + i - cnt_y[i] * output_x;
                 imx_start[i] = cnt_x[i] * stride_x - pad_x0;
                 imy_start[i] = cnt_y[i] * stride_y - pad_y0;
             }
             bool odd_line = false;
-            kchp = 0;
-            kyp = 0;
+            kchp          = 0;
+            kyp           = 0;
             for (int kch = 0; kch < input_chan; kch++)
             {
                 for (int ky = 0; ky < kernel_y; ky++)
@@ -2014,8 +2016,8 @@ static void im2col_int8(int8_t* im, int8_t* col, int input_chan, int input_x, in
                                 }
                             }
                         }
-                        kchp = kch;
-                        kyp = ky;
+                        kchp     = kch;
+                        kyp      = ky;
                         odd_line = kernel_x1 ? true : false;
                     }
                 }
@@ -2039,12 +2041,13 @@ static void im2col_int8(int8_t* im, int8_t* col, int input_chan, int input_x, in
     return;
 }
 
+
 int int8_conv_hcl_prerun(struct tensor* input_tensor, struct tensor* filter_tensor, struct tensor* output_tensor,
                          struct conv_priv_info* priv_info, struct conv_param* param)
 {
-    int in_c = input_tensor->dims[1];
-    int in_h = input_tensor->dims[2];
-    int in_w = input_tensor->dims[3];
+    int in_c  = input_tensor->dims[1];
+    int in_h  = input_tensor->dims[2];
+    int in_w  = input_tensor->dims[3];
 
     int out_c = output_tensor->dims[1];
     int out_h = output_tensor->dims[2];
@@ -2052,28 +2055,28 @@ int int8_conv_hcl_prerun(struct tensor* input_tensor, struct tensor* filter_tens
     /* alloc mem of im2col  */
     if (!priv_info->external_im2col_mem)
     {
-        int mem_size = int8_conv_hcl_get_shared_mem_size(input_tensor, output_tensor, param);
-        void* mem = sys_malloc(mem_size);
-        priv_info->im2col_buffer = mem;
+        int   mem_size                = int8_conv_hcl_get_shared_mem_size(input_tensor, output_tensor, param);
+        void* mem                     = sys_malloc(mem_size);
+        priv_info->im2col_buffer      = mem;
         priv_info->im2col_buffer_size = mem_size;
     }
     /* alloc mem of kernel interleave */
     if (!priv_info->external_interleave_mem)
     {
-        int mem_size = get_private_mem_size(filter_tensor, param);
-        void* mem = sys_malloc(mem_size);
-        priv_info->interleave_buffer = mem;
+        int   mem_size                    = get_private_mem_size(filter_tensor, param);
+        void* mem                         = sys_malloc(mem_size);
+        priv_info->interleave_buffer      = mem;
         priv_info->interleave_buffer_size = mem_size;
     }
     /* kernel interleave */
     interleave_int8(filter_tensor, priv_info, param);
 
-    priv_info->multi = (int*)sys_malloc(out_c * sizeof(int));
-    priv_info->q_shift = (int*)sys_malloc(out_c * sizeof(int));
+    priv_info->multi          = (int*)sys_malloc(out_c * sizeof(int));
+    priv_info->q_shift        = (int*)sys_malloc(out_c * sizeof(int));
 
-    float input_scale = input_tensor->scale;
-    float* kernel_scales = filter_tensor->scale_list;
-    float output_scale = output_tensor->scale;
+    float  input_scale        = input_tensor->scale;
+    float* kernel_scales      = filter_tensor->scale_list;
+    float  output_scale       = output_tensor->scale;
 
     priv_info->activation_min = -127;
     priv_info->activation_max = 127;
@@ -2093,11 +2096,11 @@ int int8_conv_hcl_prerun(struct tensor* input_tensor, struct tensor* filter_tens
     for (int i = 0; i < out_c; i++)
     {
         float kernel_scale = kernel_scales[i];
-        float scale = input_scale * kernel_scale / output_scale;
+        float scale        = input_scale * kernel_scale / output_scale;
 
-        int shift;
-        float q = frexp(scale, &shift);
-        int fix_q = round(q * (1ll << 31));
+        int   shift;
+        float q     = frexp(scale, &shift);
+        int   fix_q = round(q * (1ll << 31));
         // TLOG_ERR("prerun: %f,%lld,%d,%d, %lld\n",q, fix_q, multi, q_shift, 1ll<<31);
         if (fix_q == (1l << 31))
         {
@@ -2105,7 +2108,7 @@ int int8_conv_hcl_prerun(struct tensor* input_tensor, struct tensor* filter_tens
             shift++;
         }
 
-        priv_info->multi[i] = (int)fix_q;
+        priv_info->multi[i]   = (int)fix_q;
         priv_info->q_shift[i] = (int)shift;
     }
     return 0;
@@ -2143,54 +2146,54 @@ int int8_conv_hcl_run(struct tensor* input_tensor, struct tensor* filter_tensor,
                       int num_thread, int cpu_affinity)
 {
     /* param */
-    int group = param->group;
-    int kernel_h = param->kernel_h;
-    int kernel_w = param->kernel_w;
-    int stride_h = param->stride_h;
-    int stride_w = param->stride_w;
-    int dilation_h = param->dilation_h;
-    int dilation_w = param->dilation_w;
-    int pad_h0 = param->pad_h0;
-    int pad_h1 = param->pad_h1;
-    int pad_w0 = param->pad_w0;
-    int pad_w1 = param->pad_w1;
-    int act_type = param->activation;
+    int group             = param->group;
+    int kernel_h          = param->kernel_h;
+    int kernel_w          = param->kernel_w;
+    int stride_h          = param->stride_h;
+    int stride_w          = param->stride_w;
+    int dilation_h        = param->dilation_h;
+    int dilation_w        = param->dilation_w;
+    int pad_h0            = param->pad_h0;
+    int pad_h1            = param->pad_h1;
+    int pad_w0            = param->pad_w0;
+    int pad_w1            = param->pad_w1;
+    int act_type          = param->activation;
 
-    int batch = input_tensor->dims[0];
-    int in_c = input_tensor->dims[1] / group;
-    int in_h = input_tensor->dims[2];
-    int in_w = input_tensor->dims[3];
-    int input_size = in_c * in_h * in_w;
-    int kernel_size = in_c * kernel_h * kernel_w;
-    int input_image_size = input_tensor->dims[1] * input_tensor->dims[2] * input_tensor->dims[3];
+    int batch             = input_tensor->dims[0];
+    int in_c              = input_tensor->dims[1] / group;
+    int in_h              = input_tensor->dims[2];
+    int in_w              = input_tensor->dims[3];
+    int input_size        = in_c * in_h * in_w;
+    int kernel_size       = in_c * kernel_h * kernel_w;
+    int input_image_size  = input_tensor->dims[1] * input_tensor->dims[2] * input_tensor->dims[3];
 
-    int out_c = output_tensor->dims[1] / group;
-    int out_h = output_tensor->dims[2];
-    int out_w = output_tensor->dims[3];
-    int out_hw = out_h * out_w;
-    int output_size = out_c * out_h * out_w;
-    int out_c_align = ((out_c + 3) & -4);
+    int out_c             = output_tensor->dims[1] / group;
+    int out_h             = output_tensor->dims[2];
+    int out_w             = output_tensor->dims[3];
+    int out_hw            = out_h * out_w;
+    int output_size       = out_c * out_h * out_w;
+    int out_c_align       = ((out_c + 3) & -4);
     int output_image_size = output_tensor->dims[1] * output_tensor->dims[2] * output_tensor->dims[3];
 
-    int activation_min = priv_info->activation_min;
-    int activation_max = priv_info->activation_max;
+    int activation_min    = priv_info->activation_min;
+    int activation_max    = priv_info->activation_max;
 
     /* buffer addr */
-    int8_t* input_buf = (int8_t*)input_tensor->data;
-    int8_t* output_buf = (int8_t*)output_tensor->data;
-    int32_t* biases_buf = NULL;
-    bool have_biases = false;
+    int8_t*  input_buf   = (int8_t*)input_tensor->data;
+    int8_t*  output_buf  = (int8_t*)output_tensor->data;
+    int32_t* biases_buf  = NULL;
+    bool     have_biases = false;
     if (bias_tensor != NULL)
     {
-        biases_buf = (int32_t*)bias_tensor->data;
+        biases_buf  = (int32_t*)bias_tensor->data;
         have_biases = true;
     }
 
-    int8_t* col_buf = (int8_t*)priv_info->im2col_buffer;
+    int8_t* col_buf        = (int8_t*)priv_info->im2col_buffer;
     int8_t* interleave_buf = (int8_t*)priv_info->interleave_buffer;
 
     /* block size split parameter */
-    int L2_CACHE_SIZE = (cpu_affinity == TENGINE_CLUSTER_LITTLE) ? 512 * 1024 : 1024 * 1024;
+    int L2_CACHE_SIZE  = (cpu_affinity == TENGINE_CLUSTER_LITTLE) ? 512 * 1024 : 1024 * 1024;
     int kernel_size_l1 = kernel_size;
 #ifdef __aarch64__
     int col_cnt_l2 = L2_CACHE_SIZE * 3 / kernel_size_l1 / 4;
@@ -2199,9 +2202,9 @@ int int8_conv_hcl_run(struct tensor* input_tensor, struct tensor* filter_tensor,
 #endif
     col_cnt_l2 = col_cnt_l2 > 4 ? (col_cnt_l2 & -4) : 4;
 
-    for (int n = 0; n < batch; n++) // batch size
+    for (int n = 0; n < batch; n++)    // batch size
     {
-        int8_t* input = input_buf + n * input_size * group;
+        int8_t* input  = input_buf + n * input_size * group;
         int8_t* output = output_buf + n * output_size * group;
         for (int g = 0; g < group; g++)
         {
@@ -2213,18 +2216,18 @@ int int8_conv_hcl_run(struct tensor* input_tensor, struct tensor* filter_tensor,
             int kernel_size_aligned2 = (kernel_size + 1) & -2;
             int output_chan_aligned4 = (out_c + 3) & -4;
 
-            int8_t* kernel_g = interleave_buf + g * kernel_size_aligned2 * output_chan_aligned4;
-            int8_t* output_g = output + g * output_size;
-            int* bias_g = have_biases ? (biases_buf + g * out_c) : NULL;
-            int* multi_g = priv_info->multi + g * out_c;
-            int* q_shift_g = priv_info->q_shift + g * out_c;
+            int8_t* kernel_g         = interleave_buf + g * kernel_size_aligned2 * output_chan_aligned4;
+            int8_t* output_g         = output + g * output_size;
+            int*    bias_g           = have_biases ? (biases_buf + g * out_c) : NULL;
+            int*    multi_g          = priv_info->multi + g * out_c;
+            int*    q_shift_g        = priv_info->q_shift + g * out_c;
 
             // for input block of L2 cache size
             for (int col_i = 0; col_i < out_hw; col_i += col_cnt_l2)
             {
                 int col_start = col_i;
-                int col_end = col_i + col_cnt_l2;
-                col_end = col_end > out_hw ? out_hw : col_end;
+                int col_end   = col_i + col_cnt_l2;
+                col_end       = col_end > out_hw ? out_hw : col_end;
 #ifdef __aarch64__
                 i8gemm4x16(col_buf, kernel_g, have_biases, bias_g, output_g, multi_g, kernel_size, out_hw, col_start,
                            col_end, 0, out_c & -16, activation_min, activation_max, q_shift_g, num_thread,
@@ -2241,7 +2244,7 @@ int int8_conv_hcl_run(struct tensor* input_tensor, struct tensor* filter_tensor,
                               col_end, out_c & -8, out_c, activation_min, activation_max, q_shift_g, num_thread,
                               cpu_affinity);
 #endif
-            } // col_cont
+            }    // col_cont
         }
     }
     return 0;

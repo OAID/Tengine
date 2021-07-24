@@ -37,7 +37,8 @@
 #include <google/protobuf/text_format.h>
 #include <google/protobuf/message.h>
 
-extern "C" {
+extern "C"
+{
 #include "tengine/c_api.h"
 #include "graph/graph.h"
 #include "graph/subgraph.h"
@@ -51,24 +52,25 @@ extern "C" {
 #include "../utils/save_graph/op_include.h"
 }
 
-class onnx_serializer
-{
+class onnx_serializer {
 public:
     graph_t onnx2tengine(std::string model_file);
     typedef int (*op_load_t)(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node);
 
 private:
-    std::unordered_map<std::string, std::pair<int, op_load_t> > op_load_map;
-    int load_model(ir_graph_t* graph, std::string model_file);
-    int set_graph_output(ir_graph_t* graph, const onnx::GraphProto& onnx_graph);
-    int load_graph_node(ir_graph_t* graph, const onnx::GraphProto& onnx_graph);
-    int set_graph_input(ir_graph_t* graph, const onnx::GraphProto& onnx_graph);
-    int load_initializer_tensor(ir_graph_t* graph, const onnx::GraphProto& onnx_graph);
-    int load_constant_tensor(ir_graph_t* graph, const onnx::GraphProto& onnx_graph);
-    int load_model_file(std::string model_file, onnx::ModelProto& model);
-    bool find_op_load_method(const std::string& op_name);
-    void register_op_load();
+    std::unordered_map<std::string, std::pair<int, op_load_t>> op_load_map;
+    int                                                        load_model(ir_graph_t* graph, std::string model_file);
+    int                                  set_graph_output(ir_graph_t* graph, const onnx::GraphProto& onnx_graph);
+    int                                  load_graph_node(ir_graph_t* graph, const onnx::GraphProto& onnx_graph);
+    int                                  set_graph_input(ir_graph_t* graph, const onnx::GraphProto& onnx_graph);
+    int                                  load_initializer_tensor(ir_graph_t* graph, const onnx::GraphProto& onnx_graph);
+    int                                  load_constant_tensor(ir_graph_t* graph, const onnx::GraphProto& onnx_graph);
+    int                                  load_model_file(std::string model_file, onnx::ModelProto& model);
+    bool                                 find_op_load_method(const std::string& op_name);
+    void                                 register_op_load();
     std::unordered_map<std::string, int> tensor_check;
 };
+
+
 
 #endif

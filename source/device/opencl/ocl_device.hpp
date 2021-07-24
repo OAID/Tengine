@@ -26,14 +26,15 @@
 
 #include "ocl_define.h"
 
-extern "C" {
+extern "C"
+{
 #include "api/c_api.h"
 #include "device/device.h"
 
-struct ocl_device
-{
-    struct device base;
-};
+    struct ocl_device
+    {
+        struct device base;
+    };
 
-DLLEXPORT int register_ocl_device(void);
+    DLLEXPORT int register_ocl_device(void);
 }

@@ -78,17 +78,17 @@ void show_usage()
 
 int main(int argc, char* argv[])
 {
-    int loop_count = DEFAULT_LOOP_COUNT;
-    int num_thread = DEFAULT_THREAD_COUNT;
-    int cpu_affinity = DEFAULT_CPU_AFFINITY;
+    int         loop_count   = DEFAULT_LOOP_COUNT;
+    int         num_thread   = DEFAULT_THREAD_COUNT;
+    int         cpu_affinity = DEFAULT_CPU_AFFINITY;
     std::string model_name;
     std::string model_file;
-    char* image_file = NULL;
-    float img_hw[2] = {0.f};
-    int img_h = 0;
-    int img_w = 0;
-    float mean[3] = {-1.f, -1.f, -1.f};
-    float scale[3] = {0.f, 0.f, 0.f};
+    char*       image_file = NULL;
+    float       img_hw[2]  = { 0.f };
+    int         img_h      = 0;
+    int         img_w      = 0;
+    float       mean[3]    = { -1.f, -1.f, -1.f };
+    float       scale[3]   = { 0.f, 0.f, 0.f };
 
     int res;
     while ((res = getopt(argc, argv, "m:i:l:g:s:w:r:t:a:h")) != -1)
@@ -180,9 +180,9 @@ int main(int argc, char* argv[])
     /* set runtime options */
     struct options opt;
     opt.num_thread = num_thread;
-    opt.cluster = TENGINE_CLUSTER_ALL;
-    opt.precision = TENGINE_MODE_FP32;
-    opt.affinity = cpu_affinity;
+    opt.cluster    = TENGINE_CLUSTER_ALL;
+    opt.precision  = TENGINE_MODE_FP32;
+    opt.affinity   = cpu_affinity;
 
     /* inital tengine */
     if (init_tengine() != 0)
@@ -201,8 +201,8 @@ int main(int argc, char* argv[])
     }
 
     /* set the shape, data buffer of input_tensor of the graph */
-    int img_size = img_h * img_w * 3;
-    int dims[] = {1, 3, img_h, img_w}; // nchw
+    int                img_size = img_h * img_w * 3;
+    int                dims[]   = { 1, 3, img_h, img_w };    // nchw
     std::vector<float> input_data(img_size);
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
@@ -252,16 +252,16 @@ int main(int argc, char* argv[])
 
     /* get the result of classification */
     tensor_t output_tensor = get_graph_output_tensor(graph, 0, 0);
-    float* output_data = (float*)get_tensor_buffer(output_tensor);
-    int output_size = get_tensor_buffer_size(output_tensor) / sizeof(float);
+    float*   output_data   = (float*)get_tensor_buffer(output_tensor);
+    int      output_size   = get_tensor_buffer_size(output_tensor) / sizeof(float);
 
     print_topk(output_data, output_size, 5);
     fprintf(stderr, "--------------------------------------\n");
 
     /* check the result */
-    std::string reference_file = "./data/" + model_name + "_out.bin";
+    std::string        reference_file = "./data/" + model_name + "_out.bin";
     std::vector<float> reference_data(output_size);
-    FILE* fp;
+    FILE*              fp;
     fp = fopen(reference_file.c_str(), "rb");
     if (!fp)
     {

@@ -39,6 +39,7 @@
 #include "utility/log.h"
 #include "serializer/serializer.h"
 
+
 static struct exec_graph* new_exec_graph(void)
 {
     struct exec_graph* exec_graph = (struct exec_graph*)sys_malloc(sizeof(struct exec_graph));
@@ -54,26 +55,27 @@ static struct exec_graph* new_exec_graph(void)
         return NULL;
     }
 
-    exec_graph->shared_mem = NULL;
-    exec_graph->shared_mem_size = 0;
-    exec_graph->mem_pool = NULL;
+    exec_graph->shared_mem            = NULL;
+    exec_graph->shared_mem_size       = 0;
+    exec_graph->mem_pool              = NULL;
 
-    exec_graph->shared_pack4_mem = NULL;
+    exec_graph->shared_pack4_mem      = NULL;
     exec_graph->shared_pack4_mem_size = 0;
 
     return exec_graph;
 }
 
+
 void release_exec_graph(void* exec_graph)
 {
     struct exec_graph* graph = (struct exec_graph*)exec_graph;
 
-    int node_num = get_vector_num(graph->exec_node_list);
+    int node_num             = get_vector_num(graph->exec_node_list);
 
     for (int i = 0; i < node_num; i++)
     {
         struct exec_node* exec_node = (struct exec_node*)get_vector_data(graph->exec_node_list, i);
-        struct node_ops* node_ops = exec_node->node_ops;
+        struct node_ops*  node_ops  = exec_node->node_ops;
 
         release_exec_node(graph, exec_node, node_ops);
     }
@@ -85,23 +87,24 @@ void release_exec_graph(void* exec_graph)
     sys_free(graph);
 }
 
+
 struct exec_graph* create_exec_graph(struct subgraph* subgraph, int num_thread, int mode, size_t cpu_affinity)
 {
     /* generate exec_graph */
-    int node_num = subgraph->node_num;
-    struct graph* ir_graph = subgraph->graph;
+    int                node_num   = subgraph->node_num;
+    struct graph*      ir_graph   = subgraph->graph;
     struct exec_graph* exec_graph = new_exec_graph();
-    struct cpu_device* dev = (struct cpu_device*)subgraph->device;
+    struct cpu_device* dev        = (struct cpu_device*)subgraph->device;
 
     if (exec_graph == NULL)
     {
         return NULL;
     }
 
-    exec_graph->dev = dev;
-    exec_graph->num_thread = num_thread;
+    exec_graph->dev          = dev;
+    exec_graph->num_thread   = num_thread;
     exec_graph->cpu_affinity = cpu_affinity;
-    exec_graph->mode = mode;
+    exec_graph->mode         = mode;
 
     for (int i = 0; i < node_num; i++)
     {
@@ -140,6 +143,7 @@ error:
     return NULL;
 }
 
+
 int prerun_exec_graph(struct exec_graph* exec_graph)
 {
     int node_num = get_vector_num(exec_graph->exec_node_list);
@@ -147,7 +151,7 @@ int prerun_exec_graph(struct exec_graph* exec_graph)
     for (int i = 0; i < node_num; i++)
     {
         struct exec_node* exec_node = (struct exec_node*)get_vector_data(exec_graph->exec_node_list, i);
-        struct node_ops* node_ops = exec_node->node_ops;
+        struct node_ops*  node_ops  = exec_node->node_ops;
 
         if (node_ops->prerun && node_ops->prerun(node_ops, exec_node, exec_graph) < 0)
         {

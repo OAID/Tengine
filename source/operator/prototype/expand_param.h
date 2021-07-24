@@ -28,7 +28,7 @@
 typedef struct expand_param
 {
     int* ex_shape;
-    int dim_num;
+    int  dim_num;
 } expand_param_t;
 
 #endif

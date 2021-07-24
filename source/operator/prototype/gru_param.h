@@ -30,15 +30,15 @@
 typedef struct gru_param
 {
     float clip;
-    int output_len;
-    int sequence_len;
-    int input_size;
-    int hidden_size;
-    int has_clip;
-    int has_gate_bias;
-    int has_candidate_bias;
-    int has_init_state;
-    int mxnet_flag;
+    int   output_len;
+    int   sequence_len;
+    int   input_size;
+    int   hidden_size;
+    int   has_clip;
+    int   has_gate_bias;
+    int   has_candidate_bias;
+    int   has_init_state;
+    int   mxnet_flag;
 } gru_param_t;
 
 #endif

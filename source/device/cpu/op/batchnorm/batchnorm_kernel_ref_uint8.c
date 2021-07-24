@@ -36,26 +36,27 @@
 #include "device/cpu/cpu_graph.h"
 #include "device/cpu/cpu_module.h"
 
+
 int ref_batchnorm_uint8(struct tensor* input_tensor, struct tensor* output_tensor,
                         const struct ref_batchnorm_param* param)
 {
-    float* scale_mean = param->scale_mean;
+    float* scale_mean    = param->scale_mean;
     float* scale_var_inv = param->scale_var_inv;
-    float* gamma = param->gamma;
-    float* beta = param->beta;
+    float* gamma         = param->gamma;
+    float* beta          = param->beta;
 
-    int img_size = param->input_c * param->input_h * param->input_w;
-    int total_size = img_size * param->input_n;
+    int img_size         = param->input_c * param->input_h * param->input_w;
+    int total_size       = img_size * param->input_n;
 
     // dequant
-    uint8_t* input_uint8 = input_tensor->data;
+    uint8_t* input_uint8  = input_tensor->data;
     uint8_t* output_uint8 = output_tensor->data;
-    float input_scale = input_tensor->scale;
-    float output_scale = output_tensor->scale;
-    int32_t input_zero = input_tensor->zero_point;
-    int32_t output_zero = output_tensor->zero_point;
+    float    input_scale  = input_tensor->scale;
+    float    output_scale = output_tensor->scale;
+    int32_t  input_zero   = input_tensor->zero_point;
+    int32_t  output_zero  = output_tensor->zero_point;
 
-    float* data_fp32 = (float*)sys_malloc(total_size * sizeof(float));
+    float* data_fp32      = (float*)sys_malloc(total_size * sizeof(float));
     for (int i = 0; i < total_size; i++)
         data_fp32[i] = ((float)input_uint8[i] - (float)input_zero) * input_scale;
 
@@ -68,17 +69,17 @@ int ref_batchnorm_uint8(struct tensor* input_tensor, struct tensor* output_tenso
                 for (int c = 0; c < param->input_c; ++c)
                 {
                     float s_mean = scale_mean[c];
-                    float s_var = scale_var_inv[c];
+                    float s_var  = scale_var_inv[c];
                     float s_val1 = s_mean;
                     float s_val2 = s_var;
                     if (!param->iscaffe)
                     {
                         float s_gamma = gamma[c];
-                        float s_beta = beta[c];
-                        s_val1 = s_beta + s_gamma * s_mean;
-                        s_val2 = s_gamma * s_var;
+                        float s_beta  = beta[c];
+                        s_val1        = s_beta + s_gamma * s_mean;
+                        s_val2        = s_gamma * s_var;
                     }
-                    int offset = n * img_size + c * param->input_h * param->input_w + h * param->input_w + w;
+                    int offset        = n * img_size + c * param->input_h * param->input_w + h * param->input_w + w;
 
                     data_fp32[offset] = data_fp32[offset] * s_val2 + s_val1;
                 }

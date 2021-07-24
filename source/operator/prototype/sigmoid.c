@@ -28,41 +28,46 @@
 #include "module/module.h"
 #include "utility/sys_port.h"
 
+
 static int infer_shape(ir_node_t* node)
 {
-    ir_graph_t* ir_graph = node->graph;
-    ir_tensor_t* input = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
-    ir_tensor_t* output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
+    ir_graph_t*  ir_graph = node->graph;
+    ir_tensor_t* input    = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
+    ir_tensor_t* output   = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
 
     set_ir_tensor_shape(output, input->dims, input->dim_num);
 
     return 0;
 }
 
+
 static int init_op(ir_op_t* op)
 {
-    op->same_shape = 0;
+    op->same_shape  = 0;
     op->infer_shape = infer_shape;
 
     return 0;
 }
+
 
 static void release_op(ir_op_t* op)
 {
     // sys_free(op->param_mem);
 }
 
+
 int register_sigmoid_op()
 {
     ir_method_t m;
 
     m.version = 1;
-    m.init = init_op;
+    m.init    = init_op;
     m.release = release_op;
     //
 
     return register_op(OP_SIGMOID, OP_SIGMOID_NAME, &m);
 }
+
 
 int unregister_sigmoid_op()
 {

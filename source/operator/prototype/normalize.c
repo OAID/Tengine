@@ -31,6 +31,7 @@
 #include "module/module.h"
 #include "utility/sys_port.h"
 
+
 static int init_op(struct op* op)
 {
     normalize_param_t* normalize_param = (normalize_param_t*)sys_malloc(sizeof(normalize_param_t));
@@ -43,29 +44,32 @@ static int init_op(struct op* op)
     normalize_param->across_spatial = 0;
     normalize_param->channel_shared = 0;
 
-    op->param_mem = normalize_param;
-    op->param_size = sizeof(normalize_param_t);
-    op->same_shape = 1;
-    op->infer_shape = NULL;
+    op->param_mem                   = normalize_param;
+    op->param_size                  = sizeof(normalize_param_t);
+    op->same_shape                  = 1;
+    op->infer_shape                 = NULL;
 
     return 0;
 }
+
 
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
 
+
 int register_normalize_op()
 {
     struct method m;
 
     m.version = 1;
-    m.init = init_op;
+    m.init    = init_op;
     m.release = release_op;
 
     return register_op(OP_NORMALIZE, OP_NORMALIZE_NAME, &m);
 }
+
 
 int unregister_normalize_op()
 {

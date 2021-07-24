@@ -37,6 +37,7 @@
 #include <math.h>
 #include <string.h>
 
+
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     return 0;
@@ -54,19 +55,20 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node* ir_node = exec_node->ir_node;
-    struct graph* ir_graph = ir_node->graph;
+    struct node*   ir_node  = exec_node->ir_node;
+    struct graph*  ir_graph = ir_node->graph;
     struct tensor* input_tensor;
     struct tensor* output_tensor;
 
-    input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+    input_tensor                  = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    output_tensor                 = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
     struct cast_param* cast_param = (struct cast_param*)ir_node->op.param_mem;
 
-    int type_from = input_tensor->data_type;
-    int type_to = output_tensor->data_type;
+    int type_from                 = input_tensor->data_type;
+    int type_to                   = output_tensor->data_type;
 
-    int num_thread = exec_graph->num_thread;
+    int num_thread                = exec_graph->num_thread;
+
 
     if (input_tensor->elem_num != output_tensor->elem_num || input_tensor->dim_num != output_tensor->dim_num)
     {
@@ -120,13 +122,13 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
     if (type_from == TENGINE_DT_FP32 && type_to == TENGINE_DT_UINT8)
     {
-        float* idata = (float*)input_tensor->data;
+        float*   idata = (float*)input_tensor->data;
         uint8_t* odata = (uint8_t*)output_tensor->data;
 
         if (1 == input_tensor->quant_param_num)
         {
-            float scale = input_tensor->scale;
-            int zero_point = input_tensor->zero_point;
+            float scale      = input_tensor->scale;
+            int   zero_point = input_tensor->zero_point;
 
 #pragma omp parallel for num_threads(num_thread)
             for (uint32_t i = 0; i < input_tensor->elem_num; i++)
@@ -151,12 +153,12 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     if (type_from == TENGINE_DT_UINT8 && type_to == TENGINE_DT_FP32)
     {
         uint8_t* idata = (uint8_t*)input_tensor->data;
-        float* odata = (float*)output_tensor->data;
+        float*   odata = (float*)output_tensor->data;
 
         if (1 == input_tensor->quant_param_num)
         {
-            float scale = input_tensor->scale;
-            int zero_point = input_tensor->zero_point;
+            float scale      = input_tensor->scale;
+            int   zero_point = input_tensor->zero_point;
 
 #pragma omp parallel for num_threads(num_thread)
             for (uint32_t i = 0; i < input_tensor->elem_num; i++)
@@ -173,12 +175,12 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
 static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node* node = exec_node->ir_node;
-    struct graph* ir_graph = node->graph;
-    struct tensor* input = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
-    struct tensor* output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
+    struct node*   node     = exec_node->ir_node;
+    struct graph*  ir_graph = node->graph;
+    struct tensor* input    = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
+    struct tensor* output   = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
 
-    int ret = set_ir_tensor_shape(output, input->dims, input->dim_num);
+    int ret                 = set_ir_tensor_shape(output, input->dims, input->dim_num);
     return ret;
 }
 
@@ -191,13 +193,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_CANDO;
 }
 
-static struct node_ops ref_node_ops = {.prerun = prerun,
-                                       .run = run,
-                                       .reshape = reshape,
-                                       .postrun = NULL,
-                                       .init_node = init_node,
-                                       .release_node = release_node,
-                                       .score = score};
+static struct node_ops ref_node_ops = { .prerun       = prerun,
+                                        .run          = run,
+                                        .reshape      = reshape,
+                                        .postrun      = NULL,
+                                        .init_node    = init_node,
+                                        .release_node = release_node,
+                                        .score        = score };
 
 int register_cast_ref_op()
 {

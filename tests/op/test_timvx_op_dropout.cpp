@@ -22,7 +22,9 @@
  * Author: qtang@openailab.com
  */
 
+
 #include "test_op.h"
+
 
 int create_test_dropout_node(graph_t graph, const char* input_name, const char* node_name, int data_type, int layout,
                              int n, int c, int h, int w)
@@ -34,7 +36,7 @@ int create_test_dropout_node(graph_t graph, const char* input_name, const char* 
     (void)w;
 
     /* create the test node */
-    node_t test_node = create_graph_node(graph, node_name, "Dropout");
+    node_t test_node      = create_graph_node(graph, node_name, "Dropout");
 
     tensor_t input_tensor = get_graph_tensor(graph, input_name);
 
@@ -54,7 +56,7 @@ int create_test_dropout_node(graph_t graph, const char* input_name, const char* 
     return 0;
 }
 
-float reference_out[3] = {-10.f, -10.f, -10.f};
+float reference_out[3] = { -10.f, -10.f, -10.f };
 
 /*
  * scale = (max - min) / 255
@@ -62,17 +64,17 @@ float reference_out[3] = {-10.f, -10.f, -10.f};
  * uint8   = clip(round(float32 / scale) + zero_point, 0, 255)
  * float32 = (uint8 - zero_point) * scale
  */
-float input_scale = 0.039216f;
-int input_zero_point = 255;
-float output_scale = 0.039216f;
-int output_zero_point = 255;
+float input_scale       = 0.039216f;
+int   input_zero_point  = 255;
+float output_scale      = 0.039216f;
+int   output_zero_point = 255;
 
 int main(int argc, char* argv[])
 {
-    int n = 1, c = 3, h = 4, w = 5;
+    int         n = 1, c = 3, h = 4, w = 5;
     const char* test_node_name = "dropout";
-    int data_type = TENGINE_DT_UINT8;
-    int layout = TENGINE_LAYOUT_NCHW;
+    int         data_type      = TENGINE_DT_UINT8;
+    int         layout         = TENGINE_LAYOUT_NCHW;
 
     // init
     int ret = test_graph_init();
@@ -85,7 +87,7 @@ int main(int argc, char* argv[])
         return -1;
 
     // set quantize params
-    tensor_t input_tesnor = get_graph_input_tensor(graph, 0, 0);
+    tensor_t input_tesnor  = get_graph_input_tensor(graph, 0, 0);
     tensor_t output_tesnor = get_graph_output_tensor(graph, 0, 0);
     set_tensor_quant_param(input_tesnor, &input_scale, &input_zero_point, 1);
     set_tensor_quant_param(output_tesnor, &output_scale, &output_zero_point, 1);
@@ -104,10 +106,10 @@ int main(int argc, char* argv[])
 
     // get output and dequant
     struct tensor* output_tensor = (struct tensor*)get_graph_output_tensor(graph, 0, 0);
-    uint8_t* output_u8 = (uint8_t*)output_tensor->data;
-    int output_size = output_tensor->elem_num;
-    int out_c = output_tensor->dims[1];
-    int cstep = output_tensor->dims[2] * output_tensor->dims[3];
+    uint8_t*       output_u8     = (uint8_t*)output_tensor->data;
+    int            output_size   = output_tensor->elem_num;
+    int            out_c         = output_tensor->dims[1];
+    int            cstep         = output_tensor->dims[2] * output_tensor->dims[3];
 
     get_tensor_quant_param(output_tensor, &output_scale, &output_zero_point, 1);
     float* output_data = (float*)malloc(output_size * sizeof(float));

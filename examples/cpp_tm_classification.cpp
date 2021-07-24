@@ -26,7 +26,7 @@
 #include <string>
 
 #ifdef _MSC_VER
-#define NOMINMAX
+    #define NOMINMAX
 #endif
 
 #include <algorithm>
@@ -62,15 +62,15 @@ void show_usage()
 
 int main(int argc, char* argv[])
 {
-    int loop_count = DEFAULT_LOOP_COUNT;
-    int num_thread = DEFAULT_THREAD_COUNT;
+    int    loop_count = DEFAULT_LOOP_COUNT;
+    int    num_thread = DEFAULT_THREAD_COUNT;
     string model_file;
     string image_file;
-    float img_hw[2] = {0.f};
-    int img_h = 0;
-    int img_w = 0;
-    float mean[3] = {-1.f, -1.f, -1.f};
-    float scale[3] = {0.f, 0.f, 0.f};
+    float  img_hw[2] = { 0.f };
+    int    img_h     = 0;
+    int    img_w     = 0;
+    float  mean[3]   = { -1.f, -1.f, -1.f };
+    float  scale[3]  = { 0.f, 0.f, 0.f };
 
     int res;
     while ((res = getopt(argc, argv, "m:i:l:g:s:w:r:t:h")) != -1)
@@ -155,14 +155,14 @@ int main(int argc, char* argv[])
 
     init_tengine();
     {
-        tengine::Net somenet;
+        tengine::Net    somenet;
         tengine::Tensor input_tensor;
         tengine::Tensor output_tensor;
 
         /* set runtime options of Net */
         somenet.opt.num_thread = num_thread;
-        somenet.opt.cluster = TENGINE_CLUSTER_ALL;
-        somenet.opt.precision = TENGINE_MODE_FP32;
+        somenet.opt.cluster    = TENGINE_CLUSTER_ALL;
+        somenet.opt.precision  = TENGINE_MODE_FP32;
 
         std::cout << "\ntengine model file : " << model_file << "\n"
                   << "image file : " << image_file << "\n"
@@ -180,8 +180,8 @@ int main(int argc, char* argv[])
         somenet.input_tensor("data", input_tensor);
 
         double min_time, max_time, total_time;
-        min_time = DBL_MAX;
-        max_time = DBL_MIN;
+        min_time   = DBL_MAX;
+        max_time   = DBL_MIN;
         total_time = 0;
         for (int i = 0; i < loop_count; i++)
         {

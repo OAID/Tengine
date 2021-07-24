@@ -35,25 +35,27 @@
 #include "utility/vector.h"
 #include "utility/log.h"
 
+
 static int rpn_op_map(int op)
 {
     return OP_RPN;
 }
 
+
 static int tm2_load_rpn(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                         const TM2_Operator* tm_op)
 {
-    struct rpn_param* rpn_param = (struct rpn_param*)ir_node->op.param_mem;
-    const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
-    const char* mem_base = tm2_priv->base;
-    const TM2_RPNParam* tm_param = (TM2_RPNParam*)(mem_base + tm_op->offset_t_param);
+    struct rpn_param*      rpn_param = (struct rpn_param*)ir_node->op.param_mem;
+    const struct tm2_priv* tm2_priv  = (struct tm2_priv*)ir_graph->serializer_privacy;
+    const char*            mem_base  = tm2_priv->base;
+    const TM2_RPNParam*    tm_param  = (TM2_RPNParam*)(mem_base + tm_op->offset_t_param);
 
-    rpn_param->basesize = tm_param->basesize;
-    rpn_param->feat_stride = tm_param->feat_stride;
-    rpn_param->min_size = tm_param->min_size;
-    rpn_param->nms_thresh = tm_param->nms_thresh;
-    rpn_param->per_nms_topn = tm_param->per_nms_topn;
-    rpn_param->post_nms_topn = tm_param->post_nms_topn;
+    rpn_param->basesize              = tm_param->basesize;
+    rpn_param->feat_stride           = tm_param->feat_stride;
+    rpn_param->min_size              = tm_param->min_size;
+    rpn_param->nms_thresh            = tm_param->nms_thresh;
+    rpn_param->per_nms_topn          = tm_param->per_nms_topn;
+    rpn_param->post_nms_topn         = tm_param->post_nms_topn;
 
     if (tm_param->offset_vf_anchor_scales != TM2_NOT_SET)
     {
@@ -82,6 +84,7 @@ static int tm2_load_rpn(struct graph* ir_graph, struct node* ir_node, const TM2_
     return 0;
 }
 
+
 int register_tm2_rpn_op()
 {
     struct serializer* tm2_s = find_serializer_via_name("tengine");
@@ -96,6 +99,7 @@ int register_tm2_rpn_op()
 
     return 0;
 }
+
 
 int unregister_tm2_rpn_op()
 {

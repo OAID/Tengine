@@ -31,15 +31,16 @@
 #include "utility/sys_port.h"
 #include "utility/log.h"
 
+
 static int infer_shape(ir_node_t* node)
 {
-    ir_graph_t* graph = node->graph;
-    ir_tensor_t* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
+    ir_graph_t*  graph                = node->graph;
+    ir_tensor_t* output               = get_ir_graph_tensor(graph, node->output_tensors[0]);
 
     struct concat_param* concat_param = (struct concat_param*)(node->op.param_mem);
 
-    int concat_shape = 0;
-    int axis = concat_param->axis;
+    int concat_shape                  = 0;
+    int axis                          = concat_param->axis;
 
     /* transpose axis from nhwc to nchw */
     if (graph->model_layout == TENGINE_LAYOUT_NHWC)
@@ -81,7 +82,7 @@ static int infer_shape(ir_node_t* node)
 
         if (axis < 0)
         {
-            axis = input_tensor->dim_num + axis;
+            axis               = input_tensor->dim_num + axis;
             concat_param->axis = axis;
         }
 
@@ -90,18 +91,19 @@ static int infer_shape(ir_node_t* node)
     }
 
     ir_tensor_t* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
-    int dims[4];
+    int          dims[4];
     for (int i = 0; i < input->dim_num; i++)
     {
         dims[i] = input->dims[i];
     }
 
-    dims[axis] = concat_shape;
+    dims[axis]     = concat_shape;
     output->layout = input->layout;
     set_ir_tensor_shape(output, dims, input->dim_num);
 
     return 0;
 }
+
 
 static int init_op(ir_op_t* op)
 {
@@ -115,29 +117,32 @@ static int init_op(ir_op_t* op)
     /*set the param default value */
     concat_param->axis = 0;
 
-    op->param_mem = concat_param;
-    op->param_size = sizeof(struct concat_param);
-    op->same_shape = 0;
-    op->infer_shape = infer_shape;
+    op->param_mem      = concat_param;
+    op->param_size     = sizeof(struct concat_param);
+    op->same_shape     = 0;
+    op->infer_shape    = infer_shape;
 
     return 0;
 }
+
 
 static void release_op(ir_op_t* op)
 {
     sys_free(op->param_mem);
 }
 
+
 int register_concat_op()
 {
     ir_method_t m;
 
     m.version = 1;
-    m.init = init_op;
+    m.init    = init_op;
     m.release = release_op;
 
     return register_op(OP_CONCAT, OP_CONCAT_NAME, &m);
 }
+
 
 int unregister_concat_op()
 {

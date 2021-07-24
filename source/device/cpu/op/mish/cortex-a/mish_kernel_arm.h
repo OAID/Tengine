@@ -27,6 +27,7 @@
 
 #include "graph/tensor.h"
 
+
 int mish_run(struct tensor* output_tensor, struct tensor* input_tensor, int num_thread);
 
 #endif

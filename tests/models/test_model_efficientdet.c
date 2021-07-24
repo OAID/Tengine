@@ -65,7 +65,7 @@ void repeat(const float* arr, int arr_length, int times, float offset, float* re
 
     if (result == NULL)
     {
-        result = malloc(length * sizeof(float));
+        result          = malloc(length * sizeof(float));
         arr_starts_from = 0;
     }
 
@@ -78,29 +78,29 @@ void repeat(const float* arr, int arr_length, int times, float offset, float* re
 int tengine_detect(const char* model_file, const char* image_file, int img_h, int img_w, const float* mean,
                    const float* scale, int loop_count, int num_thread, int affinity)
 {
-    int PYRAMID_LEVELS[] = {3, 4, 5, 6, 7};
-    int STRIDES[] = {8, 16, 32, 64, 128};
-    float SCALES[] = {
+    int   PYRAMID_LEVELS[] = { 3, 4, 5, 6, 7 };
+    int   STRIDES[]        = { 8, 16, 32, 64, 128 };
+    float SCALES[]         = {
         (float)pow(2, 0.),
         (float)pow(2, 1. / 3.),
         (float)pow(2, 2. / 3.),
     };
-    float RATIOS_X[] = {1.f, 1.4f, 0.7f};
-    float RATIOS_Y[] = {1.f, 0.7f, 1.4f};
-    float ANCHOR_SCALE = 4.f;
+    float RATIOS_X[]           = { 1.f, 1.4f, 0.7f };
+    float RATIOS_Y[]           = { 1.f, 0.7f, 1.4f };
+    float ANCHOR_SCALE         = 4.f;
     float CONFIDENCE_THRESHOLD = 0.2f;
-    float NMS_THRESHOLD = 0.2f;
+    float NMS_THRESHOLD        = 0.2f;
 
-    int num_levels = sizeof(PYRAMID_LEVELS) / sizeof(int);
-    int num_scales = sizeof(SCALES) / sizeof(float);
-    int num_ratios = sizeof(RATIOS_X) / sizeof(float);
+    int num_levels             = sizeof(PYRAMID_LEVELS) / sizeof(int);
+    int num_scales             = sizeof(SCALES) / sizeof(float);
+    int num_ratios             = sizeof(RATIOS_X) / sizeof(float);
 
     /* set runtime options */
     struct options opt;
     opt.num_thread = num_thread;
-    opt.cluster = TENGINE_CLUSTER_ALL;
-    opt.precision = TENGINE_MODE_FP32;
-    opt.affinity = affinity;
+    opt.cluster    = TENGINE_CLUSTER_ALL;
+    opt.precision  = TENGINE_MODE_FP32;
+    opt.affinity   = affinity;
 
     /* inital tengine */
     if (init_tengine() != 0)
@@ -119,9 +119,9 @@ int tengine_detect(const char* model_file, const char* image_file, int img_h, in
     }
 
     /* set the shape, data buffer of input_tensor of the graph */
-    int img_size = img_h * img_w * 3;
-    int dims[] = {1, 3, img_h, img_w}; // nchw
-    float* input_data = (float*)malloc(img_size * sizeof(float));
+    int    img_size       = img_h * img_w * 3;
+    int    dims[]         = { 1, 3, img_h, img_w };    // nchw
+    float* input_data     = (float*)malloc(img_size * sizeof(float));
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == NULL)
@@ -135,6 +135,8 @@ int tengine_detect(const char* model_file, const char* image_file, int img_h, in
         fprintf(stderr, "Set input tensor shape failed\n");
         return -1;
     }
+
+
 
     if (set_tensor_buffer(input_tensor, input_data, img_size * 4) < 0)
     {
@@ -150,8 +152,8 @@ int tengine_detect(const char* model_file, const char* image_file, int img_h, in
     }
 
     /* prepare process input data, set the data mem to input tensor */
-    float means[3] = {mean[0], mean[1], mean[2]};
-    float scales[3] = {scale[0], scale[1], scale[2]};
+    float means[3]   = { mean[0], mean[1], mean[2] };
+    float scales[3]  = { scale[0], scale[1], scale[2] };
     char* input_file = "./data/efficientdet_in.bin";
     FILE* fp;
 
@@ -164,8 +166,8 @@ int tengine_detect(const char* model_file, const char* image_file, int img_h, in
     fclose(fp);
 
     /* run graph */
-    double min_time = DBL_MAX;
-    double max_time = DBL_MIN;
+    double min_time   = DBL_MAX;
+    double max_time   = DBL_MIN;
     double total_time = 0.;
     for (int i = 0; i < loop_count; i++)
     {
@@ -191,20 +193,20 @@ int tengine_detect(const char* model_file, const char* image_file, int img_h, in
     fprintf(stderr, "--------------------------------------\n");
 
     /* get the result of classification */
-    tensor_t output_tensor_regression = get_graph_output_tensor(graph, 0, 0);
-    float* output_data_regression = (float*)get_tensor_buffer(output_tensor_regression);
-    int num_anchors = get_tensor_buffer_size(output_tensor_regression) / sizeof(float) / 4;
+    tensor_t output_tensor_regression     = get_graph_output_tensor(graph, 0, 0);
+    float*   output_data_regression       = (float*)get_tensor_buffer(output_tensor_regression);
+    int      num_anchors                  = get_tensor_buffer_size(output_tensor_regression) / sizeof(float) / 4;
 
     tensor_t output_tensor_classification = get_graph_output_tensor(graph, 1, 0);
-    float* output_data_classification = (float*)get_tensor_buffer(output_tensor_classification);
-    int num_classes = get_tensor_buffer_size(output_tensor_classification) / sizeof(float) / num_anchors;
+    float*   output_data_classification   = (float*)get_tensor_buffer(output_tensor_classification);
+    int      num_classes = get_tensor_buffer_size(output_tensor_classification) / sizeof(float) / num_anchors;
 
     // postprocess
-    char* output_file1 = "./data/efficientdet_out1.bin";
-    char* output_file2 = "./data/efficientdet_out2.bin";
+    char*  output_file1    = "./data/efficientdet_out1.bin";
+    char*  output_file2    = "./data/efficientdet_out2.bin";
     float* reference_data1 = (float*)malloc(num_anchors * sizeof(float));
     float* reference_data2 = (float*)malloc(num_classes * sizeof(float));
-    FILE* fp1;
+    FILE*  fp1;
     //read
     fp1 = fopen(output_file1, "rb");
     if (!fp1 || fread(reference_data1, sizeof(float), num_anchors, fp1) == 0)
@@ -223,7 +225,7 @@ int tengine_detect(const char* model_file, const char* image_file, int img_h, in
     int ret1 = float_mismatch(output_data_regression, reference_data1, num_anchors);
     int ret2 = float_mismatch(output_data_classification, reference_data2, num_classes);
 
-    int ret = (ret1 | ret2);
+    int ret  = (ret1 | ret2);
 
     /* release tengine */
     free(input_data);
@@ -241,16 +243,16 @@ void show_usage()
 
 int main(int argc, char* argv[])
 {
-    int loop_count = DEFAULT_LOOP_COUNT;
-    int num_thread = DEFAULT_THREAD_COUNT;
-    int cpu_affinity = DEFAULT_CPU_AFFINITY;
-    char* model_file = "./models/efficientdet.tmfile";
-    char* image_file = NULL;
-    float img_hw[2] = {0.f};
-    int img_h = 0;
-    int img_w = 0;
-    float mean[3] = {-1.f, -1.f, -1.f};
-    float scale[3] = {0.f, 0.f, 0.f};
+    int   loop_count   = DEFAULT_LOOP_COUNT;
+    int   num_thread   = DEFAULT_THREAD_COUNT;
+    int   cpu_affinity = DEFAULT_CPU_AFFINITY;
+    char* model_file   = "./models/efficientdet.tmfile";
+    char* image_file   = NULL;
+    float img_hw[2]    = { 0.f };
+    int   img_h        = 0;
+    int   img_w        = 0;
+    float mean[3]      = { -1.f, -1.f, -1.f };
+    float scale[3]     = { 0.f, 0.f, 0.f };
 
     int res;
     while ((res = getopt(argc, argv, "m:i:l:g:s:w:r:t:a:h")) != -1)

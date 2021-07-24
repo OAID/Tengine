@@ -42,9 +42,9 @@
 
 #include <pthread.h>
 
-namespace TEngine {
-class Mutex
+namespace TEngine
 {
+class Mutex {
 public:
     Mutex()
     {
@@ -68,11 +68,9 @@ private:
     pthread_mutex_t mutex;
 };
 
-class MutexLockGuard
-{
+class MutexLockGuard {
 public:
-    MutexLockGuard(Mutex& _mutex)
-        : mutex(_mutex)
+    MutexLockGuard(Mutex& _mutex) : mutex(_mutex)
     {
         mutex.lock();
     }
@@ -85,8 +83,7 @@ private:
     Mutex& mutex;
 };
 
-class ConditionVariable
-{
+class ConditionVariable {
 public:
     ConditionVariable()
     {
@@ -113,16 +110,13 @@ private:
     pthread_cond_t cond;
 };
 
-class Thread
-{
+class Thread {
 public:
     Thread(void* (*start)(void*), void* args = 0)
     {
         pthread_create(&t, 0, start, args);
     }
-    ~Thread()
-    {
-    }
+    ~Thread() {}
     void join()
     {
         pthread_join(t, 0);
@@ -132,6 +126,6 @@ private:
     pthread_t t;
 };
 
-} // namespace TEngine
+}    // namespace TEngine
 
 #endif

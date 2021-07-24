@@ -34,25 +34,28 @@
 #include "device/device.h"
 #include "utility/log.h"
 
+
 static int batchnorm_op_map(int op)
 {
     return OP_BATCHNORM;
 }
 
+
 static int tm2_load_batchnorm(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                               const TM2_Operator* tm_op)
 {
-    struct batchnorm_param* batchnorm_param = (struct batchnorm_param*)ir_node->op.param_mem;
-    const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
-    const char* mem_base = tm2_priv->base;
-    const TM2_BatchNormParam* tm_param = (TM2_BatchNormParam*)(mem_base + tm_op->offset_t_param);
+    struct batchnorm_param*   batchnorm_param = (struct batchnorm_param*)ir_node->op.param_mem;
+    const struct tm2_priv*    tm2_priv        = (struct tm2_priv*)ir_graph->serializer_privacy;
+    const char*               mem_base        = tm2_priv->base;
+    const TM2_BatchNormParam* tm_param        = (TM2_BatchNormParam*)(mem_base + tm_op->offset_t_param);
 
-    batchnorm_param->rescale_factor = tm_param->rescale_factor;
-    batchnorm_param->eps = tm_param->eps;
-    batchnorm_param->caffe_flavor = tm_param->caffe_flavor;
+    batchnorm_param->rescale_factor           = tm_param->rescale_factor;
+    batchnorm_param->eps                      = tm_param->eps;
+    batchnorm_param->caffe_flavor             = tm_param->caffe_flavor;
 
     return 0;
 }
+
 
 int register_tm2_batchnorm_op()
 {
@@ -68,6 +71,7 @@ int register_tm2_batchnorm_op()
 
     return 0;
 }
+
 
 int unregister_tm2_batchnorm_op()
 {

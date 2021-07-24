@@ -30,14 +30,16 @@
 #include "module/module.h"
 #include "utility/sys_port.h"
 
+
 static int infer_shape(struct node* node)
 {
-    struct graph* ir_graph = node->graph;
-    struct tensor* input = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
-    struct tensor* output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
+    struct graph*  ir_graph = node->graph;
+    struct tensor* input    = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
+    struct tensor* output   = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
 
     return set_ir_tensor_shape(output, input->dims, input->dim_num);
 }
+
 
 static int init_op(struct op* op)
 {
@@ -48,30 +50,33 @@ static int init_op(struct op* op)
         return -1;
     }
 
-    batchnorm_param->eps = 1e-5f;
+    batchnorm_param->eps            = 1e-5f;
     batchnorm_param->rescale_factor = 1.0f;
-    batchnorm_param->caffe_flavor = 0;
+    batchnorm_param->caffe_flavor   = 0;
 
-    op->param_mem = batchnorm_param;
-    op->param_size = sizeof(batchnorm_param_t);
-    op->same_shape = 0;
-    op->infer_shape = infer_shape;
+    op->param_mem                   = batchnorm_param;
+    op->param_size                  = sizeof(batchnorm_param_t);
+    op->same_shape                  = 0;
+    op->infer_shape                 = infer_shape;
 
     return 0;
 }
+
 
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
 
+
 int register_batchnorm_op()
 {
     struct method m;
 
     m.version = 1;
-    m.init = init_op;
+    m.init    = init_op;
     m.release = release_op;
+
 
     return register_op(OP_BATCHNORM, OP_BATCHNORM_NAME, &m);
 }

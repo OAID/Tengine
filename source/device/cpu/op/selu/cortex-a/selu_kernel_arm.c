@@ -30,28 +30,29 @@
 
 #include <arm_neon.h>
 
+
 void selu_kernel(int i, int id, void* data, const float* input, float* output, float alpha, float lambda)
 {
-    float alpha_lambda = alpha * lambda;
-    int step = ((int*)data)[0];
-    float32x4_t _one = vdupq_n_f32(1.f);
-    float32x4_t _zero = vdupq_n_f32(0.f);
-    float32x4_t _alpha_lambda = vdupq_n_f32(alpha_lambda);
-    float32x4_t _lambda = vdupq_n_f32(lambda);
-    const float* cur_input = input + id * step;
-    float* cur_output = output + id * step;
+    float        alpha_lambda  = alpha * lambda;
+    int          step          = ((int*)data)[0];
+    float32x4_t  _one          = vdupq_n_f32(1.f);
+    float32x4_t  _zero         = vdupq_n_f32(0.f);
+    float32x4_t  _alpha_lambda = vdupq_n_f32(alpha_lambda);
+    float32x4_t  _lambda       = vdupq_n_f32(lambda);
+    const float* cur_input     = input + id * step;
+    float*       cur_output    = output + id * step;
     for (int i = 0; i < (step & -4); i += 4)
     {
-        float32x4_t _p = vld1q_f32(cur_input);
-        uint32x4_t _lemask = vcleq_f32(_p, _zero);
+        float32x4_t _p      = vld1q_f32(cur_input);
+        uint32x4_t  _lemask = vcleq_f32(_p, _zero);
 
-        float32x4_t _nps = exp_ps(_p);
-        _nps = vsubq_f32(_nps, _one);
-        _nps = vmulq_f32(_nps, _alpha_lambda);
+        float32x4_t _nps    = exp_ps(_p);
+        _nps                = vsubq_f32(_nps, _one);
+        _nps                = vmulq_f32(_nps, _alpha_lambda);
 
-        _p = vmulq_f32(_p, _lambda);
+        _p                  = vmulq_f32(_p, _lambda);
 
-        _p = vbslq_f32(_lemask, _nps, _p);
+        _p                  = vbslq_f32(_lemask, _nps, _p);
         vst1q_f32(cur_output, _p);
         cur_input += 4;
         cur_output += 4;
@@ -69,13 +70,13 @@ void selu_kernel(int i, int id, void* data, const float* input, float* output, f
 
 int selu_run(struct tensor* output_tensor, struct tensor* input_tensor, struct selu_param* selu_param, int num_thread)
 {
-    float* data = (float*)input_tensor->data;
+    float* data     = (float*)input_tensor->data;
     float* out_data = (float*)output_tensor->data;
-    float alpha = selu_param->alpha;
-    float lambda = selu_param->lambda;
+    float  alpha    = selu_param->alpha;
+    float  lambda   = selu_param->lambda;
 
-    int chan_num = input_tensor->dims[0] * input_tensor->dims[1];
-    int chan_size = input_tensor->dims[2] * input_tensor->dims[3];
+    int chan_num    = input_tensor->dims[0] * input_tensor->dims[1];
+    int chan_size   = input_tensor->dims[2] * input_tensor->dims[3];
 
 #pragma omp parallel for num_threads(num_thread)
     for (int i = 0; i < chan_num; i++)

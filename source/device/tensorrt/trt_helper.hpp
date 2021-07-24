@@ -42,26 +42,29 @@
 #include <ostream>
 #include <string>
 
+
 #ifdef _MSC_VER
-#define FN_NAME __FUNCTION__
+    #define FN_NAME __FUNCTION__
 #else
-#define FN_NAME __func__
+    #define FN_NAME __func__
 #endif
 
 #if (!defined(__ANDROID__) && defined(__aarch64__)) || defined(__QNX__)
-#define ENABLE_DLA_API 1
+    #define ENABLE_DLA_API 1
 #endif
 
-#define CHECK(status)                                                  \
-    do                                                                 \
-    {                                                                  \
-        auto ret = (status);                                           \
-        if (ret != 0)                                                  \
-        {                                                              \
-            Log(Loglevel, "TensorRT Engine", "Cuda failure: %d", ret); \
-            abort();                                                   \
-        }                                                              \
-    } while (0)
+#define CHECK(status)                                                                                                  \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        auto ret = (status);                                                                                           \
+        if (ret != 0)                                                                                                  \
+        {                                                                                                              \
+            Log(Loglevel, "TensorRT Engine", "Cuda failure: %d", ret);                                                 \
+            abort();                                                                                                   \
+        }                                                                                                              \
+    }                                                                                                                  \
+    while (0)
+
 
 constexpr long double operator"" _GiB(long double val)
 {
@@ -91,14 +94,14 @@ constexpr long long int operator"" _KiB(long long unsigned int val)
     return val * (1 << 10);
 }
 
-class Logger : public nvinfer1::ILogger
-{
+
+
+class Logger : public nvinfer1::ILogger {
 public:
     nvinfer1::ILogger::Severity severity_;
 
 public:
-    Logger(nvinfer1::ILogger::Severity severity = nvinfer1::ILogger::Severity::kINFO)
-        : severity_(severity){};
+    Logger(nvinfer1::ILogger::Severity severity = nvinfer1::ILogger::Severity::kINFO) : severity_(severity) {};
 
     void log(Severity severity, const char* msg) override
     {
@@ -140,9 +143,10 @@ public:
     }
 };
 
+
 struct InferDeleter
 {
-    template<typename T>
+    template <typename T>
     void operator()(T* obj) const
     {
         if (obj)
@@ -151,6 +155,7 @@ struct InferDeleter
         }
     }
 };
+
 
 inline void enableDLA(nvinfer1::IBuilder* builder, nvinfer1::IBuilderConfig* config, int useDLACore,
                       bool allowGPUFallback = true)
@@ -177,6 +182,7 @@ inline void enableDLA(nvinfer1::IBuilder* builder, nvinfer1::IBuilderConfig* con
     }
 }
 
+
 // Ensures that every tensor used by a network has a scale.
 //
 // All tensors in a network must have a range specified if a calibrator is not used.
@@ -197,7 +203,7 @@ void setAllTensorScales(nvinfer1::INetworkDefinition* network, float inScales = 
         auto layer = network->getLayer(i);
         for (int j = 0; j < layer->getNbInputs(); j++)
         {
-            nvinfer1::ITensor* input{layer->getInput(j)};
+            nvinfer1::ITensor* input { layer->getInput(j) };
             // Optional inputs are nullptr here and are from RNN layers.
             if (input != nullptr && !input->dynamicRangeIsSet())
             {
@@ -214,7 +220,7 @@ void setAllTensorScales(nvinfer1::INetworkDefinition* network, float inScales = 
         auto layer = network->getLayer(i);
         for (int j = 0; j < layer->getNbOutputs(); j++)
         {
-            nvinfer1::ITensor* output{layer->getOutput(j)};
+            nvinfer1::ITensor* output { layer->getOutput(j) };
             // Optional outputs are nullptr here and are from RNN layers.
             if (output != nullptr && !output->dynamicRangeIsSet())
             {
@@ -232,6 +238,7 @@ void setAllTensorScales(nvinfer1::INetworkDefinition* network, float inScales = 
     }
 }
 
+
 struct CaffeBufferShutter
 {
     ~CaffeBufferShutter()
@@ -239,6 +246,7 @@ struct CaffeBufferShutter
         nvcaffeparser1::shutdownProtobufLibrary();
     }
 };
+
 
 struct UffBufferShutter
 {
@@ -248,7 +256,9 @@ struct UffBufferShutter
     }
 };
 
-template<typename T>
+
+template <typename T>
 using TensorRTSmartPoint = std::unique_ptr<T, InferDeleter>;
+
 
 using TensorRTShapeRange = std::array<nvinfer1::Dims, nvinfer1::EnumMax<nvinfer1::OptProfileSelector>()>;

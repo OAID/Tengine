@@ -38,30 +38,32 @@
 
 #include <math.h>
 
+
 int ref_mish_uint8(struct tensor* input_tensor, struct tensor* output_tensor, int num_thread)
 {
-    int w = input_tensor->dims[3];
-    int h = output_tensor->dims[2];
-    int channels = input_tensor->dims[1];
-    int batch = input_tensor->dims[0];
+    int w          = input_tensor->dims[3];
+    int h          = output_tensor->dims[2];
+    int channels   = input_tensor->dims[1];
+    int batch      = input_tensor->dims[0];
 
-    int size = h * w;
-    int c_step = h * w;
+    int size       = h * w;
+    int c_step     = h * w;
     int batch_step = c_step * channels;
     int total_size = batch_step * batch;
 
     // dequant
-    uint8_t* input_uint8 = input_tensor->data;
+    uint8_t* input_uint8  = input_tensor->data;
     uint8_t* output_uint8 = output_tensor->data;
-    float input_scale = input_tensor->scale;
-    float output_scale = output_tensor->scale;
-    int32_t input_zero = input_tensor->zero_point;
-    int32_t output_zero = output_tensor->zero_point;
+    float    input_scale  = input_tensor->scale;
+    float    output_scale = output_tensor->scale;
+    int32_t  input_zero   = input_tensor->zero_point;
+    int32_t  output_zero  = output_tensor->zero_point;
 
-    float* data_fp32 = sys_malloc(total_size * sizeof(float));
+    float* data_fp32      = sys_malloc(total_size * sizeof(float));
 
     for (int i = 0; i < total_size; i++)
         data_fp32[i] = ((float)input_uint8[i] - (float)input_zero) * input_scale;
+
 
     for (int n = 0; n < batch; n++)
     {

@@ -34,25 +34,28 @@
 #include "device/device.h"
 #include "utility/log.h"
 
+
 static int l2pool_op_map(int op)
 {
     return OP_L2POOL;
 }
 
+
 static int tm2_load_l2pool(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                            const TM2_Operator* tm_op)
 {
-    struct l2pool_param* l2pool_param = (struct l2pool_param*)ir_node->op.param_mem;
-    const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
-    const char* mem_base = tm2_priv->base;
-    const TM2_L2PoolParam* tm_param = (TM2_L2PoolParam*)(mem_base + tm_op->offset_t_param);
-    l2pool_param->paddingType = tm_param->paddingType;
-    l2pool_param->kernel_h = tm_param->kernel_h;
-    l2pool_param->kernel_w = tm_param->kernel_w;
-    l2pool_param->stride_h = tm_param->stride_h;
-    l2pool_param->stride_w = tm_param->stride_w;
+    struct l2pool_param*   l2pool_param = (struct l2pool_param*)ir_node->op.param_mem;
+    const struct tm2_priv* tm2_priv     = (struct tm2_priv*)ir_graph->serializer_privacy;
+    const char*            mem_base     = tm2_priv->base;
+    const TM2_L2PoolParam* tm_param     = (TM2_L2PoolParam*)(mem_base + tm_op->offset_t_param);
+    l2pool_param->paddingType           = tm_param->paddingType;
+    l2pool_param->kernel_h              = tm_param->kernel_h;
+    l2pool_param->kernel_w              = tm_param->kernel_w;
+    l2pool_param->stride_h              = tm_param->stride_h;
+    l2pool_param->stride_w              = tm_param->stride_w;
     return 0;
 }
+
 
 int register_tm2_l2pool_op()
 {
@@ -68,6 +71,7 @@ int register_tm2_l2pool_op()
 
     return 0;
 }
+
 
 int unregister_tm2_l2pool_op()
 {

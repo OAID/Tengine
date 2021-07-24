@@ -60,20 +60,20 @@ int BilinearSampling(int o_n, int o_c, int o_h, int o_w, int i_c, int i_h, int i
             {
                 for (int w = 0; w < o_w; w++)
                 {
-                    int out_index = n * o_c * o_h * o_w + c * o_h * o_w + h * o_w + w;
-                    int grid_index = n * o_h * o_w * 2 + h * o_w + w;
-                    float y_real = (*(grid_total + grid_index + o_h * o_w) + 1.0) * (i_h - 1.0) / 2.0;
-                    float x_real = (*(grid_total + grid_index) + 1.0) * (i_w - 1.0) / 2.0;
-                    int top_left_y = floor(y_real);
-                    int top_left_x = floor(x_real);
-                    float top_left_y_w = 1.0 - (y_real - top_left_y);
-                    float top_left_x_w = 1.0 - (x_real - top_left_x);
-                    int data_index = n * i_c * i_h * i_w + c * i_h * i_w + top_left_y * i_w + top_left_x;
-                    float top_left_v = 0;
-                    float top_right_v = 0;
-                    float bottom_left_v = 0;
+                    int   out_index      = n * o_c * o_h * o_w + c * o_h * o_w + h * o_w + w;
+                    int   grid_index     = n * o_h * o_w * 2 + h * o_w + w;
+                    float y_real         = (*(grid_total + grid_index + o_h * o_w) + 1.0) * (i_h - 1.0) / 2.0;
+                    float x_real         = (*(grid_total + grid_index) + 1.0) * (i_w - 1.0) / 2.0;
+                    int   top_left_y     = floor(y_real);
+                    int   top_left_x     = floor(x_real);
+                    float top_left_y_w   = 1.0 - (y_real - top_left_y);
+                    float top_left_x_w   = 1.0 - (x_real - top_left_x);
+                    int   data_index     = n * i_c * i_h * i_w + c * i_h * i_w + top_left_y * i_w + top_left_x;
+                    float top_left_v     = 0;
+                    float top_right_v    = 0;
+                    float bottom_left_v  = 0;
                     float bottom_right_v = 0;
-                    int lower_bound = 0;
+                    int   lower_bound    = 0;
                     if (between(top_left_x, lower_bound, i_w - 1) && between(top_left_y, lower_bound, i_h - 1))
                     {
                         top_left_v = *(in_data + data_index);
@@ -106,24 +106,26 @@ int ref_spatialtransformer_fp32(struct tensor* input_tensor, struct tensor* inpu
 {
     int indices_dim_size = input_tensor->dim_num;
 
-    float* in_data = input_tensor->data;
-    float* out_data = output_tensor->data;
-    float* loc_data = input_tensor1->data;
+    float* in_data       = input_tensor->data;
+    float* out_data      = output_tensor->data;
+    float* loc_data      = input_tensor1->data;
 
-    int batch = input_tensor->dims[1];
+    int batch            = input_tensor->dims[1];
 
-    float* workspace = (float*)malloc(sizeof(float) * 3 * param->target_shape[0] * param->target_shape[1]);
+    float* workspace     = (float*)malloc(sizeof(float) * 3 * param->target_shape[0] * param->target_shape[1]);
 
-    int target_shape_hw = param->target_shape[0] * param->target_shape[1];
+    int target_shape_hw  = param->target_shape[0] * param->target_shape[1];
     for (int i = 1; i <= target_shape_hw; i++)
     {
-        workspace[0 * target_shape_hw + i - 1] = -1.0 + (i - 1) % param->target_shape[1] * 2.0 / (param->target_shape[1] - 1);
-        workspace[1 * target_shape_hw + i - 1] = -1.0 + (i - 1) / param->target_shape[1] * 2.0 / (param->target_shape[0] - 1);
+        workspace[0 * target_shape_hw + i - 1] =
+            -1.0 + (i - 1) % param->target_shape[1] * 2.0 / (param->target_shape[1] - 1);
+        workspace[1 * target_shape_hw + i - 1] =
+            -1.0 + (i - 1) / param->target_shape[1] * 2.0 / (param->target_shape[0] - 1);
         workspace[2 * target_shape_hw + i - 1] = 1.0;
     }
-    int m = 2;
-    int p = target_shape_hw;
-    int n = 3;
+    int m           = 2;
+    int p           = target_shape_hw;
+    int n           = 3;
 
     float* grid_src = (float*)malloc(sizeof(float) * 2 * target_shape_hw * batch);
     float* grid_dst = (float*)malloc(sizeof(float) * 3 * target_shape_hw);
@@ -133,10 +135,10 @@ int ref_spatialtransformer_fp32(struct tensor* input_tensor, struct tensor* inpu
         grid_dst[i] = workspace[i];
     }
     if (param->transformer_type == 0)
-    { // Affine
+    {    // Affine
         for (int b = 0; b < batch; b++)
         {
-            int index = b * target_shape_hw;
+            int    index          = b * target_shape_hw;
             float* grid_src_batch = grid_src + 0;
             for (int i = 0; i < m; i++)
             {
@@ -153,7 +155,7 @@ int ref_spatialtransformer_fp32(struct tensor* input_tensor, struct tensor* inpu
     }
 
     if (param->sampler_type == 1)
-    { // Bilinear
+    {    // Bilinear
         int o_n = output_tensor->dims[0];
         int o_c = output_tensor->dims[1];
         int o_h = output_tensor->dims[2];
@@ -191,18 +193,18 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node* ir_node = exec_node->ir_node;
-    struct graph* ir_graph = ir_node->graph;
+    struct node*   ir_node  = exec_node->ir_node;
+    struct graph*  ir_graph = ir_node->graph;
     struct tensor* input_tensor;
     struct tensor* input_tensor1;
     struct tensor* output_tensor;
-    int layout = ir_graph->graph_layout;
+    int            layout = ir_graph->graph_layout;
 
-    input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+    input_tensor          = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    output_tensor         = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    input_tensor1 = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
-    int indices_dim_size = input_tensor1->dim_num;
+    input_tensor1         = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
+    int indices_dim_size  = input_tensor1->dim_num;
 
     struct spatialtransformer_param* spatialtransformer_param = (struct spatialtransformer_param*)ir_node->op.param_mem;
 
@@ -219,13 +221,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_CANDO;
 }
 
-static struct node_ops hcl_node_ops = {.prerun = prerun,
-                                       .run = run,
-                                       .reshape = NULL,
-                                       .postrun = NULL,
-                                       .init_node = init_node,
-                                       .release_node = release_node,
-                                       .score = score};
+static struct node_ops hcl_node_ops = { .prerun       = prerun,
+                                        .run          = run,
+                                        .reshape      = NULL,
+                                        .postrun      = NULL,
+                                        .init_node    = init_node,
+                                        .release_node = release_node,
+                                        .score        = score };
 
 int register_spatialtransformer_ref_op()
 {

@@ -36,10 +36,11 @@
 
 #include <math.h>
 
+
 int ref_squeeze_fp32(struct tensor* input_tensor, struct tensor* output_tensor)
 {
     float* input_data = input_tensor->data;
-    float* out_data = output_tensor->data;
+    float* out_data   = output_tensor->data;
 
     for (int i = 0; i < input_tensor->elem_num; i++)
     {
@@ -52,7 +53,7 @@ int ref_squeeze_fp32(struct tensor* input_tensor, struct tensor* output_tensor)
 int ref_squeeze_uint8(struct tensor* input_tensor, struct tensor* output_tensor)
 {
     uint8_t* input_data = input_tensor->data;
-    uint8_t* out_data = output_tensor->data;
+    uint8_t* out_data   = output_tensor->data;
 
     for (int i = 0; i < input_tensor->elem_num; i++)
     {
@@ -74,12 +75,12 @@ static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, 
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node* ir_node = exec_node->ir_node;
-    struct graph* ir_graph = ir_node->graph;
-    struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    struct node*   ir_node       = exec_node->ir_node;
+    struct graph*  ir_graph      = ir_node->graph;
+    struct tensor* input_tensor  = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    int ret = -1;
+    int ret                      = -1;
     if (input_tensor->data_type == TENGINE_DT_FP32)
         ret = ref_squeeze_fp32(input_tensor, output_tensor);
     else if (input_tensor->data_type == TENGINE_DT_UINT8)
@@ -93,13 +94,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_BEST;
 }
 
-static struct node_ops squeeze_node_ops = {.prerun = NULL,
-                                           .run = run,
-                                           .reshape = NULL,
-                                           .postrun = NULL,
-                                           .init_node = init_node,
-                                           .release_node = release_node,
-                                           .score = score};
+static struct node_ops squeeze_node_ops = { .prerun       = NULL,
+                                            .run          = run,
+                                            .reshape      = NULL,
+                                            .postrun      = NULL,
+                                            .init_node    = init_node,
+                                            .release_node = release_node,
+                                            .score        = score };
 
 int register_squeeze_ref_op()
 {

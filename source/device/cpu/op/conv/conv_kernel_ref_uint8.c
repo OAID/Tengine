@@ -39,52 +39,53 @@
 
 #include <math.h>
 
+
 int ref_conv_uint8(struct tensor* input_tensor, struct tensor* output_tensor, struct tensor* kernel,
                    struct tensor* bias, struct conv_param* conv_param)
 {
-    int batch = input_tensor->dims[0];
-    int group = conv_param->group;
-    int input_c = conv_param->input_channel / group;
-    int input_h = input_tensor->dims[2];
-    int input_w = input_tensor->dims[3];
-    int output_c = output_tensor->dims[1] / group;
-    int output_h = output_tensor->dims[2];
-    int output_w = output_tensor->dims[3];
+    int batch       = input_tensor->dims[0];
+    int group       = conv_param->group;
+    int input_c     = conv_param->input_channel / group;
+    int input_h     = input_tensor->dims[2];
+    int input_w     = input_tensor->dims[3];
+    int output_c    = output_tensor->dims[1] / group;
+    int output_h    = output_tensor->dims[2];
+    int output_w    = output_tensor->dims[3];
 
     int kernel_size = input_c * conv_param->kernel_h * conv_param->kernel_w;
     int n, g, c, h, w, kc, kh, kw;
-    int input_offset = 0;
-    int kernel_offset = 0;
-    int output_offset = 0;
+    int input_offset     = 0;
+    int kernel_offset    = 0;
+    int output_offset    = 0;
 
-    uint8_t* input_data = input_tensor->data;
+    uint8_t* input_data  = input_tensor->data;
     uint8_t* output_data = output_tensor->data;
     uint8_t* kernel_data = kernel->data;
-    int32_t* bias_data = NULL;
+    int32_t* bias_data   = NULL;
     if (bias != NULL)
         bias_data = bias->data;
 
-    float input_scale = input_tensor->scale;
-    float kernel_scale = kernel->scale;
-    float output_scale = output_tensor->scale;
-    int32_t kernel_zero = kernel->zero_point;
-    int32_t input_zero = input_tensor->zero_point;
-    int32_t output_zero = output_tensor->zero_point;
+    float   input_scale  = input_tensor->scale;
+    float   kernel_scale = kernel->scale;
+    float   output_scale = output_tensor->scale;
+    int32_t kernel_zero  = kernel->zero_point;
+    int32_t input_zero   = input_tensor->zero_point;
+    int32_t output_zero  = output_tensor->zero_point;
 
     /* dequant input  */
-    int input_size = batch * group * input_c * input_h * input_w;
+    int    input_size = batch * group * input_c * input_h * input_w;
     float* input_fp32 = (float*)sys_malloc(sizeof(float) * input_size);
     for (int i = 0; i < input_size; i++)
         input_fp32[i] = ((float)input_data[i] - input_zero) * input_scale;
 
     /* dequant kernel  */
-    int kernel_total = group * output_c * kernel_size;
-    float* kernel_fp32 = (float*)sys_malloc(sizeof(float) * kernel_total);
+    int    kernel_total = group * output_c * kernel_size;
+    float* kernel_fp32  = (float*)sys_malloc(sizeof(float) * kernel_total);
     for (int i = 0; i < kernel_total; i++)
         kernel_fp32[i] = ((float)kernel_data[i] - kernel_zero) * kernel_scale;
 
     /* dequant biases  */
-    int bias_size = group * output_c;
+    int bias_size    = group * output_c;
 
     float* bias_fp32 = NULL;
     if (bias != NULL)
@@ -113,7 +114,7 @@ int ref_conv_uint8(struct tensor* input_tensor, struct tensor* output_tensor, st
                     {
                         const int h_start = (h * conv_param->stride_h) - conv_param->pad_h0;
                         const int w_start = (w * conv_param->stride_w) - conv_param->pad_w0;
-                        float total = 0.f;
+                        float     total   = 0.f;
                         if (input_tensor->layout == 0)
                         {
                             output_offset = n * group * output_c * output_h * output_w

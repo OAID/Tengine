@@ -28,11 +28,12 @@
 
 #define CUDA_DEV_NAME "CUDA"
 
-extern "C" {
-struct cuda_device
+extern "C"
 {
-    struct device base;
-};
+    struct cuda_device
+    {
+        struct device base;
+    };
 
-int register_cuda_device(void);
+    int register_cuda_device(void);
 }

@@ -38,6 +38,7 @@
 #include "arm_math.h"
 #include "arm_nnfunctions.h"
 
+
 struct cmsis_param
 {
     uint16_t bias_shift;
@@ -61,31 +62,31 @@ static inline int cal_shift(int scale)
 
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node* ir_node = exec_node->ir_node;
-    struct graph* ir_graph = ir_node->graph;
-    int bias_shift = 0;
-    int out_shift = 0;
+    struct node*  ir_node    = exec_node->ir_node;
+    struct graph* ir_graph   = ir_node->graph;
+    int           bias_shift = 0;
+    int           out_shift  = 0;
 
     if (ir_node->input_num > 2)
     {
         struct tensor* ir_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[2]);
-        int scale = ir_tensor->scale;
-        bias_shift = cal_shift(scale);
+        int            scale     = ir_tensor->scale;
+        bias_shift               = cal_shift(scale);
     }
 
-    struct tensor* ir_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    int scale = ir_tensor->scale;
-    out_shift = cal_shift(scale);
+    struct tensor* ir_tensor     = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+    int            scale         = ir_tensor->scale;
+    out_shift                    = cal_shift(scale);
 
-    struct cmsis_param* param = (struct cmsis_param*)sys_malloc(sizeof(struct cmsis_param));
+    struct cmsis_param* param    = (struct cmsis_param*)sys_malloc(sizeof(struct cmsis_param));
 
-    param->bias_shift = bias_shift;
-    param->out_shift = out_shift;
+    param->bias_shift            = bias_shift;
+    param->out_shift             = out_shift;
 
-    exec_node->ops_priv = param;
+    exec_node->ops_priv          = param;
 
     struct tensor* weight_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    exec_node->shared_mem_size = weight_tensor->dims[1] * 2;
+    exec_node->shared_mem_size   = weight_tensor->dims[1] * 2;
 
     return 0;
 }
@@ -98,24 +99,25 @@ static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, 
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node* ir_node = exec_node->ir_node;
-    struct graph* ir_graph = ir_node->graph;
-    struct tensor* input_tensor;
-    struct tensor* weight_tensor;
-    struct tensor* bias_tensor = NULL;
-    struct tensor* output_tensor;
+    struct node*        ir_node  = exec_node->ir_node;
+    struct graph*       ir_graph = ir_node->graph;
+    struct tensor*      input_tensor;
+    struct tensor*      weight_tensor;
+    struct tensor*      bias_tensor = NULL;
+    struct tensor*      output_tensor;
     struct cmsis_param* cmsis_param = (struct cmsis_param*)exec_node->ops_priv;
 
-    input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    weight_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
-    output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+    input_tensor                    = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    weight_tensor                   = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
+    output_tensor                   = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
     if (ir_node->input_num > 2)
         bias_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[2]);
 
-    int ret = arm_fully_connected_q7(input_tensor->data, weight_tensor->data, weight_tensor->dims[1], weight_tensor->dims[0],
-                                     cmsis_param->bias_shift, cmsis_param->out_shift, bias_tensor ? bias_tensor->data : NULL,
-                                     output_tensor->data, exec_graph->shared_mem);
+    int ret =
+        arm_fully_connected_q7(input_tensor->data, weight_tensor->data, weight_tensor->dims[1], weight_tensor->dims[0],
+                               cmsis_param->bias_shift, cmsis_param->out_shift, bias_tensor ? bias_tensor->data : NULL,
+                               output_tensor->data, exec_graph->shared_mem);
 
     if (ret != ARM_MATH_SUCCESS)
         return -1;
@@ -133,13 +135,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_BEST;
 }
 
-static struct node_ops cmsis_node_ops = {.prerun = NULL,
-                                         .run = run,
-                                         .reshape = reshape,
-                                         .postrun = NULL,
-                                         .init_node = init_node,
-                                         .release_node = release_node,
-                                         .score = score};
+static struct node_ops cmsis_node_ops = { .prerun       = NULL,
+                                          .run          = run,
+                                          .reshape      = reshape,
+                                          .postrun      = NULL,
+                                          .init_node    = init_node,
+                                          .release_node = release_node,
+                                          .score        = score };
 
 int register_fc_cmsis_op()
 {

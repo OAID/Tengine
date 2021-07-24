@@ -30,16 +30,18 @@
 
 #include <string.h>
 
+
 void init_attribute(ir_attribute_t* attribute, ir_context_t* context)
 {
-    attribute->status = GRAPH_STAT_CREATED;
-    attribute->priority = 0;
-    attribute->policy = DEFAULT_POLICY;
-    attribute->private_context = 0;
-    attribute->context = context;
-    attribute->device_privacy = NULL;
+    attribute->status            = GRAPH_STAT_CREATED;
+    attribute->priority          = 0;
+    attribute->policy            = DEFAULT_POLICY;
+    attribute->private_context   = 0;
+    attribute->context           = context;
+    attribute->device_privacy    = NULL;
     attribute->scheduler_privacy = NULL;
 }
+
 
 void destroy_attribute(struct graph* graph, ir_attribute_t* attribute)
 {
@@ -56,11 +58,13 @@ void destroy_attribute(struct graph* graph, ir_attribute_t* attribute)
     sys_free(attribute);
 }
 
+
 int release_device_mem(struct device* dev, ir_memory_t* dev_mem)
 {
     // TODO:
     return -1;
 }
+
 
 void init_ir_context(ir_context_t* context, const char* name)
 {
@@ -75,8 +79,8 @@ void init_ir_context(ir_context_t* context, const char* name)
         context->name = NULL;
     }
 
-    context->scheduler = NULL;
-    context->device = NULL;
+    context->scheduler       = NULL;
+    context->device          = NULL;
     context->default_options = NULL;
-    context->device_options = NULL;
+    context->device_options  = NULL;
 }

@@ -35,25 +35,27 @@
 #include "utility/sys_port.h"
 #include "utility/log.h"
 
+
 static int tile_op_map(int op)
 {
     return OP_TILE;
 }
 
+
 static int tm2_load_tile(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                          const TM2_Operator* tm_op)
 {
-    struct tile_param* tile_param = (struct tile_param*)ir_node->op.param_mem;
-    const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
-    const char* mem_base = tm2_priv->base;
-    const TM2_TileParam* tm_param = (TM2_TileParam*)(mem_base + tm_op->offset_t_param);
-    tile_param->frame_flag = tm_param->frame_flag;
+    struct tile_param*     tile_param = (struct tile_param*)ir_node->op.param_mem;
+    const struct tm2_priv* tm2_priv   = (struct tm2_priv*)ir_graph->serializer_privacy;
+    const char*            mem_base   = tm2_priv->base;
+    const TM2_TileParam*   tm_param   = (TM2_TileParam*)(mem_base + tm_op->offset_t_param);
+    tile_param->frame_flag            = tm_param->frame_flag;
     if (tm_param->offset_reps != TM2_NOT_SET)
     {
         const TM2_Vector_dims* v_re_shape = (TM2_Vector_dims*)(mem_base + tm_param->offset_reps);
-        tile_param->reps_size = v_re_shape->v_num;
+        tile_param->reps_size             = v_re_shape->v_num;
 
-        tile_param->reps = (int*)sys_malloc(v_re_shape->v_num * sizeof(int));
+        tile_param->reps                  = (int*)sys_malloc(v_re_shape->v_num * sizeof(int));
 
         for (unsigned int i = 0; i < v_re_shape->v_num; i++)
         {
@@ -63,6 +65,7 @@ static int tm2_load_tile(struct graph* ir_graph, struct node* ir_node, const TM2
 
     return 0;
 }
+
 
 int register_tm2_tile_op()
 {
@@ -78,6 +81,7 @@ int register_tm2_tile_op()
 
     return 0;
 }
+
 
 int unregister_tm2_tile_op()
 {
