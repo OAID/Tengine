@@ -55,7 +55,7 @@ static float32x4_t vector_activation(float32x4_t tmp, int type)
         tmp = vmaxq_f32(tmp, zero);
         if (type > 0)
         {
-            float32x4_t max = vdupq_n_f32(( float )type);
+            float32x4_t max = vdupq_n_f32((float)type);
             tmp = vminq_f32(tmp, max);
         }
     }
@@ -66,7 +66,7 @@ static float32x4_t vector_activation(float32x4_t tmp, int type)
 void depthwise_conv_k5s1(float* input, float* weight, float* bias, float* output, int input_h, int input_w, int channel,
                          int output_h, int output_w, int activation, int num_thread)
 {
-// #pragma omp parallel for num_threads(num_thread)
+    // #pragma omp parallel for num_threads(num_thread)
     for (int c = 0; c < channel; c++)
     {
         float* input_cur = (float*)input + c * input_h * input_w;
@@ -91,7 +91,7 @@ void depthwise_conv_k5s2(float* input_buf, float* weight_buf, float* bias, float
     int mid_w = output_w - 2;
     int mid_w_block = mid_w & -4;
 
-// #pragma omp parallel for num_threads(num_thread)
+    // #pragma omp parallel for num_threads(num_thread)
     for (int c = 0; c < channel; c++)
     {
         int w, h;
@@ -685,16 +685,14 @@ void depthwise_conv_k7s1(float* input, float* weight, float* bias, float* output
             tmp_4_0 = vmlaq_f32(tmp_4_0, line2, kernel_31_34);
             tmp_4_0 = vmlaq_f32(tmp_4_0, line3, kernel_38_41);
             tmp_4_0 = vmlaq_f32(tmp_4_0, line4, kernel_45_48);
-            tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) +
-                   vgetq_lane_f32(tmp_4_0, 3) + bias_c;
+            tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) + vgetq_lane_f32(tmp_4_0, 3) + bias_c;
             *output_buf++ = elem_activation(tmp0, activation);
             float32x4_t tmp_4_1 = vmulq_f32(line1, kernel_17_20);
             tmp_4_1 = vmlaq_f32(tmp_4_1, line2, kernel_24_27);
             tmp_4_1 = vmlaq_f32(tmp_4_1, line3, kernel_31_34);
             tmp_4_1 = vmlaq_f32(tmp_4_1, line4, kernel_38_41);
             tmp_4_1 = vmlaq_f32(tmp_4_1, line5, kernel_45_48);
-            tmp1 = vgetq_lane_f32(tmp_4_1, 0) + vgetq_lane_f32(tmp_4_1, 1) + vgetq_lane_f32(tmp_4_1, 2) +
-                   vgetq_lane_f32(tmp_4_1, 3) + bias_c;
+            tmp1 = vgetq_lane_f32(tmp_4_1, 0) + vgetq_lane_f32(tmp_4_1, 1) + vgetq_lane_f32(tmp_4_1, 2) + vgetq_lane_f32(tmp_4_1, 3) + bias_c;
             *output_buf_1++ = elem_activation(tmp1, activation);
             float32x4_t tmp_4_2 = vmulq_f32(line1, kernel_10_13);
             tmp_4_2 = vmlaq_f32(tmp_4_2, line2, kernel_17_20);
@@ -702,8 +700,7 @@ void depthwise_conv_k7s1(float* input, float* weight, float* bias, float* output
             tmp_4_2 = vmlaq_f32(tmp_4_2, line4, kernel_31_34);
             tmp_4_2 = vmlaq_f32(tmp_4_2, line5, kernel_38_41);
             tmp_4_2 = vmlaq_f32(tmp_4_2, line6, kernel_45_48);
-            tmp2 = vgetq_lane_f32(tmp_4_2, 0) + vgetq_lane_f32(tmp_4_2, 1) + vgetq_lane_f32(tmp_4_2, 2) +
-                   vgetq_lane_f32(tmp_4_2, 3) + bias_c;
+            tmp2 = vgetq_lane_f32(tmp_4_2, 0) + vgetq_lane_f32(tmp_4_2, 1) + vgetq_lane_f32(tmp_4_2, 2) + vgetq_lane_f32(tmp_4_2, 3) + bias_c;
             *output_buf_2++ = elem_activation(tmp2, activation);
         }
         float32x4_t kernel_9_12 = vextq_f32(kernel_8_11, kernel_12_15, 1);
@@ -716,8 +713,7 @@ void depthwise_conv_k7s1(float* input, float* weight, float* bias, float* output
             tmp_4_0 = vmlaq_f32(tmp_4_0, line2, kernel_30_33);
             tmp_4_0 = vmlaq_f32(tmp_4_0, line3, kernel_37_40);
             tmp_4_0 = vmlaq_f32(tmp_4_0, line4, kernel_44_47);
-            tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) +
-                   vgetq_lane_f32(tmp_4_0, 3) + bias_c;
+            tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) + vgetq_lane_f32(tmp_4_0, 3) + bias_c;
             tmp0 += weight_buf[27] * input_1[4];
             tmp0 += weight_buf[34] * input_2[4];
             tmp0 += weight_buf[41] * input_3[4];
@@ -728,8 +724,7 @@ void depthwise_conv_k7s1(float* input, float* weight, float* bias, float* output
             tmp_4_1 = vmlaq_f32(tmp_4_1, line3, kernel_30_33);
             tmp_4_1 = vmlaq_f32(tmp_4_1, line4, kernel_37_40);
             tmp_4_1 = vmlaq_f32(tmp_4_1, line5, kernel_44_47);
-            tmp1 = vgetq_lane_f32(tmp_4_1, 0) + vgetq_lane_f32(tmp_4_1, 1) + vgetq_lane_f32(tmp_4_1, 2) +
-                   vgetq_lane_f32(tmp_4_1, 3) + bias_c;
+            tmp1 = vgetq_lane_f32(tmp_4_1, 0) + vgetq_lane_f32(tmp_4_1, 1) + vgetq_lane_f32(tmp_4_1, 2) + vgetq_lane_f32(tmp_4_1, 3) + bias_c;
             tmp1 += weight_buf[20] * input_1[4];
             tmp1 += weight_buf[27] * input_2[4];
             tmp1 += weight_buf[34] * input_3[4];
@@ -742,8 +737,7 @@ void depthwise_conv_k7s1(float* input, float* weight, float* bias, float* output
             tmp_4_2 = vmlaq_f32(tmp_4_2, line4, kernel_30_33);
             tmp_4_2 = vmlaq_f32(tmp_4_2, line5, kernel_37_40);
             tmp_4_2 = vmlaq_f32(tmp_4_2, line6, kernel_44_47);
-            tmp2 = vgetq_lane_f32(tmp_4_2, 0) + vgetq_lane_f32(tmp_4_2, 1) + vgetq_lane_f32(tmp_4_2, 2) +
-                   vgetq_lane_f32(tmp_4_2, 3) + bias_c;
+            tmp2 = vgetq_lane_f32(tmp_4_2, 0) + vgetq_lane_f32(tmp_4_2, 1) + vgetq_lane_f32(tmp_4_2, 2) + vgetq_lane_f32(tmp_4_2, 3) + bias_c;
             tmp2 += weight_buf[13] * input_1[4];
             tmp2 += weight_buf[20] * input_2[4];
             tmp2 += weight_buf[27] * input_3[4];
@@ -1033,12 +1027,9 @@ void depthwise_conv_k7s1(float* input, float* weight, float* bias, float* output
             tmp_4_2 = vmlaq_f32(tmp_4_2, tmp, kernel_38_41);
             tmp = vextq_f32(zero, line6_1, 3);
             tmp_4_2 = vmlaq_f32(tmp_4_2, tmp, kernel_45_48);
-            tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) +
-                   vgetq_lane_f32(tmp_4_0, 3) + bias_c;
-            tmp1 = vgetq_lane_f32(tmp_4_1, 0) + vgetq_lane_f32(tmp_4_1, 1) + vgetq_lane_f32(tmp_4_1, 2) +
-                   vgetq_lane_f32(tmp_4_1, 3) + bias_c;
-            tmp2 = vgetq_lane_f32(tmp_4_2, 0) + vgetq_lane_f32(tmp_4_2, 1) + vgetq_lane_f32(tmp_4_2, 2) +
-                   vgetq_lane_f32(tmp_4_2, 3) + bias_c;
+            tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) + vgetq_lane_f32(tmp_4_0, 3) + bias_c;
+            tmp1 = vgetq_lane_f32(tmp_4_1, 0) + vgetq_lane_f32(tmp_4_1, 1) + vgetq_lane_f32(tmp_4_1, 2) + vgetq_lane_f32(tmp_4_1, 3) + bias_c;
+            tmp2 = vgetq_lane_f32(tmp_4_2, 0) + vgetq_lane_f32(tmp_4_2, 1) + vgetq_lane_f32(tmp_4_2, 2) + vgetq_lane_f32(tmp_4_2, 3) + bias_c;
             *output_buf++ = elem_activation(tmp0, activation);
             *output_buf_1++ = elem_activation(tmp1, activation);
             *output_buf_2++ = elem_activation(tmp2, activation);
@@ -1117,8 +1108,7 @@ void depthwise_conv_k7s1(float* input, float* weight, float* bias, float* output
             tmp_4_0 = vmlaq_f32(tmp_4_0, line2, kernel_28_31);
             tmp_4_0 = vmlaq_f32(tmp_4_0, line3, kernel_35_38);
             tmp_4_0 = vmlaq_f32(tmp_4_0, line4, kernel_42_45);
-            tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) +
-                   vgetq_lane_f32(tmp_4_0, 3) + bias_c;
+            tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) + vgetq_lane_f32(tmp_4_0, 3) + bias_c;
             tmp0 += vgetq_lane_f32(line1_1, 0) * weight_buf[25];
             tmp0 += vgetq_lane_f32(line2_1, 0) * weight_buf[32];
             tmp0 += vgetq_lane_f32(line3_1, 0) * weight_buf[39];
@@ -1130,8 +1120,7 @@ void depthwise_conv_k7s1(float* input, float* weight, float* bias, float* output
             tmp_4_1 = vmlaq_f32(tmp_4_1, line3, kernel_28_31);
             tmp_4_1 = vmlaq_f32(tmp_4_1, line4, kernel_35_38);
             tmp_4_1 = vmlaq_f32(tmp_4_1, line5, kernel_42_45);
-            tmp1 = vgetq_lane_f32(tmp_4_1, 0) + vgetq_lane_f32(tmp_4_1, 1) + vgetq_lane_f32(tmp_4_1, 2) +
-                   vgetq_lane_f32(tmp_4_1, 3) + bias_c;
+            tmp1 = vgetq_lane_f32(tmp_4_1, 0) + vgetq_lane_f32(tmp_4_1, 1) + vgetq_lane_f32(tmp_4_1, 2) + vgetq_lane_f32(tmp_4_1, 3) + bias_c;
             tmp1 += vgetq_lane_f32(line1_1, 0) * weight_buf[18];
             tmp1 += vgetq_lane_f32(line2_1, 0) * weight_buf[25];
             tmp1 += vgetq_lane_f32(line3_1, 0) * weight_buf[32];
@@ -1145,8 +1134,7 @@ void depthwise_conv_k7s1(float* input, float* weight, float* bias, float* output
             tmp_4_2 = vmlaq_f32(tmp_4_2, line4, kernel_28_31);
             tmp_4_2 = vmlaq_f32(tmp_4_2, line5, kernel_35_38);
             tmp_4_2 = vmlaq_f32(tmp_4_2, line6, kernel_42_45);
-            tmp2 = vgetq_lane_f32(tmp_4_2, 0) + vgetq_lane_f32(tmp_4_2, 1) + vgetq_lane_f32(tmp_4_2, 2) +
-                   vgetq_lane_f32(tmp_4_2, 3) + bias_c;
+            tmp2 = vgetq_lane_f32(tmp_4_2, 0) + vgetq_lane_f32(tmp_4_2, 1) + vgetq_lane_f32(tmp_4_2, 2) + vgetq_lane_f32(tmp_4_2, 3) + bias_c;
             tmp2 += vgetq_lane_f32(line1_1, 0) * weight_buf[11];
             tmp2 += vgetq_lane_f32(line2_1, 0) * weight_buf[18];
             tmp2 += vgetq_lane_f32(line3_1, 0) * weight_buf[25];
@@ -1167,8 +1155,7 @@ void depthwise_conv_k7s1(float* input, float* weight, float* bias, float* output
             tmp_4_0 = vmlaq_f32(tmp_4_0, line2, kernel_28_31);
             tmp_4_0 = vmlaq_f32(tmp_4_0, line3, kernel_35_38);
             tmp_4_0 = vmlaq_f32(tmp_4_0, line4, kernel_42_45);
-            tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) +
-                   vgetq_lane_f32(tmp_4_0, 3) + bias_c;
+            tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) + vgetq_lane_f32(tmp_4_0, 3) + bias_c;
             *output_buf++ = elem_activation(tmp0, activation);
 
             float32x4_t tmp_4_1 = vmulq_f32(line1, kernel_14_17);
@@ -1176,8 +1163,7 @@ void depthwise_conv_k7s1(float* input, float* weight, float* bias, float* output
             tmp_4_1 = vmlaq_f32(tmp_4_1, line3, kernel_28_31);
             tmp_4_1 = vmlaq_f32(tmp_4_1, line4, kernel_35_38);
             tmp_4_1 = vmlaq_f32(tmp_4_1, line5, kernel_42_45);
-            tmp1 = vgetq_lane_f32(tmp_4_1, 0) + vgetq_lane_f32(tmp_4_1, 1) + vgetq_lane_f32(tmp_4_1, 2) +
-                   vgetq_lane_f32(tmp_4_1, 3) + bias_c;
+            tmp1 = vgetq_lane_f32(tmp_4_1, 0) + vgetq_lane_f32(tmp_4_1, 1) + vgetq_lane_f32(tmp_4_1, 2) + vgetq_lane_f32(tmp_4_1, 3) + bias_c;
             *output_buf_1++ = elem_activation(tmp1, activation);
 
             float32x4_t tmp_4_2 = vmulq_f32(line1, kernel_7_10);
@@ -1186,8 +1172,7 @@ void depthwise_conv_k7s1(float* input, float* weight, float* bias, float* output
             tmp_4_2 = vmlaq_f32(tmp_4_2, line4, kernel_28_31);
             tmp_4_2 = vmlaq_f32(tmp_4_2, line5, kernel_35_38);
             tmp_4_2 = vmlaq_f32(tmp_4_2, line6, kernel_42_45);
-            tmp2 = vgetq_lane_f32(tmp_4_2, 0) + vgetq_lane_f32(tmp_4_2, 1) + vgetq_lane_f32(tmp_4_2, 2) +
-                   vgetq_lane_f32(tmp_4_2, 3) + bias_c;
+            tmp2 = vgetq_lane_f32(tmp_4_2, 0) + vgetq_lane_f32(tmp_4_2, 1) + vgetq_lane_f32(tmp_4_2, 2) + vgetq_lane_f32(tmp_4_2, 3) + bias_c;
             *output_buf_2++ = elem_activation(tmp2, activation);
         }
         float32x4_t kernel_1_4 = vextq_f32(kernel_0_3, kernel_4_7, 1);
@@ -1222,8 +1207,7 @@ void depthwise_conv_k7s1(float* input, float* weight, float* bias, float* output
                 tmp_4_0 = vmlaq_f32(tmp_4_0, line5, kernel_31_34);
                 tmp_4_0 = vmlaq_f32(tmp_4_0, line6, kernel_38_41);
                 tmp_4_0 = vmlaq_f32(tmp_4_0, line7, kernel_45_48);
-                tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) +
-                       vgetq_lane_f32(tmp_4_0, 3) + bias_c;
+                tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) + vgetq_lane_f32(tmp_4_0, 3) + bias_c;
                 *output_buf++ = elem_activation(tmp0, activation);
             }
             line1_1 = vld1q_f32(input_1 + 4);
@@ -1241,8 +1225,7 @@ void depthwise_conv_k7s1(float* input, float* weight, float* bias, float* output
                 tmp_4_0 = vmlaq_f32(tmp_4_0, line5, kernel_30_33);
                 tmp_4_0 = vmlaq_f32(tmp_4_0, line6, kernel_37_40);
                 tmp_4_0 = vmlaq_f32(tmp_4_0, line7, kernel_44_47);
-                tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) +
-                       vgetq_lane_f32(tmp_4_0, 3) + bias_c;
+                tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) + vgetq_lane_f32(tmp_4_0, 3) + bias_c;
 
                 tmp0 += vgetq_lane_f32(line1_1, 0) * weight_buf[6];
                 tmp0 += vgetq_lane_f32(line2_1, 0) * weight_buf[13];
@@ -1424,8 +1407,7 @@ void depthwise_conv_k7s1(float* input, float* weight, float* bias, float* output
                 tmp_4_0 = vmlaq_f32(tmp_4_0, tmp, kernel_38_41);
                 tmp = vextq_f32(zero, line7_1, 3);
                 tmp_4_0 = vmlaq_f32(tmp_4_0, tmp, kernel_45_48);
-                tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) +
-                       vgetq_lane_f32(tmp_4_0, 3) + bias_c;
+                tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) + vgetq_lane_f32(tmp_4_0, 3) + bias_c;
                 *output_buf++ = elem_activation(tmp0, activation);
                 line1 = vextq_f32(line1, line1_1, 1);
                 line2 = vextq_f32(line2, line2_1, 1);
@@ -1483,8 +1465,7 @@ void depthwise_conv_k7s1(float* input, float* weight, float* bias, float* output
                 tmp_4_0 = vmlaq_f32(tmp_4_0, line5, kernel_28_31);
                 tmp_4_0 = vmlaq_f32(tmp_4_0, line6, kernel_35_38);
                 tmp_4_0 = vmlaq_f32(tmp_4_0, line7, kernel_42_45);
-                tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) +
-                       vgetq_lane_f32(tmp_4_0, 3) + bias_c;
+                tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) + vgetq_lane_f32(tmp_4_0, 3) + bias_c;
                 tmp0 += vgetq_lane_f32(line1_1, 0) * weight_buf[4];
                 tmp0 += vgetq_lane_f32(line2_1, 0) * weight_buf[11];
                 tmp0 += vgetq_lane_f32(line3_1, 0) * weight_buf[18];
@@ -1509,8 +1490,7 @@ void depthwise_conv_k7s1(float* input, float* weight, float* bias, float* output
                 tmp_4_0 = vmlaq_f32(tmp_4_0, line5, kernel_28_31);
                 tmp_4_0 = vmlaq_f32(tmp_4_0, line6, kernel_35_38);
                 tmp_4_0 = vmlaq_f32(tmp_4_0, line7, kernel_42_45);
-                tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) +
-                       vgetq_lane_f32(tmp_4_0, 3) + bias_c;
+                tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) + vgetq_lane_f32(tmp_4_0, 3) + bias_c;
                 *output_buf++ = elem_activation(tmp0, activation);
             }
         }
@@ -1536,23 +1516,20 @@ void depthwise_conv_k7s1(float* input, float* weight, float* bias, float* output
             tmp_4_0 = vmlaq_f32(tmp_4_0, line4, kernel_24_27);
             tmp_4_0 = vmlaq_f32(tmp_4_0, line5, kernel_31_34);
             tmp_4_0 = vmlaq_f32(tmp_4_0, line6, kernel_38_41);
-            tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) +
-                   vgetq_lane_f32(tmp_4_0, 3) + bias_c;
+            tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) + vgetq_lane_f32(tmp_4_0, 3) + bias_c;
             *output_buf++ = elem_activation(tmp0, activation);
             float32x4_t tmp_4_1 = vmulq_f32(line2, kernel_3_6);
             tmp_4_1 = vmlaq_f32(tmp_4_1, line3, kernel_10_13);
             tmp_4_1 = vmlaq_f32(tmp_4_1, line4, kernel_17_20);
             tmp_4_1 = vmlaq_f32(tmp_4_1, line5, kernel_24_27);
             tmp_4_1 = vmlaq_f32(tmp_4_1, line6, kernel_31_34);
-            tmp1 = vgetq_lane_f32(tmp_4_1, 0) + vgetq_lane_f32(tmp_4_1, 1) + vgetq_lane_f32(tmp_4_1, 2) +
-                   vgetq_lane_f32(tmp_4_1, 3) + bias_c;
+            tmp1 = vgetq_lane_f32(tmp_4_1, 0) + vgetq_lane_f32(tmp_4_1, 1) + vgetq_lane_f32(tmp_4_1, 2) + vgetq_lane_f32(tmp_4_1, 3) + bias_c;
             *output_buf_1++ = elem_activation(tmp1, activation);
             float32x4_t tmp_4_2 = vmulq_f32(line3, kernel_3_6);
             tmp_4_2 = vmlaq_f32(tmp_4_2, line4, kernel_10_13);
             tmp_4_2 = vmlaq_f32(tmp_4_2, line5, kernel_17_20);
             tmp_4_2 = vmlaq_f32(tmp_4_2, line6, kernel_24_27);
-            tmp2 = vgetq_lane_f32(tmp_4_2, 0) + vgetq_lane_f32(tmp_4_2, 1) + vgetq_lane_f32(tmp_4_2, 2) +
-                   vgetq_lane_f32(tmp_4_2, 3) + bias_c;
+            tmp2 = vgetq_lane_f32(tmp_4_2, 0) + vgetq_lane_f32(tmp_4_2, 1) + vgetq_lane_f32(tmp_4_2, 2) + vgetq_lane_f32(tmp_4_2, 3) + bias_c;
             *output_buf_2++ = elem_activation(tmp2, activation);
         }
         line1_1 = vld1q_f32(input_1 + 4);
@@ -1569,8 +1546,7 @@ void depthwise_conv_k7s1(float* input, float* weight, float* bias, float* output
             tmp_4_0 = vmlaq_f32(tmp_4_0, line4, kernel_23_26);
             tmp_4_0 = vmlaq_f32(tmp_4_0, line5, kernel_30_33);
             tmp_4_0 = vmlaq_f32(tmp_4_0, line6, kernel_37_40);
-            tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) +
-                   vgetq_lane_f32(tmp_4_0, 3) + bias_c;
+            tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) + vgetq_lane_f32(tmp_4_0, 3) + bias_c;
             tmp0 += vgetq_lane_f32(line1_1, 0) * weight_buf[6];
             tmp0 += vgetq_lane_f32(line2_1, 0) * weight_buf[13];
             tmp0 += vgetq_lane_f32(line3_1, 0) * weight_buf[20];
@@ -1584,8 +1560,7 @@ void depthwise_conv_k7s1(float* input, float* weight, float* bias, float* output
             tmp_4_1 = vmlaq_f32(tmp_4_1, line4, kernel_16_19);
             tmp_4_1 = vmlaq_f32(tmp_4_1, line5, kernel_23_26);
             tmp_4_1 = vmlaq_f32(tmp_4_1, line6, kernel_30_33);
-            tmp1 = vgetq_lane_f32(tmp_4_1, 0) + vgetq_lane_f32(tmp_4_1, 1) + vgetq_lane_f32(tmp_4_1, 2) +
-                   vgetq_lane_f32(tmp_4_1, 3) + bias_c;
+            tmp1 = vgetq_lane_f32(tmp_4_1, 0) + vgetq_lane_f32(tmp_4_1, 1) + vgetq_lane_f32(tmp_4_1, 2) + vgetq_lane_f32(tmp_4_1, 3) + bias_c;
             tmp1 += vgetq_lane_f32(line2_1, 0) * weight_buf[6];
             tmp1 += vgetq_lane_f32(line3_1, 0) * weight_buf[13];
             tmp1 += vgetq_lane_f32(line4_1, 0) * weight_buf[20];
@@ -1597,8 +1572,7 @@ void depthwise_conv_k7s1(float* input, float* weight, float* bias, float* output
             tmp_4_2 = vmlaq_f32(tmp_4_2, line4, kernel_9_12);
             tmp_4_2 = vmlaq_f32(tmp_4_2, line5, kernel_16_19);
             tmp_4_2 = vmlaq_f32(tmp_4_2, line6, kernel_23_26);
-            tmp2 = vgetq_lane_f32(tmp_4_2, 0) + vgetq_lane_f32(tmp_4_2, 1) + vgetq_lane_f32(tmp_4_2, 2) +
-                   vgetq_lane_f32(tmp_4_2, 3) + bias_c;
+            tmp2 = vgetq_lane_f32(tmp_4_2, 0) + vgetq_lane_f32(tmp_4_2, 1) + vgetq_lane_f32(tmp_4_2, 2) + vgetq_lane_f32(tmp_4_2, 3) + bias_c;
             tmp2 += vgetq_lane_f32(line3_1, 0) * weight_buf[6];
             tmp2 += vgetq_lane_f32(line4_1, 0) * weight_buf[13];
             tmp2 += vgetq_lane_f32(line5_1, 0) * weight_buf[20];
@@ -1871,14 +1845,11 @@ void depthwise_conv_k7s1(float* input, float* weight, float* bias, float* output
             tmp_4_0 = vmlaq_f32(tmp_4_0, tmp, kernel_38_41);
             tmp_4_1 = vmlaq_f32(tmp_4_1, tmp, kernel_31_34);
             tmp_4_2 = vmlaq_f32(tmp_4_2, tmp, kernel_24_27);
-            tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) +
-                   vgetq_lane_f32(tmp_4_0, 3) + bias_c;
+            tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) + vgetq_lane_f32(tmp_4_0, 3) + bias_c;
             *output_buf++ = elem_activation(tmp0, activation);
-            tmp1 = vgetq_lane_f32(tmp_4_1, 0) + vgetq_lane_f32(tmp_4_1, 1) + vgetq_lane_f32(tmp_4_1, 2) +
-                   vgetq_lane_f32(tmp_4_1, 3) + bias_c;
+            tmp1 = vgetq_lane_f32(tmp_4_1, 0) + vgetq_lane_f32(tmp_4_1, 1) + vgetq_lane_f32(tmp_4_1, 2) + vgetq_lane_f32(tmp_4_1, 3) + bias_c;
             *output_buf_1++ = elem_activation(tmp1, activation);
-            tmp2 = vgetq_lane_f32(tmp_4_2, 0) + vgetq_lane_f32(tmp_4_2, 1) + vgetq_lane_f32(tmp_4_2, 2) +
-                   vgetq_lane_f32(tmp_4_2, 3) + bias_c;
+            tmp2 = vgetq_lane_f32(tmp_4_2, 0) + vgetq_lane_f32(tmp_4_2, 1) + vgetq_lane_f32(tmp_4_2, 2) + vgetq_lane_f32(tmp_4_2, 3) + bias_c;
             *output_buf_2++ = elem_activation(tmp2, activation);
             line1 = vextq_f32(line1, line1_1, 1);
             line2 = vextq_f32(line2, line2_1, 1);
@@ -1955,8 +1926,7 @@ void depthwise_conv_k7s1(float* input, float* weight, float* bias, float* output
             tmp_4_0 = vmlaq_f32(tmp_4_0, line4, kernel_21_24);
             tmp_4_0 = vmlaq_f32(tmp_4_0, line5, kernel_28_31);
             tmp_4_0 = vmlaq_f32(tmp_4_0, line6, kernel_35_38);
-            tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) +
-                   vgetq_lane_f32(tmp_4_0, 3) + bias_c;
+            tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) + vgetq_lane_f32(tmp_4_0, 3) + bias_c;
             tmp0 += vgetq_lane_f32(line1_1, 0) * weight_buf[4];
             tmp0 += vgetq_lane_f32(line2_1, 0) * weight_buf[11];
             tmp0 += vgetq_lane_f32(line3_1, 0) * weight_buf[18];
@@ -1969,8 +1939,7 @@ void depthwise_conv_k7s1(float* input, float* weight, float* bias, float* output
             tmp_4_1 = vmlaq_f32(tmp_4_1, line4, kernel_14_17);
             tmp_4_1 = vmlaq_f32(tmp_4_1, line5, kernel_21_24);
             tmp_4_1 = vmlaq_f32(tmp_4_1, line6, kernel_28_31);
-            tmp1 = vgetq_lane_f32(tmp_4_1, 0) + vgetq_lane_f32(tmp_4_1, 1) + vgetq_lane_f32(tmp_4_1, 2) +
-                   vgetq_lane_f32(tmp_4_1, 3) + bias_c;
+            tmp1 = vgetq_lane_f32(tmp_4_1, 0) + vgetq_lane_f32(tmp_4_1, 1) + vgetq_lane_f32(tmp_4_1, 2) + vgetq_lane_f32(tmp_4_1, 3) + bias_c;
             tmp1 += vgetq_lane_f32(line2_1, 0) * weight_buf[4];
             tmp1 += vgetq_lane_f32(line3_1, 0) * weight_buf[11];
             tmp1 += vgetq_lane_f32(line4_1, 0) * weight_buf[18];
@@ -1981,8 +1950,7 @@ void depthwise_conv_k7s1(float* input, float* weight, float* bias, float* output
             tmp_4_2 = vmlaq_f32(tmp_4_2, line4, kernel_7_10);
             tmp_4_2 = vmlaq_f32(tmp_4_2, line5, kernel_14_17);
             tmp_4_2 = vmlaq_f32(tmp_4_2, line6, kernel_21_24);
-            tmp2 = vgetq_lane_f32(tmp_4_2, 0) + vgetq_lane_f32(tmp_4_2, 1) + vgetq_lane_f32(tmp_4_2, 2) +
-                   vgetq_lane_f32(tmp_4_2, 3) + bias_c;
+            tmp2 = vgetq_lane_f32(tmp_4_2, 0) + vgetq_lane_f32(tmp_4_2, 1) + vgetq_lane_f32(tmp_4_2, 2) + vgetq_lane_f32(tmp_4_2, 3) + bias_c;
             tmp2 += vgetq_lane_f32(line3_1, 0) * weight_buf[4];
             tmp2 += vgetq_lane_f32(line4_1, 0) * weight_buf[11];
             tmp2 += vgetq_lane_f32(line5_1, 0) * weight_buf[18];
@@ -2003,23 +1971,20 @@ void depthwise_conv_k7s1(float* input, float* weight, float* bias, float* output
             tmp_4_0 = vmlaq_f32(tmp_4_0, line4, kernel_21_24);
             tmp_4_0 = vmlaq_f32(tmp_4_0, line5, kernel_28_31);
             tmp_4_0 = vmlaq_f32(tmp_4_0, line6, kernel_35_38);
-            tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) +
-                   vgetq_lane_f32(tmp_4_0, 3) + bias_c;
+            tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) + vgetq_lane_f32(tmp_4_0, 3) + bias_c;
             *output_buf++ = elem_activation(tmp0, activation);
             float32x4_t tmp_4_1 = vmulq_f32(line2, kernel_0_3);
             tmp_4_1 = vmlaq_f32(tmp_4_1, line3, kernel_7_10);
             tmp_4_1 = vmlaq_f32(tmp_4_1, line4, kernel_14_17);
             tmp_4_1 = vmlaq_f32(tmp_4_1, line5, kernel_21_24);
             tmp_4_1 = vmlaq_f32(tmp_4_1, line6, kernel_28_31);
-            tmp1 = vgetq_lane_f32(tmp_4_1, 0) + vgetq_lane_f32(tmp_4_1, 1) + vgetq_lane_f32(tmp_4_1, 2) +
-                   vgetq_lane_f32(tmp_4_1, 3) + bias_c;
+            tmp1 = vgetq_lane_f32(tmp_4_1, 0) + vgetq_lane_f32(tmp_4_1, 1) + vgetq_lane_f32(tmp_4_1, 2) + vgetq_lane_f32(tmp_4_1, 3) + bias_c;
             *output_buf_1++ = elem_activation(tmp1, activation);
             float32x4_t tmp_4_2 = vmulq_f32(line3, kernel_0_3);
             tmp_4_2 = vmlaq_f32(tmp_4_2, line4, kernel_7_10);
             tmp_4_2 = vmlaq_f32(tmp_4_2, line5, kernel_14_17);
             tmp_4_2 = vmlaq_f32(tmp_4_2, line6, kernel_21_24);
-            tmp2 = vgetq_lane_f32(tmp_4_2, 0) + vgetq_lane_f32(tmp_4_2, 1) + vgetq_lane_f32(tmp_4_2, 2) +
-                   vgetq_lane_f32(tmp_4_2, 3) + bias_c;
+            tmp2 = vgetq_lane_f32(tmp_4_2, 0) + vgetq_lane_f32(tmp_4_2, 1) + vgetq_lane_f32(tmp_4_2, 2) + vgetq_lane_f32(tmp_4_2, 3) + bias_c;
             *output_buf_2++ = elem_activation(tmp2, activation);
         }
     }
@@ -2041,7 +2006,7 @@ void depthwise_conv_k7s2(float* input, float* weight, float* bias, float* output
     int mid_block = mid_w >> 2;
     int w = 0;
 
-//#pragma omp parallel for num_threads(num_thread)
+    //#pragma omp parallel for num_threads(num_thread)
     for (int c = 0; c < channel; c++)
     {
         float tmp0, tmp1;
@@ -2086,8 +2051,7 @@ void depthwise_conv_k7s2(float* input, float* weight, float* bias, float* output
             tmp_4_0 = vmlaq_f32(tmp_4_0, line2, kernel_31_34);
             tmp_4_0 = vmlaq_f32(tmp_4_0, line3, kernel_38_41);
             tmp_4_0 = vmlaq_f32(tmp_4_0, line4, kernel_45_48);
-            tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) +
-                   vgetq_lane_f32(tmp_4_0, 3) + bias_c;
+            tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) + vgetq_lane_f32(tmp_4_0, 3) + bias_c;
             *output_buf++ = elem_activation(tmp0, activation);
             float32x4_t tmp_4_1 = vmulq_f32(line1, kernel_10_13);
             tmp_4_1 = vmlaq_f32(tmp_4_1, line2, kernel_17_20);
@@ -2095,8 +2059,7 @@ void depthwise_conv_k7s2(float* input, float* weight, float* bias, float* output
             tmp_4_1 = vmlaq_f32(tmp_4_1, line4, kernel_31_34);
             tmp_4_1 = vmlaq_f32(tmp_4_1, line5, kernel_38_41);
             tmp_4_1 = vmlaq_f32(tmp_4_1, line6, kernel_45_48);
-            tmp1 = vgetq_lane_f32(tmp_4_1, 0) + vgetq_lane_f32(tmp_4_1, 1) + vgetq_lane_f32(tmp_4_1, 2) +
-                   vgetq_lane_f32(tmp_4_1, 3) + bias_c;
+            tmp1 = vgetq_lane_f32(tmp_4_1, 0) + vgetq_lane_f32(tmp_4_1, 1) + vgetq_lane_f32(tmp_4_1, 2) + vgetq_lane_f32(tmp_4_1, 3) + bias_c;
             *output_buf_1++ = elem_activation(tmp1, activation);
         }
 
@@ -2331,8 +2294,7 @@ void depthwise_conv_k7s2(float* input, float* weight, float* bias, float* output
             tmp_4_0 = vmlaq_f32(tmp_4_0, line2_1, kernel_31_34);
             tmp_4_0 = vmlaq_f32(tmp_4_0, line3_1, kernel_38_41);
             tmp_4_0 = vmlaq_f32(tmp_4_0, line4_1, kernel_45_48);
-            tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) +
-                   vgetq_lane_f32(tmp_4_0, 3) + bias_c;
+            tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) + vgetq_lane_f32(tmp_4_0, 3) + bias_c;
             *output_buf++ = elem_activation(tmp0, activation);
             float32x4_t tmp_4_1 = vmulq_f32(line1, kernel_0789);
             tmp_4_1 = vmlaq_f32(tmp_4_1, line2, kernel_0141516);
@@ -2346,8 +2308,7 @@ void depthwise_conv_k7s2(float* input, float* weight, float* bias, float* output
             tmp_4_1 = vmlaq_f32(tmp_4_1, line4_1, kernel_31_34);
             tmp_4_1 = vmlaq_f32(tmp_4_1, line5_1, kernel_38_41);
             tmp_4_1 = vmlaq_f32(tmp_4_1, line6_1, kernel_45_48);
-            tmp1 = vgetq_lane_f32(tmp_4_1, 0) + vgetq_lane_f32(tmp_4_1, 1) + vgetq_lane_f32(tmp_4_1, 2) +
-                   vgetq_lane_f32(tmp_4_1, 3) + bias_c;
+            tmp1 = vgetq_lane_f32(tmp_4_1, 0) + vgetq_lane_f32(tmp_4_1, 1) + vgetq_lane_f32(tmp_4_1, 2) + vgetq_lane_f32(tmp_4_1, 3) + bias_c;
             *output_buf_1++ = elem_activation(tmp1, activation);
 
             line1 = vextq_f32(line1, line1_1, 2);
@@ -2423,8 +2384,7 @@ void depthwise_conv_k7s2(float* input, float* weight, float* bias, float* output
                 tmp_4_0 = vmlaq_f32(tmp_4_0, line2, kernel_28_31);
                 tmp_4_0 = vmlaq_f32(tmp_4_0, line3, kernel_35_38);
                 tmp_4_0 = vmlaq_f32(tmp_4_0, line4, kernel_42_45);
-                tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) +
-                       vgetq_lane_f32(tmp_4_0, 3) + bias_c;
+                tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) + vgetq_lane_f32(tmp_4_0, 3) + bias_c;
                 *output_buf++ = elem_activation(tmp0, activation);
                 float32x4_t tmp_4_1 = vmulq_f32(line1, kernel_7_10);
                 tmp_4_1 = vmlaq_f32(tmp_4_1, line2, kernel_14_17);
@@ -2432,8 +2392,7 @@ void depthwise_conv_k7s2(float* input, float* weight, float* bias, float* output
                 tmp_4_1 = vmlaq_f32(tmp_4_1, line4, kernel_28_31);
                 tmp_4_1 = vmlaq_f32(tmp_4_1, line5, kernel_35_38);
                 tmp_4_1 = vmlaq_f32(tmp_4_1, line6, kernel_42_45);
-                tmp1 = vgetq_lane_f32(tmp_4_1, 0) + vgetq_lane_f32(tmp_4_1, 1) + vgetq_lane_f32(tmp_4_1, 2) +
-                       vgetq_lane_f32(tmp_4_1, 3) + bias_c;
+                tmp1 = vgetq_lane_f32(tmp_4_1, 0) + vgetq_lane_f32(tmp_4_1, 1) + vgetq_lane_f32(tmp_4_1, 2) + vgetq_lane_f32(tmp_4_1, 3) + bias_c;
                 *output_buf_1++ = elem_activation(tmp1, activation);
             }
         }
@@ -2497,8 +2456,7 @@ void depthwise_conv_k7s2(float* input, float* weight, float* bias, float* output
                 tmp_4_0 = vmlaq_f32(tmp_4_0, line5, kernel_31_34);
                 tmp_4_0 = vmlaq_f32(tmp_4_0, line6, kernel_38_41);
                 tmp_4_0 = vmlaq_f32(tmp_4_0, line7, kernel_45_48);
-                tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) +
-                       vgetq_lane_f32(tmp_4_0, 3) + bias_c;
+                tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) + vgetq_lane_f32(tmp_4_0, 3) + bias_c;
                 *output_buf++ = elem_activation(tmp0, activation);
             }
             line1_1 = vld1q_f32(input_1 + 4);
@@ -2702,8 +2660,7 @@ void depthwise_conv_k7s2(float* input, float* weight, float* bias, float* output
                 tmp_4_0 = vmlaq_f32(tmp_4_0, line5_1, kernel_31_34);
                 tmp_4_0 = vmlaq_f32(tmp_4_0, line6_1, kernel_38_41);
                 tmp_4_0 = vmlaq_f32(tmp_4_0, line7_1, kernel_45_48);
-                tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) +
-                       vgetq_lane_f32(tmp_4_0, 3) + bias_c;
+                tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) + vgetq_lane_f32(tmp_4_0, 3) + bias_c;
                 *output_buf++ = elem_activation(tmp0, activation);
 
                 line1 = vextq_f32(line1, line1_1, 2);
@@ -2774,8 +2731,7 @@ void depthwise_conv_k7s2(float* input, float* weight, float* bias, float* output
                 tmp_4_0 = vmlaq_f32(tmp_4_0, line5, kernel_28_31);
                 tmp_4_0 = vmlaq_f32(tmp_4_0, line6, kernel_35_38);
                 tmp_4_0 = vmlaq_f32(tmp_4_0, line7, kernel_42_45);
-                tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) +
-                       vgetq_lane_f32(tmp_4_0, 3) + bias_c;
+                tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) + vgetq_lane_f32(tmp_4_0, 3) + bias_c;
                 *output_buf++ = elem_activation(tmp0, activation);
             }
             else
@@ -2824,15 +2780,13 @@ void depthwise_conv_k7s2(float* input, float* weight, float* bias, float* output
                 tmp_4_0 = vmlaq_f32(tmp_4_0, line4, kernel_24_27);
                 tmp_4_0 = vmlaq_f32(tmp_4_0, line5, kernel_31_34);
                 tmp_4_0 = vmlaq_f32(tmp_4_0, line6, kernel_38_41);
-                tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) +
-                       vgetq_lane_f32(tmp_4_0, 3) + bias_c;
+                tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) + vgetq_lane_f32(tmp_4_0, 3) + bias_c;
                 *output_buf++ = elem_activation(tmp0, activation);
                 float32x4_t tmp_4_1 = vmulq_f32(line3, kernel_3_6);
                 tmp_4_1 = vmlaq_f32(tmp_4_1, line4, kernel_10_13);
                 tmp_4_1 = vmlaq_f32(tmp_4_1, line5, kernel_17_20);
                 tmp_4_1 = vmlaq_f32(tmp_4_1, line6, kernel_24_27);
-                tmp1 = vgetq_lane_f32(tmp_4_1, 0) + vgetq_lane_f32(tmp_4_1, 1) + vgetq_lane_f32(tmp_4_1, 2) +
-                       vgetq_lane_f32(tmp_4_1, 3) + bias_c;
+                tmp1 = vgetq_lane_f32(tmp_4_1, 0) + vgetq_lane_f32(tmp_4_1, 1) + vgetq_lane_f32(tmp_4_1, 2) + vgetq_lane_f32(tmp_4_1, 3) + bias_c;
                 *output_buf_1++ = elem_activation(tmp1, activation);
             }
             line1_1 = vld1q_f32(input_1 + 4);
@@ -3052,8 +3006,7 @@ void depthwise_conv_k7s2(float* input, float* weight, float* bias, float* output
                 tmp_4_0 = vmlaq_f32(tmp_4_0, line4_1, kernel_24_27);
                 tmp_4_0 = vmlaq_f32(tmp_4_0, line5_1, kernel_31_34);
                 tmp_4_0 = vmlaq_f32(tmp_4_0, line6_1, kernel_38_41);
-                tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) +
-                       vgetq_lane_f32(tmp_4_0, 3) + bias_c;
+                tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) + vgetq_lane_f32(tmp_4_0, 3) + bias_c;
                 *output_buf++ = elem_activation(tmp0, activation);
 
                 float32x4_t tmp_4_1 = vmulq_f32(line3, kernel_0012);
@@ -3064,8 +3017,7 @@ void depthwise_conv_k7s2(float* input, float* weight, float* bias, float* output
                 tmp_4_1 = vmlaq_f32(tmp_4_1, line4_1, kernel_10_13);
                 tmp_4_1 = vmlaq_f32(tmp_4_1, line5_1, kernel_17_20);
                 tmp_4_1 = vmlaq_f32(tmp_4_1, line6_1, kernel_24_27);
-                tmp1 = vgetq_lane_f32(tmp_4_1, 0) + vgetq_lane_f32(tmp_4_1, 1) + vgetq_lane_f32(tmp_4_1, 2) +
-                       vgetq_lane_f32(tmp_4_1, 3) + bias_c;
+                tmp1 = vgetq_lane_f32(tmp_4_1, 0) + vgetq_lane_f32(tmp_4_1, 1) + vgetq_lane_f32(tmp_4_1, 2) + vgetq_lane_f32(tmp_4_1, 3) + bias_c;
                 *output_buf_1++ = elem_activation(tmp1, activation);
 
                 line1 = vextq_f32(line1, line1_1, 2);
@@ -3143,15 +3095,13 @@ void depthwise_conv_k7s2(float* input, float* weight, float* bias, float* output
                     tmp_4_0 = vmlaq_f32(tmp_4_0, line4, kernel_21_24);
                     tmp_4_0 = vmlaq_f32(tmp_4_0, line5, kernel_28_31);
                     tmp_4_0 = vmlaq_f32(tmp_4_0, line6, kernel_35_38);
-                    tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) +
-                           vgetq_lane_f32(tmp_4_0, 3) + bias_c;
+                    tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) + vgetq_lane_f32(tmp_4_0, 3) + bias_c;
                     *output_buf++ = elem_activation(tmp0, activation);
                     float32x4_t tmp_4_1 = vmulq_f32(line3, kernel_0_3);
                     tmp_4_1 = vmlaq_f32(tmp_4_1, line4, kernel_7_10);
                     tmp_4_1 = vmlaq_f32(tmp_4_1, line5, kernel_14_17);
                     tmp_4_1 = vmlaq_f32(tmp_4_1, line6, kernel_21_24);
-                    tmp1 = vgetq_lane_f32(tmp_4_1, 0) + vgetq_lane_f32(tmp_4_1, 1) + vgetq_lane_f32(tmp_4_1, 2) +
-                           vgetq_lane_f32(tmp_4_1, 3) + bias_c;
+                    tmp1 = vgetq_lane_f32(tmp_4_1, 0) + vgetq_lane_f32(tmp_4_1, 1) + vgetq_lane_f32(tmp_4_1, 2) + vgetq_lane_f32(tmp_4_1, 3) + bias_c;
                     *output_buf_1++ = elem_activation(tmp1, activation);
                 }
             }
@@ -3205,8 +3155,7 @@ void depthwise_conv_k7s2(float* input, float* weight, float* bias, float* output
                 tmp_4_0 = vmlaq_f32(tmp_4_0, line3, kernel_17_20);
                 tmp_4_0 = vmlaq_f32(tmp_4_0, line4, kernel_24_27);
                 tmp_4_0 = vmlaq_f32(tmp_4_0, line5, kernel_31_34);
-                tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) +
-                       vgetq_lane_f32(tmp_4_0, 3) + bias_c;
+                tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) + vgetq_lane_f32(tmp_4_0, 3) + bias_c;
                 *output_buf++ = elem_activation(tmp0, activation);
             }
             line1_1 = vld1q_f32(input_1 + 4);
@@ -3356,8 +3305,7 @@ void depthwise_conv_k7s2(float* input, float* weight, float* bias, float* output
                 tmp_4_0 = vmlaq_f32(tmp_4_0, line3_1, kernel_17_20);
                 tmp_4_0 = vmlaq_f32(tmp_4_0, line4_1, kernel_24_27);
                 tmp_4_0 = vmlaq_f32(tmp_4_0, line5_1, kernel_31_34);
-                tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) +
-                       vgetq_lane_f32(tmp_4_0, 3) + bias_c;
+                tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) + vgetq_lane_f32(tmp_4_0, 3) + bias_c;
                 *output_buf++ = elem_activation(tmp0, activation);
 
                 line1 = vextq_f32(line1, line1_1, 2);
@@ -3414,8 +3362,7 @@ void depthwise_conv_k7s2(float* input, float* weight, float* bias, float* output
                     tmp_4_0 = vmlaq_f32(tmp_4_0, line3, kernel_14_17);
                     tmp_4_0 = vmlaq_f32(tmp_4_0, line4, kernel_21_24);
                     tmp_4_0 = vmlaq_f32(tmp_4_0, line5, kernel_28_31);
-                    tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) +
-                           vgetq_lane_f32(tmp_4_0, 3) + bias_c;
+                    tmp0 = vgetq_lane_f32(tmp_4_0, 0) + vgetq_lane_f32(tmp_4_0, 1) + vgetq_lane_f32(tmp_4_0, 2) + vgetq_lane_f32(tmp_4_0, 3) + bias_c;
                     *output_buf++ = elem_activation(tmp0, activation);
                 }
             }

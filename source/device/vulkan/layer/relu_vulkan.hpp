@@ -45,7 +45,7 @@
 
 #include "relu_param.h"
 
-namespace TEngine{
+namespace TEngine {
 
 class ReLU_vulkan : public Layer
 {
@@ -55,7 +55,7 @@ public:
 
     virtual int create_pipeline(const Option& opt);
     virtual int destroy_pipeline(const Option& opt);
-    
+
     virtual int record_pipeline(const VkTensor& bottom_blob, VkTensor& top_blob, VkCompute& cmd, const Option& opt) const;
     virtual int record_pipeline(VkTensor& bottom_top_blob, VkCompute& cmd, const Option& opt) const;
 
@@ -74,6 +74,6 @@ public:
     float negative_slope;
 };
 
-}   // namespace TEngine
+} // namespace TEngine
 
 #endif

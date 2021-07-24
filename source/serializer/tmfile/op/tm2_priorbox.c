@@ -35,12 +35,10 @@
 #include "utility/sys_port.h"
 #include "utility/log.h"
 
-
 static int priorbox_op_map(int op)
 {
     return OP_PRIORBOX;
 }
-
 
 static int tm2_load_priorbox(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node, const TM2_Operator* tm_op)
 {
@@ -86,9 +84,7 @@ static int tm2_load_priorbox(struct graph* ir_graph, struct node* ir_node, const
     return 0;
 }
 
-
 // TODO: add unload op
-
 
 int register_tm2_priorbox_op()
 {
@@ -104,7 +100,6 @@ int register_tm2_priorbox_op()
 
     return 0;
 }
-
 
 int unregister_tm2_priorbox_op()
 {

@@ -36,7 +36,6 @@
 #include "device/cpu/cpu_graph.h"
 #include "device/cpu/cpu_module.h"
 
-
 int ref_concat_fp32(struct graph* ir_graph, struct node* ir_node, int axis)
 {
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
@@ -45,10 +44,10 @@ int ref_concat_fp32(struct graph* ir_graph, struct node* ir_node, int axis)
     {
         struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
 
-        float* input_data  = (float*)input_tensor->data;
+        float* input_data = (float*)input_tensor->data;
         float* output_data = (float*)output_tensor->data;
 
-        for(int i=0; i<input_tensor->elem_num; i++)
+        for (int i = 0; i < input_tensor->elem_num; i++)
             output_data[i] = input_data[i];
 
         return 0;
@@ -67,10 +66,10 @@ int ref_concat_fp32(struct graph* ir_graph, struct node* ir_node, int axis)
 
             int size = input_tensor->elem_num;
 
-            float* input_data  = (float*)input_tensor->data;
+            float* input_data = (float*)input_tensor->data;
             float* output_data = (float*)output_tensor->data + output_step;
 
-            for (int i=0; i<size; i++)
+            for (int i = 0; i < size; i++)
             {
                 output_data[i] = input_data[i];
             }
@@ -85,14 +84,14 @@ int ref_concat_fp32(struct graph* ir_graph, struct node* ir_node, int axis)
         int output_step = 0;
         for (int num = 0; num < ir_node->input_num; num++)
         {
-            struct tensor* input_tensor  = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[num]);
+            struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[num]);
 
             int size = input_tensor->elem_num;
 
-            float* input_data  = (float*)input_tensor->data;
+            float* input_data = (float*)input_tensor->data;
             float* output_data = (float*)output_tensor->data + output_step;
 
-            for (int i=0; i<size; i++)
+            for (int i = 0; i < size; i++)
             {
                 output_data[i] = input_data[i];
             }
@@ -106,7 +105,7 @@ int ref_concat_fp32(struct graph* ir_graph, struct node* ir_node, int axis)
         int out_n = output_tensor->dims[0];
         int out_w = output_tensor->dims[1];
 
-        for (int n=0; n<output_tensor->dims[0]; n++)
+        for (int n = 0; n < output_tensor->dims[0]; n++)
         {
             int output_step = 0;
             for (int num = 0; num < ir_node->input_num; num++)
@@ -116,10 +115,10 @@ int ref_concat_fp32(struct graph* ir_graph, struct node* ir_node, int axis)
                 int in_n = input_tensor->dims[0];
                 int in_w = input_tensor->dims[1];
 
-                float* input_data  = (float*)input_tensor->data  + n * in_w;
+                float* input_data = (float*)input_tensor->data + n * in_w;
                 float* output_data = (float*)output_tensor->data + n * out_w + output_step;
 
-                for (int i=0; i<in_w; i++)
+                for (int i = 0; i < in_w; i++)
                 {
                     output_data[i] = input_data[i];
                 }
@@ -135,14 +134,14 @@ int ref_concat_fp32(struct graph* ir_graph, struct node* ir_node, int axis)
         int output_step = 0;
         for (int num = 0; num < ir_node->input_num; num++)
         {
-            struct tensor* input_tensor  = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[num]);
+            struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[num]);
 
             int size = input_tensor->elem_num;
 
-            float* input_data  = (float*)input_tensor->data;
+            float* input_data = (float*)input_tensor->data;
             float* output_data = (float*)output_tensor->data + output_step;
 
-            for (int i=0; i<size; i++)
+            for (int i = 0; i < size; i++)
             {
                 output_data[i] = input_data[i];
             }
@@ -158,7 +157,7 @@ int ref_concat_fp32(struct graph* ir_graph, struct node* ir_node, int axis)
         int out_w = output_tensor->dims[2];
         int out_nstep = out_h * out_w;
 
-        for (int n=0; n<out_n; n++)
+        for (int n = 0; n < out_n; n++)
         {
             int output_step = 0;
             for (int num = 0; num < ir_node->input_num; num++)
@@ -170,10 +169,10 @@ int ref_concat_fp32(struct graph* ir_graph, struct node* ir_node, int axis)
                 int in_w = input_tensor->dims[2];
                 int in_nstep = in_h * in_w;
 
-                float* input_data  = (float*)input_tensor->data  + n * in_nstep;
+                float* input_data = (float*)input_tensor->data + n * in_nstep;
                 float* output_data = (float*)output_tensor->data + n * out_nstep + output_step;
 
-                for (int i=0; i<in_nstep; i++)
+                for (int i = 0; i < in_nstep; i++)
                 {
                     output_data[i] = input_data[i];
                 }
@@ -190,9 +189,9 @@ int ref_concat_fp32(struct graph* ir_graph, struct node* ir_node, int axis)
         int out_w = output_tensor->dims[2];
         int out_nstep = out_h * out_w;
 
-        for (int n=0; n<out_n; n++)
+        for (int n = 0; n < out_n; n++)
         {
-            for (int h=0; h<out_h; h++)
+            for (int h = 0; h < out_h; h++)
             {
                 int output_step = 0;
                 for (int num = 0; num < ir_node->input_num; num++)
@@ -204,10 +203,10 @@ int ref_concat_fp32(struct graph* ir_graph, struct node* ir_node, int axis)
                     int in_w = input_tensor->dims[2];
                     int in_nstep = in_h * in_w;
 
-                    float* input_data  = (float*)input_tensor->data  + n * in_nstep  + h * in_w;
+                    float* input_data = (float*)input_tensor->data + n * in_nstep + h * in_w;
                     float* output_data = (float*)output_tensor->data + n * out_nstep + h * out_w + output_step;
 
-                    for (int i=0; i<in_w; i++)
+                    for (int i = 0; i < in_w; i++)
                     {
                         output_data[i] = input_data[i];
                     }
@@ -224,14 +223,14 @@ int ref_concat_fp32(struct graph* ir_graph, struct node* ir_node, int axis)
         int output_step = 0;
         for (int num = 0; num < ir_node->input_num; num++)
         {
-            struct tensor* input_tensor  = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[num]);
+            struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[num]);
 
             int size = input_tensor->elem_num;
 
-            float* input_data  = (float*)input_tensor->data;
+            float* input_data = (float*)input_tensor->data;
             float* output_data = (float*)output_tensor->data + output_step;
 
-            for (int i=0; i<size; i++)
+            for (int i = 0; i < size; i++)
             {
                 output_data[i] = input_data[i];
             }
@@ -249,7 +248,7 @@ int ref_concat_fp32(struct graph* ir_graph, struct node* ir_node, int axis)
         int out_cstep = out_h * out_w;
         int out_nstep = out_c * out_cstep;
 
-        for (int n=0; n<out_n; n++)
+        for (int n = 0; n < out_n; n++)
         {
             int output_step = 0;
             for (int num = 0; num < ir_node->input_num; num++)
@@ -263,10 +262,10 @@ int ref_concat_fp32(struct graph* ir_graph, struct node* ir_node, int axis)
                 int in_cstep = in_h * in_w;
                 int in_nstep = in_c * in_cstep;
 
-                float* input_data  = (float*)input_tensor->data  + n * in_nstep;
+                float* input_data = (float*)input_tensor->data + n * in_nstep;
                 float* output_data = (float*)output_tensor->data + n * out_nstep + output_step;
 
-                for (int i=0; i<in_nstep; i++)
+                for (int i = 0; i < in_nstep; i++)
                 {
                     output_data[i] = input_data[i];
                 }
@@ -285,9 +284,9 @@ int ref_concat_fp32(struct graph* ir_graph, struct node* ir_node, int axis)
         int out_cstep = out_h * out_w;
         int out_nstep = out_c * out_cstep;
 
-        for (int n=0; n<out_n; n++)
+        for (int n = 0; n < out_n; n++)
         {
-            for (int c=0; c<out_c; c++)
+            for (int c = 0; c < out_c; c++)
             {
                 int output_step = 0;
                 for (int num = 0; num < ir_node->input_num; num++)
@@ -301,10 +300,10 @@ int ref_concat_fp32(struct graph* ir_graph, struct node* ir_node, int axis)
                     int in_cstep = in_h * in_w;
                     int in_nstep = in_c * in_cstep;
 
-                    float* input_data  = (float*)input_tensor->data  + n * in_nstep  + c * in_cstep;
+                    float* input_data = (float*)input_tensor->data + n * in_nstep + c * in_cstep;
                     float* output_data = (float*)output_tensor->data + n * out_nstep + c * out_cstep + output_step;
 
-                    for (int i=0; i<in_cstep; i++)
+                    for (int i = 0; i < in_cstep; i++)
                     {
                         output_data[i] = input_data[i];
                     }
@@ -324,11 +323,11 @@ int ref_concat_fp32(struct graph* ir_graph, struct node* ir_node, int axis)
         int out_cstep = out_h * out_w;
         int out_nstep = out_c * out_cstep;
 
-        for (int n=0; n<out_n; n++)
+        for (int n = 0; n < out_n; n++)
         {
-            for (int c=0; c<out_c; c++)
+            for (int c = 0; c < out_c; c++)
             {
-                for (int h=0; h<out_h; h++)
+                for (int h = 0; h < out_h; h++)
                 {
                     int output_step = 0;
                     for (int num = 0; num < ir_node->input_num; num++)
@@ -342,10 +341,10 @@ int ref_concat_fp32(struct graph* ir_graph, struct node* ir_node, int axis)
                         int in_cstep = in_h * in_w;
                         int in_nstep = in_c * in_cstep;
 
-                        float* input_data  = (float*)input_tensor->data  + n * in_nstep  + c * in_cstep  + h * in_w;
+                        float* input_data = (float*)input_tensor->data + n * in_nstep + c * in_cstep + h * in_w;
                         float* output_data = (float*)output_tensor->data + n * out_nstep + c * out_cstep + h * out_w + output_step;
 
-                        for (int i=0; i<in_w; i++)
+                        for (int i = 0; i < in_w; i++)
                         {
                             output_data[i] = input_data[i];
                         }

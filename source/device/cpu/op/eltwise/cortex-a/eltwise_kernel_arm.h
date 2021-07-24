@@ -28,7 +28,6 @@
 
 #include "graph/tensor.h"
 
-
 int eltwise_run(struct tensor* output_tensor, struct tensor* input_tensor0, struct tensor* input_tensor1,
                 struct eltwise_param* eltwise_param, int num_thread);
 

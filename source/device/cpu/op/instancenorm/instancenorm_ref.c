@@ -36,7 +36,6 @@
 
 #include <math.h>
 
-
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     return 0;
@@ -100,7 +99,7 @@ int ref_instancenorm_fp32(float* input_data, float* output_data, float* gamma_da
 }
 
 int ref_instancenorm_uint8(struct tensor* input_tensor, struct tensor* output_tensor, struct tensor* gamma_tensor, struct tensor* beta_tensor,
-                            float eps, float scale, float zero_point, int layout)
+                           float eps, float scale, float zero_point, int layout)
 {
     int n = input_tensor->dims[0];
     int channels = input_tensor->dims[1];
@@ -121,10 +120,10 @@ int ref_instancenorm_uint8(struct tensor* input_tensor, struct tensor* output_te
     int32_t input_zero = input_tensor->zero_point;
     int32_t output_zero = output_tensor->zero_point;
 
-    float* input_data = (float*) sys_malloc(total_size * sizeof(float));
-    float* output_data = (float*) sys_malloc(total_size * sizeof(float));
-    for(int i = 0; i < total_size; i++)
-        input_data[i] = ((float) input_uint8[i] - (float)input_zero) * input_scale;
+    float* input_data = (float*)sys_malloc(total_size * sizeof(float));
+    float* output_data = (float*)sys_malloc(total_size * sizeof(float));
+    for (int i = 0; i < total_size; i++)
+        input_data[i] = ((float)input_uint8[i] - (float)input_zero) * input_scale;
 
     for (int s = 0; s < n; s++)
     {
@@ -168,7 +167,7 @@ int ref_instancenorm_uint8(struct tensor* input_tensor, struct tensor* output_te
     }
 
     // quant
-    for(int i=0; i<total_size; i++)
+    for (int i = 0; i < total_size; i++)
     {
         int udata = (int)roundf(output_data[i] / output_scale + output_zero);
         if (udata > 255)
@@ -206,15 +205,15 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     void* beta_data = beta_tensor->data;
     void* gamma_data = gamma_tensor->data;
 
-    struct instancenorm_Param* param = ( struct instancenorm_Param* )node->op.param_mem;
+    struct instancenorm_Param* param = (struct instancenorm_Param*)node->op.param_mem;
     float eps = param->eps;
     float scale = 1.f;
     int zero_point = 0;
-  
+
     int ret = -1;
     if (input_tensor->data_type == TENGINE_DT_FP32)
         ret = ref_instancenorm_fp32(in_data, out_data, gamma_data, beta_data, size, c, n, eps, scale, zero_point, 0);
-    else if(input_tensor->data_type == TENGINE_DT_UINT8)
+    else if (input_tensor->data_type == TENGINE_DT_UINT8)
         ret = ref_instancenorm_uint8(input_tensor, output_tensor, gamma_tensor, beta_tensor, eps, scale, zero_point, 0);
 
     return ret;

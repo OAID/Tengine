@@ -31,13 +31,12 @@
 #include "module/module.h"
 #include "utility/sys_port.h"
 
-
 static int infer_shape(struct node* node)
 {
     struct graph* graph = node->graph;
     struct tensor* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
     struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
-    struct reorg_param* reorg_param = ( struct reorg_param* )(node->op.param_mem);
+    struct reorg_param* reorg_param = (struct reorg_param*)(node->op.param_mem);
 
     int stride = reorg_param->stride;
 
@@ -58,10 +57,9 @@ static int infer_shape(struct node* node)
     return 0;
 }
 
-
 static int init_op(struct op* op)
 {
-    struct reorg_param* reorg_param = ( struct reorg_param* )sys_malloc(sizeof(struct reorg_param));
+    struct reorg_param* reorg_param = (struct reorg_param*)sys_malloc(sizeof(struct reorg_param));
 
     if (reorg_param == NULL)
     {
@@ -79,12 +77,10 @@ static int init_op(struct op* op)
     return 0;
 }
 
-
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
-
 
 int register_reorg_op()
 {
@@ -96,7 +92,6 @@ int register_reorg_op()
 
     return register_op(OP_REORG, OP_REORG_NAME, &m);
 }
-
 
 int unregister_reorg_op()
 {

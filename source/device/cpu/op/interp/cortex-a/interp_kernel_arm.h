@@ -29,7 +29,6 @@
 
 #include "graph/tensor.h"
 
-
 int interp_run(struct tensor* output_tensor, struct tensor* input_tensor, struct interp_param* interp_param,
                int num_thread);
 

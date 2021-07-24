@@ -34,19 +34,17 @@
 #include "device/device.h"
 #include "utility/log.h"
 
-
 static int batchtospacend_op_map(int op)
 {
     return OP_BATCHTOSPACEND;
 }
 
-
 static int tm2_load_batchtospacend(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node, const TM2_Operator* tm_op)
 {
-    struct batchtospacend_param* batchtospacend_param = ( struct batchtospacend_param* )ir_node->op.param_mem;
+    struct batchtospacend_param* batchtospacend_param = (struct batchtospacend_param*)ir_node->op.param_mem;
     const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
     const char* mem_base = tm2_priv->base;
-    const TM2_BatchToSpaceNDParam* tm_param = ( TM2_BatchToSpaceNDParam* )(mem_base + tm_op->offset_t_param);
+    const TM2_BatchToSpaceNDParam* tm_param = (TM2_BatchToSpaceNDParam*)(mem_base + tm_op->offset_t_param);
 
     batchtospacend_param->dilation_x = tm_param->dilation_x;
     batchtospacend_param->dilation_y = tm_param->dilation_y;
@@ -57,7 +55,6 @@ static int tm2_load_batchtospacend(struct graph* ir_graph, struct node* ir_node,
 
     return 0;
 }
-
 
 int register_tm2_batchtospacend_op()
 {
@@ -73,7 +70,6 @@ int register_tm2_batchtospacend_op()
 
     return 0;
 }
-
 
 int unregister_tm2_batchtospacend_op()
 {

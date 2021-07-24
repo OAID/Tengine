@@ -57,7 +57,7 @@ void get_input_data_cv(const cv::Mat& sample, float* input_data, int img_h, int 
     {
         cv::cvtColor(sample, img, cv::COLOR_GRAY2RGB);
     }
-    else if (sample.channels() == 3 && img_c == 3  && swapRB == 1)
+    else if (sample.channels() == 3 && img_c == 3 && swapRB == 1)
     {
         cv::cvtColor(sample, img, cv::COLOR_BGR2RGB);
     }
@@ -75,7 +75,7 @@ void get_input_data_cv(const cv::Mat& sample, float* input_data, int img_h, int 
         img.convertTo(img, CV_32FC3);
     else if (img_c == 1)
         img.convertTo(img, CV_32FC1);
-    float* img_data = ( float* )img.data;
+    float* img_data = (float*)img.data;
     int hw = img_h * img_w;
     for (int h = 0; h < img_h; h++)
     {
@@ -158,26 +158,26 @@ int main(int argc, char* argv[])
     {
         switch (res)
         {
-            case 'm':
-                model_file = optarg;
-                break;
-            case 'i':
-                image_file = optarg;
-                break;
-            case 'l':
-                label_file = optarg;
-                break;
-            case 'r':
-                repeat_count = atoi(optarg);
-                break;
-            case 't':
-                num_thread = atoi(optarg);
-                break;
-            case 'h':
-                show_usage();
-                return 0;
-            default:
-                break;
+        case 'm':
+            model_file = optarg;
+            break;
+        case 'i':
+            image_file = optarg;
+            break;
+        case 'l':
+            label_file = optarg;
+            break;
+        case 'r':
+            repeat_count = atoi(optarg);
+            break;
+        case 't':
+            num_thread = atoi(optarg);
+            break;
+        case 'h':
+            show_usage();
+            return 0;
+        default:
+            break;
         }
     }
 
@@ -238,7 +238,7 @@ int main(int argc, char* argv[])
 
     int img_size = img_h * img_w * 1;
     int dims[] = {1, 1, img_h, img_w};
-    float* input_data = ( float* )malloc(img_size * sizeof(float));
+    float* input_data = (float*)malloc(img_size * sizeof(float));
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == nullptr)
@@ -293,7 +293,7 @@ int main(int argc, char* argv[])
 
     /* process the crnn result */
     tensor_t output_tensor = get_graph_output_tensor(graph, 0, 0);
-    float* ocr_data = ( float* )get_tensor_buffer(output_tensor);
+    float* ocr_data = (float*)get_tensor_buffer(output_tensor);
     process_crnn_result(ocr_data, label_file);
 
     free(input_data);

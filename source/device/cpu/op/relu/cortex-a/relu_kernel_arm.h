@@ -31,7 +31,6 @@
 #include "graph/node.h"
 #include "graph/graph.h"
 
-
 int relu_arm_run(struct tensor* output_tensor, struct tensor* input_tensor, struct relu_param* relu_param,
                  int num_thread);
 

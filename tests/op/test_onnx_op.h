@@ -39,7 +39,6 @@
 
 #include "onnx.pb.h"
 
-
 int get_pb_data(float* float_data, const std::string& filepath)
 {
     std::ifstream fs(filepath.c_str(), std::ifstream::in | std::ifstream::binary);
@@ -155,16 +154,16 @@ int get_pb_data_i32(int32_t* i32_data, const std::string& filepath)
 
 int float_mismatch(float* current, float* reference, int size)
 {
-    for(int i=0;i<size;i++)
+    for (int i = 0; i < size; i++)
     {
         float tmp = fabs(current[i]) - fabs(reference[i]);
-        if(fabs(tmp) > 0.0001)
+        if (fabs(tmp) > 0.0001)
         {
             fprintf(stderr, "test failed, index:%d, a:%f, b:%f\n", i, current[i], reference[i]);
             return -1;
         }
     }
-    fprintf(stderr,"test pass\n");
+    fprintf(stderr, "test pass\n");
 
     return 0;
 }

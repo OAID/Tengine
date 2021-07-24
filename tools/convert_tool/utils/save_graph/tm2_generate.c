@@ -28,7 +28,7 @@
 extern "C" {
 #endif
 
-#define ALIGN(pos, alignbytes) (((pos) + ( alignbytes )-1) & ~(( alignbytes )-1))
+#define ALIGN(pos, alignbytes) (((pos) + (alignbytes)-1) & ~((alignbytes)-1))
 
 uint32_t WriteTmFileAlign1(void* const start_ptr, uint32_t* cur_pos, const void* buf, const uint32_t buf_size)
 {

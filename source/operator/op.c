@@ -29,12 +29,10 @@
 
 #include <string.h>
 
-
 void init_op_struct(ir_op_t* op)
 {
     memset(op, 0, sizeof(ir_node_t));
 }
-
 
 void init_method_struct(ir_method_t* method)
 {

@@ -82,7 +82,7 @@ char* strdup(const char* src)
 
     int n = strlen(src);
 
-    char* new_str = ( char* )sys_malloc(n + 1);
+    char* new_str = (char*)sys_malloc(n + 1);
 
     if (new_str == NULL)
         return NULL;

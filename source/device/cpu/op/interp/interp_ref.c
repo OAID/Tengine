@@ -37,25 +37,24 @@
 #include <math.h>
 #include <string.h>
 
-
 #define INTERP_MIN(a, b) ((a) < (b) ? (a) : (b))
 
 void linear_coeffs(int w, int outw, int* xofs, float* alpha)
 {
-    double scale = ( double )w / outw;
+    double scale = (double)w / outw;
 
-    for(int dx = 0; dx < outw; dx++)
+    for (int dx = 0; dx < outw; dx++)
     {
-        float fx = ( float )((dx) * scale);
+        float fx = (float)((dx)*scale);
         int sx = floor(fx);
         fx -= sx;
 
-        if(sx < 0)
+        if (sx < 0)
         {
             sx = 0;
             fx = 0.f;
         }
-        if(sx >= w - 1)
+        if (sx >= w - 1)
         {
             sx = w - 2;
             fx = 1.f;
@@ -70,12 +69,12 @@ void linear_coeffs(int w, int outw, int* xofs, float* alpha)
 
 void resize_bilinear_image(float* src, float* dst, float* alpha, int* xofs, float* beta, int* yofs, int out_h, int out_w, int in_h, int in_w)
 {
-    int w = out_w;  //dst.w;
-    int h = out_h;  //dst.h;
+    int w = out_w; //dst.w;
+    int h = out_h; //dst.h;
 
     // loop body
-    float* rowsbuf0 = ( float* )sys_malloc(w * sizeof(float));
-    float* rowsbuf1 = ( float* )sys_malloc(w * sizeof(float));
+    float* rowsbuf0 = (float*)sys_malloc(w * sizeof(float));
+    float* rowsbuf1 = (float*)sys_malloc(w * sizeof(float));
     float* rows0 = rowsbuf0;
     float* rows1 = rowsbuf1;
 
@@ -83,7 +82,7 @@ void resize_bilinear_image(float* src, float* dst, float* alpha, int* xofs, floa
     memset(rowsbuf1, 0, w * sizeof(float));
 
     int prev_sy1 = -2;
-    for (int dy = 0; dy < h; dy++ )
+    for (int dy = 0; dy < h; dy++)
     {
         int sy = yofs[dy];
 
@@ -97,7 +96,7 @@ void resize_bilinear_image(float* src, float* dst, float* alpha, int* xofs, floa
             float* rows0_old = rows0;
             rows0 = rows1;
             rows1 = rows0_old;
-            const float* S1 = src + (sy+1)*in_w;   //src.row(sy+1);
+            const float* S1 = src + (sy + 1) * in_w; //src.row(sy+1);
 
             const float* alphap = alpha;
             float* rows1p = rows1;
@@ -109,7 +108,7 @@ void resize_bilinear_image(float* src, float* dst, float* alpha, int* xofs, floa
 
                 float a0 = alphap[0];
                 float a1 = alphap[1];
-                rows1p[dx] = S1p[0]*a0 + S1p[1]*a1;
+                rows1p[dx] = S1p[0] * a0 + S1p[1] * a1;
 
                 alphap += 2;
             }
@@ -117,8 +116,8 @@ void resize_bilinear_image(float* src, float* dst, float* alpha, int* xofs, floa
         else
         {
             // hresize two rows
-            const float* S0 = src + sy*in_w;       //src.row(sy);
-            const float* S1 = src + (sy+1)*in_w;   //src.row(sy+1);
+            const float* S0 = src + sy * in_w;       //src.row(sy);
+            const float* S1 = src + (sy + 1) * in_w; //src.row(sy+1);
 
             const float* alphap = alpha;
             float* rows0p = rows0;
@@ -132,12 +131,11 @@ void resize_bilinear_image(float* src, float* dst, float* alpha, int* xofs, floa
 
                 float a0 = alphap[0];
                 float a1 = alphap[1];
-                rows0p[dx] = S0p[0]*a0 + S0p[1]*a1;
-                rows1p[dx] = S1p[0]*a0 + S1p[1]*a1;
+                rows0p[dx] = S0p[0] * a0 + S0p[1] * a1;
+                rows1p[dx] = S1p[0] * a0 + S1p[1] * a1;
 
                 alphap += 2;
             }
-
         }
 
         prev_sy1 = sy;
@@ -210,7 +208,7 @@ int ref_interp_fp32(struct tensor* input_tensor, struct tensor* output_tensor, s
         int in_channel_size = in_h * in_w;
         int out_channel_size = out_h * out_w;
 
-        int* buf = (int*)sys_malloc((param->output_width + param->output_height + param->output_width*2 + param->output_height*2)*sizeof(float));
+        int* buf = (int*)sys_malloc((param->output_width + param->output_height + param->output_width * 2 + param->output_height * 2) * sizeof(float));
 
         if (buf == NULL)
         {
@@ -218,18 +216,18 @@ int ref_interp_fp32(struct tensor* input_tensor, struct tensor* output_tensor, s
             return -1;
         }
 
-        int* xofs = buf;//new int[ow];
-        int* yofs = buf + param->output_width ;//new int[oh];
+        int* xofs = buf;                       //new int[ow];
+        int* yofs = buf + param->output_width; //new int[oh];
 
-        float* alpha = (float*)(buf + param->output_width  + param->output_height);//new float[ow * 2];
-        float* beta = (float*)(buf + param->output_width + param->output_height + param->output_width*2);//new float[oh * 2];
+        float* alpha = (float*)(buf + param->output_width + param->output_height);                          //new float[ow * 2];
+        float* beta = (float*)(buf + param->output_width + param->output_height + param->output_width * 2); //new float[oh * 2];
 
         linear_coeffs(in_w, out_w, xofs, alpha);
         linear_coeffs(in_h, out_h, yofs, beta);
 
         for (int q = 0; q < channel; ++q)
         {
-            resize_bilinear_image(input+in_channel_size*q, output+out_channel_size*q, alpha, xofs, beta, yofs, out_h, out_w, in_h, in_w);
+            resize_bilinear_image(input + in_channel_size * q, output + out_channel_size * q, alpha, xofs, beta, yofs, out_h, out_w, in_h, in_w);
         }
 
         sys_free(buf);
@@ -259,9 +257,9 @@ int ref_interp_uint8(struct tensor* input_tensor, struct tensor* output_tensor, 
     float* input_fp32 = (float*)sys_malloc(input_total_size * sizeof(float));
     float* output_fp32 = (float*)sys_malloc(output_total_size * sizeof(float));
 
-    for(int i=0; i<input_total_size; i++)
+    for (int i = 0; i < input_total_size; i++)
     {
-        input_fp32[i] = ((float )input_uint8[i] - (float )input_zero) * input_scale;
+        input_fp32[i] = ((float)input_uint8[i] - (float)input_zero) * input_scale;
     }
 
     /* process */
@@ -304,7 +302,7 @@ int ref_interp_uint8(struct tensor* input_tensor, struct tensor* output_tensor, 
         int in_channel_size = in_h * in_w;
         int out_channel_size = out_h * out_w;
 
-        int* buf = (int*)sys_malloc((param->output_width + param->output_height + param->output_width*2 + param->output_height*2)*sizeof(float));
+        int* buf = (int*)sys_malloc((param->output_width + param->output_height + param->output_width * 2 + param->output_height * 2) * sizeof(float));
 
         if (buf == NULL)
         {
@@ -312,18 +310,18 @@ int ref_interp_uint8(struct tensor* input_tensor, struct tensor* output_tensor, 
             return -1;
         }
 
-        int* xofs = buf;//new int[ow];
-        int* yofs = buf + param->output_width ;//new int[oh];
+        int* xofs = buf;                       //new int[ow];
+        int* yofs = buf + param->output_width; //new int[oh];
 
-        float* alpha = (float*)(buf + param->output_width  + param->output_height);//new float[ow * 2];
-        float* beta = (float*)(buf + param->output_width + param->output_height + param->output_width*2);//new float[oh * 2];
+        float* alpha = (float*)(buf + param->output_width + param->output_height);                          //new float[ow * 2];
+        float* beta = (float*)(buf + param->output_width + param->output_height + param->output_width * 2); //new float[oh * 2];
 
         linear_coeffs(in_w, out_w, xofs, alpha);
         linear_coeffs(in_h, out_h, yofs, beta);
 
         for (int q = 0; q < channel; ++q)
         {
-            resize_bilinear_image(input_fp32+in_channel_size*q, output_fp32+out_channel_size*q, alpha, xofs, beta, yofs, out_h, out_w, in_h, in_w);
+            resize_bilinear_image(input_fp32 + in_channel_size * q, output_fp32 + out_channel_size * q, alpha, xofs, beta, yofs, out_h, out_w, in_h, in_w);
         }
 
         sys_free(buf);
@@ -335,7 +333,7 @@ int ref_interp_uint8(struct tensor* input_tensor, struct tensor* output_tensor, 
     }
 
     /* quant */
-    for(int i=0; i<output_total_size; i++)
+    for (int i = 0; i < output_total_size; i++)
     {
         int udata = round(output_fp32[i] / output_scale + output_zero);
         if (udata > 255)
@@ -372,7 +370,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct graph* graph = node->graph;
     struct tensor* input_tensor = get_ir_graph_tensor(graph, node->input_tensors[0]);
     struct tensor* output_tensor = get_ir_graph_tensor(graph, node->output_tensors[0]);
-    struct interp_param* param = ( struct interp_param* )node->op.param_mem;
+    struct interp_param* param = (struct interp_param*)node->op.param_mem;
 
     int ret = -1;
     if (input_tensor->data_type == TENGINE_DT_FP32)
@@ -381,7 +379,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         ret = ref_interp_uint8(input_tensor, output_tensor, param);
     else
         TLOG_ERR("Input data type %d not to be supported.\n", input_tensor->data_type);
-    
+
     return ret;
 }
 

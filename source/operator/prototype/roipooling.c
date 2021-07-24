@@ -31,13 +31,12 @@
 #include "module/module.h"
 #include "utility/sys_port.h"
 
-
 static int infer_shape(struct node* node)
 {
     struct graph* ir_graph = node->graph;
     struct tensor* input = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
     struct tensor* output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
-    struct roipooling_param* roipooling_param = ( struct roipooling_param* )node->op.param_mem;
+    struct roipooling_param* roipooling_param = (struct roipooling_param*)node->op.param_mem;
 
     int dims[4];
 
@@ -51,10 +50,9 @@ static int infer_shape(struct node* node)
     return 0;
 }
 
-
 static int init_op(struct op* op)
 {
-    struct roipooling_param* roipooling_param = ( struct roipooling_param* )sys_malloc(sizeof(struct roipooling_param));
+    struct roipooling_param* roipooling_param = (struct roipooling_param*)sys_malloc(sizeof(struct roipooling_param));
 
     if (roipooling_param == NULL)
     {
@@ -72,12 +70,10 @@ static int init_op(struct op* op)
     return 0;
 }
 
-
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
-
 
 int register_roipooling_op()
 {

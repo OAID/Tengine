@@ -70,22 +70,22 @@ Eltwise_vulkan::Eltwise_vulkan(ir_graph_t* ir_graph, ir_node_t* ir_node)
     graph = ir_graph;
     node = ir_node;
 
-    for(int i = 0; i < ir_node->input_num; i++)
+    for (int i = 0; i < ir_node->input_num; i++)
     {
-        struct tensor *input = get_ir_graph_tensor(graph, node->input_tensors[i]);
+        struct tensor* input = get_ir_graph_tensor(graph, node->input_tensors[i]);
         std::string name = input->name;
         bottoms.push_back(name);
     }
 
-    for(int i = 0; i < ir_node->output_num; i++)
+    for (int i = 0; i < ir_node->output_num; i++)
     {
-        struct tensor *output = get_ir_graph_tensor(graph, node->input_tensors[i]);
+        struct tensor* output = get_ir_graph_tensor(graph, node->input_tensors[i]);
         std::string name = output->name;
         tops.push_back(name);
     }
 
-    struct eltwise_param *param = (struct eltwise_param *)ir_node->op.param_mem;
-    op_type = (param -> type) / 2;
+    struct eltwise_param* param = (struct eltwise_param*)ir_node->op.param_mem;
+    op_type = (param->type) / 2;
 }
 
 int Eltwise_vulkan::create_pipeline(const Option& opt)
@@ -93,9 +93,12 @@ int Eltwise_vulkan::create_pipeline(const Option& opt)
     const Tensor& shape = Tensor(output_w, output_h, output_c, (void*)0); // top_shapes.empty() ? Tensor() : top_shapes[0];
 
     int elempack = 1;
-    if (shape.dims == 1) elempack = opt.use_shader_pack8 && shape.w % 8 == 0 ? 8 : shape.w % 4 == 0 ? 4 : 1;
-    if (shape.dims == 2) elempack = opt.use_shader_pack8 && shape.h % 8 == 0 ? 8 : shape.h % 4 == 0 ? 4 : 1;
-    if (shape.dims == 3) elempack = opt.use_shader_pack8 && shape.c % 8 == 0 ? 8 : shape.c % 4 == 0 ? 4 : 1;
+    if (shape.dims == 1) elempack = opt.use_shader_pack8 && shape.w % 8 == 0 ? 8 : shape.w % 4 == 0 ? 4
+                                                                                                    : 1;
+    if (shape.dims == 2) elempack = opt.use_shader_pack8 && shape.h % 8 == 0 ? 8 : shape.h % 4 == 0 ? 4
+                                                                                                    : 1;
+    if (shape.dims == 3) elempack = opt.use_shader_pack8 && shape.c % 8 == 0 ? 8 : shape.c % 4 == 0 ? 4
+                                                                                                    : 1;
 
     size_t elemsize;
     if (opt.use_fp16_storage)
@@ -118,12 +121,12 @@ int Eltwise_vulkan::create_pipeline(const Option& opt)
 
     std::vector<vk_specialization_type> specializations(2 + 5);
     specializations[0].i = op_type;
-    specializations[1].i = 0;   // coeffs.w == 0 ? 0 : 1;   TODO fix coeffs value
-    specializations[2 + 0].i = 0;   // shape_packed.dims;
-    specializations[2 + 1].i = 0;   // shape_packed.w;
-    specializations[2 + 2].i = 0;   // shape_packed.h;
-    specializations[2 + 3].i = 0;   // shape_packed.c;
-    specializations[2 + 4].i = 0;   // shape_packed.cstep;
+    specializations[1].i = 0;     // coeffs.w == 0 ? 0 : 1;   TODO fix coeffs value
+    specializations[2 + 0].i = 0; // shape_packed.dims;
+    specializations[2 + 1].i = 0; // shape_packed.w;
+    specializations[2 + 2].i = 0; // shape_packed.h;
+    specializations[2 + 3].i = 0; // shape_packed.c;
+    specializations[2 + 4].i = 0; // shape_packed.cstep;
 
     Tensor local_size_xyz;
     if (shape_packed.dims == 1)
@@ -228,12 +231,12 @@ int Eltwise_vulkan::record_pipeline(const std::vector<VkTensor>& bottom_blobs, s
     constants[2].i = top_blob.h;
     constants[3].i = top_blob.c;
     constants[4].i = top_blob.cstep;
-    constants[5].f = 1.0f;  // coeffs.w == 0 ? 1.f : coeffs[0];     TODO fix coeffs value
-    constants[6].f = 1.0f;  // coeffs.w == 0 ? 1.f : coeffs[1];
+    constants[5].f = 1.0f; // coeffs.w == 0 ? 1.f : coeffs[0];     TODO fix coeffs value
+    constants[6].f = 1.0f; // coeffs.w == 0 ? 1.f : coeffs[1];
 
-    const Pipeline* pipeline = elempack == 8 ? pipeline_eltwise_pack8[1]
+    const Pipeline* pipeline = elempack == 8   ? pipeline_eltwise_pack8[1]
                                : elempack == 4 ? pipeline_eltwise_pack4[1]
-                               : pipeline_eltwise[1];
+                                               : pipeline_eltwise[1];
 
     cmd.record_pipeline(pipeline, bindings, constants, top_blob);
 
@@ -251,11 +254,11 @@ int Eltwise_vulkan::record_pipeline(const std::vector<VkTensor>& bottom_blobs, s
         constants[3].i = top_blob.c;
         constants[4].i = top_blob.cstep;
         constants[5].f = 1.f;
-        constants[6].f = 1.0f;  // coeffs.w == 0 ? 1 : coeffs[b];       TODO fixcoeffs value
+        constants[6].f = 1.0f; // coeffs.w == 0 ? 1 : coeffs[b];       TODO fixcoeffs value
 
-        const Pipeline* pipeline = elempack == 8 ? pipeline_eltwise_pack8[b % 2]
+        const Pipeline* pipeline = elempack == 8   ? pipeline_eltwise_pack8[b % 2]
                                    : elempack == 4 ? pipeline_eltwise_pack4[b % 2]
-                                   : pipeline_eltwise[b % 2];
+                                                   : pipeline_eltwise[b % 2];
 
         cmd.record_pipeline(pipeline, bindings, constants, top_blob);
     }
@@ -263,4 +266,4 @@ int Eltwise_vulkan::record_pipeline(const std::vector<VkTensor>& bottom_blobs, s
     return 0;
 }
 
-}   // namespace TEngine
+} // namespace TEngine

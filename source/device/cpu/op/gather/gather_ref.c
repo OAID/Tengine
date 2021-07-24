@@ -38,10 +38,9 @@
 #include <math.h>
 #include <string.h>
 
-
 typedef struct
 {
-    int* in_shape;    // the dim of the input
+    int* in_shape; // the dim of the input
     int axis;
     int indices_num;
     int dim_size;
@@ -68,22 +67,23 @@ static int ref_gather_fp32(float* input, int* input_indices, float* output, gath
         // TLOG_ERR("inner_size size: %d %d \n", inner_size, param->in_shape[i]);
     }
 
-	// #pragma omp parallel for num_threads(num_thread)
-    if(param->is_onnx){
+    // #pragma omp parallel for num_threads(num_thread)
+    if (param->is_onnx)
+    {
         for (int outer = 0; outer < outer_size; ++outer)
         {
-            memcpy(out_ptr + (outer * param->indices_num ) * inner_size,
-            in_ptr + (outer* axis_size + param->indices_num) * inner_size, inner_size* sizeof(float));
+            memcpy(out_ptr + (outer * param->indices_num) * inner_size,
+                   in_ptr + (outer * axis_size + param->indices_num) * inner_size, inner_size * sizeof(float));
         }
-    } else {
+    }
+    else
+    {
         for (int outer = 0; outer < outer_size; ++outer)
         {
             for (int i = 0; i < param->indices_num; i++)
             {
-
                 memcpy(out_ptr + (outer * param->indices_num + i) * inner_size,
-                       in_ptr + (outer * axis_size + ( int )input_indices[i]) * inner_size, inner_size * sizeof(float));
-                
+                       in_ptr + (outer * axis_size + (int)input_indices[i]) * inner_size, inner_size * sizeof(float));
             }
         }
     }
@@ -109,13 +109,13 @@ static int ref_gather_uint8(uint8_t* input, int* input_indices, uint8_t* output,
         inner_size *= param->in_shape[i];
     }
 
-	// #pragma omp parallel for num_threads(num_thread)
+    // #pragma omp parallel for num_threads(num_thread)
     for (int outer = 0; outer < outer_size; ++outer)
     {
         for (int i = 0; i < param->indices_num; i++)
         {
             memcpy(out_ptr + (outer * param->indices_num + i) * inner_size,
-                   in_ptr + (outer * axis_size + ( int )input_indices[i]) * inner_size, inner_size);
+                   in_ptr + (outer * axis_size + (int)input_indices[i]) * inner_size, inner_size);
         }
     }
 
@@ -126,14 +126,14 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
 {
     struct node* ir_node = exec_node->ir_node;
     struct graph* ir_graph = ir_node->graph;
-    struct gather_param* gather_param = ( struct gather_param* )ir_node->op.param_mem;
-    gather_param_t* op_priv_info = ( gather_param_t* )exec_node->ops_priv;
+    struct gather_param* gather_param = (struct gather_param*)ir_node->op.param_mem;
+    gather_param_t* op_priv_info = (gather_param_t*)exec_node->ops_priv;
     struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
 
     op_priv_info->axis = gather_param->axis;
     op_priv_info->indices_num = gather_param->indices_num;
     op_priv_info->is_onnx = gather_param->is_onnx;
-    op_priv_info->in_shape = (int*)sys_malloc(input_tensor->dim_num*sizeof(int));
+    op_priv_info->in_shape = (int*)sys_malloc(input_tensor->dim_num * sizeof(int));
     /* prerun now */
     return 0;
 }
@@ -146,7 +146,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
     struct tensor* indices_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
 
-    gather_param_t* op_priv_info = ( gather_param_t* )exec_node->ops_priv;
+    gather_param_t* op_priv_info = (gather_param_t*)exec_node->ops_priv;
 
     int out_size = input_tensor->elem_num;
 
@@ -168,7 +168,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     int ret = -1;
     if (input_tensor->data_type == TENGINE_DT_FP32)
         ret = ref_gather_fp32((float*)input, (int*)indices_data, (float*)output, op_priv_info, exec_graph->num_thread);
-    else if(input_tensor->data_type == TENGINE_DT_UINT8)
+    else if (input_tensor->data_type == TENGINE_DT_UINT8)
         ret = ref_gather_uint8((uint8_t*)input, (int*)indices_data, (uint8_t*)output, op_priv_info, exec_graph->num_thread);
 
     return ret;
@@ -179,7 +179,7 @@ static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, str
     struct node* ir_node = exec_node->ir_node;
     struct graph* ir_graph = ir_node->graph;
 
-    gather_param_t* op_priv_info = ( gather_param_t* )sys_malloc(sizeof(gather_param_t));
+    gather_param_t* op_priv_info = (gather_param_t*)sys_malloc(sizeof(gather_param_t));
 
     if (op_priv_info == NULL)
     {
@@ -203,7 +203,7 @@ static int postrun(struct node_ops* node_ops, struct exec_node* exec_node, struc
 }
 static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    gather_param_t* op_priv_info = ( gather_param_t* )exec_node->ops_priv;
+    gather_param_t* op_priv_info = (gather_param_t*)exec_node->ops_priv;
 
     sys_free(op_priv_info);
 

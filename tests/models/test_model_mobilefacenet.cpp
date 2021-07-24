@@ -36,7 +36,7 @@
 #define DEFAULT_MEAN3 122.679
 
 #define MOBILE_FACE_HEIGHT 110
-#define MOBILE_FACE_WIDTH 110
+#define MOBILE_FACE_WIDTH  110
 
 graph_t graph;
 tensor_t input_tensor;
@@ -45,10 +45,10 @@ int feature_len;
 
 int float_mismatch(float* current, float* reference, int size)
 {
-    for(int i=0;i<size;i++)
+    for (int i = 0; i < size; i++)
     {
         float tmp = fabs(current[i]) - fabs(reference[i]);
-        if(fabs(tmp) > 0.0001)
+        if (fabs(tmp) > 0.0001)
         {
             fprintf(stderr, "test failed, index:%d, a:%f, b:%f\n", i, current[i], reference[i]);
             return -1;
@@ -86,7 +86,7 @@ int getFeature_a(const char* imagefile, float* feature)
     std::vector<float> input_data(img_size);
     std::string model_name = "mobilefacenet";
     std::string input_file = "./data/" + model_name + "_in1.bin";
-    FILE *fp;
+    FILE* fp;
     fp = fopen(input_file.c_str(), "rb");
     if (fread(input_data.data(), sizeof(float), img_size, fp) == 0)
     {
@@ -94,7 +94,7 @@ int getFeature_a(const char* imagefile, float* feature)
         return -1;
     }
     fclose(fp);
-    
+
     set_tensor_buffer(input_tensor, input_data.data(), img_size * sizeof(float));
 
     if (run_graph(graph, 1) < 0)
@@ -102,7 +102,7 @@ int getFeature_a(const char* imagefile, float* feature)
         fprintf(stderr, "run_graph fail");
         return -1;
     }
-    float* data = ( float* )get_tensor_buffer(output_tensor);
+    float* data = (float*)get_tensor_buffer(output_tensor);
     int outsize;
     outsize = get_tensor_buffer_size(output_tensor) / sizeof(float);
     for (int i = 0; i < outsize; i++)
@@ -111,7 +111,7 @@ int getFeature_a(const char* imagefile, float* feature)
     // save output_data
     std::string reference_file1 = "./data/" + model_name + "_out1.bin";
     std::vector<float> reference_data1(outsize);
-    FILE *fp1;
+    FILE* fp1;
     //read
     fp1 = fopen(reference_file1.c_str(), "rb");
     if (fread(reference_data1.data(), sizeof(float), outsize, fp1) == 0)
@@ -135,7 +135,7 @@ int getFeature_b(const char* imagefile, float* feature)
     std::vector<float> input_data(img_size);
     std::string model_name = "mobilefacenet";
     std::string input_file = "./data/" + model_name + "_in2.bin";
-    FILE *fp;
+    FILE* fp;
     fp = fopen(input_file.c_str(), "rb");
     if (fread(input_data.data(), sizeof(float), img_size, fp) == 0)
     {
@@ -149,7 +149,7 @@ int getFeature_b(const char* imagefile, float* feature)
         fprintf(stderr, "run_graph fail");
         return -1;
     }
-    float* data = ( float* )get_tensor_buffer(output_tensor);
+    float* data = (float*)get_tensor_buffer(output_tensor);
     int outsize;
     outsize = get_tensor_buffer_size(output_tensor) / sizeof(float);
     for (int i = 0; i < outsize; i++)
@@ -158,7 +158,7 @@ int getFeature_b(const char* imagefile, float* feature)
     // save output_data
     std::string reference_file1 = "./data/" + model_name + "_out2.bin";
     std::vector<float> reference_data1(outsize);
-    FILE *fp1;
+    FILE* fp1;
     //read
     fp1 = fopen(reference_file1.c_str(), "rb");
     if (fread(reference_data1.data(), sizeof(float), outsize, fp1) == 0)
@@ -196,14 +196,14 @@ int main(int argc, char* argv[])
     {
         switch (res)
         {
-            case 'm':
-                model_file = optarg;
-                break;
-            case 'h':
-                show_usage();
-                return 0;
-            default:
-                break;
+        case 'm':
+            model_file = optarg;
+            break;
+        case 'h':
+            show_usage();
+            return 0;
+        default:
+            break;
         }
     }
 
@@ -226,7 +226,7 @@ int main(int argc, char* argv[])
     int outputsizea = getFeature_a(person_a, featurea.data());
     int outputsizeb = getFeature_b(person_b, featureb.data());
 
-	int ret = (outputsizea | outputsizeb);
+    int ret = (outputsizea | outputsizeb);
     release();
     return ret;
 }

@@ -31,7 +31,6 @@
 #include "graph/node.h"
 #include "graph/graph.h"
 
-
 struct fc_priv_info
 {
     void* interleave_buffer;

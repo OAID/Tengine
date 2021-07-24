@@ -44,8 +44,7 @@
 #include "vulkan_command.hpp"
 #include "vulkan_pipeline.hpp"
 
-extern "C"
-{
+extern "C" {
 #include "api/c_api.h"
 #include "device/device.h"
 #include "graph/tensor.h"
@@ -114,6 +113,6 @@ public:
 
 Layer* create_layer(std::string type);
 
-} // TEngine
+} // namespace TEngine
 
 #endif // VULKAN_LAYER_HPP

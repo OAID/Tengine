@@ -41,7 +41,6 @@
 #include <stdlib.h>
 #include <math.h>
 
-
 #if __mips_msa
 #include <msa.h>
 #endif
@@ -50,7 +49,7 @@
 
 static int get_private_mem_size(struct tensor* filter)
 {
-    return filter->elem_num * filter->elem_size;    // caution
+    return filter->elem_num * filter->elem_size; // caution
 }
 
 static void interleave(struct tensor* filter, struct conv_priv_info* priv_info)
@@ -126,8 +125,8 @@ void input_pack4(int K, int N, float* pB, float* pB_t, int num_thread)
     int nn_size = N >> 2;
     int remian_size_start = nn_size << 2;
 
-    // [ch00, ch10, ch20, ch30, ch01, ch11, ch21, ch31, ch02, ch12, ch22, ch32, ch03, ch13, ch23, ch33 ....]
-    #pragma omp parallel for num_threads(num_thread)
+// [ch00, ch10, ch20, ch30, ch01, ch11, ch21, ch31, ch02, ch12, ch22, ch32, ch03, ch13, ch23, ch33 ....]
+#pragma omp parallel for num_threads(num_thread)
     for (int ii = 0; ii < nn_size; ii++)
     {
         int i = ii * 4;
@@ -143,14 +142,14 @@ void input_pack4(int K, int N, float* pB, float* pB_t, int num_thread)
             tmp[1] = img[1];
             tmp[2] = img[2];
             tmp[3] = img[3];
-#endif    // __mips_msa
+#endif // __mips_msa
             tmp += 4;
             img += N;
         }
     }
 
-    // [ch00, ch01, ch02, ch03 ....]
-    #pragma omp parallel for num_threads(num_thread)
+// [ch00, ch01, ch02, ch03 ....]
+#pragma omp parallel for num_threads(num_thread)
     for (int i = remian_size_start; i < N; i++)
     {
         const float* img = pB + i;
@@ -175,13 +174,13 @@ static void sgemm(int M, int N, int K, float* pA_t, float* pB_t, float* pC, int 
     nn_outch = M >> 2;
     remain_outch_start = nn_outch << 2;
 
-    // output ch0 - ch3
-    #pragma omp parallel for num_threads(num_thread)
-    for (int pp=0; pp<nn_outch; pp++)
+// output ch0 - ch3
+#pragma omp parallel for num_threads(num_thread)
+    for (int pp = 0; pp < nn_outch; pp++)
     {
-        int i =  pp * 4;
+        int i = pp * 4;
 
-        float* output0 = pC + ( i )*N;
+        float* output0 = pC + (i)*N;
         float* output1 = pC + (i + 1) * N;
         float* output2 = pC + (i + 2) * N;
         float* output3 = pC + (i + 3) * N;
@@ -206,10 +205,10 @@ static void sgemm(int M, int N, int K, float* pA_t, float* pB_t, float* pC, int 
                 v4f32 _vb = (v4f32)__msa_ld_w(vb, 0);
                 v4i32 _va0123 = __msa_ld_w(va, 0);
 
-                _sum0 = __msa_fmadd_w(_sum0, _vb, (v4f32)__msa_splati_w(_va0123, 0));    // sum0 = (a00-a03) * k00
-                _sum1 = __msa_fmadd_w(_sum1, _vb, (v4f32)__msa_splati_w(_va0123, 1));    // sum1 = (a00-a03) * k10
-                _sum2 = __msa_fmadd_w(_sum2, _vb, (v4f32)__msa_splati_w(_va0123, 2));    // sum2 = (a00-a03) * k20
-                _sum3 = __msa_fmadd_w(_sum3, _vb, (v4f32)__msa_splati_w(_va0123, 3));    // sum3 = (a00-a03) * k30
+                _sum0 = __msa_fmadd_w(_sum0, _vb, (v4f32)__msa_splati_w(_va0123, 0)); // sum0 = (a00-a03) * k00
+                _sum1 = __msa_fmadd_w(_sum1, _vb, (v4f32)__msa_splati_w(_va0123, 1)); // sum1 = (a00-a03) * k10
+                _sum2 = __msa_fmadd_w(_sum2, _vb, (v4f32)__msa_splati_w(_va0123, 2)); // sum2 = (a00-a03) * k20
+                _sum3 = __msa_fmadd_w(_sum3, _vb, (v4f32)__msa_splati_w(_va0123, 3)); // sum3 = (a00-a03) * k30
 
                 va += 4;
                 vb += 4;
@@ -245,7 +244,7 @@ static void sgemm(int M, int N, int K, float* pA_t, float* pB_t, float* pC, int 
                 output2[n] = sum2[n];
                 output3[n] = sum3[n];
             }
-#endif    // __mips_msa
+#endif // __mips_msa
             output0 += 4;
             output1 += 4;
             output2 += 4;
@@ -275,10 +274,10 @@ static void sgemm(int M, int N, int K, float* pA_t, float* pB_t, float* pC, int 
                 v4f32 _va2 = (v4f32)__msa_ld_w(va + 8, 0);
                 v4f32 _va3 = (v4f32)__msa_ld_w(va + 12, 0);
 
-                _sum0 = __msa_fmadd_w(_sum0, _va0, (v4f32)__msa_splati_w(_vb0123, 0));    // sum0 += (k00-k30) * a00
-                _sum1 = __msa_fmadd_w(_sum1, _va1, (v4f32)__msa_splati_w(_vb0123, 1));    // sum1 += (k01-k31) * a10
-                _sum2 = __msa_fmadd_w(_sum2, _va2, (v4f32)__msa_splati_w(_vb0123, 2));    // sum2 += (k02-k32) * a20
-                _sum3 = __msa_fmadd_w(_sum3, _va3, (v4f32)__msa_splati_w(_vb0123, 3));    // sum3 += (k03-k33) * a30
+                _sum0 = __msa_fmadd_w(_sum0, _va0, (v4f32)__msa_splati_w(_vb0123, 0)); // sum0 += (k00-k30) * a00
+                _sum1 = __msa_fmadd_w(_sum1, _va1, (v4f32)__msa_splati_w(_vb0123, 1)); // sum1 += (k01-k31) * a10
+                _sum2 = __msa_fmadd_w(_sum2, _va2, (v4f32)__msa_splati_w(_vb0123, 2)); // sum2 += (k02-k32) * a20
+                _sum3 = __msa_fmadd_w(_sum3, _va3, (v4f32)__msa_splati_w(_vb0123, 3)); // sum3 += (k03-k33) * a30
 
                 va += 16;
                 vb += 4;
@@ -294,7 +293,7 @@ static void sgemm(int M, int N, int K, float* pA_t, float* pB_t, float* pC, int 
                 v4f32 _vb0 = {vb[0], vb[0], vb[0], vb[0]};
                 v4f32 _va = (v4f32)__msa_ld_w(va, 0);
 
-                _sum0_3 = __msa_fmadd_w(_sum0_3, _va, _vb0);    // sum0 += (k00-k30) * a00
+                _sum0_3 = __msa_fmadd_w(_sum0_3, _va, _vb0); // sum0 += (k00-k30) * a00
 
                 va += 4;
                 vb += 1;
@@ -323,7 +322,7 @@ static void sgemm(int M, int N, int K, float* pA_t, float* pB_t, float* pC, int 
             output1[0] = sum1;
             output2[0] = sum2;
             output3[0] = sum3;
-#endif    // __mips_msa
+#endif // __mips_msa
             output0++;
             output1++;
             output2++;
@@ -331,9 +330,9 @@ static void sgemm(int M, int N, int K, float* pA_t, float* pB_t, float* pC, int 
         }
     }
 
-    // output ch0
-    #pragma omp parallel for num_threads(num_thread)
-    for (int i=remain_outch_start; i<M; i++)
+// output ch0
+#pragma omp parallel for num_threads(num_thread)
+    for (int i = remain_outch_start; i < M; i++)
     {
         float* output = pC + i * N;
 
@@ -357,10 +356,10 @@ static void sgemm(int M, int N, int K, float* pA_t, float* pB_t, float* pC, int 
                 v4f32 _vb2 = (v4f32)__msa_ld_w(vb + 8, 0);
                 v4f32 _vb3 = (v4f32)__msa_ld_w(vb + 12, 0);
 
-                _sum0 = __msa_fmadd_w(_sum0, _vb0, (v4f32)__msa_splati_w(_va0123, 0));    // sum0 = (a00-a03) * k00
-                _sum0 = __msa_fmadd_w(_sum0, _vb1, (v4f32)__msa_splati_w(_va0123, 1));    // sum0 += (a10-a13) * k01
-                _sum0 = __msa_fmadd_w(_sum0, _vb2, (v4f32)__msa_splati_w(_va0123, 2));    // sum0 += (a20-a23) * k02
-                _sum0 = __msa_fmadd_w(_sum0, _vb3, (v4f32)__msa_splati_w(_va0123, 3));    // sum0 += (a30-a33) * k03
+                _sum0 = __msa_fmadd_w(_sum0, _vb0, (v4f32)__msa_splati_w(_va0123, 0)); // sum0 = (a00-a03) * k00
+                _sum0 = __msa_fmadd_w(_sum0, _vb1, (v4f32)__msa_splati_w(_va0123, 1)); // sum0 += (a10-a13) * k01
+                _sum0 = __msa_fmadd_w(_sum0, _vb2, (v4f32)__msa_splati_w(_va0123, 2)); // sum0 += (a20-a23) * k02
+                _sum0 = __msa_fmadd_w(_sum0, _vb3, (v4f32)__msa_splati_w(_va0123, 3)); // sum0 += (a30-a33) * k03
 
                 va += 4;
                 vb += 16;
@@ -372,7 +371,7 @@ static void sgemm(int M, int N, int K, float* pA_t, float* pB_t, float* pC, int 
                 v4f32 _va0 = {va[0]};
                 v4f32 _vb0 = (v4f32)__msa_ld_w(vb, 0);
 
-                _sum0 = __msa_fmadd_w(_sum0, _vb0, _va0);    // sum0 = (a00-a03) * k00
+                _sum0 = __msa_fmadd_w(_sum0, _vb0, _va0); // sum0 = (a00-a03) * k00
 
                 va += 1;
                 vb += 4;
@@ -396,7 +395,7 @@ static void sgemm(int M, int N, int K, float* pA_t, float* pB_t, float* pC, int 
             {
                 output[n] = sum[n];
             }
-#endif    // __mips_msa
+#endif // __mips_msa
             output += 4;
         }
 
@@ -423,7 +422,7 @@ static void sgemm(int M, int N, int K, float* pA_t, float* pB_t, float* pC, int 
             float sum0 = _sum0[0] + _sum0[1] + _sum0[2] + _sum0[3];
 #else
             float sum0 = 0.f;
-#endif    // __mips_msa
+#endif // __mips_msa
             for (; k < K; k++)
             {
                 sum0 += va[0] * vb[0];
@@ -449,13 +448,13 @@ static void sgemm_fp32(struct tensor* input, struct tensor* filter, struct tenso
     int out_w = output->dims[3];
     int out_image_size = output->dims[1] * output->dims[2] * output->dims[3];
 
-    float* interleave_fp32 = ( float* )priv_info->interleave_buffer_pack4 + outchan_g * group * kernel_size;
+    float* interleave_fp32 = (float*)priv_info->interleave_buffer_pack4 + outchan_g * group * kernel_size;
     float* im2col_pack4_fp32 = priv_info->im2col_buffer_pack4;
-    float* output_fp32 = ( float* )output->data + n * out_image_size + outchan_g * group * out_h * out_w;
+    float* output_fp32 = (float*)output->data + n * out_image_size + outchan_g * group * out_h * out_w;
     float* bias_fp32 = NULL;
 
     if (bias)
-        bias_fp32 = ( float* )bias->data + outchan_g * group;
+        bias_fp32 = (float*)bias->data + outchan_g * group;
 
     float* filter_sgemm = interleave_fp32;
     float* input_sgemm_pack4 = im2col_pack4_fp32;
@@ -525,8 +524,7 @@ static int winograd_support(struct conv_param* param, int in_h, int in_w)
     if (in_h <= 10 && in_w <= 10)
         return 0;
 
-    if (group != 1 || kernel_h != 3 || kernel_w != 3 || stride_h != 1 || stride_w != 1 || dilation_h != 1 ||
-        dilation_w != 1 || input_chan < 16 || output_chan < 16)
+    if (group != 1 || kernel_h != 3 || kernel_w != 3 || stride_h != 1 || stride_w != 1 || dilation_h != 1 || dilation_w != 1 || input_chan < 16 || output_chan < 16)
         return 0;
 
     return 1;
@@ -560,8 +558,8 @@ int conv_hcl_get_interleave_pack4_size(int M, int K, struct tensor* filter)
 
 void conv_hcl_interleave_pack4(int M, int K, struct conv_priv_info* priv_info)
 {
-    float* pA = ( float* )priv_info->interleave_buffer;
-    float* pA_t = ( float* )priv_info->interleave_buffer_pack4;
+    float* pA = (float*)priv_info->interleave_buffer;
+    float* pA_t = (float*)priv_info->interleave_buffer_pack4;
 
     int nn_outch = M >> 2;
     int remain_outch_start = nn_outch << 2;
@@ -674,8 +672,7 @@ int conv_hcl_postrun(struct conv_priv_info* priv_info)
         return wino_conv_hcl_postrun(priv_info);
     }
 
-    if (priv_info->external_interleave_pack4_mem && !priv_info->external_interleave_mem &&
-        priv_info->interleave_buffer != NULL)
+    if (priv_info->external_interleave_pack4_mem && !priv_info->external_interleave_mem && priv_info->interleave_buffer != NULL)
     {
         sys_free(priv_info->interleave_buffer_pack4);
         priv_info->interleave_buffer_pack4 = NULL;
@@ -713,7 +710,7 @@ int conv_hcl_run(struct tensor* input_tensor, struct tensor* filter_tensor, stru
                                  cpu_affinity);
     }
 
-    for (int i = 0; i < input_tensor->dims[0]; i++)    // batch size
+    for (int i = 0; i < input_tensor->dims[0]; i++) // batch size
     {
         for (int j = 0; j < group; j++)
         {

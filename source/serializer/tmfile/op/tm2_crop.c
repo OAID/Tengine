@@ -34,20 +34,18 @@
 #include "device/device.h"
 #include "utility/log.h"
 
-
 static int crop_op_map(int op)
 {
     return OP_CROP;
 }
 
-
 static int tm2_load_crop(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                          const TM2_Operator* tm_op)
 {
-    struct crop_param* crop_param = ( struct crop_param* )ir_node->op.param_mem;
+    struct crop_param* crop_param = (struct crop_param*)ir_node->op.param_mem;
     const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
     const char* mem_base = tm2_priv->base;
-    const TM2_CropParam* tm_param = ( TM2_CropParam* )(mem_base + tm_op->offset_t_param);
+    const TM2_CropParam* tm_param = (TM2_CropParam*)(mem_base + tm_op->offset_t_param);
 
     crop_param->num_args = tm_param->num_args;
     crop_param->offset_c = tm_param->offset_c;
@@ -61,7 +59,6 @@ static int tm2_load_crop(struct graph* ir_graph, struct node* ir_node, const TM2
 
     return 0;
 }
-
 
 int register_tm2_crop_op()
 {
@@ -77,7 +74,6 @@ int register_tm2_crop_op()
 
     return 0;
 }
-
 
 int unregister_tm2_crop_op()
 {

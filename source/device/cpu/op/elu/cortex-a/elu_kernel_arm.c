@@ -30,10 +30,9 @@
 
 #include <arm_neon.h>
 
-
 static void elu_kernel(int i, int id, void* data, const float* input, float* output, float alpha)
 {
-    int elem_num = (( int* )data)[0];
+    int elem_num = ((int*)data)[0];
     float32x4_t _one = vdupq_n_f32(1.f);
     float32x4_t _zero = vdupq_n_f32(0.f);
     float32x4_t _alpha = vdupq_n_f32(alpha);
@@ -67,8 +66,8 @@ static void elu_kernel(int i, int id, void* data, const float* input, float* out
 int elu_run(struct tensor* output_tensor, struct tensor* input_tensor, struct elu_param* elu_param,
             int num_thread)
 {
-    float* data = ( float* )input_tensor->data;
-    float* out_data = ( float* )output_tensor->data;
+    float* data = (float*)input_tensor->data;
+    float* out_data = (float*)output_tensor->data;
     float alpha = elu_param->alpha;
 
     int chan_num = (input_tensor->dims[0]) * (input_tensor->dims[1]);

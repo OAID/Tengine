@@ -31,13 +31,12 @@
 #include "module/module.h"
 #include "utility/sys_port.h"
 
-
 static int infer_shape(struct node* node)
 {
     struct graph* ir_graph = node->graph;
     struct tensor* input = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
     struct tensor* output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
-    struct detection_output_param* param = ( struct detection_output_param* )node->op.param_mem;
+    struct detection_output_param* param = (struct detection_output_param*)node->op.param_mem;
 
     int dims[TE_MAX_SHAPE_DIM_NUM] = {0};
 
@@ -52,11 +51,9 @@ static int infer_shape(struct node* node)
     return 0;
 }
 
-
 static int init_op(struct op* op)
 {
-    struct detection_output_param* detection_output_param =
-        ( struct detection_output_param* )sys_malloc(sizeof(struct detection_output_param));
+    struct detection_output_param* detection_output_param = (struct detection_output_param*)sys_malloc(sizeof(struct detection_output_param));
 
     if (detection_output_param == NULL)
     {
@@ -77,12 +74,10 @@ static int init_op(struct op* op)
     return 0;
 }
 
-
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
-
 
 int register_detection_output_op()
 {
@@ -92,10 +87,8 @@ int register_detection_output_op()
     m.init = init_op;
     m.release = release_op;
 
-
     return register_op(OP_DETECTION_OUTPUT, OP_DETECTION_OUTPUT_NAME, &m);
 }
-
 
 int unregister_detection_output_op()
 {

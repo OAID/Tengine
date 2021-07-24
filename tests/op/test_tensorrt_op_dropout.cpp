@@ -22,24 +22,26 @@
  * Author: qtang@openailab.com
  */
 
-
 #include "test_op.h"
 
 #include "graph/graph.h"
 #include "graph/node.h"
 #include "graph/tensor.h"
 
-
 int create_test_dropout_node(graph_t graph, const char* input_name, const char* node_name, int data_type, int layout, int n, int c, int h, int w)
 {
-    (void)layout; (void)n; (void)c; (void)h; (void)w;
+    (void)layout;
+    (void)n;
+    (void)c;
+    (void)h;
+    (void)w;
 
     /* create the test node */
-    struct node* test_node = (struct node* )create_graph_node(graph, node_name, "Dropout");
+    struct node* test_node = (struct node*)create_graph_node(graph, node_name, "Dropout");
 
     tensor_t input_tensor = get_graph_tensor(graph, input_name);
 
-    if(NULL == input_tensor)
+    if (NULL == input_tensor)
     {
         fprintf(stderr, "create test node failed.\n");
         return -1;
@@ -61,12 +63,23 @@ int create_test_dropout_node(graph_t graph, const char* input_name, const char* 
  * uint8   = clip(round(float32 / scale) + zero_point, 0, 255)
  * float32 = (uint8 - zero_point) * scale
  */
-float input_fp32[6] = {1.0f, 2.0f, 3.0f,
-                       4.0f, 5.0f, 6.0f, };
+float input_fp32[6] = {
+    1.0f,
+    2.0f,
+    3.0f,
+    4.0f,
+    5.0f,
+    6.0f,
+};
 
-float reference_out[6] = {1.0f, 2.0f, 3.0f,
-                          4.0f, 5.0f, 6.0f, };
-
+float reference_out[6] = {
+    1.0f,
+    2.0f,
+    3.0f,
+    4.0f,
+    5.0f,
+    6.0f,
+};
 
 int main(int argc, char* argv[])
 {
@@ -81,8 +94,8 @@ int main(int argc, char* argv[])
         fprintf(stderr, "Tengine init failed.\n");
 
     // create
-    struct graph* ir_graph = (struct graph* )create_tensorrt_test_graph(test_node_name, data_type, layout, n, c, h, w, &create_test_dropout_node);
-    if(NULL == ir_graph)
+    struct graph* ir_graph = (struct graph*)create_tensorrt_test_graph(test_node_name, data_type, layout, n, c, h, w, &create_test_dropout_node);
+    if (NULL == ir_graph)
         return -1;
 
     set_log_level(LOG_INFO);
@@ -92,10 +105,8 @@ int main(int argc, char* argv[])
     struct tensor* input_tensor = (struct tensor*)get_graph_tensor(ir_graph, "input_node");
     struct tensor* output_tensor = (struct tensor*)get_graph_tensor(ir_graph, "dropout");
 
-
     // set input data
     set_tensor_buffer(input_tensor, input_fp32, 6 * 4);
-
 
     // graph run
     ret = test_graph_run(ir_graph);
@@ -107,12 +118,12 @@ int main(int argc, char* argv[])
     }
 
     // get output and dequant
-    float* output_data = ( float* )output_tensor->data;
+    float* output_data = (float*)output_tensor->data;
     int output_size = output_tensor->elem_num;
 
     // check the result
     ret = 0;
-    for (int i = 0; i< output_size; i++)
+    for (int i = 0; i < output_size; i++)
     {
         if (fabsf(output_data[i] - reference_out[i]) > 0.1)
         {

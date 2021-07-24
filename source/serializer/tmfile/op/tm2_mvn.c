@@ -34,20 +34,18 @@
 #include "device/device.h"
 #include "utility/log.h"
 
-
 static int mvn_op_map(int op)
 {
     return OP_MVN;
 }
 
-
 static int tm2_load_mvn(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                         const TM2_Operator* tm_op)
 {
-    struct mvn_param* gather_param = ( struct mvn_param* )ir_node->op.param_mem;
+    struct mvn_param* gather_param = (struct mvn_param*)ir_node->op.param_mem;
     const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
     const char* mem_base = tm2_priv->base;
-    const TM2_MVNParam* tm_param = ( TM2_MVNParam* )(mem_base + tm_op->offset_t_param);
+    const TM2_MVNParam* tm_param = (TM2_MVNParam*)(mem_base + tm_op->offset_t_param);
 
     gather_param->across_channels = tm_param->across_channels;
     gather_param->eps = tm_param->eps;
@@ -55,7 +53,6 @@ static int tm2_load_mvn(struct graph* ir_graph, struct node* ir_node, const TM2_
 
     return 0;
 }
-
 
 int register_tm2_mvn_op()
 {
@@ -71,7 +68,6 @@ int register_tm2_mvn_op()
 
     return 0;
 }
-
 
 int unregister_tm2_mvn_op()
 {

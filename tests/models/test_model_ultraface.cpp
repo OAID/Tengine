@@ -31,12 +31,12 @@
 #include "tengine/c_api.h"
 #include "tengine_operations.h"
 
-#define DEFAULT_REPEAT_COUNT    1
-#define DEFAULT_THREAD_COUNT    1
-#define num_featuremap 4
-#define hard_nms 1
-#define blending_nms 2 /* mix nms was been proposaled in paper blaze face, aims to minimize the temporal jitter*/
-#define clip(x, y) (x < 0 ? 0 : (x > y ? y : x))
+#define DEFAULT_REPEAT_COUNT 1
+#define DEFAULT_THREAD_COUNT 1
+#define num_featuremap       4
+#define hard_nms             1
+#define blending_nms         2 /* mix nms was been proposaled in paper blaze face, aims to minimize the temporal jitter*/
+#define clip(x, y)           (x < 0 ? 0 : (x > y ? y : x))
 
 typedef struct FaceInfo
 {
@@ -57,10 +57,10 @@ const float g_center_variance = 0.1f;
 const float g_size_variance = 0.2f;
 int float_mismatch(float* current, float* reference, int size)
 {
-    for(int i=0;i<size;i++)
+    for (int i = 0; i < size; i++)
     {
         float tmp = fabs(current[i]) - fabs(reference[i]);
-        if(fabs(tmp) > 0.0001)
+        if (fabs(tmp) > 0.0001)
         {
             fprintf(stderr, "test failed, index:%d, a:%f, b:%f\n", i, current[i], reference[i]);
             return -1;
@@ -88,20 +88,20 @@ int main(int argc, char* argv[])
     {
         switch (res)
         {
-            case 'm':
-                model_file = optarg;
-                break;
-            case 'r':
-                repeat_count = atoi(optarg);
-                break;
-            case 't':
-                num_thread = atoi(optarg);
-                break;
-            case 'h':
-                show_usage();
-                return 0;
-            default:
-                break;
+        case 'm':
+            model_file = optarg;
+            break;
+        case 'r':
+            repeat_count = atoi(optarg);
+            break;
+        case 't':
+            num_thread = atoi(optarg);
+            break;
+        case 'h':
+            show_usage();
+            return 0;
+        default:
+            break;
         }
     }
     std::string model_name = "version-RFB-320_simplified";
@@ -113,7 +113,6 @@ int main(int argc, char* argv[])
         show_usage();
         return -1;
     }
-
 
     if (!check_file_exist(model_file))
         return -1;
@@ -139,8 +138,8 @@ int main(int argc, char* argv[])
 
     /* set the input shape to initial the graph, and prerun graph to infer shape */
     int img_size = g_tensor_in_h * g_tensor_in_w * 3;
-    int dims[] = {1, 3, g_tensor_in_h, g_tensor_in_w};    // nchw
-    float* input_data = ( float* )malloc(img_size * sizeof(float));
+    int dims[] = {1, 3, g_tensor_in_h, g_tensor_in_w}; // nchw
+    float* input_data = (float*)malloc(img_size * sizeof(float));
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == NULL)
@@ -159,7 +158,7 @@ int main(int argc, char* argv[])
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;
-    }    
+    }
 
     /* prerun graph, set work options(num_thread, cluster, precision) */
     if (prerun_graph_multithread(graph, opt) < 0)
@@ -171,7 +170,7 @@ int main(int argc, char* argv[])
     /* prepare process input data, set the data mem to input tensor */
     //save input
     std::string input_file = "./data/" + model_name + "_in.bin";
-    FILE *fp;
+    FILE* fp;
 
     fp = fopen(input_file.c_str(), "rb");
     if (fread(input_data, sizeof(float), img_size, fp) == 0)
@@ -180,7 +179,6 @@ int main(int argc, char* argv[])
         return -1;
     }
     fclose(fp);
-
 
     /* run graph */
     double min_time = DBL_MAX;
@@ -210,8 +208,8 @@ int main(int argc, char* argv[])
     tensor_t boxs_tensor = get_graph_output_tensor(graph, 0, 0);
     tensor_t scores_tensor = get_graph_output_tensor(graph, 1, 0);
 
-    float* boxs_data = (float* )get_tensor_buffer(boxs_tensor);
-    float* scores_data = (float* )get_tensor_buffer(scores_tensor);
+    float* boxs_data = (float*)get_tensor_buffer(boxs_tensor);
+    float* scores_data = (float*)get_tensor_buffer(scores_tensor);
 
     // save output_data
     int output_size1 = get_tensor_buffer_size(boxs_tensor) / sizeof(float);
@@ -220,7 +218,7 @@ int main(int argc, char* argv[])
     std::string reference_file2 = "./data/" + model_name + "_out2.bin";
     std::vector<float> reference_data1(output_size1);
     std::vector<float> reference_data2(output_size2);
-    FILE *fp1;
+    FILE* fp1;
     //write
 
     //read
@@ -252,4 +250,3 @@ int main(int argc, char* argv[])
 
     return ret;
 }
-

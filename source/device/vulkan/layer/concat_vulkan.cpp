@@ -82,52 +82,58 @@ Concat_vulkan::Concat_vulkan(ir_graph_t* ir_graph, ir_node_t* ir_node)
     graph = ir_graph;
     node = ir_node;
 
-    for(int i = 0; i < ir_node->input_num; i++)
+    for (int i = 0; i < ir_node->input_num; i++)
     {
-        struct tensor *input = get_ir_graph_tensor(graph, node->input_tensors[i]);
+        struct tensor* input = get_ir_graph_tensor(graph, node->input_tensors[i]);
         std::string name = input->name;
         bottoms.push_back(name);
     }
 
-    for(int i = 0; i < ir_node->output_num; i++)
+    for (int i = 0; i < ir_node->output_num; i++)
     {
-        struct tensor *output = get_ir_graph_tensor(graph, node->input_tensors[i]);
+        struct tensor* output = get_ir_graph_tensor(graph, node->input_tensors[i]);
         std::string name = output->name;
         tops.push_back(name);
     }
 
     // params
-    struct tensor *input_tensor = get_ir_graph_tensor(graph, node->input_tensors[0]);
-    struct tensor *output_tensor = get_ir_graph_tensor(graph, node->output_tensors[0]);
-    input_c = input_tensor->dims[1];   // param->input_channel;
+    struct tensor* input_tensor = get_ir_graph_tensor(graph, node->input_tensors[0]);
+    struct tensor* output_tensor = get_ir_graph_tensor(graph, node->output_tensors[0]);
+    input_c = input_tensor->dims[1]; // param->input_channel;
     input_h = input_tensor->dims[2];
     input_w = input_tensor->dims[3];
-    output_c = output_tensor->dims[1];  // param->output_channel;
+    output_c = output_tensor->dims[1]; // param->output_channel;
     output_h = output_tensor->dims[2];
     output_w = output_tensor->dims[3];
 
-    struct concat_param *param = (struct concat_param *)ir_node->op.param_mem;
-    axis = param->axis -1;
+    struct concat_param* param = (struct concat_param*)ir_node->op.param_mem;
+    axis = param->axis - 1;
 }
 
 int Concat_vulkan::create_pipeline(const Option& _opt)
 {
     Option opt = _opt;
 
-    const Tensor& shape = Tensor(input_w, input_h, input_c, (void*)0); // bottom_shapes.empty() ? Tensor() : bottom_shapes[0];
+    const Tensor& shape = Tensor(input_w, input_h, input_c, (void*)0);        // bottom_shapes.empty() ? Tensor() : bottom_shapes[0];
     const Tensor& out_shape = Tensor(output_w, output_h, output_c, (void*)0); // top_shapes.empty() ? Tensor() : top_shapes[0];
 
     int out_elempack = 1;
-    if (out_shape.dims == 1) out_elempack = opt.use_shader_pack8 && out_shape.w % 8 == 0 ? 8 : out_shape.w % 4 == 0 ? 4 : 1;
-    if (out_shape.dims == 2) out_elempack = opt.use_shader_pack8 && out_shape.h % 8 == 0 ? 8 : out_shape.h % 4 == 0 ? 4 : 1;
-    if (out_shape.dims == 3) out_elempack = opt.use_shader_pack8 && out_shape.c % 8 == 0 ? 8 : out_shape.c % 4 == 0 ? 4 : 1;
+    if (out_shape.dims == 1) out_elempack = opt.use_shader_pack8 && out_shape.w % 8 == 0 ? 8 : out_shape.w % 4 == 0 ? 4
+                                                                                                                    : 1;
+    if (out_shape.dims == 2) out_elempack = opt.use_shader_pack8 && out_shape.h % 8 == 0 ? 8 : out_shape.h % 4 == 0 ? 4
+                                                                                                                    : 1;
+    if (out_shape.dims == 3) out_elempack = opt.use_shader_pack8 && out_shape.c % 8 == 0 ? 8 : out_shape.c % 4 == 0 ? 4
+                                                                                                                    : 1;
 
     int elempack = 1;
     if (axis == 0)
     {
-        if (shape.dims == 1) elempack = opt.use_shader_pack8 && shape.w % 8 == 0 ? 8 : shape.w % 4 == 0 ? 4 : 1;
-        if (shape.dims == 2) elempack = opt.use_shader_pack8 && shape.h % 8 == 0 ? 8 : shape.h % 4 == 0 ? 4 : 1;
-        if (shape.dims == 3) elempack = opt.use_shader_pack8 && shape.c % 8 == 0 ? 8 : shape.c % 4 == 0 ? 4 : 1;
+        if (shape.dims == 1) elempack = opt.use_shader_pack8 && shape.w % 8 == 0 ? 8 : shape.w % 4 == 0 ? 4
+                                                                                                        : 1;
+        if (shape.dims == 2) elempack = opt.use_shader_pack8 && shape.h % 8 == 0 ? 8 : shape.h % 4 == 0 ? 4
+                                                                                                        : 1;
+        if (shape.dims == 3) elempack = opt.use_shader_pack8 && shape.c % 8 == 0 ? 8 : shape.c % 4 == 0 ? 4
+                                                                                                        : 1;
 
         // TODO fix other input data shape to set elempack
         // for (size_t b = 1; b < bottom_shapes.size(); b++)
@@ -328,7 +334,8 @@ int Concat_vulkan::record_pipeline(const std::vector<VkTensor>& bottom_blobs, st
             top_w += bottom_blob.w * bottom_blob.elempack;
         }
 
-        int out_elempack = opt.use_shader_pack8 && top_w % 8 == 0 ? 8 : top_w % 4 == 0 ? 4 : 1;
+        int out_elempack = opt.use_shader_pack8 && top_w % 8 == 0 ? 8 : top_w % 4 == 0 ? 4
+                                                                                       : 1;
         size_t out_elemsize = elemsize / elempack * out_elempack;
 
         if (opt.use_fp16_packed && !opt.use_fp16_storage)
@@ -430,7 +437,8 @@ int Concat_vulkan::record_pipeline(const std::vector<VkTensor>& bottom_blobs, st
             top_h += bottom_blob.h * bottom_blob.elempack;
         }
 
-        int out_elempack = opt.use_shader_pack8 && top_h % 8 == 0 ? 8 : top_h % 4 == 0 ? 4 : 1;
+        int out_elempack = opt.use_shader_pack8 && top_h % 8 == 0 ? 8 : top_h % 4 == 0 ? 4
+                                                                                       : 1;
         size_t out_elemsize = elemsize / elempack * out_elempack;
 
         if (opt.use_fp16_packed && !opt.use_fp16_storage)
@@ -557,9 +565,9 @@ int Concat_vulkan::record_pipeline(const std::vector<VkTensor>& bottom_blobs, st
             constants[9].i = top_blob.cstep;
             constants[10].i = woffset;
 
-            const Pipeline* pipeline = elempack == 8 ? pipeline_concat_pack8[b % 2]
+            const Pipeline* pipeline = elempack == 8   ? pipeline_concat_pack8[b % 2]
                                        : elempack == 4 ? pipeline_concat_pack4[b % 2]
-                                       : pipeline_concat[b % 2];
+                                                       : pipeline_concat[b % 2];
 
             cmd.record_pipeline(pipeline, bindings, constants, bottom_blob);
 
@@ -587,7 +595,8 @@ int Concat_vulkan::record_pipeline(const std::vector<VkTensor>& bottom_blobs, st
             top_channels += bottom_blob.c * bottom_blob.elempack;
         }
 
-        int out_elempack = opt.use_shader_pack8 && top_channels % 8 == 0 ? 8 : top_channels % 4 == 0 ? 4 : 1;
+        int out_elempack = opt.use_shader_pack8 && top_channels % 8 == 0 ? 8 : top_channels % 4 == 0 ? 4
+                                                                                                     : 1;
         size_t out_elemsize = elemsize / elempack * out_elempack;
 
         if (opt.use_fp16_packed && !opt.use_fp16_storage)
@@ -715,9 +724,9 @@ int Concat_vulkan::record_pipeline(const std::vector<VkTensor>& bottom_blobs, st
             constants[9].i = top_blob.cstep;
             constants[10].i = hoffset;
 
-            const Pipeline* pipeline = elempack == 8 ? pipeline_concat_pack8[b % 2]
+            const Pipeline* pipeline = elempack == 8   ? pipeline_concat_pack8[b % 2]
                                        : elempack == 4 ? pipeline_concat_pack4[b % 2]
-                                       : pipeline_concat[b % 2];
+                                                       : pipeline_concat[b % 2];
 
             cmd.record_pipeline(pipeline, bindings, constants, bottom_blob);
 
@@ -770,9 +779,9 @@ int Concat_vulkan::record_pipeline(const std::vector<VkTensor>& bottom_blobs, st
             constants[9].i = top_blob.cstep;
             constants[10].i = woffset;
 
-            const Pipeline* pipeline = elempack == 8 ? pipeline_concat_pack8[b % 2]
+            const Pipeline* pipeline = elempack == 8   ? pipeline_concat_pack8[b % 2]
                                        : elempack == 4 ? pipeline_concat_pack4[b % 2]
-                                       : pipeline_concat[b % 2];
+                                                       : pipeline_concat[b % 2];
 
             cmd.record_pipeline(pipeline, bindings, constants, bottom_blob);
 
@@ -785,4 +794,4 @@ int Concat_vulkan::record_pipeline(const std::vector<VkTensor>& bottom_blobs, st
     return 0;
 }
 
-}   // namespace TEngine
+} // namespace TEngine

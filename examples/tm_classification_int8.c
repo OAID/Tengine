@@ -29,23 +29,23 @@
 #include "tengine/c_api.h"
 #include "tengine_operations.h"
 
-#define DEFAULT_IMG_H 224
-#define DEFAULT_IMG_W 224
-#define DEFAULT_SCALE1 0.017f
-#define DEFAULT_SCALE2 0.017f
-#define DEFAULT_SCALE3 0.017f
-#define DEFAULT_MEAN1 104.007
-#define DEFAULT_MEAN2 116.669
-#define DEFAULT_MEAN3 122.679
-#define DEFAULT_LOOP_COUNT 1
+#define DEFAULT_IMG_H        224
+#define DEFAULT_IMG_W        224
+#define DEFAULT_SCALE1       0.017f
+#define DEFAULT_SCALE2       0.017f
+#define DEFAULT_SCALE3       0.017f
+#define DEFAULT_MEAN1        104.007
+#define DEFAULT_MEAN2        116.669
+#define DEFAULT_MEAN3        122.679
+#define DEFAULT_LOOP_COUNT   1
 #define DEFAULT_THREAD_COUNT 1
 
 void get_input_int8_data(const char* image_file, int8_t* input_data, int img_h, int img_w, float* mean, float* scale,
-                          float input_scale)
+                         float input_scale)
 {
     image img = imread_process(image_file, img_w, img_h, mean, scale);
 
-    float* image_data = ( float* )img.data;
+    float* image_data = (float*)img.data;
 
     for (int i = 0; i < img_w * img_h * 3; i++)
     {
@@ -89,8 +89,8 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
 
     /* set the input shape to initial the graph, and prerun graph to infer shape */
     int img_size = img_h * img_w * 3;
-    int dims[] = {1, 3, img_h, img_w};    // nchw
-    int8_t* input_data = ( int8_t* )malloc(img_size);
+    int dims[] = {1, 3, img_h, img_w}; // nchw
+    int8_t* input_data = (int8_t*)malloc(img_size);
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == NULL)
@@ -152,16 +152,16 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
 
     /* get the result of classification */
     tensor_t output_tensor = get_graph_output_tensor(graph, 0, 0);
-    int8_t* output_i8 = ( int8_t* )get_tensor_buffer(output_tensor);
+    int8_t* output_i8 = (int8_t*)get_tensor_buffer(output_tensor);
     int output_size = get_tensor_buffer_size(output_tensor);
 
     /* dequant */
     float output_scale = 0.f;
     int output_zero_point = 0;
     get_tensor_quant_param(output_tensor, &output_scale, &output_zero_point, 1);
-    float* output_data = ( float* )malloc(output_size * sizeof(float));
+    float* output_data = (float*)malloc(output_size * sizeof(float));
     for (int i = 0; i < output_size; i++)
-        output_data[i] = ( float )output_i8[i]* output_scale;
+        output_data[i] = (float)output_i8[i] * output_scale;
 
     print_topk(output_data, output_size, 5);
     fprintf(stderr, "--------------------------------------\n");
@@ -207,34 +207,34 @@ int main(int argc, char* argv[])
     {
         switch (res)
         {
-            case 'm':
-                model_file = optarg;
-                break;
-            case 'i':
-                image_file = optarg;
-                break;
-            case 'g':
-                split(img_hw, optarg, ",");
-                img_h = ( int )img_hw[0];
-                img_w = ( int )img_hw[1];
-                break;
-            case 's':
-                split(scale, optarg, ",");
-                break;
-            case 'w':
-                split(mean, optarg, ",");
-                break;
-            case 'r':
-                loop_count = atoi(optarg);
-                break;
-            case 't':
-                num_thread = atoi(optarg);
-                break;
-            case 'h':
-                show_usage();
-                return 0;
-            default:
-                break;
+        case 'm':
+            model_file = optarg;
+            break;
+        case 'i':
+            image_file = optarg;
+            break;
+        case 'g':
+            split(img_hw, optarg, ",");
+            img_h = (int)img_hw[0];
+            img_w = (int)img_hw[1];
+            break;
+        case 's':
+            split(scale, optarg, ",");
+            break;
+        case 'w':
+            split(mean, optarg, ",");
+            break;
+        case 'r':
+            loop_count = atoi(optarg);
+            break;
+        case 't':
+            num_thread = atoi(optarg);
+            break;
+        case 'h':
+            show_usage();
+            return 0;
+        default:
+            break;
         }
     }
 

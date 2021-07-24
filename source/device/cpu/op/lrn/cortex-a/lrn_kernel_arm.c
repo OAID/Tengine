@@ -38,7 +38,6 @@
 
 #include <arm_neon.h>
 
-
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
@@ -126,8 +125,8 @@ static inline float32x4_t vtaylor_polyq_f32(float32x4_t x, struct tab* coeffs)
 
 static inline float32x4_t vexpq_f32(float32x4_t x)
 {
-    const float32x4_t CONST_LN2 = vdupq_n_f32(0.6931471805f);    // ln(2)
-    const float32x4_t CONST_INV_LN2 = vdupq_n_f32(1.4426950408f);    // 1/ln(2)
+    const float32x4_t CONST_LN2 = vdupq_n_f32(0.6931471805f);     // ln(2)
+    const float32x4_t CONST_INV_LN2 = vdupq_n_f32(1.4426950408f); // 1/ln(2)
     const float32x4_t CONST_0 = vdupq_n_f32(0.f);
     const int32x4_t CONST_NEGATIVE_126 = vdupq_n_s32(-126);
 
@@ -147,8 +146,8 @@ static inline float32x4_t vexpq_f32(float32x4_t x)
 
 static inline float32x4_t vlogq_f32(float32x4_t x)
 {
-    const int32x4_t CONST_127 = vdupq_n_s32(127);    // 127
-    const float32x4_t CONST_LN2 = vdupq_n_f32(0.6931471805f);    // ln(2)
+    const int32x4_t CONST_127 = vdupq_n_s32(127);             // 127
+    const float32x4_t CONST_LN2 = vdupq_n_f32(0.6931471805f); // ln(2)
 
     // Extract exponent
     int32x4_t m = vsubq_s32(vreinterpretq_s32_u32(vshrq_n_u32(vreinterpretq_u32_f32(x), 23)), CONST_127);
@@ -186,7 +185,7 @@ static inline float32x4_t vpowq_f32(float32x4_t val, float32x4_t n)
 static void lrn_kernel(int i, int id, void* data, const float* input, float* output, float* square, float alpha,
                        float beta, float bias, int local_size, int channel_size, int channel_num, int num_thread)
 {
-    int step = (( int* )data)[0];
+    int step = ((int*)data)[0];
     const float32x4_t alpha_vec = vdupq_n_f32(alpha / local_size);
     const float32x4_t beta_vec = vdupq_n_f32(beta);
     const float32x4_t bias_vec = vdupq_n_f32(bias);
@@ -238,9 +237,9 @@ int lrn_run(struct tensor* output_tensor, struct tensor* input_tensor, struct lr
             int num_thread)
 {
     init_tab();
-    const float* input = ( float* )input_tensor->data;
-    float* output = ( float* )output_tensor->data;
-    float* square = ( float* )(malloc(input_tensor->elem_num * sizeof(float)));
+    const float* input = (float*)input_tensor->data;
+    float* output = (float*)output_tensor->data;
+    float* square = (float*)(malloc(input_tensor->elem_num * sizeof(float)));
 
     int n = input_tensor->dims[0];
     int c = input_tensor->dims[1];

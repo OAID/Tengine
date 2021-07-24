@@ -37,7 +37,6 @@
 #include <math.h>
 #include <string.h>
 
-
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     return 0;
@@ -68,7 +67,6 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     int type_to = output_tensor->data_type;
 
     int num_thread = exec_graph->num_thread;
-
 
     if (input_tensor->elem_num != output_tensor->elem_num || input_tensor->dim_num != output_tensor->dim_num)
     {

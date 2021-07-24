@@ -36,9 +36,7 @@
 #include "utility/utils.h"
 #include "utility/log.h"
 
-
 #include <string.h>
-
 
 ir_graph_t* create_ir_graph(struct context* context)
 {
@@ -55,36 +53,34 @@ ir_graph_t* create_ir_graph(struct context* context)
     return ir_graph;
 }
 
-
 void init_ir_graph(ir_graph_t* graph, struct context* context)
 {
-    graph->tensor_list          = NULL;
-    graph->node_list            = NULL;
-    graph->input_nodes          = NULL;
-    graph->output_nodes         = NULL;
+    graph->tensor_list = NULL;
+    graph->node_list = NULL;
+    graph->input_nodes = NULL;
+    graph->output_nodes = NULL;
 
-    graph->tensor_num           = 0;
-    graph->node_num             = 0;
-    graph->input_num            = 0;
-    graph->output_num           = 0;
+    graph->tensor_num = 0;
+    graph->node_num = 0;
+    graph->input_num = 0;
+    graph->output_num = 0;
 
-    graph->subgraph_list        = create_vector(sizeof(struct subgraph*), NULL);
+    graph->subgraph_list = create_vector(sizeof(struct subgraph*), NULL);
 
-    graph->graph_layout         = TENGINE_LAYOUT_NCHW;
-    graph->model_layout         = TENGINE_LAYOUT_NCHW;
-    graph->model_format         = MODEL_FORMAT_TENGINE;
+    graph->graph_layout = TENGINE_LAYOUT_NCHW;
+    graph->model_layout = TENGINE_LAYOUT_NCHW;
+    graph->model_format = MODEL_FORMAT_TENGINE;
 
-    graph->serializer           = NULL;
-    graph->serializer_privacy   = NULL;
+    graph->serializer = NULL;
+    graph->serializer_privacy = NULL;
 
-    graph->device               = NULL;
-    graph->device_privacy       = NULL;
+    graph->device = NULL;
+    graph->device_privacy = NULL;
 
-    graph->status               = GRAPH_STAT_CREATED;
+    graph->status = GRAPH_STAT_CREATED;
 
     init_attribute(graph->attribute, context);
 }
-
 
 void destroy_ir_graph(ir_graph_t* graph)
 {
@@ -134,7 +130,6 @@ void destroy_ir_graph(ir_graph_t* graph)
     sys_free(graph);
 }
 
-
 int set_ir_graph_input_node(ir_graph_t* graph, int16_t input_nodes[], int input_number)
 {
     if (0 >= input_number)
@@ -142,7 +137,7 @@ int set_ir_graph_input_node(ir_graph_t* graph, int16_t input_nodes[], int input_
         return -1;
     }
 
-    int16_t* new_input_nodes = ( int16_t* )sys_malloc(input_number * sizeof(int16_t));
+    int16_t* new_input_nodes = (int16_t*)sys_malloc(input_number * sizeof(int16_t));
     if (NULL == new_input_nodes)
     {
         return -1;
@@ -200,24 +195,20 @@ int set_ir_graph_output_node(ir_graph_t* graph, int16_t output_nodes[], int outp
     return 0;
 }
 
-
 struct tensor* get_ir_graph_tensor(ir_graph_t* graph, int index)
 {
     return graph->tensor_list[index];
 }
-
 
 struct node* get_ir_graph_node(ir_graph_t* graph, int index)
 {
     return graph->node_list[index];
 }
 
-
 struct subgraph* get_ir_graph_subgraph(ir_graph_t* graph, int index)
 {
     return *(struct subgraph**)get_vector_data(graph->subgraph_list, index);
 }
-
 
 int infer_ir_graph_shape(ir_graph_t* graph)
 {
@@ -280,7 +271,6 @@ int infer_ir_graph_shape(ir_graph_t* graph)
 
     return 0;
 }
-
 
 void dump_ir_graph(ir_graph_t* graph)
 {

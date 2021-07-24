@@ -35,17 +35,16 @@ extern "C" {
  */
 typedef struct vector
 {
-    int elem_size;                  //!< elements size which will be pushed into vector
-    int elem_num;                   //!< current counter of inserted elements
+    int elem_size; //!< elements size which will be pushed into vector
+    int elem_num;  //!< current counter of inserted elements
 
-    int entry_size;                 //!< size of inside vector header entry
-    int space_num;                  //!< the allocated elements counter, which should greater equal to 'elem_num'
-    int ahead_num;                  //!< allocated step when vector is full
-    void* real_mem;                 //!< real aligned memory address which point to vector entry
-    void* mem;                      //!< visual aligned address which point to the very begging of elements
-    void (*free_func)(void*);       //!< elements free function, will be called when release elements or vector
+    int entry_size;           //!< size of inside vector header entry
+    int space_num;            //!< the allocated elements counter, which should greater equal to 'elem_num'
+    int ahead_num;            //!< allocated step when vector is full
+    void* real_mem;           //!< real aligned memory address which point to vector entry
+    void* mem;                //!< visual aligned address which point to the very begging of elements
+    void (*free_func)(void*); //!< elements free function, will be called when release elements or vector
 } vector_t;
-
 
 /*!
  * @brief  Create a vector for a struct(or something else).
@@ -59,14 +58,12 @@ typedef struct vector
  */
 vector_t* create_vector(int elem_size, void (*free_func)(void*));
 
-
 /*!
  * @brief  Release a vector.
  *
  * @param [in]  v: The vector which will be released.
  */
 void release_vector(vector_t* v);
-
 
 /*!
  * @brief Get the count of elements.
@@ -76,7 +73,6 @@ void release_vector(vector_t* v);
  * @return  The count of pushed elements.
  */
 int get_vector_num(vector_t* v);
-
 
 /*!
  * @brief  Resize a vector.
@@ -88,7 +84,6 @@ int get_vector_num(vector_t* v);
  */
 int resize_vector(vector_t* v, int new_size);
 
-
 /*!
  * @brief Push a element into vector from its pointer.
  *
@@ -98,7 +93,6 @@ int resize_vector(vector_t* v, int new_size);
  * @return statue value, 0 success, other value failure.
  */
 int push_vector_data(vector_t* v, void* data);
-
 
 /*!
  * @brief Set a element via its index.
@@ -111,7 +105,6 @@ int push_vector_data(vector_t* v, void* data);
  */
 int set_vector_data(vector_t* v, int index, void* data);
 
-
 /*!
  * @brief Get a element via its index.
  *
@@ -122,7 +115,6 @@ int set_vector_data(vector_t* v, int index, void* data);
  */
 void* get_vector_data(vector_t* v, int index);
 
-
 /*!
  * @brief Remove a element via its pointer.
  *
@@ -132,7 +124,6 @@ void* get_vector_data(vector_t* v, int index);
  * @return statue value, 0 success, other value failure.
  */
 int remove_vector_via_pointer(vector_t* v, void* data);
-
 
 /*!
  * @brief Remove a element via its index.

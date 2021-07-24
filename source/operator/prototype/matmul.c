@@ -29,7 +29,6 @@
 #include "module/module.h"
 #include "utility/log.h"
 
-
 static int infer_shape(struct node* node)
 {
     struct graph* graph = node->graph;
@@ -77,14 +76,12 @@ static int infer_shape(struct node* node)
     return -1;
 }
 
-
 static int init_op(struct op* op)
 {
     op->same_shape = 0;
     op->infer_shape = infer_shape;
     return 0;
 }
-
 
 int register_matmul_op()
 {
@@ -94,10 +91,8 @@ int register_matmul_op()
     m.init = init_op;
     m.release = NULL;
 
-
     return register_op(OP_MATMUL, OP_MATMUL_NAME, &m);
 }
-
 
 int unregister_matmul_op()
 {

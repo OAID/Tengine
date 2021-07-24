@@ -31,14 +31,13 @@
 #include "module/module.h"
 #include "utility/sys_port.h"
 
-
 static int infer_shape(struct node* node)
 {
     struct graph* graph = node->graph;
     struct tensor* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
     struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
 
-    struct argmin_param* argmin_param = ( struct argmin_param* )(node->op.param_mem);
+    struct argmin_param* argmin_param = (struct argmin_param*)(node->op.param_mem);
 
     int axis = argmin_param->axis;
 
@@ -56,7 +55,7 @@ static int infer_shape(struct node* node)
     input->dims[0] = tmp;
     input->dims[3] = 1;
 
-    if (input->dims[0] != 1)    // input 3 keepdimss
+    if (input->dims[0] != 1) // input 3 keepdimss
     {
         for (int i = 0, j = 0; i < 3; i++)
         {
@@ -64,7 +63,7 @@ static int infer_shape(struct node* node)
                 outdims[j++] = input->dims[i];
         }
     }
-    else    // input 2 keepdimss
+    else // input 2 keepdimss
     {
         for (int i = 0, j = 0; i < 4; i++)
             outdims[j++] = input->dims[i];
@@ -86,10 +85,9 @@ static int infer_shape(struct node* node)
     return 0;
 }
 
-
 static int init_op(struct op* op)
 {
-    struct argmin_param* argmin_param = ( struct argmin_param* )sys_malloc(sizeof(struct argmin_param));
+    struct argmin_param* argmin_param = (struct argmin_param*)sys_malloc(sizeof(struct argmin_param));
 
     if (argmin_param == NULL)
     {
@@ -108,12 +106,10 @@ static int init_op(struct op* op)
     return 0;
 }
 
-
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
-
 
 int register_argmin_op()
 {
@@ -124,7 +120,6 @@ int register_argmin_op()
 
     return register_op(OP_ARGMIN, OP_ARGMIN_NAME, &m);
 }
-
 
 int unregister_argmin_op()
 {

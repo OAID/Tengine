@@ -34,27 +34,24 @@
 #include "device/device.h"
 #include "utility/log.h"
 
-
 static int resize_op_map(int op)
 {
     return OP_RESIZE;
 }
 
-
 static int tm2_load_resize(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                            const TM2_Operator* tm_op)
 {
-    struct resize_param* resize_param = ( struct resize_param* )ir_node->op.param_mem;
+    struct resize_param* resize_param = (struct resize_param*)ir_node->op.param_mem;
     const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
     const char* mem_base = tm2_priv->base;
-    const TM2_ResizeParam* tm_param = ( TM2_ResizeParam* )(mem_base + tm_op->offset_t_param);
+    const TM2_ResizeParam* tm_param = (TM2_ResizeParam*)(mem_base + tm_op->offset_t_param);
 
     resize_param->scale_h = tm_param->scale_x;
     resize_param->scale_w = tm_param->scale_y;
 
     return 0;
 }
-
 
 int register_tm2_resize_op()
 {
@@ -70,7 +67,6 @@ int register_tm2_resize_op()
 
     return 0;
 }
-
 
 int unregister_tm2_resize_op()
 {

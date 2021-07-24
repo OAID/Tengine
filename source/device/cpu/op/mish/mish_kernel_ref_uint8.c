@@ -38,8 +38,7 @@
 
 #include <math.h>
 
-
-int ref_mish_uint8(struct tensor *input_tensor, struct tensor *output_tensor, int num_thread)
+int ref_mish_uint8(struct tensor* input_tensor, struct tensor* output_tensor, int num_thread)
 {
     int w = input_tensor->dims[3];
     int h = output_tensor->dims[2];
@@ -61,9 +60,8 @@ int ref_mish_uint8(struct tensor *input_tensor, struct tensor *output_tensor, in
 
     float* data_fp32 = (float*)sys_malloc(total_size * sizeof(float));
 
-    for(int i = 0; i < total_size; i++)
-        data_fp32[i] = ((float) input_uint8[i] - (float)input_zero) * input_scale;
-
+    for (int i = 0; i < total_size; i++)
+        data_fp32[i] = ((float)input_uint8[i] - (float)input_zero) * input_scale;
 
     for (int n = 0; n < batch; n++)
     {
@@ -81,7 +79,7 @@ int ref_mish_uint8(struct tensor *input_tensor, struct tensor *output_tensor, in
     }
 
     // quant
-    for(int i=0; i<total_size; i++)
+    for (int i = 0; i < total_size; i++)
     {
         int udata = round(data_fp32[i] / output_scale + output_zero);
         if (udata > 255)

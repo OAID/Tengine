@@ -31,10 +31,9 @@
 #include "module/module.h"
 #include "utility/sys_port.h"
 
-
 static int infer_shape(struct node* node)
 {
-    struct spacetodepth_param* spacetodepth_param = ( struct spacetodepth_param* )(node->op.param_mem);
+    struct spacetodepth_param* spacetodepth_param = (struct spacetodepth_param*)(node->op.param_mem);
 
     struct graph* graph = node->graph;
     struct tensor* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
@@ -44,21 +43,19 @@ static int infer_shape(struct node* node)
     int dims[4];
     int block_size = spacetodepth_param->block_size;
 
-    dims[0] = input->dims[0];    // batch
-    dims[1] = input->dims[1] * (block_size * block_size);    // channel
-    dims[2] = input->dims[2] / block_size;    // height
-    dims[3] = input->dims[3] / block_size;    // width
+    dims[0] = input->dims[0];                             // batch
+    dims[1] = input->dims[1] * (block_size * block_size); // channel
+    dims[2] = input->dims[2] / block_size;                // height
+    dims[3] = input->dims[3] / block_size;                // width
 
     set_ir_tensor_shape(output, dims, 4);
 
     return 0;
 }
 
-
 static int init_op(struct op* op)
 {
-    struct spacetodepth_param* spacetodepth_param =
-        ( struct spacetodepth_param* )sys_malloc(sizeof(struct spacetodepth_param));
+    struct spacetodepth_param* spacetodepth_param = (struct spacetodepth_param*)sys_malloc(sizeof(struct spacetodepth_param));
 
     if (spacetodepth_param == NULL)
     {
@@ -76,12 +73,10 @@ static int init_op(struct op* op)
     return 0;
 }
 
-
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
-
 
 int register_spacetodepth_op()
 {
@@ -91,10 +86,8 @@ int register_spacetodepth_op()
     m.init = init_op;
     m.release = release_op;
 
-
     return register_op(OP_SPACETODEPTH, OP_SPACETODEPTH_NAME, &m);
 }
-
 
 int unregister_spacetodepth_op()
 {

@@ -41,11 +41,9 @@
 
 #include <string.h>
 
-
 #if __ARM_FEATURE_FP16_VECTOR_ARITHMETIC
 #include "cortex_a/fc_kernel_fp16_arm82.h"
 #endif
-
 
 static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
@@ -55,8 +53,8 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
     struct tensor* filter_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    struct fc_priv_info* priv_info = ( struct fc_priv_info* )exec_node->ops_priv;
-    struct fc_param* fc_param = ( struct fc_param* )ir_node->op.param_mem;
+    struct fc_priv_info* priv_info = (struct fc_priv_info*)exec_node->ops_priv;
+    struct fc_param* fc_param = (struct fc_param*)ir_node->op.param_mem;
 
     /* fp32 prerun */
     if (exec_graph->mode == TENGINE_MODE_FP32)
@@ -71,7 +69,7 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
 #if __ARM_FEATURE_FP16_VECTOR_ARITHMETIC
     else if (exec_graph->mode == TENGINE_MODE_FP16)
     {
-        if(fp16_fc_kernel_prerun(input_tensor, filter_tensor, output_tensor, priv_info, fc_param) < 0)
+        if (fp16_fc_kernel_prerun(input_tensor, filter_tensor, output_tensor, priv_info, fc_param) < 0)
         {
             TLOG_ERR("hcl fp16 fc prerun failed\n");
             // set_tengine_errno(EFAULT);
@@ -79,14 +77,14 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
         }
     }
 #endif
-    else if(exec_graph->mode == TENGINE_MODE_INT8)
-	{
+    else if (exec_graph->mode == TENGINE_MODE_INT8)
+    {
         if (int8_fc_kernel_prerun(input_tensor, filter_tensor, output_tensor, priv_info, fc_param) < 0)
         {
             TLOG_ERR("hcl fc prerun failed\n");
             return -1;
         }
-    }	
+    }
     else
     {
         TLOG_ERR("Tengine work node not support %d\n", exec_graph->mode);
@@ -114,14 +112,15 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         bias_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[2]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    struct fc_param* fc_param = ( struct fc_param* )ir_node->op.param_mem;
-    struct fc_priv_info* priv_info = ( struct fc_priv_info* )exec_node->ops_priv;
+    struct fc_param* fc_param = (struct fc_param*)ir_node->op.param_mem;
+    struct fc_priv_info* priv_info = (struct fc_priv_info*)exec_node->ops_priv;
 
     /* fp32 run */
     if (exec_graph->mode == TENGINE_MODE_FP32)
     {
         if (fc_kernel_run(input_tensor, weight_tensor, bias_tensor, output_tensor, priv_info, fc_param, num_thread,
-                        cpu_affinity) < 0)
+                          cpu_affinity)
+            < 0)
         {
             TLOG_ERR("hcl fc run failed\n");
             return -1;
@@ -139,14 +138,14 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         }
     }
 #endif
-    else if (exec_graph->mode == TENGINE_MODE_INT8) 
-	{
-        if (int8_fc_kernel_run(input_tensor, weight_tensor, bias_tensor, output_tensor, priv_info,fc_param,num_thread,cpu_affinity) < 0)
+    else if (exec_graph->mode == TENGINE_MODE_INT8)
+    {
+        if (int8_fc_kernel_run(input_tensor, weight_tensor, bias_tensor, output_tensor, priv_info, fc_param, num_thread, cpu_affinity) < 0)
         {
             TLOG_ERR("hcl fc run failed\n");
             return -1;
         }
-    }	
+    }
     else
     {
         TLOG_ERR("Tengine work node not support %d\n", exec_graph->mode);
@@ -229,7 +228,7 @@ static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struc
 
 static int postrun(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct fc_priv_info* priv_info = ( struct fc_priv_info* )exec_node->ops_priv;
+    struct fc_priv_info* priv_info = (struct fc_priv_info*)exec_node->ops_priv;
 
     /* fp32 postrun */
     if (exec_graph->mode == TENGINE_MODE_FP32 || exec_graph->mode == TENGINE_MODE_UINT8)
@@ -251,7 +250,7 @@ static int postrun(struct node_ops* node_ops, struct exec_node* exec_node, struc
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     /* init the private info data of convolution op */
-    struct fc_priv_info* priv_info = ( struct fc_priv_info* )sys_malloc(sizeof(struct fc_priv_info));
+    struct fc_priv_info* priv_info = (struct fc_priv_info*)sys_malloc(sizeof(struct fc_priv_info));
     if (priv_info == NULL)
     {
         return -1;
@@ -264,7 +263,7 @@ static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, str
 
 static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct fc_priv_info* priv_info = ( struct fc_priv_info* )exec_node->ops_priv;
+    struct fc_priv_info* priv_info = (struct fc_priv_info*)exec_node->ops_priv;
     sys_free(priv_info);
     exec_node->ops_priv = NULL;
 
@@ -283,7 +282,7 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
         return 0;
 #else
     if (input_tensor->data_type != TENGINE_DT_FP32
-    // && input_tensor->data_type != TENGINE_DT_INT8    // 从tengine移植的 fc int8 arm 与 fc int8 ref 相比相差较大，暂且关闭
+        // && input_tensor->data_type != TENGINE_DT_INT8    // 从tengine移植的 fc int8 arm 与 fc int8 ref 相比相差较大，暂且关闭
     )
         return 0;
 #endif
@@ -297,8 +296,7 @@ static struct node_ops hcl_node_ops = {.prerun = prerun,
                                        .postrun = postrun,
                                        .init_node = init_node,
                                        .release_node = release_node,
-                                       .score = score
-};
+                                       .score = score};
 
 int register_fc_hcl_arm_op()
 {

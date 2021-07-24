@@ -32,7 +32,6 @@
 #include "utility/sys_port.h"
 #include "utility/log.h"
 
-
 static int infer_shape(ir_node_t* node)
 {
     ir_graph_t* graph = node->graph;
@@ -105,7 +104,7 @@ static int infer_shape(ir_node_t* node)
 
 static int init_op(ir_op_t* op)
 {
-    struct fc_param* fc_param = ( struct fc_param* )sys_malloc(sizeof(struct fc_param));
+    struct fc_param* fc_param = (struct fc_param*)sys_malloc(sizeof(struct fc_param));
 
     if (fc_param == NULL)
     {

@@ -22,7 +22,6 @@
  * Author: qtang@openailab.com
  */
 
-
 #include "test_op.h"
 
 #include "graph/graph.h"
@@ -30,17 +29,20 @@
 #include "graph/tensor.h"
 #include "operator/prototype/concat_param.h"
 
-
 int create_test_concat_node(graph_t graph, const char* input_name0, const char* node_name, int data_type, int layout, int n, int c, int h, int w)
 {
-    (void)layout; (void)n; (void)c; (void)h; (void)w;
+    (void)layout;
+    (void)n;
+    (void)c;
+    (void)h;
+    (void)w;
 
     /* create the test node */
-    struct node* test_node = (struct node* )create_graph_node(graph, node_name, "Concat");
+    struct node* test_node = (struct node*)create_graph_node(graph, node_name, "Concat");
 
     tensor_t input0_tensor = get_graph_tensor(graph, input_name0);
 
-    if(NULL == input0_tensor)
+    if (NULL == input0_tensor)
     {
         fprintf(stderr, "create test node input0 failed.\n");
         return -1;
@@ -49,9 +51,8 @@ int create_test_concat_node(graph_t graph, const char* input_name0, const char* 
     node_t input1_node = create_graph_node(graph, "input1", "Const");
     tensor_t input1_tensor = create_graph_tensor(graph, "input1", TENGINE_DT_UINT8);
     set_node_output_tensor(input1_node, 0, input1_tensor, TENSOR_TYPE_CONST);
-    int input1_dims[4] = {1, 1, 3, 3};  // channel num
+    int input1_dims[4] = {1, 1, 3, 3}; // channel num
     set_tensor_shape(input1_tensor, input1_dims, 4);
-
 
     /* input tensors of test node */
     set_node_input_tensor(test_node, 0, input0_tensor);
@@ -62,7 +63,7 @@ int create_test_concat_node(graph_t graph, const char* input_name0, const char* 
     set_node_output_tensor(test_node, 0, output_tensor, TENSOR_TYPE_VAR);
 
     /* set params */
-    struct concat_param* param = ( struct concat_param* )(struct node* )test_node->op.param_mem;
+    struct concat_param* param = (struct concat_param*)(struct node*)test_node->op.param_mem;
 
     param->axis = 1;
 
@@ -75,19 +76,56 @@ int create_test_concat_node(graph_t graph, const char* input_name0, const char* 
  * uint8   = clip(round(float32 / scale) + zero_point, 0, 255)
  * float32 = (uint8 - zero_point) * scale
  */
-float input0_fp32[9] = {3.0f, 8.0f, 1.0f, 9.0f, 5.0f, 7.0f, 3.0f, 2.0f, 3.0f,};
+float input0_fp32[9] = {
+    3.0f,
+    8.0f,
+    1.0f,
+    9.0f,
+    5.0f,
+    7.0f,
+    3.0f,
+    2.0f,
+    3.0f,
+};
 float input0_scale = 1;
 int input0_zero_point = 0;
 
-float input1_fp32[9] = {9.0f, 0.0f, 3.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 2.0f,};
+float input1_fp32[9] = {
+    9.0f,
+    0.0f,
+    3.0f,
+    0.0f,
+    0.0f,
+    0.0f,
+    1.0f,
+    0.0f,
+    2.0f,
+};
 float input1_scale = 1;
 int input1_zero_point = 0;
 
-float reference_out[18] = {3.0f, 8.0f, 1.0f, 9.0f, 5.0f, 7.0f, 3.0f, 2.0f, 3.0f,
-                           9.0f, 0.0f, 3.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 2.0f,};
+float reference_out[18] = {
+    3.0f,
+    8.0f,
+    1.0f,
+    9.0f,
+    5.0f,
+    7.0f,
+    3.0f,
+    2.0f,
+    3.0f,
+    9.0f,
+    0.0f,
+    3.0f,
+    0.0f,
+    0.0f,
+    0.0f,
+    1.0f,
+    0.0f,
+    2.0f,
+};
 float output_scale = 1;
 int output_zero_point = 0;
-
 
 void get_uint8_data(float* data_fp32, uint8_t* date_u8, int size, float scale, int zero_point)
 {
@@ -116,8 +154,8 @@ int main(int argc, char* argv[])
         fprintf(stderr, "Tengine init failed.\n");
 
     // create
-    struct graph* ir_graph = (struct graph* )create_timvx_test_graph(test_node_name, data_type, layout, n, c, h, w, &create_test_concat_node);
-    if(NULL == ir_graph)
+    struct graph* ir_graph = (struct graph*)create_timvx_test_graph(test_node_name, data_type, layout, n, c, h, w, &create_test_concat_node);
+    if (NULL == ir_graph)
         return -1;
 
     set_log_level(LOG_INFO);
@@ -128,7 +166,7 @@ int main(int argc, char* argv[])
     struct tensor* input1_tensor = (struct tensor*)get_graph_tensor(ir_graph, "input1");
     struct tensor* output_tensor = (struct tensor*)get_graph_tensor(ir_graph, "concat");
 
-//    tensor_t weight_tesnor = get_graph_input_tensor(ir_graph, 1, 0);
+    //    tensor_t weight_tesnor = get_graph_input_tensor(ir_graph, 1, 0);
     set_tensor_quant_param(input0_tensor, &input0_scale, &input0_zero_point, 1);
     set_tensor_quant_param(input1_tensor, &input1_scale, &input1_zero_point, 1);
     set_tensor_quant_param(output_tensor, &output_scale, &output_zero_point, 1);
@@ -156,17 +194,17 @@ int main(int argc, char* argv[])
     }
 
     // get output and dequant
-    uint8_t* output_u8 = ( uint8_t* )output_tensor->data;
+    uint8_t* output_u8 = (uint8_t*)output_tensor->data;
     int output_size = output_tensor->elem_num;
 
     get_tensor_quant_param(output_tensor, &output_scale, &output_zero_point, 1);
-    float* output_data = ( float* )malloc(output_size * sizeof(float));
+    float* output_data = (float*)malloc(output_size * sizeof(float));
     for (int i = 0; i < output_size; i++)
-        output_data[i] = (( float )output_u8[i] - ( float )output_zero_point) * output_scale;
+        output_data[i] = ((float)output_u8[i] - (float)output_zero_point) * output_scale;
 
     // check the result
     ret = 0;
-    for (int i = 0; i< output_size; i++)
+    for (int i = 0; i < output_size; i++)
     {
         if (fabsf(output_data[i] - reference_out[i]) > 0.1)
         {

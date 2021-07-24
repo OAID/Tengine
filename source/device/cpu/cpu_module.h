@@ -24,10 +24,8 @@
 
 #pragma once
 
-
 struct node_ops;
 struct exec_graph;
-
 
 int init_cpu_node_ops_registry(void);
 void release_cpu_node_ops_registry(void);

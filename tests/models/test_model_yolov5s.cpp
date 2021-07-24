@@ -35,10 +35,10 @@
 
 int float_mismatch(float* current, float* reference, int size)
 {
-    for(int i=0;i<size;i++)
+    for (int i = 0; i < size; i++)
     {
         float tmp = fabs(current[i]) - fabs(reference[i]);
-        if(fabs(tmp) > 0.0001)
+        if (fabs(tmp) > 0.0001)
         {
             fprintf(stderr, "test failed, index:%d, a:%f, b:%f\n", i, current[i], reference[i]);
             return -1;
@@ -51,8 +51,8 @@ int float_mismatch(float* current, float* reference, int size)
 void show_usage()
 {
     fprintf(
-            stderr,
-            "[Usage]:  [-h]\n    [-m model_file] [-r repeat_count] [-t thread_count]\n");
+        stderr,
+        "[Usage]:  [-h]\n    [-m model_file] [-r repeat_count] [-t thread_count]\n");
 }
 
 int main(int argc, char* argv[])
@@ -74,20 +74,20 @@ int main(int argc, char* argv[])
     {
         switch (res)
         {
-            case 'm':
-                model_file = optarg;
-                break;
-            case 'r':
-                repeat_count = std::strtoul(optarg, nullptr, 10);
-                break;
-            case 't':
-                num_thread = std::strtoul(optarg, nullptr, 10);
-                break;
-            case 'h':
-                show_usage();
-                return 0;
-            default:
-                break;
+        case 'm':
+            model_file = optarg;
+            break;
+        case 'r':
+            repeat_count = std::strtoul(optarg, nullptr, 10);
+            break;
+        case 't':
+            num_thread = std::strtoul(optarg, nullptr, 10);
+            break;
+        case 'h':
+            show_usage();
+            return 0;
+        default:
+            break;
         }
     }
 
@@ -158,7 +158,7 @@ int main(int argc, char* argv[])
     /* prepare process input data, set the data mem to input tensor */
     std::string model_name = "yolov5s";
     std::string input_file = "./data/" + model_name + "_in.bin";
-    FILE *fp;
+    FILE* fp;
     fp = fopen(input_file.c_str(), "rb");
     if (fread(input_data.data(), sizeof(float), img_size, fp) == 0)
     {
@@ -186,7 +186,7 @@ int main(int argc, char* argv[])
         max_time = std::max(max_time, cur);
     }
     fprintf(stderr, "Repeat %d times, thread %d, avg time %.2f ms, max_time %.2f ms, min_time %.2f ms\n", repeat_count, num_thread,
-            total_time/repeat_count, max_time, min_time);
+            total_time / repeat_count, max_time, min_time);
     fprintf(stderr, "--------------------------------------\n");
 
     /* yolov5 postprocess */
@@ -197,19 +197,19 @@ int main(int argc, char* argv[])
     tensor_t p16_output = get_graph_output_tensor(graph, 1, 0);
     tensor_t p32_output = get_graph_output_tensor(graph, 2, 0);
 
-    float* p8_data = ( float*)get_tensor_buffer(p8_output);
-    float* p16_data = ( float*)get_tensor_buffer(p16_output);
-    float* p32_data = ( float*)get_tensor_buffer(p32_output);
+    float* p8_data = (float*)get_tensor_buffer(p8_output);
+    float* p16_data = (float*)get_tensor_buffer(p16_output);
+    float* p32_data = (float*)get_tensor_buffer(p32_output);
 
     /* postprocess */
-     int output_size1 = get_tensor_buffer_size(p8_output) / sizeof(float);
+    int output_size1 = get_tensor_buffer_size(p8_output) / sizeof(float);
     int output_size2 = get_tensor_buffer_size(p16_output) / sizeof(float);
     int output_size3 = get_tensor_buffer_size(p32_output) / sizeof(float);
     std::string reference_file1 = "./data/" + model_name + "_out1.bin";
     std::string reference_file2 = "./data/" + model_name + "_out2.bin";
     std::string reference_file3 = "./data/" + model_name + "_out3.bin";
-    std::vector<float> reference_data1(output_size1),reference_data2(output_size2),reference_data3(output_size3);
-    FILE *fp1;
+    std::vector<float> reference_data1(output_size1), reference_data2(output_size2), reference_data3(output_size3);
+    FILE* fp1;
     fp1 = fopen(reference_file1.c_str(), "rb");
     if (fread(reference_data1.data(), sizeof(float), output_size1, fp1) == 0)
     {
@@ -242,4 +242,3 @@ int main(int argc, char* argv[])
     release_tengine();
     return ret;
 }
-

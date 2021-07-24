@@ -35,20 +35,18 @@
 #include "utility/sys_port.h"
 #include "utility/log.h"
 
-
 static int region_op_map(int op)
 {
     return OP_REGION;
 }
 
-
 static int tm2_load_region(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                            const TM2_Operator* tm_op)
 {
-    struct region_param* region_param = ( struct region_param* )ir_node->op.param_mem;
+    struct region_param* region_param = (struct region_param*)ir_node->op.param_mem;
     const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
     const char* mem_base = tm2_priv->base;
-    const TM2_RegionParam* tm_param = ( TM2_RegionParam* )(mem_base + tm_op->offset_t_param);
+    const TM2_RegionParam* tm_param = (TM2_RegionParam*)(mem_base + tm_op->offset_t_param);
     const TM2_Vector_floats* v_biases = (TM2_Vector_floats*)(mem_base + tm_param->offset_vf_biases);
 
     region_param->num_classes = tm_param->num_classes;
@@ -67,7 +65,6 @@ static int tm2_load_region(struct graph* ir_graph, struct node* ir_node, const T
     return 0;
 }
 
-
 int register_tm2_region_op()
 {
     struct serializer* tm2_s = find_serializer_via_name("tengine");
@@ -82,7 +79,6 @@ int register_tm2_region_op()
 
     return 0;
 }
-
 
 int unregister_tm2_region_op()
 {
