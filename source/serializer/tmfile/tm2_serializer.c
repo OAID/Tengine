@@ -74,7 +74,7 @@ static int unload_graph(struct serializer* s, struct graph* graph, void* s_priv,
 
 static char* strdup_name(char* buf, int size)
 {
-    char* p = sys_malloc(size + 1);
+    char* p = (char*)sys_malloc(size + 1);
     memcpy(p, buf, size);
     p[size] = 0x0;
 
@@ -264,7 +264,7 @@ static int load_graph_tensors(struct tm2_serializer* tm2_s, struct graph* graph,
                     if (type == TENGINE_DT_FP32)
                     {
                         float* tensor_data_org = (float*)sys_malloc(size * sizeof(float));
-                        float* original_date = ir_tensor->data;
+                        float* original_date = (float*)ir_tensor->data;
 
                         for (int n = 0; n < size; n++)
                         {
@@ -284,7 +284,7 @@ static int load_graph_tensors(struct tm2_serializer* tm2_s, struct graph* graph,
                         //                    dims[3]);
 
                         float* input = tensor_data_org;
-                        float* output = ir_tensor->data;
+                        float* output = (float*)ir_tensor->data;
 
                         int cout = dims[0];
                         int cin = dims[1];
@@ -349,7 +349,7 @@ static int load_graph_tensors(struct tm2_serializer* tm2_s, struct graph* graph,
                     if (type == TENGINE_DT_UINT8 || type == TENGINE_DT_INT8)
                     {
                         unsigned char* tensor_data_org = ( unsigned char* )sys_malloc(size * sizeof(unsigned char));
-                        unsigned char* original_date = ir_tensor->data;
+                        unsigned char* original_date = (unsigned char*)ir_tensor->data;
 
                         for (int n = 0; n < size; n++)
                         {
@@ -368,7 +368,7 @@ static int load_graph_tensors(struct tm2_serializer* tm2_s, struct graph* graph,
 //                        fprintf(stderr, "permute  %d, %d, %d, %d\n", dims[0], dims[1], dims[2], dims[3]);
 
                         unsigned char* input = tensor_data_org;
-                        unsigned char* output = ir_tensor->data;
+                        unsigned char* output = (unsigned char*)ir_tensor->data;
 
                         int cout = dims[0];
                         int cin = dims[1];
@@ -904,10 +904,10 @@ static int load_model(struct serializer* s, struct graph* graph, const char* fna
 
     priv->fd = fd;
     priv->mem_len = file_len;
-    priv->base = mem_base;
-    priv->header = get_tm_file_header(mem_base);
-    priv->model = get_tm_file_model(mem_base, priv->header);
-    priv->subgraph = get_tm_file_subgraph(mem_base, priv->model);
+    priv->base = (const char*)mem_base;
+    priv->header = get_tm_file_header((const char*)mem_base);
+    priv->model = get_tm_file_model((const char*)mem_base, priv->header);
+    priv->subgraph = get_tm_file_subgraph((const char*)mem_base, priv->model);
 
     graph->serializer = s;
     graph->serializer_privacy = priv;
@@ -927,10 +927,10 @@ static int load_mem(struct serializer* s, struct graph* graph, const void* addr,
 
     priv->fd = -1;
     priv->mem_len = size;
-    priv->base = addr;
-    priv->header = get_tm_file_header(addr);
-    priv->model = get_tm_file_model(addr, priv->header);
-    priv->subgraph = get_tm_file_subgraph(addr, priv->model);
+    priv->base = (const char*)addr;
+    priv->header = get_tm_file_header((const char*)addr);
+    priv->model = get_tm_file_model((const char*)addr, priv->header);
+    priv->subgraph = get_tm_file_subgraph((const char*)addr, priv->model);
 
     graph->serializer = s;
     graph->serializer_privacy = priv;
@@ -970,9 +970,9 @@ static int register_op_loader(struct serializer* s, int op_type, int op_ver, voi
                               void* ver_map_func)
 {
     struct tm2_serializer* tm2_s = ( struct tm2_serializer* )s;
-    tm2_op_loader_t op_load = op_load_func;
-    tm2_map_t op_map = op_map_func;
-    tm2_map_t ver_map = ver_map_func;
+    tm2_op_loader_t op_load = (tm2_op_loader_t)op_load_func;
+    tm2_map_t op_map = (tm2_map_t)op_map_func;
+    tm2_map_t ver_map = (tm2_map_t)ver_map_func;
 
     return register_tm2_op_loader(tm2_s, op_type, op_ver, op_load, op_map, ver_map);
 }
@@ -980,7 +980,7 @@ static int register_op_loader(struct serializer* s, int op_type, int op_ver, voi
 static int unregister_op_loader(struct serializer* s, int op_type, int op_ver, void* op_load_func)
 {
     struct tm2_serializer* tm2_s = ( struct tm2_serializer* )s;
-    tm2_op_loader_t op_load = op_load_func;
+    tm2_op_loader_t op_load = (tm2_op_loader_t)op_load_func;
 
     return unregister_tm2_op_loader(tm2_s, op_type, op_ver, op_load);
 }

@@ -295,9 +295,9 @@ $ tar zxvf arm_android9_A311D_6.4.3.tgz
 $ mv arm_android9_A311D_6.4.3 prebuild-sdk-android
 $ cd <tengine-lite-root-dir>
 $ mkdir -p ./3rdparty/tim-vx/include
-$ mkdir -p ./3rdparty/tim-vx/lib/aarch64
+$ mkdir -p ./3rdparty/tim-vx/lib/android
 $ cp -rf ../prebuild-sdk-android/include/*  ./3rdparty/tim-vx/include/
-$ cp -rf ../prebuild-sdk-android/lib/*      ./3rdparty/tim-vx/lib/aarch64/
+$ cp -rf ../prebuild-sdk-android/lib/*      ./3rdparty/tim-vx/lib/android/
 ```
 使用的 Android 系统内置的 NPU 驱动版本和相关的 so 不一定和下载到的 `6.4.3` 版本匹配，只需要保证不低于这个版本即可。如果确有问题，可以根据下载到的压缩包解压缩出来的 lib 目录里面的文件做列表，从板卡中用 adb pull 命令从 `/vendor/lib/` 目录中提取一套出来，放入 3rdparty 的相应目录里。
 

@@ -163,7 +163,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         repeat_data[i] = *a;
     }
 
-    ref_tile_fp32(input_tensor->data, output_tensor->data, repeat_data, inDim, outDim, frame_flag);
+    ref_tile_fp32((float*)input_tensor->data, (float*)output_tensor->data, repeat_data, inDim, outDim, frame_flag);
     sys_free(repeat_data);
     release_vector(repeat);
 

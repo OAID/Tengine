@@ -47,10 +47,10 @@
 
 #ifndef _MSC_VER
 #include <sys/time.h>
+#endif
 #define max(a, b) ((a) > (b) ? (a) : (b))
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
-#endif
 
 static int get_private_mem_size(struct tensor* filter)
 {
@@ -254,16 +254,16 @@ static void im2col_ir(struct tensor* input, struct tensor* output, struct conv_p
 
     if (input->data_type == TENGINE_DT_FP32)
     {
-        im2col_fp32(input_base, im2col_buf, input->dims[2], input->dims[3], input_chan, output->dims[2], output->dims[3],
+        im2col_fp32((float*)input_base, (float*)im2col_buf, input->dims[2], input->dims[3], input_chan, output->dims[2], output->dims[3],
                     param->kernel_h, param->kernel_w, param->stride_h, param->stride_w, param->pad_h0, param->pad_w0, param->dilation_h, param->dilation_w);
     }
     else if (input->data_type == TENGINE_DT_UINT8)
     {
-        im2col_uint8(input_base, im2col_buf, input, output, param);
+        im2col_uint8((uint8_t*)input_base, (float*)im2col_buf, input, output, param);
     }
     else if (input->data_type == TENGINE_DT_INT8)
     {
-        im2col_int8(input_base, im2col_buf, input, output, param);
+        im2col_int8((int8_t*)input_base, (int8_t*)im2col_buf, input, output, param);
     }
     else
     {
@@ -1642,7 +1642,7 @@ static void sgemm_fp32(struct tensor* input, struct tensor* filter, struct tenso
     int out_image_size = output->dims[1] * output->dims[2] * output->dims[3];
 
     float* interleave_fp32 = ( float* )priv_info->interleave_buffer_pack4 + outchan_g * group * kernel_size;
-    float* im2col_pack4_fp32 = priv_info->im2col_buffer_pack4;
+    float* im2col_pack4_fp32 = (float*)priv_info->im2col_buffer_pack4;
     float* output_fp32 = ( float* )output->data + n * out_image_size + outchan_g * group * out_h * out_w;
     float* bias_fp32 = NULL;
 
@@ -1713,7 +1713,7 @@ static void sgemm_uint8(struct tensor* input, struct tensor* filter, struct tens
     int out_image_size = output->dims[1] * output->dims[2] * output->dims[3];
 
     float* interleave_fp32 = ( float* )priv_info->interleave_buffer_pack4 + outchan_g * group * kernel_size;
-    float* im2col_pack4_fp32 = priv_info->im2col_buffer_pack4;
+    float* im2col_pack4_fp32 = (float*)priv_info->im2col_buffer_pack4;
     uint8_t * output_uint8 = ( uint8_t* )output->data + n * out_image_size + outchan_g * group * out_h * out_w;
     int* bias_int32 = NULL;
     float bias_scale = 0.f;
@@ -1806,7 +1806,7 @@ static void sgemm_int8(struct tensor* input, struct tensor* filter, struct tenso
     int out_image_size = output->dims[1] * output->dims[2] * output->dims[3];
 
     int8_t* interleave_int8 = ( int8_t* )priv_info->interleave_buffer_pack4 + outchan_g * group * kernel_size;
-    int8_t* im2col_pack4_int8 = priv_info->im2col_buffer_pack4;
+    int8_t* im2col_pack4_int8 = (int8_t*)priv_info->im2col_buffer_pack4;
     int8_t * output_int8 = ( int8_t* )output->data + n * out_image_size + outchan_g * group * out_h * out_w;
     int32_t * bias_int32 = NULL;
 
@@ -2270,9 +2270,9 @@ int conv_hcl_run(struct tensor* input_tensor, struct tensor* filter_tensor, stru
             if (priv_info->external_interleave_pack4_mem)
             {
                 if (type == TENGINE_DT_FP32 || type == TENGINE_DT_UINT8)
-                    input_pack4_fp32(K, N, im2col_buffer, priv_info->im2col_buffer_pack4, num_thread);
+                    input_pack4_fp32(K, N, (float*)im2col_buffer, (float*)priv_info->im2col_buffer_pack4, num_thread);
                 else
-                    input_pack4_int8(K, N, im2col_buffer, priv_info->im2col_buffer_pack4, num_thread);
+                    input_pack4_int8(K, N, (int8_t*)im2col_buffer, (int8_t*)priv_info->im2col_buffer_pack4, num_thread);
             }
             else
             {

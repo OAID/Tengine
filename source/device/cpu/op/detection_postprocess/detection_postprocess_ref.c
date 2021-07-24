@@ -83,7 +83,7 @@ static float intersection_area(const struct Dpp_Box a, const struct Dpp_Box b)
 static void nms_sorted_bboxes(const struct Dpp_Box* boxes, int boxes_size, int* picked, int* picked_size,
                                      float nms_threshold)
 {
-    float* areas = sys_malloc(sizeof(float) * boxes_size);
+    float* areas = (float*)sys_malloc(sizeof(float) * boxes_size);
     int n_picked = 0;
     for(int i = 0; i < boxes_size; i++)
     {
@@ -230,7 +230,7 @@ int ref_dpp_fp32(const float* input_f, const float* score_f, const float* anchor
         if(box_size > max_detections * 2)
             box_size = max_detections * 2;
 
-        int* picked = sys_malloc(sizeof(int) * num_boxes);
+        int* picked = (int*)sys_malloc(sizeof(int) * num_boxes);
         int picked_size = 0;
 
         picked[0] = 0;
@@ -319,7 +319,7 @@ int ref_dpp_uint8(const uint8_t* input, const uint8_t* score, const uint8_t* anc
         if(box_size > max_detections * 2)
             box_size = max_detections * 2;
 
-        int* picked = sys_malloc(sizeof(int) * num_boxes);
+        int* picked = (int*)sys_malloc(sizeof(int) * num_boxes);
         int picked_size = 0;
 
         picked[0] = 0;
@@ -411,13 +411,13 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     void* anchor_data = anchor->data;
 
     struct tensor* detect_boxes = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    float* detect_boxes_data = detect_boxes->data;
+    float* detect_boxes_data = (float*)detect_boxes->data;
     struct tensor* detect_classes = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[1]);
-    float* detect_classes_data = detect_classes->data;
+    float* detect_classes_data = (float*)detect_classes->data;
     struct tensor* detect_scores = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[2]);
-    float* detect_scores_data = detect_scores->data;
+    float* detect_scores_data = (float*)detect_scores->data;
     struct tensor* detect_num = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[3]);
-    float* detect_num_data = detect_num->data;
+    float* detect_num_data = (float*)detect_num->data;
 
     if (input_tensor->data_type == TENGINE_DT_UINT8)
     {
@@ -440,8 +440,8 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         int score_w  = score->dims[2];
         int score_size = score->elem_num;
 
-        uint8_t* input_uint8 = input_tensor->data;
-        uint8_t* score_uint8 = score->data;
+        uint8_t* input_uint8 = (uint8_t*)input_tensor->data;
+        uint8_t* score_uint8 = (uint8_t*)score->data;
         uint8_t* input_uint8_temp = (uint8_t*)malloc(in_size);
         uint8_t* score_uint8_temp = (uint8_t*)malloc(score_size);
 
@@ -471,8 +471,8 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         int score_w  = score->dims[2];
         int score_size = score->elem_num;
 
-        float* input_fp32 = input_tensor->data;
-        float* score_fp32 = score->data;
+        float* input_fp32 = (float*)input_tensor->data;
+        float* score_fp32 = (float*)score->data;
         float* input_fp32_temp = (float*)malloc(in_size*sizeof(float));
         float* score_fp32_temp = (float*)malloc(score_size*sizeof(float));
 
@@ -494,9 +494,11 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     }
 
     if (input_tensor->data_type == TENGINE_DT_FP32)
-        ref_dpp_fp32(input_data, score_data, anchor_data, detect_num_data, detect_classes_data, detect_scores_data, detect_boxes_data, &param);
+        ref_dpp_fp32((float*)input_data, (float*)score_data, (float*)anchor_data, detect_num_data, 
+            detect_classes_data, detect_scores_data, detect_boxes_data, &param);
     else
-        ref_dpp_uint8(input_data, score_data, anchor_data, detect_num_data, detect_classes_data, detect_scores_data, detect_boxes_data, &param);
+        ref_dpp_uint8((uint8_t*)input_data, (uint8_t*)score_data, (uint8_t*)anchor_data, detect_num_data, 
+            detect_classes_data, detect_scores_data, detect_boxes_data, &param);
 
     return 0;
 }

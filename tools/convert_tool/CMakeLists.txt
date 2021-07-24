@@ -21,11 +21,8 @@ FILE (MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/tengine)
 FILE (COPY ${CMAKE_SOURCE_DIR}/source/api/c_api.h DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/tengine)
 
 # add protobuf
-find_package(Protobuf 3.10.0)
+find_package(Protobuf 3.6.1 REQUIRED)
 include_directories(${Protobuf_INCLUDE_DIR})
-if (${Protobuf_VERSION} VERSION_LESS "3.10.0")
-    message(WARNING "protobuf version is ${Protobuf_VERSION}, need 3.10.0+, may make failed.")
-endif()
 
 # ONNX
 FILE(GLOB_RECURSE ONNX_SERIALIZER_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/onnx/*.cpp")
@@ -60,6 +57,11 @@ add_custom_target(CAFFE_SERIALIZER_TARGET DEPENDS ${CAFFE_PROTO_SRC})
 include_directories(${CAFFE_PROTO_OUT_PATH})
 list(APPEND CAFFE_SERIALIZER_SRCS ${CAFFE_PROTO_SRC})
 
+
+# NCNN
+file(GLOB_RECURSE NCNN_SERIALIZER_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/ncnn/*.cpp")
+
+
 # SAVE GRAPH
 FILE(GLOB_RECURSE SAVE_GRAPH_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/utils/save_graph/*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/utils/save_graph/*.c")
 
@@ -70,10 +72,10 @@ FILE(GLOB_RECURSE GRAPH_OPT_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/utils/graph_optimi
 FILE(GLOB_RECURSE CONVERT_TOOL_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/convert_tool.cpp")
 list(APPEND CONVERT_TOOL_SRCS ${ONNX_SERIALIZER_SRCS})
 list(APPEND CONVERT_TOOL_SRCS ${CAFFE_SERIALIZER_SRCS})
+list(APPEND CONVERT_TOOL_SRCS ${NCNN_SERIALIZER_SRCS})
 list(APPEND CONVERT_TOOL_SRCS ${SAVE_GRAPH_SRCS})
 list(APPEND CONVERT_TOOL_SRCS ${GRAPH_OPT_SRCS})
 
-message("===================${CONVERT_TOOL_SRCS}=========================")
 
 add_executable(convert_tool ${CONVERT_TOOL_SRCS})
 target_link_libraries(convert_tool ${CMAKE_PROJECT_NAME}-static pthread dl m)

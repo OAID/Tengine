@@ -245,7 +245,7 @@ int onnx_serializer::load_constant_tensor(ir_graph_t* graph, const onnx::GraphPr
                     {
                         mem_buf[j] = raw_data[j];
                     }
-                }            
+                }
             }
             else
             {
@@ -478,7 +478,7 @@ int onnx_serializer::load_graph_node(ir_graph_t* graph, const onnx::GraphProto& 
     }
     if(no_supported_op.size())
     {
-        fprintf(stderr, "These %d op are not supported\n{ ", no_supported_op.size());
+        fprintf(stderr, "These %zu op are not supported\n{ ", no_supported_op.size());
         for(int j = 0; j < (int) no_supported_op.size(); j++)
         {
             fprintf(stderr, "%s ", no_supported_op[j].c_str());

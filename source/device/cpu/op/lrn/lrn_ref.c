@@ -54,8 +54,8 @@ static int ref_lrn_fp32(struct tensor* input_tensor, struct tensor* output_tenso
     int channel_size = h * w;
     int img_size = c * channel_size;
 
-    float* in_data = input_tensor->data;
-    float* out_data = output_tensor->data;
+    float* in_data = (float*)input_tensor->data;
+    float* out_data = (float*)output_tensor->data;
 
     float* square = ( float* )(malloc(img_size * sizeof(float)));
     float* accum_square = ( float* )(malloc(channel_size * sizeof(float)));

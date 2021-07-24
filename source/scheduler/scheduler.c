@@ -97,7 +97,7 @@ static int sched_run(ir_scheduler_t* scheduler, ir_graph_t* ir_graph, int block)
         push_vector_data(wait_list, &subgraph);
     }
 
-    int* ready_list = sys_malloc(sizeof(int) * subgraph_num);
+    int* ready_list = (int*)sys_malloc(sizeof(int) * subgraph_num);
 
     if (ready_list == NULL)
     {

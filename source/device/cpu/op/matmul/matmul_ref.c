@@ -126,7 +126,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     void* input_data1 = input_tensor1->data;
     void* output_data = output_tensor->data;
 
-    if (ref_matmul_fp32(input_data0, input_data1, output_data, &param) < 0)
+    if (ref_matmul_fp32((float*)input_data0, (float*)input_data1, (float*)output_data, &param) < 0)
         return -1;
 
     return 0;

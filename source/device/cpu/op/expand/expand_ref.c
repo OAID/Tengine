@@ -162,7 +162,8 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     {
         input2_dims[i] = param->ex_shape[i];
     }
-    ref_expand_fp32(input1_tensor->data, input2_tensor->data, output_tensor->data, input1_dims, input2_dims);
+    ref_expand_fp32((float*)input1_tensor->data, (float*)input2_tensor->data, 
+        (float*)output_tensor->data, input1_dims, input2_dims);
 
     free(input1_dims);
     free(input2_dims);

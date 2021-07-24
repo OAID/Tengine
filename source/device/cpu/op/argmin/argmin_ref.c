@@ -180,9 +180,9 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     TLOG_ERR("output_tensor->elem_size:%d\n", output_tensor->elem_size);
 
     if (input_tensor->data_type == TENGINE_DT_FP32)
-        ref_argmin_fp32(( float* )in_data, out_data, argmin_op_param);
+        ref_argmin_fp32(( float* )in_data, (int*)out_data, argmin_op_param);
     else if(input_tensor->data_type == TENGINE_DT_UINT8)
-        ref_argmin_uint8(( uint8_t* )in_data, out_data, argmin_op_param);
+        ref_argmin_uint8(( uint8_t* )in_data, (int*)out_data, argmin_op_param);
 
     return 0;
 }

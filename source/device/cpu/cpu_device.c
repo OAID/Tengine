@@ -101,7 +101,7 @@ static int prerun(struct device* dev, struct subgraph* subgraph, void* option)
 
 static int run(struct device* dev, struct subgraph* subgraph)
 {
-    struct exec_graph* exec_graph = subgraph->device_graph;
+    struct exec_graph* exec_graph = (struct exec_graph*)subgraph->device_graph;
 
     int node_num = get_vector_num(exec_graph->exec_node_list);
 
@@ -228,7 +228,7 @@ static int run(struct device* dev, struct subgraph* subgraph)
 
 static int postrun(struct device* dev, struct subgraph* subgraph)
 {
-    struct exec_graph* exec_graph = subgraph->device_graph;
+    struct exec_graph* exec_graph = (struct exec_graph*)subgraph->device_graph;
 
     int node_num = get_vector_num(exec_graph->exec_node_list);
 

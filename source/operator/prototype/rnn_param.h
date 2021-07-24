@@ -36,8 +36,8 @@ struct rnn_param
     int has_bias;
     int has_init_state;
     int activation;
-    char* inithiddenname;
-    char* biasname;
+    const char* inithiddenname;
+    const char* biasname;
 };
 
 #endif

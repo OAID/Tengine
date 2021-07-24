@@ -22,10 +22,16 @@ test_models=(
 "./tests/test_model_mobilenet_ssd"
 "./tests/test_model_nanodet_m"
 "./tests/test_model_openpose"
+"./tests/test_model_retinaface"
+"./tests/test_model_ultraface"
+"./tests/test_model_unet"
+"./tests/test_model_yolact"
+"./tests/test_model_yolofastest"
 "./tests/test_model_yolov3"
 "./tests/test_model_yolov3_tiny"
 "./tests/test_model_yolov4"
 "./tests/test_model_yolov4_tiny"
+"./tests/test_model_yolov5s"
 )
 
 for (( i = 0 ; i < ${#test_models[@]} ; i++ ))

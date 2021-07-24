@@ -54,8 +54,8 @@ int ref_strided_slice_fp32(struct tensor* input_tensor, struct tensor* output_te
     int in_chw = in_c * in_h * in_w;
     int in_hw = in_h * in_w;
 
-    float* input_data = input_tensor->data;
-    float* output_data = output_tensor->data;
+    float* input_data = (float*)input_tensor->data;
+    float* output_data = (float*)output_tensor->data;
 
     for (int n = 0; n < batch_num; n++)
     {
@@ -96,8 +96,8 @@ int ref_strided_slice_uint8(struct tensor* input_tensor, struct tensor* output_t
     int in_chw = in_c * in_h * in_w;
     int in_hw = in_h * in_w;
 
-    uint8_t* input_data = input_tensor->data;
-    uint8_t* output_data = output_tensor->data;
+    uint8_t* input_data = (uint8_t*)input_tensor->data;
+    uint8_t* output_data = (uint8_t*)output_tensor->data;
 
     for (int n = 0; n < batch_num; n++)
     {

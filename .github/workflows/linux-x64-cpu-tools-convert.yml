@@ -19,6 +19,7 @@ on:
     - 'source/system/*'
     - 'source/utility/*'
     - 'source/device/cpu/**'
+    - 'tests/**'
     - 'tools/convert_tool/**'
   pull_request:
     branches: [tengine-lite]
@@ -38,6 +39,7 @@ on:
     - 'source/system/*'
     - 'source/utility/*'
     - 'source/device/cpu/**'
+    - 'tests/**'
     - 'tools/convert_tool/**'
 
 jobs:
@@ -50,9 +52,18 @@ jobs:
     - name: depends
       run: sudo apt-get install libprotobuf-dev protobuf-compiler libopencv-dev
     - name: configure
-      run: mkdir build && cd build && cmake -DTENGINE_BUILD_CONVERT_TOOL=ON ..
+      run: mkdir build && cd build && cmake -DTENGINE_BUILD_CONVERT_TOOL=ON -DTENGINE_BUILD_TESTS=ON ..
     - name: build
       run: cmake --build build -j 2          
+    - name: test-data
+      run: |
+        cd build
+        wget ftp://219.139.34.182/tengine/ci_test/model_test_convert/onnx_models.zip
+        unzip onnx_models.zip
+        wget ftp://219.139.34.182/tengine/ci_test/model_test_convert/onnx_models_output.zip
+        unzip onnx_models_output.zip
     - name: test-models
       run: |
-        echo "test pass"
+        chmod +x ./tests/test_onnx_model.sh
+        cd build
+        ../tests/test_onnx_model.sh

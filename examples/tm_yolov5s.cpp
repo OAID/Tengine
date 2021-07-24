@@ -329,7 +329,6 @@ void get_input_data_focus(const char* image_file, float* input_data, int letterb
                                         h * (letterbox_cols/2) +
                                         w;
 
-                        /* quant to uint8 */
                         input_data[out_index] = input_temp[in_index];
                     }
                 }
@@ -445,7 +444,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    if (set_tensor_buffer(input_tensor, input_data.data(), img_size * 4) < 0)
+    if (set_tensor_buffer(input_tensor, input_data.data(), img_size * sizeof(float)) < 0)
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;

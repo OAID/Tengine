@@ -202,8 +202,8 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
     logical_param_ref.type = logical_param->type;
 
-    int ret = ref_logical_fp32(input_tensor0->data, input_tensor1->data, output_tensor->data, &logical_param_ref,
-                               exec_graph->num_thread);
+    int ret = ref_logical_fp32((float*)input_tensor0->data, (float*)input_tensor1->data, 
+        (float*)output_tensor->data, &logical_param_ref, exec_graph->num_thread);
     if (ret != 0)
         return -1;
 

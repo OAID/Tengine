@@ -271,7 +271,7 @@ ir_device_t* find_device_via_index(int index)
 
     if (0 <= index && index < count)
     {
-        ir_device_t* device = get_vector_data(internal_device_registry, index);
+        ir_device_t* device = (ir_device_t*)get_vector_data(internal_device_registry, index);
         return device;
     }
     else
@@ -510,7 +510,7 @@ ir_method_t* find_op_method_via_index(int index)
 
     if (0 <= index && index < count)
     {
-        ir_method_t* method = get_vector_data(internal_op_method_registry, index);
+        ir_method_t* method = (ir_method_t*)get_vector_data(internal_op_method_registry, index);
         return method;
     }
     else
@@ -525,7 +525,7 @@ const char* find_op_name(int type)
     int count = get_vector_num(internal_op_name_registry);
     for (int i = 0; i < count; i++)
     {
-        const ir_op_name_entry_t* op_name = get_vector_data(internal_op_name_registry, i);
+        const ir_op_name_entry_t* op_name = (const ir_op_name_entry_t*)get_vector_data(internal_op_name_registry, i);
         if (op_name->type == type)
         {
             return op_name->name;

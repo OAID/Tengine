@@ -708,7 +708,7 @@ static void convdw3x3s1(float* output, float* img_data, float* kernel_data, floa
             float* tmp5 = output + i * 8 * outwh + 5 * outwh;
             float* tmp6 = output + i * 8 * outwh + 6 * outwh;
             float* tmp7 = output + i * 8 * outwh + 7 * outwh;
-            for (int i = 0; i < outwh; i++)
+            for (int j = 0; j < outwh; j++)
             {
                 tmp0[0] = otmp[0];
                 tmp1[0] = otmp[1];
@@ -1233,7 +1233,7 @@ static void convdw3x3s2(float* output, float* img_data, float* kernel_data, floa
             float* tmp5 = output + i * 8 * outwh + 5 * outwh;
             float* tmp6 = output + i * 8 * outwh + 6 * outwh;
             float* tmp7 = output + i * 8 * outwh + 7 * outwh;
-            for (int i = 0; i < outwh; i++)
+            for (int j = 0; j < outwh; j++)
             {
                 tmp0[0] = otmp[0];
                 tmp1[0] = otmp[1];

@@ -260,17 +260,17 @@ static int ref_scatter_fp32(float* input, float* output, int* indices, float* up
                                     index = index < 0 ? inW + index + 1: index;
                                     int outIndex = n*inC*inH*inW + c*inH*inW + h*realIndexDims[3] + index;
                                     output[outIndex] = value;
-                                }                            
+                                }
                             }
                         }
                     }
-                }            
+                }
             }
         } else {
             int data_dims[4] = {1};
             for(int i = 0; i < op_param->dim_size; i++){
                 data_dims[3 - i] = op_param->dims[i];
-            }            
+            }
 
             int iCHW = data_dims[1]* data_dims[2]* data_dims[3];
             int iHW = data_dims[2]*data_dims[3];
@@ -332,7 +332,8 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         }
         TLOG_ERR("Indecues %d \n",indicesDimsSize);
         
-        int ret = ref_scatter_fp32(input_tensor->data, output_tensor->data, indices_tensor->data, updates_tensor->data, scatter_op_param);
+        int ret = ref_scatter_fp32((float*)input_tensor->data, (float*)output_tensor->data, 
+            (int*)indices_tensor->data, (float*)updates_tensor->data, scatter_op_param);
         if(ret < 0){
             TLOG_ERR("Scatter reference error \n");
         }
