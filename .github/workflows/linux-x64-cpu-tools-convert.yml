@@ -47,12 +47,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2.3.4
+    - uses: actions/checkout@v2.3.4
+      with:
+        repository: protocolbuffers/protobuf
+        ref: v3.17.3
+        path: protobuf
+    - name: build, package, and test
+      run: |
+        docker run --network=host -v $PWD:$PWD -w $PWD --privileged --ipc=host -it centos:6 $PWD/.github/workflows/build-package-and-test-convert-tools.sh
     - name: update
       run: sudo apt-get update
     - name: depends
-      run: sudo apt-get install libprotobuf-dev protobuf-compiler libopencv-dev
+      run: sudo apt-get install libopencv-dev
     - name: configure
-      run: mkdir build && cd build && cmake -DTENGINE_BUILD_CONVERT_TOOL=ON -DTENGINE_BUILD_TESTS=ON ..
+      run: mkdir build && cd build && cmake -DTENGINE_BUILD_TESTS=ON ..
     - name: build
       run: cmake --build build -j 2          
     - name: test-data
@@ -66,4 +74,4 @@ jobs:
       run: |
         chmod +x ./tests/test_onnx_model.sh
         cd build
-        ../tests/test_onnx_model.sh
+        ../tests/test_onnx_model.sh ../convert_tool-x86_64.AppImage
