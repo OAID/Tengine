@@ -9,7 +9,7 @@ python3 -m pip install cmake
 
 source /opt/rh/devtoolset-7/enable
 
-PROTOBUF_REPO_DIR=/home/zhangjh/repos/protobuf
+PROTOBUF_REPO_DIR=${PROTOBUF_REPO_DIR:-protobuf}
 PROTOBUF_BUILD_DIR=build-for-ci
 TENGINE_BUILD_DIR=build-for-ci
 
