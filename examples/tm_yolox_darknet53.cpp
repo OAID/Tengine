@@ -45,7 +45,6 @@ struct Object
     float prob;
 };
 
-
 static inline float intersection_area(const Object& a, const Object& b)
 {
     cv::Rect_<float> inter = a.rect & b.rect;
@@ -134,16 +133,15 @@ static void nms_sorted_bboxes(const std::vector<Object>& faceobjects, std::vecto
 static void draw_objects(const cv::Mat& bgr, const std::vector<Object>& objects)
 {
     static const char* class_names[] = {
-            "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light",
-            "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat", "dog", "horse", "sheep", "cow",
-            "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee",
-            "skis", "snowboard", "sports ball", "kite", "baseball bat", "baseball glove", "skateboard", "surfboard",
-            "tennis racket", "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl", "banana", "apple",
-            "sandwich", "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake", "chair", "couch",
-            "potted plant", "bed", "dining table", "toilet", "tv", "laptop", "mouse", "remote", "keyboard", "cell phone",
-            "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors", "teddy bear",
-            "hair drier", "toothbrush"
-    };
+        "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light",
+        "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat", "dog", "horse", "sheep", "cow",
+        "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee",
+        "skis", "snowboard", "sports ball", "kite", "baseball bat", "baseball glove", "skateboard", "surfboard",
+        "tennis racket", "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl", "banana", "apple",
+        "sandwich", "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake", "chair", "couch",
+        "potted plant", "bed", "dining table", "toilet", "tv", "laptop", "mouse", "remote", "keyboard", "cell phone",
+        "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors", "teddy bear",
+        "hair drier", "toothbrush"};
 
     cv::Mat image = bgr.clone();
 
@@ -175,7 +173,7 @@ static void draw_objects(const cv::Mat& bgr, const std::vector<Object>& objects)
         cv::putText(image, text, cv::Point(x, y + label_size.height), cv::FONT_HERSHEY_SIMPLEX, 0.5,
                     cv::Scalar(0, 0, 0));
     }
-    
+
     cv::imwrite("yolox_out.jpg", image);
 }
 struct GridAndStride
@@ -210,10 +208,10 @@ static void generate_yolox_proposals(std::vector<GridAndStride> grid_strides, fl
 {
     const int num_class = 80;
     const int num_anchors = grid_strides.size();
-    
+
     for (int anchor_idx = 0; anchor_idx < num_anchors; anchor_idx++)
     {
-       // printf("%d,%d\n",num_anchors,anchor_idx);
+        // printf("%d,%d\n",num_anchors,anchor_idx);
         const int grid0 = grid_strides[anchor_idx].grid0;
         const int grid1 = grid_strides[anchor_idx].grid1;
         const int stride = grid_strides[anchor_idx].stride;
@@ -227,7 +225,7 @@ static void generate_yolox_proposals(std::vector<GridAndStride> grid_strides, fl
         float h = exp(feat_ptr[3]) * stride;
         float x0 = x_center - w * 0.5f;
         float y0 = y_center - h * 0.5f;
-        
+
         float box_objectness = feat_ptr[4];
 
         for (int class_idx = 0; class_idx < num_class; class_idx++)
@@ -251,13 +249,13 @@ static void generate_yolox_proposals(std::vector<GridAndStride> grid_strides, fl
         feat_ptr += 85;
 
     } // point anchor loop
-}   
+}
 
 void show_usage()
 {
     fprintf(
-            stderr,
-            "[Usage]:  [-h]\n    [-m model_file] [-i image_file] [-r repeat_count] [-t thread_count]\n");
+        stderr,
+        "[Usage]:  [-h]\n    [-m model_file] [-i image_file] [-r repeat_count] [-t thread_count]\n");
 }
 
 void get_input_data_letterbox(const char* image_file, float* input_data, int letterbox_rows, int letterbox_cols, const float* mean, const float* scale)
@@ -274,9 +272,12 @@ void get_input_data_letterbox(const char* image_file, float* input_data, int let
     float scale_letterbox;
     int resize_rows;
     int resize_cols;
-    if ((letterbox_rows * 1.0 / img.rows) < (letterbox_cols * 1.0 / img.cols)) {
+    if ((letterbox_rows * 1.0 / img.rows) < (letterbox_cols * 1.0 / img.cols))
+    {
         scale_letterbox = letterbox_rows * 1.0 / img.rows;
-    } else {
+    }
+    else
+    {
         scale_letterbox = letterbox_cols * 1.0 / img.cols;
     }
     resize_cols = int(scale_letterbox * img.cols);
@@ -286,7 +287,7 @@ void get_input_data_letterbox(const char* image_file, float* input_data, int let
 
     img.convertTo(img, CV_32FC3);
     // Generate a gray image for letterbox using opencv
-    cv::Mat img_new(letterbox_cols, letterbox_rows, CV_32FC3, cv::Scalar(0, 0, 0)/*cv::Scalar(0.5/scale[0] + mean[0], 0.5/scale[1] + mean[1], 0.5/ scale[2] + mean[2])*/);
+    cv::Mat img_new(letterbox_cols, letterbox_rows, CV_32FC3, cv::Scalar(0, 0, 0) /*cv::Scalar(0.5/scale[0] + mean[0], 0.5/scale[1] + mean[1], 0.5/ scale[2] + mean[2])*/);
     int top = 0;
     int bot = letterbox_rows - resize_rows;
     int left = 0;
@@ -295,7 +296,7 @@ void get_input_data_letterbox(const char* image_file, float* input_data, int let
     cv::copyMakeBorder(img, img_new, top, bot, left, right, cv::BORDER_CONSTANT, cv::Scalar(114.f, 114.f, 114.f));
 
     img_new.convertTo(img_new, CV_32FC3);
-    float* img_data   = (float* )img_new.data;
+    float* img_data = (float*)img_new.data;
 
     /* nhwc to nchw */
     for (int h = 0; h < letterbox_rows; h++)
@@ -304,7 +305,7 @@ void get_input_data_letterbox(const char* image_file, float* input_data, int let
         {
             for (int c = 0; c < 3; c++)
             {
-                int in_index  = h * letterbox_cols * 3 + w * 3 + c;
+                int in_index = h * letterbox_cols * 3 + w * 3 + c;
                 int out_index = c * letterbox_rows * letterbox_cols + h * letterbox_cols + w;
                 input_data[out_index] = (img_data[in_index] - mean[c]) * scale[c];
             }
@@ -312,12 +313,11 @@ void get_input_data_letterbox(const char* image_file, float* input_data, int let
     }
 }
 
-
 int main(int argc, char* argv[])
 {
     const char* model_file = nullptr;
     const char* image_file = nullptr;
-    
+
     const float mean[3] = {255.f * 0.485f, 255.f * 0.456, 255.f * 0.406f};
     const float scale[3] = {1 / (255.f * 0.229f), 1 / (255.f * 0.224f), 1 / (255.f * 0.225f)};
 
@@ -334,23 +334,23 @@ int main(int argc, char* argv[])
     {
         switch (res)
         {
-            case 'm':
-                model_file = optarg;
-                break;
-            case 'i':
-                image_file = optarg;
-                break;
-            case 'r':
-                repeat_count = std::strtoul(optarg, nullptr, 10);
-                break;
-            case 't':
-                num_thread = std::strtoul(optarg, nullptr, 10);
-                break;
-            case 'h':
-                show_usage();
-                return 0;
-            default:
-                break;
+        case 'm':
+            model_file = optarg;
+            break;
+        case 'i':
+            image_file = optarg;
+            break;
+        case 'r':
+            repeat_count = std::strtoul(optarg, nullptr, 10);
+            break;
+        case 't':
+            num_thread = std::strtoul(optarg, nullptr, 10);
+            break;
+        case 'h':
+            show_usage();
+            return 0;
+        default:
+            break;
         }
     }
 
@@ -407,7 +407,7 @@ int main(int argc, char* argv[])
     std::vector<float> input_data(img_size);
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
-	
+
     if (input_tensor == nullptr)
     {
         fprintf(stderr, "Get input tensor failed\n");
@@ -455,16 +455,16 @@ int main(int argc, char* argv[])
         max_time = std::max(max_time, cur);
     }
     fprintf(stderr, "Repeat %d times, thread %d, avg time %.2f ms, max_time %.2f ms, min_time %.2f ms\n", repeat_count, num_thread,
-            total_time/repeat_count, max_time, min_time);
+            total_time / repeat_count, max_time, min_time);
     fprintf(stderr, "--------------------------------------\n");
 
     /* yolox postprocess */
     tensor_t p8_output = get_graph_output_tensor(graph, 0, 0);
-    float* p8_data = ( float*)get_tensor_buffer(p8_output);
+    float* p8_data = (float*)get_tensor_buffer(p8_output);
 
     /* postprocess */
-	const float prob_threshold = 0.3f;
-	const float nms_threshold = 0.65f;
+    const float prob_threshold = 0.3f;
+    const float nms_threshold = 0.65f;
 
     std::vector<Object> proposals;
     std::vector<Object> objects;
@@ -481,14 +481,17 @@ int main(int argc, char* argv[])
     float scale_letterbox;
     int resize_rows;
     int resize_cols;
-    if ((letterbox_rows * 1.0 / img.rows) < (letterbox_cols * 1.0 / img.cols)) {
+    if ((letterbox_rows * 1.0 / img.rows) < (letterbox_cols * 1.0 / img.cols))
+    {
         scale_letterbox = letterbox_rows * 1.0 / img.rows;
-    } else {
+    }
+    else
+    {
         scale_letterbox = letterbox_cols * 1.0 / img.cols;
     }
 
     int count = picked.size();
-    fprintf(stderr, "detection num: %d\n",count);
+    fprintf(stderr, "detection num: %d\n", count);
 
     objects.resize(count);
     for (int i = 0; i < count; i++)
