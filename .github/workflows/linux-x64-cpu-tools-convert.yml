@@ -52,6 +52,7 @@ jobs:
         repository: protocolbuffers/protobuf
         ref: v3.17.3
         path: protobuf
+        submodules: recursive
     - name: build, package, and test
       run: |
         docker run --network=host --env PROTOBUF_REPO_DIR=$PWD/protobuf -v $PWD:$PWD -w $PWD --privileged --ipc=host centos:7 $PWD/.github/workflows/build-package-and-test-convert-tools.sh

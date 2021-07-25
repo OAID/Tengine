@@ -16,7 +16,7 @@ TENGINE_BUILD_DIR=build-for-ci
 pushd $PROTOBUF_REPO_DIR
 mkdir -p $PROTOBUF_BUILD_DIR
 pushd $PROTOBUF_BUILD_DIR
-cmake ../cmake
+cmake -Dprotobuf_BUILD_TESTS=OFF ../cmake
 cmake --build . -j`nproc`
 cmake -DCMAKE_INSTALL_PREFIX=install -P cmake_install.cmake
 popd
