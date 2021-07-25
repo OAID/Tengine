@@ -22,6 +22,7 @@
  * Author: xwwang@openailab.com
  * Author: 774074168@qq.com
  * Author: qtang@openailab.com
+ * Author: sunnycase@live.cn
  * original model: https://github.com/Megvii-BaseDetection/YOLOX
  */
 
