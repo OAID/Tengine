@@ -356,8 +356,8 @@ int main(int argc, char* argv[])
     const float scale[3] = {1 / (255.f * 0.229f), 1 / (255.f * 0.224f), 1 / (255.f * 0.225f)};
 
     // allow none square letterbox, set default letterbox size
-    int letterbox_rows = 640;
-    int letterbox_cols = 640;
+    int letterbox_rows = 416;
+    int letterbox_cols = 416;
 
     int repeat_count = 1;
     int num_thread = 1;
