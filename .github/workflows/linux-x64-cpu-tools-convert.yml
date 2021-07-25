@@ -54,7 +54,7 @@ jobs:
         path: protobuf
     - name: build, package, and test
       run: |
-        docker run --network=host -v $PWD:$PWD -w $PWD --privileged --ipc=host -it centos:6 $PWD/.github/workflows/build-package-and-test-convert-tools.sh
+        docker run --network=host -v $PWD:$PWD -w $PWD --privileged --ipc=host centos:6 $PWD/.github/workflows/build-package-and-test-convert-tools.sh
     - name: update
       run: sudo apt-get update
     - name: depends
