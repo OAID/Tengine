@@ -114,7 +114,7 @@ private:
 };
 
 static const char* class_names[] = {
-    "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light",
+    "background", "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light",
     "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat", "dog", "horse", "sheep", "cow",
     "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee",
     "skis", "snowboard", "sports ball", "kite", "baseball bat", "baseball glove", "skateboard", "surfboard",
@@ -647,7 +647,7 @@ int main(int argc, char* argv[])
     {
         BBoxRect b = boxes[i];
         draw_box(img, b.xmin, b.ymin, b.xmax, b.ymax, 2, 125, 0, 125);
-        fprintf(stderr, "class=%2d score=%.2f left = %.2f,right = %.2f,top = %.2f,bot = %.2f, name = %s\n", b.label, b.score, b.xmin, b.xmax, b.ymin, b.ymax, class_names[b.label]);
+        fprintf(stderr, "%2d: %3.0f%%, [%4.0f, %4.0f, %4.0f, %4.0f], %s\n", b.label, b.score * 100, b.xmin, b.ymin, b.xmax, b.ymax, class_names[b.label]);
     }
     save_image(img, "yolofastest_out");
 
