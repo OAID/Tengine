@@ -38,20 +38,17 @@
 #include "tengine_operations.h"
 
 const char* score_pred_name[] = {
-	"score_8", "score_16", "score_32"
-};
+    "score_8", "score_16", "score_32"};
 const char* bbox_pred_name[] = {
-	"bbox_8", "bbox_16", "bbox_32"
-};
+    "bbox_8", "bbox_16", "bbox_32"};
 const char* kps_pred_name[] = {
-	"kps_8", "kps_16", "kps_32"
-};
+    "kps_8", "kps_16", "kps_32"};
 bool has_kps = true;
 struct FaceObject
 {
-	cv::Rect_<float> rect;
-	cv::Point2f landmark[5];
-	float prob;
+    cv::Rect_<float> rect;
+    cv::Point2f landmark[5];
+    float prob;
 };
 
 static inline float intersection_area(const FaceObject& a, const FaceObject& b)
@@ -140,88 +137,88 @@ static void nms_sorted_bboxes(const std::vector<FaceObject>& faceobjects, std::v
 }
 
 static void generate_proposals_f(int feat_stride, const float* score_blob,
-	const float* bbox_blob, const float* kps_blob,
-	float prob_threshold, std::vector<FaceObject>& faceobjects, int letterbox_cols, int letterbox_rows)
+                                 const float* bbox_blob, const float* kps_blob,
+                                 float prob_threshold, std::vector<FaceObject>& faceobjects, int letterbox_cols, int letterbox_rows)
 {
-	static float anchors[] = { -8.f,-8.f,8.f,8.f,-16.f,-16.f,16.f,16.f,-32.f,-32.f,32.f,32.f,-64.f,-64.f,64.f,64.f,-128.f,-128.f,128.f,128.f,-256.f,-256.f,256.f,256.f };
-	int feat_w = letterbox_cols / feat_stride;
-	int feat_h = letterbox_rows / feat_stride;
-	int feat_size = feat_w * feat_h;
-	int anchor_group = 1;
-	if (feat_stride == 8)
-		anchor_group = 1;
-	if (feat_stride == 16)
-		anchor_group = 2;
-	if (feat_stride == 32)
-		anchor_group = 3;
+    static float anchors[] = {-8.f, -8.f, 8.f, 8.f, -16.f, -16.f, 16.f, 16.f, -32.f, -32.f, 32.f, 32.f, -64.f, -64.f, 64.f, 64.f, -128.f, -128.f, 128.f, 128.f, -256.f, -256.f, 256.f, 256.f};
+    int feat_w = letterbox_cols / feat_stride;
+    int feat_h = letterbox_rows / feat_stride;
+    int feat_size = feat_w * feat_h;
+    int anchor_group = 1;
+    if (feat_stride == 8)
+        anchor_group = 1;
+    if (feat_stride == 16)
+        anchor_group = 2;
+    if (feat_stride == 32)
+        anchor_group = 3;
 
-	// generate face proposal from bbox deltas and shifted anchors
-	const int num_anchors = 2;
+    // generate face proposal from bbox deltas and shifted anchors
+    const int num_anchors = 2;
 
-	for (int q = 0; q < num_anchors; q++)
-	{
-		// shifted anchor
-		float anchor_y = anchors[(anchor_group - 1) * 8 + q * 4 + 1];
+    for (int q = 0; q < num_anchors; q++)
+    {
+        // shifted anchor
+        float anchor_y = anchors[(anchor_group - 1) * 8 + q * 4 + 1];
 
-		float anchor_w = anchors[(anchor_group - 1) * 8 + q * 4 + 2] - anchors[(anchor_group - 1) * 8 + q * 4 + 0];
-		float anchor_h = anchors[(anchor_group - 1) * 8 + q * 4 + 3] - anchors[(anchor_group - 1) * 8 + q * 4 + 1];
+        float anchor_w = anchors[(anchor_group - 1) * 8 + q * 4 + 2] - anchors[(anchor_group - 1) * 8 + q * 4 + 0];
+        float anchor_h = anchors[(anchor_group - 1) * 8 + q * 4 + 3] - anchors[(anchor_group - 1) * 8 + q * 4 + 1];
 
-		for (int i = 0; i < feat_h; i++)
-		{
-			float anchor_x = anchors[(anchor_group - 1) * 8 + q * 4 + 0];
+        for (int i = 0; i < feat_h; i++)
+        {
+            float anchor_x = anchors[(anchor_group - 1) * 8 + q * 4 + 0];
 
-			for (int j = 0; j < feat_w; j++)
-			{
-				int index = i * feat_w + j;
+            for (int j = 0; j < feat_w; j++)
+            {
+                int index = i * feat_w + j;
 
-				float prob = score_blob[q * feat_size + index];
+                float prob = score_blob[q * feat_size + index];
 
-				if (prob >= prob_threshold)
-				{
-					// insightface/detection/scrfd/mmdet/models/dense_heads/scrfd_head.py _get_bboxes_single()
-					float dx = bbox_blob[(q * 4 + 0) * feat_size + index] * feat_stride;
-					float dy = bbox_blob[(q * 4 + 1) * feat_size + index] * feat_stride;
-					float dw = bbox_blob[(q * 4 + 2) * feat_size + index] * feat_stride;
-					float dh = bbox_blob[(q * 4 + 3) * feat_size + index] * feat_stride;
-					// insightface/detection/scrfd/mmdet/core/bbox/transforms.py distance2bbox()
-					float cx = anchor_x + anchor_w * 0.5f;
-					float cy = anchor_y + anchor_h * 0.5f;
+                if (prob >= prob_threshold)
+                {
+                    // insightface/detection/scrfd/mmdet/models/dense_heads/scrfd_head.py _get_bboxes_single()
+                    float dx = bbox_blob[(q * 4 + 0) * feat_size + index] * feat_stride;
+                    float dy = bbox_blob[(q * 4 + 1) * feat_size + index] * feat_stride;
+                    float dw = bbox_blob[(q * 4 + 2) * feat_size + index] * feat_stride;
+                    float dh = bbox_blob[(q * 4 + 3) * feat_size + index] * feat_stride;
+                    // insightface/detection/scrfd/mmdet/core/bbox/transforms.py distance2bbox()
+                    float cx = anchor_x + anchor_w * 0.5f;
+                    float cy = anchor_y + anchor_h * 0.5f;
 
-					float x0 = cx - dx;
-					float y0 = cy - dy;
-					float x1 = cx + dw;
-					float y1 = cy + dh;
+                    float x0 = cx - dx;
+                    float y0 = cy - dy;
+                    float x1 = cx + dw;
+                    float y1 = cy + dh;
 
-					FaceObject obj;
-					obj.rect.x = x0;
-					obj.rect.y = y0;
-					obj.rect.width = x1 - x0 + 1;
-					obj.rect.height = y1 - y0 + 1;
-					obj.prob = prob;
+                    FaceObject obj;
+                    obj.rect.x = x0;
+                    obj.rect.y = y0;
+                    obj.rect.width = x1 - x0 + 1;
+                    obj.rect.height = y1 - y0 + 1;
+                    obj.prob = prob;
 
-					if (kps_blob != 0)
-					{
-						obj.landmark[0].x = cx + kps_blob[index] * feat_stride;
-						obj.landmark[0].y = cy + kps_blob[1 * feat_h * feat_w + index] * feat_stride;
-						obj.landmark[1].x = cx + kps_blob[2 * feat_h * feat_w + index] * feat_stride;
-						obj.landmark[1].y = cy + kps_blob[3 * feat_h * feat_w + index] * feat_stride;
-						obj.landmark[2].x = cx + kps_blob[4 * feat_h * feat_w + index] * feat_stride;
-						obj.landmark[2].y = cy + kps_blob[5 * feat_h * feat_w + index] * feat_stride;
-						obj.landmark[3].x = cx + kps_blob[6 * feat_h * feat_w + index] * feat_stride;
-						obj.landmark[3].y = cy + kps_blob[7 * feat_h * feat_w + index] * feat_stride;
-						obj.landmark[4].x = cx + kps_blob[8 * feat_h * feat_w + index] * feat_stride;
-						obj.landmark[4].y = cy + kps_blob[9 * feat_h * feat_w + index] * feat_stride;
-					}
+                    if (kps_blob != 0)
+                    {
+                        obj.landmark[0].x = cx + kps_blob[index] * feat_stride;
+                        obj.landmark[0].y = cy + kps_blob[1 * feat_h * feat_w + index] * feat_stride;
+                        obj.landmark[1].x = cx + kps_blob[2 * feat_h * feat_w + index] * feat_stride;
+                        obj.landmark[1].y = cy + kps_blob[3 * feat_h * feat_w + index] * feat_stride;
+                        obj.landmark[2].x = cx + kps_blob[4 * feat_h * feat_w + index] * feat_stride;
+                        obj.landmark[2].y = cy + kps_blob[5 * feat_h * feat_w + index] * feat_stride;
+                        obj.landmark[3].x = cx + kps_blob[6 * feat_h * feat_w + index] * feat_stride;
+                        obj.landmark[3].y = cy + kps_blob[7 * feat_h * feat_w + index] * feat_stride;
+                        obj.landmark[4].x = cx + kps_blob[8 * feat_h * feat_w + index] * feat_stride;
+                        obj.landmark[4].y = cy + kps_blob[9 * feat_h * feat_w + index] * feat_stride;
+                    }
 
-					faceobjects.push_back(obj);
-				}
+                    faceobjects.push_back(obj);
+                }
 
-				anchor_x += feat_stride;
-			}
+                anchor_x += feat_stride;
+            }
 
-			anchor_y += feat_stride;
-		}
-	}
+            anchor_y += feat_stride;
+        }
+    }
 }
 
 static void draw_objects(const cv::Mat& bgr, const std::vector<FaceObject>& objects)
@@ -232,38 +229,38 @@ static void draw_objects(const cv::Mat& bgr, const std::vector<FaceObject>& obje
     {
         const FaceObject& obj = objects[i];
 
-		fprintf(stderr, "%.5f at %.2f %.2f %.2f x %.2f\n", obj.prob,
-			obj.rect.x, obj.rect.y, obj.rect.width, obj.rect.height);
+        fprintf(stderr, "%.5f at %.2f %.2f %.2f x %.2f\n", obj.prob,
+                obj.rect.x, obj.rect.y, obj.rect.width, obj.rect.height);
 
-		cv::rectangle(image, obj.rect, cv::Scalar(0, 255, 0));
+        cv::rectangle(image, obj.rect, cv::Scalar(0, 255, 0));
 
-		if (has_kps)
-		{
-			cv::circle(image, obj.landmark[0], 2, cv::Scalar(255, 255, 0), -1);
-			cv::circle(image, obj.landmark[1], 2, cv::Scalar(255, 255, 0), -1);
-			cv::circle(image, obj.landmark[2], 2, cv::Scalar(255, 255, 0), -1);
-			cv::circle(image, obj.landmark[3], 2, cv::Scalar(255, 255, 0), -1);
-			cv::circle(image, obj.landmark[4], 2, cv::Scalar(255, 255, 0), -1);
-		}
+        if (has_kps)
+        {
+            cv::circle(image, obj.landmark[0], 2, cv::Scalar(255, 255, 0), -1);
+            cv::circle(image, obj.landmark[1], 2, cv::Scalar(255, 255, 0), -1);
+            cv::circle(image, obj.landmark[2], 2, cv::Scalar(255, 255, 0), -1);
+            cv::circle(image, obj.landmark[3], 2, cv::Scalar(255, 255, 0), -1);
+            cv::circle(image, obj.landmark[4], 2, cv::Scalar(255, 255, 0), -1);
+        }
 
-		char text[256];
-		sprintf(text, "%.1f%%", obj.prob * 100);
+        char text[256];
+        sprintf(text, "%.1f%%", obj.prob * 100);
 
-		int baseLine = 0;
-		cv::Size label_size = cv::getTextSize(text, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
+        int baseLine = 0;
+        cv::Size label_size = cv::getTextSize(text, cv::FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
 
-		int x = obj.rect.x;
-		int y = obj.rect.y - label_size.height - baseLine;
-		if (y < 0)
-			y = 0;
-		if (x + label_size.width > image.cols)
-			x = image.cols - label_size.width;
+        int x = obj.rect.x;
+        int y = obj.rect.y - label_size.height - baseLine;
+        if (y < 0)
+            y = 0;
+        if (x + label_size.width > image.cols)
+            x = image.cols - label_size.width;
 
-		cv::rectangle(image, cv::Rect(cv::Point(x, y), cv::Size(label_size.width, label_size.height + baseLine)),
-			cv::Scalar(255, 255, 255), -1);
+        cv::rectangle(image, cv::Rect(cv::Point(x, y), cv::Size(label_size.width, label_size.height + baseLine)),
+                      cv::Scalar(255, 255, 255), -1);
 
-		cv::putText(image, text, cv::Point(x, y + label_size.height),
-			cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 0));
+        cv::putText(image, text, cv::Point(x, y + label_size.height),
+                    cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 0, 0));
     }
 
     cv::imwrite("scrfd_out.jpg", image);
@@ -272,8 +269,8 @@ static void draw_objects(const cv::Mat& bgr, const std::vector<FaceObject>& obje
 void show_usage()
 {
     fprintf(
-            stderr,
-            "[Usage]:  [-h]\n    [-m model_file] [-i image_file] [-r repeat_count] [-t thread_count]\n");
+        stderr,
+        "[Usage]:  [-h]\n    [-m model_file] [-i image_file] [-r repeat_count] [-t thread_count]\n");
 }
 
 void get_input_data_scrfd(const char* image_file, float* input_data, int letterbox_rows, int letterbox_cols, const float* mean, const float* scale)
@@ -290,9 +287,12 @@ void get_input_data_scrfd(const char* image_file, float* input_data, int letterb
     float scale_letterbox;
     int resize_rows;
     int resize_cols;
-    if ((letterbox_rows * 1.0 / img.rows) < (letterbox_cols * 1.0 / img.cols)) {
+    if ((letterbox_rows * 1.0 / img.rows) < (letterbox_cols * 1.0 / img.cols))
+    {
         scale_letterbox = letterbox_rows * 1.0 / img.rows;
-    } else {
+    }
+    else
+    {
         scale_letterbox = letterbox_cols * 1.0 / img.cols;
     }
     resize_cols = int(scale_letterbox * img.cols);
@@ -301,7 +301,7 @@ void get_input_data_scrfd(const char* image_file, float* input_data, int letterb
     cv::resize(img, img, cv::Size(resize_cols, resize_rows));
 
     // Generate a gray image for letterbox using opencv
-    cv::Mat img_new(letterbox_cols, letterbox_rows, CV_8UC3,cv::Scalar(0,0,0));
+    cv::Mat img_new(letterbox_cols, letterbox_rows, CV_8UC3, cv::Scalar(0, 0, 0));
     int top = (letterbox_rows - resize_rows) / 2;
     int bot = (letterbox_rows - resize_rows + 1) / 2;
     int left = (letterbox_cols - resize_cols) / 2;
@@ -310,7 +310,7 @@ void get_input_data_scrfd(const char* image_file, float* input_data, int letterb
     // Letterbox filling
     cv::copyMakeBorder(img, img_new, top, bot, left, right, cv::BORDER_CONSTANT, cv::Scalar(0, 0, 0));
     img_new.convertTo(img_new, CV_32FC3);
-    float* img_data   = (float* )img_new.data;
+    float* img_data = (float*)img_new.data;
 
     /* nhwc to nchw */
     for (int h = 0; h < letterbox_rows; h++)
@@ -319,16 +319,13 @@ void get_input_data_scrfd(const char* image_file, float* input_data, int letterb
         {
             for (int c = 0; c < 3; c++)
             {
-                int in_index  = h * letterbox_cols * 3 + w * 3 + c;
+                int in_index = h * letterbox_cols * 3 + w * 3 + c;
                 int out_index = c * letterbox_rows * letterbox_cols + h * letterbox_cols + w;
-				input_data[out_index] = (img_data[in_index] - mean[c]) * scale[c];
+                input_data[out_index] = (img_data[in_index] - mean[c]) * scale[c];
             }
         }
     }
-
-    
 }
-
 
 int main(int argc, char* argv[])
 {
@@ -336,8 +333,8 @@ int main(int argc, char* argv[])
     const char* image_file = nullptr;
 
     int img_c = 3;
-    const float mean[3] = { 127.5f, 127.5f, 127.5f };
-    const float scale[3] = { 1 / 128.f, 1 / 128.f, 1 / 128.f };
+    const float mean[3] = {127.5f, 127.5f, 127.5f};
+    const float scale[3] = {1 / 128.f, 1 / 128.f, 1 / 128.f};
 
     // allow none square letterbox, set default letterbox size
     int letterbox_rows = 640;
@@ -351,23 +348,23 @@ int main(int argc, char* argv[])
     {
         switch (res)
         {
-            case 'm':
-                model_file = optarg;
-                break;
-            case 'i':
-                image_file = optarg;
-                break;
-            case 'r':
-                repeat_count = std::strtoul(optarg, nullptr, 10);
-                break;
-            case 't':
-                num_thread = std::strtoul(optarg, nullptr, 10);
-                break;
-            case 'h':
-                show_usage();
-                return 0;
-            default:
-                break;
+        case 'm':
+            model_file = optarg;
+            break;
+        case 'i':
+            image_file = optarg;
+            break;
+        case 'r':
+            repeat_count = std::strtoul(optarg, nullptr, 10);
+            break;
+        case 't':
+            num_thread = std::strtoul(optarg, nullptr, 10);
+            break;
+        case 'h':
+            show_usage();
+            return 0;
+        default:
+            break;
         }
     }
 
@@ -450,7 +447,7 @@ int main(int argc, char* argv[])
     }
 
     /* prepare process input data, set the data mem to input tensor */
-	get_input_data_scrfd(image_file, input_data.data(), letterbox_rows, letterbox_cols, mean, scale);
+    get_input_data_scrfd(image_file, input_data.data(), letterbox_rows, letterbox_cols, mean, scale);
 
     /* run graph */
     double min_time = DBL_MAX;
@@ -471,36 +468,34 @@ int main(int argc, char* argv[])
         max_time = (std::max)(max_time, cur);
     }
     fprintf(stderr, "Repeat %d times, thread %d, avg time %.2f ms, max_time %.2f ms, min_time %.2f ms\n", repeat_count, num_thread,
-            total_time/repeat_count, max_time, min_time);
+            total_time / repeat_count, max_time, min_time);
     fprintf(stderr, "--------------------------------------\n");
-
-   
 
     /* postprocess */
     const float prob_threshold = 0.3f;
     const float nms_threshold = 0.45f;
 
-	std::vector<FaceObject> proposals,objects;
-	int strides[] = { 8,16,32 };
-	for (int stride_index = 0; stride_index < 3; stride_index++) 
-	{
-		tensor_t score_tensor = get_graph_tensor(graph, score_pred_name[stride_index]);
-		tensor_t bbox_tensor = get_graph_tensor(graph, bbox_pred_name[stride_index]);
-		tensor_t kps_tensor = get_graph_tensor(graph, kps_pred_name[stride_index]);
-		if (NULL == score_tensor || NULL == bbox_tensor || NULL == kps_tensor)
-		{
-			fprintf(stderr, "get graph tensor failed\n");
-			return -1;
-		}
-		const float* score_pred = (const float*)get_tensor_buffer(score_tensor);
-		const float* bbox_pred = (const float*)get_tensor_buffer(bbox_tensor);
-		const float* kps_pred = (const float*)get_tensor_buffer(kps_tensor);
+    std::vector<FaceObject> proposals, objects;
+    int strides[] = {8, 16, 32};
+    for (int stride_index = 0; stride_index < 3; stride_index++)
+    {
+        tensor_t score_tensor = get_graph_tensor(graph, score_pred_name[stride_index]);
+        tensor_t bbox_tensor = get_graph_tensor(graph, bbox_pred_name[stride_index]);
+        tensor_t kps_tensor = get_graph_tensor(graph, kps_pred_name[stride_index]);
+        if (NULL == score_tensor || NULL == bbox_tensor || NULL == kps_tensor)
+        {
+            fprintf(stderr, "get graph tensor failed\n");
+            return -1;
+        }
+        const float* score_pred = (const float*)get_tensor_buffer(score_tensor);
+        const float* bbox_pred = (const float*)get_tensor_buffer(bbox_tensor);
+        const float* kps_pred = (const float*)get_tensor_buffer(kps_tensor);
 
-		std::vector<FaceObject>  objects_temp;
-		generate_proposals_f(strides[stride_index], score_pred, bbox_pred, kps_pred,prob_threshold, objects_temp, letterbox_rows, letterbox_cols);
-		
-		proposals.insert(proposals.end(), objects_temp.begin(), objects_temp.end());
-	}
+        std::vector<FaceObject> objects_temp;
+        generate_proposals_f(strides[stride_index], score_pred, bbox_pred, kps_pred, prob_threshold, objects_temp, letterbox_rows, letterbox_cols);
+
+        proposals.insert(proposals.end(), objects_temp.begin(), objects_temp.end());
+    }
 
     qsort_descent_inplace(proposals);
     std::vector<int> picked;
@@ -511,9 +506,12 @@ int main(int argc, char* argv[])
     float scale_letterbox;
     int resize_rows;
     int resize_cols;
-    if ((letterbox_rows * 1.0 / img.rows) < (letterbox_cols * 1.0 / img.cols)) {
+    if ((letterbox_rows * 1.0 / img.rows) < (letterbox_cols * 1.0 / img.cols))
+    {
         scale_letterbox = letterbox_rows * 1.0 / img.rows;
-    } else {
+    }
+    else
+    {
         scale_letterbox = letterbox_cols * 1.0 / img.cols;
     }
     resize_cols = int(scale_letterbox * img.cols);
@@ -526,21 +524,21 @@ int main(int argc, char* argv[])
     float ratio_y = (float)img.cols / resize_cols;
 
     int count = picked.size();
-    fprintf(stderr, "detection num: %d\n",count);
+    fprintf(stderr, "detection num: %d\n", count);
 
     objects.resize(count);
     for (int i = 0; i < count; i++)
     {
         objects[i] = proposals[picked[i]];
-		float x0 = (objects[i].rect.x);
-		float y0 = (objects[i].rect.y);
-		float x1 = (objects[i].rect.x + objects[i].rect.width);
-		float y1 = (objects[i].rect.y + objects[i].rect.height);
+        float x0 = (objects[i].rect.x);
+        float y0 = (objects[i].rect.y);
+        float x1 = (objects[i].rect.x + objects[i].rect.width);
+        float y1 = (objects[i].rect.y + objects[i].rect.height);
 
-		x0 = (x0 - tmp_w) * ratio_x;
-		y0 = (y0 - tmp_h) * ratio_y;
-		x1 = (x1 - tmp_w) * ratio_x;
-		y1 = (y1 - tmp_h) * ratio_y;
+        x0 = (x0 - tmp_w) * ratio_x;
+        y0 = (y0 - tmp_h) * ratio_y;
+        x1 = (x1 - tmp_w) * ratio_x;
+        y1 = (y1 - tmp_h) * ratio_y;
 
         x0 = (std::max)((std::min)(x0, (float)(img.cols - 1)), 0.f);
         y0 = (std::max)((std::min)(y0, (float)(img.rows - 1)), 0.f);
@@ -552,30 +550,30 @@ int main(int argc, char* argv[])
         objects[i].rect.width = x1 - x0;
         objects[i].rect.height = y1 - y0;
 
-		if (has_kps)
-		{
-			float x0 = (objects[i].landmark[0].x - tmp_w) * ratio_x;
-			float y0 = (objects[i].landmark[0].y - tmp_h) * ratio_y;
-			float x1 = (objects[i].landmark[1].x - tmp_w) * ratio_x;
-			float y1 = (objects[i].landmark[1].y - tmp_h) * ratio_y;
-			float x2 = (objects[i].landmark[2].x - tmp_w) * ratio_x;
-			float y2 = (objects[i].landmark[2].y - tmp_h) * ratio_y;
-			float x3 = (objects[i].landmark[3].x - tmp_w) * ratio_x;
-			float y3 = (objects[i].landmark[3].y - tmp_h) * ratio_y;
-			float x4 = (objects[i].landmark[4].x - tmp_w) * ratio_x;
-			float y4 = (objects[i].landmark[4].y - tmp_h) * ratio_y;
+        if (has_kps)
+        {
+            float x0 = (objects[i].landmark[0].x - tmp_w) * ratio_x;
+            float y0 = (objects[i].landmark[0].y - tmp_h) * ratio_y;
+            float x1 = (objects[i].landmark[1].x - tmp_w) * ratio_x;
+            float y1 = (objects[i].landmark[1].y - tmp_h) * ratio_y;
+            float x2 = (objects[i].landmark[2].x - tmp_w) * ratio_x;
+            float y2 = (objects[i].landmark[2].y - tmp_h) * ratio_y;
+            float x3 = (objects[i].landmark[3].x - tmp_w) * ratio_x;
+            float y3 = (objects[i].landmark[3].y - tmp_h) * ratio_y;
+            float x4 = (objects[i].landmark[4].x - tmp_w) * ratio_x;
+            float y4 = (objects[i].landmark[4].y - tmp_h) * ratio_y;
 
-			objects[i].landmark[0].x = (std::max)((std::min)(x0, (float)(img.cols - 1)), 0.f);
-			objects[i].landmark[0].y = (std::max)((std::min)(y0, (float)(img.rows - 1)), 0.f);
-			objects[i].landmark[1].x = (std::max)((std::min)(x1, (float)(img.cols - 1)), 0.f);
-			objects[i].landmark[1].y = (std::max)((std::min)(y1, (float)(img.rows - 1)), 0.f);
-			objects[i].landmark[2].x = (std::max)((std::min)(x2, (float)(img.cols - 1)), 0.f);
-			objects[i].landmark[2].y = (std::max)((std::min)(y2, (float)(img.rows - 1)), 0.f);
-			objects[i].landmark[3].x = (std::max)((std::min)(x3, (float)(img.cols - 1)), 0.f);
-			objects[i].landmark[3].y = (std::max)((std::min)(y3, (float)(img.rows - 1)), 0.f);
-			objects[i].landmark[4].x = (std::max)((std::min)(x4, (float)(img.cols - 1)), 0.f);
-			objects[i].landmark[4].y = (std::max)((std::min)(y4, (float)(img.rows - 1)), 0.f);
-		}
+            objects[i].landmark[0].x = (std::max)((std::min)(x0, (float)(img.cols - 1)), 0.f);
+            objects[i].landmark[0].y = (std::max)((std::min)(y0, (float)(img.rows - 1)), 0.f);
+            objects[i].landmark[1].x = (std::max)((std::min)(x1, (float)(img.cols - 1)), 0.f);
+            objects[i].landmark[1].y = (std::max)((std::min)(y1, (float)(img.rows - 1)), 0.f);
+            objects[i].landmark[2].x = (std::max)((std::min)(x2, (float)(img.cols - 1)), 0.f);
+            objects[i].landmark[2].y = (std::max)((std::min)(y2, (float)(img.rows - 1)), 0.f);
+            objects[i].landmark[3].x = (std::max)((std::min)(x3, (float)(img.cols - 1)), 0.f);
+            objects[i].landmark[3].y = (std::max)((std::min)(y3, (float)(img.rows - 1)), 0.f);
+            objects[i].landmark[4].x = (std::max)((std::min)(x4, (float)(img.cols - 1)), 0.f);
+            objects[i].landmark[4].y = (std::max)((std::min)(y4, (float)(img.rows - 1)), 0.f);
+        }
     }
 
     draw_objects(img, objects);
@@ -585,4 +583,3 @@ int main(int argc, char* argv[])
     destroy_graph(graph);
     release_tengine();
 }
-
