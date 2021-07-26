@@ -647,7 +647,7 @@ int main(int argc, char* argv[])
     {
         BBoxRect b = boxes[i];
         draw_box(img, b.xmin, b.ymin, b.xmax, b.ymax, 2, 125, 0, 125);
-        fprintf(stderr, "%2d: %3.0f%%, [%4.0f, %4.0f, %4.0f, %4.0f], %s\n", b.label, b.score * 100, b.xmin, b.ymin, b.xmax, b.ymax, class_names[b.label]);        
+        fprintf(stderr, "%2d: %3.0f%%, [%4.0f, %4.0f, %4.0f, %4.0f], %s\n", b.label, b.score * 100, b.xmin, b.ymin, b.xmax, b.ymax, class_names[b.label]);
     }
     save_image(img, "yolofastest_out");
 
