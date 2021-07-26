@@ -34,7 +34,6 @@
 
 #include <math.h>
 
-
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
@@ -155,7 +154,7 @@ static int ref_prelu_fp32(struct tensor* input_tensor, struct tensor* output_ten
         }
     }
 
-    return 0; 
+    return 0;
 }
 
 static int ref_prelu_uint8(struct tensor* input_tensor, struct tensor* output_tensor, struct tensor* slope_tensor)
@@ -176,13 +175,13 @@ static int ref_prelu_uint8(struct tensor* input_tensor, struct tensor* output_te
     int output_size = output_tensor->elem_num;
     int slope_size = slope_tensor->elem_num;
 
-    float* input_fp32 = ( float* )sys_malloc(input_size * sizeof(float));
-    float* output_fp32 = ( float* )sys_malloc(output_size * sizeof(float));
-    float* slope_fp32 = ( float* )sys_malloc(slope_size * sizeof(float));
+    float* input_fp32 = (float*)sys_malloc(input_size * sizeof(float));
+    float* output_fp32 = (float*)sys_malloc(output_size * sizeof(float));
+    float* slope_fp32 = (float*)sys_malloc(slope_size * sizeof(float));
 
     for (int i = 0; i < input_size; i++)
     {
-        input_fp32[i] = (( float )input_data[i] - ( float )input_zero) * input_scale;
+        input_fp32[i] = ((float)input_data[i] - (float)input_zero) * input_scale;
     }
     for (int i = 0; i < slope_size; i++)
     {
@@ -333,17 +332,17 @@ static int ref_prelu_int8(struct tensor* input_tensor, struct tensor* output_ten
     int output_size = output_tensor->elem_num;
     int slope_size = slope_tensor->elem_num;
 
-    float* input_fp32 = ( float* )sys_malloc(input_size * sizeof(float));
-    float* output_fp32 = ( float* )sys_malloc(output_size * sizeof(float));
-    float* slope_fp32 = ( float* )sys_malloc(slope_size * sizeof(float));
+    float* input_fp32 = (float*)sys_malloc(input_size * sizeof(float));
+    float* output_fp32 = (float*)sys_malloc(output_size * sizeof(float));
+    float* slope_fp32 = (float*)sys_malloc(slope_size * sizeof(float));
 
     for (int i = 0; i < input_size; i++)
     {
-        input_fp32[i] = ( float )data[i] * input_scale;
+        input_fp32[i] = (float)data[i] * input_scale;
     }
     for (int i = 0; i < slope_size; i++)
     {
-        slope_fp32[i] = ( float )slope[i] * slope_scale;
+        slope_fp32[i] = (float)slope[i] * slope_scale;
     }
 
     int offset = 0;
@@ -408,8 +407,7 @@ static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struc
     input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    if (input_tensor->dims[1] != output_tensor->dims[1] || input_tensor->dims[2] != output_tensor->dims[2] ||
-        input_tensor->dims[3] != output_tensor->dims[3])
+    if (input_tensor->dims[1] != output_tensor->dims[1] || input_tensor->dims[2] != output_tensor->dims[2] || input_tensor->dims[3] != output_tensor->dims[3])
         ret = set_ir_tensor_shape(output_tensor, input_tensor->dims, input_tensor->dim_num);
 
     return ret;
@@ -430,9 +428,9 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     int ret = -1;
     if (input_tensor->data_type == TENGINE_DT_FP32)
         ret = ref_prelu_fp32(input_tensor, output_tensor, slope_tensor);
-    else if(input_tensor->data_type == TENGINE_DT_UINT8)
+    else if (input_tensor->data_type == TENGINE_DT_UINT8)
         ret = ref_prelu_uint8(input_tensor, output_tensor, slope_tensor);
-    else if(input_tensor->data_type == TENGINE_DT_INT8)
+    else if (input_tensor->data_type == TENGINE_DT_INT8)
         ret = ref_prelu_int8(input_tensor, output_tensor, slope_tensor);
     else
         TLOG_ERR("Input data type %d not to be supported.\n", input_tensor->data_type);

@@ -61,8 +61,8 @@ struct Object
     cv::Mat mask;
 };
 
-void get_input_data_cv_uint8(const cv::Mat& sample, uint8_t* input_data, int img_h, int img_w, const float* mean, const float* scale, 
-                       float input_scale, int zero_point)
+void get_input_data_cv_uint8(const cv::Mat& sample, uint8_t* input_data, int img_h, int img_w, const float* mean, const float* scale,
+                             float input_scale, int zero_point)
 {
     cv::Mat img;
     if (sample.channels() == 4)
@@ -84,20 +84,21 @@ void get_input_data_cv_uint8(const cv::Mat& sample, uint8_t* input_data, int img
 
     cv::resize(img, img, cv::Size(img_h, img_w));
     img.convertTo(img, CV_32FC3);
-    float* img_data = (float* )img.data;
+    float* img_data = (float*)img.data;
 
     /* nhwc to nchw */
     for (int h = 0; h < img_h; h++)
-    {   for (int w = 0; w < img_w; w++)
+    {
+        for (int w = 0; w < img_w; w++)
         {
             for (int c = 0; c < 3; c++)
             {
-                int in_index  = h * img_w * 3 + w * 3 + c;
+                int in_index = h * img_w * 3 + w * 3 + c;
                 int out_index = c * img_h * img_w + h * img_w + w;
                 float input_fp32 = (img_data[in_index] - mean[c]) * scale[c];
 
                 /* quant to uint8 */
-                int udata = (round)(input_fp32 / input_scale + ( float )zero_point);
+                int udata = (round)(input_fp32 / input_scale + (float)zero_point);
                 if (udata > 255)
                     udata = 255;
                 else if (udata < 0)
@@ -174,10 +175,10 @@ static inline float intersection_area(const Object& a, const Object& b)
     return inter.area();
 }
 
-static void fast_nms(std::vector<std::vector<Object>>& class_candidates, std::vector<Object>& objects,
+static void fast_nms(std::vector<std::vector<Object> >& class_candidates, std::vector<Object>& objects,
                      const float iou_thresh, const int nms_top_k, const int keep_top_k)
 {
-    for (int i = 0; i < ( int )class_candidates.size(); i++)
+    for (int i = 0; i < (int)class_candidates.size(); i++)
     {
         std::vector<Object>& candidate = class_candidates[i];
         std::sort(candidate.begin(), candidate.end(), [](const Object& a, const Object& b) { return a.prob > b.prob; });
@@ -197,7 +198,7 @@ static void fast_nms(std::vector<std::vector<Object>>& class_candidates, std::ve
         {
             areas[j] = candidate[j].rect.area();
         }
-        std::vector<std::vector<float>> iou_matrix;
+        std::vector<std::vector<float> > iou_matrix;
         for (int j = 0; j < n; j++)
         {
             std::vector<float> iou_row(n);
@@ -260,7 +261,7 @@ static int detect_yolact(const cv::Mat& bgr, std::vector<Object>& objects, const
 
     /* set the input shape to initial the graph, and prerun graph to infer shape */
     int img_size = target_size * target_size * 3;
-    int dims[] = {1, 3, target_size, target_size};    // nchw
+    int dims[] = {1, 3, target_size, target_size}; // nchw
     std::vector<uint8_t> input_data(img_size);
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
@@ -280,7 +281,7 @@ static int detect_yolact(const cv::Mat& bgr, std::vector<Object>& objects, const
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;
-    }    
+    }
 
     /* prerun graph, set work options(num_thread, cluster, precision) */
     if (prerun_graph_multithread(graph, opt) < 0)
@@ -292,7 +293,7 @@ static int detect_yolact(const cv::Mat& bgr, std::vector<Object>& objects, const
     /* prepare process input data, set the data mem to input tensor */
     float input_scale = 0.f;
     int input_zero_point = 0;
-    get_tensor_quant_param(input_tensor, &input_scale, &input_zero_point, 1);    
+    get_tensor_quant_param(input_tensor, &input_scale, &input_zero_point, 1);
     get_input_data_cv_uint8(bgr, input_data.data(), target_size, target_size, mean_vals, norm_vals, input_scale, input_zero_point);
 
     /* run graph */
@@ -318,19 +319,19 @@ static int detect_yolact(const cv::Mat& bgr, std::vector<Object>& objects, const
     fprintf(stderr, "--------------------------------------\n");
 
     /* dequant output data */
-    tensor_t maskmaps_tensor   = get_graph_output_tensor(graph, 1, 0);
-    tensor_t location_tensor   = get_graph_output_tensor(graph, 2, 0);
-    tensor_t mask_tensor       = get_graph_output_tensor(graph, 3, 0);
+    tensor_t maskmaps_tensor = get_graph_output_tensor(graph, 1, 0);
+    tensor_t location_tensor = get_graph_output_tensor(graph, 2, 0);
+    tensor_t mask_tensor = get_graph_output_tensor(graph, 3, 0);
     tensor_t confidence_tensor = get_graph_output_tensor(graph, 4, 0);
 
     float maskmaps_scale = 0.f;
     float location_scale = 0.f;
-    float mask_scale     = 0.f;
+    float mask_scale = 0.f;
     float confidence_scale = 0.f;
 
     int maskmaps_zero_point = 0;
     int location_zero_point = 0;
-    int mask_zero_point     = 0;
+    int mask_zero_point = 0;
     int confidence_zero_point = 0;
 
     get_tensor_quant_param(maskmaps_tensor, &maskmaps_scale, &maskmaps_zero_point, 1);
@@ -338,15 +339,15 @@ static int detect_yolact(const cv::Mat& bgr, std::vector<Object>& objects, const
     get_tensor_quant_param(mask_tensor, &mask_scale, &mask_zero_point, 1);
     get_tensor_quant_param(confidence_tensor, &confidence_scale, &confidence_zero_point, 1);
 
-    int maskmaps_count   = get_tensor_buffer_size(maskmaps_tensor) / sizeof(uint8_t);
-    int location_count   = get_tensor_buffer_size(location_tensor) / sizeof(uint8_t);
-    int mask_count       = get_tensor_buffer_size(mask_tensor) / sizeof(uint8_t);
+    int maskmaps_count = get_tensor_buffer_size(maskmaps_tensor) / sizeof(uint8_t);
+    int location_count = get_tensor_buffer_size(location_tensor) / sizeof(uint8_t);
+    int mask_count = get_tensor_buffer_size(mask_tensor) / sizeof(uint8_t);
     int confidence_count = get_tensor_buffer_size(confidence_tensor) / sizeof(uint8_t);
 
-    uint8_t* maskmaps_u8   = ( uint8_t* )get_tensor_buffer(maskmaps_tensor);
-    uint8_t* location_u8   = ( uint8_t* )get_tensor_buffer(location_tensor);
-    uint8_t* mask_u8       = ( uint8_t* )get_tensor_buffer(mask_tensor);
-    uint8_t* confidence_u8 = ( uint8_t* )get_tensor_buffer(confidence_tensor);
+    uint8_t* maskmaps_u8 = (uint8_t*)get_tensor_buffer(maskmaps_tensor);
+    uint8_t* location_u8 = (uint8_t*)get_tensor_buffer(location_tensor);
+    uint8_t* mask_u8 = (uint8_t*)get_tensor_buffer(mask_tensor);
+    uint8_t* confidence_u8 = (uint8_t*)get_tensor_buffer(confidence_tensor);
 
     std::vector<float> maskmaps(maskmaps_count);
     std::vector<float> location(location_count);
@@ -355,23 +356,23 @@ static int detect_yolact(const cv::Mat& bgr, std::vector<Object>& objects, const
 
     for (int c = 0; c < maskmaps_count; c++)
     {
-        maskmaps[c] = (( float )maskmaps_u8[c] - ( float )maskmaps_zero_point) * maskmaps_scale;
+        maskmaps[c] = ((float)maskmaps_u8[c] - (float)maskmaps_zero_point) * maskmaps_scale;
     }
 
     for (int c = 0; c < location_count; c++)
     {
-        location[c] = (( float )location_u8[c] - ( float )location_zero_point) * location_scale;
+        location[c] = ((float)location_u8[c] - (float)location_zero_point) * location_scale;
     }
 
     for (int c = 0; c < mask_count; c++)
     {
-        mask[c] = (( float )mask_u8[c] - ( float )mask_zero_point) * mask_scale;
+        mask[c] = ((float)mask_u8[c] - (float)mask_zero_point) * mask_scale;
     }
 
     for (int c = 0; c < confidence_count; c++)
     {
-        confidence[c] = (( float )confidence_u8[c] - ( float )confidence_zero_point) * confidence_scale;
-    }    
+        confidence[c] = ((float)confidence_u8[c] - (float)confidence_zero_point) * confidence_scale;
+    }
 
     /* postprocess */
     int num_class = 81;
@@ -381,7 +382,7 @@ static int detect_yolact(const cv::Mat& bgr, std::vector<Object>& objects, const
     const float nms_thresh = 0.5f;
     const int keep_top_k = 200;
 
-    std::vector<std::vector<Object>> class_candidates;
+    std::vector<std::vector<Object> > class_candidates;
     class_candidates.resize(num_class);
 
     for (int i = 0; i < num_priors; i++)
@@ -410,18 +411,18 @@ static int detect_yolact(const cv::Mat& bgr, std::vector<Object>& objects, const
 
         float bbox_cx = var[0] * loc[0] * priorbox.w + priorbox.cx;
         float bbox_cy = var[1] * loc[1] * priorbox.h + priorbox.cy;
-        float bbox_w = ( float )(exp(var[2] * loc[2]) * priorbox.w);
-        float bbox_h = ( float )(exp(var[3] * loc[3]) * priorbox.h);
+        float bbox_w = (float)(exp(var[2] * loc[2]) * priorbox.w);
+        float bbox_h = (float)(exp(var[3] * loc[3]) * priorbox.h);
 
         float obj_x1 = bbox_cx - bbox_w * 0.5f;
         float obj_y1 = bbox_cy - bbox_h * 0.5f;
         float obj_x2 = bbox_cx + bbox_w * 0.5f;
         float obj_y2 = bbox_cy + bbox_h * 0.5f;
 
-        obj_x1 = std::max(std::min(obj_x1 * bgr.cols, ( float )(bgr.cols - 1)), 0.f);
-        obj_y1 = std::max(std::min(obj_y1 * bgr.rows, ( float )(bgr.rows - 1)), 0.f);
-        obj_x2 = std::max(std::min(obj_x2 * bgr.cols, ( float )(bgr.cols - 1)), 0.f);
-        obj_y2 = std::max(std::min(obj_y2 * bgr.rows, ( float )(bgr.rows - 1)), 0.f);
+        obj_x1 = std::max(std::min(obj_x1 * bgr.cols, (float)(bgr.cols - 1)), 0.f);
+        obj_y1 = std::max(std::min(obj_y1 * bgr.rows, (float)(bgr.rows - 1)), 0.f);
+        obj_x2 = std::max(std::min(obj_x2 * bgr.cols, (float)(bgr.cols - 1)), 0.f);
+        obj_y2 = std::max(std::min(obj_y2 * bgr.rows, (float)(bgr.rows - 1)), 0.f);
 
         Object obj;
         obj.rect = cv::Rect_<float>(obj_x1, obj_y1, obj_x2 - obj_x1 + 1, obj_y2 - obj_y1 + 1);
@@ -448,7 +449,7 @@ static int detect_yolact(const cv::Mat& bgr, std::vector<Object>& objects, const
             {
                 const float* maskmap = maskmaps.data() + p;
                 float coeff = obj.maskdata[p];
-                float* mp = ( float* )mask1.data;
+                float* mp = (float*)mask1.data;
 
                 // mask += m * coeff
                 for (int j = 0; j < 138 * 138; j++)
@@ -592,8 +593,7 @@ static void draw_objects(const cv::Mat& bgr, const std::vector<Object>& objects)
         {0, 255, 75},
         {0, 255, 151},
         {255, 56, 0},
-        {245, 255, 0}
-    };
+        {245, 255, 0}};
 
     cv::Mat image = bgr.clone();
 
@@ -671,23 +671,23 @@ int main(int argc, char** argv)
     {
         switch (res)
         {
-            case 'm':
-                model_file = optarg;
-                break;
-            case 'i':
-                image_file = optarg;
-                break;
-            case 'r':
-                repeat_count = std::strtoul(optarg, nullptr, 10);
-                break;
-            case 't':
-                num_thread = std::strtoul(optarg, nullptr, 10);
-                break;
-            case 'h':
-                show_usage();
-                return 0;
-            default:
-                break;
+        case 'm':
+            model_file = optarg;
+            break;
+        case 'i':
+            image_file = optarg;
+            break;
+        case 'r':
+            repeat_count = std::strtoul(optarg, nullptr, 10);
+            break;
+        case 't':
+            num_thread = std::strtoul(optarg, nullptr, 10);
+            break;
+        case 'h':
+            show_usage();
+            return 0;
+        default:
+            break;
         }
     }
 

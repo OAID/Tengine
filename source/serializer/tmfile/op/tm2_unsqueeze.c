@@ -35,33 +35,30 @@
 #include "utility/sys_port.h"
 #include "utility/log.h"
 
-
 static int unsqueeze_op_map(int op)
 {
     return OP_UNSQUEEZE;
 }
 
-
 static int tm2_load_unsqueeze(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                               const TM2_Operator* tm_op)
 {
-    struct unsqueeze_param* unsqueeze_param = ( struct unsqueeze_param* )ir_node->op.param_mem;
+    struct unsqueeze_param* unsqueeze_param = (struct unsqueeze_param*)ir_node->op.param_mem;
     const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
     const char* mem_base = tm2_priv->base;
-    const TM2_UnsqueezeParam* tm_param = ( TM2_UnsqueezeParam* )(mem_base + tm_op->offset_t_param);
+    const TM2_UnsqueezeParam* tm_param = (TM2_UnsqueezeParam*)(mem_base + tm_op->offset_t_param);
 
     if (tm_param->offset_vi_axises != TM2_NOT_SET)
     {
-        const TM2_Vector_dims* v_axises = ( TM2_Vector_dims* )(mem_base + tm_param->offset_vi_axises);
+        const TM2_Vector_dims* v_axises = (TM2_Vector_dims*)(mem_base + tm_param->offset_vi_axises);
         unsqueeze_param->axises_size = v_axises->v_num;
-        unsqueeze_param->axises = ( int* )sys_malloc(v_axises->v_num * sizeof(int));
+        unsqueeze_param->axises = (int*)sys_malloc(v_axises->v_num * sizeof(int));
         for (unsigned int i = 0; i < v_axises->v_num; i++)
             unsqueeze_param->axises[i] = v_axises->dims[i];
     }
 
     return 0;
 }
-
 
 int register_tm2_unsqueeze_op()
 {
@@ -77,7 +74,6 @@ int register_tm2_unsqueeze_op()
 
     return 0;
 }
-
 
 int unregister_tm2_unsqueeze_op()
 {

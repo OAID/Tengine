@@ -33,7 +33,6 @@
 
 #include <math.h>
 
-
 int ref_bias_fp32(struct tensor* input_tensor, struct tensor* output_tensor, struct tensor* bias_tensor,
                   int num_thread)
 {

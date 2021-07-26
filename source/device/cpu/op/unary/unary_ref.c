@@ -36,7 +36,6 @@
 
 #include "unary_kernel_ref.h"
 
-
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     return 0;
@@ -54,15 +53,15 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    struct unary_param* unary_param = ( struct unary_param* )ir_node->op.param_mem;
+    struct unary_param* unary_param = (struct unary_param*)ir_node->op.param_mem;
 
-	int ret = -1;
+    int ret = -1;
     if (input_tensor->data_type == TENGINE_DT_FP32)
         ret = ref_unary_fp32(input_tensor, output_tensor, unary_param);
-    else if(input_tensor->data_type == TENGINE_DT_UINT8)
+    else if (input_tensor->data_type == TENGINE_DT_UINT8)
         ret = ref_unary_uint8(input_tensor, output_tensor, unary_param);
     else
-        TLOG_ERR("Input data type %d not to be supported.\n", input_tensor->data_type);        
+        TLOG_ERR("Input data type %d not to be supported.\n", input_tensor->data_type);
 
     return ret;
 }

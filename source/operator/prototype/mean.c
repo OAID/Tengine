@@ -28,14 +28,12 @@
 #include "graph/graph.h"
 #include "module/module.h"
 
-
 static int init_op(struct op* op)
 {
     op->same_shape = 1;
 
     return 0;
 }
-
 
 int register_mean_op()
 {
@@ -46,7 +44,6 @@ int register_mean_op()
 
     return register_op(OP_MEAN, OP_MEAN_NAME, &m);
 }
-
 
 int unregister_mean_op()
 {

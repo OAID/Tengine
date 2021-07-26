@@ -34,27 +34,24 @@
 #include "device/device.h"
 #include "utility/log.h"
 
-
 static int swap_axis_op_map(int op)
 {
     return OP_SWAP_AXIS;
 }
 
-
 static int tm2_load_swap_axis(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                               const TM2_Operator* tm_op)
 {
-    struct swap_axis_param* swap_axis_param = ( struct swap_axis_param* )ir_node->op.param_mem;
+    struct swap_axis_param* swap_axis_param = (struct swap_axis_param*)ir_node->op.param_mem;
     const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
     const char* mem_base = tm2_priv->base;
-    const TM2_SwapAxisParam* tm_param = ( TM2_SwapAxisParam* )(mem_base + tm_op->offset_t_param);
+    const TM2_SwapAxisParam* tm_param = (TM2_SwapAxisParam*)(mem_base + tm_op->offset_t_param);
 
     swap_axis_param->dim_0 = tm_param->dim_0;
     swap_axis_param->dim_1 = tm_param->dim_1;
 
     return 0;
 }
-
 
 int register_tm2_swap_axis_op()
 {
@@ -70,7 +67,6 @@ int register_tm2_swap_axis_op()
 
     return 0;
 }
-
 
 int unregister_tm2_swap_axis_op()
 {

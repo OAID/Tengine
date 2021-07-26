@@ -37,7 +37,6 @@
 #include <math.h>
 #include <string.h>
 
-
 int ref_shuffle_channel_fp32(struct tensor* input_tensor, struct tensor* output_tensor, struct shuffle_channel_param* param)
 {
     int batch = input_tensor->dims[0];
@@ -141,7 +140,7 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
     struct graph* ir_graph = ir_node->graph;
     struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
 
-    if (input_tensor->dim_num !=4)
+    if (input_tensor->dim_num != 4)
     {
         TLOG_ERR("dims num is not 4, not support shuffle channel\n");
         return -1;
@@ -156,14 +155,14 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct graph* ir_graph = ir_node->graph;
     struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    struct shuffle_channel_param* param = ( struct shuffle_channel_param* )ir_node->op.param_mem;
+    struct shuffle_channel_param* param = (struct shuffle_channel_param*)ir_node->op.param_mem;
 
-	int ret = -1;
+    int ret = -1;
     if (input_tensor->data_type == TENGINE_DT_FP32)
         ret = ref_shuffle_channel_fp32(input_tensor, output_tensor, param);
-    else if(input_tensor->data_type == TENGINE_DT_UINT8)
+    else if (input_tensor->data_type == TENGINE_DT_UINT8)
         ret = ref_shuffle_channel_uint8(input_tensor, output_tensor, param);
-    else if(input_tensor->data_type == TENGINE_DT_INT8)
+    else if (input_tensor->data_type == TENGINE_DT_INT8)
         ret = ref_shuffle_channel_int8(input_tensor, output_tensor, param);
     else
         TLOG_ERR("Input data type %d not to be supported.\n", input_tensor->data_type);

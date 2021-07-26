@@ -37,7 +37,6 @@
 
 #include <math.h>
 
-
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     return 0;
@@ -168,7 +167,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    struct pad_param* param = ( struct pad_param* )ir_node->op.param_mem;
+    struct pad_param* param = (struct pad_param*)ir_node->op.param_mem;
 
     int batch = input_tensor->dims[0];
     int channel = input_tensor->dims[1];
@@ -195,14 +194,14 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
             {
                 if (input_tensor->data_type == TENGINE_DT_FP32)
                 {
-                    float* input_data = ( float* )input_tensor->data + n * in_size + c * in_cstep;
-                    float* output_data = ( float* )output_tensor->data + n * out_size + c * out_cstep;
+                    float* input_data = (float*)input_tensor->data + n * in_size + c * in_cstep;
+                    float* output_data = (float*)output_tensor->data + n * out_size + c * out_cstep;
                     ref_pad_fp32(input_data, output_data, in_h, in_w, out_h, out_w, pad_top, pad_left, param->value);
                 }
-                else if(input_tensor->data_type == TENGINE_DT_UINT8)
+                else if (input_tensor->data_type == TENGINE_DT_UINT8)
                 {
-                    uint8_t* input_data = ( uint8_t* )input_tensor->data + n * in_size + c * in_cstep;
-                    uint8_t* output_data = ( uint8_t* )output_tensor->data + n * out_size + c * out_cstep;
+                    uint8_t* input_data = (uint8_t*)input_tensor->data + n * in_size + c * in_cstep;
+                    uint8_t* output_data = (uint8_t*)output_tensor->data + n * out_size + c * out_cstep;
                     ref_pad_uint8(input_data, output_data, in_h, in_w, out_h, out_w, pad_top, pad_left, param->value);
                 }
             }
@@ -223,13 +222,12 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
 }
 
 static struct node_ops pad_node_ops = {.prerun = NULL,
-        .run = run,
-        .reshape = NULL,
-        .postrun = NULL,
-        .init_node = init_node,
-        .release_node = release_node,
-        .score = score
-};
+                                       .run = run,
+                                       .reshape = NULL,
+                                       .postrun = NULL,
+                                       .init_node = init_node,
+                                       .release_node = release_node,
+                                       .score = score};
 
 int register_pad_ref_op()
 {

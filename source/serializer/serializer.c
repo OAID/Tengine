@@ -27,7 +27,6 @@
 
 #include <string.h>
 
-
 void init_serializer(struct serializer* serializer)
 {
     memset(serializer, 0, sizeof(serializer_t));

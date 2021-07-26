@@ -44,8 +44,7 @@
 #include <cstring>
 // #include "tengine_ir.h"
 
-extern "C"
-{
+extern "C" {
 #include "graph/tensor.h"
 #include "graph/node.h"
 #include "graph/graph.h"
@@ -169,8 +168,10 @@ public:
     const float* row(int y) const;
 
     // access raw data
-    template<typename T> operator T*();
-    template<typename T> operator const T*() const;
+    template<typename T>
+    operator T*();
+    template<typename T>
+    operator const T*() const;
 
     // pointer to the data
     void* data;
@@ -204,8 +205,6 @@ public:
 
     size_t cstep;
 };
-
-
 
 class VkTensor
 {
@@ -242,7 +241,7 @@ public:
     ~VkTensor();
     // assign
     VkTensor& operator=(const VkTensor& m);
-        // reshape vec
+    // reshape vec
     VkTensor reshape(int w, Allocator* allocator = 0) const;
     // reshape image
     VkTensor reshape(int w, int h, Allocator* allocator = 0) const;
@@ -290,7 +289,7 @@ public:
 
     // shape only
     // Mat shape() const;
-    
+
     // low-level reference
     VkBuffer buffer() const;
     size_t buffer_offset() const;
@@ -388,7 +387,6 @@ public:
     // allocate like
     void create_like(const VkImageTensor& im, VkAllocator* allocator);
 
-
     // mapped
     ///Mat mapped() const;
     void* mapped_ptr() const;
@@ -418,7 +416,7 @@ public:
 
     // pointer to the reference counter
     // when points to user-allocated data, the pointer is NULL
-    
+
     int* refcount;
 
     // element size in bytes
@@ -1139,7 +1137,6 @@ inline void VkImageTensor::create_like(const tensor* m, VkAllocator* _allocator)
         create(_w, _h, _c, _elemsize, _elempack, _allocator);
 }
 
-
 inline void VkImageTensor::create_like(const VkTensor& m, VkAllocator* _allocator)
 {
     int _dims = m.dims;
@@ -1248,23 +1245,25 @@ inline VkImageView VkImageTensor::imageview() const
     return data->imageview;
 }
 
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Tensor defination
 
 inline Tensor::Tensor()
     : data(0), refcount(0), elemsize(0), elempack(0), allocator(0), dims(0), w(0), h(0), c(0), cstep(0)
 {
-}   
+}
 
 inline Tensor::Tensor(int _w, size_t _elemsize, Allocator* _allocator)
     : data(0), refcount(0), elemsize(0), elempack(0), allocator(0), dims(0), w(0), h(0), c(0), cstep(0)
 {
     create(_w, _elemsize, _allocator);
-}   
+}
 
-inline Tensor::Tensor(int _w, int _h, size_t _elemsize, Allocator* _allocator)     : data(0), refcount(0), elemsize(0), elempack(0), allocator(0), dims(0), w(0), h(0), c(0), cstep(0){
-    create(_w, _h, _elemsize, _allocator);}
+inline Tensor::Tensor(int _w, int _h, size_t _elemsize, Allocator* _allocator)
+    : data(0), refcount(0), elemsize(0), elempack(0), allocator(0), dims(0), w(0), h(0), c(0), cstep(0)
+{
+    create(_w, _h, _elemsize, _allocator);
+}
 inline Tensor::Tensor(int _w, int _h, int _c, size_t _elemsize, Allocator* _allocator)
     : data(0), refcount(0), elemsize(0), elempack(0), allocator(0), dims(0), w(0), h(0), c(0), cstep(0)
 {
@@ -1299,7 +1298,7 @@ inline Tensor::Tensor(const Tensor& m)
 inline Tensor::Tensor(struct tensor* m)
     : data(m->data), refcount(0), elemsize(0), elempack(1), allocator(0), dims(0), w(0), h(0), c(0)
 {
-    if(m->layout == 0)
+    if (m->layout == 0)
     {
         c = m->dims[1];
         h = m->dims[2];
@@ -1398,7 +1397,7 @@ inline Tensor Tensor::reshape(int _w, Allocator* _allocator) const
         m.create(_w, elemsize, elempack, _allocator);
 
         // flatten
-        for (int i=0; i<c; i++)
+        for (int i = 0; i < c; i++)
         {
             const void* ptr = (unsigned char*)data + i * cstep * elemsize;
             void* mptr = (unsigned char*)m.data + i * w * h * elemsize;
@@ -1431,7 +1430,7 @@ inline Tensor Tensor::reshape(int _w, int _h, Allocator* _allocator) const
         m.create(_w, _h, elemsize, elempack, _allocator);
 
         // flatten
-        for (int i=0; i<c; i++)
+        for (int i = 0; i < c; i++)
         {
             const void* ptr = (unsigned char*)data + i * cstep * elemsize;
             void* mptr = (unsigned char*)m.data + i * w * h * elemsize;
@@ -1466,7 +1465,7 @@ inline Tensor Tensor::reshape(int _w, int _h, int _c, Allocator* _allocator) con
             m.create(_w, _h, _c, elemsize, elempack, _allocator);
 
             // align channel
-            for (int i=0; i<_c; i++)
+            for (int i = 0; i < _c; i++)
             {
                 const void* ptr = (unsigned char*)data + i * _w * _h * elemsize;
                 void* mptr = (unsigned char*)m.data + i * m.cstep * m.elemsize;
@@ -1661,7 +1660,7 @@ inline void Tensor::create(int _w, int _h, int _c, size_t _elemsize, int _elempa
     h = _h;
     c = _c;
 
-    cstep = w * h;    //alignSize(w * h * elemsize, 16) / elemsize;
+    cstep = w * h; //alignSize(w * h * elemsize, 16) / elemsize;
 
     if (total() > 0)
     {
@@ -1792,26 +1791,23 @@ inline const float* Tensor::row(int y) const
     return (const float*)((unsigned char*)data + w * y * elemsize);
 }
 
-template <typename T>
+template<typename T>
 inline Tensor::operator T*()
 {
     return (T*)data;
 }
 
-template <typename T>
+template<typename T>
 inline Tensor::operator const T*() const
 {
     return (const T*)data;
 }
 
 void convert_packing(const Tensor& src, Tensor& dst, int elempack, const Option& opt = Option());
-void convert_packing(tensor* src, Tensor&dst, int elempack, const Option& opt = Option());
+void convert_packing(tensor* src, Tensor& dst, int elempack, const Option& opt = Option());
 void cast_float32_to_float16(const Tensor& src, Tensor& dst, const Option& opt = Option());
 void cast_float16_to_float32(const Tensor& src, Tensor& dst, const Option& opt = Option());
 
-
 } // namespace TEngine
 
-
 #endif // VULKAN_TENSOR_HPP
-

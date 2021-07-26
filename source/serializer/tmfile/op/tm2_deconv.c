@@ -34,20 +34,18 @@
 #include "device/device.h"
 #include "utility/log.h"
 
-
 static int deconv_op_map(int op)
 {
     return OP_DECONV;
 }
 
-
 static int tm2_load_deconv(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                            const TM2_Operator* tm_op)
 {
-    struct deconv_param* deconv_param = ( struct deconv_param* )ir_node->op.param_mem;
+    struct deconv_param* deconv_param = (struct deconv_param*)ir_node->op.param_mem;
     const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
     const char* mem_base = tm2_priv->base;
-    const TM2_DeconvParam* tm_param = ( TM2_DeconvParam* )(mem_base + tm_op->offset_t_param);
+    const TM2_DeconvParam* tm_param = (TM2_DeconvParam*)(mem_base + tm_op->offset_t_param);
 
     deconv_param->kernel_h = tm_param->kernel_h;
     deconv_param->kernel_w = tm_param->kernel_w;
@@ -64,16 +62,15 @@ static int tm2_load_deconv(struct graph* ir_graph, struct node* ir_node, const T
     deconv_param->dilation_h = tm_param->dilation_h;
     deconv_param->dilation_w = tm_param->dilation_w;
 
-    deconv_param->group = tm_param->group ;
-    deconv_param->num_output = tm_param->num_output ;
-    deconv_param->activation = tm_param->activation ;
-    
+    deconv_param->group = tm_param->group;
+    deconv_param->num_output = tm_param->num_output;
+    deconv_param->activation = tm_param->activation;
+
     deconv_param->output_pad_h0 = tm_param->output_pad_h0;
     deconv_param->output_pad_w0 = tm_param->output_pad_w0;
 
     return 0;
 }
-
 
 int register_tm2_deconv_op()
 {
@@ -89,7 +86,6 @@ int register_tm2_deconv_op()
 
     return 0;
 }
-
 
 int unregister_tm2_deconv_op()
 {

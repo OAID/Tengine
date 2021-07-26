@@ -37,7 +37,6 @@
 
 #include "arm_math.h"
 
-
 /**
  * @brief Q7 RELU function
  * @param[in,out]   data        pointer to input

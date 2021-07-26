@@ -55,7 +55,7 @@ Tengine 核心代码由 4 个模块组成：
 
 ### 量化工具
 
-- [预编译版本](tools/quantize/README.md)：提供 Ubuntu 18.04 系统上预编译好的模型量化工具，已支持uint8/int8。
+- [源码编译](tools/quantize/README.md)：已开源量化工具源码，已支持uint8/int8。
 
 ### 速度评估
 

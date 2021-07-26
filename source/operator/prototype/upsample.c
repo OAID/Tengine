@@ -32,10 +32,9 @@
 #include "utility/sys_port.h"
 #include "utility/log.h"
 
-
 static int infer_shape(struct node* node)
 {
-    struct upsample_param* upsample_param = ( struct upsample_param* )(node->op.param_mem);
+    struct upsample_param* upsample_param = (struct upsample_param*)(node->op.param_mem);
 
     struct graph* graph = node->graph;
     struct tensor* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
@@ -55,10 +54,9 @@ static int infer_shape(struct node* node)
     return 0;
 }
 
-
 static int init_op(struct op* op)
 {
-    struct upsample_param* upsample_param = ( struct upsample_param* )sys_malloc(sizeof(struct upsample_param));
+    struct upsample_param* upsample_param = (struct upsample_param*)sys_malloc(sizeof(struct upsample_param));
 
     if (upsample_param == NULL)
     {
@@ -76,12 +74,10 @@ static int init_op(struct op* op)
     return 0;
 }
 
-
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
-
 
 int register_upsample_op()
 {
@@ -93,7 +89,6 @@ int register_upsample_op()
 
     return register_op(OP_UPSAMPLE, OP_UPSAMPLE_NAME, &m);
 }
-
 
 int unregister_upsample_op()
 {

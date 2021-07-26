@@ -37,7 +37,6 @@
 #include <math.h>
 #include <string.h>
 
-
 static int ref_lrn_fp32(struct tensor* input_tensor, struct tensor* output_tensor, struct lrn_param* param,
                         int num_thread)
 {
@@ -57,8 +56,8 @@ static int ref_lrn_fp32(struct tensor* input_tensor, struct tensor* output_tenso
     float* in_data = (float*)input_tensor->data;
     float* out_data = (float*)output_tensor->data;
 
-    float* square = ( float* )(malloc(img_size * sizeof(float)));
-    float* accum_square = ( float* )(malloc(channel_size * sizeof(float)));
+    float* square = (float*)(malloc(img_size * sizeof(float)));
+    float* accum_square = (float*)(malloc(channel_size * sizeof(float)));
 
     for (int i = 0; i < n; i++)
     {
@@ -130,7 +129,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
     input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    struct lrn_param* lrn_param = ( struct lrn_param* )ir_node->op.param_mem;
+    struct lrn_param* lrn_param = (struct lrn_param*)ir_node->op.param_mem;
 
     ref_lrn_fp32(input_tensor, output_tensor, lrn_param, exec_graph->num_thread);
 

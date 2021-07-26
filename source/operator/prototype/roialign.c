@@ -31,14 +31,13 @@
 #include "module/module.h"
 #include "utility/sys_port.h"
 
-
 static int infer_shape(struct node* node)
 {
     struct graph* graph = node->graph;
     struct tensor* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
     struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
 
-    struct roialign_param* roialign_param = ( struct roialign_param* )(node->op.param_mem);
+    struct roialign_param* roialign_param = (struct roialign_param*)(node->op.param_mem);
 
     int out_dim[4];
 
@@ -52,10 +51,9 @@ static int infer_shape(struct node* node)
     return 0;
 }
 
-
 static int init_op(struct op* op)
 {
-    struct roialign_param* roialign_param = ( struct roialign_param* )sys_malloc(sizeof(struct roialign_param));
+    struct roialign_param* roialign_param = (struct roialign_param*)sys_malloc(sizeof(struct roialign_param));
 
     if (roialign_param == NULL)
     {
@@ -75,12 +73,10 @@ static int init_op(struct op* op)
     return 0;
 }
 
-
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
-
 
 int register_roialign_op()
 {
@@ -90,10 +86,8 @@ int register_roialign_op()
     m.init = init_op;
     m.release = release_op;
 
-
     return register_op(OP_ROIALIGN, OP_ROIALIGN_NAME, &m);
 }
-
 
 int unregister_roialign_op()
 {

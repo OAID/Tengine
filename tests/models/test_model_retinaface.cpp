@@ -60,7 +60,6 @@
 
 #define MODEL_PATH "models/retinaface.tmfile"
 
-
 const float CONF_THRESH = 0.8f;
 const float NMS_THRESH = 0.4f;
 
@@ -76,13 +75,12 @@ const int stride[3] = {32, 16, 8};
 
 const float scales[3][2] = {{32.f, 16.f}, {8.f, 4.f}, {2.f, 1.f}};
 
-
 int float_mismatch(float* current, float* reference, int size)
 {
-    for(int i=0;i<size;i++)
+    for (int i = 0; i < size; i++)
     {
         float tmp = fabs(current[i]) - fabs(reference[i]);
-        if(fabs(tmp) > 0.0001)
+        if (fabs(tmp) > 0.0001)
         {
             fprintf(stderr, "test failed, index:%d, a:%f, b:%f\n", i, current[i], reference[i]);
             return -1;
@@ -91,7 +89,6 @@ int float_mismatch(float* current, float* reference, int size)
     fprintf(stderr, "test pass\n");
     return 0;
 }
-
 
 void show_usage()
 {
@@ -112,23 +109,23 @@ int main(int argc, char* argv[])
     {
         switch (res)
         {
-            case 'm':
-                model_file = optarg;
-                break;
-            case 'r':
-                repeat_count = atoi(optarg);
-                break;
-            case 't':
-                num_thread = atoi(optarg);
-                break;
-            case 'n':
-                device_name = optarg;
-                break;
-            case 'h':
-                show_usage();
-                return 0;
-            default:
-                break;
+        case 'm':
+            model_file = optarg;
+            break;
+        case 'r':
+            repeat_count = atoi(optarg);
+            break;
+        case 't':
+            num_thread = atoi(optarg);
+            break;
+        case 'n':
+            device_name = optarg;
+            break;
+        case 'h':
+            show_usage();
+            return 0;
+        default:
+            break;
         }
     }
 
@@ -140,7 +137,6 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-
     if (!check_file_exist(model_file))
         return -1;
 
@@ -149,7 +145,7 @@ int main(int argc, char* argv[])
     opt.num_thread = num_thread;
     opt.cluster = TENGINE_CLUSTER_ALL;
     opt.precision = TENGINE_MODE_FP32;
-    opt.affinity = 0;       
+    opt.affinity = 0;
 
     /* inital tengine */
     int ret = init_tengine();
@@ -175,19 +171,18 @@ int main(int argc, char* argv[])
     int img_size = height * width * 3;
     std::vector<float> image_data(img_size * sizeof(float));
 
-
     std::string model_name = "retinaface";
     std::string input_file = "./data/" + model_name + "_in.bin";
-    FILE *fp;
+    FILE* fp;
     fp = fopen(input_file.c_str(), "rb");
-    if (!fp )
+    if (!fp)
     {
-        fprintf(stderr, "open input file %s failed!\n",input_file.c_str());
+        fprintf(stderr, "open input file %s failed!\n", input_file.c_str());
         return -1;
     }
     if (!fp || fread(image_data.data(), sizeof(float), img_size, fp) == 0)
     {
-        fprintf(stderr, "read input file %s failed!\n",input_file.c_str());
+        fprintf(stderr, "read input file %s failed!\n", input_file.c_str());
         return -1;
     }
     fclose(fp);
@@ -214,7 +209,7 @@ int main(int argc, char* argv[])
     {
         printf("Set input tensor buffer failed\n");
         return -1;
-    }    
+    }
 
     /* prerun graph, set work options(num_thread, cluster, precision) */
     if (0 != prerun_graph_multithread(graph, opt))
@@ -242,7 +237,7 @@ int main(int argc, char* argv[])
         max_time = std::max(max_time, cur);
     }
     printf("Repeat %d times, thread %d, avg time %.2f ms, max_time %.2f ms, min_time %.2f ms\n", repeat_count,
-           num_thread, total_time / ( float )repeat_count, max_time, min_time);
+           num_thread, total_time / (float)repeat_count, max_time, min_time);
     printf("--------------------------------------\n");
 
     /* process the detection result */
@@ -264,41 +259,41 @@ int main(int argc, char* argv[])
         get_tensor_shape(bbox_blob_tensor, bbox_blob_dims, MAX_SHAPE_DIM_NUM);
         get_tensor_shape(landmark_blob_tensor, landmark_blob_dims, MAX_SHAPE_DIM_NUM);
 
-        float* score_blob = ( float* )get_tensor_buffer(score_blob_tensor);
-        float* bbox_blob = ( float* )get_tensor_buffer(bbox_blob_tensor);
-        float* landmark_blob = ( float* )get_tensor_buffer(landmark_blob_tensor);
+        float* score_blob = (float*)get_tensor_buffer(score_blob_tensor);
+        float* bbox_blob = (float*)get_tensor_buffer(bbox_blob_tensor);
+        float* landmark_blob = (float*)get_tensor_buffer(landmark_blob_tensor);
 
         // save output_data
         int output_size1 = get_tensor_buffer_size(score_blob_tensor) / sizeof(float);
         int output_size2 = get_tensor_buffer_size(bbox_blob_tensor) / sizeof(float);
         int output_size3 = get_tensor_buffer_size(landmark_blob_tensor) / sizeof(float);
-        std::string reference_file1 = "./data/" + model_name + "_out" + std::to_string(stride_index*3+1) +".bin";
-        std::string reference_file2 = "./data/" + model_name + "_out" + std::to_string(stride_index*3+2) +".bin";
-        std::string reference_file3 = "./data/" + model_name + "_out" + std::to_string(stride_index*3+3) +".bin";
+        std::string reference_file1 = "./data/" + model_name + "_out" + std::to_string(stride_index * 3 + 1) + ".bin";
+        std::string reference_file2 = "./data/" + model_name + "_out" + std::to_string(stride_index * 3 + 2) + ".bin";
+        std::string reference_file3 = "./data/" + model_name + "_out" + std::to_string(stride_index * 3 + 3) + ".bin";
         std::vector<float> reference_data1(output_size1);
         std::vector<float> reference_data2(output_size2);
         std::vector<float> reference_data3(output_size3);
-        FILE *fp1;
+        FILE* fp1;
 
         //read
         fp1 = fopen(reference_file1.c_str(), "rb");
         if (fread(reference_data1.data(), sizeof(float), output_size1, fp1) == 0)
         {
-            fprintf(stderr, "read reference %s failed!\n",reference_file1.c_str());
+            fprintf(stderr, "read reference %s failed!\n", reference_file1.c_str());
             return -1;
         }
         fclose(fp1);
         fp1 = fopen(reference_file2.c_str(), "rb");
         if (fread(reference_data2.data(), sizeof(float), output_size2, fp1) == 0)
         {
-            fprintf(stderr, "read reference %s failed!\n",reference_file2.c_str());
+            fprintf(stderr, "read reference %s failed!\n", reference_file2.c_str());
             return -1;
         }
         fclose(fp1);
         fp1 = fopen(reference_file3.c_str(), "rb");
         if (fread(reference_data3.data(), sizeof(float), output_size3, fp1) == 0)
         {
-            fprintf(stderr, "read reference %s failed!\n",reference_file3.c_str());
+            fprintf(stderr, "read reference %s failed!\n", reference_file3.c_str());
             return -1;
         }
         fclose(fp1);

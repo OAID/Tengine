@@ -34,7 +34,6 @@ EXPORT_BEGIN
 #include "graph/subgraph.h"
 #include "device/device.h"
 
-
 int trt_dev_init(struct device* dev);
 int trt_dev_prerun(struct device* dev, struct subgraph* subgraph, void* options);
 int trt_dev_run(struct device* dev, struct subgraph* subgraph);

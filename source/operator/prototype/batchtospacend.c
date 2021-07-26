@@ -30,22 +30,19 @@
 #include "module/module.h"
 #include "utility/sys_port.h"
 
-
 static int infer_shape(struct node* node)
 {
     struct graph* graph = node->graph;
     struct tensor* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
     struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
 
-    struct batchtospacend_param* batchtospacend_param = ( struct batchtospacend_param* )(node->op.param_mem);
+    struct batchtospacend_param* batchtospacend_param = (struct batchtospacend_param*)(node->op.param_mem);
 
     int out_dim[4];
 
     out_dim[0] = input->dims[0] / (batchtospacend_param->dilation_x * batchtospacend_param->dilation_y);
-    out_dim[1] = input->dims[1] * batchtospacend_param->dilation_y - batchtospacend_param->crop_top -
-                 batchtospacend_param->crop_bottom;
-    out_dim[2] = input->dims[2] * batchtospacend_param->dilation_x - batchtospacend_param->crop_left -
-                 batchtospacend_param->crop_right;
+    out_dim[1] = input->dims[1] * batchtospacend_param->dilation_y - batchtospacend_param->crop_top - batchtospacend_param->crop_bottom;
+    out_dim[2] = input->dims[2] * batchtospacend_param->dilation_x - batchtospacend_param->crop_left - batchtospacend_param->crop_right;
     out_dim[3] = input->dims[3];
 
     set_ir_tensor_shape(output, out_dim, 4);
@@ -53,11 +50,9 @@ static int infer_shape(struct node* node)
     return 0;
 }
 
-
 static int init_op(struct op* op)
 {
-    struct batchtospacend_param* batchtospacend_param =
-        ( struct batchtospacend_param* )sys_malloc(sizeof(struct batchtospacend_param));
+    struct batchtospacend_param* batchtospacend_param = (struct batchtospacend_param*)sys_malloc(sizeof(struct batchtospacend_param));
 
     if (batchtospacend_param == NULL)
     {
@@ -80,12 +75,10 @@ static int init_op(struct op* op)
     return 0;
 }
 
-
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
-
 
 int register_batchtospacend_op()
 {
@@ -95,10 +88,8 @@ int register_batchtospacend_op()
     m.init = init_op;
     m.release = release_op;
 
-
     return register_op(OP_BATCHTOSPACEND, OP_BATCHTOSPACEND_NAME, &m);
 }
-
 
 int unregister_batchtospacend_op()
 {

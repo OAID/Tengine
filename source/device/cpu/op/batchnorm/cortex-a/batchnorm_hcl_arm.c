@@ -35,11 +35,9 @@
 #include <math.h>
 #include <string.h>
 
-
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct hcl_batchnorm_param* op_param =
-        ( struct hcl_batchnorm_param* )sys_malloc(sizeof(struct hcl_batchnorm_param));
+    struct hcl_batchnorm_param* op_param = (struct hcl_batchnorm_param*)sys_malloc(sizeof(struct hcl_batchnorm_param));
     memset(op_param, 0, sizeof(struct hcl_batchnorm_param));
     exec_node->ops_priv = op_param;
     return 0;
@@ -61,13 +59,13 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
 
     int channel_num = mean_tensor->dims[0];
 
-    float* scale_mean = ( float* )sys_malloc(channel_num * sizeof(float));
-    float* scale_var_inv = ( float* )sys_malloc(channel_num * sizeof(float));
+    float* scale_mean = (float*)sys_malloc(channel_num * sizeof(float));
+    float* scale_var_inv = (float*)sys_malloc(channel_num * sizeof(float));
 
-    const float* mean = ( const float* )mean_tensor->data;
-    const float* var = ( const float* )var_tensor->data;
+    const float* mean = (const float*)mean_tensor->data;
+    const float* var = (const float*)var_tensor->data;
 
-    struct batchnorm_param* batchnorm_param = ( struct batchnorm_param* )ir_node->op.param_mem;
+    struct batchnorm_param* batchnorm_param = (struct batchnorm_param*)ir_node->op.param_mem;
 
     float rescale_factor;
     float eps = batchnorm_param->eps;
@@ -76,16 +74,16 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
     for (int c = 0; c < channel_num; c++)
     {
         float tmp = sqrt(var[c] * rescale_factor + eps);
-        scale_var_inv[c] = ( float )(1.f / tmp);
+        scale_var_inv[c] = (float)(1.f / tmp);
         tmp = rescale_factor * scale_var_inv[c];
-        scale_mean[c] = ( float )(-mean[c] * tmp);
+        scale_mean[c] = (float)(-mean[c] * tmp);
     }
     if (!batchnorm_param->caffe_flavor)
     {
         const struct tensor* gamma_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
         const struct tensor* beta_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[2]);
-        const float* gamma = ( const float* )gamma_tensor->data;
-        const float* beta = ( const float* )beta_tensor->data;
+        const float* gamma = (const float*)gamma_tensor->data;
+        const float* beta = (const float*)beta_tensor->data;
         for (int c = 0; c < channel_num; c++)
         {
             scale_var_inv[c] *= gamma[c];
@@ -94,7 +92,7 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
         }
     }
 
-    struct hcl_batchnorm_param* op_param = ( struct hcl_batchnorm_param* )exec_node->ops_priv;
+    struct hcl_batchnorm_param* op_param = (struct hcl_batchnorm_param*)exec_node->ops_priv;
     op_param->scale_mean = scale_mean;
     op_param->scale_var_inv = scale_var_inv;
 
@@ -111,7 +109,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    struct hcl_batchnorm_param* op_param = ( struct hcl_batchnorm_param* )exec_node->ops_priv;
+    struct hcl_batchnorm_param* op_param = (struct hcl_batchnorm_param*)exec_node->ops_priv;
     float* scale_mean = op_param->scale_mean;
     float* scale_var_inv = op_param->scale_var_inv;
     int num_thread = exec_graph->num_thread;
@@ -123,7 +121,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
 static int postrun(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct hcl_batchnorm_param* op_param = ( struct hcl_batchnorm_param* )exec_node->ops_priv;
+    struct hcl_batchnorm_param* op_param = (struct hcl_batchnorm_param*)exec_node->ops_priv;
     sys_free(op_param->scale_mean);
     sys_free(op_param->scale_var_inv);
 

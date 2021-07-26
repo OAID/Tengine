@@ -28,13 +28,12 @@
 *   SELF DEFINE VARIABLE
 *   FOR CAFFE SERIALIZER
 */
-const int OP_VERSION=1;
-
+const int OP_VERSION = 1;
 
 int caffe_serializer::load_text_file(std::string model_file, te_caffe::NetParameter& caffe_net)
 {
     std::ifstream is(model_file.c_str(), std::ios::in);
-    
+
     if (!is.is_open())
     {
         TLOG_ERR("cannot open file: %s \n", model_file.c_str());
@@ -70,7 +69,6 @@ int caffe_serializer::load_binary_file(std::string model_file, te_caffe::NetPara
     coded_input.SetTotalBytesLimit(INT_MAX, INT_MAX / 2);
 #endif
 
-
     bool ret = caffe_net.ParseFromCodedStream(&coded_input);
 
     is.close();
@@ -82,7 +80,7 @@ int caffe_serializer::load_binary_file(std::string model_file, te_caffe::NetPara
 }
 bool caffe_serializer::find_op_load_method(const std::string& op_name)
 {
-    if(op_load_map.count(op_name))
+    if (op_load_map.count(op_name))
         return true;
 
     return false;
@@ -96,7 +94,7 @@ ir_tensor_t* find_caffe_tensor(ir_graph_t* graph, const std::string& tensor_name
         if (tensor->name == tensor_name)
             return tensor;
     }
-    
+
     return nullptr;
 }
 
@@ -122,13 +120,13 @@ int caffe_serializer::load_graph_node(ir_graph_t* graph, const te_caffe::NetPara
     {
         const te_caffe::LayerParameter& layer_param = test_net.layer(i);
         const std::string& caffe_op_name = layer_param.type();
-        if(!find_op_load_method(caffe_op_name))
+        if (!find_op_load_method(caffe_op_name))
         {
             // printf("%s \n", caffe_op_name.c_str());
-            auto it = find(no_supported_op.begin(),no_supported_op.end(),caffe_op_name);
-            if(it == no_supported_op.end())
+            auto it = find(no_supported_op.begin(), no_supported_op.end(), caffe_op_name);
+            if (it == no_supported_op.end())
             {
-                if(caffe_op_name == "Constant")
+                if (caffe_op_name == "Constant")
                     continue;
                 no_supported_op.push_back(caffe_op_name);
             }
@@ -137,7 +135,7 @@ int caffe_serializer::load_graph_node(ir_graph_t* graph, const te_caffe::NetPara
     if (no_supported_op.size())
     {
         TLOG_ERR("These %d op are not supported\n{ ", no_supported_op.size());
-        for(int j = 0; j < (int) no_supported_op.size(); j++)
+        for (int j = 0; j < (int)no_supported_op.size(); j++)
         {
             TLOG_ERR("%s ", no_supported_op[j].c_str());
         }
@@ -165,12 +163,12 @@ int caffe_serializer::load_graph_node(ir_graph_t* graph, const te_caffe::NetPara
             // ir_tensor_t* tensor = find_caffe_tensor(graph, orig_name);
 
             int tensor_id = get_ir_tensor_index_from_name(graph, orig_name.c_str());
-            ir_tensor_t* tensor = get_ir_graph_tensor(graph, tensor_id);        
+            ir_tensor_t* tensor = get_ir_graph_tensor(graph, tensor_id);
             // fprintf(stderr, "input tensor : %s \n", tensor->name);
 
             set_ir_node_input_tensor(ir_node, i, tensor);
 
-            if(train_name_map.count(layer_param.name()))
+            if (train_name_map.count(layer_param.name()))
             {
                 // printf("train data copy in: %s \n", layer_param.name().c_str());
 
@@ -182,7 +180,8 @@ int caffe_serializer::load_graph_node(ir_graph_t* graph, const te_caffe::NetPara
                 if (p_train->blobs_size())
                 {
                     blob_load_t func = blob_load_map[caffe_op_name];
-                    if (!func(graph, ir_node, *p_train)){
+                    if (!func(graph, ir_node, *p_train))
+                    {
                         break;
                     }
                 }
@@ -191,7 +190,6 @@ int caffe_serializer::load_graph_node(ir_graph_t* graph, const te_caffe::NetPara
             // output_tensors.push_back(tensor);
             // fprintf(stderr, "output_tensors num: %d %s\n", (int)output_tensors.size(), output_tensors[(int)output_tensors.size()-1]->name);
         }
-       
 
         // fprintf(stderr, "layer_param.top_size() %d %s \n", layer_param.top_size(), caffe_op_name.c_str());
         for (int i = 0; i < layer_param.top_size(); i++)
@@ -224,7 +222,7 @@ int caffe_serializer::load_graph_node(ir_graph_t* graph, const te_caffe::NetPara
             TLOG_ERR("load op %s func failed in node %s .\n", caffe_op_name.c_str(), ir_node->name);
             return -1;
         }
-        #if 0
+#if 0
         if(train_name_map.count(layer_param.name()))
         {
             // fprintf(stderr, "train_name_map : %s \n", layer_param.name().c_str());
@@ -240,15 +238,14 @@ int caffe_serializer::load_graph_node(ir_graph_t* graph, const te_caffe::NetPara
                 }
             }
         }
-        #endif
-
+#endif
     }
     // printf("tensor \n");
-    if (n < layer_number){
+    if (n < layer_number)
+    {
         fprintf(stderr, "Check layer number error ! \n");
         return -1;
     }
-
 }
 int caffe_serializer::load_tensor_data(ir_graph_t* graph, const te_caffe::NetParameter test_net, const te_caffe::NetParameter train_net)
 {
@@ -265,7 +262,7 @@ int caffe_serializer::load_tensor_data(ir_graph_t* graph, const te_caffe::NetPar
     layer_number = test_net.layer_size();
 
     int size = (int)op_load_map.size();
-    
+
     int n;
     // printf("layer number : %d \n", layer_number);
     for (n = 0; n < layer_number; n++)
@@ -277,16 +274,16 @@ int caffe_serializer::load_tensor_data(ir_graph_t* graph, const te_caffe::NetPar
         if (ir_node == NULL)
             return -1;
 
-        if(train_name_map.count(layer_param.name()))
+        if (train_name_map.count(layer_param.name()))
         {
-       
             const te_caffe::LayerParameter* p_train;
 
             p_train = train_name_map[layer_param.name()];
             if (p_train->blobs_size())
             {
                 blob_load_t func = blob_load_map[caffe_op_name];
-                if (!func(graph, ir_node, *p_train)){
+                if (!func(graph, ir_node, *p_train))
+                {
                     break;
                 }
             }
@@ -307,7 +304,7 @@ int caffe_serializer::load_model(ir_graph_t* graph, std::string model_file, std:
         return -1;
     fprintf(stderr, "Process 2: Finish load protobuf file \n");
     // if (load_tensor_data(graph, test_net, train_net) < 0)
-        // return -1;
+    // return -1;
     fprintf(stderr, "Process 3: Finish load graph node \n");
     if (load_graph_node(graph, test_net, train_net) < 0)
         return -1;
@@ -321,7 +318,7 @@ int caffe_serializer::load_model(ir_graph_t* graph, std::string model_file, std:
     //     return -1;
     // if (set_graph_output(graph, onnx_graph) < 0)
     //     return -1;
-    
+
     return 0;
 }
 
@@ -350,7 +347,6 @@ graph_t caffe_serializer::caffe2tengine(std::string model_file, std::string prot
     return ir_graph;
 }
 
-
 static void LoadCaffeBlob(ir_graph_t* ir_graph, ir_node_t* ir_node, const std::vector<std::string>& name_list,
                           const std::vector<std::string>& layout_list, const te_caffe::LayerParameter& layer_param)
 
@@ -361,7 +357,7 @@ static void LoadCaffeBlob(ir_graph_t* ir_graph, ir_node_t* ir_node, const std::v
     {
         std::string node_name = ir_node->name;
         std::string new_tensor_name = node_name + "/" + name_list[i];
-        
+
         ir_tensor_t* ir_tensor = create_ir_tensor(ir_graph, new_tensor_name.c_str(), TENGINE_DT_FP32);
 
         /* load tensor data*/
@@ -369,12 +365,12 @@ static void LoadCaffeBlob(ir_graph_t* ir_graph, ir_node_t* ir_node, const std::v
         const te_caffe::BlobProto& blob = layer_param.blobs(i);
 
         int dim_num = 0;
-        int *dims;
+        int* dims;
         if (blob.has_shape())
         {
             dim_num = blob.shape().dim_size();
-            dims = (int*)malloc(sizeof(int)*dim_num);
-            memset(dims, 0, sizeof(int)*dim_num);
+            dims = (int*)malloc(sizeof(int) * dim_num);
+            memset(dims, 0, sizeof(int) * dim_num);
             for (int i = 0; i < dim_num; i++)
             {
                 dims[i] = blob.shape().dim(i);
@@ -393,17 +389,17 @@ static void LoadCaffeBlob(ir_graph_t* ir_graph, ir_node_t* ir_node, const std::v
             while (temp[start] == 1)
                 start++;
 
-            dim_num = temp.size() - start; 
-            dims = (int*)malloc(sizeof(int)*dim_num);
-            memset(dims, 0, sizeof(int)*dim_num);
+            dim_num = temp.size() - start;
+            dims = (int*)malloc(sizeof(int) * dim_num);
+            memset(dims, 0, sizeof(int) * dim_num);
             for (unsigned int i = start; i < temp.size(); i++)
                 dims[i] = temp[i];
         }
-        if ( dim_num > 0)
+        if (dim_num > 0)
         {
             set_ir_tensor_shape(ir_tensor, dims, dim_num);
             ir_tensor->tensor_type = TENSOR_TYPE_CONST;
-            int tensor_size = ir_tensor->elem_num *  sizeof(float);
+            int tensor_size = ir_tensor->elem_num * sizeof(float);
             ir_tensor->data = sys_malloc(tensor_size);
             float* ptr = (float*)ir_tensor->data;
 
@@ -418,11 +414,9 @@ static void LoadCaffeBlob(ir_graph_t* ir_graph, ir_node_t* ir_node, const std::v
         // int  index = get_ir_node_index_from_name(ir_graph, new_tensor_name.c_str());
 
         set_ir_node_output_tensor(new_ir_node, 0, ir_tensor);
-        set_ir_node_input_tensor(ir_node, i+1, ir_tensor);
+        set_ir_node_input_tensor(ir_node, i + 1, ir_tensor);
     }
 }
-
-
 
 static void CreatePresetNode(ir_graph_t* graph, ir_node_t* ir_node, const char* name, const char* layout,
                              std::vector<int>& temp, float val, int index)
@@ -434,8 +428,8 @@ static void CreatePresetNode(ir_graph_t* graph, ir_node_t* ir_node, const char* 
     int dim_num = temp.size();
     if (dim_num > 0)
     {
-        int *dims = (int*)malloc(sizeof(int)*dim_num);
-        memset(dims, 0, sizeof(int)*dim_num);
+        int* dims = (int*)malloc(sizeof(int) * dim_num);
+        memset(dims, 0, sizeof(int) * dim_num);
         int elem_size = 1;
 
         for (unsigned int i = 0; i < dim_num; i++)
@@ -445,7 +439,7 @@ static void CreatePresetNode(ir_graph_t* graph, ir_node_t* ir_node, const char* 
         }
         set_ir_tensor_shape(ir_tensor, dims, dim_num);
         ir_tensor->tensor_type = TENSOR_TYPE_CONST;
-        int tensor_size = elem_size *  sizeof(float);
+        int tensor_size = elem_size * sizeof(float);
         ir_tensor->data = sys_malloc(tensor_size);
 
         float* ptr = (float*)ir_tensor->data;
@@ -459,13 +453,11 @@ static void CreatePresetNode(ir_graph_t* graph, ir_node_t* ir_node, const char* 
     set_ir_node_input_tensor(new_ir_node, 0, ir_tensor);
 }
 
-
 bool load_batchnorm_blob(ir_graph_t* graph, ir_node_t* node, const te_caffe::LayerParameter& layer_param)
 {
-   const te_caffe::BlobProto& rescale_blob = layer_param.blobs(2);
+    const te_caffe::BlobProto& rescale_blob = layer_param.blobs(2);
 
-
-    struct batchnorm_param* batchnorm_param = ( struct batchnorm_param* )node->op.param_mem;
+    struct batchnorm_param* batchnorm_param = (struct batchnorm_param*)node->op.param_mem;
 
     batchnorm_param->rescale_factor = rescale_blob.data(0);
 
@@ -486,13 +478,13 @@ bool load_batchnorm_blob(ir_graph_t* graph, ir_node_t* node, const te_caffe::Lay
         std::vector<std::string> layout_list = {"W", "W"};
 
         LoadCaffeBlob(graph, node, name_list, layout_list, layer_param);
-    } 
+    }
     return 0;
 }
 
 int load_batchnorm(ir_graph_t* graph, ir_node_t* node, const te_caffe::LayerParameter& layer_param)
 {
-    struct batchnorm_param* batchnorm_param = ( struct batchnorm_param* )node->op.param_mem;
+    struct batchnorm_param* batchnorm_param = (struct batchnorm_param*)node->op.param_mem;
 
     const te_caffe::BatchNormParameter& bn_param = layer_param.batch_norm_param();
 
@@ -511,7 +503,7 @@ int load_softmax(ir_graph_t* graph, ir_node_t* node, const te_caffe::LayerParame
 {
     const te_caffe::SoftmaxParameter& softmax_param = layer_param.softmax_param();
 
-    struct softmax_param* param = ( struct softmax_param* )node->op.param_mem;
+    struct softmax_param* param = (struct softmax_param*)node->op.param_mem;
 
     if (softmax_param.has_axis())
         param->axis = softmax_param.axis();
@@ -521,13 +513,12 @@ int load_softmax(ir_graph_t* graph, ir_node_t* node, const te_caffe::LayerParame
     return 0;
 }
 
-
 int load_conv(ir_graph_t* graph, ir_node_t* node, const te_caffe::LayerParameter& layer_param)
 {
     const te_caffe::ConvolutionParameter& conv_param = layer_param.convolution_param();
     // const te_caffe::LayerParameter& layer_param = caffe_net.layer(i);
     const std::string& caffe_op_name = layer_param.type();
-    struct conv_param* param = ( struct conv_param* )node->op.param_mem;
+    struct conv_param* param = (struct conv_param*)node->op.param_mem;
 
     if (conv_param.has_kernel_h() && conv_param.has_kernel_w())
     {
@@ -596,7 +587,7 @@ int load_deconv(ir_graph_t* graph, ir_node_t* node, const te_caffe::LayerParamet
 {
     const te_caffe::ConvolutionParameter& conv_param = layer_param.convolution_param();
 
-    struct deconv_param* param = ( struct deconv_param* )node->op.param_mem;
+    struct deconv_param* param = (struct deconv_param*)node->op.param_mem;
 
     if (conv_param.has_kernel_h() && conv_param.has_kernel_w())
     {
@@ -667,12 +658,11 @@ PoolArg ConvertCaffePool(te_caffe::PoolingParameter_PoolMethod method)
     return kPoolMax;
 }
 
-
 int load_fc(ir_graph_t* graph, ir_node_t* node, const te_caffe::LayerParameter& layer_param)
 {
     const te_caffe::InnerProductParameter& ip_param = layer_param.inner_product_param();
 
-    struct fc_param* param = ( struct fc_param* )node->op.param_mem;
+    struct fc_param* param = (struct fc_param*)node->op.param_mem;
     param->num_output = ip_param.num_output();
 
     /* Load weight and bias blob */
@@ -700,7 +690,7 @@ int load_normalize(ir_graph_t* graph, ir_node_t* node, const te_caffe::LayerPara
 {
     const te_caffe::NormalizeParameter& normalize_param = layer_param.norm_param();
 
-    struct normalize_param* param = ( struct normalize_param* )node->op.param_mem;
+    struct normalize_param* param = (struct normalize_param*)node->op.param_mem;
 
     param->across_spatial = normalize_param.across_spatial();
     param->channel_shared = normalize_param.channel_shared();
@@ -708,10 +698,9 @@ int load_normalize(ir_graph_t* graph, ir_node_t* node, const te_caffe::LayerPara
     return 0;
 }
 
-
 int load_scale(ir_graph_t* graph, ir_node_t* node, const te_caffe::LayerParameter& layer_param)
 {
-    struct scale_param* param = ( struct scale_param* )node->op.param_mem;
+    struct scale_param* param = (struct scale_param*)node->op.param_mem;
 
     const te_caffe::ScaleParameter& scale_param = layer_param.scale_param();
 
@@ -723,7 +712,6 @@ int load_scale(ir_graph_t* graph, ir_node_t* node, const te_caffe::LayerParamete
 
     if (scale_param.has_bias_term())
         param->bias_term = scale_param.bias_term();
-
 
     if (layer_param.blobs_size())
     {
@@ -738,7 +726,7 @@ int load_scale(ir_graph_t* graph, ir_node_t* node, const te_caffe::LayerParamete
 
 int load_relu(ir_graph_t* graph, ir_node_t* node, const te_caffe::LayerParameter& layer_param)
 {
-    struct relu_param* param = ( struct relu_param* )node->op.param_mem;
+    struct relu_param* param = (struct relu_param*)node->op.param_mem;
 
     const te_caffe::ReLUParameter& caffe_param = layer_param.relu_param();
 
@@ -752,12 +740,11 @@ int load_relu(ir_graph_t* graph, ir_node_t* node, const te_caffe::LayerParameter
 
 int load_split(ir_graph_t* graph, ir_node_t* node, const te_caffe::LayerParameter& layer_param)
 {
-    struct split_param* param = ( struct split_param* )node->op.param_mem;
+    struct split_param* param = (struct split_param*)node->op.param_mem;
     param->is_caffe = true;
 
     return 0;
 }
-
 
 #if 0
 int load_data(ir_graph_t* graph, ir_node_t* node, const te_caffe::LayerParameter& layer_param)
@@ -786,7 +773,7 @@ int load_pool(ir_graph_t* graph, ir_node_t* node, const te_caffe::LayerParameter
 {
     const te_caffe::PoolingParameter& pool_param = layer_param.pooling_param();
 
-    struct pool_param* param = ( struct pool_param* )node->op.param_mem;
+    struct pool_param* param = (struct pool_param*)node->op.param_mem;
 
     // param.alg = ConvertCaffePool(pool_param.pool());
     if (pool_param.has_kernel_size())
@@ -830,7 +817,6 @@ int load_pool(ir_graph_t* graph, ir_node_t* node, const te_caffe::LayerParameter
 
     param->caffe_flavor = 1;
 
-
     return 0;
 }
 static EltType ConvertCaffeEltwise(te_caffe::EltwiseParameter_EltwiseOp method)
@@ -847,7 +833,7 @@ static EltType ConvertCaffeEltwise(te_caffe::EltwiseParameter_EltwiseOp method)
 int load_eltwise(ir_graph_t* graph, ir_node_t* node, const te_caffe::LayerParameter& layer_param)
 {
     const te_caffe::EltwiseParameter& eltwise_param = layer_param.eltwise_param();
-    struct eltwise_param* param = ( struct eltwise_param* )node->op.param_mem;
+    struct eltwise_param* param = (struct eltwise_param*)node->op.param_mem;
     // defalt: SUM
     param->type = ELT_SUM;
     if (eltwise_param.has_operation())
@@ -889,16 +875,16 @@ int load_input(ir_graph_t* graph, ir_node_t* ir_node, const te_caffe::LayerParam
     if (dim_num == 0)
         has_shape = 0;
 
-    #if 1
+#if 1
     if (has_shape)
     {
-        int* dims = (int*)malloc(sizeof(int)*dim_num);
-        memset(dims, 0, sizeof(int)*dim_num);
-        for(int i = 0; i < dim_num ; i++)
+        int* dims = (int*)malloc(sizeof(int) * dim_num);
+        memset(dims, 0, sizeof(int) * dim_num);
+        for (int i = 0; i < dim_num; i++)
             dims[i] = dim[i];
         set_ir_tensor_shape(tensor, dims, dim_num);
     }
-    #endif
+#endif
 
     ir_node_t* node = create_ir_node(graph, val.c_str(), OP_INPUT, OP_VERSION);
     set_ir_node_output_tensor(node, 0, tensor);
@@ -935,7 +921,6 @@ int LoadDeconvolutionBlob(ir_graph_t* graph, ir_node_t* node, const te_caffe::La
     return true;
 }
 
-
 int LoadBiasBlob(ir_graph_t* graph, ir_node_t* node, const te_caffe::LayerParameter& layer_param)
 {
     if (layer_param.blobs_size())
@@ -947,7 +932,6 @@ int LoadBiasBlob(ir_graph_t* graph, ir_node_t* node, const te_caffe::LayerParame
     }
     return true;
 }
-
 
 int LoadFullyConnectedBlob(ir_graph_t* graph, ir_node_t* node, const te_caffe::LayerParameter& layer_param)
 {
@@ -995,10 +979,9 @@ int LoadBatchNormBlob(ir_graph_t* graph, ir_node_t* node, const te_caffe::LayerP
 {
     const te_caffe::BlobProto& rescale_blob = layer_param.blobs(2);
 
-    struct batchnorm_param* param = ( struct batchnorm_param* )node->op.param_mem;
+    struct batchnorm_param* param = (struct batchnorm_param*)node->op.param_mem;
 
     param->rescale_factor = rescale_blob.data(0);
-
 
     /* for compatible reason, create the two tensors: gamma (1.0) and beta (0.0) */
 
@@ -1025,34 +1008,33 @@ int LoadBatchNormBlob(ir_graph_t* graph, ir_node_t* node, const te_caffe::LayerP
 */
 void caffe_serializer::register_op_load()
 {
-    op_load_map["BatchNorm"]                    = std::pair<int, op_load_t>(OP_UNARY,           load_batchnorm);
-    op_load_map["Convolution"]                  = std::pair<int, op_load_t>(OP_CONV,            load_conv);
-    op_load_map["DeConvolution"]                = std::pair<int, op_load_t>(OP_DECONV,          load_deconv);
-    op_load_map["Softmax"]                      = std::pair<int, op_load_t>(OP_SOFTMAX,         load_softmax);
-    op_load_map["PReLU"]                        = std::pair<int, op_load_t>(OP_PRELU,           load_prelu);
-    op_load_map["InnerProduct"]                 = std::pair<int, op_load_t>(OP_FC,              load_fc);
-    op_load_map["SoftmaxWithLoss"]              = std::pair<int, op_load_t>(OP_SOFTMAX,         load_softmax);
-    op_load_map["Normalize"]                    = std::pair<int, op_load_t>(OP_NORMALIZE,       load_normalize);
-    op_load_map["Scale"]                        = std::pair<int, op_load_t>(OP_SCALE,           load_scale);
-    op_load_map["ReLU"]                         = std::pair<int, op_load_t>(OP_RELU,            load_relu);
-    op_load_map["Split"]                        = std::pair<int, op_load_t>(OP_SPLIT,           load_split);
-    op_load_map["Pooling"]                      = std::pair<int, op_load_t>(OP_POOL,            load_pool);
-    op_load_map["Eltwise"]                      = std::pair<int, op_load_t>(OP_ELTWISE,         load_eltwise);
-    op_load_map["Input"]                        = std::pair<int, op_load_t>(OP_INPUT,           load_input);
-    op_load_map["Data"]                         = std::pair<int, op_load_t>(OP_INPUT,           load_input);
+    op_load_map["BatchNorm"] = std::pair<int, op_load_t>(OP_UNARY, load_batchnorm);
+    op_load_map["Convolution"] = std::pair<int, op_load_t>(OP_CONV, load_conv);
+    op_load_map["DeConvolution"] = std::pair<int, op_load_t>(OP_DECONV, load_deconv);
+    op_load_map["Softmax"] = std::pair<int, op_load_t>(OP_SOFTMAX, load_softmax);
+    op_load_map["PReLU"] = std::pair<int, op_load_t>(OP_PRELU, load_prelu);
+    op_load_map["InnerProduct"] = std::pair<int, op_load_t>(OP_FC, load_fc);
+    op_load_map["SoftmaxWithLoss"] = std::pair<int, op_load_t>(OP_SOFTMAX, load_softmax);
+    op_load_map["Normalize"] = std::pair<int, op_load_t>(OP_NORMALIZE, load_normalize);
+    op_load_map["Scale"] = std::pair<int, op_load_t>(OP_SCALE, load_scale);
+    op_load_map["ReLU"] = std::pair<int, op_load_t>(OP_RELU, load_relu);
+    op_load_map["Split"] = std::pair<int, op_load_t>(OP_SPLIT, load_split);
+    op_load_map["Pooling"] = std::pair<int, op_load_t>(OP_POOL, load_pool);
+    op_load_map["Eltwise"] = std::pair<int, op_load_t>(OP_ELTWISE, load_eltwise);
+    op_load_map["Input"] = std::pair<int, op_load_t>(OP_INPUT, load_input);
+    op_load_map["Data"] = std::pair<int, op_load_t>(OP_INPUT, load_input);
 
-
-    blob_load_map["Convolution"]                = LoadConvolutionBlob;
+    blob_load_map["Convolution"] = LoadConvolutionBlob;
     // blob_load_map["Deconvolution"]              = LoadDeconvolutionBlob;
-    blob_load_map["InnerProduct"]               = LoadFullyConnectedBlob;
-    blob_load_map["BatchNorm"]                  = LoadBatchNormBlob;
-    blob_load_map["Scale"]                      = LoadScaleBlob;
+    blob_load_map["InnerProduct"] = LoadFullyConnectedBlob;
+    blob_load_map["BatchNorm"] = LoadBatchNormBlob;
+    blob_load_map["Scale"] = LoadScaleBlob;
     // blob_load_map["PReLU"]                      = LoadPReLuBlob;
     // blob_load_map["Normalize"]                  = LoadNormalizeBlob;
     // blob_load_map["ConvolutionDepthwise"]       = LoadConvolutionBlob;
     // blob_load_map["DepthwiseConvolution"]       = LoadConvolutionBlob;
-    blob_load_map["Bias"]                       = LoadBiasBlob;
-    #if 0
+    blob_load_map["Bias"] = LoadBiasBlob;
+#if 0
     op_load_map["Data"]                         = std::pair<int, op_load_t>(OP_INPUT,           load_data);
     op_load_map["Slice"]                        = std::pair<int, op_load_t>(OP_SLICE,           load_slice);
     op_load_map["Concat"]                       = std::pair<int, op_load_t>(OP_CONCAT,          load_concat);
@@ -1087,8 +1069,7 @@ void caffe_serializer::register_op_load()
     op_load_map["MVN"]                          = std::pair<int, op_load_t>(OP_MVN,             load_mvn);
     op_load_map["Reduction"]                    = std::pair<int, op_load_t>(OP_REDUCTION,       load_reduction);
     op_load_map["Bias"]                         = std::pair<int, op_load_t>(OP_BIAS,            load_bias);
-    #endif
-
+#endif
 }
 /*
 *   OPERAOTR REGISTER FUNCTION DEFINE FOR ONNX SERIALIZER END

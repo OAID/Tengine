@@ -98,7 +98,7 @@ void convert_packing(const Tensor& src, Tensor& dst, int _elempack, const Option
         if (dst.empty())
             return;
 
-        #pragma omp parallel for
+#pragma omp parallel for
         for (int i = 0; i < outh; i++)
         {
             unsigned char* outptr = (unsigned char*)dst + i * w * out_elemsize;
@@ -135,7 +135,7 @@ void convert_packing(const Tensor& src, Tensor& dst, int _elempack, const Option
         if (dst.empty())
             return;
 
-        #pragma omp parallel for
+#pragma omp parallel for
         for (int q = 0; q < outc; q++)
         {
             Tensor out = dst.channel(q);
@@ -309,11 +309,11 @@ void cast_float32_to_float16(const Tensor& src, Tensor& dst, const Option& opt)
         dst.create(w, h, channels, out_elemsize, elempack, opt.blob_allocator);
     }
     if (dst.empty())
-        return ;
+        return;
 
     int size = w * h * elempack;
 
-    #pragma omp parallel for 
+#pragma omp parallel for
     for (int q = 0; q < channels; q++)
     {
         const float* ptr = src.channel(q);
@@ -324,7 +324,6 @@ void cast_float32_to_float16(const Tensor& src, Tensor& dst, const Option& opt)
             outptr[i] = float32_to_float16(ptr[i]);
         }
     }
-
 }
 
 void cast_float16_to_float32(const Tensor& src, Tensor& dst, const Option& opt)
@@ -353,11 +352,11 @@ void cast_float16_to_float32(const Tensor& src, Tensor& dst, const Option& opt)
         dst.create(w, h, channels, out_elemsize, elempack, opt.blob_allocator);
     }
     if (dst.empty())
-        return ;
+        return;
 
     int size = w * h * elempack;
 
-    #pragma omp parallel for
+#pragma omp parallel for
     for (int q = 0; q < channels; q++)
     {
         const unsigned short* ptr = src.channel(q);
@@ -368,7 +367,6 @@ void cast_float16_to_float32(const Tensor& src, Tensor& dst, const Option& opt)
             outptr[i] = float16_to_float32(ptr[i]);
         }
     }
-
 }
 
-}   // namespace TEngine
+} // namespace TEngine

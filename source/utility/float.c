@@ -24,18 +24,17 @@
 
 #include "utility/float.h"
 
-#define BF16_EXP_MAX  ( 256 - 1)   //  2^8 - 1
-#define FP16_EXP_MAX  (  32 - 1)   //  2^5 - 1
-#define FP32_EXP_MAX  ( 256 - 1)   //  2^8 - 1
-#define FP64_EXP_MAX  (2048 - 1)   // 2^11 - 1
+#define BF16_EXP_MAX (256 - 1)  //  2^8 - 1
+#define FP16_EXP_MAX (32 - 1)   //  2^5 - 1
+#define FP32_EXP_MAX (256 - 1)  //  2^8 - 1
+#define FP64_EXP_MAX (2048 - 1) // 2^11 - 1
 
-#define FP16_NAN      ((FP16_EXP_MAX << 10) + 1)
-#define FP16_INF      ((FP16_EXP_MAX << 10) + 0)
-#define BF16_NAN      ((BF16_EXP_MAX <<  7) + 1)
-#define BF16_INF      ((BF16_EXP_MAX <<  7) + 0)
-#define FP32_NAN      ((FP32_EXP_MAX << 23) + 1)
-#define FP32_INF      ((FP32_EXP_MAX << 23) + 0)
-
+#define FP16_NAN ((FP16_EXP_MAX << 10) + 1)
+#define FP16_INF ((FP16_EXP_MAX << 10) + 0)
+#define BF16_NAN ((BF16_EXP_MAX << 7) + 1)
+#define BF16_INF ((BF16_EXP_MAX << 7) + 0)
+#define FP32_NAN ((FP32_EXP_MAX << 23) + 1)
+#define FP32_INF ((FP32_EXP_MAX << 23) + 0)
 
 #ifndef __ARM_ARCH
 fp32_t fp16_to_fp32(fp16_t package)
@@ -55,7 +54,7 @@ fp32_t fp16_to_fp32(fp16_t package)
     if (FP16_EXP_MAX != package.exp && 0 != package.exp && 0 != package.frac)
     {
         data.frac = package.frac << 13;
-        data.exp  = package.exp + (- 15 + 127);
+        data.exp = package.exp + (-15 + 127);
         data.sign = package.sign;
 
         return data.value;
@@ -65,7 +64,7 @@ fp32_t fp16_to_fp32(fp16_t package)
     if (FP16_EXP_MAX == package.exp && 0 == package.frac)
     {
         data.frac = 0;
-        data.exp  = FP32_EXP_MAX;
+        data.exp = FP32_EXP_MAX;
         data.sign = package.sign;
 
         return data.value;
@@ -75,7 +74,7 @@ fp32_t fp16_to_fp32(fp16_t package)
     if (FP16_EXP_MAX == package.exp && 0 != package.frac)
     {
         data.frac = 1;
-        data.exp  = FP32_EXP_MAX;
+        data.exp = FP32_EXP_MAX;
         data.sign = package.sign;
 
         return data.value;
@@ -85,7 +84,7 @@ fp32_t fp16_to_fp32(fp16_t package)
     if (0 == package.exp && 0 != package.frac)
     {
         uint16_t frac = package.frac;
-        uint16_t exp  = 0;
+        uint16_t exp = 0;
 
         while (0 == (frac & (uint16_t)0x200))
         {
@@ -94,7 +93,7 @@ fp32_t fp16_to_fp32(fp16_t package)
         }
 
         data.frac = (frac << 1) & (uint16_t)0x3FF;
-        data.exp  = -exp + (-15 + 127);
+        data.exp = -exp + (-15 + 127);
         data.sign = package.sign;
 
         return data.value;
@@ -102,7 +101,6 @@ fp32_t fp16_to_fp32(fp16_t package)
 
     return data.value;
 }
-
 
 fp16_t fp32_to_fp16(fp32_t value)
 {
@@ -113,7 +111,7 @@ fp16_t fp32_to_fp16(fp32_t value)
     if (0 == package->exp)
     {
         data.value = 0;
-        data.sign  = package->sign;
+        data.sign = package->sign;
 
         return data;
     }
@@ -121,13 +119,13 @@ fp16_t fp32_to_fp16(fp32_t value)
     // means normalized value
     if (FP32_EXP_MAX != package->exp && 0 != package->exp && 0 != package->frac)
     {
-        int16_t exp  = package->exp + (-15 + 127);
+        int16_t exp = package->exp + (-15 + 127);
 
         // means overflow
         if (31 <= exp)
         {
             data.frac = 0;
-            data.exp  = FP16_EXP_MAX;
+            data.exp = FP16_EXP_MAX;
             data.sign = package->sign;
         }
         else if (0 >= exp)
@@ -135,21 +133,21 @@ fp16_t fp32_to_fp16(fp32_t value)
             // means subnormal numbers
             if (-10 <= exp)
             {
-                data.frac  = (package->frac | 0x800000) >> (14 - exp);
-                data.exp   = 0;
-                data.sign  = package->sign;
+                data.frac = (package->frac | 0x800000) >> (14 - exp);
+                data.exp = 0;
+                data.sign = package->sign;
             }
             // means underflow
             else
             {
                 data.value = 0;
-                data.sign  = package->sign;
+                data.sign = package->sign;
             }
         }
         else
         {
             data.frac = package->frac >> 13;
-            data.exp  = exp;
+            data.exp = exp;
             data.sign = package->sign;
         }
 
@@ -160,7 +158,7 @@ fp16_t fp32_to_fp16(fp32_t value)
     if (FP32_EXP_MAX == package->exp && 0 == package->frac)
     {
         data.frac = 0;
-        data.exp  = FP16_EXP_MAX;
+        data.exp = FP16_EXP_MAX;
         data.sign = package->sign;
 
         return data;
@@ -170,7 +168,7 @@ fp16_t fp32_to_fp16(fp32_t value)
     if (FP32_EXP_MAX == package->exp && 0 != package->frac)
     {
         data.frac = 1;
-        data.exp  = FP16_EXP_MAX;
+        data.exp = FP16_EXP_MAX;
         data.sign = package->sign;
 
         return data;
@@ -181,14 +179,12 @@ fp16_t fp32_to_fp16(fp32_t value)
 }
 #endif
 
-
 fp32_t bf16_to_fp32(bf16_t package)
 {
     fp32_pack_t data;
     data.value = (float)((uint32_t)(package.value) << 16);
     return data.value;
 }
-
 
 bf16_t fp32_to_bf16(fp32_t value)
 {
@@ -197,7 +193,6 @@ bf16_t fp32_to_bf16(fp32_t value)
     data.value = (int32_t)(package->value) >> 16;
     return data;
 }
-
 
 #ifndef _MSC_VER
 fp32_t pxr24_to_fp32(pxr24_pack_t package)
@@ -210,7 +205,6 @@ fp32_t pxr24_to_fp32(pxr24_pack_t package)
     return data.value;
 }
 
-
 pxr24_pack_t fp32_to_pxr24(fp32_t value)
 {
     fp32_pack_t* package = (fp32_pack_t*)(&value);
@@ -220,7 +214,7 @@ pxr24_pack_t fp32_to_pxr24(fp32_t value)
     pxr24_pack_t* ptr = (pxr24_pack_t*)((uint8_t*)(&pxr24_val));
 
     data.frac = ptr->frac;
-    data.exp  = ptr->exp;
+    data.exp = ptr->exp;
     data.sign = ptr->sign;
 
     return data;

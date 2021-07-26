@@ -28,7 +28,7 @@ struct embedding_param
 {
     int num_output;
     int input_dim;
-    int bias_term;    // if use bias
+    int bias_term; // if use bias
     int weight_data_size;
 };
 

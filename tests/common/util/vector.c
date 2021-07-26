@@ -31,32 +31,28 @@
 
 #include <string.h>
 
-
 typedef struct vector_entry
 {
     int valid;
     unsigned char data[];
 } vector_entry_t;
 
-
 static inline vector_entry_t* get_vector_entry(vector_t* v, int idx)
 {
     return (vector_entry_t*)((char*)v->mem + v->entry_size * idx);
 }
 
-
 static inline void free_vector_data_resource(vector_t* v, int idx)
 {
     vector_entry_t* e = get_vector_entry(v, idx);
 
-    if(e->valid && v->free_func)
+    if (e->valid && v->free_func)
     {
         v->free_func(e->data);
     }
 
     e->valid = 0;
 }
-
 
 static inline void remove_vector_data_not_tail(vector_t* v, int idx)
 {
@@ -77,7 +73,6 @@ static inline void remove_vector_data_not_tail(vector_t* v, int idx)
     entry_ptr = get_vector_entry(v, v->elem_num);
     entry_ptr->valid = 0;
 }
-
 
 vector_t* create_vector(int elem_size, void (*free_data)(void*))
 {
@@ -109,7 +104,6 @@ vector_t* create_vector(int elem_size, void (*free_data)(void*))
     return v;
 }
 
-
 void release_vector(vector_t* v)
 {
     for (int i = 0; i < v->elem_num; i++)
@@ -121,7 +115,6 @@ void release_vector(vector_t* v)
     free(v);
 }
 
-
 int get_vector_num(vector_t* v)
 {
     if (NULL != v)
@@ -131,7 +124,6 @@ int get_vector_num(vector_t* v)
 
     return 0;
 }
-
 
 int resize_vector(vector_t* v, int new_size)
 {
@@ -162,7 +154,7 @@ int resize_vector(vector_t* v, int new_size)
     }
 
     v->real_mem = new_mem;
-    v->mem = ( void* )(((size_t)(v->real_mem)) & (~(TE_VECTOR_ALIGN_SIZE - 1)));
+    v->mem = (void*)(((size_t)(v->real_mem)) & (~(TE_VECTOR_ALIGN_SIZE - 1)));
 
     for (int i = v->space_num; i < new_size; i++)
     {
@@ -175,10 +167,9 @@ int resize_vector(vector_t* v, int new_size)
     return 0;
 }
 
-
 int push_vector_data(vector_t* v, void* data)
 {
-    if(v->elem_num == v->space_num && resize_vector(v, v->elem_num + v->ahead_num) < 0)
+    if (v->elem_num == v->space_num && resize_vector(v, v->elem_num + v->ahead_num) < 0)
     {
         return -1;
     }
@@ -189,12 +180,11 @@ int push_vector_data(vector_t* v, void* data)
     return 0;
 }
 
-
 int set_vector_data(vector_t* v, int idx, void* data)
 {
     vector_entry_t* e = NULL;
 
-    if(idx >= v->elem_num)
+    if (idx >= v->elem_num)
         return -1;
 
     free_vector_data_resource(v, idx);
@@ -207,10 +197,9 @@ int set_vector_data(vector_t* v, int idx, void* data)
     return 0;
 }
 
-
 void* get_vector_data(vector_t* v, int index)
 {
-    if(index >= v->elem_num)
+    if (index >= v->elem_num)
     {
         return NULL;
     }
@@ -219,7 +208,6 @@ void* get_vector_data(vector_t* v, int index)
 
     return e->data;
 }
-
 
 int remove_vector_via_pointer(vector_t* v, void* data)
 {
@@ -245,11 +233,10 @@ int remove_vector_via_pointer(vector_t* v, void* data)
     return 0;
 }
 
-
 void remove_vector_via_index(vector_t* v, int idx)
 {
     // the last one
-    if(idx == v->elem_num - 1)
+    if (idx == v->elem_num - 1)
     {
         free_vector_data_resource(v, idx);
         v->elem_num--;

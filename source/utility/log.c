@@ -29,7 +29,6 @@
 #include "api/c_api.h"
 #include "utility/lock.h"
 
-
 #include <stdio.h>
 #include <time.h>
 #include <stdarg.h>
@@ -38,10 +37,8 @@
 #include <android/log.h>
 #endif
 
-
 static mutex_t log_locker;
 static const char* map_table[] = {"EMERG", "ALERT", "CRIT", "ERROR", "WARN", "NOTICE", "INFO", "DEBUG"};
-
 
 static void safety_log(struct logger* logger, char* message)
 {
@@ -55,7 +52,6 @@ static void safety_log(struct logger* logger, char* message)
     unlock_mutex(&log_locker);
 }
 
-
 static void do_log(struct logger* logger, enum log_level level, const char* fmt, ...)
 {
     if (logger->log_level < level || level > LOG_DEBUG)
@@ -68,47 +64,47 @@ static void do_log(struct logger* logger, enum log_level level, const char* fmt,
 
     switch (level)
     {
-        case LOG_EMERG:
-        case LOG_ALERT:
-        case LOG_CRIT:
-        {
-            __android_log_print(ANDROID_LOG_FATAL, "Tengine", fmt, _ap);
-            break;
-        }
-        case LOG_ERR:
-        {
-            __android_log_print(ANDROID_LOG_ERROR, "Tengine", fmt, _ap);
-            break;
-        }
-        case LOG_WARNING:
-        {
-            __android_log_print(ANDROID_LOG_WARN, "Tengine", fmt, _ap);
-            break;
-        }
-        case LOG_NOTICE:
-        case LOG_INFO:
-        {
-            __android_log_print(ANDROID_LOG_INFO, "Tengine", fmt, _ap);
-            break;
-        }
-        case LOG_DEBUG:
-        {
-            __android_log_print(ANDROID_LOG_DEBUG, "Tengine", fmt, _ap);
-            break;
-        }
-        default:
-        {
-            __android_log_print(ANDROID_LOG_VERBOSE, "Tengine", fmt, _ap);
-        }
+    case LOG_EMERG:
+    case LOG_ALERT:
+    case LOG_CRIT:
+    {
+        __android_log_print(ANDROID_LOG_FATAL, "Tengine", fmt, _ap);
+        break;
+    }
+    case LOG_ERR:
+    {
+        __android_log_print(ANDROID_LOG_ERROR, "Tengine", fmt, _ap);
+        break;
+    }
+    case LOG_WARNING:
+    {
+        __android_log_print(ANDROID_LOG_WARN, "Tengine", fmt, _ap);
+        break;
+    }
+    case LOG_NOTICE:
+    case LOG_INFO:
+    {
+        __android_log_print(ANDROID_LOG_INFO, "Tengine", fmt, _ap);
+        break;
+    }
+    case LOG_DEBUG:
+    {
+        __android_log_print(ANDROID_LOG_DEBUG, "Tengine", fmt, _ap);
+        break;
+    }
+    default:
+    {
+        __android_log_print(ANDROID_LOG_VERBOSE, "Tengine", fmt, _ap);
+    }
     }
     va_end(_ap);
 
     return;
 #else
     va_list ap;
-    char msg[TE_MAX_LOG_LENGTH] = { 0 };
-    int  max_len = TE_MAX_LOG_LENGTH;
-    int  left = max_len;
+    char msg[TE_MAX_LOG_LENGTH] = {0};
+    int max_len = TE_MAX_LOG_LENGTH;
+    int left = max_len;
     char* p = msg;
     int ret;
 
@@ -157,7 +153,6 @@ static void do_log(struct logger* logger, enum log_level level, const char* fmt,
 #endif
 }
 
-
 static void change_log_level(struct logger* logger, int level)
 {
     if (level < 0 || level > LOG_DEBUG)
@@ -168,18 +163,15 @@ static void change_log_level(struct logger* logger, int level)
     logger->log_level = level;
 }
 
-
 static void set_output_func(struct logger* logger, void (*func)(const char*))
 {
     logger->output_func = func;
 }
 
-
 static void output_stderr(const char* msg)
 {
     fprintf(stderr, "%s", msg);
 }
-
 
 struct logger* get_default_logger(void)
 {

@@ -34,26 +34,23 @@
 #include "device/device.h"
 #include "utility/log.h"
 
-
 static int argmin_op_map(int op)
 {
     return OP_ARGMIN;
 }
 
-
 static int tm2_load_argmin(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node, const TM2_Operator* tm_op)
 {
-    struct argmin_param* argmin_param = ( struct argmin_param* )ir_node->op.param_mem;
+    struct argmin_param* argmin_param = (struct argmin_param*)ir_node->op.param_mem;
     const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
     const char* mem_base = tm2_priv->base;
-    const TM2_ArgMaxParam* tm_param = ( TM2_ArgMaxParam* )(mem_base + tm_op->offset_t_param);
+    const TM2_ArgMaxParam* tm_param = (TM2_ArgMaxParam*)(mem_base + tm_op->offset_t_param);
 
     argmin_param->axis = tm_param->axis;
     argmin_param->keepdims = tm_param->keepdims;
 
     return 0;
 }
-
 
 int register_tm2_argmin_op()
 {
@@ -69,7 +66,6 @@ int register_tm2_argmin_op()
 
     return 0;
 }
-
 
 int unregister_tm2_argmin_op()
 {

@@ -34,20 +34,18 @@
 #include "device/device.h"
 #include "utility/log.h"
 
-
 static int psroipooling_op_map(int op)
 {
     return OP_PSROIPOOLING;
 }
 
-
 static int tm2_load_psroipooling(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                                  const TM2_Operator* tm_op)
 {
-    struct psroipooling_param* psroipooling_param = ( struct psroipooling_param* )ir_node->op.param_mem;
+    struct psroipooling_param* psroipooling_param = (struct psroipooling_param*)ir_node->op.param_mem;
     const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
     const char* mem_base = tm2_priv->base;
-    const TM2_PsroipoolingParam* tm_param = ( TM2_PsroipoolingParam* )(mem_base + tm_op->offset_t_param);
+    const TM2_PsroipoolingParam* tm_param = (TM2_PsroipoolingParam*)(mem_base + tm_op->offset_t_param);
 
     psroipooling_param->pooled_w = tm_param->pooled_w;
     psroipooling_param->pooled_h = tm_param->pooled_h;
@@ -56,7 +54,6 @@ static int tm2_load_psroipooling(struct graph* ir_graph, struct node* ir_node, c
 
     return 0;
 }
-
 
 int register_tm2_psroipooling_op()
 {
@@ -72,7 +69,6 @@ int register_tm2_psroipooling_op()
 
     return 0;
 }
-
 
 int unregister_tm2_psroipooling_op()
 {

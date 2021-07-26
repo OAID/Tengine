@@ -25,14 +25,12 @@
 #ifndef __MISH_KERNEL_REF_H__
 #define __MISH_KERNEL_REF_H__
 
-
 #include "graph/tensor.h"
 #include "graph/node.h"
 #include "graph/graph.h"
 
+int ref_mish_fp32(struct tensor* input_tensor, struct tensor* output_tensor, int num_thread);
 
-int ref_mish_fp32(struct tensor *input_tensor, struct tensor *output_tensor, int num_thread);
-
-int ref_mish_uint8(struct tensor *input_tensor, struct tensor *output_tensor, int num_thread);
+int ref_mish_uint8(struct tensor* input_tensor, struct tensor* output_tensor, int num_thread);
 
 #endif

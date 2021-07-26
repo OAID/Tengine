@@ -36,7 +36,6 @@
 #include "utility/log.h"
 #include "device/cpu/cpu_node.h"
 
-
 static void pad_0_align_2D(float* dst, float* src, int m, int n, int m_align, int n_align, int pad_h, int pad_w)
 {
     int i;
@@ -220,7 +219,7 @@ static void DirectConv(float* input_buf, int input_h, int input_w, float* output
 #endif
 
 int conv_dw_prerun(struct tensor* input_tensor, struct tensor* filter_tensor,
-                         struct tensor* output_tensor, struct conv_priv_info* priv_info, struct conv_param* param)
+                   struct tensor* output_tensor, struct conv_priv_info* priv_info, struct conv_param* param)
 {
     int batch = input_tensor->dims[0];
     int input_c = input_tensor->dims[1];
@@ -237,7 +236,7 @@ int conv_dw_prerun(struct tensor* input_tensor, struct tensor* filter_tensor,
 
     priv_info->input_pad = sys_malloc(batch * input_c * padded_in_h * padded_in_w * sizeof(float));
     memset(priv_info->input_pad, 0, batch * input_c * padded_in_h * padded_in_w * sizeof(float));
- 
+
     return 0;
 }
 
@@ -277,14 +276,14 @@ int conv_dw_run(struct tensor* input_tensor, struct tensor* filter_tensor, struc
     int padded_in_w = in_w + param->pad_w0 + param->pad_w1;
 
     /* buffer addr */
-    float* input_buf = ( float* )input_tensor->data;
-    float* kernel_buf = ( float* )filter_tensor->data;
-    float* output_buf = ( float* )output_tensor->data;
+    float* input_buf = (float*)input_tensor->data;
+    float* kernel_buf = (float*)filter_tensor->data;
+    float* output_buf = (float*)output_tensor->data;
     float* biases_buf = NULL;
     if (bias_tensor)
-        biases_buf = ( float* )bias_tensor->data;
+        biases_buf = (float*)bias_tensor->data;
 
-    for (int n = 0; n < batch; n++)    // batch size
+    for (int n = 0; n < batch; n++) // batch size
     {
         float* cur_input = input_buf + n * input_size * group;
         float* cur_output = output_buf + n * output_size * group;
@@ -304,7 +303,7 @@ int conv_dw_run(struct tensor* input_tensor, struct tensor* filter_tensor, struc
             if (stride_h == 1)
             {
                 pad_0_align_3D((float*)conv_info->input_pad + n * group * padded_in_h * padded_in_w, cur_input,
-                           in_h, in_w, padded_in_h, padded_in_w, group, param->pad_h0, param->pad_w0);
+                               in_h, in_w, padded_in_h, padded_in_w, group, param->pad_h0, param->pad_w0);
                 depthwise_conv_k5s1((float*)conv_info->input_pad, kernel_buf, biases_buf, cur_output, padded_in_h, padded_in_w, group, out_h, out_w,
                                     act_type, num_thread);
             }

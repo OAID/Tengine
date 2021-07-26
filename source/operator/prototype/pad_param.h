@@ -28,13 +28,13 @@ struct pad_param
 {
     // mode : 0: CONSTANT; 1: REFLECT; 2: SYMMETRIC.
     int mode;
-    int pad_0_h;    // n
+    int pad_0_h; // n
     int pad_0_w;
-    int pad_1_h;    // c
+    int pad_1_h; // c
     int pad_1_w;
-    int pad_2_h;    // h
+    int pad_2_h; // h
     int pad_2_w;
-    int pad_3_h;    // w
+    int pad_3_h; // w
     int pad_3_w;
-    float value;    // pad value
+    float value; // pad value
 };

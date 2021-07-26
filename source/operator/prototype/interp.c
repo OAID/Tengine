@@ -31,7 +31,6 @@
 #include "module/module.h"
 #include "utility/sys_port.h"
 
-
 static int infer_shape(struct node* node)
 {
     struct graph* graph = node->graph;
@@ -42,7 +41,7 @@ static int infer_shape(struct node* node)
     int in_h = input->dims[2];
     int in_w = input->dims[3];
 
-    struct interp_param* param = ( struct interp_param* )(node->op.param_mem);
+    struct interp_param* param = (struct interp_param*)(node->op.param_mem);
 
     if (param == NULL)
     {
@@ -56,8 +55,8 @@ static int infer_shape(struct node* node)
     }
     else
     {
-        param->height_scale = (float )param->output_height / (float )in_h;
-        param->width_scale = (float )param->output_width / (float )in_w;
+        param->height_scale = (float)param->output_height / (float)in_h;
+        param->width_scale = (float)param->output_width / (float)in_w;
     }
 
     int dim[4] = {0};
@@ -72,10 +71,9 @@ static int infer_shape(struct node* node)
     return 0;
 }
 
-
 static int init_op(struct op* op)
 {
-    struct interp_param* interp_param = ( struct interp_param* )sys_malloc(sizeof(struct interp_param));
+    struct interp_param* interp_param = (struct interp_param*)sys_malloc(sizeof(struct interp_param));
 
     if (interp_param == NULL)
     {
@@ -97,12 +95,10 @@ static int init_op(struct op* op)
     return 0;
 }
 
-
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
-
 
 int register_interp_op()
 {
@@ -114,7 +110,6 @@ int register_interp_op()
 
     return register_op(OP_INTERP, OP_INTERP_NAME, &m);
 }
-
 
 int unregister_interp_op()
 {

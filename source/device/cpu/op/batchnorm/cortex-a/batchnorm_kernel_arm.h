@@ -29,7 +29,6 @@
 #include "graph/node.h"
 #include "graph/graph.h"
 
-
 struct hcl_batchnorm_param
 {
     float* scale_mean;

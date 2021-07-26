@@ -1,12 +1,14 @@
 #!/bin/bash -
 
+CONVERT_TOOL=${1:-./tools/convert_tool/convert_tool}
+
 test_model()
 {
     echo -e "\n======================================================"
     onnx_model_path="models/"$1".onnx"
     tmfile_model_path="models/"$1".tmfile"
     # prepare tmfile
-    ./tools/convert_tool/convert_tool -f onnx -m ${onnx_model_path} -o ${tmfile_model_path} >log.txt 2>&1
+    $CONVERT_TOOL -f onnx -m ${onnx_model_path} -o ${tmfile_model_path} >log.txt 2>&1
     # run test
     ./tests/test_model_common -m ${tmfile_model_path} -g $2,$3,$4
     out=$?

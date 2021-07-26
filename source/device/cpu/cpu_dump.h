@@ -27,7 +27,6 @@
 struct tensor;
 struct subgraph;
 
-
 void extract_feature_from_tensor(const char* comment, const char* layer_name, const struct tensor* tensor);
 
 void extract_node_executed_time(struct subgraph* subgraph, int node_id);

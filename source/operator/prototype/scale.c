@@ -31,7 +31,6 @@
 #include "module/module.h"
 #include "utility/sys_port.h"
 
-
 static int infer_shape(ir_node_t* node)
 {
     ir_graph_t* ir_graph = node->graph;
@@ -43,10 +42,9 @@ static int infer_shape(ir_node_t* node)
     return 0;
 }
 
-
 static int init_op(ir_op_t* op)
 {
-    struct scale_param* scale_param = ( struct scale_param* )sys_malloc(sizeof(struct scale_param));
+    struct scale_param* scale_param = (struct scale_param*)sys_malloc(sizeof(struct scale_param));
 
     if (scale_param == NULL)
     {
@@ -66,12 +64,10 @@ static int init_op(ir_op_t* op)
     return 0;
 }
 
-
 static void release_op(ir_op_t* op)
 {
     sys_free(op->param_mem);
 }
-
 
 int register_scale_op()
 {
@@ -83,7 +79,6 @@ int register_scale_op()
 
     return register_op(OP_SCALE, OP_SCALE_NAME, &m);
 }
-
 
 int unregister_scale_op()
 {
