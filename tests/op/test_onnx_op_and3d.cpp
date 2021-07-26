@@ -22,22 +22,19 @@
  * Author: sqfu@openailab.com
  */
 
-
 #include "test_onnx_op.h"
 
-std::string node      = "test_and3d";
-std::string input_pb_0  = "../onnx_node/" + node + "/test_data_set_0/input_0.pb";
-std::string input_pb_1  = "../onnx_node/" + node + "/test_data_set_0/input_1.pb";
+std::string node = "test_and3d";
+std::string input_pb_0 = "../onnx_node/" + node + "/test_data_set_0/input_0.pb";
+std::string input_pb_1 = "../onnx_node/" + node + "/test_data_set_0/input_1.pb";
 std::string output_pb = "../onnx_node/" + node + "/test_data_set_0/output_0.pb";
-std::string model     = "../onnx_node/" + node + "/onnx.tmfile";
+std::string model = "../onnx_node/" + node + "/onnx.tmfile";
 
 int main(int argc, char* argv[])
 {
-
     int c_0 = 3;
     int h_0 = 4;
     int w_0 = 5;
-
 
     int c_1 = 3;
     int h_1 = 4;
@@ -66,9 +63,9 @@ int main(int argc, char* argv[])
     }
 
     /* set the shape, data buffer of input_tensor of the graph */
-        /* input 0 */
-    int input_size_0 =  c_0 * h_0 * w_0;
-    int dims[] = { c_0, h_0, w_0};
+    /* input 0 */
+    int input_size_0 = c_0 * h_0 * w_0;
+    int dims[] = {c_0, h_0, w_0};
     std::vector<float> feature_in_0(input_size_0);
     tensor_t input_tensor_0 = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor_0 == nullptr)
@@ -89,9 +86,9 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-        /* input 1 */
-    int input_size_1 =  c_1 * h_1 * w_1;
-    int dims_1[] = { c_1, h_1, w_1};
+    /* input 1 */
+    int input_size_1 = c_1 * h_1 * w_1;
+    int dims_1[] = {c_1, h_1, w_1};
     std::vector<float> feature_in_1(input_size_1);
     tensor_t input_tensor_1 = get_graph_input_tensor(graph, 1, 0);
     if (input_tensor_1 == nullptr)
@@ -110,7 +107,7 @@ int main(int argc, char* argv[])
     {
         fprintf(stderr, "Set input tensor_1 buffer failed\n");
         return -1;
-    } 
+    }
 
     /* prerun graph, set work options(num_thread, cluster, precision) */
     if (prerun_graph_multithread(graph, opt) < 0)
@@ -132,7 +129,7 @@ int main(int argc, char* argv[])
 
     /* get the current result of inference */
     tensor_t output_tensor = get_graph_output_tensor(graph, 0, 0);
-    float* output_data = ( float* )get_tensor_buffer(output_tensor);
+    float* output_data = (float*)get_tensor_buffer(output_tensor);
     int output_size = get_tensor_buffer_size(output_tensor) / sizeof(float);
 
     /* get the reference result of inference */
