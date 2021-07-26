@@ -22,19 +22,17 @@
  * Author: sqfu@openailab.com
  */
 
-
 #include "test_onnx_op.h"
 
-std::string node      = "test_argmax_default_axis_example";
-std::string input_pb_0  = "../onnx_node/" + node + "/test_data_set_0/input_0.pb";
+std::string node = "test_argmax_default_axis_example";
+std::string input_pb_0 = "../onnx_node/" + node + "/test_data_set_0/input_0.pb";
 std::string output_pb = "../onnx_node/" + node + "/test_data_set_0/output_0.pb";
-std::string model     = "../onnx_node/" + node + "/onnx.tmfile";
+std::string model = "../onnx_node/" + node + "/onnx.tmfile";
 
 int main(int argc, char* argv[])
 {
     int h_0 = 2;
     int w_0 = 2;
-
 
     /* set runtime options */
     struct options opt;
@@ -59,7 +57,7 @@ int main(int argc, char* argv[])
     }
 
     /* set the shape, data buffer of input_tensor of the graph */
-        /* input 0 */
+    /* input 0 */
     int input_size_0 = h_0 * w_0;
     int dims[] = {h_0, w_0};
     std::vector<float> feature_in_0(input_size_0);
@@ -82,9 +80,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-        /* input 1 */
-
-
+    /* input 1 */
 
     /* prerun graph, set work options(num_thread, cluster, precision) */
     if (prerun_graph_multithread(graph, opt) < 0)
@@ -105,7 +101,7 @@ int main(int argc, char* argv[])
 
     /* get the current result of inference */
     tensor_t output_tensor = get_graph_output_tensor(graph, 0, 0);
-    float* output_data = ( float* )get_tensor_buffer(output_tensor);
+    float* output_data = (float*)get_tensor_buffer(output_tensor);
     int output_size = get_tensor_buffer_size(output_tensor) / sizeof(float);
 
     /* get the reference result of inference */
