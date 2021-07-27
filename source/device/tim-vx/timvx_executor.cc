@@ -302,6 +302,9 @@ int VXEngine::Build(struct subgraph* subgraph)
             case OP_MISH:
                 this->AddMishNode(ir_node);
                 break;
+            case OP_PAD:
+                this->AddPadNode(ir_node);
+                break;
             case OP_PERMUTE:
                 this->AddPermuteNode(ir_node);
                 break;
@@ -310,6 +313,9 @@ int VXEngine::Build(struct subgraph* subgraph)
                 break;
             case OP_PRELU:
                 this->AddPReluNode(ir_node);
+                break;
+            case OP_REDUCTION:
+                this->AddReduceNode(ir_node);
                 break;
             case OP_RELU:
                 this->AddReluNode(ir_node);

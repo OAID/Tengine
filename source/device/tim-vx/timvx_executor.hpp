@@ -62,7 +62,9 @@ extern "C" {
 #include "tim/vx/ops/fullyconnected.h"
 #include "tim/vx/ops/gather.h"
 #include "tim/vx/ops/instancenormalization.h"
+#include "tim/vx/ops/pad.h"
 #include "tim/vx/ops/pool2d.h"
+#include "tim/vx/ops/reduce.h"
 #include "tim/vx/ops/reshape.h"
 #include "tim/vx/ops/resize.h"
 #include "tim/vx/ops/simple_operations.h"
@@ -115,9 +117,11 @@ private:
     bool AddInstanceNormNode(struct node* node);
     bool AddInterpNode(struct node* ir_node);
     bool AddMishNode(struct node* ir_node);
+    bool AddPadNode(struct node* ir_node);
     bool AddPermuteNode(struct node* ir_node);
     bool AddPoolingNode(struct node* ir_node);
     bool AddPReluNode(struct node* ir_node);
+    bool AddReduceNode(struct node* ir_node);
     bool AddReluNode(struct node* ir_node);
     bool AddRelu1Node(struct node* ir_node);
     bool AddReshapeNode(struct node* ir_node);

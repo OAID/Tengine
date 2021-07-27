@@ -26,33 +26,36 @@
 
 extern "C"
 {
-#include "operator/op.h"
-#include "instancenorm_param.h"
+    #include "operator/op.h"
+    #include "pad_param.h"
 }
 
-
-bool VXEngine::AddInstanceNormNode(struct node* ir_node)
+bool VXEngine::AddPadNode(struct node* ir_node)
 {
     struct graph* ir_graph = ir_node->graph;
-
-    std::vector<std::shared_ptr<tim::vx::Tensor> > bn_in_tensor(ir_node->input_num);
-
-    int in_set[3] = {0, 2, 1};
-    for (int i = 0; i < ir_node->input_num; i++)
-    {
-        int idx = in_set[i];
-        struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[idx]);
-        bn_in_tensor[i] = this->vx_tensor_map[input_tensor->index];
-    }
+    struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    struct instancenorm_Param* param = (struct instancenorm_Param*)ir_node->op.param_mem;
+    struct pad_param* param = (struct pad_param*)ir_node->op.param_mem;
 
-    auto instancenorm = graph->CreateOperation<tim::vx::ops::InstanceNormalization>(param->eps);
-    (*instancenorm)
-            .BindInputs({ bn_in_tensor })
-            .BindOutputs({ this->vx_tensor_map[output_tensor->index] });
+    std::vector<uint32_t> front_size;
+    front_size.push_back(param->pad_3_h);
+    front_size.push_back(param->pad_2_h);
+    front_size.push_back(param->pad_1_h);
+    front_size.push_back(param->pad_0_h);
+    std::vector<uint32_t> back_size;
+    back_size.push_back(param->pad_3_w);
+    back_size.push_back(param->pad_2_w);
+    back_size.push_back(param->pad_1_w);
+    back_size.push_back(param->pad_0_w);
+
+    int32_t const_val = param->value;
+    auto pad = graph->CreateOperation<tim::vx::ops::Pad>(front_size, back_size, const_val);
+    vx_node_map[ir_node->index] = pad;
+
+    (*pad)
+        .BindInputs({ this->vx_tensor_map[input_tensor->index] })
+        .BindOutputs({ this->vx_tensor_map[output_tensor->index] });
 
     return true;
 }
-
