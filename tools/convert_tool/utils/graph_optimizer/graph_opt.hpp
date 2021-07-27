@@ -25,4 +25,39 @@ extern "C" {
 
 int graph_opt(graph_t graph);
 
+/*!
+ * @brief remove a node below specified node.
+ *
+ * @param [in]  graph: specific graph.
+ * @param [in]  pre_node_id: specific node index.
+ * @param [in]  del_node_id: to be removed node index.
+ *
+ * @return  statue value, 0 success, other value failure.
+ */
+int delete_node(ir_graph_t* graph, int16_t pre_node_id, int16_t del_node_id);
+
+/*!
+ * @brief add a node above specified node.
+ *
+ * @param [in]  graph: specific graph.
+ * @param [in]  down_node_id: specific node index.
+ * @param [in]  add_node_type: to be added node op type.
+ * @param [in]  name: to be added node name.
+ *
+ * @return  added node index.
+ */
+int add_node_above(ir_graph_t* graph, int16_t down_node_id, int add_node_type, const char* name);
+
+/*!
+ * @brief add a node below specified node.
+ *
+ * @param [in]  graph: specific graph.
+ * @param [in]  down_node_id: specific node index.
+ * @param [in]  add_node_type: to be added node op type.
+ * @param [in]  name: to be added node name.
+ *
+ * @return  added node index.
+ */
+int add_node_below(ir_graph_t* graph, int16_t up_node_id, int add_node_type, const char* name);
+
 #endif
