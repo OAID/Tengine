@@ -31,6 +31,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <windows.h>
+#else // _WIN32
+#include <sys/time.h>
+#endif // _WIN32
+
 #ifdef _MSC_VER
 #include "msc_getopt.h"
 #else
@@ -38,13 +46,6 @@
 #include <getopt.h>
 #include <unistd.h>
 #endif
-
-#ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#else // _WIN32
-#include <sys/time.h>
-#endif // _WIN32
 
 #ifdef _WIN32
 static double get_current_time()

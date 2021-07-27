@@ -22,7 +22,7 @@
  * Author: guanguojing1989@126.com
  */
 
-#include <unistd.h>
+#include <float.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -382,8 +382,8 @@ bool tengine_predict(float* input_data, graph_t graph, const int input_dims[4], 
     }
 
     /* run graph */
-    double min_time = __DBL_MAX__;
-    double max_time = -__DBL_MAX__;
+    double min_time = DBL_MAX;
+    double max_time = -DBL_MAX;
     double total_time = 0.;
     for (int i = 0; i < loop_count; i++)
     {

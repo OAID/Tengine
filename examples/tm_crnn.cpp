@@ -24,7 +24,6 @@
  * original pretrained: https://github.com/meijieru/crnn.pytorch
  */
 
-#include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string>
@@ -115,7 +114,7 @@ void process_crnn_result(const float* ocr_data, const char* label_file)
     {
         const float* idx = ocr_data + i * (5530);
         int max_index = 0;
-        float max_value = -__DBL_MAX__;
+        float max_value = -DBL_MAX;
         for (int j = 0; j < 5530; j++)
         {
             float loc = idx[j];
@@ -270,8 +269,8 @@ int main(int argc, char* argv[])
     get_input_data_cv(m, input_data, img_h, img_w, 1, mean, scale);
 
     /* run graph */
-    double min_time = __DBL_MAX__;
-    double max_time = -__DBL_MAX__;
+    double min_time = DBL_MAX;
+    double max_time = -DBL_MAX;
     double total_time = 0.;
     for (int i = 0; i < repeat_count; i++)
     {

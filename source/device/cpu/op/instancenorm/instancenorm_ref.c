@@ -109,12 +109,12 @@ int ref_instancenorm_uint8(struct tensor* input_tensor, struct tensor* output_te
     int image_size = channels * size;
     int total_size = image_size * n;
 
-    float* beta_data = beta_tensor->data;
-    float* gamma_data = gamma_tensor->data;
+    float* beta_data = (float*)beta_tensor->data;
+    float* gamma_data = (float*)gamma_tensor->data;
 
     // dequant
-    uint8_t* input_uint8 = input_tensor->data;
-    uint8_t* output_uint8 = output_tensor->data;
+    uint8_t* input_uint8 = (uint8_t*)input_tensor->data;
+    uint8_t* output_uint8 = (uint8_t*)output_tensor->data;
     float input_scale = input_tensor->scale;
     float output_scale = output_tensor->scale;
     int32_t input_zero = input_tensor->zero_point;
@@ -212,7 +212,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
     int ret = -1;
     if (input_tensor->data_type == TENGINE_DT_FP32)
-        ret = ref_instancenorm_fp32(in_data, out_data, gamma_data, beta_data, size, c, n, eps, scale, zero_point, 0);
+        ret = ref_instancenorm_fp32((float*)in_data, (float*)out_data, (float*)gamma_data, (float*)beta_data, size, c, n, eps, scale, zero_point, 0);
     else if (input_tensor->data_type == TENGINE_DT_UINT8)
         ret = ref_instancenorm_uint8(input_tensor, output_tensor, gamma_tensor, beta_tensor, eps, scale, zero_point, 0);
 
