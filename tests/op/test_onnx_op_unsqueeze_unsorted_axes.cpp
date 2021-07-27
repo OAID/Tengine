@@ -24,7 +24,7 @@
 
 #include "test_onnx_op.h"
 
-std::string node = "test_unsqueeze_axis_0";
+std::string node = "test_unsqueeze_unsorted_axes";
 std::string input_pb = "../onnx_node/" + node + "/test_data_set_0/input_0.pb";
 std::string output_pb = "../onnx_node/" + node + "/test_data_set_0/output_0.pb";
 std::string model = "../onnx_node/" + node + "/onnx.tmfile";
