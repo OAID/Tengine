@@ -101,6 +101,7 @@ ENDIF()
 
 # add examples with opencv
 # set(OpenCV_DIR /mnt/d/ubuntu/opencv_install/linux-armv7/lib/cmake/opencv4)
+set(OpenCV_DIR "E:/lib/opencv/4.5.2" CACHE PATH "")
 FIND_PACKAGE(OpenCV QUIET)
 
 IF (OpenCV_FOUND)
