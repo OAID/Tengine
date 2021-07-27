@@ -30,24 +30,25 @@
 #include <opencv2/opencv.hpp>
 using namespace pipe;
 
-int main() {
-  Graph g;
-  auto cam = g.add_node<VideoCamera>();
-  auto draw = g.add_node<DrawVideo>();
-  auto detect_ped = g.add_node<PedestrianDetection>("mobilenet_ssd.tmfile");
-  auto dist_estimate = g.add_node<SpatialDistanceCalc>();
+int main()
+{
+    Graph g;
+    auto cam = g.add_node<VideoCamera>();
+    auto draw = g.add_node<DrawVideo>();
+    auto detect_ped = g.add_node<PedestrianDetection>("mobilenet_ssd.tmfile");
+    auto dist_estimate = g.add_node<SpatialDistanceCalc>();
 
-  auto cam_det = g.add_edge<InstantEdge<cv::Mat>>(100);
-  auto det_dist = g.add_edge<InstantEdge<std::tuple<cv::Mat, cv::Rect>>>(100);
-  auto dist_draw = g.add_edge<InstantEdge<cv::Mat>>(100);
+    auto cam_det = g.add_edge<InstantEdge<cv::Mat> >(100);
+    auto det_dist = g.add_edge<InstantEdge<std::tuple<cv::Mat, cv::Rect> > >(100);
+    auto dist_draw = g.add_edge<InstantEdge<cv::Mat> >(100);
 
-  cam->set_output<0>(cam_det);
-  detect_ped->set_input<0>(cam_det);
-  detect_ped->set_output<0>(det_dist);
-  dist_estimate->set_input<0>(det_dist);
-  dist_estimate->set_output<0>(dist_draw);
-  draw->set_input<0>(dist_draw);
+    cam->set_output<0>(cam_det);
+    detect_ped->set_input<0>(cam_det);
+    detect_ped->set_output<0>(det_dist);
+    dist_estimate->set_input<0>(det_dist);
+    dist_estimate->set_output<0>(dist_draw);
+    draw->set_input<0>(dist_draw);
 
-  g.start();
-  std::this_thread::sleep_for(std::chrono::milliseconds(600000));
+    g.start();
+    std::this_thread::sleep_for(std::chrono::milliseconds(600000));
 }
