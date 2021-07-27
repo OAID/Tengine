@@ -103,7 +103,7 @@ static int erase_node_id(ir_graph_t* graph, int16_t id)
     return 0;
 }
 
-static int delete_node(ir_graph_t* graph, int16_t pre_node_id, int16_t del_node_id)
+int delete_node(ir_graph_t* graph, int16_t pre_node_id, int16_t del_node_id)
 {
     ir_node_t* pre_node = get_ir_graph_node(graph, pre_node_id);
     ir_node_t* del_node = get_ir_graph_node(graph, del_node_id);
@@ -140,17 +140,17 @@ static int insert_node_id(ir_graph_t* graph, int16_t insert_node_id, int16_t ins
 
     /* insert node id */
     std::map<int16_t, int16_t> old_new_id;
-    int16_t j = graph->node_num - 1;
+    int16_t tmp = graph->node_num - 1;
     for (int i = graph->node_num - 2; i >= 0; i--)
     {
         ir_node_t* node = get_ir_graph_node(graph, i);
-        node->index = j;
-        graph->node_list[j] = node;
-        old_new_id[i] = j--;
+        node->index = tmp;
+        graph->node_list[tmp] = node;
+        old_new_id[i] = tmp--;
         if (i == inserted_node_id)
         {
             old_new_id[add_node->index] = i;
-            j--;
+            tmp--;
         }
     }
     graph->node_list[inserted_node_id] = add_node;
@@ -215,7 +215,75 @@ static int insert_tensor_id(ir_graph_t* graph, int16_t insert_tensor_id, int16_t
     return 0;
 }
 
-static int add_node(ir_graph_t* graph, int16_t down_node_id, int add_node_type, const char* name)
+int add_node_below(ir_graph_t* graph, int16_t up_node_id, int add_node_type, const char* name)
+{
+    /* get all down nodes */
+    ir_node_t* up_node = get_ir_graph_node(graph, up_node_id);
+    ir_tensor_t* up_node_output_tensor = get_ir_graph_tensor(graph, up_node->output_tensors[0]);
+    std::vector<int16_t> down_nodes;
+    for (size_t i = 0; i < up_node_output_tensor->consumer_num; i++)
+    {
+        down_nodes.push_back(up_node_output_tensor->consumer[i]);
+    }
+
+    /* create node and its own tensor */
+    ir_node_t* add_node = create_ir_node(graph, name, add_node_type, 1);
+    if (add_node == nullptr)
+        return -1;
+    ir_tensor_t* add_tensor = create_ir_tensor(graph, name, TENGINE_DT_FP32);
+    if (add_tensor == nullptr)
+        return -1;
+    add_tensor->tensor_type = TENSOR_TYPE_VAR;
+    set_ir_node_output_tensor(add_node, 0, add_tensor);
+
+    /* setup new connection */
+    for (short down_node_id : down_nodes)
+    {
+        ir_node_t* down_node = get_ir_graph_node(graph, down_node_id);
+        set_ir_node_input_tensor(down_node, 0, add_tensor);
+    }
+    up_node_output_tensor->consumer_num = 0;
+    set_ir_node_input_tensor(add_node, 0, up_node_output_tensor);
+
+    if (down_nodes.empty()) // add node in tail
+    {
+        // exchange graph output
+        for (int i = 0; i < graph->output_num; ++i)
+        {
+            if (graph->output_nodes[i] == up_node_id)
+            {
+                graph->output_nodes[i] = add_node->index;
+            }
+        }
+        return add_node->index;
+    }
+
+    // insert id
+    /* get min id from down nodes */
+    int16_t down_node_id = graph->node_num;
+    for (auto& id : down_nodes)
+    {
+        if (id < down_node_id)
+        {
+            down_node_id = id;
+        }
+    }
+
+    ir_node_t* down_node = get_ir_graph_node(graph, down_node_id);
+    int16_t down_tensor_id = down_node->output_tensors[0];
+
+    /* insert node id */
+    if (insert_node_id(graph, add_node->index, down_node_id) < 0)
+        return -1;
+
+    /* insert tensor id */
+    if (insert_tensor_id(graph, add_tensor->index, down_tensor_id) < 0)
+        return -1;
+
+    return add_node->index;
+}
+
+int add_node_above(ir_graph_t* graph, int16_t down_node_id, int add_node_type, const char* name)
 {
     /* get all up nodes */
     ir_node_t* down_node = get_ir_graph_node(graph, down_node_id);
@@ -252,6 +320,16 @@ static int add_node(ir_graph_t* graph, int16_t down_node_id, int add_node_type, 
     down_node->input_tensors[0] = add_tensor->index;
     add_tensor->consumer[0] = down_node_id;
     add_tensor->consumer_num = 1;
+
+    if (up_nodes.empty()) // add node in head
+    {
+        // exchange graph input
+        for (int i = 0; i < graph->input_num; ++i)
+        {
+            if (graph->input_nodes[i] == down_node_id)
+                graph->input_nodes[i] = add_node->index;
+        }
+    }
 
     /* insert node id */
     if (insert_node_id(graph, add_node->index, down_node_id) < 0)

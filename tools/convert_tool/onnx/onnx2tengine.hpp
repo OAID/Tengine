@@ -36,6 +36,7 @@
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <google/protobuf/text_format.h>
 #include <google/protobuf/message.h>
+#include "../utils/graph_optimizer/graph_opt.hpp"
 
 extern "C" {
 #include "tengine/c_api.h"
@@ -68,6 +69,7 @@ private:
     int load_model_file(std::string model_file, onnx::ModelProto& model);
     bool find_op_load_method(const std::string& op_name);
     void register_op_load();
+    int optimize_graph(ir_graph_t* graph); //!< optimize graph base on op set.
     std::unordered_map<std::string, int> tensor_check;
 };
 

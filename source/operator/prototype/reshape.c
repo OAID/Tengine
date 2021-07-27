@@ -55,7 +55,7 @@ static int infer_shape(struct node* node)
     {
         if (0 == param->re_shape[i])
         {
-            if (param->is_mxnet)
+            if (param->is_mxnet || param->is_onnx)
             {
                 int temp = input->dims[in_idx];
                 push_vector_data(new_shape, (void*)&temp);
