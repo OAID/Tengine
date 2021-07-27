@@ -25,7 +25,6 @@ extern "C" {
 
 int graph_opt(graph_t graph);
 
-
 /*!
  * @brief remove a node below specified node.
  *
@@ -36,7 +35,6 @@ int graph_opt(graph_t graph);
  * @return  statue value, 0 success, other value failure.
  */
 int delete_node(ir_graph_t* graph, int16_t pre_node_id, int16_t del_node_id);
-
 
 /*!
  * @brief add a node above specified node.
@@ -49,7 +47,6 @@ int delete_node(ir_graph_t* graph, int16_t pre_node_id, int16_t del_node_id);
  * @return  added node index.
  */
 int add_node_above(ir_graph_t* graph, int16_t down_node_id, int add_node_type, const char* name);
-
 
 /*!
  * @brief add a node below specified node.

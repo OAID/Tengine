@@ -40,8 +40,8 @@
 
 typedef struct
 {
-    int* in_shape;    // the dim of the input
-    int* out_shape;   // dims of output
+    int* in_shape;  // the dim of the input
+    int* out_shape; // dims of output
     int out_dim_num;
     int axis;
     int indices_num;
@@ -92,7 +92,7 @@ static int ref_gather_fp32(float* input, int* input_indices, float* output, gath
     else
         return -1;
 
-	// #pragma omp parallel for num_threads(num_thread)
+    // #pragma omp parallel for num_threads(num_thread)
     if (param->is_onnx)
     {
         for (int n = 0; n < out_n; ++n)
@@ -105,25 +105,26 @@ static int ref_gather_fp32(float* input, int* input_indices, float* output, gath
                     {
                         int indices_i;
                         int input_id;
-                        switch (axis) {
-                            case 0:
-                                indices_i = input_indices[n];
-                                input_id = indices_i * out_c * out_h * out_w + c * out_h * out_w + h * out_w + w;
-                                break;
-                            case 1:
-                                indices_i = input_indices[c];
-                                input_id = n * out_c * out_h * out_w + indices_i * out_h * out_w + h * out_w + w;
-                                break;
-                            case 2:
-                                indices_i = input_indices[h];
-                                input_id = n * out_c * out_h * out_w + c * out_h * out_w + indices_i * out_w + w;
-                                break;
-                            case 3:
-                                indices_i = input_indices[w];
-                                input_id = n * out_c * out_h * out_w + c * out_h * out_w + h * out_w + indices_i;
-                                break;
-                            default:
-                                return -1;
+                        switch (axis)
+                        {
+                        case 0:
+                            indices_i = input_indices[n];
+                            input_id = indices_i * out_c * out_h * out_w + c * out_h * out_w + h * out_w + w;
+                            break;
+                        case 1:
+                            indices_i = input_indices[c];
+                            input_id = n * out_c * out_h * out_w + indices_i * out_h * out_w + h * out_w + w;
+                            break;
+                        case 2:
+                            indices_i = input_indices[h];
+                            input_id = n * out_c * out_h * out_w + c * out_h * out_w + indices_i * out_w + w;
+                            break;
+                        case 3:
+                            indices_i = input_indices[w];
+                            input_id = n * out_c * out_h * out_w + c * out_h * out_w + h * out_w + indices_i;
+                            break;
+                        default:
+                            return -1;
                         }
                         int output_id = n * out_c * out_h * out_w + c * out_h * out_w + h * out_w + w;
                         output[output_id] = input[input_id];
@@ -190,8 +191,8 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
     op_priv_info->axis = gather_param->axis;
     op_priv_info->indices_num = gather_param->indices_num;
     op_priv_info->is_onnx = gather_param->is_onnx;
-    op_priv_info->in_shape = (int*)sys_malloc(input_tensor->dim_num*sizeof(int));
-    op_priv_info->out_shape = (int*) sys_malloc(output_tensor->dim_num * sizeof(int));
+    op_priv_info->in_shape = (int*)sys_malloc(input_tensor->dim_num * sizeof(int));
+    op_priv_info->out_shape = (int*)sys_malloc(output_tensor->dim_num * sizeof(int));
     /* prerun now */
     return 0;
 }
