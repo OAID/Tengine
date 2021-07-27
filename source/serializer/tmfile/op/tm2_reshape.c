@@ -57,6 +57,11 @@ static int tm2_load_reshape(struct graph* ir_graph, struct node* ir_node, const 
         param->is_mxnet = true;
     else
         param->is_mxnet = false;
+    // set the is_onnx
+    if (tm_param->is_onnx)
+        param->is_onnx = true;
+    else
+        param->is_onnx = false;
 
     if (tm_param->offset_re_shape != TM2_NOT_SET)
     {

@@ -296,7 +296,7 @@ int onnx_serializer::load_initializer_tensor(ir_graph_t* graph, const onnx::Grap
         }
         const char* name = onnx_tensor.name().c_str();
         int dim_num = onnx_tensor.dims_size();
-        int* dims = new int[dim_num];
+        std::vector<int> dims(dim_num);
         for (int j = 0; j < dim_num; j++)
         {
             dims[j] = onnx_tensor.dims(j);
@@ -309,7 +309,7 @@ int onnx_serializer::load_initializer_tensor(ir_graph_t* graph, const onnx::Grap
             fprintf(stderr, "create ir tensor failed!\n");
             return -1;
         }
-        set_ir_tensor_shape(ir_tensor, dims, dim_num);
+        set_ir_tensor_shape(ir_tensor, dims.data(), dim_num);
         ir_tensor->tensor_type = TENSOR_TYPE_CONST;
         if (ir_tensor->dim_num == 0)
         {
@@ -321,6 +321,7 @@ int onnx_serializer::load_initializer_tensor(ir_graph_t* graph, const onnx::Grap
         {
             if (onnx_tensor.data_type() == 1) //fp32
             {
+                ir_tensor->data_type = TENGINE_DT_FP32;
                 int tensor_size = ir_tensor->elem_num * sizeof(float);
                 ir_tensor->data = sys_malloc(tensor_size);
                 float* mem_buf = (float*)ir_tensor->data;
@@ -332,6 +333,7 @@ int onnx_serializer::load_initializer_tensor(ir_graph_t* graph, const onnx::Grap
             }
             else if (onnx_tensor.data_type() == 6) // int32
             {
+                ir_tensor->data_type = TENGINE_DT_INT32;
                 int tensor_size = ir_tensor->elem_num * sizeof(int32_t);
                 ir_tensor->data = sys_malloc(tensor_size);
                 int32_t* mem_buf = (int32_t*)ir_tensor->data;
@@ -343,6 +345,7 @@ int onnx_serializer::load_initializer_tensor(ir_graph_t* graph, const onnx::Grap
             }
             else if (onnx_tensor.data_type() == 7) // int64
             {
+                // ir_tensor->data_type = TENGINE_DT_INT32;
                 int tensor_size = ir_tensor->elem_num * sizeof(int64_t);
                 ir_tensor->data = sys_malloc(tensor_size);
                 int64_t* mem_buf = (int64_t*)ir_tensor->data;
@@ -362,6 +365,7 @@ int onnx_serializer::load_initializer_tensor(ir_graph_t* graph, const onnx::Grap
         {
             if (onnx_tensor.data_type() == 1) //fp32
             {
+                ir_tensor->data_type = TENGINE_DT_FP32;
                 int tensor_size = ir_tensor->elem_num * sizeof(float);
                 ir_tensor->data = sys_malloc(tensor_size);
                 float* mem_buf = (float*)ir_tensor->data;
@@ -373,6 +377,7 @@ int onnx_serializer::load_initializer_tensor(ir_graph_t* graph, const onnx::Grap
             }
             else if (onnx_tensor.data_type() == 6) // int32
             {
+                ir_tensor->data_type = TENGINE_DT_INT32;
                 int tensor_size = ir_tensor->elem_num * sizeof(int32_t);
                 ir_tensor->data = sys_malloc(tensor_size);
                 int32_t* mem_buf = (int32_t*)ir_tensor->data;
@@ -384,6 +389,7 @@ int onnx_serializer::load_initializer_tensor(ir_graph_t* graph, const onnx::Grap
             }
             else if (onnx_tensor.data_type() == 7) // int64
             {
+                // ir_tensor->data_type = TENGINE_DT_INT32;
                 int tensor_size = ir_tensor->elem_num * sizeof(int64_t);
                 ir_tensor->data = sys_malloc(tensor_size);
                 int64_t* mem_buf = (int64_t*)ir_tensor->data;
@@ -420,7 +426,7 @@ int onnx_serializer::set_graph_input(ir_graph_t* graph, const onnx::GraphProto& 
         const onnx::TypeProto::Tensor& tensor_type = type.tensor_type();
         const onnx::TensorShapeProto& shape = tensor_type.shape();
         int has_shape = 1;
-        int* dims = new int[shape.dim_size()];
+        std::vector<int> dims(shape.dim_size());
         for (int j = 0; j < shape.dim_size(); j++)
         {
             const onnx::TensorShapeProto::Dimension& dim = shape.dim(j);
@@ -435,7 +441,7 @@ int onnx_serializer::set_graph_input(ir_graph_t* graph, const onnx::GraphProto& 
         ir_tensor_t* tensor = create_ir_tensor(graph, val.name().c_str(), TENGINE_DT_FP32);
         if (has_shape)
         {
-            set_ir_tensor_shape(tensor, dims, shape.dim_size());
+            set_ir_tensor_shape(tensor, dims.data(), shape.dim_size());
         }
         tensor->tensor_type = TENSOR_TYPE_INPUT;
         ir_node_t* node = create_ir_node(graph, val.name().c_str(), OP_INPUT, OP_VERSION);
@@ -443,12 +449,12 @@ int onnx_serializer::set_graph_input(ir_graph_t* graph, const onnx::GraphProto& 
         input_nodes.push_back(node->index);
     }
 
-    int16_t* node_idx = (int16_t*)sys_malloc(sizeof(int16_t) * input_nodes.size());
+    std::vector<int16_t> node_idx;
     for (int i = 0; i < input_nodes.size(); i++)
     {
-        node_idx[i] = input_nodes[i];
+        node_idx.push_back(input_nodes[i]);
     }
-    set_ir_graph_input_node(graph, node_idx, input_nodes.size());
+    set_ir_graph_input_node(graph, node_idx.data(), input_nodes.size());
     return 0;
 }
 
@@ -549,7 +555,7 @@ int onnx_serializer::set_graph_output(ir_graph_t* graph, const onnx::GraphProto&
         const onnx::TypeProto::Tensor& tensor_type = type.tensor_type();
         const onnx::TensorShapeProto& shape = tensor_type.shape();
         int has_shape = 1;
-        int* dims = new int[shape.dim_size()];
+        std::vector<int> dims(shape.dim_size());
         for (int j = 0; j < shape.dim_size(); j++)
         {
             const onnx::TensorShapeProto::Dimension& dim = shape.dim(j);
@@ -563,17 +569,124 @@ int onnx_serializer::set_graph_output(ir_graph_t* graph, const onnx::GraphProto&
         ir_tensor_t* tensor = get_ir_graph_tensor(graph, tensor_id);
         if (has_shape)
         {
-            set_ir_tensor_shape(tensor, dims, shape.dim_size());
+            set_ir_tensor_shape(tensor, dims.data(), shape.dim_size());
         }
         ir_node_t* node = get_ir_graph_node(graph, tensor->producer);
         output_nodes.push_back(node->index);
     }
-    int16_t* node_idx = (int16_t*)sys_malloc(sizeof(int16_t) * output_nodes.size());
+
+    std::vector<int16_t> node_idx;
     for (int i = 0; i < output_nodes.size(); i++)
     {
-        node_idx[i] = output_nodes[i];
+        node_idx.push_back(output_nodes[i]);
     }
-    set_ir_graph_output_node(graph, node_idx, output_nodes.size());
+    set_ir_graph_output_node(graph, node_idx.data(), output_nodes.size());
+    return 0;
+}
+
+int deal_old_softmax(ir_graph_t* graph)
+{
+    std::vector<ir_node_t*> old_spec_softmax_nodes;
+
+    // get all softmax case.
+    if (op_set < 13)
+    {
+        int node_num = graph->node_num;
+        for (int i = 0; i < node_num; ++i)
+        {
+            ir_node_t* node = get_ir_graph_node(graph, i);
+            if (node->op.type != OP_SOFTMAX)
+            {
+                continue;
+            }
+            struct softmax_param* param = (struct softmax_param*)node->op.param_mem;
+            // check if transpose + softmax + transpose
+            ir_tensor_t* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
+            ir_tensor_t* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
+            ir_node_t* pre_node = get_ir_graph_node(graph, input->producer);
+            ir_node_t* next_node = nullptr;
+            if (output->consumer_num > 0)
+            {
+                next_node = get_ir_graph_node(graph, output->consumer[0]);
+            }
+            if (next_node != nullptr && pre_node->op.type == OP_TRANSPOSE && next_node->op.type == OP_TRANSPOSE)
+            {
+                if (param->axis == input->dim_num - 1)
+                {
+                    // TODO: optimize to softmax(new spec).
+                    continue;
+                }
+                else
+                {
+                    continue;
+                }
+            }
+            if (param->axis == input->dim_num - 1)
+            {
+                // old spec == new spec
+                continue;
+            }
+
+            old_spec_softmax_nodes.push_back(node);
+        }
+    }
+
+    // support old spec onnx softmax.
+    for(auto& node:old_spec_softmax_nodes)
+    {
+        ir_tensor_t* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
+        struct softmax_param* param = (struct softmax_param*)node->op.param_mem;
+
+        // support old spec by adding reshape node.
+        // reshape in
+        std::string node_name = node->name;
+        std::string name = node_name + "_reshape_in";
+        int reshape_in_id = add_node_above(graph, node->index, OP_RESHAPE, name.c_str());
+        ir_node_t* reshape_in = get_ir_graph_node(graph, reshape_in_id);
+        struct reshape_param* reshape_in_param = (struct reshape_param*)reshape_in->op.param_mem;
+
+        std::vector<int> re_shape;
+        for (int j = 0; j < input->dim_num; ++j)
+        {
+            if (j == param->axis)
+            {
+                re_shape.push_back(-1);
+                break;
+            }
+            re_shape.push_back(input->dims[j]);
+        }
+        reshape_in_param->is_onnx = 1;
+        reshape_in_param->dim_size = re_shape.size();
+        reshape_in_param->re_shape = (int*) sys_malloc(reshape_in_param->dim_size * sizeof(int));
+        for (int j = 0; j < reshape_in_param->dim_size; ++j)
+        {
+            reshape_in_param->re_shape[j] = re_shape[j];
+        }
+
+        // reshape out
+        name = node_name + "_reshape_out";
+        int reshape_out_id = add_node_below(graph, node->index, OP_RESHAPE, name.c_str());
+        ir_node_t* reshape_out = get_ir_graph_node(graph, reshape_out_id);
+        struct reshape_param* reshape_out_param = (struct reshape_param*)reshape_out->op.param_mem;
+        reshape_out_param->is_onnx = 1;
+        reshape_out_param->dim_size = input->dim_num;
+        reshape_out_param->re_shape = (int*) sys_malloc(reshape_out_param->dim_size * sizeof(int));
+        for (int j = 0; j < reshape_out_param->dim_size; ++j)
+        {
+            reshape_out_param->re_shape[j] = input->dims[j];
+        }
+    }
+
+    return 0;
+}
+
+int onnx_serializer::optimize_graph(ir_graph_t* graph)
+{
+    if (infer_ir_graph_shape(graph) < 0)
+        return -1;
+    if (deal_old_softmax(graph) < 0)
+        return -1;
+
     return 0;
 }
 
@@ -593,6 +706,8 @@ int onnx_serializer::load_model(ir_graph_t* graph, std::string model_file)
     if (load_graph_node(graph, onnx_graph) < 0)
         return -1;
     if (set_graph_output(graph, onnx_graph) < 0)
+        return -1;
+    if (optimize_graph(graph) < 0)
         return -1;
 
     graph->model_format = MODEL_FORMAT_ONNX;
@@ -657,10 +772,16 @@ int load_conv(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_no
         else if (attr.name() == "dilations")
         {
             conv_param->dilation_h = attr.ints(0);
-            conv_param->dilation_w = attr.ints(0);
+            conv_param->dilation_w = attr.ints(1);
         }
         else if (attr.name() == "auto_pad")
         {
+            /*
+             * real pad will be calculated in infer shape.
+             * flag:
+             *      -1 : SAME_UPPER
+             *      -2 : SAME_LOWER
+             */
             const std::string& auto_pad = attr.s();
 
             if (auto_pad == "NOTSET")
@@ -669,13 +790,24 @@ int load_conv(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_no
             }
             else if (auto_pad == "SAME_UPPER")
             {
-                // ToDo
-                fprintf(stderr, "%s attr.name: %s :SAME_UPPER todo implement.\n", node->name, attr.name().c_str());
+                conv_param->pad_w0 = -1;
+                conv_param->pad_w1 = -1;
+                conv_param->pad_h0 = -1;
+                conv_param->pad_h1 = -1;
             }
-            else if (auto_pad == "SAME_LOWER" || auto_pad == "VALID")
+            else if (auto_pad == "SAME_LOWER")
             {
-                // ToDo
-                fprintf(stderr, "%s attr.name: %s :SAME_LOWER todo implement.\n", node->name, attr.name().c_str());
+                conv_param->pad_w0 = -2;
+                conv_param->pad_w1 = -2;
+                conv_param->pad_h0 = -2;
+                conv_param->pad_h1 = -2;
+            }
+            else if (auto_pad == "VALID")
+            {
+                conv_param->pad_w0 = 0;
+                conv_param->pad_w1 = 0;
+                conv_param->pad_h0 = 0;
+                conv_param->pad_h1 = 0;
             }
             else
                 fprintf(stderr, "%s attr.name: %s : %s not support.\n", node->name, attr.name().c_str(), auto_pad.c_str());
@@ -701,6 +833,16 @@ int load_pool(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_no
 {
     struct pool_param* pool_param = (struct pool_param*)node->op.param_mem;
     const std::string& onnx_op = onnx_node.op_type();
+
+    // set default param
+    pool_param->pad_h0 = 0;
+    pool_param->pad_h1 = 0;
+    pool_param->pad_w0 = 0;
+    pool_param->pad_w1 = 0;
+    pool_param->stride_h = 1;
+    pool_param->stride_w = 1;
+    pool_param->global = 0;
+    pool_param->caffe_flavor = 0;
 
     if (onnx_op == "GlobalAveragePool")
     {
@@ -736,7 +878,7 @@ int load_pool(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_no
                 pool_param->pad_h1 = attr.ints(2);
                 pool_param->pad_w0 = attr.ints(1);
                 pool_param->pad_w1 = attr.ints(3);
-                if (pool_param->pad_h0 == 0 && pool_param->pad_h1 == 1 && pool_param->pad_w0 == 0 && pool_param->pad_w1 == 1)
+                if (pool_param->pad_h0 != pool_param->pad_h1 && pool_param->pad_w0 != pool_param->pad_w1)
                 {
                     pool_param->caffe_flavor = 1;
                 }
@@ -748,6 +890,12 @@ int load_pool(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_no
         fprintf(stderr, "UKNOWN POOLING: %s \n", onnx_op.c_str());
         return -1;
     }
+
+    pool_param->pad_h0_org = pool_param->pad_h0;
+    pool_param->pad_h1_org = pool_param->pad_h1;
+    pool_param->pad_w0_org = pool_param->pad_w0;
+    pool_param->pad_w1_org = pool_param->pad_w1;
+
     return 0;
 }
 
@@ -767,6 +915,12 @@ int load_flatten(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx
 int load_gemm(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct gemm_param* gemm_param = (struct gemm_param*)node->op.param_mem;
+    // set default
+    gemm_param->alpha = 1.0f;
+    gemm_param->beta = 1.0f;
+    gemm_param->transA = 0;
+    gemm_param->transB = 0;
+
     for (int k = 0; k < onnx_node.attribute_size(); k++)
     {
         const onnx::AttributeProto& attr = onnx_node.attribute(k);
@@ -1000,6 +1154,7 @@ int load_no_param(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onn
 int load_softmax(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct softmax_param* softmax_param = (struct softmax_param*)node->op.param_mem;
+    softmax_param->axis = 1; // default
 
     for (int k = 0; k < onnx_node.attribute_size(); k++)
     {
@@ -1008,12 +1163,6 @@ int load_softmax(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx
         {
             softmax_param->axis = attr.i();
         }
-    }
-
-    if (op_set == 13)
-    {
-        // TODO
-        ;
     }
 
     return 0;
@@ -1796,7 +1945,7 @@ int load_deconv(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_
         else if (attr.name() == "dilations")
         {
             deconv_param->dilation_h = attr.ints(0);
-            deconv_param->dilation_w = attr.ints(0);
+            deconv_param->dilation_w = attr.ints(1);
         }
         else
             fprintf(stderr, "attr.name: %s \n", attr.name().c_str());
@@ -1935,6 +2084,8 @@ int load_instance_norm(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto
 int load_resize(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node)
 {
     struct interp_param* interp_param = (struct interp_param*)node->op.param_mem;
+    interp_param->height_scale = 0;
+    interp_param->width_scale = 0;
 
     if (onnx_node.input_size() == 1)
     {
@@ -1968,12 +2119,15 @@ int load_resize(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_
     }
     else if (onnx_node.input_size() == 4)
     {
-        const std::string& input_name = onnx_node.input(3);
-        ir_tensor_t* tensor = find_tensor(graph, input_name);
-        float* data = (float*)tensor->data;
+        const std::string& size_name = onnx_node.input(3); // sizes
+        ir_tensor_t* size_tensor = find_tensor(graph, size_name);
 
-        interp_param->height_scale = data[2];
-        interp_param->width_scale = data[3];
+        int64_t* output_dims = ( int64_t * )size_tensor->data;
+        if (size_tensor->elem_num == 4)
+        {
+            interp_param->output_height = output_dims[2];
+            interp_param->output_width = output_dims[3];
+        }
     }
     else
     {

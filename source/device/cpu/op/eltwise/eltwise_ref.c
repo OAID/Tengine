@@ -206,6 +206,13 @@ static int ref_eltwise_fp32(void* output, void* input0, void* input1, int type, 
                 *out_ptr++ = in0[0] / (*in1++);
             }
         }
+        else if (input1_count4 == input_chan)
+        {
+            for (int i = 0; i < input_count4; ++i)
+            {
+                *out_ptr++ = in0[i] / in1[i / input_hw];
+            }
+        }
         else
         {
             break;
@@ -221,9 +228,9 @@ static int ref_eltwise_fp32(void* output, void* input0, void* input1, int type, 
         }
         else if (input1_count4 == 1)
         {
-            for (int i = 0; i < input1_count4; i++)
+            for (int i = 0; i < input_count4; i++)
             {
-                *out_ptr++ = powf(in0[0], in1[i]);
+                *out_ptr++ = powf(in0[i], in1[0]);
             }
         }
         else if (input_count4 == input1_count4)
