@@ -393,6 +393,10 @@ tm_uoffset_t SaveTmReshapeOp(void* const start_ptr, tm_uoffset_t* cur_pos, ir_no
         tm_param.is_mxnet = 1;
     else
         tm_param.is_mxnet = 0;
+    if(p->is_onnx)
+        tm_param.is_onnx = 1;
+    else
+        tm_param.is_onnx = 0;
 
     if (p->dim_size)
     {
