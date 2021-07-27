@@ -21,8 +21,8 @@
  * Copyright (c) 2021
  * Author: tpoisonooo
  */
-#include "../actor/draw_video.h"
-#include "../actor/video_camera.h"
+#include "pipeline/actor/draw_video.h"
+#include "pipeline/actor/video_camera.h"
 #include "../graph/graph.h"
 #include <chrono>
 #include <opencv2/opencv.hpp>

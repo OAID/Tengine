@@ -22,13 +22,15 @@
  * Author: tpoisonooo
  */
 #pragma once
-#include "../graph/node.h"
+#include "pipeline/graph/node.h"
 #include <opencv2/opencv.hpp>
 
 namespace pipe {
 
 class DrawVideo : public Node<Param<cv::Mat>, Param<void>> {
 public:
+  DrawVideo(const std::string& name = "window"): m_window_name(name) {}
+
   void exec() override {
     cv::Mat mat;
     while (true) {
@@ -37,13 +39,15 @@ public:
       if (not suc) {
         continue;
       }
-      // fprintf(stdout, "show\n");
-      cv::imshow("camera", mat);
-      cv::waitKey(25);
+      cv::imshow(m_window_name, mat);
+      cv::waitKey(1);
     }
   }
 
   ~DrawVideo() { cv::destroyAllWindows(); }
+  
+private:
+  std::string m_window_name;
 };
 
 } // namespace pipe
