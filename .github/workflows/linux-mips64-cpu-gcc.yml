@@ -4,39 +4,16 @@ on:
   push:
     branches: [tengine-lite]
     paths:
-    - '.github/workflows/linux-mips64-cpu-gcc.yml'
-    - 'CMakeLists.txt'
-    - 'cmake/**'
-    - 'source/*'
-    - 'source/api/*'
-    - 'source/executer/*'
-    - 'source/graph/*'
-    - 'source/module/*'
-    - 'source/operator/*'
-    - 'source/optimizer/*'
-    - 'source/scheduler/*'
-    - 'source/serializer/*'
-    - 'source/system/*'
-    - 'source/utility/*'
-    - 'source/device/cpu/**'
+    paths-ignore: 
+    - 'doc/**'
+    - 'README.md'
+    - 'README_EN.md'
   pull_request:
     branches: [tengine-lite]
-    paths:
-    - '.github/workflows/linux-mips64-cpu-gcc.yml'
-    - 'CMakeLists.txt'
-    - 'cmake/**'
-    - 'source/*'
-    - 'source/api/*'
-    - 'source/executer/*'
-    - 'source/graph/*'
-    - 'source/module/*'
-    - 'source/operator/*'
-    - 'source/optimizer/*'
-    - 'source/scheduler/*'
-    - 'source/serializer/*'
-    - 'source/system/*'
-    - 'source/utility/*'
-    - 'source/device/cpu/**'
+    paths-ignore: 
+    - 'doc/**'
+    - 'README.md'
+    - 'README_EN.md'
 
 jobs:
 
