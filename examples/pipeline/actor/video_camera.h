@@ -25,8 +25,10 @@
 #include <thread>
 #include <mutex>
 #include "pipeline/graph/node.h"
-#include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/opencv.hpp>
+#include <opencv2/videoio.hpp>
+#include <opencv2/highgui.hpp>
 
 namespace pipe {
 
@@ -49,6 +51,8 @@ public:
         return;
       }
 
+
+#if CV_VERSION_MAJOR < 4
       double rate = cap.get(CV_CAP_PROP_FPS);
       fprintf(stdout, "rate %lf\n", rate);
       fprintf(stdout, "pan %lf\n", cap.get(CV_CAP_PROP_PAN));
@@ -60,6 +64,9 @@ public:
       fprintf(stdout, "saturation = %.2f\n",cap.get(CV_CAP_PROP_SATURATION));
       fprintf(stdout, "hue = %.2f\n",cap.get(CV_CAP_PROP_HUE));
       fprintf(stdout, "exposure = %.2f\n",cap.get(CV_CAP_PROP_EXPOSURE));
+#else 
+      double rate = cap.get(cv::VideoCaptureProperties::CAP_PROP_FPS);
+#endif
 
       while (true) {
         cv::Mat mat;
