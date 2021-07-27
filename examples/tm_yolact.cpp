@@ -39,7 +39,7 @@
  * https://opensource.org/licenses/BSD-3-Clause
  */
 
-#include <unistd.h>
+#include <float.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <vector>

@@ -1,4 +1,3 @@
-#include <unistd.h>
 #include <iostream>
 #include <iomanip>
 #include <string>
@@ -224,8 +223,8 @@ int main(int argc, char* argv[])
     get_input_data_pose(frame, input_data, img_h, img_w);
 
     /* run graph */
-    double min_time = __DBL_MAX__;
-    double max_time = -__DBL_MAX__;
+    double min_time = DBL_MAX;
+    double max_time = -DBL_MAX;
     double total_time = 0.;
     for (int i = 0; i < 1; i++)
     {
