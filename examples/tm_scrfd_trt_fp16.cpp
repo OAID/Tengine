@@ -411,16 +411,16 @@ int main(int argc, char* argv[])
 
 
     /* create NVIDIA TensorRT backend */
-    trt_option trt_opt={0};
-    trt_opt.dev_name="TensorRT";
-    trt_opt.dla_index=0;
-    trt_opt.gpu_index=0;
-    trt_opt.precision=TENGINE_DT_FP16;
+    trt_option trt_opt;
+    trt_opt.dev_name = "TensorRT";
+    trt_opt.dla_index = 0;
+    trt_opt.gpu_index = 0;
+    trt_opt.precision = TENGINE_DT_FP16;
     context_t trt_context = create_context("trt", 1);
-    int rtt = set_context_device(trt_context, "TensorRT",&trt_opt,sizeof(trt_opt));
+    int rtt = set_context_device(trt_context, "TensorRT", &trt_opt, sizeof(trt_opt));
     if (0 > rtt)
     {
-        fprintf(stderr, " add_context_device NV TensorRT DEVICE failed.\n");
+        fprintf(stderr, "set_context_device NV TensorRT DEVICE failed.\n");
         return -1;
     }
 
