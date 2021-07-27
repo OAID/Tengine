@@ -261,7 +261,7 @@ int add_node_below(ir_graph_t* graph, int16_t up_node_id, int add_node_type, con
     // insert id
     /* get min id from down nodes */
     int16_t down_node_id = graph->node_num;
-    for (auto& id:down_nodes)
+    for (auto& id : down_nodes)
     {
         if (id < down_node_id)
         {
@@ -330,7 +330,7 @@ int add_node_above(ir_graph_t* graph, int16_t down_node_id, int add_node_type, c
                 graph->input_nodes[i] = add_node->index;
         }
     }
-    
+
     /* insert node id */
     if (insert_node_id(graph, add_node->index, down_node_id) < 0)
         return -1;

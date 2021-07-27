@@ -632,7 +632,7 @@ int deal_old_softmax(ir_graph_t* graph)
     }
 
     // support old spec onnx softmax.
-    for(auto& node:old_spec_softmax_nodes)
+    for (auto& node : old_spec_softmax_nodes)
     {
         ir_tensor_t* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
         struct softmax_param* param = (struct softmax_param*)node->op.param_mem;
@@ -657,7 +657,7 @@ int deal_old_softmax(ir_graph_t* graph)
         }
         reshape_in_param->is_onnx = 1;
         reshape_in_param->dim_size = re_shape.size();
-        reshape_in_param->re_shape = (int*) sys_malloc(reshape_in_param->dim_size * sizeof(int));
+        reshape_in_param->re_shape = (int*)sys_malloc(reshape_in_param->dim_size * sizeof(int));
         for (int j = 0; j < reshape_in_param->dim_size; ++j)
         {
             reshape_in_param->re_shape[j] = re_shape[j];
@@ -670,7 +670,7 @@ int deal_old_softmax(ir_graph_t* graph)
         struct reshape_param* reshape_out_param = (struct reshape_param*)reshape_out->op.param_mem;
         reshape_out_param->is_onnx = 1;
         reshape_out_param->dim_size = input->dim_num;
-        reshape_out_param->re_shape = (int*) sys_malloc(reshape_out_param->dim_size * sizeof(int));
+        reshape_out_param->re_shape = (int*)sys_malloc(reshape_out_param->dim_size * sizeof(int));
         for (int j = 0; j < reshape_out_param->dim_size; ++j)
         {
             reshape_out_param->re_shape[j] = input->dims[j];
@@ -2122,7 +2122,7 @@ int load_resize(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_
         const std::string& size_name = onnx_node.input(3); // sizes
         ir_tensor_t* size_tensor = find_tensor(graph, size_name);
 
-        int64_t* output_dims = ( int64_t * )size_tensor->data;
+        int64_t* output_dims = (int64_t*)size_tensor->data;
         if (size_tensor->elem_num == 4)
         {
             interp_param->output_height = output_dims[2];
