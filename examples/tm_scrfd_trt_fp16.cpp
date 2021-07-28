@@ -270,8 +270,8 @@ static void draw_objects(const cv::Mat& bgr, const std::vector<FaceObject>& obje
 void show_usage()
 {
     fprintf(
-                stderr,
-                "[Usage]:  [-h]\n    [-m model_file] [-i image_file] [-r repeat_count] [-t thread_count]\n");
+        stderr,
+        "[Usage]:  [-h]\n    [-m model_file] [-i image_file] [-r repeat_count] [-t thread_count]\n");
 }
 
 void get_input_data_scrfd(const char* image_file, float* input_data, int letterbox_rows, int letterbox_cols, const float* mean, const float* scale)
@@ -334,8 +334,8 @@ int main(int argc, char* argv[])
     const char* image_file = nullptr;
 
     int img_c = 3;
-    const float mean[3] = { 127.5f, 127.5f, 127.5f };
-    const float scale[3] = { 1 / 128.f, 1 / 128.f, 1 / 128.f };
+    const float mean[3] = {127.5f, 127.5f, 127.5f};
+    const float scale[3] = {1 / 128.f, 1 / 128.f, 1 / 128.f};
 
     // allow none square letterbox, set default letterbox size
     int letterbox_rows = 320;
@@ -409,9 +409,8 @@ int main(int argc, char* argv[])
     }
     fprintf(stderr, "tengine-lite library version: %s\n", get_tengine_version());
 
-
     /* create NVIDIA TensorRT backend */
-    trt_option trt_opt = { 0 };
+    trt_option trt_opt = {0};
     trt_opt.dev_name = "TensorRT";
     trt_opt.dla_index = 0;
     trt_opt.gpu_index = 0;
@@ -424,7 +423,6 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-
     /* create graph, load tengine model xxx.tmfile */
     graph_t graph = create_graph(trt_context, "tengine", model_file);
     if (graph == nullptr)
@@ -434,7 +432,7 @@ int main(int argc, char* argv[])
     }
 
     int img_size = letterbox_rows * letterbox_cols * img_c;
-    int dims[] = { 1, 3, letterbox_rows, letterbox_cols };
+    int dims[] = {1, 3, letterbox_rows, letterbox_cols};
     std::vector<float> input_data(img_size);
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
@@ -485,7 +483,7 @@ int main(int argc, char* argv[])
         max_time = (std::max)(max_time, cur);
     }
     fprintf(stderr, "Repeat %d times, thread %d, avg time %.2f ms, max_time %.2f ms, min_time %.2f ms\n", repeat_count, num_thread,
-        total_time / repeat_count, max_time, min_time);
+            total_time / repeat_count, max_time, min_time);
     fprintf(stderr, "--------------------------------------\n");
 
     /* postprocess */
@@ -493,7 +491,7 @@ int main(int argc, char* argv[])
     const float nms_threshold = 0.45f;
 
     std::vector<FaceObject> proposals, objects;
-    int strides[] = { 8, 16, 32 };
+    int strides[] = {8, 16, 32};
     for (int stride_index = 0; stride_index < 3; stride_index++)
     {
         tensor_t score_tensor = get_graph_tensor(graph, score_pred_name[stride_index]);
