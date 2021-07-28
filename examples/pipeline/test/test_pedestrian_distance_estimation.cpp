@@ -80,6 +80,9 @@ int main() {
     int raw_w = WIDTH;
 
     Box<int> boxes[num] = {0};
+    for (int i = 0; i < num; ++i) {
+      boxes[i] = {0};
+    }
     int box_count = 0;
 
     fprintf(stderr, "detect result num: %d \n", num);
