@@ -51,6 +51,7 @@ ENDIF()
 # Module options
 OPTION (TENGINE_BUILD_BENCHMARK             "Build benchmark"                           ON)
 OPTION (TENGINE_BUILD_EXAMPLES              "Build examples"                            ON)
+OPTION (TENGINE_BUILD_DEMO                  "Build demos"                               ON)
 OPTION (TENGINE_BUILD_TESTS                 "Build tests"                               OFF)
 OPTION (TENGINE_BUILD_CPP_API               "Build C++ API"                             OFF)
 
@@ -85,6 +86,8 @@ OPTION (TENGINE_DEBUG_TIME                  "Print execution time for each layer
 OPTION (TENGINE_DEBUG_MEM_STAT              "Print memory status for library"           OFF)
 OPTION (TENGINE_ENABLE_ALL_SYMBOL           "All symbol visible"                        OFF)
 
+# Experimental optinos
+OPTION (TENGINE_ENABLE_MODEL_CACHE          "NPU kernel cache file option"              ON)
 
 # Do check list
 INCLUDE ("${CMAKE_CURRENT_SOURCE_DIR}/cmake/check.cmake")
@@ -117,6 +120,10 @@ ENDIF()
 
 IF (TENGINE_BUILD_EXAMPLES)
     ADD_SUBDIRECTORY(examples)
+ENDIF()
+
+IF (TENGINE_BUILD_DEMO)
+    ADD_SUBDIRECTORY(demos)
 ENDIF()
 
 IF (TENGINE_BUILD_TESTS)

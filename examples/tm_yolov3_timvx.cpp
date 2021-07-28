@@ -133,7 +133,8 @@ static void nms_sorted_bboxes(const std::vector<Object>& faceobjects, std::vecto
     }
 }
 
-void get_input_data_yolov3(const char* image_file, float* input_data, int img_h, int img_w, const float* mean, const float* scale)
+void get_input_data_yolov3_uint8(const char* image_file, uint8_t * input_data, int img_h, int img_w, const float* mean, const float* scale,
+                                 float input_scale, int zero_point)
 {
     cv::Mat sample = cv::imread(image_file, 1);
     cv::Mat img;
@@ -156,7 +157,16 @@ void get_input_data_yolov3(const char* image_file, float* input_data, int img_h,
             {
                 int in_index  = h * img_w * 3 + w * 3 + c;
                 int out_index = c * img_h * img_w + h * img_w + w;
-                input_data[out_index] = (img_data[in_index] - mean[c]) * scale[c];
+                float input_fp32 = (img_data[in_index] - mean[c]) * scale[c];
+
+                /* quant to uint8 */
+                int udata = (round)(input_fp32 / input_scale + ( float )zero_point);
+                if (udata > 255)
+                    udata = 255;
+                else if (udata < 0)
+                    udata = 0;
+
+                input_data[out_index] = udata;
             }
         }
     }
@@ -189,7 +199,7 @@ static void generate_proposals(int stride, const float* feat, float prob_thresho
                 int channel_size = feat_h * feat_w;
                 for (int s = 0; s <= cls_num - 1; s++)
                 {
-                    int score_index = anchor * (cls_num + 5) * channel_size + feat_w * h + w + (s + 5) * channel_size;
+                    int score_index = anchor * 85 * channel_size + feat_w * h + w + (s + 5) * channel_size;
                     float score = feat[score_index];
                     if(score > class_score)
                     {
@@ -197,16 +207,17 @@ static void generate_proposals(int stride, const float* feat, float prob_thresho
                         class_score = score;
                     }
                 }
-                float box_score = feat[anchor * (cls_num + 5) * channel_size + feat_w * h + w + 4 * channel_size];
+                float box_score = feat[anchor * 85 * channel_size + feat_w * h + w + 4 * channel_size];
                 float final_score = sigmoid(box_score) * sigmoid(class_score);
                 if(final_score >= prob_threshold)
                 {
-                    int dx_index = anchor * (cls_num + 5) * channel_size + feat_w * h + w + 0 * channel_size;
-                    int dy_index = anchor * (cls_num + 5) * channel_size + feat_w * h + w + 1 * channel_size;
-                    int dw_index = anchor * (cls_num + 5) * channel_size + feat_w * h + w + 2 * channel_size;
-                    int dh_index = anchor * (cls_num + 5) * channel_size + feat_w * h + w + 3 * channel_size;
+                    int dx_index = anchor * 85 * channel_size + feat_w * h + w + 0 * channel_size;
+                    int dy_index = anchor * 85 * channel_size + feat_w * h + w + 1 * channel_size;
+                    int dw_index = anchor * 85 * channel_size + feat_w * h + w + 2 * channel_size;
+                    int dh_index = anchor * 85 * channel_size + feat_w * h + w + 3 * channel_size;
 
                     float dx = sigmoid(feat[dx_index]);
+                    
                     float dy = sigmoid(feat[dy_index]);
 
                     float dw = feat[dw_index];
@@ -220,6 +231,7 @@ static void generate_proposals(int stride, const float* feat, float prob_thresho
                     float pred_w = exp(dw) * anchor_w;
                     float pred_h = exp(dh) * anchor_h;
                     
+	           
                     float x0 = (pred_x - pred_w * 0.5f);
                     float y0 = (pred_y - pred_h * 0.5f);
                     float x1 = (pred_x + pred_w * 0.5f);
@@ -284,7 +296,7 @@ static void draw_objects(const cv::Mat& bgr, const std::vector<Object>& objects)
                     cv::Scalar(0, 0, 0));
     }
 
-    cv::imwrite("yolov3_out.jpg", image);
+    cv::imwrite("yolov3_uint8_out.jpg", image);
 }
 
 void show_usage()
@@ -361,7 +373,7 @@ int main(int argc, char* argv[])
     struct options opt;
     opt.num_thread = num_thread;
     opt.cluster = TENGINE_CLUSTER_ALL;
-    opt.precision = TENGINE_MODE_FP32;
+    opt.precision = TENGINE_MODE_UINT8;
     opt.affinity = 0;
 
     /* inital tengine */
@@ -372,8 +384,17 @@ int main(int argc, char* argv[])
     }
     fprintf(stderr, "tengine-lite library version: %s\n", get_tengine_version());
 
+    /* create VeriSilicon TIM-VX backend */
+    context_t timvx_context = create_context("timvx", 1);
+    int rtt = set_context_device(timvx_context, "TIMVX", nullptr, 0);
+    if (0 > rtt)
+    {
+        fprintf(stderr, " add_context_device VSI DEVICE failed.\n");
+        return -1;
+    }
+
     /* create graph, load tengine model xxx.tmfile */
-    graph_t graph = create_graph(nullptr, "tengine", model_file);
+    graph_t graph = create_graph(timvx_context, "tengine", model_file);
     if (graph == nullptr)
     {
         fprintf(stderr, "Create graph failed.\n");
@@ -382,7 +403,7 @@ int main(int argc, char* argv[])
 
     int img_size = img_h * img_w * img_c;
     int dims[] = {1, 3, img_h, img_w};
-    std::vector<float> input_data(img_size);
+    std::vector<uint8_t> input_data(img_size);
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == nullptr)
@@ -397,7 +418,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    if (set_tensor_buffer(input_tensor, input_data.data(), img_size * sizeof(float)) < 0)
+    if (set_tensor_buffer(input_tensor, input_data.data(), img_size) < 0)
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;
@@ -411,7 +432,10 @@ int main(int argc, char* argv[])
     }
 
     /* prepare process input data, set the data mem to input tensor */
-    get_input_data_yolov3(image_file, input_data.data(), img_h, img_w, mean, scale);
+    float input_scale = 0.f;
+    int input_zero_point = 0;
+    get_tensor_quant_param(input_tensor, &input_scale, &input_zero_point, 1);
+    get_input_data_yolov3_uint8(image_file, input_data.data(), img_h, img_w, mean, scale, input_scale, input_zero_point);
 
     /* run graph */
     double min_time = DBL_MAX;
@@ -435,13 +459,48 @@ int main(int argc, char* argv[])
             total_time/repeat_count, max_time, min_time);
     fprintf(stderr, "--------------------------------------\n");
 
+    /* dequant output data */
     tensor_t p8_output  = get_graph_output_tensor(graph, 2, 0);
     tensor_t p16_output = get_graph_output_tensor(graph, 1, 0);
     tensor_t p32_output = get_graph_output_tensor(graph, 0, 0);
-    
-    float* p8_data  = ( float*)get_tensor_buffer(p8_output);
-    float* p16_data = ( float*)get_tensor_buffer(p16_output);
-    float* p32_data = ( float*)get_tensor_buffer(p32_output);
+
+    float p8_scale  = 0.f;
+    float p16_scale = 0.f;
+    float p32_scale = 0.f;
+    int p8_zero_point  = 0;
+    int p16_zero_point = 0;
+    int p32_zero_point = 0;
+
+    get_tensor_quant_param(p8_output, &p8_scale, &p8_zero_point, 1);
+    get_tensor_quant_param(p16_output, &p16_scale, &p16_zero_point, 1);
+    get_tensor_quant_param(p32_output, &p32_scale, &p32_zero_point, 1);
+
+    int p8_count  = get_tensor_buffer_size(p8_output) / sizeof(uint8_t);
+    int p16_count = get_tensor_buffer_size(p16_output) / sizeof(uint8_t);
+    int p32_count = get_tensor_buffer_size(p32_output) / sizeof(uint8_t);
+
+    uint8_t* p8_data_u8  = ( uint8_t* )get_tensor_buffer(p8_output);
+    uint8_t* p16_data_u8 = ( uint8_t* )get_tensor_buffer(p16_output);
+    uint8_t* p32_data_u8 = ( uint8_t* )get_tensor_buffer(p32_output);
+
+    std::vector<float> p8_data(p8_count);
+    std::vector<float> p16_data(p16_count);
+    std::vector<float> p32_data(p32_count);
+
+    for (int c = 0; c < p8_count; c++)
+    {
+        p8_data[c] = (( float )p8_data_u8[c] - ( float )p8_zero_point) * p8_scale;
+    }
+
+    for (int c = 0; c < p16_count; c++)
+    {
+        p16_data[c] = (( float )p16_data_u8[c] - ( float )p16_zero_point) * p16_scale;
+    }
+
+    for (int c = 0; c < p32_count; c++)
+    {
+        p32_data[c] = (( float )p32_data_u8[c] - ( float )p32_zero_point) * p32_scale;
+    }
 
     /* postprocess */
     const float prob_threshold = 0.4f;
@@ -453,11 +512,11 @@ int main(int argc, char* argv[])
     std::vector<Object> objects32;
     std::vector<Object> objects;
 
-    generate_proposals(32, p32_data, prob_threshold, objects32);
+    generate_proposals(32, p32_data.data(), prob_threshold, objects32);
     proposals.insert(proposals.end(), objects32.begin(), objects32.end());
-    generate_proposals(16, p16_data, prob_threshold, objects16);
+    generate_proposals(16, p16_data.data(), prob_threshold, objects16);
     proposals.insert(proposals.end(), objects16.begin(), objects16.end());
-    generate_proposals(8, p8_data, prob_threshold, objects8);
+    generate_proposals(8, p8_data.data(), prob_threshold, objects8);
     proposals.insert(proposals.end(), objects8.begin(), objects8.end());
 
     qsort_descent_inplace(proposals);
