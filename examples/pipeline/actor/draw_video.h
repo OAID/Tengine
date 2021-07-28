@@ -27,27 +27,36 @@
 
 namespace pipe {
 
-class DrawVideo : public Node<Param<cv::Mat>, Param<void>> {
+class DrawVideo : public Node<Param<cv::Mat>, Param<void> >
+{
 public:
-  DrawVideo(const std::string& name = "window"): m_window_name(name) {}
-
-  void exec() override {
-    cv::Mat mat;
-    while (true) {
-
-      auto suc = input<0>()->pop(mat);
-      if (not suc) {
-        continue;
-      }
-      cv::imshow(m_window_name, mat);
-      cv::waitKey(1);
+    DrawVideo(const std::string& name = "window")
+        : m_window_name(name)
+    {
     }
-  }
 
-  ~DrawVideo() { cv::destroyAllWindows(); }
-  
+    void exec() override
+    {
+        cv::Mat mat;
+        while (true)
+        {
+            auto suc = input<0>()->pop(mat);
+            if (not suc)
+            {
+                continue;
+            }
+            cv::imshow(m_window_name, mat);
+            cv::waitKey(1);
+        }
+    }
+
+    ~DrawVideo()
+    {
+        cv::destroyAllWindows();
+    }
+
 private:
-  std::string m_window_name;
+    std::string m_window_name;
 };
 
 } // namespace pipe

@@ -28,16 +28,17 @@
 #include <opencv2/opencv.hpp>
 using namespace pipe;
 
-int main() {
-  Graph g;
-  auto cam = g.add_node<VideoCamera>();
-  auto draw = g.add_node<DrawVideo>();
+int main()
+{
+    Graph g;
+    auto cam = g.add_node<VideoCamera>();
+    auto draw = g.add_node<DrawVideo>();
 
-  auto cam_draw = g.add_edge<InstantEdge<cv::Mat>>(100);
+    auto cam_draw = g.add_edge<InstantEdge<cv::Mat> >(100);
 
-  cam->set_output<0>(cam_draw);
-  draw->set_input<0>(cam_draw);
+    cam->set_output<0>(cam_draw);
+    draw->set_input<0>(cam_draw);
 
-  g.start();
-  std::this_thread::sleep_for(std::chrono::milliseconds(60000));
+    g.start();
+    std::this_thread::sleep_for(std::chrono::milliseconds(60000));
 }
