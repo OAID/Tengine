@@ -83,6 +83,7 @@ ENDIF()
 
 IF(TENGINE_ENABLE_TENSORRT)
     TENGINE_EXAMPLE (tm_classification_trt       tm_classification_trt.cpp)
+    TENGINE_EXAMPLE (tm_scrfd_trt_fp16           tm_scrfd_trt_fp16.cpp)
 ENDIF()
 
 IF(TENGINE_ENABLE_TIM_VX)
