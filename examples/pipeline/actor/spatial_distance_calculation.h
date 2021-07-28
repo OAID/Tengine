@@ -22,7 +22,7 @@
  * Author: tpoisonooo
  */
 #pragma once
-#include "../graph/node.h"
+#include "pipeline/graph/node.h"
 #include <opencv2/opencv.hpp>
 #include <numeric>
 #include <deque>
