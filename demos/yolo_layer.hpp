@@ -29,5 +29,4 @@
 
 #include <vector>
 
-
-int pose_process(graph_t graph, int image_width, int image_height, int net_width, int net_height, std::vector<Object> &boxes);
+int pose_process(graph_t graph, int image_width, int image_height, int net_width, int net_height, std::vector<Object>& boxes);

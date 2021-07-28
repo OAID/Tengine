@@ -35,7 +35,6 @@
 
 #include <opencv2/opencv.hpp>
 
-
 using namespace std;
 
 struct Object_CV
@@ -144,11 +143,11 @@ static void generate_proposals(int net_width, int net_height, int stride, const 
     int feat_h = net_height / stride;
     int cls_num = 80;
     int anchor_group = 0;
-    if(stride == 8)
+    if (stride == 8)
         anchor_group = 1;
-    if(stride == 16)
+    if (stride == 16)
         anchor_group = 2;
-    if(stride == 32)
+    if (stride == 32)
         anchor_group = 3;
     //printf("anchor_group:%d\n",anchor_group);
     for (int h = 0; h <= feat_h - 1; h++)
@@ -164,7 +163,7 @@ static void generate_proposals(int net_width, int net_height, int stride, const 
                 {
                     int score_index = anchor * 85 * channel_size + feat_w * h + w + (s + 5) * channel_size;
                     float score = feat[score_index];
-                    if(score > class_score)
+                    if (score > class_score)
                     {
                         class_index = s;
                         class_score = score;
@@ -172,7 +171,7 @@ static void generate_proposals(int net_width, int net_height, int stride, const 
                 }
                 float box_score = feat[anchor * 85 * channel_size + feat_w * h + w + 4 * channel_size];
                 float final_score = sigmoid(box_score) * sigmoid(class_score);
-                if(final_score >= prob_threshold)
+                if (final_score >= prob_threshold)
                 {
                     int dx_index = anchor * 85 * channel_size + feat_w * h + w + 0 * channel_size;
                     int dy_index = anchor * 85 * channel_size + feat_w * h + w + 1 * channel_size;
@@ -194,7 +193,6 @@ static void generate_proposals(int net_width, int net_height, int stride, const 
                     float pred_w = exp(dw) * anchor_w;
                     float pred_h = exp(dh) * anchor_h;
 
-
                     float x0 = (pred_x - pred_w * 0.5f);
                     float y0 = (pred_y - pred_h * 0.5f);
                     float x1 = (pred_x + pred_w * 0.5f);
@@ -214,17 +212,17 @@ static void generate_proposals(int net_width, int net_height, int stride, const 
     }
 }
 
-int pose_process(graph_t graph, int image_width, int image_height, int net_width, int net_height, std::vector<Object> &boxes)
+int pose_process(graph_t graph, int image_width, int image_height, int net_width, int net_height, std::vector<Object>& boxes)
 {
     /* dequant output data */
-    tensor_t p8_output  = get_graph_output_tensor(graph, 2, 0);
+    tensor_t p8_output = get_graph_output_tensor(graph, 2, 0);
     tensor_t p16_output = get_graph_output_tensor(graph, 1, 0);
     tensor_t p32_output = get_graph_output_tensor(graph, 0, 0);
 
-    float p8_scale  = 0.f;
+    float p8_scale = 0.f;
     float p16_scale = 0.f;
     float p32_scale = 0.f;
-    int p8_zero_point  = 0;
+    int p8_zero_point = 0;
     int p16_zero_point = 0;
     int p32_zero_point = 0;
 
@@ -232,13 +230,13 @@ int pose_process(graph_t graph, int image_width, int image_height, int net_width
     get_tensor_quant_param(p16_output, &p16_scale, &p16_zero_point, 1);
     get_tensor_quant_param(p32_output, &p32_scale, &p32_zero_point, 1);
 
-    int p8_count  = get_tensor_buffer_size(p8_output) / sizeof(uint8_t);
+    int p8_count = get_tensor_buffer_size(p8_output) / sizeof(uint8_t);
     int p16_count = get_tensor_buffer_size(p16_output) / sizeof(uint8_t);
     int p32_count = get_tensor_buffer_size(p32_output) / sizeof(uint8_t);
 
-    uint8_t* p8_data_u8  = ( uint8_t* )get_tensor_buffer(p8_output);
-    uint8_t* p16_data_u8 = ( uint8_t* )get_tensor_buffer(p16_output);
-    uint8_t* p32_data_u8 = ( uint8_t* )get_tensor_buffer(p32_output);
+    uint8_t* p8_data_u8 = (uint8_t*)get_tensor_buffer(p8_output);
+    uint8_t* p16_data_u8 = (uint8_t*)get_tensor_buffer(p16_output);
+    uint8_t* p32_data_u8 = (uint8_t*)get_tensor_buffer(p32_output);
 
     std::vector<float> p8_data(p8_count);
     std::vector<float> p16_data(p16_count);
@@ -246,17 +244,17 @@ int pose_process(graph_t graph, int image_width, int image_height, int net_width
 
     for (int c = 0; c < p8_count; c++)
     {
-        p8_data[c] = (( float )p8_data_u8[c] - ( float )p8_zero_point) * p8_scale;
+        p8_data[c] = ((float)p8_data_u8[c] - (float)p8_zero_point) * p8_scale;
     }
 
     for (int c = 0; c < p16_count; c++)
     {
-        p16_data[c] = (( float )p16_data_u8[c] - ( float )p16_zero_point) * p16_scale;
+        p16_data[c] = ((float)p16_data_u8[c] - (float)p16_zero_point) * p16_scale;
     }
 
     for (int c = 0; c < p32_count; c++)
     {
-        p32_data[c] = (( float )p32_data_u8[c] - ( float )p32_zero_point) * p32_scale;
+        p32_data[c] = ((float)p32_data_u8[c] - (float)p32_zero_point) * p32_scale;
     }
 
     /* postprocess */
@@ -299,7 +297,7 @@ int pose_process(graph_t graph, int image_width, int image_height, int net_width
     float ratio_y = (float)image_width / resize_cols;
 
     int count = picked.size();
-//    fprintf(stderr, "detection num: %d\n",count);
+    //    fprintf(stderr, "detection num: %d\n",count);
 
     boxes.resize(count);
     objects.resize(count);
@@ -317,7 +315,7 @@ int pose_process(graph_t graph, int image_width, int image_height, int net_width
         y1 = (y1 - tmp_h) * ratio_y;
 
         x0 = std::max(std::min(x0, (float)(image_width - 1)), 0.f);
-        y0 = std::max(std::min(y0, (float)(image_height- 1)), 0.f);
+        y0 = std::max(std::min(y0, (float)(image_height - 1)), 0.f);
         x1 = std::max(std::min(x1, (float)(image_width - 1)), 0.f);
         y1 = std::max(std::min(y1, (float)(image_height - 1)), 0.f);
 

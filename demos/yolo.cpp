@@ -27,7 +27,6 @@
 
 #include "timer.hpp"
 
-
 //#define DEBUG
 #define RUNTIME_DEVICE "TIMVX"
 
@@ -41,11 +40,10 @@ const float hier_thresh = 0.5;
 const float nms_threshold = 0.45f;
 const int relative = 1;
 
-
 YOLO::YOLO(const std::string& model, const int& w, const int& h, const std::array<float, 3>& model_scale, const std::array<float, 3>& model_bias)
 {
     this->scale = model_scale;
-    this->bias  = model_bias;
+    this->bias = model_bias;
     this->width = w;
     this->height = h;
     this->init_done = false;
@@ -87,7 +85,6 @@ YOLO::YOLO(const std::string& model, const int& w, const int& h, const std::arra
     }
 }
 
-
 YOLO::~YOLO()
 {
     postrun_graph(this->graph);
@@ -95,8 +92,7 @@ YOLO::~YOLO()
     destroy_context(this->context);
 }
 
-
-int YOLO::detect(const cv::Mat &image, std::vector<Object> &objects)
+int YOLO::detect(const cv::Mat& image, std::vector<Object>& objects)
 {
     if (nullptr == this->graph)
     {
@@ -105,7 +101,7 @@ int YOLO::detect(const cv::Mat &image, std::vector<Object> &objects)
     }
 
     /* initial the graph and prerun graph */
-    if (! this->init_done)
+    if (!this->init_done)
     {
         int ret = this->init();
         if (0 != ret)
@@ -160,7 +156,7 @@ int YOLO::detect(const cv::Mat &image, std::vector<Object> &objects)
     cv::copyMakeBorder(img, img_new, top, bot, left, right, cv::BORDER_CONSTANT, cv::Scalar(114, 114, 114));
     img_new.convertTo(img_new, CV_32FC3);
 
-//    cv::imwrite("process_img.jpg", img_new);
+    //    cv::imwrite("process_img.jpg", img_new);
 
     float* img_data = (float*)img_new.data;
     uint8_t* input_data = this->input_uint8.data();
@@ -214,7 +210,6 @@ int YOLO::detect(const cv::Mat &image, std::vector<Object> &objects)
     return 0;
 }
 
-
 int YOLO::init()
 {
     Timer timer;
@@ -227,7 +222,7 @@ int YOLO::init()
         return -1;
     }
 
-    int input_dims[] = { 1, 3, this->height, this->width };
+    int input_dims[] = {1, 3, this->height, this->width};
     int ret = set_tensor_shape(input_tensor, input_dims, 4);
     if (0 != ret)
     {
@@ -255,9 +250,7 @@ int YOLO::init()
     return 0;
 }
 
-
-void YOLO::run_post(int image_width, int image_height, std::vector<Object> &boxes)
+void YOLO::run_post(int image_width, int image_height, std::vector<Object>& boxes)
 {
     pose_process(this->graph, image_width, image_height, this->width, this->height, boxes);
 }
-

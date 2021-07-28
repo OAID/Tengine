@@ -30,16 +30,15 @@
 #include <sys/time.h>
 #endif // _WINDOWS
 
-
 double Timer::get_current_time() const
 {
 #ifdef _WINDOWS
     LARGE_INTEGER freq;
-		LARGE_INTEGER pc;
-		QueryPerformanceFrequency(&freq);
-		QueryPerformanceCounter(&pc);
+    LARGE_INTEGER pc;
+    QueryPerformanceFrequency(&freq);
+    QueryPerformanceCounter(&pc);
 
-		return pc.QuadPart * 1000.0 / freq.QuadPart;
+    return pc.QuadPart * 1000.0 / freq.QuadPart;
 #else // _WINDOWS
     struct timeval tv;
     gettimeofday(&tv, nullptr);
@@ -48,13 +47,11 @@ double Timer::get_current_time() const
 #endif
 }
 
-
 Timer::Timer()
 {
     start_time_ = get_current_time();
     end_time_ = start_time_;
 }
-
 
 void Timer::Start()
 {
@@ -62,12 +59,10 @@ void Timer::Start()
     end_time_ = start_time_;
 }
 
-
 void Timer::Stop()
 {
     end_time_ = get_current_time();
 }
-
 
 double Timer::TimeCost()
 {

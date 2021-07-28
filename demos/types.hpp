@@ -24,7 +24,6 @@
 
 #pragma once
 
-
 struct Region
 {
     float confidence;
@@ -36,7 +35,7 @@ struct Region
 
 struct Object
 {
-    int   label;
+    int label;
     float score;
     float x;
     float y;

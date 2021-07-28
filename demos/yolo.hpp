@@ -34,7 +34,6 @@
 #include <string>
 #include <vector>
 
-
 class YOLO
 {
 public:
@@ -44,19 +43,19 @@ public:
 
 private:
     int init();
-    void run_post(int image_width, int image_height, std::vector<Object> &boxes);
+    void run_post(int image_width, int image_height, std::vector<Object>& boxes);
 
 private:
     context_t context;
-    graph_t   graph;
+    graph_t graph;
 
     int width;
     int height;
 
     std::vector<uint8_t> input_uint8;
-    std::vector<float>    input_float;
+    std::vector<float> input_float;
 
-    std::vector<std::vector<float>> output_float;
+    std::vector<std::vector<float> > output_float;
 
     std::vector<uint8_t> canvas;
     std::vector<uint8_t> canvas_permute;
