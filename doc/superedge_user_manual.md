@@ -52,7 +52,7 @@ WORKDIR /root/myapp/
 USER openailab
 CMD ["./demo_yolo_camera"]
 ```
-[Tengine lite source code Download](http://www.baidu.com "Tengine lite source code Download")
+[demo_videocapture user manual](https://github.com/OAID/Tengine/blob/tengine-lite/doc/demo_videocapture_user_manual.md "demo_videocapture user manual")
 
 ### RUN yolo docker container on  Khadas VIM3 Device
 
