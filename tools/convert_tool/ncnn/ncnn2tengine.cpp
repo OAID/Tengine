@@ -1498,6 +1498,7 @@ void ncnn_serializer::register_op_load()
     op_load_map["Slice"] = std::pair<int, op_load_t>(OP_SLICE, load_slice);
     op_load_map["Sigmoid"] = std::pair<int, op_load_t>(OP_SIGMOID, load_no_param);
     op_load_map["UnaryOp"] = std::pair<int, op_load_t>(OP_UNARY, load_unary);
+    op_load_map["Deconvolution"] = std::pair<int, op_load_t>(OP_DECONV, load_deconv);
     op_load_map["DeconvolutionDepthWise"] = std::pair<int, op_load_t>(OP_DECONV, load_deconv);
 }
 /*
