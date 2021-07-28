@@ -1112,11 +1112,14 @@ int load_clip(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_no
     {
         ir_tensor_t* min = find_tensor(graph, onnx_node.input(1));
         ir_tensor_t* max = find_tensor(graph, onnx_node.input(2));
-        float* min_data = (float*)min->data;
-        float* max_data = (float*)max->data;
-        clip_param->min = min_data[0];
-        clip_param->max = max_data[0];
-        node->input_num = 1;
+        if (min->tensor_type == TENSOR_TYPE_CONST && max->tensor_type == TENSOR_TYPE_CONST)
+        {
+            float* min_data = (float*)min->data;
+            float* max_data = (float*)max->data;
+            clip_param->min = min_data[0];
+            clip_param->max = max_data[0];
+            node->input_num = 1;
+        }
     }
 
     return 0;
