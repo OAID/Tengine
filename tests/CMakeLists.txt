@@ -156,6 +156,8 @@ if(PROTOBUF_FOUND)
     tengine_onnx_op_test(test_onnx_op_averagepool_2d_pads           op/test_onnx_op_averagepool_2d_pads.cpp)
     tengine_onnx_op_test(test_onnx_op_basic_conv_with_padding       op/test_onnx_op_basic_conv_with_padding.cpp)
     tengine_onnx_op_test(test_onnx_op_basic_conv_without_padding    op/test_onnx_op_basic_conv_without_padding.cpp)
+    # tengine_onnx_op_test(test_onnx_op_batchnorm_epsilon             op/test_onnx_op_batchnorm_epsilon.cpp) #test_faild
+    # tengine_onnx_op_test(test_onnx_op_batchnorm_example             op/test_onnx_op_batchnorm_example.cpp) #test_faild
     tengine_onnx_op_test(test_onnx_op_ceil                          op/test_onnx_op_ceil.cpp)
     tengine_onnx_op_test(test_onnx_op_clip_example                  op/test_onnx_op_clip_example.cpp)
     # tengine_onnx_op_test(test_onnx_op_concat_1d_axis_0              op/test_onnx_op_concat_1d_axis_0.cpp)
