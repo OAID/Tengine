@@ -83,7 +83,6 @@ ENDIF()
 
 IF(TENGINE_ENABLE_TENSORRT)
     TENGINE_EXAMPLE (tm_classification_trt       tm_classification_trt.cpp)
-    TENGINE_EXAMPLE (tm_scrfd_trt_fp16           tm_scrfd_trt_fp16.cpp)
 ENDIF()
 
 IF(TENGINE_ENABLE_TIM_VX)
@@ -148,6 +147,9 @@ IF (OpenCV_FOUND)
         TENGINE_EXAMPLE_CV (tm_hrnet_timvx           tm_hrnet_timvx.cpp)
         TENGINE_EXAMPLE_CV (tm_nanodet_m_timvx       tm_nanodet_m_timvx.cpp)
         TENGINE_EXAMPLE_CV (tm_yolox_timvx           tm_yolox_timvx.cpp)
+    ENDIF()
+    IF(TENGINE_ENABLE_TENSORRT)
+        TENGINE_EXAMPLE_CV (tm_scrfd_trt_fp16        tm_scrfd_trt_fp16.cpp)
     ENDIF()
 
     # TENGINE_EXAMPLE_CV(tm_pipeline_camera_preview   pipeline/test/test_camera_preview.cpp)
