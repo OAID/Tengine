@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include "priv/EngineAST.h"
+
 extern "C"
 {
 #include "device/device.h"

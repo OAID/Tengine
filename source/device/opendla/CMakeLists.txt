@@ -43,11 +43,21 @@ SET(_ODLA_ROOT ${CMAKE_SOURCE_DIR}/source/device/opendla)
 # 2.  add header file path
 LIST (APPEND _DEV_ODLA_HEADER_PATH        ${_ODLA_ROOT})
 LIST (APPEND _DEV_ODLA_HEADER_PATH        ${CMAKE_CURRENT_BINARY_DIR})
-LIST (APPEND _DEV_ODLA_HEADER_PATH        ${CMAKE_SOURCE_DIR}/source/device/opendla/include)
+LIST (APPEND _DEV_ODLA_HEADER_PATH        ${CMAKE_SOURCE_DIR}/source/device/opendla/include/)
+LIST (APPEND _DEV_ODLA_HEADER_PATH        ${CMAKE_SOURCE_DIR}/source/device/opendla/include/common)
+LIST (APPEND _DEV_ODLA_HEADER_PATH        ${CMAKE_SOURCE_DIR}/source/device/opendla/include/compiler)
+LIST (APPEND _DEV_ODLA_HEADER_PATH        ${CMAKE_SOURCE_DIR}/source/device/opendla/include/external)
+
+
+# 3.
+LIST (APPEND _DEV_ODLA_COMPILER_DEFINES    NVDLA_UTILS_ERROR_TAG="DLA")
 
 # 3.  add source files
 AUX_SOURCE_DIRECTORY ("${_ODLA_ROOT}"     _ODLA_BASE_SOURCE)
+AUX_SOURCE_DIRECTORY ("${_ODLA_ROOT}/context/engine-ast"  _ODLA_OPS_SOURCE)
 AUX_SOURCE_DIRECTORY ("${_ODLA_ROOT}/op"  _ODLA_OPS_SOURCE)
+AUX_SOURCE_DIRECTORY ("${_ODLA_ROOT}/port/linux"  _ODLA_OPS_SOURCE)
+
 LIST (APPEND _DEV_ODLA_DEVICE_SOURCE      ${_ODLA_BASE_SOURCE})
 LIST (APPEND _DEV_ODLA_DEVICE_SOURCE      ${_ODLA_OPS_SOURCE})
 
@@ -70,6 +80,8 @@ ENDIF()
 # 5.  add link options
 
 # 6.  add link libs
+LIST (APPEND _DEV_ODLA_LINK_PATH            ${_ODLA_ROOT}/lib)
+LIST (APPEND _DEV_ODLA_LINK_LIBRARIES       nvdla_compiler libprotobuf.a pthread)
 
 # 7. set all to cmake cache
 SET (TENGINE_ODLA_HEADER_PATH       ${_DEV_ODLA_HEADER_PATH}        CACHE INTERNAL  "Tengine ODLA device header files searching path"   FORCE)
