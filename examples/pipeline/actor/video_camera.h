@@ -24,78 +24,73 @@
 #pragma once
 #include <thread>
 #include <mutex>
-#include "../graph/node.h"
-#include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
+#include "pipeline/graph/node.h"
+#include <opencv2/core.hpp>
+#include <opencv2/opencv.hpp>
+#include <opencv2/videoio.hpp>
+#include <opencv2/highgui.hpp>
 
 namespace pipe {
 
-class VideoCamera : public Node<Param<void>, Param<cv::Mat> >
-{
+class VideoCamera : public Node<Param<void>, Param<cv::Mat>> {
 public:
-    VideoCamera(const std::string video_path = "")
-        : m_path(video_path)
-    {
-    }
+  VideoCamera(const std::string video_path = "") : m_path(video_path) {
+  }
 
-    void exec() override
-    {
-        std::call_once(flag, [&]() {
-            cv::VideoCapture cap;
-            if (m_path.empty())
-            {
-                cap.open(0);
-            }
-            else
-            {
-                cap.open(m_path);
-            }
+  void exec() override {
+    std::call_once(flag, [&]() {
+      cv::VideoCapture cap;
+      if (m_path.empty()) {
+        cap.open(0);
+      } else {
+        cap.open(m_path);
+      }
 
-            if (not cap.isOpened())
-            {
-                fprintf(stderr, "cannot open video %s\n", m_path.c_str());
-                return;
-            }
+      if (not cap.isOpened()) {
+        fprintf(stderr, "cannot open video %s\n", m_path.c_str());
+        return;
+      }
 
-            double rate = cap.get(CV_CAP_PROP_FPS);
-            fprintf(stdout, "rate %lf\n", rate);
-            fprintf(stdout, "pan %lf\n", cap.get(CV_CAP_PROP_PAN));
-            fprintf(stdout, "width = %.2f\n", cap.get(CV_CAP_PROP_FRAME_WIDTH));
-            fprintf(stdout, "height = %.2f\n", cap.get(CV_CAP_PROP_FRAME_HEIGHT));
-            fprintf(stdout, "fbs = %.2f\n", cap.get(CV_CAP_PROP_FPS));
-            fprintf(stdout, "brightness = %.2f\n", cap.get(CV_CAP_PROP_BRIGHTNESS));
-            fprintf(stdout, "contrast = %.2f\n", cap.get(CV_CAP_PROP_CONTRAST));
-            fprintf(stdout, "saturation = %.2f\n", cap.get(CV_CAP_PROP_SATURATION));
-            fprintf(stdout, "hue = %.2f\n", cap.get(CV_CAP_PROP_HUE));
-            fprintf(stdout, "exposure = %.2f\n", cap.get(CV_CAP_PROP_EXPOSURE));
 
-            while (true)
-            {
-                cv::Mat mat;
-                if (not cap.read(mat))
-                {
-                    break;
-                }
+#if CV_VERSION_MAJOR < 4
+      double rate = cap.get(CV_CAP_PROP_FPS);
+      fprintf(stdout, "rate %lf\n", rate);
+      fprintf(stdout, "pan %lf\n", cap.get(CV_CAP_PROP_PAN));
+      fprintf(stdout, "width = %.2f\n",cap.get(CV_CAP_PROP_FRAME_WIDTH));
+      fprintf(stdout, "height = %.2f\n",cap.get(CV_CAP_PROP_FRAME_HEIGHT));
+      fprintf(stdout, "fbs = %.2f\n",cap.get(CV_CAP_PROP_FPS));
+      fprintf(stdout, "brightness = %.2f\n",cap.get(CV_CAP_PROP_BRIGHTNESS));
+      fprintf(stdout, "contrast = %.2f\n",cap.get(CV_CAP_PROP_CONTRAST));
+      fprintf(stdout, "saturation = %.2f\n",cap.get(CV_CAP_PROP_SATURATION));
+      fprintf(stdout, "hue = %.2f\n",cap.get(CV_CAP_PROP_HUE));
+      fprintf(stdout, "exposure = %.2f\n",cap.get(CV_CAP_PROP_EXPOSURE));
+#else 
+      double rate = cap.get(cv::VideoCaptureProperties::CAP_PROP_FPS);
+#endif
 
-                if (mat.empty())
-                {
-                    break;
-                }
+      while (true) {
+        cv::Mat mat;
+        if (not cap.read(mat)) {
+          break;
+        }
 
-                auto success = output<0>()->try_push(mat.clone());
-                if (not success)
-                {
-                    fprintf(stdout, "drop " __FILE__ "\n");
-                }
-            }
+        if (mat.empty()) {
+          break;
+        }
 
-            cv::waitKey(1000 / std::max(1.0, rate));
-        });
-    }
+        auto success = output<0>()->try_push(mat.clone());
+        if (not success) {
+          fprintf(stdout, "drop " __FILE__ "\n");
+        }
+      }
+
+      cv::waitKey(1000 / std::max(1.0, rate));
+    });
+  }
 
 private:
-    std::string m_path;
-    std::once_flag flag;
+  std::string m_path;
+  std::once_flag flag;
 };
 
 } // namespace pipe
