@@ -29,7 +29,7 @@
 #include "graph/tensor.h"
 #include "operator/prototype/gather_param.h"
 
-int create_test_fc_node(graph_t graph, const char* input_name, const char* node_name, int data_type, int layout, int n, int c, int h, int w)
+int create_test_gather_node(graph_t graph, const char* input_name, const char* node_name, int data_type, int layout, int n, int c, int h, int w)
 {
     (void)layout;
     (void)n;
@@ -50,6 +50,14 @@ int create_test_fc_node(graph_t graph, const char* input_name, const char* node_
 
     /* input tensors of test node */
     set_node_input_tensor(test_node, 0, input_tensor);
+
+    /* indices tensor */
+    node_t indices_node = create_graph_node(graph, "indices", "Const");
+    tensor_t indices_tensor = create_graph_tensor(graph, "indices", TENGINE_DT_UINT8);
+    set_node_output_tensor(indices_node, 0, indices_tensor, TENSOR_TYPE_CONST);
+    int indices_dims[1] = {2}; // channel num
+    set_tensor_shape(indices_tensor, indices_dims, 1);
+    set_node_input_tensor(test_node, 1, indices_tensor);
 
     /* output tensors of test node */
     tensor_t output_tensor = create_graph_tensor(graph, node_name, data_type);
@@ -81,6 +89,13 @@ float input_fp32[6] = {
 };
 float input_scale = 1;
 int input_zero_point = 0;
+
+float indices_fp32[2] = {
+    0.0f,
+    1.0f,
+};
+float indices_scale = 1;
+int indices_zero_point = 0;
 
 float reference_out[4] = {
     3.0f,
@@ -118,7 +133,7 @@ int main(int argc, char* argv[])
         fprintf(stderr, "Tengine init failed.\n");
 
     // create
-    struct graph* ir_graph = (struct graph*)create_timvx_test_graph(test_node_name, data_type, layout, n, c, h, w, &create_test_fc_node);
+    struct graph* ir_graph = (struct graph*)create_timvx_test_graph(test_node_name, data_type, layout, n, c, h, w, &create_test_gather_node);
     if (NULL == ir_graph)
         return -1;
 
@@ -127,16 +142,22 @@ int main(int argc, char* argv[])
 
     // set quantize params
     struct tensor* input_tensor = (struct tensor*)get_graph_tensor(ir_graph, "input_node");
+    struct tensor* indices_tensor = (struct tensor*)get_graph_tensor(ir_graph, "indices");
     struct tensor* output_tensor = (struct tensor*)get_graph_tensor(ir_graph, "gather");
 
-    //    tensor_t weight_tesnor = get_graph_input_tensor(ir_graph, 1, 0);
     set_tensor_quant_param(input_tensor, &input_scale, &input_zero_point, 1);
+    set_tensor_quant_param(indices_tensor, &indices_scale, &indices_zero_point, 1);
     set_tensor_quant_param(output_tensor, &output_scale, &output_zero_point, 1);
 
     // set input data
     uint8_t input_u8[6] = {0};
     get_uint8_data(input_fp32, input_u8, 6, input_scale, input_zero_point);
     set_tensor_buffer(input_tensor, input_u8, 6);
+
+    // set indices data
+    uint8_t indices_u8[2] = {0};
+    get_uint8_data(indices_fp32, indices_u8, 2, indices_scale, indices_zero_point);
+    set_tensor_buffer(indices_tensor, indices_u8, 2);
 
     // set bias data
     // fill_input_uint8_tensor_by_index(graph, 0, 0, 0.0f);

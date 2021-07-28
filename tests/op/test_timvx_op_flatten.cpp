@@ -29,7 +29,7 @@
 #include "graph/tensor.h"
 #include "operator/prototype/flatten_param.h"
 
-int create_test_fc_node(graph_t graph, const char* input_name, const char* node_name, int data_type, int layout, int n, int c, int h, int w)
+int create_test_flatten_node(graph_t graph, const char* input_name, const char* node_name, int data_type, int layout, int n, int c, int h, int w)
 {
     (void)layout;
     (void)n;
@@ -113,7 +113,7 @@ int main(int argc, char* argv[])
         fprintf(stderr, "Tengine init failed.\n");
 
     // create
-    struct graph* ir_graph = (struct graph*)create_timvx_test_graph(test_node_name, data_type, layout, n, c, h, w, &create_test_fc_node);
+    struct graph* ir_graph = (struct graph*)create_timvx_test_graph(test_node_name, data_type, layout, n, c, h, w, &create_test_flatten_node);
     if (NULL == ir_graph)
         return -1;
 

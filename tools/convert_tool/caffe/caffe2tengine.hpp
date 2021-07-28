@@ -47,7 +47,7 @@ extern "C" {
 #include "utility/log.h"
 #include "utility/sys_port.h"
 #include "utility/vector.h"
-#include "../utils/save_graph/op_include.h"
+#include "save_graph/op_include.h"
 }
 
 enum PoolArg
