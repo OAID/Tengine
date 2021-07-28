@@ -31,7 +31,6 @@
 #include "module/module.h"
 #include "utility/sys_port.h"
 
-
 static int infer_shape(struct node* node)
 {
     struct spacetobatchnd_param* spacetobatchnd_param = (struct spacetobatchnd_param*)(node->op.param_mem);
@@ -43,10 +42,8 @@ static int infer_shape(struct node* node)
     int out_dim[4];
 
     out_dim[0] = input->dims[0] * (spacetobatchnd_param->dilation_x) * (spacetobatchnd_param->dilation_y);
-    out_dim[1] = (input->dims[1] + spacetobatchnd_param->pad_top + spacetobatchnd_param->pad_bottom) /
-                 spacetobatchnd_param->dilation_y;
-    out_dim[2] = (input->dims[2] + spacetobatchnd_param->pad_left + spacetobatchnd_param->pad_right) /
-                 spacetobatchnd_param->dilation_x;
+    out_dim[1] = (input->dims[1] + spacetobatchnd_param->pad_top + spacetobatchnd_param->pad_bottom) / spacetobatchnd_param->dilation_y;
+    out_dim[2] = (input->dims[2] + spacetobatchnd_param->pad_left + spacetobatchnd_param->pad_right) / spacetobatchnd_param->dilation_x;
     out_dim[3] = input->dims[3];
 
     set_ir_tensor_shape(output, out_dim, 4);
@@ -54,11 +51,9 @@ static int infer_shape(struct node* node)
     return 0;
 }
 
-
 static int init_op(struct op* op)
 {
-    struct spacetobatchnd_param* spacetobatchnd_param =
-        ( struct spacetobatchnd_param* )sys_malloc(sizeof(struct spacetobatchnd_param));
+    struct spacetobatchnd_param* spacetobatchnd_param = (struct spacetobatchnd_param*)sys_malloc(sizeof(struct spacetobatchnd_param));
 
     if (spacetobatchnd_param == NULL)
     {
@@ -81,12 +76,10 @@ static int init_op(struct op* op)
     return 0;
 }
 
-
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
-
 
 int register_spacetobatchnd_op()
 {
@@ -98,7 +91,6 @@ int register_spacetobatchnd_op()
 
     return register_op(OP_SPACETOBATCHND, OP_SPACETOBATCHND_NAME, &m);
 }
-
 
 int unregister_spacetobatchnd_op()
 {

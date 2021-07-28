@@ -31,16 +31,15 @@
 #include "module/module.h"
 #include "utility/sys_port.h"
 
-
 static int infer_shape(struct node* node)
 {
     struct graph* ir_graph = node->graph;
     struct tensor* input = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
     struct tensor* output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
-    struct unsqueeze_param* unsqueeze_param = ( struct unsqueeze_param* )node->op.param_mem;
+    struct unsqueeze_param* unsqueeze_param = (struct unsqueeze_param*)node->op.param_mem;
 
     int axises_size = unsqueeze_param->axises_size;
-    int* out_dim = ( int* )sys_malloc((input->dim_num + axises_size) * sizeof(int));
+    int* out_dim = (int*)sys_malloc((input->dim_num + axises_size) * sizeof(int));
 
     if (axises_size == 1)
     {
@@ -90,7 +89,6 @@ static int infer_shape(struct node* node)
                 out_dim[i] = input->dims[k];
                 k++;
             }
-
         }
     }
 
@@ -101,10 +99,9 @@ static int infer_shape(struct node* node)
     return 0;
 }
 
-
 static int init_op(struct op* op)
 {
-    struct unsqueeze_param* unsqueeze_param = ( struct unsqueeze_param* )sys_malloc(sizeof(struct unsqueeze_param));
+    struct unsqueeze_param* unsqueeze_param = (struct unsqueeze_param*)sys_malloc(sizeof(struct unsqueeze_param));
 
     if (unsqueeze_param == NULL)
     {
@@ -121,7 +118,6 @@ static int init_op(struct op* op)
     return 0;
 }
 
-
 static void release_op(struct op* op)
 {
     struct unsqueeze_param* unsqueeze_param = (struct unsqueeze_param*)op->param_mem;
@@ -129,7 +125,6 @@ static void release_op(struct op* op)
         sys_free(unsqueeze_param->axises);
     sys_free(op->param_mem);
 }
-
 
 int register_unsqueeze_op()
 {
@@ -141,7 +136,6 @@ int register_unsqueeze_op()
 
     return register_op(OP_UNSQUEEZE, OP_UNSQUEEZE_NAME, &m);
 }
-
 
 int unregister_unsqueeze_op()
 {

@@ -40,10 +40,10 @@
 
 int float_mismatch(float* current, float* reference, int size)
 {
-    for(int i=0;i<size;i++)
+    for (int i = 0; i < size; i++)
     {
         float tmp = fabs(current[i]) - fabs(reference[i]);
-        if(fabs(tmp) > 0.0001)
+        if (fabs(tmp) > 0.0001)
         {
             fprintf(stderr, "test failed, index:%d, a:%f, b:%f\n", i, current[i], reference[i]);
             return -1;
@@ -72,20 +72,20 @@ int main(int argc, char* argv[])
     {
         switch (res)
         {
-            case 'm':
-                model_file = optarg;
-                break;
-            case 'r':
-                repeat_count = atoi(optarg);
-                break;
-            case 't':
-                num_thread = atoi(optarg);
-                break;
-            case 'h':
-                show_usage();
-                return 0;
-            default:
-                break;
+        case 'm':
+            model_file = optarg;
+            break;
+        case 'r':
+            repeat_count = atoi(optarg);
+            break;
+        case 't':
+            num_thread = atoi(optarg);
+            break;
+        case 'h':
+            show_usage();
+            return 0;
+        default:
+            break;
         }
     }
 
@@ -122,9 +122,9 @@ int main(int argc, char* argv[])
     /* set the input shape to initial the graph, and prerun graph to infer shape */
     int channel = 3;
     int img_size = img_h * img_w * channel;
-    int dims[] = {1, channel, img_h, img_w};    // nchw
+    int dims[] = {1, channel, img_h, img_w}; // nchw
 
-    float* input_data = ( float* )malloc(sizeof(float) * img_size);
+    float* input_data = (float*)malloc(sizeof(float) * img_size);
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == nullptr)
@@ -143,7 +143,7 @@ int main(int argc, char* argv[])
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;
-    }    
+    }
 
     /* prerun graph, set work options(num_thread, cluster, precision) */
     if (prerun_graph_multithread(graph, opt) < 0)
@@ -155,7 +155,7 @@ int main(int argc, char* argv[])
     /* prepare process input data, set the data mem to input tensor */
     std::string model_name = "openpose_coco";
     std::string input_file = "./data/" + model_name + "_in.bin";
-    FILE *fp;
+    FILE* fp;
     fp = fopen(input_file.c_str(), "rb");
     if (fread(input_data, sizeof(float), img_size, fp) == 0)
     {
@@ -195,7 +195,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    float* outdata = ( float* )get_tensor_buffer(out_tensor);
+    float* outdata = (float*)get_tensor_buffer(out_tensor);
     int H = out_dim[2];
     int W = out_dim[3];
     float show_threshold = 0.1;
@@ -203,7 +203,7 @@ int main(int argc, char* argv[])
     std::string reference_file1 = "./data/" + model_name + "_out.bin";
     int output_size1 = get_tensor_buffer_size(out_tensor) / (sizeof(float));
     std::vector<float> reference_data1(output_size1);
-    FILE *fp1;
+    FILE* fp1;
     fp1 = fopen(reference_file1.c_str(), "rb");
     if (fread(reference_data1.data(), sizeof(float), output_size1, fp1) == 0)
     {
@@ -221,4 +221,3 @@ int main(int argc, char* argv[])
 
     return ret1;
 }
-

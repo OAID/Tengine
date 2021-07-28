@@ -32,7 +32,6 @@
 #include "utility/sys_port.h"
 #include "utility/log.h"
 
-
 static int infer_shape(struct node* node)
 {
     struct graph* graph = node->graph;
@@ -62,10 +61,9 @@ static int infer_shape(struct node* node)
     return -1;
 }
 
-
 static int init_op(struct op* op)
 {
-    struct generic_param* generic_param = ( struct generic_param* )sys_malloc(sizeof(struct generic_param));
+    struct generic_param* generic_param = (struct generic_param*)sys_malloc(sizeof(struct generic_param));
 
     if (generic_param == NULL)
     {
@@ -80,12 +78,10 @@ static int init_op(struct op* op)
     return 0;
 }
 
-
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
-
 
 int register_generic_op()
 {
@@ -97,7 +93,6 @@ int register_generic_op()
 
     return register_op(OP_GENERIC, OP_GENERIC_NAME, &m);
 }
-
 
 int unregister_generic_op()
 {

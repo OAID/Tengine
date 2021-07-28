@@ -30,7 +30,6 @@
 #include "graph/subgraph.h"
 #include "operator/op.h"
 
-
 int is_index_in_array(const uint16_t* array, const uint16_t array_size, const uint16_t index)
 {
     for (uint16_t i = 0; i < array_size; i++)
@@ -46,18 +45,15 @@ int is_index_in_array(const uint16_t* array, const uint16_t array_size, const ui
     return 0;
 }
 
-
 int is_subgraph_input_tensor(const struct subgraph* subgraph, const uint16_t tensor_index)
 {
     return is_index_in_array(subgraph->input_tensor_list, (uint16_t)subgraph->input_num, tensor_index);
 }
 
-
 int is_subgraph_output_tensor(const struct subgraph* subgraph, const uint16_t tensor_index)
 {
     return is_index_in_array(subgraph->output_tensor_list, (uint16_t)subgraph->input_num, tensor_index);
 }
-
 
 int is_variable_tensor_in_subgraph(const ir_subgraph_t* subgraph, const uint16_t tensor_index)
 {

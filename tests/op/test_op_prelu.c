@@ -24,17 +24,20 @@
 
 #include "test_op.h"
 
-
 int create_test_prelu_node(graph_t graph, const char* input_name, const char* node_name, int data_type, int layout, int n, int c, int h, int w)
 {
-    (void)layout; (void)n; (void)c; (void)h; (void)w;
+    (void)layout;
+    (void)n;
+    (void)c;
+    (void)h;
+    (void)w;
 
     /* create the test node */
     node_t test_node = create_graph_node(graph, node_name, "PReLU");
 
     tensor_t input_tensor = get_graph_tensor(graph, input_name);
 
-    if(NULL == input_tensor)
+    if (NULL == input_tensor)
     {
         fprintf(stderr, "create test node failed. ERRNO: %d.\n", get_tengine_errno());
         return -1;
@@ -47,7 +50,7 @@ int create_test_prelu_node(graph_t graph, const char* input_name, const char* no
 
     int dims[4];
     get_tensor_shape(input_tensor, dims, 4);
-    int slope_dims[1] = {dims[1]};  // channel num
+    int slope_dims[1] = {dims[1]}; // channel num
     set_tensor_shape(slope_tensor, slope_dims, 1);
 
     /* input tensors of test node */
@@ -78,7 +81,7 @@ int main(int argc, char* argv[])
 
     // create
     graph_t graph = create_common_test_graph(test_node_name, data_type, layout, n, c, h, w, &create_test_prelu_node);
-    if(NULL == graph)
+    if (NULL == graph)
         return -1;
 
     // set input data
@@ -102,9 +105,9 @@ int main(int argc, char* argv[])
     int cstep = output_tensor->dims[2] * output_tensor->dims[3];
 
     ret = 0;
-    for (int i = 0; i< out_c; i++)
+    for (int i = 0; i < out_c; i++)
     {
-        float* output_data =  (float *)output_tensor->data + i * cstep;
+        float* output_data = (float*)output_tensor->data + i * cstep;
         for (int j = 0; j < cstep; j++)
         {
             if (output_data[j] != result_value[i])

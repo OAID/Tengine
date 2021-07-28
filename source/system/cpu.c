@@ -174,7 +174,7 @@ static int get_max_freq_khz(int cpuid)
 
             fclose(fp);
 
-            if (max_freq_khz <=0 && EOF == ret)
+            if (max_freq_khz <= 0 && EOF == ret)
                 return -1;
             else
                 return max_freq_khz;
@@ -206,7 +206,7 @@ static int set_sched_affinity(size_t thread_affinity_mask)
 #define CPU_SETSIZE 1024
 #endif
 #ifndef __NCPUBITS
-#define __NCPUBITS  (8 * sizeof (unsigned long))
+#define __NCPUBITS (8 * sizeof(unsigned long))
 #endif
 
     typedef struct
@@ -222,7 +222,7 @@ static int set_sched_affinity(size_t thread_affinity_mask)
 #if (defined __GLIBC__) || (defined _OHOS_) || (defined V831)
     pid_t pid = syscall(SYS_gettid);
 #else
-    #ifdef PI3
+#ifdef PI3
     pid_t pid = getpid();
 #else
 
@@ -237,7 +237,7 @@ static int set_sched_affinity(size_t thread_affinity_mask)
 #endif
     cpu_set_t mask;
     CPU_ZERO(&mask);
-//    for (int i = 0; i < ( int )sizeof(size_t) * 8; i++)
+    //    for (int i = 0; i < ( int )sizeof(size_t) * 8; i++)
     for (int i = 0; i < core_count; i++)
     {
         if (thread_affinity_mask & (1 << i))
@@ -361,13 +361,13 @@ int set_cpu_affine(size_t mask)
 
 #elif __APPLE_IOS__ || _MSC_VER
     // threads affinity not supported on ios
-    ( void )mask;
+    (void)mask;
     return -1;
 #else
     int status = set_sched_affinity(mask);
     if (0 != status) return -1;
 
-	return 0;
+    return 0;
 #endif
 
     return 0;
@@ -377,20 +377,20 @@ size_t get_cpu_cluster_mask(int cluster)
 {
     switch (cluster)
     {
-        case TENGINE_CLUSTER_BIG:
-            if (0 != affinity_mask_big_cluster)
-                return affinity_mask_big_cluster;
-            break;
-        case TENGINE_CLUSTER_MEDIUM:
-            if (0 != affinity_mask_medium_cluster)
-                return affinity_mask_medium_cluster;
-            break;
-        case TENGINE_CLUSTER_LITTLE:
-            if (0 != affinity_mask_little_cluster)
-                return affinity_mask_little_cluster;
-            break;
-        default:
-            break;
+    case TENGINE_CLUSTER_BIG:
+        if (0 != affinity_mask_big_cluster)
+            return affinity_mask_big_cluster;
+        break;
+    case TENGINE_CLUSTER_MEDIUM:
+        if (0 != affinity_mask_medium_cluster)
+            return affinity_mask_medium_cluster;
+        break;
+    case TENGINE_CLUSTER_LITTLE:
+        if (0 != affinity_mask_little_cluster)
+            return affinity_mask_little_cluster;
+        break;
+    default:
+        break;
     }
 
     return affinity_mask_all_cluster;

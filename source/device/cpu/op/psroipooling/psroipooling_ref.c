@@ -36,16 +36,15 @@
 
 #include <math.h>
 
-
 #define T_MAX(a, b) ((a) > (b) ? (a) : (b))
 #define T_MIN(a, b) ((a) < (b) ? (a) : (b))
 
 static int ref_psroipooling_fp32(struct tensor* featmap_tensor, struct tensor* roi_tensor,
                                  struct tensor* output_tensor, struct psroipooling_param* param, int num_thread)
 {
-    float* featmap = featmap_tensor->data;
-    float* roi = roi_tensor->data;
-    float* output = output_tensor->data;
+    float* featmap = (float*)featmap_tensor->data;
+    float* roi = (float*)roi_tensor->data;
+    float* output = (float*)output_tensor->data;
 
     float spatial_scale = param->spatial_scale;
     int out_h = param->pooled_h;
@@ -68,8 +67,8 @@ static int ref_psroipooling_fp32(struct tensor* featmap_tensor, struct tensor* r
         int roi_w = T_MAX(roi_x1 - roi_x0, 0);
         int roi_h = T_MAX(roi_y1 - roi_y0, 0);
 
-        float bin_w = ( float )roi_w / ( float )out_w;
-        float bin_h = ( float )roi_h / ( float )out_h;
+        float bin_w = (float)roi_w / (float)out_w;
+        float bin_h = (float)roi_h / (float)out_h;
 
         for (int c = 0; c < output_dim; c++)
         {
@@ -80,17 +79,17 @@ static int ref_psroipooling_fp32(struct tensor* featmap_tensor, struct tensor* r
                 {
                     float* inptr = featmap + (c * out_h + h) * out_w + w;
 
-                    int hstart = floor(roi_y0 + ( float )( h )*bin_h);
-                    int wstart = floor(roi_x0 + ( float )( w )*bin_w);
-                    int hend = ceil(roi_y0 + ( float )(h + 1) * bin_h);
-                    int wend = ceil(roi_x0 + ( float )(w + 1) * bin_w);
+                    int hstart = floor(roi_y0 + (float)(h)*bin_h);
+                    int wstart = floor(roi_x0 + (float)(w)*bin_w);
+                    int hend = ceil(roi_y0 + (float)(h + 1) * bin_h);
+                    int wend = ceil(roi_x0 + (float)(w + 1) * bin_w);
 
                     hstart = T_MIN(T_MAX(hstart, 0), in_h);
                     wstart = T_MIN(T_MAX(wstart, 0), in_w);
                     hend = T_MIN(T_MAX(hend, 0), in_h);
                     wend = T_MIN(T_MAX(wend, 0), in_w);
 
-                    _Bool is_empty = (hend <= hstart) || (wend <= wstart);
+                    int is_empty = (hend <= hstart) || (wend <= wstart);
                     int area = (hend - hstart) * (wend - wstart);
 
                     float sum = 0.f;
@@ -102,7 +101,7 @@ static int ref_psroipooling_fp32(struct tensor* featmap_tensor, struct tensor* r
                             sum += inptr[index];
                         }
                     }
-                    outptr[w] = is_empty ? 0.f : (sum / ( float )area);
+                    outptr[w] = is_empty ? 0.f : (sum / (float)area);
                 }
                 outptr += out_w;
             }
@@ -133,7 +132,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     featmap_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     roi_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    struct psroipooling_param* psroipooling_param = ( struct psroipooling_param* )ir_node->op.param_mem;
+    struct psroipooling_param* psroipooling_param = (struct psroipooling_param*)ir_node->op.param_mem;
 
     ref_psroipooling_fp32(featmap_tensor, roi_tensor, output_tensor, psroipooling_param, exec_graph->num_thread);
 

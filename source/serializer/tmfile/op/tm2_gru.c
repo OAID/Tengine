@@ -34,20 +34,18 @@
 #include "device/device.h"
 #include "utility/log.h"
 
-
 static int gru_op_map(int op)
 {
     return OP_GRU;
 }
 
-
 static int tm2_load_gru(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                         const TM2_Operator* tm_op)
 {
-    struct gru_param* gru_param = ( struct gru_param* )ir_node->op.param_mem;
+    struct gru_param* gru_param = (struct gru_param*)ir_node->op.param_mem;
     const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
     const char* mem_base = tm2_priv->base;
-    const TM2_GRUParam* tm_param = ( TM2_GRUParam* )(mem_base + tm_op->offset_t_param);
+    const TM2_GRUParam* tm_param = (TM2_GRUParam*)(mem_base + tm_op->offset_t_param);
 
     gru_param->clip = tm_param->clip;
     gru_param->output_len = tm_param->output_len;
@@ -63,7 +61,6 @@ static int tm2_load_gru(struct graph* ir_graph, struct node* ir_node, const TM2_
     return 0;
 }
 
-
 int register_tm2_gru_op()
 {
     struct serializer* tm2_s = find_serializer_via_name("tengine");
@@ -78,7 +75,6 @@ int register_tm2_gru_op()
 
     return 0;
 }
-
 
 int unregister_tm2_gru_op()
 {

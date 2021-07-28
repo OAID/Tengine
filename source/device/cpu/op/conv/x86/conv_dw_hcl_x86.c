@@ -39,7 +39,6 @@
 #include <math.h>
 #include <string.h>
 
-
 static void pad_int8(int8_t* input, int8_t* output, int in_h, int in_w, int out_h, int out_w, int top, int left, int8_t v)
 {
     int8_t* ptr = input;
@@ -96,7 +95,7 @@ static void pad_int8(int8_t* input, int8_t* output, int in_h, int in_w, int out_
 }
 
 static int convdw3x3s1_int8_sse(struct tensor* input_tensor, struct tensor* weight_tensor, struct tensor* bias_tensor,
-                               struct tensor* output_tensor, struct conv_param* param, int num_thread)
+                                struct tensor* output_tensor, struct conv_param* param, int num_thread)
 {
     int inch = input_tensor->dims[1];
     int inh = input_tensor->dims[2];
@@ -116,18 +115,18 @@ static int convdw3x3s1_int8_sse(struct tensor* input_tensor, struct tensor* weig
     memset(output_int32, 0, out_size * sizeof(int32_t));
     float* output_fp32 = (float*)sys_malloc(out_size * sizeof(float));
 
-    int8_t* output_int8 = output_tensor->data;
-    int8_t* input_int8  = input_tensor->data;
+    int8_t* output_int8 = (int8_t*)output_tensor->data;
+    int8_t* input_int8 = (int8_t*)input_tensor->data;
     int32_t* bias_int32 = NULL;
-    if(bias_tensor)
-        bias_int32 = bias_tensor->data;
+    if (bias_tensor)
+        bias_int32 = (int32_t*)bias_tensor->data;
 
     /* get scale value of quantizaiton */
     float input_scale = input_tensor->scale;
     float* kernel_scales = weight_tensor->scale_list;
     float output_scale = output_tensor->scale;
 
-    const signed char* kernel = weight_tensor->data;
+    const signed char* kernel = (const signed char*)weight_tensor->data;
 
     /* pading */
     int inh_tmp = inh + pad_h + pad_h;
@@ -137,7 +136,7 @@ static int convdw3x3s1_int8_sse(struct tensor* input_tensor, struct tensor* weig
         input_tmp = input_int8;
     else
     {
-        input_tmp = ( int8_t* )sys_malloc((size_t)inh_tmp * inw_tmp * inch * sizeof(int8_t));
+        input_tmp = (int8_t*)sys_malloc((size_t)inh_tmp * inw_tmp * inch * sizeof(int8_t));
 #pragma omp parallel for num_threads(num_thread)
         for (int g = 0; g < inch; g++)
         {
@@ -151,7 +150,7 @@ static int convdw3x3s1_int8_sse(struct tensor* input_tensor, struct tensor* weig
     for (int p = 0; p < outch; p++)
     {
         int32_t* out0 = output_int32 + p * out_hw;
-        int8_t* kernel0 = (int8_t* )kernel + p * 9;
+        int8_t* kernel0 = (int8_t*)kernel + p * 9;
 
         int* outptr0 = out0;
 
@@ -169,15 +168,15 @@ static int convdw3x3s1_int8_sse(struct tensor* input_tensor, struct tensor* weig
             {
                 int sum0 = 0;
 
-                sum0 += ( int )r0[0] * kernel0[0];
-                sum0 += ( int )r0[1] * kernel0[1];
-                sum0 += ( int )r0[2] * kernel0[2];
-                sum0 += ( int )r1[0] * kernel0[3];
-                sum0 += ( int )r1[1] * kernel0[4];
-                sum0 += ( int )r1[2] * kernel0[5];
-                sum0 += ( int )r2[0] * kernel0[6];
-                sum0 += ( int )r2[1] * kernel0[7];
-                sum0 += ( int )r2[2] * kernel0[8];
+                sum0 += (int)r0[0] * kernel0[0];
+                sum0 += (int)r0[1] * kernel0[1];
+                sum0 += (int)r0[2] * kernel0[2];
+                sum0 += (int)r1[0] * kernel0[3];
+                sum0 += (int)r1[1] * kernel0[4];
+                sum0 += (int)r1[2] * kernel0[5];
+                sum0 += (int)r2[0] * kernel0[6];
+                sum0 += (int)r2[1] * kernel0[7];
+                sum0 += (int)r2[2] * kernel0[8];
 
                 *outptr0 += sum0;
 
@@ -203,9 +202,9 @@ static int convdw3x3s1_int8_sse(struct tensor* input_tensor, struct tensor* weig
         {
             int output_off = i * (outh * outw) + j;
             if (bias_tensor)
-                output_fp32[output_off] = (float )(output_int32[output_off] + bias_int32[i]) * input_scale * kernel_scales[i];
+                output_fp32[output_off] = (float)(output_int32[output_off] + bias_int32[i]) * input_scale * kernel_scales[i];
             else
-                output_fp32[output_off] = (float )output_int32[output_off] * input_scale * kernel_scales[i];
+                output_fp32[output_off] = (float)output_int32[output_off] * input_scale * kernel_scales[i];
         }
     }
 
@@ -251,7 +250,7 @@ static int convdw3x3s1_int8_sse(struct tensor* input_tensor, struct tensor* weig
         {
             int output_off = i * (outh * outw) + j;
 
-            int32_t data_i32 = ( int32_t )(round(output_fp32[output_off] / output_scale));
+            int32_t data_i32 = (int32_t)(round(output_fp32[output_off] / output_scale));
             if (data_i32 > 127)
                 data_i32 = 127;
             else if (data_i32 < -127)
@@ -269,9 +268,8 @@ static int convdw3x3s1_int8_sse(struct tensor* input_tensor, struct tensor* weig
     return 0;
 }
 
-
 static int convdw3x3s2_int8_sse(struct tensor* input_tensor, struct tensor* weight_tensor, struct tensor* bias_tensor,
-                              struct tensor* output_tensor, struct conv_param* param, int num_thread)
+                                struct tensor* output_tensor, struct conv_param* param, int num_thread)
 {
     int inch = input_tensor->dims[1];
     int inh = input_tensor->dims[2];
@@ -291,18 +289,18 @@ static int convdw3x3s2_int8_sse(struct tensor* input_tensor, struct tensor* weig
     memset(output_int32, 0, out_size * sizeof(int32_t));
     float* output_fp32 = (float*)sys_malloc(out_size * sizeof(float));
 
-    int8_t* output_int8 = output_tensor->data;
-    int8_t* input_int8  = input_tensor->data;
+    int8_t* output_int8 = (int8_t*)output_tensor->data;
+    int8_t* input_int8 = (int8_t*)input_tensor->data;
     int32_t* bias_int32 = NULL;
-    if(bias_tensor)
-        bias_int32 = bias_tensor->data;
+    if (bias_tensor)
+        bias_int32 = (int32_t*)bias_tensor->data;
 
     /* get scale value of quantizaiton */
     float input_scale = input_tensor->scale;
     float* kernel_scales = weight_tensor->scale_list;
     float output_scale = output_tensor->scale;
 
-    const signed char* kernel = weight_tensor->data;
+    const signed char* kernel = (const signed char*)weight_tensor->data;
 
     /* pading */
     int inh_tmp = inh + pad_h + pad_h;
@@ -312,8 +310,8 @@ static int convdw3x3s2_int8_sse(struct tensor* input_tensor, struct tensor* weig
         input_tmp = input_int8;
     else
     {
-        input_tmp = ( int8_t* )sys_malloc((size_t)inh_tmp * inw_tmp * inch * sizeof(int8_t));
-#pragma omp parallel for num_threads(num_thread)        
+        input_tmp = (int8_t*)sys_malloc((size_t)inh_tmp * inw_tmp * inch * sizeof(int8_t));
+#pragma omp parallel for num_threads(num_thread)
         for (int g = 0; g < inch; g++)
         {
             int8_t* pad_in = input_int8 + g * inh * inw;
@@ -328,7 +326,7 @@ static int convdw3x3s2_int8_sse(struct tensor* input_tensor, struct tensor* weig
     for (int p = 0; p < outch; p++)
     {
         int32_t* out0 = output_int32 + p * out_hw;
-        int8_t* kernel0 = (int8_t* )kernel + p * 9;
+        int8_t* kernel0 = (int8_t*)kernel + p * 9;
 
         int* outptr0 = out0;
 
@@ -346,15 +344,15 @@ static int convdw3x3s2_int8_sse(struct tensor* input_tensor, struct tensor* weig
             {
                 int sum0 = 0;
 
-                sum0 += ( int )r0[0] * kernel0[0];
-                sum0 += ( int )r0[1] * kernel0[1];
-                sum0 += ( int )r0[2] * kernel0[2];
-                sum0 += ( int )r1[0] * kernel0[3];
-                sum0 += ( int )r1[1] * kernel0[4];
-                sum0 += ( int )r1[2] * kernel0[5];
-                sum0 += ( int )r2[0] * kernel0[6];
-                sum0 += ( int )r2[1] * kernel0[7];
-                sum0 += ( int )r2[2] * kernel0[8];
+                sum0 += (int)r0[0] * kernel0[0];
+                sum0 += (int)r0[1] * kernel0[1];
+                sum0 += (int)r0[2] * kernel0[2];
+                sum0 += (int)r1[0] * kernel0[3];
+                sum0 += (int)r1[1] * kernel0[4];
+                sum0 += (int)r1[2] * kernel0[5];
+                sum0 += (int)r2[0] * kernel0[6];
+                sum0 += (int)r2[1] * kernel0[7];
+                sum0 += (int)r2[2] * kernel0[8];
 
                 *outptr0 += sum0;
 
@@ -380,9 +378,9 @@ static int convdw3x3s2_int8_sse(struct tensor* input_tensor, struct tensor* weig
         {
             int output_off = i * (outh * outw) + j;
             if (bias_tensor)
-                output_fp32[output_off] = (float )(output_int32[output_off] + bias_int32[i]) * input_scale * kernel_scales[i];
+                output_fp32[output_off] = (float)(output_int32[output_off] + bias_int32[i]) * input_scale * kernel_scales[i];
             else
-                output_fp32[output_off] = (float )output_int32[output_off] * input_scale * kernel_scales[i];
+                output_fp32[output_off] = (float)output_int32[output_off] * input_scale * kernel_scales[i];
         }
     }
 
@@ -428,7 +426,7 @@ static int convdw3x3s2_int8_sse(struct tensor* input_tensor, struct tensor* weig
         {
             int output_off = i * (outh * outw) + j;
 
-            int32_t data_i32 = ( int32_t )(round(output_fp32[output_off] / output_scale));
+            int32_t data_i32 = (int32_t)(round(output_fp32[output_off] / output_scale));
             if (data_i32 > 127)
                 data_i32 = 127;
             else if (data_i32 < -127)
@@ -447,19 +445,19 @@ static int convdw3x3s2_int8_sse(struct tensor* input_tensor, struct tensor* weig
 }
 
 static int conv_dw_run_int8(struct tensor* input_tensor, struct tensor* weight_tensor, struct tensor* bias_tensor,
-                               struct tensor* output_tensor, struct conv_param* param, int num_thread)
+                            struct tensor* output_tensor, struct conv_param* param, int num_thread)
 {
     int ret = -1;
-    switch(param->stride_h)
+    switch (param->stride_h)
     {
-        case 1:
-            ret = convdw3x3s1_int8_sse(input_tensor, weight_tensor, bias_tensor, output_tensor, param, num_thread);
-            break;
-        case 2:
-            ret = convdw3x3s2_int8_sse(input_tensor, weight_tensor, bias_tensor, output_tensor, param, num_thread);
-            break;
-        default:
-            TLOG_ERR("Direct Convolution Int8 not support the stride %d\n", param->stride_h);
+    case 1:
+        ret = convdw3x3s1_int8_sse(input_tensor, weight_tensor, bias_tensor, output_tensor, param, num_thread);
+        break;
+    case 2:
+        ret = convdw3x3s2_int8_sse(input_tensor, weight_tensor, bias_tensor, output_tensor, param, num_thread);
+        break;
+    default:
+        TLOG_ERR("Direct Convolution Int8 not support the stride %d\n", param->stride_h);
     }
 
     return ret;
@@ -480,8 +478,8 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     if (ir_node->input_num > 2)
         bias_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[2]);
 
-    struct conv_param* conv_param = ( struct conv_param* )ir_node->op.param_mem;
-    struct conv_priv_info* conv_priv_info = ( struct conv_priv_info* )exec_node->ops_priv;
+    struct conv_param* conv_param = (struct conv_param*)ir_node->op.param_mem;
+    struct conv_priv_info* conv_priv_info = (struct conv_priv_info*)exec_node->ops_priv;
 
     int ret = -1;
     if (exec_graph->mode == TENGINE_MODE_FP32)
@@ -490,8 +488,8 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         ret = conv_dw_run_int8(input_tensor, weight_tensor, bias_tensor, output_tensor, conv_param, num_thread);
     else
     {
-            TLOG_ERR("hcl conv run failed\n");
-            return -1;
+        TLOG_ERR("hcl conv run failed\n");
+        return -1;
     }
 
     return ret;
@@ -509,7 +507,7 @@ static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, 
 
 static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struct node* exec_node)
 {
-    struct conv_param* param = ( struct conv_param* )exec_node->op.param_mem;
+    struct conv_param* param = (struct conv_param*)exec_node->op.param_mem;
     struct node* ir_node = exec_node;
     struct graph* ir_graph = ir_node->graph;
 
@@ -538,8 +536,7 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     if (kernel_h != kernel_w || input_tensor->dims[0] > 1)
         return 0;
 
-    if (param->group > 1 && in_c == 1 && out_c == 1 && pad_h0 == pad_h1 && pad_w0 == pad_w1 && dilation_h == 1 && dilation_w == 1 && kernel_h == 3 && kernel_w == 3 &&
-        ((stride_h == 1 && stride_w == 1) || (stride_h == 2 && stride_w == 2)))
+    if (param->group > 1 && in_c == 1 && out_c == 1 && pad_h0 == pad_h1 && pad_w0 == pad_w1 && dilation_h == 1 && dilation_w == 1 && kernel_h == 3 && kernel_w == 3 && ((stride_h == 1 && stride_w == 1) || (stride_h == 2 && stride_w == 2)))
         return OPS_SCORE_BEST;
     else
         return 0;

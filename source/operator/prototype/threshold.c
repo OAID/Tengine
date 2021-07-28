@@ -32,7 +32,6 @@
 
 #include <string.h>
 
-
 static int infer_shape(struct node* node)
 {
     struct graph* graph = node->graph;
@@ -44,10 +43,9 @@ static int infer_shape(struct node* node)
     return 0;
 }
 
-
 static int init_op(struct op* op)
 {
-    struct threshold_param* param = ( struct threshold_param* )sys_malloc(sizeof(struct threshold_param));
+    struct threshold_param* param = (struct threshold_param*)sys_malloc(sizeof(struct threshold_param));
 
     if (param == NULL)
     {
@@ -64,12 +62,10 @@ static int init_op(struct op* op)
     return 0;
 }
 
-
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
-
 
 int register_threshold_op()
 {
@@ -81,7 +77,6 @@ int register_threshold_op()
 
     return register_op(OP_THRESHOLD, OP_THRESHOLD_NAME, &m);
 }
-
 
 int unregister_threshold_op()
 {

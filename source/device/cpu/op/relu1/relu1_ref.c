@@ -32,7 +32,6 @@
 #include "device/cpu/cpu_graph.h"
 #include "device/cpu/cpu_module.h"
 
-
 int ref_relu1_fp32(struct tensor* input_tensor, struct tensor* output_tensor, int num_thread)
 {
     int w = input_tensor->dims[3];
@@ -41,8 +40,8 @@ int ref_relu1_fp32(struct tensor* input_tensor, struct tensor* output_tensor, in
     int size = h * w;
     int c_step = h * w;
 
-    float* input_data = input_tensor->data;
-    float* out_data = output_tensor->data;
+    float* input_data = (float*)input_tensor->data;
+    float* out_data = (float*)output_tensor->data;
 
 #pragma omp parallel for num_threads(num_thread)
     for (int q = 0; q < channels; q++)

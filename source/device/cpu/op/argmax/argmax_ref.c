@@ -36,7 +36,6 @@
 
 #include <stdio.h>
 
-
 struct argmax_op_param
 {
     int axis;
@@ -112,7 +111,7 @@ static int ref_argmax_uint8(uint8_t* input, int* output, const struct argmax_op_
 
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct argmax_op_param* argmax_op_param = ( struct argmax_op_param* )sys_malloc(sizeof(struct argmax_op_param));
+    struct argmax_op_param* argmax_op_param = (struct argmax_op_param*)sys_malloc(sizeof(struct argmax_op_param));
     argmax_op_param->axis = 0;
     argmax_op_param->axis_size = 1;
     argmax_op_param->inner_size = 1;
@@ -137,8 +136,8 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
     struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    struct argmax_op_param* argmax_op_param = ( struct argmax_op_param* )exec_node->ops_priv;
-    struct argmax_param* argmax_param = ( struct argmax_param* )ir_node->op.param_mem;
+    struct argmax_op_param* argmax_op_param = (struct argmax_op_param*)exec_node->ops_priv;
+    struct argmax_param* argmax_param = (struct argmax_param*)ir_node->op.param_mem;
     argmax_op_param->axis = argmax_param->axis;
     argmax_op_param->keepdims = argmax_param->keepdims;
     argmax_op_param->axis_size = input_tensor->dims[argmax_param->axis];
@@ -174,15 +173,15 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     void* in_data = input_tensor->data;
     void* out_data = output_tensor->data;
 
-    struct argmax_op_param* argmax_op_param = ( struct argmax_op_param* )exec_node->ops_priv;
+    struct argmax_op_param* argmax_op_param = (struct argmax_op_param*)exec_node->ops_priv;
 
     TLOG_ERR("output_tensor->elem_num:%d\n", output_tensor->elem_num);
     TLOG_ERR("output_tensor->elem_size:%d\n", output_tensor->elem_size);
 
     if (input_tensor->data_type == TENGINE_DT_FP32)
-        ref_argmax_fp32(( float* )in_data, out_data, argmax_op_param);
-    else if(input_tensor->data_type == TENGINE_DT_UINT8)
-        ref_argmax_uint8(( uint8_t* )in_data, out_data, argmax_op_param);
+        ref_argmax_fp32((float*)in_data, (int*)out_data, argmax_op_param);
+    else if (input_tensor->data_type == TENGINE_DT_UINT8)
+        ref_argmax_uint8((uint8_t*)in_data, (int*)out_data, argmax_op_param);
 
     return 0;
 }

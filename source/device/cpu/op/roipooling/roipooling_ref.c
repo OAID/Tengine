@@ -36,7 +36,6 @@
 
 #include <math.h>
 
-
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
@@ -56,9 +55,9 @@ static int ref_roipooling_fp32(struct tensor* input_tensor, struct tensor* roi_t
 
     int num_rois = output_tensor->dims[0];
 
-    float* featmap = input_tensor->data;
-    float* roi = roi_tensor->data;
-    float* output = output_tensor->data;
+    float* featmap = (float*)input_tensor->data;
+    float* roi = (float*)roi_tensor->data;
+    float* output = (float*)output_tensor->data;
 
     for (int n = 0; n < num_rois; ++n)
     {
@@ -72,8 +71,8 @@ static int ref_roipooling_fp32(struct tensor* input_tensor, struct tensor* roi_t
         int roi_w = MAX(roi_x1 - roi_x0 + 1, 1);
         int roi_h = MAX(roi_y1 - roi_y0 + 1, 1);
 
-        float bin_w = ( float )roi_w / ( float )out_w;
-        float bin_h = ( float )roi_h / ( float )out_h;
+        float bin_w = (float)roi_w / (float)out_w;
+        float bin_h = (float)roi_h / (float)out_h;
 
         for (int c = 0; c < channel; ++c)
         {
@@ -83,10 +82,10 @@ static int ref_roipooling_fp32(struct tensor* input_tensor, struct tensor* roi_t
             {
                 for (int w = 0; w < out_w; ++w)
                 {
-                    int h0 = roi_y0 + ( int )floor((double)( h )*bin_h);
-                    int h1 = roi_y0 + ( int )ceil((double)(h + 1) * bin_h);
-                    int w0 = roi_x0 + ( int )floor((double)( w )*bin_w);
-                    int w1 = roi_x0 + ( int )ceil((double)(w + 1) * bin_w);
+                    int h0 = roi_y0 + (int)floor((double)(h)*bin_h);
+                    int h1 = roi_y0 + (int)ceil((double)(h + 1) * bin_h);
+                    int w0 = roi_x0 + (int)floor((double)(w)*bin_w);
+                    int w1 = roi_x0 + (int)ceil((double)(w + 1) * bin_w);
 
                     h0 = MIN(MAX(h0, 0), in_h);
                     h1 = MIN(MAX(h1, 0), in_h);
@@ -134,7 +133,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     roi_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    struct roipooling_param* roipooling_param = ( struct roipooling_param* )ir_node->op.param_mem;
+    struct roipooling_param* roipooling_param = (struct roipooling_param*)ir_node->op.param_mem;
 
     // set output dims
     int dims[4];
@@ -156,7 +155,7 @@ static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struc
     struct graph* ir_graph = node->graph;
     struct tensor* input = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
     struct tensor* output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
-    struct roipooling_param* roipooling_param = ( struct roipooling_param* )node->op.param_mem;
+    struct roipooling_param* roipooling_param = (struct roipooling_param*)node->op.param_mem;
 
     int dims[4];
 

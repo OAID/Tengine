@@ -24,8 +24,7 @@
 
 #pragma once
 
-extern "C"
-{
+extern "C" {
 #include "device/device.h"
 #include "graph/tensor.h"
 #include "graph/node.h"
@@ -45,7 +44,6 @@ extern "C"
 #include <vector>
 #include <cmath>
 
-
 #include "convolution_param.h"
 
 #include "tim/vx/tensor.h"
@@ -63,7 +61,10 @@ extern "C"
 #include "tim/vx/ops/elementwise.h"
 #include "tim/vx/ops/fullyconnected.h"
 #include "tim/vx/ops/gather.h"
+#include "tim/vx/ops/instancenormalization.h"
+#include "tim/vx/ops/pad.h"
 #include "tim/vx/ops/pool2d.h"
+#include "tim/vx/ops/reduce.h"
 #include "tim/vx/ops/reshape.h"
 #include "tim/vx/ops/resize.h"
 #include "tim/vx/ops/simple_operations.h"
@@ -73,20 +74,18 @@ extern "C"
 #include "tim/vx/ops/split.h"
 #include "tim/vx/ops/transpose.h"
 
-#define SPEC_TYPE_CONV           1
-#define SPEC_TYPE_CONV_BIAS      2
-#define SPEC_TYPE_DWCONV         3
-#define SPEC_TYPE_INTERP         4
-#define SPEC_TYPE_OUTPUT         5
-#define SPEC_TYPE_PRELU          6
-#define SPEC_TYPE_SLICE          7
-#define SPEC_TYPE_RESHAPE        8
-#define SPEC_TYPE_INPUT          9
+#define SPEC_TYPE_CONV      1
+#define SPEC_TYPE_CONV_BIAS 2
+#define SPEC_TYPE_DWCONV    3
+#define SPEC_TYPE_INTERP    4
+#define SPEC_TYPE_OUTPUT    5
+#define SPEC_TYPE_PRELU     6
+#define SPEC_TYPE_SLICE     7
+#define SPEC_TYPE_RESHAPE   8
+#define SPEC_TYPE_INPUT     9
 
-
-typedef std::map<uint32_t, std::shared_ptr<tim::vx::Tensor>> dict_irt2vxt;
-typedef std::map<uint32_t, std::shared_ptr<tim::vx::Operation>> dict_irt2vxo;
-
+typedef std::map<uint32_t, std::shared_ptr<tim::vx::Tensor> > dict_irt2vxt;
+typedef std::map<uint32_t, std::shared_ptr<tim::vx::Operation> > dict_irt2vxo;
 
 class VXEngine
 {
@@ -115,11 +114,14 @@ private:
     bool AddFullyConnectionNode(struct node* node);
     bool AddGatherNode(struct node* node);
     bool AddHardSwishNode(struct node* node);
+    bool AddInstanceNormNode(struct node* node);
     bool AddInterpNode(struct node* ir_node);
     bool AddMishNode(struct node* ir_node);
+    bool AddPadNode(struct node* ir_node);
     bool AddPermuteNode(struct node* ir_node);
     bool AddPoolingNode(struct node* ir_node);
     bool AddPReluNode(struct node* ir_node);
+    bool AddReduceNode(struct node* ir_node);
     bool AddReluNode(struct node* ir_node);
     bool AddRelu1Node(struct node* ir_node);
     bool AddReshapeNode(struct node* ir_node);
@@ -134,15 +136,13 @@ private:
     bool AddTransposeNode(struct node* ir_node);
     bool AddUpsampleNode(struct node* ir_node);
 
-
 public:
     std::shared_ptr<tim::vx::Context> context;
     std::shared_ptr<tim::vx::Graph> graph;
     std::shared_ptr<tim::vx::Operation> ops;
     std::vector<char> nbg_buffer;
 
-
 private:
-    dict_irt2vxt     vx_tensor_map;
-    dict_irt2vxo     vx_node_map;
+    dict_irt2vxt vx_tensor_map;
+    dict_irt2vxo vx_node_map;
 };

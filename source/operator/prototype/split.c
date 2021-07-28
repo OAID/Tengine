@@ -32,12 +32,11 @@
 #include "utility/sys_port.h"
 #include "utility/log.h"
 
-
 static int infer_shape(ir_node_t* node)
 {
     ir_graph_t* graph = node->graph;
     ir_tensor_t* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
-    struct split_param* split_param = ( struct split_param* )(node->op.param_mem);
+    struct split_param* split_param = (struct split_param*)(node->op.param_mem);
 
     int axis = split_param->axis;
 
@@ -62,7 +61,7 @@ static int infer_shape(ir_node_t* node)
 
             for (int i = 0; i < get_vector_num(split_param->split_sizes_); i++)
             {
-                sum_check += (( int* )get_vector_data(split_param->split_sizes_, i))[0];
+                sum_check += ((int*)get_vector_data(split_param->split_sizes_, i))[0];
             }
 
             if (sum_check != input_slice_num)
@@ -73,7 +72,7 @@ static int infer_shape(ir_node_t* node)
 
             for (int i = 0; i < get_vector_num(split_param->split_sizes_); i++)
             {
-                input_dim[axis] = (( int* )get_vector_data(split_param->split_sizes_, i))[0];
+                input_dim[axis] = ((int*)get_vector_data(split_param->split_sizes_, i))[0];
                 ir_tensor_t* output = get_ir_graph_tensor(graph, node->output_tensors[i]);
                 set_ir_tensor_shape(output, input_dim, input->dim_num);
             }
@@ -121,10 +120,9 @@ static int infer_shape(ir_node_t* node)
     return 0;
 }
 
-
 static int init_op(ir_op_t* op)
 {
-    struct split_param* split_param = ( struct split_param* )sys_malloc(sizeof(struct split_param));
+    struct split_param* split_param = (struct split_param*)sys_malloc(sizeof(struct split_param));
 
     if (split_param == NULL)
     {
@@ -146,17 +144,15 @@ static int init_op(ir_op_t* op)
     return 0;
 }
 
-
 static void release_op(ir_op_t* op)
 {
-    struct split_param* split_param = ( struct split_param* )op->param_mem;
+    struct split_param* split_param = (struct split_param*)op->param_mem;
 
     if (split_param->split_sizes_)
         release_vector(split_param->split_sizes_);
 
     sys_free(op->param_mem);
 }
-
 
 int register_split_op()
 {
@@ -168,7 +164,6 @@ int register_split_op()
 
     return register_op(OP_SPLIT, OP_SPLIT_NAME, &m);
 }
-
 
 int unregister_split_op()
 {

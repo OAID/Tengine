@@ -32,7 +32,6 @@
 #include "device/cpu/cpu_graph.h"
 #include "device/cpu/cpu_module.h"
 
-
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     return 0;
@@ -44,7 +43,7 @@ static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, 
 }
 static int ref_where_fp32(float* condition, float* data_a, float* data_b, float* output, int size)
 {
-    for(int i = 0; i < size; i++)
+    for (int i = 0; i < size; i++)
     {
         output[i] = condition[i] ? data_a[i] : data_b[i];
     }
@@ -63,18 +62,21 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
     struct tensor* input_tensor_a = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
     struct tensor* input_tensor_b = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[2]);
-    
+
     int elem_num_condition = input_tensor->elem_num;
     int elem_num_a = input_tensor_a->elem_num;
     int elem_num_b = input_tensor_b->elem_num;
 
-    if(elem_num_condition != elem_num_a || elem_num_condition != elem_num_b){
+    if (elem_num_condition != elem_num_a || elem_num_condition != elem_num_b)
+    {
         TLOG_ERR("Tensor size is not equal\n");
         return -1;
     }
 
-    int ret = ref_where_fp32(input_tensor->data, input_tensor_a->data, input_tensor_b->data, output_tensor->data, elem_num_a);
-    if(ret < -1){
+    int ret = ref_where_fp32((float*)input_tensor->data, (float*)input_tensor_a->data,
+                             (float*)input_tensor_b->data, (float*)output_tensor->data, elem_num_a);
+    if (ret < -1)
+    {
         TLOG_ERR("where operator execution error\n");
         return -1;
     }

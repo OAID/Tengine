@@ -37,7 +37,6 @@
 
 #include "conv_kernel_ref.h"
 
-
 // add conv op by wangxinwei for debug conv
 //======================================================================================================//
 
@@ -57,7 +56,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         bias_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[2]);
     }
 
-    struct conv_param* conv_param = ( struct conv_param* )ir_node->op.param_mem;
+    struct conv_param* conv_param = (struct conv_param*)ir_node->op.param_mem;
 
     int ret = 0;
     if (input_tensor->data_type == TENGINE_DT_FP32)
@@ -86,12 +85,12 @@ static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struc
 
     input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    struct conv_param* conv_param = ( struct conv_param* )ir_node->op.param_mem;
+    struct conv_param* conv_param = (struct conv_param*)ir_node->op.param_mem;
 
     /* dynamic get the shape of output tensor */
     int n = input_tensor->dims[0];
     int h = input_tensor->dims[2];
-    int w = input_tensor->dims[3]; 
+    int w = input_tensor->dims[3];
     int ret = 0;
 
     if (conv_param->kernel_w == 0)
@@ -133,10 +132,7 @@ static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struc
     }
     else
     {
-        out_h =
-                (h - conv_param->dilation_h * (conv_param->kernel_h - 1) - 1 + conv_param->pad_h0 + conv_param->pad_h1) /
-                conv_param->stride_h +
-                1;
+        out_h = (h - conv_param->dilation_h * (conv_param->kernel_h - 1) - 1 + conv_param->pad_h0 + conv_param->pad_h1) / conv_param->stride_h + 1;
     }
 
     if (conv_param->pad_w0 < 0)
@@ -159,10 +155,7 @@ static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struc
     }
     else
     {
-        out_w =
-                (w - conv_param->dilation_w * (conv_param->kernel_w - 1) - 1 + conv_param->pad_w0 + conv_param->pad_w1) /
-                conv_param->stride_w +
-                1;
+        out_w = (w - conv_param->dilation_w * (conv_param->kernel_w - 1) - 1 + conv_param->pad_w0 + conv_param->pad_w1) / conv_param->stride_w + 1;
     }
 
     int dims[4];
@@ -207,12 +200,12 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
 }
 
 static struct node_ops hcl_node_ops = {.prerun = NULL,
-        .run = run,
-        .reshape = reshape,
-        .postrun = NULL,
-        .init_node = init_node,
-        .release_node = release_node,
-        .score = score};
+                                       .run = run,
+                                       .reshape = reshape,
+                                       .postrun = NULL,
+                                       .init_node = init_node,
+                                       .release_node = release_node,
+                                       .score = score};
 
 int register_conv_ref_op()
 {

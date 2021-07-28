@@ -4,66 +4,54 @@ on:
   push:
     branches: [tengine-lite]
     paths:
-    - '.github/workflows/linux-x64-cpu-tools-convert.yml'
-    - 'CMakeLists.txt'
-    - 'cmake/**'
-    - 'source/*'
-    - 'source/api/*'
-    - 'source/executer/*'
-    - 'source/graph/*'
-    - 'source/module/*'
-    - 'source/operator/*'
-    - 'source/optimizer/*'
-    - 'source/scheduler/*'
-    - 'source/serializer/*'
-    - 'source/system/*'
-    - 'source/utility/*'
-    - 'source/device/cpu/**'
-    - 'tests/**'
-    - 'tools/convert_tool/**'
+    paths-ignore: 
+    - 'doc/**'
+    - 'README.md'
+    - 'README_EN.md'
   pull_request:
     branches: [tengine-lite]
-    paths:
-    - '.github/workflows/linux-x64-cpu-tools-convert.yml'
-    - 'CMakeLists.txt'
-    - 'cmake/**'
-    - 'source/*'
-    - 'source/api/*'
-    - 'source/executer/*'
-    - 'source/graph/*'
-    - 'source/module/*'
-    - 'source/operator/*'
-    - 'source/optimizer/*'
-    - 'source/scheduler/*'
-    - 'source/serializer/*'
-    - 'source/system/*'
-    - 'source/utility/*'
-    - 'source/device/cpu/**'
-    - 'tests/**'
-    - 'tools/convert_tool/**'
+    paths-ignore: 
+    - 'doc/**'
+    - 'README.md'
+    - 'README_EN.md'
 
 jobs:
   linux-x64-cpu-tools-convert:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2.3.4
-    - name: update
-      run: sudo apt-get update
-    - name: depends
-      run: sudo apt-get install libprotobuf-dev protobuf-compiler libopencv-dev
-    - name: configure
-      run: mkdir build && cd build && cmake -DTENGINE_BUILD_CONVERT_TOOL=ON -DTENGINE_BUILD_TESTS=ON ..
-    - name: build
+    - uses: actions/checkout@v2.3.4
+      with:
+        repository: protocolbuffers/protobuf
+        ref: v3.17.3
+        path: protobuf
+        submodules: recursive
+    - name: Build AppImage
+      run: |
+        docker run --network=host --env PROTOBUF_REPO_DIR=$PWD/protobuf -v $PWD:$PWD -w $PWD --privileged --ipc=host centos:7 $PWD/.github/workflows/build-package-and-test-convert-tools.sh
+    - name: Install dependencies for test
+      run: |
+        sudo apt-get update
+        sudo apt-get install libopencv-dev
+    - name: Configure
+      run: mkdir build && cd build && cmake -DTENGINE_BUILD_TESTS=ON ..
+    - name: Build test
       run: cmake --build build -j 2          
-    - name: test-data
+    - name: Download and unzip test data
       run: |
         cd build
         wget ftp://219.139.34.182/tengine/ci_test/model_test_convert/onnx_models.zip
         unzip onnx_models.zip
         wget ftp://219.139.34.182/tengine/ci_test/model_test_convert/onnx_models_output.zip
         unzip onnx_models_output.zip
-    - name: test-models
+    - name: Run tests
       run: |
         chmod +x ./tests/test_onnx_model.sh
         cd build
-        ../tests/test_onnx_model.sh
+        ../tests/test_onnx_model.sh ../convert_tool-x86_64.AppImage
+    - name: Upload AppImage
+      uses: actions/upload-artifact@v2
+      with:
+        name: convert_tool_AppImage
+        path: convert_tool-x86_64.AppImage
+

@@ -39,7 +39,7 @@
 #include <string.h>
 #include <math.h>
 
-#define TILE 4
+#define TILE      4
 #define ELEM_SIZE ((TILE + 2) * (TILE + 2))
 
 #define WINO_MAX(a, b) ((a) > (b) ? (a) : (b))
@@ -49,11 +49,11 @@ static void relu(float* data, int size, int activation)
 {
     for (int i = 0; i < size; i++)
     {
-        data[i] = WINO_MAX(data[i], ( float )0);
+        data[i] = WINO_MAX(data[i], (float)0);
 
         if (activation > 0)
         {
-            data[i] = WINO_MIN(data[i], ( float )activation);
+            data[i] = WINO_MIN(data[i], (float)activation);
         }
     }
 }
@@ -62,7 +62,7 @@ static int get_private_mem_size(struct tensor* filter, struct conv_param* param)
     int output_c = filter->dims[0];
     int input_c = filter->dims[1];
     int trans_ker_size = (unsigned long)output_c * input_c * ELEM_SIZE * sizeof(float);
-    return trans_ker_size + 128;    // caution
+    return trans_ker_size + 128; // caution
 }
 
 static void pad_0_align_2D(float* dst, float* src, int m, int n, int m_align, int n_align, int pad_h, int pad_w)
@@ -144,7 +144,7 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
         int w_tm = outw_align / 4 * 6;
         int h_tm = outh_align / 4 * 6;
 
-        int nColBlocks = h_tm / 6;    // may be the block num in Feathercnn
+        int nColBlocks = h_tm / 6; // may be the block num in Feathercnn
         int nRowBlocks = w_tm / 6;
 
         const int tiles = nColBlocks * nRowBlocks;
@@ -527,7 +527,7 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
                         out_tm8[2] = d5[4];
                         out_tm8[3] = d5[5];
                     }
-#endif    // __AVX__
+#endif // __AVX__
                     r0 += 4;
                     r1 += 4;
                     r2 += 4;
@@ -545,7 +545,7 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
         int w_tm = outw_align / 4 * 6;
         int h_tm = outh_align / 4 * 6;
 
-        int nColBlocks = h_tm / 6;    // may be the block num in Feathercnn
+        int nColBlocks = h_tm / 6; // may be the block num in Feathercnn
         int nRowBlocks = w_tm / 6;
 
         const int tiles = nColBlocks * nRowBlocks;
@@ -815,7 +815,7 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
                         output6_tm[n] = sum6[n];
                         output7_tm[n] = sum7[n];
                     }
-#endif    // __AVX__
+#endif // __AVX__
                     output0_tm += 36;
                     output1_tm += 36;
                     output2_tm += 36;
@@ -911,7 +911,7 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
                         output2_tm[n] = sum2[n];
                         output3_tm[n] = sum3[n];
                     }
-#endif    // __AVX__
+#endif // __AVX__
                     output0_tm += 36;
                     output1_tm += 36;
                     output2_tm += 36;
@@ -929,8 +929,7 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
 
                 for (int i = 0; i < tiles; i++)
                 {
-                    const float* kptr =
-                        kernel_tm_test + 4 * r * inch * outch + (p / 8 + (p % 8) / 4 + p % 4) * inch * 4;
+                    const float* kptr = kernel_tm_test + 4 * r * inch * outch + (p / 8 + (p % 8) / 4 + p % 4) * inch * 4;
                     const float* r0 = bottom_blob_tm + 4 * inch * (tiles * r + i);
 #if __AVX__ || __SSE__
 #if __AVX__
@@ -970,7 +969,7 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
                     {
                         output0_tm[n] = sum0[n];
                     }
-#endif    // __AVX__ || __SSE__
+#endif // __AVX__ || __SSE__
                     output0_tm += 36;
                 }
             }
@@ -1005,7 +1004,7 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
         int w_tm = outw_align / 4 * 6;
         int h_tm = outh_align / 4 * 6;
 
-        int nColBlocks = h_tm / 6;    // may be the block num in Feathercnn
+        int nColBlocks = h_tm / 6; // may be the block num in Feathercnn
         int nRowBlocks = w_tm / 6;
 
         const int tiles = nColBlocks * nRowBlocks;
@@ -1118,12 +1117,11 @@ void conv3x3s1_winograd43_sse(float* bottom_blob, float* top_blob, float* kernel
 
 void conv3x3s1_winograd43_transform_kernel_sse(const float* kernel, float* kernel_wino, int inch, int outch)
 {
-    float* kernel_tm = ( float* )sys_malloc((unsigned long)6 * 6 * inch * outch * sizeof(float));
+    float* kernel_tm = (float*)sys_malloc((unsigned long)6 * 6 * inch * outch * sizeof(float));
 
     // G
     const float ktm[6][3] = {
-        {1.0f / 4, 0.0f, 0.0f},           {-1.0f / 6, -1.0f / 6, -1.0f / 6}, {-1.0f / 6, 1.0f / 6, -1.0f / 6},
-        {1.0f / 24, 1.0f / 12, 1.0f / 6}, {1.0f / 24, -1.0f / 12, 1.0f / 6}, {0.0f, 0.0f, 1.0f}};
+        {1.0f / 4, 0.0f, 0.0f}, {-1.0f / 6, -1.0f / 6, -1.0f / 6}, {-1.0f / 6, 1.0f / 6, -1.0f / 6}, {1.0f / 24, 1.0f / 12, 1.0f / 6}, {1.0f / 24, -1.0f / 12, 1.0f / 6}, {0.0f, 0.0f, 1.0f}};
 
 #pragma omp parallel for
     for (int p = 0; p < outch; p++)
@@ -1166,14 +1164,14 @@ void conv3x3s1_winograd43_transform_kernel_sse(const float* kernel, float* kerne
         int p = 0;
         for (; p + 7 < outch; p += 8)
         {
-            const float* kernel0 = ( const float* )kernel_tm + p * inch * 36;
-            const float* kernel1 = ( const float* )kernel_tm + (p + 1) * inch * 36;
-            const float* kernel2 = ( const float* )kernel_tm + (p + 2) * inch * 36;
-            const float* kernel3 = ( const float* )kernel_tm + (p + 3) * inch * 36;
-            const float* kernel4 = ( const float* )kernel_tm + (p + 4) * inch * 36;
-            const float* kernel5 = ( const float* )kernel_tm + (p + 5) * inch * 36;
-            const float* kernel6 = ( const float* )kernel_tm + (p + 6) * inch * 36;
-            const float* kernel7 = ( const float* )kernel_tm + (p + 7) * inch * 36;
+            const float* kernel0 = (const float*)kernel_tm + p * inch * 36;
+            const float* kernel1 = (const float*)kernel_tm + (p + 1) * inch * 36;
+            const float* kernel2 = (const float*)kernel_tm + (p + 2) * inch * 36;
+            const float* kernel3 = (const float*)kernel_tm + (p + 3) * inch * 36;
+            const float* kernel4 = (const float*)kernel_tm + (p + 4) * inch * 36;
+            const float* kernel5 = (const float*)kernel_tm + (p + 5) * inch * 36;
+            const float* kernel6 = (const float*)kernel_tm + (p + 6) * inch * 36;
+            const float* kernel7 = (const float*)kernel_tm + (p + 7) * inch * 36;
 
             float* ktmp = kernel_tm_test + p / 8 * inch * 32;
 
@@ -1233,10 +1231,10 @@ void conv3x3s1_winograd43_transform_kernel_sse(const float* kernel, float* kerne
 
         for (; p + 3 < outch; p += 4)
         {
-            const float* kernel0 = ( const float* )kernel_tm + p * inch * 36;
-            const float* kernel1 = ( const float* )kernel_tm + (p + 1) * inch * 36;
-            const float* kernel2 = ( const float* )kernel_tm + (p + 2) * inch * 36;
-            const float* kernel3 = ( const float* )kernel_tm + (p + 3) * inch * 36;
+            const float* kernel0 = (const float*)kernel_tm + p * inch * 36;
+            const float* kernel1 = (const float*)kernel_tm + (p + 1) * inch * 36;
+            const float* kernel2 = (const float*)kernel_tm + (p + 2) * inch * 36;
+            const float* kernel3 = (const float*)kernel_tm + (p + 3) * inch * 36;
 
             float* ktmp = kernel_tm_test + (p / 8 + (p % 8) / 4) * inch * 16;
             for (int q = 0; q < inch; q++)
@@ -1271,7 +1269,7 @@ void conv3x3s1_winograd43_transform_kernel_sse(const float* kernel, float* kerne
 
         for (; p < outch; p++)
         {
-            const float* kernel0 = ( const float* )kernel_tm + p * inch * 36;
+            const float* kernel0 = (const float*)kernel_tm + p * inch * 36;
             float* ktmp = kernel_tm_test + (p / 8 + (p % 8) / 4 + p % 4) * inch * 4;
 
             for (int q = 0; q < inch; q++)
@@ -1305,7 +1303,7 @@ int wino_conv_hcl_prerun(struct tensor* input_tensor, struct tensor* filter_tens
     int pad_h = param->pad_h0;
     int pad_w = param->pad_w0;
 
-    float* kernel = ( float* )filter_tensor->data;
+    float* kernel = (float*)filter_tensor->data;
 
     if (!priv_info->external_interleave_mem)
     {
@@ -1325,17 +1323,17 @@ int wino_conv_hcl_prerun(struct tensor* input_tensor, struct tensor* filter_tens
 
     int outw = block_w * TILE;
     int outh = block_h * TILE;
-    priv_info->input_pad = ( float* )sys_malloc((unsigned long)batch * input_c * pad_inhw * sizeof(float));
+    priv_info->input_pad = (float*)sys_malloc((unsigned long)batch * input_c * pad_inhw * sizeof(float));
     memset(priv_info->input_pad, 0, (unsigned long)batch * input_c * pad_inhw * sizeof(float));
-    priv_info->dot_block = ( float* )sys_malloc(ELEM_SIZE * (unsigned long)block * output_c * sizeof(float));
-    priv_info->transform_input = ( float* )sys_malloc(ELEM_SIZE * (unsigned long)block * input_c * sizeof(float));
+    priv_info->dot_block = (float*)sys_malloc(ELEM_SIZE * (unsigned long)block * output_c * sizeof(float));
+    priv_info->transform_input = (float*)sys_malloc(ELEM_SIZE * (unsigned long)block * input_c * sizeof(float));
     priv_info->output_bordered = NULL;
     if (outw != output_w || outh != output_h)
     {
-        priv_info->output_bordered = ( float* )sys_malloc((unsigned long)outw * outh * output_c * sizeof(float));
+        priv_info->output_bordered = (float*)sys_malloc((unsigned long)outw * outh * output_c * sizeof(float));
     }
 
-    conv3x3s1_winograd43_transform_kernel_sse(kernel, ( float* )priv_info->interleave_buffer, input_c, output_c);
+    conv3x3s1_winograd43_transform_kernel_sse(kernel, (float*)priv_info->interleave_buffer, input_c, output_c);
 
     return 0;
 }
@@ -1416,11 +1414,11 @@ int wino_conv_hcl_run(struct tensor* input_tensor, struct tensor* filter_tensor,
     int padded_in_hw = padded_in_h * padded_in_w;
 
     /* buffer addr */
-    float* input = ( float* )input_tensor->data;
-    float* output = ( float* )output_tensor->data;
+    float* input = (float*)input_tensor->data;
+    float* output = (float*)output_tensor->data;
     float* biases = NULL;
     if (bias_tensor != NULL)
-        biases = ( float* )bias_tensor->data;
+        biases = (float*)bias_tensor->data;
 
     for (int i = 0; i < batch; i++)
     {
@@ -1429,8 +1427,8 @@ int wino_conv_hcl_run(struct tensor* input_tensor, struct tensor* filter_tensor,
             pad_0_align_3D((float*)priv_info->input_pad + i * in_c * padded_in_h * padded_in_w, input + i * in_c * in_h * in_w,
                            in_h, in_w, padded_in_h, padded_in_w, in_c, pad_h0, pad_w0);
             conv3x3s1_winograd43_sse((float*)priv_info->input_pad + i * in_c * padded_in_h * padded_in_w + g * input_size_g,
-                                     output + i * out_c * out_h * out_w, priv_info->interleave_buffer,
-                                     priv_info->dot_block, priv_info->transform_input, priv_info->output_bordered,
+                                     output + i * out_c * out_h * out_w, (float*)priv_info->interleave_buffer, (float*)priv_info->dot_block,
+                                     (float*)priv_info->transform_input, (float*)priv_info->output_bordered,
                                      biases, padded_in_w, padded_in_h, in_c, out_w, out_h, out_c, num_thread);
         }
     }

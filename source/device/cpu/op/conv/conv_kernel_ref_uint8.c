@@ -39,9 +39,8 @@
 
 #include <math.h>
 
-
 int ref_conv_uint8(struct tensor* input_tensor, struct tensor* output_tensor, struct tensor* kernel,
-                          struct tensor* bias, struct conv_param* conv_param)
+                   struct tensor* bias, struct conv_param* conv_param)
 {
     int batch = input_tensor->dims[0];
     int group = conv_param->group;
@@ -58,12 +57,12 @@ int ref_conv_uint8(struct tensor* input_tensor, struct tensor* output_tensor, st
     int kernel_offset = 0;
     int output_offset = 0;
 
-    uint8_t* input_data = input_tensor->data;
-    uint8_t* output_data = output_tensor->data;
-    uint8_t* kernel_data = kernel->data;
+    uint8_t* input_data = (uint8_t*)input_tensor->data;
+    uint8_t* output_data = (uint8_t*)output_tensor->data;
+    uint8_t* kernel_data = (uint8_t*)kernel->data;
     int32_t* bias_data = NULL;
     if (bias != NULL)
-        bias_data = bias->data;
+        bias_data = (int32_t*)bias->data;
 
     float input_scale = input_tensor->scale;
     float kernel_scale = kernel->scale;
@@ -74,15 +73,15 @@ int ref_conv_uint8(struct tensor* input_tensor, struct tensor* output_tensor, st
 
     /* dequant input  */
     int input_size = batch * group * input_c * input_h * input_w;
-    float* input_fp32 = ( float* )sys_malloc(sizeof(float) * input_size);
+    float* input_fp32 = (float*)sys_malloc(sizeof(float) * input_size);
     for (int i = 0; i < input_size; i++)
-        input_fp32[i] = (( float )input_data[i] - input_zero) * input_scale;
+        input_fp32[i] = ((float)input_data[i] - input_zero) * input_scale;
 
     /* dequant kernel  */
     int kernel_total = group * output_c * kernel_size;
-    float* kernel_fp32 = ( float* )sys_malloc(sizeof(float) * kernel_total);
+    float* kernel_fp32 = (float*)sys_malloc(sizeof(float) * kernel_total);
     for (int i = 0; i < kernel_total; i++)
-        kernel_fp32[i] = (( float )kernel_data[i] - kernel_zero) * kernel_scale;
+        kernel_fp32[i] = ((float)kernel_data[i] - kernel_zero) * kernel_scale;
 
     /* dequant biases  */
     int bias_size = group * output_c;
@@ -90,9 +89,9 @@ int ref_conv_uint8(struct tensor* input_tensor, struct tensor* output_tensor, st
     float* bias_fp32 = NULL;
     if (bias != NULL)
     {
-        bias_fp32 = ( float* )sys_malloc(sizeof(float) * bias_size);
+        bias_fp32 = (float*)sys_malloc(sizeof(float) * bias_size);
         for (int i = 0; i < bias_size; i++)
-            bias_fp32[i] = ( float )bias_data[i] * input_scale * kernel_scale;
+            bias_fp32[i] = (float)bias_data[i] * input_scale * kernel_scale;
     }
 
     if (conv_param->kernel_h == 0)
@@ -117,14 +116,11 @@ int ref_conv_uint8(struct tensor* input_tensor, struct tensor* output_tensor, st
                         float total = 0.f;
                         if (input_tensor->layout == 0)
                         {
-                            output_offset = n * group * output_c * output_h * output_w +
-                                            g * output_c * output_h * output_w + c * output_h * output_w +
-                                            h * output_w + w;
+                            output_offset = n * group * output_c * output_h * output_w + g * output_c * output_h * output_w + c * output_h * output_w + h * output_w + w;
                         }
                         else
                         {
-                            output_offset = n * group * output_c * output_h * output_w +
-                                            h * output_w * group * output_c + w * group * output_c + output_c * g + c;
+                            output_offset = n * group * output_c * output_h * output_w + h * output_w * group * output_c + w * group * output_c + output_c * g + c;
                         }
                         for (kc = 0; kc < input_c; ++kc)
                         {
@@ -140,21 +136,13 @@ int ref_conv_uint8(struct tensor* input_tensor, struct tensor* output_tensor, st
                                     {
                                         if (input_tensor->layout == 0)
                                         {
-                                            input_offset = n * group * input_c * input_h * input_w +
-                                                           g * input_c * input_h * input_w + kc * input_h * input_w +
-                                                           cur_y * input_w + cur_x;
-                                            kernel_offset = g * output_c * kernel_size + c * kernel_size +
-                                                            kc * conv_param->kernel_h * conv_param->kernel_w +
-                                                            kh * conv_param->kernel_w + kw;
+                                            input_offset = n * group * input_c * input_h * input_w + g * input_c * input_h * input_w + kc * input_h * input_w + cur_y * input_w + cur_x;
+                                            kernel_offset = g * output_c * kernel_size + c * kernel_size + kc * conv_param->kernel_h * conv_param->kernel_w + kh * conv_param->kernel_w + kw;
                                         }
                                         else
                                         {
-                                            input_offset = n * group * input_c * input_h * input_w +
-                                                           cur_y * input_w * input_c * group + cur_x * input_c * group +
-                                                           g * input_c + kc;
-                                            kernel_offset = c * group * kernel_size +
-                                                            kh * conv_param->kernel_w * input_c * group +
-                                                            kw * input_c * group + g * input_c + kc;
+                                            input_offset = n * group * input_c * input_h * input_w + cur_y * input_w * input_c * group + cur_x * input_c * group + g * input_c + kc;
+                                            kernel_offset = c * group * kernel_size + kh * conv_param->kernel_w * input_c * group + kw * input_c * group + g * input_c + kc;
                                         }
 
                                         total += input_fp32[input_offset] * kernel_fp32[kernel_offset];

@@ -48,7 +48,9 @@ static int init_op(struct op* op)
     return 0;
 }
 
-static void release_op(struct op* op) {}
+static void release_op(struct op* op)
+{
+}
 
 int register_reciprocal_op()
 {

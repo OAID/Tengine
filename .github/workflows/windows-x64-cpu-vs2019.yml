@@ -4,39 +4,16 @@ on:
   push:
     branches: [tengine-lite]
     paths:
-    - '.github/workflows/windows-x64-cpu-vs2019.yml'
-    - 'CMakeLists.txt'
-    - 'cmake/**'
-    - 'source/*'
-    - 'source/api/*'
-    - 'source/executer/*'
-    - 'source/graph/*'
-    - 'source/module/*'
-    - 'source/operator/*'
-    - 'source/optimizer/*'
-    - 'source/scheduler/*'
-    - 'source/serializer/*'
-    - 'source/system/*'
-    - 'source/utility/*'
-    - 'source/device/cpu/**'
+    paths-ignore: 
+    - 'doc/**'
+    - 'README.md'
+    - 'README_EN.md'
   pull_request:
     branches: [tengine-lite]
-    paths:
-    - '.github/workflows/windows-x64-cpu-vs2019.yml'
-    - 'CMakeLists.txt'
-    - 'cmake/**'
-    - 'source/*'
-    - 'source/api/*'
-    - 'source/executer/*'
-    - 'source/graph/*'
-    - 'source/module/*'
-    - 'source/operator/*'
-    - 'source/optimizer/*'
-    - 'source/scheduler/*'
-    - 'source/serializer/*'
-    - 'source/system/*'
-    - 'source/utility/*'
-    - 'source/device/cpu/**'
+    paths-ignore: 
+    - 'doc/**'
+    - 'README.md'
+    - 'README_EN.md'
 
 jobs:
   windows-x64-cpu-vs2019:
@@ -46,5 +23,5 @@ jobs:
     - name: build
       run: |
         mkdir build; cd build
-        cmake -A x64 -DTENGINE_OPENMP=OFF -DTENGINE_BUILD_EXAMPLES=OFF ..
+        cmake -A x64 -DTENGINE_BUILD_EXAMPLES=OFF ..
         cmake --build . --config Release -j 2

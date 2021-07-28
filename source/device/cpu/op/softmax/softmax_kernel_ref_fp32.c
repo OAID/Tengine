@@ -36,13 +36,12 @@
 #include "device/cpu/cpu_graph.h"
 #include "device/cpu/cpu_module.h"
 
-
 int ref_softmax_fp32(struct tensor* input_tensor, struct tensor* output_tensor, int axis)
 {
     int element_size = input_tensor->elem_size;
     int type = input_tensor->data_type;
 
-    int* dims = ( int* )sys_malloc(input_tensor->dim_num * sizeof(int));
+    int* dims = (int*)sys_malloc(input_tensor->dim_num * sizeof(int));
     for (int i = 0; i < input_tensor->dim_num; i++)
     {
         dims[i] = input_tensor->dims[i];
@@ -63,13 +62,13 @@ int ref_softmax_fp32(struct tensor* input_tensor, struct tensor* output_tensor, 
     }
     on_size = dims[axis];
 
-    float* max_array = ( float* )sys_malloc(in_size * sizeof(float));
-    float* sum_array = ( float* )sys_malloc(in_size * sizeof(float));
+    float* max_array = (float*)sys_malloc(in_size * sizeof(float));
+    float* sum_array = (float*)sys_malloc(in_size * sizeof(float));
 
     int on_in_size = on_size * in_size;
 
-    float* input = input_tensor->data;
-    float* output = output_tensor->data;
+    float* input = (float*)input_tensor->data;
+    float* output = (float*)output_tensor->data;
 
     for (int i = 0; i < out_size; i++)
     {

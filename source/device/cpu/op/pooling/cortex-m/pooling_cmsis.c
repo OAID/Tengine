@@ -44,7 +44,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct tensor* input_tensor;
     struct tensor* output_tensor;
 
-    struct pool_param* pool_param = ( struct pool_param* )ir_node->op.param_mem;
+    struct pool_param* pool_param = (struct pool_param*)ir_node->op.param_mem;
 
     input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);

@@ -39,13 +39,12 @@
 #include <math.h>
 #include <string.h>
 
-
 struct Dpp_Box
 {
-    float x0;    // xmin
-    float y0;    // ymin
-    float x1;    // xmax
-    float y1;    // ymax
+    float x0; // xmin
+    float y0; // ymin
+    float x1; // xmax
+    float y1; // ymax
     int box_idx;
     int class_idx;
     float score;
@@ -68,7 +67,7 @@ struct dpp_param
 #define DPP_MAX(a, b) (a > b ? a : b)
 static float intersection_area(const struct Dpp_Box a, const struct Dpp_Box b)
 {
-    if(a.x0 > b.x1 || a.x1 < b.x0 || a.y0 > b.y1 || a.y1 < b.y0)
+    if (a.x0 > b.x1 || a.x1 < b.x0 || a.y0 > b.y1 || a.y1 < b.y0)
     {
         // no intersection
         return 0.f;
@@ -77,15 +76,15 @@ static float intersection_area(const struct Dpp_Box a, const struct Dpp_Box b)
     float inter_width = DPP_MIN(a.x1, b.x1) - DPP_MAX(a.x0, b.x0);
     float inter_height = DPP_MIN(a.y1, b.y1) - DPP_MAX(a.y0, b.y0);
 
-    return inter_width* inter_height;
+    return inter_width * inter_height;
 }
 
 static void nms_sorted_bboxes(const struct Dpp_Box* boxes, int boxes_size, int* picked, int* picked_size,
-                                     float nms_threshold)
+                              float nms_threshold)
 {
-    float* areas = sys_malloc(sizeof(float) * boxes_size);
+    float* areas = (float*)sys_malloc(sizeof(float) * boxes_size);
     int n_picked = 0;
-    for(int i = 0; i < boxes_size; i++)
+    for (int i = 0; i < boxes_size; i++)
     {
         float width = boxes[i].x1 - boxes[i].x0;
         float height = boxes[i].y1 - boxes[i].y0;
@@ -93,20 +92,20 @@ static void nms_sorted_bboxes(const struct Dpp_Box* boxes, int boxes_size, int* 
         areas[i] = width * height;
     }
 
-    for(int i = 0; i < boxes_size; i++)
+    for (int i = 0; i < boxes_size; i++)
     {
         int keep = 1;
-        for(int j = 0; j < n_picked; j++)
+        for (int j = 0; j < n_picked; j++)
         {
             // intersection over union
             float inter_area = intersection_area(boxes[i], boxes[picked[j]]);
             float union_area = areas[i] + areas[picked[j]] - inter_area;
             // float IoU = inter_area / union_area
-            if(inter_area / union_area > nms_threshold)
+            if (inter_area / union_area > nms_threshold)
                 keep = 0;
         }
 
-        if(keep)
+        if (keep)
         {
             picked[n_picked] = i;
             n_picked++;
@@ -120,17 +119,17 @@ static void nms_sorted_bboxes(const struct Dpp_Box* boxes, int boxes_size, int* 
 static void sort_boxes_by_score(struct Dpp_Box* boxes, int size)
 {
     int i, j;
-    for(i = 0; i < size - 1; i++)
+    for (i = 0; i < size - 1; i++)
     {
         int max_idx = i;
-        for(j = i + 1; j < size; j++)
+        for (j = i + 1; j < size; j++)
         {
-            if(boxes[j].score < 0.6)
+            if (boxes[j].score < 0.6)
                 continue;
-            if(boxes[max_idx].score < boxes[j].score)
+            if (boxes[max_idx].score < boxes[j].score)
                 max_idx = j;
         }
-        if(i != max_idx)
+        if (i != max_idx)
         {
             struct Dpp_Box tmp;
             memcpy(&tmp, boxes + i, sizeof(struct Dpp_Box));
@@ -139,14 +138,14 @@ static void sort_boxes_by_score(struct Dpp_Box* boxes, int size)
         }
         else
         {
-            if(boxes[max_idx].score < 0.6)
+            if (boxes[max_idx].score < 0.6)
                 return;
         }
     }
 }
 
 static int decode_single_box(struct Dpp_Box* box, const float* box_ptr, const float* anchor_ptr,
-                                    const float* scales)
+                             const float* scales)
 {
     int i = box->box_idx;
 
@@ -163,7 +162,7 @@ static int decode_single_box(struct Dpp_Box* box, const float* box_ptr, const fl
     box->x0 = xcenter - half_w;
     box->y1 = ycenter + half_h;
     box->x1 = xcenter + half_w;
-    if(box->y0 < 0 || box->x0 < 0)
+    if (box->y0 < 0 || box->x0 < 0)
         return -1;
     return 0;
 }
@@ -172,20 +171,20 @@ void get_all_boxes_rect(struct Dpp_Box* all_class_bbox_rects, const float* box, 
                         const float* anchor, int num_boxes, int num_classes, float* scales)
 {
     struct Dpp_Box selected_box;
-    for(int j = 0; j < num_boxes; j++)
+    for (int j = 0; j < num_boxes; j++)
     {
-        for(int i = 1; i < num_classes; i++)
+        for (int i = 1; i < num_classes; i++)
         {
             float score = scores[j * num_classes + i];
 
-            if(score < 0.6)
+            if (score < 0.6)
                 continue;
 
             selected_box.score = score;
             selected_box.class_idx = i;
             selected_box.box_idx = j;
 
-            if(decode_single_box(&selected_box, box, anchor, scales) < 0)
+            if (decode_single_box(&selected_box, box, anchor, scales) < 0)
                 continue;
 
             // struct Box* cls_vector = all_class_bbox_rects[i];
@@ -195,49 +194,49 @@ void get_all_boxes_rect(struct Dpp_Box* all_class_bbox_rects, const float* box, 
 }
 
 int ref_dpp_fp32(const float* input_f, const float* score_f, const float* anchor_f,
-                   float* detect_num, float* detect_class, float* detect_score, float* detect_boxes,struct dpp_param* param)
+                 float* detect_num, float* detect_class, float* detect_score, float* detect_boxes, struct dpp_param* param)
 {
     const int num_classes = param->num_classes + 1;
     const int num_boxes = param->num_boxes;
     const int max_detections = param->max_detections;
 
-    struct Dpp_Box* all_boxes = ( struct Dpp_Box* )malloc((unsigned long)num_classes * num_boxes * sizeof(struct Dpp_Box));
+    struct Dpp_Box* all_boxes = (struct Dpp_Box*)malloc((unsigned long)num_classes * num_boxes * sizeof(struct Dpp_Box));
     memset(all_boxes, 0, sizeof(struct Dpp_Box) * num_classes * num_boxes);
 
     get_all_boxes_rect(all_boxes, input_f, score_f, anchor_f, num_boxes, num_classes, param->scales);
 
     int max_picked_boxes = 2 * max_detections * num_classes;
-    struct Dpp_Box* picked_boxes = ( struct Dpp_Box* )malloc(max_picked_boxes * sizeof(struct Dpp_Box));
+    struct Dpp_Box* picked_boxes = (struct Dpp_Box*)malloc(max_picked_boxes * sizeof(struct Dpp_Box));
     memset(picked_boxes, 0, sizeof(struct Dpp_Box) * max_picked_boxes);
     int all_picked_size = 0;
 
-    for(int i = 1; i < num_classes; i++)
+    for (int i = 1; i < num_classes; i++)
     {
         struct Dpp_Box* class_box = all_boxes + i * num_boxes;
 
         // sort
         sort_boxes_by_score(class_box, num_boxes);
         int box_size = 0;
-        for(int j = 0; j < num_boxes; j++)
+        for (int j = 0; j < num_boxes; j++)
         {
-            if(class_box[j].score < 0.6)
+            if (class_box[j].score < 0.6)
                 break;
             box_size++;
         }
-        if(box_size == 0)
+        if (box_size == 0)
             continue;
 
-        if(box_size > max_detections * 2)
+        if (box_size > max_detections * 2)
             box_size = max_detections * 2;
 
-        int* picked = sys_malloc(sizeof(int) * num_boxes);
+        int* picked = (int*)sys_malloc(sizeof(int) * num_boxes);
         int picked_size = 0;
 
         picked[0] = 0;
         nms_sorted_bboxes(class_box, box_size, picked, &picked_size, param->nms_iou_threshold);
 
         // save the survivors
-        for(int j = 0; j < picked_size; j++)
+        for (int j = 0; j < picked_size; j++)
         {
             int z = picked[j];
             memcpy(picked_boxes + all_picked_size, class_box + z, sizeof(struct Dpp_Box));
@@ -248,13 +247,13 @@ int ref_dpp_fp32(const float* input_f, const float* score_f, const float* anchor
     }
 
     sort_boxes_by_score(picked_boxes, max_picked_boxes);
-    if(all_picked_size > max_detections)
+    if (all_picked_size > max_detections)
         all_picked_size = max_detections;
 
     // generate output tensors
     detect_num[0] = all_picked_size;
 
-    for(int i = 0; i < all_picked_size; i++)
+    for (int i = 0; i < all_picked_size; i++)
     {
         detect_class[i] = picked_boxes[i].class_idx;
         detect_score[i] = picked_boxes[i].score;
@@ -271,7 +270,7 @@ int ref_dpp_fp32(const float* input_f, const float* score_f, const float* anchor
 }
 
 int ref_dpp_uint8(const uint8_t* input, const uint8_t* score, const uint8_t* anchor,
-                 float* detect_num, float* detect_class, float* detect_score, float* detect_boxes,struct dpp_param* param)
+                  float* detect_num, float* detect_class, float* detect_score, float* detect_boxes, struct dpp_param* param)
 {
     const int num_classes = param->num_classes + 1;
     const int num_boxes = param->num_boxes;
@@ -280,53 +279,53 @@ int ref_dpp_uint8(const uint8_t* input, const uint8_t* score, const uint8_t* anc
     /* transform uint8_t to fp32 */
     int input_size = num_boxes * 4;
     int score_size = num_boxes * num_classes;
-    float* input_f = (float* )malloc(input_size * sizeof(float));
-    float* score_f = (float* )malloc(score_size * sizeof(float));
-    float* anchor_f = (float* )malloc(input_size * sizeof(float));
-    for(int i=0; i<input_size; i++)
+    float* input_f = (float*)malloc(input_size * sizeof(float));
+    float* score_f = (float*)malloc(score_size * sizeof(float));
+    float* anchor_f = (float*)malloc(input_size * sizeof(float));
+    for (int i = 0; i < input_size; i++)
         input_f[i] = (input[i] - param->zero[0]) * param->quant_scale[0];
-    for(int i=0; i<score_size; i++)
+    for (int i = 0; i < score_size; i++)
         score_f[i] = score[i] * param->quant_scale[1];
-    for(int i=0; i<input_size; i++)
+    for (int i = 0; i < input_size; i++)
         anchor_f[i] = (anchor[i] - param->zero[2]) * param->quant_scale[2];
 
-    struct Dpp_Box* all_boxes = (struct Dpp_Box* )malloc((unsigned long)num_classes * num_boxes * sizeof(struct Dpp_Box));
+    struct Dpp_Box* all_boxes = (struct Dpp_Box*)malloc((unsigned long)num_classes * num_boxes * sizeof(struct Dpp_Box));
     memset(all_boxes, 0, sizeof(struct Dpp_Box) * num_classes * num_boxes);
 
     get_all_boxes_rect(all_boxes, input_f, score_f, anchor_f, num_boxes, num_classes, param->scales);
 
     int max_picked_boxes = 2 * max_detections * num_classes;
-    struct Dpp_Box* picked_boxes = ( struct Dpp_Box* )malloc(max_picked_boxes * sizeof(struct Dpp_Box));
+    struct Dpp_Box* picked_boxes = (struct Dpp_Box*)malloc(max_picked_boxes * sizeof(struct Dpp_Box));
     memset(picked_boxes, 0, sizeof(struct Dpp_Box) * max_picked_boxes);
     int all_picked_size = 0;
 
-    for(int i = 1; i < num_classes; i++)
+    for (int i = 1; i < num_classes; i++)
     {
         struct Dpp_Box* class_box = all_boxes + i * num_boxes;
 
         // sort
         sort_boxes_by_score(class_box, num_boxes);
         int box_size = 0;
-        for(int j = 0; j < num_boxes; j++)
+        for (int j = 0; j < num_boxes; j++)
         {
-            if(class_box[j].score < 0.6)
+            if (class_box[j].score < 0.6)
                 break;
             box_size++;
         }
-        if(box_size == 0)
+        if (box_size == 0)
             continue;
 
-        if(box_size > max_detections * 2)
+        if (box_size > max_detections * 2)
             box_size = max_detections * 2;
 
-        int* picked = sys_malloc(sizeof(int) * num_boxes);
+        int* picked = (int*)sys_malloc(sizeof(int) * num_boxes);
         int picked_size = 0;
 
         picked[0] = 0;
         nms_sorted_bboxes(class_box, box_size, picked, &picked_size, param->nms_iou_threshold);
 
         // save the survivors
-        for(int j = 0; j < picked_size; j++)
+        for (int j = 0; j < picked_size; j++)
         {
             int z = picked[j];
             memcpy(picked_boxes + all_picked_size, class_box + z, sizeof(struct Dpp_Box));
@@ -337,13 +336,13 @@ int ref_dpp_uint8(const uint8_t* input, const uint8_t* score, const uint8_t* anc
     }
 
     sort_boxes_by_score(picked_boxes, max_picked_boxes);
-    if(all_picked_size > max_detections)
+    if (all_picked_size > max_detections)
         all_picked_size = max_detections;
 
     // generate output tensors
     detect_num[0] = all_picked_size;
 
-    for(int i = 0; i < all_picked_size; i++)
+    for (int i = 0; i < all_picked_size; i++)
     {
         detect_class[i] = picked_boxes[i].class_idx;
         detect_score[i] = picked_boxes[i].score;
@@ -373,7 +372,7 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
 
     input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    struct detection_postprocess_param* param_ = (struct detection_postprocess_param* )ir_node->op.param_mem;
+    struct detection_postprocess_param* param_ = (struct detection_postprocess_param*)ir_node->op.param_mem;
 
     param.max_classes_per_detection = param_->max_classes_per_detection;
     param.nms_iou_threshold = param_->nms_iou_threshold;
@@ -386,8 +385,7 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
     param.scales[2] = param_->scales[2];
     param.scales[3] = param_->scales[3];
 
-    if(input_tensor->data_type != TENGINE_DT_FP32 && input_tensor->data_type != TENGINE_DT_FP16 &&
-       input_tensor->data_type != TENGINE_DT_UINT8)
+    if (input_tensor->data_type != TENGINE_DT_FP32 && input_tensor->data_type != TENGINE_DT_FP16 && input_tensor->data_type != TENGINE_DT_UINT8)
     {
         TLOG_ERR("Not support!");
         return -1;
@@ -401,7 +399,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct node* ir_node = exec_node->ir_node;
     struct graph* ir_graph = ir_node->graph;
 
-    struct detection_postprocess_param* detection_postprocess_param = (struct detection_postprocess_param* )ir_node->op.param_mem;
+    struct detection_postprocess_param* detection_postprocess_param = (struct detection_postprocess_param*)ir_node->op.param_mem;
 
     struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     const void* input_data = input_tensor->data;
@@ -411,13 +409,13 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     void* anchor_data = anchor->data;
 
     struct tensor* detect_boxes = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    float* detect_boxes_data = detect_boxes->data;
+    float* detect_boxes_data = (float*)detect_boxes->data;
     struct tensor* detect_classes = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[1]);
-    float* detect_classes_data = detect_classes->data;
+    float* detect_classes_data = (float*)detect_classes->data;
     struct tensor* detect_scores = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[2]);
-    float* detect_scores_data = detect_scores->data;
+    float* detect_scores_data = (float*)detect_scores->data;
     struct tensor* detect_num = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[3]);
-    float* detect_num_data = detect_num->data;
+    float* detect_num_data = (float*)detect_num->data;
 
     if (input_tensor->data_type == TENGINE_DT_UINT8)
     {
@@ -433,15 +431,15 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     if (input_tensor->dim_num == 3 && input_tensor->elem_size == 1)
     {
         int in_ch = input_tensor->dims[1];
-        int in_w  = input_tensor->dims[2];
+        int in_w = input_tensor->dims[2];
         int in_size = input_tensor->elem_num;
 
         int score_ch = score->dims[1];
-        int score_w  = score->dims[2];
+        int score_w = score->dims[2];
         int score_size = score->elem_num;
 
-        uint8_t* input_uint8 = input_tensor->data;
-        uint8_t* score_uint8 = score->data;
+        uint8_t* input_uint8 = (uint8_t*)input_tensor->data;
+        uint8_t* score_uint8 = (uint8_t*)score->data;
         uint8_t* input_uint8_temp = (uint8_t*)malloc(in_size);
         uint8_t* score_uint8_temp = (uint8_t*)malloc(score_size);
 
@@ -449,13 +447,13 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         memcpy(score_uint8_temp, score_uint8, score_size);
 
         int index = 0;
-        for(int w = 0; w < in_w; w++)
-            for(int c = 0; c < in_ch; c++)
+        for (int w = 0; w < in_w; w++)
+            for (int c = 0; c < in_ch; c++)
                 input_uint8[index++] = input_uint8_temp[c * in_w + w];
 
         index = 0;
-        for(int w = 0; w < score_w; w++)
-            for(int c = 0; c < score_ch; c++)
+        for (int w = 0; w < score_w; w++)
+            for (int c = 0; c < score_ch; c++)
                 score_uint8[index++] = score_uint8_temp[c * score_w + w];
 
         free(input_uint8_temp);
@@ -464,29 +462,29 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     else
     {
         int in_ch = input_tensor->dims[1];
-        int in_w  = input_tensor->dims[2];
+        int in_w = input_tensor->dims[2];
         int in_size = input_tensor->elem_num;
 
         int score_ch = score->dims[1];
-        int score_w  = score->dims[2];
+        int score_w = score->dims[2];
         int score_size = score->elem_num;
 
-        float* input_fp32 = input_tensor->data;
-        float* score_fp32 = score->data;
-        float* input_fp32_temp = (float*)malloc(in_size*sizeof(float));
-        float* score_fp32_temp = (float*)malloc(score_size*sizeof(float));
+        float* input_fp32 = (float*)input_tensor->data;
+        float* score_fp32 = (float*)score->data;
+        float* input_fp32_temp = (float*)malloc(in_size * sizeof(float));
+        float* score_fp32_temp = (float*)malloc(score_size * sizeof(float));
 
         memcpy(input_fp32_temp, input_fp32, in_size);
         memcpy(score_fp32_temp, score_fp32, score_size);
 
         int index = 0;
-        for(int w = 0; w < in_w; w++)
-            for(int c = 0; c < in_ch; c++)
+        for (int w = 0; w < in_w; w++)
+            for (int c = 0; c < in_ch; c++)
                 input_fp32[index++] = input_fp32_temp[c * in_w + w];
 
         index = 0;
-        for(int w = 0; w < score_w; w++)
-            for(int c = 0; c < score_ch; c++)
+        for (int w = 0; w < score_w; w++)
+            for (int c = 0; c < score_ch; c++)
                 score_fp32[index++] = score_fp32_temp[c * score_w + w];
 
         free(input_fp32_temp);
@@ -494,9 +492,11 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     }
 
     if (input_tensor->data_type == TENGINE_DT_FP32)
-        ref_dpp_fp32(input_data, score_data, anchor_data, detect_num_data, detect_classes_data, detect_scores_data, detect_boxes_data, &param);
+        ref_dpp_fp32((float*)input_data, (float*)score_data, (float*)anchor_data, detect_num_data,
+                     detect_classes_data, detect_scores_data, detect_boxes_data, &param);
     else
-        ref_dpp_uint8(input_data, score_data, anchor_data, detect_num_data, detect_classes_data, detect_scores_data, detect_boxes_data, &param);
+        ref_dpp_uint8((uint8_t*)input_data, (uint8_t*)score_data, (uint8_t*)anchor_data, detect_num_data,
+                      detect_classes_data, detect_scores_data, detect_boxes_data, &param);
 
     return 0;
 }
@@ -516,12 +516,12 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     return OPS_SCORE_CANDO;
 }
 static struct node_ops detection_postprocess_node_ops = {.prerun = prerun,
-                                       .run = run,
-                                       .reshape = NULL,
-                                       .postrun = NULL,
-                                       .init_node = init_node,
-                                       .release_node = release_node,
-                                       .score = score};
+                                                         .run = run,
+                                                         .reshape = NULL,
+                                                         .postrun = NULL,
+                                                         .init_node = init_node,
+                                                         .release_node = release_node,
+                                                         .score = score};
 
 int register_detection_postprocess_ref_op()
 {

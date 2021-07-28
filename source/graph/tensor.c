@@ -38,45 +38,42 @@
 #include <stdio.h>
 #include <string.h>
 
-
 void init_ir_tensor(ir_tensor_t* ir_tensor, int tensor_index, int data_type)
 {
+    ir_tensor->index = tensor_index;
+    ir_tensor->producer = -1;
 
-    ir_tensor->index                = tensor_index;
-    ir_tensor->producer             = -1;
-
-    ir_tensor->consumer = ( int16_t* )sys_malloc(sizeof(int16_t) * TE_MAX_CONSUMER_NUM);
+    ir_tensor->consumer = (int16_t*)sys_malloc(sizeof(int16_t) * TE_MAX_CONSUMER_NUM);
     for (int i = 0; i < TE_MAX_CONSUMER_NUM; i++)
     {
         ir_tensor->consumer[i] = -1;
     }
 
-    ir_tensor->reshaped            = 0;
+    ir_tensor->reshaped = 0;
     ir_tensor->consumer_num = 0;
-    ir_tensor->tensor_type         = TENSOR_TYPE_VAR;
-    ir_tensor->data_type           = data_type;
-    ir_tensor->dim_num             = 0;
-    ir_tensor->elem_size           = get_tenser_element_size(data_type);
-    ir_tensor->subgraph_num        = 0;
-    ir_tensor->free_host_mem       = 0;
-    ir_tensor->internal_allocated  = 1;
-    ir_tensor->layout              = TENGINE_LAYOUT_NCHW;
-    ir_tensor->quant_param_num     = 0;
-    ir_tensor->elem_num            = 0;
+    ir_tensor->tensor_type = TENSOR_TYPE_VAR;
+    ir_tensor->data_type = data_type;
+    ir_tensor->dim_num = 0;
+    ir_tensor->elem_size = get_tenser_element_size(data_type);
+    ir_tensor->subgraph_num = 0;
+    ir_tensor->free_host_mem = 0;
+    ir_tensor->internal_allocated = 1;
+    ir_tensor->layout = TENGINE_LAYOUT_NCHW;
+    ir_tensor->quant_param_num = 0;
+    ir_tensor->elem_num = 0;
 
     for (int i = 0; i < MAX_SHAPE_DIM_NUM; i++)
     {
         ir_tensor->dims[i] = 0;
     }
 
-    ir_tensor->data                = NULL;
-    ir_tensor->name                = NULL;
-    ir_tensor->scale_list          = NULL;
-    ir_tensor->zp_list             = NULL;
-    ir_tensor->dev_mem             = NULL;
-    ir_tensor->subgraph_list       = NULL;
+    ir_tensor->data = NULL;
+    ir_tensor->name = NULL;
+    ir_tensor->scale_list = NULL;
+    ir_tensor->zp_list = NULL;
+    ir_tensor->dev_mem = NULL;
+    ir_tensor->subgraph_list = NULL;
 }
-
 
 ir_tensor_t* create_ir_tensor(ir_graph_t* ir_graph, const char* tensor_name, int data_type)
 {
@@ -91,7 +88,7 @@ ir_tensor_t* create_ir_tensor(ir_graph_t* ir_graph, const char* tensor_name, int
 
     ir_tensor->layout = ir_graph->graph_layout;
 
-    ir_tensor_t** new_tensor_list = sys_realloc(ir_graph->tensor_list, sizeof(ir_tensor_t*) * (ir_graph->tensor_num + 1));
+    ir_tensor_t** new_tensor_list = (ir_tensor_t**)sys_realloc(ir_graph->tensor_list, sizeof(ir_tensor_t*) * (ir_graph->tensor_num + 1));
 
     if (NULL == new_tensor_list)
     {
@@ -121,7 +118,6 @@ ir_tensor_t* create_ir_tensor(ir_graph_t* ir_graph, const char* tensor_name, int
 
     return ir_tensor;
 }
-
 
 void destroy_ir_tensor(ir_graph_t* ir_graph, ir_tensor_t* ir_tensor)
 {
@@ -166,7 +162,6 @@ void destroy_ir_tensor(ir_graph_t* ir_graph, ir_tensor_t* ir_tensor)
     sys_free(ir_tensor);
 }
 
-
 int set_ir_tensor_shape(ir_tensor_t* tensor, const int dims[], int dim_number)
 {
     if (MAX_SHAPE_DIM_NUM + 1 < dim_number)
@@ -194,7 +189,6 @@ int set_ir_tensor_shape(ir_tensor_t* tensor, const int dims[], int dim_number)
     return 0;
 }
 
-
 char* create_ir_tensor_name_from_index(int index)
 {
     char* name = (char*)sys_malloc(TE_COMMON_ALIGN_SIZE * 2);
@@ -207,7 +201,6 @@ char* create_ir_tensor_name_from_index(int index)
 
     return name;
 }
-
 
 int get_ir_tensor_index_from_name(ir_graph_t* graph, const char* tensor_name)
 {
@@ -241,7 +234,6 @@ int get_ir_tensor_index_from_name(ir_graph_t* graph, const char* tensor_name)
 
     return -1;
 }
-
 
 int set_ir_tensor_quantization_parameter(ir_tensor_t* tensor, const float* scale, const int* zero_point, int number)
 {
@@ -284,7 +276,6 @@ int set_ir_tensor_quantization_parameter(ir_tensor_t* tensor, const float* scale
     return 0;
 }
 
-
 int get_ir_tensor_quantization_parameter(ir_tensor_t* tensor, float* scale, int* zero_point, int number)
 {
     if (number < tensor->quant_param_num)
@@ -305,7 +296,6 @@ int get_ir_tensor_quantization_parameter(ir_tensor_t* tensor, float* scale, int*
 
     return tensor->quant_param_num;
 }
-
 
 void dump_ir_tensor(ir_graph_t* g, ir_tensor_t* t)
 {
@@ -355,7 +345,7 @@ int set_ir_tensor_consumer(ir_tensor_t* ir_tensor, const int index)
 {
     if (TE_MAX_CONSUMER_NUM <= ir_tensor->consumer_num)
     {
-        int16_t* new_consumer = ( int16_t* )sys_realloc(ir_tensor->consumer, sizeof(int16_t) * (ir_tensor->consumer_num + 1));
+        int16_t* new_consumer = (int16_t*)sys_realloc(ir_tensor->consumer, sizeof(int16_t) * (ir_tensor->consumer_num + 1));
         if (NULL == new_consumer)
         {
             return -1;
@@ -368,4 +358,4 @@ int set_ir_tensor_consumer(ir_tensor_t* ir_tensor, const int index)
     ir_tensor->consumer_num++;
 
     return 0;
-} 
+}

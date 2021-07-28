@@ -70,27 +70,27 @@ Convolution_vulkan::Convolution_vulkan(ir_graph_t* ir_graph, ir_node_t* ir_node)
     graph = ir_graph;
     node = ir_node;
 
-    struct tensor *input = get_ir_graph_tensor(graph, node->input_tensors[0]);
+    struct tensor* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
     std::string name = input->name;
     bottoms.push_back(name);
 
     // Tensor* output_tensor = t_node->GetOutputTensor(0);
-    struct tensor *output = get_ir_graph_tensor(graph, node->output_tensors[0]);
+    struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
     name = output->name;
     tops.push_back(name);
 
     // Convolution* conv_op = dynamic_cast<Convolution*>(node->GetOp());
     // ConvParam* param = conv_op->GetParam();
-    struct conv_param *param = (struct conv_param *)ir_node->op.param_mem;
+    struct conv_param* param = (struct conv_param*)ir_node->op.param_mem;
 
     group = param->group;
-    input_c = input->dims[1];   // param->input_channel;
+    input_c = input->dims[1]; // param->input_channel;
     input_h = input->dims[2];
     input_w = input->dims[3];
-    pad_w0 = param->pad_w0;    // left padding columns
-    pad_w1 = param->pad_w1;    // right padding columns
-    pad_h0 = param->pad_h0;    // top padding rows
-    pad_h1 = param->pad_h1;    // bottom padding rows
+    pad_w0 = param->pad_w0; // left padding columns
+    pad_w1 = param->pad_w1; // right padding columns
+    pad_h0 = param->pad_h0; // top padding rows
+    pad_h1 = param->pad_h1; // bottom padding rows
     stride_w = param->stride_w;
     stride_h = param->stride_h;
     dilation_w = param->dilation_w;
@@ -98,10 +98,10 @@ Convolution_vulkan::Convolution_vulkan(ir_graph_t* ir_graph, ir_node_t* ir_node)
     kernel_w = param->kernel_w;
     kernel_h = param->kernel_h;
     activation = param->activation == 0 ? 1 : -1;
-    output_c = output->dims[1];  // param->output_channel;
+    output_c = output->dims[1]; // param->output_channel;
     output_h = output->dims[2];
     output_w = output->dims[3];
-    struct tensor *weight = get_ir_graph_tensor(graph, node->input_tensors[1]);
+    struct tensor* weight = get_ir_graph_tensor(graph, node->input_tensors[1]);
     weight_data_size = weight->elem_num;
 }
 
@@ -150,7 +150,7 @@ int Convolution_vulkan::create_pipeline(const Option& _opt)
             shape_bordered = Tshape(shape.w + pad_left + pad_right, shape.h + pad_top + pad_bottom, shape.c);
         }
         else if ((pad_left == -233 && pad_right == -233 && pad_top == -233 && pad_bottom == -233)
-            || (pad_left == -234 && pad_right == -234 && pad_top == -234 && pad_bottom == -234))
+                 || (pad_left == -234 && pad_right == -234 && pad_top == -234 && pad_bottom == -234))
         {
             const int kernel_extent_w = dilation_w * (kernel_w - 1) + 1;
             const int kernel_extent_h = dilation_h * (kernel_h - 1) + 1;
@@ -168,8 +168,10 @@ int Convolution_vulkan::create_pipeline(const Option& _opt)
         }
     }
 
-    int elempack = opt.use_shader_pack8 && num_input % 8 == 0 ? 8 : num_input % 4 == 0 ? 4 : 1;
-    int out_elempack = opt.use_shader_pack8 && num_output % 8 == 0 ? 8 : num_output % 4 == 0 ? 4 : 1;
+    int elempack = opt.use_shader_pack8 && num_input % 8 == 0 ? 8 : num_input % 4 == 0 ? 4
+                                                                                       : 1;
+    int out_elempack = opt.use_shader_pack8 && num_output % 8 == 0 ? 8 : num_output % 4 == 0 ? 4
+                                                                                             : 1;
 
     size_t elemsize;
     size_t out_elemsize;
@@ -234,28 +236,28 @@ int Convolution_vulkan::create_pipeline(const Option& _opt)
 
         padding->create_pipeline(opt);
     }
-    
+
     std::vector<vk_specialization_type> specializations(10 + 10);
-    specializations[0].i = kernel_w;	// kernel_w;
-    specializations[1].i = kernel_h;	// kernel_h
-    specializations[2].i = dilation_w;	// dilation_w;
-    specializations[3].i = dilation_h;	// dilation_h;
-    specializations[4].i = stride_w;	// stride_w;
-    specializations[5].i = stride_h;	// stride_h;
-    specializations[6].i = node->input_num>2 ? 1 : 0; // bias_term;
-    specializations[7].i = activation;	// activation_type;
-    specializations[8].f = 0;//param->activation;	// activation_params.w >= 1 ? activation_params[0] : 0.f;
-    specializations[9].f = 0;//param->activation; 	// activation_params.w == 2 ? activation_params[1] : 0.f;
-    specializations[10 + 0].i = 0;//3;	// shape_bordered_packed.dims;
-    specializations[10 + 1].i = 0;//input_w + pad_w0 + pad_w1;	// shape_bordered_packed.w;
-    specializations[10 + 2].i = 0;//input_h + pad_h0 + pad_h1;	// shape_bordered_packed.h;
-    specializations[10 + 3].i = 0;//input_c;	// shape_bordered_packed.c;
-    specializations[10 + 4].i = 0;//(input_w + pad_w0 + pad_w1) * (input_h + pad_h0 + pad_h1);	// shape_bordered_packed.cstep;
-    specializations[10 + 5].i = 0;	// out_shape_packed.dims;
-    specializations[10 + 6].i = 0;//output_w;	// out_shape_packed.w;
-    specializations[10 + 7].i = 0;//output_h;	// out_shape_packed.h;
-    specializations[10 + 8].i = 0;//output_c;	// out_shape_packed.c;
-    specializations[10 + 9].i = 0;//output_w * output_h;	// out_shape_packed.cstep;
+    specializations[0].i = kernel_w;                    // kernel_w;
+    specializations[1].i = kernel_h;                    // kernel_h
+    specializations[2].i = dilation_w;                  // dilation_w;
+    specializations[3].i = dilation_h;                  // dilation_h;
+    specializations[4].i = stride_w;                    // stride_w;
+    specializations[5].i = stride_h;                    // stride_h;
+    specializations[6].i = node->input_num > 2 ? 1 : 0; // bias_term;
+    specializations[7].i = activation;                  // activation_type;
+    specializations[8].f = 0;                           //param->activation;	// activation_params.w >= 1 ? activation_params[0] : 0.f;
+    specializations[9].f = 0;                           //param->activation; 	// activation_params.w == 2 ? activation_params[1] : 0.f;
+    specializations[10 + 0].i = 0;                      //3;	// shape_bordered_packed.dims;
+    specializations[10 + 1].i = 0;                      //input_w + pad_w0 + pad_w1;	// shape_bordered_packed.w;
+    specializations[10 + 2].i = 0;                      //input_h + pad_h0 + pad_h1;	// shape_bordered_packed.h;
+    specializations[10 + 3].i = 0;                      //input_c;	// shape_bordered_packed.c;
+    specializations[10 + 4].i = 0;                      //(input_w + pad_w0 + pad_w1) * (input_h + pad_h0 + pad_h1);	// shape_bordered_packed.cstep;
+    specializations[10 + 5].i = 0;                      // out_shape_packed.dims;
+    specializations[10 + 6].i = 0;                      //output_w;	// out_shape_packed.w;
+    specializations[10 + 7].i = 0;                      //output_h;	// out_shape_packed.h;
+    specializations[10 + 8].i = 0;                      //output_c;	// out_shape_packed.c;
+    specializations[10 + 9].i = 0;                      //output_w * output_h;	// out_shape_packed.cstep;
 
     // TODO with local_size_xyz and shader_index options
 
@@ -263,9 +265,8 @@ int Convolution_vulkan::create_pipeline(const Option& _opt)
     local_size_xyz.w = std::min(8, out_shape_packed.w);
     local_size_xyz.h = std::min(8, out_shape_packed.h);
     local_size_xyz.c = std::min(4, out_shape_packed.c);
-    
-    // TLOG_INFO("create pipeline elempack out_elempack:%d %d\n", elempack, out_elempack);
 
+    // TLOG_INFO("create pipeline elempack out_elempack:%d %d\n", elempack, out_elempack);
 
     if (elempack == 1 && out_elempack == 1)
     {
@@ -384,7 +385,7 @@ int Convolution_vulkan::destroy_pipeline(const Option& /*opt*/)
 }
 
 int Convolution_vulkan::upload_model(VkTransfer& cmd, const Option& opt)
-{   
+{
     tensor* weight_tensor = get_ir_graph_tensor(graph, node->input_tensors[1]);
 
     // Tensor weight_data = Tensor(weight_tensor->elem_num, 1, 1, weight_tensor->data);
@@ -399,9 +400,11 @@ int Convolution_vulkan::upload_model(VkTransfer& cmd, const Option& opt)
     int num_output = output_c;
     int num_input = input_c; //weight_data_size / maxk / num_output;
 
-    int elempack = opt.use_shader_pack8 && num_input % 8 == 0 ? 8 : num_input % 4 == 0 ? 4 : 1;
+    int elempack = opt.use_shader_pack8 && num_input % 8 == 0 ? 8 : num_input % 4 == 0 ? 4
+                                                                                       : 1;
     // int elempack = 1;
-    int out_elempack = opt.use_shader_pack8 && num_output % 8 == 0 ? 8 : num_output % 4 == 0 ? 4 : 1;
+    int out_elempack = opt.use_shader_pack8 && num_output % 8 == 0 ? 8 : num_output % 4 == 0 ? 4
+                                                                                             : 1;
 
     // TLOG_INFO("conv upload model pack:%d %d\n", elempack, out_elempack);
 
@@ -409,25 +412,24 @@ int Convolution_vulkan::upload_model(VkTransfer& cmd, const Option& opt)
     {
         Tensor weight_data_r2 = weight_data.reshape(maxk, num_input, num_output);
 
-        weight_data_packed.create(maxk, num_input/elempack, num_output/out_elempack, (size_t)4*elempack*out_elempack, elempack*out_elempack);
-        for (int q=0; q+(out_elempack-1)<num_output; q+=out_elempack)
+        weight_data_packed.create(maxk, num_input / elempack, num_output / out_elempack, (size_t)4 * elempack * out_elempack, elempack * out_elempack);
+        for (int q = 0; q + (out_elempack - 1) < num_output; q += out_elempack)
         {
-            Tensor g0 = weight_data_packed.channel(q/out_elempack);
+            Tensor g0 = weight_data_packed.channel(q / out_elempack);
 
-            for (int p=0; p+(elempack-1)<num_input; p+=elempack)
+            for (int p = 0; p + (elempack - 1) < num_input; p += elempack)
             {
-                float* g00 = g0.row(p/elempack);
+                float* g00 = g0.row(p / elempack);
 
-                for (int k=0; k<maxk; k++)
+                for (int k = 0; k < maxk; k++)
                 {
-
-                    for (int i=0; i<out_elempack; i++)
+                    for (int i = 0; i < out_elempack; i++)
                     {
-                        const Tensor k0 = weight_data_r2.channel(q+i);
+                        const Tensor k0 = weight_data_r2.channel(q + i);
 
-                        for (int j=0; j<elempack; j++)
+                        for (int j = 0; j < elempack; j++)
                         {
-                            const float* k00 = k0.row(p+j);
+                            const float* k00 = k0.row(p + j);
 
                             g00[0] = k00[k];
 
@@ -452,7 +454,7 @@ int Convolution_vulkan::upload_model(VkTransfer& cmd, const Option& opt)
     }
 
     // upload bias data
-    if(node->input_num > 2)
+    if (node->input_num > 2)
     {
         tensor* bias_tensor = get_ir_graph_tensor(graph, node->input_tensors[2]);
         Tensor bias_data = Tensor(bias_tensor->elem_num, bias_tensor->data);
@@ -470,7 +472,6 @@ int Convolution_vulkan::upload_model(VkTransfer& cmd, const Option& opt)
         {
             cmd.record_upload(bias_data_packed, bias_data_gpu, opt);
         }
-
     }
 
     // if (innerproduct)
@@ -492,7 +493,7 @@ int Convolution_vulkan::record_pipeline(const VkTensor& bottom_blob, VkTensor& t
         bottom_blob_dim3.w = 1;
         bottom_blob_dim3.cstep = 1;
     }
-    
+
     int w = bottom_blob_dim3.w;
     int h = bottom_blob_dim3.h;
     int channels = bottom_blob_dim3.c;
@@ -500,7 +501,8 @@ int Convolution_vulkan::record_pipeline(const VkTensor& bottom_blob, VkTensor& t
     int elempack = bottom_blob_dim3.elempack;
     // TLOG_INFO("botom shape:%d %d %d %d %d %d %d\n", bottom_blob.dims, bottom_blob.c, bottom_blob.h, bottom_blob.w, bottom_blob.elemsize, bottom_blob.elempack, bottom_blob.cstep);
 
-    int out_elempack = opt.use_shader_pack8 && output_c % 8 == 0 ? 8 : output_c % 4 == 0 ? 4 : 1;
+    int out_elempack = opt.use_shader_pack8 && output_c % 8 == 0 ? 8 : output_c % 4 == 0 ? 4
+                                                                                         : 1;
     size_t out_elemsize = elemsize / elempack * out_elempack;
 
     VkTensor bottom_blob_bordered = bottom_blob_dim3;
@@ -551,7 +553,7 @@ int Convolution_vulkan::record_pipeline(const VkTensor& bottom_blob, VkTensor& t
         dispatcher.w = (top_blob.w * top_blob.h + 3) / 4;
         dispatcher.h = 1;
         dispatcher.c = top_blob.c;
-        
+
         cmd.record_pipeline(pipeline_convolution_pack4_1x1s1d1, bindings, constants, dispatcher);
     }
     else if (elempack == 8 && out_elempack == 8 && kernel_w == 1 && kernel_h == 1 && stride_w == 1 && stride_h == 1 && dilation_w == 1 && dilation_h == 1)
@@ -609,7 +611,7 @@ int Convolution_vulkan::record_pipeline(const VkTensor& bottom_blob, VkTensor& t
 
     // TLOG_INFO("top shape:%d %d %d\n", top_blob.c, top_blob.h, top_blob.w);
     // cmd.record_pipeline(pipeline_convolution, bindings, constants, top_blob);
-	// TLOG_INFO("run record convolution\n");
+    // TLOG_INFO("run record convolution\n");
     return 0;
 }
 

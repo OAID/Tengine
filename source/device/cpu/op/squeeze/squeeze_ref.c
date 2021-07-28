@@ -36,11 +36,10 @@
 
 #include <math.h>
 
-
 int ref_squeeze_fp32(struct tensor* input_tensor, struct tensor* output_tensor)
 {
-    float* input_data = input_tensor->data;
-    float* out_data = output_tensor->data;
+    float* input_data = (float*)input_tensor->data;
+    float* out_data = (float*)output_tensor->data;
 
     for (int i = 0; i < input_tensor->elem_num; i++)
     {
@@ -52,8 +51,8 @@ int ref_squeeze_fp32(struct tensor* input_tensor, struct tensor* output_tensor)
 
 int ref_squeeze_uint8(struct tensor* input_tensor, struct tensor* output_tensor)
 {
-    uint8_t* input_data = input_tensor->data;
-    uint8_t* out_data = output_tensor->data;
+    uint8_t* input_data = (uint8_t*)input_tensor->data;
+    uint8_t* out_data = (uint8_t*)output_tensor->data;
 
     for (int i = 0; i < input_tensor->elem_num; i++)
     {
@@ -80,10 +79,10 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-	int ret = -1;
+    int ret = -1;
     if (input_tensor->data_type == TENGINE_DT_FP32)
         ret = ref_squeeze_fp32(input_tensor, output_tensor);
-    else if(input_tensor->data_type == TENGINE_DT_UINT8)
+    else if (input_tensor->data_type == TENGINE_DT_UINT8)
         ret = ref_squeeze_uint8(input_tensor, output_tensor);
 
     return ret;

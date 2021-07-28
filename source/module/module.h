@@ -29,7 +29,6 @@ struct op;
 struct method;
 struct device;
 
-
 /*!
  * @brief Register a serializer.
  *
@@ -38,7 +37,6 @@ struct device;
  * @return statue value, 0 success, other value failure.
  */
 int register_serializer(struct serializer* serializer);
-
 
 /*!
  * @brief Find the serializer via its name.
@@ -49,7 +47,6 @@ int register_serializer(struct serializer* serializer);
  */
 struct serializer* find_serializer_via_name(const char* name);
 
-
 /*!
  * @brief Find the serializer via its registered index.
  *
@@ -59,14 +56,12 @@ struct serializer* find_serializer_via_name(const char* name);
  */
 struct serializer* find_serializer_via_index(int index);
 
-
 /*!
  * @brief Get count of all registered serializer.
  *
  * @return  The count of registered serializer.
  */
 int get_serializer_count();
-
 
 /*!
  * @brief Unregister a serializer.
@@ -77,14 +72,12 @@ int get_serializer_count();
  */
 int unregister_serializer(struct serializer* serializer);
 
-
 /*!
  * @brief Release all serializer.
  *
  * @return statue value, 0 success, other value failure.
  */
 int release_serializer_registry();
-
 
 /*!
  * @brief Register a device.
@@ -95,7 +88,6 @@ int release_serializer_registry();
  */
 int register_device(struct device* device);
 
-
 /*!
  * @brief Find the device via its name.
  *
@@ -105,14 +97,12 @@ int register_device(struct device* device);
  */
 struct device* find_device_via_name(const char* name);
 
-
 /*!
  * @brief Find the default device.
  *
  * @return  The pointer of the device.
  */
 struct device* find_default_device();
-
 
 /*!
  * @brief Find the device via its registered index.
@@ -123,14 +113,12 @@ struct device* find_default_device();
  */
 struct device* find_device_via_index(int index);
 
-
 /*!
  * @brief Get count of all registered device.
  *
  * @return  The count of registered device.
  */
 int get_device_count();
-
 
 /*!
  * @brief Register a device.
@@ -141,14 +129,12 @@ int get_device_count();
  */
 int unregister_device(struct device* device);
 
-
 /*!
  * @brief Release all device.
  *
  * @return statue value, 0 success, other value failure.
  */
 int release_device_registry();
-
 
 /*!
  * @brief Register an operator method.
@@ -161,7 +147,6 @@ int release_device_registry();
  */
 int register_op(int type, const char* name, struct method* method);
 
-
 /*!
  * @brief Find an operator method.
  *
@@ -172,7 +157,6 @@ int register_op(int type, const char* name, struct method* method);
  */
 struct method* find_op_method(int type, int version);
 
-
 /*!
  * @brief Find an operator method via its registered index.
  *
@@ -181,7 +165,6 @@ struct method* find_op_method(int type, int version);
  * @return  The pointer of the operator method.
  */
 struct method* find_op_method_via_index(int index);
-
 
 /*!
  * @brief Find an operator name.
@@ -192,14 +175,12 @@ struct method* find_op_method_via_index(int index);
  */
 const char* find_op_name(int type);
 
-
 /*!
  * @brief Get count of all registered operator method.
  *
  * @return  The count of registered operator method.
  */
 int get_op_method_count();
-
 
 /*!
  * @brief Register an operator.
@@ -210,7 +191,6 @@ int get_op_method_count();
  * @return statue value, 0 success, other value failure.
  */
 int unregister_op(int type, int version);
-
 
 /*!
  * @brief Release all operator.

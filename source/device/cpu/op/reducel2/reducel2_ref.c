@@ -36,7 +36,6 @@
 
 #include <math.h>
 
-
 struct ref_reducel2_param
 {
     int axis;
@@ -89,10 +88,10 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct graph* ir_graph = ir_node->graph;
     struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    struct reducel2_param* op_param = ( struct reducel2_param* )ir_node->op.param_mem;
+    struct reducel2_param* op_param = (struct reducel2_param*)ir_node->op.param_mem;
 
-    void* in_data = ( void* )input_tensor->data;
-    void* out_data = ( void* )output_tensor->data;
+    void* in_data = (void*)input_tensor->data;
+    void* out_data = (void*)output_tensor->data;
 
     struct ref_reducel2_param param;
 
@@ -109,7 +108,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     {
         param.dims[i] = 1;
     }
-    int ret = ref_reducel2_fp32(in_data, out_data, &param);
+    int ret = ref_reducel2_fp32((float*)in_data, (float*)out_data, &param);
 
     return ret;
 }

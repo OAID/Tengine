@@ -36,12 +36,11 @@
 #include "device/cpu/cpu_graph.h"
 #include "device/cpu/cpu_module.h"
 
-
 int ref_clip_fp32(struct tensor* input_tensor, struct tensor* output_tensor, float max, float min)
 {
     int total_size = input_tensor->elem_num;
-    float* input_data = input_tensor->data;
-    float* out_data = output_tensor->data;
+    float* input_data = (float*)input_tensor->data;
+    float* out_data = (float*)output_tensor->data;
 
     for (int i = 0; i < total_size; i++)
     {

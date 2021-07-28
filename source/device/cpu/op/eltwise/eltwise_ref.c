@@ -36,7 +36,6 @@
 
 #include <math.h>
 
-
 struct eltwise_op_param
 {
     float scale[3];
@@ -49,214 +48,241 @@ struct eltwise_op_param
 static int ref_eltwise_fp32(void* output, void* input0, void* input1, int type, int input_count4, int input_chan,
                             int input_hw, int input1_count4, int num_thread, int input_hw_1, struct eltwise_param* eltwise_param)
 {
-    float* out_ptr = ( float* )output;
-    float* in0 = ( float* )input0;
-    float* in1 = ( float* )input1;
+    float* out_ptr = (float*)output;
+    float* in0 = (float*)input0;
+    float* in1 = (float*)input1;
 
     switch (type)
     {
-        case ELT_SUB:
-            if (input1_count4 == 1)
-            {
-                for (int i = 0; i < input_count4; ++i)
-                {
-                    *out_ptr++ = (*in0++) - in1[0];
-                }
-            }
-            else if (input_count4 == input1_count4)
-            {
-                for (int i = 0; i < input_count4; ++i)
-                {
-                    *out_ptr++ = (*in0++) - (*in1++);
-                }
-            }
-            else if (input_chan == input1_count4)
-            {
-                for (int i = 0; i < input_count4; ++i)
-                {
-                    *out_ptr++ = in0[i] - in1[i / input_hw];
-                }
-            }
-            else
-                return -1;
-            break;
-        case ELT_SUM:
-            if (input1_count4 == 1)
-            {
-                for (int i = 0; i < input_count4; ++i)
-                {
-                    *out_ptr++ = (*in0++) + in1[0];
-                }
-            }
-            else if (input_count4 == input1_count4)
-            {
-                for (int i = 0; i < input_count4; ++i)
-                {
-                    *out_ptr++ = (*in0++) + (*in1++);
-                }
-            }
-            else if (input_chan == input1_count4)
-            {
-                for (int i = 0; i < input_count4; ++i)
-                {
-                    *out_ptr++ = in0[i] + in1[i / input_hw];
-                }
-            }
-            else if(input_hw == input_hw_1){
-                for( int i = 0; i < input_chan; i++){
-                    for(int j = 0; j < input_hw; j++){
-                        *out_ptr++ = in0[i*input_hw + j] + in1[j];
-                    }
-                }
-                // TLOG_ERR("%d %d \n", input1_count4, input_chan);
-            }
-            else
-                return -1;
-            break;
-        case ELT_MAX:
-            for (int i = 0; i < input_count4; ++i)
-            {
-                *out_ptr++ = ELT_MAX(in0[i], in1[i]);
-            }
-            break;
-        case ELT_PROD:
-            if (input1_count4 == 1)
-            {
-                for (int i = 0; i < input_count4; ++i)
-                {
-                    *out_ptr++ = (*in0++) * in1[0];
-                }
-            }
-            else if (input_count4 == input1_count4)
-            {
-                for (int i = 0; i < input_count4; ++i)
-                {
-                    *out_ptr++ = in0[i] * in1[i];
-                }
-            }
-            else if(input_count4 == 1)
-            {
-                for(int i = 0; i < input1_count4; ++i)
-                {
-                    *out_ptr++ = (in1[i]) * in0[0];
-                }
-            }
-            else if (input_chan == input1_count4)
-            {
-                for (int i = 0; i < input_count4; ++i)
-                {
-                    *out_ptr++ = in0[i] * in1[i / input_hw];
-                }
-            }
-            else if (input_chan == input_count4){
-                for(int i = 0; i < input1_count4; i++)
-                {
-                    *out_ptr++ = in0[i/input_hw] * in1[i];
-                }
-            }
-            else
-                return -1;
-            break;
-        case ELT_RSQRT:
-            for (int i = 0; i < input_count4; ++i)
-            {
-                *out_ptr++ = 1 / sqrt(in0[i]);
-            }
-            break;
-        case ELT_MIN_SCALAR:
-            for (int i = 0; i < input_count4; ++i)
-            {
-                *out_ptr++ = ELT_MIN((*in0++), in1[0]);
-            }
-            break;
-        case ELT_SUB_SCALAR:
+    case ELT_SUB:
+        if (input1_count4 == 1)
+        {
             for (int i = 0; i < input_count4; ++i)
             {
                 *out_ptr++ = (*in0++) - in1[0];
             }
-            break;
-        case ELT_PROD_SCALAR:
+        }
+        else if (input_count4 == input1_count4)
+        {
+            for (int i = 0; i < input_count4; ++i)
+            {
+                *out_ptr++ = (*in0++) - (*in1++);
+            }
+        }
+        else if (input_chan == input1_count4)
+        {
+            for (int i = 0; i < input_count4; ++i)
+            {
+                *out_ptr++ = in0[i] - in1[i / input_hw];
+            }
+        }
+        else
+            return -1;
+        break;
+    case ELT_SUM:
+        if (input1_count4 == 1)
+        {
+            for (int i = 0; i < input_count4; ++i)
+            {
+                *out_ptr++ = (*in0++) + in1[0];
+            }
+        }
+        else if (input_count4 == input1_count4)
+        {
+            for (int i = 0; i < input_count4; ++i)
+            {
+                *out_ptr++ = (*in0++) + (*in1++);
+            }
+        }
+        else if (input_chan == input1_count4)
+        {
+            for (int i = 0; i < input_count4; ++i)
+            {
+                *out_ptr++ = in0[i] + in1[i / input_hw];
+            }
+        }
+        else if (input_hw == input_hw_1)
+        {
+            for (int i = 0; i < input_chan; i++)
+            {
+                for (int j = 0; j < input_hw; j++)
+                {
+                    *out_ptr++ = in0[i * input_hw + j] + in1[j];
+                }
+            }
+            // TLOG_ERR("%d %d \n", input1_count4, input_chan);
+        }
+        else
+            return -1;
+        break;
+    case ELT_MAX:
+        for (int i = 0; i < input_count4; ++i)
+        {
+            *out_ptr++ = ELT_MAX(in0[i], in1[i]);
+        }
+        break;
+    case ELT_PROD:
+        if (input1_count4 == 1)
+        {
             for (int i = 0; i < input_count4; ++i)
             {
                 *out_ptr++ = (*in0++) * in1[0];
             }
-            break;
-        case ELT_DIV:
-            if (input1_count4 == 1)
+        }
+        else if (input_count4 == input1_count4)
+        {
+            for (int i = 0; i < input_count4; ++i)
             {
-                for (int i = 0; i < input_count4; ++i)
-                {
-                    *out_ptr++ = in0[i] / in1[0];
-                }
+                *out_ptr++ = in0[i] * in1[i];
             }
-            else if (input_count4 == input1_count4)
+        }
+        else if (input_count4 == 1)
+        {
+            for (int i = 0; i < input1_count4; ++i)
             {
-                for (int i = 0; i < input_count4; ++i)
-                {
-                    *out_ptr++ = in0[i] / in1[i];
-                }
+                *out_ptr++ = (in1[i]) * in0[0];
             }
-            else if (input_count4 == 1)
+        }
+        else if (input_chan == input1_count4)
+        {
+            for (int i = 0; i < input_count4; ++i)
             {
-                for (int i = 0; i < input1_count4; ++i)
-                {
-                    *out_ptr++ = in0[0] / (*in1++);
-                }
+                *out_ptr++ = in0[i] * in1[i / input_hw];
             }
-            else
+        }
+        else if (input_chan == input_count4)
+        {
+            for (int i = 0; i < input1_count4; i++)
             {
-                break;
+                *out_ptr++ = in0[i / input_hw] * in1[i];
             }
-            break;
-        case ELT_POW:
-            if(input_count4 == 1){
-                for(int i = 0; i < input1_count4; i++){
-                    *out_ptr++ = powf(in0[0], in1[i]);
-                }
-            } else if (input1_count4 == 1){
-                for(int i = 0; i < input1_count4; i++){
-                    *out_ptr++ = powf(in0[0], in1[i]);
-                }
-            } else if (input_count4 == input1_count4){
-                for(int i = 0; i < input_count4; i++){
-                    *out_ptr++ = powf(in0[i], in1[i]);
-                }
-            } else {
-                TLOG_ERR("Case not support \n");
+        }
+        else
+            return -1;
+        break;
+    case ELT_RSQRT:
+        for (int i = 0; i < input_count4; ++i)
+        {
+            *out_ptr++ = 1 / sqrt(in0[i]);
+        }
+        break;
+    case ELT_MIN_SCALAR:
+        for (int i = 0; i < input_count4; ++i)
+        {
+            *out_ptr++ = ELT_MIN((*in0++), in1[0]);
+        }
+        break;
+    case ELT_SUB_SCALAR:
+        for (int i = 0; i < input_count4; ++i)
+        {
+            *out_ptr++ = (*in0++) - in1[0];
+        }
+        break;
+    case ELT_PROD_SCALAR:
+        for (int i = 0; i < input_count4; ++i)
+        {
+            *out_ptr++ = (*in0++) * in1[0];
+        }
+        break;
+    case ELT_DIV:
+        if (input1_count4 == 1)
+        {
+            for (int i = 0; i < input_count4; ++i)
+            {
+                *out_ptr++ = in0[i] / in1[0];
             }
-            break;
-        case ELT_POWER:
-            for(int i = 0; i < input_count4; i++){
-                *out_ptr++ = powf((eltwise_param->shift + eltwise_param->scale * in0[i]), eltwise_param->power);
+        }
+        else if (input_count4 == input1_count4)
+        {
+            for (int i = 0; i < input_count4; ++i)
+            {
+                *out_ptr++ = in0[i] / in1[i];
             }
-            break;
-        case ELT_LOG:
-            for(int i = 0; i < input_count4; i++){
-                *out_ptr++ = log(in0[i]);
+        }
+        else if (input_count4 == 1)
+        {
+            for (int i = 0; i < input1_count4; ++i)
+            {
+                *out_ptr++ = in0[0] / (*in1++);
             }
-            break;
-        case ELT_EXP:
-            for(int i = 0; i < input_count4; i++){
-                *out_ptr++ = exp(in0[i]);
+        }
+        else if (input1_count4 == input_chan)
+        {
+            for (int i = 0; i < input_count4; ++i)
+            {
+                *out_ptr++ = in0[i] / in1[i / input_hw];
             }
+        }
+        else
+        {
             break;
-        case ELT_SQRT:
-            for(int i = 0; i < input_count4; i++){
-                *out_ptr++ = sqrt(in0[i]);
+        }
+        break;
+    case ELT_POW:
+        if (input_count4 == 1)
+        {
+            for (int i = 0; i < input1_count4; i++)
+            {
+                *out_ptr++ = powf(in0[0], in1[i]);
             }
-            break;
-        case ELT_FLOOR:
-            for(int i = 0; i < input_count4; i++){
-                *out_ptr++ = floor(in0[i]);
+        }
+        else if (input1_count4 == 1)
+        {
+            for (int i = 0; i < input_count4; i++)
+            {
+                *out_ptr++ = powf(in0[i], in1[0]);
             }
-            break;
-        case ELT_SQUARE:
-            for(int i = 0; i < input_count4; i++){
-                *out_ptr++ = pow(in0[i], 2);
+        }
+        else if (input_count4 == input1_count4)
+        {
+            for (int i = 0; i < input_count4; i++)
+            {
+                *out_ptr++ = powf(in0[i], in1[i]);
             }
-            break;
-        default:
-            break;
+        }
+        else
+        {
+            TLOG_ERR("Case not support \n");
+        }
+        break;
+    case ELT_POWER:
+        for (int i = 0; i < input_count4; i++)
+        {
+            *out_ptr++ = powf((eltwise_param->shift + eltwise_param->scale * in0[i]), eltwise_param->power);
+        }
+        break;
+    case ELT_LOG:
+        for (int i = 0; i < input_count4; i++)
+        {
+            *out_ptr++ = log(in0[i]);
+        }
+        break;
+    case ELT_EXP:
+        for (int i = 0; i < input_count4; i++)
+        {
+            *out_ptr++ = exp(in0[i]);
+        }
+        break;
+    case ELT_SQRT:
+        for (int i = 0; i < input_count4; i++)
+        {
+            *out_ptr++ = sqrt(in0[i]);
+        }
+        break;
+    case ELT_FLOOR:
+        for (int i = 0; i < input_count4; i++)
+        {
+            *out_ptr++ = floor(in0[i]);
+        }
+        break;
+    case ELT_SQUARE:
+        for (int i = 0; i < input_count4; i++)
+        {
+            *out_ptr++ = pow(in0[i], 2);
+        }
+        break;
+    default:
+        break;
     }
 
     return 0;
@@ -266,9 +292,9 @@ static int ref_eltwise_uint8(struct tensor* output_tensor, struct tensor* input_
                              struct tensor* input_tensor1, int type, int input_count4, int input_chan, int input_hw,
                              int input1_count4, int num_thread, int input_hw_1, struct eltwise_param* eltwise_param)
 {
-    uint8_t* input0_uint8 = ( uint8_t* )input_tensor0->data;
+    uint8_t* input0_uint8 = (uint8_t*)input_tensor0->data;
     uint8_t* input1_uint8 = NULL;
-    uint8_t* output_uint8 = ( uint8_t* )output_tensor->data;
+    uint8_t* output_uint8 = (uint8_t*)output_tensor->data;
 
     float in_scale0 = input_tensor0->scale;
     float in_scale1 = 0.f;
@@ -278,215 +304,233 @@ static int ref_eltwise_uint8(struct tensor* output_tensor, struct tensor* input_
     int out_zero = output_tensor->zero_point;
 
     /* input dequant */
-    float* in0 = ( float* )sys_malloc(input_tensor0->elem_num * sizeof(float));
+    float* in0 = (float*)sys_malloc(input_tensor0->elem_num * sizeof(float));
     float* in1 = NULL;
-    float* out_ptr = ( float* )sys_malloc(output_tensor->elem_num * sizeof(float));
+    float* out_ptr = (float*)sys_malloc(output_tensor->elem_num * sizeof(float));
 
     for (int i = 0; i < input_tensor0->elem_num; i++)
         in0[i] = (input0_uint8[i] - in_zero0) * in_scale0;
 
     if (input_tensor1 != NULL)
     {
-        input1_uint8 = ( uint8_t* )input_tensor1->data;
+        input1_uint8 = (uint8_t*)input_tensor1->data;
         in_scale1 = input_tensor1->scale;
         in_zero1 = input_tensor1->zero_point;
-        in1 = ( float* )sys_malloc(input_tensor1->elem_num * sizeof(float));
+        in1 = (float*)sys_malloc(input_tensor1->elem_num * sizeof(float));
         for (int i = 0; i < input_tensor1->elem_num; i++)
             in1[i] = (input1_uint8[i] - in_zero1) * in_scale1;
     }
     /* eltwise operator */
     switch (type)
     {
-        case ELT_SUB:
-            if (input_count4 == input1_count4)
-            {
-                for (int i = 0; i < input_count4; ++i)
-                {
-                    out_ptr[i] = in0[i] - in1[i];
-                }
-            }
-            else if (input_chan == input1_count4)
-            {
-                for (int i = 0; i < input_count4; ++i)
-                {
-                    out_ptr[i] = in0[i] - in1[i / input_hw];
-                }
-            }
-            else if (input1_count4 == 1)
-            {
-                for (int i = 0; i < input_count4; ++i)
-                {
-                    out_ptr[i] = in0[i] - in1[0];
-                }
-            }
-            else
-                return -1;
-            break;
-        case ELT_SUM:
-            if (input1_count4 == 1)
-            {
-                for (int i = 0; i < input_count4; ++i)
-                {
-                    out_ptr[i] = in0[i] + in1[0];
-                }
-            }
-            else if (input_count4 == input1_count4)
-            {
-                for (int i = 0; i < input_count4; ++i)
-                {
-                    out_ptr[i] = in0[i] + in1[i];
-                }
-            }
-            else if (input_chan == input1_count4)
-            {
-                for (int i = 0; i < input_count4; ++i)
-                {
-                    out_ptr[i] = in0[i] + in1[i / input_hw];
-                }
-            }
-            else if(input_hw == input_hw_1){
-                for( int i = 0; i < input_chan; i++){
-                    for(int j = 0; j < input_hw; j++){
-                        out_ptr[i] = in0[i*input_hw + j] + in1[j];
-                    }
-                }
-            }
-            else
-                return -1;
-            break;
-        case ELT_MAX:
+    case ELT_SUB:
+        if (input_count4 == input1_count4)
+        {
             for (int i = 0; i < input_count4; ++i)
             {
-                out_ptr[i] = ELT_MAX(in0[i], in1[i]);
+                out_ptr[i] = in0[i] - in1[i];
             }
-            break;
-        case ELT_PROD:
-            if (input1_count4 == 1)
-            {
-                for (int i = 0; i < input_count4; ++i)
-                {
-                    out_ptr[i] = in0[i] * in1[0];
-                }
-            }
-            else if (input_count4 == input1_count4)
-            {
-                for (int i = 0; i < input_count4; ++i)
-                {
-                    out_ptr[i] = in0[i] * in1[i];
-                }
-            }
-            else if (input_chan == input1_count4)
-            {
-                for (int i = 0; i < input_count4; ++i)
-                {
-                    out_ptr[i] = in0[i] * in1[i / input_hw];
-                }
-            }
-            else
-                return -1;
-            break;
-        case ELT_RSQRT:
+        }
+        else if (input_chan == input1_count4)
+        {
             for (int i = 0; i < input_count4; ++i)
             {
-                out_ptr[i] = 1 / sqrt(in0[i]);
+                out_ptr[i] = in0[i] - in1[i / input_hw];
             }
-            break;
-        case ELT_MIN_SCALAR:
-            for (int i = 0; i < input_count4; ++i)
-            {
-                out_ptr[i] = ELT_MIN(in0[i], in1[0]);
-            }
-            break;
-        case ELT_SUB_SCALAR:
+        }
+        else if (input1_count4 == 1)
+        {
             for (int i = 0; i < input_count4; ++i)
             {
                 out_ptr[i] = in0[i] - in1[0];
             }
-            break;
-        case ELT_PROD_SCALAR:
+        }
+        else
+            return -1;
+        break;
+    case ELT_SUM:
+        if (input1_count4 == 1)
+        {
+            for (int i = 0; i < input_count4; ++i)
+            {
+                out_ptr[i] = in0[i] + in1[0];
+            }
+        }
+        else if (input_count4 == input1_count4)
+        {
+            for (int i = 0; i < input_count4; ++i)
+            {
+                out_ptr[i] = in0[i] + in1[i];
+            }
+        }
+        else if (input_chan == input1_count4)
+        {
+            for (int i = 0; i < input_count4; ++i)
+            {
+                out_ptr[i] = in0[i] + in1[i / input_hw];
+            }
+        }
+        else if (input_hw == input_hw_1)
+        {
+            for (int i = 0; i < input_chan; i++)
+            {
+                for (int j = 0; j < input_hw; j++)
+                {
+                    out_ptr[i] = in0[i * input_hw + j] + in1[j];
+                }
+            }
+        }
+        else
+            return -1;
+        break;
+    case ELT_MAX:
+        for (int i = 0; i < input_count4; ++i)
+        {
+            out_ptr[i] = ELT_MAX(in0[i], in1[i]);
+        }
+        break;
+    case ELT_PROD:
+        if (input1_count4 == 1)
+        {
             for (int i = 0; i < input_count4; ++i)
             {
                 out_ptr[i] = in0[i] * in1[0];
             }
-            break;
-        case ELT_DIV:
-            if (input1_count4 == 1)
+        }
+        else if (input_count4 == input1_count4)
+        {
+            for (int i = 0; i < input_count4; ++i)
             {
-                for (int i = 0; i < input_count4; ++i)
-                {
-                    out_ptr[i] = in0[i] / in1[0];
-                }
+                out_ptr[i] = in0[i] * in1[i];
             }
-            else if (input_count4 == input1_count4)
+        }
+        else if (input_chan == input1_count4)
+        {
+            for (int i = 0; i < input_count4; ++i)
             {
-                for (int i = 0; i < input_count4; ++i)
-                {
-                    out_ptr[i] = in0[i] / in1[i];
-                }
+                out_ptr[i] = in0[i] * in1[i / input_hw];
             }
-            else if (input_count4 == 1)
+        }
+        else
+            return -1;
+        break;
+    case ELT_RSQRT:
+        for (int i = 0; i < input_count4; ++i)
+        {
+            out_ptr[i] = 1 / sqrt(in0[i]);
+        }
+        break;
+    case ELT_MIN_SCALAR:
+        for (int i = 0; i < input_count4; ++i)
+        {
+            out_ptr[i] = ELT_MIN(in0[i], in1[0]);
+        }
+        break;
+    case ELT_SUB_SCALAR:
+        for (int i = 0; i < input_count4; ++i)
+        {
+            out_ptr[i] = in0[i] - in1[0];
+        }
+        break;
+    case ELT_PROD_SCALAR:
+        for (int i = 0; i < input_count4; ++i)
+        {
+            out_ptr[i] = in0[i] * in1[0];
+        }
+        break;
+    case ELT_DIV:
+        if (input1_count4 == 1)
+        {
+            for (int i = 0; i < input_count4; ++i)
             {
-                for (int i = 0; i < input1_count4; ++i)
-                {
-                    out_ptr[i] = in0[0] / in1[i];
-                }
+                out_ptr[i] = in0[i] / in1[0];
             }
-            else
+        }
+        else if (input_count4 == input1_count4)
+        {
+            for (int i = 0; i < input_count4; ++i)
             {
-                break;
+                out_ptr[i] = in0[i] / in1[i];
             }
-            break;
-        case ELT_POW:
-            if(input_count4 == 1){
-                for(int i = 0; i < input1_count4; i++){
-                    out_ptr[i] = pow(in0[0], in1[i]);
-                }
-            } else if (input1_count4 == 1){
-                for(int i = 0; i < input1_count4; i++){
-                    out_ptr[i] = pow(in0[0], in1[i]);
-                }
-            } else if (input_count4 == input1_count4){
-                for(int i = 0; i < input_count4; i++){
-                    out_ptr[i] = pow(in0[i], in1[i]);
-                }
-            } else {
-                TLOG_ERR("Case not support \n");
+        }
+        else if (input_count4 == 1)
+        {
+            for (int i = 0; i < input1_count4; ++i)
+            {
+                out_ptr[i] = in0[0] / in1[i];
             }
+        }
+        else
+        {
             break;
-        case ELT_POWER:
-            for(int i = 0; i < input_count4; i++){
-                out_ptr[i] = pow((eltwise_param->shift + eltwise_param->scale * in0[i]), eltwise_param->power);
+        }
+        break;
+    case ELT_POW:
+        if (input_count4 == 1)
+        {
+            for (int i = 0; i < input1_count4; i++)
+            {
+                out_ptr[i] = pow(in0[0], in1[i]);
             }
-            break;
-        case ELT_LOG:
-            for(int i = 0; i < input_count4; i++){
-                out_ptr[i] = log(in0[i]);
+        }
+        else if (input1_count4 == 1)
+        {
+            for (int i = 0; i < input1_count4; i++)
+            {
+                out_ptr[i] = pow(in0[0], in1[i]);
             }
-            break;
-        case ELT_EXP:
-            for(int i = 0; i < input_count4; i++){
-                out_ptr[i] = exp(in0[i]);
+        }
+        else if (input_count4 == input1_count4)
+        {
+            for (int i = 0; i < input_count4; i++)
+            {
+                out_ptr[i] = pow(in0[i], in1[i]);
             }
-            break;
-        case ELT_SQRT:
-            for(int i = 0; i < input_count4; i++){
-                out_ptr[i] = sqrt(in0[i]);
-            }
-            break;
-        case ELT_FLOOR:
-            for(int i = 0; i < input_count4; i++){
-                out_ptr[i] = floor(in0[i]);
-            }
-            break;
-        case ELT_SQUARE:
-            for(int i = 0; i < input_count4; i++){
-                out_ptr[i] = pow(in0[i], 2);
-            }
-            break;
-        default:
-            break;
+        }
+        else
+        {
+            TLOG_ERR("Case not support \n");
+        }
+        break;
+    case ELT_POWER:
+        for (int i = 0; i < input_count4; i++)
+        {
+            out_ptr[i] = pow((eltwise_param->shift + eltwise_param->scale * in0[i]), eltwise_param->power);
+        }
+        break;
+    case ELT_LOG:
+        for (int i = 0; i < input_count4; i++)
+        {
+            out_ptr[i] = log(in0[i]);
+        }
+        break;
+    case ELT_EXP:
+        for (int i = 0; i < input_count4; i++)
+        {
+            out_ptr[i] = exp(in0[i]);
+        }
+        break;
+    case ELT_SQRT:
+        for (int i = 0; i < input_count4; i++)
+        {
+            out_ptr[i] = sqrt(in0[i]);
+        }
+        break;
+    case ELT_FLOOR:
+        for (int i = 0; i < input_count4; i++)
+        {
+            out_ptr[i] = floor(in0[i]);
+        }
+        break;
+    case ELT_SQUARE:
+        for (int i = 0; i < input_count4; i++)
+        {
+            out_ptr[i] = pow(in0[i], 2);
+        }
+        break;
+    default:
+        break;
     }
-
 
     /* output quant */
     for (int i = 0; i < output_tensor->elem_num; i++)
@@ -508,227 +552,245 @@ static int ref_eltwise_uint8(struct tensor* output_tensor, struct tensor* input_
 }
 
 static int ref_eltwise_int8(struct tensor* output_tensor, struct tensor* input_tensor0,
-                             struct tensor* input_tensor1, int type, int input_count4, int input_chan, int input_hw,
-                             int input1_count4, int num_thread, int input_hw_1, struct eltwise_param* eltwise_param)
+                            struct tensor* input_tensor1, int type, int input_count4, int input_chan, int input_hw,
+                            int input1_count4, int num_thread, int input_hw_1, struct eltwise_param* eltwise_param)
 {
-    int8_t* input0_int8 = ( int8_t* )input_tensor0->data;
+    int8_t* input0_int8 = (int8_t*)input_tensor0->data;
     int8_t* input1_int8 = NULL;
-    int8_t* output_int8 = ( int8_t* )output_tensor->data;
+    int8_t* output_int8 = (int8_t*)output_tensor->data;
 
     float in_scale0 = input_tensor0->scale;
     float in_scale1 = 0.f;
     float out_scale = output_tensor->scale;
 
     /* input dequant */
-    float* in0 = ( float* )sys_malloc(input_tensor0->elem_num * sizeof(float));
+    float* in0 = (float*)sys_malloc(input_tensor0->elem_num * sizeof(float));
     float* in1 = NULL;
-    float* out_ptr = ( float* )sys_malloc(output_tensor->elem_num * sizeof(float));
+    float* out_ptr = (float*)sys_malloc(output_tensor->elem_num * sizeof(float));
 
     for (int i = 0; i < input_tensor0->elem_num; i++)
-        in0[i] = (float )input0_int8[i] * in_scale0;
+        in0[i] = (float)input0_int8[i] * in_scale0;
 
     if (input_tensor1 != NULL)
     {
-        input1_int8 = ( int8_t* )input_tensor1->data;
+        input1_int8 = (int8_t*)input_tensor1->data;
         in_scale1 = input_tensor1->scale;
-        in1 = ( float* )sys_malloc(input_tensor1->elem_num * sizeof(float));
+        in1 = (float*)sys_malloc(input_tensor1->elem_num * sizeof(float));
         for (int i = 0; i < input_tensor1->elem_num; i++)
-            in1[i] = (float )input1_int8[i] * in_scale1;
+            in1[i] = (float)input1_int8[i] * in_scale1;
     }
 
     /* eltwise operator */
     switch (type)
     {
-        case ELT_SUB:
-            if (input_count4 == input1_count4)
-            {
-                for (int i = 0; i < input_count4; ++i)
-                {
-                    out_ptr[i] = in0[i] - in1[i];
-                }
-            }
-            else if (input_chan == input1_count4)
-            {
-                for (int i = 0; i < input_count4; ++i)
-                {
-                    out_ptr[i] = in0[i] - in1[i / input_hw];
-                }
-            }
-            else if (input1_count4 == 1)
-            {
-                for (int i = 0; i < input_count4; ++i)
-                {
-                    out_ptr[i] = in0[i] - in1[0];
-                }
-            }
-            else
-                return -1;
-            break;
-        case ELT_SUM:
-            if (input1_count4 == 1)
-            {
-                for (int i = 0; i < input_count4; ++i)
-                {
-                    out_ptr[i] = in0[i] + in1[0];
-                }
-            }
-            else if (input_count4 == input1_count4)
-            {
-                for (int i = 0; i < input_count4; ++i)
-                {
-                    out_ptr[i] = in0[i] + in1[i];
-                }
-            }
-            else if (input_chan == input1_count4)
-            {
-                for (int i = 0; i < input_count4; ++i)
-                {
-                    out_ptr[i] = in0[i] + in1[i / input_hw];
-                }
-            }
-            else if(input_hw == input_hw_1){
-                for( int i = 0; i < input_chan; i++){
-                    for(int j = 0; j < input_hw; j++){
-                        out_ptr[i] = in0[i*input_hw + j] + in1[j];
-                    }
-                }
-            }
-            else
-                return -1;
-            break;
-        case ELT_MAX:
+    case ELT_SUB:
+        if (input_count4 == input1_count4)
+        {
             for (int i = 0; i < input_count4; ++i)
             {
-                out_ptr[i] = ELT_MAX(in0[i], in1[i]);
+                out_ptr[i] = in0[i] - in1[i];
             }
-            break;
-        case ELT_PROD:
-            if (input1_count4 == 1)
-            {
-                for (int i = 0; i < input_count4; ++i)
-                {
-                    out_ptr[i] = in0[i] * in1[0];
-                }
-            }
-            else if (input_count4 == input1_count4)
-            {
-                for (int i = 0; i < input_count4; ++i)
-                {
-                    out_ptr[i] = in0[i] * in1[i];
-                }
-            }
-            else if (input_chan == input1_count4)
-            {
-                for (int i = 0; i < input_count4; ++i)
-                {
-                    out_ptr[i] = in0[i] * in1[i / input_hw];
-                }
-            }
-            else
-                return -1;
-            break;
-        case ELT_RSQRT:
+        }
+        else if (input_chan == input1_count4)
+        {
             for (int i = 0; i < input_count4; ++i)
             {
-                out_ptr[i] = 1 / sqrt(in0[i]);
+                out_ptr[i] = in0[i] - in1[i / input_hw];
             }
-            break;
-        case ELT_MIN_SCALAR:
-            for (int i = 0; i < input_count4; ++i)
-            {
-                out_ptr[i] = ELT_MIN(in0[i], in1[0]);
-            }
-            break;
-        case ELT_SUB_SCALAR:
+        }
+        else if (input1_count4 == 1)
+        {
             for (int i = 0; i < input_count4; ++i)
             {
                 out_ptr[i] = in0[i] - in1[0];
             }
-            break;
-        case ELT_PROD_SCALAR:
+        }
+        else
+            return -1;
+        break;
+    case ELT_SUM:
+        if (input1_count4 == 1)
+        {
+            for (int i = 0; i < input_count4; ++i)
+            {
+                out_ptr[i] = in0[i] + in1[0];
+            }
+        }
+        else if (input_count4 == input1_count4)
+        {
+            for (int i = 0; i < input_count4; ++i)
+            {
+                out_ptr[i] = in0[i] + in1[i];
+            }
+        }
+        else if (input_chan == input1_count4)
+        {
+            for (int i = 0; i < input_count4; ++i)
+            {
+                out_ptr[i] = in0[i] + in1[i / input_hw];
+            }
+        }
+        else if (input_hw == input_hw_1)
+        {
+            for (int i = 0; i < input_chan; i++)
+            {
+                for (int j = 0; j < input_hw; j++)
+                {
+                    out_ptr[i] = in0[i * input_hw + j] + in1[j];
+                }
+            }
+        }
+        else
+            return -1;
+        break;
+    case ELT_MAX:
+        for (int i = 0; i < input_count4; ++i)
+        {
+            out_ptr[i] = ELT_MAX(in0[i], in1[i]);
+        }
+        break;
+    case ELT_PROD:
+        if (input1_count4 == 1)
+        {
             for (int i = 0; i < input_count4; ++i)
             {
                 out_ptr[i] = in0[i] * in1[0];
             }
-            break;
-        case ELT_DIV:
-            if (input1_count4 == 1)
+        }
+        else if (input_count4 == input1_count4)
+        {
+            for (int i = 0; i < input_count4; ++i)
             {
-                for (int i = 0; i < input_count4; ++i)
-                {
-                    out_ptr[i] = in0[i] / in1[0];
-                }
+                out_ptr[i] = in0[i] * in1[i];
             }
-            else if (input_count4 == input1_count4)
+        }
+        else if (input_chan == input1_count4)
+        {
+            for (int i = 0; i < input_count4; ++i)
             {
-                for (int i = 0; i < input_count4; ++i)
-                {
-                    out_ptr[i] = in0[i] / in1[i];
-                }
+                out_ptr[i] = in0[i] * in1[i / input_hw];
             }
-            else if (input_count4 == 1)
+        }
+        else
+            return -1;
+        break;
+    case ELT_RSQRT:
+        for (int i = 0; i < input_count4; ++i)
+        {
+            out_ptr[i] = 1 / sqrt(in0[i]);
+        }
+        break;
+    case ELT_MIN_SCALAR:
+        for (int i = 0; i < input_count4; ++i)
+        {
+            out_ptr[i] = ELT_MIN(in0[i], in1[0]);
+        }
+        break;
+    case ELT_SUB_SCALAR:
+        for (int i = 0; i < input_count4; ++i)
+        {
+            out_ptr[i] = in0[i] - in1[0];
+        }
+        break;
+    case ELT_PROD_SCALAR:
+        for (int i = 0; i < input_count4; ++i)
+        {
+            out_ptr[i] = in0[i] * in1[0];
+        }
+        break;
+    case ELT_DIV:
+        if (input1_count4 == 1)
+        {
+            for (int i = 0; i < input_count4; ++i)
             {
-                for (int i = 0; i < input1_count4; ++i)
-                {
-                    out_ptr[i] = in0[0] / in1[i];
-                }
+                out_ptr[i] = in0[i] / in1[0];
             }
-            else
+        }
+        else if (input_count4 == input1_count4)
+        {
+            for (int i = 0; i < input_count4; ++i)
             {
-                break;
+                out_ptr[i] = in0[i] / in1[i];
             }
-            break;
-        case ELT_POW:
-            if(input_count4 == 1){
-                for(int i = 0; i < input1_count4; i++){
-                    out_ptr[i] = pow(in0[0], in1[i]);
-                }
-            } else if (input1_count4 == 1){
-                for(int i = 0; i < input1_count4; i++){
-                    out_ptr[i] = pow(in0[0], in1[i]);
-                }
-            } else if (input_count4 == input1_count4){
-                for(int i = 0; i < input_count4; i++){
-                    out_ptr[i] = pow(in0[i], in1[i]);
-                }
-            } else {
-                TLOG_ERR("Case not support \n");
+        }
+        else if (input_count4 == 1)
+        {
+            for (int i = 0; i < input1_count4; ++i)
+            {
+                out_ptr[i] = in0[0] / in1[i];
             }
+        }
+        else
+        {
             break;
-        case ELT_POWER:
-            for(int i = 0; i < input_count4; i++){
-                out_ptr[i] = pow((eltwise_param->shift + eltwise_param->scale * in0[i]), eltwise_param->power);
+        }
+        break;
+    case ELT_POW:
+        if (input_count4 == 1)
+        {
+            for (int i = 0; i < input1_count4; i++)
+            {
+                out_ptr[i] = pow(in0[0], in1[i]);
             }
-            break;
-        case ELT_LOG:
-            for(int i = 0; i < input_count4; i++){
-                out_ptr[i] = log(in0[i]);
+        }
+        else if (input1_count4 == 1)
+        {
+            for (int i = 0; i < input1_count4; i++)
+            {
+                out_ptr[i] = pow(in0[0], in1[i]);
             }
-            break;
-        case ELT_EXP:
-            for(int i = 0; i < input_count4; i++){
-                out_ptr[i] = exp(in0[i]);
+        }
+        else if (input_count4 == input1_count4)
+        {
+            for (int i = 0; i < input_count4; i++)
+            {
+                out_ptr[i] = pow(in0[i], in1[i]);
             }
-            break;
-        case ELT_SQRT:
-            for(int i = 0; i < input_count4; i++){
-                out_ptr[i] = sqrt(in0[i]);
-            }
-            break;
-        case ELT_FLOOR:
-            for(int i = 0; i < input_count4; i++){
-                out_ptr[i] = floor(in0[i]);
-            }
-            break;
-        case ELT_SQUARE:
-            for(int i = 0; i < input_count4; i++){
-                out_ptr[i] = pow(in0[i], 2);
-            }
-            break;
-        default:
-            break;
+        }
+        else
+        {
+            TLOG_ERR("Case not support \n");
+        }
+        break;
+    case ELT_POWER:
+        for (int i = 0; i < input_count4; i++)
+        {
+            out_ptr[i] = pow((eltwise_param->shift + eltwise_param->scale * in0[i]), eltwise_param->power);
+        }
+        break;
+    case ELT_LOG:
+        for (int i = 0; i < input_count4; i++)
+        {
+            out_ptr[i] = log(in0[i]);
+        }
+        break;
+    case ELT_EXP:
+        for (int i = 0; i < input_count4; i++)
+        {
+            out_ptr[i] = exp(in0[i]);
+        }
+        break;
+    case ELT_SQRT:
+        for (int i = 0; i < input_count4; i++)
+        {
+            out_ptr[i] = sqrt(in0[i]);
+        }
+        break;
+    case ELT_FLOOR:
+        for (int i = 0; i < input_count4; i++)
+        {
+            out_ptr[i] = floor(in0[i]);
+        }
+        break;
+    case ELT_SQUARE:
+        for (int i = 0; i < input_count4; i++)
+        {
+            out_ptr[i] = pow(in0[i], 2);
+        }
+        break;
+    default:
+        break;
     }
-
 
     /* output quant */
     for (int i = 0; i < output_tensor->elem_num; i++)
@@ -774,7 +836,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
     input_tensor0 = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    struct eltwise_param* eltwise_param = ( struct eltwise_param* )ir_node->op.param_mem;
+    struct eltwise_param* eltwise_param = (struct eltwise_param*)ir_node->op.param_mem;
 
     int layout = ir_graph->graph_layout;
     void* input0 = input_tensor0->data;
@@ -789,7 +851,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         input1 = input_tensor1->data;
         input1_count4 = input_tensor1->elem_num;
         int dim1_size = input_tensor1->dim_num;
-        input_hw_1 = input_tensor1->dims[dim1_size-2]*input_tensor1->dims[dim1_size-1];
+        input_hw_1 = input_tensor1->dims[dim1_size - 2] * input_tensor1->dims[dim1_size - 1];
     }
 
     if (!input_tensor1 || input_tensor0->elem_num >= input_tensor1->elem_num)
@@ -800,11 +862,12 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         int dim0_size = input_tensor0->dim_num;
         if (layout == TENGINE_LAYOUT_NCHW)
         {
-            input_chan_0 = input_tensor0->dims[dim0_size-3];
-            if(input_tensor0->dims[dim0_size-4]){
-                input_chan_0 *= input_tensor0->dims[dim0_size-4];
+            input_chan_0 = input_tensor0->dims[dim0_size - 3];
+            if (input_tensor0->dims[dim0_size - 4])
+            {
+                input_chan_0 *= input_tensor0->dims[dim0_size - 4];
             }
-            input_hw_0 = input_tensor0->dims[dim0_size-2] * input_tensor0->dims[dim0_size-1];
+            input_hw_0 = input_tensor0->dims[dim0_size - 2] * input_tensor0->dims[dim0_size - 1];
         }
         else if (layout == TENGINE_LAYOUT_NHWC)
         {
@@ -825,7 +888,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
                                     input_chan_0, input_hw_0, input1_count4, exec_graph->num_thread, input_hw_1, eltwise_param);
         else if (input_tensor0->data_type == TENGINE_DT_INT8)
             ret = ref_eltwise_int8(output_tensor, input_tensor0, input_tensor1, eltwise_param->type, input0_count4,
-                                    input_chan_0, input_hw_0, input1_count4, exec_graph->num_thread, input_hw_1, eltwise_param);
+                                   input_chan_0, input_hw_0, input1_count4, exec_graph->num_thread, input_hw_1, eltwise_param);
         else
         {
             TLOG_ERR("Input data type %d not to be supported.\n", input_tensor0->data_type);
@@ -866,7 +929,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
                                     input_chan_0, input_hw_0, input1_count4, exec_graph->num_thread, input_hw_1, eltwise_param);
         else if (output_tensor->data_type == TENGINE_DT_INT8)
             ret = ref_eltwise_int8(output_tensor, input_tensor1, input_tensor0, eltwise_param->type, input0_count4,
-                                    input_chan_0, input_hw_0, input1_count4, exec_graph->num_thread, input_hw_1, eltwise_param);
+                                   input_chan_0, input_hw_0, input1_count4, exec_graph->num_thread, input_hw_1, eltwise_param);
         else
         {
             TLOG_ERR("Input data type %d not to be supported.\n", output_tensor->data_type);

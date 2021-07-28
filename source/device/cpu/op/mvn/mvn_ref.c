@@ -36,7 +36,6 @@
 
 #include <math.h>
 
-
 typedef struct _ref_mvn_param
 {
     int input_n;
@@ -69,7 +68,7 @@ int ref_mvn_fp32(float* in_data, float* out_data, p_ref_mvn_param param)
     int normalize_variance = param->normalize_variance;
     float eps = param->eps;
 
-    float* sum = ( float* )malloc(in_c * sizeof(float));
+    float* sum = (float*)malloc(in_c * sizeof(float));
 
     if (NULL == sum)
         return -100;
@@ -130,7 +129,7 @@ int ref_mvn_fp32(float* in_data, float* out_data, p_ref_mvn_param param)
 
         if (normalize_variance)
         {
-            float* sqsum = ( float* )malloc(in_c * sizeof(float));
+            float* sqsum = (float*)malloc(in_c * sizeof(float));
             if (NULL == sqsum)
                 return -100;
 
@@ -227,7 +226,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     op_param.input_h = input_tensor->dims[2];
     op_param.input_w = input_tensor->dims[3];
 
-    struct mvn_param* param = ( struct mvn_param* )node->op.param_mem;
+    struct mvn_param* param = (struct mvn_param*)node->op.param_mem;
     op_param.normalize_variance = param->normalize_variance;
     op_param.across_channels = param->across_channels;
     op_param.eps = param->eps;
@@ -236,7 +235,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     void* in_data = input_tensor->data;
     void* out_data = output_tensor->data;
 
-    return ref_mvn_fp32(in_data, out_data, &op_param);
+    return ref_mvn_fp32((float*)in_data, (float*)out_data, &op_param);
 }
 
 static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struct node* exec_node)

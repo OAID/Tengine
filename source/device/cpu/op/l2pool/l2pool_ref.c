@@ -37,7 +37,6 @@
 #include <math.h>
 #include <string.h>
 
-
 struct ref_l2pool_param
 {
     int inc;
@@ -53,7 +52,7 @@ struct ref_l2pool_param
     int pad_h;
     int pad_w;
     int inn;
-    float scale[2]; // scale[0]: input scale, scale[1]: output scale
+    float scale[2];    // scale[0]: input scale, scale[1]: output scale
     int zero_point[2]; // zero_point[0]: input zero_point, zero_point[1]: output zero_point
 };
 #define L2POOL_MAX(a, b) ((a) < (b) ? (b) : (a))
@@ -61,8 +60,7 @@ struct ref_l2pool_param
 
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct ref_l2pool_param* l2pool_op_param =
-        (struct ref_l2pool_param*)sys_malloc(sizeof(struct ref_l2pool_param));
+    struct ref_l2pool_param* l2pool_op_param = (struct ref_l2pool_param*)sys_malloc(sizeof(struct ref_l2pool_param));
     memset(l2pool_op_param, 0, sizeof(struct ref_l2pool_param));
     exec_node->ops_priv = l2pool_op_param;
     return 0;
@@ -75,11 +73,11 @@ static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, 
 }
 void run_l2pool(float* data, float* out_data, struct ref_l2pool_param* param)
 {
-    for(int c = 0; c < param->inc; c++)
+    for (int c = 0; c < param->inc; c++)
     {
-        for(int ph = 0; ph < param->outh; ph++)
+        for (int ph = 0; ph < param->outh; ph++)
         {
-            for(int pw = 0; pw < param->outw; pw++)
+            for (int pw = 0; pw < param->outw; pw++)
             {
                 // int index = inc * (ph * outw + pw) + c;
                 int index = param->inc * (ph * param->outw + pw) + c;
@@ -95,9 +93,9 @@ void run_l2pool(float* data, float* out_data, struct ref_l2pool_param* param)
 
                 float tmp = 0.0f;
                 float val = 0.0f;
-                for(int h = h_start; h < h_end; h++)
+                for (int h = h_start; h < h_end; h++)
                 {
-                    for(int w = w_start; w < w_end; w++)
+                    for (int w = w_start; w < w_end; w++)
                     {
                         // val = data[i*param->inh*param->inc * param->inw +h * param->inc * param->inw + w * param->inc
                         // +c];
@@ -106,7 +104,7 @@ void run_l2pool(float* data, float* out_data, struct ref_l2pool_param* param)
                         pool_size++;
                     }
                 }
-                if(tmp == 0)
+                if (tmp == 0)
                 {
                     out_data[index] = 0;
                 }
@@ -123,40 +121,36 @@ int ref_l2pool_fp32(float* data, float* out_data, struct ref_l2pool_param* param
 {
     int input_size = param->inc * param->inh * param->inw;
     int output_size = param->outh * param->outw * param->outc;
-    for(int i = 0; i < param->inn; i++)
+    for (int i = 0; i < param->inn; i++)
     {
-        run_l2pool(data + i * input_size, out_data + i * output_size,param);
+        run_l2pool(data + i * input_size, out_data + i * output_size, param);
     }
     return 0;
 }
 
-
-void ConvertPaddingStyleToParameters(int stride_h, int stride_w, 
-                                         int in_height, int in_width, int filter_height, int filter_width, int paddingtype,
-                                         int out_height, int out_width,
-                                         int* padding_width, int* padding_height)
+void ConvertPaddingStyleToParameters(int stride_h, int stride_w,
+                                     int in_height, int in_width, int filter_height, int filter_width, int paddingtype,
+                                     int out_height, int out_width,
+                                     int* padding_width, int* padding_height)
 {
-    if(paddingtype == 0 || paddingtype == 2)
+    if (paddingtype == 0 || paddingtype == 2)
     {
         *padding_width = 0;
         *padding_height = 0;
     }
-    else if(paddingtype == 1)
+    else if (paddingtype == 1)
     {
         *padding_width = (int)(((out_width - 1) * stride_w + filter_width - in_width) / 2);
-        *padding_height = (int)(((out_height - 1) * stride_h + filter_height - in_height)/2);
+        *padding_height = (int)(((out_height - 1) * stride_h + filter_height - in_height) / 2);
     }
 
     return;
 }
 
-
-
 static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     return 0;
 }
-
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
@@ -180,10 +174,10 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     int output_c = output_tensor->dims[1];
     int padding_w = 0;
     int padding_h = 0;
-    
+
     ConvertPaddingStyleToParameters(l2pool_param_op->stride_h, l2pool_param_op->stride_w, input_h, input_w,
-                                     l2pool_param_op->kernel_h, l2pool_param_op->kernel_w, l2pool_param_op->paddingType,
-                                     output_h, output_w, &padding_w, &padding_h);
+                                    l2pool_param_op->kernel_h, l2pool_param_op->kernel_w, l2pool_param_op->paddingType,
+                                    output_h, output_w, &padding_w, &padding_h);
 
     op_param->inc = input_c;
     op_param->inh = input_h;
@@ -198,7 +192,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     op_param->stride_h = l2pool_param_op->stride_h;
     op_param->stride_w = l2pool_param_op->stride_w;
 
-    ref_l2pool_fp32(input_tensor->data, output_tensor->data, op_param);
+    ref_l2pool_fp32((float*)input_tensor->data, (float*)output_tensor->data, op_param);
 
     return 0;
 }

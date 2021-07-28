@@ -34,7 +34,6 @@
 
 #include <math.h>
 
-
 struct ref_matmul_data
 {
     int batch;
@@ -117,7 +116,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     else if (dim_size == 2)
     {
         param.batch = 1;
-        param.c = 1;    // input0->Getse().Shape(0);
+        param.c = 1; // input0->Getse().Shape(0);
         param.m = input_tensor->dims[0];
         param.n = input_tensor1->dims[1];
         param.k = input_tensor->dims[1];
@@ -126,7 +125,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     void* input_data1 = input_tensor1->data;
     void* output_data = output_tensor->data;
 
-    if (ref_matmul_fp32(input_data0, input_data1, output_data, &param) < 0)
+    if (ref_matmul_fp32((float*)input_data0, (float*)input_data1, (float*)output_data, &param) < 0)
         return -1;
 
     return 0;

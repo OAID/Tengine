@@ -47,20 +47,17 @@
 
 #include <string.h>
 
-
 int init_cpu(struct device* device)
 {
     (void)device;
     return register_all_cpu_ops();
 }
 
-
 int release_cpu(struct device* device)
 {
     (void)device;
     return unregister_all_cpu_ops();
 }
-
 
 static int prerun(struct device* dev, struct subgraph* subgraph, void* option)
 {
@@ -92,16 +89,14 @@ static int prerun(struct device* dev, struct subgraph* subgraph, void* option)
         exec_graph->timer = NULL;
     }
 
-
     subgraph->device_graph = exec_graph;
 
     return 0;
 }
 
-
 static int run(struct device* dev, struct subgraph* subgraph)
 {
-    struct exec_graph* exec_graph = subgraph->device_graph;
+    struct exec_graph* exec_graph = (struct exec_graph*)subgraph->device_graph;
 
     int node_num = get_vector_num(exec_graph->exec_node_list);
 
@@ -113,7 +108,7 @@ static int run(struct device* dev, struct subgraph* subgraph)
 
     for (int i = 0; i < node_num; i++)
     {
-        struct exec_node* node = ( struct exec_node* )get_vector_data(exec_graph->exec_node_list, i);
+        struct exec_node* node = (struct exec_node*)get_vector_data(exec_graph->exec_node_list, i);
         struct node_ops* node_ops = node->node_ops;
 
         /* TODO: handle the shape changed  and dynamic shape case */
@@ -167,7 +162,7 @@ static int run(struct device* dev, struct subgraph* subgraph)
             struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, node->ir_node->input_tensors[j]);
             if (input_tensor->dim_num <= 5)
             {
-                char dir_str[32] = { 0 };
+                char dir_str[32] = {0};
                 sprintf(dir_str, "in[%d]", j);
 
                 if (NULL != input_tensor->data)
@@ -183,7 +178,7 @@ static int run(struct device* dev, struct subgraph* subgraph)
             /* debug */
             if (output_tensor->dim_num <= 5)
             {
-                char dir_str[32] = { 0 };
+                char dir_str[32] = {0};
                 sprintf(dir_str, "out[%d]", j);
 
                 extract_feature_from_tensor(dir_str, name, output_tensor);
@@ -225,16 +220,15 @@ static int run(struct device* dev, struct subgraph* subgraph)
     return 0;
 }
 
-
 static int postrun(struct device* dev, struct subgraph* subgraph)
 {
-    struct exec_graph* exec_graph = subgraph->device_graph;
+    struct exec_graph* exec_graph = (struct exec_graph*)subgraph->device_graph;
 
     int node_num = get_vector_num(exec_graph->exec_node_list);
 
     for (int i = 0; i < node_num; i++)
     {
-        struct exec_node* node = ( struct exec_node* )get_vector_data(exec_graph->exec_node_list, i);
+        struct exec_node* node = (struct exec_node*)get_vector_data(exec_graph->exec_node_list, i);
         struct node_ops* node_ops = node->node_ops;
 
         if (exec_graph->timer)
@@ -255,7 +249,6 @@ static int postrun(struct device* dev, struct subgraph* subgraph)
     return 0;
 }
 
-
 static int cpu_dev_release_exec_graph(struct device* dev, void* exec_graph)
 {
     if (NULL != exec_graph)
@@ -265,7 +258,6 @@ static int cpu_dev_release_exec_graph(struct device* dev, void* exec_graph)
 
     return 0;
 }
-
 
 static int cpu_allocate(struct device* device, struct subgraph* sub_graph)
 {
@@ -282,7 +274,6 @@ static int cpu_allocate(struct device* device, struct subgraph* sub_graph)
 
     return 0;
 }
-
 
 static int cpu_describe(struct device* device, struct vector* allowed_ops, struct vector* blocked_ops, struct vector* precision)
 {
@@ -317,7 +308,6 @@ static int cpu_describe(struct device* device, struct vector* allowed_ops, struc
     return 0;
 }
 
-
 static int cpu_evaluation(struct device* device, struct subgraph* sub_graph, struct vector* tensor, struct vector* node)
 {
     if (NULL == device)
@@ -332,7 +322,6 @@ static int cpu_evaluation(struct device* device, struct subgraph* sub_graph, str
     return 0;
 }
 
-
 static int cpu_release(struct device* device, struct subgraph* sub_graph)
 {
     if (NULL == device)
@@ -344,7 +333,6 @@ static int cpu_release(struct device* device, struct subgraph* sub_graph)
 
     return 0;
 }
-
 
 int cpu_split_graph(struct graph* ir_graph)
 {
@@ -390,46 +378,41 @@ int cpu_split_graph(struct graph* ir_graph)
     return 0;
 }
 
-
 static struct interface cpu_interface = {
-        .init           = init_cpu,
-        .pre_run        = prerun,
-        .run            = run,
-        .post_run       = postrun,
-        .async_run      = NULL,
-        .async_wait     = NULL,
-        .release_graph  = cpu_dev_release_exec_graph,
-        .release_device = release_cpu,
+    .init = init_cpu,
+    .pre_run = prerun,
+    .run = run,
+    .post_run = postrun,
+    .async_run = NULL,
+    .async_wait = NULL,
+    .release_graph = cpu_dev_release_exec_graph,
+    .release_device = release_cpu,
 };
-
 
 static struct allocator cpu_allocator = {
-        .describe       = cpu_describe,
-        .evaluation     = cpu_evaluation,
-        .allocate       = cpu_allocate,
-        .release        = cpu_release,
+    .describe = cpu_describe,
+    .evaluation = cpu_evaluation,
+    .allocate = cpu_allocate,
+    .release = cpu_release,
 };
-
 
 static struct optimizer cpu_optimizer = {
-        .split_graph    = cpu_split_graph,
-        .optimize_graph = NULL,
+    .split_graph = cpu_split_graph,
+    .optimize_graph = NULL,
 };
-
 
 static struct cpu_device cpu_dev = {
-        .base = {
-                .name       = CPU_DEVICE_NAME,
-                .interface  = &cpu_interface,
-                .allocator  = &cpu_allocator,
-                .optimizer  = &cpu_optimizer,
-                .scheduler  = NULL,
-                .privacy    = NULL,
-        },
-        .master_cpu         = 0,
-        .cpu_model          = 0,
+    .base = {
+        .name = CPU_DEVICE_NAME,
+        .interface = &cpu_interface,
+        .allocator = &cpu_allocator,
+        .optimizer = &cpu_optimizer,
+        .scheduler = NULL,
+        .privacy = NULL,
+    },
+    .master_cpu = 0,
+    .cpu_model = 0,
 };
-
 
 int register_cpu_device(void)
 {
@@ -447,7 +430,6 @@ int register_cpu_device(void)
     TLOG_INFO("Tengine plugin device %s is registered.\n", cpu_dev.base.name);
     return 0;
 }
-
 
 int unregister_cpu_device(void)
 {

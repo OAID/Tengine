@@ -32,7 +32,6 @@
 #include "device/cpu/cpu_graph.h"
 #include "device/cpu/cpu_module.h"
 
-
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     return 0;
@@ -67,7 +66,8 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     const int* inDims = input_tensor->dims;
     int inDims_size = input_tensor->dim_num;
     int* outData = (int*)output_tensor->data;
-    for(int i = 0; i < inDims_size; i++){
+    for (int i = 0; i < inDims_size; i++)
+    {
         *outData = inDims[i];
         outData++;
     }

@@ -32,7 +32,6 @@
 #include "utility/sys_port.h"
 #include "utility/log.h"
 
-
 static int infer_shape(struct node* node)
 {
     struct graph* ir_graph = node->graph;
@@ -44,10 +43,9 @@ static int infer_shape(struct node* node)
     return 0;
 }
 
-
 static int init_op(struct op* op)
 {
-    struct logsoftmax_param* logsoftmax_param = ( struct logsoftmax_param* )sys_malloc(sizeof(struct logsoftmax_param));
+    struct logsoftmax_param* logsoftmax_param = (struct logsoftmax_param*)sys_malloc(sizeof(struct logsoftmax_param));
 
     if (logsoftmax_param == NULL)
     {
@@ -64,12 +62,10 @@ static int init_op(struct op* op)
     return 0;
 }
 
-
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
-
 
 int register_logsoftmax_op()
 {
@@ -81,8 +77,7 @@ int register_logsoftmax_op()
     return register_op(OP_LOGSOFTMAX, OP_LOGSOFTMAX_NAME, &m);
 }
 
-
 int unregister_logsoftmax_op()
 {
-    return unregister_op(OP_LOGSOFTMAX,1);
+    return unregister_op(OP_LOGSOFTMAX, 1);
 }

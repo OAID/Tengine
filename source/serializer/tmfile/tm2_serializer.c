@@ -51,7 +51,6 @@
 
 #include <string.h>
 
-
 struct op_loader_entry
 {
     int op_type;
@@ -74,7 +73,7 @@ static int unload_graph(struct serializer* s, struct graph* graph, void* s_priv,
 
 static char* strdup_name(char* buf, int size)
 {
-    char* p = sys_malloc(size + 1);
+    char* p = (char*)sys_malloc(size + 1);
     memcpy(p, buf, size);
     p[size] = 0x0;
 
@@ -83,18 +82,18 @@ static char* strdup_name(char* buf, int size)
 
 static inline const TM2_Header* get_tm_file_header(const char* base)
 {
-    return ( const TM2_Header* )(base);
+    return (const TM2_Header*)(base);
 }
 
 static inline const TM2_Model* get_tm_file_model(const char* base, const TM2_Header* header)
 {
-    return ( const TM2_Model* )(base + header->offset_root);
+    return (const TM2_Model*)(base + header->offset_root);
 }
 
 static inline const TM2_Subgraph* get_tm_file_subgraph(const char* base, const TM2_Model* model)
 {
-    const TM2_Vector_offsets* v_graphs = ( TM2_Vector_offsets* )(base + model->offset_vo_subgraphs);
-    const TM2_Subgraph* tm_graph = ( TM2_Subgraph* )(base + v_graphs->offsets[0]);
+    const TM2_Vector_offsets* v_graphs = (TM2_Vector_offsets*)(base + model->offset_vo_subgraphs);
+    const TM2_Subgraph* tm_graph = (TM2_Subgraph*)(base + v_graphs->offsets[0]);
 
     return tm_graph;
 }
@@ -105,7 +104,7 @@ static struct op_loader_entry* find_op_loader(struct tm2_serializer* s, int op_t
 
     for (int i = 0; i < loader_num; i++)
     {
-        struct op_loader_entry* e = ( struct op_loader_entry* )get_vector_data(s->loader_list, i);
+        struct op_loader_entry* e = (struct op_loader_entry*)get_vector_data(s->loader_list, i);
 
         if (e->op_type == op_type)
             return e;
@@ -143,7 +142,7 @@ static int unregister_tm2_op_loader(struct tm2_serializer* s, int op_type, int o
 
     for (int i = 0; i < n; i++)
     {
-        struct op_loader_entry* e = ( struct op_loader_entry* )get_vector_data(s->loader_list, i);
+        struct op_loader_entry* e = (struct op_loader_entry*)get_vector_data(s->loader_list, i);
 
         if (e->op_type == op_type && e->loader == op_loader)
         {
@@ -157,11 +156,11 @@ static int unregister_tm2_op_loader(struct tm2_serializer* s, int op_type, int o
 
 static int load_graph_tensors(struct tm2_serializer* tm2_s, struct graph* graph, struct tm2_priv* priv)
 {
-    char* mem_base = ( char* )priv->base;
+    char* mem_base = (char*)priv->base;
     const TM2_Subgraph* tm_graph = priv->subgraph;
 
-    const TM2_Vector_offsets* v_tensors = ( TM2_Vector_offsets* )(mem_base + tm_graph->offset_vo_tensors);
-    const TM2_Vector_offsets* v_buffers = ( TM2_Vector_offsets* )(mem_base + tm_graph->offset_vo_buffers);
+    const TM2_Vector_offsets* v_tensors = (TM2_Vector_offsets*)(mem_base + tm_graph->offset_vo_tensors);
+    const TM2_Vector_offsets* v_buffers = (TM2_Vector_offsets*)(mem_base + tm_graph->offset_vo_buffers);
 
     graph->graph_layout = tm_graph->graph_layout;
     graph->model_layout = tm_graph->model_layout;
@@ -175,8 +174,8 @@ static int load_graph_tensors(struct tm2_serializer* tm2_s, struct graph* graph,
 
     for (int i = 0; i < v_tensors->v_num; i++)
     {
-        const TM2_Tensor* tm_tensor = ( TM2_Tensor* )(mem_base + v_tensors->offsets[i]);
-        int flag_permute = 0;    // flag the tensor has to be permute
+        const TM2_Tensor* tm_tensor = (TM2_Tensor*)(mem_base + v_tensors->offsets[i]);
+        int flag_permute = 0; // flag the tensor has to be permute
         int dims_org[8] = {0};
 
         /* TODO: check type definition */
@@ -193,14 +192,14 @@ static int load_graph_tensors(struct tm2_serializer* tm2_s, struct graph* graph,
         if (tm_tensor->offset_s_tname != TM2_NOT_SET)
         {
             // TODO: using update the TM2 model
-            const TM2_String* tm_str = ( TM2_String* )(mem_base + tm_tensor->offset_s_tname);
+            const TM2_String* tm_str = (TM2_String*)(mem_base + tm_tensor->offset_s_tname);
             ir_tensor->name = strdup_name(mem_base + tm_str->offset_data, tm_str->size);
         }
 
         /* shape */
         if (tm_tensor->offset_vd_dims != TM2_NOT_SET)
         {
-            const TM2_Vector_dims* v_dims = ( TM2_Vector_dims* )(mem_base + tm_tensor->offset_vd_dims);
+            const TM2_Vector_dims* v_dims = (TM2_Vector_dims*)(mem_base + tm_tensor->offset_vd_dims);
 
             if (tm_graph->model_layout == TENGINE_LAYOUT_NCHW)
             {
@@ -217,10 +216,10 @@ static int load_graph_tensors(struct tm2_serializer* tm2_s, struct graph* graph,
                     dims_org[2] = v_dims->dims[2];
                     dims_org[3] = v_dims->dims[3];
 
-                    dims[0] = v_dims->dims[0];    // c_out
-                    dims[1] = v_dims->dims[3];    // c_in
-                    dims[2] = v_dims->dims[1];    // h
-                    dims[3] = v_dims->dims[2];    // w
+                    dims[0] = v_dims->dims[0]; // c_out
+                    dims[1] = v_dims->dims[3]; // c_in
+                    dims[2] = v_dims->dims[1]; // h
+                    dims[3] = v_dims->dims[2]; // w
 
                     set_ir_tensor_shape(ir_tensor, dims, v_dims->v_num);
 
@@ -236,7 +235,7 @@ static int load_graph_tensors(struct tm2_serializer* tm2_s, struct graph* graph,
         /* load const type of tensor, such as the weight or bias for convolution node */
         if (ir_tensor->tensor_type == TENSOR_TYPE_CONST)
         {
-            const TM2_Buffer* tm_buf = ( TM2_Buffer* )(mem_base + v_buffers->offsets[tm_tensor->buffer_id]);
+            const TM2_Buffer* tm_buf = (TM2_Buffer*)(mem_base + v_buffers->offsets[tm_tensor->buffer_id]);
 
             /* fill temp data buffer to benchmark */
             if (tm_buf->offset_data == TM2_NOT_SET)
@@ -264,7 +263,7 @@ static int load_graph_tensors(struct tm2_serializer* tm2_s, struct graph* graph,
                     if (type == TENGINE_DT_FP32)
                     {
                         float* tensor_data_org = (float*)sys_malloc(size * sizeof(float));
-                        float* original_date = ir_tensor->data;
+                        float* original_date = (float*)ir_tensor->data;
 
                         for (int n = 0; n < size; n++)
                         {
@@ -284,7 +283,7 @@ static int load_graph_tensors(struct tm2_serializer* tm2_s, struct graph* graph,
                         //                    dims[3]);
 
                         float* input = tensor_data_org;
-                        float* output = ir_tensor->data;
+                        float* output = (float*)ir_tensor->data;
 
                         int cout = dims[0];
                         int cin = dims[1];
@@ -348,8 +347,8 @@ static int load_graph_tensors(struct tm2_serializer* tm2_s, struct graph* graph,
 
                     if (type == TENGINE_DT_UINT8 || type == TENGINE_DT_INT8)
                     {
-                        unsigned char* tensor_data_org = ( unsigned char* )sys_malloc(size * sizeof(unsigned char));
-                        unsigned char* original_date = ir_tensor->data;
+                        unsigned char* tensor_data_org = (unsigned char*)sys_malloc(size * sizeof(unsigned char));
+                        unsigned char* original_date = (unsigned char*)ir_tensor->data;
 
                         for (int n = 0; n < size; n++)
                         {
@@ -363,12 +362,12 @@ static int load_graph_tensors(struct tm2_serializer* tm2_s, struct graph* graph,
                         dims[3] = ir_tensor->dims[3];
 
                         /* nhwc to nchw */
-//                        fprintf(stderr, "%s:\n", ir_tensor->name);
-//                        fprintf(stderr, "original %d, %d, %d, %d\n", dims_org[0], dims_org[1], dims_org[2], dims_org[3]);
-//                        fprintf(stderr, "permute  %d, %d, %d, %d\n", dims[0], dims[1], dims[2], dims[3]);
+                        //                        fprintf(stderr, "%s:\n", ir_tensor->name);
+                        //                        fprintf(stderr, "original %d, %d, %d, %d\n", dims_org[0], dims_org[1], dims_org[2], dims_org[3]);
+                        //                        fprintf(stderr, "permute  %d, %d, %d, %d\n", dims[0], dims[1], dims[2], dims[3]);
 
                         unsigned char* input = tensor_data_org;
-                        unsigned char* output = ir_tensor->data;
+                        unsigned char* output = (unsigned char*)ir_tensor->data;
 
                         int cout = dims[0];
                         int cin = dims[1];
@@ -436,28 +435,27 @@ static int load_graph_tensors(struct tm2_serializer* tm2_s, struct graph* graph,
         /* load vector type of tensor */
         if (tm_tensor->offect_vo_quantparams != TM2_NOT_SET)
         {
-            const TM2_Vector_offsets* v_quantparams =
-                    ( TM2_Vector_offsets* )(mem_base + tm_tensor->offect_vo_quantparams);
+            const TM2_Vector_offsets* v_quantparams = (TM2_Vector_offsets*)(mem_base + tm_tensor->offect_vo_quantparams);
 
             /* currently only support one quant param */
             ir_tensor->quant_param_num = v_quantparams->v_num;
             if (v_quantparams->v_num == 1)
             {
-                const TM2_QuantParam* tm_qtparam = ( TM2_QuantParam* )(mem_base + v_quantparams->offsets[0]);
+                const TM2_QuantParam* tm_qtparam = (TM2_QuantParam*)(mem_base + v_quantparams->offsets[0]);
                 ir_tensor->scale = tm_qtparam->scale;
                 ir_tensor->zero_point = tm_qtparam->zero_point;
 
-//                printf("name %s, scale %f, zero %d\n", ir_tensor->name, ir_tensor->scale, ir_tensor->zero_point);
+                //                printf("name %s, scale %f, zero %d\n", ir_tensor->name, ir_tensor->scale, ir_tensor->zero_point);
             }
             else if (v_quantparams->v_num > 1)
             {
                 // to do : need to be updated
-                ir_tensor->scale_list = ( float* )sys_malloc(sizeof(float) * v_quantparams->v_num);
-                ir_tensor->zp_list = ( int* )sys_malloc(sizeof(int) * v_quantparams->v_num);
+                ir_tensor->scale_list = (float*)sys_malloc(sizeof(float) * v_quantparams->v_num);
+                ir_tensor->zp_list = (int*)sys_malloc(sizeof(int) * v_quantparams->v_num);
 
                 for (int j = 0; j < v_quantparams->v_num; j++)
                 {
-                    const TM2_QuantParam* tm_qtparam = ( TM2_QuantParam* )(mem_base + v_quantparams->offsets[j]);
+                    const TM2_QuantParam* tm_qtparam = (TM2_QuantParam*)(mem_base + v_quantparams->offsets[j]);
                     ir_tensor->scale_list[j] = tm_qtparam->scale;
                     ir_tensor->zp_list[j] = tm_qtparam->zero_point;
                 }
@@ -469,16 +467,16 @@ static int load_graph_tensors(struct tm2_serializer* tm2_s, struct graph* graph,
 
 static int load_graph_nodes(struct tm2_serializer* tm2_s, struct graph* ir_graph, struct tm2_priv* priv)
 {
-    char* mem_base = ( char* )priv->base;
+    char* mem_base = (char*)priv->base;
     const TM2_Subgraph* tm_graph = priv->subgraph;
-    const TM2_Vector_offsets* v_nodes = ( TM2_Vector_offsets* )(mem_base + tm_graph->offset_vo_seq_nodes);
+    const TM2_Vector_offsets* v_nodes = (TM2_Vector_offsets*)(mem_base + tm_graph->offset_vo_seq_nodes);
 
     unsigned int i;
 
     for (i = 0; i < v_nodes->v_num; i++)
     {
-        const TM2_Node* tm_node = ( TM2_Node* )(mem_base + v_nodes->offsets[i]);
-        const TM2_Operator* tm_operator = ( TM2_Operator* )(mem_base + tm_node->offset_t_operator);
+        const TM2_Node* tm_node = (TM2_Node*)(mem_base + v_nodes->offsets[i]);
+        const TM2_Operator* tm_operator = (TM2_Operator*)(mem_base + tm_node->offset_t_operator);
         int op_type = tm_operator->operator_type;
         int op_version = tm_operator->op_ver;
 
@@ -509,7 +507,7 @@ static int load_graph_nodes(struct tm2_serializer* tm2_s, struct graph* ir_graph
 
         if (tm_node->offset_s_nname != TM2_NOT_SET)
         {
-            const TM2_String* str = ( TM2_String* )(mem_base + tm_node->offset_s_nname);
+            const TM2_String* str = (TM2_String*)(mem_base + tm_node->offset_s_nname);
             // TODO: update with new tm2
             ir_node->name = strdup_name(mem_base + str->offset_data, str->size);
         }
@@ -517,8 +515,7 @@ static int load_graph_nodes(struct tm2_serializer* tm2_s, struct graph* ir_graph
         /* node inputs */
         if (tm_node->offset_vi_input_tensors != TM2_NOT_SET)
         {
-            const TM2_Vector_indices* v_input_tensors =
-                    ( TM2_Vector_indices* )(mem_base + tm_node->offset_vi_input_tensors);
+            const TM2_Vector_indices* v_input_tensors = (TM2_Vector_indices*)(mem_base + tm_node->offset_vi_input_tensors);
 
             for (int j = 0; j < v_input_tensors->v_num; j++)
             {
@@ -542,8 +539,7 @@ static int load_graph_nodes(struct tm2_serializer* tm2_s, struct graph* ir_graph
             break;
         }
 
-        const TM2_Vector_indices* v_output_tensors =
-                ( TM2_Vector_indices* )(mem_base + tm_node->offset_vi_output_tensors);
+        const TM2_Vector_indices* v_output_tensors = (TM2_Vector_indices*)(mem_base + tm_node->offset_vi_output_tensors);
 
         for (int j = 0; j < v_output_tensors->v_num; j++)
         {
@@ -565,7 +561,7 @@ static int load_graph_nodes(struct tm2_serializer* tm2_s, struct graph* ir_graph
         {
             if (op_type == TM2_OPTYPE_SOFTMAX)
             {
-                TM2_SoftmaxParam* tm_param = ( TM2_SoftmaxParam* )(mem_base + tm_operator->offset_t_param);
+                TM2_SoftmaxParam* tm_param = (TM2_SoftmaxParam*)(mem_base + tm_operator->offset_t_param);
 
                 if (tm_param->axis == 3)
                     tm_param->axis = 1;
@@ -587,14 +583,14 @@ static int load_graph_nodes(struct tm2_serializer* tm2_s, struct graph* ir_graph
 
             if (op_type == TM2_OPTYPE_REDUCTION)
             {
-                TM2_ReductionParam* tm_param = ( TM2_ReductionParam* )(mem_base + tm_operator->offset_t_param);
+                TM2_ReductionParam* tm_param = (TM2_ReductionParam*)(mem_base + tm_operator->offset_t_param);
 
                 if (tm_param->dim_0 == 1 && tm_param->dim_1 == 2)
                 {
                     tm_param->dim_0 = 2;
                     tm_param->dim_1 = 3;
                 }
-                else if(tm_param->dim_0 == -1)
+                else if (tm_param->dim_0 == -1)
                 {
                     tm_param->dim_0 = 4;
                 }
@@ -606,35 +602,35 @@ static int load_graph_nodes(struct tm2_serializer* tm2_s, struct graph* ir_graph
 
             if (op_type == TM2_OPTYPE_PAD)
             {
-                TM2_PadParam* tm_param = ( TM2_PadParam* )(mem_base + tm_operator->offset_t_param);
+                TM2_PadParam* tm_param = (TM2_PadParam*)(mem_base + tm_operator->offset_t_param);
 
                 int pads[8] = {0};
-                pads[0] = tm_param->pad_n_0;    // n
+                pads[0] = tm_param->pad_n_0; // n
                 pads[1] = tm_param->pad_n_1;
 
-                pads[2] = tm_param->pad_c_0;    // h
+                pads[2] = tm_param->pad_c_0; // h
                 pads[3] = tm_param->pad_c_1;
 
-                pads[4] = tm_param->pad_h_0;    // w
+                pads[4] = tm_param->pad_h_0; // w
                 pads[5] = tm_param->pad_h_1;
 
-                pads[6] = tm_param->pad_w_0;    // c
+                pads[6] = tm_param->pad_w_0; // c
                 pads[7] = tm_param->pad_w_1;
 
                 /* nhwc to nchw */
-                tm_param->pad_c_0 = pads[6];    // c
+                tm_param->pad_c_0 = pads[6]; // c
                 tm_param->pad_c_1 = pads[7];
 
-                tm_param->pad_h_0 = pads[2];    // h
+                tm_param->pad_h_0 = pads[2]; // h
                 tm_param->pad_h_1 = pads[3];
 
-                tm_param->pad_w_0 = pads[4];    // w
+                tm_param->pad_w_0 = pads[4]; // w
                 tm_param->pad_w_1 = pads[5];
             }
 
             if (op_type == TM2_OPTYPE_STRIDEDSLICE)
             {
-                TM2_StridedSliceParam* tm_param = ( TM2_StridedSliceParam* )(mem_base + tm_operator->offset_t_param);
+                TM2_StridedSliceParam* tm_param = (TM2_StridedSliceParam*)(mem_base + tm_operator->offset_t_param);
 
                 int begin[4] = {0};
                 int end[4] = {0};
@@ -673,8 +669,8 @@ static int load_graph_nodes(struct tm2_serializer* tm2_s, struct graph* ir_graph
 
             if (op_type == TM2_OPTYPE_RESHAPE)
             {
-                TM2_ReshapeParam* tm_param = ( TM2_ReshapeParam* )(mem_base + tm_operator->offset_t_param);
-                TM2_Vector_dims* v_reshape = ( TM2_Vector_dims* )(mem_base + tm_param->offset_re_shape);
+                TM2_ReshapeParam* tm_param = (TM2_ReshapeParam*)(mem_base + tm_operator->offset_t_param);
+                TM2_Vector_dims* v_reshape = (TM2_Vector_dims*)(mem_base + tm_param->offset_re_shape);
 
                 if (tm_param->offset_re_shape != TM2_NOT_SET)
                 {
@@ -737,12 +733,12 @@ static int load_graph_nodes(struct tm2_serializer* tm2_s, struct graph* ir_graph
 
 static int set_graph_io_nodes(struct tm2_serializer* tm2_s, struct graph* ir_graph, struct tm2_priv* priv)
 {
-    char* mem_base = ( char* )priv->base;
+    char* mem_base = (char*)priv->base;
     const TM2_Subgraph* tm_graph = priv->subgraph;
-    const TM2_Vector_indices* v_input_nodes = ( TM2_Vector_indices* )(mem_base + tm_graph->offset_vi_input_indices);
-    const TM2_Vector_indices* v_output_nodes = ( TM2_Vector_indices* )(mem_base + tm_graph->offset_vi_output_indices);
+    const TM2_Vector_indices* v_input_nodes = (TM2_Vector_indices*)(mem_base + tm_graph->offset_vi_input_indices);
+    const TM2_Vector_indices* v_output_nodes = (TM2_Vector_indices*)(mem_base + tm_graph->offset_vi_output_indices);
 
-    int16_t* node_idx = ( int16_t* )sys_malloc(sizeof(int16_t) * v_input_nodes->v_num);
+    int16_t* node_idx = (int16_t*)sys_malloc(sizeof(int16_t) * v_input_nodes->v_num);
 
     if (node_idx == NULL)
     {
@@ -758,7 +754,7 @@ static int set_graph_io_nodes(struct tm2_serializer* tm2_s, struct graph* ir_gra
 
     sys_free(node_idx);
 
-    node_idx = ( int16_t* )sys_malloc(sizeof(int16_t) * v_output_nodes->v_num);
+    node_idx = (int16_t*)sys_malloc(sizeof(int16_t) * v_output_nodes->v_num);
 
     for (unsigned int i = 0; i < v_output_nodes->v_num; i++)
     {
@@ -774,10 +770,10 @@ static int set_graph_io_nodes(struct tm2_serializer* tm2_s, struct graph* ir_gra
 
 static int load_graph_sub_info(struct tm2_serializer* s, struct graph* graph, struct tm2_priv* priv)
 {
-    char* mem_base = ( char* )priv->base;
-    const TM2_Vector_offsets* v_graphs = ( TM2_Vector_offsets* )(mem_base + priv->model->offset_vo_subgraphs);
+    char* mem_base = (char*)priv->base;
+    const TM2_Vector_offsets* v_graphs = (TM2_Vector_offsets*)(mem_base + priv->model->offset_vo_subgraphs);
     const TM2_Subgraph* tm_graph = priv->subgraph;
-    const TM2_Vector_offsets* v_sub_info = ( TM2_Vector_offsets* )(mem_base + tm_graph->offset_vo_sub_info);
+    const TM2_Vector_offsets* v_sub_info = (TM2_Vector_offsets*)(mem_base + tm_graph->offset_vo_sub_info);
 
     if (v_sub_info == TM2_NOT_SET || v_graphs->v_num == 1)
     {
@@ -789,10 +785,10 @@ static int load_graph_sub_info(struct tm2_serializer* s, struct graph* graph, st
     int sub_graph_num = v_sub_info->v_num;
     for (int i = 0; i < sub_graph_num; i++)
     {
-        struct subgraph* subgraph = ( struct subgraph* )sys_malloc(sizeof(struct subgraph));
+        struct subgraph* subgraph = (struct subgraph*)sys_malloc(sizeof(struct subgraph));
         init_ir_subgraph(graph, subgraph, i);
 
-        TM2_Sub_Info* sub_info = ( TM2_Sub_Info* )(mem_base + v_sub_info->offsets[i]);
+        TM2_Sub_Info* sub_info = (TM2_Sub_Info*)(mem_base + v_sub_info->offsets[i]);
         subgraph->index = sub_info->subgraph_id;
         subgraph->input_wait_count = sub_info->input_wait_count;
 
@@ -802,7 +798,7 @@ static int load_graph_sub_info(struct tm2_serializer* s, struct graph* graph, st
         // subgraph->nn_dev->name = strdup_name(mem_base + device_name->offset_data, device_name->size);
         char* name = (char*)(mem_base + device_name->offset_data);
 
-        TM2_Vector_indices* v_node_list = ( TM2_Vector_indices* )(mem_base + sub_info->offset_vi_node_list);
+        TM2_Vector_indices* v_node_list = (TM2_Vector_indices*)(mem_base + sub_info->offset_vi_node_list);
         subgraph->node_num = v_node_list->v_num;
         subgraph->node_list = (uint16_t*)sys_malloc(sizeof(uint16_t) * subgraph->node_num);
         for (int j = 0; j < v_node_list->v_num; j++)
@@ -810,7 +806,7 @@ static int load_graph_sub_info(struct tm2_serializer* s, struct graph* graph, st
             subgraph->node_list[j] = v_node_list->indices[j];
         }
 
-        TM2_Vector_indices* v_input_tensor = ( TM2_Vector_indices* )(mem_base + sub_info->offset_vi_input_tensor);
+        TM2_Vector_indices* v_input_tensor = (TM2_Vector_indices*)(mem_base + sub_info->offset_vi_input_tensor);
         subgraph->input_num = v_input_tensor->v_num;
         subgraph->input_tensor_list = (uint16_t*)sys_malloc(sizeof(uint16_t) * subgraph->input_num);
         for (int j = 0; j < v_input_tensor->v_num; j++)
@@ -818,7 +814,7 @@ static int load_graph_sub_info(struct tm2_serializer* s, struct graph* graph, st
             subgraph->input_tensor_list[j] = v_input_tensor->indices[j];
         }
 
-        TM2_Vector_indices* v_output_tensor = ( TM2_Vector_indices* )(mem_base + sub_info->offset_vi_output_tensor);
+        TM2_Vector_indices* v_output_tensor = (TM2_Vector_indices*)(mem_base + sub_info->offset_vi_output_tensor);
         subgraph->output_num = v_output_tensor->v_num;
         subgraph->output_tensor_list = (uint16_t*)sys_malloc(sizeof(uint16_t) * subgraph->output_num);
         for (int j = 0; j < v_output_tensor->v_num; j++)
@@ -838,7 +834,7 @@ static int load_graph_sub_info(struct tm2_serializer* s, struct graph* graph, st
 
 static int load_graph(struct serializer* s, struct graph* graph, struct tm2_priv* priv)
 {
-    struct tm2_serializer* tm2_s = ( struct tm2_serializer* )s;
+    struct tm2_serializer* tm2_s = (struct tm2_serializer*)s;
 
     /* version check */
     if (priv->header->ver_main != TM2_FILE_VER_MAIN)
@@ -861,7 +857,7 @@ static int load_graph(struct serializer* s, struct graph* graph, struct tm2_priv
 
     return 0;
 
-    error:
+error:
     unload_graph(s, graph, priv, NULL);
     return -1;
 }
@@ -891,10 +887,10 @@ static int load_model(struct serializer* s, struct graph* graph, const char* fna
     //        return -1;
     //    }
 
-    void* mem_base = ( void* )sys_malloc(file_len);
+    void* mem_base = (void*)sys_malloc(file_len);
     int ret = read(fd, mem_base, file_len);
 
-    struct tm2_priv* priv = ( struct tm2_priv* )sys_malloc(sizeof(struct tm2_priv));
+    struct tm2_priv* priv = (struct tm2_priv*)sys_malloc(sizeof(struct tm2_priv));
 
     if (priv == NULL)
     {
@@ -904,10 +900,10 @@ static int load_model(struct serializer* s, struct graph* graph, const char* fna
 
     priv->fd = fd;
     priv->mem_len = file_len;
-    priv->base = mem_base;
-    priv->header = get_tm_file_header(mem_base);
-    priv->model = get_tm_file_model(mem_base, priv->header);
-    priv->subgraph = get_tm_file_subgraph(mem_base, priv->model);
+    priv->base = (const char*)mem_base;
+    priv->header = get_tm_file_header((const char*)mem_base);
+    priv->model = get_tm_file_model((const char*)mem_base, priv->header);
+    priv->subgraph = get_tm_file_subgraph((const char*)mem_base, priv->model);
 
     graph->serializer = s;
     graph->serializer_privacy = priv;
@@ -918,7 +914,7 @@ static int load_model(struct serializer* s, struct graph* graph, const char* fna
 
 static int load_mem(struct serializer* s, struct graph* graph, const void* addr, int size, va_list ap)
 {
-    struct tm2_priv* priv = ( struct tm2_priv* )sys_malloc(sizeof(struct tm2_priv));
+    struct tm2_priv* priv = (struct tm2_priv*)sys_malloc(sizeof(struct tm2_priv));
 
     if (priv == NULL)
     {
@@ -927,10 +923,10 @@ static int load_mem(struct serializer* s, struct graph* graph, const void* addr,
 
     priv->fd = -1;
     priv->mem_len = size;
-    priv->base = addr;
-    priv->header = get_tm_file_header(addr);
-    priv->model = get_tm_file_model(addr, priv->header);
-    priv->subgraph = get_tm_file_subgraph(addr, priv->model);
+    priv->base = (const char*)addr;
+    priv->header = get_tm_file_header((const char*)addr);
+    priv->model = get_tm_file_model((const char*)addr, priv->header);
+    priv->subgraph = get_tm_file_subgraph((const char*)addr, priv->model);
 
     graph->serializer = s;
     graph->serializer_privacy = priv;
@@ -941,7 +937,7 @@ static int load_mem(struct serializer* s, struct graph* graph, const void* addr,
 
 static int unload_graph(struct serializer* s, struct graph* graph, void* s_priv, void* dev_priv)
 {
-    struct tm2_priv* priv = ( struct tm2_priv* )s_priv;
+    struct tm2_priv* priv = (struct tm2_priv*)s_priv;
 
     if (priv->fd >= 0)
     {
@@ -952,7 +948,7 @@ static int unload_graph(struct serializer* s, struct graph* graph, void* s_priv,
 
     if (priv->base)
     {
-        sys_free(( void* )priv->base);
+        sys_free((void*)priv->base);
         priv->base = NULL;
     }
 
@@ -969,18 +965,18 @@ static int unload_graph(struct serializer* s, struct graph* graph, void* s_priv,
 static int register_op_loader(struct serializer* s, int op_type, int op_ver, void* op_load_func, void* op_map_func,
                               void* ver_map_func)
 {
-    struct tm2_serializer* tm2_s = ( struct tm2_serializer* )s;
-    tm2_op_loader_t op_load = op_load_func;
-    tm2_map_t op_map = op_map_func;
-    tm2_map_t ver_map = ver_map_func;
+    struct tm2_serializer* tm2_s = (struct tm2_serializer*)s;
+    tm2_op_loader_t op_load = (tm2_op_loader_t)op_load_func;
+    tm2_map_t op_map = (tm2_map_t)op_map_func;
+    tm2_map_t ver_map = (tm2_map_t)ver_map_func;
 
     return register_tm2_op_loader(tm2_s, op_type, op_ver, op_load, op_map, ver_map);
 }
 
 static int unregister_op_loader(struct serializer* s, int op_type, int op_ver, void* op_load_func)
 {
-    struct tm2_serializer* tm2_s = ( struct tm2_serializer* )s;
-    tm2_op_loader_t op_load = op_load_func;
+    struct tm2_serializer* tm2_s = (struct tm2_serializer*)s;
+    tm2_op_loader_t op_load = (tm2_op_loader_t)op_load_func;
 
     return unregister_tm2_op_loader(tm2_s, op_type, op_ver, op_load);
 }
@@ -1002,7 +998,7 @@ static int input_op_map(int op)
 
 static int init_tm2_serializer(struct serializer* s)
 {
-    struct tm2_serializer* tm2_s = ( struct tm2_serializer* )s;
+    struct tm2_serializer* tm2_s = (struct tm2_serializer*)s;
 
     tm2_s->loader_list = create_vector(sizeof(struct op_loader_entry), NULL);
 
@@ -1028,26 +1024,23 @@ static int release_tm2_serializer(struct serializer* s)
 }
 
 static struct tm2_serializer tm2_serializer = {
-        .base =
-                {
-                        .get_name = get_name,
-                        .load_model = load_model,
-                        .load_mem = load_mem,
-                        .unload_graph = unload_graph,
-                        .register_op_loader = register_op_loader,
-                        .unregister_op_loader = unregister_op_loader,
-                        .init = init_tm2_serializer,
-                        .release = release_tm2_serializer,
-                },
-        .loader_list = NULL,
+    .base = {
+        .get_name = get_name,
+        .load_model = load_model,
+        .load_mem = load_mem,
+        .unload_graph = unload_graph,
+        .register_op_loader = register_op_loader,
+        .unregister_op_loader = unregister_op_loader,
+        .init = init_tm2_serializer,
+        .release = release_tm2_serializer,
+    },
+    .loader_list = NULL,
 };
-
 
 int register_tm2_serializer()
 {
     return register_serializer((struct serializer*)&tm2_serializer);
 }
-
 
 int unregister_tm2_serializer()
 {

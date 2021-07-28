@@ -41,15 +41,14 @@
 #define HCL_POOL_MAX 0 /* Max pooling     */
 #define HCL_POOL_AVG 1 /* Average pooling */
 
-
 static inline int calc_sum_int8(const int8_t* input, int layout, int c, int h, int w, int cur_ch, int start_h,
                                 int start_w, int end_h, int end_w)
 {
     int sum = 0;
-    for(int i = start_h; i < end_h; i++)
-        for(int j = start_w; j < end_w; j++)
+    for (int i = start_h; i < end_h; i++)
+        for (int j = start_w; j < end_w; j++)
         {
-            if(layout == 0)
+            if (layout == 0)
                 sum += input[cur_ch * h * w + i * w + j];
             else
                 sum += input[i * w * c + j * c + cur_ch];
@@ -62,16 +61,16 @@ static inline int8_t calc_max_int8(const int8_t* input, int layout, int c, int h
                                    int start_w, int end_h, int end_w)
 {
     int8_t max = 0;
-    if(layout == 0)
+    if (layout == 0)
         max = input[cur_ch * h * w + start_h * w + start_w];
     else
         max = input[start_h * w * c + start_w * c + cur_ch];
 
     int8_t tmp = 0;
-    for(int i = start_h; i < end_h; i++)
-        for(int j = start_w; j < end_w; j++)
+    for (int i = start_h; i < end_h; i++)
+        for (int j = start_w; j < end_w; j++)
         {
-            if(layout == 0)
+            if (layout == 0)
                 tmp = input[cur_ch * h * w + i * w + j];
             else
                 tmp = input[i * w * c + j * c + cur_ch];
@@ -83,7 +82,7 @@ static inline int8_t calc_max_int8(const int8_t* input, int layout, int c, int h
 }
 
 int ref_pooling_int8(struct tensor* input_tensor, struct tensor* output_tensor,
-                           struct pool_param* pool_param, int num_thread)
+                     struct pool_param* pool_param, int num_thread)
 {
     int layout = input_tensor->layout;
     int type = input_tensor->data_type;
@@ -110,8 +109,8 @@ int ref_pooling_int8(struct tensor* input_tensor, struct tensor* output_tensor,
     int caffe_flavor = pool_param->caffe_flavor;
     int method = pool_param->pool_method;
 
-    int8_t* input_int8 = ( int8_t* )input_tensor->data;
-    int8_t* output_int8 = ( int8_t* )output_tensor->data;
+    int8_t* input_int8 = (int8_t*)input_tensor->data;
+    int8_t* output_int8 = (int8_t*)output_tensor->data;
 
     float input_scale = input_tensor->scale;
     float output_scale = output_tensor->scale;
@@ -119,7 +118,7 @@ int ref_pooling_int8(struct tensor* input_tensor, struct tensor* output_tensor,
 
     for (int n = 0; n < batch; n++)
     {
-        const int8_t * input_cur = input_int8 + n * input_chw;
+        const int8_t* input_cur = input_int8 + n * input_chw;
         for (int c = 0; c < channel; c++)
         {
             for (int ph = 0; ph < out_h; ph++)
@@ -149,7 +148,7 @@ int ref_pooling_int8(struct tensor* input_tensor, struct tensor* output_tensor,
 
                     if (!caffe_flavor)
                         pool_size = (h_end - h_start) * (w_end - w_start);
-                    if (layout == TENGINE_LAYOUT_NCHW)    // nchw
+                    if (layout == TENGINE_LAYOUT_NCHW) // nchw
                         offset = n * output_chw + c * out_h * out_w + ph * out_w + pw;
                     else
                         offset = n * output_chw + ph * out_w * channel + pw * channel + c;
@@ -157,9 +156,9 @@ int ref_pooling_int8(struct tensor* input_tensor, struct tensor* output_tensor,
                     if (method == HCL_POOL_MAX)
                     {
                         int8_t max = calc_max_int8(input_cur, layout, channel, in_h, in_w, c, h_start, w_start,
-                                                    h_end, w_end);
+                                                   h_end, w_end);
 
-                        int32_t data_i32 = round((float )max * requant_scale);
+                        int32_t data_i32 = round((float)max * requant_scale);
                         if (data_i32 > 127)
                             data_i32 = 127;
                         else if (data_i32 < -127)
@@ -172,7 +171,7 @@ int ref_pooling_int8(struct tensor* input_tensor, struct tensor* output_tensor,
                                                         h_end, w_end);
                         float sum_fp32 = sum_i32 * input_scale;
                         sum_fp32 = sum_fp32 / (float)pool_size;
-                        int32_t data_i32 = round((float )sum_fp32 / output_scale);
+                        int32_t data_i32 = round((float)sum_fp32 / output_scale);
                         if (data_i32 > 127)
                             data_i32 = 127;
                         else if (data_i32 < -127)

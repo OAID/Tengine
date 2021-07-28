@@ -26,11 +26,10 @@
 
 #include <arm_neon.h>
 
-
 static void batchnorm_kernel(int i, int id, void* data, const float* input, float* output, float* scale_mean,
                              float* scale_var, int channel_size, int num_thread)
 {
-    int step = (( int* )data)[0];
+    int step = ((int*)data)[0];
 
 #pragma omp parallel for num_threads(num_thread)
     for (int c = 0; c < step; c++)
@@ -68,11 +67,11 @@ int batchnorm_run(struct tensor* output_tensor, struct tensor* input_tensor, flo
     int channel_size = (input_tensor->dims[2]) * (input_tensor->dims[3]);
     int img_size = channel_num * channel_size;
 
-    const float* input = ( const float* )input_tensor->data;
-    float* output = ( float* )output_tensor->data;
+    const float* input = (const float*)input_tensor->data;
+    float* output = (float*)output_tensor->data;
 
-    float* scale_mean_t = ( float* )scale_mean;
-    float* scale_var_inv_t = ( float* )scale_var_inv;
+    float* scale_mean_t = (float*)scale_mean;
+    float* scale_var_inv_t = (float*)scale_var_inv;
 
     /* only use mean and var */
     for (int i = 0; i < batch_number; i++)

@@ -32,14 +32,12 @@
 #include "device/cpu/cpu_graph.h"
 #include "device/cpu/cpu_module.h"
 
-
 #include <math.h>
-
 
 int ref_spacetodepth_fp32(struct tensor* input_tensor, struct tensor* output_tensor, int num_thread)
 {
-    float* input_data = input_tensor->data;
-    float* out_data = output_tensor->data;
+    float* input_data = (float*)input_tensor->data;
+    float* out_data = (float*)output_tensor->data;
     int total_size = input_tensor->elem_num;
 
     for (int i = 0; i < total_size; i++)
@@ -52,8 +50,8 @@ int ref_spacetodepth_fp32(struct tensor* input_tensor, struct tensor* output_ten
 
 int ref_spacetodepth_uint8(struct tensor* input_tensor, struct tensor* output_tensor, int num_thread)
 {
-    uint8_t* input_data = input_tensor->data;
-    uint8_t* out_data = output_tensor->data;
+    uint8_t* input_data = (uint8_t*)input_tensor->data;
+    uint8_t* out_data = (uint8_t*)output_tensor->data;
     int total_size = input_tensor->elem_num;
 
     for (int i = 0; i < total_size; i++)
@@ -93,7 +91,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     int ret = -1;
     if (input_tensor->data_type == TENGINE_DT_FP32)
         ret = ref_spacetodepth_fp32(input_tensor, output_tensor, exec_graph->num_thread);
-    else if(input_tensor->data_type == TENGINE_DT_UINT8)
+    else if (input_tensor->data_type == TENGINE_DT_UINT8)
         ret = ref_spacetodepth_uint8(input_tensor, output_tensor, exec_graph->num_thread);
 
     return ret;

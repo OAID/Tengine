@@ -29,7 +29,6 @@
 
 #include <arm_neon.h>
 
-
 static int kernel_run(float* output, float* input0, float* input1, int type, int in_size0, int in_size1, int stride)
 {
     float* out_ptr = output;
@@ -39,51 +38,51 @@ static int kernel_run(float* output, float* input0, float* input1, int type, int
 
     switch (type)
     {
-        case ELT_SUM:
-            if (in_size0 == 1)
+    case ELT_SUM:
+        if (in_size0 == 1)
+        {
+            float32x4_t data0 = vdupq_n_f32(in0[0]);
+            for (int i = 0; i < in_size1; i = i + 4)
             {
-                float32x4_t data0 = vdupq_n_f32(in0[0]);
-                for (int i = 0; i < in_size1; i = i + 4)
-                {
-                    float32x4_t data1 = vld1q_f32(in1 + i);
-                    float32x4_t sum = vaddq_f32(data0, data1);
-                    vst1q_f32(out_ptr + i, sum);
-                }
-                loop_time = in_size1 / 4;
-                for (int i = loop_time * 4; i < in_size1; i++)
-                {
-                    out_ptr[i] = in1[i] + in0[0];
-                }
+                float32x4_t data1 = vld1q_f32(in1 + i);
+                float32x4_t sum = vaddq_f32(data0, data1);
+                vst1q_f32(out_ptr + i, sum);
             }
-            else if (in_size1 == in_size0)
+            loop_time = in_size1 / 4;
+            for (int i = loop_time * 4; i < in_size1; i++)
             {
-                for (int i = 0; i < in_size1; i = i + 4)
-                {
-                    float32x4_t data0 = vld1q_f32(in0 + i);
-                    float32x4_t data1 = vld1q_f32(in1 + i);
-                    float32x4_t sum = vaddq_f32(data0, data1);
-                    vst1q_f32(out_ptr + i, sum);
-                }
-                loop_time = in_size1 / 4;
+                out_ptr[i] = in1[i] + in0[0];
+            }
+        }
+        else if (in_size1 == in_size0)
+        {
+            for (int i = 0; i < in_size1; i = i + 4)
+            {
+                float32x4_t data0 = vld1q_f32(in0 + i);
+                float32x4_t data1 = vld1q_f32(in1 + i);
+                float32x4_t sum = vaddq_f32(data0, data1);
+                vst1q_f32(out_ptr + i, sum);
+            }
+            loop_time = in_size1 / 4;
 
-                for (int i = loop_time * 4; i < in_size1; i++)
-                {
-                    out_ptr[i] = in1[i] + in0[i];
-                }
-            }
-            else if (in_size0 < in_size1 && in_size0 != 1)
+            for (int i = loop_time * 4; i < in_size1; i++)
             {
-                for (int i = 0; i < in_size1; ++i)
-                {
-                    *out_ptr++ = in1[i] + in0[i / stride];
-                }
+                out_ptr[i] = in1[i] + in0[i];
             }
-            else
-                return -1;
-            break;
+        }
+        else if (in_size0 < in_size1 && in_size0 != 1)
+        {
+            for (int i = 0; i < in_size1; ++i)
+            {
+                *out_ptr++ = in1[i] + in0[i / stride];
+            }
+        }
+        else
+            return -1;
+        break;
 
-        default:
-            break;
+    default:
+        break;
     }
 
     return 0;
@@ -93,7 +92,7 @@ int eltwise_run(struct tensor* output_tensor, struct tensor* input_tensor0, stru
                 struct eltwise_param* eltwise_param, int num_thread)
 {
     // input
-    float* input0 = ( float* )input_tensor0->data;
+    float* input0 = (float*)input_tensor0->data;
     int in_size0 = input_tensor0->elem_num;
 
     float* input1 = NULL;
@@ -101,7 +100,7 @@ int eltwise_run(struct tensor* output_tensor, struct tensor* input_tensor0, stru
 
     if (input_tensor1)
     {
-        input1 = ( float* )input_tensor1->data;
+        input1 = (float*)input_tensor1->data;
         in_size1 = input_tensor1->elem_num;
     }
 
@@ -133,7 +132,7 @@ int eltwise_run(struct tensor* output_tensor, struct tensor* input_tensor0, stru
     // int input_number=node->GetInputNum();
 
     // output
-    float* output = ( float* )output_tensor->data;
+    float* output = (float*)output_tensor->data;
     int result = 0;
 
     int stride = input_tensor_tmp->dims[2] * input_tensor_tmp->dims[3];

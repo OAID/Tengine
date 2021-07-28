@@ -31,17 +31,16 @@
 #include "graph/node.h"
 #include "graph/graph.h"
 
-
 int ref_conv_fp32(struct tensor* input_tensor, struct tensor* output_tensor, struct tensor* kernel,
-                         struct tensor* bias, struct conv_param* conv_param);
+                  struct tensor* bias, struct conv_param* conv_param);
 
 int ref_conv_fp16(struct tensor* input_tensor, struct tensor* output_tensor, struct tensor* kernel,
-                         struct tensor* bias, struct conv_param* conv_param);
+                  struct tensor* bias, struct conv_param* conv_param);
 
 int ref_conv_int8(struct tensor* input_tensor, struct tensor* output_tensor, struct tensor* kernel,
-                         struct tensor* bias, struct conv_param* conv_param);
+                  struct tensor* bias, struct conv_param* conv_param);
 
 int ref_conv_uint8(struct tensor* input_tensor, struct tensor* output_tensor, struct tensor* kernel,
-                         struct tensor* bias, struct conv_param* conv_param);
+                   struct tensor* bias, struct conv_param* conv_param);
 
 #endif

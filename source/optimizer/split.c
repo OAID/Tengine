@@ -39,7 +39,6 @@
 
 #define MODEL_COMPLEX_COUNT 3
 
-
 int check_sub_info(struct graph* ir_graph)
 {
     int subgraph_num = get_vector_num(ir_graph->subgraph_list);
@@ -51,13 +50,12 @@ int check_sub_info(struct graph* ir_graph)
     return -1;
 }
 
-
 int tensor_in_precision(const struct tensor* tensor, struct vector* allowed_precision)
 {
     int count = get_vector_num(allowed_precision);
     for (int i = 0; i < count; i++)
     {
-        const int* const precision = get_vector_data(allowed_precision, i);
+        const int* const precision = (const int* const)get_vector_data(allowed_precision, i);
         if (*precision == (int)tensor->data_type || tensor->quant_param_num > 0)
         {
             return 0;
@@ -66,7 +64,6 @@ int tensor_in_precision(const struct tensor* tensor, struct vector* allowed_prec
 
     return -1;
 }
-
 
 int node_in_precision(const struct graph* ir_graph, uint16_t node_id, struct vector* allowed_precision)
 {
@@ -100,7 +97,6 @@ int node_in_precision(const struct graph* ir_graph, uint16_t node_id, struct vec
     return -1;
 }
 
-
 int node_in_list(const struct graph* ir_graph, struct vector* ops_list, const uint16_t node_id)
 {
     if (NULL == ir_graph || NULL == ops_list)
@@ -112,7 +108,7 @@ int node_in_list(const struct graph* ir_graph, struct vector* ops_list, const ui
 
     for (int i = 0; i < get_vector_num(ops_list); i++)
     {
-        int* loop_op = get_vector_data(ops_list, i);
+        int* loop_op = (int*)get_vector_data(ops_list, i);
         if (node_op_type == *loop_op)
         {
             return 0;
@@ -121,7 +117,6 @@ int node_in_list(const struct graph* ir_graph, struct vector* ops_list, const ui
 
     return -1;
 }
-
 
 struct vector* get_graph_blocked_nodes(const struct graph* ir_graph, struct vector* blocked_ops, struct vector* allowed_precision)
 {
@@ -141,7 +136,6 @@ struct vector* get_graph_blocked_nodes(const struct graph* ir_graph, struct vect
     return blocked_nodes_list;
 }
 
-
 // policy has some issue, must be fixed
 void split_graph_node_to_sub_graph(struct graph* ir_graph, struct vector* allowed_ops, struct vector* blocked_ops, struct vector* allowed_precision)
 {
@@ -156,7 +150,6 @@ void split_graph_node_to_sub_graph(struct graph* ir_graph, struct vector* allowe
         // scan from back to front
         for (int i = blocked_nodes_count - 1; i >= 0; i--)
         {
-
             // start node id (the blocked one)
             uint16_t first_node_id = *((uint16_t*)get_vector_data(blocked_nodes_list, i));
             // end node id (not including its self; the next blocked one, or the last one)
@@ -186,7 +179,7 @@ void split_graph_node_to_sub_graph(struct graph* ir_graph, struct vector* allowe
                 }
             }
 
-            if (children_nodes_is_complicated < MODEL_COMPLEX_COUNT)   // directly add these nodes to sub graph list
+            if (children_nodes_is_complicated < MODEL_COMPLEX_COUNT) // directly add these nodes to sub graph list
             {
                 struct subgraph* sub_graph = (struct subgraph*)sys_malloc(sizeof(struct subgraph));
                 init_ir_subgraph((struct graph*)ir_graph, sub_graph, 0);
@@ -317,7 +310,6 @@ void split_graph_node_to_sub_graph(struct graph* ir_graph, struct vector* allowe
             break;
     }
 }
-
 
 void generate_sub_graph_io(struct graph* ir_graph)
 {
@@ -541,8 +533,6 @@ void generate_sub_graph_io(struct graph* ir_graph)
     }
 }
 
-
-
 void add_sub_graph_to_ir_graph(struct graph* ir_graph)
 {
     const int sub_graphs_count = get_vector_num(ir_graph->subgraph_list);
@@ -601,7 +591,7 @@ void add_sub_graph_to_ir_graph(struct graph* ir_graph)
 
                 if (!tensor_mask_as_out_flag)
                 {
-                    uint16_t* new_output_tensor_list = sys_malloc(sizeof(uint16_t) * (target_sub_graph->output_num + 1));
+                    uint16_t* new_output_tensor_list = (uint16_t*)sys_malloc(sizeof(uint16_t) * (target_sub_graph->output_num + 1));
 
                     memcpy(new_output_tensor_list, target_sub_graph->output_tensor_list, sizeof(uint16_t) * target_sub_graph->output_num);
                     new_output_tensor_list[target_sub_graph->output_num] = ir_tensor->index;
@@ -749,7 +739,6 @@ void add_sub_graph_to_ir_graph(struct graph* ir_graph)
         }
     }
 }
-
 
 void dump_sub_graph(struct subgraph* sub_graph)
 {

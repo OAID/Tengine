@@ -38,7 +38,6 @@
 
 #include <math.h>
 
-
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     return 0;
@@ -63,7 +62,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct tensor* input_tensor1 = get_ir_graph_tensor(graph, node->input_tensors[1]);
     struct tensor* output_tensor = get_ir_graph_tensor(graph, node->output_tensors[0]);
 
-    struct comparison_param* param = ( struct comparison_param* )node->op.param_mem;
+    struct comparison_param* param = (struct comparison_param*)node->op.param_mem;
 
     void* input0 = input_tensor->data;
     void* input1 = input_tensor1->data;
@@ -85,7 +84,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     op_param.layout = input_tensor->layout;
     op_param.type = param->type;
 
-    return ref_comparison_fp32(input0, input1, output, &op_param);
+    return ref_comparison_fp32((float*)input0, (float*)input1, (float*)output, &op_param);
 }
 
 static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struct node* exec_node)

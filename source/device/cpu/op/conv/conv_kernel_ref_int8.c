@@ -39,9 +39,8 @@
 
 #include <math.h>
 
-
 int ref_conv_int8(struct tensor* input_tensor, struct tensor* output_tensor, struct tensor* kernel,
-                         struct tensor* bias, struct conv_param* conv_param)
+                  struct tensor* bias, struct conv_param* conv_param)
 {
     int batch = input_tensor->dims[0];
     int group = conv_param->group;
@@ -58,12 +57,12 @@ int ref_conv_int8(struct tensor* input_tensor, struct tensor* output_tensor, str
     int kernel_offset = 0;
     int output_offset = 0;
 
-    int8_t* input_i8 = input_tensor->data;
-    int8_t* output_i8 = output_tensor->data;
-    int8_t* kernel_i8 = kernel->data;
+    int8_t* input_i8 = (int8_t*)input_tensor->data;
+    int8_t* output_i8 = (int8_t*)output_tensor->data;
+    int8_t* kernel_i8 = (int8_t*)kernel->data;
     int32_t* bias_i32 = NULL;
     if (bias != NULL)
-        bias_i32 = bias->data;
+        bias_i32 = (int32_t*)bias->data;
 
     float input_scale = input_tensor->scale;
     float* kernel_scales = kernel->scale_list;
@@ -71,9 +70,9 @@ int ref_conv_int8(struct tensor* input_tensor, struct tensor* output_tensor, str
 
     /* input and kernel scales */
     int dequant_scales_size = group * output_c;
-    float *dequant_scales = (float*)malloc(sizeof(float) * dequant_scales_size);
+    float* dequant_scales = (float*)malloc(sizeof(float) * dequant_scales_size);
 
-    for(int i = 0; i < dequant_scales_size; i++)
+    for (int i = 0; i < dequant_scales_size; i++)
     {
         dequant_scales[i] = (input_scale * kernel_scales[i]);
     }
@@ -100,14 +99,11 @@ int ref_conv_int8(struct tensor* input_tensor, struct tensor* output_tensor, str
                         int32_t total_i32 = 0;
                         if (input_tensor->layout == 0)
                         {
-                            output_offset = n * group * output_c * output_h * output_w +
-                                            g * output_c * output_h * output_w + c * output_h * output_w +
-                                            h * output_w + w;
+                            output_offset = n * group * output_c * output_h * output_w + g * output_c * output_h * output_w + c * output_h * output_w + h * output_w + w;
                         }
                         else
                         {
-                            output_offset = n * group * output_c * output_h * output_w +
-                                            h * output_w * group * output_c + w * group * output_c + output_c * g + c;
+                            output_offset = n * group * output_c * output_h * output_w + h * output_w * group * output_c + w * group * output_c + output_c * g + c;
                         }
                         for (kc = 0; kc < input_c; ++kc)
                         {
@@ -123,21 +119,13 @@ int ref_conv_int8(struct tensor* input_tensor, struct tensor* output_tensor, str
                                     {
                                         if (input_tensor->layout == 0)
                                         {
-                                            input_offset = n * group * input_c * input_h * input_w +
-                                                           g * input_c * input_h * input_w + kc * input_h * input_w +
-                                                           cur_y * input_w + cur_x;
-                                            kernel_offset = g * output_c * kernel_size + c * kernel_size +
-                                                            kc * conv_param->kernel_h * conv_param->kernel_w +
-                                                            kh * conv_param->kernel_w + kw;
+                                            input_offset = n * group * input_c * input_h * input_w + g * input_c * input_h * input_w + kc * input_h * input_w + cur_y * input_w + cur_x;
+                                            kernel_offset = g * output_c * kernel_size + c * kernel_size + kc * conv_param->kernel_h * conv_param->kernel_w + kh * conv_param->kernel_w + kw;
                                         }
                                         else
                                         {
-                                            input_offset = n * group * input_c * input_h * input_w +
-                                                           cur_y * input_w * input_c * group + cur_x * input_c * group +
-                                                           g * input_c + kc;
-                                            kernel_offset = c * group * kernel_size +
-                                                            kh * conv_param->kernel_w * input_c * group +
-                                                            kw * input_c * group + g * input_c + kc;
+                                            input_offset = n * group * input_c * input_h * input_w + cur_y * input_w * input_c * group + cur_x * input_c * group + g * input_c + kc;
+                                            kernel_offset = c * group * kernel_size + kh * conv_param->kernel_w * input_c * group + kw * input_c * group + g * input_c + kc;
                                         }
 
                                         total_i32 += (int32_t)input_i8[input_offset] * (int32_t)kernel_i8[kernel_offset];

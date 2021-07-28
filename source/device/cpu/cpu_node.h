@@ -29,38 +29,35 @@
 
 #include <stdint.h>
 
-
 struct node;
 struct node_ops;
 struct exec_node;
 struct exec_graph;
 
-
 struct exec_node
 {
-    struct node*        ir_node;
-    struct node_ops*    node_ops;
-    void*               ops_priv; /* priv data for ops */
+    struct node* ir_node;
+    struct node_ops* node_ops;
+    void* ops_priv; /* priv data for ops */
 
-    int8_t              inplace_map_num;
-    int8_t              output_num;
+    int8_t inplace_map_num;
+    int8_t output_num;
 
     union
     {
         uint8_t* inplace_map_ptr;
-        uint8_t  inplace_map[4]; /* opt for single inplace map, such as relu */
+        uint8_t inplace_map[4]; /* opt for single inplace map, such as relu */
     };
 
     union
     {
-        int8_t  block_id[4];
+        int8_t block_id[4];
         int8_t* block_id_ptr;
     };
 
     int shared_mem_size;
     int shared_pack4_mem_size;
 };
-
 
 struct node_ops
 {

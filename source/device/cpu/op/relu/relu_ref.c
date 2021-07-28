@@ -38,7 +38,6 @@
 
 #include "relu_kernel_ref.h"
 
-
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     return 0;
@@ -56,17 +55,17 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    struct relu_param* relu_param = ( struct relu_param* )ir_node->op.param_mem;
+    struct relu_param* relu_param = (struct relu_param*)ir_node->op.param_mem;
 
     int ret = -1;
     if (input_tensor->data_type == TENGINE_DT_FP32)
         ret = ref_relu_fp32(input_tensor, output_tensor, relu_param->negative_slope);
     else if (input_tensor->data_type == TENGINE_DT_FP16)
-        #if MACOS
+#if MACOS
         TLOG_ERR("FP16 not support mac os");
-        #else
+#else
         ret = ref_relu_fp16(input_tensor, output_tensor, relu_param->negative_slope);
-        #endif
+#endif
     else if (input_tensor->data_type == TENGINE_DT_UINT8)
         ret = ref_relu_uint8(input_tensor, output_tensor, relu_param->negative_slope);
     else if (input_tensor->data_type == TENGINE_DT_INT8)

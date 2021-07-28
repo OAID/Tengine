@@ -34,20 +34,18 @@
 #include "device/device.h"
 #include "utility/log.h"
 
-
 static int lrn_op_map(int op)
 {
     return OP_LRN;
 }
 
-
 static int tm2_load_lrn(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                         const TM2_Operator* tm_op)
 {
-    struct lrn_param* lrn_param = ( struct lrn_param* )ir_node->op.param_mem;
+    struct lrn_param* lrn_param = (struct lrn_param*)ir_node->op.param_mem;
     const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
     const char* mem_base = tm2_priv->base;
-    const TM2_LRNParam* tm_param = ( TM2_LRNParam* )(mem_base + tm_op->offset_t_param);
+    const TM2_LRNParam* tm_param = (TM2_LRNParam*)(mem_base + tm_op->offset_t_param);
 
     lrn_param->local_size = tm_param->local_size;
     lrn_param->alpha = tm_param->alpha;
@@ -57,7 +55,6 @@ static int tm2_load_lrn(struct graph* ir_graph, struct node* ir_node, const TM2_
 
     return 0;
 }
-
 
 int register_tm2_lrn_op()
 {
@@ -73,7 +70,6 @@ int register_tm2_lrn_op()
 
     return 0;
 }
-
 
 int unregister_tm2_lrn_op()
 {

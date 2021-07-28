@@ -37,10 +37,10 @@
 
 int float_mismatch(float* current, float* reference, int size)
 {
-    for(int i=0;i<size;i++)
+    for (int i = 0; i < size; i++)
     {
         float tmp = fabs(current[i]) - fabs(reference[i]);
-        if(fabs(tmp) > 0.0001)
+        if (fabs(tmp) > 0.0001)
         {
             fprintf(stderr, "test failed, index:%d, a:%f, b:%f\n", i, current[i], reference[i]);
             return -1;
@@ -49,7 +49,6 @@ int float_mismatch(float* current, float* reference, int size)
     fprintf(stderr, "test pass\n");
     return 0;
 }
-
 
 void show_usage()
 {
@@ -60,7 +59,7 @@ void show_usage()
 
 int main(int argc, char* argv[])
 {
-    const char* model_file ="./models/yolov4.tmfile";
+    const char* model_file = "./models/yolov4.tmfile";
     int img_h = 416;
     int img_w = 416;
     int img_c = 3;
@@ -75,23 +74,23 @@ int main(int argc, char* argv[])
     {
         switch (res)
         {
-            case 'm':
-                model_file = optarg;
-                break;
-            case 'r':
-                repeat_count = std::strtoul(optarg, nullptr, 10);
-                break;
-            case 't':
-                num_thread = std::strtoul(optarg, nullptr, 10);
-                break;
-            case 'h':
-                show_usage();
-                return 0;
-            default:
-                break;
+        case 'm':
+            model_file = optarg;
+            break;
+        case 'r':
+            repeat_count = std::strtoul(optarg, nullptr, 10);
+            break;
+        case 't':
+            num_thread = std::strtoul(optarg, nullptr, 10);
+            break;
+        case 'h':
+            show_usage();
+            return 0;
+        default:
+            break;
         }
     }
-    std::string model_name="yolov4";
+    std::string model_name = "yolov4";
     /* check files */
     if (nullptr == model_file)
     {
@@ -100,10 +99,8 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-
     if (!check_file_exist(model_file))
         return -1;
-
 
     /* set runtime options */
     struct options opt;
@@ -161,12 +158,12 @@ int main(int argc, char* argv[])
     /* prepare process input data, set the data mem to input tensor */
     // read input_data
     std::string input_file = "./data/" + model_name + "_in.bin";
-    FILE *fp;
-	
+    FILE* fp;
+
     fp = fopen(input_file.c_str(), "rb");
     if (!fp || fread(input_data.data(), sizeof(float), img_size, fp) == 0)
     {
-        fprintf(stderr, "read input data file %s failed!\n",input_file.c_str());
+        fprintf(stderr, "read input data file %s failed!\n", input_file.c_str());
         return -1;
     }
     fclose(fp);
@@ -190,30 +187,21 @@ int main(int argc, char* argv[])
         max_time = std::max(max_time, cur);
     }
     fprintf(stderr, "Repeat %d times, thread %d, avg time %.2f ms, max_time %.2f ms, min_time %.2f ms\n", repeat_count, num_thread,
-            total_time/repeat_count, max_time, min_time);
+            total_time / repeat_count, max_time, min_time);
     fprintf(stderr, "--------------------------------------\n");
 
     tensor_t p8_output = get_graph_output_tensor(graph, 0, 0);
     tensor_t p16_output = get_graph_output_tensor(graph, 1, 0);
     tensor_t p32_output = get_graph_output_tensor(graph, 2, 0);
-    
-    float* p8_data = ( float*)get_tensor_buffer(p8_output);
-    float* p16_data = ( float*)get_tensor_buffer(p16_output);
-    float* p32_data = ( float*)get_tensor_buffer(p32_output);
 
-	/* postprocess */
+    float* p8_data = (float*)get_tensor_buffer(p8_output);
+    float* p16_data = (float*)get_tensor_buffer(p16_output);
+    float* p32_data = (float*)get_tensor_buffer(p32_output);
 
-
-
+    /* postprocess */
 
     /* yolov4 tiny draw the result */
 
-
-
-
-
-
-	
     /* check the result */
     int output_size1 = get_tensor_buffer_size(p8_output) / sizeof(float);
     int output_size2 = get_tensor_buffer_size(p16_output) / sizeof(float);
@@ -221,27 +209,27 @@ int main(int argc, char* argv[])
     std::string reference_file1 = "./data/" + model_name + "_out1.bin";
     std::string reference_file2 = "./data/" + model_name + "_out2.bin";
     std::string reference_file3 = "./data/" + model_name + "_out3.bin";
-    std::vector<float> reference_data1(output_size1),reference_data2(output_size2),reference_data3(output_size3);
-    FILE *fp1;
+    std::vector<float> reference_data1(output_size1), reference_data2(output_size2), reference_data3(output_size3);
+    FILE* fp1;
 
     fp1 = fopen(reference_file1.c_str(), "rb");
     if (!fp1 || fread(reference_data1.data(), sizeof(float), output_size1, fp1) == 0)
     {
-        fprintf(stderr, "read reference %s failed!\n",reference_file1.c_str());
+        fprintf(stderr, "read reference %s failed!\n", reference_file1.c_str());
         return -1;
     }
     fclose(fp1);
     fp1 = fopen(reference_file2.c_str(), "rb");
     if (fread(reference_data2.data(), sizeof(float), output_size2, fp1) == 0)
     {
-        fprintf(stderr, "read reference %s failed!\n",reference_file2.c_str());
+        fprintf(stderr, "read reference %s failed!\n", reference_file2.c_str());
         return -1;
     }
     fclose(fp1);
     fp1 = fopen(reference_file3.c_str(), "rb");
     if (fread(reference_data3.data(), sizeof(float), output_size3, fp1) == 0)
     {
-        fprintf(stderr, "read reference %s failed!\n",reference_file3.c_str());
+        fprintf(stderr, "read reference %s failed!\n", reference_file3.c_str());
         return -1;
     }
     fclose(fp1);

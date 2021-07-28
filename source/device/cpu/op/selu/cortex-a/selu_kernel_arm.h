@@ -29,7 +29,6 @@
 
 #include "graph/tensor.h"
 
-
 int selu_run(struct tensor* output_tensor, struct tensor* input_tensor, struct selu_param* selu_param, int num_thread);
 
 #endif

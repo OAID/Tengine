@@ -31,24 +31,24 @@
 #include "tengine/c_api.h"
 #include "tengine_operations.h"
 
-#define DEFAULT_IMG_H 512
-#define DEFAULT_IMG_W 512
-#define DEFAULT_SCALE1 0.017124754f
-#define DEFAULT_SCALE2 0.017507003f
-#define DEFAULT_SCALE3 0.017429194f
-#define DEFAULT_MEAN1 123.675
-#define DEFAULT_MEAN2 116.280
-#define DEFAULT_MEAN3 103.530
-#define DEFAULT_LOOP_COUNT 1
+#define DEFAULT_IMG_H        512
+#define DEFAULT_IMG_W        512
+#define DEFAULT_SCALE1       0.017124754f
+#define DEFAULT_SCALE2       0.017507003f
+#define DEFAULT_SCALE3       0.017429194f
+#define DEFAULT_MEAN1        123.675
+#define DEFAULT_MEAN2        116.280
+#define DEFAULT_MEAN3        103.530
+#define DEFAULT_LOOP_COUNT   1
 #define DEFAULT_THREAD_COUNT 1
 #define DEFAULT_CPU_AFFINITY 255
 
 int float_mismatch(float* current, float* reference, int size)
 {
-    for(int i=0;i<size;i++)
+    for (int i = 0; i < size; i++)
     {
         float tmp = fabs(current[i]) - fabs(reference[i]);
-        if(fabs(tmp) > 0.001)
+        if (fabs(tmp) > 0.001)
         {
             fprintf(stderr, "test failed, index:%d, a:%f, b:%f\n", i, current[i], reference[i]);
             return -1;
@@ -59,15 +59,18 @@ int float_mismatch(float* current, float* reference, int size)
 }
 
 void repeat(const float* arr, int arr_length, int times, float offset,
-            float* result, int arr_starts_from, int arr_stride) {
+            float* result, int arr_starts_from, int arr_stride)
+{
     int length = arr_length * times;
 
-    if (result == NULL) {
+    if (result == NULL)
+    {
         result = malloc(length * sizeof(float));
         arr_starts_from = 0;
     }
 
-    for (int i = 0, j = 0; i < length; i++, j += arr_stride) {
+    for (int i = 0, j = 0; i < length; i++, j += arr_stride)
+    {
         result[j + arr_starts_from] = arr[i / times] + offset;
     }
 }
@@ -78,9 +81,9 @@ int tengine_detect(const char* model_file, const char* image_file, int img_h, in
     int PYRAMID_LEVELS[] = {3, 4, 5, 6, 7};
     int STRIDES[] = {8, 16, 32, 64, 128};
     float SCALES[] = {
-            (float) pow(2, 0.),
-            (float) pow(2, 1. / 3.),
-            (float) pow(2, 2. / 3.),
+        (float)pow(2, 0.),
+        (float)pow(2, 1. / 3.),
+        (float)pow(2, 2. / 3.),
     };
     float RATIOS_X[] = {1.f, 1.4f, 0.7f};
     float RATIOS_Y[] = {1.f, 0.7f, 1.4f};
@@ -117,8 +120,8 @@ int tengine_detect(const char* model_file, const char* image_file, int img_h, in
 
     /* set the shape, data buffer of input_tensor of the graph */
     int img_size = img_h * img_w * 3;
-    int dims[] = {1, 3, img_h, img_w};    // nchw
-    float* input_data = ( float* )malloc(img_size * sizeof(float));
+    int dims[] = {1, 3, img_h, img_w}; // nchw
+    float* input_data = (float*)malloc(img_size * sizeof(float));
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == NULL)
@@ -132,9 +135,7 @@ int tengine_detect(const char* model_file, const char* image_file, int img_h, in
         fprintf(stderr, "Set input tensor shape failed\n");
         return -1;
     }
-	
 
-	
     if (set_tensor_buffer(input_tensor, input_data, img_size * sizeof(float)) < 0)
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
@@ -152,7 +153,7 @@ int tengine_detect(const char* model_file, const char* image_file, int img_h, in
     float means[3] = {mean[0], mean[1], mean[2]};
     float scales[3] = {scale[0], scale[1], scale[2]};
     char* input_file = "./data/efficientdet_in.bin";
-    FILE *fp;
+    FILE* fp;
 
     fp = fopen(input_file, "rb");
     if (fread(input_data, sizeof(float), img_size, fp) == 0)
@@ -191,19 +192,19 @@ int tengine_detect(const char* model_file, const char* image_file, int img_h, in
 
     /* get the result of classification */
     tensor_t output_tensor_regression = get_graph_output_tensor(graph, 0, 0);
-    float* output_data_regression = ( float* )get_tensor_buffer(output_tensor_regression);
+    float* output_data_regression = (float*)get_tensor_buffer(output_tensor_regression);
     int num_anchors = get_tensor_buffer_size(output_tensor_regression) / sizeof(float) / 4;
 
     tensor_t output_tensor_classification = get_graph_output_tensor(graph, 1, 0);
-    float* output_data_classification = ( float* )get_tensor_buffer(output_tensor_classification);
+    float* output_data_classification = (float*)get_tensor_buffer(output_tensor_classification);
     int num_classes = get_tensor_buffer_size(output_tensor_classification) / sizeof(float) / num_anchors;
 
     // postprocess
     char* output_file1 = "./data/efficientdet_out1.bin";
     char* output_file2 = "./data/efficientdet_out2.bin";
-    float*  reference_data1 = (float*)malloc(num_anchors*sizeof(float));
-    float*  reference_data2 = (float*)malloc(num_classes*sizeof(float));
-    FILE *fp1;
+    float* reference_data1 = (float*)malloc(num_anchors * sizeof(float));
+    float* reference_data2 = (float*)malloc(num_classes * sizeof(float));
+    FILE* fp1;
     //read
     fp1 = fopen(output_file1, "rb");
     if (!fp1 || fread(reference_data1, sizeof(float), num_anchors, fp1) == 0)
@@ -221,8 +222,8 @@ int tengine_detect(const char* model_file, const char* image_file, int img_h, in
     fclose(fp1);
     int ret1 = float_mismatch(output_data_regression, reference_data1, num_anchors);
     int ret2 = float_mismatch(output_data_classification, reference_data2, num_classes);
-	
-	int ret = (ret1 | ret2 );
+
+    int ret = (ret1 | ret2);
 
     /* release tengine */
     free(input_data);
@@ -236,8 +237,8 @@ int tengine_detect(const char* model_file, const char* image_file, int img_h, in
 void show_usage()
 {
     fprintf(
-            stderr,
-            "[Usage]:  [-h]\n    [-m model_file] \n  [-r loop_count] [-t thread_count] [-a cpu_affinity]\n");
+        stderr,
+        "[Usage]:  [-h]\n    [-m model_file] \n  [-r loop_count] [-t thread_count] [-a cpu_affinity]\n");
 }
 
 int main(int argc, char* argv[])
@@ -258,23 +259,23 @@ int main(int argc, char* argv[])
     {
         switch (res)
         {
-            case 'm':
-                model_file = optarg;
-                break;
-            case 'r':
-                loop_count = atoi(optarg);
-                break;
-            case 't':
-                num_thread = atoi(optarg);
-                break;
-            case 'a':
-                cpu_affinity = atoi(optarg);
-                break;
-            case 'h':
-                show_usage();
-                return 0;
-            default:
-                break;
+        case 'm':
+            model_file = optarg;
+            break;
+        case 'r':
+            loop_count = atoi(optarg);
+            break;
+        case 't':
+            num_thread = atoi(optarg);
+            break;
+        case 'a':
+            cpu_affinity = atoi(optarg);
+            break;
+        case 'h':
+            show_usage();
+            return 0;
+        default:
+            break;
         }
     }
 
@@ -304,7 +305,7 @@ int main(int argc, char* argv[])
         scale[0] = DEFAULT_SCALE1;
         scale[1] = DEFAULT_SCALE2;
         scale[2] = DEFAULT_SCALE3;
-   }
+    }
 
     if (mean[0] == -1.0 || mean[1] == -1.0 || mean[2] == -1.0)
     {

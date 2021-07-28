@@ -36,7 +36,6 @@
 
 #include <math.h>
 
-
 static int ref_reorg_fp32(struct tensor* input_tensor, struct tensor* output_tensor, struct reorg_param* param,
                           int num_thread)
 {
@@ -48,8 +47,8 @@ static int ref_reorg_fp32(struct tensor* input_tensor, struct tensor* output_ten
 
     int out_c = c / (stride * stride);
 
-    float* in_data = input_tensor->data;
-    float* out_data = output_tensor->data;
+    float* in_data = (float*)input_tensor->data;
+    float* out_data = (float*)output_tensor->data;
 
     for (int b = 0; b < batch; ++b)
     {
@@ -98,7 +97,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
     input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    struct reorg_param* reorg_param = ( struct reorg_param* )ir_node->op.param_mem;
+    struct reorg_param* reorg_param = (struct reorg_param*)ir_node->op.param_mem;
 
     int ret = ref_reorg_fp32(input_tensor, output_tensor, reorg_param, exec_graph->num_thread);
     if (ret != 0)

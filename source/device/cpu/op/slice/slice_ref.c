@@ -39,25 +39,24 @@
 #include <string.h>
 #include <stdbool.h>
 
-
 struct shape_dim
 {
-    int dims[4];    // for caffe
-    int begins[4];    // for tf
-    int sizes[4];    // for tf
+    int dims[4];   // for caffe
+    int begins[4]; // for tf
+    int sizes[4];  // for tf
 };
 
 struct slice_param_ref
 {
-    int in_shape[4];    // the dim of the input
+    int in_shape[4]; // the dim of the input
     int in_shape_3[3];
     int in_shape_2[2];
-    struct shape_dim* output_shape;    // out shape
+    struct shape_dim* output_shape; // out shape
     int out_num;
     int dim_num;
-    int axis;    // for caffe
-    int step;    // for onnx
-    float out_scale;    // for input tensor int8
+    int axis;        // for caffe
+    int step;        // for onnx
+    float out_scale; // for input tensor int8
     bool iscaffe;
     bool ismxnet;
     bool isonnx;
@@ -128,8 +127,7 @@ static int tf_run(const int8_t* in_data, int8_t** out_data, int element_size, co
             for (int j = start_dim_2; j < stop_dim_2; ++j)
             {
                 int len = stop_dim_3 - start_dim_3;
-                int input_off =
-                    n * in_dim_1 * in_dim_2 * in_dim_3 + i * in_dim_2 * in_dim_3 + j * in_dim_3 + start_dim_3;
+                int input_off = n * in_dim_1 * in_dim_2 * in_dim_3 + i * in_dim_2 * in_dim_3 + j * in_dim_3 + start_dim_3;
                 memcpy(output, input + input_off * element_size, (size_t)len * element_size);
                 output += len * element_size;
             }
@@ -168,8 +166,7 @@ static int mxnet_run(const int8_t* in_data, int8_t** out_data, int element_size,
                 for (int j = start_2; j < stop_2; ++j)
                 {
                     int len = start_3 - stop_3;
-                    int input_off =
-                        n * in_dim_1 * in_dim_2 * in_dim_3 + i * in_dim_2 * in_dim_3 + j * in_dim_3 + start_3;
+                    int input_off = n * in_dim_1 * in_dim_2 * in_dim_3 + i * in_dim_2 * in_dim_3 + j * in_dim_3 + start_3;
                     memcpy(output, input + input_off * element_size, (size_t)len * element_size);
                     output += len * element_size;
                 }
@@ -267,8 +264,7 @@ static int onnx_run(const int8_t* in_data, int8_t** out_data, int element_size, 
                     {
                         for (int k = start_3; k < stop_3; k = k + step_3)
                         {
-                            int input_index =
-                                n * in_dim_1 * in_dim_2 * in_dim_3 + i * in_dim_2 * in_dim_3 + j * in_dim_3 + k;
+                            int input_index = n * in_dim_1 * in_dim_2 * in_dim_3 + i * in_dim_2 * in_dim_3 + j * in_dim_3 + k;
                             memcpy(output, input + input_index * element_size, element_size);
                             output += element_size;
                         }
@@ -373,16 +369,16 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 {
     struct node* ir_node = exec_node->ir_node;
     struct graph* ir_graph = ir_node->graph;
-    struct tensor* input_tensor  = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
     struct slice_param_ref op_param;
-    slice_param_t* _param = ( struct slice_param* )(ir_node->op.param_mem);
+    slice_param_t* _param = (struct slice_param*)(ir_node->op.param_mem);
 
     int out_num = exec_node->output_num;
 
     struct shape_dim sd[MAX_SHAPE_DIM_NUM * 2];
-    int8_t** out_data_ptrs = ( int8_t** )sys_malloc(out_num * sizeof(int8_t*));
-    if(out_data_ptrs == NULL)
+    int8_t** out_data_ptrs = (int8_t**)sys_malloc(out_num * sizeof(int8_t*));
+    if (out_data_ptrs == NULL)
     {
         return -1;
     }
@@ -390,12 +386,12 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     op_param.axis = _param->axis;
     op_param.output_shape = sd;
     op_param.out_num = out_num;
-    op_param.dim_num = ( int )(input_tensor->dim_num);
+    op_param.dim_num = (int)(input_tensor->dim_num);
     op_param.iscaffe = _param->iscaffe;
     op_param.ismxnet = _param->ismxnet;
     op_param.isonnx = _param->isonnx;
 
-    int8_t* input = ( int8_t* )input_tensor->data;
+    int8_t* input = (int8_t*)input_tensor->data;
     unsigned int mem_size = input_tensor->elem_size;
 
     if (op_param.iscaffe)
@@ -413,7 +409,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
             {
                 op_param.output_shape[i].dims[j] = out_tensor->dims[j];
             }
-            out_data_ptrs[i] = ( int8_t* )out_tensor->data;
+            out_data_ptrs[i] = (int8_t*)out_tensor->data;
         }
     }
     else if (op_param.ismxnet || op_param.isonnx)
@@ -439,17 +435,16 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
             }
         }
         struct tensor* out_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-        out_data_ptrs[0] = ( int8_t* )out_tensor->data;
+        out_data_ptrs[0] = (int8_t*)out_tensor->data;
 
-        if (input_tensor->dims[0] == output_tensor->dims[0] && input_tensor->dims[1] == output_tensor->dims[1] &&
-            input_tensor->dims[2] == output_tensor->dims[2] && input_tensor->dims[3] == output_tensor->dims[3])
+        if (input_tensor->dims[0] == output_tensor->dims[0] && input_tensor->dims[1] == output_tensor->dims[1] && input_tensor->dims[2] == output_tensor->dims[2] && input_tensor->dims[3] == output_tensor->dims[3])
         {
-            memcpy(( void* )(out_data_ptrs[0]), ( void* )input, mem_size*input_tensor->elem_num);
+            memcpy((void*)(out_data_ptrs[0]), (void*)input, mem_size * input_tensor->elem_num);
             sys_free(out_data_ptrs);
             return true;
         }
     }
-    else    // For tensorflow, there is only one output tensor
+    else // For tensorflow, there is only one output tensor
     {
         int maxdim = 4;
         int real_dim = op_param.dim_num;
@@ -464,14 +459,14 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
             }
             else
             {
-                op_param.output_shape[0].begins[idx] = *( int* )get_vector_data(_param->begin_, dim_idx);
-                op_param.output_shape[0].sizes[idx] = *( int* )get_vector_data(_param->size_, dim_idx);
+                op_param.output_shape[0].begins[idx] = *(int*)get_vector_data(_param->begin_, dim_idx);
+                op_param.output_shape[0].sizes[idx] = *(int*)get_vector_data(_param->size_, dim_idx);
                 op_param.in_shape[idx] = input_tensor->dims[dim_idx];
                 dim_idx++;
             }
         }
         struct tensor* out_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-        out_data_ptrs[0] = ( int8_t* )out_tensor->data;
+        out_data_ptrs[0] = (int8_t*)out_tensor->data;
     }
 
     int ret = -1;
@@ -480,26 +475,26 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     else if (input_tensor->data_type == TENGINE_DT_UINT8) // ugly implement, need to refactor !
     {
         /* dequant to fp32 */
-        uint8_t* input_uint8 = input_tensor->data;
-        uint8_t* output_uint8 = output_tensor->data;
+        uint8_t* input_uint8 = (uint8_t*)input_tensor->data;
+        uint8_t* output_uint8 = (uint8_t*)output_tensor->data;
         float input_scale = input_tensor->scale;
         float output_scale = output_tensor->scale;
         int32_t input_zero = input_tensor->zero_point;
         int32_t output_zero = output_tensor->zero_point;
 
-        float* input_fp32  = (float*)sys_malloc(input_tensor->elem_num * sizeof(float));
+        float* input_fp32 = (float*)sys_malloc(input_tensor->elem_num * sizeof(float));
         float* output_fp32 = (float*)sys_malloc(output_tensor->elem_num * sizeof(float));
-        out_data_ptrs[0] = ( int8_t* )output_fp32;
+        out_data_ptrs[0] = (int8_t*)output_fp32;
 
-        for(int i=0; i<input_tensor->elem_num; i++)
+        for (int i = 0; i < input_tensor->elem_num; i++)
         {
-            input_fp32[i] = ((float )input_uint8[i] - (float )input_zero) * input_scale;
+            input_fp32[i] = ((float)input_uint8[i] - (float)input_zero) * input_scale;
         }
 
-        ret = ref_slice_common((int8_t *)input_fp32, out_data_ptrs, sizeof(float), &op_param);
+        ret = ref_slice_common((int8_t*)input_fp32, out_data_ptrs, sizeof(float), &op_param);
 
         /* quant to uint8 */
-        for(int i=0; i<output_tensor->elem_num; i++)
+        for (int i = 0; i < output_tensor->elem_num; i++)
         {
             int udata = round(output_fp32[i] / output_scale + output_zero);
             if (udata > 255)

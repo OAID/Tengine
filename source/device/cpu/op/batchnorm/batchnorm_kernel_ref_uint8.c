@@ -36,7 +36,6 @@
 #include "device/cpu/cpu_graph.h"
 #include "device/cpu/cpu_module.h"
 
-
 int ref_batchnorm_uint8(struct tensor* input_tensor, struct tensor* output_tensor, const struct ref_batchnorm_param* param)
 {
     float* scale_mean = param->scale_mean;
@@ -48,16 +47,16 @@ int ref_batchnorm_uint8(struct tensor* input_tensor, struct tensor* output_tenso
     int total_size = img_size * param->input_n;
 
     // dequant
-    uint8_t* input_uint8 = input_tensor->data;
-    uint8_t* output_uint8 = output_tensor->data;
+    uint8_t* input_uint8 = (uint8_t*)input_tensor->data;
+    uint8_t* output_uint8 = (uint8_t*)output_tensor->data;
     float input_scale = input_tensor->scale;
     float output_scale = output_tensor->scale;
     int32_t input_zero = input_tensor->zero_point;
     int32_t output_zero = output_tensor->zero_point;
 
-    float* data_fp32 = (float*) sys_malloc(total_size * sizeof(float));
-    for(int i = 0; i < total_size; i++)
-        data_fp32[i] = ((float) input_uint8[i] - (float)input_zero) * input_scale;
+    float* data_fp32 = (float*)sys_malloc(total_size * sizeof(float));
+    for (int i = 0; i < total_size; i++)
+        data_fp32[i] = ((float)input_uint8[i] - (float)input_zero) * input_scale;
 
     for (int n = 0; n < param->input_n; ++n)
     {
@@ -87,7 +86,7 @@ int ref_batchnorm_uint8(struct tensor* input_tensor, struct tensor* output_tenso
     }
 
     // quant
-    for(int i=0; i<total_size; i++)
+    for (int i = 0; i < total_size; i++)
     {
         int udata = (int)roundf(data_fp32[i] / output_scale + output_zero);
         if (udata > 255)

@@ -36,7 +36,6 @@
 
 #include <math.h>
 
-
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     return 0;
@@ -58,24 +57,24 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
     if (input_tensor->data_type == TENGINE_DT_FP32)
     {
-        float* input_org = input_tensor->data;
-        float* output_org = output_tensor->data;
+        float* input_org = (float*)input_tensor->data;
+        float* output_org = (float*)output_tensor->data;
 
         for (int i = 0; i < out_size; i++)
             output_org[i] = input_org[i];
     }
     else if (input_tensor->data_type == TENGINE_DT_UINT8)
     {
-        uint8_t* input_org = input_tensor->data;
-        uint8_t* output_org = output_tensor->data;
+        uint8_t* input_org = (uint8_t*)input_tensor->data;
+        uint8_t* output_org = (uint8_t*)output_tensor->data;
 
         for (int i = 0; i < out_size; i++)
             output_org[i] = input_org[i];
     }
     else if (input_tensor->data_type == TENGINE_DT_INT8)
     {
-        int8_t* input_org = input_tensor->data;
-        int8_t* output_org = output_tensor->data;
+        int8_t* input_org = (int8_t*)input_tensor->data;
+        int8_t* output_org = (int8_t*)output_tensor->data;
 
         for (int i = 0; i < out_size; i++)
             output_org[i] = input_org[i];

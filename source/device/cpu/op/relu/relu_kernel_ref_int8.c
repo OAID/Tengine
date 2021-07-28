@@ -38,22 +38,21 @@
 
 #include <math.h>
 
-
 int ref_relu_int8(struct tensor* input_tensor, struct tensor* output_tensor, float negative_slope)
 {
     int total_size = input_tensor->elem_num;
 
     /* dequant */
-    int8_t* input_int8 = input_tensor->data;
-    int8_t* output_int8 = output_tensor->data;
+    int8_t* input_int8 = (int8_t*)input_tensor->data;
+    int8_t* output_int8 = (int8_t*)output_tensor->data;
     float input_scale = input_tensor->scale;
     float output_scale = output_tensor->scale;
 
     float* data_fp32 = (float*)sys_malloc(total_size * sizeof(float));
 
-    for(int i=0; i<total_size; i++)
+    for (int i = 0; i < total_size; i++)
     {
-        data_fp32[i] = (float )input_int8[i] * input_scale;
+        data_fp32[i] = (float)input_int8[i] * input_scale;
     }
 
     /* process */
@@ -79,7 +78,7 @@ int ref_relu_int8(struct tensor* input_tensor, struct tensor* output_tensor, flo
     }
 
     /* quant */
-    for(int i=0; i<total_size; i++)
+    for (int i = 0; i < total_size; i++)
     {
         int data_i32 = round(data_fp32[i] / output_scale);
         if (data_i32 > 127)

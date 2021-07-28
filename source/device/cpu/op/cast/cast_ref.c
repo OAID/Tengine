@@ -37,7 +37,6 @@
 #include <math.h>
 #include <string.h>
 
-
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     return 0;
@@ -69,7 +68,6 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
     int num_thread = exec_graph->num_thread;
 
-
     if (input_tensor->elem_num != output_tensor->elem_num || input_tensor->dim_num != output_tensor->dim_num)
     {
         return -1;
@@ -98,7 +96,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         fp16_t* odata = (fp16_t*)output_tensor->data;
 
 #pragma omp parallel for num_threads(num_thread)
-        for (uint32_t i = 0; i < input_tensor->elem_num; i++)
+        for (int i = 0; i < input_tensor->elem_num; i++)
         {
             odata[i] = fp32_to_fp16(idata[i]);
         }
@@ -112,7 +110,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         fp32_t* odata = (fp32_t*)output_tensor->data;
 
 #pragma omp parallel for num_threads(num_thread)
-        for (uint32_t i = 0; i < input_tensor->elem_num; i++)
+        for (int i = 0; i < input_tensor->elem_num; i++)
         {
             odata[i] = fp16_to_fp32(idata[i]);
         }
@@ -131,7 +129,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
             int zero_point = input_tensor->zero_point;
 
 #pragma omp parallel for num_threads(num_thread)
-            for (uint32_t i = 0; i < input_tensor->elem_num; i++)
+            for (int i = 0; i < input_tensor->elem_num; i++)
             {
                 int val = (int)(roundf(idata[i] / scale)) + zero_point;
 
@@ -161,7 +159,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
             int zero_point = input_tensor->zero_point;
 
 #pragma omp parallel for num_threads(num_thread)
-            for (uint32_t i = 0; i < input_tensor->elem_num; i++)
+            for (int i = 0; i < input_tensor->elem_num; i++)
             {
                 odata[i] = (float)(idata[i] - zero_point) * scale;
             }

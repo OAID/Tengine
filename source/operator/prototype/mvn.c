@@ -32,10 +32,9 @@
 #include "utility/sys_port.h"
 #include "utility/log.h"
 
-
 static int init_op(struct op* op)
 {
-    struct mvn_param* param = ( struct mvn_param* )sys_malloc(sizeof(struct mvn_param));
+    struct mvn_param* param = (struct mvn_param*)sys_malloc(sizeof(struct mvn_param));
 
     if (param == NULL)
     {
@@ -51,12 +50,10 @@ static int init_op(struct op* op)
     return 0;
 }
 
-
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
-
 
 int register_mvn_op()
 {
@@ -68,7 +65,6 @@ int register_mvn_op()
 
     return register_op(OP_MVN, OP_MVN_NAME, &m);
 }
-
 
 int unregister_mvn_op()
 {

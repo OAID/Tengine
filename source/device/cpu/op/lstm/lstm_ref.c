@@ -37,7 +37,7 @@
 #include <math.h>
 #include <string.h>
 
-#ifdef __APPLE__
+#if defined(__APPLE__) || defined(_MSC_VER)
 #include <stdio.h>
 #endif
 
@@ -46,9 +46,9 @@ int ref_lstm_default_fp32(struct tensor* input_tensor, struct tensor* w, struct 
     int batch_size = input_tensor->dims[1];
     int hidden_size = param->hidden_size;
 
-    float* x_data = input_tensor->data;
-    float* w_data = w->data;
-    float* r_data = r->data;
+    float* x_data = (float*)input_tensor->data;
+    float* w_data = (float*)w->data;
+    float* r_data = (float*)r->data;
 
     /* initial h, initial c buffers */
     float* init_h_data = (float*)malloc((unsigned long)hidden_size * batch_size * sizeof(float));
@@ -56,23 +56,23 @@ int ref_lstm_default_fp32(struct tensor* input_tensor, struct tensor* w, struct 
     float* output_h_data = (float*)malloc((unsigned long)hidden_size * batch_size * sizeof(float));
     float* output_c_data = (float*)malloc((unsigned long)hidden_size * batch_size * sizeof(float));
 
-    memset(init_h_data, 0, (unsigned long)hidden_size*batch_size * sizeof(float));
-    memset(init_c_data, 0, (unsigned long)hidden_size*batch_size * sizeof(float));
-    memset(output_h_data, 0, (unsigned long)hidden_size*batch_size * sizeof(float));
-    memset(output_c_data, 0, (unsigned long)hidden_size*batch_size * sizeof(float));
-    
-    float* output_data = output_tensor->data;
+    memset(init_h_data, 0, (unsigned long)hidden_size * batch_size * sizeof(float));
+    memset(init_c_data, 0, (unsigned long)hidden_size * batch_size * sizeof(float));
+    memset(output_h_data, 0, (unsigned long)hidden_size * batch_size * sizeof(float));
+    memset(output_c_data, 0, (unsigned long)hidden_size * batch_size * sizeof(float));
+
+    float* output_data = (float*)output_tensor->data;
     int T = input_tensor->dims[1];
     int size = input_tensor->dims[2];
 
-    float* i_flag = ( float* )malloc(hidden_size * sizeof(float));
-    float* f_flag = ( float* )malloc(hidden_size * sizeof(float));
-    float* o_flag = ( float* )malloc(hidden_size * sizeof(float));
-    float* g_flag = ( float* )malloc(hidden_size * sizeof(float));
+    float* i_flag = (float*)malloc(hidden_size * sizeof(float));
+    float* f_flag = (float*)malloc(hidden_size * sizeof(float));
+    float* o_flag = (float*)malloc(hidden_size * sizeof(float));
+    float* g_flag = (float*)malloc(hidden_size * sizeof(float));
 
-    for(int seq = 0; seq < input_tensor->dims[0]; seq++)
+    for (int seq = 0; seq < input_tensor->dims[0]; seq++)
     {
-        for(int i = 0; i < T; i++)
+        for (int i = 0; i < T; i++)
         {
             for (int q = 0; q < hidden_size; q++)
             {
@@ -92,7 +92,7 @@ int ref_lstm_default_fp32(struct tensor* input_tensor, struct tensor* w, struct 
 
                 for (int h = 0; h < hidden_size; h++)
                 {
-                    if(seq == 0)
+                    if (seq == 0)
                     {
                         float h_i = init_h_data[h + i * hidden_size];
                         I += h_i * (r_data[(hidden_size * 0 + q) * hidden_size + h]);
@@ -118,14 +118,14 @@ int ref_lstm_default_fp32(struct tensor* input_tensor, struct tensor* w, struct 
 
             for (int c = 0; c < hidden_size; c++)
             {
-                if( seq == 0)
+                if (seq == 0)
                 {
                     float I = 1.f / (1.f + exp(-i_flag[c]));
                     float F = 1.f / (1.f + exp(-f_flag[c]));
                     float G = tanh(g_flag[c]);
                     float c_i = init_c_data[c + i * hidden_size];
                     float cell2 = F * c_i + I * G;
-                    float O = 1.f/(1.f + exp(-o_flag[c]));
+                    float O = 1.f / (1.f + exp(-o_flag[c]));
                     float tmp = tanh(cell2);
                     float H = O * tmp;
                     output_c_data[i * hidden_size + c] = cell2;
@@ -139,7 +139,7 @@ int ref_lstm_default_fp32(struct tensor* input_tensor, struct tensor* w, struct 
                     float G = tanh(g_flag[c]);
                     float c_i = output_c_data[c + i * hidden_size];
                     float cell2 = F * c_i + I * G;
-                    float O = 1.f/(1.f + exp(-o_flag[c]));
+                    float O = 1.f / (1.f + exp(-o_flag[c]));
                     float H = O * tanh(cell2);
                     output_c_data[i * hidden_size + c] = cell2;
                     output_h_data[i * hidden_size + c] = H;
@@ -166,10 +166,10 @@ int ref_lstm_with_bias_fp32(struct tensor* input_tensor, struct tensor* w, struc
     int batch_size = input_tensor->dims[1];
     int hidden_size = param->hidden_size;
 
-    float* x_data = input_tensor->data;
-    float* w_data = w->data;
-    float* r_data = r->data;
-    float* b_data = b->data;
+    float* x_data = (float*)input_tensor->data;
+    float* w_data = (float*)w->data;
+    float* r_data = (float*)r->data;
+    float* b_data = (float*)b->data;
 
     /* initial h, initial c buffers */
     float* init_h_data = (float*)malloc((unsigned long)hidden_size * batch_size * sizeof(float));
@@ -177,24 +177,24 @@ int ref_lstm_with_bias_fp32(struct tensor* input_tensor, struct tensor* w, struc
     float* output_h_data = (float*)malloc((unsigned long)hidden_size * batch_size * sizeof(float));
     float* output_c_data = (float*)malloc((unsigned long)hidden_size * batch_size * sizeof(float));
 
-    memset(init_h_data, 0, (unsigned long)hidden_size*batch_size * sizeof(float));
-    memset(init_c_data, 0, (unsigned long)hidden_size*batch_size * sizeof(float));
-    memset(output_h_data, 0, (unsigned long)hidden_size*batch_size * sizeof(float));
-    memset(output_c_data, 0, (unsigned long)hidden_size*batch_size * sizeof(float));
+    memset(init_h_data, 0, (unsigned long)hidden_size * batch_size * sizeof(float));
+    memset(init_c_data, 0, (unsigned long)hidden_size * batch_size * sizeof(float));
+    memset(output_h_data, 0, (unsigned long)hidden_size * batch_size * sizeof(float));
+    memset(output_c_data, 0, (unsigned long)hidden_size * batch_size * sizeof(float));
 
-    float* output_data = output_tensor->data;
+    float* output_data = (float*)output_tensor->data;
 
     int T = input_tensor->dims[1];
     int size = input_tensor->dims[2];
 
-    float* i_flag = ( float* )malloc(hidden_size * sizeof(float));
-    float* f_flag = ( float* )malloc(hidden_size * sizeof(float));
-    float* o_flag = ( float* )malloc(hidden_size * sizeof(float));
-    float* g_flag = ( float* )malloc(hidden_size * sizeof(float));
+    float* i_flag = (float*)malloc(hidden_size * sizeof(float));
+    float* f_flag = (float*)malloc(hidden_size * sizeof(float));
+    float* o_flag = (float*)malloc(hidden_size * sizeof(float));
+    float* g_flag = (float*)malloc(hidden_size * sizeof(float));
 
-    for(int seq = 0; seq < input_tensor->dims[0]; seq++)
+    for (int seq = 0; seq < input_tensor->dims[0]; seq++)
     {
-        for(int i = 0; i < T; i++)
+        for (int i = 0; i < T; i++)
         {
             for (int q = 0; q < hidden_size; q++)
             {
@@ -217,7 +217,7 @@ int ref_lstm_with_bias_fp32(struct tensor* input_tensor, struct tensor* w, struc
                 G += b_data[hidden_size * 3 + q];
                 for (int h = 0; h < hidden_size; h++)
                 {
-                    if(seq == 0)
+                    if (seq == 0)
                     {
                         float h_i = init_h_data[h + i * hidden_size];
                         I += h_i * (r_data[(hidden_size * 0 + q) * hidden_size + h]);
@@ -247,14 +247,14 @@ int ref_lstm_with_bias_fp32(struct tensor* input_tensor, struct tensor* w, struc
 
             for (int c = 0; c < hidden_size; c++)
             {
-                if( seq == 0)
+                if (seq == 0)
                 {
                     float I = 1.f / (1.f + exp(-i_flag[c]));
                     float F = 1.f / (1.f + exp(-f_flag[c]));
                     float G = tanh(g_flag[c]);
                     float c_i = init_c_data[c + i * hidden_size];
                     float cell2 = F * c_i + I * G;
-                    float O = 1.f/(1.f + exp(-o_flag[c]));
+                    float O = 1.f / (1.f + exp(-o_flag[c]));
                     float tmp = tanh(cell2);
                     float H = O * tmp;
                     output_c_data[i * hidden_size + c] = cell2;
@@ -268,7 +268,7 @@ int ref_lstm_with_bias_fp32(struct tensor* input_tensor, struct tensor* w, struc
                     float G = tanh(g_flag[c]);
                     float c_i = output_c_data[c + i * hidden_size];
                     float cell2 = F * c_i + I * G;
-                    float O = 1.f/(1.f + exp(-o_flag[c]));
+                    float O = 1.f / (1.f + exp(-o_flag[c]));
                     float H = O * tanh(cell2);
                     output_c_data[i * hidden_size + c] = cell2;
                     output_h_data[i * hidden_size + c] = H;
@@ -295,34 +295,34 @@ int ref_lstm_with_bias_case1_fp32(struct tensor* input_tensor, struct tensor* w,
     int size = input_tensor->dims[2];
     int hidden_size = param->hidden_size;
 
-    float* x_data = input_tensor->data;
-    float* w_data = w->data;
-    float* r_data = r->data;
-    float* b_data = b->data;
+    float* x_data = (float*)input_tensor->data;
+    float* w_data = (float*)w->data;
+    float* r_data = (float*)r->data;
+    float* b_data = (float*)b->data;
 
     /* initial h, initial c buffers */
-    float* init_h_data = ( float* )malloc((unsigned long)hidden_size * batch_size * sizeof(float));
-    float* init_c_data = ( float* )malloc((unsigned long)hidden_size * batch_size * sizeof(float));
-    float* output_h_data = ( float* )malloc((unsigned long)hidden_size * batch_size * sizeof(float));
-    float* output_c_data = ( float* )malloc((unsigned long)hidden_size * batch_size * sizeof(float));
+    float* init_h_data = (float*)malloc((unsigned long)hidden_size * batch_size * sizeof(float));
+    float* init_c_data = (float*)malloc((unsigned long)hidden_size * batch_size * sizeof(float));
+    float* output_h_data = (float*)malloc((unsigned long)hidden_size * batch_size * sizeof(float));
+    float* output_c_data = (float*)malloc((unsigned long)hidden_size * batch_size * sizeof(float));
 
     memset(init_h_data, 0, (unsigned long)hidden_size * batch_size * sizeof(float));
     memset(init_c_data, 0, (unsigned long)hidden_size * batch_size * sizeof(float));
     memset(output_h_data, 0, (unsigned long)hidden_size * batch_size * sizeof(float));
     memset(output_c_data, 0, (unsigned long)hidden_size * batch_size * sizeof(float));
 
-    float* output_data = output_tensor->data;
+    float* output_data = (float*)output_tensor->data;
 
-    float* i_flag = ( float* )malloc(hidden_size * sizeof(float));
-    float* f_flag = ( float* )malloc(hidden_size * sizeof(float));
-    float* o_flag = ( float* )malloc(hidden_size * sizeof(float));
-    float* g_flag = ( float* )malloc(hidden_size * sizeof(float));
+    float* i_flag = (float*)malloc(hidden_size * sizeof(float));
+    float* f_flag = (float*)malloc(hidden_size * sizeof(float));
+    float* o_flag = (float*)malloc(hidden_size * sizeof(float));
+    float* g_flag = (float*)malloc(hidden_size * sizeof(float));
 
-    for (int seq = 0; seq < sequence_size; seq++)    // sequence
+    for (int seq = 0; seq < sequence_size; seq++) // sequence
     {
-        for (int i = 0; i < batch_size; i++)    // batch
+        for (int i = 0; i < batch_size; i++) // batch
         {
-            for (int q = 0; q < hidden_size; q++)    // hidden
+            for (int q = 0; q < hidden_size; q++) // hidden
             {
                 float I = 0;
                 float F = 0;
@@ -330,7 +330,7 @@ int ref_lstm_with_bias_case1_fp32(struct tensor* input_tensor, struct tensor* w,
                 float G = 0;
 
                 /* input fc */
-                for (int m = 0; m < size; m++)    // internal size, the same as four fc implement
+                for (int m = 0; m < size; m++) // internal size, the same as four fc implement
                 {
                     int index = seq * (batch_size * size) + i * size + m;
                     float i_data = x_data[index];
@@ -420,39 +420,39 @@ int ref_lstm_with_bias_case1_fp32(struct tensor* input_tensor, struct tensor* w,
     return 0;
 }
 
-int ref_lstm_with_peepholes_fp32(struct tensor* input_tensor, struct tensor* w, struct tensor* r, 
-                                struct tensor* b, struct tensor* sequence_lens, struct tensor* init_h, struct tensor* init_c, struct tensor* p, 
-                                struct tensor* output_tensor, struct lstm_param* param)
+int ref_lstm_with_peepholes_fp32(struct tensor* input_tensor, struct tensor* w, struct tensor* r,
+                                 struct tensor* b, struct tensor* sequence_lens, struct tensor* init_h, struct tensor* init_c, struct tensor* p,
+                                 struct tensor* output_tensor, struct lstm_param* param)
 {
     int batch_size = input_tensor->dims[1];
     int hidden_size = param->hidden_size;
 
-    float* x_data = input_tensor->data;
-    float* w_data = w->data;
-    float* r_data = r->data;
-    float* b_data = b->data;
-    float* init_h_data = init_h->data;
-    float* init_c_data = init_c->data;
-    float* p_data = p->data;
-    
-    float* output_data = output_tensor->data;
+    float* x_data = (float*)input_tensor->data;
+    float* w_data = (float*)w->data;
+    float* r_data = (float*)r->data;
+    float* b_data = (float*)b->data;
+    float* init_h_data = (float*)init_h->data;
+    float* init_c_data = (float*)init_c->data;
+    float* p_data = (float*)p->data;
+
+    float* output_data = (float*)output_tensor->data;
 
     float* output_h_data = (float*)malloc((unsigned long)hidden_size * batch_size * sizeof(float));
     float* output_c_data = (float*)malloc((unsigned long)hidden_size * batch_size * sizeof(float));
-    memset(output_h_data, 0, (unsigned long)hidden_size*batch_size * sizeof(float));
-    memset(output_c_data, 0, (unsigned long)hidden_size*batch_size * sizeof(float));
+    memset(output_h_data, 0, (unsigned long)hidden_size * batch_size * sizeof(float));
+    memset(output_c_data, 0, (unsigned long)hidden_size * batch_size * sizeof(float));
 
     int T = input_tensor->dims[1];
     int size = input_tensor->dims[2];
 
-    float* i_flag = ( float* )malloc(hidden_size * sizeof(float));
-    float* f_flag = ( float* )malloc(hidden_size * sizeof(float));
-    float* o_flag = ( float* )malloc(hidden_size * sizeof(float));
-    float* g_flag = ( float* )malloc(hidden_size * sizeof(float));
+    float* i_flag = (float*)malloc(hidden_size * sizeof(float));
+    float* f_flag = (float*)malloc(hidden_size * sizeof(float));
+    float* o_flag = (float*)malloc(hidden_size * sizeof(float));
+    float* g_flag = (float*)malloc(hidden_size * sizeof(float));
 
-    for(int seq = 0; seq < input_tensor->dims[0]; seq++)
+    for (int seq = 0; seq < input_tensor->dims[0]; seq++)
     {
-        for(int i = 0; i < T; i++)
+        for (int i = 0; i < T; i++)
         {
             for (int q = 0; q < hidden_size; q++)
             {
@@ -475,7 +475,7 @@ int ref_lstm_with_peepholes_fp32(struct tensor* input_tensor, struct tensor* w, 
                 G += b_data[hidden_size * 3 + q];
                 for (int h = 0; h < hidden_size; h++)
                 {
-                    if(seq == 0)
+                    if (seq == 0)
                     {
                         float h_i = init_h_data[h + i * hidden_size];
                         I += h_i * (r_data[(hidden_size * 0 + q) * hidden_size + h]);
@@ -505,14 +505,14 @@ int ref_lstm_with_peepholes_fp32(struct tensor* input_tensor, struct tensor* w, 
 
             for (int c = 0; c < hidden_size; c++)
             {
-                if( seq == 0)
+                if (seq == 0)
                 {
                     float I = 1.f / (1.f + exp(-i_flag[c]));
                     float F = 1.f / (1.f + exp(-f_flag[c]));
                     float G = tanh(g_flag[c]);
                     float c_i = init_c_data[c + i * hidden_size];
                     float cell2 = F * c_i + I * G;
-                    float O = 1.f/(1.f + exp(-(o_flag[c] + p_data[0 * hidden_size + c] * cell2)));
+                    float O = 1.f / (1.f + exp(-(o_flag[c] + p_data[0 * hidden_size + c] * cell2)));
                     float tmp = tanh(cell2);
                     float H = O * tmp;
                     output_c_data[i * hidden_size + c] = cell2;
@@ -526,7 +526,7 @@ int ref_lstm_with_peepholes_fp32(struct tensor* input_tensor, struct tensor* w, 
                     float G = tanh(g_flag[c]);
                     float c_i = output_c_data[c + i * hidden_size];
                     float cell2 = F * c_i + I * G;
-                    float O = 1.f/(1.f + exp(-(o_flag[c] + p_data[2 * hidden_size + c] * cell2)));
+                    float O = 1.f / (1.f + exp(-(o_flag[c] + p_data[2 * hidden_size + c] * cell2)));
                     float H = O * tanh(cell2);
                     output_c_data[i * hidden_size + c] = cell2;
                     output_h_data[i * hidden_size + c] = H;
@@ -542,8 +542,8 @@ int ref_lstm_with_peepholes_fp32(struct tensor* input_tensor, struct tensor* w, 
     free(f_flag);
     free(o_flag);
     free(g_flag);
-    
-    return 0;    
+
+    return 0;
 }
 
 int ref_lstm_with_bias_bidirection_fp32(struct tensor* input_tensor, struct tensor* w, struct tensor* r, struct tensor* b, struct tensor* output_tensor, struct lstm_param* param)
@@ -551,10 +551,10 @@ int ref_lstm_with_bias_bidirection_fp32(struct tensor* input_tensor, struct tens
     int batch_size = input_tensor->dims[1];
     int hidden_size = param->hidden_size;
 
-    float* x_data = input_tensor->data;
-    float* w_data = w->data;
-    float* r_data = r->data;
-    float* b_data = b->data;
+    float* x_data = (float*)input_tensor->data;
+    float* w_data = (float*)w->data;
+    float* r_data = (float*)r->data;
+    float* b_data = (float*)b->data;
 
     /* initial h, initial c buffers */
     float* init_h_data = (float*)malloc(2 * (unsigned long)hidden_size * batch_size * sizeof(float));
@@ -562,7 +562,7 @@ int ref_lstm_with_bias_bidirection_fp32(struct tensor* input_tensor, struct tens
     memset(init_h_data, 0, 2 * (unsigned long)hidden_size * batch_size * sizeof(float));
     memset(init_c_data, 0, 2 * (unsigned long)hidden_size * batch_size * sizeof(float));
 
-    float* output_data = output_tensor->data;
+    float* output_data = (float*)output_tensor->data;
     float* output_h_data = init_h_data;
     float* output_c_data = init_c_data;
 
@@ -570,16 +570,16 @@ int ref_lstm_with_bias_bidirection_fp32(struct tensor* input_tensor, struct tens
     int size = input_tensor->dims[2];
     int direct_num = input_tensor->dims[0];
 
-    float* i_flag = ( float* )malloc(hidden_size * sizeof(float));
-    float* f_flag = ( float* )malloc(hidden_size * sizeof(float));
-    float* o_flag = ( float* )malloc(hidden_size * sizeof(float));
-    float* g_flag = ( float* )malloc(hidden_size * sizeof(float));
+    float* i_flag = (float*)malloc(hidden_size * sizeof(float));
+    float* f_flag = (float*)malloc(hidden_size * sizeof(float));
+    float* o_flag = (float*)malloc(hidden_size * sizeof(float));
+    float* g_flag = (float*)malloc(hidden_size * sizeof(float));
 
-    for(int seq = 0; seq < input_tensor->dims[0]; seq++)
+    for (int seq = 0; seq < input_tensor->dims[0]; seq++)
     {
-        for(int i = 0; i < T; i++)
+        for (int i = 0; i < T; i++)
         {
-            for(int d = 0; d < direct_num; d++)
+            for (int d = 0; d < direct_num; d++)
             {
                 for (int q = 0; q < hidden_size; q++)
                 {
@@ -602,7 +602,7 @@ int ref_lstm_with_bias_bidirection_fp32(struct tensor* input_tensor, struct tens
                     G += b_data[d * hidden_size * 4 * 2 + hidden_size * 3 + q];
                     for (int h = 0; h < hidden_size; h++)
                     {
-                        if(seq == 0)
+                        if (seq == 0)
                         {
                             float h_i = init_h_data[d * input_tensor->dims[1] * hidden_size + h + i * hidden_size];
                             I += h_i * (r_data[d * hidden_size * hidden_size * 4 + (hidden_size * 0 + q) * hidden_size + h]);
@@ -631,14 +631,14 @@ int ref_lstm_with_bias_bidirection_fp32(struct tensor* input_tensor, struct tens
                 }
                 for (int c = 0; c < hidden_size; c++)
                 {
-                    if( seq == 0)
+                    if (seq == 0)
                     {
                         float I = 1.f / (1.f + exp(-i_flag[c]));
                         float F = 1.f / (1.f + exp(-f_flag[c]));
                         float G = tanh(g_flag[c]);
                         float c_i = init_c_data[d * hidden_size * input_tensor->dims[2] + c + i * hidden_size];
                         float cell2 = F * c_i + I * G;
-                        float O = 1.f/(1.f + exp(-o_flag[c]));
+                        float O = 1.f / (1.f + exp(-o_flag[c]));
                         float tmp = tanh(cell2);
                         float H = O * tmp;
                         output_c_data[d * hidden_size * input_tensor->dims[2] + i * hidden_size + c] = cell2;
@@ -652,7 +652,7 @@ int ref_lstm_with_bias_bidirection_fp32(struct tensor* input_tensor, struct tens
                         float G = tanh(g_flag[c]);
                         float c_i = output_c_data[d * hidden_size * input_tensor->dims[2] + c + i * hidden_size];
                         float cell2 = F * c_i + I * G;
-                        float O = 1.f/(1.f + exp(-o_flag[c]));
+                        float O = 1.f / (1.f + exp(-o_flag[c]));
                         float H = O * tanh(cell2);
                         output_c_data[d * hidden_size * input_tensor->dims[2] + i * hidden_size + c] = cell2;
                         output_h_data[d * hidden_size * input_tensor->dims[2] + i * hidden_size + c] = H;
@@ -692,14 +692,14 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct tensor* w = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
     struct tensor* r = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[2]);
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    
+
     struct tensor* b = NULL;
     struct tensor* sequence_lens = NULL;
     struct tensor* init_h = NULL;
     struct tensor* init_c = NULL;
     struct tensor* p = NULL;
 
-    lstm_param_t* param = ( struct lstm_param* )(ir_node->op.param_mem);
+    lstm_param_t* param = (struct lstm_param*)(ir_node->op.param_mem);
 
     /* only support one way */
     if (w->dim_num == 4 && w->dims[0] == 2)
@@ -745,7 +745,7 @@ static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struc
     struct graph* ir_graph = node->graph;
     struct tensor* input = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
     struct tensor* output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
-    struct lstm_param* lstm_param = ( struct lstm_param* )(node->op.param_mem);
+    struct lstm_param* lstm_param = (struct lstm_param*)(node->op.param_mem);
 
     int batch_size = input->dims[1];
     if (lstm_param->mxnet_flag == 0)

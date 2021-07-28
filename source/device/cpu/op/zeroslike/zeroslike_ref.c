@@ -34,14 +34,13 @@
 
 #include <math.h>
 
-
 int ref_zeroslike_fp32(struct tensor* input_tensor, struct tensor* output_tensor, int num_thread)
 {
     // dims size = 2 or 3
     if (input_tensor->dim_num < 4)
     {
-        float* input_data = input_tensor->data;
-        float* out_data = output_tensor->data;
+        float* input_data = (float*)input_tensor->data;
+        float* out_data = (float*)output_tensor->data;
         int total_size = input_tensor->elem_num;
 
         for (int i = 0; i < total_size; i++)
@@ -60,8 +59,8 @@ int ref_zeroslike_fp32(struct tensor* input_tensor, struct tensor* output_tensor
         int size = h * w;
         int c_step = h * w;
 
-        float* input_data = input_tensor->data;
-        float* out_data = output_tensor->data;
+        float* input_data = (float*)input_tensor->data;
+        float* out_data = (float*)output_tensor->data;
 
 #pragma omp parallel for num_threads(num_thread)
         for (int q = 0; q < channels; q++)
@@ -86,8 +85,8 @@ int ref_zeroslike_uint8(struct tensor* input_tensor, struct tensor* output_tenso
     // dims size = 2 or 3
     if (input_tensor->dim_num < 4)
     {
-        uint8_t* input_data = input_tensor->data;
-        uint8_t* out_data = output_tensor->data;
+        uint8_t* input_data = (uint8_t*)input_tensor->data;
+        uint8_t* out_data = (uint8_t*)output_tensor->data;
         int total_size = input_tensor->elem_num;
 
         for (int i = 0; i < total_size; i++)
@@ -106,8 +105,8 @@ int ref_zeroslike_uint8(struct tensor* input_tensor, struct tensor* output_tenso
         int size = h * w;
         int c_step = h * w;
 
-        uint8_t* input_data = input_tensor->data;
-        uint8_t* out_data = output_tensor->data;
+        uint8_t* input_data = (uint8_t*)input_tensor->data;
+        uint8_t* out_data = (uint8_t*)output_tensor->data;
 
 #pragma omp parallel for num_threads(num_thread)
         for (int q = 0; q < channels; q++)
@@ -157,7 +156,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     int ret = -1;
     if (input_tensor->data_type == TENGINE_DT_FP32)
         ret = ref_zeroslike_fp32(input_tensor, output_tensor, exec_graph->num_thread);
-    else if(input_tensor->data_type == TENGINE_DT_UINT8)
+    else if (input_tensor->data_type == TENGINE_DT_UINT8)
         ret = ref_zeroslike_uint8(input_tensor, output_tensor, exec_graph->num_thread);
 
     return ret;

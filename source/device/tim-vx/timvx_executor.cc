@@ -83,14 +83,7 @@ int VXEngine::VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_ty
         tim::vx::ShapeType vx_shape;
 
         struct node* ir_node = get_ir_graph_node(ir_graph, ir_tensor->producer);
-        if (ir_node->op.type == OP_FC && ir_node->output_tensors[0] == ir_tensor_idx)
-        {
-            for (int i = 1; i >= 0; i--)
-            {
-                vx_shape.push_back(Dims[i]);
-            }
-        }
-        else if (spec_type == SPEC_TYPE_PRELU)
+        if (spec_type == SPEC_TYPE_PRELU)
         {
             vx_shape.push_back(1);
             vx_shape.push_back(1);
@@ -300,11 +293,17 @@ int VXEngine::Build(struct subgraph* subgraph)
             case OP_HARDSWISH:
                 this->AddHardSwishNode(ir_node);
                 break;
+            case OP_INSTANCENORM:
+                this->AddInstanceNormNode(ir_node);
+                break;
             case OP_INTERP:
                 this->AddInterpNode(ir_node);
                 break;
             case OP_MISH:
                 this->AddMishNode(ir_node);
+                break;
+            case OP_PAD:
+                this->AddPadNode(ir_node);
                 break;
             case OP_PERMUTE:
                 this->AddPermuteNode(ir_node);
@@ -314,6 +313,9 @@ int VXEngine::Build(struct subgraph* subgraph)
                 break;
             case OP_PRELU:
                 this->AddPReluNode(ir_node);
+                break;
+            case OP_REDUCTION:
+                this->AddReduceNode(ir_node);
                 break;
             case OP_RELU:
                 this->AddReluNode(ir_node);

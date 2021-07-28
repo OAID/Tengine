@@ -35,14 +35,13 @@
 
 #include <math.h>
 
-
 int ref_ceil_fp32(struct tensor* input_tensor, struct tensor* output_tensor, int num_thread)
 {
     // dims size = 2 or 3
     if (input_tensor->dim_num < 4)
     {
-        float* input_data = input_tensor->data;
-        float* out_data = output_tensor->data;
+        float* input_data = (float*)input_tensor->data;
+        float* out_data = (float*)output_tensor->data;
         int total_size = input_tensor->elem_num;
 
         for (int i = 0; i < total_size; i++)
@@ -61,8 +60,8 @@ int ref_ceil_fp32(struct tensor* input_tensor, struct tensor* output_tensor, int
         int size = h * w;
         int c_step = h * w;
 
-        float* input_data = input_tensor->data;
-        float* out_data = output_tensor->data;
+        float* input_data = (float*)input_tensor->data;
+        float* out_data = (float*)output_tensor->data;
 
 #pragma omp parallel for num_threads(num_thread)
         for (int q = 0; q < channels; q++)
@@ -84,9 +83,9 @@ int ref_ceil_fp32(struct tensor* input_tensor, struct tensor* output_tensor, int
 
 int ref_ceil_uint8(struct tensor* input_tensor, struct tensor* output_tensor, int num_thread)
 {
-     /* dequant */
-    uint8_t* input_uint8 = input_tensor->data;
-    uint8_t* output_uint8 = output_tensor->data;
+    /* dequant */
+    uint8_t* input_uint8 = (uint8_t*)input_tensor->data;
+    uint8_t* output_uint8 = (uint8_t*)output_tensor->data;
     float input_scale = input_tensor->scale;
     float output_scale = output_tensor->scale;
     int32_t input_zero = input_tensor->zero_point;
@@ -94,12 +93,12 @@ int ref_ceil_uint8(struct tensor* input_tensor, struct tensor* output_tensor, in
     int input_size = input_tensor->elem_num;
     int output_size = output_tensor->elem_num;
 
-    float* input_data = ( float* )sys_malloc(input_size * sizeof(float));
-    float* out_data = ( float* )sys_malloc(output_size * sizeof(float));
+    float* input_data = (float*)sys_malloc(input_size * sizeof(float));
+    float* out_data = (float*)sys_malloc(output_size * sizeof(float));
 
     for (int i = 0; i < input_size; i++)
     {
-        input_data[i] = (( float )input_uint8[i] - ( float )input_zero) * input_scale;
+        input_data[i] = ((float)input_uint8[i] - (float)input_zero) * input_scale;
     }
 
     // dims size = 2 or 3
@@ -180,7 +179,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     int ret = -1;
     if (input_tensor->data_type == TENGINE_DT_FP32)
         ret = ref_ceil_fp32(input_tensor, output_tensor, exec_graph->num_thread);
-    else if(input_tensor->data_type == TENGINE_DT_UINT8)
+    else if (input_tensor->data_type == TENGINE_DT_UINT8)
         ret = ref_ceil_uint8(input_tensor, output_tensor, exec_graph->num_thread);
     else
         TLOG_ERR("Input data type %d not to be supported.\n", input_tensor->data_type);

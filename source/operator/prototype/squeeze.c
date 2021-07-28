@@ -32,13 +32,12 @@
 #include "utility/sys_port.h"
 #include "utility/log.h"
 
-
 static int infer_shape(struct node* node)
 {
     struct graph* ir_graph = node->graph;
     struct tensor* input = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
     struct tensor* output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
-    struct squeeze_param* squeeze_param = ( struct squeeze_param* )node->op.param_mem;
+    struct squeeze_param* squeeze_param = (struct squeeze_param*)node->op.param_mem;
 
     int in_size = input->dim_num;
 
@@ -65,7 +64,7 @@ static int infer_shape(struct node* node)
         dim_size++;
     }
 
-    int8_t should_squeeze[4] = { 0 };
+    int8_t should_squeeze[4] = {0};
     int squeezeddim = 0;
     int newshape_size = dim_size;
     int real_shape[4] = {0, 2, 3, 1};
@@ -111,7 +110,7 @@ static int infer_shape(struct node* node)
         }
     }
 
-    int* odim = ( int* )sys_malloc((in_size - squeezeddim) * sizeof(int));
+    int* odim = (int*)sys_malloc((in_size - squeezeddim) * sizeof(int));
     int o_idx = 0;
     for (int i_idx = 0; i_idx < in_size; i_idx++)
     {
@@ -125,10 +124,9 @@ static int infer_shape(struct node* node)
     return 0;
 }
 
-
 static int init_op(struct op* op)
 {
-    struct squeeze_param* squeeze_param = ( struct squeeze_param* )sys_malloc(sizeof(struct squeeze_param));
+    struct squeeze_param* squeeze_param = (struct squeeze_param*)sys_malloc(sizeof(struct squeeze_param));
 
     if (squeeze_param == NULL)
     {
@@ -148,12 +146,10 @@ static int init_op(struct op* op)
     return 0;
 }
 
-
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
-
 
 int register_squeeze_op()
 {
@@ -165,7 +161,6 @@ int register_squeeze_op()
 
     return register_op(OP_SQUEEZE, OP_SQUEEZE_NAME, &m);
 }
-
 
 int unregister_squeeze_op()
 {

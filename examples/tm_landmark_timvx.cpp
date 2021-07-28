@@ -37,11 +37,11 @@ void get_input_uint8_data(const char* image_file, uint8_t* input_data, int img_h
 {
     image img = imread_process(image_file, img_w, img_h, mean, scale);
 
-    float* image_data = ( float* )img.data;
+    float* image_data = (float*)img.data;
 
     for (int i = 0; i < img_w * img_h * 3; i++)
     {
-        int udata = (round)(image_data[i] / input_scale + (float )zero_point);
+        int udata = (round)(image_data[i] / input_scale + (float)zero_point);
         if (udata > 255)
             udata = 255;
         else if (udata < 0)
@@ -74,23 +74,23 @@ int main(int argc, char* argv[])
     {
         switch (res)
         {
-            case 'm':
-                model_file = optarg;
-                break;
-            case 'i':
-                image_file = optarg;
-                break;
-            case 'r':
-                repeat_count = atoi(optarg);
-                break;
-            case 't':
-                num_thread = atoi(optarg);
-                break;
-            case 'h':
-                show_usage();
-                return 0;
-            default:
-                break;
+        case 'm':
+            model_file = optarg;
+            break;
+        case 'i':
+            image_file = optarg;
+            break;
+        case 'r':
+            repeat_count = atoi(optarg);
+            break;
+        case 't':
+            num_thread = atoi(optarg);
+            break;
+        case 'h':
+            show_usage();
+            return 0;
+        default:
+            break;
         }
     }
 
@@ -146,8 +146,8 @@ int main(int argc, char* argv[])
 
     /* set the input shape to initial the graph, and prerun graph to infer shape */
     int img_size = img_h * img_w * 3;
-    int dims[] = {1, 3, img_h, img_w};    // nchw
-    uint8_t* input_data = ( uint8_t* )malloc(img_size);
+    int dims[] = {1, 3, img_h, img_w}; // nchw
+    uint8_t* input_data = (uint8_t*)malloc(img_size);
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == nullptr)
@@ -210,13 +210,13 @@ int main(int argc, char* argv[])
     float output_scale = 0.f;
     int output_zp = 0;
     get_tensor_quant_param(output_tensor, &output_scale, &output_zp, 1);
-    uint8_t* data = ( uint8_t* )(get_tensor_buffer(output_tensor));
+    uint8_t* data = (uint8_t*)(get_tensor_buffer(output_tensor));
     int data_size = get_tensor_buffer_size(output_tensor) / sizeof(uint8_t);
 
     image img_out = imread(image_file);
     for (int i = 0; i < data_size / 2; i++)
     {
-        int x = (int)(((float)data[2 * i    ] - (float)output_zp) * output_scale * (float)img_out.w / 144.f);
+        int x = (int)(((float)data[2 * i] - (float)output_zp) * output_scale * (float)img_out.w / 144.f);
         int y = (int)(((float)data[2 * i + 1] - (float)output_zp) * output_scale * (float)img_out.h / 144.f);
         draw_circle(img_out, x, y, 2, 0, 255, 0);
     }

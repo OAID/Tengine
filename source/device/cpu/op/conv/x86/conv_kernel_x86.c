@@ -47,17 +47,16 @@
 
 #ifndef _MSC_VER
 #include <sys/time.h>
+#endif
 #define max(a, b) ((a) > (b) ? (a) : (b))
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
-#endif
-
 static int get_private_mem_size(struct tensor* filter)
 {
-    if (filter->data_type == TENGINE_DT_UINT8)    // simulator uint8 inference with fp32
+    if (filter->data_type == TENGINE_DT_UINT8) // simulator uint8 inference with fp32
         return filter->elem_num * filter->elem_size * 4;
     else
-        return filter->elem_num * filter->elem_size;    // caution
+        return filter->elem_num * filter->elem_size; // caution
 }
 
 static void interleave(struct tensor* filter, struct conv_priv_info* priv_info)
@@ -69,7 +68,7 @@ static void interleave(struct tensor* filter, struct conv_priv_info* priv_info)
 static void interleave_uint8(struct tensor* filter, struct conv_priv_info* priv_info)
 {
     /* dequant uint8 weight to fp32 for simulator */
-    float* weight_fp32 = (float* )priv_info->interleave_buffer;
+    float* weight_fp32 = (float*)priv_info->interleave_buffer;
     uint8_t* weight_uint8 = (uint8_t*)filter->data;
     float scale = filter->scale;
     int zero_point = filter->zero_point;
@@ -81,7 +80,7 @@ static void interleave_uint8(struct tensor* filter, struct conv_priv_info* priv_
 }
 
 void im2col_fp32(float* data_img, float* data_col, int inh, int inw, int inc, int outh, int outw, int ksize_h,
-            int ksize_w, int sh, int sw, int ph, int pw, int dh, int dw)
+                 int ksize_w, int sh, int sw, int ph, int pw, int dh, int dw)
 {
     const int channels_col = ksize_h * ksize_w * inc;
 
@@ -163,7 +162,7 @@ void im2col_uint8(uint8_t* data_img, float* data_col, struct tensor* input_tenso
 
             if (im_row >= 0 && im_row < inh)
             {
-                uint8_t * in = data_img + inw * (im_row + inh * c_) + im_col + (w_low - 1) * sw;
+                uint8_t* in = data_img + inw * (im_row + inh * c_) + im_col + (w_low - 1) * sw;
 
                 memset(out, 0, w_low * sizeof(float));
                 out += w_low;
@@ -218,12 +217,12 @@ void im2col_int8(int8_t* data_img, int8_t* data_col, struct tensor* input_tensor
         for (int h = 0; h < outh; ++h)
         {
             const int im_row = kh * dh + h * sh - ph;
-            int8_t * out = data_col + (c * outh + h) * outw;
-            const int8_t * end = out + w_high;
+            int8_t* out = data_col + (c * outh + h) * outw;
+            const int8_t* end = out + w_high;
 
             if (im_row >= 0 && im_row < inh)
             {
-                int8_t * in = data_img + inw * (im_row + inh * c_) + im_col + (w_low - 1) * sw;
+                int8_t* in = data_img + inw * (im_row + inh * c_) + im_col + (w_low - 1) * sw;
                 memset(out, 0, w_low * sizeof(int8_t));
                 out += w_low;
                 while (out < end)
@@ -249,21 +248,21 @@ static void im2col_ir(struct tensor* input, struct tensor* output, struct conv_p
     int image_size = input->dims[1] * input->dims[2] * input->dims[3];
     int group_size = input_chan * input->dims[2] * input->dims[3];
 
-	void* input_base = (void*)((uint8_t*)input->data + (n * image_size + group * group_size) * input->elem_size);
-	void* im2col_buf = (void*)priv_info->im2col_buffer;
+    void* input_base = (void*)((uint8_t*)input->data + (n * image_size + group * group_size) * input->elem_size);
+    void* im2col_buf = (void*)priv_info->im2col_buffer;
 
     if (input->data_type == TENGINE_DT_FP32)
     {
-        im2col_fp32(input_base, im2col_buf, input->dims[2], input->dims[3], input_chan, output->dims[2], output->dims[3],
+        im2col_fp32((float*)input_base, (float*)im2col_buf, input->dims[2], input->dims[3], input_chan, output->dims[2], output->dims[3],
                     param->kernel_h, param->kernel_w, param->stride_h, param->stride_w, param->pad_h0, param->pad_w0, param->dilation_h, param->dilation_w);
     }
     else if (input->data_type == TENGINE_DT_UINT8)
     {
-        im2col_uint8(input_base, im2col_buf, input, output, param);
+        im2col_uint8((uint8_t*)input_base, (float*)im2col_buf, input, output, param);
     }
     else if (input->data_type == TENGINE_DT_INT8)
     {
-        im2col_int8(input_base, im2col_buf, input, output, param);
+        im2col_int8((int8_t*)input_base, (int8_t*)im2col_buf, input, output, param);
     }
     else
     {
@@ -297,7 +296,7 @@ void input_pack4_fp32(int K, int N, float* pB, float* pB_t, int num_thread)
             tmp[5] = img[5];
             tmp[6] = img[6];
             tmp[7] = img[7];
-#endif    // __SSE__
+#endif // __SSE__
             tmp += 8;
             img += N;
         }
@@ -333,7 +332,7 @@ static void sgemm_fp(int M, int N, int K, float* pA_t, float* pB_t, float* pC, i
     {
         int i = pp * 8;
 
-        float* output0 = pC + ( i )*N;
+        float* output0 = pC + (i)*N;
         float* output1 = pC + (i + 1) * N;
         float* output2 = pC + (i + 2) * N;
         float* output3 = pC + (i + 3) * N;
@@ -369,18 +368,18 @@ static void sgemm_fp(int M, int N, int K, float* pA_t, float* pB_t, float* pC, i
                 __m256 _vb1 = _mm256_loadu_ps(vb + 8);
                 __m256 _vb2 = _mm256_loadu_ps(vb + 16);
                 __m256 _vb3 = _mm256_loadu_ps(vb + 24);
-                _sum0 = _mm256_fmadd_ps(_vb0, _va0, _sum0);    // sum0 = (a00-a07) * k00
-                _sum1 = _mm256_fmadd_ps(_vb0, _va1, _sum1);    // sum1 = (a00-a07) * k10
-                _sum2 = _mm256_fmadd_ps(_vb0, _va2, _sum2);    // sum2 = (a00-a07) * k20
-                _sum3 = _mm256_fmadd_ps(_vb0, _va3, _sum3);    // sum3 = (a00-a07) * k30
+                _sum0 = _mm256_fmadd_ps(_vb0, _va0, _sum0); // sum0 = (a00-a07) * k00
+                _sum1 = _mm256_fmadd_ps(_vb0, _va1, _sum1); // sum1 = (a00-a07) * k10
+                _sum2 = _mm256_fmadd_ps(_vb0, _va2, _sum2); // sum2 = (a00-a07) * k20
+                _sum3 = _mm256_fmadd_ps(_vb0, _va3, _sum3); // sum3 = (a00-a07) * k30
                 _va0 = _mm256_broadcast_ss(va + 4);
                 _va1 = _mm256_broadcast_ss(va + 5);
                 _va2 = _mm256_broadcast_ss(va + 6);
                 _va3 = _mm256_broadcast_ss(va + 7);
-                _sum4 = _mm256_fmadd_ps(_vb0, _va0, _sum4);    // sum4 = (a00-a07) * k40
-                _sum5 = _mm256_fmadd_ps(_vb0, _va1, _sum5);    // sum5 = (a00-a07) * k50
-                _sum6 = _mm256_fmadd_ps(_vb0, _va2, _sum6);    // sum6 = (a00-a07) * k60
-                _sum7 = _mm256_fmadd_ps(_vb0, _va3, _sum7);    // sum7 = (a00-a07) * k70
+                _sum4 = _mm256_fmadd_ps(_vb0, _va0, _sum4); // sum4 = (a00-a07) * k40
+                _sum5 = _mm256_fmadd_ps(_vb0, _va1, _sum5); // sum5 = (a00-a07) * k50
+                _sum6 = _mm256_fmadd_ps(_vb0, _va2, _sum6); // sum6 = (a00-a07) * k60
+                _sum7 = _mm256_fmadd_ps(_vb0, _va3, _sum7); // sum7 = (a00-a07) * k70
 
                 va += 8;
 
@@ -389,18 +388,18 @@ static void sgemm_fp(int M, int N, int K, float* pA_t, float* pB_t, float* pC, i
                 _va1 = _mm256_broadcast_ss(va + 1);
                 _va2 = _mm256_broadcast_ss(va + 2);
                 _va3 = _mm256_broadcast_ss(va + 3);
-                _sum0 = _mm256_fmadd_ps(_vb1, _va0, _sum0);    // sum0 += (a10-a17) * k01
-                _sum1 = _mm256_fmadd_ps(_vb1, _va1, _sum1);    // sum1 += (a10-a17) * k11
-                _sum2 = _mm256_fmadd_ps(_vb1, _va2, _sum2);    // sum2 += (a10-a17) * k21
-                _sum3 = _mm256_fmadd_ps(_vb1, _va3, _sum3);    // sum3 += (a10-a17) * k31
+                _sum0 = _mm256_fmadd_ps(_vb1, _va0, _sum0); // sum0 += (a10-a17) * k01
+                _sum1 = _mm256_fmadd_ps(_vb1, _va1, _sum1); // sum1 += (a10-a17) * k11
+                _sum2 = _mm256_fmadd_ps(_vb1, _va2, _sum2); // sum2 += (a10-a17) * k21
+                _sum3 = _mm256_fmadd_ps(_vb1, _va3, _sum3); // sum3 += (a10-a17) * k31
                 _va0 = _mm256_broadcast_ss(va + 4);
                 _va1 = _mm256_broadcast_ss(va + 5);
                 _va2 = _mm256_broadcast_ss(va + 6);
                 _va3 = _mm256_broadcast_ss(va + 7);
-                _sum4 = _mm256_fmadd_ps(_vb1, _va0, _sum4);    // sum4 += (a10-a17) * k41
-                _sum5 = _mm256_fmadd_ps(_vb1, _va1, _sum5);    // sum5 += (a10-a17) * k51
-                _sum6 = _mm256_fmadd_ps(_vb1, _va2, _sum6);    // sum6 += (a10-a17) * k61
-                _sum7 = _mm256_fmadd_ps(_vb1, _va3, _sum7);    // sum7 += (a10-a17) * k71
+                _sum4 = _mm256_fmadd_ps(_vb1, _va0, _sum4); // sum4 += (a10-a17) * k41
+                _sum5 = _mm256_fmadd_ps(_vb1, _va1, _sum5); // sum5 += (a10-a17) * k51
+                _sum6 = _mm256_fmadd_ps(_vb1, _va2, _sum6); // sum6 += (a10-a17) * k61
+                _sum7 = _mm256_fmadd_ps(_vb1, _va3, _sum7); // sum7 += (a10-a17) * k71
 
                 va += 8;
 
@@ -409,18 +408,18 @@ static void sgemm_fp(int M, int N, int K, float* pA_t, float* pB_t, float* pC, i
                 _va1 = _mm256_broadcast_ss(va + 1);
                 _va2 = _mm256_broadcast_ss(va + 2);
                 _va3 = _mm256_broadcast_ss(va + 3);
-                _sum0 = _mm256_fmadd_ps(_vb2, _va0, _sum0);    // sum0 += (a20-a27) * k02
-                _sum1 = _mm256_fmadd_ps(_vb2, _va1, _sum1);    // sum1 += (a20-a27) * k12
-                _sum2 = _mm256_fmadd_ps(_vb2, _va2, _sum2);    // sum2 += (a20-a27) * k22
-                _sum3 = _mm256_fmadd_ps(_vb2, _va3, _sum3);    // sum3 += (a20-a27) * k32
+                _sum0 = _mm256_fmadd_ps(_vb2, _va0, _sum0); // sum0 += (a20-a27) * k02
+                _sum1 = _mm256_fmadd_ps(_vb2, _va1, _sum1); // sum1 += (a20-a27) * k12
+                _sum2 = _mm256_fmadd_ps(_vb2, _va2, _sum2); // sum2 += (a20-a27) * k22
+                _sum3 = _mm256_fmadd_ps(_vb2, _va3, _sum3); // sum3 += (a20-a27) * k32
                 _va0 = _mm256_broadcast_ss(va + 4);
                 _va1 = _mm256_broadcast_ss(va + 5);
                 _va2 = _mm256_broadcast_ss(va + 6);
                 _va3 = _mm256_broadcast_ss(va + 7);
-                _sum4 = _mm256_fmadd_ps(_vb2, _va0, _sum4);    // sum4 += (a20-a27) * k42
-                _sum5 = _mm256_fmadd_ps(_vb2, _va1, _sum5);    // sum5 += (a20-a27) * k52
-                _sum6 = _mm256_fmadd_ps(_vb2, _va2, _sum6);    // sum6 += (a20-a27) * k62
-                _sum7 = _mm256_fmadd_ps(_vb2, _va3, _sum7);    // sum7 += (a20-a27) * k72
+                _sum4 = _mm256_fmadd_ps(_vb2, _va0, _sum4); // sum4 += (a20-a27) * k42
+                _sum5 = _mm256_fmadd_ps(_vb2, _va1, _sum5); // sum5 += (a20-a27) * k52
+                _sum6 = _mm256_fmadd_ps(_vb2, _va2, _sum6); // sum6 += (a20-a27) * k62
+                _sum7 = _mm256_fmadd_ps(_vb2, _va3, _sum7); // sum7 += (a20-a27) * k72
 
                 va += 8;
 
@@ -429,18 +428,18 @@ static void sgemm_fp(int M, int N, int K, float* pA_t, float* pB_t, float* pC, i
                 _va1 = _mm256_broadcast_ss(va + 1);
                 _va2 = _mm256_broadcast_ss(va + 2);
                 _va3 = _mm256_broadcast_ss(va + 3);
-                _sum0 = _mm256_fmadd_ps(_vb3, _va0, _sum0);    // sum0 += (a30-a37) * k03
-                _sum1 = _mm256_fmadd_ps(_vb3, _va1, _sum1);    // sum1 += (a30-a37) * k13
-                _sum2 = _mm256_fmadd_ps(_vb3, _va2, _sum2);    // sum2 += (a30-a37) * k23
-                _sum3 = _mm256_fmadd_ps(_vb3, _va3, _sum3);    // sum3 += (a30-a37) * k33
+                _sum0 = _mm256_fmadd_ps(_vb3, _va0, _sum0); // sum0 += (a30-a37) * k03
+                _sum1 = _mm256_fmadd_ps(_vb3, _va1, _sum1); // sum1 += (a30-a37) * k13
+                _sum2 = _mm256_fmadd_ps(_vb3, _va2, _sum2); // sum2 += (a30-a37) * k23
+                _sum3 = _mm256_fmadd_ps(_vb3, _va3, _sum3); // sum3 += (a30-a37) * k33
                 _va0 = _mm256_broadcast_ss(va + 4);
                 _va1 = _mm256_broadcast_ss(va + 5);
                 _va2 = _mm256_broadcast_ss(va + 6);
                 _va3 = _mm256_broadcast_ss(va + 7);
-                _sum4 = _mm256_fmadd_ps(_vb3, _va0, _sum4);    // sum4 += (a30-a37) * k43
-                _sum5 = _mm256_fmadd_ps(_vb3, _va1, _sum5);    // sum5 += (a30-a37) * k53
-                _sum6 = _mm256_fmadd_ps(_vb3, _va2, _sum6);    // sum6 += (a30-a37) * k63
-                _sum7 = _mm256_fmadd_ps(_vb3, _va3, _sum7);    // sum7 += (a30-a37) * k73
+                _sum4 = _mm256_fmadd_ps(_vb3, _va0, _sum4); // sum4 += (a30-a37) * k43
+                _sum5 = _mm256_fmadd_ps(_vb3, _va1, _sum5); // sum5 += (a30-a37) * k53
+                _sum6 = _mm256_fmadd_ps(_vb3, _va2, _sum6); // sum6 += (a30-a37) * k63
+                _sum7 = _mm256_fmadd_ps(_vb3, _va3, _sum7); // sum7 += (a30-a37) * k73
 
                 va += 8;
                 vb += 32;
@@ -458,14 +457,14 @@ static void sgemm_fp(int M, int N, int K, float* pA_t, float* pB_t, float* pC, i
                 __m256 _va6 = _mm256_broadcast_ss(va + 6);
                 __m256 _va7 = _mm256_broadcast_ss(va + 7);
                 __m256 _vb0 = _mm256_loadu_ps(vb);
-                _sum0 = _mm256_fmadd_ps(_vb0, _va0, _sum0);    // sum0 = (a00-a07) * k00
-                _sum1 = _mm256_fmadd_ps(_vb0, _va1, _sum1);    // sum1 = (a00-a07) * k10
-                _sum2 = _mm256_fmadd_ps(_vb0, _va2, _sum2);    // sum2 = (a00-a07) * k20
-                _sum3 = _mm256_fmadd_ps(_vb0, _va3, _sum3);    // sum3 = (a00-a07) * k30
-                _sum4 = _mm256_fmadd_ps(_vb0, _va4, _sum4);    // sum4 = (a00-a07) * k40
-                _sum5 = _mm256_fmadd_ps(_vb0, _va5, _sum5);    // sum5 = (a00-a07) * k50
-                _sum6 = _mm256_fmadd_ps(_vb0, _va6, _sum6);    // sum6 = (a00-a07) * k60
-                _sum7 = _mm256_fmadd_ps(_vb0, _va7, _sum7);    // sum7 = (a00-a07) * k70
+                _sum0 = _mm256_fmadd_ps(_vb0, _va0, _sum0); // sum0 = (a00-a07) * k00
+                _sum1 = _mm256_fmadd_ps(_vb0, _va1, _sum1); // sum1 = (a00-a07) * k10
+                _sum2 = _mm256_fmadd_ps(_vb0, _va2, _sum2); // sum2 = (a00-a07) * k20
+                _sum3 = _mm256_fmadd_ps(_vb0, _va3, _sum3); // sum3 = (a00-a07) * k30
+                _sum4 = _mm256_fmadd_ps(_vb0, _va4, _sum4); // sum4 = (a00-a07) * k40
+                _sum5 = _mm256_fmadd_ps(_vb0, _va5, _sum5); // sum5 = (a00-a07) * k50
+                _sum6 = _mm256_fmadd_ps(_vb0, _va6, _sum6); // sum6 = (a00-a07) * k60
+                _sum7 = _mm256_fmadd_ps(_vb0, _va7, _sum7); // sum7 = (a00-a07) * k70
 
                 va += 8;
                 vb += 8;
@@ -518,7 +517,7 @@ static void sgemm_fp(int M, int N, int K, float* pA_t, float* pB_t, float* pC, i
                 output6[n] = sum6[n];
                 output7[n] = sum7[n];
             }
-#endif    // __AVX__
+#endif // __AVX__
             output0 += 8;
             output1 += 8;
             output2 += 8;
@@ -553,10 +552,10 @@ static void sgemm_fp(int M, int N, int K, float* pA_t, float* pB_t, float* pC, i
                 __m256 _va2 = _mm256_loadu_ps(va + 16);
                 __m256 _va3 = _mm256_loadu_ps(va + 24);
 
-                _sum0 = _mm256_fmadd_ps(_va0, _vb0, _sum0);    // sum0 += (k00-k70) * a00
-                _sum1 = _mm256_fmadd_ps(_va1, _vb1, _sum1);    // sum1 += (k01-k71) * a10
-                _sum2 = _mm256_fmadd_ps(_va2, _vb2, _sum2);    // sum2 += (k02-k72) * a20
-                _sum3 = _mm256_fmadd_ps(_va3, _vb3, _sum3);    // sum3 += (k03-k73) * a30
+                _sum0 = _mm256_fmadd_ps(_va0, _vb0, _sum0); // sum0 += (k00-k70) * a00
+                _sum1 = _mm256_fmadd_ps(_va1, _vb1, _sum1); // sum1 += (k01-k71) * a10
+                _sum2 = _mm256_fmadd_ps(_va2, _vb2, _sum2); // sum2 += (k02-k72) * a20
+                _sum3 = _mm256_fmadd_ps(_va3, _vb3, _sum3); // sum3 += (k03-k73) * a30
 
                 va += 32;
                 vb += 4;
@@ -572,7 +571,7 @@ static void sgemm_fp(int M, int N, int K, float* pA_t, float* pB_t, float* pC, i
                 __m256 _vb0 = _mm256_broadcast_ss(vb);
                 __m256 _va = _mm256_loadu_ps(va);
 
-                _sum0_7 = _mm256_fmadd_ps(_va, _vb0, _sum0_7);    // sum0 += (k00-k70) * a00
+                _sum0_7 = _mm256_fmadd_ps(_va, _vb0, _sum0_7); // sum0 += (k00-k70) * a00
 
                 va += 8;
                 vb += 1;
@@ -621,7 +620,7 @@ static void sgemm_fp(int M, int N, int K, float* pA_t, float* pB_t, float* pC, i
             output5[0] = sum5;
             output6[0] = sum6;
             output7[0] = sum7;
-#endif    // __AVX__
+#endif // __AVX__
             output0++;
             output1++;
             output2++;
@@ -639,7 +638,7 @@ static void sgemm_fp(int M, int N, int K, float* pA_t, float* pB_t, float* pC, i
     {
         int i = remain_outch_start + pp * 4;
 
-        float* output0 = pC + ( i )*N;
+        float* output0 = pC + (i)*N;
         float* output1 = pC + (i + 1) * N;
         float* output2 = pC + (i + 2) * N;
         float* output3 = pC + (i + 3) * N;
@@ -667,10 +666,10 @@ static void sgemm_fp(int M, int N, int K, float* pA_t, float* pB_t, float* pC, i
                 __m256 _vb1 = _mm256_loadu_ps(vb + 8);
                 __m256 _vb2 = _mm256_loadu_ps(vb + 16);
                 __m256 _vb3 = _mm256_loadu_ps(vb + 24);
-                _sum0 = _mm256_fmadd_ps(_vb0, _va0, _sum0);    // sum0 = (a00-a07) * k00
-                _sum1 = _mm256_fmadd_ps(_vb0, _va1, _sum1);    // sum1 = (a00-a07) * k10
-                _sum2 = _mm256_fmadd_ps(_vb0, _va2, _sum2);    // sum2 = (a00-a07) * k20
-                _sum3 = _mm256_fmadd_ps(_vb0, _va3, _sum3);    // sum3 = (a00-a07) * k30
+                _sum0 = _mm256_fmadd_ps(_vb0, _va0, _sum0); // sum0 = (a00-a07) * k00
+                _sum1 = _mm256_fmadd_ps(_vb0, _va1, _sum1); // sum1 = (a00-a07) * k10
+                _sum2 = _mm256_fmadd_ps(_vb0, _va2, _sum2); // sum2 = (a00-a07) * k20
+                _sum3 = _mm256_fmadd_ps(_vb0, _va3, _sum3); // sum3 = (a00-a07) * k30
 
                 va += 4;
 
@@ -679,10 +678,10 @@ static void sgemm_fp(int M, int N, int K, float* pA_t, float* pB_t, float* pC, i
                 _va1 = _mm256_broadcast_ss(va + 1);
                 _va2 = _mm256_broadcast_ss(va + 2);
                 _va3 = _mm256_broadcast_ss(va + 3);
-                _sum0 = _mm256_fmadd_ps(_vb1, _va0, _sum0);    // sum0 += (a10-a17) * k01
-                _sum1 = _mm256_fmadd_ps(_vb1, _va1, _sum1);    // sum1 += (a10-a17) * k11
-                _sum2 = _mm256_fmadd_ps(_vb1, _va2, _sum2);    // sum2 += (a10-a17) * k21
-                _sum3 = _mm256_fmadd_ps(_vb1, _va3, _sum3);    // sum3 += (a10-a17) * k31
+                _sum0 = _mm256_fmadd_ps(_vb1, _va0, _sum0); // sum0 += (a10-a17) * k01
+                _sum1 = _mm256_fmadd_ps(_vb1, _va1, _sum1); // sum1 += (a10-a17) * k11
+                _sum2 = _mm256_fmadd_ps(_vb1, _va2, _sum2); // sum2 += (a10-a17) * k21
+                _sum3 = _mm256_fmadd_ps(_vb1, _va3, _sum3); // sum3 += (a10-a17) * k31
 
                 va += 4;
 
@@ -691,10 +690,10 @@ static void sgemm_fp(int M, int N, int K, float* pA_t, float* pB_t, float* pC, i
                 _va1 = _mm256_broadcast_ss(va + 1);
                 _va2 = _mm256_broadcast_ss(va + 2);
                 _va3 = _mm256_broadcast_ss(va + 3);
-                _sum0 = _mm256_fmadd_ps(_vb2, _va0, _sum0);    // sum0 += (a20-a27) * k02
-                _sum1 = _mm256_fmadd_ps(_vb2, _va1, _sum1);    // sum1 += (a20-a27) * k12
-                _sum2 = _mm256_fmadd_ps(_vb2, _va2, _sum2);    // sum2 += (a20-a27) * k22
-                _sum3 = _mm256_fmadd_ps(_vb2, _va3, _sum3);    // sum3 += (a20-a27) * k32
+                _sum0 = _mm256_fmadd_ps(_vb2, _va0, _sum0); // sum0 += (a20-a27) * k02
+                _sum1 = _mm256_fmadd_ps(_vb2, _va1, _sum1); // sum1 += (a20-a27) * k12
+                _sum2 = _mm256_fmadd_ps(_vb2, _va2, _sum2); // sum2 += (a20-a27) * k22
+                _sum3 = _mm256_fmadd_ps(_vb2, _va3, _sum3); // sum3 += (a20-a27) * k32
 
                 va += 4;
 
@@ -703,10 +702,10 @@ static void sgemm_fp(int M, int N, int K, float* pA_t, float* pB_t, float* pC, i
                 _va1 = _mm256_broadcast_ss(va + 1);
                 _va2 = _mm256_broadcast_ss(va + 2);
                 _va3 = _mm256_broadcast_ss(va + 3);
-                _sum0 = _mm256_fmadd_ps(_vb3, _va0, _sum0);    // sum0 += (a30-a37) * k03
-                _sum1 = _mm256_fmadd_ps(_vb3, _va1, _sum1);    // sum1 += (a30-a37) * k13
-                _sum2 = _mm256_fmadd_ps(_vb3, _va2, _sum2);    // sum2 += (a30-a37) * k23
-                _sum3 = _mm256_fmadd_ps(_vb3, _va3, _sum3);    // sum3 += (a30-a37) * k33
+                _sum0 = _mm256_fmadd_ps(_vb3, _va0, _sum0); // sum0 += (a30-a37) * k03
+                _sum1 = _mm256_fmadd_ps(_vb3, _va1, _sum1); // sum1 += (a30-a37) * k13
+                _sum2 = _mm256_fmadd_ps(_vb3, _va2, _sum2); // sum2 += (a30-a37) * k23
+                _sum3 = _mm256_fmadd_ps(_vb3, _va3, _sum3); // sum3 += (a30-a37) * k33
 
                 va += 4;
                 vb += 32;
@@ -720,10 +719,10 @@ static void sgemm_fp(int M, int N, int K, float* pA_t, float* pB_t, float* pC, i
                 __m256 _va2 = _mm256_broadcast_ss(va + 2);
                 __m256 _va3 = _mm256_broadcast_ss(va + 3);
                 __m256 _vb0 = _mm256_loadu_ps(vb);
-                _sum0 = _mm256_fmadd_ps(_vb0, _va0, _sum0);    // sum0 = (a00-a07) * k00
-                _sum1 = _mm256_fmadd_ps(_vb0, _va1, _sum1);    // sum1 = (a00-a07) * k10
-                _sum2 = _mm256_fmadd_ps(_vb0, _va2, _sum2);    // sum2 = (a00-a07) * k20
-                _sum3 = _mm256_fmadd_ps(_vb0, _va3, _sum3);    // sum3 = (a00-a07) * k30
+                _sum0 = _mm256_fmadd_ps(_vb0, _va0, _sum0); // sum0 = (a00-a07) * k00
+                _sum1 = _mm256_fmadd_ps(_vb0, _va1, _sum1); // sum1 = (a00-a07) * k10
+                _sum2 = _mm256_fmadd_ps(_vb0, _va2, _sum2); // sum2 = (a00-a07) * k20
+                _sum3 = _mm256_fmadd_ps(_vb0, _va3, _sum3); // sum3 = (a00-a07) * k30
 
                 va += 4;
                 vb += 8;
@@ -760,7 +759,7 @@ static void sgemm_fp(int M, int N, int K, float* pA_t, float* pB_t, float* pC, i
                 output2[n] = sum2[n];
                 output3[n] = sum3[n];
             }
-#endif    // __AVX__
+#endif // __AVX__
             output0 += 8;
             output1 += 8;
             output2 += 8;
@@ -790,10 +789,10 @@ static void sgemm_fp(int M, int N, int K, float* pA_t, float* pB_t, float* pC, i
                 __m128 _va2 = _mm_loadu_ps(va + 8);
                 __m128 _va3 = _mm_loadu_ps(va + 12);
 
-                _sum0 = _mm_fmadd_ps(_va0, _vb0, _sum0);    // sum0 += (k00-k30) * a00
-                _sum1 = _mm_fmadd_ps(_va1, _vb1, _sum1);    // sum1 += (k01-k31) * a10
-                _sum2 = _mm_fmadd_ps(_va2, _vb2, _sum2);    // sum2 += (k02-k32) * a20
-                _sum3 = _mm_fmadd_ps(_va3, _vb3, _sum3);    // sum3 += (k03-k33) * a30
+                _sum0 = _mm_fmadd_ps(_va0, _vb0, _sum0); // sum0 += (k00-k30) * a00
+                _sum1 = _mm_fmadd_ps(_va1, _vb1, _sum1); // sum1 += (k01-k31) * a10
+                _sum2 = _mm_fmadd_ps(_va2, _vb2, _sum2); // sum2 += (k02-k32) * a20
+                _sum3 = _mm_fmadd_ps(_va3, _vb3, _sum3); // sum3 += (k03-k33) * a30
 
                 va += 16;
                 vb += 4;
@@ -809,7 +808,7 @@ static void sgemm_fp(int M, int N, int K, float* pA_t, float* pB_t, float* pC, i
                 __m128 _vb0 = _mm_set1_ps(vb[0]);
                 __m128 _va = _mm_loadu_ps(va);
 
-                _sum0_3 = _mm_fmadd_ps(_va, _vb0, _sum0_3);    // sum0 += (k00-k30) * a00
+                _sum0_3 = _mm_fmadd_ps(_va, _vb0, _sum0_3); // sum0 += (k00-k30) * a00
 
                 va += 4;
                 vb += 1;
@@ -841,7 +840,7 @@ static void sgemm_fp(int M, int N, int K, float* pA_t, float* pB_t, float* pC, i
             output1[0] = sum1;
             output2[0] = sum2;
             output3[0] = sum3;
-#endif    // __AVX__
+#endif // __AVX__
             output0++;
             output1++;
             output2++;
@@ -877,10 +876,10 @@ static void sgemm_fp(int M, int N, int K, float* pA_t, float* pB_t, float* pC, i
                 __m256 _vb2 = _mm256_loadu_ps(vb + 16);
                 __m256 _vb3 = _mm256_loadu_ps(vb + 24);
 
-                _sum0 = _mm256_fmadd_ps(_vb0, _va0, _sum0);    // sum0 = (a00-a07) * k00
-                _sum0 = _mm256_fmadd_ps(_vb1, _va1, _sum0);    // sum0 += (a10-a17) * k01
-                _sum0 = _mm256_fmadd_ps(_vb2, _va2, _sum0);    // sum0 += (a20-a27) * k02
-                _sum0 = _mm256_fmadd_ps(_vb3, _va3, _sum0);    // sum0 += (a30-a37) * k03
+                _sum0 = _mm256_fmadd_ps(_vb0, _va0, _sum0); // sum0 = (a00-a07) * k00
+                _sum0 = _mm256_fmadd_ps(_vb1, _va1, _sum0); // sum0 += (a10-a17) * k01
+                _sum0 = _mm256_fmadd_ps(_vb2, _va2, _sum0); // sum0 += (a20-a27) * k02
+                _sum0 = _mm256_fmadd_ps(_vb3, _va3, _sum0); // sum0 += (a30-a37) * k03
 
                 va += 4;
                 vb += 32;
@@ -892,7 +891,7 @@ static void sgemm_fp(int M, int N, int K, float* pA_t, float* pB_t, float* pC, i
                 __m256 _va0 = _mm256_broadcast_ss(va);
                 __m256 _vb0 = _mm256_loadu_ps(vb);
 
-                _sum0 = _mm256_fmadd_ps(_vb0, _va0, _sum0);    // sum0 = (a00-a07) * k00
+                _sum0 = _mm256_fmadd_ps(_vb0, _va0, _sum0); // sum0 = (a00-a07) * k00
 
                 va += 1;
                 vb += 8;
@@ -917,7 +916,7 @@ static void sgemm_fp(int M, int N, int K, float* pA_t, float* pB_t, float* pC, i
             {
                 output[n] = sum[n];
             }
-#endif    // __AVX__
+#endif // __AVX__
             output += 8;
         }
 
@@ -946,7 +945,7 @@ static void sgemm_fp(int M, int N, int K, float* pA_t, float* pB_t, float* pC, i
 #endif
 #else
             float sum0 = 0.f;
-#endif    // __AVX__
+#endif // __AVX__
             for (; k < K; k++)
             {
                 sum0 += va[0] * vb[0];
@@ -1019,7 +1018,7 @@ static void sgemm_i8(int M, int N, int K, int8_t* pA_t, int8_t* pB_t, int32_t* p
     {
         int i = pp * 8;
 
-        int32_t* output0 = pC + ( i )*N;
+        int32_t* output0 = pC + (i)*N;
         int32_t* output1 = pC + (i + 1) * N;
         int32_t* output2 = pC + (i + 2) * N;
         int32_t* output3 = pC + (i + 3) * N;
@@ -1327,7 +1326,7 @@ static void sgemm_i8(int M, int N, int K, int8_t* pA_t, int8_t* pB_t, int32_t* p
     {
         int i = remain_outch_start + pp * 4;
 
-        int32_t* output0 = pC + ( i )*N;
+        int32_t* output0 = pC + (i)*N;
         int32_t* output1 = pC + (i + 1) * N;
         int32_t* output2 = pC + (i + 2) * N;
         int32_t* output3 = pC + (i + 3) * N;
@@ -1641,13 +1640,13 @@ static void sgemm_fp32(struct tensor* input, struct tensor* filter, struct tenso
     int out_w = output->dims[3];
     int out_image_size = output->dims[1] * output->dims[2] * output->dims[3];
 
-    float* interleave_fp32 = ( float* )priv_info->interleave_buffer_pack4 + outchan_g * group * kernel_size;
-    float* im2col_pack4_fp32 = priv_info->im2col_buffer_pack4;
-    float* output_fp32 = ( float* )output->data + n * out_image_size + outchan_g * group * out_h * out_w;
+    float* interleave_fp32 = (float*)priv_info->interleave_buffer_pack4 + outchan_g * group * kernel_size;
+    float* im2col_pack4_fp32 = (float*)priv_info->im2col_buffer_pack4;
+    float* output_fp32 = (float*)output->data + n * out_image_size + outchan_g * group * out_h * out_w;
     float* bias_fp32 = NULL;
 
     if (bias)
-        bias_fp32 = ( float* )bias->data + outchan_g * group;
+        bias_fp32 = (float*)bias->data + outchan_g * group;
 
     float* filter_sgemm = interleave_fp32;
     float* input_sgemm_pack4 = im2col_pack4_fp32;
@@ -1712,15 +1711,15 @@ static void sgemm_uint8(struct tensor* input, struct tensor* filter, struct tens
     int out_w = output->dims[3];
     int out_image_size = output->dims[1] * output->dims[2] * output->dims[3];
 
-    float* interleave_fp32 = ( float* )priv_info->interleave_buffer_pack4 + outchan_g * group * kernel_size;
-    float* im2col_pack4_fp32 = priv_info->im2col_buffer_pack4;
-    uint8_t * output_uint8 = ( uint8_t* )output->data + n * out_image_size + outchan_g * group * out_h * out_w;
+    float* interleave_fp32 = (float*)priv_info->interleave_buffer_pack4 + outchan_g * group * kernel_size;
+    float* im2col_pack4_fp32 = (float*)priv_info->im2col_buffer_pack4;
+    uint8_t* output_uint8 = (uint8_t*)output->data + n * out_image_size + outchan_g * group * out_h * out_w;
     int* bias_int32 = NULL;
     float bias_scale = 0.f;
 
     if (bias)
     {
-        bias_int32 = ( int* )bias->data + outchan_g * group;
+        bias_int32 = (int*)bias->data + outchan_g * group;
         bias_scale = input->scale * filter->scale;
     }
 
@@ -1738,7 +1737,7 @@ static void sgemm_uint8(struct tensor* input, struct tensor* filter, struct tens
             for (int j = 0; j < out_h * out_w; j++)
             {
                 int output_off = i * (out_h * out_w) + j;
-                output_sgemm[output_off] += (float )bias_int32[i] * bias_scale;
+                output_sgemm[output_off] += (float)bias_int32[i] * bias_scale;
             }
         }
     }
@@ -1782,7 +1781,7 @@ static void sgemm_uint8(struct tensor* input, struct tensor* filter, struct tens
         {
             int output_off = i * (out_h * out_w) + j;
 
-            int udata = ( int )(round(output_sgemm[output_off] / output->scale) + output->zero_point);
+            int udata = (int)(round(output_sgemm[output_off] / output->scale) + output->zero_point);
             if (udata > 255)
                 udata = 255;
             else if (udata < 0)
@@ -1795,8 +1794,8 @@ static void sgemm_uint8(struct tensor* input, struct tensor* filter, struct tens
 }
 
 static void sgemm_int8(struct tensor* input, struct tensor* filter, struct tensor* bias,
-                        struct tensor* output, struct conv_priv_info* priv_info, struct conv_param* param, int n,
-                        int group, int num_thread)
+                       struct tensor* output, struct conv_priv_info* priv_info, struct conv_param* param, int n,
+                       int group, int num_thread)
 {
     int kernel_size = param->kernel_h * param->kernel_w * param->input_channel / param->group;
     int outchan_g = param->output_channel / param->group;
@@ -1805,13 +1804,13 @@ static void sgemm_int8(struct tensor* input, struct tensor* filter, struct tenso
     int out_w = output->dims[3];
     int out_image_size = output->dims[1] * output->dims[2] * output->dims[3];
 
-    int8_t* interleave_int8 = ( int8_t* )priv_info->interleave_buffer_pack4 + outchan_g * group * kernel_size;
-    int8_t* im2col_pack4_int8 = priv_info->im2col_buffer_pack4;
-    int8_t * output_int8 = ( int8_t* )output->data + n * out_image_size + outchan_g * group * out_h * out_w;
-    int32_t * bias_int32 = NULL;
+    int8_t* interleave_int8 = (int8_t*)priv_info->interleave_buffer_pack4 + outchan_g * group * kernel_size;
+    int8_t* im2col_pack4_int8 = (int8_t*)priv_info->im2col_buffer_pack4;
+    int8_t* output_int8 = (int8_t*)output->data + n * out_image_size + outchan_g * group * out_h * out_w;
+    int32_t* bias_int32 = NULL;
 
     if (bias)
-        bias_int32 = ( int* )bias->data + outchan_g * group;
+        bias_int32 = (int*)bias->data + outchan_g * group;
 
     float input_scale = input->scale;
     float* kernel_scales = filter->scale_list;
@@ -1832,9 +1831,9 @@ static void sgemm_int8(struct tensor* input, struct tensor* filter, struct tenso
         {
             int output_off = i * (out_h * out_w) + j;
             if (bias)
-                output_sgemm_fp32[output_off] = (float )(output_sgemm_int32[output_off] + bias_int32[i]) * input_scale * kernel_scales[i];
+                output_sgemm_fp32[output_off] = (float)(output_sgemm_int32[output_off] + bias_int32[i]) * input_scale * kernel_scales[i];
             else
-                output_sgemm_fp32[output_off] = (float )output_sgemm_int32[output_off] * input_scale * kernel_scales[i];
+                output_sgemm_fp32[output_off] = (float)output_sgemm_int32[output_off] * input_scale * kernel_scales[i];
         }
     }
 
@@ -1880,7 +1879,7 @@ static void sgemm_int8(struct tensor* input, struct tensor* filter, struct tenso
         {
             int output_off = i * (out_h * out_w) + j;
 
-            int32_t data_i32 = ( int32_t )(round(output_sgemm_fp32[output_off] / output_scale));
+            int32_t data_i32 = (int32_t)(round(output_sgemm_fp32[output_off] / output_scale));
             if (data_i32 > 127)
                 data_i32 = 127;
             else if (data_i32 < -127)
@@ -1909,8 +1908,7 @@ static int winograd_support(struct conv_param* param, int in_h, int in_w)
     if (in_h <= 10 && in_w <= 10)
         return 0;
 
-    if (group != 1 || kernel_h != 3 || kernel_w != 3 || stride_h != 1 || stride_w != 1 || dilation_h != 1 ||
-        dilation_w != 1 || input_chan < 16 || output_chan < 16 || output_chan % 16)
+    if (group != 1 || kernel_h != 3 || kernel_w != 3 || stride_h != 1 || stride_w != 1 || dilation_h != 1 || dilation_w != 1 || input_chan < 16 || output_chan < 16 || output_chan % 16)
         return 0;
 
     return 1;
@@ -1958,8 +1956,8 @@ int conv_hcl_get_interleave_pack4_size(int M, int K, struct tensor* filter)
 
 void conv_hcl_interleave_pack4_fp32(int M, int K, struct conv_priv_info* priv_info)
 {
-    float* pA = ( float* )priv_info->interleave_buffer;
-    float* pA_t = ( float* )priv_info->interleave_buffer_pack4;
+    float* pA = (float*)priv_info->interleave_buffer;
+    float* pA_t = (float*)priv_info->interleave_buffer_pack4;
 
     int nn_outch = M >> 3;
     int remain_outch_start = nn_outch << 3;
@@ -2048,8 +2046,8 @@ void conv_hcl_interleave_pack4_fp32(int M, int K, struct conv_priv_info* priv_in
 
 void conv_hcl_interleave_pack4_int8(int M, int K, struct conv_priv_info* priv_info)
 {
-    int8_t* pA = ( int8_t * )priv_info->interleave_buffer;
-    int8_t* pA_t = ( int8_t* )priv_info->interleave_buffer_pack4;
+    int8_t* pA = (int8_t*)priv_info->interleave_buffer;
+    int8_t* pA_t = (int8_t*)priv_info->interleave_buffer_pack4;
 
     int nn_outch = M >> 3;
     int remain_outch_start = nn_outch << 3;
@@ -2217,8 +2215,7 @@ int conv_hcl_postrun(struct conv_priv_info* priv_info)
         return wino_conv_hcl_postrun(priv_info);
     }
 
-    if (priv_info->external_interleave_pack4_mem && !priv_info->external_interleave_mem &&
-        priv_info->interleave_buffer != NULL)
+    if (priv_info->external_interleave_pack4_mem && !priv_info->external_interleave_mem && priv_info->interleave_buffer != NULL)
     {
         sys_free(priv_info->interleave_buffer_pack4);
         priv_info->interleave_buffer_pack4 = NULL;
@@ -2256,7 +2253,7 @@ int conv_hcl_run(struct tensor* input_tensor, struct tensor* filter_tensor, stru
                                  cpu_affinity);
     }
 
-    for (int i = 0; i < input_tensor->dims[0]; i++)    // batch size
+    for (int i = 0; i < input_tensor->dims[0]; i++) // batch size
     {
         for (int j = 0; j < group; j++)
         {
@@ -2270,9 +2267,9 @@ int conv_hcl_run(struct tensor* input_tensor, struct tensor* filter_tensor, stru
             if (priv_info->external_interleave_pack4_mem)
             {
                 if (type == TENGINE_DT_FP32 || type == TENGINE_DT_UINT8)
-                    input_pack4_fp32(K, N, im2col_buffer, priv_info->im2col_buffer_pack4, num_thread);
+                    input_pack4_fp32(K, N, (float*)im2col_buffer, (float*)priv_info->im2col_buffer_pack4, num_thread);
                 else
-                    input_pack4_int8(K, N, im2col_buffer, priv_info->im2col_buffer_pack4, num_thread);
+                    input_pack4_int8(K, N, (int8_t*)im2col_buffer, (int8_t*)priv_info->im2col_buffer_pack4, num_thread);
             }
             else
             {

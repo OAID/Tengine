@@ -24,14 +24,12 @@
 
 #pragma once
 
-extern "C"
-{
+extern "C" {
 #include "graph/tensor.h"
 #include "graph/node.h"
 #include "graph/graph.h"
 #include "graph/subgraph.h"
 #include "device/device.h"
-
 
 int acl_dev_init(struct device* dev);
 int acl_dev_prerun(struct device* dev, struct subgraph* subgraph, void* options);

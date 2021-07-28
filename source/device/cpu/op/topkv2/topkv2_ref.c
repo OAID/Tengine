@@ -37,7 +37,6 @@
 #include <math.h>
 #include <string.h>
 
-
 struct topkv2_param_ref
 {
     int k;
@@ -108,7 +107,7 @@ static int ref_topkv2_fp32(float* in_data, float* out_data, int* out_index, stru
 
     int row_size = param->row_size;
     int num_rows = param->num_rows;
-    int* index = ( int* )sys_malloc(row_size * sizeof(int));
+    int* index = (int*)sys_malloc(row_size * sizeof(int));
 
     for (int i = 0; i < num_rows; ++i)
     {
@@ -128,8 +127,8 @@ static int ref_topkv2_fp32(float* in_data, float* out_data, int* out_index, stru
 static int ref_topkv2_uint8(struct tensor* input_tensor, struct tensor* output_tensor, int* out_index, struct topkv2_param_ref* param)
 {
     /* dequant */
-    uint8_t* input_uint8 = input_tensor->data;
-    uint8_t* output_uint8 = output_tensor->data;
+    uint8_t* input_uint8 = (uint8_t*)input_tensor->data;
+    uint8_t* output_uint8 = (uint8_t*)output_tensor->data;
     float input_scale = input_tensor->scale;
     float output_scale = output_tensor->scale;
     int32_t input_zero = input_tensor->zero_point;
@@ -137,18 +136,18 @@ static int ref_topkv2_uint8(struct tensor* input_tensor, struct tensor* output_t
     int input_size = input_tensor->elem_num;
     int output_size = output_tensor->elem_num;
 
-    float* in_data = ( float* )sys_malloc(input_size * sizeof(float));
-    float* out_data = ( float* )sys_malloc(output_size * sizeof(float));
+    float* in_data = (float*)sys_malloc(input_size * sizeof(float));
+    float* out_data = (float*)sys_malloc(output_size * sizeof(float));
 
     for (int i = 0; i < input_size; i++)
     {
-        in_data[i] = (( float )input_uint8[i] - ( float )input_zero) * input_scale;
+        in_data[i] = ((float)input_uint8[i] - (float)input_zero) * input_scale;
     }
 
     int k = param->k;
     int row_size = param->row_size;
     int num_rows = param->num_rows;
-    int* index = ( int* )sys_malloc(row_size * sizeof(int));
+    int* index = (int*)sys_malloc(row_size * sizeof(int));
 
     for (int i = 0; i < num_rows; ++i)
     {
@@ -162,7 +161,7 @@ static int ref_topkv2_uint8(struct tensor* input_tensor, struct tensor* output_t
         memcpy(&out_index[i * k], index, k * sizeof(float));
         sys_free(index);
     }
-    
+
     /* quant */
     for (int i = 0; i < output_size; i++)
     {
@@ -199,10 +198,10 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 {
     struct node* ir_node = exec_node->ir_node;
     struct graph* ir_graph = ir_node->graph;
-    struct topkv2_param* _param = ( struct topkv2_param* )(ir_node->op.param_mem);
+    struct topkv2_param* _param = (struct topkv2_param*)(ir_node->op.param_mem);
     struct tensor* input_tensor;
     int out_nums = ir_node->output_num;
-    struct topkv2_priv_info* topkv2_priv_info = ( struct topkv2_priv_info* )exec_node->ops_priv;
+    struct topkv2_priv_info* topkv2_priv_info = (struct topkv2_priv_info*)exec_node->ops_priv;
     input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
     struct tensor* output_tensor_1 = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[1]);
@@ -216,13 +215,13 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     op_param.k = _param->k;
     op_param.row_size = input_tensor->dims[dims_len - 1];
     op_param.num_rows = num_rows;
-    float* input = ( float* )input_tensor->data;
-    
+    float* input = (float*)input_tensor->data;
+
     int ret = -1;
     if (input_tensor->data_type == TENGINE_DT_FP32)
-        ret = ref_topkv2_fp32(input, ( float* )output_tensor->data, ( int* )output_tensor_1->data, &op_param);
-    else if(input_tensor->data_type == TENGINE_DT_UINT8)
-        ret = ref_topkv2_uint8(input_tensor, output_tensor, ( int* )output_tensor_1->data, &op_param);
+        ret = ref_topkv2_fp32(input, (float*)output_tensor->data, (int*)output_tensor_1->data, &op_param);
+    else if (input_tensor->data_type == TENGINE_DT_UINT8)
+        ret = ref_topkv2_uint8(input_tensor, output_tensor, (int*)output_tensor_1->data, &op_param);
 
     return ret;
 }

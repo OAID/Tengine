@@ -34,7 +34,6 @@
 #include "device/cpu/cpu_graph.h"
 #include "device/cpu/cpu_module.h"
 
-
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     return 0;
@@ -54,7 +53,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
     input_tensor0 = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    struct eltwise_param* eltwise_param = ( struct eltwise_param* )ir_node->op.param_mem;
+    struct eltwise_param* eltwise_param = (struct eltwise_param*)ir_node->op.param_mem;
 
     struct tensor* input_tensor1 = NULL;
     if (ir_node->input_num > 1)
@@ -79,7 +78,7 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
 
     input_tensor_0 = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     input_tensor_1 = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
-    struct eltwise_param* eltwise_param = ( struct eltwise_param* )ir_node->op.param_mem;
+    struct eltwise_param* eltwise_param = (struct eltwise_param*)ir_node->op.param_mem;
 
     if (input_tensor_0->data_type != TENGINE_DT_FP32 || ir_graph->graph_layout != TENGINE_LAYOUT_NCHW)
         return 0;

@@ -30,7 +30,6 @@
 #include "module/module.h"
 #include "utility/sys_port.h"
 
-
 static int infer_shape(struct node* node)
 {
     struct graph* ir_graph = node->graph;
@@ -40,10 +39,9 @@ static int infer_shape(struct node* node)
     return set_ir_tensor_shape(output, input->dims, input->dim_num);
 }
 
-
 static int init_op(struct op* op)
 {
-    batchnorm_param_t* batchnorm_param = ( batchnorm_param_t* )sys_malloc(sizeof(batchnorm_param_t));
+    batchnorm_param_t* batchnorm_param = (batchnorm_param_t*)sys_malloc(sizeof(batchnorm_param_t));
 
     if (batchnorm_param == NULL)
     {
@@ -62,12 +60,10 @@ static int init_op(struct op* op)
     return 0;
 }
 
-
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
-
 
 int register_batchnorm_op()
 {
@@ -76,7 +72,6 @@ int register_batchnorm_op()
     m.version = 1;
     m.init = init_op;
     m.release = release_op;
-
 
     return register_op(OP_BATCHNORM, OP_BATCHNORM_NAME, &m);
 }

@@ -36,7 +36,6 @@
 
 #include <math.h>
 
-
 #define T_MAX(a, b) ((a) > (b) ? (a) : (b))
 #define T_MIN(a, b) ((a) < (b) ? (a) : (b))
 
@@ -75,8 +74,7 @@ static void bilinear_resize(float* inp, float* output, int h, int w, int c, floa
             for (int k = 0; k < c; k++)
             {
                 int in_index = in_idx + k * in_hw;
-                output[k * out_hw + out_idx] = inp[in_index] * fx_0 * fy_0 + inp[in_index + w] * fx_0 * fy +
-                                               inp[in_index + 1] * fx * fy_0 + inp[in_index + w + 1] * fx * fy;
+                output[k * out_hw + out_idx] = inp[in_index] * fx_0 * fy_0 + inp[in_index + w] * fx_0 * fy + inp[in_index + 1] * fx * fy_0 + inp[in_index + w + 1] * fx * fy;
             }
         }
     }
@@ -94,10 +92,10 @@ static void nearest_neighbor_resize(float* inp, float* out, int h, int w, int c_
         output = out + k * oh * ow;
         for (int i = 0; i < oh; i++)
         {
-            si = T_MIN(( int )(i * scale_y), h - 1);
+            si = T_MIN((int)(i * scale_y), h - 1);
             for (int j = 0; j < ow; j++)
             {
-                sj = T_MIN(( int )(j * scale_x), w - 1);
+                sj = T_MIN((int)(j * scale_x), w - 1);
                 output[i * ow + j] = input[si * w + sj];
             }
         }
@@ -128,14 +126,14 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
     input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    struct resize_param* resize_param = ( struct resize_param* )ir_node->op.param_mem;
+    struct resize_param* resize_param = (struct resize_param*)ir_node->op.param_mem;
 
     float scale_x = 1.f / resize_param->scale_w;
     float scale_y = 1.f / resize_param->scale_h;
     int in_chw = input_tensor->dims[1] * input_tensor->dims[2] * input_tensor->dims[3];
     int out_chw = output_tensor->dims[1] * output_tensor->dims[2] * output_tensor->dims[3];
-    float* input = ( float* )input_tensor->data;
-    float* output = ( float* )output_tensor->data;
+    float* input = (float*)input_tensor->data;
+    float* output = (float*)output_tensor->data;
 
     if (resize_param->type == 0)
     {

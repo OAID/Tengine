@@ -39,27 +39,25 @@
 #include <stdlib.h>
 #endif
 
-
 void init_memory_block(memory_block_t* memory_block, uint16_t index)
 {
     if (NULL != memory_block)
     {
         memory_block->index = index;
-        memory_block->size  = 0;
+        memory_block->size = 0;
         memory_block->tensor_count = 0;
-        memory_block->tensor_list  = NULL;
+        memory_block->tensor_list = NULL;
         memory_block->tensor_index = 0;
         memory_block->inuse = 0;
     }
 }
-
 
 memory_block_t* find_unused_memory_block(struct vector* memory_blocks)
 {
     int memory_blocks_count = get_vector_num(memory_blocks);
     for (int i = 0; i < memory_blocks_count; i++)
     {
-        memory_block_t* memory_block = get_vector_data(memory_blocks, i);
+        memory_block_t* memory_block = (memory_block_t*)get_vector_data(memory_blocks, i);
         if (0 == memory_block->inuse)
         {
             return memory_block;
@@ -68,7 +66,6 @@ memory_block_t* find_unused_memory_block(struct vector* memory_blocks)
 
     return NULL;
 }
-
 
 memory_block_t* get_usable_memory_block(struct vector* memory_blocks)
 {
@@ -89,13 +86,12 @@ memory_block_t* get_usable_memory_block(struct vector* memory_blocks)
     return memory_block;
 }
 
-
 int mark_memory_block_with_tensor(ir_graph_t* graph, memory_block_t* memory_block, uint16_t index)
 {
     ir_tensor_t* tensor = get_ir_graph_tensor(graph, index);
 
     memory_block->tensor_count += 1;
-    memory_block->tensor_list  = sys_realloc(memory_block->tensor_list, memory_block->tensor_count * sizeof(uint16_t));
+    memory_block->tensor_list = (uint16_t*)sys_realloc(memory_block->tensor_list, memory_block->tensor_count * sizeof(uint16_t));
     memory_block->inuse = 1;
 
     uint32_t tensor_buffer_size = tensor->elem_num * tensor->elem_size;
@@ -107,7 +103,6 @@ int mark_memory_block_with_tensor(ir_graph_t* graph, memory_block_t* memory_bloc
 
     return 0;
 }
-
 
 int estimate_subgraph_memory_blocks(struct subgraph* subgraph, struct vector* memory_blocks)
 {

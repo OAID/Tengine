@@ -69,7 +69,7 @@ static int find_block_list(void* ptr)
 
     for (i = 0; i < n; i++)
     {
-        struct block_stat* block_stat = ( struct block_stat* )get_vector_data(block_list, i);
+        struct block_stat* block_stat = (struct block_stat*)get_vector_data(block_list, i);
 
         if (block_stat->ptr == ptr)
             break;
@@ -178,7 +178,7 @@ void stat_free(void* ptr)
         return;
     }
 
-    struct block_stat* block_stat = ( struct block_stat* )get_vector_data(block_list, idx);
+    struct block_stat* block_stat = (struct block_stat*)get_vector_data(block_list, idx);
 
     mem_stat.free_count++;
     mem_stat.cur_mem_size -= block_stat->size;
@@ -204,7 +204,7 @@ void* stat_realloc(void* ptr, size_t size)
 
     void* new_ptr = realloc(ptr, size);
 
-    struct block_stat* block_stat = ( struct block_stat* )get_vector_data(block_list, idx);
+    struct block_stat* block_stat = (struct block_stat*)get_vector_data(block_list, idx);
 
     if (new_ptr == NULL)
     {

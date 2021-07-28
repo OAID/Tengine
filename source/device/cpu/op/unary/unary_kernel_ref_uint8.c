@@ -38,12 +38,11 @@
 
 #include <math.h>
 
-
 int ref_unary_uint8(struct tensor* input_tensor, struct tensor* output_tensor, struct unary_param* param)
 {
     /* dequant */
-    uint8_t* input_uint8 = input_tensor->data;
-    uint8_t* output_uint8 = output_tensor->data;
+    uint8_t* input_uint8 = (uint8_t*)input_tensor->data;
+    uint8_t* output_uint8 = (uint8_t*)output_tensor->data;
     float input_scale = input_tensor->scale;
     float output_scale = output_tensor->scale;
     int32_t input_zero = input_tensor->zero_point;
@@ -51,12 +50,12 @@ int ref_unary_uint8(struct tensor* input_tensor, struct tensor* output_tensor, s
     int input_size = input_tensor->elem_num;
     int output_size = output_tensor->elem_num;
 
-    float* in_data = ( float* )sys_malloc(input_size * sizeof(float));
-    float* out_data = ( float* )sys_malloc(output_size * sizeof(float));
+    float* in_data = (float*)sys_malloc(input_size * sizeof(float));
+    float* out_data = (float*)sys_malloc(output_size * sizeof(float));
 
     for (int i = 0; i < input_size; i++)
     {
-        in_data[i] = (( float )input_uint8[i] - ( float )input_zero) * input_scale;
+        in_data[i] = ((float)input_uint8[i] - (float)input_zero) * input_scale;
     }
 
     int size = input_tensor->elem_num;
@@ -65,110 +64,110 @@ int ref_unary_uint8(struct tensor* input_tensor, struct tensor* output_tensor, s
 
     switch (type)
     {
-        case 0:
-            for (int i = 0; i < size; i++)
-            {
-                out_data[i] = fabs(in_data[i]);
-            }
-            break;
-        case 1:
-            for (int i = 0; i < size; i++)
-            {
-                out_data[i] = -(in_data[i]);
-            }
-            break;
-        case 2:
-            for (int i = 0; i < size; i++)
-            {
-                out_data[i] = floor(in_data[i]);
-            }
-            break;
-        case 3:
-            for (int i = 0; i < size; i++)
-            {
-                out_data[i] = ceil(in_data[i]);
-            }
-            break;
-        case 4:
-            for (int i = 0; i < size; i++)
-            {
-                out_data[i] = in_data[i] * in_data[i];
-            }
-            break;
-        case 5:
-            for (int i = 0; i < size; i++)
-            {
-                out_data[i] = sqrt(in_data[i]);
-            }
-            break;
-        case 6:
-            for (int i = 0; i < size; i++)
-            {
-                out_data[i] = 1.f / sqrt(in_data[i]);
-            }
-            break;
-        case 7:
-            for (int i = 0; i < size; i++)
-            {
-                out_data[i] = exp(in_data[i]);
-            }
-            break;
-        case 8:
-            for (int i = 0; i < size; i++)
-            {
-                out_data[i] = log(in_data[i]);
-            }
-            break;
-        case 9:
-            for (int i = 0; i < size; i++)
-            {
-                out_data[i] = sin(in_data[i]);
-            }
-            break;
-        case 10:
-            for (int i = 0; i < size; i++)
-            {
-                out_data[i] = cos(in_data[i]);
-            }
-            break;
-        case 11:
-            for (int i = 0; i < size; i++)
-            {
-                out_data[i] = tan(in_data[i]);
-            }
-            break;
-        case 12:
-            for (int i = 0; i < size; i++)
-            {
-                out_data[i] = asin(in_data[i]);
-            }
-            break;
-        case 13:
-            for (int i = 0; i < size; i++)
-            {
-                out_data[i] = acos(in_data[i]);
-            }
-            break;
-        case 14:
-            for (int i = 0; i < size; i++)
-            {
-                out_data[i] = atan(in_data[i]);
-            }
-            break;
-        case 15:
-            for (int i = 0; i < size; i++)
-            {
-                out_data[i] = 1.f / (in_data[i]);
-            }
-            break;
-        case 16:
-            for (int i = 0; i < size; i++)
-            {
-                out_data[i] = tanh(in_data[i]);
-            }
-            break;
-        default:
-            break;
+    case 0:
+        for (int i = 0; i < size; i++)
+        {
+            out_data[i] = fabs(in_data[i]);
+        }
+        break;
+    case 1:
+        for (int i = 0; i < size; i++)
+        {
+            out_data[i] = -(in_data[i]);
+        }
+        break;
+    case 2:
+        for (int i = 0; i < size; i++)
+        {
+            out_data[i] = floor(in_data[i]);
+        }
+        break;
+    case 3:
+        for (int i = 0; i < size; i++)
+        {
+            out_data[i] = ceil(in_data[i]);
+        }
+        break;
+    case 4:
+        for (int i = 0; i < size; i++)
+        {
+            out_data[i] = in_data[i] * in_data[i];
+        }
+        break;
+    case 5:
+        for (int i = 0; i < size; i++)
+        {
+            out_data[i] = sqrt(in_data[i]);
+        }
+        break;
+    case 6:
+        for (int i = 0; i < size; i++)
+        {
+            out_data[i] = 1.f / sqrt(in_data[i]);
+        }
+        break;
+    case 7:
+        for (int i = 0; i < size; i++)
+        {
+            out_data[i] = exp(in_data[i]);
+        }
+        break;
+    case 8:
+        for (int i = 0; i < size; i++)
+        {
+            out_data[i] = log(in_data[i]);
+        }
+        break;
+    case 9:
+        for (int i = 0; i < size; i++)
+        {
+            out_data[i] = sin(in_data[i]);
+        }
+        break;
+    case 10:
+        for (int i = 0; i < size; i++)
+        {
+            out_data[i] = cos(in_data[i]);
+        }
+        break;
+    case 11:
+        for (int i = 0; i < size; i++)
+        {
+            out_data[i] = tan(in_data[i]);
+        }
+        break;
+    case 12:
+        for (int i = 0; i < size; i++)
+        {
+            out_data[i] = asin(in_data[i]);
+        }
+        break;
+    case 13:
+        for (int i = 0; i < size; i++)
+        {
+            out_data[i] = acos(in_data[i]);
+        }
+        break;
+    case 14:
+        for (int i = 0; i < size; i++)
+        {
+            out_data[i] = atan(in_data[i]);
+        }
+        break;
+    case 15:
+        for (int i = 0; i < size; i++)
+        {
+            out_data[i] = 1.f / (in_data[i]);
+        }
+        break;
+    case 16:
+        for (int i = 0; i < size; i++)
+        {
+            out_data[i] = tanh(in_data[i]);
+        }
+        break;
+    default:
+        break;
     }
 
     /* quant */
