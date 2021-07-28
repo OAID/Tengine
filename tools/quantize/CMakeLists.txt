@@ -34,9 +34,9 @@ IF (OpenCV_FOUND AND ${TENGINE_TARGET_PROCESSOR} MATCHES "X86")
             ${name}
             ./quant_save_graph.cpp
             ./quant_utils.cpp
-            ./savegraph/save_graph.cpp
-            ./savegraph/tm2_op_save.cpp
-            ./savegraph/tm2_generate.c
+            ../save_graph/save_graph.cpp
+            ../save_graph/tm2_op_save.cpp
+            ../save_graph/tm2_generate.c
             "${CMAKE_CURRENT_SOURCE_DIR}/${file}")
         TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
         TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})       
@@ -45,7 +45,7 @@ IF (OpenCV_FOUND AND ${TENGINE_TARGET_PROCESSOR} MATCHES "X86")
         TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE "${PROJECT_SOURCE_DIR}/source")
         TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE "${PROJECT_SOURCE_DIR}/source/operator/prototype")       
         TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE "${PROJECT_SOURCE_DIR}/tools/quantize/common")
-        TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE "${PROJECT_SOURCE_DIR}/tools/quantize/savegraph")
+        TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE "${PROJECT_SOURCE_DIR}/tools/save_graph")
 
         IF (${TENGINE_COVERAGE})
             LIST (APPEND TENGINE_TOOL_OPTIONS "-fprofile-arcs")
