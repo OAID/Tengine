@@ -79,8 +79,9 @@ int main() {
     int raw_h = HEIGHT;
     int raw_w = WIDTH;
 
-    Box<int> boxes[num] = {0};
-    for (int i = 0; i < num; ++i) {
+    const int max_len = num;
+    Box<int> boxes[max_len];
+    for (int i = 0; i < max_len; ++i) {
       boxes[i] = {0};
     }
     int box_count = 0;
