@@ -81,7 +81,10 @@ ENDIF()
 
 # 6.  add link libs
 LIST (APPEND _DEV_ODLA_LINK_PATH            ${_ODLA_ROOT}/lib)
-LIST (APPEND _DEV_ODLA_LINK_LIBRARIES       nvdla_compiler libprotobuf.a pthread)
+LIST (APPEND _DEV_ODLA_LINK_LIBRARIES       "nvdla_compiler" )
+LIST (APPEND _DEV_ODLA_LINK_LIBRARIES       "libprotobuf.a" )
+LIST (APPEND _DEV_ODLA_LINK_LIBRARIES       "pthread")
+
 
 # 7. set all to cmake cache
 SET (TENGINE_ODLA_HEADER_PATH       ${_DEV_ODLA_HEADER_PATH}        CACHE INTERNAL  "Tengine ODLA device header files searching path"   FORCE)

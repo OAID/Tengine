@@ -38,6 +38,12 @@
 ODLAEngine::ODLAEngine()
 {
     std::cout << "ODLA Engine Init " << std::endl;
+    nvdla::priv::Profile *profile;
+    nvdla::priv::TargetConfig *target_config;
+    std::cout << profile << std::endl;
+    auto graph = new nvdla::priv::engine_ast::Graph(profile, target_config);
+    std::cout << graph << std::endl;
+
 };
 
 

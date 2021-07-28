@@ -50,7 +50,7 @@ extern "C"
 
 #include "convolution_param.h"
 
-
+//typedef std::map<uint32_t, nvdla::priv::Tensor> dict_irt2odlat;
 
 
 class ODLAEngine
@@ -71,8 +71,8 @@ private:
 
 public:
 
-
+    nvdla::priv::engine_ast::Graph * graph;
 
 private:
-
+//    dict_irt2odlat     odla_tensor_map;
 };
