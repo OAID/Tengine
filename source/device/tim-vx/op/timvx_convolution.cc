@@ -75,72 +75,143 @@ bool VXEngine::AddConvolutionNode(struct node* ir_node)
     int multiplier = 0;
     if ( (param->group == weight_tensor->dims[0]) && (param->group != 1) )
         multiplier = 1;
-    auto conv = this->graph->CreateOperation<tim::vx::ops::Conv2d>(
-        weight_tensor->dims[0], tim::vx::PadType::AUTO,
-        std::array<uint32_t, 2>({ (unsigned int)param->kernel_h, (unsigned int)param->kernel_w }),
-        std::array<uint32_t, 2>({ (unsigned int)param->stride_h, (unsigned int)param->stride_w }),
-        std::array<uint32_t, 2>({ (unsigned int)param->dilation_h, (unsigned int)param->dilation_w }),
-        std::array<uint32_t, 4>({ (unsigned int)param->pad_h0, (unsigned int)param->pad_h1,
-                                            (unsigned int)param->pad_w0, (unsigned int)param->pad_w1 }),
-        multiplier);
 
-    if (param->activation >= 0)
+    if (param->group == 1 || (param->group == weight_tensor->dims[0] && param->group != 1))   // conv + dwconv
     {
-        tim::vx::Quantization tmp_quant(tim::vx::QuantType::ASYMMETRIC,
-                                        output_tensor->scale, output_tensor->zero_point);
-        tim::vx::ShapeType vx_shape;
-        std::vector<uint32_t> perm;
-        for (int i = output_tensor->dim_num - 1; i >= 0; i--)
+        auto conv = this->graph->CreateOperation<tim::vx::ops::Conv2d>(
+            weight_tensor->dims[0], tim::vx::PadType::AUTO,
+            std::array<uint32_t, 2>({ (unsigned int)param->kernel_h, (unsigned int)param->kernel_w }),
+            std::array<uint32_t, 2>({ (unsigned int)param->stride_h, (unsigned int)param->stride_w }),
+            std::array<uint32_t, 2>({ (unsigned int)param->dilation_h, (unsigned int)param->dilation_w }),
+            std::array<uint32_t, 4>({ (unsigned int)param->pad_h0, (unsigned int)param->pad_h1,
+                                                (unsigned int)param->pad_w0, (unsigned int)param->pad_w1 }),
+            multiplier);
+        if (param->activation >= 0)
         {
-            vx_shape.push_back(output_tensor->dims[i]);
-            perm.push_back(output_tensor->dims[i]);
-        }
-        tim::vx::TensorSpec tmp_spec(tim::vx::DataType::UINT8, vx_shape, tim::vx::TensorAttribute::TRANSIENT, tmp_quant);
+            tim::vx::Quantization tmp_quant(tim::vx::QuantType::ASYMMETRIC,
+                                            output_tensor->scale, output_tensor->zero_point);
+            tim::vx::ShapeType vx_shape;
+            std::vector<uint32_t> perm;
+            for (int i = output_tensor->dim_num - 1; i >= 0; i--)
+            {
+                vx_shape.push_back(output_tensor->dims[i]);
+                perm.push_back(output_tensor->dims[i]);
+            }
+            tim::vx::TensorSpec tmp_spec(tim::vx::DataType::UINT8, vx_shape, tim::vx::TensorAttribute::TRANSIENT, tmp_quant);
 
-        auto tmp_output = this->graph->CreateTensor(tmp_spec);
+            auto tmp_output = this->graph->CreateTensor(tmp_spec);
 
-        if (ir_node->input_num > 2)
-        {
-            struct tensor* bias_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[2]);
-            (*conv)
-                .BindInputs({ this->vx_tensor_map[input_tensor->index], this->vx_tensor_map[weight_tensor->index], this->vx_tensor_map[bias_tensor->index] })
-                .BindOutputs({ tmp_output });
+            if (ir_node->input_num > 2)
+            {
+                struct tensor* bias_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[2]);
+                (*conv)
+                    .BindInputs({ this->vx_tensor_map[input_tensor->index], this->vx_tensor_map[weight_tensor->index], this->vx_tensor_map[bias_tensor->index] })
+                    .BindOutputs({ tmp_output });
+            }
+            else
+            {
+                (*conv)
+                    .BindInputs({ this->vx_tensor_map[input_tensor->index], this->vx_tensor_map[weight_tensor->index] })
+                    .BindOutputs({ tmp_output });
+            }
+            this->vx_tensor_map[output_tensor->index + ir_graph->tensor_num] = tmp_output;
+            if (param->activation == 0)
+            {
+                auto relu = this->graph->CreateOperation<tim::vx::ops::Relu>();
+                (*relu).BindInput( tmp_output )
+                    .BindOutput({ this->vx_tensor_map[output_tensor->index] });
+            }
+            else if (param->activation == 6)
+            {
+                auto relu = this->graph->CreateOperation<tim::vx::ops::Relu6>();
+                (*relu).BindInput({ tmp_output })
+                    .BindOutput({ this->vx_tensor_map[output_tensor->index] });
+            }
+
         }
         else
         {
-            (*conv)
-                .BindInputs({ this->vx_tensor_map[input_tensor->index], this->vx_tensor_map[weight_tensor->index] })
-                .BindOutputs({ tmp_output });
+            if (ir_node->input_num > 2)
+            {
+                struct tensor* bias_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[2]);
+                (*conv)
+                    .BindInputs({ this->vx_tensor_map[input_tensor->index], this->vx_tensor_map[weight_tensor->index], this->vx_tensor_map[bias_tensor->index] })
+                    .BindOutputs({ this->vx_tensor_map[output_tensor->index] });
+            }
+            else
+            {
+                (*conv)
+                    .BindInputs({ this->vx_tensor_map[input_tensor->index], this->vx_tensor_map[weight_tensor->index] })
+                    .BindOutputs({ this->vx_tensor_map[output_tensor->index] });
+            }
         }
-        this->vx_tensor_map[output_tensor->index + ir_graph->tensor_num] = tmp_output;
-        if (param->activation == 0)
-        {
-            auto relu = this->graph->CreateOperation<tim::vx::ops::Relu>();
-            (*relu).BindInput( tmp_output )
-                .BindOutput({ this->vx_tensor_map[output_tensor->index] });
-        }
-        else if (param->activation == 6)
-        {
-            auto relu = this->graph->CreateOperation<tim::vx::ops::Relu6>();
-            (*relu).BindInput({ tmp_output })
-                .BindOutput({ this->vx_tensor_map[output_tensor->index] });
-        }
-
     }
-    else
+    else    // conv group != 1
     {
-        if (ir_node->input_num > 2)
+        auto conv = this->graph->CreateOperation<tim::vx::ops::GroupedConv2d>(
+            std::array<uint32_t, 4>({ (unsigned int)param->pad_h0, (unsigned int)param->pad_h1,
+                                       (unsigned int)param->pad_w0, (unsigned int)param->pad_w1 }),
+            std::array<uint32_t, 2>({ (unsigned int)param->stride_h, (unsigned int)param->stride_w }),
+            std::array<uint32_t, 2>({ (unsigned int)param->dilation_h, (unsigned int)param->dilation_w }),
+            param->group);
+        if (param->activation >= 0)
         {
-            struct tensor* bias_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[2]);
-            (*conv)
-                .BindInputs({ this->vx_tensor_map[input_tensor->index], this->vx_tensor_map[weight_tensor->index], this->vx_tensor_map[bias_tensor->index] })
-                .BindOutputs({ this->vx_tensor_map[output_tensor->index] });
+            tim::vx::Quantization tmp_quant(tim::vx::QuantType::ASYMMETRIC,
+                                            output_tensor->scale, output_tensor->zero_point);
+            tim::vx::ShapeType vx_shape;
+            std::vector<uint32_t> perm;
+            for (int i = output_tensor->dim_num - 1; i >= 0; i--)
+            {
+                vx_shape.push_back(output_tensor->dims[i]);
+                perm.push_back(output_tensor->dims[i]);
+            }
+            tim::vx::TensorSpec tmp_spec(tim::vx::DataType::UINT8, vx_shape, tim::vx::TensorAttribute::TRANSIENT, tmp_quant);
+
+            auto tmp_output = this->graph->CreateTensor(tmp_spec);
+
+            if (ir_node->input_num > 2)
+            {
+                struct tensor* bias_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[2]);
+                (*conv)
+                    .BindInputs({ this->vx_tensor_map[input_tensor->index], this->vx_tensor_map[weight_tensor->index], this->vx_tensor_map[bias_tensor->index] })
+                    .BindOutputs({ tmp_output });
+            }
+            else
+            {
+                (*conv)
+                    .BindInputs({ this->vx_tensor_map[input_tensor->index], this->vx_tensor_map[weight_tensor->index] })
+                    .BindOutputs({ tmp_output });
+            }
+            this->vx_tensor_map[output_tensor->index + ir_graph->tensor_num] = tmp_output;
+            if (param->activation == 0)
+            {
+                auto relu = this->graph->CreateOperation<tim::vx::ops::Relu>();
+                (*relu).BindInput( tmp_output )
+                    .BindOutput({ this->vx_tensor_map[output_tensor->index] });
+            }
+            else if (param->activation == 6)
+            {
+                auto relu = this->graph->CreateOperation<tim::vx::ops::Relu6>();
+                (*relu).BindInput({ tmp_output })
+                    .BindOutput({ this->vx_tensor_map[output_tensor->index] });
+            }
+
         }
         else
         {
-            (*conv)
-                .BindInputs({ this->vx_tensor_map[input_tensor->index], this->vx_tensor_map[weight_tensor->index] })
-                .BindOutputs({ this->vx_tensor_map[output_tensor->index] });
+            if (ir_node->input_num > 2)
+            {
+                struct tensor* bias_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[2]);
+                (*conv)
+                    .BindInputs({ this->vx_tensor_map[input_tensor->index], this->vx_tensor_map[weight_tensor->index], this->vx_tensor_map[bias_tensor->index] })
+                    .BindOutputs({ this->vx_tensor_map[output_tensor->index] });
+            }
+            else
+            {
+                (*conv)
+                    .BindInputs({ this->vx_tensor_map[input_tensor->index], this->vx_tensor_map[weight_tensor->index] })
+                    .BindOutputs({ this->vx_tensor_map[output_tensor->index] });
+            }
         }
     }
 
