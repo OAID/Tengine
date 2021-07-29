@@ -78,6 +78,24 @@ int get_pb_data(float* float_data, const std::string& filepath)
                 float_data[i] = data[i];
         }
     }
+    /* current, only support the type of data is fp64 */
+    else if (tp.data_type() == 11)
+    {
+        if (tp.has_raw_data())
+        {
+            int size = (int)tp.raw_data().size() / 8;
+            const double* data = (double*)tp.raw_data().c_str();
+            for (int i = 0; i < size; i++)
+                float_data[i] = data[i];
+        }
+        else
+        {
+            int size = tp.double_data_size();
+            const double* data = tp.double_data().data();
+            for (int i = 0; i < size; i++)
+                float_data[i] = data[i];
+        }
+    }
     else
     {
         fprintf(stderr, "not support the type of data is %d\n", tp.data_type());
@@ -154,18 +172,19 @@ int get_pb_data_i32(int32_t* i32_data, const std::string& filepath)
 
 int float_mismatch(float* current, float* reference, int size)
 {
+    int ret = 0;
     for (int i = 0; i < size; i++)
     {
         float tmp = fabs(current[i]) - fabs(reference[i]);
         if (fabs(tmp) > 0.0001)
         {
             fprintf(stderr, "test failed, index:%d, a:%f, b:%f\n", i, current[i], reference[i]);
-            return -1;
+            ret = -1;
         }
     }
     fprintf(stderr, "test pass\n");
 
-    return 0;
+    return ret;
 }
 
 #endif
