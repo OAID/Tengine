@@ -106,21 +106,21 @@ int ODLAEngine::ODLATensorMap(struct graph* ir_graph, int ir_tensor_idx, int spe
         switch(ir_tensor->data_type)
         {
             // Why no Definition of DATATYPE?
-            case (0):
+            case TENGINE_DT_FP32:
                 // float32
                 datatype = nvdla::DataType::FLOAT;
                 break;
-            case (1):
+            case TENGINE_DT_FP16:
                 // float16
-                datatype =  nvdla::DataType::HALF;
+                datatype = nvdla::DataType::HALF;
                 break;
-            case (2):
+            case TENGINE_DT_INT8:
                 datatype = nvdla::DataType::INT8;
                 break;
-            case (3):
+            case TENGINE_DT_UINT8:
                 datatype = nvdla::DataType::UINT8;
                 break;
-            case (4):
+            case TENGINE_DT_INT32:
                 TLOG_ERR("Tensor date type: Tensor_name(%s) tensor_index(%d) tensor_data_type(%d) .\n",ir_tensor->name, ir_tensor->index, ir_tensor->data_type);
                 break;
             default:
