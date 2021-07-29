@@ -65,7 +65,7 @@ const int odla_supported_ops[] = {
 //    OP_GRU,
 //    OP_HARDSIGMOID,
 //    OP_HARDSWISH,
-//    OP_INPUT,
+    OP_INPUT,
 //    OP_INSTANCENORM,
 //    OP_INTERP,
 //    OP_LOGICAL,

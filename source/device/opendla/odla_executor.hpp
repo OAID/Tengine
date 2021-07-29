@@ -25,6 +25,10 @@
 #pragma once
 
 #include "priv/EngineAST.h"
+#include "priv/Profiler.h"
+#include "priv/Compiler.h"
+#include "ErrorMacros.h"
+
 
 extern "C"
 {
@@ -50,7 +54,16 @@ extern "C"
 
 #include "convolution_param.h"
 
-//typedef std::map<uint32_t, nvdla::priv::Tensor> dict_irt2odlat;
+
+#define NVDLA_LAYER_TYPE_INPUT 13U
+#define NVDLA_LAYER_TYPE_OUTPUT 14U
+#define NVDLA_LAYER_TYPE_CONV_BIAS 15U
+#define NVDLA_LAYER_TYPE_PRELU 16U
+#define NVDLA_LAYER_TYPE_INTERP 17U
+#define NVDLA_LAYER_TYPE_SLICE 18U
+
+
+typedef std::map<uint32_t, std::shared_ptr<nvdla::priv::Tensor>> dict_irt2odlat;
 
 
 class ODLAEngine
@@ -68,11 +81,20 @@ private:
     int ODLATensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_type);
 
     bool AddPoolingNode(struct node* ir_node);
+    NvDlaError ODLAConfigGenerate();
 
 public:
 
+    std::string tp_name = "fast-math";
+    std::string target_config_name = "nv_small";
+
+    nvdla::priv::Profile * profile;
+    nvdla::priv::TargetConfig* targetConfig;
+    nvdla::priv::Compiler* compiler;
+
     nvdla::priv::engine_ast::Graph * graph;
+    nvdla::priv::LoadableFactory::LoadablePrivPair loadable;
 
 private:
-//    dict_irt2odlat     odla_tensor_map;
+    dict_irt2odlat     odla_tensor_map;
 };

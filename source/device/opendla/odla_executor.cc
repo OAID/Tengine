@@ -34,22 +34,199 @@
 #include <fstream>
 #endif
 
+NvDlaError ODLAEngine::ODLAConfigGenerate(){
+    NvDlaError e = NvDlaSuccess;
+
+    nvdla::IProfiler* profiler = nvdla::priv::ProfilerFactory::newProfiler().priv();;
+    if ( !profiler )
+    {
+        ORIGINATE_ERROR_FAIL(NvDlaError_BadParameter, "No profiler available.");
+    }
+
+    profile = nvdla::priv::ProfileFactory::priv(profiler->getProfile(this->tp_name.c_str()));
+    if ( !profile )
+    {
+        ORIGINATE_ERROR_FAIL(NvDlaError_BadParameter, "Couldn't find profile to compile.");
+    }
+    // 将 target_config_name 转换为 target_config 对象
+    targetConfig = nvdla::priv::TargetConfigFactory::priv(profiler->getTargetConfig(this->target_config_name.c_str()));
+    if ( !targetConfig )
+    {
+        ORIGINATE_ERROR_FAIL(NvDlaError_BadParameter, "Couldn't find target config to compile.");
+    }
+
+    fail:
+    return e;
+}
 
 ODLAEngine::ODLAEngine()
 {
-    std::cout << "ODLA Engine Init " << std::endl;
-    nvdla::priv::Profile *profile;
-    nvdla::priv::TargetConfig *target_config;
-    std::cout << profile << std::endl;
-    auto graph = new nvdla::priv::engine_ast::Graph(profile, target_config);
-    std::cout << graph << std::endl;
+    NvDlaError e = NvDlaSuccess;
 
+    std::cout << "ODLA Engine Init " << std::endl;
+
+    this->loadable = nvdla::priv::LoadableFactory::LoadablePrivPair(0, 0);
+    this->compiler = nvdla::priv::CompilerFactory::newCompiler().priv();
+
+    this->ODLAConfigGenerate();
+    this->graph = new nvdla::priv::engine_ast::Graph(profile, targetConfig);
+    if ( !this->graph )
+    {
+        fprintf(stderr, "Can't create a new Engine AST.\n");
+    }
+
+    // Init NVDLA GLOBAL_DRAM_POOL、 LOCAL_DRAM_POOL、LOCAL_CVSRAM_POOL
+    e = this->graph->initGraphResources();
+    if (e != NvDlaSuccess)
+    {
+        delete this->graph;
+        this->graph = NULL;
+        fprintf(stderr, "Couldn't initialize all graph resources.\n");
+    }
 };
 
 
 int ODLAEngine::ODLATensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_type)
 {
     std::cout << "ODLA TensorMap Entrance " << std::endl;
+    auto iter = this->odla_tensor_map.find(ir_tensor_idx);
+
+    if (this->odla_tensor_map.end() == iter)
+    {
+        if (spec_type == NVDLA_LAYER_TYPE_INTERP || spec_type == NVDLA_LAYER_TYPE_SLICE)
+        {
+            this->odla_tensor_map[ir_tensor_idx] = NULL;
+            return 0;
+        }
+        struct tensor* ir_tensor = get_ir_graph_tensor(ir_graph, ir_tensor_idx);
+        auto Dims = (unsigned int*)ir_tensor->dims;
+
+        nvdla::DataType datatype;
+        switch(ir_tensor->data_type)
+        {
+            // Why no Definition of DATATYPE?
+            case (0):
+                // float32
+                datatype = nvdla::DataType::FLOAT;
+                break;
+            case (1):
+                // float16
+                datatype =  nvdla::DataType::HALF;
+                break;
+            case (2):
+                datatype = nvdla::DataType::INT8;
+                break;
+            case (3):
+                datatype = nvdla::DataType::UINT8;
+                break;
+            case (4):
+                TLOG_ERR("Tensor date type: Tensor_name(%s) tensor_index(%d) tensor_data_type(%d) .\n",ir_tensor->name, ir_tensor->index, ir_tensor->data_type);
+                break;
+            default:
+                TLOG_ERR("Tensor date type: Tensor_name(%s) tensor_index(%d) tensor_data_type(%d) .\n",ir_tensor->name, ir_tensor->index, ir_tensor->data_type);
+                break;
+        }
+
+        nvdla::Dims4 tensor_shape;
+
+        struct node* ir_node = get_ir_graph_node(ir_graph, ir_tensor->producer);
+        if (spec_type == NVDLA_LAYER_TYPE_PRELU)
+        {
+            tensor_shape.w = 1;
+            tensor_shape.h = 1;
+            tensor_shape.c = Dims[0];
+            tensor_shape.n = 1;
+        }
+        else
+        {
+            if(ir_tensor->dim_num == 4){
+                tensor_shape.n = Dims[0];
+                tensor_shape.c = Dims[1];
+                tensor_shape.h = Dims[2];
+                tensor_shape.w = Dims[3];
+            } else {
+                fprintf(stderr, "Dims Number %d Not Supported. \n", ir_tensor->dim_num);
+                return -1;
+            }
+        }
+
+        /* set quant params */
+//        tim::vx::Quantization vx_quant(tim::vx::QuantType::ASYMMETRIC, ir_tensor->scale,
+//                                       ir_tensor->zero_point);
+
+
+        /* create the odla tesnor */
+        nvdla::priv::TensorFactory::TensorPrivPair t = nvdla::priv::TensorFactory::newTensor();
+        std::shared_ptr<nvdla::priv::Tensor> odla_tensor;
+
+        if (spec_type == NVDLA_LAYER_TYPE_OUTPUT)
+        {
+
+            t.i()->setDimensions(tensor_shape);
+            t.i()->setDataFormat(NVDLA_DATA_FORMAT_NCHW);
+            t.i()->setTensorType(nvdla::kNW_OUTPUT);
+            t.i()->setDataType(datatype);
+
+            odla_tensor = std::shared_ptr<nvdla::priv::Tensor>(t.priv());
+        }
+        else if (ir_tensor->data_type == TENGINE_DT_FP32)
+        {
+            fprintf(stderr, "DATATYPE TENGINE_DT_FP32 Not Supported. \n");
+            return -1;
+//            tim::vx::Quantization none_quant(tim::vx::QuantType::NONE, 1, 0);
+//            tim::vx::TensorSpec vx_spec(datatype, vx_shape,
+//                                        tim::vx::TensorAttribute::CONSTANT, none_quant);
+//            vx_tensor = this->graph->CreateTensor(vx_spec, ir_tensor->data);
+        }
+        else if (ir_tensor->tensor_type == TENSOR_TYPE_INPUT || spec_type == NVDLA_LAYER_TYPE_INPUT)
+        {
+            t.i()->setDimensions(tensor_shape);
+            t.i()->setDataFormat(NVDLA_DATA_FORMAT_NCHW);
+            t.i()->setTensorType(nvdla::kNW_INPUT);
+            t.i()->setDataType(datatype);
+
+            odla_tensor = std::shared_ptr<nvdla::priv::Tensor>(t.priv());
+        }
+        else if (ir_tensor->tensor_type == TENSOR_TYPE_VAR)
+        {
+            const char* env = getenv(TENGINE_DUMP_LAYER);
+            if (env && env[0] == '1')
+            {
+                t.i()->setDimensions(tensor_shape);
+                t.i()->setDataFormat(NVDLA_DATA_FORMAT_NCHW);
+                t.i()->setTensorType(nvdla::kNW_OUTPUT);
+                t.i()->setDataType(datatype);
+
+                odla_tensor = std::shared_ptr<nvdla::priv::Tensor>(t.priv());
+            }
+            else
+            {
+                t.i()->setDimensions(tensor_shape);
+                t.i()->setDataFormat(NVDLA_DATA_FORMAT_NCHW);
+                t.i()->setTensorType(nvdla::kUNKNOWN);       // May Not be Right
+                t.i()->setDataType(datatype);
+
+                odla_tensor = std::shared_ptr<nvdla::priv::Tensor>(t.priv());
+//                tim::vx::TensorSpec vx_spec(datatype, vx_shape,
+//                                            tim::vx::TensorAttribute::TRANSIENT, vx_quant);
+            }
+        }
+        else if (ir_tensor->tensor_type == TENSOR_TYPE_CONST)
+        {
+            fprintf(stderr, "Tensor_Type Constant Not Supported. \n");
+//            return -1;
+//            t.i()->setDimensions(tensor_shape);
+//            t.i()->setDataFormat(NVDLA_DATA_FORMAT_NCHW);
+//            t.i()->setTensorType(nvdla::kBIAS);       // May Not be Right
+//            t.i()->setDataType(datatype);
+//
+//            odla_tensor = std::shared_ptr<nvdla::priv::Tensor>(t.priv());
+//            tim::vx::TensorSpec vx_spec(datatype, vx_shape,
+//                                        tim::vx::TensorAttribute::CONSTANT, vx_quant);
+//            vx_tensor = this->graph->CreateTensor(vx_spec, ir_tensor->data);
+        }
+        this->odla_tensor_map[ir_tensor_idx] = odla_tensor;
+    }
 
     return 0;
 }
@@ -65,7 +242,91 @@ int ODLAEngine::Build(struct subgraph* subgraph)
 int ODLAEngine::ODLAEnginePreRun(struct subgraph* subgraph)
 {
     std::cout << "ODLA PreRun Entrance " << std::endl;
+    struct graph* ir_graph = subgraph->graph;
+    /* Add OpenDLA Tensor */
+    for (uint8_t i = 0; i < subgraph->input_num; i++)
+    {
+        int ir_tensor_idx = subgraph->input_tensor_list[i];
+        this->ODLATensorMap(ir_graph, ir_tensor_idx, NVDLA_LAYER_TYPE_INPUT);
+    }
+    for (uint8_t i = 0; i < subgraph->output_num; i++)
+    {
+        int ir_tensor_idx = subgraph->output_tensor_list[i];
+        this->ODLATensorMap(ir_graph, ir_tensor_idx, NVDLA_LAYER_TYPE_OUTPUT);
+    }
+    for (int i = 0; i < subgraph->node_num; i++)
+    {
+        uint16_t node_id = subgraph->node_list[i];
+        struct node* ir_node = get_ir_graph_node(ir_graph, node_id);
+        if (ir_node->op.type == OP_CONV)
+        {
+            auto conv_param = (struct conv_param*)ir_node->op.param_mem;
+            if ((conv_param->group == conv_param->output_channel) && (conv_param->output_channel != 1))
+            {
+                this->ODLATensorMap(ir_graph, ir_node->input_tensors[1], NVDLA_LAYER_TYPE_DECONVOLUTION);
+            }
+            else
+            {
+                this->ODLATensorMap(ir_graph, ir_node->input_tensors[1], NVDLA_LAYER_TYPE_CONVOLUTION);
+            }
+            if (ir_node->input_num > 2)
+            {
+                this->ODLATensorMap(ir_graph, ir_node->input_tensors[2], NVDLA_LAYER_TYPE_CONV_BIAS);
+            }
+        }
+        else if (ir_node->op.type == OP_PRELU)
+        {
+            this->ODLATensorMap(ir_graph, ir_node->input_tensors[1], NVDLA_LAYER_TYPE_PRELU);
+        }
+        else if (ir_node->op.type == OP_INTERP)
+        {
+            if (ir_node->input_num == 3)
+            {
+                this->ODLATensorMap(ir_graph, ir_node->input_tensors[1], NVDLA_LAYER_TYPE_INTERP);
+                this->ODLATensorMap(ir_graph, ir_node->input_tensors[2], NVDLA_LAYER_TYPE_INTERP);
+            }
+            else if (ir_node->input_num == 2)
+            {
+                this->ODLATensorMap(ir_graph, ir_node->input_tensors[1], NVDLA_LAYER_TYPE_INTERP);
+            }
+        }
+        else if (ir_node->op.type == OP_SLICE)
+        {
+            if (ir_node->input_num > 1)
+            {
+                for (int FI = 1; FI < ir_node->input_num; FI++)
+                {
+                    this->ODLATensorMap(ir_graph, ir_node->input_tensors[FI], NVDLA_LAYER_TYPE_SLICE);
+                }
+            }
+        }
+    }
+    for (int i = 0; i < subgraph->node_num; i++)
+    {
+        uint16_t node_id = subgraph->node_list[i];
+        struct node* ir_node = get_ir_graph_node(ir_graph, node_id);
+        for (int j = 0; j < ir_node->input_num; j++)
+        {
+            int ir_tensor_idx = ir_node->input_tensors[j];
+            this->ODLATensorMap(ir_graph, ir_tensor_idx, 0);
+        }
+        for (int j = 0; j < ir_node->output_num; j++)
+        {
+            int ir_tensor_idx = ir_node->output_tensors[j];
+            this->ODLATensorMap(ir_graph, ir_tensor_idx, 0);
+        }
+    }
 
+    /* Add OpenDLA Node */
+    this->Build(subgraph);
+
+    if (subgraph->node_num > 0)
+    {
+        if (this->compiler->emit(this->graph, this->loadable) != NvDlaSuccess) {
+            fprintf(stderr, "Failed to emit Loadable Data. \n");
+            return -1;
+        }
+    }
     return 0;
 };
 
