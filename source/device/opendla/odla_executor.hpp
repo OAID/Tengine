@@ -25,6 +25,7 @@
 #pragma once
 
 #include "priv/EngineAST.h"
+#include "priv/CanonicalAST.h"
 #include "priv/Profiler.h"
 #include "priv/Compiler.h"
 #include "ErrorMacros.h"
@@ -60,10 +61,9 @@ extern "C"
 #define NVDLA_LAYER_TYPE_CONV_BIAS 15U
 #define NVDLA_LAYER_TYPE_PRELU 16U
 #define NVDLA_LAYER_TYPE_INTERP 17U
-#define NVDLA_LAYER_TYPE_SLICE 18U
 
 
-typedef std::map<uint32_t, std::shared_ptr<nvdla::priv::Tensor>> dict_irt2odlat;
+typedef std::map<uint32_t, nvdla::priv::Tensor *> dict_irt2odlat;
 
 
 class ODLAEngine
@@ -92,7 +92,7 @@ public:
     nvdla::priv::TargetConfig* targetConfig;
     nvdla::priv::Compiler* compiler;
 
-    nvdla::priv::engine_ast::Graph * graph;
+    nvdla::priv::canonical_ast::Graph * graph;
     nvdla::priv::LoadableFactory::LoadablePrivPair loadable;
 
 private:
