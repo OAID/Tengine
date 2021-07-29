@@ -74,9 +74,6 @@ static int ref_upsample_fp32(struct tensor* input_tensor, struct tensor* output_
 static int ref_upsample_uint8(struct tensor* input_tensor, struct tensor* output_tensor,
                               struct upsample_param* param, int num_thread)
 {
-    float* input = (float*)input_tensor->data;
-    float* output = (float*)output_tensor->data;
-
     float scale = param->scale;
     int batch = output_tensor->dims[0];
     int channel = output_tensor->dims[1];
