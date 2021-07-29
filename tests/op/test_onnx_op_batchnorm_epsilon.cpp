@@ -198,8 +198,6 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-
-
     /* run graph */
     if (run_graph(graph, 1) < 0)
     {

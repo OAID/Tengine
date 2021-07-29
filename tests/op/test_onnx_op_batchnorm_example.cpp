@@ -196,9 +196,6 @@ int main(int argc, char* argv[])
         fprintf(stderr, "Prerun multithread graph failed.\n");
         return -1;
     }
-    set_log_level(LOG_INFO);
-    dump_graph(graph);
-
 
     /* run graph */
     if (run_graph(graph, 1) < 0)
