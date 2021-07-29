@@ -138,8 +138,7 @@ static void bilinear_resize_uint8(struct tensor* input_tensor, struct tensor* ou
             for (int k = 0; k < c; k++)
             {
                 int in_index = in_idx + k * in_hw;
-                output_fp32[k * out_hw + out_idx] = input_fp32[in_index] * fx_0 * fy_0 + input_fp32[in_index + w] * fx_0 * fy + 
-                                                    input_fp32[in_index + 1] * fx * fy_0 + input_fp32[in_index + w + 1] * fx * fy;
+                output_fp32[k * out_hw + out_idx] = input_fp32[in_index] * fx_0 * fy_0 + input_fp32[in_index + w] * fx_0 * fy + input_fp32[in_index + 1] * fx * fy_0 + input_fp32[in_index + w + 1] * fx * fy;
             }
         }
     }
