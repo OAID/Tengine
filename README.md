@@ -55,7 +55,7 @@ Tengine 核心代码由 4 个模块组成：
 
 ### 量化工具
 
-- [源码编译](tools/quantize/README.md)：已开源量化工具源码，已支持uint8/int8。
+- [源码编译](tools/quantize/README.md)：已开源量化工具源码，已支持 uint8/int8。
 
 ### 速度评估
 
@@ -66,7 +66,14 @@ Tengine 核心代码由 4 个模块组成：
 - [TIM-VX](doc/npu_tim-vx_user_manual.md) VeriSilicon NPU 使用指南。
 
 ### AutoKernel Plugin
-- [AutoKernel](https://github.com/OAID/AutoKernel.git) 是一个简单易用，低门槛的自动算子优化工具，AutoKernel Plugin实现了自动优化算子一键部署到Tengine中。
+
+- [AutoKernel](https://github.com/OAID/AutoKernel.git) 是一个简单易用，低门槛的自动算子优化工具，AutoKernel Plugin实现了自动优化算子一键部署到 Tengine 中。
+
+### Container
+
+- [SuperEdge](https://github.com/superedge/superedge) 借助 SuperEdge 边缘计算的开源容器管理系统，提供更便捷的业务管理方案；
+- [How to use Tengine with SuperEdge](doc/superedge_user_manual.md) 容器使用指南；
+- [Video Capture user manual](doc/demo_videocapture_user_manual.md) Demo 依赖文件生成指南。
 
 ## Roadmap
 
@@ -88,6 +95,7 @@ Tengine Lite 参考和借鉴了下列项目：
 - [stb](https://github.com/nothings/stb)
 - [convertmodel](https://convertmodel.com)
 - [TIM-VX](https://github.com/VeriSilicon/TIM-VX)
+- [SuperEdge](https://github.com/superedge/superedge)
 
 ## License
 

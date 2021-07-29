@@ -60,6 +60,18 @@ The core code of Tengine Lite consists of 4 modules:
 
 - [Benchmark](benchmark/) Basic network speed assessment tool, any pull request is welcomed.
 
+### NPU Plugin
+
+- [TIM-VX](doc/npu_tim-vx_user_manual.md) VeriSilicon NPU user manual.
+
+### AutoKernel Plugin
+
+- [AutoKernel](https://github.com/OAID/AutoKernel.git).
+
+### Container
+
+- [SuperEdge](https://github.com/superedge/superedge) [How to use Tengine with SuperEdge](doc/superedge_user_manual.md).
+
 ## Roadmap
 
 - [Road map](doc/roadmap.md)
@@ -80,6 +92,7 @@ Tengine Lite got ideas and developed based on these projects：
 - [stb](https://github.com/nothings/stb)
 - [convertmodel](https://convertmodel.com)
 - [TIM-VX](https://github.com/VeriSilicon/TIM-VX)
+- [SuperEdge](https://github.com/superedge/superedge)
 
 ## License
 

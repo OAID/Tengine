@@ -46,8 +46,14 @@ static int infer_shape(struct node* node)
         struct clip_param* clip_param = (struct clip_param*)node->op.param_mem;
         float* min = (float*)clip_min->data;
         float* max = (float*)clip_max->data;
-        clip_param->min = min[0];
-        clip_param->max = max[0];
+        if (min && clip_min->elem_num > 0)
+        {
+            clip_param->min = min[0];
+        }
+        if (max && clip_max->elem_num > 0)
+        {
+            clip_param->max = max[0];
+        }
     }
 
     set_ir_tensor_shape(output, input->dims, input->dim_num);
