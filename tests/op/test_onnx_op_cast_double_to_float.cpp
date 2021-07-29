@@ -34,7 +34,6 @@ int main(int argc, char* argv[])
     int h_0 = 3;
     int w_0 = 4;
 
-
     /* set runtime options */
     struct options opt;
     opt.num_thread = 1;
