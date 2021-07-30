@@ -31,15 +31,12 @@
 
 #define AST_EDGE_DIRECTION_ENUMS(op) \
     op(UNDIRECTED, 0U)               \
-    op(DIRECTED, 1U)                 \
-    op(BIDIRECTIONAL, 2U)
-
+        op(DIRECTED, 1U)             \
+            op(BIDIRECTIONAL, 2U)
 
 #define AST_EDGE_SIDE_ENUMS(op) \
     op(FIRST, 0U)               \
-    op(SECOND, 1U)              \
-    op(BOTH, 2U)
-
+        op(SECOND, 1U)          \
+            op(BOTH, 2U)
 
 #endif // NVDLA_PRIV_AST_ENUMS_H
-

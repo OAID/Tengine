@@ -26,8 +26,7 @@
 
 #include "odla_define.h"
 
-extern "C"
-{
+extern "C" {
 #include "api/c_api.h"
 #include "device/device.h"
 

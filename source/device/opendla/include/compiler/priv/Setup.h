@@ -29,7 +29,6 @@
 #ifndef NVDLA_PRIV_SETUP_H
 #define NVDLA_PRIV_SETUP_H
 
-
 #include <string>
 #include <map>
 #include <vector>
@@ -42,65 +41,55 @@
 
 #include "WisdomContainer.h"
 
+namespace nvdla {
 
-namespace nvdla
-{
-
-namespace priv
-{
+namespace priv {
 
 class Setup;
 
 class SetupFactory
 {
 public:
-    typedef PrivPair<ISetup *, Setup*> SetupPrivPair;
+    typedef PrivPair<ISetup*, Setup*> SetupPrivPair;
 
     static SetupPrivPair newSetup();
-    static NvDlaError deleteSetup(ISetup *setup);
+    static NvDlaError deleteSetup(ISetup* setup);
 
-    static Setup *priv(ISetup *);
-    static ISetup *i(Setup *);
+    static Setup* priv(ISetup*);
+    static ISetup* i(Setup*);
 
 protected:
-    static BiMap<ISetup *, Setup *> s_priv;
-
+    static BiMap<ISetup*, Setup*> s_priv;
 };
 
 class Setup : public ISetup
 {
 public: // externally facing
-
-    virtual IWisdom *wisdom();
+    virtual IWisdom* wisdom();
 
 public: // internally facing
-
     Setup();
 
     virtual NvU16 getFactoryType() const;
 
     // void setWisdom(Wisdom *w) { m_wisdom = w; }
 
-
 protected:
     friend class Wisdom;
     friend class SetupFactory;
 
-    Wisdom *m_wisdom;
+    Wisdom* m_wisdom;
 
     virtual ~Setup();
 
 private:
-
-
-
 };
 
-ISetup *createSetup();
-NvDlaError destroySetup(ISetup *setup);
+ISetup* createSetup();
+NvDlaError destroySetup(ISetup* setup);
 
-} // nvdla::priv
+} // namespace priv
 
-} // nvdla
+} // namespace nvdla
 
 #endif // NVDLA_PRIV_SETUP_H

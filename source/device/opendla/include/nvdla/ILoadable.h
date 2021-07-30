@@ -38,8 +38,6 @@
 #include "nvdla/IType.h"
 #include "nvdla/IRuntime.h"
 
-
-
 // some gnu stuff is defining these in host mode... evil.
 #ifdef major
 #undef major
@@ -87,35 +85,37 @@
 
 //
 
-namespace nvdla
-{
+namespace nvdla {
 
 class ILoadable
 {
 public:
-
-    enum Interface {
+    enum Interface
+    {
         Interface_NONE = NVDLA_LOADABLE_INTERFACE_NONE,
         Interface_DLA1 = NVDLA_LOADABLE_INTERFACE_DLA1,
         Interface_EMU1 = NVDLA_LOADABLE_INTERFACE_EMU1,
     };
 
-    enum MemoryDomain {
+    enum MemoryDomain
+    {
         MemoryDomain_SYSMEM = NVDLA_LOADABLE_MEMORY_DOMAIN_SYSMEM,
         MemoryDomain_SRAM = NVDLA_LOADABLE_MEMORY_DOMAIN_SRAM,
     };
 
-    enum MemoryFlags {
-        MemoryFlags_NONE  = NVDLA_LOADABLE_MEMORY_FLAGS_NONE,
-        MemoryFlags_ALLOC  = NVDLA_LOADABLE_MEMORY_FLAGS_ALLOC,
-        MemoryFlags_SET    = NVDLA_LOADABLE_MEMORY_FLAGS_SET,
-        MemoryFlags_INPUT  = NVDLA_LOADABLE_MEMORY_FLAGS_INPUT,
+    enum MemoryFlags
+    {
+        MemoryFlags_NONE = NVDLA_LOADABLE_MEMORY_FLAGS_NONE,
+        MemoryFlags_ALLOC = NVDLA_LOADABLE_MEMORY_FLAGS_ALLOC,
+        MemoryFlags_SET = NVDLA_LOADABLE_MEMORY_FLAGS_SET,
+        MemoryFlags_INPUT = NVDLA_LOADABLE_MEMORY_FLAGS_INPUT,
         MemoryFlags_OUTPUT = NVDLA_LOADABLE_MEMORY_FLAGS_OUTPUT,
-        MemoryFlags_DEBUG  = NVDLA_LOADABLE_MEMORY_FLAGS_DEBUG
+        MemoryFlags_DEBUG = NVDLA_LOADABLE_MEMORY_FLAGS_DEBUG
     };
 
-    enum EventOp {
-        EventOp_WAIT   = NVDLA_LOADABLE_EVENT_OP_WAIT,
+    enum EventOp
+    {
+        EventOp_WAIT = NVDLA_LOADABLE_EVENT_OP_WAIT,
         EventOp_SIGNAL = NVDLA_LOADABLE_EVENT_OP_SIGNAL
     };
 
@@ -124,10 +124,16 @@ public:
         NvU8 major;
         NvU8 minor;
         NvU8 sub_minor;
-        Version(NvU8 maj, NvU8 min, NvU8 sub) : major(maj), minor(min), sub_minor(sub) { }
-        Version() : major(0), minor(0), sub_minor(0) { }
+        Version(NvU8 maj, NvU8 min, NvU8 sub)
+            : major(maj), minor(min), sub_minor(sub)
+        {
+        }
+        Version()
+            : major(0), minor(0), sub_minor(0)
+        {
+        }
 
-        void toC(NvDlaLoadableVersion &c) const
+        void toC(NvDlaLoadableVersion& c) const
         {
             c.major = major;
             c.minor = minor;
@@ -140,31 +146,53 @@ public:
         NvU16 id;
         NvU64 size;
         NvU32 alignment; // 0 for n/a, otherwise byte alignment
-        NvU8  domain;
-        static inline NvU8 domain_sysmem() { return MemoryDomain_SYSMEM; }
-        static inline NvU8 domain_sram() { return MemoryDomain_SRAM; }
-        NvU8  flags; // alloc or alloc_content or is-input or is-output
-        static inline NvU8  flags_alloc()  { return MemoryFlags_ALLOC;  }
-        static inline NvU8  flags_set()    { return MemoryFlags_SET;    }
-        static inline NvU8  flags_input()  { return MemoryFlags_INPUT;  }
-        static inline NvU8  flags_output() { return MemoryFlags_OUTPUT; }
-        static inline NvU8  flags_debug()  { return MemoryFlags_DEBUG;  }
-        NvU16 bind_id;  // valid iff flag_{input|output|debug}()  is set
-        NvU16 tensor_desc_id; // valid iff bind_id is valid ( != -1 )
-        std::vector<std::string> contents;  // symbolic reference to content blob
-        std::vector<uint64_t>    offsets;   // associated offset for contents
-
-        MemoryListEntry() : id(0), size(0), alignment(0), domain(0), flags(0),
-                            bind_id(0), tensor_desc_id(0), contents(), offsets() { }
-        MemoryListEntry(const MemoryListEntry &o) : id(o.id), size(o.size), alignment(o.alignment), domain(o.domain), flags(o.flags),
-                                                    bind_id(o.bind_id),
-                                                    tensor_desc_id(o.tensor_desc_id),
-                                                    contents(o.contents),
-                                                    offsets(o.offsets) { }
-        MemoryListEntry(NvU16 i, NvU64 s, NvU32 a, NvU8 d, NvU8 f, std::string sym = std::string(), uint64_t o = 0) :
-            id(i), size(s), alignment(a), domain(d), flags(f), bind_id(0), tensor_desc_id(0)
+        NvU8 domain;
+        static inline NvU8 domain_sysmem()
         {
-            if ( sym.size() )
+            return MemoryDomain_SYSMEM;
+        }
+        static inline NvU8 domain_sram()
+        {
+            return MemoryDomain_SRAM;
+        }
+        NvU8 flags; // alloc or alloc_content or is-input or is-output
+        static inline NvU8 flags_alloc()
+        {
+            return MemoryFlags_ALLOC;
+        }
+        static inline NvU8 flags_set()
+        {
+            return MemoryFlags_SET;
+        }
+        static inline NvU8 flags_input()
+        {
+            return MemoryFlags_INPUT;
+        }
+        static inline NvU8 flags_output()
+        {
+            return MemoryFlags_OUTPUT;
+        }
+        static inline NvU8 flags_debug()
+        {
+            return MemoryFlags_DEBUG;
+        }
+        NvU16 bind_id;                     // valid iff flag_{input|output|debug}()  is set
+        NvU16 tensor_desc_id;              // valid iff bind_id is valid ( != -1 )
+        std::vector<std::string> contents; // symbolic reference to content blob
+        std::vector<uint64_t> offsets;     // associated offset for contents
+
+        MemoryListEntry()
+            : id(0), size(0), alignment(0), domain(0), flags(0), bind_id(0), tensor_desc_id(0), contents(), offsets()
+        {
+        }
+        MemoryListEntry(const MemoryListEntry& o)
+            : id(o.id), size(o.size), alignment(o.alignment), domain(o.domain), flags(o.flags), bind_id(o.bind_id), tensor_desc_id(o.tensor_desc_id), contents(o.contents), offsets(o.offsets)
+        {
+        }
+        MemoryListEntry(NvU16 i, NvU64 s, NvU32 a, NvU8 d, NvU8 f, std::string sym = std::string(), uint64_t o = 0)
+            : id(i), size(s), alignment(a), domain(d), flags(f), bind_id(0), tensor_desc_id(0)
+        {
+            if (sym.size())
             {
                 contents.push_back(sym);
                 offsets.push_back(o);
@@ -177,10 +205,16 @@ public:
         NvU16 id;
         NvU16 target;
         NvU8 op;
-        static inline NvU8 op_wait() { return EventOp_WAIT; }
-        static inline NvU8 op_signal() { return EventOp_SIGNAL; }
+        static inline NvU8 op_wait()
+        {
+            return EventOp_WAIT;
+        }
+        static inline NvU8 op_signal()
+        {
+            return EventOp_SIGNAL;
+        }
         NvU32 val;
-        void toC(NvDlaLoadableEventListEntry &c) const
+        void toC(NvDlaLoadableEventListEntry& c) const
         {
             c.id = id;
             c.target = target;
@@ -193,30 +227,47 @@ public:
     {
         NvU16 id;
         NvU32 interface; // DLA interface id
-        static inline NvU32 interface_NONE() { return Interface_NONE; }
-        static inline NvU32 interface_DLA1() { return Interface_DLA1; }
-        static inline NvU32 interface_EMU1() { return Interface_EMU1; }
+        static inline NvU32 interface_NONE()
+        {
+            return Interface_NONE;
+        }
+        static inline NvU32 interface_DLA1()
+        {
+            return Interface_DLA1;
+        }
+        static inline NvU32 interface_EMU1()
+        {
+            return Interface_EMU1;
+        }
 
         NvS16 instance; // -1 := for any available
-        static inline NvS16 instance_ANY() { return -1; }
+        static inline NvS16 instance_ANY()
+        {
+            return -1;
+        }
 
         std::vector<NvU16> preactions;   // [event id]...
         std::vector<NvU16> postactions;  // [event id]...
         std::vector<NvU16> address_list; // [addr list id]...[addr list id]
-        TaskListEntry(const TaskListEntry &o) :
-            id(o.id),
-            interface(o.interface),
-            instance(o.instance),
-            preactions(o.preactions),
-            postactions(o.postactions),
-            address_list(o.address_list) { }
+        TaskListEntry(const TaskListEntry& o)
+            : id(o.id),
+              interface(o.interface),
+              instance(o.instance),
+              preactions(o.preactions),
+              postactions(o.postactions),
+              address_list(o.address_list)
+        {
+        }
 
-        TaskListEntry() : id(0),
-                          interface(Interface_NONE),
-                          instance(-1),
-                          preactions(),
-                          postactions(),
-                          address_list() { }
+        TaskListEntry()
+            : id(0),
+              interface(Interface_NONE),
+              instance(-1),
+              preactions(),
+              postactions(),
+              address_list()
+        {
+        }
     };
 
     struct SubmitListEntry
@@ -231,10 +282,20 @@ public:
         NvU16 mem_id; // determines hRm (+offset from below)
         NvU64 size;   // assert size <= memory[mem_id].size
         NvU64 offset; // assert (offset + size) <= memory[mem_id].size
-        AddressListEntry() : id(0), mem_id(0), size(0), offset(0) { }
-        AddressListEntry(NvU16 i, NvU16 m, NvU64 s, NvU64 o = 0) : id(i), mem_id(m), size(s), offset(o) { }
-        AddressListEntry(const AddressListEntry &o) : id(o.id), mem_id(o.mem_id), size(o.size), offset(o.offset) { }
-        void toC(NvDlaLoadableAddressListEntry &c) const {
+        AddressListEntry()
+            : id(0), mem_id(0), size(0), offset(0)
+        {
+        }
+        AddressListEntry(NvU16 i, NvU16 m, NvU64 s, NvU64 o = 0)
+            : id(i), mem_id(m), size(s), offset(o)
+        {
+        }
+        AddressListEntry(const AddressListEntry& o)
+            : id(o.id), mem_id(o.mem_id), size(o.size), offset(o.offset)
+        {
+        }
+        void toC(NvDlaLoadableAddressListEntry& c) const
+        {
             c.id = id;
             c.memId = mem_id;
             c.size = size;
@@ -261,35 +322,41 @@ public:
     struct RelocEntry
     {
         NvU16 addressListId; // fix vs. this addr list item
-        NvU16 writeId;   // fix *within this* memory id given offset below
-        NvU64 offset;    // buffer offset to the fixup
-        NvU32 interface; // dla1, emu1, etc.
-        NvU32 subInterface; //  dla1-surf_desc, etc.
-        NvU8  relocType; // stride0..7 (aka line, surf)
+        NvU16 writeId;       // fix *within this* memory id given offset below
+        NvU64 offset;        // buffer offset to the fixup
+        NvU32 interface;     // dla1, emu1, etc.
+        NvU32 subInterface;  //  dla1-surf_desc, etc.
+        NvU8 relocType;      // stride0..7 (aka line, surf)
 
-        RelocEntry(const RelocEntry &o) :
-            addressListId(o.addressListId),
-            writeId(o.writeId),
-            offset(o.offset),
-            interface(o.interface),
-            subInterface(o.subInterface),
-            relocType(o.relocType) { }
+        RelocEntry(const RelocEntry& o)
+            : addressListId(o.addressListId),
+              writeId(o.writeId),
+              offset(o.offset),
+              interface(o.interface),
+              subInterface(o.subInterface),
+              relocType(o.relocType)
+        {
+        }
 
-        RelocEntry(NvS16 a, NvU64 o, NvU32 i, NvU32 s, NvU8 r) :
-            addressListId(a),
-            writeId(0), // invalid
-            offset(o),
-            interface(i),
-            subInterface(s),
-            relocType(r) { }
+        RelocEntry(NvS16 a, NvU64 o, NvU32 i, NvU32 s, NvU8 r)
+            : addressListId(a),
+              writeId(0), // invalid
+              offset(o),
+              interface(i),
+              subInterface(s),
+              relocType(r)
+        {
+        }
 
-        RelocEntry(NvS16 a, NvS16 w, NvU64 o, NvU32 i, NvU32 s, NvU8 r) :
-            addressListId(a),
-            writeId(w),
-            offset(o),
-            interface(i),
-            subInterface(s),
-            relocType(r) { }
+        RelocEntry(NvS16 a, NvS16 w, NvU64 o, NvU32 i, NvU32 s, NvU8 r)
+            : addressListId(a),
+              writeId(w),
+              offset(o),
+              interface(i),
+              subInterface(s),
+              relocType(r)
+        {
+        }
     };
 
     struct Blob
@@ -300,17 +367,21 @@ public:
         NvU32 subInterface;
         Version version;
 
-        Blob() :
-            size(0),
-            interface(Interface_NONE),
-            subInterface(0) { }
+        Blob()
+            : size(0),
+              interface(Interface_NONE),
+              subInterface(0)
+        {
+        }
 
-        Blob(const std::string &n, NvU64 s, Interface i, NvU32 si, Version v) :
-            name(n),
-            size(s),
-            interface(i),
-            subInterface(si),
-            version(v) { }
+        Blob(const std::string& n, NvU64 s, Interface i, NvU32 si, Version v)
+            : name(n),
+              size(s),
+              interface(i),
+              subInterface(si),
+              version(v)
+        {
+        }
     };
 
     virtual std::string getName() const = 0;
@@ -330,18 +401,18 @@ public:
     virtual int getNumTensorDescListEntries() const = 0;
     virtual TensorDescListEntry getTensorDescListEntry(NvU16 i) const = 0;
 
-    virtual NvDlaError getNetworkDataType(DataType::UnderlyingType *) const = 0;
+    virtual NvDlaError getNetworkDataType(DataType::UnderlyingType*) const = 0;
 
-    virtual NvDlaError getNumInputTensors(int *) const = 0;
-    virtual NvDlaError getInputTensorDesc(NvU16 id, ILoadable::TensorDescListEntry *) const = 0;
+    virtual NvDlaError getNumInputTensors(int*) const = 0;
+    virtual NvDlaError getInputTensorDesc(NvU16 id, ILoadable::TensorDescListEntry*) const = 0;
 
-    virtual NvDlaError getNumOutputTensors(int *) const = 0;
-    virtual NvDlaError getOutputTensorDesc(NvU16 id, ILoadable::TensorDescListEntry *) const = 0;
+    virtual NvDlaError getNumOutputTensors(int*) const = 0;
+    virtual NvDlaError getOutputTensorDesc(NvU16 id, ILoadable::TensorDescListEntry*) const = 0;
 
 protected:
     ILoadable();
     virtual ~ILoadable();
 };
 
-} // nvdla
+} // namespace nvdla
 #endif // NVDLA_I_LOADABLE_H

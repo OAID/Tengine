@@ -49,8 +49,8 @@ struct NvDlaBuddyAllocClass
 {
     // static methods
     NvDlaError (*construct)(NvDlaBuddyAllocInst* self,
-            const void* poolData, NvU32 poolSize,
-            NvU8 minElementSizeLog2);
+                            const void* poolData, NvU32 poolSize,
+                            NvU8 minElementSizeLog2);
     NvDlaError (*destruct)(NvDlaBuddyAllocInst* self);
 
     void* (*allocate)(NvDlaBuddyAllocInst* self, NvU32 size);
@@ -73,7 +73,6 @@ struct NvDlaBuddyAllocInst
     // debug info
     //NvDlaBitBinaryTree* allocData;
 };
-
 
 extern const NvDlaBuddyAllocClass NvDlaBuddyAlloc;
 

@@ -1,5 +1,5 @@
 // Tencent is pleased to support the open source community by making RapidJSON available.
-// 
+//
 // Copyright (C) 2015 THL A29 Limited, a Tencent company, and Milo Yip. All rights reserved.
 //
 // Licensed under the MIT License (the "License"); you may not use this file except
@@ -7,9 +7,9 @@
 //
 // http://opensource.org/licenses/MIT
 //
-// Unless required by applicable law or agreed to in writing, software distributed 
-// under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
-// CONDITIONS OF ANY KIND, either express or implied. See the License for the 
+// Unless required by applicable law or agreed to in writing, software distributed
+// under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+// CONDITIONS OF ANY KIND, either express or implied. See the License for the
 // specific language governing permissions and limitations under the License.
 
 #ifndef RAPIDJSON_ISTREAMWRAPPER_H_
@@ -45,21 +45,28 @@ RAPIDJSON_NAMESPACE_BEGIN
 
     \tparam StreamType Class derived from \c std::basic_istream.
 */
-   
-template <typename StreamType>
-class BasicIStreamWrapper {
+
+template<typename StreamType>
+class BasicIStreamWrapper
+{
 public:
     typedef typename StreamType::char_type Ch;
-    BasicIStreamWrapper(StreamType& stream) : stream_(stream), count_(), peekBuffer_() {}
+    BasicIStreamWrapper(StreamType& stream)
+        : stream_(stream), count_(), peekBuffer_()
+    {
+    }
 
-    Ch Peek() const { 
+    Ch Peek() const
+    {
         typename StreamType::int_type c = stream_.peek();
         return RAPIDJSON_LIKELY(c != StreamType::traits_type::eof()) ? static_cast<Ch>(c) : static_cast<Ch>('\0');
     }
 
-    Ch Take() { 
+    Ch Take()
+    {
         typename StreamType::int_type c = stream_.get();
-        if (RAPIDJSON_LIKELY(c != StreamType::traits_type::eof())) {
+        if (RAPIDJSON_LIKELY(c != StreamType::traits_type::eof()))
+        {
             count_++;
             return static_cast<Ch>(c);
         }
@@ -68,21 +75,41 @@ public:
     }
 
     // tellg() may return -1 when failed. So we count by ourself.
-    size_t Tell() const { return count_; }
+    size_t Tell() const
+    {
+        return count_;
+    }
 
-    Ch* PutBegin() { RAPIDJSON_ASSERT(false); return 0; }
-    void Put(Ch) { RAPIDJSON_ASSERT(false); }
-    void Flush() { RAPIDJSON_ASSERT(false); }
-    size_t PutEnd(Ch*) { RAPIDJSON_ASSERT(false); return 0; }
+    Ch* PutBegin()
+    {
+        RAPIDJSON_ASSERT(false);
+        return 0;
+    }
+    void Put(Ch)
+    {
+        RAPIDJSON_ASSERT(false);
+    }
+    void Flush()
+    {
+        RAPIDJSON_ASSERT(false);
+    }
+    size_t PutEnd(Ch*)
+    {
+        RAPIDJSON_ASSERT(false);
+        return 0;
+    }
 
     // For encoding detection only.
-    const Ch* Peek4() const {
+    const Ch* Peek4() const
+    {
         RAPIDJSON_ASSERT(sizeof(Ch) == 1); // Only usable for byte stream.
         int i;
         bool hasError = false;
-        for (i = 0; i < 4; ++i) {
+        for (i = 0; i < 4; ++i)
+        {
             typename StreamType::int_type c = stream_.get();
-            if (c == StreamType::traits_type::eof()) {
+            if (c == StreamType::traits_type::eof())
+            {
                 hasError = true;
                 stream_.clear();
                 break;
@@ -99,7 +126,7 @@ private:
     BasicIStreamWrapper& operator=(const BasicIStreamWrapper&);
 
     StreamType& stream_;
-    size_t count_;  //!< Number of characters read. Note:
+    size_t count_; //!< Number of characters read. Note:
     mutable Ch peekBuffer_[4];
 };
 

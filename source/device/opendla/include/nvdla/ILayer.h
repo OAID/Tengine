@@ -31,9 +31,7 @@
 
 #include "nvdla/IType.h"
 
-
-namespace nvdla
-{
+namespace nvdla {
 
 class INetwork;
 class ITensor;
@@ -41,51 +39,50 @@ class ITensor;
 class ILayer
 {
 public:
-
     virtual Dims4 getOutputDimensions() const = 0;
 
-    virtual void        setName(const char* name) = 0;
+    virtual void setName(const char* name) = 0;
     virtual const char* getName() const = 0;
 
     virtual LayerType getType() const = 0;
 
-    virtual int      getNumInputs() const = 0;
-    virtual ITensor* getInput(int i)  const = 0;
+    virtual int getNumInputs() const = 0;
+    virtual ITensor* getInput(int i) const = 0;
 
-    virtual int      getNumOutputs() const = 0;
+    virtual int getNumOutputs() const = 0;
     virtual ITensor* getOutput(int i) const = 0;
 
-    virtual void  setKernelSize(Dims2 kernelSize) = 0;
+    virtual void setKernelSize(Dims2 kernelSize) = 0;
     virtual Dims2 getKernelSize() const = 0;
 
     virtual void setNumOutputMaps(int numOutputMaps) = 0;
-    virtual int  getNumOutputMaps() const = 0;
+    virtual int getNumOutputMaps() const = 0;
 
-    virtual void  setStride(Dims2 stride) = 0;
+    virtual void setStride(Dims2 stride) = 0;
     virtual Dims2 getStride() const = 0;
 
-    virtual  Dims2 getDilation() const = 0;
-    virtual  void  setDilation(Dims2) = 0;
+    virtual Dims2 getDilation() const = 0;
+    virtual void setDilation(Dims2) = 0;
 
     virtual int getPaddingValue() const = 0;
     virtual void setPaddingValue(int) = 0;
 
     virtual Dims2 getBottomRightPadding() const = 0;
-    virtual void  setBottomRightPadding(Dims2) = 0;
+    virtual void setBottomRightPadding(Dims2) = 0;
 
     virtual Dims2 getTopLeftPadding() const = 0;
-    virtual void  setTopLeftPadding(Dims2) = 0;
+    virtual void setTopLeftPadding(Dims2) = 0;
 
     virtual void setNumGroups(int numGroups) = 0;
-    virtual int  getNumGroups() const = 0;
+    virtual int getNumGroups() const = 0;
 
-    virtual void    setKernelWeights(Weights weights) = 0;
+    virtual void setKernelWeights(Weights weights) = 0;
     virtual Weights getKernelWeights() const = 0;
-    virtual bool    hasKernelWeights() = 0;
+    virtual bool hasKernelWeights() = 0;
 
-    virtual void    setBiasWeights(Weights weights) = 0;
+    virtual void setBiasWeights(Weights weights) = 0;
     virtual Weights getBiasWeights() const = 0;
-    virtual bool    hasBiasWeights() = 0;
+    virtual bool hasBiasWeights() = 0;
 
     virtual NvDlaError supportsPrecision(nvdla::DataType compPrec) = 0;
     virtual NvDlaError setComputePrecision(nvdla::DataType compPrec) = 0;
@@ -95,12 +92,9 @@ protected:
     virtual ~ILayer();
 };
 
-
-
 class IConvolutionLayer : public virtual ILayer
 {
 public:
-
     class Parameters
     {
     public:
@@ -118,36 +112,36 @@ public:
     };
 
     virtual Dims2 getKernelSize() const = 0;
-    virtual void  setKernelSize(Dims2) = 0;
+    virtual void setKernelSize(Dims2) = 0;
 
     virtual int getPaddingValue() const = 0;
     virtual void setPaddingValue(int) = 0;
 
     virtual Dims2 getBottomRightPadding() const = 0;
-    virtual void  setBottomRightPadding(Dims2) = 0;
+    virtual void setBottomRightPadding(Dims2) = 0;
 
     virtual Dims2 getTopLeftPadding() const = 0;
-    virtual void  setTopLeftPadding(Dims2) = 0;
+    virtual void setTopLeftPadding(Dims2) = 0;
 
-    virtual  Dims2 getStride() const = 0;
-    virtual  void  setStride(Dims2) = 0;
+    virtual Dims2 getStride() const = 0;
+    virtual void setStride(Dims2) = 0;
 
-    virtual  Dims2 getDilation() const = 0;
-    virtual  void  setDilation(Dims2) = 0;
+    virtual Dims2 getDilation() const = 0;
+    virtual void setDilation(Dims2) = 0;
 
-    virtual int  getNumGroups() const = 0;
+    virtual int getNumGroups() const = 0;
     virtual void setNumGroups(int) = 0;
 
-    virtual int  getNumOutputMaps() const = 0;
+    virtual int getNumOutputMaps() const = 0;
     virtual void setNumOutputMaps(int) = 0;
 
     virtual Weights getKernelWeights() const = 0;
-    virtual void    setKernelWeights(Weights) = 0;
-    virtual bool    hasKernelWeights() = 0;
+    virtual void setKernelWeights(Weights) = 0;
+    virtual bool hasKernelWeights() = 0;
 
     virtual Weights getBiasWeights() const = 0;
-    virtual void    setBiasWeights(Weights) = 0;
-    virtual bool    hasBiasWeights() = 0;
+    virtual void setBiasWeights(Weights) = 0;
+    virtual bool hasBiasWeights() = 0;
 
     virtual BiasMode getBiasMode() const = 0;
     virtual void setBiasMode(BiasMode) = 0;
@@ -162,7 +156,6 @@ protected:
 class IFullyConnectedLayer : public virtual ILayer
 {
 public:
-
     class Parameters
     {
     public:
@@ -173,23 +166,23 @@ public:
         BiasMode biasMode;
     };
 
-
     virtual int getNumOutputChannels() const = 0;
     virtual void setNumOutputChannels(int) = 0;
 
     virtual Weights getKernelWeights() const = 0;
-    virtual void    setKernelWeights(Weights) = 0;
-    virtual bool    hasKernelWeights() = 0;
+    virtual void setKernelWeights(Weights) = 0;
+    virtual bool hasKernelWeights() = 0;
 
     virtual Weights getBiasWeights() const = 0;
-    virtual void    setBiasWeights(Weights) = 0;
-    virtual bool    hasBiasWeights() = 0;
+    virtual void setBiasWeights(Weights) = 0;
+    virtual bool hasBiasWeights() = 0;
 
     virtual BiasMode getBiasMode() const = 0;
     virtual void setBiasMode(BiasMode) = 0;
 
     //    virtual Dims4 getOutputDimensions() const = 0;
     virtual const Parameters& getParams() const = 0;
+
 protected:
     virtual ~IFullyConnectedLayer();
 };
@@ -208,6 +201,7 @@ public:
 
     //    virtual Dims4 getOutputDimensions() const = 0;
     virtual const Parameters& getParams() const = 0;
+
 protected:
     virtual ~IActivationLayer();
 };
@@ -215,7 +209,6 @@ protected:
 class IPoolingLayer : public virtual ILayer
 {
 public:
-
     class Parameters
     {
     public:
@@ -230,16 +223,16 @@ public:
     virtual void setPoolingType(PoolingType) = 0;
 
     virtual Dims2 getWindowSize() const = 0;
-    virtual void  setWindowSize(Dims2) = 0;
+    virtual void setWindowSize(Dims2) = 0;
 
     virtual Dims2 getBottomRightPadding() const = 0;
-    virtual void  setBottomRightPadding(Dims2) = 0;
+    virtual void setBottomRightPadding(Dims2) = 0;
 
     virtual Dims2 getTopLeftPadding() const = 0;
-    virtual void  setTopLeftPadding(Dims2) = 0;
+    virtual void setTopLeftPadding(Dims2) = 0;
 
-    virtual  Dims2 getStride() const = 0;
-    virtual  void  setStride(Dims2) = 0;
+    virtual Dims2 getStride() const = 0;
+    virtual void setStride(Dims2) = 0;
 
     //    virtual Dims4 getOutputDimensions() const = 0;
     virtual const Parameters& getParams() const = 0;
@@ -248,28 +241,45 @@ protected:
     virtual ~IPoolingLayer();
 };
 
-
 class ILRNLayer : public virtual ILayer
 {
 public:
-
-
     class Parameters
     {
     public:
-
         int windowSize;
         float alpha;
         float beta;
         float k;
 
-        static inline int minWindowSize() { return 1; }
-        static inline int maxWindowSize() { return 16; }
-        static inline float maxAbsAlpha() { return 1e20f; }
-        static inline float minBeta() { return 0.01f; }
-        static inline float maxBeta() { return 1e5f; }
-        static inline float minK() { return 1e-5f; }
-        static inline float maxK() { return 1e10f; }
+        static inline int minWindowSize()
+        {
+            return 1;
+        }
+        static inline int maxWindowSize()
+        {
+            return 16;
+        }
+        static inline float maxAbsAlpha()
+        {
+            return 1e20f;
+        }
+        static inline float minBeta()
+        {
+            return 0.01f;
+        }
+        static inline float maxBeta()
+        {
+            return 1e5f;
+        }
+        static inline float minK()
+        {
+            return 1e-5f;
+        }
+        static inline float maxK()
+        {
+            return 1e10f;
+        }
     };
 
     virtual float getAlpha() const = 0;
@@ -292,11 +302,9 @@ protected:
     virtual ~ILRNLayer();
 };
 
-
 class IScaleLayer : public virtual ILayer
 {
 public:
-
     class Parameters
     {
     public:
@@ -320,6 +328,7 @@ public:
 
     //    virtual Dims4 getOutputDimensions()  const = 0;
     virtual const Parameters& getParams() const = 0;
+
 protected:
     virtual ~IScaleLayer();
 };
@@ -327,7 +336,6 @@ protected:
 class IBatchNormLayer : public virtual ILayer
 {
 public:
-
     class Parameters
     {
     public:
@@ -350,15 +358,14 @@ public:
     virtual void setMode(BatchNormMode) = 0;
 
     virtual const Parameters& getParams() const = 0;
+
 protected:
     virtual ~IBatchNormLayer();
 };
 
-
 class ISoftMaxLayer : public virtual ILayer
 {
 public:
-
     class Parameters
     {
     public:
@@ -366,10 +373,10 @@ public:
 
     //    virtual Dims4 getOutputDimensions()  const = 0;
     virtual const Parameters& getParams() const = 0;
+
 protected:
     virtual ~ISoftMaxLayer();
 };
-
 
 class IConcatenationLayer : public virtual ILayer
 {
@@ -381,10 +388,10 @@ public:
 
     //    virtual Dims4 getOutputDimensions() const = 0;
     virtual const Parameters& getParams() const = 0;
+
 protected:
     virtual ~IConcatenationLayer();
 };
-
 
 class ISliceLayer : public virtual ILayer
 {
@@ -396,15 +403,14 @@ public:
 
     //    virtual Dims4 getOutputDimensions() const = 0;
     virtual const Parameters& getParams() const = 0;
+
 protected:
     virtual ~ISliceLayer();
 };
 
-
 class IDeconvolutionLayer : public virtual ILayer
 {
 public:
-
     class Parameters
     {
     public:
@@ -421,48 +427,47 @@ public:
         BiasMode biasMode;
     };
 
-
     virtual Dims2 getKernelSize() const = 0;
-    virtual void  setKernelSize(Dims2) = 0;
+    virtual void setKernelSize(Dims2) = 0;
 
     virtual int getPaddingValue() const = 0;
     virtual void setPaddingValue(int) = 0;
 
     virtual Dims2 getBottomRightPadding() const = 0;
-    virtual void  setBottomRightPadding(Dims2) = 0;
+    virtual void setBottomRightPadding(Dims2) = 0;
 
     virtual Dims2 getTopLeftPadding() const = 0;
-    virtual void  setTopLeftPadding(Dims2) = 0;
+    virtual void setTopLeftPadding(Dims2) = 0;
 
-    virtual  Dims2 getStride() const = 0;
-    virtual  void  setStride(Dims2) = 0;
+    virtual Dims2 getStride() const = 0;
+    virtual void setStride(Dims2) = 0;
 
-    virtual  Dims2 getDilation() const = 0;
-    virtual  void  setDilation(Dims2) = 0;
+    virtual Dims2 getDilation() const = 0;
+    virtual void setDilation(Dims2) = 0;
 
-    virtual int  getNumGroups() const = 0;
+    virtual int getNumGroups() const = 0;
     virtual void setNumGroups(int) = 0;
 
-    virtual int  getNumOutputMaps() const = 0;
+    virtual int getNumOutputMaps() const = 0;
     virtual void setNumOutputMaps(int) = 0;
 
     virtual Weights getKernelWeights() const = 0;
-    virtual void    setKernelWeights(Weights) = 0;
-    virtual bool    hasKernelWeights() = 0;
+    virtual void setKernelWeights(Weights) = 0;
+    virtual bool hasKernelWeights() = 0;
 
     virtual Weights getBiasWeights() const = 0;
-    virtual void    setBiasWeights(Weights) = 0;
-    virtual bool    hasBiasWeights() = 0;
+    virtual void setBiasWeights(Weights) = 0;
+    virtual bool hasBiasWeights() = 0;
 
     virtual BiasMode getBiasMode() const = 0;
     virtual void setBiasMode(BiasMode) = 0;
 
     //    virtual Dims4 getOutputDimensions() const = 0;
     virtual const Parameters& getParams() const = 0;
+
 protected:
     virtual ~IDeconvolutionLayer();
 };
-
 
 class IElementWiseLayer : public virtual ILayer
 {
@@ -478,10 +483,10 @@ public:
 
     //    virtual Dims4 getOutputDimensions() const = 0;
     virtual const Parameters& getParams() const = 0;
+
 protected:
     virtual ~IElementWiseLayer();
 };
-
 
 class IInputLayer : public virtual ILayer
 {
@@ -497,12 +502,10 @@ public:
 
     // virtual Dims4 getOutputDimensions() const = 0;
     virtual const Parameters& getParams() const = 0;
+
 protected:
     virtual ~IInputLayer();
 };
 
-
-
-
-}
+} // namespace nvdla
 #endif // NVDLA_I_LAYER_H

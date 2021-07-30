@@ -29,21 +29,17 @@
 #ifndef NVDLA_PRIV_TEST_POINT_PARAMETER_H
 #define NVDLA_PRIV_TEST_POINT_PARAMETER_H
 
-
 #include <vector>
 
 #include "dlatypes.h"
-
 
 #define GEN_ENUM(X, N) X = N,
 #define GEN_STR(X, N)  #X,
 
 #include "TestPointParameterEnum.h"
 
-namespace nvdla
-{
-namespace priv
-{
+namespace nvdla {
+namespace priv {
 
 //
 // A "setting" is a specific value as applied to a given "parameter".
@@ -54,7 +50,7 @@ namespace priv
 // sequences beginning at 0.  E.g. 0, 1, 2... not flags (0, 1, 2, 4)
 // or booleans (flags)
 //
-template <typename EnumClass, typename UnderlyingType = NvU8 >
+template<typename EnumClass, typename UnderlyingType = NvU8>
 class TestPointEnumParameter
 {
 public:
@@ -62,152 +58,207 @@ public:
 
 protected:
     underlying_type m_e;
-    TestPointEnumParameter(underlying_type v) : m_e(v) { }
+    TestPointEnumParameter(underlying_type v)
+        : m_e(v)
+    {
+    }
 
-    static const char * s_c_str;          // class name str
-    static const char * const s_c_strs[]; // class enum strs
+    static const char* s_c_str;          // class name str
+    static const char* const s_c_strs[]; // class enum strs
     static const size_t s_num_elements;
 
 public:
-    static const char * parameter_name_c_str() { return s_c_str; }
-    const char *c_str() { return s_c_strs[ m_e ]; }
+    static const char* parameter_name_c_str()
+    {
+        return s_c_str;
+    }
+    const char* c_str()
+    {
+        return s_c_strs[m_e];
+    }
 
-    underlying_type v() { return m_e; }
-    EnumClass e()       { return EnumClass(m_e); }
-    bool valid() { return m_e < s_num_elements; }
+    underlying_type v()
+    {
+        return m_e;
+    }
+    EnumClass e()
+    {
+        return EnumClass(m_e);
+    }
+    bool valid()
+    {
+        return m_e < s_num_elements;
+    }
 
-    TestPointEnumParameter(EnumClass p) : m_e(p) { }
+    TestPointEnumParameter(EnumClass p)
+        : m_e(p)
+    {
+    }
 };
 
-class BatchMode {
+class BatchMode
+{
 public:
-    enum Enum {
+    enum Enum
+    {
         BATCH_MODE_ENUMS(GEN_ENUM)
     };
 };
 typedef TestPointEnumParameter<BatchMode::Enum> BatchModeParameter;
 
-class CVSRamSize {
+class CVSRamSize
+{
 public:
-    enum Enum {
+    enum Enum
+    {
         CVSRAM_SIZE_ENUMS(GEN_ENUM)
     };
 };
 typedef TestPointEnumParameter<CVSRamSize::Enum> CVSRamSizeParameter;
 
-class HWLayerTuning {
+class HWLayerTuning
+{
 public:
-    enum Enum {
+    enum Enum
+    {
         HW_LAYER_TUNING_ENUMS(GEN_ENUM)
     };
 };
 
-class MappingWeights {
+class MappingWeights
+{
 public:
-    enum Enum {
+    enum Enum
+    {
         MAPPING_WEIGHTS_ENUMS(GEN_ENUM)
     };
 };
 
-class Padding {
+class Padding
+{
 public:
-    enum Enum {
+    enum Enum
+    {
         PADDING_ENUMS(GEN_ENUM)
     };
 };
 
-class OutputSequence {
+class OutputSequence
+{
 public:
-    enum Enum {
+    enum Enum
+    {
         OUTPUT_SEQUENCE_ENUMS(GEN_ENUM)
     };
 };
 
-class Dilation {
+class Dilation
+{
 public:
-    enum Enum {
+    enum Enum
+    {
         DILATION_ENUMS(GEN_ENUM)
     };
 };
 
-class WeightDensity {
+class WeightDensity
+{
 public:
-    enum Enum {
+    enum Enum
+    {
         WEIGHT_DENSITY_ENUMS(GEN_ENUM)
     };
 };
 
-class FeatureDensity {
+class FeatureDensity
+{
 public:
-    enum Enum {
+    enum Enum
+    {
         FEATURE_DENSITY_ENUMS(GEN_ENUM)
     };
 };
 
-class ChannelExtension {
+class ChannelExtension
+{
 public:
-    enum Enum {
+    enum Enum
+    {
         CHANNEL_EXTENSION_ENUMS(GEN_ENUM)
     };
 };
 
-class ConvMACRedundancy {
+class ConvMACRedundancy
+{
 public:
-    enum Enum {
+    enum Enum
+    {
         CONV_MAC_REDUNDANCY_ENUMS(GEN_ENUM)
     };
 };
 
-
-class ConvBufBankMgmt {
+class ConvBufBankMgmt
+{
 public:
-    enum Enum {
+    enum Enum
+    {
         CONV_BUF_BANK_MGMT_ENUMS(GEN_ENUM)
     };
 };
 
-class PDPOpMode {
+class PDPOpMode
+{
 public:
-    enum Enum {
+    enum Enum
+    {
         PDP_OP_MODE_ENUMS(GEN_ENUM)
     };
 };
 
-class  OffFlyingOpMode {
+class OffFlyingOpMode
+{
 public:
-    enum Enum {
+    enum Enum
+    {
         OFF_FLYING_OP_MODE_ENUMS(GEN_ENUM)
     };
 };
 
-class SDPOpMode {
+class SDPOpMode
+{
 public:
-    enum Enum {
+    enum Enum
+    {
         SDP_OP_MODE_ENUMS(GEN_ENUM)
     };
 };
 
-class AXIFSched {
+class AXIFSched
+{
 public:
-    enum Enum {
+    enum Enum
+    {
         AXIF_SCHED_ENUMS(GEN_ENUM)
     };
 };
 
-class PixelDataFormat {
+class PixelDataFormat
+{
 public:
-    enum Enum {
+    enum Enum
+    {
         PIXEL_DATA_FORMAT_ENUMS(GEN_ENUM)
     };
 };
 
-class NetworkForks {
+class NetworkForks
+{
 public:
-    enum Enum {
+    enum Enum
+    {
         NETWORK_FORKS_ENUMS(GEN_ENUM)
     };
 };
-
 
 typedef TestPointEnumParameter<HWLayerTuning::Enum> HWLayerTuningParameter;
 typedef TestPointEnumParameter<MappingWeights::Enum> MappingWeightsParameter;
@@ -232,7 +283,8 @@ typedef TestPointEnumParameter<NetworkForks::Enum> NetworkForksParameter;
 //    dla1 - no cvsram
 //
 
-class GlobalParameters {
+class GlobalParameters
+{
 public:
     CVSRamSizeParameter m_cvsram_size[2];
 
@@ -240,40 +292,36 @@ public:
 };
 
 // these show up in the description of the network somewhere
-class LayerSettings { // i.e. move these to the network layer?
+class LayerSettings
+{ // i.e. move these to the network layer?
 public:
     //    PaddingParameter           m_padding;
-    DilationParameter          m_dilation;
-    PixelDataFormatParameter   m_pixel_data_format;
+    DilationParameter m_dilation;
+    PixelDataFormatParameter m_pixel_data_format;
 };
 
-class LocalParameters {
+class LocalParameters
+{
 public:
-    BatchModeParameter         m_batch_mode;
-    PaddingParameter           m_padding;     // packed vs. padded stride or alignment choices instead?
-    CVSRamSizeParameter        m_cvsram_size; // discrete set of choices
-    ChannelExtensionParameter  m_channel_extension;
-    HWLayerTuningParameter     m_hw_layer_tuning;
-    MappingWeightsParameter    m_mapping_weights;
-    OutputSequenceParameter    m_output_sequence;
-    WeightDensityParameter     m_weight_density;
-    FeatureDensityParameter    m_feature_density;
+    BatchModeParameter m_batch_mode;
+    PaddingParameter m_padding;        // packed vs. padded stride or alignment choices instead?
+    CVSRamSizeParameter m_cvsram_size; // discrete set of choices
+    ChannelExtensionParameter m_channel_extension;
+    HWLayerTuningParameter m_hw_layer_tuning;
+    MappingWeightsParameter m_mapping_weights;
+    OutputSequenceParameter m_output_sequence;
+    WeightDensityParameter m_weight_density;
+    FeatureDensityParameter m_feature_density;
     ConvMACRedundancyParameter m_conv_mac_redundancy;
-    ConvBufBankMgmtParameter   m_conv_buf_bank_mgmt;
-    PDPOpModeParameter         m_pdp_op_mode;
-    OffFlyingOpModeParameter   m_off_flying_op_mode;
-    SDPOpModeParameter         m_sdp_op_mode;
-    AXIFSchedParameter         m_axif_sched;
-    NetworkForksParameter      m_network_forks;
+    ConvBufBankMgmtParameter m_conv_buf_bank_mgmt;
+    PDPOpModeParameter m_pdp_op_mode;
+    OffFlyingOpModeParameter m_off_flying_op_mode;
+    SDPOpModeParameter m_sdp_op_mode;
+    AXIFSchedParameter m_axif_sched;
+    NetworkForksParameter m_network_forks;
 };
 
-
-
-
-
-} // nvdla::priv
-} // nvdla
-
-
+} // namespace priv
+} // namespace nvdla
 
 #endif // NVDLA_PRIV_TEST_POINT_PARAMETER_H

@@ -34,34 +34,29 @@
 
 #include "Memory.h"
 #include "Network.h"
-#include "ResourceEnums.h"// for memory enums
+#include "ResourceEnums.h" // for memory enums
 #include "Surface.h"
 #include "Type.h"
 
+namespace nvdla {
 
-namespace nvdla
-{
+namespace priv {
 
-namespace priv
-{
-
-namespace memory
-{
+namespace memory {
 
 class Pool;
 class TensorBufferDesc;
 
 class DLAResourceManager
 {
-
 public:
-    DLAResourceManager() :
-        m_next_buffer_id(0),
-        m_next_surface_desc_id(0)
+    DLAResourceManager()
+        : m_next_buffer_id(0),
+          m_next_surface_desc_id(0)
     {
-        m_pools = std::vector< Pool >(PoolType::num_elements(), Pool());
+        m_pools = std::vector<Pool>(PoolType::num_elements(), Pool());
     }
-    DLAResourceManager(const DLAResourceManager &o);
+    DLAResourceManager(const DLAResourceManager& o);
     ~DLAResourceManager();
 
     std::string nextSurfaceDescId()
@@ -74,9 +69,12 @@ public:
         return std::string("tb-") + toString(m_next_buffer_id++);
     }
 
-    std::vector< Pool > * memoryPools() { return &m_pools; }
-    std::vector< TensorBufferDesc *> getBufferDescs();
-    std::vector< surface::TensorSurfaceDesc *> getSurfaceDescs();
+    std::vector<Pool>* memoryPools()
+    {
+        return &m_pools;
+    }
+    std::vector<TensorBufferDesc*> getBufferDescs();
+    std::vector<surface::TensorSurfaceDesc*> getSurfaceDescs();
 
     /* TENSOR-BUFFER MANAGEMENT */
     // register a new tensor buffer desc and add it to the directory
@@ -86,7 +84,7 @@ public:
 
     // unregister a tensor buffer desc and remove it from the directory
     // and the memory pool
-    bool unregTensorBufferDesc(TensorBufferDesc *);
+    bool unregTensorBufferDesc(TensorBufferDesc*);
 
     // reserve size #bytes for a registered tensor buffer desc
     // return -1 on error
@@ -104,36 +102,38 @@ public:
     surface::TensorSurfaceDesc* regTensorSurfaceDesc(TensorType type, NvU16 numBatches);
 
     // unregister a tensor surface desc and remove it from the directory
-    bool unregTensorSurfaceDesc(surface::TensorSurfaceDesc *);
+    bool unregTensorSurfaceDesc(surface::TensorSurfaceDesc*);
 
 protected:
+    std::vector<Pool> m_pools;
+    std::string m_name;
 
-    std::vector< Pool >  m_pools;
-    std::string   m_name;
-
-    int           m_next_buffer_id;
-    int           m_next_surface_desc_id;
+    int m_next_buffer_id;
+    int m_next_surface_desc_id;
 
     // for keeping directories ordered by (string) id
-    template <class Tp> struct CompareById
+    template<class Tp>
+    struct CompareById
     {
-        bool operator() (const Tp &lhs, const Tp &rhs) const { return lhs->id()<rhs->id(); }
+        bool operator()(const Tp& lhs, const Tp& rhs) const
+        {
+            return lhs->id() < rhs->id();
+        }
     };
 
     // just sets with specific ordering
-    typedef std::set< surface::TensorSurfaceDesc *, CompareById<surface::TensorSurfaceDesc *> > TensorSurfaceDirectory;
-    typedef std::set<           TensorBufferDesc *, CompareById<          TensorBufferDesc *> > TensorBufferDirectory;
+    typedef std::set<surface::TensorSurfaceDesc*, CompareById<surface::TensorSurfaceDesc*> > TensorSurfaceDirectory;
+    typedef std::set<TensorBufferDesc*, CompareById<TensorBufferDesc*> > TensorBufferDirectory;
 
     TensorBufferDirectory m_buffer_desc_directory;
     TensorSurfaceDirectory m_surface_desc_directory;
 
     typedef TensorSurfaceDirectory::iterator TensorSurfaceDirectoryIter;
     typedef TensorBufferDirectory::iterator TensorBufferDirectoryIter;
-
 };
 
-} // nvdla::memory
-} // nvdla::priv
-} // nvdla
+} // namespace memory
+} // namespace priv
+} // namespace nvdla
 
 #endif // NVDLA_PRIV_MEMORY_MANAGER_H

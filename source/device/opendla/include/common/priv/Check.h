@@ -34,11 +34,9 @@
 
 #include <stdint.h>
 
-namespace nvdla
-{
+namespace nvdla {
 
-namespace priv
-{
+namespace priv {
 
 class Logger
 {
@@ -46,9 +44,9 @@ public:
     enum Severity
     {
         INTERNAL_ERROR = 0,
-        ERROR          = 1,
-        WARNING        = 2,
-        INFO           = 3
+        ERROR = 1,
+        WARNING = 2,
+        INFO = 3
     };
     virtual void log(Severity severity, const char* msg);
     Logger();
@@ -75,8 +73,10 @@ class LogStream : public std::ostream
     };
 
     Buf buffer;
+
 public:
-    LogStream() : std::ostream(&buffer)
+    LogStream()
+        : std::ostream(&buffer)
     {
     }
 };
@@ -86,25 +86,23 @@ extern LogStream<Logger::ERROR> gLogError;
 extern LogStream<Logger::WARNING> gLogWarning;
 extern LogStream<Logger::INFO> gLogInfo;
 
-} // nvdla::priv
+} // namespace priv
 
-} // nvdla
-
+} // namespace nvdla
 
 //
 // "using" in headers is typically a bad idea.
 // but here it's internal for a good cause.
 //
-using nvdla::priv::gLogInternalError;
 using nvdla::priv::gLogError;
-using nvdla::priv::gLogWarning;
 using nvdla::priv::gLogInfo;
-
+using nvdla::priv::gLogInternalError;
+using nvdla::priv::gLogWarning;
 
 #ifdef _MSC_VER
-#    define FN_NAME __FUNCTION__
+#define FN_NAME __FUNCTION__
 #else
-#    define FN_NAME __func__
+#define FN_NAME __func__
 #endif
 
 #endif // NVDLA_PRIV_CHECK_H

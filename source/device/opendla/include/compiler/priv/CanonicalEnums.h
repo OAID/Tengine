@@ -30,20 +30,18 @@
 #define NVDLA_PRIV_CANONICAL_ENUMS_H
 
 // CanonicalAST::OperationType
-#define CANONICAL_OPERATION_TYPE_ENUMS(op) \
-    op(CONVOLUTION, 0U)                 \
-    op(FULLY_CONNECTED, 1U)             \
-    op(ACTIVATION, 2U)                  \
-    op(POOLING, 3U)                     \
-    op(LRN, 4U)                         \
-    op(SCALE, 5U)                       \
-    op(BATCH_NORM, 6U)                  \
-    op(SOFTMAX, 7U)                     \
-    op(CONCATENATION, 8U)               \
-    op(DECONVOLUTION, 9U)               \
-    op(ELEMENTWISE,   10U)              \
-    op(SPLIT, 11U)
+#define CANONICAL_OPERATION_TYPE_ENUMS(op)                       \
+    op(CONVOLUTION, 0U)                                          \
+        op(FULLY_CONNECTED, 1U)                                  \
+            op(ACTIVATION, 2U)                                   \
+                op(POOLING, 3U)                                  \
+                    op(LRN, 4U)                                  \
+                        op(SCALE, 5U)                            \
+                            op(BATCH_NORM, 6U)                   \
+                                op(SOFTMAX, 7U)                  \
+                                    op(CONCATENATION, 8U)        \
+                                        op(DECONVOLUTION, 9U)    \
+                                            op(ELEMENTWISE, 10U) \
+                                                op(SPLIT, 11U)
 
 #endif /* NVDLA_PRIV_CANONICAL_ENUMS_H */
-
-

@@ -36,14 +36,11 @@
 #include "nvdla/INetwork.h"
 #include "nvdla/ITensor.h"
 
-#define MAX_TENSOR_SIZE (1<<30)
+#define MAX_TENSOR_SIZE (1 << 30)
 
+namespace nvdla {
 
-namespace nvdla
-{
-
-namespace priv
-{
+namespace priv {
 
 class WisdomContainerEntry;
 
@@ -52,26 +49,26 @@ class Tensor;
 class TensorFactory
 {
 public:
-    typedef PrivPair<ITensor *, Tensor *> TensorPrivPair;
+    typedef PrivPair<ITensor*, Tensor*> TensorPrivPair;
 
     static TensorPrivPair newTensor();
 
-    static Tensor *priv(ITensor *);
-    static ITensor *i(Tensor *);
-    static ITensor *self(void *);
+    static Tensor* priv(ITensor*);
+    static ITensor* i(Tensor*);
+    static ITensor* self(void*);
 
-    static ITensor *deserializeFrom(WisdomContainerEntry *);
+    static ITensor* deserializeFrom(WisdomContainerEntry*);
 
 protected:
-    static BiMap<ITensor *, Tensor *> s_priv;
-    static BiMap<void *, ITensor *> s_self;
-    static ITensor *deserializeTensor(WisdomContainerEntry *);
+    static BiMap<ITensor*, Tensor*> s_priv;
+    static BiMap<void*, ITensor*> s_self;
+    static ITensor* deserializeTensor(WisdomContainerEntry*);
 };
 
-class Tensor  : public ITensor
+class Tensor : public ITensor
 {
 public: // externally facing
-    Tensor(INetwork * network, const std::string name);
+    Tensor(INetwork* network, const std::string name);
     virtual ~Tensor();
 
     virtual NvU16 getFactoryType() const;
@@ -86,27 +83,41 @@ public: // externally facing
     virtual bool isNetworkOutput() const;
 
     virtual DataFormat getDataFormat() const;
-    virtual void       setDataFormat(DataFormat);
+    virtual void setDataFormat(DataFormat);
 
     virtual DataType getDataType() const;
-    virtual void     setDataType(DataType);
+    virtual void setDataType(DataType);
 
     TensorType getTensorType() const;
-    void   setTensorType(TensorType);
+    void setTensorType(TensorType);
 
-    virtual INetwork *getNetwork() const;
+    virtual INetwork* getNetwork() const;
 
-    virtual Tensor *clone() { return new Tensor(*this); }
+    virtual Tensor* clone()
+    {
+        return new Tensor(*this);
+    }
 
     virtual NvDlaError setChannelDynamicRange(NvS32 chnlIndx, NvF32 min, NvF32 max);
     virtual NvDlaError setChannelOffset(NvS32 chnlIndx, NvF32 offset);
 
-    const std::vector<NvF32>& getChannelScales() const     { return mChnlScales; }
-    void setChannelScales(std::vector<NvF32> chnlScales)   { mChnlScales = chnlScales; }
+    const std::vector<NvF32>& getChannelScales() const
+    {
+        return mChnlScales;
+    }
+    void setChannelScales(std::vector<NvF32> chnlScales)
+    {
+        mChnlScales = chnlScales;
+    }
 
-    const std::vector<NvF32>& getChannelOffsets() const    { return mChnlOffsets; }
-    void setChannelOffsets(std::vector<NvF32> chnlOffsets) { mChnlOffsets = chnlOffsets; }
-
+    const std::vector<NvF32>& getChannelOffsets() const
+    {
+        return mChnlOffsets;
+    }
+    void setChannelOffsets(std::vector<NvF32> chnlOffsets)
+    {
+        mChnlOffsets = chnlOffsets;
+    }
 
 #if 0
     virtual ILayer *getProducerLayer()          const;
@@ -114,47 +125,43 @@ public: // externally facing
     virtual ILayer *getConsumerLayer(int index) const;
 #endif
 
-
 public: // internally facing
-    Tensor() :
-        mDimensions({0,0,0,0}),
-        mNetwork(NULL),
-        mName(""),
-        mDataFormat(DataFormat::UNKNOWN),
-        mDataType(DataType::UNKNOWN),
-        mTensorType(TensorType::kUNKNOWN)
-    { };
+    Tensor()
+        : mDimensions({0, 0, 0, 0}),
+          mNetwork(NULL),
+          mName(""),
+          mDataFormat(DataFormat::UNKNOWN),
+          mDataType(DataType::UNKNOWN),
+          mTensorType(TensorType::kUNKNOWN){};
 
-    void setNetwork(INetwork *network);
+    void setNetwork(INetwork* network);
     // void setName(const std::string name);
-    Tensor(const Tensor& other) :
-        mDimensions(other.mDimensions),
-        mNetwork(other.mNetwork),
-        mName(other.mName),
-        mDataFormat(other.mDataFormat),
-        mDataType(other.mDataType),
-        mTensorType(other.mTensorType),
-        mChnlScales(other.mChnlScales),
-        mChnlOffsets(other.mChnlOffsets)
-    { };
+    Tensor(const Tensor& other)
+        : mDimensions(other.mDimensions),
+          mNetwork(other.mNetwork),
+          mName(other.mName),
+          mDataFormat(other.mDataFormat),
+          mDataType(other.mDataType),
+          mTensorType(other.mTensorType),
+          mChnlScales(other.mChnlScales),
+          mChnlOffsets(other.mChnlOffsets){};
 
-    virtual bool serializeTo(WisdomContainerEntry *) const;
-    virtual bool deserializeFrom(WisdomContainerEntry *);
+    virtual bool serializeTo(WisdomContainerEntry*) const;
+    virtual bool deserializeFrom(WisdomContainerEntry*);
 
 protected:
-    Dims4             mDimensions;
-    INetwork*         mNetwork;
-    std::string       mName;    // the user name if the user provided one, else
-    DataFormat        mDataFormat;
-    DataType          mDataType;
-    TensorType        mTensorType; // the type of surface this tensor represents: image/i-o/kernel/bias
-    std::vector<NvF32> mChnlScales;     // per-channel scaling factors
-    std::vector<NvF32> mChnlOffsets;    // per-channel offsets
+    Dims4 mDimensions;
+    INetwork* mNetwork;
+    std::string mName; // the user name if the user provided one, else
+    DataFormat mDataFormat;
+    DataType mDataType;
+    TensorType mTensorType;          // the type of surface this tensor represents: image/i-o/kernel/bias
+    std::vector<NvF32> mChnlScales;  // per-channel scaling factors
+    std::vector<NvF32> mChnlOffsets; // per-channel offsets
 };
 
+} // namespace priv
 
-} // nvdla::priv
-
-} // nvdla
+} // namespace nvdla
 
 #endif // NVDLA_PRIV_TENSOR_H

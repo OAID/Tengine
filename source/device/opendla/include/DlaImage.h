@@ -82,8 +82,8 @@ public:
         D_F16_CHW_I = 38,
         D_F16_CHW_F = 39,
 
-        D_F8_CxHWx_x32_I =  40,
-        D_F8_CxHWx_x8_I =  41,
+        D_F8_CxHWx_x32_I = 40,
+        D_F8_CxHWx_x8_I = 41,
         D_F16_CxHWx_x16_I = 42,
         D_F16_CxHWx_x16_F = 43,
 

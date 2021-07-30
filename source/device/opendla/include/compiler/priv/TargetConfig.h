@@ -37,12 +37,9 @@
 #include "Surface.h"
 #include "Type.h"
 
+namespace nvdla {
 
-namespace nvdla
-{
-
-namespace priv
-{
+namespace priv {
 
 class WisdomContainerEntry;
 
@@ -51,105 +48,172 @@ class TargetConfig;
 class TargetConfigFactory
 {
 public:
-    typedef PrivPair<ITargetConfig *, TargetConfig *> TargetConfigPrivPair;
+    typedef PrivPair<ITargetConfig*, TargetConfig*> TargetConfigPrivPair;
     static TargetConfigPrivPair newTargetConfig();
-    static TargetConfig *priv(ITargetConfig *);
-    static ITargetConfig *i(TargetConfig *);
-    static ITargetConfig *self(void *);
+    static TargetConfig* priv(ITargetConfig*);
+    static ITargetConfig* i(TargetConfig*);
+    static ITargetConfig* self(void*);
 
 protected:
-    static BiMap<ITargetConfig *, TargetConfig *> s_priv;
-    static BiMap<void *, ITargetConfig *> s_self;
+    static BiMap<ITargetConfig*, TargetConfig*> s_priv;
+    static BiMap<void*, ITargetConfig*> s_self;
 };
 
 class TargetConfig : public ITargetConfig
 {
 public: // externally facing
-    TargetConfig() { }
-    virtual ~TargetConfig() { }
+    TargetConfig()
+    {
+    }
+    virtual ~TargetConfig()
+    {
+    }
 
     virtual const char* getName() const;
 
 public:
-    virtual void setName(const char *);
+    virtual void setName(const char*);
 
-    NvU32 atomicCSize() const { return m_targetConfigParams.m_atomicCSize; }
-    NvU32 atomicKSize() const { return m_targetConfigParams.m_atomicKSize; }
-    NvU32 memoryAtomicSize() const { return m_targetConfigParams.m_memoryAtomicSize; }
-    NvU32 bufBankAllotted() const { return m_targetConfigParams.m_numConvBufBankAllotted; }
-    NvU32 bufEntriesPerBank() const { return m_targetConfigParams.m_numConvBufEntriesPerBank; }
-    NvU32 bufEntryWidth() const { return m_targetConfigParams.m_numConvBufEntryWidth; }
-    NvU32 maxBatchSize() const { return m_targetConfigParams.m_maxBatchSize; }
+    NvU32 atomicCSize() const
+    {
+        return m_targetConfigParams.m_atomicCSize;
+    }
+    NvU32 atomicKSize() const
+    {
+        return m_targetConfigParams.m_atomicKSize;
+    }
+    NvU32 memoryAtomicSize() const
+    {
+        return m_targetConfigParams.m_memoryAtomicSize;
+    }
+    NvU32 bufBankAllotted() const
+    {
+        return m_targetConfigParams.m_numConvBufBankAllotted;
+    }
+    NvU32 bufEntriesPerBank() const
+    {
+        return m_targetConfigParams.m_numConvBufEntriesPerBank;
+    }
+    NvU32 bufEntryWidth() const
+    {
+        return m_targetConfigParams.m_numConvBufEntryWidth;
+    }
+    NvU32 maxBatchSize() const
+    {
+        return m_targetConfigParams.m_maxBatchSize;
+    }
 
-    bool isWinogradCapable() const { return m_targetConfigParams.m_isWinogradCapable; }
-    bool isCompressWeightsCapable()    const { return m_targetConfigParams.m_isCompressWeightsCapable; }
-    bool isBatchModeCapable()    const { return m_targetConfigParams.m_isBatchModeCapable; }
-    bool isPDPCapable()    const { return m_targetConfigParams.m_isPDPCapable; }
-    bool isCDPCapable()    const { return m_targetConfigParams.m_isCDPCapable; }
-    bool isSDPBiasCapable()    const { return m_targetConfigParams.m_isSDPBiasCapable; }
-    bool isSDPBatchNormCapable()    const { return m_targetConfigParams.m_isSDPBatchNormCapable; }
-    bool isSDPEltWiseCapable()    const { return m_targetConfigParams.m_isSDPEltWiseCapable; }
-    bool isSDPLutCapable()    const { return m_targetConfigParams.m_isSDPLutCapable; }
-    bool isBDMACapable()    const { return m_targetConfigParams.m_isBDMACapable; }
-    bool isRubikCapable()    const { return m_targetConfigParams.m_isRubikCapable; }
+    bool isWinogradCapable() const
+    {
+        return m_targetConfigParams.m_isWinogradCapable;
+    }
+    bool isCompressWeightsCapable() const
+    {
+        return m_targetConfigParams.m_isCompressWeightsCapable;
+    }
+    bool isBatchModeCapable() const
+    {
+        return m_targetConfigParams.m_isBatchModeCapable;
+    }
+    bool isPDPCapable() const
+    {
+        return m_targetConfigParams.m_isPDPCapable;
+    }
+    bool isCDPCapable() const
+    {
+        return m_targetConfigParams.m_isCDPCapable;
+    }
+    bool isSDPBiasCapable() const
+    {
+        return m_targetConfigParams.m_isSDPBiasCapable;
+    }
+    bool isSDPBatchNormCapable() const
+    {
+        return m_targetConfigParams.m_isSDPBatchNormCapable;
+    }
+    bool isSDPEltWiseCapable() const
+    {
+        return m_targetConfigParams.m_isSDPEltWiseCapable;
+    }
+    bool isSDPLutCapable() const
+    {
+        return m_targetConfigParams.m_isSDPLutCapable;
+    }
+    bool isBDMACapable() const
+    {
+        return m_targetConfigParams.m_isBDMACapable;
+    }
+    bool isRubikCapable() const
+    {
+        return m_targetConfigParams.m_isRubikCapable;
+    }
 
     virtual NvDlaError initTargetConfigParams(ITargetConfigParams* cp);
 
     struct TargetConfigParams
     {
-        NvU32   m_atomicCSize;
-        NvU32   m_atomicKSize;
-        NvU32   m_memoryAtomicSize;
-        NvU32   m_numConvBufBankAllotted;
-        NvU32   m_numConvBufEntriesPerBank;
-        NvU32   m_numConvBufEntryWidth;
-        NvU32   m_maxBatchSize;
-        bool    m_isWinogradCapable;
-        bool    m_isCompressWeightsCapable;
-        bool    m_isBatchModeCapable;
-        bool    m_isPDPCapable;
-        bool    m_isCDPCapable;
-        bool    m_isSDPBiasCapable;
-        bool    m_isSDPBatchNormCapable;
-        bool    m_isSDPEltWiseCapable;
-        bool    m_isSDPLutCapable;
-        bool    m_isBDMACapable;
-        bool    m_isRubikCapable;
+        NvU32 m_atomicCSize;
+        NvU32 m_atomicKSize;
+        NvU32 m_memoryAtomicSize;
+        NvU32 m_numConvBufBankAllotted;
+        NvU32 m_numConvBufEntriesPerBank;
+        NvU32 m_numConvBufEntryWidth;
+        NvU32 m_maxBatchSize;
+        bool m_isWinogradCapable;
+        bool m_isCompressWeightsCapable;
+        bool m_isBatchModeCapable;
+        bool m_isPDPCapable;
+        bool m_isCDPCapable;
+        bool m_isSDPBiasCapable;
+        bool m_isSDPBatchNormCapable;
+        bool m_isSDPEltWiseCapable;
+        bool m_isSDPLutCapable;
+        bool m_isBDMACapable;
+        bool m_isRubikCapable;
 
-        TargetConfigParams():
-            m_atomicCSize(64),
-            m_atomicKSize(32),
-            m_memoryAtomicSize(32),
-            m_numConvBufBankAllotted(16),
-            m_numConvBufEntriesPerBank(256),
-            m_numConvBufEntryWidth(128),
-            m_maxBatchSize(32),
-            m_isWinogradCapable(false),
-            m_isCompressWeightsCapable(false),
-            m_isBatchModeCapable(false),
-            m_isPDPCapable(false),
-            m_isCDPCapable(false),
-            m_isSDPBiasCapable(false),
-            m_isSDPBatchNormCapable(false),
-            m_isSDPEltWiseCapable(false),
-            m_isSDPLutCapable(false),
-            m_isBDMACapable(false),
-            m_isRubikCapable(false)
-        { }
+        TargetConfigParams()
+            : m_atomicCSize(64),
+              m_atomicKSize(32),
+              m_memoryAtomicSize(32),
+              m_numConvBufBankAllotted(16),
+              m_numConvBufEntriesPerBank(256),
+              m_numConvBufEntryWidth(128),
+              m_maxBatchSize(32),
+              m_isWinogradCapable(false),
+              m_isCompressWeightsCapable(false),
+              m_isBatchModeCapable(false),
+              m_isPDPCapable(false),
+              m_isCDPCapable(false),
+              m_isSDPBiasCapable(false),
+              m_isSDPBatchNormCapable(false),
+              m_isSDPEltWiseCapable(false),
+              m_isSDPLutCapable(false),
+              m_isBDMACapable(false),
+              m_isRubikCapable(false)
+        {
+        }
     };
 
-    inline bool isFullConfig() { return m_instance_name == std::string("nv_full"); }
-    inline bool isLargeConfig() { return m_instance_name == std::string("nv_large"); }
-    inline bool isSmallConfig() { return m_instance_name == std::string("nv_small"); }
+    inline bool isFullConfig()
+    {
+        return m_instance_name == std::string("nv_full");
+    }
+    inline bool isLargeConfig()
+    {
+        return m_instance_name == std::string("nv_large");
+    }
+    inline bool isSmallConfig()
+    {
+        return m_instance_name == std::string("nv_small");
+    }
 
 protected:
     std::string m_instance_name;
     TargetConfigParams m_targetConfigParams;
 };
 
+} // namespace priv
 
-} // nvdla::priv
-
-} // nvdla
+} // namespace nvdla
 
 #endif // NVDLA_PRIV_CONFIG_H

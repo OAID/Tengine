@@ -408,7 +408,7 @@ int fill_int8_tensor(tensor_t tensor, float value)
     int input_zero_point = 0;
     get_tensor_quant_param(tensor, &input_scale, &input_zero_point, 1);
 
-    int8_t * data_ptr = (int8_t *)get_tensor_buffer(tensor);
+    int8_t* data_ptr = (int8_t*)get_tensor_buffer(tensor);
     for (int i = 0; i < element_count; i++)
     {
         int data = (round)(value / input_scale + (float)input_zero_point);
@@ -421,7 +421,6 @@ int fill_int8_tensor(tensor_t tensor, float value)
 
     return 0;
 }
-
 
 int fill_uint8_tensor(tensor_t tensor, float value)
 {
@@ -482,18 +481,18 @@ void fill_input_float_tensor_by_index(graph_t graph, int input_node_index, int t
 void fill_input_int8_tensor_by_index(graph_t graph, int input_node_index, int tensor_index, float value)
 {
     tensor_t tensor = get_graph_input_tensor(graph, input_node_index, tensor_index);
-    if(NULL == tensor)
+    if (NULL == tensor)
         fprintf(stderr, "Cannot find the %dth tensor via node index(%d).\n", tensor_index, input_node_index);
 
     int buf_size = get_tensor_buffer_size(tensor);
-    int8_t* data = (int8_t* )malloc(buf_size);
+    int8_t* data = (int8_t*)malloc(buf_size);
 
-    int ret = set_tensor_buffer(tensor, (void* )data, buf_size);
-    if(0 != ret)
+    int ret = set_tensor_buffer(tensor, (void*)data, buf_size);
+    if (0 != ret)
         fprintf(stderr, "Set buffer for tensor failed.\n");
 
     ret = fill_int8_tensor(tensor, value);
-    if(0 != ret)
+    if (0 != ret)
         fprintf(stderr, "Fill buffer for tensor failed.\n");
 }
 
@@ -676,26 +675,26 @@ graph_t create_opendla_test_graph(const char* test_node_name, int data_type, int
     }
 
     graph_t graph = create_graph(odla_context, NULL, NULL);
-    if(NULL == graph)
+    if (NULL == graph)
     {
         fprintf(stderr, "get graph failed.\n");
         return NULL;
     }
 
-    if(set_graph_layout(graph, layout) < 0)
+    if (set_graph_layout(graph, layout) < 0)
     {
         fprintf(stderr, "set layout failed.\n");
         return NULL;
     }
 
     const char* input_name = "input_node";
-    if(create_input_node(graph, input_name, data_type, layout, n, c, h, w, dims_num) < 0)
+    if (create_input_node(graph, input_name, data_type, layout, n, c, h, w, dims_num) < 0)
     {
         fprintf(stderr, "create input node failed.\n");
         return NULL;
     }
 
-    if(test_func(graph, input_name, test_node_name, data_type, layout, n, c, h ,w) < 0)
+    if (test_func(graph, input_name, test_node_name, data_type, layout, n, c, h, w) < 0)
     {
         fprintf(stderr, "create test node failed.\n");
         return NULL;
@@ -705,13 +704,13 @@ graph_t create_opendla_test_graph(const char* test_node_name, int data_type, int
     const char* inputs[] = {input_name};
     const char* outputs[] = {test_node_name};
 
-    if(set_graph_input_node(graph, inputs, sizeof(inputs) / sizeof(char*)) < 0)
+    if (set_graph_input_node(graph, inputs, sizeof(inputs) / sizeof(char*)) < 0)
     {
         fprintf(stderr, "set inputs failed.\n");
         return NULL;
     }
 
-    if(set_graph_output_node(graph, outputs, sizeof(outputs) / sizeof(char*)) < 0)
+    if (set_graph_output_node(graph, outputs, sizeof(outputs) / sizeof(char*)) < 0)
     {
         fprintf(stderr, "set outputs failed.\n");
         return NULL;
@@ -719,7 +718,6 @@ graph_t create_opendla_test_graph(const char* test_node_name, int data_type, int
 
     return graph;
 }
-
 
 graph_t create_timvx_test_graph(const char* test_node_name, int data_type, int layout, int n, int c, int h, int w, common_test test_func, int dims_num = 4)
 {

@@ -36,8 +36,8 @@
  * Network is formed using a list of these operations
  * @{
  */
-#define NVDLA_EMU_OP_POWER    0
-#define NVDLA_EMU_OP_SOFTMAX  1
+#define NVDLA_EMU_OP_POWER   0
+#define NVDLA_EMU_OP_SOFTMAX 1
 /** @} */
 
 /**
@@ -45,7 +45,7 @@
  */
 struct emu_address
 {
-    void *hMem;
+    void* hMem;
     NvU32 offset;
 };
 
@@ -56,7 +56,7 @@ struct emu_task_desc
 {
     NvU32 num_addresses;
     emu_address address_list[NVDLA_EMU_MAX_BUFFERS_PER_TASK];
-} __attribute__ ((packed, aligned(256)));
+} __attribute__((packed, aligned(256)));
 
 /**
  * Network Descriptor
@@ -70,7 +70,7 @@ struct emu_network_desc
     NvS16 operation_desc_index;
     NvS16 operation_buffer_desc_index;
     NvU16 num_operations;
-} __attribute__ ((packed, aligned(256)));
+} __attribute__((packed, aligned(256)));
 
 struct emu_common_op_desc
 {
@@ -85,13 +85,13 @@ struct emu_power_op_desc
     NvF32 power;
     NvF32 scale;
     NvF32 shift;
-} __attribute__ ((packed, aligned(4)));
+} __attribute__((packed, aligned(4)));
 
 struct emu_softmax_op_desc
 {
     emu_common_op_desc common;
     NvU8 axis;
-} __attribute__ ((packed, aligned(4)));
+} __attribute__((packed, aligned(4)));
 
 union emu_operation_container
 {
@@ -117,27 +117,26 @@ struct emu_buffer_desc
     /* stride information */
     NvU32 line_stride;
     NvU32 surf_stride;
-} __attribute__ ((packed, aligned(256)));
+} __attribute__((packed, aligned(256)));
 
 struct emu_power_buffer_descs
 {
     /* Buffer Descriptors */
     struct emu_buffer_desc src_data;
     struct emu_buffer_desc dst_data;
-} __attribute__ ((packed, aligned(4)));
+} __attribute__((packed, aligned(4)));
 
 struct emu_softmax_buffer_descs
 {
     /* Buffer Descriptors */
     struct emu_buffer_desc src_data;
     struct emu_buffer_desc dst_data;
-} __attribute__ ((packed, aligned(4)));
+} __attribute__((packed, aligned(4)));
 
 union emu_operation_buffer_container
 {
     struct emu_power_buffer_descs power_buffers;
     struct emu_softmax_buffer_descs softmax_buffers;
 };
-
 
 #endif // NVDLA_PRIV_EMU_EMU1_A_EMU_INTERFACE_H

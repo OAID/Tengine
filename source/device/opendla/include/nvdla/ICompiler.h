@@ -29,33 +29,29 @@
 #ifndef NVDLA_I_COMPILER_H
 #define NVDLA_I_COMPILER_H
 
-namespace nvdla
-{
+namespace nvdla {
 
 class IWisdom;
 class ILoadable;
 class ICompiler
 {
 public:
-    virtual IWisdom *wisdom() const = 0;
+    virtual IWisdom* wisdom() const = 0;
 
-    virtual NvDlaError getDataType(DataType::UnderlyingType *d) const = 0;
-    virtual NvDlaError compile(const char *profile_name, const char *target_config_name, ILoadable **l) = 0; // "" := default
-    virtual NvDlaError getLoadableImage(const char *profile_name, NvU8 *flatbuf) = 0;
-    virtual NvDlaError getLoadableImageSize(const char *profile_name, NvU64 *size) = 0;
+    virtual NvDlaError getDataType(DataType::UnderlyingType* d) const = 0;
+    virtual NvDlaError compile(const char* profile_name, const char* target_config_name, ILoadable** l) = 0; // "" := default
+    virtual NvDlaError getLoadableImage(const char* profile_name, NvU8* flatbuf) = 0;
+    virtual NvDlaError getLoadableImageSize(const char* profile_name, NvU64* size) = 0;
 
-    virtual NvDlaError compileCheck(const char *profile_name, const char *target_config_name) = 0;
+    virtual NvDlaError compileCheck(const char* profile_name, const char* target_config_name) = 0;
 
 protected:
     ICompiler();
     virtual ~ICompiler();
 };
 
-
 // ICompiler *createCompiler();
 
-} // nvdla
-
-
+} // namespace nvdla
 
 #endif // NVDLA_I_COMPILER_H

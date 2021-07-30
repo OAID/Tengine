@@ -31,8 +31,7 @@
 
 #include <nvdla/IType.h>
 
-namespace nvdla
-{
+namespace nvdla {
 class IRuntime;
 class IProfiler;
 class IProfile;
@@ -46,57 +45,54 @@ class IWisdomContainerEntry;
 class IWisdom
 {
 public:
-
-    virtual bool open(const std::string &uri) = 0;
+    virtual bool open(const std::string& uri) = 0;
 
     //    int getNumTestPoints();
     //    void save(INetwork *, NVDLANetwork *);
     //    void save(const OpList &, const WisdomTestPoint &);
     //    TestPoint &getTestPoint(int);
 
-    virtual void close() = 0 ;
+    virtual void close() = 0;
 
-    virtual IWisdomContainerEntry *getRootEntry() = 0;
+    virtual IWisdomContainerEntry* getRootEntry() = 0;
 
     // global parameters associated with any result within the wisdom context
     virtual NvDlaError setDataType(DataType::UnderlyingType d) = 0;
-    virtual NvDlaError getDataType(DataType::UnderlyingType *) const = 0;
+    virtual NvDlaError getDataType(DataType::UnderlyingType*) const = 0;
 
-    virtual bool setNetwork(INetwork *) = 0;
-    virtual bool setNetworkTransient(INetwork *) = 0;
+    virtual bool setNetwork(INetwork*) = 0;
+    virtual bool setNetworkTransient(INetwork*) = 0;
 
-    virtual INetwork *getNetwork() = 0;
+    virtual INetwork* getNetwork() = 0;
 
-    virtual IProfiler *getProfiler() = 0;
+    virtual IProfiler* getProfiler() = 0;
 
-    virtual ICompiler *getCompiler() = 0;
+    virtual ICompiler* getCompiler() = 0;
 
     //
     // Dictionary/symbol table interfaces.
     //
-    virtual bool insertNetworkSymbol(INetwork *, const std::string &) = 0;
-    virtual INetwork *findNetworkSymbol(const std::string &) = 0;
+    virtual bool insertNetworkSymbol(INetwork*, const std::string&) = 0;
+    virtual INetwork* findNetworkSymbol(const std::string&) = 0;
 
-    virtual bool insertLayerSymbol(ILayer *, const std::string &) = 0;
-    virtual ILayer *findLayerSymbol(const std::string &) = 0;
+    virtual bool insertLayerSymbol(ILayer*, const std::string&) = 0;
+    virtual ILayer* findLayerSymbol(const std::string&) = 0;
 
-    virtual bool insertTensorSymbol(ITensor *, const std::string &) = 0;
-    virtual ITensor *findTensorSymbol(const std::string &) = 0;
+    virtual bool insertTensorSymbol(ITensor*, const std::string&) = 0;
+    virtual ITensor* findTensorSymbol(const std::string&) = 0;
 
-    virtual bool insertLoadableSymbol(ILoadable *, const std::string &) = 0;
-    virtual ILoadable *findLoadableSymbol(const std::string &) = 0;
-
+    virtual bool insertLoadableSymbol(ILoadable*, const std::string&) = 0;
+    virtual ILoadable* findLoadableSymbol(const std::string&) = 0;
 
 protected:
-
     IWisdom();
     virtual ~IWisdom();
     //    friend static void deleteWisdom(IWisdom *);
 };
 
-IWisdom *createWisdom();
-NvDlaError destroyWisdom(IWisdom *wisdom);
+IWisdom* createWisdom();
+NvDlaError destroyWisdom(IWisdom* wisdom);
 
-} // nvdla
+} // namespace nvdla
 
 #endif // NVDLA_I_WISDOM_H

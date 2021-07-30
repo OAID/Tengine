@@ -36,112 +36,113 @@
 #include "priv/Type.h"
 #include "priv/loadable_generated.h"
 
-namespace nvdla
-{
+namespace nvdla {
 
-namespace priv
-{
+namespace priv {
 
 class Loadable;
 
 class LoadableFactory
 {
 public:
-    typedef PrivPair<ILoadable *, Loadable*> LoadablePrivPair;
+    typedef PrivPair<ILoadable*, Loadable*> LoadablePrivPair;
 
     static LoadablePrivPair newLoadable();
-    static void deleteLoadable(ILoadable *loadable);
+    static void deleteLoadable(ILoadable* loadable);
 
-    static Loadable *priv(ILoadable *);
-    static ILoadable *i(Loadable *);
-    static ILoadable *self(void *s);
+    static Loadable* priv(ILoadable*);
+    static ILoadable* i(Loadable*);
+    static ILoadable* self(void* s);
 
 protected:
-    static BiMap<ILoadable *, Loadable *> s_priv;
-    static BiMap<void *, ILoadable *> s_self;
+    static BiMap<ILoadable*, Loadable*> s_priv;
+    static BiMap<void*, ILoadable*> s_self;
 
     friend class Runtime;
-    static ILoadable *deserializeLoadable(NvU8 *);
+    static ILoadable* deserializeLoadable(NvU8*);
 };
-
 
 class Loadable : public ILoadable
 {
 public: // externally facing
-
     virtual std::string getName() const;
 
-    virtual int             getNumMemoryListEntries() const;
+    virtual int getNumMemoryListEntries() const;
     virtual MemoryListEntry getMemoryListEntry(NvU16 pool_id) const;
 
-    virtual int            getNumEventListEntries() const;
+    virtual int getNumEventListEntries() const;
     virtual EventListEntry getEventListEntry(NvU16 event_id) const;
 
-    virtual int           getNumTaskListEntries() const;
+    virtual int getNumTaskListEntries() const;
     virtual TaskListEntry getTaskListEntry(NvU16 task_id) const;
 
-    virtual int           getNumSubmitListEntries() const;
+    virtual int getNumSubmitListEntries() const;
     virtual SubmitListEntry getSubmitListEntry(NvU16 submit_id) const;
 
-    virtual int              getNumAddressListEntries() const;
+    virtual int getNumAddressListEntries() const;
     virtual AddressListEntry getAddressListEntry(NvU16 address_list_index) const;
 
-    virtual int              getNumTensorDescListEntries() const;
+    virtual int getNumTensorDescListEntries() const;
     virtual TensorDescListEntry getTensorDescListEntry(NvU16 tensor_desc_list_index) const;
 
-    virtual NvDlaError getNetworkDataType(DataType::UnderlyingType *) const;
+    virtual NvDlaError getNetworkDataType(DataType::UnderlyingType*) const;
 
-    virtual NvDlaError getNumInputTensors(int *) const;
-    virtual NvDlaError getInputTensorDesc(NvU16 id, TensorDescListEntry *) const;
+    virtual NvDlaError getNumInputTensors(int*) const;
+    virtual NvDlaError getInputTensorDesc(NvU16 id, TensorDescListEntry*) const;
 
-    virtual NvDlaError getNumOutputTensors(int *) const;
-    virtual NvDlaError getOutputTensorDesc(NvU16 id, TensorDescListEntry *) const;
+    virtual NvDlaError getNumOutputTensors(int*) const;
+    virtual NvDlaError getOutputTensorDesc(NvU16 id, TensorDescListEntry*) const;
 
-    virtual int        getNumRelocEntries() const;
+    virtual int getNumRelocEntries() const;
     virtual RelocEntry getRelocEntry(NvU16 i) const;
 
 public: // internally facing
-
-    virtual int setSymbolContent(std::string name, const ILoadable::Blob &, NvU8 *data);
-    virtual bool getSymbolContent(std::string name, ILoadable::Blob &, NvU8 *&);
+    virtual int setSymbolContent(std::string name, const ILoadable::Blob&, NvU8* data);
+    virtual bool getSymbolContent(std::string name, ILoadable::Blob&, NvU8*&);
 
     virtual NvU16 getFactoryType() const;
 
-    void setMemoryListEntries (const std::vector<MemoryListEntry>  &);
-    void setEventListEntries (const std::vector<EventListEntry>   &);
-    void setTaskListEntries (const std::vector<TaskListEntry>    &);
-    void setSubmitListEntries (const std::vector<SubmitListEntry>  &);
-    void setAddressListEntries (const std::vector<AddressListEntry> &);
-    void setTensorDescListEntries(const std::vector<TensorDescListEntry> &);
-    void setRelocEntries(const std::vector<RelocEntry> &);
+    void setMemoryListEntries(const std::vector<MemoryListEntry>&);
+    void setEventListEntries(const std::vector<EventListEntry>&);
+    void setTaskListEntries(const std::vector<TaskListEntry>&);
+    void setSubmitListEntries(const std::vector<SubmitListEntry>&);
+    void setAddressListEntries(const std::vector<AddressListEntry>&);
+    void setTensorDescListEntries(const std::vector<TensorDescListEntry>&);
+    void setRelocEntries(const std::vector<RelocEntry>&);
 
-    const std::vector<TaskListEntry> & getTaskListEntries()   const;
-    const std::vector<SubmitListEntry> & getSubmitListEntries() const;
-    const std::vector<MemoryListEntry> & getMemoryListEntries() const;
-    const std::vector<AddressListEntry> & getAddressListEntries() const;
-    const std::vector<EventListEntry> & getEventListEntries()  const;
-    const std::vector<TensorDescListEntry> &getTensorDescListEntries() const;
-    const std::vector<RelocEntry> &getRelocEntries() const;
+    const std::vector<TaskListEntry>& getTaskListEntries() const;
+    const std::vector<SubmitListEntry>& getSubmitListEntries() const;
+    const std::vector<MemoryListEntry>& getMemoryListEntries() const;
+    const std::vector<AddressListEntry>& getAddressListEntries() const;
+    const std::vector<EventListEntry>& getEventListEntries() const;
+    const std::vector<TensorDescListEntry>& getTensorDescListEntries() const;
+    const std::vector<RelocEntry>& getRelocEntries() const;
 
     Loadable();
     virtual ~Loadable();
 
     virtual bool serialize();
-    virtual NvDlaError getSerializedData(NvU8 *buffer);
-    virtual NvDlaError getSerializedDataSize(NvU64 *size);
-    virtual bool deserializeFrom(NvU8 *);
+    virtual NvDlaError getSerializedData(NvU8* buffer);
+    virtual NvDlaError getSerializedDataSize(NvU64* size);
+    virtual bool deserializeFrom(NvU8*);
 
-    struct Symbol {
+    struct Symbol
+    {
         std::string name;
         ILoadable::Interface interface;
         NvU32 subInterface;
         ILoadable::Version version;
         NvU64 size;
-        NvU8 *data;
-        Symbol() { }
+        NvU8* data;
+        Symbol()
+        {
+        }
     };
 
-    inline bool debugSymbolContent() { return true; }
+    inline bool debugSymbolContent()
+    {
+        return true;
+    }
 
 protected:
     friend class Runtime;
@@ -160,8 +161,8 @@ private:
     flatbuffers::FlatBufferBuilder mFbb;
 };
 
-} // nvdla::priv
+} // namespace priv
 
-} // nvdla
+} // namespace nvdla
 
 #endif
