@@ -183,19 +183,19 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    /* prerun graph, set work options(num_thread, cluster, precision) */
-    if (prerun_graph_multithread(graph, opt) < 0)
-    {
-        fprintf(stderr, "Prerun multithread graph failed.\n");
-        return -1;
-    }
-
     /* prepare process input data, set the data mem to input tensor */
     get_pb_data(feature_in_0.data(), input_pb_0);
     get_pb_data(feature_in_1.data(), input_pb_1);
     get_pb_data(feature_in_2.data(), input_pb_2);
     get_pb_data(feature_in_3.data(), input_pb_3);
     get_pb_data(feature_in_4.data(), input_pb_4);
+
+    /* prerun graph, set work options(num_thread, cluster, precision) */
+    if (prerun_graph_multithread(graph, opt) < 0)
+    {
+        fprintf(stderr, "Prerun multithread graph failed.\n");
+        return -1;
+    }
 
     /* run graph */
     if (run_graph(graph, 1) < 0)
