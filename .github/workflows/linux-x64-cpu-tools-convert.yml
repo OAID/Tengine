@@ -69,6 +69,7 @@ jobs:
         artifacts: convert_tool-x86_64.AppImage
         token: ${{ secrets.GITHUB_TOKEN }}
         prerelease: true
+        draft: false
         commit: master
         tag: latest
         name: Files precompiled from master
