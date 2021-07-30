@@ -35,4 +35,5 @@ typedef struct trt_option
     int gpu_index; //!< select which GPU to run graph
     int dla_index; //!< select to use NVIDIA DLA
     int precision; //!< precision of calculation
+    char engine_file[256]; //!< cache trt engine path
 } trt_opt_t;

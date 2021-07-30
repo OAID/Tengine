@@ -34,30 +34,90 @@ EXPORT_FINISH
 
 #include <NvInferRuntime.h>
 
+#include <limits>
+#include <fstream>
+
 
 static Logger gLogger(nvinfer1::ILogger::Severity::kERROR);
+
+
+
+void SaveEngine(const std::string& fileName, nvinfer1::ICudaEngine* mEngine)
+{
+    if (fileName == "")
+    {
+        std::cout << ("empty engine file name, skip save\n");
+        return;
+    }
+    if (mEngine != nullptr)
+    {
+        std::cout << ("save engine to %s...\n", fileName);
+        nvinfer1::IHostMemory* data = mEngine->serialize();
+        std::ofstream file;
+        file.open(fileName, std::ios::binary | std::ios::out);
+        if (!file.is_open())
+        {
+            std::cout << ("read create engine file %s failed\n", fileName);
+            return;
+        }
+        file.write((const char*)data->data(), data->size());
+        file.close();
+        data->destroy();
+    }
+    else
+    {
+        std::cout << ("engine is empty, save engine failed\n");
+    }
+}
+
+bool DeserializeEngine(const std::string& engineFile, nvinfer1::ICudaEngine** mEngine)
+{
+    std::ifstream in(engineFile.c_str(), std::ifstream::binary);
+    if (in.is_open())
+    {
+        std::cout << "deserialize engine from " << engineFile << std::endl;
+        auto const start_pos = in.tellg();
+        in.ignore(std::numeric_limits<std::streamsize>::max());
+        size_t bufCount = in.gcount();
+        in.seekg(start_pos);
+        std::unique_ptr<char[]> engineBuf(new char[bufCount]);
+        in.read(engineBuf.get(), bufCount);
+        //initLibNvInferPlugins(&gLogger, "");
+        auto mRuntime = nvinfer1::createInferRuntime(gLogger);
+        *mEngine = mRuntime->deserializeCudaEngine((void*)engineBuf.get(), bufCount, nullptr);
+        /*   assert(mEngine != nullptr);
+        mBatchSize = mEngine->getMaxBatchSize();*/
+        std::cout << "max batch size of deserialized engine: " << (*mEngine)->getMaxBatchSize() << std::endl;
+        mRuntime->destroy();
+        return true;
+    }
+    return false;
+}
+
+
+
 
 
 int TensorRTEngine::get_type(int mode, nvinfer1::DataType& type)
 {
     switch (mode)
     {
-        case TENGINE_DT_FP32:
-            type = nvinfer1::DataType::kFLOAT;
-            break;
-        case TENGINE_DT_FP16:
-            type = nvinfer1::DataType::kHALF;
-            break;
-        case TENGINE_DT_INT8:
-            type = nvinfer1::DataType::kINT8;
-            break;
-        case TENGINE_DT_UINT8:
-            return -1;
-        case TENGINE_DT_INT32:
-            type = nvinfer1::DataType::kINT32;
-            break;
-        default:
-            return -1;
+    case TENGINE_DT_FP32:
+        type = nvinfer1::DataType::kFLOAT;
+        break;
+    case TENGINE_DT_FP16:
+        type = nvinfer1::DataType::kHALF;
+        break;
+    case TENGINE_DT_INT8:
+        type = nvinfer1::DataType::kINT8;
+        break;
+    case TENGINE_DT_UINT8:
+        return -1;
+    case TENGINE_DT_INT32:
+        type = nvinfer1::DataType::kINT32;
+        break;
+    default:
+        return -1;
     }
 
     return 0;
@@ -153,244 +213,244 @@ int TensorRTEngine::Build(struct subgraph* subgraph)
 
         switch (op_type)
         {
-            case OP_ABSVAL:
-                if (!AddAbsVal(ir_graph, ir_node))
-                {
-                    TLOG_ERR("Tengine: Cannot add AbsVal op(%d).\n", ir_node->index);
-                    return -6;
-                }
-                break;
-            case OP_ADD_N:
-                if (!AddAddN(ir_graph, ir_node))
-                {
-                    TLOG_ERR("Tengine: Cannot add AddN op(%d).\n", ir_node->index);
-                    return -6;
-                }
-                break;
-            case OP_BATCHNORM:
-                if (!AddBatchNormNode(ir_graph, ir_node))
-                {
-                    TLOG_ERR("Tengine: Cannot add BatchNorm op(%d).\n", ir_node->index);
-                    return -6;
-                }
-                break;
-            case OP_CONST:
-                continue;
-            case OP_CONCAT:
-                if (!AddConcatNode(ir_graph, ir_node))
-                {
-                    TLOG_ERR("Tengine: Cannot add Concat op(%d).\n", ir_node->index);
-                    return -6;
-                }
-                break;
-            case OP_CONV: {
-                if (!AddConvolutionNode(ir_graph, ir_node))
-                {
-                    TLOG_ERR("Tengine: Cannot add Convolution op(%d).\n", ir_node->index);
-                    return -6;
-                }
-                break;
-            }
-            case OP_DECONV: {
-                if (!AddDeConvolutionNode(ir_graph, ir_node))
-                {
-                    TLOG_ERR("Tengine: Cannot add Deconvolution op(%d).\n", ir_node->index);
-                    return -6;
-                }
-                break;
-            }
-            case OP_CROP: {
-                if (!AddCropNode(ir_graph, ir_node))
-                {
-                    TLOG_ERR("Tengine: Cannot add Crop op(%d).\n", ir_node->index);
-                    return -6;
-                }
-                break;
-            }
-            case OP_DROPOUT:
-                if (!AddDropoutNode(ir_graph, ir_node))
-                {
-                    TLOG_ERR("Tengine: Cannot add Dropout op(%d).\n", ir_node->index);
-                    return -6;
-                }
-                break;
-            case OP_ELTWISE:
-                if (!AddEltwiseLayer(ir_graph, ir_node))
-                {
-                    TLOG_ERR("Tengine: Cannot add Eltwise op(%d).\n", ir_node->index);
-                    return -6;
-                }
-                break;
-            case OP_FLATTEN: {
-                if (!AddFlattenNode(ir_graph, ir_node))
-                {
-                    TLOG_ERR("Tengine: Cannot add Flatten op(%d).\n", ir_node->index);
-                    return -6;
-                }
-                break;
-            }
-            case OP_FC: {
-                if (!AddFullyConnectedNode(ir_graph, ir_node))
-                {
-                    TLOG_ERR("Tengine: Cannot add FullyConnected op(%d).\n", ir_node->index);
-                    return -6;
-                }
-                break;
-            }
-            case OP_HARDSWISH:
+        case OP_ABSVAL:
+            if (!AddAbsVal(ir_graph, ir_node))
             {
-                if (!AddHardSwishNode(ir_graph, ir_node))
-                {
-                    TLOG_ERR("Tengine: Cannot add HardSwish op(%d).\n", ir_node->index);
-                    return -6;
-                }
-                break;
-            }
-            case OP_INSTANCENORM:
-            {
-                if (!AddInstanceNormNode(ir_graph, ir_node))
-                {
-                    TLOG_ERR("Tengine: Cannot add InstanceNorm op(%d).\n", ir_node->index);
-                    return -6;
-                }
-                break;
-            }
-            case OP_INPUT:
-                continue;
-            case OP_INTERP:
-            {
-                if (!AddInterpNode(ir_graph, ir_node))
-                {
-                    TLOG_ERR("Tengine: Cannot add FullyConnected op(%d).\n", ir_node->index);
-                    return -6;
-                }
-                break;
-            }
-            case OP_MISH:
-            {
-                if (!AddMishNode(ir_graph, ir_node))
-                {
-                    TLOG_ERR("Tengine: Cannot add Mish op(%d).\n", ir_node->index);
-                    return -6;
-                }
-                break;
-            }
-            case OP_PAD: {
-                if (!AddPadNode(ir_graph, ir_node))
-                {
-                    TLOG_ERR("Tengine: Cannot add Pad op(%d).\n", ir_node->index);
-                    return -6;
-                }
-                break;
-            }
-            case OP_PERMUTE: {
-                if (!AddPermuteNode(ir_graph, ir_node))
-                {
-                    TLOG_ERR("Tengine: Cannot add Permute op(%d).\n", ir_node->index);
-                    return -6;
-                }
-                break;
-            }
-            case OP_POOL: {
-                if (!AddPoolingNode(ir_graph, ir_node))
-                {
-                    TLOG_ERR("Tengine: Cannot add Pooling op(%d).\n", ir_node->index);
-                    return -6;
-                }
-                break;
-            }
-            case OP_RELU:
-            case OP_RELU1:
-            case OP_RELU6:
-            case OP_CLIP: {
-                if (!addReLUNode(ir_graph, ir_node))
-                {
-                    TLOG_ERR("Tengine: Cannot add ReLU op(%d).\n", ir_node->index);
-                    return -6;
-                }
-                break;
-            }
-            case OP_REDUCTION: {
-                if (!AddReductionNode(ir_graph, ir_node))
-                {
-                    TLOG_ERR("Tengine: Cannot add Reduction op(%d).\n", ir_node->index);
-                    return -6;
-                }
-                break;
-            }
-            case OP_RESHAPE: {
-                if (!AddReshapeNode(ir_graph, ir_node))
-                {
-                    TLOG_ERR("Tengine: Cannot add Reshape op(%d).\n", ir_node->index);
-                    return -6;
-                }
-                break;
-            }
-            case OP_RESIZE:
-            {
-                if (!AddResizeNode(ir_graph, ir_node))
-                {
-                    TLOG_ERR("Tengine: Cannot add Resize op(%d).\n", ir_node->index);
-                    return -6;
-                }
-                break;
-            }
-            case OP_SLICE:
-            {
-                if (!AddSliceNode(ir_graph, ir_node))
-                {
-                    TLOG_ERR("Tengine: Cannot add Slice op(%d).\n", ir_node->index);
-                    return -6;
-                }
-            }
-            case OP_SOFTMAX:
-            {
-                if(!AddSoftmaxNode(ir_graph, ir_node))
-                {
-                    TLOG_ERR("Tengine: Cannot add Softmax op(%d).\n", ir_node->index);
-                    return -6;
-                }
-                break;
-            }
-            case OP_SPLIT:
-            {
-                if(!AddSplitNode(ir_graph, ir_node))
-                {
-                    TLOG_ERR("Tengine: Cannot add Split op(%d).\n", ir_node->index);
-                    return -6;
-                }
-                break;
-            }
-            case OP_SQUEEZE:
-            {
-                if(!AddSqueezeNode(ir_graph, ir_node))
-                {
-                    TLOG_ERR("Tengine: Cannot add Squeeze op(%d).\n", ir_node->index);
-                    return -6;
-                }
-                break;
-            }
-            case OP_TRANSPOSE:
-            {
-                if(!AddTranspose(ir_graph, ir_node))
-                {
-                    TLOG_ERR("Tengine: Cannot add Softmax op(%d).\n", ir_node->index);
-                    return -6;
-                }
-                break;
-            }
-            case OP_UPSAMPLE:
-            {
-                if(!AddUpSampleNode(ir_graph, ir_node))
-                {
-                    TLOG_ERR("Tengine: Cannot add Upsample op(%d).\n", ir_node->index);
-                    return -6;
-                }
-                break;
-            }
-            default:
-                TLOG_ERR("Tengine: OP(id:%d, op:%d) not be implemented for now.\n", ir_node->index, ir_node->op.type);
+                TLOG_ERR("Tengine: Cannot add AbsVal op(%d).\n", ir_node->index);
                 return -6;
+            }
+            break;
+        case OP_ADD_N:
+            if (!AddAddN(ir_graph, ir_node))
+            {
+                TLOG_ERR("Tengine: Cannot add AddN op(%d).\n", ir_node->index);
+                return -6;
+            }
+            break;
+        case OP_BATCHNORM:
+            if (!AddBatchNormNode(ir_graph, ir_node))
+            {
+                TLOG_ERR("Tengine: Cannot add BatchNorm op(%d).\n", ir_node->index);
+                return -6;
+            }
+            break;
+        case OP_CONST:
+            continue;
+        case OP_CONCAT:
+            if (!AddConcatNode(ir_graph, ir_node))
+            {
+                TLOG_ERR("Tengine: Cannot add Concat op(%d).\n", ir_node->index);
+                return -6;
+            }
+            break;
+        case OP_CONV: {
+            if (!AddConvolutionNode(ir_graph, ir_node))
+            {
+                TLOG_ERR("Tengine: Cannot add Convolution op(%d).\n", ir_node->index);
+                return -6;
+            }
+            break;
+        }
+        case OP_DECONV: {
+            if (!AddDeConvolutionNode(ir_graph, ir_node))
+            {
+                TLOG_ERR("Tengine: Cannot add Deconvolution op(%d).\n", ir_node->index);
+                return -6;
+            }
+            break;
+        }
+        case OP_CROP: {
+            if (!AddCropNode(ir_graph, ir_node))
+            {
+                TLOG_ERR("Tengine: Cannot add Crop op(%d).\n", ir_node->index);
+                return -6;
+            }
+            break;
+        }
+        case OP_DROPOUT:
+            if (!AddDropoutNode(ir_graph, ir_node))
+            {
+                TLOG_ERR("Tengine: Cannot add Dropout op(%d).\n", ir_node->index);
+                return -6;
+            }
+            break;
+        case OP_ELTWISE:
+            if (!AddEltwiseLayer(ir_graph, ir_node))
+            {
+                TLOG_ERR("Tengine: Cannot add Eltwise op(%d).\n", ir_node->index);
+                return -6;
+            }
+            break;
+        case OP_FLATTEN: {
+            if (!AddFlattenNode(ir_graph, ir_node))
+            {
+                TLOG_ERR("Tengine: Cannot add Flatten op(%d).\n", ir_node->index);
+                return -6;
+            }
+            break;
+        }
+        case OP_FC: {
+            if (!AddFullyConnectedNode(ir_graph, ir_node))
+            {
+                TLOG_ERR("Tengine: Cannot add FullyConnected op(%d).\n", ir_node->index);
+                return -6;
+            }
+            break;
+        }
+        case OP_HARDSWISH:
+        {
+            if (!AddHardSwishNode(ir_graph, ir_node))
+            {
+                TLOG_ERR("Tengine: Cannot add HardSwish op(%d).\n", ir_node->index);
+                return -6;
+            }
+            break;
+        }
+        case OP_INSTANCENORM:
+        {
+            if (!AddInstanceNormNode(ir_graph, ir_node))
+            {
+                TLOG_ERR("Tengine: Cannot add InstanceNorm op(%d).\n", ir_node->index);
+                return -6;
+            }
+            break;
+        }
+        case OP_INPUT:
+            continue;
+        case OP_INTERP:
+        {
+            if (!AddInterpNode(ir_graph, ir_node))
+            {
+                TLOG_ERR("Tengine: Cannot add FullyConnected op(%d).\n", ir_node->index);
+                return -6;
+            }
+            break;
+        }
+        case OP_MISH:
+        {
+            if (!AddMishNode(ir_graph, ir_node))
+            {
+                TLOG_ERR("Tengine: Cannot add Mish op(%d).\n", ir_node->index);
+                return -6;
+            }
+            break;
+        }
+        case OP_PAD: {
+            if (!AddPadNode(ir_graph, ir_node))
+            {
+                TLOG_ERR("Tengine: Cannot add Pad op(%d).\n", ir_node->index);
+                return -6;
+            }
+            break;
+        }
+        case OP_PERMUTE: {
+            if (!AddPermuteNode(ir_graph, ir_node))
+            {
+                TLOG_ERR("Tengine: Cannot add Permute op(%d).\n", ir_node->index);
+                return -6;
+            }
+            break;
+        }
+        case OP_POOL: {
+            if (!AddPoolingNode(ir_graph, ir_node))
+            {
+                TLOG_ERR("Tengine: Cannot add Pooling op(%d).\n", ir_node->index);
+                return -6;
+            }
+            break;
+        }
+        case OP_RELU:
+        case OP_RELU1:
+        case OP_RELU6:
+        case OP_CLIP: {
+            if (!addReLUNode(ir_graph, ir_node))
+            {
+                TLOG_ERR("Tengine: Cannot add ReLU op(%d).\n", ir_node->index);
+                return -6;
+            }
+            break;
+        }
+        case OP_REDUCTION: {
+            if (!AddReductionNode(ir_graph, ir_node))
+            {
+                TLOG_ERR("Tengine: Cannot add Reduction op(%d).\n", ir_node->index);
+                return -6;
+            }
+            break;
+        }
+        case OP_RESHAPE: {
+            if (!AddReshapeNode(ir_graph, ir_node))
+            {
+                TLOG_ERR("Tengine: Cannot add Reshape op(%d).\n", ir_node->index);
+                return -6;
+            }
+            break;
+        }
+        case OP_RESIZE:
+        {
+            if (!AddResizeNode(ir_graph, ir_node))
+            {
+                TLOG_ERR("Tengine: Cannot add Resize op(%d).\n", ir_node->index);
+                return -6;
+            }
+            break;
+        }
+        case OP_SLICE:
+        {
+            if (!AddSliceNode(ir_graph, ir_node))
+            {
+                TLOG_ERR("Tengine: Cannot add Slice op(%d).\n", ir_node->index);
+                return -6;
+            }
+        }
+        case OP_SOFTMAX:
+        {
+            if(!AddSoftmaxNode(ir_graph, ir_node))
+            {
+                TLOG_ERR("Tengine: Cannot add Softmax op(%d).\n", ir_node->index);
+                return -6;
+            }
+            break;
+        }
+        case OP_SPLIT:
+        {
+            if(!AddSplitNode(ir_graph, ir_node))
+            {
+                TLOG_ERR("Tengine: Cannot add Split op(%d).\n", ir_node->index);
+                return -6;
+            }
+            break;
+        }
+        case OP_SQUEEZE:
+        {
+            if(!AddSqueezeNode(ir_graph, ir_node))
+            {
+                TLOG_ERR("Tengine: Cannot add Squeeze op(%d).\n", ir_node->index);
+                return -6;
+            }
+            break;
+        }
+        case OP_TRANSPOSE:
+        {
+            if(!AddTranspose(ir_graph, ir_node))
+            {
+                TLOG_ERR("Tengine: Cannot add Softmax op(%d).\n", ir_node->index);
+                return -6;
+            }
+            break;
+        }
+        case OP_UPSAMPLE:
+        {
+            if(!AddUpSampleNode(ir_graph, ir_node))
+            {
+                TLOG_ERR("Tengine: Cannot add Upsample op(%d).\n", ir_node->index);
+                return -6;
+            }
+            break;
+        }
+        default:
+            TLOG_ERR("Tengine: OP(id:%d, op:%d) not be implemented for now.\n", ir_node->index, ir_node->op.type);
+            return -6;
         }
     }
 
@@ -429,41 +489,41 @@ bool TensorRTEngine::AddTensor(struct graph* ir_graph, struct tensor *ir_tensor)
 
     switch (dim)
     {
-        case 2:
-        {
-            nvinfer1::Dims2 dim2(dims[0],dims[1]);
-            trt_tensor = this->network->addInput(ir_tensor->name, nvinfer1::DataType::kFLOAT, dim2);
-            break;
-        }
-        case 3:
-        {
-            nvinfer1::Dims3 dim3(dims[0],dims[1],dims[2]);
-            trt_tensor = this->network->addInput(ir_tensor->name, nvinfer1::DataType::kFLOAT, dim3);
-            break;
-        }
-        case 4:
-        {
-            nvinfer1::Dims4 dim4(dims[0], dims[1], dims[2], dims[3]);
-            trt_tensor = this->network->addInput(ir_tensor->name, nvinfer1::DataType::kFLOAT, dim4);
-            break;
-        }
-        case 5:
-        {
-            nvinfer1::Dims dim5;
-            dim5.nbDims = 5;
-            dim5.d[0] = dims[0];
-            dim5.d[1] = dims[1];
-            dim5.d[2] = dims[2];
-            dim5.d[3] = dims[3];
-            dim5.d[4] = dims[4];
-            trt_tensor = this->network->addInput(ir_tensor->name, nvinfer1::DataType::kFLOAT, dim5);
-            break;
-        }
-        default:
-        {
-            TLOG_ERR("Tengine: Tensor dimension(%d) cannot supported.\n", dim);
-            return false;
-        }
+    case 2:
+    {
+        nvinfer1::Dims2 dim2(dims[0],dims[1]);
+        trt_tensor = this->network->addInput(ir_tensor->name, nvinfer1::DataType::kFLOAT, dim2);
+        break;
+    }
+    case 3:
+    {
+        nvinfer1::Dims3 dim3(dims[0],dims[1],dims[2]);
+        trt_tensor = this->network->addInput(ir_tensor->name, nvinfer1::DataType::kFLOAT, dim3);
+        break;
+    }
+    case 4:
+    {
+        nvinfer1::Dims4 dim4(dims[0], dims[1], dims[2], dims[3]);
+        trt_tensor = this->network->addInput(ir_tensor->name, nvinfer1::DataType::kFLOAT, dim4);
+        break;
+    }
+    case 5:
+    {
+        nvinfer1::Dims dim5;
+        dim5.nbDims = 5;
+        dim5.d[0] = dims[0];
+        dim5.d[1] = dims[1];
+        dim5.d[2] = dims[2];
+        dim5.d[3] = dims[3];
+        dim5.d[4] = dims[4];
+        trt_tensor = this->network->addInput(ir_tensor->name, nvinfer1::DataType::kFLOAT, dim5);
+        break;
+    }
+    default:
+    {
+        TLOG_ERR("Tengine: Tensor dimension(%d) cannot supported.\n", dim);
+        return false;
+    }
     }
 
     if(nullptr == trt_tensor)
@@ -512,8 +572,10 @@ bool TensorRTEngine::AddTensor(struct graph* ir_graph, struct tensor *ir_tensor)
     return true;
 }
 
+
 int TensorRTEngine::PreRun(struct subgraph* subgraph, struct trt_option* options)
 {
+
     trt_opt_t* opt = &this->option;
     if (nullptr != options)
     {
@@ -526,45 +588,50 @@ int TensorRTEngine::PreRun(struct subgraph* subgraph, struct trt_option* options
         TLOG_ERR("Tengine: Cannot using GPU ID %d.\n", opt->gpu_index);
         return -2;
     }
-
     struct graph* ir_graph = subgraph->graph;
-
-    // set tensor_swap_count
     this->tensor_swap_count = subgraph->graph->tensor_num + 1;
-
-    // TODO: high level api should serialize model and cache serialized model
-    this->builder = nvinfer1::createInferBuilder(gLogger.get_logger());
-    if (nullptr == this->builder)
+    if (DeserializeEngine(opt->engine_file, &this->engine))
     {
-        TLOG_ERR("Tengine: Cannot create nvinfer1::IBuilder object..\n");
-        return -3;
+        TLOG_ERR("Tengine: DeserializeEngine success.\n");
     }
-
-    // TODO: adapt to TRT6
-    const auto _explicit_batch = 1U << static_cast<uint32_t>(nvinfer1::NetworkDefinitionCreationFlag::kEXPLICIT_BATCH);
-    this->network = this->builder->createNetworkV2(_explicit_batch);
-    if (nullptr == this->network)
+    else
     {
-        TLOG_ERR("Tengine: Cannot create nvinfer1::INetworkDefinition object.\n");
-        return -4;
-    }
+        TLOG_ERR("Tengine: DeserializeEngine failed,build engine.\n");
+        // set tensor_swap_count
 
-    this->config = this->builder->createBuilderConfig();
-    if (!config)
-    {
-        TLOG_ERR("Tengine: Cannot create nvinfer1::createBuilderConfig object.\n");
-        return -4;
-    }
+        // TODO: high level api should serialize model and cache serialized model
+        this->builder = nvinfer1::createInferBuilder(gLogger.get_logger());
+        if (nullptr == this->builder)
+        {
+            TLOG_ERR("Tengine: Cannot create nvinfer1::IBuilder object..\n");
+            return -3;
+        }
 
-    nvinfer1::DataType type{ nvinfer1::DataType::kFLOAT };
-    if (0 != get_type(opt->precision, type))
-    {
-        TLOG_ERR("Tengine: Target precision(%d) is not supported.\n", opt->precision);
-        return -1;
-    }
+        // TODO: adapt to TRT6
+        const auto _explicit_batch = 1U << static_cast<uint32_t>(nvinfer1::NetworkDefinitionCreationFlag::kEXPLICIT_BATCH);
+        this->network = this->builder->createNetworkV2(_explicit_batch);
+        if (nullptr == this->network)
+        {
+            TLOG_ERR("Tengine: Cannot create nvinfer1::INetworkDefinition object.\n");
+            return -4;
+        }
 
-    switch (type)
-    {
+        this->config = this->builder->createBuilderConfig();
+        if (!config)
+        {
+            TLOG_ERR("Tengine: Cannot create nvinfer1::createBuilderConfig object.\n");
+            return -4;
+        }
+
+        nvinfer1::DataType type{ nvinfer1::DataType::kFLOAT };
+        if (0 != get_type(opt->precision, type))
+        {
+            TLOG_ERR("Tengine: Target precision(%d) is not supported.\n", opt->precision);
+            return -1;
+        }
+
+        switch (type)
+        {
         case nvinfer1::DataType::kFLOAT:
         {
             // it seems that Ampere's TF32 is supported after Tensor 7.1.3
@@ -619,53 +686,57 @@ int TensorRTEngine::PreRun(struct subgraph* subgraph, struct trt_option* options
         }
         default:
             break;
-    }
+        }
 
-    this->config->setFlag(nvinfer1::BuilderFlag::kGPU_FALLBACK);
-    this->config->setMaxWorkspaceSize(1_GiB);
-
-    if (0 <= this->option.dla_index && nvinfer1::DataType::kINT8 == this->precision)
-    {
-        this->config->setDLACore(this->option.dla_index);
-        this->config->setDefaultDeviceType(nvinfer1::DeviceType::kDLA);
         this->config->setFlag(nvinfer1::BuilderFlag::kGPU_FALLBACK);
-    }
+        this->config->setMaxWorkspaceSize(1_GiB);
 
-    // setting layer precision
-    if (nvinfer1::DataType::kINT8 == this->precision)
-    {
-        for (int i = 0; i < this->network->getNbLayers(); ++i)
+        if (0 <= this->option.dla_index && nvinfer1::DataType::kINT8 == this->precision)
         {
-            auto layer = this->network->getLayer(i);
+            this->config->setDLACore(this->option.dla_index);
+            this->config->setDefaultDeviceType(nvinfer1::DeviceType::kDLA);
+            this->config->setFlag(nvinfer1::BuilderFlag::kGPU_FALLBACK);
+        }
 
-            // Don't set the precision on non-computation layers as they don't support int8.
-            if (layer->getType() != nvinfer1::LayerType::kCONSTANT && layer->getType() != nvinfer1::LayerType::kCONCATENATION && layer->getType() != nvinfer1::LayerType::kSHAPE)
+        // setting layer precision
+        if (nvinfer1::DataType::kINT8 == this->precision)
+        {
+            for (int i = 0; i < this->network->getNbLayers(); ++i)
             {
-                // set computation precision of the layer
-                layer->setPrecision(nvinfer1::DataType::kINT8);
-            }
+                auto layer = this->network->getLayer(i);
 
-            for (int j = 0; j < layer->getNbOutputs(); ++j)
-            {
-                std::string tensorName = layer->getOutput(j)->getName();
-
-                // set output type of execution tensors and not shape tensors.
-                if (layer->getOutput(j)->isExecutionTensor())
+                // Don't set the precision on non-computation layers as they don't support int8.
+                if (layer->getType() != nvinfer1::LayerType::kCONSTANT && layer->getType() != nvinfer1::LayerType::kCONCATENATION && layer->getType() != nvinfer1::LayerType::kSHAPE)
                 {
-                    layer->setOutputType(j, nvinfer1::DataType::kINT8);
+                    // set computation precision of the layer
+                    layer->setPrecision(nvinfer1::DataType::kINT8);
+                }
+
+                for (int j = 0; j < layer->getNbOutputs(); ++j)
+                {
+                    std::string tensorName = layer->getOutput(j)->getName();
+
+                    // set output type of execution tensors and not shape tensors.
+                    if (layer->getOutput(j)->isExecutionTensor())
+                    {
+                        layer->setOutputType(j, nvinfer1::DataType::kINT8);
+                    }
                 }
             }
         }
-    }
 
-    // Build trt engine
-    this->Build(subgraph);
+        // Build trt engine
+        this->Build(subgraph);
 
-    this->engine = this->builder->buildEngineWithConfig(*this->network, *this->config);
-    if(nullptr == this->engine)
-    {
-        TLOG_ERR("Tengine: Can not Build engine, please check config.\n");
-        return -1;
+        this->engine = this->builder->buildEngineWithConfig(*this->network, *this->config);
+        if(nullptr == this->engine)
+        {
+            TLOG_ERR("Tengine: Can not Build engine, please check config.\n");
+            return -1;
+        }
+
+        TLOG_ERR("Tengine: Serialize engine to \"%s\"\n", opt->engine_file);
+        SaveEngine(opt->engine_file, this->engine);
     }
 
     // allocate gpu mem for input and output
@@ -822,28 +893,28 @@ int TensorRTEngine::SetOption(trt_opt_t *opt)
 
         switch (opt->precision)
         {
-            case TENGINE_DT_INT8:
-            {
-                this->precision = nvinfer1::DataType::kINT8;
-                break;
-            }
-            case TENGINE_DT_UINT8:
-            {
-                this->precision = nvinfer1::DataType::kINT8;
-                break;
-            }
-            case TENGINE_DT_FP16:
-            {
-                this->precision = nvinfer1::DataType::kHALF;
-                break;
-            }
-            case TENGINE_DT_FP32:
-            {
-                this->precision = nvinfer1::DataType::kFLOAT;
-                break;
-            }
-            default:
-                this->precision = nvinfer1::DataType::kFLOAT;
+        case TENGINE_DT_INT8:
+        {
+            this->precision = nvinfer1::DataType::kINT8;
+            break;
+        }
+        case TENGINE_DT_UINT8:
+        {
+            this->precision = nvinfer1::DataType::kINT8;
+            break;
+        }
+        case TENGINE_DT_FP16:
+        {
+            this->precision = nvinfer1::DataType::kHALF;
+            break;
+        }
+        case TENGINE_DT_FP32:
+        {
+            this->precision = nvinfer1::DataType::kFLOAT;
+            break;
+        }
+        default:
+            this->precision = nvinfer1::DataType::kFLOAT;
         }
     }
 
