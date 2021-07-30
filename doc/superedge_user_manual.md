@@ -1,32 +1,54 @@
-# [SuperEdge](https://github.com/superedge/superedge "SuperEdge") & [Tengine](https://github.com/OAID/Tengine "Tengine")
-
+### Quickstart Guide
 ------------
-## Quickstart Guide
-### Install edge Kubernetes master node
-
+### [SuperEdge](https://github.com/superedge/superedge "SuperEdge")
+- 安装SuperEdge Master节点（x86_64机器）
 ```shell
-wget http://tengine2.openailab.com:9527/openailab/edgeadm-linux-amd64-v0.4.0.tgz
+wget https://superedge-1253687700.cos.ap-guangzhou.myqcloud.com/v0.4.0/amd64/edgeadm-linux-amd64-v0.4.0.tgz
 tar -zxvf edgeadm-linux-amd64-v0.4.0.tgz
 cd edgeadm-linux-amd64-v0.4.0
 ./edgeadm init --kubernetes-version=1.18.2 --image-repository superedge.tencentcloudcr.com/superedge --service-cidr=10.96.0.0/12 --pod-network-cidr=10.224.0.0/16 --install-pkg-path ./kube-linux-*.tar.gz --apiserver-cert-extra-sans=<Master Public IP> --apiserver-advertise-address=<Master Intranet IP> --enable-edge=true
+#复制k8s配置文件到用户目录下
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+#去掉资源限制，解决khadas VIM3安装SuperEdge导致设备重启的问题
+kubectl patch DaemonSet kube-proxy -n kube-system --type='json' -p='[{"op": "replace", "path": "/spec/template/spec/containers/0/resources", "value":{}}]'
+kubectl patch DaemonSet kube-flannel-ds -n kube-system --type='json' -p='[{"op": "replace", "path": "/spec/template/spec/containers/0/resources", "value":{}}]'
+kubectl patch DaemonSet tunnel-edge -n edge-system --type='json' -p='[{"op": "replace", "path": "/spec/template/spec/containers/0/resources", "value":{}}]'
+kubectl patch DaemonSet edge-health -n edge-system --type='json' -p='[{"op": "replace", "path": "/spec/template/spec/containers/0/resources", "value":{}}]'
+kubectl patch DaemonSet application-grid-wrapper-node -n edge-system --type='json' -p='[{"op": "replace", "path": "/spec/template/spec/containers/0/resources", "value":{}}]'
 ```
-### Join edge node
-
+- Khadas VIM3 设备加入集群
 ```shell
-wget http://tengine2.openailab.com:9527/openailab/edgeadm-linux-arm64-v0.4.0.tgz
+wget https://superedge-1253687700.cos.ap-guangzhou.myqcloud.com/v0.4.0/arm64/edgeadm-linux-arm64-v0.4.0.tgz
 tar -zxvf edgeadm-linux-arm64-v0.4.0.tgz
 cd edgeadm-linux-arm64-v0.4.0
-./edgeadm join <Master Public/Intranet IP Or Domain>:Port --token xxxx --discovery-token-ca-cert-hash sha256:xxxxxxxxxx --install-pkg-path kube-linux-arm64-v1.18.2.tar.gz --enable-edge=true
+#解决在Khadas上安装SuperEdge和CNI失败的问题
+tar -zxvf kube-linux-arm64-v1.18.2.tar.gz
+wget https://github.com/containernetworking/plugins/releases/download/v0.8.6/cni-plugins-linux-arm64-v0.8.6.tgz
+mv cni-plugins-linux-arm64-v0.8.6.tgz edge-install/cni/cni-plugins-linux-arm64-v0.8.3.tgz
+sed -i 's/\tload_kernel/# load_kernel/' edge-install/script/init-node.sh
+tar -zcvf kube-linux-arm64-v1.18.2.1.tar.gz edge-install/
+#加入集群
+./edgeadm join <Master Public/Intranet IP Or Domain>:6443 --token xxxx --discovery-token-ca-cert-hash sha256:xxxxxxxxxx --install-pkg-path kube-linux-arm64-v1.18.2.1.tar.gz --enable-edge=true
 ```
-### Build Docker images on Khadas VIM3 Device
+- Khadas VIM3 设备开启Xserver授权
+```shell
+# Access to Xserver
+# Execute script on device Terminal
+xhost +
+```
 
+### [Tengine](https://github.com/OAID/Tengine "Tengine")
+------------
+- 在Khadas VIM3设备上构建Tengine物体识别应用docker镜像
 ```shell
 wget http://tengine2.openailab.com:9527/openailab/yolo.tar.gz
 tar -zxvf yolo.tar.gz
 cd superedge
 docker build -t yolo:latest .
 ```
-Dockerfile
+Dockerfile文件如下所示
 ```
 FROM ubuntu:20.04
 MAINTAINER openailab
@@ -52,21 +74,10 @@ WORKDIR /root/myapp/
 USER openailab
 CMD ["./demo_yolo_camera"]
 ```
-[demo_videocapture user manual](https://github.com/OAID/Tengine/blob/tengine-lite/doc/demo_videocapture_user_manual.md "demo_videocapture user manual")
+如果需要自己编译并生成demo_yolo_camera程序，具体操作参考[demo_videocapture user manual](https://github.com/OAID/Tengine/blob/tengine-lite/doc/demo_videocapture_user_manual.md "demo_videocapture user manual")
 
-### RUN yolo docker container on  Khadas VIM3 Device
-
-```shell
-# Access to Xserver
-# Execute script on device Terminal
-xhost +
-# Run
-docker run -it --name yolo --privileged -v /dev:/dev -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=:0 -e GDK_SCALE -e GDK_DPI_SCALE yolo:latest
-```
-### Deploy yolo with SuperEdge
-
-Edit yolo.yaml
-
+- 在SuperEdge Master节点上部署应用到Khadas VIM3设备上
+编辑k8s编排文件yolo.yaml
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -114,9 +125,10 @@ spec:
           hostPath:
             path: /tmp/.X11-unix
 ```
-## Deploy yolo App
-
+执行编排文件
 ```shell
 kubectl apply -f yolo.yaml
 ```
+打开Khadas VIM设备的显示器，观察到如下效果
+
 ![](http://tengine2.openailab.com:9527/openailab/yolo_demo.jpg)
