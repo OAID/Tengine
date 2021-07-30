@@ -170,7 +170,7 @@ int onnx_model_test(std::string model_file, int img_c, int img_h, int img_w)
         }
         for (size_t i = 0; i < output_size; i++)
         {
-            if (fabs(output_data[i] - onnx_out_data[i]) > 0.0001)
+            if (fabs(output_data[i] - onnx_out_data[i]) > 0.001)
             {
                 fprintf(stderr, "not equal on data\n");
                 fprintf(stderr, "tengine:%f,onnx:%f\n", output_data[i], onnx_out_data[i]);
