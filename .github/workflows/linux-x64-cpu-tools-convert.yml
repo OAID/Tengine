@@ -54,4 +54,22 @@ jobs:
       with:
         name: convert_tool_AppImage
         path: convert_tool-x86_64.AppImage
+    - name: Delete existing release
+      if: github.ref == 'refs/heads/tengine-lite' || github.ref == 'refs/heads/daquexian-ci' 
+      uses: dev-drprasad/delete-tag-and-release@v0.2.0
+      with:
+        delete_release: true
+        tag_name: latest
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Publish release
+      if: github.ref == 'refs/heads/tengine-lite' || github.ref == 'refs/heads/daquexian-ci'
+      uses: ncipollo/release-action@v1
+      with:
+        artifacts: convert_tool-x86_64.AppImage
+        token: ${{ secrets.GITHUB_TOKEN }}
+        prerelease: true
+        commit: master
+        tag: latest
+        name: Files precompiled from master
 
