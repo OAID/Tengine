@@ -589,6 +589,7 @@ int TensorRTEngine::PreRun(struct subgraph* subgraph, struct trt_option* options
         return -2;
     }
     struct graph* ir_graph = subgraph->graph;
+    // set tensor_swap_count
     this->tensor_swap_count = subgraph->graph->tensor_num + 1;
     if (DeserializeEngine(opt->engine_file, &this->engine))
     {
@@ -597,7 +598,7 @@ int TensorRTEngine::PreRun(struct subgraph* subgraph, struct trt_option* options
     else
     {
         TLOG_ERR("Tengine: DeserializeEngine failed,build engine.\n");
-        // set tensor_swap_count
+        
 
         // TODO: high level api should serialize model and cache serialized model
         this->builder = nvinfer1::createInferBuilder(gLogger.get_logger());
