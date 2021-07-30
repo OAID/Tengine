@@ -103,7 +103,7 @@ public: // internally facing
     inline bool debugGraphs() const { return true; }
     inline bool debugProfile() const { return true; }
 
-protected:
+public:
 
     friend class Wisdom;
     friend class CompilerFactory;

@@ -32,6 +32,9 @@ IF (NOT DEFINED CMAKE_INSTALL_PREFIX)
     SET (CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install" CACHE PATH "Tengine Installation Directory")
 ENDIF()
 
+include_directories(/root/umd/core/src/compiler)
+include_directories(/root/umd/core/src/compiler/engine-ast)
+
 # Enable the languages which in use
 ENABLE_LANGUAGE (C CXX)
 

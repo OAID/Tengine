@@ -394,6 +394,41 @@ int fill_fp32_tensor(tensor_t tensor, float value)
     return 0;
 }
 
+int fill_int8_tensor(tensor_t tensor, float value)
+{
+    int dims[MAX_SHAPE_DIM_NUM];
+    int dims_count = get_tensor_shape(tensor, dims, MAX_SHAPE_DIM_NUM);
+
+    int type = get_tensor_data_type(tensor);
+
+    if (TENGINE_DT_INT8 != type)
+        return -1;
+
+    int element_count = 1;
+    for (int i = 0; i < dims_count; i++)
+        element_count *= dims[i];
+
+    if (0 == element_count)
+        return -1;
+
+    float input_scale = 0.f;
+    int input_zero_point = 0;
+    get_tensor_quant_param(tensor, &input_scale, &input_zero_point, 1);
+
+    int8_t * data_ptr = (int8_t *)get_tensor_buffer(tensor);
+    for (int i = 0; i < element_count; i++)
+    {
+        int data = (round)(value / input_scale + (float)input_zero_point);
+        if (data > 127)
+            data = 127;
+        else if (data < -128)
+            data = -128;
+        data_ptr[i] = data;
+    }
+
+    return 0;
+}
+
 
 int fill_uint8_tensor(tensor_t tensor, float value)
 {
@@ -452,6 +487,23 @@ void fill_input_float_tensor_by_index(graph_t graph, int input_node_index, int t
         fprintf(stderr, "Fill buffer for tensor failed.\n");
 }
 
+void fill_input_int8_tensor_by_index(graph_t graph, int input_node_index, int tensor_index, float value)
+{
+    tensor_t tensor = get_graph_input_tensor(graph, input_node_index, tensor_index);
+    if(NULL == tensor)
+        fprintf(stderr, "Cannot find the %dth tensor via node index(%d).\n", tensor_index, input_node_index);
+
+    int buf_size = get_tensor_buffer_size(tensor);
+    int8_t* data = (int8_t* )malloc(buf_size);
+
+    int ret = set_tensor_buffer(tensor, (void* )data, buf_size);
+    if(0 != ret)
+        fprintf(stderr, "Set buffer for tensor failed.\n");
+
+    ret = fill_int8_tensor(tensor, value);
+    if(0 != ret)
+        fprintf(stderr, "Fill buffer for tensor failed.\n");
+}
 
 void fill_input_uint8_tensor_by_index(graph_t graph, int input_node_index, int tensor_index, float value)
 {

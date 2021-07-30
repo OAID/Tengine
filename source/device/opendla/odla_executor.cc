@@ -66,7 +66,8 @@ ODLAEngine::ODLAEngine()
     std::cout << "ODLA Engine Init " << std::endl;
 
     this->loadable = nvdla::priv::LoadableFactory::LoadablePrivPair(0, 0);
-    this->compiler = nvdla::priv::CompilerFactory::newCompiler().priv();
+    this->compiler = nvdla::priv::CompilerFactory::newCompiler();
+
 
     this->ODLAConfigGenerate();
     this->graph = new nvdla::priv::canonical_ast::Graph();
@@ -159,7 +160,6 @@ int ODLAEngine::ODLATensorMap(struct graph* ir_graph, int ir_tensor_idx, int spe
         /* create the odla tesnor */
         nvdla::priv::TensorFactory::TensorPrivPair t = nvdla::priv::TensorFactory::newTensor();
         nvdla::priv::Tensor* odla_tensor = NULL;
-
         if (spec_type == NVDLA_LAYER_TYPE_OUTPUT)
         {
 
@@ -167,6 +167,8 @@ int ODLAEngine::ODLATensorMap(struct graph* ir_graph, int ir_tensor_idx, int spe
             t.i()->setDataFormat(NVDLA_DATA_FORMAT_NCHW);
             t.i()->setTensorType(nvdla::kNW_OUTPUT);
             t.i()->setDataType(datatype);
+            t.i()->setName(ir_tensor->name);
+            t.i()->setChannelDynamicRange(-1, -16129, 16129);
 
             odla_tensor = t.priv();
         }
@@ -185,7 +187,8 @@ int ODLAEngine::ODLATensorMap(struct graph* ir_graph, int ir_tensor_idx, int spe
             t.i()->setDataFormat(NVDLA_DATA_FORMAT_NCHW);
             t.i()->setTensorType(nvdla::kNW_INPUT);
             t.i()->setDataType(datatype);
-
+            t.i()->setName(ir_tensor->name);
+            t.i()->setChannelDynamicRange(-1, -127, 127);
             odla_tensor = t.priv();
         }
         else if (ir_tensor->tensor_type == TENSOR_TYPE_VAR)
@@ -197,7 +200,8 @@ int ODLAEngine::ODLATensorMap(struct graph* ir_graph, int ir_tensor_idx, int spe
                 t.i()->setDataFormat(NVDLA_DATA_FORMAT_NCHW);
                 t.i()->setTensorType(nvdla::kNW_OUTPUT);
                 t.i()->setDataType(datatype);
-
+                t.i()->setName(ir_tensor->name);
+                t.i()->setChannelDynamicRange(-1, -16129, 16129);
                 odla_tensor = t.priv();
             }
             else
@@ -206,8 +210,10 @@ int ODLAEngine::ODLATensorMap(struct graph* ir_graph, int ir_tensor_idx, int spe
                 t.i()->setDataFormat(NVDLA_DATA_FORMAT_NCHW);
                 t.i()->setTensorType(nvdla::kUNKNOWN);       // May Not be Right
                 t.i()->setDataType(datatype);
-
+                t.i()->setName(ir_tensor->name);
+                t.i()->setChannelDynamicRange(-1, -16129, 16129);
                 odla_tensor = t.priv();
+
 //                tim::vx::TensorSpec vx_spec(datatype, vx_shape,
 //                                            tim::vx::TensorAttribute::TRANSIENT, vx_quant);
             }
@@ -226,6 +232,7 @@ int ODLAEngine::ODLATensorMap(struct graph* ir_graph, int ir_tensor_idx, int spe
 //                                        tim::vx::TensorAttribute::CONSTANT, vx_quant);
 //            vx_tensor = this->graph->CreateTensor(vx_spec, ir_tensor->data);
         }
+
         this->odla_tensor_map[ir_tensor_idx] = odla_tensor;
     }
 
@@ -237,6 +244,7 @@ int ODLAEngine::Build(struct subgraph* subgraph)
     std::cout << "ODLA Build Entrance " << std::endl;
     struct graph* ir_graph = subgraph->graph;
 
+
     for (int i = 0; i < subgraph->node_num; i++)
     {
         uint16_t node_id = subgraph->node_list[i];
@@ -245,6 +253,8 @@ int ODLAEngine::Build(struct subgraph* subgraph)
 
         switch (op_type)
         {
+            case OP_INPUT:
+                continue;
             case OP_POOL:
                 this->AddPoolingNode(ir_node);
                 break;
@@ -254,6 +264,8 @@ int ODLAEngine::Build(struct subgraph* subgraph)
         }
     }
 
+    this->graph->scoredOrdering()->generate();
+    this->graph->markClean();
     return 0;
 }
 
@@ -261,7 +273,7 @@ int ODLAEngine::Build(struct subgraph* subgraph)
 int ODLAEngine::ODLAEnginePreRun(struct subgraph* subgraph)
 {
     std::cout << "ODLA PreRun Entrance " << std::endl;
-    nvdla::priv::engine_ast::Graph * engineASTGraph = NULL;
+
     struct graph* ir_graph = subgraph->graph;
     /* Add OpenDLA Tensor */
     for (uint8_t i = 0; i < subgraph->input_num; i++)
@@ -337,25 +349,47 @@ int ODLAEngine::ODLAEnginePreRun(struct subgraph* subgraph)
         }
     }
 
-    if (profile->multiBatchSize() == 0)
-    {
-        // The compiler should be querying this information from the network instead of the profile
-        for (uint8_t i = 0; i < subgraph->input_num; i++)
-        {
-            int ir_tensor_idx = subgraph->input_tensor_list[i];
-            struct tensor* ir_tensor = get_ir_graph_tensor(ir_graph, ir_tensor_idx);
-            profile->setMultiBatchSize(ir_tensor->dims[0]);
-        }
-    }
 
     /* Add OpenDLA Node / Build Canonical AST Graph */
     this->Build(subgraph);
 
     if (subgraph->node_num > 0)
     {
-        engineASTGraph = nvdla::priv::engine_ast::generateGraph(profile,targetConfig,graph);
-        if (this->compiler->emit(engineASTGraph, loadable) != NvDlaSuccess) {
+        auto engineASTGraph = nvdla::priv::engine_ast::generateGraph(this->profile, this->targetConfig, this->graph);
+        // Optimize pass
+        engineASTGraph = this->compiler.priv()->registerBuffers(engineASTGraph);
+//        engineASTGraph = this->compiler.priv()->preProcessAuxData(engineASTGraph);
+//        engineASTGraph = this->compiler.priv()->updateScalingFactors(engineASTGraph);
+//        engineASTGraph = this->compiler.priv()->quantizeAuxData(engineASTGraph);
+//        engineASTGraph = this->compiler.priv()->fuseOnTheFlyNodes(engineASTGraph);
+//        engineASTGraph = this->compiler.priv()->handleLowPrecisionConversions(engineASTGraph);
+//        engineASTGraph = this->compiler.priv()->translateAuxData(engineASTGraph);
+        engineASTGraph = this->compiler.priv()->reserveBuffers(engineASTGraph);
+//        engineASTGraph = this->compiler.priv()->splitNodes(engineASTGraph);
+//        engineASTGraph = this->compiler.priv()->fuseSubEngineOps(engineASTGraph);
+//        engineASTGraph = this->compiler.priv()->boundGraph(engineASTGraph);
+//        engineASTGraph = this->compiler.priv()->handleMultiBatch(engineASTGraph);
+//        engineASTGraph = this->compiler.priv()->enableCopyOutDebugSurfaces(engineASTGraph);
+
+        // generate Loadable Task info
+        nvdla::priv::engine_ast::NodeSequence topological_order;
+        engineASTGraph = this->compiler.priv()->generateDependencyParams(engineASTGraph, topological_order);
+        if (this->compiler.priv()->emit(engineASTGraph, loadable) != NvDlaSuccess) {
             fprintf(stderr, "Failed to emit Loadable Data. \n");
+            return -1;
+        }
+        this->loadable.priv()->serialize();
+
+        // Get Loadable Image Size
+        NvU64 loadableSize = 0;
+        this->loadable.priv()->getSerializedDataSize(&loadableSize);
+        if(!loadableSize){
+            fprintf(stderr, "No Loadable Generated. \n");
+            return -1;
+        }
+        NvU8 * buffer  = (NvU8 *)NvDlaAlloc(loadableSize);
+        if (buffer == NULL) {
+            fprintf(stderr, "Failed to allocate buffer for loadable. \n");
             return -1;
         }
     }

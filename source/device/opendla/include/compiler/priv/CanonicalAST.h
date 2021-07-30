@@ -912,7 +912,7 @@ namespace canonical_ast
 
         template <typename T> static T nodeCast(Node*);
 
-    protected:
+    public:
         static std::map<Node*, ConvolutionNode*>     s_conv_priv;
         static std::map<Node*, FullyConnectedNode*>  s_fc_priv;
         static std::map<Node*, ActivationNode*>      s_act_priv;

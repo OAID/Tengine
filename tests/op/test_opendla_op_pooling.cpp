@@ -74,12 +74,7 @@ int create_test_pool_node(graph_t graph, const char* input_name, const char* nod
 
 float reference_out[3] = {-10.f, -10.f, -10.f};
 
-/*
- * scale = (max - min) / 255
- * zero_point = -min / scale
- * uint8   = clip(round(float32 / scale) + zero_point, 0, 255)
- * float32 = (uint8 - zero_point) * scale
- */
+
 float input_scale = 0.039216f;
 int input_zero_point = 255;
 float output_scale = 0.039216f;
@@ -89,7 +84,7 @@ int main(int argc, char* argv[])
 {
     int n = 1, c = 3, h = 4, w = 5;
     const char* test_node_name = "pooling";
-    int data_type = TENGINE_DT_UINT8;
+    int data_type = TENGINE_DT_INT8;
     int layout = TENGINE_LAYOUT_NCHW;
 
     // init
@@ -109,8 +104,7 @@ int main(int argc, char* argv[])
     set_tensor_quant_param(output_tesnor, &output_scale, &output_zero_point, 1);
 
     // set input data
-    fill_input_uint8_tensor_by_index(graph, 0, 0, -10.0f);
-
+    fill_input_int8_tensor_by_index(graph, 0, 0, -10.0f);
     // graph run
     ret = test_graph_run(graph);
     if (0 != ret)
@@ -122,7 +116,7 @@ int main(int argc, char* argv[])
 
     // get output and dequant
     struct tensor* output_tensor = (struct tensor*)get_graph_output_tensor(graph, 0, 0);
-    uint8_t* output_u8 = ( uint8_t* )output_tensor->data;
+    int8_t* output_int8 = ( int8_t* )output_tensor->data;
     int output_size = output_tensor->elem_num;
     int out_c = output_tensor->dims[1];
     int cstep = output_tensor->dims[2] * output_tensor->dims[3];
@@ -130,7 +124,7 @@ int main(int argc, char* argv[])
     get_tensor_quant_param(output_tensor, &output_scale, &output_zero_point, 1);
     float* output_data = ( float* )malloc(output_size * sizeof(float));
     for (int i = 0; i < output_size; i++)
-        output_data[i] = (( float )output_u8[i] - ( float )output_zero_point) * output_scale;
+        output_data[i] = (( float )output_int8[i] - ( float )output_zero_point) * output_scale;
 
     // check the result
     ret = 0;

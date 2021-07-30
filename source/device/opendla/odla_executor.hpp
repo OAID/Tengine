@@ -29,6 +29,7 @@
 #include "priv/Profiler.h"
 #include "priv/Compiler.h"
 #include "ErrorMacros.h"
+#include "nvdla_os_inf.h"
 
 
 extern "C"
@@ -90,9 +91,9 @@ public:
 
     nvdla::priv::Profile * profile;
     nvdla::priv::TargetConfig* targetConfig;
-    nvdla::priv::Compiler* compiler;
-
     nvdla::priv::canonical_ast::Graph * graph;
+
+    nvdla::priv::CompilerFactory::CompilerPrivPair compiler;
     nvdla::priv::LoadableFactory::LoadablePrivPair loadable;
 
 private:
