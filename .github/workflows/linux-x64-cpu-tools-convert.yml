@@ -29,26 +29,26 @@ jobs:
     - name: Build AppImage
       run: |
         docker run --network=host --env PROTOBUF_REPO_DIR=$PWD/protobuf -v $PWD:$PWD -w $PWD --privileged --ipc=host centos:7 $PWD/.github/workflows/build-package-and-test-convert-tools.sh
-    - name: Install dependencies for test
-      run: |
-        sudo apt-get update
-        sudo apt-get install libopencv-dev
-    - name: Configure
-      run: mkdir build && cd build && cmake -DTENGINE_BUILD_TESTS=ON ..
-    - name: Build test
-      run: cmake --build build -j 2          
-    - name: Download and unzip test data
-      run: |
-        cd build
-        wget ftp://219.139.34.182/tengine/ci_test/model_test_convert/onnx_models.zip
-        unzip onnx_models.zip
-        wget ftp://219.139.34.182/tengine/ci_test/model_test_convert/onnx_models_output.zip
-        unzip onnx_models_output.zip
-    - name: Run tests
-      run: |
-        chmod +x ./tests/test_onnx_model.sh
-        cd build
-        ../tests/test_onnx_model.sh ../convert_tool-x86_64.AppImage
+    # - name: Install dependencies for test
+    #   run: |
+    #     sudo apt-get update
+    #     sudo apt-get install libopencv-dev
+    # - name: Configure
+    #   run: mkdir build && cd build && cmake -DTENGINE_BUILD_TESTS=ON ..
+    # - name: Build test
+    #   run: cmake --build build -j 2          
+    # - name: Download and unzip test data
+    #   run: |
+    #     cd build
+    #     wget ftp://219.139.34.182/tengine/ci_test/model_test_convert/onnx_models.zip
+    #     unzip onnx_models.zip
+    #     wget ftp://219.139.34.182/tengine/ci_test/model_test_convert/onnx_models_output.zip
+    #     unzip onnx_models_output.zip
+    # - name: Run tests
+    #   run: |
+    #     chmod +x ./tests/test_onnx_model.sh
+    #     cd build
+    #     ../tests/test_onnx_model.sh ../convert_tool-x86_64.AppImage
     - name: Upload AppImage
       uses: actions/upload-artifact@v2
       with:
