@@ -48,8 +48,8 @@ bool VXEngine::AddInstanceNormNode(struct node* ir_node)
 
     struct instancenorm_Param* param = (struct instancenorm_Param*)ir_node->op.param_mem;
 
-    auto sigmoid = graph->CreateOperation<tim::vx::ops::InstanceNormalization>(param->eps);
-    (*sigmoid)
+    auto instancenorm = graph->CreateOperation<tim::vx::ops::InstanceNormalization>(param->eps);
+    (*instancenorm)
             .BindInputs({ bn_in_tensor })
             .BindOutputs({ this->vx_tensor_map[output_tensor->index] });
 

@@ -76,23 +76,23 @@ Interp_vulkan::Interp_vulkan(ir_graph_t* ir_graph, ir_node_t* ir_node)
     graph = ir_graph;
     node = ir_node;
 
-    struct tensor *input = get_ir_graph_tensor(graph, node->input_tensors[0]);
+    struct tensor* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
     std::string name = input->name;
     bottoms.push_back(name);
 
-    struct tensor *output = get_ir_graph_tensor(graph, node->output_tensors[0]);
+    struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
     name = output->name;
     tops.push_back(name);
 
     // params
-    input_c = input->dims[1];   // param->input_channel;
+    input_c = input->dims[1]; // param->input_channel;
     input_h = input->dims[2];
     input_w = input->dims[3];
-    output_c = output->dims[1];  // param->output_channel;
+    output_c = output->dims[1]; // param->output_channel;
     output_h = output->dims[2];
     output_w = output->dims[3];
 
-    struct interp_param *param = (struct interp_param *)ir_node->op.param_mem;
+    struct interp_param* param = (struct interp_param*)ir_node->op.param_mem;
 
     if (param->height_scale != 0 && param->width_scale != 0)
     {
@@ -101,27 +101,33 @@ Interp_vulkan::Interp_vulkan(ir_graph_t* ir_graph, ir_node_t* ir_node)
     }
     else
     {
-        height_scale = (float )output->dims[2] / (float )input_h;
-        width_scale = (float )output->dims[2] / (float )input_w;
+        height_scale = (float)output->dims[2] / (float)input_h;
+        width_scale = (float)output->dims[2] / (float)input_w;
     }
-    resize_type = 2;//param->resize_type;
+    resize_type = 2; //param->resize_type;
 }
 
 int Interp_vulkan::create_pipeline(const Option& _opt)
 {
     Option opt = _opt;
-    const Tensor& shape = Tensor(input_w, input_h, input_c, (void*)0); // bottom_shapes.empty() ? Mat() : bottom_shapes[0];
+    const Tensor& shape = Tensor(input_w, input_h, input_c, (void*)0);        // bottom_shapes.empty() ? Mat() : bottom_shapes[0];
     const Tensor& out_shape = Tensor(output_w, output_h, output_c, (void*)0); // top_shapes.empty() ? Mat() : top_shapes[0];
 
     int elempack = 1;
-    if (shape.dims == 1) elempack = opt.use_shader_pack8 && shape.w % 8 == 0 ? 8 : shape.w % 4 == 0 ? 4 : 1;
-    if (shape.dims == 2) elempack = opt.use_shader_pack8 && shape.h % 8 == 0 ? 8 : shape.h % 4 == 0 ? 4 : 1;
-    if (shape.dims == 3) elempack = opt.use_shader_pack8 && shape.c % 8 == 0 ? 8 : shape.c % 4 == 0 ? 4 : 1;
+    if (shape.dims == 1) elempack = opt.use_shader_pack8 && shape.w % 8 == 0 ? 8 : shape.w % 4 == 0 ? 4
+                                                                                                    : 1;
+    if (shape.dims == 2) elempack = opt.use_shader_pack8 && shape.h % 8 == 0 ? 8 : shape.h % 4 == 0 ? 4
+                                                                                                    : 1;
+    if (shape.dims == 3) elempack = opt.use_shader_pack8 && shape.c % 8 == 0 ? 8 : shape.c % 4 == 0 ? 4
+                                                                                                    : 1;
 
     int out_elempack = 1;
-    if (out_shape.dims == 1) out_elempack = opt.use_shader_pack8 && out_shape.w % 8 == 0 ? 8 : out_shape.w % 4 == 0 ? 4 : 1;
-    if (out_shape.dims == 2) out_elempack = opt.use_shader_pack8 && out_shape.h % 8 == 0 ? 8 : out_shape.h % 4 == 0 ? 4 : 1;
-    if (out_shape.dims == 3) out_elempack = opt.use_shader_pack8 && out_shape.c % 8 == 0 ? 8 : out_shape.c % 4 == 0 ? 4 : 1;
+    if (out_shape.dims == 1) out_elempack = opt.use_shader_pack8 && out_shape.w % 8 == 0 ? 8 : out_shape.w % 4 == 0 ? 4
+                                                                                                                    : 1;
+    if (out_shape.dims == 2) out_elempack = opt.use_shader_pack8 && out_shape.h % 8 == 0 ? 8 : out_shape.h % 4 == 0 ? 4
+                                                                                                                    : 1;
+    if (out_shape.dims == 3) out_elempack = opt.use_shader_pack8 && out_shape.c % 8 == 0 ? 8 : out_shape.c % 4 == 0 ? 4
+                                                                                                                    : 1;
 
     size_t elemsize;
     size_t out_elemsize;
@@ -162,16 +168,16 @@ int Interp_vulkan::create_pipeline(const Option& _opt)
     {
         std::vector<vk_specialization_type> specializations(1 + 10);
         specializations[0].i = resize_type;
-        specializations[1 + 0].i = 0;   // shape_packed.dims;
-        specializations[1 + 1].i = 0;   // shape_packed.w;
-        specializations[1 + 2].i = 0;   // shape_packed.h;
-        specializations[1 + 3].i = 0;   // shape_packed.c;
-        specializations[1 + 4].i = 0;   // shape_packed.cstep;
-        specializations[1 + 5].i = 0;   // out_shape_packed.dims;
-        specializations[1 + 6].i = 0;   // out_shape_packed.w;
-        specializations[1 + 7].i = 0;   // out_shape_packed.h;
-        specializations[1 + 8].i = 0;   // out_shape_packed.c;
-        specializations[1 + 9].i = 0;   // out_shape_packed.cstep;
+        specializations[1 + 0].i = 0; // shape_packed.dims;
+        specializations[1 + 1].i = 0; // shape_packed.w;
+        specializations[1 + 2].i = 0; // shape_packed.h;
+        specializations[1 + 3].i = 0; // shape_packed.c;
+        specializations[1 + 4].i = 0; // shape_packed.cstep;
+        specializations[1 + 5].i = 0; // out_shape_packed.dims;
+        specializations[1 + 6].i = 0; // out_shape_packed.w;
+        specializations[1 + 7].i = 0; // out_shape_packed.h;
+        specializations[1 + 8].i = 0; // out_shape_packed.c;
+        specializations[1 + 9].i = 0; // out_shape_packed.cstep;
 
         Tensor local_size_xyz;
         if (out_shape_packed.dims == 2)
@@ -250,16 +256,16 @@ int Interp_vulkan::create_pipeline(const Option& _opt)
         }
 
         std::vector<vk_specialization_type> specializations(0 + 10);
-        specializations[0 + 0].i = 0;   // shape_packed.dims;
-        specializations[0 + 1].i = 0;   // shape_packed.w;
-        specializations[0 + 2].i = 0;   // shape_packed.h;
-        specializations[0 + 3].i = 0;   // shape_packed.c;
-        specializations[0 + 4].i = 0;   // shape_packed.cstep;
-        specializations[0 + 5].i = 0;   // out_shape_packed.dims;
-        specializations[0 + 6].i = 0;   // out_shape_packed.w;
-        specializations[0 + 7].i = 0;   // out_shape_packed.h;
-        specializations[0 + 8].i = 0;   // out_shape_packed.c;
-        specializations[0 + 9].i = 0;   // out_shape_packed.cstep;
+        specializations[0 + 0].i = 0; // shape_packed.dims;
+        specializations[0 + 1].i = 0; // shape_packed.w;
+        specializations[0 + 2].i = 0; // shape_packed.h;
+        specializations[0 + 3].i = 0; // shape_packed.c;
+        specializations[0 + 4].i = 0; // shape_packed.cstep;
+        specializations[0 + 5].i = 0; // out_shape_packed.dims;
+        specializations[0 + 6].i = 0; // out_shape_packed.w;
+        specializations[0 + 7].i = 0; // out_shape_packed.h;
+        specializations[0 + 8].i = 0; // out_shape_packed.c;
+        specializations[0 + 9].i = 0; // out_shape_packed.cstep;
 
         Tensor local_size_xyz;
         if (out_shape_packed.dims == 2)
@@ -378,9 +384,9 @@ int Interp_vulkan::record_pipeline(const VkTensor& bottom_blob, VkTensor& top_bl
         constants[10].f = w / (float)outw;
         constants[11].f = h / (float)outh;
 
-        const Pipeline* pipeline = elempack == 8 ? pipeline_interp_pack8
+        const Pipeline* pipeline = elempack == 8   ? pipeline_interp_pack8
                                    : elempack == 4 ? pipeline_interp_pack4
-                                   : pipeline_interp;
+                                                   : pipeline_interp;
 
         cmd.record_pipeline(pipeline, bindings, constants, top_blob);
     }
@@ -451,9 +457,9 @@ int Interp_vulkan::record_pipeline(const VkTensor& bottom_blob, VkTensor& top_bl
         constants[8].i = top_blob.c;
         constants[9].i = top_blob.cstep;
 
-        const Pipeline* pipeline = elempack == 8 ? pipeline_interp_bicubic_pack8
+        const Pipeline* pipeline = elempack == 8   ? pipeline_interp_bicubic_pack8
                                    : elempack == 4 ? pipeline_interp_bicubic_pack4
-                                   : pipeline_interp_bicubic;
+                                                   : pipeline_interp_bicubic;
 
         cmd.record_pipeline(pipeline, bindings, constants, top_blob);
     }
@@ -461,4 +467,4 @@ int Interp_vulkan::record_pipeline(const VkTensor& bottom_blob, VkTensor& top_bl
     return 0;
 }
 
-}   // TEngine
+} // namespace TEngine

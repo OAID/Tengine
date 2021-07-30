@@ -67,7 +67,7 @@ $ make install
 
 ## Demo
 
-#### Depned librarys
+#### Depend libraries
 
 ```
 3rdparty/acl/lib/

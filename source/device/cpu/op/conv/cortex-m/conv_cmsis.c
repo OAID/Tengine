@@ -35,7 +35,6 @@
 
 #include "arm_math.h"
 
-
 struct cmsis_param
 {
     uint16_t bias_shift;
@@ -78,7 +77,7 @@ static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, str
     int scale = ir_tensor->scale;
     out_shift = cal_shift(scale);
 
-    struct cmsis_param* param = ( struct cmsis_param* )sys_malloc(sizeof(struct cmsis_param));
+    struct cmsis_param* param = (struct cmsis_param*)sys_malloc(sizeof(struct cmsis_param));
 
     param->bias_shift = bias_shift;
     param->out_shift = out_shift;
@@ -86,9 +85,8 @@ static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, str
     exec_node->ops_priv = param;
 
     /*2*ch_im_in*dim_kernel*dim_kernel */
-    struct conv_param* conv_param = ( struct conv_param* )ir_node->op.param_mem;
-    exec_node->shared_mem_size =
-            sizeof(q15_t) * 2 * conv_param->input_channel * conv_param->kernel_h * conv_param->kernel_w;
+    struct conv_param* conv_param = (struct conv_param*)ir_node->op.param_mem;
+    exec_node->shared_mem_size = sizeof(q15_t) * 2 * conv_param->input_channel * conv_param->kernel_h * conv_param->kernel_w;
 
     return 0;
 }
@@ -103,18 +101,18 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 {
     struct node* ir_node = exec_node->ir_node;
     struct graph* ir_graph = ir_node->graph;
-    struct cmsis_param* cmsis_param = ( struct cmsis_param* )exec_node->ops_priv;
+    struct cmsis_param* cmsis_param = (struct cmsis_param*)exec_node->ops_priv;
     struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     struct tensor* weight_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
     struct tensor* bias_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[2]);
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    struct conv_param* conv_param = ( struct conv_param* )ir_node->op.param_mem;
+    struct conv_param* conv_param = (struct conv_param*)ir_node->op.param_mem;
 
     int ret = arm_convolve_HWC_q7_nonsquare(
-            input_tensor->data, input_tensor->dims[2], input_tensor->dims[1], input_tensor->dims[3], weight_tensor->data,
-            weight_tensor->dims[3], conv_param->kernel_w, conv_param->kernel_h, conv_param->pad_w0, conv_param->pad_h0,
-            conv_param->stride_w, conv_param->stride_h, bias_tensor->data, cmsis_param->bias_shift, cmsis_param->out_shift,
-            output_tensor->data, output_tensor->dims[2], output_tensor->dims[1], exec_graph->shared_mem, NULL);
+        input_tensor->data, input_tensor->dims[2], input_tensor->dims[1], input_tensor->dims[3], weight_tensor->data,
+        weight_tensor->dims[3], conv_param->kernel_w, conv_param->kernel_h, conv_param->pad_w0, conv_param->pad_h0,
+        conv_param->stride_w, conv_param->stride_h, bias_tensor->data, cmsis_param->bias_shift, cmsis_param->out_shift,
+        output_tensor->data, output_tensor->dims[2], output_tensor->dims[1], exec_graph->shared_mem, NULL);
 
     if (ret != ARM_MATH_SUCCESS)
     {
@@ -137,12 +135,12 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
 }
 
 static struct node_ops cmsis_node_ops = {.prerun = NULL,
-        .run = run,
-        .reshape = reshape,
-        .postrun = NULL,
-        .init_node = init_node,
-        .release_node = release_node,
-        .score = score};
+                                         .run = run,
+                                         .reshape = reshape,
+                                         .postrun = NULL,
+                                         .init_node = init_node,
+                                         .release_node = release_node,
+                                         .score = score};
 
 int register_conv_cmsis_op()
 {

@@ -37,12 +37,11 @@
 #include <math.h>
 #include <string.h>
 
-
 static void norm_channel(float* input, float* output, float* buffer, float* scale, int hw, int channel, int num_thread)
 {
     memset(buffer, 0, hw * sizeof(float));
 
-//#pragma omp parallel for num_threads(num_thread)
+    //#pragma omp parallel for num_threads(num_thread)
     for (int i = 0; i < channel; i++)
     {
         for (int j = 0; j < hw; j++)
@@ -52,13 +51,13 @@ static void norm_channel(float* input, float* output, float* buffer, float* scal
         }
     }
 
-//#pragma omp parallel for num_threads(num_thread)
+    //#pragma omp parallel for num_threads(num_thread)
     for (int j = 0; j < hw; j++)
     {
         buffer[j] = 1.f / sqrt(buffer[j]);
     }
 
-//#pragma omp parallel for num_threads(num_thread)
+    //#pragma omp parallel for num_threads(num_thread)
     for (int i = 0; i < channel; i++)
     {
         for (int j = 0; j < hw; j++)
@@ -86,17 +85,17 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
     struct tensor* scale_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
-    normalize_param_t* param = ( normalize_param_t* )(ir_node->op.param_mem);
-    float* input_org = ( float* )input_tensor->data;
-    float* output_org = ( float* )output_tensor->data;
-    float* sclae_org = ( float* )scale_tensor->data;
+    normalize_param_t* param = (normalize_param_t*)(ir_node->op.param_mem);
+    float* input_org = (float*)input_tensor->data;
+    float* output_org = (float*)output_tensor->data;
+    float* sclae_org = (float*)scale_tensor->data;
 
     int batch_number = input_tensor->dims[0];
     int channel_num = input_tensor->dims[1];
     int channel_size = (input_tensor->dims[2]) * (input_tensor->dims[3]);
     int img_size = channel_num * channel_size;
 
-    float* buffer = ( float* )sys_malloc(channel_size * sizeof(float));
+    float* buffer = (float*)sys_malloc(channel_size * sizeof(float));
     if (param->channel_shared == 0 && param->across_spatial == 0)
     {
         for (int i = 0; i < batch_number; i++)

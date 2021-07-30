@@ -22,35 +22,33 @@
  * Author: hhchen@openailab.com
  */
 
-
 #pragma once
 
-extern "C"
-{
+extern "C" {
 #include "operator/op.h"
 }
 
 const int acl_supported_ops[] = {
-        OP_BATCHNORM,
-        OP_CAST,
-        OP_CLIP,
-        OP_CONCAT,
-        OP_CONST,
-        OP_CONV,
-        OP_CROP,
-        OP_DECONV,
-        OP_DROPOUT,
-        OP_ELTWISE,
-        OP_FC,
-        //OP_FLATTEN,
-        OP_INPUT,
-        OP_INTERP,
-        //OP_PERMUTE,
-        OP_POOL,
-        OP_RELU,
-        OP_RESHAPE,
-        OP_RESIZE,
-        //OP_SLICE,
-        OP_SOFTMAX
-        //OP_BIAS,
+    OP_BATCHNORM,
+    OP_CAST,
+    OP_CLIP,
+    OP_CONCAT,
+    OP_CONST,
+    OP_CONV,
+    OP_CROP,
+    OP_DECONV,
+    OP_DROPOUT,
+    OP_ELTWISE,
+    OP_FC,
+    //OP_FLATTEN,
+    OP_INPUT,
+    OP_INTERP,
+    //OP_PERMUTE,
+    OP_POOL,
+    OP_RELU,
+    OP_RESHAPE,
+    OP_RESIZE,
+    //OP_SLICE,
+    OP_SOFTMAX
+    //OP_BIAS,
 };

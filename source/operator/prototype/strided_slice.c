@@ -33,30 +33,25 @@
 
 #include <math.h>
 
-
 static int infer_shape(struct node* node)
 {
     struct graph* ir_graph = node->graph;
     struct tensor* input = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
     struct tensor* output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
-    struct strided_slice_param* param_ = ( struct strided_slice_param* )(node->op.param_mem);
+    struct strided_slice_param* param_ = (struct strided_slice_param*)(node->op.param_mem);
 
-    int delta_0 = (-param_->begin[0] + param_->end[0]) < 0 ? param_->begin[0] - param_->end[0] :
-                                                             -param_->begin[0] + param_->end[0];
-    int delta_1 = (-param_->begin[1] + param_->end[1]) < 0 ? param_->begin[1] - param_->end[1] :
-                                                             -param_->begin[1] + param_->end[1];
-    int delta_2 = (-param_->begin[2] + param_->end[2]) < 0 ? param_->begin[2] - param_->end[2] :
-                                                             -param_->begin[2] + param_->end[2];
-    int delta_3 = (-param_->begin[3] + param_->end[3]) < 0 ? param_->begin[3] - param_->end[3] :
-                                                             -param_->begin[3] + param_->end[3];
+    int delta_0 = (-param_->begin[0] + param_->end[0]) < 0 ? param_->begin[0] - param_->end[0] : -param_->begin[0] + param_->end[0];
+    int delta_1 = (-param_->begin[1] + param_->end[1]) < 0 ? param_->begin[1] - param_->end[1] : -param_->begin[1] + param_->end[1];
+    int delta_2 = (-param_->begin[2] + param_->end[2]) < 0 ? param_->begin[2] - param_->end[2] : -param_->begin[2] + param_->end[2];
+    int delta_3 = (-param_->begin[3] + param_->end[3]) < 0 ? param_->begin[3] - param_->end[3] : -param_->begin[3] + param_->end[3];
 
     int dims[4] = {0};
-    dims[0] = ceil((( float )input->dims[0] - ( float )delta_0) / ( float )param_->stride[0]);
-    dims[1] = ceil((( float )input->dims[1] - ( float )delta_1) / ( float )param_->stride[1]);
-    dims[2] = ceil((( float )input->dims[2] - ( float )delta_2) / ( float )param_->stride[2]);
-    dims[3] = ceil((( float )input->dims[3] - ( float )delta_3) / ( float )param_->stride[3]);
+    dims[0] = ceil(((float)input->dims[0] - (float)delta_0) / (float)param_->stride[0]);
+    dims[1] = ceil(((float)input->dims[1] - (float)delta_1) / (float)param_->stride[1]);
+    dims[2] = ceil(((float)input->dims[2] - (float)delta_2) / (float)param_->stride[2]);
+    dims[3] = ceil(((float)input->dims[3] - (float)delta_3) / (float)param_->stride[3]);
 
-    for (int i=0; i<4; i++)
+    for (int i = 0; i < 4; i++)
     {
         if (dims[i] == 0)
             dims[i] = 1;
@@ -67,11 +62,9 @@ static int infer_shape(struct node* node)
     return 0;
 }
 
-
 static int init_op(struct op* op)
 {
-    struct strided_slice_param* strided_slice_param =
-        ( struct strided_slice_param* )sys_malloc(sizeof(struct strided_slice_param));
+    struct strided_slice_param* strided_slice_param = (struct strided_slice_param*)sys_malloc(sizeof(struct strided_slice_param));
 
     if (strided_slice_param == NULL)
     {
@@ -93,12 +86,10 @@ static int init_op(struct op* op)
     return 0;
 }
 
-
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
-
 
 int register_strided_slice_op()
 {
@@ -110,7 +101,6 @@ int register_strided_slice_op()
 
     return register_op(OP_STRIDED_SLICE, OP_STRIDEDSLICE_NAME, &m);
 }
-
 
 int unregister_strided_slice_op()
 {

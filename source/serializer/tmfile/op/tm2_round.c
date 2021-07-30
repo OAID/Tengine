@@ -32,24 +32,21 @@
 #include "device/device.h"
 #include "utility/log.h"
 
-
 static int round_op_map(int op)
 {
     return OP_ROUND;
 }
-
 
 static int tm2_load_round(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node, const TM2_Operator* tm_op)
 {
     return 0;
 }
 
-
 int register_tm2_round_op()
 {
     struct serializer* tm2_s = find_serializer_via_name("tengine");
 
-    if(tm2_s == NULL)
+    if (tm2_s == NULL)
     {
         TLOG_ERR("tengine serializer has not been registered yet\n");
         return -1;
@@ -59,7 +56,6 @@ int register_tm2_round_op()
 
     return 0;
 }
-
 
 int unregister_tm2_round_op()
 {

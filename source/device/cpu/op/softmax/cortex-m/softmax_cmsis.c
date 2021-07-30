@@ -34,7 +34,6 @@
 
 #include "arm_math.h"
 
-
 /**
  * @brief Q7 softmax function
  * @param[in]       vec_in      pointer to input vector
@@ -55,9 +54,8 @@ static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struc
     input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    if (input_tensor->dims[0] != output_tensor->dims[0] || input_tensor->dims[1] != output_tensor->dims[1] || input_tensor->dims[2] != output_tensor->dims[2] ||
-        input_tensor->dims[3] != output_tensor->dims[3])
-    ret = set_ir_tensor_shape(output_tensor, input_tensor->dims, input_tensor->dim_num);
+    if (input_tensor->dims[0] != output_tensor->dims[0] || input_tensor->dims[1] != output_tensor->dims[1] || input_tensor->dims[2] != output_tensor->dims[2] || input_tensor->dims[3] != output_tensor->dims[3])
+        ret = set_ir_tensor_shape(output_tensor, input_tensor->dims, input_tensor->dim_num);
 
     return ret;
 }

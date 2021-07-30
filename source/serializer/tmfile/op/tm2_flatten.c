@@ -34,27 +34,24 @@
 #include "device/device.h"
 #include "utility/log.h"
 
-
 static int flatten_op_map(int op)
 {
     return OP_FLATTEN;
 }
 
-
 static int tm2_load_flatten(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                             const TM2_Operator* tm_op)
 {
-    struct flatten_param* flatten_param = ( struct flatten_param* )ir_node->op.param_mem;
+    struct flatten_param* flatten_param = (struct flatten_param*)ir_node->op.param_mem;
     const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
     const char* mem_base = tm2_priv->base;
-    const TM2_FlattenParam* tm_param = ( TM2_FlattenParam* )(mem_base + tm_op->offset_t_param);
+    const TM2_FlattenParam* tm_param = (TM2_FlattenParam*)(mem_base + tm_op->offset_t_param);
 
     flatten_param->end_axis = tm_param->end_axis;
     flatten_param->axis = tm_param->axis;
 
     return 0;
 }
-
 
 int register_tm2_flatten_op()
 {
@@ -70,7 +67,6 @@ int register_tm2_flatten_op()
 
     return 0;
 }
-
 
 int unregister_tm2_flatten_op()
 {

@@ -35,17 +35,17 @@
 #include "tengine/c_api.h"
 #include "tengine_operations.h"
 
-#define DEFAULT_IMG_H 512 
-#define DEFAULT_IMG_W 512
-#define DEFAULT_SCALE1 (1.f/255.f)
-#define DEFAULT_SCALE2 (1.f/255.f)
-#define DEFAULT_SCALE3 (1.f/255.f)
-#define DEFAULT_MEAN1 0
-#define DEFAULT_MEAN2 0
-#define DEFAULT_MEAN3 0
-#define DEFAULT_LOOP_COUNT 1
-#define DEFAULT_THREAD_COUNT 1
-#define DEFAULT_CPU_AFFINITY 255
+#define DEFAULT_IMG_H          512
+#define DEFAULT_IMG_W          512
+#define DEFAULT_SCALE1         (1.f / 255.f)
+#define DEFAULT_SCALE2         (1.f / 255.f)
+#define DEFAULT_SCALE3         (1.f / 255.f)
+#define DEFAULT_MEAN1          0
+#define DEFAULT_MEAN2          0
+#define DEFAULT_MEAN3          0
+#define DEFAULT_LOOP_COUNT     1
+#define DEFAULT_THREAD_COUNT   1
+#define DEFAULT_CPU_AFFINITY   255
 #define DEFAULT_CONF_THRESHOLD 0.5f
 
 /**
@@ -56,10 +56,10 @@
  */
 int float_mismatch(float* current, float* reference, int size)
 {
-    for(int i=0;i<size;i++)
+    for (int i = 0; i < size; i++)
     {
         float tmp = fabs(current[i]) - fabs(reference[i]);
-        if(fabs(tmp) > 0.0001)
+        if (fabs(tmp) > 0.0001)
         {
             fprintf(stderr, "test failed, index:%d, a:%f, b:%f\n", i, current[i], reference[i]);
             return -1;
@@ -70,7 +70,7 @@ int float_mismatch(float* current, float* reference, int size)
 }
 
 int tengine_segment(const char* model_file, const char* image_file, int img_h, int img_w, const float* mean,
-                     const float* scale, int loop_count, int num_thread, int affinity, float conf_thresh)
+                    const float* scale, int loop_count, int num_thread, int affinity, float conf_thresh)
 {
     /* set runtime options */
     struct options opt;
@@ -97,8 +97,8 @@ int tengine_segment(const char* model_file, const char* image_file, int img_h, i
 
     /* set the shape, data buffer of input_tensor of the graph */
     int img_size = img_h * img_w * 3;
-    int dims[] = {1, 3, img_h, img_w};    // nchw
-    float* input_data = ( float* )malloc(img_size * sizeof(float));
+    int dims[] = {1, 3, img_h, img_w}; // nchw
+    float* input_data = (float*)malloc(img_size * sizeof(float));
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == NULL)
@@ -117,7 +117,7 @@ int tengine_segment(const char* model_file, const char* image_file, int img_h, i
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;
-    }    
+    }
 
     /* prerun graph, set work options(num_thread, cluster, precision) */
     if (prerun_graph_multithread(graph, opt) < 0)
@@ -129,7 +129,7 @@ int tengine_segment(const char* model_file, const char* image_file, int img_h, i
     /* prepare process input data, set the data mem to input tensor */
     std::string model_name = "unet";
     std::string input_file = "./data/" + model_name + "_in.bin";
-    FILE *fp;
+    FILE* fp;
 
     fp = fopen(input_file.c_str(), "rb");
     if (!fp || fread(input_data, sizeof(float), img_size, fp) == 0)
@@ -168,12 +168,12 @@ int tengine_segment(const char* model_file, const char* image_file, int img_h, i
 
     /* get the result of classification */
     tensor_t output_tensor = get_graph_output_tensor(graph, 0, 0);
-    float* output_data = ( float* )get_tensor_buffer(output_tensor);
+    float* output_data = (float*)get_tensor_buffer(output_tensor);
     int output_size = get_tensor_buffer_size(output_tensor) / sizeof(float);
 
     std::string reference_file1 = "./data/" + model_name + "_out.bin";
     std::vector<float> reference_data1(output_size);
-    FILE *fp1;
+    FILE* fp1;
     fp1 = fopen(reference_file1.c_str(), "rb");
     if (!fp || fread(reference_data1.data(), sizeof(float), output_size, fp1) == 0)
     {
@@ -182,9 +182,9 @@ int tengine_segment(const char* model_file, const char* image_file, int img_h, i
     }
     fclose(fp1);
     int ret1 = float_mismatch(output_data, reference_data1.data(), output_size);
-      /* single class segmentation */
-      /* multi-class segmentation */
-      /* visualization */
+    /* single class segmentation */
+    /* multi-class segmentation */
+    /* visualization */
 
     /* release tengine */
     free(input_data);
@@ -222,26 +222,26 @@ int main(int argc, char* argv[])
     {
         switch (res)
         {
-            case 'm':
-                model_file = optarg;
-                break;
-            case 'r':
-                loop_count = atoi(optarg);
-                break;
-            case 't':
-                num_thread = atoi(optarg);
-                break;
-            case 'a':
-                cpu_affinity = atoi(optarg);
-                break;
-            case 'c':
-                conf_thresh = atof(optarg);
-                break;
-            case 'h':
-                show_usage();
-                return 0;
-            default:
-                break;
+        case 'm':
+            model_file = optarg;
+            break;
+        case 'r':
+            loop_count = atoi(optarg);
+            break;
+        case 't':
+            num_thread = atoi(optarg);
+            break;
+        case 'a':
+            cpu_affinity = atoi(optarg);
+            break;
+        case 'c':
+            conf_thresh = atof(optarg);
+            break;
+        case 'h':
+            show_usage();
+            return 0;
+        default:
+            break;
         }
     }
 
@@ -253,26 +253,23 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-
     if (!check_file_exist(model_file))
         return -1;
 
-        img_h = DEFAULT_IMG_H;
+    img_h = DEFAULT_IMG_H;
 
-        img_w = DEFAULT_IMG_W;
+    img_w = DEFAULT_IMG_W;
 
-        scale[0] = DEFAULT_SCALE1;
-        scale[1] = DEFAULT_SCALE2;
-        scale[2] = DEFAULT_SCALE3;
+    scale[0] = DEFAULT_SCALE1;
+    scale[1] = DEFAULT_SCALE2;
+    scale[2] = DEFAULT_SCALE3;
 
-        mean[0] = DEFAULT_MEAN1;
-        mean[1] = DEFAULT_MEAN2;
-        mean[2] = DEFAULT_MEAN3;
-
+    mean[0] = DEFAULT_MEAN1;
+    mean[1] = DEFAULT_MEAN2;
+    mean[2] = DEFAULT_MEAN3;
 
     if (tengine_segment(model_file, image_file, img_h, img_w, mean, scale, loop_count, num_thread, cpu_affinity, conf_thresh) < 0)
         return -1;
 
     return 0;
 }
-

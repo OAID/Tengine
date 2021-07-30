@@ -35,12 +35,10 @@
 #include "utility/sys_port.h"
 #include "utility/log.h"
 
-
 static int tile_op_map(int op)
 {
     return OP_TILE;
 }
-
 
 static int tm2_load_tile(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node, const TM2_Operator* tm_op)
 {
@@ -51,20 +49,19 @@ static int tm2_load_tile(struct graph* ir_graph, struct node* ir_node, const TM2
     tile_param->frame_flag = tm_param->frame_flag;
     if (tm_param->offset_reps != TM2_NOT_SET)
     {
-        const TM2_Vector_dims* v_re_shape = ( TM2_Vector_dims* )(mem_base + tm_param->offset_reps);
+        const TM2_Vector_dims* v_re_shape = (TM2_Vector_dims*)(mem_base + tm_param->offset_reps);
         tile_param->reps_size = v_re_shape->v_num;
 
-        tile_param->reps = ( int* )sys_malloc(v_re_shape->v_num * sizeof(int));
+        tile_param->reps = (int*)sys_malloc(v_re_shape->v_num * sizeof(int));
 
         for (unsigned int i = 0; i < v_re_shape->v_num; i++)
         {
             tile_param->reps[i] = v_re_shape->dims[i];
         }
-    }    
+    }
 
     return 0;
 }
-
 
 int register_tm2_tile_op()
 {
@@ -80,7 +77,6 @@ int register_tm2_tile_op()
 
     return 0;
 }
-
 
 int unregister_tm2_tile_op()
 {

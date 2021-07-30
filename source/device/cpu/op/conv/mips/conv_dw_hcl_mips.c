@@ -35,7 +35,6 @@
 #include "device/cpu/cpu_graph.h"
 #include "device/cpu/cpu_module.h"
 
-
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     struct node* ir_node = exec_node->ir_node;
@@ -54,8 +53,8 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         bias_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[2]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    struct conv_param* conv_param = ( struct conv_param* )ir_node->op.param_mem;
-    struct conv_priv_info* conv_priv_info = ( struct conv_priv_info* )exec_node->ops_priv;
+    struct conv_param* conv_param = (struct conv_param*)ir_node->op.param_mem;
+    struct conv_priv_info* conv_priv_info = (struct conv_priv_info*)exec_node->ops_priv;
 
     if (conv_dw_run(input_tensor, weight_tensor, bias_tensor, output_tensor, conv_priv_info, conv_param, num_thread, cpu_affinity) < 0)
     {
@@ -79,7 +78,7 @@ static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, 
 
 static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struct node* exec_node)
 {
-    struct conv_param* param = ( struct conv_param* )exec_node->op.param_mem;
+    struct conv_param* param = (struct conv_param*)exec_node->op.param_mem;
     struct node* ir_node = exec_node;
     struct graph* ir_graph = ir_node->graph;
 
@@ -108,8 +107,7 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     if (input_tensor->data_type != TENGINE_DT_FP32)
         return 0;
 
-    if (param->group > 1 && in_c == 1 && out_c == 1 && pad_h0 == pad_h1 && pad_w0 == pad_w1 && dilation_h == 1 && dilation_w == 1 && kernel_h == 3 && kernel_w == 3 &&
-        ((stride_h == 1 && stride_w == 1) || (stride_h == 2 && stride_w == 2)))
+    if (param->group > 1 && in_c == 1 && out_c == 1 && pad_h0 == pad_h1 && pad_w0 == pad_w1 && dilation_h == 1 && dilation_w == 1 && kernel_h == 3 && kernel_w == 3 && ((stride_h == 1 && stride_w == 1) || (stride_h == 2 && stride_w == 2)))
         return OPS_SCORE_BEST;
     else
         return 0;

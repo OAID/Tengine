@@ -45,7 +45,7 @@
 
 #include "permute_param.h"
 
-namespace TEngine{
+namespace TEngine {
 
 class Permute_vulkan : public Layer
 {
@@ -55,7 +55,7 @@ public:
 
     virtual int create_pipeline(const Option& opt);
     virtual int destroy_pipeline(const Option& opt);
-    
+
     virtual int record_pipeline(const VkTensor& bottom_blob, VkTensor& top_blob, VkCompute& cmd, const Option& opt) const;
 
 public:
@@ -79,6 +79,6 @@ public:
     int order_type;
 };
 
-}   // namespace TEngine
+} // namespace TEngine
 
 #endif

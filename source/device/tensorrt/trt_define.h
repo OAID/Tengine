@@ -24,16 +24,15 @@
 
 #pragma once
 
-#define TRT_DEVICE_NAME             "TensorRT"
+#define TRT_DEVICE_NAME "TensorRT"
 
-#define EXPORT_BEGIN                extern "C" {
-#define EXPORT_FINISH               }
-
+#define EXPORT_BEGIN  extern "C" {
+#define EXPORT_FINISH }
 
 typedef struct trt_option
 {
     char* dev_name;
-    int gpu_index;      //!< select which GPU to run graph
-    int dla_index;      //!< select to use NVIDIA DLA
-    int precision;      //!< precision of calculation
+    int gpu_index; //!< select which GPU to run graph
+    int dla_index; //!< select to use NVIDIA DLA
+    int precision; //!< precision of calculation
 } trt_opt_t;

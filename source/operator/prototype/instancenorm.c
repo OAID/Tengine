@@ -34,7 +34,6 @@
 
 #include <string.h>
 
-
 static int infer_shape(struct node* node)
 {
     struct graph* graph = node->graph;
@@ -46,10 +45,9 @@ static int infer_shape(struct node* node)
     return 0;
 }
 
-
 static int init_op(struct op* op)
 {
-    struct instancenorm_Param* param = ( struct instancenorm_Param* )sys_malloc(sizeof(struct instancenorm_Param));
+    struct instancenorm_Param* param = (struct instancenorm_Param*)sys_malloc(sizeof(struct instancenorm_Param));
 
     if (param == NULL)
     {
@@ -66,12 +64,10 @@ static int init_op(struct op* op)
     return 0;
 }
 
-
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
-
 
 int register_instancenorm_op()
 {
@@ -83,7 +79,6 @@ int register_instancenorm_op()
 
     return register_op(OP_INSTANCENORM, OP_INSTANCENORM_NAME, &m);
 }
-
 
 int unregister_instancenorm_op()
 {

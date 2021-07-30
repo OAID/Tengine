@@ -24,7 +24,6 @@
 
 #include "comparison_kernel_ref.h"
 
-
 void comp_equal(int input_hw, int input_hw_1, int input_count4, int input1_count4, float* input0, float* input1,
                 p_comparison_param param, float* output)
 {
@@ -418,33 +417,39 @@ int ref_comparison_fp32(float* input0, float* input1, float* output, p_compariso
 
     switch (param->type)
     {
-        case 0: {
-            comp_equal(input_hw, input_hw_1, input_count4, input1_count4, input0, input1, param, output);
-            break;
-        }
-        case 1: {
-            comp_nequal(input_hw, input_hw_1, input_count4, input1_count4, input0, input1, param, output);
-            break;
-        }
-        case 2: {
-            comp_greater(input_hw, input_hw_1, input_count4, input1_count4, input0, input1, param, output);
-            break;
-        }
-        case 3: {
-            comp_greatere(input_hw, input_hw_1, input_count4, input1_count4, input0, input1, param, output);
-            break;
-        }
-        case 4: {
-            comp_less(input_hw, input_hw_1, input_count4, input1_count4, input0, input1, param, output);
-            break;
-        }
-        case 5: {
-            comp_lesse(input_hw, input_hw_1, input_count4, input1_count4, input0, input1, param, output);
-            break;
-        }
-        default:
-            return -1;
-            break;
+    case 0:
+    {
+        comp_equal(input_hw, input_hw_1, input_count4, input1_count4, input0, input1, param, output);
+        break;
+    }
+    case 1:
+    {
+        comp_nequal(input_hw, input_hw_1, input_count4, input1_count4, input0, input1, param, output);
+        break;
+    }
+    case 2:
+    {
+        comp_greater(input_hw, input_hw_1, input_count4, input1_count4, input0, input1, param, output);
+        break;
+    }
+    case 3:
+    {
+        comp_greatere(input_hw, input_hw_1, input_count4, input1_count4, input0, input1, param, output);
+        break;
+    }
+    case 4:
+    {
+        comp_less(input_hw, input_hw_1, input_count4, input1_count4, input0, input1, param, output);
+        break;
+    }
+    case 5:
+    {
+        comp_lesse(input_hw, input_hw_1, input_count4, input1_count4, input0, input1, param, output);
+        break;
+    }
+    default:
+        return -1;
+        break;
     }
     return 0;
 }

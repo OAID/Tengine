@@ -34,20 +34,18 @@
 #include "device/device.h"
 #include "utility/log.h"
 
-
 static int op_map(int op)
 {
     return OP_CAST;
 }
 
-
 static int tm2_load_cast(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                          const TM2_Operator* tm_op)
 {
-    struct cast_param* param = ( struct cast_param* )ir_node->op.param_mem;
+    struct cast_param* param = (struct cast_param*)ir_node->op.param_mem;
     const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
     const char* mem_base = tm2_priv->base;
-    const TM2_CastParam* tm_param = ( TM2_CastParam* )(mem_base + tm_op->offset_t_param);
+    const TM2_CastParam* tm_param = (TM2_CastParam*)(mem_base + tm_op->offset_t_param);
 
     param->type_from = tm_param->type_from;
     param->type_to = tm_param->type_to;
@@ -56,7 +54,6 @@ static int tm2_load_cast(struct graph* ir_graph, struct node* ir_node, const TM2
 
     return 0;
 }
-
 
 int register_tm2_cast_op()
 {
@@ -72,7 +69,6 @@ int register_tm2_cast_op()
 
     return 0;
 }
-
 
 int unregister_tm2_cast_op()
 {

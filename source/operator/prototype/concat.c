@@ -31,13 +31,12 @@
 #include "utility/sys_port.h"
 #include "utility/log.h"
 
-
 static int infer_shape(ir_node_t* node)
 {
     ir_graph_t* graph = node->graph;
     ir_tensor_t* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
 
-    struct concat_param* concat_param = ( struct concat_param* )(node->op.param_mem);
+    struct concat_param* concat_param = (struct concat_param*)(node->op.param_mem);
 
     int concat_shape = 0;
     int axis = concat_param->axis;
@@ -104,10 +103,9 @@ static int infer_shape(ir_node_t* node)
     return 0;
 }
 
-
 static int init_op(ir_op_t* op)
 {
-    struct concat_param* concat_param = ( struct concat_param* )sys_malloc(sizeof(struct concat_param));
+    struct concat_param* concat_param = (struct concat_param*)sys_malloc(sizeof(struct concat_param));
 
     if (concat_param == NULL)
     {
@@ -125,12 +123,10 @@ static int init_op(ir_op_t* op)
     return 0;
 }
 
-
 static void release_op(ir_op_t* op)
 {
     sys_free(op->param_mem);
 }
-
 
 int register_concat_op()
 {
@@ -142,7 +138,6 @@ int register_concat_op()
 
     return register_op(OP_CONCAT, OP_CONCAT_NAME, &m);
 }
-
 
 int unregister_concat_op()
 {

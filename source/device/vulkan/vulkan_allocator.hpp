@@ -10,17 +10,18 @@
 #include "vulkan_platform.hpp"
 
 namespace TEngine {
-    
-#define MALLOC_ALIGN    16
 
-template<typename _Tp> static inline _Tp* alignPtr(_Tp* ptr, int n=(int)sizeof(_Tp))
+#define MALLOC_ALIGN 16
+
+template<typename _Tp>
+static inline _Tp* alignPtr(_Tp* ptr, int n = (int)sizeof(_Tp))
 {
-    return (_Tp*)(((size_t)ptr + n-1) & -n);
+    return (_Tp*)(((size_t)ptr + n - 1) & -n);
 }
 
 static inline size_t alignSize(size_t sz, int n)
 {
-    return (sz + n-1) & -n;
+    return (sz + n - 1) & -n;
 }
 
 static inline void* fastMalloc(size_t size)
@@ -42,8 +43,12 @@ static inline void fastFree(void* ptr)
     }
 }
 
-static inline int TENGINE_XADD(int* addr, int delta) { int tmp = *addr; *addr += delta; return tmp; }
-
+static inline int TENGINE_XADD(int* addr, int delta)
+{
+    int tmp = *addr;
+    *addr += delta;
+    return tmp;
+}
 
 class Allocator
 {
@@ -158,8 +163,13 @@ class VkAllocator
 {
 public:
     VkAllocator(const GPUDevice* _vkdev);
-    virtual ~VkAllocator() { clear(); }
-    virtual void clear() {}
+    virtual ~VkAllocator()
+    {
+        clear();
+    }
+    virtual void clear()
+    {
+    }
 
     virtual VkBufferMemory* fastMalloc(size_t size) = 0;
     virtual void fastFree(VkBufferMemory* ptr) = 0;
@@ -198,16 +208,16 @@ public:
     virtual VkBufferMemory* fastMalloc(size_t size);
     virtual void fastFree(VkBufferMemory* ptr);
 
-    virtual VkImageMemory* fastMalloc(int dims, int w, int h, int c, size_t elemsize, int elempack);//{ return 0; }
+    virtual VkImageMemory* fastMalloc(int dims, int w, int h, int c, size_t elemsize, int elempack); //{ return 0; }
     virtual void fastFree(VkImageMemory* ptr);
 
 protected:
     size_t block_size;
     size_t buffer_offset_alignment;
     size_t bind_memory_offset_alignment;
-    std::vector< std::list< std::pair<size_t, size_t> > > buffer_budgets;
+    std::vector<std::list<std::pair<size_t, size_t> > > buffer_budgets;
     std::vector<VkBufferMemory*> buffer_blocks;
-    std::vector< std::list< std::pair<size_t, size_t> > > image_memory_budgets;
+    std::vector<std::list<std::pair<size_t, size_t> > > image_memory_budgets;
     std::vector<VkDeviceMemory> image_memory_blocks;
 };
 
@@ -224,7 +234,7 @@ public:
 public:
     virtual VkBufferMemory* fastMalloc(size_t size);
     virtual void fastFree(VkBufferMemory* ptr);
-    virtual VkImageMemory* fastMalloc(int dims, int w, int h, int c, size_t elemsize, int elempack);//{ return 0; }
+    virtual VkImageMemory* fastMalloc(int dims, int w, int h, int c, size_t elemsize, int elempack); //{ return 0; }
     virtual void fastFree(VkImageMemory* ptr);
 
 protected:
@@ -238,7 +248,6 @@ protected:
     std::vector<VkDeviceMemory> image_memory_blocks;
     std::vector<VkDeviceMemory> dedicated_image_memory_blocks;
 };
-
 
 class VkStagingAllocator : public VkAllocator
 {
@@ -256,14 +265,13 @@ public:
 
     virtual VkBufferMemory* fastMalloc(size_t size);
     virtual void fastFree(VkBufferMemory* ptr);
-    virtual VkImageMemory* fastMalloc(int dims, int w, int h, int c, size_t elemsize, int elempack);//{ return 0; }
+    virtual VkImageMemory* fastMalloc(int dims, int w, int h, int c, size_t elemsize, int elempack); //{ return 0; }
     virtual void fastFree(VkImageMemory* ptr);
 
 protected:
-    unsigned int size_compare_ratio;// 0~256
+    unsigned int size_compare_ratio; // 0~256
     std::list<VkBufferMemory*> buffer_budgets;
 };
-
 
 class VkWeightStagingAllocator : public VkAllocator
 {
@@ -274,11 +282,16 @@ public:
 public:
     virtual VkBufferMemory* fastMalloc(size_t size);
     virtual void fastFree(VkBufferMemory* ptr);
-    virtual VkImageMemory* fastMalloc(int /*dims*/, int /*w*/, int /*h*/, int /*c*/, size_t /*elemsize*/, int /*elempack*/) { return 0; }
-    virtual void fastFree(VkImageMemory* /*ptr*/) {}
+    virtual VkImageMemory* fastMalloc(int /*dims*/, int /*w*/, int /*h*/, int /*c*/, size_t /*elemsize*/, int /*elempack*/)
+    {
+        return 0;
+    }
+    virtual void fastFree(VkImageMemory* /*ptr*/)
+    {
+    }
 
 protected:
 };
 
-}
+} // namespace TEngine
 #endif

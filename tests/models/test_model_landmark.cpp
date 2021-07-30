@@ -35,10 +35,10 @@
 #include <cmath>
 int float_mismatch(float* current, float* reference, int size)
 {
-    for(int i=0;i<size;i++)
+    for (int i = 0; i < size; i++)
     {
         float tmp = fabs(current[i]) - fabs(reference[i]);
-        if(fabs(tmp) > 0.0001)
+        if (fabs(tmp) > 0.0001)
         {
             fprintf(stderr, "test failed, index:%d, a:%f, b:%f\n", i, current[i], reference[i]);
             return -1;
@@ -51,7 +51,7 @@ void get_input_fp32_data(const char* image_file, float* input_data, int img_h, i
 {
     image img = imread_process(image_file, img_w, img_h, mean, scale);
 
-    float* image_data = ( float* )img.data;
+    float* image_data = (float*)img.data;
 
     for (int i = 0; i < img_w * img_h * 3; i++)
         input_data[i] = image_data[i];
@@ -80,20 +80,20 @@ int main(int argc, char* argv[])
     {
         switch (res)
         {
-            case 'm':
-                model_file = optarg;
-                break;
-            case 'r':
-                repeat_count = atoi(optarg);
-                break;
-            case 't':
-                num_thread = atoi(optarg);
-                break;
-            case 'h':
-                show_usage();
-                return 0;
-            default:
-                break;
+        case 'm':
+            model_file = optarg;
+            break;
+        case 'r':
+            repeat_count = atoi(optarg);
+            break;
+        case 't':
+            num_thread = atoi(optarg);
+            break;
+        case 'h':
+            show_usage();
+            return 0;
+        default:
+            break;
         }
     }
 
@@ -129,8 +129,8 @@ int main(int argc, char* argv[])
 
     /* set the input shape to initial the graph, and prerun graph to infer shape */
     int img_size = img_h * img_w * 3;
-    int dims[] = {1, 3, img_h, img_w};    // nchw
-    float* input_data = (float* )malloc(img_size * sizeof(float));
+    int dims[] = {1, 3, img_h, img_w}; // nchw
+    float* input_data = (float*)malloc(img_size * sizeof(float));
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == nullptr)
@@ -159,10 +159,10 @@ int main(int argc, char* argv[])
     }
 
     /* prepare process input data, set the data mem to input tensor */
-    std::string model_name="landmark";
+    std::string model_name = "landmark";
     // get_input_fp32_data(image_file, input_data, img_h, img_w, mean, scale);
     std::string input_file = "./data/" + model_name + "_in.bin";
-    FILE *fp;
+    FILE* fp;
     fp = fopen(input_file.c_str(), "rb");
     if (fread(input_data, sizeof(float), img_size, fp) == 0)
     {
@@ -197,13 +197,13 @@ int main(int argc, char* argv[])
     /* get output tensor */
     tensor_t output_tensor = get_graph_output_tensor(graph, 0, 0);
 
-    float* output_data = ( float* )(get_tensor_buffer(output_tensor));
-    int data_size = get_tensor_buffer_size(output_tensor) / sizeof(float );
+    float* output_data = (float*)(get_tensor_buffer(output_tensor));
+    int data_size = get_tensor_buffer_size(output_tensor) / sizeof(float);
     // save output_data
 
     std::string reference_file1 = "./data/" + model_name + "_out.bin";
     std::vector<float> reference_data(data_size);
-    FILE *fp1;
+    FILE* fp1;
     //read
     fp1 = fopen(reference_file1.c_str(), "rb");
     if (fread(reference_data.data(), sizeof(float), data_size, fp1) == 0)

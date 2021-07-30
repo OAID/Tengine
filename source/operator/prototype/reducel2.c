@@ -31,23 +31,22 @@
 #include "module/module.h"
 #include "utility/sys_port.h"
 
-
 static int infer_shape(struct node* node)
 {
     struct graph* ir_graph = node->graph;
     struct tensor* input = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
     struct tensor* output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
-    struct reducel2_param* reducel2_param = ( struct reducel2_param* )node->op.param_mem;
+    struct reducel2_param* reducel2_param = (struct reducel2_param*)node->op.param_mem;
 
     int kd = reducel2_param->keepdim;
     int axis = reducel2_param->axis;
 
-    int* out_dim = ( int* )sys_malloc(input->dim_num * sizeof(int));
+    int* out_dim = (int*)sys_malloc(input->dim_num * sizeof(int));
 
     if (axis < 0)
         axis = axis + input->dim_num;
 
-    for (unsigned int i = 0; i < input->dim_num && i < ( unsigned int )axis; i++)
+    for (unsigned int i = 0; i < input->dim_num && i < (unsigned int)axis; i++)
     {
         out_dim[i] = input->dims[i];
     }
@@ -67,10 +66,9 @@ static int infer_shape(struct node* node)
     return 0;
 }
 
-
 static int init_op(struct op* op)
 {
-    struct reducel2_param* reducel2_param = ( struct reducel2_param* )sys_malloc(sizeof(struct reducel2_param));
+    struct reducel2_param* reducel2_param = (struct reducel2_param*)sys_malloc(sizeof(struct reducel2_param));
 
     if (reducel2_param == NULL)
     {
@@ -88,12 +86,10 @@ static int init_op(struct op* op)
     return 0;
 }
 
-
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
-
 
 int register_reducel2_op()
 {
@@ -105,7 +101,6 @@ int register_reducel2_op()
 
     return register_op(OP_REDUCEL2, OP_REDUCEL2_NAME, &m);
 }
-
 
 int unregister_reducel2_op()
 {

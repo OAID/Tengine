@@ -32,9 +32,9 @@
 
 #define PER_OUT_CHAN 16
 void sgemm_4x16_rv64(float* biases, float* input, float* kernel, long kernel_size, float* output, long output_xy,
-                    int activation, int layout);
+                     int activation, int layout);
 void sgemm_4x4_rv64(float* biases, float* input, float* kernel, long kernel_size, float* output, long output_xy,
-                   int activation, int layout);
+                    int activation, int layout);
 
 void im2col_fp32_1x1(float* input, int input_xy, float* col, int col_cnt, int input_chan);
 void im2col_fp32_3x3(float* input, int w, int h, int channel, float* cur_col, int stride);
@@ -103,9 +103,9 @@ static void interleave_kernel(float* kernel, float* kernel_interleaved, int kern
 /* kernel interleave */
 static void interleave(struct tensor* filter, struct conv_priv_info* priv_info, struct conv_param* param)
 {
-    int group       = param->group;
+    int group = param->group;
     int kernel_size = filter->dims[1] * filter->dims[2] * filter->dims[3];
-    int out_chan    = filter->dims[0] / group;
+    int out_chan = filter->dims[0] / group;
     int out_chan_align4 = (out_chan + 3) / 4 * 4;
 
     int kernel_size_algin = kernel_size * out_chan_align4;
@@ -115,7 +115,7 @@ static void interleave(struct tensor* filter, struct conv_priv_info* priv_info, 
     float* interleave_buf = priv_info->interleave_buffer;
     for (int g = 0; g < group; g++)
     {
-        float* cur_kernel     = kernel + g * kernel_size_group;
+        float* cur_kernel = kernel + g * kernel_size_group;
         float* cur_interleave = interleave_buf + g * kernel_size_algin;
         interleave_kernel(cur_kernel, cur_interleave, out_chan, kernel_size);
     }
@@ -130,14 +130,13 @@ static void im2col(float* input, float* col, int in_c, int in_w, int in_h, int k
         int in_xy = in_w * in_h;
         int out_xy = out_w * out_h;
         int col_end3 = out_xy & 3;
-        #pragma omp parallel for num_threads(num_thread)
+#pragma omp parallel for num_threads(num_thread)
         for (int col_i = 0; col_i < out_xy - 3; col_i += 4)
         {
             float* cur_col = col + col_i * kernel_size;
 
             float* cur_input = input + col_i;
             im2col_fp32_1x1(cur_input, in_xy, cur_col, 4, in_c);
-
         }
         int col_i = out_xy & -4;
         float* cur_col;
@@ -164,7 +163,7 @@ static void im2col(float* input, float* col, int in_c, int in_w, int in_h, int k
         int out_xy = out_w * out_h;
         int col_end3 = out_xy & 3;
         int is_pad0 = (pad_w0 == 0) && (pad_h0 == 0) && (pad_w1 == 0) && (pad_h1 == 0);
-        #pragma omp parallel for num_threads(num_thread)
+#pragma omp parallel for num_threads(num_thread)
         for (int col_i = 0; col_i < (out_xy & -4); col_i += 4)
         {
             float* cur_col = col + col_i * kernel_size;
@@ -176,7 +175,7 @@ static void im2col(float* input, float* col, int in_c, int in_w, int in_h, int k
             {
                 float* l0 = input + (imy0 * s_h - pad_h0) * in_w + (imx0 * s_w - pad_w0);
                 {
-                    im2col_fp32_3x3(l0, in_w, in_h, in_c, cur_col, s_w);         // add im2col 3x3
+                    im2col_fp32_3x3(l0, in_w, in_h, in_c, cur_col, s_w); // add im2col 3x3
                     cur_col += 4 * kernel_size;
                 }
             }
@@ -239,7 +238,7 @@ static void im2col(float* input, float* col, int in_c, int in_w, int in_h, int k
     else
     {
         int out_xy = out_w * out_h;
-        #pragma omp parallel for num_threads(num_thread)
+#pragma omp parallel for num_threads(num_thread)
         for (int col_i = 0; col_i < out_xy - 3; col_i += 4)
         {
             int kernel_size = k_w * k_h * in_c;
@@ -314,20 +313,20 @@ static void sgemm_set(float* col, float* kernel, float* biases, float* output, i
         {
             int p = pp * PER_OUT_CHAN;
 
-            float* biasptr = biases ? ( float* )(biases + p) : NULL;
-            float* kernel_tmp = ( float* )(kernel + p * kernel_size);
-            float* output_tmp = ( float* )(output + p * output_xy);
+            float* biasptr = biases ? (float*)(biases + p) : NULL;
+            float* kernel_tmp = (float*)(kernel + p * kernel_size);
+            float* output_tmp = (float*)(output + p * output_xy);
 
             int col_line = 0;
             for (col_line = 0; col_line + 3 < output_xy; col_line += 4)
             {
-                float* col_tmp = ( float* )(col + col_line * kernel_size);
-                sgemm_4x16_rv64(biasptr, col_tmp, kernel_tmp, kernel_size, output_tmp + col_line, output_xy, activation, 0);      // FIXME: replace with sgemm_4x16_rv64
+                float* col_tmp = (float*)(col + col_line * kernel_size);
+                sgemm_4x16_rv64(biasptr, col_tmp, kernel_tmp, kernel_size, output_tmp + col_line, output_xy, activation, 0); // FIXME: replace with sgemm_4x16_rv64
             }
             {
                 float result[64];
-                float* col_tmp = ( float* )(col + col_line * kernel_size);
-                sgemm_4x16_rv64(biasptr, col_tmp, kernel_tmp, kernel_size, result, 4, activation, 0);         // FIXME: replace with sgemm_4x16_rv64
+                float* col_tmp = (float*)(col + col_line * kernel_size);
+                sgemm_4x16_rv64(biasptr, col_tmp, kernel_tmp, kernel_size, result, 4, activation, 0); // FIXME: replace with sgemm_4x16_rv64
                 for (int i = 0; i < 16; i++)
                 {
                     for (int j = 0; j < (col_end3); j++)
@@ -343,14 +342,14 @@ static void sgemm_set(float* col, float* kernel, float* biases, float* output, i
         {
             int p = pp * PER_OUT_CHAN;
 
-            float* biasptr = biases ? ( float* )(biases + p) : NULL;
-            float* kernel_tmp = ( float* )(kernel + p * kernel_size);
-            float* output_tmp = ( float* )(output + p * output_xy);
+            float* biasptr = biases ? (float*)(biases + p) : NULL;
+            float* kernel_tmp = (float*)(kernel + p * kernel_size);
+            float* output_tmp = (float*)(output + p * output_xy);
 
             for (int col_line = 0; col_line + 3 < output_xy; col_line += 4)
             {
-                float* col_tmp = ( float* )(col + col_line * kernel_size);
-                sgemm_4x16_rv64(biasptr, col_tmp, kernel_tmp, kernel_size, output_tmp + col_line, output_xy, activation, 0);          // FIXME: replace with sgemm_4x16_rv64
+                float* col_tmp = (float*)(col + col_line * kernel_size);
+                sgemm_4x16_rv64(biasptr, col_tmp, kernel_tmp, kernel_size, output_tmp + col_line, output_xy, activation, 0); // FIXME: replace with sgemm_4x16_rv64
             }
         }
     }
@@ -364,23 +363,23 @@ static void sgemm4x4(float* col, float* kernel, float* biases, float* output, in
     int kernel_end3 = ch_end & 0x3;
 
 #pragma omp parallel for num_threads(num_thread) private(result)
-    for (int kernel_num = ch_start; kernel_num  < ((ch_end & -4)-3); kernel_num += 4)
+    for (int kernel_num = ch_start; kernel_num < ((ch_end & -4) - 3); kernel_num += 4)
     {
         float* cur_biases = NULL;
         float *cur_col, *cur_kernel, *cur_output;
         int col_line;
         if (biases)
-            cur_biases = ( float* )(biases + kernel_num);
-        cur_kernel = ( float* )(kernel + kernel_num * kernel_size);
-        cur_output = ( float* )(output + kernel_num * output_xy);
+            cur_biases = (float*)(biases + kernel_num);
+        cur_kernel = (float*)(kernel + kernel_num * kernel_size);
+        cur_output = (float*)(output + kernel_num * output_xy);
         for (col_line = 0; col_line < (output_xy & -4); col_line += 4)
         {
-            cur_col = ( float* )(col + col_line * kernel_size);
+            cur_col = (float*)(col + col_line * kernel_size);
             sgemm_4x4_rv64(cur_biases, cur_col, cur_kernel, kernel_size, cur_output + col_line, output_xy, activation, 0);
         }
         if (col_end3)
         {
-            cur_col = ( float* )(col + col_line * kernel_size);
+            cur_col = (float*)(col + col_line * kernel_size);
             sgemm_4x4_rv64(cur_biases, cur_col, cur_kernel, kernel_size, result, 4, activation, 0);
             for (int i = 0; i < 4; i++)
             {
@@ -394,13 +393,13 @@ static void sgemm4x4(float* col, float* kernel, float* biases, float* output, in
         int kernel_num = (ch_end & -4);
         float* cur_biases = NULL;
         if (biases)
-            cur_biases = ( float* )(biases + kernel_num);
-        float* cur_kernel = ( float* )(kernel + kernel_num * kernel_size);
-        #pragma omp parallel for num_threads(num_thread) private(result)
+            cur_biases = (float*)(biases + kernel_num);
+        float* cur_kernel = (float*)(kernel + kernel_num * kernel_size);
+#pragma omp parallel for num_threads(num_thread) private(result)
         for (int col_line = 0; col_line < (output_xy & -4); col_line += 4)
         {
-            float* cur_col = ( float* )(col + col_line * kernel_size);
-            sgemm_4x4_rv64(cur_biases, cur_col, cur_kernel, kernel_size, result, 4, activation, 0);   
+            float* cur_col = (float*)(col + col_line * kernel_size);
+            sgemm_4x4_rv64(cur_biases, cur_col, cur_kernel, kernel_size, result, 4, activation, 0);
             for (int i = 0; i < kernel_end3; i++)
                 for (int j = 0; j < 4; j++)
                     *(output + (kernel_num + i) * output_xy + col_line + j) = result[(i << 2) + j];
@@ -408,8 +407,8 @@ static void sgemm4x4(float* col, float* kernel, float* biases, float* output, in
         int col_line = output_xy & -4;
         if (col_end3)
         {
-            float* cur_col = ( float* )(col + col_line * kernel_size);
-            sgemm_4x4_rv64(cur_biases, cur_col, cur_kernel, kernel_size, result, 4, activation, 0);   
+            float* cur_col = (float*)(col + col_line * kernel_size);
+            sgemm_4x4_rv64(cur_biases, cur_col, cur_kernel, kernel_size, result, 4, activation, 0);
             for (int i = 0; i < (kernel_end3); i++)
             {
                 for (int j = 0; j < (col_end3); j++)
@@ -448,15 +447,15 @@ static int winograd_support(struct conv_param* param, int in_h, int in_w)
  */
 int conv_hcl_get_shared_mem_size_rv64(struct tensor* input, struct tensor* output, struct conv_param* param)
 {
-    int in_h  = input->dims[2];
-    int in_w  = input->dims[3];
+    int in_h = input->dims[2];
+    int in_w = input->dims[3];
     int out_h = output->dims[2];
     int out_w = output->dims[3];
     int group = param->group;
-    int input_chan  = param->input_channel / group;
+    int input_chan = param->input_channel / group;
     int kernel_size = input_chan * param->kernel_h * param->kernel_w;
-    int out_cstep   = out_h * out_w;      // channel cstep, output_h * output_w
-    int elem_size   = input->elem_size;   // uint8/int8 is 1 byte, fp32 is 4 bytes
+    int out_cstep = out_h * out_w;    // channel cstep, output_h * output_w
+    int elem_size = input->elem_size; // uint8/int8 is 1 byte, fp32 is 4 bytes
 
     out_cstep = (out_cstep + 3) / 4 * 4;
     int mem_size = elem_size * kernel_size * out_cstep + 128;
@@ -473,7 +472,7 @@ static int get_private_mem_size(struct tensor* filter, struct conv_param* param)
     int out_chan = filter->dims[0] / group;
     int out_chan_align4 = (out_chan + 3) / 4 * 4;
     int kernel_size = filter->dims[1] * filter->dims[2] * filter->dims[3];
-    int mem_size = kernel_size * filter->elem_size * out_chan_align4 * group + 128;    // caution
+    int mem_size = kernel_size * filter->elem_size * out_chan_align4 * group + 128; // caution
 
     return mem_size;
 }
@@ -523,7 +522,7 @@ int conv_hcl_prerun(struct tensor* input_tensor, struct tensor* filter_tensor, s
     {
         int mem_size = conv_hcl_get_shared_mem_size_rv64(input_tensor, output_tensor, param);
         void* mem = sys_malloc(mem_size);
-        priv_info->im2col_buffer      = mem;
+        priv_info->im2col_buffer = mem;
         priv_info->im2col_buffer_size = mem_size;
     }
 
@@ -532,7 +531,7 @@ int conv_hcl_prerun(struct tensor* input_tensor, struct tensor* filter_tensor, s
     {
         int mem_size = get_private_mem_size(filter_tensor, param);
         void* mem = sys_malloc(mem_size);
-        priv_info->interleave_buffer      = mem;
+        priv_info->interleave_buffer = mem;
         priv_info->interleave_buffer_size = mem_size;
     }
 
@@ -607,18 +606,18 @@ int conv_hcl_run(struct tensor* input_tensor, struct tensor* filter_tensor, stru
     int output_image_size = output_tensor->dims[1] * output_tensor->dims[2] * output_tensor->dims[3];
 
     /* buffer addr */
-    float* input_buf = ( float* )input_tensor->data;
-    float* output_buf = ( float* )output_tensor->data;
+    float* input_buf = (float*)input_tensor->data;
+    float* output_buf = (float*)output_tensor->data;
     float* biases_buf = NULL;
     if (bias_tensor != NULL)
-        biases_buf = ( float* )bias_tensor->data;
-    float* col_buf = ( float* )priv_info->im2col_buffer;
-    float* interleave_buf = ( float* )priv_info->interleave_buffer;
+        biases_buf = (float*)bias_tensor->data;
+    float* col_buf = (float*)priv_info->im2col_buffer;
+    float* interleave_buf = (float*)priv_info->interleave_buffer;
 
     int sgemm_set_chan = out_c / PER_OUT_CHAN * PER_OUT_CHAN;
     int sgemm_set_remain = out_c % PER_OUT_CHAN;
 
-    for (int n = 0; n < batch; n++)    // batch size
+    for (int n = 0; n < batch; n++) // batch size
     {
         for (int g = 0; g < group; g++)
         {

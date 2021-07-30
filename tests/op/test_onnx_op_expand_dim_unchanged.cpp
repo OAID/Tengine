@@ -22,14 +22,13 @@
  * Author: qtang@openailab.com
  */
 
-
 #include "test_onnx_op.h"
 
-std::string node      = "test_expand_dim_unchanged";
-std::string input_pb_0  = "../onnx_node/" + node + "/test_data_set_0/input_0.pb";
-std::string input_pb_1  = "../onnx_node/" + node + "/test_data_set_0/input_1.pb";
+std::string node = "test_expand_dim_unchanged";
+std::string input_pb_0 = "../onnx_node/" + node + "/test_data_set_0/input_0.pb";
+std::string input_pb_1 = "../onnx_node/" + node + "/test_data_set_0/input_1.pb";
 std::string output_pb = "../onnx_node/" + node + "/test_data_set_0/output_0.pb";
-std::string model     = "../onnx_node/" + node + "/onnx.tmfile";
+std::string model = "../onnx_node/" + node + "/onnx.tmfile";
 
 int main(int argc, char* argv[])
 {
@@ -86,7 +85,7 @@ int main(int argc, char* argv[])
     }
 
     /* input 1 */
-    int input_size_1 =  w_1;
+    int input_size_1 = w_1;
     int dims_1[] = {w_1};
     std::vector<int32_t> feature_in_1(input_size_1);
 
@@ -121,7 +120,6 @@ int main(int argc, char* argv[])
     /* prepare process input data, set the data mem to input tensor */
     get_pb_data(feature_in_0.data(), input_pb_0);
 
-
     /* run graph */
     if (run_graph(graph, 1) < 0)
     {
@@ -131,7 +129,7 @@ int main(int argc, char* argv[])
 
     /* get the current result of inference */
     tensor_t output_tensor = get_graph_output_tensor(graph, 0, 0);
-    float* output_data = ( float* )get_tensor_buffer(output_tensor);
+    float* output_data = (float*)get_tensor_buffer(output_tensor);
     int output_size = get_tensor_buffer_size(output_tensor) / sizeof(float);
 
     /* get the reference result of inference */

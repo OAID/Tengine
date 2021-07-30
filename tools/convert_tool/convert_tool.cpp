@@ -27,18 +27,18 @@
 #include <unistd.h>
 
 #include "tengine/c_api.h"
-#include "utils/save_graph/save_graph.hpp"
+#include "save_graph/save_graph.hpp"
 #include "onnx/onnx2tengine.hpp"
 #include "caffe/caffe2tengine.hpp"
 #include "ncnn/ncnn2tengine.hpp"
 #include "utils/graph_optimizer/graph_opt.hpp"
 
 const char* help_params = "[Convert Tools Info]: optional arguments:\n"
-                      "\t-h    help            show this help message and exit\n"
-                      "\t-f    input type      path to input float32 tmfile\n"
-                      "\t-p    input structure path to the network structure of input model(*.prototxt, *.symbol, *.cfg, *.pdmodel)\n"
-                      "\t-m    input params    path to the network params of input model(*.caffemodel, *.params, *.weight, *.pb, *.onnx, *.tflite, *.pdiparams)\n"
-                      "\t-o    output model    path to output fp32 tmfile\n";
+                          "\t-h    help            show this help message and exit\n"
+                          "\t-f    input type      path to input float32 tmfile\n"
+                          "\t-p    input structure path to the network structure of input model(*.param, *.prototxt, *.symbol, *.cfg, *.pdmodel)\n"
+                          "\t-m    input params    path to the network params of input model(*.bin, *.caffemodel, *.params, *.weight, *.pb, *.onnx, *.tflite, *.pdiparams)\n"
+                          "\t-o    output model    path to output fp32 tmfile\n";
 
 const char* example_params = "[Convert Tools Info]: example arguments:\n"
                              "\t./convert_tool -f caffe -p ./mobilenet.prototxt -m ./mobilenet.caffemodel -o ./mobilenet.tmfile\n";
@@ -64,24 +64,24 @@ int main(int argc, char* argv[])
     {
         switch (res)
         {
-            case 'f':
-                file_format = optarg;
-                break;
-            case 'p':
-                proto_file = optarg;
-                break;
-            case 'm':
-                model_file = optarg;
-                break;
-            case 'o':
-                output_tmfile = optarg;
-                break;
-            case 'h':
-                show_usage();
-                return 0;
-            default:
-                show_usage();
-                break;
+        case 'f':
+            file_format = optarg;
+            break;
+        case 'p':
+            proto_file = optarg;
+            break;
+        case 'm':
+            model_file = optarg;
+            break;
+        case 'o':
+            output_tmfile = optarg;
+            break;
+        case 'h':
+            show_usage();
+            return 0;
+        default:
+            show_usage();
+            break;
         }
     }
 
@@ -105,8 +105,7 @@ int main(int argc, char* argv[])
             model_file_needed = true;
             input_file_number = 2;
         }
-        else if (file_format == "caffe_single" || file_format == "onnx" || file_format == "tensorflow" ||
-                 file_format == "tflite")
+        else if (file_format == "caffe_single" || file_format == "onnx" || file_format == "tensorflow" || file_format == "tflite")
         {
             model_file_needed = true;
             input_file_number = 1;
@@ -160,7 +159,7 @@ int main(int argc, char* argv[])
             return -1;
         }
     }
-    
+
     init_tengine();
     set_log_level(LOG_INFO);
     graph_t graph = NULL;
@@ -176,8 +175,8 @@ int main(int argc, char* argv[])
     }
     else if (file_format == "ncnn")
     {
-	ncnn_serializer n2t;
-	graph = n2t.ncnn2tengine(model_file, proto_file);
+        ncnn_serializer n2t;
+        graph = n2t.ncnn2tengine(model_file, proto_file);
     }
     else
     {
@@ -196,7 +195,7 @@ int main(int argc, char* argv[])
         fprintf(stderr, "optimize graph failed! \n");
         return -1;
     }
-    
+
     if (save_graph(graph, output_tmfile.c_str()) < 0)
     {
         fprintf(stderr, "save graph failed! \n");

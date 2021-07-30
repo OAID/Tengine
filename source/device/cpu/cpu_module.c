@@ -45,14 +45,12 @@
 #include "utility/log.h"
 #include "serializer/serializer.h"
 
-
 static struct vector** cpu_builtin_ops_registry;
-static struct vector*  cpu_custom_ops_registry;
+static struct vector* cpu_custom_ops_registry;
 
 #ifdef TENGINE_AUTO_LOAD_HCL
 void* hcl_handler = NULL;
 #endif
-
 
 struct custom_reg_entry
 {
@@ -60,12 +58,11 @@ struct custom_reg_entry
     struct node_ops* node_ops;
 };
 
-
 static int init_builtin_ops_registry(void)
 {
     int alloc_num = 0;
 
-    cpu_builtin_ops_registry = ( struct vector** )sys_malloc(sizeof(void*) * OP_BUILTIN_LAST);
+    cpu_builtin_ops_registry = (struct vector**)sys_malloc(sizeof(void*) * OP_BUILTIN_LAST);
 
     if (cpu_builtin_ops_registry == NULL)
         return -1;
@@ -83,7 +80,7 @@ static int init_builtin_ops_registry(void)
 
     return 0;
 
-    error:
+error:
     for (int i = 0; i < alloc_num; i++)
     {
         release_vector(cpu_builtin_ops_registry[i]);
@@ -148,7 +145,7 @@ static inline struct node_ops* find_builtin_node_ops(struct exec_graph* exec_gra
 
     for (int i = 0; i < num; i++)
     {
-        struct node_ops* node_ops = *( struct node_ops** )get_vector_data(ops_vector, i);
+        struct node_ops* node_ops = *(struct node_ops**)get_vector_data(ops_vector, i);
 
         int score = node_ops->score(node_ops, exec_graph, ir_node);
 
@@ -199,7 +196,7 @@ int register_custom_node_ops(int op_type, struct node_ops* node_ops)
 
     for (int i = 0; i < n; i++)
     {
-        struct custom_reg_entry* entry = ( struct custom_reg_entry* )get_vector_data(cpu_custom_ops_registry, i);
+        struct custom_reg_entry* entry = (struct custom_reg_entry*)get_vector_data(cpu_custom_ops_registry, i);
 
         if (entry->op_type == op_type)
         {
@@ -228,7 +225,7 @@ int unregister_custom_node_ops(int op_type, struct node_ops* node_ops)
 
     for (int i = 0; i < n; i++)
     {
-        struct custom_reg_entry* entry = ( struct custom_reg_entry* )get_vector_data(cpu_custom_ops_registry, i);
+        struct custom_reg_entry* entry = (struct custom_reg_entry*)get_vector_data(cpu_custom_ops_registry, i);
 
         if (entry->op_type == op_type && entry->node_ops == node_ops)
         {
@@ -247,7 +244,7 @@ static inline struct node_ops* find_custom_node_ops(struct exec_graph* exec_grap
 
     for (int i = 0; i < n; i++)
     {
-        struct custom_reg_entry* entry = ( struct custom_reg_entry* )get_vector_data(cpu_custom_ops_registry, i);
+        struct custom_reg_entry* entry = (struct custom_reg_entry*)get_vector_data(cpu_custom_ops_registry, i);
 
         if (entry->op_type == op_type)
             return entry->node_ops;

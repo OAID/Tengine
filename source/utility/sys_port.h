@@ -52,8 +52,8 @@ void* sys_realloc(void* ptr, size_t size);
 
 #ifdef CONFIG_INTERN_ALLOCATOR
 
-#define malloc buddy_malloc
-#define free buddy_free
+#define malloc  buddy_malloc
+#define free    buddy_free
 #define realloc buddy_realloc
 
 void* buddy_malloc(size_t size);

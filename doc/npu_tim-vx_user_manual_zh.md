@@ -30,7 +30,7 @@
 $ git clone https://github.com/VeriSilicon/TIM-VX.git
 ```
 
-#### 2.3.2 拉取 Tengine Lite
+#### 2.3.2 拉取 Tengine-Lite
 ```bash
 $ git clone https://github.com/OAID/Tengine.git tengine-lite
 $ cd tengine-lite
@@ -314,7 +314,7 @@ $ make -j`nproc` && make install
 
 ## 3. Demo
 
-#### 3.1 Depned librarys
+#### 3.1 Depend libraries
 
 ```
 build-tim-vx-arm64/install/lib/

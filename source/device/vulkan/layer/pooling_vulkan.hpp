@@ -56,21 +56,21 @@ public:
 
     virtual int create_pipeline(const Option& opt);
     virtual int destroy_pipeline(const Option& opt);
-    
+
     virtual int record_pipeline(const VkTensor& bottom_blob, VkTensor& top_blob, VkCompute& cmd, const Option& opt) const;
 
 public:
-    int pooling_type;   // // 0:max    1:avg
-    int kernel_h; // = param_->kernel_h;
-    int kernel_w; // = param_->kernel_w;
-    int stride_h; // = param_->stride_h;
-    int stride_w; // = param_->stride_w;
-    int global; // = param_->global;
+    int pooling_type; // // 0:max    1:avg
+    int kernel_h;     // = param_->kernel_h;
+    int kernel_w;     // = param_->kernel_w;
+    int stride_h;     // = param_->stride_h;
+    int stride_w;     // = param_->stride_w;
+    int global;       // = param_->global;
     int caffe_flavor; // = param_->caffe_flavor;
-    int pad_h0; // = param_->pad_h0;  
-    int pad_w0; // = param_->pad_w0;  
-    int pad_h1; // = param_->pad_h1;  
-    int pad_w1; // = param_->pad_w1;  
+    int pad_h0;       // = param_->pad_h0;
+    int pad_w0;       // = param_->pad_w0;
+    int pad_h1;       // = param_->pad_h1;
+    int pad_w1;       // = param_->pad_w1;
     int input_c;
     int input_h;
     int input_w;
@@ -90,6 +90,5 @@ public:
 };
 
 } // namespace TEngine
-
 
 #endif

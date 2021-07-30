@@ -37,7 +37,6 @@
 #include <math.h>
 #include <string.h>
 
-
 static int entry_index(int batch, int location, int entry, int hw, int chw, int classes)
 {
     int coords = 4;
@@ -157,7 +156,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
     input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    struct region_param* region_param = ( struct region_param* )ir_node->op.param_mem;
+    struct region_param* region_param = (struct region_param*)ir_node->op.param_mem;
 
     ref_region_fp32(input_tensor, output_tensor, region_param, exec_graph->num_thread);
 

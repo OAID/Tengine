@@ -35,7 +35,6 @@
 #include <math.h>
 #include <string.h>
 
-
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     return 0;
@@ -62,23 +61,26 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
     switch (input_tensor->data_type)
     {
-        case TENGINE_DT_FP32:
-        case TENGINE_DT_INT32: {
-            size *= 4;
-            break;
-        }
-        case TENGINE_DT_FP16:
-        case TENGINE_DT_INT16: {
-            size *= 2;
-            break;
-        }
-        case TENGINE_DT_UINT8:
-        case TENGINE_DT_INT8: {
-            size *= 1;
-            break;
-        }
-        default:
-            return -1;
+    case TENGINE_DT_FP32:
+    case TENGINE_DT_INT32:
+    {
+        size *= 4;
+        break;
+    }
+    case TENGINE_DT_FP16:
+    case TENGINE_DT_INT16:
+    {
+        size *= 2;
+        break;
+    }
+    case TENGINE_DT_UINT8:
+    case TENGINE_DT_INT8:
+    {
+        size *= 1;
+        break;
+    }
+    default:
+        return -1;
     }
 
     if (size <= 0)
@@ -88,7 +90,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
     /* transpose nchw to nhwc */
     //check dim size first???
-    if(input_tensor->dim_num == 4 && (output_tensor->dim_num == 2||output_tensor->dim_num == 3||output_tensor->dim_num == 4))
+    if (input_tensor->dim_num == 4 && (output_tensor->dim_num == 2 || output_tensor->dim_num == 3 || output_tensor->dim_num == 4))
     {
         if (ir_graph->model_layout == TENGINE_LAYOUT_NHWC)
         {
@@ -106,7 +108,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
                     float* input_fp32 = (float*)input_tensor->data;
                     float* output_fp32 = (float*)output_tensor->data;
-                    float* data_fp32_temp = ( float* )malloc(size);
+                    float* data_fp32_temp = (float*)malloc(size);
 
                     int index = 0;
                     for (int h = 0; h < in_h; h++)
@@ -138,7 +140,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
                     float* input_fp32 = (float*)input_tensor->data;
                     float* output_fp32 = (float*)output_tensor->data;
-                    float* data_fp32_temp = ( float* )malloc(size);
+                    float* data_fp32_temp = (float*)malloc(size);
 
                     int index = 0;
                     for (int h = 0; h < in_h; h++)
@@ -196,7 +198,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
                     uint8_t* input_uint8 = (uint8_t*)input_tensor->data;
                     uint8_t* output_uint8 = (uint8_t*)output_tensor->data;
-                    uint8_t* data_uint8_temp = ( uint8_t* )malloc(size);
+                    uint8_t* data_uint8_temp = (uint8_t*)malloc(size);
 
                     int index = 0;
                     for (int h = 0; h < in_h; h++)
@@ -228,7 +230,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
                     uint8_t* input_uint8 = (uint8_t*)input_tensor->data;
                     uint8_t* output_uint8 = (uint8_t*)output_tensor->data;
-                    uint8_t* data_uint8_temp = ( uint8_t* )malloc(size);
+                    uint8_t* data_uint8_temp = (uint8_t*)malloc(size);
 
                     int index = 0;
                     for (int h = 0; h < in_h; h++)
@@ -263,7 +265,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
                     int8_t* input_int8 = (int8_t*)input_tensor->data;
                     int8_t* output_int8 = (int8_t*)output_tensor->data;
-                    int8_t* data_int8_temp = ( int8_t* )malloc(size);
+                    int8_t* data_int8_temp = (int8_t*)malloc(size);
 
                     int index = 0;
                     for (int h = 0; h < in_h; h++)
@@ -295,7 +297,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
                     int8_t* input_int8 = (int8_t*)input_tensor->data;
                     int8_t* output_int8 = (int8_t*)output_tensor->data;
-                    int8_t* data_int8_temp = ( int8_t* )malloc(size);
+                    int8_t* data_int8_temp = (int8_t*)malloc(size);
 
                     int index = 0;
                     for (int h = 0; h < in_h; h++)

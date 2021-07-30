@@ -40,7 +40,6 @@
 
 #include <arm_neon.h>
 
-
 static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     struct node* ir_node = exec_node->ir_node;
@@ -52,16 +51,15 @@ static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struc
     input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    if (input_tensor->dims[0] != output_tensor->dims[0] || input_tensor->dims[1] != output_tensor->dims[1] || input_tensor->dims[2] != output_tensor->dims[2] ||
-        input_tensor->dims[3] != output_tensor->dims[3])
-    ret = set_ir_tensor_shape(output_tensor, input_tensor->dims, input_tensor->dim_num);
+    if (input_tensor->dims[0] != output_tensor->dims[0] || input_tensor->dims[1] != output_tensor->dims[1] || input_tensor->dims[2] != output_tensor->dims[2] || input_tensor->dims[3] != output_tensor->dims[3])
+        ret = set_ir_tensor_shape(output_tensor, input_tensor->dims, input_tensor->dim_num);
 
     return ret;
 }
 
 static inline float32x4_t vexpq10_f32(float32x4_t x)
 {
-    x = vmlaq_n_f32(vdupq_n_f32(1.0f), x, 0.0009765625f);    // n = 10
+    x = vmlaq_n_f32(vdupq_n_f32(1.0f), x, 0.0009765625f); // n = 10
     x = vmulq_f32(x, x);
     x = vmulq_f32(x, x);
     x = vmulq_f32(x, x);
@@ -77,8 +75,8 @@ static inline float32x4_t vexpq10_f32(float32x4_t x)
 
 static void GetMaxArray(float* input, float* array, int in_size, int on_size, int num_thread)
 {
-    float* input_ptr = ( float* )input;
-    float* array_ptr = ( float* )array;
+    float* input_ptr = (float*)input;
+    float* array_ptr = (float*)array;
     memset(array, 0, in_size * sizeof(float));
 
     // #pragma omp parallel for num_threads(num_thread)
@@ -115,10 +113,10 @@ static void GetMaxArray(float* input, float* array, int in_size, int on_size, in
 static void GetOutResult(float* input, float* output, float* maxarray, float* sum_array, int in_size, int on_size,
                          int num_thread)
 {
-    float* input_ptr = ( float* )input;
-    float* output_ptr = ( float* )output;
-    float* maxarray_ptr = ( float* )maxarray;
-    float* sum_array_ptr = ( float* )sum_array;
+    float* input_ptr = (float*)input;
+    float* output_ptr = (float*)output;
+    float* maxarray_ptr = (float*)maxarray;
+    float* sum_array_ptr = (float*)sum_array;
 
     memset(sum_array, 0x0, in_size * sizeof(float));
 
@@ -183,7 +181,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
     input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    struct softmax_param* softmax_param = ( struct softmax_param* )ir_node->op.param_mem;
+    struct softmax_param* softmax_param = (struct softmax_param*)ir_node->op.param_mem;
 
     int element_size = input_tensor->elem_size;
     int dims[4];
@@ -211,8 +209,8 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
     uint8_t* input = input_tensor->data;
     uint8_t* output = output_tensor->data;
-    float* max_array = ( float* )malloc(in_size * sizeof(float));
-    float* sum_array = ( float* )malloc(in_size * sizeof(float));
+    float* max_array = (float*)malloc(in_size * sizeof(float));
+    float* sum_array = (float*)malloc(in_size * sizeof(float));
 
     int on_in_size = on_size * in_size;
 
@@ -221,8 +219,8 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
     if (element_size == 1)
     {
-        input_f = ( float* )malloc(on_in_size * 4);
-        output_f = ( float* )malloc(on_in_size * 4);
+        input_f = (float*)malloc(on_in_size * 4);
+        output_f = (float*)malloc(on_in_size * 4);
 
         /* todo */
 
@@ -235,8 +233,8 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         /* get max */
         int img_base = i * on_in_size * element_size;
 
-        GetMaxArray(( float* )(input + img_base), max_array, in_size, on_size, exec_graph->num_thread);
-        GetOutResult(( float* )(input + img_base), ( float* )(output + img_base), max_array, sum_array, in_size,
+        GetMaxArray((float*)(input + img_base), max_array, in_size, on_size, exec_graph->num_thread);
+        GetOutResult((float*)(input + img_base), (float*)(output + img_base), max_array, sum_array, in_size,
                      on_size, exec_graph->num_thread);
     }
 

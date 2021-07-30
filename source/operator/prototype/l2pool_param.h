@@ -25,7 +25,8 @@
 #ifndef __L2POOL_H__
 #define __L2POOL_H__
 
-enum{
+enum
+{
     kNone = 0,
     kSame,
     kValid

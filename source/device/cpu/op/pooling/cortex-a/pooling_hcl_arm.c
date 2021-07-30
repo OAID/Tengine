@@ -48,7 +48,7 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
     struct tensor* input_tensor;
     struct tensor* output_tensor;
 
-    struct pool_param* pool_param = ( struct pool_param* )ir_node->op.param_mem;
+    struct pool_param* pool_param = (struct pool_param*)ir_node->op.param_mem;
 
     input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
@@ -65,7 +65,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct tensor* input_tensor;
     struct tensor* output_tensor;
 
-    struct pool_param* pool_param = ( struct pool_param* )ir_node->op.param_mem;
+    struct pool_param* pool_param = (struct pool_param*)ir_node->op.param_mem;
 
     input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
@@ -92,7 +92,7 @@ static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, 
 
 static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struct node* exec_node)
 {
-    struct pool_param* pool_param = ( struct pool_param* )exec_node->op.param_mem;
+    struct pool_param* pool_param = (struct pool_param*)exec_node->op.param_mem;
 
     int global = pool_param->global;
     int type = pool_param->pool_method;
@@ -104,7 +104,7 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     int pad_h1 = pool_param->pad_h1;
     int pad_w0 = pool_param->pad_w0;
     int pad_w1 = pool_param->pad_w1;
-    int pad_tf = pool_param->pad_h0_org;    // maybe there is a bug.
+    int pad_tf = pool_param->pad_h0_org; // maybe there is a bug.
 
     int pool_size = 0;
 
@@ -136,8 +136,8 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
         /* general max pooling, k2s2, k2k2p1, k3s1p1, k3s2, k3s2p1 */
         if (type == POOL_MAX && (pad_h0 == pad_w0) && (pad_h1 == pad_w1) && pad_tf != -1)
         {
-			if (pad_h0 == 0 && (pool_size == POOL_K2S2))
-				return 0;
+            if (pad_h0 == 0 && (pool_size == POOL_K2S2))
+                return 0;
             if (pad_h0 == 0 && (pool_size == POOL_K3S2))
                 return OPS_SCORE_BEST;
             if (pad_h0 == 1 && (pool_size == POOL_K2S2 || pool_size == POOL_K3S2 || pool_size == POOL_K3S1))
@@ -151,14 +151,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
                 return OPS_SCORE_BEST;
             if (pad_h0 == 1 && pad_h1 == 1 && (pool_size == POOL_K2S2 || pool_size == POOL_K3S2 || pool_size == POOL_K3S1))
                 return OPS_SCORE_BEST;
-            else if(pad_h0 == 0 && pad_h1 == 1 && (pool_size == POOL_K3S2))
+            else if (pad_h0 == 0 && pad_h1 == 1 && (pool_size == POOL_K3S2))
                 return OPS_SCORE_BEST;
         }
     }
 
     return 0;
 }
-
 
 static struct node_ops hcl_node_ops = {.prerun = prerun,
                                        .run = run,
@@ -168,12 +167,10 @@ static struct node_ops hcl_node_ops = {.prerun = prerun,
                                        .release_node = release_node,
                                        .score = score};
 
-
 int register_pooling_hcl_arm_op()
 {
     return register_builtin_node_ops(OP_POOL, &hcl_node_ops);
 }
-
 
 int unregister_pooling_hcl_arm_op()
 {

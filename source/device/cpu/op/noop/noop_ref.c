@@ -35,7 +35,6 @@
 #include <math.h>
 #include <string.h>
 
-
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     exec_node->inplace_map[0] = 0;
@@ -71,23 +70,26 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
     switch (input_tensor->data_type)
     {
-        case TENGINE_DT_FP32:
-        case TENGINE_DT_INT32: {
-            size *= 4;
-            break;
-        }
-        case TENGINE_DT_FP16:
-        case TENGINE_DT_INT16: {
-            size *= 2;
-            break;
-        }
-        case TENGINE_DT_UINT8:
-        case TENGINE_DT_INT8: {
-            size *= 1;
-            break;
-        }
-        default:
-            return -1;
+    case TENGINE_DT_FP32:
+    case TENGINE_DT_INT32:
+    {
+        size *= 4;
+        break;
+    }
+    case TENGINE_DT_FP16:
+    case TENGINE_DT_INT16:
+    {
+        size *= 2;
+        break;
+    }
+    case TENGINE_DT_UINT8:
+    case TENGINE_DT_INT8:
+    {
+        size *= 1;
+        break;
+    }
+    default:
+        return -1;
     }
 
     if (size <= 0)

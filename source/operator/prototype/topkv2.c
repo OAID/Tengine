@@ -31,7 +31,6 @@
 #include "module/module.h"
 #include "utility/sys_port.h"
 
-
 static int infer_shape(struct node* node)
 {
     struct topkv2_param* topkv2_param = (struct topkv2_param*)node->op.param_mem;
@@ -42,7 +41,7 @@ static int infer_shape(struct node* node)
     struct tensor* output1 = get_ir_graph_tensor(ir_graph, node->output_tensors[1]);
 
     int in_size = input->dim_num;
-    int* in_dim = ( int* )sys_malloc((in_size) * sizeof(int));
+    int* in_dim = (int*)sys_malloc((in_size) * sizeof(int));
 
     if (topkv2_param->k > input->dims[in_size - 1])
     {
@@ -61,10 +60,9 @@ static int infer_shape(struct node* node)
     return 0;
 }
 
-
 static int init_op(struct op* op)
 {
-    struct topkv2_param* topkv2_param = ( struct topkv2_param* )sys_malloc(sizeof(struct topkv2_param));
+    struct topkv2_param* topkv2_param = (struct topkv2_param*)sys_malloc(sizeof(struct topkv2_param));
 
     if (topkv2_param == NULL)
     {
@@ -82,12 +80,10 @@ static int init_op(struct op* op)
     return 0;
 }
 
-
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
-
 
 int register_topkv2_op()
 {
@@ -97,10 +93,8 @@ int register_topkv2_op()
     m.init = init_op;
     m.release = release_op;
 
-
     return register_op(OP_TOPKV2, OP_TOPKV2_NAME, &m);
 }
-
 
 int unregister_topkv2_op()
 {

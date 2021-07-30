@@ -71,7 +71,7 @@ image load_image_stb(const char* filename, int channels)
             {
                 int dst_index = i + w * j + w * h * k;
                 int src_index = k + src_c * i + src_c * w * j;
-                im.data[dst_index] = ( float )data[src_index];
+                im.data[dst_index] = (float)data[src_index];
             }
         }
     }
@@ -83,7 +83,7 @@ image load_image_stb(const char* filename, int channels)
 image make_image(int w, int h, int c)
 {
     image out = make_empty_image(w, h, c);
-    out.data = ( float* )calloc((size_t)h * w * c, sizeof(float));
+    out.data = (float*)calloc((size_t)h * w * c, sizeof(float));
     return out;
 }
 
@@ -125,17 +125,17 @@ image imread_process(const char* filename, int img_w, int img_h, float* means, f
 
     switch (choice)
     {
-        case 0:
-            out = gray2bgr(out);
-            break;
-        case 1:
-            out = rgb2gray(out);
-            break;
-        case 2:
-            out = rgb2bgr_permute(out);
-            break;
-        default:
-            break;
+    case 0:
+        out = gray2bgr(out);
+        break;
+    case 1:
+        out = rgb2gray(out);
+        break;
+    case 2:
+        out = rgb2bgr_permute(out);
+        break;
+    default:
+        break;
     }
 
     image resImg = make_image(img_w, img_h, out.c);
@@ -171,8 +171,8 @@ image resize_image(image im, int ow, int oh)
     int h = im.h;
     int w = im.w;
     float shift = 0.f;
-    float _scale_x = ( float )((w - shift) / (ow - shift));
-    float _scale_y = ( float )((h - shift) / (oh - shift));
+    float _scale_x = (float)((w - shift) / (ow - shift));
+    float _scale_y = (float)((h - shift) / (oh - shift));
     float32x4_t scale_x = vdupq_n_f32(_scale_x);
     float offset = 0.5;
     int in_hw = h * w;
@@ -215,8 +215,7 @@ image resize_image(image im, int ow, int oh)
 
                 float32x4_t fx_0 = vsubq_f32(offset_1, fx);
 
-                const int32x4_t in_idx =
-                    vaddq_s32(vaddq_s32(vmulq_s32(sy_0, w_0), vcvtq_s32_f32(sx)), vmulq_s32(in_hw_0, k_0));
+                const int32x4_t in_idx = vaddq_s32(vaddq_s32(vmulq_s32(sy_0, w_0), vcvtq_s32_f32(sx)), vmulq_s32(in_hw_0, k_0));
                 int32x4_t in_index0 = in_idx;
                 int32x4_t in_index2 = vaddq_s32(in_idx, vcvtq_s32_f32(offset_1));
                 int32x4_t in_index1 = vaddq_s32(in_idx, w_0);
@@ -290,8 +289,8 @@ image resize_image(image im, int ow, int oh)
     int h = im.h;
     int w = im.w;
     float shift = 0.f;
-    float _scale_x = ( float )((w - shift) / (ow - shift));
-    float _scale_y = ( float )((h - shift) / (oh - shift));
+    float _scale_x = (float)((w - shift) / (ow - shift));
+    float _scale_y = (float)((h - shift) / (oh - shift));
 
     float32x4_t scale_x = vdupq_n_f32(_scale_x);
     float offset = 0.5;
@@ -335,8 +334,7 @@ image resize_image(image im, int ow, int oh)
 
                 float32x4_t fx_0 = vsubq_f32(offset_1, fx);
 
-                const int32x4_t in_idx =
-                    vaddq_s32(vaddq_s32(vmulq_s32(sy_0, w_0), vcvtq_s32_f32(sx)), vmulq_s32(in_hw_0, k_0));
+                const int32x4_t in_idx = vaddq_s32(vaddq_s32(vmulq_s32(sy_0, w_0), vcvtq_s32_f32(sx)), vmulq_s32(in_hw_0, k_0));
 
                 int32x4_t in_index0 = in_idx;
                 int32x4_t in_index2 = vaddq_s32(in_idx, vcvtq_s32_f32(offset_1));
@@ -408,8 +406,8 @@ image resize_image(image im, int ow, int oh)
 #endif
 
 #else
-    float scale_x = ( float )(im.w) / (ow);
-    float scale_y = ( float )(im.h) / (oh);
+    float scale_x = (float)(im.w) / (ow);
+    float scale_y = (float)(im.h) / (oh);
     int w = im.w;
     int h = im.h;
     int in_hw = h * w;
@@ -481,13 +479,13 @@ image copyMaker(image im, int top, int bottom, int left, int right, float value)
 void save_image(image im, const char* name)
 {
     char buff[256];
-    unsigned char* data = ( unsigned char* )calloc((size_t)im.w * im.h * im.c, sizeof(char));
+    unsigned char* data = (unsigned char*)calloc((size_t)im.w * im.h * im.c, sizeof(char));
     int i, k;
     for (k = 0; k < im.c; ++k)
     {
         for (i = 0; i < im.w * im.h; ++i)
         {
-            data[i * im.c + k] = ( unsigned char )(im.data[i + k * im.w * im.h]);
+            data[i * im.c + k] = (unsigned char)(im.data[i + k * im.w * im.h]);
         }
     }
 
@@ -505,24 +503,24 @@ void save_image(image im, const char* name)
 
     switch (f)
     {
-        case 0:
-            sprintf(buff, "%s.jpg", name);
-            success = stbi_write_jpg(buff, im.w, im.h, im.c, data, 80);
-            break;
-        case 1:
-            sprintf(buff, "%s.png", name);
-            success = stbi_write_png(buff, im.w, im.h, im.c, data, im.w * im.c);
-            break;
-        case 2:
-            sprintf(buff, "%s.tga", name);
-            success = stbi_write_tga(buff, im.w, im.h, im.c, data);
-            break;
-        case 3:
-            sprintf(buff, "%s.bmp", name);
-            success = stbi_write_bmp(buff, im.w, im.h, im.c, data);
-            break;
-        default:
-            return;
+    case 0:
+        sprintf(buff, "%s.jpg", name);
+        success = stbi_write_jpg(buff, im.w, im.h, im.c, data, 80);
+        break;
+    case 1:
+        sprintf(buff, "%s.png", name);
+        success = stbi_write_png(buff, im.w, im.h, im.c, data, im.w * im.c);
+        break;
+    case 2:
+        sprintf(buff, "%s.tga", name);
+        success = stbi_write_tga(buff, im.w, im.h, im.c, data);
+        break;
+    case 3:
+        sprintf(buff, "%s.bmp", name);
+        success = stbi_write_bmp(buff, im.w, im.h, im.c, data);
+        break;
+    default:
+        return;
     }
     free(data);
     if (!success)
@@ -588,7 +586,7 @@ static float get_pixelBychannel(image m, int x, int y, int c)
 image copy_image(image p)
 {
     image copy = p;
-    copy.data = ( float* )calloc((size_t)p.h * p.w * p.c, sizeof(float));
+    copy.data = (float*)calloc((size_t)p.h * p.w * p.c, sizeof(float));
     memcpy(copy.data, p.data, (unsigned long)p.h * p.w * p.c * sizeof(float));
     return copy;
 }
@@ -644,7 +642,8 @@ image imread2post(const char* filename)
 {
     image im = load_image_stb(filename, 0);
     const int len = im.c * im.h * im.w;
-    for (int i = 0; i < len; ++i) {
+    for (int i = 0; i < len; ++i)
+    {
         im.data[i] *= 255;
     }
     return im;
@@ -653,20 +652,21 @@ image imread2post(const char* filename)
 image rgb2bgr_permute(image src)
 {
     const int len = src.c * src.h * src.w;
-    float* GRB = ( float* )malloc(sizeof(float) * len);
+    float* GRB = (float*)malloc(sizeof(float) * len);
     for (int c = 0; c < src.c; c++)
     {
         for (int h = 0; h < src.h; h++)
         {
             for (int w = 0; w < src.w; w++)
             {
-                int newIndex = ( c )*src.h * src.w + h * src.w + w;
+                int newIndex = (c)*src.h * src.w + h * src.w + w;
                 int grbIndex = (2 - c) * src.h * src.w + h * src.w + w;
                 GRB[grbIndex] = src.data[newIndex];
             }
         }
     }
-    for (int i = 0; i < len; ++i) {
+    for (int i = 0; i < len; ++i)
+    {
         src.data[i] = GRB[i];
     }
     free(GRB);
@@ -675,14 +675,14 @@ image rgb2bgr_permute(image src)
 
 image image_permute(image src)
 {
-    float* GRB = ( float* )malloc(sizeof(float) * src.c * src.h * src.w);
+    float* GRB = (float*)malloc(sizeof(float) * src.c * src.h * src.w);
     for (int c = 0; c < src.c; c++)
     {
         for (int h = 0; h < src.h; h++)
         {
             for (int w = 0; w < src.w; w++)
             {
-                int newIndex = ( c )*src.h * src.w + h * src.w + w;
+                int newIndex = (c)*src.h * src.w + h * src.w + w;
                 int grbIndex = (2 - c) * src.h * src.w + h * src.w + w;
                 GRB[grbIndex] = src.data[newIndex];
             }
@@ -698,7 +698,7 @@ image gray2bgr(image src)
     res.c = 3;
     res.h = src.h;
     res.w = src.w;
-    res.data = ( float* )malloc(sizeof(float) * 3 * src.h * src.w);
+    res.data = (float*)malloc(sizeof(float) * 3 * src.h * src.w);
     for (int x = 0; x < src.h; x++)
     {
         for (int y = 0; y < src.w; y++)
@@ -716,7 +716,7 @@ image gray2bgr(image src)
 image tranpose(image src)
 {
     int size = src.c * src.h * src.w;
-    float* tempData = ( float* )malloc(sizeof(float) * size);
+    float* tempData = (float*)malloc(sizeof(float) * size);
     int index = 0;
 
     for (int c = 0; c < src.c; c++)
@@ -813,7 +813,7 @@ image rgb2gray(image src)
     res.h = src.h;
     res.w = src.w;
     res.c = 1;
-    res.data = ( float* )malloc(sizeof(float) * res.h * res.w);
+    res.data = (float*)malloc(sizeof(float) * res.h * res.w);
     for (int i = 0; i < res.h; i++)
     {
         for (int j = 0; j < res.w; j++)
@@ -840,7 +840,7 @@ image letterbox(image im, int w, int h)
 {
     int ow = im.w;
     int oh = im.h;
-    if ((( float )w / im.w) < (( float )h / im.h))
+    if (((float)w / im.w) < ((float)h / im.h))
     {
         ow = w;
         oh = (im.h * w) / im.w;
@@ -855,7 +855,7 @@ image letterbox(image im, int w, int h)
     boxed.w = w;
     boxed.h = h;
     boxed.c = im.c;
-    boxed.data = ( float* )malloc(sizeof(float) * im.c * h * w);
+    boxed.data = (float*)malloc(sizeof(float) * im.c * h * w);
 
     for (int i = 0; i < boxed.c * boxed.h * boxed.w; i++)
     {
@@ -870,20 +870,20 @@ image letterbox(image im, int w, int h)
 
 void tengine_resize_f32(float* data, float* res, int ow, int oh, int c, int h, int w)
 {
-    float _scale_x = ( float )(w) / ( float )(ow);
-    float _scale_y = ( float )(h) / ( float )(oh);
+    float _scale_x = (float)(w) / (float)(ow);
+    float _scale_y = (float)(h) / (float)(oh);
     float offset = 0.5f;
 
-    int16_t* buf = ( int16_t* )malloc((ow + ow + ow + oh + oh + oh) * sizeof(int16_t));
-    int16_t* xCoef = ( int16_t* )(buf);
-    int16_t* xPos = ( int16_t* )(buf + ow + ow);
-    int16_t* yCoef = ( int16_t* )(buf + ow + ow + ow);
-    int16_t* yPos = ( int16_t* )(buf + ow + ow + ow + oh + oh);
+    int16_t* buf = (int16_t*)malloc((ow + ow + ow + oh + oh + oh) * sizeof(int16_t));
+    int16_t* xCoef = (int16_t*)(buf);
+    int16_t* xPos = (int16_t*)(buf + ow + ow);
+    int16_t* yCoef = (int16_t*)(buf + ow + ow + ow);
+    int16_t* yPos = (int16_t*)(buf + ow + ow + ow + oh + oh);
 
     for (int i = 0; i < ow; i++)
     {
-        float fx = ( float )((( float )i + offset) * _scale_x - offset);
-        int sx = ( int )fx;
+        float fx = (float)(((float)i + offset) * _scale_x - offset);
+        int sx = (int)fx;
         fx -= sx;
         if (sx < 0)
         {
@@ -902,8 +902,8 @@ void tengine_resize_f32(float* data, float* res, int ow, int oh, int c, int h, i
 
     for (int j = 0; j < oh; j++)
     {
-        float fy = ( float )((( float )j + offset) * _scale_y - offset);
-        int sy = ( int )fy;
+        float fy = (float)(((float)j + offset) * _scale_y - offset);
+        int sy = (int)fy;
         fy -= sy;
         if (sy < 0)
         {
@@ -921,7 +921,7 @@ void tengine_resize_f32(float* data, float* res, int ow, int oh, int c, int h, i
     }
 
     //    int32_t* row = new int32_t[ow + ow];
-    int32_t* row = ( int32_t* )malloc((ow + ow) * sizeof(int32_t));
+    int32_t* row = (int32_t*)malloc((ow + ow) * sizeof(int32_t));
 
     for (int k = 0; k < c; k++)
     {
@@ -1021,7 +1021,7 @@ static void sort_cls_score(cls_score* array, int left, int right)
 
 void print_topk(float* data, int total_num, int topk)
 {
-    cls_score* cls_scores = ( cls_score* )malloc(total_num * sizeof(cls_score));
+    cls_score* cls_scores = (cls_score*)malloc(total_num * sizeof(cls_score));
     for (int i = 0; i < total_num; i++)
     {
         cls_scores[i].id = i;

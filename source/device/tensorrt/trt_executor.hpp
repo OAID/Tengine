@@ -42,7 +42,6 @@ EXPORT_FINISH
 #include <map>
 #include <vector>
 
-
 class TensorRTEngine
 {
 public:
@@ -63,7 +62,7 @@ private:
     int get_type(int mode, nvinfer1::DataType& type);
 
 private:
-    size_t   card_id;
+    size_t card_id;
     uint16_t tensor_swap_count;
 
     std::map<uint16_t, nvinfer1::ITensor*> tensor_real_map;
@@ -116,5 +115,5 @@ private:
     nvinfer1::INetworkDefinition* network;
     nvinfer1::IBuilderConfig* config;
     nvinfer1::ICudaEngine* engine;
-    nvinfer1::IExecutionContext *context;
+    nvinfer1::IExecutionContext* context;
 };

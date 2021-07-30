@@ -18,24 +18,45 @@
  */
 
 /*
- * Copyright (c) 2018, Open AI Lab
- * Author: jingyou@openailab.com
+ * Copyright (c) 2021
+ * Author: tpoisonooo
  */
-#ifndef __TM_GENERATE_H__
-#define __TM_GENERATE_H__
+#pragma once
+#include "pipeline/graph/node.h"
+#include <opencv2/opencv.hpp>
 
-#include <stdint.h>
+namespace pipe {
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+class DrawVideo : public Node<Param<cv::Mat>, Param<void> >
+{
+public:
+    DrawVideo(const std::string& name = "window")
+        : m_window_name(name)
+    {
+    }
 
-uint32_t WriteTmFileAlign1(void* const start_ptr, uint32_t* cur_pos, const void* buf, const uint32_t buf_size);
-uint32_t WriteTmFileAlign4(void* const start_ptr, uint32_t* cur_pos, const void* buf, const uint32_t buf_size);
-uint32_t WriteTmObject(void* const start_ptr, uint32_t* cur_pos, const void* buf, const uint32_t buf_size);
+    void exec() override
+    {
+        cv::Mat mat;
+        while (true)
+        {
+            auto suc = input<0>()->pop(mat);
+            if (not suc)
+            {
+                continue;
+            }
+            cv::imshow(m_window_name, mat);
+            cv::waitKey(1);
+        }
+    }
 
-#ifdef __cplusplus
-}
-#endif
+    ~DrawVideo()
+    {
+        cv::destroyAllWindows();
+    }
 
-#endif
+private:
+    std::string m_window_name;
+};
+
+} // namespace pipe

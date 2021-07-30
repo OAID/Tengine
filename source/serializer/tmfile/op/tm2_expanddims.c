@@ -34,26 +34,23 @@
 #include "device/device.h"
 #include "utility/log.h"
 
-
 static int expanddims_op_map(int op)
 {
     return OP_EXPANDDIMS;
 }
 
-
 static int tm2_load_expanddims(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                                const TM2_Operator* tm_op)
 {
-    struct expanddims_param* expanddims_param = ( struct expanddims_param* )ir_node->op.param_mem;
+    struct expanddims_param* expanddims_param = (struct expanddims_param*)ir_node->op.param_mem;
     const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
     const char* mem_base = tm2_priv->base;
-    const TM2_ExpanddimsParam* tm_param = ( TM2_ExpanddimsParam* )(mem_base + tm_op->offset_t_param);
+    const TM2_ExpanddimsParam* tm_param = (TM2_ExpanddimsParam*)(mem_base + tm_op->offset_t_param);
 
     expanddims_param->axis = tm_param->axis;
 
     return 0;
 }
-
 
 int register_tm2_expanddims_op()
 {
@@ -69,7 +66,6 @@ int register_tm2_expanddims_op()
 
     return 0;
 }
-
 
 int unregister_tm2_expanddims_op()
 {

@@ -34,20 +34,18 @@
 #include "device/device.h"
 #include "utility/log.h"
 
-
 static int lstm_op_map(int op)
 {
     return OP_LSTM;
 }
 
-
 static int tm2_load_lstm(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                          const TM2_Operator* tm_op)
 {
-    struct lstm_param* lstm_param = ( struct lstm_param* )ir_node->op.param_mem;
+    struct lstm_param* lstm_param = (struct lstm_param*)ir_node->op.param_mem;
     const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
     const char* mem_base = tm2_priv->base;
-    const TM2_LstmParam* tm_param = ( TM2_LstmParam* )(mem_base + tm_op->offset_t_param);
+    const TM2_LstmParam* tm_param = (TM2_LstmParam*)(mem_base + tm_op->offset_t_param);
 
     lstm_param->forget_bias = tm_param->forget_bias;
     lstm_param->clip = tm_param->clip;
@@ -71,7 +69,6 @@ static int tm2_load_lstm(struct graph* ir_graph, struct node* ir_node, const TM2
     return 0;
 }
 
-
 int register_tm2_lstm_op()
 {
     struct serializer* tm2_s = find_serializer_via_name("tengine");
@@ -86,7 +83,6 @@ int register_tm2_lstm_op()
 
     return 0;
 }
-
 
 int unregister_tm2_lstm_op()
 {

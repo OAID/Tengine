@@ -33,29 +33,29 @@
 #include "mpi_nnie.h"
 
 /*16Byte align*/
-#define TEST_NNIE_ALIGN_16 16
-#define TEST_NNIE_ALIGN16(u32Num) ((u32Num + TEST_NNIE_ALIGN_16 - 1) / TEST_NNIE_ALIGN_16 * TEST_NNIE_ALIGN_16)
-#define TEST_NNIE_COORDI_NUM 4     /*coordinate numbers*/
-#define TEST_NNIE_QUANT_BASE 4096  /*the base value*/
-#define TEST_NNIE_PROPOSAL_WIDTH 6 /*the number of proposal values*/
-#define TEST_NNIE_SSD_REPORT_NODE_NUM 12
-#define TEST_NNIE_MAX_SOFTWARE_MEM_NUM 4
-#define TEST_NNIE_SSD_REPORT_NODE_NUM 12
-#define TEST_NNIE_SSD_PRIORBOX_NUM 6
-#define TEST_NNIE_SSD_SOFTMAX_NUM 6
-#define TEST_NNIE_SSD_ASPECT_RATIO_NUM 6
-#define TEST_NNIE_YOLOV3_REPORT_BLOB_NUM 3             /*yolov3 report blob num*/
+#define TEST_NNIE_ALIGN_16                          16
+#define TEST_NNIE_ALIGN16(u32Num)                   ((u32Num + TEST_NNIE_ALIGN_16 - 1) / TEST_NNIE_ALIGN_16 * TEST_NNIE_ALIGN_16)
+#define TEST_NNIE_COORDI_NUM                        4    /*coordinate numbers*/
+#define TEST_NNIE_QUANT_BASE                        4096 /*the base value*/
+#define TEST_NNIE_PROPOSAL_WIDTH                    6    /*the number of proposal values*/
+#define TEST_NNIE_SSD_REPORT_NODE_NUM               12
+#define TEST_NNIE_MAX_SOFTWARE_MEM_NUM              4
+#define TEST_NNIE_SSD_REPORT_NODE_NUM               12
+#define TEST_NNIE_SSD_PRIORBOX_NUM                  6
+#define TEST_NNIE_SSD_SOFTMAX_NUM                   6
+#define TEST_NNIE_SSD_ASPECT_RATIO_NUM              6
+#define TEST_NNIE_YOLOV3_REPORT_BLOB_NUM            3  /*yolov3 report blob num*/
 #define TEST_NNIE_YOLOV3_EACH_BBOX_INFER_RESULT_NUM 85 /*yolov3 inference result num of each bbox*/
-#define TEST_NNIE_YOLOV3_EACH_GRID_BIAS_NUM 6          /*yolov3 bias num of each grid*/
-#define TEST_NNIE_SCORE_NUM 2                          /*the num of RPN scores*/
+#define TEST_NNIE_YOLOV3_EACH_GRID_BIAS_NUM         6  /*yolov3 bias num of each grid*/
+#define TEST_NNIE_SCORE_NUM                         2  /*the num of RPN scores*/
 
-#define TEST_NNIE_COORDI_NUM 4 /*coordinate numbers*/
-#define TEST_COORDI_NUM 4      /*num of coordinates*/
-#define TEST_NNIE_HALF 0.5f    /*the half value*/
-#define TEST_NNIE_MAX(a, b) (((a) > (b)) ? (a) : (b))
-#define TEST_NNIE_MIN(a, b) (((a) < (b)) ? (a) : (b))
+#define TEST_NNIE_COORDI_NUM 4    /*coordinate numbers*/
+#define TEST_COORDI_NUM      4    /*num of coordinates*/
+#define TEST_NNIE_HALF       0.5f /*the half value*/
+#define TEST_NNIE_MAX(a, b)  (((a) > (b)) ? (a) : (b))
+#define TEST_NNIE_MIN(a, b)  (((a) < (b)) ? (a) : (b))
 
-#define TEST_NNIE_SIGMOID(x) (HI_FLOAT)(1.0f / (1 + fast_exp(-x)))
+#define TEST_NNIE_SIGMOID(x)       (HI_FLOAT)(1.0f / (1 + fast_exp(-x)))
 #define TEST_NNIE_SIGMOID_NOEXP(x) (HI_FLOAT)(1.0f / (1 + x))
 
 inline float32x4_t vexpq10_f32(float32x4_t x)
@@ -74,7 +74,7 @@ inline float32x4_t vexpq10_f32(float32x4_t x)
     return x;
 }
 
-void fast_exp_4f(const float *a, float *xx)
+void fast_exp_4f(const float* a, float* xx)
 {
     float32x4_t x = vld1q_f32(a);
     x = vexpq10_f32(x);
@@ -120,14 +120,14 @@ typedef struct hiTEST_NNIE_FASTERRCNN_SOFTWARE_PARAM_S
     HI_U32 u32ClassNum;
     HI_U32 au32ConfThresh[21];
     HI_U32 u32ValidNmsThresh;
-    HI_S32 *aps32Conv[2];
+    HI_S32* aps32Conv[2];
     SVP_MEM_INFO_S stRpnTmpBuf;
     SVP_DST_BLOB_S stRpnBbox;
     SVP_DST_BLOB_S stClassRoiNum;
     SVP_DST_BLOB_S stDstRoi;
     SVP_DST_BLOB_S stDstScore;
     SVP_MEM_INFO_S stGetResultTmpBuf;
-    HI_CHAR *apcRpnDataLayerName[2];
+    HI_CHAR* apcRpnDataLayerName[2];
 } TEST_NNIE_FASTERRCNN_SOFTWARE_PARAM_S;
 
 typedef struct hiTEST_NNIE_CNN_GETTOPN_UNIT_S
@@ -270,7 +270,7 @@ typedef struct hiTEST_NNIE_STACK
     HI_S32 s32Max;
 } TEST_NNIE_STACK_S;
 
-HI_S32 SAMPLE_COMM_SVP_MallocMem(const HI_CHAR *pszMmb, const HI_CHAR *pszZone, HI_U64 *pu64PhyAddr, HI_VOID **ppvVirAddr, HI_U32 u32Size)
+HI_S32 SAMPLE_COMM_SVP_MallocMem(const HI_CHAR* pszMmb, const HI_CHAR* pszZone, HI_U64* pu64PhyAddr, HI_VOID** ppvVirAddr, HI_U32 u32Size)
 {
     HI_S32 s32Ret = HI_SUCCESS;
 

@@ -23,7 +23,7 @@
  * 
  * original model: https://github.com/dog-qiuqiu/Yolo-Fastest/tree/master/ModelZoo/yolo-fastest-1.1_coco
  */
- 
+
 #include <iostream>
 #include <iomanip>
 #include <vector>
@@ -44,10 +44,10 @@
 #define DEFAULT_THREAD_COUNT 1
 int float_mismatch(float* current, float* reference, int size)
 {
-    for(int i=0;i<size;i++)
+    for (int i = 0; i < size; i++)
     {
         float tmp = fabs(current[i]) - fabs(reference[i]);
-        if(fabs(tmp) > 0.0001)
+        if (fabs(tmp) > 0.0001)
         {
             fprintf(stderr, "test failed, index:%d, a:%f, b:%f\n", i, current[i], reference[i]);
             return -1;
@@ -76,20 +76,20 @@ struct TMat
         return (const float*)data;
     }
 
-    float *row(int row) const
+    float* row(int row) const
     {
-        return (float *)data + w * row;
+        return (float*)data + w * row;
     }
 
-    TMat channel_range(int start, int chn_num) const 
+    TMat channel_range(int start, int chn_num) const
     {
-        TMat mat = { 0 };
+        TMat mat = {0};
 
         mat.batch = 1;
         mat.c = chn_num;
         mat.h = h;
         mat.w = w;
-        mat.data = (float *)data + start * h * w;
+        mat.data = (float*)data + start * h * w;
 
         return mat;
     }
@@ -100,7 +100,7 @@ struct TMat
     }
 
     int batch, c, h, w;
-    void *data;
+    void* data;
 };
 
 int main(int argc, char* argv[])
@@ -143,7 +143,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-   if (!check_file_exist(model_file))
+    if (!check_file_exist(model_file))
         return -1;
 
     /* set runtime options */
@@ -171,7 +171,7 @@ int main(int argc, char* argv[])
 
     /* set the input shape to initial the graph, and prerun graph to infer shape */
     int img_size = net_h * net_w * 3;
-    int dims[] = { 1, 3, net_h, net_w };    // nchw
+    int dims[] = {1, 3, net_h, net_w}; // nchw
 
     std::vector<float> input_data(img_size);
 
@@ -202,11 +202,11 @@ int main(int argc, char* argv[])
     }
 
     /* prepare process input data, set the data mem to input tensor */
-    std::string model_name="yolo-fastest-1.1";
+    std::string model_name = "yolo-fastest-1.1";
     std::string input_file = "./data/" + model_name + "_in.bin";
-    FILE *fp;
+    FILE* fp;
     fp = fopen(input_file.c_str(), "rb");
-    if (!fp ||fread(input_data.data(), sizeof(float), img_size, fp) == 0)
+    if (!fp || fread(input_data.data(), sizeof(float), img_size, fp) == 0)
     {
         fprintf(stderr, "read input data file failed!\n");
         return -1;
@@ -232,24 +232,25 @@ int main(int argc, char* argv[])
         max_time = std::max(max_time, cur);
     }
     fprintf(stderr, "Repeat %d times, thread %d, avg time %.2f ms, max_time %.2f ms, min_time %.2f ms\n", repeat_count,
-        num_thread, total_time / repeat_count, max_time, min_time);
+            num_thread, total_time / repeat_count, max_time, min_time);
     fprintf(stderr, "--------------------------------------\n");
 
     /* process the detection result */
 
     int output_node_num = get_graph_output_node_number(graph);
     int ret1 = 0;
-	tensor_t out_tensor;
+    tensor_t out_tensor;
     for (int i = 0; i < output_node_num; ++i)
     {
-        out_tensor = get_graph_output_tensor(graph, i, 0);    //"detection_out"
+        out_tensor = get_graph_output_tensor(graph, i, 0); //"detection_out"
         // save output_data
         std::string model_name = "yolo-fastest-1.1";
-        int output_size1 = get_tensor_buffer_size(out_tensor) / sizeof(float);;
+        int output_size1 = get_tensor_buffer_size(out_tensor) / sizeof(float);
+        ;
         float* yolo_outputs = (float*)get_tensor_buffer(out_tensor);
-        std::string reference_file1 = "./data/" + model_name + "_out" + std::to_string(i+1)+".bin";
+        std::string reference_file1 = "./data/" + model_name + "_out" + std::to_string(i + 1) + ".bin";
         std::vector<float> reference_data1(output_size1);
-        FILE *fp1;
+        FILE* fp1;
         //read
         fp1 = fopen(reference_file1.c_str(), "rb");
         if (fread(reference_data1.data(), sizeof(float), output_size1, fp1) == 0)

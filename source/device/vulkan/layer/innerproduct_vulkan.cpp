@@ -80,35 +80,34 @@ InnerProduct_vulkan::InnerProduct_vulkan(ir_graph_t* ir_graph, ir_node_t* ir_nod
     graph = ir_graph;
     node = ir_node;
 
-    struct tensor *input = get_ir_graph_tensor(graph, node->input_tensors[0]);
+    struct tensor* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
     std::string name = input->name;
     bottoms.push_back(name);
 
-    struct tensor *output = get_ir_graph_tensor(graph, node->output_tensors[0]);
+    struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
     name = output->name;
     tops.push_back(name);
 
-    struct fc_param *param = (struct fc_param *)ir_node->op.param_mem;
+    struct fc_param* param = (struct fc_param*)ir_node->op.param_mem;
 
     num_output = param->num_output;
-    input_c = input->dims[1];   // param->input_channel;
+    input_c = input->dims[1]; // param->input_channel;
     input_h = input->dims[2];
     input_w = input->dims[3];
-    output_c = output->dims[1];  // param->output_channel;
+    output_c = output->dims[1]; // param->output_channel;
     output_h = output->dims[2];
     output_w = output->dims[3];
 
-    struct tensor *weight = get_ir_graph_tensor(graph, node->input_tensors[1]);
+    struct tensor* weight = get_ir_graph_tensor(graph, node->input_tensors[1]);
     weight_data_size = weight->elem_num;
 
     activation_type = -1;
-
 }
 
 int InnerProduct_vulkan::create_pipeline(const Option& _opt)
 {
     Option opt = _opt;
-    const Tensor& shape = Tensor(input_w, input_h, input_c, (void*)0); // bottom_shapes.empty() ? Tensor() : bottom_shapes[0];
+    const Tensor& shape = Tensor(input_w, input_h, input_c, (void*)0);        // bottom_shapes.empty() ? Tensor() : bottom_shapes[0];
     const Tensor& out_shape = Tensor(output_w, output_h, output_c, (void*)0); // top_shapes.empty() ? Tensor() : top_shapes[0];
 
     Tensor shape_flatten;
@@ -119,8 +118,10 @@ int InnerProduct_vulkan::create_pipeline(const Option& _opt)
 
     int num_input = weight_data_size / num_output;
 
-    int elempack = opt.use_shader_pack8 && num_input % 8 == 0 ? 8 : num_input % 4 == 0 ? 4 : 1;
-    int out_elempack = opt.use_shader_pack8 && num_output % 8 == 0 ? 8 : num_output % 4 == 0 ? 4 : 1;
+    int elempack = opt.use_shader_pack8 && num_input % 8 == 0 ? 8 : num_input % 4 == 0 ? 4
+                                                                                       : 1;
+    int out_elempack = opt.use_shader_pack8 && num_output % 8 == 0 ? 8 : num_output % 4 == 0 ? 4
+                                                                                             : 1;
 
     size_t elemsize;
     size_t out_elemsize;
@@ -161,27 +162,26 @@ int InnerProduct_vulkan::create_pipeline(const Option& _opt)
         flatten->output_w = shape_flatten.w;
         flatten->output_h = shape_flatten.h;
         flatten->output_c = shape_flatten.c;
-        flatten->output_size = shape_flatten.w*shape_flatten.h*shape_flatten.c;
+        flatten->output_size = shape_flatten.w * shape_flatten.h * shape_flatten.c;
 
         flatten->create_pipeline(opt);
     }
 
-
     std::vector<vk_specialization_type> specializations(4 + 10);
     specializations[0].i = bias_term;
     specializations[1].i = activation_type;
-    specializations[2].f = 0.f; // activation_params.w >= 1 ? activation_params[0] : 0.f;
-    specializations[3].f = 0.f; // activation_params.w == 2 ? activation_params[1] : 0.f;
-    specializations[4 + 0].i = 0;   // shape_flatten_packed.dims;
-    specializations[4 + 1].i = 0;   // shape_flatten_packed.w;
-    specializations[4 + 2].i = 0;   // shape_flatten_packed.h;
-    specializations[4 + 3].i = 0;   // shape_flatten_packed.c;
-    specializations[4 + 4].i = 0;   // shape_flatten_packed.cstep;
-    specializations[4 + 5].i = 0;   // out_shape_packed.dims;
-    specializations[4 + 6].i = 0;   // out_shape_packed.w;
-    specializations[4 + 7].i = 0;   // out_shape_packed.h;
-    specializations[4 + 8].i = 0;   // out_shape_packed.c;
-    specializations[4 + 9].i = 0;   // out_shape_packed.cstep;
+    specializations[2].f = 0.f;   // activation_params.w >= 1 ? activation_params[0] : 0.f;
+    specializations[3].f = 0.f;   // activation_params.w == 2 ? activation_params[1] : 0.f;
+    specializations[4 + 0].i = 0; // shape_flatten_packed.dims;
+    specializations[4 + 1].i = 0; // shape_flatten_packed.w;
+    specializations[4 + 2].i = 0; // shape_flatten_packed.h;
+    specializations[4 + 3].i = 0; // shape_flatten_packed.c;
+    specializations[4 + 4].i = 0; // shape_flatten_packed.cstep;
+    specializations[4 + 5].i = 0; // out_shape_packed.dims;
+    specializations[4 + 6].i = 0; // out_shape_packed.w;
+    specializations[4 + 7].i = 0; // out_shape_packed.h;
+    specializations[4 + 8].i = 0; // out_shape_packed.c;
+    specializations[4 + 9].i = 0; // out_shape_packed.cstep;
 
     Tensor local_size_xyz(std::min(64, num_output / out_elempack), 1, 1, (void*)0);
     if (out_shape_packed.dims != 0)
@@ -309,8 +309,10 @@ int InnerProduct_vulkan::upload_model(VkTransfer& cmd, const Option& opt)
 {
     int num_input = weight_data_size / num_output;
 
-    int elempack = opt.use_shader_pack8 && num_input % 8 == 0 ? 8 : num_input % 4 == 0 ? 4 : 1;
-    int out_elempack = opt.use_shader_pack8 && num_output % 8 == 0 ? 8 : num_output % 4 == 0 ? 4 : 1;
+    int elempack = opt.use_shader_pack8 && num_input % 8 == 0 ? 8 : num_input % 4 == 0 ? 4
+                                                                                       : 1;
+    int out_elempack = opt.use_shader_pack8 && num_output % 8 == 0 ? 8 : num_output % 4 == 0 ? 4
+                                                                                             : 1;
 
     // src = inch-outch
     // dst = pa-pb-inch/pa-outch/pb
@@ -386,7 +388,8 @@ int InnerProduct_vulkan::record_pipeline(const VkTensor& bottom_blob, VkTensor& 
     size_t elemsize = bottom_blob_flattened.elemsize;
     int elempack = bottom_blob_flattened.elempack;
 
-    int out_elempack = opt.use_shader_pack8 && num_output % 8 == 0 ? 8 : num_output % 4 == 0 ? 4 : 1;
+    int out_elempack = opt.use_shader_pack8 && num_output % 8 == 0 ? 8 : num_output % 4 == 0 ? 4
+                                                                                             : 1;
     size_t out_elemsize = elemsize / elempack * out_elempack;
 
     if (opt.use_fp16_packed && !opt.use_fp16_storage)
@@ -461,4 +464,4 @@ int InnerProduct_vulkan::record_pipeline(const VkTensor& bottom_blob, VkTensor& 
     return 0;
 }
 
-}   // namespace TEngine
+} // namespace TEngine

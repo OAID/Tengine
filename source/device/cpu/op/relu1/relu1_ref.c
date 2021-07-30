@@ -32,7 +32,6 @@
 #include "device/cpu/cpu_graph.h"
 #include "device/cpu/cpu_module.h"
 
-
 int ref_relu1_fp32(struct tensor* input_tensor, struct tensor* output_tensor, int num_thread)
 {
     int w = input_tensor->dims[3];

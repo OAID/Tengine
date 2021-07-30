@@ -31,7 +31,6 @@
 #include "module/module.h"
 #include "utility/sys_port.h"
 
-
 static int infer_shape(struct node* node)
 {
     struct graph* ir_graph = node->graph;
@@ -43,11 +42,9 @@ static int infer_shape(struct node* node)
     return 0;
 }
 
-
 static int init_op(struct op* op)
 {
-    struct shuffle_channel_param* param =
-        ( struct shuffle_channel_param* )sys_malloc(sizeof(struct shuffle_channel_param));
+    struct shuffle_channel_param* param = (struct shuffle_channel_param*)sys_malloc(sizeof(struct shuffle_channel_param));
 
     if (param == NULL)
     {
@@ -66,12 +63,10 @@ static int init_op(struct op* op)
     return 0;
 }
 
-
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
-
 
 int register_shuffle_channel_op()
 {
@@ -83,7 +78,6 @@ int register_shuffle_channel_op()
 
     return register_op(OP_SHUFFLECHANNEL, OP_SHUFFLECHANNEL_NAME, &m);
 }
-
 
 int unregister_shuffle_channel_op()
 {

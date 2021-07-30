@@ -34,14 +34,13 @@
 
 #include <string.h>
 
-
 static int infer_shape(struct node* node)
 {
     struct graph* graph = node->graph;
     struct tensor* input0 = get_ir_graph_tensor(graph, node->input_tensors[0]);
     struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
 
-    struct eltwise_param* eltwise_param = ( struct eltwise_param* )(node->op.param_mem);
+    struct eltwise_param* eltwise_param = (struct eltwise_param*)(node->op.param_mem);
 
     if (node->input_num == 1)
     {
@@ -77,10 +76,9 @@ static int infer_shape(struct node* node)
     return 0;
 }
 
-
 static int init_op(struct op* op)
 {
-    struct eltwise_param* eltwise_param = ( struct eltwise_param* )sys_malloc(sizeof(struct eltwise_param));
+    struct eltwise_param* eltwise_param = (struct eltwise_param*)sys_malloc(sizeof(struct eltwise_param));
 
     if (eltwise_param == NULL)
     {
@@ -98,12 +96,10 @@ static int init_op(struct op* op)
     return 0;
 }
 
-
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
-
 
 int register_eltwise_op()
 {
@@ -113,10 +109,8 @@ int register_eltwise_op()
     m.init = init_op;
     m.release = release_op;
 
-
     return register_op(OP_ELTWISE, OP_ELTWISE_NAME, &m);
 }
-
 
 int unregister_eltwise_op()
 {

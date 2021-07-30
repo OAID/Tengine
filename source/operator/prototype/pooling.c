@@ -31,13 +31,12 @@
 #include "module/module.h"
 #include "utility/sys_port.h"
 
-
 static int infer_shape(ir_node_t* node)
 {
     ir_graph_t* ir_graph = node->graph;
     ir_tensor_t* input = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
     ir_tensor_t* output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
-    struct pool_param* pool_param = ( struct pool_param* )node->op.param_mem;
+    struct pool_param* pool_param = (struct pool_param*)node->op.param_mem;
 
     int batch = input->dims[0];
     int channel = input->dims[1];
@@ -45,9 +44,7 @@ static int infer_shape(ir_node_t* node)
     int input_w = input->dims[3];
     int output_h, output_w;
 
-    if (pool_param->kernel_h == input_h && pool_param->kernel_w == input_w &&
-        pool_param->pad_w0 == 0 && pool_param->pad_w1 == 0 &&
-        pool_param->pad_h0 == 0 && pool_param->pad_h1 == 0)
+    if (pool_param->kernel_h == input_h && pool_param->kernel_w == input_w && pool_param->pad_w0 == 0 && pool_param->pad_w1 == 0 && pool_param->pad_h0 == 0 && pool_param->pad_h1 == 0)
     {
         pool_param->global = 1;
     }
@@ -102,10 +99,9 @@ static int infer_shape(ir_node_t* node)
     return 0;
 }
 
-
 static int init_op(ir_op_t* op)
 {
-    struct pool_param* pool_param = ( struct pool_param* )sys_malloc(sizeof(struct pool_param));
+    struct pool_param* pool_param = (struct pool_param*)sys_malloc(sizeof(struct pool_param));
 
     if (pool_param == NULL)
     {
@@ -137,12 +133,10 @@ static int init_op(ir_op_t* op)
     return 0;
 }
 
-
 static void release_op(ir_op_t* op)
 {
     sys_free(op->param_mem);
 }
-
 
 int register_pooling_op()
 {
@@ -154,7 +148,6 @@ int register_pooling_op()
 
     return register_op(OP_POOL, OP_POOL_NAME, &m);
 }
-
 
 int unregister_pooling_op()
 {

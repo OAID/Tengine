@@ -48,10 +48,10 @@ namespace TEngine {
 
 Allocator::~Allocator()
 {
-
 }
 
-VkAllocator::VkAllocator(const GPUDevice* _vkdev) : vkdev(_vkdev)
+VkAllocator::VkAllocator(const GPUDevice* _vkdev)
+    : vkdev(_vkdev)
 {
     buffer_memory_type_index = (uint32_t)-1;
     image_memory_type_index = (uint32_t)-1;
@@ -258,7 +258,8 @@ VkImageView VkAllocator::create_imageview(VkImageViewType type, VkImage image, V
     return imageview;
 }
 
-VkBlobAllocator::VkBlobAllocator(const GPUDevice* _vkdev) : VkAllocator(_vkdev)
+VkBlobAllocator::VkBlobAllocator(const GPUDevice* _vkdev)
+    : VkAllocator(_vkdev)
 {
     buffer_offset_alignment = vkdev->info.buffer_offset_alignment;
     bind_memory_offset_alignment = vkdev->info.buffer_image_granularity;
@@ -273,7 +274,7 @@ VkBlobAllocator::VkBlobAllocator(const GPUDevice* _vkdev) : VkAllocator(_vkdev)
         buffer_offset_alignment = least_common_multiple(buffer_offset_alignment, vkdev->info.non_coherent_atom_size);
     }
 
-    block_size = alignSize(16 * 1024 * 1024, buffer_offset_alignment);// 16M
+    block_size = alignSize(16 * 1024 * 1024, buffer_offset_alignment); // 16M
 }
 
 VkBlobAllocator::~VkBlobAllocator()
@@ -284,18 +285,18 @@ VkBlobAllocator::~VkBlobAllocator()
 // TODO
 void VkBlobAllocator::clear()
 {
-//     TLOG_INFO("VkBlobAllocator %lu", buffer_blocks.size());
+    //     TLOG_INFO("VkBlobAllocator %lu", buffer_blocks.size());
 
-    for (size_t i=0; i<buffer_blocks.size(); i++)
+    for (size_t i = 0; i < buffer_blocks.size(); i++)
     {
         VkBufferMemory* ptr = buffer_blocks[i];
 
-//         std::list< std::pair<size_t, size_t> >::iterator it = buffer_budgets[i].begin();
-//         while (it != buffer_budgets[i].end())
-//         {
-//             TLOG_INFO("VkBlobAllocator budget %p %lu %lu", ptr->buffer, it->first, it->second);
-//             it++;
-//         }
+        //         std::list< std::pair<size_t, size_t> >::iterator it = buffer_budgets[i].begin();
+        //         while (it != buffer_budgets[i].end())
+        //         {
+        //             TLOG_INFO("VkBlobAllocator budget %p %lu %lu", ptr->buffer, it->first, it->second);
+        //             it++;
+        //         }
 
         if (mappable)
             vkUnmapMemory(vkdev->vkdevice(), ptr->memory);
@@ -309,16 +310,16 @@ void VkBlobAllocator::clear()
 
     buffer_budgets.clear();
 
-    for (size_t i=0; i<image_memory_blocks.size(); i++)
+    for (size_t i = 0; i < image_memory_blocks.size(); i++)
     {
         VkDeviceMemory memory = image_memory_blocks[i];
 
-//         std::list< std::pair<size_t, size_t> >::iterator it = image_memory_budgets[i].begin();
-//         while (it != image_memory_budgets[i].end())
-//         {
-//             TLOG_INFO("VkBlobAllocator budget %p %lu %lu", memory, it->first, it->second);
-//             it++;
-//         }
+        //         std::list< std::pair<size_t, size_t> >::iterator it = image_memory_budgets[i].begin();
+        //         while (it != image_memory_budgets[i].end())
+        //         {
+        //             TLOG_INFO("VkBlobAllocator budget %p %lu %lu", memory, it->first, it->second);
+        //             it++;
+        //         }
 
         vkFreeMemory(vkdev->vkdevice(), memory, 0);
     }
@@ -334,9 +335,9 @@ VkBufferMemory* VkBlobAllocator::fastMalloc(size_t size)
     const int buffer_block_count = buffer_blocks.size();
 
     // find first spare space in buffer_blocks
-    for (int i=0; i<buffer_block_count; i++)
+    for (int i = 0; i < buffer_block_count; i++)
     {
-        std::list< std::pair<size_t, size_t> >::iterator it = buffer_budgets[i].begin();
+        std::list<std::pair<size_t, size_t> >::iterator it = buffer_budgets[i].begin();
         while (it != buffer_budgets[i].end())
         {
             size_t budget_size = it->second;
@@ -430,7 +431,7 @@ VkBufferMemory* VkBlobAllocator::fastMalloc(size_t size)
     ptr->stage_flags = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 
     // adjust buffer_budgets
-    std::list< std::pair<size_t, size_t> > budget;
+    std::list<std::pair<size_t, size_t> > budget;
     if (new_block_size > aligned_size)
     {
         budget.push_back(std::make_pair(aligned_size, new_block_size - aligned_size));
@@ -440,7 +441,6 @@ VkBufferMemory* VkBlobAllocator::fastMalloc(size_t size)
     //     TLOG_INFO("VkBlobAllocator M %p +%lu %lu", ptr->buffer, ptr->offset, ptr->capacity);
 
     return ptr;
-
 }
 
 VkImageMemory* VkBlobAllocator::fastMalloc(int dims, int w, int h, int c, size_t elemsize, int elempack)
@@ -536,9 +536,9 @@ VkImageMemory* VkBlobAllocator::fastMalloc(int dims, int w, int h, int c, size_t
     const int image_memory_block_count = image_memory_blocks.size();
 
     // find first spare space in image_memory_blocks
-    for (int i=0; i<image_memory_block_count; i++)
+    for (int i = 0; i < image_memory_block_count; i++)
     {
-        std::list< std::pair<size_t, size_t> >::iterator it = image_memory_budgets[i].begin();
+        std::list<std::pair<size_t, size_t> >::iterator it = image_memory_budgets[i].begin();
         while (it != image_memory_budgets[i].end())
         {
             // we cannot use it->first directly for base offset alignment
@@ -589,7 +589,7 @@ VkImageMemory* VkBlobAllocator::fastMalloc(int dims, int w, int h, int c, size_t
                 it->second -= aligned_size;
             }
 
-//             TLOG_INFO("VkBlobAllocator M %p +%lu %lu", ptr->memory, ptr->bind_offset, ptr->bind_capacity);
+            //             TLOG_INFO("VkBlobAllocator M %p +%lu %lu", ptr->memory, ptr->bind_offset, ptr->bind_capacity);
 
             return ptr;
         }
@@ -636,27 +636,26 @@ VkImageMemory* VkBlobAllocator::fastMalloc(int dims, int w, int h, int c, size_t
     // adjust image_memory_budgets
     image_memory_blocks.push_back(ptr->memory);
 
-    std::list< std::pair<size_t, size_t> > budget;
+    std::list<std::pair<size_t, size_t> > budget;
     if (new_block_size > aligned_size)
     {
         budget.push_back(std::make_pair(aligned_size, new_block_size - aligned_size));
     }
     image_memory_budgets.push_back(budget);
 
-//     TLOG_INFO("VkBlobAllocator M %p +%lu %lu", ptr->memory, ptr->bind_offset, ptr->bind_capacity);
+    //     TLOG_INFO("VkBlobAllocator M %p +%lu %lu", ptr->memory, ptr->bind_offset, ptr->bind_capacity);
 
     return ptr;
 }
 
-
 void VkBlobAllocator::fastFree(VkBufferMemory* ptr)
 {
-//     TLOG_INFO("VkBlobAllocator F %p +%lu %lu", ptr->buffer, ptr->offset, ptr->capacity);
+    //     TLOG_INFO("VkBlobAllocator F %p +%lu %lu", ptr->buffer, ptr->offset, ptr->capacity);
 
     const int buffer_block_count = buffer_blocks.size();
 
     int block_index = -1;
-    for (int i=0; i<buffer_block_count; i++)
+    for (int i = 0; i < buffer_block_count; i++)
     {
         if (buffer_blocks[i]->buffer == ptr->buffer && buffer_blocks[i]->memory == ptr->memory)
         {
@@ -675,10 +674,10 @@ void VkBlobAllocator::fastFree(VkBufferMemory* ptr)
     }
 
     // merge
-    std::list< std::pair<size_t, size_t> >::iterator it_merge_left = buffer_budgets[block_index].end();
-    std::list< std::pair<size_t, size_t> >::iterator it_merge_right = buffer_budgets[block_index].end();
-    std::list< std::pair<size_t, size_t> >::iterator it = buffer_budgets[block_index].begin();
-    for ( ; it != buffer_budgets[block_index].end(); it++)
+    std::list<std::pair<size_t, size_t> >::iterator it_merge_left = buffer_budgets[block_index].end();
+    std::list<std::pair<size_t, size_t> >::iterator it_merge_right = buffer_budgets[block_index].end();
+    std::list<std::pair<size_t, size_t> >::iterator it = buffer_budgets[block_index].begin();
+    for (; it != buffer_budgets[block_index].end(); it++)
     {
         if (it->first + it->second == ptr->offset)
         {
@@ -722,12 +721,12 @@ void VkBlobAllocator::fastFree(VkBufferMemory* ptr)
 
 void VkBlobAllocator::fastFree(VkImageMemory* ptr)
 {
-//     TLOG_INFO("VkBlobAllocator F %p +%lu %lu", ptr->memory, ptr->bind_offset, ptr->bind_capacity);
+    //     TLOG_INFO("VkBlobAllocator F %p +%lu %lu", ptr->memory, ptr->bind_offset, ptr->bind_capacity);
 
     const int image_memory_block_count = image_memory_blocks.size();
 
     int block_index = -1;
-    for (int i=0; i<image_memory_block_count; i++)
+    for (int i = 0; i < image_memory_block_count; i++)
     {
         if (image_memory_blocks[i] == ptr->memory)
         {
@@ -752,10 +751,10 @@ void VkBlobAllocator::fastFree(VkImageMemory* ptr)
     }
 
     // merge
-    std::list< std::pair<size_t, size_t> >::iterator it_merge_left = image_memory_budgets[block_index].end();
-    std::list< std::pair<size_t, size_t> >::iterator it_merge_right = image_memory_budgets[block_index].end();
-    std::list< std::pair<size_t, size_t> >::iterator it = image_memory_budgets[block_index].begin();
-    for ( ; it != image_memory_budgets[block_index].end(); it++)
+    std::list<std::pair<size_t, size_t> >::iterator it_merge_left = image_memory_budgets[block_index].end();
+    std::list<std::pair<size_t, size_t> >::iterator it_merge_right = image_memory_budgets[block_index].end();
+    std::list<std::pair<size_t, size_t> >::iterator it = image_memory_budgets[block_index].begin();
+    for (; it != image_memory_budgets[block_index].end(); it++)
     {
         if (it->first + it->second == ptr->bind_offset)
         {
@@ -803,7 +802,8 @@ void VkBlobAllocator::fastFree(VkImageMemory* ptr)
     }
 }
 
-VkWeightAllocator::VkWeightAllocator(const GPUDevice* _vkdev) : VkAllocator(_vkdev)
+VkWeightAllocator::VkWeightAllocator(const GPUDevice* _vkdev)
+    : VkAllocator(_vkdev)
 {
     buffer_offset_alignment = vkdev->info.buffer_offset_alignment;
     bind_memory_offset_alignment = vkdev->info.buffer_image_granularity;
@@ -818,7 +818,7 @@ VkWeightAllocator::VkWeightAllocator(const GPUDevice* _vkdev) : VkAllocator(_vkd
         buffer_offset_alignment = least_common_multiple(buffer_offset_alignment, vkdev->info.non_coherent_atom_size);
     }
 
-    block_size = alignSize(8 * 1024 * 1024, buffer_offset_alignment);// 8M
+    block_size = alignSize(8 * 1024 * 1024, buffer_offset_alignment); // 8M
 }
 
 VkWeightAllocator::~VkWeightAllocator()
@@ -826,7 +826,6 @@ VkWeightAllocator::~VkWeightAllocator()
     //clear();
     printf("run VkWeightAllocator descontruction function\n");
 }
-
 
 void VkWeightAllocator::clear()
 {
@@ -842,9 +841,9 @@ VkBufferMemory* VkWeightAllocator::fastMalloc(size_t size)
     const int buffer_block_count = buffer_blocks.size();
 
     // find first spare space in buffer_blocks
-    for (int i=0; i<buffer_block_count; i++)
+    for (int i = 0; i < buffer_block_count; i++)
     {
-	size_t free_size = buffer_block_free_spaces[i];
+        size_t free_size = buffer_block_free_spaces[i];
         if (free_size >= aligned_size)
         {
             size_t block_offset = block_size - free_size;
@@ -861,8 +860,8 @@ VkBufferMemory* VkWeightAllocator::fastMalloc(size_t size)
 
             buffer_block_free_spaces[i] -= aligned_size;
 
-	    return ptr;
-	}
+            return ptr;
+        }
     }
     size_t new_block_size = std::max(block_size, aligned_size);
 
@@ -874,7 +873,7 @@ VkBufferMemory* VkWeightAllocator::fastMalloc(size_t size)
 
     if (vkdev->info.support_VK_KHR_get_memory_requirements2 && vkdev->info.support_VK_KHR_dedicated_allocation)
     {
-	    VkBufferMemoryRequirementsInfo2KHR bufferMemoryRequirementsInfo2;
+        VkBufferMemoryRequirementsInfo2KHR bufferMemoryRequirementsInfo2;
         bufferMemoryRequirementsInfo2.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_REQUIREMENTS_INFO_2_KHR;
         bufferMemoryRequirementsInfo2.pNext = 0;
         bufferMemoryRequirementsInfo2.buffer = block->buffer;
@@ -892,42 +891,42 @@ VkBufferMemory* VkWeightAllocator::fastMalloc(size_t size)
 
         bool dedicatedAllocation = memoryDedicatedRequirements.requiresDedicatedAllocation || memoryDedicatedRequirements.prefersDedicatedAllocation;
 
-	if (dedicatedAllocation)
+        if (dedicatedAllocation)
         {
-	    // setup memory type and alignment
-	    if (buffer_memory_type_index == (uint32_t)-1)
+            // setup memory type and alignment
+            if (buffer_memory_type_index == (uint32_t)-1)
             {
-		if (vkdev->info.type == 1)
-		{
-		    // integrated gpu, prefer unified memory
-		    buffer_memory_type_index = vkdev->find_memory_index(memoryRequirements2.memoryRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, 0);
-		}
-		else
-		{
-		    // discrete gpu, device local
-		    buffer_memory_type_index = vkdev->find_memory_index(memoryRequirements2.memoryRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 0, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
-		}
+                if (vkdev->info.type == 1)
+                {
+                    // integrated gpu, prefer unified memory
+                    buffer_memory_type_index = vkdev->find_memory_index(memoryRequirements2.memoryRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, 0);
+                }
+                else
+                {
+                    // discrete gpu, device local
+                    buffer_memory_type_index = vkdev->find_memory_index(memoryRequirements2.memoryRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 0, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+                }
 
-		mappable = vkdev->is_mappable(buffer_memory_type_index);
+                mappable = vkdev->is_mappable(buffer_memory_type_index);
                 coherent = vkdev->is_coherent(buffer_memory_type_index);
-	    }
+            }
 
-	    block->memory = allocate_dedicated_memory(memoryRequirements2.memoryRequirements.size, buffer_memory_type_index, 0, block->buffer);
-	    // ignore memoryRequirements2.memoryRequirements.alignment as we always bind at zero offset
-	    vkBindBufferMemory(vkdev->vkdevice(), block->buffer, block->memory, 0);
+            block->memory = allocate_dedicated_memory(memoryRequirements2.memoryRequirements.size, buffer_memory_type_index, 0, block->buffer);
+            // ignore memoryRequirements2.memoryRequirements.alignment as we always bind at zero offset
+            vkBindBufferMemory(vkdev->vkdevice(), block->buffer, block->memory, 0);
 
-	    block->mapped_ptr = 0;
+            block->mapped_ptr = 0;
             if (mappable)
             {
                 vkMapMemory(vkdev->vkdevice(), block->memory, 0, new_block_size, 0, &block->mapped_ptr);
             }
 
-	    dedicated_buffer_blocks.push_back(block);
+            dedicated_buffer_blocks.push_back(block);
 
-	    // return sub buffer
+            // return sub buffer
             VkBufferMemory* ptr = new VkBufferMemory;
 
-	    ptr->buffer = block->buffer;
+            ptr->buffer = block->buffer;
             ptr->offset = 0;
             ptr->memory = block->memory;
             ptr->capacity = new_block_size;
@@ -936,7 +935,7 @@ VkBufferMemory* VkWeightAllocator::fastMalloc(size_t size)
             ptr->stage_flags = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 
             return ptr;
-	}
+        }
     }
 
     VkMemoryRequirements memoryRequirements;
@@ -945,18 +944,18 @@ VkBufferMemory* VkWeightAllocator::fastMalloc(size_t size)
     // setup memory type and alignment
     if (buffer_memory_type_index == (uint32_t)-1)
     {
-	if (vkdev->info.type == 1)
+        if (vkdev->info.type == 1)
         {
             // integrated gpu, prefer unified memory
-	    buffer_memory_type_index = vkdev->find_memory_index(memoryRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, 0);
-	}
-	else
-	{
-	    // discrete gpu, device local
-	    buffer_memory_type_index = vkdev->find_memory_index(memoryRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 0, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
-	}
+            buffer_memory_type_index = vkdev->find_memory_index(memoryRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, 0);
+        }
+        else
+        {
+            // discrete gpu, device local
+            buffer_memory_type_index = vkdev->find_memory_index(memoryRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 0, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+        }
 
-	mappable = vkdev->is_mappable(buffer_memory_type_index);
+        mappable = vkdev->is_mappable(buffer_memory_type_index);
         coherent = vkdev->is_coherent(buffer_memory_type_index);
     }
 
@@ -965,7 +964,7 @@ VkBufferMemory* VkWeightAllocator::fastMalloc(size_t size)
     // ignore memoryRequirements.alignment as we always bind at zero offset
     vkBindBufferMemory(vkdev->vkdevice(), block->buffer, block->memory, 0);
 
-//     printf("VkWeightAllocator M %p", block->buffer);
+    //     printf("VkWeightAllocator M %p", block->buffer);
     block->mapped_ptr = 0;
     if (mappable)
     {
@@ -1155,7 +1154,7 @@ VkImageMemory* VkWeightAllocator::fastMalloc(int dims, int w, int h, int c, size
     const int image_memory_block_count = image_memory_blocks.size();
 
     // find first spare space in buffer_blocks
-    for (int i=0; i<image_memory_block_count; i++)
+    for (int i = 0; i < image_memory_block_count; i++)
     {
         // we cannot use image_memory_block_free_spaces[i] directly for base offset alignment
         size_t bind_base_offset = block_size - image_memory_block_free_spaces[i];
@@ -1241,17 +1240,16 @@ VkImageMemory* VkWeightAllocator::fastMalloc(int dims, int w, int h, int c, size
     return ptr;
 }
 
-
 void VkWeightAllocator::fastFree(VkBufferMemory* ptr)
 {
-//     TLOG_INFO("VkWeightAllocator F %p", ptr->buffer);
+    //     TLOG_INFO("VkWeightAllocator F %p", ptr->buffer);
 
     delete ptr;
 }
 
 void VkWeightAllocator::fastFree(VkImageMemory* ptr)
 {
-//     TLOG_INFO("VkWeightAllocator F %p", ptr->memory);
+    //     TLOG_INFO("VkWeightAllocator F %p", ptr->memory);
 
     if (!ptr->command_refcount)
     {
@@ -1262,12 +1260,13 @@ void VkWeightAllocator::fastFree(VkImageMemory* ptr)
     }
 }
 
-VkStagingAllocator::VkStagingAllocator(const GPUDevice* _vkdev) : VkAllocator(_vkdev)
+VkStagingAllocator::VkStagingAllocator(const GPUDevice* _vkdev)
+    : VkAllocator(_vkdev)
 {
     mappable = true;
     coherent = true;
 
-    size_compare_ratio = 192;// 0.75f * 256
+    size_compare_ratio = 192; // 0.75f * 256
 }
 
 VkStagingAllocator::~VkStagingAllocator()
@@ -1277,13 +1276,13 @@ VkStagingAllocator::~VkStagingAllocator()
 
 void VkStagingAllocator::clear()
 {
-//     TLOG_INFO("VkStagingAllocator %lu", buffer_budgets.size());
+    //     TLOG_INFO("VkStagingAllocator %lu", buffer_budgets.size());
 
     for (std::list<VkBufferMemory*>::iterator it = buffer_budgets.begin(); it != buffer_budgets.end(); it++)
     {
         VkBufferMemory* ptr = *it;
 
-//         TLOG_INFO("VkStagingAllocator F %p", ptr->buffer);
+        //         TLOG_INFO("VkStagingAllocator F %p", ptr->buffer);
 
         vkUnmapMemory(vkdev->vkdevice(), ptr->memory);
         vkDestroyBuffer(vkdev->vkdevice(), ptr->buffer, 0);
@@ -1310,7 +1309,7 @@ VkBufferMemory* VkStagingAllocator::fastMalloc(size_t size)
         {
             buffer_budgets.erase(it);
 
-//             TLOG_INFO("VkStagingAllocator M %p %lu reused %lu", ptr->buffer, size, capacity);
+            //             TLOG_INFO("VkStagingAllocator M %p %lu reused %lu", ptr->buffer, size, capacity);
 
             return ptr;
         }
@@ -1342,7 +1341,7 @@ VkBufferMemory* VkStagingAllocator::fastMalloc(size_t size)
     ptr->access_flags = 0;
     ptr->stage_flags = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 
-//     TLOG_INFO("VkStagingAllocator M %p %lu", ptr->buffer, size);
+    //     TLOG_INFO("VkStagingAllocator M %p %lu", ptr->buffer, size);
 
     return ptr;
 }
@@ -1394,14 +1393,14 @@ VkImageMemory* VkStagingAllocator::fastMalloc(int dims, int w, int h, int c, siz
     ptr->stage_flags = VK_PIPELINE_STAGE_HOST_BIT;
     ptr->command_refcount = 0;
 
-//     TLOG_INFO("VkStagingAllocator M %p %d %d %d %d %d", ptr->image, dims, width, height, depth, format);
+    //     TLOG_INFO("VkStagingAllocator M %p %d %d %d %d %d", ptr->image, dims, width, height, depth, format);
 
     return ptr;
 }
 
 void VkStagingAllocator::fastFree(VkBufferMemory* ptr)
 {
-//     TLOG_INFO("VkStagingAllocator F %p", ptr->buffer);
+    //     TLOG_INFO("VkStagingAllocator F %p", ptr->buffer);
 
     // return to buffer_budgets
     buffer_budgets.push_back(ptr);
@@ -1409,14 +1408,15 @@ void VkStagingAllocator::fastFree(VkBufferMemory* ptr)
 
 void VkStagingAllocator::fastFree(VkImageMemory* ptr)
 {
-//     TLOG_INFO("VkStagingAllocator F %p", ptr->image);
+    //     TLOG_INFO("VkStagingAllocator F %p", ptr->image);
 
     free(ptr->mapped_ptr);
 
     delete ptr;
 }
 
-VkWeightStagingAllocator::VkWeightStagingAllocator(const GPUDevice* _vkdev) : VkAllocator(_vkdev)
+VkWeightStagingAllocator::VkWeightStagingAllocator(const GPUDevice* _vkdev)
+    : VkAllocator(_vkdev)
 {
     mappable = true;
     coherent = true;
@@ -1455,14 +1455,14 @@ VkBufferMemory* VkWeightStagingAllocator::fastMalloc(size_t size)
     ptr->access_flags = 0;
     ptr->stage_flags = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 
-//     printf("VkWeightStagingAllocator M %p %lu", ptr->buffer, size);
+    //     printf("VkWeightStagingAllocator M %p %lu", ptr->buffer, size);
 
     return ptr;
 }
 
 void VkWeightStagingAllocator::fastFree(VkBufferMemory* ptr)
 {
-//     TLOG_INFO("VkWeightStagingAllocator F %p", ptr->buffer);
+    //     TLOG_INFO("VkWeightStagingAllocator F %p", ptr->buffer);
 
     vkUnmapMemory(vkdev->vkdevice(), ptr->memory);
     vkDestroyBuffer(vkdev->vkdevice(), ptr->buffer, 0);

@@ -29,7 +29,7 @@ struct resize_param
 {
     float scale_w;
     float scale_h;
-    int type;    // 0 for NEAREST_NEIGHBOR   // 1 for BILIEAR
+    int type; // 0 for NEAREST_NEIGHBOR   // 1 for BILIEAR
 };
 
 #endif

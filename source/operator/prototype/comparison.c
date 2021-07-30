@@ -33,7 +33,6 @@
 
 #include <string.h>
 
-
 #define CALC_TENSOR_SHAPE_SIZE(outval, IR_TENSOR)       \
     {                                                   \
         outval = 1;                                     \
@@ -42,7 +41,6 @@
             outval *= IR_TENSOR->dims[ii];              \
         }                                               \
     }
-
 
 static int infer_shape(struct node* node)
 {
@@ -75,10 +73,9 @@ static int infer_shape(struct node* node)
     }
 }
 
-
 static int init_op(struct op* op)
 {
-    struct comparison_param* param = ( struct comparison_param* )sys_malloc(sizeof(struct comparison_param));
+    struct comparison_param* param = (struct comparison_param*)sys_malloc(sizeof(struct comparison_param));
 
     if (param == NULL)
     {
@@ -95,12 +92,10 @@ static int init_op(struct op* op)
     return 0;
 }
 
-
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
-
 
 int register_comparison_op()
 {
@@ -110,10 +105,8 @@ int register_comparison_op()
     m.init = init_op;
     m.release = release_op;
 
-
     return register_op(OP_COMPARISON, OP_COMPARISON_NAME, &m);
 }
-
 
 int unregister_comparison_op()
 {

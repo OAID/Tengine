@@ -45,7 +45,7 @@
 
 #include "priorbox_param.h"
 
-namespace TEngine{
+namespace TEngine {
 
 class PriorBox_vulkan : public Layer
 {
@@ -56,7 +56,7 @@ public:
     virtual int create_pipeline(const Option& opt);
     virtual int destroy_pipeline(const Option& opt);
     virtual int upload_model(VkTransfer& cmd, const Option& opt);
-    
+
     virtual int record_pipeline(const std::vector<VkTensor>& bottom_blobs, std::vector<VkTensor>& top_blobs, VkCompute& cmd, const Option& opt) const;
 
 public:
@@ -91,6 +91,6 @@ public:
     VkTensor aspect_ratios_gpu;
 };
 
-}   // namespace TEngine
+} // namespace TEngine
 
 #endif

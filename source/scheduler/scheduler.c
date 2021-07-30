@@ -36,7 +36,6 @@
 
 #include <string.h>
 
-
 static int sched_prerun(ir_scheduler_t* scheduler, ir_graph_t* ir_graph)
 {
     int subgraph_num = get_vector_num(ir_graph->subgraph_list);
@@ -70,7 +69,6 @@ static int sched_prerun(ir_scheduler_t* scheduler, ir_graph_t* ir_graph)
 
     return 0;
 }
-
 
 static int sched_run(ir_scheduler_t* scheduler, ir_graph_t* ir_graph, int block)
 {
@@ -114,7 +112,7 @@ static int sched_run(ir_scheduler_t* scheduler, ir_graph_t* ir_graph, int block)
 
         for (int i = 0; i < wait_num; i++)
         {
-            struct subgraph* subgraph = *( struct subgraph** )get_vector_data(wait_list, i);
+            struct subgraph* subgraph = *(struct subgraph**)get_vector_data(wait_list, i);
 
             if (subgraph->input_ready_count == subgraph->input_wait_count)
                 ready_list[ready_num++] = i;
@@ -128,7 +126,7 @@ static int sched_run(ir_scheduler_t* scheduler, ir_graph_t* ir_graph, int block)
 
         for (int i = 0; i < ready_num; i++)
         {
-            struct subgraph* subgraph = *( struct subgraph** )get_vector_data(wait_list, ready_list[i]);
+            struct subgraph* subgraph = *(struct subgraph**)get_vector_data(wait_list, ready_list[i]);
             ir_device_t* nn_dev = subgraph->device;
 
             subgraph->status = GRAPH_STAT_RUNNING;
@@ -183,12 +181,10 @@ static int sched_run(ir_scheduler_t* scheduler, ir_graph_t* ir_graph, int block)
     return 0;
 }
 
-
 static int sched_wait(ir_scheduler_t* scheduler, ir_graph_t* ir_graph)
 {
     return -1;
 }
-
 
 static int sched_postrun(ir_scheduler_t* scheduler, ir_graph_t* ir_graph)
 {
@@ -216,16 +212,14 @@ static int sched_postrun(ir_scheduler_t* scheduler, ir_graph_t* ir_graph)
         return 0;
 }
 
-
 static ir_scheduler_t sync_scheduler = {
-        .name   = "sync",
-        .prerun = sched_prerun,
-        .run = sched_run,
-        .wait = sched_wait,
-        .postrun = sched_postrun,
-        .release = NULL,
+    .name = "sync",
+    .prerun = sched_prerun,
+    .run = sched_run,
+    .wait = sched_wait,
+    .postrun = sched_postrun,
+    .release = NULL,
 };
-
 
 ir_scheduler_t* find_default_scheduler(void)
 {

@@ -22,7 +22,6 @@
  * Author: qtang@openailab.com
  */
 
-
 #include "test_op.h"
 
 #include "graph/graph.h"
@@ -30,17 +29,20 @@
 #include "graph/tensor.h"
 #include "operator/prototype/transpose_param.h"
 
-
 int create_test_permute_node(graph_t graph, const char* input_name, const char* node_name, int data_type, int layout, int n, int c, int h, int w)
 {
-    (void)layout; (void)n; (void)c; (void)h; (void)w;
+    (void)layout;
+    (void)n;
+    (void)c;
+    (void)h;
+    (void)w;
 
     /* create the test node */
-    struct node* test_node = (struct node* )create_graph_node(graph, node_name, "Transpose");
+    struct node* test_node = (struct node*)create_graph_node(graph, node_name, "Transpose");
 
     tensor_t input_tensor = get_graph_tensor(graph, input_name);
 
-    if(NULL == input_tensor)
+    if (NULL == input_tensor)
     {
         fprintf(stderr, "create test node failed.\n");
         return -1;
@@ -54,9 +56,9 @@ int create_test_permute_node(graph_t graph, const char* input_name, const char* 
     set_node_output_tensor(test_node, 0, output_tensor, TENSOR_TYPE_VAR);
 
     /* set params */
-    struct transpose_param* param = ( struct transpose_param* )(struct node* )test_node->op.param_mem;
+    struct transpose_param* param = (struct transpose_param*)(struct node*)test_node->op.param_mem;
 
-    int* t_shape = (int*) malloc(sizeof(int) * 5 ) ;
+    int* t_shape = (int*)malloc(sizeof(int) * 5);
     t_shape[0] = 0;
     t_shape[1] = 2;
     t_shape[2] = 1;
@@ -75,24 +77,63 @@ int create_test_permute_node(graph_t graph, const char* input_name, const char* 
  * uint8   = clip(round(float32 / scale) + zero_point, 0, 255)
  * float32 = (uint8 - zero_point) * scale
  */
-float input_fp32[24] = {1.0f, 2.0f, 3.0f, 4.0f,
-                        5.0f, 6.0f, 7.0f, 8.0f,
-                        9.0f, 10.0f, 11.0f, 12.0f,
-                        13.0f, 14.0f, 15.0f, 16.0f,
-                        17.0f, 18.0f, 19.0f, 20.0f,
-                        21.0f, 22.0f, 23.0f, 24.0f,};
+float input_fp32[24] = {
+    1.0f,
+    2.0f,
+    3.0f,
+    4.0f,
+    5.0f,
+    6.0f,
+    7.0f,
+    8.0f,
+    9.0f,
+    10.0f,
+    11.0f,
+    12.0f,
+    13.0f,
+    14.0f,
+    15.0f,
+    16.0f,
+    17.0f,
+    18.0f,
+    19.0f,
+    20.0f,
+    21.0f,
+    22.0f,
+    23.0f,
+    24.0f,
+};
 float input_scale = 1;
 int input_zero_point = 0;
 
-float reference_out[24] = {1.0f, 2.0f, 3.0f, 4.0f,
-                           13.0f, 14.0f, 15.0f, 16.0f,
-                           5.0f, 6.0f, 7.0f, 8.0f,
-                           17.0f, 18.0f, 19.0f, 20.0f,
-                           9.0f, 10.0f, 11.0f, 12.0f,
-                           21.0f, 22.0f, 23.0f, 24.0f,};
+float reference_out[24] = {
+    1.0f,
+    2.0f,
+    3.0f,
+    4.0f,
+    13.0f,
+    14.0f,
+    15.0f,
+    16.0f,
+    5.0f,
+    6.0f,
+    7.0f,
+    8.0f,
+    17.0f,
+    18.0f,
+    19.0f,
+    20.0f,
+    9.0f,
+    10.0f,
+    11.0f,
+    12.0f,
+    21.0f,
+    22.0f,
+    23.0f,
+    24.0f,
+};
 float output_scale = 1;
 int output_zero_point = 0;
-
 
 void get_uint8_data(float* data_fp32, uint8_t* date_u8, int size, float scale, int zero_point)
 {
@@ -121,15 +162,15 @@ int main(int argc, char* argv[])
         fprintf(stderr, "Tengine init failed.\n");
 
     // create
-    struct graph* ir_graph = (struct graph* )create_timvx_test_graph(test_node_name, data_type, layout, n, c, h, w, &create_test_permute_node, 5);
-    if(NULL == ir_graph)
+    struct graph* ir_graph = (struct graph*)create_timvx_test_graph(test_node_name, data_type, layout, n, c, h, w, &create_test_permute_node, 5);
+    if (NULL == ir_graph)
         return -1;
 
     // set quantize params
     struct tensor* input_tensor = (struct tensor*)get_graph_tensor(ir_graph, "input_node");
     struct tensor* output_tensor = (struct tensor*)get_graph_tensor(ir_graph, "permute");
 
-//    tensor_t weight_tesnor = get_graph_input_tensor(ir_graph, 1, 0);
+    //    tensor_t weight_tesnor = get_graph_input_tensor(ir_graph, 1, 0);
     set_tensor_quant_param(input_tensor, &input_scale, &input_zero_point, 1);
     set_tensor_quant_param(output_tensor, &output_scale, &output_zero_point, 1);
 
@@ -137,7 +178,6 @@ int main(int argc, char* argv[])
     uint8_t input_u8[24] = {0};
     get_uint8_data(input_fp32, input_u8, 24, input_scale, input_zero_point);
     set_tensor_buffer(input_tensor, input_u8, 24);
-
 
     // set bias data
     // fill_input_uint8_tensor_by_index(graph, 0, 0, 0.0f);
@@ -152,17 +192,17 @@ int main(int argc, char* argv[])
     }
 
     // get output and dequant
-    uint8_t* output_u8 = ( uint8_t* )output_tensor->data;
+    uint8_t* output_u8 = (uint8_t*)output_tensor->data;
     int output_size = output_tensor->elem_num;
 
     get_tensor_quant_param(output_tensor, &output_scale, &output_zero_point, 1);
-    float* output_data = ( float* )malloc(output_size * sizeof(float));
+    float* output_data = (float*)malloc(output_size * sizeof(float));
     for (int i = 0; i < output_size; i++)
-        output_data[i] = (( float )output_u8[i] - ( float )output_zero_point) * output_scale;
+        output_data[i] = ((float)output_u8[i] - (float)output_zero_point) * output_scale;
 
     // check the result
     ret = 0;
-    for (int i = 0; i< output_size; i++)
+    for (int i = 0; i < output_size; i++)
     {
         if (fabsf(output_data[i] - reference_out[i]) > 0.1)
         {

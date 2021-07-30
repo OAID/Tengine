@@ -22,7 +22,7 @@
  * Author: guanguojing1989@126.com
  */
 
-#include <unistd.h>
+#include <float.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -34,14 +34,14 @@
 #include "tengine/c_api.h"
 #include "tengine_operations.h"
 
-#define DEFAULT_IMG_H 320
-#define DEFAULT_IMG_W 256
-#define DEFAULT_SCALE1 (0.0039216)
-#define DEFAULT_SCALE2 (0.0039215)
-#define DEFAULT_SCALE3 (0.0039215)
-#define DEFAULT_MEAN1 0.406
-#define DEFAULT_MEAN2 0.457
-#define DEFAULT_MEAN3 0.480
+#define DEFAULT_IMG_H        320
+#define DEFAULT_IMG_W        256
+#define DEFAULT_SCALE1       (0.0039216)
+#define DEFAULT_SCALE2       (0.0039215)
+#define DEFAULT_SCALE3       (0.0039215)
+#define DEFAULT_MEAN1        0.406
+#define DEFAULT_MEAN2        0.457
+#define DEFAULT_MEAN3        0.480
 #define DEFAULT_REPEAT_COUNT 1
 #define DEFAULT_THREAD_COUNT 1
 
@@ -51,7 +51,7 @@ using predict_t = std::tuple<cv::Mat, cv::Mat, cv::Mat>;
 
 const float s_keypoint_thresh = 0.2;
 
-cv::Mat get_3rd_point(const cv::Mat & a, const cv::Mat & b)
+cv::Mat get_3rd_point(const cv::Mat& a, const cv::Mat& b)
 {
     auto direct = a - b;
     cv::Mat result(direct.size(), direct.type());
@@ -60,13 +60,13 @@ cv::Mat get_3rd_point(const cv::Mat & a, const cv::Mat & b)
     return result;
 }
 
-cv::Mat get_input_data_pose(const char * img_file_path)
+cv::Mat get_input_data_pose(const char* img_file_path)
 {
     cv::Mat img = cv::imread(img_file_path);
     cv::cvtColor(img, img, cv::COLOR_BGR2RGB);
     img.convertTo(img, CV_32FC3);
 
-    float* img_data = ( float* )img.data;
+    float* img_data = (float*)img.data;
     float means[3]{DEFAULT_MEAN1, DEFAULT_MEAN2, DEFAULT_MEAN3};
     float scales[3]{DEFAULT_SCALE1, DEFAULT_SCALE2, DEFAULT_SCALE3};
 
@@ -85,11 +85,11 @@ cv::Mat get_input_data_pose(const char * img_file_path)
     return std::move(img);
 }
 
-cv::Mat crop_box(const cv::Mat & org_img,
-                           const pt_t & up_left,
-                           const pt_t & bottom_right,
-                           const int & input_res_h,
-                           const int & input_res_w)
+cv::Mat crop_box(const cv::Mat& org_img,
+                 const pt_t& up_left,
+                 const pt_t& bottom_right,
+                 const int& input_res_h,
+                 const int& input_res_w)
 {
     auto img = org_img.clone();
 
@@ -144,16 +144,16 @@ cv::Mat crop_box(const cv::Mat & org_img,
     return std::move(dst_img);
 }
 
-float * pre_process_pose(cv::Mat & img,
-                        const std::vector<bbox_t> & boxes,
-                        std::vector<pt_t> & pt1,
-                        std::vector<pt_t> & pt2)
+float* pre_process_pose(cv::Mat& img,
+                        const std::vector<bbox_t>& boxes,
+                        std::vector<pt_t>& pt1,
+                        std::vector<pt_t>& pt2)
 {
     const int img_height = img.rows;
     const int img_width = img.cols;
 
-    float * predict_data = (float *) malloc (boxes.size() * DEFAULT_IMG_H * DEFAULT_IMG_W * 3 * sizeof(float));
-    float * p_data = predict_data;
+    float* predict_data = (float*)malloc(boxes.size() * DEFAULT_IMG_H * DEFAULT_IMG_W * 3 * sizeof(float));
+    float* p_data = predict_data;
 
     for (size_t i = 0; i < boxes.size(); i++)
     {
@@ -167,10 +167,8 @@ float * pre_process_pose(cv::Mat & img,
         up_left[0] = std::max(0.f, up_left[0] - box_wt * scale_rate / 2);
         up_left[1] = std::max(0.f, up_left[1] - box_ht * scale_rate / 2);
 
-        bottom_right[0] =
-            std::max(std::min(img_width - 1.f, bottom_right[0] + box_wt * scale_rate / 2), up_left[0] + 5);
-        bottom_right[1] =
-            std::max(std::min(img_height - 1.f, bottom_right[1] + box_ht * scale_rate / 2), up_left[1] + 5);
+        bottom_right[0] = std::max(std::min(img_width - 1.f, bottom_right[0] + box_wt * scale_rate / 2), up_left[0] + 5);
+        bottom_right[1] = std::max(std::min(img_height - 1.f, bottom_right[1] + box_ht * scale_rate / 2), up_left[1] + 5);
 
         auto inp = crop_box(img, up_left, bottom_right, DEFAULT_IMG_H, DEFAULT_IMG_W);
         //HWC -> CHW
@@ -192,8 +190,8 @@ float * pre_process_pose(cv::Mat & img,
     return predict_data;
 }
 
-cv::Mat transform_box_invert_batch(cv::Mat & pt,
-                                   const std::vector<pt_t> & ul, const std::vector<pt_t> & br,
+cv::Mat transform_box_invert_batch(cv::Mat& pt,
+                                   const std::vector<pt_t>& ul, const std::vector<pt_t>& br,
                                    const int& input_res_h, const int& input_res_w,
                                    const int& output_res_h, const int& output_res_w)
 {
@@ -204,8 +202,8 @@ cv::Mat transform_box_invert_batch(cv::Mat & pt,
 
     for (size_t i = 0; i < center.size(); i++)
     {
-        auto & len_h_element = len_h[i];
-        auto & len_w_element = len_w[i];
+        auto& len_h_element = len_h[i];
+        auto& len_w_element = len_w[i];
         len_h_element = std::numeric_limits<float>::min();
         for (size_t j = 0; j < std::tuple_size<pt_t>::value; j++)
         {
@@ -221,10 +219,9 @@ cv::Mat transform_box_invert_batch(cv::Mat & pt,
                 len_h_element = size[i][j];
             }
         }
-        len_w_element = len_h_element *  (input_res_w * 1.f / input_res_h);
+        len_w_element = len_h_element * (input_res_w * 1.f / input_res_h);
     }
-    auto clamp_min_func = [](float v, float min = 0.f)
-    {
+    auto clamp_min_func = [](float v, float min = 0.f) {
         if (v < min) return min;
         return v;
     };
@@ -248,16 +245,15 @@ cv::Mat transform_box_invert_batch(cv::Mat & pt,
     return std::move(new_point);
 }
 
-predict_t get_predict(float * hm_data,
+predict_t get_predict(float* hm_data,
                       const int hm_dims[4],
-                      const std::vector<pt_t> & pt1,
-                      const std::vector<pt_t> & pt2,
-                      const int & input_res_h,
-                      const int & input_res_w)
+                      const std::vector<pt_t>& pt1,
+                      const std::vector<pt_t>& pt2,
+                      const int& input_res_h,
+                      const int& input_res_w)
 {
     // Get Keypoint location from heatmap
-    auto get_hm_data = [](float * data, const int data_dims[4], const std::array<int, 4> ele_dims)
-    {
+    auto get_hm_data = [](float* data, const int data_dims[4], const std::array<int, 4> ele_dims) {
         return *(data
                  + ele_dims[0] * data_dims[1] * data_dims[2] * data_dims[3]
                  + ele_dims[1] * data_dims[2] * data_dims[3]
@@ -265,14 +261,14 @@ predict_t get_predict(float * hm_data,
                  + ele_dims[3]);
     };
 
-    cv::Mat preds(hm_dims[0], hm_dims[1],  CV_32FC2);
+    cv::Mat preds(hm_dims[0], hm_dims[1], CV_32FC2);
     cv::Mat maxval(hm_dims[0], hm_dims[1], CV_32FC1);
 
     for (int i = 0; i < hm_dims[0]; i++)
     {
         for (int j = 0; j < hm_dims[1]; j++)
         {
-            float * start_iter = hm_data + i * hm_dims[1] * hm_dims[2] * hm_dims[3] + j * hm_dims[2] * hm_dims[3];
+            float* start_iter = hm_data + i * hm_dims[1] * hm_dims[2] * hm_dims[3] + j * hm_dims[2] * hm_dims[3];
             auto max_element = std::max_element(start_iter, start_iter + hm_dims[2] * hm_dims[3]);
             preds.ptr<cv::Vec2f>(i, j)->val[0] = preds.ptr<cv::Vec2f>(i, j)->val[1] = std::distance(start_iter, max_element) + 1;
             maxval.at<float>(i, j) = *max_element;
@@ -301,10 +297,11 @@ predict_t get_predict(float * hm_data,
                 && (0 < pY)
                 && (pY < (hm_dims[3] - 1)))
             {
-                auto sign_func = [](float x)
-                {
-                    if (x > 0.) x = 1.f;
-                    else if (x < 0.) x = -1.f;
+                auto sign_func = [](float x) {
+                    if (x > 0.)
+                        x = 1.f;
+                    else if (x < 0.)
+                        x = -1.f;
                     return x;
                 };
 
@@ -322,8 +319,8 @@ predict_t get_predict(float * hm_data,
     return std::make_tuple(preds, preds_tf, maxval);
 }
 
-void post_process_pose(const char * image_file,
-                       float * heatmap_data, int heatmap_dims[4],
+void post_process_pose(const char* image_file,
+                       float* heatmap_data, int heatmap_dims[4],
                        const std::vector<pt_t>& pt1, const std::vector<pt_t>& pt2)
 {
     cv::Mat preds_hm, preds_scores;
@@ -348,7 +345,7 @@ void show_usage()
     fprintf(stderr, "[Usage]:  [-h]\n    [-m model_file] [-i image_file] [-r repeat_count] [-t thread_count]\n");
 }
 
-bool tengine_predict(float * input_data, graph_t graph, const int input_dims[4], const int & num_thread, const int & loop_count)
+bool tengine_predict(float* input_data, graph_t graph, const int input_dims[4], const int& num_thread, const int& loop_count)
 {
     /* set runtime options */
     struct options opt;
@@ -385,8 +382,8 @@ bool tengine_predict(float * input_data, graph_t graph, const int input_dims[4],
     }
 
     /* run graph */
-    double min_time = __DBL_MAX__;
-    double max_time = -__DBL_MAX__;
+    double min_time = DBL_MAX;
+    double max_time = -DBL_MAX;
     double total_time = 0.;
     for (int i = 0; i < loop_count; i++)
     {
@@ -423,23 +420,23 @@ int main(int argc, char* argv[])
     {
         switch (res)
         {
-            case 'm':
-                model_file = optarg;
-                break;
-            case 'i':
-                image_file = optarg;
-                break;
-            case 'r':
-                repeat_count = atoi(optarg);
-                break;
-            case 't':
-                num_thread = atoi(optarg);
-                break;
-            case 'h':
-                show_usage();
-                return 0;
-            default:
-                break;
+        case 'm':
+            model_file = optarg;
+            break;
+        case 'i':
+            image_file = optarg;
+            break;
+        case 'r':
+            repeat_count = atoi(optarg);
+            break;
+        case 't':
+            num_thread = atoi(optarg);
+            break;
+        case 'h':
+            show_usage();
+            return 0;
+        default:
+            break;
         }
     }
 
@@ -482,13 +479,13 @@ int main(int argc, char* argv[])
     int img_width = input_tensor.cols;
 
     // support multi-roi boxes later
-    std::vector<bbox_t> boxes {{0,0, static_cast<float>(img_width - 1), static_cast<float>(img_height - 1)}};
+    std::vector<bbox_t> boxes{{0, 0, static_cast<float>(img_width - 1), static_cast<float>(img_height - 1)}};
     std::vector<pt_t> pt1, pt2;
     pt1.resize(boxes.size());
     pt2.resize(boxes.size());
 
     // pre-process
-    float * input_data = pre_process_pose(input_tensor, boxes, pt1, pt2);
+    float* input_data = pre_process_pose(input_tensor, boxes, pt1, pt2);
     int input_dims[] = {static_cast<int>(boxes.size()), 3, DEFAULT_IMG_H, DEFAULT_IMG_W}; // nchw
 
     // run prediction
@@ -503,7 +500,7 @@ int main(int argc, char* argv[])
     int heatmap_dims[MAX_SHAPE_DIM_NUM] = {0};
     get_tensor_shape(output_tensor, heatmap_dims, MAX_SHAPE_DIM_NUM);
 
-    post_process_pose(image_file, (float *)get_tensor_buffer(output_tensor), heatmap_dims, pt1, pt2);
+    post_process_pose(image_file, (float*)get_tensor_buffer(output_tensor), heatmap_dims, pt1, pt2);
 
     if (input_data)
     {

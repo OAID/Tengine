@@ -45,7 +45,7 @@
 
 #include "eltwise_param.h"
 
-namespace TEngine{
+namespace TEngine {
 
 class Eltwise_vulkan : public Layer
 {
@@ -55,7 +55,7 @@ public:
 
     virtual int create_pipeline(const Option& opt);
     virtual int destroy_pipeline(const Option& opt);
-    
+
     virtual int record_pipeline(const std::vector<VkTensor>& bottom_blobs, std::vector<VkTensor>& top_blobs, VkCompute& cmd, const Option& opt) const;
 
 public:
@@ -84,7 +84,7 @@ public:
         ELT_SQUARE,
         ELT_POW
     };
-    int op_type;    // Operation_PROD = 0, Operation_SUM = 1, Operation_MAX = 2
+    int op_type; // Operation_PROD = 0, Operation_SUM = 1, Operation_MAX = 2
 
     int input_c;
     int input_h;
@@ -94,6 +94,6 @@ public:
     int output_w;
 };
 
-}   // namespace TEngine
+} // namespace TEngine
 
 #endif

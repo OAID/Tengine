@@ -27,7 +27,6 @@
 #include "graph/graph.h"
 #include "module/module.h"
 
-
 static int infer_shape(struct node* node)
 {
     struct graph* ir_graph = node->graph;
@@ -39,7 +38,6 @@ static int infer_shape(struct node* node)
     return 0;
 }
 
-
 static int init_op(struct op* op)
 {
     op->same_shape = 0;
@@ -48,9 +46,9 @@ static int init_op(struct op* op)
     return 0;
 }
 
-
-static void release_op(struct op* op) {}
-
+static void release_op(struct op* op)
+{
+}
 
 int register_prelu_op()
 {
@@ -60,10 +58,8 @@ int register_prelu_op()
     m.init = init_op;
     m.release = release_op;
 
-
     return register_op(OP_PRELU, OP_PRELU_NAME, &m);
 }
-
 
 int unregister_prelu_op()
 {

@@ -36,19 +36,18 @@
 #include <set>
 #include <algorithm>
 
-extern "C" 
-{
-    #include "tengine/c_api.h"
-    #include "graph/graph.h"
-    #include "graph/subgraph.h"
-    #include "graph/node.h"
-    #include "graph/tensor.h"
-    #include "executer/executer.h"
-    #include "module/module.h"
-    #include "utility/log.h"
-    #include "utility/sys_port.h"
-    #include "utility/vector.h"
-    #include "../utils/save_graph/op_include.h"
+extern "C" {
+#include "tengine/c_api.h"
+#include "graph/graph.h"
+#include "graph/subgraph.h"
+#include "graph/node.h"
+#include "graph/tensor.h"
+#include "executer/executer.h"
+#include "module/module.h"
+#include "utility/log.h"
+#include "utility/sys_port.h"
+#include "utility/vector.h"
+#include "save_graph/op_include.h"
 }
 #define NCNN_MAX_PARAM_COUNT 32
 
@@ -58,7 +57,7 @@ struct NcnnNode
     std::string name;
     int optimized;
     std::map<int, std::string> attrs;
-    std::map<int, std::vector<std::string>> opt_attrs;
+    std::map<int, std::vector<std::string> > opt_attrs;
     //std::vector<int> inputs;
     std::vector<std::string> inputs_name;
     std::vector<std::string> output_name;
@@ -81,13 +80,13 @@ public:
     typedef std::map<int, std::string>::const_iterator const_iterator;
 
 private:
-    std::unordered_map<std::string, std::pair<int, op_load_t>> op_load_map;
+    std::unordered_map<std::string, std::pair<int, op_load_t> > op_load_map;
     int load_model(ir_graph_t* graph, std::string params_file, std::string bin_file);
     int set_graph_input(ir_graph_t* graph, const std::vector<NcnnNode>& nodelist, const std::vector<NcnnParam>& paramlist);
     int load_constant_tensor(ir_graph_t* graph, const std::vector<NcnnNode>& nodelist, const std::vector<NcnnParam>& paramlist);
     int load_binary_file(const char* fname, std::vector<NcnnParam>& paramlist, std::vector<NcnnNode>& nodelist);
     int load_model_file(const char* fname, std::vector<NcnnNode>& nodelist);
-    int load_graph_node(ir_graph_t* graph,const std::vector<NcnnNode>& nodelist,  const std::vector<NcnnParam>& paramlist);
+    int load_graph_node(ir_graph_t* graph, const std::vector<NcnnNode>& nodelist, const std::vector<NcnnParam>& paramlist);
     bool find_op_load_method(const std::string& op_name);
     int read(void* buf, int size);
     ir_tensor_t* find_tensor(ir_graph_t* graph, const std::string& tensor_name);
@@ -98,12 +97,16 @@ private:
     struct
     {
         int loaded;
-        union { int i; float f; };
+        union
+        {
+            int i;
+            float f;
+        };
         float* f_data;
         int* i_data;
         float* f_data_array;
         int* i_data_array;
-    } params[NCNN_MAX_PARAM_COUNT];  
+    } params[NCNN_MAX_PARAM_COUNT];
 };
 
 #endif
