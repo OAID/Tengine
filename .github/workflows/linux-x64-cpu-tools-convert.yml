@@ -55,7 +55,7 @@ jobs:
         name: convert_tool_AppImage
         path: convert_tool-x86_64.AppImage
     - name: Delete existing release
-      if: github.ref == 'refs/heads/tengine-lite' || github.ref == 'refs/heads/daquexian-ci' 
+      # if: github.ref == 'refs/heads/tengine-lite'
       uses: dev-drprasad/delete-tag-and-release@v0.2.0
       with:
         delete_release: true
@@ -63,7 +63,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     - name: Publish release
-      if: github.ref == 'refs/heads/tengine-lite' || github.ref == 'refs/heads/daquexian-ci'
+      # if: github.ref == 'refs/heads/tengine-lite'
       uses: ncipollo/release-action@v1
       with:
         artifacts: convert_tool-x86_64.AppImage
