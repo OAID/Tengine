@@ -64,7 +64,7 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
     int rtt = add_context_device(trt_context, "TensorRT");
     if (0 > rtt)
     {
-        fprintf(stderr, " add_context_device NV TensorRT DEVICE failed.\n");
+        fprintf(stderr, "add_context_device NV TensorRT DEVICE failed.\n");
         return -1;
     }
 
