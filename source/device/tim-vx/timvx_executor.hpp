@@ -61,6 +61,7 @@ extern "C" {
 #include "tim/vx/ops/elementwise.h"
 #include "tim/vx/ops/fullyconnected.h"
 #include "tim/vx/ops/gather.h"
+#include "tim/vx/ops/groupedconv2d.h"
 #include "tim/vx/ops/instancenormalization.h"
 #include "tim/vx/ops/pad.h"
 #include "tim/vx/ops/pool2d.h"
