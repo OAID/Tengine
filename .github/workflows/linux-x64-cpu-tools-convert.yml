@@ -20,6 +20,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2.3.4
+    - uses: "marvinpinto/action-automatic-releases@latest"
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        automatic_release_tag: "latest"
+        prerelease: true
+        title: "Development Build"
+        files: |
+          README_EN.md
     - uses: actions/checkout@v2.3.4
       with:
         repository: protocolbuffers/protobuf
@@ -61,5 +69,5 @@ jobs:
         prerelease: true
         title: "Development Build"
         files: |
-          convert_tool-x86_64.AppImage
+          *.AppImage
 
