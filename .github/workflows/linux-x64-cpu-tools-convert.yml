@@ -54,23 +54,12 @@ jobs:
       with:
         name: convert_tool_AppImage
         path: convert_tool-x86_64.AppImage
-    - name: Delete existing release
-      # if: github.ref == 'refs/heads/tengine-lite'
-      uses: dev-drprasad/delete-tag-and-release@v0.2.0
+    - uses: "marvinpinto/action-automatic-releases@latest"
       with:
-        delete_release: true
-        tag_name: latest
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: Publish release
-      # if: github.ref == 'refs/heads/tengine-lite'
-      uses: ncipollo/release-action@v1
-      with:
-        artifacts: convert_tool-x86_64.AppImage
-        token: ${{ secrets.GITHUB_TOKEN }}
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        automatic_release_tag: "latest"
         prerelease: true
-        draft: false
-        commit: master
-        tag: latest
-        name: Files precompiled from master
+        title: "Development Build"
+        files: |
+          convert_tool-x86_64.AppImage
 
