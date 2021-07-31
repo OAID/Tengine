@@ -35,20 +35,18 @@
 #include "utility/sys_port.h"
 #include "utility/log.h"
 
-
 static int reshape_op_map(int op)
 {
     return OP_RESHAPE;
 }
 
-
 static int tm2_load_reshape(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                             const TM2_Operator* tm_op)
 {
-    struct reshape_param* param = ( struct reshape_param* )ir_node->op.param_mem;
+    struct reshape_param* param = (struct reshape_param*)ir_node->op.param_mem;
     const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
     const char* mem_base = tm2_priv->base;
-    const TM2_ReshapeParam* tm_param = ( TM2_ReshapeParam* )(mem_base + tm_op->offset_t_param);
+    const TM2_ReshapeParam* tm_param = (TM2_ReshapeParam*)(mem_base + tm_op->offset_t_param);
     // set the reverse
     if (tm_param->reverse)
         param->reverse = true;
@@ -59,13 +57,18 @@ static int tm2_load_reshape(struct graph* ir_graph, struct node* ir_node, const 
         param->is_mxnet = true;
     else
         param->is_mxnet = false;
+    // set the is_onnx
+    if (tm_param->is_onnx)
+        param->is_onnx = true;
+    else
+        param->is_onnx = false;
 
     if (tm_param->offset_re_shape != TM2_NOT_SET)
     {
-        const TM2_Vector_dims* v_re_shape = ( TM2_Vector_dims* )(mem_base + tm_param->offset_re_shape);
+        const TM2_Vector_dims* v_re_shape = (TM2_Vector_dims*)(mem_base + tm_param->offset_re_shape);
         param->dim_size = v_re_shape->v_num;
 
-        param->re_shape = ( int* )sys_malloc(v_re_shape->v_num * sizeof(int));
+        param->re_shape = (int*)sys_malloc(v_re_shape->v_num * sizeof(int));
 
         for (unsigned int i = 0; i < v_re_shape->v_num; i++)
         {
@@ -75,7 +78,6 @@ static int tm2_load_reshape(struct graph* ir_graph, struct node* ir_node, const 
 
     return 0;
 }
-
 
 int register_tm2_reshape_op()
 {
@@ -91,7 +93,6 @@ int register_tm2_reshape_op()
 
     return 0;
 }
-
 
 int unregister_tm2_reshape_op()
 {

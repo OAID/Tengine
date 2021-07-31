@@ -41,7 +41,6 @@
 #define HCL_POOL_MAX 0 /* Max pooling     */
 #define HCL_POOL_AVG 1 /* Average pooling */
 
-
 static inline float calc_sum_fp32(const float* input, int layout, int c, int h, int w, int cur_ch, int start_h,
                                   int start_w, int end_h, int end_w)
 {
@@ -90,7 +89,7 @@ static inline float calc_max_fp32(const float* input, int layout, int c, int h, 
 }
 
 int ref_pooling_uint8(struct tensor* input_tensor, struct tensor* output_tensor,
-                           struct pool_param* pool_param, int num_thread)
+                      struct pool_param* pool_param, int num_thread)
 {
     int layout = input_tensor->layout;
     int type = input_tensor->data_type;
@@ -117,8 +116,8 @@ int ref_pooling_uint8(struct tensor* input_tensor, struct tensor* output_tensor,
     int caffe_flavor = pool_param->caffe_flavor;
     int method = pool_param->pool_method;
 
-    uint8_t* input_uint8 = ( uint8_t* )input_tensor->data;
-    uint8_t* output_uint8 = ( uint8_t* )output_tensor->data;
+    uint8_t* input_uint8 = (uint8_t*)input_tensor->data;
+    uint8_t* output_uint8 = (uint8_t*)output_tensor->data;
 
     float input_scale = input_tensor->scale;
     float output_scale = output_tensor->scale;
@@ -126,8 +125,8 @@ int ref_pooling_uint8(struct tensor* input_tensor, struct tensor* output_tensor,
     int output_zero = output_tensor->zero_point;
 
     /* input dequant */
-    float* input_fp32 = ( float* )sys_malloc(input_tensor->elem_num * sizeof(float));
-    float* output_fp32 = ( float* )sys_malloc(output_tensor->elem_num * sizeof(float));
+    float* input_fp32 = (float*)sys_malloc(input_tensor->elem_num * sizeof(float));
+    float* output_fp32 = (float*)sys_malloc(output_tensor->elem_num * sizeof(float));
 
     for (int i = 0; i < input_tensor->elem_num; i++)
         input_fp32[i] = (input_uint8[i] - input_zero) * input_scale;
@@ -167,7 +166,7 @@ int ref_pooling_uint8(struct tensor* input_tensor, struct tensor* output_tensor,
 
                     if (!caffe_flavor)
                         pool_size = (h_end - h_start) * (w_end - w_start);
-                    if (layout == TENGINE_LAYOUT_NCHW)    // nchw
+                    if (layout == TENGINE_LAYOUT_NCHW) // nchw
                         offset = n * output_chw + c * out_h * out_w + ph * out_w + pw;
                     else
                         offset = n * output_chw + ph * out_w * channel + pw * channel + c;
@@ -175,13 +174,13 @@ int ref_pooling_uint8(struct tensor* input_tensor, struct tensor* output_tensor,
                     if (method == HCL_POOL_MAX)
                     {
                         float max = calc_max_fp32(input_cur, layout, channel, in_h, in_w, c, h_start, w_start,
-                                                    h_end, w_end);
+                                                  h_end, w_end);
                         output[offset] = max;
                     }
                     else if (method == HCL_POOL_AVG)
                     {
                         float sum = calc_sum_fp32(input_cur, layout, channel, in_h, in_w, c, h_start, w_start,
-                                                    h_end, w_end);
+                                                  h_end, w_end);
                         output[offset] = sum / pool_size;
                     }
                     else

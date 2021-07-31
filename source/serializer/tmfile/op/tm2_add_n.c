@@ -31,18 +31,15 @@
 #include "serializer/tmfile/tm2_serializer.h"
 #include "utility/log.h"
 
-
 static int add_n_op_map(int op)
 {
     return OP_ADD_N;
 }
 
-
 static int tm2_load_add_n(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node, const TM2_Operator* tm_op)
 {
     return 0;
 }
-
 
 int register_tm2_add_n_op()
 {

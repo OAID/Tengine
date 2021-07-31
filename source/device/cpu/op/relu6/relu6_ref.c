@@ -34,7 +34,6 @@
 
 #include <math.h>
 
-
 int ref_relu6_uint8(struct tensor* input_tensor, struct tensor* output_tensor, int num_thread)
 {
     int w = input_tensor->dims[3];
@@ -57,12 +56,12 @@ int ref_relu6_uint8(struct tensor* input_tensor, struct tensor* output_tensor, i
 
     float* data_fp32 = (float*)sys_malloc(total_size * sizeof(float));
 
-    for(int i = 0; i < total_size; i++)
-        data_fp32[i] = ((float) input_uint8[i] - (float)input_zero) * input_scale;
+    for (int i = 0; i < total_size; i++)
+        data_fp32[i] = ((float)input_uint8[i] - (float)input_zero) * input_scale;
 
     for (int n = 0; n < batch; n++)
     {
-//#pragma omp parallel for num_threads(num_thread)
+        //#pragma omp parallel for num_threads(num_thread)
         for (int q = 0; q < channels; q++)
         {
             float* src = data_fp32 + batch_step * n + c_step * q;
@@ -73,14 +72,14 @@ int ref_relu6_uint8(struct tensor* input_tensor, struct tensor* output_tensor, i
                 dst[i] = src[i];
                 if (src[i] > 6)
                     dst[i] = 6;
-                else if(src[i] < 0)
+                else if (src[i] < 0)
                     dst[i] = 0;
             }
         }
     }
 
     // quant
-    for(int i=0; i<total_size; i++)
+    for (int i = 0; i < total_size; i++)
     {
         int udata = round(data_fp32[i] / output_scale + output_zero);
         if (udata > 255)
@@ -92,7 +91,6 @@ int ref_relu6_uint8(struct tensor* input_tensor, struct tensor* output_tensor, i
     sys_free(data_fp32);
     return 0;
 }
-
 
 int ref_relu6_fp32(struct tensor* input_tensor, struct tensor* output_tensor, int num_thread)
 {
@@ -144,10 +142,10 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-	int ret = -1;
-    if(input_tensor->data_type == TENGINE_DT_FP32)
+    int ret = -1;
+    if (input_tensor->data_type == TENGINE_DT_FP32)
         ret = ref_relu6_fp32(input_tensor, output_tensor, exec_graph->num_thread);
-    else if(input_tensor->data_type == TENGINE_DT_UINT8)
+    else if (input_tensor->data_type == TENGINE_DT_UINT8)
         ret = ref_relu6_uint8(input_tensor, output_tensor, exec_graph->num_thread);
 
     return ret;

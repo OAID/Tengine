@@ -50,8 +50,8 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
     struct tensor* filter_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    struct conv_param* conv_param = ( struct conv_param* )ir_node->op.param_mem;
-    struct conv_priv_info* conv_priv_info = ( struct conv_priv_info* )exec_node->ops_priv;
+    struct conv_param* conv_param = (struct conv_param*)ir_node->op.param_mem;
+    struct conv_priv_info* conv_priv_info = (struct conv_priv_info*)exec_node->ops_priv;
 
     /* get cpu affinity */
     conv_priv_info->cpu_type = exec_graph->cpu_affinity;
@@ -67,7 +67,7 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
             return -1;
         }
     }
-        /* int8 prerun */
+    /* int8 prerun */
     else if (exec_graph->mode == TENGINE_MODE_INT8)
     {
         /* do prerun */
@@ -100,8 +100,8 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         bias_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[2]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    struct conv_param* conv_param = ( struct conv_param* )ir_node->op.param_mem;
-    struct conv_priv_info* conv_priv_info = ( struct conv_priv_info* )exec_node->ops_priv;
+    struct conv_param* conv_param = (struct conv_param*)ir_node->op.param_mem;
+    struct conv_priv_info* conv_priv_info = (struct conv_priv_info*)exec_node->ops_priv;
 
     /* fp32 run */
     if (exec_graph->mode == TENGINE_MODE_FP32)
@@ -114,7 +114,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         }
     }
 #if __ARM_FEATURE_FP16_VECTOR_ARITHMETIC
-        else if (exec_graph->mode == TENGINE_MODE_FP16)
+    else if (exec_graph->mode == TENGINE_MODE_FP16)
     {
         if (conv_dw_fp16_run(input_tensor, weight_tensor, bias_tensor, output_tensor, conv_param, num_thread, cpu_affinity) < 0)
         {
@@ -124,7 +124,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         }
     }
 #endif
-        /* int8 run */
+    /* int8 run */
     else if (exec_graph->mode == TENGINE_MODE_INT8)
     {
         if (conv_dw_int8_run(input_tensor, weight_tensor, bias_tensor, output_tensor, conv_priv_info, conv_param, num_thread, cpu_affinity) < 0)
@@ -145,7 +145,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
 static int postrun(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct conv_priv_info* conv_priv_info = ( struct conv_priv_info* )exec_node->ops_priv;
+    struct conv_priv_info* conv_priv_info = (struct conv_priv_info*)exec_node->ops_priv;
 
     /* fp32 postrun */
     if (exec_graph->mode == TENGINE_MODE_FP32 || exec_graph->mode == TENGINE_MODE_UINT8)
@@ -157,7 +157,7 @@ static int postrun(struct node_ops* node_ops, struct exec_node* exec_node, struc
             return -1;
         }
     }
-        /* int8 postrun */
+    /* int8 postrun */
     else if (exec_graph->mode == TENGINE_MODE_INT8)
     {
         if (conv_dw_int8_postrun(conv_priv_info) < 0)
@@ -171,17 +171,15 @@ static int postrun(struct node_ops* node_ops, struct exec_node* exec_node, struc
     return 0;
 }
 
-
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     struct node* ir_node = exec_node->ir_node;
-    struct conv_param* conv_param = ( struct conv_param* )ir_node->op.param_mem;
+    struct conv_param* conv_param = (struct conv_param*)ir_node->op.param_mem;
 
     /* init the private info data of convolution op */
-    struct conv_priv_info* conv_priv_info = ( struct conv_priv_info* )sys_malloc(sizeof(struct conv_priv_info));
+    struct conv_priv_info* conv_priv_info = (struct conv_priv_info*)sys_malloc(sizeof(struct conv_priv_info));
     if (conv_priv_info == NULL)
     {
-
         return -1;
     }
     memset(conv_priv_info, 0, sizeof(struct conv_priv_info));
@@ -191,7 +189,7 @@ static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, str
 
 static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct conv_priv_info* conv_priv_info = ( struct conv_priv_info* )exec_node->ops_priv;
+    struct conv_priv_info* conv_priv_info = (struct conv_priv_info*)exec_node->ops_priv;
     sys_free(conv_priv_info);
     exec_node->ops_priv = NULL;
     return 0;
@@ -199,7 +197,7 @@ static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, 
 
 static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struct node* exec_node)
 {
-    struct conv_param* param = ( struct conv_param* )exec_node->op.param_mem;
+    struct conv_param* param = (struct conv_param*)exec_node->op.param_mem;
     struct node* ir_node = exec_node;
     struct graph* ir_graph = ir_node->graph;
 
@@ -232,10 +230,10 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     if (input_tensor->data_type != TENGINE_DT_FP32 && input_tensor->data_type != TENGINE_DT_INT8)
         return 0;
 #endif
-    if (kernel_h == 7 && kernel_w == 7 && stride_h == 1 && stride_w == 1)    // this is a bug, todo fix it.
+    if (kernel_h == 7 && kernel_w == 7 && stride_h == 1 && stride_w == 1) // this is a bug, todo fix it.
         return 0;
 
-    if (kernel_h == 2 && kernel_w == 2)    // this is a bug, todo fix it.
+    if (kernel_h == 2 && kernel_w == 2) // this is a bug, todo fix it.
         return 0;
 
     if (dilation_h != 1 || dilation_w != 1)
@@ -248,13 +246,12 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
 }
 
 static struct node_ops hcl_node_ops = {.prerun = prerun,
-        .run = run,
-        .reshape = NULL,
-        .postrun = postrun,
-        .init_node = init_node,
-        .release_node = release_node,
-        .score = score
-};
+                                       .run = run,
+                                       .reshape = NULL,
+                                       .postrun = postrun,
+                                       .init_node = init_node,
+                                       .release_node = release_node,
+                                       .score = score};
 
 int register_conv_dw_hcl_arm_op()
 {

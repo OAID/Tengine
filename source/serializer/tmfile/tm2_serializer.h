@@ -31,19 +31,16 @@
 struct node;
 struct graph;
 
-
 struct tm2_priv
 {
     int fd; /* for file load */
     int mem_len;
-    const char* base; /* mem base for model */
-    const TM2_Header* header; /* file header */
-    const TM2_Model* model; /* model header */
+    const char* base;             /* mem base for model */
+    const TM2_Header* header;     /* file header */
+    const TM2_Model* model;       /* model header */
     const TM2_Subgraph* subgraph; /* subgraph */
 };
 
-
 typedef int (*tm2_op_loader_t)(struct graph*, struct node*, const TM2_Node*, const TM2_Operator* tm_op);
-
 
 typedef int (*tm2_map_t)(int);

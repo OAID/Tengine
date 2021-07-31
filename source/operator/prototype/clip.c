@@ -32,7 +32,6 @@
 
 #include "float.h"
 
-
 static int infer_shape(struct node* node)
 {
     struct graph* ir_graph = node->graph;
@@ -44,11 +43,17 @@ static int infer_shape(struct node* node)
         struct tensor* clip_min = get_ir_graph_tensor(ir_graph, node->input_tensors[1]);
         struct tensor* clip_max = get_ir_graph_tensor(ir_graph, node->input_tensors[2]);
 
-        struct clip_param* clip_param = ( struct clip_param* )node->op.param_mem;
-        float* min = (float *)clip_min->data;
-        float* max = (float *)clip_max->data;
-        clip_param->min = min[0];
-        clip_param->max = max[0];
+        struct clip_param* clip_param = (struct clip_param*)node->op.param_mem;
+        float* min = (float*)clip_min->data;
+        float* max = (float*)clip_max->data;
+        if (min && clip_min->elem_num > 0)
+        {
+            clip_param->min = min[0];
+        }
+        if (max && clip_max->elem_num > 0)
+        {
+            clip_param->max = max[0];
+        }
     }
 
     set_ir_tensor_shape(output, input->dims, input->dim_num);
@@ -58,7 +63,7 @@ static int infer_shape(struct node* node)
 
 static int init_op(struct op* op)
 {
-    struct clip_param* clip_param = ( struct clip_param* )sys_malloc(sizeof(struct clip_param));
+    struct clip_param* clip_param = (struct clip_param*)sys_malloc(sizeof(struct clip_param));
 
     if (clip_param == NULL)
     {
@@ -77,12 +82,10 @@ static int init_op(struct op* op)
     return 0;
 }
 
-
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
-
 
 int register_clip_op()
 {
@@ -94,7 +97,6 @@ int register_clip_op()
 
     return register_op(OP_CLIP, OP_CLIP_NAME, &m);
 }
-
 
 int unregister_clip_op()
 {

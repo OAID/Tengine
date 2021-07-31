@@ -22,14 +22,12 @@
  * Author: bzhang@openailab.com
  */
 
-
 #include "api/c_api.h"
 #include "graph/tensor.h"
 #include "graph/node.h"
 #include "graph/graph.h"
 #include "module/module.h"
 #include "utility/sys_port.h"
-
 
 static int infer_shape(ir_node_t* node)
 {
@@ -42,7 +40,6 @@ static int infer_shape(ir_node_t* node)
     return 0;
 }
 
-
 static int init_op(ir_op_t* op)
 {
     op->same_shape = 0;
@@ -51,9 +48,9 @@ static int init_op(ir_op_t* op)
     return 0;
 }
 
-
-static void release_op(ir_op_t* op) {}
-
+static void release_op(ir_op_t* op)
+{
+}
 
 int register_relu1_op()
 {
@@ -65,7 +62,6 @@ int register_relu1_op()
 
     return register_op(OP_RELU1, OP_RELU1_NAME, &m);
 }
-
 
 int unregister_relu1_op()
 {

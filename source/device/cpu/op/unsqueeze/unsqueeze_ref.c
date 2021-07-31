@@ -36,7 +36,6 @@
 
 #include <math.h>
 
-
 int ref_unsqueeze_fp32(struct tensor* input_tensor, struct tensor* output_tensor)
 {
     float* input_data = (float*)input_tensor->data;
@@ -80,10 +79,10 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-	int ret = -1;
+    int ret = -1;
     if (input_tensor->data_type == TENGINE_DT_FP32)
         ret = ref_unsqueeze_fp32(input_tensor, output_tensor);
-    else if(input_tensor->data_type == TENGINE_DT_UINT8)
+    else if (input_tensor->data_type == TENGINE_DT_UINT8)
         ret = ref_unsqueeze_uint8(input_tensor, output_tensor);
 
     return ret;

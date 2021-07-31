@@ -22,7 +22,6 @@
  * Author: qtang@openailab.com
  */
 
-
 #include "hardswish_kernel_ref.h"
 
 #include "graph/tensor.h"
@@ -34,7 +33,6 @@
 #include "device/cpu/cpu_node.h"
 #include "device/cpu/cpu_graph.h"
 #include "device/cpu/cpu_module.h"
-
 
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
@@ -61,7 +59,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     int ret = -1;
     if (input_tensor->data_type == TENGINE_DT_FP32)
         ret = ref_hardswish_fp32(input_tensor, output_tensor);
-    else if(input_tensor->data_type == TENGINE_DT_UINT8)
+    else if (input_tensor->data_type == TENGINE_DT_UINT8)
         ret = ref_hardswish_uint8(input_tensor, output_tensor);
     else
         TLOG_ERR("Input data type %d not to be supported.\n", input_tensor->data_type);

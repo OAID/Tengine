@@ -35,15 +35,15 @@
 #include "tengine_cpp_api.h"
 #include "tengine_operations.h"
 
-#define DEFAULT_IMG_H 227
-#define DEFAULT_IMG_W 227
-#define DEFAULT_SCALE1 1.f
-#define DEFAULT_SCALE2 1.f
-#define DEFAULT_SCALE3 1.f
-#define DEFAULT_MEAN1 104.007
-#define DEFAULT_MEAN2 116.669
-#define DEFAULT_MEAN3 122.679
-#define DEFAULT_LOOP_COUNT 1
+#define DEFAULT_IMG_H        227
+#define DEFAULT_IMG_W        227
+#define DEFAULT_SCALE1       1.f
+#define DEFAULT_SCALE2       1.f
+#define DEFAULT_SCALE3       1.f
+#define DEFAULT_MEAN1        104.007
+#define DEFAULT_MEAN2        116.669
+#define DEFAULT_MEAN3        122.679
+#define DEFAULT_LOOP_COUNT   1
 #define DEFAULT_THREAD_COUNT 1
 
 using namespace std;
@@ -54,7 +54,8 @@ void show_usage()
               << "    [-m model_file] [-l label_file] [-i image_file]\n"
               << "    [-g img_h,img_w] [-s scale] [-w mean[0],mean[1],mean[2]] [-r repeat_count]\n";
 
-    std::cout << "\nmobilenet example: \n" << "    ./classification -m /path/to/mobilenet.tmfile -l /path/to/labels.txt -i /path/to/img.jpg -g 224,224 -s 0.017 -w 104.007,116.669,122.679" << std::endl;
+    std::cout << "\nmobilenet example: \n"
+              << "    ./classification -m /path/to/mobilenet.tmfile -l /path/to/labels.txt -i /path/to/img.jpg -g 224,224 -s 0.017 -w 104.007,116.669,122.679" << std::endl;
 }
 
 int main(int argc, char* argv[])
@@ -74,34 +75,34 @@ int main(int argc, char* argv[])
     {
         switch (res)
         {
-            case 'm':
-                model_file = optarg;
-                break;
-            case 'i':
-                image_file = optarg;
-                break;
-            case 'g':
-                split(img_hw, optarg, ",");
-                img_h = ( int )img_hw[0];
-                img_w = ( int )img_hw[1];
-                break;
-            case 's':
-                split(scale, optarg, ",");
-                break;
-            case 'w':
-                split(mean, optarg, ",");
-                break;
-            case 'r':
-                loop_count = atoi(optarg);
-                break;
-            case 't':
-                num_thread = atoi(optarg);
-                break;
-            case 'h':
-                show_usage();
-                return 0;
-            default:
-                break;
+        case 'm':
+            model_file = optarg;
+            break;
+        case 'i':
+            image_file = optarg;
+            break;
+        case 'g':
+            split(img_hw, optarg, ",");
+            img_h = (int)img_hw[0];
+            img_w = (int)img_hw[1];
+            break;
+        case 's':
+            split(scale, optarg, ",");
+            break;
+        case 'w':
+            split(mean, optarg, ",");
+            break;
+        case 'r':
+            loop_count = atoi(optarg);
+            break;
+        case 't':
+            num_thread = atoi(optarg);
+            break;
+        case 'h':
+            show_usage();
+            return 0;
+        default:
+            break;
         }
     }
 
@@ -112,7 +113,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    if(image_file.empty())
+    if (image_file.empty())
     {
         std::cerr << "Error: Image file not specified!" << std::endl;
         show_usage();
@@ -120,15 +121,15 @@ int main(int argc, char* argv[])
     }
 
     // check input files
-    if(!check_file_exist(model_file.c_str()) || !check_file_exist(image_file.c_str()))
+    if (!check_file_exist(model_file.c_str()) || !check_file_exist(image_file.c_str()))
         return -1;
 
-    if(img_h == 0)
+    if (img_h == 0)
     {
         img_h = DEFAULT_IMG_H;
         std::cout << "Image height not specified, use default [" << DEFAULT_IMG_H << "]" << std::endl;
     }
-    if(img_w == 0)
+    if (img_w == 0)
     {
         img_w = DEFAULT_IMG_W;
         std::cout << "Image width not specified, use default [" << DEFAULT_IMG_W << "]" << std::endl;
@@ -140,7 +141,7 @@ int main(int argc, char* argv[])
         scale[2] = DEFAULT_SCALE3;
         std::cout << "Scale value not specified, use default [" << scale[0] << ", " << scale[1] << ", " << scale[2] << "]" << std::endl;
     }
-    if(mean[0] == -1.0 || mean[1] == -1.0 || mean[2] == -1.0)
+    if (mean[0] == -1.0 || mean[1] == -1.0 || mean[2] == -1.0)
     {
         mean[0] = DEFAULT_MEAN1;
         mean[1] = DEFAULT_MEAN2;
@@ -169,7 +170,7 @@ int main(int argc, char* argv[])
 
         /* prepare input data */
         input_tensor.create(1, 3, img_h, img_w);
-        get_input_data(image_file.c_str(), ( float* )input_tensor.data, img_h, img_w, mean, scale);
+        get_input_data(image_file.c_str(), (float*)input_tensor.data, img_h, img_w, mean, scale);
 
         /* forward */
         somenet.input_tensor("data", input_tensor);
@@ -196,7 +197,7 @@ int main(int argc, char* argv[])
         somenet.extract_tensor("prob", output_tensor);
 
         /* after process */
-        print_topk(( float* )output_tensor.data, output_tensor.elem_num, 5);
+        print_topk((float*)output_tensor.data, output_tensor.elem_num, 5);
         std::cout << "--------------------------------------\n";
         std::cout << "ALL TEST DONE\n";
     }

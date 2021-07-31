@@ -32,10 +32,9 @@
 #include "utility/sys_port.h"
 #include "utility/log.h"
 
-
 static int init_op(struct op* op)
 {
-    struct hardswish_param* hardswish_param = ( struct hardswish_param* )sys_malloc(sizeof(struct hardswish_param));
+    struct hardswish_param* hardswish_param = (struct hardswish_param*)sys_malloc(sizeof(struct hardswish_param));
 
     if (hardswish_param == NULL)
     {
@@ -54,12 +53,10 @@ static int init_op(struct op* op)
     return 0;
 }
 
-
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
-
 
 int register_hardswish_op()
 {
@@ -71,7 +68,6 @@ int register_hardswish_op()
 
     return register_op(OP_HARDSWISH, OP_HARDSWISH_NAME, &m);
 }
-
 
 int unregister_hardswish_op()
 {

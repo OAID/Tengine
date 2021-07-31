@@ -38,7 +38,6 @@
 
 #include <math.h>
 
-
 int ref_hardswish_uint8(struct tensor* input_tensor, struct tensor* output_tensor)
 {
     int size = input_tensor->elem_num;
@@ -53,8 +52,8 @@ int ref_hardswish_uint8(struct tensor* input_tensor, struct tensor* output_tenso
 
     float* data_fp32 = (float*)sys_malloc(size * sizeof(float));
 
-    for(int i = 0; i < size; i++)
-        data_fp32[i] = ((float) input_uint8[i] - (float)input_zero) * input_scale;
+    for (int i = 0; i < size; i++)
+        data_fp32[i] = ((float)input_uint8[i] - (float)input_zero) * input_scale;
 
     for (int i = 0; i < size; i++)
     {
@@ -69,7 +68,7 @@ int ref_hardswish_uint8(struct tensor* input_tensor, struct tensor* output_tenso
     }
 
     // quant
-    for(int i=0; i<size; i++)
+    for (int i = 0; i < size; i++)
     {
         int udata = round(data_fp32[i] / output_scale + output_zero);
         if (udata > 255)

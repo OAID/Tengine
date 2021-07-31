@@ -34,20 +34,18 @@
 #include "device/device.h"
 #include "utility/log.h"
 
-
 static int eltwise_op_map(int op)
 {
     return OP_ELTWISE;
 }
 
-
 static int tm2_load_eltwise(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                             const TM2_Operator* tm_op)
 {
-    struct eltwise_param* eltwise_param = ( struct eltwise_param* )ir_node->op.param_mem;
+    struct eltwise_param* eltwise_param = (struct eltwise_param*)ir_node->op.param_mem;
     const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
     const char* mem_base = tm2_priv->base;
-    const TM2_EltwiseParam* tm_param = ( TM2_EltwiseParam* )(mem_base + tm_op->offset_t_param);
+    const TM2_EltwiseParam* tm_param = (TM2_EltwiseParam*)(mem_base + tm_op->offset_t_param);
 
     eltwise_param->type = tm_param->type;
     eltwise_param->caffe_flavor = tm_param->caffe_flavor;
@@ -57,7 +55,6 @@ static int tm2_load_eltwise(struct graph* ir_graph, struct node* ir_node, const 
 
     return 0;
 }
-
 
 int register_tm2_eltwise_op()
 {
@@ -73,7 +70,6 @@ int register_tm2_eltwise_op()
 
     return 0;
 }
-
 
 int unregister_tm2_eltwise_op()
 {

@@ -26,7 +26,7 @@
 #define __LSTM_PARAM_H__
 
 #define LSTM_ACT_SIGMOID 1
-#define LSTM_ACT_TANH 2
+#define LSTM_ACT_TANH    2
 typedef struct lstm_param
 {
     float forget_bias;

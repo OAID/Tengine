@@ -80,8 +80,7 @@ struct layer_shader_registry_entry
 
 #include "layer_shader_spv_data.h"
 
-static const layer_shader_registry_entry layer_shader_registry[] =
-{
+static const layer_shader_registry_entry layer_shader_registry[] = {
 #include "layer_shader_registry.h"
 };
 
@@ -130,21 +129,23 @@ PFN_vkCreateAndroidSurfaceKHR vkCreateAndroidSurfaceKHR = 0;
 // compile with old vulkan sdk
 #if VK_HEADER_VERSION < 80
 #define VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_8BIT_STORAGE_FEATURES_KHR (VkStructureType)1000177000
-typedef struct VkPhysicalDevice8BitStorageFeaturesKHR {
-    VkStructureType    sType;
-    void*              pNext;
-    VkBool32           storageBuffer8BitAccess;
-    VkBool32           uniformAndStorageBuffer8BitAccess;
-    VkBool32           storagePushConstant8;
+typedef struct VkPhysicalDevice8BitStorageFeaturesKHR
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 storageBuffer8BitAccess;
+    VkBool32 uniformAndStorageBuffer8BitAccess;
+    VkBool32 storagePushConstant8;
 } VkPhysicalDevice8BitStorageFeaturesKHR;
 #endif // VK_HEADER_VERSION < 80
 #if VK_HEADER_VERSION < 95
 #define VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FLOAT16_INT8_FEATURES_KHR (VkStructureType)1000082000
-typedef struct VkPhysicalDeviceFloat16Int8FeaturesKHR {
-    VkStructureType    sType;
-    void*              pNext;
-    VkBool32           shaderFloat16;
-    VkBool32           shaderInt8;
+typedef struct VkPhysicalDeviceFloat16Int8FeaturesKHR
+{
+    VkStructureType sType;
+    void* pNext;
+    VkBool32 shaderFloat16;
+    VkBool32 shaderInt8;
 } VkPhysicalDeviceFloat16Int8FeaturesKHR;
 #endif // VK_HEADER_VERSION < 95
 
@@ -157,7 +158,7 @@ static int init_instance_extension()
 
     if (support_VK_KHR_get_physical_device_properties2)
     {
-	vkGetPhysicalDeviceFeatures2KHR = (PFN_vkGetPhysicalDeviceFeatures2KHR)vkGetInstanceProcAddr(g_instance, "vkGetPhysicalDeviceFeatures2KHR");
+        vkGetPhysicalDeviceFeatures2KHR = (PFN_vkGetPhysicalDeviceFeatures2KHR)vkGetInstanceProcAddr(g_instance, "vkGetPhysicalDeviceFeatures2KHR");
         vkGetPhysicalDeviceProperties2KHR = (PFN_vkGetPhysicalDeviceProperties2KHR)vkGetInstanceProcAddr(g_instance, "vkGetPhysicalDeviceProperties2KHR");
         vkGetPhysicalDeviceFormatProperties2KHR = (PFN_vkGetPhysicalDeviceFormatProperties2KHR)vkGetInstanceProcAddr(g_instance, "vkGetPhysicalDeviceFormatProperties2KHR");
         vkGetPhysicalDeviceImageFormatProperties2KHR = (PFN_vkGetPhysicalDeviceImageFormatProperties2KHR)vkGetInstanceProcAddr(g_instance, "vkGetPhysicalDeviceImageFormatProperties2KHR");
@@ -225,19 +226,19 @@ void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT
 static uint32_t find_device_compute_queue(const std::vector<VkQueueFamilyProperties>& queueFamilyProperties)
 {
     // first try, compute only queue
-    for (uint32_t i=0; i<queueFamilyProperties.size(); i++)
+    for (uint32_t i = 0; i < queueFamilyProperties.size(); i++)
     {
         const VkQueueFamilyProperties& queueFamilyProperty = queueFamilyProperties[i];
 
         if ((queueFamilyProperty.queueFlags & VK_QUEUE_COMPUTE_BIT)
-        && !(queueFamilyProperty.queueFlags & VK_QUEUE_GRAPHICS_BIT))
+            && !(queueFamilyProperty.queueFlags & VK_QUEUE_GRAPHICS_BIT))
         {
             return i;
         }
     }
 
     // second try, any queue with compute and graphics
-    for (uint32_t i=0; i<queueFamilyProperties.size(); i++)
+    for (uint32_t i = 0; i < queueFamilyProperties.size(); i++)
     {
         const VkQueueFamilyProperties& queueFamilyProperty = queueFamilyProperties[i];
 
@@ -249,7 +250,7 @@ static uint32_t find_device_compute_queue(const std::vector<VkQueueFamilyPropert
     }
 
     // third try, any queue with compute
-    for (uint32_t i=0; i<queueFamilyProperties.size(); i++)
+    for (uint32_t i = 0; i < queueFamilyProperties.size(); i++)
     {
         const VkQueueFamilyProperties& queueFamilyProperty = queueFamilyProperties[i];
 
@@ -265,7 +266,7 @@ static uint32_t find_device_compute_queue(const std::vector<VkQueueFamilyPropert
 static uint32_t find_device_graphics_queue(const std::vector<VkQueueFamilyProperties>& queueFamilyProperties)
 {
     // first try, graphics only queue
-    for (uint32_t i=0; i<queueFamilyProperties.size(); i++)
+    for (uint32_t i = 0; i < queueFamilyProperties.size(); i++)
     {
         const VkQueueFamilyProperties& queueFamilyProperty = queueFamilyProperties[i];
 
@@ -277,7 +278,7 @@ static uint32_t find_device_graphics_queue(const std::vector<VkQueueFamilyProper
     }
 
     // second try, any queue with graphics and compute
-    for (uint32_t i=0; i<queueFamilyProperties.size(); i++)
+    for (uint32_t i = 0; i < queueFamilyProperties.size(); i++)
     {
         const VkQueueFamilyProperties& queueFamilyProperty = queueFamilyProperties[i];
 
@@ -289,7 +290,7 @@ static uint32_t find_device_graphics_queue(const std::vector<VkQueueFamilyProper
     }
 
     // third try, any queue with graphics
-    for (uint32_t i=0; i<queueFamilyProperties.size(); i++)
+    for (uint32_t i = 0; i < queueFamilyProperties.size(); i++)
     {
         const VkQueueFamilyProperties& queueFamilyProperty = queueFamilyProperties[i];
 
@@ -299,14 +300,14 @@ static uint32_t find_device_graphics_queue(const std::vector<VkQueueFamilyProper
         }
     }
 
-//     TLOG_INFO("no graphics queue\n");
+    //     TLOG_INFO("no graphics queue\n");
     return -1;
 }
 
 static uint32_t find_device_transfer_queue(const std::vector<VkQueueFamilyProperties>& queueFamilyProperties)
 {
     // first try, transfer only queue
-    for (uint32_t i=0; i<queueFamilyProperties.size(); i++)
+    for (uint32_t i = 0; i < queueFamilyProperties.size(); i++)
     {
         const VkQueueFamilyProperties& queueFamilyProperty = queueFamilyProperties[i];
 
@@ -319,7 +320,7 @@ static uint32_t find_device_transfer_queue(const std::vector<VkQueueFamilyProper
     }
 
     // second try, any queue with transfer
-    for (uint32_t i=0; i<queueFamilyProperties.size(); i++)
+    for (uint32_t i = 0; i < queueFamilyProperties.size(); i++)
     {
         const VkQueueFamilyProperties& queueFamilyProperty = queueFamilyProperties[i];
 
@@ -343,21 +344,21 @@ static uint32_t find_device_transfer_queue(const std::vector<VkQueueFamilyProper
         return graphics_queue_index;
     }
 
-//     TLOG_INFO("no transfer queue\n");
+    //     TLOG_INFO("no transfer queue\n");
     return -1;
 }
 
 static int find_default_vulkan_device_index()
 {
     // first try, discrete gpu
-    for (int i=0; i<g_gpu_count; i++)
+    for (int i = 0; i < g_gpu_count; i++)
     {
         if (g_gpu_infos[i].type == 0)
             return i;
     }
 
     // second try, integrated gpu
-    for (int i=0; i<g_gpu_count; i++)
+    for (int i = 0; i < g_gpu_count; i++)
     {
         if (g_gpu_infos[i].type == 1)
             return i;
@@ -394,10 +395,10 @@ int create_gpu_instance()
         return -1;
     }
 
-    for (uint32_t i=0; i<instanceLayerPropertyCount; i++)
+    for (uint32_t i = 0; i < instanceLayerPropertyCount; i++)
     {
         const VkLayerProperties& lp = instanceLayerProperties[i];
-//         TLOG_INFO("instance layer %s = %u\n", lp.layerName, lp.implementationVersion);
+        //         TLOG_INFO("instance layer %s = %u\n", lp.layerName, lp.implementationVersion);
 
         if (strcmp(lp.layerName, "VK_LAYER_LUNARG_standard_validation") == 0)
         {
@@ -435,10 +436,10 @@ int create_gpu_instance()
 #if __ANDROID_API__ >= 26
     support_VK_KHR_android_surface = 0;
 #endif // __ANDROID_API__ >= 26
-    for (uint32_t j=0; j<instanceExtensionPropertyCount; j++)
+    for (uint32_t j = 0; j < instanceExtensionPropertyCount; j++)
     {
         const VkExtensionProperties& exp = instanceExtensionProperties[j];
-//         TLOG_INFO("instance extension %s = %u\n", exp.extensionName, exp.specVersion);
+        //         TLOG_INFO("instance extension %s = %u\n", exp.extensionName, exp.specVersion);
 
         if (strcmp(exp.extensionName, "VK_KHR_external_memory_capabilities") == 0)
             support_VK_KHR_external_memory_capabilities = exp.specVersion;
@@ -541,7 +542,7 @@ int create_gpu_instance()
 
     // find proper device and queue
     int gpu_info_index = 0;
-    for (uint32_t i=0; i<physicalDeviceCount; i++)
+    for (uint32_t i = 0; i < physicalDeviceCount; i++)
     {
         const VkPhysicalDevice& physicalDevice = physicalDevices[i];
         GpuInfo& gpu_info = g_gpu_infos[gpu_info_index];
@@ -550,15 +551,15 @@ int create_gpu_instance()
         VkPhysicalDeviceProperties physicalDeviceProperties;
         vkGetPhysicalDeviceProperties(physicalDevice, &physicalDeviceProperties);
 
-//         TLOG_INFO("[%u] apiVersion = %u.%u.%u\n", i, VK_VERSION_MAJOR(physicalDeviceProperties.apiVersion),
-//             VK_VERSION_MINOR(physicalDeviceProperties.apiVersion), VK_VERSION_PATCH(physicalDeviceProperties.apiVersion));
-//         TLOG_INFO("[%u] driverVersion = %u.%u.%u\n", i, VK_VERSION_MAJOR(physicalDeviceProperties.driverVersion),
-//             VK_VERSION_MINOR(physicalDeviceProperties.driverVersion), VK_VERSION_PATCH(physicalDeviceProperties.driverVersion));
-//         TLOG_INFO("[%u] vendorID = %x\n", i, physicalDeviceProperties.vendorID);
-//         TLOG_INFO("[%u] deviceID = %x\n", i, physicalDeviceProperties.deviceID);
-//         TLOG_INFO("[%u] deviceType = %x\n", i, physicalDeviceProperties.deviceType);
-//         TLOG_INFO("[%u] deviceName = %s\n", i, physicalDeviceProperties.deviceName);
-//         TLOG_INFO("[%u] pipelineCacheUUID = %u\n", i, physicalDeviceProperties.pipelineCacheUUID);
+        //         TLOG_INFO("[%u] apiVersion = %u.%u.%u\n", i, VK_VERSION_MAJOR(physicalDeviceProperties.apiVersion),
+        //             VK_VERSION_MINOR(physicalDeviceProperties.apiVersion), VK_VERSION_PATCH(physicalDeviceProperties.apiVersion));
+        //         TLOG_INFO("[%u] driverVersion = %u.%u.%u\n", i, VK_VERSION_MAJOR(physicalDeviceProperties.driverVersion),
+        //             VK_VERSION_MINOR(physicalDeviceProperties.driverVersion), VK_VERSION_PATCH(physicalDeviceProperties.driverVersion));
+        //         TLOG_INFO("[%u] vendorID = %x\n", i, physicalDeviceProperties.vendorID);
+        //         TLOG_INFO("[%u] deviceID = %x\n", i, physicalDeviceProperties.deviceID);
+        //         TLOG_INFO("[%u] deviceType = %x\n", i, physicalDeviceProperties.deviceType);
+        //         TLOG_INFO("[%u] deviceName = %s\n", i, physicalDeviceProperties.deviceName);
+        //         TLOG_INFO("[%u] pipelineCacheUUID = %u\n", i, physicalDeviceProperties.pipelineCacheUUID);
 
         gpu_info.bug_local_size_spec_const = false;
         gpu_info.bug_implicit_fp16_arithmetic = false;
@@ -693,10 +694,10 @@ int create_gpu_instance()
 #if __ANDROID_API__ >= 26
         gpu_info.support_VK_ANDROID_external_memory_android_hardware_buffer = 0;
 #endif // __ANDROID_API__ >= 26
-        for (uint32_t j=0; j<deviceExtensionPropertyCount; j++)
+        for (uint32_t j = 0; j < deviceExtensionPropertyCount; j++)
         {
             const VkExtensionProperties& exp = deviceExtensionProperties[j];
-//             TLOG_INFO("device extension %s = %u\n", exp.extensionName, exp.specVersion);
+            //             TLOG_INFO("device extension %s = %u\n", exp.extensionName, exp.specVersion);
 
             if (strcmp(exp.extensionName, "VK_KHR_8bit_storage") == 0)
                 gpu_info.support_VK_KHR_8bit_storage = exp.specVersion;
@@ -811,9 +812,9 @@ int create_gpu_instance()
         }
         else
         {
-//             // TODO
-//             VkPhysicalDeviceFeatures features;
-//             vkGetPhysicalDeviceFeatures(physicalDevice, &features);
+            //             // TODO
+            //             VkPhysicalDeviceFeatures features;
+            //             vkGetPhysicalDeviceFeatures(physicalDevice, &features);
         }
 
         if (physicalDeviceProperties.vendorID == 0x13b5)
@@ -835,16 +836,16 @@ int create_gpu_instance()
         }
 
         TLOG_INFO("[%u %s]  queueC=%u[%u]  queueG=%u[%u]  queueT=%u[%u]\n", i, physicalDeviceProperties.deviceName,
-                gpu_info.compute_queue_family_index, gpu_info.compute_queue_count,
-                gpu_info.graphics_queue_family_index, gpu_info.graphics_queue_count,
-                gpu_info.transfer_queue_family_index, gpu_info.transfer_queue_count);
+                  gpu_info.compute_queue_family_index, gpu_info.compute_queue_count,
+                  gpu_info.graphics_queue_family_index, gpu_info.graphics_queue_count,
+                  gpu_info.transfer_queue_family_index, gpu_info.transfer_queue_count);
 
         TLOG_INFO("[%u %s]  buglssc=%d  bugihfa=%d\n", i, physicalDeviceProperties.deviceName,
-                gpu_info.bug_local_size_spec_const, gpu_info.bug_implicit_fp16_arithmetic);
+                  gpu_info.bug_local_size_spec_const, gpu_info.bug_implicit_fp16_arithmetic);
 
         TLOG_INFO("[%u %s]  fp16p=%d  fp16s=%d  fp16a=%d  int8s=%d  int8a=%d\n", i, physicalDeviceProperties.deviceName,
-                gpu_info.support_fp16_packed, gpu_info.support_fp16_storage, gpu_info.support_fp16_arithmetic,
-                gpu_info.support_int8_storage, gpu_info.support_int8_arithmetic);
+                  gpu_info.support_fp16_packed, gpu_info.support_fp16_storage, gpu_info.support_fp16_arithmetic,
+                  gpu_info.support_int8_storage, gpu_info.support_int8_arithmetic);
 
         gpu_info_index++;
     }
@@ -856,7 +857,7 @@ int create_gpu_instance()
 
     // resolve shader info
     // TLOG_INFO("run create gpu instance resolve shader info, layer_shader_registry_entry_count:%d\n", layer_shader_registry_entry_count);
-    for (int i=0; i<layer_shader_registry_entry_count; i++)
+    for (int i = 0; i < layer_shader_registry_entry_count; i++)
     {
         resolve_shader_info(layer_shader_registry[i].spv_data, layer_shader_registry[i].spv_data_size, layer_shader_infos[i]);
     }
@@ -866,7 +867,7 @@ int create_gpu_instance()
 
 void destroy_gpu_instance()
 {
-    for (int i=0; i<MAX_GPU_COUNT; i++)
+    for (int i = 0; i < MAX_GPU_COUNT; i++)
     {
         delete g_default_vkdev[i];
         g_default_vkdev[i] = 0;
@@ -897,7 +898,8 @@ const GpuInfo& get_gpu_info(int device_index)
     return g_gpu_infos[device_index];
 }
 
-GPUDevice::GPUDevice(int device_index) : info(g_gpu_infos[device_index])
+GPUDevice::GPUDevice(int device_index)
+    : info(g_gpu_infos[device_index])
 {
     std::vector<const char*> enabledExtensions;
     if (info.support_VK_KHR_8bit_storage)
@@ -986,9 +988,9 @@ GPUDevice::GPUDevice(int device_index) : info(g_gpu_infos[device_index])
         querySamplerYcbcrConversionFeatures.pNext = enabledExtensionFeatures;
         enabledExtensionFeatures = &querySamplerYcbcrConversionFeatures;
     }
-    std::vector<float> compute_queue_priorities(info.compute_queue_count, 1.f);// 0.f ~ 1.f
-    std::vector<float> graphics_queue_priorities(info.graphics_queue_count, 1.f);// 0.f ~ 1.f
-    std::vector<float> transfer_queue_priorities(info.transfer_queue_count, 1.f);// 0.f ~ 1.f
+    std::vector<float> compute_queue_priorities(info.compute_queue_count, 1.f);   // 0.f ~ 1.f
+    std::vector<float> graphics_queue_priorities(info.graphics_queue_count, 1.f); // 0.f ~ 1.f
+    std::vector<float> transfer_queue_priorities(info.transfer_queue_count, 1.f); // 0.f ~ 1.f
 
     VkDeviceQueueCreateInfo deviceQueueCreateInfos[3];
     VkDeviceQueueCreateInfo deviceComputeQueueCreateInfo;
@@ -1048,7 +1050,7 @@ GPUDevice::GPUDevice(int device_index) : info(g_gpu_infos[device_index])
     deviceCreateInfo.ppEnabledLayerNames = 0;
     deviceCreateInfo.enabledExtensionCount = enabledExtensions.size();
     deviceCreateInfo.ppEnabledExtensionNames = enabledExtensions.data();
-    deviceCreateInfo.pEnabledFeatures = 0;// VkPhysicalDeviceFeatures pointer
+    deviceCreateInfo.pEnabledFeatures = 0; // VkPhysicalDeviceFeatures pointer
 
     VkResult ret = vkCreateDevice(info.physical_device, &deviceCreateInfo, 0, &device);
     if (ret != VK_SUCCESS)
@@ -1066,7 +1068,7 @@ GPUDevice::GPUDevice(int device_index) : info(g_gpu_infos[device_index])
     for (uint32_t i = 0; i < info.compute_queue_count; i++)
     {
         vkGetDeviceQueue(device, info.compute_queue_family_index, i, &compute_queues[i]);
-	
+
         blob_allocators[i] = new VkBlobAllocator(this);
         staging_allocators[i] = new VkStagingAllocator(this);
     }
@@ -1265,13 +1267,10 @@ VkShaderModule GPUDevice::compile_shader_module(const uint32_t* spv_data, size_t
     return shader_module;
 }
 
-
-
-
 uint32_t GPUDevice::find_memory_index(uint32_t memory_type_bits, VkFlags required, VkFlags preferred, VkFlags preferred_not) const
 {
     // first try, find required and with preferred and without preferred_not
-    for (uint32_t i=0; i<info.physicalDeviceMemoryProperties.memoryTypeCount; i++)
+    for (uint32_t i = 0; i < info.physicalDeviceMemoryProperties.memoryTypeCount; i++)
     {
         bool is_required = (1 << i) & memory_type_bits;
         if (is_required)
@@ -1281,13 +1280,13 @@ uint32_t GPUDevice::find_memory_index(uint32_t memory_type_bits, VkFlags require
                 && (preferred && (memoryType.propertyFlags & preferred))
                 && (preferred_not && !(memoryType.propertyFlags & preferred_not)))
             {
-										                    return i;
-										                }
+                return i;
+            }
         }
     }
 
     // second try, find required and with preferred
-    for (uint32_t i=0; i<info.physicalDeviceMemoryProperties.memoryTypeCount; i++)
+    for (uint32_t i = 0; i < info.physicalDeviceMemoryProperties.memoryTypeCount; i++)
     {
         bool is_required = (1 << i) & memory_type_bits;
         if (is_required)
@@ -1302,7 +1301,7 @@ uint32_t GPUDevice::find_memory_index(uint32_t memory_type_bits, VkFlags require
     }
 
     // third try, find required and without preferred_not
-    for (uint32_t i=0; i<info.physicalDeviceMemoryProperties.memoryTypeCount; i++)
+    for (uint32_t i = 0; i < info.physicalDeviceMemoryProperties.memoryTypeCount; i++)
     {
         bool is_required = (1 << i) & memory_type_bits;
         if (is_required)
@@ -1317,7 +1316,7 @@ uint32_t GPUDevice::find_memory_index(uint32_t memory_type_bits, VkFlags require
     }
 
     // fourth try, find any required
-    for (uint32_t i=0; i<info.physicalDeviceMemoryProperties.memoryTypeCount; i++)
+    for (uint32_t i = 0; i < info.physicalDeviceMemoryProperties.memoryTypeCount; i++)
     {
         bool is_required = (1 << i) & memory_type_bits;
         if (is_required)
@@ -1360,9 +1359,10 @@ VkQueue GPUDevice::acquire_queue(uint32_t queue_family_index) const
 
     MutexLockGuard lock(queue_lock);
 
-    std::vector<VkQueue>& queues = queue_family_index == info.compute_queue_family_index ? compute_queues
-	        : queue_family_index == info.graphics_queue_family_index ? graphics_queues : transfer_queues;
-    for (int i=0; i<(int)queues.size(); i++)
+    std::vector<VkQueue>& queues = queue_family_index == info.compute_queue_family_index    ? compute_queues
+                                   : queue_family_index == info.graphics_queue_family_index ? graphics_queues
+                                                                                            : transfer_queues;
+    for (int i = 0; i < (int)queues.size(); i++)
     {
         VkQueue queue = queues[i];
         if (queue)
@@ -1390,9 +1390,10 @@ void GPUDevice::reclaim_queue(uint32_t queue_family_index, VkQueue queue) const
     // TODO
     MutexLockGuard lock(queue_lock);
 
-    std::vector<VkQueue>& queues = queue_family_index == info.compute_queue_family_index ? compute_queues 
-		    : queue_family_index == info.graphics_queue_family_index ? graphics_queues : transfer_queues;
-    for (int i=0; i<(int)queues.size(); i++)
+    std::vector<VkQueue>& queues = queue_family_index == info.compute_queue_family_index    ? compute_queues
+                                   : queue_family_index == info.graphics_queue_family_index ? graphics_queues
+                                                                                            : transfer_queues;
+    for (int i = 0; i < (int)queues.size(); i++)
     {
         if (!queues[i])
         {
@@ -1408,7 +1409,7 @@ VkAllocator* GPUDevice::acquire_blob_allocator() const
 {
     MutexLockGuard lock(blob_allocator_lock);
 
-    for (int i=0; i<(int)blob_allocators.size(); i++)
+    for (int i = 0; i < (int)blob_allocators.size(); i++)
     {
         VkAllocator* allocator = blob_allocators[i];
         if (allocator)
@@ -1426,7 +1427,7 @@ void GPUDevice::reclaim_blob_allocator(VkAllocator* allocator) const
 {
     MutexLockGuard lock(blob_allocator_lock);
 
-    for (int i=0; i<(int)blob_allocators.size(); i++)
+    for (int i = 0; i < (int)blob_allocators.size(); i++)
     {
         if (!blob_allocators[i])
         {
@@ -1438,12 +1439,11 @@ void GPUDevice::reclaim_blob_allocator(VkAllocator* allocator) const
     TLOG_INFO("FATAL ERROR! reclaim_blob_allocator get wild allocator %p", allocator);
 }
 
-
 VkAllocator* GPUDevice::acquire_staging_allocator() const
 {
     MutexLockGuard lock(staging_allocator_lock);
 
-    for (int i=0; i<(int)staging_allocators.size(); i++)
+    for (int i = 0; i < (int)staging_allocators.size(); i++)
     {
         VkAllocator* allocator = staging_allocators[i];
         if (allocator)
@@ -1457,12 +1457,11 @@ VkAllocator* GPUDevice::acquire_staging_allocator() const
     return 0;
 }
 
-
 void GPUDevice::reclaim_staging_allocator(VkAllocator* allocator) const
 {
     MutexLockGuard lock(staging_allocator_lock);
 
-    for (int i=0; i<(int)staging_allocators.size(); i++)
+    for (int i = 0; i < (int)staging_allocators.size(); i++)
     {
         if (!staging_allocators[i])
         {
@@ -1483,7 +1482,7 @@ int GPUDevice::create_shader_module()
     }
 
     shader_modules.resize(layer_shader_registry_entry_count, VK_NULL_HANDLE);
-    for (int i=0; i<layer_shader_registry_entry_count; i++)
+    for (int i = 0; i < layer_shader_registry_entry_count; i++)
     {
         // add_shader cmake macro
         // 0 = fp32
@@ -1491,14 +1490,14 @@ int GPUDevice::create_shader_module()
         // 2 = fp16pa
         // 3 = fp16s
         // 4 = fp16sa
-        
+
         if (!info.support_fp16_packed)
         {
             if (i % 5 == 1)
                 continue;
         }
 
-	    if (!info.support_fp16_packed || !info.support_fp16_arithmetic)
+        if (!info.support_fp16_packed || !info.support_fp16_arithmetic)
         {
             if (i % 5 == 2)
                 continue;
@@ -1532,7 +1531,7 @@ int GPUDevice::create_shader_module()
 
 void GPUDevice::destroy_shader_module()
 {
-    for (int i=0; i<(int)shader_modules.size(); i++)
+    for (int i = 0; i < (int)shader_modules.size(); i++)
     {
         vkDestroyShaderModule(device, shader_modules[i], 0);
     }
@@ -1754,9 +1753,9 @@ int resolve_shader_info(const uint32_t* spv_data, size_t spv_data_size, ShaderIn
     shader_info.push_constant_count = push_constant_count;
 
     // resolve binding_types
-    for (int i=0; i<binding_count; i++)
+    for (int i = 0; i < binding_count; i++)
     {
-        shader_info.binding_types[i] = id_types[ binding_types[i] ];
+        shader_info.binding_types[i] = id_types[binding_types[i]];
     }
 
     return 0;
@@ -1775,7 +1774,8 @@ VkImageTensor GPUDevice::get_dummy_image() const
 class VkDummyAllocator : public VkBlobAllocator
 {
 public:
-    VkDummyAllocator(const GPUDevice* _vkdev) : VkBlobAllocator(_vkdev)
+    VkDummyAllocator(const GPUDevice* _vkdev)
+        : VkBlobAllocator(_vkdev)
     {
         // NOTE 16k is large enough I think ...
         block_size = alignSize(16 * 1024, buffer_offset_alignment);
@@ -1785,11 +1785,14 @@ public:
 class VkDummyCompute : public VkCompute
 {
 public:
-    VkDummyCompute(const GPUDevice* _vkdev) : VkCompute(_vkdev) {}
+    VkDummyCompute(const GPUDevice* _vkdev)
+        : VkCompute(_vkdev)
+    {
+    }
 
     void record_dummy(const VkTensor& buffer)
     {
-//         TLOG_INFO("xxx barrier buffer %p +%d ~%d", buffer.buffer(), buffer.buffer_offset(), buffer.buffer_capacity());
+        //         TLOG_INFO("xxx barrier buffer %p +%d ~%d", buffer.buffer(), buffer.buffer_offset(), buffer.buffer_capacity());
 
         // barrier device any @ compute/null to shader-readwrite @ compute
         VkBufferMemoryBarrier* barriers = new VkBufferMemoryBarrier[1];
@@ -1830,7 +1833,7 @@ public:
 
     void record_dummy(const VkImageTensor& image)
     {
-//         TLOG_INFO("xxx barrier image %p +%d ~%d %p", image.image(), image.data->bind_offset, image.data->bind_capacity, image.imageview());
+        //         TLOG_INFO("xxx barrier image %p +%d ~%d %p", image.image(), image.data->bind_offset, image.data->bind_capacity, image.imageview());
 
         // image layout transform any @ any to shader-write @ compute
         VkImageMemoryBarrier* barriers = new VkImageMemoryBarrier[1];
@@ -1874,7 +1877,6 @@ public:
         image.data->image_layout = VK_IMAGE_LAYOUT_GENERAL;
         image.data->stage_flags = VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
     }
-
 };
 
 int GPUDevice::create_dummy_buffer_image()
@@ -1911,56 +1913,57 @@ int GPUDevice::create_utility_operator()
 
     // from buffer | image
     // to buffer | image
-    for (int i0=0; i0<2; i0++)
+    for (int i0 = 0; i0 < 2; i0++)
     {
-    for (int i1=0; i1<2; i1++)
-    {
-        opt.use_image_storage = (i0 == 1 || i1 == 1);
-// #if __APPLE__
-//         if (opt.use_image_storage)
-//             continue;
-// #endif
-
-        // from fp32-b/i | fp16p-b/i | fp16s-b/i
-        // to fp32-b/i | fp16p-b/i | fp16s-b/i
-        for (int j0=0; j0<3; j0++)
+        for (int i1 = 0; i1 < 2; i1++)
         {
-        for (int j1=0; j1<3; j1++)
-        {
-            opt.use_fp16_packed = (j0 == 1 || j1 == 1);
-            opt.use_fp16_storage = (j0 == 2 || j1 == 2);
+            opt.use_image_storage = (i0 == 1 || i1 == 1);
+            // #if __APPLE__
+            //         if (opt.use_image_storage)
+            //             continue;
+            // #endif
 
-            if (!info.support_fp16_packed && opt.use_fp16_packed)
-                continue;
-
-            if (!info.support_fp16_storage && opt.use_fp16_storage)
-                continue;
-
-            // from pack1 | pack4 | pack8
-            for (int k=0; k<3; k++)
+            // from fp32-b/i | fp16p-b/i | fp16s-b/i
+            // to fp32-b/i | fp16p-b/i | fp16s-b/i
+            for (int j0 = 0; j0 < 3; j0++)
             {
-                // enable pack8 for pack8to1/pack8to4
-                opt.use_shader_pack8 = true;
+                for (int j1 = 0; j1 < 3; j1++)
+                {
+                    opt.use_fp16_packed = (j0 == 1 || j1 == 1);
+                    opt.use_fp16_storage = (j0 == 2 || j1 == 2);
 
-                {   // create packing layer
-                    TEngine::Packing_vulkan* uop = new Packing_vulkan();
-                    uop->vkdev = this;
+                    if (!info.support_fp16_packed && opt.use_fp16_packed)
+                        continue;
 
-                    uop->out_elempack = k == 0 ? 1 : k == 1 ? 4 : 8;
-                    uop->cast_type_from = j0 + 1;
-                    uop->cast_type_to = j1 + 1;
-                    uop->storage_type_from = i0;
-                    uop->storage_type_to = i1;
-                    // TLOG_INFO("out_elempack:%d %d %d %d %d\n", uop->out_elempack, uop->cast_type_from, uop->cast_type_to, uop->storage_type_from, uop->storage_type_to);
+                    if (!info.support_fp16_storage && opt.use_fp16_storage)
+                        continue;
 
-                    uop->create_pipeline(opt);
+                    // from pack1 | pack4 | pack8
+                    for (int k = 0; k < 3; k++)
+                    {
+                        // enable pack8 for pack8to1/pack8to4
+                        opt.use_shader_pack8 = true;
 
-                    uop_packing[i0][i1][j0][j1][k] = uop;
+                        { // create packing layer
+                            TEngine::Packing_vulkan* uop = new Packing_vulkan();
+                            uop->vkdev = this;
+
+                            uop->out_elempack = k == 0 ? 1 : k == 1 ? 4
+                                                                    : 8;
+                            uop->cast_type_from = j0 + 1;
+                            uop->cast_type_to = j1 + 1;
+                            uop->storage_type_from = i0;
+                            uop->storage_type_to = i1;
+                            // TLOG_INFO("out_elempack:%d %d %d %d %d\n", uop->out_elempack, uop->cast_type_from, uop->cast_type_to, uop->storage_type_from, uop->storage_type_to);
+
+                            uop->create_pipeline(opt);
+
+                            uop_packing[i0][i1][j0][j1][k] = uop;
+                        }
+                    }
                 }
             }
         }
-        }
-    }
     }
 
     return 0;
@@ -1972,47 +1975,47 @@ void GPUDevice::destroy_utility_operator()
 
     // from buffer | image
     // to buffer | image
-    for (int i0=0; i0<2; i0++)
+    for (int i0 = 0; i0 < 2; i0++)
     {
-    for (int i1=0; i1<2; i1++)
-    {
-        opt.use_image_storage = (i0 == 1 || i1 == 1);
+        for (int i1 = 0; i1 < 2; i1++)
+        {
+            opt.use_image_storage = (i0 == 1 || i1 == 1);
 #if __APPLE__
-        if (opt.use_image_storage)
-            continue;
+            if (opt.use_image_storage)
+                continue;
 #endif
 
-        // from fp32-b/i | fp16p-b/i | fp16s-b/i
-        // to fp32-b/i | fp16p-b/i | fp16s-b/i
-        for (int j0=0; j0<3; j0++)
-        {
-        for (int j1=0; j1<3; j1++)
-        {
-            opt.use_fp16_packed = (j0 == 1 || j1 == 1);
-            opt.use_fp16_storage = (j0 == 2 || j1 == 2);
-
-            if (!info.support_fp16_packed && opt.use_fp16_packed)
-                continue;
-
-            if (!info.support_fp16_storage && opt.use_fp16_storage)
-                continue;
-
-            // from pack1 | pack4 | pack8
-            for (int k=0; k<3; k++)
+            // from fp32-b/i | fp16p-b/i | fp16s-b/i
+            // to fp32-b/i | fp16p-b/i | fp16s-b/i
+            for (int j0 = 0; j0 < 3; j0++)
             {
-                opt.use_shader_pack8 = (k == 2 || k == 2);
+                for (int j1 = 0; j1 < 3; j1++)
+                {
+                    opt.use_fp16_packed = (j0 == 1 || j1 == 1);
+                    opt.use_fp16_storage = (j0 == 2 || j1 == 2);
 
-                TEngine::Layer* uop = uop_packing[i0][i1][j0][j1][k];
+                    if (!info.support_fp16_packed && opt.use_fp16_packed)
+                        continue;
 
-                uop->destroy_pipeline(opt);
+                    if (!info.support_fp16_storage && opt.use_fp16_storage)
+                        continue;
 
-                delete uop;
+                    // from pack1 | pack4 | pack8
+                    for (int k = 0; k < 3; k++)
+                    {
+                        opt.use_shader_pack8 = (k == 2 || k == 2);
 
-                uop_packing[i0][i1][j0][j1][k] = 0;
+                        TEngine::Layer* uop = uop_packing[i0][i1][j0][j1][k];
+
+                        uop->destroy_pipeline(opt);
+
+                        delete uop;
+
+                        uop_packing[i0][i1][j0][j1][k] = 0;
+                    }
+                }
             }
         }
-        }
-    }
     }
 }
 
@@ -2022,9 +2025,12 @@ void GPUDevice::convert_packing(const VkTensor& src, VkTensor& dst, int dst_elem
     Option opt = _opt;
     opt.use_image_storage = false;
 
-    int cast_type_from_index = src.elemsize == src.elempack * 4u ? 0 : opt.use_fp16_storage ? 2 : 1;
-    int cast_type_to_index = opt.use_fp16_storage ? 2 : opt.use_fp16_packed && dst_elempack % 4 == 0 ? 1 : 0;
-    int packing_type_to_index = dst_elempack == 1 ? 0 : dst_elempack == 4 ? 1 : 2;
+    int cast_type_from_index = src.elemsize == src.elempack * 4u ? 0 : opt.use_fp16_storage ? 2
+                                                                                            : 1;
+    int cast_type_to_index = opt.use_fp16_storage ? 2 : opt.use_fp16_packed && dst_elempack % 4 == 0 ? 1
+                                                                                                     : 0;
+    int packing_type_to_index = dst_elempack == 1 ? 0 : dst_elempack == 4 ? 1
+                                                                          : 2;
 
     // TLOG_INFO("convert_packing b2b %d %d %d\n", cast_type_from_index, cast_type_to_index, packing_type_to_index);
 

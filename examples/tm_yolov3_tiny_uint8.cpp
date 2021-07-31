@@ -133,7 +133,7 @@ static void nms_sorted_bboxes(const std::vector<Object>& faceobjects, std::vecto
     }
 }
 
-void get_input_data_yolov3_uint8(const char* image_file, uint8_t * input_data, int img_h, int img_w, const float* mean, const float* scale,
+void get_input_data_yolov3_uint8(const char* image_file, uint8_t* input_data, int img_h, int img_w, const float* mean, const float* scale,
                                  float input_scale, int zero_point)
 {
     cv::Mat sample = cv::imread(image_file, 1);
@@ -147,20 +147,21 @@ void get_input_data_yolov3_uint8(const char* image_file, uint8_t * input_data, i
     /* resize process */
     cv::resize(img, img, cv::Size(img_w, img_h));
     img.convertTo(img, CV_32FC3);
-    float* img_data = (float* )img.data;
+    float* img_data = (float*)img.data;
 
     /* nhwc to nchw */
     for (int h = 0; h < img_h; h++)
-    {   for (int w = 0; w < img_w; w++)
+    {
+        for (int w = 0; w < img_w; w++)
         {
             for (int c = 0; c < 3; c++)
             {
-                int in_index  = h * img_w * 3 + w * 3 + c;
+                int in_index = h * img_w * 3 + w * 3 + c;
                 int out_index = c * img_h * img_w + h * img_w + w;
                 float input_fp32 = (img_data[in_index] - mean[c]) * scale[c];
 
                 /* quant to uint8 */
-                int udata = (round)(input_fp32 / input_scale + ( float )zero_point);
+                int udata = (round)(input_fp32 / input_scale + (float)zero_point);
                 if (udata > 255)
                     udata = 255;
                 else if (udata < 0)
@@ -182,9 +183,9 @@ static void generate_proposals(int stride, const float* feat, float prob_thresho
     int cls_num = 80;
     int anchor_group = 0;
 
-    if(stride == 16)
+    if (stride == 16)
         anchor_group = 1;
-    if(stride == 32)
+    if (stride == 32)
         anchor_group = 2;
     //printf("anchor_group:%d\n",anchor_group);
     for (int h = 0; h <= feat_h - 1; h++)
@@ -200,7 +201,7 @@ static void generate_proposals(int stride, const float* feat, float prob_thresho
                 {
                     int score_index = anchor * (cls_num + 5) * channel_size + feat_w * h + w + (s + 5) * channel_size;
                     float score = feat[score_index];
-                    if(score > class_score)
+                    if (score > class_score)
                     {
                         class_index = s;
                         class_score = score;
@@ -208,7 +209,7 @@ static void generate_proposals(int stride, const float* feat, float prob_thresho
                 }
                 float box_score = feat[anchor * (cls_num + 5) * channel_size + feat_w * h + w + 4 * channel_size];
                 float final_score = sigmoid(box_score) * sigmoid(class_score);
-                if(final_score >= prob_threshold)
+                if (final_score >= prob_threshold)
                 {
                     int dx_index = anchor * (cls_num + 5) * channel_size + feat_w * h + w + 0 * channel_size;
                     int dy_index = anchor * (cls_num + 5) * channel_size + feat_w * h + w + 1 * channel_size;
@@ -228,7 +229,7 @@ static void generate_proposals(int stride, const float* feat, float prob_thresho
                     float pred_y = (h + dy) * stride;
                     float pred_w = exp(dw) * anchor_w;
                     float pred_h = exp(dh) * anchor_h;
-	           
+
                     float x0 = (pred_x - pred_w * 0.5f);
                     float y0 = (pred_y - pred_h * 0.5f);
                     float x1 = (pred_x + pred_w * 0.5f);
@@ -241,7 +242,7 @@ static void generate_proposals(int stride, const float* feat, float prob_thresho
                     obj.rect.height = y1 - y0;
                     obj.label = class_index;
                     obj.prob = final_score;
-                    objects.push_back(obj); 
+                    objects.push_back(obj);
                 }
             }
         }
@@ -259,8 +260,7 @@ static void draw_objects(const cv::Mat& bgr, const std::vector<Object>& objects)
         "sandwich", "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake", "chair", "couch",
         "potted plant", "bed", "dining table", "toilet", "tv", "laptop", "mouse", "remote", "keyboard", "cell phone",
         "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors", "teddy bear",
-        "hair drier", "toothbrush"
-    };
+        "hair drier", "toothbrush"};
 
     cv::Mat image = bgr.clone();
 
@@ -321,23 +321,23 @@ int main(int argc, char* argv[])
     {
         switch (res)
         {
-            case 'm':
-                model_file = optarg;
-                break;
-            case 'i':
-                image_file = optarg;
-                break;
-            case 'r':
-                repeat_count = std::strtoul(optarg, nullptr, 10);
-                break;
-            case 't':
-                num_thread = std::strtoul(optarg, nullptr, 10);
-                break;
-            case 'h':
-                show_usage();
-                return 0;
-            default:
-                break;
+        case 'm':
+            model_file = optarg;
+            break;
+        case 'i':
+            image_file = optarg;
+            break;
+        case 'r':
+            repeat_count = std::strtoul(optarg, nullptr, 10);
+            break;
+        case 't':
+            num_thread = std::strtoul(optarg, nullptr, 10);
+            break;
+        case 'h':
+            show_usage();
+            return 0;
+        default:
+            break;
         }
     }
 
@@ -364,7 +364,7 @@ int main(int argc, char* argv[])
     {
         fprintf(stderr, "cv::imread %s failed\n", image_file);
         return -1;
-    }    
+    }
 
     /* set runtime options */
     struct options opt;
@@ -444,7 +444,7 @@ int main(int argc, char* argv[])
         max_time = std::max(max_time, cur);
     }
     fprintf(stderr, "Repeat %d times, thread %d, avg time %.2f ms, max_time %.2f ms, min_time %.2f ms\n", repeat_count, num_thread,
-            total_time/repeat_count, max_time, min_time);
+            total_time / repeat_count, max_time, min_time);
     fprintf(stderr, "--------------------------------------\n");
 
     /* dequant output data */
@@ -462,21 +462,21 @@ int main(int argc, char* argv[])
     int p16_count = get_tensor_buffer_size(p16_output) / sizeof(uint8_t);
     int p32_count = get_tensor_buffer_size(p32_output) / sizeof(uint8_t);
 
-    uint8_t* p16_data_u8 = ( uint8_t* )get_tensor_buffer(p16_output);
-    uint8_t* p32_data_u8 = ( uint8_t* )get_tensor_buffer(p32_output);
+    uint8_t* p16_data_u8 = (uint8_t*)get_tensor_buffer(p16_output);
+    uint8_t* p32_data_u8 = (uint8_t*)get_tensor_buffer(p32_output);
 
     std::vector<float> p16_data(p16_count);
     std::vector<float> p32_data(p32_count);
 
     for (int c = 0; c < p16_count; c++)
     {
-        p16_data[c] = (( float )p16_data_u8[c] - ( float )p16_zero_point) * p16_scale;
+        p16_data[c] = ((float)p16_data_u8[c] - (float)p16_zero_point) * p16_scale;
     }
 
     for (int c = 0; c < p32_count; c++)
     {
-        p32_data[c] = (( float )p32_data_u8[c] - ( float )p32_zero_point) * p32_scale;
-    }    
+        p32_data[c] = ((float)p32_data_u8[c] - (float)p32_zero_point) * p32_scale;
+    }
 
     /* postprocess */
     const float prob_threshold = 0.4f;
@@ -505,7 +505,7 @@ int main(int argc, char* argv[])
     float ratio_y = (float)raw_h / img_h;
 
     int count = picked.size();
-    fprintf(stderr, "detection num: %d\n",count);
+    fprintf(stderr, "detection num: %d\n", count);
 
     objects.resize(count);
     for (int i = 0; i < count; i++)

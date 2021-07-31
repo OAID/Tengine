@@ -28,8 +28,7 @@
 
 #define CUDA_DEV_NAME "CUDA"
 
-extern "C"
-{
+extern "C" {
 struct cuda_device
 {
     struct device base;

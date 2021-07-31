@@ -71,8 +71,8 @@ int onnx_model_test(std::string model_file, int img_c, int img_h, int img_w)
 
     /* set the shape, data buffer of input_tensor of the graph */
     int img_size = img_h * img_w * img_c;
-    int dims[] = {1, img_c, img_h, img_w};    // nchw
-    float* input_data = ( float* )malloc(img_size * sizeof(float));
+    int dims[] = {1, img_c, img_h, img_w}; // nchw
+    float* input_data = (float*)malloc(img_size * sizeof(float));
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == NULL)
@@ -91,7 +91,7 @@ int onnx_model_test(std::string model_file, int img_c, int img_h, int img_w)
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;
-    }    
+    }
 
     /* prerun graph, set work options(num_thread, cluster, precision) */
     if (prerun_graph_multithread(graph, opt) < 0)
@@ -105,7 +105,7 @@ int onnx_model_test(std::string model_file, int img_c, int img_h, int img_w)
     {
         input_data[i] = 1.f;
     }
-    
+
     /* run graph */
     if (run_graph(graph, 1) < 0)
     {
@@ -118,7 +118,7 @@ int onnx_model_test(std::string model_file, int img_c, int img_h, int img_w)
     {
         /* get the result of classification */
         tensor_t output_tensor = get_graph_output_tensor(graph, tensor_id, 0);
-        float* output_data = ( float* )get_tensor_buffer(output_tensor);
+        float* output_data = (float*)get_tensor_buffer(output_tensor);
         int output_size = get_tensor_buffer_size(output_tensor) / sizeof(float);
         const char* tensor_name = get_tensor_name(output_tensor);
         fprintf(stderr, "test output tensor: %s begin\n", tensor_name);
@@ -133,11 +133,11 @@ int onnx_model_test(std::string model_file, int img_c, int img_h, int img_w)
             fprintf(stderr, "open val file %s failed.\n", val_data.c_str());
             return -1;
         }
-            
+
         std::string line_str;
         char* end;
         int onnx_out_size = 1;
-        while(std::getline(f, line_str))
+        while (std::getline(f, line_str))
         {
             // std::cout << line_str << std::endl;
             if (line_str == "shape:")
@@ -157,12 +157,12 @@ int onnx_model_test(std::string model_file, int img_c, int img_h, int img_w)
 
         float* onnx_out_data = (float*)malloc(sizeof(float) * onnx_out_size);
         int i = 0;
-        while(std::getline(f, line_str))
+        while (std::getline(f, line_str))
         {
             std::stringstream ss(line_str);
             std::string str;
             int j = 0;
-            while(getline(ss, str, ' '))
+            while (getline(ss, str, ' '))
             {
                 float tmp = strtof32(str.c_str(), &end);
                 onnx_out_data[i++] = tmp;
@@ -170,7 +170,7 @@ int onnx_model_test(std::string model_file, int img_c, int img_h, int img_w)
         }
         for (size_t i = 0; i < output_size; i++)
         {
-            if (fabs(output_data[i] - onnx_out_data[i]) > 0.0001)
+            if (fabs(output_data[i] - onnx_out_data[i]) > 0.001)
             {
                 fprintf(stderr, "not equal on data\n");
                 fprintf(stderr, "tengine:%f,onnx:%f\n", output_data[i], onnx_out_data[i]);
@@ -182,7 +182,7 @@ int onnx_model_test(std::string model_file, int img_c, int img_h, int img_w)
     }
 
     fprintf(stderr, "test model: %s pass!\n", model_file.c_str());
-    
+
     /* release tengine */
     free(input_data);
     postrun_graph(graph);
@@ -216,20 +216,20 @@ int main(int argc, char* argv[])
     {
         switch (res)
         {
-            case 'm':
-                model_file = optarg;
-                break;
-            case 'g':
-                split(img_hw, optarg, ",");
-                img_c = ( int )img_hw[0];
-                img_h = ( int )img_hw[1];
-                img_w = ( int )img_hw[2];
-                break;
-            case 'h':
-                show_usage();
-                return 0;
-            default:
-                break;
+        case 'm':
+            model_file = optarg;
+            break;
+        case 'g':
+            split(img_hw, optarg, ",");
+            img_c = (int)img_hw[0];
+            img_h = (int)img_hw[1];
+            img_w = (int)img_hw[2];
+            break;
+        case 'h':
+            show_usage();
+            return 0;
+        default:
+            break;
         }
     }
 

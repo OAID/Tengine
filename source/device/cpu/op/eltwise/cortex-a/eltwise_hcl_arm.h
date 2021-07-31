@@ -31,7 +31,6 @@
 
 #include <arm_neon.h>
 
-
 int perf_eltwise_fp32(struct tensor* output_tensor, struct tensor* input_tensor0, struct tensor* input_tensor1,
                       struct eltwise_param* eltwise_param, int num_thread)
 {

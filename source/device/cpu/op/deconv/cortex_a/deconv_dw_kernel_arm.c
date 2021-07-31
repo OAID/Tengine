@@ -37,7 +37,6 @@
 #else
 #endif
 
-
 inline static float do_activation(float input, int activation)
 {
     if (activation == 0)
@@ -185,45 +184,45 @@ inline static void deconv_dw_genreal_3x3s2(const float* input, const float* kern
                 float32x4_t input_4 = vld1q_f32(cur_input);
 
                 // out row 0
-                float32x4_t out_00 = vmulq_lane_f32(input_4, vget_low_f32(_k0), 0);    // 0,2,4,6
-                float32x4_t out_01 = vmulq_lane_f32(input_4, vget_low_f32(_k0), 1);    // 1,3,5,7
-                float32x4_t out_02 = vmulq_lane_f32(input_4, vget_high_f32(_k0), 0);    // 2,4,6,8
+                float32x4_t out_00 = vmulq_lane_f32(input_4, vget_low_f32(_k0), 0);  // 0,2,4,6
+                float32x4_t out_01 = vmulq_lane_f32(input_4, vget_low_f32(_k0), 1);  // 1,3,5,7
+                float32x4_t out_02 = vmulq_lane_f32(input_4, vget_high_f32(_k0), 0); // 2,4,6,8
 
                 float32x4x2_t out_0 = vld2q_f32(cur_out0);
-                out_0.val[0] = vaddq_f32(out_0.val[0], out_00);    // 0,2,4,6
-                out_0.val[1] = vaddq_f32(out_0.val[1], out_01);    // 1,3,5,7
+                out_0.val[0] = vaddq_f32(out_0.val[0], out_00); // 0,2,4,6
+                out_0.val[1] = vaddq_f32(out_0.val[1], out_01); // 1,3,5,7
                 vst2q_f32(cur_out0, out_0);
 
                 out_0 = vld2q_f32(cur_out0 + 2);
-                out_0.val[0] = vaddq_f32(out_0.val[0], out_02);    // 2,4,6,8
+                out_0.val[0] = vaddq_f32(out_0.val[0], out_02); // 2,4,6,8
                 vst2q_f32(cur_out0 + 2, out_0);
 
                 // out row 1
-                float32x4_t out_10 = vmulq_lane_f32(input_4, vget_low_f32(_k1), 0);    // 0,2,4,6
-                float32x4_t out_11 = vmulq_lane_f32(input_4, vget_low_f32(_k1), 1);    // 1,3,5,7
-                float32x4_t out_12 = vmulq_lane_f32(input_4, vget_high_f32(_k1), 0);    // 2,4,6,8
+                float32x4_t out_10 = vmulq_lane_f32(input_4, vget_low_f32(_k1), 0);  // 0,2,4,6
+                float32x4_t out_11 = vmulq_lane_f32(input_4, vget_low_f32(_k1), 1);  // 1,3,5,7
+                float32x4_t out_12 = vmulq_lane_f32(input_4, vget_high_f32(_k1), 0); // 2,4,6,8
 
                 float32x4x2_t out_1 = vld2q_f32(cur_out1);
-                out_1.val[0] = vaddq_f32(out_1.val[0], out_10);    // 0,2,4,6
-                out_1.val[1] = vaddq_f32(out_1.val[1], out_11);    // 1,3,5,7
+                out_1.val[0] = vaddq_f32(out_1.val[0], out_10); // 0,2,4,6
+                out_1.val[1] = vaddq_f32(out_1.val[1], out_11); // 1,3,5,7
                 vst2q_f32(cur_out1, out_1);
 
                 out_1 = vld2q_f32(cur_out1 + 2);
-                out_1.val[0] = vaddq_f32(out_1.val[0], out_12);    // 2,4,6,8
+                out_1.val[0] = vaddq_f32(out_1.val[0], out_12); // 2,4,6,8
                 vst2q_f32(cur_out1 + 2, out_1);
 
                 // out row 2
-                float32x4_t out_20 = vmulq_lane_f32(input_4, vget_low_f32(_k2), 0);    // 0,2,4,6
-                float32x4_t out_21 = vmulq_lane_f32(input_4, vget_low_f32(_k2), 1);    // 1,3,5,7
-                float32x4_t out_22 = vmulq_lane_f32(input_4, vget_high_f32(_k2), 0);    // 2,4,6,8
+                float32x4_t out_20 = vmulq_lane_f32(input_4, vget_low_f32(_k2), 0);  // 0,2,4,6
+                float32x4_t out_21 = vmulq_lane_f32(input_4, vget_low_f32(_k2), 1);  // 1,3,5,7
+                float32x4_t out_22 = vmulq_lane_f32(input_4, vget_high_f32(_k2), 0); // 2,4,6,8
 
                 float32x4x2_t out_2 = vld2q_f32(cur_out2);
-                out_2.val[0] = vaddq_f32(out_2.val[0], out_20);    // 0,2,4,6
-                out_2.val[1] = vaddq_f32(out_2.val[1], out_21);    // 1,3,5,7
+                out_2.val[0] = vaddq_f32(out_2.val[0], out_20); // 0,2,4,6
+                out_2.val[1] = vaddq_f32(out_2.val[1], out_21); // 1,3,5,7
                 vst2q_f32(cur_out2, out_2);
 
                 out_2 = vld2q_f32(cur_out2 + 2);
-                out_2.val[0] = vaddq_f32(out_2.val[0], out_22);    // 2,4,6,8
+                out_2.val[0] = vaddq_f32(out_2.val[0], out_22); // 2,4,6,8
                 vst2q_f32(cur_out2 + 2, out_2);
 
                 cur_input += 4;
@@ -472,12 +471,12 @@ int deconv_dw_run(struct tensor* input_tensor, struct tensor* filter_tensor, str
     int output_size = out_c * out_h * out_w;
     int out_c_align = ((out_c + 3) & -4);
     /* buffer addr */
-    float* input_buf = ( float* )input_tensor->data;
-    float* kernel_buf = ( float* )filter_tensor->data;
-    float* output_buf = ( float* )output_tensor->data;
-    float* biases_buf = ( float* )bias_tensor->data;
+    float* input_buf = (float*)input_tensor->data;
+    float* kernel_buf = (float*)filter_tensor->data;
+    float* output_buf = (float*)output_tensor->data;
+    float* biases_buf = (float*)bias_tensor->data;
 
-    for (int n = 0; n < batch; n++)    // batch size
+    for (int n = 0; n < batch; n++) // batch size
     {
         float* cur_input = input_buf + n * input_size * group;
         float* cur_output = output_buf + n * output_size * group;
@@ -510,7 +509,7 @@ int deconv_dw_run(struct tensor* input_tensor, struct tensor* filter_tensor, str
         {
             int out_h_pad = out_h + pads[0] * 2;
             int out_w_pad = out_w + pads[1] * 2;
-            float* output_buf = ( float* )malloc(sizeof(float) * group * out_h_pad * out_w_pad + 128);
+            float* output_buf = (float*)malloc(sizeof(float) * group * out_h_pad * out_w_pad + 128);
 
             if (stride_h == 1 && kernel_h == 4)
             {

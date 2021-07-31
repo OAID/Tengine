@@ -31,7 +31,6 @@
 #include "module/module.h"
 #include "utility/sys_port.h"
 
-
 static int infer_shape(struct node* node)
 {
     struct graph* ir_graph = node->graph;
@@ -45,10 +44,9 @@ static int infer_shape(struct node* node)
     return 0;
 }
 
-
 static int init_op(struct op* op)
 {
-    struct unary_param* unary_param = ( struct unary_param* )sys_malloc(sizeof(struct unary_param));
+    struct unary_param* unary_param = (struct unary_param*)sys_malloc(sizeof(struct unary_param));
 
     if (unary_param == NULL)
     {
@@ -66,12 +64,10 @@ static int init_op(struct op* op)
     return 0;
 }
 
-
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
-
 
 int register_unary_op()
 {
@@ -81,10 +77,8 @@ int register_unary_op()
     m.init = init_op;
     m.release = release_op;
 
-
     return register_op(OP_UNARY, OP_UNARY_NAME, &m);
 }
-
 
 int unregister_unary_op()
 {

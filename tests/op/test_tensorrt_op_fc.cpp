@@ -22,7 +22,6 @@
  * Author: qtang@openailab.com
  */
 
-
 #include "test_op.h"
 
 #include "graph/graph.h"
@@ -30,17 +29,20 @@
 #include "graph/tensor.h"
 #include "operator/prototype/fc_param.h"
 
-
 int create_test_fc_node(graph_t graph, const char* input_name, const char* node_name, int data_type, int layout, int n, int c, int h, int w)
 {
-    (void)layout; (void)n; (void)c; (void)h; (void)w;
+    (void)layout;
+    (void)n;
+    (void)c;
+    (void)h;
+    (void)w;
 
     /* create the test node */
-    struct node* test_node = (struct node* )create_graph_node(graph, node_name, "FullyConnected");
+    struct node* test_node = (struct node*)create_graph_node(graph, node_name, "FullyConnected");
 
     tensor_t input_tensor = get_graph_tensor(graph, input_name);
 
-    if(NULL == input_tensor)
+    if (NULL == input_tensor)
     {
         fprintf(stderr, "create test node failed.\n");
         return -1;
@@ -51,7 +53,7 @@ int create_test_fc_node(graph_t graph, const char* input_name, const char* node_
     node_t weight_node = create_graph_node(graph, "weight", "Const");
     tensor_t weight_tensor = create_graph_tensor(graph, "weight", TENGINE_DT_FP32);
     set_node_output_tensor(weight_node, 0, weight_tensor, TENSOR_TYPE_CONST);
-    int weight_dims[2] = {1, 3};  // channel num
+    int weight_dims[2] = {1, 3}; // channel num
     set_tensor_shape(weight_tensor, weight_dims, 2);
 
     /* bias */
@@ -71,19 +73,28 @@ int create_test_fc_node(graph_t graph, const char* input_name, const char* node_
     set_node_output_tensor(test_node, 0, output_tensor, TENSOR_TYPE_VAR);
 
     /* set params */
-    struct fc_param* param = ( struct fc_param* )(struct node* )test_node->op.param_mem;
+    struct fc_param* param = (struct fc_param*)(struct node*)test_node->op.param_mem;
 
     param->num_output = 1;
 
     return 0;
 }
 
+float input_fp32[3] = {
+    3.0f,
+    8.0f,
+    1.0f,
+};
 
-float input_fp32[3] = {3.0f, 8.0f, 1.0f,};
+float weight_fp32[3] = {
+    9.0f,
+    0.0f,
+    3.0f,
+};
 
-float weight_fp32[3] = {9.0f, 0.0f, 3.0f,};
-
-float reference_out[1] = {30,};
+float reference_out[1] = {
+    30,
+};
 
 int main(int argc, char* argv[])
 {
@@ -98,8 +109,8 @@ int main(int argc, char* argv[])
         fprintf(stderr, "Tengine init failed.\n");
 
     // create
-    struct graph* ir_graph = (struct graph* )create_tensorrt_test_graph(test_node_name, data_type, layout, n, c, h, w, &create_test_fc_node);
-    if(NULL == ir_graph)
+    struct graph* ir_graph = (struct graph*)create_tensorrt_test_graph(test_node_name, data_type, layout, n, c, h, w, &create_test_fc_node);
+    if (NULL == ir_graph)
         return -1;
 
     set_log_level(LOG_INFO);
@@ -126,12 +137,12 @@ int main(int argc, char* argv[])
     }
 
     // get output and dequant
-    float* output_data = ( float* )output_tensor->data;
+    float* output_data = (float*)output_tensor->data;
     int output_size = output_tensor->elem_num;
 
     // check the result
     ret = 0;
-    for (int i = 0; i< output_size; i++)
+    for (int i = 0; i < output_size; i++)
     {
         if (fabsf(output_data[i] - reference_out[i]) > 0.1)
         {

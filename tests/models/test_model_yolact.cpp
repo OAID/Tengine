@@ -53,10 +53,10 @@
 
 int float_mismatch(float* current, float* reference, int size)
 {
-    for(int i=0;i<size;i++)
+    for (int i = 0; i < size; i++)
     {
         float tmp = fabs(current[i]) - fabs(reference[i]);
-        if(fabs(tmp) > 0.0001)
+        if (fabs(tmp) > 0.0001)
         {
             fprintf(stderr, "test failed, index:%d, a:%f, b:%f\n", i, current[i], reference[i]);
             return -1;
@@ -83,20 +83,20 @@ int main(int argc, char** argv)
     {
         switch (res)
         {
-            case 'm':
-                model_file = optarg;
-                break;
-            case 'r':
-                repeat_count = std::strtoul(optarg, nullptr, 10);
-                break;
-            case 't':
-                num_thread = std::strtoul(optarg, nullptr, 10);
-                break;
-            case 'h':
-                show_usage();
-                return 0;
-            default:
-                break;
+        case 'm':
+            model_file = optarg;
+            break;
+        case 'r':
+            repeat_count = std::strtoul(optarg, nullptr, 10);
+            break;
+        case 't':
+            num_thread = std::strtoul(optarg, nullptr, 10);
+            break;
+        case 'h':
+            show_usage();
+            return 0;
+        default:
+            break;
         }
     }
 
@@ -138,7 +138,7 @@ int main(int argc, char** argv)
 
     /* set the input shape to initial the graph, and prerun graph to infer shape */
     int img_size = target_size * target_size * 3;
-    int dims[] = {1, 3, target_size, target_size};    // nchw
+    int dims[] = {1, 3, target_size, target_size}; // nchw
     std::vector<float> input_data(img_size);
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
@@ -158,7 +158,7 @@ int main(int argc, char** argv)
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;
-    }    
+    }
 
     /* prerun graph, set work options(num_thread, cluster, precision) */
     if (prerun_graph_multithread(graph, opt) < 0)
@@ -170,7 +170,7 @@ int main(int argc, char** argv)
     /* prepare process input data, set the data mem to input tensor */
     std::string model_name = "yolact";
     std::string input_file = "./data/" + model_name + "_in.bin";
-    FILE *fp;
+    FILE* fp;
     fp = fopen(input_file.c_str(), "rb");
     if (fread(input_data.data(), sizeof(float), img_size, fp) == 0)
     {
@@ -206,10 +206,10 @@ int main(int argc, char** argv)
     tensor_t location_tensor = get_graph_output_tensor(graph, 2, 0);
     tensor_t mask_tensor = get_graph_output_tensor(graph, 3, 0);
     tensor_t confidence_tensor = get_graph_output_tensor(graph, 4, 0);
-    float* maskmaps = ( float* )get_tensor_buffer(maskmaps_tensor);
-    float* location = ( float* )get_tensor_buffer(location_tensor);
-    float* mask = ( float* )get_tensor_buffer(mask_tensor);
-    float* confidence = ( float* )get_tensor_buffer(confidence_tensor);
+    float* maskmaps = (float*)get_tensor_buffer(maskmaps_tensor);
+    float* location = (float*)get_tensor_buffer(location_tensor);
+    float* mask = (float*)get_tensor_buffer(mask_tensor);
+    float* confidence = (float*)get_tensor_buffer(confidence_tensor);
 
     // save output_data
     int output_size1 = get_tensor_buffer_size(maskmaps_tensor) / sizeof(float);
@@ -224,32 +224,32 @@ int main(int argc, char** argv)
     std::vector<float> reference_data2(output_size2);
     std::vector<float> reference_data3(output_size3);
     std::vector<float> reference_data4(output_size4);
-    FILE *fp1;
+    FILE* fp1;
     fp1 = fopen(reference_file1.c_str(), "rb");
     if (fread(reference_data1.data(), sizeof(float), output_size1, fp1) == 0)
     {
-        fprintf(stderr, "read %s data failed!\n",reference_file1.c_str());
+        fprintf(stderr, "read %s data failed!\n", reference_file1.c_str());
         return -1;
     }
     fclose(fp1);
     fp1 = fopen(reference_file2.c_str(), "rb");
     if (fread(reference_data2.data(), sizeof(float), output_size2, fp1) == 0)
     {
-        fprintf(stderr, "read %s data failed!\n",reference_file2.c_str());
+        fprintf(stderr, "read %s data failed!\n", reference_file2.c_str());
         return -1;
     }
     fclose(fp1);
     fp1 = fopen(reference_file3.c_str(), "rb");
     if (fread(reference_data3.data(), sizeof(float), output_size3, fp1) == 0)
     {
-        fprintf(stderr, "read %s data failed!\n",reference_file3.c_str());
+        fprintf(stderr, "read %s data failed!\n", reference_file3.c_str());
         return -1;
     }
     fclose(fp1);
     fp1 = fopen(reference_file4.c_str(), "rb");
     if (fread(reference_data4.data(), sizeof(float), output_size4, fp1) == 0)
     {
-        fprintf(stderr, "read %s data failed!\n",reference_file4.c_str());
+        fprintf(stderr, "read %s data failed!\n", reference_file4.c_str());
         return -1;
     }
     fclose(fp1);
@@ -267,4 +267,3 @@ int main(int argc, char** argv)
 
     return ret;
 }
-

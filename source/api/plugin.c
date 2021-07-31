@@ -39,12 +39,11 @@
 #endif
 
 #ifdef _MSC_VER
-typedef int(*fun_ptr)(void);
+typedef int (*fun_ptr)(void);
 typedef HINSTANCE so_handle_t;
 #else
 typedef void* so_handle_t;
 #endif
-
 
 struct plugin_header
 {
@@ -54,7 +53,6 @@ struct plugin_header
 };
 
 static struct vector* plugin_list = NULL;
-
 
 static int exec_so_func(so_handle_t handle, const char* func_name)
 {
@@ -86,7 +84,6 @@ static int exec_so_func(so_handle_t handle, const char* func_name)
 
     return 0;
 }
-
 
 int load_tengine_plugin(const char* plugin_name, const char* file_name, const char* init_func_name)
 {
@@ -138,7 +135,6 @@ int load_tengine_plugin(const char* plugin_name, const char* file_name, const ch
     /* execute the init function */
     if (init_func_name && exec_so_func(header.handle, init_func_name) < 0)
     {
-
 #ifdef _MSC_VER
         FreeLibrary(header.handle);
 #else
@@ -161,7 +157,6 @@ int load_tengine_plugin(const char* plugin_name, const char* file_name, const ch
 
     return 0;
 }
-
 
 int unload_tengine_plugin(const char* plugin_name, const char* rel_func_name)
 {
@@ -206,7 +201,6 @@ int unload_tengine_plugin(const char* plugin_name, const char* rel_func_name)
     return 0;
 }
 
-
 int get_tengine_plugin_number(void)
 {
     int plugin_num = 0;
@@ -216,7 +210,6 @@ int get_tengine_plugin_number(void)
 
     return plugin_num;
 }
-
 
 const char* get_tengine_plugin_name(int idx)
 {

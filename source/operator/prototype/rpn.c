@@ -34,7 +34,6 @@
 
 #include <math.h>
 
-
 void mkanchor(float w, float h, float x_ctr, float y_ctr, Anchor_t* tmp)
 {
     tmp->x0 = (x_ctr - 0.5f * (w - 1));
@@ -42,7 +41,6 @@ void mkanchor(float w, float h, float x_ctr, float y_ctr, Anchor_t* tmp)
     tmp->x1 = (x_ctr + 0.5f * (w - 1));
     tmp->y1 = (y_ctr + 0.5f * (h - 1));
 }
-
 
 void whctrs(const Anchor_t anchor, Box_t* result)
 {
@@ -52,22 +50,20 @@ void whctrs(const Anchor_t anchor, Box_t* result)
     result->cy = ((anchor.y1 + anchor.y0) * 0.5f);
 }
 
-
 void scale_enum(const Anchor_t anchor, const struct vector* anchor_scales_, struct vector* result)
 {
     Box_t tmp_box;
     whctrs(anchor, &tmp_box);
 
-    for (int i = 0; i < ( int )anchor_scales_->elem_num; ++i)
+    for (int i = 0; i < (int)anchor_scales_->elem_num; ++i)
     {
         Anchor_t tmp;
 
-        float as_val = *( float* )(get_vector_data(( struct vector* )anchor_scales_, i));
+        float as_val = *(float*)(get_vector_data((struct vector*)anchor_scales_, i));
         mkanchor(tmp_box.w * as_val, tmp_box.h * as_val, tmp_box.cx, tmp_box.cy, &tmp);
         push_vector_data(result, &tmp);
     }
 }
-
 
 void ratio_enum(const Anchor_t anchor, const struct vector* ratios_, struct vector* result)
 {
@@ -75,17 +71,16 @@ void ratio_enum(const Anchor_t anchor, const struct vector* ratios_, struct vect
     whctrs(anchor, &tmp_box);
     float area = tmp_box.h * tmp_box.w;
 
-    for (int i = 0; i < ( int )ratios_->elem_num; ++i)
+    for (int i = 0; i < (int)ratios_->elem_num; ++i)
     {
-        float size_ratio = area / *( float* )(get_vector_data(( struct vector* )ratios_, i));
+        float size_ratio = area / *(float*)(get_vector_data((struct vector*)ratios_, i));
         Anchor_t tmp;
         float new_w = roundf(sqrt(size_ratio));
-        float new_h = roundf(new_w * *( float* )(get_vector_data(( struct vector* )ratios_, i)));
+        float new_h = roundf(new_w * *(float*)(get_vector_data((struct vector*)ratios_, i)));
         mkanchor(new_w, new_h, tmp_box.cx, tmp_box.cy, &tmp);
         push_vector_data(result, &tmp);
     }
 }
-
 
 void generate_anchors(const int base_size, const struct vector* ratios_, const struct vector* scales_,
                       struct vector* gen_anchors_)
@@ -99,14 +94,14 @@ void generate_anchors(const int base_size, const struct vector* ratios_, const s
     struct vector* ratio_anchors = create_vector(sizeof(struct Anchor), NULL);
 
     ratio_enum(base_anchor, ratios_, ratio_anchors);
-    for (int i = 0; i < ( int )ratio_anchors->elem_num; ++i)
+    for (int i = 0; i < (int)ratio_anchors->elem_num; ++i)
     {
         struct vector* scale_anchors = create_vector(sizeof(struct Anchor), NULL);
 
-        scale_enum(*( Anchor_t* )get_vector_data(ratio_anchors, i), scales_, scale_anchors);
+        scale_enum(*(Anchor_t*)get_vector_data(ratio_anchors, i), scales_, scale_anchors);
         for (int j = 0; j < scale_anchors->elem_num; j++)
         {
-            Anchor_t tmp_s = *( Anchor_t* )get_vector_data(scale_anchors, j);
+            Anchor_t tmp_s = *(Anchor_t*)get_vector_data(scale_anchors, j);
             push_vector_data(gen_anchors_, &tmp_s);
         }
 
@@ -121,7 +116,7 @@ static int infer_shape(struct node* node)
     struct graph* ir_graph = node->graph;
     struct tensor* input = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
     struct tensor* output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
-    rpn_param_t* rpn_param = ( rpn_param_t* )node->op.param_mem;
+    rpn_param_t* rpn_param = (rpn_param_t*)node->op.param_mem;
 
     rpn_param->anchors_ = create_vector(sizeof(struct Anchor), NULL);
     generate_anchors(rpn_param->basesize, rpn_param->ratios, rpn_param->anchor_scales, rpn_param->anchors_);
@@ -136,10 +131,9 @@ static int infer_shape(struct node* node)
     return 0;
 }
 
-
 static int init_op(struct op* op)
 {
-    struct rpn_param* rpn_param = ( struct rpn_param* )sys_malloc(sizeof(struct rpn_param));
+    struct rpn_param* rpn_param = (struct rpn_param*)sys_malloc(sizeof(struct rpn_param));
 
     if (rpn_param == NULL)
     {
@@ -160,10 +154,9 @@ static int init_op(struct op* op)
     return 0;
 }
 
-
 static void release_op(struct op* op)
 {
-    struct rpn_param* rpn_param = ( struct rpn_param* )op->param_mem;
+    struct rpn_param* rpn_param = (struct rpn_param*)op->param_mem;
 
     if (rpn_param->anchors_)
         release_vector(rpn_param->anchors_);
@@ -175,7 +168,6 @@ static void release_op(struct op* op)
     sys_free(op->param_mem);
 }
 
-
 int register_rpn_op()
 {
     struct method m;
@@ -184,10 +176,8 @@ int register_rpn_op()
     m.init = init_op;
     m.release = release_op;
 
-
     return register_op(OP_RPN, OP_RPN_NAME, &m);
 }
-
 
 int unregister_rpn_op()
 {

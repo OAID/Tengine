@@ -52,7 +52,7 @@ public:
 
     virtual int create_pipeline(const Option& opt);
     virtual int destroy_pipeline(const Option& opt);
-    
+
     virtual int record_pipeline(const VkTensor& bottom_blob, VkTensor& top_blob, VkCompute& cmd, const Option& opt) const;
 
 public:
@@ -60,7 +60,7 @@ public:
     int bottom;
     int left;
     int right;
-    int type;// 0=CONSTANT 1=REPLICATE 2=REFLECT
+    int type; // 0=CONSTANT 1=REPLICATE 2=REFLECT
     float value;
     int input_w;
     int input_h;
@@ -76,6 +76,5 @@ public:
 };
 
 } // namespace TEngine
-
 
 #endif

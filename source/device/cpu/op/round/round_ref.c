@@ -34,7 +34,6 @@
 
 #include <math.h>
 
-
 int ref_round_fp32(struct tensor* input_tensor, struct tensor* output_tensor, int num_thread)
 {
     // dims size = 2 or 3

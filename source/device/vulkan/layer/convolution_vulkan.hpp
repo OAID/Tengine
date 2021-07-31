@@ -63,16 +63,15 @@ public:
     // virtual int record_pipeline(VkCompute& cmd, const Option& opt) const;
     virtual int record_pipeline(const VkTensor& bottom_blob, VkTensor& top_blob, VkCompute& cmd, const Option& opt) const;
 
-
 public:
     int group;
     int input_c;
     int input_h;
     int input_w;
-    int pad_w0;  // left padding columns
-    int pad_w1;  // right padding columns
-    int pad_h0;  // top padding rows
-    int pad_h1;  // bottom padding rows
+    int pad_w0; // left padding columns
+    int pad_w1; // right padding columns
+    int pad_h0; // top padding rows
+    int pad_h1; // bottom padding rows
     int stride_h;
     int stride_w;
     int dilation_h;
@@ -110,6 +109,5 @@ public:
 };
 
 } // namespace TEngine
-
 
 #endif

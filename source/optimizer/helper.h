@@ -30,7 +30,6 @@
 struct subgraph;
 struct vector;
 
-
 int is_subgraph_input_tensor(const struct subgraph* subgraph, uint16_t tensor_index);
 
 int is_subgraph_output_tensor(const struct subgraph* subgraph, uint16_t tensor_index);

@@ -37,24 +37,24 @@
 #include "tengine/c_api.h"
 #include "tengine_operations.h"
 
-#define DEFAULT_IMG_H 320
-#define DEFAULT_IMG_W 256
-#define DEFAULT_SCALE1 (0.0039216)
-#define DEFAULT_SCALE2 (0.0039215)
-#define DEFAULT_SCALE3 (0.0039215)
-#define DEFAULT_MEAN1 0.406
-#define DEFAULT_MEAN2 0.457
-#define DEFAULT_MEAN3 0.480
+#define DEFAULT_IMG_H        320
+#define DEFAULT_IMG_W        256
+#define DEFAULT_SCALE1       (0.0039216)
+#define DEFAULT_SCALE2       (0.0039215)
+#define DEFAULT_SCALE3       (0.0039215)
+#define DEFAULT_MEAN1        0.406
+#define DEFAULT_MEAN2        0.457
+#define DEFAULT_MEAN3        0.480
 #define DEFAULT_REPEAT_COUNT 1
 #define DEFAULT_THREAD_COUNT 1
 
 const float s_keypoint_thresh = 0.2;
 int float_mismatch(float* current, float* reference, int size)
 {
-    for(int i=0;i<size;i++)
+    for (int i = 0; i < size; i++)
     {
         float tmp = fabs(current[i]) - fabs(reference[i]);
-        if(fabs(tmp) > 0.0001)
+        if (fabs(tmp) > 0.0001)
         {
             fprintf(stderr, "test failed, index:%d, a:%f, b:%f\n", i, current[i], reference[i]);
             return -1;
@@ -69,7 +69,7 @@ void show_usage()
     fprintf(stderr, "[Usage]:  [-h]\n    [-m model_file] [-r repeat_count] [-t thread_count]\n");
 }
 
-bool tengine_predict(float * input_data, graph_t graph, const int input_dims[4], const int & num_thread, const int & loop_count)
+bool tengine_predict(float* input_data, graph_t graph, const int input_dims[4], const int& num_thread, const int& loop_count)
 {
     /* set runtime options */
     struct options opt;
@@ -144,20 +144,20 @@ int main(int argc, char* argv[])
     {
         switch (res)
         {
-            case 'm':
-                model_file = optarg;
-                break;
-            case 'r':
-                repeat_count = atoi(optarg);
-                break;
-            case 't':
-                num_thread = atoi(optarg);
-                break;
-            case 'h':
-                show_usage();
-                return 0;
-            default:
-                break;
+        case 'm':
+            model_file = optarg;
+            break;
+        case 'r':
+            repeat_count = atoi(optarg);
+            break;
+        case 't':
+            num_thread = atoi(optarg);
+            break;
+        case 'h':
+            show_usage();
+            return 0;
+        default:
+            break;
         }
     }
 
@@ -198,7 +198,7 @@ int main(int argc, char* argv[])
 
     std::string model_name = "alphapose";
     std::string input_file = "./data/" + model_name + "_in.bin";
-    FILE *fp;
+    FILE* fp;
     fp = fopen(input_file.c_str(), "rb");
     if (fread(input_data1.data(), sizeof(float), img_size, fp) == 0)
     {
@@ -219,11 +219,11 @@ int main(int argc, char* argv[])
     int heatmap_dims[MAX_SHAPE_DIM_NUM] = {0};
     get_tensor_shape(output_tensor, heatmap_dims, MAX_SHAPE_DIM_NUM);
 
-    float *data = (float *) (get_tensor_buffer(output_tensor));
+    float* data = (float*)(get_tensor_buffer(output_tensor));
     int output_size1 = get_tensor_buffer_size(output_tensor) / (sizeof(float));
     std::string reference_file1 = "./data/" + model_name + "_out.bin";
     std::vector<float> reference_data1(output_size1);
-    FILE *fp1;
+    FILE* fp1;
     fp1 = fopen(reference_file1.c_str(), "rb");
     if (fread(reference_data1.data(), sizeof(float), output_size1, fp1) == 0)
     {
@@ -232,7 +232,6 @@ int main(int argc, char* argv[])
     }
     fclose(fp1);
     int ret1 = float_mismatch(data, reference_data1.data(), output_size1);
-
 
     /* release tengine */
     postrun_graph(graph);

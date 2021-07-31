@@ -101,7 +101,7 @@ ENDIF()
 
 # add examples with opencv
 # set(OpenCV_DIR /mnt/d/ubuntu/opencv_install/linux-armv7/lib/cmake/opencv4)
-FIND_PACKAGE(OpenCV QUIET)
+FIND_PACKAGE(OpenCV)
 
 IF (OpenCV_FOUND)
     # macro for adding examples
@@ -137,13 +137,34 @@ IF (OpenCV_FOUND)
     TENGINE_EXAMPLE_CV (tm_hrnet                 tm_hrnet.cpp)
     TENGINE_EXAMPLE_CV (tm_nanodet_m             tm_nanodet_m.cpp)
     TENGINE_EXAMPLE_CV (tm_yolox                 tm_yolox.cpp)
+    TENGINE_EXAMPLE_CV (tm_yolox_darknet53       tm_yolox_darknet53.cpp)
+    TENGINE_EXAMPLE_CV (tm_scrfd                 tm_scrfd.cpp)
     IF(TENGINE_ENABLE_TIM_VX)
+        TENGINE_EXAMPLE_CV (tm_yolov3_timvx          tm_yolov3_timvx.cpp)
         TENGINE_EXAMPLE_CV (tm_yolov4_tiny_timvx     tm_yolov4_tiny_timvx.cpp)
         TENGINE_EXAMPLE_CV (tm_yolov5s_timvx         tm_yolov5s_timvx.cpp)
         TENGINE_EXAMPLE_CV (tm_hrnet_timvx           tm_hrnet_timvx.cpp)
         TENGINE_EXAMPLE_CV (tm_nanodet_m_timvx       tm_nanodet_m_timvx.cpp)
         TENGINE_EXAMPLE_CV (tm_yolox_timvx           tm_yolox_timvx.cpp)
     ENDIF()
+    IF(TENGINE_ENABLE_TENSORRT)
+        TENGINE_EXAMPLE_CV (tm_scrfd_trt_fp16        tm_scrfd_trt_fp16.cpp)
+    ENDIF()
+
+    # pthread
+    IF (NOT OHOS)
+        INCLUDE (${PROJECT_SOURCE_DIR}/cmake/libraries/pthread.cmake)
+        TENGINE_CHECK_LIB_PTHREAD (_has_pthread)
+        IF (_has_pthread)
+            TENGINE_USE_LIB_PTHREAD (${TENGINE_LITE_NAME}-static ON)
+            TENGINE_USE_LIB_PTHREAD (${TENGINE_LITE_NAME}        ON)
+
+            TENGINE_EXAMPLE_CV(tm_pipeline_camera_preview   pipeline/test/test_camera_preview.cpp)
+            TENGINE_EXAMPLE_CV(tm_pipeline_estimate_ped_distance  pipeline/test/test_pedestrian_distance_estimation.cpp)
+        ENDIF()
+        UNSET (_has_pthread)
+    ENDIF()
+
 ELSE()
     MESSAGE (WARNING "OpenCV not found, some examples won't be built")
 ENDIF()

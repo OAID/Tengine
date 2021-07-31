@@ -38,12 +38,11 @@
 
 #include <math.h>
 
-
 int ref_clip_uint8(struct tensor* input_tensor, struct tensor* output_tensor, float max, float min)
 {
     int total_size = input_tensor->elem_num;
-    uint8_t* input_uint8 = ( uint8_t* )input_tensor->data;
-    uint8_t* output_uint8 = ( uint8_t* )output_tensor->data;
+    uint8_t* input_uint8 = (uint8_t*)input_tensor->data;
+    uint8_t* output_uint8 = (uint8_t*)output_tensor->data;
 
     float input_scale = input_tensor->scale;
     float output_scale = output_tensor->scale;
@@ -51,11 +50,11 @@ int ref_clip_uint8(struct tensor* input_tensor, struct tensor* output_tensor, fl
     int output_zero = output_tensor->zero_point;
 
     /* input dequant */
-    float* input_fp32 = ( float* )sys_malloc(total_size * sizeof(float));
-    float* output_fp32 = ( float* )sys_malloc(total_size * sizeof(float));
+    float* input_fp32 = (float*)sys_malloc(total_size * sizeof(float));
+    float* output_fp32 = (float*)sys_malloc(total_size * sizeof(float));
 
     for (uint32_t i = 0; i < input_tensor->elem_num; i++)
-        input_fp32[i] = ((float )input_uint8[i] - (float )input_zero) * input_scale;
+        input_fp32[i] = ((float)input_uint8[i] - (float)input_zero) * input_scale;
 
     for (int i = 0; i < total_size; i++)
     {
@@ -75,7 +74,7 @@ int ref_clip_uint8(struct tensor* input_tensor, struct tensor* output_tensor, fl
     }
 
     sys_free(input_fp32);
-    sys_free(output_fp32); 
+    sys_free(output_fp32);
 
     return 0;
 }

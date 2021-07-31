@@ -34,7 +34,6 @@
 #include "device/cpu/cpu_graph.h"
 #include "device/cpu/cpu_module.h"
 
-
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     return 0;
@@ -59,7 +58,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
     input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    struct selu_param* selu_param = ( struct selu_param* )ir_node->op.param_mem;
+    struct selu_param* selu_param = (struct selu_param*)ir_node->op.param_mem;
 
     int num_thread = exec_graph->num_thread;
 

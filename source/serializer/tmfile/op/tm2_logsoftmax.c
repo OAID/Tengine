@@ -34,12 +34,10 @@
 #include "device/device.h"
 #include "utility/log.h"
 
-
 static int logsoftmax_op_map(int op)
 {
     return OP_LOGSOFTMAX;
 }
-
 
 static int tm2_load_logsoftmax(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node, const TM2_Operator* tm_op)
 {
@@ -52,7 +50,6 @@ static int tm2_load_logsoftmax(struct graph* ir_graph, struct node* ir_node, con
 
     return 0;
 }
-
 
 int register_tm2_logsoftmax_op()
 {
@@ -68,7 +65,6 @@ int register_tm2_logsoftmax_op()
 
     return 0;
 }
-
 
 int unregister_tm2_logsoftmax_op()
 {

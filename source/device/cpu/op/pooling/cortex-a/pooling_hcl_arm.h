@@ -43,10 +43,9 @@
 #include <arm_neon.h>
 
 #define POOL_GENERIC 0
-#define POOL_K2S2 1
-#define POOL_K3S2 2
-#define POOL_K3S1 3
-
+#define POOL_K2S2    1
+#define POOL_K3S2    2
+#define POOL_K3S1    3
 
 typedef void (*pooling_kernel_t)(const void* input, void* output, int inc, int inh, int inw, int outh, int outw, int,
                                  int, int, int, int, int, int pad_h1, int pad_w1, int);
@@ -318,9 +317,7 @@ static void avg_3x3s2(const float* input, float* output, int inc, int inh, int i
             }
             for (int j = block_w * 4; j < outw; j++)
             {
-                *out_ptr =
-                    (line0[0] + line0[1] + line0[2] + line1[0] + line1[1] + line1[2] + line2[0] + line2[1] + line2[2]) *
-                    0.11111111f;
+                *out_ptr = (line0[0] + line0[1] + line0[2] + line1[0] + line1[1] + line1[2] + line2[0] + line2[1] + line2[2]) * 0.11111111f;
                 out_ptr++;
                 line0 += 2;
                 line1 += 2;
@@ -1242,9 +1239,7 @@ static void avg_3x3s2_p1(const float* input, float* output, int inc, int inh, in
             }
             for (int j = block_w * 4 + 1; j < outw; j++)
             {
-                *out_ptr =
-                    (line0[0] + line0[1] + line0[2] + line1[0] + line1[1] + line1[2] + line2[0] + line2[1] + line2[2]) *
-                    0.11111111f;
+                *out_ptr = (line0[0] + line0[1] + line0[2] + line1[0] + line1[1] + line1[2] + line2[0] + line2[1] + line2[2]) * 0.11111111f;
                 out_ptr++;
                 line0 += 2;
                 line1 += 2;
@@ -1516,9 +1511,7 @@ static void avg_3x3s1_p1(const float* input, float* output, int inc, int inh, in
             // mid
             for (int j = 0; j < mid_w; j++)
             {
-                *out_ptr =
-                    (line0[0] + line0[1] + line0[2] + line1[0] + line1[1] + line1[2] + line2[0] + line2[1] + line2[2]) *
-                    0.11111111f;
+                *out_ptr = (line0[0] + line0[1] + line0[2] + line1[0] + line1[1] + line1[2] + line2[0] + line2[1] + line2[2]) * 0.11111111f;
                 out_ptr++;
                 line0 += 1;
                 line1 += 1;
@@ -1629,9 +1622,9 @@ int pooling_kernel_perf_prerun(struct tensor* input, struct tensor* out, struct 
     if (param->global)
     {
         if (param->pool_method == POOL_AVG)
-            param->funct = ( pooling_kernel_t )avg_global;
+            param->funct = (pooling_kernel_t)avg_global;
         else if (param->pool_method == POOL_MAX)
-            param->funct = ( pooling_kernel_t )max_global;
+            param->funct = (pooling_kernel_t)max_global;
 
         assert(param->funct != NULL);
         return 0;
@@ -1659,18 +1652,18 @@ int pooling_kernel_perf_prerun(struct tensor* input, struct tensor* out, struct 
             if (param->pad_h0 == 0)
             {
                 if (pool_size == POOL_K2S2)
-                    param->funct = ( pooling_kernel_t )max_2x2s2;
+                    param->funct = (pooling_kernel_t)max_2x2s2;
                 else if (pool_size == POOL_K3S2)
-                    param->funct = ( pooling_kernel_t )max_3x3s2;
+                    param->funct = (pooling_kernel_t)max_3x3s2;
             }
             else if (param->pad_h0 == 1)
             {
                 if (pool_size == POOL_K2S2)
-                    param->funct = ( pooling_kernel_t )max_2x2s2_p1;
+                    param->funct = (pooling_kernel_t)max_2x2s2_p1;
                 else if (pool_size == POOL_K3S2)
-                    param->funct = ( pooling_kernel_t )max_3x3s2_p1;
+                    param->funct = (pooling_kernel_t)max_3x3s2_p1;
                 else if (pool_size == POOL_K3S1)
-                    param->funct = ( pooling_kernel_t )max_3x3s1_p1;
+                    param->funct = (pooling_kernel_t)max_3x3s1_p1;
             }
         }
 
@@ -1691,23 +1684,23 @@ int pooling_kernel_perf_prerun(struct tensor* input, struct tensor* out, struct 
             if (param->pad_h0 == 0 && param->pad_h1 == 0)
             {
                 if (pool_size == POOL_K2S2)
-                    param->funct = ( pooling_kernel_t )avg_2x2s2;
+                    param->funct = (pooling_kernel_t)avg_2x2s2;
                 else if (pool_size == POOL_K3S2)
-                    param->funct = ( pooling_kernel_t )avg_3x3s2;
+                    param->funct = (pooling_kernel_t)avg_3x3s2;
             }
             else if (param->pad_h0 == 1 && param->pad_h1 == 1)
             {
                 if (pool_size == POOL_K2S2)
-                    param->funct = ( pooling_kernel_t )avg_2x2s2_p1;
+                    param->funct = (pooling_kernel_t)avg_2x2s2_p1;
                 else if (pool_size == POOL_K3S2)
-                    param->funct = ( pooling_kernel_t )avg_3x3s2_p1;
+                    param->funct = (pooling_kernel_t)avg_3x3s2_p1;
                 else if (pool_size == POOL_K3S1)
-                    param->funct = ( pooling_kernel_t )avg_3x3s1_p1;
+                    param->funct = (pooling_kernel_t)avg_3x3s1_p1;
             }
             else if (param->pad_h0 == 0 && param->pad_h1 == 1)
             {
                 if (pool_size == POOL_K3S2)
-                    param->funct = ( pooling_kernel_t ) avg_3x3s2;
+                    param->funct = (pooling_kernel_t)avg_3x3s2;
             }
         }
 

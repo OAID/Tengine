@@ -28,14 +28,12 @@
 #include "graph/graph.h"
 #include "module/module.h"
 
-
 static int init_op(struct op* op)
 {
     op->same_shape = 1;
 
     return 0;
 }
-
 
 int register_maximum_op()
 {
@@ -46,7 +44,6 @@ int register_maximum_op()
 
     return register_op(OP_MAXIMUM, OP_MAXIMUM_NAME, &m);
 }
-
 
 int unregister_maximum_op()
 {

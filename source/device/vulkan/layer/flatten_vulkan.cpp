@@ -70,22 +70,22 @@ Flatten_vulkan::Flatten_vulkan(ir_graph_t* ir_graph, ir_node_t* ir_node)
     graph = ir_graph;
     node = ir_node;
 
-    struct tensor *input = get_ir_graph_tensor(graph, node->input_tensors[0]);
+    struct tensor* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
     std::string name = input->name;
     bottoms.push_back(name);
 
-    struct tensor *output = get_ir_graph_tensor(graph, node->output_tensors[0]);
+    struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
     name = output->name;
     tops.push_back(name);
 
     // params
-    input_c = input->dims[1];   // param->input_channel;
+    input_c = input->dims[1]; // param->input_channel;
     input_h = input->dims[2];
     input_w = input->dims[3];
-    output_c = output->dims[1];  // param->output_channel;
+    output_c = output->dims[1]; // param->output_channel;
     output_h = output->dims[2];
     output_w = output->dims[3];
-    output_size = output->dims[3]*output->dims[2]*output->dims[1];
+    output_size = output->dims[3] * output->dims[2] * output->dims[1];
 }
 
 int Flatten_vulkan::create_pipeline(const Option& _opt)
@@ -95,14 +95,17 @@ int Flatten_vulkan::create_pipeline(const Option& _opt)
     // const Tensor& out_shape = Tensor(output_w, output_h, output_c, (void*)0); // top_shapes.empty() ? Mat() : top_shapes[0];
     const Tensor& out_shape = Tensor(output_size, (void*)0); // top_shapes.empty() ? Mat() : top_shapes[0];
 
-
     int elempack = 1;
-    if (shape.dims == 1) elempack = opt.use_shader_pack8 && shape.w % 8 == 0 ? 8 : shape.w % 4 == 0 ? 4 : 1;
-    if (shape.dims == 2) elempack = opt.use_shader_pack8 && shape.h % 8 == 0 ? 8 : shape.h % 4 == 0 ? 4 : 1;
-    if (shape.dims == 3) elempack = opt.use_shader_pack8 && shape.c % 8 == 0 ? 8 : shape.c % 4 == 0 ? 4 : 1;
+    if (shape.dims == 1) elempack = opt.use_shader_pack8 && shape.w % 8 == 0 ? 8 : shape.w % 4 == 0 ? 4
+                                                                                                    : 1;
+    if (shape.dims == 2) elempack = opt.use_shader_pack8 && shape.h % 8 == 0 ? 8 : shape.h % 4 == 0 ? 4
+                                                                                                    : 1;
+    if (shape.dims == 3) elempack = opt.use_shader_pack8 && shape.c % 8 == 0 ? 8 : shape.c % 4 == 0 ? 4
+                                                                                                    : 1;
 
     int out_elempack = 1;
-    if (out_shape.dims == 1) out_elempack = opt.use_shader_pack8 && out_shape.w % 8 == 0 ? 8 : out_shape.w % 4 == 0 ? 4 : 1;
+    if (out_shape.dims == 1) out_elempack = opt.use_shader_pack8 && out_shape.w % 8 == 0 ? 8 : out_shape.w % 4 == 0 ? 4
+                                                                                                                    : 1;
 
     size_t elemsize;
     size_t out_elemsize;
@@ -137,16 +140,16 @@ int Flatten_vulkan::create_pipeline(const Option& _opt)
     }
 
     std::vector<vk_specialization_type> specializations(0 + 10);
-    specializations[0 + 0].i = 0;   // shape_packed.dims;
-    specializations[0 + 1].i = 0;   // shape_packed.w;
-    specializations[0 + 2].i = 0;   // shape_packed.h;
-    specializations[0 + 3].i = 0;   // shape_packed.c;
-    specializations[0 + 4].i = 0;   // shape_packed.cstep;
-    specializations[0 + 5].i = 0;   // out_shape_packed.dims;
-    specializations[0 + 6].i = 0;   // out_shape_packed.w;
-    specializations[0 + 7].i = 0;   // out_shape_packed.h;
-    specializations[0 + 8].i = 0;   // out_shape_packed.c;
-    specializations[0 + 9].i = 0;   // out_shape_packed.cstep;
+    specializations[0 + 0].i = 0; // shape_packed.dims;
+    specializations[0 + 1].i = 0; // shape_packed.w;
+    specializations[0 + 2].i = 0; // shape_packed.h;
+    specializations[0 + 3].i = 0; // shape_packed.c;
+    specializations[0 + 4].i = 0; // shape_packed.cstep;
+    specializations[0 + 5].i = 0; // out_shape_packed.dims;
+    specializations[0 + 6].i = 0; // out_shape_packed.w;
+    specializations[0 + 7].i = 0; // out_shape_packed.h;
+    specializations[0 + 8].i = 0; // out_shape_packed.c;
+    specializations[0 + 9].i = 0; // out_shape_packed.cstep;
 
     Tensor local_size_xyz(64, 1, 1, (void*)0);
     if (out_shape_packed.dims != 0)
@@ -207,8 +210,6 @@ int Flatten_vulkan::create_pipeline(const Option& _opt)
     return 0;
 }
 
-
-
 int Flatten_vulkan::destroy_pipeline(const Option& /*opt*/)
 {
     delete pipeline_flatten;
@@ -250,7 +251,8 @@ int Flatten_vulkan::record_pipeline(const VkTensor& bottom_blob, VkTensor& top_b
 
     int total = w * h * channels * elempack;
 
-    int out_elempack = opt.use_shader_pack8 && total % 8 == 0 ? 8 : total % 4 == 0 ? 4 : 1;
+    int out_elempack = opt.use_shader_pack8 && total % 8 == 0 ? 8 : total % 4 == 0 ? 4
+                                                                                   : 1;
     size_t out_elemsize = elemsize / elempack * out_elempack;
 
     if (opt.use_fp16_packed && !opt.use_fp16_storage)
@@ -323,4 +325,4 @@ int Flatten_vulkan::record_pipeline(const VkTensor& bottom_blob, VkTensor& top_b
     return 0;
 }
 
-}   // namespace TEngine
+} // namespace TEngine

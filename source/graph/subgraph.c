@@ -29,24 +29,22 @@
 #include "device/device.h"
 #include "api/c_api.h"
 
-
 void init_ir_subgraph(struct graph* graph, struct subgraph* subgraph, int index)
 {
-    subgraph->index                 = index;
-    subgraph->input_ready_count     = 0;
-    subgraph->input_wait_count      = 0;
-    subgraph->input_num             = 0;
-    subgraph->output_num            = 0;
-    subgraph->node_num              = 0;
-    subgraph->node_list             = NULL;
-    subgraph->input_tensor_list     = NULL;
-    subgraph->output_tensor_list    = NULL;
-    subgraph->graph                 = graph;
-    subgraph->device                = NULL;
-    subgraph->device_graph          = NULL;
-    subgraph->status                = GRAPH_STAT_CREATED;
+    subgraph->index = index;
+    subgraph->input_ready_count = 0;
+    subgraph->input_wait_count = 0;
+    subgraph->input_num = 0;
+    subgraph->output_num = 0;
+    subgraph->node_num = 0;
+    subgraph->node_list = NULL;
+    subgraph->input_tensor_list = NULL;
+    subgraph->output_tensor_list = NULL;
+    subgraph->graph = graph;
+    subgraph->device = NULL;
+    subgraph->device_graph = NULL;
+    subgraph->status = GRAPH_STAT_CREATED;
 }
-
 
 void release_ir_subgraph(struct graph* graph, struct subgraph* subgraph)
 {

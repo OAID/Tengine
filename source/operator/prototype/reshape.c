@@ -34,10 +34,9 @@
 
 #include <string.h>
 
-
 static int infer_shape(struct node* node)
 {
-    reshape_param_t* param = ( struct reshape_param* )(node->op.param_mem);
+    reshape_param_t* param = (struct reshape_param*)(node->op.param_mem);
 
     struct graph* graph = node->graph;
     struct tensor* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
@@ -56,16 +55,16 @@ static int infer_shape(struct node* node)
     {
         if (0 == param->re_shape[i])
         {
-            if (param->is_mxnet)
+            if (param->is_mxnet || param->is_onnx)
             {
                 int temp = input->dims[in_idx];
-                push_vector_data(new_shape, ( void* )&temp);
+                push_vector_data(new_shape, (void*)&temp);
             }
             else
             {
                 int temp = 1;
                 if (i == 0)
-                    push_vector_data(new_shape, ( void* )&temp);
+                    push_vector_data(new_shape, (void*)&temp);
             }
 
             in_idx++;
@@ -73,20 +72,20 @@ static int infer_shape(struct node* node)
         else if (-1 == param->re_shape[i])
         {
             int temp = -1;
-            push_vector_data(new_shape, ( void* )&temp);
+            push_vector_data(new_shape, (void*)&temp);
             in_idx++;
         }
         else if (-2 == param->re_shape[i])
         {
             for (; in_idx < input_dim_size; ++in_idx)
             {
-                push_vector_data(new_shape, ( void* )&input->dims[in_idx]);
+                push_vector_data(new_shape, (void*)&input->dims[in_idx]);
             }
         }
         else if (-3 == param->re_shape[i])
         {
             int temp = input->dims[in_idx] * input->dims[in_idx + 1];
-            push_vector_data(new_shape, ( void* )&temp);
+            push_vector_data(new_shape, (void*)&temp);
             in_idx = in_idx + 2;
         }
         else if (-4 == param->re_shape[i])
@@ -94,14 +93,14 @@ static int infer_shape(struct node* node)
             int muti_val = param->re_shape[i + 1];
             if (muti_val == -1)
                 muti_val = 1;
-            push_vector_data(new_shape, ( void* )&muti_val);
-            push_vector_data(new_shape, ( void* )&param->re_shape[i + 2]);
+            push_vector_data(new_shape, (void*)&muti_val);
+            push_vector_data(new_shape, (void*)&param->re_shape[i + 2]);
             i = i + 2;
             in_idx++;
         }
         else
         {
-            push_vector_data(new_shape, ( void* )&param->re_shape[i]);
+            push_vector_data(new_shape, (void*)&param->re_shape[i]);
             in_idx++;
         }
     }
@@ -110,7 +109,7 @@ static int infer_shape(struct node* node)
     int dim_size = get_vector_num(new_shape);
     for (int i = 0; i < dim_size; i++)
     {
-        int temp = (( int* )get_vector_data(new_shape, i))[0];
+        int temp = ((int*)get_vector_data(new_shape, i))[0];
         if (temp == -1)
             idx = i;
         else
@@ -120,12 +119,12 @@ static int infer_shape(struct node* node)
     if (idx >= 0)
     {
         int temp = size / new_size;
-        set_vector_data(new_shape, idx, ( void* )&temp);
+        set_vector_data(new_shape, idx, (void*)&temp);
     }
 
-    if ((( int* )get_vector_data(new_shape, 0))[0] == -1 && get_vector_num(new_shape) == 1)
+    if (((int*)get_vector_data(new_shape, 0))[0] == -1 && get_vector_num(new_shape) == 1)
     {
-        set_vector_data(new_shape, 0, ( void* )&size);
+        set_vector_data(new_shape, 0, (void*)&size);
     }
 
     if (param->reverse)
@@ -145,16 +144,17 @@ static int infer_shape(struct node* node)
     }
 
     new_size = 1;
-    int* new_shape_temp = ( int* )sys_malloc(get_vector_num(new_shape) * sizeof(int));
+    int* new_shape_temp = (int*)sys_malloc(get_vector_num(new_shape) * sizeof(int));
 
     for (int i = 0; i < get_vector_num(new_shape); i++)
     {
-        int* a = ( int* )get_vector_data(new_shape, i);
+        int* a = (int*)get_vector_data(new_shape, i);
         new_shape_temp[i] = *a;
         new_size *= new_shape_temp[i];
     }
     // check input and reshaped size
-    if (new_size != size) {
+    if (new_size != size)
+    {
         TLOG_ERR("Error: input elem num(%d) != reshaped elem num(%d)\n", size, new_size);
         return -1;
     }
@@ -169,10 +169,9 @@ static int infer_shape(struct node* node)
     return ret;
 }
 
-
 static int init_op(struct op* op)
 {
-    struct reshape_param* reshape_param = ( struct reshape_param* )sys_malloc(sizeof(struct reshape_param));
+    struct reshape_param* reshape_param = (struct reshape_param*)sys_malloc(sizeof(struct reshape_param));
 
     if (reshape_param == NULL)
     {
@@ -189,17 +188,15 @@ static int init_op(struct op* op)
     return 0;
 }
 
-
 static void release_op(struct op* op)
 {
-    struct reshape_param* reshape_param = ( struct reshape_param* )op->param_mem;
+    struct reshape_param* reshape_param = (struct reshape_param*)op->param_mem;
 
     if (reshape_param->re_shape)
         sys_free(reshape_param->re_shape);
 
     sys_free(op->param_mem);
 }
-
 
 int register_reshape_op()
 {
@@ -211,7 +208,6 @@ int register_reshape_op()
 
     return register_op(OP_RESHAPE, OP_RESHAPE_NAME, &m);
 }
-
 
 int unregister_reshape_op()
 {

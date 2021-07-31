@@ -38,20 +38,19 @@
 #include <math.h>
 #include <string.h>
 
-
 struct anchor_box
 {
-    float x0;    // xmin
-    float y0;    // ymin
-    float x1;    // xmax
-    float y1;    // ymax
+    float x0; // xmin
+    float y0; // ymin
+    float x1; // xmax
+    float y1; // ymax
 };
 struct RPN_Box
 {
-    float x0;    // xmin
-    float y0;    // ymin
-    float x1;    // xmax
-    float y1;    // ymax
+    float x0; // xmin
+    float y0; // ymin
+    float x1; // xmax
+    float y1; // ymax
     float score;
 };
 
@@ -174,9 +173,9 @@ void nms_rpn_boxes(struct RPN_Box* input_boxes, int* size, float nms_thresh)
     int input_size = *size;
     int output_size = 0;
 
-    struct RPN_Box* output_boxes = ( struct RPN_Box* )sys_malloc(sizeof(struct RPN_Box) * input_size);
-    float* areas = ( float* )sys_malloc(sizeof(float) * input_size);
-    int* picked = ( int* )sys_malloc(sizeof(int) * input_size);
+    struct RPN_Box* output_boxes = (struct RPN_Box*)sys_malloc(sizeof(struct RPN_Box) * input_size);
+    float* areas = (float*)sys_malloc(sizeof(float) * input_size);
+    int* picked = (int*)sys_malloc(sizeof(int) * input_size);
 
     for (int i = 0; i < input_size; ++i)
     {
@@ -220,13 +219,13 @@ void ref_proposal_local_anchor(int feat_height, int feat_width, int feat_stride,
                                float* local_anchors)
 {
     int feat_size = feat_height * feat_width;
-    int num_anchors = ( int )anchors->elem_num;
+    int num_anchors = (int)anchors->elem_num;
     for (int i = 0; i < num_anchors; ++i)
     {
         for (int j = 0; j < feat_height; j++)
             for (int k = 0; k < feat_width; k++)
             {
-                Anchor_t anchor_val = *( Anchor_t* )(get_vector_data(anchors, i));
+                Anchor_t anchor_val = *(Anchor_t*)(get_vector_data(anchors, i));
                 local_anchors[(i * 4 + 0) * feat_size + j * feat_width + k] = anchor_val.x0 + k * feat_stride;
                 local_anchors[(i * 4 + 1) * feat_size + j * feat_width + k] = anchor_val.y0 + j * feat_stride;
                 local_anchors[(i * 4 + 2) * feat_size + j * feat_width + k] = anchor_val.x1 + k * feat_stride;
@@ -242,7 +241,7 @@ int ref_rpn_fp32(const float* score, float* featmap, float* anchors, float* outp
     int featmap_size = param->feat_height * param->feat_width * param->feat_chan;
     int max_num_boxes = featmap_size / 4;
 
-    struct RPN_Box* boxes = ( struct RPN_Box* )sys_malloc(max_num_boxes * sizeof(struct RPN_Box));
+    struct RPN_Box* boxes = (struct RPN_Box*)sys_malloc(max_num_boxes * sizeof(struct RPN_Box));
 
     bbox_tranform_inv(featmap, anchors, param);
 
@@ -301,7 +300,7 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     struct node* ir_node = exec_node->ir_node;
-    rpn_param_t* _param = ( struct rpn_param* )(ir_node->op.param_mem);
+    rpn_param_t* _param = (struct rpn_param*)(ir_node->op.param_mem);
     struct graph* ir_graph = ir_node->graph;
     struct tensor* score_tensor;
     struct tensor* featmap_tensor;
@@ -315,11 +314,11 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
     const void* score_org = score_tensor->data;
     void* featmap_org = featmap_tensor->data;
-    const float* info_org = ( float* )info_tensor->data;
+    const float* info_org = (float*)info_tensor->data;
     void* output_org = output_tensor->data;
 
     struct rpn_param_ref param;
-    param.num_anchors = ( int )_param->anchors_->elem_num;
+    param.num_anchors = (int)_param->anchors_->elem_num;
     param.feat_chan = featmap_tensor->dims[1];
     param.feat_height = featmap_tensor->dims[2];
     param.feat_width = featmap_tensor->dims[3];
@@ -334,7 +333,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     param.min_size = _param->min_size;
     param.feat_stride = _param->feat_stride;
     int size = param.num_anchors * 4 * feat_size;
-    float* local_anchors = ( float* )sys_malloc(size * sizeof(float));
+    float* local_anchors = (float*)sys_malloc(size * sizeof(float));
 
     ref_proposal_local_anchor(featmap_tensor->dims[2], featmap_tensor->dims[3], _param->feat_stride, _param->anchors_,
                               local_anchors);

@@ -30,12 +30,10 @@ EXPORT_BEGIN
 #include "api/c_api.h"
 #include "device/device.h"
 
-
 struct trt_device
 {
     struct device base;
 };
-
 
 DLLEXPORT int register_cpu_device(void);
 
