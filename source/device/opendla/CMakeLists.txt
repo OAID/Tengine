@@ -46,6 +46,7 @@ LIST (APPEND _DEV_ODLA_HEADER_PATH        ${CMAKE_CURRENT_BINARY_DIR})
 LIST (APPEND _DEV_ODLA_HEADER_PATH        ${CMAKE_SOURCE_DIR}/source/device/opendla/include/)
 LIST (APPEND _DEV_ODLA_HEADER_PATH        ${CMAKE_SOURCE_DIR}/source/device/opendla/include/common)
 LIST (APPEND _DEV_ODLA_HEADER_PATH        ${CMAKE_SOURCE_DIR}/source/device/opendla/include/compiler)
+LIST (APPEND _DEV_ODLA_HEADER_PATH        ${CMAKE_SOURCE_DIR}/source/device/opendla/include/runtime)
 LIST (APPEND _DEV_ODLA_HEADER_PATH        ${CMAKE_SOURCE_DIR}/source/device/opendla/include/external)
 
 
@@ -82,6 +83,7 @@ LIST (APPEND _DEV_ODLA_LINK_PATH            ${_ODLA_ROOT}/lib)
 LIST (APPEND _DEV_ODLA_LINK_LIBRARIES       "nvdla_compiler" )
 LIST (APPEND _DEV_ODLA_LINK_LIBRARIES       "libprotobuf.a" )
 LIST (APPEND _DEV_ODLA_LINK_LIBRARIES       "pthread")
+LIST (APPEND _DEV_ODLA_LINK_LIBRARIES       "nvdla_runtime" )
 
 
 # 7. set all to cmake cache

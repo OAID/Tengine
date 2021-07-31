@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include "nvdla/IRuntime.h"
 #include "priv/EngineAST.h"
 #include "priv/CanonicalAST.h"
 #include "priv/Profiler.h"
@@ -52,7 +53,7 @@ extern "C"
 #include <tuple>
 #include <vector>
 #include <cmath>
-
+#include <sys/time.h>
 
 #include "convolution_param.h"
 
@@ -94,8 +95,13 @@ public:
     nvdla::priv::canonical_ast::Graph * graph;
 
     nvdla::priv::CompilerFactory::CompilerPrivPair compiler;
+    nvdla::IRuntime * runtime;
     nvdla::priv::LoadableFactory::LoadablePrivPair loadable;
 
 private:
+    NvU8 * inputHandle;
+    NvU8 * outputHandle;
+    void * inputBuffer = NULL;
+    void * outputBuffer = NULL;
     dict_irt2odlat     odla_tensor_map;
 };

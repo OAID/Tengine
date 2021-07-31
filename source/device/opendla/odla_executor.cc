@@ -65,9 +65,9 @@ ODLAEngine::ODLAEngine()
 
     std::cout << "ODLA Engine Init " << std::endl;
 
-    this->loadable = nvdla::priv::LoadableFactory::LoadablePrivPair(0, 0);
+    this->runtime = nvdla::createRuntime();
     this->compiler = nvdla::priv::CompilerFactory::newCompiler();
-
+    this->loadable = nvdla::priv::LoadableFactory::LoadablePrivPair(0, 0);
 
     this->ODLAConfigGenerate();
     this->graph = new nvdla::priv::canonical_ast::Graph();
@@ -244,7 +244,6 @@ int ODLAEngine::Build(struct subgraph* subgraph)
     std::cout << "ODLA Build Entrance " << std::endl;
     struct graph* ir_graph = subgraph->graph;
 
-
     for (int i = 0; i < subgraph->node_num; i++)
     {
         uint16_t node_id = subgraph->node_list[i];
@@ -274,6 +273,7 @@ int ODLAEngine::ODLAEnginePreRun(struct subgraph* subgraph)
 {
     std::cout << "ODLA PreRun Entrance " << std::endl;
 
+    NvDlaError e = NvDlaSuccess;
     struct graph* ir_graph = subgraph->graph;
     /* Add OpenDLA Tensor */
     for (uint8_t i = 0; i < subgraph->input_num; i++)
@@ -378,7 +378,7 @@ int ODLAEngine::ODLAEnginePreRun(struct subgraph* subgraph)
             fprintf(stderr, "Failed to emit Loadable Data. \n");
             return -1;
         }
-        this->loadable.priv()->serialize();
+        (void)this->loadable.priv()->serialize();
 
         // Get Loadable Image Size
         NvU64 loadableSize = 0;
@@ -392,7 +392,65 @@ int ODLAEngine::ODLAEnginePreRun(struct subgraph* subgraph)
             fprintf(stderr, "Failed to allocate buffer for loadable. \n");
             return -1;
         }
+        this->loadable.priv()->getSerializedData(buffer);
+
+        // deserialize Loadable image
+        this->runtime->load(buffer, 0);
+
+        // Allocate Input & Output Buffer
+        if (subgraph->input_num > 0)
+        {
+            for (uint8_t i = 0; i < subgraph->input_num; i++)
+            {
+                int ir_tensor_idx = subgraph->input_tensor_list[i];
+                struct tensor* ir_tensor = get_ir_graph_tensor(ir_graph, ir_tensor_idx);
+                nvdla::IRuntime::NvDlaTensor tDesc;
+                void *hMem = NULL;
+
+                this->runtime->getInputTensorDesc(i, &tDesc);
+                if (e != NvDlaSuccess){
+                    fprintf(stderr, "getInputTensorDesc failed.\n");
+                    return -1;
+                }
+                e = this->runtime->allocateSystemMemory(&hMem, tDesc.bufferSize, &inputBuffer);
+                if (e != NvDlaSuccess){
+                    fprintf(stderr, "allocateSystemMemory failed.\n");
+                    return -1;
+                }
+                this->inputHandle = (NvU8 *)hMem;
+                if (!this->runtime->bindInputTensor(i, hMem)){
+                    fprintf(stderr, "bindInputTensor failed.\n");
+                    return -1;
+                }
+            }
+        }
+
+        if(subgraph->output_num > 0){
+            for (uint8_t i = 0; i < subgraph->output_num; i++){
+                int ir_tensor_idx = subgraph->output_tensor_list[i];
+                struct tensor* ir_tensor = get_ir_graph_tensor(ir_graph, ir_tensor_idx);
+                nvdla::IRuntime::NvDlaTensor tDesc;
+                void *hMem = NULL;
+
+                this->runtime->getOutputTensorDesc(i, &tDesc);
+                if (e != NvDlaSuccess){
+                    fprintf(stderr, "getOutputTensorDesc failed.\n");
+                    return -1;
+                }
+                e = this->runtime->allocateSystemMemory(&hMem, tDesc.bufferSize, &outputBuffer);
+                if (e != NvDlaSuccess){
+                    fprintf(stderr, "allocateSystemMemory failed.\n");
+                    return -1;
+                }
+                this->outputHandle = (NvU8 *)hMem;
+                if (!this->runtime->bindOutputTensor(i, hMem)){
+                    fprintf(stderr, "bindOutputTensor failed.\n");
+                    return -1;
+                }
+            }
+        }
     }
+
     return 0;
 };
 
@@ -400,10 +458,71 @@ int ODLAEngine::ODLAEngineRun(struct subgraph* subgraph)
 {
     std::cout << "ODLA EngineRun Entrance " << std::endl;
 
+    NvDlaError e = NvDlaSuccess;
+    struct graph* ir_graph = subgraph->graph;
+
+    if (subgraph->input_num > 0)
+    {
+        for (uint8_t i = 0; i < subgraph->input_num; i++)
+        {
+            int ir_tensor_idx = subgraph->input_tensor_list[i];
+            struct tensor* ir_tensor = get_ir_graph_tensor(ir_graph, ir_tensor_idx);
+            memcpy(this->inputBuffer, ir_tensor->data,ir_tensor->elem_num * ir_tensor->elem_size);
+        }
+
+        struct timeval t1, t2;
+        double elapsedTime;
+
+        this->runtime->initEMU();
+        gettimeofday(&t1, NULL);
+        this->runtime->submit();
+        gettimeofday(&t2, NULL);
+        this->runtime->stopEMU();
+
+        elapsedTime = t2.tv_sec - t1.tv_sec;
+        elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000000.0;
+        fprintf(stdout ,"NVDLA time: %f seconds\n", elapsedTime);
+
+        /* download data */
+        for (uint8_t i = 0; i < subgraph->output_num; i++)
+        {
+            int ir_tensor_idx = subgraph->output_tensor_list[i];
+            struct tensor* ir_tensor = get_ir_graph_tensor(ir_graph, ir_tensor_idx);
+            if (nullptr == ir_tensor->data)
+            {
+                auto data = (int8_t*)malloc(ir_tensor->elem_size * ir_tensor->elem_num);
+                ir_tensor->data = data;
+
+                ir_tensor->free_host_mem = 1;
+                ir_tensor->internal_allocated = 0;
+            }
+            memcpy(ir_tensor->data, outputBuffer, ir_tensor->elem_size * ir_tensor->elem_num);
+        }
+    }
+
+    // Free Buffer
+    nvdla::IRuntime::NvDlaTensor tDesc;
+    e = runtime->getInputTensorDesc(0, &tDesc);
+    if (e != NvDlaSuccess){
+        fprintf(stderr, "Failed to getInputTensorDesc.\n");
+        return -1;
+    }
+    if (!this->inputHandle){
+        this->runtime->freeSystemMemory(this->inputHandle, tDesc.bufferSize);
+    }
+    e = runtime->getOutputTensorDesc(0, &tDesc);
+    if (e != NvDlaSuccess){
+        fprintf(stderr, "Failed to getOutputTensorDesc.\n");
+        return -1;
+    }
+    if (!this->outputHandle){
+        this->runtime->freeSystemMemory(this->outputHandle, tDesc.bufferSize);
+    }
     return 0;
 }
 
 void ODLAEngine::ODLAEnginePostRun()
 {
+    std::cout << "ODLA PostRun Entrance " << std::endl;
 
 };

@@ -72,7 +72,7 @@ int create_test_pool_node(graph_t graph, const char* input_name, const char* nod
     return 0;
 }
 
-float reference_out[3] = {-10.f, -10.f, -10.f};
+float reference_out[3] = {5.f, 5.f, 5.f};
 
 
 float input_scale = 0.039216f;
@@ -104,7 +104,7 @@ int main(int argc, char* argv[])
     set_tensor_quant_param(output_tesnor, &output_scale, &output_zero_point, 1);
 
     // set input data
-    fill_input_int8_tensor_by_index(graph, 0, 0, -10.0f);
+    fill_input_int8_tensor_by_index(graph, 0, 0, 1.0f);
     // graph run
     ret = test_graph_run(graph);
     if (0 != ret)
@@ -133,6 +133,7 @@ int main(int argc, char* argv[])
         float* output_value =  (float *)output_data + i * cstep;
         for (int j = 0; j < cstep; j++)
         {
+            fprintf(stdout, "index:%d, a:%f, b:%f\n", j, output_value[j], reference_out[i]);
             if (fabsf(output_value[j] - reference_out[i]) > 0.01)
             {
                 fprintf(stderr, "index:%d, a:%f, b:%f\n", j, output_value[j], reference_out[i]);
