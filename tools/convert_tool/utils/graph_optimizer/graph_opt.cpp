@@ -125,6 +125,15 @@ int delete_node(ir_graph_t* graph, int16_t pre_node_id, int16_t del_node_id)
     }
     pre_output_tensor->consumer_num = del_output_tensor->consumer_num;
 
+    /* check if graph output */
+    for (int i = 0; i < graph->output_num; ++i)
+    {
+        if (del_node_id == graph->output_nodes[i])
+        {
+            graph->output_nodes[i] = pre_node_id;
+        }
+    }
+
     /* delete node */
     if (erase_tensor_id(graph, del_node->output_tensors[0]) < 0 || erase_node_id(graph, del_node->index) < 0)
     {
