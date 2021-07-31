@@ -402,7 +402,7 @@ jobs:
 
   publish-releases:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/tengine-lite'
     needs: [linux-x64-cpu-tools-convert, linux-x64-cpu-tools-quant]
     steps:
     - uses: actions/checkout@v2.3.4
