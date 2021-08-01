@@ -34,6 +34,109 @@
 #include <fstream>
 #endif
 
+void ODLAEngine::odla_input_data_convert(void * dst, const void * src, nvdla::IRuntime::NvDlaTensor tDesc){
+    uint32_t batch  = tDesc.dims.n;
+    uint32_t channel = tDesc.dims.c;
+    uint32_t height = tDesc.dims.h;
+    uint32_t width = tDesc.dims.w;
+    uint32_t atom_c_size = this->targetConfig->atomicCSize();
+    uint32_t atom_k_size = this->targetConfig->atomicKSize();
+    uint32_t line_stride = tDesc.stride[1];
+    uint32_t surface_stride = tDesc.stride[2];
+
+    const uint32_t ATOMIC_CUBE = 8;
+    size_t idx = 0;
+    for(size_t b = 0; b < batch; ++b){
+        for(size_t c = 0; c < channel; c++){
+            uint32_t cStride = c * atom_c_size;
+            uint32_t cquotient = c / atom_c_size;
+            uint32_t cremainder = c % atom_c_size;
+
+            for (size_t h = 0; h < height; ++h){
+                for (size_t w = 0; w < width; ++w){
+                    uint32_t wStride = w % atom_k_size;
+                    uint32_t _offset = (cquotient * surface_stride) + (h * line_stride ) + (w * atom_k_size) + cremainder;
+
+                    int8_t* _dst = (int8_t*)dst + _offset;
+                    int8_t* _src = (int8_t*)src + idx;
+                    *_dst = *_src;
+#ifdef OPENDLA_LOG_
+                    fprintf(stdout, "address : %x data: %d \n", (uint64_t)_dst, *_dst);
+//                    fprintf(stdout, "address : %x data: %d \n", (cquotient * surface_stride) + (h * line_stride ) + (w * atom_k_size) + cremainder, *_dst);
+#endif
+                    idx++;
+                }
+            }
+        }
+    }
+}
+
+void ODLAEngine::odla_output_data_convert(void * dst, const void * src, nvdla::IRuntime::NvDlaTensor tDesc){
+
+    uint32_t batch  = tDesc.dims.n;
+    uint32_t channel = tDesc.dims.c;
+    uint32_t height = tDesc.dims.h;
+    uint32_t width = tDesc.dims.w;
+    uint32_t atom_c_size = this->targetConfig->atomicCSize();
+    uint32_t atom_k_size = this->targetConfig->atomicKSize();
+    uint32_t line_stride = tDesc.stride[1];
+    uint32_t surface_stride = tDesc.stride[2];
+
+    // Copy contents
+    size_t idx = 0;
+    for (size_t c = 0; c < channel; c++) {
+        for (size_t h = 0; h < height; h++) {
+            for (size_t w = 0; w < width; w++) {
+                int8_t * _dst = (int8_t *)dst + idx;
+                NvU32 cquotient = c / atom_c_size;
+                NvU32 cremainder = c % atom_c_size;
+
+                size_t _offset = (cquotient * surface_stride) + (h * line_stride ) + (w * atom_k_size) + cremainder;
+                *_dst = *((int8_t *)src + _offset);
+#ifdef OPENDLA_LOG_
+                int8_t tmpdata = *_dst;
+                fprintf(stdout, "%s: address : %x src:%x data: %d \n", __func__, (uint64_t)_dst,(uint64_t)((int8_t *)src + _offset), tmpdata);
+//                *((int8_t *)dst + w + h*tDesc.dims.w + c*tDesc.dims.h * tDesc.dims.w)= *((int8_t *)src + surface_stride*surface_index + line_stride*h + w + c%8) ;
+#endif
+                idx++;
+            }
+        }
+    }
+
+}
+
+static void odla_data_dump(const char *filename, int8_t *data, int w, int h, int c)
+{
+#ifdef OPENDLA_LOG_
+    FILE *fp;
+
+    fp = fopen(filename, "w");
+
+    unsigned int line_stride = w * 8;
+    unsigned int surface_stride = line_stride * h;
+
+    fprintf(fp, "blobs {\n");
+    for (int i = 0; i < c; i++) {
+        for (int j = 0; j < h; j++) {
+            for (int k = 0; k < w; k++) {
+                int surface_index = i / 8;
+                fprintf(fp, "  double_data: %d\n", data[surface_stride*surface_index + line_stride*j + k + i%8]);
+                fprintf(stdout, "address: %x data: %d\n", ((uint64_t)data)+surface_stride*surface_index + line_stride*j + k + i%8 ,data[surface_stride*surface_index + line_stride*j + k + i%8]);
+            }
+        }
+    }
+    fprintf(fp, "  shape {\n");
+    fprintf(fp, "    dim: 1\n");
+    fprintf(fp, "    dim: %d\n", c);
+    fprintf(fp, "    dim: %d\n", h);
+    fprintf(fp, "    dim: %d\n", w);
+    fprintf(fp, "  }\n");
+    fprintf(fp, "}\n");
+
+    fclose(fp);
+#endif
+}
+
 NvDlaError ODLAEngine::ODLAConfigGenerate(){
     NvDlaError e = NvDlaSuccess;
 
@@ -393,7 +496,13 @@ int ODLAEngine::ODLAEnginePreRun(struct subgraph* subgraph)
             return -1;
         }
         this->loadable.priv()->getSerializedData(buffer);
-
+        {
+            NvDlaFileHandle file = 0;
+            std::string fileName = std::string(this->profile->getName()) + ".nvdla";
+            fprintf(stdout, "Dump loadable data to : %s . \n", fileName.c_str());
+            NvDlaFopen(fileName.c_str(), NVDLA_OPEN_WRITE, &file);
+            NvDlaFwrite(file, buffer, loadableSize);
+        }
         // deserialize Loadable image
         this->runtime->load(buffer, 0);
 
@@ -432,7 +541,7 @@ int ODLAEngine::ODLAEnginePreRun(struct subgraph* subgraph)
                 nvdla::IRuntime::NvDlaTensor tDesc;
                 void *hMem = NULL;
 
-                this->runtime->getOutputTensorDesc(i, &tDesc);
+                e = this->runtime->getOutputTensorDesc(i, &tDesc);
                 if (e != NvDlaSuccess){
                     fprintf(stderr, "getOutputTensorDesc failed.\n");
                     return -1;
@@ -467,7 +576,24 @@ int ODLAEngine::ODLAEngineRun(struct subgraph* subgraph)
         {
             int ir_tensor_idx = subgraph->input_tensor_list[i];
             struct tensor* ir_tensor = get_ir_graph_tensor(ir_graph, ir_tensor_idx);
-            memcpy(this->inputBuffer, ir_tensor->data,ir_tensor->elem_num * ir_tensor->elem_size);
+            nvdla::IRuntime::NvDlaTensor tDesc;
+
+            this->runtime->getInputTensorDesc(i, &tDesc);
+            if (e != NvDlaSuccess){
+                fprintf(stderr, "getInputTensorDesc failed.\n");
+                return -1;
+            }
+
+            odla_input_data_convert(this->inputBuffer, ir_tensor->data, tDesc);
+            fprintf(stdout, "Nvdla Input Data: \n");
+            for(uint8_t idh = 0; idh < ir_tensor->dims[2] ; idh++){
+                for(uint8_t idw = 0; idw < ir_tensor->dims[3] ; idw++)
+                {
+                    int8_t tmpdata = ((int8_t *)ir_tensor->data)[idw + idh * ir_tensor->dims[3]];
+                    fprintf(stdout, " %d ", tmpdata);
+                }
+                fprintf(stdout, "\n");
+            }
         }
 
         struct timeval t1, t2;
@@ -487,6 +613,14 @@ int ODLAEngine::ODLAEngineRun(struct subgraph* subgraph)
         for (uint8_t i = 0; i < subgraph->output_num; i++)
         {
             int ir_tensor_idx = subgraph->output_tensor_list[i];
+
+            nvdla::IRuntime::NvDlaTensor tDesc;
+            this->runtime->getOutputTensorDesc(i, &tDesc);
+            if (e != NvDlaSuccess){
+                fprintf(stderr, "getInputTensorDesc failed.\n");
+                return -1;
+            }
+
             struct tensor* ir_tensor = get_ir_graph_tensor(ir_graph, ir_tensor_idx);
             if (nullptr == ir_tensor->data)
             {
@@ -496,7 +630,16 @@ int ODLAEngine::ODLAEngineRun(struct subgraph* subgraph)
                 ir_tensor->free_host_mem = 1;
                 ir_tensor->internal_allocated = 0;
             }
-            memcpy(ir_tensor->data, outputBuffer, ir_tensor->elem_size * ir_tensor->elem_num);
+            odla_output_data_convert(ir_tensor->data, outputBuffer, tDesc);
+            fprintf(stdout, "Nvdla Output Data: \n");
+            for(uint8_t idh = 0; idh < ir_tensor->dims[2] ; idh++){
+                for(uint8_t idw = 0; idw < ir_tensor->dims[3] ; idw++)
+                {
+                    int8_t tmpdata = ((int8_t *)ir_tensor->data)[idw + idh * ir_tensor->dims[3]];
+                    fprintf(stdout, " %d ", tmpdata);
+                }
+                fprintf(stdout, "\n");
+            }
         }
     }
 
@@ -524,5 +667,9 @@ int ODLAEngine::ODLAEngineRun(struct subgraph* subgraph)
 void ODLAEngine::ODLAEnginePostRun()
 {
     std::cout << "ODLA PostRun Entrance " << std::endl;
+    if(this->runtime){
+        this->runtime->unload();
+        nvdla::destroyRuntime(this->runtime);
+    }
 
 };

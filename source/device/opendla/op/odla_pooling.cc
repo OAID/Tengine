@@ -52,7 +52,7 @@ bool ODLAEngine::AddPoolingNode(struct node* ir_node)
     }
     else
     {
-        pooltype = nvdla::PoolingType::kMIN;
+        pooltype = nvdla::PoolingType::kAVERAGE;
     }
     nvdla::Dims2 topLeftPadding(param->pad_h0, param->pad_w0);
     nvdla::Dims2 bottomRightPadding(param->pad_h1, param->pad_w1);

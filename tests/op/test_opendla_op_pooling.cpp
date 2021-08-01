@@ -22,21 +22,41 @@
  * Author: qtang@openailab.com
  */
 
-
 #include "test_op.h"
 #include "operator/prototype/pooling_param.h"
+#include <iostream>
 
+int float_mismatch(float* current, float* reference, int size)
+{
+    for (int i = 0; i < size; i++)
+    {
+        float tmp = fabs(current[i]) - fabs(reference[i]);
+        fprintf(stderr, "index:%d, a:%f, b:%f\n", i, current[i], reference[i]);
+        if (fabs(tmp) > 0.1)
+        {
+            fprintf(stderr, "test failed, index:%d, a:%f, b:%f\n", i, current[i], reference[i]);
+            return -1;
+        }
+    }
+    fprintf(stderr, "test pass\n");
+
+    return 0;
+}
 
 int create_test_pool_node(graph_t graph, const char* input_name, const char* node_name, int data_type, int layout, int n, int c, int h, int w)
 {
-    (void)layout; (void)n; (void)c; (void)h; (void)w;
+    (void)layout;
+    (void)n;
+    (void)c;
+    (void)h;
+    (void)w;
 
     /* create the test node */
-    struct node* test_node = (struct node* )create_graph_node(graph, node_name, "Pooling");
+    struct node* test_node = (struct node*)create_graph_node(graph, node_name, "Pooling");
 
     tensor_t input_tensor = get_graph_tensor(graph, input_name);
 
-    if(NULL == input_tensor)
+    if (NULL == input_tensor)
     {
         fprintf(stderr, "create test node failed.\n");
         return -1;
@@ -50,14 +70,14 @@ int create_test_pool_node(graph_t graph, const char* input_name, const char* nod
     set_node_output_tensor(test_node, 0, output_tensor, TENSOR_TYPE_VAR);
 
     /* set params */
-    struct pool_param* pool_param = ( struct pool_param* )(struct node* )test_node->op.param_mem;
+    struct pool_param* pool_param = (struct pool_param*)(struct node*)test_node->op.param_mem;
 
     pool_param->pool_method = POOL_MAX;
     pool_param->global = 0;
-    pool_param->kernel_h = 3;
-    pool_param->kernel_w = 3;
-    pool_param->stride_h = 2;
-    pool_param->stride_w = 2;
+    pool_param->kernel_h = 2;
+    pool_param->kernel_w = 2;
+    pool_param->stride_h = 1;
+    pool_param->stride_w = 1;
     pool_param->pad_h0 = 0;
     pool_param->pad_h1 = 0;
     pool_param->pad_w0 = 0;
@@ -72,17 +92,44 @@ int create_test_pool_node(graph_t graph, const char* input_name, const char* nod
     return 0;
 }
 
-float reference_out[3] = {5.f, 5.f, 5.f};
+//float reference_out[4] = {6, 7,
+//                          8, 5};
+//
+//float input_array[25] = {5, 6, 5, 7, 5,
+//                         5, 5, 5, 5, 5,
+//                         5, 5, 5, 5, 5,
+//                         5, 5, 5, 5, 5,
+//                         5, 8, 5, 5, 5};
 
+//float input_array[4] = {5, 7,
+//                            8, 5};
+//float reference_out[1] = {8};
 
-float input_scale = 0.039216f;
-int input_zero_point = 255;
-float output_scale = 0.039216f;
-int output_zero_point = 255;
+//float input_array[9] = {5, 7, 4,
+//                        8, 5, 5,
+//                        2, 3, 4};
+//float reference_out[4] = {8, 7,
+//                          8, 5};
+
+float input_array[16] = {5, 7, 4, 4,
+                        8, 5, 5, 7,
+                        2, 3, 4, 3,
+                        8, 5, 5, 7,};
+float reference_out[9] = {8, 7, 7,
+                          8, 5, 7,
+                          8, 5, 7};
+
+float input_scale = 0.062992f;
+int input_zero_point = 0;
+float output_scale = 0.062992f;
+int output_zero_point = 0;
 
 int main(int argc, char* argv[])
 {
-    int n = 1, c = 3, h = 4, w = 5;
+    int n = 1;
+    int c = 1;
+    int h = 4;
+    int w = 4;
     const char* test_node_name = "pooling";
     int data_type = TENGINE_DT_INT8;
     int layout = TENGINE_LAYOUT_NCHW;
@@ -94,8 +141,31 @@ int main(int argc, char* argv[])
 
     // create
     graph_t graph = create_opendla_test_graph(test_node_name, data_type, layout, n, c, h, w, &create_test_pool_node);
-    if(NULL == graph)
+    if (NULL == graph)
         return -1;
+    /* set the shape, data buffer of input_tensor of the graph */
+    int img_size = n * c * h * w;
+    int dims[] = {n, c, h, w}; // nchw
+    std::vector<int8_t> input_i8(img_size);
+
+    tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
+    if (input_tensor == NULL)
+    {
+        fprintf(stderr, "Get input tensor failed\n");
+        return -1;
+    }
+
+    if (set_tensor_shape(input_tensor, dims, 4) < 0)
+    {
+        fprintf(stderr, "Set input tensor shape failed\n");
+        return -1;
+    }
+
+    if (set_tensor_buffer(input_tensor, input_i8.data(), img_size * sizeof(int8_t)) < 0)
+    {
+        fprintf(stderr, "Set input tensor buffer failed\n");
+        return -1;
+    }
 
     // set quantize params
     tensor_t input_tesnor = get_graph_input_tensor(graph, 0, 0);
@@ -103,8 +173,19 @@ int main(int argc, char* argv[])
     set_tensor_quant_param(input_tesnor, &input_scale, &input_zero_point, 1);
     set_tensor_quant_param(output_tesnor, &output_scale, &output_zero_point, 1);
 
-    // set input data
-    fill_input_int8_tensor_by_index(graph, 0, 0, 1.0f);
+    /* prepare process input data, set the data mem to input tensor, quantize fp32 to int8 */
+    for (int i=0; i<img_size; i++)
+    {
+        int idata = (round)(input_array[i] / input_scale);
+        if (idata > 127)
+            idata = 127;
+        else if (idata < -127)
+            idata = -127;
+
+        input_i8[i] = idata;
+        std::cout << "input_i8 : "<< i << " -> " << idata << std::endl;
+    }
+
     // graph run
     ret = test_graph_run(graph);
     if (0 != ret)
@@ -114,33 +195,19 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    // get output and dequant
+    /* get output and dequant int8 to fp32 */
     struct tensor* output_tensor = (struct tensor*)get_graph_output_tensor(graph, 0, 0);
-    int8_t* output_int8 = ( int8_t* )output_tensor->data;
+
+    int8_t* output_int8 = (int8_t*)output_tensor->data;
     int output_size = output_tensor->elem_num;
-    int out_c = output_tensor->dims[1];
-    int cstep = output_tensor->dims[2] * output_tensor->dims[3];
-
     get_tensor_quant_param(output_tensor, &output_scale, &output_zero_point, 1);
-    float* output_data = ( float* )malloc(output_size * sizeof(float));
-    for (int i = 0; i < output_size; i++)
-        output_data[i] = (( float )output_int8[i] - ( float )output_zero_point) * output_scale;
 
-    // check the result
-    ret = 0;
-    for (int i = 0; i< out_c; i++)
-    {
-        float* output_value =  (float *)output_data + i * cstep;
-        for (int j = 0; j < cstep; j++)
-        {
-            fprintf(stdout, "index:%d, a:%f, b:%f\n", j, output_value[j], reference_out[i]);
-            if (fabsf(output_value[j] - reference_out[i]) > 0.01)
-            {
-                fprintf(stderr, "index:%d, a:%f, b:%f\n", j, output_value[j], reference_out[i]);
-                ret = -1;
-            }
-        }
-    }
+    std::vector<float> output_fp32(output_size);
+    for (int i = 0; i < output_size; i++)
+        output_fp32[i] = (float)output_int8[i] * output_scale;
+
+    /* check the result */
+    ret = float_mismatch(output_fp32.data(), reference_out, output_size);
 
     if (ret == 0)
         fprintf(stderr, "test pass.\n");
