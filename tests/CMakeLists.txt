@@ -181,6 +181,8 @@ if(PROTOBUF_FOUND)
     tengine_onnx_op_test(test_onnx_op_exp                           op/test_onnx_op_exp.cpp)
     # tengine_onnx_op_test(test_onnx_op_expand_dim_unchanged          op/test_onnx_op_expand_dim_unchanged.cpp)
     tengine_onnx_op_test(test_onnx_op_floor                         op/test_onnx_op_floor.cpp)
+    # tengine_onnx_op_test(test_onnx_op_gather_0                      op/test_onnx_op_gather_0.cpp) # onnx.tmfile 有问题
+    # tengine_onnx_op_test(test_onnx_op_gather_1                      op/test_onnx_op_gather_1.cpp) # onnx.tmfile 有问题
     tengine_onnx_op_test(test_onnx_op_globalaveragepool             op/test_onnx_op_globalaveragepool.cpp)
     tengine_onnx_op_test(test_onnx_op_greater                       op/test_onnx_op_greater.cpp)
     tengine_onnx_op_test(test_onnx_op_gru_defaults                  op/test_onnx_op_gru_defaults.cpp)
