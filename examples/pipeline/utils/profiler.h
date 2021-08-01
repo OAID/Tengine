@@ -23,15 +23,42 @@
  */
 #pragma once
 
+#include <vector>
+#include <string>
+#include <sys/time.h>
+
 namespace pipe {
-template<typename T>
-struct Box
+class Profiler
 {
-    T x0;
-    T y0;
-    T x1;
-    T y1;
-    int class_idx;
-    float score;
+public:
+    Profiler() = delete;
+    Profiler(std::vector<std::string> tags): m_tags(tags) {}
+
+    void dot() {
+        struct timeval tv;
+        gettimeofday(&tv, NULL);
+        m_data.emplace_back(tv.tv_sec * 1000.0 + tv.tv_usec / 1000.0);
+    }
+
+    void show() noexcept {
+        if (m_data.size() <= m_tags.size()) {
+            fprintf(stderr, "profile dot not enough\n");
+        }
+
+        for (size_t i = 0; i < m_tags.size(); ++i) {
+            fprintf(stdout, "%s: %.2f \t", m_tags[i].c_str(), m_data[i+1] - m_data[i]);
+        }
+        fprintf(stdout, "\n");
+    }
+
+    void clear() {
+        m_data.clear();
+    }
+
+private:
+    std::vector<std::string> m_tags;
+    std::vector<double> m_data;
+
 };
+
 } // namespace pipe

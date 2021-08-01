@@ -39,7 +39,7 @@ int main()
     auto cam = g.add_node<VideoCamera>();
     auto draw = g.add_node<DrawVideo>();
 
-    auto detect_ped = g.add_node<PedestrianDetection, std::string>("mobilenet_ssd.tmfile");
+    auto detect_ped = g.add_node<PedestrianDetection, std::string, preproc_func, postproc_func>("mobilenet_ssd.tmfile", std::move(preproc), std::move(postproc));
     auto dist_estimate = g.add_node<SpatialDistanceCalc>();
 
     auto cam_det = g.add_edge<InstantEdge<cv::Mat> >(100);

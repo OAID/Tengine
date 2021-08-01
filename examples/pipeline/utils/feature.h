@@ -22,16 +22,15 @@
  * Author: tpoisonooo
  */
 #pragma once
+#include <vector>
+#include <string>
+#include "serializer.h"
 
 namespace pipe {
-template<typename T>
-struct Box
-{
-    T x0;
-    T y0;
-    T x1;
-    T y1;
-    int class_idx;
-    float score;
+
+struct Feature {
+    std::string name;
+    std::vector<float> data;
 };
-} // namespace pipe
+
+} // namspace pipe
