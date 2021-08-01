@@ -74,10 +74,10 @@ int create_test_pool_node(graph_t graph, const char* input_name, const char* nod
 
     pool_param->pool_method = POOL_MAX;
     pool_param->global = 0;
-    pool_param->kernel_h = 2;
-    pool_param->kernel_w = 2;
-    pool_param->stride_h = 1;
-    pool_param->stride_w = 1;
+    pool_param->kernel_h = 3;
+    pool_param->kernel_w = 3;
+    pool_param->stride_h = 2;
+    pool_param->stride_w = 2;
     pool_param->pad_h0 = 0;
     pool_param->pad_h1 = 0;
     pool_param->pad_w0 = 0;
@@ -92,14 +92,14 @@ int create_test_pool_node(graph_t graph, const char* input_name, const char* nod
     return 0;
 }
 
-//float reference_out[4] = {6, 7,
-//                          8, 5};
-//
-//float input_array[25] = {5, 6, 5, 7, 5,
-//                         5, 5, 5, 5, 5,
-//                         5, 5, 5, 5, 5,
-//                         5, 5, 5, 5, 5,
-//                         5, 8, 5, 5, 5};
+float reference_out[4] = {6, 7,
+                          8, 5};
+
+float input_array[25] = {5, 6, 5, 7, 5,
+                         5, 5, 5, 5, 5,
+                         5, 5, 5, 5, 5,
+                         5, 5, 5, 5, 5,
+                         5, 8, 5, 5, 5};
 
 //float input_array[4] = {5, 7,
 //                            8, 5};
@@ -111,13 +111,13 @@ int create_test_pool_node(graph_t graph, const char* input_name, const char* nod
 //float reference_out[4] = {8, 7,
 //                          8, 5};
 
-float input_array[16] = {5, 7, 4, 4,
-                        8, 5, 5, 7,
-                        2, 3, 4, 3,
-                        8, 5, 5, 7,};
-float reference_out[9] = {8, 7, 7,
-                          8, 5, 7,
-                          8, 5, 7};
+//float input_array[16] = {5, 7, 4, 4,
+//                        8, 5, 5, 7,
+//                        2, 3, 4, 3,
+//                        8, 5, 5, 7,};
+//float reference_out[9] = {8, 7, 7,
+//                          8, 5, 7,
+//                          8, 5, 7};
 
 float input_scale = 0.062992f;
 int input_zero_point = 0;
@@ -128,8 +128,8 @@ int main(int argc, char* argv[])
 {
     int n = 1;
     int c = 1;
-    int h = 4;
-    int w = 4;
+    int h = 5;
+    int w = 5;
     const char* test_node_name = "pooling";
     int data_type = TENGINE_DT_INT8;
     int layout = TENGINE_LAYOUT_NCHW;

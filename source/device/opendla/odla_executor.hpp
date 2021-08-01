@@ -91,8 +91,8 @@ public:
     std::string tp_name = "fast-math";
     std::string target_config_name = "nv_small";
 
-    nvdla::priv::Profile * profile;
-    nvdla::priv::TargetConfig* targetConfig;
+    nvdla::priv::Profile * profile{};
+    nvdla::priv::TargetConfig* targetConfig{};
     nvdla::priv::canonical_ast::Graph * graph;
 
     nvdla::priv::CompilerFactory::CompilerPrivPair compiler;
@@ -100,11 +100,11 @@ public:
     nvdla::priv::LoadableFactory::LoadablePrivPair loadable;
 
 private:
-    NvU8 * inputHandle;
-    NvU8 * outputHandle;
+    NvU8 * inputHandle{};
+    NvU8 * outputHandle{};
     void * inputBuffer = NULL;
     void * outputBuffer = NULL;
     dict_irt2odlat     odla_tensor_map;
-    void odla_input_data_convert(void * dst, const void * src, nvdla::IRuntime::NvDlaTensor tDesc);
-    void odla_output_data_convert(void * dst, const void * src, nvdla::IRuntime::NvDlaTensor tDesc);
+    void odla_input_data_convert(void * dst, const void * src, nvdla::IRuntime::NvDlaTensor tDesc) const;
+    void odla_output_data_convert(void * dst, const void * src, nvdla::IRuntime::NvDlaTensor tDesc) const;
 };
