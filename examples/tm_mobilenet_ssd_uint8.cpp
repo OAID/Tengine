@@ -179,7 +179,7 @@ int main(int argc, char* argv[])
     // init tengine
     if (init_tengine() < 0)
     {
-        std::cout << " init tengine failed\n";
+        std::cout << "init tengine failed\n";
         return 1;
     }
 

@@ -173,7 +173,7 @@ int main(int argc, char* argv[])
     int rtt = add_context_device(acl_context, "ACL");
     if (0 > rtt)
     {
-        fprintf(stderr, " add_context_device ACL DEVICE failed.\n");
+        fprintf(stderr, "add_context_device ACL DEVICE failed.\n");
         return -1;
     }
 
