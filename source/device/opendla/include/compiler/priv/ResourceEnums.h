@@ -38,12 +38,12 @@
 //
 // used in dla-engine-ast's tensor surface desc context
 //
-#define TENSOR_CATEGORY_ENUMS(op)  \
-    op(UNKNOWN_TENSOR,  0U)    \
-    op(EXTERNAL_TENSOR, 1U)    \
-    op(GLOBAL_TENSOR,   2U)    \
-    op(LOCAL_TENSOR,    3U)    \
-    op(STREAM_TENSOR,   4U)
+#define TENSOR_CATEGORY_ENUMS(op)    \
+    op(UNKNOWN_TENSOR, 0U)           \
+        op(EXTERNAL_TENSOR, 1U)      \
+            op(GLOBAL_TENSOR, 2U)    \
+                op(LOCAL_TENSOR, 3U) \
+                    op(STREAM_TENSOR, 4U)
 
 //
 // the type of data a memory buffer represents
@@ -56,10 +56,10 @@
 // used in the dla-engine-ast's mem mgmnt context
 //
 #define MEMORY_BUFFER_TYPE_ENUMS(op) \
-    op(bIMAGE_DATA,      0U)       \
-    op(bFEATURE_DATA,    1U)       \
-    op(bKERNEL_WEIGHTS,  2U)       \
-    op(bBIAS_WEIGHTS,    3U)
+    op(bIMAGE_DATA, 0U)              \
+        op(bFEATURE_DATA, 1U)        \
+            op(bKERNEL_WEIGHTS, 2U)  \
+                op(bBIAS_WEIGHTS, 3U)
 
 //
 // the memory destination where a buffer resides
@@ -72,11 +72,11 @@
 // used in the dla-engine-ast context
 //
 #define MEMORY_LOCATION_ENUMS(op) \
-    op(lUNKNOWN, 0U)       \
-    op(lDRAM,    1U)       \
-    op(lCVSRAM,  2U)       \
-    op(lCBUFF,   3U)       \
-    op(lSTREAM,  4U)
+    op(lUNKNOWN, 0U)              \
+        op(lDRAM, 1U)             \
+            op(lCVSRAM, 2U)       \
+                op(lCBUFF, 3U)    \
+                    op(lSTREAM, 4U)
 
 //
 // the type of resource-pool a RM manages that contains all buffers
@@ -95,10 +95,9 @@
 //
 // used in the dla-engine-ast context
 //
-#define POOL_TYPE_ENUMS(op)  \
-    op(GLOBAL_DRAM_POOL,    0U) \
-    op(LOCAL_DRAM_POOL,     1U) \
-    op(LOCAL_CVSRAM_POOL,   2U)
+#define POOL_TYPE_ENUMS(op)     \
+    op(GLOBAL_DRAM_POOL, 0U)    \
+        op(LOCAL_DRAM_POOL, 1U) \
+            op(LOCAL_CVSRAM_POOL, 2U)
 
-
-#endif  /* NVDLA_PRIV_RESOURCE_ENUMS_H */
+#endif /* NVDLA_PRIV_RESOURCE_ENUMS_H */

@@ -32,7 +32,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define NV_TRUE 1
+#define NV_TRUE  1
 #define NV_FALSE 0
 
 typedef uint8_t NvU8;
@@ -45,8 +45,8 @@ typedef int16_t NvS16;
 typedef int8_t NvS8;
 typedef bool NvBool;
 
-typedef float   NvF32;
-typedef double  NvF64;
+typedef float NvF32;
+typedef double NvF64;
 
 typedef NvU64 NvUPtr;
 

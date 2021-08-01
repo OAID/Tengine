@@ -26,23 +26,21 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <cmath>    // for pow
+#include <cmath> // for pow
 
 #include "ErrorMacros.h"
 
 using std::endl;
 
-#define DLA_MAX_TRUNCATE_SIZE   (std::pow(2,6) - 1)
+#define DLA_MAX_TRUNCATE_SIZE (std::pow(2, 6) - 1)
 
 // support api's for int8 quantization and scaling/rescaling
 
-template <typename SC, typename SH>
-NvDlaError scaleAndShiftFromScalarImpl1
-(
+template<typename SC, typename SH>
+NvDlaError scaleAndShiftFromScalarImpl1(
     NvF32 scalar,
     std::pair<SC, SH>* scaleAndShift,
-    NvU32 powerOfTwo = 0
-)
+    NvU32 powerOfTwo = 0)
 {
     NvDlaError e = NvDlaSuccess;
 
@@ -72,18 +70,16 @@ NvDlaError scaleAndShiftFromScalarImpl1
         }
         else
         {
-            scale       = std::numeric_limits<SC>::max();
+            scale = std::numeric_limits<SC>::max();
             // use suggested powerOf2 (if any) and adjust scale to meet the scalar
-            powerOfTwo  = powerOfTwo != 0 ? powerOfTwo : ceil(log(NvF32(absScalar / scale))/log(2));
+            powerOfTwo = powerOfTwo != 0 ? powerOfTwo : ceil(log(NvF32(absScalar / scale)) / log(2));
 
             NvF32 tolerance = 1;
             do {
                 do
                 {
                     approxValue = NvF32(scale) * std::pow(2, powerOfTwo);
-                    closestFound = std::min<NvF32>(fabs(closestFound - absScalar), fabs(approxValue - absScalar)) ==
-                                   fabs(closestFound - absScalar) ?
-                                   closestFound : approxValue;
+                    closestFound = std::min<NvF32>(fabs(closestFound - absScalar), fabs(approxValue - absScalar)) == fabs(closestFound - absScalar) ? closestFound : approxValue;
                     if (fabs(approxValue - absScalar) <= tolerance)
                     {
                         found = true;
@@ -94,10 +90,8 @@ NvDlaError scaleAndShiftFromScalarImpl1
                         scale--;
                     }
 
-                    sclInRange  = (scale <= std::numeric_limits<SC>::max()) &&
-                                  (scale >= std::numeric_limits<SC>::min());
-                    shftInRange = (powerOfTwo <= std::numeric_limits<SH>::max()) &&
-                                  (powerOfTwo >= std::numeric_limits<SH>::min());
+                    sclInRange = (scale <= std::numeric_limits<SC>::max()) && (scale >= std::numeric_limits<SC>::min());
+                    shftInRange = (powerOfTwo <= std::numeric_limits<SH>::max()) && (powerOfTwo >= std::numeric_limits<SH>::min());
                     attempts++;
                 } while (attempts != 1000 && sclInRange && shftInRange);
 
@@ -105,16 +99,16 @@ NvDlaError scaleAndShiftFromScalarImpl1
                     break;
 
                 // reset stats and retry
-                tolerance  += 1;
-                attempts    = 0;
-                scale       = std::numeric_limits<SC>::max();
-                powerOfTwo  = powerOfTwo != 0 ? powerOfTwo : ceil(log(NvF32(absScalar / scale))/log(2));
+                tolerance += 1;
+                attempts = 0;
+                scale = std::numeric_limits<SC>::max();
+                powerOfTwo = powerOfTwo != 0 ? powerOfTwo : ceil(log(NvF32(absScalar / scale)) / log(2));
             } while (tolerance <= toleranceMax);
         }
 
         if (found)
         {
-            if ( debug )
+            if (debug)
             {
                 gLogInfo << scalar << " = " << (isNeg ? -scale : scale) << "*2^"
                          << powerOfTwo << " [" << approxValue << "]" << std::endl;
@@ -127,7 +121,7 @@ NvDlaError scaleAndShiftFromScalarImpl1
             gLogWarning << "Couldn't converge on `2^(ls) * m` which could safely represent " << scalar
                         << " within acceptable tolerance of +/-" << toleranceMax
                         << " using closest found: " << closestFound << "instead" << endl;
-            scale  = closestFound / std::pow(2, powerOfTwo);
+            scale = closestFound / std::pow(2, powerOfTwo);
             scale *= isNeg ? -1 : 1;
             *scaleAndShift = std::make_pair<SC, SH>(SC(scale), SH(powerOfTwo));
         }
@@ -141,8 +135,7 @@ NvDlaError scaleAndShiftFromScalarImpl1
         do {
             do {
                 approxValue = NvF32(scale) / std::pow(2, powerOfTwo);
-                closestFound = std::min<NvF32>(fabs(closestFound - absScalar), fabs(approxValue - absScalar)) ==
-                               fabs(closestFound - absScalar) ? closestFound : approxValue;
+                closestFound = std::min<NvF32>(fabs(closestFound - absScalar), fabs(approxValue - absScalar)) == fabs(closestFound - absScalar) ? closestFound : approxValue;
                 if (fabs(approxValue - absScalar) <= tolerance)
                 {
                     found = true;
@@ -158,10 +151,8 @@ NvDlaError scaleAndShiftFromScalarImpl1
                     scale++;
                 }
 
-                sclInRange  = (scale <= std::numeric_limits<SC>::max()) &&
-                              (scale >= std::numeric_limits<SC>::min());
-                shftInRange = (powerOfTwo <= std::numeric_limits<SH>::max()) &&
-                              (powerOfTwo >= std::numeric_limits<SH>::min());
+                sclInRange = (scale <= std::numeric_limits<SC>::max()) && (scale >= std::numeric_limits<SC>::min());
+                shftInRange = (powerOfTwo <= std::numeric_limits<SH>::max()) && (powerOfTwo >= std::numeric_limits<SH>::min());
                 attempts++;
             } while (attempts != 1000 && sclInRange && shftInRange);
 
@@ -169,15 +160,15 @@ NvDlaError scaleAndShiftFromScalarImpl1
                 break;
 
             // reset stats and retry
-            tolerance  *= 10;
-            attempts    = 0;
-            scale       = 1;
-            powerOfTwo  = 0;
+            tolerance *= 10;
+            attempts = 0;
+            scale = 1;
+            powerOfTwo = 0;
         } while (tolerance <= toleranceMax);
 
         if (found)
         {
-            if ( debug )
+            if (debug)
             {
                 gLogInfo << scalar << " = " << (isNeg ? -scale : scale) << "/(2^"
                          << powerOfTwo << ") [" << approxValue << "]" << std::endl;
@@ -190,7 +181,7 @@ NvDlaError scaleAndShiftFromScalarImpl1
             gLogWarning << "Couldn't converge on `2^(-t) * s` which could safely represent " << scalar
                         << " within acceptable tolerance of +/-" << toleranceMax
                         << " using closest found: " << closestFound << "instead" << endl;
-            scale  = closestFound * std::pow(2, powerOfTwo);
+            scale = closestFound * std::pow(2, powerOfTwo);
             scale *= isNeg ? -1 : 1;
             *scaleAndShift = std::make_pair<SC, SH>(SC(scale), SH(powerOfTwo));
         }
@@ -199,7 +190,8 @@ NvDlaError scaleAndShiftFromScalarImpl1
     if (!found)
     {
         ORIGINATE_ERROR_FAIL(NvDlaError_BadValue, "Couldn't converge on `2^(x) * y` which could "
-                                "safely represent %f within acceptable tolerance\n", scalar);
+                                                  "safely represent %f within acceptable tolerance\n",
+                             scalar);
     }
 
 fail:
@@ -222,26 +214,24 @@ fail:
  *
  * todo: for dla2, add constraints on max shift/truncate width
  **/
-template <typename SC, typename SH>
-NvDlaError scaleAndShiftFromScalarImpl2
-(
+template<typename SC, typename SH>
+NvDlaError scaleAndShiftFromScalarImpl2(
     NvF32 scalar,
     std::pair<SC, SH>* scaleAndShift,
     //NvU32 maxShiftWidth,
-    NvU32 powerOfTwo = 0
-)
+    NvU32 powerOfTwo = 0)
 {
     NvDlaError e = NvDlaSuccess;
 
-    const NvS32 MIN_TOLERABLE_SCALE = std::pow(2,1);
+    const NvS32 MIN_TOLERABLE_SCALE = std::pow(2, 1);
 
     NvF32 absScalar = fabs(scalar);
-    bool isNeg  = scalar < 0;
+    bool isNeg = scalar < 0;
     NvS32 scale = 0;
     NvS32 numBits = 0;
 
     // Handle special case of scalar being zero.
-    if(absScalar == 0)
+    if (absScalar == 0)
     {
         powerOfTwo = powerOfTwo != 0 ? powerOfTwo : 1; // Any value would do if none provided
         scale = 0;
@@ -249,13 +239,14 @@ NvDlaError scaleAndShiftFromScalarImpl2
     else
     {
         // Find the number of bits required for non-fractional part
-        numBits = floor(log(absScalar)/log(2)) + 1;
+        numBits = floor(log(absScalar) / log(2)) + 1;
 
         // Check if it is within range
         if (powerOfTwo == 0 && numBits > 15)
         {
             PROPAGATE_ERROR_FAIL(NvDlaError_BadValue, "Scale value for %f is "
-                    "beyond dynamic range of NvS16\n", scalar);
+                                                      "beyond dynamic range of NvS16\n",
+                                 scalar);
         }
 
         // Update truncateFactor (powerOfTwo) and scale based on numBits
@@ -270,8 +261,8 @@ NvDlaError scaleAndShiftFromScalarImpl2
         {
             /* Error out as impossible to program */
             ORIGINATE_ERROR_FAIL(NvDlaError_BadValue,
-                                "Truncate value %d is out of range [0,63]",
-                                powerOfTwo);
+                                 "Truncate value %d is out of range [0,63]",
+                                 powerOfTwo);
         }
 
         scale = std::pow(2, powerOfTwo) * absScalar;
@@ -283,12 +274,13 @@ NvDlaError scaleAndShiftFromScalarImpl2
         else if (scale < MIN_TOLERABLE_SCALE)
         {
             gLogWarning << "Scale value " << scale << " for " << scalar << " is too small "
-                << "(threshold: " << MIN_TOLERABLE_SCALE << ")" << endl;
+                        << "(threshold: " << MIN_TOLERABLE_SCALE << ")" << endl;
         }
         else if (scale > std::numeric_limits<SC>::max())
         {
             PROPAGATE_ERROR_FAIL(NvDlaError_BadValue, "Scale value %d for %f is "
-                    "beyond dynamic range of NvS16\n", scale, scalar);
+                                                      "beyond dynamic range of NvS16\n",
+                                 scale, scalar);
         }
     }
 
@@ -298,32 +290,27 @@ fail:
     return e;
 }
 
-
-template <typename SC, typename SH>
-NvDlaError calculateScaleAndShiftFromScalar
-(
+template<typename SC, typename SH>
+NvDlaError calculateScaleAndShiftFromScalar(
     NvF32 scalar,
     std::pair<SC, SH>* scaleAndShift,
-    NvU32 powerOfTwo = 0
-)
+    NvU32 powerOfTwo = 0)
 {
     NvDlaError e = NvDlaSuccess;
 
     // toggle between the 2 implementations in case of debugging Impl2 is safe for now (mnist)
     // PROPAGATE_ERROR_FAIL( scaleAndShiftFromScalarImpl1(scalar, scaleAndShift, powerOfTwo) );
-    PROPAGATE_ERROR_FAIL( scaleAndShiftFromScalarImpl2(scalar, scaleAndShift, powerOfTwo) );
+    PROPAGATE_ERROR_FAIL(scaleAndShiftFromScalarImpl2(scalar, scaleAndShift, powerOfTwo));
 
 fail:
     return e;
 }
 
-template <typename SC, typename SH>
-NvDlaError factorizeScalars
-(
+template<typename SC, typename SH>
+NvDlaError factorizeScalars(
     std::vector<NvF32> scalars,
-    std::vector< std::pair<SC, SH> >* scalesAndShifts,
-    NvU32 commonPowerOfTwo = 0
-)
+    std::vector<std::pair<SC, SH> >* scalesAndShifts,
+    NvU32 commonPowerOfTwo = 0)
 {
     NvDlaError e = NvDlaSuccess;
 
@@ -334,7 +321,8 @@ NvDlaError factorizeScalars
         if (e != NvDlaSuccess)
         {
             ORIGINATE_ERROR_FAIL(NvDlaError_BadValue, " Couldn't converge on `2^(x) * y` which could "
-                                    "safely represent %f within acceptable tolerance\n", scalars[ss]);
+                                                      "safely represent %f within acceptable tolerance\n",
+                                 scalars[ss]);
         }
         scalesAndShifts->push_back(sclAndShft);
     }

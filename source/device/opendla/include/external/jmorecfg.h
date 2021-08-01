@@ -14,7 +14,6 @@
  * optimizations.  Most users will not need to touch this file.
  */
 
-
 /*
  * Maximum number of components (color channels) allowed in JPEG image.
  * To meet the letter of the JPEG spec, set this to 255.  However, darn
@@ -24,8 +23,7 @@
  * bytes of storage, whether actually used in an image or not.)
  */
 
-#define MAX_COMPONENTS  10      /* maximum number of image components */
-
+#define MAX_COMPONENTS 10 /* maximum number of image components */
 
 /*
  * Basic data types.
@@ -49,24 +47,23 @@
 #ifdef HAVE_UNSIGNED_CHAR
 
 typedef unsigned char JSAMPLE;
-#define GETJSAMPLE(value)  ((int) (value))
+#define GETJSAMPLE(value) ((int)(value))
 
 #else /* not HAVE_UNSIGNED_CHAR */
 
 typedef char JSAMPLE;
 #ifdef __CHAR_UNSIGNED__
-#define GETJSAMPLE(value)  ((int) (value))
+#define GETJSAMPLE(value) ((int)(value))
 #else
-#define GETJSAMPLE(value)  ((int) (value) & 0xFF)
+#define GETJSAMPLE(value) ((int)(value)&0xFF)
 #endif /* __CHAR_UNSIGNED__ */
 
 #endif /* HAVE_UNSIGNED_CHAR */
 
-#define MAXJSAMPLE      255
-#define CENTERJSAMPLE   128
+#define MAXJSAMPLE    255
+#define CENTERJSAMPLE 128
 
 #endif /* BITS_IN_JSAMPLE == 8 */
-
 
 #if BITS_IN_JSAMPLE == 12
 /* JSAMPLE should be the smallest type that will hold the values 0..4095.
@@ -74,13 +71,12 @@ typedef char JSAMPLE;
  */
 
 typedef short JSAMPLE;
-#define GETJSAMPLE(value)  ((int) (value))
+#define GETJSAMPLE(value) ((int)(value))
 
-#define MAXJSAMPLE      4095
-#define CENTERJSAMPLE   2048
+#define MAXJSAMPLE    4095
+#define CENTERJSAMPLE 2048
 
 #endif /* BITS_IN_JSAMPLE == 12 */
-
 
 /* Representation of a DCT frequency coefficient.
  * This should be a signed value of at least 16 bits; "short" is usually OK.
@@ -89,7 +85,6 @@ typedef short JSAMPLE;
  */
 
 typedef short JCOEF;
-
 
 /* Compressed datastreams are represented as arrays of JOCTET.
  * These must be EXACTLY 8 bits wide, at least once they are written to
@@ -100,19 +95,18 @@ typedef short JCOEF;
 #ifdef HAVE_UNSIGNED_CHAR
 
 typedef unsigned char JOCTET;
-#define GETJOCTET(value)  (value)
+#define GETJOCTET(value) (value)
 
 #else /* not HAVE_UNSIGNED_CHAR */
 
 typedef char JOCTET;
 #ifdef __CHAR_UNSIGNED__
-#define GETJOCTET(value)  (value)
+#define GETJOCTET(value) (value)
 #else
-#define GETJOCTET(value)  ((value) & 0xFF)
+#define GETJOCTET(value) ((value)&0xFF)
 #endif /* __CHAR_UNSIGNED__ */
 
 #endif /* HAVE_UNSIGNED_CHAR */
-
 
 /* These typedefs are used for various table entries and so forth.
  * They must be at least as wide as specified; but making them too big
@@ -128,7 +122,7 @@ typedef unsigned char UINT8;
 #else /* not HAVE_UNSIGNED_CHAR */
 #ifdef __CHAR_UNSIGNED__
 typedef char UINT8;
-#else /* not __CHAR_UNSIGNED__ */
+#else  /* not __CHAR_UNSIGNED__ */
 typedef short UINT8;
 #endif /* __CHAR_UNSIGNED__ */
 #endif /* HAVE_UNSIGNED_CHAR */
@@ -137,13 +131,13 @@ typedef short UINT8;
 
 #ifdef HAVE_UNSIGNED_SHORT
 typedef unsigned short UINT16;
-#else /* not HAVE_UNSIGNED_SHORT */
+#else  /* not HAVE_UNSIGNED_SHORT */
 typedef unsigned int UINT16;
 #endif /* HAVE_UNSIGNED_SHORT */
 
 /* INT16 must hold at least the values -32768..32767. */
 
-#ifndef XMD_H                   /* X11/xmd.h correctly defines INT16 */
+#ifndef XMD_H /* X11/xmd.h correctly defines INT16 */
 typedef short INT16;
 #endif
 
@@ -172,10 +166,10 @@ typedef short INT16;
  * same regardless of any external headers that may be included.
  */
 
-#ifndef XMD_H                   /* X11/xmd.h correctly defines INT32 */
-#ifndef _BASETSD_H_		/* Microsoft defines it in basetsd.h */
-#ifndef _BASETSD_H		/* MinGW is slightly different */
-#ifndef QGLOBAL_H		/* Qt defines it in qglobal.h */
+#ifndef XMD_H       /* X11/xmd.h correctly defines INT32 */
+#ifndef _BASETSD_H_ /* Microsoft defines it in basetsd.h */
+#ifndef _BASETSD_H  /* MinGW is slightly different */
+#ifndef QGLOBAL_H   /* Qt defines it in qglobal.h */
 typedef long INT32;
 #endif
 #endif
@@ -193,8 +187,7 @@ typedef long INT32;
 
 typedef unsigned int JDIMENSION;
 
-#define JPEG_MAX_DIMENSION  65500L  /* a tad under 64K to prevent overflows */
-
+#define JPEG_MAX_DIMENSION 65500L /* a tad under 64K to prevent overflows */
 
 /* These macros are used in all function definitions and extern declarations.
  * You could modify them if you need to change function linkage conventions;
@@ -204,14 +197,13 @@ typedef unsigned int JDIMENSION;
  */
 
 /* a function called through method pointers: */
-#define METHODDEF(type)         static type
+#define METHODDEF(type) static type
 /* a function used only in its module: */
-#define LOCAL(type)             static type
+#define LOCAL(type) static type
 /* a function referenced thru EXTERNs: */
-#define GLOBAL(type)            type
+#define GLOBAL(type) type
 /* a reference to a GLOBAL function: */
-#define EXTERN(type)            extern type
-
+#define EXTERN(type) extern type
 
 /* Originally, this macro was used as a way of defining function prototypes
  * for both modern compilers as well as older compilers that did not support
@@ -220,8 +212,7 @@ typedef unsigned int JDIMENSION;
  * software out there that uses it.
  */
 
-#define JMETHOD(type,methodname,arglist)  type (*methodname) arglist
-
+#define JMETHOD(type, methodname, arglist) type(*methodname) arglist
 
 /* libjpeg-turbo no longer supports platforms that have far symbols (MS-DOS),
  * but again, some software relies on this macro.
@@ -229,7 +220,6 @@ typedef unsigned int JDIMENSION;
 
 #undef FAR
 #define FAR
-
 
 /*
  * On a few systems, type boolean and/or its values FALSE, TRUE may appear
@@ -241,13 +231,12 @@ typedef unsigned int JDIMENSION;
 #ifndef HAVE_BOOLEAN
 typedef int boolean;
 #endif
-#ifndef FALSE                   /* in case these macros already exist */
-#define FALSE   0               /* values of boolean */
+#ifndef FALSE   /* in case these macros already exist */
+#define FALSE 0 /* values of boolean */
 #endif
 #ifndef TRUE
-#define TRUE    1
+#define TRUE 1
 #endif
-
 
 /*
  * The remaining options affect code selection within the JPEG library,
@@ -262,7 +251,6 @@ typedef int boolean;
 
 #ifdef JPEG_INTERNAL_OPTIONS
 
-
 /*
  * These defines indicate whether to include various optional functions.
  * Undefining some of these symbols will produce a smaller but less capable
@@ -273,9 +261,9 @@ typedef int boolean;
 
 /* Capability options common to encoder and decoder: */
 
-#define DCT_ISLOW_SUPPORTED     /* slow but accurate integer algorithm */
-#define DCT_IFAST_SUPPORTED     /* faster, less accurate integer method */
-#define DCT_FLOAT_SUPPORTED     /* floating-point: accurate, fast on fast HW */
+#define DCT_ISLOW_SUPPORTED /* slow but accurate integer algorithm */
+#define DCT_IFAST_SUPPORTED /* faster, less accurate integer method */
+#define DCT_FLOAT_SUPPORTED /* floating-point: accurate, fast on fast HW */
 
 /* Encoder capability options: */
 
@@ -290,7 +278,7 @@ typedef int boolean;
  * The exact same statements apply for progressive JPEG: the default tables
  * don't work for progressive mode.  (This may get fixed, however.)
  */
-#define INPUT_SMOOTHING_SUPPORTED   /* Input image smoothing option? */
+#define INPUT_SMOOTHING_SUPPORTED /* Input image smoothing option? */
 
 /* Decoder capability options: */
 
@@ -299,13 +287,12 @@ typedef int boolean;
 #define SAVE_MARKERS_SUPPORTED      /* jpeg_save_markers() needed? */
 #define BLOCK_SMOOTHING_SUPPORTED   /* Block smoothing? (Progressive only) */
 #define IDCT_SCALING_SUPPORTED      /* Output rescaling via IDCT? */
-#undef  UPSAMPLE_SCALING_SUPPORTED  /* Output rescaling at upsample stage? */
+#undef UPSAMPLE_SCALING_SUPPORTED   /* Output rescaling at upsample stage? */
 #define UPSAMPLE_MERGING_SUPPORTED  /* Fast path for sloppy upsampling? */
 #define QUANT_1PASS_SUPPORTED       /* 1-pass color quantization? */
 #define QUANT_2PASS_SUPPORTED       /* 2-pass color quantization? */
 
 /* more capability options later, no doubt */
-
 
 /*
  * The RGB_RED, RGB_GREEN, RGB_BLUE, and RGB_PIXELSIZE macros are a vestigial
@@ -328,27 +315,27 @@ typedef int boolean;
  * the regression tests.
  */
 
-#define RGB_RED         0       /* Offset of Red in an RGB scanline element */
-#define RGB_GREEN       1       /* Offset of Green */
-#define RGB_BLUE        2       /* Offset of Blue */
-#define RGB_PIXELSIZE   3       /* JSAMPLEs per RGB scanline element */
+#define RGB_RED       0 /* Offset of Red in an RGB scanline element */
+#define RGB_GREEN     1 /* Offset of Green */
+#define RGB_BLUE      2 /* Offset of Blue */
+#define RGB_PIXELSIZE 3 /* JSAMPLEs per RGB scanline element */
 
 #define JPEG_NUMCS 17
 
-#define EXT_RGB_RED        0
-#define EXT_RGB_GREEN      1
-#define EXT_RGB_BLUE       2
-#define EXT_RGB_PIXELSIZE  3
+#define EXT_RGB_RED       0
+#define EXT_RGB_GREEN     1
+#define EXT_RGB_BLUE      2
+#define EXT_RGB_PIXELSIZE 3
 
 #define EXT_RGBX_RED       0
 #define EXT_RGBX_GREEN     1
 #define EXT_RGBX_BLUE      2
 #define EXT_RGBX_PIXELSIZE 4
 
-#define EXT_BGR_RED        2
-#define EXT_BGR_GREEN      1
-#define EXT_BGR_BLUE       0
-#define EXT_BGR_PIXELSIZE  3
+#define EXT_BGR_RED       2
+#define EXT_BGR_GREEN     1
+#define EXT_BGR_BLUE      0
+#define EXT_BGR_PIXELSIZE 3
 
 #define EXT_BGRX_RED       2
 #define EXT_BGRX_GREEN     1
@@ -366,32 +353,28 @@ typedef int boolean;
 #define EXT_XRGB_PIXELSIZE 4
 
 static const int rgb_red[JPEG_NUMCS] = {
-  -1, -1, RGB_RED, -1, -1, -1, EXT_RGB_RED, EXT_RGBX_RED,
-  EXT_BGR_RED, EXT_BGRX_RED, EXT_XBGR_RED, EXT_XRGB_RED,
-  EXT_RGBX_RED, EXT_BGRX_RED, EXT_XBGR_RED, EXT_XRGB_RED,
-  -1
-};
+    -1, -1, RGB_RED, -1, -1, -1, EXT_RGB_RED, EXT_RGBX_RED,
+    EXT_BGR_RED, EXT_BGRX_RED, EXT_XBGR_RED, EXT_XRGB_RED,
+    EXT_RGBX_RED, EXT_BGRX_RED, EXT_XBGR_RED, EXT_XRGB_RED,
+    -1};
 
 static const int rgb_green[JPEG_NUMCS] = {
-  -1, -1, RGB_GREEN, -1, -1, -1, EXT_RGB_GREEN, EXT_RGBX_GREEN,
-  EXT_BGR_GREEN, EXT_BGRX_GREEN, EXT_XBGR_GREEN, EXT_XRGB_GREEN,
-  EXT_RGBX_GREEN, EXT_BGRX_GREEN, EXT_XBGR_GREEN, EXT_XRGB_GREEN,
-  -1
-};
+    -1, -1, RGB_GREEN, -1, -1, -1, EXT_RGB_GREEN, EXT_RGBX_GREEN,
+    EXT_BGR_GREEN, EXT_BGRX_GREEN, EXT_XBGR_GREEN, EXT_XRGB_GREEN,
+    EXT_RGBX_GREEN, EXT_BGRX_GREEN, EXT_XBGR_GREEN, EXT_XRGB_GREEN,
+    -1};
 
 static const int rgb_blue[JPEG_NUMCS] = {
-  -1, -1, RGB_BLUE, -1, -1, -1, EXT_RGB_BLUE, EXT_RGBX_BLUE,
-  EXT_BGR_BLUE, EXT_BGRX_BLUE, EXT_XBGR_BLUE, EXT_XRGB_BLUE,
-  EXT_RGBX_BLUE, EXT_BGRX_BLUE, EXT_XBGR_BLUE, EXT_XRGB_BLUE,
-  -1
-};
+    -1, -1, RGB_BLUE, -1, -1, -1, EXT_RGB_BLUE, EXT_RGBX_BLUE,
+    EXT_BGR_BLUE, EXT_BGRX_BLUE, EXT_XBGR_BLUE, EXT_XRGB_BLUE,
+    EXT_RGBX_BLUE, EXT_BGRX_BLUE, EXT_XBGR_BLUE, EXT_XRGB_BLUE,
+    -1};
 
 static const int rgb_pixelsize[JPEG_NUMCS] = {
-  -1, -1, RGB_PIXELSIZE, -1, -1, -1, EXT_RGB_PIXELSIZE, EXT_RGBX_PIXELSIZE,
-  EXT_BGR_PIXELSIZE, EXT_BGRX_PIXELSIZE, EXT_XBGR_PIXELSIZE, EXT_XRGB_PIXELSIZE,
-  EXT_RGBX_PIXELSIZE, EXT_BGRX_PIXELSIZE, EXT_XBGR_PIXELSIZE, EXT_XRGB_PIXELSIZE,
-  -1
-};
+    -1, -1, RGB_PIXELSIZE, -1, -1, -1, EXT_RGB_PIXELSIZE, EXT_RGBX_PIXELSIZE,
+    EXT_BGR_PIXELSIZE, EXT_BGRX_PIXELSIZE, EXT_XBGR_PIXELSIZE, EXT_XRGB_PIXELSIZE,
+    EXT_RGBX_PIXELSIZE, EXT_BGRX_PIXELSIZE, EXT_XBGR_PIXELSIZE, EXT_XRGB_PIXELSIZE,
+    -1};
 
 /* Definitions for speed-related optimizations. */
 
@@ -402,12 +385,11 @@ static const int rgb_pixelsize[JPEG_NUMCS] = {
 
 #ifndef MULTIPLIER
 #ifndef WITH_SIMD
-#define MULTIPLIER  int         /* type for fastest integer multiply */
+#define MULTIPLIER int /* type for fastest integer multiply */
 #else
-#define MULTIPLIER short  /* prefer 16-bit with SIMD for parellelism */
+#define MULTIPLIER short /* prefer 16-bit with SIMD for parellelism */
 #endif
 #endif
-
 
 /* FAST_FLOAT should be either float or double, whichever is done faster
  * by your compiler.  (Note that this type is only used in the floating point
@@ -415,7 +397,7 @@ static const int rgb_pixelsize[JPEG_NUMCS] = {
  */
 
 #ifndef FAST_FLOAT
-#define FAST_FLOAT  float
+#define FAST_FLOAT float
 #endif
 
 #endif /* JPEG_INTERNAL_OPTIONS */

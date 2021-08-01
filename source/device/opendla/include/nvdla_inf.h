@@ -34,20 +34,23 @@
 
 #define NVDLA_MAX_BUFFERS_PER_TASK (6144)
 
-struct NvDlaMemDescRec{
-    void *handle;
+struct NvDlaMemDescRec
+{
+    void* handle;
     NvU32 offset;
 };
 typedef struct NvDlaMemDescRec NvDlaMemDesc;
 
-struct NvDlaTaskRec {
+struct NvDlaTaskRec
+{
     NvU64 task_id;
     NvU32 num_addresses;
     NvDlaMemDesc address_list[NVDLA_MAX_BUFFERS_PER_TASK];
 };
 typedef struct NvDlaTaskRec NvDlaTask;
 
-typedef enum NvDlaHeap {
+typedef enum NvDlaHeap
+{
     NvDlaHeap_System,
     NvDlaHeap_SRAM,
 } NvDlaHeap;
@@ -56,19 +59,19 @@ typedef enum NvDlaHeap {
 extern "C" {
 #endif
 
-NvDlaError NvDlaInitialize(void **session_handle);
-void NvDlaDestroy(void *session_handle);
+NvDlaError NvDlaInitialize(void** session_handle);
+void NvDlaDestroy(void* session_handle);
 
-NvDlaError NvDlaOpen(void *session_handle, NvU32 instance, void **device_handle);
-void NvDlaClose(void *device_handle);
+NvDlaError NvDlaOpen(void* session_handle, NvU32 instance, void** device_handle);
+void NvDlaClose(void* device_handle);
 
-NvDlaError NvDlaSubmit(void *session_handle, void *device_handle, NvDlaTask *tasks, NvU32 num_tasks);
+NvDlaError NvDlaSubmit(void* session_handle, void* device_handle, NvDlaTask* tasks, NvU32 num_tasks);
 
-NvDlaError NvDlaAllocMem(void *session_handle, void *device_handle,
-                         void **mem_handle, void **pData, NvU32 size,
+NvDlaError NvDlaAllocMem(void* session_handle, void* device_handle,
+                         void** mem_handle, void** pData, NvU32 size,
                          NvDlaHeap heap);
-NvDlaError NvDlaFreeMem(void *session_handle, void *device_handle, void *mem_handle,
-                        void *pData, NvU32 size);
+NvDlaError NvDlaFreeMem(void* session_handle, void* device_handle, void* mem_handle,
+                        void* pData, NvU32 size);
 
 #ifdef __cplusplus
 }

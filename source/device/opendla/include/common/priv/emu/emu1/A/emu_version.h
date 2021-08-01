@@ -29,22 +29,25 @@
 #ifndef NVDLA_PRIV_EMU_EMU1_A_EMU_VERSION_H
 #define NVDLA_PRIV_EMU_EMU1_A_EMU_VERSION_H
 
-#define EMULATOR_VERSION_MAJOR      0x00
-#define EMULATOR_VERSION_MINOR      0x00
-#define EMULATOR_VERSION_SUBMINOR   0x01
+#define EMULATOR_VERSION_MAJOR    0x00
+#define EMULATOR_VERSION_MINOR    0x00
+#define EMULATOR_VERSION_SUBMINOR 0x01
 
 static inline NvU32 emu_version(void)
 {
-    return (NvU32)(((EMULATOR_VERSION_MAJOR & 0xff) << 16) |
-                   ((EMULATOR_VERSION_MINOR & 0xff) << 8) |
-                   ((EMULATOR_VERSION_SUBMINOR & 0xff)));
+    return (NvU32)(((EMULATOR_VERSION_MAJOR & 0xff) << 16) | ((EMULATOR_VERSION_MINOR & 0xff) << 8) | ((EMULATOR_VERSION_SUBMINOR & 0xff)));
 }
 
 //
 // gerrit change representing delivery of the emulator and associated headers
 //
-inline const std::string emu_gerrit_change() { return std::string("Id2fcf23860dd79ff52420ff2661918b43b58dc32"); }
-inline const std::string emu_gerrit_review() { return std::string("http://git-master.nvidia.com/r/1313572");    }
-
+inline const std::string emu_gerrit_change()
+{
+    return std::string("Id2fcf23860dd79ff52420ff2661918b43b58dc32");
+}
+inline const std::string emu_gerrit_review()
+{
+    return std::string("http://git-master.nvidia.com/r/1313572");
+}
 
 #endif // NVDLA_PRIV_EMU_EMU1_A_EMU_VERSION_H

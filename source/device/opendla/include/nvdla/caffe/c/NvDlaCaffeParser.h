@@ -34,7 +34,7 @@
 
 struct NvDlaCaffeParserI
 {
-    NvError (*parse)(NvDlaCaffeParser, const char *, const char *, NvDlaNetwork);
+    NvError (*parse)(NvDlaCaffeParser, const char*, const char*, NvDlaNetwork);
     NvError (*identifyOutputs)(NvDlaCaffeParser, NvDlaNetwork);
 };
 
@@ -42,7 +42,7 @@ struct NvDlaCaffeParserI
 extern "C" {
 #endif
 
-NvError NvDlaCreateCaffeParser(NvDlaCaffeParser *cpt);
+NvError NvDlaCreateCaffeParser(NvDlaCaffeParser* cpt);
 NvError NvDlaDestroyCaffeParser(NvDlaCaffeParser cpt);
 
 #ifdef __cplusplus

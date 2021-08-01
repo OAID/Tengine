@@ -29,7 +29,6 @@
 #ifndef NVDLA_PRIV_PROFILER_H
 #define NVDLA_PRIV_PROFILER_H
 
-
 #include <string>
 #include <map>
 #include <vector>
@@ -43,31 +42,27 @@
 #include "WisdomContainer.h"
 #include "nvdla/IProfiler.h"
 
+namespace nvdla {
 
-namespace nvdla
-{
-
-namespace priv
-{
+namespace priv {
 
 class Profiler;
 
 class ProfilerFactory
 {
 public:
-    typedef PrivPair<IProfiler *, Profiler*> ProfilerPrivPair;
+    typedef PrivPair<IProfiler*, Profiler*> ProfilerPrivPair;
 
     static ProfilerPrivPair newProfiler();
-    static NvDlaError deleteProfiler(IProfiler *profiler);
+    static NvDlaError deleteProfiler(IProfiler* profiler);
 
-    static Profiler *priv(IProfiler *);
-    static IProfiler *i(Profiler *);
-    static IProfiler *self(void *);
+    static Profiler* priv(IProfiler*);
+    static IProfiler* i(Profiler*);
+    static IProfiler* self(void*);
 
 protected:
-    static BiMap<IProfiler *, Profiler *> s_priv;
-    static BiMap<void *, IProfiler *> s_self;
-
+    static BiMap<IProfiler*, Profiler*> s_priv;
+    static BiMap<void*, IProfiler*> s_self;
 };
 
 class Profile;
@@ -76,41 +71,38 @@ class TestPoint;
 
 class TestPointEvaluationResult
 {
-
 };
-
 
 class Profiler : public IProfiler
 {
 public: // externally facing
+    virtual IWisdom* wisdom();
 
-    virtual IWisdom *wisdom();
-
-    virtual IProfile *createProfile(const char *profile_name);
-    virtual IProfile *getProfile(const char *profile_name);
-    virtual ITargetConfig *getTargetConfig(const char *target_config_name);
+    virtual IProfile* createProfile(const char* profile_name);
+    virtual IProfile* getProfile(const char* profile_name);
+    virtual ITargetConfig* getTargetConfig(const char* target_config_name);
 
 public: // internally facing
-
     Profiler();
     virtual ~Profiler();
 
     virtual NvU16 getFactoryType() const;
-    void setWisdom(Wisdom *w) { m_wisdom = w; }
-
+    void setWisdom(Wisdom* w)
+    {
+        m_wisdom = w;
+    }
 
 protected:
     friend class Wisdom;
     friend class ProfilerFactory;
 
-    Wisdom *m_wisdom;
+    Wisdom* m_wisdom;
 
     std::map<std::string, ProfileFactory::ProfilePrivPair> m_profiles;
     std::map<std::string, TargetConfigFactory::TargetConfigPrivPair> m_targetConfigs;
-
 };
 
-} // nvdla::priv
-} // nvdla
+} // namespace priv
+} // namespace nvdla
 
 #endif // NVDLA_PRIV_PROFILER_H

@@ -41,7 +41,7 @@
 #include "compiler/priv/Type.h"
 #include "nvdla/caffe/ICaffeParser.h"
 
-namespace ditcaffe{
+namespace ditcaffe {
 class NetParameter;
 }
 
@@ -69,9 +69,10 @@ class BinaryProtoBlob : public IBinaryProtoBlob
 public:
     BinaryProtoBlob(void* memory, DataType type, Dims4 dimensions);
 
-    const void*	getData();
+    const void* getData();
     Dims4 getDimensions();
-    void	destroy();
+    void destroy();
+
 protected:
     void* mMemory;
     DataType mDataType;
@@ -84,57 +85,61 @@ class CaffeParser;
 class CaffeParserFactory
 {
 public:
-    typedef nvdla::priv::PrivPair<ICaffeParser *, CaffeParser *> CaffeParserPrivPair;
+    typedef nvdla::priv::PrivPair<ICaffeParser*, CaffeParser*> CaffeParserPrivPair;
 
     static CaffeParserPrivPair newCaffeParser();
-    static NvDlaError deleteCaffeParser(ICaffeParser *parser);
+    static NvDlaError deleteCaffeParser(ICaffeParser* parser);
 
-    static CaffeParser *priv(ICaffeParser *);
-    static ICaffeParser *i(CaffeParser *);
-    static ICaffeParser *self(void *);
+    static CaffeParser* priv(ICaffeParser*);
+    static ICaffeParser* i(CaffeParser*);
+    static ICaffeParser* self(void*);
 
 protected:
-    static nvdla::priv::BiMap<ICaffeParser *, CaffeParser *> s_priv;
-    static nvdla::priv::BiMap<void *, ICaffeParser *> s_self;
+    static nvdla::priv::BiMap<ICaffeParser*, CaffeParser*> s_priv;
+    static nvdla::priv::BiMap<void*, ICaffeParser*> s_self;
 };
-
 
 class CaffeParser : public ICaffeParser
 {
 public:
-    CaffeParser() :
-        ICaffeParser(),
-        mDeploy(NULL),
-        mModel(NULL),
-        mTmpAllocs(),
-        mDimsCallback(NULL),
-        mBlobNameToTensor(NULL),
-        mProtobufBufferSize(1024 << 20)
-    { }
+    CaffeParser()
+        : ICaffeParser(),
+          mDeploy(NULL),
+          mModel(NULL),
+          mTmpAllocs(),
+          mDimsCallback(NULL),
+          mBlobNameToTensor(NULL),
+          mProtobufBufferSize(1024 << 20)
+    {
+    }
 
     virtual const IBlobNameToTensor* parse(const char* deploy,
                                            const char* model,
                                            INetwork* network);
-    virtual int identifyOutputs(INetwork * network);
+    virtual int identifyOutputs(INetwork* network);
     virtual ~CaffeParser();
 
-    void setProtobufBufferSize(size_t size) { mProtobufBufferSize = size; }
+    void setProtobufBufferSize(size_t size)
+    {
+        mProtobufBufferSize = size;
+    }
 
     // read a blob from a protobuf file (typically a mean blob)
     static BinaryProtoBlob* parseBinaryProto(const char* fileName);
 
     static void shutdownProtobufLibrary();
+
 private:
-    ditcaffe::NetParameter * mDeploy;
-    ditcaffe::NetParameter * mModel;
+    ditcaffe::NetParameter* mDeploy;
+    ditcaffe::NetParameter* mModel;
     std::vector<void*> mTmpAllocs;
     INetwork::OutputDimensionsFormula* mDimsCallback;
     IBlobNameToTensor* mBlobNameToTensor;
     size_t mProtobufBufferSize;
 };
 
-}
-}
-}
+} // namespace priv
+} // namespace caffe
+} // namespace nvdla
 
 #endif // NVDLA_PRIV_CAFFE_PARSER_H

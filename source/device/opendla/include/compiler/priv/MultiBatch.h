@@ -31,25 +31,26 @@
 
 #include "ErrorMacros.h"
 
-namespace nvdla
-{
-namespace priv
-{
+namespace nvdla {
+namespace priv {
 
-template < typename StateClass >
+template<typename StateClass>
 class MultiBatchState
 {
 public:
-    MultiBatchState() : m_batch_size(1)
+    MultiBatchState()
+        : m_batch_size(1)
     {
-        m_batch_states = std::vector< StateClass >(1);
+        m_batch_states = std::vector<StateClass>(1);
     }
     MultiBatchState(NvU16 numBatches)
     {
         m_batch_size = numBatches;
-        m_batch_states = std::vector< StateClass >(numBatches);
+        m_batch_states = std::vector<StateClass>(numBatches);
     }
-    virtual ~MultiBatchState() { }
+    virtual ~MultiBatchState()
+    {
+    }
 
     StateClass& batch(NvU16 batchId)
     {
@@ -65,12 +66,12 @@ public:
     }
 
 protected:
-    NvU16                     m_batch_size;
-    std::vector< StateClass > m_batch_states;
+    NvU16 m_batch_size;
+    std::vector<StateClass> m_batch_states;
 };
 
-};  // nvdla::priv
+}; // namespace priv
 
-};  // nvdla::
+}; // namespace nvdla
 
 #endif /* NVDLA_PRIV_MULTIBATCH_H */

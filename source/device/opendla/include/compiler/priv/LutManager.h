@@ -31,10 +31,8 @@
 
 #include "EngineAST.h"
 
-namespace nvdla
-{
-namespace priv
-{
+namespace nvdla {
+namespace priv {
 
 class LutManager
 {
@@ -47,9 +45,9 @@ public:
 protected:
     enum LutTypeEnum
     {
-       LUT_TYPE_LRN,
-       LUT_TYPE_SIGMOID,
-       LUT_TYPE_TANH
+        LUT_TYPE_LRN,
+        LUT_TYPE_SIGMOID,
+        LUT_TYPE_TANH
     };
 
     struct LRNParams
@@ -89,7 +87,7 @@ protected:
     LutHandle m_hNextFree;
 };
 
-};  //nvdla::priv
-};  //nvdla::
+}; // namespace priv
+}; // namespace nvdla
 
 #endif // NVDLA_PRIV_LUT_MANAGER_H

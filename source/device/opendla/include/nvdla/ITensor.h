@@ -32,32 +32,30 @@
 #include "nvdla/IType.h"
 #include "nvdla/INetwork.h"
 
-namespace nvdla
-{
+namespace nvdla {
 
 class ITensor
 {
 public:
+    virtual const char* getName() const = 0;
+    virtual void setName(const char*) = 0;
 
-    virtual const char* getName()  const = 0;
-    virtual void setName(const char *)   = 0;
-
-    virtual Dims4 getDimensions()  const         = 0;
+    virtual Dims4 getDimensions() const = 0;
     virtual void setDimensions(Dims4 dimensions) = 0;
 
-    virtual bool isNetworkInput()  const = 0;
+    virtual bool isNetworkInput() const = 0;
     virtual bool isNetworkOutput() const = 0;
 
-    virtual DataFormat getDataFormat() const     = 0;
-    virtual void       setDataFormat(DataFormat) = 0;
+    virtual DataFormat getDataFormat() const = 0;
+    virtual void setDataFormat(DataFormat) = 0;
 
-    virtual DataType getDataType() const   = 0;
-    virtual void     setDataType(DataType) = 0;
+    virtual DataType getDataType() const = 0;
+    virtual void setDataType(DataType) = 0;
 
     virtual TensorType getTensorType() const = 0;
-    virtual void   setTensorType(TensorType) = 0;
+    virtual void setTensorType(TensorType) = 0;
 
-    virtual INetwork *getNetwork() const = 0;
+    virtual INetwork* getNetwork() const = 0;
 
     virtual NvDlaError setChannelDynamicRange(NvS32 channelIndex, NvF32 minLimit, NvF32 maxLimit) = 0;
     virtual NvDlaError setChannelOffset(NvS32 channelIndex, NvF32 offset) = 0;
@@ -73,8 +71,6 @@ protected:
     virtual ~ITensor();
 };
 
-
-
-} // nvdla
+} // namespace nvdla
 
 #endif // NVDLA_I_TENSOR_H

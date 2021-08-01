@@ -33,14 +33,12 @@
 
 //#include "nvdla/IType.h"
 
-namespace nvdla
-{
+namespace nvdla {
 
 class ITensor;
 class INetwork;
 
-namespace caffe
-{
+namespace caffe {
 
 class IBlobNameToTensor
 {
@@ -53,11 +51,10 @@ public:
     virtual ~IBlobNameToTensor();
 };
 
-
 class IBinaryProtoBlob
 {
 public:
-    virtual const void* getData()  = 0;
+    virtual const void* getData() = 0;
     virtual nvdla::Dims4 getDimensions() = 0;
     virtual void destroy() = 0;
     virtual ~IBinaryProtoBlob();
@@ -66,18 +63,17 @@ public:
 class ICaffeParser
 {
 public:
-
     virtual const IBlobNameToTensor* parse(const char* deploy,
                                            const char* model,
-                                           INetwork* network)= 0;
+                                           INetwork* network)
+        = 0;
     virtual int identifyOutputs(INetwork* network) = 0;
     virtual ~ICaffeParser();
-
 };
 
-ICaffeParser *createCaffeParser();
-NvDlaError destroyCaffeParser(ICaffeParser *parser);
+ICaffeParser* createCaffeParser();
+NvDlaError destroyCaffeParser(ICaffeParser* parser);
 
-}
-}
+} // namespace caffe
+} // namespace nvdla
 #endif // NVDLA_I_CAFFE_PARSER_H

@@ -29,9 +29,7 @@
 #ifndef NVDLA_I_PROFILER_H
 #define NVDLA_I_PROFILER_H
 
-
-namespace nvdla
-{
+namespace nvdla {
 
 class IWisdom;
 class IProfile;
@@ -40,23 +38,19 @@ class ITargetConfig;
 class IProfiler
 {
 public:
+    virtual IWisdom* wisdom() = 0;
 
-    virtual IWisdom *wisdom() = 0;
-
-    virtual IProfile *createProfile(const char *profile_name) = 0;
-    virtual IProfile *getProfile(const char *profile_name) = 0;
-    virtual ITargetConfig *getTargetConfig(const char *target_config_name) = 0;
+    virtual IProfile* createProfile(const char* profile_name) = 0;
+    virtual IProfile* getProfile(const char* profile_name) = 0;
+    virtual ITargetConfig* getTargetConfig(const char* target_config_name) = 0;
 
 protected:
     IProfiler();
     virtual ~IProfiler();
 };
 
-
 // IProfiler *createProfiler();
 
-} // nvdla
-
-
+} // namespace nvdla
 
 #endif // NVDLA_I_PROFILER_H

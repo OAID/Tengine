@@ -29,29 +29,23 @@
 #ifndef NVDLA_I_SETUP_H
 #define NVDLA_I_SETUP_H
 
-
-namespace nvdla
-{
+namespace nvdla {
 
 class IWisdom;
 
 class ISetup
 {
 public:
-
-    virtual IWisdom *wisdom() = 0;
+    virtual IWisdom* wisdom() = 0;
 
 protected:
     ISetup();
     virtual ~ISetup();
 };
 
+ISetup* createSetup();
+NvDlaError destroySetup(ISetup* setup);
 
-ISetup *createSetup();
-NvDlaError destroySetup(ISetup *setup);
-
-} // nvdla
-
-
+} // namespace nvdla
 
 #endif // NVDLA_I_SETUP_H

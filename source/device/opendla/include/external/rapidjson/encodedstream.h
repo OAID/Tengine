@@ -1,5 +1,5 @@
 // Tencent is pleased to support the open source community by making RapidJSON available.
-// 
+//
 // Copyright (C) 2015 THL A29 Limited, a Tencent company, and Milo Yip. All rights reserved.
 //
 // Licensed under the MIT License (the "License"); you may not use this file except
@@ -7,9 +7,9 @@
 //
 // http://opensource.org/licenses/MIT
 //
-// Unless required by applicable law or agreed to in writing, software distributed 
-// under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
-// CONDITIONS OF ANY KIND, either express or implied. See the License for the 
+// Unless required by applicable law or agreed to in writing, software distributed
+// under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+// CONDITIONS OF ANY KIND, either express or implied. See the License for the
 // specific language governing permissions and limitations under the License.
 
 #ifndef RAPIDJSON_ENCODEDSTREAM_H_
@@ -35,25 +35,54 @@ RAPIDJSON_NAMESPACE_BEGIN
     \tparam Encoding The interpretation of encoding of the stream. Either UTF8, UTF16LE, UTF16BE, UTF32LE, UTF32BE.
     \tparam InputByteStream Type of input byte stream. For example, FileReadStream.
 */
-template <typename Encoding, typename InputByteStream>
-class EncodedInputStream {
+template<typename Encoding, typename InputByteStream>
+class EncodedInputStream
+{
     RAPIDJSON_STATIC_ASSERT(sizeof(typename InputByteStream::Ch) == 1);
+
 public:
     typedef typename Encoding::Ch Ch;
 
-    EncodedInputStream(InputByteStream& is) : is_(is) { 
+    EncodedInputStream(InputByteStream& is)
+        : is_(is)
+    {
         current_ = Encoding::TakeBOM(is_);
     }
 
-    Ch Peek() const { return current_; }
-    Ch Take() { Ch c = current_; current_ = Encoding::Take(is_); return c; }
-    size_t Tell() const { return is_.Tell(); }
+    Ch Peek() const
+    {
+        return current_;
+    }
+    Ch Take()
+    {
+        Ch c = current_;
+        current_ = Encoding::Take(is_);
+        return c;
+    }
+    size_t Tell() const
+    {
+        return is_.Tell();
+    }
 
     // Not implemented
-    void Put(Ch) { RAPIDJSON_ASSERT(false); }
-    void Flush() { RAPIDJSON_ASSERT(false); } 
-    Ch* PutBegin() { RAPIDJSON_ASSERT(false); return 0; }
-    size_t PutEnd(Ch*) { RAPIDJSON_ASSERT(false); return 0; }
+    void Put(Ch)
+    {
+        RAPIDJSON_ASSERT(false);
+    }
+    void Flush()
+    {
+        RAPIDJSON_ASSERT(false);
+    }
+    Ch* PutBegin()
+    {
+        RAPIDJSON_ASSERT(false);
+        return 0;
+    }
+    size_t PutEnd(Ch*)
+    {
+        RAPIDJSON_ASSERT(false);
+        return 0;
+    }
 
 private:
     EncodedInputStream(const EncodedInputStream&);
@@ -64,25 +93,47 @@ private:
 };
 
 //! Specialized for UTF8 MemoryStream.
-template <>
-class EncodedInputStream<UTF8<>, MemoryStream> {
+template<>
+class EncodedInputStream<UTF8<>, MemoryStream>
+{
 public:
     typedef UTF8<>::Ch Ch;
 
-    EncodedInputStream(MemoryStream& is) : is_(is) {
+    EncodedInputStream(MemoryStream& is)
+        : is_(is)
+    {
         if (static_cast<unsigned char>(is_.Peek()) == 0xEFu) is_.Take();
         if (static_cast<unsigned char>(is_.Peek()) == 0xBBu) is_.Take();
         if (static_cast<unsigned char>(is_.Peek()) == 0xBFu) is_.Take();
     }
-    Ch Peek() const { return is_.Peek(); }
-    Ch Take() { return is_.Take(); }
-    size_t Tell() const { return is_.Tell(); }
+    Ch Peek() const
+    {
+        return is_.Peek();
+    }
+    Ch Take()
+    {
+        return is_.Take();
+    }
+    size_t Tell() const
+    {
+        return is_.Tell();
+    }
 
     // Not implemented
-    void Put(Ch) {}
-    void Flush() {} 
-    Ch* PutBegin() { return 0; }
-    size_t PutEnd(Ch*) { return 0; }
+    void Put(Ch)
+    {
+    }
+    void Flush()
+    {
+    }
+    Ch* PutBegin()
+    {
+        return 0;
+    }
+    size_t PutEnd(Ch*)
+    {
+        return 0;
+    }
 
     MemoryStream& is_;
 
@@ -96,26 +147,56 @@ private:
     \tparam Encoding The interpretation of encoding of the stream. Either UTF8, UTF16LE, UTF16BE, UTF32LE, UTF32BE.
     \tparam OutputByteStream Type of input byte stream. For example, FileWriteStream.
 */
-template <typename Encoding, typename OutputByteStream>
-class EncodedOutputStream {
+template<typename Encoding, typename OutputByteStream>
+class EncodedOutputStream
+{
     RAPIDJSON_STATIC_ASSERT(sizeof(typename OutputByteStream::Ch) == 1);
+
 public:
     typedef typename Encoding::Ch Ch;
 
-    EncodedOutputStream(OutputByteStream& os, bool putBOM = true) : os_(os) { 
+    EncodedOutputStream(OutputByteStream& os, bool putBOM = true)
+        : os_(os)
+    {
         if (putBOM)
             Encoding::PutBOM(os_);
     }
 
-    void Put(Ch c) { Encoding::Put(os_, c);  }
-    void Flush() { os_.Flush(); }
+    void Put(Ch c)
+    {
+        Encoding::Put(os_, c);
+    }
+    void Flush()
+    {
+        os_.Flush();
+    }
 
     // Not implemented
-    Ch Peek() const { RAPIDJSON_ASSERT(false); return 0;}
-    Ch Take() { RAPIDJSON_ASSERT(false); return 0;}
-    size_t Tell() const { RAPIDJSON_ASSERT(false);  return 0; }
-    Ch* PutBegin() { RAPIDJSON_ASSERT(false); return 0; }
-    size_t PutEnd(Ch*) { RAPIDJSON_ASSERT(false); return 0; }
+    Ch Peek() const
+    {
+        RAPIDJSON_ASSERT(false);
+        return 0;
+    }
+    Ch Take()
+    {
+        RAPIDJSON_ASSERT(false);
+        return 0;
+    }
+    size_t Tell() const
+    {
+        RAPIDJSON_ASSERT(false);
+        return 0;
+    }
+    Ch* PutBegin()
+    {
+        RAPIDJSON_ASSERT(false);
+        return 0;
+    }
+    size_t PutEnd(Ch*)
+    {
+        RAPIDJSON_ASSERT(false);
+        return 0;
+    }
 
 private:
     EncodedOutputStream(const EncodedOutputStream&);
@@ -131,9 +212,11 @@ private:
     \tparam CharType Type of character for reading.
     \tparam InputByteStream type of input byte stream to be wrapped.
 */
-template <typename CharType, typename InputByteStream>
-class AutoUTFInputStream {
+template<typename CharType, typename InputByteStream>
+class AutoUTFInputStream
+{
     RAPIDJSON_STATIC_ASSERT(sizeof(typename InputByteStream::Ch) == 1);
+
 public:
     typedef CharType Ch;
 
@@ -142,33 +225,67 @@ public:
         \param is input stream to be wrapped.
         \param type UTF encoding type if it is not detected from the stream.
     */
-    AutoUTFInputStream(InputByteStream& is, UTFType type = kUTF8) : is_(&is), type_(type), hasBOM_(false) {
-        RAPIDJSON_ASSERT(type >= kUTF8 && type <= kUTF32BE);        
+    AutoUTFInputStream(InputByteStream& is, UTFType type = kUTF8)
+        : is_(&is), type_(type), hasBOM_(false)
+    {
+        RAPIDJSON_ASSERT(type >= kUTF8 && type <= kUTF32BE);
         DetectType();
-        static const TakeFunc f[] = { RAPIDJSON_ENCODINGS_FUNC(Take) };
+        static const TakeFunc f[] = {RAPIDJSON_ENCODINGS_FUNC(Take)};
         takeFunc_ = f[type_];
         current_ = takeFunc_(*is_);
     }
 
-    UTFType GetType() const { return type_; }
-    bool HasBOM() const { return hasBOM_; }
+    UTFType GetType() const
+    {
+        return type_;
+    }
+    bool HasBOM() const
+    {
+        return hasBOM_;
+    }
 
-    Ch Peek() const { return current_; }
-    Ch Take() { Ch c = current_; current_ = takeFunc_(*is_); return c; }
-    size_t Tell() const { return is_->Tell(); }
+    Ch Peek() const
+    {
+        return current_;
+    }
+    Ch Take()
+    {
+        Ch c = current_;
+        current_ = takeFunc_(*is_);
+        return c;
+    }
+    size_t Tell() const
+    {
+        return is_->Tell();
+    }
 
     // Not implemented
-    void Put(Ch) { RAPIDJSON_ASSERT(false); }
-    void Flush() { RAPIDJSON_ASSERT(false); } 
-    Ch* PutBegin() { RAPIDJSON_ASSERT(false); return 0; }
-    size_t PutEnd(Ch*) { RAPIDJSON_ASSERT(false); return 0; }
+    void Put(Ch)
+    {
+        RAPIDJSON_ASSERT(false);
+    }
+    void Flush()
+    {
+        RAPIDJSON_ASSERT(false);
+    }
+    Ch* PutBegin()
+    {
+        RAPIDJSON_ASSERT(false);
+        return 0;
+    }
+    size_t PutEnd(Ch*)
+    {
+        RAPIDJSON_ASSERT(false);
+        return 0;
+    }
 
 private:
     AutoUTFInputStream(const AutoUTFInputStream&);
     AutoUTFInputStream& operator=(const AutoUTFInputStream&);
 
     // Detect encoding type with BOM or RFC 4627
-    void DetectType() {
+    void DetectType()
+    {
         // BOM (Byte Order Mark):
         // 00 00 FE FF  UTF-32BE
         // FF FE 00 00  UTF-32LE
@@ -176,17 +293,52 @@ private:
         // FF FE        UTF-16LE
         // EF BB BF     UTF-8
 
-        const unsigned char* c = reinterpret_cast<const unsigned char *>(is_->Peek4());
+        const unsigned char* c = reinterpret_cast<const unsigned char*>(is_->Peek4());
         if (!c)
             return;
 
         unsigned bom = static_cast<unsigned>(c[0] | (c[1] << 8) | (c[2] << 16) | (c[3] << 24));
         hasBOM_ = false;
-        if (bom == 0xFFFE0000)                  { type_ = kUTF32BE; hasBOM_ = true; is_->Take(); is_->Take(); is_->Take(); is_->Take(); }
-        else if (bom == 0x0000FEFF)             { type_ = kUTF32LE; hasBOM_ = true; is_->Take(); is_->Take(); is_->Take(); is_->Take(); }
-        else if ((bom & 0xFFFF) == 0xFFFE)      { type_ = kUTF16BE; hasBOM_ = true; is_->Take(); is_->Take();                           }
-        else if ((bom & 0xFFFF) == 0xFEFF)      { type_ = kUTF16LE; hasBOM_ = true; is_->Take(); is_->Take();                           }
-        else if ((bom & 0xFFFFFF) == 0xBFBBEF)  { type_ = kUTF8;    hasBOM_ = true; is_->Take(); is_->Take(); is_->Take();              }
+        if (bom == 0xFFFE0000)
+        {
+            type_ = kUTF32BE;
+            hasBOM_ = true;
+            is_->Take();
+            is_->Take();
+            is_->Take();
+            is_->Take();
+        }
+        else if (bom == 0x0000FEFF)
+        {
+            type_ = kUTF32LE;
+            hasBOM_ = true;
+            is_->Take();
+            is_->Take();
+            is_->Take();
+            is_->Take();
+        }
+        else if ((bom & 0xFFFF) == 0xFFFE)
+        {
+            type_ = kUTF16BE;
+            hasBOM_ = true;
+            is_->Take();
+            is_->Take();
+        }
+        else if ((bom & 0xFFFF) == 0xFEFF)
+        {
+            type_ = kUTF16LE;
+            hasBOM_ = true;
+            is_->Take();
+            is_->Take();
+        }
+        else if ((bom & 0xFFFFFF) == 0xBFBBEF)
+        {
+            type_ = kUTF8;
+            hasBOM_ = true;
+            is_->Take();
+            is_->Take();
+            is_->Take();
+        }
 
         // RFC 4627: Section 3
         // "Since the first two characters of a JSON text will always be ASCII
@@ -199,14 +351,16 @@ private:
         // xx 00 xx 00  UTF-16LE
         // xx xx xx xx  UTF-8
 
-        if (!hasBOM_) {
+        if (!hasBOM_)
+        {
             int pattern = (c[0] ? 1 : 0) | (c[1] ? 2 : 0) | (c[2] ? 4 : 0) | (c[3] ? 8 : 0);
-            switch (pattern) {
+            switch (pattern)
+            {
             case 0x08: type_ = kUTF32BE; break;
             case 0x0A: type_ = kUTF16BE; break;
             case 0x01: type_ = kUTF32LE; break;
             case 0x05: type_ = kUTF16LE; break;
-            case 0x0F: type_ = kUTF8;    break;
+            case 0x0F: type_ = kUTF8; break;
             default: break; // Use type defined by user.
             }
         }
@@ -229,9 +383,11 @@ private:
     \tparam CharType Type of character for writing.
     \tparam OutputByteStream type of output byte stream to be wrapped.
 */
-template <typename CharType, typename OutputByteStream>
-class AutoUTFOutputStream {
+template<typename CharType, typename OutputByteStream>
+class AutoUTFOutputStream
+{
     RAPIDJSON_STATIC_ASSERT(sizeof(typename OutputByteStream::Ch) == 1);
+
 public:
     typedef CharType Ch;
 
@@ -241,39 +397,71 @@ public:
         \param type UTF encoding type.
         \param putBOM Whether to write BOM at the beginning of the stream.
     */
-    AutoUTFOutputStream(OutputByteStream& os, UTFType type, bool putBOM) : os_(&os), type_(type) {
+    AutoUTFOutputStream(OutputByteStream& os, UTFType type, bool putBOM)
+        : os_(&os), type_(type)
+    {
         RAPIDJSON_ASSERT(type >= kUTF8 && type <= kUTF32BE);
 
         // Runtime check whether the size of character type is sufficient. It only perform checks with assertion.
         if (type_ == kUTF16LE || type_ == kUTF16BE) RAPIDJSON_ASSERT(sizeof(Ch) >= 2);
         if (type_ == kUTF32LE || type_ == kUTF32BE) RAPIDJSON_ASSERT(sizeof(Ch) >= 4);
 
-        static const PutFunc f[] = { RAPIDJSON_ENCODINGS_FUNC(Put) };
+        static const PutFunc f[] = {RAPIDJSON_ENCODINGS_FUNC(Put)};
         putFunc_ = f[type_];
 
         if (putBOM)
             PutBOM();
     }
 
-    UTFType GetType() const { return type_; }
+    UTFType GetType() const
+    {
+        return type_;
+    }
 
-    void Put(Ch c) { putFunc_(*os_, c); }
-    void Flush() { os_->Flush(); } 
+    void Put(Ch c)
+    {
+        putFunc_(*os_, c);
+    }
+    void Flush()
+    {
+        os_->Flush();
+    }
 
     // Not implemented
-    Ch Peek() const { RAPIDJSON_ASSERT(false); return 0;}
-    Ch Take() { RAPIDJSON_ASSERT(false); return 0;}
-    size_t Tell() const { RAPIDJSON_ASSERT(false); return 0; }
-    Ch* PutBegin() { RAPIDJSON_ASSERT(false); return 0; }
-    size_t PutEnd(Ch*) { RAPIDJSON_ASSERT(false); return 0; }
+    Ch Peek() const
+    {
+        RAPIDJSON_ASSERT(false);
+        return 0;
+    }
+    Ch Take()
+    {
+        RAPIDJSON_ASSERT(false);
+        return 0;
+    }
+    size_t Tell() const
+    {
+        RAPIDJSON_ASSERT(false);
+        return 0;
+    }
+    Ch* PutBegin()
+    {
+        RAPIDJSON_ASSERT(false);
+        return 0;
+    }
+    size_t PutEnd(Ch*)
+    {
+        RAPIDJSON_ASSERT(false);
+        return 0;
+    }
 
 private:
     AutoUTFOutputStream(const AutoUTFOutputStream&);
     AutoUTFOutputStream& operator=(const AutoUTFOutputStream&);
 
-    void PutBOM() { 
+    void PutBOM()
+    {
         typedef void (*PutBOMFunc)(OutputByteStream&);
-        static const PutBOMFunc f[] = { RAPIDJSON_ENCODINGS_FUNC(PutBOM) };
+        static const PutBOMFunc f[] = {RAPIDJSON_ENCODINGS_FUNC(PutBOM)};
         f[type_](*os_);
     }
 

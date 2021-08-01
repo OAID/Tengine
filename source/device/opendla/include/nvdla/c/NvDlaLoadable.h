@@ -49,27 +49,26 @@
 #define NVDLA_LOADABLE_SUB_INTERFACE_EMU1_SURFS 4U
 /* #define NVDLA_LOADABLE_SUB_INTERFACE_EMU1_LUTS  5U */
 
-
 #define NVDLA_LOADABLE_MEMORY_DOMAIN_SYSMEM 0U
-#define NVDLA_LOADABLE_MEMORY_DOMAIN_SRAM 1U
+#define NVDLA_LOADABLE_MEMORY_DOMAIN_SRAM   1U
 
-#define NVDLA_LOADABLE_MEMORY_FLAGS_NONE    0U
-#define NVDLA_LOADABLE_MEMORY_FLAGS_ALLOC   1U
-#define NVDLA_LOADABLE_MEMORY_FLAGS_SET     2U
-#define NVDLA_LOADABLE_MEMORY_FLAGS_INPUT   4U
-#define NVDLA_LOADABLE_MEMORY_FLAGS_OUTPUT  8U
+#define NVDLA_LOADABLE_MEMORY_FLAGS_NONE   0U
+#define NVDLA_LOADABLE_MEMORY_FLAGS_ALLOC  1U
+#define NVDLA_LOADABLE_MEMORY_FLAGS_SET    2U
+#define NVDLA_LOADABLE_MEMORY_FLAGS_INPUT  4U
+#define NVDLA_LOADABLE_MEMORY_FLAGS_OUTPUT 8U
 #define NVDLA_LOADABLE_MEMORY_FLAGS_DEBUG  16U
 
 #define NVDLA_LOADABLE_EVENT_OP_WAIT   0U
 #define NVDLA_LOADABLE_EVENT_OP_SIGNAL 1U
 
-#define NVDLA_LOADABLE_TENSOR_DESC_NUM_STRIDES 8U    /* a little room to grow */
+#define NVDLA_LOADABLE_TENSOR_DESC_NUM_STRIDES 8U /* a little room to grow */
 
 struct NvDlaLoadableI;
 typedef struct NvDlaLoadable
 {
-    void *self;
-    const struct NvDlaLoadableI *i;
+    void* self;
+    const struct NvDlaLoadableI* i;
 } NvDlaLoadable;
 
 typedef struct NvDlaLoadableVersion
@@ -84,13 +83,13 @@ typedef struct NvDlaLoadableMemoryListEntry
     NvU16 id;
     NvU64 size;
     NvU32 alignment;
-    NvU8  domain;
-    NvU8  flags;
+    NvU8 domain;
+    NvU8 flags;
     NvU16 bindId;
     NvU16 tensorDescId;
     size_t numContents;
-    NvU8 **contents;
-    NvU32 *offsets;
+    NvU8** contents;
+    NvU32* offsets;
 } NvDlaLoadableMemoryListEntry;
 
 typedef struct NvDlaLoadableEventListEntry
@@ -107,11 +106,11 @@ typedef struct NvDlaLoadableTaskListEntry
     NvU32 interface;
     NvS16 instance;
     size_t numPreActions;
-    NvU16 *preActions;   // [event id]...
+    NvU16* preActions; // [event id]...
     size_t numPostActions;
-    NvU16 *postActions;  // [event id]...
+    NvU16* postActions; // [event id]...
     NvU16 numAddressList;
-    NvU16 *addressList; // [addr list id]...[addr list id]
+    NvU16* addressList; // [addr list id]...[addr list id]
 } NvDlaLoadableTaskListEntry;
 
 typedef struct NvDlaLoadableAddressListEntry
@@ -124,23 +123,21 @@ typedef struct NvDlaLoadableAddressListEntry
 
 typedef struct NvDlaLoadableBlob
 {
-    char *name;
+    char* name;
     NvU64 size;
     NvU32 interface;
     NvU32 sub_interface;
     NvDlaLoadableVersion version;
 } NvDlaLoadableBlob;
 
-
 struct NvDlaLoadableI
 {
-    const char * (*getName)(NvDlaLoadable);
+    const char* (*getName)(NvDlaLoadable);
 };
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 
 #ifdef __cplusplus
 }

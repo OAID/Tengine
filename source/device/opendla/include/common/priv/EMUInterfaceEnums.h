@@ -34,14 +34,14 @@
 // than global scope.  And, the enum class wrappers are being used
 
 // for class EMUBufferType::DLA_FEATURE_INT8_FORMAT, ...
-#define EMU_BUFFER_TYPE_ENUMS(op)               \
-    op(DLA_FEATURE_INT8_FORMAT, 0U)             \
-    op(DLA_FEATURE_INT16_FORMAT, 1U)            \
-    op(DLA_FEATURE_FP16_FORMAT, 2U)
+#define EMU_BUFFER_TYPE_ENUMS(op)        \
+    op(DLA_FEATURE_INT8_FORMAT, 0U)      \
+        op(DLA_FEATURE_INT16_FORMAT, 1U) \
+            op(DLA_FEATURE_FP16_FORMAT, 2U)
 
 // for class EMUOpType::SOFTMAX, ...
-#define EMU_OP_TYPE_ENUMS(op)               \
-    op(POWER, 0U)                           \
-    op(SOFTMAX, 1U)
+#define EMU_OP_TYPE_ENUMS(op) \
+    op(POWER, 0U)             \
+        op(SOFTMAX, 1U)
 
 #endif // NVDLA_PRIV_EMU_INTERFACE_ENUMS_H

@@ -55,7 +55,6 @@ struct NvDlaBitBinaryTreeInst
     NvU8* treeStorage;
 };
 
-
 extern const NvDlaBitBinaryTreeClass NvDlaBitBinaryTree;
 
 #endif // NVDLA_UTILS_BIT_BINARY_TREE_H

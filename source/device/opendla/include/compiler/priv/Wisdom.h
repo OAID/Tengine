@@ -40,109 +40,100 @@
 #include "Tensor.h"
 #include "priv/Loadable.h"
 
-namespace nvdla
-{
+namespace nvdla {
 
 class INetwork;
 class ILayer;
 class ITensor;
 
-namespace priv
-{
+namespace priv {
 
 class WisdomContainer;
-
 
 class SymbolTable
 {
 public:
-    bool insertNetwork(INetwork *net, const std::string &sym);
-    bool insertLayer(ILayer *layer, const std::string &sym);
-    bool insertTensor(ITensor *tensor, const std::string &sym);
-    bool insertLoadable(ILoadable *loadable, const std::string &sym);
-    bool insertProfile(IProfile *profile, const std::string &sym);
+    bool insertNetwork(INetwork* net, const std::string& sym);
+    bool insertLayer(ILayer* layer, const std::string& sym);
+    bool insertTensor(ITensor* tensor, const std::string& sym);
+    bool insertLoadable(ILoadable* loadable, const std::string& sym);
+    bool insertProfile(IProfile* profile, const std::string& sym);
 
-    INetwork *findNetwork(const std::string &sym);
-    bool findNetwork(Network *, std::string &sym);
+    INetwork* findNetwork(const std::string& sym);
+    bool findNetwork(Network*, std::string& sym);
 
-    ILayer *findLayer(const std::string &sym);
-    bool findLayer(Layer *l, std::string &sym);
+    ILayer* findLayer(const std::string& sym);
+    bool findLayer(Layer* l, std::string& sym);
 
-    ITensor *findTensor(const std::string &sym);
-    bool findTensor(Tensor *t, std::string &sym);
+    ITensor* findTensor(const std::string& sym);
+    bool findTensor(Tensor* t, std::string& sym);
 
-    ILoadable *findLoadable(const std::string &sym);
-    bool findLoadable(Loadable *l, std::string &sym);
+    ILoadable* findLoadable(const std::string& sym);
+    bool findLoadable(Loadable* l, std::string& sym);
 
-    IProfile *findProfile(const std::string &sym);
-    bool findProfile(Profile *p, std::string &sym);
+    IProfile* findProfile(const std::string& sym);
+    bool findProfile(Profile* p, std::string& sym);
 
     //    bool networkSymbolAssigned(const std::string &sym) const;
     //    bool layerSymbolAssigned(const std::string &sym) const;
     //    bool tensorSymbolAssigned(const std::string &sym) const;
 
 protected:
-    typedef BiMap<std::string, INetwork *>::left_iterator SymNetIter;
-    typedef BiMap<std::string, INetwork *>::right_iterator NetSymIter;
+    typedef BiMap<std::string, INetwork*>::left_iterator SymNetIter;
+    typedef BiMap<std::string, INetwork*>::right_iterator NetSymIter;
 
     //    typedef std::map<std::string, INetwork *>::iterator SymNetIter;
     //    typedef std::map<INetwork *, std::string>::iterator NetSymIter;
 
-    typedef std::map<std::string, ILayer *>::iterator SymLayerIter;
-    typedef std::map<ILayer *, std::string>::iterator LayerSymIter;
+    typedef std::map<std::string, ILayer*>::iterator SymLayerIter;
+    typedef std::map<ILayer*, std::string>::iterator LayerSymIter;
 
-    typedef std::map<std::string, ITensor *>::iterator SymTensorIter;
-    typedef std::map<ITensor *, std::string>::iterator TensorSymIter;
+    typedef std::map<std::string, ITensor*>::iterator SymTensorIter;
+    typedef std::map<ITensor*, std::string>::iterator TensorSymIter;
 
-    typedef std::map<std::string, ILoadable *>::iterator SymLoadableIter;
-    typedef std::map<ILoadable *, std::string>::iterator LoadableSymIter;
+    typedef std::map<std::string, ILoadable*>::iterator SymLoadableIter;
+    typedef std::map<ILoadable*, std::string>::iterator LoadableSymIter;
 
-    typedef std::map<std::string, IProfile *>::iterator SymProfileIter;
-    typedef std::map<IProfile *, std::string>::iterator ProfileSymIter;
+    typedef std::map<std::string, IProfile*>::iterator SymProfileIter;
+    typedef std::map<IProfile*, std::string>::iterator ProfileSymIter;
 
-
-
-    BiMap<std::string, INetwork *> m_sym_net;
+    BiMap<std::string, INetwork*> m_sym_net;
     //    std::map<std::string, INetwork *> m_sym_net;
     //    std::map<INetwork *, std::string> m_net_sym;
 
-    std::map<std::string, ILayer *> m_sym_layer;
-    std::map<ILayer *, std::string> m_layer_sym;
+    std::map<std::string, ILayer*> m_sym_layer;
+    std::map<ILayer*, std::string> m_layer_sym;
 
-    std::map<std::string, ITensor *> m_sym_tensor;
-    std::map<ITensor *, std::string> m_tensor_sym;
+    std::map<std::string, ITensor*> m_sym_tensor;
+    std::map<ITensor*, std::string> m_tensor_sym;
 
+    std::map<std::string, ILoadable*> m_sym_loadable;
+    std::map<ILoadable*, std::string> m_loadable_sym;
 
-    std::map<std::string, ILoadable *> m_sym_loadable;
-    std::map<ILoadable *, std::string> m_loadable_sym;
-
-    std::map<std::string, IProfile *> m_sym_profile;
-    std::map<IProfile *, std::string> m_profile_sym;
+    std::map<std::string, IProfile*> m_sym_profile;
+    std::map<IProfile*, std::string> m_profile_sym;
 };
-
 
 class WisdomFactory
 {
 public:
-    typedef PrivPair<IWisdom *, Wisdom*> WisdomPrivPair;
+    typedef PrivPair<IWisdom*, Wisdom*> WisdomPrivPair;
 
     static WisdomPrivPair newWisdom();
-    static NvDlaError deleteWisdom(IWisdom *wisdom);
+    static NvDlaError deleteWisdom(IWisdom* wisdom);
 
-    static Wisdom *priv(IWisdom *);
-    static IWisdom *i(Wisdom *);
-    static IWisdom *self(void *s);
+    static Wisdom* priv(IWisdom*);
+    static IWisdom* i(Wisdom*);
+    static IWisdom* self(void* s);
 
-    static IWisdom *deserializeFrom(WisdomContainerEntry *);
+    static IWisdom* deserializeFrom(WisdomContainerEntry*);
 
 protected:
-    static BiMap<IWisdom *, Wisdom *> s_priv;
-    static BiMap<void *, IWisdom *> s_self;
+    static BiMap<IWisdom*, Wisdom*> s_priv;
+    static BiMap<void*, IWisdom*> s_self;
 
     //    static IWisdom *deserializeWisdom(WisdomContainerEntry *);
-
 };
-
 
 class Wisdom : public IWisdom
 {
@@ -151,7 +142,7 @@ public:
     virtual ~Wisdom();
 
     //     virtual bool open(IWisdomContainer *);
-    virtual bool open(const std::string &uri);
+    virtual bool open(const std::string& uri);
 
     //    const INetwork *getNetwork(); // AST, original input
     //    int getNumTestPoints();
@@ -161,16 +152,16 @@ public:
 
     virtual void close();
 
-    virtual IWisdomContainerEntry *getRootEntry();
+    virtual IWisdomContainerEntry* getRootEntry();
 
-    virtual bool setNetwork(INetwork *);
-    virtual bool setNetworkTransient(INetwork *);
+    virtual bool setNetwork(INetwork*);
+    virtual bool setNetworkTransient(INetwork*);
 
-    virtual INetwork *getNetwork();
+    virtual INetwork* getNetwork();
 
-    virtual IProfiler *getProfiler();
+    virtual IProfiler* getProfiler();
 
-    virtual ICompiler *getCompiler();
+    virtual ICompiler* getCompiler();
 
     //
     // Dictionary/symbol table interfaces. For the following:
@@ -180,50 +171,49 @@ public:
     // assign-> produce a unique symbol name (first, try object "name")
     //    then insert into the table.
     //
-    virtual bool insertNetworkSymbol(INetwork *, const std::string &);
-    virtual INetwork *findNetworkSymbol(const std::string &);
+    virtual bool insertNetworkSymbol(INetwork*, const std::string&);
+    virtual INetwork* findNetworkSymbol(const std::string&);
 
-    virtual bool insertLayerSymbol(ILayer *, const std::string &);
-    virtual ILayer *findLayerSymbol(const std::string &);
-    virtual ILayer *getLayerFromSymbol(const std::string &);
-    virtual bool assignLayerSymbol(Layer *, std::string &);
-    virtual bool setLayer(Layer *); // error for it not to have been assigned a symbol
+    virtual bool insertLayerSymbol(ILayer*, const std::string&);
+    virtual ILayer* findLayerSymbol(const std::string&);
+    virtual ILayer* getLayerFromSymbol(const std::string&);
+    virtual bool assignLayerSymbol(Layer*, std::string&);
+    virtual bool setLayer(Layer*); // error for it not to have been assigned a symbol
 
-    virtual bool insertTensorSymbol(ITensor *, const std::string &);
-    virtual ITensor *findTensorSymbol(const std::string &);
-    virtual ITensor *getTensorFromSymbol(const std::string &);
-    virtual bool assignTensorSymbol(Tensor *, std::string &);
-    virtual bool setTensor(Tensor *); // error for it not to have been assigned a symbol
+    virtual bool insertTensorSymbol(ITensor*, const std::string&);
+    virtual ITensor* findTensorSymbol(const std::string&);
+    virtual ITensor* getTensorFromSymbol(const std::string&);
+    virtual bool assignTensorSymbol(Tensor*, std::string&);
+    virtual bool setTensor(Tensor*); // error for it not to have been assigned a symbol
 
-    virtual bool insertLoadableSymbol(ILoadable *, const std::string &);
-    virtual ILoadable *findLoadableSymbol(const std::string &);
+    virtual bool insertLoadableSymbol(ILoadable*, const std::string&);
+    virtual ILoadable* findLoadableSymbol(const std::string&);
     //    virtual ILoadable *getLoadableFromSymbol(const std::string &);
     //    virtual bool assignLoadableSymbol(Loadable *, std::string &);
     //    virtual bool setLoadable(Loadable *); // error for it not to have been assigned a symbol
 
-    virtual bool insertProfileSymbol(IProfile *, const std::string &);
-    virtual IProfile *findProfileSymbol(const std::string &);
+    virtual bool insertProfileSymbol(IProfile*, const std::string&);
+    virtual IProfile* findProfileSymbol(const std::string&);
 
     virtual NvDlaError setDataType(DataType::UnderlyingType d);
-    virtual NvDlaError getDataType(DataType::UnderlyingType *) const;
+    virtual NvDlaError getDataType(DataType::UnderlyingType*) const;
 
-public:// internally facing
-    virtual bool findITensorSymbol(ITensor *, std::string &);
-    virtual bool findTensorSymbol (Tensor *,  std::string &);
+public: // internally facing
+    virtual bool findITensorSymbol(ITensor*, std::string&);
+    virtual bool findTensorSymbol(Tensor*, std::string&);
 
-    virtual bool findILayerSymbol(ILayer *, std::string &);
-    virtual bool findLayerSymbol(Layer *, std::string &);
+    virtual bool findILayerSymbol(ILayer*, std::string&);
+    virtual bool findLayerSymbol(Layer*, std::string&);
 
-    virtual bool findILoadableSymbol(ILoadable *, std::string &);
-    virtual bool findLoadableSymbol(Loadable *, std::string &);
+    virtual bool findILoadableSymbol(ILoadable*, std::string&);
+    virtual bool findLoadableSymbol(Loadable*, std::string&);
 
-    virtual bool findIProfileSymbol(IProfile *, std::string &);
-    virtual bool findProfileSymbol(Profile *, std::string &);
-
+    virtual bool findIProfileSymbol(IProfile*, std::string&);
+    virtual bool findProfileSymbol(Profile*, std::string&);
 
 protected:
-    WisdomContainer *m_container;
-    INetwork *m_network;
+    WisdomContainer* m_container;
+    INetwork* m_network;
 
     SymbolTable m_symbol_table;
 
@@ -232,8 +222,8 @@ protected:
     TensorFactory m_tensor_factory;
     LoadableFactory m_loadable_factory;
 
-    ICompiler *m_compiler;
-    IProfiler *m_profiler;
+    ICompiler* m_compiler;
+    IProfiler* m_profiler;
 
     DataType m_data_type;
 
@@ -241,16 +231,14 @@ protected:
      * Internal functions which are unsafe and external interfaces wraps them
      * to catch possible exception thrown.
      **/
-    virtual bool openInternal(const std::string &uri);
+    virtual bool openInternal(const std::string& uri);
     virtual void closeInternal();
-    virtual bool setNetworkInternal(INetwork *);
-    virtual INetwork *getNetworkInternal();
+    virtual bool setNetworkInternal(INetwork*);
+    virtual INetwork* getNetworkInternal();
     virtual NvDlaError setDataTypeInternal(DataType::UnderlyingType d);
 };
 
-
-
-} // nvdla::priv
-} // nvdla
+} // namespace priv
+} // namespace nvdla
 
 #endif // NVDLA_PRIV_WISDOM_H

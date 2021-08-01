@@ -31,8 +31,7 @@
 
 #include "nvdla/IType.h"
 
-namespace nvdla
-{
+namespace nvdla {
 
 class IWisdom;
 class ILoadable;
@@ -42,47 +41,48 @@ class ITargetConfig
 public:
     virtual const char* getName() const = 0;
 
-    struct ITargetConfigParams {
-        NvU32   atomicCSize;
-        NvU32   atomicKSize;
-        NvU32   memoryAtomicSize;
-        NvU32   numConvBufBankAllotted;
-        NvU32   numConvBufEntriesPerBank;
-        NvU32   numConvBufEntryWidth;
-        NvU32   maxBatchSize;
-        bool    isWinogradCapable;
-        bool    isCompressWeightsCapable;
-        bool    isBatchModeCapable;
-        bool    isPDPCapable;
-        bool    isCDPCapable;
-        bool    isSDPBiasCapable;
-        bool    isSDPBatchNormCapable;
-        bool    isSDPEltWiseCapable;
-        bool    isSDPLutCapable;
-        bool    isBDMACapable;
-        bool    isRubikCapable;
+    struct ITargetConfigParams
+    {
+        NvU32 atomicCSize;
+        NvU32 atomicKSize;
+        NvU32 memoryAtomicSize;
+        NvU32 numConvBufBankAllotted;
+        NvU32 numConvBufEntriesPerBank;
+        NvU32 numConvBufEntryWidth;
+        NvU32 maxBatchSize;
+        bool isWinogradCapable;
+        bool isCompressWeightsCapable;
+        bool isBatchModeCapable;
+        bool isPDPCapable;
+        bool isCDPCapable;
+        bool isSDPBiasCapable;
+        bool isSDPBatchNormCapable;
+        bool isSDPEltWiseCapable;
+        bool isSDPLutCapable;
+        bool isBDMACapable;
+        bool isRubikCapable;
 
-
-        ITargetConfigParams() :
-            atomicCSize(64),
-            atomicKSize(32),
-            memoryAtomicSize(32),
-            numConvBufBankAllotted(16),
-            numConvBufEntriesPerBank(256),
-            numConvBufEntryWidth(128),
-            maxBatchSize(32),
-            isWinogradCapable(false),
-            isCompressWeightsCapable(false),
-            isBatchModeCapable(false),
-            isPDPCapable(false),
-            isCDPCapable(false),
-            isSDPBiasCapable(false),
-            isSDPBatchNormCapable(false),
-            isSDPEltWiseCapable(false),
-            isSDPLutCapable(false),
-            isBDMACapable(false),
-            isRubikCapable(false)
-        { }
+        ITargetConfigParams()
+            : atomicCSize(64),
+              atomicKSize(32),
+              memoryAtomicSize(32),
+              numConvBufBankAllotted(16),
+              numConvBufEntriesPerBank(256),
+              numConvBufEntryWidth(128),
+              maxBatchSize(32),
+              isWinogradCapable(false),
+              isCompressWeightsCapable(false),
+              isBatchModeCapable(false),
+              isPDPCapable(false),
+              isCDPCapable(false),
+              isSDPBiasCapable(false),
+              isSDPBatchNormCapable(false),
+              isSDPEltWiseCapable(false),
+              isSDPLutCapable(false),
+              isBDMACapable(false),
+              isRubikCapable(false)
+        {
+        }
     };
 
     virtual NvDlaError initTargetConfigParams(ITargetConfigParams*) = 0;
@@ -92,8 +92,6 @@ protected:
     virtual ~ITargetConfig();
 };
 
-
-} // nvdla
-
+} // namespace nvdla
 
 #endif // NVDLA_I_TARGETCONFIG_H

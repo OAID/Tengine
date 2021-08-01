@@ -31,8 +31,7 @@
 
 #include "nvdla/IType.h"
 
-namespace nvdla
-{
+namespace nvdla {
 
 class IWisdom;
 class ILoadable;
@@ -42,10 +41,10 @@ class IProfile
 public:
     virtual const char* getName() const = 0;
 
-    virtual NvDlaError getNumLoadables(int *) const =  0;
+    virtual NvDlaError getNumLoadables(int*) const = 0;
 
     // if name.length() == 0 or index < 0 then they are ignored for the purpose of lookup
-    virtual NvDlaError getLoadable(const std::string &name, int index, ILoadable **) = 0;
+    virtual NvDlaError getLoadable(const std::string& name, int index, ILoadable**) = 0;
 
     virtual NvDlaError setNetworkInputSurfaceFormat(nvdla::PixelFormat) = 0;
     virtual NvDlaError setNetworkOutputSurfaceFormat(nvdla::PixelFormat) = 0;
@@ -78,75 +77,78 @@ public:
     virtual NvDlaError setTensorScalingMode(nvdla::TensorScalingMode) = 0;
     virtual NvDlaError setQuantizationMode(nvdla::QuantizationMode) = 0;
 
-
-    struct IGlobalParams {
+    struct IGlobalParams
+    {
         NvU32 pixelOffsetX;
         NvU32 pixelOffsetY;
-        nvdla::PixelFormat  inputPixelFormat;
-        nvdla::DataFormat   inputDataFormat;     // NCHW default
+        nvdla::PixelFormat inputPixelFormat;
+        nvdla::DataFormat inputDataFormat; // NCHW default
         nvdla::PixelMapping inputPixelMapping;
-        nvdla::PixelFormat  outputPixelFormat;
-        nvdla::DataFormat   outputDataFormat;    // NCHW default
+        nvdla::PixelFormat outputPixelFormat;
+        nvdla::DataFormat outputDataFormat; // NCHW default
 
-        IGlobalParams() :
-            pixelOffsetX(0),
-            pixelOffsetY(0),
-            inputPixelFormat(nvdla::PixelFormat::FEATURE),
-            inputDataFormat(nvdla::DataFormat::NCHW),
-            inputPixelMapping(nvdla::PixelMapping::PITCH_LINEAR),
-            outputPixelFormat(nvdla::PixelFormat::FEATURE),
-            outputDataFormat(nvdla::DataFormat::NCHW)
-        { }
+        IGlobalParams()
+            : pixelOffsetX(0),
+              pixelOffsetY(0),
+              inputPixelFormat(nvdla::PixelFormat::FEATURE),
+              inputDataFormat(nvdla::DataFormat::NCHW),
+              inputPixelMapping(nvdla::PixelMapping::PITCH_LINEAR),
+              outputPixelFormat(nvdla::PixelFormat::FEATURE),
+              outputDataFormat(nvdla::DataFormat::NCHW)
+        {
+        }
     };
 
-    struct ICompileParams {
-        bool    canCompressWeights;
-        bool    canWinograd;
-        NvU32   convWeightBanksAllotted;
-        NvU32   convDataBanksAllotted;
-        bool    canSdpPdpOnFly;
-        bool    canSdpMergeMathOps;
-        bool    canSdpFuseSubEngineOps;
-        bool    canSdpBustNOPs;
-        bool    canSdpFuseVerticalOps;
-        bool    useCvsramAllocate;
-        bool    useMemPool;
-        bool    useReusePooledMemory;
-        bool    greedyEviction;
-        bool    copyOutDebugSurfaces;
-        NvU64   globalDramSize;
-        NvU64   localDramSize;
-        NvU64   localCvsramSize;
-        NvU32   multiBatchSize;
-        bool    canImgPostChnlExtend;
+    struct ICompileParams
+    {
+        bool canCompressWeights;
+        bool canWinograd;
+        NvU32 convWeightBanksAllotted;
+        NvU32 convDataBanksAllotted;
+        bool canSdpPdpOnFly;
+        bool canSdpMergeMathOps;
+        bool canSdpFuseSubEngineOps;
+        bool canSdpBustNOPs;
+        bool canSdpFuseVerticalOps;
+        bool useCvsramAllocate;
+        bool useMemPool;
+        bool useReusePooledMemory;
+        bool greedyEviction;
+        bool copyOutDebugSurfaces;
+        NvU64 globalDramSize;
+        NvU64 localDramSize;
+        NvU64 localCvsramSize;
+        NvU32 multiBatchSize;
+        bool canImgPostChnlExtend;
         nvdla::DataType computePrecision;
         nvdla::TensorScalingMode tensorScalingMode;
         nvdla::QuantizationMode quantizationMode;
 
-        ICompileParams() :
-            canCompressWeights(false),
-            canWinograd(false),
-            convWeightBanksAllotted(8),
-            convDataBanksAllotted(8),
-            canSdpPdpOnFly(false),
-            canSdpMergeMathOps(false),
-            canSdpFuseSubEngineOps(false),
-            canSdpBustNOPs(false),
-            canSdpFuseVerticalOps(false),
-            useCvsramAllocate(false),
-            useMemPool(false),
-            useReusePooledMemory(false),
-            greedyEviction(false),
-            copyOutDebugSurfaces(false),
-            globalDramSize(1LLU << 28),
-            localDramSize(1LLU << 30),
-            localCvsramSize(1LLU << 20),
-            multiBatchSize(0),
-            canImgPostChnlExtend(false),
-            computePrecision(nvdla::DataType::HALF),
-            tensorScalingMode(nvdla::TensorScalingMode::NONE),
-            quantizationMode(nvdla::QuantizationMode::NONE)
-        { }
+        ICompileParams()
+            : canCompressWeights(false),
+              canWinograd(false),
+              convWeightBanksAllotted(8),
+              convDataBanksAllotted(8),
+              canSdpPdpOnFly(false),
+              canSdpMergeMathOps(false),
+              canSdpFuseSubEngineOps(false),
+              canSdpBustNOPs(false),
+              canSdpFuseVerticalOps(false),
+              useCvsramAllocate(false),
+              useMemPool(false),
+              useReusePooledMemory(false),
+              greedyEviction(false),
+              copyOutDebugSurfaces(false),
+              globalDramSize(1LLU << 28),
+              localDramSize(1LLU << 30),
+              localCvsramSize(1LLU << 20),
+              multiBatchSize(0),
+              canImgPostChnlExtend(false),
+              computePrecision(nvdla::DataType::HALF),
+              tensorScalingMode(nvdla::TensorScalingMode::NONE),
+              quantizationMode(nvdla::QuantizationMode::NONE)
+        {
+        }
     };
 
     virtual NvDlaError initGlobalParams(IGlobalParams*) = 0;
@@ -158,8 +160,6 @@ protected:
     virtual ~IProfile();
 };
 
-
-} // nvdla
-
+} // namespace nvdla
 
 #endif // NVDLA_I_PROFILER_H

@@ -25,7 +25,7 @@
  * We do not support run-time selection of data precision, sorry.
  */
 
-#define BITS_IN_JSAMPLE  8      /* use 8 or 12 */
+#define BITS_IN_JSAMPLE 8 /* use 8 or 12 */
 
 /* Define to 1 if you have the <locale.h> header file. */
 #define HAVE_LOCALE_H 1

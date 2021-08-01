@@ -29,15 +29,13 @@
 #ifndef _DLA_FW_VERSION_H_
 #define _DLA_FW_VERSION_H_
 
-#define FIRMWARE_VERSION_MAJOR		0x00
-#define FIRMWARE_VERSION_MINOR		0x0c
-#define FIRMWARE_VERSION_SUBMINOR	0x03
+#define FIRMWARE_VERSION_MAJOR    0x00
+#define FIRMWARE_VERSION_MINOR    0x0c
+#define FIRMWARE_VERSION_SUBMINOR 0x03
 
 static inline uint32_t dla_version(void)
 {
-	return (uint32_t)(((FIRMWARE_VERSION_MAJOR & 0xff) << 16) |
-				((FIRMWARE_VERSION_MINOR & 0xff) << 8) |
-				((FIRMWARE_VERSION_SUBMINOR & 0xff)));
+    return (uint32_t)(((FIRMWARE_VERSION_MAJOR & 0xff) << 16) | ((FIRMWARE_VERSION_MINOR & 0xff) << 8) | ((FIRMWARE_VERSION_SUBMINOR & 0xff)));
 }
 
 #endif

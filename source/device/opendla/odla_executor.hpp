@@ -32,9 +32,7 @@
 #include "ErrorMacros.h"
 #include "nvdla_os_inf.h"
 
-
-extern "C"
-{
+extern "C" {
 #include "device/device.h"
 #include "graph/tensor.h"
 #include "graph/node.h"
@@ -57,9 +55,8 @@ extern "C"
 
 #include "convolution_param.h"
 
-
-#define NVDLA_LAYER_TYPE_INPUT 13U
-#define NVDLA_LAYER_TYPE_OUTPUT 14U
+#define NVDLA_LAYER_TYPE_INPUT     13U
+#define NVDLA_LAYER_TYPE_OUTPUT    14U
 #define NVDLA_LAYER_TYPE_CONV_BIAS 15U
 #define NVDLA_LAYER_TYPE_PRELU 16U
 #define NVDLA_LAYER_TYPE_INTERP 17U
@@ -68,6 +65,7 @@ extern "C"
 
 typedef std::map<uint32_t, nvdla::priv::Tensor *> dict_irt2odlat;
 
+typedef std::map<uint32_t, nvdla::priv::Tensor*> dict_irt2odlat;
 
 class ODLAEngine
 {
@@ -87,7 +85,6 @@ private:
     NvDlaError ODLAConfigGenerate();
 
 public:
-
     std::string tp_name = "fast-math";
     std::string target_config_name = "nv_small";
 

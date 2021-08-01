@@ -34,93 +34,93 @@
 // than global scope.  And, the enum class wrappers are being used
 
 // for class BatchModeParameter::SERIAL, ...
-#define BATCH_MODE_ENUMS(op)                    \
-    op(SERIAL, 0U)                              \
-    op(MULTI,  1U)
+#define BATCH_MODE_ENUMS(op) \
+    op(SERIAL, 0U)           \
+        op(MULTI, 1U)
 
 // for class CVSRamSizeParameter::ZERO_MB, ...
-#define CVSRAM_SIZE_ENUMS(op)                   \
-    op(ZERO_MB, 0U)                             \
-    op(TWO_MB, 1U)                              \
-    op(FOUR_MB, 2U)
+#define CVSRAM_SIZE_ENUMS(op) \
+    op(ZERO_MB, 0U)           \
+        op(TWO_MB, 1U)        \
+            op(FOUR_MB, 2U)
 
 // for class HWLayerTuningParameter::DC, ...
-#define HW_LAYER_TUNING_ENUMS(op)               \
-    op(DC,       0U)                            \
-    op(WINOGRAD, 1U)
+#define HW_LAYER_TUNING_ENUMS(op) \
+    op(DC, 0U)                    \
+        op(WINOGRAD, 1U)
 
 // for class MappingWeightsParameter::COMPRESSED, ...
-#define MAPPING_WEIGHTS_ENUMS(op)               \
-    op(COMPRESSED,   0U)                        \
-    op(UNCOMPRESSED, 1U)
+#define MAPPING_WEIGHTS_ENUMS(op) \
+    op(COMPRESSED, 0U)            \
+        op(UNCOMPRESSED, 1U)
 
 // for class PaddingParameter::NO_PADDING, ...
-#define PADDING_ENUMS(op)                       \
-    op(NO_PADDING, 0U)                          \
-    op(PADDED,     1U)
+#define PADDING_ENUMS(op) \
+    op(NO_PADDING, 0U)    \
+        op(PADDED, 1U)
 
 // for class OutputSequenceParameter::PARTIAL_HEIGHT, ...
-#define OUTPUT_SEQUENCE_ENUMS(op)               \
-    op(PARTIAL_HEIGHT,      0U)                 \
-    op(PARTIAL_HEIGHT_LAST, 1U)
+#define OUTPUT_SEQUENCE_ENUMS(op) \
+    op(PARTIAL_HEIGHT, 0U)        \
+        op(PARTIAL_HEIGHT_LAST, 1U)
 
 // for class DilationParameter::DISABLED, ...
-#define DILATION_ENUMS(op)                      \
-    op(DISABLED, 0U)                            \
-    op(ENABLED,  1U)
+#define DILATION_ENUMS(op) \
+    op(DISABLED, 0U)       \
+        op(ENABLED, 1U)
 
 // for class WeightDensityParameter::FULL, ...
-#define WEIGHT_DENSITY_ENUMS(op)                \
-    op(FULL,    0U)                             \
-    op(PARTIAL, 1U)
+#define WEIGHT_DENSITY_ENUMS(op) \
+    op(FULL, 0U)                 \
+        op(PARTIAL, 1U)
 
 // for class FeatureDensityParameter::FULL, ...
-#define FEATURE_DENSITY_ENUMS(op)               \
-    op(FULL,    0U)                             \
-    op(PARTIAL, 1U)
+#define FEATURE_DENSITY_ENUMS(op) \
+    op(FULL, 0U)                  \
+        op(PARTIAL, 1U)
 
 // for class ChannelExtensionParameter::DISABLED, ...
-#define CHANNEL_EXTENSION_ENUMS(op)             \
-    op(DISABLED, 0U)                            \
-    op(ENABLED, 1U)
+#define CHANNEL_EXTENSION_ENUMS(op) \
+    op(DISABLED, 0U)                \
+        op(ENABLED, 1U)
 
 // for class ConvMACRedundancyParameter::DISABLED, ...
-#define CONV_MAC_REDUNDANCY_ENUMS(op)           \
-    op(DISABLED, 0U)                            \
-    op(ENABLED,  1U)
+#define CONV_MAC_REDUNDANCY_ENUMS(op) \
+    op(DISABLED, 0U)                  \
+        op(ENABLED, 1U)
 
 // for class ConvBufBankMgmtParameter::DISABLED, ...
-#define CONV_BUF_BANK_MGMT_ENUMS(op)            \
-    op(DISABLED, 0U)                            \
-    op(ENABLED,  1U)
+#define CONV_BUF_BANK_MGMT_ENUMS(op) \
+    op(DISABLED, 0U)                 \
+        op(ENABLED, 1U)
 
 // for class PDPOpModeParameter::ON_FLYING, ...
-#define PDP_OP_MODE_ENUMS(op)                   \
-    op(ON_FLYING,  0U)                          \
-    op(OFF_FLYING, 1U)
+#define PDP_OP_MODE_ENUMS(op) \
+    op(ON_FLYING, 0U)         \
+        op(OFF_FLYING, 1U)
 
 // for class OffFlyingOpModeParameter::NO_REFETCH, ...
-#define OFF_FLYING_OP_MODE_ENUMS(op)            \
-    op(NO_REFETCH, 0U)                          \
-    op(REFETCH,    1U)
+#define OFF_FLYING_OP_MODE_ENUMS(op) \
+    op(NO_REFETCH, 0U)               \
+        op(REFETCH, 1U)
 
 // for class SDPOpModeParameter::ON_FLYING, ...
-#define SDP_OP_MODE_ENUMS(op)                   \
-    op(ON_FLYING,  0U)                          \
-    op(OFF_FLYING, 1U)
+#define SDP_OP_MODE_ENUMS(op) \
+    op(ON_FLYING, 0U)         \
+        op(OFF_FLYING, 1U)
 
 // for class AXIFSchedParameter::DISABLED, ...
-#define AXIF_SCHED_ENUMS(op)                    \
-    op(DISABLED, 0U)                            \
-    op(ENABLED,  1U)
+#define AXIF_SCHED_ENUMS(op) \
+    op(DISABLED, 0U)         \
+        op(ENABLED, 1U)
 
 // for class PixelDataFormatParameter::PITCH_LINEAR, ...
-#define PIXEL_DATA_FORMAT_ENUMS(op)             \
+#define PIXEL_DATA_FORMAT_ENUMS(op) \
     op(PITCH_LINEAR, 0U)
 
 // for class NetworkForksParameter::DISABLED, ...
-#define NETWORK_FORKS_ENUMS(op)                 \
-    op(DISABLED, 0U)                            \
-    op(ENABLED,  1U)
+#define NETWORK_FORKS_ENUMS(op) \
+    op(DISABLED, 0U)            \
+        op(ENABLED, 1U)
 
 #endif // NVDLA_PRIV_TEST_POINT_PARAMETER_ENUM

@@ -37,7 +37,10 @@
 extern "C" {
 #endif // __cplusplus
 
-#define NVDLA_UNUSED(expr) do { (void)(expr); } while (0)
+#define NVDLA_UNUSED(expr) \
+    do {                   \
+        (void)(expr);      \
+    } while (0)
 
 const char* NvDlaUtilsGetNvErrorString(NvDlaError e);
 
@@ -52,22 +55,21 @@ const char* NvDlaUtilsGetNvErrorString(NvDlaError e);
  *  2) Define NVDLA_UTILS_LOG_ERROR to point to a custom error logging function within the
  *     client. The signature for this macro should be the same as the default, below.
  */
-#if defined (NVDLA_UTILS_ERROR_TAG)
+#if defined(NVDLA_UTILS_ERROR_TAG)
 // Use the default NvDlaUtilsLogError with the client tag appended.
 void NvDlaUtilsLogError(const char* tag, const char* path, NvDlaError e, const char* file, const char* func,
                         uint32_t line, bool propagating, const char* format, ...);
-#if !defined (NVDLA_UTILS_ERROR_PATH)
+#if !defined(NVDLA_UTILS_ERROR_PATH)
 #define NVDLA_UTILS_ERROR_PATH "dla"
 #endif
 
 #define NVDLA_UTILS_LOG_ERROR(_err, _file, _func, _line, _propagating, _format, ...) \
-    do { \
-        NvDlaUtilsLogError(NVDLA_UTILS_ERROR_TAG, NVDLA_UTILS_ERROR_PATH, \
-                                (_err), (_file), (_func), (_line), \
-                                (_propagating), (_format), ##__VA_ARGS__); \
-    } \
-    while (0)
-#elif defined (NVDLA_UTILS_LOG_ERROR)
+    do {                                                                             \
+        NvDlaUtilsLogError(NVDLA_UTILS_ERROR_TAG, NVDLA_UTILS_ERROR_PATH,            \
+                           (_err), (_file), (_func), (_line),                        \
+                           (_propagating), (_format), ##__VA_ARGS__);                \
+    } while (0)
+#elif defined(NVDLA_UTILS_LOG_ERROR)
 // Use the client's custom error logging function.
 #else
 #error "One of NVDLA_UTILS_ERROR_TAG or NVDLA_UTILS_LOG_ERROR must be defined"
@@ -76,47 +78,54 @@ void NvDlaUtilsLogError(const char* tag, const char* path, NvDlaError e, const c
 /**
  * Argument counting macros.
  */
-#define NVDLA_UTILS_CAT(A, B) A##B
-#define NVDLA_UTILS_SELECT(NAME, NUM) NVDLA_UTILS_CAT(NAME##_, NUM)
+#define NVDLA_UTILS_CAT(A, B)                                 A##B
+#define NVDLA_UTILS_SELECT(NAME, NUM)                         NVDLA_UTILS_CAT(NAME##_, NUM)
 #define NVDLA_UTILS_GET_COUNT(_1, _2, _3, _4, _5, COUNT, ...) COUNT
-#define NVDLA_UTILS_VA_SIZE(...) NVDLA_UTILS_GET_COUNT(__VA_ARGS__, 5, 4, 3, 2, 1)
-#define NVDLA_UTILS_VA_SELECT(NAME, ...) NVDLA_UTILS_SELECT(NAME, NVDLA_UTILS_VA_SIZE(__VA_ARGS__))(__VA_ARGS__)
+#define NVDLA_UTILS_VA_SIZE(...)                              NVDLA_UTILS_GET_COUNT(__VA_ARGS__, 5, 4, 3, 2, 1)
+#define NVDLA_UTILS_VA_SELECT(NAME, ...)                      NVDLA_UTILS_SELECT(NAME, NVDLA_UTILS_VA_SIZE(__VA_ARGS__)) \
+(__VA_ARGS__)
 
 /**
  * Simply report an error.
  */
 #define REPORT_ERROR(...) NVDLA_UTILS_VA_SELECT(REPORT_ERROR_IMPL, __VA_ARGS__)
-#define REPORT_ERROR_IMPL_1(_err) \
-    do { NVDLA_UTILS_LOG_ERROR((_err), __FILE__, __FUNCTION__, __LINE__, false, 0); } while (0)
-#define REPORT_ERROR_IMPL_2(_err, _format) \
-    do { NVDLA_UTILS_LOG_ERROR((_err), __FILE__, __FUNCTION__, __LINE__, false, (_format)); } while (0)
+#define REPORT_ERROR_IMPL_1(_err)                                                  \
+    do {                                                                           \
+        NVDLA_UTILS_LOG_ERROR((_err), __FILE__, __FUNCTION__, __LINE__, false, 0); \
+    } while (0)
+#define REPORT_ERROR_IMPL_2(_err, _format)                                                 \
+    do {                                                                                   \
+        NVDLA_UTILS_LOG_ERROR((_err), __FILE__, __FUNCTION__, __LINE__, false, (_format)); \
+    } while (0)
 #define REPORT_ERROR_IMPL_3(_err, _format, ...) REPORT_ERROR_IMPL_N((_err), (_format), __VA_ARGS__)
 #define REPORT_ERROR_IMPL_4(_err, _format, ...) REPORT_ERROR_IMPL_N((_err), (_format), __VA_ARGS__)
 #define REPORT_ERROR_IMPL_5(_err, _format, ...) REPORT_ERROR_IMPL_N((_err), (_format), __VA_ARGS__)
-#define REPORT_ERROR_IMPL_N(_err, _format, ...) \
-    do { NVDLA_UTILS_LOG_ERROR((_err), __FILE__, __FUNCTION__, __LINE__, false, (_format), __VA_ARGS__); } while (0)
+#define REPORT_ERROR_IMPL_N(_err, _format, ...)                                                         \
+    do {                                                                                                \
+        NVDLA_UTILS_LOG_ERROR((_err), __FILE__, __FUNCTION__, __LINE__, false, (_format), __VA_ARGS__); \
+    } while (0)
 
 /**
  * Report and return an error that was first detected in the current method.
  */
 #define ORIGINATE_ERROR(...) NVDLA_UTILS_VA_SELECT(ORIGINATE_ERROR_IMPL, __VA_ARGS__)
-#define ORIGINATE_ERROR_IMPL_1(_err) \
-    do { \
+#define ORIGINATE_ERROR_IMPL_1(_err)                                               \
+    do {                                                                           \
         NVDLA_UTILS_LOG_ERROR((_err), __FILE__, __FUNCTION__, __LINE__, false, 0); \
-        return (_err); \
+        return (_err);                                                             \
     } while (0)
-#define ORIGINATE_ERROR_IMPL_2(_err, _format) \
-    do { \
+#define ORIGINATE_ERROR_IMPL_2(_err, _format)                                              \
+    do {                                                                                   \
         NVDLA_UTILS_LOG_ERROR((_err), __FILE__, __FUNCTION__, __LINE__, false, (_format)); \
-        return (_err); \
+        return (_err);                                                                     \
     } while (0)
 #define ORIGINATE_ERROR_IMPL_3(_err, _format, ...) ORIGINATE_ERROR_IMPL_N((_err), (_format), __VA_ARGS__)
 #define ORIGINATE_ERROR_IMPL_4(_err, _format, ...) ORIGINATE_ERROR_IMPL_N((_err), (_format), __VA_ARGS__)
 #define ORIGINATE_ERROR_IMPL_5(_err, _format, ...) ORIGINATE_ERROR_IMPL_N((_err), (_format), __VA_ARGS__)
-#define ORIGINATE_ERROR_IMPL_N(_err, _format, ...) \
-    do { \
+#define ORIGINATE_ERROR_IMPL_N(_err, _format, ...)                                                      \
+    do {                                                                                                \
         NVDLA_UTILS_LOG_ERROR((_err), __FILE__, __FUNCTION__, __LINE__, false, (_format), __VA_ARGS__); \
-        return (_err); \
+        return (_err);                                                                                  \
     } while (0)
 
 /**
@@ -124,61 +133,61 @@ void NvDlaUtilsLogError(const char* tag, const char* path, NvDlaError e, const c
  * The variable "NvError e" must have been previously declared.
  */
 #define ORIGINATE_ERROR_FAIL(...) NVDLA_UTILS_VA_SELECT(ORIGINATE_ERROR_FAIL_IMPL, __VA_ARGS__)
-#define ORIGINATE_ERROR_FAIL_IMPL_1(_err) \
-    do { \
-        e = (_err); \
+#define ORIGINATE_ERROR_FAIL_IMPL_1(_err)                                          \
+    do {                                                                           \
+        e = (_err);                                                                \
         NVDLA_UTILS_LOG_ERROR((_err), __FILE__, __FUNCTION__, __LINE__, false, 0); \
-        goto fail; \
+        goto fail;                                                                 \
     } while (0)
-#define ORIGINATE_ERROR_FAIL_IMPL_2(_err, _format) \
-    do { \
-        e = (_err); \
+#define ORIGINATE_ERROR_FAIL_IMPL_2(_err, _format)                                         \
+    do {                                                                                   \
+        e = (_err);                                                                        \
         NVDLA_UTILS_LOG_ERROR((_err), __FILE__, __FUNCTION__, __LINE__, false, (_format)); \
-        goto fail; \
+        goto fail;                                                                         \
     } while (0)
 #define ORIGINATE_ERROR_FAIL_IMPL_3(_err, _format, ...) ORIGINATE_ERROR_FAIL_IMPL_N((_err), (_format), __VA_ARGS__)
 #define ORIGINATE_ERROR_FAIL_IMPL_4(_err, _format, ...) ORIGINATE_ERROR_FAIL_IMPL_N((_err), (_format), __VA_ARGS__)
 #define ORIGINATE_ERROR_FAIL_IMPL_5(_err, _format, ...) ORIGINATE_ERROR_FAIL_IMPL_N((_err), (_format), __VA_ARGS__)
-#define ORIGINATE_ERROR_FAIL_IMPL_N(_err, _format, ...) \
-    do { \
-        e = (_err); \
+#define ORIGINATE_ERROR_FAIL_IMPL_N(_err, _format, ...)                                                 \
+    do {                                                                                                \
+        e = (_err);                                                                                     \
         NVDLA_UTILS_LOG_ERROR((_err), __FILE__, __FUNCTION__, __LINE__, false, (_format), __VA_ARGS__); \
-        goto fail; \
+        goto fail;                                                                                      \
     } while (0)
 
 /**
  * Calls another function, and if an error was returned it is reported and returned.
  */
 #define PROPAGATE_ERROR(...) NVDLA_UTILS_VA_SELECT(PROPAGATE_ERROR_IMPL, __VA_ARGS__)
-#define PROPAGATE_ERROR_IMPL_1(_err) \
-    do { \
-        NvDlaError peResult = (_err); \
-        if (peResult != NvDlaSuccess) \
-        { \
+#define PROPAGATE_ERROR_IMPL_1(_err)                                                    \
+    do {                                                                                \
+        NvDlaError peResult = (_err);                                                   \
+        if (peResult != NvDlaSuccess)                                                   \
+        {                                                                               \
             NVDLA_UTILS_LOG_ERROR(peResult, __FILE__, __FUNCTION__, __LINE__, true, 0); \
-            return peResult; \
-        } \
+            return peResult;                                                            \
+        }                                                                               \
     } while (0)
-#define PROPAGATE_ERROR_IMPL_2(_err, _format) \
-    do { \
-        NvDlaError peResult = (_err); \
-        if (peResult != NvDlaSuccess) \
-        { \
+#define PROPAGATE_ERROR_IMPL_2(_err, _format)                                                   \
+    do {                                                                                        \
+        NvDlaError peResult = (_err);                                                           \
+        if (peResult != NvDlaSuccess)                                                           \
+        {                                                                                       \
             NVDLA_UTILS_LOG_ERROR(peResult, __FILE__, __FUNCTION__, __LINE__, true, (_format)); \
-            return peResult; \
-        } \
+            return peResult;                                                                    \
+        }                                                                                       \
     } while (0)
 #define PROPAGATE_ERROR_IMPL_3(_err, _format, ...) PROPAGATE_ERROR_IMPL_N((_err), (_format), __VA_ARGS__)
 #define PROPAGATE_ERROR_IMPL_4(_err, _format, ...) PROPAGATE_ERROR_IMPL_N((_err), (_format), __VA_ARGS__)
 #define PROPAGATE_ERROR_IMPL_5(_err, _format, ...) PROPAGATE_ERROR_IMPL_N((_err), (_format), __VA_ARGS__)
-#define PROPAGATE_ERROR_IMPL_N(_err, _format, ...) \
-    do { \
-        NvDlaError peResult = (_err); \
-        if (peResult != NvDlaSuccess) \
-        { \
+#define PROPAGATE_ERROR_IMPL_N(_err, _format, ...)                                                           \
+    do {                                                                                                     \
+        NvDlaError peResult = (_err);                                                                        \
+        if (peResult != NvDlaSuccess)                                                                        \
+        {                                                                                                    \
             NVDLA_UTILS_LOG_ERROR(peResult, __FILE__, __FUNCTION__, __LINE__, true, (_format), __VA_ARGS__); \
-            return peResult; \
-        } \
+            return peResult;                                                                                 \
+        }                                                                                                    \
     } while (0)
 
 /**
@@ -186,35 +195,35 @@ void NvDlaUtilsLogError(const char* tag, const char* path, NvDlaError e, const c
  * "fail:" label. The variable "NvError e" must have been previously declared.
  */
 #define PROPAGATE_ERROR_FAIL(...) NVDLA_UTILS_VA_SELECT(PROPAGATE_ERROR_FAIL_IMPL, __VA_ARGS__)
-#define PROPAGATE_ERROR_FAIL_IMPL_1(_err) \
-    do { \
-        e = (_err); \
-        if (e != NvDlaSuccess) \
-        { \
+#define PROPAGATE_ERROR_FAIL_IMPL_1(_err)                                        \
+    do {                                                                         \
+        e = (_err);                                                              \
+        if (e != NvDlaSuccess)                                                   \
+        {                                                                        \
             NVDLA_UTILS_LOG_ERROR(e, __FILE__, __FUNCTION__, __LINE__, true, 0); \
-            goto fail; \
-        } \
+            goto fail;                                                           \
+        }                                                                        \
     } while (0)
-#define PROPAGATE_ERROR_FAIL_IMPL_2(_err, _format) \
-    do { \
-        e = (_err); \
-        if (e != NvDlaSuccess) \
-        { \
+#define PROPAGATE_ERROR_FAIL_IMPL_2(_err, _format)                                       \
+    do {                                                                                 \
+        e = (_err);                                                                      \
+        if (e != NvDlaSuccess)                                                           \
+        {                                                                                \
             NVDLA_UTILS_LOG_ERROR(e, __FILE__, __FUNCTION__, __LINE__, true, (_format)); \
-            goto fail; \
-        } \
+            goto fail;                                                                   \
+        }                                                                                \
     } while (0)
 #define PROPAGATE_ERROR_FAIL_IMPL_3(_err, _format, ...) PROPAGATE_ERROR_FAIL_IMPL_N((_err), (_format), __VA_ARGS__)
 #define PROPAGATE_ERROR_FAIL_IMPL_4(_err, _format, ...) PROPAGATE_ERROR_FAIL_IMPL_N((_err), (_format), __VA_ARGS__)
 #define PROPAGATE_ERROR_FAIL_IMPL_5(_err, _format, ...) PROPAGATE_ERROR_FAIL_IMPL_N((_err), (_format), __VA_ARGS__)
-#define PROPAGATE_ERROR_FAIL_IMPL_N(_err, _format, ...) \
-    do { \
-        e = (_err); \
-        if (e != NvDlaSuccess) \
-        { \
+#define PROPAGATE_ERROR_FAIL_IMPL_N(_err, _format, ...)                                               \
+    do {                                                                                              \
+        e = (_err);                                                                                   \
+        if (e != NvDlaSuccess)                                                                        \
+        {                                                                                             \
             NVDLA_UTILS_LOG_ERROR(e, __FILE__, __FUNCTION__, __LINE__, true, (_format), __VA_ARGS__); \
-            goto fail; \
-        } \
+            goto fail;                                                                                \
+        }                                                                                             \
     } while (0)
 
 /**
@@ -222,219 +231,209 @@ void NvDlaUtilsLogError(const char* tag, const char* path, NvDlaError e, const c
  * variable 'e' (which must have been previously declared). The caller does not return.
  */
 #define PROPAGATE_ERROR_CONTINUE(...) NVDLA_UTILS_VA_SELECT(PROPAGATE_ERROR_CONTINUE_IMPL, __VA_ARGS__)
-#define PROPAGATE_ERROR_CONTINUE_IMPL_1(_err) \
-    do { \
-        NvDlaError peResult = (_err); \
-        if (peResult != NvDlaSuccess) \
-        { \
+#define PROPAGATE_ERROR_CONTINUE_IMPL_1(_err)                                           \
+    do {                                                                                \
+        NvDlaError peResult = (_err);                                                   \
+        if (peResult != NvDlaSuccess)                                                   \
+        {                                                                               \
             NVDLA_UTILS_LOG_ERROR(peResult, __FILE__, __FUNCTION__, __LINE__, true, 0); \
-            if (e == NvDlaSuccess) \
-                e = peResult; \
-        } \
+            if (e == NvDlaSuccess)                                                      \
+                e = peResult;                                                           \
+        }                                                                               \
     } while (0)
-#define PROPAGATE_ERROR_CONTINUE_IMPL_2(_err, _format) \
-    do { \
-        NvDlaError peResult = (_err); \
-        if (peResult != NvDlaSuccess) \
-        { \
+#define PROPAGATE_ERROR_CONTINUE_IMPL_2(_err, _format)                                          \
+    do {                                                                                        \
+        NvDlaError peResult = (_err);                                                           \
+        if (peResult != NvDlaSuccess)                                                           \
+        {                                                                                       \
             NVDLA_UTILS_LOG_ERROR(peResult, __FILE__, __FUNCTION__, __LINE__, true, (_format)); \
-            if (e == NvDlaSuccess) \
-                e = peResult; \
-        } \
+            if (e == NvDlaSuccess)                                                              \
+                e = peResult;                                                                   \
+        }                                                                                       \
     } while (0)
 #define PROPAGATE_ERROR_CONTINUE_IMPL_3(_err, _format, ...) PROPAGATE_ERROR_CONTINUE_IMPL_N((_err), (_format), __VA_ARGS__)
 #define PROPAGATE_ERROR_CONTINUE_IMPL_4(_err, _format, ...) PROPAGATE_ERROR_CONTINUE_IMPL_N((_err), (_format), __VA_ARGS__)
 #define PROPAGATE_ERROR_CONTINUE_IMPL_5(_err, _format, ...) PROPAGATE_ERROR_CONTINUE_IMPL_N((_err), (_format), __VA_ARGS__)
-#define PROPAGATE_ERROR_CONTINUE_IMPL_N(_err, _format, ...) \
-    do { \
-        NvDlaError peResult = (_err); \
-        if (peResult != NvDlaSuccess) \
-        { \
+#define PROPAGATE_ERROR_CONTINUE_IMPL_N(_err, _format, ...)                                                  \
+    do {                                                                                                     \
+        NvDlaError peResult = (_err);                                                                        \
+        if (peResult != NvDlaSuccess)                                                                        \
+        {                                                                                                    \
             NVDLA_UTILS_LOG_ERROR(peResult, __FILE__, __FUNCTION__, __LINE__, true, (_format), __VA_ARGS__); \
-            if (e == NvDlaSuccess) \
-                e = peResult; \
-        } \
+            if (e == NvDlaSuccess)                                                                           \
+                e = peResult;                                                                                \
+        }                                                                                                    \
     } while (0)
-
-
-
 
 #ifdef __cplusplus
 
 #define THROW_ERROR(...) NVDLA_UTILS_VA_SELECT(THROW_ERROR_IMPL, __VA_ARGS__)
-#define THROW_ERROR_IMPL_1(_err)                                        \
-    do {                                                                \
-        e = (_err);                                                     \
-        NVDLA_UTILS_LOG_ERROR(e, __FILE__, __FUNCTION__, __LINE__, true, 0); \
+#define THROW_ERROR_IMPL_1(_err)                                                   \
+    do {                                                                           \
+        e = (_err);                                                                \
+        NVDLA_UTILS_LOG_ERROR(e, __FILE__, __FUNCTION__, __LINE__, true, 0);       \
         throw(nvdla::priv::NvErrorException(e, __FILE__, __FUNCTION__, __LINE__)); \
     } while (0)
 
-#define THROW_ERROR_IMPL_2(_err, _format)                               \
-    do {                                                                \
-        e = (_err);                                                     \
+#define THROW_ERROR_IMPL_2(_err, _format)                                            \
+    do {                                                                             \
+        e = (_err);                                                                  \
         NVDLA_UTILS_LOG_ERROR(e, __FILE__, __FUNCTION__, __LINE__, true, (_format)); \
-        throw(nvdla::priv::NvErrorException(e, __FILE__, __FUNCTION__, __LINE__)); \
+        throw(nvdla::priv::NvErrorException(e, __FILE__, __FUNCTION__, __LINE__));   \
     } while (0)
 #define THROW_ERROR_IMPL_3(_err, _format, ...) THROW_ERROR_IMPL_N((_err), (_format), __VA_ARGS__)
 #define THROW_ERROR_IMPL_4(_err, _format, ...) THROW_ERROR_IMPL_N((_err), (_format), __VA_ARGS__)
 #define THROW_ERROR_IMPL_5(_err, _format, ...) THROW_ERROR_IMPL_N((_err), (_format), __VA_ARGS__)
-#define THROW_ERROR_IMPL_N(_err, _format, ...)                          \
-    do {                                                                \
-        e = (_err);                                                     \
+#define THROW_ERROR_IMPL_N(_err, _format, ...)                                                    \
+    do {                                                                                          \
+        e = (_err);                                                                               \
         NVDLA_UTILS_LOG_ERROR(e, __FILE__, __FUNCTION__, __LINE__, true, (_format), __VA_ARGS__); \
-        throw(nvdla::priv::NvErrorException(e, __FILE__, __FUNCTION__, __LINE__)); \
+        throw(nvdla::priv::NvErrorException(e, __FILE__, __FUNCTION__, __LINE__));                \
     } while (0)
-
 
 /**
  * Calls another function, and if an error was returned it is reported before throwing
  * an NvErrorException. The variable "NvError e" must have been previously declared.
  */
 #define PROPAGATE_ERROR_THROW(...) NVDLA_UTILS_VA_SELECT(PROPAGATE_ERROR_THROW_IMPL, __VA_ARGS__)
-#define PROPAGATE_ERROR_THROW_IMPL_1(_err) \
-    do { \
-        e = (_err); \
-        if (e != NvDlaSuccess) \
-        { \
-            NVDLA_UTILS_LOG_ERROR(e, __FILE__, __FUNCTION__, __LINE__, true, 0); \
+#define PROPAGATE_ERROR_THROW_IMPL_1(_err)                                             \
+    do {                                                                               \
+        e = (_err);                                                                    \
+        if (e != NvDlaSuccess)                                                         \
+        {                                                                              \
+            NVDLA_UTILS_LOG_ERROR(e, __FILE__, __FUNCTION__, __LINE__, true, 0);       \
             throw(nvdla::priv::NvErrorException(e, __FILE__, __FUNCTION__, __LINE__)); \
-        } \
+        }                                                                              \
     } while (0)
 
-
-#define PROPAGATE_ERROR_THROW_IMPL_2(_err, _format) \
-    do { \
-        e = (_err); \
-        if (e != NvDlaSuccess) \
-        { \
+#define PROPAGATE_ERROR_THROW_IMPL_2(_err, _format)                                      \
+    do {                                                                                 \
+        e = (_err);                                                                      \
+        if (e != NvDlaSuccess)                                                           \
+        {                                                                                \
             NVDLA_UTILS_LOG_ERROR(e, __FILE__, __FUNCTION__, __LINE__, true, (_format)); \
-            throw(nvdla::priv::NvErrorException(e, __FILE__, __FUNCTION__, __LINE__)); \
-            goto fail; \
-        } \
+            throw(nvdla::priv::NvErrorException(e, __FILE__, __FUNCTION__, __LINE__));   \
+            goto fail;                                                                   \
+        }                                                                                \
     } while (0)
 #define PROPAGATE_ERROR_THROW_IMPL_3(_err, _format, ...) PROPAGATE_ERROR_THROW_IMPL_N((_err), (_format), __VA_ARGS__)
 #define PROPAGATE_ERROR_THROW_IMPL_4(_err, _format, ...) PROPAGATE_ERROR_THROW_IMPL_N((_err), (_format), __VA_ARGS__)
 #define PROPAGATE_ERROR_THROW_IMPL_5(_err, _format, ...) PROPAGATE_ERROR_THROW_IMPL_N((_err), (_format), __VA_ARGS__)
-#define PROPAGATE_ERROR_THROW_IMPL_N(_err, _format, ...) \
-    do { \
-        e = (_err); \
-        if (e != NvDlaSuccess) \
-        { \
+#define PROPAGATE_ERROR_THROW_IMPL_N(_err, _format, ...)                                              \
+    do {                                                                                              \
+        e = (_err);                                                                                   \
+        if (e != NvDlaSuccess)                                                                        \
+        {                                                                                             \
             NVDLA_UTILS_LOG_ERROR(e, __FILE__, __FUNCTION__, __LINE__, true, (_format), __VA_ARGS__); \
-            throw(nvdla::priv::NvErrorException(e, __FILE__, __FUNCTION__, __LINE__)); \
-            goto fail; \
-        } \
+            throw(nvdla::priv::NvErrorException(e, __FILE__, __FUNCTION__, __LINE__));                \
+            goto fail;                                                                                \
+        }                                                                                             \
     } while (0)
-
 
 /**
  * Calls another function, and if an error was returned or caught it is reported before jumping to the
  * "fail:" label. The variable "NvError e" must have been previously declared.
  */
 #define CATCH_PROPAGATE_ERROR_FAIL(...) NVDLA_UTILS_VA_SELECT(CATCH_PROPAGATE_ERROR_FAIL_IMPL, __VA_ARGS__)
-#define CATCH_PROPAGATE_ERROR_FAIL_IMPL_1(_err) \
-    try                                         \
-    {                                           \
-        e = (_err);                             \
-        if (e != NvDlaSuccess)                     \
-        {                                                               \
-            NVDLA_UTILS_LOG_ERROR(e, __FILE__, __FUNCTION__, __LINE__, true, 0); \
-            goto fail;                                                  \
-        }                                                               \
-    }                                                                   \
-    catch (const NvErrorException & ee)                                 \
-    {                                                                   \
+#define CATCH_PROPAGATE_ERROR_FAIL_IMPL_1(_err)                                      \
+    try                                                                              \
+    {                                                                                \
+        e = (_err);                                                                  \
+        if (e != NvDlaSuccess)                                                       \
+        {                                                                            \
+            NVDLA_UTILS_LOG_ERROR(e, __FILE__, __FUNCTION__, __LINE__, true, 0);     \
+            goto fail;                                                               \
+        }                                                                            \
+    }                                                                                \
+    catch (const NvErrorException& ee)                                               \
+    {                                                                                \
         NVDLA_UTILS_LOG_ERROR(ee.m_e, ee.m_file, ee.m_function, ee.m_line, true, 0); \
-        e = ee.m_e;                                                     \
-        goto fail;                                                      \
+        e = ee.m_e;                                                                  \
+        goto fail;                                                                   \
     }
 
-#define CATCH_PROPAGATE_ERROR_FAIL_IMPL_2(_err, _format)    \
-    try                                                     \
-    {                                                       \
-        e = (_err);                                         \
-        if (e != NvDlaSuccess)                                 \
-        {                                                               \
+#define CATCH_PROPAGATE_ERROR_FAIL_IMPL_2(_err, _format)                                 \
+    try                                                                                  \
+    {                                                                                    \
+        e = (_err);                                                                      \
+        if (e != NvDlaSuccess)                                                           \
+        {                                                                                \
             NVDLA_UTILS_LOG_ERROR(e, __FILE__, __FUNCTION__, __LINE__, true, (_format)); \
-            goto fail;                                                  \
-        }                                                               \
-    }                                                                   \
-    catch (const NvErrorException & ee)                                 \
-    {                                                                   \
-        NVDLA_UTILS_LOG_ERROR(ee.m_e, ee.m_file, ee.m_function, true, (_format)); \
-        e = ee.m_e;                                                     \
-        goto fail;                                                      \
+            goto fail;                                                                   \
+        }                                                                                \
+    }                                                                                    \
+    catch (const NvErrorException& ee)                                                   \
+    {                                                                                    \
+        NVDLA_UTILS_LOG_ERROR(ee.m_e, ee.m_file, ee.m_function, true, (_format));        \
+        e = ee.m_e;                                                                      \
+        goto fail;                                                                       \
     }
 
 #define CATCH_PROPAGATE_ERROR_FAIL_IMPL_3(_err, _format, ...) CATCH_PROPAGATE_ERROR_FAIL_IMPL_N((_err), (_format), __VA_ARGS__)
 #define CATCH_PROPAGATE_ERROR_FAIL_IMPL_4(_err, _format, ...) CATCH_PROPAGATE_ERROR_FAIL_IMPL_N((_err), (_format), __VA_ARGS__)
 #define CATCH_PROPAGATE_ERROR_FAIL_IMPL_5(_err, _format, ...) CATCH_PROPAGATE_ERROR_FAIL_IMPL_N((_err), (_format), __VA_ARGS__)
-#define CATCH_PROPAGATE_ERROR_FAIL_IMPL_N(_err, _format, ...) \
-    try                                                       \
-    {                                                         \
-        e = (_err);                                           \
-        if (e != NvDlaSuccess)                                   \
-        {                                                               \
-            NVDLA_UTILS_LOG_ERROR(e, __FILE__, __FUNCTION__, __LINE__, true, (_format), __VA_ARGS__); \
-            goto fail;                                                  \
-        }                                                               \
-    }                                                                   \
-    catch (const NvErrorException & ee)                                 \
-    {                                                                   \
+#define CATCH_PROPAGATE_ERROR_FAIL_IMPL_N(_err, _format, ...)                                             \
+    try                                                                                                   \
+    {                                                                                                     \
+        e = (_err);                                                                                       \
+        if (e != NvDlaSuccess)                                                                            \
+        {                                                                                                 \
+            NVDLA_UTILS_LOG_ERROR(e, __FILE__, __FUNCTION__, __LINE__, true, (_format), __VA_ARGS__);     \
+            goto fail;                                                                                    \
+        }                                                                                                 \
+    }                                                                                                     \
+    catch (const NvErrorException& ee)                                                                    \
+    {                                                                                                     \
         NVDLA_UTILS_LOG_ERROR(ee.m_e, ee.m_file, ee.m_function, ee.m_line, true, (_format), __VA_ARGS__); \
-        e = ee.m_e;                                                     \
-        goto fail;                                                      \
+        e = ee.m_e;                                                                                       \
+        goto fail;                                                                                        \
     }
-
-
 
 /**
  * Calls another function, and if an error was caught it is reported before jumping to the
  * "fail:" label.
  */
 #define CATCH_ERROR_FAIL(...) NVDLA_UTILS_VA_SELECT(CATCH_ERROR_FAIL_IMPL, __VA_ARGS__)
-#define CATCH_ERROR_FAIL_IMPL_1(_err) \
-    try                                         \
-    {                                           \
-        _err;                             \
-    }                                                                   \
-    catch (const NvErrorException & ee)                                 \
-    {                                                                   \
+#define CATCH_ERROR_FAIL_IMPL_1(_err)                                                \
+    try                                                                              \
+    {                                                                                \
+        _err;                                                                        \
+    }                                                                                \
+    catch (const NvErrorException& ee)                                               \
+    {                                                                                \
         NVDLA_UTILS_LOG_ERROR(ee.m_e, ee.m_file, ee.m_function, ee.m_line, true, 0); \
-        e = ee.m_e;                                                     \
-        goto fail;                                                      \
+        e = ee.m_e;                                                                  \
+        goto fail;                                                                   \
     }
 
-#define CATCH_ERROR_FAIL_IMPL_2(_err, _format)    \
-    try                                                     \
-    {                                                       \
-        _err;                                         \
-    }                                                                   \
-    catch (const NvErrorException & ee)                                 \
-    {                                                                   \
+#define CATCH_ERROR_FAIL_IMPL_2(_err, _format)                                    \
+    try                                                                           \
+    {                                                                             \
+        _err;                                                                     \
+    }                                                                             \
+    catch (const NvErrorException& ee)                                            \
+    {                                                                             \
         NVDLA_UTILS_LOG_ERROR(ee.m_e, ee.m_file, ee.m_function, true, (_format)); \
-        e = ee.m_e;                                                     \
-        goto fail;                                                      \
+        e = ee.m_e;                                                               \
+        goto fail;                                                                \
     }
 
 #define CATCH_ERROR_FAIL_IMPL_3(_err, _format, ...) CATCH_ERROR_FAIL_IMPL_N((_err), (_format), __VA_ARGS__)
 #define CATCH_ERROR_FAIL_IMPL_4(_err, _format, ...) CATCH_ERROR_FAIL_IMPL_N((_err), (_format), __VA_ARGS__)
 #define CATCH_ERROR_FAIL_IMPL_5(_err, _format, ...) CATCH_ERROR_FAIL_IMPL_N((_err), (_format), __VA_ARGS__)
-#define CATCH_ERROR_FAIL_IMPL_N(_err, _format, ...) \
-    try                                                       \
-    {                                                         \
-        _err;                                           \
-    }                                                                   \
-    catch (const NvErrorException & ee)                                 \
-    {                                                                   \
+#define CATCH_ERROR_FAIL_IMPL_N(_err, _format, ...)                                                       \
+    try                                                                                                   \
+    {                                                                                                     \
+        _err;                                                                                             \
+    }                                                                                                     \
+    catch (const NvErrorException& ee)                                                                    \
+    {                                                                                                     \
         NVDLA_UTILS_LOG_ERROR(ee.m_e, ee.m_file, ee.m_function, ee.m_line, true, (_format), __VA_ARGS__); \
-        e = ee.m_e;                                                     \
-        goto fail;                                                      \
+        e = ee.m_e;                                                                                       \
+        goto fail;                                                                                        \
     }
 
-
 #endif // __cplusplus
-
 
 #ifdef __cplusplus
 }
