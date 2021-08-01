@@ -67,7 +67,7 @@ public:
             {
                 for (int w = 0; w < out.cols; w++)
                 {
-    #pragma unroll(3)
+#pragma unroll(3)
                     for (int c = 0; c < 3; c++)
                     {
                         int in_index = h * out.cols * 3 + w * 3 + c;

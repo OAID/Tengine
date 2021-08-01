@@ -39,39 +39,49 @@ class ImageStream : public Node<Param<void>, Param<cv::Mat> >
 {
 public:
     ImageStream(const std::string file_path = "")
-        : m_path(file_path) {}
+        : m_path(file_path)
+    {
+    }
 
-    std::vector<std::string> list_files() {
+    std::vector<std::string> list_files()
+    {
         std::vector<std::string> out;
 
         auto is_image = [](const string& dname) -> bool {
-                if (dname.find(".jpg") != std::string::npos ||
-                    dname.find(".png") != std::string::npos ||
-                    dname.find(".jpeg") != std::string::npos) {
-                    return true;
-                }
+            if (dname.find(".jpg") != std::string::npos || dname.find(".png") != std::string::npos || dname.find(".jpeg") != std::string::npos)
+            {
+                return true;
+            }
         };
 
-        if (is_image(m_path)) {
+        if (is_image(m_path))
+        {
             out.emplace_back(m_path);
             return;
         }
-        
+
         struct dirent* ptr;
         DIR* dir;
-        if ((dirout = opendir(m_path.c_str())) == NULL) {
+        if ((dirout = opendir(m_path.c_str())) == NULL)
+        {
             fprintf(stdout, "cannot open %s\n", m_path.c_str());
             return out;
         }
-        while ((ptr = readdir(dir)) != NULL) {
-            if (ptr->d_type == 8) {
+        while ((ptr = readdir(dir)) != NULL)
+        {
+            if (ptr->d_type == 8)
+            {
                 std::string dname;
-                if (m_path.rfind('/') == m_path.length() - 1) {
+                if (m_path.rfind('/') == m_path.length() - 1)
+                {
                     dname = m_path + ptr->d_name;
-                } else {
+                }
+                else
+                {
                     dname = m_path + "/" + ptr->d_name;
                 }
-                if (is_image(dname)) {
+                if (is_image(dname))
+                {
                     out.push_back(dname);
                 }
             }
@@ -84,10 +94,12 @@ public:
     {
         std::call_once(flag, [&]() {
             std::vector<std::string> files = list_files();
-            if (files.empty()) {
+            if (files.empty())
+            {
                 return;
             }
-            for (const auto& file: files) {
+            for (const auto& file : files)
+            {
                 cv::Mat m = cv::imread(file);
                 if (not output<0>()->try_push(m.clone()))
                 {

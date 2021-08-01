@@ -28,9 +28,10 @@
 
 namespace pipe {
 
-struct Feature {
+struct Feature
+{
     std::string name;
     std::vector<float> data;
 };
 
-} // namspace pipe
+} // namespace pipe

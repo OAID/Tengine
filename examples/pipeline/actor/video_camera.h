@@ -35,7 +35,7 @@ namespace pipe {
 class VideoCamera : public Node<Param<void>, Param<cv::Mat> >
 {
 public:
-    VideoCamera(const std::string video_path = "", const int h = 480, const int w  = 640)
+    VideoCamera(const std::string video_path = "", const int h = 480, const int w = 640)
         : m_path(video_path), m_height(h), m_width(w)
     {
     }

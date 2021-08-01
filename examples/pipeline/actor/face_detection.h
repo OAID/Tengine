@@ -39,10 +39,10 @@
 
 namespace pipe {
 
-#define HARD_NMS             (1)
-#define BLENDING_NMS         (2) /* mix nms was been proposaled in paper blaze face, aims to minimize the temporal jitter*/
+#define HARD_NMS     (1)
+#define BLENDING_NMS (2) /* mix nms was been proposaled in paper blaze face, aims to minimize the temporal jitter*/
 
-class FaceDetection : public Node<Param<cv::Mat>, Param<std::tuple<cv::Mat, std::vector<cv::Rect>> > >
+class FaceDetection : public Node<Param<cv::Mat>, Param<std::tuple<cv::Mat, std::vector<cv::Rect> > > >
 {
 public:
     using preproc_func = typename std::function<void(const cv::Mat&, cv::Mat&)>;
@@ -50,7 +50,7 @@ public:
     FaceDetection(std::string model_path, size_t thread = 2, int w = 320, int h = 240)
     {
         m_tensor_in_w = w;
-        m_tensor_in_h  = h;
+        m_tensor_in_h = h;
         m_thread_num = thread;
         m_input = cv::Mat(h, w, CV_32FC3);
 
@@ -72,7 +72,7 @@ public:
             {
                 for (int w = 0; w < out.cols; w++)
                 {
-    #pragma unroll(3)
+#pragma unroll(3)
                     for (int c = 0; c < 3; c++)
                     {
                         int in_index = h * out.cols * 3 + w * 3 + c;
@@ -180,9 +180,10 @@ public:
         std::vector<cv::Rect> rects;
         if (not results.empty())
         {
-            for (auto& result: results) {
+            for (auto& result : results)
+            {
                 cv::Rect rect(std::max(0.f, result.x0), std::max(0.f, result.y0),
-                            result.x1 - result.x0, result.y1 - result.y0);
+                              result.x1 - result.x0, result.y1 - result.y0);
                 rect.width = std::min(rect.width, mat.cols - rect.x - 1);
                 rect.height = std::min(rect.height, mat.rows - rect.y - 1);
                 cv::rectangle(mat, rect, cv::Scalar(255, 255, 255), 3);
@@ -194,10 +195,10 @@ public:
         return;
     }
 
-    void nms(std::vector<Box<float>>& input, std::vector<Box<float>>& output, int type = BLENDING_NMS)
+    void nms(std::vector<Box<float> >& input, std::vector<Box<float> >& output, int type = BLENDING_NMS)
     {
-#define NUM_FEATUREMAP       (4)
-#define clip(x, y)           (x < 0 ? 0 : (x > y ? y : x))
+#define NUM_FEATUREMAP (4)
+#define clip(x, y)     (x < 0 ? 0 : (x > y ? y : x))
 
         const float iou_threshold = 0.3f;
         std::sort(input.begin(), input.end(), [](const Box<float>& a, const Box<float>& b) { return a.score > b.score; });
@@ -210,7 +211,7 @@ public:
         {
             if (merged[i])
                 continue;
-            std::vector<Box<float>> buf;
+            std::vector<Box<float> > buf;
 
             buf.emplace_back(input[i]);
             merged[i] = 1;
@@ -291,7 +292,7 @@ public:
         }
     }
 
-    std::vector<Box<float>>  postprocess(cv::Mat& m, float* boxs_data, float* scores_data)
+    std::vector<Box<float> > postprocess(cv::Mat& m, float* boxs_data, float* scores_data)
     {
         const int image_h = m.rows;
         const int image_w = m.cols;
@@ -340,7 +341,7 @@ public:
             }
         }
         /* generate prior anchors finished */
-        std::vector<Box<float>> bbox_collection;
+        std::vector<Box<float> > bbox_collection;
         const int num_anchors = priors.size();
         const float score_threshold = 0.7f;
         const float center_variance = 0.1f;
@@ -364,7 +365,7 @@ public:
             }
         }
 
-        std::vector<Box<float>> face_list;
+        std::vector<Box<float> > face_list;
         nms(bbox_collection, face_list);
 
         fprintf(stderr, "detected face num: %ld\n", face_list.size());
