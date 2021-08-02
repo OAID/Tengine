@@ -17,7 +17,7 @@ on:
 
 jobs:
   linux-armv8-cpu-gcc:
-    runs-on: xaiver
+    runs-on: self-hosted
     steps:
     - uses: actions/checkout@v2.3.4
 
