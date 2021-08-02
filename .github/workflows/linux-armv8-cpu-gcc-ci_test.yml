@@ -3,7 +3,6 @@ name: linux-armv8-cpu-gcc-runner-test
 on:
   push:
     branches: [tengine-lite, ci_op_1]
-    paths:
     paths-ignore: 
     - 'doc/**'
     - 'README.md'
@@ -16,7 +15,7 @@ on:
     - 'README_EN.md'
 
 jobs:
-  linux-armv8-cpu-gcc:
+  linux-armv8-cpu-gcc-runner-test:
     runs-on: self-hosted
     steps:
     - uses: actions/checkout@v2.3.4
@@ -24,23 +23,4 @@ jobs:
     - name: configure
       run: mkdir build && cd build && cmake  -DTENGINE_BUILD_TESTS=ON ..
     - name: build
-      run: cmake --build build -j 2
-    - name: models
-      run: |
-        cd build
-        wget ftp://219.139.34.182/tengine/ci_test/models.zip
-        unzip models.zip
-        wget ftp://219.139.34.182/tengine/ci_test/arm64_data.zip
-        unzip arm64_data.zip
-        mv arm64_data data
-        wget ftp://219.139.34.182/tengine/ci_test/images.zip
-        unzip images.zip
-    - name: test
-      run: |
-        export PATH=$GITHUB_WORKSPACE/qemu-install/bin:$PATH
-        chmod +x ./tests/test_arm64.sh
-        cd build
-        echo "ci_test begine"
-        ../tests/test_arm64.sh
-        
-        
+      run: cmake --build build -j 2  
