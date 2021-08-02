@@ -23,4 +23,4 @@ jobs:
     - name: configure
       run: mkdir build && cd build && cmake  -DTENGINE_BUILD_TESTS=ON ..
     - name: build
-      run: cmake --build build -j 2  
+      run: cmake --build build -j 8  
