@@ -35,6 +35,9 @@
 #endif
 
 void ODLAEngine::odla_input_data_convert(void * dst, const void * src, nvdla::IRuntime::NvDlaTensor tDesc) const{
+#ifdef OPENDLA_LOG_
+    fprintf(stdout, "%s Entrance.\n", __func__ );
+#endif
     uint32_t batch  = tDesc.dims.n;
     uint32_t channel = tDesc.dims.c;
     uint32_t height = tDesc.dims.h;
@@ -44,7 +47,6 @@ void ODLAEngine::odla_input_data_convert(void * dst, const void * src, nvdla::IR
     uint32_t line_stride = tDesc.stride[1];
     uint32_t surface_stride = tDesc.stride[2];
 
-    const uint32_t ATOMIC_CUBE = 8;
     size_t idx = 0;
     for(size_t c = 0; c < channel; c++){
         uint32_t cquotient = c / atom_c_size;
@@ -69,6 +71,9 @@ void ODLAEngine::odla_input_data_convert(void * dst, const void * src, nvdla::IR
 
 void ODLAEngine::odla_output_data_convert(void * dst, const void * src, nvdla::IRuntime::NvDlaTensor tDesc) const
 {
+#ifdef OPENDLA_LOG_
+    fprintf(stdout, "%s Entrance.\n", __func__ );
+#endif
     uint32_t batch = tDesc.dims.n;
     uint32_t channel = tDesc.dims.c;
     uint32_t height = tDesc.dims.h;
@@ -90,12 +95,11 @@ void ODLAEngine::odla_output_data_convert(void * dst, const void * src, nvdla::I
                 NvU32 cquotient = c / atom_c_size;
                 NvU32 cremainder = c % atom_c_size;
 
-                size_t _offset = (cquotient * surface_stride) + (h * line_stride) + (w * atom_k_size) + cremainder;
+                uint32_t _offset = (cquotient * surface_stride) + (h * line_stride) + (w * atom_k_size) + cremainder;
                 *_dst = *((int8_t*)src + _offset);
 #ifdef OPENDLA_LOG_
                 int8_t tmpdata = *_dst;
                 fprintf(stdout, "%s: address : %lx src:%lx data: %d \n", __func__, (uint64_t)_dst, (uint64_t)((int8_t*)src + _offset), tmpdata);
-//                *((int8_t *)dst + w + h*tDesc.dims.w + c*tDesc.dims.h * tDesc.dims.w)= *((int8_t *)src + surface_stride*surface_index + line_stride*h + w + c%8) ;
 #endif
                 idx++;
             }
@@ -136,6 +140,9 @@ static void odla_data_dump(const char *filename, int8_t *data, int w, int h, int
 }
 
 NvDlaError ODLAEngine::ODLAConfigGenerate(){
+#ifdef OPENDLA_LOG_
+    fprintf(stdout, "%s Entrance.\n", __func__ );
+#endif
     NvDlaError e = NvDlaSuccess;
 
     nvdla::IProfiler* profiler = nvdla::priv::ProfilerFactory::newProfiler().priv();;
@@ -162,6 +169,9 @@ NvDlaError ODLAEngine::ODLAConfigGenerate(){
 
 ODLAEngine::ODLAEngine()
 {
+#ifdef OPENDLA_LOG_
+    fprintf(stdout, "%s Entrance.\n", __func__ );
+#endif
     this->runtime = nvdla::createRuntime();
     this->compiler = nvdla::priv::CompilerFactory::newCompiler();
     this->loadable = nvdla::priv::LoadableFactory::LoadablePrivPair(0, 0);
@@ -177,6 +187,9 @@ ODLAEngine::ODLAEngine()
 
 int ODLAEngine::ODLATensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_type)
 {
+#ifdef OPENDLA_LOG_
+    fprintf(stdout, "%s Entrance.\n", __func__ );
+#endif
     auto iter = this->odla_tensor_map.find(ir_tensor_idx);
 
     if (this->odla_tensor_map.end() == iter)
@@ -306,7 +319,9 @@ int ODLAEngine::ODLATensorMap(struct graph* ir_graph, int ir_tensor_idx, int spe
 
 int ODLAEngine::Build(struct subgraph* subgraph)
 {
-    std::cout << "ODLA Build Entrance " << std::endl;
+#ifdef OPENDLA_LOG_
+    fprintf(stdout, "%s Entrance.\n", __func__ );
+#endif
     struct graph* ir_graph = subgraph->graph;
 
     for (int i = 0; i < subgraph->node_num; i++)
@@ -336,8 +351,9 @@ int ODLAEngine::Build(struct subgraph* subgraph)
 
 int ODLAEngine::ODLAEnginePreRun(struct subgraph* subgraph)
 {
-    std::cout << "ODLA PreRun Entrance " << std::endl;
-
+#ifdef OPENDLA_LOG_
+    fprintf(stdout, "%s Entrance.\n", __func__ );
+#endif
     NvDlaError e = NvDlaSuccess;
     struct graph* ir_graph = subgraph->graph;
     /* Add OpenDLA Tensor */
@@ -527,6 +543,9 @@ int ODLAEngine::ODLAEnginePreRun(struct subgraph* subgraph)
 
 int ODLAEngine::ODLAEngineRun(struct subgraph* subgraph)
 {
+#ifdef OPENDLA_LOG_
+    fprintf(stdout, "%s Entrance.\n", __func__ );
+#endif
 
     NvDlaError e;
     struct graph* ir_graph = subgraph->graph;
