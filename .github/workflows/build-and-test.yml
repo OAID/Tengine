@@ -369,9 +369,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2.3.4
+    - uses: actions/checkout@v2.3.4
+      with:
+        repository: opencv/opencv
+        ref: 4.5.3
+        path: opencv
+        submodules: recursive
     - name: Build AppImage
       run: |
-        docker run --network=host --env PROTOBUF_REPO_DIR=$PWD/protobuf -v $PWD:$PWD -w $PWD --privileged --ipc=host centos:7 $PWD/.github/workflows/build-quant-tool-appimage.sh
+        docker run --network=host --env OPENCV_REPO_DIR=$PWD/opencv -v $PWD:$PWD -w $PWD --privileged --ipc=host centos:7 $PWD/.github/workflows/build-quant-tool-appimage.sh
     - name: update
       run: sudo apt-get update
     - name: opencv

@@ -9,8 +9,20 @@ python3 -m pip install cmake
 
 source /opt/rh/devtoolset-7/enable
 
-yum install -y opencv opencv-devel
+OPENCV_REPO_DIR=${OPENCV_REPO_DIR:-opencv}
+OPENCV_BUILD_DIR=build-for-ci
 
+# Build opencv by self to avoid depending on libEGL.so
+pushd $OPENCV_REPO_DIR
+mkdir -p $OPENCV_BUILD_DIR
+pushd $OPENCV_BUILD_DIR
+cmake -DWITH_IPP=OFF -DWITH_GTK=OFF -DWITH_OPENCL=OFF -DBUILD_PERF_TESTS=OFF -DBUILD_TESTS=OFF ..
+cmake --build . -j`nproc`
+cmake -DCMAKE_INSTALL_PREFIX=install -P cmake_install.cmake
+popd
+popd
+
+export CMAKE_PREFIX_PATH=$OPENCV_REPO_DIR/$OPENCV_BUILD_DIR/install
 TENGINE_BUILD_DIR=build-for-ci
 mkdir -p $TENGINE_BUILD_DIR
 pushd $TENGINE_BUILD_DIR
