@@ -40,5 +40,7 @@ jobs:
         export PATH=$GITHUB_WORKSPACE/qemu-install/bin:$PATH
         chmod +x ./tests/test_arm64.sh
         cd build
+        echo "ci_test begine"
         ../tests/test_arm64.sh
+        
         
