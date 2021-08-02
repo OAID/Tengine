@@ -2,14 +2,14 @@ name: linux-armv8-cpu-gcc
 
 on:
   push:
-    branches: [tengine-lite]
+    branches: [tengine-lite, ci_op_1]
     paths:
     paths-ignore: 
     - 'doc/**'
     - 'README.md'
     - 'README_EN.md'
   pull_request:
-    branches: [tengine-lite]
+    branches: [tengine-lite, ci_op_1]
     paths-ignore: 
     - 'doc/**'
     - 'README.md'
