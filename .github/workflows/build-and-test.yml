@@ -395,7 +395,8 @@ jobs:
         unzip images.zip
     - name: quant-tools-test
       run: |
-        ./quant_tool_uint8-x86_64.AppImage -m mobilenet.tmfile -o mobilenet_uint8.tmfile -i ./dataset -g 3,224,224 -s 0.017,0.017,0.017 -c 1
+        cd build
+        ../quant_tool_uint8-x86_64.AppImage -m mobilenet.tmfile -o mobilenet_uint8.tmfile -i ./dataset -g 3,224,224 -s 0.017,0.017,0.017 -c 1
     - name: uint8-model-test
       run: |
         cd build
