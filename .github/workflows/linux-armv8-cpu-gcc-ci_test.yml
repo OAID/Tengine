@@ -1,4 +1,4 @@
-name: linux-armv8-cpu-gcc
+name: linux-armv8-cpu-gcc-runner-test
 
 on:
   push:
