@@ -295,7 +295,7 @@ static void draw_objects(const cv::Mat& bgr, const std::vector<Object>& objects)
                     cv::Scalar(0, 0, 0));
     }
 
-    cv::imwrite("yolov3_uint8_out.jpg", image);
+    cv::imwrite("yolov3_timvx_out.jpg", image);
 }
 
 void show_usage()

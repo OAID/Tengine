@@ -50,7 +50,7 @@ public:
     int PreRun(struct subgraph* subgraph, struct trt_option* opt);
     int Run(struct subgraph* subgraph);
     int PoseRun(struct subgraph* subgraph);
-    int SetOption(trt_opt_t* opt);
+    void SetOption(trt_opt_t* opt);
 
 private:
     int Build(struct subgraph* subgraph);
