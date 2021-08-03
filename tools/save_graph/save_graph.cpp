@@ -408,7 +408,7 @@ bool save_graph(graph_t graph, const char* fname)
     /* Open the tengine model file */
 #ifdef _MSC_VER
     FILE* fd = fopen(fname, "w+");
-    if(fd == NULL)
+    if (fd == NULL)
 #else
     int fd = open(fname, O_RDWR | O_CREAT | O_TRUNC, 0666);
     if (fd == -1)
