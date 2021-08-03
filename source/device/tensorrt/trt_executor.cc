@@ -805,7 +805,7 @@ int TensorRTEngine::PoseRun(struct subgraph *subgraph)
 }
 
 
-int TensorRTEngine::SetOption(trt_opt_t *opt)
+void TensorRTEngine::SetOption(trt_opt_t *opt)
 {
     int deviceCount;
     cudaError_t cudaError;

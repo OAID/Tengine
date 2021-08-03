@@ -2061,7 +2061,7 @@ int load_depth_to_space(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProt
     for (int k = 0; k < onnx_node.attribute_size(); k++)
     {
         const onnx::AttributeProto& attr = onnx_node.attribute(k);
-        if (attr.name() == "block_size")
+        if (attr.name() == "blocksize")
         {
             depthtospace_param->block_size = attr.i();
         }

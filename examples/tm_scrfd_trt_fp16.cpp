@@ -419,7 +419,7 @@ int main(int argc, char* argv[])
     int rtt = set_context_device(trt_context, "TensorRT", &trt_opt, sizeof(trt_opt));
     if (0 > rtt)
     {
-        fprintf(stderr, " add_context_device NV TensorRT DEVICE failed.\n");
+        fprintf(stderr, "add_context_device NV TensorRT DEVICE failed.\n");
         return -1;
     }
 

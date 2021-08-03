@@ -128,6 +128,13 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         batchnorm_op_param->input_w = input_tensor->dims[2];
         batchnorm_op_param->input_h = 1;
     }
+    else if (2 == input_tensor->dim_num)
+    {
+        batchnorm_op_param->input_n = input_tensor->dims[0];
+        batchnorm_op_param->input_c = input_tensor->dims[1];
+        batchnorm_op_param->input_h = 1;
+        batchnorm_op_param->input_w = 1;
+    }
     else
     {
         return -1;

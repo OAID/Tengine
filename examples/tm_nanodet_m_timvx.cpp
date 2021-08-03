@@ -418,7 +418,7 @@ int main(int argc, char* argv[])
 {
     const char* model_file = nullptr;
     const char* image_file = nullptr;
-    const char* output_file = "nanodet_m_uint8_out.jpg";
+    const char* output_file = "nanodet_m_timvx_out.jpg";
 
     const float mean[3] = {103.53f, 116.28f, 123.675f}; // bgr
     const float norm[3] = {0.017429f, 0.017507f, 0.017125f};
@@ -489,7 +489,7 @@ int main(int argc, char* argv[])
     int rtt = set_context_device(timvx_context, "TIMVX", nullptr, 0);
     if (0 > rtt)
     {
-        fprintf(stderr, " add_context_device VSI DEVICE failed.\n");
+        fprintf(stderr, "add_context_device VSI DEVICE failed.\n");
         return -1;
     }
     /* create graph, load tengine model xxx.tmfile */
