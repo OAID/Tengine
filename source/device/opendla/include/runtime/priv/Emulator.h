@@ -35,12 +35,10 @@
 
 #include "nvdla_os_inf.h"
 
-namespace nvdla
-{
+namespace nvdla {
 class ITensor;
 
-namespace priv
-{
+namespace priv {
 
 class Emulator
 {
@@ -56,8 +54,14 @@ public: // externally facing
     bool run();
 
 public: // internally facing
-    inline bool debugPrint() { return true; }
-    inline bool debugOps() { return true; }
+    inline bool debugPrint()
+    {
+        return true;
+    }
+    inline bool debugOps()
+    {
+        return true;
+    }
 
 protected:
     static void threadFunction(void* arg);
@@ -67,9 +71,9 @@ protected:
     NvDlaError getAddrOffset(EMUBufferDescAccessor in, NvU32 x, NvU32 y, NvU32 c, NvU32* offset);
 
     NvDlaError executePower(EMUPowerOpDescAccessor opDesc, EMUCommonOpDescAccessor commonOpDesc,
-                         EMUPowerBufferDescsAccessor bufDescs, std::vector<NvU8*> addressList);
+                            EMUPowerBufferDescsAccessor bufDescs, std::vector<NvU8*> addressList);
     NvDlaError executeSoftmax(EMUSoftmaxOpDescAccessor opDesc, EMUCommonOpDescAccessor commonOpDesc,
-                           EMUSoftmaxBufferDescsAccessor bufDescs, std::vector<NvU8*> addressList);
+                              EMUSoftmaxBufferDescsAccessor bufDescs, std::vector<NvU8*> addressList);
 
 private:
     std::queue<NvU8*> m_taskQueue;
@@ -80,7 +84,7 @@ private:
     bool m_signalShutdown;
 };
 
-} // nvdla::priv
-} // nvdla
+} // namespace priv
+} // namespace nvdla
 
 #endif // NVDLA_PRIV_EMULATOR_H

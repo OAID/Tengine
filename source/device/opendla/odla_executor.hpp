@@ -58,12 +58,12 @@ extern "C" {
 #define NVDLA_LAYER_TYPE_INPUT     13U
 #define NVDLA_LAYER_TYPE_OUTPUT    14U
 #define NVDLA_LAYER_TYPE_CONV_BIAS 15U
-#define NVDLA_LAYER_TYPE_PRELU 16U
-#define NVDLA_LAYER_TYPE_INTERP 17U
+#define NVDLA_LAYER_TYPE_PRELU     16U
+#define NVDLA_LAYER_TYPE_INTERP    17U
 
 #define OPENDLA_LOG_
 
-typedef std::map<uint32_t, nvdla::priv::Tensor *> dict_irt2odlat;
+typedef std::map<uint32_t, nvdla::priv::Tensor*> dict_irt2odlat;
 
 typedef std::map<uint32_t, nvdla::priv::Tensor*> dict_irt2odlat;
 
@@ -89,12 +89,12 @@ public:
     std::string tp_name = "fast-math";
     std::string target_config_name = "nv_small";
 
-    nvdla::priv::Profile * profile{};
+    nvdla::priv::Profile* profile{};
     nvdla::priv::TargetConfig* targetConfig{};
-    nvdla::priv::canonical_ast::Graph * graph;
+    nvdla::priv::canonical_ast::Graph* graph;
 
     nvdla::priv::CompilerFactory::CompilerPrivPair compiler;
-    nvdla::IRuntime * runtime;
+    nvdla::IRuntime* runtime;
     nvdla::priv::LoadableFactory::LoadablePrivPair loadable;
 
 private:

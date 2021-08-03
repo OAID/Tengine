@@ -174,7 +174,7 @@ int main(int argc, char* argv[])
     set_tensor_quant_param(output_tesnor, &output_scale, &output_zero_point, 1);
 
     /* prepare process input data, set the data mem to input tensor, quantize fp32 to int8 */
-    for (int i=0; i<img_size; i++)
+    for (int i = 0; i < img_size; i++)
     {
         int idata = (round)(input_array[i] / input_scale);
         if (idata > 127)
@@ -183,7 +183,7 @@ int main(int argc, char* argv[])
             idata = -127;
 
         input_i8[i] = idata;
-        std::cout << "input_i8 : "<< i << " -> " << idata << std::endl;
+        std::cout << "input_i8 : " << i << " -> " << idata << std::endl;
     }
 
     // graph run

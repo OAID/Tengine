@@ -82,8 +82,9 @@ void NvDlaUtilsLogError(const char* tag, const char* path, NvDlaError e, const c
 #define NVDLA_UTILS_SELECT(NAME, NUM)                         NVDLA_UTILS_CAT(NAME##_, NUM)
 #define NVDLA_UTILS_GET_COUNT(_1, _2, _3, _4, _5, COUNT, ...) COUNT
 #define NVDLA_UTILS_VA_SIZE(...)                              NVDLA_UTILS_GET_COUNT(__VA_ARGS__, 5, 4, 3, 2, 1)
-#define NVDLA_UTILS_VA_SELECT(NAME, ...)                      NVDLA_UTILS_SELECT(NAME, NVDLA_UTILS_VA_SIZE(__VA_ARGS__)) \
-(__VA_ARGS__)
+#define NVDLA_UTILS_VA_SELECT(NAME, ...)                       \
+    NVDLA_UTILS_SELECT(NAME, NVDLA_UTILS_VA_SIZE(__VA_ARGS__)) \
+    (__VA_ARGS__)
 
 /**
  * Simply report an error.
