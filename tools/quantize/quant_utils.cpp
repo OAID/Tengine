@@ -356,8 +356,7 @@ void readFileList(std::string basePath, std::vector<std::string>& imgs)
 
         if (c_file.attrib & _A_SUBDIR)
         {
-            if (strcmp(c_file.name, "..") == 0 ||
-                strcmp(c_file.name, ".") == 0)
+            if (strcmp(c_file.name, "..") == 0 || strcmp(c_file.name, ".") == 0)
             {
                 continue;
             }
