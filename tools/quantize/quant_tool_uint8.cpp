@@ -28,6 +28,12 @@
 #include "quant_tool.hpp"
 #include "quant_save_graph.hpp"
 
+#ifdef _MSC_VER
+#include "msc_getopt.h"
+#undef max
+#undef min
+#endif
+
 QuantTool::QuantTool()
 {
     // initial tengine

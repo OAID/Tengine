@@ -22,7 +22,6 @@
  * Author: hhchen@openailab.com
  */
 
-#include <dirent.h>
 #include <string.h>
 
 #include <opencv2/core/core.hpp>
@@ -30,8 +29,9 @@
 #include <opencv2/imgproc/imgproc.hpp>
 
 #ifdef _MSC_VER
-#include "getopt.h"
+#include <msc_dirent.h>
 #else
+#include <dirent.h>
 #include <unistd.h>
 #endif
 
@@ -45,7 +45,7 @@
 #include "quant_utils.hpp"
 
 #ifdef _WIN32
-double get_current_time()
+static double get_current_time()
 {
     LARGE_INTEGER freq;
     LARGE_INTEGER pc;
