@@ -24,6 +24,7 @@
 
 #include "odla_executor.hpp"
 #include "odla_define.h"
+#include "priv/Check.h"
 
 #ifdef ODLA_MODEL_CACHE
 #include "defines.h"
@@ -60,7 +61,7 @@ void ODLAEngine::odla_input_data_convert(void * dst, const void * src, nvdla::IR
                 int8_t* _src = (int8_t*)src + idx;
                 *_dst = *_src;
 #ifdef OPENDLA_LOG_
-                fprintf(stdout, "address : %lx data: %d \n", (uint64_t)_dst, *_dst);
+                fprintf(stdout, "idx %zu address : %lx data: %d \n", idx, (uint64_t)_dst, *_dst);
 #endif
                 idx++;
             }
@@ -99,7 +100,7 @@ void ODLAEngine::odla_output_data_convert(void * dst, const void * src, nvdla::I
                 *_dst = *((int8_t*)src + _offset);
 #ifdef OPENDLA_LOG_
                 int8_t tmpdata = *_dst;
-                fprintf(stdout, "%s: address : %lx src:%lx data: %d \n", __func__, (uint64_t)_dst, (uint64_t)((int8_t*)src + _offset), tmpdata);
+                fprintf(stdout, "%s: idx: %zu address : %lx src:%lx data: %d \n", __func__,idx ,(uint64_t)_dst, (uint64_t)((int8_t*)src + _offset), tmpdata);
 #endif
                 idx++;
             }
@@ -151,11 +152,45 @@ NvDlaError ODLAEngine::ODLAConfigGenerate(){
         ORIGINATE_ERROR_FAIL(NvDlaError_BadParameter, "No profiler available.");
     }
 
-    profile = nvdla::priv::ProfileFactory::priv(profiler->getProfile(this->tp_name.c_str()));
-    if ( !profile )
+    this->profile = nvdla::priv::ProfileFactory::priv(profiler->getProfile(this->tp_name.c_str()));
+    if ( !this->profile )
     {
         ORIGINATE_ERROR_FAIL(NvDlaError_BadParameter, "Couldn't find profile to compile.");
     }
+    this->profile->setComputePrecision(this->precision);
+    if(this->precision == nvdla::DataType::INT8){
+        this->profile->setTensorScalingMode(this->scalingMode);
+        this->profile->setQuantizationMode(this->quantizationMode);
+        this->profile->setNetworkOutputSurfaceFormat(nvdla::PixelFormat::FEATURE_X8);
+    }else{
+        this->profile->setNetworkOutputSurfaceFormat(nvdla::PixelFormat::FEATURE);
+    }
+    this->profile->setNetworkOutputDataFormat(nvdla::DataFormat::NCxHWx);
+    this->profile->setMultiBatchSize(this->numBatches);
+    this->profile->setNetworkInputDataFormat(this->inDataFormat);
+    switch(this->inDataFormat)
+    {
+        case nvdla::DataFormat::NHWC:
+        if (this->precision == nvdla::DataType::HALF){
+            PROPAGATE_ERROR_FAIL(this->profile->setNetworkInputSurfaceFormat(nvdla::PixelFormat::A16B16G16R16_F));
+        }
+        else if (this->precision == nvdla::DataType::INT8){
+                PROPAGATE_ERROR_FAIL(this->profile->setNetworkInputSurfaceFormat(nvdla::PixelFormat::A8B8G8R8));
+        }
+        else{
+            fprintf(stderr, "NHWC and compute precision %u is not yet supported", this->precision);
+        }
+        break;
+    case nvdla::DataFormat::NCxHWx:
+    case nvdla::DataFormat::NCHW:
+    case nvdla::DataFormat::UNKNOWN:    // atleast start the test with feature data format
+    default:
+        if (this->precision == nvdla::DataType::INT8)
+            profile->setNetworkInputSurfaceFormat(nvdla::PixelFormat::FEATURE_X8);
+        else
+            profile->setNetworkInputSurfaceFormat(nvdla::PixelFormat::FEATURE);
+    }
+
     // 将 target_config_name 转换为 target_config 对象
     targetConfig = nvdla::priv::TargetConfigFactory::priv(profiler->getTargetConfig(this->target_config_name.c_str()));
     if ( !targetConfig )
@@ -221,7 +256,7 @@ int ODLAEngine::ODLATensorMap(struct graph* ir_graph, int ir_tensor_idx, int spe
                 datatype = nvdla::DataType::UINT8;
                 break;
             case TENGINE_DT_INT32:
-                TLOG_ERR("Tensor date type: Tensor_name(%s) tensor_index(%d) tensor_data_type(%d) .\n",ir_tensor->name, ir_tensor->index, ir_tensor->data_type);
+                TLOG_ERR("Tensor date type: Tensor_name(%s) tensor_index(%d) tensor_data_type(%d) not supported by opendla .\n",ir_tensor->name, ir_tensor->index, ir_tensor->data_type);
                 break;
             default:
                 TLOG_ERR("Tensor date type: Tensor_name(%s) tensor_index(%d) tensor_data_type(%d) .\n",ir_tensor->name, ir_tensor->index, ir_tensor->data_type);
@@ -237,6 +272,19 @@ int ODLAEngine::ODLATensorMap(struct graph* ir_graph, int ir_tensor_idx, int spe
             tensor_shape.h = 1;
             tensor_shape.c = Dims[0];
             tensor_shape.n = 1;
+        }
+        else if (spec_type == NVDLA_LAYER_TYPE_CONVOLUTION){
+            tensor_shape.n = Dims[0];   // output channel
+            tensor_shape.c = Dims[1];   // input channel
+            tensor_shape.h = Dims[2];
+            tensor_shape.w = Dims[3];
+        }
+        else if(spec_type == NVDLA_LAYER_TYPE_CONV_BIAS){
+            // bias
+            tensor_shape.n = 1;
+            tensor_shape.c = Dims[0];
+            tensor_shape.h = 1;
+            tensor_shape.w = 1;
         }
         else
         {
@@ -262,14 +310,13 @@ int ODLAEngine::ODLATensorMap(struct graph* ir_graph, int ir_tensor_idx, int spe
             t.i()->setTensorType(nvdla::kNW_OUTPUT);
             t.i()->setDataType(datatype);
             t.i()->setName(ir_tensor->name);
-            t.i()->setChannelDynamicRange(-1, -16129, 16129);
+            if(ir_tensor->quant_param_num == 1){
+                float tensor_min_val = ir_tensor->scale * -127.0f;
+                float tensor_max_val = ir_tensor->scale * +127.0f;
+                t.i()->setChannelDynamicRange(-1, tensor_min_val, tensor_max_val);
+            }
 
             odla_tensor = t.priv();
-        }
-        else if (ir_tensor->data_type == TENGINE_DT_FP32)
-        {
-            fprintf(stderr, "DATATYPE TENGINE_DT_FP32 Not Supported. \n");
-            return -1;
         }
         else if (ir_tensor->tensor_type == TENSOR_TYPE_INPUT || spec_type == NVDLA_LAYER_TYPE_INPUT)
         {
@@ -278,7 +325,11 @@ int ODLAEngine::ODLATensorMap(struct graph* ir_graph, int ir_tensor_idx, int spe
             t.i()->setTensorType(nvdla::kNW_INPUT);
             t.i()->setDataType(datatype);
             t.i()->setName(ir_tensor->name);
-            t.i()->setChannelDynamicRange(-1, -127, 127);
+            if(ir_tensor->quant_param_num == 1){
+                float tensor_min_val = ir_tensor->scale * -127.0f;
+                float tensor_max_val = ir_tensor->scale * +127.0f;
+                t.i()->setChannelDynamicRange(-1, tensor_min_val, tensor_max_val);
+            }
             odla_tensor = t.priv();
         }
         else if (ir_tensor->tensor_type == TENSOR_TYPE_VAR)
@@ -291,7 +342,11 @@ int ODLAEngine::ODLATensorMap(struct graph* ir_graph, int ir_tensor_idx, int spe
                 t.i()->setTensorType(nvdla::kNW_OUTPUT);
                 t.i()->setDataType(datatype);
                 t.i()->setName(ir_tensor->name);
-                t.i()->setChannelDynamicRange(-1, -16129, 16129);
+                if(ir_tensor->quant_param_num == 1){
+                    float tensor_min_val = ir_tensor->scale * -127.0f;
+                    float tensor_max_val = ir_tensor->scale * +127.0f;
+                    t.i()->setChannelDynamicRange(-1, tensor_min_val, tensor_max_val);
+                }
                 odla_tensor = t.priv();
             }
             else
@@ -301,16 +356,84 @@ int ODLAEngine::ODLATensorMap(struct graph* ir_graph, int ir_tensor_idx, int spe
                 t.i()->setTensorType(nvdla::kUNKNOWN);       // May Not be Right
                 t.i()->setDataType(datatype);
                 t.i()->setName(ir_tensor->name);
-                t.i()->setChannelDynamicRange(-1, -16129, 16129);
+                if(ir_tensor->quant_param_num == 1){
+                    float tensor_min_val = ir_tensor->scale * -127.0f;
+                    float tensor_max_val = ir_tensor->scale * +127.0f;
+                    t.i()->setChannelDynamicRange(-1, tensor_min_val, tensor_max_val);
+                }
                 odla_tensor = t.priv();
+
+            }
+        }
+        else if (spec_type == NVDLA_LAYER_TYPE_CONV_BIAS)
+        {
+            t.i()->setDimensions(tensor_shape);
+            t.i()->setDataFormat(NVDLA_DATA_FORMAT_NCHW);
+            t.i()->setTensorType(nvdla::kBIAS);
+            t.i()->setDataType(datatype);
+            t.i()->setName(ir_tensor->name);
+            if(ir_tensor->quant_param_num == 1){
+                float tensor_min_val = ir_tensor->scale * -127.0f;
+                float tensor_max_val = ir_tensor->scale * +127.0f;
+                t.i()->setChannelDynamicRange(-1, tensor_min_val, tensor_max_val);
+            }
+            else if(ir_tensor->quant_param_num > 1)
+            {
+            }
+            odla_tensor = t.priv();
+
+        }
+        else if (spec_type == NVDLA_LAYER_TYPE_CONVOLUTION)
+        {
+            t.i()->setDimensions(tensor_shape);
+            t.i()->setDataFormat(NVDLA_DATA_FORMAT_NCHW);
+            t.i()->setTensorType(nvdla::kIO);
+            t.i()->setDataType(datatype);
+            t.i()->setName(ir_tensor->name);
+            if(ir_tensor->quant_param_num == 1){
+                float tensor_min_val = ir_tensor->scale * -127.0f;
+                float tensor_max_val = ir_tensor->scale * +127.0f;
+                t.i()->setChannelDynamicRange(-1, tensor_min_val, tensor_max_val);
+            }
+            odla_tensor = t.priv();
+            if (ir_tensor->quant_param_num == 1)
+            {
+            }
+            else if(ir_tensor->quant_param_num > 1)
+            {
+            }
+        }
+        else if (spec_type == NVDLA_LAYER_TYPE_DECONVOLUTION)
+        {
+            if (ir_tensor->quant_param_num == 1)
+            {
+            }
+            else if(ir_tensor->quant_param_num > 1)
+            {
+                std::vector<float> scale_list;
+                std::vector<int32_t> zp_list;
+                for (int i = 0; i < Dims[0]; i++)
+                {
+                    scale_list.push_back(ir_tensor->scale_list[i]);
+                    zp_list.push_back(ir_tensor->zp_list[i]);
+                }
 
             }
         }
         else if (ir_tensor->tensor_type == TENSOR_TYPE_CONST)
         {
-            fprintf(stderr, "Tensor_Type Constant Not Supported. \n");
+            t.i()->setDimensions(tensor_shape);
+            t.i()->setDataFormat(NVDLA_DATA_FORMAT_NCHW);
+            t.i()->setTensorType(nvdla::kWEIGHT);
+            t.i()->setDataType(datatype);
+            t.i()->setName(ir_tensor->name);
+            if(ir_tensor->quant_param_num == 1){
+                float tensor_min_val = ir_tensor->scale * -127.0f;
+                float tensor_max_val = ir_tensor->scale * +127.0f;
+                t.i()->setChannelDynamicRange(-1, tensor_min_val, tensor_max_val);
+            }
+            odla_tensor = t.priv();
         }
-
         this->odla_tensor_map[ir_tensor_idx] = odla_tensor;
     }
 
@@ -332,6 +455,11 @@ int ODLAEngine::Build(struct subgraph* subgraph)
 
         switch (op_type)
         {
+            case OP_CONV:
+                this->AddConvolutionNode(ir_node);
+                break;
+            case OP_CONST:
+                continue;
             case OP_INPUT:
                 continue;
             case OP_POOL:
@@ -352,6 +480,7 @@ int ODLAEngine::Build(struct subgraph* subgraph)
 int ODLAEngine::ODLAEnginePreRun(struct subgraph* subgraph)
 {
 #ifdef OPENDLA_LOG_
+    dump_sub_graph_odla(subgraph);
     fprintf(stdout, "%s Entrance.\n", __func__ );
 #endif
     NvDlaError e = NvDlaSuccess;
@@ -439,23 +568,33 @@ int ODLAEngine::ODLAEnginePreRun(struct subgraph* subgraph)
         auto engineASTGraph = nvdla::priv::engine_ast::generateGraph(this->profile, this->targetConfig, this->graph);
         // Optimize pass
         engineASTGraph = this->compiler.priv()->registerBuffers(engineASTGraph);
-//        engineASTGraph = this->compiler.priv()->preProcessAuxData(engineASTGraph);
-//        engineASTGraph = this->compiler.priv()->updateScalingFactors(engineASTGraph);
-//        engineASTGraph = this->compiler.priv()->quantizeAuxData(engineASTGraph);
-//        engineASTGraph = this->compiler.priv()->fuseOnTheFlyNodes(engineASTGraph);
-//        engineASTGraph = this->compiler.priv()->handleLowPrecisionConversions(engineASTGraph);
-//        engineASTGraph = this->compiler.priv()->translateAuxData(engineASTGraph);
+        engineASTGraph = this->compiler.priv()->preProcessAuxData(engineASTGraph);
+        engineASTGraph = this->compiler.priv()->mergeActivationOperations(engineASTGraph);
+        engineASTGraph = this->compiler.priv()->updateScalingFactors(engineASTGraph);
+        engineASTGraph = this->compiler.priv()->quantizeAuxData(engineASTGraph);
+        engineASTGraph = this->compiler.priv()->fuseOnTheFlyNodes(engineASTGraph);
+        engineASTGraph = this->compiler.priv()->handleLowPrecisionConversions(engineASTGraph);
+        engineASTGraph = this->compiler.priv()->translateAuxData(engineASTGraph);
         engineASTGraph = this->compiler.priv()->reserveBuffers(engineASTGraph);
-//        engineASTGraph = this->compiler.priv()->splitNodes(engineASTGraph);
-//        engineASTGraph = this->compiler.priv()->fuseSubEngineOps(engineASTGraph);
-//        engineASTGraph = this->compiler.priv()->boundGraph(engineASTGraph);
-//        engineASTGraph = this->compiler.priv()->handleMultiBatch(engineASTGraph);
-//        engineASTGraph = this->compiler.priv()->enableCopyOutDebugSurfaces(engineASTGraph);
+        engineASTGraph = this->compiler.priv()->splitNodes(engineASTGraph);
+        engineASTGraph = this->compiler.priv()->fuseSubEngineOps(engineASTGraph);
+        engineASTGraph = this->compiler.priv()->boundGraph(engineASTGraph);
+        engineASTGraph = this->compiler.priv()->handleMultiBatch(engineASTGraph);
+        if (this->profile->copyOutDebugSurfaces()){
+            engineASTGraph = this->compiler.priv()->enableCopyOutDebugSurfaces(engineASTGraph);
+        }
 
         // generate Loadable Task info
-        nvdla::priv::engine_ast::NodeSequence topological_order;
-        engineASTGraph = this->compiler.priv()->generateDependencyParams(engineASTGraph, topological_order);
-        if (this->compiler.priv()->emit(engineASTGraph, loadable) != NvDlaSuccess) {
+        bool done = false;
+        for ( int pass = 0; !done; ++pass )
+        {
+            nvdla::priv::engine_ast::NodeSequence topological_order;
+            engineASTGraph = this->compiler.priv()->generateDependencyParams(engineASTGraph, topological_order);
+            engineASTGraph = this->compiler.priv()->resolveMemory(engineASTGraph, topological_order);
+            done = !engineASTGraph->dirty();
+            ASSERT(done);
+        }
+        if (this->compiler.priv()->emit(engineASTGraph, this->loadable) != NvDlaSuccess) {
             fprintf(stderr, "Failed to emit Loadable Data. \n");
             return -1;
         }
@@ -494,7 +633,7 @@ int ODLAEngine::ODLAEnginePreRun(struct subgraph* subgraph)
                 nvdla::IRuntime::NvDlaTensor tDesc;
                 void *hMem = NULL;
 
-                this->runtime->getInputTensorDesc(i, &tDesc);
+                e = this->runtime->getInputTensorDesc(i, &tDesc);
                 if (e != NvDlaSuccess){
                     fprintf(stderr, "getInputTensorDesc failed.\n");
                     return -1;
@@ -537,7 +676,7 @@ int ODLAEngine::ODLAEnginePreRun(struct subgraph* subgraph)
             }
         }
     }
-
+fail:
     return 0;
 };
 
@@ -565,7 +704,6 @@ int ODLAEngine::ODLAEngineRun(struct subgraph* subgraph)
             }
 
             odla_input_data_convert(this->inputBuffer, ir_tensor->data, tDesc);
-            fprintf(stdout, "Nvdla Input Data: \n");
         }
 
         struct timeval t1{}, t2{};

@@ -52,7 +52,7 @@ extern "C" {
 #include <vector>
 #include <cmath>
 #include <sys/time.h>
-
+#include "odla_dump.h"
 #include "convolution_param.h"
 
 #define NVDLA_LAYER_TYPE_INPUT     13U
@@ -81,6 +81,7 @@ private:
     int Build(struct subgraph* subgraph);
     int ODLATensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_type);
 
+    bool AddConvolutionNode(struct node* ir_node);
     bool AddPoolingNode(struct node* ir_node);
     NvDlaError ODLAConfigGenerate();
 
@@ -97,6 +98,11 @@ public:
     nvdla::priv::LoadableFactory::LoadablePrivPair loadable;
 
 private:
+    nvdla::DataType precision = nvdla::DataType::INT8;;
+    nvdla::DataFormat inDataFormat = nvdla::DataFormat::NCHW;
+    nvdla::TensorScalingMode scalingMode = nvdla::TensorScalingMode::PER_TENSOR;
+    nvdla::QuantizationMode quantizationMode = nvdla::QuantizationMode::PER_FILTER;
+    uint32_t numBatches = 1;
     NvU8 * inputHandle{};
     NvU8 * outputHandle{};
     void * inputBuffer = NULL;
