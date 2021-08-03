@@ -1,4 +1,4 @@
-name: linux-armv8-cpu-gcc-runner-test
+name: linux-armv8-cpu-gcc-runner-khadas-vim3
 
 on:
   push:
@@ -16,11 +16,11 @@ on:
 
 jobs:
   linux-armv8-cpu-gcc-runner-test:
-    runs-on: self-hosted, TensorRT
+    runs-on: self-hosted, khadas-vim3
     steps:
     - uses: actions/checkout@v2.3.4
 
     - name: configure
       run: mkdir build && cd build && cmake ..
     - name: build
-      run: cmake --build build -j 8  
+      run: cmake --build build -j 4 
