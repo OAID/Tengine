@@ -99,16 +99,17 @@ public:
     nvdla::priv::LoadableFactory::LoadablePrivPair loadable;
 
 private:
-    nvdla::DataType precision = nvdla::DataType::INT8;;
+    nvdla::DataType precision = nvdla::DataType::INT8;
+    ;
     nvdla::DataFormat inDataFormat = nvdla::DataFormat::NCHW;
     nvdla::TensorScalingMode scalingMode = nvdla::TensorScalingMode::PER_TENSOR;
     nvdla::QuantizationMode quantizationMode = nvdla::QuantizationMode::PER_KERNEL;
     uint32_t numBatches = 1;
-    NvU8 * inputHandle{};
-    NvU8 * outputHandle{};
-    void * inputBuffer = NULL;
-    void * outputBuffer = NULL;
-    dict_irt2odlat     odla_tensor_map;
-    void odla_input_data_convert(void * dst, const void * src, nvdla::IRuntime::NvDlaTensor tDesc) const;
-    void odla_output_data_convert(void * dst, const void * src, nvdla::IRuntime::NvDlaTensor tDesc) const;
+    NvU8* inputHandle{};
+    NvU8* outputHandle{};
+    void* inputBuffer = NULL;
+    void* outputBuffer = NULL;
+    dict_irt2odlat odla_tensor_map;
+    void odla_input_data_convert(void* dst, const void* src, nvdla::IRuntime::NvDlaTensor tDesc) const;
+    void odla_output_data_convert(void* dst, const void* src, nvdla::IRuntime::NvDlaTensor tDesc) const;
 };

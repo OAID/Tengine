@@ -22,7 +22,6 @@
  * Author: lswang@openailab.com
  */
 
-
 #pragma once
 
 #include <stdio.h>
@@ -39,4 +38,4 @@ void extract_feature_from_tensor_odla(const char* comment, const char* layer_nam
 
 void dump_sub_graph_odla(struct subgraph* sub_graph);
 
-void odla_data_dump(const char *filename, int8_t *data, int w, int h, int c);
+void odla_data_dump(const char* filename, int8_t* data, int w, int h, int c);
