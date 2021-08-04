@@ -31,31 +31,30 @@ extern "C"
 }
 
 
-bool ::addReLUNode(struct graph *ir_graph, struct node *node)
+bool ODLAEngine::AddReluNode(struct node* ir_node)
 {
     int op_type = OP_RELU;
 
-    struct tensor* relu_input = nullptr;
-
-    bool need_change_name = false;
-
+    struct graph* ir_graph = ir_node->graph;
+    struct subgraph* subgraph = get_ir_graph_subgraph(ir_graph, ir_node->subgraph_idx);
+    struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
     nvdla::priv::canonical_ast::Edge * inputEdge = new nvdla::priv::canonical_ast::Edge();
     nvdla::priv::canonical_ast::Edge * outputEdge = new nvdla::priv::canonical_ast::Edge();
-    nvdla::PoolingType pooltype;
+    nvdla::ActivationType activationType;
     nvdla::priv::canonical_ast::Node * Node ;
-    nvdla::priv::canonical_ast::PoolingNode * poolingNode = new nvdla::priv::canonical_ast::PoolingNode();
+    nvdla::priv::canonical_ast::ActivationNode * activationNode = new nvdla::priv::canonical_ast::ActivationNode();
 
-    if (OP_CONV == node->op.type)
+    if (OP_CONV == ir_node->op.type)
     {
-        relu_input = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
 
-        if (nullptr == relu_input)
+        if (nullptr == input_tensor)
         {
-            fprintf(stderr, "Tengine: Get input for ReLU(id: %d, name: %s) layer failed.\n", node->index, node->name);
+            fprintf(stderr, "Tengine: Get input for ReLU(id: %d, name: %s) layer failed.\n", ir_node->index, ir_node->name);
             return false;
         }
 
-        auto param = (struct conv_param*)node->op.param_mem;
+        auto param = (struct conv_param*)ir_node->op.param_mem;
 
         switch (param->activation)
         {
@@ -67,116 +66,63 @@ bool ::addReLUNode(struct graph *ir_graph, struct node *node)
                 return false;
         }
 
-        need_change_name = true;
     }
     else
     {
-        relu_input = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
-
-        switch (node->op.type)
+        switch (ir_node->op.type)
         {
             case OP_RELU:
                 op_type = OP_RELU;
                 break;
             default:
-                fprintf(stderr, "Tengine: Unsupported RelU type(%d).\n", node->op.type);
+                fprintf(stderr, "Tengine: Unsupported RelU type(%d).\n", ir_node->op.type);
                 return false;
         }
     }
 
-    nvinfer1::ITensor* trt_tensor = tensor_real_map[relu_input->index];
+    activationNode->params().setActivationType(nvdla::ActivationType::kRELU);
+    activationNode->setGraph(this->graph);
+    this->graph->insertNode(activationNode);
+    activationNode->setId(this->graph->nextNodeId());
+    activationNode->setName(ir_node->name);
 
-    nvinfer1::IActivationLayer * layer = nullptr;
+    // Init Edge
+    inputEdge->setGraph(this->graph);
+    inputEdge->setId(graph->nextEdgeId());
+    inputEdge->setOriginalTensor(odla_tensor_map[input_tensor->index]->clone());
+    activationNode->markInputEdge(inputEdge);
+    this->graph->insertEdge(inputEdge);
 
-    if (OP_RELU == op_type)
-    {
-        if (!need_change_name)
-        {
-            layer = this->network->addActivation(*trt_tensor,nvinfer1::ActivationType::kLEAKY_RELU);
-            if (nullptr == layer)
-            {
-                fprintf(stderr, "Tengine: Add ReLU(id: %d, name: %s) layer failed.\n", node->index, node->name);
-                return false;
-            }
 
-            layer->setName(node->name);
+    outputEdge->setGraph(this->graph);
+    outputEdge->setId(graph->nextEdgeId());
+    outputEdge->setOriginalTensor(odla_tensor_map[output_tensor->index]->clone());
+    activationNode->markOutputEdge(outputEdge);
+    this->graph->insertEdge(outputEdge);
 
-            auto* param = (relu_param*)node->op.param_mem;
-            if (nullptr != param && std::fabs(param->negative_slope) > 0.000001)
-            {
-                layer->setAlpha(param->negative_slope);
-            }
-        }
-        else
-        {
-            layer = this->network->addActivation(*trt_tensor,nvinfer1::ActivationType::kRELU);
-            if (nullptr == layer)
-            {
-                fprintf(stderr, "Tengine: Add ReLU(id: %d, name: %s) layer failed.\n", node->index, node->name);
-                return false;
-            }
-        }
+    // Second represents Input and First is Output
+    this->graph->appendNodeToEdge(inputEdge, nvdla::priv::ast::EdgeSideEnum::SECOND, activationNode);
+    this->graph->appendNodeToEdge(outputEdge, nvdla::priv::ast::EdgeSideEnum::FIRST, activationNode);
 
-        this->layer_map[node->index] = layer;
+    // if the tensor is Graph Input or Output
+    std::vector<nvdla::priv::canonical_ast::Edge *> inputEdges;
+    std::vector<nvdla::priv::canonical_ast::Edge *> outputEdges;
+    inputEdges.reserve(subgraph->input_num);
+    outputEdges.reserve(subgraph->output_num);
+    // Insert priv pair
+    Node = activationNode;
+    nvdla::priv::canonical_ast::NodeFactory::s_act_priv.insert(
+            std::pair<nvdla::priv::canonical_ast::Node*, nvdla::priv::canonical_ast::ActivationNode*>(Node, activationNode)
+    );
+    if(subgraph->input_tensor_list[0] == ir_node->input_tensors[0]){
+
+        inputEdges.push_back(inputEdge);
+        this->graph->setInputEdges(inputEdges);
     }
-    else
-    {
-        layer = this->network->addActivation(*trt_tensor,nvinfer1::ActivationType::kCLIP);
-        if (nullptr == layer)
-        {
-            fprintf(stderr, "Tengine: Add ReLU(id: %d, name: %s) layer failed.\n", node->index, node->name);
-            return false;
-        }
+    if(subgraph->output_tensor_list[0] == ir_node->output_tensors[0]){
 
-        if (!need_change_name)
-        {
-            layer->setName(node->name);
-        }
-
-        this->layer_map[node->index] = layer;
-
-        if (OP_RELU1 == op_type)
-        {
-            layer->setAlpha(0);
-            layer->setBeta(1);
-        }
-        if (OP_RELU6 == op_type)
-        {
-            layer->setAlpha(0);
-            layer->setBeta(6);
-        }
-        if (OP_CLIP == op_type)
-        {
-            auto clip_param = (struct clip_param*)node->op.param_mem;
-
-            layer->setAlpha(clip_param->min);
-            layer->setBeta(clip_param->max);
-        }
-    }
-
-    trt_tensor = layer->getOutput(0);
-
-    /*if (need_change_name)
-    {
-        struct tensor* node_output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
-
-        std::string tensor_name = std::string(node_output->name) + std::to_string(node_output->index);
-        trt_tensor->setName(tensor_name.c_str());
-    }*/
-
-    this->SetRange(ir_graph, node->output_tensors[0], trt_tensor);
-
-    if (OP_CONV == node->op.type)
-    {
-        this->tensor_real_map[relu_input->index + tensor_swap_count] = trt_tensor;
-        this->tensor_swap_map[relu_input->index] = relu_input->index + tensor_swap_count;
-    }
-    else
-    {
-        struct tensor* relu_output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
-
-        this->tensor_real_map[relu_output->index] = trt_tensor;
-        this->tensor_swap_map[relu_output->index] = relu_output->index;
+        outputEdges.push_back(outputEdge);
+        this->graph->setOutputEdges(outputEdges);
     }
 
     return true;

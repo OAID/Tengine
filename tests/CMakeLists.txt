@@ -28,8 +28,9 @@ if (TENGINE_ENABLE_OPENDLA)
         SET_PROPERTY(TARGET ${name} PROPERTY FOLDER "tests/test_opendla")
     endfunction()
 
-    tengine_opendla_op_test(test_opendla_op_pooling         op/test_opendla_op_pooling.cpp)
     tengine_opendla_op_test(test_opendla_op_convolution     op/test_opendla_op_convolution.cpp)
+    tengine_opendla_op_test(test_opendla_op_relu         op/test_opendla_op_relu.cpp)
+    tengine_opendla_op_test(test_opendla_op_pooling         op/test_opendla_op_pooling.cpp)
 
 endif()
 

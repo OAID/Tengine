@@ -435,6 +435,7 @@ int ODLAEngine::Build(struct subgraph* subgraph)
                 continue;
             case OP_RELU:
                 this->AddReluNode(ir_node);
+                break;
             case OP_POOL:
                 this->AddPoolingNode(ir_node);
                 break;

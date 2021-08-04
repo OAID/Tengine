@@ -86,7 +86,7 @@ const int odla_supported_ops[] = {
     //    OP_REDUCEL2,
     //    OP_REDUCTION,
     //    OP_REGION,
-    //    OP_RELU,
+    OP_RELU,
     //    OP_RELU6,
     //    OP_REORG,
     //    OP_RESHAPE,
