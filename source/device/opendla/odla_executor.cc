@@ -431,6 +431,9 @@ int ODLAEngine::Build(struct subgraph* subgraph)
                 break;
             case OP_CONST:
                 continue;
+            case OP_ELTWISE:
+                this->AddEltwiseNode(ir_node);
+                break;
             case OP_FC:
                 this->AddFullyConnectionNode(ir_node);
                 break;

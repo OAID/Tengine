@@ -52,7 +52,7 @@ const int odla_supported_ops[] = {
     //    OP_DETECTION_OUTPUT,
     //    OP_DETECTION_POSTPROCESS,
     //    OP_DROPOUT,
-    //    OP_ELTWISE,
+    OP_ELTWISE,
     //    OP_ELU,
     //    OP_EMBEDDING,
     //    OP_EXPANDDIMS,

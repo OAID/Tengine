@@ -80,6 +80,7 @@ private:
     int ODLATensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_type);
 
     bool AddConvolutionNode(struct node* ir_node);
+    bool AddEltwiseNode(struct node* ir_node);
     bool AddFullyConnectionNode(struct node* ir_node);
     bool AddReluNode(struct node* ir_node);
     bool AddPoolingNode(struct node* ir_node);

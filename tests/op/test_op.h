@@ -665,7 +665,7 @@ graph_t create_common_test_graph(const char* test_node_name, int data_type, int 
 
 graph_t create_opendla_test_graph(const char* test_node_name, int data_type, int layout, int n, int c, int h, int w, common_test test_func, int dims_num = 4)
 {
-    /* create VeriSilicon TIM-VX backend */
+    /* create OpenDLA backend */
     context_t odla_context = create_context("odla", 1);
     int rtt = set_context_device(odla_context, "OPENDLA", NULL, 0);
     if (0 > rtt)
