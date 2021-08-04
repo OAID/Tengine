@@ -126,3 +126,4 @@
 #define OP_RECIPROCAL_NAME            "Reciprocal"
 #define OP_SPATIALTRANSFORMER_NAME    "SpatialTransformer"
 #define OP_EXPAND_NAME                "Expand"
+#define OP_GELU_NAME                  "Gelu"
