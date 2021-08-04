@@ -70,7 +70,7 @@ int create_test_fc_node(graph_t graph, const char* input_name, const char* node_
     node_t weight_node = create_graph_node(graph, "weight", "Const");
     tensor_t weight_tensor = create_graph_tensor(graph, "weight", TENGINE_DT_FP32);
     set_node_output_tensor(weight_node, 0, weight_tensor, TENSOR_TYPE_CONST);
-    int weight_dims[4] = {1, 3, 1, 1}; // channel num
+    int weight_dims[4] = {1, 10, 1, 1}; // channel num
     set_tensor_shape(weight_tensor, weight_dims, 4);
 
     /* bias */
@@ -111,22 +111,22 @@ int weight_zero_point[2] = {0, 0};
 int output_zero_point = 0;
 
 /* float32 data */
-float reference_out[1] = {12};
+float reference_out[1] = {18};
 
-float input_data[3] = {3, 8, 1};
+float input_data[3] = {1, 2, 1};
 
-float weight_data[3] = {3, 0, 3};
+float weight_data[10] = {3, 0, 3, 3, 0, 3, 3, 0, 3};
 
 float bias_data[2] = {0.5, 0.1};
 
 /* int8 data */
 /* int8 = clip(round(float32 / scale), -127, 127) */
-int8_t input_i8_data[3] = {75, 40, 25};
+int8_t input_i8_data[10] = {25, 40, 25, 25, 40, 25, 25, 40, 25, 40};
 
 
 int main(int argc, char* argv[])
 {
-    int n = 1, c = 3, h = 1, w = 1;
+    int n = 1, c = 10, h = 1, w = 1;
     const char* test_node_name = "conv";
     int data_type = TENGINE_DT_INT8;
     int layout = TENGINE_LAYOUT_NCHW;
@@ -155,10 +155,10 @@ int main(int argc, char* argv[])
     set_tensor_quant_param(output_tensor, &output_scale, &output_zero_point, 1);
 
     // set input data
-    set_tensor_buffer(input_tensor, input_i8_data, 3 * sizeof(int8_t));
+    set_tensor_buffer(input_tensor, input_i8_data, 10 * sizeof(int8_t));
 
     // set weight data
-    set_tensor_buffer(weight_tensor, weight_data, 3 * sizeof(float));
+    set_tensor_buffer(weight_tensor, weight_data, 10 * sizeof(float));
 
     // set bias data
 //    set_tensor_buffer(bias_tensor, bias_data, 2 * sizeof(float));
