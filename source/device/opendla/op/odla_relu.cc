@@ -27,7 +27,7 @@
 extern "C"
 {
 #include "operator/op.h"
-#include "relu_param.h"
+#include "concat_param.h"
 }
 
 
@@ -103,6 +103,7 @@ bool ODLAEngine::AddReluNode(struct node* ir_node)
     // Second represents Input and First is Output
     this->graph->appendNodeToEdge(inputEdge, nvdla::priv::ast::EdgeSideEnum::SECOND, activationNode);
     this->graph->appendNodeToEdge(outputEdge, nvdla::priv::ast::EdgeSideEnum::FIRST, activationNode);
+
 
     // if the tensor is Graph Input or Output
     std::vector<nvdla::priv::canonical_ast::Edge *> inputEdges;

@@ -200,7 +200,6 @@ int main(int argc, char* argv[])
 
     int8_t* output_int8 = (int8_t*)output_tensor->data;
     int output_size = output_tensor->elem_num;
-    get_tensor_quant_param(output_tensor, &output_scale, &output_zero_point, 1);
 
     std::vector<float> output_fp32(output_size);
     for (int i = 0; i < output_size; i++)

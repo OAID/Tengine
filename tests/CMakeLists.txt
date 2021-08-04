@@ -29,6 +29,7 @@ if (TENGINE_ENABLE_OPENDLA)
     endfunction()
 
     tengine_opendla_op_test(test_opendla_op_convolution     op/test_opendla_op_convolution.cpp)
+    tengine_opendla_op_test(test_opendla_op_fc    op/test_opendla_op_fc.cpp)
     tengine_opendla_op_test(test_opendla_op_relu         op/test_opendla_op_relu.cpp)
     tengine_opendla_op_test(test_opendla_op_pooling         op/test_opendla_op_pooling.cpp)
 

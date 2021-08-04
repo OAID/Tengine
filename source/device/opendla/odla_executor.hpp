@@ -65,8 +65,6 @@ extern "C" {
 
 typedef std::map<uint32_t, nvdla::priv::Tensor*> dict_irt2odlat;
 
-typedef std::map<uint32_t, nvdla::priv::Tensor*> dict_irt2odlat;
-
 class ODLAEngine
 {
 public:
@@ -82,6 +80,7 @@ private:
     int ODLATensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_type);
 
     bool AddConvolutionNode(struct node* ir_node);
+    bool AddFullyConnectionNode(struct node* ir_node);
     bool AddReluNode(struct node* ir_node);
     bool AddPoolingNode(struct node* ir_node);
     NvDlaError ODLAConfigGenerate();

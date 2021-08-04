@@ -56,7 +56,7 @@ const int odla_supported_ops[] = {
     //    OP_ELU,
     //    OP_EMBEDDING,
     //    OP_EXPANDDIMS,
-    //    OP_FC,
+    OP_FC,
     //    OP_FLATTEN,
     //    OP_GATHER,
     //    OP_GEMM,
