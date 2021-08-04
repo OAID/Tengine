@@ -37,7 +37,7 @@ int float_mismatch(float* current, float* reference, int size)
         if (fabs(tmp) > 0.5)
         {
             fprintf(stderr, "test failed, index:%d, a:%f, b:%f\n", i, current[i], reference[i]);
-//            return -1;
+            //            return -1;
         }
     }
     fprintf(stderr, "test pass\n");
@@ -76,7 +76,7 @@ int create_test_conv_node(graph_t graph, const char* input_name, const char* nod
     node_t bias_node = create_graph_node(graph, "bias", "Const");
     tensor_t bias_tensor = create_graph_tensor(graph, "bias", TENGINE_DT_FP32);
     set_node_output_tensor(bias_node, 0, bias_tensor, TENSOR_TYPE_CONST);
-    int bias_dims[1] = {2};  // channel num
+    int bias_dims[1] = {2}; // channel num
     set_tensor_shape(bias_tensor, bias_dims, 1);
 
     /* input tensors of test node */
@@ -116,7 +116,7 @@ int create_test_conv_node(graph_t graph, const char* input_name, const char* nod
  * float32 = int8 * scale
  */
 float input_scale = 0.03937f;
-float weight_scales[2] = { 0.023622f, 0.007874f};
+float weight_scales[2] = {0.023622f, 0.007874f};
 float output_scale = 0.2007874f;
 
 int input_zero_point = 0;
@@ -124,44 +124,43 @@ int weight_zero_point[2] = {0, 0};
 int output_zero_point = 0;
 
 /* float32 data */
-float reference_out[2][4] = {{  4.5,  -0.5,
-                                 13.5,  25.5},
-                             { -3.9,   2.1,
-                                 4.1,  10.1}};
+float reference_out[2][4] = {{4.5, -0.5,
+                              13.5, 25.5},
+                             {-3.9, 2.1,
+                              4.1, 10.1}};
 
-float input_data[16] = { 1, -2,  1,  3,
-                         -2,  3,  3,  5,
-                         1,  0, -5,  5,
-                         0,  0,  0, -1};
+float input_data[16] = {1, -2, 1, 3,
+                        -2, 3, 3, 5,
+                        1, 0, -5, 5,
+                        0, 0, 0, -1};
 
-float weight_data[2][9] = {{   1,  2,  3,
-                               0,  0,  0,
-                               -1,  1, -1},
-                           {  1,  1,  1,
-                               0,  0,  0,
-                               1,  1,  1}};
+float weight_data[2][9] = {{1, 2, 3,
+                            0, 0, 0,
+                            -1, 1, -1},
+                           {1, 1, 1,
+                            0, 0, 0,
+                            1, 1, 1}};
 
-float bias_data[2] = { 0.5, 0.1};
+float bias_data[2] = {0.5, 0.1};
 
 /* int8 data */
 /* int8 = clip(round(float32 / scale), -127, 127) */
-int8_t input_i8_data[16] = {  25, -51,   25,   76,
-                              -51,  76,   76,  127,
-                              25,   0, -127,  127,
-                              0,   0,    0,  -25};
+int8_t input_i8_data[16] = {25, -51, 25, 76,
+                            -51, 76, 76, 127,
+                            25, 0, -127, 127,
+                            0, 0, 0, -25};
 
-int8_t weight_i8_data[2][9] = {{ 42,   87,  127,
-                                   0,    0,    0,
-                                   -42,   42,  -42},
-                               { 127,  127,  127,
-                                   0,    0,    0,
-                                   127,  127,  127}};
+int8_t weight_i8_data[2][9] = {{42, 87, 127,
+                                0, 0, 0,
+                                -42, 42, -42},
+                               {127, 127, 127,
+                                0, 0, 0,
+                                127, 127, 127}};
 
 /* bias i32 = round(bias_fp32 / (input_scale * weight_scale)) */
-int bias_i32_data[2] = { 537, 323};
+int bias_i32_data[2] = {537, 323};
 
 int8_t bias_i8_data[2] = {1, 2};
-
 
 int main(int argc, char* argv[])
 {
@@ -188,13 +187,13 @@ int main(int argc, char* argv[])
 
     /* fill test data */
     // set quantize params
-    struct tensor* input_tensor  = (struct tensor*)get_graph_tensor(graph, "input_node");
+    struct tensor* input_tensor = (struct tensor*)get_graph_tensor(graph, "input_node");
     struct tensor* weight_tensor = (struct tensor*)get_graph_tensor(graph, "weight");
-    struct tensor* bias_tensor   = (struct tensor*)get_graph_tensor(graph, "bias");
+    struct tensor* bias_tensor = (struct tensor*)get_graph_tensor(graph, "bias");
     struct tensor* output_tensor = (struct tensor*)get_graph_tensor(graph, "conv");
 
     set_tensor_quant_param(input_tensor, &input_scale, &input_zero_point, 1);
-//    set_tensor_quant_param(weight_tensor, weight_scales, weight_zero_point, 2);
+    //    set_tensor_quant_param(weight_tensor, weight_scales, weight_zero_point, 2);
     set_tensor_quant_param(output_tensor, &output_scale, &output_zero_point, 1);
 
     // set input data
