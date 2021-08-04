@@ -123,7 +123,6 @@ float bias_data[2] = {0.5, 0.1};
 /* int8 = clip(round(float32 / scale), -127, 127) */
 int8_t input_i8_data[3] = {75, 40, 25};
 
-
 int main(int argc, char* argv[])
 {
     int n = 1, c = 3, h = 1, w = 1;
@@ -151,7 +150,7 @@ int main(int argc, char* argv[])
 
     //    tensor_t weight_tesnor = get_graph_input_tensor(ir_graph, 1, 0);
     set_tensor_quant_param(input_tensor, &input_scale, &input_zero_point, 1);
-//    set_tensor_quant_param(weight_tensor, weight_scales, &weight_zero_point, 2);
+    //    set_tensor_quant_param(weight_tensor, weight_scales, &weight_zero_point, 2);
     set_tensor_quant_param(output_tensor, &output_scale, &output_zero_point, 1);
 
     // set input data
@@ -161,8 +160,7 @@ int main(int argc, char* argv[])
     set_tensor_buffer(weight_tensor, weight_data, 3 * sizeof(float));
 
     // set bias data
-//    set_tensor_buffer(bias_tensor, bias_data, 2 * sizeof(float));
-
+    //    set_tensor_buffer(bias_tensor, bias_data, 2 * sizeof(float));
 
     // graph run
     ret = test_graph_run(ir_graph);

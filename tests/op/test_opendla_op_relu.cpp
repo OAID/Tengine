@@ -42,7 +42,6 @@ int float_mismatch(float* current, float* reference, int size)
     return 0;
 }
 
-
 int create_test_relu_node(graph_t graph, const char* input_name, const char* node_name, int data_type, int layout, int n, int c, int h, int w)
 {
     (void)layout;
@@ -73,10 +72,10 @@ int create_test_relu_node(graph_t graph, const char* input_name, const char* nod
 }
 
 float reference_out[25] = {0, 6, 5, 7, 5,
-                         5, 0, 5, 5, 5,
-                         5, 5, 0, 5, 5,
-                         5, 5, 5, 0, 5,
-                         5, 8, 5, 5, 0};
+                           5, 0, 5, 5, 5,
+                           5, 5, 0, 5, 5,
+                           5, 5, 5, 0, 5,
+                           5, 8, 5, 5, 0};
 float input_array[25] = {-5, 6, 5, 7, 5,
                          5, -5, 5, 5, 5,
                          5, 5, -5, 5, 5,
@@ -101,7 +100,6 @@ int main(int argc, char* argv[])
     int ret = test_graph_init();
     if (0 != ret)
         fprintf(stderr, "Tengine init failed.\n");
-
 
     // create
     graph_t graph = create_opendla_test_graph(test_node_name, data_type, layout, n, c, h, w, &create_test_relu_node);
@@ -170,7 +168,6 @@ int main(int argc, char* argv[])
 
     /* check the result */
     ret = float_mismatch(output_fp32.data(), reference_out, output_size);
-
 
     if (ret == 0)
         fprintf(stderr, "test pass.\n");
