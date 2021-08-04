@@ -25,7 +25,9 @@
 
 #pragma once
 
-#include <sys/stat.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 struct tensor;
 struct subgraph;

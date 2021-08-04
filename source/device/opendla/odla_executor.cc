@@ -146,7 +146,7 @@ NvDlaError ODLAEngine::ODLAConfigGenerate(){
                 PROPAGATE_ERROR_FAIL(this->profile->setNetworkInputSurfaceFormat(nvdla::PixelFormat::A8B8G8R8));
         }
         else{
-            fprintf(stderr, "NHWC and compute precision %u is not yet supported", this->precision);
+            fprintf(stderr, "NHWC and compute precision %u is not yet supported", (uint32_t)this->precision);
         }
         break;
     case nvdla::DataFormat::NCxHWx:
@@ -222,6 +222,9 @@ int ODLAEngine::ODLATensorMap(struct graph* ir_graph, int ir_tensor_idx, int spe
                 break;
             case TENGINE_DT_UINT8:
                 datatype = nvdla::DataType::UINT8;
+                break;
+            case TENGINE_DT_INT16:
+                datatype = nvdla::DataType::INT16;
                 break;
             case TENGINE_DT_INT32:
                 TLOG_ERR("Tensor date type: Tensor_name(%s) tensor_index(%d) tensor_data_type(%d) not supported by opendla .\n",ir_tensor->name, ir_tensor->index, ir_tensor->data_type);
@@ -430,6 +433,8 @@ int ODLAEngine::Build(struct subgraph* subgraph)
                 continue;
             case OP_INPUT:
                 continue;
+            case OP_RELU:
+                this->AddReluNode(ir_node);
             case OP_POOL:
                 this->AddPoolingNode(ir_node);
                 break;
