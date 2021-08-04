@@ -31,6 +31,38 @@
 #include <sys/time.h>
 #endif
 
+void odla_data_dump(const char *filename, int8_t *data, int w, int h, int c)
+{
+#ifdef OPENDLA_LOG_
+    FILE *fp;
+
+    fp = fopen(filename, "w");
+
+    unsigned int line_stride = w * 8;
+    unsigned int surface_stride = line_stride * h;
+
+    fprintf(fp, "blobs {\n");
+    for (int i = 0; i < c; i++) {
+        for (int j = 0; j < h; j++) {
+            for (int k = 0; k < w; k++) {
+                int surface_index = i / 8;
+                fprintf(fp, "  double_data: %d\n", data[surface_stride*surface_index + line_stride*j + k + i%8]);
+                fprintf(stdout, "address: %lx data: %d\n", ((uint64_t)data)+surface_stride*surface_index + line_stride*j + k + i%8 ,data[surface_stride*surface_index + line_stride*j + k + i%8]);
+            }
+        }
+    }
+    fprintf(fp, "  shape {\n");
+    fprintf(fp, "    dim: 1\n");
+    fprintf(fp, "    dim: %d\n", c);
+    fprintf(fp, "    dim: %d\n", h);
+    fprintf(fp, "    dim: %d\n", w);
+    fprintf(fp, "  }\n");
+    fprintf(fp, "}\n");
+
+    fclose(fp);
+#endif
+}
+
 int print_tensor_data_value_odla(FILE* file, const struct tensor* tensor, int offset)
 {
     switch (tensor->data_type)
