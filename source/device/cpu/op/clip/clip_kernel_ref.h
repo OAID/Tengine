@@ -33,4 +33,7 @@ int ref_clip_fp32(struct tensor* input_tensor, struct tensor* output_tensor, flo
 
 int ref_clip_uint8(struct tensor* input_tensor, struct tensor* output_tensor, float max, float min);
 
+int ref_clip_int8(struct tensor* input_tensor, struct tensor* output_tensor, float max, float min);
+
+
 #endif
