@@ -2286,6 +2286,7 @@ void onnx_serializer::register_op_load()
     op_load_map["Upsample"] = std::pair<int, op_load_t>(OP_INTERP, load_interp);
     op_load_map["Unsqueeze"] = std::pair<int, op_load_t>(OP_UNSQUEEZE, load_unsqueeze);
     op_load_map["Where"] = std::pair<int, op_load_t>(OP_WHERE, load_no_param);
+    op_load_map["Gelu"] = std::pair<int, op_load_t>(OP_GELU, load_no_param);
 }
 /*
 *   OPERAOTR REGISTER FUNCTION DEFINE FOR ONNX SERIALIZER END
