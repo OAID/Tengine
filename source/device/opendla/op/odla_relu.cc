@@ -31,18 +31,17 @@ extern "C"
 }
 
 
-bool ODLAEngine::AddReluNode(struct node* ir_node)
+nvdla::priv::canonical_ast::Node * ODLAEngine::AddReluNode(struct node* ir_node)
 {
     int op_type = OP_RELU;
 
     struct graph* ir_graph = ir_node->graph;
     struct subgraph* subgraph = get_ir_graph_subgraph(ir_graph, ir_node->subgraph_idx);
     struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
     nvdla::ActivationType activationType;
     nvdla::priv::canonical_ast::Node * Node ;
-    nvdla::priv::canonical_ast::ActivationNode * activationNode = new nvdla::priv::canonical_ast::ActivationNode();
+    auto * activationNode = new nvdla::priv::canonical_ast::ActivationNode();
 
     if (OP_CONV == ir_node->op.type)
     {
@@ -50,7 +49,7 @@ bool ODLAEngine::AddReluNode(struct node* ir_node)
         if (nullptr == input_tensor)
         {
             fprintf(stderr, "Tengine: Get input for ReLU(id: %d, name: %s) layer failed.\n", ir_node->index, ir_node->name);
-            return false;
+            return nullptr;
         }
 
         auto param = (struct conv_param*)ir_node->op.param_mem;
@@ -62,7 +61,7 @@ bool ODLAEngine::AddReluNode(struct node* ir_node)
                 break;
             default:
                 fprintf(stderr, "Tengine: Unsupported RelU type(%d).\n", param->activation);
-                return false;
+                return nullptr;
         }
 
     }
@@ -75,66 +74,17 @@ bool ODLAEngine::AddReluNode(struct node* ir_node)
                 break;
             default:
                 fprintf(stderr, "Tengine: Unsupported RelU type(%d).\n", ir_node->op.type);
-                return false;
+                return nullptr;
         }
     }
 
     activationNode->params().setActivationType(nvdla::ActivationType::kRELU);
-    activationNode->setGraph(this->graph);
-    this->graph->insertNode(activationNode);
-    activationNode->setId(this->graph->nextNodeId());
-    activationNode->setName(ir_node->name);
-
-    // if the tensor is Graph Input or Output
-    std::vector<nvdla::priv::canonical_ast::Edge *> inputEdges;
-    std::vector<nvdla::priv::canonical_ast::Edge *> outputEdges;
-    inputEdges.reserve(subgraph->input_num);
-    outputEdges.reserve(subgraph->output_num);
-
-
-    nvdla::priv::canonical_ast::Edge* inputEdge = nullptr;
-    auto t2e = this->odla_edge_map.find(this->odla_tensor_map[input_tensor->index]);
-    // if input edge are already created.
-    if(t2e == this->odla_edge_map.end()){
-        inputEdge = new nvdla::priv::canonical_ast::Edge();
-        inputEdge->setGraph(this->graph);
-        inputEdge->setId(graph->nextEdgeId());
-        inputEdge->setOriginalTensor(this->odla_tensor_map[input_tensor->index]->clone());
-        this->graph->insertEdge(inputEdge);
-
-        this->odla_edge_map[this->odla_tensor_map[input_tensor->index]] = inputEdge;
-    }else{
-        inputEdge = t2e->second;
-    }
-    activationNode->markInputEdge(inputEdge);
-    this->graph->appendNodeToEdge(inputEdge, nvdla::priv::ast::EdgeSideEnum::SECOND, activationNode);
-    inputEdges.push_back(inputEdge);
-
-    for (int i = 0; i < output_tensor->consumer_num; i++)
-    {
-        auto* outputEdge = new nvdla::priv::canonical_ast::Edge();
-        outputEdge->setGraph(this->graph);
-        outputEdge->setId(graph->nextEdgeId());
-        outputEdge->setOriginalTensor(odla_tensor_map[output_tensor->index]->clone());
-        activationNode->markOutputEdge(outputEdge);
-        this->graph->insertEdge(outputEdge);
-        // Second represents Input and First is Output
-        this->graph->appendNodeToEdge(outputEdge, nvdla::priv::ast::EdgeSideEnum::FIRST, activationNode);
-        outputEdges.push_back(outputEdge);
-        this->odla_edge_map[this->odla_tensor_map[output_tensor->index]] = outputEdge;
-    }
 
     // Insert priv pair
     Node = activationNode;
     nvdla::priv::canonical_ast::NodeFactory::s_act_priv.insert(
             std::pair<nvdla::priv::canonical_ast::Node*, nvdla::priv::canonical_ast::ActivationNode*>(Node, activationNode)
     );
-    if(subgraph->input_tensor_list[0] == ir_node->input_tensors[0]){
-        this->graph->setInputEdges(inputEdges);
-    }
-    if(subgraph->output_tensor_list[0] == ir_node->output_tensors[0]){
-        this->graph->setOutputEdges(outputEdges);
-    }
 
-    return true;
+    return Node;
 }

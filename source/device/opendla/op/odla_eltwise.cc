@@ -33,25 +33,18 @@ extern "C"
 }
 
 
-bool ODLAEngine::AddEltwiseNode(struct node* ir_node)
+nvdla::priv::canonical_ast::Node * ODLAEngine::AddEltwiseNode(struct node* ir_node)
 {
     struct graph* ir_graph = ir_node->graph;
     struct subgraph* subgraph = get_ir_graph_subgraph(ir_graph, ir_node->subgraph_idx);
     struct tensor* input_tensor0 = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
     struct tensor* const_tensor = nullptr;
     if (ir_node->input_num > 1)
         const_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
 
     nvdla::priv::canonical_ast::Node* Node ;
-    nvdla::priv::canonical_ast::ElementWiseNode * elementWiseNode = new nvdla::priv::canonical_ast::ElementWiseNode();
-
-    elementWiseNode->setGraph(this->graph);
-    this->graph->insertNode(elementWiseNode);
-    elementWiseNode->setId(this->graph->nextNodeId());
-    elementWiseNode->setName(ir_node->name);
-
+    auto * elementWiseNode = new nvdla::priv::canonical_ast::ElementWiseNode();
 
     eltwise_param* param = (eltwise_param*)ir_node->op.param_mem;
     if (nullptr != const_tensor && const_tensor->tensor_type == TENSOR_TYPE_CONST && const_tensor->data_type == TENGINE_DT_FP32)
@@ -106,45 +99,6 @@ bool ODLAEngine::AddEltwiseNode(struct node* ir_node)
 
     }
 
-    std::vector<nvdla::priv::canonical_ast::Edge *> inputEdges;
-    std::vector<nvdla::priv::canonical_ast::Edge *> outputEdges;
-    inputEdges.reserve(subgraph->input_num);
-    outputEdges.reserve(subgraph->output_num);
-
-    for (int i = 0; i < ir_node->input_num; i++)
-    {
-        struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[i]);
-        nvdla::priv::canonical_ast::Edge* inputEdge = nullptr;
-        auto t2e = this->odla_edge_map.find(this->odla_tensor_map[input_tensor->index]);
-        // if input edge are already created.
-        if(t2e == this->odla_edge_map.end()){
-            inputEdge = new nvdla::priv::canonical_ast::Edge();
-            inputEdge->setGraph(this->graph);
-            inputEdge->setId(graph->nextEdgeId());
-            inputEdge->setOriginalTensor(this->odla_tensor_map[input_tensor->index]->clone());
-            this->graph->insertEdge(inputEdge);
-
-            this->odla_edge_map[this->odla_tensor_map[input_tensor->index]] = inputEdge;
-        }else{
-            inputEdge = t2e->second;
-        }
-
-        elementWiseNode->markInputEdge(inputEdge);
-        this->graph->appendNodeToEdge(inputEdge, nvdla::priv::ast::EdgeSideEnum::SECOND, elementWiseNode);
-        inputEdges.push_back(inputEdge);
-    }
-
-    nvdla::priv::canonical_ast::Edge* outputEdge = new nvdla::priv::canonical_ast::Edge();
-    outputEdge->setGraph(this->graph);
-    outputEdge->setId(graph->nextEdgeId());
-    outputEdge->setOriginalTensor(this->odla_tensor_map[output_tensor->index]->clone());
-    elementWiseNode->markOutputEdge(outputEdge);
-    this->graph->insertEdge(outputEdge);
-    // Second represents Input and First is Output
-    this->graph->appendNodeToEdge(outputEdge, nvdla::priv::ast::EdgeSideEnum::FIRST, elementWiseNode);
-    outputEdges.push_back(outputEdge);
-    this->odla_edge_map[this->odla_tensor_map[output_tensor->index]] = outputEdge;
-
     switch (param->type)
     {
         case ELT_MAX:
@@ -183,13 +137,5 @@ bool ODLAEngine::AddEltwiseNode(struct node* ir_node)
         std::pair<nvdla::priv::canonical_ast::Node*, nvdla::priv::canonical_ast::ElementWiseNode*>(Node, elementWiseNode)
     );
 
-    // Element Wise Layer Can not be the first input layer in OpenDLA
-    //    if(subgraph->input_tensor_list[0] == ir_node->input_tensors[0]){
-    //        this->graph->setInputEdges(inputEdges);
-    //    }
-    if(subgraph->output_tensor_list[0] == ir_node->output_tensors[0]){
-        this->graph->setOutputEdges(outputEdges);
-    }
-
-    return 0;
+    return Node;
 }

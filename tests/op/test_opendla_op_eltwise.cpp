@@ -45,17 +45,17 @@ int float_mismatch(float* current, float* reference, int size)
 }
 
 
-float reference_out[25] = {-5, 12, 10, 14, 10,
-                           10, -5, 10, 10, 10,
-                           10, 10, -5, 10, 10,
-                           10, 10, 10, -5, 10,
-                           10, 16, 10, 10, -5};
+float reference_out[25] = {2, 4, 4, 4, 4,
+                           6, 2, 6, 6, 6,
+                           6, 6, 2, 6, 6,
+                           8, 8, 8, 2, 8,
+                           8, 8, 8, 8, 2};
 
-float input_array[25] = {-5, 6, 5, 7, 5,
-                         5, -5, 5, 5, 5,
-                         5, 5, -5, 5, 5,
-                         5, 5, 5, -5, 5,
-                         5, 8, 5, 5, -5};
+float input_array[25] = {1, 2, 2, 2, 2,
+                         3, 1, 3, 3, 3,
+                         3, 3, 1, 3, 3,
+                         4, 4, 4, 1, 4,
+                         4, 4, 4, 4, 1};
 
 float input_scale = 0.062992f;
 int input_zero_point = 0;
@@ -90,12 +90,14 @@ int create_test_eltwise_node(graph_t graph, const char* input_name, const char* 
     tensor_t relu_1_output_tensor = create_graph_tensor(graph, "relu_1_output", data_type);
 
     set_node_output_tensor(relu_1_node, 0, relu_1_output_tensor, TENSOR_TYPE_VAR);
+    set_tensor_quant_param(relu_1_output_tensor, &output_scale, &output_zero_point, 1);
 
     set_node_input_tensor(relu_2_node, 0, relu_1_output_tensor);
 
     tensor_t relu_2_output_tensor = create_graph_tensor(graph, "relu_2_output", data_type);
 
     set_node_output_tensor(relu_2_node, 0, relu_2_output_tensor, TENSOR_TYPE_VAR);
+    set_tensor_quant_param(relu_2_output_tensor, &output_scale, &output_zero_point, 1);
 
 
 

@@ -417,40 +417,168 @@ int ODLAEngine::Build(struct subgraph* subgraph)
     fprintf(stdout, "%s Entrance.\n", __func__ );
 #endif
     struct graph* ir_graph = subgraph->graph;
+    std::vector<nvdla::priv::Tensor *> graphInputs;
+    std::vector<nvdla::priv::Tensor *> graphOutputs;
+    std::vector<nvdla::priv::canonical_ast::Edge *> inputEdges;
+    std::vector<nvdla::priv::canonical_ast::Edge *> outputEdges;
+    std::map<nvdla::priv::Tensor*,nvdla::priv::Tensor*> originTensor2canTensor;
+    inputEdges.resize(subgraph->input_num);
+    outputEdges.resize(subgraph->output_num);
+    for (int i = 0; i < subgraph->input_num; ++i)
+    {
+        struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, subgraph->input_tensor_list[i]);
+        graphInputs.push_back(nvdla::priv::TensorFactory::priv(this->odla_tensor_map[input_tensor->index]));
+    }
+
+    for (int i = 0; i < subgraph->output_num; ++i)
+    {
+        struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, subgraph->output_tensor_list[i]);
+        graphOutputs.push_back(nvdla::priv::TensorFactory::priv(this->odla_tensor_map[output_tensor->index]));
+    }
 
     for (int i = 0; i < subgraph->node_num; i++)
     {
         uint16_t node_id = subgraph->node_list[i];
         struct node* ir_node = get_ir_graph_node(ir_graph, node_id);
         auto op_type = ir_node->op.type;
+        nvdla::priv::canonical_ast::Node * Node = nullptr;
+
 
         switch (op_type)
         {
             case OP_CONV:
-                this->AddConvolutionNode(ir_node);
+                Node = this->AddConvolutionNode(ir_node);
                 break;
             case OP_CONST:
                 continue;
             case OP_ELTWISE:
-                this->AddEltwiseNode(ir_node);
+                Node = this->AddEltwiseNode(ir_node);
                 break;
             case OP_FC:
-                this->AddFullyConnectionNode(ir_node);
+                Node = this->AddFullyConnectionNode(ir_node);
                 break;
             case OP_INPUT:
                 continue;
             case OP_RELU:
-                this->AddReluNode(ir_node);
+                Node = this->AddReluNode(ir_node);
                 break;
             case OP_POOL:
-                this->AddPoolingNode(ir_node);
+                Node = this->AddPoolingNode(ir_node);
                 break;
             default:
                 fprintf(stderr, "Tengine OpenDLA: Cannot support OP(%d).\n", ir_node->index);
                 break;
         }
+        if(!Node) continue;
+        Node->setGraph(this->graph);
+        this->graph->insertNode(Node);
+        Node->setId(this->graph->nextNodeId()); // 设置 node 的id，n-0 n-1 这样
+        Node->setName(ir_node->name);  // 设置 node 的name
+        this->odla_node_map[Node] = ir_node;
     }
 
+    for(auto n : this->odla_node_map){
+        // iterate each node
+        std::vector<nvdla::priv::Tensor*> ioTensors;
+        size_t input_tensors = 0, output_tensors = 0, aux_input_tensors = 0;
+        auto odla_node = n.first;
+        auto ir_node = n.second;
+        if(ir_node->op.type == OP_CONV || ir_node->op.type == OP_FC){
+            // CONV|FC Only have one input in OPENDLA
+            struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+            auto tensor = nvdla::priv::TensorFactory::priv(this->odla_tensor_map[input_tensor->index]);
+            if(!tensor){
+                fprintf(stderr,"%s : Tensor not found .\n", __func__ );
+                continue;
+            }
+            ioTensors.push_back(tensor);
+            input_tensors++;
+        }
+        else for (size_t i = 0; i < ir_node->input_num; ++i)
+        {
+            struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[i]);
+            auto tensor = nvdla::priv::TensorFactory::priv(this->odla_tensor_map[input_tensor->index]);
+            if(!tensor){
+                fprintf(stderr,"%s : Tensor not found .\n", __func__ );
+                continue;
+            }
+            ioTensors.push_back(tensor);
+            input_tensors++;
+        }
+        for (size_t i = 0; i < ir_node->output_num; ++i)
+        {
+            struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[i]);
+            auto tensor = nvdla::priv::TensorFactory::priv(this->odla_tensor_map[output_tensor->index]);
+            if(!tensor){
+                fprintf(stderr,"%s : Tensor not found .\n", __func__ );
+                continue;
+            }
+            ioTensors.push_back(tensor);
+            output_tensors++;
+        }
+        for (size_t i = 0; i < ioTensors.size(); ++i)
+        {
+            auto odla_tensor = ioTensors[i];
+            bool isInput = i < input_tensors;
+            auto edgeSide = isInput ? nvdla::priv::ast::EdgeSideEnum::SECOND:nvdla::priv::ast::EdgeSideEnum::FIRST;
+            auto edgeDirection = nvdla::priv::ast::EdgeDirectionEnum::DIRECTED;
+            nvdla::priv::canonical_ast::Edge * newEdge = nullptr;
+            nvdla::priv::Tensor * newTensor = nullptr;
+            auto t2e = this->odla_edge_map.find(odla_tensor);
+            if (t2e == this->odla_edge_map.end())
+            {
+                newEdge = new nvdla::priv::canonical_ast::Edge();
+                newEdge->setGraph(this->graph);
+
+                newTensor = odla_tensor->clone();//把network中的tensor复制到一个新的变量can_tensor
+                newTensor->setNetwork(NULL);  //由于这个新的tensor变量将加入graph所以其network指针清空，不在指向原来的network(这里是复制一份tensor，network中原来的tensor还在)
+                newTensor->setTensorType(nvdla::TensorType::kIO);//graph中的tensor设定为IO类型
+                newEdge->setId(graph->nextEdgeId()); //graph中edge的Id设定为string，e-0,e-1,e-2等
+                newEdge->setOriginalTensor(newTensor);//graph中的edge的原始tensor设定为can_tensor，注意，这里的OriginalTensor指向的是从network中复制clone过来的一个副本，并不在network中，可以看出这里的包含关系，graph-->can_edge-->can_tensor
+                graph->insertEdge(newEdge);//把根据network中1个layer的iotensor新建的edge加入graph列表
+                this->odla_edge_map[odla_tensor] = newEdge;
+                originTensor2canTensor[odla_tensor] = newTensor;
+            } else {
+                newEdge = t2e->second;
+            }
+            this->graph->appendNodeToEdge(newEdge, edgeSide, odla_node);
+
+            if(isInput){
+                for ( size_t inputIdx = 0; inputIdx < subgraph->input_num; ++inputIdx)
+                {
+                    if ( odla_tensor == graphInputs[inputIdx])
+                    {
+                        inputEdges[inputIdx] = newEdge; //把当前edge加入graph的input_edges列表当中
+                        newTensor = originTensor2canTensor[odla_tensor];
+                        newTensor->setTensorType(nvdla::TensorType::kNW_INPUT);
+                        break;
+                    }
+                }
+                odla_node->markInputEdge(newEdge); //告诉当前node，你的这个edge是一个网络inputedge
+            }else{
+                for ( size_t outputIdx = 0; outputIdx < subgraph->output_num; outputIdx++)
+                {
+                    if ( odla_tensor == graphOutputs[outputIdx] )
+                    {
+                        outputEdges[outputIdx] = newEdge;
+                        newTensor = originTensor2canTensor[odla_tensor];
+                        newTensor->setTensorType(nvdla::TensorType::kNW_OUTPUT);
+                        break;
+                    }
+                }
+                odla_node->markOutputEdge(newEdge);
+            }
+        }
+    }
+
+    if ( !inputEdges.empty() )
+    {
+        graph->setInputEdges(inputEdges); //设定整个graph的inputedges队列为input_edges
+    }
+    if ( !outputEdges.empty() )
+    {
+        graph->setOutputEdges(outputEdges); //设定整个graph的outputedges队列为output_edges
+    }
     this->graph->scoredOrdering()->generate();
     this->graph->markClean();
     return 0;
@@ -557,7 +685,7 @@ int ODLAEngine::ODLAEnginePreRun(struct subgraph* subgraph)
         engineASTGraph = this->compiler.priv()->translateAuxData(engineASTGraph);
         engineASTGraph = this->compiler.priv()->reserveBuffers(engineASTGraph);
         engineASTGraph = this->compiler.priv()->splitNodes(engineASTGraph);
-        engineASTGraph = this->compiler.priv()->fuseSubEngineOps(engineASTGraph);
+//        engineASTGraph = this->compiler.priv()->fuseSubEngineOps(engineASTGraph);
         engineASTGraph = this->compiler.priv()->boundGraph(engineASTGraph);
         engineASTGraph = this->compiler.priv()->handleMultiBatch(engineASTGraph);
         if (this->profile->copyOutDebugSurfaces()){
