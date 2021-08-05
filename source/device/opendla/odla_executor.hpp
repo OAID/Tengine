@@ -68,7 +68,7 @@ extern "C" {
 #define OPENDLA_LOG_
 
 typedef std::map<uint32_t, nvdla::priv::Tensor*> dict_irt2odlat;
-typedef std::map<nvdla::priv::canonical_ast::Node*, struct node *, nvdla::priv::canonical_ast::Graph::nodeCompareFn> dict_odlan2irtn;
+typedef std::map<nvdla::priv::canonical_ast::Node*, struct node*, nvdla::priv::canonical_ast::Graph::nodeCompareFn> dict_odlan2irtn;
 typedef std::map<nvdla::priv::Tensor*, nvdla::priv::canonical_ast::Edge*> dict_odlat2edge;
 
 class ODLAEngine
@@ -85,11 +85,11 @@ private:
     int Build(struct subgraph* subgraph);
     int ODLATensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_type);
 
-    nvdla::priv::canonical_ast::Node * AddConvolutionNode(struct node* ir_node);
-    nvdla::priv::canonical_ast::Node * AddEltwiseNode(struct node* ir_node);
-    nvdla::priv::canonical_ast::Node * AddFullyConnectionNode(struct node* ir_node);
-    nvdla::priv::canonical_ast::Node * AddReluNode(struct node* ir_node);
-    nvdla::priv::canonical_ast::Node * AddPoolingNode(struct node* ir_node);
+    nvdla::priv::canonical_ast::Node* AddConvolutionNode(struct node* ir_node);
+    nvdla::priv::canonical_ast::Node* AddEltwiseNode(struct node* ir_node);
+    nvdla::priv::canonical_ast::Node* AddFullyConnectionNode(struct node* ir_node);
+    nvdla::priv::canonical_ast::Node* AddReluNode(struct node* ir_node);
+    nvdla::priv::canonical_ast::Node* AddPoolingNode(struct node* ir_node);
     NvDlaError ODLAConfigGenerate();
 
 public:
