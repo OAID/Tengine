@@ -36,12 +36,9 @@ bool ODLAEngine::AddFullyConnectionNode(struct node* ir_node)
     struct graph* ir_graph = ir_node->graph;
     struct subgraph* subgraph = get_ir_graph_subgraph(ir_graph, ir_node->subgraph_idx);
 
-    struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     struct tensor* weight_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
-    struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+    get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    nvdla::priv::canonical_ast::Edge* inputEdge = new nvdla::priv::canonical_ast::Edge();
-    nvdla::priv::canonical_ast::Edge* outputEdge = new nvdla::priv::canonical_ast::Edge();
     nvdla::priv::canonical_ast::Node* Node ;
     nvdla::priv::canonical_ast::FullyConnectedNode * fullyConnectedNode = new nvdla::priv::canonical_ast::FullyConnectedNode();
 
@@ -50,31 +47,6 @@ bool ODLAEngine::AddFullyConnectionNode(struct node* ir_node)
     this->graph->insertNode(fullyConnectedNode);
     fullyConnectedNode->setId(this->graph->nextNodeId());
     fullyConnectedNode->setName(ir_node->name);
-
-
-    // Init Edge
-    inputEdge->setGraph(this->graph);
-    inputEdge->setId(graph->nextEdgeId());
-    inputEdge->setOriginalTensor(odla_tensor_map[input_tensor->index]->clone());
-    fullyConnectedNode->markInputEdge(inputEdge);
-    this->graph->insertEdge(inputEdge);
-
-
-    outputEdge->setGraph(this->graph);
-    outputEdge->setId(graph->nextEdgeId());
-    outputEdge->setOriginalTensor(odla_tensor_map[output_tensor->index]->clone());
-    fullyConnectedNode->markOutputEdge(outputEdge);
-    this->graph->insertEdge(outputEdge);
-
-    // Second represents Input and First is Output
-    this->graph->appendNodeToEdge(inputEdge, nvdla::priv::ast::EdgeSideEnum::SECOND, fullyConnectedNode);
-    this->graph->appendNodeToEdge(outputEdge, nvdla::priv::ast::EdgeSideEnum::FIRST, fullyConnectedNode);
-
-    // if the tensor is Graph Input or Output
-    std::vector<nvdla::priv::canonical_ast::Edge *> inputEdges;
-    std::vector<nvdla::priv::canonical_ast::Edge *> outputEdges;
-    inputEdges.reserve(subgraph->input_num);
-    outputEdges.reserve(subgraph->output_num);
 
 
     fullyConnectedNode->params().setBiasMode(nvdla::bNONE);
@@ -107,19 +79,52 @@ bool ODLAEngine::AddFullyConnectionNode(struct node* ir_node)
     fullyConnectedNode->params().setWeights(kernelWeights);
     fullyConnectedNode->params().setBiasData(biasWeights);
 
+
+    // if the tensor is Graph Input or Output
+    std::vector<nvdla::priv::canonical_ast::Edge *> inputEdges;
+    std::vector<nvdla::priv::canonical_ast::Edge *> outputEdges;
+    inputEdges.reserve(subgraph->input_num);
+    outputEdges.reserve(subgraph->output_num);
+
+    // FC only have one input
+    struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+
+    auto* inputEdge = new nvdla::priv::canonical_ast::Edge();
+    inputEdge->setGraph(this->graph);
+    inputEdge->setId(graph->nextEdgeId());
+    inputEdge->setOriginalTensor(odla_tensor_map[input_tensor->index]->clone());
+    fullyConnectedNode->markInputEdge(inputEdge);
+    this->graph->insertEdge(inputEdge);
+    this->graph->appendNodeToEdge(inputEdge, nvdla::priv::ast::EdgeSideEnum::SECOND, fullyConnectedNode);
+    inputEdges.push_back(inputEdge);
+
+
+    for (int i = 0; i < ir_node->output_num; i++)
+    {
+        struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[i]);
+
+        auto* outputEdge = new nvdla::priv::canonical_ast::Edge();
+        outputEdge->setGraph(this->graph);
+        outputEdge->setId(graph->nextEdgeId());
+        outputEdge->setOriginalTensor(odla_tensor_map[output_tensor->index]->clone());
+        fullyConnectedNode->markOutputEdge(outputEdge);
+        this->graph->insertEdge(outputEdge);
+        // Second represents Input and First is Output
+        this->graph->appendNodeToEdge(outputEdge, nvdla::priv::ast::EdgeSideEnum::FIRST, fullyConnectedNode);
+        outputEdges.push_back(outputEdge);
+    }
+
+
     // Insert priv pair
     Node = fullyConnectedNode;
     nvdla::priv::canonical_ast::NodeFactory::s_fc_priv.insert(
         std::pair<nvdla::priv::canonical_ast::Node*, nvdla::priv::canonical_ast::FullyConnectedNode*>(Node, fullyConnectedNode)
     );
-    if(subgraph->input_tensor_list[0] == ir_node->input_tensors[0]){
 
-        inputEdges.push_back(inputEdge);
+    if(subgraph->input_tensor_list[0] == ir_node->input_tensors[0]){
         this->graph->setInputEdges(inputEdges);
     }
     if(subgraph->output_tensor_list[0] == ir_node->output_tensors[0]){
-
-        outputEdges.push_back(outputEdge);
         this->graph->setOutputEdges(outputEdges);
     }
 

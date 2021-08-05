@@ -324,7 +324,7 @@ int ODLAEngine::ODLATensorMap(struct graph* ir_graph, int ir_tensor_idx, int spe
             {
                 t.i()->setDimensions(tensor_shape);
                 t.i()->setDataFormat(NVDLA_DATA_FORMAT_NCHW);
-                t.i()->setTensorType(nvdla::kUNKNOWN);       // May Not be Right
+                t.i()->setTensorType(nvdla::kIO);       // May Not be Right
                 t.i()->setDataType(datatype);
                 t.i()->setName(ir_tensor->name);
                 if(ir_tensor->quant_param_num == 1){

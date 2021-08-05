@@ -68,6 +68,7 @@ extern "C" {
 #define OPENDLA_LOG_
 
 typedef std::map<uint32_t, nvdla::priv::Tensor*> dict_irt2odlat;
+typedef std::map<nvdla::priv::Tensor*, nvdla::priv::canonical_ast::Edge*> dict_odlat2edge;
 
 class ODLAEngine
 {
@@ -114,6 +115,7 @@ private:
     void* inputBuffer = NULL;
     void* outputBuffer = NULL;
     dict_irt2odlat odla_tensor_map;
+    dict_odlat2edge odla_edge_map;
     void odla_input_data_convert(void* dst, const void* src, nvdla::IRuntime::NvDlaTensor tDesc) const;
     void odla_output_data_convert(void* dst, const void* src, nvdla::IRuntime::NvDlaTensor tDesc) const;
 };

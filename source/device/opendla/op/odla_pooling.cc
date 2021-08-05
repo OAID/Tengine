@@ -39,8 +39,6 @@ bool ODLAEngine::AddPoolingNode(struct node* ir_node)
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
     struct subgraph* subgraph = get_ir_graph_subgraph(ir_graph, ir_node->subgraph_idx);
 
-    nvdla::priv::canonical_ast::Edge * inputEdge = new nvdla::priv::canonical_ast::Edge();
-    nvdla::priv::canonical_ast::Edge * outputEdge = new nvdla::priv::canonical_ast::Edge();
     nvdla::PoolingType pooltype;
     nvdla::priv::canonical_ast::Node * Node ;
     nvdla::priv::canonical_ast::PoolingNode * poolingNode = new nvdla::priv::canonical_ast::PoolingNode();
@@ -70,29 +68,37 @@ bool ODLAEngine::AddPoolingNode(struct node* ir_node)
     poolingNode->setId(this->graph->nextNodeId());
     poolingNode->setName(ir_node->name);
 
-    // Init Edge
-    inputEdge->setGraph(this->graph);
-    inputEdge->setId(graph->nextEdgeId());
-    inputEdge->setOriginalTensor(odla_tensor_map[input_tensor->index]->clone());
-    poolingNode->markInputEdge(inputEdge);
-    this->graph->insertEdge(inputEdge);
-
-
-    outputEdge->setGraph(this->graph);
-    outputEdge->setId(graph->nextEdgeId());
-    outputEdge->setOriginalTensor(odla_tensor_map[output_tensor->index]->clone());
-    poolingNode->markOutputEdge(outputEdge);
-    this->graph->insertEdge(outputEdge);
-
-    // Second represents Input and First is Output
-    this->graph->appendNodeToEdge(inputEdge, nvdla::priv::ast::EdgeSideEnum::SECOND, poolingNode);
-    this->graph->appendNodeToEdge(outputEdge, nvdla::priv::ast::EdgeSideEnum::FIRST, poolingNode);
-
     // if the tensor is Graph Input or Output
     std::vector<nvdla::priv::canonical_ast::Edge *> inputEdges;
     std::vector<nvdla::priv::canonical_ast::Edge *> outputEdges;
     inputEdges.reserve(subgraph->input_num);
     outputEdges.reserve(subgraph->output_num);
+
+    auto* inputEdge = new nvdla::priv::canonical_ast::Edge();
+    inputEdge->setGraph(this->graph);
+    inputEdge->setId(graph->nextEdgeId());
+    inputEdge->setOriginalTensor(odla_tensor_map[input_tensor->index]->clone());
+    poolingNode->markInputEdge(inputEdge);
+    this->graph->insertEdge(inputEdge);
+    this->graph->appendNodeToEdge(inputEdge, nvdla::priv::ast::EdgeSideEnum::SECOND, poolingNode);
+    inputEdges.push_back(inputEdge);
+
+
+    for (int i = 0; i < ir_node->output_num; i++)
+    {
+        struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[i]);
+
+        auto* outputEdge = new nvdla::priv::canonical_ast::Edge();
+        outputEdge->setGraph(this->graph);
+        outputEdge->setId(graph->nextEdgeId());
+        outputEdge->setOriginalTensor(odla_tensor_map[output_tensor->index]->clone());
+        poolingNode->markOutputEdge(outputEdge);
+        this->graph->insertEdge(outputEdge);
+        // Second represents Input and First is Output
+        this->graph->appendNodeToEdge(outputEdge, nvdla::priv::ast::EdgeSideEnum::FIRST, poolingNode);
+        outputEdges.push_back(outputEdge);
+    }
+
 
     // Insert priv pair
     Node = poolingNode;
@@ -100,13 +106,9 @@ bool ODLAEngine::AddPoolingNode(struct node* ir_node)
     std::pair<nvdla::priv::canonical_ast::Node*, nvdla::priv::canonical_ast::PoolingNode*>(Node, poolingNode)
     );
     if(subgraph->input_tensor_list[0] == ir_node->input_tensors[0]){
-
-        inputEdges.push_back(inputEdge);
         this->graph->setInputEdges(inputEdges);
     }
     if(subgraph->output_tensor_list[0] == ir_node->output_tensors[0]){
-
-        outputEdges.push_back(outputEdge);
         this->graph->setOutputEdges(outputEdges);
     }
 
