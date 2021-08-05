@@ -50,14 +50,7 @@ graph_t create_test_eltwise_graph(const char* node_name, int data_type, int layo
     (void)h;
     (void)w;
 
-    context_t odla_context = create_context("odla", 1);
-    int rtt = set_context_device(odla_context, "OPENDLA", NULL, 0);
-    if (0 > rtt)
-    {
-        fprintf(stderr, " add_context_device VSI DEVICE failed.\n");
-        return NULL;
-    }
-    graph_t graph = create_graph(odla_context, nullptr, nullptr);
+    graph_t graph = create_graph(nullptr, nullptr, nullptr);
     if (nullptr == graph)
     {
         fprintf(stderr, "get graph failed.\n");
@@ -106,6 +99,88 @@ graph_t create_test_eltwise_graph(const char* node_name, int data_type, int layo
 
     /* set input/output node of graph */
     const char* inputs[] = {"input_left", "input_right"};
+    const char* outputs[] = {"eltwise"};
+
+    if (set_graph_input_node(graph, inputs, sizeof(inputs) / sizeof(char*)) < 0)
+    {
+        fprintf(stderr, "set inputs failed.\n");
+        return nullptr;
+    }
+
+    if (set_graph_output_node(graph, outputs, sizeof(outputs) / sizeof(char*)) < 0)
+    {
+        fprintf(stderr, "set outputs failed.\n");
+        return nullptr;
+    }
+
+    return graph;
+}
+
+
+graph_t create_opendla_eltwise_single_in_graph(const char* node_name, int data_type, int layout, int n, int c, int h, int w, int dims_num = 4)
+{
+    (void)layout;
+    (void)n;
+    (void)c;
+    (void)h;
+    (void)w;
+
+    /* create OpenDLA backend */
+    context_t odla_context = create_context("odla", 1);
+    int rtt = set_context_device(odla_context, "OPENDLA", NULL, 0);
+    if (0 > rtt)
+    {
+        fprintf(stderr, " add_context_device VSI DEVICE failed.\n");
+        return NULL;
+    }
+    graph_t graph = create_graph(odla_context, nullptr, nullptr);
+    if (nullptr == graph)
+    {
+        fprintf(stderr, "get graph failed.\n");
+        return nullptr;
+    }
+
+    if (set_graph_layout(graph, layout) < 0)
+    {
+        fprintf(stderr, "set layout failed.\n");
+        return nullptr;
+    }
+
+    /* create left input node  */
+    if (create_input_node(graph, "input_left", data_type, layout, n, c, h, w, dims_num) < 0)
+    {
+        fprintf(stderr, "create input left node failed.\n");
+        return nullptr;
+    }
+
+    /* create right input node */
+    node_t input_right_node = create_graph_node(graph, "input_right", "Const");
+    tensor_t input_right_tensor = create_graph_tensor(graph, "input_right", TENGINE_DT_INT8);
+    set_node_output_tensor(input_right_node, 0, input_right_tensor, TENSOR_TYPE_CONST);
+    int weight_dims[4] = {1, 1, 3, 3}; // channel num
+    set_tensor_shape(input_right_tensor, weight_dims, 4);
+
+    /* create the eltwise node */
+    struct node* test_node = (struct node*)create_graph_node(graph, node_name, "Eltwise");
+
+    tensor_t input_left_tensor  = get_graph_tensor(graph, "input_left");
+
+    /* create the sub node to product another input tensors which the test node is needed */
+    /* input tensors of test node */
+    set_node_input_tensor(test_node, 0, input_left_tensor);
+    set_node_input_tensor(test_node, 1, input_right_tensor);
+
+    /* output tensors of test node */
+    tensor_t output_tensor = create_graph_tensor(graph, node_name, data_type);
+    set_node_output_tensor(test_node, 0, output_tensor, TENSOR_TYPE_VAR);
+
+    /* set params */
+    struct eltwise_param* eltwise_param = (struct eltwise_param*)(struct node*)test_node->op.param_mem;
+
+    eltwise_param->type = ELT_SUM;
+
+    /* set input/output node of graph */
+    const char* inputs[] = {"input_left"};
     const char* outputs[] = {"eltwise"};
 
     if (set_graph_input_node(graph, inputs, sizeof(inputs) / sizeof(char*)) < 0)
@@ -172,7 +247,7 @@ int main(int argc, char* argv[])
         fprintf(stderr, "Tengine init failed.\n");
 
     // create
-    graph_t graph = create_test_eltwise_graph(test_node_name, data_type, layout, n, c, h, w);
+    graph_t graph = create_opendla_eltwise_single_in_graph(test_node_name, data_type, layout, n, c, h, w);
     if (nullptr == graph)
         return -1;
 
