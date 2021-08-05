@@ -51,7 +51,7 @@ int ref_gelu_uint8(struct tensor* input_tensor, struct tensor* output_tensor, in
     for (int i = 0; i < total_size; i++)
         data_fp32[i] = ((float)input_uint8[i] - (float)input_zero) * input_scale;
 
-    for (int i = 0; i < size; i++)
+    for (int i = 0; i < total_size; i++)
     {
         data_fp32[i] = 0.5 * data_fp32[i] * (erf(data_fp32[i] * 0.707106793288165f) + 1.0f);
     }
