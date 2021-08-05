@@ -34,7 +34,6 @@
 
 #include <math.h>
 
-
 int ref_gelu_uint8(struct tensor* input_tensor, struct tensor* output_tensor, int num_thread)
 {
     int total_size = input_tensor->elem_num;
@@ -49,16 +48,16 @@ int ref_gelu_uint8(struct tensor* input_tensor, struct tensor* output_tensor, in
 
     float* data_fp32 = (float*)sys_malloc(total_size * sizeof(float));
 
-    for(int i = 0; i < total_size; i++)
-        data_fp32[i] = ((float) input_uint8[i] - (float)input_zero) * input_scale;
+    for (int i = 0; i < total_size; i++)
+        data_fp32[i] = ((float)input_uint8[i] - (float)input_zero) * input_scale;
 
     for (int i = 0; i < size; i++)
     {
-        data_fp32[i] = 0.5 * data_fp32[i] * (erf(data_fp32[i] * 0.707106793288165f)+1.0f);
+        data_fp32[i] = 0.5 * data_fp32[i] * (erf(data_fp32[i] * 0.707106793288165f) + 1.0f);
     }
 
     // quant
-    for(int i=0; i<total_size; i++)
+    for (int i = 0; i < total_size; i++)
     {
         int udata = round(data_fp32[i] / output_scale + output_zero);
         if (udata > 255)
@@ -71,9 +70,8 @@ int ref_gelu_uint8(struct tensor* input_tensor, struct tensor* output_tensor, in
     return 0;
 }
 
-
 int ref_gelu_fp32(struct tensor* input_tensor, struct tensor* output_tensor, int num_thread)
-{   
+{
     int total_size = input_tensor->elem_num;
     //printf("total_size:%d\n",total_size);
     float* input_data = (float*)input_tensor->data;
@@ -81,7 +79,7 @@ int ref_gelu_fp32(struct tensor* input_tensor, struct tensor* output_tensor, int
     //y = 0.5 * x * (1 + erf(x/sqrt(2)))
     for (int i = 0; i < total_size; i++)
     {
-        out_data[i] = 0.5 * input_data[i] * (erf(input_data[i] * 0.707106793288165f)+1.0f);
+        out_data[i] = 0.5 * input_data[i] * (erf(input_data[i] * 0.707106793288165f) + 1.0f);
     }
 
     return 0;
@@ -98,7 +96,7 @@ static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, 
 }
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
-{   
+{
     struct node* ir_node = exec_node->ir_node;
     struct graph* ir_graph = ir_node->graph;
     struct tensor* input_tensor;
@@ -108,9 +106,9 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
     int ret = -1;
-    if(input_tensor->data_type == TENGINE_DT_FP32)
+    if (input_tensor->data_type == TENGINE_DT_FP32)
         ret = ref_gelu_fp32(input_tensor, output_tensor, exec_graph->num_thread);
-    else if(input_tensor->data_type == TENGINE_DT_UINT8)
+    else if (input_tensor->data_type == TENGINE_DT_UINT8)
         ret = ref_gelu_uint8(input_tensor, output_tensor, exec_graph->num_thread);
 
     return ret;
