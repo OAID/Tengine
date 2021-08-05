@@ -27,6 +27,10 @@
 
 #include "api/c_api.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct log_option
 {
     int print_prefix;
@@ -110,3 +114,7 @@ struct logger* get_default_logger(void);
 #define XLOG(level, fmt, ...)                 \
     LOG(level, "%s:%d ", __FILE__, __LINE__); \
     LOG(level, fmt, ##__VA_ARGS__)
+
+#ifdef __cplusplus
+}
+#endif

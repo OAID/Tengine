@@ -64,7 +64,7 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
     int rtt = add_context_device(acl_context, "ACL");
     if (0 > rtt)
     {
-        fprintf(stderr, " add_context_device NVDEVICE failed.\n");
+        fprintf(stderr, "add_context_device NVDEVICE failed.\n");
         return -1;
     }
 

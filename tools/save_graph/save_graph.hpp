@@ -1,7 +1,9 @@
 #pragma once
 
 #include <stdlib.h>
+#ifndef _MSC_VER
 #include <unistd.h>
+#endif
 #include <stdio.h>
 #include <string.h>
 #include <vector>
@@ -11,7 +13,7 @@
 #include <functional>
 
 extern "C" {
-#include "tengine/c_api.h"
+#include "api/c_api.h"
 #include "graph/graph.h"
 #include "graph/subgraph.h"
 #include "graph/node.h"
