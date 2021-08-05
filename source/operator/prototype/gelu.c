@@ -29,7 +29,6 @@
 #include "module/module.h"
 #include "utility/sys_port.h"
 
-
 static int infer_shape(ir_node_t* node)
 {
     ir_graph_t* ir_graph = node->graph;
@@ -41,7 +40,6 @@ static int infer_shape(ir_node_t* node)
     return 0;
 }
 
-
 static int init_op(ir_op_t* op)
 {
     op->same_shape = 0;
@@ -50,9 +48,9 @@ static int init_op(ir_op_t* op)
     return 0;
 }
 
-
-static void release_op(ir_op_t* op) {}
-
+static void release_op(ir_op_t* op)
+{
+}
 
 int register_gelu_op()
 {
@@ -64,7 +62,6 @@ int register_gelu_op()
 
     return register_op(OP_GELU, OP_GELU_NAME, &m);
 }
-
 
 int unregister_gelu_op()
 {
