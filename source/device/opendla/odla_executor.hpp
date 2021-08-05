@@ -55,11 +55,15 @@ extern "C" {
 #include "odla_dump.h"
 #include "convolution_param.h"
 
-#define NVDLA_LAYER_TYPE_INPUT     13U
-#define NVDLA_LAYER_TYPE_OUTPUT    14U
-#define NVDLA_LAYER_TYPE_CONV_BIAS 15U
-#define NVDLA_LAYER_TYPE_PRELU     16U
-#define NVDLA_LAYER_TYPE_INTERP    17U
+#define SPEC_TYPE_CONV      1
+#define SPEC_TYPE_CONV_BIAS 2
+#define SPEC_TYPE_DWCONV    3
+#define SPEC_TYPE_INTERP    4
+#define SPEC_TYPE_OUTPUT    5
+#define SPEC_TYPE_PRELU     6
+#define SPEC_TYPE_SLICE     7
+#define SPEC_TYPE_RESHAPE   8
+#define SPEC_TYPE_INPUT     9
 
 #define OPENDLA_LOG_
 

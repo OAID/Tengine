@@ -197,7 +197,7 @@ int ODLAEngine::ODLATensorMap(struct graph* ir_graph, int ir_tensor_idx, int spe
 
     if (this->odla_tensor_map.end() == iter)
     {
-        if (spec_type == NVDLA_LAYER_TYPE_INTERP || spec_type == NVDLA_LAYER_TYPE_SLICE)
+        if (spec_type == SPEC_TYPE_INTERP || spec_type == SPEC_TYPE_SLICE)
         {
             this->odla_tensor_map[ir_tensor_idx] = NULL;
             return 0;
@@ -237,20 +237,20 @@ int ODLAEngine::ODLATensorMap(struct graph* ir_graph, int ir_tensor_idx, int spe
         nvdla::Dims4 tensor_shape;
 
         struct node* ir_node = get_ir_graph_node(ir_graph, ir_tensor->producer);
-        if (spec_type == NVDLA_LAYER_TYPE_PRELU)
+        if (spec_type == SPEC_TYPE_PRELU)
         {
             tensor_shape.w = 1;
             tensor_shape.h = 1;
             tensor_shape.c = Dims[0];
             tensor_shape.n = 1;
         }
-        else if (spec_type == NVDLA_LAYER_TYPE_CONVOLUTION){
+        else if (spec_type == SPEC_TYPE_CONV){
             tensor_shape.n = Dims[0];   // output channel
             tensor_shape.c = Dims[1];   // input channel
             tensor_shape.h = Dims[2];
             tensor_shape.w = Dims[3];
         }
-        else if(spec_type == NVDLA_LAYER_TYPE_CONV_BIAS){
+        else if(spec_type == SPEC_TYPE_CONV_BIAS){
             // bias
             tensor_shape.n = 1;
             tensor_shape.c = Dims[0];
@@ -273,7 +273,7 @@ int ODLAEngine::ODLATensorMap(struct graph* ir_graph, int ir_tensor_idx, int spe
        /* create the odla tesnor */
         nvdla::priv::TensorFactory::TensorPrivPair t = nvdla::priv::TensorFactory::newTensor();
         nvdla::priv::Tensor* odla_tensor = NULL;
-        if (spec_type == NVDLA_LAYER_TYPE_OUTPUT)
+        if (spec_type == SPEC_TYPE_OUTPUT)
         {
 
             t.i()->setDimensions(tensor_shape);
@@ -289,7 +289,7 @@ int ODLAEngine::ODLATensorMap(struct graph* ir_graph, int ir_tensor_idx, int spe
 
             odla_tensor = t.priv();
         }
-        else if (ir_tensor->tensor_type == TENSOR_TYPE_INPUT || spec_type == NVDLA_LAYER_TYPE_INPUT)
+        else if (ir_tensor->tensor_type == TENSOR_TYPE_INPUT || spec_type == SPEC_TYPE_INPUT)
         {
             t.i()->setDimensions(tensor_shape);
             t.i()->setDataFormat(NVDLA_DATA_FORMAT_NCHW);
@@ -336,7 +336,7 @@ int ODLAEngine::ODLATensorMap(struct graph* ir_graph, int ir_tensor_idx, int spe
 
             }
         }
-        else if (spec_type == NVDLA_LAYER_TYPE_CONV_BIAS)
+        else if (spec_type == SPEC_TYPE_CONV_BIAS)
         {
             t.i()->setDimensions(tensor_shape);
             t.i()->setDataFormat(NVDLA_DATA_FORMAT_NCHW);
@@ -354,7 +354,7 @@ int ODLAEngine::ODLATensorMap(struct graph* ir_graph, int ir_tensor_idx, int spe
             odla_tensor = t.priv();
 
         }
-        else if (spec_type == NVDLA_LAYER_TYPE_CONVOLUTION)
+        else if (spec_type == SPEC_TYPE_CONV)
         {
             t.i()->setDimensions(tensor_shape);
             t.i()->setDataFormat(NVDLA_DATA_FORMAT_NCHW);
@@ -374,7 +374,7 @@ int ODLAEngine::ODLATensorMap(struct graph* ir_graph, int ir_tensor_idx, int spe
             {
             }
         }
-        else if (spec_type == NVDLA_LAYER_TYPE_DECONVOLUTION)
+        else if (spec_type == SPEC_TYPE_DWCONV)
         {
             if (ir_tensor->quant_param_num == 1)
             {
@@ -395,7 +395,7 @@ int ODLAEngine::ODLATensorMap(struct graph* ir_graph, int ir_tensor_idx, int spe
         {
             t.i()->setDimensions(tensor_shape);
             t.i()->setDataFormat(NVDLA_DATA_FORMAT_NCHW);
-            t.i()->setTensorType(nvdla::kWEIGHT);
+            t.i()->setTensorType(nvdla::kIO);
             t.i()->setDataType(datatype);
             t.i()->setName(ir_tensor->name);
             if(ir_tensor->quant_param_num == 1){
@@ -469,12 +469,12 @@ int ODLAEngine::ODLAEnginePreRun(struct subgraph* subgraph)
     for (uint8_t i = 0; i < subgraph->input_num; i++)
     {
         int ir_tensor_idx = subgraph->input_tensor_list[i];
-        this->ODLATensorMap(ir_graph, ir_tensor_idx, NVDLA_LAYER_TYPE_INPUT);
+        this->ODLATensorMap(ir_graph, ir_tensor_idx, SPEC_TYPE_INPUT);
     }
     for (uint8_t i = 0; i < subgraph->output_num; i++)
     {
         int ir_tensor_idx = subgraph->output_tensor_list[i];
-        this->ODLATensorMap(ir_graph, ir_tensor_idx, NVDLA_LAYER_TYPE_OUTPUT);
+        this->ODLATensorMap(ir_graph, ir_tensor_idx, SPEC_TYPE_OUTPUT);
     }
     for (int i = 0; i < subgraph->node_num; i++)
     {
@@ -485,31 +485,31 @@ int ODLAEngine::ODLAEnginePreRun(struct subgraph* subgraph)
             auto conv_param = (struct conv_param*)ir_node->op.param_mem;
             if ((conv_param->group == conv_param->output_channel) && (conv_param->output_channel != 1))
             {
-                this->ODLATensorMap(ir_graph, ir_node->input_tensors[1], NVDLA_LAYER_TYPE_DECONVOLUTION);
+                this->ODLATensorMap(ir_graph, ir_node->input_tensors[1], SPEC_TYPE_DWCONV);
             }
             else
             {
-                this->ODLATensorMap(ir_graph, ir_node->input_tensors[1], NVDLA_LAYER_TYPE_CONVOLUTION);
+                this->ODLATensorMap(ir_graph, ir_node->input_tensors[1], SPEC_TYPE_CONV);
             }
             if (ir_node->input_num > 2)
             {
-                this->ODLATensorMap(ir_graph, ir_node->input_tensors[2], NVDLA_LAYER_TYPE_CONV_BIAS);
+                this->ODLATensorMap(ir_graph, ir_node->input_tensors[2], SPEC_TYPE_CONV_BIAS);
             }
         }
         else if (ir_node->op.type == OP_PRELU)
         {
-            this->ODLATensorMap(ir_graph, ir_node->input_tensors[1], NVDLA_LAYER_TYPE_PRELU);
+            this->ODLATensorMap(ir_graph, ir_node->input_tensors[1], SPEC_TYPE_PRELU);
         }
         else if (ir_node->op.type == OP_INTERP)
         {
             if (ir_node->input_num == 3)
             {
-                this->ODLATensorMap(ir_graph, ir_node->input_tensors[1], NVDLA_LAYER_TYPE_INTERP);
-                this->ODLATensorMap(ir_graph, ir_node->input_tensors[2], NVDLA_LAYER_TYPE_INTERP);
+                this->ODLATensorMap(ir_graph, ir_node->input_tensors[1], SPEC_TYPE_INTERP);
+                this->ODLATensorMap(ir_graph, ir_node->input_tensors[2], SPEC_TYPE_INTERP);
             }
             else if (ir_node->input_num == 2)
             {
-                this->ODLATensorMap(ir_graph, ir_node->input_tensors[1], NVDLA_LAYER_TYPE_INTERP);
+                this->ODLATensorMap(ir_graph, ir_node->input_tensors[1], SPEC_TYPE_INTERP);
             }
         }
         else if (ir_node->op.type == OP_SLICE)
@@ -518,7 +518,7 @@ int ODLAEngine::ODLAEnginePreRun(struct subgraph* subgraph)
             {
                 for (int FI = 1; FI < ir_node->input_num; FI++)
                 {
-                    this->ODLATensorMap(ir_graph, ir_node->input_tensors[FI], NVDLA_LAYER_TYPE_SLICE);
+                    this->ODLATensorMap(ir_graph, ir_node->input_tensors[FI], SPEC_TYPE_SLICE);
                 }
             }
         }
