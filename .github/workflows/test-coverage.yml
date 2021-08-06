@@ -217,9 +217,9 @@ jobs:
         token: ${{ secrets.CODECOV_TOKEN }}
         file: build/lcov.info
 
-linux-gcc-arm64-AGX-xaiver:
-  runs-on: AGX-xaiver
-  steps:
+  linux-gcc-arm64-AGX-xaiver:
+    runs-on: AGX-xaiver
+    steps:
     - uses: actions/checkout@v2.3.4
     - name: configure
       run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=debug -DTENGINE_ENABLE_TENSORRT=ON -DTENGINE_COVERAGE=ON -DTENGINE_BUILD_TESTS=ON ..
