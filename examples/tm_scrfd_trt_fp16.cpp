@@ -36,7 +36,7 @@
 #include "common.h"
 #include "tengine/c_api.h"
 #include "tengine_operations.h"
-#include "tengine/trt_device.h"
+//#include "tengine/trt_device.hpp"
 
 const char* score_pred_name[] = {
     "score_8", "score_16", "score_32"};
@@ -51,6 +51,14 @@ struct FaceObject
     cv::Point2f landmark[5];
     float prob;
 };
+
+typedef struct trt_option
+{
+    char* dev_name;
+    int gpu_index; //!< select which GPU to run graph
+    int dla_index; //!< select to use NVIDIA DLA
+    int precision; //!< precision of calculation
+} trt_opt_t;
 
 static inline float intersection_area(const FaceObject& a, const FaceObject& b)
 {

@@ -22,7 +22,6 @@
 # generate tengine header file
 FILE (MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/tengine)
 FILE (COPY ${CMAKE_SOURCE_DIR}/source/api/c_api.h DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/tengine)
-#FILE (COPY ${CMAKE_SOURCE_DIR}/source/api/c_api.h DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 #FILE (RENAME ${CMAKE_CURRENT_BINARY_DIR}/c_api.h ${CMAKE_CURRENT_BINARY_DIR}/tengine_c_api.h)
 
 # macro for adding test
@@ -83,7 +82,6 @@ ENDIF()
 
 IF(TENGINE_ENABLE_TENSORRT)
     TENGINE_EXAMPLE (tm_classification_trt       tm_classification_trt.cpp)
-    TENGINE_EXAMPLE (tm_scrfd_trt_fp16           tm_scrfd_trt_fp16.cpp)
 ENDIF()
 
 IF(TENGINE_ENABLE_TIM_VX)
