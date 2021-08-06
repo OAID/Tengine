@@ -81,6 +81,10 @@ IF(TENGINE_ENABLE_CUDA)
     TENGINE_EXAMPLE (tm_classification_cuda      tm_classification_cuda.cpp)
 ENDIF()
 
+IF(TENGINE_ENABLE_OPENDLA)
+    TENGINE_EXAMPLE (tm_classification_opendla      tm_classification_opendla.c)
+ENDIF()
+
 IF(TENGINE_ENABLE_TENSORRT)
     TENGINE_EXAMPLE (tm_classification_trt       tm_classification_trt.cpp)
 ENDIF()

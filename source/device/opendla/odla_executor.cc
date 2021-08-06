@@ -673,36 +673,133 @@ int ODLAEngine::ODLAEnginePreRun(struct subgraph* subgraph)
 
     if (subgraph->node_num > 0)
     {
-        auto engineASTGraph = nvdla::priv::engine_ast::generateGraph(this->profile, this->targetConfig, this->graph);
-        // Optimize pass
-        engineASTGraph = this->compiler.priv()->registerBuffers(engineASTGraph);
-        engineASTGraph = this->compiler.priv()->preProcessAuxData(engineASTGraph);
-        engineASTGraph = this->compiler.priv()->mergeActivationOperations(engineASTGraph);
-        engineASTGraph = this->compiler.priv()->updateScalingFactors(engineASTGraph);
-        engineASTGraph = this->compiler.priv()->quantizeAuxData(engineASTGraph);
-        engineASTGraph = this->compiler.priv()->fuseOnTheFlyNodes(engineASTGraph);
-        engineASTGraph = this->compiler.priv()->handleLowPrecisionConversions(engineASTGraph);
-        engineASTGraph = this->compiler.priv()->translateAuxData(engineASTGraph);
-        engineASTGraph = this->compiler.priv()->reserveBuffers(engineASTGraph);
-        engineASTGraph = this->compiler.priv()->splitNodes(engineASTGraph);
-//        engineASTGraph = this->compiler.priv()->fuseSubEngineOps(engineASTGraph);
-        engineASTGraph = this->compiler.priv()->boundGraph(engineASTGraph);
-        engineASTGraph = this->compiler.priv()->handleMultiBatch(engineASTGraph);
-        if (this->profile->copyOutDebugSurfaces()){
-            engineASTGraph = this->compiler.priv()->enableCopyOutDebugSurfaces(engineASTGraph);
+        std::vector<nvdla::priv::engine_ast::Graph *> engineASTList;
+        engineASTList.push_back(nvdla::priv::engine_ast::generateGraph(this->profile, this->targetConfig, this->graph));
+        if(!engineASTList.back()){
+            fprintf(stderr, "Failed compilation phase: generateGraph. \n");
+            engineASTList.pop_back();
+            return -1;
         }
+
+        engineASTList.push_back(this->compiler.priv()->registerBuffers(engineASTList.back()));
+        if(!engineASTList.back()){
+            fprintf(stderr, "Failed compilation phase: registerBuffers. \n");
+            engineASTList.pop_back();
+            return -1;
+        }
+
+        engineASTList.push_back(this->compiler.priv()->preProcessAuxData(engineASTList.back()));
+        if(!engineASTList.back()){
+            fprintf(stderr, "Failed compilation phase: preProcessAuxData. \n");
+            engineASTList.pop_back();
+            return -1;
+        }
+
+        engineASTList.push_back(this->compiler.priv()->mergeActivationOperations(engineASTList.back()));
+        if(!engineASTList.back()){
+            fprintf(stderr, "Failed compilation phase: mergeActivationOperations. \n");
+            engineASTList.pop_back();
+            return -1;
+        }
+        engineASTList.push_back(this->compiler.priv()->updateScalingFactors(engineASTList.back()));
+        if(!engineASTList.back()){
+            fprintf(stderr, "Failed compilation phase: updateScalingFactors. \n");
+            engineASTList.pop_back();
+            return -1;
+        }
+        engineASTList.push_back(this->compiler.priv()->quantizeAuxData(engineASTList.back()));
+        if(!engineASTList.back()){
+            fprintf(stderr, "Failed compilation phase: quantizeAuxData. \n");
+            engineASTList.pop_back();
+            return -1;
+        }
+        engineASTList.push_back(this->compiler.priv()->fuseOnTheFlyNodes(engineASTList.back()));
+        if(!engineASTList.back()){
+            fprintf(stderr, "Failed compilation phase: fuseOnTheFlyNodes. \n");
+            engineASTList.pop_back();
+            return -1;
+        }
+        engineASTList.push_back(this->compiler.priv()->handleLowPrecisionConversions(engineASTList.back()));
+        if(!engineASTList.back()){
+            fprintf(stderr, "Failed compilation phase: handleLowPrecisionConversions. \n");
+            engineASTList.pop_back();
+            return -1;
+        }
+
+        engineASTList.push_back(this->compiler.priv()->translateAuxData(engineASTList.back()));
+        if(!engineASTList.back()){
+            fprintf(stderr, "Failed compilation phase: translateAuxData. \n");
+            engineASTList.pop_back();
+            return -1;
+        }
+
+        engineASTList.push_back(this->compiler.priv()->reserveBuffers(engineASTList.back()));
+        if(!engineASTList.back()){
+            fprintf(stderr, "Failed compilation phase: reserveBuffers. \n");
+            engineASTList.pop_back();
+            return -1;
+        }
+
+        engineASTList.push_back(this->compiler.priv()->splitNodes(engineASTList.back()));
+        if(!engineASTList.back()){
+            fprintf(stderr, "Failed compilation phase: splitNodes. \n");
+            engineASTList.pop_back();
+            return -1;
+        }
+
+        engineASTList.push_back(this->compiler.priv()->fuseSubEngineOps(engineASTList.back()));
+        if(!engineASTList.back()){
+            fprintf(stderr, "Failed compilation phase: fuseSubEngineOps. \n");
+            engineASTList.pop_back();
+        }
+
+        engineASTList.push_back(this->compiler.priv()->boundGraph(engineASTList.back()));
+        if(!engineASTList.back()){
+            fprintf(stderr, "Failed compilation phase: boundGraph. \n");
+            engineASTList.pop_back();
+            return -1;
+        }
+
+        engineASTList.push_back(this->compiler.priv()->handleMultiBatch(engineASTList.back()));
+        if(!engineASTList.back()){
+            fprintf(stderr, "Failed compilation phase: handleMultiBatch. \n");
+            engineASTList.pop_back();
+            return -1;
+        }
+
+        if (this->profile->copyOutDebugSurfaces()){
+            engineASTList.push_back(this->compiler.priv()->enableCopyOutDebugSurfaces(engineASTList.back()));
+            if(!engineASTList.back()){
+                fprintf(stderr, "Failed compilation phase: enableCopyOutDebugSurfaces. \n");
+                engineASTList.pop_back();
+                return -1;
+            }
+        }
+
 
         // generate Loadable Task info
         bool done = false;
         for ( int pass = 0; !done; ++pass )
         {
             nvdla::priv::engine_ast::NodeSequence topological_order;
-            engineASTGraph = this->compiler.priv()->generateDependencyParams(engineASTGraph, topological_order);
-            engineASTGraph = this->compiler.priv()->resolveMemory(engineASTGraph, topological_order);
-            done = !engineASTGraph->dirty();
+            engineASTList.push_back(this->compiler.priv()->generateDependencyParams(engineASTList.back(), topological_order));
+            if(!engineASTList.back()){
+                fprintf(stderr, "Failed compilation phase: generateDependencyParams. \n");
+                engineASTList.pop_back();
+                return -1;
+            }
+            engineASTList.push_back(this->compiler.priv()->resolveMemory(engineASTList.back(),topological_order));
+            if(!engineASTList.back()){
+                fprintf(stderr, "Failed compilation phase: resolveMemory. \n");
+                engineASTList.pop_back();
+                return -1;
+            }
+
+            done = !engineASTList.back()->dirty();
             ASSERT(done);
         }
-        if (this->compiler.priv()->emit(engineASTGraph, this->loadable) != NvDlaSuccess) {
+        auto finalEngineAST = engineASTList.back();
+        if (this->compiler.priv()->emit(finalEngineAST, this->loadable) != NvDlaSuccess) {
             fprintf(stderr, "Failed to emit Loadable Data. \n");
             return -1;
         }
