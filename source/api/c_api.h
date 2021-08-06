@@ -397,7 +397,7 @@ DLLEXPORT int set_graph_input_node(graph_t graph, const char* input_nodes[], int
 DLLEXPORT int set_graph_output_node(graph_t graph, const char* output_nodes[], int output_number);
 
 /*!
- * @brief Destory the runtime graph and release allocated resource.
+ * @brief Destroy the runtime graph and release allocated resource.
  *
  * @param [in] graph: The graph handle.
  * @return 0: Success, -1: Fail.
@@ -535,10 +535,9 @@ DLLEXPORT void release_graph_node(node_t node);
 /*!
  * @brief Get the input tensor handle of a node.
  *
- * @param [in] graph: The graph handle.
- * @param [in] node_name: The node name.
+ * @param [in] node: The node handle.
  * @param [in] input_idx: The index of the input tensor.
- * @return The tensor name or NULL on error.
+ * @return The tensor handle or NULL on error.
  *
  */
 DLLEXPORT tensor_t get_node_input_tensor(node_t node, int input_idx);
@@ -557,7 +556,7 @@ DLLEXPORT tensor_t get_node_output_tensor(node_t node, int output_idx);
 /*!
  * @brief Set a node's the #idx input tensor.
  *
- * @param [in] graph: The graph handle.
+ * @param [in] node: The node handle.
  * @param [in] input_idx: The index of the input tensor.
  * @param [in] tesnor: The tensor handle.
  *
@@ -569,7 +568,7 @@ DLLEXPORT int set_node_input_tensor(node_t node, int input_idx, tensor_t tensor)
 /*!
  * @brief Set a node's the #idx output tensor.
  *
- * @param [in] graph: The graph handle.
+ * @param [in] node: The node handle.
  * @param [in] output_idx: The index of the output tensor.
  * @param [in] tensor: The tensor handle.
  * @param [in] tensor_type: The tensor type: VAR/CONST/INPUT/DEP
@@ -582,7 +581,6 @@ DLLEXPORT int set_node_output_tensor(node_t node, int output_idx, tensor_t tenso
 /*!
  * @brief Get the output tensor number of a node.
  *
- * @param [in] graph: The graph handle.
  * @param [in] node: The node hanle.
  *
  * @return >=1 the number of output tensor,
@@ -594,7 +592,7 @@ DLLEXPORT int get_node_output_number(node_t node);
 /*!
  * @brief Get the input tensor number of a node.
  *
- * @param [in] graph: The graph handle.
+
  * @param [in] node: The node hanle.
  *
  * @return >=1 the number of output tensor,
@@ -954,7 +952,7 @@ DLLEXPORT size_t get_cluster_affinity_mask(int cluster);
  *
  * @param [in] graph: The graph handle.
  * @param [in] cluster: The wanted cluster of all cpu clusters.
- * @param [in] threads: The threads count of graph will used to run.
+ * @param [in] threads: The threads count of graph will be used to run.
  *
  * @return 0: Success, -1: Fail.
  */
@@ -964,7 +962,7 @@ DLLEXPORT DEPRECATED_BEFORE int set_graph_thread(graph_t graph, int cluster, int
  * @brief The interface to directly set used cpu mask.
  *
  * @param [in] graph: The graph handle.
- * @param [in] cpu_mask: The mask bits of graph will used to run.
+ * @param [in] cpu_mask: The mask bits of graph will be used to run.
  *
  * @return 0: Success, -1: Fail.
  */
@@ -1000,8 +998,7 @@ DLLEXPORT DEPRECATED_BEFORE int get_graph_attr(graph_t graph, const char* attr_n
  * @brief Initialize resource for graph execution, and set cluster and threads count will used.
  *
  * @param [in] graph: The graph handle.
- * @param [in] cluster: The wanted cluster of all cpu clusters.
- * @param [in] threads: The threads count of graph will used to run.
+ * @param [in] opt: The runtime options.
  *
  * @return 0: Success, -1: Fail.
  *
@@ -1081,7 +1078,7 @@ DLLEXPORT DEPRECATED_BEFORE int set_graph_event_hook(graph_t graph, int event, e
 DLLEXPORT DEPRECATED_BEFORE int set_default_device(const char* device) DEPRECATED_AFTER;
 
 /*!
- * @brief Set the device to execution a graph.
+ * @brief Set the device to execute a graph.
  *
  * @param [in] graph: The graph handle.
  * @param [in] dev_name: The device name to run the node.
