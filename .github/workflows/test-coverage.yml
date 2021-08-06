@@ -190,8 +190,7 @@ jobs:
     - name: models
       run: |
         cd build
-        wget ftp://219.139.34.182/tengine/ci_test/images.zip
-        unzip images.zip
+        ln -s ${actions}/ci_test/images/      images
         git clone https://github.com/BUG1989/tengine_test_data.git
         git clone https://github.com/BUG1989/onnx_op_test_data.git onnx_node      
     - name: test-timvx-simulator
