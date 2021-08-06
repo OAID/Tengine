@@ -178,7 +178,7 @@ jobs:
     - name: models
       run: |
         cd build
-        actions=/home/khadas/actions-runner
+        actions=/home/nvidia/actions-runner
         ln -s ${actions}/ci_test/models/      models
         ln -s ${actions}/ci_test/images/      images
         ln -s ${actions}/ci_test/arm64_data/  data
