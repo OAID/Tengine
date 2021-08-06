@@ -116,7 +116,7 @@ void draw_target(const std::vector<Face2f>& all_pred_boxes, image img)
     const char* class_names[] = {"faces"};
 
     fprintf(stdout, "detected face num: %zu\n", all_pred_boxes.size());
-    for (int b = 0; b < ( int )all_pred_boxes.size(); b++)
+    for (int b = 0; b < (int)all_pred_boxes.size(); b++)
     {
         Face2f box = all_pred_boxes[b];
 
@@ -167,7 +167,7 @@ void nms_sorted_boxes(const std::vector<Face2f>& face_objects, std::vector<int>&
         const Face2f& a = face_objects[i];
 
         int keep = 1;
-        for (int j = 0; j < ( int )picked.size(); j++)
+        for (int j = 0; j < (int)picked.size(); j++)
         {
             const Face2f& b = face_objects[picked[j]];
 
@@ -228,22 +228,22 @@ std::vector<Box2f> generate_anchors(int base_size, const std::vector<float>& rat
 
     std::vector<Box2f> anchors(num_ratio * num_scale);
 
-    const float cx = ( float )base_size * 0.5f;
-    const float cy = ( float )base_size * 0.5f;
+    const float cx = (float)base_size * 0.5f;
+    const float cy = (float)base_size * 0.5f;
 
     for (int i = 0; i < num_ratio; i++)
     {
         float ar = ratios[i];
 
-        int r_w = ( int )round(( float )base_size / sqrt(ar));
-        int r_h = ( int )round(( float )r_w * ar);    // round(base_size * sqrt(ar));
+        int r_w = (int)round((float)base_size / sqrt(ar));
+        int r_h = (int)round((float)r_w * ar); // round(base_size * sqrt(ar));
 
         for (int j = 0; j < num_scale; j++)
         {
             float scale = scales[j];
 
-            float rs_w = ( float )r_w * scale;
-            float rs_h = ( float )r_h * scale;
+            float rs_w = (float)r_w * scale;
+            float rs_h = (float)r_h * scale;
 
             Box2f& anchor = anchors[i * num_scale + j];
 
@@ -337,10 +337,10 @@ static void generate_proposals(std::vector<Box2f>& anchors, int feat_stride, con
                     faces.push_back(obj);
                 }
 
-                anchor_x += ( float )feat_stride;
+                anchor_x += (float)feat_stride;
             }
 
-            anchor_y += ( float )feat_stride;
+            anchor_y += (float)feat_stride;
         }
     }
 }
@@ -360,11 +360,11 @@ int get_input_data(const char* image_file, const int& max_size, const int& targe
 
     scale = float(target_size) / float(im_size_min);
 
-    if (scale * ( float )im_size_max > ( float )max_size)
+    if (scale * (float)im_size_max > (float)max_size)
         scale = float(max_size) / float(im_size_max);
 
-    dst_size.width = ( int )round(( float )img.w * scale);
-    dst_size.height = ( int )round(( float )img.h * scale);
+    dst_size.width = (int)round((float)img.w * scale);
+    dst_size.height = (int)round((float)img.h * scale);
 
     image resImg = resize_image(img, dst_size.width, dst_size.height);
     int img_size = dst_size.height * dst_size.width * 3;
@@ -418,26 +418,26 @@ int main(int argc, char* argv[])
     {
         switch (res)
         {
-            case 'm':
-                model_file = optarg;
-                break;
-            case 'i':
-                image_file = optarg;
-                break;
-            case 'r':
-                repeat_count = atoi(optarg);
-                break;
-            case 't':
-                num_thread = atoi(optarg);
-                break;
-            case 'n':
-                device_name = optarg;
-                break;
-            case 'h':
-                show_usage();
-                return 0;
-            default:
-                break;
+        case 'm':
+            model_file = optarg;
+            break;
+        case 'i':
+            image_file = optarg;
+            break;
+        case 'r':
+            repeat_count = atoi(optarg);
+            break;
+        case 't':
+            num_thread = atoi(optarg);
+            break;
+        case 'n':
+            device_name = optarg;
+            break;
+        case 'h':
+            show_usage();
+            return 0;
+        default:
+            break;
         }
     }
 
@@ -573,7 +573,7 @@ int main(int argc, char* argv[])
     }
     printf("img_h, img_w : %d, %d\n", image_size.height, image_size.width);
     printf("Repeat %d times, thread %d, avg time %.2f ms, max_time %.2f ms, min_time %.2f ms\n", repeat_count,
-           num_thread, total_time / ( float )repeat_count, max_time, min_time);
+           num_thread, total_time / (float)repeat_count, max_time, min_time);
     printf("--------------------------------------\n");
 
     /* process the detection result */
@@ -600,24 +600,24 @@ int main(int argc, char* argv[])
         get_tensor_shape(bbox_blob_tensor, bbox_blob_dims, MAX_SHAPE_DIM_NUM);
         get_tensor_shape(landmark_blob_tensor, landmark_blob_dims, MAX_SHAPE_DIM_NUM);
 
-        uint8_t* score_blob_u8 = ( uint8_t* )get_tensor_buffer(score_blob_tensor);
-        uint8_t* bbox_blob_u8 = ( uint8_t* )get_tensor_buffer(bbox_blob_tensor);
-        uint8_t* landmark_blob_u8 = ( uint8_t* )get_tensor_buffer(landmark_blob_tensor);
+        uint8_t* score_blob_u8 = (uint8_t*)get_tensor_buffer(score_blob_tensor);
+        uint8_t* bbox_blob_u8 = (uint8_t*)get_tensor_buffer(bbox_blob_tensor);
+        uint8_t* landmark_blob_u8 = (uint8_t*)get_tensor_buffer(landmark_blob_tensor);
 
         get_tensor_quant_param(score_blob_tensor, &output_scale, &output_zero_point, 1);
-        float* score_blob = ( float* )malloc(get_tensor_buffer_size(score_blob_tensor) * sizeof(float));
+        float* score_blob = (float*)malloc(get_tensor_buffer_size(score_blob_tensor) * sizeof(float));
         for (int i = 0; i < get_tensor_buffer_size(score_blob_tensor); i++)
-            score_blob[i] = (( float )score_blob_u8[i] - ( float )output_zero_point) * output_scale;
+            score_blob[i] = ((float)score_blob_u8[i] - (float)output_zero_point) * output_scale;
 
         get_tensor_quant_param(bbox_blob_tensor, &output_scale, &output_zero_point, 1);
-        float* bbox_blob = ( float* )malloc(get_tensor_buffer_size(bbox_blob_tensor) * sizeof(float));
+        float* bbox_blob = (float*)malloc(get_tensor_buffer_size(bbox_blob_tensor) * sizeof(float));
         for (int i = 0; i < get_tensor_buffer_size(bbox_blob_tensor); i++)
-            bbox_blob[i] = (( float )bbox_blob_u8[i] - ( float )output_zero_point) * output_scale;
+            bbox_blob[i] = ((float)bbox_blob_u8[i] - (float)output_zero_point) * output_scale;
 
         get_tensor_quant_param(landmark_blob_tensor, &output_scale, &output_zero_point, 1);
-        float* landmark_blob = ( float* )malloc(get_tensor_buffer_size(landmark_blob_tensor) * sizeof(float));
+        float* landmark_blob = (float*)malloc(get_tensor_buffer_size(landmark_blob_tensor) * sizeof(float));
         for (int i = 0; i < get_tensor_buffer_size(landmark_blob_tensor); i++)
-            landmark_blob[i] = (( float )landmark_blob_u8[i] - ( float )output_zero_point) * output_scale;
+            landmark_blob[i] = ((float)landmark_blob_u8[i] - (float)output_zero_point) * output_scale;
 
         const int base_size = 16;
         const int feat_stride = stride[stride_index];
@@ -660,10 +660,10 @@ int main(int argc, char* argv[])
         float x1 = x0 + face_objects[i].rect.w;
         float y1 = y0 + face_objects[i].rect.h;
 
-        x0 = std::max(std::min(x0, ( float )image_size.width - 1), 0.f);
-        y0 = std::max(std::min(y0, ( float )image_size.height - 1), 0.f);
-        x1 = std::max(std::min(x1, ( float )image_size.width - 1), 0.f);
-        y1 = std::max(std::min(y1, ( float )image_size.height - 1), 0.f);
+        x0 = std::max(std::min(x0, (float)image_size.width - 1), 0.f);
+        y0 = std::max(std::min(y0, (float)image_size.height - 1), 0.f);
+        x1 = std::max(std::min(x1, (float)image_size.width - 1), 0.f);
+        y1 = std::max(std::min(y1, (float)image_size.height - 1), 0.f);
 
         face_objects[i].rect.x = x0;
         face_objects[i].rect.y = y0;
