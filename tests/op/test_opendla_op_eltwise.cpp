@@ -44,7 +44,6 @@ int float_mismatch(float* current, float* reference, int size)
     return 0;
 }
 
-
 float reference_out[25] = {2, 4, 4, 4, 4,
                            6, 2, 6, 6, 6,
                            6, 6, 2, 6, 6,
@@ -99,8 +98,6 @@ int create_test_eltwise_node(graph_t graph, const char* input_name, const char* 
     set_node_output_tensor(relu_2_node, 0, relu_2_output_tensor, TENSOR_TYPE_VAR);
     set_tensor_quant_param(relu_2_output_tensor, &output_scale, &output_zero_point, 1);
 
-
-
     /* set params */
     struct eltwise_param* eltwise_param = (struct eltwise_param*)((struct node*)test_node)->op.param_mem;
 
@@ -112,11 +109,8 @@ int create_test_eltwise_node(graph_t graph, const char* input_name, const char* 
     tensor_t output_tensor = create_graph_tensor(graph, node_name, data_type);
     set_node_output_tensor(test_node, 0, output_tensor, TENSOR_TYPE_VAR);
 
-
     return 0;
 }
-
-
 
 int main(int argc, char* argv[])
 {
