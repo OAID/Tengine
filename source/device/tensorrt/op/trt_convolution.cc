@@ -141,6 +141,9 @@ bool TensorRTEngine::AddConvolutionNode(struct graph* ir_graph, struct node *nod
                     }
                 }
 
+                bias.values = bias_buffer;
+                bias.count = conv_bias->elem_num;
+                bias.type = nvinfer1::DataType::kFLOAT;
                 break;
             }
             default:
