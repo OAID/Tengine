@@ -216,8 +216,9 @@ int QuantTool::activation_quant_tool()
     if (this->algorithm_type == ALGORITHM_KL)
     {
         /* todo support */
-        fprintf(stderr,"\r\n[****WARNING****]:Step 2 find original calibration kl threshold table NOT support temporarily!\n");
-    }else if (this->algorithm_type == ALGORITHM_ACIQ)
+        fprintf(stderr, "\r\n[****WARNING****]:Step 2 find original calibration kl threshold table NOT support temporarily!\n");
+    }
+    else if (this->algorithm_type == ALGORITHM_ACIQ)
     {   
         /* save the calibration file with aciq algorithm */
         FILE* fp_aciq = fopen("table_aciq.scale", "wb");
@@ -262,7 +263,9 @@ int QuantTool::activation_quant_tool()
         fclose(fp_aciq);
         fprintf(stderr, "\r\n[Quant Tools Info]: Step 2, find original calibration aciq threshold table done, output ./table_aciq.scale\n");
         
-    }else{
+    }
+    else
+    {
         /* save the calibration file with min-max algorithm */
         FILE* fp_minmax = fopen("table_minmax.scale", "wb");
         for (int i = 0; i < ir_graph->tensor_num; i++)
@@ -317,7 +320,7 @@ const char* help_params = "[Quant Tools Info]: optional arguments:\n"
                           "\t-i    image dir       path to calibration images folder\n"
                           "\t-f    scale file      path to calibration scale file\n"
                           "\t-o    output model    path to output int8 tmfile\n"
-                          "\t-a    algorithm       the type of quant algorithm(0:min-max, 1:kl, default is 0)\n"
+                          "\t-a    algorithm       the type of quant algorithm(0:min-max, 1:kl, 2:aciq, default is 0)\n"
                           "\t-g    size            the size of input image(using the resize the original image,default is 3,224,224)\n"
                           "\t-w    mean            value of mean (mean value, default is 104.0,117.0,123.0)\n"
                           "\t-s    scale           value of normalize (scale value, default is 1.0,1.0,1.0)\n"
