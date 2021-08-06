@@ -176,12 +176,6 @@ jobs:
     runs-on: khadas-vim3
     steps:
     - uses: actions/checkout@v2.3.4
-    - name: update
-      run: sudo apt-get update
-    - name: depends
-      run: sudo apt-get install libopencv-dev
-    - name: lcov
-      run: sudo apt-get install lcov
     - name: tim-vx
       run: |
         git clone https://github.com/VeriSilicon/TIM-VX.git
@@ -217,6 +211,44 @@ jobs:
         lcov -r lcov.info '*/source/device/cpu/*' -o lcov.info
         lcov -r lcov.info '/usr/*' -o lcov.info
         lcov --list lcov.info        
+    - name: codecov
+      uses: codecov/codecov-action@v2.0.2
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        file: build/lcov.info
+
+linux-gcc-arm64-AGX-xaiver:
+  runs-on: AGX-xaiver
+  steps:
+    - uses: actions/checkout@v2.3.4
+    - name: configure
+      run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=debug -DTENGINE_ENABLE_TENSORRT=ON -DTENGINE_COVERAGE=ON -DTENGINE_BUILD_TESTS=ON ..
+    - name: build
+      run: cmake --build build -j 6
+    - name: models
+      run: |
+        cd build
+        wget ftp://219.139.34.182/tengine/ci_test/images.zip
+        unzip images.zip
+        git clone https://github.com/BUG1989/tengine_test_data.git
+        git clone https://github.com/BUG1989/onnx_op_test_data.git onnx_node
+    - name: test-timvx-simulator
+      run: |
+        cd build
+        ./examples/tm_classification_timvx  -m ./tengine_test_data/mobilenet_uint8.tmfile   -i ./images/cat.jpg -g 224,224, -s 0.017,0.017,0.017
+        ./examples/tm_classification_timvx  -m ./tengine_test_data/squeezenet_uint8.tmfile  -i ./images/cat.jpg -g 227,227, -s 0.017,0.017,0.017
+        ./examples/tm_yolov5s_timvx         -m ./tengine_test_data/yolov5s_uint8.tmfile     -i ./images/ssd_dog.jpg
+    - name: test-op
+      run: |
+        cd build
+        ctest --output-on-failure
+    - name: lcov-collect
+      run: |
+        cd build
+        lcov -d ./source -c -o lcov.info
+        lcov -r lcov.info '*/source/device/cpu/*' -o lcov.info
+        lcov -r lcov.info '/usr/*' -o lcov.info
+        lcov --list lcov.info
     - name: codecov
       uses: codecov/codecov-action@v2.0.2
       with:
