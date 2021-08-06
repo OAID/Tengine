@@ -190,6 +190,7 @@ jobs:
     - name: models
       run: |
         cd build
+        actions=/home/khadas/actions-runner
         ln -s ${actions}/ci_test/images/      images
         git clone https://github.com/BUG1989/tengine_test_data.git
         git clone https://github.com/BUG1989/onnx_op_test_data.git onnx_node      
@@ -227,6 +228,7 @@ jobs:
     - name: models
       run: |
         cd build
+        actions=/home/nvidia/actions-runner
         ln -s ${actions}/ci_test/images/      images
         git clone https://github.com/BUG1989/tengine_test_data.git
         git clone https://github.com/BUG1989/onnx_op_test_data.git onnx_node
