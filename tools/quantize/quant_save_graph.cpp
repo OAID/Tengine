@@ -36,17 +36,6 @@
 #undef min
 #endif
 
-float compute_aciq_gaussian_clip(float absmax, int N, int num_bits)
-{
-    const float alpha_gaussian[8] = {0, 1.71063519, 2.15159277, 2.55913646, 2.93620062, 3.28691474, 3.6151146, 3.92403714};
-
-    const double gaussian_const = (0.5 * 0.35) * (1 + sqrt(3.14159265358979323846 * log(4)));
-
-    double std = (absmax * 2 * gaussian_const) / sqrt(2 * log(N));
-
-    return (float)(alpha_gaussian[num_bits - 1] * std);
-}
-
 void recursion_pass_through(struct graph* ir_graph, const char* layer_name, struct tensor* t,
                             std::tr1::unordered_map<std::string, int>& layer_used, std::tr1::unordered_map<std::string, float>& layer_scale,
                             std::tr1::unordered_map<std::string, float>& layer_zeropoint, std::tr1::unordered_map<std::string, bool>& layer_pass)
