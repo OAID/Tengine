@@ -117,7 +117,7 @@ int create_test_conv_node(graph_t graph, const char* input_name, const char* nod
  */
 float input_scale = 0.03937f;
 float weight_scales[2] = {0.023622f, 0.007874f};
-float bias_scales[2] = {0.023622f * input_scale, 0.007874f *input_scale};
+float bias_scales[2] = {0.023622f * input_scale, 0.007874f * input_scale};
 float output_scale = 0.2007874f;
 
 int input_zero_point = 0;
