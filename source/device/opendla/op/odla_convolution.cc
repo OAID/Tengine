@@ -58,148 +58,122 @@ nvdla::priv::canonical_ast::Node * ODLAEngine::AddConvolutionNode(struct node* i
     convolutionNode->params().setDilation(dilation);
     convolutionNode->params().setNumGroups(param->group);
 
-    convolutionNode->setGraph(this->graph);
-    this->graph->insertNode(convolutionNode);
-    convolutionNode->setId(this->graph->nextNodeId());
-    convolutionNode->setName(ir_node->name);
-
 
     nvdla::Weights kernelWeights;
     nvdla::Weights biasWeights;
     if (param->group == 1 || (param->group == conv_weight->dims[0] && param->group != 1))   // conv + dwconv
     {
-        if (param->activation >= 0) // activation function exist
-        {
-            /*
-            nvdla::priv::TensorFactory::TensorPrivPair t = nvdla::priv::TensorFactory::newTensor();
-            nvdla::priv::Tensor* tmp_output_tensor = NULL;
-            nvdla::Dims4 tensor_shape;
-            nvdla::DataType datatype;
-            switch(output_tensor->data_type)
-            {
-                // Why no Definition of DATATYPE?
-            case TENGINE_DT_FP32:
-                // float32
-                datatype = nvdla::DataType::FLOAT;
-                break;
-            case TENGINE_DT_FP16:
-                // float16
-                datatype = nvdla::DataType::HALF;
-                break;
-            case TENGINE_DT_INT8:
-                datatype = nvdla::DataType::INT8;
-                break;
-            case TENGINE_DT_UINT8:
-                datatype = nvdla::DataType::UINT8;
-                break;
-            case TENGINE_DT_INT32:
-                TLOG_ERR("Tensor date type: Tensor_name(%s) tensor_index(%d) tensor_data_type(%d) .\n",ir_tensor->name, ir_tensor->index, ir_tensor->data_type);
-                break;
-            default:
-                TLOG_ERR("Tensor date type: Tensor_name(%s) tensor_index(%d) tensor_data_type(%d) .\n",ir_tensor->name, ir_tensor->index, ir_tensor->data_type);
-                break;
-            }
-
-            tensor_shape.n = output_tensor->dims[0];
-            tensor_shape.c = output_tensor->dims[1];
-            tensor_shape.h = output_tensor->dims[2];
-            tensor_shape.w = output_tensor->dims[3];
-            t.i()->setDimensions(tensor_shape);
-            t.i()->setDataFormat(NVDLA_DATA_FORMAT_NCHW);
-            t.i()->setTensorType(nvdla::kIO);
-            t.i()->setDataType(output_tensor->data_type);
-            t.i()->setChannelDynamicRange(-1, -16129, 16129);
-
-            auto tmp_output_Edge = new nvdla::priv::canonical_ast::Edge();
-            t.i()->setName((std::string(input_tensor->name)+"activation").c_str());
-            tmp_output_Edge->setGraph(this->graph);
-            tmp_output_Edge->setId(graph->nextEdgeId());
-            tmp_output_Edge->setOriginalTensor(tmp_output_tensor);
-
-            if (ir_node->input_num > 2)    // bias exist
-            {
-                struct tensor* conv_bias = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[2]);
-                if(conv_bias->dim_num);
-                convolutionNode->params().setBiasMode(nvdla::bNONE);
-                convolutionNode->params().setHasBiasTerm(true);
-                (*conv)
-                    .BindInputs({ this->vx_tensor_map[input_tensor->index], this->vx_tensor_map[conv_weight->index], this->vx_tensor_map[conv_bias->index] })
-                    .BindOutputs({ tmp_output });
-            }
-            else
-            {
-                (*conv)
-                    .BindInputs({ this->vx_tensor_map[input_tensor->index], this->vx_tensor_map[conv_weight->index] })
-                    .BindOutputs({ tmp_output });
-            }
-            this->vx_tensor_map[output_tensor->index + ir_graph->tensor_num] = tmp_output;
-            if (param->activation == 0) // Relu
-            {
-            }
-            else if (param->activation == 6)    // Relu6
-            {
-            }
-        */
-        }
-        else // activation function does not exist
-        {
             nvdla::Dims4 weightDims(conv_weight->dims[0], conv_weight->dims[1], conv_weight->dims[2], conv_weight->dims[3]);
             convolutionNode->params().setWeightDims(weightDims);
 
-            kernelWeights.count = conv_weight->elem_num;
-            kernelWeights.values = conv_weight->data;
-            kernelWeights.type = odla_tensor_map[conv_weight->index]->getDataType();
+            switch (conv_weight->data_type)
+            {
+                case TENGINE_DT_FP32:
+                {
+                    kernelWeights.values = conv_weight->data;
+                    kernelWeights.count = conv_weight->elem_num;
+                    kernelWeights.type = nvdla::DataType::FLOAT;
+                    break;
+                }
+                case TENGINE_DT_INT8:
+                {
+                    if (conv_weight->quant_param_num != conv_weight->dims[0])
+                    {
+                        fprintf(stderr, "Tengine: Unsupported weight quant channel of conv(id: %d, name: %s).\n", ir_node->index, ir_node->name);
+                        return nullptr;
+                    }
+                    float* weight_buffer = (float*)sys_malloc(conv_weight->elem_num * sizeof(float));
+                    this->host_buffer.push_back(weight_buffer);
+                    for (int ch = 0; ch < conv_weight->quant_param_num; ch++)
+                    {
+                        int block_size = conv_weight->dims[1] * conv_weight->dims[2] * conv_weight->dims[3];
+                        for (int i = 0; i < block_size; i++)
+                        {
+                            int offset = block_size * ch;
+                            weight_buffer[offset + i] = (float)(((int8_t*)conv_weight->data)[offset + i]) * conv_weight->scale_list[ch];
+                            std::cout << "weight data from int32: " << (float)(((int8_t*)conv_weight->data)[offset + i]) << " to " <<  weight_buffer[offset + i] << std::endl;
+                        }
+                    }
+
+                    kernelWeights.values = weight_buffer;
+                    kernelWeights.count = conv_weight->elem_num;
+                    kernelWeights.type = nvdla::DataType::FLOAT;
+                    break;
+                }
+                case TENGINE_DT_UINT8:
+                {
+                    std::vector<float> weight_buffer;
+                    weight_buffer.resize(conv_weight->elem_num);
+
+                    for (int i = 0; i < conv_weight->elem_num; i++)
+                    {
+                        weight_buffer[i] = (float)(((uint8_t*)conv_weight->data)[i] - conv_weight->zero_point) * conv_weight->scale;
+                    }
+
+                    kernelWeights.values = weight_buffer.data();
+                    kernelWeights.count = conv_weight->elem_num;
+                    kernelWeights.type = nvdla::DataType::FLOAT;
+                    break;
+                }
+                default:
+                    fprintf(stderr, "Tengine: Unsupported weight quant data type(%d) of conv(id: %d, name: %s).\n", conv_weight->data_type, ir_node->index, ir_node->name);
+                    return nullptr;
+            }
 
             if (ir_node->input_num > 2) // bias exist
             {
                 struct tensor* conv_bias = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[2]);
                 nvdla::Dims4 biasDims(odla_tensor_map[conv_bias->index]->getDimensions());
 
-                biasWeights.count = conv_bias->elem_num;
-                biasWeights.values = conv_bias->data;
-                biasWeights.type = odla_tensor_map[conv_bias->index]->getDataType();
+                switch (conv_bias->data_type)
+                {
+                    case TENGINE_DT_FP32:
+                    {
+                        biasWeights.values = conv_bias->data;
+                        biasWeights.count = conv_bias->elem_num;
+                        biasWeights.type = nvdla::DataType::FLOAT;
+                        break;
+                    }
+                    case TENGINE_DT_INT32:
+                    {
+                        float * bias_buffer = (float *)sys_malloc(conv_bias->elem_num * sizeof(float));
+                        this->host_buffer.push_back(bias_buffer);
+                        if (1 == conv_bias->quant_param_num)
+                        {
+                            for (uint32_t i = 0; i < conv_bias->elem_num; i++)
+                            {
+                                bias_buffer[i] = (float)(((int32_t*)conv_bias->data)[i]) * conv_bias->scale;
+                            }
+                        }
+                        else
+                        {
+                            for (uint32_t i = 0; i < conv_bias->elem_num; i++)
+                            {
+                                bias_buffer[i] = (float)(((int32_t*)conv_bias->data)[i]) * conv_bias->scale_list[i];
+                                std::cout << "bias data from int32: " << (float)(((int32_t*)conv_bias->data)[i]) << " to " <<  bias_buffer[i] << std::endl;
+
+                            }
+                        }
+                        biasWeights.values = bias_buffer;
+                        biasWeights.count = conv_bias->elem_num;
+                        biasWeights.type = nvdla::DataType::FLOAT;
+                        break;
+                    }
+                    default:
+                        fprintf(stderr, "Tengine: Unsupported weight quant data type(%d) of conv(id: %d, name: %s).\n", conv_bias->data_type, ir_node->index, ir_node->name);
+                        return nullptr;
+                }
 
                 convolutionNode->params().setHasBiasTerm(true);
                 if(conv_bias->dim_num == 1) convolutionNode->params().setBiasMode(nvdla::bCHANNEL);
                 convolutionNode->params().setBiasDims(biasDims);
             }
-            else
-            {
-            }
-        }
     }
     else    // conv group != 1
     {
-        if (param->activation >= 0)
-        {
-            if (ir_node->input_num > 2)
-            {
-
-            }
-            else
-            {
-
-            }
-            if (param->activation == 0)
-            {
-
-            }
-            else if (param->activation == 6)
-            {
-
-            }
-
-        }
-        else
-        {
-            if (ir_node->input_num > 2)
-            {
-            }
-            else
-            {
-            }
-        }
+        fprintf(stderr, "%s : can not support group convolution .\n", __func__);
     }
+
     convolutionNode->params().setWeights(kernelWeights);
     convolutionNode->params().setBiasData(biasWeights);
 

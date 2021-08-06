@@ -227,10 +227,10 @@ int ODLAEngine::ODLATensorMap(struct graph* ir_graph, int ir_tensor_idx, int spe
                 datatype = nvdla::DataType::INT16;
                 break;
             case TENGINE_DT_INT32:
-                TLOG_ERR("Tensor date type: Tensor_name(%s) tensor_index(%d) tensor_data_type(%d) not supported by opendla .\n",ir_tensor->name, ir_tensor->index, ir_tensor->data_type);
+                TLOG_ERR("Tensor data type: Tensor_name(%s) tensor_index(%d) tensor_data_type(%d) not supported by opendla .\n",ir_tensor->name, ir_tensor->index, ir_tensor->data_type);
                 break;
             default:
-                TLOG_ERR("Tensor date type: Tensor_name(%s) tensor_index(%d) tensor_data_type(%d) .\n",ir_tensor->name, ir_tensor->index, ir_tensor->data_type);
+                TLOG_ERR("Tensor data type: Tensor_name(%s) tensor_index(%d) tensor_data_type(%d) .\n",ir_tensor->name, ir_tensor->index, ir_tensor->data_type);
                 break;
         }
 
@@ -264,6 +264,18 @@ int ODLAEngine::ODLATensorMap(struct graph* ir_graph, int ir_tensor_idx, int spe
                 tensor_shape.c = Dims[1];
                 tensor_shape.h = Dims[2];
                 tensor_shape.w = Dims[3];
+            } else if(ir_tensor->dim_num == 1){
+                // bias op
+                tensor_shape.n = 1;
+                tensor_shape.c = Dims[0];
+                tensor_shape.h = 1;
+                tensor_shape.w = 1;
+            } else if(ir_tensor->dim_num == 2){
+                // bias op
+                tensor_shape.n = Dims[0];
+                tensor_shape.c = Dims[1];
+                tensor_shape.h = 1;
+                tensor_shape.w = 1;
             } else {
                 fprintf(stderr, "Dims Number %d Not Supported. \n", ir_tensor->dim_num);
                 return -1;
@@ -275,7 +287,6 @@ int ODLAEngine::ODLATensorMap(struct graph* ir_graph, int ir_tensor_idx, int spe
         nvdla::priv::Tensor* odla_tensor = NULL;
         if (spec_type == SPEC_TYPE_OUTPUT)
         {
-
             t.i()->setDimensions(tensor_shape);
             t.i()->setDataFormat(NVDLA_DATA_FORMAT_NCHW);
             t.i()->setTensorType(nvdla::kNW_OUTPUT);
@@ -286,7 +297,6 @@ int ODLAEngine::ODLATensorMap(struct graph* ir_graph, int ir_tensor_idx, int spe
                 float tensor_max_val = ir_tensor->scale * +127.0f;
                 t.i()->setChannelDynamicRange(-1, tensor_min_val, tensor_max_val);
             }
-
             odla_tensor = t.priv();
         }
         else if (ir_tensor->tensor_type == TENSOR_TYPE_INPUT || spec_type == SPEC_TYPE_INPUT)
@@ -343,16 +353,19 @@ int ODLAEngine::ODLATensorMap(struct graph* ir_graph, int ir_tensor_idx, int spe
             t.i()->setTensorType(nvdla::kBIAS);
             t.i()->setDataType(datatype);
             t.i()->setName(ir_tensor->name);
-            if(ir_tensor->quant_param_num == 1){
+            if(1 == ir_tensor->quant_param_num){
                 float tensor_min_val = ir_tensor->scale * -127.0f;
                 float tensor_max_val = ir_tensor->scale * +127.0f;
                 t.i()->setChannelDynamicRange(-1, tensor_min_val, tensor_max_val);
-            }
-            else if(ir_tensor->quant_param_num > 1)
-            {
+            }else if (1 < ir_tensor->quant_param_num){
+                for (int ch = 0; ch < ir_tensor->quant_param_num; ++ch)
+                {
+                    float tensor_min_val = ir_tensor->scale_list[ch] * -127.0f;
+                    float tensor_max_val = ir_tensor->scale_list[ch] * +127.0f;
+                    t.i()->setChannelDynamicRange(ch, tensor_min_val, tensor_max_val);
+                }
             }
             odla_tensor = t.priv();
-
         }
         else if (spec_type == SPEC_TYPE_CONV)
         {
@@ -361,18 +374,19 @@ int ODLAEngine::ODLATensorMap(struct graph* ir_graph, int ir_tensor_idx, int spe
             t.i()->setTensorType(nvdla::kIO);
             t.i()->setDataType(datatype);
             t.i()->setName(ir_tensor->name);
-            if(ir_tensor->quant_param_num == 1){
+            if(1 == ir_tensor->quant_param_num){
                 float tensor_min_val = ir_tensor->scale * -127.0f;
                 float tensor_max_val = ir_tensor->scale * +127.0f;
                 t.i()->setChannelDynamicRange(-1, tensor_min_val, tensor_max_val);
+            }else if (1 < ir_tensor->quant_param_num){
+                for (int ch = 0; ch < ir_tensor->quant_param_num; ++ch)
+                {
+                    float tensor_min_val = ir_tensor->scale_list[ch] * -127.0f;
+                    float tensor_max_val = ir_tensor->scale_list[ch] * +127.0f;
+                    t.i()->setChannelDynamicRange(ch, tensor_min_val, tensor_max_val);
+                }
             }
             odla_tensor = t.priv();
-            if (ir_tensor->quant_param_num == 1)
-            {
-            }
-            else if(ir_tensor->quant_param_num > 1)
-            {
-            }
         }
         else if (spec_type == SPEC_TYPE_DWCONV)
         {
@@ -469,11 +483,13 @@ int ODLAEngine::Build(struct subgraph* subgraph)
                 fprintf(stderr, "Tengine OpenDLA: Cannot support OP(%d).\n", ir_node->index);
                 break;
         }
-        if(!Node) continue;
+        if(!Node) {
+            fprintf(stderr, "%s: node create failed, op type is : %d .\n", __func__, op_type);
+        };
         Node->setGraph(this->graph);
         this->graph->insertNode(Node);
         Node->setId(this->graph->nextNodeId()); // 设置 node 的id，n-0 n-1 这样
-        Node->setName(ir_node->name);  // 设置 node 的name
+        Node->setName(std::string(ir_node->name)+"_relu");  // 设置 node 的name
         this->odla_node_map[Node] = ir_node;
     }
 
@@ -483,8 +499,9 @@ int ODLAEngine::Build(struct subgraph* subgraph)
         size_t input_tensors = 0, output_tensors = 0, aux_input_tensors = 0;
         auto odla_node = n.first;
         auto ir_node = n.second;
+
         if(ir_node->op.type == OP_CONV || ir_node->op.type == OP_FC){
-            // CONV|FC Only have one input in OPENDLA
+            // CONV|FC Only have one input in OPENDLA but tengine ir regard weights and bias as input.
             struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
             auto tensor = nvdla::priv::TensorFactory::priv(this->odla_tensor_map[input_tensor->index]);
             if(!tensor){
@@ -516,6 +533,8 @@ int ODLAEngine::Build(struct subgraph* subgraph)
             ioTensors.push_back(tensor);
             output_tensors++;
         }
+
+
         for (size_t i = 0; i < ioTensors.size(); ++i)
         {
             auto odla_tensor = ioTensors[i];
@@ -972,6 +991,8 @@ int ODLAEngine::ODLAEngineRun(struct subgraph* subgraph)
 
 void ODLAEngine::ODLAEnginePostRun()
 {
+    for (auto& ptr : this->host_buffer)
+        sys_free(ptr);
     if(this->runtime){
         this->runtime->unload();
         nvdla::destroyRuntime(this->runtime);

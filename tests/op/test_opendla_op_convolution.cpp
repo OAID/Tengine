@@ -67,14 +67,14 @@ int create_test_conv_node(graph_t graph, const char* input_name, const char* nod
     /* create the sub node to product another input tensors which the test node is needed, such as weight/bias/slope tensor. */
     /* weight */
     node_t weight_node = create_graph_node(graph, "weight", "Const");
-    tensor_t weight_tensor = create_graph_tensor(graph, "weight", TENGINE_DT_FP32);
+    tensor_t weight_tensor = create_graph_tensor(graph, "weight", TENGINE_DT_INT8);
     set_node_output_tensor(weight_node, 0, weight_tensor, TENSOR_TYPE_CONST);
     int weight_dims[4] = {2, 1, 3, 3}; // channel num
     set_tensor_shape(weight_tensor, weight_dims, 4);
 
     /* bias */
     node_t bias_node = create_graph_node(graph, "bias", "Const");
-    tensor_t bias_tensor = create_graph_tensor(graph, "bias", TENGINE_DT_FP32);
+    tensor_t bias_tensor = create_graph_tensor(graph, "bias", TENGINE_DT_INT32);
     set_node_output_tensor(bias_node, 0, bias_tensor, TENSOR_TYPE_CONST);
     int bias_dims[1] = {2}; // channel num
     set_tensor_shape(bias_tensor, bias_dims, 1);
@@ -117,10 +117,12 @@ int create_test_conv_node(graph_t graph, const char* input_name, const char* nod
  */
 float input_scale = 0.03937f;
 float weight_scales[2] = {0.023622f, 0.007874f};
+float bias_scales[2] = {0.023622f * input_scale, 0.007874f *input_scale};
 float output_scale = 0.2007874f;
 
 int input_zero_point = 0;
 int weight_zero_point[2] = {0, 0};
+int bias_zero_point[2] = {0, 0};
 int output_zero_point = 0;
 
 /* float32 data */
@@ -160,7 +162,7 @@ int8_t weight_i8_data[2][9] = {{42, 87, 127,
 /* bias i32 = round(bias_fp32 / (input_scale * weight_scale)) */
 int bias_i32_data[2] = {537, 323};
 
-int8_t bias_i8_data[2] = {1, 2};
+int8_t bias_i8_data[2] = {25, 127};
 
 int main(int argc, char* argv[])
 {
@@ -193,17 +195,18 @@ int main(int argc, char* argv[])
     struct tensor* output_tensor = (struct tensor*)get_graph_tensor(graph, "conv");
 
     set_tensor_quant_param(input_tensor, &input_scale, &input_zero_point, 1);
-    //    set_tensor_quant_param(weight_tensor, weight_scales, weight_zero_point, 2);
+    set_tensor_quant_param(weight_tensor, weight_scales, weight_zero_point, 2);
+    set_tensor_quant_param(bias_tensor, bias_scales, bias_zero_point, 2);
     set_tensor_quant_param(output_tensor, &output_scale, &output_zero_point, 1);
 
     // set input data
     set_tensor_buffer(input_tensor, input_i8_data, 16 * sizeof(int8_t));
 
     // set weight data
-    set_tensor_buffer(weight_tensor, weight_data, 18 * sizeof(float));
+    set_tensor_buffer(weight_tensor, weight_i8_data, 18 * sizeof(int8_t));
 
     // set bias data
-    set_tensor_buffer(bias_tensor, bias_data, 2 * sizeof(float));
+    set_tensor_buffer(bias_tensor, bias_i32_data, 2 * sizeof(int32_t));
 
     // graph run
     ret = test_graph_run(graph);

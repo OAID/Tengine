@@ -40,6 +40,7 @@ extern "C" {
 #include "graph/subgraph.h"
 #include "operator/op.h"
 #include "utility/log.h"
+#include "utility/sys_port.h"
 
 #include "odla_dump.h"
 }
@@ -114,6 +115,7 @@ private:
     NvU8* outputHandle{};
     void* inputBuffer = NULL;
     void* outputBuffer = NULL;
+    std::vector<void*> host_buffer;
     dict_irt2odlat odla_tensor_map;
     dict_odlan2irtn odla_node_map;
     dict_odlat2edge odla_edge_map;
