@@ -79,7 +79,7 @@ bool TensorRTEngine::AddConvolutionNode(struct graph* ir_graph, struct node *nod
                 for (int i = 0; i < block_size; i++)
                 {
                     int offset = block_size * ch;
-                    weight_buffer[i] = (float)(((int8_t*)conv_weight->data)[offset + i]) * conv_weight->scale_list[ch];
+                    weight_buffer[offset + i] = (float)(((int8_t*)conv_weight->data)[offset + i]) * conv_weight->scale_list[ch];
                 }
             }
 
