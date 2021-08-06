@@ -23,7 +23,6 @@
  */
 
 #include <algorithm>
-#include <math.h>
 #include "quant_save_graph.hpp"
 #include "compiler_fp16.h"
 
