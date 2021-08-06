@@ -36,7 +36,6 @@
 #include "common.h"
 #include "tengine/c_api.h"
 #include "tengine_operations.h"
-//#include "tengine/trt_device.hpp"
 
 const char* score_pred_name[] = {
     "score_8", "score_16", "score_32"};
