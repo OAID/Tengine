@@ -35,21 +35,54 @@
 #include <sys/time.h>
 #include <functional>
 #include "pipeline/utils/box.h"
+#include "pipeline/utils/feature.h"
+#include "pipeline/utils/profiler.h"
 
-namespace pipe {
+namespace pipeline {
 
-class PedestrianDetection : public Node<Param<cv::Mat>, Param<std::tuple<cv::Mat, cv::Rect> > >
+#define HARD_NMS     (1)
+#define BLENDING_NMS (2) /* mix nms was been proposaled in paper blaze face, aims to minimize the temporal jitter*/
+
+class FaceLandmark : public Node<Param<std::tuple<cv::Mat, std::vector<cv::Rect>> >, Param<std::tuple<cv::Mat, std::vector<Feature>> > >
 {
 public:
     using preproc_func = typename std::function<void(const cv::Mat&, cv::Mat&)>;
-    using postproc_func = typename std::function<std::vector<Box<int> >(const float*, int)>;
 
-    PedestrianDetection(std::string model_path, preproc_func preproc, postproc_func postproc, size_t thread = 2, int w = 300, int h = 300)
+    FaceLandmark(std::string model_path, size_t thread = 2, int w = 144, int h = 144)
     {
+        m_tensor_in_w = w;
+        m_tensor_in_h = h;
         m_thread_num = thread;
         m_input = cv::Mat(h, w, CV_32FC3);
-        m_preproc = preproc;
-        m_postproc = postproc;
+
+        // build preproc
+        m_preproc = [](const cv::Mat& in, cv::Mat& out) -> void {
+            cv::Mat buf(out.rows, out.cols, CV_8UC3);
+            cv::resize(in, buf, buf.size());
+            cv::cvtColor(buf, buf, CV_BGR2RGB);
+
+            buf.convertTo(buf, CV_32FC3);
+
+            float mean[3] = {128.f, 128.f, 128.f};
+            float scale[3] = {0.0039, 0.0039, 0.0039};
+
+            float* img_data = reinterpret_cast<float*>(buf.data);
+            float* out_ptr = reinterpret_cast<float*>(out.data);
+            /* nhwc to nchw */
+            for (int h = 0; h < out.rows; h++)
+            {
+                for (int w = 0; w < out.cols; w++)
+                {
+#pragma unroll(3)
+                    for (int c = 0; c < 3; c++)
+                    {
+                        int in_index = h * out.cols * 3 + w * 3 + c;
+                        int out_index = c * out.cols * out.rows + h * out.cols + w;
+                        out_ptr[out_index] = (img_data[in_index] - mean[c]) * scale[c];
+                    }
+                }
+            }
+        };
 
         /* inital tengine */
         init_tengine();
@@ -66,7 +99,7 @@ public:
         m_graph = create_graph(NULL, "tengine", model_path.c_str());
         if (m_graph == nullptr)
         {
-            fprintf(stderr, "create graph failed\n");
+            fprintf(stderr, "create graph failed, check model path\n");
             return;
         }
 
@@ -115,69 +148,55 @@ public:
     void exec() override
     {
         cv::Mat mat;
-        auto suc = input<0>()->pop(mat);
+        std::vector<cv::Rect> rects;
+        std::tuple<cv::Mat, std::vector<cv::Rect>>  inp;
+        auto suc = input<0>()->pop(inp);
         if (not suc or mat.empty())
         {
             return;
         }
 
-        auto get_current_time = []() -> double {
-            struct timeval tv;
-            gettimeofday(&tv, NULL);
-            return tv.tv_sec * 1000.0 + tv.tv_usec / 1000.0;
-        };
+        std::tie(mat, rects) = inp;
 
-        /* prepare process input data, set the data mem to input tensor */
-        auto time1 = get_current_time();
+        std::vector<Feature> features;
 
-        fprintf(stdout, "preproc begin\n");
-        m_preproc(mat, m_input);
-        fprintf(stdout, "preproc end\n");
+        for (auto rect: rects) {
+            cv::Mat crop = mat(rect);
+            /* prepare process input data, set the data mem to input tensor */
+            Profiler prof({"preproc", "inference"});
+            prof.dot();
+            m_preproc(crop, m_input);
+            prof.dot();
 
-        auto time2 = get_current_time();
+            if (run_graph(m_graph, 1) < 0)
+            {
+                fprintf(stderr, "Run graph failed\n");
+                return;
+            }
+            prof.dot();
+            prof.show();
 
-        if (run_graph(m_graph, 1) < 0)
-        {
-            fprintf(stderr, "Run graph failed\n");
-            return;
+            /* process the landmark result */
+            tensor_t output_tensor = get_graph_output_tensor(m_graph, 0, 0);
+            float* data = (float*)(get_tensor_buffer(output_tensor));
+            const int data_size = get_tensor_buffer_size(output_tensor) / sizeof(float);
+
+            Feature f = { "landmark"};
+            for (int i = 0; i < data_size / 2; i++)
+            {
+                float x = data[2 * i] * (float)crop.cols / m_tensor_in_w;
+                float y = data[2 * i + 1] * (float)crop.rows / m_tensor_in_h;
+                f.data.emplace_back(x);
+                f.data.emplace_back(y);
+            }
+            features.emplace_back(std::move(f));
         }
 
-        auto time3 = get_current_time();
-
-        /* process the detection result */
-        tensor_t output_tensor = get_graph_output_tensor(m_graph, 0, 0); //"detection_out"
-        int out_dim[4];
-        get_tensor_shape(output_tensor, out_dim, 4);
-        float* output_data = (float*)get_tensor_buffer(output_tensor);
-
-        /* postprocess*/
-        fprintf(stdout, "out shape [%d %d %d %d]\n", out_dim[0], out_dim[1],
-                out_dim[2], out_dim[3]);
-        auto results = m_postproc(output_data, out_dim[1]);
-
-        auto time4 = get_current_time();
-
-        fprintf(stdout, "preproc %.2f,  inference %.2f,  postproc %.2f \n",
-                time2 - time1, time3 - time2, time4 - time3);
-
-        if (not results.empty())
-        {
-            auto& result = results[0];
-            cv::Rect rect(std::max(0, result.x0), std::max(0, result.y0),
-                          result.x1 - result.x0, result.y1 - result.y0);
-            rect.width = std::min(rect.width, mat.cols - rect.x - 1);
-            rect.height = std::min(rect.height, mat.rows - rect.y - 1);
-            cv::rectangle(mat, rect, cv::Scalar(255, 255, 255), 3);
-
-            output<0>()->try_push(std::move(std::make_tuple(mat, rect)));
-        }
-        else
-        {
-            output<0>()->try_push(std::move(std::make_tuple(mat, cv::Rect(0, 0, 0, 0))));
-        }
+        output<0>()->try_push(std::move(std::make_tuple(mat, features)));
+        return;
     }
 
-    ~PedestrianDetection()
+    ~FaceLandmark()
     {
         /* release tengine */
         postrun_graph(m_graph);
@@ -189,10 +208,12 @@ private:
     graph_t m_graph;
     context_t m_ctx;
     preproc_func m_preproc;
-    postproc_func m_postproc;
 
     cv::Mat m_input;
+
+    int m_tensor_in_w;
+    int m_tensor_in_h;
     size_t m_thread_num;
 };
 
-} // namespace pipe
+} // namespace pipeline

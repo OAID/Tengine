@@ -29,7 +29,7 @@
 #include <chrono>
 #include <memory>
 
-namespace pipe {
+namespace pipeline {
 
 class Graph
 {
@@ -85,4 +85,4 @@ private:
     std::atomic<bool> m_running;
     std::vector<std::thread> m_threads;
 };
-} // namespace pipe
+} // namespace pipeline

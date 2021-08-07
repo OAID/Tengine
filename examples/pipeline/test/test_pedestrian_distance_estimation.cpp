@@ -28,7 +28,7 @@
 #include "pipeline/graph/graph.h"
 #include <chrono>
 #include <opencv2/opencv.hpp>
-using namespace pipe;
+using namespace pipeline;
 
 #define HEIGHT (480)
 #define WIDTH  (640)

@@ -25,7 +25,7 @@
 
 #include <iostream>
 
-namespace pipe {
+namespace pipeline {
 template<typename T>
 struct Box
 {
@@ -37,8 +37,8 @@ struct Box
     float score;
 
     void print() const {
-    std::cout << x0 << y0 <<  x1 << y1 << std::endl;
+    std::cout << x0 << "   " << y0 << "  " <<  x1 << "  " << y1 << std::endl;
 
     }
 };
-} // namespace pipe
+} // namespace pipeline

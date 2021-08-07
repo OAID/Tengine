@@ -27,7 +27,7 @@
 #include <string>
 #include <sys/time.h>
 
-namespace pipe {
+namespace pipeline {
 class Profiler
 {
 public:
@@ -68,4 +68,4 @@ private:
     std::vector<double> m_data;
 };
 
-} // namespace pipe
+} // namespace pipeline

@@ -30,7 +30,7 @@
 #include <opencv2/videoio.hpp>
 #include <opencv2/highgui.hpp>
 
-namespace pipe {
+namespace pipeline {
 
 class VideoCamera : public Node<Param<void>, Param<cv::Mat> >
 {
@@ -108,4 +108,4 @@ private:
     std::once_flag flag;
 };
 
-} // namespace pipe
+} // namespace pipeline

@@ -26,7 +26,7 @@
 #include <string>
 #include "serializer.h"
 
-namespace pipe {
+namespace pipeline {
 
 struct Feature
 {
@@ -34,4 +34,4 @@ struct Feature
     std::vector<float> data;
 };
 
-} // namespace pipe
+} // namespace pipeline

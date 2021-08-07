@@ -21,37 +21,41 @@
  * Copyright (c) 2021
  * Author: tpoisonooo
  */
-#include "pipeline/actor/draw_video.h"
-#include "pipeline/actor/video_camera.h"
+#include "pipeline/actor/image_stream.h"
 #include "pipeline/actor/face_detection.h"
-#include "pipeline/actor/spatial_distance_calculation.h"
+#include "pipeline/actor/face_landmark.h"
+#include "pipeline/actor/face_feature.h"
 #include "pipeline/graph/graph.h"
 #include <chrono>
 #include <opencv2/opencv.hpp>
-using namespace pipe;
+using namespace pipeline;
 
 #define HEIGHT (480)
 #define WIDTH  (640)
 
-int main()
+int main(int argc, char* argv[])
 {
+    if (argc < 2) {
+        fprintf(stderr, "usage: ./pipeline_enroll_face IMAGE_DIR \n");
+        return -1;
+    }
+
     Graph g;
-    auto cam = g.add_node<VideoCamera>();
-    auto draw = g.add_node<DrawVideo>();
-
+    auto images = g.add_node<ImageStream>(argv[1]);
     auto detect_face = g.add_node<FaceDetection, std::string>("rfb-320.tmfile");
-    auto dist_estimate = g.add_node<SpatialDistanceCalc>();
+    auto landmark_face = g.add_node<FaceLandmark, std::string>("landmark.tmfile");
+    auto feature_face = g.add_node<FaceFeature, std::string>("mobilefacenet.tmfile");
 
-    auto cam_det = g.add_edge<InstantEdge<cv::Mat> >(100);
-    auto det_dist = g.add_edge<InstantEdge<std::tuple<cv::Mat, cv::Rect> > >(100);
-    auto dist_draw = g.add_edge<InstantEdge<cv::Mat> >(100);
+    auto image_det =g.add_edge<InstantEdge<cv::Mat>>(100);
+    auto det_lmk =g.add_edge<InstantEdge<std::tuple<cv::Mat, std::vector<cv::Rect>>> >(100);
+    auto lmk_feature =g.add_edge<InstantEdge<std::tuple<cv::Mat, std::vector<Feature>>>>(100);
 
-    cam->set_output<0>(cam_det);
-    detect_face->set_input<0>(cam_det);
-    detect_face->set_output<0>(det_dist);
-    dist_estimate->set_input<0>(det_dist);
-    dist_estimate->set_output<0>(dist_draw);
-    draw->set_input<0>(dist_draw);
+    images->set_output<0>(image_det);
+    detect_face->set_input<0>(image_det);
+    detect_face->set_output<0>(det_lmk);
+    landmark_face->set_input<0>(det_lmk);
+    landmark_face->set_output<0>(lmk_feature);
+    feature_face->set_input<0>(lmk_feature);
 
     g.start();
     std::this_thread::sleep_for(std::chrono::milliseconds(600000));

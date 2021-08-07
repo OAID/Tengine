@@ -33,7 +33,7 @@
 #include <dirent.h>
 #include <unistd.h>
 
-namespace pipe {
+namespace pipeline {
 
 class ImageStream : public Node<Param<void>, Param<cv::Mat> >
 {
@@ -47,7 +47,7 @@ public:
     {
         std::vector<std::string> out;
 
-        auto is_image = [](const string& dname) -> bool {
+        auto is_image = [](const std::string& dname) -> bool {
             if (dname.find(".jpg") != std::string::npos || dname.find(".png") != std::string::npos || dname.find(".jpeg") != std::string::npos)
             {
                 return true;
@@ -57,12 +57,12 @@ public:
         if (is_image(m_path))
         {
             out.emplace_back(m_path);
-            return;
+            return out;
         }
 
         struct dirent* ptr;
         DIR* dir;
-        if ((dirout = opendir(m_path.c_str())) == NULL)
+        if ((dir = opendir(m_path.c_str())) == NULL)
         {
             fprintf(stdout, "cannot open %s\n", m_path.c_str());
             return out;
@@ -116,4 +116,4 @@ private:
     std::once_flag flag;
 };
 
-} // namespace pipe
+} // namespace pipeline

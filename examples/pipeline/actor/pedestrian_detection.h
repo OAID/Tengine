@@ -36,7 +36,7 @@
 #include "pipeline/utils/box.h"
 #include "pipeline/utils/profiler.h"
 
-namespace pipe {
+namespace pipeline {
 
 class PedestrianDetection : public Node<Param<cv::Mat>, Param<std::tuple<cv::Mat, cv::Rect> > >
 {
@@ -266,4 +266,4 @@ private:
     size_t m_thread_num;
 };
 
-} // namespace pipe
+} // namespace pipeline
