@@ -33,8 +33,8 @@
 typedef struct trt_option
 {
     char* dev_name;
-    char* engine_file;  //!< cache trt engine path
-    int gpu_index;      //!< select which GPU to run graph
-    int dla_index;      //!< select to use NVIDIA DLA
-    int precision;      //!< precision of calculation
+    char* engine_file; //!< cache trt engine path
+    int gpu_index;     //!< select which GPU to run graph
+    int dla_index;     //!< select to use NVIDIA DLA
+    int precision;     //!< precision of calculation
 } trt_opt_t;
