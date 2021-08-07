@@ -23,6 +23,8 @@
  */
 #pragma once
 
+#include <iostream>
+
 namespace pipe {
 template<typename T>
 struct Box
@@ -33,5 +35,10 @@ struct Box
     T y1;
     int class_idx;
     float score;
+
+    void print() const {
+    std::cout << x0 << y0 <<  x1 << y1 << std::endl;
+
+    }
 };
 } // namespace pipe

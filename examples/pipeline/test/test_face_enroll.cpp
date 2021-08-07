@@ -22,8 +22,8 @@
  * Author: tpoisonooo
  */
 #include "pipeline/actor/draw_video.h"
-#include "pipeline/actor/pedestrian_detection.h"
 #include "pipeline/actor/video_camera.h"
+#include "pipeline/actor/face_detection.h"
 #include "pipeline/actor/spatial_distance_calculation.h"
 #include "pipeline/graph/graph.h"
 #include <chrono>
@@ -39,7 +39,7 @@ int main()
     auto cam = g.add_node<VideoCamera>();
     auto draw = g.add_node<DrawVideo>();
 
-    auto detect_ped = g.add_node<PedestrianDetection, std::string, preproc_func, postproc_func>("mobilenet_ssd.tmfile", std::move(preproc), std::move(postproc));
+    auto detect_face = g.add_node<FaceDetection, std::string>("rfb-320.tmfile");
     auto dist_estimate = g.add_node<SpatialDistanceCalc>();
 
     auto cam_det = g.add_edge<InstantEdge<cv::Mat> >(100);
@@ -47,8 +47,8 @@ int main()
     auto dist_draw = g.add_edge<InstantEdge<cv::Mat> >(100);
 
     cam->set_output<0>(cam_det);
-    detect_ped->set_input<0>(cam_det);
-    detect_ped->set_output<0>(det_dist);
+    detect_face->set_input<0>(cam_det);
+    detect_face->set_output<0>(det_dist);
     dist_estimate->set_input<0>(det_dist);
     dist_estimate->set_output<0>(dist_draw);
     draw->set_input<0>(dist_draw);

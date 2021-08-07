@@ -42,7 +42,7 @@ namespace pipe {
 #define HARD_NMS     (1)
 #define BLENDING_NMS (2) /* mix nms was been proposaled in paper blaze face, aims to minimize the temporal jitter*/
 
-class FaceDetection : public Node<Param<cv::Mat>, Param<std::tuple<cv::Mat, std::vector<cv::Rect> > > >
+class FaceDetection : public Node<Param<cv::Mat>, Param<std::tuple<cv::Mat, cv::Rect> > >
 {
 public:
     using preproc_func = typename std::function<void(const cv::Mat&, cv::Mat&)>;
@@ -182,16 +182,21 @@ public:
         {
             for (auto& result : results)
             {
+                fprintf(stdout, "%f  %f %f %f\n", result.x0, result.y0, result.x1, result.y1);
+
                 cv::Rect rect(std::max(0.f, result.x0), std::max(0.f, result.y0),
                               result.x1 - result.x0, result.y1 - result.y0);
                 rect.width = std::min(rect.width, mat.cols - rect.x - 1);
                 rect.height = std::min(rect.height, mat.rows - rect.y - 1);
+
+                cv::Mat crop = mat(rect);
+                cv::imwrite("lanmark_input.jpg", crop);
                 cv::rectangle(mat, rect, cv::Scalar(255, 255, 255), 3);
 
                 rects.emplace_back(rect);
             }
         }
-        output<0>()->try_push(std::move(std::make_tuple(mat, rects)));
+        output<0>()->try_push(std::move(std::make_tuple(mat, rects[0])));
         return;
     }
 
@@ -361,6 +366,7 @@ public:
                 rects.x1 = clip(x_center + w / 2.0, 1) * image_w;
                 rects.y1 = clip(y_center + h / 2.0, 1) * image_h;
                 rects.score = clip(scores_data[i * 2 + 1], 1);
+                rects.print()
                 bbox_collection.emplace_back(rects);
             }
         }
