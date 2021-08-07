@@ -407,7 +407,7 @@ bool save_graph(graph_t graph, const char* fname)
     ir_graph_t* ir_graph = (ir_graph_t*)graph;
     /* Open the tengine model file */
 #ifdef _MSC_VER
-    FILE* fd = fopen(fname, "w+");
+    FILE* fd = fopen(fname, "wb+");
     if (fd == NULL)
 #else
     int fd = open(fname, O_RDWR | O_CREAT | O_TRUNC, 0666);
@@ -434,7 +434,7 @@ bool save_graph(graph_t graph, const char* fname)
     void* buf = addr_list[0];
     int size = size_list[0];
 #ifdef _MSC_VER
-    int ret = fwrite(buf, size, 1, fd);
+    int ret = fwrite(buf, size, 1, fd) * size;
     fclose(fd);
 #else
     int ret = write(fd, buf, size);
