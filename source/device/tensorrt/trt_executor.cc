@@ -588,7 +588,7 @@ int TensorRTEngine::PreRun(struct subgraph* subgraph, struct trt_option* options
     this->tensor_swap_count = subgraph->graph->tensor_num + 1;
     if (LoadEngine(opt->engine_file, &this->engine))
     {
-        TLOG_INFO("Tengine: DeserializeEngine success.\n");
+        TLOG_INFO("Tengine: LoadEngine success.\n");
     }
     else
     {
