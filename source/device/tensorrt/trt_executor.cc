@@ -34,6 +34,8 @@ EXPORT_FINISH
 
 #include <NvInferRuntime.h>
 
+#include <fstream>
+
 
 static Logger gLogger(nvinfer1::ILogger::Severity::kERROR);
 
@@ -86,6 +88,7 @@ TensorRTEngine::TensorRTEngine()
     this->precision = nvinfer1::DataType::kFLOAT;
 
     this->option.dev_name = TRT_DEVICE_NAME;
+    this->option.engine_file = TRT_ENGINE_FILE;
     this->option.precision = TENGINE_DT_FP32;
     this->option.gpu_index = 0;
     this->option.dla_index = -1;
@@ -417,6 +420,59 @@ int TensorRTEngine::Build(struct subgraph* subgraph)
 }
 
 
+void TensorRTEngine::SaveEngine(const char* engine_file, nvinfer1::ICudaEngine* trt_engine)
+{
+    std::string fileName(engine_file);
+    if (fileName.empty())
+    {
+        TLOG_INFO("Tengine: Empty engine file name, skip save\n");
+        return;
+    }
+    if (trt_engine != nullptr)
+    {
+        TLOG_INFO("Tengine: Save engine cache file to \"%s\"...\n", fileName.c_str());
+        nvinfer1::IHostMemory* data = trt_engine->serialize();
+        std::ofstream file;
+        file.open(fileName, std::ios::binary | std::ios::out);
+        if (!file.is_open())
+        {
+            TLOG_ERR("Tengine: Create engine file \"%s\" failed\n", fileName.c_str());
+            return;
+        }
+        file.write((const char*)data->data(), data->size());
+        file.close();
+        data->destroy();
+    }
+    else
+    {
+        TLOG_ERR("Tengine: Engine is empty, save engine failed\n");
+    }
+}
+
+bool TensorRTEngine::LoadEngine(const char* engine_file, nvinfer1::ICudaEngine** trt_engine)
+{
+    std::ifstream in(engine_file, std::ifstream::binary);
+    if (in.is_open())
+    {
+        TLOG_INFO("Tengine: Deserialize engine from \"%s\"...\n", engine_file);
+        auto const start_pos = in.tellg();
+        in.ignore(std::numeric_limits<std::streamsize>::max());
+        size_t bufCount = in.gcount();
+        in.seekg(start_pos);
+        char* engineBuf = new char[bufCount];
+        in.read(engineBuf, bufCount);
+        auto mRuntime = nvinfer1::createInferRuntime(gLogger);
+        *trt_engine = mRuntime->deserializeCudaEngine((void*)engineBuf, bufCount, nullptr);
+        TLOG_INFO("Tengine: Max batch size of deserialized engine: %d\n", (*trt_engine)->getMaxBatchSize());
+        mRuntime->destroy();
+        delete[] engineBuf;
+        return true;
+    }
+    return false;
+}
+
+
+
 bool TensorRTEngine::AddTensor(struct graph* ir_graph, struct tensor *ir_tensor)
 {
     if (0 < this->tensor_swap_map.count(ir_tensor->index))
@@ -520,51 +576,57 @@ int TensorRTEngine::PreRun(struct subgraph* subgraph, struct trt_option* options
         opt = options;
     }
 
-    const auto cuda_status = cudaSetDevice(opt->gpu_index);;
+    const auto cuda_status = cudaSetDevice(opt->gpu_index);
+    ;
     if (cuda_status != cudaSuccess)
     {
         TLOG_ERR("Tengine: Cannot using GPU ID %d.\n", opt->gpu_index);
         return -2;
     }
-
     struct graph* ir_graph = subgraph->graph;
-
     // set tensor_swap_count
     this->tensor_swap_count = subgraph->graph->tensor_num + 1;
-
-    // TODO: high level api should serialize model and cache serialized model
-    this->builder = nvinfer1::createInferBuilder(gLogger.get_logger());
-    if (nullptr == this->builder)
+    if (LoadEngine(opt->engine_file, &this->engine))
     {
-        TLOG_ERR("Tengine: Cannot create nvinfer1::IBuilder object..\n");
-        return -3;
+        TLOG_INFO("Tengine: DeserializeEngine success.\n");
     }
-
-    // TODO: adapt to TRT6
-    const auto _explicit_batch = 1U << static_cast<uint32_t>(nvinfer1::NetworkDefinitionCreationFlag::kEXPLICIT_BATCH);
-    this->network = this->builder->createNetworkV2(_explicit_batch);
-    if (nullptr == this->network)
+    else
     {
-        TLOG_ERR("Tengine: Cannot create nvinfer1::INetworkDefinition object.\n");
-        return -4;
-    }
+        TLOG_ERR("Tengine: Build engine...\n");
+        
+        // TODO: high level api should serialize model and cache serialized model
+        this->builder = nvinfer1::createInferBuilder(gLogger.get_logger());
+        if (nullptr == this->builder)
+        {
+            TLOG_ERR("Tengine: Cannot create nvinfer1::IBuilder object..\n");
+            return -3;
+        }
 
-    this->config = this->builder->createBuilderConfig();
-    if (!config)
-    {
-        TLOG_ERR("Tengine: Cannot create nvinfer1::createBuilderConfig object.\n");
-        return -4;
-    }
+        // TODO: adapt to TRT6
+        const auto _explicit_batch = 1U << static_cast<uint32_t>(nvinfer1::NetworkDefinitionCreationFlag::kEXPLICIT_BATCH);
+        this->network = this->builder->createNetworkV2(_explicit_batch);
+        if (nullptr == this->network)
+        {
+            TLOG_ERR("Tengine: Cannot create nvinfer1::INetworkDefinition object.\n");
+            return -4;
+        }
 
-    nvinfer1::DataType type{ nvinfer1::DataType::kFLOAT };
-    if (0 != get_type(opt->precision, type))
-    {
-        TLOG_ERR("Tengine: Target precision(%d) is not supported.\n", opt->precision);
-        return -1;
-    }
+        this->config = this->builder->createBuilderConfig();
+        if (!config)
+        {
+            TLOG_ERR("Tengine: Cannot create nvinfer1::createBuilderConfig object.\n");
+            return -4;
+        }
 
-    switch (type)
-    {
+        nvinfer1::DataType type{nvinfer1::DataType::kFLOAT};
+        if (0 != get_type(opt->precision, type))
+        {
+            TLOG_ERR("Tengine: Target precision(%d) is not supported.\n", opt->precision);
+            return -1;
+        }
+
+        switch (type)
+        {
         case nvinfer1::DataType::kFLOAT:
         {
             // it seems that Ampere's TF32 is supported after Tensor 7.1.3
@@ -619,53 +681,56 @@ int TensorRTEngine::PreRun(struct subgraph* subgraph, struct trt_option* options
         }
         default:
             break;
-    }
+        }
 
-    this->config->setFlag(nvinfer1::BuilderFlag::kGPU_FALLBACK);
-    this->config->setMaxWorkspaceSize(1_GiB);
-
-    if (0 <= this->option.dla_index && nvinfer1::DataType::kINT8 == this->precision)
-    {
-        this->config->setDLACore(this->option.dla_index);
-        this->config->setDefaultDeviceType(nvinfer1::DeviceType::kDLA);
         this->config->setFlag(nvinfer1::BuilderFlag::kGPU_FALLBACK);
-    }
+        this->config->setMaxWorkspaceSize(1_GiB);
 
-    // setting layer precision
-    if (nvinfer1::DataType::kINT8 == this->precision)
-    {
-        for (int i = 0; i < this->network->getNbLayers(); ++i)
+        if (0 <= this->option.dla_index && nvinfer1::DataType::kINT8 == this->precision)
         {
-            auto layer = this->network->getLayer(i);
+            this->config->setDLACore(this->option.dla_index);
+            this->config->setDefaultDeviceType(nvinfer1::DeviceType::kDLA);
+            this->config->setFlag(nvinfer1::BuilderFlag::kGPU_FALLBACK);
+        }
 
-            // Don't set the precision on non-computation layers as they don't support int8.
-            if (layer->getType() != nvinfer1::LayerType::kCONSTANT && layer->getType() != nvinfer1::LayerType::kCONCATENATION && layer->getType() != nvinfer1::LayerType::kSHAPE)
+        // setting layer precision
+        if (nvinfer1::DataType::kINT8 == this->precision)
+        {
+            for (int i = 0; i < this->network->getNbLayers(); ++i)
             {
-                // set computation precision of the layer
-                layer->setPrecision(nvinfer1::DataType::kINT8);
-            }
+                auto layer = this->network->getLayer(i);
 
-            for (int j = 0; j < layer->getNbOutputs(); ++j)
-            {
-                std::string tensorName = layer->getOutput(j)->getName();
-
-                // set output type of execution tensors and not shape tensors.
-                if (layer->getOutput(j)->isExecutionTensor())
+                // Don't set the precision on non-computation layers as they don't support int8.
+                if (layer->getType() != nvinfer1::LayerType::kCONSTANT && layer->getType() != nvinfer1::LayerType::kCONCATENATION && layer->getType() != nvinfer1::LayerType::kSHAPE)
                 {
-                    layer->setOutputType(j, nvinfer1::DataType::kINT8);
+                    // set computation precision of the layer
+                    layer->setPrecision(nvinfer1::DataType::kINT8);
+                }
+
+                for (int j = 0; j < layer->getNbOutputs(); ++j)
+                {
+                    std::string tensorName = layer->getOutput(j)->getName();
+
+                    // set output type of execution tensors and not shape tensors.
+                    if (layer->getOutput(j)->isExecutionTensor())
+                    {
+                        layer->setOutputType(j, nvinfer1::DataType::kINT8);
+                    }
                 }
             }
         }
-    }
 
-    // Build trt engine
-    this->Build(subgraph);
+        // Build trt engine
+        this->Build(subgraph);
 
-    this->engine = this->builder->buildEngineWithConfig(*this->network, *this->config);
-    if(nullptr == this->engine)
-    {
-        TLOG_ERR("Tengine: Can not Build engine, please check config.\n");
-        return -1;
+        this->engine = this->builder->buildEngineWithConfig(*this->network, *this->config);
+        if (nullptr == this->engine)
+        {
+            TLOG_ERR("Tengine: Can not Build engine, please check config.\n");
+            return -1;
+        }
+
+        SaveEngine(opt->engine_file, this->engine);
     }
 
     // allocate gpu mem for input and output
@@ -682,11 +747,10 @@ int TensorRTEngine::PreRun(struct subgraph* subgraph, struct trt_option* options
             return -1;
         }
 
-
         int total_size = (int)(input_tensor->elem_num * input_tensor->elem_size);
         void* gpu_mem = nullptr;
 
-        if(cudaSuccess != cudaMalloc(&gpu_mem, total_size))
+        if (cudaSuccess != cudaMalloc(&gpu_mem, total_size))
         {
             TLOG_ERR("Tengine: Cannot malloc memory for input(%d).\n", input_tensor->index);
             return -1;
@@ -713,7 +777,7 @@ int TensorRTEngine::PreRun(struct subgraph* subgraph, struct trt_option* options
 
         void* gpu_mem = nullptr;
 
-        if(cudaSuccess != cudaMalloc(&gpu_mem, total_size))
+        if (cudaSuccess != cudaMalloc(&gpu_mem, total_size))
         {
             TLOG_ERR("Cannot malloc memory for output(%d).\n", output_tensor->index);
             return -1;
@@ -723,7 +787,7 @@ int TensorRTEngine::PreRun(struct subgraph* subgraph, struct trt_option* options
     }
 
     this->context = engine->createExecutionContext();
-    if(context == nullptr)
+    if (context == nullptr)
     {
         TLOG_ERR("Cannot create execution context.\n");
         return -1;

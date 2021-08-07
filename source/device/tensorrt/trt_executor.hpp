@@ -55,6 +55,9 @@ public:
 private:
     int Build(struct subgraph* subgraph);
 
+    void SaveEngine(const char* engine_file, nvinfer1::ICudaEngine* trt_engine);
+    bool LoadEngine(const char* engine_file, nvinfer1::ICudaEngine** trt_engine);
+
     void SetRange(struct graph* ir_graph, uint16_t id, nvinfer1::ITensor* trt_tensor);
     void SetRange(struct tensor* ir_tensor, nvinfer1::ITensor* trt_tensor);
 
