@@ -109,7 +109,7 @@ private:
     nvdla::DataType precision = nvdla::DataType::INT8;
     nvdla::DataFormat inDataFormat = nvdla::DataFormat::NCHW;
     nvdla::TensorScalingMode scalingMode = nvdla::TensorScalingMode::PER_TENSOR;
-    nvdla::QuantizationMode quantizationMode = nvdla::QuantizationMode::PER_KERNEL;
+    nvdla::QuantizationMode quantizationMode = nvdla::QuantizationMode::PER_FILTER;
     uint32_t numBatches = 1;
     NvU8* inputHandle{};
     NvU8* outputHandle{};

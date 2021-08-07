@@ -55,57 +55,57 @@ nvdla::priv::canonical_ast::Node * ODLAEngine::AddFullyConnectionNode(struct nod
 
     switch (weight_tensor->data_type)
     {
-    case TENGINE_DT_FP32:
-    {
-        kernelWeights.values = weight_tensor->data;
-        kernelWeights.count = weight_tensor->elem_num;
-        kernelWeights.type = nvdla::DataType::FLOAT;
-        break;
-    }
-    case TENGINE_DT_INT8:
-    {
-        if (weight_tensor->quant_param_num != weight_tensor->dims[0])
+        case TENGINE_DT_FP32:
         {
-            fprintf(stderr, "Tengine: Unsupported weight quant channel of conv(id: %d, name: %s).\n", ir_node->index, ir_node->name);
-            return nullptr;
+            kernelWeights.values = weight_tensor->data;
+            kernelWeights.count = weight_tensor->elem_num;
+            kernelWeights.type = nvdla::DataType::FLOAT;
+            break;
         }
-
-        float* weight_buffer = (float*)malloc(weight_tensor->elem_num * weight_tensor->elem_size);
-        this->host_buffer.push_back(weight_buffer);
-
-        for (int ch = 0; ch < weight_tensor->quant_param_num; ch++)
+        case TENGINE_DT_INT8:
         {
-            int block_size = weight_tensor->dims[1] * weight_tensor->dims[2] * weight_tensor->dims[3];
-            for (int i = 0; i < block_size; i++)
+            if (weight_tensor->quant_param_num != weight_tensor->dims[0])
             {
-                int offset = block_size * ch;
-                weight_buffer[i] = (float)(((int8_t*)weight_tensor->data)[offset + i]) * weight_tensor->scale_list[ch];
+                fprintf(stderr, "Tengine: Unsupported weight quant channel of conv(id: %d, name: %s).\n", ir_node->index, ir_node->name);
+                return nullptr;
             }
+
+            float* weight_buffer = (float*)malloc(weight_tensor->elem_num * sizeof(float));
+            this->host_buffer.push_back(weight_buffer);
+
+            for (int ch = 0; ch < weight_tensor->quant_param_num; ch++)
+            {
+                int block_size = weightDims.c * weightDims.h * weightDims.w;
+                for (int i = 0; i < block_size; i++)
+                {
+                    int offset = block_size * ch;
+                    weight_buffer[offset + i] = (float)(((int8_t*)weight_tensor->data)[offset + i]) * weight_tensor->scale_list[ch];
+                }
+            }
+
+            kernelWeights.values = weight_buffer;
+            kernelWeights.count = weight_tensor->elem_num;
+            kernelWeights.type = nvdla::DataType::FLOAT;
+            break;
         }
-
-        kernelWeights.values = weight_buffer;
-        kernelWeights.count = weight_tensor->elem_num;
-        kernelWeights.type = nvdla::DataType::FLOAT;
-        break;
-    }
-    case TENGINE_DT_UINT8:
-    {
-        float* weight_buffer = (float*)malloc(weight_tensor->elem_num * weight_tensor->elem_size);
-        this->host_buffer.push_back(weight_buffer);
-
-        for (int i = 0; i < weight_tensor->elem_num; i++)
+        case TENGINE_DT_UINT8:
         {
-            weight_buffer[i] = (float)(((uint8_t*)weight_tensor->data)[i] - weight_tensor->zero_point) * weight_tensor->scale;
-        }
+            float* weight_buffer = (float*)malloc(weight_tensor->elem_num * sizeof(float));
+            this->host_buffer.push_back(weight_buffer);
 
-        kernelWeights.values = weight_buffer;
-        kernelWeights.count = weight_tensor->elem_num;
-        kernelWeights.type = nvdla::DataType::FLOAT;
-        break;
-    }
-    default:
-        fprintf(stderr, "Tengine: Unsupported weight quant data type(%d) of conv(id: %d, name: %s).\n", weight_tensor->data_type, ir_node->index, ir_node->name);
-        return nullptr;
+            for (int i = 0; i < weight_tensor->elem_num; i++)
+            {
+                weight_buffer[i] = (float)(((uint8_t*)weight_tensor->data)[i] - weight_tensor->zero_point) * weight_tensor->scale;
+            }
+
+            kernelWeights.values = weight_buffer;
+            kernelWeights.count = weight_tensor->elem_num;
+            kernelWeights.type = nvdla::DataType::FLOAT;
+            break;
+        }
+        default:
+            fprintf(stderr, "Tengine: Unsupported weight quant data type(%d) of conv(id: %d, name: %s).\n", weight_tensor->data_type, ir_node->index, ir_node->name);
+            return nullptr;
     }
 
     if (ir_node->input_num > 2)
@@ -115,40 +115,40 @@ nvdla::priv::canonical_ast::Node * ODLAEngine::AddFullyConnectionNode(struct nod
 
         switch (bias_tensor->data_type)
         {
-        case TENGINE_DT_FP32:
-        {
-            biasWeights.values = bias_tensor->data;
-            biasWeights.count = bias_tensor->elem_num;
-            biasWeights.type = nvdla::DataType::FLOAT;
-            break;
-        }
-        case TENGINE_DT_INT32:
-        {
-            float* bias_buffer = (float*)malloc(bias_tensor->elem_num * bias_tensor->elem_size);
-            this->host_buffer.push_back(bias_buffer);
+            case TENGINE_DT_FP32:
+            {
+                biasWeights.values = bias_tensor->data;
+                biasWeights.count = bias_tensor->elem_num;
+                biasWeights.type = nvdla::DataType::FLOAT;
+                break;
+            }
+            case TENGINE_DT_INT32:
+            {
+                float* bias_buffer = (float*)malloc(bias_tensor->elem_num * sizeof(float));
+                this->host_buffer.push_back(bias_buffer);
 
-            if (1 == bias_tensor->quant_param_num)
-            {
-                for (uint32_t i = 0; i < bias_tensor->elem_num; i++)
+                if (1 == bias_tensor->quant_param_num)
                 {
-                    bias_buffer[i] = (float)(((int32_t*)bias_tensor->data)[i]) * bias_tensor->scale;
+                    for (uint32_t i = 0; i < bias_tensor->elem_num; i++)
+                    {
+                        bias_buffer[i] = (float)(((int32_t*)bias_tensor->data)[i]) * bias_tensor->scale;
+                    }
                 }
-            }
-            else
-            {
-                for (uint32_t i = 0; i < bias_tensor->elem_num; i++)
+                else
                 {
-                    bias_buffer[i] = (float)(((int32_t*)bias_tensor->data)[i]) * bias_tensor->scale_list[i];
+                    for (uint32_t i = 0; i < bias_tensor->elem_num; i++)
+                    {
+                        bias_buffer[i] = (float)(((int32_t*)bias_tensor->data)[i]) * bias_tensor->scale_list[i];
+                    }
                 }
+                biasWeights.values = bias_buffer;
+                biasWeights.count = bias_tensor->elem_num;
+                biasWeights.type = nvdla::DataType::FLOAT;
+                break;
             }
-            biasWeights.values = bias_buffer;
-            biasWeights.count = bias_tensor->elem_num;
-            biasWeights.type = nvdla::DataType::FLOAT;
-            break;
-        }
-        default:
-            fprintf(stderr, "Tengine: Unsupported weight quant data type(%d) of conv(id: %d, name: %s).\n", bias_tensor->data_type, ir_node->index, ir_node->name);
-            return nullptr;
+            default:
+                fprintf(stderr, "Tengine: Unsupported weight quant data type(%d) of conv(id: %d, name: %s).\n", bias_tensor->data_type, ir_node->index, ir_node->name);
+                return nullptr;
         }
 
         fullyConnectedNode->params().setHasBiasTerm(true);

@@ -91,7 +91,6 @@ nvdla::priv::canonical_ast::Node * ODLAEngine::AddConvolutionNode(struct node* i
                         {
                             int offset = block_size * ch;
                             weight_buffer[offset + i] = (float)(((int8_t*)conv_weight->data)[offset + i]) * conv_weight->scale_list[ch];
-                            std::cout << "weight data from int32: " << (float)(((int8_t*)conv_weight->data)[offset + i]) << " to " <<  weight_buffer[offset + i] << std::endl;
                         }
                     }
 
@@ -150,8 +149,6 @@ nvdla::priv::canonical_ast::Node * ODLAEngine::AddConvolutionNode(struct node* i
                             for (uint32_t i = 0; i < conv_bias->elem_num; i++)
                             {
                                 bias_buffer[i] = (float)(((int32_t*)conv_bias->data)[i]) * conv_bias->scale_list[i];
-                                std::cout << "bias data from int32: " << (float)(((int32_t*)conv_bias->data)[i]) << " to " <<  bias_buffer[i] << std::endl;
-
                             }
                         }
                         biasWeights.values = bias_buffer;
