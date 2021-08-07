@@ -14,8 +14,8 @@
 
 | 物品         | 描述                                                         |
 | ------------ | ------------------------------------------------------------ |
-| Master服务器 | SuperEdge Master 服务器, 用于应用调度，可采用X86 or Arm 架构，本例中采用X86服务器 |
-| Khadas VIM3  | 应用负载工作节点，内置 A311D SoC 的单板计算机，内置 5Tops NPU 加速器,各大商城有售 |
+| Master服务器 | SuperEdge Master 服务器， 用于应用调度，可采用X86 or Arm 架构，本例中采用X86服务器 |
+| Khadas VIM3  | 应用负载工作节点，内置 A311D SoC 的单板计算机，内置 5Tops NPU 加速器，各大商城有售 |
 | USB 摄像头   | 连接Khadas VIM3，输入实时视频流                              |
 | 液晶显示器   | 连接Khadas VIM3，控制台操作，实时输出示例运行结果            |
 | HDMI连接线   | 由于Khadas VIM3 的 TYPE C 接口与 HDMI 接口过于紧凑，需要寻找小一点接口的 HMDI 连接线 |
