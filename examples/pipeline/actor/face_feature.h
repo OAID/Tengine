@@ -151,7 +151,7 @@ public:
         std::vector<Feature> features;
         std::tuple<cv::Mat, std::vector<Feature>> inp;
         auto suc = input<0>()->pop(inp);
-        if (not suc or mat.empty())
+        if (not suc)
         {
             return;
         }
@@ -191,6 +191,7 @@ public:
         for (auto feature: features) {
             auto rect = get_bbox(feature);
             cv::Mat crop = mat(rect);
+            cv::imwrite("feature_input.jpg", crop);
 
             /* prepare process input data, set the data mem to input tensor */
             Profiler prof({"preproc", "inference"});

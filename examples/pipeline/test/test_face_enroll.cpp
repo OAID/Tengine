@@ -30,9 +30,6 @@
 #include <opencv2/opencv.hpp>
 using namespace pipeline;
 
-#define HEIGHT (480)
-#define WIDTH  (640)
-
 int main(int argc, char* argv[])
 {
     if (argc < 2) {
@@ -58,5 +55,6 @@ int main(int argc, char* argv[])
     feature_face->set_input<0>(lmk_feature);
 
     g.start();
-    std::this_thread::sleep_for(std::chrono::milliseconds(600000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+    g.finish();
 }

@@ -180,34 +180,19 @@ public:
         std::vector<cv::Rect> rects;
         if (not results.empty())
         {
-            auto result = std::max_element(results.begin(), results.end(), [](const Box<float> &a, const Box<float>& b) -> bool {
+            auto result = std::max_element(results.begin(), results.end(), [](Box<float> a, Box<float> b) -> bool {
                 a.score < b.score;
             });
 
             cv::Rect rect(std::max(0.f, result->x0), std::max(0.f, result->y0),
-                            result->x1 - result->x0, result->y1 - result->y0);
+                            result->x1 - std::max(0.f, result->x0), result->y1 - std::max(0.f, result->y0));
             rect.width = std::min(rect.width, mat.cols - rect.x - 1);
             rect.height = std::min(rect.height, mat.rows - rect.y - 1);
 
-            cv::rectangle(mat, rect, cv::Scalar(255, 255, 255), 3);
+            // cv::rectangle(mat, rect, cv::Scalar(255, 255, 255), 3);
             rects.emplace_back(rect);
+
             output<0>()->try_push(std::move(std::make_tuple(mat, rects)));
-
-            // for (auto& result : results)
-            // {
-            //     fprintf(stdout, "%f  %f %f %f\n", result.x0, result.y0, result.x1, result.y1);
-
-            //     cv::Rect rect(std::max(0.f, result.x0), std::max(0.f, result.y0),
-            //                   result.x1 - result.x0, result.y1 - result.y0);
-            //     rect.width = std::min(rect.width, mat.cols - rect.x - 1);
-            //     rect.height = std::min(rect.height, mat.rows - rect.y - 1);
-
-            //     cv::Mat crop = mat(rect);
-            //     cv::imwrite("lanmark_input.jpg", crop);
-            //     cv::rectangle(mat, rect, cv::Scalar(255, 255, 255), 3);
-
-            //     rects.emplace_back(rect);
-            // }
         } else {
             output<0>()->try_push(std::move(std::make_tuple(mat, rects)));
         }
@@ -380,7 +365,6 @@ public:
                 rects.x1 = clip(x_center + w / 2.0, 1) * image_w;
                 rects.y1 = clip(y_center + h / 2.0, 1) * image_h;
                 rects.score = clip(scores_data[i * 2 + 1], 1);
-                rects.print();
                 bbox_collection.emplace_back(rects);
             }
         }

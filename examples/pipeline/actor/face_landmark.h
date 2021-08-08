@@ -150,49 +150,49 @@ public:
         cv::Mat mat;
         std::vector<cv::Rect> rects;
         std::tuple<cv::Mat, std::vector<cv::Rect>>  inp;
-        auto suc = input<0>()->pop(inp);
-        if (not suc or mat.empty())
+        if ( input<0>()->pop(inp))
         {
-            return;
+            std::tie(mat, rects) = inp;
+            fprintf(stdout, "landmark process\n");
+
+            std::vector<Feature> features;
+
+            for (auto rect: rects) {
+                cv::Mat crop = mat(rect);
+                /* prepare process input data, set the data mem to input tensor */
+                Profiler prof({"preproc", "inference"});
+                prof.dot();
+                m_preproc(crop, m_input);
+                prof.dot();
+
+                if (run_graph(m_graph, 1) < 0)
+                {
+                    fprintf(stderr, "Run graph failed\n");
+                    return;
+                }
+                prof.dot();
+                prof.show();
+
+                /* process the landmark result */
+                tensor_t output_tensor = get_graph_output_tensor(m_graph, 0, 0);
+                float* data = (float*)(get_tensor_buffer(output_tensor));
+                const int data_size = get_tensor_buffer_size(output_tensor) / sizeof(float);
+
+                Feature f = { "landmark"};
+                for (int i = 0; i < data_size / 2; i++)
+                {
+                    float x = data[2 * i] * (float)crop.cols / m_tensor_in_w + rect.x;
+                    float y = data[2 * i + 1] * (float)crop.rows / m_tensor_in_h + rect.y;
+                    f.data.emplace_back(x);
+                    f.data.emplace_back(y);
+                }
+                features.emplace_back(std::move(f));
+            }
+
+            output<0>()->try_push(std::move(std::make_tuple(mat, features)));
         }
 
-        std::tie(mat, rects) = inp;
 
-        std::vector<Feature> features;
-
-        for (auto rect: rects) {
-            cv::Mat crop = mat(rect);
-            /* prepare process input data, set the data mem to input tensor */
-            Profiler prof({"preproc", "inference"});
-            prof.dot();
-            m_preproc(crop, m_input);
-            prof.dot();
-
-            if (run_graph(m_graph, 1) < 0)
-            {
-                fprintf(stderr, "Run graph failed\n");
-                return;
-            }
-            prof.dot();
-            prof.show();
-
-            /* process the landmark result */
-            tensor_t output_tensor = get_graph_output_tensor(m_graph, 0, 0);
-            float* data = (float*)(get_tensor_buffer(output_tensor));
-            const int data_size = get_tensor_buffer_size(output_tensor) / sizeof(float);
-
-            Feature f = { "landmark"};
-            for (int i = 0; i < data_size / 2; i++)
-            {
-                float x = data[2 * i] * (float)crop.cols / m_tensor_in_w;
-                float y = data[2 * i + 1] * (float)crop.rows / m_tensor_in_h;
-                f.data.emplace_back(x);
-                f.data.emplace_back(y);
-            }
-            features.emplace_back(std::move(f));
-        }
-
-        output<0>()->try_push(std::move(std::make_tuple(mat, features)));
         return;
     }
 
