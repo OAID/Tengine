@@ -204,10 +204,9 @@ public:
         }
 
         /* prepare process input data, set the data mem to input tensor */
-        Profiler prof({"preproc", "inference", "postproc"});
+        Profiler prof("pedestrian_detection");
         prof.dot();
         m_preproc(mat, m_input);
-
         prof.dot();
 
         if (run_graph(m_graph, 1) < 0)
@@ -229,7 +228,6 @@ public:
         auto results = m_postproc(output_data, out_dim[1], mat.rows, mat.cols);
 
         prof.dot();
-        prof.show();
 
         if (not results.empty())
         {

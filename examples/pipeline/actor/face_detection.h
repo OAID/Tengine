@@ -154,7 +154,7 @@ public:
         }
 
         /* prepare process input data, set the data mem to input tensor */
-        Profiler prof({"preproc", "inference", "postproc"});
+        Profiler prof("face_detection");
         prof.dot();
         m_preproc(mat, m_input);
         prof.dot();
@@ -175,7 +175,6 @@ public:
 
         auto results = postprocess(mat, boxs_data, scores_data);
         prof.dot();
-        prof.show();
 
         std::vector<cv::Rect> rects;
         if (not results.empty())

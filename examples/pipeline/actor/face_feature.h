@@ -197,10 +197,9 @@ public:
         {
             auto rect = get_bbox(feature);
             cv::Mat crop = mat(rect);
-            cv::imwrite("feature_input.jpg", crop);
 
             /* prepare process input data, set the data mem to input tensor */
-            Profiler prof({"preproc", "inference"});
+            Profiler prof("face_feature");
             prof.dot();
             m_preproc(crop, m_input);
             prof.dot();
@@ -211,7 +210,6 @@ public:
                 return;
             }
             prof.dot();
-            prof.show();
 
             /* process the landmark result */
             tensor_t output_tensor = get_graph_output_tensor(m_graph, 0, 0);

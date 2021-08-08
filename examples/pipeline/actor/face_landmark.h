@@ -153,15 +153,13 @@ public:
         if (input<0>()->pop(inp))
         {
             std::tie(mat, rects) = inp;
-            fprintf(stdout, "landmark process\n");
-
             std::vector<Feature> features;
 
             for (auto rect : rects)
             {
                 cv::Mat crop = mat(rect);
                 /* prepare process input data, set the data mem to input tensor */
-                Profiler prof({"preproc", "inference"});
+                Profiler prof("face_landmark");
                 prof.dot();
                 m_preproc(crop, m_input);
                 prof.dot();
@@ -172,7 +170,6 @@ public:
                     return;
                 }
                 prof.dot();
-                prof.show();
 
                 /* process the landmark result */
                 tensor_t output_tensor = get_graph_output_tensor(m_graph, 0, 0);

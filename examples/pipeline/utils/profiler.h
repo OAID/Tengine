@@ -26,15 +26,24 @@
 #include <vector>
 #include <string>
 #include <sys/time.h>
+#include "text_table.h"
 
 namespace pipeline {
 class Profiler
 {
 public:
     Profiler() = delete;
-    Profiler(std::vector<std::string> tags)
-        : m_tags(tags)
+    Profiler(const std::string& name)
     {
+        m_table = TextTable(name);
+        m_table.padding(1);
+        m_table.align(TextTable::Align::Mid)
+        .add("preproc")
+        .add("inference")
+        .add("postproc")
+        .eor();
+
+        m_data.reserve(4);
     }
 
     void dot()
@@ -44,28 +53,53 @@ public:
         m_data.emplace_back(tv.tv_sec * 1000.0 + tv.tv_usec / 1000.0);
     }
 
-    void show() noexcept
+    ~Profiler()
     {
-        if (m_data.size() <= m_tags.size())
-        {
-            fprintf(stderr, "profile dot not enough\n");
+        if (m_data.size() > 4) {
+            m_data.resize(4);
         }
-
-        for (size_t i = 0; i < m_tags.size(); ++i)
+        const int size = m_data.size();
+        switch (size)
         {
-            fprintf(stdout, "%s: %.2f \t", m_tags[i].c_str(), m_data[i + 1] - m_data[i]);
+        case 0:
+        case 1:
+            break;
+        case 2:
+            m_table.align(TextTable::Align::Mid);
+            m_table.add(std::to_string(m_data[1] - m_data[0]));
+            m_table.eor();
+            break;
+        case 3:
+            m_table.align(TextTable::Align::Mid);
+            m_table.add(std::to_string(m_data[1] - m_data[0]));
+            m_table.add(std::to_string(m_data[2] - m_data[1]));
+            m_table.eor();
+            break;
+        case 4:
+            m_table.align(TextTable::Align::Mid);
+            m_table.add(std::to_string(m_data[1] - m_data[0]));
+            m_table.add(std::to_string(m_data[2] - m_data[1]));
+            m_table.add(std::to_string(m_data[3] - m_data[2]));
+            m_table.eor();
+            break;
+        default:
+            break;
         }
-        fprintf(stdout, "\n");
+        std::stringstream ss;
+        ss << m_table;
+        fprintf(stdout, "%s\n", ss.str().c_str());
+        return;
     }
 
-    void clear()
+    void reset()
     {
         m_data.clear();
     }
 
 private:
-    std::vector<std::string> m_tags;
     std::vector<double> m_data;
+    TextTable m_table;
+
 };
 
 } // namespace pipeline
