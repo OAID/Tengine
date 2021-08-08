@@ -38,10 +38,10 @@ public:
         m_table = TextTable(name);
         m_table.padding(1);
         m_table.align(TextTable::Align::Mid)
-        .add("preproc")
-        .add("inference")
-        .add("postproc")
-        .eor();
+            .add("preproc")
+            .add("inference")
+            .add("postproc")
+            .eor();
 
         m_data.reserve(4);
     }
@@ -55,7 +55,8 @@ public:
 
     ~Profiler()
     {
-        if (m_data.size() > 4) {
+        if (m_data.size() > 4)
+        {
             m_data.resize(4);
         }
         const int size = m_data.size();
@@ -99,7 +100,6 @@ public:
 private:
     std::vector<double> m_data;
     TextTable m_table;
-
 };
 
 } // namespace pipeline
