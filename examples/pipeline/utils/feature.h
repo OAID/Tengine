@@ -24,7 +24,6 @@
 #pragma once
 #include <vector>
 #include <string>
-#include "serializer.h"
 
 namespace pipeline {
 

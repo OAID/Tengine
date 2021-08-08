@@ -127,7 +127,7 @@ public:
             return;
         }
 
-        const int size = m_input.cols * m_input.rows * m_input.elemSize();
+        const int size = static_cast<int>(m_input.cols * m_input.rows * m_input.elemSize());
         fprintf(stdout, "tensor_buffer size %d\n", size);
         if (set_tensor_buffer(input_tensor, (void*)(m_input.data), size) < 0)
         {

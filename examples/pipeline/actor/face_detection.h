@@ -180,7 +180,7 @@ public:
         if (not results.empty())
         {
             auto result = std::max_element(results.begin(), results.end(), [](Box<float> a, Box<float> b) -> bool {
-                a.score < b.score;
+                return a.score < b.score;
             });
 
             cv::Rect rect(std::max(0.f, result->x0), std::max(0.f, result->y0),

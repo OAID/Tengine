@@ -52,6 +52,7 @@ public:
             {
                 return true;
             }
+            return false;
         };
 
         if (is_image(m_path))
