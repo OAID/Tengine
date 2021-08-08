@@ -43,7 +43,7 @@ namespace pipeline {
 #define HARD_NMS     (1)
 #define BLENDING_NMS (2) /* mix nms was been proposaled in paper blaze face, aims to minimize the temporal jitter*/
 
-class FaceFeature : public Node<Param<std::tuple<cv::Mat, std::vector<Feature>> >, Param<void> >
+class FaceFeature : public Node<Param<std::tuple<cv::Mat, std::vector<Feature> > >, Param<void> >
 {
 public:
     using preproc_func = typename std::function<void(const cv::Mat&, cv::Mat&)>;
@@ -149,7 +149,7 @@ public:
     {
         cv::Mat mat;
         std::vector<Feature> features;
-        std::tuple<cv::Mat, std::vector<Feature>> inp;
+        std::tuple<cv::Mat, std::vector<Feature> > inp;
         auto suc = input<0>()->pop(inp);
         if (not suc)
         {
@@ -158,25 +158,30 @@ public:
 
         std::tie(mat, features) = inp;
 
-        auto get_bbox =[&](const Feature& feature) -> cv::Rect2f {
+        auto get_bbox = [&](const Feature& feature) -> cv::Rect2f {
             /* get landmark bbox */
-            float l = FLT_MAX, r = FLT_MIN, t =FLT_MAX, b = FLT_MIN;
+            float l = FLT_MAX, r = FLT_MIN, t = FLT_MAX, b = FLT_MIN;
             auto& data = feature.data;
-            for (int i = 0; i < data.size() / 2; ++i) {
+            for (int i = 0; i < data.size() / 2; ++i)
+            {
                 int idx = i * 2;
-                if (l > data[idx]) {
+                if (l > data[idx])
+                {
                     l = data[idx];
                 }
-                if (r < data[idx]) {
+                if (r < data[idx])
+                {
                     r = data[idx];
                 }
 
-                if (t > data[idx+1]) {
-                    t = data[idx+1];
+                if (t > data[idx + 1])
+                {
+                    t = data[idx + 1];
                 }
 
-                if (b < data[idx+1]) {
-                    b = data[idx+1];
+                if (b < data[idx + 1])
+                {
+                    b = data[idx + 1];
                 }
             }
 
@@ -185,10 +190,11 @@ public:
             r = std::min(r, mat.cols * 1.f);
             b = std::min(b, mat.rows * 1.f);
 
-            return cv::Rect2f(l, t, r -l, b-t);
+            return cv::Rect2f(l, t, r - l, b - t);
         };
 
-        for (auto feature: features) {
+        for (auto feature : features)
+        {
             auto rect = get_bbox(feature);
             cv::Mat crop = mat(rect);
             cv::imwrite("feature_input.jpg", crop);

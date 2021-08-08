@@ -32,7 +32,8 @@ using namespace pipeline;
 
 int main(int argc, char* argv[])
 {
-    if (argc < 2) {
+    if (argc < 2)
+    {
         fprintf(stderr, "usage: ./pipeline_enroll_face IMAGE_DIR \n");
         return -1;
     }
@@ -43,9 +44,9 @@ int main(int argc, char* argv[])
     auto landmark_face = g.add_node<FaceLandmark, std::string>("landmark.tmfile");
     auto feature_face = g.add_node<FaceFeature, std::string>("mobilefacenet.tmfile");
 
-    auto image_det =g.add_edge<InstantEdge<cv::Mat>>(100);
-    auto det_lmk =g.add_edge<InstantEdge<std::tuple<cv::Mat, std::vector<cv::Rect>>> >(100);
-    auto lmk_feature =g.add_edge<InstantEdge<std::tuple<cv::Mat, std::vector<Feature>>>>(100);
+    auto image_det = g.add_edge<InstantEdge<cv::Mat> >(100);
+    auto det_lmk = g.add_edge<InstantEdge<std::tuple<cv::Mat, std::vector<cv::Rect> > > >(100);
+    auto lmk_feature = g.add_edge<InstantEdge<std::tuple<cv::Mat, std::vector<Feature> > > >(100);
 
     images->set_output<0>(image_det);
     detect_face->set_input<0>(image_det);

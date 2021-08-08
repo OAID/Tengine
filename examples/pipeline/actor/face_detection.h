@@ -42,7 +42,7 @@ namespace pipeline {
 #define HARD_NMS     (1)
 #define BLENDING_NMS (2) /* mix nms was been proposaled in paper blaze face, aims to minimize the temporal jitter*/
 
-class FaceDetection : public Node<Param<cv::Mat>, Param<std::tuple<cv::Mat, std::vector<cv::Rect>> > >
+class FaceDetection : public Node<Param<cv::Mat>, Param<std::tuple<cv::Mat, std::vector<cv::Rect> > > >
 {
 public:
     using preproc_func = typename std::function<void(const cv::Mat&, cv::Mat&)>;
@@ -185,7 +185,7 @@ public:
             });
 
             cv::Rect rect(std::max(0.f, result->x0), std::max(0.f, result->y0),
-                            result->x1 - std::max(0.f, result->x0), result->y1 - std::max(0.f, result->y0));
+                          result->x1 - std::max(0.f, result->x0), result->y1 - std::max(0.f, result->y0));
             rect.width = std::min(rect.width, mat.cols - rect.x - 1);
             rect.height = std::min(rect.height, mat.rows - rect.y - 1);
 
@@ -193,7 +193,9 @@ public:
             rects.emplace_back(rect);
 
             output<0>()->try_push(std::move(std::make_tuple(mat, rects)));
-        } else {
+        }
+        else
+        {
             output<0>()->try_push(std::move(std::make_tuple(mat, rects)));
         }
         return;

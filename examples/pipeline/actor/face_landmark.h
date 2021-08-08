@@ -43,7 +43,7 @@ namespace pipeline {
 #define HARD_NMS     (1)
 #define BLENDING_NMS (2) /* mix nms was been proposaled in paper blaze face, aims to minimize the temporal jitter*/
 
-class FaceLandmark : public Node<Param<std::tuple<cv::Mat, std::vector<cv::Rect>> >, Param<std::tuple<cv::Mat, std::vector<Feature>> > >
+class FaceLandmark : public Node<Param<std::tuple<cv::Mat, std::vector<cv::Rect> > >, Param<std::tuple<cv::Mat, std::vector<Feature> > > >
 {
 public:
     using preproc_func = typename std::function<void(const cv::Mat&, cv::Mat&)>;
@@ -149,15 +149,16 @@ public:
     {
         cv::Mat mat;
         std::vector<cv::Rect> rects;
-        std::tuple<cv::Mat, std::vector<cv::Rect>>  inp;
-        if ( input<0>()->pop(inp))
+        std::tuple<cv::Mat, std::vector<cv::Rect> > inp;
+        if (input<0>()->pop(inp))
         {
             std::tie(mat, rects) = inp;
             fprintf(stdout, "landmark process\n");
 
             std::vector<Feature> features;
 
-            for (auto rect: rects) {
+            for (auto rect : rects)
+            {
                 cv::Mat crop = mat(rect);
                 /* prepare process input data, set the data mem to input tensor */
                 Profiler prof({"preproc", "inference"});
@@ -178,7 +179,7 @@ public:
                 float* data = (float*)(get_tensor_buffer(output_tensor));
                 const int data_size = get_tensor_buffer_size(output_tensor) / sizeof(float);
 
-                Feature f = { "landmark"};
+                Feature f = {"landmark"};
                 for (int i = 0; i < data_size / 2; i++)
                 {
                     float x = data[2 * i] * (float)crop.cols / m_tensor_in_w + rect.x;
@@ -191,7 +192,6 @@ public:
 
             output<0>()->try_push(std::move(std::make_tuple(mat, features)));
         }
-
 
         return;
     }
