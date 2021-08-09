@@ -70,8 +70,8 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     int element_size = output_tensor->elem_size;
 
     int dims[4] = {1, 1, 1, 1};
-//    int* dims = (int*)malloc(input_tensor->dim_num * sizeof(int));
-//    memset(dims, 0, input_tensor->dim_num * sizeof(int));
+    //    int* dims = (int*)malloc(input_tensor->dim_num * sizeof(int));
+    //    memset(dims, 0, input_tensor->dim_num * sizeof(int));
     for (int i = 0; i < input_tensor->dim_num; i++)
     {
         dims[i] = input_tensor->dims[i];
@@ -110,7 +110,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         ret = ref_reduce_uint8((uint8_t*)input_tensor->data, (uint8_t*)output_tensor->data, dim0, dim1, dim2, dim3,
                                out_tensor_size, &param, in_dim_num, dims);
     }
-//    free(dims);
+    //    free(dims);
 
     return ret;
 }

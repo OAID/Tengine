@@ -60,17 +60,17 @@ static int ref_matmul_fp32(float* input0, float* input1, float* output, struct r
             float* data1 = NULL;
             switch (param->input1_dim_num)
             {
-                case 4:
-                    data1 = input1 + b * c * n * k + in_c * n * k;
-                    break;
-                case 3:
-                    data1 = input1 + in_c * n * k;
-                    break;
-                case 2:
-                    data1 = input1;
-                    break;
-                default:
-                    return -1;
+            case 4:
+                data1 = input1 + b * c * n * k + in_c * n * k;
+                break;
+            case 3:
+                data1 = input1 + in_c * n * k;
+                break;
+            case 2:
+                data1 = input1;
+                break;
+            default:
+                return -1;
             }
             if (data1 == NULL)
             {
@@ -78,15 +78,15 @@ static int ref_matmul_fp32(float* input0, float* input1, float* output, struct r
             }
             for (int in_m = 0; in_m < m; in_m++)
             {
-//                for (int in_n = 0; in_n < n; in_n++)
+                //                for (int in_n = 0; in_n < n; in_n++)
                 for (int in_k = 0; in_k < k; in_k++)
                 {
                     float tmp = 0;
-//                    for (int in_k = 0; in_k < k; in_k++)
+                    //                    for (int in_k = 0; in_k < k; in_k++)
                     for (int in_n = 0; in_n < n; in_n++)
                     {
-//                        int index0 = in_m * k + in_k;
-//                        int index1 = n * in_k + in_n;
+                        //                        int index0 = in_m * k + in_k;
+                        //                        int index1 = n * in_k + in_n;
                         int index0 = in_m * n + in_n;
                         int index1 = in_n * k + in_k;
                         tmp += data0[index0] * data1[index1];
@@ -126,7 +126,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         param.c = input_tensor->dims[1];
         param.m = input_tensor->dims[2];
         param.n = input_tensor->dims[3];
-//        param.k = input_tensor->dims[3];
+        //        param.k = input_tensor->dims[3];
     }
     else if (dim_size == 3)
     {
@@ -134,7 +134,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         param.c = input_tensor->dims[0];
         param.m = input_tensor->dims[1];
         param.n = input_tensor->dims[2];
-//        param.k = input_tensor->dims[2];
+        //        param.k = input_tensor->dims[2];
     }
     else if (dim_size == 2)
     {
@@ -142,7 +142,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         param.c = 1; // input0->Getse().Shape(0);
         param.m = input_tensor->dims[0];
         param.n = input_tensor->dims[1];
-//        param.k = input_tensor->dims[1];
+        //        param.k = input_tensor->dims[1];
     }
     param.input1_dim_num = input_tensor1->dim_num;
     param.k = input_tensor1->dims[input_tensor1->dim_num - 1];

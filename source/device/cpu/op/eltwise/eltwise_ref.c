@@ -860,23 +860,23 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         input_tensor1 = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
         input1 = input_tensor1->data;
         input1_count4 = input_tensor1->elem_num;
-        int dim1_size = input_tensor1->dim_num;\
+        int dim1_size = input_tensor1->dim_num;
         switch (dim1_size)
         {
-            case 1:
-                input_hw_1 = input_tensor1->dims[0];
-                break;
-            case 2:
-                input_hw_1 = input_tensor1->dims[0] * input_tensor1->dims[1];
-                break;
-            case 3:
-                input_hw_1 = input_tensor1->dims[1] * input_tensor1->dims[2];
-                break;
-            case 4:
-                input_hw_1 = input_tensor1->dims[2] * input_tensor1->dims[3];
-                break;
-            default:
-                return -1;
+        case 1:
+            input_hw_1 = input_tensor1->dims[0];
+            break;
+        case 2:
+            input_hw_1 = input_tensor1->dims[0] * input_tensor1->dims[1];
+            break;
+        case 3:
+            input_hw_1 = input_tensor1->dims[1] * input_tensor1->dims[2];
+            break;
+        case 4:
+            input_hw_1 = input_tensor1->dims[2] * input_tensor1->dims[3];
+            break;
+        default:
+            return -1;
         }
     }
 

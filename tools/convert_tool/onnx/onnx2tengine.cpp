@@ -195,7 +195,7 @@ int onnx_serializer::load_constant_tensor(ir_graph_t* graph, const onnx::GraphPr
 
         if ((op == "Reshape" || op == "Gather" || op == "Div" || op == "Resize"))
         {
-            if(node_tensor.count(node.input(1)) == 0)
+            if (node_tensor.count(node.input(1)) == 0)
                 continue;
             const onnx::TensorProto& onnx_tensor = node_tensor[node.input(1)];
             std::pair<std::string, bool> t(node.input(1), 0);
@@ -699,11 +699,11 @@ int reduce2avgpool(ir_graph_t* graph)
                 continue;
             }
             struct reduction_param* param = (struct reduction_param*)node->op.param_mem;
-            
+
             if (param->type != 1 || param->dim_0 != 2 || param->dim_1 != 3 || param->dim_2 != -2 || param->dim_3 != -2)
             {
                 continue;
-            } 
+            }
 
             reduce_mean_nodes.push_back(node);
         }

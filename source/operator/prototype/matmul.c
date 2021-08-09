@@ -38,9 +38,8 @@ static int infer_shape(struct node* node)
 
     if (input1->dim_num != input0->dim_num)
     {
-//        TLOG_ERR("dim's size of inputs must be qual for operator matmul\n");
-//        return -1;
-
+        //        TLOG_ERR("dim's size of inputs must be qual for operator matmul\n");
+        //        return -1;
     }
 
     int input1_last_dim = input1->dims[input1->dim_num - 1];
