@@ -860,8 +860,24 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         input_tensor1 = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
         input1 = input_tensor1->data;
         input1_count4 = input_tensor1->elem_num;
-        int dim1_size = input_tensor1->dim_num;
-        input_hw_1 = input_tensor1->dims[dim1_size - 2] * input_tensor1->dims[dim1_size - 1];
+        int dim1_size = input_tensor1->dim_num;\
+        switch (dim1_size)
+        {
+            case 1:
+                input_hw_1 = input_tensor1->dims[0];
+                break;
+            case 2:
+                input_hw_1 = input_tensor1->dims[0] * input_tensor1->dims[1];
+                break;
+            case 3:
+                input_hw_1 = input_tensor1->dims[1] * input_tensor1->dims[2];
+                break;
+            case 4:
+                input_hw_1 = input_tensor1->dims[2] * input_tensor1->dims[3];
+                break;
+            default:
+                return -1;
+        }
     }
 
     if (!input_tensor1 || input_tensor0->elem_num >= input_tensor1->elem_num)
@@ -870,7 +886,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         int input_hw_0 = 0;
         int input0_count4 = input_tensor0->elem_num;
         int dim0_size = input_tensor0->dim_num;
-        if (layout == TENGINE_LAYOUT_NCHW)
+        if (input_tensor0->dim_num == 4)
         {
             input_chan_0 = input_tensor0->dims[dim0_size - 3];
             if (input_tensor0->dims[dim0_size - 4])
@@ -879,14 +895,14 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
             }
             input_hw_0 = input_tensor0->dims[dim0_size - 2] * input_tensor0->dims[dim0_size - 1];
         }
-        else if (layout == TENGINE_LAYOUT_NHWC)
+        else if (input_tensor0->dim_num == 3)
         {
-            input_chan_0 = input_tensor0->dims[3];
+            input_chan_0 = input_tensor0->dims[0];
             input_hw_0 = input_tensor0->dims[1] * input_tensor0->dims[2];
         }
         else
         {
-            TLOG_ERR("unknown graph layout: %d\n", ir_graph->graph_layout);
+            TLOG_ERR("unsupported dim num: %d\n", input_tensor0->dim_num);
             return -1;
         }
         int ret = -1;

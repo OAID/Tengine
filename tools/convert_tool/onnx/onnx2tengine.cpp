@@ -195,9 +195,12 @@ int onnx_serializer::load_constant_tensor(ir_graph_t* graph, const onnx::GraphPr
 
         if ((op == "Reshape" || op == "Gather" || op == "Div" || op == "Resize"))
         {
+            if(node_tensor.count(node.input(1)) == 0)
+                continue;
             const onnx::TensorProto& onnx_tensor = node_tensor[node.input(1)];
             std::pair<std::string, bool> t(node.input(1), 0);
             tensor_check.insert(t);
+            fprintf(stderr, "node:%s, tensor:%s\n", node.name().c_str(), onnx_tensor.name().c_str());
             int tensor_data_type = get_onnx_tensor_data_type(onnx_tensor);
             if (tensor_data_type < 0)
             {
@@ -680,11 +683,54 @@ int deal_old_softmax(ir_graph_t* graph)
     return 0;
 }
 
+int reduce2avgpool(ir_graph_t* graph)
+{
+    std::vector<ir_node_t*> reduce_mean_nodes;
+
+    // get all softmax case.
+    if (op_set < 13)
+    {
+        int node_num = graph->node_num;
+        for (int i = 0; i < node_num; ++i)
+        {
+            ir_node_t* node = get_ir_graph_node(graph, i);
+            if (node->op.type != OP_REDUCTION)
+            {
+                continue;
+            }
+            struct reduction_param* param = (struct reduction_param*)node->op.param_mem;
+            
+            if (param->type != 1 || param->dim_0 != 2 || param->dim_1 != 3 || param->dim_2 != -2 || param->dim_3 != -2)
+            {
+                continue;
+            } 
+
+            reduce_mean_nodes.push_back(node);
+        }
+    }
+
+    // support old spec onnx softmax.
+    for (auto& node : reduce_mean_nodes)
+    {
+        if (change_node_op(node, OP_POOL) < 0)
+        {
+            return -1;
+        }
+        struct pool_param* pool_param = (struct pool_param*)node->op.param_mem;
+        pool_param->global = 1;
+        pool_param->pool_method = POOL_AVG;
+    }
+
+    return 0;
+}
+
 int onnx_serializer::optimize_graph(ir_graph_t* graph)
 {
     if (infer_ir_graph_shape(graph) < 0)
         return -1;
     if (deal_old_softmax(graph) < 0)
+        return -1;
+    if (reduce2avgpool(graph) < 0)
         return -1;
 
     return 0;
