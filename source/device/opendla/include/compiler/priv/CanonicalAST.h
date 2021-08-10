@@ -689,7 +689,7 @@ public:
         m_num_inputs = numInputs;
     }
 
-protected:
+public:
     // these params are extracted from ditcaffe::ConcatParameter
     NvS32 m_axis;
     NvU32 m_concat_dim; // deprecated

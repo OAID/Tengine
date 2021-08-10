@@ -43,7 +43,7 @@ const int odla_supported_ops[] = {
     //    OP_CEIL,
     //    OP_CLIP,
     //    OP_COMPARISON,
-    //    OP_CONCAT,
+    OP_CONCAT,
     OP_CONST,
     OP_CONV,
     //    OP_CROP,

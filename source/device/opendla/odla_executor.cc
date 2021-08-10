@@ -49,21 +49,23 @@ void ODLAEngine::odla_input_data_convert(void * dst, const void * src, nvdla::IR
     uint32_t surface_stride = tDesc.stride[2];
 
     size_t idx = 0;
-    for(size_t c = 0; c < channel; c++){
-        uint32_t cquotient = c / atom_c_size;
-        uint32_t cremainder = c % atom_c_size;
+    for (size_t n = 0; n < batch; n++){
+        for(size_t c = 0; c < channel; c++){
+            uint32_t cquotient = c / atom_c_size;
+            uint32_t cremainder = c % atom_c_size;
 
-        for (size_t h = 0; h < height; ++h){
-            for (size_t w = 0; w < width; ++w){
+            for (size_t h = 0; h < height; ++h){
+                for (size_t w = 0; w < width; ++w){
 
-                uint32_t _offset = (cquotient * surface_stride) + (h * line_stride ) + (w * atom_k_size) + cremainder;
-                int8_t* _dst = (int8_t*)dst + _offset;
-                int8_t* _src = (int8_t*)src + idx;
-                *_dst = *_src;
+                    uint32_t _offset = (cquotient * surface_stride) + (h * line_stride ) + (w * atom_k_size) + cremainder + n * c * h * w;
+                    int8_t* _dst = (int8_t*)dst + _offset;
+                    int8_t* _src = (int8_t*)src + idx;
+                    *_dst = *_src;
 #ifdef OPENDLA_LOG_
-                fprintf(stdout, "idx %zu address : %lx data: %d \n", idx, (uint64_t)_dst, *_dst);
+            fprintf(stdout, "idx %zu address : %lx data: %d \n", idx, (uint64_t)_dst, *_dst);
 #endif
-                idx++;
+                    idx++;
+                }
             }
         }
     }
@@ -86,23 +88,24 @@ void ODLAEngine::odla_output_data_convert(void * dst, const void * src, nvdla::I
 
     // Copy contents
     size_t idx = 0;
-    for (size_t c = 0; c < channel; c++)
-    {
-        for (size_t h = 0; h < height; h++)
+    for (size_t n = 0; n < batch; n++){
+        for (size_t c = 0; c < channel; c++)
         {
-            for (size_t w = 0; w < width; w++)
+            NvU32 cquotient = c / atom_c_size;
+            NvU32 cremainder = c % atom_c_size;
+            for (size_t h = 0; h < height; h++)
             {
-                int8_t* _dst = (int8_t*)dst + idx;
-                NvU32 cquotient = c / atom_c_size;
-                NvU32 cremainder = c % atom_c_size;
-
-                uint32_t _offset = (cquotient * surface_stride) + (h * line_stride) + (w * atom_k_size) + cremainder;
-                *_dst = *((int8_t*)src + _offset);
-#ifdef OPENDLA_LOG_
-                int8_t tmpdata = *_dst;
-                fprintf(stdout, "%s: idx: %zu address : %lx src:%lx data: %d \n", __func__,idx ,(uint64_t)_dst, (uint64_t)((int8_t*)src + _offset), tmpdata);
-#endif
-                idx++;
+                for (size_t w = 0; w < width; w++)
+                {
+                    int8_t* _dst = (int8_t*)dst + idx;
+                    uint32_t _offset = (cquotient * surface_stride) + (h * line_stride) + (w * atom_k_size) + cremainder + n*c*h*w;
+                    *_dst = *((int8_t*)src + _offset);
+    #ifdef OPENDLA_LOG_
+                    int8_t tmpdata = *_dst;
+                    fprintf(stdout, "%s: idx: %zu address : %lx src:%lx data: %d \n", __func__,idx ,(uint64_t)_dst, (uint64_t)((int8_t*)src + _offset), tmpdata);
+    #endif
+                    idx++;
+                }
             }
         }
     }
@@ -457,14 +460,22 @@ int ODLAEngine::Build(struct subgraph* subgraph)
         auto op_type = ir_node->op.type;
         nvdla::priv::canonical_ast::Node * Node = nullptr;
 
-
         switch (op_type)
         {
+            case OP_BATCHNORM:
+                Node = this->AddBatchNormalizationNode(ir_node);
+                break;
+            case OP_CONCAT:
+                Node = this->AddConcatNode(ir_node);
+                break;
             case OP_CONV:
                 Node = this->AddConvolutionNode(ir_node);
                 break;
             case OP_CONST:
                 continue;
+            case OP_DECONV:
+                Node = this->AddDeconvlutionNode(ir_node);
+                break;
             case OP_ELTWISE:
                 Node = this->AddEltwiseNode(ir_node);
                 break;
@@ -475,6 +486,12 @@ int ODLAEngine::Build(struct subgraph* subgraph)
                 continue;
             case OP_RELU:
                 Node = this->AddReluNode(ir_node);
+                break;
+            case OP_SCALE:
+                Node = this->AddScaleNode(ir_node);
+                break;
+            case OP_SPLIT:
+                Node = this->AddSplitNode(ir_node);
                 break;
             case OP_POOL:
                 Node = this->AddPoolingNode(ir_node);
@@ -488,8 +505,8 @@ int ODLAEngine::Build(struct subgraph* subgraph)
         };
         Node->setGraph(this->graph);
         this->graph->insertNode(Node);
-        Node->setId(this->graph->nextNodeId()); // 设置 node 的id，n-0 n-1 这样
-        Node->setName(std::string(ir_node->name)+"_relu");  // 设置 node 的name
+        Node->setId(this->graph->nextNodeId());
+        Node->setName(ir_node->name);
         this->odla_node_map[Node] = ir_node;
     }
 

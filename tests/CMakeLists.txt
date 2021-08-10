@@ -28,6 +28,7 @@ if (TENGINE_ENABLE_OPENDLA)
         SET_PROPERTY(TARGET ${name} PROPERTY FOLDER "tests/test_opendla")
     endfunction()
 
+    tengine_opendla_op_test(test_opendla_op_concat          op/test_opendla_op_concat.cpp)
     tengine_opendla_op_test(test_opendla_op_convolution     op/test_opendla_op_convolution.cpp)
     tengine_opendla_op_test(test_opendla_op_eltwise         op/test_opendla_op_eltwise.cpp)
     tengine_opendla_op_test(test_opendla_op_fc              op/test_opendla_op_fc.cpp)

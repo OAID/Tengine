@@ -86,17 +86,23 @@ private:
     int Build(struct subgraph* subgraph);
     int ODLATensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_type);
 
+    nvdla::priv::canonical_ast::Node* AddBatchNormalizationNode(struct node* ir_node);
+    nvdla::priv::canonical_ast::Node* AddConcatNode(struct node* ir_node);
+    nvdla::priv::canonical_ast::Node* AddDeconvlutionNode(struct node* ir_node);
     nvdla::priv::canonical_ast::Node* AddConvolutionNode(struct node* ir_node);
     nvdla::priv::canonical_ast::Node* AddEltwiseNode(struct node* ir_node);
     nvdla::priv::canonical_ast::Node* AddFullyConnectionNode(struct node* ir_node);
-    nvdla::priv::canonical_ast::Node* AddReluNode(struct node* ir_node);
     nvdla::priv::canonical_ast::Node* AddPoolingNode(struct node* ir_node);
+    nvdla::priv::canonical_ast::Node* AddReluNode(struct node* ir_node);
+    nvdla::priv::canonical_ast::Node* AddScaleNode(struct node* ir_node);
+    nvdla::priv::canonical_ast::Node* AddSplitNode(struct node* ir_node);
+
+
     NvDlaError ODLAConfigGenerate();
 
 public:
     std::string tp_name = "fast-math";
     std::string target_config_name = "nv_small";
-
     nvdla::priv::Profile* profile{};
     nvdla::priv::TargetConfig* targetConfig{};
     nvdla::priv::canonical_ast::Graph* graph;
