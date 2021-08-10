@@ -99,7 +99,7 @@ ir_tensor_t* find_caffe_tensor(ir_graph_t* graph, const std::string& tensor_name
 }
 
 static void load_blob(ir_graph_t* ir_graph, std::string node_name, const std::vector<std::string>& name_list,
-                          const std::vector<std::string>& layout_list, const te_caffe::LayerParameter& layer_param)
+                      const std::vector<std::string>& layout_list, const te_caffe::LayerParameter& layer_param)
 {
     unsigned int blob_num = layer_param.blobs_size();
     for (unsigned int i = 0; i < blob_num && i < name_list.size(); i++)
@@ -161,14 +161,13 @@ static void load_blob(ir_graph_t* ir_graph, std::string node_name, const std::ve
 
 int create_tensor(ir_graph_t* graph, const te_caffe::LayerParameter& layer_param, float val, std::string blob_name)
 {
-
     // printf("blob : %s \n", blob_name.c_str());henzh
     ir_tensor_t* blob_tensor = create_ir_tensor(graph, blob_name.c_str(), TENGINE_DT_FP32);
     const te_caffe::BlobProto& mean_blob = layer_param.blobs(0);
     std::vector<int> temp;
     temp.push_back(mean_blob.shape().dim(0));
     int dim_num = temp.size();
-    if(dim_num > 0)
+    if (dim_num > 0)
     {
         int* dims = (int*)malloc(sizeof(int) * dim_num);
         memset(dims, 0, sizeof(int) * dim_num);
@@ -179,7 +178,7 @@ int create_tensor(ir_graph_t* graph, const te_caffe::LayerParameter& layer_param
             elem_size *= temp[i];
             dims[i] = temp[i];
         }
-        
+
         set_ir_tensor_shape(blob_tensor, dims, dim_num);
         blob_tensor->tensor_type = TENSOR_TYPE_CONST;
         int tensor_size = elem_size * sizeof(float);
@@ -213,45 +212,45 @@ int caffe_serializer::load_tensor_data(ir_graph_t* graph, const te_caffe::NetPar
         const te_caffe::LayerParameter& layer_param = test_net.layer(n);
         const std::string& caffe_op_name = layer_param.type();
 
-        for(int i = 0; i < layer_param.bottom_size(); i++)
+        for (int i = 0; i < layer_param.bottom_size(); i++)
         {
             if (train_name_map.count(layer_param.name()))
             {
                 std::string tr_name = layer_param.name();
                 const te_caffe::LayerParameter* train_layer_param = train_name_map[layer_param.name()];
-                if(caffe_op_name == "Convolution" || caffe_op_name == "InnerProduct" || caffe_op_name == "DeConvolution")
+                if (caffe_op_name == "Convolution" || caffe_op_name == "InnerProduct" || caffe_op_name == "DeConvolution")
                 {
                     std::vector<std::string> name_list = {"weight", "bias"};
-                    std::vector<std::string> layout_list = {"NCHW", "W"};   
+                    std::vector<std::string> layout_list = {"NCHW", "W"};
                     load_blob(graph, tr_name, name_list, layout_list, *train_layer_param);
                 }
-                if(caffe_op_name == "BatchNorm")
+                if (caffe_op_name == "BatchNorm")
                 {
                     std::vector<std::string> name_list = {"means", "vars"};
                     std::vector<std::string> layout_list = {"W", "W"};
-                    create_tensor(graph, *train_layer_param, 1.0f, tr_name+"/"+"gamma");
-                    create_tensor(graph, *train_layer_param, 0.0f, tr_name+"/"+"beta");
+                    create_tensor(graph, *train_layer_param, 1.0f, tr_name + "/" + "gamma");
+                    create_tensor(graph, *train_layer_param, 0.0f, tr_name + "/" + "beta");
                     load_blob(graph, tr_name, name_list, layout_list, *train_layer_param);
                 }
-                if(caffe_op_name == "Scale")
+                if (caffe_op_name == "Scale")
                 {
                     std::vector<std::string> name_list = {"gamma", "beta"};
                     std::vector<std::string> layout_list = {"CHW", "W"};
                     load_blob(graph, tr_name, name_list, layout_list, *train_layer_param);
                 }
-                if(caffe_op_name == "PReLU")
+                if (caffe_op_name == "PReLU")
                 {
                     std::vector<std::string> name_list = {"slope"};
                     std::vector<std::string> layout_list = {"W"};
                     load_blob(graph, tr_name, name_list, layout_list, *train_layer_param);
                 }
-                if(caffe_op_name == "Bias")
+                if (caffe_op_name == "Bias")
                 {
                     std::vector<std::string> name_list = {"weight"};
                     std::vector<std::string> layout_list = {"NCHW"};
                     load_blob(graph, tr_name, name_list, layout_list, *train_layer_param);
                 }
-                if(caffe_op_name == "Normalize")
+                if (caffe_op_name == "Normalize")
                 {
                     std::vector<std::string> name_list = {"scale"};
                     std::vector<std::string> layout_list = {"W"};
@@ -271,7 +270,7 @@ int caffe_serializer::set_graph_input(ir_graph_t* graph, const te_caffe::NetPara
     {
         const te_caffe::LayerParameter& layer_param = test_net.layer(i);
         const te_caffe::InputParameter& input_param = layer_param.input_param();
-        if(layer_param.type()!="Input")
+        if (layer_param.type() != "Input")
             continue;
 
         std::string val = layer_param.type();
@@ -293,7 +292,7 @@ int caffe_serializer::set_graph_input(ir_graph_t* graph, const te_caffe::NetPara
         if (dim_num == 0)
             has_shape = 0;
 
-    #if 1
+#if 1
         if (has_shape)
         {
             int* dims = (int*)malloc(sizeof(int) * dim_num);
@@ -302,7 +301,7 @@ int caffe_serializer::set_graph_input(ir_graph_t* graph, const te_caffe::NetPara
                 dims[i] = dim[i];
             set_ir_tensor_shape(tensor, dims, dim_num);
         }
-    #endif
+#endif
 
         ir_node_t* node = create_ir_node(graph, val.c_str(), OP_INPUT, OP_VERSION);
 
@@ -320,18 +319,17 @@ int caffe_serializer::set_graph_input(ir_graph_t* graph, const te_caffe::NetPara
     return 0;
 }
 
-
 int caffe_serializer::load_graph_node(ir_graph_t* graph, const te_caffe::NetParameter test_net, const te_caffe::NetParameter train_net)
 {
     name_map_t tensor_name_map;
     int layer_number = train_net.layer_size();
 
     std::vector<std::string> conv_name_list = {"weight", "bias"};
-    std::vector<std::string> bn_name_list = { "gamma", "beta","means", "vars"};
-    std::vector<std::string> sc_name_list = { "gamma", "beta"};
-    std::vector<std::string> pr_name_list = { "slope" };
-    std::vector<std::string> bs_name_list = { "weigth"};
-    std::vector<std::string> nr_name_list = { "scale"};
+    std::vector<std::string> bn_name_list = {"gamma", "beta", "means", "vars"};
+    std::vector<std::string> sc_name_list = {"gamma", "beta"};
+    std::vector<std::string> pr_name_list = {"slope"};
+    std::vector<std::string> bs_name_list = {"weigth"};
+    std::vector<std::string> nr_name_list = {"scale"};
 
     for (int i = 0; i < layer_number; i++)
     {
@@ -371,7 +369,7 @@ int caffe_serializer::load_graph_node(ir_graph_t* graph, const te_caffe::NetPara
     {
         const te_caffe::LayerParameter& layer_param = test_net.layer(n);
         const std::string& caffe_op_name = layer_param.type();
-        if(caffe_op_name == "data" || caffe_op_name == "Input")
+        if (caffe_op_name == "data" || caffe_op_name == "Input")
         {
             continue;
         }
@@ -380,10 +378,10 @@ int caffe_serializer::load_graph_node(ir_graph_t* graph, const te_caffe::NetPara
         {
             const std::string& orig_name = layer_param.bottom(i);
             std::string& tensor_name = tensor_name_map[orig_name];
-            
+
             int tensor_id = get_ir_tensor_index_from_name(graph, tensor_name.c_str());
             ir_tensor_t* tensor = NULL;
-            if(tensor_id < 0)
+            if (tensor_id < 0)
             {
                 tensor_id = get_ir_tensor_index_from_name(graph, "Input");
             }
@@ -394,40 +392,40 @@ int caffe_serializer::load_graph_node(ir_graph_t* graph, const te_caffe::NetPara
             const te_caffe::LayerParameter* train_layer_param = train_name_map[layer_param.name()];
             std::vector<std::string> name_list;
             int blob_size = train_layer_param->blobs_size();
-            
-            if(train_layer_param->type() == "Convolution")
+
+            if (train_layer_param->type() == "Convolution")
             {
                 name_list = conv_name_list;
             }
-            else if(train_layer_param->type() == "BatchNorm")
+            else if (train_layer_param->type() == "BatchNorm")
             {
                 name_list = bn_name_list;
                 blob_size = 2 + train_layer_param->blobs_size();
-            }   
-            else if(train_layer_param->type() == "Scale")
+            }
+            else if (train_layer_param->type() == "Scale")
             {
                 name_list = sc_name_list;
             }
-            else if(train_layer_param->type() == "PReLu")
+            else if (train_layer_param->type() == "PReLu")
             {
                 name_list = pr_name_list;
             }
-            else if(train_layer_param->type() == "Bias")
+            else if (train_layer_param->type() == "Bias")
             {
                 name_list = bs_name_list;
             }
-            else if(train_layer_param->type() == "Normalize")
+            else if (train_layer_param->type() == "Normalize")
             {
                 name_list = nr_name_list;
             }
             const std::string& orig_name_top = layer_param.name();
 
-            for(int n = 0;  n < blob_size && n < name_list.size() ; n++)
+            for (int n = 0; n < blob_size && n < name_list.size(); n++)
             {
                 std::string blob_name = orig_name_top + "/" + name_list[n];
                 int blod_id = get_ir_tensor_index_from_name(graph, blob_name.c_str());
                 ir_tensor_t* blob_tensor = get_ir_graph_tensor(graph, blod_id);
-                if(blod_id < 0)
+                if (blod_id < 0)
                 {
                     blob_tensor = create_ir_tensor(graph, blob_name.c_str(), TENGINE_DT_FP32);
                 }
@@ -436,7 +434,7 @@ int caffe_serializer::load_graph_node(ir_graph_t* graph, const te_caffe::NetPara
                     blob_tensor = get_ir_graph_tensor(graph, blod_id);
                 }
 
-                set_ir_node_input_tensor(ir_node, n+1+i, blob_tensor);
+                set_ir_node_input_tensor(ir_node, n + 1 + i, blob_tensor);
             }
         }
 
@@ -445,7 +443,7 @@ int caffe_serializer::load_graph_node(ir_graph_t* graph, const te_caffe::NetPara
         {
             const std::string& orig_name = layer_param.top(i);
             std::string tensor_name;
-            tensor_name =  layer_param.name() +"/"+tensor_name;
+            tensor_name = layer_param.name() + "/" + tensor_name;
             ir_tensor_t* tensor = create_ir_tensor(graph, tensor_name.c_str(), TENGINE_DT_FP32);
             set_ir_node_output_tensor(ir_node, i, tensor);
             tensor_name_map[orig_name] = tensor_name;
@@ -473,13 +471,13 @@ int caffe_serializer::set_graph_output(ir_graph_t* graph, const te_caffe::NetPar
     {
         const te_caffe::LayerParameter& layer_param = test_net.layer(n);
         const std::string& caffe_op_name = layer_param.type();
-        if(caffe_op_name == "data" || caffe_op_name == "Input")
+        if (caffe_op_name == "data" || caffe_op_name == "Input")
         {
             continue;
         }
     }
     std::vector<std::string> graph_outputs;
-    for(int i = 0; i < output_tensors.size(); i++)
+    for (int i = 0; i < output_tensors.size(); i++)
     {
         int check_flag = true;
 
@@ -490,7 +488,7 @@ int caffe_serializer::set_graph_output(ir_graph_t* graph, const te_caffe::NetPar
         }
     }
 
-    for(int i = 0; i < graph_outputs.size(); i++)
+    for (int i = 0; i < graph_outputs.size(); i++)
     {
         int tensor_id = get_ir_tensor_index_from_name(graph, graph_outputs[i].c_str());
         ir_tensor_t* ir_tensor = get_ir_graph_tensor(graph, tensor_id);
@@ -498,7 +496,6 @@ int caffe_serializer::set_graph_output(ir_graph_t* graph, const te_caffe::NetPar
         set_ir_node_output_tensor(node, 0, ir_tensor);
         output_nodes.push_back(node->index);
     }
-
 
     std::vector<int16_t> node_idx;
     for (int i = 0; i < output_nodes.size(); i++)
@@ -508,7 +505,6 @@ int caffe_serializer::set_graph_output(ir_graph_t* graph, const te_caffe::NetPar
     set_ir_graph_output_node(graph, node_idx.data(), output_nodes.size());
     return 0;
 }
-
 
 int caffe_serializer::load_model(ir_graph_t* graph, std::string model_file, std::string proto_file)
 {
@@ -908,7 +904,7 @@ int load_pool(ir_graph_t* graph, ir_node_t* node, const te_caffe::LayerParameter
         param->kernel_h = pool_param.kernel_h();
         param->kernel_w = pool_param.kernel_w();
     }
-    
+
     param->global = pool_param.global_pooling();
     if (pool_param.has_pad())
     {
@@ -966,8 +962,6 @@ int load_eltwise(ir_graph_t* graph, ir_node_t* node, const te_caffe::LayerParame
 
     return 0;
 }
-
-
 
 #if 0
 int load_input(ir_graph_t* graph, ir_node_t* ir_node, const te_caffe::LayerParameter& layer_param)
@@ -1039,7 +1033,6 @@ void caffe_serializer::register_op_load()
     op_load_map["Pooling"] = std::pair<int, op_load_t>(OP_POOL, load_pool);
     op_load_map["Eltwise"] = std::pair<int, op_load_t>(OP_ELTWISE, load_eltwise);
 
-    
     // op_load_map["Input"] = std::pair<int, op_load_t>(OP_INPUT, load_input);
     // op_load_map["Data"] = std::pair<int, op_load_t>(OP_INPUT, load_input);
 

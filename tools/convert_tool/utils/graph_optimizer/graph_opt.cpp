@@ -378,7 +378,7 @@ static int weight_bn(ir_graph_t* graph, ir_node_t* conv_node, float* mean, float
     if (bias_tensor == nullptr)
     {
         std::string name = kernel_tensor->name;
-        
+
         name = name + ".bias.bn";
         /* create */
         ir_node_t* bias_node = create_ir_node(graph, name.c_str(), OP_CONST, 1);
