@@ -22,54 +22,12 @@
  * Author: lswang@openailab.com
  */
 
-#include "timer.hpp"
+#pragma once
 
-#ifdef _WINDOWS
-#include <Windows.h>
-#else // _WINDOWS
-#include <sys/time.h>
-#endif // _WINDOWS
+#include <vector>
 
-double Timer::get_current_time() const
-{
-#ifdef _WINDOWS
-    LARGE_INTEGER freq;
-    LARGE_INTEGER pc;
-    QueryPerformanceFrequency(&freq);
-    QueryPerformanceCounter(&pc);
+void norm_feature(std::vector<float>& feature);
 
-    return pc.QuadPart * 1000.0 / freq.QuadPart;
-#else // _WINDOWS
-    struct timeval tv;
-    gettimeofday(&tv, nullptr);
+float distance(const std::vector<float>& a, std::vector<float>& b);
 
-    return tv.tv_sec * 1000.0 + tv.tv_usec / 1000.0;
-#endif
-}
-
-Timer::Timer()
-{
-    start_time_ = get_current_time();
-    end_time_ = start_time_;
-}
-
-void Timer::Start()
-{
-    start_time_ = get_current_time();
-    end_time_ = start_time_;
-}
-
-void Timer::Stop()
-{
-    end_time_ = get_current_time();
-}
-
-double Timer::TimeCost()
-{
-    if (end_time_ <= start_time_)
-    {
-        Stop();
-    }
-
-    return end_time_ - start_time_;
-}
+float cos_distance(const std::vector<float>& a, std::vector<float>& b);

@@ -22,38 +22,34 @@
  * Author: lswang@openailab.com
  */
 
-#pragma once
+#include "timer.hpp"
 
-typedef struct
-{
-    float x;
-    float y;
-    float width;
-    float height;
-} BBox;
 
-typedef struct
+Timer::Timer()
 {
-    float x;
-    float y;
-} Coordinate;
+    Start();
+}
 
-typedef struct
-{
-    float confidence;
-    BBox box;
-} Region;
 
-typedef struct
+void Timer::Start()
 {
-    int label;
-    float score;
-    BBox box;
-} Object;
+    Stop();
+    this->start_time = this->end_time;
+}
 
-typedef struct
+
+void Timer::Stop()
 {
-    float confidence;
-    BBox box;
-    Coordinate landmark[5];
-} Face;
+    this->end_time = std::chrono::high_resolution_clock::now();
+}
+
+
+float Timer::Cost()
+{
+    if (this->end_time <= this->start_time)
+    {
+        this->Stop();
+    }
+
+    return static_cast<float>(std::chrono::duration_cast<std::chrono::microseconds>(this->end_time - this->start_time).count()) / 1000.f;
+}

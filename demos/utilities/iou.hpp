@@ -18,26 +18,12 @@
  */
 
 /*
- * Copyright (c) 2020, OPEN AI LAB
+ * Copyright (c) 2021, OPEN AI LAB
  * Author: lswang@openailab.com
  */
 
 #pragma once
 
-class Timer
-{
-private:
-    double start_time_, end_time_;
+#include <opencv2/opencv.hpp>
 
-private:
-    double get_current_time() const;
-
-public:
-    Timer();
-
-    void Start();
-
-    void Stop();
-
-    double TimeCost();
-};
+float iou(const cv::Rect2f& a, const cv::Rect2f& b);

@@ -24,36 +24,8 @@
 
 #pragma once
 
-typedef struct
-{
-    float x;
-    float y;
-    float width;
-    float height;
-} BBox;
+#include "types.hpp"
 
-typedef struct
-{
-    float x;
-    float y;
-} Coordinate;
+#include <opencv2/opencv.hpp>
 
-typedef struct
-{
-    float confidence;
-    BBox box;
-} Region;
-
-typedef struct
-{
-    int label;
-    float score;
-    BBox box;
-} Object;
-
-typedef struct
-{
-    float confidence;
-    BBox box;
-    Coordinate landmark[5];
-} Face;
+bool affine(const cv::Mat& src, cv::Mat& dst, const Coordinate landmark[5]);

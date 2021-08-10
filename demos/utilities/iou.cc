@@ -22,38 +22,14 @@
  * Author: lswang@openailab.com
  */
 
-#pragma once
+#include "iou.hpp"
 
-typedef struct
-{
-    float x;
-    float y;
-    float width;
-    float height;
-} BBox;
 
-typedef struct
+float iou(const cv::Rect2f& rect_a, const cv::Rect2f& rect_b)
 {
-    float x;
-    float y;
-} Coordinate;
+    // TODO: need impl without opencv
+    const cv::Rect2f union_set          = rect_a & rect_b;
+    const cv::Rect2f intersection_set   = rect_a | rect_b;
 
-typedef struct
-{
-    float confidence;
-    BBox box;
-} Region;
-
-typedef struct
-{
-    int label;
-    float score;
-    BBox box;
-} Object;
-
-typedef struct
-{
-    float confidence;
-    BBox box;
-    Coordinate landmark[5];
-} Face;
+    return union_set.area() / intersection_set.area();
+}

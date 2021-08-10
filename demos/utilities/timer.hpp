@@ -24,36 +24,19 @@
 
 #pragma once
 
-typedef struct
-{
-    float x;
-    float y;
-    float width;
-    float height;
-} BBox;
+#include <chrono>
 
-typedef struct
+class Timer
 {
-    float x;
-    float y;
-} Coordinate;
+private:
+    std::chrono::system_clock::time_point start_time, end_time;
 
-typedef struct
-{
-    float confidence;
-    BBox box;
-} Region;
+public:
+    Timer();
 
-typedef struct
-{
-    int label;
-    float score;
-    BBox box;
-} Object;
+    void Start();
 
-typedef struct
-{
-    float confidence;
-    BBox box;
-    Coordinate landmark[5];
-} Face;
+    void Stop();
+
+    float Cost();
+};

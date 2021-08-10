@@ -18,42 +18,15 @@
  */
 
 /*
- * Copyright (c) 2021, OPEN AI LAB
+ * Copyright (c) 2020, OPEN AI LAB
  * Author: lswang@openailab.com
  */
 
 #pragma once
 
-typedef struct
-{
-    float x;
-    float y;
-    float width;
-    float height;
-} BBox;
+#include "types.hpp"
 
-typedef struct
-{
-    float x;
-    float y;
-} Coordinate;
+#include <vector>
 
-typedef struct
-{
-    float confidence;
-    BBox box;
-} Region;
-
-typedef struct
-{
-    int label;
-    float score;
-    BBox box;
-} Object;
-
-typedef struct
-{
-    float confidence;
-    BBox box;
-    Coordinate landmark[5];
-} Face;
+int nms(const std::vector<Region>& before, std::vector<Region>& after, const float& nms_threshold);
+int nms(const std::vector<Face>& before, std::vector<Face>& after, const float& nms_threshold);
