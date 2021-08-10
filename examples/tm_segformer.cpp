@@ -36,7 +36,6 @@
 #define DEFAULT_REPEAT_COUNT 1
 #define DEFAULT_THREAD_COUNT 1
 
-
 void get_input_fp32_data(const char* image_file, float* input_data, int letterbox_rows, int letterbox_cols, const float* mean, const float* scale)
 {
     cv::Mat sample = cv::imread(image_file, 1);
@@ -51,7 +50,7 @@ void get_input_fp32_data(const char* image_file, float* input_data, int letterbo
 
     cv::Mat img_new;
     img.convertTo(img_new, CV_32FC3);
-    float* img_data   = (float* )img_new.data;
+    float* img_data = (float*)img_new.data;
 
     /* nhwc to nchw */
     for (int h = 0; h < letterbox_rows; h++)
@@ -60,7 +59,7 @@ void get_input_fp32_data(const char* image_file, float* input_data, int letterbo
         {
             for (int c = 0; c < 3; c++)
             {
-                int in_index  = h * letterbox_cols * 3 + w * 3 + c;
+                int in_index = h * letterbox_cols * 3 + w * 3 + c;
                 int out_index = c * letterbox_rows * letterbox_cols + h * letterbox_cols + w;
                 input_data[out_index] = (img_data[in_index] - mean[c]) * scale[c];
             }
@@ -68,13 +67,9 @@ void get_input_fp32_data(const char* image_file, float* input_data, int letterbo
     }
 }
 
-static void draw_result(const cv::Mat& bgr, const float* data,int target_size_h,int target_size_w)
+static void draw_result(const cv::Mat& bgr, const float* data, int target_size_h, int target_size_w)
 {
-    const int cityscapes_palette[][3]={{128, 64, 128},{244, 35, 232},{70, 70, 70},{102, 102, 156},
-            {190, 153, 153},{153, 153, 153},{250, 170, 30},{220, 220, 0},
-            {107, 142, 35},{152, 251, 152},{70, 130, 180},{220, 20, 60},
-            {255, 0, 0},{0, 0, 142},{0, 0, 70},{0, 60, 100},{0, 80, 100},
-            {0, 0, 230},{119, 11, 32}};
+    const int cityscapes_palette[][3] = {{128, 64, 128}, {244, 35, 232}, {70, 70, 70}, {102, 102, 156}, {190, 153, 153}, {153, 153, 153}, {250, 170, 30}, {220, 220, 0}, {107, 142, 35}, {152, 251, 152}, {70, 130, 180}, {220, 20, 60}, {255, 0, 0}, {0, 0, 142}, {0, 0, 70}, {0, 60, 100}, {0, 80, 100}, {0, 0, 230}, {119, 11, 32}};
 
     cv::Mat image = bgr.clone();
 
@@ -87,14 +82,13 @@ static void draw_result(const cv::Mat& bgr, const float* data,int target_size_h,
         {
             int maxk = 0;
             float tmp = data[0 * target_size_w * target_size_h + i * target_size_w + j];
-            for (int k = 0; k < 19; k++)//cityscapes_dataset
+            for (int k = 0; k < 19; k++) //cityscapes_dataset
             {
                 if (tmp < data[k * target_size_w * target_size_h + i * target_size_w + j])
                 {
                     tmp = data[k * target_size_w * target_size_h + i * target_size_w + j];
                     maxk = k;
                 }
-
             }
             segidx_data[j] = maxk;
         }
@@ -104,15 +98,14 @@ static void draw_result(const cv::Mat& bgr, const float* data,int target_size_h,
     cv::resize(segidx, maskResize, cv::Size(image.cols, image.rows), 0, 0, cv::INTER_NEAREST);
     for (int h = 0; h < image.rows; h++)
     {
-        cv::Vec3b* pRgb = image.ptr<cv::Vec3b >(h);
+        cv::Vec3b* pRgb = image.ptr<cv::Vec3b>(h);
         for (int w = 0; w < image.cols; w++)
         {
             int index = maskResize.at<uchar>(h, w);
             pRgb[w] = cv::Vec3b(cityscapes_palette[index][2] * 0.6 + pRgb[w][2] * 0.4, cityscapes_palette[index][1] * 0.6 + pRgb[w][1] * 0.4, cityscapes_palette[index][0] * 0.6 + pRgb[w][0] * 0.4);
         }
     }
-    cv::imwrite("segformer_cityscapes_result.jpg",image);
-
+    cv::imwrite("segformer_cityscapes_result.jpg", image);
 }
 
 void show_usage()
@@ -129,31 +122,31 @@ int main(int argc, char* argv[])
     //input size
     int img_h = 512;
     int img_w = 1024;
-    const float mean[3] = { 123.675f, 116.28f,  103.53f };
-    const float scale[3] = { 0.01712475f, 0.0175f, 0.01742919f };
+    const float mean[3] = {123.675f, 116.28f, 103.53f};
+    const float scale[3] = {0.01712475f, 0.0175f, 0.01742919f};
 
     int res;
     while ((res = getopt(argc, argv, "m:i:r:t:h:")) != -1)
     {
         switch (res)
         {
-            case 'm':
-                model_file = optarg;
-                break;
-            case 'i':
-                image_file = optarg;
-                break;
-            case 'r':
-                repeat_count = atoi(optarg);
-                break;
-            case 't':
-                num_thread = atoi(optarg);
-                break;
-            case 'h':
-                show_usage();
-                return 0;
-            default:
-                break;
+        case 'm':
+            model_file = optarg;
+            break;
+        case 'i':
+            image_file = optarg;
+            break;
+        case 'r':
+            repeat_count = atoi(optarg);
+            break;
+        case 't':
+            num_thread = atoi(optarg);
+            break;
+        case 'h':
+            show_usage();
+            return 0;
+        default:
+            break;
         }
     }
 
@@ -202,8 +195,8 @@ int main(int argc, char* argv[])
 
     /* set the input shape to initial the graph, and prerun graph to infer shape */
     int img_size = img_h * img_w * 3;
-    int dims[] = {1, 3, img_h, img_w};    // nchw
-    float* input_data = (float* )malloc(img_size * sizeof(float));
+    int dims[] = {1, 3, img_h, img_w}; // nchw
+    float* input_data = (float*)malloc(img_size * sizeof(float));
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == nullptr)
@@ -260,10 +253,10 @@ int main(int argc, char* argv[])
     /* get output tensor */
     tensor_t output_tensor = get_graph_output_tensor(graph, 0, 0);
 
-    float* data = ( float* )(get_tensor_buffer(output_tensor));
+    float* data = (float*)(get_tensor_buffer(output_tensor));
     /* draw result */
     draw_result(img, data, img_h, img_w);
-    
+
     postrun_graph(graph);
     destroy_graph(graph);
     release_tengine();
