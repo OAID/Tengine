@@ -166,7 +166,8 @@ jobs:
       run: |
         chmod +x ./tests/test_arm64_real.sh
         cd build
-        ../tests/test_arm64_real.sh        
+        ../tests/test_arm64_real.sh
+        
   linux-armv8-cpu-gcc-AGX-Xaiver:
     runs-on: AGX-xaiver
     steps:
@@ -186,7 +187,8 @@ jobs:
       run: |
         chmod +x ./tests/test_arm64_real.sh
         cd build
-        ../tests/test_arm64_real.sh    
+        ../tests/test_arm64_real.sh
+        
   linux-gcc-mipsisa64r6el:
     runs-on: ubuntu-20.04
     steps:
