@@ -28,6 +28,5 @@
 
 #include <vector>
 
-
 int nms(const std::vector<Region>& before, std::vector<Region>& after, const float& nms_threshold);
 int nms(const std::vector<Face>& before, std::vector<Face>& after, const float& nms_threshold);

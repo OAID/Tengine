@@ -26,5 +26,4 @@
 
 #include <opencv2/opencv.hpp>
 
-
 float iou(const cv::Rect2f& a, const cv::Rect2f& b);

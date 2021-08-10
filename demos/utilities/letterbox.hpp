@@ -26,5 +26,4 @@
 
 #include <opencv2/opencv.hpp>
 
-
 bool letterbox(const cv::Mat& src, cv::Mat& dst, const cv::Scalar& background_color, float& width_gap, float& height_gap);

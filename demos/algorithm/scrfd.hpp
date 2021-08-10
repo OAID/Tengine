@@ -32,7 +32,6 @@
 
 #include "tengine/c_api.h"
 
-
 class SCRFD
 {
 public:
@@ -50,7 +49,7 @@ private:
 
 private:
     context_t context;
-    graph_t   graph;
+    graph_t graph;
     bool is_quantization;
 
 private:
@@ -66,11 +65,11 @@ private:
 
 private:
     float input_scale;
-    int   input_zp;
+    int input_zp;
 
 private:
     std::vector<uint8_t> canvas_uint8;
-    std::vector<float>   canvas_float;
+    std::vector<float> canvas_float;
 
     std::vector<uint8_t> resized_container;
     std::vector<uint8_t> resized_permute_container;
@@ -84,18 +83,18 @@ private:
     std::vector<int> bbox_zp;
     std::vector<int> landmark_zp;
 
-    std::vector<std::vector<float>> score_buffer;
-    std::vector<std::vector<float>> bbox_buffer;
-    std::vector<std::vector<float>> landmark_buffer;
+    std::vector<std::vector<float> > score_buffer;
+    std::vector<std::vector<float> > bbox_buffer;
+    std::vector<std::vector<float> > landmark_buffer;
 
 private:
     std::vector<float> ratios;
     std::vector<float> scales;
 
-    std::vector<int>   strides;
+    std::vector<int> strides;
     std::vector<float> bases;
 
-    std::vector<std::vector<std::array<float, 4>>> anchors;
+    std::vector<std::vector<std::array<float, 4> > > anchors;
 
     std::vector<std::string> score_name;
     std::vector<std::string> bbox_name;

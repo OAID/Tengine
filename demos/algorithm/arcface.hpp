@@ -32,7 +32,6 @@
 
 #include "tengine/c_api.h"
 
-
 class recognition
 {
 public:
@@ -55,13 +54,13 @@ private:
 private:
     float input_scale;
     float output_scale;
-    int   input_zp;
-    int   output_zp;
+    int input_zp;
+    int output_zp;
 
 private:
     std::vector<uint8_t> input_affine;
     std::vector<uint8_t> input_uint8_buffer;
-    std::vector<float>   input_float_buffer;
+    std::vector<float> input_float_buffer;
     std::vector<uint8_t> output_uint8_buffer;
-    std::vector<float>   output_float_buffer;
+    std::vector<float> output_float_buffer;
 };

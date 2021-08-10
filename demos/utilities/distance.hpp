@@ -26,10 +26,8 @@
 
 #include <vector>
 
-
 void norm_feature(std::vector<float>& feature);
 
 float distance(const std::vector<float>& a, std::vector<float>& b);
 
 float cos_distance(const std::vector<float>& a, std::vector<float>& b);
-

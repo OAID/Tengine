@@ -28,5 +28,4 @@
 
 #include <opencv2/opencv.hpp>
 
-
 bool affine(const cv::Mat& src, cv::Mat& dst, const Coordinate landmark[5]);

@@ -32,13 +32,11 @@ typedef struct
     float height;
 } BBox;
 
-
 typedef struct
 {
     float x;
     float y;
 } Coordinate;
-
 
 typedef struct
 {
@@ -46,14 +44,12 @@ typedef struct
     BBox box;
 } Region;
 
-
 typedef struct
 {
     int label;
     float score;
     BBox box;
 } Object;
-
 
 typedef struct
 {

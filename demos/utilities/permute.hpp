@@ -26,5 +26,4 @@
 
 #include <opencv2/opencv.hpp>
 
-
 bool permute(const cv::Mat& src, cv::Mat& dst, bool swap_rb = false);

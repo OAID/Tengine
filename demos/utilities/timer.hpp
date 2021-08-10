@@ -26,7 +26,6 @@
 
 #include <chrono>
 
-
 class Timer
 {
 private:

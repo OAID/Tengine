@@ -32,13 +32,12 @@
 
 #include "tengine/c_api.h"
 
-
 class CenterFace
 {
 public:
     CenterFace();
     ~CenterFace();
-    bool Load(const std::string &detection_model, const cv::Size& input_shape, const std::string &device);
+    bool Load(const std::string& detection_model, const cv::Size& input_shape, const std::string& device);
     bool Detect(const cv::Mat& image, std::vector<Region>& boxes, const float& score_threshold, const float& nms_threshold);
 
 private:
