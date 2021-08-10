@@ -233,7 +233,7 @@ int QuantTool::activation_quant_tool()
                 int act_zero_point = 0;
                 int emlement_num = t->elem_num;
 
-                absmax = std::max(abs(max_activation[i]), abs(min_activation[i]));
+                absmax = std::max(std::abs(max_activation[i]), std::abs(min_activation[i]));
                 float threshold = compute_aciq_gaussian_clip(absmax, emlement_num, 8);
                 act_scale = threshold / 127.f;
 
