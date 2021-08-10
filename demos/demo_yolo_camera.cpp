@@ -19,8 +19,7 @@
 
 /*
  * Copyright (c) 2021, OPEN AI LAB
- * Author: lswang@openailab.com
- * Auther: qtang@openailab.com
+ * Author: qtang@openailab.com
  */
 
 #include "yolo.hpp"
@@ -177,13 +176,13 @@ int main(int argc, char* argv[])
 
         det_timer.Stop();
 
-        fprintf(stdout, "detect cost %.2fms.\n", det_timer.TimeCost());
+        fprintf(stdout, "detect cost %.2fms.\n", det_timer.Cost());
 
         /* result show */
         for (auto& object : objects)
         {
             // box
-            cv::Rect2f rect(object.x, object.y, object.w, object.h);
+            cv::Rect2f rect(object.box.x, object.box.y, object.box.width, object.box.height);
 
             const unsigned char* color = colors[object.label];
 

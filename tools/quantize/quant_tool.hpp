@@ -38,6 +38,7 @@ extern "C" {
 
 #define ALGORITHM_MIN_MAX 0
 #define ALGORITHM_KL      1
+#define ALGORITHM_ACIQ    2
 
 class QuantTool
 {

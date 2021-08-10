@@ -74,6 +74,17 @@ QuantTool::~QuantTool()
     release_tengine();
 }
 
+static float compute_aciq_gaussian_clip(float absmax, int N, int num_bits)
+{
+    const float alpha_gaussian[8] = {0, 1.71063519, 2.15159277, 2.55913646, 2.93620062, 3.28691474, 3.6151146, 3.92403714};
+
+    const double gaussian_const = (0.5 * 0.35) * (1 + sqrt(3.14159265358979323846 * log(4)));
+
+    double std = (absmax * 2 * gaussian_const) / sqrt(2 * log(N));
+
+    return (float)(alpha_gaussian[num_bits - 1] * std);
+}
+
 int QuantTool::activation_quant_tool()
 {
     fprintf(stderr, "[Quant Tools Info]: Step 0, load FP32 tmfile.\n");
@@ -202,48 +213,95 @@ int QuantTool::activation_quant_tool()
             }
         }
     }
-
-    /* save the calibration file with min-max algorithm */
-    FILE* fp_minmax = fopen("table_minmax.scale", "wb");
-    for (int i = 0; i < ir_graph->tensor_num; i++)
-    {
-        struct tensor* t = ir_graph->tensor_list[i];
-        if (t->tensor_type == TENSOR_TYPE_VAR || t->tensor_type == TENSOR_TYPE_INPUT)
-        {
-            float act_scale = 1.f;
-            int act_zero_point = 0;
-
-            act_scale = std::max(abs(max_activation[i]), abs(min_activation[i])) / 127.f;
-
-            /* the scale of softmax always is scale = 1 / 127.f */
-            for (int j = 0; j < ir_graph->node_num; j++)
-            {
-                struct node* noden = ir_graph->node_list[j];
-                struct tensor* tensor_tmp = get_ir_graph_tensor(ir_graph, noden->output_tensors[0]);
-
-                if (!(tensor_tmp->tensor_type == TENSOR_TYPE_INPUT || tensor_tmp->tensor_type == TENSOR_TYPE_VAR))
-                    continue;
-
-                std::string tmp_op_name = get_op_name_from_type(noden->op.type);
-                std::string cur_name = t->name;
-                std::string tmp_name = tensor_tmp->name;
-
-                if ((cur_name == tmp_name) && tmp_op_name == "Softmax")
-                {
-                    act_scale = 1 / 127.f;
-                    break;
-                }
-            }
-
-            fprintf(fp_minmax, "%s %f %d\n", ir_graph->tensor_list[i]->name, act_scale, act_zero_point);
-        }
-    }
-    fclose(fp_minmax);
-    fprintf(stderr, "\r\n[Quant Tools Info]: Step 1, find original calibration table done, output ./table_minmax.scale\n");
-
     if (this->algorithm_type == ALGORITHM_KL)
     {
         /* todo support */
+        fprintf(stderr, "\r\n[****WARNING****]:Step 2 find original calibration kl threshold table NOT support temporarily!\n");
+    }
+    else if (this->algorithm_type == ALGORITHM_ACIQ)
+    {
+        /* save the calibration file with aciq algorithm */
+        FILE* fp_aciq = fopen("table_aciq.scale", "wb");
+
+        for (int i = 0; i < ir_graph->tensor_num; i++)
+        {
+            struct tensor* t = ir_graph->tensor_list[i];
+            if (t->tensor_type == TENSOR_TYPE_VAR || t->tensor_type == TENSOR_TYPE_INPUT)
+            {
+                float absmax = 0.f;
+                float act_scale = 1.f;
+                int act_zero_point = 0;
+                int emlement_num = t->elem_num;
+
+                absmax = std::max(abs(max_activation[i]), abs(min_activation[i]));
+                float threshold = compute_aciq_gaussian_clip(absmax, emlement_num, 8);
+                act_scale = threshold / 127.f;
+
+                /* the scale of softmax always is scale = 1 / 127.f */
+                for (int j = 0; j < ir_graph->node_num; j++)
+                {
+                    struct node* noden = ir_graph->node_list[j];
+                    struct tensor* tensor_tmp = get_ir_graph_tensor(ir_graph, noden->output_tensors[0]);
+
+                    if (!(tensor_tmp->tensor_type == TENSOR_TYPE_INPUT || tensor_tmp->tensor_type == TENSOR_TYPE_VAR))
+                        continue;
+
+                    std::string tmp_op_name = get_op_name_from_type(noden->op.type);
+                    std::string cur_name = t->name;
+                    std::string tmp_name = tensor_tmp->name;
+
+                    if ((cur_name == tmp_name) && tmp_op_name == "Softmax")
+                    {
+                        act_scale = 1 / 127.f;
+                        break;
+                    }
+                }
+                //fprintf(stderr, "%-40s : max = %-15f  threshold = %-15f  scale = %-15f total:%d\n", ir_graph->tensor_list[i]->name, absmax, threshold, threshold / 127.f,emlement_num);
+                fprintf(fp_aciq, "%s %f %d\n", ir_graph->tensor_list[i]->name, act_scale, act_zero_point);
+            }
+        }
+        fclose(fp_aciq);
+        fprintf(stderr, "\r\n[Quant Tools Info]: Step 2, find original calibration aciq threshold table done, output ./table_aciq.scale\n");
+    }
+    else
+    {
+        /* save the calibration file with min-max algorithm */
+        FILE* fp_minmax = fopen("table_minmax.scale", "wb");
+        for (int i = 0; i < ir_graph->tensor_num; i++)
+        {
+            struct tensor* t = ir_graph->tensor_list[i];
+            if (t->tensor_type == TENSOR_TYPE_VAR || t->tensor_type == TENSOR_TYPE_INPUT)
+            {
+                float act_scale = 1.f;
+                int act_zero_point = 0;
+
+                act_scale = std::max(abs(max_activation[i]), abs(min_activation[i])) / 127.f;
+
+                /* the scale of softmax always is scale = 1 / 127.f */
+                for (int j = 0; j < ir_graph->node_num; j++)
+                {
+                    struct node* noden = ir_graph->node_list[j];
+                    struct tensor* tensor_tmp = get_ir_graph_tensor(ir_graph, noden->output_tensors[0]);
+
+                    if (!(tensor_tmp->tensor_type == TENSOR_TYPE_INPUT || tensor_tmp->tensor_type == TENSOR_TYPE_VAR))
+                        continue;
+
+                    std::string tmp_op_name = get_op_name_from_type(noden->op.type);
+                    std::string cur_name = t->name;
+                    std::string tmp_name = tensor_tmp->name;
+
+                    if ((cur_name == tmp_name) && tmp_op_name == "Softmax")
+                    {
+                        act_scale = 1 / 127.f;
+                        break;
+                    }
+                }
+
+                fprintf(fp_minmax, "%s %f %d\n", ir_graph->tensor_list[i]->name, act_scale, act_zero_point);
+            }
+        }
+        fclose(fp_minmax);
+        fprintf(stderr, "\r\n[Quant Tools Info]: Step 2, find original calibration minmax threshold table done, output ./table_minmax.scale\n");
     }
 
     fprintf(stderr, "[Quant Tools Info]: Thread %d, image nums %d, total time %.2f ms, avg time %.2f ms\n", num_thread, img_num, total_time, total_time / img_num);
@@ -261,7 +319,7 @@ const char* help_params = "[Quant Tools Info]: optional arguments:\n"
                           "\t-i    image dir       path to calibration images folder\n"
                           "\t-f    scale file      path to calibration scale file\n"
                           "\t-o    output model    path to output int8 tmfile\n"
-                          "\t-a    algorithm       the type of quant algorithm(0:min-max, 1:kl, default is 0)\n"
+                          "\t-a    algorithm       the type of quant algorithm(0:min-max, 1:kl, 2:aciq, default is 0)\n"
                           "\t-g    size            the size of input image(using the resize the original image,default is 3,224,224)\n"
                           "\t-w    mean            value of mean (mean value, default is 104.0,117.0,123.0)\n"
                           "\t-s    scale           value of normalize (scale value, default is 1.0,1.0,1.0)\n"
@@ -389,17 +447,27 @@ int main(int argc, char* argv[])
     /* using 3rd calibration table file */
     if (quant_tool.scale_file.empty())
     {
-        /* quantize activation */
-        quant_tool.activation_quant_tool();
-
         /* select algorithm */
         if (quant_tool.algorithm_type == ALGORITHM_MIN_MAX)
+        {
             quant_tool.scale_file = "table_minmax.scale";
+        }
+        else if (quant_tool.algorithm_type == ALGORITHM_KL)
+        {
+            quant_tool.scale_file = "table_kl.scale";
+        }
+        else if (quant_tool.algorithm_type == ALGORITHM_ACIQ)
+        {
+            quant_tool.scale_file = "table_aciq.scale";
+        }
         else
         {
             fprintf(stderr, "[Quant Tools Info]: algorithm not specified, using default type MIN MAX\n");
             quant_tool.scale_file = "table_minmax.scale";
         }
+
+        /* quantize activation */
+        quant_tool.activation_quant_tool();
     }
 
     /* quantize weight/bias and save into int8 tmfile */
