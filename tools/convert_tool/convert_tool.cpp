@@ -190,6 +190,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
+
     if (graph_opt(graph) < 0)
     {
         fprintf(stderr, "optimize graph failed! \n");
