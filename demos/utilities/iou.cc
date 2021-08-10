@@ -18,15 +18,18 @@
  */
 
 /*
- * Copyright (c) 2020, OPEN AI LAB
+ * Copyright (c) 2021, OPEN AI LAB
  * Author: lswang@openailab.com
  */
 
-#pragma once
+#include "iou.hpp"
 
-#include "types.hpp"
-#include "tengine/c_api.h"
 
-#include <vector>
+float iou(const cv::Rect2f& rect_a, const cv::Rect2f& rect_b)
+{
+    // TODO: need impl without opencv
+    const cv::Rect2f union_set          = rect_a & rect_b;
+    const cv::Rect2f intersection_set   = rect_a | rect_b;
 
-int pose_process(graph_t graph, int image_width, int image_height, int net_width, int net_height, std::vector<Object>& boxes);
+    return union_set.area() / intersection_set.area();
+}

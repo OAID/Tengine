@@ -18,58 +18,38 @@
  */
 
 /*
- * Copyright (c) 2020, OPEN AI LAB
+ * Copyright (c) 2021, OPEN AI LAB
  * Author: lswang@openailab.com
  */
 
 #include "timer.hpp"
 
-#ifdef _WINDOWS
-#include <Windows.h>
-#else // _WINDOWS
-#include <sys/time.h>
-#endif // _WINDOWS
-
-double Timer::get_current_time() const
-{
-#ifdef _WINDOWS
-    LARGE_INTEGER freq;
-    LARGE_INTEGER pc;
-    QueryPerformanceFrequency(&freq);
-    QueryPerformanceCounter(&pc);
-
-    return pc.QuadPart * 1000.0 / freq.QuadPart;
-#else // _WINDOWS
-    struct timeval tv;
-    gettimeofday(&tv, nullptr);
-
-    return tv.tv_sec * 1000.0 + tv.tv_usec / 1000.0;
-#endif
-}
 
 Timer::Timer()
 {
-    start_time_ = get_current_time();
-    end_time_ = start_time_;
+    Start();
 }
+
 
 void Timer::Start()
 {
-    start_time_ = get_current_time();
-    end_time_ = start_time_;
+    Stop();
+    this->start_time = this->end_time;
 }
+
 
 void Timer::Stop()
 {
-    end_time_ = get_current_time();
+    this->end_time = std::chrono::high_resolution_clock::now();
 }
 
-double Timer::TimeCost()
+
+float Timer::Cost()
 {
-    if (end_time_ <= start_time_)
+    if (this->end_time <= this->start_time)
     {
-        Stop();
+        this->Stop();
     }
 
-    return end_time_ - start_time_;
+    return static_cast<float>(std::chrono::duration_cast<std::chrono::microseconds>(this->end_time - this->start_time).count()) / 1000.f;
 }

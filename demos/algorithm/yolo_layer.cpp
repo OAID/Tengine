@@ -19,8 +19,7 @@
 
 /*
  * Copyright (c) 2020, OPEN AI LAB
- * Author: lswang@openailab.com
- * Auther: qtang@openailab.com
+ * Author: qtang@openailab.com
  */
 
 #include "yolo_layer.hpp"
@@ -326,10 +325,10 @@ int pose_process(graph_t graph, int image_width, int image_height, int net_width
 
         boxes[i].label = objects[i].label;
         boxes[i].score = objects[i].prob;
-        boxes[i].x = x0;
-        boxes[i].y = y0;
-        boxes[i].w = x1 - x0;
-        boxes[i].h = y1 - y0;
+        boxes[i].box.x = x0;
+        boxes[i].box.y = y0;
+        boxes[i].box.width = x1 - x0;
+        boxes[i].box.height = y1 - y0;
     }
 
     return 0;

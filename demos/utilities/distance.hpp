@@ -18,46 +18,18 @@
  */
 
 /*
- * Copyright (c) 2021, OPEN AI LAB
+ * Copyright (c) 2020, OPEN AI LAB
  * Author: lswang@openailab.com
  */
 
 #pragma once
 
-typedef struct
-{
-    float x;
-    float y;
-    float width;
-    float height;
-} BBox;
+#include <vector>
 
 
-typedef struct
-{
-    float x;
-    float y;
-} Coordinate;
+void norm_feature(std::vector<float>& feature);
 
+float distance(const std::vector<float>& a, std::vector<float>& b);
 
-typedef struct
-{
-    float confidence;
-    BBox box;
-} Region;
+float cos_distance(const std::vector<float>& a, std::vector<float>& b);
 
-
-typedef struct
-{
-    int label;
-    float score;
-    BBox box;
-} Object;
-
-
-typedef struct
-{
-    float confidence;
-    BBox box;
-    Coordinate landmark[5];
-} Face;

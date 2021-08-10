@@ -22,42 +22,32 @@
  * Author: lswang@openailab.com
  */
 
-#pragma once
+#include "permute.hpp"
 
-typedef struct
+bool permute(const cv::Mat& src, cv::Mat& dst, bool swap_rb)
 {
-    float x;
-    float y;
-    float width;
-    float height;
-} BBox;
+    if (src.empty() || dst.empty() || dst.data == src.data || dst.rows != src.rows || dst.cols != src.cols)
+    {
+        return false;
+    }
 
+    std::vector<cv::Mat> permute_vector(src.channels());
+    for (int i = 0; i < src.channels(); i++)
+    {
+        uint8_t* ptr = (uint8_t*)(dst.data) + src.cols * src.rows * i;
+        cv::Mat channel(src.rows, src.cols, CV_8UC1, ptr);
 
-typedef struct
-{
-    float x;
-    float y;
-} Coordinate;
+        if (swap_rb)
+        {
+            permute_vector[2 - i] = channel;
+        }
+        else
+        {
+            permute_vector[i] = channel;
+        }
+    }
 
+    cv::split(src, permute_vector);
 
-typedef struct
-{
-    float confidence;
-    BBox box;
-} Region;
-
-
-typedef struct
-{
-    int label;
-    float score;
-    BBox box;
-} Object;
-
-
-typedef struct
-{
-    float confidence;
-    BBox box;
-    Coordinate landmark[5];
-} Face;
+    return true;
+}

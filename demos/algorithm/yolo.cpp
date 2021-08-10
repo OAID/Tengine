@@ -19,7 +19,6 @@
 
 /*
  * Copyright (c) 2020, OPEN AI LAB
- * Author: lswang@openailab.com
  * Author: qtang@openailab.com
  */
 
@@ -184,14 +183,14 @@ int YOLO::detect(const cv::Mat& image, std::vector<Object>& objects)
         }
     }
 
-    float prepare_cost = (float)prepare_timer.TimeCost();
+    float prepare_cost = (float)prepare_timer.Cost();
     fprintf(stdout, "Prepare cost   %.2fms.\n", prepare_cost);
 
     /* network inference */
     Timer model_timer;
     int ret = run_graph(this->graph, 1);
 
-    float top_model_cost = (float)model_timer.TimeCost();
+    float top_model_cost = (float)model_timer.Cost();
     fprintf(stdout, "Run graph cost %.2fms.\n", top_model_cost);
 
     if (0 != ret)
@@ -204,7 +203,7 @@ int YOLO::detect(const cv::Mat& image, std::vector<Object>& objects)
     Timer post_timer;
     this->run_post(image.cols, image.rows, objects);
 
-    float post_cost = (float)post_timer.TimeCost();
+    float post_cost = (float)post_timer.Cost();
     fprintf(stdout, "Post cost      %.2fms.\n", post_cost);
 
     return 0;
@@ -244,7 +243,7 @@ int YOLO::init()
         return -1;
     }
 
-    auto time_cost = (float)timer.TimeCost();
+    auto time_cost = (float)timer.Cost();
     fprintf(stdout, "Init cost %.2fms.\n", time_cost);
 
     return 0;

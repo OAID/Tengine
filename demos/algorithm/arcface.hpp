@@ -18,7 +18,7 @@
  */
 
 /*
- * Copyright (c) 2020, OPEN AI LAB
+ * Copyright (c) 2021, OPEN AI LAB
  * Author: lswang@openailab.com
  */
 
@@ -26,49 +26,42 @@
 
 #include "types.hpp"
 
-#include "yolo_layer.hpp"
-#include "tengine/c_api.h"
-
-#include <opencv2/opencv.hpp>
-
 #include <string>
 #include <vector>
+#include <opencv2/opencv.hpp>
 
-class YOLO
+#include "tengine/c_api.h"
+
+
+class recognition
 {
 public:
-    YOLO(const std::string& model, const int& w, const int& h, const std::array<float, 3>& scale, const std::array<float, 3>& bias);
-    ~YOLO();
-    int detect(const cv::Mat& image, std::vector<Object>& objects);
+    recognition() = default;
+    ~recognition();
 
-private:
-    int init();
-    void run_post(int image_width, int image_height, std::vector<Object>& boxes);
+public:
+    bool load(const std::string& model, const std::string& device);
+    bool get_feature(const cv::Mat& image, const Coordinate landmark[5], std::vector<float>& feature);
+    bool get_feature_std(const cv::Mat& image, std::vector<float>& feature);
 
 private:
     context_t context;
     graph_t graph;
 
-    int width;
-    int height;
-
-    std::vector<uint8_t> input_uint8;
-    std::vector<float> input_float;
-
-    std::vector<std::vector<float> > output_float;
-
-    std::vector<uint8_t> canvas;
-    std::vector<uint8_t> canvas_permute;
-
-    float in_scale;
-    int in_zp;
-
-    bool init_done;
-
-    std::vector<float> out_scale;
-    std::vector<int> out_zp;
+private:
+    tensor_t input_tensor;
+    tensor_t output_tensor;
 
 private:
-    std::array<float, 3> scale;
-    std::array<float, 3> bias;
+    float input_scale;
+    float output_scale;
+    int   input_zp;
+    int   output_zp;
+
+private:
+    std::vector<uint8_t> input_affine;
+    std::vector<uint8_t> input_uint8_buffer;
+    std::vector<float>   input_float_buffer;
+    std::vector<uint8_t> output_uint8_buffer;
+    std::vector<float>   output_float_buffer;
 };

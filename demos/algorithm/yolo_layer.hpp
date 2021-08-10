@@ -19,25 +19,14 @@
 
 /*
  * Copyright (c) 2020, OPEN AI LAB
- * Author: lswang@openailab.com
+ * Author: qtang@openailab.com
  */
 
 #pragma once
 
-class Timer
-{
-private:
-    double start_time_, end_time_;
+#include "types.hpp"
+#include "tengine/c_api.h"
 
-private:
-    double get_current_time() const;
+#include <vector>
 
-public:
-    Timer();
-
-    void Start();
-
-    void Stop();
-
-    double TimeCost();
-};
+int pose_process(graph_t graph, int image_width, int image_height, int net_width, int net_height, std::vector<Object>& boxes);

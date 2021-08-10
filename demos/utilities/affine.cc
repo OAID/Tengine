@@ -22,42 +22,27 @@
  * Author: lswang@openailab.com
  */
 
-#pragma once
+#include "affine.hpp"
 
-typedef struct
+
+bool affine(const cv::Mat& src, cv::Mat& dst, const Coordinate landmark[5])
 {
-    float x;
-    float y;
-    float width;
-    float height;
-} BBox;
+    const cv::Point2f gt_point[5] = { {38.2946, 51.6963}, {73.5318, 51.5014}, {56.0252, 71.7366}, {41.5493, 92.3655}, {70.7299, 92.2041} };
 
+    if (src.empty() || dst.empty() || dst.data == src.data || 112 != dst.rows || 112 != dst.cols)
+    {
+        return false;
+    }
 
-typedef struct
-{
-    float x;
-    float y;
-} Coordinate;
+    std::vector<cv::Point2f> src_points_vector(5), dst_points_vector(5);
+    for (int i = 0; i < 5; i++)
+    {
+        src_points_vector[i] = { landmark[i].x, landmark[i].y };
+        dst_points_vector[i] = { gt_point[i].x, gt_point[i].y };
+    }
 
+    cv::Mat trans_matrix = cv::estimateAffinePartial2D(src_points_vector, dst_points_vector);
+    cv::warpAffine(src, dst, trans_matrix, dst.size());
 
-typedef struct
-{
-    float confidence;
-    BBox box;
-} Region;
-
-
-typedef struct
-{
-    int label;
-    float score;
-    BBox box;
-} Object;
-
-
-typedef struct
-{
-    float confidence;
-    BBox box;
-    Coordinate landmark[5];
-} Face;
+    return true;
+}
