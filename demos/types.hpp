@@ -18,27 +18,42 @@
  */
 
 /*
- * Copyright (c) 2020, OPEN AI LAB
+ * Copyright (c) 2021, OPEN AI LAB
  * Author: lswang@openailab.com
  */
 
 #pragma once
 
-struct Region
+typedef struct
 {
-    float confidence;
     float x;
     float y;
     float width;
     float height;
-};
+} BBox;
 
-struct Object
+typedef struct
+{
+    float x;
+    float y;
+} Coordinate;
+
+typedef struct
+{
+    float confidence;
+    BBox box;
+} Region;
+
+typedef struct
 {
     int label;
     float score;
-    float x;
-    float y;
-    float w;
-    float h;
-};
+    BBox box;
+} Object;
+
+typedef struct
+{
+    float confidence;
+    BBox box;
+    Coordinate landmark[5];
+} Face;

@@ -406,8 +406,13 @@ bool save_graph(graph_t graph, const char* fname)
 
     ir_graph_t* ir_graph = (ir_graph_t*)graph;
     /* Open the tengine model file */
+#ifdef _MSC_VER
+    FILE* fd = fopen(fname, "wb+");
+    if (fd == NULL)
+#else
     int fd = open(fname, O_RDWR | O_CREAT | O_TRUNC, 0666);
     if (fd == -1)
+#endif
     {
         TLOG_ERR("Could not open %s\n", fname);
         return false;
@@ -418,15 +423,23 @@ bool save_graph(graph_t graph, const char* fname)
 
     if (!save_model(addr_list, size_list, ir_graph))
     {
+#ifdef _MSC_VER
+        fclose(fd);
+#else
         close(fd);
+#endif
         return false;
     }
 
     void* buf = addr_list[0];
     int size = size_list[0];
+#ifdef _MSC_VER
+    int ret = fwrite(buf, size, 1, fd) * size;
+    fclose(fd);
+#else
     int ret = write(fd, buf, size);
-
     close(fd);
+#endif
     free(buf);
 
     if (ret != size)

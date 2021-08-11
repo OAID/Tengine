@@ -17,7 +17,7 @@ git clone https://github.com/OAID/Tengine.git  tengine-lite
 cd tengine-lite
 mkdir build 
 cd build
-cmake -DTENGINE_BUILD_QUANT_TOOL ..
+cmake -DTENGINE_BUILD_QUANT_TOOL=ON ..
 make && make install
 ```
 

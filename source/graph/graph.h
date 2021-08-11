@@ -27,6 +27,10 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct context;
 struct node;
 struct tensor;
@@ -163,3 +167,7 @@ int infer_ir_graph_shape(ir_graph_t* graph);
  * @param [in]  ir_graph: specific graph.
  */
 void dump_ir_graph(ir_graph_t* graph);
+
+#ifdef __cplusplus
+}
+#endif

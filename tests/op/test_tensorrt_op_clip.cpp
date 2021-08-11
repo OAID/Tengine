@@ -23,6 +23,7 @@
  */
 
 #include "test_op.h"
+#include "operator/prototype/clip_param.h"
 
 int create_test_clip_node(graph_t graph, const char* input_name, const char* node_name, int data_type, int layout, int n, int c, int h, int w)
 {
@@ -49,6 +50,12 @@ int create_test_clip_node(graph_t graph, const char* input_name, const char* nod
     /* output tensors of test node */
     tensor_t output_tensor = create_graph_tensor(graph, node_name, data_type);
     set_node_output_tensor(test_node, 0, output_tensor, TENSOR_TYPE_VAR);
+
+    /* set params */
+    struct clip_param* clip_param = (struct clip_param*)(struct node*)test_node->op.param_mem;
+
+    clip_param->min = 0;
+    clip_param->max = 6;
 
     return 0;
 }

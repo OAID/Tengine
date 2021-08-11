@@ -23,13 +23,17 @@
  */
 
 #include <algorithm>
-
 #include "quant_save_graph.hpp"
 #include "compiler_fp16.h"
 
 #include "operator/prototype/convolution_param.h"
 #include "operator/prototype/pooling_param.h"
 #include "operator/prototype/relu_param.h"
+
+#ifdef _MSC_VER
+#undef max
+#undef min
+#endif
 
 void recursion_pass_through(struct graph* ir_graph, const char* layer_name, struct tensor* t,
                             std::tr1::unordered_map<std::string, int>& layer_used, std::tr1::unordered_map<std::string, float>& layer_scale,

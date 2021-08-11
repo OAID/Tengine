@@ -25,17 +25,20 @@
 #include <cstdlib>
 #include <cstdio>
 #include <sys/stat.h>
-#include <dirent.h>
 
 #include <fstream>
 #include <string>
 #include <cmath>
+#ifdef _MSC_VER
+#include <unordered_map>
+#else
 #include <tr1/unordered_map>
+#endif
 
 #include "quant_utils.hpp"
 #include "save_graph.hpp"
 
-#include "tengine/c_api.h"
+#include "api/c_api.h"
 
 extern "C" {
 #include "graph/graph.h"
