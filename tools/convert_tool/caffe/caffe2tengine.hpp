@@ -50,7 +50,7 @@ extern "C" {
 #include "save_graph/op_include.h"
 }
 #define LRN_ACROSS_CHANNELS 0
-#define LRN_WITHIN_CHANNEL 1
+#define LRN_WITHIN_CHANNEL  1
 enum PoolArg
 {
     kPoolMax,
