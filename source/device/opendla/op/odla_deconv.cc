@@ -75,39 +75,22 @@ nvdla::priv::canonical_ast::Node * ODLAEngine::AddDeconvlutionNode(struct node* 
         }
         case TENGINE_DT_INT8:
         {
-            if (conv_weight->quant_param_num != conv_weight->dims[0])
-            {
-                fprintf(stderr, "Tengine: Unsupported weight quant channel of conv(id: %d, name: %s).\n", ir_node->index, ir_node->name);
-                return nullptr;
-            }
-            float* weight_buffer = (float*)sys_malloc(conv_weight->elem_num * sizeof(float));
-            this->host_buffer.push_back(weight_buffer);
-            for (int ch = 0; ch < conv_weight->quant_param_num; ch++)
-            {
-                int block_size = conv_weight->dims[1] * conv_weight->dims[2] * conv_weight->dims[3];
-                for (int i = 0; i < block_size; i++)
-                {
-                    int offset = block_size * ch;
-                    weight_buffer[offset + i] = (float)(((int8_t*)conv_weight->data)[offset + i]) * conv_weight->scale_list[ch];
-                }
-            }
 
-            kernelWeights.values = weight_buffer;
+            kernelWeights.values = conv_weight->data;
             kernelWeights.count = conv_weight->elem_num;
-            kernelWeights.type = nvdla::DataType::FLOAT;
+            kernelWeights.type = nvdla::DataType::INT8;
             break;
         }
         case TENGINE_DT_UINT8:
         {
-            std::vector<float> weight_buffer;
-            weight_buffer.resize(conv_weight->elem_num);
-
+            float* weight_buffer = (float*)sys_malloc(conv_weight->elem_num * sizeof(float));
+            this->host_buffer.push_back(weight_buffer);
             for (int i = 0; i < conv_weight->elem_num; i++)
             {
                 weight_buffer[i] = (float)(((uint8_t*)conv_weight->data)[i] - conv_weight->zero_point) * conv_weight->scale;
             }
 
-            kernelWeights.values = weight_buffer.data();
+            kernelWeights.values = weight_buffer;
             kernelWeights.count = conv_weight->elem_num;
             kernelWeights.type = nvdla::DataType::FLOAT;
             break;

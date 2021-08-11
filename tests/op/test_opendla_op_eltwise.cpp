@@ -22,6 +22,7 @@
  * Author: qtang@openailab.com
  */
 
+// For this test, you should comment fuseSDPSubEngineOp pass.
 #include <iostream>
 #include "test_op.h"
 #include "operator/prototype/eltwise_param.h"
@@ -112,6 +113,7 @@ int create_test_eltwise_node(graph_t graph, const char* input_name, const char* 
     return 0;
 }
 
+// De Convolution can only support with RUBIK Engine Enabled.
 int main(int argc, char* argv[])
 {
     int n = 1, c = 1, h = 5, w = 5;

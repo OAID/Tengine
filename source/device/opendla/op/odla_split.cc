@@ -34,7 +34,7 @@ extern "C"
 nvdla::priv::canonical_ast::Node * ODLAEngine::AddSplitNode(struct node* ir_node)
 {
     struct graph* ir_graph = ir_node->graph;
-    struct concat_param* param = (struct concat_param*)ir_node->op.param_mem;
+    struct split_param* param = (struct split_param*)ir_node->op.param_mem;
     nvdla::priv::canonical_ast::Node * Node ;
     auto * splitNode = new nvdla::priv::canonical_ast::SplitNode();
 

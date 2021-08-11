@@ -517,8 +517,8 @@ int ODLAEngine::Build(struct subgraph* subgraph)
         auto odla_node = n.first;
         auto ir_node = n.second;
 
-        if(ir_node->op.type == OP_CONV || ir_node->op.type == OP_FC){
-            // CONV|FC Only have one input in OPENDLA but tengine ir regard weights and bias as input.
+        if(ir_node->op.type == OP_CONV || ir_node->op.type == OP_DECONV || ir_node->op.type == OP_FC){
+            // CONV|DECONV|FC Only have one input in OPENDLA but tengine ir regard weights and bias as input.
             struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
             auto tensor = nvdla::priv::TensorFactory::priv(this->odla_tensor_map[input_tensor->index]);
             if(!tensor){
