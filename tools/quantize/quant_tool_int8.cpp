@@ -233,7 +233,7 @@ int QuantTool::activation_quant_tool()
                 int act_zero_point = 0;
                 int emlement_num = t->elem_num;
 
-                absmax = std::max(abs(max_activation[i]), abs(min_activation[i]));
+                absmax = std::max(std::abs(max_activation[i]), std::abs(min_activation[i]));
                 float threshold = compute_aciq_gaussian_clip(absmax, emlement_num, 8);
                 act_scale = threshold / 127.f;
 
@@ -275,7 +275,7 @@ int QuantTool::activation_quant_tool()
                 float act_scale = 1.f;
                 int act_zero_point = 0;
 
-                act_scale = std::max(abs(max_activation[i]), abs(min_activation[i])) / 127.f;
+                act_scale = std::max(std::abs(max_activation[i]), std::abs(min_activation[i])) / 127.f;
 
                 /* the scale of softmax always is scale = 1 / 127.f */
                 for (int j = 0; j < ir_graph->node_num; j++)

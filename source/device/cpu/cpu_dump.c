@@ -205,6 +205,7 @@ int print_tensor_data_value(FILE* file, const struct tensor* tensor, int offset)
             fprintf(file, "%.4f ", val_fp32);
         else
             fprintf(file, " %.4f ", val_fp32);
+        break;
     }
     case TENGINE_DT_INT32:
     {
@@ -218,6 +219,7 @@ int print_tensor_data_value(FILE* file, const struct tensor* tensor, int offset)
             fprintf(file, "%.6f ", val_fp32);
         else
             fprintf(file, " %.6f ", val_fp32);
+        break;
     }
     }
 
