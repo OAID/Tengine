@@ -277,7 +277,7 @@ int QuantTool::activation_quant_tool()
 
                 act_scale = std::max(std::abs(max_activation[i]), std::abs(min_activation[i])) / 127.f;
 
-                /* the scale of softmax always is scale = 1 / 127.f */
+                /* the scale of softmax is always scale = 1 / 127.f */
                 for (int j = 0; j < ir_graph->node_num; j++)
                 {
                     struct node* noden = ir_graph->node_list[j];
