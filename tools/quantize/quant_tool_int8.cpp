@@ -237,7 +237,7 @@ int QuantTool::activation_quant_tool()
                 float threshold = compute_aciq_gaussian_clip(absmax, emlement_num, 8);
                 act_scale = threshold / 127.f;
 
-                /* the scale of softmax always is scale = 1 / 127.f */
+                /* the scale of softmax is always scale = 1 / 127.f */
                 for (int j = 0; j < ir_graph->node_num; j++)
                 {
                     struct node* noden = ir_graph->node_list[j];
