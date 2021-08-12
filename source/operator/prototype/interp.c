@@ -86,6 +86,7 @@ static int init_op(struct op* op)
     interp_param->output_width = 0;
     interp_param->height_scale = 1.f;
     interp_param->width_scale = 1.f;
+    interp_param->align_corner = 1;
 
     op->param_mem = interp_param;
     op->param_size = sizeof(struct interp_param);
