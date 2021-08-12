@@ -125,6 +125,15 @@ int delete_node(ir_graph_t* graph, int16_t pre_node_id, int16_t del_node_id)
     }
     pre_output_tensor->consumer_num = del_output_tensor->consumer_num;
 
+    /* check if graph output */
+    for (int i = 0; i < graph->output_num; ++i)
+    {
+        if (del_node_id == graph->output_nodes[i])
+        {
+            graph->output_nodes[i] = pre_node_id;
+        }
+    }
+
     /* delete node */
     if (erase_tensor_id(graph, del_node->output_tensors[0]) < 0 || erase_node_id(graph, del_node->index) < 0)
     {
@@ -368,7 +377,8 @@ static int weight_bn(ir_graph_t* graph, ir_node_t* conv_node, float* mean, float
     /* create bias node and tensor */
     if (bias_tensor == nullptr)
     {
-        std::string name = conv_node->name;
+        std::string name = kernel_tensor->name;
+
         name = name + ".bias.bn";
         /* create */
         ir_node_t* bias_node = create_ir_node(graph, name.c_str(), OP_CONST, 1);
@@ -383,7 +393,6 @@ static int weight_bn(ir_graph_t* graph, ir_node_t* conv_node, float* mean, float
         int* dims = (int*)sys_malloc(sizeof(int) * dim_num);
         dims[0] = channel_num;
         bias_tensor->data = (void*)sys_malloc(sizeof(float) * channel_num);
-
         set_ir_tensor_shape(bias_tensor, dims, dim_num);
         set_ir_node_output_tensor(bias_node, 0, bias_tensor);
         set_ir_node_input_tensor(conv_node, 2, bias_tensor);
@@ -715,6 +724,7 @@ static int fuse_conv_bn(ir_graph_t* graph)
         ir_node_t* conv_node = get_ir_graph_node(graph, conv_tensor->producer);
         if (conv_node->op.type != OP_CONV)
             continue;
+
         conv_bn_v.push_back(std::make_pair(conv_node, bn_node));
     }
 
@@ -878,11 +888,11 @@ int graph_opt(graph_t graph)
         return -1;
     if (fuse_relu_eltwise(ir_graph) < 0)
         return -1;
+    if (fuse_bn_scale(ir_graph) < 0)
+        return -1;
     if (fuse_conv_bn(ir_graph) < 0)
         return -1;
     if (fuse_fc_bn(ir_graph) < 0)
-        return -1;
-    if (fuse_bn_scale(ir_graph) < 0)
         return -1;
     if (fuse_conv_relu_common(ir_graph) < 0)
         return -1;

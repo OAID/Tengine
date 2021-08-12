@@ -83,8 +83,8 @@ bool VXEngine::AddConvolutionNode(struct node* ir_node)
             std::array<uint32_t, 2>({ (unsigned int)param->kernel_h, (unsigned int)param->kernel_w }),
             std::array<uint32_t, 2>({ (unsigned int)param->stride_h, (unsigned int)param->stride_w }),
             std::array<uint32_t, 2>({ (unsigned int)param->dilation_h, (unsigned int)param->dilation_w }),
-            std::array<uint32_t, 4>({ (unsigned int)param->pad_h0, (unsigned int)param->pad_h1,
-                                                (unsigned int)param->pad_w0, (unsigned int)param->pad_w1 }),
+            std::array<uint32_t, 4>({ (unsigned int)param->pad_w0, (unsigned int)param->pad_w1,
+                                      (unsigned int)param->pad_h0, (unsigned int)param->pad_h1 }),
             multiplier);
         if (param->activation >= 0)
         {
@@ -149,8 +149,8 @@ bool VXEngine::AddConvolutionNode(struct node* ir_node)
     else    // conv group != 1
     {
         auto conv = this->graph->CreateOperation<tim::vx::ops::GroupedConv2d>(
-            std::array<uint32_t, 4>({ (unsigned int)param->pad_h0, (unsigned int)param->pad_h1,
-                                       (unsigned int)param->pad_w0, (unsigned int)param->pad_w1 }),
+            std::array<uint32_t, 4>({ (unsigned int)param->pad_w0, (unsigned int)param->pad_w1,
+                                      (unsigned int)param->pad_h0, (unsigned int)param->pad_h1 }),
             std::array<uint32_t, 2>({ (unsigned int)param->stride_h, (unsigned int)param->stride_w }),
             std::array<uint32_t, 2>({ (unsigned int)param->dilation_h, (unsigned int)param->dilation_w }),
             param->group);

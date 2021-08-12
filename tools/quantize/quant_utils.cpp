@@ -22,7 +22,6 @@
  * Author: hhchen@openailab.com
  */
 
-#include <dirent.h>
 #include <string.h>
 
 #include <opencv2/core/core.hpp>
@@ -30,8 +29,9 @@
 #include <opencv2/imgproc/imgproc.hpp>
 
 #ifdef _MSC_VER
-#include "getopt.h"
+#include <io.h>
 #else
+#include <dirent.h>
 #include <unistd.h>
 #endif
 
@@ -45,7 +45,7 @@
 #include "quant_utils.hpp"
 
 #ifdef _WIN32
-double get_current_time()
+static double get_current_time()
 {
     LARGE_INTEGER freq;
     LARGE_INTEGER pc;
@@ -335,9 +335,46 @@ void get_input_data_cv(const char* image_file, float* input_data, int img_c, int
 
 void readFileList(std::string basePath, std::vector<std::string>& imgs)
 {
+    std::string base;
+
+#ifdef _MSC_VER
+    struct _finddata_t c_file;
+    intptr_t ptr;
+
+    if ((ptr = _findfirst((basePath + "/*").c_str(), &c_file)) == -1L)
+    {
+        printf("No files in %s\n", basePath.c_str());
+        exit(1);
+    }
+
+    do
+    {
+        if (c_file.attrib & _A_HIDDEN)
+        {
+            continue;
+        }
+
+        if (c_file.attrib & _A_SUBDIR)
+        {
+            if (strcmp(c_file.name, "..") == 0 || strcmp(c_file.name, ".") == 0)
+            {
+                continue;
+            }
+
+            readFileList(basePath + "/" + c_file.name, imgs);
+        }
+        else
+        {
+            base = basePath + "/" + c_file.name;
+            imgs.push_back(base);
+        }
+
+    } while (_findnext(ptr, &c_file) == 0);
+
+    _findclose(ptr);
+#else
     DIR* dir;
     struct dirent* ptr;
-    std::string base;
 
     if ((dir = opendir(basePath.c_str())) == NULL)
     {
@@ -360,6 +397,7 @@ void readFileList(std::string basePath, std::vector<std::string>& imgs)
         }
     }
     closedir(dir);
+#endif
 }
 
 std::vector<uint32_t> histCount(float* data, uint32_t elem_num, float max_val, float min_val)

@@ -31,3 +31,4 @@ curl -L -o appimage/$bn.png https://gist.github.com/daquexian/cd140d70b1772daa4a
 ./linuxdeploy-x86_64.AppImage --appdir appimage/appdir -d appimage/$bn.desktop -i appimage/$bn.png --output appimage
 
 rm -rf appimage/appdir
+rm -rf linuxdeploy-*.AppImage

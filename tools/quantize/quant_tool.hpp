@@ -27,7 +27,7 @@
 #include <unordered_map>
 
 extern "C" {
-#include "tengine/c_api.h"
+#include "api/c_api.h"
 #include "graph/graph.h"
 #include "graph/subgraph.h"
 #include "graph/node.h"
@@ -38,6 +38,7 @@ extern "C" {
 
 #define ALGORITHM_MIN_MAX 0
 #define ALGORITHM_KL      1
+#define ALGORITHM_ACIQ    2
 
 class QuantTool
 {

@@ -151,7 +151,7 @@ int get_ir_node_index_from_name(struct graph* ir_graph, const char* node_name)
         {
             ir_node = ir_graph->node_list[idx];
 
-            if (!ir_node->name || !strcmp(ir_node->name, node_name))
+            if (NULL != ir_node->name && 0 == strcmp(ir_node->name, node_name))
             {
                 return idx;
             }

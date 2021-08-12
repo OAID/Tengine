@@ -27,6 +27,10 @@
 
 #include <stddef.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*!
  * @brief Convert tensor type to char array.
  *
@@ -104,3 +108,7 @@ void dump_float(const char* file_name, float* data, int number);
 int get_mask_count(size_t mask);
 
 int get_mask_index(size_t mask);
+
+#ifdef __cplusplus
+}
+#endif

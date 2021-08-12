@@ -49,7 +49,8 @@ extern "C" {
 #include "utility/vector.h"
 #include "save_graph/op_include.h"
 }
-
+#define LRN_ACROSS_CHANNELS 0
+#define LRN_WITHIN_CHANNEL  1
 enum PoolArg
 {
     kPoolMax,
@@ -73,11 +74,14 @@ private:
     int load_tensor_data(ir_graph_t* graph, const te_caffe::NetParameter test_net, const te_caffe::NetParameter train_net);
     int load_text_file(std::string model_file, te_caffe::NetParameter& caffe_net);
     int load_binary_file(std::string model_file, te_caffe::NetParameter& caffe_net);
+    int set_graph_input(ir_graph_t* graph, const te_caffe::NetParameter test_net, const te_caffe::NetParameter train_net);
+    int set_graph_output(ir_graph_t* graph, const te_caffe::NetParameter test_net, const te_caffe::NetParameter train_net);
     bool find_op_load_method(const std::string& op_name);
     void register_op_load();
 
     std::unordered_map<std::string, const te_caffe::LayerParameter*> train_name_map;
-    std::vector<ir_tensor_t*> output_tensors;
+    std::vector<std::string> output_tensors;
+    std::vector<std::string> input_tensors;
 };
 
 #endif
