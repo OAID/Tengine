@@ -517,8 +517,8 @@ int interp_run(struct tensor* output_tensor, struct tensor* input_tensor, struct
         float* alpha = (float*)(buf + out_w + out_h);            // new float[ow * 2];
         float* beta = (float*)(buf + out_w + out_h + out_w * 2); // new float[oh * 2];
 
-        linear_coeffs(in_w, out_w, xofs, alpha, param->align_corner);
-        linear_coeffs(in_h, out_h, yofs, beta, param->align_corner);
+        linear_coeffs(in_w, out_w, xofs, alpha, interp_param->align_corner);
+        linear_coeffs(in_h, out_h, yofs, beta, interp_param->align_corner);
 
 #pragma omp parallel for num_threads(num_thread)
         for (int q = 0; q < in_c; ++q)
