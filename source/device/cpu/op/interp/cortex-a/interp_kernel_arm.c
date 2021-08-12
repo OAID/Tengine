@@ -32,13 +32,22 @@
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
-static void linear_coeffs(int w, int outw, int* xofs, float* alpha)
+static void linear_coeffs(int w, int outw, int* xofs, float* alpha, int align_corner)
 {
     double scale = (double)w / outw;
 
+    if (align_corner)
+    {
+        scale = (double)(w - 1) / (outw - 1);
+    }
     for (int dx = 0; dx < outw; dx++)
     {
-        float fx = (float)((dx)*scale);
+        float fx = (float)((dx + 0.5) * scale - 0.5);
+        if (align_corner)
+        {
+            fx = (float)((dx)*scale);
+        }
+        
         int sx = floor(fx);
         fx -= sx;
 
@@ -508,8 +517,8 @@ int interp_run(struct tensor* output_tensor, struct tensor* input_tensor, struct
         float* alpha = (float*)(buf + out_w + out_h);            // new float[ow * 2];
         float* beta = (float*)(buf + out_w + out_h + out_w * 2); // new float[oh * 2];
 
-        linear_coeffs(in_w, out_w, xofs, alpha);
-        linear_coeffs(in_h, out_h, yofs, beta);
+        linear_coeffs(in_w, out_w, xofs, alpha, param->align_corner);
+        linear_coeffs(in_h, out_h, yofs, beta, param->align_corner);
 
 #pragma omp parallel for num_threads(num_thread)
         for (int q = 0; q < in_c; ++q)
