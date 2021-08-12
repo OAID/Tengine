@@ -1283,11 +1283,8 @@ int load_interp(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_
             interp_param->height_scale = data[2];
             interp_param->width_scale = data[3];
         }
-        if (mode == "nearest")
-        {
-            interp_param->resize_type = 1;
-        }
-        else if (mode == "bilinear" || mode == "linear")
+
+        if (mode == "bilinear" || mode == "linear")
         {
             interp_param->resize_type = 2;
         }
