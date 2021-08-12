@@ -2132,7 +2132,16 @@ int load_resize(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_
     struct interp_param* interp_param = (struct interp_param*)node->op.param_mem;
     interp_param->height_scale = 0;
     interp_param->width_scale = 0;
-
+    
+    for (int k = 0; k < onnx_node.attribute_size(); k++)
+    {
+        const onnx::AttributeProto& attr = onnx_node.attribute(k);
+        if (attr.name() == "coordinate_transformation_mode")
+        {
+            if (attr.s() == "align_corners")
+                interp_param->align_corner = 1;
+        }
+    }
     if (onnx_node.input_size() == 1)
     {
         for (int k = 0; k < onnx_node.attribute_size(); k++)
