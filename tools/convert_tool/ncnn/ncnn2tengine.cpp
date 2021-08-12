@@ -492,7 +492,7 @@ int ncnn_serializer::load_binary_file(const char* fname, std::vector<NcnnParam>&
         }
         else if (nodelist[i].op == "InnerProduct")
         {
-            NcnnParam weight, bias;
+            NcnnParam weight;
             nscan = read(&magic, sizeof(float));
             weight.name = nodelist[i].name + "_w";
             std::map<int, std::string>::iterator iter;
