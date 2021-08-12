@@ -32,6 +32,7 @@ struct interp_param
     int output_width;
     float height_scale;
     float width_scale;
+    int align_corner;
 };
 
 #endif
