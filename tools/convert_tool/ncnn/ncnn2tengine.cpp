@@ -228,7 +228,7 @@ int ncnn_serializer::load_model_file(const char* fname, std::vector<NcnnNode>& n
         {
             bool array_selection = id <= -23300;
 
-            if (node.op == "Input" && array_selection == true)
+            if (node.op == "Input" && array_selection)
             {
                 node.optimized = 1;
             }
@@ -236,7 +236,7 @@ int ncnn_serializer::load_model_file(const char* fname, std::vector<NcnnNode>& n
             {
                 id = -id - 23300;
             }
-            if (node.optimized == 1 && array_selection == true)
+            if (node.optimized == 1 && array_selection)
             {
                 int len = 0;
                 int nscan = fscanf(fp, "%d", &len);
@@ -290,7 +290,7 @@ int ncnn_serializer::load_model_file(const char* fname, std::vector<NcnnNode>& n
             }
             else
             {
-                if (array_selection == true)
+                if (array_selection)
                 {
                     int len = 0;
                     int nscan = fscanf(fp, "%d", &len);
