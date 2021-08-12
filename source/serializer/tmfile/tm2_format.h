@@ -899,6 +899,7 @@ typedef struct
     float height_scale;
     int32_t output_width;
     int32_t output_height;
+    int32_t align_corner;
 } TM2_InterpParam;
 
 typedef struct
