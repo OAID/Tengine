@@ -53,7 +53,7 @@ void linear_coeffs(int w, int outw, int* xofs, float* alpha, int align_corner)
         {
             float fx = (float)((dx)*scale);
         }
-        
+
         int sx = floor(fx);
         fx -= sx;
 
