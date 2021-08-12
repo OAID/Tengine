@@ -1110,6 +1110,7 @@ tm_uoffset_t SaveTmInterpOp(void* const start_ptr, tm_uoffset_t* cur_pos, ir_nod
     tm_param.output_width = p->output_width;
     tm_param.resize_type = p->resize_type;
     tm_param.width_scale = p->width_scale;
+    tm_param.align_corner = p->align_corner;
 
     TM2_Operator tm_op;
     SetTmOperator(&tm_op, TM2_OPTYPE_INTERP, WriteTmObject(start_ptr, cur_pos, &tm_param, sizeof(TM2_InterpParam)));
