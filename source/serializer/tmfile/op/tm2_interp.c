@@ -52,6 +52,7 @@ static int tm2_load_interp(struct graph* ir_graph, struct node* ir_node, const T
     param->height_scale = tm_param->height_scale;
     param->output_width = tm_param->output_width;
     param->output_height = tm_param->output_height;
+    param->align_corner = tm_param->align_corner;
 
     return 0;
 }
