@@ -59,7 +59,7 @@
 #ifdef TENGINE_LITE_VERSION
 static const char* tengine_lite_version = STR_VERSION(TENGINE_LITE_VERSION);
 #else
-static const char* tengine_lite_version = "1.4";
+static const char* tengine_lite_version = "1.5";
 #endif
 
 #ifdef TENGINE_VERSION_POSTFIX

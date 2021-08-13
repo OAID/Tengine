@@ -514,4 +514,4 @@ ENDFUNCTION()
 # generate all serializer
 GENERATE_REGISTER_HEADER_FILE("register_" "unregister_" "" "${_SRL_SRC_ROOT}/register.h.in" "${_SRL_BIN_ROOT}/register.h" "${_SRL_TM2_SRL_SOURCE}")
 ```
-这样就完成了配置过程，生成的头文件进一步的在后续的编译过程中发挥作用。当用户使用静态分析功能的 `IDE` 审阅代码时，由于相关头文件没有生成，所以可能会发生无法跳转的情况。经过编译配置的 `Microsoft Visual Studio Code` 等在打开文件夹后，会启动 `CMake` 进行配置和生成，这时的头文件就会生成，也能进行跳转了。其他 `Microsoft Visual Studio` 或 `Jetbrains Clion` 等 `IDE` 也可以完成配置和生成过程，推荐使用。
+这样就完成了配置过程，生成的头文件进一步的在后续的编译过程中发挥作用。当用户使用静态分析功能的 `IDE` 审阅代码时，由于相关头文件没有生成，所以可能会发生无法跳转的情况。经过编译配置的 `Microsoft Visual Studio Code` 等在打开文件夹后，会启动 `CMake` 进行配置和生成，这时的头文件就会生成，也能进行跳转了。其他 `Microsoft Visual Studio` 或 `JetBrains CLion` 等 `IDE` 也可以完成配置和生成过程，推荐使用。

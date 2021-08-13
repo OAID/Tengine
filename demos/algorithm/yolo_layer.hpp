@@ -19,7 +19,7 @@
 
 /*
  * Copyright (c) 2020, OPEN AI LAB
- * Author: lswang@openailab.com
+ * Author: qtang@openailab.com
  */
 
 #pragma once
