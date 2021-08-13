@@ -37,8 +37,8 @@ struct device;
 typedef struct subgraph
 {
     uint8_t index;             //!< the index of a subgraph
-    uint8_t input_ready_count; //!< the count of all in ready input tensors
-    uint8_t input_wait_count;  //!< the count of all out of ready input tensors
+    uint8_t input_ready_count; //!< the count of all ready input tensors
+    uint8_t input_wait_count;  //!< the count of all input tensors that are not ready
     uint8_t input_num;         //!< the count of input tensors
     uint8_t output_num;        //!< the count of output tensors
     uint8_t status;            //!< the execution status of subgraph
