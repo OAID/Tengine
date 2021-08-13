@@ -48,20 +48,20 @@ int ref_l2normalization_uint8(struct tensor* input_tensor, struct tensor* output
 
     float* in_data_fp32 = (float*)malloc(total_size * sizeof(float));
 
-    for(int i=0; i<total_size; i++)
+    for (int i = 0; i < total_size; i++)
     {
-        in_data_fp32[i] = ((float )input_uint8[i] - (float )input_zero) * input_scale;
+        in_data_fp32[i] = ((float)input_uint8[i] - (float)input_zero) * input_scale;
     }
 
     float sq_l2_norm = 0;
-    for(int j = 0; j < channel_size; j++)
+    for (int j = 0; j < channel_size; j++)
     {
         const float val = in_data_fp32[j];
         sq_l2_norm += val * val;
     }
     const float l2_norm = sqrt(sq_l2_norm);
 
-    for(int j = 0; j < channel_size; j++)
+    for (int j = 0; j < channel_size; j++)
     {
         float output_fp32 = in_data_fp32[j] / l2_norm;
         int udata = round(output_fp32 / output_scale + output_zero);

@@ -122,8 +122,8 @@ const int timvx_supported_ops[] = {
     OP_MISH,
     //    OP_LOGSOFTMAX,
     //    OP_RELU1,
-          OP_L2NORMALIZATION,
-          OP_SPATIALTRANSFORMER, //ffh
+    OP_L2NORMALIZATION,
+    OP_SPATIALTRANSFORMER, //ffh
     //    OP_L2POOL,
     //    OP_TILE,
     //    OP_SHAPE,
