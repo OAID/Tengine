@@ -66,7 +66,7 @@ extern "C" {
 #define SPEC_TYPE_RESHAPE   8
 #define SPEC_TYPE_INPUT     9
 
-#define OPENDLA_LOG_
+//#define OPENDLA_LOG_
 
 typedef std::map<uint32_t, nvdla::priv::Tensor*> dict_irt2odlat;
 typedef std::map<nvdla::priv::canonical_ast::Node*, struct node*, nvdla::priv::canonical_ast::Graph::nodeCompareFn> dict_odlan2irtn;
