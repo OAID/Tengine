@@ -81,6 +81,52 @@ int ref_sigmoid_fp32(struct tensor* input_tensor, struct tensor* output_tensor, 
     return 0;
 }
 
+int ref_sigmoid_int8(struct tensor* input_tensor, struct tensor* output_tensor, int num_thread)
+{
+    /* dequant */
+    int8_t* input_int8 = (int8_t*)input_tensor->data;
+    int8_t* output_int8 = (int8_t*)output_tensor->data;
+    float input_scale = input_tensor->scale;
+    float output_scale = output_tensor->scale;
+    int32_t input_zero = input_tensor->zero_point;
+    int32_t output_zero = output_tensor->zero_point;
+    int input_size = input_tensor->elem_num;
+    int output_size = output_tensor->elem_num;
+
+    float* input_fp32 = (float*)sys_malloc(input_size * sizeof(float));
+    float* output_fp32 = (float*)sys_malloc(output_size * sizeof(float));
+
+    for (int i = 0; i < input_size; i++)
+    {
+        input_fp32[i] = ((float)input_int8[i] - (float)input_zero) * input_scale;
+    }
+
+    for (int i = 0; i < input_size; i++)
+    {
+        output_fp32[i] = SIGMOID_MIN(input_fp32[i], 30.0f);
+        output_fp32[i] = SIGMOID_MAX(input_fp32[i], -30.0f);
+
+        output_fp32[i] = 1 / (1 + exp(-output_fp32[i]));
+    }
+
+    /* quant */
+    for (int i = 0; i < output_size; i++)
+    {
+        int idata = round(output_fp32[i] / output_scale + output_zero);
+        if (idata > 127)
+            idata = 127;
+        else if (idata < -127)
+            idata = -127;
+        output_int8[i] = idata;
+    }
+
+    sys_free(input_fp32);
+    sys_free(output_fp32);
+
+    return 0;
+}
+
+
 int ref_sigmoid_uint8(struct tensor* input_tensor, struct tensor* output_tensor, int num_thread)
 {
     /* dequant */
@@ -168,6 +214,8 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     int ret = -1;
     if (input_tensor->data_type == TENGINE_DT_FP32)
         ret = ref_sigmoid_fp32(input_tensor, output_tensor, exec_graph->num_thread);
+    else if (input_tensor->data_type == TENGINE_DT_INT8)
+        ret = ref_sigmoid_int8(input_tensor, output_tensor, exec_graph->num_thread);
     else if (input_tensor->data_type == TENGINE_DT_UINT8)
         ret = ref_sigmoid_uint8(input_tensor, output_tensor, exec_graph->num_thread);
 

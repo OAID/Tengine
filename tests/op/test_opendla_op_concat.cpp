@@ -25,7 +25,7 @@
 #include <iostream>
 #include "test_op.h"
 #include "operator/prototype/eltwise_param.h"
-#include "operator/prototype/convolution_param.h"
+#include "operator/prototype/concat_param.h"
 
 int float_mismatch(float* current, float* reference, int size)
 {
@@ -106,7 +106,8 @@ int create_test_concat_node(graph_t graph, const char* input_name, const char* n
 
     set_node_input_tensor(test_node, 0, relu_1_output_tensor);
     set_node_input_tensor(test_node, 1, relu_2_output_tensor);
-
+    struct concat_param* param = (struct concat_param*)((struct node *)test_node)->op.param_mem;
+    param->axis = 1;
     tensor_t output_tensor = create_graph_tensor(graph, node_name, data_type);
     set_node_output_tensor(test_node, 0, output_tensor, TENSOR_TYPE_VAR);
 

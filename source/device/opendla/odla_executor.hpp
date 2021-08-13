@@ -119,8 +119,8 @@ private:
     uint32_t numBatches = 1;
     NvU8* inputHandle{};
     NvU8* outputHandle{};
-    void* inputBuffer = NULL;
-    void* outputBuffer = NULL;
+    std::vector<void*> inputBuffer;
+    std::vector<void*> outputBuffer;
     std::vector<void*> host_buffer;
     dict_irt2odlat odla_tensor_map;
     dict_odlan2irtn odla_node_map;

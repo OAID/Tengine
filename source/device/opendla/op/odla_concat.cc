@@ -40,13 +40,6 @@ nvdla::priv::canonical_ast::Node * ODLAEngine::AddConcatNode(struct node* ir_nod
     nvdla::priv::canonical_ast::Node * Node ;
     auto * concatenationNode = new nvdla::priv::canonical_ast::ConcatenationNode();
     concatenationNode->params().setNumInputs(ir_node->input_num);
-    concatenationNode->params().m_axis = param->axis;
-//    nvdla::Dims4 dims;
-//    dims.n = output_tensor->dims[1];
-//    dims.c = output_tensor->dims[0];
-//    dims.h = output_tensor->dims[2];
-//    dims.w = output_tensor->dims[3];
-//    this->odla_tensor_map[output_tensor->index]->setDimensions(dims);
 
     Node = concatenationNode;
     nvdla::priv::canonical_ast::NodeFactory::s_concat_priv.insert(
