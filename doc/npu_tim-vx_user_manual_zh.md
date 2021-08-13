@@ -83,7 +83,6 @@ $ export LD_LIBRARY_PATH=<tengine-lite-root-dir>/3rdparty/tim-vx/lib/x86_64${LD_
 ```
 
 ### 2.5 准备编译 Khadas VIM3/VIM3L Linux 平台
-
 VIM3/VIM3L 的 linux 平台是有 NPU 预置驱动的，可以通过 `sudo apt list --installed` 查看已经安装的版本：
 ``` bash
 khadas@Khadas:~$ sudo apt list --installed | grep aml-npu
