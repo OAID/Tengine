@@ -277,4 +277,4 @@ static struct optimizer tpu_optimizer = {
 通过上文的描述，可以知道添加一个自定义设备的核心工作就是填充 `ir_device_t` 结构体，描述完成后，设备注册的所有工作就完成了。模块化的 `device` 使得 **Tengine** 非常易于扩展，并有足够的灵活性。
 
 ## 彩蛋
-`init_tengine(void)` 函数中，当 `operator prototype` 完成注册后，注册的就是 `serializer` 和 `devices`，但在静态代码状态下函数并不会跳转，用户可以安装一款集成开发环境，比如 `Microsoft Visual Studio` 或 `Jetbrains Clion`，打开文件夹后生成 `CMake` 过程后即可进行跳转。
+`init_tengine(void)` 函数中，当 `operator prototype` 完成注册后，注册的就是 `serializer` 和 `devices`，但在静态代码状态下函数并不会跳转，用户可以安装一款集成开发环境，比如 `Microsoft Visual Studio` 或 `JetBrains CLion`，打开文件夹后生成 `CMake` 过程后即可进行跳转。
