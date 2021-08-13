@@ -83,6 +83,7 @@ $ export LD_LIBRARY_PATH=<tengine-lite-root-dir>/3rdparty/tim-vx/lib/x86_64${LD_
 ```
 
 ### 2.5 准备编译 Khadas VIM3/VIM3L Linux 平台
+
 VIM3/VIM3L 的 linux 平台是有 NPU 预置驱动的，可以通过 `sudo apt list --installed` 查看已经安装的版本：
 ``` bash
 khadas@Khadas:~$ sudo apt list --installed | grep aml-npu
@@ -90,7 +91,15 @@ WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
 aml-npu/now 6.4.3CB-2 arm64
 khadas@Khadas:~$ 
 ```
-对于 `6.4.3CB-2` 的版本(galcore 内核打印为 `6.4.3.279124CB`)，推荐进行联网执行升级，当前的升级版本是 `6.4.4.3AAA`(galcore 的内核打印是 `6.4.4.3.310723AAA`)，升级后编译时不需要准备 3rdparty 的对应 so，系统默认的版本就可以满足要求。下面针对这两种情况，分别会进行讨论；然而新的 npu 驱动版本支持更多的 OP，升级总是没错的(如果烧录的是较早的镜像，NPU 版本可能是 `6.4.2`，和 `6.4.3CB-2` 一样不支持 TIM-VX，视同 `6.4.3CB-2` 进行编译即可，或进行推荐的升级按 `6.4.4` 及以上版本的流程进行编译)。
+对于 `6.4.3CB-2` 的版本(galcore 内核打印为 `6.4.3.279124CB`)，推荐进行联网执行升级：
+``` bash
+sudo apt-get update
+sudo apt-get upgrade 
+sudo apt-get full-upgrade
+```
+**当前的升级版本是 `6.4.4.3AAA`(galcore 的内核打印是 `6.4.4.3.310723AAA`)，升级后编译时不需要准备 3rdparty 的对应 so，系统默认的版本就可以满足要求。**
+
+下面针对这两种情况，分别会进行讨论；然而新的 npu 驱动版本支持更多的 OP，升级总是没错的(如果烧录的是较早的镜像，NPU 版本可能是 `6.4.2`，和 `6.4.3CB-2` 一样不支持 TIM-VX，视同 `6.4.3CB-2` 进行编译即可，或进行推荐的升级按 `6.4.4` 及以上版本的流程进行编译)。
 
 #### 2.5.1 准备代码
 准备代码环节不用考虑 VIM3/VIM3L 的 NPU 版本，参考命令如下：
@@ -101,7 +110,7 @@ $ cp -rf ../TIM-VX/src      ./source/device/tim-vx/
 ```
 
 #### 2.5.2 准备 VIM3/VIM3L 较早版本 3rdparty 依赖
-如果是较早版本的 NPU，不打算/不可能进行升级，那么参考准备步骤如下(拉取到的依赖是 6.4.3.p0.286725)：
+如果是较早版本的 NPU 依赖库 (**6.4.3.p0.286725**)，不打算/不可能进行升级，那么参考准备步骤如下：
 ```bash
 $ wget -c https://github.com/VeriSilicon/TIM-VX/releases/download/v1.1.28/aarch64_A311D_D312513_A294074_R311680_T312233_O312045.tgz
 $ tar zxvf aarch64_A311D_D312513_A294074_R311680_T312233_O312045.tgz
