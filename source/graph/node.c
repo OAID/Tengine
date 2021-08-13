@@ -68,7 +68,7 @@ ir_node_t* create_ir_node(struct graph* ir_graph, const char* node_name, int op_
 
     // check if any op param should be set
     ir_method_t* method = find_op_method(op_type, op_version);
-    if ((NULL != method) && (NULL != method->init) && (method->init(&node->op) < 0))
+    if (!(NULL != method && NULL != method->init && 0 == method->init(&node->op)))
     {
         sys_free(node);
         return NULL;
