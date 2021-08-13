@@ -29,6 +29,7 @@
 
 #include <algorithm>
 #include <numeric>
+#include <fstream>
 
 #define VXDEVICE "VX"
 const float DET_THRESHOLD   =   0.30f;
