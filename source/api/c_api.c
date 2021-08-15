@@ -59,7 +59,7 @@
 #ifdef TENGINE_LITE_VERSION
 static const char* tengine_lite_version = STR_VERSION(TENGINE_LITE_VERSION);
 #else
-static const char* tengine_lite_version = "1.4";
+static const char* tengine_lite_version = "1.5";
 #endif
 
 #ifdef TENGINE_VERSION_POSTFIX
@@ -230,7 +230,7 @@ int remove_context_device(context_t context, const char* dev_name)
         return -1;
     }
 
-    if (0 == strcmp(ctx->device->name, ctx->device->name))
+    if (0 == strcmp(ctx->device->name, dev_name))
     {
         ctx->device = NULL;
         return 0;
