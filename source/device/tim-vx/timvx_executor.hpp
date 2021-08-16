@@ -75,6 +75,8 @@ extern "C" {
 #include "tim/vx/ops/split.h"
 #include "tim/vx/ops/stridedslice.h"
 #include "tim/vx/ops/transpose.h"
+#include "tim/vx/ops/spatial_transformer.h"
+#include "tim/vx/ops/l2normalization.h"
 
 #define SPEC_TYPE_CONV      1
 #define SPEC_TYPE_CONV_BIAS 2
@@ -138,6 +140,8 @@ private:
     bool AddTanhNode(struct node* ir_node);
     bool AddTransposeNode(struct node* ir_node);
     bool AddUpsampleNode(struct node* ir_node);
+    bool AddSpatialtransformerNode(struct node* ir_node);
+    bool AddL2normalizationNode(struct node* ir_node);
 
 public:
     std::shared_ptr<tim::vx::Context> context;
