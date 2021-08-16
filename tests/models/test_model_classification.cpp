@@ -50,18 +50,19 @@
 
 int float_mismatch(float* current, float* reference, int size)
 {
+    int ret = 0;
     for (int i = 0; i < size; i++)
     {
         float tmp = fabs(current[i]) - fabs(reference[i]);
         if (fabs(tmp) > 0.001)
         {
             fprintf(stderr, "test failed, index:%d, a:%f, b:%f\n", i, current[i], reference[i]);
-            return -1;
+            ret = -1;
         }
     }
     fprintf(stderr, "test pass\n");
 
-    return 0;
+    return ret;
 }
 
 void show_usage()

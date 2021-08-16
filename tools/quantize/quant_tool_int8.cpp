@@ -219,7 +219,7 @@ int QuantTool::activation_quant_tool()
         fprintf(stderr, "\r\n[****WARNING****]:Step 2 find original calibration kl threshold table NOT support temporarily!\n");
     }
     else if (this->algorithm_type == ALGORITHM_ACIQ)
-    {   
+    {
         /* save the calibration file with aciq algorithm */
         FILE* fp_aciq = fopen("table_aciq.scale", "wb");
 
@@ -233,11 +233,11 @@ int QuantTool::activation_quant_tool()
                 int act_zero_point = 0;
                 int emlement_num = t->elem_num;
 
-                absmax = std::max(abs(max_activation[i]), abs(min_activation[i]));
+                absmax = std::max(std::abs(max_activation[i]), std::abs(min_activation[i]));
                 float threshold = compute_aciq_gaussian_clip(absmax, emlement_num, 8);
                 act_scale = threshold / 127.f;
 
-                /* the scale of softmax always is scale = 1 / 127.f */
+                /* the scale of softmax is always scale = 1 / 127.f */
                 for (int j = 0; j < ir_graph->node_num; j++)
                 {
                     struct node* noden = ir_graph->node_list[j];
@@ -257,12 +257,11 @@ int QuantTool::activation_quant_tool()
                     }
                 }
                 //fprintf(stderr, "%-40s : max = %-15f  threshold = %-15f  scale = %-15f total:%d\n", ir_graph->tensor_list[i]->name, absmax, threshold, threshold / 127.f,emlement_num);
-                fprintf(fp_aciq,"%s %f %d\n",ir_graph->tensor_list[i]->name, act_scale, act_zero_point);
+                fprintf(fp_aciq, "%s %f %d\n", ir_graph->tensor_list[i]->name, act_scale, act_zero_point);
             }
         }
         fclose(fp_aciq);
         fprintf(stderr, "\r\n[Quant Tools Info]: Step 2, find original calibration aciq threshold table done, output ./table_aciq.scale\n");
-        
     }
     else
     {
@@ -276,9 +275,9 @@ int QuantTool::activation_quant_tool()
                 float act_scale = 1.f;
                 int act_zero_point = 0;
 
-                act_scale = std::max(abs(max_activation[i]), abs(min_activation[i])) / 127.f;
+                act_scale = std::max(std::abs(max_activation[i]), std::abs(min_activation[i])) / 127.f;
 
-                /* the scale of softmax always is scale = 1 / 127.f */
+                /* the scale of softmax is always scale = 1 / 127.f */
                 for (int j = 0; j < ir_graph->node_num; j++)
                 {
                     struct node* noden = ir_graph->node_list[j];
@@ -451,13 +450,13 @@ int main(int argc, char* argv[])
         /* select algorithm */
         if (quant_tool.algorithm_type == ALGORITHM_MIN_MAX)
         {
-            quant_tool.scale_file = "table_minmax.scale";  
-        }       
-        else if(quant_tool.algorithm_type == ALGORITHM_KL)
+            quant_tool.scale_file = "table_minmax.scale";
+        }
+        else if (quant_tool.algorithm_type == ALGORITHM_KL)
         {
             quant_tool.scale_file = "table_kl.scale";
         }
-        else if(quant_tool.algorithm_type == ALGORITHM_ACIQ)
+        else if (quant_tool.algorithm_type == ALGORITHM_ACIQ)
         {
             quant_tool.scale_file = "table_aciq.scale";
         }
@@ -466,10 +465,9 @@ int main(int argc, char* argv[])
             fprintf(stderr,"[Quant Tools Info]: algorithm not specified, using default type MIN MAX\n");
             quant_tool.scale_file = "table_minmax.scale";
         }
-        
+
         /* quantize activation */
         quant_tool.activation_quant_tool();
-        
     }
 
     /* quantize weight/bias and save into int8 tmfile */
