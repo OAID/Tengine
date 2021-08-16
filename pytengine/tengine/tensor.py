@@ -198,7 +198,7 @@ class Tensor(object):
                     ctypes.c_void_p(self.tensor),
                     ctypes.cast(c_data, ctypes.c_void_p),
                     ctypes.sizeof(ctypes.c_char) * self._data[1],
-                    )
+                )
             )
             return ctypes2buffer(
                 ctypes.cast(c_data, ctypes.POINTER(ctypes.c_char)), self._data[1]
@@ -253,7 +253,7 @@ class Tensor(object):
                             ctypes.c_void_p(self.tensor),
                             ctypes.cast(c_data, ctypes.POINTER(ctypes.c_int)),
                             ctypes.sizeof(ctypes.c_int) * size,
-                            )
+                        )
                     )
                 elif type(data[0]) == type(0.0):
                     self._data = [ctypes.c_float, size]
@@ -263,7 +263,7 @@ class Tensor(object):
                             ctypes.c_void_p(self.tensor),
                             ctypes.cast(c_data, ctypes.POINTER(ctypes.c_float)),
                             ctypes.sizeof(ctypes.c_float) * size,
-                            )
+                        )
                     )
                 else:
                     return -1
