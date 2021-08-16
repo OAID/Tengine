@@ -270,3 +270,6 @@ TENGINE_MODEL_TEST (test_model_yolov4               models/test_model_yolov4.cpp
 TENGINE_MODEL_TEST (test_model_yolov4_tiny          models/test_model_yolov4_tiny.cpp)
 TENGINE_MODEL_TEST (test_model_yolov5s              models/test_model_yolov5s.cpp)
 TENGINE_MODEL_TEST (test_model_common               models/test_model_common.cpp)
+IF(TENGINE_ENABLE_TENSORRT)
+    TENGINE_MODEL_TEST (test_trt_model_classification       models/test_trt_model_classification.cpp)
+ENDIF()
