@@ -40,7 +40,11 @@ void Timer::Start()
 
 void Timer::Stop()
 {
+#ifdef _MSC_VER
+    this->end_time = std::chrono::system_clock::now();
+#else
     this->end_time = std::chrono::high_resolution_clock::now();
+#endif
 }
 
 

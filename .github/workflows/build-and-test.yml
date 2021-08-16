@@ -185,9 +185,10 @@ jobs:
         ln -s ${actions}/ci_test/arm64_data/  data
     - name: test
       run: |
-        chmod +x ./tests/test_arm64_real.sh
+        chmod +x ./tests/test_arm64_*.sh
         cd build
         ../tests/test_arm64_real.sh
+        ../tests/test_arm64_trt.sh
         
   linux-gcc-mipsisa64r6el:
     runs-on: ubuntu-20.04
