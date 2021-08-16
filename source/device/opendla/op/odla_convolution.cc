@@ -155,9 +155,6 @@ nvdla::priv::canonical_ast::Node * ODLAEngine::AddConvolutionNode(struct node* i
                             for (uint32_t i = 0; i < conv_bias->elem_num; i++)
                             {
                                 bias_buffer[i] = (float)(((int32_t*)conv_bias->data)[i]) * conv_bias->scale_list[i];
-#ifdef OPENDLA_LOG_
-                fprintf(stdout, "model int32 bias %d -> inverse fp32 bias: %f \n",((int32_t*)conv_bias->data)[i], bias_buffer[i]);
-#endif
                             }
                         }
                         biasWeights.values = bias_buffer;

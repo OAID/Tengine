@@ -855,11 +855,11 @@ int ODLAEngine::ODLAEnginePreRun(struct subgraph* subgraph)
         }
         this->loadable.priv()->getSerializedData(buffer);
         {
-            NvDlaFileHandle file = 0;
-            std::string fileName = std::string(this->profile->getName()) + ".nvdla";
-            fprintf(stdout, "Dump loadable data to : %s . \n", fileName.c_str());
-            NvDlaFopen(fileName.c_str(), NVDLA_OPEN_WRITE, &file);
-            NvDlaFwrite(file, buffer, loadableSize);
+//            NvDlaFileHandle file = 0;
+//            std::string fileName = std::string(this->profile->getName()) + ".nvdla";
+//            fprintf(stdout, "Dump loadable data to : %s . \n", fileName.c_str());
+//            NvDlaFopen(fileName.c_str(), NVDLA_OPEN_WRITE, &file);
+//            NvDlaFwrite(file, buffer, loadableSize);
         }
         // deserialize Loadable image
         this->runtime->load(buffer, 0);
@@ -950,11 +950,9 @@ int ODLAEngine::ODLAEngineRun(struct subgraph* subgraph)
         struct timeval t1{}, t2{};
         double elapsedTime;
 
-        this->runtime->initEMU();
         gettimeofday(&t1, nullptr);
         this->runtime->submit();
         gettimeofday(&t2, nullptr);
-        this->runtime->stopEMU();
 
         elapsedTime = t2.tv_sec - t1.tv_sec;
         elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000000.0;
