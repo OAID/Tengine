@@ -160,14 +160,12 @@ class AlignOnnx():
         if np.float32 == data.dtype:
             data_type = 'fp32'
 
-        # print(data.dtype.string)
         write_string = f"Shape is " + shape_str + f", data type is {data_type}\n"
         for i in range(mat_shape[0]):
 
             # lack dim1 and dim5
             dim = len(mat_shape)
             if dim != 2 or dim != 3 or dim != 4:
-                # print("Only support dims :2 3 4")
                 continue
             write_data_batch = data[i * np.prod(mat_shape[1:]):i + 1 * np.prod(mat_shape[1:])]
 
@@ -302,7 +300,6 @@ class AlignOnnx():
         :read the text that contains layer output
         return : the ndarray of the text data
         """
-        data = []
         with open(txt_path, 'r') as f:
             row1 = f.readline()
             index_1 = row1.index("{") + 1
