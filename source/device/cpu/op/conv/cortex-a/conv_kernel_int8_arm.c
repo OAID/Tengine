@@ -2069,7 +2069,12 @@ int int8_conv_hcl_prerun(struct tensor* input_tensor, struct tensor* filter_tens
 
     for (int i = 0; i < out_c; i++)
     {
-        float kernel_scale = kernel_scales[i];
+
+        float kernel_scale = 0;
+        if(out_c == 1)
+            kernel_scale = filter_tensor->scale;
+        else
+            kernel_scale = kernel_scales[i];
         float scale = input_scale * kernel_scale / output_scale;
 
         int shift;

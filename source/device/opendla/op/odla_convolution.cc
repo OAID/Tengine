@@ -82,17 +82,13 @@ nvdla::priv::canonical_ast::Node * ODLAEngine::AddConvolutionNode(struct node* i
                         fprintf(stderr, "Tengine: Unsupported weight quant channel of conv(id: %d, name: %s).\n", ir_node->index, ir_node->name);
                         return nullptr;
                     }
-//#ifdef OPENDLA_LOG_
-                    fprintf(stdout, "Convert Node %s, out channel %d in channel %d height %d width %d \n", ir_node->name, conv_weight->dims[0],
-                            conv_weight->dims[1], conv_weight->dims[2], conv_weight->dims[3]);
-//#endif
                     float* weight_buffer = (float*)sys_malloc(conv_weight->elem_num * sizeof(float));
                     this->host_buffer.push_back(weight_buffer);
                     if (1 == conv_weight->quant_param_num)
                     {
                         for (uint32_t i = 0; i < conv_weight->elem_num; i++)
                         {
-                            weight_buffer[i] = (float)(((int8_t*)conv_weight->data)[i]) * 0.006;
+                            weight_buffer[i] = (float)(((int8_t*)conv_weight->data)[i]) * conv_weight->scale;
                         }
                     }else for (int ch = 0; ch < conv_weight->quant_param_num; ch++)
                     {
@@ -101,9 +97,6 @@ nvdla::priv::canonical_ast::Node * ODLAEngine::AddConvolutionNode(struct node* i
                         {
                             int offset = block_size * ch;
                             weight_buffer[offset + i] = (float)(((int8_t*)conv_weight->data)[offset + i]) * conv_weight->scale_list[ch];
-#ifdef OPENDLA_LOG_
-         fprintf(stdout, "model int8 weight %d -> inverse fp32 weight: %f \n",((int8_t*)conv_weight->data)[offset + i], weight_buffer[offset + i] );
-#endif
                         }
                     }
 

@@ -54,6 +54,10 @@ build*/
 # 3rd
 3rdparty
 
-#models
+# models
 models
 !models/.gitkeep
+
+# images
+images
+!images/.gitkeep

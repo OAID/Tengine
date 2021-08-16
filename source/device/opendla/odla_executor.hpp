@@ -117,8 +117,6 @@ private:
     nvdla::TensorScalingMode scalingMode = nvdla::TensorScalingMode::PER_TENSOR;
     nvdla::QuantizationMode quantizationMode = nvdla::QuantizationMode::PER_FILTER;
     uint32_t numBatches = 1;
-    NvU8* inputHandle{};
-    NvU8* outputHandle{};
     std::vector<void*> inputBuffer;
     std::vector<void*> outputBuffer;
     std::vector<void*> host_buffer;

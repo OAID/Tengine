@@ -262,7 +262,7 @@ void show_usage()
 }
 
 void get_input_data_focus_int8(const char* image_file, int8_t* input_data, int letterbox_rows, int letterbox_cols, const float* mean,
-                                const float* scale, float input_scale, int zero_point)
+                               const float* scale, float input_scale, int zero_point)
 {
     cv::Mat sample = cv::imread(image_file, 1);
     cv::Mat img;
