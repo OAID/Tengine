@@ -45,16 +45,7 @@ static int sched_prerun(ir_scheduler_t* scheduler, ir_graph_t* ir_graph)
         struct subgraph* subgraph = get_ir_graph_subgraph(ir_graph, i);
         ir_device_t* device = subgraph->device;
         void* opt = NULL;
-
-        char* default_name = *(char**)(ir_graph->attribute->context->default_options);
-        if (0 == strcmp(device->name, default_name))
-        {
-            opt = ir_graph->attribute->context->default_options;
-        }
-        else
-        {
-            opt = ir_graph->attribute->context->device_options;
-        }
+        opt = ir_graph->attribute->context->device_options;
 
         int ret = device->interface->pre_run(device, subgraph, opt);
         if (0 != ret)
