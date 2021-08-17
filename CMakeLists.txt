@@ -49,15 +49,15 @@ IF (NOT CMAKE_BUILD_TYPE)
 ENDIF()
 
 # Module options
-OPTION (TENGINE_BUILD_BENCHMARK             "Build benchmark"                           ON)
-OPTION (TENGINE_BUILD_EXAMPLES              "Build examples"                            ON)
+OPTION (TENGINE_BUILD_BENCHMARK             "Build benchmark"                           OFF)
+OPTION (TENGINE_BUILD_EXAMPLES              "Build examples"                            OFF)
 OPTION (TENGINE_BUILD_DEMO                  "Build demos"                               OFF)
 OPTION (TENGINE_BUILD_TESTS                 "Build tests"                               OFF)
 OPTION (TENGINE_BUILD_CPP_API               "Build C++ API"                             OFF)
 
 # Tools options
 # Tools
-OPTION (TENGINE_BUILD_CONVERT_TOOL          "Build convert tool"                        OFF)
+OPTION (TENGINE_BUILD_CONVERT_TOOL          "Build convert tool"                        ON)
 OPTION (TENGINE_BUILD_QUANT_TOOL            "Build quantization tool"                   OFF)
 
 # Multithreading option

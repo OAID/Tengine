@@ -61,6 +61,47 @@ list(APPEND CAFFE_SERIALIZER_SRCS ${CAFFE_PROTO_SRC})
 # NCNN
 file(GLOB_RECURSE NCNN_SERIALIZER_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/ncnn/*.cpp")
 
+# TENSORFLOW
+file(GLOB_RECURSE TF_SERIALIZER_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/tensorflow/*.cpp")
+
+list(APPEND TENGINE_LIB_SRCS ${serializer_src})
+
+# the generated pb.cc
+set(TF_PROTO_SRC            ${CMAKE_CURRENT_BINARY_DIR}/tensorflow/graph.pb.cc
+                            ${CMAKE_CURRENT_BINARY_DIR}/tensorflow/function.pb.cc
+                            ${CMAKE_CURRENT_BINARY_DIR}/tensorflow/node_def.pb.cc
+                            ${CMAKE_CURRENT_BINARY_DIR}/tensorflow/op_def.pb.cc
+                            ${CMAKE_CURRENT_BINARY_DIR}/tensorflow/attr_value.pb.cc
+                            ${CMAKE_CURRENT_BINARY_DIR}/tensorflow/tensor.pb.cc
+                            ${CMAKE_CURRENT_BINARY_DIR}/tensorflow/tensor_shape.pb.cc
+                            ${CMAKE_CURRENT_BINARY_DIR}/tensorflow/types.pb.cc
+                            ${CMAKE_CURRENT_BINARY_DIR}/tensorflow/versions.pb.cc
+                            ${CMAKE_CURRENT_BINARY_DIR}/tensorflow/resource_handle.pb.cc)
+
+set(TF_PROTO_PATH          ${CMAKE_CURRENT_SOURCE_DIR}/tensorflow)
+set(TF_PROTO_OUT_PATH      ${CMAKE_CURRENT_BINARY_DIR}/tensorflow)
+
+ADD_CUSTOM_COMMAND(OUTPUT  ${TF_PROTO_SRC}
+                    COMMAND mkdir -p ${TF_PROTO_OUT_PATH}
+                    COMMAND ${Protobuf_PROTOC_EXECUTABLE} --cpp_out=${TF_PROTO_OUT_PATH} --proto_path=${TF_PROTO_PATH} ${TF_PROTO_PATH}/graph.proto
+                    COMMAND ${Protobuf_PROTOC_EXECUTABLE} --cpp_out=${TF_PROTO_OUT_PATH} --proto_path=${TF_PROTO_PATH} ${TF_PROTO_PATH}/function.proto
+                    COMMAND ${Protobuf_PROTOC_EXECUTABLE} --cpp_out=${TF_PROTO_OUT_PATH} --proto_path=${TF_PROTO_PATH} ${TF_PROTO_PATH}/node_def.proto
+                    COMMAND ${Protobuf_PROTOC_EXECUTABLE} --cpp_out=${TF_PROTO_OUT_PATH} --proto_path=${TF_PROTO_PATH} ${TF_PROTO_PATH}/op_def.proto
+                    COMMAND ${Protobuf_PROTOC_EXECUTABLE} --cpp_out=${TF_PROTO_OUT_PATH} --proto_path=${TF_PROTO_PATH} ${TF_PROTO_PATH}/attr_value.proto
+                    COMMAND ${Protobuf_PROTOC_EXECUTABLE} --cpp_out=${TF_PROTO_OUT_PATH} --proto_path=${TF_PROTO_PATH} ${TF_PROTO_PATH}/tensor.proto
+                    COMMAND ${Protobuf_PROTOC_EXECUTABLE} --cpp_out=${TF_PROTO_OUT_PATH} --proto_path=${TF_PROTO_PATH} ${TF_PROTO_PATH}/tensor_shape.proto
+                    COMMAND ${Protobuf_PROTOC_EXECUTABLE} --cpp_out=${TF_PROTO_OUT_PATH} --proto_path=${TF_PROTO_PATH} ${TF_PROTO_PATH}/types.proto
+                    COMMAND ${Protobuf_PROTOC_EXECUTABLE} --cpp_out=${TF_PROTO_OUT_PATH} --proto_path=${TF_PROTO_PATH} ${TF_PROTO_PATH}/versions.proto
+                    COMMAND ${Protobuf_PROTOC_EXECUTABLE} --cpp_out=${TF_PROTO_OUT_PATH} --proto_path=${TF_PROTO_PATH} ${TF_PROTO_PATH}/resource_handle.proto
+                    #COMMAND mv ${TF_PROTO_OUT_PATH}/*.pb.h ${TF_PROTO_PATH}/../include/
+)
+
+ADD_CUSTOM_TARGET(TF_SERIALIZER_TARGET DEPENDS ${TF_PROTO_OUT_PATH})
+
+include_directories(${TF_PROTO_OUT_PATH})
+
+list(APPEND TF_SERIALIZER_SRCS ${TF_PROTO_SRC})
+
 
 # SAVE GRAPH
 FILE(GLOB_RECURSE SAVE_GRAPH_SRCS "${CMAKE_SOURCE_DIR}/tools/save_graph/*.cpp" "${CMAKE_SOURCE_DIR}/tools/save_graph/*.c")
@@ -73,6 +114,7 @@ FILE(GLOB_RECURSE CONVERT_TOOL_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/convert_tool.cp
 list(APPEND CONVERT_TOOL_SRCS ${ONNX_SERIALIZER_SRCS})
 list(APPEND CONVERT_TOOL_SRCS ${CAFFE_SERIALIZER_SRCS})
 list(APPEND CONVERT_TOOL_SRCS ${NCNN_SERIALIZER_SRCS})
+list(APPEND CONVERT_TOOL_SRCS ${TF_SERIALIZER_SRCS})
 list(APPEND CONVERT_TOOL_SRCS ${SAVE_GRAPH_SRCS})
 list(APPEND CONVERT_TOOL_SRCS ${GRAPH_OPT_SRCS})
 
