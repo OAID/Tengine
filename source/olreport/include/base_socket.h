@@ -31,7 +31,7 @@
 #define NET_PROTO_TCP 0
 #define NET_PROTO_UDP 1
 
-#define NET_POLL_READ 1
+#define NET_POLL_READ  1
 #define NET_POLL_WRITE 2
 
 #ifdef __cplusplus

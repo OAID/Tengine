@@ -25,18 +25,17 @@
 #ifndef __REPORT_DATA_H__
 #define __REPORT_DATA_H__
 
-#define ACTION_INIT 0x0101
+#define ACTION_INIT    0x0101
 #define ACTION_RELEASE 0x0202
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void init_report_data(const char* tengine_key,const char* tengine_key_token, const char* appid,const char* app_key,
-                    const char* tengine_version,const char* hcl_version,const char* api_version,const char* request_url);
+void init_report_data(const char* tengine_key, const char* tengine_key_token, const char* appid, const char* app_key,
+                      const char* tengine_version, const char* hcl_version, const char* api_version, const char* request_url);
 
-
-const char* general_report_data(int* len,int action);
+const char* general_report_data(int* len, int action);
 void release_report_data();
 
 #ifdef __cplusplus

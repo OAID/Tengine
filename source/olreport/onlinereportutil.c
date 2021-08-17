@@ -34,11 +34,11 @@
 #endif
 
 #define CPU_IMPLEMENTER "CPU implementer"
-#define CPU_ARCH "CPU architecture"
-#define CPU_VARIANT "CPU variant"
-#define CPU_PART "CPU part"
-#define CPU_VERSION "CPU revision"
-#define MEMORY_TOTAL "MemTotal"
+#define CPU_ARCH        "CPU architecture"
+#define CPU_VARIANT     "CPU variant"
+#define CPU_PART        "CPU part"
+#define CPU_VERSION     "CPU revision"
+#define MEMORY_TOTAL    "MemTotal"
 
 int get_rand()
 {
