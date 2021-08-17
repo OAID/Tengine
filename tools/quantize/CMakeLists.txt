@@ -43,6 +43,7 @@ IF (${TENGINE_TARGET_PROCESSOR} MATCHES "X86")
         TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE "${PROJECT_SOURCE_DIR}/source/operator/prototype")       
         TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE "${PROJECT_SOURCE_DIR}/tools/quantize/common")
         TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE "${PROJECT_SOURCE_DIR}/tools/save_graph")
+        TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE "${PROJECT_SOURCE_DIR}/common")
 
         IF (${TENGINE_COVERAGE})
             LIST (APPEND TENGINE_TOOL_OPTIONS "-fprofile-arcs")

@@ -24,9 +24,14 @@
 
 #include <iostream>
 #include <stdlib.h>
+#ifdef _MSC_VER
+#include <io.h>
+#include <msc_getopt.h>
+#else
 #include <unistd.h>
+#endif
 
-#include "tengine/c_api.h"
+#include "api/c_api.h"
 #include "save_graph/save_graph.hpp"
 #include "onnx/onnx2tengine.hpp"
 #include "caffe/caffe2tengine.hpp"
