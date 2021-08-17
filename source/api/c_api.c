@@ -53,6 +53,10 @@
 #include <stdarg.h>
 #include <string.h>
 
+#ifdef TENGINE_ONLINE_REPORT
+#include "tenginereportmgr.h"
+#endif
+
 #define STR_VERSION2(a) #a
 #define STR_VERSION(a)  STR_VERSION2(a)
 
@@ -298,6 +302,12 @@ int init_tengine(void)
         return ret;
     }
 
+#ifdef TENGINE_ONLINE_REPORT
+    hcl_version = get_tengine_version();
+    init_tengine_report_mgr();
+    do_tengine_report(ACTION_INIT);
+#endif
+
     init_flag++;
 
     return ret;
@@ -339,6 +349,10 @@ void release_tengine(void)
     {
         TLOG_ERR("Tengine: Unregister neural network devices failed: %d\n", ret);
     }
+
+#ifdef TENGINE_ONLINE_REPORT
+    release_tengine_report_mgr();
+#endif
 
     init_flag = 0;
 }
