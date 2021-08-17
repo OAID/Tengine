@@ -101,6 +101,10 @@ Tengine Lite 参考和借鉴了下列项目：
 
 - [Apache 2.0](LICENSE)
 
+## 澄清说明
+
+- [在线上报功能] 在线上报功能用于采集客户端信息，该信息主要用于统计记录，不会用于任何商业目的。在线上报功能默认开启，如需关闭，可修改根目录 CMakeLists.txt 中 OPTION (TENGINE_ONLINE_REPORT "online report" OFF)即可
+
 ## FAQ
 
 - [FAQ 常见问题](doc/faq.md)
