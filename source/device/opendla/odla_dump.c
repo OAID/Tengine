@@ -1,4 +1,3 @@
-
 #include "odla_dump.h"
 
 #include "device/device.h"
@@ -8,7 +7,6 @@
 #include "graph/subgraph.h"
 #include "operator/op.h"
 #include "utility/log.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -112,14 +110,17 @@ int print_tensor_data_value_odla(FILE* file, const struct tensor* tensor, int of
     {
         int8_t* base_ptr = (int8_t*)tensor->data;
         int8_t val = base_ptr[offset];
+        fprintf(file, "%d ", val);
 
-        float scale = tensor->scale;
+        break;
+    }
+    case TENGINE_DT_INT16:
+    {
+        int16_t * base_ptr = (int16_t*)tensor->data;
+        int16_t val = base_ptr[offset];
+        fprintf(file, "%d ", val);
 
-        float val_fp32 = (float)val * scale;
-        if (val_fp32 < 0)
-            fprintf(file, "%.4f ", val_fp32);
-        else
-            fprintf(file, " %.4f ", val_fp32);
+        break;
     }
     case TENGINE_DT_INT32:
     {

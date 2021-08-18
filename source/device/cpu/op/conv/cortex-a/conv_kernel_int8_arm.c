@@ -2080,7 +2080,7 @@ int int8_conv_hcl_prerun(struct tensor* input_tensor, struct tensor* filter_tens
         int shift;
         float q = frexp(scale, &shift);
         int fix_q = round(q * (1ll << 31));
-        // TLOG_ERR("prerun: %f,%lld,%d,%d, %lld\n",q, fix_q, multi, q_shift, 1ll<<31);
+//        TLOG_ERR("prerun: %f,%lld,%d,%d, %lld\n",q, fix_q, multi, q_shift, 1ll<<31);
         if (fix_q == (1l << 31))
         {
             fix_q /= 2;

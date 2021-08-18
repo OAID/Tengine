@@ -25,4 +25,4 @@
 #pragma once
 
 #define ODLA_DEV_NAME "OPENDLA"
-#cmakedefine ODLA_MODEL_CACHE
+

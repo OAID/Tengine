@@ -197,14 +197,15 @@ int print_tensor_data_value(FILE* file, const struct tensor* tensor, int offset)
     {
         int8_t* base_ptr = (int8_t*)tensor->data;
         int8_t val = base_ptr[offset];
+        fprintf(file, " %d ", val);
+//        float scale = tensor->scale;
 
-        float scale = tensor->scale;
-
-        float val_fp32 = (float)val * scale;
-        if (val_fp32 < 0)
-            fprintf(file, "%.4f ", val_fp32);
-        else
-            fprintf(file, " %.4f ", val_fp32);
+//        float val_fp32 = (float)val * scale;
+//        if (val_fp32 < 0)
+//            fprintf(file, "%.4f ", val_fp32);
+//        else
+//            fprintf(file, " %.4f ", val_fp32);
+        break;
     }
     case TENGINE_DT_INT32:
     {

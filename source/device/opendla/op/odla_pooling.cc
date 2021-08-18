@@ -49,18 +49,20 @@ nvdla::priv::canonical_ast::Node * ODLAEngine::AddPoolingNode(struct node* ir_no
     else
     {
         pooltype = nvdla::PoolingType::kAVERAGE;
-        if(1 == input_tensor->quant_param_num){
-            output_tensor->scale = input_tensor->scale;
-            float tensor_min_val = output_tensor->scale * -127.0f;
-            float tensor_max_val = output_tensor->scale * +127.0f;
-            this->odla_tensor_map[output_tensor->index]->setChannelDynamicRange(-1, tensor_min_val, tensor_max_val);
-        }else if (1 < input_tensor->quant_param_num){
-            for (int ch = 0; ch < input_tensor->quant_param_num; ++ch)
-            {
-                output_tensor->scale_list[ch] = input_tensor->scale_list[ch];
-                float tensor_min_val = output_tensor->scale_list[ch] * -127.0f;
-                float tensor_max_val = output_tensor->scale_list[ch] * +127.0f;
-                this->odla_tensor_map[output_tensor->index]->setChannelDynamicRange(ch, tensor_min_val, tensor_max_val);
+        if(1 == param->global){
+            if(1 == input_tensor->quant_param_num){
+                output_tensor->scale = input_tensor->scale;
+                float tensor_min_val = output_tensor->scale * -127.0f;
+                float tensor_max_val = output_tensor->scale * +127.0f;
+                this->odla_tensor_map[output_tensor->index]->setChannelDynamicRange(-1, tensor_min_val, tensor_max_val);
+            }else if (1 < input_tensor->quant_param_num){
+                for (int ch = 0; ch < input_tensor->quant_param_num; ++ch)
+                {
+                    output_tensor->scale_list[ch] = input_tensor->scale_list[ch];
+                    float tensor_min_val = output_tensor->scale_list[ch] * -127.0f;
+                    float tensor_max_val = output_tensor->scale_list[ch] * +127.0f;
+                    this->odla_tensor_map[output_tensor->index]->setChannelDynamicRange(ch, tensor_min_val, tensor_max_val);
+                }
             }
         }
     }

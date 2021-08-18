@@ -25,20 +25,13 @@
 #include "odla_executor.hpp"
 #include "odla_define.h"
 #include "priv/Check.h"
-
-#ifdef ODLA_MODEL_CACHE
-#include "defines.h"
-#include "cstdlib"
-#endif
-
-#ifdef ODLA_MODEL_CACHE
-#include <fstream>
-#endif
+#include <thread>
 
 void ODLAEngine::odla_input_data_convert(void * dst, const void * src, nvdla::IRuntime::NvDlaTensor tDesc) const{
-#ifdef OPENDLA_LOG_
+#ifdef OPENDLA_DEBUG_DATA
     fprintf(stdout, "%s Entrance.\n", __func__ );
 #endif
+    uint32_t max_thread = std::thread::hardware_concurrency();
     uint32_t batch  = tDesc.dims.n;
     uint32_t channel = tDesc.dims.c;
     uint32_t height = tDesc.dims.h;
@@ -48,23 +41,20 @@ void ODLAEngine::odla_input_data_convert(void * dst, const void * src, nvdla::IR
     uint32_t line_stride = tDesc.stride[1];
     uint32_t surface_stride = tDesc.stride[2];
 
-    size_t idx = 0;
+
     for (size_t n = 0; n < batch; n++){
+        #pragma omp parallel for num_threads(max_thread)
         for(size_t c = 0; c < channel; c++){
             uint32_t cquotient = c / atom_c_size;
             uint32_t cremainder = c % atom_c_size;
 
             for (size_t h = 0; h < height; ++h){
                 for (size_t w = 0; w < width; ++w){
-
-                    uint32_t _offset = (cquotient * surface_stride) + (h * line_stride ) + (w * atom_k_size) + cremainder + n * c * h * w;
+                    size_t idx = n * channel * height * width + c * height * width + h * width + w;
+                    uint32_t _offset = (cquotient * surface_stride) + (h * line_stride ) + (w * atom_k_size) + cremainder + n * channel * height * width;
                     int8_t* _dst = (int8_t*)dst + _offset;
                     int8_t* _src = (int8_t*)src + idx;
                     *_dst = *_src;
-#ifdef OPENDLA_LOG_
-            fprintf(stdout, "%s: idx %zu address : %lx data: %d \n", __func__, idx, (uint64_t)_dst, *_dst);
-#endif
-                    idx++;
                 }
             }
         }
@@ -74,9 +64,10 @@ void ODLAEngine::odla_input_data_convert(void * dst, const void * src, nvdla::IR
 
 void ODLAEngine::odla_output_data_convert(void * dst, const void * src, nvdla::IRuntime::NvDlaTensor tDesc) const
 {
-#ifdef OPENDLA_LOG_
+#ifdef OPENDLA_DEBUG_DATA
     fprintf(stdout, "%s Entrance.\n", __func__ );
 #endif
+    uint32_t max_thread = std::thread::hardware_concurrency();
     uint32_t batch = tDesc.dims.n;
     uint32_t channel = tDesc.dims.c;
     uint32_t height = tDesc.dims.h;
@@ -87,32 +78,26 @@ void ODLAEngine::odla_output_data_convert(void * dst, const void * src, nvdla::I
     uint32_t surface_stride = tDesc.stride[2];
 
     // Copy contents
-    size_t idx = 0;
     for (size_t n = 0; n < batch; n++){
+        #pragma omp parallel for num_threads(max_thread)
         for (size_t c = 0; c < channel; c++)
         {
             NvU32 cquotient = c / atom_c_size;
             NvU32 cremainder = c % atom_c_size;
             for (size_t h = 0; h < height; h++)
-            {
                 for (size_t w = 0; w < width; w++)
                 {
+                    size_t idx = n * channel * height * width + c * height * width + h * width + w;
                     int8_t* _dst = (int8_t*)dst + idx;
-                    uint32_t _offset = (cquotient * surface_stride) + (h * line_stride) + (w * atom_k_size) + cremainder + n*c*h*w;
+                    uint32_t _offset = (cquotient * surface_stride) + (h * line_stride) + (w * atom_k_size) + cremainder + n * c * h * w;
                     *_dst = *((int8_t*)src + _offset);
-    #ifdef OPENDLA_LOG_
-                    int8_t tmpdata = *_dst;
-                    fprintf(stdout, "%s: idx: %zu address : %lx src:%lx data: %d \n", __func__,idx ,(uint64_t)_dst, (uint64_t)((int8_t*)src + _offset), tmpdata);
-    #endif
-                    idx++;
-                }
-            }
+                };
         }
     }
 }
 
 NvDlaError ODLAEngine::ODLAConfigGenerate(){
-#ifdef OPENDLA_LOG_
+#ifdef OPENDLA_DEBUG_DATA
     fprintf(stdout, "%s Entrance.\n", __func__ );
 #endif
     NvDlaError e = NvDlaSuccess;
@@ -162,20 +147,19 @@ NvDlaError ODLAEngine::ODLAConfigGenerate(){
             profile->setNetworkInputSurfaceFormat(nvdla::PixelFormat::FEATURE);
     }
 
-    // 将 target_config_name 转换为 target_config 对象
     targetConfig = nvdla::priv::TargetConfigFactory::priv(profiler->getTargetConfig(this->target_config_name.c_str()));
     if ( !targetConfig )
     {
         ORIGINATE_ERROR_FAIL(NvDlaError_BadParameter, "Couldn't find target config to compile.");
     }
 
-    fail:
+fail:
     return e;
 }
 
 ODLAEngine::ODLAEngine()
 {
-#ifdef OPENDLA_LOG_
+#ifdef OPENDLA_DEBUG_DATA
     fprintf(stdout, "%s Entrance.\n", __func__ );
 #endif
     this->runtime = nvdla::createRuntime();
@@ -193,7 +177,7 @@ ODLAEngine::ODLAEngine()
 
 int ODLAEngine::ODLATensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_type)
 {
-#ifdef OPENDLA_LOG_
+#ifdef OPENDLA_DEBUG_DATA
     fprintf(stdout, "%s Entrance.\n", __func__ );
 #endif
     auto iter = this->odla_tensor_map.find(ir_tensor_idx);
@@ -211,7 +195,6 @@ int ODLAEngine::ODLATensorMap(struct graph* ir_graph, int ir_tensor_idx, int spe
         nvdla::DataType datatype;
         switch(ir_tensor->data_type)
         {
-            // Why no Definition of DATATYPE?
             case TENGINE_DT_FP32:
                 // float32
                 datatype = nvdla::DataType::FLOAT;
@@ -318,36 +301,17 @@ int ODLAEngine::ODLATensorMap(struct graph* ir_graph, int ir_tensor_idx, int spe
         }
         else if (ir_tensor->tensor_type == TENSOR_TYPE_VAR)
         {
-            const char* env = getenv(TENGINE_DUMP_LAYER);
-            if (env && env[0] == '1')
-            {
-                t.i()->setDimensions(tensor_shape);
-                t.i()->setDataFormat(NVDLA_DATA_FORMAT_NCHW);
-                t.i()->setTensorType(nvdla::kNW_OUTPUT);
-                t.i()->setDataType(datatype);
-                t.i()->setName(ir_tensor->name);
-                if(ir_tensor->quant_param_num == 1){
-                    float tensor_min_val = ir_tensor->scale * -127.0f;
-                    float tensor_max_val = ir_tensor->scale * +127.0f;
-                    t.i()->setChannelDynamicRange(-1, tensor_min_val, tensor_max_val);
-                }
-                odla_tensor = t.priv();
+            t.i()->setDimensions(tensor_shape);
+            t.i()->setDataFormat(NVDLA_DATA_FORMAT_NCHW);
+            t.i()->setTensorType(nvdla::kIO);       // May Not be Right
+            t.i()->setDataType(datatype);
+            t.i()->setName(ir_tensor->name);
+            if(ir_tensor->quant_param_num == 1){
+                float tensor_min_val = ir_tensor->scale * -127.0f;
+                float tensor_max_val = ir_tensor->scale * +127.0f;
+                t.i()->setChannelDynamicRange(-1, tensor_min_val, tensor_max_val);
             }
-            else
-            {
-                t.i()->setDimensions(tensor_shape);
-                t.i()->setDataFormat(NVDLA_DATA_FORMAT_NCHW);
-                t.i()->setTensorType(nvdla::kIO);       // May Not be Right
-                t.i()->setDataType(datatype);
-                t.i()->setName(ir_tensor->name);
-                if(ir_tensor->quant_param_num == 1){
-                    float tensor_min_val = ir_tensor->scale * -127.0f;
-                    float tensor_max_val = ir_tensor->scale * +127.0f;
-                    t.i()->setChannelDynamicRange(-1, tensor_min_val, tensor_max_val);
-                }
-                odla_tensor = t.priv();
-
-            }
+            odla_tensor = t.priv();
         }
         else if (spec_type == SPEC_TYPE_CONV_BIAS)
         {
@@ -430,7 +394,7 @@ int ODLAEngine::ODLATensorMap(struct graph* ir_graph, int ir_tensor_idx, int spe
 
 int ODLAEngine::Build(struct subgraph* subgraph)
 {
-#ifdef OPENDLA_LOG_
+#ifdef OPENDLA_DEBUG_DATA
     fprintf(stdout, "%s Entrance.\n", __func__ );
 #endif
     struct graph* ir_graph = subgraph->graph;
@@ -566,12 +530,12 @@ int ODLAEngine::Build(struct subgraph* subgraph)
                 newEdge = new nvdla::priv::canonical_ast::Edge();
                 newEdge->setGraph(this->graph);
 
-                newTensor = odla_tensor->clone();//把network中的tensor复制到一个新的变量can_tensor
-                newTensor->setNetwork(NULL);  //由于这个新的tensor变量将加入graph所以其network指针清空，不在指向原来的network(这里是复制一份tensor，network中原来的tensor还在)
-                newTensor->setTensorType(nvdla::TensorType::kIO);//graph中的tensor设定为IO类型
-                newEdge->setId(graph->nextEdgeId()); //graph中edge的Id设定为string，e-0,e-1,e-2等
-                newEdge->setOriginalTensor(newTensor);//graph中的edge的原始tensor设定为can_tensor，注意，这里的OriginalTensor指向的是从network中复制clone过来的一个副本，并不在network中，可以看出这里的包含关系，graph-->can_edge-->can_tensor
-                graph->insertEdge(newEdge);//把根据network中1个layer的iotensor新建的edge加入graph列表
+                newTensor = odla_tensor->clone();
+                newTensor->setNetwork(NULL);
+                newTensor->setTensorType(nvdla::TensorType::kIO);
+                newEdge->setId(graph->nextEdgeId());
+                newEdge->setOriginalTensor(newTensor);
+                graph->insertEdge(newEdge);
                 this->odla_edge_map[odla_tensor] = newEdge;
                 originTensor2canTensor[odla_tensor] = newTensor;
             } else {
@@ -609,11 +573,11 @@ int ODLAEngine::Build(struct subgraph* subgraph)
 
     if ( !inputEdges.empty() )
     {
-        graph->setInputEdges(inputEdges); //设定整个graph的inputedges队列为input_edges
+        graph->setInputEdges(inputEdges);
     }
     if ( !outputEdges.empty() )
     {
-        graph->setOutputEdges(outputEdges); //设定整个graph的outputedges队列为output_edges
+        graph->setOutputEdges(outputEdges);
     }
     this->graph->scoredOrdering()->generate();
     this->graph->markClean();
@@ -623,10 +587,11 @@ int ODLAEngine::Build(struct subgraph* subgraph)
 
 int ODLAEngine::ODLAEnginePreRun(struct subgraph* subgraph)
 {
-#ifdef OPENDLA_LOG_
+#ifdef OPENDLA_DEBUG_DATA
     dump_sub_graph_odla(subgraph);
     fprintf(stdout, "%s Entrance.\n", __func__ );
 #endif
+    fprintf(stdout, "subgraph idx : %d \n", subgraph->index);
     NvDlaError e = NvDlaSuccess;
     struct graph* ir_graph = subgraph->graph;
     /* Add OpenDLA Tensor */
@@ -730,7 +695,6 @@ int ODLAEngine::ODLAEnginePreRun(struct subgraph* subgraph)
             engineASTList.pop_back();
             return -1;
         }
-
         engineASTList.push_back(this->compiler.priv()->mergeActivationOperations(engineASTList.back()));
         if(!engineASTList.back()){
             fprintf(stderr, "Failed compilation phase: mergeActivationOperations. \n");
@@ -755,13 +719,14 @@ int ODLAEngine::ODLAEnginePreRun(struct subgraph* subgraph)
             engineASTList.pop_back();
             return -1;
         }
+        fprintf(stdout, "handleLowPrecisionConversions. \n");
         engineASTList.push_back(this->compiler.priv()->handleLowPrecisionConversions(engineASTList.back()));
         if(!engineASTList.back()){
             fprintf(stderr, "Failed compilation phase: handleLowPrecisionConversions. \n");
             engineASTList.pop_back();
             return -1;
         }
-
+        fprintf(stdout, "translateAuxData. \n");
         engineASTList.push_back(this->compiler.priv()->translateAuxData(engineASTList.back()));
         if(!engineASTList.back()){
             fprintf(stderr, "Failed compilation phase: translateAuxData. \n");
@@ -835,6 +800,72 @@ int ODLAEngine::ODLAEnginePreRun(struct subgraph* subgraph)
             ASSERT(done);
         }
         auto finalEngineAST = engineASTList.back();
+
+        const char* env = getenv(OPENDLA_DUMP_LAYER);
+        if (env && env[0] == '1'){
+            /* debug */
+            for(auto & node : finalEngineAST->nodes()){
+                if(node->engineOpType() == nvdla::priv::engine_ast::EngineOpTypeEnum::CONVOLUTION_CONV){
+                    auto * convNode = (nvdla::priv::engine_ast::ConvCoreNode *) node;
+                    auto  rawWeights = convNode->params().rawWeights();
+                    struct tensor weightTensor;
+                    if(rawWeights.type == nvdla::DataType::INT8){
+                        weightTensor.data_type = TENGINE_DT_INT8;
+                        weightTensor.tensor_type = TENSOR_TYPE_VAR;
+                        weightTensor.layout = TENGINE_LAYOUT_NCHW;
+                        weightTensor.name = (char *)(convNode->canonicalNode()->name() + "_weights").c_str() ;
+                        weightTensor.dim_num = 4;
+                        weightTensor.dims[0] = convNode->getAuxDims().n;
+                        weightTensor.dims[1] = convNode->getAuxDims().c;
+                        weightTensor.dims[2] = convNode->getAuxDims().h;
+                        weightTensor.dims[3] = convNode->getAuxDims().w;
+                        weightTensor.elem_size = sizeof(int8_t);
+                        weightTensor.elem_num = rawWeights.count;
+                        weightTensor.data = (void *)rawWeights.values;
+                        extract_feature_from_tensor_odla("weight", convNode->canonicalNode()->name().c_str(), &weightTensor);
+                    }
+                }else if(node->engineOpType() == nvdla::priv::engine_ast::EngineOpTypeEnum::SDP_BIAS){
+                    auto * sdpBiasNode = (nvdla::priv::engine_ast::SDPBiasOpNode *) node;
+                    auto  rawBias = sdpBiasNode->params().rawBiasData();
+                    struct tensor biasTensor;
+
+                    if(rawBias.type == nvdla::DataType::INT16){
+                        biasTensor.data_type = TENGINE_DT_INT16;
+                        biasTensor.tensor_type = TENSOR_TYPE_VAR;
+                        biasTensor.layout = TENGINE_LAYOUT_NCHW;
+                        biasTensor.name = (char *)(sdpBiasNode->canonicalNode()->name() + "bias").c_str() ;
+                        biasTensor.dim_num = 4;
+                        biasTensor.dims[0] = sdpBiasNode->getAuxDims().n;
+                        biasTensor.dims[1] = sdpBiasNode->getAuxDims().c;
+                        biasTensor.dims[2] = sdpBiasNode->getAuxDims().h;
+                        biasTensor.dims[3] = sdpBiasNode->getAuxDims().w;
+                        biasTensor.elem_size = sizeof(int16_t);
+                        biasTensor.elem_num = rawBias.count;
+                        biasTensor.data = (void *)rawBias.values;
+                        extract_feature_from_tensor_odla("bias", sdpBiasNode->canonicalNode()->name().c_str(), &biasTensor);
+                    }
+                }else if(node->engineOpType() == nvdla::priv::engine_ast::EngineOpTypeEnum::CONVOLUTION_FC){
+                    auto * convNode = (nvdla::priv::engine_ast::ConvCoreNode *) node;
+                    auto  rawWeights = convNode->params().rawWeights();
+                    struct tensor weightTensor;
+                    if(rawWeights.type == nvdla::DataType::INT8){
+                        weightTensor.data_type = TENGINE_DT_INT8;
+                        weightTensor.tensor_type = TENSOR_TYPE_VAR;
+                        weightTensor.layout = TENGINE_LAYOUT_NCHW;
+                        weightTensor.name = (char *)(convNode->canonicalNode()->name() + "_weights").c_str() ;
+                        weightTensor.dim_num = 4;
+                        weightTensor.dims[0] = convNode->getAuxDims().n;
+                        weightTensor.dims[1] = convNode->getAuxDims().c;
+                        weightTensor.dims[2] = convNode->getAuxDims().h;
+                        weightTensor.dims[3] = convNode->getAuxDims().w;
+                        weightTensor.elem_size = sizeof(int8_t);
+                        weightTensor.elem_num = rawWeights.count;
+                        weightTensor.data = (void *)rawWeights.values;
+                        extract_feature_from_tensor_odla("weight", convNode->canonicalNode()->name().c_str(), &weightTensor);
+                    }
+                }
+            }
+        }
         if (this->compiler.priv()->emit(finalEngineAST, this->loadable) != NvDlaSuccess) {
             fprintf(stderr, "Failed to emit Loadable Data. \n");
             return -1;
@@ -854,12 +885,18 @@ int ODLAEngine::ODLAEnginePreRun(struct subgraph* subgraph)
             return -1;
         }
         this->loadable.priv()->getSerializedData(buffer);
-        {
-//            NvDlaFileHandle file = 0;
-//            std::string fileName = std::string(this->profile->getName()) + ".nvdla";
-//            fprintf(stdout, "Dump loadable data to : %s . \n", fileName.c_str());
-//            NvDlaFopen(fileName.c_str(), NVDLA_OPEN_WRITE, &file);
-//            NvDlaFwrite(file, buffer, loadableSize);
+
+        env = getenv(OPENDLA_DUMP_LAYER);
+        if (env && env[0] == '1'){
+            NvDlaFileHandle file = 0;
+            std::stringstream filename;
+            filename << this->profile->getName() << "_subgraph_"<< (int)subgraph->index << ".nvdla" ;
+
+#ifdef OPENDLA_DEBUG_DATA
+            fprintf(stdout, "Dump loadable data to : %s . \n", filename.str().c_str());
+#endif
+            NvDlaFopen(filename.str().c_str(), NVDLA_OPEN_WRITE, &file);
+            NvDlaFwrite(file, buffer, loadableSize);
         }
         // deserialize Loadable image
         this->runtime->load(buffer, 0);
@@ -923,7 +960,7 @@ fail:
 
 int ODLAEngine::ODLAEngineRun(struct subgraph* subgraph)
 {
-#ifdef OPENDLA_LOG_
+#ifdef OPENDLA_DEBUG_DATA
     fprintf(stdout, "%s Entrance.\n", __func__ );
 #endif
 
@@ -943,8 +980,16 @@ int ODLAEngine::ODLAEngineRun(struct subgraph* subgraph)
                 fprintf(stderr, "getInputTensorDesc failed.\n");
                 return -1;
             }
-
             odla_input_data_convert(this->inputBuffer[i], ir_tensor->data, tDesc);
+            const char* env = getenv(OPENDLA_DUMP_LAYER);
+            if (env && env[0] == '1'){
+                /* debug */
+                if (ir_tensor->dim_num <= 5){
+                    std::stringstream filename;
+                    filename << "subgraph_" << (int)subgraph->index << "_tensor_in_";
+                    extract_feature_from_tensor_odla(ir_tensor->name, filename.str().c_str(), ir_tensor);
+                }
+            }
         }
 
         struct timeval t1{}, t2{};
@@ -980,6 +1025,15 @@ int ODLAEngine::ODLAEngineRun(struct subgraph* subgraph)
                 ir_tensor->internal_allocated = 0;
             }
             odla_output_data_convert(ir_tensor->data, this->outputBuffer[i], tDesc);
+            const char* env = getenv(OPENDLA_DUMP_LAYER);
+            if (env && env[0] == '1'){
+                /* debug */
+                if (ir_tensor->dim_num <= 5){
+                    std::stringstream filename;
+                    filename << "subgraph_" << (int)subgraph->index << "_tensor_out_";
+                    extract_feature_from_tensor_odla(ir_tensor->name, filename.str().c_str(), ir_tensor);
+                }
+            }
         }
     }
 

@@ -29,13 +29,6 @@ UNSET (_DEV_ODLA_COMPILER_OPTIONS)
 UNSET (_DEV_ODLA_LINKER_OPTIONS)
 UNSET (_DEV_ODLA_LINK_LIBRARIES)
 
-# 0. npu kernel cache file option, in experimental
-IF (TENGINE_ENABLE_MODEL_CACHE)
-    SET (ODLA_MODEL_CACHE ON)
-ENDIF()
-
-# 0. config file
-CONFIGURE_FILE(odla_define.h.in ${CMAKE_CURRENT_BINARY_DIR}/odla_define.h)
 
 # 1.  set source root path
 SET(_ODLA_ROOT ${CMAKE_SOURCE_DIR}/source/device/opendla)

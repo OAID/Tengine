@@ -174,7 +174,7 @@ static void draw_objects(const cv::Mat& bgr, const std::vector<Object>& objects)
                     cv::Scalar(0, 0, 0));
     }
 
-    cv::imwrite("yolox_timvx_out.jpg", image);
+    cv::imwrite("yolox_nano_relu_int8_out.jpg", image);
 }
 
 struct GridAndStride
