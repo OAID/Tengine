@@ -21,24 +21,16 @@
  * Copyright (c) 2021
  * Author: tpoisonooo
  */
-#include "pipeline/actor/draw_video.h"
-#include "pipeline/actor/video_camera.h"
-#include "pipeline/graph/graph.h"
-#include <chrono>
-#include <opencv2/opencv.hpp>
-using namespace pipeline;
+#pragma once
+#include <vector>
+#include <string>
 
-int main()
+namespace pipeline {
+
+struct Feature
 {
-    Graph g;
-    auto cam = g.add_node<VideoCamera>();
-    auto draw = g.add_node<DrawVideo>();
+    std::string name;
+    std::vector<float> data;
+};
 
-    auto cam_draw = g.add_edge<InstantEdge<cv::Mat> >(100);
-
-    cam->set_output<0>(cam_draw);
-    draw->set_input<0>(cam_draw);
-
-    g.start();
-    std::this_thread::sleep_for(std::chrono::milliseconds(60000));
-}
+} // namespace pipeline
