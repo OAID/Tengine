@@ -163,6 +163,7 @@ IF (OpenCV_FOUND)
 
             TENGINE_EXAMPLE_CV(tm_pipeline_camera_preview   pipeline/test/test_camera_preview.cpp)
             TENGINE_EXAMPLE_CV(tm_pipeline_estimate_ped_distance  pipeline/test/test_pedestrian_distance_estimation.cpp)
+            TENGINE_EXAMPLE_CV(tm_pipeline_enroll_face  pipeline/test/test_face_enroll.cpp)
         ENDIF()
         UNSET (_has_pthread)
     ENDIF()

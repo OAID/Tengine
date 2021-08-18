@@ -25,7 +25,7 @@
 #include "pipeline/graph/node.h"
 #include <opencv2/opencv.hpp>
 
-namespace pipe {
+namespace pipeline {
 
 class DrawVideo : public Node<Param<cv::Mat>, Param<void> >
 {
@@ -59,4 +59,4 @@ private:
     std::string m_window_name;
 };
 
-} // namespace pipe
+} // namespace pipeline

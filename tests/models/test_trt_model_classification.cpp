@@ -193,8 +193,17 @@ int main(int argc, char* argv[])
     }
     fprintf(stderr, "tengine-lite library version: %s\n", get_tengine_version());
 
+    /* create NVIDIA TensorRT backend */
+    context_t trt_context = create_context("trt", 1);
+    int rtt = add_context_device(trt_context, "TensorRT");
+    if (0 > rtt)
+    {
+        fprintf(stderr, "add_context_device NV TensorRT DEVICE failed.\n");
+        return -1;
+    }
+
     /* create graph, load tengine model xxx.tmfile */
-    graph_t graph = create_graph(NULL, "tengine", model_file.c_str());
+    graph_t graph = create_graph(trt_context, "tengine", model_file.c_str());
     if (NULL == graph)
     {
         fprintf(stderr, "Create graph failed.\n");

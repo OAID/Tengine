@@ -174,10 +174,10 @@ to_int8:
     dup     v3.4s,v3.s[0]
     smax    v5.4s, v1.4s, v4.4s
     smin    v4.4s, v1.4s, v4.4s
-    SQRDMULH    v16.4s, v16.4s, v0.4s
-    SQRDMULH    v17.4s, v17.4s, v0.4s
-    SQRDMULH    v18.4s, v18.4s, v0.4s
-    SQRDMULH    v19.4s, v19.4s, v0.4s
+    sqrdmulh    v16.4s, v16.4s, v0.4s
+    sqrdmulh    v17.4s, v17.4s, v0.4s
+    sqrdmulh    v18.4s, v18.4s, v0.4s
+    sqrdmulh    v19.4s, v19.4s, v0.4s
     sshl        v16.4s, v16.4s, v5.4s
     sshl        v17.4s, v17.4s, v5.4s
     sshl        v18.4s, v18.4s, v5.4s
