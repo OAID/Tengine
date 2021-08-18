@@ -26,7 +26,7 @@
 #define __GRU_PARAM_H__
 
 #define GRU_ACT_SIGMOID 1
-#define GRU_ACT_TANH 2
+#define GRU_ACT_TANH    2
 typedef struct gru_param
 {
     float clip;

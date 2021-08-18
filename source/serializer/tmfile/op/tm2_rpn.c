@@ -35,20 +35,18 @@
 #include "utility/vector.h"
 #include "utility/log.h"
 
-
 static int rpn_op_map(int op)
 {
     return OP_RPN;
 }
 
-
 static int tm2_load_rpn(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                         const TM2_Operator* tm_op)
 {
-    struct rpn_param* rpn_param = ( struct rpn_param* )ir_node->op.param_mem;
+    struct rpn_param* rpn_param = (struct rpn_param*)ir_node->op.param_mem;
     const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
     const char* mem_base = tm2_priv->base;
-    const TM2_RPNParam* tm_param = ( TM2_RPNParam* )(mem_base + tm_op->offset_t_param);
+    const TM2_RPNParam* tm_param = (TM2_RPNParam*)(mem_base + tm_op->offset_t_param);
 
     rpn_param->basesize = tm_param->basesize;
     rpn_param->feat_stride = tm_param->feat_stride;
@@ -65,7 +63,7 @@ static int tm2_load_rpn(struct graph* ir_graph, struct node* ir_node, const TM2_
 
         for (unsigned int i = 0; i < v_anchor_scales->v_num; i++)
         {
-            push_vector_data(rpn_param->anchor_scales, ( void* )&v_anchor_scales->data[i]);
+            push_vector_data(rpn_param->anchor_scales, (void*)&v_anchor_scales->data[i]);
         }
     }
 
@@ -77,13 +75,12 @@ static int tm2_load_rpn(struct graph* ir_graph, struct node* ir_node, const TM2_
 
         for (unsigned int i = 0; i < v_ratios->v_num; i++)
         {
-            push_vector_data(rpn_param->ratios, ( void* )&v_ratios->data[i]);
+            push_vector_data(rpn_param->ratios, (void*)&v_ratios->data[i]);
         }
     }
 
     return 0;
 }
-
 
 int register_tm2_rpn_op()
 {
@@ -99,7 +96,6 @@ int register_tm2_rpn_op()
 
     return 0;
 }
-
 
 int unregister_tm2_rpn_op()
 {

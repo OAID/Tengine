@@ -31,10 +31,9 @@
 #include "module/module.h"
 #include "utility/sys_port.h"
 
-
 static int infer_shape(struct node* node)
 {
-    struct sparsetodense_param* sparsetodense_param = ( struct sparsetodense_param* )(node->op.param_mem);
+    struct sparsetodense_param* sparsetodense_param = (struct sparsetodense_param*)(node->op.param_mem);
 
     struct graph* graph = node->graph;
     struct tensor* input0 = get_ir_graph_tensor(graph, node->input_tensors[0]);
@@ -67,7 +66,6 @@ static int infer_shape(struct node* node)
     }
 }
 
-
 static int init_op(struct op* op)
 {
     struct sparsetodense_param* sparsetodense_param = (struct sparsetodense_param*)sys_malloc(sizeof(struct sparsetodense_param));
@@ -90,12 +88,10 @@ static int init_op(struct op* op)
     return 0;
 }
 
-
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
-
 
 int register_sparsetodense_op()
 {
@@ -107,7 +103,6 @@ int register_sparsetodense_op()
 
     return register_op(OP_SPARSETODENSE, OP_SPARSETODENSE_NAME, &m);
 }
-
 
 int unregister_sparsetodense_op()
 {

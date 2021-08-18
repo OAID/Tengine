@@ -22,15 +22,14 @@
  * Author: qtang@openailab.com
  */
 
-
 #include "test_onnx_op.h"
 
-std::string node        = "test_gru_defaults";
-std::string input_pb_0  = "../onnx_node/" + node + "/test_data_set_0/input_0.pb";
-std::string input_pb_1  = "../onnx_node/" + node + "/test_data_set_0/input_1.pb";
-std::string input_pb_2  = "../onnx_node/" + node + "/test_data_set_0/input_2.pb";
-std::string output_pb   = "../onnx_node/" + node + "/test_data_set_0/output_0.pb";
-std::string model       = "../onnx_node/" + node + "/onnx.tmfile";
+std::string node = "test_gru_defaults";
+std::string input_pb_0 = "../onnx_node/" + node + "/test_data_set_0/input_0.pb";
+std::string input_pb_1 = "../onnx_node/" + node + "/test_data_set_0/input_1.pb";
+std::string input_pb_2 = "../onnx_node/" + node + "/test_data_set_0/input_2.pb";
+std::string output_pb = "../onnx_node/" + node + "/test_data_set_0/output_0.pb";
+std::string model = "../onnx_node/" + node + "/onnx.tmfile";
 
 int main(int argc, char* argv[])
 {
@@ -118,7 +117,7 @@ int main(int argc, char* argv[])
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;
-    }    
+    }
 
     /* input 2 */
     int input_size_2 = c_2 * h_2 * w_2;
@@ -142,7 +141,7 @@ int main(int argc, char* argv[])
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;
-    }        
+    }
 
     /* prerun graph, set work options(num_thread, cluster, precision) */
     if (prerun_graph_multithread(graph, opt) < 0)
@@ -165,7 +164,7 @@ int main(int argc, char* argv[])
 
     /* get the current result of inference */
     tensor_t output_tensor = get_graph_output_tensor(graph, 0, 0);
-    float* output_data = ( float* )get_tensor_buffer(output_tensor);
+    float* output_data = (float*)get_tensor_buffer(output_tensor);
     int output_size = get_tensor_buffer_size(output_tensor) / sizeof(float);
 
     /* get the reference result of inference */

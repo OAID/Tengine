@@ -36,7 +36,7 @@ void get_input_fp32_data(const char* image_file, float* input_data, int img_h, i
 {
     image img = imread_process(image_file, img_w, img_h, mean, scale);
 
-    float* image_data = ( float* )img.data;
+    float* image_data = (float*)img.data;
 
     for (int i = 0; i < img_w * img_h * 3; i++)
         input_data[i] = image_data[i];
@@ -65,23 +65,23 @@ int main(int argc, char* argv[])
     {
         switch (res)
         {
-            case 'm':
-                model_file = optarg;
-                break;
-            case 'i':
-                image_file = optarg;
-                break;
-            case 'r':
-                repeat_count = atoi(optarg);
-                break;
-            case 't':
-                num_thread = atoi(optarg);
-                break;
-            case 'h':
-                show_usage();
-                return 0;
-            default:
-                break;
+        case 'm':
+            model_file = optarg;
+            break;
+        case 'i':
+            image_file = optarg;
+            break;
+        case 'r':
+            repeat_count = atoi(optarg);
+            break;
+        case 't':
+            num_thread = atoi(optarg);
+            break;
+        case 'h':
+            show_usage();
+            return 0;
+        default:
+            break;
         }
     }
 
@@ -124,8 +124,8 @@ int main(int argc, char* argv[])
 
     /* set the input shape to initial the graph, and prerun graph to infer shape */
     int img_size = img_h * img_w * 3;
-    int dims[] = {1, 3, img_h, img_w};    // nchw
-    float* input_data = (float* )malloc(img_size * sizeof(float));
+    int dims[] = {1, 3, img_h, img_w}; // nchw
+    float* input_data = (float*)malloc(img_size * sizeof(float));
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == nullptr)
@@ -140,7 +140,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    if (set_tensor_buffer(input_tensor, input_data, img_size * 4) < 0)
+    if (set_tensor_buffer(input_tensor, input_data, img_size * sizeof(float)) < 0)
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;
@@ -182,13 +182,13 @@ int main(int argc, char* argv[])
     /* get output tensor */
     tensor_t output_tensor = get_graph_output_tensor(graph, 0, 0);
 
-    float* data = ( float* )(get_tensor_buffer(output_tensor));
-    int data_size = get_tensor_buffer_size(output_tensor) / sizeof(float );
+    float* data = (float*)(get_tensor_buffer(output_tensor));
+    int data_size = get_tensor_buffer_size(output_tensor) / sizeof(float);
 
     image img_out = imread(image_file);
     for (int i = 0; i < data_size / 2; i++)
     {
-        int x = (int)(data[2 * i    ] * (float)img_out.w / 144.f);
+        int x = (int)(data[2 * i] * (float)img_out.w / 144.f);
         int y = (int)(data[2 * i + 1] * (float)img_out.h / 144.f);
         draw_circle(img_out, x, y, 2, 0, 255, 0);
     }

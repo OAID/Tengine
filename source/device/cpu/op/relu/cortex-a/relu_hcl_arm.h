@@ -33,7 +33,6 @@
 
 #include <arm_neon.h>
 
-
 static int perf_relu_fp32(struct tensor* input_tensor, struct tensor* output_tensor, float negative_slope,
                           int num_thread)
 {
@@ -66,7 +65,7 @@ static int perf_relu_fp32(struct tensor* input_tensor, struct tensor* output_ten
                 int remain = size - (nn << 2);
 #else
                 int remain = size;
-#endif    // __ARM_NEON
+#endif // __ARM_NEON
 
 #if __ARM_NEON
                 float32x4_t _zero = vdupq_n_f32(0.f);
@@ -110,7 +109,7 @@ static int perf_relu_fp32(struct tensor* input_tensor, struct tensor* output_ten
                 int remain = size - (nn << 2);
 #else
                 int remain = size;
-#endif    // __ARM_NEON
+#endif // __ARM_NEON
 
 #if __ARM_NEON
                 float32x4_t _zero = vdupq_n_f32(0.f);

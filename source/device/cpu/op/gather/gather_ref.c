@@ -38,17 +38,18 @@
 #include <math.h>
 #include <string.h>
 
-
 typedef struct
 {
-    int* in_shape;    // the dim of the input
+    int* in_shape;  // the dim of the input
+    int* out_shape; // dims of output
+    int out_dim_num;
     int axis;
     int indices_num;
     int dim_size;
     int is_onnx;
 } gather_param_t;
 
-static int ref_gather_fp32(float* input, float* input_indices, float* output, gather_param_t* param, int num_thread)
+static int ref_gather_fp32(float* input, int* input_indices, float* output, gather_param_t* param, int num_thread)
 {
     float* out_ptr = output;
     float* in_ptr = input;
@@ -56,7 +57,6 @@ static int ref_gather_fp32(float* input, float* input_indices, float* output, ga
     int outer_size = 1;
     int inner_size = 1;
     int axis_size = param->in_shape[axis];
-    float* indices = input_indices;
 
     for (int i = 0; i < axis; i++)
     {
@@ -68,21 +68,79 @@ static int ref_gather_fp32(float* input, float* input_indices, float* output, ga
         inner_size *= param->in_shape[i];
         // TLOG_ERR("inner_size size: %d %d \n", inner_size, param->in_shape[i]);
     }
-    if(param->is_onnx){
 
-        for (int i = 0; i < param->indices_num; i++)
+    int out_n, out_c, out_h, out_w;
+    out_n = out_c = out_h = out_w = 1;
+    if (param->out_dim_num == 4)
+    {
+        out_n = param->out_shape[0];
+        out_c = param->out_shape[1];
+        out_h = param->out_shape[2];
+        out_w = param->out_shape[3];
+    }
+    else if (param->out_dim_num == 3)
+    {
+        out_c = param->out_shape[0];
+        out_h = param->out_shape[1];
+        out_w = param->out_shape[2];
+    }
+    else if (param->out_dim_num == 2)
+    {
+        out_h = param->out_shape[0];
+        out_w = param->out_shape[1];
+    }
+    else
+        return -1;
+
+    // #pragma omp parallel for num_threads(num_thread)
+    if (param->is_onnx)
+    {
+        for (int n = 0; n < out_n; ++n)
         {
-            memcpy(out_ptr + i * inner_size,
-                    in_ptr + (int)indices[i]* inner_size,  inner_size *sizeof(float));
+            for (int c = 0; c < out_c; ++c)
+            {
+                for (int h = 0; h < out_h; ++h)
+                {
+                    for (int w = 0; w < out_w; ++w)
+                    {
+                        int indices_i;
+                        int input_id;
+                        switch (axis)
+                        {
+                        case 0:
+                            indices_i = input_indices[n];
+                            input_id = indices_i * out_c * out_h * out_w + c * out_h * out_w + h * out_w + w;
+                            break;
+                        case 1:
+                            indices_i = input_indices[c];
+                            input_id = n * out_c * out_h * out_w + indices_i * out_h * out_w + h * out_w + w;
+                            break;
+                        case 2:
+                            indices_i = input_indices[h];
+                            input_id = n * out_c * out_h * out_w + c * out_h * out_w + indices_i * out_w + w;
+                            break;
+                        case 3:
+                            indices_i = input_indices[w];
+                            input_id = n * out_c * out_h * out_w + c * out_h * out_w + h * out_w + indices_i;
+                            break;
+                        default:
+                            return -1;
+                        }
+                        int output_id = n * out_c * out_h * out_w + c * out_h * out_w + h * out_w + w;
+                        output[output_id] = input[input_id];
+                    }
+                }
+            }
         }
-        
-    } else {
+    }
+    else
+    {
         for (int outer = 0; outer < outer_size; ++outer)
         {
             for (int i = 0; i < param->indices_num; i++)
             {
                 memcpy(out_ptr + (outer * param->indices_num + i) * inner_size,
-                       in_ptr + (outer * axis_size + ( int )input_indices[i]) * inner_size, inner_size * sizeof(float));
+                       in_ptr + (outer * axis_size + (int)input_indices[i]) * inner_size, inner_size * sizeof(float));
             }
         }
     }
@@ -108,13 +166,13 @@ static int ref_gather_uint8(uint8_t* input, int* input_indices, uint8_t* output,
         inner_size *= param->in_shape[i];
     }
 
-	// #pragma omp parallel for num_threads(num_thread)
+    // #pragma omp parallel for num_threads(num_thread)
     for (int outer = 0; outer < outer_size; ++outer)
     {
         for (int i = 0; i < param->indices_num; i++)
         {
             memcpy(out_ptr + (outer * param->indices_num + i) * inner_size,
-                   in_ptr + (outer * axis_size + ( int )input_indices[i]) * inner_size, inner_size);
+                   in_ptr + (outer * axis_size + (int)input_indices[i]) * inner_size, inner_size);
         }
     }
 
@@ -125,13 +183,16 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
 {
     struct node* ir_node = exec_node->ir_node;
     struct graph* ir_graph = ir_node->graph;
-    struct gather_param* gather_param = ( struct gather_param* )ir_node->op.param_mem;
-    gather_param_t* op_priv_info = ( gather_param_t* )exec_node->ops_priv;
+    struct gather_param* gather_param = (struct gather_param*)ir_node->op.param_mem;
+    gather_param_t* op_priv_info = (gather_param_t*)exec_node->ops_priv;
     struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+
     op_priv_info->axis = gather_param->axis;
     op_priv_info->indices_num = gather_param->indices_num;
     op_priv_info->is_onnx = gather_param->is_onnx;
-    op_priv_info->in_shape = (int*)sys_malloc(input_tensor->dim_num*sizeof(int));
+    op_priv_info->in_shape = (int*)sys_malloc(input_tensor->dim_num * sizeof(int));
+    op_priv_info->out_shape = (int*)sys_malloc(output_tensor->dim_num * sizeof(int));
     /* prerun now */
     return 0;
 }
@@ -143,8 +204,9 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
     struct tensor* indices_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
-    float* x = input_tensor->data;
-    gather_param_t* op_priv_info = ( gather_param_t* )exec_node->ops_priv;
+
+    gather_param_t* op_priv_info = (gather_param_t*)exec_node->ops_priv;
+
     int out_size = input_tensor->elem_num;
 
     // auto in_dim = input_tensor->GetShape().GetDim();
@@ -157,6 +219,11 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     {
         op_priv_info->in_shape[i] = input_tensor->dims[i];
     }
+    op_priv_info->out_dim_num = output_tensor->dim_num;
+    for (int i = 0; i < op_priv_info->out_dim_num; ++i)
+    {
+        op_priv_info->out_shape[i] = output_tensor->dims[i];
+    }
     // TLOG_ERR("in shape: %d %d %d %d\n", op_priv_info->in_shape[0], op_priv_info->in_shape[1], op_priv_info->in_shape[3], op_priv_info->in_shape[3]);
 
     // int indices_num = op_param.indices_num;
@@ -164,9 +231,10 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
     int ret = -1;
     if (input_tensor->data_type == TENGINE_DT_FP32)
-        ret = ref_gather_fp32(input, indices_data, output, op_priv_info, exec_graph->num_thread);
-    else if(input_tensor->data_type == TENGINE_DT_UINT8)
-        ret = ref_gather_uint8(input, indices_data, output, op_priv_info, exec_graph->num_thread);
+        ret = ref_gather_fp32((float*)input, (int*)indices_data, (float*)output, op_priv_info, exec_graph->num_thread);
+    else if (input_tensor->data_type == TENGINE_DT_UINT8)
+        ret = ref_gather_uint8((uint8_t*)input, (int*)indices_data, (uint8_t*)output, op_priv_info, exec_graph->num_thread);
+
     return ret;
 }
 
@@ -175,7 +243,7 @@ static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, str
     struct node* ir_node = exec_node->ir_node;
     struct graph* ir_graph = ir_node->graph;
 
-    gather_param_t* op_priv_info = ( gather_param_t* )sys_malloc(sizeof(gather_param_t));
+    gather_param_t* op_priv_info = (gather_param_t*)sys_malloc(sizeof(gather_param_t));
 
     if (op_priv_info == NULL)
     {
@@ -183,20 +251,24 @@ static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, str
     }
 
     memset(op_priv_info, 0, sizeof(gather_param_t));
+
     exec_node->ops_priv = op_priv_info;
+
     return 0;
 }
 static int postrun(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     struct node* ir_node = exec_node->ir_node;
     gather_param_t* op_param = (gather_param_t*)exec_node->ops_priv;
+
     sys_free(op_param->in_shape);
+    sys_free(op_param->out_shape);
 
     return 0;
 }
 static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    gather_param_t* op_priv_info = ( gather_param_t* )exec_node->ops_priv;
+    gather_param_t* op_priv_info = (gather_param_t*)exec_node->ops_priv;
 
     sys_free(op_priv_info);
 

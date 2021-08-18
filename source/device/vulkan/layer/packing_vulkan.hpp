@@ -52,7 +52,7 @@ public:
 
     virtual int create_pipeline(const Option& opt);
     virtual int destroy_pipeline(const Option& opt);
-    
+
     virtual int record_pipeline(const VkTensor& bottom_blob, VkTensor& top_blob, VkCompute& cmd, const Option& opt) const;
 
 public:
@@ -91,6 +91,5 @@ public:
 };
 
 } // namespace TEngine
-
 
 #endif

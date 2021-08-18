@@ -30,16 +30,15 @@
 
 #include <arm_neon.h>
 
-
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
 static void linear_coeffs(int w, int outw, int* xofs, float* alpha)
 {
-    double scale = ( double )w / outw;
+    double scale = (double)w / outw;
 
     for (int dx = 0; dx < outw; dx++)
     {
-        float fx = ( float )((dx) * scale);
+        float fx = (float)((dx)*scale);
         int sx = floor(fx);
         fx -= sx;
 
@@ -64,12 +63,12 @@ static void linear_coeffs(int w, int outw, int* xofs, float* alpha)
 static void resize_bilinear_image(float* src, float* dst, float* alpha, int* xofs, float* beta, int* yofs, int out_h,
                                   int out_w, int in_h, int in_w)
 {
-    int w = out_w;    // dst.w;
-    int h = out_h;    // dst.h;
+    int w = out_w; // dst.w;
+    int h = out_h; // dst.h;
 
     // loop body
-    float* rowsbuf0 = ( float* )sys_malloc(w * sizeof(float));
-    float* rowsbuf1 = ( float* )sys_malloc(w * sizeof(float));
+    float* rowsbuf0 = (float*)sys_malloc(w * sizeof(float));
+    float* rowsbuf1 = (float*)sys_malloc(w * sizeof(float));
     float* rows0 = rowsbuf0;
     float* rows1 = rowsbuf1;
 
@@ -89,7 +88,7 @@ static void resize_bilinear_image(float* src, float* dst, float* alpha, int* xof
             float* rows0_old = rows0;
             rows0 = rows1;
             rows1 = rows0_old;
-            const float* S1 = src + (sy + 1) * in_w;    // src.row(sy+1);
+            const float* S1 = src + (sy + 1) * in_w; // src.row(sy+1);
 
             const float* alphap = alpha;
             float* rows1p = rows1;
@@ -117,8 +116,8 @@ static void resize_bilinear_image(float* src, float* dst, float* alpha, int* xof
         else
         {
             // hresize two rows
-            const float* S0 = src + sy * in_w;    // src.row(sy);
-            const float* S1 = src + (sy + 1) * in_w;    // src.row(sy+1);
+            const float* S0 = src + sy * in_w;       // src.row(sy);
+            const float* S1 = src + (sy + 1) * in_w; // src.row(sy+1);
 
             const float* alphap = alpha;
             float* rows0p = rows0;
@@ -160,7 +159,7 @@ static void resize_bilinear_image(float* src, float* dst, float* alpha, int* xof
 
         float* rows0p = rows0;
         float* rows1p = rows1;
-        float* Dp = dst + dy * out_w;    // dst.row(dy);
+        float* Dp = dst + dy * out_w; // dst.row(dy);
 
         int nn = w >> 3;
         int remain = w - (nn << 3);
@@ -215,11 +214,11 @@ static inline void interpolate_cubic(float fx, float* coeffs)
 }
 static void cubic_coeffs(int w, int outw, int* xofs, float* alpha)
 {
-    double scale = ( double )w / outw;
+    double scale = (double)w / outw;
 
     for (int dx = 0; dx < outw; dx++)
     {
-        float fx = ( float )((dx + 0.5) * scale - 0.5);
+        float fx = (float)((dx + 0.5) * scale - 0.5);
         int sx = floor(fx);
         fx -= sx;
 
@@ -265,14 +264,14 @@ static void cubic_coeffs(int w, int outw, int* xofs, float* alpha)
 static void resize_bicubic_image(float* src, float* dst, float* alpha, int* xofs, float* beta, int* yofs, int out_h,
                                  int out_w, int in_h, int in_w)
 {
-    int w = out_w;    // dst.w;
-    int h = out_h;    // dst.h;
+    int w = out_w; // dst.w;
+    int h = out_h; // dst.h;
 
     // loop body
-    float* rowsbuf0 = ( float* )sys_malloc(w * sizeof(float));
-    float* rowsbuf1 = ( float* )sys_malloc(w * sizeof(float));
-    float* rowsbuf2 = ( float* )sys_malloc(w * sizeof(float));
-    float* rowsbuf3 = ( float* )sys_malloc(w * sizeof(float));
+    float* rowsbuf0 = (float*)sys_malloc(w * sizeof(float));
+    float* rowsbuf1 = (float*)sys_malloc(w * sizeof(float));
+    float* rowsbuf2 = (float*)sys_malloc(w * sizeof(float));
+    float* rowsbuf3 = (float*)sys_malloc(w * sizeof(float));
     float* rows0 = rowsbuf0;
     float* rows1 = rowsbuf1;
     float* rows2 = rowsbuf2;
@@ -296,7 +295,7 @@ static void resize_bicubic_image(float* src, float* dst, float* alpha, int* xofs
             rows1 = rows2;
             rows2 = rows3;
             rows3 = rows0_old;
-            const float* S3 = src + (sy + 2) * in_w;    // src.row(sy+2);
+            const float* S3 = src + (sy + 2) * in_w; // src.row(sy+2);
 
             const float* alphap = alpha;
             float* rows3p = rows3;
@@ -323,8 +322,8 @@ static void resize_bicubic_image(float* src, float* dst, float* alpha, int* xofs
             rows1 = rows3;
             rows2 = rows0_old;
             rows3 = rows1_old;
-            const float* S2 = src + (sy + 1) * in_w;    // src.row(sy+1);
-            const float* S3 = src + (sy + 2) * in_w;    // src.row(sy+2);
+            const float* S2 = src + (sy + 1) * in_w; // src.row(sy+1);
+            const float* S3 = src + (sy + 2) * in_w; // src.row(sy+2);
 
             const float* alphap = alpha;
             float* rows2p = rows2;
@@ -355,9 +354,9 @@ static void resize_bicubic_image(float* src, float* dst, float* alpha, int* xofs
             rows1 = rows0_old;
             rows2 = rows1_old;
             rows3 = rows2_old;
-            const float* S1 = src + sy * in_w;    // src.row(sy);
-            const float* S2 = src + (sy + 1) * in_w;    // src.row(sy+1);
-            const float* S3 = src + (sy + 2) * in_w;    // src.row(sy+2);
+            const float* S1 = src + sy * in_w;       // src.row(sy);
+            const float* S2 = src + (sy + 1) * in_w; // src.row(sy+1);
+            const float* S3 = src + (sy + 2) * in_w; // src.row(sy+2);
 
             const float* alphap = alpha;
             float* rows1p = rows1;
@@ -384,10 +383,10 @@ static void resize_bicubic_image(float* src, float* dst, float* alpha, int* xofs
         else
         {
             // hresize four rows
-            const float* S0 = src + (sy - 1) * in_w;    // src.row(sy-1);
-            const float* S1 = src + sy * in_w;    // src.row(sy);
-            const float* S2 = src + (sy + 1) * in_w;    // src.row(sy+1);
-            const float* S3 = src + (sy + 2) * in_w;    // src.row(sy+2);
+            const float* S0 = src + (sy - 1) * in_w; // src.row(sy-1);
+            const float* S1 = src + sy * in_w;       // src.row(sy);
+            const float* S2 = src + (sy + 1) * in_w; // src.row(sy+1);
+            const float* S3 = src + (sy + 2) * in_w; // src.row(sy+2);
 
             const float* alphap = alpha;
             float* rows0p = rows0;
@@ -427,7 +426,7 @@ static void resize_bicubic_image(float* src, float* dst, float* alpha, int* xofs
         float* rows1p = rows1;
         float* rows2p = rows2;
         float* rows3p = rows3;
-        float* Dp = dst + dy * out_w;    // dst.row(dy);
+        float* Dp = dst + dy * out_w; // dst.row(dy);
         for (int dx = 0; dx < w; dx++)
         {
             *Dp++ = *rows0p++ * b0 + *rows1p++ * b1 + *rows2p++ * b2 + *rows3p++ * b3;
@@ -455,8 +454,8 @@ int interp_run(struct tensor* output_tensor, struct tensor* input_tensor, struct
     int in_h = input_tensor->dims[2];
     int in_w = input_tensor->dims[3];
 
-    float* data = ( float* )input_tensor->data;
-    float* out_data = ( float* )output_tensor->data;
+    float* data = (float*)input_tensor->data;
+    float* out_data = (float*)output_tensor->data;
 
     if (out_h == 0 || out_w == 0)
     {
@@ -483,31 +482,31 @@ int interp_run(struct tensor* output_tensor, struct tensor* input_tensor, struct
         return 0;
     }
 
-    if (resize_type == 1)    // nearest
+    if (resize_type == 1) // nearest
     {
 #pragma omp parallel for num_threads(num_thread)
         for (int q = 0; q < in_c; q++)
         {
             for (int y = 0; y < out_h; ++y)
             {
-                const int in_y = MIN(( int )(y / height_scale), (in_h - 1));
+                const int in_y = MIN((int)(y / height_scale), (in_h - 1));
                 for (int x = 0; x < out_w; ++x)
                 {
-                    const int in_x = MIN(( int )(x / width_scale), (in_w - 1));
+                    const int in_x = MIN((int)(x / width_scale), (in_w - 1));
                     out_data[out_w * y + x + out_w * out_h * q] = data[in_y * in_w + in_x + q * in_w * in_h];
                 }
             }
         }
     }
-    else if (resize_type == 2)    // bilinear
+    else if (resize_type == 2) // bilinear
     {
-        int* buf = ( int* )sys_malloc((out_w + out_h + out_w * 2 + out_h * 2) * sizeof(int));
+        int* buf = (int*)sys_malloc((out_w + out_h + out_w * 2 + out_h * 2) * sizeof(int));
 
-        int* xofs = buf;    // new int[ow];
-        int* yofs = buf + out_w;    // new int[oh];
+        int* xofs = buf;         // new int[ow];
+        int* yofs = buf + out_w; // new int[oh];
 
-        float* alpha = ( float* )(buf + out_w + out_h);    // new float[ow * 2];
-        float* beta = ( float* )(buf + out_w + out_h + out_w * 2);    // new float[oh * 2];
+        float* alpha = (float*)(buf + out_w + out_h);            // new float[ow * 2];
+        float* beta = (float*)(buf + out_w + out_h + out_w * 2); // new float[oh * 2];
 
         linear_coeffs(in_w, out_w, xofs, alpha);
         linear_coeffs(in_h, out_h, yofs, beta);
@@ -521,15 +520,15 @@ int interp_run(struct tensor* output_tensor, struct tensor* input_tensor, struct
 
         sys_free(buf);
     }
-    else if (resize_type == 3)    // bicubic
+    else if (resize_type == 3) // bicubic
     {
-        int* buf = ( int* )sys_malloc((out_w + out_h + out_w * 4 + out_h * 4) * sizeof(int));
+        int* buf = (int*)sys_malloc((out_w + out_h + out_w * 4 + out_h * 4) * sizeof(int));
 
-        int* xofs = buf;    // new int[ow];
-        int* yofs = buf + out_w;    // new int[oh];
+        int* xofs = buf;         // new int[ow];
+        int* yofs = buf + out_w; // new int[oh];
 
-        float* alpha = ( float* )(buf + out_w + out_h);    // new float[ow * 4];
-        float* beta = ( float* )(buf + out_w + out_h + out_w * 4);    // new float[oh * 4];
+        float* alpha = (float*)(buf + out_w + out_h);            // new float[ow * 4];
+        float* beta = (float*)(buf + out_w + out_h + out_w * 4); // new float[oh * 4];
 
         cubic_coeffs(in_w, out_w, xofs, alpha);
         cubic_coeffs(in_h, out_h, yofs, beta);

@@ -31,10 +31,9 @@
 #include "module/module.h"
 #include "utility/sys_port.h"
 
-
 static int infer_shape(struct node* node)
 {
-    priorbox_param_t* priorbox_param = ( priorbox_param_t* )node->op.param_mem;
+    priorbox_param_t* priorbox_param = (priorbox_param_t*)node->op.param_mem;
 
     struct graph* ir_graph = node->graph;
     struct tensor* input = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
@@ -76,10 +75,9 @@ static int infer_shape(struct node* node)
     return 0;
 }
 
-
 static int init_op(struct op* op)
 {
-    struct priorbox_param* priorbox_param = ( struct priorbox_param* )sys_malloc(sizeof(struct priorbox_param));
+    struct priorbox_param* priorbox_param = (struct priorbox_param*)sys_malloc(sizeof(struct priorbox_param));
 
     if (priorbox_param == NULL)
     {
@@ -96,10 +94,9 @@ static int init_op(struct op* op)
     return 0;
 }
 
-
 static void release_op(struct op* op)
 {
-    struct priorbox_param* priorbox_param = ( struct priorbox_param* )op->param_mem;
+    struct priorbox_param* priorbox_param = (struct priorbox_param*)op->param_mem;
 
     if (priorbox_param->aspect_ratio)
         sys_free(priorbox_param->aspect_ratio);
@@ -113,7 +110,6 @@ static void release_op(struct op* op)
     sys_free(op->param_mem);
 }
 
-
 int register_priorbox_op()
 {
     struct method m;
@@ -122,10 +118,8 @@ int register_priorbox_op()
     m.init = init_op;
     m.release = release_op;
 
-
     return register_op(OP_PRIORBOX, OP_PRIORBOX_NAME, &m);
 }
-
 
 int unregister_priorbox_op()
 {

@@ -38,14 +38,13 @@
 
 #include <math.h>
 
-
 int ref_relu_uint8(struct tensor* input_tensor, struct tensor* output_tensor, float negative_slope)
 {
     int total_size = input_tensor->elem_num;
 
     /* dequant */
-    uint8_t* input_uint8 = input_tensor->data;
-    uint8_t* output_uint8 = output_tensor->data;
+    uint8_t* input_uint8 = (uint8_t*)input_tensor->data;
+    uint8_t* output_uint8 = (uint8_t*)output_tensor->data;
     float input_scale = input_tensor->scale;
     float output_scale = output_tensor->scale;
     int32_t input_zero = input_tensor->zero_point;
@@ -53,9 +52,9 @@ int ref_relu_uint8(struct tensor* input_tensor, struct tensor* output_tensor, fl
 
     float* data_fp32 = (float*)sys_malloc(total_size * sizeof(float));
 
-    for(int i=0; i<total_size; i++)
+    for (int i = 0; i < total_size; i++)
     {
-        data_fp32[i] = ((float )input_uint8[i] - (float )input_zero) * input_scale;
+        data_fp32[i] = ((float)input_uint8[i] - (float)input_zero) * input_scale;
     }
 
     /* process */
@@ -81,7 +80,7 @@ int ref_relu_uint8(struct tensor* input_tensor, struct tensor* output_tensor, fl
     }
 
     /* quant */
-    for(int i=0; i<total_size; i++)
+    for (int i = 0; i < total_size; i++)
     {
         int udata = round(data_fp32[i] / output_scale + output_zero);
         if (udata > 255)

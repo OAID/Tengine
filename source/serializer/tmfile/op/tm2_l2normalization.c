@@ -32,18 +32,15 @@
 #include "device/device.h"
 #include "utility/log.h"
 
-
 static int l2normalization_op_map(int op)
 {
     return OP_L2NORMALIZATION;
 }
 
-
 static int tm2_load_l2normalization(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node, const TM2_Operator* tm_op)
 {
     return 0;
 }
-
 
 int register_tm2_l2normalization_op()
 {
@@ -59,7 +56,6 @@ int register_tm2_l2normalization_op()
 
     return 0;
 }
-
 
 int unregister_tm2_l2normalization_op()
 {

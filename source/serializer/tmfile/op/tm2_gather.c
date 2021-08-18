@@ -34,31 +34,28 @@
 #include "device/device.h"
 #include "utility/log.h"
 
-
 static int gather_op_map(int op)
 {
     return OP_GATHER;
 }
 
-
 static int tm2_load_gather(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                            const TM2_Operator* tm_op)
 {
-    struct gather_param* gather_param = ( struct gather_param* )ir_node->op.param_mem;
+    struct gather_param* gather_param = (struct gather_param*)ir_node->op.param_mem;
     const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
     const char* mem_base = tm2_priv->base;
-    const TM2_GatherParam* tm_param = ( TM2_GatherParam* )(mem_base + tm_op->offset_t_param);
+    const TM2_GatherParam* tm_param = (TM2_GatherParam*)(mem_base + tm_op->offset_t_param);
 
-	gather_param->axis = tm_param->axis;
-	gather_param->indices_num = tm_param->indices_num ;
-	if(tm_param->is_onnx)
+    gather_param->axis = tm_param->axis;
+    gather_param->indices_num = tm_param->indices_num;
+    if (tm_param->is_onnx)
         gather_param->is_onnx = true;
     else
         gather_param->is_onnx = false;
 
     return 0;
 }
-
 
 int register_tm2_gather_op()
 {
@@ -74,7 +71,6 @@ int register_tm2_gather_op()
 
     return 0;
 }
-
 
 int unregister_tm2_gather_op()
 {

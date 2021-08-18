@@ -34,20 +34,18 @@
 #include "device/device.h"
 #include "utility/log.h"
 
-
 static int permute_op_map(int op)
 {
     return OP_PERMUTE;
 }
 
-
 static int tm2_load_permute(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                             const TM2_Operator* tm_op)
 {
-    struct permute_param* permute_param = ( struct permute_param* )ir_node->op.param_mem;
+    struct permute_param* permute_param = (struct permute_param*)ir_node->op.param_mem;
     const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
     const char* mem_base = tm2_priv->base;
-    const TM2_PermuteParam* tm_param = ( TM2_PermuteParam* )(mem_base + tm_op->offset_t_param);
+    const TM2_PermuteParam* tm_param = (TM2_PermuteParam*)(mem_base + tm_op->offset_t_param);
 
     permute_param->flag = tm_param->flag;
     permute_param->order0 = tm_param->order0;
@@ -57,7 +55,6 @@ static int tm2_load_permute(struct graph* ir_graph, struct node* ir_node, const 
 
     return 0;
 }
-
 
 int register_tm2_permute_op()
 {
@@ -73,7 +70,6 @@ int register_tm2_permute_op()
 
     return 0;
 }
-
 
 int unregister_tm2_permute_op()
 {

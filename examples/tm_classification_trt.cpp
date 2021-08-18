@@ -29,18 +29,17 @@
 #include "tengine/c_api.h"
 #include "tengine_operations.h"
 
-#define DEFAULT_IMG_H 227
-#define DEFAULT_IMG_W 227
-#define DEFAULT_SCALE1 1.f
-#define DEFAULT_SCALE2 1.f
-#define DEFAULT_SCALE3 1.f
-#define DEFAULT_MEAN1 104.007
-#define DEFAULT_MEAN2 116.669
-#define DEFAULT_MEAN3 122.679
-#define DEFAULT_LOOP_COUNT 1
+#define DEFAULT_IMG_H        227
+#define DEFAULT_IMG_W        227
+#define DEFAULT_SCALE1       1.f
+#define DEFAULT_SCALE2       1.f
+#define DEFAULT_SCALE3       1.f
+#define DEFAULT_MEAN1        104.007
+#define DEFAULT_MEAN2        116.669
+#define DEFAULT_MEAN3        122.679
+#define DEFAULT_LOOP_COUNT   1
 #define DEFAULT_THREAD_COUNT 1
 #define DEFAULT_CPU_AFFINITY 255
-
 
 int tengine_classify(const char* model_file, const char* image_file, int img_h, int img_w, const float* mean,
                      const float* scale, int loop_count, int num_thread, int affinity)
@@ -59,13 +58,13 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
         return -1;
     }
     fprintf(stderr, "tengine-lite library version: %s\n", get_tengine_version());
-	
+
     /* create NVIDIA TensorRT backend */
     context_t trt_context = create_context("trt", 1);
     int rtt = add_context_device(trt_context, "TensorRT");
     if (0 > rtt)
     {
-        fprintf(stderr, " add_context_device NV TensorRT DEVICE failed.\n");
+        fprintf(stderr, "add_context_device NV TensorRT DEVICE failed.\n");
         return -1;
     }
 
@@ -79,8 +78,8 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
 
     /* set the shape, data buffer of input_tensor of the graph */
     int img_size = img_h * img_w * 3;
-    int dims[] = {1, 3, img_h, img_w};    // nchw
-    float* input_data = ( float* )malloc(img_size * sizeof(float));
+    int dims[] = {1, 3, img_h, img_w}; // nchw
+    float* input_data = (float*)malloc(img_size * sizeof(float));
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == NULL)
@@ -95,11 +94,11 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
         return -1;
     }
 
-    if (set_tensor_buffer(input_tensor, input_data, img_size * 4) < 0)
+    if (set_tensor_buffer(input_tensor, input_data, img_size * sizeof(float)) < 0)
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;
-    }    
+    }
 
     /* prerun graph, set work options(num_thread, cluster, precision) */
     if (prerun_graph_multithread(graph, opt) < 0)
@@ -141,7 +140,7 @@ int tengine_classify(const char* model_file, const char* image_file, int img_h, 
 
     /* get the result of classification */
     tensor_t output_tensor = get_graph_output_tensor(graph, 0, 0);
-    float* output_data = ( float* )get_tensor_buffer(output_tensor);
+    float* output_data = (float*)get_tensor_buffer(output_tensor);
     int output_size = get_tensor_buffer_size(output_tensor) / sizeof(float);
 
     print_topk(output_data, output_size, 5);
@@ -186,37 +185,37 @@ int main(int argc, char* argv[])
     {
         switch (res)
         {
-            case 'm':
-                model_file = optarg;
-                break;
-            case 'i':
-                image_file = optarg;
-                break;
-            case 'g':
-                split(img_hw, optarg, ",");
-                img_h = ( int )img_hw[0];
-                img_w = ( int )img_hw[1];
-                break;
-            case 's':
-                split(scale, optarg, ",");
-                break;
-            case 'w':
-                split(mean, optarg, ",");
-                break;
-            case 'r':
-                loop_count = atoi(optarg);
-                break;
-            case 't':
-                num_thread = atoi(optarg);
-                break;
-            case 'a':
-                cpu_affinity = atoi(optarg);
-                break;
-            case 'h':
-                show_usage();
-                return 0;
-            default:
-                break;
+        case 'm':
+            model_file = optarg;
+            break;
+        case 'i':
+            image_file = optarg;
+            break;
+        case 'g':
+            split(img_hw, optarg, ",");
+            img_h = (int)img_hw[0];
+            img_w = (int)img_hw[1];
+            break;
+        case 's':
+            split(scale, optarg, ",");
+            break;
+        case 'w':
+            split(mean, optarg, ",");
+            break;
+        case 'r':
+            loop_count = atoi(optarg);
+            break;
+        case 't':
+            num_thread = atoi(optarg);
+            break;
+        case 'a':
+            cpu_affinity = atoi(optarg);
+            break;
+        case 'h':
+            show_usage();
+            return 0;
+        default:
+            break;
         }
     }
 

@@ -35,22 +35,18 @@
 #include "utility/sys_port.h"
 #include "utility/log.h"
 
-
 static int detection_postprocess_op_map(int op)
 {
     return OP_DETECTION_POSTPROCESS;
 }
 
-
 static int tm2_load_detection_postprocess(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                                           const TM2_Operator* tm_op)
 {
-    struct detection_postprocess_param* detection_postprocess_param =
-        ( struct detection_postprocess_param* )ir_node->op.param_mem;
+    struct detection_postprocess_param* detection_postprocess_param = (struct detection_postprocess_param*)ir_node->op.param_mem;
     const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
     const char* mem_base = tm2_priv->base;
-    const TM2_DetectionPostProcessParam* tm_param =
-        ( TM2_DetectionPostProcessParam* )(mem_base + tm_op->offset_t_param);
+    const TM2_DetectionPostProcessParam* tm_param = (TM2_DetectionPostProcessParam*)(mem_base + tm_op->offset_t_param);
 
     detection_postprocess_param->max_detections = tm_param->max_detections;
     detection_postprocess_param->max_classes_per_detection = tm_param->max_classes_per_detection;
@@ -62,12 +58,11 @@ static int tm2_load_detection_postprocess(struct graph* ir_graph, struct node* i
     detection_postprocess_param->scales = (float*)sys_malloc(vf_scales->v_num * sizeof(float));
 
     for (unsigned int i = 0; i < vf_scales->v_num;
-         i++)    // TODO : need to check v_num .Next called in run function(detection_postprocess) default as 4 ?
+         i++) // TODO : need to check v_num .Next called in run function(detection_postprocess) default as 4 ?
         detection_postprocess_param->scales[i] = vf_scales->data[i];
 
     return 0;
 }
-
 
 int register_tm2_detection_postprocess_op()
 {
@@ -84,7 +79,6 @@ int register_tm2_detection_postprocess_op()
 
     return 0;
 }
-
 
 int unregister_tm2_detection_postprocess_op()
 {

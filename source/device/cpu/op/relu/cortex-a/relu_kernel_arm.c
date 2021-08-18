@@ -30,12 +30,11 @@
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 
-
 static inline int relu_kernel(const int i, const int id, const void* data, const float* input, float* output,
                               const float slope)
 {
     float32x4_t _zero = vdupq_n_f32(0.f);
-    int step = (( int* )data)[0];
+    int step = ((int*)data)[0];
     const float* cur_input = input + id * step;
     float* cur_output = output + id * step;
     if (slope == 0)
@@ -80,8 +79,8 @@ static inline int relu_kernel(const int i, const int id, const void* data, const
 int relu_arm_run(struct tensor* output_tensor, struct tensor* input_tensor, struct relu_param* relu_param,
                  int num_thread)
 {
-    float* data = ( float* )input_tensor->data;
-    float* out_data = ( float* )output_tensor->data;
+    float* data = (float*)input_tensor->data;
+    float* out_data = (float*)output_tensor->data;
     float negativeslope = relu_param->negative_slope;
 
     int chan_num = input_tensor->dims[0] * input_tensor->dims[1];

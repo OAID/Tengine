@@ -26,7 +26,6 @@
 
 #include "stdint.h"
 
-
 typedef struct slice_param
 {
     struct vector* slice_point_;

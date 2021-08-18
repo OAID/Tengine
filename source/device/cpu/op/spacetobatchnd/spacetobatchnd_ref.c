@@ -36,12 +36,11 @@
 
 #include <math.h>
 
-
 static int ref_spacetobatchnd_fp32(struct tensor* input_tensor, struct tensor* output_tensor,
                                    struct spacetobatchnd_param* param, int num_thread)
 {
-    float* in_data = input_tensor->data;
-    float* out_data = output_tensor->data;
+    float* in_data = (float*)input_tensor->data;
+    float* out_data = (float*)output_tensor->data;
 
     int out_dims[4];
     int in_dims[4];
@@ -92,22 +91,16 @@ static int ref_spacetobatchnd_fp32(struct tensor* input_tensor, struct tensor* o
             {
                 for (int out_w = 0; out_w < output_width; ++out_w)
                 {
-                    float* out =
-                        out_data + out_b * out_stride_batch + c * out_stride_depth + out_h * out_stride_height + out_w;
+                    float* out = out_data + out_b * out_stride_batch + c * out_stride_depth + out_h * out_stride_height + out_w;
 
-                    if (out_h * block_shape_height + shift_h < padding_top ||
-                        out_h * block_shape_height + shift_h >= padding_top + input_height ||
-                        out_w * block_shape_width + shift_w < padding_left ||
-                        out_w * block_shape_width + shift_w >= padding_left + input_width)
+                    if (out_h * block_shape_height + shift_h < padding_top || out_h * block_shape_height + shift_h >= padding_top + input_height || out_w * block_shape_width + shift_w < padding_left || out_w * block_shape_width + shift_w >= padding_left + input_width)
                     {
                         // This may not execute correctly when pad_value != 0 and T != uint8.
                         *out = 0;
                     }
                     else
                     {
-                        const float* in = in_data + input_batch * in_stride_batch + c * in_stride_depth +
-                                          ((out_h * block_shape_height + shift_h) - padding_top) * in_stride_height +
-                                          ((out_w * block_shape_width + shift_w) - padding_left);
+                        const float* in = in_data + input_batch * in_stride_batch + c * in_stride_depth + ((out_h * block_shape_height + shift_h) - padding_top) * in_stride_height + ((out_w * block_shape_width + shift_w) - padding_left);
                         *out = *in;
                     }
                 }
@@ -119,11 +112,11 @@ static int ref_spacetobatchnd_fp32(struct tensor* input_tensor, struct tensor* o
 }
 
 static int ref_spacetobatchnd_uint8(struct tensor* input_tensor, struct tensor* output_tensor,
-                                   struct spacetobatchnd_param* param, int num_thread)
+                                    struct spacetobatchnd_param* param, int num_thread)
 {
     /* dequant */
-    uint8_t* input_uint8 = input_tensor->data;
-    uint8_t* output_uint8 = output_tensor->data;
+    uint8_t* input_uint8 = (uint8_t*)input_tensor->data;
+    uint8_t* output_uint8 = (uint8_t*)output_tensor->data;
     float input_scale = input_tensor->scale;
     float output_scale = output_tensor->scale;
     int32_t input_zero = input_tensor->zero_point;
@@ -131,12 +124,12 @@ static int ref_spacetobatchnd_uint8(struct tensor* input_tensor, struct tensor* 
     int input_size = input_tensor->elem_num;
     int output_size = output_tensor->elem_num;
 
-    float* in_data = ( float* )sys_malloc(input_size * sizeof(float));
-    float* out_data = ( float* )sys_malloc(output_size * sizeof(float));
+    float* in_data = (float*)sys_malloc(input_size * sizeof(float));
+    float* out_data = (float*)sys_malloc(output_size * sizeof(float));
 
     for (int i = 0; i < input_size; i++)
     {
-        in_data[i] = (( float )input_uint8[i] - ( float )input_zero) * input_scale;
+        in_data[i] = ((float)input_uint8[i] - (float)input_zero) * input_scale;
     }
 
     int out_dims[4];
@@ -188,22 +181,16 @@ static int ref_spacetobatchnd_uint8(struct tensor* input_tensor, struct tensor* 
             {
                 for (int out_w = 0; out_w < output_width; ++out_w)
                 {
-                    float* out =
-                        out_data + out_b * out_stride_batch + c * out_stride_depth + out_h * out_stride_height + out_w;
+                    float* out = out_data + out_b * out_stride_batch + c * out_stride_depth + out_h * out_stride_height + out_w;
 
-                    if (out_h * block_shape_height + shift_h < padding_top ||
-                        out_h * block_shape_height + shift_h >= padding_top + input_height ||
-                        out_w * block_shape_width + shift_w < padding_left ||
-                        out_w * block_shape_width + shift_w >= padding_left + input_width)
+                    if (out_h * block_shape_height + shift_h < padding_top || out_h * block_shape_height + shift_h >= padding_top + input_height || out_w * block_shape_width + shift_w < padding_left || out_w * block_shape_width + shift_w >= padding_left + input_width)
                     {
                         // This may not execute correctly when pad_value != 0 and T != uint8.
                         *out = 0;
                     }
                     else
                     {
-                        const float* in = in_data + input_batch * in_stride_batch + c * in_stride_depth +
-                                          ((out_h * block_shape_height + shift_h) - padding_top) * in_stride_height +
-                                          ((out_w * block_shape_width + shift_w) - padding_left);
+                        const float* in = in_data + input_batch * in_stride_batch + c * in_stride_depth + ((out_h * block_shape_height + shift_h) - padding_top) * in_stride_height + ((out_w * block_shape_width + shift_w) - padding_left);
                         *out = *in;
                     }
                 }
@@ -247,12 +234,12 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
     input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    struct spacetobatchnd_param* spacetobatchnd_param = ( struct spacetobatchnd_param* )ir_node->op.param_mem;
+    struct spacetobatchnd_param* spacetobatchnd_param = (struct spacetobatchnd_param*)ir_node->op.param_mem;
 
     if (input_tensor->data_type == TENGINE_DT_FP32)
         ref_spacetobatchnd_fp32(input_tensor, output_tensor, spacetobatchnd_param, exec_graph->num_thread);
-    else if(input_tensor->data_type == TENGINE_DT_UINT8)
-         ref_spacetobatchnd_uint8(input_tensor, output_tensor, spacetobatchnd_param, exec_graph->num_thread);
+    else if (input_tensor->data_type == TENGINE_DT_UINT8)
+        ref_spacetobatchnd_uint8(input_tensor, output_tensor, spacetobatchnd_param, exec_graph->num_thread);
 
     return 0;
 }

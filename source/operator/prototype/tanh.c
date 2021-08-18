@@ -28,7 +28,6 @@
 #include "module/module.h"
 #include "utility/vector.h"
 
-
 static int infer_shape(ir_node_t* node)
 {
     ir_graph_t* ir_graph = node->graph;
@@ -36,12 +35,11 @@ static int infer_shape(ir_node_t* node)
     ir_tensor_t* output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
 
     output->layout = input->layout;
-    
+
     set_ir_tensor_shape(output, input->dims, input->dim_num);
 
     return 0;
 }
-
 
 static int init_op(ir_op_t* op)
 {
@@ -51,12 +49,10 @@ static int init_op(ir_op_t* op)
     return 0;
 }
 
-
 static void release_op(ir_op_t* op)
 {
     // sys_free(op->param_mem);
 }
-
 
 int register_tanh_op()
 {
@@ -69,7 +65,6 @@ int register_tanh_op()
 
     return register_op(OP_TANH, OP_TANH_NAME, &m);
 }
-
 
 int unregister_tanh_op()
 {

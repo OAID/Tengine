@@ -46,7 +46,6 @@
 #include <immintrin.h>
 #endif
 
-
 #define max(a, b) ((a) > (b) ? (a) : (b))
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
@@ -54,11 +53,11 @@ static void relu(float* data, int size, int activation)
 {
     for (int i = 0; i < size; i++)
     {
-        data[i] = max(data[i], ( float )0);
+        data[i] = max(data[i], (float)0);
 
         if (activation > 0)
         {
-            data[i] = min(data[i], ( float )activation);
+            data[i] = min(data[i], (float)activation);
         }
     }
 }
@@ -127,9 +126,9 @@ static void convdw3x3s1(float* output, float* img_data, float* kernel_data, floa
     int channel_count = inc >> 3;
     int channel_remain = inc - (channel_count << 3);
     // generate the image tmp
-    float* img_tmp = ( float* )sys_malloc(8 * (unsigned long)inwh * (channel_count + 1) * sizeof(float));
-    float* kernel_tmp = ( float* )sys_malloc(8 * 9 * (channel_count + 1) * sizeof(float));
-    float* bias_tmp = ( float* )sys_malloc(8 * (channel_count + 1) * sizeof(float));
+    float* img_tmp = (float*)sys_malloc(8 * (unsigned long)inwh * (channel_count + 1) * sizeof(float));
+    float* kernel_tmp = (float*)sys_malloc(8 * 9 * (channel_count + 1) * sizeof(float));
+    float* bias_tmp = (float*)sys_malloc(8 * (channel_count + 1) * sizeof(float));
     {
         for (int i = 0; i < channel_count; i++)
         {
@@ -334,7 +333,7 @@ static void convdw3x3s1(float* output, float* img_data, float* kernel_data, floa
         }
     }
 
-    float* output_tmp = ( float* )sys_malloc((unsigned long)outwh * (channel_count + 1) * 8 * sizeof(float));
+    float* output_tmp = (float*)sys_malloc((unsigned long)outwh * (channel_count + 1) * 8 * sizeof(float));
     for (int c = 0; c < channel_count + 1; c++)
     {
         float* ktmp = kernel_tmp + c * 8 * 9;
@@ -708,7 +707,7 @@ static void convdw3x3s1(float* output, float* img_data, float* kernel_data, floa
             float* tmp5 = output + i * 8 * outwh + 5 * outwh;
             float* tmp6 = output + i * 8 * outwh + 6 * outwh;
             float* tmp7 = output + i * 8 * outwh + 7 * outwh;
-            for (int i = 0; i < outwh; i++)
+            for (int j = 0; j < outwh; j++)
             {
                 tmp0[0] = otmp[0];
                 tmp1[0] = otmp[1];
@@ -783,9 +782,9 @@ static void convdw3x3s2(float* output, float* img_data, float* kernel_data, floa
     int channel_count = inc >> 3;
     int channel_remain = inc - (channel_count << 3);
     // generate the image tmp
-    float* img_tmp = ( float* )sys_malloc(8 * (unsigned long)inwh * (channel_count + 1) * sizeof(float));
-    float* kernel_tmp = ( float* )sys_malloc(8 * 9 * (channel_count + 1) * sizeof(float));
-    float* bias_tmp = ( float* )sys_malloc(8 * (channel_count + 1) * sizeof(float));
+    float* img_tmp = (float*)sys_malloc(8 * (unsigned long)inwh * (channel_count + 1) * sizeof(float));
+    float* kernel_tmp = (float*)sys_malloc(8 * 9 * (channel_count + 1) * sizeof(float));
+    float* bias_tmp = (float*)sys_malloc(8 * (channel_count + 1) * sizeof(float));
     {
         for (int i = 0; i < channel_count; i++)
         {
@@ -993,7 +992,7 @@ static void convdw3x3s2(float* output, float* img_data, float* kernel_data, floa
         }
     }
 
-    float* output_tmp = ( float* )sys_malloc((unsigned long)outwh * (channel_count + 1) * 8 * sizeof(float));
+    float* output_tmp = (float*)sys_malloc((unsigned long)outwh * (channel_count + 1) * 8 * sizeof(float));
     for (int c = 0; c < channel_count + 1; c++)
     {
         float* ktmp = kernel_tmp + c * 8 * 9;
@@ -1233,7 +1232,7 @@ static void convdw3x3s2(float* output, float* img_data, float* kernel_data, floa
             float* tmp5 = output + i * 8 * outwh + 5 * outwh;
             float* tmp6 = output + i * 8 * outwh + 6 * outwh;
             float* tmp7 = output + i * 8 * outwh + 7 * outwh;
-            for (int i = 0; i < outwh; i++)
+            for (int j = 0; j < outwh; j++)
             {
                 tmp0[0] = otmp[0];
                 tmp1[0] = otmp[1];
@@ -1310,9 +1309,9 @@ static void convdw3x3s1(float* output, float* img_data, float* kernel_data, floa
     int channel_remain = inc - (channel_count << 2);
 
     // generate the image tmp
-    float* img_tmp = ( float* )sys_malloc(4 * inwh * (channel_count + 1) * sizeof(float));
-    float* kernel_tmp = ( float* )sys_malloc(4 * 9 * (channel_count + 1) * sizeof(float));
-    float* bias_tmp = ( float* )sys_malloc(4 * (channel_count + 1) * sizeof(float));
+    float* img_tmp = (float*)sys_malloc(4 * inwh * (channel_count + 1) * sizeof(float));
+    float* kernel_tmp = (float*)sys_malloc(4 * 9 * (channel_count + 1) * sizeof(float));
+    float* bias_tmp = (float*)sys_malloc(4 * (channel_count + 1) * sizeof(float));
     {
         for (int i = 0; i < channel_count; i++)
         {
@@ -1416,7 +1415,7 @@ static void convdw3x3s1(float* output, float* img_data, float* kernel_data, floa
             }
         }
     }
-    float* output_tmp = ( float* )sys_malloc(outwh * 4 * (channel_count + 1) * sizeof(float));
+    float* output_tmp = (float*)sys_malloc(outwh * 4 * (channel_count + 1) * sizeof(float));
 
     for (int c = 0; c < channel_count + 1; c++)
     {
@@ -1951,9 +1950,9 @@ static void convdw3x3s2(float* output, float* img_data, float* kernel_data, floa
     int channel_count = inc >> 2;
     int channel_remain = inc - (channel_count << 2);
     // generate the image tmp
-    float* img_tmp = ( float* )sys_malloc(4 * inwh * (channel_count + 1) * sizeof(float));
-    float* kernel_tmp = ( float* )sys_malloc(4 * 9 * (channel_count + 1) * sizeof(float));
-    float* bias_tmp = ( float* )sys_malloc(4 * (channel_count + 1) * sizeof(float));
+    float* img_tmp = (float*)sys_malloc(4 * inwh * (channel_count + 1) * sizeof(float));
+    float* kernel_tmp = (float*)sys_malloc(4 * 9 * (channel_count + 1) * sizeof(float));
+    float* bias_tmp = (float*)sys_malloc(4 * (channel_count + 1) * sizeof(float));
     {
         for (int i = 0; i < channel_count; i++)
         {
@@ -2057,7 +2056,7 @@ static void convdw3x3s2(float* output, float* img_data, float* kernel_data, floa
             }
         }
     }
-    float* output_tmp = ( float* )sys_malloc(outwh * 4 * (channel_count + 1) * sizeof(float));
+    float* output_tmp = (float*)sys_malloc(outwh * 4 * (channel_count + 1) * sizeof(float));
     for (int c = 0; c < channel_count + 1; c++)
     {
         float* ktmp = kernel_tmp + c * 4 * 9;
@@ -2525,12 +2524,12 @@ static void convdw3x3s2(float* output, float* input, float* _kernel, float* _bia
 int conv_dw_run(struct tensor* input_tensor, struct tensor* weight_tensor, struct tensor* bias_tensor,
                 struct tensor* output_tensor, struct conv_priv_info* conv_info, struct conv_param* param, int num_thread, int cpu_affinity)
 {
-    float* input = ( float* )input_tensor->data;
-    float* output = ( float* )output_tensor->data;
-    float* kernel = ( float* )weight_tensor->data;
+    float* input = (float*)input_tensor->data;
+    float* output = (float*)output_tensor->data;
+    float* kernel = (float*)weight_tensor->data;
     float* biases = NULL;
     if (bias_tensor)
-        biases = ( float* )bias_tensor->data;
+        biases = (float*)bias_tensor->data;
 
     int batch_number = input_tensor->dims[0];
     int inc = input_tensor->dims[1];
@@ -2565,8 +2564,8 @@ int conv_dw_run(struct tensor* input_tensor, struct tensor* weight_tensor, struc
         input_tmp = input;
     else
     {
-        input_tmp = ( float* )sys_malloc((size_t)inh_tmp * inw_tmp * group * sizeof(float));
-#pragma omp parallel for num_threads(num_thread)        
+        input_tmp = (float*)sys_malloc((size_t)inh_tmp * inw_tmp * group * sizeof(float));
+#pragma omp parallel for num_threads(num_thread)
         for (int g = 0; g < group; g++)
         {
             float* pad_in = input + g * inh * inw;

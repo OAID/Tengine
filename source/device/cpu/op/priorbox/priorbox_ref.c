@@ -36,7 +36,6 @@
 
 #include <math.h>
 
-
 #define T_MAX(a, b) ((a) > (b) ? (a) : (b))
 #define T_MIN(a, b) ((a) < (b) ? (a) : (b))
 
@@ -55,15 +54,15 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct node* ir_node = exec_node->ir_node;
     struct graph* ir_graph = ir_node->graph;
     struct tensor* featmap_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
-    struct tensor* data_tensor    = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
-    struct tensor* output_tensor  = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    priorbox_param_t* param = ( priorbox_param_t* )(ir_node->op.param_mem);
+    struct tensor* data_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
+    struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
+    priorbox_param_t* param = (priorbox_param_t*)(ir_node->op.param_mem);
 
     float* output_fp32 = NULL;
     if (output_tensor->data_type == TENGINE_DT_FP32)
-        output_fp32 = ( float* )output_tensor->data;
+        output_fp32 = (float*)output_tensor->data;
     else if (output_tensor->data_type == TENGINE_DT_UINT8 || output_tensor->data_type == TENGINE_DT_INT8)
-        output_fp32 = ( float* )sys_malloc(output_tensor->elem_num * sizeof(float ));
+        output_fp32 = (float*)sys_malloc(output_tensor->elem_num * sizeof(float));
 
     const int data_height = data_tensor->dims[2];
     const int data_width = data_tensor->dims[3];
@@ -83,8 +82,8 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     float step_w, step_h;
     if (param->step_h == 0 || param->step_w == 0)
     {
-        step_w = ( float )(image_w) / feat_width;
-        step_h = ( float )(image_h) / feat_height;
+        step_w = (float)(image_w) / feat_width;
+        step_h = (float)(image_h) / feat_height;
     }
     else
     {
@@ -105,7 +104,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
             float center_x = (w + offset_) * step_w;
             float center_y = (h + offset_) * step_h;
             float box_width, box_height;
-            for (int s = 0; s < ( int )param->min_size_num; ++s)
+            for (int s = 0; s < (int)param->min_size_num; ++s)
             {
                 int min_size_ = param->min_size[s];
                 // first prior: aspect_ratio = 1, size = min_size
@@ -130,7 +129,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
                 }
 
                 // rest of priors
-                for (int r = 0; r < ( int )param->aspect_ratio_size; ++r)
+                for (int r = 0; r < (int)param->aspect_ratio_size; ++r)
                 {
                     float ar = param->aspect_ratio[r];
 
@@ -177,9 +176,9 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     /* quant to uint8 */
     if (output_tensor->data_type == TENGINE_DT_UINT8)
     {
-        uint8_t* output_org = output_tensor->data;
+        uint8_t* output_org = (uint8_t*)output_tensor->data;
 
-        for (int i=0; i<output_tensor->elem_num; i++)
+        for (int i = 0; i < output_tensor->elem_num; i++)
         {
             int udata = (int)(output_fp32[i] / output_tensor->scale + output_tensor->zero_point);
             if (udata > 255)
@@ -195,9 +194,9 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     /* quant to int8 */
     if (output_tensor->data_type == TENGINE_DT_INT8)
     {
-        int8_t* output_org = output_tensor->data;
+        int8_t* output_org = (int8_t*)output_tensor->data;
 
-        for (int i=0; i<output_tensor->elem_num; i++)
+        for (int i = 0; i < output_tensor->elem_num; i++)
         {
             int data_i32 = round(output_fp32[i] / output_tensor->scale);
             if (data_i32 > 127)

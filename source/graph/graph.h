@@ -27,12 +27,15 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct context;
 struct node;
 struct tensor;
 struct device;
 struct attribute;
-
 
 /*!
  * @struct ir_graph_t
@@ -40,33 +43,32 @@ struct attribute;
  */
 typedef struct graph
 {
-    struct tensor** tensor_list;            //!< the tensor list of a graph
-    struct node**   node_list;              //!< the node list of a graph
-    int16_t* input_nodes;                   //!< input nodes index array of a graph
-    int16_t* output_nodes;                  //!< output nodes index array of a graph
+    struct tensor** tensor_list; //!< the tensor list of a graph
+    struct node** node_list;     //!< the node list of a graph
+    int16_t* input_nodes;        //!< input nodes index array of a graph
+    int16_t* output_nodes;       //!< output nodes index array of a graph
 
-    uint16_t tensor_num;                    //!< the count of all graph tensor
-    uint16_t node_num;                      //!< the count of all graph node
-    uint16_t input_num;                     //!< input nodes index count of a graph
-    uint16_t output_num;                    //!< input nodes index count of a graph
+    uint16_t tensor_num; //!< the count of all graph tensor
+    uint16_t node_num;   //!< the count of all graph node
+    uint16_t input_num;  //!< input nodes index count of a graph
+    uint16_t output_num; //!< input nodes index count of a graph
 
-    int8_t   graph_layout;                  //!< the data layout of a graph
-    int8_t   model_layout;                  //!< model layout of graph source model
-    int8_t   model_format;                  //!< model format of graph source model
+    int8_t graph_layout; //!< the data layout of a graph
+    int8_t model_layout; //!< model layout of graph source model
+    int8_t model_format; //!< model format of graph source model
 
-    uint8_t  status;                        //!< the status of graph
+    uint8_t status; //!< the status of graph
 
-    struct   serializer* serializer;        //!< serializer of graph
-    void*    serializer_privacy;            //!< privacy data of serializer
+    struct serializer* serializer; //!< serializer of graph
+    void* serializer_privacy;      //!< privacy data of serializer
 
-    struct   device* device;                //!< assigned nn_device for this graph
-    void*    device_privacy;                //!< privacy data of device
+    struct device* device; //!< assigned nn_device for this graph
+    void* device_privacy;  //!< privacy data of device
 
-    struct   attribute*  attribute;         //<! attribute of graph
+    struct attribute* attribute; //<! attribute of graph
 
-    struct vector* subgraph_list;           //!< subgraph list of this graph
+    struct vector* subgraph_list; //!< subgraph list of this graph
 } ir_graph_t;
-
 
 /*!
  * @brief Create a graph.
@@ -77,7 +79,6 @@ typedef struct graph
  */
 struct graph* create_ir_graph(struct context* context);
 
-
 /*!
  * @brief Init a graph.
  *
@@ -85,7 +86,6 @@ struct graph* create_ir_graph(struct context* context);
  * @param [in]  context: specific context for this graph.
  */
 void init_ir_graph(ir_graph_t* graph, struct context* context);
-
 
 /*!
  * @brief Destroy a graph.
@@ -95,7 +95,6 @@ void init_ir_graph(ir_graph_t* graph, struct context* context);
  * @param [in]  graph: specific graph.
  */
 void destroy_ir_graph(ir_graph_t* graph);
-
 
 /*!
  * @brief Set input nodes for specific graph.
@@ -110,7 +109,6 @@ void destroy_ir_graph(ir_graph_t* graph);
  */
 int set_ir_graph_input_node(ir_graph_t* graph, int16_t input_nodes[], int input_number);
 
-
 /*!
  * @brief Set output nodes for specific graph.
  *
@@ -124,7 +122,6 @@ int set_ir_graph_input_node(ir_graph_t* graph, int16_t input_nodes[], int input_
  */
 int set_ir_graph_output_node(ir_graph_t* graph, int16_t output_nodes[], int output_number);
 
-
 /*!
  * @brief Get specific tensor for a graph.
  *
@@ -134,7 +131,6 @@ int set_ir_graph_output_node(ir_graph_t* graph, int16_t output_nodes[], int outp
  * @return  The pointer of the tensor.
  */
 struct tensor* get_ir_graph_tensor(ir_graph_t* graph, int index);
-
 
 /*!
  * @brief Get specific node for a graph.
@@ -146,7 +142,6 @@ struct tensor* get_ir_graph_tensor(ir_graph_t* graph, int index);
  */
 struct node* get_ir_graph_node(ir_graph_t* graph, int index);
 
-
 /*!
  * @brief Get output subgraph for a graph.
  *
@@ -157,7 +152,6 @@ struct node* get_ir_graph_node(ir_graph_t* graph, int index);
  */
 struct subgraph* get_ir_graph_subgraph(ir_graph_t* graph, int index);
 
-
 /*!
  * @brief Infer each node shape for a graph.
  *
@@ -167,10 +161,13 @@ struct subgraph* get_ir_graph_subgraph(ir_graph_t* graph, int index);
  */
 int infer_ir_graph_shape(ir_graph_t* graph);
 
-
 /*!
  * @brief  Dump the graph.
  *
  * @param [in]  ir_graph: specific graph.
  */
 void dump_ir_graph(ir_graph_t* graph);
+
+#ifdef __cplusplus
+}
+#endif

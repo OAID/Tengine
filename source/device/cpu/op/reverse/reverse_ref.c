@@ -34,18 +34,17 @@
 
 #include <math.h>
 
-
 struct reverse_param
 {
-    int in_shape[4];    // the dim of the input
+    int in_shape[4]; // the dim of the input
     int dim_size;
 };
 
 int ref_reverse_fp32(void* input, void* input_axis, void* output, const struct reverse_param* param, int num_thread)
 {
-    float* out_ptr = output;
-    float* in_ptr = input;
-    int* axis_ptr = input_axis;
+    float* out_ptr = (float*)output;
+    float* in_ptr = (float*)input;
+    int* axis_ptr = (int*)input_axis;
     int axis = axis_ptr[0];
 
     int in_w = param->in_shape[3];
@@ -64,8 +63,7 @@ int ref_reverse_fp32(void* input, void* input_axis, void* output, const struct r
                     {
                         for (int x = 0; x < param->in_shape[3]; x++)
                         {
-                            out_ptr[i * in_chw + j * in_hw + y * in_w + x] =
-                                in_ptr[(param->in_shape[0] - 1 - i) * in_chw + j * in_hw + y * in_w + x];
+                            out_ptr[i * in_chw + j * in_hw + y * in_w + x] = in_ptr[(param->in_shape[0] - 1 - i) * in_chw + j * in_hw + y * in_w + x];
                         }
                     }
                 }
@@ -82,8 +80,7 @@ int ref_reverse_fp32(void* input, void* input_axis, void* output, const struct r
                     {
                         for (int x = 0; x < param->in_shape[3]; x++)
                         {
-                            out_ptr[i * in_chw + j * in_hw + y * in_w + x] =
-                                in_ptr[i * in_chw + (param->in_shape[1] - 1 - j) * in_hw + y * in_w + x];
+                            out_ptr[i * in_chw + j * in_hw + y * in_w + x] = in_ptr[i * in_chw + (param->in_shape[1] - 1 - j) * in_hw + y * in_w + x];
                         }
                     }
                 }
@@ -100,8 +97,7 @@ int ref_reverse_fp32(void* input, void* input_axis, void* output, const struct r
                     {
                         for (int x = 0; x < param->in_shape[3]; x++)
                         {
-                            out_ptr[i * in_chw + j * in_hw + y * in_w + x] =
-                                in_ptr[i * in_chw + j * in_hw + (param->in_shape[2] - 1 - y) * in_w + x];
+                            out_ptr[i * in_chw + j * in_hw + y * in_w + x] = in_ptr[i * in_chw + j * in_hw + (param->in_shape[2] - 1 - y) * in_w + x];
                         }
                     }
                 }
@@ -118,8 +114,7 @@ int ref_reverse_fp32(void* input, void* input_axis, void* output, const struct r
                     {
                         for (int x = 0; x < param->in_shape[3]; x++)
                         {
-                            out_ptr[i * in_chw + j * in_hw + y * in_w + x] =
-                                in_ptr[i * in_chw + j * in_hw + y * in_w + (param->in_shape[3] - 1 - x)];
+                            out_ptr[i * in_chw + j * in_hw + y * in_w + x] = in_ptr[i * in_chw + j * in_hw + y * in_w + (param->in_shape[3] - 1 - x)];
                         }
                     }
                 }
@@ -136,9 +131,9 @@ int ref_reverse_fp32(void* input, void* input_axis, void* output, const struct r
 
 int ref_reverse_uint8(void* input, void* input_axis, void* output, const struct reverse_param* param, int num_thread)
 {
-    uint8_t* out_ptr = output;
-    uint8_t* in_ptr = input;
-    int* axis_ptr = input_axis;
+    uint8_t* out_ptr = (uint8_t*)output;
+    uint8_t* in_ptr = (uint8_t*)input;
+    int* axis_ptr = (int*)input_axis;
     int axis = axis_ptr[0];
 
     int in_w = param->in_shape[3];
@@ -157,8 +152,7 @@ int ref_reverse_uint8(void* input, void* input_axis, void* output, const struct 
                     {
                         for (int x = 0; x < param->in_shape[3]; x++)
                         {
-                            out_ptr[i * in_chw + j * in_hw + y * in_w + x] =
-                                in_ptr[(param->in_shape[0] - 1 - i) * in_chw + j * in_hw + y * in_w + x];
+                            out_ptr[i * in_chw + j * in_hw + y * in_w + x] = in_ptr[(param->in_shape[0] - 1 - i) * in_chw + j * in_hw + y * in_w + x];
                         }
                     }
                 }
@@ -175,8 +169,7 @@ int ref_reverse_uint8(void* input, void* input_axis, void* output, const struct 
                     {
                         for (int x = 0; x < param->in_shape[3]; x++)
                         {
-                            out_ptr[i * in_chw + j * in_hw + y * in_w + x] =
-                                in_ptr[i * in_chw + (param->in_shape[1] - 1 - j) * in_hw + y * in_w + x];
+                            out_ptr[i * in_chw + j * in_hw + y * in_w + x] = in_ptr[i * in_chw + (param->in_shape[1] - 1 - j) * in_hw + y * in_w + x];
                         }
                     }
                 }
@@ -193,8 +186,7 @@ int ref_reverse_uint8(void* input, void* input_axis, void* output, const struct 
                     {
                         for (int x = 0; x < param->in_shape[3]; x++)
                         {
-                            out_ptr[i * in_chw + j * in_hw + y * in_w + x] =
-                                in_ptr[i * in_chw + j * in_hw + (param->in_shape[2] - 1 - y) * in_w + x];
+                            out_ptr[i * in_chw + j * in_hw + y * in_w + x] = in_ptr[i * in_chw + j * in_hw + (param->in_shape[2] - 1 - y) * in_w + x];
                         }
                     }
                 }
@@ -211,8 +203,7 @@ int ref_reverse_uint8(void* input, void* input_axis, void* output, const struct 
                     {
                         for (int x = 0; x < param->in_shape[3]; x++)
                         {
-                            out_ptr[i * in_chw + j * in_hw + y * in_w + x] =
-                                in_ptr[i * in_chw + j * in_hw + y * in_w + (param->in_shape[3] - 1 - x)];
+                            out_ptr[i * in_chw + j * in_hw + y * in_w + x] = in_ptr[i * in_chw + j * in_hw + y * in_w + (param->in_shape[3] - 1 - x)];
                         }
                     }
                 }
@@ -267,9 +258,9 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     if (input_tensor->data_type == TENGINE_DT_FP32)
         ret = ref_reverse_fp32(input_tensor->data, axis_tensor->data, output_tensor->data, &reverse_param,
                                exec_graph->num_thread);
-    else if(input_tensor->data_type == TENGINE_DT_UINT8)
+    else if (input_tensor->data_type == TENGINE_DT_UINT8)
         ret = ref_reverse_uint8(input_tensor->data, axis_tensor->data, output_tensor->data, &reverse_param,
-                               exec_graph->num_thread);
+                                exec_graph->num_thread);
 
     return ret;
 }

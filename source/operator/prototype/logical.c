@@ -32,7 +32,6 @@
 #include "utility/sys_port.h"
 #include "utility/log.h"
 
-
 static int infer_shape(struct node* node)
 {
     if (node->input_num == 1)
@@ -64,10 +63,9 @@ static int infer_shape(struct node* node)
     return -1;
 }
 
-
 static int init_op(struct op* op)
 {
-    struct logical_param* logical_param = ( struct logical_param* )sys_malloc(sizeof(struct logical_param));
+    struct logical_param* logical_param = (struct logical_param*)sys_malloc(sizeof(struct logical_param));
 
     if (logical_param == NULL)
     {
@@ -85,12 +83,10 @@ static int init_op(struct op* op)
     return 0;
 }
 
-
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
-
 
 int register_logical_op()
 {
@@ -102,7 +98,6 @@ int register_logical_op()
 
     return register_op(OP_LOGICAL, OP_LOGICAL_NAME, &m);
 }
-
 
 int unregister_logical_op()
 {

@@ -31,7 +31,6 @@
 #include "module/module.h"
 #include "utility/sys_port.h"
 
-
 static int infer_shape(struct node* node)
 {
     struct graph* ir_graph = node->graph;
@@ -43,10 +42,9 @@ static int infer_shape(struct node* node)
     return 0;
 }
 
-
 static int init_op(struct op* op)
 {
-    struct lrn_param* lrn_param = ( struct lrn_param* )sys_malloc(sizeof(struct lrn_param));
+    struct lrn_param* lrn_param = (struct lrn_param*)sys_malloc(sizeof(struct lrn_param));
 
     if (lrn_param == NULL)
     {
@@ -68,12 +66,10 @@ static int init_op(struct op* op)
     return 0;
 }
 
-
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
-
 
 int register_lrn_op()
 {
@@ -83,10 +79,8 @@ int register_lrn_op()
     m.init = init_op;
     m.release = release_op;
 
-
     return register_op(OP_LRN, OP_LRN_NAME, &m);
 }
-
 
 int unregister_lrn_op()
 {

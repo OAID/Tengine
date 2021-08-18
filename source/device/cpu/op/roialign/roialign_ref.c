@@ -36,7 +36,6 @@
 
 #include <math.h>
 
-
 #define T_MAX(a, b) ((a) > (b) ? (a) : (b))
 #define T_MIN(a, b) ((a) < (b) ? (a) : (b))
 
@@ -75,9 +74,9 @@ static inline float bilinear_interpolate(const float* ptr, int w, int h, float x
 static int ref_roialign_fp32(struct tensor* input_tensor, struct tensor* roi_tensor,
                              struct tensor* output_tensor, struct roialign_param* param, int num_thread)
 {
-    float* data_in = input_tensor->data;
-    float* roi_ptr = roi_tensor->data;
-    float* data_out = output_tensor->data;
+    float* data_in = (float*)input_tensor->data;
+    float* roi_ptr = (float*)roi_tensor->data;
+    float* data_out = (float*)output_tensor->data;
 
     int size = input_tensor->dims[0] * input_tensor->dims[1] * input_tensor->dims[2] * input_tensor->dims[3];
 
@@ -95,8 +94,8 @@ static int ref_roialign_fp32(struct tensor* input_tensor, struct tensor* roi_ten
     float roi_w = T_MAX(roi_x2 - roi_x1, 1);
     float roi_h = T_MAX(roi_y2 - roi_y1, 1);
 
-    float bin_size_w = roi_w / ( float )w;
-    float bin_size_h = roi_h / ( float )h;
+    float bin_size_w = roi_w / (float)w;
+    float bin_size_h = roi_h / (float)h;
 
     int channel = input_tensor->dims[1];
     int in_height = input_tensor->dims[2];
@@ -123,32 +122,32 @@ static int ref_roialign_fp32(struct tensor* input_tensor, struct tensor* roi_ten
                 float hend = roi_y1 + (ph + 1) * bin_size_h;
                 float wend = roi_x1 + (pw + 1) * bin_size_w;
 
-                hstart = T_MIN(T_MAX(hstart, 0.f), ( float )in_height);
-                wstart = T_MIN(T_MAX(wstart, 0.f), ( float )in_width);
-                hend = T_MIN(T_MAX(hend, 0.f), ( float )in_height);
-                wend = T_MIN(T_MAX(wend, 0.f), ( float )in_width);
+                hstart = T_MIN(T_MAX(hstart, 0.f), (float)in_height);
+                wstart = T_MIN(T_MAX(wstart, 0.f), (float)in_width);
+                hend = T_MIN(T_MAX(hend, 0.f), (float)in_height);
+                wend = T_MIN(T_MAX(wend, 0.f), (float)in_width);
 
                 int bin_grid_h = ceil(hend - hstart);
                 int bin_grid_w = ceil(wend - wstart);
 
-                _Bool is_empty = (hend <= hstart) || (wend <= wstart);
+                int is_empty = (hend <= hstart) || (wend <= wstart);
                 int area = bin_grid_h * bin_grid_w;
 
                 float sum = 0.f;
                 for (int by = 0; by < bin_grid_h; by++)
                 {
-                    float y = hstart + (by + 0.5f) * bin_size_h / ( float )bin_grid_h;
+                    float y = hstart + (by + 0.5f) * bin_size_h / (float)bin_grid_h;
 
                     for (int bx = 0; bx < bin_grid_w; bx++)
                     {
-                        float x = wstart + (bx + 0.5f) * bin_size_w / ( float )bin_grid_w;
+                        float x = wstart + (bx + 0.5f) * bin_size_w / (float)bin_grid_w;
 
                         // bilinear interpolate at (x,y)
                         float v = bilinear_interpolate(ptr, in_width, in_height, x, y);
                         sum += v;
                     }
                 }
-                outptr[pw] = is_empty ? 0.f : (sum / ( float )area);
+                outptr[pw] = is_empty ? 0.f : (sum / (float)area);
             }
             outptr += w;
         }
@@ -178,7 +177,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     roi_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    struct roialign_param* roialign_param = ( struct roialign_param* )ir_node->op.param_mem;
+    struct roialign_param* roialign_param = (struct roialign_param*)ir_node->op.param_mem;
 
     ref_roialign_fp32(input_tensor, roi_tensor, output_tensor, roialign_param, exec_graph->num_thread);
 

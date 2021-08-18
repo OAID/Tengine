@@ -28,7 +28,6 @@
 #include "module/module.h"
 #include "utility/sys_port.h"
 
-
 static int infer_shape(struct node* node)
 {
     struct graph* ir_graph = node->graph;
@@ -40,7 +39,6 @@ static int infer_shape(struct node* node)
     return 0;
 }
 
-
 static int init_op(struct op* op)
 {
     op->param_mem = NULL;
@@ -51,12 +49,10 @@ static int init_op(struct op* op)
     return 0;
 }
 
-
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
-
 
 int register_absval_op()
 {
@@ -66,10 +62,8 @@ int register_absval_op()
     m.init = init_op;
     m.release = release_op;
 
-
     return register_op(OP_ABSVAL, OP_ABSVAL_NAME, &m);
 }
-
 
 int unregister_absval_op()
 {

@@ -30,11 +30,10 @@
 
 #include <arm_neon.h>
 
-
 void selu_kernel(int i, int id, void* data, const float* input, float* output, float alpha, float lambda)
 {
     float alpha_lambda = alpha * lambda;
-    int step = (( int* )data)[0];
+    int step = ((int*)data)[0];
     float32x4_t _one = vdupq_n_f32(1.f);
     float32x4_t _zero = vdupq_n_f32(0.f);
     float32x4_t _alpha_lambda = vdupq_n_f32(alpha_lambda);
@@ -71,8 +70,8 @@ void selu_kernel(int i, int id, void* data, const float* input, float* output, f
 int selu_run(struct tensor* output_tensor, struct tensor* input_tensor, struct selu_param* selu_param,
              int num_thread)
 {
-    float* data = ( float* )input_tensor->data;
-    float* out_data = ( float* )output_tensor->data;
+    float* data = (float*)input_tensor->data;
+    float* out_data = (float*)output_tensor->data;
     float alpha = selu_param->alpha;
     float lambda = selu_param->lambda;
 

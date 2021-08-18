@@ -286,7 +286,7 @@ def get_input_data(image_file, max_size=None, target_size=None):
         ori_size = [im_w,im_h]
         dst_size = [0,0]
 
-        #img = image_premute(img); don't change any thing?
+        #img = image_permute(img); don't change any thing?
         im_size_min = min(im_h, im_w)
         im_size_max = max(im_h, im_w)
 

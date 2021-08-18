@@ -25,27 +25,32 @@
 #include <cstdlib>
 #include <cstdio>
 #include <sys/stat.h>
-#include <dirent.h>
 
-#include <fstream> 
+#include <fstream>
 #include <string>
 #include <cmath>
+#ifdef _MSC_VER
+#include <unordered_map>
+#else
 #include <tr1/unordered_map>
+#endif
 
 #include "quant_utils.hpp"
 #include "save_graph.hpp"
 
-#include "tengine/c_api.h"
+#include "api/c_api.h"
 
 extern "C" {
-    #include "graph/graph.h"
-    #include "graph/subgraph.h"
-    #include "graph/node.h"
-    #include "graph/tensor.h"
-    #include "utility/sys_port.h"
-    #include "utility/utils.h"
+#include "graph/graph.h"
+#include "graph/subgraph.h"
+#include "graph/node.h"
+#include "graph/tensor.h"
+#include "utility/sys_port.h"
+#include "utility/utils.h"
 }
 
 int save_graph_u8_perlayer(const char* model_file, const char* scale_file, const std::string& output_file, int inplace, bool internal);
 
 int save_graph_i8_perchannel(const char* model_file, const char* scale_file, const std::string& output_file, int inplace, bool internal);
+
+int save_graph_u8_perchannel(const char* model_file, const char* scale_file, const std::string& output_file, int inplace, bool internal);

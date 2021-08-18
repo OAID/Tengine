@@ -49,7 +49,7 @@ void get_input_uint_data_ssd(const char* image_file, uint8_t* input_data, int im
     float scales[3] = {1 / 127.5f, 1 / 127.5f, 1 / 127.5f};
     image img = imread_process(image_file, img_w, img_h, mean, scales);
 
-    float* image_data = ( float* )img.data;
+    float* image_data = (float*)img.data;
 
     for (int i = 0; i < img_w * img_h * 3; i++)
     {
@@ -67,10 +67,10 @@ void get_input_uint_data_ssd(const char* image_file, uint8_t* input_data, int im
 
 void post_process_ssd(const char* image_file, float threshold, float* outdata, int num)
 {
-    const char* class_names[] = {"background", "aeroplane", "bicycle",   "bird",   "boat",        "bottle",
-                                 "bus",        "car",       "cat",       "chair",  "cow",         "diningtable",
-                                 "dog",        "horse",     "motorbike", "person", "pottedplant", "sheep",
-                                 "sofa",       "train",     "tvmonitor"};
+    const char* class_names[] = {"background", "aeroplane", "bicycle", "bird", "boat", "bottle",
+                                 "bus", "car", "cat", "chair", "cow", "diningtable",
+                                 "dog", "horse", "motorbike", "person", "pottedplant", "sheep",
+                                 "sofa", "train", "tvmonitor"};
 
     image im = imread(image_file);
 
@@ -91,11 +91,11 @@ void post_process_ssd(const char* image_file, float threshold, float* outdata, i
             box.y1 = outdata[5] * raw_h;
             boxes.push_back(box);
             printf("%s\t:%.2f\n", class_names[box.class_idx], box.score * 100.f);
-            printf("BOX:( %d , %d ),( %d , %d )\n", ( int )box.x0, ( int )box.y0, ( int )box.x1, ( int )box.y1);
+            printf("BOX:( %d , %d ),( %d , %d )\n", (int)box.x0, (int)box.y0, (int)box.x1, (int)box.y1);
         }
         outdata += 6;
     }
-    for (int i = 0; i < ( int )boxes.size(); i++)
+    for (int i = 0; i < (int)boxes.size(); i++)
     {
         Box box = boxes[i];
         draw_box(im, box.x0, box.y0, box.x1, box.y1, 2, 125, 0, 125);
@@ -131,23 +131,23 @@ int main(int argc, char* argv[])
     {
         switch (ret)
         {
-            case 'm':
-                model_file = optarg;
-                break;
-            case 'i':
-                image_file = optarg;
-                break;
-            case 'r':
-                repeat_count = atoi(optarg);
-                break;
-            case 't':
-                num_thread = atoi(optarg);
-                break;
-            case 'h':
-                show_usage();
-                return 0;
-            default:
-                break;
+        case 'm':
+            model_file = optarg;
+            break;
+        case 'i':
+            image_file = optarg;
+            break;
+        case 'r':
+            repeat_count = atoi(optarg);
+            break;
+        case 't':
+            num_thread = atoi(optarg);
+            break;
+        case 'h':
+            show_usage();
+            return 0;
+        default:
+            break;
         }
     }
 
@@ -179,7 +179,7 @@ int main(int argc, char* argv[])
     // init tengine
     if (init_tengine() < 0)
     {
-        std::cout << " init tengine failed\n";
+        std::cout << "init tengine failed\n";
         return 1;
     }
 
@@ -193,8 +193,8 @@ int main(int argc, char* argv[])
 
     /* set the input shape to initial the graph, and prerun graph to infer shape */
     int img_size = img_h * img_w * 3;
-    int dims[] = {1, 3, img_h, img_w};    // nchw
-    uint8_t* input_data = ( uint8_t* )malloc(img_size * sizeof(uint8_t));    
+    int dims[] = {1, 3, img_h, img_w}; // nchw
+    uint8_t* input_data = (uint8_t*)malloc(img_size * sizeof(uint8_t));
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == NULL)
@@ -213,7 +213,7 @@ int main(int argc, char* argv[])
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;
-    }    
+    }
 
     /* prerun graph, set work options(num_thread, cluster, precision) */
     if (prerun_graph_multithread(graph, opt) < 0)
@@ -225,7 +225,7 @@ int main(int argc, char* argv[])
     /* prepare process input data, set the data mem to input tensor */
     float input_scale = 0.f;
     int input_zero_point = 0;
-    get_tensor_quant_param(input_tensor, &input_scale, &input_zero_point, 1);    
+    get_tensor_quant_param(input_tensor, &input_scale, &input_zero_point, 1);
     get_input_uint_data_ssd(image_file, input_data, img_h, img_w, input_scale, input_zero_point);
 
     /* run graph */
@@ -253,19 +253,19 @@ int main(int argc, char* argv[])
     fprintf(stderr, "--------------------------------------\n");
 
     /* process the detection result */
-    tensor_t output_tensor = get_graph_output_tensor(graph, 0, 0);    //"detection_out"
+    tensor_t output_tensor = get_graph_output_tensor(graph, 0, 0); //"detection_out"
     int out_dim[4];
     get_tensor_shape(output_tensor, out_dim, 4);
     int output_size = get_tensor_buffer_size(output_tensor);
-    uint8_t* output_u8 = ( uint8_t* )get_tensor_buffer(output_tensor);
-    float* output_data = ( float* )malloc(output_size * sizeof(float));
+    uint8_t* output_u8 = (uint8_t*)get_tensor_buffer(output_tensor);
+    float* output_data = (float*)malloc(output_size * sizeof(float));
 
     /* dequant */
     float output_scale = 0.f;
     int output_zero_point = 0;
-    get_tensor_quant_param(output_tensor, &output_scale, &output_zero_point, 1);    
+    get_tensor_quant_param(output_tensor, &output_scale, &output_zero_point, 1);
     for (int i = 0; i < output_size; i++)
-        output_data[i] = (( float )output_u8[i] - (float )output_zero_point) * output_scale;
+        output_data[i] = ((float)output_u8[i] - (float)output_zero_point) * output_scale;
 
     /* post_process_ssd */
     post_process_ssd(image_file, show_threshold, output_data, out_dim[1]);

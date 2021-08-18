@@ -32,7 +32,6 @@
 #include <math.h>
 #include <arm_neon.h>
 
-
 #ifdef __aarch64__
 void sgemv_1x8_a72(float* biases, float* input, float* kernel, long kernel_size, float* output);
 void sgemv_1x2_a72(float* biases, float* input, float* kernel, long kernel_size, float* output);
@@ -96,8 +95,8 @@ static void interleave_kernel(const float* kernel, float* kernel_interleaved, in
     for (i = 0; i < (out_chan & -8); i += 8)
     {
         for (j = 0; j < 8; j++)
-            cur_kernel[j] = ( float* )kernel + kernel_size * (i + j);
-        cur_kernel_interleaved = ( float* )kernel_interleaved + kernel_size * i;
+            cur_kernel[j] = (float*)kernel + kernel_size * (i + j);
+        cur_kernel_interleaved = (float*)kernel_interleaved + kernel_size * i;
         for (k = 0; k < kernel_size; k++)
             for (j = 0; j < 8; j++)
                 cur_kernel_interleaved[8 * k + j] = *(cur_kernel[j] + k);
@@ -107,8 +106,8 @@ static void interleave_kernel(const float* kernel, float* kernel_interleaved, in
     for (; i < (out_chan & -2); i += 2)
     {
         for (j = 0; j < 2; j++)
-            cur_kernel[j] = ( float* )kernel + kernel_size * (i + j);
-        cur_kernel_interleaved = ( float* )kernel_interleaved + kernel_size * i;
+            cur_kernel[j] = (float*)kernel + kernel_size * (i + j);
+        cur_kernel_interleaved = (float*)kernel_interleaved + kernel_size * i;
         for (k = 0; k < kernel_size; k++)
             for (j = 0; j < 2; j++)
                 cur_kernel_interleaved[2 * k + j] = *(cur_kernel[j] + k);
@@ -117,8 +116,8 @@ static void interleave_kernel(const float* kernel, float* kernel_interleaved, in
     // copy last kernel
     if (out_chan & 0x1)
     {
-        cur_kernel[0] = ( float* )kernel + kernel_size * i;
-        cur_kernel_interleaved = ( float* )kernel_interleaved + kernel_size * i;
+        cur_kernel[0] = (float*)kernel + kernel_size * i;
+        cur_kernel_interleaved = (float*)kernel_interleaved + kernel_size * i;
         for (k = 0; k < kernel_size; k++)
             cur_kernel_interleaved[k] = *(cur_kernel[0] + k);
     }
@@ -127,7 +126,7 @@ static void interleave_kernel(const float* kernel, float* kernel_interleaved, in
 int fc_kernel_prerun(struct tensor* input_tensor, struct tensor* filter_tensor, struct tensor* output_tensor,
                      struct fc_priv_info* priv_info, struct fc_param* param)
 {
-    int num_output  = param->num_output;
+    int num_output = param->num_output;
     int kernel_size = filter_tensor->dims[1];
 
     if (!priv_info->interleave_buffer)
@@ -139,8 +138,8 @@ int fc_kernel_prerun(struct tensor* input_tensor, struct tensor* filter_tensor, 
         priv_info->interleave_buffer_size = mem_size;
     }
 
-    float* filter_data = ( float* )filter_tensor->data;
-    interleave_kernel(filter_data, ( float* )priv_info->interleave_buffer, num_output, kernel_size);
+    float* filter_data = (float*)filter_tensor->data;
+    interleave_kernel(filter_data, (float*)priv_info->interleave_buffer, num_output, kernel_size);
 
     return 0;
 }
@@ -170,7 +169,7 @@ int fc_kernel_run(struct tensor* input_tensor, struct tensor* filter_tensor, str
     int out_num = param->num_output;
     int kernel_size = filter_tensor->dims[1];
 
-    float* input  = input_tensor->data;
+    float* input = input_tensor->data;
     float* output = output_tensor->data;
     float* biases = NULL;
     if (bias_tensor)

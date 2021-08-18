@@ -25,14 +25,14 @@
 #ifndef __CLIP_KERNEL_REF_H__
 #define __CLIP_KERNEL_REF_H__
 
-
 #include "graph/tensor.h"
 #include "graph/node.h"
 #include "graph/graph.h"
 
-
 int ref_clip_fp32(struct tensor* input_tensor, struct tensor* output_tensor, float max, float min);
 
 int ref_clip_uint8(struct tensor* input_tensor, struct tensor* output_tensor, float max, float min);
+
+int ref_clip_int8(struct tensor* input_tensor, struct tensor* output_tensor, float max, float min);
 
 #endif

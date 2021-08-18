@@ -83,14 +83,7 @@ int VXEngine::VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_ty
         tim::vx::ShapeType vx_shape;
 
         struct node* ir_node = get_ir_graph_node(ir_graph, ir_tensor->producer);
-        if (ir_node->op.type == OP_FC && ir_node->output_tensors[0] == ir_tensor_idx)
-        {
-            for (int i = 1; i >= 0; i--)
-            {
-                vx_shape.push_back(Dims[i]);
-            }
-        }
-        else if (spec_type == SPEC_TYPE_PRELU)
+        if (spec_type == SPEC_TYPE_PRELU)
         {
             vx_shape.push_back(1);
             vx_shape.push_back(1);
@@ -212,7 +205,7 @@ int VXEngine::VXTensorMap(struct graph* ir_graph, int ir_tensor_idx, int spec_ty
                                         tim::vx::TensorAttribute::CONSTANT);
             vx_tensor = this->graph->CreateTensor(vx_spec, ir_tensor->data);
         }
-        else if (ir_tensor->tensor_type == TENSOR_TYPE_INPUT )
+        else if (ir_tensor->tensor_type == TENSOR_TYPE_INPUT || spec_type == SPEC_TYPE_INPUT)
         {
             tim::vx::TensorSpec vx_spec(datatype, vx_shape,
                                         tim::vx::TensorAttribute::INPUT, vx_quant);
@@ -273,6 +266,9 @@ int VXEngine::Build(struct subgraph* subgraph)
             case OP_CONV:
                 this->AddConvolutionNode(ir_node);
                 break;
+            case OP_CROP:
+                this->AddCropNode(ir_node);
+                break;
             case OP_DECONV:
                 this->AddDeconvNode(ir_node);
                 break;
@@ -300,11 +296,17 @@ int VXEngine::Build(struct subgraph* subgraph)
             case OP_HARDSWISH:
                 this->AddHardSwishNode(ir_node);
                 break;
+            case OP_INSTANCENORM:
+                this->AddInstanceNormNode(ir_node);
+                break;
             case OP_INTERP:
                 this->AddInterpNode(ir_node);
                 break;
             case OP_MISH:
                 this->AddMishNode(ir_node);
+                break;
+            case OP_PAD:
+                this->AddPadNode(ir_node);
                 break;
             case OP_PERMUTE:
                 this->AddPermuteNode(ir_node);
@@ -314,6 +316,9 @@ int VXEngine::Build(struct subgraph* subgraph)
                 break;
             case OP_PRELU:
                 this->AddPReluNode(ir_node);
+                break;
+            case OP_REDUCTION:
+                this->AddReduceNode(ir_node);
                 break;
             case OP_RELU:
                 this->AddReluNode(ir_node);
@@ -353,6 +358,12 @@ int VXEngine::Build(struct subgraph* subgraph)
                 break;
             case OP_UPSAMPLE:
                 this->AddUpsampleNode(ir_node);
+                break;
+            case OP_SPATIALTRANSFORMER:
+                this->AddSpatialtransformerNode(ir_node);
+                break;
+            case OP_L2NORMALIZATION:
+                this->AddL2normalizationNode(ir_node);
                 break;
             default:
                 fprintf(stderr, "Tengine TIM-VX: Cannot support OP(%d).\n", ir_node->index);
@@ -476,6 +487,11 @@ int VXEngine::VXEnginePreRun(struct subgraph* subgraph)
         {
             int ir_tensor_idx = subgraph->output_tensor_list[i];
             this->VXTensorMap(ir_graph, ir_tensor_idx, SPEC_TYPE_OUTPUT);
+        }
+        for (uint8_t i = 0; i < subgraph->input_num; i++)
+        {
+            int ir_tensor_idx = subgraph->input_tensor_list[i];
+            this->VXTensorMap(ir_graph, ir_tensor_idx, SPEC_TYPE_INPUT);
         }
         for (int i = 0; i < subgraph->node_num; i++)
         {

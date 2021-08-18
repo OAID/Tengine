@@ -30,7 +30,6 @@
 #include <string>
 #include <cmath>
 
-
 double get_current_time();
 
 void split(float* array, char* str, const char* del);
@@ -40,10 +39,10 @@ void get_input_data_cv(const char* image_file, float* input_data, int img_c, int
 
 void readFileList(std::string basePath, std::vector<std::string>& imgs);
 
-std::vector<uint32_t> histCount(float *data, uint32_t elem_num, float max_val, float min_val);
+std::vector<uint32_t> histCount(float* data, uint32_t elem_num, float max_val, float min_val);
 
-float compute_kl_divergence(std::vector<float> &dist_a, std::vector<float> &dist_b);
+float compute_kl_divergence(std::vector<float>& dist_a, std::vector<float>& dist_b);
 
-std::vector<float> normalize_histogram(std::vector<uint32_t> &histogram);
+std::vector<float> normalize_histogram(std::vector<uint32_t>& histogram);
 
-int threshold_distribution(std::vector<uint32_t> &distribution_in, const int target_bin);
+int threshold_distribution(std::vector<uint32_t>& distribution_in, const int target_bin);

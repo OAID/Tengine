@@ -36,12 +36,11 @@
 
 #include <math.h>
 
-
 static int ref_upsample_fp32(struct tensor* input_tensor, struct tensor* output_tensor,
                              struct upsample_param* param, int num_thread)
 {
-    float* input = input_tensor->data;
-    float* output = output_tensor->data;
+    float* input = (float*)input_tensor->data;
+    float* output = (float*)output_tensor->data;
 
     float scale = param->scale;
     int batch = output_tensor->dims[0];
@@ -75,9 +74,6 @@ static int ref_upsample_fp32(struct tensor* input_tensor, struct tensor* output_
 static int ref_upsample_uint8(struct tensor* input_tensor, struct tensor* output_tensor,
                               struct upsample_param* param, int num_thread)
 {
-    float* input = input_tensor->data;
-    float* output = output_tensor->data;
-
     float scale = param->scale;
     int batch = output_tensor->dims[0];
     int channel = output_tensor->dims[1];
@@ -87,8 +83,8 @@ static int ref_upsample_uint8(struct tensor* input_tensor, struct tensor* output
     int input_w = input_tensor->dims[3];
 
     /* dequant */
-    uint8_t* input_uint8 = input_tensor->data;
-    uint8_t* output_uint8 = output_tensor->data;
+    uint8_t* input_uint8 = (uint8_t*)input_tensor->data;
+    uint8_t* output_uint8 = (uint8_t*)output_tensor->data;
     float input_scale = input_tensor->scale;
     float output_scale = output_tensor->scale;
     int32_t input_zero = input_tensor->zero_point;
@@ -96,12 +92,12 @@ static int ref_upsample_uint8(struct tensor* input_tensor, struct tensor* output
     int input_size = input_tensor->elem_num;
     int output_size = output_tensor->elem_num;
 
-    float* input_fp32 = ( float* )sys_malloc(input_size * sizeof(float));
-    float* output_fp32 = ( float* )sys_malloc(output_size * sizeof(float));
+    float* input_fp32 = (float*)sys_malloc(input_size * sizeof(float));
+    float* output_fp32 = (float*)sys_malloc(output_size * sizeof(float));
 
     for (int i = 0; i < input_size; i++)
     {
-        input_fp32[i] = (( float )input_uint8[i] - ( float )input_zero) * input_scale;
+        input_fp32[i] = ((float)input_uint8[i] - (float)input_zero) * input_scale;
     }
 
     /* fp32 inference */
@@ -160,7 +156,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
     input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    struct upsample_param* upsample_param = ( struct upsample_param* )ir_node->op.param_mem;
+    struct upsample_param* upsample_param = (struct upsample_param*)ir_node->op.param_mem;
 
     int ret = -1;
     if (input_tensor->data_type == TENGINE_DT_FP32)

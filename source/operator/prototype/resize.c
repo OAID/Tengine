@@ -32,26 +32,25 @@
 #include "utility/sys_port.h"
 #include "utility/log.h"
 
-
 static int infer_shape(struct node* node)
 {
     struct graph* graph = node->graph;
     struct tensor* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
     struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
-    struct resize_param* resize_param = ( struct resize_param* )(node->op.param_mem);
+    struct resize_param* resize_param = (struct resize_param*)(node->op.param_mem);
 
     int dims[4];
     dims[0] = input->dims[0];
     if (graph->graph_layout == TENGINE_LAYOUT_NCHW)
     {
         dims[1] = input->dims[1];
-        dims[2] = ( int )(input->dims[2] * resize_param->scale_h);
-        dims[3] = ( int )(input->dims[3] * resize_param->scale_w);
+        dims[2] = (int)(input->dims[2] * resize_param->scale_h);
+        dims[3] = (int)(input->dims[3] * resize_param->scale_w);
     }
     else if (graph->graph_layout == TENGINE_LAYOUT_NHWC)
     {
-        dims[1] = ( int )(input->dims[1] * resize_param->scale_h);
-        dims[2] = ( int )(input->dims[2] * resize_param->scale_w);
+        dims[1] = (int)(input->dims[1] * resize_param->scale_h);
+        dims[2] = (int)(input->dims[2] * resize_param->scale_w);
         dims[3] = input->dims[3];
     }
     else
@@ -65,10 +64,9 @@ static int infer_shape(struct node* node)
     return 0;
 }
 
-
 static int init_op(struct op* op)
 {
-    struct resize_param* resize_param = ( struct resize_param* )sys_malloc(sizeof(struct resize_param));
+    struct resize_param* resize_param = (struct resize_param*)sys_malloc(sizeof(struct resize_param));
 
     if (resize_param == NULL)
     {
@@ -88,12 +86,10 @@ static int init_op(struct op* op)
     return 0;
 }
 
-
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
-
 
 int register_resize_op()
 {
@@ -105,7 +101,6 @@ int register_resize_op()
 
     return register_op(OP_RESIZE, OP_RESIZE_NAME, &m);
 }
-
 
 int unregister_resize_op()
 {

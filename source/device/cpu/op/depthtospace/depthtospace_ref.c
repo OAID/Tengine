@@ -34,11 +34,10 @@
 
 #include <math.h>
 
-
 int ref_depthtospace_fp32(struct tensor* input_tensor, struct tensor* output_tensor, int num_thread)
 {
-    float* input_data = input_tensor->data;
-    float* out_data = output_tensor->data;
+    float* input_data = (float*)input_tensor->data;
+    float* out_data = (float*)output_tensor->data;
     int total_size = input_tensor->elem_num;
 
     for (int i = 0; i < total_size; i++)

@@ -28,7 +28,6 @@
 #include "graph/graph.h"
 #include "module/module.h"
 
-
 static int init_op(ir_op_t* op)
 {
     op->same_shape = 1;
@@ -37,9 +36,9 @@ static int init_op(ir_op_t* op)
     return 0;
 }
 
-
-static void release_op(ir_op_t* op) {}
-
+static void release_op(ir_op_t* op)
+{
+}
 
 int register_input_op()
 {
@@ -49,9 +48,8 @@ int register_input_op()
     m.init = init_op;
     m.release = release_op;
 
-    return register_op(OP_INPUT, OP_INPUT_NAME , &m);
+    return register_op(OP_INPUT, OP_INPUT_NAME, &m);
 }
-
 
 int unregister_input_op()
 {

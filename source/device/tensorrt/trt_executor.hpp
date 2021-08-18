@@ -42,7 +42,6 @@ EXPORT_FINISH
 #include <map>
 #include <vector>
 
-
 class TensorRTEngine
 {
 public:
@@ -51,7 +50,7 @@ public:
     int PreRun(struct subgraph* subgraph, struct trt_option* opt);
     int Run(struct subgraph* subgraph);
     int PoseRun(struct subgraph* subgraph);
-    int SetOption(trt_opt_t* opt);
+    void SetOption(trt_opt_t* opt);
 
 private:
     int Build(struct subgraph* subgraph);
@@ -63,7 +62,7 @@ private:
     int get_type(int mode, nvinfer1::DataType& type);
 
 private:
-    size_t   card_id;
+    size_t card_id;
     uint16_t tensor_swap_count;
 
     std::map<uint16_t, nvinfer1::ITensor*> tensor_real_map;
@@ -94,15 +93,20 @@ private:
     bool AddFlattenNode(struct graph* ir_graph, struct node* node);
     bool AddFullyConnectedNode(struct graph* ir_graph, struct node* node);
     bool AddHardSwishNode(struct graph* ir_graph, struct node* node);
+    bool AddInstanceNormNode(struct graph* ir_graph, struct node* node);
     bool AddInterpNode(struct graph* ir_graph, struct node* node);
     bool AddMishNode(struct graph* ir_graph, struct node* node);
+    bool AddPadNode(struct graph* ir_graph, struct node* node);
     bool AddPermuteNode(struct graph* ir_graph, struct node* node);
     bool AddPoolingNode(struct graph* ir_graph, struct node* node);
     bool addReLUNode(struct graph* ir_graph, struct node* node);
+    bool AddReductionNode(struct graph* ir_graph, struct node* node);
     bool AddReshapeNode(struct graph* ir_graph, struct node* node);
+    bool AddResizeNode(struct graph* ir_graph, struct node* node);
     bool AddTranspose(struct graph* ir_graph, struct node* node);
     bool AddSliceNode(struct graph* ir_graph, struct node* node);
     bool AddSoftmaxNode(struct graph* ir_graph, struct node* node);
+    bool AddSplitNode(struct graph* ir_graph, struct node* node);
     bool AddSqueezeNode(struct graph* ir_graph, struct node* node);
     bool AddUpSampleNode(struct graph* ir_graph, struct node* node);
 
@@ -111,5 +115,5 @@ private:
     nvinfer1::INetworkDefinition* network;
     nvinfer1::IBuilderConfig* config;
     nvinfer1::ICudaEngine* engine;
-    nvinfer1::IExecutionContext *context;
+    nvinfer1::IExecutionContext* context;
 };

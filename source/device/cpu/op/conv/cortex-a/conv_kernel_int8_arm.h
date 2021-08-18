@@ -30,14 +30,13 @@
 #include "graph/node.h"
 #include "graph/graph.h"
 
-
 int int8_conv_hcl_prerun(struct tensor* input_tensor, struct tensor* filter_tensor, struct tensor* output_tensor,
-                    struct conv_priv_info* priv_info, struct conv_param* param);
+                         struct conv_priv_info* priv_info, struct conv_param* param);
 
 int int8_conv_hcl_postrun(struct conv_priv_info* priv_info);
 
 int int8_conv_hcl_run(struct tensor* input_tensor, struct tensor* filter_tensor, struct tensor* bias_tensor,
-                 struct tensor* output_tensor, struct conv_priv_info* priv_info, struct conv_param* param,
-                 int num_thread, int cpu_affinity);
+                      struct tensor* output_tensor, struct conv_priv_info* priv_info, struct conv_param* param,
+                      int num_thread, int cpu_affinity);
 
 #endif

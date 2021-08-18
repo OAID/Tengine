@@ -37,35 +37,33 @@
 #include <math.h>
 #include <string.h>
 
-
 struct ref_logsoftmax_param
 {
     int axis;
     int in_size;
     int on_size;
     int out_size;
-    float scale[2]; // scale[0]: input scale, scale[1]: output scale
+    float scale[2];    // scale[0]: input scale, scale[1]: output scale
     int zero_point[2]; // zero_point[0]: input zero_point, zero_point[1]: output zero_point
 };
 
 static void GetMaxArray(float* input, float* array, int in_size, int on_size)
 {
-    float* input_ptr = ( float* )input;
-    float* array_ptr = ( float* )array;
+    float* input_ptr = (float*)input;
+    float* array_ptr = (float*)array;
     memset(array, 0, in_size * sizeof(float));
 
-    for(int j = 0; j < on_size; j++)
-        for(int l = 0; l < in_size; l++)
+    for (int j = 0; j < on_size; j++)
+        for (int l = 0; l < in_size; l++)
         {
-            if(array_ptr[l] < input_ptr[j * in_size + l])
+            if (array_ptr[l] < input_ptr[j * in_size + l])
                 array_ptr[l] = input_ptr[j * in_size + l];
         }
 }
 
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct ref_logsoftmax_param* logsoftmax_op_param =
-        (struct ref_logsoftmax_param*)sys_malloc(sizeof(struct ref_logsoftmax_param));
+    struct ref_logsoftmax_param* logsoftmax_op_param = (struct ref_logsoftmax_param*)sys_malloc(sizeof(struct ref_logsoftmax_param));
     memset(logsoftmax_op_param, 0, sizeof(struct ref_logsoftmax_param));
     exec_node->ops_priv = logsoftmax_op_param;
     return 0;
@@ -79,17 +77,17 @@ static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, 
 
 static void GetOutResult(float* input, float* output, float* array, float* sum_array, int in_size, int on_size)
 {
-    float* input_ptr = ( float* )input;
-    float* output_ptr = ( float* )output;
-    float* array_ptr = ( float* )array;
-    float* sum_array_ptr = ( float* )sum_array;
+    float* input_ptr = (float*)input;
+    float* output_ptr = (float*)output;
+    float* array_ptr = (float*)array;
+    float* sum_array_ptr = (float*)sum_array;
 
     memset(sum_array, 0x0, in_size * sizeof(float));
 
     /* get the exp and the summary */
 
-    for(int j = 0; j < on_size; j++)
-        for(int l = 0; l < in_size; l++)
+    for (int j = 0; j < on_size; j++)
+        for (int l = 0; l < in_size; l++)
         {
             int index = j * in_size + l;
             output_ptr[index] = exp(input_ptr[index] - array_ptr[l]);
@@ -97,18 +95,18 @@ static void GetOutResult(float* input, float* output, float* array, float* sum_a
         }
 
     /* the final result */
-    for(int j = 0; j < on_size; j++)
-        for(int l = 0; l < in_size; l++)
+    for (int j = 0; j < on_size; j++)
+        for (int l = 0; l < in_size; l++)
         {
             int index = j * in_size + l;
             output_ptr[index] /= sum_array_ptr[l];
-            output_ptr[index]=log(output_ptr[index]);
+            output_ptr[index] = log(output_ptr[index]);
         }
 }
 
 static int ref_logsoftmax_fp32(float* input_data, float* output_data, float* max_array, float* sum_array, struct ref_logsoftmax_param* op_param)
 {
-    for(int i = 0; i < op_param->out_size; i++)
+    for (int i = 0; i < op_param->out_size; i++)
     {
         int img_base = i * op_param->in_size * op_param->on_size;
         GetMaxArray(input_data + img_base, max_array, op_param->in_size, op_param->on_size);
@@ -149,27 +147,27 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     //
     int axis = param_->axis;
     int out_size = 1;
-    for(int i = 0; i < axis; i++)
+    for (int i = 0; i < axis; i++)
     {
         out_size *= dims[i];
     }
     int in_size = 1;
-    for(size_t i = axis + 1; i < input_tensor->dim_num; i++)
+    for (size_t i = axis + 1; i < input_tensor->dim_num; i++)
     {
         in_size *= dims[i];
     }
     int on_size = dims[axis];
 
-    max_array = ( float* )sys_malloc(in_size * sizeof(float));
-    sum_array = ( float* )sys_malloc(in_size * sizeof(float));
+    max_array = (float*)sys_malloc(in_size * sizeof(float));
+    sum_array = (float*)sys_malloc(in_size * sizeof(float));
 
     ref_logsoftmax_param.in_size = in_size;
     ref_logsoftmax_param.on_size = on_size;
 
     if (input_tensor->data_type == TENGINE_DT_FP32)
-        ref_logsoftmax_fp32(input_tensor->data, output_tensor->data,max_array,sum_array, &ref_logsoftmax_param);
+        ref_logsoftmax_fp32((float*)input_tensor->data, (float*)output_tensor->data, max_array, sum_array, &ref_logsoftmax_param);
     // else
-        // ref_logistic_uint8(input_tensor->data, output_tensor->data, &logical_param);
+    // ref_logistic_uint8(input_tensor->data, output_tensor->data, &logical_param);
 
     return 0;
 }

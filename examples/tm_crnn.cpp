@@ -24,7 +24,6 @@
  * original pretrained: https://github.com/meijieru/crnn.pytorch
  */
 
-#include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string>
@@ -57,7 +56,7 @@ void get_input_data_cv(const cv::Mat& sample, float* input_data, int img_h, int 
     {
         cv::cvtColor(sample, img, cv::COLOR_GRAY2RGB);
     }
-    else if (sample.channels() == 3 && img_c == 3  && swapRB == 1)
+    else if (sample.channels() == 3 && img_c == 3 && swapRB == 1)
     {
         cv::cvtColor(sample, img, cv::COLOR_BGR2RGB);
     }
@@ -75,7 +74,7 @@ void get_input_data_cv(const cv::Mat& sample, float* input_data, int img_h, int 
         img.convertTo(img, CV_32FC3);
     else if (img_c == 1)
         img.convertTo(img, CV_32FC1);
-    float* img_data = ( float* )img.data;
+    float* img_data = (float*)img.data;
     int hw = img_h * img_w;
     for (int h = 0; h < img_h; h++)
     {
@@ -115,7 +114,7 @@ void process_crnn_result(const float* ocr_data, const char* label_file)
     {
         const float* idx = ocr_data + i * (5530);
         int max_index = 0;
-        float max_value = -__DBL_MAX__;
+        float max_value = -DBL_MAX;
         for (int j = 0; j < 5530; j++)
         {
             float loc = idx[j];
@@ -158,26 +157,26 @@ int main(int argc, char* argv[])
     {
         switch (res)
         {
-            case 'm':
-                model_file = optarg;
-                break;
-            case 'i':
-                image_file = optarg;
-                break;
-            case 'l':
-                label_file = optarg;
-                break;
-            case 'r':
-                repeat_count = atoi(optarg);
-                break;
-            case 't':
-                num_thread = atoi(optarg);
-                break;
-            case 'h':
-                show_usage();
-                return 0;
-            default:
-                break;
+        case 'm':
+            model_file = optarg;
+            break;
+        case 'i':
+            image_file = optarg;
+            break;
+        case 'l':
+            label_file = optarg;
+            break;
+        case 'r':
+            repeat_count = atoi(optarg);
+            break;
+        case 't':
+            num_thread = atoi(optarg);
+            break;
+        case 'h':
+            show_usage();
+            return 0;
+        default:
+            break;
         }
     }
 
@@ -238,7 +237,7 @@ int main(int argc, char* argv[])
 
     int img_size = img_h * img_w * 1;
     int dims[] = {1, 1, img_h, img_w};
-    float* input_data = ( float* )malloc(img_size * sizeof(float));
+    float* input_data = (float*)malloc(img_size * sizeof(float));
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == nullptr)
@@ -253,7 +252,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    if (set_tensor_buffer(input_tensor, input_data, img_size * 4) < 0)
+    if (set_tensor_buffer(input_tensor, input_data, img_size * sizeof(float)) < 0)
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;
@@ -270,8 +269,8 @@ int main(int argc, char* argv[])
     get_input_data_cv(m, input_data, img_h, img_w, 1, mean, scale);
 
     /* run graph */
-    double min_time = __DBL_MAX__;
-    double max_time = -__DBL_MAX__;
+    double min_time = DBL_MAX;
+    double max_time = -DBL_MAX;
     double total_time = 0.;
     for (int i = 0; i < repeat_count; i++)
     {
@@ -293,7 +292,7 @@ int main(int argc, char* argv[])
 
     /* process the crnn result */
     tensor_t output_tensor = get_graph_output_tensor(graph, 0, 0);
-    float* ocr_data = ( float* )get_tensor_buffer(output_tensor);
+    float* ocr_data = (float*)get_tensor_buffer(output_tensor);
     process_crnn_result(ocr_data, label_file);
 
     free(input_data);

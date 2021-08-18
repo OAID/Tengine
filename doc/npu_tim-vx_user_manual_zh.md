@@ -30,7 +30,7 @@
 $ git clone https://github.com/VeriSilicon/TIM-VX.git
 ```
 
-#### 2.3.2 拉取 Tengine Lite
+#### 2.3.2 拉取 Tengine-Lite
 ```bash
 $ git clone https://github.com/OAID/Tengine.git tengine-lite
 $ cd tengine-lite
@@ -90,7 +90,15 @@ WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
 aml-npu/now 6.4.3CB-2 arm64
 khadas@Khadas:~$ 
 ```
-对于 `6.4.3CB-2` 的版本(galcore 内核打印为 `6.4.3.279124CB`)，推荐进行联网执行升级，当前的升级版本是 `6.4.4.3AAA`(galcore 的内核打印是 `6.4.4.3.310723AAA`)，升级后编译时不需要准备 3rdparty 的对应 so，系统默认的版本就可以满足要求。下面针对这两种情况，分别会进行讨论；然而新的 npu 驱动版本支持更多的 OP，升级总是没错的(如果烧录的是较早的镜像，NPU 版本可能是 `6.4.2`，和 `6.4.3CB-2` 一样不支持 TIM-VX，视同 `6.4.3CB-2` 进行编译即可，或进行推荐的升级按 `6.4.4` 及以上版本的流程进行编译)。
+对于 `6.4.3CB-2` 的版本(galcore 内核打印为 `6.4.3.279124CB`)，推荐进行联网执行升级：
+``` bash
+sudo apt-get update
+sudo apt-get upgrade 
+sudo apt-get full-upgrade
+```
+**当前的升级版本是 `6.4.4.3AAA`(galcore 的内核打印是 `6.4.4.3.310723AAA`)，升级后编译时不需要准备 3rdparty 的对应 so，系统默认的版本就可以满足要求。**
+
+下面针对这两种情况，分别会进行讨论；然而新的 npu 驱动版本支持更多的 OP，升级总是没错的(如果烧录的是较早的镜像，NPU 版本可能是 `6.4.2`，和 `6.4.3CB-2` 一样不支持 TIM-VX，视同 `6.4.3CB-2` 进行编译即可，或进行推荐的升级按 `6.4.4` 及以上版本的流程进行编译)。
 
 #### 2.5.1 准备代码
 准备代码环节不用考虑 VIM3/VIM3L 的 NPU 版本，参考命令如下：
@@ -101,7 +109,7 @@ $ cp -rf ../TIM-VX/src      ./source/device/tim-vx/
 ```
 
 #### 2.5.2 准备 VIM3/VIM3L 较早版本 3rdparty 依赖
-如果是较早版本的 NPU，不打算/不可能进行升级，那么参考准备步骤如下(拉取到的依赖是 6.4.3.p0.286725)：
+如果是较早版本的 NPU 依赖库 (**6.4.3.p0.286725**)，不打算/不可能进行升级，那么参考准备步骤如下：
 ```bash
 $ wget -c https://github.com/VeriSilicon/TIM-VX/releases/download/v1.1.28/aarch64_A311D_D312513_A294074_R311680_T312233_O312045.tgz
 $ tar zxvf aarch64_A311D_D312513_A294074_R311680_T312233_O312045.tgz
@@ -295,9 +303,9 @@ $ tar zxvf arm_android9_A311D_6.4.3.tgz
 $ mv arm_android9_A311D_6.4.3 prebuild-sdk-android
 $ cd <tengine-lite-root-dir>
 $ mkdir -p ./3rdparty/tim-vx/include
-$ mkdir -p ./3rdparty/tim-vx/lib/aarch64
+$ mkdir -p ./3rdparty/tim-vx/lib/android
 $ cp -rf ../prebuild-sdk-android/include/*  ./3rdparty/tim-vx/include/
-$ cp -rf ../prebuild-sdk-android/lib/*      ./3rdparty/tim-vx/lib/aarch64/
+$ cp -rf ../prebuild-sdk-android/lib/*      ./3rdparty/tim-vx/lib/android/
 ```
 使用的 Android 系统内置的 NPU 驱动版本和相关的 so 不一定和下载到的 `6.4.3` 版本匹配，只需要保证不低于这个版本即可。如果确有问题，可以根据下载到的压缩包解压缩出来的 lib 目录里面的文件做列表，从板卡中用 adb pull 命令从 `/vendor/lib/` 目录中提取一套出来，放入 3rdparty 的相应目录里。
 
@@ -314,7 +322,7 @@ $ make -j`nproc` && make install
 
 ## 3. Demo
 
-#### 3.1 Depned librarys
+#### 3.1 Depend libraries
 
 ```
 build-tim-vx-arm64/install/lib/

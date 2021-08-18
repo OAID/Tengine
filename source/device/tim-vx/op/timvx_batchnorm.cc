@@ -48,10 +48,10 @@ bool VXEngine::AddBatchNormNode(struct node* ir_node)
 
     struct batchnorm_param* param = (struct batchnorm_param*)ir_node->op.param_mem;
 
-    auto sigmoid = graph->CreateOperation<tim::vx::ops::BatchNorm>(param->eps);
-    (*sigmoid)
-            .BindInputs({ bn_in_tensor })
-            .BindOutputs({ this->vx_tensor_map[output_tensor->index] });
+    auto batch_norm = graph->CreateOperation<tim::vx::ops::BatchNorm>(param->eps);
+    (*batch_norm)
+        .BindInputs({ bn_in_tensor })
+        .BindOutputs({ this->vx_tensor_map[output_tensor->index] });
 
     return true;
 }

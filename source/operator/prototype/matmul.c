@@ -29,7 +29,6 @@
 #include "module/module.h"
 #include "utility/log.h"
 
-
 static int infer_shape(struct node* node)
 {
     struct graph* graph = node->graph;
@@ -39,15 +38,16 @@ static int infer_shape(struct node* node)
 
     if (input1->dim_num != input0->dim_num)
     {
-        TLOG_ERR("dim's size of inputs must be qual for operator matmul\n");
-        return -1;
+        //        TLOG_ERR("dim's size of inputs must be qual for operator matmul\n");
+        //        return -1;
     }
 
+    int input1_last_dim = input1->dims[input1->dim_num - 1];
     if (input0->dim_num == 2)
     {
         int dims[2];
         dims[0] = input0->dims[0];
-        dims[1] = input1->dims[1];
+        dims[1] = input1_last_dim;
         set_ir_tensor_shape(output, dims, 2);
 
         return 0;
@@ -57,7 +57,7 @@ static int infer_shape(struct node* node)
         int dims[3];
         dims[0] = input0->dims[0];
         dims[1] = input0->dims[1];
-        dims[2] = input1->dims[2];
+        dims[2] = input1_last_dim;
         set_ir_tensor_shape(output, dims, 3);
 
         return 0;
@@ -68,15 +68,14 @@ static int infer_shape(struct node* node)
         dims[0] = input0->dims[0];
         dims[1] = input0->dims[1];
         dims[2] = input0->dims[2];
-        dims[3] = input1->dims[3];
+        dims[3] = input1_last_dim;
         set_ir_tensor_shape(output, dims, 4);
 
         return 0;
-    }        
+    }
 
     return -1;
 }
-
 
 static int init_op(struct op* op)
 {
@@ -84,7 +83,6 @@ static int init_op(struct op* op)
     op->infer_shape = infer_shape;
     return 0;
 }
-
 
 int register_matmul_op()
 {
@@ -94,10 +92,8 @@ int register_matmul_op()
     m.init = init_op;
     m.release = NULL;
 
-
     return register_op(OP_MATMUL, OP_MATMUL_NAME, &m);
 }
-
 
 int unregister_matmul_op()
 {

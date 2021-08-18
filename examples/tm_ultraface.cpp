@@ -31,12 +31,12 @@
 #include "tengine/c_api.h"
 #include "tengine_operations.h"
 
-#define DEFAULT_REPEAT_COUNT    1
-#define DEFAULT_THREAD_COUNT    1
-#define num_featuremap 4
-#define hard_nms 1
-#define blending_nms 2 /* mix nms was been proposaled in paper blaze face, aims to minimize the temporal jitter*/
-#define clip(x, y) (x < 0 ? 0 : (x > y ? y : x))
+#define DEFAULT_REPEAT_COUNT 1
+#define DEFAULT_THREAD_COUNT 1
+#define num_featuremap       4
+#define hard_nms             1
+#define blending_nms         2 /* mix nms was been proposaled in paper blaze face, aims to minimize the temporal jitter*/
+#define clip(x, y)           (x < 0 ? 0 : (x > y ? y : x))
 
 typedef struct FaceInfo
 {
@@ -114,49 +114,52 @@ static void nms(std::vector<FaceInfo>& input, std::vector<FaceInfo>& output, int
         }
         switch (type)
         {
-            case hard_nms: {
-                output.push_back(buf[0]);
-                break;
+        case hard_nms:
+        {
+            output.push_back(buf[0]);
+            break;
+        }
+        case blending_nms:
+        {
+            float total = 0;
+            for (int i = 0; i < buf.size(); i++)
+            {
+                total += exp(buf[i].score);
             }
-            case blending_nms: {
-                float total = 0;
-                for (int i = 0; i < buf.size(); i++)
-                {
-                    total += exp(buf[i].score);
-                }
-                FaceInfo rects;
-                memset(&rects, 0, sizeof(rects));
-                for (int i = 0; i < buf.size(); i++)
-                {
-                    float rate = exp(buf[i].score) / total;
-                    rects.x1 += buf[i].x1 * rate;
-                    rects.y1 += buf[i].y1 * rate;
-                    rects.x2 += buf[i].x2 * rate;
-                    rects.y2 += buf[i].y2 * rate;
-                    rects.score += buf[i].score * rate;
-                }
-                output.push_back(rects);
-                break;
+            FaceInfo rects;
+            memset(&rects, 0, sizeof(rects));
+            for (int i = 0; i < buf.size(); i++)
+            {
+                float rate = exp(buf[i].score) / total;
+                rects.x1 += buf[i].x1 * rate;
+                rects.y1 += buf[i].y1 * rate;
+                rects.x2 += buf[i].x2 * rate;
+                rects.y2 += buf[i].y2 * rate;
+                rects.score += buf[i].score * rate;
             }
-            default: {
-                fprintf(stderr, "wrong type of nms.");
-                exit(-1);
-            }
+            output.push_back(rects);
+            break;
+        }
+        default:
+        {
+            fprintf(stderr, "wrong type of nms.");
+            exit(-1);
+        }
         }
     }
 }
 
-static void post_process_ultraface(const char* image_file, float *boxs_data, float *scores_data)
+static void post_process_ultraface(const char* image_file, float* boxs_data, float* scores_data)
 {
     image im = imread(image_file);
     int image_h = im.h;
     int image_w = im.w;
 
-    const std::vector<std::vector<float>> min_boxes = {
+    const std::vector<std::vector<float> > min_boxes = {
         {10.0f, 16.0f, 24.0f}, {32.0f, 48.0f}, {64.0f, 96.0f}, {128.0f, 192.0f, 256.0f}};
-    std::vector<std::vector<float>> shrinkage_size;
-    std::vector<std::vector<float>> priors = {};
-    std::vector<std::vector<float>> featuremap_size;
+    std::vector<std::vector<float> > shrinkage_size;
+    std::vector<std::vector<float> > priors = {};
+    std::vector<std::vector<float> > featuremap_size;
     const std::vector<float> strides = {8.0, 16.0, 32.0, 64.0};
     std::vector<int> w_h_list = {g_tensor_in_w, g_tensor_in_h};
 
@@ -256,23 +259,23 @@ int main(int argc, char* argv[])
     {
         switch (res)
         {
-            case 'm':
-                model_file = optarg;
-                break;
-            case 'i':
-                image_file = optarg;
-                break;
-            case 'r':
-                repeat_count = atoi(optarg);
-                break;
-            case 't':
-                num_thread = atoi(optarg);
-                break;
-            case 'h':
-                show_usage();
-                return 0;
-            default:
-                break;
+        case 'm':
+            model_file = optarg;
+            break;
+        case 'i':
+            image_file = optarg;
+            break;
+        case 'r':
+            repeat_count = atoi(optarg);
+            break;
+        case 't':
+            num_thread = atoi(optarg);
+            break;
+        case 'h':
+            show_usage();
+            return 0;
+        default:
+            break;
         }
     }
 
@@ -315,8 +318,8 @@ int main(int argc, char* argv[])
 
     /* set the input shape to initial the graph, and prerun graph to infer shape */
     int img_size = g_tensor_in_h * g_tensor_in_w * 3;
-    int dims[] = {1, 3, g_tensor_in_h, g_tensor_in_w};    // nchw
-    float* input_data = ( float* )malloc(img_size * sizeof(float));
+    int dims[] = {1, 3, g_tensor_in_h, g_tensor_in_w}; // nchw
+    float* input_data = (float*)malloc(img_size * sizeof(float));
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == NULL)
@@ -331,11 +334,11 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    if (set_tensor_buffer(input_tensor, input_data, img_size * 4) < 0)
+    if (set_tensor_buffer(input_tensor, input_data, img_size * sizeof(float)) < 0)
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;
-    }    
+    }
 
     /* prerun graph, set work options(num_thread, cluster, precision) */
     if (prerun_graph_multithread(graph, opt) < 0)
@@ -352,7 +355,7 @@ int main(int argc, char* argv[])
     swaprgb_img.w = g_tensor_in_w;
     swaprgb_img.h = g_tensor_in_h;
     swaprgb_img.data = input_data;
-    rgb2bgr_premute(swaprgb_img);
+    rgb2bgr_permute(swaprgb_img);
 
     /* run graph */
     double min_time = DBL_MAX;
@@ -382,8 +385,8 @@ int main(int argc, char* argv[])
     tensor_t boxs_tensor = get_graph_output_tensor(graph, 0, 0);
     tensor_t scores_tensor = get_graph_output_tensor(graph, 1, 0);
 
-    float* boxs_data = (float* )get_tensor_buffer(boxs_tensor);
-    float* scores_data = (float* )get_tensor_buffer(scores_tensor);
+    float* boxs_data = (float*)get_tensor_buffer(boxs_tensor);
+    float* scores_data = (float*)get_tensor_buffer(scores_tensor);
 
     post_process_ultraface(image_file, boxs_data, scores_data);
 

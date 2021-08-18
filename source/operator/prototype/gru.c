@@ -32,14 +32,13 @@
 #include "utility/sys_port.h"
 #include "utility/vector.h"
 
-
 static int infer_shape(struct node* node)
 {
     struct graph* ir_graph = node->graph;
     struct tensor* input = get_ir_graph_tensor(ir_graph, node->input_tensors[0]);
     struct tensor* weight = get_ir_graph_tensor(ir_graph, node->input_tensors[1]);
     struct tensor* output = get_ir_graph_tensor(ir_graph, node->output_tensors[0]);
-    struct gru_param* gru_param = ( struct gru_param* )(node->op.param_mem);
+    struct gru_param* gru_param = (struct gru_param*)(node->op.param_mem);
     int batch_size = input->dims[1];
     int dims[4];
     dims[0] = input->dims[0];
@@ -51,10 +50,9 @@ static int infer_shape(struct node* node)
     return 0;
 }
 
-
 static int init_op(struct op* op)
 {
-    gru_param_t* gru_param = ( gru_param_t* )sys_malloc(sizeof(gru_param_t));
+    gru_param_t* gru_param = (gru_param_t*)sys_malloc(sizeof(gru_param_t));
 
     if (gru_param == NULL)
     {
@@ -79,12 +77,10 @@ static int init_op(struct op* op)
     return 0;
 }
 
-
 static void release_op(struct op* op)
 {
     sys_free(op->param_mem);
 }
-
 
 int register_gru_op()
 {
@@ -94,10 +90,8 @@ int register_gru_op()
     m.init = init_op;
     m.release = release_op;
 
-
     return register_op(OP_GRU, OP_GRU_NAME, &m);
 }
-
 
 int unregister_gru_op()
 {

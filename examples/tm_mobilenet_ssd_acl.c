@@ -27,8 +27,8 @@
 #include "tengine_operations.h"
 
 #define DEFAULT_MAX_BOX_COUNT 100
-#define DEFAULT_REPEAT_COUNT    1
-#define DEFAULT_THREAD_COUNT    1
+#define DEFAULT_REPEAT_COUNT  1
+#define DEFAULT_THREAD_COUNT  1
 
 typedef struct Box
 {
@@ -42,10 +42,10 @@ typedef struct Box
 
 void post_process_ssd(const char* image_file, float threshold, const float* outdata, int num)
 {
-    const char* class_names[] = {"background", "aeroplane", "bicycle",   "bird",   "boat",        "bottle",
-                                 "bus",        "car",       "cat",       "chair",  "cow",         "diningtable",
-                                 "dog",        "horse",     "motorbike", "person", "pottedplant", "sheep",
-                                 "sofa",       "train",     "tvmonitor"};
+    const char* class_names[] = {"background", "aeroplane", "bicycle", "bird", "boat", "bottle",
+                                 "bus", "car", "cat", "chair", "cow", "diningtable",
+                                 "dog", "horse", "motorbike", "person", "pottedplant", "sheep",
+                                 "sofa", "train", "tvmonitor"};
 
     image im = imread(image_file);
 
@@ -115,23 +115,23 @@ int main(int argc, char* argv[])
     {
         switch (res)
         {
-            case 'm':
-                model_file = optarg;
-                break;
-            case 'i':
-                image_file = optarg;
-                break;
-            case 'r':
-                repeat_count = atoi(optarg);
-                break;
-            case 't':
-                num_thread = atoi(optarg);
-                break;
-            case 'h':
-                show_usage();
-                return 0;
-            default:
-                break;
+        case 'm':
+            model_file = optarg;
+            break;
+        case 'i':
+            image_file = optarg;
+            break;
+        case 'r':
+            repeat_count = atoi(optarg);
+            break;
+        case 't':
+            num_thread = atoi(optarg);
+            break;
+        case 'h':
+            show_usage();
+            return 0;
+        default:
+            break;
         }
     }
 
@@ -173,7 +173,7 @@ int main(int argc, char* argv[])
     int rtt = add_context_device(acl_context, "ACL");
     if (0 > rtt)
     {
-        fprintf(stderr, " add_context_device ACL DEVICE failed.\n");
+        fprintf(stderr, "add_context_device ACL DEVICE failed.\n");
         return -1;
     }
 
@@ -187,8 +187,8 @@ int main(int argc, char* argv[])
 
     /* set the input shape to initial the graph, and prerun graph to infer shape */
     int img_size = img_h * img_w * 3;
-    int dims[] = {1, 3, img_h, img_w};    // nchw
-    float* input_data = ( float* )malloc(img_size * sizeof(float));
+    int dims[] = {1, 3, img_h, img_w}; // nchw
+    float* input_data = (float*)malloc(img_size * sizeof(float));
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
     if (input_tensor == NULL)
@@ -203,11 +203,11 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    if (set_tensor_buffer(input_tensor, input_data, img_size * 4) < 0)
+    if (set_tensor_buffer(input_tensor, input_data, img_size * sizeof(float)) < 0)
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;
-    }    
+    }
 
     /* prerun graph, set work options(num_thread, cluster, precision) */
     if (prerun_graph_multithread(graph, opt) < 0)
@@ -244,10 +244,10 @@ int main(int argc, char* argv[])
     fprintf(stderr, "--------------------------------------\n");
 
     /* process the detection result */
-    tensor_t output_tensor = get_graph_output_tensor(graph, 0, 0);    //"detection_out"
+    tensor_t output_tensor = get_graph_output_tensor(graph, 0, 0); //"detection_out"
     int out_dim[4];
     get_tensor_shape(output_tensor, out_dim, 4);
-    float* output_data = ( float* )get_tensor_buffer(output_tensor);
+    float* output_data = (float*)get_tensor_buffer(output_tensor);
     post_process_ssd(image_file, show_threshold, output_data, out_dim[1]);
 
     /* release tengine */

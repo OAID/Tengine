@@ -37,26 +37,24 @@
 
 #define TENGINE_DEFAULT_LAYOUT TENGINE_LAYOUT_NCHW
 
-
 static void init_ir_node(ir_node_t* ir_node, int op_type, int op_version, int node_index)
 {
-    ir_node->index             = node_index;
-    ir_node->dynamic_shape     = 0;
-    ir_node->input_num         = 0;
-    ir_node->output_num        = 0;
-    ir_node->node_type         = TE_NODE_TYPE_INTER;
-    ir_node->input_tensors     = NULL;
-    ir_node->output_tensors    = NULL;
-    ir_node->name              = NULL;
-    ir_node->op.type           = op_type;
-    ir_node->op.version        = op_version;
-    ir_node->op.same_shape     = 1;
-    ir_node->op.param_size     = 0;
-    ir_node->op.param_mem      = NULL;
-    ir_node->op.infer_shape    = NULL;
-    ir_node->subgraph_idx      = -1;
+    ir_node->index = node_index;
+    ir_node->dynamic_shape = 0;
+    ir_node->input_num = 0;
+    ir_node->output_num = 0;
+    ir_node->node_type = TE_NODE_TYPE_INTER;
+    ir_node->input_tensors = NULL;
+    ir_node->output_tensors = NULL;
+    ir_node->name = NULL;
+    ir_node->op.type = op_type;
+    ir_node->op.version = op_version;
+    ir_node->op.same_shape = 1;
+    ir_node->op.param_size = 0;
+    ir_node->op.param_mem = NULL;
+    ir_node->op.infer_shape = NULL;
+    ir_node->subgraph_idx = -1;
 }
-
 
 ir_node_t* create_ir_node(struct graph* ir_graph, const char* node_name, int op_type, int op_version)
 {
@@ -69,14 +67,14 @@ ir_node_t* create_ir_node(struct graph* ir_graph, const char* node_name, int op_
     init_ir_node(node, op_type, op_version, ir_graph->node_num);
 
     // check if any op param should be set
-    ir_method_t * method = find_op_method(op_type, op_version);
-    if ((NULL != method) && (NULL != method->init) && (method->init(&node->op) < 0))
+    ir_method_t* method = find_op_method(op_type, op_version);
+    if (!(NULL != method && NULL != method->init && 0 == method->init(&node->op)))
     {
         sys_free(node);
         return NULL;
     }
 
-    ir_node_t** new_node_list = sys_realloc(ir_graph->node_list, sizeof(ir_node_t*) * (ir_graph->node_num + 1));
+    ir_node_t** new_node_list = (ir_node_t**)sys_realloc(ir_graph->node_list, sizeof(ir_node_t*) * (ir_graph->node_num + 1));
 
     if (NULL == new_node_list)
     {
@@ -97,7 +95,6 @@ ir_node_t* create_ir_node(struct graph* ir_graph, const char* node_name, int op_
 
     return node;
 }
-
 
 void destroy_ir_node(struct graph* ir_graph, ir_node_t* ir_node)
 {
@@ -129,10 +126,9 @@ void destroy_ir_node(struct graph* ir_graph, ir_node_t* ir_node)
     sys_free(ir_node);
 }
 
-
 char* create_ir_node_name_from_index(int index)
 {
-    char* name = ( char* )sys_malloc(16);
+    char* name = (char*)sys_malloc(16);
     if (NULL == name)
     {
         return NULL;
@@ -141,13 +137,12 @@ char* create_ir_node_name_from_index(int index)
     return name;
 }
 
-
 int get_ir_node_index_from_name(struct graph* ir_graph, const char* node_name)
 {
     ir_node_t* ir_node;
 
     // first: try to get idx from suffix
-    char* p = strrchr(node_name, '_');
+    const char* p = strrchr(node_name, '_');
     if (p)
     {
         int idx = atoi(++p);
@@ -156,7 +151,7 @@ int get_ir_node_index_from_name(struct graph* ir_graph, const char* node_name)
         {
             ir_node = ir_graph->node_list[idx];
 
-            if (!ir_node->name || !strcmp(ir_node->name, node_name))
+            if (NULL != ir_node->name && 0 == strcmp(ir_node->name, node_name))
             {
                 return idx;
             }
@@ -177,17 +172,11 @@ int get_ir_node_index_from_name(struct graph* ir_graph, const char* node_name)
     return -1;
 }
 
-
 int set_ir_node_input_tensor(ir_node_t* node, int input_idx, ir_tensor_t* tensor)
 {
-    if (TE_MAX_CONSUMER_NUM <= tensor->consumer_num)
-    { 
-        return -1;
-    }
-
     if (input_idx >= node->input_num)
     {
-        int16_t* new_tensor = ( int16_t* )sys_realloc(node->input_tensors, sizeof(int16_t) * (input_idx + 1));
+        int16_t* new_tensor = (int16_t*)sys_realloc(node->input_tensors, sizeof(int16_t) * (input_idx + 1));
 
         if (NULL == new_tensor)
         {
@@ -199,15 +188,17 @@ int set_ir_node_input_tensor(ir_node_t* node, int input_idx, ir_tensor_t* tensor
             new_tensor[i] = -1;
         }
 
-        node->input_tensors = new_tensor;
+        node->input_tensors = (uint16_t*)new_tensor;
         node->input_num = input_idx + 1;
     }
+
     node->input_tensors[input_idx] = tensor->index;
-    tensor->consumer[tensor->consumer_num] = node->index;
-    tensor->consumer_num++;
+    if (set_ir_tensor_consumer(tensor, node->index) < 0)
+    {
+        return -1;
+    }
     return 0;
 }
-
 
 int set_ir_node_output_tensor(ir_node_t* node, int output_idx, ir_tensor_t* tensor)
 {
@@ -229,7 +220,6 @@ int set_ir_node_output_tensor(ir_node_t* node, int output_idx, ir_tensor_t* tens
 
     return 0;
 }
-
 
 void dump_ir_node(struct graph* ir_graph, ir_node_t* ir_node)
 {

@@ -167,9 +167,9 @@ bool TensorRTEngine::AddEltwiseLayer(struct graph* ir_graph, struct node* node)
         //case ELT_LOG:
         //    trt_op_type = nvinfer1::ElementWiseOperation::;
         //    break;
-        //case ELT_EXP:
-        //    trt_op_type = nvinfer1::ElementWiseOperation::;
-        //    break;
+//        case ELT_EXP:
+//            trt_op_type = nvinfer1::UnaryOperation::kEXP;
+//            break;
         //case ELT_SQRT:
         //    trt_op_type = nvinfer1::ElementWiseOperation::;
         //    break;
@@ -190,23 +190,49 @@ bool TensorRTEngine::AddEltwiseLayer(struct graph* ir_graph, struct node* node)
             return false;
     }
 
-    nvinfer1::IElementWiseLayer* layer = this->network->addElementWise(*input_list[0], *input_list[1], trt_op_type);
-    if (nullptr == layer)
+    if (ELT_EXP == param->type)
     {
-        fprintf(stderr, "Tengine: Add Eltwise(id: %d, name: %s) layer failed.\n", node->index, node->name);
-        return false;
+        nvinfer1::IUnaryLayer* layer = this->network->addUnary(*input_list[0], nvinfer1::UnaryOperation::kEXP);
+        if (nullptr == layer)
+        {
+            fprintf(stderr, "Tengine: Add Eltwise(id: %d, name: %s) layer failed.\n", node->index, node->name);
+            return false;
+        }
+
+        layer->setName(node->name);
+
+        this->layer_map[node->index] = layer;
+
+        nvinfer1::ITensor * trt_tensor = layer->getOutput(0);
+
+        this->SetRange(ir_graph, node->output_tensors[0], trt_tensor);
+
+        tensor_swap_map[node->output_tensors[0]] = node->output_tensors[0];
+        tensor_real_map[tensor_swap_map[node->output_tensors[0]]] = trt_tensor;
+    }
+    else
+    {
+        nvinfer1::IElementWiseLayer* layer = this->network->addElementWise(*input_list[0], *input_list[1], trt_op_type);
+        if (nullptr == layer)
+        {
+            fprintf(stderr, "Tengine: Add Eltwise(id: %d, name: %s) layer failed.\n", node->index, node->name);
+            return false;
+        }
+
+        layer->setName(node->name);
+
+        this->layer_map[node->index] = layer;
+
+        nvinfer1::ITensor * trt_tensor = layer->getOutput(0);
+
+        this->SetRange(ir_graph, node->output_tensors[0], trt_tensor);
+
+        tensor_swap_map[node->output_tensors[0]] = node->output_tensors[0];
+        tensor_real_map[tensor_swap_map[node->output_tensors[0]]] = trt_tensor;
     }
 
-    layer->setName(node->name);
 
-    this->layer_map[node->index] = layer;
 
-    nvinfer1::ITensor * trt_tensor = layer->getOutput(0);
-
-    this->SetRange(ir_graph, node->output_tensors[0], trt_tensor);
-
-    tensor_swap_map[node->output_tensors[0]] = node->output_tensors[0];
-    tensor_real_map[tensor_swap_map[node->output_tensors[0]]] = trt_tensor;
 
     return true;
 }

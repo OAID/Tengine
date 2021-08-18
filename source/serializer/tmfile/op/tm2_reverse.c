@@ -32,19 +32,16 @@
 #include "device/device.h"
 #include "utility/log.h"
 
-
 static int reverse_op_map(int op)
 {
     return OP_REVERSE;
 }
-
 
 static int tm2_load_reverse(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                             const TM2_Operator* tm_op)
 {
     return 0;
 }
-
 
 int register_tm2_reverse_op()
 {
@@ -60,7 +57,6 @@ int register_tm2_reverse_op()
 
     return 0;
 }
-
 
 int unregister_tm2_reverse_op()
 {

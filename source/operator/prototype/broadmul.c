@@ -28,7 +28,6 @@
 #include "module/module.h"
 #include "utility/sys_port.h"
 
-
 static int infer_shape(struct node* node)
 {
     struct graph* graph = node->graph;
@@ -39,7 +38,6 @@ static int infer_shape(struct node* node)
 
     return 0;
 }
-
 
 static int init_op(struct op* op)
 {
@@ -52,9 +50,9 @@ static int init_op(struct op* op)
     return 0;
 }
 
-
-static void release_op(struct op* op) {}
-
+static void release_op(struct op* op)
+{
+}
 
 int register_broadmul_op()
 {
@@ -66,7 +64,6 @@ int register_broadmul_op()
 
     return register_op(OP_BROADMUL, OP_BROADMUL_NAME, &m);
 }
-
 
 int unregister_broadmul_op()
 {

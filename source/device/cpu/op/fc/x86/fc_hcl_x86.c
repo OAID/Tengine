@@ -38,7 +38,6 @@
 #include <math.h>
 #include <string.h>
 
-
 #if __SSE2__
 #include <emmintrin.h>
 #endif
@@ -49,11 +48,11 @@
 struct fc_data
 {
     int need_trans;
-    int batch;    // N
-    int out_number;    // OUT
-    int hidden;    // hidden
+    int batch;      // N
+    int out_number; // OUT
+    int hidden;     // hidden
     int zero[3];    // input, kernel, output
-    float scale[3];    // input, kernel, output
+    float scale[3]; // input, kernel, output
 };
 
 static int innerproduct(int inn, int inc, int inh, int inw, int outc, const float* weight, const float* input, float* output,
@@ -61,6 +60,7 @@ static int innerproduct(int inn, int inc, int inh, int inw, int outc, const floa
 {
     size_t elemsize = sizeof(float);
     int size = inw * inh;
+    float tmp;
 
     for (int n = 0; n < inn; n++)
     {
@@ -83,15 +83,15 @@ static int innerproduct(int inn, int inc, int inh, int inw, int outc, const floa
                 _sum0 = _mm_add_ps(_sum0, _sum1);
             }
             _mm_storeu_ps(_sum, _sum0);
-            float tmp = _sum[0] + _sum[1] + _sum[2] + _sum[3];
+            tmp = _sum[0] + _sum[1] + _sum[2] + _sum[3];
             sum = sum + tmp;
-#else    //__AVX__
-         // TODO
+#else //__AVX__ \
+      // TODO
 #endif
 #endif
             for (; q < inc * size; q++)
             {
-                float tmp = input1[q] * weight1[q];
+                tmp = input1[q] * weight1[q];
                 sum = sum + tmp;
             }
 
@@ -104,7 +104,7 @@ static int innerproduct(int inn, int inc, int inh, int inw, int outc, const floa
 
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct fc_data* op_param = ( struct fc_data* )sys_malloc(sizeof(struct fc_data));
+    struct fc_data* op_param = (struct fc_data*)sys_malloc(sizeof(struct fc_data));
     memset(op_param, 0, sizeof(struct fc_data));
     exec_node->ops_priv = op_param;
     return 0;
@@ -128,8 +128,8 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
     weight_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    struct fc_param* param = ( struct fc_param* )ir_node->op.param_mem;
-    struct fc_data* op_param = ( struct fc_data* )exec_node->ops_priv;
+    struct fc_param* param = (struct fc_param*)ir_node->op.param_mem;
+    struct fc_data* op_param = (struct fc_data*)exec_node->ops_priv;
 
     if (ir_graph->graph_layout == TENGINE_LAYOUT_NCHW)
     {
@@ -173,14 +173,14 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct tensor* bias_tensor;
     struct tensor* output_tensor;
     int num_thread = exec_graph->num_thread;
-    int cpu_affinity = exec_graph->cpu_affinity;    
+    int cpu_affinity = exec_graph->cpu_affinity;
 
     input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     weight_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    struct fc_param* param = ( struct fc_param* )ir_node->op.param_mem;
-    struct fc_data* op_param = ( struct fc_data* )exec_node->ops_priv;
+    struct fc_param* param = (struct fc_param*)ir_node->op.param_mem;
+    struct fc_data* op_param = (struct fc_data*)exec_node->ops_priv;
 
     const void* input_data = input_tensor->data;
     void* weight_data = weight_tensor->data;
@@ -198,7 +198,9 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         bias_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[2]);
         bias_data = bias_tensor->data;
     }
-    if (innerproduct(batch_number, inc, inh, inw, outc, weight_data, input_data, output_data, bias_data, num_thread, cpu_affinity) < 0)
+    if (innerproduct(batch_number, inc, inh, inw, outc, (float*)weight_data, (float*)input_data,
+                     (float*)output_data, (float*)bias_data, num_thread, cpu_affinity)
+        < 0)
         return -1;
 
     return 0;

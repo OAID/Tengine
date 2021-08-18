@@ -34,7 +34,6 @@
 
 #include <math.h>
 
-
 struct ref_matmul_data
 {
     int batch;
@@ -42,6 +41,7 @@ struct ref_matmul_data
     int m;
     int n;
     int k;
+    int input1_dim_num;
 };
 
 static int ref_matmul_fp32(float* input0, float* input1, float* output, struct ref_matmul_data* param)
@@ -56,17 +56,39 @@ static int ref_matmul_fp32(float* input0, float* input1, float* output, struct r
     {
         for (int in_c = 0; in_c < c; in_c++)
         {
-            float* data0 = input0 + b * c * m * k + in_c * m * k;
-            float* data1 = input1 + b * c * n * k + in_c * n * k;
+            float* data0 = input0 + b * c * m * n + in_c * m * n;
+            float* data1 = NULL;
+            switch (param->input1_dim_num)
+            {
+            case 4:
+                data1 = input1 + b * c * n * k + in_c * n * k;
+                break;
+            case 3:
+                data1 = input1 + in_c * n * k;
+                break;
+            case 2:
+                data1 = input1;
+                break;
+            default:
+                return -1;
+            }
+            if (data1 == NULL)
+            {
+                return -1;
+            }
             for (int in_m = 0; in_m < m; in_m++)
             {
-                for (int in_n = 0; in_n < n; in_n++)
+                //                for (int in_n = 0; in_n < n; in_n++)
+                for (int in_k = 0; in_k < k; in_k++)
                 {
                     float tmp = 0;
-                    for (int in_k = 0; in_k < k; in_k++)
+                    //                    for (int in_k = 0; in_k < k; in_k++)
+                    for (int in_n = 0; in_n < n; in_n++)
                     {
-                        int index0 = in_m * k + in_k;
-                        int index1 = n * in_k + in_n;
+                        //                        int index0 = in_m * k + in_k;
+                        //                        int index1 = n * in_k + in_n;
+                        int index0 = in_m * n + in_n;
+                        int index1 = in_n * k + in_k;
                         tmp += data0[index0] * data1[index1];
                     }
                     *output = tmp;
@@ -103,30 +125,32 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         param.batch = input_tensor->dims[0];
         param.c = input_tensor->dims[1];
         param.m = input_tensor->dims[2];
-        param.n = input_tensor1->dims[3];
-        param.k = input_tensor->dims[3];
+        param.n = input_tensor->dims[3];
+        //        param.k = input_tensor->dims[3];
     }
     else if (dim_size == 3)
     {
         param.batch = 1;
         param.c = input_tensor->dims[0];
         param.m = input_tensor->dims[1];
-        param.n = input_tensor1->dims[2];
-        param.k = input_tensor->dims[2];
+        param.n = input_tensor->dims[2];
+        //        param.k = input_tensor->dims[2];
     }
     else if (dim_size == 2)
     {
         param.batch = 1;
-        param.c = 1;    // input0->Getse().Shape(0);
+        param.c = 1; // input0->Getse().Shape(0);
         param.m = input_tensor->dims[0];
-        param.n = input_tensor1->dims[1];
-        param.k = input_tensor->dims[1];
+        param.n = input_tensor->dims[1];
+        //        param.k = input_tensor->dims[1];
     }
+    param.input1_dim_num = input_tensor1->dim_num;
+    param.k = input_tensor1->dims[input_tensor1->dim_num - 1];
     void* input_data0 = input_tensor->data;
     void* input_data1 = input_tensor1->data;
     void* output_data = output_tensor->data;
 
-    if (ref_matmul_fp32(input_data0, input_data1, output_data, &param) < 0)
+    if (ref_matmul_fp32((float*)input_data0, (float*)input_data1, (float*)output_data, &param) < 0)
         return -1;
 
     return 0;

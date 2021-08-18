@@ -1,4 +1,4 @@
-  /*
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -34,20 +34,18 @@
 #include "device/device.h"
 #include "utility/log.h"
 
-
 static int rnn_op_map(int op)
 {
     return OP_RNN;
 }
 
-
 static int tm2_load_rnn(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
-                            const TM2_Operator* tm_op)
+                        const TM2_Operator* tm_op)
 {
-    struct rnn_param* rnn_param = (struct rnn_param* )ir_node->op.param_mem;
-    const struct tm2_priv* tm2_priv = (struct tm2_priv* )ir_graph->serializer_privacy;
+    struct rnn_param* rnn_param = (struct rnn_param*)ir_node->op.param_mem;
+    const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
     const char* mem_base = tm2_priv->base;
-    const TM2_RnnParam* tm_param = (TM2_RnnParam* )(mem_base + tm_op->offset_t_param);
+    const TM2_RnnParam* tm_param = (TM2_RnnParam*)(mem_base + tm_op->offset_t_param);
 
     rnn_param->clip = tm_param->clip;
     rnn_param->output_len = tm_param->output_len;
@@ -62,12 +60,11 @@ static int tm2_load_rnn(struct graph* ir_graph, struct node* ir_node, const TM2_
     return 0;
 }
 
-
 int register_tm2_rnn_op()
 {
     struct serializer* tm2_s = find_serializer_via_name("tengine");
 
-    if(tm2_s == NULL)
+    if (tm2_s == NULL)
     {
         TLOG_ERR("tengine serializer has not been registered yet\n");
         return -1;
@@ -77,7 +74,6 @@ int register_tm2_rnn_op()
 
     return 0;
 }
-
 
 int unregister_tm2_rnn_op()
 {

@@ -25,6 +25,10 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 #include "defines.h"
 
 #include <stdint.h>
@@ -32,31 +36,30 @@
 struct node;
 struct graph;
 
-
 /*!
  * @struct ir_tensor_t
  * @brief  Abstract tensor intermediate representation
  */
 typedef struct tensor
 {
-    uint16_t index;                          //!< the index of a tensor
-    int16_t  producer;                       //!< node id, '-1' means no producer
-    int16_t  consumer[TE_MAX_CONSUMER_NUM];  //!< consumer nodes array
+    uint16_t index;    //!< the index of a tensor
+    int16_t producer;  //!< node id, '-1' means no producer
+    int16_t* consumer; //!< consumer nodes array
 
-    uint8_t  reshaped;                       //!< the tensor's shape has changed
-    uint8_t  consumer_num;                   //!< count of consumer nodes
-    uint8_t  tensor_type;                    //!< tensor_type: { const, input, var, dep }
-    uint8_t  data_type;                      //!< data_type: { int8, uint8, fp32, fp16, int32 }
-    uint8_t  dim_num;                        //!< count of dimensions
-    uint8_t  elem_size;                      //!< size of single element
-    uint8_t  subgraph_num;                   //!< count of all subgraph those will waiting this tensor ready
-    uint8_t  free_host_mem;                  //!< should free host memory?
-    uint8_t  internal_allocated;             //!< how memory is allocated?
-    uint8_t  layout;                         //!< tensor layout: { TENGINE_LAYOUT_NCHW, TENGINE_LAYOUT_NHWC }
+    uint8_t reshaped;           //!< the tensor's shape has changed
+    uint8_t consumer_num;       //!< count of consumer nodes
+    uint8_t tensor_type;        //!< tensor_type: { const, input, var, dep }
+    uint8_t data_type;          //!< data_type: { int8, uint8, fp32, fp16, int32 }
+    uint8_t dim_num;            //!< count of dimensions
+    uint8_t elem_size;          //!< size of single element
+    uint8_t subgraph_num;       //!< count of all subgraphs which will wait for this tensor to be ready
+    uint8_t free_host_mem;      //!< should free host memory?
+    uint8_t internal_allocated; //!< how memory is allocated?
+    uint8_t layout;             //!< tensor layout: { TENGINE_LAYOUT_NCHW, TENGINE_LAYOUT_NHWC }
 
-    uint16_t quant_param_num;                //!< quantization dimension
-    uint32_t elem_num;                       //!< count of total elements
-    int dims[TE_MAX_SHAPE_DIM_NUM];          //!< shape dimensions
+    uint16_t quant_param_num;       //!< quantization dimension
+    uint32_t elem_num;              //!< count of total elements
+    int dims[TE_MAX_SHAPE_DIM_NUM]; //!< shape dimensions
 
     /*!
      * @union anonymity data pointer
@@ -64,15 +67,15 @@ typedef struct tensor
      */
     union
     {
-        void*    data;
-        int8_t*    i8;
-        uint8_t*   u8;
-        float*    f32;
-        uint16_t*   f16;
-        int32_t*  i32;
+        void* data;
+        int8_t* i8;
+        uint8_t* u8;
+        float* f32;
+        uint16_t* f16;
+        int32_t* i32;
     };
 
-    char* name;                             //!< tensor name
+    char* name; //!< tensor name
 
     /*!
      * @union anonymity quantization scale union
@@ -81,7 +84,7 @@ typedef struct tensor
     union
     {
         float* scale_list;
-        float  scale;
+        float scale;
     };
 
     /*!
@@ -90,14 +93,13 @@ typedef struct tensor
      */
     union
     {
-        int  zero_point;
+        int zero_point;
         int* zp_list;
     };
 
     struct dev_mem* dev_mem;
-    uint8_t* subgraph_list;                 //!< subgraph index list of those subgraph will waiting this tensor ready
+    uint8_t* subgraph_list; //!< subgraph index list of those subgraphs will wait for this tensor to be ready
 } ir_tensor_t;
-
 
 /*!
  * @brief Create a tensor for a graph.
@@ -110,29 +112,26 @@ typedef struct tensor
  */
 ir_tensor_t* create_ir_tensor(struct graph* graph, const char* tensor_name, int data_type);
 
-
 /*!
  * @brief Destroy a tensor.
  *
  * User should deal with other destroy works, such as ir_graph and ir_node.
  *
- * @param [in]  graph: specific graph.
- * @param [in]  tensor: the tensor pointer.
+ * @param [in]  ir_graph: specific graph.
+ * @param [in]  ir_tensor: the tensor pointer.
  */
 void destroy_ir_tensor(struct graph* ir_graph, ir_tensor_t* ir_tensor);
-
 
 /*!
  * @brief  Set shape for a tensor.
  *
- * @param [in]  tensor: specific tensor.
+ * @param [in]  ir_tensor: specific tensor.
  * @param [in]  dims: shape array.
  * @param [in]  dim_number: shape dimensions.
  *
  * @return statue value, 0 success, other value failure.
  */
 int set_ir_tensor_shape(ir_tensor_t* ir_tensor, const int dims[], int dim_number);
-
 
 /*!
  * @brief  Set tensor name from id, for anonymity ones.
@@ -143,22 +142,20 @@ int set_ir_tensor_shape(ir_tensor_t* ir_tensor, const int dims[], int dim_number
  */
 char* create_ir_tensor_name_from_index(int index);
 
-
 /*!
  * @brief  Get tensor id from name, for anonymity ones.
  *
- * @param [in]  graph: specific graph.
+ * @param [in]  ir_graph: specific graph.
  * @param [in]  tensor_name: reference name.
  *
  * @return tensor id.
  */
 int get_ir_tensor_index_from_name(struct graph* ir_graph, const char* tensor_name);
 
-
 /*!
  * @brief  Set tensor quantization parameter.
  *
- * @param [in]  tensor: specific tensor.
+ * @param [in]  ir_tensor: specific tensor.
  * @param [in]  scale: scale pointer.
  * @param [in]  zero_point: zero_point pointer.
  * @param [in]  number: quantization parameter dimensions.
@@ -167,11 +164,10 @@ int get_ir_tensor_index_from_name(struct graph* ir_graph, const char* tensor_nam
  */
 int set_ir_tensor_quantization_parameter(ir_tensor_t* ir_tensor, const float* scale, const int* zero_point, int number);
 
-
 /*!
  * @brief  Get tensor quantization parameter.
  *
- * @param [in]  tensor: specific tensor.
+ * @param [in]  ir_tensor: specific tensor.
  * @param [in]  scale: scale pointer.
  * @param [in]  zero_point: zero_point pointer.
  * @param [in]  number: quantization parameter dimensions.
@@ -180,11 +176,24 @@ int set_ir_tensor_quantization_parameter(ir_tensor_t* ir_tensor, const float* sc
  */
 int get_ir_tensor_quantization_parameter(ir_tensor_t* ir_tensor, float* scale, int* zero_point, int number);
 
-
 /*!
  * @brief  Dump the tensor.
  *
  * @param [in]  ir_graph: specific graph.
- * @param [in]  tensor: specific tensor.
+ * @param [in]  ir_tensor: specific tensor.
  */
 void dump_ir_tensor(struct graph* ir_graph, ir_tensor_t* ir_tensor);
+
+/*!
+ * @brief  Set consumer node for a tensor.
+ *
+ * @param [in]  ir_tensor: specific tensor.
+ * @param [in]  index: node index.
+ *
+ * @return statue value, 0 success, other value failure.
+ */
+int set_ir_tensor_consumer(ir_tensor_t* ir_tensor, const int index);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */

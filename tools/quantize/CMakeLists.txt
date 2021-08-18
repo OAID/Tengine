@@ -22,21 +22,18 @@
 UNSET (TENGINE_TOOL_OPTIONS)
 UNSET (TENGINE_TOOL_LINK_LIBRARIES)
 
-FILE (MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/tengine)
-FILE (COPY ${CMAKE_SOURCE_DIR}/source/api/c_api.h DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/tengine)
+FIND_PACKAGE(OpenCV REQUIRED COMPONENTS core imgcodecs imgproc)
 
-FIND_PACKAGE(OpenCV QUIET)
-
-IF (OpenCV_FOUND AND ${TENGINE_TARGET_PROCESSOR} MATCHES "X86")
+IF (${TENGINE_TARGET_PROCESSOR} MATCHES "X86")
     # macro for adding quant tool
     FUNCTION (TENGINE_QUANT_TOOL name file)
         ADD_EXECUTABLE(
             ${name}
             ./quant_save_graph.cpp
             ./quant_utils.cpp
-            ./savegraph/save_graph.cpp 
-            ./savegraph/tm2_op_save.cpp 
-            ./savegraph/tm2_generate.c     
+            ../save_graph/save_graph.cpp
+            ../save_graph/tm2_op_save.cpp
+            ../save_graph/tm2_generate.c
             "${CMAKE_CURRENT_SOURCE_DIR}/${file}")
         TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
         TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})       
@@ -45,7 +42,7 @@ IF (OpenCV_FOUND AND ${TENGINE_TARGET_PROCESSOR} MATCHES "X86")
         TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE "${PROJECT_SOURCE_DIR}/source")
         TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE "${PROJECT_SOURCE_DIR}/source/operator/prototype")       
         TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE "${PROJECT_SOURCE_DIR}/tools/quantize/common")
-        TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE "${PROJECT_SOURCE_DIR}/tools/quantize/savegraph")
+        TARGET_INCLUDE_DIRECTORIES (${name} PRIVATE "${PROJECT_SOURCE_DIR}/tools/save_graph")
 
         IF (${TENGINE_COVERAGE})
             LIST (APPEND TENGINE_TOOL_OPTIONS "-fprofile-arcs")
@@ -64,6 +61,7 @@ IF (OpenCV_FOUND AND ${TENGINE_TARGET_PROCESSOR} MATCHES "X86")
 
     TENGINE_QUANT_TOOL(quant_tool_int8      quant_tool_int8.cpp)
     TENGINE_QUANT_TOOL(quant_tool_uint8     quant_tool_uint8.cpp)
+    TENGINE_QUANT_TOOL(quant_tool_uint8_perchannel     quant_tool_uint8_perchannel.cpp)
 ELSE()
-    MESSAGE (WARNING "OpenCV not found, quantization tool won't be built")
+    MESSAGE (FATAL_ERROR "quantization tool can only be built on x86")
 ENDIF()

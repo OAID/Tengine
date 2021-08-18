@@ -34,27 +34,24 @@
 #include "device/device.h"
 #include "utility/log.h"
 
-
 static int clip_op_map(int op)
 {
     return OP_CLIP;
 }
 
-
 static int tm2_load_clip(struct graph* ir_graph, struct node* ir_node, const TM2_Node* tm_node,
                          const TM2_Operator* tm_op)
 {
-    struct clip_param* clip_param = ( struct clip_param* )ir_node->op.param_mem;
+    struct clip_param* clip_param = (struct clip_param*)ir_node->op.param_mem;
     const struct tm2_priv* tm2_priv = (struct tm2_priv*)ir_graph->serializer_privacy;
     const char* mem_base = tm2_priv->base;
-    const TM2_ClipParam* tm_param = ( TM2_ClipParam* )(mem_base + tm_op->offset_t_param);
+    const TM2_ClipParam* tm_param = (TM2_ClipParam*)(mem_base + tm_op->offset_t_param);
 
     clip_param->max = tm_param->max;
     clip_param->min = tm_param->min;
 
     return 0;
 }
-
 
 int register_tm2_clip_op()
 {
@@ -70,7 +67,6 @@ int register_tm2_clip_op()
 
     return 0;
 }
-
 
 int unregister_tm2_clip_op()
 {

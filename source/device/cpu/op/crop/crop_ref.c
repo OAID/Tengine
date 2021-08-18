@@ -36,12 +36,11 @@
 
 #include <math.h>
 
-
 static int ref_crop_fp32(struct tensor* input_tensor, struct tensor* output_tensor, struct crop_param* param,
                          int num_thread)
 {
-    float* input = input_tensor->data;
-    float* output = output_tensor->data;
+    float* input = (float*)input_tensor->data;
+    float* output = (float*)output_tensor->data;
 
     int iDataC = input_tensor->dims[1];
     int iDataH = input_tensor->dims[2];
@@ -71,8 +70,7 @@ static int ref_crop_fp32(struct tensor* input_tensor, struct tensor* output_tens
                             for (int w = 0; w < oDataW; w++)
                             {
                                 int i_w = w + offsetW;
-                                output[n * oDataC * oDataH * oDataW + c * oDataH * oDataW + h * oDataW + w] =
-                                    input[n * iDataC * iDataH * iDataW + c * iDataH * iDataW + i_h * iDataW + i_w];
+                                output[n * oDataC * oDataH * oDataW + c * oDataH * oDataW + h * oDataW + w] = input[n * iDataC * iDataH * iDataW + c * iDataH * iDataW + i_h * iDataW + i_w];
                             }
                         }
                     }
@@ -93,8 +91,7 @@ static int ref_crop_fp32(struct tensor* input_tensor, struct tensor* output_tens
                             for (int w = 0; w < oDataW; w++)
                             {
                                 int i_w = w + param->offset_w;
-                                output[n * oDataC * oDataH * oDataW + c * oDataH * oDataW + h * oDataW + w] =
-                                    input[n * iDataC * iDataH * iDataW + c * iDataH * iDataW + i_h * iDataW + i_w];
+                                output[n * oDataC * oDataH * oDataW + c * oDataH * oDataW + h * oDataW + w] = input[n * iDataC * iDataH * iDataW + c * iDataH * iDataW + i_h * iDataW + i_w];
                             }
                         }
                     }
@@ -118,8 +115,7 @@ static int ref_crop_fp32(struct tensor* input_tensor, struct tensor* output_tens
                         for (int w = 0; w < oDataW; w++)
                         {
                             int i_w = param->offset_w + w;
-                            output[n * oDataC * oDataH * oDataW + c * oDataH * oDataW + h * oDataW + w] =
-                                input[n * iDataC * iDataH * iDataW + i_c * iDataH * iDataW + i_h * iDataW + i_w];
+                            output[n * oDataC * oDataH * oDataW + c * oDataH * oDataW + h * oDataW + w] = input[n * iDataC * iDataH * iDataW + i_c * iDataH * iDataW + i_h * iDataW + i_w];
                         }
                     }
                 }
@@ -137,8 +133,7 @@ static int ref_crop_fp32(struct tensor* input_tensor, struct tensor* output_tens
                         for (int w = 0; w < oDataW; w++)
                         {
                             int i_w = param->offset_w + w;
-                            output[n * oDataC * oDataH * oDataW + c * oDataH * oDataW + h * oDataW + w] =
-                                input[n * iDataC * iDataH * iDataW + c * iDataH * iDataW + i_h * iDataW + i_w];
+                            output[n * oDataC * oDataH * oDataW + c * oDataH * oDataW + h * oDataW + w] = input[n * iDataC * iDataH * iDataW + c * iDataH * iDataW + i_h * iDataW + i_w];
                         }
                     }
                 }
@@ -150,10 +145,10 @@ static int ref_crop_fp32(struct tensor* input_tensor, struct tensor* output_tens
 }
 
 static int ref_crop_uint8(struct tensor* input_tensor, struct tensor* output_tensor, struct crop_param* param,
-                         int num_thread)
+                          int num_thread)
 {
-    uint8_t* input = input_tensor->data;
-    uint8_t* output = output_tensor->data;
+    uint8_t* input = (uint8_t*)input_tensor->data;
+    uint8_t* output = (uint8_t*)output_tensor->data;
 
     int iDataC = input_tensor->dims[1];
     int iDataH = input_tensor->dims[2];
@@ -183,8 +178,7 @@ static int ref_crop_uint8(struct tensor* input_tensor, struct tensor* output_ten
                             for (int w = 0; w < oDataW; w++)
                             {
                                 int i_w = w + offsetW;
-                                output[n * oDataC * oDataH * oDataW + c * oDataH * oDataW + h * oDataW + w] =
-                                    input[n * iDataC * iDataH * iDataW + c * iDataH * iDataW + i_h * iDataW + i_w];
+                                output[n * oDataC * oDataH * oDataW + c * oDataH * oDataW + h * oDataW + w] = input[n * iDataC * iDataH * iDataW + c * iDataH * iDataW + i_h * iDataW + i_w];
                             }
                         }
                     }
@@ -205,8 +199,7 @@ static int ref_crop_uint8(struct tensor* input_tensor, struct tensor* output_ten
                             for (int w = 0; w < oDataW; w++)
                             {
                                 int i_w = w + param->offset_w;
-                                output[n * oDataC * oDataH * oDataW + c * oDataH * oDataW + h * oDataW + w] =
-                                    input[n * iDataC * iDataH * iDataW + c * iDataH * iDataW + i_h * iDataW + i_w];
+                                output[n * oDataC * oDataH * oDataW + c * oDataH * oDataW + h * oDataW + w] = input[n * iDataC * iDataH * iDataW + c * iDataH * iDataW + i_h * iDataW + i_w];
                             }
                         }
                     }
@@ -230,8 +223,7 @@ static int ref_crop_uint8(struct tensor* input_tensor, struct tensor* output_ten
                         for (int w = 0; w < oDataW; w++)
                         {
                             int i_w = param->offset_w + w;
-                            output[n * oDataC * oDataH * oDataW + c * oDataH * oDataW + h * oDataW + w] =
-                                input[n * iDataC * iDataH * iDataW + i_c * iDataH * iDataW + i_h * iDataW + i_w];
+                            output[n * oDataC * oDataH * oDataW + c * oDataH * oDataW + h * oDataW + w] = input[n * iDataC * iDataH * iDataW + i_c * iDataH * iDataW + i_h * iDataW + i_w];
                         }
                     }
                 }
@@ -249,8 +241,7 @@ static int ref_crop_uint8(struct tensor* input_tensor, struct tensor* output_ten
                         for (int w = 0; w < oDataW; w++)
                         {
                             int i_w = param->offset_w + w;
-                            output[n * oDataC * oDataH * oDataW + c * oDataH * oDataW + h * oDataW + w] =
-                                input[n * iDataC * iDataH * iDataW + c * iDataH * iDataW + i_h * iDataW + i_w];
+                            output[n * oDataC * oDataH * oDataW + c * oDataH * oDataW + h * oDataW + w] = input[n * iDataC * iDataH * iDataW + c * iDataH * iDataW + i_h * iDataW + i_w];
                         }
                     }
                 }
@@ -278,11 +269,11 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    struct crop_param* crop_param = ( struct crop_param* )ir_node->op.param_mem;
+    struct crop_param* crop_param = (struct crop_param*)ir_node->op.param_mem;
 
     if (input_tensor->data_type == TENGINE_DT_FP32)
         ref_crop_fp32(input_tensor, output_tensor, crop_param, exec_graph->num_thread);
-    else if(input_tensor->data_type == TENGINE_DT_UINT8)
+    else if (input_tensor->data_type == TENGINE_DT_UINT8)
         ref_crop_uint8(input_tensor, output_tensor, crop_param, exec_graph->num_thread);
 
     return 0;

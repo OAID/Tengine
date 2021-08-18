@@ -37,7 +37,6 @@
 
 #include <math.h>
 
-
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     return 0;
@@ -52,26 +51,25 @@ static int ref_tile_fp32(float* data, float* output, int* repeat, int* inDim, in
 {
     int index = 0;
 
-    if(flag == 0)   // caffe
+    if (flag == 0) // caffe
     {
-        for(int in = 0; in < inDim[0]; in++)
+        for (int in = 0; in < inDim[0]; in++)
         {
-            for(int rn = 0; rn < repeat[3]; rn++)
+            for (int rn = 0; rn < repeat[3]; rn++)
             {
-                for(int ic = 0; ic < inDim[1]; ic++)
+                for (int ic = 0; ic < inDim[1]; ic++)
                 {
-                    for(int rc = 0; rc < repeat[2]; rc++)
+                    for (int rc = 0; rc < repeat[2]; rc++)
                     {
-                        for(int ih = 0; ih < inDim[2]; ih++)
+                        for (int ih = 0; ih < inDim[2]; ih++)
                         {
-                            for(int rh = 0; rh < repeat[1]; rh++)
+                            for (int rh = 0; rh < repeat[1]; rh++)
                             {
-                                for(int iw = 0; iw < inDim[3]; iw++)
+                                for (int iw = 0; iw < inDim[3]; iw++)
                                 {
-                                    for(int rw = 0; rw < repeat[0]; rw++)
+                                    for (int rw = 0; rw < repeat[0]; rw++)
                                     {
-                                        int inDataSize = in * inDim[1] * inDim[2] * inDim[3] + ic * inDim[2] * inDim[3] +
-                                                         ih * inDim[3] + iw;
+                                        int inDataSize = in * inDim[1] * inDim[2] * inDim[3] + ic * inDim[2] * inDim[3] + ih * inDim[3] + iw;
                                         output[index] = data[inDataSize];
                                         index++;
                                     }
@@ -83,7 +81,7 @@ static int ref_tile_fp32(float* data, float* output, int* repeat, int* inDim, in
             }
         }
     }
-    else if(flag == 1)  // onnx
+    else if (flag == 1) // onnx
     {
         int n = inDim[0];
         int c = inDim[1];
@@ -94,15 +92,15 @@ static int ref_tile_fp32(float* data, float* output, int* repeat, int* inDim, in
         int rh = repeat[1];
         int rw = repeat[0];
 
-        int n1 = n*rn;
-        int c1 = c*rc;
-        int h1 = h*rh;
-        int w1 = w*rw;
+        int n1 = n * rn;
+        int c1 = c * rc;
+        int h1 = h * rh;
+        int w1 = w * rw;
 
-        int size = outDim[0]*outDim[1]*outDim[2]*outDim[3];
+        int size = outDim[0] * outDim[1] * outDim[2] * outDim[3];
         for (int i = 0; i < size; ++i)
         {
-            index = i / (c1*h1*w1) % n * (c*h*w) + i % (c1*h1*w1) / (h1*w1) % c * (h*w) + i % (h1*w1) / w1 % h * w + i % w1 % w;
+            index = i / (c1 * h1 * w1) % n * (c * h * w) + i % (c1 * h1 * w1) / (h1 * w1) % c * (h * w) + i % (h1 * w1) / w1 % h * w + i % w1 % w;
             output[i] = data[index];
         }
     }
@@ -135,35 +133,35 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     int size = 0;
     int default_value = 1;
 
-    if(frame_flag == 0)
+    if (frame_flag == 0)
     {
         size = param->reps_size;
-        for(int i = 0; i < 4 - size; i++)
+        for (int i = 0; i < 4 - size; i++)
         {
             push_vector_data(repeat, (void*)&default_value);
         }
     }
-    else if ( frame_flag == 1)
+    else if (frame_flag == 1)
     {
-        size = input_reps_shape[0]*input_reps_shape[1]*input_reps_shape[2]*input_reps_shape[3];
-        for(int i = 0; i < size; i++)
+        size = input_reps_shape[0] * input_reps_shape[1] * input_reps_shape[2] * input_reps_shape[3];
+        for (int i = 0; i < size; i++)
         {
             push_vector_data(repeat, (void*)&input_reps[i]);
         }
-        for(int i = 0; i < 4 - size; i++)
+        for (int i = 0; i < 4 - size; i++)
         {
             push_vector_data(repeat, (void*)&default_value);
         }
     }
 
-    int* repeat_data = (int*)sys_malloc(get_vector_num(repeat)*sizeof(int));
-    for(int i = 0; i < get_vector_num(repeat); i++)
+    int* repeat_data = (int*)sys_malloc(get_vector_num(repeat) * sizeof(int));
+    for (int i = 0; i < get_vector_num(repeat); i++)
     {
         int* a = (int*)get_vector_data(repeat, i);
         repeat_data[i] = *a;
     }
 
-    ref_tile_fp32(input_tensor->data, output_tensor->data, repeat_data, inDim, outDim, frame_flag);
+    ref_tile_fp32((float*)input_tensor->data, (float*)output_tensor->data, repeat_data, inDim, outDim, frame_flag);
     sys_free(repeat_data);
     release_vector(repeat);
 
@@ -176,15 +174,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
 }
 
 static struct node_ops hcl_node_ops = {
-        .prerun = prerun,
-        .run = run,
-        .reshape = NULL,
-        .postrun = NULL,
-        .init_node = init_node,
-        .release_node = release_node,
-        .score = score
-};
-
+    .prerun = prerun,
+    .run = run,
+    .reshape = NULL,
+    .postrun = NULL,
+    .init_node = init_node,
+    .release_node = release_node,
+    .score = score};
 
 int register_tile_ref_op()
 {

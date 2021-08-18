@@ -36,20 +36,21 @@
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #include <google/protobuf/text_format.h>
 #include <google/protobuf/message.h>
+#include "../utils/graph_optimizer/graph_opt.hpp"
 
-extern "C" 
-{
-    #include "tengine/c_api.h"
-    #include "graph/graph.h"
-    #include "graph/subgraph.h"
-    #include "graph/node.h"
-    #include "graph/tensor.h"
-    #include "executer/executer.h"
-    #include "module/module.h"
-    #include "utility/log.h"
-    #include "utility/sys_port.h"
-    #include "utility/vector.h"
-    #include "../utils/save_graph/op_include.h"
+extern "C" {
+#include "tengine/c_api.h"
+#include "graph/graph.h"
+#include "graph/subgraph.h"
+#include "graph/node.h"
+#include "graph/tensor.h"
+#include "executer/executer.h"
+#include "module/module.h"
+#include "utility/log.h"
+#include "utility/sys_port.h"
+#include "utility/vector.h"
+#include "save_graph/op_include.h"
+// #include "../../save_graph/op_include.h"
 }
 
 class onnx_serializer
@@ -59,19 +60,18 @@ public:
     typedef int (*op_load_t)(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_node);
 
 private:
-    std::unordered_map<std::string, std::pair<int, op_load_t>> op_load_map;
+    std::unordered_map<std::string, std::pair<int, op_load_t> > op_load_map;
     int load_model(ir_graph_t* graph, std::string model_file);
     int set_graph_output(ir_graph_t* graph, const onnx::GraphProto& onnx_graph);
     int load_graph_node(ir_graph_t* graph, const onnx::GraphProto& onnx_graph);
     int set_graph_input(ir_graph_t* graph, const onnx::GraphProto& onnx_graph);
     int load_initializer_tensor(ir_graph_t* graph, const onnx::GraphProto& onnx_graph);
     int load_constant_tensor(ir_graph_t* graph, const onnx::GraphProto& onnx_graph);
-    int load_model_file(std::string model_file, onnx::ModelProto &model);
+    int load_model_file(std::string model_file, onnx::ModelProto& model);
     bool find_op_load_method(const std::string& op_name);
     void register_op_load();
+    int optimize_graph(ir_graph_t* graph); //!< optimize graph base on op set.
     std::unordered_map<std::string, int> tensor_check;
 };
-
-
 
 #endif

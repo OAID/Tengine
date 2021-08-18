@@ -42,13 +42,12 @@
 #include "tengine_operations.h"
 
 // tengine output tensor names
-const char *cls_pred_name[] = {
-    "cls_pred_stride_8", "cls_pred_stride_16", "cls_pred_stride_32"
-};
-const char *dis_pred_name[] = {
+const char* cls_pred_name[] = {
+    "cls_pred_stride_8", "cls_pred_stride_16", "cls_pred_stride_32"};
+const char* dis_pred_name[] = {
 #ifdef TRY_POST_SOFTMAX
     "dis_pred_stride_8", "dis_pred_stride_16", "dis_pred_stride_32"
-#else /* !TRY_POST_SOFTMAX */
+#else  /* !TRY_POST_SOFTMAX */
     "dis_sm_stride_8", "dis_sm_stride_16", "dis_sm_stride_32"
 #endif /* TRY_POST_SOFTMAX */
 };
@@ -60,8 +59,10 @@ struct Object
     float prob;
 };
 
-static __inline float fast_exp(float x) {
-    union {
+static __inline float fast_exp(float x)
+{
+    union
+    {
         uint32_t i;
         float f;
     } v{};
@@ -70,16 +71,19 @@ static __inline float fast_exp(float x) {
 }
 
 template<typename _Tp>
-static int softmax(const _Tp* src, _Tp* dst, int length) {
+static int softmax(const _Tp* src, _Tp* dst, int length)
+{
     const _Tp max_value = *std::max_element(src, src + length);
-    _Tp denominator{ 0 };
- 
-    for (int i = 0; i < length; ++i) {
-        dst[i] = std::exp/*fast_exp*/(src[i] - max_value);
+    _Tp denominator{0};
+
+    for (int i = 0; i < length; ++i)
+    {
+        dst[i] = std::exp /*fast_exp*/ (src[i] - max_value);
         denominator += dst[i];
     }
- 
-    for (int i = 0; i < length; ++i) {
+
+    for (int i = 0; i < length; ++i)
+    {
         dst[i] /= denominator;
     }
 
@@ -178,8 +182,9 @@ static void nms_sorted_bboxes(const std::vector<Object>& faceobjects, std::vecto
 // @param:  in_pad[in]   as letter box's shape
 // @param:  prob_threshold[in]
 // @param:  objects[out] output detected objects
-static void generate_proposals(const float *cls_pred, const float *dis_pred, int stride,
-    const image &in_pad, float prob_threshold, std::vector<Object>& objects) {
+static void generate_proposals(const float* cls_pred, const float* dis_pred, int stride,
+                               const image& in_pad, float prob_threshold, std::vector<Object>& objects)
+{
     const int num_grid_x = in_pad.w / stride;
     const int num_grid_y = in_pad.h / stride;
     // Note: Here, we hard coded some model parameters for simplicity.
@@ -188,37 +193,44 @@ static void generate_proposals(const float *cls_pred, const float *dis_pred, int
     // Discrete distribution parameter, see the following resources for more details:
     // [nanodet-m.yml](https://github.com/RangiLyu/nanodet/blob/main/config/nanodet-m.yml)
     // [GFL](https://arxiv.org/pdf/2006.04388.pdf)
-    const int reg_max_1 = 8;  // 32 / 4;
+    const int reg_max_1 = 8; // 32 / 4;
 
-    for (int i = 0; i < num_grid_y; i++) {
-        for (int j = 0; j < num_grid_x; j++) {
+    for (int i = 0; i < num_grid_y; i++)
+    {
+        for (int j = 0; j < num_grid_x; j++)
+        {
             const int idx = i * num_grid_x + j;
 
-            const float *scores = cls_pred + idx * num_class;
+            const float* scores = cls_pred + idx * num_class;
 
             // find label with max score
             int label = -1;
             float score = -FLT_MAX;
-            for (int k = 0; k < num_class; k++) {
-                if (scores[k] > score) {
+            for (int k = 0; k < num_class; k++)
+            {
+                if (scores[k] > score)
+                {
                     label = k;
                     score = scores[k];
                 }
             }
 
-            if (score >= prob_threshold) {
+            if (score >= prob_threshold)
+            {
                 float pred_ltrb[4];
-                for (int k = 0; k < 4; k++) {
+                for (int k = 0; k < 4; k++)
+                {
                     float dis = 0.f;
                     // predicted distance distribution after softmax
 #ifdef TRY_POST_SOFTMAX
-                    float dis_after_sm[8] = { 0. };
+                    float dis_after_sm[8] = {0.};
                     softmax(dis_pred + idx * reg_max_1 * 4 + k * reg_max_1, dis_after_sm, 8);
-#else /* !TRY_POST_SOFTMAX */
-                    const float *dis_after_sm = dis_pred + idx * reg_max_1 * 4 + k * reg_max_1;
+#else  /* !TRY_POST_SOFTMAX */
+                    const float* dis_after_sm = dis_pred + idx * reg_max_1 * 4 + k * reg_max_1;
 #endif /* TRY_POST_SOFTMAX */
                     // integral on predicted discrete distribution
-                    for (int l = 0; l < reg_max_1; l++) {
+                    for (int l = 0; l < reg_max_1; l++)
+                    {
                         dis += l * dis_after_sm[l];
                         //printf("%2.6f ", dis_after_sm[l]);
                     }
@@ -250,19 +262,18 @@ static void generate_proposals(const float *cls_pred, const float *dis_pred, int
     }
 }
 
-static void draw_objects(const cv::Mat& bgr, const std::vector<Object>& objects, const char *path)
+static void draw_objects(const cv::Mat& bgr, const std::vector<Object>& objects, const char* path)
 {
     static const char* class_names[] = {
-            "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light",
-            "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat", "dog", "horse", "sheep", "cow",
-            "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee",
-            "skis", "snowboard", "sports ball", "kite", "baseball bat", "baseball glove", "skateboard", "surfboard",
-            "tennis racket", "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl", "banana", "apple",
-            "sandwich", "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake", "chair", "couch",
-            "potted plant", "bed", "dining table", "toilet", "tv", "laptop", "mouse", "remote", "keyboard", "cell phone",
-            "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors", "teddy bear",
-            "hair drier", "toothbrush"
-    };
+        "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light",
+        "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat", "dog", "horse", "sheep", "cow",
+        "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee",
+        "skis", "snowboard", "sports ball", "kite", "baseball bat", "baseball glove", "skateboard", "surfboard",
+        "tennis racket", "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl", "banana", "apple",
+        "sandwich", "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake", "chair", "couch",
+        "potted plant", "bed", "dining table", "toilet", "tv", "laptop", "mouse", "remote", "keyboard", "cell phone",
+        "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors", "teddy bear",
+        "hair drier", "toothbrush"};
 
     cv::Mat image = bgr.clone();
 
@@ -271,8 +282,8 @@ static void draw_objects(const cv::Mat& bgr, const std::vector<Object>& objects,
         const Object& obj = objects[i];
 
         fprintf(stderr, "%2d: %3.3f%%, [%7.3f, %7.3f, %7.3f, %7.3f], %s\n",
-            obj.label, obj.prob * 100, obj.rect.x, obj.rect.y,
-            obj.rect.x + obj.rect.width, obj.rect.y + obj.rect.height, class_names[obj.label]);
+                obj.label, obj.prob * 100, obj.rect.x, obj.rect.y,
+                obj.rect.x + obj.rect.width, obj.rect.y + obj.rect.height, class_names[obj.label]);
 
         cv::rectangle(image, obj.rect, cv::Scalar(255, 0, 0));
 
@@ -302,10 +313,12 @@ static void draw_objects(const cv::Mat& bgr, const std::vector<Object>& objects,
 }
 
 // @brief:  get input data and resize to model input shape directly
-static int get_input_data(const char *path, const float *mean, const float *norm, image &lb) {
+static int get_input_data(const char* path, const float* mean, const float* norm, image& lb)
+{
     // load input image
     cv::Mat img = cv::imread(path, 1);
-    if (img.empty()) {
+    if (img.empty())
+    {
         fprintf(stderr, "cv::imread %s failed\n", path);
         return -1;
     }
@@ -314,11 +327,14 @@ static int get_input_data(const char *path, const float *mean, const float *norm
     img.convertTo(img, CV_32FC3);
 
     /* nhwc to nchw */
-    float *_data = (float *)img.data;
-    for (int h = 0; h < lb.h; h++) {
-        for (int w = 0; w < lb.w; w++) {
-            for (int c = 0; c < 3; c++) {
-                int in_index  = h * lb.w * 3 + w * 3 + c;
+    float* _data = (float*)img.data;
+    for (int h = 0; h < lb.h; h++)
+    {
+        for (int w = 0; w < lb.w; w++)
+        {
+            for (int c = 0; c < 3; c++)
+            {
+                int in_index = h * lb.w * 3 + w * 3 + c;
                 int out_index = c * lb.h * lb.w + h * lb.w + w;
                 lb.data[out_index] = (_data[in_index] - mean[c]) * norm[c];
             }
@@ -331,10 +347,12 @@ static int get_input_data(const char *path, const float *mean, const float *norm
 // @param:  lb[in/out]  letter box image inst
 // @param:  pad[out]    top and left pad size
 // @return: resize scale from origin image to letter box
-static float get_input_data(const char *path, const float *mean, const float *norm, image &lb, image &pad) {
+static float get_input_data(const char* path, const float* mean, const float* norm, image& lb, image& pad)
+{
     // load input image
     cv::Mat img = cv::imread(path, 1);
-    if (img.empty()) {
+    if (img.empty())
+    {
         fprintf(stderr, "cv::imread %s failed\n", path);
         return -1.;
     }
@@ -353,17 +371,20 @@ static float get_input_data(const char *path, const float *mean, const float *no
     pad.h = lb.h - h; //(h + 31) / 32 * 32 - h;
     // Generate a gray image using opencv
     cv::Mat img_pad(lb.w, lb.h, CV_32FC3, //cv::Scalar(0));
-        cv::Scalar(0.5/norm[0] + mean[0], 0.5/norm[0] + mean[0], 0.5/norm[2] + mean[2]));
+                    cv::Scalar(0.5 / norm[0] + mean[0], 0.5 / norm[0] + mean[0], 0.5 / norm[2] + mean[2]));
     // Letterbox filling
-    cv::copyMakeBorder(img, img_pad, pad.h/2, pad.h - pad.h/2, pad.w/2, pad.w - pad.w/2, cv::BORDER_CONSTANT, cv::Scalar(0, 0, 0));
+    cv::copyMakeBorder(img, img_pad, pad.h / 2, pad.h - pad.h / 2, pad.w / 2, pad.w - pad.w / 2, cv::BORDER_CONSTANT, cv::Scalar(0, 0, 0));
 
     img_pad.convertTo(img_pad, CV_32FC3);
-    float *_data = (float *)img_pad.data;
+    float* _data = (float*)img_pad.data;
     /* nhwc to nchw */
-    for (int h = 0; h < lb.h; h++) {
-        for (int w = 0; w < lb.w; w++) {
-            for (int c = 0; c < 3; c++) {
-                int in_index  = h * lb.w * 3 + w * 3 + c;
+    for (int h = 0; h < lb.h; h++)
+    {
+        for (int w = 0; w < lb.w; w++)
+        {
+            for (int c = 0; c < 3; c++)
+            {
+                int in_index = h * lb.w * 3 + w * 3 + c;
                 int out_index = c * lb.h * lb.w + h * lb.w + w;
                 lb.data[out_index] = (_data[in_index] - mean[c]) * norm[c];
             }
@@ -373,7 +394,8 @@ static float get_input_data(const char *path, const float *mean, const float *no
     return lb_scale;
 }
 
-static void show_usage() {
+static void show_usage()
+{
     fprintf(stderr, "[Usage]: [-h]\n");
     fprintf(stderr, "   [-m model_file] [-i image_file] [-r repeat_count] [-t thread_count] [-o output_file]\n");
 }
@@ -392,13 +414,14 @@ void get_input_uint8_data(float* input_fp32, uint8_t* input_data, int size, floa
     }
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[])
+{
     const char* model_file = nullptr;
     const char* image_file = nullptr;
-    const char* output_file = "nanodet_m_uint8_out.jpg";
+    const char* output_file = "nanodet_m_timvx_out.jpg";
 
-    const float mean[3] = { 103.53f, 116.28f, 123.675f }; // bgr
-    const float norm[3] = { 0.017429f, 0.017507f, 0.017125f };
+    const float mean[3] = {103.53f, 116.28f, 123.675f}; // bgr
+    const float norm[3] = {0.017429f, 0.017507f, 0.017125f};
 
     int repeat_count = 1;
     int num_thread = 1;
@@ -407,38 +430,42 @@ int main(int argc, char* argv[]) {
     const float nms_threshold = 0.5f;
 
     int res;
-    while ((res = getopt(argc, argv, "m:i:o:r:t:h:")) != -1) {
-        switch (res) {
-            case 'm':
-                model_file = optarg;
-                break;
-            case 'i':
-                image_file = optarg;
-                break;
-            case 'o':
-                output_file = optarg;
-                break;
-            case 'r':
-                repeat_count = std::strtoul(optarg, nullptr, 10);
-                break;
-            case 't':
-                num_thread = std::strtoul(optarg, nullptr, 10);
-                break;
-            case 'h':
-                show_usage();
-                return 0;
-            default:
-                break;
+    while ((res = getopt(argc, argv, "m:i:o:r:t:h:")) != -1)
+    {
+        switch (res)
+        {
+        case 'm':
+            model_file = optarg;
+            break;
+        case 'i':
+            image_file = optarg;
+            break;
+        case 'o':
+            output_file = optarg;
+            break;
+        case 'r':
+            repeat_count = std::strtoul(optarg, nullptr, 10);
+            break;
+        case 't':
+            num_thread = std::strtoul(optarg, nullptr, 10);
+            break;
+        case 'h':
+            show_usage();
+            return 0;
+        default:
+            break;
         }
     }
 
     /* check files */
-    if (nullptr == model_file || nullptr == image_file) {
+    if (nullptr == model_file || nullptr == image_file)
+    {
         fprintf(stderr, "Error: Tengine model file not specified!\n");
         show_usage();
         return -1;
     }
-    if (!check_file_exist(model_file) || !check_file_exist(image_file)) {
+    if (!check_file_exist(model_file) || !check_file_exist(image_file))
+    {
         return -1;
     }
 
@@ -450,7 +477,8 @@ int main(int argc, char* argv[]) {
     opt.affinity = 0;
 
     /* inital tengine */
-    if (0 != init_tengine()) {
+    if (0 != init_tengine())
+    {
         fprintf(stderr, "Initial tengine failed.\n");
         return -1;
     }
@@ -461,19 +489,21 @@ int main(int argc, char* argv[]) {
     int rtt = set_context_device(timvx_context, "TIMVX", nullptr, 0);
     if (0 > rtt)
     {
-        fprintf(stderr, " add_context_device VSI DEVICE failed.\n");
+        fprintf(stderr, "add_context_device VSI DEVICE failed.\n");
         return -1;
     }
     /* create graph, load tengine model xxx.tmfile */
     graph_t graph = create_graph(timvx_context, "tengine", model_file);
-    if (nullptr == graph) {
+    if (nullptr == graph)
+    {
         fprintf(stderr, "Create graph failed.\n");
         return -1;
     }
 
     /* get input tensor of graph */
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
-    if (nullptr == input_tensor) {
+    if (nullptr == input_tensor)
+    {
         fprintf(stderr, "Get input tensor failed\n");
         return -1;
     }
@@ -481,7 +511,8 @@ int main(int argc, char* argv[]) {
     /* get shape of input tensor */
     int i, dims[4]; // nchw
     int dim_num = get_tensor_shape(input_tensor, dims, 4);
-    if (4 != dim_num) {
+    if (4 != dim_num)
+    {
         fprintf(stderr, "Get input tensor shape error\n");
         return -1;
     }
@@ -492,7 +523,7 @@ int main(int argc, char* argv[]) {
 #ifdef TRY_LETTER_BOX
     image pad = make_empty_image(lb.w, lb.h, lb.c);
     float lb_scale = get_input_data(image_file, mean, norm, lb, pad);
-#else /* !TRY_LETTER_BOX */
+#else  /* !TRY_LETTER_BOX */
     get_input_data(image_file, mean, norm, lb);
 #endif /* TRY_LETTER_BOX */
 
@@ -504,13 +535,15 @@ int main(int argc, char* argv[]) {
     get_input_uint8_data(lb.data, input_data.data(), img_size, input_scale, input_zero_point);
 
     /* set the data mem to input tensor */
-    if (set_tensor_buffer(input_tensor, input_data.data(), img_size) < 0) {
+    if (set_tensor_buffer(input_tensor, input_data.data(), img_size) < 0)
+    {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;
     }
 
     /* prerun graph to infer shape, and set work options(num_thread, cluster, precision) */
-    if (prerun_graph_multithread(graph, opt) < 0) {
+    if (prerun_graph_multithread(graph, opt) < 0)
+    {
         fprintf(stderr, "Prerun multithread graph failed.\n");
         return -1;
     }
@@ -519,9 +552,11 @@ int main(int argc, char* argv[]) {
     double min_time = DBL_MAX;
     double max_time = DBL_MIN;
     double total_time = 0.;
-    for (int i = 0; i < repeat_count; i++) {
+    for (int i = 0; i < repeat_count; i++)
+    {
         double start = get_current_time();
-        if (run_graph(graph, 1) < 0) {
+        if (run_graph(graph, 1) < 0)
+        {
             fprintf(stderr, "Run graph failed\n");
             return -1;
         }
@@ -532,39 +567,39 @@ int main(int argc, char* argv[]) {
         max_time = std::max(max_time, cur);
     }
     fprintf(stderr, "Repeat %d times, thread %d, avg time %.2f ms, max_time %.2f ms, min_time %.2f ms\n", repeat_count, num_thread,
-            total_time/repeat_count, max_time, min_time);
+            total_time / repeat_count, max_time, min_time);
     fprintf(stderr, "--------------------------------------\n");
 
     /* nanodet_m postprocess */
     std::vector<Object> proposals, objects;
-    for (int stride_index = 0; stride_index < 3; stride_index++) 
+    for (int stride_index = 0; stride_index < 3; stride_index++)
     {
         tensor_t cls_tensor = get_graph_tensor(graph, cls_pred_name[stride_index]);
         tensor_t dis_tensor = get_graph_tensor(graph, dis_pred_name[stride_index]);
 
-        int cls_count  = get_tensor_buffer_size(cls_tensor) / sizeof(uint8_t);  
-        int dis_count  = get_tensor_buffer_size(dis_tensor) / sizeof(uint8_t);  
+        int cls_count = get_tensor_buffer_size(cls_tensor) / sizeof(uint8_t);
+        int dis_count = get_tensor_buffer_size(dis_tensor) / sizeof(uint8_t);
 
-        float cls_scale  = 0.f;
-        float dis_scale  = 0.f;
-        int cls_zero_point  = 0;
-        int dis_zero_point  = 0;
+        float cls_scale = 0.f;
+        float dis_scale = 0.f;
+        int cls_zero_point = 0;
+        int dis_zero_point = 0;
 
         get_tensor_quant_param(cls_tensor, &cls_scale, &cls_zero_point, 1);
         get_tensor_quant_param(dis_tensor, &dis_scale, &dis_zero_point, 1);
-        
-        const uint8_t *cls_pred_u8 = (const uint8_t *)get_tensor_buffer(cls_tensor);
-        const uint8_t *dis_pred_u8 = (const uint8_t *)get_tensor_buffer(dis_tensor);
+
+        const uint8_t* cls_pred_u8 = (const uint8_t*)get_tensor_buffer(cls_tensor);
+        const uint8_t* dis_pred_u8 = (const uint8_t*)get_tensor_buffer(dis_tensor);
 
         std::vector<float> cls_pred(cls_count);
         std::vector<float> dis_pred(dis_count);
 
         for (int c = 0; c < cls_count; c++)
-            cls_pred[c] = (( float )cls_pred_u8[c] - ( float )cls_zero_point) * cls_scale;
+            cls_pred[c] = ((float)cls_pred_u8[c] - (float)cls_zero_point) * cls_scale;
 
         for (int c = 0; c < dis_count; c++)
-            dis_pred[c] = (( float )dis_pred_u8[c] - ( float )dis_zero_point) * dis_scale;      
-        
+            dis_pred[c] = ((float)dis_pred_u8[c] - (float)dis_zero_point) * dis_scale;
+
         generate_proposals(cls_pred.data(), dis_pred.data(), 1 << (stride_index + 3), lb, prob_threshold, objects);
         proposals.insert(proposals.end(), objects.begin(), objects.end());
     }
@@ -578,10 +613,11 @@ int main(int argc, char* argv[]) {
 
     cv::Mat img = cv::imread(image_file);
     int count = picked.size();
-    fprintf(stderr, "detection num: %d\n",count);
+    fprintf(stderr, "detection num: %d\n", count);
 
     objects.resize(count);
-    for (int i = 0; i < count; i++) {
+    for (int i = 0; i < count; i++)
+    {
         objects[i] = proposals[picked[i]];
 
 #ifdef TRY_LETTER_BOX
@@ -590,7 +626,7 @@ int main(int argc, char* argv[]) {
         float y0 = (objects[i].rect.y - (pad.h / 2)) / lb_scale;
         float x1 = (objects[i].rect.x + objects[i].rect.width - (pad.w / 2)) / lb_scale;
         float y1 = (objects[i].rect.y + objects[i].rect.height - (pad.h / 2)) / lb_scale;
-#else /* !TRY_LETTER_BOX */
+#else  /* !TRY_LETTER_BOX */
         // adjust offset to original unresized
         static float lb_scale_w = 1. * lb.w / img.cols;
         static float lb_scale_h = 1. * lb.h / img.rows;
@@ -620,4 +656,3 @@ int main(int argc, char* argv[]) {
     release_tengine();
     return 0;
 }
-

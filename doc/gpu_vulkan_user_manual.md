@@ -28,6 +28,7 @@ $ export VULKAN_SDK=`pwd`/1.1.114.0/x86_64
 ```bash
 $ cd <tengine-lite-root-dir>
 $ mkdir -p build-linux-vulkan
+$ cd build-linux-vulkan
 $ cmake -DTENGINE_ENABLE_VULKAN=ON ..
 
 $ make -j4

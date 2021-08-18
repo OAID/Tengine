@@ -28,13 +28,12 @@
 
 #include "graph/tensor.h"
 
-
-int deconv_dw_run(struct tensor* input_tensor , \
-                 struct tensor* filter_tensor ,\
-                 struct tensor* bias_tensor ,  \
-                 struct tensor* output_tensor , \
-                 struct deconv_param* param, \
-                 int num_thread, \
-                 int cpu_affinity) ;
+int deconv_dw_run(struct tensor* input_tensor,
+                  struct tensor* filter_tensor,
+                  struct tensor* bias_tensor,
+                  struct tensor* output_tensor,
+                  struct deconv_param* param,
+                  int num_thread,
+                  int cpu_affinity);
 
 #endif

@@ -28,7 +28,6 @@
 #include "graph/node.h"
 #include "utility/sys_port.h"
 
-
 int init_exec_node(struct exec_graph* exec_graph, struct exec_node* exec_node, struct node* ir_node, struct node_ops* node_ops)
 {
     exec_node->ir_node = ir_node;
@@ -44,7 +43,7 @@ int init_exec_node(struct exec_graph* exec_graph, struct exec_node* exec_node, s
 
     if (exec_node->output_num > 4)
     {
-        exec_node->block_id_ptr = ( int8_t* )sys_malloc(sizeof(int8_t) * exec_node->output_num);
+        exec_node->block_id_ptr = (int8_t*)sys_malloc(sizeof(int8_t) * exec_node->output_num);
         block_id = exec_node->block_id_ptr;
     }
 
@@ -56,7 +55,6 @@ int init_exec_node(struct exec_graph* exec_graph, struct exec_node* exec_node, s
 
     return 0;
 }
-
 
 void release_exec_node(struct exec_graph* exec_graph, struct exec_node* exec_node, struct node_ops* node_ops)
 {

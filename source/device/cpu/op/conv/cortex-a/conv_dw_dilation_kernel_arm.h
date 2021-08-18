@@ -65,8 +65,7 @@ int conv_dw_dilation_run(float* input_buf, float* weight_buf, float* bias, float
                 tmp_4 = vmlaq_f32(tmp_4, vdupq_n_f32(weight_buf_c[5]), vld1q_f32(input_buf_c + h * input_w + w + pad));
                 tmp_4 = vmlaq_f32(tmp_4, vdupq_n_f32(weight_buf_c[6]),
                                   vld1q_f32(input_buf_c + (h + pad) * input_w + w - pad));
-                tmp_4 =
-                    vmlaq_f32(tmp_4, vdupq_n_f32(weight_buf_c[7]), vld1q_f32(input_buf_c + (h + pad) * input_w + w));
+                tmp_4 = vmlaq_f32(tmp_4, vdupq_n_f32(weight_buf_c[7]), vld1q_f32(input_buf_c + (h + pad) * input_w + w));
                 tmp_4 = vmlaq_f32(tmp_4, vdupq_n_f32(weight_buf_c[8]),
                                   vld1q_f32(input_buf_c + (h + pad) * input_w + w + pad));
                 tmp_4 = vector_activation(tmp_4, activation);
@@ -115,8 +114,7 @@ int conv_dw_dilation_run(float* input_buf, float* weight_buf, float* bias, float
 
                 tmp_4 = vmlaq_f32(tmp_4, vdupq_n_f32(weight_buf_c[0]),
                                   vld1q_f32(input_buf_c + (h - pad) * input_w + w - pad));
-                tmp_4 =
-                    vmlaq_f32(tmp_4, vdupq_n_f32(weight_buf_c[1]), vld1q_f32(input_buf_c + (h - pad) * input_w + w));
+                tmp_4 = vmlaq_f32(tmp_4, vdupq_n_f32(weight_buf_c[1]), vld1q_f32(input_buf_c + (h - pad) * input_w + w));
                 tmp_4 = vmlaq_f32(tmp_4, vdupq_n_f32(weight_buf_c[2]),
                                   vld1q_f32(input_buf_c + (h - pad) * input_w + w + pad));
                 tmp_4 = vmlaq_f32(tmp_4, vdupq_n_f32(weight_buf_c[3]), vld1q_f32(input_buf_c + h * input_w + w - pad));
@@ -124,8 +122,7 @@ int conv_dw_dilation_run(float* input_buf, float* weight_buf, float* bias, float
                 tmp_4 = vmlaq_f32(tmp_4, vdupq_n_f32(weight_buf_c[5]), vld1q_f32(input_buf_c + h * input_w + w + pad));
                 tmp_4 = vmlaq_f32(tmp_4, vdupq_n_f32(weight_buf_c[6]),
                                   vld1q_f32(input_buf_c + (h + pad) * input_w + w - pad));
-                tmp_4 =
-                    vmlaq_f32(tmp_4, vdupq_n_f32(weight_buf_c[7]), vld1q_f32(input_buf_c + (h + pad) * input_w + w));
+                tmp_4 = vmlaq_f32(tmp_4, vdupq_n_f32(weight_buf_c[7]), vld1q_f32(input_buf_c + (h + pad) * input_w + w));
                 tmp_4 = vmlaq_f32(tmp_4, vdupq_n_f32(weight_buf_c[8]),
                                   vld1q_f32(input_buf_c + (h + pad) * input_w + w + pad));
                 tmp_4 = vector_activation(tmp_4, activation);
@@ -177,8 +174,7 @@ int conv_dw_dilation_run(float* input_buf, float* weight_buf, float* bias, float
 
                 tmp_4 = vmlaq_f32(tmp_4, vdupq_n_f32(weight_buf_c[0]),
                                   vld1q_f32(input_buf_c + (h - pad) * input_w + w - pad));
-                tmp_4 =
-                    vmlaq_f32(tmp_4, vdupq_n_f32(weight_buf_c[1]), vld1q_f32(input_buf_c + (h - pad) * input_w + w));
+                tmp_4 = vmlaq_f32(tmp_4, vdupq_n_f32(weight_buf_c[1]), vld1q_f32(input_buf_c + (h - pad) * input_w + w));
                 tmp_4 = vmlaq_f32(tmp_4, vdupq_n_f32(weight_buf_c[2]),
                                   vld1q_f32(input_buf_c + (h - pad) * input_w + w + pad));
                 tmp_4 = vmlaq_f32(tmp_4, vdupq_n_f32(weight_buf_c[3]), vld1q_f32(input_buf_c + h * input_w + w - pad));

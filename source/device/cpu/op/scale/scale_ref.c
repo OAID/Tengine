@@ -34,7 +34,6 @@
 #include "device/cpu/cpu_graph.h"
 #include "device/cpu/cpu_module.h"
 
-
 int ref_scale_fp32(struct tensor* input_tensor, struct tensor* gamma_tensor, struct tensor* beta_tensor,
                    struct tensor* output_tensor, struct scale_param* param, int num_thread)
 {
@@ -46,9 +45,9 @@ int ref_scale_fp32(struct tensor* input_tensor, struct tensor* gamma_tensor, str
     int nstep = channel * h * w;
     int cstep = h * w;
 
-    float* input_data = input_tensor->data;
-    float* gamma_data = gamma_tensor->data;
-    float* output_data = output_tensor->data;
+    float* input_data = (float*)input_tensor->data;
+    float* gamma_data = (float*)gamma_tensor->data;
+    float* output_data = (float*)output_tensor->data;
 
     if (beta_tensor == NULL)
     {
@@ -66,7 +65,7 @@ int ref_scale_fp32(struct tensor* input_tensor, struct tensor* gamma_tensor, str
     }
     else
     {
-        float* beta_data = beta_tensor->data;
+        float* beta_data = (float*)beta_tensor->data;
 
         for (int b = 0; b < n; b++)
         {
@@ -110,7 +109,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         beta_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[2]);
 
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    struct scale_param* scale_param = ( struct scale_param* )ir_node->op.param_mem;
+    struct scale_param* scale_param = (struct scale_param*)ir_node->op.param_mem;
 
     ref_scale_fp32(input_tensor, gamma_tensor, beta_tensor, output_tensor, scale_param, exec_graph->num_thread);
 

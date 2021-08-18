@@ -40,7 +40,6 @@
 
 #include <string.h>
 
-
 static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     struct node* ir_node = exec_node->ir_node;
@@ -49,8 +48,8 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
     struct tensor* filter_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    struct conv_param* conv_param = ( struct conv_param* )ir_node->op.param_mem;
-    struct conv_priv_info* conv_priv_info = ( struct conv_priv_info* )exec_node->ops_priv;
+    struct conv_param* conv_param = (struct conv_param*)ir_node->op.param_mem;
+    struct conv_priv_info* conv_priv_info = (struct conv_priv_info*)exec_node->ops_priv;
 
     /* get cpu affinity */
     conv_priv_info->cpu_type = exec_graph->cpu_affinity;
@@ -69,7 +68,8 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
         if (conv_hcl_set_shared_pack4_mem && exec_node->shared_pack4_mem_size < exec_graph->shared_pack4_mem_size)
         {
             if (conv_hcl_set_shared_pack4_mem(conv_priv_info, exec_graph->shared_pack4_mem,
-                                              exec_graph->shared_pack4_mem_size) < 0)
+                                              exec_graph->shared_pack4_mem_size)
+                < 0)
             {
                 TLOG_ERR("hcl conv: set shared pack4 memory failed\n");
                 return -1;
@@ -148,14 +148,15 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     if (ir_node->input_num > 2)
         bias_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[2]);
 
-    struct conv_param* conv_param = ( struct conv_param* )ir_node->op.param_mem;
-    struct conv_priv_info* conv_priv_info = ( struct conv_priv_info* )exec_node->ops_priv;
+    struct conv_param* conv_param = (struct conv_param*)ir_node->op.param_mem;
+    struct conv_priv_info* conv_priv_info = (struct conv_priv_info*)exec_node->ops_priv;
 
     /* fp32 run */
     if (exec_graph->mode == TENGINE_MODE_FP32 || exec_graph->mode == TENGINE_MODE_UINT8)
     {
         if (conv_hcl_run(input_tensor, weight_tensor, bias_tensor, output_tensor, conv_priv_info, conv_param, num_thread,
-                         cpu_affinity) < 0)
+                         cpu_affinity)
+            < 0)
         {
             TLOG_ERR("hcl conv run failed\n");
             return -1;
@@ -170,14 +171,15 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
             TLOG_ERR("hcl conv fp16 run failed\n");
             // set_tengine_errno(EFAULT);
             return -1;
-        }        
+        }
     }
 #endif
     /* int8 run */
     else if (exec_graph->mode == TENGINE_MODE_INT8)
     {
         if (int8_conv_hcl_run(input_tensor, weight_tensor, bias_tensor, output_tensor, conv_priv_info, conv_param, num_thread,
-                         cpu_affinity) < 0)
+                              cpu_affinity)
+            < 0)
         {
             TLOG_ERR("hcl conv int8 run failed\n");
             return -1;
@@ -201,7 +203,7 @@ static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struc
 
     input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    struct conv_param* conv_param = ( struct conv_param* )ir_node->op.param_mem;
+    struct conv_param* conv_param = (struct conv_param*)ir_node->op.param_mem;
 
     /* dynamic get the shape of output tensor */
     int n = input_tensor->dims[0];
@@ -263,10 +265,7 @@ static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struc
     }
     else
     {
-        out_h =
-            (h - conv_param->dilation_h * (conv_param->kernel_h - 1) - 1 + conv_param->pad_h0 + conv_param->pad_h1) /
-            conv_param->stride_h +
-            1;
+        out_h = (h - conv_param->dilation_h * (conv_param->kernel_h - 1) - 1 + conv_param->pad_h0 + conv_param->pad_h1) / conv_param->stride_h + 1;
     }
 
     if (conv_param->pad_w0 < 0)
@@ -289,10 +288,7 @@ static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struc
     }
     else
     {
-        out_w =
-            (w - conv_param->dilation_w * (conv_param->kernel_w - 1) - 1 + conv_param->pad_w0 + conv_param->pad_w1) /
-            conv_param->stride_w +
-            1;
+        out_w = (w - conv_param->dilation_w * (conv_param->kernel_w - 1) - 1 + conv_param->pad_w0 + conv_param->pad_w1) / conv_param->stride_w + 1;
     }
 
     int dims[4];
@@ -305,7 +301,7 @@ static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struc
             dims[2] = out_h;
             dims[3] = out_w;
 
-            for (int i=0; i<4; i++)
+            for (int i = 0; i < 4; i++)
             {
                 if (dims[i] == 0)
                     dims[i] = 1;
@@ -322,7 +318,7 @@ static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struc
             dims[2] = out_w;
             dims[3] = out_c;
 
-            for (int i=0; i<4; i++)
+            for (int i = 0; i < 4; i++)
             {
                 if (dims[i] == 0)
                     dims[i] = 1;
@@ -337,7 +333,7 @@ static int reshape(struct node_ops* node_ops, struct exec_node* exec_node, struc
 
 static int postrun(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct conv_priv_info* conv_priv_info = ( struct conv_priv_info* )exec_node->ops_priv;
+    struct conv_priv_info* conv_priv_info = (struct conv_priv_info*)exec_node->ops_priv;
 
     /* fp32 postrun */
     if (exec_graph->mode == TENGINE_MODE_FP32 || exec_graph->mode == TENGINE_MODE_UINT8)
@@ -390,10 +386,10 @@ static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, str
     filter_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    struct conv_param* conv_param = ( struct conv_param* )ir_node->op.param_mem;
+    struct conv_param* conv_param = (struct conv_param*)ir_node->op.param_mem;
 
     /* init the private info data of convolution op */
-    struct conv_priv_info* conv_priv_info = ( struct conv_priv_info* )sys_malloc(sizeof(struct conv_priv_info));
+    struct conv_priv_info* conv_priv_info = (struct conv_priv_info*)sys_malloc(sizeof(struct conv_priv_info));
     if (conv_priv_info == NULL)
     {
         return -1;
@@ -429,7 +425,7 @@ static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, str
 
 static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct conv_priv_info* conv_priv_info = ( struct conv_priv_info* )exec_node->ops_priv;
+    struct conv_priv_info* conv_priv_info = (struct conv_priv_info*)exec_node->ops_priv;
     sys_free(conv_priv_info);
     exec_node->ops_priv = NULL;
 
@@ -442,7 +438,7 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     struct graph* ir_graph = ir_node->graph;
     struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    struct conv_param* param = ( struct conv_param* )exec_node->op.param_mem;
+    struct conv_param* param = (struct conv_param*)exec_node->op.param_mem;
     int group = param->group;
     int kernel_h = param->kernel_h;
     int kernel_w = param->kernel_w;
@@ -450,7 +446,7 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
     int out_c = output_tensor->dims[1] / group;
 
     /* todo support int8/fp16 */
-#if __ARM_FEATURE_FP16_VECTOR_ARITHMETIC    
+#if __ARM_FEATURE_FP16_VECTOR_ARITHMETIC
     if (input_tensor->data_type != TENGINE_DT_FP32 && input_tensor->data_type != TENGINE_DT_FP16)
         return 0;
 
@@ -466,14 +462,13 @@ static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struc
 }
 
 static struct node_ops hcl_node_ops = {
-        .prerun = prerun,
-        .run = run,
-        .reshape = reshape,
-        .postrun = postrun,
-        .init_node = init_node,
-        .release_node = release_node,
-        .score = score
-};
+    .prerun = prerun,
+    .run = run,
+    .reshape = reshape,
+    .postrun = postrun,
+    .init_node = init_node,
+    .release_node = release_node,
+    .score = score};
 
 int register_conv_hcl_arm_op()
 {

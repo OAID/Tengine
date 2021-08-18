@@ -41,7 +41,6 @@
 #define HCL_POOL_MAX 0 /* Max pooling     */
 #define HCL_POOL_AVG 1 /* Average pooling */
 
-
 static inline float calc_sum_fp32(const float* input, int layout, int c, int h, int w, int cur_ch, int start_h,
                                   int start_w, int end_h, int end_w)
 {
@@ -78,7 +77,7 @@ static inline float calc_max_fp32(const float* input, int layout, int c, int h, 
 }
 
 int ref_pooling_fp32(struct tensor* input_tensor, struct tensor* output_tensor,
-                           struct pool_param* pool_param, int num_thread)
+                     struct pool_param* pool_param, int num_thread)
 {
     int layout = input_tensor->layout;
     int type = input_tensor->data_type;
@@ -105,9 +104,8 @@ int ref_pooling_fp32(struct tensor* input_tensor, struct tensor* output_tensor,
     int caffe_flavor = pool_param->caffe_flavor;
     int method = pool_param->pool_method;
 
-
-    float* input = input_tensor->data;
-    float* output = output_tensor->data;
+    float* input = (float*)input_tensor->data;
+    float* output = (float*)output_tensor->data;
 
     for (int n = 0; n < batch; n++)
     {
@@ -141,19 +139,19 @@ int ref_pooling_fp32(struct tensor* input_tensor, struct tensor* output_tensor,
 
                     if (!caffe_flavor)
                         pool_size = (h_end - h_start) * (w_end - w_start);
-                        
+
                     offset = n * output_chw + c * out_h * out_w + ph * out_w + pw;
 
                     if (method == HCL_POOL_MAX)
                     {
                         float max = calc_max_fp32(input_cur, layout, channel, in_h, in_w, c, h_start, w_start,
-                                                    h_end, w_end);
+                                                  h_end, w_end);
                         output[offset] = max;
                     }
                     else if (method == HCL_POOL_AVG)
                     {
                         float sum = calc_sum_fp32(input_cur, layout, channel, in_h, in_w, c, h_start, w_start,
-                                                    h_end, w_end);
+                                                  h_end, w_end);
                         output[offset] = sum / pool_size;
                     }
                     else

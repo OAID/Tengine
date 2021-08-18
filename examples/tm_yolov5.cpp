@@ -31,7 +31,6 @@
 #include "tengine/c_api.h"
 #include "tengine_operations.h"
 
-
 static constexpr int kAnchorNum = 3;
 static constexpr int kClassNum = 80;
 static constexpr float kIgnoreThresh = 0.5f;
@@ -71,7 +70,7 @@ void correct_yolo_boxes(std::vector<detection>& dets, int w, int h, int netw, in
     int i;
     int new_w = 0;
     int new_h = 0;
-    if ((( float )netw / w) < (( float )neth / h))
+    if (((float)netw / w) < ((float)neth / h))
     {
         new_w = netw;
         new_h = (h * netw) / w;
@@ -85,10 +84,10 @@ void correct_yolo_boxes(std::vector<detection>& dets, int w, int h, int netw, in
     for (i = 0; i < dets.size(); ++i)
     {
         box b = dets[i].bbox;
-        b.x = (b.x - (netw - new_w) / 2.) / (( float )new_w / w);
-        b.y = (b.y - (neth - new_h) / 2.) / (( float )new_h / h);
-        b.w /= (( float )new_w / w);
-        b.h /= (( float )new_h / h);
+        b.x = (b.x - (netw - new_w) / 2.) / ((float)new_w / w);
+        b.y = (b.y - (neth - new_h) / 2.) / ((float)new_h / h);
+        b.w /= ((float)new_w / w);
+        b.h /= ((float)new_h / h);
 
         dets[i].bbox = b;
     }
@@ -123,8 +122,7 @@ std::vector<detection> forward_darknet_layer_cpu(const float* input, int img_w, 
         {
             for (int channel = 0; channel < 3; channel++)
             {
-                const float* pdata = input + channel * out_h * out_w * (kClassNum + 5) +
-                                      shift_y * out_w * (kClassNum + 5) + shift_x * (kClassNum + 5);
+                const float* pdata = input + channel * out_h * out_w * (kClassNum + 5) + shift_y * out_w * (kClassNum + 5) + shift_x * (kClassNum + 5);
                 float box_prob = logistic_cpu(*(pdata + 4));
                 if (box_prob < kIgnoreThresh)
                     continue;
@@ -212,7 +210,7 @@ std::vector<detection> do_nms_sort(std::vector<detection>& dets, int classes, fl
     for (int k = 0; k < classes; ++k)
     {
         std::vector<detection> class_detection;
-        for (auto & det : dets)
+        for (auto& det : dets)
         {
             if (det.classes == k)
             {
@@ -220,7 +218,7 @@ std::vector<detection> do_nms_sort(std::vector<detection>& dets, int classes, fl
             }
         }
 
-        std::sort(class_detection.begin(), class_detection.end(), [](const detection & a, const detection & b) {
+        std::sort(class_detection.begin(), class_detection.end(), [](const detection& a, const detection& b) {
             return a.prob > b.prob;
         });
 
@@ -282,28 +280,28 @@ int main(int argc, char* argv[])
     {
         switch (res)
         {
-            case 'm':
-                model_file = optarg;
-                break;
-            case 'i':
-                image_file = optarg;
-                break;
-            case 'r':
-                repeat_count = std::strtoul(optarg, nullptr, 10);
-                break;
-            case 't':
-                num_thread = std::strtoul(optarg, nullptr, 10);
-                break;
-            case 's':
-                net_w = std::strtoul(optarg, nullptr, 10);
-                net_h = net_w;
-                fprintf(stderr, "set net input size: %d %d\n", net_h, net_w);
-                break;
-            case 'h':
-                show_usage();
-                return 0;
-            default:
-                break;
+        case 'm':
+            model_file = optarg;
+            break;
+        case 'i':
+            image_file = optarg;
+            break;
+        case 'r':
+            repeat_count = std::strtoul(optarg, nullptr, 10);
+            break;
+        case 't':
+            num_thread = std::strtoul(optarg, nullptr, 10);
+            break;
+        case 's':
+            net_w = std::strtoul(optarg, nullptr, 10);
+            net_h = net_w;
+            fprintf(stderr, "set net input size: %d %d\n", net_h, net_w);
+            break;
+        case 'h':
+            show_usage();
+            return 0;
+        default:
+            break;
         }
     }
 
@@ -350,7 +348,7 @@ int main(int argc, char* argv[])
 
     /* set the input shape to initial the graph, and prerun graph to infer shape */
     int img_size = net_h * net_w * 3;
-    int dims[] = {1, 3, net_h, net_w};    // nchw
+    int dims[] = {1, 3, net_h, net_w}; // nchw
 
     std::vector<float> input_data(img_size);
 
@@ -367,7 +365,7 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    if (set_tensor_buffer(input_tensor, input_data.data(), img_size * 4) < 0)
+    if (set_tensor_buffer(input_tensor, input_data.data(), img_size * sizeof(float)) < 0)
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;
@@ -418,7 +416,7 @@ int main(int argc, char* argv[])
         int out_dim[5];
         get_tensor_shape(out_tensor, out_dim, 5);
 
-        float* out_data = ( float* )get_tensor_buffer(out_tensor);
+        float* out_data = (float*)get_tensor_buffer(out_tensor);
         int out_w = out_dim[3];
         int out_h = out_dim[2];
         auto node_detection = forward_darknet_layer_cpu(out_data, img.w, img.h, net_w, net_h, out_w, out_h);

@@ -27,7 +27,6 @@
 #include "graph/graph.h"
 #include "module/module.h"
 
-
 static int infer_shape(struct node* node)
 {
     struct graph* ir_graph = node->graph;
@@ -39,7 +38,6 @@ static int infer_shape(struct node* node)
     return 0;
 }
 
-
 static int init_op(struct op* op)
 {
     op->same_shape = 0;
@@ -48,8 +46,9 @@ static int init_op(struct op* op)
     return 0;
 }
 
-static void release_op(struct op* op) {}
-
+static void release_op(struct op* op)
+{
+}
 
 int register_ceil_op()
 {
@@ -61,7 +60,6 @@ int register_ceil_op()
 
     return register_op(OP_CEIL, OP_CEIL_NAME, &m);
 }
-
 
 int unregister_ceil_op()
 {

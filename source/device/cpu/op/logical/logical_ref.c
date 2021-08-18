@@ -36,7 +36,6 @@
 
 #include <math.h>
 
-
 struct logical_param_ref
 {
     int type;
@@ -118,19 +117,19 @@ static int ref_logical_fp32(float* input0, float* input1, float* output, struct 
 
     switch (param->type)
     {
-        case 0:    // LogicalAnd
-        {
-            logical_and(input_hw, input_hw_1, input_count4, input1_count4, input0, input1, output);
-            break;
-        }
-        case 1:    // LogicalOr
-        {
-            logical_or(input_hw, input_hw_1, input_count4, input1_count4, input0, input1, output);
-            break;
-        }
-        default:
-            return -1;
-            ;
+    case 0: // LogicalAnd
+    {
+        logical_and(input_hw, input_hw_1, input_count4, input1_count4, input0, input1, output);
+        break;
+    }
+    case 1: // LogicalOr
+    {
+        logical_or(input_hw, input_hw_1, input_count4, input1_count4, input0, input1, output);
+        break;
+    }
+    default:
+        return -1;
+        ;
     }
     return 0;
 }
@@ -169,7 +168,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     input_tensor1 = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    struct logical_param* logical_param = ( struct logical_param* )ir_node->op.param_mem;
+    struct logical_param* logical_param = (struct logical_param*)ir_node->op.param_mem;
     struct logical_param_ref logical_param_ref;
 
     logical_param_ref.shape0[0] = 1;
@@ -182,28 +181,28 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     logical_param_ref.shape1[2] = 1;
     logical_param_ref.shape1[3] = 1;
 
-    if (input_tensor0->dims[0] !=0)
+    if (input_tensor0->dims[0] != 0)
         logical_param_ref.shape0[0] = input_tensor0->dims[0];
-    if (input_tensor0->dims[1] !=0)
+    if (input_tensor0->dims[1] != 0)
         logical_param_ref.shape0[1] = input_tensor0->dims[1];
-    if (input_tensor0->dims[2] !=0)
+    if (input_tensor0->dims[2] != 0)
         logical_param_ref.shape0[2] = input_tensor0->dims[2];
-    if (input_tensor0->dims[3] !=0)
+    if (input_tensor0->dims[3] != 0)
         logical_param_ref.shape0[3] = input_tensor0->dims[3];
 
-    if (input_tensor1->dims[0] !=0)
+    if (input_tensor1->dims[0] != 0)
         logical_param_ref.shape1[0] = input_tensor1->dims[0];
-    if (input_tensor1->dims[1] !=0)
+    if (input_tensor1->dims[1] != 0)
         logical_param_ref.shape1[1] = input_tensor1->dims[1];
-    if (input_tensor1->dims[2] !=0)
+    if (input_tensor1->dims[2] != 0)
         logical_param_ref.shape1[2] = input_tensor1->dims[2];
-    if (input_tensor1->dims[3] !=0)
+    if (input_tensor1->dims[3] != 0)
         logical_param_ref.shape1[3] = input_tensor1->dims[3];
 
     logical_param_ref.type = logical_param->type;
 
-    int ret = ref_logical_fp32(input_tensor0->data, input_tensor1->data, output_tensor->data, &logical_param_ref,
-                               exec_graph->num_thread);
+    int ret = ref_logical_fp32((float*)input_tensor0->data, (float*)input_tensor1->data,
+                               (float*)output_tensor->data, &logical_param_ref, exec_graph->num_thread);
     if (ret != 0)
         return -1;
 

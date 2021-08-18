@@ -25,11 +25,9 @@
 #ifndef __HARDSWISH_KERNEL_REF_H__
 #define __HARDSWISH_KERNEL_REF_H__
 
-
 #include "graph/tensor.h"
 #include "graph/node.h"
 #include "graph/graph.h"
-
 
 int ref_hardswish_fp32(struct tensor* input_tensor, struct tensor* output_tensor);
 

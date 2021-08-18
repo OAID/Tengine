@@ -36,32 +36,33 @@
 #include "tengine/c_api.h"
 #include "tengine_operations.h"
 
-#define DEFAULT_IMG_H 224
-#define DEFAULT_IMG_W 224
-#define DEFAULT_SCALE1 1.f
-#define DEFAULT_SCALE2 1.f
-#define DEFAULT_SCALE3 1.f
-#define DEFAULT_MEAN1 104.007
-#define DEFAULT_MEAN2 116.669
-#define DEFAULT_MEAN3 122.679
-#define DEFAULT_LOOP_COUNT 1
+#define DEFAULT_IMG_H        224
+#define DEFAULT_IMG_W        224
+#define DEFAULT_SCALE1       1.f
+#define DEFAULT_SCALE2       1.f
+#define DEFAULT_SCALE3       1.f
+#define DEFAULT_MEAN1        104.007
+#define DEFAULT_MEAN2        116.669
+#define DEFAULT_MEAN3        122.679
+#define DEFAULT_LOOP_COUNT   1
 #define DEFAULT_THREAD_COUNT 1
 #define DEFAULT_CPU_AFFINITY 255
 
 int float_mismatch(float* current, float* reference, int size)
 {
-    for(int i=0;i<size;i++)
+    int ret = 0;
+    for (int i = 0; i < size; i++)
     {
         float tmp = fabs(current[i]) - fabs(reference[i]);
-        if(fabs(tmp) > 0.0001)
+        if (fabs(tmp) > 0.001)
         {
             fprintf(stderr, "test failed, index:%d, a:%f, b:%f\n", i, current[i], reference[i]);
-            return -1;
+            ret = -1;
         }
     }
     fprintf(stderr, "test pass\n");
 
-    return 0;
+    return ret;
 }
 
 void show_usage()
@@ -82,7 +83,7 @@ int main(int argc, char* argv[])
     int num_thread = DEFAULT_THREAD_COUNT;
     int cpu_affinity = DEFAULT_CPU_AFFINITY;
     std::string model_name;
-    std::string model_file; 
+    std::string model_file;
     char* image_file = NULL;
     float img_hw[2] = {0.f};
     int img_h = 0;
@@ -95,37 +96,37 @@ int main(int argc, char* argv[])
     {
         switch (res)
         {
-            case 'm':
-                model_name = optarg;
-                break;
-            case 'i':
-                image_file = optarg;
-                break;
-            case 'g':
-                split(img_hw, optarg, ",");
-                img_h = ( int )img_hw[0];
-                img_w = ( int )img_hw[1];
-                break;
-            case 's':
-                split(scale, optarg, ",");
-                break;
-            case 'w':
-                split(mean, optarg, ",");
-                break;
-            case 'r':
-                loop_count = atoi(optarg);
-                break;
-            case 't':
-                num_thread = atoi(optarg);
-                break;
-            case 'a':
-                cpu_affinity = atoi(optarg);
-                break;
-            case 'h':
-                show_usage();
-                return 0;
-            default:
-                break;
+        case 'm':
+            model_name = optarg;
+            break;
+        case 'i':
+            image_file = optarg;
+            break;
+        case 'g':
+            split(img_hw, optarg, ",");
+            img_h = (int)img_hw[0];
+            img_w = (int)img_hw[1];
+            break;
+        case 's':
+            split(scale, optarg, ",");
+            break;
+        case 'w':
+            split(mean, optarg, ",");
+            break;
+        case 'r':
+            loop_count = atoi(optarg);
+            break;
+        case 't':
+            num_thread = atoi(optarg);
+            break;
+        case 'a':
+            cpu_affinity = atoi(optarg);
+            break;
+        case 'h':
+            show_usage();
+            return 0;
+        default:
+            break;
         }
     }
 
@@ -202,7 +203,7 @@ int main(int argc, char* argv[])
 
     /* set the shape, data buffer of input_tensor of the graph */
     int img_size = img_h * img_w * 3;
-    int dims[] = {1, 3, img_h, img_w};    // nchw
+    int dims[] = {1, 3, img_h, img_w}; // nchw
     std::vector<float> input_data(img_size);
 
     tensor_t input_tensor = get_graph_input_tensor(graph, 0, 0);
@@ -218,11 +219,11 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    if (set_tensor_buffer(input_tensor, input_data.data(), img_size * 4) < 0)
+    if (set_tensor_buffer(input_tensor, input_data.data(), img_size * sizeof(float)) < 0)
     {
         fprintf(stderr, "Set input tensor buffer failed\n");
         return -1;
-    }    
+    }
 
     /* prerun graph, set work options(num_thread, cluster, precision) */
     if (prerun_graph_multithread(graph, opt) < 0)
@@ -252,7 +253,7 @@ int main(int argc, char* argv[])
 
     /* get the result of classification */
     tensor_t output_tensor = get_graph_output_tensor(graph, 0, 0);
-    float* output_data = ( float* )get_tensor_buffer(output_tensor);
+    float* output_data = (float*)get_tensor_buffer(output_tensor);
     int output_size = get_tensor_buffer_size(output_tensor) / sizeof(float);
 
     print_topk(output_data, output_size, 5);
@@ -261,8 +262,13 @@ int main(int argc, char* argv[])
     /* check the result */
     std::string reference_file = "./data/" + model_name + "_out.bin";
     std::vector<float> reference_data(output_size);
-    FILE *fp;
+    FILE* fp;
     fp = fopen(reference_file.c_str(), "rb");
+    if (!fp)
+    {
+        fprintf(stderr, "read reference %s failed!\n", reference_file.c_str());
+        return -1;
+    }
     if (fread(reference_data.data(), sizeof(float), output_size, fp) == 0)
     {
         fprintf(stderr, "read reference data file failed!\n");
@@ -277,5 +283,5 @@ int main(int argc, char* argv[])
     destroy_graph(graph);
     release_tengine();
 
-    return ret;        
+    return ret;
 }

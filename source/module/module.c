@@ -35,12 +35,10 @@
 #include <stddef.h>
 #include <string.h>
 
-
-static vector_t* internal_serializer_registry = NULL;   //!< registry of model serializer
-static vector_t* internal_device_registry     = NULL;   //!< registry of runnable neural network device
-static vector_t* internal_op_method_registry  = NULL;   //!< registry of operators
-static vector_t* internal_op_name_registry    = NULL;   //!< registry of operators name
-
+static vector_t* internal_serializer_registry = NULL; //!< registry of model serializer
+static vector_t* internal_device_registry = NULL;     //!< registry of runnable neural network device
+static vector_t* internal_op_method_registry = NULL;  //!< registry of operators
+static vector_t* internal_op_name_registry = NULL;    //!< registry of operators name
 
 /*!
  * @struct ir_op_map_t
@@ -48,13 +46,11 @@ static vector_t* internal_op_name_registry    = NULL;   //!< registry of operato
  */
 typedef struct op_name_entry
 {
-    int type;               //!< the type of a operator
-    const char* name;       //!< the name of a operator
+    int type;         //!< the type of a operator
+    const char* name; //!< the name of a operator
 } ir_op_name_entry_t;
 
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 static int initialize_serializer_registry(const char* name)
 {
@@ -70,7 +66,6 @@ static int initialize_serializer_registry(const char* name)
 
     return 0;
 }
-
 
 int register_serializer(serializer_t* serializer)
 {
@@ -101,7 +96,6 @@ int register_serializer(serializer_t* serializer)
     return 0;
 }
 
-
 serializer_t* find_serializer_via_name(const char* name)
 {
     if (NULL == internal_serializer_registry)
@@ -131,7 +125,6 @@ serializer_t* find_serializer_via_name(const char* name)
     return NULL;
 }
 
-
 serializer_t* find_serializer_via_index(int index)
 {
     int count = get_serializer_count();
@@ -147,7 +140,6 @@ serializer_t* find_serializer_via_index(int index)
     }
 }
 
-
 int get_serializer_count()
 {
     if (NULL == internal_serializer_registry)
@@ -159,7 +151,6 @@ int get_serializer_count()
         return get_vector_num(internal_serializer_registry);
     }
 }
-
 
 int unregister_serializer(serializer_t* serializer)
 {
@@ -194,7 +185,6 @@ int unregister_serializer(serializer_t* serializer)
     return remove_vector_via_pointer(internal_serializer_registry, &serializer);
 }
 
-
 int release_serializer_registry()
 {
     while (get_vector_num(internal_serializer_registry) > 0)
@@ -209,9 +199,7 @@ int release_serializer_registry()
     return 0;
 }
 
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 static int initialize_device_registry(const char* name)
 {
@@ -227,7 +215,6 @@ static int initialize_device_registry(const char* name)
 
     return 0;
 }
-
 
 ir_device_t* find_device_via_name(const char* name)
 {
@@ -258,12 +245,10 @@ ir_device_t* find_device_via_name(const char* name)
     return NULL;
 }
 
-
 struct device* find_default_device()
 {
     return find_device_via_name("CPU");
 }
-
 
 ir_device_t* find_device_via_index(int index)
 {
@@ -271,7 +256,7 @@ ir_device_t* find_device_via_index(int index)
 
     if (0 <= index && index < count)
     {
-        ir_device_t* device = get_vector_data(internal_device_registry, index);
+        ir_device_t* device = (ir_device_t*)get_vector_data(internal_device_registry, index);
         return device;
     }
     else
@@ -279,7 +264,6 @@ ir_device_t* find_device_via_index(int index)
         return NULL;
     }
 }
-
 
 int get_device_count()
 {
@@ -292,7 +276,6 @@ int get_device_count()
         return get_vector_num(internal_device_registry);
     }
 }
-
 
 int register_device(ir_device_t* device)
 {
@@ -323,7 +306,6 @@ int register_device(ir_device_t* device)
     return 0;
 }
 
-
 int unregister_device(ir_device_t* device)
 {
     if (NULL == find_device_via_name(device->name))
@@ -339,7 +321,6 @@ int unregister_device(ir_device_t* device)
     return remove_vector_via_pointer(internal_device_registry, &device);
 }
 
-
 int release_device_registry()
 {
     while (get_vector_num(internal_device_registry) > 0)
@@ -354,9 +335,7 @@ int release_device_registry()
     return 0;
 }
 
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 int initialize_op_name_registry(const char* name)
 {
@@ -374,7 +353,6 @@ int initialize_op_name_registry(const char* name)
     return 0;
 }
 
-
 int register_op_name(int type, const char* name)
 {
     initialize_op_name_registry(name);
@@ -391,7 +369,6 @@ int register_op_name(int type, const char* name)
 
     return push_vector_data(internal_op_name_registry, &op_map);
 }
-
 
 int unregister_op_name(int type)
 {
@@ -415,7 +392,6 @@ int unregister_op_name(int type)
     return 0;
 }
 
-
 int release_op_name_registry()
 {
     while (get_vector_num(internal_op_name_registry) > 0)
@@ -429,7 +405,6 @@ int release_op_name_registry()
 
     return 0;
 }
-
 
 static int initialize_op_registry(const char* name)
 {
@@ -446,7 +421,6 @@ static int initialize_op_registry(const char* name)
     return 0;
 }
 
-
 static int register_op_registry(ir_method_t* method)
 {
     if (find_op_method(method->type, method->version))
@@ -456,7 +430,6 @@ static int register_op_registry(ir_method_t* method)
 
     return push_vector_data(internal_op_method_registry, method);
 }
-
 
 int register_op(int type, const char* name, ir_method_t* method)
 {
@@ -485,7 +458,6 @@ int register_op(int type, const char* name, ir_method_t* method)
     return 0;
 }
 
-
 ir_method_t* find_op_method(int type, int version)
 {
     int op_count = get_vector_num(internal_op_method_registry);
@@ -503,14 +475,13 @@ ir_method_t* find_op_method(int type, int version)
     return NULL;
 }
 
-
 ir_method_t* find_op_method_via_index(int index)
 {
     int count = get_op_method_count();
 
     if (0 <= index && index < count)
     {
-        ir_method_t* method = get_vector_data(internal_op_method_registry, index);
+        ir_method_t* method = (ir_method_t*)get_vector_data(internal_op_method_registry, index);
         return method;
     }
     else
@@ -519,13 +490,12 @@ ir_method_t* find_op_method_via_index(int index)
     }
 }
 
-
 const char* find_op_name(int type)
 {
     int count = get_vector_num(internal_op_name_registry);
     for (int i = 0; i < count; i++)
     {
-        const ir_op_name_entry_t* op_name = get_vector_data(internal_op_name_registry, i);
+        const ir_op_name_entry_t* op_name = (const ir_op_name_entry_t*)get_vector_data(internal_op_name_registry, i);
         if (op_name->type == type)
         {
             return op_name->name;
@@ -534,7 +504,6 @@ const char* find_op_name(int type)
 
     return NULL;
 }
-
 
 int get_op_method_count()
 {
@@ -547,7 +516,6 @@ int get_op_method_count()
         return get_vector_num(internal_op_method_registry);
     }
 }
-
 
 int unregister_op(int type, int version)
 {
@@ -586,7 +554,6 @@ int unregister_op(int type, int version)
 
     return 0;
 }
-
 
 int release_op_registry(void)
 {

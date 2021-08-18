@@ -34,7 +34,6 @@
 
 #include <math.h>
 
-
 struct mean_op_param
 {
     int in_num;
@@ -52,14 +51,14 @@ static int ref_mean_fp32(const float** in_data, float* out_data, int size, const
             const float* data = in_data[n];
             sum += data[i];
         }
-        out_data[i] = sum / ( float )in_num;
+        out_data[i] = sum / (float)in_num;
     }
     return 0;
 }
 
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct mean_op_param* mean_op_param = ( struct mean_op_param* )sys_malloc(sizeof(struct mean_op_param));
+    struct mean_op_param* mean_op_param = (struct mean_op_param*)sys_malloc(sizeof(struct mean_op_param));
     exec_node->ops_priv = mean_op_param;
     return 0;
 }
@@ -74,12 +73,12 @@ static int prerun(struct node_ops* node_ops, struct exec_node* exec_node, struct
 {
     struct node* ir_node = exec_node->ir_node;
     struct graph* ir_graph = ir_node->graph;
-    struct mean_op_param* mean_op_param = ( struct mean_op_param* )exec_node->ops_priv;
+    struct mean_op_param* mean_op_param = (struct mean_op_param*)exec_node->ops_priv;
 
     int in_num = ir_node->input_num;
 
     mean_op_param->in_num = in_num;
-    mean_op_param->input_data = ( void* )sys_malloc(sizeof(void*) * in_num);
+    mean_op_param->input_data = (void**)sys_malloc(sizeof(void*) * in_num);
 
     return 0;
 }
@@ -92,7 +91,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
     uint32_t elem_num = input_tensor_a->elem_num;
-    struct mean_op_param* mean_op_param = ( struct mean_op_param* )exec_node->ops_priv;
+    struct mean_op_param* mean_op_param = (struct mean_op_param*)exec_node->ops_priv;
     for (int i = 0; i < mean_op_param->in_num; i++)
     {
         struct tensor* input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[i]);
@@ -100,17 +99,17 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         mean_op_param->input_data[i] = data;
     }
 
-    const void** input = ( const void** )mean_op_param->input_data;
-    float* output = output_tensor->data;
+    const void** input = (const void**)mean_op_param->input_data;
+    float* output = (float*)output_tensor->data;
 
-    ref_mean_fp32(( const float** )input, output, elem_num, mean_op_param);
+    ref_mean_fp32((const float**)input, output, elem_num, mean_op_param);
 
     return 0;
 }
 
 static int postrun(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct mean_op_param* mean_op_param = ( struct mean_op_param* )exec_node->ops_priv;
+    struct mean_op_param* mean_op_param = (struct mean_op_param*)exec_node->ops_priv;
 
     sys_free(mean_op_param->input_data);
 

@@ -36,7 +36,6 @@
 
 #include <math.h>
 
-
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     return 0;
@@ -62,7 +61,7 @@ int ref_embed_fp32(float* in_data, float* out_data, float* weight_data, float* b
             word_index = 0;
         if (word_index >= input_dim)
             word_index = input_dim - 1;
-        const float* embed = ( const float* )weight_data + num_output * word_index;
+        const float* embed = (const float*)weight_data + num_output * word_index;
         for (int z = 0; z < num_output; z++)
         {
             out_data[i * num_output + z] = embed[z];
@@ -82,7 +81,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     struct tensor* input = get_ir_graph_tensor(graph, node->input_tensors[0]);
     struct tensor* output = get_ir_graph_tensor(graph, node->output_tensors[0]);
 
-    struct embedding_param* param = ( struct embedding_param* )node->op.param_mem;
+    struct embedding_param* param = (struct embedding_param*)node->op.param_mem;
 
     struct tensor* weight_tensor = get_ir_graph_tensor(graph, node->input_tensors[1]);
     struct tensor* bias_tensor = NULL;
@@ -91,8 +90,9 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         bias_tensor = get_ir_graph_tensor(graph, node->input_tensors[2]);
     }
 
-    return ref_embed_fp32(input->data, output->data, weight_tensor->data, bias_tensor ? bias_tensor->data : NULL,
-                          param->input_dim, param->num_output, input->elem_size, param->bias_term, 1.0f, 0.0f);
+    return ref_embed_fp32((float*)input->data, (float*)output->data, (float*)weight_tensor->data,
+                          bias_tensor ? (float*)bias_tensor->data : NULL, param->input_dim, param->num_output,
+                          input->elem_size, param->bias_term, 1.0f, 0.0f);
 }
 
 static int score(struct node_ops* node_ops, struct exec_graph* exec_graph, struct node* exec_node)

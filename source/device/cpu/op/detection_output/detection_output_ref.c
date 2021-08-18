@@ -38,7 +38,6 @@
 #include <math.h>
 #include <string.h>
 
-
 typedef struct
 {
     float x0;
@@ -125,7 +124,7 @@ static inline float intersection_area(const Box_t* a, const Box_t* b)
 
 void nms_sorted_bboxes(const Box_t* bboxes, int bboxes_num, int* picked, int* picked_num, float nms_threshold)
 {
-    float* areas = sys_malloc(sizeof(float) * bboxes_num);
+    float* areas = (float*)sys_malloc(sizeof(float) * bboxes_num);
 
     for (int i = 0; i < bboxes_num; i++)
     {
@@ -155,7 +154,7 @@ void nms_sorted_bboxes(const Box_t* bboxes, int bboxes_num, int* picked, int* pi
         }
     }
 
-	sys_free(areas);
+    sys_free(areas);
 }
 
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
@@ -170,113 +169,113 @@ static int release_node(struct node_ops* node_ops, struct exec_node* exec_node, 
 
 static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
-    struct node* ir_node   = exec_node->ir_node;
+    struct node* ir_node = exec_node->ir_node;
     struct graph* ir_graph = ir_node->graph;
-    struct tensor* loc_tensor  = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
+    struct tensor* loc_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     struct tensor* conf_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[1]);
     struct tensor* priorbox_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[2]);
     struct tensor* output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    detection_output_param_t* param = ( detection_output_param_t* )(ir_node->op.param_mem);
+    detection_output_param_t* param = (detection_output_param_t*)(ir_node->op.param_mem);
 
-    float* location   = NULL;
+    float* location = NULL;
     float* confidence = NULL;
-    float* priorbox   = NULL;
+    float* priorbox = NULL;
 
     /* use original fp32 data or dequant uint8 to fp32 */
     if (loc_tensor->data_type == TENGINE_DT_FP32)
-        location = ( float* )loc_tensor->data;
+        location = (float*)loc_tensor->data;
     else if (loc_tensor->data_type == TENGINE_DT_UINT8)
     {
-        uint8_t* location_u8 = loc_tensor->data;
-        uint32_t elem_num    = loc_tensor->elem_num;
-        uint32_t zero_point  = loc_tensor->zero_point;
+        uint8_t* location_u8 = (uint8_t*)loc_tensor->data;
+        uint32_t elem_num = loc_tensor->elem_num;
+        uint32_t zero_point = loc_tensor->zero_point;
         float scale = loc_tensor->scale;
         location = (float*)sys_malloc(elem_num * sizeof(float));
-        for (int i=0; i<elem_num; i++)
+        for (int i = 0; i < elem_num; i++)
         {
             location[i] = ((float)location_u8[i] - (float)zero_point) * scale;
         }
     }
     else if (loc_tensor->data_type == TENGINE_DT_INT8)
     {
-        int8_t* location_i8 = loc_tensor->data;
-        uint32_t elem_num   = loc_tensor->elem_num;
+        int8_t* location_i8 = (int8_t*)loc_tensor->data;
+        uint32_t elem_num = loc_tensor->elem_num;
         float scale = loc_tensor->scale;
         location = (float*)sys_malloc(elem_num * sizeof(float));
-        for (int i=0; i<elem_num; i++)
+        for (int i = 0; i < elem_num; i++)
         {
             location[i] = (float)location_i8[i] * scale;
         }
     }
 
     if (conf_tensor->data_type == TENGINE_DT_FP32)
-        confidence = ( float* )conf_tensor->data;
+        confidence = (float*)conf_tensor->data;
     else if (conf_tensor->data_type == TENGINE_DT_UINT8)
     {
-        uint8_t* confidence_u8 = conf_tensor->data;
-        uint32_t elem_num      = conf_tensor->elem_num;
-        uint32_t zero_point    = conf_tensor->zero_point;
+        uint8_t* confidence_u8 = (uint8_t*)conf_tensor->data;
+        uint32_t elem_num = conf_tensor->elem_num;
+        uint32_t zero_point = conf_tensor->zero_point;
         float scale = conf_tensor->scale;
         confidence = (float*)sys_malloc(elem_num * sizeof(float));
-        for (int i=0; i<elem_num; i++)
+        for (int i = 0; i < elem_num; i++)
         {
             confidence[i] = ((float)confidence_u8[i] - (float)zero_point) * scale;
         }
     }
     else if (conf_tensor->data_type == TENGINE_DT_INT8)
     {
-        int8_t* confidence_i8 = conf_tensor->data;
-        uint32_t elem_num     = conf_tensor->elem_num;
+        int8_t* confidence_i8 = (int8_t*)conf_tensor->data;
+        uint32_t elem_num = conf_tensor->elem_num;
         float scale = conf_tensor->scale;
         confidence = (float*)sys_malloc(elem_num * sizeof(float));
-        for (int i=0; i<elem_num; i++)
+        for (int i = 0; i < elem_num; i++)
         {
             confidence[i] = (float)confidence_i8[i] * scale;
         }
     }
 
     if (priorbox_tensor->data_type == TENGINE_DT_FP32)
-        priorbox = ( float* )priorbox_tensor->data;
+        priorbox = (float*)priorbox_tensor->data;
     else if (priorbox_tensor->data_type == TENGINE_DT_UINT8)
     {
-        uint8_t* priorbox_u8 = priorbox_tensor->data;
-        uint32_t elem_num    = priorbox_tensor->elem_num;
-        uint32_t zero_point  = priorbox_tensor->zero_point;
+        uint8_t* priorbox_u8 = (uint8_t*)priorbox_tensor->data;
+        uint32_t elem_num = priorbox_tensor->elem_num;
+        uint32_t zero_point = priorbox_tensor->zero_point;
         float scale = priorbox_tensor->scale;
         priorbox = (float*)sys_malloc(elem_num * sizeof(float));
-        for (int i=0; i<elem_num; i++)
+        for (int i = 0; i < elem_num; i++)
         {
             priorbox[i] = ((float)priorbox_u8[i] - (float)zero_point) * scale;
         }
     }
     else if (priorbox_tensor->data_type == TENGINE_DT_INT8)
     {
-        int8_t* priorbox_i8 = priorbox_tensor->data;
-        uint32_t elem_num   = priorbox_tensor->elem_num;
+        int8_t* priorbox_i8 = (int8_t*)priorbox_tensor->data;
+        uint32_t elem_num = priorbox_tensor->elem_num;
         float scale = priorbox_tensor->scale;
         priorbox = (float*)sys_malloc(elem_num * sizeof(float));
-        for (int i=0; i<elem_num; i++)
+        for (int i = 0; i < elem_num; i++)
         {
             priorbox[i] = (float)priorbox_i8[i] * scale;
         }
     }
 
     const int num_priorx4 = priorbox_tensor->dims[2];
-    const int num_prior   = num_priorx4 / 4;
+    const int num_prior = num_priorx4 / 4;
     const int num_classes = param->num_classes;
 
     int b = 0;
-    float* loc_ptr   = location + b * num_priorx4;
-    float* conf_ptr  = confidence + b * num_prior * num_classes;
+    float* loc_ptr = location + b * num_priorx4;
+    float* conf_ptr = confidence + b * num_prior * num_classes;
     float* prior_ptr = priorbox + b * num_priorx4 * 2;
 
-    Box_t* boxes = sys_malloc(sizeof(Box_t) * num_prior);
+    Box_t* boxes = (Box_t*)sys_malloc(sizeof(Box_t) * num_prior);
     get_boxes(boxes, num_prior, loc_ptr, prior_ptr);
     struct vector* output_bbox_v = create_vector(sizeof(Box_t), NULL);
 
     for (int i = 1; i < num_classes; i++)
     {
-        Box_t* class_box = sys_malloc(sizeof(Box_t) * num_prior);
+        Box_t* class_box = (Box_t*)sys_malloc(sizeof(Box_t) * num_prior);
         int class_box_num = 0;
         for (int j = 0; j < num_prior; j++)
         {
@@ -294,7 +293,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         if (class_box_num > param->nms_top_k)
             class_box_num = param->nms_top_k;
 
-        int* picked = sys_malloc(sizeof(int) * class_box_num);    // = NULL;
+        int* picked = (int*)sys_malloc(sizeof(int) * class_box_num); // = NULL;
         int picked_num = 0;
         nms_sorted_bboxes(class_box, class_box_num, picked, &picked_num, param->nms_threshold);
 
@@ -304,14 +303,14 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
             push_vector_data(output_bbox_v, &class_box[z]);
         }
 
-		sys_free(picked);
-		sys_free(class_box);
+        sys_free(picked);
+        sys_free(class_box);
     }
 
-	sys_free(boxes);
+    sys_free(boxes);
 
     int total_num = get_vector_num(output_bbox_v);
-    Box_t* bbox_rects = ( Box_t* )sys_malloc(total_num * sizeof(Box_t));
+    Box_t* bbox_rects = (Box_t*)sys_malloc(total_num * sizeof(Box_t));
 
     for (int i = 0; i < total_num; i++)
         memcpy(&bbox_rects[i], get_vector_data(output_bbox_v, i), sizeof(Box_t));
@@ -328,10 +327,10 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     // output
     float* output_fp32 = NULL;
     if (output_tensor->data_type == TENGINE_DT_FP32)
-        output_fp32 = ( float* )output_tensor->data;
+        output_fp32 = (float*)output_tensor->data;
     else
     {
-        output_fp32 = (float*)sys_malloc(output_tensor->elem_num * sizeof(float ));
+        output_fp32 = (float*)sys_malloc(output_tensor->elem_num * sizeof(float));
     }
 
     for (int i = 0; i < num_detected; i++)
@@ -351,11 +350,11 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     /* quant uint8 */
     if (output_tensor->data_type == TENGINE_DT_UINT8)
     {
-        uint8_t* output_u8 = output_tensor->data;
+        uint8_t* output_u8 = (uint8_t*)output_tensor->data;
         uint32_t elem_num = output_tensor->elem_num;
         float scale = output_tensor->scale;
         uint32_t zero_point = output_tensor->zero_point;
-        for(int i=0; i<elem_num; i++)
+        for (int i = 0; i < elem_num; i++)
         {
             int udata = (int)(output_fp32[i] / scale + zero_point);
             if (udata > 255)
@@ -374,10 +373,10 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     /* quant int8 */
     else if (output_tensor->data_type == TENGINE_DT_INT8)
     {
-        int8_t* output_i8 = output_tensor->data;
+        int8_t* output_i8 = (int8_t*)output_tensor->data;
         int32_t elem_num = output_tensor->elem_num;
         float scale = output_tensor->scale;
-        for(int i=0; i<elem_num; i++)
+        for (int i = 0; i < elem_num; i++)
         {
             int data_i32 = round(output_fp32[i] / scale);
             if (data_i32 > 127)

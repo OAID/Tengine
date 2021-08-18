@@ -39,7 +39,7 @@
 #include <math.h>
 #include <string.h>
 
-#ifdef __APPLE__
+#if defined(__APPLE__) || defined(_MSC_VER)
 #include <stdio.h>
 #endif
 
@@ -59,28 +59,28 @@ int ref_gru_default_fp32(struct tensor* input_tensor, struct tensor* w, struct t
     int size = input_tensor->dims[2];
     int hidden_size = param->hidden_size;
 
-    float* x_data = input_tensor->data;
-    float* w_data = w->data;
-    float* r_data = r->data;
-    float* output_data = output_tensor->data;
+    float* x_data = (float*)input_tensor->data;
+    float* w_data = (float*)w->data;
+    float* r_data = (float*)r->data;
+    float* output_data = (float*)output_tensor->data;
 
     /* initial_h_data buffers */
     float* initial_h_data = (float*)malloc((unsigned long)hidden_size * batch_size * sizeof(float));
-    float* output_h_data  = (float*)malloc((unsigned long)hidden_size * batch_size * sizeof(float));
-    float* h_0            = (float*)malloc((unsigned long)hidden_size * batch_size * sizeof(float));
-    memset(initial_h_data, 0, (unsigned long)hidden_size*batch_size * sizeof(float));
-    memset(output_h_data,  0, (unsigned long)hidden_size*batch_size * sizeof(float));
-    memset(h_0,            0, (unsigned long)hidden_size*batch_size * sizeof(float));
+    float* output_h_data = (float*)malloc((unsigned long)hidden_size * batch_size * sizeof(float));
+    float* h_0 = (float*)malloc((unsigned long)hidden_size * batch_size * sizeof(float));
+    memset(initial_h_data, 0, (unsigned long)hidden_size * batch_size * sizeof(float));
+    memset(output_h_data, 0, (unsigned long)hidden_size * batch_size * sizeof(float));
+    memset(h_0, 0, (unsigned long)hidden_size * batch_size * sizeof(float));
 
-    float* Z_data = ( float* )malloc(hidden_size * sizeof(float));
-    float* R_data = ( float* )malloc(hidden_size * sizeof(float));
-    float* H_data = ( float* )malloc(hidden_size * sizeof(float));
+    float* Z_data = (float*)malloc(hidden_size * sizeof(float));
+    float* R_data = (float*)malloc(hidden_size * sizeof(float));
+    float* H_data = (float*)malloc(hidden_size * sizeof(float));
 
     int T = input_tensor->dims[1];
-    
-    for(int seq = 0; seq < input_tensor->dims[0]; seq++)
+
+    for (int seq = 0; seq < input_tensor->dims[0]; seq++)
     {
-        for(int t = 0; t < T; t++)
+        for (int t = 0; t < T; t++)
         {
             for (int q = 0; q < hidden_size; q++)
             {
@@ -98,7 +98,7 @@ int ref_gru_default_fp32(struct tensor* input_tensor, struct tensor* w, struct t
 
                 for (int h = 0; h < hidden_size; h++)
                 {
-                    if(seq == 0)
+                    if (seq == 0)
                     {
                         float h_i = initial_h_data[t * hidden_size + h];
                         Z += h_i * r_data[(hidden_size * 0 + q) * hidden_size + h];
@@ -115,7 +115,7 @@ int ref_gru_default_fp32(struct tensor* input_tensor, struct tensor* w, struct t
                 float r_tmp = 1.f / (1.f + exp(-R));
                 for (int k = 0; k < hidden_size; k++)
                 {
-                    if(seq == 0)
+                    if (seq == 0)
                     {
                         r_H += r_tmp * initial_h_data[t * hidden_size + k] * r_data[(hidden_size * 2 + q) * hidden_size + k];
                     }
@@ -132,7 +132,7 @@ int ref_gru_default_fp32(struct tensor* input_tensor, struct tensor* w, struct t
 
             for (int h = 0; h < hidden_size; h++)
             {
-                if(seq == 0)
+                if (seq == 0)
                 {
                     float Z = 1.f / (1.f + exp(-Z_data[h]));
                     float H = tanh(H_data[h]);
@@ -167,30 +167,30 @@ int ref_gru_with_bias_fp32(struct tensor* input_tensor, struct tensor* w, struct
     int batch_size = input_tensor->dims[1];
     int size = input_tensor->dims[2];
     int hidden_size = param->hidden_size;
-    
-    float* x_data = input_tensor->data;
-    float* w_data = w->data;
-    float* r_data = r->data;
-    float* b_data = b->data;
-    float* output_data = output_tensor->data;
+
+    float* x_data = (float*)input_tensor->data;
+    float* w_data = (float*)w->data;
+    float* r_data = (float*)r->data;
+    float* b_data = (float*)b->data;
+    float* output_data = (float*)output_tensor->data;
 
     /* initial_h_data buffers */
     float* initial_h_data = (float*)malloc((unsigned long)hidden_size * batch_size * sizeof(float));
-    float* output_h_data  = (float*)malloc((unsigned long)hidden_size * batch_size * sizeof(float));
-    float* h_0            = (float*)malloc((unsigned long)hidden_size * batch_size * sizeof(float));
-    memset(initial_h_data, 0, (unsigned long)hidden_size*batch_size * sizeof(float));
-    memset(output_h_data,  0, (unsigned long)hidden_size*batch_size * sizeof(float));
-    memset(h_0,            0, (unsigned long)hidden_size*batch_size * sizeof(float));
+    float* output_h_data = (float*)malloc((unsigned long)hidden_size * batch_size * sizeof(float));
+    float* h_0 = (float*)malloc((unsigned long)hidden_size * batch_size * sizeof(float));
+    memset(initial_h_data, 0, (unsigned long)hidden_size * batch_size * sizeof(float));
+    memset(output_h_data, 0, (unsigned long)hidden_size * batch_size * sizeof(float));
+    memset(h_0, 0, (unsigned long)hidden_size * batch_size * sizeof(float));
 
-    float* Z_data = ( float* )malloc(hidden_size * sizeof(float));
-    float* R_data = ( float* )malloc(hidden_size * sizeof(float));
-    float* H_data = ( float* )malloc(hidden_size * sizeof(float));
+    float* Z_data = (float*)malloc(hidden_size * sizeof(float));
+    float* R_data = (float*)malloc(hidden_size * sizeof(float));
+    float* H_data = (float*)malloc(hidden_size * sizeof(float));
 
     int T = input_tensor->dims[1];
-    
-    for(int seq = 0; seq < input_tensor->dims[0]; seq++)
+
+    for (int seq = 0; seq < input_tensor->dims[0]; seq++)
     {
-        for(int t = 0; t < T; t++)
+        for (int t = 0; t < T; t++)
         {
             for (int q = 0; q < hidden_size; q++)
             {
@@ -213,7 +213,7 @@ int ref_gru_with_bias_fp32(struct tensor* input_tensor, struct tensor* w, struct
 
                 for (int h = 0; h < hidden_size; h++)
                 {
-                    if(seq == 0)
+                    if (seq == 0)
                     {
                         float h_i = initial_h_data[t * hidden_size + h];
                         Z += h_i * r_data[(hidden_size * 0 + q) * hidden_size + h];
@@ -233,7 +233,7 @@ int ref_gru_with_bias_fp32(struct tensor* input_tensor, struct tensor* w, struct
                 float r_tmp = 1.f / (1.f + exp(-R));
                 for (int k = 0; k < hidden_size; k++)
                 {
-                    if(seq == 0)
+                    if (seq == 0)
                     {
                         r_H += r_tmp * initial_h_data[t * hidden_size + k] * r_data[(hidden_size * 2 + q) * hidden_size + k];
                     }
@@ -250,7 +250,7 @@ int ref_gru_with_bias_fp32(struct tensor* input_tensor, struct tensor* w, struct
 
             for (int h = 0; h < hidden_size; h++)
             {
-                if(seq == 0)
+                if (seq == 0)
                 {
                     float Z = 1.f / (1.f + exp(-Z_data[h]));
                     float H = tanh(H_data[h]);
@@ -284,30 +284,30 @@ int ref_gru_case1_fp32(struct tensor* input_tensor, struct tensor* w, struct ten
 {
     int batch_size = input_tensor->dims[1];
     int hidden_size = param->hidden_size;
-    float* x_data = input_tensor->data;
-    float* w_data = w->data;
-    float* r_data = r->data;
-    float* b_data = b->data;
+    float* x_data = (float*)input_tensor->data;
+    float* w_data = (float*)w->data;
+    float* r_data = (float*)r->data;
+    float* b_data = (float*)b->data;
 
     /* initial_h_data buffers */
     float* initial_h_data = (float*)malloc((unsigned long)hidden_size * batch_size * sizeof(float));
-    float* output_h_data  = (float*)malloc((unsigned long)hidden_size * batch_size * sizeof(float));
-    float* h_0            = (float*)malloc((unsigned long)hidden_size * batch_size * sizeof(float));
+    float* output_h_data = (float*)malloc((unsigned long)hidden_size * batch_size * sizeof(float));
+    float* h_0 = (float*)malloc((unsigned long)hidden_size * batch_size * sizeof(float));
     memset(initial_h_data, 0, (unsigned long)hidden_size * batch_size * sizeof(float));
-    memset(output_h_data,  0, (unsigned long)hidden_size * batch_size * sizeof(float));
-    memset(h_0,            0, (unsigned long)hidden_size * batch_size * sizeof(float));
+    memset(output_h_data, 0, (unsigned long)hidden_size * batch_size * sizeof(float));
+    memset(h_0, 0, (unsigned long)hidden_size * batch_size * sizeof(float));
 
-    float* Z_data = ( float* )malloc(hidden_size * sizeof(float));
-    float* R_data = ( float* )malloc(hidden_size * sizeof(float));
-    float* H_data = ( float* )malloc(hidden_size * sizeof(float));
+    float* Z_data = (float*)malloc(hidden_size * sizeof(float));
+    float* R_data = (float*)malloc(hidden_size * sizeof(float));
+    float* H_data = (float*)malloc(hidden_size * sizeof(float));
 
-    float* output_data = output_tensor->data;
+    float* output_data = (float*)output_tensor->data;
     int T = input_tensor->dims[1];
     int size = input_tensor->dims[2];
 
-    for(int seq = 0; seq < input_tensor->dims[0]; seq++)
+    for (int seq = 0; seq < input_tensor->dims[0]; seq++)
     {
-        for(int t = 0; t < T; t++)
+        for (int t = 0; t < T; t++)
         {
             for (int q = 0; q < hidden_size; q++)
             {
@@ -329,7 +329,7 @@ int ref_gru_case1_fp32(struct tensor* input_tensor, struct tensor* w, struct ten
 
                 for (int h = 0; h < hidden_size; h++)
                 {
-                    if(seq == 0)
+                    if (seq == 0)
                     {
                         float h_i = initial_h_data[t * hidden_size + h];
                         Z += h_i * r_data[(hidden_size * 0 + q) * hidden_size + h];
@@ -357,7 +357,7 @@ int ref_gru_case1_fp32(struct tensor* input_tensor, struct tensor* w, struct ten
 
             for (int h = 0; h < hidden_size; h++)
             {
-                if(seq == 0)
+                if (seq == 0)
                 {
                     float Z = 1.f / (1.f + exp(-Z_data[h]));
                     float H = tanh(H_data[h]);
@@ -402,7 +402,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     if (ir_node->input_num > 3)
         b = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[3]);
 
-    struct gru_param* param = ( struct gru_param* )(ir_node->op.param_mem);
+    struct gru_param* param = (struct gru_param*)(ir_node->op.param_mem);
 
     /* only support one way */
     if (w->dim_num == 4 && w->dims[0] == 2)
