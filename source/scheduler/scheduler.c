@@ -120,7 +120,7 @@ static int sched_run(ir_scheduler_t* scheduler, ir_graph_t* ir_graph, int block)
 
         if (ready_num == 0)
         {
-            TLOG_ERR("no subgraph is ready, while still %d subgraph in wait_list\n", wait_num);
+            TLOG_ERR("no subgraph is ready, but there are still %d subgraphs in wait_list\n", wait_num);
             return -1;
         }
 

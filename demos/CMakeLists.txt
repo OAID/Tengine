@@ -21,6 +21,9 @@ FUNCTION (TENGINE_DEMO name)
 
     IF(MSVC)
         TARGET_COMPILE_DEFINITIONS (${name} PRIVATE $<$<OR:$<COMPILE_LANGUAGE:C>,$<COMPILE_LANGUAGE:CXX>>:NOMINMAX>)
+
+        # add to a virtual project group
+        SET_PROPERTY(TARGET ${name} PROPERTY FOLDER "demos")
     ELSE()
         TARGET_LINK_LIBRARIES (${name} PRIVATE m)
     ENDIF()

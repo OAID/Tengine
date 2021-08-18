@@ -27,7 +27,7 @@
 #include <tuple>
 #include <vector>
 
-namespace pipe {
+namespace pipeline {
 
 template<typename... Args>
 class Param
@@ -99,4 +99,4 @@ protected:
     typename OUT::EdgePtrTypes m_outputs;
 };
 
-} // namespace pipe
+} // namespace pipeline

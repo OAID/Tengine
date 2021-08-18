@@ -434,7 +434,7 @@ int main(int argc, char* argv[])
     fprintf(stderr, "Output model: %s\n", quant_tool.output_file.c_str());
     fprintf(stderr, "Calib images: %s\n", quant_tool.image_dir.c_str());
     fprintf(stderr, "Scale file  : %s\n", quant_tool.scale_file.empty() ? "NULL" : quant_tool.scale_file.c_str());
-    fprintf(stderr, "Algorithm   : %s\n", quant_tool.algorithm_type ? "KL" : "MIN MAX");
+    fprintf(stderr, "Algorithm   : %d\n", quant_tool.algorithm_type);
     fprintf(stderr, "Dims        : %d %d %d\n", quant_tool.img_c, quant_tool.img_h, quant_tool.img_w);
     fprintf(stderr, "Mean        : %.3f %.3f %.3f\n", quant_tool.mean[0], quant_tool.mean[1], quant_tool.mean[2]);
     fprintf(stderr, "Scale       : %.3f %.3f %.3f\n", quant_tool.scale[0], quant_tool.scale[1], quant_tool.scale[2]);
@@ -462,7 +462,7 @@ int main(int argc, char* argv[])
         }
         else
         {
-            fprintf(stderr, "[Quant Tools Info]: algorithm not specified, using default type MIN MAX\n");
+            fprintf(stderr,"[Quant Tools Info]: algorithm not specified, using default type MIN MAX\n");
             quant_tool.scale_file = "table_minmax.scale";
         }
 
