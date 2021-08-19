@@ -362,8 +362,8 @@ int QuantTool::activation_quant_tool()
                 absmax = std::max(abs(max_activation[i]), abs(min_activation[i]));
                 float threshold = compute_aciq_gaussian_clip(absmax, emlement_num, 8);
 
-                act_scale = 2*threshold / 255.f;
-                act_zero_point = int(threshold / act_scale);     
+                act_scale = 2 * threshold / 255.f;
+                act_zero_point = int(threshold / act_scale);
 
                 if (act_scale == 0)
                     act_zero_point = 0;
@@ -395,7 +395,7 @@ int QuantTool::activation_quant_tool()
         fclose(fp_aciq);
         fprintf(stderr, "\r\n[Quant Tools Info]: Step 2, find original calibration table done, output ./table_aciq.scale\n");
     }
-    else 
+    else
     {
         /* save the calibration file with min-max algorithm */
         FILE* fp_minmax = fopen("table_minmax.scale", "wb");
@@ -599,19 +599,19 @@ int main(int argc, char* argv[])
         /* select algorithm */
         if (quant_tool.algorithm_type == ALGORITHM_MIN_MAX)
         {
-            quant_tool.scale_file = "table_minmax.scale"; 
-        }       
-        else if(quant_tool.algorithm_type == ALGORITHM_KL)
+            quant_tool.scale_file = "table_minmax.scale";
+        }
+        else if (quant_tool.algorithm_type == ALGORITHM_KL)
         {
             quant_tool.scale_file = "table_kl.scale";
         }
-        else if(quant_tool.algorithm_type == ALGORITHM_ACIQ)
+        else if (quant_tool.algorithm_type == ALGORITHM_ACIQ)
         {
             quant_tool.scale_file = "table_aciq.scale";
         }
         else
         {
-            fprintf(stderr,"[Quant Tools Info]: algorithm not specified, using default type MIN MAX\n");
+            fprintf(stderr, "[Quant Tools Info]: algorithm not specified, using default type MIN MAX\n");
             quant_tool.scale_file = "table_minmax.scale";
         }
 
