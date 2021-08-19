@@ -32,20 +32,26 @@
 #if CV_VERSION_MAJOR >= 4
 #include <opencv2/imgproc/types_c.h>
 #endif
+#include <sys/time.h>
 #include <functional>
 #include "pipeline/utils/box.h"
+#include "pipeline/utils/feature.h"
 #include "pipeline/utils/profiler.h"
 
 namespace pipeline {
 
-class PedestrianDetection : public Node<Param<cv::Mat>, Param<std::tuple<cv::Mat, cv::Rect> > >
+#define HARD_NMS     (1)
+#define BLENDING_NMS (2) /* mix nms was been proposaled in paper blaze face, aims to minimize the temporal jitter*/
+
+class FaceFeature : public Node<Param<std::tuple<cv::Mat, std::vector<Feature> > >, Param<void> >
 {
 public:
     using preproc_func = typename std::function<void(const cv::Mat&, cv::Mat&)>;
-    using postproc_func = typename std::function<std::vector<Box<int> >(const float*, int, int, int)>;
 
-    PedestrianDetection(std::string model_path, size_t thread = 2, int w = 300, int h = 300)
+    FaceFeature(std::string model_path, size_t thread = 2, int w = 110, int h = 110)
     {
+        m_tensor_in_w = w;
+        m_tensor_in_h = h;
         m_thread_num = thread;
         m_input = cv::Mat(h, w, CV_32FC3);
 
@@ -57,8 +63,8 @@ public:
 
             buf.convertTo(buf, CV_32FC3);
 
-            const float mean[3] = {127.5f, 127.5f, 127.5f};
-            const float scale[3] = {0.007843f, 0.007843f, 0.007843f};
+            float mean[3] = {104.007f, 116.669f, 122.679f};
+            float scale[3] = {1., 1., 1.};
 
             float* img_data = reinterpret_cast<float*>(buf.data);
             float* out_ptr = reinterpret_cast<float*>(out.data);
@@ -76,61 +82,6 @@ public:
                     }
                 }
             }
-        };
-
-        // build postproc
-        m_postproc = [](const float* outdata, int num, int raw_h, int raw_w) -> std::vector<Box<int> > {
-            const char* class_names[] = {
-                "background", "aeroplane", "bicycle", "bird", "boat",
-                "bottle", "bus", "car", "cat", "chair",
-                "cow", "diningtable", "dog", "horse", "motorbike",
-                "person", "pottedplant", "sheep", "sofa", "train",
-                "tvmonitor"};
-
-            const int max_num = num;
-            Box<int> boxes[max_num];
-            for (int i = 0; i < max_num; ++i)
-            {
-                boxes[i] = {0};
-            }
-            int box_count = 0;
-
-            fprintf(stderr, "detect result num: %d \n", num);
-            for (int i = 0; i < num; i++)
-            {
-                if (outdata[1] >= 0.5f)
-                {
-                    Box<int> box;
-
-                    box.class_idx = outdata[0];
-                    box.score = outdata[1];
-                    box.x0 = outdata[2] * raw_w;
-                    box.y0 = outdata[3] * raw_h;
-                    box.x1 = outdata[4] * raw_w;
-                    box.y1 = outdata[5] * raw_h;
-
-                    boxes[box_count] = box;
-                    box_count++;
-
-                    fprintf(stderr, "%s\t:%.1f%%\n", class_names[box.class_idx],
-                            box.score * 100);
-                    fprintf(stderr, "BOX:( %d , %d ),( %d , %d )\n", box.x0, box.y0, box.x1,
-                            box.y1);
-                }
-                outdata += 6;
-            }
-
-            Box<int> max = {0};
-            for (int i = 0; i < box_count; i++)
-            {
-                if (boxes[i].score > max.score)
-                {
-                    max = boxes[i];
-                }
-            }
-
-            std::vector<Box<int> > ret = {max};
-            return ret;
         };
 
         /* inital tengine */
@@ -176,7 +127,7 @@ public:
             return;
         }
 
-        const int size = m_input.cols * m_input.rows * m_input.elemSize();
+        const int size = static_cast<int>(m_input.cols * m_input.rows * m_input.elemSize());
         fprintf(stdout, "tensor_buffer size %d\n", size);
         if (set_tensor_buffer(input_tensor, (void*)(m_input.data), size) < 0)
         {
@@ -197,56 +148,80 @@ public:
     void exec() override
     {
         cv::Mat mat;
-        auto suc = input<0>()->pop(mat);
-        if (not suc or mat.empty())
+        std::vector<Feature> features;
+        std::tuple<cv::Mat, std::vector<Feature> > inp;
+        auto suc = input<0>()->pop(inp);
+        if (not suc)
         {
             return;
         }
 
-        /* prepare process input data, set the data mem to input tensor */
-        Profiler prof("pedestrian_detection");
-        prof.dot();
-        m_preproc(mat, m_input);
-        prof.dot();
+        std::tie(mat, features) = inp;
 
-        if (run_graph(m_graph, 1) < 0)
+        auto get_bbox = [&](const Feature& feature) -> cv::Rect2f {
+            /* get landmark bbox */
+            float l = FLT_MAX, r = FLT_MIN, t = FLT_MAX, b = FLT_MIN;
+            auto& data = feature.data;
+            for (int i = 0; i < data.size() / 2; ++i)
+            {
+                int idx = i * 2;
+                if (l > data[idx])
+                {
+                    l = data[idx];
+                }
+                if (r < data[idx])
+                {
+                    r = data[idx];
+                }
+
+                if (t > data[idx + 1])
+                {
+                    t = data[idx + 1];
+                }
+
+                if (b < data[idx + 1])
+                {
+                    b = data[idx + 1];
+                }
+            }
+
+            l = std::max(0.f, l);
+            t = std::max(0.f, t);
+            r = std::min(r, mat.cols * 1.f);
+            b = std::min(b, mat.rows * 1.f);
+
+            return cv::Rect2f(l, t, r - l, b - t);
+        };
+
+        for (auto feature : features)
         {
-            fprintf(stderr, "Run graph failed\n");
-            return;
+            auto rect = get_bbox(feature);
+            cv::Mat crop = mat(rect);
+
+            /* prepare process input data, set the data mem to input tensor */
+            Profiler prof("face_feature");
+            prof.dot();
+            m_preproc(crop, m_input);
+            prof.dot();
+
+            if (run_graph(m_graph, 1) < 0)
+            {
+                fprintf(stderr, "Run graph failed\n");
+                return;
+            }
+            prof.dot();
+
+            /* process the landmark result */
+            tensor_t output_tensor = get_graph_output_tensor(m_graph, 0, 0);
+            float* data = (float*)(get_tensor_buffer(output_tensor));
+            const int data_size = get_tensor_buffer_size(output_tensor) / sizeof(float);
+
+            fprintf(stdout, "write feature %f, len %d\n ", data[0], data_size);
         }
-
-        prof.dot();
-        /* process the detection result */
-        tensor_t output_tensor = get_graph_output_tensor(m_graph, 0, 0); //"detection_out"
-        int out_dim[4];
-        get_tensor_shape(output_tensor, out_dim, 4);
-        float* output_data = (float*)get_tensor_buffer(output_tensor);
-
-        /* postprocess*/
-        fprintf(stdout, "out shape [%d %d %d %d]\n", out_dim[0], out_dim[1],
-                out_dim[2], out_dim[3]);
-        auto results = m_postproc(output_data, out_dim[1], mat.rows, mat.cols);
-
-        prof.dot();
-
-        if (not results.empty())
-        {
-            auto& result = results[0];
-            cv::Rect rect(std::max(0, result.x0), std::max(0, result.y0),
-                          result.x1 - result.x0, result.y1 - result.y0);
-            rect.width = std::min(rect.width, mat.cols - rect.x - 1);
-            rect.height = std::min(rect.height, mat.rows - rect.y - 1);
-            cv::rectangle(mat, rect, cv::Scalar(255, 255, 255), 3);
-
-            output<0>()->try_push(std::move(std::make_tuple(mat, rect)));
-        }
-        else
-        {
-            output<0>()->try_push(std::move(std::make_tuple(mat, cv::Rect(0, 0, 0, 0))));
-        }
+        return;
     }
 
-    ~PedestrianDetection()
+    ~FaceFeature()
     {
         /* release tengine */
         postrun_graph(m_graph);
@@ -258,9 +233,11 @@ private:
     graph_t m_graph;
     context_t m_ctx;
     preproc_func m_preproc;
-    postproc_func m_postproc;
 
     cv::Mat m_input;
+
+    int m_tensor_in_w;
+    int m_tensor_in_h;
     size_t m_thread_num;
 };
 

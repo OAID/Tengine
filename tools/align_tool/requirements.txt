@@ -1,0 +1,8 @@
+numpy>=1.20.1
+onnx>=1.9.0
+onnx-simplifier>=0.3.6
+onnxoptimizer>=0.2.6
+onnxruntime>=1.8.1
+protobuf>=3.16.0
+tqdm>=4.59.0
+
