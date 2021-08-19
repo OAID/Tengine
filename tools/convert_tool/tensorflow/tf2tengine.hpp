@@ -219,7 +219,7 @@ class tensorflow_serializer
 {
 public:
     graph_t tensorflow2tengine(std::string model_file);
-    typedef int (*op_load_t)(ir_graph_t* graph, ir_node_t* node,TFNode* tf_node);
+    typedef int (*op_load_t)(TFNode* tf_node, TFGraph& tf_graph, ir_graph_t* graph, ir_node_t* node);
 
 private:
     std::unordered_map<std::string, std::pair<int, op_load_t> > op_load_map;
@@ -240,9 +240,16 @@ private:
     void ParseLSTMGraph(LSTMNode* lstm_node, std::set<TFNode*>& rnn_graph);
     void StripRNNScope(std::string& rnn_scope, int rnn_type);
     void MergeReluMinimum(); 
+    int MergeChildNode(TFNode* base_node, TFNode* child_node);
+    int MergeParentNode(TFNode* base_node, TFNode* child_node);
+    int BNRecursiveInputMerge(TFNode* node);
+    int FuseComposedBN(TFNode* cur_node);
     int optimize_rnn();
+    void CleanupResizeNearestNeighbor();
     tensorflow::GraphDef tf_net;
     TFGraph tf_graph;
+    std::vector<std::string> input_tensors;
+    std::vector<std::string> output_tensors;
 };
 
 #endif
