@@ -29,101 +29,79 @@
 #ifndef NVDLA_PRIV_WEIGHT_TRNS_UNIT_H
 #define NVDLA_PRIV_WEIGHT_TRNS_UNIT_H
 
-#include "Check.h"
-#include "EngineAST.h"
-#include "half.h"
-#include "nvdla/IType.h"
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include "half.h"
+#include "nvdla/IType.h"
+#include "priv/Check.h"
+#include "priv/EngineAST.h"
 
 #define ENABLE_PRECISION_RANGE_CHECK 0
 
-#define WG_FULL_CHANNELS_PER_ATOM 4
-#define WG_BYTES_PER_ATOM         32
-#define WG_WTS_SIZE_ALIGN         128
+#define WG_FULL_CHANNELS_PER_ATOM  4
+#define WG_BYTES_PER_ATOM          32
+#define WG_WTS_SIZE_ALIGN          128
 
-#define PRECISION_SWITCH(modelPrec, computePrec, retVal, func, ...)                 \
-    switch (modelPrec)                                                              \
-    {                                                                               \
-    case nvdla::DataType::INT8:                                                     \
-        switch (computePrec)                                                        \
-        {                                                                           \
-        case surface::SurfacePrecisionEnum::NVDLA_PRECISION_INT8:                   \
-            retVal = func<NvS8, NvS8>(__VA_ARGS__);                                 \
-            break;                                                                  \
-        case surface::SurfacePrecisionEnum::NVDLA_PRECISION_INT16:                  \
-            retVal = func<NvS8, NvS16>(__VA_ARGS__);                                \
-            break;                                                                  \
-        case surface::SurfacePrecisionEnum::NVDLA_PRECISION_FP16:                   \
-            retVal = func<NvS8, half_float::half>(__VA_ARGS__);                     \
-            break;                                                                  \
-        default:                                                                    \
-            REPORT_ERROR(NvDlaError_NotSupported, "Don't support %d", computePrec); \
-        };                                                                          \
-        break;                                                                      \
-    case nvdla::DataType::INT16:                                                    \
-        switch (computePrec)                                                        \
-        {                                                                           \
-        case surface::SurfacePrecisionEnum::NVDLA_PRECISION_INT8:                   \
-            retVal = func<NvS16, NvS8>(__VA_ARGS__);                                \
-            break;                                                                  \
-        case surface::SurfacePrecisionEnum::NVDLA_PRECISION_INT16:                  \
-            retVal = func<NvS16, NvS16>(__VA_ARGS__);                               \
-            break;                                                                  \
-        case surface::SurfacePrecisionEnum::NVDLA_PRECISION_FP16:                   \
-            retVal = func<NvS16, half_float::half>(__VA_ARGS__);                    \
-            break;                                                                  \
-        default:                                                                    \
-            REPORT_ERROR(NvDlaError_NotSupported, "Don't support %d", computePrec); \
-        };                                                                          \
-        break;                                                                      \
-    case nvdla::DataType::HALF:                                                     \
-        switch (computePrec)                                                        \
-        {                                                                           \
-        case surface::SurfacePrecisionEnum::NVDLA_PRECISION_INT8:                   \
-            retVal = func<half_float::half, NvS8>(__VA_ARGS__);                     \
-            break;                                                                  \
-        case surface::SurfacePrecisionEnum::NVDLA_PRECISION_INT16:                  \
-            retVal = func<half_float::half, NvS16>(__VA_ARGS__);                    \
-            break;                                                                  \
-        case surface::SurfacePrecisionEnum::NVDLA_PRECISION_FP16:                   \
-            retVal = func<half_float::half, half_float::half>(__VA_ARGS__);         \
-            break;                                                                  \
-        default:                                                                    \
-            REPORT_ERROR(NvDlaError_NotSupported, "Don't support %d", computePrec); \
-        };                                                                          \
-        break;                                                                      \
-    case nvdla::DataType::FLOAT:                                                    \
-        switch (computePrec)                                                        \
-        {                                                                           \
-        case surface::SurfacePrecisionEnum::NVDLA_PRECISION_INT8:                   \
-            retVal = func<NvF32, NvS8>(__VA_ARGS__);                                \
-            break;                                                                  \
-        case surface::SurfacePrecisionEnum::NVDLA_PRECISION_INT16:                  \
-            retVal = func<NvF32, NvS16>(__VA_ARGS__);                               \
-            break;                                                                  \
-        case surface::SurfacePrecisionEnum::NVDLA_PRECISION_FP16:                   \
-            retVal = func<NvF32, half_float::half>(__VA_ARGS__);                    \
-            break;                                                                  \
-        default:                                                                    \
-            REPORT_ERROR(NvDlaError_NotSupported, "Don't support %d", computePrec); \
-        };                                                                          \
-        break;                                                                      \
-    default:                                                                        \
-        REPORT_ERROR(NvDlaError_NotSupported, "Don't support %d", modelPrec);       \
+#define PRECISION_SWITCH(modelPrec, computePrec, retVal, func, ...)     \
+    switch(modelPrec) {                                                 \
+        case nvdla::DataType::INT8:                                     \
+        switch(computePrec) {                                           \
+            case surface::SurfacePrecisionEnum::NVDLA_PRECISION_INT8:   \
+                retVal = func<NvS8, NvS8>(__VA_ARGS__); break;          \
+            case surface::SurfacePrecisionEnum::NVDLA_PRECISION_INT16:  \
+                retVal = func<NvS8, NvS16>(__VA_ARGS__); break;         \
+            case surface::SurfacePrecisionEnum::NVDLA_PRECISION_FP16:   \
+                retVal = func<NvS8, half_float::half>(__VA_ARGS__); break;          \
+            default:                                                    \
+            REPORT_ERROR(NvDlaError_NotSupported, "Don't support %d", computePrec);      \
+        }; break;                                                       \
+        case nvdla::DataType::INT16:                                    \
+        switch(computePrec) {                                           \
+            case surface::SurfacePrecisionEnum::NVDLA_PRECISION_INT8:   \
+                retVal = func<NvS16, NvS8>(__VA_ARGS__); break;         \
+            case surface::SurfacePrecisionEnum::NVDLA_PRECISION_INT16:  \
+                retVal = func<NvS16, NvS16>(__VA_ARGS__); break;        \
+            case surface::SurfacePrecisionEnum::NVDLA_PRECISION_FP16:   \
+                retVal = func<NvS16, half_float::half>(__VA_ARGS__); break;         \
+            default:                                                    \
+            REPORT_ERROR(NvDlaError_NotSupported, "Don't support %d", computePrec);      \
+        }; break;                                                       \
+        case nvdla::DataType::HALF:                                     \
+        switch(computePrec) {                                           \
+            case surface::SurfacePrecisionEnum::NVDLA_PRECISION_INT8:   \
+                retVal = func<half_float::half, NvS8>(__VA_ARGS__); break;          \
+            case surface::SurfacePrecisionEnum::NVDLA_PRECISION_INT16:  \
+                retVal = func<half_float::half, NvS16>(__VA_ARGS__); break;         \
+            case surface::SurfacePrecisionEnum::NVDLA_PRECISION_FP16:   \
+                retVal = func<half_float::half, half_float::half>(__VA_ARGS__); break;          \
+            default:                                                    \
+            REPORT_ERROR(NvDlaError_NotSupported, "Don't support %d", computePrec);      \
+        }; break;                                                       \
+        case nvdla::DataType::FLOAT:                                    \
+        switch(computePrec) {                                           \
+            case surface::SurfacePrecisionEnum::NVDLA_PRECISION_INT8:   \
+                retVal = func<NvF32, NvS8>(__VA_ARGS__); break;         \
+            case surface::SurfacePrecisionEnum::NVDLA_PRECISION_INT16:  \
+                retVal = func<NvF32, NvS16>(__VA_ARGS__); break;        \
+            case surface::SurfacePrecisionEnum::NVDLA_PRECISION_FP16:   \
+                retVal = func<NvF32, half_float::half>(__VA_ARGS__); break;         \
+            default:                                                    \
+            REPORT_ERROR(NvDlaError_NotSupported, "Don't support %d", computePrec);      \
+        }; break;                                                       \
+        default:                                                        \
+        REPORT_ERROR(NvDlaError_NotSupported, "Don't support %d", modelPrec);            \
     }
 
-namespace nvdla {
-namespace priv {
+namespace nvdla
+{
+namespace priv
+{
 
 class WeightTrns
 {
-    static bool debugMath()
-    {
-        return false;
-    }
-    template<typename T>
+    static bool debugMath() { return false; }
+    template <typename T>
     static std::string toString(T val)
     {
         std::stringstream stream;
@@ -132,67 +110,72 @@ class WeightTrns
     }
 
 public:
-    struct WeightDims
-    {
-        NvS64 wtSize;    //!<  total size of conv layer weights
-        int numKernels;  //!<  total kernels in the weight
-        int numChannels; //!<  total channels in each kernel
-        int width;       //!<  width of the weight
-        int height;      //!<  height of the height
-        int strideX;     //!<  kernel stride along width
-        int strideY;     //!<  kernel stride along height
+    struct WeightDims {
+        NvS64 wtSize;       //!<  total size of conv layer weights
+        int numKernels;     //!<  total kernels in the weight
+        int numChannels;    //!<  total channels in each kernel
+        int width;      //!<  width of the weight
+        int height;     //!<  height of the height
+        int strideX;        //!<  kernel stride along width
+        int strideY;        //!<  kernel stride along height
 
-        WeightDims(NvS64 size, int k, int c, int w, int h, int cx, int cy)
-            : wtSize(size), numKernels(k), numChannels(c), width(w), height(h), strideX(cx), strideY(cy){};
+        WeightDims(NvS64 size, int k, int c, int w, int h, int cx, int cy) :
+            wtSize(size), numKernels(k), numChannels(c),
+            width(w), height(h),
+            strideX(cx), strideY(cy) {};
 
-        WeightDims()
-            : wtSize(0), numKernels(0), numChannels(0), width(0), height(0), strideX(0), strideY(0){};
+        WeightDims() :
+            wtSize(0), numKernels(0), numChannels(0),
+            width(0), height(0),
+            strideX(0), strideY(0){};
     };
 
     /* Check if given value fits within the data format precision range.
-         *
-         *         <--|----------|-----|-----|----------|-->
-         *         -ve min   -ve max   0   +ve min    +ve max
-         * api:    lowest()  -1*min()       min()      max()
-         * fp16:   -65504    -6.10e-05    6.10e-05     65504
-         *
-         * note:
-         *   - lowest() is c++11 api
-         *   - there is no standard api to get -ve max value for a data format,
-         *     hence -1 * min() is used.
-         *
-         */
+     *
+     *         <--|----------|-----|-----|----------|-->
+     *         -ve min   -ve max   0   +ve min    +ve max
+     * api:    lowest()  -1*min()       min()      max()
+     * fp16:   -65504    -6.10e-05    6.10e-05     65504
+     *
+     * note:
+     *   - lowest() is c++11 api
+     *   - there is no standard api to get -ve max value for a data format,
+     *     hence -1 * min() is used.
+     *
+     */
     template<typename IT, typename RT>
     static inline bool isWithinNumericalLimits(IT val)
     {
         bool retval = true;
 #if ENABLE_PRECISION_RANGE_CHECK
-        if ((val > std::numeric_limits<RT>::max())
-            || (val < std::numeric_limits<RT>::lowest())
-            || (val != 0 && val < std::numeric_limits<RT>::min() && val > (-1.0f * std::numeric_limits<RT>::min())))
-        {
-            if (debugMath())
+        if ( (val > std::numeric_limits<RT>::max())
+                || (val < std::numeric_limits<RT>::lowest())
+                || (val !=0 && val < std::numeric_limits<RT>::min() && val > (-1.0f*std::numeric_limits<RT>::min())) )
             {
-                gLogInfo << val << " is beyond "
-                         << "Pmax(" << float(std::numeric_limits<RT>::max())
-                         << ")/Nmin(" << float(std::numeric_limits<RT>::lowest())
-                         << ") OR is within "
-                         << "Pmin(" << float(std::numeric_limits<RT>::min())
-                         << ")<->Nmax(" << float(-1.0f * std::numeric_limits<RT>::min())
-                         << ") limits of compute precision" << std::endl;
+                    if ( debugMath() )
+                    {
+                        gLogInfo << val << " is beyond "
+                                 << "Pmax("  << float(std::numeric_limits<RT>::max())
+                                 << ")/Nmin("<< float(std::numeric_limits<RT>::lowest())
+                                 << ") OR is within "
+                                 << "Pmin("<< float(std::numeric_limits<RT>::min())
+                                 << ")<->Nmax("<< float(-1.0f*std::numeric_limits<RT>::min())
+                                 << ") limits of compute precision" << std::endl;
+                    }
+                    retval = false;
             }
-            retval = false;
-        }
 #endif
         return retval;
     }
 
     //! Quantize weights per-kernel (1 scaling factor for the entire KCRS blob)
-    template<typename MP, typename CP>
-    static std::vector<NvF32> perKernelQuantizeWts(
-        Weights highPrecWts,
-        NvS32 G, NvS32 K, NvS32 C, NvS32 RS, NvS32 kStride, NvS32 cStride,
-        NvS8* quantizedWts)
+    template <typename MP, typename CP>
+    static std::vector<NvF32> perKernelQuantizeWts
+        (
+            Weights highPrecWts,
+            NvS32 G, NvS32 K, NvS32 C, NvS32 RS, NvS32 kStride, NvS32 cStride,
+            NvS8* quantizedWts
+        )
     {
         std::vector<NvF32> filterScales;
         NvF32 max = std::numeric_limits<NvF32>::lowest(); // 先把 max 初始化为 FLoat 32 的最小值
@@ -211,8 +194,10 @@ public:
                 }
             }
         }
+        std::cout << "max value is " << std::fabs(max)  << std::endl;
 
-        NvF32 scale = max / 127, invScale = 1 / scale;
+        NvF32 scale = (std::fabs(max) < FLT_EPSILON)? 1 : max / 127, invScale = 1 / scale;
+
         // 开始量化
         for (NvS32 g = 0; g < G; g++)
         {
@@ -239,11 +224,13 @@ public:
     }
 
     //! Quantize weights per-filter (1 scaling factor for each CRS blob)
-    template<typename MP, typename CP>
-    static std::vector<NvF32> perFilterQuantizeWts(
-        Weights highPrecWts,
-        NvS32 G, NvS32 K, NvS32 C, NvS32 RS, NvS32 kStride, NvS32 cStride,
-        NvS8* quantizedWts)
+    template <typename MP, typename CP>
+    static std::vector<NvF32> perFilterQuantizeWts
+        (
+            Weights highPrecWts,
+            NvS32 G, NvS32 K, NvS32 C, NvS32 RS, NvS32 kStride, NvS32 cStride,
+            NvS8* quantizedWts
+        )
     {
         std::vector<NvF32> filterScales;
         const MP* origWts = reinterpret_cast<const MP*>(const_cast<void*>(highPrecWts.values));
@@ -260,8 +247,10 @@ public:
                         // max = std::max(max, std::abs(origWts[gOffset + k * kStride + c * cStride + rs] * inScale));
                         max = std::max<NvF32>(max, std::fabs(origWts[gOffset + k * kStride + c * cStride + rs]));
                 }
+                std::cout << "max value is " << std::fabs(max)  << std::endl;
 
-                NvF32 scale = max / 127, invScale = 1 / scale;
+                NvF32 scale = (std::fabs(max) < FLT_EPSILON)? 1 : max / 127, invScale = 1 / scale;
+
 
                 for (NvS32 c = 0; c < C; c++)
                 {
@@ -276,6 +265,7 @@ public:
                                                                          static_cast<NvS32>(std::numeric_limits<NvS8>::lowest())));
                     }
                 }
+
                 filterScales.push_back(scale);
             }
         }
@@ -284,11 +274,12 @@ public:
 
     //!<  Zero pad caffe wts to match its #chnls with IMG input
     template<typename IT, typename RT>
-    static Weights zeroPadWtsForIMG(
-        WeightDims origWDims,    //!<  dims of orig caffe wt blob
-        WeightDims zeroPadWDims, //!<  dims of wt blob after zero padding
-        Weights srcWts           //!<  pts to orig caffe wt blob
-    )
+    static Weights zeroPadWtsForIMG
+        (
+            WeightDims  origWDims,              //!<  dims of orig caffe wt blob
+            WeightDims  zeroPadWDims,           //!<  dims of wt blob after zero padding
+            Weights     srcWts                  //!<  pts to orig caffe wt blob
+        )
     {
         NvS64 trnsSize = 0;
         NvS64 zpCnt = 0;
@@ -314,14 +305,12 @@ public:
                     {
                         IT* dest = getAddrOffset<IT>(ind_k, ind_c, ind_r, ind_s,
                                                      zeroPadWDims, pIMGZPWts);
-                        IT* src = getAddrOffset<IT>(ind_k, ind_c, ind_r,
-                                                    ind_s, origWDims, pSrcWts);
-                        if (src != NULL)
-                        {
+                        IT* src  = getAddrOffset<IT>(ind_k, ind_c, ind_r,
+                                                     ind_s, origWDims, pSrcWts);
+                        if (src != NULL) {
                             *dest = *src;
                         }
-                        else
-                        {
+                        else {
                             *dest = 0.0f;
                             zpCnt++;
                         }
@@ -333,38 +322,39 @@ public:
             return IMG_ZP_wts;
         }
 
-        IMG_ZP_wts.type = getEnumFromType<IT>();
+        IMG_ZP_wts.type   = getEnumFromType<IT>();
         IMG_ZP_wts.values = pIMGZPWtsCopy;
-        IMG_ZP_wts.count = zeroPadWDims.wtSize;
+        IMG_ZP_wts.count  = zeroPadWDims.wtSize;
 
         return IMG_ZP_wts;
     }
 
     //!< Zero pad for per-element data >
     template<typename IT, typename RT>
-    static Weights zeroPadFeatureData(
-        WeightDims origDims,    // dims of data (bias/scale)
-        WeightDims zeroPadDims, // dims after padding
-        Weights srcData         // source data
-    )
+    static Weights zeroPadFeatureData
+        (
+            WeightDims origDims,        // dims of data (bias/scale)
+            WeightDims zeroPadDims,     // dims after padding
+            Weights srcData            // source data
+        )
     {
         /* Support only for numKernel == 1 */
-        if (zeroPadDims.numKernels != 1)
-        {
+        if (zeroPadDims.numKernels != 1) {
             return Weights(nvdla::DataType::FLOAT, NULL, 0);
         }
 
-        return zeroPadWtsForIMG<IT, RT>(origDims, zeroPadDims, srcData);
+        return zeroPadWtsForIMG<IT,RT>(origDims, zeroPadDims, srcData);
     }
 
     //!< Split weights into multiple kernels if number of groups greater than 1 >
     template<typename IT, typename RT>
-    static Weights padGroupWeights(
-        WeightDims origWDims,  //!<  dims of orig caffe wt blob
-        WeightDims groupWDims, //!<  dims of wt blob after padding
-        Weights srcWts,        //!<  pts to orig caffe wt blob
-        NvU32 numGroups        //!<  number of groups
-    )
+    static Weights padGroupWeights
+        (
+            WeightDims  origWDims,              //!<  dims of orig caffe wt blob
+            WeightDims  groupWDims,             //!<  dims of wt blob after padding
+            Weights     srcWts,                 //!<  pts to orig caffe wt blob
+            NvU32       numGroups               //!<  number of groups
+        )
     {
         Weights Group_wts = Weights(nvdla::DataType::FLOAT, NULL, 0);
         API_CHECK_WEIGHTS_RETVAL(srcWts, Group_wts);
@@ -382,7 +372,7 @@ public:
         memset(pGroupWts, 0, groupWSize * sizeof(IT));
         IT* pGroupWtsCopy = pGroupWts;
 
-        NvU32 perGroupK = oK / numGroups;
+        NvU32 perGroupK = oK/numGroups;
 
         for (unsigned int ind_g = 0; ind_g < numGroups; ind_g++)
         {
@@ -397,8 +387,8 @@ public:
                             unsigned int ind_kk = ind_g * perGroupK + ind_k;
                             IT* src = getAddrOffset<IT>(ind_kk, ind_c, ind_r, ind_s,
                                                         origWDims, pSrcWts);
-                            IT* dest = getAddrOffsetForGroup<IT>(ind_kk, ind_c, ind_r,
-                                                                 ind_s, ind_g, oC, groupWDims, pGroupWts);
+                            IT* dest  = getAddrOffsetForGroup<IT>(ind_kk, ind_c, ind_r,
+                                                                  ind_s, ind_g, oC, groupWDims, pGroupWts);
                             *dest = *src;
                         }
                     }
@@ -406,20 +396,21 @@ public:
             }
         }
 
-        Group_wts.type = getEnumFromType<IT>();
+        Group_wts.type   = getEnumFromType<IT>();
         Group_wts.values = pGroupWtsCopy;
-        Group_wts.count = groupWDims.wtSize;
+        Group_wts.count  = groupWDims.wtSize;
 
         return Group_wts;
     }
 
     //!<  Do channel pre-extension on raw caffe wts for IMG convolution
     template<typename IT, typename RT>
-    static Weights preChnlExtWtsForIMG(
-        WeightDims origWDims,  //!<  dims of orig caffe wt blob
-        WeightDims preCEWDims, //!<  dims of wt blob after pre Chnl Ext
-        Weights srcWts         //!<  ptr to orig caffe wt blob
-    )
+    static Weights preChnlExtWtsForIMG
+        (
+            WeightDims    origWDims,            //!<  dims of orig caffe wt blob
+            WeightDims    preCEWDims,           //!<  dims of wt blob after pre Chnl Ext
+            Weights       srcWts                //!<  ptr to orig caffe wt blob
+        )
     {
         NvS64 trnsCnt = 0;
         Weights IMG_Pre_CE_Wts = Weights(nvdla::DataType::FLOAT, NULL, 0);
@@ -438,7 +429,8 @@ public:
         if (preCEWDims.wtSize != origWDims.wtSize)
             return IMG_Pre_CE_Wts;
 
-        IT* pIMGPreCEWts = reinterpret_cast<IT*>(engine_ast::MemoryCollector::getInstance()->allocateMemory(preCEWDims.wtSize * sizeof(IT)));
+        IT* pIMGPreCEWts =
+            reinterpret_cast<IT*>(engine_ast::MemoryCollector::getInstance()->allocateMemory(preCEWDims.wtSize * sizeof(IT)));
         memset(pIMGPreCEWts, 0, preCEWDims.wtSize * sizeof(IT));
         IT* pIMGPreCEWtsCopy = pIMGPreCEWts;
 
@@ -449,41 +441,40 @@ public:
                     {
                         IT* dest = getAddrOffset<IT>(ind_k, ind_c, ind_r, ind_s,
                                                      preCEWDims, pIMGPreCEWts);
-                        IT* src = getCaffeAddrForIMGPreChnlExt<IT>(ind_k, ind_c, ind_r,
-                                                                   ind_s, origWDims, pSrcWts);
-                        if (src != NULL)
-                        {
+                        IT* src  = getCaffeAddrForIMGPreChnlExt<IT>(ind_k, ind_c, ind_r,
+                                                                    ind_s, origWDims, pSrcWts);
+                        if (src != NULL) {
                             *dest = *src;
                         }
-                        else
-                        {
+                        else {
                             *dest = 0.0f;
                         }
                         trnsCnt++;
                     }
 
-        if (trnsCnt != preCEWDims.wtSize)
-        {
+        if (trnsCnt != preCEWDims.wtSize) {
             return IMG_Pre_CE_Wts;
         }
 
-        IMG_Pre_CE_Wts.type = getEnumFromType<IT>();
+        IMG_Pre_CE_Wts.type   = getEnumFromType<IT>();
         IMG_Pre_CE_Wts.values = pIMGPreCEWtsCopy;
-        IMG_Pre_CE_Wts.count = trnsCnt;
+        IMG_Pre_CE_Wts.count  = trnsCnt;
 
         return IMG_Pre_CE_Wts;
     }
 
     //!<  Do channel post-extension on raw caffe wts for IMG convolution
     template<typename IT, typename RT>
-    static Weights postChnlExtWtsForIMG(
-        WeightDims wDims,    //!< dims of wt blob before post Chnl Extension
-        Weights srcWts,      //!< ptr to orig caffe wt blob
-        NvU32 postExtFactor, //!< factor(1,2 or 4) upto which extension should be made
-        bool& postChnlExtWtsSuccess,
-        int atomicKSize,
-        int atomicCSize,
-        int cbufWidth)
+    static Weights postChnlExtWtsForIMG
+        (
+            WeightDims    wDims,          //!< dims of wt blob before post Chnl Extension
+            Weights       srcWts,         //!< ptr to orig caffe wt blob
+            NvU32         postExtFactor,  //!< factor(1,2 or 4) upto which extension should be made
+            bool          &postChnlExtWtsSuccess,
+            int atomicKSize,
+            int atomicCSize,
+            int cbufWidth
+        )
     {
         Weights IMG_Post_CE_Wts = Weights(nvdla::DataType::FLOAT, NULL, 0);
 
@@ -504,8 +495,8 @@ public:
         //Prepare wt translation ops
         prepWtTrnsOpsForIMGPostCE<RT>(wDims, postExtFactor, vWtOps, atomicKSize, atomicCSize);
 
-        if (vWtOps.size() == 0)
-        {
+
+        if (vWtOps.size() == 0) {
             postChnlExtWtsSuccess = false;
             return IMG_Post_CE_Wts;
         }
@@ -518,14 +509,16 @@ public:
     }
 
     /* Join factors of 2 adjacent product ops into single blob iff they dont overshoot
-         * the dynamic range of the compute precision
-         */
-    template<typename IT, typename RT>
-    static Weights combineMultiplicationFactors(
-        engine_ast::SDPMode mode, // per-channel/layer
-        WeightDims commonDims,
-        Weights& rawF1Data,
-        Weights& rawF2Data)
+     * the dynamic range of the compute precision
+     */
+    template <typename IT, typename RT>
+    static Weights combineMultiplicationFactors
+        (
+            engine_ast::SDPMode mode,           // per-channel/layer
+            WeightDims          commonDims,
+            Weights&            rawF1Data,
+            Weights&            rawF2Data
+        )
     {
         NvDlaError e = NvDlaSuccess;
         Weights combinedData = Weights(nvdla::DataType::FLOAT, NULL, 0);
@@ -545,9 +538,10 @@ public:
                                  rawF1Data.count, rawF2Data.count);
         }
 
-        combinedData.type = rawF1Data.type;
-        combinedData.count = rawF1Data.count;
-        pCombinedBlob = reinterpret_cast<IT*>(engine_ast::MemoryCollector::getInstance()->allocateMemory(rawF1Data.count * sizeof(IT)));
+        combinedData.type   = rawF1Data.type;
+        combinedData.count  = rawF1Data.count;
+        pCombinedBlob       =
+            reinterpret_cast<IT*>(engine_ast::MemoryCollector::getInstance()->allocateMemory(rawF1Data.count * sizeof(IT)));
         combinedData.values = NULL;
 
         if (mode.v() == engine_ast::SDPModeEnum::SDP_MODE_PER_LAYER)
@@ -576,25 +570,26 @@ public:
         else
         {
             ORIGINATE_ERROR_FAIL(NvDlaError_NotSupported, "Don't support joining multiplication "
-                                                          "factors for SDP mode %s",
-                                 mode.c_str());
+                                                          "factors for SDP mode %s", mode.c_str());
         }
 
         combinedData.values = pCombinedBlob;
 
-fail:
+        fail:
         return combinedData;
     }
 
     /* Join factors of 2 adjacent additive ops into single blob iff they dont overshoot
-         * the dynamic range of the compute precision
-         */
-    template<typename IT, typename RT>
-    static Weights combineAdditionFactors(
-        engine_ast::SDPMode mode, // per-channel/layer
-        WeightDims commonDims,
-        Weights& rawF1Data,
-        Weights& rawF2Data)
+     * the dynamic range of the compute precision
+     */
+    template <typename IT, typename RT>
+    static Weights combineAdditionFactors
+        (
+            engine_ast::SDPMode mode,           // per-channel/layer
+            WeightDims          commonDims,
+            Weights&            rawF1Data,
+            Weights&            rawF2Data
+        )
     {
         NvDlaError e = NvDlaSuccess;
         Weights combinedData = Weights(nvdla::DataType::FLOAT, NULL, 0);
@@ -614,9 +609,10 @@ fail:
                                  rawF1Data.count, rawF2Data.count);
         }
 
-        combinedData.type = rawF1Data.type;
-        combinedData.count = rawF1Data.count;
-        pCombinedBlob = reinterpret_cast<IT*>(engine_ast::MemoryCollector::getInstance()->allocateMemory(rawF1Data.count * sizeof(IT)));
+        combinedData.type   = rawF1Data.type;
+        combinedData.count  = rawF1Data.count;
+        pCombinedBlob       =
+            reinterpret_cast<IT*>(engine_ast::MemoryCollector::getInstance()->allocateMemory(rawF1Data.count * sizeof(IT)));
         combinedData.values = NULL;
 
         if (mode.v() == engine_ast::SDPModeEnum::SDP_MODE_PER_LAYER)
@@ -645,23 +641,24 @@ fail:
         else
         {
             ORIGINATE_ERROR_FAIL(NvDlaError_NotSupported, "Don't support joining addition "
-                                                          "factors for SDP mode %s",
-                                 mode.c_str());
+                                                          "factors for SDP mode %s", mode.c_str());
         }
 
         combinedData.values = pCombinedBlob;
 
-fail:
+        fail:
         return combinedData;
     }
 
-    template<typename IT, typename RT>
-    Weights combineKernelWeightsAndScaleData(
-        engine_ast::SDPMode sclMode, // per-channel/layer
-        nvdla::Dims4 krnlWtDims,
-        nvdla::Dims4 sclDims,
-        Weights& krnlWts,
-        Weights& sclData)
+    template <typename IT, typename RT>
+    Weights combineKernelWeightsAndScaleData
+        (
+            engine_ast::SDPMode sclMode,           // per-channel/layer
+            nvdla::Dims4        krnlWtDims,
+            nvdla::Dims4        sclDims,
+            Weights&            krnlWts,
+            Weights&            sclData
+        )
     {
         NvDlaError e = NvDlaSuccess;
         Weights combinedData = Weights(nvdla::DataType::FLOAT, NULL, 0);
@@ -674,9 +671,10 @@ fail:
         API_CHECK_WEIGHTS_RETVAL(krnlWts, combinedData);
         API_CHECK_WEIGHTS_RETVAL(sclData, combinedData);
 
-        combinedData.type = krnlWts.type;
-        combinedData.count = krnlWts.count;
-        pCombinedBlob = reinterpret_cast<IT*>(engine_ast::MemoryCollector::getInstance()->allocateMemory(krnlWts.count * sizeof(IT)));
+        combinedData.type   = krnlWts.type;
+        combinedData.count  = krnlWts.count;
+        pCombinedBlob       =
+            reinterpret_cast<IT*>(engine_ast::MemoryCollector::getInstance()->allocateMemory(krnlWts.count * sizeof(IT)));
         combinedData.values = NULL;
 
         if (sclMode.v() == engine_ast::SDPModeEnum::SDP_MODE_PER_LAYER)
@@ -713,13 +711,12 @@ fail:
         else
         {
             ORIGINATE_ERROR_FAIL(NvDlaError_NotSupported, "Don't support joining kernel wts and scale "
-                                                          "factors for SDP mode %s",
-                                 sclMode.c_str());
+                                                          "factors for SDP mode %s", sclMode.c_str());
         }
 
         combinedData.values = pCombinedBlob;
 
-fail:
+        fail:
         return combinedData;
     }
 
@@ -730,22 +727,23 @@ fail:
     //!<      - fp16 -> fp16 translation
     //!<      - fp32 -> fp32 translation (will deprecate soon)
     //!<      - fp32 -> fp16 translation
-    template<typename IT, typename RT>
-    static Weights translateWtsForDC(
-        WeightDims wDims, //!<  dims of orig caffe wt blob
-        Weights& srcWts,  //!<  ptr to orig caffe wt blob
-        int atomicKSize,
-        int atomicCSize,
-        int cbufWidth,
-        std::map<std::string, IT>& mCaffeHash = *(new std::map<std::string, IT>()) //!<  hash of the entire caffe wt blob
-    )
+    template <typename IT, typename RT>
+    static Weights translateWtsForDC
+        (
+            WeightDims                 wDims,               //!<  dims of orig caffe wt blob
+            Weights&                   srcWts,              //!<  ptr to orig caffe wt blob
+            int atomicKSize,
+            int atomicCSize,
+            int cbufWidth,
+            std::map<std::string, IT>& mCaffeHash = *(new std::map<std::string, IT>()) //!<  hash of the entire caffe wt blob
+        )
     {
         Weights DC_tr_wts = Weights(nvdla::DataType::FLOAT, NULL, 0);
 
         API_CHECK_WEIGHTS_RETVAL(srcWts, DC_tr_wts);
 
         bool isSanityOn = mCaffeHash.size() > 0 ? true : false;
-        IT* pSrcWts = reinterpret_cast<IT*>(const_cast<void*>(srcWts.values));
+        IT* pSrcWts  = reinterpret_cast<IT*>(const_cast<void*>(srcWts.values));
         IT* pDCCEWts = pSrcWts;
         WeightDims origWDims = wDims;
         std::vector<AtomicWtOp> vWtOps;
@@ -787,20 +785,22 @@ fail:
     //!<      - int8 -> fp32 translation
     //!<      - int16-> fp32 translation
     //!<      - fp16 -> fp32 translation
-    template<typename IT, typename RT>
-    static Weights convertWtsToKCRS(
-        WeightDims wDims, //!<  dims of orig caffe wt blob
-        Weights& srcWts   //!<  ptr to orig caffe wt blob
-    )
+    template <typename IT, typename RT>
+    static Weights convertWtsToKCRS
+        (
+            WeightDims                 wDims,               //!<  dims of orig caffe wt blob
+            Weights&                   srcWts              //!<  ptr to orig caffe wt blob
+        )
     {
         NvU32 trnsCount = 0;
         Weights DC_tr_wts = Weights(nvdla::DataType::FLOAT, NULL, 0);
 
         API_CHECK_WEIGHTS_RETVAL(srcWts, DC_tr_wts);
 
-        IT* pSrcWts = reinterpret_cast<IT*>(const_cast<void*>(srcWts.values));
+        IT* pSrcWts  = reinterpret_cast<IT*>(const_cast<void*>(srcWts.values));
 
-        NvF32* pDCDestWts = reinterpret_cast<NvF32*>(engine_ast::MemoryCollector::getInstance()->allocateMemory(wDims.wtSize * sizeof(NvF32)));
+        NvF32* pDCDestWts =
+            reinterpret_cast<NvF32*>(engine_ast::MemoryCollector::getInstance()->allocateMemory(wDims.wtSize * sizeof(NvF32)));
         memset(pDCDestWts, 0, wDims.wtSize * sizeof(NvF32));
         NvF32* pDCDestWtsCopy = pDCDestWts;
 
@@ -812,7 +812,10 @@ fail:
                 {
                     for (int s = 0; s < wDims.width; ++s)
                     {
-                        int ckrsIndex = s + wDims.width * (r + wDims.height * (k + wDims.numKernels * (c)));
+                        int ckrsIndex = s + wDims.width *
+                                            (r + wDims.height *
+                                                 (k + wDims.numKernels *
+                                                      (c)));
                         IT value = pSrcWts[ckrsIndex];
                         *pDCDestWts = NvF32(value);
                         pDCDestWts++;
@@ -824,27 +827,29 @@ fail:
 
         DC_tr_wts.type = getEnumFromType<NvF32>();
         DC_tr_wts.values = pDCDestWtsCopy;
-        DC_tr_wts.count = trnsCount;
+        DC_tr_wts.count  = trnsCount;
 
         return DC_tr_wts;
     }
 
     /**
-         * Splits the raw KCRS weights into set of weights based on deconvolution strides.
-         * This function returns set of splitted weights along with splitSetWtDims.
-         **/
+     * Splits the raw KCRS weights into set of weights based on deconvolution strides.
+     * This function returns set of splitted weights along with splitSetWtDims.
+     **/
     template<typename IT, typename RT>
-    static std::vector<Weights> splitWeightsForDeconv(
-        Weights rawKCRSWts,
-        Dims4 origWtDims,
-        Dims2 deconvStrides,
-        Dims4& splitSetWtDims)
+    static std::vector<Weights> splitWeightsForDeconv
+        (
+            Weights rawKCRSWts,
+            Dims4   origWtDims,
+            Dims2   deconvStrides,
+            Dims4&   splitSetWtDims
+        )
     {
         std::vector<Weights> splitSetWts;
 
         // Determine split dimension
-        NvS32 splitSetW = (NvS32)ceilf(origWtDims.w / float(deconvStrides.w));
-        NvS32 splitSetH = (NvS32)ceilf(origWtDims.h / float(deconvStrides.h));
+        NvS32 splitSetW = (NvS32)ceilf(origWtDims.w/float(deconvStrides.w));
+        NvS32 splitSetH = (NvS32)ceilf(origWtDims.h/float(deconvStrides.h));
 
         splitSetWtDims = Dims4(origWtDims.n, origWtDims.c, splitSetH, splitSetW);
 
@@ -858,7 +863,12 @@ fail:
                 NvU16 sStartIndex = x;
                 NvU16 rStartIndex = y;
 
-                IT* pSplitSet = (IT*)engine_ast::MemoryCollector::getInstance()->allocateMemory(sizeof(IT) * (splitSetWtDims.n * splitSetWtDims.c * splitSetWtDims.h * splitSetWtDims.w));
+                IT* pSplitSet =
+                    (IT*) engine_ast::MemoryCollector::getInstance()->allocateMemory(sizeof(IT) *
+                                                                                     (splitSetWtDims.n *
+                                                                                      splitSetWtDims.c *
+                                                                                      splitSetWtDims.h *
+                                                                                      splitSetWtDims.w));
                 IT* pSplitSetCopy = pSplitSet;
                 NvU64 splitSetCnt = 0;
 
@@ -874,7 +884,9 @@ fail:
                                 NvU16 rJumpIndex = rStartIndex + (r * deconvStrides.h);
                                 if ((sJumpIndex < origWtDims.w) && (rJumpIndex < origWtDims.h))
                                 {
-                                    NvU32 unsplitWtIndex = sJumpIndex + origWtDims.w * (rJumpIndex + origWtDims.h * (c + origWtDims.c * (k)));
+                                    NvU32 unsplitWtIndex = sJumpIndex + origWtDims.w *
+                                                                        (rJumpIndex + origWtDims.h *
+                                                                                      (c + origWtDims.c * (k)));
                                     *pSplitSet = pKCRS[unsplitWtIndex];
                                 }
                                 else
@@ -902,22 +914,23 @@ fail:
     //!<      - fp16 -> fp16 translation
     //!<      - fp32 -> fp32 translation (will deprecate soon)
     //!<      - fp32 -> fp16 translation
-    template<typename IT, typename RT>
-    static Weights translateWtsForDeconv(
-        WeightDims wDims, //!<  dims of orig caffe wt blob
-        Weights& srcWts,  //!<  ptr to orig caffe wt blob
-        int atomicKSize,
-        int atomicCSize,
-        int cbufWidth,
-        std::map<std::string, IT>& mCaffeHash = *(new std::map<std::string, IT>()) //!<  hash of the entire caffe wt blob
-    )
+    template <typename IT, typename RT>
+    static Weights translateWtsForDeconv
+        (
+            WeightDims                 wDims,               //!<  dims of orig caffe wt blob
+            Weights&                   srcWts,              //!<  ptr to orig caffe wt blob
+            int atomicKSize,
+            int atomicCSize,
+            int cbufWidth,
+            std::map<std::string, IT>& mCaffeHash = *(new std::map<std::string, IT>()) //!<  hash of the entire caffe wt blob
+        )
     {
         Weights DC_tr_wts = Weights(nvdla::DataType::FLOAT, NULL, 0);
 
         API_CHECK_WEIGHTS_RETVAL(srcWts, DC_tr_wts);
 
         bool isSanityOn = mCaffeHash.size() > 0 ? true : false;
-        IT* pSrcWts = reinterpret_cast<IT*>(const_cast<void*>(srcWts.values));
+        IT* pSrcWts  = reinterpret_cast<IT*>(const_cast<void*>(srcWts.values));
         WeightDims origWDims = wDims;
         std::vector<AtomicWtOp> vWtOps;
         vWtOps.clear();
@@ -939,37 +952,42 @@ fail:
         return DC_tr_wts;
     }
 
+
     //!<  check if wt dims and conv stride allow WG convolution such as:
     //!<        Stride = 1, size = 3x3 or
     //!<        Stride = 2, size = 6x6 or 5x5 or
     //!<        Stride = 3, size = 7x7 or 8x8 or 9x9, etc
-    static bool isWGPossible(
-        WeightDims wDims)
+    static bool isWGPossible
+        (
+            WeightDims wDims
+        )
     {
         // right now restrict only to 3x3 stride 1
-        //            if (wDims.width > wDims.strideX * 2 &&
-        //                wDims.width <= wDims.strideX * 3 &&
-        //                wDims.height > wDims.strideY * 2 &&
-        //                wDims.height <= wDims.strideY * 3)
-        if (wDims.width == 3 && wDims.height == 3 && wDims.strideX == 1 && wDims.strideY == 1)
+//            if (wDims.width > wDims.strideX * 2 &&
+//                wDims.width <= wDims.strideX * 3 &&
+//                wDims.height > wDims.strideY * 2 &&
+//                wDims.height <= wDims.strideY * 3)
+        if (wDims.width == 3 && wDims.height == 3 &&
+            wDims.strideX == 1 && wDims.strideY == 1)
             return true;
         else
             return false;
     }
 
     //!<  translate raw caffe wts to that suitable for winograd convolution
-    template<typename IT, typename RT>
-    static Weights translateWtsForWG(
-        WeightDims wDims,                                                          //!<  dims of orig caffe wt blob
-        Weights& srcWts,                                                           //!<  ptr to orig caffe wt blob
-        std::map<std::string, IT>& mCaffeHash = *(new std::map<std::string, IT>()) //!<  hash of the entire caffe wt blob
-    )
+    template <typename IT, typename RT>
+    static Weights translateWtsForWG
+        (
+            WeightDims       wDims,          //!<  dims of orig caffe wt blob
+            Weights&         srcWts,         //!<  ptr to orig caffe wt blob
+            std::map<std::string, IT>& mCaffeHash = *(new std::map<std::string, IT>())//!<  hash of the entire caffe wt blob
+        )
     {
         Weights WG_tr_wts = Weights{nvdla::DataType::FLOAT, NULL, 0};
         API_CHECK_WEIGHTS_RETVAL(srcWts, WG_tr_wts);
 
         bool isSanityOn = mCaffeHash.size() > 0 ? true : false;
-        IT* pSrcWts = reinterpret_cast<IT*>(const_cast<void*>(srcWts.values));
+        IT* pSrcWts  = reinterpret_cast<IT*>(const_cast<void*>(srcWts.values));
         IT* pWGZPWts = pSrcWts;
         IT* pWGCEWts = pSrcWts;
         IT* pWGMTWts = pSrcWts;
@@ -980,14 +998,15 @@ fail:
         vWtOps.clear();
 
         if (wDims.strideX != wDims.strideY)
-            return srcWts; // WG trns is not possible for unequal X/Y strides
+            return srcWts;  // WG trns is not possible for unequal X/Y strides
 
         int bpe = sizeof(RT);
 
         //Zero pad channels if not a multiple of 32
-        if ((wDims.numChannels % (WG_BYTES_PER_ATOM / bpe)) != 0)
+        if ((wDims.numChannels % (WG_BYTES_PER_ATOM/bpe)) != 0)
         {
-            int numPadChnls = WG_BYTES_PER_ATOM / bpe - (wDims.numChannels % (WG_BYTES_PER_ATOM / bpe));
+            int numPadChnls = WG_BYTES_PER_ATOM/bpe -
+                              (wDims.numChannels % (WG_BYTES_PER_ATOM/bpe));
 
             /* if padding zeroes in chnl direction, update caffeWtHash */
             mCaffeHash.clear();
@@ -1001,7 +1020,9 @@ fail:
         }
 
         //Channel extend if need be (stride > 1)
-        if (wDims.width != 3 && wDims.height != 3 && wDims.strideX > 1)
+        if (wDims.width != 3 &&
+            wDims.height != 3 &&
+            wDims.strideX > 1)
         {
             /* if extending channels, update caffeWtHash */
             mCaffeHash.clear();
@@ -1025,6 +1046,7 @@ fail:
             ceWDims = zpWDims;
             pWGCEWts = pWGZPWts;
         }
+
 
         //Translate the 3x3xC cube to 4x4xC
         pWGMTWts = WGMatrixTrns<IT>(wDims, pWGCEWts);
@@ -1061,29 +1083,31 @@ fail:
     }
 
     // convert CRS blob to Cpg[RSCf]Cfg[RSCf] blob
-    template<typename IT, typename RT>
-    static Weights translateCRSToFeatureData(
-        WeightDims crsDims,
-        Weights srcData,
-        int channelsPerGroup = 0)
+    template <typename IT, typename RT>
+    static Weights translateCRSToFeatureData
+        (
+            WeightDims crsDims,
+            Weights srcData,
+            int channelsPerGroup = 0
+        )
     {
         NvU32 trnsCount = 0;
         Weights featureFormatData = Weights(nvdla::DataType::FLOAT, NULL, 0);
 
         // use channelsPerGroup if specified
-        int cf = channelsPerGroup != 0 ? channelsPerGroup : sizeof(RT) == 1 ? 32
-                                                                            : 16; // full channels per group
+        int cf  = channelsPerGroup != 0? channelsPerGroup:
+                  sizeof(RT) == 1 ? 32 : 16;   // full channels per group
 
-        int cfg = crsDims.numChannels / cf; // number of full channel groups
-        int cp = crsDims.numChannels % cf;  // partial channels per group
-        int cpg = cp ? 1 : 0;               // number of partial channel groups
+        int cfg = crsDims.numChannels / cf;    // number of full channel groups
+        int cp  = crsDims.numChannels % cf;    // partial channels per group
+        int cpg = cp ? 1 : 0;                  // number of partial channel groups
         NvU64 ffSize = (cfg + cpg) * cf * crsDims.width * crsDims.height;
 
-        IT* pSrcData = reinterpret_cast<IT*>(const_cast<void*>(srcData.values));
-        RT* pDestData = reinterpret_cast<RT*>(engine_ast::MemoryCollector::getInstance()->allocateMemory(ffSize * sizeof(RT)));
+        IT *pSrcData  = reinterpret_cast<IT*>(const_cast<void*>(srcData.values));
+        RT *pDestData = reinterpret_cast<RT*>(engine_ast::MemoryCollector::getInstance()->allocateMemory(ffSize * sizeof(RT)));
         memset(pDestData, 0, ffSize * sizeof(RT));
 
-        RT* pDestDataCopy = pDestData;
+        RT *pDestDataCopy = pDestData;
 
         for (unsigned ind_cfg = 0; ind_cfg < (unsigned)cfg; ind_cfg++)
         {
@@ -1091,9 +1115,11 @@ fail:
             {
                 for (unsigned ind_s = 0; ind_s < (unsigned)crsDims.width; ind_s++)
                 {
-                    for (unsigned ind_c = ind_cfg * cf; ind_c < (unsigned)((ind_cfg * cf) + cf); ind_c++)
+                    for (unsigned ind_c = ind_cfg*cf; ind_c < (unsigned)((ind_cfg*cf) + cf); ind_c++)
                     {
-                        IT value = pSrcData[ind_s + crsDims.width * (ind_r + crsDims.height * (ind_c))];
+                        IT value = pSrcData[ind_s +
+                                            crsDims.width*(ind_r +
+                                                           crsDims.height*(ind_c))];
                         *pDestData = RT(value);
                         pDestData++;
                         trnsCount++;
@@ -1108,11 +1134,13 @@ fail:
             {
                 for (unsigned ind_s = 0; ind_s < (unsigned)crsDims.width; ind_s++)
                 {
-                    for (unsigned ind_c = cfg * cf; ind_c < (unsigned)((cfg * cf) + cf); ind_c++)
+                    for (unsigned ind_c = cfg*cf; ind_c < (unsigned)((cfg*cf) + cf); ind_c++)
                     {
-                        if (ind_c < (unsigned)((cfg * cf) + cp))
+                        if (ind_c < (unsigned)((cfg*cf) + cp))
                         {
-                            IT value = pSrcData[ind_s + crsDims.width * (ind_r + crsDims.height * (ind_c))];
+                            IT value = pSrcData[ind_s +
+                                                crsDims.width*(ind_r +
+                                                               crsDims.height*(ind_c))];
                             *pDestData = RT(value);
                         }
                         else
@@ -1130,31 +1158,35 @@ fail:
         {
             gLogInternalError << "Problem in translating data to FF:"
                               << "copy count: " << trnsCount
-                              << "dimension count:" << ffSize
+                              << "dimension count:"<< ffSize
                               << std::endl;
             return featureFormatData;
         }
 
-        featureFormatData.type = getEnumFromType<RT>();
+        featureFormatData.type   = getEnumFromType<RT>();
         featureFormatData.values = pDestDataCopy;
-        featureFormatData.count = trnsCount;
+        featureFormatData.count  = trnsCount;
         return featureFormatData;
     }
 
-    template<typename IT, typename RT>
-    static Weights translatePEBiasToFD(
-        WeightDims dims,
-        Weights srcData,
-        int channelsPerGroup = 0)
+    template <typename IT, typename RT>
+    static Weights translatePEBiasToFD
+        (
+            WeightDims dims,
+            Weights srcData,
+            int channelsPerGroup = 0
+        )
     {
-        return translateCRSToFeatureData<IT, RT>(dims, srcData, channelsPerGroup);
+        return translateCRSToFeatureData<IT,RT>(dims, srcData, channelsPerGroup);
     }
 
     // interleave/alternate between data bits from 2 data blobs
-    template<typename IT, typename RT>
-    static Weights interlayDataBlobs(
-        Weights& D1Blob,
-        Weights& D2Blob)
+    template <typename IT, typename RT>
+    static Weights interlayDataBlobs
+        (
+            Weights& D1Blob,
+            Weights& D2Blob
+        )
     {
         NvDlaError e = NvDlaSuccess;
         NVDLA_UNUSED(e);
@@ -1171,14 +1203,14 @@ fail:
         IT* pD1Data = reinterpret_cast<IT*>(const_cast<void*>(D1Blob.values));
         IT* pD2Data = reinterpret_cast<IT*>(const_cast<void*>(D2Blob.values));
 
-        ASSERT(D1Blob.count == D2Blob.count);
+        ASSERT( D1Blob.count == D2Blob.count );
 
         pDestData = reinterpret_cast<RT*>(engine_ast::MemoryCollector::getInstance()->allocateMemory(D1Blob.count * 2 * sizeof(RT)));
 
         memset(pDestData, 0, D1Blob.count * 2 * sizeof(RT));
         pDestDataCopy = pDestData;
 
-        for (NvU64 c = 0; c < static_cast<NvU64>(D1Blob.count); ++c)
+        for (NvU64 c = 0 ; c < static_cast<NvU64>(D1Blob.count); ++c)
         {
             IT d1Val = pD1Data[c];
             IT d2Val = pD2Data[c];
@@ -1190,30 +1222,34 @@ fail:
             trnsCount++;
         }
 
-        interleavedData.type = getEnumFromType<RT>();
+        interleavedData.type   = getEnumFromType<RT>();
         interleavedData.values = pDestDataCopy;
-        interleavedData.count = trnsCount;
+        interleavedData.count  = trnsCount;
 
-fail:
+        fail:
         return interleavedData;
     }
 
-    template<typename IT, typename RT>
-    static Weights translatePESclDataToFD(
-        WeightDims dims,
-        Weights srcData,
-        int channelsPerGroup = 0)
+    template <typename IT, typename RT>
+    static Weights translatePESclDataToFD
+        (
+            WeightDims dims,
+            Weights srcData,
+            int channelsPerGroup = 0
+        )
     {
-        return translateCRSToFeatureData<IT, RT>(dims, srcData, channelsPerGroup);
+        return translateCRSToFeatureData<IT,RT>(dims, srcData, channelsPerGroup);
     }
 
     //!<  translate raw caffe bias-data to that suitable for SDP Bias op
-    template<typename IT, typename RT>
-    static Weights translateDataForBias(
-        engine_ast::SDPMode biasMode, //!<  per-layer/channel/elementwise
-        WeightDims biasDims,          //!<  dims of orig caffe bias-data blob
-        Weights& srcBias,             //!<  ptr to orig caffe mean blob
-        int channelsPerGroup = 0)
+    template <typename IT, typename RT>
+    static Weights translateDataForBias
+        (
+            engine_ast::SDPMode  biasMode,      //!<  per-layer/channel/elementwise
+            WeightDims           biasDims,      //!<  dims of orig caffe bias-data blob
+            Weights&             srcBias,        //!<  ptr to orig caffe mean blob
+            int channelsPerGroup = 0
+        )
     {
         NvDlaError e = NvDlaSuccess;
         NVDLA_UNUSED(e);
@@ -1224,7 +1260,8 @@ fail:
 
         IT* pSrcBias = reinterpret_cast<IT*>(const_cast<void*>(srcBias.values));
 
-        RT* pDestBias = reinterpret_cast<RT*>(engine_ast::MemoryCollector::getInstance()->allocateMemory(biasDims.wtSize * sizeof(RT)));
+        RT* pDestBias =
+            reinterpret_cast<RT*>(engine_ast::MemoryCollector::getInstance()->allocateMemory(biasDims.wtSize * sizeof(RT)));
         memset(pDestBias, 0, biasDims.wtSize * sizeof(RT));
         RT* pDestBiasCopy = pDestBias;
 
@@ -1237,11 +1274,11 @@ fail:
             *pDestBias = pSrcBias[0];
             trnsCount++;
         }
-        // Per-Channel:
+            // Per-Channel:
         else if (biasMode.v() == engine_ast::SDPModeEnum::SDP_MODE_PER_CHANNEL)
         {
             int c = 0;
-            for (; c < biasDims.numChannels; ++c)
+            for ( ; c < biasDims.numChannels; ++c)
             {
                 IT srcBias = pSrcBias[c];
                 *pDestBias = RT(srcBias);
@@ -1249,36 +1286,36 @@ fail:
                 trnsCount++;
             }
         }
-        // Per-Element:
+            // Per-Element:
         else if (biasMode.v() == engine_ast::SDPModeEnum::SDP_MODE_PER_ELEMENT)
         {
             /* Translate to feature format */
-            Bias_tr_data = translatePEBiasToFD<IT, RT>(biasDims, srcBias, channelsPerGroup);
+            Bias_tr_data = translatePEBiasToFD<IT,RT>(biasDims, srcBias, channelsPerGroup);
             goto fail;
         }
         else
         {
             ORIGINATE_ERROR_FAIL(NvDlaError_NotSupported, "Don't support data translation for "
-                                                          "bias op with sdp mode: %s",
-                                 biasMode.c_str());
+                                                          "bias op with sdp mode: %s", biasMode.c_str());
         }
 
-        Bias_tr_data.type = getEnumFromType<RT>();
+        Bias_tr_data.type   = getEnumFromType<RT>();
         Bias_tr_data.values = pDestBiasCopy;
-        Bias_tr_data.count = trnsCount;
+        Bias_tr_data.count  = trnsCount;
 
-fail:
+        fail:
         return Bias_tr_data;
     }
 
     //!<  translate raw caffe mean/variance to that suitable for SDP BatchNorm
-    template<typename IT, typename RT>
-    static Weights translateDataForBatchNorm(
-        engine_ast::SDPMode bnMode, //!<  per-channel/layer
-        WeightDims bnDims,          //!<  dims of orig caffe mean/variance blobs
-        Weights& srcMean,           //!<  ptr to orig caffe mean blob
-        Weights& srcVar             //!<  ptr to orig caffe variance blob
-    )
+    template <typename IT, typename RT>
+    static Weights translateDataForBatchNorm
+        (
+            engine_ast::SDPMode  bnMode,         //!<  per-channel/layer
+            WeightDims           bnDims,         //!<  dims of orig caffe mean/variance blobs
+            Weights&             srcMean,        //!<  ptr to orig caffe mean blob
+            Weights&             srcVar          //!<  ptr to orig caffe variance blob
+        )
     {
         NvDlaError e = NvDlaSuccess;
 
@@ -1288,11 +1325,12 @@ fail:
         Weights BNTrnsData = Weights(nvdla::DataType::FLOAT, NULL, 0);
 
         /* Batch-Norm:-> y = (x - mean) / sqrt(variance+eps)
-             * SDP can do ADD and MUL, not SUB and DIV
-             */
+         * SDP can do ADD and MUL, not SUB and DIV
+         */
 
         // Batch norm data can be only of 2 types: per-layer/per-channel
-        if (bnMode.v() == engine_ast::SDPModeEnum::SDP_MODE_PER_LAYER || bnMode.v() == engine_ast::SDPModeEnum::SDP_MODE_PER_CHANNEL)
+        if ( bnMode.v() == engine_ast::SDPModeEnum::SDP_MODE_PER_LAYER ||
+             bnMode.v() == engine_ast::SDPModeEnum::SDP_MODE_PER_CHANNEL)
         {
             BNTrnsData = interlayDataBlobs<IT, RT>(srcMean, srcVar);
         }
@@ -1305,18 +1343,20 @@ fail:
             ORIGINATE_ERROR_FAIL(NvDlaError_BadValue, "Unknown BN mode\n");
         }
 
-fail:
+        fail:
         return BNTrnsData;
     }
 
     /**
-         * Creates a unit(or identity) scale Weight based on mode and precision.
-         * This is useful when rescaling is handled by separate scale node.
-         **/
-    template<typename MP, typename CP>
-    static Weights createUnitScaleData(
-        engine_ast::SDPMode scaleMode,
-        Dims4 scaleDims)
+     * Creates a unit(or identity) scale Weight based on mode and precision.
+     * This is useful when rescaling is handled by separate scale node.
+     **/
+    template <typename MP, typename CP>
+    static Weights createUnitScaleData
+        (
+            engine_ast::SDPMode scaleMode,
+            Dims4               scaleDims
+        )
     {
         NvDlaError e = NvDlaSuccess;
         NVDLA_UNUSED(e);
@@ -1325,7 +1365,8 @@ fail:
         NvS32 unitScaleCount = scaleDims.c * scaleDims.h * scaleDims.w;
         NvS32 trnsCnt = 0;
 
-        MP* unitScaleValues = (MP*)engine_ast::MemoryCollector::getInstance()->allocateMemory(unitScaleCount * sizeof(MP));
+        MP* unitScaleValues =
+            (MP*)engine_ast::MemoryCollector::getInstance()->allocateMemory(unitScaleCount * sizeof(MP));
         memset(unitScaleValues, 0, unitScaleCount * sizeof(MP));
 
         if (scaleMode.v() == engine_ast::SDPModeEnum::SDP_MODE_PER_LAYER)
@@ -1336,7 +1377,7 @@ fail:
         else if (scaleMode.v() == engine_ast::SDPModeEnum::SDP_MODE_PER_CHANNEL)
         {
             int c = 0;
-            for (; c < scaleDims.c; ++c)
+            for ( ; c < scaleDims.c; ++c)
             {
                 unitScaleValues[c] = 1;
                 trnsCnt++;
@@ -1345,7 +1386,7 @@ fail:
         else if (scaleMode.v() == engine_ast::SDPModeEnum::SDP_MODE_PER_ELEMENT)
         {
             int i = 0;
-            for (; i < (scaleDims.c * scaleDims.w * scaleDims.h); ++i)
+            for ( ; i < (scaleDims.c * scaleDims.w * scaleDims.h); ++i)
             {
                 unitScaleValues[i] = 1;
                 trnsCnt++;
@@ -1362,17 +1403,19 @@ fail:
         unitScaleData.count = unitScaleCount;
         unitScaleData.values = unitScaleValues;
 
-fail:
+        fail:
         return unitScaleData;
     }
 
+
     //!<  Converts per-layer scale data to per-channel scale data
     // Repeats the same data #numChannels number of times. Data type is maintained after conversion
-    template<typename IT, typename RT>
-    static Weights translatePLScaleToPCScale(
-        Weights& srcScale, //!< ptr to orig caffe mean blob
-        NvU32 numChannels  //!< #channels
-    )
+    template <typename IT, typename RT>
+    static Weights translatePLScaleToPCScale
+        (
+            Weights&            srcScale,       //!< ptr to orig caffe mean blob
+            NvU32               numChannels     //!< #channels
+        )
     {
         Weights Scale_tr_data = Weights(nvdla::DataType::FLOAT, NULL, 0);
         NvU32 newCount = numChannels * srcScale.count;
@@ -1380,7 +1423,8 @@ fail:
         API_CHECK_WEIGHTS_RETVAL(srcScale, Scale_tr_data);
 
         IT* pSrcScale = reinterpret_cast<IT*>(const_cast<void*>(srcScale.values));
-        IT* pDestScale = reinterpret_cast<IT*>(engine_ast::MemoryCollector::getInstance()->allocateMemory(newCount * sizeof(IT)));
+        IT* pDestScale =
+            reinterpret_cast<IT*>(engine_ast::MemoryCollector::getInstance()->allocateMemory(newCount * sizeof(IT)));
 
         for (NvU32 ii = 0; ii < numChannels; ii++)
         {
@@ -1394,13 +1438,16 @@ fail:
         return Scale_tr_data;
     }
 
+
     //!<  translate raw caffe scale-data to that suitable for SDP Scale
-    template<typename IT, typename RT>
-    static Weights translateDataForScale(
-        engine_ast::SDPMode scaleMode, //!<  per-layer/channel/elementwise
-        WeightDims scaleDims,          //!<  dims of orig caffe scale-data blob
-        Weights& srcScale,             //!<  ptr to orig caffe mean blob
-        int channelsPerGroup = 0)
+    template <typename IT, typename RT>
+    static Weights translateDataForScale
+        (
+            engine_ast::SDPMode  scaleMode,      //!<  per-layer/channel/elementwise
+            WeightDims           scaleDims,      //!<  dims of orig caffe scale-data blob
+            Weights&             srcScale,       //!<  ptr to orig caffe mean blob
+            int channelsPerGroup = 0
+        )
     {
         NvS64 trnsCount = 0;
         Weights Scale_tr_data = Weights(nvdla::DataType::FLOAT, NULL, 0);
@@ -1409,7 +1456,8 @@ fail:
 
         IT* pSrcScale = reinterpret_cast<IT*>(const_cast<void*>(srcScale.values));
 
-        RT* pDestScale = reinterpret_cast<RT*>(engine_ast::MemoryCollector::getInstance()->allocateMemory(scaleDims.wtSize * sizeof(RT)));
+        RT* pDestScale =
+            reinterpret_cast<RT*>(engine_ast::MemoryCollector::getInstance()->allocateMemory(scaleDims.wtSize * sizeof(RT)));
         memset(pDestScale, 0, scaleDims.wtSize * sizeof(RT));
         RT* pDestScaleCopy = pDestScale;
 
@@ -1422,11 +1470,11 @@ fail:
             *pDestScale = RT(pSrcScale[0]);
             trnsCount++;
         }
-        // Per-Channel:
+            // Per-Channel:
         else if (scaleMode.v() == engine_ast::SDPModeEnum::SDP_MODE_PER_CHANNEL)
         {
             int c = 0;
-            for (; c < scaleDims.numChannels; ++c)
+            for ( ; c < scaleDims.numChannels; ++c)
             {
                 IT srcScale = pSrcScale[c];
                 *pDestScale = RT(srcScale);
@@ -1434,28 +1482,30 @@ fail:
                 trnsCount++;
             }
         }
-        // Per-Element
+            // Per-Element
         else if (scaleMode.v() == engine_ast::SDPModeEnum::SDP_MODE_PER_ELEMENT)
         {
             /* Translate to feature format */
-            Scale_tr_data = translatePESclDataToFD<IT, RT>(scaleDims, srcScale, channelsPerGroup);
+            Scale_tr_data = translatePESclDataToFD<IT,RT>(scaleDims, srcScale, channelsPerGroup);
             goto fail;
         }
 
-        Scale_tr_data.type = getEnumFromType<RT>();
+        Scale_tr_data.type   = getEnumFromType<RT>();
         Scale_tr_data.values = pDestScaleCopy;
-        Scale_tr_data.count = trnsCount;
+        Scale_tr_data.count  = trnsCount;
 
-fail:
+        fail:
         return Scale_tr_data;
     }
 
     /* Reciprocal of the data blob. */
-    template<typename IT, typename RT>
-    static Weights invertDataBlob(
-        engine_ast::SDPMode mode, // per-channel/layer
-        WeightDims dataDims,
-        Weights& rawData)
+    template <typename IT, typename RT>
+    static Weights invertDataBlob
+        (
+            engine_ast::SDPMode mode,           // per-channel/layer
+            WeightDims          dataDims,
+            Weights&            rawData
+        )
     {
         NvDlaError e = NvDlaSuccess;
         Weights invertData = Weights(nvdla::DataType::FLOAT, NULL, 0);
@@ -1466,9 +1516,10 @@ fail:
 
         API_CHECK_WEIGHTS_RETVAL(rawData, invertData);
 
-        invertData.type = rawData.type;
-        invertData.count = rawData.count;
-        pInvertBlob = reinterpret_cast<IT*>(engine_ast::MemoryCollector::getInstance()->allocateMemory(rawData.count * sizeof(IT)));
+        invertData.type   = rawData.type;
+        invertData.count  = rawData.count;
+        pInvertBlob       =
+            reinterpret_cast<IT*>(engine_ast::MemoryCollector::getInstance()->allocateMemory(rawData.count * sizeof(IT)));
         invertData.values = NULL;
 
         if (mode.v() == engine_ast::SDPModeEnum::SDP_MODE_PER_LAYER)
@@ -1497,75 +1548,69 @@ fail:
         else
         {
             ORIGINATE_ERROR_FAIL(NvDlaError_NotSupported, "Don't support invert data "
-                                                          "for SDP mode %s",
-                                 mode.c_str());
+                                                          "for SDP mode %s", mode.c_str());
         }
 
         invertData.values = pInvertBlob;
 
-fail:
+        fail:
         return invertData;
     }
 
 private:
-    struct Oplimits
-    {
+
+    struct Oplimits {
         int startIndex;
         int limit;
 
-        Oplimits(int start, int limit)
-            : startIndex(start), limit(limit){};
+        Oplimits(int start, int limit):
+            startIndex(start), limit(limit) { };
     };
 
-    struct AtomicWtOp
-    {
-        Oplimits kg; //!<  the prevalent kernel group
-        Oplimits cg; //!<  num of channel groups in 1 atomic wt op
-        Oplimits r;  //!<  kernel height to be covered in 1 atomic wt op
-        Oplimits s;  //!<  kernel width to be covered in 1 atomic wt op
-        Oplimits k;  //!<  num of kernels in 1 atomic wt op
-        Oplimits c;  //!<  num of channels in 1 atomic wt op
+    struct AtomicWtOp {
+        Oplimits kg;    //!<  the prevalent kernel group
+        Oplimits cg;    //!<  num of channel groups in 1 atomic wt op
+        Oplimits r;     //!<  kernel height to be covered in 1 atomic wt op
+        Oplimits s;     //!<  kernel width to be covered in 1 atomic wt op
+        Oplimits k;     //!<  num of kernels in 1 atomic wt op
+        Oplimits c;     //!<  num of channels in 1 atomic wt op
 
         AtomicWtOp(Oplimits kg,
                    Oplimits cg,
                    Oplimits r,
                    Oplimits s,
                    Oplimits k,
-                   Oplimits c)
-            : kg(kg), cg(cg), r(r), s(s), k(k), c(c)
-        {
-        }
+                   Oplimits c):
+            kg(kg), cg(cg), r(r), s(s), k(k), c(c) {}
     };
 
-    struct IMGAtomicWtOp
-    {
-        Oplimits kg; //!<  the prevalent kernel group
-        Oplimits rg; //!<  number of vertical lines in 1 atomic wt op
-        Oplimits s;  //!<  kernel width to be covered in 1 atomic wt op
-        Oplimits k;  //!<  number of kernels to be covered in 1 atomic wt op
-        Oplimits r;  //!<  kernel height to be covered in 1 atomic wt op
-        Oplimits c;  //!<  number of channels to be covered in 1 atomic wt op
+    struct IMGAtomicWtOp {
+        Oplimits kg;    //!<  the prevalent kernel group
+        Oplimits rg;    //!<  number of vertical lines in 1 atomic wt op
+        Oplimits s;     //!<  kernel width to be covered in 1 atomic wt op
+        Oplimits k;     //!<  number of kernels to be covered in 1 atomic wt op
+        Oplimits r;     //!<  kernel height to be covered in 1 atomic wt op
+        Oplimits c;     //!<  number of channels to be covered in 1 atomic wt op
 
         IMGAtomicWtOp(Oplimits kg,
                       Oplimits rg,
                       Oplimits s,
                       Oplimits k,
                       Oplimits r,
-                      Oplimits c)
-            : kg(kg), rg(rg), s(s), k(k), r(r), c(c)
-        {
-        }
+                      Oplimits c):
+            kg(kg), rg(rg), s(s), k(k), r(r), c(c) {}
     };
 
-    template<typename T>
+    template <typename T>
     static nvdla::DataType getEnumFromType()
     {
         nvdla::DataType ret = nvdla::DataType::UNKNOWN;
-        T max = std::numeric_limits<T>::max();
-        NvS8 nvs8_max = std::numeric_limits<NvS8>::max();
+        T max           = std::numeric_limits<T>::max();
+        NvS8 nvs8_max   = std::numeric_limits<NvS8>::max();
         NvS16 nvs16_max = std::numeric_limits<NvS16>::max();
-        NvF32 fp32_max = std::numeric_limits<NvF32>::max();
-        half_float::half half_max = std::numeric_limits<half_float::half>::max();
+        NvF32 fp32_max  = std::numeric_limits<NvF32>::max();
+        half_float::half half_max   = std::numeric_limits<half_float::half>::max();
+
 
         if (max == (T)nvs8_max)
         {
@@ -1587,57 +1632,72 @@ private:
     }
 
     //!<  determine position in the wt blob from array indexes
-    template<typename T>
-    static T* getAddrOffset(
-        int indK,         //!< kernel index in the blob
-        int indC,         //!< chnl index
-        int indR,         //!< row index
-        int indS,         //!< column index
-        WeightDims wDims, //!< dims of the wt blob
-        T* pWts           //!< ptr to the wt blob
-    )
+    template <typename T>
+    static T* getAddrOffset
+        (
+            int indK,             //!< kernel index in the blob
+            int indC,             //!< chnl index
+            int indR,             //!< row index
+            int indS,             //!< column index
+            WeightDims wDims,     //!< dims of the wt blob
+            T* pWts               //!< ptr to the wt blob
+        )
     {
-        if (indK >= wDims.numKernels || indC >= wDims.numChannels || indR >= wDims.height || indS >= wDims.width)
+        if (indK >= wDims.numKernels ||
+            indC >= wDims.numChannels ||
+            indR >= wDims.height ||
+            indS >= wDims.width)
         {
             return NULL;
         }
 
-        return &pWts[indS + wDims.width * (indR + wDims.height * (indC + wDims.numChannels * (indK)))];
+        return &pWts[indS +
+                     wDims.width*(indR +
+                                  wDims.height*(indC +
+                                                wDims.numChannels*(indK)))];
     }
 
     //!<  determine position in the wt blob from array indexes for group operation
-    template<typename T>
-    static T* getAddrOffsetForGroup(
-        int indK,         //!< kernel index in the blob
-        int indC,         //!< chnl index
-        int indR,         //!< row index
-        int indS,         //!< column index
-        int indG,         //!< group index
-        int numChannels,  //!< channel size of original weights
-        WeightDims wDims, //!< dims of the wt blob
-        T* pWts           //!< ptr to the wt blob
-    )
+    template <typename T>
+    static T* getAddrOffsetForGroup
+        (
+            int indK,             //!< kernel index in the blob
+            int indC,             //!< chnl index
+            int indR,             //!< row index
+            int indS,             //!< column index
+            int indG,             //!< group index
+            int numChannels,      //!< channel size of original weights
+            WeightDims wDims,     //!< dims of the wt blob
+            T* pWts               //!< ptr to the wt blob
+        )
     {
         indC = indG * numChannels + indC;
 
-        if (indK >= wDims.numKernels || indC >= wDims.numChannels || indR >= wDims.height || indS >= wDims.width)
+        if (indK >= wDims.numKernels ||
+            indC >= wDims.numChannels ||
+            indR >= wDims.height ||
+            indS >= wDims.width)
         {
             return NULL;
         }
 
-        return &pWts[indS + wDims.width * (indR + wDims.height * (indC + wDims.numChannels * (indK)))];
+        return &pWts[indS +
+                     wDims.width*(indR +
+                                  wDims.height*(indC +
+                                                wDims.numChannels*(indK)))];
     }
 
     //!<  determine position in the raw caffe weights from array indexes suitable for IMD Pre Chnl Ext
-    template<typename T>
-    static T* getCaffeAddrForIMGPreChnlExt(
-        int indK,              //!<  kernel index in the raw caffe wt blob
-        int indC,              //!<  channel index
-        int indR,              //!<  row index
-        int indS,              //!<  channel index
-        WeightDims caffeWDims, //!<  dims of the wt blob
-        T* pCaffeWts           //!<  pts to the wt blob
-    )
+    template <typename T>
+    static T* getCaffeAddrForIMGPreChnlExt
+        (
+            int indK,                   //!<  kernel index in the raw caffe wt blob
+            int indC,                   //!<  channel index
+            int indR,                   //!<  row index
+            int indS,                   //!<  channel index
+            WeightDims caffeWDims,      //!<  dims of the wt blob
+            T* pCaffeWts                //!<  pts to the wt blob
+        )
     {
         int caffeS = caffeWDims.width;
         int caffeR = caffeWDims.height;
@@ -1649,27 +1709,31 @@ private:
         int ind_c = indC % caffeC;
 
         if (ind_s < caffeS && ind_r < caffeR && ind_c < caffeC)
-            return &pCaffeWts[ind_s + caffeS * (ind_r + caffeR * (ind_c + caffeC * (indK)))];
+            return &pCaffeWts[ind_s +
+                              caffeS*(ind_r +
+                                      caffeR*(ind_c +
+                                              caffeC*(indK)))];
         else
             return NULL;
     }
 
     //!<  determine position in the raw caffe weights from array indexes suitable for WG Chnl Ext
-    template<typename T>
-    static T* getCaffeAddrForWGChnlExt(
-        int indK,              //!<  kernel index in theraw caffe wt blob
-        int indC,              //!<  channel index
-        int indR,              //!<  row index
-        int indS,              //!<  channel index
-        WeightDims caffeWDims, //!<  dims of the wt blob
-        T* pCaffeWts           //!<  pts to the wt blob
-    )
+    template <typename T>
+    static T* getCaffeAddrForWGChnlExt
+        (
+            int indK,                   //!<  kernel index in theraw caffe wt blob
+            int indC,                   //!<  channel index
+            int indR,                   //!<  row index
+            int indS,                   //!<  channel index
+            WeightDims caffeWDims,      //!<  dims of the wt blob
+            T* pCaffeWts                //!<  pts to the wt blob
+        )
     {
         int caffeStX = caffeWDims.strideX;
         int caffeStY = caffeWDims.strideY;
-        int caffeR = caffeWDims.height;
-        int caffeS = caffeWDims.width;
-        int caffeC = caffeWDims.numChannels;
+        int caffeR   = caffeWDims.height;
+        int caffeS   = caffeWDims.width;
+        int caffeC   = caffeWDims.numChannels;
 
         // change caffe_s only after 1 origC is finished
         int ind_s = (indS * caffeStX) + ((indC % (caffeC * caffeStX)) / caffeC);
@@ -1678,53 +1742,59 @@ private:
         int ind_c = indC % caffeC;
 
         if (ind_r < caffeR && ind_s < caffeS)
-            return &pCaffeWts[ind_s + caffeS * (ind_r + caffeR * (ind_c + caffeC * (indK)))];
+            return &pCaffeWts[ind_s +
+                              caffeS*(ind_r +
+                                      caffeR*(ind_c +
+                                              caffeC*(indK)))];
         else
             return NULL;
     }
 
     //!<  determine position in the raw caffe weights from array indexes suitable for DC Chnl Ext (which is de-featured; keeping as backup)
-    template<typename T>
-    static T* getCaffeAddrForDCChnlExt(
-        int indK,              //!<  kernel index in theraw caffe wt blob
-        int indC,              //!<  channel index
-        int indR,              //!<  row index
-        int indS,              //!<  channel index
-        WeightDims caffeWDims, //!<  dims of the wt blob
-        T* pCaffeWts           //!<  pts to the wt blob
-    )
+    template <typename T>
+    static T* getCaffeAddrForDCChnlExt
+        (
+            int indK,                   //!<  kernel index in theraw caffe wt blob
+            int indC,                   //!<  channel index
+            int indR,                   //!<  row index
+            int indS,                   //!<  channel index
+            WeightDims caffeWDims,      //!<  dims of the wt blob
+            T* pCaffeWts                //!<  pts to the wt blob
+        )
     {
         return getCaffeAddrForWGChnlExt<T>(indK, indC, indR, indS, caffeWDims, pCaffeWts);
     }
 
     //!<  prepare weight translation sub-ops for IMG post channel extension
-    template<typename RT>
-    static void prepWtTrnsOpsForIMGPostCE(
-        WeightDims wDims, //!<  dimensions of the weights
-        NvU32 postExtFactor,
-        std::vector<IMGAtomicWtOp>& vWtOps, //!<  list of all operations to achieve the translation
-        int atomicKSize,
-        int atomicCSize)
+    template <typename RT>
+    static void prepWtTrnsOpsForIMGPostCE
+        (
+            WeightDims                  wDims,      //!<  dimensions of the weights
+            NvU32                       postExtFactor,
+            std::vector<IMGAtomicWtOp>& vWtOps,      //!<  list of all operations to achieve the translation
+            int atomicKSize,
+            int atomicCSize
+        )
     {
-        int s = wDims.width;
-        int c = wDims.numChannels;
-        int rf = postExtFactor;
-        int kf = (sizeof(RT) == 1 ? atomicKSize : (atomicKSize / 2));
+        int s   = wDims.width;
+        int c   = wDims.numChannels;
+        int rf  = postExtFactor;
+        int kf  = (sizeof(RT) == 1 ? atomicKSize : (atomicKSize / 2));
         int rfg = wDims.height / rf;
         int kfg = wDims.numKernels / kf;
-        int rp = wDims.height % rf;
-        int kp = wDims.numKernels % kf;
-        int rpg = 1; //!<  partial row group will always be 1 in number if any
-        int kpg = 1; //!<  partial kernel group will always be 1 in number if any
+        int rp  = wDims.height % rf;
+        int kp  = wDims.numKernels % kf;
+        int rpg = 1;    //!<  partial row group will always be 1 in number if any
+        int kpg = 1;    //!<  partial kernel group will always be 1 in number if any
 
         const int FULL_ROWS_PER_GROUP = rf;
 
         if (c > atomicCSize || rfg <= 1)
             return;
 
-        bool isFullRowGroupsPoss = rfg > 0 ? true : false;
+        bool isFullRowGroupsPoss  = rfg > 0 ? true : false;
         bool isFullKrnlGroupsPoss = kfg > 0 ? true : false;
-        bool isPartRowGroupsPoss = rp > 0 ? true : false;
+        bool isPartRowGroupsPoss  = rp > 0 ? true : false;
         bool isPartKrnlGroupsPoss = kp > 0 ? true : false;
 
         //!<  Prepare atomic ops for full kernel groups
@@ -1782,20 +1852,23 @@ private:
     }
 
     //!<  execute the wt translation sub-ops for IMG Post Chnl Ext
-    template<typename IT, typename RT>
-    static Weights execWtTrnsOpsForIMGPostCE(
-        WeightDims wDims,                         //!<  dims of the conv layer wts
-        IT* pSrcWts,                              //!<  surface ptr of caffe wts
-        const std::vector<IMGAtomicWtOp>& vWtOps, //!<  list of wt translation ops
-        int atomicKSize,
-        int atomicCSize,
-        int cbufWidth)
+    template <typename IT, typename RT>
+    static Weights execWtTrnsOpsForIMGPostCE
+        (
+            WeightDims                        wDims,       //!<  dims of the conv layer wts
+            IT*                               pSrcWts,     //!<  surface ptr of caffe wts
+            const std::vector<IMGAtomicWtOp>& vWtOps,       //!<  list of wt translation ops
+            int atomicKSize,
+            int atomicCSize,
+            int cbufWidth
+        )
     {
         NvS64 trnsCnt = 0;
         Weights IMG_Post_CE_Wts = Weights(nvdla::DataType::FLOAT, NULL, 0);
 
-        RT* pIMGPostCEWts = reinterpret_cast<RT*>(engine_ast::MemoryCollector::getInstance()->allocateMemory(
-            ROUNDUP_AND_ALIGN(wDims.wtSize * sizeof(RT), cbufWidth)));
+        RT* pIMGPostCEWts =
+            reinterpret_cast<RT*>(engine_ast::MemoryCollector::getInstance()->allocateMemory(
+                ROUNDUP_AND_ALIGN(wDims.wtSize * sizeof(RT), cbufWidth)));
         memset(pIMGPostCEWts, 0, ROUNDUP_AND_ALIGN(wDims.wtSize * sizeof(RT), cbufWidth));
         RT* pIMGPostCEWtsCopy = pIMGPostCEWts;
 
@@ -1809,7 +1882,7 @@ private:
         const int FULL_ROWS_PER_GROUP = atomicCSize / wDims.numChannels;
 
         std::vector<IMGAtomicWtOp>::const_iterator iterWtOp = vWtOps.begin();
-        for (; iterWtOp != vWtOps.end(); ++iterWtOp)
+        for ( ; iterWtOp != vWtOps.end(); ++iterWtOp)
         {
             for (ind_rg = iterWtOp->rg.startIndex;
                  ind_rg < iterWtOp->rg.limit;
@@ -1819,12 +1892,16 @@ private:
                      ind_s < iterWtOp->s.limit;
                      ++ind_s)
                 {
-                    for (ind_k = iterWtOp->kg.startIndex * krnlPerGrp;
-                         ind_k < iterWtOp->kg.startIndex * krnlPerGrp + iterWtOp->k.limit;
+                    for (ind_k = iterWtOp->kg.startIndex*krnlPerGrp;
+                         ind_k < iterWtOp->kg.startIndex*krnlPerGrp +
+                                 iterWtOp->k.limit;
                          ++ind_k)
                     {
-                        for (ind_r = ind_rg * FULL_ROWS_PER_GROUP + iterWtOp->r.startIndex;
-                             ind_r < (ind_rg * FULL_ROWS_PER_GROUP + iterWtOp->r.startIndex + iterWtOp->r.limit);
+                        for (ind_r = ind_rg*FULL_ROWS_PER_GROUP +
+                                     iterWtOp->r.startIndex;
+                             ind_r < (ind_rg*FULL_ROWS_PER_GROUP +
+                                      iterWtOp->r.startIndex +
+                                      iterWtOp->r.limit);
                              ++ind_r)
                         {
                             for (ind_c = iterWtOp->c.startIndex;
@@ -1837,7 +1914,10 @@ private:
                                 //  - fp16 -> fp16 translation
                                 //  - fp32 -> fp32 translation (will deprecate soon)
                                 //  - fp32 -> fp16 translation
-                                IT value = pSrcWts[ind_s + wDims.width * (ind_r + wDims.height * (ind_c + wDims.numChannels * (ind_k)))];
+                                IT value    = pSrcWts[ind_s +
+                                                      wDims.width*(ind_r +
+                                                                   wDims.height*(ind_c +
+                                                                                 wDims.numChannels*(ind_k)))];
                                 *pIMGPostCEWts = RT(value);
                                 ++pIMGPostCEWts;
                                 ++trnsCnt;
@@ -1848,19 +1928,20 @@ private:
             }
         }
 
-        IMG_Post_CE_Wts.type = getEnumFromType<RT>();
+        IMG_Post_CE_Wts.type   = getEnumFromType<RT>();
         IMG_Post_CE_Wts.values = pIMGPostCEWtsCopy;
-        IMG_Post_CE_Wts.count = trnsCnt;
+        IMG_Post_CE_Wts.count  = trnsCnt;
 
         return IMG_Post_CE_Wts;
     }
 
     //!<  do a slow channel extension for direct convolution
-    template<typename T>
-    static T* doSlowCEForDC(
-        WeightDims& origWDims, //!<  dims of orig non chnl extnd wt blob
-        T* pSrcWts             //!<  ptr to orig non chnl extnd wt blob
-    )
+    template <typename T>
+    static T* doSlowCEForDC
+        (
+            WeightDims& origWDims,  //!<  dims of orig non chnl extnd wt blob
+            T* pSrcWts              //!<  ptr to orig non chnl extnd wt blob
+        )
     {
         T* pDCCEWts;
         T* pDCCEWtsCopy;
@@ -1878,18 +1959,18 @@ private:
             return pSrcWts;
         }
 
-        int ceR = (origR + origStY - 1) / origStY;
-        int ceS = (origS + origStX - 1) / origStX;
-        int ceC = origC * origStX * origStY;
+        int ceR  = (origR + origStY - 1)/origStY;
+        int ceS  = (origS + origStX - 1)/origStX;
+        int ceC  = origC * origStX * origStY;
         int ceWtSize = origK * ceC * ceR * ceS;
 
-        ceWDims.height = ceR;
-        ceWDims.width = ceS;
+        ceWDims.height  = ceR;
+        ceWDims.width   = ceS;
         ceWDims.numChannels = ceC;
-        ceWDims.numKernels = origK;
+        ceWDims.numKernels  = origK;
         ceWDims.strideX = 1;
         ceWDims.strideY = 1;
-        ceWDims.wtSize = ceWtSize;
+        ceWDims.wtSize  = ceWtSize;
 
         pDCCEWts = reinterpret_cast<T*>(engine_ast::MemoryCollector::getInstance()->allocateMemory(ceWtSize * sizeof(T)));
         memset(pDCCEWts, 0, ceWtSize * sizeof(T));
@@ -1902,8 +1983,8 @@ private:
                     {
                         T* dest = getAddrOffset<T>(ind_k, ind_c, ind_r, ind_s,
                                                    ceWDims, pDCCEWts);
-                        T* src = getCaffeAddrForDCChnlExt<T>(ind_k, ind_c, ind_r,
-                                                             ind_s, origWDims, pSrcWts);
+                        T* src  = getCaffeAddrForDCChnlExt<T>(ind_k, ind_c, ind_r,
+                                                              ind_s, origWDims, pSrcWts);
                         if (src != NULL)
                             *dest = *src;
                         else
@@ -1915,11 +1996,12 @@ private:
     }
 
     //!<  do chnl extension for direct convolution
-    template<typename T>
-    static T* doCEForDC(
-        WeightDims& wDims, //!<  dims of orig non chnl extnd wt blob
-        T* pSrcWts         //!<  ptr to orig non chnl extnd wt blob
-    )
+    template <typename T>
+    static T* doCEForDC
+        (
+            WeightDims& wDims,    //!<  dims of orig non chnl extnd wt blob
+            T*          pSrcWts   //!<  ptr to orig non chnl extnd wt blob
+        )
     {
         T* pDCCEWts;
         T* pDCCEWtsCopy;
@@ -1936,9 +2018,9 @@ private:
             return pSrcWts;
         }
 
-        int ceR = (origR + origStY - 1) / origStY;
-        int ceS = (origS + origStX - 1) / origStX;
-        int ceC = origC * origStX * origStY;
+        int ceR  = (origR + origStY - 1)/origStY;
+        int ceS  = (origS + origStX - 1)/origStX;
+        int ceC  = origC * origStX * origStY;
         int ceWtSize = origK * ceC * ceR * ceS;
 
         pDCCEWts = reinterpret_cast<T*>(engine_ast::MemoryCollector::getInstance()->allocateMemory(ceWtSize * sizeof(T)));
@@ -1951,12 +2033,17 @@ private:
                     for (int ind_s = 0; ind_s < ceS; ++ind_s)
                     {
                         // change caffe_s only after 1 origC is finished
-                        int caffe_s = (ind_s * origStX) + ((ind_c % (origC * origStX)) / origC);
+                        int caffe_s = (ind_s * origStX) +
+                                      ((ind_c % (origC * origStX)) / origC);
                         // change caffe_r only after 1 ceS row is finished
-                        int caffe_r = (ind_r * origStY) + (ind_c / (origC * origStX));
+                        int caffe_r = (ind_r * origStY) +
+                                      (ind_c / (origC * origStX));
                         int caffe_c = ind_c % origC;
                         if (caffe_r < origR && caffe_s < origS)
-                            *pDCCEWts = pSrcWts[caffe_s + origS * (caffe_r + origR * (caffe_c + origC * (ind_k)))];
+                            *pDCCEWts = pSrcWts[caffe_s +
+                                                origS*(caffe_r +
+                                                       origR*(caffe_c +
+                                                              origC*(ind_k)))];
                         else
                             *pDCCEWts = 0;
                         ++pDCCEWts;
@@ -1972,23 +2059,25 @@ private:
     }
 
     //!<  prepare weight translation sub-ops for direct convolution
-    template<typename RT>
-    static void prepWtTrnsOpsForDC(
-        WeightDims wDims,                //!<  dimensions of the weights
-        std::vector<AtomicWtOp>& vWtOps, //!<  list of all operations to achieve the translation
-        int atomicKSize,
-        int atomicCSize)
+    template <typename RT>
+    static void prepWtTrnsOpsForDC
+        (
+            WeightDims               wDims,      //!<  dimensions of the weights
+            std::vector<AtomicWtOp>& vWtOps,      //!<  list of all operations to achieve the translation
+            int atomicKSize,
+            int atomicCSize
+        )
     {
-        int r = wDims.height;
-        int s = wDims.width;
-        int cf = atomicCSize;
-        int cp = wDims.numChannels % atomicCSize;
+        int r   = wDims.height;
+        int s   = wDims.width;
+        int cf  = atomicCSize;
+        int cp  = wDims.numChannels % atomicCSize;
         int cfg = wDims.numChannels / atomicCSize;
-        int cpg = 1; //!<  Partial channel group will always be 1 in number if any
-        int kf = (sizeof(RT) == 1 ? atomicKSize : (atomicKSize / 2));
-        int kp = wDims.numKernels % kf;
+        int cpg = 1;    //!<  Partial channel group will always be 1 in number if any
+        int kf  = (sizeof(RT) == 1 ? atomicKSize : (atomicKSize / 2));
+        int kp  = wDims.numKernels % kf;
         int kfg = wDims.numKernels / kf;
-        int kpg = 1; //!<  Partial kernel group will always be 1 in number if any
+        int kpg = 1;    //!<  Partial kernel group will always be 1 in number if any
 
         bool isFullChnlGroupsPoss = cfg > 0 ? true : false;
         bool isFullKrnlGroupsPoss = kfg > 0 ? true : false;
@@ -2018,7 +2107,7 @@ private:
                                    Oplimits(0, r),
                                    Oplimits(0, s),
                                    Oplimits(0, kf),
-                                   Oplimits(cfg * atomicCSize, cp)));
+                                   Oplimits(cfg*atomicCSize, cp)));
                 }
             }
         }
@@ -2044,31 +2133,35 @@ private:
                                Oplimits(0, r),
                                Oplimits(0, s),
                                Oplimits(0, kp),
-                               Oplimits(cfg * atomicCSize, cp)));
+                               Oplimits(cfg*atomicCSize, cp)));
             }
         }
     }
 
     //!<  prepare weight translation sub-ops for deconvolution (same as direct convolution)
-    template<typename RT>
-    static void prepWtTrnsOpsForDeconv(
-        WeightDims wDims,                //!<  dimensions of the weights
-        std::vector<AtomicWtOp>& vWtOps, //!<  list of all operations to achieve the translation
-        int atomicKSize,
-        int atomicCSize)
+    template <typename RT>
+    static void prepWtTrnsOpsForDeconv
+        (
+            WeightDims               wDims,      //!<  dimensions of the weights
+            std::vector<AtomicWtOp>& vWtOps,      //!<  list of all operations to achieve the translation
+            int atomicKSize,
+            int atomicCSize
+        )
     {
         prepWtTrnsOpsForDC<RT>(wDims, vWtOps, atomicKSize, atomicCSize);
     }
 
     //!<  execute the wt translation sub-ops for DC
-    template<typename IT, typename RT>
-    static Weights execWtTrnsOpsForDC(
-        WeightDims wDims,                      //!<  dims of the conv layer wts
-        IT* pSrcWts,                           //!<  surface ptr of caffe wts
-        const std::vector<AtomicWtOp>& vWtOps, //!<  list of wt translation ops
-        int atomicKSize,
-        int atomicCSize,
-        int cbufWidth)
+    template <typename IT, typename RT>
+    static Weights execWtTrnsOpsForDC
+        (
+            WeightDims wDims,                       //!<  dims of the conv layer wts
+            IT* pSrcWts,                            //!<  surface ptr of caffe wts
+            const std::vector<AtomicWtOp>& vWtOps,   //!<  list of wt translation ops
+            int atomicKSize,
+            int atomicCSize,
+            int cbufWidth
+        )
     {
         NvS64 trns_size = 0;
         int ind_cg = 0;
@@ -2080,12 +2173,13 @@ private:
         std::vector<AtomicWtOp>::const_iterator iterWtOp = vWtOps.begin();
         int krnlPerGrp = (sizeof(RT) == 1 ? atomicKSize : (atomicKSize / 2));
 
-        RT* pDCDestWts = reinterpret_cast<RT*>(engine_ast::MemoryCollector::getInstance()->allocateMemory(
-            ROUNDUP_AND_ALIGN(wDims.wtSize * sizeof(RT), cbufWidth)));
+        RT* pDCDestWts =
+            reinterpret_cast<RT*>(engine_ast::MemoryCollector::getInstance()->allocateMemory(
+                ROUNDUP_AND_ALIGN(wDims.wtSize * sizeof(RT), cbufWidth)));
         memset(pDCDestWts, 0, ROUNDUP_AND_ALIGN(wDims.wtSize * sizeof(RT), cbufWidth));
         RT* pDCDestWtsCopy = pDCDestWts;
 
-        for (; iterWtOp != vWtOps.end(); ++iterWtOp)
+        for ( ; iterWtOp != vWtOps.end(); ++iterWtOp)
         {
             for (ind_cg = iterWtOp->cg.startIndex;
                  ind_cg < iterWtOp->cg.limit;
@@ -2099,12 +2193,16 @@ private:
                          ind_s < iterWtOp->s.limit;
                          ++ind_s)
                     {
-                        for (ind_k = iterWtOp->kg.startIndex * krnlPerGrp;
-                             ind_k < iterWtOp->kg.startIndex * krnlPerGrp + iterWtOp->k.limit;
+                        for (ind_k = iterWtOp->kg.startIndex*krnlPerGrp;
+                             ind_k < iterWtOp->kg.startIndex*krnlPerGrp +
+                                     iterWtOp->k.limit;
                              ++ind_k)
                         {
-                            for (ind_c = ind_cg * atomicCSize + iterWtOp->c.startIndex;
-                                 ind_c < (ind_cg * atomicCSize + iterWtOp->c.startIndex + iterWtOp->c.limit);
+                            for (ind_c = ind_cg*atomicCSize +
+                                         iterWtOp->c.startIndex;
+                                 ind_c < (ind_cg*atomicCSize +
+                                          iterWtOp->c.startIndex +
+                                          iterWtOp->c.limit);
                                  ++ind_c)
                             {
                                 // We only support:
@@ -2113,7 +2211,10 @@ private:
                                 //  - fp16 -> fp16 translation
                                 //  - fp32 -> fp32 translation (will deprecate soon)
                                 //  - fp32 -> fp16 translation
-                                IT value = pSrcWts[ind_s + iterWtOp->s.limit * (ind_r + iterWtOp->r.limit * (ind_c + wDims.numChannels * (ind_k)))];
+                                IT value    = pSrcWts[ind_s +
+                                                      iterWtOp->s.limit*(ind_r +
+                                                                         iterWtOp->r.limit*(ind_c +
+                                                                                            wDims.numChannels*(ind_k)))];
                                 *pDCDestWts = RT(value);
                                 ++pDCDestWts;
                                 ++trns_size;
@@ -2126,7 +2227,7 @@ private:
 
         DC_tr_wts.type = getEnumFromType<RT>();
         DC_tr_wts.values = pDCDestWtsCopy;
-        DC_tr_wts.count = trns_size;
+        DC_tr_wts.count  = trns_size;
 
         return DC_tr_wts;
     }
@@ -2134,14 +2235,16 @@ private:
     //!<  execute the wt translation sub-ops for Deconvoltion
     //!<  (same as direct convolution, except that the kernel bytes are laid out in the reverse raster scan order
     //!<  for eg: (Sn-1,Rn-1) -> (Sn-2,Rn-1) ------> (S1,R0) -> (S0,R0)
-    template<typename IT, typename RT>
-    static Weights execWtTrnsOpsForDeconv(
-        WeightDims wDims,                      //!<  dims of the conv layer wts
-        IT* pSrcWts,                           //!<  surface ptr of caffe wts
-        const std::vector<AtomicWtOp>& vWtOps, //!<  list of wt translation ops
-        int atomicKSize,
-        int atomicCSize,
-        int cbufWidth)
+    template <typename IT, typename RT>
+    static Weights execWtTrnsOpsForDeconv
+        (
+            WeightDims wDims,                       //!<  dims of the conv layer wts
+            IT* pSrcWts,                            //!<  surface ptr of caffe wts
+            const std::vector<AtomicWtOp>& vWtOps,   //!<  list of wt translation ops
+            int atomicKSize,
+            int atomicCSize,
+            int cbufWidth
+        )
     {
         NvS64 trns_size = 0;
         int ind_cg = 0;
@@ -2153,12 +2256,13 @@ private:
         std::vector<AtomicWtOp>::const_iterator iterWtOp = vWtOps.begin();
         int krnlPerGrp = (sizeof(RT) == 1 ? atomicKSize : (atomicKSize / 2));
 
-        RT* pDCDestWts = reinterpret_cast<RT*>(engine_ast::MemoryCollector::getInstance()->allocateMemory(
-            ROUNDUP_AND_ALIGN(wDims.wtSize * sizeof(RT), cbufWidth)));
+        RT* pDCDestWts =
+            reinterpret_cast<RT*>(engine_ast::MemoryCollector::getInstance()->allocateMemory(
+                ROUNDUP_AND_ALIGN(wDims.wtSize * sizeof(RT), cbufWidth)));
         memset(pDCDestWts, 0, ROUNDUP_AND_ALIGN(wDims.wtSize * sizeof(RT), cbufWidth));
         RT* pDCDestWtsCopy = pDCDestWts;
 
-        for (; iterWtOp != vWtOps.end(); ++iterWtOp)
+        for ( ; iterWtOp != vWtOps.end(); ++iterWtOp)
         {
             for (ind_cg = iterWtOp->cg.startIndex;
                  ind_cg < iterWtOp->cg.limit;
@@ -2172,12 +2276,16 @@ private:
                          ind_s >= iterWtOp->s.startIndex;
                          --ind_s)
                     {
-                        for (ind_k = iterWtOp->kg.startIndex * krnlPerGrp;
-                             ind_k < iterWtOp->kg.startIndex * krnlPerGrp + iterWtOp->k.limit;
+                        for (ind_k = iterWtOp->kg.startIndex*krnlPerGrp;
+                             ind_k < iterWtOp->kg.startIndex*krnlPerGrp +
+                                     iterWtOp->k.limit;
                              ++ind_k)
                         {
-                            for (ind_c = ind_cg * atomicCSize + iterWtOp->c.startIndex;
-                                 ind_c < (ind_cg * atomicCSize + iterWtOp->c.startIndex + iterWtOp->c.limit);
+                            for (ind_c = ind_cg*atomicCSize +
+                                         iterWtOp->c.startIndex;
+                                 ind_c < (ind_cg*atomicCSize +
+                                          iterWtOp->c.startIndex +
+                                          iterWtOp->c.limit);
                                  ++ind_c)
                             {
                                 // We only support:
@@ -2186,7 +2294,10 @@ private:
                                 //  - fp16 -> fp16 translation
                                 //  - fp32 -> fp32 translation (will deprecate soon)
                                 //  - fp32 -> fp16 translation
-                                IT value = pSrcWts[ind_s + iterWtOp->s.limit * (ind_r + iterWtOp->r.limit * (ind_c + wDims.numChannels * (ind_k)))];
+                                IT value    = pSrcWts[ind_s +
+                                                      iterWtOp->s.limit*(ind_r +
+                                                                         iterWtOp->r.limit*(ind_c +
+                                                                                            wDims.numChannels*(ind_k)))];
                                 *pDCDestWts = RT(value);
                                 ++pDCDestWts;
                                 ++trns_size;
@@ -2199,26 +2310,30 @@ private:
 
         DC_tr_wts.type = getEnumFromType<RT>();
         DC_tr_wts.values = pDCDestWtsCopy;
-        DC_tr_wts.count = trns_size;
+        DC_tr_wts.count  = trns_size;
 
         return DC_tr_wts;
     }
 
     //!<  add zero padding to the wt blob for Winograd convolution
-    template<typename T>
-    static T* padZerosForWG(
-        WeightDims& wDims,                   //!<  dims of the raw wt blob
-        T* pSrcWts,                          //!<  original wt blob
-        int numPadChnls,                     //!<  numChnls to be zero padded after existing chnls
-        std::map<std::string, T>& mCaffeHash //!<  hash of the entire wt blob
-    )
+    template <typename T>
+    static T* padZerosForWG
+        (
+            WeightDims&     wDims,         //!<  dims of the raw wt blob
+            T*              pSrcWts,        //!<  original wt blob
+            int             numPadChnls,    //!<  numChnls to be zero padded after existing chnls
+            std::map<std::string, T>& mCaffeHash      //!<  hash of the entire wt blob
+        )
     {
         bool isSanityOn = mCaffeHash.size() > 0 ? true : false;
         std::string key;
         T* pWGZPWts;
         T* pWGZPWtsCopy;
 
-        NvU64 zeroPadWtSize = wDims.numKernels * wDims.height * wDims.width * (wDims.numChannels + numPadChnls);
+        NvU64 zeroPadWtSize = wDims.numKernels *
+                              wDims.height *
+                              wDims.width  *
+                              (wDims.numChannels + numPadChnls);
         pWGZPWts = reinterpret_cast<T*>(engine_ast::MemoryCollector::getInstance()->allocateMemory(zeroPadWtSize * sizeof(T)));
         pWGZPWtsCopy = pWGZPWts;
 
@@ -2229,8 +2344,14 @@ private:
                 for (int ind_r = 0; ind_r < wDims.height; ++ind_r)
                     for (int ind_s = 0; ind_s < wDims.width; ++ind_s)
                     {
-                        *pWGZPWts = pSrcWts[ind_s + wDims.width * (ind_r + wDims.height * (ind_c + wDims.numChannels * (ind_k)))];
-                        key = toString(ind_k) + "-" + toString(ind_c) + "-" + toString(ind_r) + "-" + toString(ind_s);
+                        *pWGZPWts = pSrcWts[ind_s +
+                                            wDims.width*(ind_r +
+                                                         wDims.height*(ind_c +
+                                                                       wDims.numChannels*(ind_k)))];
+                        key = toString(ind_k) + "-" +
+                              toString(ind_c) + "-" +
+                              toString(ind_r) + "-" +
+                              toString(ind_s);
 
                         if (isSanityOn)
                             mCaffeHash.insert(std::pair<std::string, T>(key, *pWGZPWts));
@@ -2244,7 +2365,10 @@ private:
                     for (int ind_s = 0; ind_s < wDims.width; ++ind_s)
                     {
                         *pWGZPWts = 0;
-                        key = toString(ind_k) + "-" + toString(ind_czp) + "-" + toString(ind_r) + "-" + toString(ind_s);
+                        key = toString(ind_k) + "-" +
+                              toString(ind_czp) + "-" +
+                              toString(ind_r) + "-" +
+                              toString(ind_s);
 
                         if (isSanityOn)
                             mCaffeHash.insert(std::pair<std::string, T>(key, *pWGZPWts));
@@ -2259,13 +2383,15 @@ private:
         return pWGZPWtsCopy;
     }
 
+
     //!<  do chnl extension for WG
-    template<typename T>
-    static T* doCEForWG(
-        WeightDims& origWDims,               //!<  dims of orig non chnl extnd wt blob
-        T* pSrcWts,                          //!<  ptr to orig non chnl extnd wt blob
-        std::map<std::string, T>& mCaffeHash //!<  hash of the entire wt blob
-    )
+    template <typename T>
+    static T* doCEForWG
+        (
+            WeightDims       &origWDims,         //!<  dims of orig non chnl extnd wt blob
+            T*               pSrcWts,            //!<  ptr to orig non chnl extnd wt blob
+            std::map<std::string, T>&  mCaffeHash          //!<  hash of the entire wt blob
+        )
     {
         bool isSanityOn = mCaffeHash.size() > 0 ? true : false;
         std::string key;
@@ -2280,21 +2406,21 @@ private:
         int origStX = origWDims.strideX;
         int origStY = origWDims.strideY;
 
-        int ceR = (origR + origStY - 1) / origStY;
-        int ceS = (origS + origStX - 1) / origStX;
+        int ceR = (origR + origStY - 1)/origStY;
+        int ceS  = (origS + origStX - 1)/origStX;
 
         if (ceR != 3 || ceS != 3)
         {
             return pSrcWts;
         }
 
-        int ceC = origC * origStX * origStY;
+        int ceC  = origC * origStX * origStY;
         int ceWtSize = origK * ceC * ceR * ceS;
 
         ceWDims.height = ceR;
         ceWDims.width = ceS;
         ceWDims.numChannels = ceC;
-        ceWDims.numKernels = origK;
+        ceWDims.numKernels  = origK;
         ceWDims.strideX = 1;
         ceWDims.strideY = 1;
         ceWDims.wtSize = ceWtSize;
@@ -2309,30 +2435,36 @@ private:
                     {
                         T* dest = getAddrOffset<T>(ind_k, ind_c, ind_r, ind_s,
                                                    ceWDims, pWGCEWts);
-                        T* src = getCaffeAddrForWGChnlExt<T>(ind_k, ind_c, ind_r,
-                                                             ind_s, origWDims, pSrcWts);
+                        T* src  = getCaffeAddrForWGChnlExt<T>(ind_k, ind_c, ind_r,
+                                                              ind_s, origWDims, pSrcWts);
                         if (src != NULL)
                             *dest = *src;
                         else
                             *dest = 0.0f;
-                        key = toString(ind_k) + "-" + toString(ind_c) + "-" + toString(ind_r) + "-" + toString(ind_s);
+                        key = toString(ind_k) + "-" +
+                              toString(ind_c) + "-" +
+                              toString(ind_r) + "-" +
+                              toString(ind_s);
 
                         if (isSanityOn)
                             mCaffeHash.insert(std::pair<std::string, T>(key, *dest));
                     }
+
 
         origWDims = ceWDims;
         return pWGCEWtsCopy;
     }
 
     //!<  convert a 3x3 matrix to 4x4 for Winograd
-    template<typename T>
-    static void WGMatrixUtil(
-        int indKrnl,
-        int indChnl,
-        int numChnls,
-        T* pSrcWts,
-        T* pWGMatTrWts)
+    template <typename T>
+    static void WGMatrixUtil
+        (
+            int indKrnl,
+            int indChnl,
+            int numChnls,
+            T* pSrcWts,
+            T* pWGMatTrWts
+        )
     {
         const NvF32 G[4][3] = {
             {1, 0, 0},
@@ -2343,7 +2475,8 @@ private:
         const NvF32 Gt[3][4] = {
             {1, 0.5, 0.5, 0},
             {0, 0.5, -0.5, 0},
-            {0, 0.5, 0.5, 1}};
+            {0, 0.5, 0.5, 1}
+        };
         T g[3][3] = {{T(0)}};
         NvF32 temp[4][3] = {{0.0f}};
         NvF32 trnsFP32Wts[4][4] = {{0.0f}};
@@ -2352,7 +2485,10 @@ private:
         {
             for (int ind_s = 0; ind_s < 3; ind_s++)
             {
-                g[ind_r][ind_s] = pSrcWts[ind_s + 3 * (ind_r + 3 * (indChnl + numChnls * (indKrnl)))];
+                g[ind_r][ind_s] = pSrcWts[ind_s +
+                                          3*(ind_r +
+                                             3*(indChnl +
+                                                numChnls*(indKrnl)))];
             }
         }
 
@@ -2376,17 +2512,19 @@ private:
                 {
                     trnsFP32Wts[ind_r][ind_s] += temp[ind_r][ind_n] * Gt[ind_n][ind_s];
                 }
-                NvU32 target_ind = ind_s + 4 * (ind_r + 4 * (indChnl + numChnls * (indKrnl)));
+                NvU32 target_ind = ind_s + 4*(ind_r + 4*(indChnl + numChnls*(indKrnl)));
                 pWGMatTrWts[target_ind] = T(trnsFP32Wts[ind_r][ind_s]);
             }
         }
     }
 
     //!<  convert 3x3xC matrix to 4x4xC
-    template<typename T>
-    static T* WGMatrixTrns(
-        WeightDims& wDims,
-        T* pSrcWts)
+    template <typename T>
+    static T* WGMatrixTrns
+        (
+            WeightDims&     wDims,
+            T*              pSrcWts
+        )
     {
         T* pWGMatTrWts;
         T* pWGMatTrWtsCopy;
@@ -2407,6 +2545,7 @@ private:
             }
         }
 
+
         wDims.width = 4;
         wDims.height = 4;
         wDims.wtSize = mtWtSize;
@@ -2415,11 +2554,12 @@ private:
     }
 
     //!<  prepare wt translation ops for WG
-    template<typename RT>
-    static void prepWtTrnsOpsForWG(
-        WeightDims wDims,               //!<  dimensions of the weights
-        std::vector<AtomicWtOp>& vWtOps //!<  list of all operations to achieve the translation
-    )
+    template <typename RT>
+    static void prepWtTrnsOpsForWG
+        (
+            WeightDims          wDims,      //!<  dimensions of the weights
+            std::vector<AtomicWtOp>& vWtOps      //!<  list of all operations to achieve the translation
+        )
     {
         int r = wDims.height;
         int s = wDims.width;
@@ -2428,7 +2568,7 @@ private:
         int kf = sizeof(RT) == 1 ? 32 : 16;
         int kp = wDims.numKernels % kf;
         int kfg = wDims.numKernels / kf;
-        int kpg = 1; //!<  Partial kernel group will always be 1 in number
+        int kpg = 1;  //!<  Partial kernel group will always be 1 in number
 
         bool isFullKrnlGroupsPoss = kfg > 0 ? true : false;
         bool isFullChnlGroupsPoss = cfg > 0 ? true : false;
@@ -2470,13 +2610,15 @@ private:
         }
     }
 
+
     //!<  exec wt translation ops for WG
-    template<typename IT, typename RT>
-    static Weights execWtTrnsOpsForWG(
-        WeightDims wDims,                     //!<  dims of the output wt blob
-        IT* pSrcWts,                          //!<  ptr to the processed caffe wt blob
-        const std::vector<AtomicWtOp>& vWtOps //!<  list of ops to trns the caffe blob
-    )
+    template <typename IT, typename RT>
+    static Weights execWtTrnsOpsForWG
+        (
+            WeightDims                wDims,        //!<  dims of the output wt blob
+            IT*                       pSrcWts,      //!<  ptr to the processed caffe wt blob
+            const std::vector<AtomicWtOp>& vWtOps        //!<  list of ops to trns the caffe blob
+        )
     {
         int krnlPerGrp = sizeof(RT) == 1 ? 32 : 16;
         RT* pWGDestWts;
@@ -2486,8 +2628,9 @@ private:
 
         std::vector<AtomicWtOp>::const_iterator iterWtOp = vWtOps.begin();
 
-        pWGDestWts = reinterpret_cast<RT*>(engine_ast::MemoryCollector::getInstance()->allocateMemory(
-            ROUNDUP_AND_ALIGN(wDims.wtSize * sizeof(RT), WG_WTS_SIZE_ALIGN)));
+        pWGDestWts =
+            reinterpret_cast<RT*>(engine_ast::MemoryCollector::getInstance()->allocateMemory(
+                ROUNDUP_AND_ALIGN(wDims.wtSize * sizeof(RT), WG_WTS_SIZE_ALIGN)));
         memset(pWGDestWts, 0, ROUNDUP_AND_ALIGN(wDims.wtSize * sizeof(RT), WG_WTS_SIZE_ALIGN));
         pWGDestWtsCopy = pWGDestWts;
 
@@ -2497,8 +2640,9 @@ private:
                  ind_cg < iterWtOp->cg.limit;
                  ++ind_cg)
             {
-                for (int ind_k = iterWtOp->kg.startIndex * krnlPerGrp;
-                     ind_k < iterWtOp->kg.startIndex * krnlPerGrp + iterWtOp->k.limit;
+                for (int ind_k = iterWtOp->kg.startIndex*krnlPerGrp;
+                     ind_k < iterWtOp->kg.startIndex*krnlPerGrp +
+                             iterWtOp->k.limit;
                      ++ind_k)
                 {
                     for (int ind_r = iterWtOp->r.startIndex;
@@ -2509,11 +2653,15 @@ private:
                              ind_s < iterWtOp->s.limit;
                              ++ind_s)
                         {
-                            for (int ind_c = ind_cg * WG_FULL_CHANNELS_PER_ATOM;
-                                 ind_c < (ind_cg * WG_FULL_CHANNELS_PER_ATOM + iterWtOp->c.limit);
+                            for (int ind_c = ind_cg*WG_FULL_CHANNELS_PER_ATOM;
+                                 ind_c < (ind_cg*WG_FULL_CHANNELS_PER_ATOM +
+                                          iterWtOp->c.limit);
                                  ++ind_c)
                             {
-                                IT value = pSrcWts[ind_s + iterWtOp->s.limit * (ind_r + iterWtOp->r.limit * (ind_c + wDims.numChannels * (ind_k)))];
+                                IT value = pSrcWts[ind_s +
+                                                   iterWtOp->s.limit*(ind_r +
+                                                                      iterWtOp->r.limit*(ind_c +
+                                                                                         wDims.numChannels*(ind_k)))];
                                 // We only support:
                                 //  - int8 -> int8 translation
                                 //  - int16-> int16 translation
@@ -2530,18 +2678,21 @@ private:
             }
         }
 
-        WG_tr_wts.type = getEnumFromType<RT>();
+        WG_tr_wts.type   = getEnumFromType<RT>();
         WG_tr_wts.values = pWGDestWtsCopy;
-        WG_tr_wts.count = trns_size;
+        WG_tr_wts.count  = trns_size;
 
         return WG_tr_wts;
     }
 
+
     //!<  get original 3x3 matrix from 4x4 by doing inverse WG translation
-    template<typename T>
-    static void getOrigWGMat(
-        T trnsMat[4][4],
-        T (&origMat)[3][3])
+    template <typename T>
+    static void getOrigWGMat
+        (
+            T trnsMat[4][4],
+            T (&origMat)[3][3]
+        )
     {
         T temp[3][4] = {{T(0)}};
         const NvS8 GInv[3][4] = {
@@ -2558,13 +2709,14 @@ private:
         };
 
         //Matrix multiply [G^(-1)xGxgxGt]xGt^(-1)
-        for (int ind_m = 0; ind_m < 3; ++ind_m)
+        for(int ind_m = 0; ind_m < 3; ++ind_m)
         {
             for (int ind_p = 0; ind_p < 4; ++ind_p)
             {
                 temp[ind_m][ind_p] = 0.0f;
                 for (int ind_n = 0; ind_n < 4; ++ind_n)
-                    temp[ind_m][ind_p] += GInv[ind_m][ind_n] * trnsMat[ind_n][ind_p];
+                    temp[ind_m][ind_p] += GInv[ind_m][ind_n] *
+                                          trnsMat[ind_n][ind_p];
             }
         }
 
@@ -2574,26 +2726,30 @@ private:
             for (int ind_s = 0; ind_s < 3; ++ind_s)
             {
                 origMat[ind_r][ind_s] = 0;
-                for (int ind_n = 0; ind_n < 4; ++ind_n)
-                {
-                    origMat[ind_r][ind_s] += temp[ind_r][ind_n] * GtInv[ind_n][ind_s];
+                for (int ind_n = 0; ind_n < 4; ++ind_n) {
+                    origMat[ind_r][ind_s] += temp[ind_r][ind_n] *
+                                             GtInv[ind_n][ind_s];
                 }
             }
         }
     }
 
     //!<  compare 2 3x3 matrices
-    template<typename T>
-    static int compare3By3Matrices(
-        T mat1[][3],
-        T mat2[][3])
+    template <typename T>
+    static int compare3By3Matrices
+        (
+            T mat1[][3],
+            T mat2[][3]
+        )
     {
         for (int ind_m = 0; ind_m < 3; ++ind_m)
             for (int ind_n = 0; ind_n < 3; ++ind_n)
-                if (round(1000 * mat1[ind_m][ind_n]) != round(1000 * mat2[ind_m][ind_n]))
+                if (round(1000 * mat1[ind_m][ind_n]) !=
+                    round(1000 * mat2[ind_m][ind_n]))
                 {
                     // try a bigger hammer one more time b4 failing
-                    if (round(100 * mat1[ind_m][ind_n]) != round(100 * mat2[ind_m][ind_n]))
+                    if (round(100 * mat1[ind_m][ind_n]) !=
+                        round(100 * mat2[ind_m][ind_n]))
                         return -1;
                     else
                         continue;
@@ -2601,11 +2757,14 @@ private:
         return 0;
     }
 
+
     //!<  get original 3x3x3 cube from 4x4x4
-    template<typename T>
-    static void getOrigWGCube(
-        T trnsCube[4][4][4],
-        T (&origCube)[3][3][3])
+    template <typename T>
+    static void getOrigWGCube
+        (
+            T trnsCube[4][4][4],
+            T (&origCube)[3][3][3]
+        )
     {
         T trnsMat[4][4] = {{T(0)}};
         T origMat[3][3] = {{T(0)}};
@@ -2633,13 +2792,14 @@ private:
     }
 
     //!<  run sanity after doing CE for DC
-    template<typename T>
-    static int runSanityForDCWtChnlExt(
-        T* pSrcWts,          //!<  orig wt blob
-        WeightDims srcWDims, //!<  dims of orig wt blob
-        T* pDCCEWts,         //!<  chnl extnd wt blob
-        WeightDims ceWDims   //!<  dims of chnl extnd wt blob
-    )
+    template <typename T>
+    static int runSanityForDCWtChnlExt
+        (
+            T* pSrcWts,             //!<  orig wt blob
+            WeightDims srcWDims,    //!<  dims of orig wt blob
+            T* pDCCEWts,            //!<  chnl extnd wt blob
+            WeightDims ceWDims      //!<  dims of chnl extnd wt blob
+        )
     {
         T ceWt;
         T caffeWt;
@@ -2648,12 +2808,23 @@ private:
                 for (int ind_r = 0; ind_r < ceWDims.height; ++ind_r)
                     for (int ind_s = 0; ind_s < ceWDims.width; ++ind_s)
                     {
-                        ceWt = pDCCEWts[ind_s + ceWDims.width * (ind_r + ceWDims.height * (ind_c + ceWDims.numChannels * (ind_k)))];
+                        ceWt = pDCCEWts[ind_s +
+                                        ceWDims.width*(ind_r +
+                                                       ceWDims.height*(ind_c +
+                                                                       ceWDims.numChannels*(ind_k)))];
                         int orig_c = ind_c % srcWDims.numChannels;
-                        int orig_r = (ind_r * srcWDims.strideY) + ((ind_c / srcWDims.numChannels) / srcWDims.strideY);
-                        int orig_s = (ind_s * srcWDims.strideX) + ((ind_c / srcWDims.numChannels) % srcWDims.strideX);
-                        if (orig_r < srcWDims.height && orig_s < srcWDims.width)
-                            caffeWt = pSrcWts[orig_s + srcWDims.width * (orig_r + srcWDims.height * (orig_c + srcWDims.numChannels * (ind_k)))];
+                        int orig_r = (ind_r * srcWDims.strideY) +
+                                     ((ind_c / srcWDims.numChannels) /
+                                      srcWDims.strideY);
+                        int orig_s = (ind_s * srcWDims.strideX) +
+                                     ((ind_c / srcWDims.numChannels) %
+                                      srcWDims.strideX);
+                        if (orig_r < srcWDims.height &&
+                            orig_s < srcWDims.width)
+                            caffeWt = pSrcWts[orig_s +
+                                              srcWDims.width*(orig_r +
+                                                              srcWDims.height*(orig_c +
+                                                                               srcWDims.numChannels*(ind_k)))];
                         else
                             caffeWt = 0;
                         if (ceWt != caffeWt)
@@ -2665,14 +2836,16 @@ private:
     }
 
     //!<  run sanity after complete wt translation for DC
-    template<typename IT, typename RT>
-    static int runSanityForDCWtTrns(
-        RT* pDCTrWts,                          //!<  ptr to translated wt blob for DC
-        WeightDims srcWDims,                   //!<  dims of translated wt blob for DC
-        std::vector<AtomicWtOp> vWtOps,        //!<  list of all ops to achieve wt translation for DC
-        std::map<std::string, IT>& mCaffeHash, //!<  hash of entire raw caffe wt blob
-        int atomicKSize,
-        int atomicCSize)
+    template <typename IT, typename RT>
+    static int runSanityForDCWtTrns
+        (
+            RT*                 pDCTrWts,   //!<  ptr to translated wt blob for DC
+            WeightDims          srcWDims,   //!<  dims of translated wt blob for DC
+            std::vector<AtomicWtOp>  vWtOps,     //!<  list of all ops to achieve wt translation for DC
+            std::map<std::string, IT>&    mCaffeHash,  //!<  hash of entire raw caffe wt blob
+            int atomicKSize,
+            int atomicCSize
+        )
     {
         int err = 0;
         std::map<std::string, RT> mDCHash;
@@ -2682,7 +2855,7 @@ private:
 
         std::vector<AtomicWtOp>::const_iterator iterWtOp = vWtOps.begin();
 
-        for (; iterWtOp != vWtOps.end(); ++iterWtOp)
+        for ( ; iterWtOp != vWtOps.end(); ++iterWtOp)
         {
             for (int ind_cg = iterWtOp->cg.startIndex;
                  ind_cg < iterWtOp->cg.limit;
@@ -2696,21 +2869,33 @@ private:
                          ind_s < iterWtOp->s.limit;
                          ++ind_s)
                     {
-                        for (int ind_k = iterWtOp->kg.startIndex * krnlPerGrp;
-                             ind_k < iterWtOp->kg.startIndex * krnlPerGrp + iterWtOp->k.limit;
+                        for (int ind_k = iterWtOp->kg.startIndex*krnlPerGrp;
+                             ind_k < iterWtOp->kg.startIndex*krnlPerGrp +
+                                     iterWtOp->k.limit;
                              ++ind_k)
                         {
-                            for (int ind_c = ind_cg * atomicCSize + iterWtOp->c.startIndex;
-                                 ind_c < (ind_cg * atomicCSize + iterWtOp->c.startIndex + iterWtOp->c.limit);
+                            for (int ind_c = ind_cg*atomicCSize +
+                                             iterWtOp->c.startIndex;
+                                 ind_c < (ind_cg*atomicCSize +
+                                          iterWtOp->c.startIndex +
+                                          iterWtOp->c.limit);
                                  ++ind_c)
                             {
                                 int orig_c = ind_c % srcWDims.numChannels;
-                                int orig_r = (ind_r * srcWDims.strideY) + ((ind_c / srcWDims.numChannels) / srcWDims.strideY);
-                                int orig_s = (ind_s * srcWDims.strideX) + ((ind_c / srcWDims.numChannels) % srcWDims.strideX);
+                                int orig_r = (ind_r * srcWDims.strideY) +
+                                             ((ind_c / srcWDims.numChannels) /
+                                              srcWDims.strideY);
+                                int orig_s = (ind_s * srcWDims.strideX) +
+                                             ((ind_c / srcWDims.numChannels) %
+                                              srcWDims.strideX);
                                 std::string key;
-                                if (orig_r < srcWDims.height && orig_s < srcWDims.width)
+                                if (orig_r < srcWDims.height &&
+                                    orig_s < srcWDims.width)
                                 {
-                                    key = toString(ind_k) + "-" + toString(orig_c) + "-" + toString(orig_r) + "-" + toString(orig_s);
+                                    key = toString(ind_k) + "-" +
+                                          toString(orig_c) + "-" +
+                                          toString(orig_r) + "-" +
+                                          toString(orig_s);
                                     mDCHash.insert(std::pair<std::string, RT>(key, *pDCTrWts));
                                 }
                                 ++pDCTrWts;
@@ -2731,7 +2916,7 @@ private:
         }
 
         // FIXME: have stricter check here
-        for (; iterCaffe != mCaffeHash.end(); ++iterCaffe)
+        for ( ; iterCaffe != mCaffeHash.end(); ++iterCaffe)
         {
             iterDC = mDCHash.find(iterCaffe->first);
             if (iterDC == mDCHash.end())
@@ -2741,32 +2926,36 @@ private:
             }
         }
 
-exit:
+        exit:
         mDCHash.clear();
         return err;
     }
 
+
     //!<  run sanity after complete wt translation for Deconvolution (same as direct convolution - UNVERIFIED)
-    template<typename IT, typename RT>
-    static int runSanityForDeconvWtTrns(
-        RT* pDCTrWts,                          //!<  ptr to translated wt blob for DC
-        WeightDims srcWDims,                   //!<  dims of translated wt blob for DC
-        std::vector<AtomicWtOp> vWtOps,        //!<  list of all ops to achieve wt translation for DC
-        std::map<std::string, IT>& mCaffeHash, //!<  hash of entire raw caffe wt blob
-        int atomicKSize,
-        int atomicCSize)
+    template <typename IT, typename RT>
+    static int runSanityForDeconvWtTrns
+        (
+            RT*                 pDCTrWts,   //!<  ptr to translated wt blob for DC
+            WeightDims          srcWDims,   //!<  dims of translated wt blob for DC
+            std::vector<AtomicWtOp>  vWtOps,     //!<  list of all ops to achieve wt translation for DC
+            std::map<std::string, IT>&    mCaffeHash,  //!<  hash of entire raw caffe wt blob
+            int atomicKSize,
+            int atomicCSize
+        )
     {
         return runSanityForDCWtTrns<IT, RT>(pDCTrWts, srcWDims, vWtOps, mCaffeHash, atomicKSize, atomicCSize);
     }
 
     //!<  run sanity after zero padding wt blob for WG
-    template<typename T>
-    static int runSanityForWGWtZeroPadded(
-        T* pSrcWts,          //!<  ptr to orig non zero padded wt blob
-        WeightDims srcWDims, //!<  dims of orig non zero padded wt blob
-        T* pWGZPWts,         //!<  ptr to zero padded wt blob
-        WeightDims zpWDims   //!<  dims of zero padded wt blob
-    )
+    template <typename T>
+    static int runSanityForWGWtZeroPadded
+        (
+            T* pSrcWts,         //!<  ptr to orig non zero padded wt blob
+            WeightDims srcWDims,//!<  dims of orig non zero padded wt blob
+            T* pWGZPWts,        //!<  ptr to zero padded wt blob
+            WeightDims zpWDims  //!<  dims of zero padded wt blob
+        )
     {
         int ind_zp = 0;
         int ind_src = 0;
@@ -2774,7 +2963,8 @@ exit:
         {
             if (!pWGZPWts[ind_zp])
             {
-                if (ind_src < srcWDims.wtSize && !pSrcWts[ind_src])
+                if (ind_src < srcWDims.wtSize &&
+                    !pSrcWts[ind_src])
                     ind_src++;
                 continue;
             }
@@ -2789,14 +2979,16 @@ exit:
         return 0;
     }
 
+
     //!<  run sanity after doing CE for WG
-    template<typename T>
-    static int runSanityForWGWtChnlExt(
-        T* pSrcWts,          //!<  ptr to orig non chnl extnd wt blob
-        WeightDims srcWDims, //!<  dims of orig non chnl extnd wt blob
-        T* pWGCEWts,         //!<  ptr to chnl extnd wt blob
-        WeightDims ceWDims   //!<  dims of chnl extnd wt blob
-    )
+    template <typename T>
+    static int runSanityForWGWtChnlExt
+        (
+            T* pSrcWts,         //!<  ptr to orig non chnl extnd wt blob
+            WeightDims srcWDims,//!<  dims of orig non chnl extnd wt blob
+            T* pWGCEWts,        //!<  ptr to chnl extnd wt blob
+            WeightDims ceWDims  //!<  dims of chnl extnd wt blob
+        )
     {
         T ceWt = T(0);
         T caffeWt = T(0);
@@ -2805,12 +2997,23 @@ exit:
                 for (int ind_r = 0; ind_r < ceWDims.height; ++ind_r)
                     for (int ind_s = 0; ind_s < ceWDims.width; ++ind_s)
                     {
-                        ceWt = pWGCEWts[ind_s + ceWDims.width * (ind_r + ceWDims.height * (ind_c + ceWDims.numChannels * (ind_k)))];
+                        ceWt = pWGCEWts[ind_s +
+                                        ceWDims.width*(ind_r +
+                                                       ceWDims.height*(ind_c +
+                                                                       ceWDims.numChannels*(ind_k)))];
                         int orig_c = ind_c % srcWDims.numChannels;
-                        int orig_r = (ind_r * srcWDims.strideY) + ((ind_c / srcWDims.numChannels) / srcWDims.strideY);
-                        int orig_s = (ind_s * srcWDims.strideX) + ((ind_c / srcWDims.numChannels) % srcWDims.strideX);
-                        if (orig_r < srcWDims.height && orig_s < srcWDims.width)
-                            caffeWt = pSrcWts[orig_s + srcWDims.width * (orig_r + srcWDims.height * (orig_c + srcWDims.numChannels * (ind_k)))];
+                        int orig_r = (ind_r * srcWDims.strideY) +
+                                     ((ind_c / srcWDims.numChannels) /
+                                      srcWDims.strideY);
+                        int orig_s = (ind_s * srcWDims.strideX) +
+                                     ((ind_c / srcWDims.numChannels) %
+                                      srcWDims.strideX);
+                        if (orig_r < srcWDims.height &&
+                            orig_s < srcWDims.width)
+                            caffeWt = pSrcWts[orig_s +
+                                              srcWDims.width*(orig_r +
+                                                              srcWDims.height*(orig_c +
+                                                                               srcWDims.numChannels*(ind_k)))];
                         else
                             caffeWt = 0;
                         if (ceWt != caffeWt)
@@ -2822,13 +3025,14 @@ exit:
     }
 
     //!<  run sanity after doing matrix translation on the wt blob for WG
-    template<typename T>
-    static int runSanityForWGWtMatrixTrns(
-        T* pSrcWts,          //!<  ptr to orig non matrix translated wt blob
-        WeightDims srcWDims, //!<  dims of orig non matrix translated wt blob
-        T* pWGMatTrWts,      //!<  ptr to matrix translated wt blob
-        WeightDims mtWDims   //!<  dims of matrix translated wt blob
-    )
+    template <typename T>
+    static int runSanityForWGWtMatrixTrns
+        (
+            T*              pSrcWts,    //!<  ptr to orig non matrix translated wt blob
+            WeightDims      srcWDims,   //!<  dims of orig non matrix translated wt blob
+            T*              pWGMatTrWts,//!<  ptr to matrix translated wt blob
+            WeightDims      mtWDims     //!<  dims of matrix translated wt blob
+        )
     {
         T trnsMat[4][4] = {{T(0)}};
         T origMat[3][3] = {{T(0)}};
@@ -2843,7 +3047,10 @@ exit:
                 {
                     for (int ind_st = 0; ind_st < mtWDims.width; ++ind_st)
                     {
-                        trnsMat[ind_rt][ind_st] = pWGMatTrWts[ind_st + mtWDims.width * (ind_rt + mtWDims.height * (ind_c + mtWDims.numChannels * (ind_k)))];
+                        trnsMat[ind_rt][ind_st] = pWGMatTrWts[ind_st +
+                                                              mtWDims.width*(ind_rt +
+                                                                             mtWDims.height*(ind_c +
+                                                                                             mtWDims.numChannels*(ind_k)))];
                     }
                 }
 
@@ -2852,7 +3059,10 @@ exit:
                 {
                     for (int ind_so = 0; ind_so < srcWDims.width; ++ind_so)
                     {
-                        origMat[ind_ro][ind_so] = pSrcWts[ind_so + srcWDims.width * (ind_ro + srcWDims.height * (ind_c + srcWDims.numChannels * (ind_k)))];
+                        origMat[ind_ro][ind_so] = pSrcWts[ind_so +
+                                                          srcWDims.width*(ind_ro +
+                                                                          srcWDims.height*(ind_c +
+                                                                                           srcWDims.numChannels*(ind_k)))];
                     }
                 }
 
@@ -2867,13 +3077,15 @@ exit:
         return 0;
     }
 
+
     //!<  run sanity after complete wt translation for WG
-    template<typename IT, typename RT>
-    static int runSanityForWGWtTrns(
-        RT* pWGTrWts,                         //!<  ptr to translated wt blob for WG
-        std::vector<AtomicWtOp> vWtOps,       //!<  list of all ops to achieve wt translation
-        std::map<std::string, IT>& mCaffeHash //!<  hash of the entire raw caffe wt blob
-    )
+    template <typename IT, typename RT>
+    static int runSanityForWGWtTrns
+        (
+            RT*                pWGTrWts,  //!<  ptr to translated wt blob for WG
+            std::vector<AtomicWtOp> vWtOps,    //!<  list of all ops to achieve wt translation
+            std::map<std::string, IT>&   mCaffeHash //!<  hash of the entire raw caffe wt blob
+        )
     {
         int err = 0;
         RT trnsWGCube[4][4][4] = {{{RT(0)}}};
@@ -2891,8 +3103,9 @@ exit:
                  ind_cg < iterWtOp->cg.limit;
                  ++ind_cg)
             {
-                for (int ind_k = iterWtOp->kg.startIndex * krnlPerGrp;
-                     ind_k < iterWtOp->kg.startIndex * krnlPerGrp + iterWtOp->k.limit;
+                for (int ind_k = iterWtOp->kg.startIndex*krnlPerGrp;
+                     ind_k < iterWtOp->kg.startIndex*krnlPerGrp +
+                             iterWtOp->k.limit;
                      ++ind_k)
                 {
                     memset(trnsWGCube, 0, sizeof(trnsWGCube[0][0][0]) * 4 * 4 * 4);
@@ -2918,7 +3131,10 @@ exit:
                             for (int ind_c = 0; ind_c < WG_FULL_CHANNELS_PER_ATOM; ++ind_c)
                             {
                                 int orig_c = ind_cg * WG_FULL_CHANNELS_PER_ATOM + ind_c;
-                                std::string key = toString(ind_k) + "-" + toString(orig_c) + "-" + toString(ind_ro) + "-" + toString(ind_so);
+                                std::string key = toString(ind_k) + "-" +
+                                                  toString(orig_c) + "-" +
+                                                  toString(ind_ro) + "-" +
+                                                  toString(ind_so);
                                 mWGHash.insert(std::pair<std::string, RT>(key,
                                                                           origWGCube[ind_ro][ind_so][ind_c]));
                             }
@@ -2937,7 +3153,7 @@ exit:
             goto exit;
         }
 
-        for (; iterCaffe != mCaffeHash.end(); ++iterCaffe)
+        for ( ; iterCaffe != mCaffeHash.end(); ++iterCaffe)
         {
             iterWG = mWGHash.find(iterCaffe->first);
             if (iterWG == mWGHash.end())
@@ -2947,13 +3163,14 @@ exit:
             }
         }
 
-exit:
+        exit:
         mWGHash.clear();
         return err;
     }
 };
 
-} // namespace priv
-} // namespace nvdla
+
+} // nvdla::priv
+} // nvdla
 
 #endif /* NVDLA_PRIV_WEIGHT_TRNS_UNIT_H */

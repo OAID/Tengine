@@ -115,7 +115,6 @@ $ cp /usr/local/lib/libprotobuf.a ~/Tengine/source/device/opendla/lib/
 $ cd ~/Tengine
 $ mkdir build & cd build
 $ cmake .. -DTENGINE_ENABLE_OPENDLA=ON
-$ cmake --build . --target tm_classification_opendla
 ```
 
 ## 3. Demo
@@ -125,6 +124,8 @@ $ cmake --build . --target tm_classification_opendla
 **Resnet18-Cifar10**
 
 ```bash
+$ cd <tengine-lite-root-dir>/build
+$ cmake --build . --target tm_classification_opendla
 $ cd examples
 $ ./tm_classification_opendla -m /root/Tengine/models/resnet18-cifar10-nosoftmax-relu_int8.tmfile -i /root/Tengine/images/cat.jpg -g 32,32 -s 1,1,1
 Mean value not specified, use default   104.0, 116.7, 122.7
@@ -146,14 +147,24 @@ Repeat 1 times, thread 1, avg time 12.62 ms, max_time 12.62 ms, min_time 12.62 m
 
 #### 3.2 Detection
 
-**Yolov3-Tiny**
+**Yolox-nano**
 
+```bash
+$ cd <tengine-lite-root-dir>/build
+$ cmake --build . --target tm_classification_opendla tm_yolox_opendla
+$ cd examples
+$ ./tm_yolox_opendla -m /root/Tengine/models/yolox_nano_relu_int8.tmfile -i /root/Tengine/images/dog.jpg -r 1
+tengine-lite library version: 1.4-dev
+Repeat 1 times, thread 1, avg time 1138.80 ms, max_time 1138.80 ms, min_time 1138.80 ms
+--------------------------------------
+detection num: 3
+ 2:  70%, [ 463,   80,  676,  163], car
+16:  52%, [ 122,  220,  315,  517], dog
+ 1:  48%, [ 180,  181,  564,  430], bicycle
 ```
 
-```
+Output:
 
-**Yolov3**
-
-
+![yolox_dla_out](yolox_dla_out.jpg)
 
 ## 附：其他

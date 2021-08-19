@@ -99,6 +99,12 @@ nvdla::priv::canonical_ast::Node * ODLAEngine::AddConvolutionNode(struct node* i
                             int offset = block_size * ch;
                             weight_buffer[offset + i] = (float)(((int8_t*)conv_weight->data)[offset + i]) * conv_weight->scale_list[ch];
                         }
+                        for (int i = 0; i < block_size; i++){
+                            int offset = block_size * ch;
+                            if(std::abs(weight_buffer[offset + i]) < 1e-4 && ((int8_t*)conv_weight->data)[offset + i] != 0) {
+                                weight_buffer[offset + i] = 0;
+                            }
+                        }
                     }
 
                     kernelWeights.values = weight_buffer;

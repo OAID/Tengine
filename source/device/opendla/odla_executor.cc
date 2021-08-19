@@ -591,7 +591,6 @@ int ODLAEngine::ODLAEnginePreRun(struct subgraph* subgraph)
     dump_sub_graph_odla(subgraph);
     fprintf(stdout, "%s Entrance.\n", __func__ );
 #endif
-    fprintf(stdout, "subgraph idx : %d \n", subgraph->index);
     NvDlaError e = NvDlaSuccess;
     struct graph* ir_graph = subgraph->graph;
     /* Add OpenDLA Tensor */
@@ -719,28 +718,24 @@ int ODLAEngine::ODLAEnginePreRun(struct subgraph* subgraph)
             engineASTList.pop_back();
             return -1;
         }
-        fprintf(stdout, "handleLowPrecisionConversions. \n");
         engineASTList.push_back(this->compiler.priv()->handleLowPrecisionConversions(engineASTList.back()));
         if(!engineASTList.back()){
             fprintf(stderr, "Failed compilation phase: handleLowPrecisionConversions. \n");
             engineASTList.pop_back();
             return -1;
         }
-        fprintf(stdout, "translateAuxData. \n");
         engineASTList.push_back(this->compiler.priv()->translateAuxData(engineASTList.back()));
         if(!engineASTList.back()){
             fprintf(stderr, "Failed compilation phase: translateAuxData. \n");
             engineASTList.pop_back();
             return -1;
         }
-
         engineASTList.push_back(this->compiler.priv()->reserveBuffers(engineASTList.back()));
         if(!engineASTList.back()){
             fprintf(stderr, "Failed compilation phase: reserveBuffers. \n");
             engineASTList.pop_back();
             return -1;
         }
-
         engineASTList.push_back(this->compiler.priv()->splitNodes(engineASTList.back()));
         if(!engineASTList.back()){
             fprintf(stderr, "Failed compilation phase: splitNodes. \n");
@@ -815,10 +810,10 @@ int ODLAEngine::ODLAEnginePreRun(struct subgraph* subgraph)
                         weightTensor.layout = TENGINE_LAYOUT_NCHW;
                         weightTensor.name = (char *)(convNode->canonicalNode()->name() + "_weights").c_str() ;
                         weightTensor.dim_num = 4;
-                        weightTensor.dims[0] = convNode->getAuxDims().n;
-                        weightTensor.dims[1] = convNode->getAuxDims().c;
-                        weightTensor.dims[2] = convNode->getAuxDims().h;
-                        weightTensor.dims[3] = convNode->getAuxDims().w;
+                        weightTensor.dims[0] = convNode->auxSurfaces().back()->dimensions().n;
+                        weightTensor.dims[1] = convNode->auxSurfaces().back()->dimensions().c;
+                        weightTensor.dims[2] = convNode->auxSurfaces().back()->dimensions().h;
+                        weightTensor.dims[3] = convNode->auxSurfaces().back()->dimensions().w;
                         weightTensor.elem_size = sizeof(int8_t);
                         weightTensor.elem_num = rawWeights.count;
                         weightTensor.data = (void *)rawWeights.values;
@@ -999,9 +994,12 @@ int ODLAEngine::ODLAEngineRun(struct subgraph* subgraph)
         this->runtime->submit();
         gettimeofday(&t2, nullptr);
 
+#ifdef OPENDLA_DEBUG_DATA
         elapsedTime = t2.tv_sec - t1.tv_sec;
         elapsedTime += (t2.tv_usec - t1.tv_usec) / 1000000.0;
         fprintf(stdout ,"NVDLA time: %f seconds\n", elapsedTime);
+#endif
+
 
         /* download data */
         for (uint8_t i = 0; i < subgraph->output_num; i++)
