@@ -14,6 +14,7 @@
 list(APPEND ANDROID_COMPILER_FLAGS
   -g
   -DANDROID
+  ...)
 ```
 
 ## Downlad Tengine Source Code

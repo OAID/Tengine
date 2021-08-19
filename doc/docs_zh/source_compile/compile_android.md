@@ -14,6 +14,7 @@
 list(APPEND ANDROID_COMPILER_FLAGS
   -g
   -DANDROID
+  ...)
 ```
 
 ## 下载 Tengine 源码
