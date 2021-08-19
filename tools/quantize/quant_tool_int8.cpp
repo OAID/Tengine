@@ -462,7 +462,7 @@ int main(int argc, char* argv[])
         }
         else
         {
-            fprintf(stderr,"[Quant Tools Info]: algorithm not specified, using default type MIN MAX\n");
+            fprintf(stderr, "[Quant Tools Info]: algorithm not specified, using default type MIN MAX\n");
             quant_tool.scale_file = "table_minmax.scale";
         }
 
