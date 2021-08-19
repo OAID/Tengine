@@ -253,3 +253,4 @@ jobs:
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         file: build/lcov.info
+        verbose: true
