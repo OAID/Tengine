@@ -35,9 +35,9 @@ Tengine-Lite 目前只支持一种 opendla 的集成编译方法，即编译open
 
 其他的方案，例如在Tengine编译的过程中连同opendla的编译器和运行时的源代码一起编译，由于代码肯定是要重构的，所以现在还不支持。
 
-这里不讲解内核驱动程序`opendla.ko`是如何编译的，如何编译看这篇[文章](https://zhuanlan.zhihu.com/p/378202360)。
+这里不将内核驱动程序`opendla.ko`是如何编译的，如何在Petalinux里编译看这篇[文章](https://zhuanlan.zhihu.com/p/378202360)。
 
-如果是aarch64的架构，可以直接使用
+如果是 aarch64 的架构，可以直接使用 [prebuilt](https://github.com/LeiWang1999/ZYNQ-NVDLA/tree/master/prebuilt/lib/aarch64-ubuntu) 的lib。
 
 #### 2.4.0 载入内核驱动程序
 
