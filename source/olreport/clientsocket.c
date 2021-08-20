@@ -29,15 +29,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define SPACE 0x20
-#define HEADERS_END "\r\n\r\n"
-#define SPACE_LINE "\r\n"
+#define SPACE          0x20
+#define HEADERS_END    "\r\n\r\n"
+#define SPACE_LINE     "\r\n"
 #define SPACE_LINE_LEN 2
-#define POST "POST"
-#define HTTP_VERSION "HTTP/1.1\r\n"
-#define HTTPSTRING "HTTP"
-#define CONTENTSTRING "Content-Length"
-#define STATUS_POS 9
+#define POST           "POST"
+#define HTTP_VERSION   "HTTP/1.1\r\n"
+#define HTTPSTRING     "HTTP"
+#define CONTENTSTRING  "Content-Length"
+#define STATUS_POS     9
 
 #ifdef NET_DEBUG
 #define NET_LOG(fmt, ...) printf(fmt, ##__VA_ARGS__)
@@ -52,12 +52,13 @@ void init_post_req(THttpReq* req, const char* host, uint16_t port, const char* r
     req->port = port;
     req->conect_timeout = 60 * 1000;
     strncpy(req->host, host, MAX_HOST_LEN);
-    req->len =
-        sprintf(req->data, "%s %s %sHost: %s:%d\r\nConnection: close\r\n", POST, request_url, HTTP_VERSION, host, port);
+    req->len = sprintf(req->data, "%s %s %sHost: %s:%d\r\nConnection: close\r\n", POST, request_url, HTTP_VERSION, host, port);
     req->fix_len = req->len;
 }
 
-void free_req(THttpReq* req) {}
+void free_req(THttpReq* req)
+{
+}
 
 int add_header(THttpReq* req, const char* key, const char* val)
 {
@@ -194,8 +195,7 @@ int http_post(THttpReq* req)
     int recv_count = 0;
     int rpos = 0;
     char recv_buf[MAX_HTTP_DATA + 1];
-    while ((ret = net_recv_timeout(&sock_fd, recv_buf + rpos, MAX_HTTP_DATA - rpos, 1000)) > 0 &&
-           recv_count++ < MAX_RECV_COUNT)
+    while ((ret = net_recv_timeout(&sock_fd, recv_buf + rpos, MAX_HTTP_DATA - rpos, 1000)) > 0 && recv_count++ < MAX_RECV_COUNT)
     {
         rpos += ret;
     }

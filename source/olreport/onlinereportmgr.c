@@ -79,7 +79,7 @@ int trigger_timer(TIMER* timer)
     {
         if (timer->is_loop_)
         {
-            timer->next_trigger_timer_ = cur_time + ( long )(timer->over_timer_);
+            timer->next_trigger_timer_ = cur_time + (long)(timer->over_timer_);
         }
 
         return 1;
@@ -141,7 +141,7 @@ int get_valid_task_slot(ONLIN_EREPOT_MGR_T* ctx)
 
 static void* worker_run(void* ctx)
 {
-    ONLIN_EREPOT_MGR_T* context = ( ONLIN_EREPOT_MGR_T* )ctx;
+    ONLIN_EREPOT_MGR_T* context = (ONLIN_EREPOT_MGR_T*)ctx;
 
     // init headers will not changed
     add_header_fix(&(context->http_req_), "Content-Type", "application/json");
@@ -198,9 +198,9 @@ ONLINE_REPORT_CONTEXT_T init_report_mgr(const char* host, uint16_t port, const c
                                         get_online_report_dat_t get_dat_fun)
 {
     OL_RP_LOG("host : %s:%u\n", host, port);
-    srand(( unsigned )time(NULL));
+    srand((unsigned)time(NULL));
 
-    ONLIN_EREPOT_MGR_T* ctx = ( ONLIN_EREPOT_MGR_T* )(malloc(sizeof(ONLIN_EREPOT_MGR_T)));
+    ONLIN_EREPOT_MGR_T* ctx = (ONLIN_EREPOT_MGR_T*)(malloc(sizeof(ONLIN_EREPOT_MGR_T)));
     memset(ctx, 0, sizeof(ONLIN_EREPOT_MGR_T));
 
     ctx->get_dat_fun_ = get_dat_fun;
@@ -226,7 +226,7 @@ void free_report_mgr(ONLINE_REPORT_CONTEXT_T ctx)
 {
     if (ctx != NULL)
     {
-        ONLIN_EREPOT_MGR_T* context = ( ONLIN_EREPOT_MGR_T* )ctx;
+        ONLIN_EREPOT_MGR_T* context = (ONLIN_EREPOT_MGR_T*)ctx;
         if (context->ctx_.handle_ != 0)
         {
             context->is_running = 0;
@@ -252,7 +252,7 @@ void free_report_mgr(ONLINE_REPORT_CONTEXT_T ctx)
 
 int set_report_status(ONLINE_REPORT_CONTEXT_T ctx, int status)
 {
-    ONLIN_EREPOT_MGR_T* context = ( ONLIN_EREPOT_MGR_T* )ctx;
+    ONLIN_EREPOT_MGR_T* context = (ONLIN_EREPOT_MGR_T*)ctx;
     int old_stat = context->statu_;
     context->statu_ = status;
     return old_stat;
@@ -260,7 +260,7 @@ int set_report_status(ONLINE_REPORT_CONTEXT_T ctx, int status)
 
 int do_report(ONLINE_REPORT_CONTEXT_T ctx, int action)
 {
-    ONLIN_EREPOT_MGR_T* context = ( ONLIN_EREPOT_MGR_T* )ctx;
+    ONLIN_EREPOT_MGR_T* context = (ONLIN_EREPOT_MGR_T*)ctx;
     if ((context->rp_task_mask_ & MAX_ACTION_NUM) >= MAX_ACTION_NUM)
     {
         OL_RP_LOG("can not add more report request\n ");
@@ -283,7 +283,7 @@ int do_report(ONLINE_REPORT_CONTEXT_T ctx, int action)
 
 TIMER_ID_T add_timer(ONLINE_REPORT_CONTEXT_T ctx, uint32_t timer, int is_loop)
 {
-    ONLIN_EREPOT_MGR_T* context = ( ONLIN_EREPOT_MGR_T* )ctx;
+    ONLIN_EREPOT_MGR_T* context = (ONLIN_EREPOT_MGR_T*)ctx;
     if (context == NULL)
     {
         return INVLIAD_TIMER_ID;
@@ -291,7 +291,7 @@ TIMER_ID_T add_timer(ONLINE_REPORT_CONTEXT_T ctx, uint32_t timer, int is_loop)
 
     if (context->timer_node_ == NULL)
     {
-        TIMER* tm = ( TIMER* )malloc(sizeof(TIMER));
+        TIMER* tm = (TIMER*)malloc(sizeof(TIMER));
         context->timer_node_ = tm;
         context->timer_node_->is_loop_ = is_loop;
         context->timer_node_->over_timer_ = timer;
@@ -304,4 +304,6 @@ TIMER_ID_T add_timer(ONLINE_REPORT_CONTEXT_T ctx, uint32_t timer, int is_loop)
     return INVLIAD_TIMER_ID;
 }
 
-void remove_timer(ONLINE_REPORT_CONTEXT_T ctx, TIMER_ID_T id) {}
+void remove_timer(ONLINE_REPORT_CONTEXT_T ctx, TIMER_ID_T id)
+{
+}

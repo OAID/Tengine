@@ -64,7 +64,7 @@ OLREPORT_FMTNODE_T* create_fmt_node()
     OLREPORT_FMTNODE_T* res = NULL;
     if (free_node_list == NULL)
     {
-        res = ( OLREPORT_FMTNODE_T* )(malloc(sizeof(OLREPORT_FMTNODE_T)));
+        res = (OLREPORT_FMTNODE_T*)(malloc(sizeof(OLREPORT_FMTNODE_T)));
     }
     else
     {
@@ -123,7 +123,7 @@ void release_online_report_fmt_dat(OLREPORT_FMTDAT_T* fmt_dat)
         return;
     }
 
-    OLREPORT_FMTNODE_T* curNode = ( OLREPORT_FMTNODE_T* )(fmt_dat->node);
+    OLREPORT_FMTNODE_T* curNode = (OLREPORT_FMTNODE_T*)(fmt_dat->node);
     free_node(curNode);
 }
 
@@ -136,7 +136,7 @@ void add_ftm_node(OLREPORT_FMTDAT_T* fmt_dat, OLREPORT_FMTNODE_T* node)
     }
     else
     {
-        OLREPORT_FMTNODE_T* curNode = ( OLREPORT_FMTNODE_T* )(fmt_dat->node);
+        OLREPORT_FMTNODE_T* curNode = (OLREPORT_FMTNODE_T*)(fmt_dat->node);
         node->next_ = curNode;
         fmt_dat->node = node;
     }
@@ -150,7 +150,7 @@ void add_ftm_order_node(OLREPORT_FMTDAT_T* fmt_dat, OLREPORT_FMTNODE_T* node)
         return;
     }
 
-    OLREPORT_FMTNODE_T* curNode = ( OLREPORT_FMTNODE_T* )(fmt_dat->node);
+    OLREPORT_FMTNODE_T* curNode = (OLREPORT_FMTNODE_T*)(fmt_dat->node);
     OLREPORT_FMTNODE_T* preNode = NULL;
     while (curNode != NULL)
     {
@@ -237,13 +237,13 @@ int report_fmt_data_2_json(OLREPORT_FMTDAT_T* fmt_dat, char* output)
         return -1;
     }
 
-    OLREPORT_FMTNODE_T* curNode = ( OLREPORT_FMTNODE_T* )(fmt_dat->node);
+    OLREPORT_FMTNODE_T* curNode = (OLREPORT_FMTNODE_T*)(fmt_dat->node);
     int offset = 0;
     offset += sprintf(output + offset, "{");
 
     while (curNode != NULL)
     {
-        if (curNode->val_type_ == ( int )eValType_INT)
+        if (curNode->val_type_ == (int)eValType_INT)
         {
             offset += sprintf(output + offset, JSON_INT_FMT, curNode->json_key_, curNode->val_.int_val_);
         }
@@ -268,7 +268,7 @@ int report_fmt_data_2_url_keyval_string(OLREPORT_FMTDAT_T* fmt_dat, char* output
         return -1;
     }
 
-    OLREPORT_FMTNODE_T* curNode = ( OLREPORT_FMTNODE_T* )(fmt_dat->node);
+    OLREPORT_FMTNODE_T* curNode = (OLREPORT_FMTNODE_T*)(fmt_dat->node);
     int offset = 0;
     while (curNode != NULL)
     {

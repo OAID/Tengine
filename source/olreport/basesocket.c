@@ -81,7 +81,7 @@ int net_connect(NET_CONTEXT* context, const char* host, const char* port, int pr
 
     for (cur = addr_list; cur != NULL; cur = cur->ai_next)
     {
-        context->fd = ( int )socket(cur->ai_family, cur->ai_socktype, cur->ai_protocol);
+        context->fd = (int)socket(cur->ai_family, cur->ai_socktype, cur->ai_protocol);
         if (context->fd < 0)
         {
             ret = ERR_NET_SOCKET_FAILED;
@@ -153,7 +153,7 @@ int net_connect_timeout(NET_CONTEXT* context, const char* host, const char* port
 
     for (cur = addr_list; cur != NULL; cur = cur->ai_next)
     {
-        context->fd = ( int )socket(cur->ai_family, cur->ai_socktype, cur->ai_protocol);
+        context->fd = (int)socket(cur->ai_family, cur->ai_socktype, cur->ai_protocol);
         if (context->fd < 0)
         {
             ret = ERR_NET_SOCKET_FAILED;
@@ -289,7 +289,7 @@ int get_loacl_ip_and_mac(char* ip, char* mac)
     }
 
     ioctl(fd, SIOCGIFCONF, &if_conf);
-    if_req = ( struct ifreq* )(if_conf.ifc_buf);
+    if_req = (struct ifreq*)(if_conf.ifc_buf);
     int nums = if_conf.ifc_len / sizeof(struct ifreq);
     for (int ii = 0; ii < nums; ++ii, ++if_req)
     {
@@ -300,7 +300,7 @@ int get_loacl_ip_and_mac(char* ip, char* mac)
 
         if (if_req->ifr_flags == AF_INET || if_req->ifr_flags == AF_INET6)
         {
-            void* tmp_addr = &(( struct sockaddr_in* )&(if_req->ifr_addr))->sin_addr;
+            void* tmp_addr = &((struct sockaddr_in*)&(if_req->ifr_addr))->sin_addr;
             inet_ntop(AF_INET, tmp_addr, ip, INET_ADDRSTRLEN);
 
             strcpy(ifr_mac.ifr_name, if_req->ifr_name);

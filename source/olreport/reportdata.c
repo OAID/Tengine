@@ -35,14 +35,14 @@
 #include <string.h>
 
 #define MAX_REPORT_DATA_LEN 1024 * 10
-#define METHOD_NAME "methodname"
-#define PARAM "param"
-#define APP_TOEKN "token"
-#define REQUEST_URL_LEN 512
+#define METHOD_NAME         "methodname"
+#define PARAM               "param"
+#define APP_TOEKN           "token"
+#define REQUEST_URL_LEN     512
 
-#define ACTION_INIT_NAME "INIT"
+#define ACTION_INIT_NAME    "INIT"
 #define ACTION_RELEASE_NAME "RELEASE"
-#define ACTION_OTHER_NAME "PERIOD"
+#define ACTION_OTHER_NAME   "PERIOD"
 
 typedef struct
 {
@@ -103,7 +103,7 @@ void get_tengine_env_data(REPORT_DATA_T* dat)
 }
 
 #define ADD_STRING_VAL(NAME) add_string_val_order(&fmt_dat, NAME, gsData.data_.NAME##_)
-#define ADD_INT_VAL(NAME) add_int_val_order(&fmt_dat, NAME, gsData.data_.NAME##_)
+#define ADD_INT_VAL(NAME)    add_int_val_order(&fmt_dat, NAME, gsData.data_.NAME##_)
 
 const char* general_report_data(int* len, int action)
 {
@@ -164,7 +164,7 @@ const char* general_report_data(int* len, int action)
     OL_RP_LOG("report data string calc for md5 : %s\n", gsData.report_dat_);
 
     unsigned char tengine_data_md5[16];
-    get_md5(( unsigned char* )(gsData.report_dat_), offset, tengine_data_md5);
+    get_md5((unsigned char*)(gsData.report_dat_), offset, tengine_data_md5);
     md5_to_string(tengine_data_md5, gsData.data_.SIGN_);
     add_string_val(&fmt_dat, SIGN, gsData.data_.SIGN_);
     offset = report_fmt_data_2_json(&fmt_dat, json_data);
@@ -180,7 +180,7 @@ const char* general_report_data(int* len, int action)
     }
 
     OL_RP_LOG("app md5 string :\n %s \n", app_data);
-    get_md5(( unsigned char* )(app_data), offset, tengine_data_md5);
+    get_md5((unsigned char*)(app_data), offset, tengine_data_md5);
     md5_to_string(tengine_data_md5, tengine_md5_str);
 
     // format to json

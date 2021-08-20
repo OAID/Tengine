@@ -28,7 +28,7 @@
 #include <stdint.h>
 
 #define MAX_HTTP_DATA 4095
-#define MAX_HOST_LEN 255
+#define MAX_HOST_LEN  255
 
 #ifdef __cplusplus
 extern "C" {

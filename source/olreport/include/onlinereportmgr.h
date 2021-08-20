@@ -35,7 +35,7 @@ extern "C" {
 typedef void* ONLINE_REPORT_CONTEXT_T;
 typedef uint32_t TIMER_ID_T;
 #define INVLIAD_TIMER_ID 0
-#define PERIOD_ACTION 0x0acca
+#define PERIOD_ACTION    0x0acca
 
 // implementor must guarantee the pointer of return value is valid
 typedef const char* (*get_online_report_dat_t)(int* out_len, int action);

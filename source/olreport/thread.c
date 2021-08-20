@@ -39,7 +39,7 @@ void free_thread_context(THREAD_CONTEXT* ctx)
 
 void start_thread(void* ctx)
 {
-    THREAD_CONTEXT* context = ( THREAD_CONTEXT* )ctx;
+    THREAD_CONTEXT* context = (THREAD_CONTEXT*)ctx;
     pthread_attr_t type;
     pthread_attr_init(&type);
     pthread_attr_setdetachstate(&type, PTHREAD_CREATE_JOINABLE);
@@ -48,7 +48,7 @@ void start_thread(void* ctx)
 
 void stop_thread(void* ctx)
 {
-    THREAD_CONTEXT* context = ( THREAD_CONTEXT* )ctx;
+    THREAD_CONTEXT* context = (THREAD_CONTEXT*)ctx;
     if (context->handle_ == 0)
     {
         return;
@@ -56,13 +56,13 @@ void stop_thread(void* ctx)
 
     // pthread_detach(context->handle_);
     pthread_join(context->handle_, 0);
-    
+
     context->handle_ = 0;
 }
 
 void join_thread(THREAD_CONTEXT* ctx)
 {
-    THREAD_CONTEXT* context = ( THREAD_CONTEXT* )ctx;
+    THREAD_CONTEXT* context = (THREAD_CONTEXT*)ctx;
     if (context->handle_ == 0)
     {
         return;
