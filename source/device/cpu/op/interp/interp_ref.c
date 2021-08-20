@@ -39,13 +39,21 @@
 
 #define INTERP_MIN(a, b) ((a) < (b) ? (a) : (b))
 
-void linear_coeffs(int w, int outw, int* xofs, float* alpha)
+static void linear_coeffs(int w, int outw, int* xofs, float* alpha, int align_corner)
 {
     double scale = (double)w / outw;
-
+    if (align_corner)
+    {
+        scale = (double)(w - 1) / (outw - 1);
+    }
     for (int dx = 0; dx < outw; dx++)
     {
-        float fx = (float)((dx)*scale);
+        float fx = (float)((dx + 0.5) * scale - 0.5);
+        if (align_corner)
+        {
+            fx = (float)(dx * scale);
+        }
+        
         int sx = floor(fx);
         fx -= sx;
 
@@ -193,7 +201,7 @@ int ref_interp_fp32(struct tensor* input_tensor, struct tensor* output_tensor, s
             }
         }
     }
-    else if (param->resize_type == 2)
+    else if (param->resize_type == 2 || param->resize_type == 4)
     {
         float* input = (float*)input_tensor->data;
         float* output = (float*)output_tensor->data;
@@ -222,8 +230,9 @@ int ref_interp_fp32(struct tensor* input_tensor, struct tensor* output_tensor, s
         float* alpha = (float*)(buf + param->output_width + param->output_height);                          //new float[ow * 2];
         float* beta = (float*)(buf + param->output_width + param->output_height + param->output_width * 2); //new float[oh * 2];
 
-        linear_coeffs(in_w, out_w, xofs, alpha);
-        linear_coeffs(in_h, out_h, yofs, beta);
+        int align_corner = param->resize_type == 2? 0 : 1;
+        linear_coeffs(in_w, out_w, xofs, alpha, align_corner);
+        linear_coeffs(in_h, out_h, yofs, beta, align_corner);
 
         for (int q = 0; q < channel; ++q)
         {
@@ -290,7 +299,7 @@ int ref_interp_int8(struct tensor* input_tensor, struct tensor* output_tensor, s
             }
         }
     }
-    else if (param->resize_type == 2)
+    else if (param->resize_type == 2 || param->resize_type == 4)
     {
         int batch = input_tensor->dims[0];
         int channel = input_tensor->dims[1];
@@ -316,8 +325,9 @@ int ref_interp_int8(struct tensor* input_tensor, struct tensor* output_tensor, s
         float* alpha = (float*)(buf + param->output_width + param->output_height);                          //new float[ow * 2];
         float* beta = (float*)(buf + param->output_width + param->output_height + param->output_width * 2); //new float[oh * 2];
 
-        linear_coeffs(in_w, out_w, xofs, alpha);
-        linear_coeffs(in_h, out_h, yofs, beta);
+        int align_corner = param->resize_type == 2? 0 : 1;
+        linear_coeffs(in_w, out_w, xofs, alpha, align_corner);
+        linear_coeffs(in_h, out_h, yofs, beta, align_corner);
 
         for (int q = 0; q < channel; ++q)
         {
@@ -398,7 +408,7 @@ int ref_interp_uint8(struct tensor* input_tensor, struct tensor* output_tensor, 
             }
         }
     }
-    else if (param->resize_type == 2)
+    else if (param->resize_type == 2 || param->resize_type == 4)
     {
         int batch = input_tensor->dims[0];
         int channel = input_tensor->dims[1];
@@ -424,8 +434,9 @@ int ref_interp_uint8(struct tensor* input_tensor, struct tensor* output_tensor, 
         float* alpha = (float*)(buf + param->output_width + param->output_height);                          //new float[ow * 2];
         float* beta = (float*)(buf + param->output_width + param->output_height + param->output_width * 2); //new float[oh * 2];
 
-        linear_coeffs(in_w, out_w, xofs, alpha);
-        linear_coeffs(in_h, out_h, yofs, beta);
+        int align_corner = param->resize_type == 2? 0 : 1;
+        linear_coeffs(in_w, out_w, xofs, alpha, align_corner);
+        linear_coeffs(in_h, out_h, yofs, beta, align_corner);
 
         for (int q = 0; q < channel; ++q)
         {
