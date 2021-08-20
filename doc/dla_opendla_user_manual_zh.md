@@ -4,6 +4,15 @@
 
 opendla是基于英伟达开源的加速器NVDLA，之所以后端的名称叫opendla是因为英伟达官方的仓库已经停止维护两年了，而显然NVDLA还有许多可以改进的空间，改进之后的加速器需要和原来的NVDLA作区分，索性就直接叫opendla了，暂时在[ZYNQ-NVDLA](https://github.com/LeiWang1999/ZYNQ-NVDLA)这个仓库维护。
 
+现在的后端，只对接了 NVDLA 的 small 配置，有如下特点：
+
+1. ZYNQ 7045 | XCZU9EG-2 可以跑到 100 Mhz
+2. 8\*8 的 PE 阵列
+3. 没有 Global SRAM 缓存
+4. 没有查找表电路
+5. 没有RUBIK数据重排引擎
+6. 目前支持的算子有：Conv｜Relu｜Min/Max/Avg Pooling｜FullyConntected｜ElementWise 其它会切给CPU运行
+
 ## 2. 如何编译
 ### 2.1 依赖项
 依赖项有三部分：
