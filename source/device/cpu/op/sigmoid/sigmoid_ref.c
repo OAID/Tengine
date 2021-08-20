@@ -126,7 +126,6 @@ int ref_sigmoid_int8(struct tensor* input_tensor, struct tensor* output_tensor, 
     return 0;
 }
 
-
 int ref_sigmoid_uint8(struct tensor* input_tensor, struct tensor* output_tensor, int num_thread)
 {
     /* dequant */

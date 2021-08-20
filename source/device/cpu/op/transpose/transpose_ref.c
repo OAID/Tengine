@@ -322,13 +322,11 @@ static int ref_transpose_int8(struct tensor* input_tensor, struct tensor* output
         output_int8[i] = idata;
     }
 
-
     sys_free(input);
     sys_free(output);
 
     return 0;
 }
-
 
 static int ref_transpose_uint8(struct tensor* input_tensor, struct tensor* output_tensor, const struct ref_transpose_param* param)
 {

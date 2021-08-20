@@ -74,8 +74,10 @@ int ref_conv_int8(struct tensor* input_tensor, struct tensor* output_tensor, str
 
     for (int i = 0; i < dequant_scales_size; i++)
     {
-        if(1 == dequant_scales_size) dequant_scales[i] = (input_scale * kernel->scale);
-        else dequant_scales[i] = (input_scale * kernel_scales[i]);
+        if (1 == dequant_scales_size)
+            dequant_scales[i] = (input_scale * kernel->scale);
+        else
+            dequant_scales[i] = (input_scale * kernel_scales[i]);
     }
 
     if (conv_param->kernel_h == 0)
