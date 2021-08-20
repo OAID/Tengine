@@ -197,7 +197,7 @@ int main(int argc, char* argv[])
         fprintf(stderr, "Convert model failed: unsupport model format.\n");
         return -1;
     }
-    
+
     if (graph == NULL)
     {
         fprintf(stderr, "Convert model failed.\n");
