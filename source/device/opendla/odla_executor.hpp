@@ -66,7 +66,7 @@ extern "C" {
 #define SPEC_TYPE_RESHAPE   8
 #define SPEC_TYPE_INPUT     9
 
-#define OPENDLA_DUMP_LAYER       "TG_ODLA_DEBUG_DATA"
+#define OPENDLA_DUMP_LAYER "TG_ODLA_DEBUG_DATA"
 
 //#define OPENDLA_DEBUG_DATA
 
@@ -98,7 +98,6 @@ private:
     nvdla::priv::canonical_ast::Node* AddReluNode(struct node* ir_node);
     nvdla::priv::canonical_ast::Node* AddScaleNode(struct node* ir_node);
     nvdla::priv::canonical_ast::Node* AddSplitNode(struct node* ir_node);
-
 
     NvDlaError ODLAConfigGenerate();
 

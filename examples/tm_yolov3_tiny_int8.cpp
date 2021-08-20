@@ -134,7 +134,7 @@ static void nms_sorted_bboxes(const std::vector<Object>& faceobjects, std::vecto
 }
 
 void get_input_data_yolov3_int8(const char* image_file, int8_t* input_data, int img_h, int img_w, const float* mean, const float* scale,
-                                 float input_scale, int zero_point)
+                                float input_scale, int zero_point)
 {
     cv::Mat sample = cv::imread(image_file, 1);
     cv::Mat img;

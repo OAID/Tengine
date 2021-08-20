@@ -136,7 +136,6 @@ float reference_out[9] = {
     8.0f,
 };
 
-
 float reference_out1[3] = {
     4.0f,
     5.0f,
@@ -174,7 +173,6 @@ int main(int argc, char* argv[])
     if (NULL == ir_graph)
         return -1;
 
-
     set_log_level(LOG_INFO);
     dump_graph(ir_graph);
 
@@ -190,7 +188,6 @@ int main(int argc, char* argv[])
     int8_t input_i8[18] = {0};
     get_int8_data(input_fp32, input_i8, 18, input_scale, input_zero_point);
     set_tensor_buffer(input_tensor, input_i8, 18 * sizeof(int8_t));
-
 
     // graph run
     ret = test_graph_run(ir_graph);

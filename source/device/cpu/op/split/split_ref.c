@@ -121,7 +121,6 @@ int ref_split_int8(struct tensor* input_tensor, struct tensor* output_tensor, st
     return 0;
 }
 
-
 static int init_node(struct node_ops* node_ops, struct exec_node* exec_node, struct exec_graph* exec_graph)
 {
     return 0;

@@ -44,16 +44,58 @@ int float_mismatch(float* current, float* reference, int size)
     return 0;
 }
 
-float reference_out[50] = {1, 2, 2, 2, 2,
-                           3, 1, 3, 3, 3,
-                           3, 3, 1, 3, 3,
-                           4, 4, 4, 1, 4,
-                           4, 4, 4, 4, 1,
-                           1, 2, 2, 2, 2,
-                           3, 1, 3, 3, 3,
-                           3, 3, 1, 3, 3,
-                           4, 4, 4, 1, 4,
-                           4, 4, 4, 4, 1,};
+float reference_out[50] = {
+    1,
+    2,
+    2,
+    2,
+    2,
+    3,
+    1,
+    3,
+    3,
+    3,
+    3,
+    3,
+    1,
+    3,
+    3,
+    4,
+    4,
+    4,
+    1,
+    4,
+    4,
+    4,
+    4,
+    4,
+    1,
+    1,
+    2,
+    2,
+    2,
+    2,
+    3,
+    1,
+    3,
+    3,
+    3,
+    3,
+    3,
+    1,
+    3,
+    3,
+    4,
+    4,
+    4,
+    1,
+    4,
+    4,
+    4,
+    4,
+    4,
+    1,
+};
 
 float input_array[25] = {1, 2, 2, 2, 2,
                          3, 1, 3, 3, 3,
@@ -103,10 +145,9 @@ int create_test_concat_node(graph_t graph, const char* input_name, const char* n
     set_node_output_tensor(relu_2_node, 0, relu_2_output_tensor, TENSOR_TYPE_VAR);
     set_tensor_quant_param(relu_2_output_tensor, &output_scale, &output_zero_point, 1);
 
-
     set_node_input_tensor(test_node, 0, relu_1_output_tensor);
     set_node_input_tensor(test_node, 1, relu_2_output_tensor);
-    struct concat_param* param = (struct concat_param*)((struct node *)test_node)->op.param_mem;
+    struct concat_param* param = (struct concat_param*)((struct node*)test_node)->op.param_mem;
     param->axis = 1;
     tensor_t output_tensor = create_graph_tensor(graph, node_name, data_type);
     set_node_output_tensor(test_node, 0, output_tensor, TENSOR_TYPE_VAR);

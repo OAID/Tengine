@@ -25,4 +25,3 @@
 #pragma once
 
 #define ODLA_DEV_NAME "OPENDLA"
-

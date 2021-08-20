@@ -116,7 +116,7 @@ int print_tensor_data_value_odla(FILE* file, const struct tensor* tensor, int of
     }
     case TENGINE_DT_INT16:
     {
-        int16_t * base_ptr = (int16_t*)tensor->data;
+        int16_t* base_ptr = (int16_t*)tensor->data;
         int16_t val = base_ptr[offset];
         fprintf(file, "%d ", val);
 
