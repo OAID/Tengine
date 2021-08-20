@@ -1562,7 +1562,7 @@ static void im2col_int8(int8_t* im, int8_t* col, int input_chan, int input_x, in
                             }
                             odd_line = false;
                         }
-                            // even line  2n
+                        // even line  2n
                         else
                         {
                             for (int i = 0; i < 4; i++)
@@ -1653,7 +1653,7 @@ static void im2col_int8(int8_t* im, int8_t* col, int input_chan, int input_x, in
                         }
                         odd_line = false;
                     }
-                        // even line  2n + 1
+                    // even line  2n + 1
                     else
                     {
                         for (int i = 0; i < 4; i++)
@@ -1690,7 +1690,7 @@ static void im2col_int8(int8_t* im, int8_t* col, int input_chan, int input_x, in
             }
         }
     }
-        // general case for kernel size <=3
+    // general case for kernel size <=3
     else if ((kernel_x) < 4 && (kernel_y < 4))
     {
         int kch[2], kx[2], ky[2], imx[4][2], imy[4][2];
@@ -1817,7 +1817,7 @@ static void im2col_int8(int8_t* im, int8_t* col, int input_chan, int input_x, in
             }
         }
     }
-        // general case for kernel size >=3
+    // general case for kernel size >=3
     else
     {
         int kch, kx, ky, kchp, kyp, imx[4], imy[4];
@@ -1876,7 +1876,7 @@ static void im2col_int8(int8_t* im, int8_t* col, int input_chan, int input_x, in
                         }
                         odd_line = false;
                     }
-                        // even line  2n
+                    // even line  2n
                     else
                     {
                         for (int i = 0; i < 4; i++)
@@ -1970,7 +1970,7 @@ static void im2col_int8(int8_t* im, int8_t* col, int input_chan, int input_x, in
                         }
                         odd_line = false;
                     }
-                        // even line  2n + 1
+                    // even line  2n + 1
                     else
                     {
                         for (int i = 0; i < 4; i++)
