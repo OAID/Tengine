@@ -79,7 +79,7 @@ const int odla_supported_ops[] = {
     //    OP_NORMALIZE,
     //    OP_PAD,
     //    OP_PERMUTE,
-//    OP_POOL,
+    OP_POOL,
     //    OP_PRELU,
     //    OP_PRIORBOX,
     //    OP_PSROIPOOLING,
