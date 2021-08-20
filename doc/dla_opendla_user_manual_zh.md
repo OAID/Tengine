@@ -37,6 +37,8 @@ Tengine-Lite 目前只支持一种 opendla 的集成编译方法，即编译open
 
 这里不讲解内核驱动程序`opendla.ko`是如何编译的，如何编译看这篇[文章](https://zhuanlan.zhihu.com/p/378202360)。
 
+如果是aarch64的架构，可以直接使用
+
 #### 2.4.0 载入内核驱动程序
 
 ```bash
