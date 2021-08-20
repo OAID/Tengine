@@ -1283,11 +1283,8 @@ int load_interp(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_
             interp_param->height_scale = data[2];
             interp_param->width_scale = data[3];
         }
-        if (mode == "nearest")
-        {
-            interp_param->resize_type = 1;
-        }
-        else if (mode == "bilinear" || mode == "linear")
+
+        if (mode == "bilinear" || mode == "linear")
         {
             interp_param->resize_type = 2;
         }
@@ -2136,6 +2133,16 @@ int load_resize(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_
     interp_param->height_scale = 0;
     interp_param->width_scale = 0;
 
+    int align_corner = 0;
+    for (int k = 0; k < onnx_node.attribute_size(); k++)
+    {
+        const onnx::AttributeProto& attr = onnx_node.attribute(k);
+        if (attr.name() == "coordinate_transformation_mode")
+        {
+            if (attr.s() == "align_corners")
+                align_corner = 1;
+        }
+    }
     if (onnx_node.input_size() == 1)
     {
         for (int k = 0; k < onnx_node.attribute_size(); k++)
@@ -2198,7 +2205,7 @@ int load_resize(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_
     }
     else if (mode == "bilinear" || mode == "linear")
     {
-        interp_param->resize_type = 2;
+        interp_param->resize_type = align_corner == 0? 2 : 4;
     }
 
     return 0;
