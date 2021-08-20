@@ -52,15 +52,15 @@ int ref_depthtospace_fp32(struct tensor* input_tensor, struct tensor* output_ten
     int total_size = input_tensor->elem_num;
 
     //TODO:add mode in depthtospace_param to set CRD or DCR
-    for (int b = 0; b < n; ++b) 
+    for (int b = 0; b < n; ++b)
     {
-        for (int s = 0; s < outc; ++s) 
+        for (int s = 0; s < outc; ++s)
         {
-            for (int h = 0; h < outh; ++h) 
+            for (int h = 0; h < outh; ++h)
             {
                 const int in_h = h / block_size;
                 const int offset_h = (h % block_size);
-                for (int w = 0; w < outw; ++w) 
+                for (int w = 0; w < outw; ++w)
                 {
                     const int in_w = w / block_size;
                     const int offset_w = w % block_size;
@@ -77,7 +77,6 @@ int ref_depthtospace_fp32(struct tensor* input_tensor, struct tensor* output_ten
             }
         }
     }
-    
 
     return 0;
 }
