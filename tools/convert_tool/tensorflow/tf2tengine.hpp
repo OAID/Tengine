@@ -55,12 +55,10 @@ extern "C" {
 #include "save_graph/op_include.h"
 }
 
-
-#define TF_RNN_LSTM 0
-#define TF_RNN_GRU 1
+#define TF_RNN_LSTM       0
+#define TF_RNN_GRU        1
 #define TF_RNN_BASIC_LSTM 2
-#define TF_RNN_BASIC_RNN 3
-
+#define TF_RNN_BASIC_RNN  3
 
 struct TFNode
 {
@@ -80,7 +78,9 @@ struct TFNode
         no_static_node = false;
     }
 
-    virtual ~TFNode() {}
+    virtual ~TFNode()
+    {
+    }
 };
 
 struct LSTMNode : public TFNode
@@ -120,9 +120,9 @@ struct LSTMNode : public TFNode
         auto rnn_ir = rnn_graph.begin();
         auto rnn_end = rnn_graph.end();
 
-        while(rnn_ir != rnn_end)
+        while (rnn_ir != rnn_end)
         {
-            delete(*rnn_ir);
+            delete (*rnn_ir);
             rnn_ir++;
         }
     }
@@ -153,9 +153,9 @@ struct RNNNode : public TFNode
         auto rnn_ir = rnn_graph.begin();
         auto rnn_end = rnn_graph.end();
 
-        while(rnn_ir != rnn_end)
+        while (rnn_ir != rnn_end)
         {
-            delete(*rnn_ir);
+            delete (*rnn_ir);
             rnn_ir++;
         }
     }
@@ -195,9 +195,9 @@ struct GRUNode : public TFNode
         auto rnn_ir = rnn_graph.begin();
         auto rnn_end = rnn_graph.end();
 
-        while(rnn_ir != rnn_end)
+        while (rnn_ir != rnn_end)
         {
-            delete(*rnn_ir);
+            delete (*rnn_ir);
             rnn_ir++;
         }
     }
@@ -209,11 +209,10 @@ struct TFGraph
 
     ~TFGraph()
     {
-        for(auto node : seq_nodes)
+        for (auto node : seq_nodes)
             delete node;
     }
 };
-
 
 class tensorflow_serializer
 {
@@ -239,7 +238,7 @@ private:
     int FindRNNScope(std::string& rnn_scope);
     void ParseLSTMGraph(LSTMNode* lstm_node, std::set<TFNode*>& rnn_graph);
     void StripRNNScope(std::string& rnn_scope, int rnn_type);
-    void MergeReluMinimum(); 
+    void MergeReluMinimum();
     int MergeChildNode(TFNode* base_node, TFNode* child_node);
     int MergeParentNode(TFNode* base_node, TFNode* child_node);
     int BNRecursiveInputMerge(TFNode* node);
