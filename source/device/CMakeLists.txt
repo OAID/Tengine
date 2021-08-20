@@ -133,6 +133,7 @@ IF (TENGINE_ENABLE_TENSORRT)
     LIST (APPEND _REGISTER_DEVICE_LIST              "${CMAKE_SOURCE_DIR}/source/device/tensorrt/trt_device.cc")
 ENDIF()
 
+
 # VeriSilicon TIM-VX
 IF (TENGINE_ENABLE_TIM_VX)
     ADD_SUBDIRECTORY (tim-vx)
