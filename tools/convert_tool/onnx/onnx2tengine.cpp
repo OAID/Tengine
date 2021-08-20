@@ -2209,7 +2209,7 @@ int load_resize(ir_graph_t* graph, ir_node_t* node, const onnx::NodeProto& onnx_
     }
     else if (mode == "bilinear" || mode == "linear")
     {
-        interp_param->resize_type = align_corner == 0? 2 : 4;
+        interp_param->resize_type = align_corner == 0 ? 2 : 4;
     }
 
     return 0;
