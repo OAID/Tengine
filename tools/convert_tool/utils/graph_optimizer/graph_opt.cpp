@@ -148,7 +148,6 @@ int delete_node(ir_graph_t* graph, int16_t pre_node_id, int16_t del_node_id)
             }
         }
     }
-    
 
     /* delete node */
     if (erase_tensor_id(graph, del_node->output_tensors[0]) < 0 || erase_node_id(graph, del_node->index) < 0)

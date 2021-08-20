@@ -186,36 +186,36 @@ int main(int argc, char* argv[])
     {
         tensorflow_serializer tf2t;
         graph = tf2t.tensorflow2tengine(model_file);
-    else if (file_format == "mxnet")
-    {
-        mxnet_serializer m2t;
-        graph = m2t.mxnet2tengine(model_file, proto_file);
-    }
-    else
-    {
-        fprintf(stderr, "Convert model failed: support onnx only...\n");
-        return -1;
-    }
-    // dump_graph(graph);
-    if (graph == NULL)
-    {
-        fprintf(stderr, "Convert model failed.\n");
-        return -1;
-    }
+        else if (file_format == "mxnet")
+        {
+            mxnet_serializer m2t;
+            graph = m2t.mxnet2tengine(model_file, proto_file);
+        }
+        else
+        {
+            fprintf(stderr, "Convert model failed: support onnx only...\n");
+            return -1;
+        }
+        // dump_graph(graph);
+        if (graph == NULL)
+        {
+            fprintf(stderr, "Convert model failed.\n");
+            return -1;
+        }
 
-    if (graph_opt(graph) < 0)
-    {
-        fprintf(stderr, "optimize graph failed! \n");
-        return -1;
+        if (graph_opt(graph) < 0)
+        {
+            fprintf(stderr, "optimize graph failed! \n");
+            return -1;
+        }
+
+        if (save_graph(graph, output_tmfile.c_str()) < 0)
+        {
+            fprintf(stderr, "save graph failed! \n");
+            return -1;
+        }
+
+        fprintf(stderr, "Convert model success. %s -----> %s \n", model_file.c_str(), output_tmfile.c_str());
+
+        return 0;
     }
-
-    if (save_graph(graph, output_tmfile.c_str()) < 0)
-    {
-        fprintf(stderr, "save graph failed! \n");
-        return -1;
-    }
-
-    fprintf(stderr, "Convert model success. %s -----> %s \n", model_file.c_str(), output_tmfile.c_str());
-
-    return 0;
-}

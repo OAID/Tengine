@@ -252,7 +252,6 @@ int mxnet_serializer::set_graph_output(ir_graph_t* graph)
 
     set_ir_graph_output_node(graph, output_nodes.data(), output_nodes.size());
     return 0;
-
 }
 
 int mxnet_serializer::load_constant_tensor(ir_graph_t* graph, std::vector<MxnetNode>& nodelist, std::vector<MxnetParam>& paramlist)
@@ -422,7 +421,7 @@ int mxnet_serializer::load_text_file(std::string model_file, std::vector<MxnetNo
                 nest--;
                 if (nest != IN_DEF_BODY)
                     ret = -1;
-                break;    // Finish parsing all the nodes, end loop
+                break; // Finish parsing all the nodes, end loop
             }
             else if (line == start_node_block)
             {
@@ -573,7 +572,7 @@ int mxnet_serializer::load_binary_file(std::string model_file, std::vector<Mxnet
     }
 
     HeadBlock header;
-    is.read(( char* )&header, sizeof(uint64_t) * 3);
+    is.read((char*)&header, sizeof(uint64_t) * 3);
 
     // Get all the dims and raw data
     for (unsigned int i = 0; i < header.block_num; i++)
@@ -582,17 +581,17 @@ int mxnet_serializer::load_binary_file(std::string model_file, std::vector<Mxnet
         MxnetParam param = MxnetParam();
 
         // Read flag
-        is.read(( char* )&data.flag, sizeof(uint32_t));
+        is.read((char*)&data.flag, sizeof(uint32_t));
 
         // Read dim_size
         if (data.flag == 0xF993FAC9)
         {
             // Read stype and dim_size
-            is.read(( char* )&data.stype, sizeof(uint32_t) * 2);
+            is.read((char*)&data.stype, sizeof(uint32_t) * 2);
         }
         else if (data.flag == 0xF993FAC8)
         {
-            is.read(( char* )&data.dim_size, sizeof(uint32_t));
+            is.read((char*)&data.dim_size, sizeof(uint32_t));
         }
         else
         {
@@ -608,39 +607,39 @@ int mxnet_serializer::load_binary_file(std::string model_file, std::vector<Mxnet
             uint32_t d32;
             if (data.flag == 0xF993FAC9 || data.flag == 0xF993FAC8)
             {
-                is.read(( char* )&d64, sizeof(int64_t));    // Read dims
-                param.dims.at(k) = ( int )d64;
+                is.read((char*)&d64, sizeof(int64_t)); // Read dims
+                param.dims.at(k) = (int)d64;
             }
             else
             {
-                is.read(( char* )&d32, sizeof(uint32_t));    // Read dims
-                param.dims.at(k) = ( int )d32;
+                is.read((char*)&d32, sizeof(uint32_t)); // Read dims
+                param.dims.at(k) = (int)d32;
             }
             param.data_len *= param.dims.at(k);
         }
         param.data_len *= sizeof(float);
 
         // Read dev_type, dev_id and type_flag
-        is.read(( char* )&data.dev_type, sizeof(uint32_t) * 3);
+        is.read((char*)&data.dev_type, sizeof(uint32_t) * 3);
 
-        param.raw_data = ( uint8_t* )std::malloc(param.data_len);
-        is.read(( char* )param.raw_data, param.data_len);
+        param.raw_data = (uint8_t*)std::malloc(param.data_len);
+        is.read((char*)param.raw_data, param.data_len);
 
         paramlist.push_back(param);
     }
 
     // Get all the names
     uint64_t name_count;
-    is.read(( char* )&name_count, sizeof(uint64_t));    // Read name count
+    is.read((char*)&name_count, sizeof(uint64_t)); // Read name count
     for (unsigned int i = 0; i < name_count; i++)
     {
         MxnetParam& param = paramlist.at(i);
 
         uint64_t name_len;
-        is.read(( char* )&name_len, sizeof(uint64_t));    // Read name length
+        is.read((char*)&name_len, sizeof(uint64_t)); // Read name length
 
         param.name.resize(name_len);
-        is.read(( char* )param.name.data(), name_len);    // Read name string
+        is.read((char*)param.name.data(), name_len); // Read name string
 
         pos colon_pos = param.name.find(':');
         if (colon_pos != std::string::npos)
@@ -664,13 +663,12 @@ void dump_mx_graph(std::vector<MxnetNode>& nodelist, std::vector<MxnetParam>& pa
     {
         MxnetParam param = paramlist[i];
         fprintf(stderr, "%d param, name:%s, dim size:%d, dims:", i, param.name.c_str(), param.dim_size);
-        for (auto& dim:param.dims)
+        for (auto& dim : param.dims)
         {
             fprintf(stderr, "%d ", dim);
         }
         fprintf(stderr, "\n");
     }
-    
 }
 
 int mxnet_serializer::load_model(ir_graph_t* graph, std::string model_file, std::string proto_file)
@@ -693,11 +691,11 @@ int mxnet_serializer::load_model(ir_graph_t* graph, std::string model_file, std:
         return -1;
     if (set_graph_output(graph) < 0)
         return -1;
-    
+
     // fprintf(stderr, "dump ...\n");
     // dump_mx_graph(nodelist, paramlist);
 
-    for (auto& param:paramlist)
+    for (auto& param : paramlist)
     {
         std::free(param.raw_data);
     }
@@ -994,7 +992,6 @@ static int load_softmax(ir_graph_t* graph, ir_node_t* node, const MxnetNode& mxn
 
 static int load_no_param(ir_graph_t* graph, ir_node_t* node, const MxnetNode& mxnet_node)
 {
-
     return 0;
 }
 
@@ -1026,7 +1023,7 @@ static int load_elt_scalar(ir_graph_t* graph, ir_node_t* node, const MxnetNode& 
         param->type = ELT_SUM;
     param->caffe_flavor = 0;
 
-//    StaticTensor* tensor = CreateStaticConstTensor(graph, mxnet_node.name + "_scalar");
+    //    StaticTensor* tensor = CreateStaticConstTensor(graph, mxnet_node.name + "_scalar");
     std::string scalar_name = mxnet_node.name + "_scalar";
     int scalar_node_id = add_node_above(graph, node->index, OP_CONST, scalar_name.c_str());
     ir_node_t* scalar_node = get_ir_graph_node(graph, scalar_node_id);
@@ -1036,7 +1033,7 @@ static int load_elt_scalar(ir_graph_t* graph, ir_node_t* node, const MxnetNode& 
     set_ir_tensor_shape(scalar_tensor, dims.data(), dims.size());
 
     scalar_tensor->data = sys_malloc(sizeof(float));
-    float* mem_buf = ( float* )scalar_tensor->data;
+    float* mem_buf = (float*)scalar_tensor->data;
     const_iterator cit = mxnet_node.attrs.find("scalar");
     if (cit != mxnet_node.attrs.end())
     {
@@ -1047,7 +1044,7 @@ static int load_elt_scalar(ir_graph_t* graph, ir_node_t* node, const MxnetNode& 
     }
     else
     {
-        *mem_buf = 1;  // default value
+        *mem_buf = 1; // default value
     }
 
     set_ir_node_input_tensor(node, node->input_num, scalar_tensor);
@@ -1483,11 +1480,16 @@ static int load_spatial_transformer(ir_graph_t* graph, ir_node_t* node, const Mx
 
     if (cit1 != mxnet_node.attrs.end())
     {
-        if(cit1->second == "bilinear"){
+        if (cit1->second == "bilinear")
+        {
             param->sampler_type = 1;
-        } else if (cit1->second == "nearest"){
+        }
+        else if (cit1->second == "nearest")
+        {
             param->sampler_type = 0;
-        } else {
+        }
+        else
+        {
             param->sampler_type = -1;
         }
     }
@@ -1500,7 +1502,7 @@ static int load_spatial_transformer(ir_graph_t* graph, ir_node_t* node, const Mx
     }
     if (cit3 != mxnet_node.attrs.end())
     {
-        if(cit3->second == "affine")
+        if (cit3->second == "affine")
             param->transformer_type = 0;
         else
             param->transformer_type = -1;
@@ -1537,7 +1539,7 @@ void mxnet_serializer::register_op_load()
     op_load_map["Flatten"] = std::pair<int, op_load_t>(OP_FLATTEN, load_flatten);
     op_load_map["Embedding"] = std::pair<int, op_load_t>(OP_EMBEDDING, load_embedding);
     op_load_map["InstanceNorm"] = std::pair<int, op_load_t>(OP_INSTANCENORM, load_instance_norm);
-//    op_load_map["Reduction"] = std::pair<int, op_load_t>(OP_REDUCTION, load_reduction);
+    //    op_load_map["Reduction"] = std::pair<int, op_load_t>(OP_REDUCTION, load_reduction);
     op_load_map["_contrib_PSROIPooling"] = std::pair<int, op_load_t>(OP_PSROIPOOLING, load_psroipooling);
     op_load_map["_contrib_ROIAlign"] = std::pair<int, op_load_t>(OP_ROIALIGN, load_roi_align);
     op_load_map["abs"] = std::pair<int, op_load_t>(OP_UNARY, load_unary);
