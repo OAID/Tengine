@@ -15,8 +15,8 @@
 # specific language governing permissions and limitations
 # under the License.
 #
-# Copyright (c) 2021, OPEN AI LAB
-# Author: lswang@openailab.com
+# Copyright (c) 2021, Institute of Computing Technology
+# Author: wanglei21c@mails.ucas.ac.cn
 #
 
 # 0. clear var

@@ -18,8 +18,8 @@
  */
 
 /*
- * Copyright (c) 2021, Open AI Lab
- * Author: lswang@openailab.com
+ * Copyright (c) 2021, Institute of Computing Technology
+ * Author: wanglei21c@mails.ucas.ac.cn
  */
 
 #pragma once
