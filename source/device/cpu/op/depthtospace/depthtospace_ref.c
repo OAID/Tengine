@@ -51,22 +51,33 @@ int ref_depthtospace_fp32(struct tensor* input_tensor, struct tensor* output_ten
     float* out_data = (float*)output_tensor->data;
     int total_size = input_tensor->elem_num;
 
-    for (int s = 0; s < outc; ++s)
+    //TODO:add mode in depthtospace_param to set CRD or DCR
+    for (int b = 0; b < n; ++b) 
     {
-        for (int i = 0; i < block_size; ++i)
+        for (int s = 0; s < outc; ++s) 
         {
-            for (int j = 0; j < block_size; ++j)
+            for (int h = 0; h < outh; ++h) 
             {
-                for (int h = 0; h < inh; ++h)
+                const int in_h = h / block_size;
+                const int offset_h = (h % block_size);
+                for (int w = 0; w < outw; ++w) 
                 {
-                    for (int w = 0; w < inw; ++w)
-                    {
-                        out_data[s * inh * block_size * inw * block_size + h * block_size * inw * block_size + i * inw * block_size + w * block_size + j] = input_data[s * block_size * block_size * inh * inw + i * block_size * inh * inw + j * inh * inw + h * inw + w];
-                    }
+                    const int in_w = w / block_size;
+                    const int offset_w = w % block_size;
+                    //CRD
+                    const int offset_d = offset_h * block_size + offset_w;
+                    const int in_d = s * (block_size * block_size) + offset_d;
+                    //DCR
+                    //const int offset_d =(offset_h * block_size + offset_w) * outc;
+                    //const int in_d = s + offset_d;
+                    const int o_index = ((b * outc + s) * outh + h) * outw + w;
+                    const int i_index = ((b * inc + in_d) * inh + in_h) * inw + in_w;
+                    out_data[o_index] = input_data[i_index];
                 }
             }
         }
     }
+    
 
     return 0;
 }
