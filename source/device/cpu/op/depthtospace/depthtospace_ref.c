@@ -38,7 +38,6 @@
 
 int ref_depthtospace_fp32(struct tensor* input_tensor, struct tensor* output_tensor, int num_thread, int block_size)
 {
-   
     int n = input_tensor->dims[0];
     int inc = input_tensor->dims[1];
     int inh = input_tensor->dims[2];
@@ -47,28 +46,22 @@ int ref_depthtospace_fp32(struct tensor* input_tensor, struct tensor* output_ten
     int outc = inc / (block_size * block_size);
     int outh = input_tensor->dims[2] * block_size;
     int outw = input_tensor->dims[3] * block_size;
-    
+
     float* input_data = (float*)input_tensor->data;
     float* out_data = (float*)output_tensor->data;
     int total_size = input_tensor->elem_num;
-    
 
-    for (int s = 0; s < outc; ++s) 
+    for (int s = 0; s < outc; ++s)
     {
-        for (int i = 0; i < block_size; ++i) 
+        for (int i = 0; i < block_size; ++i)
         {
-            for (int j = 0; j < block_size; ++j) 
+            for (int j = 0; j < block_size; ++j)
             {
-                for (int h = 0; h < inh; ++h) 
+                for (int h = 0; h < inh; ++h)
                 {
-                    for (int w = 0; w < inw; ++w) 
+                    for (int w = 0; w < inw; ++w)
                     {
-                        out_data[s * inh * block_size * inw * block_size +
-                                   h * block_size * inw * block_size + i * inw * block_size +
-                                   w * block_size + j] =
-                            input_data[s * block_size * block_size * inh * inw +
-                                      i * block_size * inh * inw + j * inh * inw + h * inw +
-                                      w];
+                        out_data[s * inh * block_size * inw * block_size + h * block_size * inw * block_size + i * inw * block_size + w * block_size + j] = input_data[s * block_size * block_size * inh * inw + i * block_size * inh * inw + j * inh * inw + h * inw + w];
                     }
                 }
             }
@@ -103,9 +96,9 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
 
     input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
-    
+
     struct depthtospace_param* param = (struct depthtospace_param*)ir_node->op.param_mem;
-    
+
     int ret = ref_depthtospace_fp32(input_tensor, output_tensor, exec_graph->num_thread, param->block_size);
     if (ret != 0)
         return -1;
