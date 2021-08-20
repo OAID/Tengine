@@ -56,8 +56,6 @@ build*/
 
 # models
 models
-!models/.gitkeep
 
 # images
 images
-!images/.gitkeep
