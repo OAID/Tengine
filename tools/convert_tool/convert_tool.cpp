@@ -38,6 +38,7 @@
 #include "ncnn/ncnn2tengine.hpp"
 #include "tensorflow/tf2tengine.hpp"
 #include "mxnet/mxnet2tengine.hpp"
+#include "tflite/tflite2tengine.hpp"
 #include "utils/graph_optimizer/graph_opt.hpp"
 
 const char* help_params = "[Convert Tools Info]: optional arguments:\n"
@@ -196,6 +197,11 @@ int main(int argc, char* argv[])
     {
         mxnet_serializer m2t;
         graph = m2t.mxnet2tengine(model_file, proto_file);
+    }
+    else if (file_format == "tflite")
+    {
+        tflite_serializer l2t;
+        graph = l2t.tflite2tengine(model_file);
     }
     else
     {
