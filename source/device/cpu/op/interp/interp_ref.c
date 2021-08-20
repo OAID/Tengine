@@ -230,7 +230,7 @@ int ref_interp_fp32(struct tensor* input_tensor, struct tensor* output_tensor, s
         float* alpha = (float*)(buf + param->output_width + param->output_height);                          //new float[ow * 2];
         float* beta = (float*)(buf + param->output_width + param->output_height + param->output_width * 2); //new float[oh * 2];
 
-        int align_corner = param->resize_type == 2? 0 : 1;
+        int align_corner = param->resize_type == 2 ? 0 : 1;
         linear_coeffs(in_w, out_w, xofs, alpha, align_corner);
         linear_coeffs(in_h, out_h, yofs, beta, align_corner);
 
@@ -325,7 +325,7 @@ int ref_interp_uint8(struct tensor* input_tensor, struct tensor* output_tensor, 
         float* alpha = (float*)(buf + param->output_width + param->output_height);                          //new float[ow * 2];
         float* beta = (float*)(buf + param->output_width + param->output_height + param->output_width * 2); //new float[oh * 2];
 
-        int align_corner = param->resize_type == 2? 0 : 1;
+        int align_corner = param->resize_type == 2 ? 0 : 1;
         linear_coeffs(in_w, out_w, xofs, alpha, align_corner);
         linear_coeffs(in_h, out_h, yofs, beta, align_corner);
 
