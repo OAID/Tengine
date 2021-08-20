@@ -68,6 +68,8 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         ret = ref_clip_fp32(input_tensor, output_tensor, max, min);
     else if (input_tensor->data_type == TENGINE_DT_UINT8)
         ret = ref_clip_uint8(input_tensor, output_tensor, max, min);
+    else if (input_tensor->data_type == TENGINE_DT_INT8)
+        ret = ref_clip_int8(input_tensor, output_tensor, max, min);
     else
     {
         TLOG_ERR("Input data type %d not to be supported.\n", input_tensor->data_type);

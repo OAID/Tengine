@@ -26,7 +26,7 @@
 #include "pipeline/graph/graph.h"
 #include <chrono>
 #include <opencv2/opencv.hpp>
-using namespace pipe;
+using namespace pipeline;
 
 int main()
 {

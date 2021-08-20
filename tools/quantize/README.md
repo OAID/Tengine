@@ -17,7 +17,7 @@ git clone https://github.com/OAID/Tengine.git  tengine-lite
 cd tengine-lite
 mkdir build 
 cd build
-cmake -DTENGINE_BUILD_QUANT_TOOL ..
+cmake -DTENGINE_BUILD_QUANT_TOOL=ON ..
 make && make install
 ```
 
@@ -57,7 +57,7 @@ Status      : int8, per-channel, symmetric
         -i    image dir       path to calibration images folder
         -f    scale file      path to calibration scale file
         -o    output model    path to output int8 tmfile
-        -a    algorithm       the type of quant algorithm(0:min-max, 1:kl, default is 0)
+        -a    algorithm       the type of quant algorithm(0:min-max, 1:kl, 2:aciq, default is 0)
         -g    size            the size of input image(using the resize the original image,default is 3,224,224)
         -w    mean            value of mean (mean value, default is 104.0,117.0,123.0)
         -s    scale           value of normalize (scale value, default is 1.0,1.0,1.0)
@@ -141,7 +141,7 @@ Status      : uint8, per-layer, asymmetric
         -i    image dir       path to calibration images folder
         -f    scale file      path to calibration scale file
         -o    output model    path to output uint8 tmfile
-        -a    algorithm       the type of quant algorithm(0:min-max, 1:kl, default is 0)
+        -a    algorithm       the type of quant algorithm(0:min-max, 1:kl, 2:aciq, default is 0)
         -g    size            the size of input image(using the resize the original image,default is 3,224,224)
         -w    mean            value of mean (mean value, default is 104.0,117.0,123.0)
         -s    scale           value of normalize (scale value, default is 1.0,1.0,1.0)

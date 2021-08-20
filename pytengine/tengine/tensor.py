@@ -137,6 +137,13 @@ class Tensor(object):
         res = _LIB.get_tensor_buffer(ctypes.c_void_p(self.tensor))
         return res[:size]
 
+    def ascontiguousarray(self,value):
+        if self.dtype.enum == 2:
+            value = np.ascontiguousarray(value.astype(np.int8))
+            value = value.astype(np.int8)
+        else:
+            value = np.ascontiguousarray(value)
+        return value
     @buf.setter
     def buf(self, value):
         """
@@ -150,16 +157,10 @@ class Tensor(object):
             ctypes.c_int,
         ]
         value_bytes = ctypes.sizeof(Tengine_ctype[self.dtype.enum])
-        b = np.copy(value)
         print("self.dtype.enum:", self.dtype.enum)
-        if self.dtype.enum == 2:
-            value_c = np.ascontiguousarray(b.astype(np.int8))
-            value_c = value_c.astype(np.int8)
-        else:
-            value_c = np.ascontiguousarray(b)
         check_call(
             _LIB.set_tensor_buffer(
-                self.tensor, np.ctypeslib.as_ctypes(value_c), value.size * value_bytes
+                ctypes.c_void_p(self.tensor), np.ctypeslib.as_ctypes(value), value.size * value_bytes
             )
         )
 

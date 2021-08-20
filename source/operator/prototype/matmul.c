@@ -38,15 +38,16 @@ static int infer_shape(struct node* node)
 
     if (input1->dim_num != input0->dim_num)
     {
-        TLOG_ERR("dim's size of inputs must be qual for operator matmul\n");
-        return -1;
+        //        TLOG_ERR("dim's size of inputs must be qual for operator matmul\n");
+        //        return -1;
     }
 
+    int input1_last_dim = input1->dims[input1->dim_num - 1];
     if (input0->dim_num == 2)
     {
         int dims[2];
         dims[0] = input0->dims[0];
-        dims[1] = input1->dims[1];
+        dims[1] = input1_last_dim;
         set_ir_tensor_shape(output, dims, 2);
 
         return 0;
@@ -56,7 +57,7 @@ static int infer_shape(struct node* node)
         int dims[3];
         dims[0] = input0->dims[0];
         dims[1] = input0->dims[1];
-        dims[2] = input1->dims[2];
+        dims[2] = input1_last_dim;
         set_ir_tensor_shape(output, dims, 3);
 
         return 0;
@@ -67,7 +68,7 @@ static int infer_shape(struct node* node)
         dims[0] = input0->dims[0];
         dims[1] = input0->dims[1];
         dims[2] = input0->dims[2];
-        dims[3] = input1->dims[3];
+        dims[3] = input1_last_dim;
         set_ir_tensor_shape(output, dims, 4);
 
         return 0;

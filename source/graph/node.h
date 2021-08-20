@@ -54,7 +54,7 @@ typedef struct node
     char* name; //!< name of a node
 
     struct op op;        //!< operator of a node
-    struct graph* graph; //!< pointer of the related graph
+    struct graph* graph; //!< pointer of the owner graph
 } ir_node_t;
 
 /*!

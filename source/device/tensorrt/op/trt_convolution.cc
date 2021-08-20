@@ -70,7 +70,7 @@ bool TensorRTEngine::AddConvolutionNode(struct graph* ir_graph, struct node *nod
                 return false;
             }
 
-            float* weight_buffer = (float*)sys_malloc(conv_weight->elem_num * conv_weight->elem_size);
+            float* weight_buffer = (float*)sys_malloc(conv_weight->elem_num * sizeof(float));
             this->host_buffer.push_back(weight_buffer);
 
             for (int ch = 0; ch < conv_weight->quant_param_num; ch++)
@@ -79,7 +79,7 @@ bool TensorRTEngine::AddConvolutionNode(struct graph* ir_graph, struct node *nod
                 for (int i = 0; i < block_size; i++)
                 {
                     int offset = block_size * ch;
-                    weight_buffer[i] = (float)(((int8_t*)conv_weight->data)[offset + i]) * conv_weight->scale_list[ch];
+                    weight_buffer[offset + i] = (float)(((int8_t*)conv_weight->data)[offset + i]) * conv_weight->scale_list[ch];
                 }
             }
 
@@ -90,7 +90,7 @@ bool TensorRTEngine::AddConvolutionNode(struct graph* ir_graph, struct node *nod
         }
         case TENGINE_DT_UINT8:
         {
-            float* weight_buffer = (float*)sys_malloc(conv_weight->elem_num * conv_weight->elem_size);
+            float* weight_buffer = (float*)sys_malloc(conv_weight->elem_num * sizeof(float));
             this->host_buffer.push_back(weight_buffer);
 
             for (int i = 0; i < conv_weight->elem_num; i++)
@@ -123,7 +123,7 @@ bool TensorRTEngine::AddConvolutionNode(struct graph* ir_graph, struct node *nod
             }
             case TENGINE_DT_INT32:
             {
-                float* bias_buffer = (float*)sys_malloc(conv_bias->elem_num * conv_bias->elem_size);
+                float* bias_buffer = (float*)sys_malloc(conv_bias->elem_num * sizeof(float));
                 this->host_buffer.push_back(bias_buffer);
 
                 if (1 == conv_bias->quant_param_num)
@@ -141,6 +141,9 @@ bool TensorRTEngine::AddConvolutionNode(struct graph* ir_graph, struct node *nod
                     }
                 }
 
+                bias.values = bias_buffer;
+                bias.count = conv_bias->elem_num;
+                bias.type = nvinfer1::DataType::kFLOAT;
                 break;
             }
             default:

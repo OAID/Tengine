@@ -266,6 +266,9 @@ int VXEngine::Build(struct subgraph* subgraph)
             case OP_CONV:
                 this->AddConvolutionNode(ir_node);
                 break;
+            case OP_CROP:
+                this->AddCropNode(ir_node);
+                break;
             case OP_DECONV:
                 this->AddDeconvNode(ir_node);
                 break;
@@ -355,6 +358,12 @@ int VXEngine::Build(struct subgraph* subgraph)
                 break;
             case OP_UPSAMPLE:
                 this->AddUpsampleNode(ir_node);
+                break;
+            case OP_SPATIALTRANSFORMER:
+                this->AddSpatialtransformerNode(ir_node);
+                break;
+            case OP_L2NORMALIZATION:
+                this->AddL2normalizationNode(ir_node);
                 break;
             default:
                 fprintf(stderr, "Tengine TIM-VX: Cannot support OP(%d).\n", ir_node->index);

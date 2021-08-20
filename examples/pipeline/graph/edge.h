@@ -31,7 +31,7 @@
 #include <tuple>
 #include <vector>
 
-namespace pipe {
+namespace pipeline {
 class BaseNode;
 
 class BaseEdge
@@ -112,4 +112,4 @@ private:
     std::mutex m_mtx;
 };
 
-} // namespace pipe
+} // namespace pipeline

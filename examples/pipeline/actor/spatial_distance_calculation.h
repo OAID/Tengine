@@ -27,7 +27,7 @@
 #include <numeric>
 #include <deque>
 
-namespace pipe {
+namespace pipeline {
 // tan(theta/2) = width /2 / distance
 class SpatialDistanceCalc : public Node<Param<std::tuple<cv::Mat, cv::Rect> >, Param<cv::Mat> >
 {
@@ -75,4 +75,4 @@ private:
     const double SCALE = 100. / 0.27;
 };
 
-} // namespace pipe
+} // namespace pipeline

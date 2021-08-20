@@ -32,24 +32,106 @@
 #if CV_VERSION_MAJOR >= 4
 #include <opencv2/imgproc/types_c.h>
 #endif
-#include <sys/time.h>
 #include <functional>
 #include "pipeline/utils/box.h"
+#include "pipeline/utils/profiler.h"
 
-namespace pipe {
+namespace pipeline {
 
 class PedestrianDetection : public Node<Param<cv::Mat>, Param<std::tuple<cv::Mat, cv::Rect> > >
 {
 public:
     using preproc_func = typename std::function<void(const cv::Mat&, cv::Mat&)>;
-    using postproc_func = typename std::function<std::vector<Box<int> >(const float*, int)>;
+    using postproc_func = typename std::function<std::vector<Box<int> >(const float*, int, int, int)>;
 
-    PedestrianDetection(std::string model_path, preproc_func preproc, postproc_func postproc, size_t thread = 2, int w = 300, int h = 300)
+    PedestrianDetection(std::string model_path, size_t thread = 2, int w = 300, int h = 300)
     {
         m_thread_num = thread;
         m_input = cv::Mat(h, w, CV_32FC3);
-        m_preproc = preproc;
-        m_postproc = postproc;
+
+        // build preproc
+        m_preproc = [](const cv::Mat& in, cv::Mat& out) -> void {
+            cv::Mat buf(out.rows, out.cols, CV_8UC3);
+            cv::resize(in, buf, buf.size());
+            cv::cvtColor(buf, buf, CV_BGR2RGB);
+
+            buf.convertTo(buf, CV_32FC3);
+
+            const float mean[3] = {127.5f, 127.5f, 127.5f};
+            const float scale[3] = {0.007843f, 0.007843f, 0.007843f};
+
+            float* img_data = reinterpret_cast<float*>(buf.data);
+            float* out_ptr = reinterpret_cast<float*>(out.data);
+            /* nhwc to nchw */
+            for (int h = 0; h < out.rows; h++)
+            {
+                for (int w = 0; w < out.cols; w++)
+                {
+#pragma unroll(3)
+                    for (int c = 0; c < 3; c++)
+                    {
+                        int in_index = h * out.cols * 3 + w * 3 + c;
+                        int out_index = c * out.cols * out.rows + h * out.cols + w;
+                        out_ptr[out_index] = (img_data[in_index] - mean[c]) * scale[c];
+                    }
+                }
+            }
+        };
+
+        // build postproc
+        m_postproc = [](const float* outdata, int num, int raw_h, int raw_w) -> std::vector<Box<int> > {
+            const char* class_names[] = {
+                "background", "aeroplane", "bicycle", "bird", "boat",
+                "bottle", "bus", "car", "cat", "chair",
+                "cow", "diningtable", "dog", "horse", "motorbike",
+                "person", "pottedplant", "sheep", "sofa", "train",
+                "tvmonitor"};
+
+            const int max_num = num;
+            Box<int> boxes[max_num];
+            for (int i = 0; i < max_num; ++i)
+            {
+                boxes[i] = {0};
+            }
+            int box_count = 0;
+
+            fprintf(stderr, "detect result num: %d \n", num);
+            for (int i = 0; i < num; i++)
+            {
+                if (outdata[1] >= 0.5f)
+                {
+                    Box<int> box;
+
+                    box.class_idx = outdata[0];
+                    box.score = outdata[1];
+                    box.x0 = outdata[2] * raw_w;
+                    box.y0 = outdata[3] * raw_h;
+                    box.x1 = outdata[4] * raw_w;
+                    box.y1 = outdata[5] * raw_h;
+
+                    boxes[box_count] = box;
+                    box_count++;
+
+                    fprintf(stderr, "%s\t:%.1f%%\n", class_names[box.class_idx],
+                            box.score * 100);
+                    fprintf(stderr, "BOX:( %d , %d ),( %d , %d )\n", box.x0, box.y0, box.x1,
+                            box.y1);
+                }
+                outdata += 6;
+            }
+
+            Box<int> max = {0};
+            for (int i = 0; i < box_count; i++)
+            {
+                if (boxes[i].score > max.score)
+                {
+                    max = boxes[i];
+                }
+            }
+
+            std::vector<Box<int> > ret = {max};
+            return ret;
+        };
 
         /* inital tengine */
         init_tengine();
@@ -66,7 +148,7 @@ public:
         m_graph = create_graph(NULL, "tengine", model_path.c_str());
         if (m_graph == nullptr)
         {
-            fprintf(stderr, "create graph failed\n");
+            fprintf(stderr, "create graph failed, check model path\n");
             return;
         }
 
@@ -121,20 +203,11 @@ public:
             return;
         }
 
-        auto get_current_time = []() -> double {
-            struct timeval tv;
-            gettimeofday(&tv, NULL);
-            return tv.tv_sec * 1000.0 + tv.tv_usec / 1000.0;
-        };
-
         /* prepare process input data, set the data mem to input tensor */
-        auto time1 = get_current_time();
-
-        fprintf(stdout, "preproc begin\n");
+        Profiler prof("pedestrian_detection");
+        prof.dot();
         m_preproc(mat, m_input);
-        fprintf(stdout, "preproc end\n");
-
-        auto time2 = get_current_time();
+        prof.dot();
 
         if (run_graph(m_graph, 1) < 0)
         {
@@ -142,8 +215,7 @@ public:
             return;
         }
 
-        auto time3 = get_current_time();
-
+        prof.dot();
         /* process the detection result */
         tensor_t output_tensor = get_graph_output_tensor(m_graph, 0, 0); //"detection_out"
         int out_dim[4];
@@ -153,12 +225,9 @@ public:
         /* postprocess*/
         fprintf(stdout, "out shape [%d %d %d %d]\n", out_dim[0], out_dim[1],
                 out_dim[2], out_dim[3]);
-        auto results = m_postproc(output_data, out_dim[1]);
+        auto results = m_postproc(output_data, out_dim[1], mat.rows, mat.cols);
 
-        auto time4 = get_current_time();
-
-        fprintf(stdout, "preproc %.2f,  inference %.2f,  postproc %.2f \n",
-                time2 - time1, time3 - time2, time4 - time3);
+        prof.dot();
 
         if (not results.empty())
         {
@@ -195,4 +264,4 @@ private:
     size_t m_thread_num;
 };
 
-} // namespace pipe
+} // namespace pipeline

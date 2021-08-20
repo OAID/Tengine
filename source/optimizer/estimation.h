@@ -31,8 +31,8 @@ struct subgraph;
 struct vector;
 
 /*!
- * @struct ir_subgraph_t
- * @brief  Abstract subgraph intermediate representation
+ * @struct memory_block_t
+ * @brief  Memory block structure
  */
 typedef struct memory_block
 {
@@ -45,7 +45,7 @@ typedef struct memory_block
 } memory_block_t;
 
 /*!
- * @brief  Init tensor quantization parameter.
+ * @brief  Init memory block with index.
  *
  * @param [in]  memory_block: specific memory_block.
  * @param [in]  index: index of this specific memory_block.
@@ -53,7 +53,7 @@ typedef struct memory_block
 void init_memory_block(memory_block_t* memory_block, uint16_t index);
 
 /*!
- * @brief  Set tensor quantization parameter.
+ * @brief put all output tensors in each node of the subgraph into the memory blocks.
  *
  * @param [in]  subgraph: specific working subgraph.
  * @param [in]  memory_blocks: estimated memory_blocks.
