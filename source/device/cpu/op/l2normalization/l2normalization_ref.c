@@ -39,8 +39,8 @@ int ref_l2normalization_uint8(struct tensor* input_tensor, struct tensor* output
     int total_size = input_tensor->elem_num;
 
     /* dequant */
-    uint8_t* input_uint8 = input_tensor->data;
-    uint8_t* output_uint8 = output_tensor->data;
+    uint8_t* input_uint8 = (uint8_t*)input_tensor->data;
+    uint8_t* output_uint8 = (uint8_t*)output_tensor->data;
     float input_scale = input_tensor->scale;
     float output_scale = output_tensor->scale;
     int32_t input_zero = input_tensor->zero_point;
