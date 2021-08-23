@@ -90,6 +90,9 @@ OPTION (TENGINE_ENABLE_ALL_SYMBOL           "All symbol visible"                
 # Experimental optinos
 OPTION (TENGINE_ENABLE_MODEL_CACHE          "NPU kernel cache file option"              OFF)
 
+# Online report
+OPTION (TENGINE_ONLINE_REPORT               "online report"                             ON)
+
 # Do check list
 INCLUDE ("${CMAKE_CURRENT_SOURCE_DIR}/cmake/check.cmake")
 INCLUDE ("${CMAKE_CURRENT_SOURCE_DIR}/cmake/cuda.cmake")
