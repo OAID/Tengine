@@ -33,11 +33,13 @@ struct Feature
     std::string name;
     std::vector<float> data;
 
-    void serialize(const std::string& path) {
+    void serialize(const std::string& path)
+    {
         save(path, name, data);
     }
 
-    void deserialize(const std::string& path) {
+    void deserialize(const std::string& path)
+    {
         load(path, name, data);
     }
 };

@@ -29,27 +29,31 @@
 
 namespace pipeline {
 
-template<class T, class = typename std::enable_if<std::is_pod<std::remove_reference<T>>::value>::type>
-void pack(std::string& buf, const T& t) {
+template<class T, class = typename std::enable_if<std::is_pod<std::remove_reference<T> >::value>::type>
+void pack(std::string& buf, const T& t)
+{
     auto ptr = reinterpret_cast<const char*>(&t);
     buf.append(ptr, sizeof(T));
 }
 
-template<class T, class = typename std::enable_if<std::is_pod<std::remove_reference<T>>::value>::type>
-void unpack(const char*& buf, T& t) {
+template<class T, class = typename std::enable_if<std::is_pod<std::remove_reference<T> >::value>::type>
+void unpack(const char*& buf, T& t)
+{
     t = *(reinterpret_cast<const T*>(buf));
     buf += sizeof(T);
 }
 
 template<>
-void pack<std::string>(std::string& buf, const std::string& t) {
+void pack<std::string>(std::string& buf, const std::string& t)
+{
     int32_t len = static_cast<int32_t>(t.size());
     buf.append(reinterpret_cast<const char*>(&len), sizeof(len));
     buf.append(t);
 }
 
 template<>
-void unpack<std::string>(const char*& buf, std::string& t) {
+void unpack<std::string>(const char*& buf, std::string& t)
+{
     int32_t len = 0;
     unpack(buf, len);
     assert(len > 0);
@@ -58,20 +62,24 @@ void unpack<std::string>(const char*& buf, std::string& t) {
 }
 
 template<class T>
-void pack(std::string& buf, const std::vector<T>& vec) {
+void pack(std::string& buf, const std::vector<T>& vec)
+{
     int32_t len = static_cast<int32_t>(vec.size());
     buf.append(reinterpret_cast<const char*>(&len), sizeof(len));
-    for (const auto& val: vec) {
+    for (const auto& val : vec)
+    {
         pack(buf, val);
     }
 }
 
 template<class T>
-void unpack(const char*& buf, std::vector<T>& vec) {
+void unpack(const char*& buf, std::vector<T>& vec)
+{
     int32_t len = 0;
     unpack(buf, len);
     assert(len > 0);
-    for(int i = 0; i < len; ++i) {
+    for (int i = 0; i < len; ++i)
+    {
         T t;
         unpack(buf, t);
         vec.emplace_back(t);
@@ -79,44 +87,52 @@ void unpack(const char*& buf, std::vector<T>& vec) {
 }
 
 template<typename T, typename... Args>
-void pack(std::string& buf, const T& t, Args&... args) {
+void pack(std::string& buf, const T& t, Args&... args)
+{
     pack(buf, t);
     pack(buf, args...);
 }
 
 template<typename T, typename... Args>
-void unpack(const char*& buf, T& t, Args&... args) {
+void unpack(const char*& buf, T& t, Args&... args)
+{
     unpack(buf, t);
     unpack(buf, args...);
 }
 
 // get data pack size
-template<class T, class = typename std::enable_if<std::is_pod<std::remove_reference<T>>::value>::type>
-size_t  pack_size(const T& t) {
+template<class T, class = typename std::enable_if<std::is_pod<std::remove_reference<T> >::value>::type>
+size_t pack_size(const T& t)
+{
     return sizeof(t);
 }
 
 template<>
-size_t pack_size(const std::string& t) {
+size_t pack_size(const std::string& t)
+{
     return sizeof(int32_t) + t.size();
 }
 
 template<class T>
-size_t pack_size(const std::vector<T>& val) {
+size_t pack_size(const std::vector<T>& val)
+{
     size_t ret = sizeof(int32_t);
-    for (const auto& v: val) {
+    for (const auto& v : val)
+    {
         ret += pack_size(v);
     }
     return ret;
 }
 
 template<typename T, typename... Args>
-size_t pack_size(const T& t, Args&... args) {
+size_t pack_size(const T& t, Args&... args)
+{
     return pack_size(t) + pack_size(args...);
 }
 
 template<typename... Args>
-void save(const std::string& path, Args&... args) {
+void save(const std::string& path, Args&... args)
+{
     std::string buf;
     pack(buf, args...);
 
@@ -131,7 +147,8 @@ void save(const std::string& path, Args&... args) {
 }
 
 template<typename... Args>
-void load(const std::string& path, Args&... args) {
+void load(const std::string& path, Args&... args)
+{
     const int MAX_BUF_SIZE = 8192;
 
     std::ifstream in(path, std::ios::binary | std::ios::in);
@@ -152,4 +169,4 @@ void load(const std::string& path, Args&... args) {
     in.close();
 }
 
-}
+} // namespace pipeline
