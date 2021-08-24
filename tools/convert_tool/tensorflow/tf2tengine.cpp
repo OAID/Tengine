@@ -617,7 +617,7 @@ int tensorflow_serializer::BNRecursiveInputMerge(TFNode* node)
         BNRecursiveInputMerge(input_node);
         MergeParentNode(node, input_node);
     }
-    
+
     return 0;
 }
 
