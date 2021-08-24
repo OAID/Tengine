@@ -24,6 +24,7 @@
 #pragma once
 #include <vector>
 #include <string>
+#include "serializable.h"
 
 namespace pipeline {
 
@@ -31,6 +32,14 @@ struct Feature
 {
     std::string name;
     std::vector<float> data;
+
+    void serialize(const std::string& path) {
+        save(path, name, data);
+    }
+
+    void deserialize(const std::string& path) {
+        load(path, name, data);
+    }
 };
 
 } // namespace pipeline

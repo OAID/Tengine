@@ -3,6 +3,44 @@ FILE (MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/tengine)
 FILE (COPY ${CMAKE_SOURCE_DIR}/source/api/c_api.h DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/tengine)
 FILE (COPY ${CMAKE_SOURCE_DIR}/source/api/c_api_ex.h DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/tengine)
 
+if (TENGINE_ENABLE_OPENDLA)
+    function (tengine_opendla_op_test name file)
+        file(GLOB TENGINE_UTIL_SOURCE_FILES      ${PROJECT_SOURCE_DIR}/tests/common/util/*.c)
+
+        add_executable (${name} ${CMAKE_CURRENT_SOURCE_DIR}/${file} "${TENGINE_UTIL_SOURCE_FILES}" "${PROJECT_SOURCE_DIR}/tests/common/tengine_operations.c")
+
+        target_link_libraries (${name} PRIVATE ${CMAKE_PROJECT_NAME})
+
+        target_include_directories (${name} PRIVATE "${PROJECT_SOURCE_DIR}/source")
+        target_include_directories (${name} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
+        target_include_directories (${name} PRIVATE "${PROJECT_BINARY_DIR}")
+        target_include_directories (${name} PRIVATE "${PROJECT_BINARY_DIR}/source")
+        target_include_directories (${name} PRIVATE "${PROJECT_SOURCE_DIR}/tests/common")
+        target_include_directories (${name} PRIVATE "${PROJECT_SOURCE_DIR}/tests/common/util")
+
+        if (${TENGINE_TARGET_PROCESSOR} MATCHES "ARM" AND (NOT ANDROID AND NOT OHOS) AND TENGINE_TARGET_PROCESSOR_32Bit)
+            target_compile_options (${name} PRIVATE "-mfp16-format=ieee")
+        endif()
+
+        add_test (${name} ${name})
+
+        # add to a virtual project group
+        SET_PROPERTY(TARGET ${name} PROPERTY FOLDER "tests/test_opendla")
+    endfunction()
+
+    tengine_opendla_op_test(test_opendla_op_concat          op/test_opendla_op_concat.cpp)
+    tengine_opendla_op_test(test_opendla_op_convolution     op/test_opendla_op_convolution.cpp)
+    tengine_opendla_op_test(test_opendla_op_deconv     op/test_opendla_op_deconv.cpp)
+    tengine_opendla_op_test(test_opendla_op_groupconvolution     op/test_opendla_op_groupconvolution.cpp)
+    tengine_opendla_op_test(test_opendla_op_eltwise         op/test_opendla_op_eltwise.cpp)
+    tengine_opendla_op_test(test_opendla_op_fc              op/test_opendla_op_fc.cpp)
+    tengine_opendla_op_test(test_opendla_op_pooling         op/test_opendla_op_pooling.cpp)
+    tengine_opendla_op_test(test_opendla_op_relu            op/test_opendla_op_relu.cpp)
+    tengine_opendla_op_test(test_opendla_op_split            op/test_opendla_op_split.cpp)
+
+
+endif()
+
 
 if (TENGINE_ENABLE_TIM_VX)
     function (tengine_timvx_op_test name file)

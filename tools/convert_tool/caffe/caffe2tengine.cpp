@@ -307,6 +307,7 @@ int caffe_serializer::set_graph_input(ir_graph_t* graph, const te_caffe::NetPara
             set_ir_tensor_shape(tensor, dims, dim_num);
         }
 
+        tensor->tensor_type = TENSOR_TYPE_INPUT;
         ir_node_t* node = create_ir_node(graph, val.c_str(), OP_INPUT, OP_VERSION);
 
         int tensor_id = get_ir_tensor_index_from_name(graph, val.c_str());
