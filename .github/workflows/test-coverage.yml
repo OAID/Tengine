@@ -35,7 +35,7 @@ jobs:
         cd build
         wget ftp://219.139.34.182/tengine/ci_test/images/* -P images
         wget ftp://219.139.34.182/tengine/ci_test/data_x86/* -P data
-        wget ftp://219.139.34.182/tengine/ci_test/models/* -P models
+        wget ftp://219.139.34.182/tengine/ci_test/model_test/* -P models
         git clone https://github.com/BUG1989/onnx_op_test_data.git
         mv onnx_op_test_data onnx_node    
     - name: test-models
