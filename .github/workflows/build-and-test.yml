@@ -349,7 +349,7 @@ jobs:
         wget -c ftp://219.139.34.182/tengine/ci_test/data_x86/* -P data
         wget -c ftp://219.139.34.182/tengine/ci_test/model_test/* -P models
         git clone https://github.com/BUG1989/onnx_op_test_data.git
-        mv onnx_op_test_data onnx_node            
+        mv onnx_op_test_data onnx_node          
     - name: test-models
       run: |
         chmod +x ./tests/test.sh
