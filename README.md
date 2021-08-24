@@ -72,7 +72,7 @@ Tengine 核心代码由 4 个模块组成：
 ### Container
 
 - [SuperEdge](https://github.com/superedge/superedge) 借助 SuperEdge 边缘计算的开源容器管理系统，提供更便捷的业务管理方案；
-- [How to use Tengine with SuperEdge](doc/superedge_user_manual.md) 容器使用指南；
+- [How to use Tengine with SuperEdge](doc/SuperEdge_Tengine_User_Manual_CN.md) 容器使用指南；
 - [Video Capture user manual](doc/demo_videocapture_user_manual.md) Demo 依赖文件生成指南。
 
 ## Roadmap
