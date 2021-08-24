@@ -171,7 +171,7 @@ make install
 
 #### 4.5 TIM-VX
 
-请参考 [Tengine Lite VeriSilicon NPU 使用说明](npu_tim-vx_user_manual.md)。
+请参考 [Tengine Lite VeriSilicon NPU 使用说明](npu_tim-vx_user_manual_zh.md)。
 
 ## 5. 交叉编译 Arm64 OHOS（鸿蒙系统） 版本
 
