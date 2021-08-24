@@ -224,6 +224,8 @@ int load_const_tensor(TFNode* tf_node, ir_graph_t* graph)
     set_ir_node_output_tensor(node, 0, tensor);
     tf_node->ir_node = node;
     tf_node->ir_tensor = tensor;
+
+    return 0;
 }
 
 int tensorflow_serializer::set_graph_input(ir_graph_t* graph)
@@ -428,6 +430,8 @@ int DisconnectNode(TFNode* cur_node)
     }
 
     cur_node->outputs.clear();
+
+    return 0;
 }
 
 int tensorflow_serializer::MergeParentNode(TFNode* base_node, TFNode* parent_node)
@@ -613,7 +617,10 @@ int tensorflow_serializer::BNRecursiveInputMerge(TFNode* node)
         BNRecursiveInputMerge(input_node);
         MergeParentNode(node, input_node);
     }
+    
+    return 0;
 }
+
 int tensorflow_serializer::FuseComposedBN(TFNode* cur_node)
 {
     BNRecursiveInputMerge(cur_node);
@@ -632,7 +639,10 @@ int tensorflow_serializer::FuseComposedBN(TFNode* cur_node)
         if (node->name.find("/add/y") != std::string::npos)
             node->no_static_node = true;
     }
+
+    return 0;
 }
+
 int tensorflow_serializer::MergeChildNode(TFNode* base_node, TFNode* child_node)
 {
     auto output_ir = base_node->outputs.begin();
