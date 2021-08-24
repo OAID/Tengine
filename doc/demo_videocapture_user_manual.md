@@ -30,8 +30,8 @@
 
 后续步骤中的命令行操作均为基于 Khadas VIM3 单板计算机上的操作，其中：
 
-- **下载**、**编译**步骤 可以过 SSH 登陆或者直接在 Khadas VIM3 的 UBuntu 桌面启动控制台中执行；
-- **运行**步骤仅在 Khadas VIM3 的 UBuntu 桌面启动控制台中执行。
+- **下载**、**编译**步骤 可以过 SSH 登陆或者直接在 Khadas VIM3 的 Ubuntu 桌面启动控制台中执行；
+- **运行**步骤仅在 Khadas VIM3 的 Ubuntu 桌面启动控制台中执行。
 
 ## 编译
 
@@ -93,7 +93,7 @@ $ make demo_yolo_camera -j`nproc`
 
 ## 关于容器
 
-- 我们提供了基于 Khadas VIM3 平台的容器版本，具体操作可以参考 [superedge_user_manual](./superedge_user_manual.md)；
+- 我们提供了基于 Khadas VIM3 平台的容器版本，具体操作可以参考 [superedge_user_manual](./SuperEdge_Tengine_User_Manual_CN.md)；
 - 我们提供了腾讯云的 SuperEdge 版本，请参考（待补充）。
 
 
