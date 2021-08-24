@@ -225,6 +225,35 @@ int main(int argc, char** argv)
     std::vector<float> reference_data3(output_size3);
     std::vector<float> reference_data4(output_size4);
     FILE* fp1;
+    // fp1 = fopen(reference_file1.c_str(), "wb");
+    // if (fwrite(maskmaps, sizeof(float), output_size1, fp1) == 0)
+    // {
+    //     fprintf(stderr, "read %s data failed!\n", reference_file1.c_str());
+    //     return -1;
+    // }
+    // fclose(fp1);
+    // fp1 = fopen(reference_file2.c_str(), "wb");
+    // if (fwrite(location, sizeof(float), output_size2, fp1) == 0)
+    // {
+    //     fprintf(stderr, "read %s data failed!\n", reference_file2.c_str());
+    //     return -1;
+    // }
+    // fclose(fp1);
+    // fp1 = fopen(reference_file3.c_str(), "wb");
+    // if (fwrite(mask, sizeof(float), output_size3, fp1) == 0)
+    // {
+    //     fprintf(stderr, "read %s data failed!\n", reference_file3.c_str());
+    //     return -1;
+    // }
+    // fclose(fp1);
+    // fp1 = fopen(reference_file4.c_str(), "wb");
+    // if (fwrite(confidence, sizeof(float), output_size4, fp1) == 0)
+    // {
+    //     fprintf(stderr, "read %s data failed!\n", reference_file4.c_str());
+    //     return -1;
+    // }
+    // fclose(fp1);
+
     fp1 = fopen(reference_file1.c_str(), "rb");
     if (fread(reference_data1.data(), sizeof(float), output_size1, fp1) == 0)
     {
