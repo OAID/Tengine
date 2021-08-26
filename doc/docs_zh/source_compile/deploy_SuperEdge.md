@@ -4,7 +4,7 @@
 
 ​		案例基于开源AI推理框架Tengine 实现容器调用边缘硬件NPU资源，完成高效物体检测的推理任务，并通过开源边缘容器方案 SuperEdge 轻松将应用调度到边缘计算节点，实现一条指令部署边缘计算跨平台AI应用案例。
 
-​		[Tengine](https://github.com/OAID/Tengine "Tengine")由[OPEN AI LAB](http://www.openailab.com/)主导开发，该项目实现了深度学习神经网络模型在嵌入式设备上的**快速**、**高效**部署需求。为实现在众多**AIoT**应用中的跨平台部署，本项目使用**C语言**进行核心模块开发，针对嵌入式设备资源有限的特点进行了深度框架裁剪。同时采用了完全分离的前后端设计，有利于 CPU、GPU、NPU 等异构计算单元的快速移植和部署，降低评估、迁移成本。
+​		[Tengine](https://github.com/OAID/Tengine "Tengine") 由 [OPEN AI LAB](http://www.openailab.com/) 主导开发，该项目实现了深度学习神经网络模型在嵌入式设备上的**快速**、**高效**部署需求。为实现在众多**AIoT**应用中的跨平台部署，本项目使用**C语言**进行核心模块开发，针对嵌入式设备资源有限的特点进行了深度框架裁剪。同时采用了完全分离的前后端设计，有利于 CPU、GPU、NPU 等异构计算单元的快速移植和部署，降低评估、迁移成本。
 
 ​		[SuperEdge](https://github.com/superedge/superedge "SuperEdge") 是基于原生 Kubernetes 的**边缘容器**管理系统。该系统把云原生能力扩展到**边缘侧**，很好的实现了云端对边缘端的**管理**和控制，极大**简化**了应用从云端部署到边缘端的过程。SuperEdge 为应用实现**边缘原生化**提供了**强有力**的支持。
 

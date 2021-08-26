@@ -112,7 +112,7 @@ If you want to compile and generate the demo_yolo_camera program yourself, pleas
 
 ### 3.Preprare the Deployment File
 
-- Create k8s Deployment file yolo.yaml in master
+- Create k8s Deployment file yolo.yaml in 在SuperEdge master
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
