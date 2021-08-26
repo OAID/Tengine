@@ -2,7 +2,7 @@
 
 ## 1. 简介
 
-opendla是基于英伟达开源的加速器NVDLA，之所以后端的名称叫opendla是因为英伟达官方的仓库已经停止维护两年了，而显然NVDLA还有许多可以改进的空间，改进之后的加速器需要和原来的NVDLA作区分，索性就直接叫opendla了，暂时在[ZYNQ-NVDLA](https://github.com/LeiWang1999/ZYNQ-NVDLA)这个仓库维护。
+opendla是基于英伟达开源的加速器NVDLA，之所以后端的名称叫opendla是因为英伟达官方的仓库已经停止维护两年了，而显然NVDLA还有许多可以改进的空间，改进之后的加速器需要和原来的NVDLA作区分，索性就直接叫opendla了，暂时在 [ZYNQ-NVDLA](https://github.com/LeiWang1999/ZYNQ-NVDLA) 这个仓库维护。
 
 现在的后端，只对接了 NVDLA 的 small 配置，有如下特点：
 
@@ -16,7 +16,7 @@ opendla是基于英伟达开源的加速器NVDLA，之所以后端的名称叫op
 ## 2. 如何编译
 ### 2.1 依赖项
 依赖项有三部分：
-> 第一部分是 芯片对应的 opendla.ko 程序，在[这篇文章](https://zhuanlan.zhihu.com/p/378202360)里有介绍如何编译，目前[仓库](https://github.com/LeiWang1999/ZYNQ-NVDLA)里放置的版本是针对Linux 4.13内核的，如果是别的内核版本需要更改一些函数；
+> 第一部分是 芯片对应的 opendla.ko 程序，在 [这篇文章](https://zhuanlan.zhihu.com/p/378202360) 里有介绍如何编译，目前 [仓库](https://github.com/LeiWang1999/ZYNQ-NVDLA) 里放置的版本是针对Linux 4.13内核的，如果是别的内核版本需要更改一些函数；
 > 第二部分是 NVDLA 的依赖库，包括libjpeg与libprotobuf，如果是aarch64架构可以直接使用预编译好的文件。
 > 第三部分是 NVDLA 原来支持的 Compiler 和 Runtime，需要编译出链接库放到lib目录下，如果是aarch64架构可以直接使用预编译好的文件。
 
@@ -26,7 +26,7 @@ opendla是基于英伟达开源的加速器NVDLA，之所以后端的名称叫op
 为了编译Tengine的opendla后端支持代码，首先需要编译 libcompiler.so 与 libruntime.so，而 libcompiler 依赖 libprotobuf (版本为2.6.1)，libruntime 依赖 libjpeg (版本为libjpeg6b)。
 
 ### 2.3 拉取代码
-首先，**这里演示的整个编译的过程都在开发板卡上运行**，否则需要交叉编译；例子都是以root的身份来运行的；如何使用开发板连网可以参考[这篇文章](https://zhuanlan.zhihu.com/p/378814739)。
+首先，**这里演示的整个编译的过程都在开发板卡上运行**，否则需要交叉编译；例子都是以root的身份来运行的；如何使用开发板连网可以参考 [这篇文章](https://zhuanlan.zhihu.com/p/378814739) 。
 
 #### 2.3.1 拉取 ZYNQ-NVDLA
 
@@ -44,7 +44,7 @@ Tengine-Lite 目前只支持一种 opendla 的集成编译方法，即编译open
 
 其他的方案，例如在Tengine编译的过程中连同opendla的编译器和运行时的源代码一起编译，由于代码肯定是要重构的，所以现在还不支持。
 
-这里不将内核驱动程序`opendla.ko`是如何编译的，如何在Petalinux里编译看这篇[文章](https://zhuanlan.zhihu.com/p/378202360)。
+这里不将内核驱动程序`opendla.ko`是如何编译的，如何在Petalinux里编译看这篇 [文章](https://zhuanlan.zhihu.com/p/378202360) 。
 
 如果是 aarch64 的架构，可以直接使用 [prebuilt](https://github.com/LeiWang1999/ZYNQ-NVDLA/tree/master/prebuilt/lib/aarch64-ubuntu) 的lib。
 
