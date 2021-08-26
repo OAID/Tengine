@@ -62,7 +62,7 @@ $ dmesg | tail
 [   12.817900] IPv6: ADDRCONF(NETDEV_CHANGE): eth0: link becomes ready
 [   20.661453] opendla: loading out-of-tree module taints kernel.
 [   20.664248] Probe NVDLA config nvidia,nv_small
-[   20.669152] 0 . 12 . 5
+[   20.669152] 0.12.5
 [   20.669155] reset engine done
 [   20.671257] [drm] Initialized nvdla 0.0.0 20171017 for a0000000.NV_nvdla_wrapper on minor 1
 ```

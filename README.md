@@ -29,13 +29,13 @@ Tengine 核心代码由 4 个模块组成：
 
 ## 架构简析
 
-![Tengine 架构](doc/architecture.png)
+![Tengine 架构](doc/docs_zh/images/architecture.png)
 
 ## 快速上手
 
 ### 编译
 
-- [快速编译](doc/compile.md) 基于 cmake 实现简单的跨平台编译。
+- [快速编译](doc/docs_zh/source_compile) 基于 cmake 实现简单的跨平台编译。
 
 ### 示例
 
@@ -72,8 +72,8 @@ Tengine 核心代码由 4 个模块组成：
 ### Container
 
 - [SuperEdge](https://github.com/superedge/superedge) 借助 SuperEdge 边缘计算的开源容器管理系统，提供更便捷的业务管理方案；
-- [How to use Tengine with SuperEdge](doc/SuperEdge_Tengine_User_Manual_CN.md) 容器使用指南；
-- [Video Capture user manual](doc/demo_videocapture_user_manual.md) Demo 依赖文件生成指南。
+- [How to use Tengine with SuperEdge](doc/docs_zh/source_compile/deploy_SuperEdge.md) 容器使用指南；
+- [Video Capture user manual](doc/docs_zh/source_compile/demo_videocapture.md) Demo 依赖文件生成指南。
 
 ## Roadmap
 
