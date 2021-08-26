@@ -93,14 +93,14 @@ $ make demo_yolo_camera -j`nproc`
 
 ## 关于容器
 
-- 我们提供了基于 Khadas VIM3 平台的容器版本，具体操作可以参考 [superedge_user_manual](./SuperEdge_Tengine_User_Manual_CN.md)；
+- 我们提供了基于 Khadas VIM3 平台的容器版本，具体操作可以参考 [deploy_superedge](deploy_SuperEdge.md)；
 - 我们提供了腾讯云的 SuperEdge 版本，请参考（待补充）。
 
 
 
 ## FAQ
 
-Khadas VIM3 编译 Tengine + TIMVX 其余问题（包括 Khadas VIM3 购买渠道）可以参考 [npu_tim-vx_user_manual_zh](./npu_tim-vx_user_manual_zh.md)。
+Khadas VIM3 编译 Tengine + TIMVX 其余问题（包括 Khadas VIM3 购买渠道）可以参考 [compile_timvx](compile_timvx.md)。
 
 
 
