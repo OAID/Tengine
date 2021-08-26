@@ -3,12 +3,12 @@
 ## 1. 简介
 
 [TIM-VX](https://github.com/VeriSilicon/TIM-VX) 是 [VeriSilicon](https://www.verisilicon.com) 的 [OpenVX](https://www.khronos.org/openvx/) 张量接口模块(Tensor Interface Module for OpenVX，可以视作 OpenVX 的扩展支持)。
-[Tengine Lite](https://github.com/OAID/Tengine) 已经完成 TIM-VX 的支持和集成， 在典型的 [VeriSilicon Vivante NPU](https://www.verisilicon.com/en/IPPortfolio/VivanteNPUIP) 硬件设备上，比如 [Khadas VIM3](https://www.khadas.com/vim3)(Amlogic A311D)、[Khadas VIM3L](https://www.khadas.com/vim3l) 上已经可以完成 Tengine 模型的推理。
+[Tengine Lite](https://github.com/OAID/Tengine) 已经完成 TIM-VX 的支持和集成， 在典型的 [VeriSilicon Vivante NPU](https://www.verisilicon.com/en/IPPortfolio/VivanteNPUIP) 硬件设备上，比如 [Khadas VIM3](https://www.khadas.com/vim3) (Amlogic A311D)、[Khadas VIM3L](https://www.khadas.com/vim3l) 上已经可以完成 Tengine 模型的推理。
 目前支持的芯片平台有：
-- [Amlogic](https://www.amlogic.com) 的 [A311D](https://www.amlogic.com/#Products/393/index.html)/[S905D3](https://www.amlogic.com/#Products/392/index.html)，[C305X](https://www.amlogic.com/#Products/412/index.html)/[C308X](https://www.amlogic.com/#Products/409/index.html)；
-- [Rockchip](https://www.rock-chips.com) 的 [RV1109](https://www.rock-chips.com/a/cn/product/RV11xilie/2020/0427/1073.html)/[RV1126](https://www.rock-chips.com/a/cn/product/RV11xilie/2020/0427/1075.html)；
-- [NXP](https://www.nxp.com/) 的 [i.MX 8M Plus](https://www.nxp.com/products/processors-and-microcontrollers/arm-processors/i-mx-applications-processors/i-mx-8-processors/i-mx-8m-plus-arm-cortex-a53-machine-learning-vision-multimedia-and-industrial-iot:IMX8MPLUS)；
-- [瓴盛科技(JLQ)](https://www.jlq.com) 的 [JA308](https://www.jlq.com/images/products/ja310/ja308.pdf)/[JA310](https://www.jlq.com/images/products/ja310/ja310.pdf)/[JA312](https://www.jlq.com/images/products/ja310/ja312.pdf);
+- [Amlogic](https://www.amlogic.com) 的 [A311D](https://www.amlogic.com/#Products/393/index.html) / [S905D3](https://www.amlogic.com/#Products/392/index.html) ，[C305X](https://www.amlogic.com/#Products/412/index.html) / [C308X](https://www.amlogic.com/#Products/409/index.html) ；
+- [Rockchip](https://www.rock-chips.com) 的 [RV1109](https://www.rock-chips.com/a/cn/product/RV11xilie/2020/0427/1073.html) / [RV1126](https://www.rock-chips.com/a/cn/product/RV11xilie/2020/0427/1075.html) ；
+- [NXP](https://www.nxp.com/) 的 [i.MX 8M Plus](https://www.nxp.com/products/processors-and-microcontrollers/arm-processors/i-mx-applications-processors/i-mx-8-processors/i-mx-8m-plus-arm-cortex-a53-machine-learning-vision-multimedia-and-industrial-iot:IMX8MPLUS) ；
+- [瓴盛科技(JLQ)](https://www.jlq.com) 的 [JA308](https://www.jlq.com/images/products/ja310/ja308.pdf) / [JA310](https://www.jlq.com/images/products/ja310/ja310.pdf) / [JA312](https://www.jlq.com/images/products/ja310/ja312.pdf) ;
 
 ## 2. 如何编译
 ### 2.1 依赖项

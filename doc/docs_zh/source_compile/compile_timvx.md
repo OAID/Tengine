@@ -4,13 +4,13 @@
 
 [TIM-VX](https://github.com/VeriSilicon/TIM-VX.git) 的全称是 Tensor Interface Module for OpenVX，是 VeriSilicon 提供的用于在支持 OpenVX 的其自研 ML 加速器 IP 上实现深度学习神经网络模型部署。它可以做为 Android NN、TensorFlow-Lite、MLIR、TVM、Tengine 等 Runtime Inference Framework 的 Backend 模块。
 
-Tengine 基于 [Khadas VIM3](https://www.khadas.cn/product-page/vim3)(Amlogic A311D)单板计算机，完成了 TIM-VX 的集成，充分发挥出其内置 NPU **高性能**和 Tengine 异构计算自动切图的**易用性**。
+Tengine 基于 [Khadas VIM3](https://www.khadas.cn/product-page/vim3) (Amlogic A311D)单板计算机，完成了 TIM-VX 的集成，充分发挥出其内置 NPU **高性能**和 Tengine 异构计算自动切图的**易用性**。
 目前支持的芯片平台有：
 
-- [Amlogic](https://www.amlogic.com) 的 [A311D](https://www.amlogic.com/#Products/393/index.html)/[S905D3](https://www.amlogic.com/#Products/392/index.html)，[C305X](https://www.amlogic.com/#Products/412/index.html)/[C308X](https://www.amlogic.com/#Products/409/index.html)；
-- [Rockchip](https://www.rock-chips.com) 的 [RV1109](https://www.rock-chips.com/a/cn/product/RV11xilie/2020/0427/1073.html)/[RV1126](https://www.rock-chips.com/a/cn/product/RV11xilie/2020/0427/1075.html)；
-- [NXP](https://www.nxp.com/) 的 [i.MX 8M Plus](https://www.nxp.com/products/processors-and-microcontrollers/arm-processors/i-mx-applications-processors/i-mx-8-processors/i-mx-8m-plus-arm-cortex-a53-machine-learning-vision-multimedia-and-industrial-iot:IMX8MPLUS)；
-- [瓴盛科技(JLQ)](https://www.jlq.com) 的 [JA308](https://www.jlq.com/images/products/ja310/ja308.pdf)/[JA310](https://www.jlq.com/images/products/ja310/ja310.pdf)/[JA312](https://www.jlq.com/images/products/ja310/ja312.pdf);
+- [Amlogic](https://www.amlogic.com) 的 [A311D](https://www.amlogic.com/#Products/393/index.html) / [S905D3](https://www.amlogic.com/#Products/392/index.html) ，[C305X](https://www.amlogic.com/#Products/412/index.html) / [C308X](https://www.amlogic.com/#Products/409/index.html) ；
+- [Rockchip](https://www.rock-chips.com) 的 [RV1109](https://www.rock-chips.com/a/cn/product/RV11xilie/2020/0427/1073.html) / [RV1126](https://www.rock-chips.com/a/cn/product/RV11xilie/2020/0427/1075.html) ；
+- [NXP](https://www.nxp.com/) 的 [i.MX 8M Plus](https://www.nxp.com/products/processors-and-microcontrollers/arm-processors/i-mx-applications-processors/i-mx-8-processors/i-mx-8m-plus-arm-cortex-a53-machine-learning-vision-multimedia-and-industrial-iot:IMX8MPLUS) ；
+- [瓴盛科技(JLQ)](https://www.jlq.com) 的 [JA308](https://www.jlq.com/images/products/ja310/ja308.pdf) / [JA310](https://www.jlq.com/images/products/ja310/ja310.pdf) / [JA312](https://www.jlq.com/images/products/ja310/ja312.pdf) ;
 
 ## 准备工作
 

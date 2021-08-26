@@ -6,7 +6,7 @@
 
 ## 准备 android toolchain 文件
 
-(可选) 删除debug编译参数，缩小二进制体积 [android-ndk issue](https://github.com/android-ndk/ndk/issues/243)，android.toolchain.cmake 这个文件可以从 $ANDROID_NDK/build/cmake 找到：
+(可选) 删除debug编译参数，缩小二进制体积 [android-ndk issue](https://github.com/android-ndk/ndk/issues/243) ，android.toolchain.cmake 这个文件可以从 $ANDROID_NDK/build/cmake 找到：
 
 ```cmake
 # 用编辑器打开 $ANDROID_NDK/build/cmake/android.toolchain.cmake

@@ -10,7 +10,7 @@
 
 ### 支持算子
 
-请参考 [Tengine Support Operators List ](https://github.com/OAID/Tengine/wiki/Tengine-Support-Operators-List)。
+请参考 [Tengine Support Operators List ](https://github.com/OAID/Tengine/wiki/Tengine-Support-Operators-List)
 
 ## 如何获取模型中间结果？
 

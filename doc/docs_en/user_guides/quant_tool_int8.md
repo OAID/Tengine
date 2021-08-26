@@ -19,7 +19,7 @@ To support the deployment of int8 model on AIoT devices, we provide some general
 
 ## Download
 
-At present, we provide precompiled executable files, which can be obtained from here [quant_tool_int8](https://github.com/OAID/Tengine/releases/download/lite-v1.3/quant_tool_int8)。
+At present, we provide precompiled executable files, which can be obtained from here [quant_tool_int8](https://github.com/OAID/Tengine/releases/download/lite-v1.3/quant_tool_int8)
 
 ## Install Dependent Libraries
 
