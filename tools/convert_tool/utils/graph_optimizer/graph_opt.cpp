@@ -134,6 +134,21 @@ int delete_node(ir_graph_t* graph, int16_t pre_node_id, int16_t del_node_id)
         }
     }
 
+    /* delete const tensor&node of input */
+    for (int i = 1; i < del_node->input_num; i++)
+    {
+        ir_tensor_t* tensor = get_ir_graph_tensor(graph, del_node->input_tensors[i]);
+        ir_node_t* node = get_ir_graph_node(graph, tensor->producer);
+
+        if (tensor->tensor_type == TENSOR_TYPE_CONST)
+        {
+            if (erase_tensor_id(graph, tensor->index) < 0 || erase_node_id(graph, node->index) < 0)
+            {
+                return -1;
+            }
+        }
+    }
+
     /* delete node */
     if (erase_tensor_id(graph, del_node->output_tensors[0]) < 0 || erase_node_id(graph, del_node->index) < 0)
     {
