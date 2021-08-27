@@ -34,7 +34,6 @@
 #include <vector>
 #include <cmath>
 
-
 class TORCHEngine
 {
 public:
@@ -51,11 +50,7 @@ public:
 public:
     std::shared_ptr<Net> net;
 
-
 private:
     dict_irt2vxt torch_tensor_map;
     dict_irt2vxo torch_node_map;
-
-
-
 };

@@ -11,16 +11,13 @@ extern "C" {
 #include "operator/op.h"
 
 #include "convolution_param.h"
-
 }
 
 #include <torch/torch.h>
 #include <any>
 
-
 typedef std::map<uint32_t, std::shared_ptr<torch::Tensor> > dict_irt2vxt;
-typedef std::map<uint32_t, std::any > dict_irt2vxo;
-
+typedef std::map<uint32_t, std::any> dict_irt2vxo;
 
 torch::nn::Conv2dOptions
 create_conv_options(int64_t in_planes, int64_t out_planes, int64_t kerner_size,
@@ -75,15 +72,14 @@ struct Net : torch::nn::Module
                     = torch::nn::Conv2d{create_conv_options(
                         /*in_planes = */ input_tensor->dims[1], /*out_planes = */ output_tensor->dims[1],
                         /*kerner_size = */ param->kernel_h, /*stride = */ param->stride_h, /*padding = */ param->pad_h0,
-                        /*groups = */ param->group, /*dilation = */ param->dilation_h, /*bias = */ bias
-                    )};
+                        /*groups = */ param->group, /*dilation = */ param->dilation_h, /*bias = */ bias)};
                 register_module(std::to_string(ir_node->index), layer);
                 torch_node_map[ir_node->index] = layer;
 
                 {
                     torch::Tensor t = torch::rand({weight_tensor->dims[0], weight_tensor->dims[1], weight_tensor->dims[2], weight_tensor->dims[3]});
                     void* date_mem = t.data_ptr();
-                    memcpy(date_mem, weight_tensor->data, weight_tensor->elem_num*weight_tensor->elem_size);
+                    memcpy(date_mem, weight_tensor->data, weight_tensor->elem_num * weight_tensor->elem_size);
                     layer->weight = register_parameter(std::to_string(ir_node->index) + "_weight", t);
                 }
 
@@ -91,15 +87,15 @@ struct Net : torch::nn::Module
                 {
                     torch::Tensor t = torch::rand({output_tensor->dims[1]});
                     void* date_mem = t.data_ptr();
-                    memcpy(date_mem, bias_tensor->data, bias_tensor->elem_num*bias_tensor->elem_size);
+                    memcpy(date_mem, bias_tensor->data, bias_tensor->elem_num * bias_tensor->elem_size);
                     layer->bias = register_parameter(std::to_string(ir_node->index) + "_bias", t);
                 }
 
                 break;
             }
-//            case OP_POOL:
-//                this->AddPoolingNode(ir_node);
-//                break;
+                //            case OP_POOL:
+                //                this->AddPoolingNode(ir_node);
+                //                break;
             default:
                 fprintf(stderr, "Tengine TORCH Prerun: Cannot support OP(%d).\n", ir_node->index);
                 break;
@@ -124,29 +120,29 @@ struct Net : torch::nn::Module
 
             switch (op_type)
             {
-                case OP_CONST:
-                case OP_INPUT:
-                    continue;
-                case OP_CONV:
-                {
-                    struct conv_param* param = (struct conv_param*)ir_node->op.param_mem;
+            case OP_CONST:
+            case OP_INPUT:
+                continue;
+            case OP_CONV:
+            {
+                struct conv_param* param = (struct conv_param*)ir_node->op.param_mem;
 
-                    if (param->activation < 0)
-                    {
-                        *torch_tensor_map[ir_node->output_tensors[0]] = std::any_cast<torch::nn::Conv2d>(torch_node_map[node_id])(*torch_tensor_map[ir_node->input_tensors[0]]);
-                    }
-                    else if (param->activation == 0)
-                    {
-                        *torch_tensor_map[ir_node->output_tensors[0]] = torch::relu( std::any_cast<torch::nn::Conv2d>(torch_node_map[node_id])(*torch_tensor_map[ir_node->input_tensors[0]]) );
-                    }
-                    break;
+                if (param->activation < 0)
+                {
+                    *torch_tensor_map[ir_node->output_tensors[0]] = std::any_cast<torch::nn::Conv2d>(torch_node_map[node_id])(*torch_tensor_map[ir_node->input_tensors[0]]);
                 }
-    //            case OP_POOL:
-    //                this->AddPoolingNode(ir_node);
-    //                break;
-                default:
-                    fprintf(stderr, "Tengine TORCH Run: Cannot support OP(%d).\n", ir_node->index);
-                    break;
+                else if (param->activation == 0)
+                {
+                    *torch_tensor_map[ir_node->output_tensors[0]] = torch::relu(std::any_cast<torch::nn::Conv2d>(torch_node_map[node_id])(*torch_tensor_map[ir_node->input_tensors[0]]));
+                }
+                break;
+            }
+                //            case OP_POOL:
+                //                this->AddPoolingNode(ir_node);
+                //                break;
+            default:
+                fprintf(stderr, "Tengine TORCH Run: Cannot support OP(%d).\n", ir_node->index);
+                break;
             }
         }
 
@@ -156,7 +152,6 @@ struct Net : torch::nn::Module
         {
             torch_output.push_back(torch_tensor_map[subgraph->output_tensor_list[i]]);
         }
-        return  torch_output;
+        return torch_output;
     }
 };
-

@@ -111,7 +111,6 @@ float reference_out[9] = {-4, -1, 1,
                           -2, 2, 3,
                           3, 6, 4};
 
-
 int main(int argc, char* argv[])
 {
     int n = 1, c = 1, h = 3, w = 3;
@@ -136,7 +135,6 @@ int main(int argc, char* argv[])
     struct tensor* input_tensor = (struct tensor*)get_graph_tensor(ir_graph, "input_node");
     struct tensor* weight_tensor = (struct tensor*)get_graph_tensor(ir_graph, "weight");
     struct tensor* output_tensor = (struct tensor*)get_graph_tensor(ir_graph, "conv");
-
 
     // set input data
     set_tensor_buffer(input_tensor, input_fp32, 9 * 4);
