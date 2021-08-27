@@ -176,7 +176,7 @@ detection num: 3
 
 Output:
 
-![yolox_dla_out](yolox_dla_out.jpg)
+![yolox_dla_out](../images/yolox_dla_out.jpg)
 
 ## 附：其他
 
