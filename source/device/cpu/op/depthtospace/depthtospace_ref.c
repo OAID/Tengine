@@ -198,7 +198,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
     struct depthtospace_param* param = (struct depthtospace_param*)ir_node->op.param_mem;
-    
+
     int ret = 0;
     if (input_tensor->data_type == TENGINE_DT_FP32)
         ret = ref_depthtospace_fp32(input_tensor, output_tensor, exec_graph->num_thread, param->block_size);
@@ -206,7 +206,7 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
         ret = ref_depthtospace_uint8(input_tensor, output_tensor, exec_graph->num_thread, param->block_size);
     else if (input_tensor->data_type == TENGINE_DT_INT8)
         ret = ref_depthtospace_int8(input_tensor, output_tensor, exec_graph->num_thread, param->block_size);
-    
+
     if (ret != 0)
         return -1;
 
