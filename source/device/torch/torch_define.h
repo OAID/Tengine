@@ -25,4 +25,3 @@
 #pragma once
 
 #define TORCH_DEV_NAME "TORCH"
-
