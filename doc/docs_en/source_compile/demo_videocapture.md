@@ -62,7 +62,7 @@ Execute 'demo_yolo_camera' in the current path:
 ```
 *P.S. : The first run will compile the kernel file that the NPU depends on online, and the wait time is about 30 seconds. The next run is the cache file file in the directory where the NPU is directly loaded (less than 1 second).*
 ## About containers
-- We provide a container version based on the Khadas VIM3 platform, see [deploy_superEdge](deploy_superedge.md) for more information;
+- We provide a container version based on the Khadas VIM3 platform, see [deploy_superEdge](deploy_SuperEdge.md) for more information;
 - We provide a SuperEdge version of Tencent Cloud, please refer to it (to be added).
 ## FAQ
 Other questions (including Khadas VIM3 purchase channels) are referred to [compile_timvx](compile_timvx.md).
