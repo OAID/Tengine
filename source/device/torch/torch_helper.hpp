@@ -36,5 +36,4 @@ struct Net : torch::nn::Module
     std::vector<std::shared_ptr<torch::Tensor> > forward(std::vector<std::shared_ptr<torch::Tensor> > torch_input);
 
     bool AddConvolutionNode(struct node* ir_node);
-
 };
