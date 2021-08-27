@@ -104,7 +104,7 @@ class AlignOnnx():
         if self.tengine_model is not None:
             input_array = np.random.randn(*input_shape).astype(np.float32)
         else:
-            input_array = np.ones(*input_shape).astype(np.float32)
+            input_array = np.ones(input_shape).astype(np.float32)
 
         # get onnx outputs
         outputs, result = self._onnx_inference(session, input_array)
@@ -165,7 +165,7 @@ class AlignOnnx():
 
             # lack dim1 and dim5
             dim = len(mat_shape)
-            if dim != 2 or dim != 3 or dim != 4:
+            if dim != 2 and dim != 3 and dim != 4:
                 continue
             write_data_batch = data[i * np.prod(mat_shape[1:]):i + 1 * np.prod(mat_shape[1:])]
 
