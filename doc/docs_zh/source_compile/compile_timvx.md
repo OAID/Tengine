@@ -22,16 +22,16 @@ Tengine 基于 [Khadas VIM3](https://www.khadas.cn/product-page/vim3) (Amlogic A
 $ git clone https://github.com/VeriSilicon/TIM-VX.git
 ```
 
-### Download Tengine Lite
+### 下载 Tengine Lite
 
 ```bash
 $ git clone https://github.com/OAID/Tengine.git tengine-lite
 $ cd tengine-lite
 ```
 
-### 2.1 Prepare for x86_64 simulator platform
+### 2.1 准备 x86_64 仿真平台
 
-**non-cross-compilation**
+**非交叉编译**
 
 ```bash
 $ cd <tengine-lite-root-dir>
@@ -44,7 +44,7 @@ $ cp -rf ../TIM-VX/prebuilt-sdk/x86_64_linux/lib/*    ./3rdparty/tim-vx/lib/x86_
 $ rm ./source/device/tim-vx/src/tim/vx/*_test.cc
 ```
 
-Build Tengine
+构建 Tengine
 
 ```bash
 $ export LD_LIBRARY_PATH=<tengine-lite-root-dir>/3rdparty/tim-vx/lib/x86_64
@@ -55,9 +55,9 @@ $ cmake -DTENGINE_ENABLE_TIM_VX=ON ..
 $ make -j4
 ```
 
-### 2.2 Prepare for Khadas VIM3 platform
+### 2.2 非交叉编译
 
-Prepare for VIM3 prebuild sdk:
+准备 VIM3 prebuild sdk:
 
 ```bash
 $ wget -c https://github.com/VeriSilicon/TIM-VX/releases/download/v1.1.28/aarch64_A311D_D312513_A294074_R311680_T312233_O312045.tgz
@@ -74,9 +74,9 @@ $ cp -rf ../prebuild-sdk-a311d/lib/*    ./3rdparty/tim-vx/lib/aarch64/
 $ rm ./source/device/tim-vx/src/tim/vx/*_test.cc
 ```
 
-#### 2.2.1 cross-compilation
+#### 2.2.1 交叉编译
 
-TOOLCHAIN_FILE in the <tengine-lite-root-dir>/toolchains
+TOOLCHAIN_FILE 存在于 <tengine-lite-root-dir>/toolchains
 ```bash
 $ export LD_LIBRARY_PATH=<tengine-lite-root-dir>/3rdparty/tim-vx/lib/aarch64
 
@@ -86,7 +86,7 @@ $ cmake -DCMAKE_TOOLCHAIN_FILE=../toolchains/aarch64-linux-gnu.toolchain.cmake -
 $ make -j4
 ```
 
-#### 2.2.2 non-cross-compilation
+#### 2.2.2 开发板上本地编译
 
 Check for galcore:
 
@@ -101,7 +101,7 @@ $ rmmod galcore
 $ insmod galcore.ko
 ```
 
-Check for libOpenVX.so*:
+检查 libOpenVX.so*:
 
 ```bash
 $ sudo find / -name "libOpenVX.so*"
@@ -116,7 +116,7 @@ $ mv /usr/lib/libOpenVX.so* ./Backup
 $ cp -rf ../prebuild-sdk-a311d/lib/libOpenVX.so* /usr/lib
 ```
 
-Build Tengine
+构建 Tengine
 
 ```bash
 $ cd <tengine-lite-root-dir>
@@ -130,7 +130,7 @@ $ make -j4
 RV1109/RV1126 只有 buildroot，没有完整系统的概念，所以不能进行本地编译，只能交叉编译。
 解压缩 Rockchip 提供(或板卡厂商代为提供)的 RV1109/RV1126 SDK 后，找到 <rv1109-rv1126>external/rknpu/drivers/linux-armhf-puma/usr/lib，**注意**此目录下的文件[列表](#list)我们后面会用到，为了方便起见，此路径我们称之为 <rk_sdk_npu_lib>。
 
-#### 3.1 Prepare for Khadas VIM3 platform
+#### 3.1 在 Khadas VIM3 平台上
 
 ```bash
 $ cd <tengine-lite-root-dir>
@@ -241,6 +241,7 @@ khadas@Khadas:~$
 可以看到，`galcore 663552  0` 的打印说明了 galcore.ko 已经成功加载。
 
 Q：如何查看 Galcore 的版本？
+
 A：使用 dmesg 命令打印驱动加载信息，由于信息较多，可以通过 grep 命令进行过滤。
 Linux 系统典型命令和打印如下：
 ``` bash
@@ -258,6 +259,7 @@ kvim3:/ $
 可以看出，这个 linux 的 A311D 板卡加载的 galcore.ko 版本是 6.4.3.p0.286725，满足 linux 的版本最低要求。
 
 Q：如何替换 galcore.ko？
+
 A：在 SDK 和内核版本升级过程中，有可能有需要升级对应的 NPU 部分的驱动，尽管推荐这一部分由板卡厂商完成，但实际上也有可能有测试或其他需求，需要直接使用最新的 NPU 版本进行测试。这时需要注意的是首先卸载 galcore.ko，然后再加载新的版本。具体命令为(假设新版本的 galcore.ko 就在当前目录)：
 ``` bash
 khadas@Khadas:~$ ls
@@ -288,6 +290,7 @@ libarchmodelSw.so
 这些文件一般在 `/usr/lib/` 文件夹里面(一些板卡可能没有预置用户态的驱动和内核驱动，这时自行添加后增加启动脚本加载内核驱动即可)。
 
 Q：替换 galcore.ko 后，怎么检查细节状态？
+
 A：有时 insmod galcore.ko 后，lsmod 时还是有 galcore 模块的，但确实没加载成功。此时可以用 dmesg 命令确认下返回值等信息，核查是否有其他错误发生。
 Linux 典型打印如下：
 ``` bash
@@ -307,9 +310,11 @@ kvim3:/ $
 ```
 
 Q：打印提示依赖库是未识别的 ELF 格式？
+
 A：
 
 Q：为什么我的 Android 跑不起来对应的 APK，但 ADB Shell 跑测试程序却可以？
+
 A：Android 系统不同于 Linux 系统，可以很方便的通过 GDB Server 进行远程调试，所以建议 APP 里面的集成算法部分，先在 ADB Shell 里验证一下正确性后再进行 APK 的集成。
 如果已经在 ADB Shell 里验证了典型的用例是正确的，APK 里面的 JNI 部分也没有其他问题，那么 APP 运行不了可以检查一下对应的 NPU 用户态驱动是否已经放行。许可文件路径是 `/vendor/etc/public.libraries.txt` 。许可没有放行一般提示包含有 `java.lang.UnsatisfiedLinkError` 错误。已经放行的 Android 许可文件大致如下图所示，libCLC.so 等已经包含进来：
 ``` bash
