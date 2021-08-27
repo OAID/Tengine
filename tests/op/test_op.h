@@ -663,6 +663,62 @@ graph_t create_common_test_graph(const char* test_node_name, int data_type, int 
     return graph;
 }
 
+graph_t create_opendla_test_graph(const char* test_node_name, int data_type, int layout, int n, int c, int h, int w, common_test test_func, int dims_num = 4)
+{
+    /* create OpenDLA backend */
+    context_t odla_context = create_context("odla", 1);
+    int rtt = set_context_device(odla_context, "OPENDLA", NULL, 0);
+    if (0 > rtt)
+    {
+        fprintf(stderr, " add_context_device VSI DEVICE failed.\n");
+        return NULL;
+    }
+
+    graph_t graph = create_graph(odla_context, NULL, NULL);
+    if (NULL == graph)
+    {
+        fprintf(stderr, "get graph failed.\n");
+        return NULL;
+    }
+
+    if (set_graph_layout(graph, layout) < 0)
+    {
+        fprintf(stderr, "set layout failed.\n");
+        return NULL;
+    }
+
+    const char* input_name = "input_node";
+    if (create_input_node(graph, input_name, data_type, layout, n, c, h, w, dims_num) < 0)
+    {
+        fprintf(stderr, "create input node failed.\n");
+        return NULL;
+    }
+
+    if (test_func(graph, input_name, test_node_name, data_type, layout, n, c, h, w) < 0)
+    {
+        fprintf(stderr, "create test node failed.\n");
+        return NULL;
+    }
+
+    /* set input/output node */
+    const char* inputs[] = {input_name};
+    const char* outputs[] = {test_node_name};
+
+    if (set_graph_input_node(graph, inputs, sizeof(inputs) / sizeof(char*)) < 0)
+    {
+        fprintf(stderr, "set inputs failed.\n");
+        return NULL;
+    }
+
+    if (set_graph_output_node(graph, outputs, sizeof(outputs) / sizeof(char*)) < 0)
+    {
+        fprintf(stderr, "set outputs failed.\n");
+        return NULL;
+    }
+
+    return graph;
+}
+
 graph_t create_timvx_test_graph(const char* test_node_name, int data_type, int layout, int n, int c, int h, int w, common_test test_func, int dims_num = 4)
 {
     /* create VeriSilicon TIM-VX backend */

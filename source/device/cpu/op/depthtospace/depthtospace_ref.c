@@ -22,6 +22,8 @@
  * Author: qtang@openailab.com
  */
 
+#include "depthtospace_param.h"
+
 #include "graph/tensor.h"
 #include "graph/node.h"
 #include "graph/graph.h"
@@ -34,15 +36,136 @@
 
 #include <math.h>
 
-int ref_depthtospace_fp32(struct tensor* input_tensor, struct tensor* output_tensor, int num_thread)
+int ref_depthtospace_fp32(struct tensor* input_tensor, struct tensor* output_tensor, int num_thread, int block_size)
 {
+    int n = input_tensor->dims[0];
+    int inc = input_tensor->dims[1];
+    int inh = input_tensor->dims[2];
+    int inw = input_tensor->dims[3];
+
+    int outc = inc / (block_size * block_size);
+    int outh = input_tensor->dims[2] * block_size;
+    int outw = input_tensor->dims[3] * block_size;
+
     float* input_data = (float*)input_tensor->data;
     float* out_data = (float*)output_tensor->data;
     int total_size = input_tensor->elem_num;
 
-    for (int i = 0; i < total_size; i++)
+    //TODO:add mode in depthtospace_param to set CRD or DCR
+    for (int b = 0; b < n; ++b)
     {
-        out_data[i] = input_data[i];
+        for (int s = 0; s < outc; ++s)
+        {
+            for (int h = 0; h < outh; ++h)
+            {
+                const int in_h = h / block_size;
+                const int offset_h = (h % block_size);
+                for (int w = 0; w < outw; ++w)
+                {
+                    const int in_w = w / block_size;
+                    const int offset_w = w % block_size;
+                    //CRD
+                    const int offset_d = offset_h * block_size + offset_w;
+                    const int in_d = s * (block_size * block_size) + offset_d;
+                    //DCR
+                    //const int offset_d =(offset_h * block_size + offset_w) * outc;
+                    //const int in_d = s + offset_d;
+                    const int o_index = ((b * outc + s) * outh + h) * outw + w;
+                    const int i_index = ((b * inc + in_d) * inh + in_h) * inw + in_w;
+                    out_data[o_index] = input_data[i_index];
+                }
+            }
+        }
+    }
+
+    return 0;
+}
+
+int ref_depthtospace_uint8(struct tensor* input_tensor, struct tensor* output_tensor, int num_thread, int block_size)
+{
+    int n = input_tensor->dims[0];
+    int inc = input_tensor->dims[1];
+    int inh = input_tensor->dims[2];
+    int inw = input_tensor->dims[3];
+
+    int outc = inc / (block_size * block_size);
+    int outh = input_tensor->dims[2] * block_size;
+    int outw = input_tensor->dims[3] * block_size;
+
+    unsigned char* input_data = (unsigned char*)input_tensor->data;
+    unsigned char* out_data = (unsigned char*)output_tensor->data;
+    int total_size = input_tensor->elem_num;
+
+    //TODO:add mode in depthtospace_param to set CRD or DCR
+    for (int b = 0; b < n; ++b)
+    {
+        for (int s = 0; s < outc; ++s)
+        {
+            for (int h = 0; h < outh; ++h)
+            {
+                const int in_h = h / block_size;
+                const int offset_h = (h % block_size);
+                for (int w = 0; w < outw; ++w)
+                {
+                    const int in_w = w / block_size;
+                    const int offset_w = w % block_size;
+                    //CRD
+                    const int offset_d = offset_h * block_size + offset_w;
+                    const int in_d = s * (block_size * block_size) + offset_d;
+                    //DCR
+                    //const int offset_d =(offset_h * block_size + offset_w) * outc;
+                    //const int in_d = s + offset_d;
+                    const int o_index = ((b * outc + s) * outh + h) * outw + w;
+                    const int i_index = ((b * inc + in_d) * inh + in_h) * inw + in_w;
+                    out_data[o_index] = input_data[i_index];
+                }
+            }
+        }
+    }
+
+    return 0;
+}
+
+int ref_depthtospace_int8(struct tensor* input_tensor, struct tensor* output_tensor, int num_thread, int block_size)
+{
+    int n = input_tensor->dims[0];
+    int inc = input_tensor->dims[1];
+    int inh = input_tensor->dims[2];
+    int inw = input_tensor->dims[3];
+
+    int outc = inc / (block_size * block_size);
+    int outh = input_tensor->dims[2] * block_size;
+    int outw = input_tensor->dims[3] * block_size;
+
+    signed char* input_data = (signed char*)input_tensor->data;
+    signed char* out_data = (signed char*)output_tensor->data;
+    int total_size = input_tensor->elem_num;
+
+    //TODO:add mode in depthtospace_param to set CRD or DCR
+    for (int b = 0; b < n; ++b)
+    {
+        for (int s = 0; s < outc; ++s)
+        {
+            for (int h = 0; h < outh; ++h)
+            {
+                const int in_h = h / block_size;
+                const int offset_h = (h % block_size);
+                for (int w = 0; w < outw; ++w)
+                {
+                    const int in_w = w / block_size;
+                    const int offset_w = w % block_size;
+                    //CRD
+                    const int offset_d = offset_h * block_size + offset_w;
+                    const int in_d = s * (block_size * block_size) + offset_d;
+                    //DCR
+                    //const int offset_d =(offset_h * block_size + offset_w) * outc;
+                    //const int in_d = s + offset_d;
+                    const int o_index = ((b * outc + s) * outh + h) * outw + w;
+                    const int i_index = ((b * inc + in_d) * inh + in_h) * inw + in_w;
+                    out_data[o_index] = input_data[i_index];
+                }
+            }
+        }
     }
 
     return 0;
@@ -74,7 +197,16 @@ static int run(struct node_ops* node_ops, struct exec_node* exec_node, struct ex
     input_tensor = get_ir_graph_tensor(ir_graph, ir_node->input_tensors[0]);
     output_tensor = get_ir_graph_tensor(ir_graph, ir_node->output_tensors[0]);
 
-    int ret = ref_depthtospace_fp32(input_tensor, output_tensor, exec_graph->num_thread);
+    struct depthtospace_param* param = (struct depthtospace_param*)ir_node->op.param_mem;
+    
+    int ret = 0;
+    if (input_tensor->data_type == TENGINE_DT_FP32)
+        ret = ref_depthtospace_fp32(input_tensor, output_tensor, exec_graph->num_thread, param->block_size);
+    else if (input_tensor->data_type == TENGINE_DT_UINT8)
+        ret = ref_depthtospace_uint8(input_tensor, output_tensor, exec_graph->num_thread, param->block_size);
+    else if (input_tensor->data_type == TENGINE_DT_INT8)
+        ret = ref_depthtospace_int8(input_tensor, output_tensor, exec_graph->num_thread, param->block_size);
+    
     if (ret != 0)
         return -1;
 

@@ -29,13 +29,13 @@ Tengine 核心代码由 4 个模块组成：
 
 ## 架构简析
 
-![Tengine 架构](doc/architecture.png)
+![Tengine 架构](doc/docs_zh/images/architecture.png)
 
 ## 快速上手
 
 ### 编译
 
-- [快速编译](doc/compile.md) 基于 cmake 实现简单的跨平台编译。
+- [快速编译](doc/docs_zh/source_compile) 基于 cmake 实现简单的跨平台编译。
 
 ### 示例
 
@@ -49,9 +49,9 @@ Tengine 核心代码由 4 个模块组成：
 
 ### 转换工具
 
-- [预编译版本](https://github.com/OAID/Tengine/releases/download/lite-v1.2/convert_tool.zip)：提供 Ubuntu 18.04 系统上预编译好的模型转换工具；
-- [在线转换版本](https://convertmodel.com/#outputFormat=tengine)：基于 WebAssembly 实现（浏览器本地转换，模型不会上传）；
-- [源码编译](https://github.com/OAID/Tengine-Convert-Tools)：参考 **Tengine-Convert-Tools** 项目编译生成，建议采用。
+- [预编译版本](https://github.com/OAID/Tengine/releases/download/lite-v1.2/convert_tool.zip) ：提供 Ubuntu 18.04 系统上预编译好的模型转换工具；
+- [在线转换版本](https://convertmodel.com/#outputFormat=tengine) ：基于 WebAssembly 实现（浏览器本地转换，模型不会上传）；
+- [源码编译](https://github.com/OAID/Tengine-Convert-Tools) ：参考 **Tengine-Convert-Tools** 项目编译生成，建议采用。
 
 ### 量化工具
 
@@ -72,8 +72,8 @@ Tengine 核心代码由 4 个模块组成：
 ### Container
 
 - [SuperEdge](https://github.com/superedge/superedge) 借助 SuperEdge 边缘计算的开源容器管理系统，提供更便捷的业务管理方案；
-- [How to use Tengine with SuperEdge](doc/superedge_user_manual.md) 容器使用指南；
-- [Video Capture user manual](doc/demo_videocapture_user_manual.md) Demo 依赖文件生成指南。
+- [How to use Tengine with SuperEdge](doc/docs_zh/source_compile/deploy_SuperEdge.md) 容器使用指南；
+- [Video Capture user manual](doc/docs_zh/source_compile/demo_videocapture.md) Demo 依赖文件生成指南。
 
 ## Roadmap
 
@@ -100,6 +100,10 @@ Tengine Lite 参考和借鉴了下列项目：
 ## License
 
 - [Apache 2.0](LICENSE)
+
+## 澄清说明
+
+- [在线上报功能] 在线上报功能主要目的是了解Tengine的使用信息，信息用于优化和迭代Tengine，不会影响任何正常功能。该功能默认开启，如需关闭，可修改如下配置关闭：(主目录 CMakeLists.txt )  OPTION (TENGINE_ONLINE_REPORT "online report" OFF)
 
 ## FAQ
 

@@ -27,7 +27,7 @@ mkdir build && cd build
 cmake ..
 make -j`nproc` && make install
 ```
-编译完成后，生成的可行性文件 `tm_convert_tool` 存放在 `./build/install/bin/` 目录下。
+编译完成后，生成的可执行文件 `tm_convert_tool` 存放在 `./build/install/bin/` 目录下。
 
 ## 执行模型转换
 

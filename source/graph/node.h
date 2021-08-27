@@ -31,6 +31,10 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
 struct node;
 struct tensor;
 struct graph;
@@ -131,3 +135,7 @@ int set_ir_node_output_tensor(ir_node_t* ir_node, int output_idx, struct tensor*
  * @param [in]  node: specific node.
  */
 void dump_ir_node(struct graph* ir_graph, ir_node_t* ir_node);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */

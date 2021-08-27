@@ -100,4 +100,4 @@ public:
 
 } // namespace TEngine
 
-#endif // LAYER_INNERPRODUCT_VULKAN_H
+#endif // LAYER_INNERPRODUCT_HPP

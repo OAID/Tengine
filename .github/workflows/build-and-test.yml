@@ -73,13 +73,9 @@ jobs:
     - name: models
       run: |
         cd build
-        wget ftp://219.139.34.182/tengine/ci_test/models.zip
-        unzip models.zip
-        wget ftp://219.139.34.182/tengine/ci_test/arm32_data.zip
-        unzip arm32_data.zip
-        mv arm32_data data
-        wget ftp://219.139.34.182/tengine/ci_test/images.zip
-        unzip images.zip
+        wget -c ftp://219.139.34.182/tengine/ci_test/images/* -P images
+        wget -c ftp://219.139.34.182/tengine/ci_test/data_arm32/* -P data
+        wget -c ftp://219.139.34.182/tengine/ci_test/model_test/* -P models
     - name: test
       run: |
         export PATH=$GITHUB_WORKSPACE/qemu-install/bin:$PATH
@@ -126,13 +122,10 @@ jobs:
     - name: models
       run: |
         cd build
-        wget ftp://219.139.34.182/tengine/ci_test/models.zip
-        unzip models.zip
-        wget ftp://219.139.34.182/tengine/ci_test/arm64_data.zip
-        unzip arm64_data.zip
-        mv arm64_data data
-        wget ftp://219.139.34.182/tengine/ci_test/images.zip
-        unzip images.zip
+        wget -c ftp://219.139.34.182/tengine/ci_test/images/* -P images
+        wget -c ftp://219.139.34.182/tengine/ci_test/data_arm64/* -P data
+        wget -c ftp://219.139.34.182/tengine/ci_test/model_test/* -P models
+
     - name: test
       run: |
         export PATH=$GITHUB_WORKSPACE/qemu-install/bin:$PATH
@@ -159,9 +152,9 @@ jobs:
       run: |
         cd build
         actions=/home/khadas/actions-runner
-        ln -s ${actions}/ci_test/models/      models
+        ln -s ${actions}/ci_test/models_test/ models
         ln -s ${actions}/ci_test/images/      images
-        ln -s ${actions}/ci_test/arm64_data/  data
+        ln -s ${actions}/ci_test/data_arm64/  data
     - name: test
       run: |
         chmod +x ./tests/test_arm64_real.sh
@@ -180,9 +173,9 @@ jobs:
       run: |
         cd build
         actions=/home/nvidia/actions-runner
-        ln -s ${actions}/ci_test/models/      models
+        ln -s ${actions}/ci_test/models_test/ models
         ln -s ${actions}/ci_test/images/      images
-        ln -s ${actions}/ci_test/arm64_data/  data
+        ln -s ${actions}/ci_test/data_arm64/  data
     - name: test
       run: |
         chmod +x ./tests/test_arm64_*.sh
@@ -318,13 +311,9 @@ jobs:
     - name: test-data
       run: |
         cd build
-        wget ftp://219.139.34.182/tengine/ci_test/models.zip
-        unzip models.zip
-        wget ftp://219.139.34.182/tengine/ci_test/x86_data.zip
-        unzip x86_data.zip
-        mv x86_data data
-        wget ftp://219.139.34.182/tengine/ci_test/images.zip
-        unzip images.zip
+        wget -c ftp://219.139.34.182/tengine/ci_test/images/* -P images
+        wget -c ftp://219.139.34.182/tengine/ci_test/data_x86/* -P data
+        wget -c ftp://219.139.34.182/tengine/ci_test/model_test/* -P models
         git clone https://github.com/BUG1989/onnx_op_test_data.git
         mv onnx_op_test_data onnx_node            
     - name: test-models
@@ -356,15 +345,11 @@ jobs:
     - name: test-data
       run: |
         cd build
-        wget ftp://219.139.34.182/tengine/ci_test/models.zip
-        unzip models.zip
-        wget ftp://219.139.34.182/tengine/ci_test/x86_data.zip
-        unzip x86_data.zip
-        mv x86_data data
-        wget ftp://219.139.34.182/tengine/ci_test/images.zip
-        unzip images.zip
+        wget -c ftp://219.139.34.182/tengine/ci_test/images/* -P images
+        wget -c ftp://219.139.34.182/tengine/ci_test/data_x86/* -P data
+        wget -c ftp://219.139.34.182/tengine/ci_test/model_test/* -P models
         git clone https://github.com/BUG1989/onnx_op_test_data.git
-        mv onnx_op_test_data onnx_node            
+        mv onnx_op_test_data onnx_node          
     - name: test-models
       run: |
         chmod +x ./tests/test.sh
@@ -400,9 +385,9 @@ jobs:
     - name: Download and unzip test data
       run: |
         cd build
-        wget ftp://219.139.34.182/tengine/ci_test/model_test_convert/onnx_models.zip
+        wget -c ftp://219.139.34.182/tengine/ci_test/model_test_convert/onnx_models.zip
         unzip onnx_models.zip
-        wget ftp://219.139.34.182/tengine/ci_test/model_test_convert/onnx_models_output.zip
+        wget -c ftp://219.139.34.182/tengine/ci_test/model_test_convert/onnx_models_output.zip
         unzip onnx_models_output.zip
     - name: Run tests
       run: |
@@ -441,8 +426,7 @@ jobs:
         git clone https://github.com/BUG1989/tengine_test_data.git
         cp ./tengine_test_data/mobilenet.tmfile ./
         cp -rf ./tengine_test_data/dataset ./
-        wget ftp://219.139.34.182/tengine/ci_test/images.zip
-        unzip images.zip
+        wget -c ftp://219.139.34.182/tengine/ci_test/images/* -P images
     - name: quant-tools-test
       run: |
         ./quant_tool_uint8-x86_64.AppImage -m mobilenet.tmfile -o mobilenet_uint8.tmfile -i ./dataset -g 3,224,224 -s 0.017,0.017,0.017 -c 1
